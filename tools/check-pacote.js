@@ -147,11 +147,19 @@ if (fs.existsSync(pdf)) {
     if (total >= minimo) ok.push(`PDF: ${total} páginas (mínimo esperado: ${minimo})`);
     else erros.push(`PDF: ${total} páginas — esperava ao menos ${minimo} (documentos em páginas separadas)`);
 
-    // rodapé numerado + identificação do ciclo em todas as páginas
+    // rodapé numerado + identificação do ciclo em TODAS as páginas.
+    // Uma única extração do documento inteiro, dividida por \f: evita o artefato
+    // de fronteira da extração página a página (o rodapé de uma página pode ser
+    // lido junto da seguinte) e não gera um processo por página.
+    const completo = cp.execSync(`pdftotext "${pdf}" - 2>/dev/null`, { encoding: 'utf8' });
+    const paginasTexto = completo.split('\f');
     const semRodape = [];
+    const normalizarTexto = (s) => s.replace(/[\u00a0\u2007\u202f]/g, ' ').replace(/\s+/g, ' ');
     for (let p = 1; p <= total; p++) {
-      const t = cp.execSync(`pdftotext -f ${p} -l ${p} "${pdf}" - 2>/dev/null`, { encoding: 'utf8' });
-      if (!new RegExp(`p\\.\\s*${p}\\b`).test(t) || !/Ciclo/i.test(t)) semRodape.push(p);
+      const t = normalizarTexto(paginasTexto[p - 1] || '');
+      if (!new RegExp(`p\\.\\s*${p}(\\D|$)`).test(t) || !/Ciclo/i.test(t)) {
+        semRodape.push(`${p} ("${t.trim().slice(-40)}")`);
+      }
     }
     if (semRodape.length === 0) ok.push(`PDF: rodapé com identificação do ciclo e número nas ${total} páginas`);
     else erros.push(`PDF: rodapé ausente/incompleto nas páginas ${semRodape.join(', ')}`);
