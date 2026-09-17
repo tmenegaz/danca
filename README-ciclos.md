@@ -1,0 +1,216 @@
+# Ciclos de Aprendizagem — formato de entrega (Regra 16)
+
+Este documento descreve como o material de um ciclo é **gerado e entregue** neste
+repositório: os arquivos-fonte, os dois formatos obrigatórios (PDF único e pacote
+HTML), as regras de navegação e como validar tudo antes de entregar ao professor.
+
+> **Estado atual:** `ciclos/ciclo-01/` está **gerado e validado** com o conteúdo real
+> do ciclo: Plano (12 marcos + rubrica + calibração de volume) e Aula 01 completa
+> (conduzida em **60 min**, com 90 tempos ativos distribuídos em solo/barra/centro),
+> mais os cinco documentos de apoio. O que ainda depende do professor vem marcado como
+> `[Preencher]` (nome do professor) ou `[conferir]` (edição/ano de material didático).
+
+## O que a entrega contém
+
+| Item | Onde | Observação |
+|:--|:--|:--|
+| **Markdown-fonte** | `ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
+| **Manifesto do ciclo** | `ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
+| **PDF único consolidado** | `ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (23 páginas no ciclo 01) |
+| **Pacote HTML** | `ciclos/ciclo-XX/*.html` | 8 páginas interligadas, com barra de navegação fixa |
+| **Folha de estilo única** | `ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
+| **Mapas do rizoma** | `ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
+| **README do pacote** | `ciclos/ciclo-XX/README.md` | gerado uma única vez; o professor pode editar depois |
+
+## Pré-requisito 4 e Regra 9 verificados em código
+
+A duração não é mais um campo decorativo: o gerador **recusa** construir a aula
+quando ela falta ou quando o volume planejado não cabe na faixa da duração.
+
+| Verificação | Onde vive | O que acontece se falhar |
+|:--|:--|:--|
+| `DURACAO` declarada no manifesto e em minutos | `tools/gerar-ciclo.sh` | geração interrompida com mensagem explicando o Pré-requisito 4 |
+| Cada `aula-*.md` com `duracao:` no cabeçalho | idem | geração interrompida apontando o arquivo |
+| `volume-total:` dentro de `VOLUME_MIN–VOLUME_MAX` | idem | geração interrompida apontando o volume e a faixa (Regra 9, etapa 1) |
+
+No Ciclo 01: `DURACAO="60 min"` → faixa **80–100 tempos** → aula 01 declara
+**90 tempos** ✓ — Solo 30 (33%), Barra 20 (22%), Centro 32 (36%), Musicalidade 8
+(9%), todas as proporções dentro das faixas da Regra 9.
+
+### Regra de aritmética de volume (aprendida aplicando a recalibração)
+
+Duas incoerências apareceram no rascunho da Aula 01 e foram corrigidas no material
+(o que mudou está documentado **dentro** da própria aula):
+
+| Situação no rascunho | Problema | Correção |
+|:--|:--|:--|
+| 12 transferências × "1,5 tempo" = 18 tempos | **não existe 1,5 tempo em 4/4**; a mesma tabela descreve a frase em 4 tempos | 5 transferências × 4 tempos = 20 tempos |
+| "Pré-requisitos: 48 tempos (dentro do bloco Solo)" | 48 tempos não cabem em um bloco de 30 | preparação **fora da conta** do volume ativo (Regra 4 separa as duas coisas) |
+
+**Regra adotada:** o teto vem da duração, as frases são inteiras em 4/4 e a
+preparação não consome o volume da aula. Se um exercício não fecha em tempos
+inteiros, quem está errado é a conta — não o tempo musical.
+
+
+
+## Comando único
+
+```bash
+tools/gerar-ciclo.sh 01                       # gera HTML + PDF e valida no fim
+node tools/check-pacote.js ciclos/ciclo-01    # valida de novo, avulso, se quiser
+```
+
+O script, em ordem:
+
+1. **normaliza os ids** de todos os títulos (`tools/normalizar-ids.py`);
+2. converte cada documento em HTML com o template `tools/templates/ciclo.html`;
+3. monta o **PDF consolidado** com pandoc + cabeçalho LaTeX próprio;
+4. copia a folha de estilo e os mapas;
+5. escreve o `README.md` do pacote (se ainda não existir);
+6. roda a validação final e falha se algo estiver quebrado.
+
+## Ambiente: por que o engine é `pdflatex` (e não `xelatex`)
+
+O comando sugerido na Regra 16 (`--pdf-engine=xelatex`) **não funciona nesta
+máquina**, e isso foi verificado, não suposto:
+
+| Engine | Situação | Consequência |
+|:--|:--|:--|
+| `xelatex` | **não instalado** | o comando da Regra 16 falha aqui |
+| `lualatex` | **quebrado** — falta `lualatex-math.sty` e o `luaotfload` erra ao carregar as fontes OpenType do Latin Modern | também falha |
+| `pdflatex` | **funciona** | é o engine usado; acentuação portuguesa sai correta com `babel-portuguese` |
+
+Por isso o script usa `pdflatex` e **não** usa `fontspec` (o que impede trocar de
+fonte por `-V mainfont=`). Para usar `xelatex`:
+
+```bash
+sudo apt install texlive-xetex texlive-latex-extra      # xelatex + pacotes
+PDF_ENGINE=xelatex tools/gerar-ciclo.sh 01              # troca sem editar o script
+```
+
+Outra diferença em relação ao comando sugerido: o conteúdo **não** vem de um único
+Markdown escrito à mão, mas da junção dos documentos do ciclo (cada um precedido de
+`\clearpage`, para que cada documento comece em página nova).
+
+## Regras de navegação implementadas
+
+### No pacote HTML
+
+| Regra 16 | Como está implementado |
+|:--|:--|
+| Barra de navegação fixa em todas as páginas | `<nav class="topnav">` gerado página a página, com a **página atual marcada** (`class="ativo"`), menu "Aulas" e atalho para o PDF |
+| Índice interno no topo | `<nav class="toc-local">` — índice da própria página (pandoc `--toc --toc-depth=3`) |
+| Links cruzados entre arquivos | escritos na fonte como `[notação](notacao.html#exemplo-didatico-um-tendu)`; o validador confere arquivo **e** âncora |
+| Citação → referência completa | links como `[Referências](referencias.html#pedagogia-do-bale)`, apontando ao grupo certo da bibliografia |
+| Botão "voltar ao topo" | `<a class="topo">` fixo no canto inferior direito |
+| Rodapé com identificação | ciclo, período e professor + links para índice, plano, apoio, referências e PDF |
+
+### No PDF
+
+| Regra 16 | Como está implementado | Como foi verificado |
+|:--|:--|:--|
+| Índice navegável | `--toc --toc-depth=3 -V toc-title="Índice"`, em página própria | "Índice" presente nas primeiras páginas (`pdftotext`) |
+| Referências cruzadas internas | links `arquivo.html#ancora` reescritos para `#ancora` com prefixo do documento | toda âncora usada tem título correspondente (checado no gerador) |
+| Bookmarks na barra lateral | `hyperref` + `bookmark.sty` | presença de `/Outlines` nos streams inflados do PDF |
+| Numeração e identificação no rodapé | `fancyhdr`, com o estilo `plain` redefinido para valer **também na capa** | checagem página a página: `p. N` e "Ciclo" em todas as 17 páginas |
+| Cada documento em página nova | `\clearpage` antes de cada título | 17 páginas para 9 documentos + capa + índice |
+
+## Âncoras: a armadilha que custou uma rodada
+
+O pandoc **preserva acentos** ao gerar o id de um título
+(`## Rubrica de avaliação final` → `id="rubrica-de-avaliação-final"`), enquanto os
+links do texto são escritos em ASCII (`#rubrica-de-avaliacao-final`). Resultado:
+links mortos — e silenciosos — nos dois formatos.
+
+A solução é uma etapa única antes de gerar qualquer coisa: `tools/normalizar-ids.py`
+dá ids ASCII explícitos a todos os títulos, e **os dois formatos usam o mesmo
+arquivo normalizado** — então as âncoras coincidem por construção. No PDF, cada id
+ainda recebe o prefixo do documento (`aula-01--exercicios`), porque "Exercícios"
+aparece em toda aula e, sem o prefixo, o link da Aula 02 levaria à seção da Aula 01.
+
+**Convenções ao escrever novos documentos:**
+
+- Os ids vêm dos títulos: use títulos curtos e estáveis.
+- De um arquivo para outro: `[texto](arquivo.html#id-do-titulo)`.
+- Dentro do próprio arquivo: `[texto](#id-do-titulo)`.
+- Id fixo fora do padrão: declare-o — `## Título {#meu-id}`.
+- Onde faltar decisão pedagógica ou fonte, escreva `[Preencher: ...]`: o validador
+  não reclama, mas o material fica marcado para não ser entregue assim.
+
+## O que `tools/check-pacote.js` verifica
+
+1. todos os arquivos obrigatórios existem, não estão vazios, e há ao menos uma aula;
+2. toda página tem barra de navegação, índice interno, botão "voltar ao topo",
+   rodapé, `lang="pt-BR"` e folha de estilo — e **exatamente um** link marcado como
+   página atual;
+3. todo link interno resolve: arquivo existe e âncora existe no arquivo alvo;
+4. no PDF: bookmarks, links internos, número mínimo de páginas, rodapé numerado e
+   com identificação do ciclo **em todas as páginas**, título "Índice", todos os
+   documentos das páginas HTML presentes no texto e **nenhum texto passando da
+   margem** (medida pelas coordenadas reais do PDF, com `pdftotext -bbox` — foi
+   essa checagem que encontrou um cabeçalho de tabela 25 pt fora da margem).
+
+Saída esperada hoje (Ciclo 01):
+
+```
+  ok    páginas verificadas: 8
+  ok    links internos verificados: 276
+  ok    PDF: bookmarks (barra lateral do leitor) presentes
+  ok    PDF: 109 links internos clicáveis
+  ok    PDF: 23 páginas (mínimo esperado: 9)
+  ok    PDF: rodapé com identificação do ciclo e número nas 23 páginas
+  ok    PDF: nenhum texto passa da margem do texto (2 cm)
+OK: 0 erro(s), 0 aviso(s).
+```
+
+## Símbolos que o LaTeX não traz (e como foram resolvidos)
+
+O `pdflatex` falha com `Unicode character ... not set up for use with LaTeX` para
+glifos fora do Latin-1. O ciclo usa cinco deles — `≠`, `✓`, `●`, `↺`, `⌒` — e todos
+são mapeados no cabeçalho `tools/templates/ciclo-cabecalho.tex` com
+`newunicodechar` + `amssymb`:
+
+```latex
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{✓}{\ensuremath{\checkmark}}
+\newunicodechar{●}{\textbullet}
+\newunicodechar{↺}{\ensuremath{\circlearrowleft}}
+\newunicodechar{⌒}{\ensuremath{\frown}}
+```
+
+Para descobrir todos os caracteres de risco de um ciclo novo:
+
+```bash
+grep -oP '[^\x00-\x7F]' ciclos/ciclo-XX-*.md | sort -u
+```
+
+
+## Criar um ciclo novo
+
+```bash
+cp ciclos/ciclo-01.conf ciclos/ciclo-02.conf       # ajuste nome, objetivo, período, DOCS
+cp ciclos/ciclo-01-plano.md ciclos/ciclo-02-plano.md
+# escreva os demais com o prefixo ciclo-02- (index, aula-01, notacao,
+# pre-requisitos, musicalidade, apanhado-historico, referencias)
+tools/gerar-ciclo.sh 02
+```
+
+Cada documento começa com um bloco YAML que alimenta o cabeçalho e a ficha da
+página (`projeto`, `frente`, `ciclo`, `aula`, `data`, `objetivo-especifico`,
+`referencias`), conforme a Premissa 6 — o `title:` é o que aparece na navegação.
+
+## Arquivos desta entrega
+
+| Arquivo | Papel |
+|:--|:--|
+| `tools/gerar-ciclo.sh` | gerador do pacote (HTML + PDF + README + validação) |
+| `tools/normalizar-ids.py` | ids ASCII explícitos para todos os títulos |
+| `tools/check-pacote.js` | validador da entrega (links, navegação, PDF) |
+| `tools/templates/ciclo.html` | template HTML do pandoc (ficha, índice, rodapé) |
+| `tools/templates/ciclo.css` | folha de estilo única do pacote |
+| `tools/templates/ciclo-cabecalho.tex` | rodapé numerado e índice em página nova |
+
+> As ferramentas do material do rizoma (`gerar-animacao.js`, `check-mapa.js`,
+> `medir-rotulos.js`, `sincronizar-slide.js`) são do **deck** e estão descritas no
+> `README.md` da raiz.
+

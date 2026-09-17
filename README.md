@@ -1,0 +1,73 @@
+# Formação em Balé Clássico — visão geral
+
+Repositório único com as **duas frentes** do projeto: as **aulas** (ciclos de
+aprendizagem) e a **apresentação** (deck do rizoma). Tudo gerado por scripts,
+validado automaticamente e versionado com proveniência.
+
+```
+.
+├── REGRAS.md                     as 17 regras do projeto (versionadas)
+├── README.md                     este arquivo: visão geral e atalhos
+├── README-ciclos.md              documentação da entrega de ciclos (Regra 16)
+├── apresentacoes/
+│   └── apresentacao-01-rizoma/   deck "O Repertório Vivo" (72 slides) + mapas
+│       ├── apresentacao-ballet.md      fonte Marp
+│       ├── rizoma-slide.svg            mapa do slide 68 (fonte da verdade)
+│       ├── rizoma-corrigido.svg        mapa completo (26 caixas, 33 arestas)
+│       ├── rizoma-animado.html         mapa animado (gerado)
+│       ├── README.md                   documentação detalhada do deck
+│       └── out/                        PDF, PPTX, HTML, PNGs (não versionado)
+├── ciclos/
+│   ├── ciclo-01.conf             manifesto (objetivo, duração, volume, docs)
+│   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
+│   └── ciclo-01/                 pacote entregue: HTML + PDF (não versionado)
+├── biblioteca/                   referências compartilhadas pelas duas frentes
+└── tools/                        geradores, validadores e hooks
+```
+
+## Atalhos
+
+| Quero… | Comando |
+|:--|:--|
+| Gerar a entrega de um ciclo (HTML + PDF + validação) | `tools/gerar-ciclo.sh 01` |
+| Validar um pacote de ciclo | `node tools/check-pacote.js ciclos/ciclo-01` |
+| Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
+| Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
+| Validar os mapas do rizoma | `node tools/check-mapa.js` · `node tools/medir-rotulos.js` |
+| Instalar os hooks de versionamento | `tools/instalar-hooks.sh` |
+
+## Como o trabalho flui
+
+```
+1. fontes em Markdown            →  ciclos/*.md  ·  apresentacoes/**/*.md
+2. gerar                          →  tools/gerar-ciclo.sh 01
+3. validar                        →  check-pacote.js · check-overflow.js · check-mapa.js
+4. auditar contra as regras       →  REGRAS.md  (commit audit(escopo): ...)
+5. commitar com proveniência      →  tipo(escopo): resumo + Refs/Regras/Auditoria
+6. mergear em main depois da auditoria
+```
+
+## Regras do projeto
+
+As 17 regras (terminologia RAD, fio condutor, causa e consequência, proveniência,
+distribuição de volume calibrada pela duração, entrega em PDF + HTML, versionamento)
+estão em **[`REGRAS.md`](REGRAS.md)**. Elas não são sugestões: os geradores e
+validadores as aplicam — por exemplo, **sem a duração da aula o gerador recusa
+construir o material**, e o volume fora da faixa da duração interrompe a geração.
+
+## Versionamento (Regra 17)
+
+- **Fontes versionadas; saídas não** (`.gitignore`): PDF, HTML, PPTX e PNG são
+  reconstruíveis a partir dos Markdown + scripts.
+- **Commits** no padrão `tipo(escopo): resumo` com rodapé obrigatório
+  `Refs:` · `Regras:` · `Auditoria:` — validado pelo hook `commit-msg`.
+- **Branches**: `main` só recebe conteúdo auditado; `ciclo-XX` e `apresentacao-XX`
+  são linhas de trabalho.
+- **Hooks**: instalados por `tools/instalar-hooks.sh` (o `.git/hooks` não é
+  versionado, então a fonte fica em `tools/hooks/`).
+
+```bash
+git log --follow ciclos/ciclo-01-aula-01.md   # histórico de um arquivo
+git log --grep="audit"                        # auditorias
+git log --oneline -- ciclos/ciclo-01/         # histórico de um ciclo
+```

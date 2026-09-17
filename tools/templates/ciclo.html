@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="$if(lang)$$lang$$else$pt-BR$endif$">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>$if(title-prefix)$$title-prefix$ · $endif$$pagetitle$</title>
+$for(css)$
+<link rel="stylesheet" href="$css$">
+$endfor$
+$for(header-includes)$
+$header-includes$
+$endfor$
+</head>
+<body id="top">
+
+$for(include-before)$
+$include-before$
+$endfor$
+
+<header class="doc">
+  <h1>$title$</h1>
+  $if(subtitle)$
+  <p class="subtitulo">$subtitle$</p>
+  $endif$
+  <p class="ficha">
+    $if(frente)$<span>$frente$</span>$endif$
+    $if(ciclo)$<span>Ciclo $ciclo$</span>$endif$
+    $if(aula)$<span>Aula $aula$</span>$endif$
+    $if(data)$<span>$data$</span>$endif$
+    $if(duracao)$<span>Duração: $duracao$</span>$endif$
+    $if(volume-total)$<span>Volume ativo: $volume-total$</span>$endif$
+    $if(objetivo-especifico)$<span>Objetivo: $objetivo-especifico$</span>$endif$
+  </p>
+</header>
+
+<main>
+$if(toc)$
+<nav class="toc-local" aria-label="Índice desta página">
+  <p class="toc-titulo">Nesta página</p>
+$toc$
+</nav>
+$endif$
+
+$body$
+</main>
+
+<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
+
+<footer class="rodape">
+  <p>$ciclo-nome$ &middot; $ciclo-periodo$ &middot; $ciclo-professor$</p>
+  <p><a href="index.html">Índice do ciclo</a> &middot;
+     <a href="plano.html">Plano</a> &middot;
+     <a href="notacao.html">Notação em Benesh</a> &middot;
+     <a href="pre-requisitos.html">Pré-Requisitos</a> &middot;
+     <a href="musicalidade.html">Musicalidade</a> &middot;
+     <a href="apanhado-historico.html">Apanhado Histórico</a> &middot;
+     <a href="referencias.html">Referências</a> &middot;
+     <a href="ciclo-$ciclo$.pdf">PDF do ciclo</a></p>
+</footer>
+
+$for(include-after)$
+$include-after$
+$endfor$
+
+</body>
+</html>

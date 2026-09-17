@@ -1,0 +1,62 @@
+% ============================================================================
+% Cabeçalho LaTeX do PDF consolidado do ciclo (Regra 16).
+% Este arquivo é um MODELO: os marcadores @NOME@, @CICLO@ e @PERIODO@ são
+% substituídos por tools/gerar-ciclo.sh antes de chamar o pandoc.
+%
+% Objetivo: rodapé com identificação do ciclo e número de página em TODAS as
+% páginas (inclusive a capa) e índice começando em página nova.
+%
+% Observação de ambiente (ver README-ciclos.md): nesta máquina o engine usado é
+% o pdflatex, porque o xelatex não está instalado e o lualatex está quebrado
+% (falta lualatex-math.sty e o luaotfload erra ao carregar as fontes OpenType).
+% Por isso aqui não se usa fontspec: apenas recursos clássicos, que renderizam
+% acentuação portuguesa corretamente com o pacote babel-portuguese.
+% ============================================================================
+
+\usepackage{fancyhdr}
+
+% Texto do rodapé: identificação do ciclo + número da página
+\newcommand{\rodapeciclo}{@NOME@ \textperiodcentered\ p.\ \thepage}
+
+% Estilo aplicado ao documento inteiro
+\fancypagestyle{ciclo}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\footnotesize\rodapeciclo}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+
+% A capa (primeira página) usa o estilo 'plain' por padrão: redefinimos para
+% que ela também receba o rodapé, como pede a regra de entrega.
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \fancyfoot[C]{\footnotesize\rodapeciclo}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0pt}%
+}
+
+\pagestyle{ciclo}
+
+% O índice abre em página própria (capa na p. 1, índice na p. 2)
+\let\cicloTocOriginal\tableofcontents
+\renewcommand{\tableofcontents}{\clearpage\cicloTocOriginal}
+
+% Título do índice e profundidade
+\renewcommand{\contentsname}{Índice}
+\setcounter{tocdepth}{3}
+
+% Espaçamento um pouco mais generoso entre parágrafos do que o padrão LaTeX
+\setlength{\parskip}{0.4em}
+
+% ---------------------------------------------------------------------------
+% Compatibilidade Unicode: símbolos que o pdflatex não traz por padrão.
+% Sem isto, o PDF falha com "Unicode character ... not set up for use with LaTeX"
+% (foi o caso de ≠, ✓, ●, ↺ e ⌒ usados nos documentos do ciclo).
+% ---------------------------------------------------------------------------
+\usepackage{amssymb}
+\usepackage{newunicodechar}
+\newunicodechar{≠}{\ensuremath{\neq}}
+\newunicodechar{✓}{\ensuremath{\checkmark}}
+\newunicodechar{●}{\textbullet}
+\newunicodechar{↺}{\ensuremath{\circlearrowleft}}
+\newunicodechar{⌒}{\ensuremath{\frown}}
