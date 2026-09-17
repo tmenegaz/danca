@@ -1,4 +1,4 @@
-# As 18 regras do projeto — Formação em Balé Clássico
+# As 17 regras do projeto (e os 5 pré-requisitos) — Formação em Balé Clássico
 
 Documento de referência versionado com o código. Cada aula, ciclo ou apresentação
 gerado pelo projeto deve poder ser auditado contra estas regras, e cada commit
@@ -19,7 +19,7 @@ declara quais delas aplicou (rodapé `Regras:`).
 > institucional, e recusa também quando o volume declarado não cabe na faixa da
 > duração de cada dia (Regra 9).
 
-## As 18 regras
+## As 17 regras
 
 | # | Regra | O que garante |
 |:--|:--|:--|
@@ -40,7 +40,8 @@ declara quais delas aplicou (rodapé `Regras:`).
 | 15 | **Musicalidade** | Bloco próprio em cada aula + arquivo paralelo do ciclo |
 | 16 | **Formato de entrega** | PDF único consolidado + pacote HTML interligado, com índice, links, bookmarks e rodapé (ver `README-ciclos.md`) |
 | 17 | **Versionamento com Git** | Todo conteúdo versionado, com commit auditável (ver abaixo) |
-| 18 | **Contexto institucional e frequência** | Escola, frequência semanal, duração por dia, volume semanal e calendário real — **uma entrega por escola** |
+
+> **O contexto institucional e a frequência entram como Pré-requisito 5** (acima), não como regra: são dados de entrada obrigatórios, e a Regra 10 os transforma em calendário real. Uma entrega por escola.
 
 ## Regra 17 em prática
 
