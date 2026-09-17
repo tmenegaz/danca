@@ -1,4 +1,4 @@
-# As 17 regras do projeto — Formação em Balé Clássico
+# As 18 regras do projeto — Formação em Balé Clássico
 
 Documento de referência versionado com o código. Cada aula, ciclo ou apresentação
 gerado pelo projeto deve poder ser auditado contra estas regras, e cada commit
@@ -12,8 +12,14 @@ declara quais delas aplicou (rodapé `Regras:`).
 | 2 | **Objetivo específico** da aula | o marco parcial daquela aula |
 | 3 | **Parâmetro de medição** | o que o professor observa para dizer "alcançado" |
 | 4 | **Duração da aula**, em minutos | calibra o volume total. **Sem ela, não se gera aula** |
+| 5 | **Contexto institucional** | escola/espaço, frequência semanal, dias e duração por dia. **Sem isso, não se gera o ciclo** |
 
-## As 17 regras
+> Os pré-requisitos 4 e 5 estão implementados em código em `tools/gerar-ciclo.sh`:
+> o gerador **recusa** construir o material quando falta a duração ou o contexto
+> institucional, e recusa também quando o volume declarado não cabe na faixa da
+> duração de cada dia (Regra 9).
+
+## As 18 regras
 
 | # | Regra | O que garante |
 |:--|:--|:--|
@@ -26,7 +32,7 @@ declara quais delas aplicou (rodapé `Regras:`).
 | 7 | **Causa e consequência** | Mecanismo, causa anatômica e consequência funcional |
 | 8 | **Proveniência objetiva** | Toda afirmação tem origem declarada; o que não tem fonte fica marcado `[conferir]` |
 | 9 | **Distribuição de volume** | Duas etapas: teto pela duração, depois distribuição por bloco (solo 30–40%, barra 20–30%, centro 30–40%, musicalidade 5–10%) |
-| 10 | **Estrutura de ciclos** | Objetivo geral macro + marcos parciais por aula + rubrica + critério de extensão |
+| 10 | **Estrutura de ciclos (com calendário)** | Camada 1: objetivo geral + marcos por aula + rubrica. Camada 2: escola, frequência, duração por dia, volume semanal e **datas reais** (formativa e somativa) |
 | 11 | **Pensamento sistêmico** | Nenhum movimento isolado: cada exercício nomeia o que habilita adiante |
 | 12 | **Observação pedagógica** | Arte ≠ ginástica; uma correção por execução; nada de dor como mérito |
 | 13 | **Apanhado histórico** | Conexão ao repertório do balé clássico, com o passo do dia |
@@ -34,6 +40,7 @@ declara quais delas aplicou (rodapé `Regras:`).
 | 15 | **Musicalidade** | Bloco próprio em cada aula + arquivo paralelo do ciclo |
 | 16 | **Formato de entrega** | PDF único consolidado + pacote HTML interligado, com índice, links, bookmarks e rodapé (ver `README-ciclos.md`) |
 | 17 | **Versionamento com Git** | Todo conteúdo versionado, com commit auditável (ver abaixo) |
+| 18 | **Contexto institucional e frequência** | Escola, frequência semanal, duração por dia, volume semanal e calendário real — **uma entrega por escola** |
 
 ## Regra 17 em prática
 

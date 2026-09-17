@@ -23,11 +23,15 @@ $endfor$
   <p class="subtitulo">$subtitle$</p>
   $endif$
   <p class="ficha">
+    $if(escola)$<span>Escola: $escola$$if(escola-responsavel)$ — $escola-responsavel$$endif$</span>$endif$
+    $if(frequencia)$<span>$frequencia$</span>$endif$
+    $if(duracao-por-dia)$<span>$duracao-por-dia$</span>$endif$
     $if(frente)$<span>$frente$</span>$endif$
-    $if(ciclo)$<span>Ciclo $ciclo$</span>$endif$
+    $if(ciclo)$<span>Ciclo $ciclo$$if(ciclo-semanas)$ ($ciclo-semanas$ semanas)$endif$</span>$endif$
     $if(aula)$<span>Aula $aula$</span>$endif$
     $if(data)$<span>$data$</span>$endif$
     $if(duracao)$<span>Duração: $duracao$</span>$endif$
+    $if(volume-semanal)$<span>Volume semanal: $volume-semanal$</span>$endif$
     $if(volume-total)$<span>Volume ativo: $volume-total$</span>$endif$
     $if(objetivo-especifico)$<span>Objetivo: $objetivo-especifico$</span>$endif$
   </p>
@@ -47,7 +51,7 @@ $body$
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
 
 <footer class="rodape">
-  <p>$ciclo-nome$ &middot; $ciclo-periodo$ &middot; $ciclo-professor$</p>
+  <p>$ciclo-nome$ &middot; <strong>$escola$</strong> &middot; $frequencia$ &middot; $duracao-por-dia$ &middot; $ciclo-periodo$ &middot; $ciclo-professor$</p>
   <p><a href="index.html">Índice do ciclo</a> &middot;
      <a href="plano.html">Plano</a> &middot;
      <a href="notacao.html">Notação em Benesh</a> &middot;
@@ -55,7 +59,7 @@ $body$
      <a href="musicalidade.html">Musicalidade</a> &middot;
      <a href="apanhado-historico.html">Apanhado Histórico</a> &middot;
      <a href="referencias.html">Referências</a> &middot;
-     <a href="ciclo-$ciclo$.pdf">PDF do ciclo</a></p>
+     <a href="$ciclo-id$.pdf">PDF do ciclo</a></p>
 </footer>
 
 $for(include-after)$

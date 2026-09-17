@@ -9,15 +9,23 @@
 #     ciclo-XX.pdf              PDF único consolidado (índice + bookmarks)
 #     README.md                 como navegar e usar o material
 #
-#   uso:  tools/gerar-ciclo.sh [XX]        (padrão: 01)
-#         PDF_ENGINE=lualatex tools/gerar-ciclo.sh 01   (troca o engine)
+#   uso:  tools/gerar-ciclo.sh [XX] [escola]     (padrão: 01)
+#         tools/gerar-ciclo.sh 01 duo            → pacote do Duo
+#         tools/gerar-ciclo.sh 01 ritmos         → pacote de Ritmos e Movimento
+#         tools/gerar-ciclo.sh 01 debora         → pacote de Débora (Marau)
+#         PDF_ENGINE=lualatex tools/gerar-ciclo.sh 01 duo   (troca o engine)
 #
 # Fontes (Markdown, editáveis no VS Code):
-#   ciclos/ciclo-XX.conf          manifesto do ciclo (nome, objetivo, professor…)
+#   ciclos/ciclo-XX.conf          manifesto BASE (conteúdo compartilhado)
+#   ciclos/ciclo-XX-<escola>.conf contexto institucional e frequência (Pré-requisito 5)
 #   ciclos/ciclo-XX-index.md      índice geral
 #   ciclos/ciclo-XX-<doc>.md      um arquivo por documento
 #
 # Regras que o script garante:
+#   · Pré-requisito 5: sem escola, frequência, dias e duração por dia, não gera;
+#   · Regra 10 (camada 2): calcula o calendário real (datas, avaliações, extensão)
+#     e injeta no lugar do marcador <!-- CALENDARIO --> dos documentos;
+#   · Regra 9: volume conferido contra a faixa da duração de cada dia do ciclo;
 #   · barra de navegação fixa em todas as páginas, com a página atual marcada;
 #   · índice interno no topo de cada página;
 #   · botão "voltar ao topo" e rodapé com identificação do ciclo;
@@ -30,60 +38,122 @@ set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 CICLO="${1:-01}"
+ESCOLA_SLUG="${2:-}"
 CICLOS="$RAIZ/ciclos"
-CONF="$CICLOS/ciclo-$CICLO.conf"
-PACOTE="$CICLOS/ciclo-$CICLO"
+CONF_BASE="$CICLOS/ciclo-$CICLO.conf"
+CONF_VARIANTE="$CICLOS/ciclo-$CICLO${ESCOLA_SLUG:+-$ESCOLA_SLUG}.conf"
 TPL="$RAIZ/tools/templates"
 PDF_ENGINE="${PDF_ENGINE:-pdflatex}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-if [ ! -f "$CONF" ]; then
-  echo "erro: manifesto não encontrado: $CONF" >&2
+if [ ! -f "$CONF_BASE" ]; then
+  echo "erro: manifesto base não encontrado: $CONF_BASE" >&2
+  exit 1
+fi
+if [ ! -f "$CONF_VARIANTE" ]; then
+  echo "erro: manifesto da variante não encontrado: $CONF_VARIANTE" >&2
+  echo "  O Pré-requisito 5 (contexto institucional) exige uma variante por escola." >&2
+  echo "  Variantes disponíveis:" >&2
+  ls -1 "$CICLOS"/ciclo-"$CICLO"-*.conf 2>/dev/null | sed 's|.*/||; s|^|    |' >&2 || true
   exit 1
 fi
 # shellcheck disable=SC1090
-source "$CONF"
+source "$CONF_BASE"
+# shellcheck disable=SC1090
+source "$CONF_VARIANTE"
+ID="ciclo-$CICLO${VARIANTE:+-$VARIANTE}"
 
 : "${NOME:?defina NOME no manifesto}"
 : "${OBJETIVO_GERAL:?defina OBJETIVO_GERAL no manifesto}"
 : "${PROFESSOR:?defina PROFESSOR no manifesto}"
-: "${PERIODO:?defina PERIODO no manifesto}"
 : "${DOCS:?defina DOCS (lista ordenada de documentos) no manifesto}"
 
 # ---------------------------------------------------------------------------
-# Pré-requisito 4 (Duração da Aula) e Regra 9, etapa 1 (calibração do volume):
-# sem duração não se gera aula; e o volume declarado precisa caber na faixa
-# correspondente à duração. Estas checagens são o Pré-requisito 4 em código.
+# Pré-requisito 5 — contexto institucional e frequência (Regra 18):
+# sem escola, frequência, dias de aula e duração por dia, não se gera ciclo.
 # ---------------------------------------------------------------------------
-: "${DURACAO:?defina DURACAO (duração da aula, em minutos) no manifesto — Pré-requisito 4}"
-case "$DURACAO" in
-  *'['*|*Preencher*)
-    echo "erro: DURACAO ainda é campo a preencher ('$DURACAO') — informe a duração real da aula." >&2
+for campo in ESCOLA FREQUENCIA DIAS DURACOES DATA_INICIO TOTAL_AULAS; do
+  valor="${!campo:-}"
+  if [ -z "$valor" ] || printf '%s' "$valor" | grep -q '\['; then
+    echo "erro: Pré-requisito 5 incompleto — '$campo' não está declarado em $(basename "$CONF_VARIANTE")." >&2
+    echo "  Informe escola, frequência, dias de aula, duração por dia e total de aulas." >&2
     exit 1
-    ;;
-  *min*) ;;
-  *)
-    echo "erro: DURACAO deve estar em minutos (ex.: 60 min). Recebido: '$DURACAO'." >&2
-    exit 1
-    ;;
-esac
+  fi
+done
+echo "variante: $ESCOLA — $FREQUENCIA ($DIAS) — $DURACAO_POR_DIA"
 
+DUR_CURTA="${DURACOES%%,*}"
+DUR_LONGA="${DURACOES##*,}"
+[ "$DUR_LONGA" = "$DUR_CURTA" ] && DUR_LONGA=""
+
+volume_declarado() {   # $1 = arquivo ; $2 = duração em minutos
+  local arq="$1" dur="$2" campo
+  if [ "$dur" -le 60 ]; then campo="volume-total"; else campo="volume-total-$dur"; fi
+  sed -n "s/^$campo:[[:space:]]*\"\{0,1\}\([0-9]\{1,\}\).*/\1/p" "$arq" | head -1
+}
+
+# ---------------------------------------------------------------------------
+# Pré-requisito 4 + Regra 9: cada aula declara a duração, e o volume tem de caber
+# na faixa daquela duração — inclusive quando a variante tem dia mais longo.
+# ---------------------------------------------------------------------------
+PRIMEIRA_AULA=""
 for doc in $DOCS; do
   case "$doc" in aula-*) ;; *) continue ;; esac
   arq="$CICLOS/ciclo-$CICLO-$doc.md"
   [ -f "$arq" ] || continue
+  [ -z "$PRIMEIRA_AULA" ] && PRIMEIRA_AULA="$arq"
   grep -q '^duracao:' "$arq" || {
     echo "erro: $arq não declara 'duracao:' no cabeçalho (Pré-requisito 4)." >&2
     exit 1
   }
-  vol="$(sed -n 's/^volume-total:[[:space:]]*"\{0,1\}\([0-9]\{1,\}\).*/\1/p' "$arq" | head -1)"
-  if [ -n "$vol" ] && { [ "$vol" -lt "${VOLUME_MIN:-0}" ] || [ "$vol" -gt "${VOLUME_MAX:-9999}" ]; }; then
-    echo "erro: $doc declara $vol tempos ativos, fora da faixa ${VOLUME_MIN}–${VOLUME_MAX} para $DURACAO (Regra 9)." >&2
-    exit 1
-  fi
+  for dur in ${DURACOES//,/ }; do
+    if [ "$dur" -le 60 ]; then min="${VOLUME_MIN:-80}"; max="${VOLUME_MAX:-100}"
+    else min="${VOLUME_MIN_120:-}"; max="${VOLUME_MAX_120:-}"; fi
+    if [ -z "$min" ] || [ -z "$max" ]; then
+      echo "erro: sem faixa de volume para $dur min — declare VOLUME_MIN_$dur e VOLUME_MAX_$dur." >&2
+      exit 1
+    fi
+    vol="$(volume_declarado "$arq" "$dur")"
+    if [ -z "$vol" ]; then
+      campo="volume-total"; [ "$dur" -gt 60 ] && campo="volume-total-$dur"
+      echo "erro: $doc não declara '$campo:' para o dia de $dur min (Regra 9)." >&2
+      exit 1
+    fi
+    if [ "$vol" -lt "$min" ] || [ "$vol" -gt "$max" ]; then
+      echo "erro: $doc declara $vol tempos em dia de $dur min, fora da faixa $min–$max (Regra 9)." >&2
+      exit 1
+    fi
+  done
 done
 
+# ---------------------------------------------------------------------------
+# Regra 10, camada 2 — calendário real: datas, avaliações, extensão e volume
+# semanal. O bloco gerado substitui o marcador <!-- CALENDARIO --> das fontes.
+# ---------------------------------------------------------------------------
+VOL_CURTO="$(volume_declarado "$PRIMEIRA_AULA" "$DUR_CURTA")"
+VOL_LONGO=""
+[ -n "$DUR_LONGA" ] && VOL_LONGO="$(volume_declarado "$PRIMEIRA_AULA" "$DUR_LONGA")"
+
+EXTRA=()
+[ -n "$DUR_LONGA" ] && EXTRA=(--duracao-longa "$DUR_LONGA" --volume-longo "$VOL_LONGO")
+python3 "$RAIZ/tools/calendario.py" \
+  --escola "$ESCOLA" \
+  --responsavel "${RESPONSAVEL:-}" \
+  --frequencia "$FREQUENCIA" \
+  --dias "$DIAS" \
+  --inicio "$DATA_INICIO" \
+  --total "$TOTAL_AULAS" \
+  --duracao-curta "$DUR_CURTA" \
+  --volume-curto "$VOL_CURTO" \
+  ${EXTRA[@]+"${EXTRA[@]}"} \
+  --saida "$TMP/calendario.md" \
+  --vars-arquivo "$TMP/calendario.vars"
+# shellcheck disable=SC1090
+source "$TMP/calendario.vars"
+echo "calendário: $PERIODO · $SEMANAS semana(s) · $VOLUME_SEMANAL tempos/semana · formativa $AULA_FORMATIVA ($DATA_FORMATIVA)"
+
+PACOTE="$CICLOS/$ID"
 mkdir -p "$PACOTE/assets"
 
 # ---------------------------------------------------------------------------
@@ -94,7 +164,18 @@ mkdir -p "$TMP/src"
 for doc in index $DOCS; do
   src="$CICLOS/ciclo-$CICLO-$doc.md"
   [ -f "$src" ] || continue
-  python3 "$RAIZ/tools/normalizar-ids.py" "$src" "$TMP/src/ciclo-$CICLO-$doc.md"
+  destino="$TMP/src/ciclo-$CICLO-$doc.md"
+  python3 "$RAIZ/tools/normalizar-ids.py" "$src" "$destino"
+  # Regra 10, camada 2: injeta o calendário real (calculado da variante) no lugar
+  # do marcador <!-- CALENDARIO -->, se o documento tiver o marcador
+  if grep -q '<!-- CALENDARIO -->' "$destino"; then
+    python3 - "$destino" "$TMP/calendario.md" <<'PY'
+import sys, pathlib
+alvo = pathlib.Path(sys.argv[1])
+cal = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8').strip()
+alvo.write_text(alvo.read_text(encoding='utf-8').replace('<!-- CALENDARIO -->', cal), encoding='utf-8')
+PY
+  fi
 done
 
 # Âncoras estáveis: são as mesmas no HTML (#id da página) e no PDF (#id da seção),
@@ -125,7 +206,7 @@ gerar_nav() {
   local atual="$1" destino="$2" doc r
   {
     echo '<nav class="topnav" aria-label="Navegação do ciclo">'
-    echo "  <a class=\"marca\" href=\"index.html\">Ciclo $CICLO</a>"
+    echo "  <a class=\"marca\" href=\"index.html\">Ciclo $CICLO${ESCOLA_SLUG:+ · $ESCOLA_SLUG}</a>"
     for doc in index plano; do
       r="$(rotulo "$doc")"
       [ "$doc" = index ] && r="Início"
@@ -157,7 +238,7 @@ gerar_nav() {
         echo "  <a href=\"$doc.html\">$r</a>"
       fi
     done
-    echo "  <a class=\"pdf\" href=\"ciclo-$CICLO.pdf\">PDF do ciclo</a>"
+    echo "  <a class=\"pdf\" href=\"$ID.pdf\">PDF do ciclo</a>"
     echo '</nav>'
   } > "$destino"
 }
@@ -184,10 +265,17 @@ for doc in $TODOS; do
     --include-before-body="$TMP/nav.html" \
     -V "lang=pt-BR" \
     -V "ciclo=$CICLO" \
+    -V "ciclo-id=$ID" \
     -V "ciclo-anchor=$(ancora "$doc")" \
     -V "ciclo-nome=$NOME" \
     -V "ciclo-periodo=$PERIODO" \
-    -V "ciclo-professor=$PROFESSOR"
+    -V "ciclo-professor=$PROFESSOR" \
+    -V "escola=$ESCOLA" \
+    -V "escola-responsavel=${RESPONSAVEL:-}" \
+    -V "frequencia=$FREQUENCIA" \
+    -V "duracao-por-dia=$DURACAO_POR_DIA" \
+    -V "volume-semanal=$VOLUME_SEMANAL tempos/semana" \
+    -V "ciclo-semanas=$SEMANAS"
   gerados=$((gerados + 1))
   echo "html: $doc.html"
 done
@@ -280,11 +368,14 @@ sed -e "s|@NOME@|$(printf '%s' "$NOME" | sed -e 's/[&%#_]/\\&/g')|g" \
 {
   echo '---'
   echo "title: \"$NOME\""
-  echo "subtitle: \"Objetivo geral: $OBJETIVO_GERAL\""
+  echo "subtitle: \"$ESCOLA — $FREQUENCIA, $DURACAO_POR_DIA\""
   echo "author: \"$PROFESSOR\""
   echo "date: \"$PERIODO\""
   echo 'lang: pt-BR'
   echo '---'
+  echo
+  echo "**Escola:** $ESCOLA — ${RESPONSAVEL:-não informado} · **Frequência:** $FREQUENCIA · "
+  echo "**Duração por dia:** $DURACAO_POR_DIA · **Volume semanal:** $VOLUME_SEMANAL tempos."
   echo
   echo 'Cada documento começa em página nova. O índice é navegável, o rodapé'
   echo 'identifica o ciclo e os links entre documentos levam à seção interna.'
@@ -293,7 +384,7 @@ sed -e "s|@NOME@|$(printf '%s' "$NOME" | sed -e 's/[&%#_]/\\&/g')|g" \
 } > "$TMP/consolidado-final.md"
 
 pandoc "$TMP/consolidado-final.md" \
-  -o "$PACOTE/ciclo-$CICLO.pdf" \
+  -o "$PACOTE/$ID.pdf" \
   --toc --toc-depth=3 \
   --from=markdown+raw_tex+header_attributes \
   --pdf-engine="$PDF_ENGINE" \
@@ -302,42 +393,51 @@ pandoc "$TMP/consolidado-final.md" \
   -V lang=pt-BR \
   -V toc-title="Índice" \
   --include-in-header="$TMP/cabecalho.tex"
-echo "pdf:  ciclo-$CICLO.pdf · engine $PDF_ENGINE · $(pdfinfo "$PACOTE/ciclo-$CICLO.pdf" | awk '/^Pages/{print $2}') páginas"
+echo "pdf:  $ID.pdf · engine $PDF_ENGINE · $(pdfinfo "$PACOTE/$ID.pdf" | awk '/^Pages/{print $2}') páginas"
 
 # ---------------------------------------------------------------------------
 # 3) README do pacote (não sobrescreve um README escrito pelo professor)
 # ---------------------------------------------------------------------------
 if [ ! -f "$PACOTE/README.md" ]; then
   cat > "$PACOTE/README.md" <<RD
-# $NOME — pacote de entrega
+# $NOME — pacote de entrega ($ESCOLA)
 
 > **Objetivo geral:** $OBJETIVO_GERAL
-> **Período:** $PERIODO
+> **Escola/Espaço:** $ESCOLA — ${RESPONSAVEL:-não informado}
+> **Frequência:** $FREQUENCIA · **Duração por dia:** $DURACAO_POR_DIA
+> **Período:** $PERIODO ($SEMANAS semanas) · **Volume semanal:** $VOLUME_SEMANAL tempos
 > **Professor:** $PROFESSOR
 
-Gerado por \`tools/gerar-ciclo.sh\`. **Não edite os HTML** — edite os Markdown em
-\`ciclos/\` e rode o gerador de novo.
+Gerado por \`tools/gerar-ciclo.sh $CICLO ${VARIANTE:-}\`. **Não edite os HTML** —
+edite os Markdown em \`ciclos/\` e rode o gerador de novo.
 
 ## Navegação
 
 - \`index.html\` — índice geral do ciclo (comece por aqui)
 - \`plano.html\` · \`aula-*.html\` · \`notacao.html\` · \`pre-requisitos.html\` ·
   \`musicalidade.html\` · \`apanhado-historico.html\` · \`referencias.html\`
-- \`ciclo-$CICLO.pdf\` — **PDF único consolidado**: capa, índice navegável, bookmarks
+- \`$ID.pdf\` — **PDF único consolidado**: capa, índice navegável, bookmarks
   (barra lateral do leitor) e rodapé numerado com a identificação do ciclo
 
 Todas as páginas têm a mesma barra de navegação fixa no topo, um índice interno,
 botão "voltar ao topo" e rodapé com o link de volta ao índice.
 
+## Calendário desta variante
+
+Veja o [Calendário do Ciclo](plano.html#calendario-do-ciclo) no plano: datas reais
+de cada aula, avaliação formativa (aula $AULA_FORMATIVA, $DATA_FORMATIVA) e somativa
+(aula $TOTAL_AULAS, $DATA_ULTIMA_AULA), calculadas a partir da frequência e da
+duração por dia desta escola.
+
 ## Como usar em aula
 
 1. Abra \`index.html\` no navegador e navegue até a aula do dia.
-2. Para projetar ou imprimir sem depender do navegador, use \`ciclo-$CICLO.pdf\`.
+2. Para projetar ou imprimir sem depender do navegador, use \`$ID.pdf\`.
 3. Para editar: altere os Markdown em \`ciclos/\` e rode
 
    \`\`\`bash
-   tools/gerar-ciclo.sh $CICLO
-   node tools/check-pacote.js ciclos/ciclo-$CICLO
+   tools/gerar-ciclo.sh $CICLO ${VARIANTE:-}
+   node tools/check-pacote.js ciclos/$ID
    \`\`\`
 RD
   echo "readme: README.md"

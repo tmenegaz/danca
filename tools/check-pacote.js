@@ -27,7 +27,8 @@ const pacote = path.resolve(process.argv[2] || 'ciclos/ciclo-01');
 const nomePacote = path.basename(pacote);
 const mCiclo = nomePacote.match(/ciclo-(\d+)/);
 const ciclo = mCiclo ? mCiclo[1] : '01';
-const pdf = path.join(pacote, `ciclo-${ciclo}.pdf`);
+// O nome do PDF acompanha o nome do pacote: ciclo-01-duo/ → ciclo-01-duo.pdf
+const pdf = path.join(pacote, `${nomePacote}.pdf`);
 
 const erros = [];
 const avisos = [];
@@ -36,7 +37,7 @@ const ok = [];
 const obrigatorios = [
   'index.html', 'plano.html', 'notacao.html', 'pre-requisitos.html',
   'musicalidade.html', 'apanhado-historico.html', 'referencias.html',
-  'assets/style.css', `ciclo-${ciclo}.pdf`,
+  'assets/style.css', `${nomePacote}.pdf`,
 ];
 
 if (!fs.existsSync(pacote)) {

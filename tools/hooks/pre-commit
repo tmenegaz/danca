@@ -30,18 +30,36 @@ if [ -n "$gerados" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 2) ciclos tocados: gerar e validar
+# 2) ciclos tocados: gerar e validar (uma variante por escola)
 # ---------------------------------------------------------------------------
-ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
+ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+(-[a-z0-9]+)?' | sed 's|ciclos/||' | sort -u || true)"
 for c in $ciclos; do
   numero="${c#ciclo-}"
-  echo "pre-commit: gerando e validando $c ..."
-  if ! tools/gerar-ciclo.sh "$numero" > /tmp/pre-commit-"$c".log 2>&1; then
-    echo "pre-commit: FALHOU ao gerar $c — nada foi commitado." >&2
-    grep -E 'erro|ERRO|FALHOU|! LaTeX Error' /tmp/pre-commit-"$c".log | head -8 >&2
-    exit 1
+  variante=""
+  case "$numero" in
+    *-*) variante="${numero#*-}"; numero="${numero%%-*}" ;;
+  esac
+
+  # sem variante no caminho (manifesto base, fontes ou pacote antigo): gera todas
+  if [ -z "$variante" ]; then
+    variantes="$(ls -1 ciclos/ciclo-"$numero"-*.conf 2>/dev/null | sed 's|.*/ciclo-'"$numero"'-||; s|\.conf$||' || true)"
+    if [ -z "$variantes" ]; then
+      echo "pre-commit: $c sem variantes por escola — nada a gerar (Pré-requisito 5)." >&2
+      continue
+    fi
+  else
+    variantes="$variante"
   fi
-  echo "pre-commit: $c OK ($(grep -c '  ok ' /tmp/pre-commit-"$c".log) verificações passaram)"
+
+  for v in $variantes; do
+    echo "pre-commit: gerando e validando ciclo-$numero-$v ..."
+    if ! tools/gerar-ciclo.sh "$numero" "$v" > /tmp/pre-commit-ciclo-"$numero-$v".log 2>&1; then
+      echo "pre-commit: FALHOU ao gerar ciclo-$numero-$v — nada foi commitado." >&2
+      grep -E 'erro|ERRO|FALHOU|! LaTeX Error' /tmp/pre-commit-ciclo-"$numero-$v".log | head -8 >&2
+      exit 1
+    fi
+    echo "pre-commit: ciclo-$numero-$v OK ($(grep -c '  ok ' /tmp/pre-commit-ciclo-"$numero-$v".log) verificações passaram)"
+  done
 done
 
 # ---------------------------------------------------------------------------
