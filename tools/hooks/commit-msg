@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# ============================================================================
+# commit-msg — valida a mensagem de commit (Regra 17 / Premissa 7).
+#
+# Instalado por tools/instalar-hooks.sh.
+# Formato exigido:
+#
+#   tipo(escopo): descrição curta
+#
+#   corpo (opcional)
+#
+#   Refs:     [arquivo ou seção referenciada]
+#   Regras:   [regras aplicadas]
+#   Auditoria: sim|não
+# ============================================================================
+set -uo pipefail
+
+arquivo="$1"
+primeira="$(head -1 "$arquivo")"
+
+# commits automáticos do Git passam sem validação de formato
+case "$primeira" in
+  Merge*|Revert*|"fixup!"*|"squash!"*) exit 0 ;;
+esac
+
+tipos='feat|fix|docs|refactor|style|chore|audit'
+escopos='ciclo-[0-9]+|aula-[0-9]+|notacao|pre-requisitos|musicalidade|apanhado|apresentacao-[0-9]+|apresentacao-01-rizoma|biblioteca|tools|regras|entrega'
+
+if ! printf '%s' "$primeira" | grep -qE "^($tipos)\(($escopos)\): .{3,}$"; then
+  echo "commit-msg: mensagem fora do padrão Conventional Commits do projeto." >&2
+  echo "  recebido: $primeira" >&2
+  echo "  esperado: tipo(escopo): descrição curta" >&2
+  echo "  tipos:    $tipos" >&2
+  echo "  escopos:  ciclo-XX, aula-XX, notacao, pre-requisitos, musicalidade, apanhado," >&2
+  echo "            apresentacao-XX, biblioteca, tools, regras" >&2
+  echo "  veja REGRAS.md (Regra 17)." >&2
+  exit 1
+fi
+
+# rodapé de proveniência obrigatório (Premissa 7)
+faltando=""
+grep -qE '^Refs: ' "$arquivo"      || faltando="$faltando Refs:"
+grep -qE '^Regras: ' "$arquivo"    || faltando="$faltando Regras:"
+grep -qE '^Auditoria: ' "$arquivo" || faltando="$faltando Auditoria:"
+
+if [ -n "$faltando" ]; then
+  echo "commit-msg: falta o rodapé de proveniência:$faltando" >&2
+  echo "  modelo:" >&2
+  echo "    Refs: ciclos/ciclo-01-aula-01.md" >&2
+  echo "    Regras: 5 (Carga e Volume), 9 (Distribuição)" >&2
+  echo "    Auditoria: sim" >&2
+  exit 1
+fi
+
+exit 0

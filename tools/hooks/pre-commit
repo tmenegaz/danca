@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# ============================================================================
+# pre-commit — valida o que está sendo commitado (Regra 17).
+#
+# Instalado por tools/instalar-hooks.sh (este arquivo é a fonte versionada;
+# .git/hooks não é versionado pelo Git).
+#
+# O que faz:
+#   1) barra arquivos GERADOS no stage (defesa contra .gitignore furado);
+#   2) para cada ciclo tocado, roda o gerador + validador do pacote;
+#   3) se a apresentação foi tocada, roda os validadores do deck.
+# ============================================================================
+set -uo pipefail
+
+RAIZ="$(git rev-parse --show-toplevel)"
+cd "$RAIZ" || exit 1
+
+arquivos="$(git diff --cached --name-only --diff-filter=ACMR)"
+[ -z "$arquivos" ] && exit 0
+
+# ---------------------------------------------------------------------------
+# 1) saídas geradas não entram no histórico: são reconstruíveis das fontes
+# ---------------------------------------------------------------------------
+gerados="$(printf '%s\n' "$arquivos" | grep -E '^(out/|.*\.pdf$|ciclos/[^/]+/[^/]+\.html$|.*\.pptx$|.*/img/slide-.*\.png$)' || true)"
+if [ -n "$gerados" ]; then
+  echo "pre-commit: arquivos gerados no stage (não versionar — são reconstruíveis):" >&2
+  printf '  %s\n' $gerados >&2
+  echo "  remova com: git restore --staged <arquivo>   (ver .gitignore)" >&2
+  exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# 2) ciclos tocados: gerar e validar
+# ---------------------------------------------------------------------------
+ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
+for c in $ciclos; do
+  numero="${c#ciclo-}"
+  echo "pre-commit: gerando e validando $c ..."
+  if ! tools/gerar-ciclo.sh "$numero" > /tmp/pre-commit-"$c".log 2>&1; then
+    echo "pre-commit: FALHOU ao gerar $c — nada foi commitado." >&2
+    grep -E 'erro|ERRO|FALHOU|! LaTeX Error' /tmp/pre-commit-"$c".log | head -8 >&2
+    exit 1
+  fi
+  echo "pre-commit: $c OK ($(grep -c '  ok ' /tmp/pre-commit-"$c".log) verificações passaram)"
+done
+
+# ---------------------------------------------------------------------------
+# 3) apresentações tocadas: validar o deck
+# ---------------------------------------------------------------------------
+if printf '%s\n' "$arquivos" | grep -q '^apresentacoes/'; then
+  echo "pre-commit: validando o deck ..."
+  node tools/check-overflow.js > /tmp/pre-commit-deck.log 2>&1 || {
+    echo "pre-commit: FALHOU a validação do deck (estouro de slide)." >&2; tail -5 /tmp/pre-commit-deck.log >&2; exit 1; }
+  node tools/check-mapa.js > /tmp/pre-commit-mapa.log 2>&1 || {
+    echo "pre-commit: FALHOU a validação do mapa." >&2; tail -5 /tmp/pre-commit-mapa.log >&2; exit 1; }
+  tail -1 /tmp/pre-commit-deck.log
+fi
+
+exit 0
