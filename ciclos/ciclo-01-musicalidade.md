@@ -4,7 +4,6 @@ frente: Documento de apoio
 ciclo: "01"
 title: "Musicalidade"
 subtitle: "Pulso, acento e compasso 4/4 dentro do movimento do dia"
-duracao: "60 min"
 data: "17/09/2026"
 referencias: "RAD (2025); RBO (2024)"
 ---

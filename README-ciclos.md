@@ -56,18 +56,47 @@ inteiros, quem está errado é a conta — não o tempo musical.
 ## Comando único
 
 ```bash
-tools/gerar-ciclo.sh 01                       # gera HTML + PDF e valida no fim
-node tools/check-pacote.js ciclos/ciclo-01    # valida de novo, avulso, se quiser
+tools/gerar-ciclo.sh 01 duo                     # gera HTML + PDF da variante "duo" e valida
+node tools/check-pacote.js ciclos/ciclo-01-duo  # valida avulso, se quiser
 ```
+
+O segundo argumento é a **escola** (Pré-requisito 5): sem ele o gerador recusa,
+porque o ciclo não tem calendário nem volume semanal sem contexto institucional.
+As variantes disponíveis ficam em `ciclos/ciclo-XX-<escola>.conf`.
 
 O script, em ordem:
 
-1. **normaliza os ids** de todos os títulos (`tools/normalizar-ids.py`);
-2. converte cada documento em HTML com o template `tools/templates/ciclo.html`;
-3. monta o **PDF consolidado** com pandoc + cabeçalho LaTeX próprio;
-4. copia a folha de estilo e os mapas;
-5. escreve o `README.md` do pacote (se ainda não existir);
-6. roda a validação final e falha se algo estiver quebrado.
+1. lê o manifesto **base** (`ciclo-XX.conf`) e a **variante** (`ciclo-XX-<escola>.conf`);
+2. confere o Pré-requisito 5 (escola, frequência, dias, duração por dia, total de aulas);
+3. confere o Pré-requisito 4 e a Regra 9 **por duração de dia** (60 min → 80–100 tempos;
+   120 min → 150–200);
+4. **calcula o calendário real** (`tools/calendario.py`) e injeta no lugar do marcador
+   `<!-- CALENDARIO -->` das fontes;
+5. **normaliza os ids** de todos os títulos (`tools/normalizar-ids.py`);
+6. converte cada documento em HTML com o template `tools/templates/ciclo.html`;
+7. monta o **PDF consolidado** com pandoc + cabeçalho LaTeX próprio;
+8. copia a folha de estilo e os mapas; escreve o `README.md` do pacote (se não existir);
+9. roda a validação final e falha se algo estiver quebrado.
+
+## Uma entrega por escola (Pré-requisito 5 / Regra 18)
+
+O Ciclo 01 é o mesmo conteúdo em **três variantes** — mesmo objetivo, mesmos marcos,
+volumes e calendários diferentes:
+
+| Variante | Escola | Frequência | Duração por dia | Calendário | Volume semanal |
+|:--|:--|:--|:--|:--|--:|
+| `duo` | Duo (Fernando) | 1x/semana (sextas) | 60 min | 18/09 → 04/12/2026 (12 semanas) | 90 tempos |
+| `ritmos` | Ritmos e Movimento (Gabi) | 2x/semana (terças e sábados) | 60 min + 120 min | 19/09 → 27/10/2026 (6 semanas) | 90 + 180 = 270 tempos |
+| `debora` | Débora (Marau) | 2x/semana (segundas e quartas) | 120 min + 120 min | 21/09 → 28/10/2026 (6 semanas) | 180 + 180 = 360 tempos |
+
+> **17/09/2026 é uma quinta-feira** — não é dia de aula em nenhuma das três escolas.
+> O cálculo **não arredonda para a data informada**: ele avisa e usa o próximo dia de
+> aula real (sexta 18/09, sábado 19/09, segunda 21/09). As avaliações (formativa na
+> aula 06 e somativa na última) saem dessas datas, não de um "quase certo".
+
+Saídas: `ciclos/ciclo-01-duo/`, `ciclos/ciclo-01-ritmos/`, `ciclos/ciclo-01-debora/`
+(cada uma com 8 páginas HTML, `assets/`, `README.md` e PDF de 24 páginas).
+
 
 ## Ambiente: por que o engine é `pdflatex` (e não `xelatex`)
 

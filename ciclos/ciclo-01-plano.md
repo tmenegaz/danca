@@ -4,8 +4,6 @@ frente: Plano
 ciclo: "01"
 title: "Plano do Ciclo 01"
 subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
-duracao: "60 min por aula"
-data: "17/09/2026"
 referencias: "RAD (2015); Clippinger (2024); Warren (1989); Homans (2010)"
 ---
 
@@ -50,6 +48,10 @@ existe porque a anterior deixou uma condição necessária (Regra 2).
 > **Escrito em detalhe até aqui:** [Aula 01](aula-01.html). As aulas 02–12 são
 > escritas depois da aula anterior, com o parâmetro medido em mãos — o marco é
 > ajustado ao que a turma realmente consolidou.
+
+## Calendário do ciclo
+
+<!-- CALENDARIO -->
 
 ## Calibração do volume pela duração (Regra 9, etapa 1)
 

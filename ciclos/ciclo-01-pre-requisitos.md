@@ -4,7 +4,6 @@ frente: Documento de apoio
 ciclo: "01"
 title: "Condições Pré-Existentes (Força e Flexibilidade)"
 subtitle: "O piso mínimo do ciclo e como calibrar a carga sem excluir ninguém"
-duracao: "60 min"
 data: "17/09/2026"
 referencias: "Clippinger (2024); RAD (2015)"
 ---

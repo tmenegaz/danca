@@ -8,7 +8,7 @@ subtitle: "Cinco posições dos pés, sem deslocamento, sem giro, sem mudança d
 objetivo-especifico: "Isolar o alinhamento dos metatarsos e a saída do calcanhar nas cinco posições dos pés, no solo."
 duracao: "60 minutos"
 volume-total: "90 tempos"
-data: "17/09/2026"
+volume-total-120: "180 tempos"
 referencias: "RAD (2015); Clippinger (2024); Warren (1989)"
 ---
 
@@ -26,6 +26,7 @@ referencias: "RAD (2015); Clippinger (2024); Warren (1989)"
 | **Parâmetro de medição** | Verificar se o calcanhar sai **no tempo correto** e se os metatarsos permanecem alinhados (pressão uniforme entre o 1º e o 5º metatarsos). |
 | **Duração da aula (Pré-requisito 4)** | **60 minutos** → faixa de volume ativo **80–100 tempos** (Regra 9, etapa 1). |
 | **Volume planejado** | **90 tempos** (dentro da faixa; conta detalhada no item 6). |
+| **Data e horário desta aula** | ver o [Calendário do Ciclo](plano.html#calendario-do-ciclo) — a data real depende da escola e da frequência |
 
 ## 2. Condições preliminares de preparação (força e flexibilidade)
 

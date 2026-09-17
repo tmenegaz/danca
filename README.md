@@ -18,9 +18,10 @@ validado automaticamente e versionado com proveniência.
 │       ├── README.md                   documentação detalhada do deck
 │       └── out/                        PDF, PPTX, HTML, PNGs (não versionado)
 ├── ciclos/
-│   ├── ciclo-01.conf             manifesto (objetivo, duração, volume, docs)
+│   ├── ciclo-01.conf             manifesto base (objetivo, total de aulas, faixas)
+│   ├── ciclo-01-<escola>.conf    contexto institucional: duo · ritmos · debora
 │   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
-│   └── ciclo-01/                 pacote entregue: HTML + PDF (não versionado)
+│   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (não versionado)
 ├── biblioteca/                   referências compartilhadas pelas duas frentes
 └── tools/                        geradores, validadores e hooks
 ```
@@ -29,8 +30,9 @@ validado automaticamente e versionado com proveniência.
 
 | Quero… | Comando |
 |:--|:--|
-| Gerar a entrega de um ciclo (HTML + PDF + validação) | `tools/gerar-ciclo.sh 01` |
-| Validar um pacote de ciclo | `node tools/check-pacote.js ciclos/ciclo-01` |
+| Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh 01 duo` (ou `ritmos`, `debora`) |
+| Validar um pacote de ciclo | `node tools/check-pacote.js ciclos/ciclo-01-duo` |
+| Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |
 | Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
 | Validar os mapas do rizoma | `node tools/check-mapa.js` · `node tools/medir-rotulos.js` |

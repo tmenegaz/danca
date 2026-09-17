@@ -4,8 +4,6 @@ frente: Índice
 ciclo: "01"
 title: "Ciclo 01 — Fundamentos do Balé Clássico"
 subtitle: "Índice geral do ciclo"
-duracao: "60 min por aula"
-data: "17/09/2026"
 ---
 
 > **Objetivo geral:** construir a estabilidade nas cinco posições dos pés e a
@@ -17,6 +15,8 @@ data: "17/09/2026"
 > **Professor:** [Nome do professor]
 
 ---
+
+<!-- CALENDARIO -->
 
 ## 1. Plano do Ciclo
 
