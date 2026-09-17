@@ -113,6 +113,11 @@ Onde cada regra aparece no deck: **A1** → 5, 36–37, 47 · **A2** → 45–46
 
 ## Exportar pela linha de comando (Marp CLI)
 
+> **Onde rodar:** os comandos `marp` desta seção rodam **dentro desta pasta**
+> (`apresentacoes/apresentacao-01-rizoma/`); os comandos `node tools/...` rodam na
+> **raiz do repositório**. Os validadores resolvem o caminho da apresentação
+> sozinhos (e aceitam `APRESENTACAO=/outro/caminho`).
+
 ```bash
 npm install -g @marp-team/marp-cli
 

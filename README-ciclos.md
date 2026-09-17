@@ -199,6 +199,44 @@ Cada documento começa com um bloco YAML que alimenta o cabeçalho e a ficha da
 página (`projeto`, `frente`, `ciclo`, `aula`, `data`, `objetivo-especifico`,
 `referencias`), conforme a Premissa 6 — o `title:` é o que aparece na navegação.
 
+## Estrutura do repositório e versionamento (Regra 17)
+
+O projeto é um repositório único com as duas frentes, e as **saídas geradas não são
+versionadas** (são reconstruíveis das fontes por `tools/`):
+
+```
+apresentacoes/apresentacao-01-rizoma/   frente Apresentação (deck + mapas)
+ciclos/                                 frente Aula (fontes + pacote gerado)
+biblioteca/                             referências compartilhadas pelas duas frentes
+tools/                                  geradores, validadores e hooks
+REGRAS.md · README.md · README-ciclos.md
+```
+
+| Convenção | Como está |
+|:--|:--|
+| **Commit** | `tipo(escopo): resumo` + rodapé obrigatório `Refs:` · `Regras:` · `Auditoria:` |
+| **Tipos** | `feat` · `fix` · `docs` · `refactor` · `style` · `chore` · `audit` |
+| **Escopos** | `ciclo-XX` · `aula-XX` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `apresentacao-XX` · `biblioteca` · `tools` · `regras` |
+| **Branches** | `main` só recebe conteúdo auditado; `ciclo-XX` e `apresentacao-XX` são linhas de trabalho, mergeadas após auditoria |
+| **Hooks** | `tools/instalar-hooks.sh` instala `pre-commit` e `commit-msg` (a fonte versionada fica em `tools/hooks/`, porque o Git não versiona `.git/hooks`) |
+| **Ignorado** | `out/`, `ciclos/*/*.pdf`, `ciclos/*/*.html`, `ciclos/*/assets/`, `.vscode/settings.json` |
+
+O que o `pre-commit` faz, na prática:
+
+1. **barra saída gerada no stage** (defesa extra contra `.gitignore` furado);
+2. para cada ciclo tocado, **roda o gerador e o validador** — se o volume sair da
+   faixa da duração, o commit é recusado com a mensagem da Regra 9;
+3. se a apresentação foi tocada, roda `check-overflow.js` e `check-mapa.js`.
+
+Os hooks foram testados com casos que **devem** ser recusados:
+
+```
+mensagem fora do padrão ..................... recusada ✓
+mensagem sem rodapé de proveniência ......... recusada ✓
+PDF gerado no stage ......................... recusada ✓
+ciclo com volume fora da faixa (140 tempos) . recusada ✓ (Regra 9)
+```
+
 ## Arquivos desta entrega
 
 | Arquivo | Papel |
