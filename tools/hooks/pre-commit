@@ -32,25 +32,22 @@ fi
 # ---------------------------------------------------------------------------
 # 2) ciclos tocados: gerar e validar (uma variante por escola)
 # ---------------------------------------------------------------------------
-ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+(-[a-z0-9]+)?' | sed 's|ciclos/||' | sort -u || true)"
+ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
 for c in $ciclos; do
   numero="${c#ciclo-}"
-  variante=""
-  case "$numero" in
-    *-*) variante="${numero#*-}"; numero="${numero%%-*}" ;;
-  esac
-  # só é variante se existir manifesto dela; senão é fonte compartilhada
-  [ -n "$variante" ] && [ ! -f "ciclos/ciclo-$numero-$variante.conf" ] && variante=""
 
-  # sem variante no caminho (manifesto base, fontes ou pacote antigo): gera todas
-  if [ -z "$variante" ]; then
-    variantes="$(ls -1 ciclos/ciclo-"$numero"-*.conf 2>/dev/null | sed 's|.*/ciclo-'"$numero"'-||; s|\.conf$||' || true)"
+  # variantes citadas nos próprios caminhos do stage (manifesto ou pacote);
+  # se nenhuma for citada (fonte compartilhada, manifesto base), valida todas
+  variantes="$(printf '%s\n' "$arquivos" \
+    | grep -oE "^ciclos/ciclo-$numero-[a-z0-9]+\.conf$" \
+    | sed "s|^ciclos/ciclo-$numero-||; s|\.conf$||" | sort -u || true)"
+  if [ -z "$variantes" ]; then
+    variantes="$(ls -1 ciclos/ciclo-"$numero"-*.conf 2>/dev/null \
+      | sed "s|.*/ciclo-$numero-||; s|\.conf$||" || true)"
     if [ -z "$variantes" ]; then
       echo "pre-commit: $c sem variantes por escola — nada a gerar (Pré-requisito 5)." >&2
       continue
     fi
-  else
-    variantes="$variante"
   fi
 
   for v in $variantes; do
