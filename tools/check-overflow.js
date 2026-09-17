@@ -23,7 +23,10 @@ const raiz = path.resolve(__dirname, '..');
 const APRESENTACAO = process.env.APRESENTACAO || path.join(raiz, 'apresentacoes', 'apresentacao-01-rizoma');
 const html = path.resolve(process.argv[2] || path.join(APRESENTACAO, 'out', 'apresentacao-ballet.html'));
 if (!fs.existsSync(html)) {
-  console.error(`HTML nao encontrado: ${html}\nRode: marp apresentacao-ballet.md --html -o out/apresentacao-ballet.html`);
+  console.error(`HTML nao encontrado: ${html}
+Rode na pasta da apresentacao:
+  cd apresentacoes/apresentacao-01-rizoma
+  CHROME_PATH=/usr/bin/google-chrome marp apresentacao-ballet.md --html --allow-local-files -o out/apresentacao-ballet.html`);
   process.exit(1);
 }
 
