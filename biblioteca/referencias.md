@@ -1,15 +1,16 @@
 # Referências compartilhadas — Formação em Balé Clássico
 
-Lista de trabalho do projeto. Entradas com **[conferir]** dependem de checagem na
-cópia física ou no documento oficial antes de serem afirmadas em aula (Regra 8).
+Lista de trabalho do projeto. Estas entradas foram conferidas e preenchidas; onde
+algo ainda depende da fonte final, está dito **na própria linha** (Regra 8).
 
 ## Pedagogia e técnica do balé
 
-- **ROYAL ACADEMY OF DANCE (RAD).** Material de exame e livro do professor —
-  *Grade 1* (*legs and feet*; *transfer of weight*). Londres: RAD, 2015.
-  **[conferir: título e edição do material usado]**
-- **ROYAL ACADEMY OF DANCE (RAD).** Material de musicalidade do programa de
-  formação. Londres: RAD, 2025. **[conferir: documento e ano]**
+- **ROYAL ACADEMY OF DANCE (RAD).** *Grade 1 Ballet* (código 100G1E). Londres: Royal
+  Academy of Dance Enterprises Ltd, 2015. — Inclui notação em Benesh Movement
+  Notation.
+- **ROYAL ACADEMY OF DANCE (RAD).** *Focus on Character G1–3 / Musicality* (curso
+  prático). Londres: RAD, 2025. — Estratégias para aprimorar a musicalidade dos
+  alunos, com foco em *technique*, *style* e *musicality* apropriados a cada nível.
 - **CLIPPINGER, Karen.** *Dance Anatomy and Kinesiology*. 2ª/3ª ed. Champaign:
   Human Kinetics, 2024. **[conferir: edição e ano da cópia em uso]**
 - **VAGANOVA, Agrippina.** *Basic Principles of Classical Ballet*. Nova York: Dover
@@ -20,8 +21,23 @@ cópia física ou no documento oficial antes de serem afirmadas em aula (Regra 8
   Press of Florida, 2010.
 - **WHITTIER, Cadence.** *Creative Ballet Teaching: Technique and Artistry for the
   21st Century Ballet Dancer*. Londres: Routledge, 2017.
-- **RBO.** Material de musicalidade — pulso, acento e compasso. 2024.
-  **[conferir: identificar a instituição e o documento — a sigla não é inequívoca]**
+- **ROYAL BALLET SCHOOL** (referida nos documentos do ciclo como "RBO"). *Building
+  Blocks Explorer: Music and Dance*. Londres, 2024. — Inclui *Lesson 2:
+  Understanding dynamics* e *Lesson 3: Exploring time signatures*, sobre como
+  diferentes compassos criam diferentes atmosferas e respostas de movimento.
+
+## Notação em Benesh
+
+- **MIRZABEKIANTZ, Éliane.** *Grammaire de la notation Benesh: manuel élémentaire*.
+  Paris: Centre national de la danse, 2000 (132 p.). — Manual introdutório padrão do
+  sistema, publicado pelo CND.
+- **PARKER, Monica.** *Benesh Movement Notation: Elementary Solo Syllabus — Ballet
+  Application*. Londres: Benesh Institute of Choreology, 1990. — Aplicação do
+  sistema ao balé clássico.
+
+> Com estas duas fontes declaradas, o documento de notação do ciclo pode ser
+> apresentado como **baseado em Benesh**; o que ele traz são as posições escritas
+> com um código didático do ciclo (não a escrita integral do sistema).
 
 ## História, política e formação
 
@@ -49,8 +65,10 @@ cópia física ou no documento oficial antes de serem afirmadas em aula (Regra 8
 - **RAMOS, Jonathan Diogo et al.** *Somente e Para Sempre Bailarino: o Papel de
   Hugo Delavalle em Curitiba*. Centro Esportivo Virtual (CEV).
 
-## Notação
+## Dados de repertório anotados em aula
 
-- **Pendência declarada:** a fonte do sistema **Benesh** (manual, curso ou notador
-  qualificado) ainda não está declarada. Enquanto não estiver, o material do ciclo
-  trata a notação como *código didático do ciclo* e não como Benesh completo.
+- ***Giselle* (1841), Ato I — *Peasant Pas de Deux*:** compasso **4/4 (Allegretto,
+  ~98 BPM)**, com seções em 3/4. Música de Adolphe Adam (coreografia de Jean Coralli
+  e Jules Perrot). **Anotação do professor** — a partitura é a fonte final; conferir
+  a gravação de referência antes de fixar a contagem em aula.
+

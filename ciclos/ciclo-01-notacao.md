@@ -15,14 +15,17 @@ criados para registrar os exercícios da Aula 01 e permitir que a aluna repita e
 casa. **Não é a notação Benesh em sua forma completa** (o sistema tem sintaxe e
 sinais próprios, que exigem formação específica para escrever e ler).
 
-> **Pendência declarada (Regra 8):** antes de apresentar este material como
-> "notação Benesh" a terceiros, incluir a **fonte de referência do sistema**
-> (manual, curso ou notador qualificado). Enquanto essa fonte não estiver
-> declarada, trate este documento como **código de registro do ciclo**.
+> **Fontes declaradas (Regra 8):** o sistema tem manual de referência e ele está
+> identificado — **MIRZABEKIANTZ, Éliane.** *Grammaire de la notation Benesh: manuel
+> élémentaire*. Paris: CND, 2000; e, para a aplicação ao balé, **PARKER, Monica.**
+> *Benesh Movement Notation: Elementary Solo Syllabus — Ballet Application*. Benesh
+> Institute of Choreology, 1990 (ver [Referências](referencias.html#notacao-em-benesh)).
+> O que este documento traz são as posições da Aula 01 escritas com um **código
+> didático do ciclo** — baseado no sistema, não a escrita integral dele.
 
 ## Legenda rápida (código do ciclo)
 
-- `|` — barra de compasso: marca o tempo
+- `|` — barra de compasso: marca o tempo (*no sistema Benesh, a linha de compasso cumpre esse papel; aqui ela é escrita como barra vertical*)
 - `+` — frente: membro à frente
 - `-` — nível: membro alinhado
 - `×` — atrás: membro atrás

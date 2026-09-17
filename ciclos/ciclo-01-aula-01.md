@@ -254,6 +254,28 @@ no centro em seguida.
 | 4. Musicalidade | 2 frases de 4 tempos | 8 |
 | **Total** | | **90** |
 
+### Variante de 120 minutos (sábado da Ritmos e Movimento · Débora)
+
+Nos dias de **120 min** (faixa de 150–200 tempos), a aula usa **os mesmos exercícios**
+— nenhum passo novo — com **séries adicionais** e um **bloco de revisão** dos pontos
+fracos (decisão pedagógica do professor):
+
+| Bloco | 60 min | 120 min | % (120 min) | O que acrescenta |
+|:--|--:|--:|--:|:--|
+| Solo | 30 | 60 | 33% ✓ (30–40%) | +1 série dos pré-requisitos e revisão do alinhamento |
+| Barra | 20 | 40 | 22% ✓ (20–30%) | +1 série dos mesmos exercícios |
+| Centro | 32 | 68 | 38% ✓ (30–40%) | +1 série e bloco de revisão dos pontos fracos |
+| Musicalidade | 8 | 12 | 7% ✓ (5–10%) | +1 exercício de escuta |
+| **Total** | **90** | **180** | 100% ✓ (150–200) | — |
+
+> **Por que séries e revisão, e não exercícios novos:** introduzir vocabulário novo no
+> mesmo dia em que se repete o antigo produz sobrecarga cognitiva e derruba a
+> qualidade — o oposto do que a aula longa deveria comprar. A dificuldade cresce por
+> **qualidade**, não por vocabulário (progressão lenta, RAD).
+>
+> O valor declarado no cabeçalho (`volume-total-120: 180 tempos`) é conferido pelo
+> gerador contra a faixa de 120 min antes de a entrega ser construída (Regra 9).
+
 ### O que mudou em relação ao rascunho (e por quê)
 
 | Item | Rascunho | Aplicado | Motivo |

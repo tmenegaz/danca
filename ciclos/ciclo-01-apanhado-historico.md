@@ -33,16 +33,19 @@ prática, e nunca no lugar dela.
 | **Compositor** | Adolphe Adam |
 | **Estreia** | Carlotta Grisi (Giselle) e Lucien Petipa (Albrecht) |
 | **Contexto** | O Ato I é *grounded, bouncy* e cheio de vida — o oposto do Ato II, etéreo e trágico. Exige domínio do *petit allegro* e do **tendu preciso** |
-| **Música** | Composta por Adam em poucas semanas; música viva, com acentos claros que marcam tendus e pliés |
+| **Música** | Adolphe Adam; **4/4 Allegretto (~98 BPM)**, com seções em 3/4 — os acentos marcam o tendu no tempo 1 e o plié no tempo 3 |
 | **Relação música-movimento** | O plié funcional aparece como mola para os saltos; o tendu é a base dos assembléos e sissonnes |
 | **Versão contemporânea** | *Giselle*, de Akram Khan (2016) — releitura que parte do mesmo material |
 | **Vídeo recomendado** | [Inserir link — conferir disponibilidade e direitos antes de projetar] |
 
-> **Conferir antes de afirmar (Regra 8):** o compasso exato do *Peasant Pas de Deux*
-> deve ser confirmado **na partitura** antes de ser dito em aula; a indicação
-> "compasso vivo, com acentos claros" descreve o uso pedagógico, não substitui a
-> leitura da fonte. O mesmo vale para a versão contemporânea: conferir ano e
-> companhia na fonte.
+> **Compasso (anotado em aula):** o corpo principal do *Peasant Pas de Deux* está
+> em **4/4 (Allegretto, ~98 BPM)**, com seções em **3/4**. É esse tempo que permite
+> marcar o tendu no tempo 1 e o plié no tempo 3, como a aula faz. **A partitura de
+> Adolphe Adam é a fonte final** — conferir a gravação de referência antes de fixar
+> a contagem em aula.
+>
+> **Versão contemporânea:** *Giselle*, de Akram Khan (2016) — conferir ano e
+> companhia na fonte da produção antes de projetar.
 
 ## Por que isto entra numa aula de fundamentos
 

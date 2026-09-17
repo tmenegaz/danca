@@ -9,15 +9,14 @@ data: "17/09/2026"
 
 > **Como usar:** onde um documento do ciclo cita uma obra, o link leva ao grupo
 > correspondente desta página (Regra 8: toda afirmação pedagógica tem origem
-> declarada). Entradas marcadas **[conferir]** dependem de conferência na cópia
-> física ou no documento oficial usado em aula — não afirme o dado antes disso.
+> declarada). As entradas estão preenchidas com as fontes do ciclo; o que ainda
+> depende de conferência na cópia em uso está marcado **[conferir]** linha a linha.
 
 ## Pedagogia do balé
 
 ::: {#rad-2015 .ref}
-**ROYAL ACADEMY OF DANCE (RAD).** Material de exame e livro do professor — *Grade 1*
-(*legs and feet*; *transfer of weight*). Londres: RAD, 2015. **[conferir: título e
-edição do material usado]**
+**ROYAL ACADEMY OF DANCE (RAD).** *Grade 1 Ballet* (código 100G1E). Londres: Royal
+Academy of Dance Enterprises Ltd, 2015. — Inclui Benesh Movement Notation.
 
 Base da estrutura de aula, da progressão e do vocabulário usados neste ciclo.
 :::
@@ -62,17 +61,36 @@ Clareza de instrução, autonomia do aluno e o lugar da criação dentro da téc
 :::
 
 ::: {#rad-2025 .ref}
-**ROYAL ACADEMY OF DANCE (RAD).** Material de musicalidade do programa de
-formação. Londres: RAD, 2025. **[conferir: documento e ano]**
+**ROYAL ACADEMY OF DANCE (RAD).** *Focus on Character G1–3 / Musicality* (curso
+prático). Londres: RAD, 2025. — Estratégias para aprimorar a musicalidade dos
+alunos, com foco em *technique*, *style* e *musicality* apropriados a cada nível.
 
 Base do [bloco de musicalidade](musicalidade.html).
 :::
 
 ::: {#rbo-2024 .ref}
-**RBO.** Material de musicalidade — pulso, acento e compasso. 2024.
-**[conferir: identificar a instituição e o documento — a sigla não é inequívoca]**
+**ROYAL BALLET SCHOOL** (referida neste ciclo como "RBO"). *Building Blocks
+Explorer: Music and Dance*. Londres, 2024. — Inclui *Lesson 2: Understanding
+dynamics* e *Lesson 3: Exploring time signatures*.
 
 Complementa a referência anterior na condução do acento no tempo 1.
+:::
+
+## Notação em Benesh
+
+::: {#mirzabekiantz-2000 .ref}
+**MIRZABEKIANTZ, Éliane.** *Grammaire de la notation Benesh: manuel élémentaire*.
+Paris: Centre national de la danse, 2000 (132 p.).
+
+Manual introdutório padrão do sistema, publicado pelo CND: é a fonte que sustenta
+[Notação em Benesh](notacao.html).
+:::
+
+::: {#parker-1990 .ref}
+**PARKER, Monica.** *Benesh Movement Notation: Elementary Solo Syllabus — Ballet
+Application*. Londres: Benesh Institute of Choreology, 1990.
+
+Aplicação do sistema ao balé clássico — referência complementar.
 :::
 
 ## História e política
@@ -159,8 +177,9 @@ Rio–São Paulo.
 - As obras de **pedagogia, história, memória e filosofia** integram a bibliografia do
   material *O Repertório Vivo — O Corpo, o Arquivo e o Rizoma* e foram conferidas
   contra as fontes declaradas nele.
-- As entradas dos **materiais didáticos de exame (RAD)** e de **anatomia
-  (Clippinger)** foram indicadas pelo professor do ciclo: o dado de edição/ano fica
-  marcado **[conferir]** até ser checado na cópia em uso.
+- Os **materiais de exame (RAD 2015 e 2025)**, o **Royal Ballet School (2024)** e as
+  duas fontes de **notação em Benesh** foram identificados pelo professor do ciclo.
+- **Anatomia (Clippinger):** o dado de edição/ano segue marcado **[conferir]** até ser
+  checado na cópia em uso.
 - **Onde falta fonte, o ciclo não afirma** — por isso há campos `[conferir]` e
   `[Preencher]` nos documentos.
