@@ -39,6 +39,8 @@ for c in $ciclos; do
   case "$numero" in
     *-*) variante="${numero#*-}"; numero="${numero%%-*}" ;;
   esac
+  # só é variante se existir manifesto dela; senão é fonte compartilhada
+  [ -n "$variante" ] && [ ! -f "ciclos/ciclo-$numero-$variante.conf" ] && variante=""
 
   # sem variante no caminho (manifesto base, fontes ou pacote antigo): gera todas
   if [ -z "$variante" ]; then
