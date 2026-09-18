@@ -64,8 +64,8 @@ for c in $ciclos_hash; do
     echo "pre-commit: âncora FIPP do ciclo-$numero-$v ok"
   done
 
-  # PO do ciclo: validado uma vez por ciclo (o PO é do ciclo, não da variante)
-  arquivo_po="ciclos/ciclo-$numero-po.md"
+  # PO da variante: validado uma vez por escola (o PO é por escola)
+  arquivo_po="ciclos/ciclo-$numero-$v-po.md"
   schema_po="ciclos/ciclo-$numero-po-schema.json"
   if [ -f "$arquivo_po" ] && [ -f "$schema_po" ]; then
     if ! node tools/validar-po-ciclo.js "$schema_po" "$arquivo_po" > /tmp/pre-commit-po-"$numero".log 2>&1; then
@@ -73,7 +73,7 @@ for c in $ciclos_hash; do
       grep -E '^  - |^erro' /tmp/pre-commit-po-"$numero".log | head -6 >&2
       exit 1
     fi
-    echo "pre-commit: PO do ciclo-$numero validado"
+    echo "pre-commit: PO da variante ciclo-$numero-$v validado"
   elif [ -f "$arquivo_po" ]; then
     echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
   fi

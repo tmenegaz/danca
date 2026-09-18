@@ -21,9 +21,12 @@
 #   conteudo .... hash das fontes
 #
 # Cobertura: apenas FONTES — ciclos/ciclo-XX.conf, ciclos/ciclo-XX-<variante>.conf
-# e todos os ciclos/ciclo-XX-*.md. As saídas (HTML, PDF) não entram: são
-# reconstruíveis (P-04). Cada fonte entra precedida do seu caminho relativo, de
-# modo que renomear ou trocar um arquivo também altere o hash.
+# e os ciclos/ciclo-XX-*.md QUE NÃO SEJAM de outra escola. Como o PO passou a ser
+# por escola (ciclo-XX-<escola>-po.md), a coleta exclui os .md que começam com o
+# nome de outra variante: o hash do Duo não carrega o PO da Ritmos e vice-versa.
+# As saídas (HTML, PDF) não entram: são reconstruíveis (P-04). Cada fonte entra
+# precedida do seu caminho relativo, de modo que renomear ou trocar um arquivo
+# também altere o hash.
 #
 # O arquivo .fipp é a ÂNCORA da cadeia e por isso é VERSIONADO — não é saída.
 # ============================================================================
@@ -90,7 +93,7 @@ fi
 # --- 1b) PO do ciclo (P-01, P-08) ------------------------------------------
 # O PO é do CICLO (compartilhado pelas variantes). Se ainda não existir, não é
 # erro: o ciclo fica sem PO declarado e isso vai registrado no .fipp.
-ARQUIVO_PO="ciclos/ciclo-$CICLO-po.md"
+ARQUIVO_PO="ciclos/ciclo-$CICLO-$VARIANTE-po.md"
 SCHEMA_PO="ciclos/ciclo-$CICLO-po-schema.json"
 PO_INFO=""
 PO_STATE=""
@@ -113,9 +116,21 @@ else
 fi
 
 # --- 2) coleta dos fontes, em ordem determinística --------------------------
+# Exclui os .md de OUTRAS escolas (PO por escola, P-09/P-10): para o Duo, os
+# arquivos ciclo-XX-ritmos-*.md e ciclo-XX-debora-*.md não entram no hash.
+OUTRAS="$(ls -1 ciclos/ciclo-"$CICLO"-*.conf 2>/dev/null \
+  | sed "s|.*/ciclo-$CICLO-||; s|\.conf$||" | grep -vx "$VARIANTE" | tr '\n' ' ' || true)"
 FONTES="$( { printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
              ls -1 ciclos/ciclo-"$CICLO"-*.md 2>/dev/null || true; } \
-           | LC_ALL=C sort -u )"
+           | LC_ALL=C sort -u \
+           | while IFS= read -r fonte; do
+               for outra in $OUTRAS; do
+                 case "$fonte" in
+                   ciclos/ciclo-"$CICLO"-"$outra"-*.md) continue 2 ;;
+                 esac
+               done
+               printf '%s\n' "$fonte"
+             done )"
 [ -n "$FONTES" ] || { echo "erro: nenhuma fonte encontrada para o ciclo $CICLO" >&2; exit 1; }
 
 # --- 3) hash do conteúdo ----------------------------------------------------
