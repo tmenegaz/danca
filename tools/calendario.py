@@ -23,7 +23,10 @@ Regras de cálculo:
   · extensão de +4 aulas = +4 semanas com 1x/semana, +2 semanas com 2x/semana;
   · volume semanal = soma do volume das aulas da semana (dias curtos e longos).
 
-`--dias` usa números ISO de dia da semana: 1=segunda … 7=domingo.
+`--dias` usa números ISO de dia da semana: 1=segunda … 7=domingo. O número pode
+ser **repetido** para indicar mais de uma aula no mesmo dia: `"2,6,6"` = terça com
+1 aula e sábado com 2 aulas (as duas na mesma data, numeradas 1ª e 2ª). O total de
+aulas por semana é o número de entradas da lista.
 """
 
 import argparse
@@ -35,13 +38,21 @@ DIAS_SEMANA = {1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta',
 
 
 def datas_das_aulas(inicio: dt.date, dias: list, total: int) -> list:
-    """Datas reais: começa no primeiro dia de aula a partir de `inicio`."""
+    """Datas reais: uma aula por OCORRÊNCIA do dia na lista `dias`.
+
+    `dias` é tratado como multiconjunto: se um dia aparece mais de uma vez
+    (ex.: "2,6,6"), ele gera mais de uma aula na MESMA data — é o caso de duas
+    aulas no mesmo sábado (1 de balé como preparação + 1 de pas de deux). A
+    contagem por dia é simplesmente o número de vezes que o dia aparece.
+    """
     aulas = []
     dia = inicio
     while dia.isoweekday() not in dias:
         dia += dt.timedelta(days=1)
     while len(aulas) < total:
-        if dia.isoweekday() in dias:
+        for _ in range(dias.count(dia.isoweekday())):
+            if len(aulas) >= total:
+                break
             aulas.append(dia)
         dia += dt.timedelta(days=1)
     return aulas
@@ -94,13 +105,26 @@ def main() -> int:
 
     L = ['## Calendário do Ciclo {#calendario-do-ciclo}', '']
     L.append(f'- **Escola/Espaço:** {a.escola}' + (f' — {a.responsavel}' if a.responsavel else ''))
-    L.append(f'- **Frequência semanal:** {a.frequencia} '
-             f'({", ".join(DIAS_SEMANA[d] for d in dias)})')
-    if a.duracao_longa and a.volume_longo:
-        L.append(f'- **Duração por dia:** {a.duracao_curta} min ({DIAS_SEMANA[dias[0]]}) e '
-                 f'{a.duracao_longa} min ({", ".join(DIAS_SEMANA[d] for d in dias[1:])})')
+    # Um dia pode ter mais de uma aula (ex.: sábado com balé + pas de deux): a
+    # lista `dias` então repete o número. Quando não repete, a saída abaixo é
+    # byte a byte a mesma de antes — nenhum ciclo existente muda de calendário.
+    distinctos = [d for i, d in enumerate(dias) if d not in dias[:i]]
+    if len(distinctos) != len(dias):
+        L.append(f'- **Frequência semanal:** {a.frequencia} (' + '; '.join(
+            f'{DIAS_SEMANA[d]}' + (f' ×{dias.count(d)}' if dias.count(d) > 1 else '')
+            for d in distinctos) + ')')
+        L.append('- **Duração por dia:** ' + ' · '.join(
+            f'{DIAS_SEMANA[d]}: {a.duracao_curta * dias.count(d)} min'
+            + (f' ({dias.count(d)} aulas de {a.duracao_curta} min)' if dias.count(d) > 1 else '')
+            for d in distinctos))
     else:
-        L.append(f'- **Duração por dia:** {a.duracao_curta} minutos')
+        L.append(f'- **Frequência semanal:** {a.frequencia} '
+                 f'({", ".join(DIAS_SEMANA[d] for d in dias)})')
+        if a.duracao_longa and a.volume_longo:
+            L.append(f'- **Duração por dia:** {a.duracao_curta} min ({DIAS_SEMANA[dias[0]]}) e '
+                     f'{a.duracao_longa} min ({", ".join(DIAS_SEMANA[d] for d in dias[1:])})')
+        else:
+            L.append(f'- **Duração por dia:** {a.duracao_curta} minutos')
     L.append('- **Volume semanal:** ' + ' + '.join(str(v) for _, _, v in dias_do_ciclo) +
              f' = **{volume_semanal} tempos/semana**')
     if aulas[0] != inicio:
@@ -116,6 +140,18 @@ def main() -> int:
     L.append('')
     L.append('| Aula | Data | Dia | Duração |')
     L.append('|:---:|:---|:---|:---:|')
+    # Posição da aula dentro do próprio dia: quando o dia tem mais de uma aula
+    # (sábado 1ª, sábado 2ª), o rótulo diz qual é — sem isso, duas linhas com a
+    # mesma data ficariam indistinguíveis.
+    vistos_no_dia = {}
+
+    def rotulo_do_dia(d):
+        vistos_no_dia[d] = vistos_no_dia.get(d, 0) + 1
+        nome = DIAS_SEMANA[d.isoweekday()]
+        if dias.count(d.isoweekday()) > 1:
+            return f'{nome} ({vistos_no_dia[d]}ª)'
+        return nome
+
     for i, d in enumerate(aulas, 1):
         idx = (i - 1) % por_semana
         if a.duracao_longa and a.volume_longo and idx > 0:
@@ -123,7 +159,7 @@ def main() -> int:
         else:
             dur = a.duracao_curta
         marco = ' *(formativa)*' if i == formativa else (' *(somativa)*' if i == a.total else '')
-        L.append(f'| {i:02d}{marco} | {br(d)} | {DIAS_SEMANA[d.isoweekday()]} | {dur} min |')
+        L.append(f'| {i:02d}{marco} | {br(d)} | {rotulo_do_dia(d)} | {dur} min |')
     L.append('')
     L.append('> O volume de trabalho ativo de cada aula está na própria aula; o volume '
              'semanal acima é calculado sobre o volume declarado na Aula 01 (Regra 9).')
