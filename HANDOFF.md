@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T10:13:20-0300`
-Commit atual: `157fc44` — feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
+Gerado em: `2026-09-18T10:26:08-0300`
+Commit atual: `7630610` — feat(ciclo-01): cria folha de captura para uso durante a Aula 01
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,8 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+7630610 feat(ciclo-01): cria folha de captura para uso durante a Aula 01
+25fe19e chore(tools): regera HANDOFF
 157fc44 feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
 adf5f6e chore(tools): regera HANDOFF
 4fbe29f docs(protocolo): governanca do caderno com referencia por apelido
@@ -32,8 +34,6 @@ eaf4d93 fix(ciclo-01): corrige a metrica do Peasant Pas de Deux (3/4 polonesa, n
 d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 62587f9 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
 d7dbc73 chore(tools): regera o HANDOFF apos a correcao
-028da5d fix(ciclo-01): corrige a transferencia de peso no tempo 2 (musicalidade)
-ee9176d chore(tools): regera o HANDOFF apos a musicalidade
 ```
 
 ## POs — estado atual
@@ -48,9 +48,9 @@ ee9176d chore(tools): regera o HANDOFF apos a musicalidade
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `75401eb1bff8` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `6ec53b575128` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `52e785c295d5` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `d93b158918c5` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `52ac6e229b10` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `ba526082a3e1` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
