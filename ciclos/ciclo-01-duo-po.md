@@ -76,8 +76,9 @@ com professor único.
 
 ## Sujeitos
 
-- **Quatro meninas de 11 anos**, com experiência prévia em balé clássico: conhecem
-  as cinco posições dos pés.
+- **Quatro meninas de 11 anos**, referidas por **apelidos estáveis** (P-12):
+  **Ceci, Ana, Mel, Sofi** — com experiência prévia em balé clássico (conhecem as
+  cinco posições dos pés).
 - **Pré-condições heterogêneas:** dificuldade de alongamento — em algumas, da
   cadeia posterior; em outras, do adutor.
 - **Boa coordenação motora** e **musicalidade presente**.
@@ -99,6 +100,20 @@ ela é a própria **heterogeneidade das pré-condições**:
 > referencial — e a diferença entre **o que já era** e **o que foi construído**
 > ficaria indistinguível do estado inicial. É também esta heterogeneidade que
 > permite dizer qual volume cada corpo aguenta.
+
+### Linha de base por aluna
+
+| Aluna | Condição inicial |
+|:--|:--|
+| Ceci | [Preencher: dificuldade específica, se conhecida] |
+| Ana | [Preencher] |
+| Mel | [Preencher] |
+| Sofi | [Preencher] |
+
+> As pré-condições do grupo são heterogêneas: algumas alunas têm dificuldade de
+> alongamento na cadeia posterior, outras no adutor. A distribuição individual será
+> registrada no caderno à medida que a prática a revelar — **não inferir quem tem
+> qual dificuldade.**
 
 ## Critérios de inclusão
 

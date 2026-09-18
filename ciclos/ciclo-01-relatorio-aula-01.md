@@ -13,6 +13,10 @@ title: "Relatório pós-aula 01 — Duo (preview)"
 >
 > **Data da aula:** sexta, **18/09/2026** — 60 minutos · Duo (Fernando) · professor
 > Tiago Menegaz · quatro alunas de 11 anos.
+>
+> **Como referir às alunas:** pelos **apelidos declarados no PO** — **Ceci, Ana, Mel,
+> Sofi** (P-12). No relatório preenchido, cada linha de observação por aluna usa o
+> apelido, nunca o nome completo nem uma letra.
 
 ## O que observar durante a aula
 

@@ -7,9 +7,9 @@ id: ciclo-01-ritmos
 type: Ciclo
 ciclo: 01
 variante: ritmos
-hash_conteudo: cf2c4c52fdce265076a3292429e47e177c132dab38406281f2bfce8dd29b24a0
+hash_conteudo: d7875d3e3aca1a4d1b3e0b26ab5b78cf50858968bdd3ef8b3988eb0108c83252
 parentHash: 
-hash: 952397e288e107237d259d3716bdecda3e1d30843061bba6022ba1e8c2204d43
+hash: 52e785c295d59643d2a4c7ce0b5ea5cc6cab7451a37a2aa799bc4806ddec132c
 algoritmo: SHA-256
 po: ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Aguardando
