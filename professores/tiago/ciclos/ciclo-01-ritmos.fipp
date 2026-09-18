@@ -8,9 +8,9 @@ type: Ciclo
 professor: tiago
 ciclo: 01
 variante: ritmos
-hash_conteudo: 7bf1cf82473512fbb6b7ba23bb7cfc6192e8a6f1be90a7c4e98815665de2ddc7
+hash_conteudo: cd41ae75a8b0bb6e1c1acdee763c142ff9e0d7519193c5825e4eb5e5165c4b32
 parentHash: 
-hash: 9c5609001090a70b9a113dc6dd06b41e3868ad6061609957dd8f8d09493e4eb5
+hash: cb7822207ac0b428c2d08b7261ff4166ae655bef0799577d7ff74e112eb7e5d9
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Aguardando

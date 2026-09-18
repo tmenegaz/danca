@@ -8,9 +8,9 @@ type: Ciclo
 professor: tiago
 ciclo: 01
 variante: duo
-hash_conteudo: 82015b7e6a6efd0c0c65ba6aa0aca8949f692f3f3633a5bf00094bcaa91a4e43
+hash_conteudo: c5dd76e751c0102c399153d81815abb5af0cd42b7bf51e48ffcbc030588793af
 parentHash: 
-hash: 918297927f796b84d5dd8bc96a57bf59a84b41190c4c745a0e30e134ef8c88fd
+hash: f99c8ef2879ab0356388ffdaaa8cddff99422da7965ba0139c563f396f14ebf4
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado

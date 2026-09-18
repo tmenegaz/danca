@@ -8,9 +8,9 @@ type: Ciclo
 professor: tiago
 ciclo: 01
 variante: debora
-hash_conteudo: 7a0b66eed45aef3c9fb77e9da56235e5d7d33ea8e7c0780dff2ac5a98e482944
+hash_conteudo: 5638506a4f686d1c67cafe505f89999da877f7c4eb19bf418ea43943f0321940
 parentHash: 
-hash: 308a080a6e4c8cce52ee9f8740a194a5e4150ee37fd27a6388ddaf92741de38a
+hash: 23b1d1075d87000ab66847515a9ccd6f19035546d89b3b51f72a7f83aed4a67e
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-debora-po.md
 po_state: Input_PO_Aguardando
