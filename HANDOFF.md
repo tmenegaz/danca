@@ -1,13 +1,13 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T14:42:17-0300`
-Commit atual: `74e2ab4` — fix(tools): separa o slug do professor do nome de exibicao e datacao do PDF
+Gerado em: `2026-09-18T16:27:08-0300`
+Commit atual: `d7d13e2` — feat(prompts): atualiza prompt de eliciacao com P-16 e P-18
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
 
 - **Regras:** 17 em `REGRAS.md`
-  + **14 pétreas** em `PROTOCOLO.md`
+  + **19 pétreas** em `PROTOCOLO.md`
 - **Professores:** tiago (1)
 - **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
@@ -15,6 +15,17 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+d7d13e2 feat(prompts): atualiza prompt de eliciacao com P-16 e P-18
+e18cc66 feat(prompts): instala prompt de instalacao de ciclo no repositorio (P-19)
+c23ab15 feat(ciclo-01): gera artefatos auxiliares do Ritmos (replica estrutura do Duo)
+1481c1a fix(ciclo-01): manifesto do Ritmos com 21 aulas e 3 aulas/semana
+d24e911 fix(ciclo-01): corrige PO do Ritmos (apelidos P-12, 21 aulas, PDD como objetivo)
+990c784 feat(protocolo): acrescenta P-15 a P-19 (notacao, eliciacao, artefatos, escola, prompts)
+6c63ccf docs(campo): registra as respostas do professor da Ritmos e a correcao no REGISTRO
+ad86acd feat(ciclo-01): instala o ciclo da Ritmos e Movimento a partir da entrega do professor
+e409322 docs(estrutura): documenta que cada escola tem o seu proprio ciclo
+b60830b chore(estrutura): remove as copias do ciclo da Debora
+7ed5623 fix(tools): resolve as fontes por escola, no gerador e no hasher
 74e2ab4 fix(tools): separa o slug do professor do nome de exibicao e datacao do PDF
 53f41f4 chore(ciclo-01): versiona os pacotes entregues das tres escolas
 d155cd7 chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo GitHub)
@@ -24,17 +35,6 @@ d155cd7 chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo G
 d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
 31625b3 chore(tools): aceita o escopo template no commit-msg
 0ca9d5f docs(registro): corrige a ordem das entradas (cronologica, a mais recente no fim)
-4add8f4 docs(registro): registra a decisao de publicar o repositorio no GitHub
-ffced49 chore(tools): lista as variantes do ciclo em uma linha no HANDOFF
-c1c3f4b chore(tools): regera HANDOFF
-547907e docs(estrutura): atualiza documentos da raiz para a estrutura por professor
-53692ba feat(biblioteca): guia do professor no pacote de ciclo
-51cf250 feat(protocolo): acrescenta P-13 e P-14 (PO por professor, departamento)
-28d6d3b refactor(estrutura): move o material do Tiago para professores/tiago e refatora as ferramentas
-c88c7d8 chore(tools): regera ancoras e HANDOFF
-494f9ac fix(ciclo-01): ajusta redacao do PO do Duo (contagio, nota sobre dor)
-16ad569 chore(tools): regera ancoras e HANDOFF
-7630610 feat(ciclo-01): cria folha de captura para uso durante a Aula 01
 ```
 
 ## Por professor
@@ -51,7 +51,7 @@ c88c7d8 chore(tools): regera ancoras e HANDOFF
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | duo | ciclo-01-duo.fipp | `f99c8ef2879a` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `12a9ab9201f6` | (vazio) | Input_PO_Aguardando |
+| ritmos | ciclo-01-ritmos.fipp | `a24fa5b07e0a` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -69,6 +69,11 @@ c88c7d8 chore(tools): regera ancoras e HANDOFF
 - **P-12 — Os sujeitos são referidos por apelidos estáveis.
 - **P-13 — Cada professor tem o seu próprio PO.
 - **P-14 — O PO pode derivar de um PO de departamento.
+- **P-15 — A notação segue a metodologia declarada.
+- **P-16 — Metodologia e notação são declaradas na eliciação.
+- **P-17 — Todo ciclo produz os mesmos tipos de artefato do ciclo piloto.
+- **P-18 — A metodologia pode ser imposta pela escola.
+- **P-19 — Os prompts do projeto vivem no repositório.
 
 ## Regras (`REGRAS.md`)
 
