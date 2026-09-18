@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T13:52:06-0300`
-Commit atual: `002d965` — docs(tools): registra o comando de deploy no README
+Gerado em: `2026-09-18T14:02:52-0300`
+Commit atual: `d155cd7` — chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo GitHub)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -10,11 +10,13 @@ Para: sessão nova (retomar o diálogo)
   + **14 pétreas** em `PROTOCOLO.md`
 - **Professores:** tiago (1)
 - **Ciclos com manifesto:** 3 variante(s)
-- **Saídas geradas:** fora do Git (reconstruíveis — P-04)
+- **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Últimos commits
 
 ```
+d155cd7 chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo GitHub)
+82e83f6 chore(tools): regenera os pacotes e o HANDOFF
 002d965 docs(tools): registra o comando de deploy no README
 76d128f feat(tools): cria deploy-netlify.sh (uma conta por escola)
 d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
@@ -33,8 +35,6 @@ c88c7d8 chore(tools): regera ancoras e HANDOFF
 7630610 feat(ciclo-01): cria folha de captura para uso durante a Aula 01
 25fe19e chore(tools): regera HANDOFF
 157fc44 feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
-adf5f6e chore(tools): regera HANDOFF
-4fbe29f docs(protocolo): governanca do caderno com referencia por apelido
 ```
 
 ## Por professor
@@ -94,34 +94,38 @@ adf5f6e chore(tools): regera HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 18/09/2026 — Publicação do repositório no GitHub (decisão da pesquisadora)
+## 18/09/2026 — Pacotes de ciclo passam a ser versionados (deploy automático)
 
 **O que aconteceu.**
-O repositório passa a ser publicado no GitHub, **com o conteúdo integral** — incluindo o
-PO, o material de observação e o de campo. A decisão foi tomada com a auditoria à vista:
-o repositório tem **70 arquivos rastreados e nenhum binário** (3,2 MB), **nenhum dado de
-contato, senha ou chave**; as alunas aparecem **somente por apelidos** (P-12). Há, sim,
-descrições individuais na linha de base e nos relatórios — e o histórico de 75 commits
-preserva tudo isso de forma permanente, o que a decisão assume conscientemente.
+O deploy do material passou a ser **automático a partir do GitHub** (Netlify, uma conta por
+escola). Como o serviço lê o repositório, o pacote gerado precisa estar nele — e até aqui as
+saídas ficavam fora do Git, por `.gitignore`.
 
 **O que foi decidido.**
-- Repositório **público**, nome `danca`, com o conteúdo integral.
-- As saídas geradas continuam fora do versionamento (P-04): o que se publica é fonte
-  reconstruível, não artefato.
-- As regras de privacidade do projeto permanecem as mesmas: **nome completo e contato das
-  alunas não entram em nenhum arquivo do repositório**, em nenhum momento.
+- Os pacotes (`professores/<p>/ciclos/ciclo-XX-<escola>/`: HTML, PDF e `assets/`) passam a
+  ser **versionados** — inclusive os `assets/`, que são o estilo e os mapas sem os quais a
+  página não funciona.
+- **A P-04 continua valendo integralmente:** o hash FIPP segue cobrindo apenas as fontes
+  (`.conf` e `.md`). Versionar a saída não altera âncora nenhuma — conferido com `--check`.
+- O `pre-commit` deixa de barrar essas saídas (a regra que recusava arquivos gerados ganhou
+  a exceção do pacote de ciclo). O `out/` da apresentação, os `.pptx` e os PNGs de slide
+  seguem barrados.
+- O que se aceita em troca: cada regeneração de pacote entra no histórico, e o diff passa a
+  mostrar HTML e PDF além das fontes. Foi o custo escolhido para ter deploy automático.
+- O `tools/deploy-netlify.sh` (deploy por linha de comando) continua disponível, mas com o
+  deploy pelo Git ele passa a ser opcional.
 
 **Com o quê.**
-`README.md` (nota "Sobre os dados deste repositório"), `.gitignore`, `REGRAS.md` (17
-regras), `PROTOCOLO.md` (P-04, P-12).
+`.gitignore`, `tools/hooks/pre-commit`, `README.md`, `README-ciclos.md`,
+`tools/gerar-handoff.sh`, `professores/tiago/ciclos/ciclo-01-{duo,ritmos,debora}/`.
 
 **Referências.**
-`professores/tiago/campo/README.md` (regra de privacidade de campo); `PROTOCOLO.md` P-12
-(apelidos estáveis).
+`PROTOCOLO.md` P-04 (hash sobre fontes); `REGRAS.md` 17 (versionamento);
+`README-ciclos.md` (formato de entrega).
 
 **O que ainda não está feito.**
-Licença do repositório (a definir); o envio para o GitHub, que acontece fora do
-repositório, na máquina da pesquisadora.
+Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
+licença do repositório.
 
 ## O que está pendente
 
@@ -136,6 +140,11 @@ professor (a estrutura está pronta, aguardando o primeiro).
 
 Licença do repositório (a definir); o envio para o GitHub, que acontece fora do
 repositório, na máquina da pesquisadora.
+
+## 18/09/2026 — Pacotes de ciclo passam a ser versionados (deploy automático)
+
+Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
+licença do repositório.
 - PO de **tiago · debora** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
