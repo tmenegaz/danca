@@ -87,6 +87,31 @@ if [ -f "$SCHEMA" ]; then
   fi
 fi
 
+# --- 1b) PO do ciclo (P-01, P-08) ------------------------------------------
+# O PO é do CICLO (compartilhado pelas variantes). Se ainda não existir, não é
+# erro: o ciclo fica sem PO declarado e isso vai registrado no .fipp.
+ARQUIVO_PO="ciclos/ciclo-$CICLO-po.md"
+SCHEMA_PO="ciclos/ciclo-$CICLO-po-schema.json"
+PO_INFO=""
+PO_STATE=""
+if [ -f "$ARQUIVO_PO" ]; then
+  if [ -f "$SCHEMA_PO" ]; then
+    if ! node tools/validar-po-ciclo.js "$SCHEMA_PO" "$ARQUIVO_PO" > /tmp/hash-po-"$CICLO".log 2>&1; then
+      echo "erro: o PO do ciclo $CICLO não satisfaz $SCHEMA_PO — corrija antes de ancorar." >&2
+      grep -E '^  - |^erro' /tmp/hash-po-"$CICLO".log | head -8 >&2
+      exit 1
+    fi
+    PO_INFO="$ARQUIVO_PO"
+  else
+    echo "aviso: $ARQUIVO_PO existe, mas $SCHEMA_PO não — PO não validado" >&2
+    PO_INFO="$ARQUIVO_PO (sem schema)"
+  fi
+  PO_STATE="$(sed -n 's/^state:[[:space:]]*//p' "$ARQUIVO_PO" | head -1)"
+else
+  echo "aviso: o ciclo $CICLO ainda não tem PO declarado ($ARQUIVO_PO)" >&2
+  PO_INFO="ausente — este ciclo ainda não tem PO declarado"
+fi
+
 # --- 2) coleta dos fontes, em ordem determinística --------------------------
 FONTES="$( { printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
              ls -1 ciclos/ciclo-"$CICLO"-*.md 2>/dev/null || true; } \
@@ -184,6 +209,8 @@ fi
   echo "parentHash: $PARENT_HASH"
   echo "hash: $HASH_FIPP"
   echo "algoritmo: SHA-256"
+  echo "po: $PO_INFO"
+  echo "po_state: $PO_STATE"
   echo "cobertura:"
   for f in $FONTES; do echo "  - $f"; done
 } > "$ARQUIVO_FIPP"
