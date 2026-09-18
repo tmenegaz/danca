@@ -101,19 +101,44 @@ ela é a própria **heterogeneidade das pré-condições**:
 > ficaria indistinguível do estado inicial. É também esta heterogeneidade que
 > permite dizer qual volume cada corpo aguenta.
 
+### Linha de base do grupo (compartilhada)
+
+**Postura e alinhamento — nenhuma das quatro controla:**
+
+- Costelas abertas
+- Quadril para trás
+- Hiperlordose
+- Braços na 2ª posição com cotovelos caídos
+
+**Adutores e posterior de coxa — nenhuma tem desenvolvido:**
+
+- Não abrem espacate na 2ª posição sentadas no chão
+- Mesmo com apoio (estepe sob o quadril), não sustentam a postura das costas
+- Dificuldade em adutores e posterior de coxa
+
+**Musicalidade — o grupo tem:**
+
+- Nos exercícios de bater palma, vão muito bem
+
+> A heterogeneidade declarada na tabela por dimensão aparece, abaixo, distribuída por
+> aluna — **declarada pela pesquisadora antes da Aula 01** (P-10). O que não estiver
+> aqui é `[a observar na aula 01]`, não suposição.
+
 ### Linha de base por aluna
 
-| Aluna | Condição inicial |
-|:--|:--|
-| Ceci | [Preencher: dificuldade específica, se conhecida] |
-| Ana | [Preencher] |
-| Mel | [Preencher] |
-| Sofi | [Preencher] |
+| Aluna | Traz | Precisa desenvolver |
+|:--|:--|:--|
+| **Ceci** | Força, persistência, resiliência, disciplina, coordenação motora, inteligência. Menina alta. Controla o en dehors — mas com esforço enorme. | Flexibilidade do posterior e dos rotadores (para o en dehors). Soltar a tensão. |
+| **Ana** | Musicalidade (em observação: própria ou por contágio da turma). | Força. Resiliência a dor (desiste ao primeiro desconforto). Foco (dispersa). Controle de en dehors no tendu ao lado. Alongamento do posterior. |
+| **Mel** | Potencial físico a desenvolver (a que mais tem atributos). Musicalidade forte. Harmonia. | Foco (dispersa; entedia-se). Resistência física e mental. Enfrentamento (desiste nas dificuldades). Sustentação de postura. Resiliência a dor. Alongamento do posterior. Rotadores externos. |
+| **Sofi** | Musicalidade, concentração, inteligência, força de vontade, alegria. Boa memória para exercícios. Proponente em sala. | Atributos físicos para o balé clássico — **observação da professora**: o que se observa é a ausência de atributos físicos no estado atual, o que não impede desenvolvimento, e é justamente o que o ciclo se propõe a acompanhar. |
 
-> As pré-condições do grupo são heterogêneas: algumas alunas têm dificuldade de
-> alongamento na cadeia posterior, outras no adutor. A distribuição individual será
-> registrada no caderno à medida que a prática a revelar — **não inferir quem tem
-> qual dificuldade.**
+> **Mel — proponente, mas fora do tema.** A Mel também é proponente em sala (como a
+> Sofi), mas as propostas tendem a sair do tema da aula — gosta muito de brincadeiras.
+>
+> **Ana — musicalidade em observação.** Não acompanha no início dos exercícios de
+> bater palma; segue a turma. Ainda não está decidido se é por destilação (acompanha
+> por contágio) ou por compreensão tardia. Em observação.
 
 ## Critérios de inclusão
 
