@@ -23,11 +23,11 @@ quarta e quinta), além de boa coordenação motora e distribuição de peso.
 
 | Item | Valor |
 |:--|:--|
-| **Duração** | 20 encontros (declarado pelo professor) |
-| **Duração de cada aula** | **60 minutos** (terças) e **120 minutos** (sábados) |
+| **Duração** | **21 encontros** (declarado pelo professor) |
+| **Duração de cada aula** | **3 aulas de 60 min por semana**: 1 na terça (pas de deux) e 2 no sábado (1 de balé, como preparação, + 1 de pas de deux — **120 min no dia**) |
 | **Data de início** | 19/09/2026 (sábado — dia de aula desta escola) |
 | **Encerramento previsto** | ver o [Calendário do ciclo](#calendario-do-ciclo) |
-| **Volume ativo por aula** | 80–100 tempos (dia de 60 min) e 150–200 tempos (dia de 120 min) — Regra 9, etapa 1 |
+| **Volume ativo por aula** | **80–100 tempos por aula** (as três têm 60 min) — Regra 9, etapa 1. No sábado as duas aulas somam 180 tempos, dentro da faixa de 150–200 do dia de 120 min |
 | **Professor** | Tiago Menegaz |
 
 ## Marcos parciais por aula
@@ -42,8 +42,8 @@ existe porque a anterior deixou uma condição necessária (Regra 2).
 | Aula | Objetivo específico (marco parcial) |
 |:---:|:---|
 | **01** | No centro: tendus e jetés (frente, lado e trás) com coordenação de braços (1ª, 2ª e 3ª); transferência de peso por cima e por baixo (de demi-plié em 2ª, 4ª ou 5ª para o passé); estabilidade em piqué arabesque com o pé todo no chão (da meia ponta, descendo devagar, sem titubear a perna de base e mantendo a estrutura do arabesque e dos braços). |
-| **02–19** | [Preencher: o professor não declarou. Cada marco é escrito após a aula anterior, com o parâmetro medido em mãos — não antes.] |
-| **20** | [Preencher: último encontro do ciclo — fechamento e avaliação, a declarar com o professor.] |
+| **02–20** | [Preencher: o professor não declarou. Cada marco é escrito após a aula anterior, com o parâmetro medido em mãos — não antes.] |
+| **21** | [Preencher: último encontro do ciclo — fechamento e avaliação, a declarar com o professor.] |
 
 > **Escrito em detalhe até aqui:** [Aula 01](aula-01.html).
 
@@ -53,17 +53,18 @@ existe porque a anterior deixou uma condição necessária (Regra 2).
 
 ## Calibração do volume pela duração (Regra 9, etapa 1)
 
-Este ciclo tem **dois dias com durações diferentes** — 60 min nas terças e 120
-min nos sábados — e é por isso que o manifesto declara duas faixas e cada aula
-declara dois volumes (`volume-total` e `volume-total-120`). O gerador confere os
-dois: se um deles faltar ou sair da faixa, o pacote não é gerado.
+Este ciclo tem **três aulas de 60 min por semana** — 1 na terça e 2 no sábado (que
+somam 120 min no dia). Como todas as aulas têm a mesma duração, o manifesto declara
+uma única faixa de volume e cada aula declara um único volume (`volume-total`). O
+gerador confere esse valor contra a faixa: se faltar ou sair dela, o pacote não é
+gerado.
 
 | Duração da aula | Volume total de trabalho ativo | Observação |
 |:---:|:---:|:---|
-| 60 min (terças) | **80–100 tempos** | Volume moderado; foco em qualidade |
+| **60 min** (as três aulas da semana) | **80–100 tempos** | Volume moderado; foco em qualidade |
 | 75 min | 100–120 tempos | Volume padrão para aulas de balé infantil |
 | 90 min | 120–150 tempos | Volume alto; requer progressão cuidadosa |
-| **120 min** (sábados) | **150–200 tempos** | Volume intenso; dia duplo desta escola |
+| 120 min (sábado, **duas aulas de 60**) | 150–200 tempos **no dia** | Volume intenso; é a soma das duas aulas do sábado |
 
 > **O que "tempos" mede aqui:** unidades de contagem ativa do exercício (o tempo
 > musical em que o corpo está executando), não minutos de relógio. A aula inclui
@@ -128,9 +129,9 @@ entrega).
 
 | Parte deste plano | Origem |
 |:--|:--|
-| Objetivo geral · 20 encontros · durações por dia · data de início · marco da Aula 01 · pré-requisitos e dificuldades da turma | **Entrega do professor, 18/09/2026**, transcrita sem alteração |
-| Marcos 02–20 | `[Preencher]` — não declarados; escrever após cada aula |
-| Faixas de volume (80–100 e 150–200) | **Regra 9**, etapa 1, do projeto |
+| Objetivo geral · 21 encontros · a estrutura de 3 aulas semanais · data de início · marco da Aula 01 · pré-requisitos e dificuldades da turma | **Entrega do professor, 18/09/2026**, transcrita sem alteração |
+| Marcos 02–21 | `[Preencher]` — não declarados; escrever após cada aula |
+| Faixa de volume (80–100 tempos por aula) | **Regra 9**, etapa 1, do projeto |
 | Proporção por blocos | **Regra 9**, etapa 2 — aplicabilidade a este ciclo `[Preencher]` |
 | Rubrica | Derivada dos eixos declarados por ele (fenômeno e critérios de inclusão do PO) |
 | Base teórica | Método RAD, técnica clássica, cinesiologia e preparação corporal (declarados por ele; ver [Referências](referencias.html)) |

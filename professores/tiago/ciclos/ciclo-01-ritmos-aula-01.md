@@ -8,7 +8,6 @@ subtitle: "Coordenação de braços (1ª, 2ª e 3ª), peso por cima e por baixo,
 objetivo-especifico: "Trabalhar a capacidade de ficar em pé no centro executando tendus e jetés (frente, lado e trás) com coordenação de braços (1ª, 2ª e 3ª); transferência de peso por cima e por baixo; e estabilidade em piqué arabesque com o pé todo no chão."
 duracao: "60 minutos"
 volume-total: "90 tempos"
-volume-total-120: "180 tempos"
 referencias: "RAD (2015); Clippinger (2024)"
 ---
 
@@ -30,8 +29,8 @@ referencias: "RAD (2015); Clippinger (2024)"
 | **Objetivo geral do ciclo** | Passar comandos básicos para os meninos e as meninas nas aulas de pas de deux, exigindo como pré-requisitos o domínio das posições básicas do balé (1ª, 2ª, 4ª e 5ª), de braços (1ª, 2ª, 3ª, 4ª e 5ª), boa coordenação motora e distribuição de peso. |
 | **Objetivo específico da aula** | Trabalhar a capacidade de ficar **em pé no centro**: tendus e jetés (frente, lado e trás) com coordenação de braços (1ª, 2ª e 3ª); transferência de peso **por cima e por baixo** (de demi-plié em 2ª, 4ª ou 5ª para o passé); e estabilidade em **piqué arabesque** com o pé todo no chão. |
 | **Parâmetro de medição** | 1. **Tendus e jetés:** o pé articula nas três direções e o braço acompanha na posição prevista, no tempo. 2. **Transferência de peso:** o peso passa por cima (e por baixo, no retorno), sem que o tronco desloque o eixo. 3. **Piqué arabesque:** o pé desce da meia ponta **devagar, até o pé todo no chão, sem titubear a perna de base** e mantendo a estrutura do arabesque e dos braços. |
-| **Duração da aula (Pré-requisito 4)** | **60 minutos** (terças) → faixa de volume ativo **80–100 tempos**; **120 minutos** (sábados) → faixa **150–200 tempos** (Regra 9, etapa 1). |
-| **Volume planejado** | **90 tempos** (dia de 60 min) e **180 tempos** (dia de 120 min) — dentro das duas faixas (conta no item 4). |
+| **Duração da aula (Pré-requisito 4)** | **60 minutos** — as três aulas da semana têm a mesma duração → faixa de volume ativo **80–100 tempos** (Regra 9, etapa 1). |
+| **Volume planejado** | **90 tempos** por aula, dentro da faixa (conta no item 4). No sábado são duas aulas: **180 tempos no dia**. |
 | **Data e horário desta aula** | ver o [Calendário do Ciclo](plano.html#calendario-do-ciclo) — a data real depende da frequência da escola |
 
 ## 2. Pré-requisitos declarados pelo professor
@@ -48,7 +47,7 @@ e a razão declarada de o ciclo começar por comandos básicos.
 | Distribuição de peso | idem |
 
 > **Nota do professor sobre a turma:** "Conhecem todos os passos da aula de balé
-> (exceto o Anthony), mas com execução ruim, falta de força e resistência,
+> (exceto o Tony), mas com execução ruim, falta de força e resistência,
 > coordenação motora baixa, musicalidade precária, sem virtuose, habilidades
 > físicas diversas, meninos travados (sem alongamento de posterior e adutores),
 > rotadores externos fracos, baixa sustentação de tônus muscular, cotovelos
@@ -121,9 +120,10 @@ mesma ordem, com a calibração de volume do projeto.
 > Os minutos incluem pausas, correções e repetições de ensaio — por isso não são
 > proporcionais aos tempos de contagem.
 >
-> **No dia de 120 minutos (sábados):** o mesmo plano em volume dobrado —
-> **180 tempos** (96 + 48 + 36), dentro da faixa de 150–200. A distribuição no
-> tempo do dia longo é `[Preencher: definir com o professor]`.
+> **No sábado há duas aulas de 60 min** (a de balé, como preparação, e a de pas de
+> deux): cada uma com o seu volume de **90 tempos** — 180 no dia, dentro da faixa de
+> 150–200 da Regra 9. O que muda de uma aula para a outra é o foco, não o teto:
+> `[Preencher: definir com o professor a divisão do conteúdo entre as duas aulas]`.
 
 ## 5. Musicalidade e repertório
 

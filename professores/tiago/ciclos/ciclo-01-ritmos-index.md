@@ -10,7 +10,7 @@ subtitle: "Índice geral do ciclo"
 > aulas de pas de deux, exigindo como pré-requisitos o domínio das posições
 > básicas do balé (1ª, 2ª, 4ª e 5ª), das posições de braços (1ª, 2ª, 3ª, 4ª e
 > 5ª), além de boa coordenação motora e distribuição de peso.
-> **Duração:** 20 encontros · **cada encontro: 60 min (terças) e 120 min (sábados)**
+> **Duração:** 21 encontros · **3 aulas de 60 min por semana** (terça: 1 · sábado: 2 — 120 min no dia)
 > **Data de início:** 19/09/2026
 > **Encerramento previsto:** ver o [Calendário do ciclo](plano.html#calendario-do-ciclo)
 > **Professor:** Tiago Menegaz
