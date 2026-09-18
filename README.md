@@ -47,6 +47,7 @@ aconteceu em aula, não classifica pessoas (P-06).
 |:--|:--|
 | Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh 01 duo` (ou `ritmos`, `debora`) |
 | Validar um pacote de ciclo | `node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo` |
+| Fazer deploy de um ciclo no Netlify | `tools/deploy-netlify.sh tiago 01 duo` |
 | Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |
 | Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
@@ -63,6 +64,27 @@ aconteceu em aula, não classifica pessoas (P-06).
 5. commitar com proveniência      →  tipo(escopo): resumo + Refs/Regras/Auditoria
 6. mergear em main depois da auditoria
 ```
+
+## Deploy no Netlify — uma conta por escola
+
+Cada escola (**Duo**, **Ritmos e Movimento**, **Débora**) tem a sua **própria conta** no
+Netlify, com o seu token e o seu site. Os tokens e os site IDs ficam em
+`tools/.netlify-tokens` — **não versionado** (o `.gitignore` cobre), criado como template
+na primeira execução do script:
+
+```bash
+tools/deploy-netlify.sh tiago 01 duo      # primeira vez: cria o template e sai
+# preencha NETLIFY_TOKEN_DUO e NETLIFY_SITE_DUO no arquivo
+tools/deploy-netlify.sh tiago 01 duo      # agora deploya
+```
+
+O token vai para o `netlify-cli` como `NETLIFY_AUTH_TOKEN` **só naquela execução**, então
+não é preciso `netlify login` nem trocar de conta à mão entre escolas. Para gerar o token:
+`app.netlify.com/user/applications#personal-access-tokens`; o site ID aparece em
+`netlify sites:list` ou no painel do site.
+
+> `tools/.netlify-tokens` é lido como shell. Trate como credencial: não versione, não
+> copie de terceiros, não deixe em pasta compartilhada.
 
 ## Regras do projeto
 
