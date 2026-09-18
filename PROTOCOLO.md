@@ -5,7 +5,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 
 - o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
 - este documento diz **como a aula se torna objeto de investigação sem que a
-  investigação contamine a aula** (12 regras pétreas).
+  investigação contamine a aula** (14 regras pétreas).
 
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
@@ -16,7 +16,7 @@ em ato**, com cadeia de proveniência **FIPP**.
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
 
-## As 12 regras pétreas
+## As 14 regras pétreas
 
 **P-01 — O ciclo é PO latente.**
 A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
@@ -76,6 +76,18 @@ apelidos que eles já usam, não pseudônimos criados para o projeto. A referên
 estável ao longo do ciclo (a mesma pessoa é sempre o mesmo apelido) e não requer
 consulta a mapa externo. Apelidos substituem nomes completos; não os acompanham em
 nenhum arquivo do repositório.
+
+**P-13 — Cada professor tem o seu próprio PO.**
+O PO é do professor, não do projeto. Dois professores com a mesma escola, os mesmos
+alunos, o mesmo objetivo geral — ainda assim têm POs distintos, porque o recorte
+observacional é decisão de cada um. Um PO nunca é compartilhado entre professores. A
+cadeia FIPP preserva a separação: cada PO tem a sua âncora.
+
+**P-14 — O PO pode derivar de um PO de departamento.**
+Quando a escola tem metodologia comum, existe um PO de departamento — a norma
+institucional. Cada PO de professor derivado tem `parentHash` = hash do PO de
+departamento. Quando a escola não tem metodologia comum, o PO do professor é raiz (sem
+`parentHash`). O PO de departamento é opcional: só existe onde a escola o declara.
 
 ## Nota metodológica
 
