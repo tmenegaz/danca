@@ -3,6 +3,35 @@
 Registro descritivo (P-06) dos marcos que constituem o Projeto Ciclo como
 objeto metodológico. Não é caderno pedagógico; é log do sistema.
 
+## 18/09/2026 — Publicação do repositório no GitHub (decisão da pesquisadora)
+
+**O que aconteceu.**
+O repositório passa a ser publicado no GitHub, **com o conteúdo integral** — incluindo o
+PO, o material de observação e o de campo. A decisão foi tomada com a auditoria à vista:
+o repositório tem **70 arquivos rastreados e nenhum binário** (3,2 MB), **nenhum dado de
+contato, senha ou chave**; as alunas aparecem **somente por apelidos** (P-12). Há, sim,
+descrições individuais na linha de base e nos relatórios — e o histórico de 75 commits
+preserva tudo isso de forma permanente, o que a decisão assume conscientemente.
+
+**O que foi decidido.**
+- Repositório **público**, nome `danca`, com o conteúdo integral.
+- As saídas geradas continuam fora do versionamento (P-04): o que se publica é fonte
+  reconstruível, não artefato.
+- As regras de privacidade do projeto permanecem as mesmas: **nome completo e contato das
+  alunas não entram em nenhum arquivo do repositório**, em nenhum momento.
+
+**Com o quê.**
+`README.md` (nota "Sobre os dados deste repositório"), `.gitignore`, `REGRAS.md` (17
+regras), `PROTOCOLO.md` (P-04, P-12).
+
+**Referências.**
+`professores/tiago/campo/README.md` (regra de privacidade de campo); `PROTOCOLO.md` P-12
+(apelidos estáveis).
+
+**O que ainda não está feito.**
+Licença do repositório (a definir); o envio para o GitHub, que acontece fora do
+repositório, na máquina da pesquisadora.
+
 ## 18/09/2026 — Estrutura por professor (P-13, P-14) e migração do material
 
 **O que aconteceu.**

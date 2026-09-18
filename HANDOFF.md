@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T13:28:02-0300`
-Commit atual: `c1c3f4b` — chore(tools): regera HANDOFF
+Gerado em: `2026-09-18T13:38:15-0300`
+Commit atual: `ffced49` — chore(tools): lista as variantes do ciclo em uma linha no HANDOFF
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,7 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+ffced49 chore(tools): lista as variantes do ciclo em uma linha no HANDOFF
 c1c3f4b chore(tools): regera HANDOFF
 547907e docs(estrutura): atualiza documentos da raiz para a estrutura por professor
 53692ba feat(biblioteca): guia do professor no pacote de ciclo
@@ -34,7 +35,6 @@ d602e53 feat(ciclo-01): declara os apelidos no PO do Duo (Ceci, Ana, Mel, Sofi)
 a5efb8b docs(biblioteca): documenta as duas listas de referencia (trabalho x publicada)
 b7b2d9a fix(tools): hook valida o PO de cada variante, nao so o da ultima
 dac289c chore(tools): regera o HANDOFF apos a gravacao na pagina publicada
-10b9910 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
 ```
 
 ## Por professor
@@ -121,6 +121,11 @@ Mirzabekiantz (2000); Parker (1990); Homans (2010); Paper FIPP
 POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
 
 ## O que está pendente
+
+Licença do repositório (a definir); o envio para o GitHub, que acontece fora do
+repositório, na máquina da pesquisadora.
+
+## 18/09/2026 — Estrutura por professor (P-13, P-14) e migração do material
 
 Primeiro relatório pós-aula do Duo; POs de Ritmos e Débora; Ciclo 02; um segundo
 professor (a estrutura está pronta, aguardando o primeiro).

@@ -4,6 +4,13 @@ Repositório único com as **duas frentes** do projeto: as **aulas** (ciclos de
 aprendizagem) e a **apresentação** (deck do rizoma). Tudo gerado por scripts,
 validado automaticamente e versionado com proveniência.
 
+## Sobre os dados deste repositório
+
+O material de observação refere as alunas **por apelidos estáveis** (P-12), nunca por nome
+completo, e não inclui dados de contato, de saúde ou de avaliação fora do recorte
+declarado no PO. É material de **pesquisa em andamento** (mestrado): descreve o que
+aconteceu em aula, não classifica pessoas (P-06).
+
 ```
 .
 ├── REGRAS.md                     as 17 regras do projeto (versionadas)
