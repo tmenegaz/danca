@@ -116,6 +116,24 @@ Implementação: [`tools/hash-ciclo.sh`](tools/hash-ciclo.sh), com validação d
 schema ([`tools/validar-schema-ciclo.js`](tools/validar-schema-ciclo.js)) e
 verificação no `pre-commit`.
 
+## Como o PO se materializa no ciclo
+
+O PO não é um documento paralelo ao ciclo: ele é **um arquivo do ciclo**.
+
+| Item | Como funciona |
+|:--|:--|
+| **Um arquivo por ciclo** | `ciclos/ciclo-XX-po.md` — pergunta, fenômeno, campo empírico, contexto, sujeitos, critérios de inclusão e exclusão, justificativa (4 subcampos), limitações e checklist de validação |
+| **Compartilhado pelas variantes** | o PO é do **ciclo**, não da escola: as três turmas leem o mesmo PO. O que muda por escola é o **caderno** (P-09) e o calendário (Pré-requisito 5) |
+| **Entra no hash FIPP** | `tools/hash-ciclo.sh` cobre os `ciclos/ciclo-XX-*.md`, então o PO aparece na `cobertura` do `.fipp`. Mudar o PO sem regerar a âncora faz o `--check` acusar — e o `pre-commit` recusa o commit |
+| **Registrado no `.fipp`** | os campos `po:` (caminho ou "ausente") e `po_state:` ficam gravados na âncora; ciclo sem PO declarado não é erro, é aviso |
+| **Validação** | `tools/validar-po-ciclo.js` confere o PO contra `ciclos/ciclo-XX-po-schema.json`: campo ausente reprova; `[Preencher: ...]` é aceito como provisório |
+| **Ciclo de vida do estado** | nasce em `state: Input_PO_Aguardando` e só passa a "Aprovado" quando os cinco itens do checklist estiverem marcados. Pela **P-02**, o PO do ciclo seguinte se declara *usando* o relatório pós-aula deste |
+
+> **O que o validador não faz:** ele não julga o conteúdo do PO — não avalia se a
+> pergunta é boa nem se o recorte é fecundo. Ele garante que os campos existem,
+> têm o tipo declarado e que o material provisório está visível como provisório.
+> O resto é decisão da pesquisadora, e é por isso que o estado não avança sozinho.
+
 ## Relação com `REGRAS.md`
 
 | Pergunta | Onde está a resposta |
