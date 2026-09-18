@@ -7,9 +7,9 @@ id: ciclo-01-duo
 type: Ciclo
 ciclo: 01
 variante: duo
-hash_conteudo: 250c23443aca223b187d8c6fc9aa045104adc277b38a6043c70a5e81d3c9a08b
+hash_conteudo: f2d35176263d01534eb786ea7037e95e6ec040d9d5ca8f9bdc93e32132145ca7
 parentHash: 
-hash: ffc242ff321210f2c7a9a47022109a8e8aea18308186d88252aed522df1f6a46
+hash: e8809f871e01782c50e3e4aadfb27fc7dd211675abd966f46dc89cfaf202236f
 algoritmo: SHA-256
 po: ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado
@@ -20,6 +20,7 @@ cobertura:
   - ciclos/ciclo-01-duo.conf
   - ciclos/ciclo-01-glossario-benesh.md
   - ciclos/ciclo-01-index.md
+  - ciclos/ciclo-01-musicalidade-aluna.md
   - ciclos/ciclo-01-musicalidade.md
   - ciclos/ciclo-01-notacao.md
   - ciclos/ciclo-01-plano.md
