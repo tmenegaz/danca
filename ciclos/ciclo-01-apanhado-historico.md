@@ -30,25 +30,41 @@ prática, e nunca no lugar dela.
 |:--|:--|
 | **Balé de repertório** | *Giselle* (1841), Ato I — *Peasant Pas de Deux* |
 | **Coreógrafos** | Jean Coralli e Jules Perrot |
-| **Compositor** | Adolphe Adam |
+| **Compositor** | Friedrich Burgmüller (interpolado em *Giselle*, de Adolphe Adam) |
 | **Estreia** | Carlotta Grisi (Giselle) e Lucien Petipa (Albrecht) |
 | **Contexto** | O Ato I é *grounded, bouncy* e cheio de vida — o oposto do Ato II, etéreo e trágico. Exige domínio do *petit allegro* e do **tendu preciso** |
-| **Música** | Adolphe Adam; **4/4 Allegretto (~98 BPM)**, com seções em 3/4 — os acentos marcam o tendu no tempo 1 e o plié no tempo 3 |
-| **Gravação de referência** | *Giselle, Peasant Pas de Deux (arr. March): Act I — Allegretto: Adagio*, Sofia National Opera Orchestra, regência de Boris Spassov (3:01) |
+| **Música** | Friedrich Burgmüller; corpo principal em **3/4** — **Entrée** (*tempo di polonaise*) e **Adagio** (*andante moderato*); variações em **2/4**; coda em valsas |
+| **Gravação de referência** | *Giselle, Peasant Pas de Deux (arr. March): Act I — Allegretto: Adagio*, Sofia National Opera Orchestra, regência de Boris Spassov (3:01) — a faixa é intitulada *Allegretto: Adagio*, mas é o **Adagio em 3/4** |
 | **Relação música-movimento** | O plié funcional aparece como mola para os saltos; o tendu é a base dos assembléos e sissonnes |
 | **Versão contemporânea** | *Giselle*, de Akram Khan (2016) — releitura que parte do mesmo material |
 | **Vídeo recomendado** | [Inserir link — conferir disponibilidade e direitos antes de projetar] |
 
-> **Compasso (anotado em aula):** o corpo principal do *Peasant Pas de Deux* está
-> em **4/4 (Allegretto, ~98 BPM)**, com seções em **3/4**. É esse tempo que permite
-> marcar o tendu no tempo 1 e o plié no tempo 3, como a aula faz.
+> **Compasso (anotado em aula):** o corpo principal do *Peasant Pas de Deux* está em
+> **3/4** — a **Entrée** como *tempo di polonaise* e o **Adagio** como *andante
+> moderato*; as variações estão em **2/4** e a coda alterna valsas. Em 3/4 o tempo 1 é
+> o acento, e é isso que permite marcar o tendu no tempo 1 e o plié no tempo 3, como a
+> aula faz.
+>
+> **A contagem da Aula 01 é didática, não é a métrica do repertório.** O exercício usa
+> **quatro tempos** (tendu · transferência · plié · fecho) porque contar até quatro é
+> mais simples para quem está começando — e a música do pas de deux está em **3/4**,
+> como acima. O que a aula herda do repertório é a **intenção** (o tendu como base do
+> pas de deux), não o compasso: por isso as duas informações convivem sem se
+> contradizer, e a contagem do exercício **não** depende da análise métrica abaixo.
 >
 > **Duas camadas de referência, que não se substituem.** A **gravação de referência**
-> é o arranjo de *March* (Sofia National Opera Orchestra, regência de Boris Spassov,
-> 3:01) — é ela que a aula usa, e a contagem declarada acima vale para ela. **A
-> partitura de Adolphe Adam é a fonte final:** é ela que resolve divergência entre
+> é o **Adagio em 3/4**, no arranjo de *March* (Sofia National Opera Orchestra,
+> regência de Boris Spassov, 3:01) — é ela que a aula usa. **A partitura é a fonte
+> final** (Burgmüller, interpolado em *Giselle*): é ela que resolve divergência entre
 > gravações. Como outras gravações têm andamento e estrutura um pouco diferentes,
 > confira a duração (3:01) antes de fixar a contagem em aula.
+>
+> **Correção registrada:** a versão anterior deste documento atribuía ao pas de deux um
+> compasso e um andamento que são de **outra faixa da suíte orquestral** — a análise de
+> BPM consultada refere-se a uma seção diferente, não ao Adagio usado em aula. A
+> estrutura acima foi confirmada pela tracklist da gravação de referência (Capriccio,
+> 2002) e por discussão em fórum de repertório especializado (Ballet Alert) — **fonte
+> de repertório, não acadêmica: conferir a partitura antes de publicar.**
 >
 > **Versão contemporânea:** *Giselle*, de Akram Khan (2016) — conferir ano e
 > companhia na fonte da produção antes de projetar.
