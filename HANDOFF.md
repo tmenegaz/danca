@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T13:39:54-0300`
-Commit atual: `4add8f4` — docs(registro): registra a decisao de publicar o repositorio no GitHub
+Gerado em: `2026-09-18T13:52:06-0300`
+Commit atual: `002d965` — docs(tools): registra o comando de deploy no README
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,11 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+002d965 docs(tools): registra o comando de deploy no README
+76d128f feat(tools): cria deploy-netlify.sh (uma conta por escola)
+d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
+31625b3 chore(tools): aceita o escopo template no commit-msg
+0ca9d5f docs(registro): corrige a ordem das entradas (cronologica, a mais recente no fim)
 4add8f4 docs(registro): registra a decisao de publicar o repositorio no GitHub
 ffced49 chore(tools): lista as variantes do ciclo em uma linha no HANDOFF
 c1c3f4b chore(tools): regera HANDOFF
@@ -30,11 +35,6 @@ c88c7d8 chore(tools): regera ancoras e HANDOFF
 157fc44 feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
 adf5f6e chore(tools): regera HANDOFF
 4fbe29f docs(protocolo): governanca do caderno com referencia por apelido
-d602e53 feat(ciclo-01): declara os apelidos no PO do Duo (Ceci, Ana, Mel, Sofi)
-0868fbc feat(protocolo): acrescenta P-12 (apelidos estaveis dos sujeitos)
-9dac53a chore(tools): regera HANDOFF
-a5efb8b docs(biblioteca): documenta as duas listas de referencia (trabalho x publicada)
-b7b2d9a fix(tools): hook valida o PO de cada variante, nao so o da ultima
 ```
 
 ## Por professor
