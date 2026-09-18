@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T00:43:31-0300`
-Commit atual: `10480e0` — chore(tools): aceita o escopo campo no commit-msg
+Gerado em: `2026-09-18T07:43:41-0300`
+Commit atual: `1d0a9fd` — fix(tools): integra validador de glossario ao check-pacote e ao pre-commit
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,10 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+1d0a9fd fix(tools): integra validador de glossario ao check-pacote e ao pre-commit
+971eb65 feat(tools): cria validador de consistencia do glossario
+1e18172 feat(ciclo-01): cria glossario Benesh exaustivo e corrige notacao
+c507249 chore(tools): handoff passa a listar o material de campo
 10480e0 chore(tools): aceita o escopo campo no commit-msg
 b00d611 feat(campo): versiona o formulario de campo de 03/10 (Ritmos e Movimento)
 085caba chore(tools): commit do HANDOFF.md gerado (snapshot do estado)
@@ -30,10 +34,6 @@ b29e8d0 feat(registro): cria REGISTRO.md com primeira entrada
 3b495b2 feat(tools): integra PO ao hash e ao pre-commit
 1b306db feat(schema): cria schema e validador do PO
 4605c2e feat(ciclo-01): declara o PO do Ciclo 01
-c7268e7 chore(ciclo-01): regera as âncoras FIPP com o PO incluído
-a29e22a docs(regras): referencia PROTOCOLO.md
-fffcc6a fix(tools): hook valida hash do ciclo no pre-commit
-83cd073 feat(tools): ancora ciclo 01 na cadeia FIPP (três variantes)
 ```
 
 ## POs — estado atual
@@ -48,9 +48,9 @@ fffcc6a fix(tools): hook valida hash do ciclo no pre-commit
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `2cad96c58bd6` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `1009222a6b2e` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `6e4c9228f0f9` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `1bd13d27cd1d` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `ffc242ff3212` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `2bd33f8fcedb` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
