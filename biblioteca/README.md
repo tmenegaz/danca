@@ -1,6 +1,7 @@
 # Biblioteca de referências compartilhadas
 
-Referências usadas pelas **duas frentes** do projeto (aulas e apresentação). A lista
+Referências usadas pelas **duas frentes** do projeto (aulas e apresentação) e por
+**todos os professores**: a biblioteca é compartilhada, não pertence a um professor. A lista
 completa está em [`referencias.md`](referencias.md).
 
 ## Por que existe separada

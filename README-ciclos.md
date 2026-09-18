@@ -4,7 +4,7 @@ Este documento descreve como o material de um ciclo é **gerado e entregue** nes
 repositório: os arquivos-fonte, os dois formatos obrigatórios (PDF único e pacote
 HTML), as regras de navegação e como validar tudo antes de entregar ao professor.
 
-> **Estado atual:** `ciclos/ciclo-01/` está **gerado e validado** com o conteúdo real
+> **Estado atual:** `professores/tiago/ciclos/ciclo-01/` está **gerado e validado** com o conteúdo real
 > do ciclo: Plano (12 marcos + rubrica + calibração de volume) e Aula 01 completa
 > (conduzida em **60 min**, com 90 tempos ativos distribuídos em solo/barra/centro),
 > mais os cinco documentos de apoio. O que ainda depende do professor vem marcado como
@@ -14,13 +14,13 @@ HTML), as regras de navegação e como validar tudo antes de entregar ao profess
 
 | Item | Onde | Observação |
 |:--|:--|:--|
-| **Markdown-fonte** | `ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
-| **Manifesto do ciclo** | `ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
-| **PDF único consolidado** | `ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (23 páginas no ciclo 01) |
-| **Pacote HTML** | `ciclos/ciclo-XX/*.html` | 8 páginas interligadas, com barra de navegação fixa |
-| **Folha de estilo única** | `ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
-| **Mapas do rizoma** | `ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
-| **README do pacote** | `ciclos/ciclo-XX/README.md` | gerado uma única vez; o professor pode editar depois |
+| **Markdown-fonte** | `professores/<professor>/ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
+| **Manifesto do ciclo** | `professores/<professor>/ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
+| **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (23 páginas no ciclo 01) |
+| **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | 8 páginas interligadas, com barra de navegação fixa |
+| **Folha de estilo única** | `professores/<professor>/ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
+| **Mapas do rizoma** | `professores/<professor>/ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
+| **README do pacote** | `professores/<professor>/ciclos/ciclo-XX/README.md` | gerado uma única vez; o professor pode editar depois |
 
 ## Pré-requisito 4 e Regra 9 verificados em código
 
@@ -56,13 +56,14 @@ inteiros, quem está errado é a conta — não o tempo musical.
 ## Comando único
 
 ```bash
-tools/gerar-ciclo.sh 01 duo                     # gera HTML + PDF da variante "duo" e valida
-node tools/check-pacote.js ciclos/ciclo-01-duo  # valida avulso, se quiser
+tools/gerar-ciclo.sh tiago 01 duo                 # gera HTML + PDF da variante "duo" e valida
+tools/gerar-ciclo.sh 01 duo                       # o mesmo: sem professor, assume tiago
+node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo  # valida avulso, se quiser
 ```
 
 O segundo argumento é a **escola** (Pré-requisito 5): sem ele o gerador recusa,
 porque o ciclo não tem calendário nem volume semanal sem contexto institucional.
-As variantes disponíveis ficam em `ciclos/ciclo-XX-<escola>.conf`.
+As variantes disponíveis ficam em `professores/<professor>/ciclos/ciclo-XX-<escola>.conf`.
 
 O script, em ordem:
 
@@ -94,7 +95,7 @@ volumes e calendários diferentes:
 > aula real (sexta 18/09, sábado 19/09, segunda 21/09). As avaliações (formativa na
 > aula 06 e somativa na última) saem dessas datas, não de um "quase certo".
 
-Saídas: `ciclos/ciclo-01-duo/`, `ciclos/ciclo-01-ritmos/`, `ciclos/ciclo-01-debora/`
+Saídas: `professores/tiago/ciclos/ciclo-01-duo/`, `professores/tiago/ciclos/ciclo-01-ritmos/`, `professores/tiago/ciclos/ciclo-01-debora/`
 (cada uma com 8 páginas HTML, `assets/`, `README.md` e PDF de 24 páginas).
 
 
@@ -210,15 +211,15 @@ são mapeados no cabeçalho `tools/templates/ciclo-cabecalho.tex` com
 Para descobrir todos os caracteres de risco de um ciclo novo:
 
 ```bash
-grep -oP '[^\x00-\x7F]' ciclos/ciclo-XX-*.md | sort -u
+grep -oP '[^\x00-\x7F]' professores/<professor>/ciclos/ciclo-XX-*.md | sort -u
 ```
 
 
 ## Criar um ciclo novo
 
 ```bash
-cp ciclos/ciclo-01.conf ciclos/ciclo-02.conf       # ajuste nome, objetivo, período, DOCS
-cp ciclos/ciclo-01-plano.md ciclos/ciclo-02-plano.md
+cp professores/tiago/ciclos/ciclo-01.conf ciclos/ciclo-02.conf       # ajuste nome, objetivo, período, DOCS
+cp professores/tiago/ciclos/ciclo-01-plano.md ciclos/ciclo-02-plano.md
 # escreva os demais com o prefixo ciclo-02- (index, aula-01, notacao,
 # pre-requisitos, musicalidade, apanhado-historico, referencias)
 tools/gerar-ciclo.sh 02
@@ -235,7 +236,7 @@ versionadas** (são reconstruíveis das fontes por `tools/`):
 
 ```
 apresentacoes/apresentacao-01-rizoma/   frente Apresentação (deck + mapas)
-ciclos/                                 frente Aula (fontes + pacote gerado)
+professores/<professor>/ciclos/         frente Aula (fontes + pacote gerado)
 biblioteca/                             referências compartilhadas pelas duas frentes
 tools/                                  geradores, validadores e hooks
 REGRAS.md · README.md · README-ciclos.md
@@ -248,7 +249,7 @@ REGRAS.md · README.md · README-ciclos.md
 | **Escopos** | `ciclo-XX` · `aula-XX` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `apresentacao-XX` · `biblioteca` · `tools` · `regras` |
 | **Branches** | `main` só recebe conteúdo auditado; `ciclo-XX` e `apresentacao-XX` são linhas de trabalho, mergeadas após auditoria |
 | **Hooks** | `tools/instalar-hooks.sh` instala `pre-commit` e `commit-msg` (a fonte versionada fica em `tools/hooks/`, porque o Git não versiona `.git/hooks`) |
-| **Ignorado** | `out/`, `ciclos/*/*.pdf`, `ciclos/*/*.html`, `ciclos/*/assets/`, `.vscode/settings.json` |
+| **Ignorado** | `out/`, `professores/*/ciclos/*/*.pdf`, `professores/*/ciclos/*/*.html`, `professores/*/ciclos/*/assets/`, `.vscode/settings.json` |
 
 O que o `pre-commit` faz, na prática:
 

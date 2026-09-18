@@ -17,12 +17,20 @@ validado automaticamente e versionado com proveniência.
 │       ├── rizoma-animado.html         mapa animado (gerado)
 │       ├── README.md                   documentação detalhada do deck
 │       └── out/                        PDF, PPTX, HTML, PNGs (não versionado)
-├── ciclos/
-│   ├── ciclo-01.conf             manifesto base (objetivo, total de aulas, faixas)
-│   ├── ciclo-01-<escola>.conf    contexto institucional: duo · ritmos · debora
-│   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
-│   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (não versionado)
-├── biblioteca/                   referências compartilhadas pelas duas frentes
+├── professores/                  um professor por pasta (P-13)
+│   ├── README.md                 o que é um professor, o que tem, como adicionar
+│   └── tiago/
+│       ├── ciclos/
+│       │   ├── ciclo-01.conf             manifesto base (objetivo, aulas, faixas)
+│       │   ├── ciclo-01-<escola>.conf    contexto institucional: duo · ritmos · debora
+│       │   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
+│       │   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (não versionado)
+│       ├── cadernos/             caderno descritivo por aula (P-06)
+│       ├── relatorios/           relatórios pós-aula, um por aula
+│       └── campo/                material bruto de campo
+├── departamentos/                PO de departamento, quando a escola tiver metodologia
+│                                 comum (P-14) — hoje nenhuma tem
+├── biblioteca/                   referências compartilhadas por todos os professores
 └── tools/                        geradores, validadores e hooks
 ```
 
@@ -31,7 +39,7 @@ validado automaticamente e versionado com proveniência.
 | Quero… | Comando |
 |:--|:--|
 | Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh 01 duo` (ou `ritmos`, `debora`) |
-| Validar um pacote de ciclo | `node tools/check-pacote.js ciclos/ciclo-01-duo` |
+| Validar um pacote de ciclo | `node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo` |
 | Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |
 | Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
@@ -41,8 +49,8 @@ validado automaticamente e versionado com proveniência.
 ## Como o trabalho flui
 
 ```
-1. fontes em Markdown            →  ciclos/*.md  ·  apresentacoes/**/*.md
-2. gerar                          →  tools/gerar-ciclo.sh 01
+1. fontes em Markdown            →  professores/*/ciclos/*.md  ·  apresentacoes/**/*.md
+2. gerar                          →  tools/gerar-ciclo.sh tiago 01 duo
 3. validar                        →  check-pacote.js · check-overflow.js · check-mapa.js
 4. auditar contra as regras       →  REGRAS.md  (commit audit(escopo): ...)
 5. commitar com proveniência      →  tipo(escopo): resumo + Refs/Regras/Auditoria
@@ -69,7 +77,7 @@ construir o material**, e o volume fora da faixa da duração interrompe a gera�
   versionado, então a fonte fica em `tools/hooks/`).
 
 ```bash
-git log --follow ciclos/ciclo-01-aula-01.md   # histórico de um arquivo
+git log --follow professores/tiago/ciclos/ciclo-01-aula-01.md   # histórico de um arquivo
 git log --grep="audit"                        # auditorias
-git log --oneline -- ciclos/ciclo-01/         # histórico de um ciclo
+git log --oneline -- professores/tiago/ciclos/ciclo-01-duo/    # histórico de um ciclo
 ```
