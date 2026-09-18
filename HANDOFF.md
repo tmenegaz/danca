@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T08:51:09-0300`
-Commit atual: `eaf4d93` — fix(ciclo-01): corrige a metrica do Peasant Pas de Deux (3/4 polonesa, nao 4/4)
+Gerado em: `2026-09-18T09:08:01-0300`
+Commit atual: `48b3a50` — docs(biblioteca): registra gravacao e fonte de repertorio do Peasant Pas de Deux
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,9 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+48b3a50 docs(biblioteca): registra gravacao e fonte de repertorio do Peasant Pas de Deux
+1391584 fix(ciclo-01): corrige a transferencia no tempo 2 na aula 01
+6959b8f chore(tools): regera o HANDOFF apos a correcao da metrica
 eaf4d93 fix(ciclo-01): corrige a metrica do Peasant Pas de Deux (3/4 polonesa, nao 4/4)
 d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 62587f9 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
@@ -31,9 +34,6 @@ b00d611 feat(campo): versiona o formulario de campo de 03/10 (Ritmos e Movimento
 085caba chore(tools): commit do HANDOFF.md gerado (snapshot do estado)
 062dc20 chore(ciclo-01): remove o antigo ciclo-01-po.md (PO passou a ser por escola)
 01a1fdc feat(ciclo-01): adiciona preview do relatorio pos-aula ao pacote
-4f17264 feat(tools): cria gerar-handoff.sh para handoff entre sessoes
-9f08ff4 fix(tools): parser do PO por subcampo, buffer do PDF e menu do pacote
-e27924f fix(tools): hash por escola e pre-commit por variante
 ```
 
 ## POs — estado atual
@@ -48,9 +48,9 @@ e27924f fix(tools): hash por escola e pre-commit por variante
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `94a28791a595` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `1ec681df7248` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `b61555f7dedf` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `a8fb4e38ff4b` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `85d3df7d161e` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `d81b431bbe31` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
