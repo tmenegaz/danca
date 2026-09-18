@@ -1,19 +1,23 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T09:34:04-0300`
-Commit atual: `a5efb8b` — docs(biblioteca): documenta as duas listas de referencia (trabalho x publicada)
+Gerado em: `2026-09-18T09:43:24-0300`
+Commit atual: `4fbe29f` — docs(protocolo): governanca do caderno com referencia por apelido
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
 
 - **Regras:** 17 em `REGRAS.md`
-  + **11 pétreas** em `PROTOCOLO.md`
+  + **12 pétreas** em `PROTOCOLO.md`
 - **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** fora do Git (reconstruíveis — P-04)
 
 ## Últimos commits
 
 ```
+4fbe29f docs(protocolo): governanca do caderno com referencia por apelido
+d602e53 feat(ciclo-01): declara os apelidos no PO do Duo (Ceci, Ana, Mel, Sofi)
+0868fbc feat(protocolo): acrescenta P-12 (apelidos estaveis dos sujeitos)
+9dac53a chore(tools): regera HANDOFF
 a5efb8b docs(biblioteca): documenta as duas listas de referencia (trabalho x publicada)
 b7b2d9a fix(tools): hook valida o PO de cada variante, nao so o da ultima
 dac289c chore(tools): regera o HANDOFF apos a gravacao na pagina publicada
@@ -30,10 +34,6 @@ d7dbc73 chore(tools): regera o HANDOFF apos a correcao
 ee9176d chore(tools): regera o HANDOFF apos a musicalidade
 eaf9a18 feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
 05334bb chore(tools): regera o HANDOFF com o glossario Benesh do Ciclo 01
-1d0a9fd fix(tools): integra validador de glossario ao check-pacote e ao pre-commit
-971eb65 feat(tools): cria validador de consistencia do glossario
-1e18172 feat(ciclo-01): cria glossario Benesh exaustivo e corrige notacao
-c507249 chore(tools): handoff passa a listar o material de campo
 ```
 
 ## POs — estado atual
@@ -41,16 +41,16 @@ c507249 chore(tools): handoff passa a listar o material de campo
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | Débora (Marau) | ciclo-01-debora-po.md | Input_PO_Aguardando | 21 |
-| Duo | ciclo-01-duo-po.md | Input_PO_Validado | 0 |
+| Duo | ciclo-01-duo-po.md | Input_PO_Validado | 4 |
 | Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 21 |
 
 ## Âncoras FIPP
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `cc4c85f54f6a` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `ec89d7192f63` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `952397e288e1` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `75401eb1bff8` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `0b8fa861138f` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `52e785c295d5` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -65,6 +65,7 @@ c507249 chore(tools): handoff passa a listar o material de campo
 - **P-09 — Um caderno por ciclo, por escola.
 - **P-10 — O PO declara a linha de base dos sujeitos.
 - **P-11 — O PO declara as condições de contorno da execução.
+- **P-12 — Os sujeitos são referidos por apelidos estáveis.
 
 ## Regras (`REGRAS.md`)
 
