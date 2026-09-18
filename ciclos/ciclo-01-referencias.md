@@ -110,6 +110,19 @@ Politics of France, 1909–1939*. Montreal: McGill-Queen's University Press, 201
 O balé como política cultural no início do século XX.
 :::
 
+## Música do repertório (gravação de referência)
+
+::: {#gravacao-peasant-pas-de-deux .ref}
+**ADAM, Adolphe; BURGMÜLLER, Friedrich.** *Giselle: Peasant pas de deux* (arr. March)
+— Act I: *Allegretto: Adagio*. Sofia National Opera Orchestra, regência de **Boris
+Spassov**. Capriccio, 2002 (3:01).
+
+Gravação de referência do *Peasant Pas de Deux*, usada no Ciclo 01 — é esta a faixa
+que a aula usa. O título traz "Allegretto", mas a música é o **Adagio em 3/4**; a
+partitura de Burgmüller, interpolada em *Giselle*, é a fonte final. Estrutura e
+contagem em [Apanhado Histórico](apanhado-historico.html#o-repertorio-desta-aula).
+:::
+
 ## Corpo, dor e formação
 
 ::: {#wulff-1998 .ref}
