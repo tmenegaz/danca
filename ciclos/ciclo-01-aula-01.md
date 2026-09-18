@@ -210,7 +210,7 @@ no centro em seguida.
 | **Objetivo específico** | Perceber o pulso e o acento do compasso 4/4 durante a transferência de peso |
 | **Conceito musical** | Pulso, acento, compasso 4/4 |
 | **Escuta (sem movimento)** | Bater palmas no tempo forte (1) e marcar os tempos fracos (2, 3, 4) com o pé |
-| **Movimento (com música)** | Transferência de peso "por cima" no tempo 1, plié no tempo 3, fechamento no tempo 4 |
+| **Movimento (com música)** | Tendu no tempo 1 · transferência de peso "por cima" no tempo 2 · plié no tempo 3 · fechamento no tempo 4 |
 | **Conexão com o passo do dia** | Aplicar ao tendu à frente e ao lado |
 | **Rubrica** | A aluna acompanha o pulso com precisão e marca o acento no tempo 1 |
 | **Volume** | **8 tempos** de execução contada (2 frases de 4 tempos) |

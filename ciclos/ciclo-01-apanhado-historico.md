@@ -62,9 +62,11 @@ prática, e nunca no lugar dela.
 > **Correção registrada:** a versão anterior deste documento atribuía ao pas de deux um
 > compasso e um andamento que são de **outra faixa da suíte orquestral** — a análise de
 > BPM consultada refere-se a uma seção diferente, não ao Adagio usado em aula. A
-> estrutura acima foi confirmada pela tracklist da gravação de referência (Capriccio,
-> 2002) e por discussão em fórum de repertório especializado (Ballet Alert) — **fonte
-> de repertório, não acadêmica: conferir a partitura antes de publicar.**
+> estrutura acima foi confirmada pela tracklist da gravação de referência e por fonte
+> de repertório (**não acadêmica**), ambas registradas na biblioteca compartilhada do
+> projeto (`biblioteca/referencias.md`), com o status de cada uma — **conferir a
+> partitura antes de publicar.** A bibliografia deste ciclo está em
+> [Referências](referencias.html).
 >
 > **Versão contemporânea:** *Giselle*, de Akram Khan (2016) — conferir ano e
 > companhia na fonte da produção antes de projetar.
