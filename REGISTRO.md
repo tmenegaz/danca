@@ -186,3 +186,66 @@ bruto); `REGRAS.md` 9 (volume), 16 (entrega), 17 (versionamento); `README-ciclos
 - O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
   escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
   fica para quando o ciclo dela for reancorado por outro motivo.
+
+## 18/09/2026 — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19
+
+**O que aconteceu.**
+O ciclo do Ritmos e Movimento recebeu **quatro** dos oito artefatos auxiliares que
+faltavam: **relatório-preview** (guia do que observar, com a dimensão do **par**),
+**captura em aula** (folha de marcação com os cinco apelidos), **pré-requisitos**
+(o piso que o professor declarou) e **apanhado histórico** (o repertório declarado,
+com o pas de deux a identificar). O **PO foi corrigido**: apelidos estáveis fixados
+(**Carol, Dada, Tony, Pássaro Azul, Mari**), **21 aulas** (era 20) e a duração
+descrita como **3 aulas de 60 min por semana** (a terça é pas de deux; o sábado tem
+balé como preparação + pas de deux). O manifesto acompanhou (21 aulas,
+`DURACOES="60,60,60"`). **Cinco novas pétreas** foram declaradas (P-15 a P-19), e os
+**dois prompts do projeto** passaram a viver versionados em `prompts/`.
+
+**O que foi decidido.**
+- A notação segue a metodologia declarada (P-15).
+- Metodologia e notação são perguntadas na eliciação (P-16).
+- Todo ciclo replica os artefatos do ciclo piloto (P-17).
+- A metodologia pode ser imposta pela escola, não só escolhida (P-18).
+- Prompts do projeto vivem no repositório (P-19).
+- **Quatro artefatos não foram gerados**, e isso foi decisão, não esquecimento:
+  `notacao`, `glossario-benesh`, `musicalidade` e `musicalidade-aluna` carregam, no
+  ciclo piloto, o **conteúdo daquele ciclo** — o registro dos exercícios dele, as
+  contagens das aulas dele, os exemplos dos passos dele. Replicá-los exigiria
+  inventar o que o professor não deu, e a resposta dele sobre notação foi
+  literalmente "[a decidir]". Proposta registrada: extrair a parte **conceitual**
+  para a `biblioteca/` (como já se fez com o guia do professor, que é resolvido por
+  caminho em todo pacote) e escrever, por ciclo, documentos curtos que só amarrem os
+  conceitos à aula e à música daquela escola — que é a pergunta que a P-16 manda
+  fazer na eliciação.
+
+**Com o quê.**
+`PROTOCOLO.md` (P-15 a P-19), `prompts/eliciar-ciclo.md`, `prompts/instalar-ciclo.md`,
+`tools/hooks/commit-msg` (escopo `prompts`),
+`professores/tiago/ciclos/ciclo-01-ritmos{,.conf,-po.md,-relatorio-aula-01.md,-captura-aula-01.md,-pre-requisitos.md,-apanhado-historico.md,.fipp}`
+e o pacote gerado (9 páginas HTML, PDF de 22 páginas).
+
+**Referências.**
+RAD (2015); Taylor (2013); Polanyi (1966). *(A entrada prevista citava "Taylor
+(2003)"; a biblioteca do projeto registra a edição de **2013** — conferido antes de
+escrever.)*
+
+**O que ainda não está feito.**
+- **Calendário do projeto:** `tools/calendario.py` modela "uma aula por dia de
+  aula" (`por_semana = len(DIAS)`). Com 2 dias e 3 aulas, o pacote publica **21
+  aulas em 11 semanas** (o correto são 7) e um **volume semanal de 180 tempos** (o
+  correto são 270). É mudança de código, fora do escopo das sete etapas — aguarda
+  decisão da pesquisadora. **Enquanto isso, o pacote do Ritmos está pronto para
+  publicar, mas com o calendário errado.**
+- **Pacote do ciclo da Duo:** regenerado pelo template corrigido, ele ganha o rodapé
+  derivado de `DOCS` (11 documentos, com os títulos reais). Não foi commitado — o
+  ciclo da Duo não se altera sem autorização. A âncora dela não muda em nenhum caso.
+- **Plano e Aula 01 do Ritmos:** ainda dizem "20 encontros", "60 e 120 min" e
+  "Marcos 02–20"; a Aula 01 tem `volume-total-120` e um trecho sobre "o dia de 120
+  minutos" (que deixou de existir). Não entraram no escopo das etapas.
+- **P-12 na Aula 01 do Ritmos:** o documento publica o nome "Anthony"; os apelidos
+  fixados e os quatro documentos novos usam "Tony".
+- **Publicação:** 11 commits locais à frente do `origin/main`. Não houve push: a
+  decisão dos apelidos (que era o bloqueio) está tomada, mas o push publicaria o
+  nome citado acima. O deploy automático do Netlify continua esperando.
+- Ciclo da Débora; primeiro relatório pós-aula do Duo; primeiro relatório pós-aula
+  do Ritmos.
