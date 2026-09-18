@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T00:20:39-0300`
-Commit atual: `1ffc7b9` — docs(protocolo): documenta como o PO se materializa no ciclo
+Gerado em: `2026-09-18T00:35:03-0300`
+Commit atual: `062dc20` — chore(ciclo-01): remove o antigo ciclo-01-po.md (PO passou a ser por escola)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,15 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+062dc20 chore(ciclo-01): remove o antigo ciclo-01-po.md (PO passou a ser por escola)
+01a1fdc feat(ciclo-01): adiciona preview do relatorio pos-aula ao pacote
+4f17264 feat(tools): cria gerar-handoff.sh para handoff entre sessoes
+9f08ff4 fix(tools): parser do PO por subcampo, buffer do PDF e menu do pacote
+e27924f fix(tools): hash por escola e pre-commit por variante
+b29e8d0 feat(registro): cria REGISTRO.md com primeira entrada
+1396a1a feat(protocolo): acrescenta P-10 (linha de base) e P-11 (condicoes de contorno)
+68d7f91 feat(ciclo-01): declara o PO do Duo (validado) e POs placeholder
+6779605 chore(ciclo-01): regera as ancoras FIPP com o PO do Duo incluido
 1ffc7b9 docs(protocolo): documenta como o PO se materializa no ciclo
 3b495b2 feat(tools): integra PO ao hash e ao pre-commit
 1b306db feat(schema): cria schema e validador do PO
@@ -25,15 +34,6 @@ fffcc6a fix(tools): hook valida hash do ciclo no pre-commit
 b79a8d3 feat(tools): cria hash-ciclo.sh com parentHash encadeado
 8429df3 feat(schema): declara schema do ciclo 01 e validador
 82f22c8 docs(caderno): cria governança e guia do caderno de ciclo
-b0cbadb feat(protocolo): cria documento de regras pétreas
-0f51702 docs(regras): alinha o documento a consolidacao (17 regras + 5 pre-requisitos)
-4078496 fix(tools): hook valida cada ciclo uma vez, nao uma vez por documento
-9d6e356 feat(ciclo-01): preenche as referencias e detalha a variante de 120 minutos
-db957ee feat(ciclo-01): gera as tres variantes por escola (Duo, Ritmos e Movimento, Debora)
-d11f981 fix(tools): valida o rodape do PDF em passada unica e explica a falha
-00b43a8 fix(tools): hook pre-commit reconhece fonte compartilhada como nao-variante
-12e5a54 feat(regras): incorpora o Pre-requisito 5 e o calendario real da Regra 10
-2c7138e fix(tools): atualiza o caminho do deck na mensagem de erro do validador
 ```
 
 ## POs — estado atual
