@@ -8,6 +8,13 @@ professores/*/ciclos/*/*.html
 professores/*/ciclos/*/assets/
 
 # ============================================================================
+# Credenciais — NUNCA versionar
+# ============================================================================
+# Tokens e site IDs do Netlify, uma conta por escola (lido por
+# tools/deploy-netlify.sh). O script cria o template na primeira execução.
+tools/.netlify-tokens
+
+# ============================================================================
 # Caches e ambientes
 # ============================================================================
 node_modules/
