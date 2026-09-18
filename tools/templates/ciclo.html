@@ -66,5 +66,41 @@ $for(include-after)$
 $include-after$
 $endfor$
 
+<script>
+/* Barra fixa e menu mobile.
+ *
+ * 1) A barra é position: fixed, então sai do fluxo e cobriria o título. Em vez de
+ *    um padding fixo no CSS (que não acompanha a altura real, e quebra quando a
+ *    barra quebra em duas linhas), medimos a altura da barra e publicamos em
+ *    --header-height, que o CSS usa no padding do body e no scroll-padding-top.
+ *    Sem JavaScript, o CSS usa o fallback declarado em :root.
+ * 2) Em tela pequena, o botão hamburger abre e fecha o painel de links. O estado
+ *    vai para aria-expanded, para leitores de tela.
+ */
+(function () {
+  var navbar = document.querySelector('.topnav');
+  var botao = document.querySelector('.hamburger');
+
+  function ajustarAlturaNavbar() {
+    if (navbar) {
+      document.documentElement.style.setProperty('--header-height', navbar.offsetHeight + 'px');
+    }
+  }
+
+  if (botao && navbar) {
+    botao.addEventListener('click', function () {
+      var aberto = navbar.classList.toggle('aberto');
+      botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+      botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
+      ajustarAlturaNavbar();
+    });
+  }
+
+  ajustarAlturaNavbar();
+  window.addEventListener('load', ajustarAlturaNavbar);
+  window.addEventListener('resize', ajustarAlturaNavbar);
+})();
+</script>
+
 </body>
 </html>

@@ -242,6 +242,12 @@ gerar_nav() {
   {
     echo '<nav class="topnav" aria-label="Navegação do ciclo">'
     echo "  <a class=\"marca\" href=\"index.html\">Ciclo $CICLO${ESCOLA_SLUG:+ · $ESCOLA_SLUG}</a>"
+    # botão do menu mobile: só aparece em tela pequena (ver ciclo.css); o estado
+    # aberto/fechado é anunciado por aria-expanded, e o painel é .nav-links
+    echo '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">'
+    echo '    <span></span><span></span><span></span>'
+    echo '  </button>'
+    echo '  <div class="nav-links" id="nav-links">'
     for doc in index plano; do
       r="$(rotulo "$doc")"
       [ "$doc" = index ] && r="Início"
@@ -277,6 +283,7 @@ gerar_nav() {
       fi
     done
     echo "  <a class=\"pdf\" href=\"$ID.pdf\">PDF do ciclo</a>"
+    echo '  </div>'
     echo '</nav>'
   } > "$destino"
 }
