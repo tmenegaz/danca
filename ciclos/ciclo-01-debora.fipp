@@ -7,10 +7,12 @@ id: ciclo-01-debora
 type: Ciclo
 ciclo: 01
 variante: debora
-hash_conteudo: b600e6202973fa6c97870e30f440eaa425634cb3e394c09fbf279a9c8140c192
+hash_conteudo: 3d8b722646f4d34c69b9e0bdbb02c99b28f37d7a92a0a6d1daa056719bbc280a
 parentHash: 
-hash: 9e49ad8ed7caf02a649e0531db122cbf3dd48dd6161427c649d7b5bec72d12fa
+hash: a6ea558a1f50678e4360638c2e96d07741e496b63ec7f04358160ce45ecf2db4
 algoritmo: SHA-256
+po: ciclos/ciclo-01-po.md
+po_state: Input_PO_Aguardando
 cobertura:
   - ciclos/ciclo-01-apanhado-historico.md
   - ciclos/ciclo-01-aula-01.md
@@ -19,6 +21,7 @@ cobertura:
   - ciclos/ciclo-01-musicalidade.md
   - ciclos/ciclo-01-notacao.md
   - ciclos/ciclo-01-plano.md
+  - ciclos/ciclo-01-po.md
   - ciclos/ciclo-01-pre-requisitos.md
   - ciclos/ciclo-01-referencias.md
   - ciclos/ciclo-01.conf
