@@ -1,0 +1,145 @@
+#!/usr/bin/env bash
+# ============================================================================
+# gerar-handoff.sh — gera HANDOFF.md na raiz do repositório.
+#
+#   uso: tools/gerar-handoff.sh
+#
+# Para que serve: dar a uma sessão nova (de IA ou de pessoa) o estado atual do
+# projeto sem reconstruir contexto. O script NÃO escreve análise: só extrai e
+# organiza o que já está no repositório (P-06 — descritivo, não analítico).
+#
+# Lê: git log, os .fipp das variantes, os POs (state e campos [Preencher]),
+# PROTOCOLO.md (pétreas), REGRAS.md (regras), os manifestos de ciclo e a última
+# entrada do REGISTRO.md. Escreve: HANDOFF.md.
+# ============================================================================
+
+set -euo pipefail
+
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$RAIZ"
+SAIDA="HANDOFF.md"
+
+data_iso="$(date +%Y-%m-%dT%H:%M:%S%z)"
+commit_curto="$(git rev-parse --short HEAD)"
+commit_msg="$(git log -1 --pretty=%s)"
+
+# --- pétreas (PROTOCOLO.md) e regras (REGRAS.md) ----------------------------
+arquivo_protocolo="PROTOCOLO.md"
+[ -f "$arquivo_protocolo" ] || { echo "erro: $arquivo_protocolo não encontrado" >&2; exit 1; }
+total_petreas="$(grep -c '^\*\*P-[0-9]\{2\} —' "$arquivo_protocolo" || true)"
+total_regras="$(awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md 2>/dev/null | grep -c '^| [0-9]\+ | \*\*' || echo 0)"
+
+# --- variantes (manifestos) -------------------------------------------------
+variantes="$(ls -1 ciclos/ciclo-*.conf 2>/dev/null | grep -vE 'ciclo-[0-9]+\.conf$' \
+  | sed 's|.*/ciclo-[0-9]*-||; s|\.conf$||' | LC_ALL=C sort -u || true)"
+
+{
+  echo "# Handoff — Projeto Ciclo"
+  echo
+  echo "Gerado em: \`$data_iso\`"
+  echo "Commit atual: \`$commit_curto\` — $commit_msg"
+  echo "Para: sessão nova (retomar o diálogo)"
+  echo
+  echo "## Estado do projeto"
+  echo
+  echo "- **Regras:** $(awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md 2>/dev/null | grep -c '^| [0-9]\+ | \*\*' || echo '?') em \`REGRAS.md\`"
+  echo "  + **$total_petreas pétreas** em \`PROTOCOLO.md\`"
+  echo "- **Ciclos com manifesto:** $(ls -1 ciclos/ciclo-*.conf 2>/dev/null | grep -cE 'ciclo-[0-9]+-.*\.conf$' || echo 0) variante(s)"
+  echo "- **Saídas geradas:** fora do Git (reconstruíveis — P-04)"
+  echo
+  echo "## Últimos commits"
+  echo
+  echo '```'
+  git --no-pager log --oneline -20
+  echo '```'
+  echo
+  echo "## POs — estado atual"
+  echo
+  echo "| Escola | PO | state | Marcadores [Preencher] |"
+  echo "|:--|:--|:--|--:|"
+  for v in $variantes; do
+    po="ciclos/ciclo-01-$v-po.md"
+    if [ -f "$po" ]; then
+      estado="$(sed -n 's/^state:[[:space:]]*//p' "$po" | head -1)"
+      pend="$(grep -c '\[Preencher' "$po" || true)"
+      rotulo="$(sed -n 's/^escola:[[:space:]]*//p' "$po" | head -1)"
+      printf '| %s | %s | %s | %s |\n' "${rotulo:-$v}" "$(basename "$po")" "${estado:-?}" "$pend"
+    else
+      printf '| %s | (sem PO) | — | — |\n' "$v"
+    fi
+  done
+  echo
+  echo "## Âncoras FIPP"
+  echo
+  echo "| Variante | .fipp | hash (12) | parentHash | po_state |"
+  echo "|:--|:--|:--|:--|:--|"
+  for v in $variantes; do
+    fipp="ciclos/ciclo-01-$v.fipp"
+    if [ -f "$fipp" ]; then
+      h="$(sed -n 's/^hash:[[:space:]]*//p' "$fipp" | head -1)"
+      p="$(sed -n 's/^parentHash:[[:space:]]*//p' "$fipp" | head -1)"
+      ps="$(sed -n 's/^po_state:[[:space:]]*//p' "$fipp" | head -1)"
+      printf '| %s | %s | `%s` | %s | %s |\n' "$v" "$(basename "$fipp")" \
+        "${h:0:12}" "${p:-(vazio)}" "${ps:-—}"
+    else
+      printf '| %s | (sem âncora) | — | — | — |\n' "$v"
+    fi
+  done
+  echo
+  echo "## Pétreas (\`PROTOCOLO.md\`)"
+  echo
+  grep '^\*\*P-[0-9]\{2\} —' "$arquivo_protocolo" | sed 's/^\*\*/**/' | sed 's/\*\*$//' | sed 's/^/- /'
+  echo
+  echo "## Regras (\`REGRAS.md\`)"
+  echo
+  awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md | grep '^| [0-9]\+ | \*\*' | sed 's/^| \([0-9]\+\) | \*\*\([^*]*\)\*\* |.*/- **\1. \2**/'
+  echo
+  echo "## Última entrada do REGISTRO"
+  echo
+  if [ -f REGISTRO.md ]; then
+    awk '/^## /{bloco=$0"\n"; conteudo=""} /^## /{proximo=1; next} proximo{conteudo=conteudo $0 "\n"} END{printf "%s%s", bloco, conteudo}' REGISTRO.md
+  else
+    echo "(REGISTRO.md ainda não existe)"
+  fi
+  echo
+  echo "## O que está pendente"
+  echo
+  if [ -f REGISTRO.md ]; then
+    awk '/^\*\*O que ainda não está feito\.\*\*/{flag=1; next} /^\*\*/{flag=0} flag' REGISTRO.md
+  fi
+  for v in $variantes; do
+    po="ciclos/ciclo-01-$v-po.md"
+    [ -f "$po" ] || continue
+    estado="$(sed -n 's/^state:[[:space:]]*//p' "$po" | head -1)"
+    case "$estado" in
+      *Aguardando*) echo "- PO de **$v** segue \`$estado\` — será declarado quando houver aula (P-02)." ;;
+    esac
+  done
+  total_aulas="$(sed -n 's/^TOTAL_AULAS="\{0,1\}\([0-9]\{1,\}\).*/\1/p' ciclos/ciclo-01.conf | head -1)"
+  aulas_escritas="$(ls -1 ciclos/ciclo-01-aula-*.md 2>/dev/null | wc -l)"
+  if [ -n "$total_aulas" ]; then
+    echo "- Aulas escritas em detalhe: $aulas_escritas de $total_aulas (as demais entram depois da aula anterior)."
+  fi
+  echo
+  echo "## Documentos-chave (para leitura)"
+  echo
+  echo "- \`PROTOCOLO.md\` — pétreas"
+  echo "- \`REGRAS.md\` — regras"
+  echo "- \`REGISTRO.md\` — marcos metodológicos"
+  echo "- \`ciclos/ciclo-01-<escola>-po.md\` — POs por escola"
+  echo "- \`ciclos/ciclo-01-<escola>.fipp\` — âncoras FIPP"
+  echo
+  echo "## Como retomar"
+  echo
+  echo "A próxima sessão deve ler, nesta ordem:"
+  echo "1. este arquivo;"
+  echo "2. \`PROTOCOLO.md\`;"
+  echo "3. \`REGISTRO.md\`;"
+  echo "4. o PO do ciclo ativo."
+  echo
+  echo "Isso é suficiente para retomar o diálogo sem reconstruir contexto."
+} > "$SAIDA"
+
+echo "gerado: $SAIDA"
+echo "  commit: $commit_curto — $commit_msg"
+echo "  regras: $total_regras | pétreas: $total_petreas | variantes: $(printf '%s' "$variantes" | wc -w)"
