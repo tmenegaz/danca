@@ -92,3 +92,33 @@ A estrutura está pronta (a pasta `departamentos/`, na raiz do projeto), aguarda
 escola que a declare. Se a sua escola adota metodologia comum **sem** estrutura formal, o
 seu PO é **raiz** (a P-14 não se aplica) — mas a base teórica pode citar a metodologia,
 como o Ciclo 01 do Duo faz com RAD.
+
+## Sobre a linguagem dos documentos
+
+Os documentos publicados (o material que vai para alunas e famílias) usam
+**linguagem harmonizada** (P-21): o que você observa permanece, mas os
+julgamentos são reescritos.
+
+Por quê:
+
+- Um aluno que lê "a aluna é burra" sobre si mesmo não aprende melhor.
+- Um pai que lê "o menino é travado" sobre o filho não confia na professora.
+- Uma aluna que se vê descrita como "precária" internaliza isso como
+  identidade, não como estado — e isso dificulta o aprendizado.
+
+O que permanece:
+
+- **O fato.** Se a aluna tem dificuldade de alongamento, isso está no
+  documento. Só não vem com "sem" ou "fraca".
+- **A especificidade.** "Dificuldade de compreensão em problemas de duas
+  etapas" é mais específico — e mais útil — do que "burra".
+- **A sua voz.** Se você quiser reescrever, reescreve. O harmonizador é
+  proposta, não filtro.
+
+O que muda:
+
+- **O juízo.** Não vai para o material publicado.
+- **O adjetivo essencializante.** Não vai para o material publicado.
+
+Se você discordar de alguma harmonização, veja a tabela do seu ciclo (em
+`ciclo-XX-<escola>-harmonizacao.md`) e reescreva com as suas palavras.
