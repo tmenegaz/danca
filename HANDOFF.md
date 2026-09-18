@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T00:35:03-0300`
-Commit atual: `062dc20` — chore(ciclo-01): remove o antigo ciclo-01-po.md (PO passou a ser por escola)
+Gerado em: `2026-09-18T00:43:31-0300`
+Commit atual: `10480e0` — chore(tools): aceita o escopo campo no commit-msg
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,9 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+10480e0 chore(tools): aceita o escopo campo no commit-msg
+b00d611 feat(campo): versiona o formulario de campo de 03/10 (Ritmos e Movimento)
+085caba chore(tools): commit do HANDOFF.md gerado (snapshot do estado)
 062dc20 chore(ciclo-01): remove o antigo ciclo-01-po.md (PO passou a ser por escola)
 01a1fdc feat(ciclo-01): adiciona preview do relatorio pos-aula ao pacote
 4f17264 feat(tools): cria gerar-handoff.sh para handoff entre sessoes
@@ -31,9 +34,6 @@ c7268e7 chore(ciclo-01): regera as âncoras FIPP com o PO incluído
 a29e22a docs(regras): referencia PROTOCOLO.md
 fffcc6a fix(tools): hook valida hash do ciclo no pre-commit
 83cd073 feat(tools): ancora ciclo 01 na cadeia FIPP (três variantes)
-b79a8d3 feat(tools): cria hash-ciclo.sh com parentHash encadeado
-8429df3 feat(schema): declara schema do ciclo 01 e validador
-82f22c8 docs(caderno): cria governança e guia do caderno de ciclo
 ```
 
 ## POs — estado atual
@@ -120,6 +120,7 @@ POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
 - PO de **debora** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - Aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
+- Material de campo: 1 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
 ## Documentos-chave (para leitura)
 
@@ -128,6 +129,7 @@ POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
 - `REGISTRO.md` — marcos metodológicos
 - `ciclos/ciclo-01-<escola>-po.md` — POs por escola
 - `ciclos/ciclo-01-<escola>.fipp` — âncoras FIPP
+- `campo/` — instrumentos e respostas de campo (por evento)
 
 ## Como retomar
 

@@ -120,6 +120,16 @@ variantes="$(ls -1 ciclos/ciclo-*.conf 2>/dev/null | grep -vE 'ciclo-[0-9]+\.con
   if [ -n "$total_aulas" ]; then
     echo "- Aulas escritas em detalhe: $aulas_escritas de $total_aulas (as demais entram depois da aula anterior)."
   fi
+  # material de campo: eventos versionados e se as respostas já foram digitadas
+  if [ -d campo ]; then
+    eventos="$(ls -1d campo/[0-9]*-*/ 2>/dev/null || true)"
+    n_eventos="$(printf '%s' "$eventos" | grep -c . || true)"
+    sem_resposta=""
+    for e in $eventos; do
+      [ -f "${e}respostas.md" ] || sem_resposta="$sem_resposta $(basename "$e")"
+    done
+    echo "- Material de campo: $n_eventos evento(s) versionado(s)$([ -n "$sem_resposta" ] && echo " — sem respostas digitadas:$sem_resposta")."
+  fi
   echo
   echo "## Documentos-chave (para leitura)"
   echo
@@ -128,6 +138,7 @@ variantes="$(ls -1 ciclos/ciclo-*.conf 2>/dev/null | grep -vE 'ciclo-[0-9]+\.con
   echo "- \`REGISTRO.md\` — marcos metodológicos"
   echo "- \`ciclos/ciclo-01-<escola>-po.md\` — POs por escola"
   echo "- \`ciclos/ciclo-01-<escola>.fipp\` — âncoras FIPP"
+  echo "- \`campo/\` — instrumentos e respostas de campo (por evento)"
   echo
   echo "## Como retomar"
   echo
