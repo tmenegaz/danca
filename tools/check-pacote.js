@@ -36,11 +36,36 @@ const erros = [];
 const avisos = [];
 const ok = [];
 
-const obrigatorios = [
-  'index.html', 'plano.html', 'notacao.html', 'pre-requisitos.html',
-  'musicalidade.html', 'apanhado-historico.html', 'referencias.html',
-  'assets/style.css', `${nomePacote}.pdf`,
-];
+// As fontes ficam ao lado do pacote (em <...>/ciclos/), qualquer que seja o
+// professor: derivar do caminho do pacote evita repetir a estrutura de pastas aqui.
+const dirFontes = path.dirname(pacote);
+
+// Os arquivos obrigatórios são DERIVADOS do manifesto, não fixos. Um ciclo que não
+// tem notação, pré-requisitos ou musicalidade — uma escola de pas de deux, por
+// exemplo — não gera essas páginas, e a lista fixa reprovava o pacote por arquivos
+// que nunca deveriam existir. O que se exige é o que o `DOCS` do ciclo declara.
+const variante = nomePacote.replace(new RegExp(`^ciclo-${ciclo}(-|$)`), '');
+const docsDoCiclo = (() => {
+  let docs = null;
+  const confs = [`ciclo-${ciclo}.conf`, variante && `ciclo-${ciclo}-${variante}.conf`]
+    .filter(Boolean);
+  for (const conf of confs) {
+    const p = path.join(dirFontes, conf);
+    if (!fs.existsSync(p)) continue;
+    const m = fs.readFileSync(p, 'utf8').match(/^\s*DOCS="([^"]*)"/m);
+    if (m) docs = m[1].trim().split(/\s+/);   // a variante sobrescreve o manifesto base
+  }
+  return docs;
+})();
+
+const obrigatorios = [];
+if (docsDoCiclo) {
+  obrigatorios.push('index.html', ...docsDoCiclo.map((d) => `${d}.html`));
+} else {
+  avisos.push('manifesto do ciclo não encontrado ao lado do pacote — exigindo só o mínimo');
+  obrigatorios.push('index.html');
+}
+obrigatorios.push('assets/style.css', `${nomePacote}.pdf`);
 
 if (!fs.existsSync(pacote)) {
   console.error(`erro: pacote não encontrado: ${pacote}`);
@@ -120,12 +145,14 @@ ok.push(`links internos verificados: ${linksChecados}`);
 // símbolo virou verbete. O registro e o glossário são compartilhados pelas escolas
 // (manifesto base), então a checagem vale para o ciclo, não por variante.
 const checkGlossario = path.join(__dirname, 'check-glossario.js');
-// As fontes ficam ao lado do pacote (em <...>/ciclos/), qualquer que seja o
-// professor: derivar do caminho do pacote evita repetir a estrutura de pastas aqui.
-const dirFontes = path.dirname(pacote);
 const registroMd = path.join(dirFontes, `ciclo-${ciclo}-notacao.md`);
 const glossarioMd = path.join(dirFontes, `ciclo-${ciclo}-glossario-benesh.md`);
-if (fs.existsSync(registroMd) && fs.existsSync(glossarioMd)) {
+// Só entra quando ESTE ciclo declara notação e glossário no DOCS: um ciclo de pas
+// de deux não tem esses documentos, e a checagem valia para ele por causa dos
+// arquivos de outra escola que ficam ao lado, no mesmo diretório de fontes.
+const temRegistroEGlossario = Array.isArray(docsDoCiclo)
+  && docsDoCiclo.includes('notacao') && docsDoCiclo.includes('glossario-benesh');
+if (temRegistroEGlossario && fs.existsSync(registroMd) && fs.existsSync(glossarioMd)) {
   let saida = '';
   try {
     saida = cp.execSync(`node "${checkGlossario}" "${registroMd}" "${glossarioMd}"`,
@@ -140,7 +167,7 @@ if (fs.existsSync(registroMd) && fs.existsSync(glossarioMd)) {
     else if (/^aviso /.test(linha)) avisos.push(`glossário: ${linha.replace(/^aviso\s*/, '')}`);
     else if (/^ERRO/.test(linha)) erros.push(`glossário: ${linha.replace(/^ERRO\s*/, '')}`);
   });
-} else if (fs.existsSync(registroMd)) {
+} else if (temRegistroEGlossario && fs.existsSync(registroMd)) {
   avisos.push(`glossário: ${glossarioMd} ausente — consistência do registro não verificada`);
 }
 

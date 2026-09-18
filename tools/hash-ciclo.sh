@@ -68,6 +68,8 @@ case "$CICLO" in
 esac
 
 BASE="professores/$PROFESSOR/ciclos"
+CICLOS="$BASE"          # o nome que tools/lib-fontes.sh entende (aqui os caminhos são
+                        # relativos de propósito: eles entram no texto hasheado)
 CONF_BASE="$BASE/ciclo-$CICLO.conf"
 CONF_VARIANTE="$BASE/ciclo-$CICLO-$VARIANTE.conf"
 SCHEMA="$BASE/ciclo-$CICLO-schema.json"
@@ -127,21 +129,31 @@ else
 fi
 
 # --- 2) coleta dos fontes, em ordem determinística --------------------------
-# Exclui os .md de OUTRAS escolas (PO por escola, P-09/P-10): para o Duo, os
-# arquivos ciclo-XX-ritmos-*.md e ciclo-XX-debora-*.md não entram no hash.
-OUTRAS="$(ls -1 "$BASE"/ciclo-"$CICLO"-*.conf 2>/dev/null \
-  | sed "s|.*/ciclo-$CICLO-||; s|\.conf$||" | grep -vx "$VARIANTE" | tr '\n' ' ' || true)"
-FONTES="$( { printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
-             ls -1 "$BASE"/ciclo-"$CICLO"-*.md 2>/dev/null || true; } \
-           | LC_ALL=C sort -u \
+# A lista vem de tools/lib-fontes.sh — a MESMA definição que o gerador usa para
+# montar o pacote. Assim o hash cobre exatamente o que a escola lê: os dois
+# manifestos, o PO desta variante e os documentos resolvidos por DOCS, com a
+# versão da própria variante tendo precedência sobre a sem sufixo. O material de
+# OUTRA escola não entra (P-09/P-10) — nem o documento sem sufixo que esta
+# variante substituiu pelo seu. Antes, esta coleta pegava todos os .md do ciclo e
+# misturava as escolas: o hash da Ritmos carregava o plano e a aula da Duo.
+#
+# Para conhecer DOCS é preciso carregar os manifestos (o gerador já faz o mesmo).
+# shellcheck disable=SC1090
+source "$CONF_BASE"
+# shellcheck disable=SC1090
+source "$CONF_VARIANTE"
+# shellcheck source=tools/lib-fontes.sh
+source "$RAIZ/tools/lib-fontes.sh"
+
+FONTES="$( fontes_do_ciclo \
            | while IFS= read -r fonte; do
-               for outra in $OUTRAS; do
-                 case "$fonte" in
-                   "$BASE/ciclo-$CICLO-$outra-"*.md) continue 2 ;;
-                 esac
-               done
-               printf '%s\n' "$fonte"
-             done )"
+               # só o que é DESTE ciclo; o guia-do-professor vive na biblioteca e é
+               # compartilhado por todos os professores, então não entra no hash
+               case "$fonte" in
+                 "$BASE"/*) [ -f "$fonte" ] && printf '%s\n' "$fonte" ;;
+               esac
+             done \
+           | LC_ALL=C sort -u )"
 [ -n "$FONTES" ] || { echo "erro: nenhuma fonte encontrada para o ciclo $CICLO" >&2; exit 1; }
 
 # --- 3) hash do conteúdo ----------------------------------------------------

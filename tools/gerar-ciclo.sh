@@ -12,14 +12,14 @@
 #
 #   uso:  tools/gerar-ciclo.sh [<professor>] [XX] [escola]   (padrão: tiago 01)
 #         tools/gerar-ciclo.sh 01 duo            → pacote do Duo (assume tiago)
-#         tools/gerar-ciclo.sh tiago 01 duo      → idem, explícito
-#         tools/gerar-ciclo.sh 01 ritmos         → pacote de Ritmos e Movimento
-#         tools/gerar-ciclo.sh 01 debora         → pacote de Débora (Marau)
+#         tools/gerar-ciclo.sh tiago 01 ritmos   → pacote de Ritmos e Movimento
 #         PDF_ENGINE=lualatex tools/gerar-ciclo.sh 01 duo   (troca o engine)
+#   (o ciclo da Débora, em Marau, ainda não existe)
 #
 # Fontes (Markdown, editáveis no VS Code):
-#   professores/<p>/ciclos/ciclo-XX.conf          manifesto BASE (compartilhado)
-#   professores/<p>/ciclos/ciclo-XX-<escola>.conf contexto institucional (Pré-req. 5)
+#   professores/<p>/ciclos/ciclo-XX.conf          manifesto do ciclo (padrões do projeto)
+#   professores/<p>/ciclos/ciclo-XX-<escola>.conf contexto institucional + conteúdo da escola
+#   professores/<p>/ciclos/ciclo-XX-<escola>-*.md fontes PRÓPRIAS da escola (precedência)
 #   professores/<p>/ciclos/ciclo-XX-index.md      índice geral
 #   professores/<p>/ciclos/ciclo-XX-<doc>.md      um arquivo por documento
 #   biblioteca/guia-do-professor.md               documento COMPARTILHADO (ver abaixo)
@@ -84,6 +84,12 @@ source "$CONF_BASE"
 source "$CONF_VARIANTE"
 ID="ciclo-$CICLO${VARIANTE:+-$VARIANTE}"
 
+# Resolução das fontes — definição única, compartilhada com tools/hash-ciclo.sh
+# (ver o cabeçalho de tools/lib-fontes.sh). A versão da própria variante
+# (ciclo-01-ritmos-plano.md) tem precedência sobre a sem sufixo (ciclo-01-plano.md).
+# shellcheck source=tools/lib-fontes.sh
+source "$RAIZ/tools/lib-fontes.sh"
+
 : "${NOME:?defina NOME no manifesto}"
 : "${OBJETIVO_GERAL:?defina OBJETIVO_GERAL no manifesto}"
 : "${PROFESSOR:?defina PROFESSOR no manifesto}"
@@ -120,7 +126,7 @@ volume_declarado() {   # $1 = arquivo ; $2 = duração em minutos
 PRIMEIRA_AULA=""
 for doc in $DOCS; do
   case "$doc" in aula-*) ;; *) continue ;; esac
-  arq="$CICLOS/ciclo-$CICLO-$doc.md"
+  arq="$(fonte_md "$doc")"
   [ -f "$arq" ] || continue
   [ -z "$PRIMEIRA_AULA" ] && PRIMEIRA_AULA="$arq"
   grep -q '^duracao:' "$arq" || {
@@ -181,20 +187,11 @@ mkdir -p "$PACOTE/assets"
 #    para que os dois formatos tenham exatamente as mesmas âncoras (ASCII).
 # ---------------------------------------------------------------------------
 # ---------------------------------------------------------------------------
-# Caminho da fonte de um documento.
-#
-# Documentos do ciclo vivem em $CICLOS. A exceção é `guia-do-professor`: ele é
-# COMPARTILHADO por todos os professores e vive na biblioteca, então é copiado para
-# dentro do pacote (como os mapas do rizoma) em vez de ficar em ciclos/. A decisão
-# de tratar por caminho especial, em vez de duplicar o arquivo em cada professor,
-# está registrada no cabeçalho deste script.
+# Caminho da fonte de um documento: definido em tools/lib-fontes.sh, junto com
+# fontes_do_ciclo() — a MESMA definição usada por tools/hash-ciclo.sh, para que o
+# que entra no pacote e o que entra no hash nunca divirjam (foi essa divergência
+# que fez o pacote da Ritmos sair com o plano da Duo).
 # ---------------------------------------------------------------------------
-fonte_md() {
-  case "$1" in
-    guia-do-professor) printf '%s' "$RAIZ/biblioteca/guia-do-professor.md" ;;
-    *) printf '%s' "$CICLOS/ciclo-$CICLO-$1.md" ;;
-  esac
-}
 
 mkdir -p "$TMP/src"
 for doc in index $DOCS; do
@@ -235,6 +232,24 @@ rotulo() {
   if [ -f "$src" ]; then
     sed -n 's/^title:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$src" | head -1
   fi
+}
+
+# ---------------------------------------------------------------------------
+# Rodapé: a lista de documentos é DERIVADA de DOCS, não fixa no template.
+# Antes o template trazia as páginas do ciclo de fundamentos (notação,
+# pré-requisitos, musicalidade, apanhado histórico) escritas à mão — e num ciclo
+# que não tem esses documentos (pas de deux) o rodapé saía com links mortos, o
+# que o validador reprovava. Agora o rodapé mostra o que o ciclo realmente tem.
+# ---------------------------------------------------------------------------
+rodape_docs() {
+  local doc r saida='<a href="index.html">Índice do ciclo</a> &middot; <a href="plano.html">Plano</a>'
+  for doc in $DOCS; do
+    case "$doc" in aula-*|plano) continue ;; esac
+    [ -f "$(fonte_md "$doc")" ] || continue
+    r="$(rotulo "$doc")"
+    saida="$saida &middot; <a href=\"$doc.html\">$r</a>"
+  done
+  printf '%s &middot; <a href="%s.pdf">PDF do ciclo</a>' "$saida" "$ID"
 }
 
 # ---------------------------------------------------------------------------
@@ -318,6 +333,7 @@ for doc in $TODOS; do
     -V "ciclo-nome=$NOME" \
     -V "ciclo-periodo=$PERIODO" \
     -V "ciclo-professor=$PROFESSOR" \
+  -V "rodape-docs=$(rodape_docs)" \
     -V "escola=$ESCOLA" \
     -V "escola-responsavel=${RESPONSAVEL:-}" \
     -V "frequencia=$FREQUENCIA" \
@@ -457,6 +473,12 @@ echo "pdf:  $ID.pdf · engine $PDF_ENGINE · $(pdfinfo "$PACOTE/$ID.pdf" | awk '
 # ---------------------------------------------------------------------------
 # 3) README do pacote (não sobrescreve um README escrito pelo professor)
 # ---------------------------------------------------------------------------
+# Lista de navegação do README, derivada de DOCS — pela mesma razão do rodapé: a
+# lista fixa apontava para documentos do ciclo de fundamentos, que um ciclo de pas
+# de deux não tem. Os backticks são literais (a expansão do heredoc não os executa).
+DOCS_README="$( for doc in $DOCS; do printf '`%s.html` · ' "$doc"; done )"
+DOCS_README="${DOCS_README% · }"
+
 if [ ! -f "$PACOTE/README.md" ]; then
   cat > "$PACOTE/README.md" <<RD
 # $NOME — pacote de entrega ($ESCOLA)
@@ -475,8 +497,7 @@ compartilhado por todos os professores do projeto.
 ## Navegação
 
 - \`index.html\` — índice geral do ciclo (comece por aqui)
-- \`plano.html\` · \`aula-*.html\` · \`notacao.html\` · \`pre-requisitos.html\` ·
-  \`musicalidade.html\` · \`apanhado-historico.html\` · \`referencias.html\`
+- $DOCS_README
 - \`$ID.pdf\` — **PDF único consolidado**: capa, índice navegável, bookmarks
   (barra lateral do leitor) e rodapé numerado com a identificação do ciclo
 

@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+# ============================================================================
+# lib-fontes.sh — resolução das fontes de um ciclo. Definição ÚNICA.
+#
+# Nasceu de um erro real (18/09/2026): o gerador e o hasher resolviam as fontes
+# cada um do seu jeito. O gerador lia sempre o arquivo SEM sufixo de variante
+# (ciclo-01-plano.md), então o pacote da escola Ritmos saía com o plano e a aula
+# da Duo; e o hasher cobria todos os .md do ciclo, misturando as escolas no hash.
+#
+# Regra única: o documento `ciclo-XX-<doc>.md` pode ter uma versão PRÓPRIA da
+# variante — `ciclo-XX-<variante>-<doc>.md` — que tem precedência quando existe.
+# É isso que permite que cada escola tenha o seu próprio ciclo.
+#
+# Requer, de quem faz o `source`: RAIZ, CICLOS, CICLO e VARIANTE.
+# ============================================================================
+
+# Caminho da fonte de um documento (`plano`, `aula-01`, `index`, ...).
+# `guia-do-professor` é COMPARTILHADO por todos os professores: vive na biblioteca.
+fonte_md() {
+  case "$1" in
+    guia-do-professor) printf '%s' "$RAIZ/biblioteca/guia-do-professor.md"; return ;;
+  esac
+  local proprio="$CICLOS/ciclo-$CICLO-${VARIANTE:-}-$1.md"
+  if [ -n "${VARIANTE:-}" ] && [ -f "$proprio" ]; then
+    printf '%s' "$proprio"
+    return
+  fi
+  printf '%s' "$CICLOS/ciclo-$CICLO-$1.md"
+}
+
+# Fontes que COMPÕEM o ciclo desta variante: os dois manifestos, o PO (quando
+# existe) e os documentos que o pacote de fato lê (`index $DOCS`), já resolvidos
+# por fonte_md(). O que é de outra escola não entra, e o documento sem sufixo que
+# esta variante substituiu pelo seu também não.
+#
+# Requer: CONF_BASE, CONF_VARIANTE, ARQUIVO_PO (opcional) e DOCS (do manifesto).
+fontes_do_ciclo() {
+  local doc src
+  printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
+  if [ -n "${ARQUIVO_PO:-}" ] && [ -f "$ARQUIVO_PO" ]; then
+    printf '%s\n' "$ARQUIVO_PO"
+  fi
+  for doc in index ${DOCS:-}; do
+    src="$(fonte_md "$doc")"
+    if [ -f "$src" ]; then
+      printf '%s\n' "$src"
+    fi
+  done
+}
