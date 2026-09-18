@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# ============================================================================
+# hash-ciclo.sh — âncora de proveniência FIPP de um ciclo (P-03, P-04, P-08).
+#
+#   uso:
+#     tools/hash-ciclo.sh <ciclo> <variante>            gera/atualiza o .fipp
+#     tools/hash-ciclo.sh <ciclo> <variante> --check    verifica a integridade
+#
+#   exemplos:
+#     tools/hash-ciclo.sh 01 duo
+#     tools/hash-ciclo.sh 01 duo --check
+#
+# Fórmula (conforme o paper do mestrado):
+#
+#   hash_conteudo = SHA256( fontes do ciclo, em ordem determinística LC_ALL=C )
+#   hash_fipp     = SHA256( id + ":" + type + ":" + parentHash + ":" + conteudo )
+#
+#   id .......... "ciclo-01-duo"   (identificador do artefato)
+#   type ........ "Ciclo"          (tipo fixo)
+#   parentHash .. hash FIPP do ciclo anterior, mesma variante (vazio no Ciclo 01)
+#   conteudo .... hash das fontes
+#
+# Cobertura: apenas FONTES — ciclos/ciclo-XX.conf, ciclos/ciclo-XX-<variante>.conf
+# e todos os ciclos/ciclo-XX-*.md. As saídas (HTML, PDF) não entram: são
+# reconstruíveis (P-04). Cada fonte entra precedida do seu caminho relativo, de
+# modo que renomear ou trocar um arquivo também altere o hash.
+#
+# O arquivo .fipp é a ÂNCORA da cadeia e por isso é VERSIONADO — não é saída.
+# ============================================================================
+
+set -euo pipefail
+
+RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$RAIZ"
+
+if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
+  echo "uso: tools/hash-ciclo.sh <ciclo> <variante> [--check]" >&2
+  exit 2
+fi
+
+CICLO_INFORMADO="$1"
+VARIANTE="$2"
+MODO="${3:-gerar}"
+
+case "$MODO" in
+  gerar|--check) ;;
+  *) echo "erro: modo desconhecido '$MODO' (use --check ou nada)" >&2; exit 2 ;;
+esac
+
+# normaliza o ciclo para dois dígitos: 1 → 01, 10 → 10
+CICLO="$(printf '%02d' "$CICLO_INFORMADO" 2>/dev/null || true)"
+case "$CICLO" in
+  [0-9][0-9]) ;;
+  *) echo "erro: ciclo inválido '$CICLO_INFORMADO' (use 1, 01, 2, 02…)" >&2; exit 2 ;;
+esac
+
+CONF_BASE="ciclos/ciclo-$CICLO.conf"
+CONF_VARIANTE="ciclos/ciclo-$CICLO-$VARIANTE.conf"
+SCHEMA="ciclos/ciclo-$CICLO-schema.json"
+ARQUIVO_FIPP="ciclos/ciclo-$CICLO-$VARIANTE.fipp"
+ID="ciclo-$CICLO-$VARIANTE"
+TIPO="Ciclo"
+
+[ -f "$CONF_BASE" ] || { echo "erro: manifesto base não encontrado: $CONF_BASE" >&2; exit 1; }
+[ -f "$CONF_VARIANTE" ] || {
+  echo "erro: manifesto da variante não encontrado: $CONF_VARIANTE" >&2
+  echo "  variantes disponíveis para o ciclo $CICLO:" >&2
+  ls -1 ciclos/ciclo-"$CICLO"-*.conf 2>/dev/null | sed 's|.*/|    |' >&2 || true
+  exit 1
+}
+
+# --- sha256 portável --------------------------------------------------------
+if command -v sha256sum >/dev/null 2>&1; then
+  sha() { sha256sum | awk '{print $1}'; }
+elif command -v shasum >/dev/null 2>&1; then
+  sha() { shasum -a 256 | awk '{print $1}'; }
+else
+  echo "erro: preciso de 'sha256sum' ou 'shasum -a 256' para calcular o hash" >&2
+  exit 1
+fi
+
+# --- 1) schema (P-08) -------------------------------------------------------
+if [ -f "$SCHEMA" ]; then
+  if ! node tools/validar-schema-ciclo.js "$SCHEMA" "$CONF_BASE" "$CONF_VARIANTE"; then
+    echo "erro: os .conf do ciclo $CICLO não satisfazem $SCHEMA — corrija antes de ancorar." >&2
+    exit 1
+  fi
+fi
+
+# --- 2) coleta dos fontes, em ordem determinística --------------------------
+FONTES="$( { printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
+             ls -1 ciclos/ciclo-"$CICLO"-*.md 2>/dev/null || true; } \
+           | LC_ALL=C sort -u )"
+[ -n "$FONTES" ] || { echo "erro: nenhuma fonte encontrada para o ciclo $CICLO" >&2; exit 1; }
+
+# --- 3) hash do conteúdo ----------------------------------------------------
+HASH_CONTEUDO="$( for f in $FONTES; do
+                    printf 'arquivo: %s\n' "$f"
+                    cat "$f"
+                    printf '\n'
+                  done | sha )"
+
+# --- 4) parentHash: hash FIPP do ciclo anterior, mesma variante -------------
+PARENT_HASH=""
+NUM="$(printf '%d' "$CICLO")"
+if [ "$NUM" -gt 1 ]; then
+  ANTERIOR="$(printf '%02d' "$((NUM - 1))")"
+  ARQ_ANTERIOR="ciclos/ciclo-$ANTERIOR-$VARIANTE.fipp"
+  if [ -f "$ARQ_ANTERIOR" ]; then
+    PARENT_HASH="$(sed -n 's/^hash:[[:space:]]*//p' "$ARQ_ANTERIOR" | head -1)"
+  else
+    echo "aviso: $ARQ_ANTERIOR não existe — o ciclo $CICLO-$VARIANTE fica sem parentHash" >&2
+    echo "       ancore o anterior primeiro: tools/hash-ciclo.sh $ANTERIOR $VARIANTE" >&2
+  fi
+fi
+
+# --- 5) hash FIPP -----------------------------------------------------------
+HASH_FIPP="$(printf '%s' "$ID:$TIPO:$PARENT_HASH:$HASH_CONTEUDO" | sha)"
+
+# --- 6) verificação (--check) ----------------------------------------------
+if [ "$MODO" = "--check" ]; then
+  if [ ! -f "$ARQUIVO_FIPP" ]; then
+    echo "erro: $ARQUIVO_FIPP não existe — ancore com: tools/hash-ciclo.sh $CICLO $VARIANTE" >&2
+    exit 1
+  fi
+  ARMAZENADO="$(sed -n 's/^hash:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
+  CONTEUDO_ARMAZENADO="$(sed -n 's/^hash_conteudo:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
+  PARENT_ARMAZENADO="$(sed -n 's/^parentHash:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
+  FALHOU=0
+
+  # (a) os fontes deste ciclo mudaram?
+  if [ "$CONTEUDO_ARMAZENADO" != "$HASH_CONTEUDO" ]; then
+    echo "erro: os fontes do ciclo $CICLO-$VARIANTE mudaram desde a última ancoragem." >&2
+    echo "  no .fipp:  $CONTEUDO_ARMAZENADO" >&2
+    echo "  agora:     $HASH_CONTEUDO" >&2
+    echo "  regere a âncora com: tools/hash-ciclo.sh $CICLO $VARIANTE" >&2
+    FALHOU=1
+  fi
+
+  # (b) o ciclo anterior mudou?
+  if [ "$PARENT_ARMAZENADO" != "$PARENT_HASH" ]; then
+    echo "erro: o ciclo anterior mudou — a cadeia de $ID deixou de bater." >&2
+    echo "  no .fipp:  ${PARENT_ARMAZENADO:-(vazio)}" >&2
+    echo "  agora:     ${PARENT_HASH:-(vazio)}" >&2
+    echo "  (os fontes deste ciclo podem estar intactos; reancore para incorporar o novo pai)" >&2
+    FALHOU=1
+  fi
+
+  # (c) o arquivo .fipp é coerente consigo mesmo?
+  if [ "$ARMAZENADO" != "$HASH_FIPP" ] && [ "$FALHOU" -eq 0 ]; then
+    echo "erro: o hash registrado não corresponde aos campos do próprio .fipp." >&2
+    echo "  no .fipp:  $ARMAZENADO" >&2
+    echo "  recalculado: $HASH_FIPP" >&2
+    FALHOU=1
+  fi
+
+  # a cobertura declarada precisa corresponder aos fontes de hoje
+  COBERTURA_ATUAL="$(printf '%s\n' $FONTES | LC_ALL=C sort -u)"
+  COBERTURA_FIPP="$(grep '^  - ' "$ARQUIVO_FIPP" | sed 's/^  - //' | LC_ALL=C sort -u || true)"
+  if [ "$COBERTURA_ATUAL" != "$COBERTURA_FIPP" ]; then
+    echo "erro: a lista de fontes cobertas mudou (arquivo criado ou removido)." >&2
+    diff <(printf '%s\n' "$COBERTURA_FIPP") <(printf '%s\n' "$COBERTURA_ATUAL") | sed 's/^/  /' >&2 || true
+    FALHOU=1
+  fi
+
+  [ "$FALHOU" -eq 0 ] || exit 1
+  echo "ok: ciclo $CICLO-$VARIANTE íntegro; cadeia intacta"
+  echo "    hash: $HASH_FIPP"
+  exit 0
+fi
+
+# --- 7) gravação do .fipp ---------------------------------------------------
+{
+  echo "# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh"
+  echo "# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04)."
+  echo "# Fontes cobertas: $CONF_BASE, $CONF_VARIANTE e os .md deste ciclo."
+  echo "# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)"
+  echo ""
+  echo "id: $ID"
+  echo "type: $TIPO"
+  echo "ciclo: $CICLO"
+  echo "variante: $VARIANTE"
+  echo "hash_conteudo: $HASH_CONTEUDO"
+  echo "parentHash: $PARENT_HASH"
+  echo "hash: $HASH_FIPP"
+  echo "algoritmo: SHA-256"
+  echo "cobertura:"
+  for f in $FONTES; do echo "  - $f"; done
+} > "$ARQUIVO_FIPP"
+
+echo "ancorado: $ARQUIVO_FIPP"
+echo "  id:            $ID"
+echo "  hash_conteudo: $HASH_CONTEUDO"
+echo "  parentHash:    ${PARENT_HASH:-(vazio — o Ciclo $CICLO abre a cadeia)}"
+echo "  hash:          $HASH_FIPP"
+if [ -n "$PARENT_HASH" ]; then
+  echo "  cadeia: $(printf '%02d' "$((NUM - 1))")-$VARIANTE → $CICLO-$VARIANTE"
+fi
+
