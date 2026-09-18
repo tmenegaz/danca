@@ -11,7 +11,9 @@
  *   2) toda página tem barra de navegação, índice interno, botão "voltar ao topo"
  *      e rodapé — e exatamente uma marcação de página atual;
  *   3) todo link interno resolve (arquivo existe; âncora existe no arquivo alvo);
- *   4) o PDF consolidado tem índice, links internos, bookmarks e rodapé numerado
+ *   4) o registro em Benesh e o glossário do ciclo são consistentes entre si
+ *      (glossário exaustivo: todo símbolo do corpo tem verbete — tools/check-glossario.js);
+ *   5) o PDF consolidado tem índice, links internos, bookmarks e rodapé numerado
  *      em todas as páginas.
  *
  * Sai com código 1 se algo estiver quebrado. É o último passo de
@@ -112,6 +114,32 @@ paginas.forEach((f) => {
   });
 });
 ok.push(`links internos verificados: ${linksChecados}`);
+
+// -------------------------------------- 3b) registro Benesh × glossário (fontes)
+// Roda sobre as FONTES do ciclo, não sobre o pacote gerado: o HTML não diz qual
+// símbolo virou verbete. O registro e o glossário são compartilhados pelas escolas
+// (manifesto base), então a checagem vale para o ciclo, não por variante.
+const checkGlossario = path.join(__dirname, 'check-glossario.js');
+const registroMd = path.join('ciclos', `ciclo-${ciclo}-notacao.md`);
+const glossarioMd = path.join('ciclos', `ciclo-${ciclo}-glossario-benesh.md`);
+if (fs.existsSync(registroMd) && fs.existsSync(glossarioMd)) {
+  let saida = '';
+  try {
+    saida = cp.execSync(`node "${checkGlossario}" "${registroMd}" "${glossarioMd}"`,
+      { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024, stdio: ['ignore', 'pipe', 'pipe'] });
+  } catch (e) {
+    saida = `${e.stdout || ''}${e.stderr || ''}`;
+    if (!/ERRO/.test(saida)) saida += `ERRO  glossário: validação falhou (${String(e.message).split('\n')[0].slice(0, 90)})`;
+  }
+  saida.split('\n').forEach((l) => {
+    const linha = l.trim();
+    if (/^ok: glossário/.test(linha)) ok.push(linha);
+    else if (/^aviso /.test(linha)) avisos.push(`glossário: ${linha.replace(/^aviso\s*/, '')}`);
+    else if (/^ERRO/.test(linha)) erros.push(`glossário: ${linha.replace(/^ERRO\s*/, '')}`);
+  });
+} else if (fs.existsSync(registroMd)) {
+  avisos.push(`glossário: ${glossarioMd} ausente — consistência do registro não verificada`);
+}
 
 // ------------------------------------------------------------- 4) PDF
 // Os PDF do LaTeX comprimem os objetos: procurar "/Outlines" nos bytes crus dá

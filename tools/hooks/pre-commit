@@ -7,8 +7,11 @@
 #
 # O que faz:
 #   1) barra arquivos GERADOS no stage (defesa contra .gitignore furado);
-#   2) para cada ciclo tocado, roda o gerador + validador do pacote;
-#   3) se a apresentação foi tocada, roda os validadores do deck.
+#   2) valida a âncora FIPP e o PO de cada ciclo tocado;
+#   3) se o registro/glossário Benesh entrou no stage, valida a consistência
+#      entre os dois (todo símbolo do corpo precisa de verbete);
+#   4) para cada ciclo tocado, roda o gerador + validador do pacote;
+#   5) se a apresentação foi tocada, roda os validadores do deck.
 # ============================================================================
 set -uo pipefail
 
@@ -78,6 +81,30 @@ for c in $ciclos_hash; do
     echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
   fi
 done
+
+# ---------------------------------------------------------------------------
+# 2b) registro Benesh × glossário: o glossário tem de ser exaustivo (Regra 16)
+#     Roda sobre as FONTES, antes de gerar: falha barata e cedo.
+# ---------------------------------------------------------------------------
+arquivos_glossario="$(printf '%s\n' "$arquivos" \
+  | grep -E '^ciclos/ciclo-[0-9]+-(notacao|glossario-benesh)\.md$' || true)"
+if [ -n "$arquivos_glossario" ]; then
+  for gn in $(printf '%s\n' "$arquivos_glossario" | grep -oE 'ciclo-[0-9]+' | sed 's|ciclo-||' | sort -u); do
+    registro_md="ciclos/ciclo-$gn-notacao.md"
+    glossario_md="ciclos/ciclo-$gn-glossario-benesh.md"
+    if [ -f "$registro_md" ] && [ -f "$glossario_md" ]; then
+      if node tools/check-glossario.js "$registro_md" "$glossario_md" > /tmp/pre-commit-glossario-"$gn".log 2>&1; then
+        echo "pre-commit: glossário Benesh do ciclo $gn ok ($(grep -c '  aviso ' /tmp/pre-commit-glossario-"$gn".log) aviso(s))"
+      else
+        echo "pre-commit: recusado — o glossário Benesh do ciclo $gn não bate com o registro." >&2
+        grep -E '  ERRO|FALHOU' /tmp/pre-commit-glossario-"$gn".log | head -6 >&2
+        exit 1
+      fi
+    else
+      echo "pre-commit: aviso — registro ou glossário Benesh do ciclo $gn ausente; consistência não verificada" >&2
+    fi
+  done
+fi
 
 # ---------------------------------------------------------------------------
 # 3) ciclos tocados: gerar e validar (uma variante por escola)
