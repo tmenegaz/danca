@@ -1,19 +1,25 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T10:46:15-0300`
-Commit atual: `494f9ac` — fix(ciclo-01): ajusta redacao do PO do Duo (contagio, nota sobre dor)
+Gerado em: `2026-09-18T13:27:29-0300`
+Commit atual: `547907e` — docs(estrutura): atualiza documentos da raiz para a estrutura por professor
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
 
 - **Regras:** 17 em `REGRAS.md`
-  + **12 pétreas** em `PROTOCOLO.md`
+  + **14 pétreas** em `PROTOCOLO.md`
+- **Professores:** tiago (1)
 - **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** fora do Git (reconstruíveis — P-04)
 
 ## Últimos commits
 
 ```
+547907e docs(estrutura): atualiza documentos da raiz para a estrutura por professor
+53692ba feat(biblioteca): guia do professor no pacote de ciclo
+51cf250 feat(protocolo): acrescenta P-13 e P-14 (PO por professor, departamento)
+28d6d3b refactor(estrutura): move o material do Tiago para professores/tiago e refatora as ferramentas
+c88c7d8 chore(tools): regera ancoras e HANDOFF
 494f9ac fix(ciclo-01): ajusta redacao do PO do Duo (contagio, nota sobre dor)
 16ad569 chore(tools): regera ancoras e HANDOFF
 7630610 feat(ciclo-01): cria folha de captura para uso durante a Aula 01
@@ -29,14 +35,15 @@ b7b2d9a fix(tools): hook valida o PO de cada variante, nao so o da ultima
 dac289c chore(tools): regera o HANDOFF apos a gravacao na pagina publicada
 10b9910 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
 ca57b7e chore(tools): regera o HANDOFF apos as correcoes
-48b3a50 docs(biblioteca): registra gravacao e fonte de repertorio do Peasant Pas de Deux
-1391584 fix(ciclo-01): corrige a transferencia no tempo 2 na aula 01
-6959b8f chore(tools): regera o HANDOFF apos a correcao da metrica
-eaf4d93 fix(ciclo-01): corrige a metrica do Peasant Pas de Deux (3/4 polonesa, nao 4/4)
-d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 ```
 
-## POs — estado atual
+## Por professor
+
+### tiago — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): debora
+duo
+ritmos
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
@@ -44,13 +51,11 @@ d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 | Duo | ciclo-01-duo-po.md | Input_PO_Validado | 0 |
 | Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 21 |
 
-## Âncoras FIPP
-
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `d93b158918c5` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `2942f018c23f` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `ba526082a3e1` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `23b1d1075d87` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `f99c8ef2879a` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `cb7822207ac0` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -66,6 +71,8 @@ d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 - **P-10 — O PO declara a linha de base dos sujeitos.
 - **P-11 — O PO declara as condições de contorno da execução.
 - **P-12 — Os sujeitos são referidos por apelidos estáveis.
+- **P-13 — Cada professor tem o seu próprio PO.
+- **P-14 — O PO pode derivar de um PO de departamento.
 
 ## Regras (`REGRAS.md`)
 
@@ -117,20 +124,27 @@ POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
 
 ## O que está pendente
 
+Primeiro relatório pós-aula do Duo; POs de Ritmos e Débora; Ciclo 02; um segundo
+professor (a estrutura está pronta, aguardando o primeiro).
+
+## 18/09/2026 — PO do Ciclo 01 — Duo validado
+
 POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
-- PO de **debora** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- PO de **ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- Aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
-- Material de campo: 1 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
+- PO de **tiago · debora** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
+- Material de campo de **tiago**: 1 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
 ## Documentos-chave (para leitura)
 
 - `PROTOCOLO.md` — pétreas
 - `REGRAS.md` — regras
 - `REGISTRO.md` — marcos metodológicos
-- `ciclos/ciclo-01-<escola>-po.md` — POs por escola
-- `ciclos/ciclo-01-<escola>.fipp` — âncoras FIPP
-- `campo/` — instrumentos e respostas de campo (por evento)
+- `professores/<nome>/` — um professor por pasta (P-13): ciclos, cadernos, relatórios, campo
+- `professores/<nome>/ciclos/ciclo-XX-<escola>-po.md` — POs por escola
+- `professores/<nome>/ciclos/ciclo-XX-<escola>.fipp` — âncoras FIPP
+- `departamentos/` — PO de departamento, quando a escola tiver metodologia comum (P-14)
+- `biblioteca/guia-do-professor.md` — o guia de posição (departamento ou PO próprio)
 
 ## Como retomar
 
