@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T08:46:00-0300`
-Commit atual: `62587f9` — docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
+Gerado em: `2026-09-18T08:51:09-0300`
+Commit atual: `eaf4d93` — fix(ciclo-01): corrige a metrica do Peasant Pas de Deux (3/4 polonesa, nao 4/4)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,8 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+eaf4d93 fix(ciclo-01): corrige a metrica do Peasant Pas de Deux (3/4 polonesa, nao 4/4)
+d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 62587f9 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
 d7dbc73 chore(tools): regera o HANDOFF apos a correcao
 028da5d fix(ciclo-01): corrige a transferencia de peso no tempo 2 (musicalidade)
@@ -32,8 +34,6 @@ b00d611 feat(campo): versiona o formulario de campo de 03/10 (Ritmos e Movimento
 4f17264 feat(tools): cria gerar-handoff.sh para handoff entre sessoes
 9f08ff4 fix(tools): parser do PO por subcampo, buffer do PDF e menu do pacote
 e27924f fix(tools): hash por escola e pre-commit por variante
-b29e8d0 feat(registro): cria REGISTRO.md com primeira entrada
-1396a1a feat(protocolo): acrescenta P-10 (linha de base) e P-11 (condicoes de contorno)
 ```
 
 ## POs — estado atual
@@ -48,9 +48,9 @@ b29e8d0 feat(registro): cria REGISTRO.md com primeira entrada
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `e35c5207dd14` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `ca0362b85280` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `88e2db21929b` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `94a28791a595` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `1ec681df7248` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `b61555f7dedf` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
