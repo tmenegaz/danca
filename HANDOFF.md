@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T09:22:53-0300`
-Commit atual: `10b9910` — docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
+Gerado em: `2026-09-18T09:34:04-0300`
+Commit atual: `a5efb8b` — docs(biblioteca): documenta as duas listas de referencia (trabalho x publicada)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,9 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+a5efb8b docs(biblioteca): documenta as duas listas de referencia (trabalho x publicada)
+b7b2d9a fix(tools): hook valida o PO de cada variante, nao so o da ultima
+dac289c chore(tools): regera o HANDOFF apos a gravacao na pagina publicada
 10b9910 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
 ca57b7e chore(tools): regera o HANDOFF apos as correcoes
 48b3a50 docs(biblioteca): registra gravacao e fonte de repertorio do Peasant Pas de Deux
@@ -31,9 +34,6 @@ eaf9a18 feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
 971eb65 feat(tools): cria validador de consistencia do glossario
 1e18172 feat(ciclo-01): cria glossario Benesh exaustivo e corrige notacao
 c507249 chore(tools): handoff passa a listar o material de campo
-10480e0 chore(tools): aceita o escopo campo no commit-msg
-b00d611 feat(campo): versiona o formulario de campo de 03/10 (Ritmos e Movimento)
-085caba chore(tools): commit do HANDOFF.md gerado (snapshot do estado)
 ```
 
 ## POs — estado atual
