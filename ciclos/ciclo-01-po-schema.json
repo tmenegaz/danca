@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do Plano de Observação (PO) — domínio balé clássico",
+  "description": "Declara os campos observacionais de um PO de ciclo. Estrutura: 10 campos de topo (4 strings, 4 arrays, 2 objetos), que somam 17 folhas. Cada ciclo pode ter o seu schema (P-08). O PO é do CICLO, não da variante: as escolas compartilham o PO e têm cadernos próprios (P-09). O arquivo-alvo é Markdown (ciclos/ciclo-XX-po.md), extraído por tools/validar-po-ciclo.js. Campos ainda não decididos pela pesquisadora podem conter '[Preencher: ...]' — o validador aceita o provisório, mas exige que o campo exista.",
+  "type": "object",
+  "properties": {
+    "question": {
+      "type": "string",
+      "description": "A pergunta de observação (RN-PO-01). É o objetivo geral do ciclo lido como pergunta (P-01)."
+    },
+    "phenomenon": {
+      "type": "string",
+      "description": "Definição operacional do fenômeno (RN-PO-02): descritível como comportamento, não como impressão."
+    },
+    "field": {
+      "type": "string",
+      "description": "Campo empírico (RN-PO-04): onde a observação acontece (aulas, escolas, faixa)."
+    },
+    "context": {
+      "type": "string",
+      "description": "Contexto observacional (RN-PO-04): frequência, duração, período, condições de registro."
+    },
+    "subjects": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Quem será observado (RN-PO-05)."
+    },
+    "inclusionCriteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "O que será registrado (RN-PO-05)."
+    },
+    "exclusionCriteria": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "O que NÃO será registrado (RN-PO-05). Sem este campo, o recorte não tem borda."
+    },
+    "justification": {
+      "type": "object",
+      "description": "Justificativa do recorte (RN-PO-03, RN-PO-06).",
+      "properties": {
+        "referenceToProblem": {
+          "type": "string",
+          "description": "Como o recorte se relaciona com o problema de pesquisa."
+        },
+        "explanationOfCut": {
+          "type": "string",
+          "description": "Por que este recorte foi escolhido, e não outro."
+        },
+        "whatIsLeftOut": {
+          "type": "string",
+          "description": "O que o recorte exclui, dito explicitamente."
+        },
+        "theoreticalBasis": {
+          "type": "string",
+          "description": "Base conceitual do recorte, ancorada em referência declarada."
+        }
+      },
+      "required": [
+        "referenceToProblem",
+        "explanationOfCut",
+        "whatIsLeftOut",
+        "theoreticalBasis"
+      ],
+      "additionalProperties": true
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Limitações e alcance da generalização (RN-PO-07)."
+    },
+    "validationChecklist": {
+      "type": "object",
+      "description": "Checklist de validação do próprio PO (RN-PO-07). Todos precisam estar marcados para o PO passar de Input_PO_Aguardando a Aprovado.",
+      "properties": {
+        "phenomenonOperationallyDefined": { "type": "boolean" },
+        "scopeBoundariesClear": { "type": "boolean" },
+        "criteriaMutuallyExclusive": { "type": "boolean" },
+        "justificationGrounded": { "type": "boolean" },
+        "cutFeasible": { "type": "boolean" }
+      },
+      "required": [
+        "phenomenonOperationallyDefined",
+        "scopeBoundariesClear",
+        "criteriaMutuallyExclusive",
+        "justificationGrounded",
+        "cutFeasible"
+      ],
+      "additionalProperties": true
+    }
+  },
+  "required": [
+    "question",
+    "phenomenon",
+    "field",
+    "context",
+    "subjects",
+    "inclusionCriteria",
+    "exclusionCriteria",
+    "justification",
+    "limitations",
+    "validationChecklist"
+  ],
+  "additionalProperties": true
+}
