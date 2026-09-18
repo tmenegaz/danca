@@ -3,9 +3,9 @@
 # Não versionar: infla o repositório e cria ruído de diff.
 # ============================================================================
 out/
-ciclos/*/*.pdf
-ciclos/*/*.html
-ciclos/*/assets/
+professores/*/ciclos/*/*.pdf
+professores/*/ciclos/*/*.html
+professores/*/ciclos/*/assets/
 
 # ============================================================================
 # Caches e ambientes

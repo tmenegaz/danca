@@ -1,0 +1,32 @@
+# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/tiago/ciclos/ciclo-01.conf, professores/tiago/ciclos/ciclo-01-duo.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-duo
+type: Ciclo
+professor: tiago
+ciclo: 01
+variante: duo
+hash_conteudo: 82015b7e6a6efd0c0c65ba6aa0aca8949f692f3f3633a5bf00094bcaa91a4e43
+parentHash: 
+hash: 918297927f796b84d5dd8bc96a57bf59a84b41190c4c745a0e30e134ef8c88fd
+algoritmo: SHA-256
+po: professores/tiago/ciclos/ciclo-01-duo-po.md
+po_state: Input_PO_Validado
+cobertura:
+  - professores/tiago/ciclos/ciclo-01-apanhado-historico.md
+  - professores/tiago/ciclos/ciclo-01-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-captura-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-duo-po.md
+  - professores/tiago/ciclos/ciclo-01-duo.conf
+  - professores/tiago/ciclos/ciclo-01-glossario-benesh.md
+  - professores/tiago/ciclos/ciclo-01-index.md
+  - professores/tiago/ciclos/ciclo-01-musicalidade-aluna.md
+  - professores/tiago/ciclos/ciclo-01-musicalidade.md
+  - professores/tiago/ciclos/ciclo-01-notacao.md
+  - professores/tiago/ciclos/ciclo-01-plano.md
+  - professores/tiago/ciclos/ciclo-01-pre-requisitos.md
+  - professores/tiago/ciclos/ciclo-01-referencias.md
+  - professores/tiago/ciclos/ciclo-01-relatorio-aula-01.md
+  - professores/tiago/ciclos/ciclo-01.conf

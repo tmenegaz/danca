@@ -3,12 +3,15 @@
 # hash-ciclo.sh — âncora de proveniência FIPP de um ciclo (P-03, P-04, P-08).
 #
 #   uso:
-#     tools/hash-ciclo.sh <ciclo> <variante>            gera/atualiza o .fipp
-#     tools/hash-ciclo.sh <ciclo> <variante> --check    verifica a integridade
+#     tools/hash-ciclo.sh [<professor>] <ciclo> <variante> [--check]
 #
 #   exemplos:
-#     tools/hash-ciclo.sh 01 duo
+#     tools/hash-ciclo.sh 01 duo             (assume o professor tiago)
+#     tools/hash-ciclo.sh tiago 01 duo
 #     tools/hash-ciclo.sh 01 duo --check
+#
+# O professor é o primeiro argumento quando há três ou mais (e o terceiro não é
+# --check): assim os comandos antigos, sem professor, continuam valendo.
 #
 # Fórmula (conforme o paper do mestrado):
 #
@@ -20,10 +23,11 @@
 #   parentHash .. hash FIPP do ciclo anterior, mesma variante (vazio no Ciclo 01)
 #   conteudo .... hash das fontes
 #
-# Cobertura: apenas FONTES — ciclos/ciclo-XX.conf, ciclos/ciclo-XX-<variante>.conf
-# e os ciclos/ciclo-XX-*.md QUE NÃO SEJAM de outra escola. Como o PO passou a ser
-# por escola (ciclo-XX-<escola>-po.md), a coleta exclui os .md que começam com o
-# nome de outra variante: o hash do Duo não carrega o PO da Ritmos e vice-versa.
+# Cobertura: apenas FONTES — professores/<professor>/ciclos/ciclo-XX.conf,
+# .../ciclo-XX-<variante>.conf e os .../ciclo-XX-*.md QUE NÃO SEJAM de outra
+# escola. Como o PO é por escola (ciclo-XX-<escola>-po.md), a coleta exclui os .md
+# que começam com o nome de outra variante: o hash do Duo não carrega o PO da
+# Ritmos e vice-versa.
 # As saídas (HTML, PDF) não entram: são reconstruíveis (P-04). Cada fonte entra
 # precedida do seu caminho relativo, de modo que renomear ou trocar um arquivo
 # também altere o hash.
@@ -36,8 +40,14 @@ set -euo pipefail
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$RAIZ"
 
+if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
+  PROFESSOR="$1"
+  shift
+fi
+PROFESSOR="${PROFESSOR:-tiago}"
+
 if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
-  echo "uso: tools/hash-ciclo.sh <ciclo> <variante> [--check]" >&2
+  echo "uso: tools/hash-ciclo.sh [<professor>] <ciclo> <variante> [--check]" >&2
   exit 2
 fi
 
@@ -57,10 +67,11 @@ case "$CICLO" in
   *) echo "erro: ciclo inválido '$CICLO_INFORMADO' (use 1, 01, 2, 02…)" >&2; exit 2 ;;
 esac
 
-CONF_BASE="ciclos/ciclo-$CICLO.conf"
-CONF_VARIANTE="ciclos/ciclo-$CICLO-$VARIANTE.conf"
-SCHEMA="ciclos/ciclo-$CICLO-schema.json"
-ARQUIVO_FIPP="ciclos/ciclo-$CICLO-$VARIANTE.fipp"
+BASE="professores/$PROFESSOR/ciclos"
+CONF_BASE="$BASE/ciclo-$CICLO.conf"
+CONF_VARIANTE="$BASE/ciclo-$CICLO-$VARIANTE.conf"
+SCHEMA="$BASE/ciclo-$CICLO-schema.json"
+ARQUIVO_FIPP="$BASE/ciclo-$CICLO-$VARIANTE.fipp"
 ID="ciclo-$CICLO-$VARIANTE"
 TIPO="Ciclo"
 
@@ -68,7 +79,7 @@ TIPO="Ciclo"
 [ -f "$CONF_VARIANTE" ] || {
   echo "erro: manifesto da variante não encontrado: $CONF_VARIANTE" >&2
   echo "  variantes disponíveis para o ciclo $CICLO:" >&2
-  ls -1 ciclos/ciclo-"$CICLO"-*.conf 2>/dev/null | sed 's|.*/|    |' >&2 || true
+  ls -1 "$BASE"/ciclo-"$CICLO"-*.conf 2>/dev/null | sed 's|.*/|    |' >&2 || true
   exit 1
 }
 
@@ -93,8 +104,8 @@ fi
 # --- 1b) PO do ciclo (P-01, P-08) ------------------------------------------
 # O PO é do CICLO (compartilhado pelas variantes). Se ainda não existir, não é
 # erro: o ciclo fica sem PO declarado e isso vai registrado no .fipp.
-ARQUIVO_PO="ciclos/ciclo-$CICLO-$VARIANTE-po.md"
-SCHEMA_PO="ciclos/ciclo-$CICLO-po-schema.json"
+ARQUIVO_PO="$BASE/ciclo-$CICLO-$VARIANTE-po.md"
+SCHEMA_PO="$BASE/ciclo-$CICLO-po-schema.json"
 PO_INFO=""
 PO_STATE=""
 if [ -f "$ARQUIVO_PO" ]; then
@@ -118,15 +129,15 @@ fi
 # --- 2) coleta dos fontes, em ordem determinística --------------------------
 # Exclui os .md de OUTRAS escolas (PO por escola, P-09/P-10): para o Duo, os
 # arquivos ciclo-XX-ritmos-*.md e ciclo-XX-debora-*.md não entram no hash.
-OUTRAS="$(ls -1 ciclos/ciclo-"$CICLO"-*.conf 2>/dev/null \
+OUTRAS="$(ls -1 "$BASE"/ciclo-"$CICLO"-*.conf 2>/dev/null \
   | sed "s|.*/ciclo-$CICLO-||; s|\.conf$||" | grep -vx "$VARIANTE" | tr '\n' ' ' || true)"
 FONTES="$( { printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
-             ls -1 ciclos/ciclo-"$CICLO"-*.md 2>/dev/null || true; } \
+             ls -1 "$BASE"/ciclo-"$CICLO"-*.md 2>/dev/null || true; } \
            | LC_ALL=C sort -u \
            | while IFS= read -r fonte; do
                for outra in $OUTRAS; do
                  case "$fonte" in
-                   ciclos/ciclo-"$CICLO"-"$outra"-*.md) continue 2 ;;
+                   "$BASE/ciclo-$CICLO-$outra-"*.md) continue 2 ;;
                  esac
                done
                printf '%s\n' "$fonte"
@@ -145,12 +156,12 @@ PARENT_HASH=""
 NUM="$(printf '%d' "$CICLO")"
 if [ "$NUM" -gt 1 ]; then
   ANTERIOR="$(printf '%02d' "$((NUM - 1))")"
-  ARQ_ANTERIOR="ciclos/ciclo-$ANTERIOR-$VARIANTE.fipp"
+  ARQ_ANTERIOR="$BASE/ciclo-$ANTERIOR-$VARIANTE.fipp"
   if [ -f "$ARQ_ANTERIOR" ]; then
     PARENT_HASH="$(sed -n 's/^hash:[[:space:]]*//p' "$ARQ_ANTERIOR" | head -1)"
   else
     echo "aviso: $ARQ_ANTERIOR não existe — o ciclo $CICLO-$VARIANTE fica sem parentHash" >&2
-    echo "       ancore o anterior primeiro: tools/hash-ciclo.sh $ANTERIOR $VARIANTE" >&2
+    echo "       ancore o anterior primeiro: tools/hash-ciclo.sh $PROFESSOR $ANTERIOR $VARIANTE" >&2
   fi
 fi
 
@@ -160,7 +171,7 @@ HASH_FIPP="$(printf '%s' "$ID:$TIPO:$PARENT_HASH:$HASH_CONTEUDO" | sha)"
 # --- 6) verificação (--check) ----------------------------------------------
 if [ "$MODO" = "--check" ]; then
   if [ ! -f "$ARQUIVO_FIPP" ]; then
-    echo "erro: $ARQUIVO_FIPP não existe — ancore com: tools/hash-ciclo.sh $CICLO $VARIANTE" >&2
+    echo "erro: $ARQUIVO_FIPP não existe — ancore com: tools/hash-ciclo.sh $PROFESSOR $CICLO $VARIANTE" >&2
     exit 1
   fi
   ARMAZENADO="$(sed -n 's/^hash:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
@@ -173,7 +184,7 @@ if [ "$MODO" = "--check" ]; then
     echo "erro: os fontes do ciclo $CICLO-$VARIANTE mudaram desde a última ancoragem." >&2
     echo "  no .fipp:  $CONTEUDO_ARMAZENADO" >&2
     echo "  agora:     $HASH_CONTEUDO" >&2
-    echo "  regere a âncora com: tools/hash-ciclo.sh $CICLO $VARIANTE" >&2
+    echo "  regere a âncora com: tools/hash-ciclo.sh $PROFESSOR $CICLO $VARIANTE" >&2
     FALHOU=1
   fi
 
@@ -218,6 +229,7 @@ fi
   echo ""
   echo "id: $ID"
   echo "type: $TIPO"
+  echo "professor: $PROFESSOR"
   echo "ciclo: $CICLO"
   echo "variante: $VARIANTE"
   echo "hash_conteudo: $HASH_CONTEUDO"

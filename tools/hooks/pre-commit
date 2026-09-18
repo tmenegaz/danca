@@ -24,7 +24,7 @@ arquivos="$(git diff --cached --name-only --diff-filter=ACMR)"
 # ---------------------------------------------------------------------------
 # 1) saídas geradas não entram no histórico: são reconstruíveis das fontes
 # ---------------------------------------------------------------------------
-gerados="$(printf '%s\n' "$arquivos" | grep -E '^(out/|.*\.pdf$|ciclos/[^/]+/[^/]+\.html$|.*\.pptx$|.*/img/slide-.*\.png$)' || true)"
+gerados="$(printf '%s\n' "$arquivos" | grep -E '^(out/|.*\.pdf$|professores/[^/]+/ciclos/[^/]+/[^/]+\.html$|.*\.pptx$|.*/img/slide-.*\.png$)' || true)"
 if [ -n "$gerados" ]; then
   echo "pre-commit: arquivos gerados no stage (não versionar — são reconstruíveis):" >&2
   printf '  %s\n' $gerados >&2
@@ -36,24 +36,27 @@ fi
 # 2) âncora FIPP: fontes de ciclo não entram no histórico com a âncora
 #    desatualizada — e a âncora que vai no commit tem de ser a mesma do disco
 #    (P-03: FIPP alinha; o passado não é reescrito, é incorporado)
+#    O material é por professor (P-13): os alvos são professores/<p>/ciclos/ciclo-NN.
 # ---------------------------------------------------------------------------
-ciclos_hash="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
-for c in $ciclos_hash; do
-  numero="${c#ciclo-}"
+alvos_hash="$(printf '%s\n' "$arquivos" | grep -oE '^professores/[^/]+/ciclos/ciclo-[0-9]+' | sort -u || true)"
+for alvo in $alvos_hash; do
+  prof="$(printf '%s' "$alvo" | sed 's|^professores/||; s|/ciclos/.*||')"
+  numero="$(printf '%s' "$alvo" | sed 's|.*/ciclos/ciclo-||')"
+  base="professores/$prof/ciclos"
   variantes_hash="$(printf '%s\n' "$arquivos" \
-    | grep -oE "^ciclos/ciclo-$numero-[a-z0-9]+\.conf$" \
-    | sed "s|^ciclos/ciclo-$numero-||; s|\.conf$||" | sort -u || true)"
+    | grep -oE "^professores/$prof/ciclos/ciclo-$numero-[a-z0-9]+\.conf$" \
+    | sed "s|^professores/$prof/ciclos/ciclo-$numero-||; s|\.conf$||" | sort -u || true)"
   if [ -z "$variantes_hash" ]; then
-    variantes_hash="$(ls -1 ciclos/ciclo-"$numero"-*.conf 2>/dev/null \
+    variantes_hash="$(ls -1 "$base"/ciclo-"$numero"-*.conf 2>/dev/null \
       | sed "s|.*/ciclo-$numero-||; s|\.conf$||" || true)"
   fi
 
   for v in $variantes_hash; do
-    fipp="ciclos/ciclo-$numero-$v.fipp"
-    if ! tools/hash-ciclo.sh "$numero" "$v" --check > /tmp/pre-commit-hash-"$numero-$v".log 2>&1; then
-      echo "pre-commit: recusado — a âncora FIPP do ciclo-$numero-$v está desatualizada." >&2
-      grep -E '^erro|^aviso' /tmp/pre-commit-hash-"$numero-$v".log | head -6 >&2
-      echo "  regere a âncora: tools/hash-ciclo.sh $numero $v" >&2
+    fipp="$base/ciclo-$numero-$v.fipp"
+    if ! tools/hash-ciclo.sh "$prof" "$numero" "$v" --check > /tmp/pre-commit-hash-"$prof-$numero-$v".log 2>&1; then
+      echo "pre-commit: recusado — a âncora FIPP do ciclo-$numero-$v (professor $prof) está desatualizada." >&2
+      grep -E '^erro|^aviso' /tmp/pre-commit-hash-"$prof-$numero-$v".log | head -6 >&2
+      echo "  regere a âncora: tools/hash-ciclo.sh $prof $numero $v" >&2
       exit 1
     fi
     # a âncora que entra no commit tem de ser a mesma que está no disco
@@ -64,21 +67,21 @@ for c in $ciclos_hash; do
         exit 1
       fi
     fi
-    echo "pre-commit: âncora FIPP do ciclo-$numero-$v ok"
+    echo "pre-commit: âncora FIPP do $prof/ciclo-$numero-$v ok"
 
-    # PO da variante: uma vez por variante, DENTRO do laço. O PO é por escola e cada
-    # variante tem o seu. (Antes esta checagem rodava depois do laço, uma vez por
-    # ciclo, e validava só a última variante — por causa do $v que sobrava da última
-    # iteração; a escola duo e a debora nunca eram validadas por commit.)
-    arquivo_po="ciclos/ciclo-$numero-$v-po.md"
-    schema_po="ciclos/ciclo-$numero-po-schema.json"
+    # PO da variante: uma vez por variante, DENTRO do laço. O PO é do professor
+    # (P-13) e cada variante (escola) tem o seu. (Antes esta checagem rodava depois do
+    # laço, uma vez por ciclo, e validava só a última variante — por causa do $v que
+    # sobrava da última iteração; duo e debora nunca eram validadas por commit.)
+    arquivo_po="$base/ciclo-$numero-$v-po.md"
+    schema_po="$base/ciclo-$numero-po-schema.json"
     if [ -f "$arquivo_po" ] && [ -f "$schema_po" ]; then
-      if ! node tools/validar-po-ciclo.js "$schema_po" "$arquivo_po" > /tmp/pre-commit-po-"$numero-$v".log 2>&1; then
-        echo "pre-commit: recusado — o PO da variante ciclo-$numero-$v não satisfaz o schema do PO." >&2
-        grep -E '^  - |^erro' /tmp/pre-commit-po-"$numero-$v".log | head -6 >&2
+      if ! node tools/validar-po-ciclo.js "$schema_po" "$arquivo_po" > /tmp/pre-commit-po-"$prof-$numero-$v".log 2>&1; then
+        echo "pre-commit: recusado — o PO da variante $prof/ciclo-$numero-$v não satisfaz o schema do PO." >&2
+        grep -E '^  - |^erro' /tmp/pre-commit-po-"$prof-$numero-$v".log | head -6 >&2
         exit 1
       fi
-      echo "pre-commit: PO da variante ciclo-$numero-$v validado"
+      echo "pre-commit: PO da variante $prof/ciclo-$numero-$v validado"
     elif [ -f "$arquivo_po" ]; then
       echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
     fi
@@ -90,54 +93,58 @@ done
 #     Roda sobre as FONTES, antes de gerar: falha barata e cedo.
 # ---------------------------------------------------------------------------
 arquivos_glossario="$(printf '%s\n' "$arquivos" \
-  | grep -E '^ciclos/ciclo-[0-9]+-(notacao|glossario-benesh)\.md$' || true)"
+  | grep -E '^professores/[^/]+/ciclos/ciclo-[0-9]+-(notacao|glossario-benesh)\.md$' || true)"
 if [ -n "$arquivos_glossario" ]; then
-  for gn in $(printf '%s\n' "$arquivos_glossario" | grep -oE 'ciclo-[0-9]+' | sed 's|ciclo-||' | sort -u); do
-    registro_md="ciclos/ciclo-$gn-notacao.md"
-    glossario_md="ciclos/ciclo-$gn-glossario-benesh.md"
+  for alvo in $(printf '%s\n' "$arquivos_glossario" | grep -oE '^professores/[^/]+/ciclos/ciclo-[0-9]+' | sort -u); do
+    gp="$(printf '%s' "$alvo" | sed 's|^professores/||; s|/ciclos/.*||')"
+    gn="$(printf '%s' "$alvo" | sed 's|.*/ciclos/ciclo-||')"
+    registro_md="professores/$gp/ciclos/ciclo-$gn-notacao.md"
+    glossario_md="professores/$gp/ciclos/ciclo-$gn-glossario-benesh.md"
     if [ -f "$registro_md" ] && [ -f "$glossario_md" ]; then
-      if node tools/check-glossario.js "$registro_md" "$glossario_md" > /tmp/pre-commit-glossario-"$gn".log 2>&1; then
-        echo "pre-commit: glossário Benesh do ciclo $gn ok ($(grep -c '  aviso ' /tmp/pre-commit-glossario-"$gn".log) aviso(s))"
+      if node tools/check-glossario.js "$registro_md" "$glossario_md" > /tmp/pre-commit-glossario-"$gp-$gn".log 2>&1; then
+        echo "pre-commit: glossário Benesh do $gp/ciclo $gn ok ($(grep -c '  aviso ' /tmp/pre-commit-glossario-"$gp-$gn".log) aviso(s))"
       else
-        echo "pre-commit: recusado — o glossário Benesh do ciclo $gn não bate com o registro." >&2
-        grep -E '  ERRO|FALHOU' /tmp/pre-commit-glossario-"$gn".log | head -6 >&2
+        echo "pre-commit: recusado — o glossário Benesh do $gp/ciclo $gn não bate com o registro." >&2
+        grep -E '  ERRO|FALHOU' /tmp/pre-commit-glossario-"$gp-$gn".log | head -6 >&2
         exit 1
       fi
     else
-      echo "pre-commit: aviso — registro ou glossário Benesh do ciclo $gn ausente; consistência não verificada" >&2
+      echo "pre-commit: aviso — registro ou glossário Benesh do $gp/ciclo $gn ausente; consistência não verificada" >&2
     fi
   done
 fi
 
 # ---------------------------------------------------------------------------
-# 3) ciclos tocados: gerar e validar (uma variante por escola)
+# 3) ciclos tocados: gerar e validar (uma variante por escola), por professor
 # ---------------------------------------------------------------------------
-ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
+ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^professores/[^/]+/ciclos/ciclo-[0-9]+' | sort -u || true)"
 for c in $ciclos; do
-  numero="${c#ciclo-}"
+  prof="$(printf '%s' "$c" | sed 's|^professores/||; s|/ciclos/.*||')"
+  numero="$(printf '%s' "$c" | sed 's|.*/ciclos/ciclo-||')"
+  base="professores/$prof/ciclos"
 
   # variantes citadas nos próprios caminhos do stage (manifesto ou pacote);
   # se nenhuma for citada (fonte compartilhada, manifesto base), valida todas
   variantes="$(printf '%s\n' "$arquivos" \
-    | grep -oE "^ciclos/ciclo-$numero-[a-z0-9]+\.conf$" \
-    | sed "s|^ciclos/ciclo-$numero-||; s|\.conf$||" | sort -u || true)"
+    | grep -oE "^professores/$prof/ciclos/ciclo-$numero-[a-z0-9]+\.conf$" \
+    | sed "s|^professores/$prof/ciclos/ciclo-$numero-||; s|\.conf$||" | sort -u || true)"
   if [ -z "$variantes" ]; then
-    variantes="$(ls -1 ciclos/ciclo-"$numero"-*.conf 2>/dev/null \
+    variantes="$(ls -1 "$base"/ciclo-"$numero"-*.conf 2>/dev/null \
       | sed "s|.*/ciclo-$numero-||; s|\.conf$||" || true)"
     if [ -z "$variantes" ]; then
-      echo "pre-commit: $c sem variantes por escola — nada a gerar (Pré-requisito 5)." >&2
+      echo "pre-commit: $prof/ciclo-$numero sem variantes por escola — nada a gerar (Pré-requisito 5)." >&2
       continue
     fi
   fi
 
   for v in $variantes; do
-    echo "pre-commit: gerando e validando ciclo-$numero-$v ..."
-    if ! tools/gerar-ciclo.sh "$numero" "$v" > /tmp/pre-commit-ciclo-"$numero-$v".log 2>&1; then
-      echo "pre-commit: FALHOU ao gerar ciclo-$numero-$v — nada foi commitado." >&2
-      grep -E 'erro|ERRO|FALHOU|! LaTeX Error' /tmp/pre-commit-ciclo-"$numero-$v".log | head -8 >&2
+    echo "pre-commit: gerando e validando $prof/ciclo-$numero-$v ..."
+    if ! tools/gerar-ciclo.sh "$prof" "$numero" "$v" > /tmp/pre-commit-ciclo-"$prof-$numero-$v".log 2>&1; then
+      echo "pre-commit: FALHOU ao gerar $prof/ciclo-$numero-$v — nada foi commitado." >&2
+      grep -E 'erro|ERRO|FALHOU|! LaTeX Error' /tmp/pre-commit-ciclo-"$prof-$numero-$v".log | head -8 >&2
       exit 1
     fi
-    echo "pre-commit: ciclo-$numero-$v OK ($(grep -c '  ok ' /tmp/pre-commit-ciclo-"$numero-$v".log) verificações passaram)"
+    echo "pre-commit: $prof/ciclo-$numero-$v OK ($(grep -c '  ok ' /tmp/pre-commit-ciclo-"$prof-$numero-$v".log) verificações passaram)"
   done
 done
 

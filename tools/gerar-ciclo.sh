@@ -2,24 +2,36 @@
 # ============================================================================
 # gerar-ciclo.sh — gera a ENTREGA de um Ciclo de Aprendizagem (Regra 16):
 #
-#   ciclos/ciclo-XX/            pacote HTML interligado
+#   professores/<nome>/ciclos/ciclo-XX/   pacote HTML interligado
 #     index.html, plano.html, aula-YY.html, notacao.html,
 #     pre-requisitos.html, musicalidade.html, apanhado-historico.html,
-#     referencias.html, assets/style.css, assets/rizoma-*.svg,
+#     referencias.html, guia-do-professor.html, assets/style.css,
+#     assets/rizoma-*.svg,
 #     ciclo-XX.pdf              PDF único consolidado (índice + bookmarks)
 #     README.md                 como navegar e usar o material
 #
-#   uso:  tools/gerar-ciclo.sh [XX] [escola]     (padrão: 01)
-#         tools/gerar-ciclo.sh 01 duo            → pacote do Duo
+#   uso:  tools/gerar-ciclo.sh [<professor>] [XX] [escola]   (padrão: tiago 01)
+#         tools/gerar-ciclo.sh 01 duo            → pacote do Duo (assume tiago)
+#         tools/gerar-ciclo.sh tiago 01 duo      → idem, explícito
 #         tools/gerar-ciclo.sh 01 ritmos         → pacote de Ritmos e Movimento
 #         tools/gerar-ciclo.sh 01 debora         → pacote de Débora (Marau)
 #         PDF_ENGINE=lualatex tools/gerar-ciclo.sh 01 duo   (troca o engine)
 #
 # Fontes (Markdown, editáveis no VS Code):
-#   ciclos/ciclo-XX.conf          manifesto BASE (conteúdo compartilhado)
-#   ciclos/ciclo-XX-<escola>.conf contexto institucional e frequência (Pré-requisito 5)
-#   ciclos/ciclo-XX-index.md      índice geral
-#   ciclos/ciclo-XX-<doc>.md      um arquivo por documento
+#   professores/<p>/ciclos/ciclo-XX.conf          manifesto BASE (compartilhado)
+#   professores/<p>/ciclos/ciclo-XX-<escola>.conf contexto institucional (Pré-req. 5)
+#   professores/<p>/ciclos/ciclo-XX-index.md      índice geral
+#   professores/<p>/ciclos/ciclo-XX-<doc>.md      um arquivo por documento
+#   biblioteca/guia-do-professor.md               documento COMPARTILHADO (ver abaixo)
+#
+# Decisão — o guia do professor no pacote:
+#   O guia é compartilhado (vive na biblioteca), mas o pacote é uma pasta plana.
+#   Em vez de duplicar o arquivo em cada professor (sairia de sincronia na primeira
+#   edição), o gerador o trata por CAMINHO ESPECIAL: lê de
+#   biblioteca/guia-do-professor.md, normaliza e copia para dentro do pacote como
+#   `guia-do-professor.html`. A lista `DOCS` de cada ciclo declara
+#   `guia-do-professor` (como último item), o que define a ordem no menu, no índice
+#   e no PDF. Assim o guia é escrito uma vez e aparece em todos os pacotes.
 #
 # Regras que o script garante:
 #   · Pré-requisito 5: sem escola, frequência, dias e duração por dia, não gera;
@@ -37,9 +49,14 @@
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROFESSOR="tiago"
+if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
+  PROFESSOR="$1"
+  shift
+fi
 CICLO="${1:-01}"
 ESCOLA_SLUG="${2:-}"
-CICLOS="$RAIZ/ciclos"
+CICLOS="$RAIZ/professores/$PROFESSOR/ciclos"
 CONF_BASE="$CICLOS/ciclo-$CICLO.conf"
 CONF_VARIANTE="$CICLOS/ciclo-$CICLO${ESCOLA_SLUG:+-$ESCOLA_SLUG}.conf"
 TPL="$RAIZ/tools/templates"
@@ -160,9 +177,25 @@ mkdir -p "$PACOTE/assets"
 # 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML e PDF,
 #    para que os dois formatos tenham exatamente as mesmas âncoras (ASCII).
 # ---------------------------------------------------------------------------
+# ---------------------------------------------------------------------------
+# Caminho da fonte de um documento.
+#
+# Documentos do ciclo vivem em $CICLOS. A exceção é `guia-do-professor`: ele é
+# COMPARTILHADO por todos os professores e vive na biblioteca, então é copiado para
+# dentro do pacote (como os mapas do rizoma) em vez de ficar em ciclos/. A decisão
+# de tratar por caminho especial, em vez de duplicar o arquivo em cada professor,
+# está registrada no cabeçalho deste script.
+# ---------------------------------------------------------------------------
+fonte_md() {
+  case "$1" in
+    guia-do-professor) printf '%s' "$RAIZ/biblioteca/guia-do-professor.md" ;;
+    *) printf '%s' "$CICLOS/ciclo-$CICLO-$1.md" ;;
+  esac
+}
+
 mkdir -p "$TMP/src"
 for doc in index $DOCS; do
-  src="$CICLOS/ciclo-$CICLO-$doc.md"
+  src="$(fonte_md "$doc")"
   [ -f "$src" ] || continue
   destino="$TMP/src/ciclo-$CICLO-$doc.md"
   python3 "$RAIZ/tools/normalizar-ids.py" "$src" "$destino"
@@ -188,12 +221,14 @@ declare -A ANCORA=(
   [musicalidade]="musicalidade"
   [apanhado-historico]="apanhado-historico"
   [referencias]="referencias-bibliograficas"
+  [guia-do-professor]="guia-do-professor"
 )
 ancora() { printf '%s' "${ANCORA[$1]:-ciclo-$CICLO-$1}"; }
 
 # Rótulo do menu: o título declarado no YAML do próprio documento
 rotulo() {
-  local src="$CICLOS/ciclo-$CICLO-$1.md"
+  local src
+  src="$(fonte_md "$1")"
   if [ -f "$src" ]; then
     sed -n 's/^title:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$src" | head -1
   fi
@@ -254,7 +289,7 @@ gerados=0
 for doc in $TODOS; do
   src="$TMP/src/ciclo-$CICLO-$doc.md"
   if [ ! -f "$src" ]; then
-    echo "aviso: fonte ausente, pulando: ciclos/ciclo-$CICLO-$doc.md" >&2
+    echo "aviso: fonte ausente, pulando: $doc ($(fonte_md "$doc"))" >&2
     continue
   fi
   gerar_nav "$doc" "$TMP/nav.html"
@@ -300,6 +335,7 @@ ancoras = {
     'index': 'indice-geral', 'plano': 'plano-do-ciclo', 'notacao': 'notacao-em-benesh',
     'pre-requisitos': 'condicoes-pre-existentes', 'musicalidade': 'musicalidade',
     'apanhado-historico': 'apanhado-historico', 'referencias': 'referencias-bibliograficas',
+    'guia-do-professor': 'guia-do-professor',
 }
 def ancora(d):
     return ancoras.get(d, 'ciclo-%s-%s' % (ciclo, d))
@@ -412,7 +448,9 @@ if [ ! -f "$PACOTE/README.md" ]; then
 > **Professor:** $PROFESSOR
 
 Gerado por \`tools/gerar-ciclo.sh $CICLO ${VARIANTE:-}\`. **Não edite os HTML** —
-edite os Markdown em \`ciclos/\` e rode o gerador de novo.
+edite os Markdown em \`professores/$PROFESSOR/ciclos/\` e rode o gerador de novo. Se você
+editar o guia do professor, ele está em \`biblioteca/guia-do-professor.md\` — é
+compartilhado por todos os professores do projeto.
 
 ## Navegação
 
@@ -436,11 +474,11 @@ duração por dia desta escola.
 
 1. Abra \`index.html\` no navegador e navegue até a aula do dia.
 2. Para projetar ou imprimir sem depender do navegador, use \`$ID.pdf\`.
-3. Para editar: altere os Markdown em \`ciclos/\` e rode
+3. Para editar: altere os Markdown em \`professores/$PROFESSOR/ciclos/\` e rode
 
    \`\`\`bash
-   tools/gerar-ciclo.sh $CICLO ${VARIANTE:-}
-   node tools/check-pacote.js ciclos/$ID
+   tools/gerar-ciclo.sh $PROFESSOR $CICLO ${VARIANTE:-}
+   node tools/check-pacote.js professores/$PROFESSOR/ciclos/$ID
    \`\`\`
 RD
   echo "readme: README.md"

@@ -120,8 +120,11 @@ ok.push(`links internos verificados: ${linksChecados}`);
 // símbolo virou verbete. O registro e o glossário são compartilhados pelas escolas
 // (manifesto base), então a checagem vale para o ciclo, não por variante.
 const checkGlossario = path.join(__dirname, 'check-glossario.js');
-const registroMd = path.join('ciclos', `ciclo-${ciclo}-notacao.md`);
-const glossarioMd = path.join('ciclos', `ciclo-${ciclo}-glossario-benesh.md`);
+// As fontes ficam ao lado do pacote (em <...>/ciclos/), qualquer que seja o
+// professor: derivar do caminho do pacote evita repetir a estrutura de pastas aqui.
+const dirFontes = path.dirname(pacote);
+const registroMd = path.join(dirFontes, `ciclo-${ciclo}-notacao.md`);
+const glossarioMd = path.join(dirFontes, `ciclo-${ciclo}-glossario-benesh.md`);
 if (fs.existsSync(registroMd) && fs.existsSync(glossarioMd)) {
   let saida = '';
   try {

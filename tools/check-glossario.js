@@ -6,7 +6,8 @@
  * e o glossário que o explica (Regra 16, aplicada à documentação de apoio).
  *
  *   uso: node tools/check-glossario.js [registro.md] [glossario.md]
- *        (padrão: ciclos/ciclo-01-notacao.md ciclos/ciclo-01-glossario-benesh.md)
+ *        (padrão: professores/tiago/ciclos/ciclo-01-notacao.md e
+ *         professores/tiago/ciclos/ciclo-01-glossario-benesh.md)
  *
  * Por que existe: o registro da Aula 01 usou no corpo símbolos e categorias que
  * não estavam no glossário (e o glossário declarava símbolos que o corpo não
@@ -36,7 +37,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const PADRAO = ['ciclos/ciclo-01-notacao.md', 'ciclos/ciclo-01-glossario-benesh.md'];
+const PADRAO = ['professores/tiago/ciclos/ciclo-01-notacao.md',
+                'professores/tiago/ciclos/ciclo-01-glossario-benesh.md'];
 const rel = (p) => path.relative(process.cwd(), p) || p;
 
 const registroPath = path.resolve(process.argv[2] || PADRAO[0]);
