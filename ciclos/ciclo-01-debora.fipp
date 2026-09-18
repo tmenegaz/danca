@@ -7,9 +7,9 @@ id: ciclo-01-debora
 type: Ciclo
 ciclo: 01
 variante: debora
-hash_conteudo: c35abceb546f47574e1fc0f44feb4a30c7565ba9bd5ef3b134ba98fba0c5d7ef
+hash_conteudo: e534b1faaf7169ec34250b1dd8cb65867651f20ce701373d6f6ae1566ae56520
 parentHash: 
-hash: 25dab71b834c7dfc18695f332e73decf932e4f596414b3b66a5ff3bcd7b247be
+hash: 0f39b4be42eb4f3be50505c59fb045479c16b5059bd7834ef5190c5ee934f98e
 algoritmo: SHA-256
 po: ciclos/ciclo-01-debora-po.md
 po_state: Input_PO_Aguardando

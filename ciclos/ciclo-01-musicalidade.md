@@ -170,6 +170,13 @@ que o peso já foi. Ver [Contagens do ciclo](#contagens-do-ciclo) e o
 [parâmetro de medição da Aula 01](aula-01.html#validacao-dos-objetivos-metricas-e-duracao),
 que cobra do pé exatamente isso.
 
+**Onde a transferência entra.** Calcanhar no 1 e transferência de peso **não são a
+mesma coisa**: o calcanhar sai no tempo 1 (é o fim do tendu — o impulso), e o corpo
+vai "por cima" **no tempo 2**. A rubrica abaixo cobra o calcanhar no tempo 1; o que
+ela não cobra ali é a transferência. O mapa completo das quatro fases está na
+[Contagens do ciclo](#contagens-do-ciclo), e o critério que decide cada tempo está no
+[conceito 5](#relacao-movimento-musica).
+
 **Como não confundir com o pulso:** se a aluna marca todos os tempos com a mesma
 força, ela tem pulso e não tem acento. Se ela marca o 1 e "desmonta" os outros
 três, ela perdeu o pulso para marcar o acento — os dois continuam juntos: a grade
@@ -401,18 +408,23 @@ tendu t.1 · transferência t.2 · plié t.3 · fecho t.4 — conforme a
 bloco, e é assim de propósito: a musicalidade do ciclo se treina na **repetição da
 mesma relação**, não na variedade de mapas.
 
-> **[conferir: divergência a resolver]** O quadro "Movimento (com música)" — que
-> existe no bloco de musicalidade da Aula 01 e existia na versão antiga deste
-> documento — descreve a frase como "transferência de peso no tempo 1, plié no tempo
-> 3, fechamento no tempo 4", **sem mencionar o tendu** e pondo a transferência no 1.
-> Isso contradiz (a) os dois exercícios de transferência da própria Aula 01, que
-> declaram "tendu no tempo 1, transferência no 2, plié no 3, fechamento no 4";
-> (b) a tabela [Contagens do ciclo](#contagens-do-ciclo) deste documento; e (c) a
-> observação final da rubrica de acento, que exige o **calcanhar no tempo 1** — se a
-> transferência ocupasse o 1, o calcanhar sairia no 2. Enquanto a pesquisadora não
-> decidir, este documento usa o mapa dos exercícios (tendu t.1 · transferência t.2 ·
-> plié t.3 · fecho t.4) como referência, e o quadro divergente fica marcado, não
-> apagado: **a Aula 01 não deve ser alterada por esta tarefa.**
+> **Divergência resolvida — decisão da pesquisadora.** O quadro "Movimento (com
+> música)" (que existe no bloco de musicalidade da Aula 01 e existia na versão antiga
+> deste documento) punha a **transferência de peso no 1**, omitia o tendu e só
+> acertava o plié (t.3) e o fecho (t.4). A pesquisadora confirmou que a
+> **transferência é no tempo 2**: o quadro está errado, e o mapa de referência é o dos
+> exercícios — tendu t.1 · transferência t.2 · plié t.3 · fecho t.4, como na
+> [Contagens do ciclo](#contagens-do-ciclo).
+>
+> **Não são a mesma coisa:** o **calcanhar sai no tempo 1** (é o fim do tendu, o
+> impulso) e a **transferência de peso** — o corpo indo "por cima" — **acontece no
+> tempo 2**. A rubrica de [acento](#acento) continua correta ao exigir o calcanhar no
+> tempo 1; o que ela não exige é a transferência ali.
+>
+> **Resíduo conhecido (fora do escopo desta correção):** a linha errada continua no
+> quadro da Aula 01, na seção "Bloco de musicalidade". Enquanto a Aula 01 não for
+> corrigida, o pacote entregue segue mostrando o quadro errado ao lado do mapa certo
+> deste documento.
 
 > **Proveniência:** RAD (2025); RBO (2024) — a leitura pedagógica de que a relação
 > entre movimento e música é **decidida** (e não "sentida") é posição declarada
@@ -508,7 +520,7 @@ Regra 8 — cada afirmação tem origem declarada:
 | **Teoria musical elementar** | a definição de 4/4, a hierarquia dos tempos (forte · fraco · meio-forte · fraco) e a função de preparação — declaradas como tais onde aparecem, não atribuídas às fontes |
 | **Posição declarada deste ciclo** | a contagem como andaime (dita antes de sentida); o mapa movimento-música como **decisão**; as quatro fases em dois pares — o ciclo assume essas escolhas, as fontes não as prescrevem |
 | **`[Preencher]`** | o que é prática pessoal da pesquisadora: como ensinar pulso, acento, compasso, contagem e mapa — **dois marcadores por conceito** (um na proveniência, um no "como ensinar"), mais um na abertura. **Nenhum foi preenchido por inferência** |
-| **`[conferir]`** | a divergência de mapa na Aula 01 (ver [conceito 5](#relacao-movimento-musica)), que depende de decisão da pesquisadora |
+| **Decisão da pesquisadora** | a **transferência de peso é no tempo 2** — o quadro "Movimento (com música)" da Aula 01 está errado e segue pendente de correção lá, fora do escopo desta rodada (ver [conceito 5](#relacao-movimento-musica)) |
 
 > **O que este documento não faz.** Ele não substitui a escuta do professor nem
 > padroniza a música da aula: dá a estrutura para que a musicalidade seja ensinada

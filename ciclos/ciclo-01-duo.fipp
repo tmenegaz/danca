@@ -7,9 +7,9 @@ id: ciclo-01-duo
 type: Ciclo
 ciclo: 01
 variante: duo
-hash_conteudo: f2d35176263d01534eb786ea7037e95e6ec040d9d5ca8f9bdc93e32132145ca7
+hash_conteudo: faad825e3a90723ce0dd36fd31697b58d9c8c1f8a5300e764cb3a7c8a3d2459e
 parentHash: 
-hash: e8809f871e01782c50e3e4aadfb27fc7dd211675abd966f46dc89cfaf202236f
+hash: d1392823899942c01731142bd6fffaef46ed6c88cd8caee78a3fb0361be5ec63
 algoritmo: SHA-256
 po: ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado
