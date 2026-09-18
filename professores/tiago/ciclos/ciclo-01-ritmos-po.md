@@ -82,13 +82,13 @@ O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professo
 
 - **Carol** — traz bastante musicalidade. Precisa desenvolver subida e descida de
   pontas, estabilidade no *en dehors*, força para flexão e extensão dos joelhos,
-  coordenação motora, braços curtos, primeira posição muito alta e com o mesmo
-  ângulo do cotovelo da segunda, além de atenção (conversa demais e chega
+  coordenação motora, braços curtos, primeira posição a ajustar (alta) e com o
+  mesmo ângulo do cotovelo da segunda, além de atenção (conversa demais e chega
   atrasada).
 - **Dada** — traz mais força, demi-plié e grand plié com boa extensão, boa
   flexibilidade de costas para arabesque, linhas bonitas quando mantém rotadores
   externos e disciplina. Precisa desenvolver manutenção do *en dehors*,
-  expressividade (muito calada), segurança na musicalidade, coordenação de braços
+  expressividade a desenvolver, segurança na musicalidade, coordenação de braços
   e pernas, segurança em movimentos grandes, e força/coordenação para pontas de
   forma harmônica.
 - **Tony** — traz resiliência, vontade, inteligência, absorção rápida de
@@ -97,8 +97,9 @@ O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professo
   posterior e costas, postura e estruturação de braços.
 - **Pássaro Azul** — traz experiência prévia, disciplina, vontade e boa absorção
   inicial de informações. Precisa desenvolver postura do tronco, extensão dos
-  pés, fixação de correções ao longo do tempo, tônus muscular (porte frágil) e
-  sincronização de pas de deux com três meninas diferentes.
+  pés, fixação de correções ao longo do tempo, sustentação de tônus muscular a
+  construir (porte a fortalecer) e sincronização de pas de deux com três meninas
+  diferentes.
 
 ## Critérios de inclusão
 

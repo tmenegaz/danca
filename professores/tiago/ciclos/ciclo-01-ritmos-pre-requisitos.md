@@ -30,21 +30,33 @@ Palavras dele, na entrega:
 | Posições de braços (1ª a 5ª) | braços nas cinco posições, uma por vez, sem o ombro subir | o ciclo exige coordenação de braços (1ª, 2ª, 3ª) sobre o movimento do pé |
 | Distribuição de peso | transferir o peso de um pé para o outro, parado, sem deslocar o tronco | é a base da transferência "por cima" que a Aula 01 trabalha |
 | Coordenação motora | mudar de direção de tendu (frente → lado → trás) mantendo o apoio | define o ritmo com que a série de três direções entra |
-| Posterior e adutores (alongamento) | o pé alcança o chão à frente com a perna estendida, sem enrolar a pelve | o professor relatou "meninos travados (sem alongamento de posterior e adutores)" |
-| Rotadores externos | joelho aponta para o segundo dedo do pé em 1ª | o professor relatou "rotadores externos fracos" |
+| Posterior e adutores (alongamento) | o pé alcança o chão à frente com a perna estendida, sem enrolar a pelve | ele relatou flexibilidade a trabalhar mais (alongamento de posterior e adutor a desenvolver) |
+| Rotadores externos | joelho aponta para o segundo dedo do pé em 1ª | ele relatou rotadores externos a fortalecer |
 | Tônus e apoio unipodal | permanecer em um pé (piqué) sem titubear a perna de base | é exatamente o parâmetro da Aula 01 no piqué arabesque |
 
-## O que ele relatou sobre o ponto de partida da turma
+## O ponto de partida da turma (linguagem harmonizada — P-21)
 
-> "execução ruim, falta de força e resistência, coordenação motora baixa,
-> musicalidade precária, sem virtuose, habilidades físicas diversas, meninos
-> travados (sem alongamento de posterior e adutores), rotadores externos fracos,
-> baixa sustentação de tônus muscular, cotovelos caídos, primeira posição alta
-> demais, quintas posições pequenas e coordenação de braços antes das pernas
-> praticamente inexistente."
+Descrição do que se observa, sem juízo. Os termos originais do professor estão no
+material bruto do ciclo (em `campo/`, no diretório do evento de 18/09 — intocado) e
+na [tabela de harmonização](harmonizacao.html):
 
-Há um iniciante absoluto no grupo: **Tony** (17 anos), "completamente iniciante"
-(palavras dele). O ciclo parte de comandos básicos justamente por isso.
+- execução insuficiente;
+- força e resistência ainda insuficientes;
+- coordenação motora a aprimorar;
+- musicalidade em construção;
+- movimentos mais elaborados poderão ser explorados após solidificação das bases;
+- flexibilidade dos meninos deve ser mais trabalhada (alongamento de posterior e
+  adutor a desenvolver);
+- rotadores externos a fortalecer;
+- sustentação de tônus muscular a construir;
+- cotovelos a alinhar;
+- primeira posição a ajustar (alta);
+- quinta posição a ampliar;
+- coordenação de braços e pernas a construir;
+- habilidades físicas diversas.
+
+Há um iniciante absoluto no grupo: **Tony** (17 anos), completamente iniciante. O
+ciclo parte de comandos básicos justamente por isso.
 
 ## Bateria de verificação da primeira aula
 
