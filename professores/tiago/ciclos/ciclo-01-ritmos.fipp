@@ -5,28 +5,20 @@
 
 id: ciclo-01-ritmos
 type: Ciclo
-professor: tiago
+professor: Tiago Menegaz
 ciclo: 01
 variante: ritmos
-hash_conteudo: cd41ae75a8b0bb6e1c1acdee763c142ff9e0d7519193c5825e4eb5e5165c4b32
+hash_conteudo: 8bdede817b0e61a460702e4af4ae42113171a2a4af279de29e34ad71e3726242
 parentHash: 
-hash: cb7822207ac0b428c2d08b7261ff4166ae655bef0799577d7ff74e112eb7e5d9
+hash: 12a9ab9201f62a9d6115c0cc78e7050aa18a8f4cf965f6ffe0dec7eca8d50741
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Aguardando
 cobertura:
-  - professores/tiago/ciclos/ciclo-01-apanhado-historico.md
-  - professores/tiago/ciclos/ciclo-01-aula-01.md
-  - professores/tiago/ciclos/ciclo-01-captura-aula-01.md
-  - professores/tiago/ciclos/ciclo-01-glossario-benesh.md
-  - professores/tiago/ciclos/ciclo-01-index.md
-  - professores/tiago/ciclos/ciclo-01-musicalidade-aluna.md
-  - professores/tiago/ciclos/ciclo-01-musicalidade.md
-  - professores/tiago/ciclos/ciclo-01-notacao.md
-  - professores/tiago/ciclos/ciclo-01-plano.md
-  - professores/tiago/ciclos/ciclo-01-pre-requisitos.md
-  - professores/tiago/ciclos/ciclo-01-referencias.md
-  - professores/tiago/ciclos/ciclo-01-relatorio-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-ritmos-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-ritmos-index.md
+  - professores/tiago/ciclos/ciclo-01-ritmos-plano.md
   - professores/tiago/ciclos/ciclo-01-ritmos-po.md
+  - professores/tiago/ciclos/ciclo-01-ritmos-referencias.md
   - professores/tiago/ciclos/ciclo-01-ritmos.conf
   - professores/tiago/ciclos/ciclo-01.conf

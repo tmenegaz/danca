@@ -1,13 +1,15 @@
-# Ciclo 01 — Fundamentos do Balé Clássico — pacote de entrega (Ritmos e Movimento)
+# Ciclo 01 — Ritmos e Movimento — pacote de entrega (Ritmos e Movimento)
 
-> **Objetivo geral:** Construir a estabilidade nas cinco posições dos pés e a coordenação braço-perna (1ª, 2ª e intermediários), com transferência de peso por cima, musicalidade e resistência progressiva.
+> **Objetivo geral:** Passar comandos básicos para os meninos e as meninas nas aulas de pas de deux, exigindo como pré-requisitos o domínio das posições básicas do balé (primeira, segunda, quarta e quinta), posições de braços (primeira, segunda, terceira, quarta e quinta), além de boa coordenação motora e distribuição de peso.
 > **Escola/Espaço:** Ritmos e Movimento — Gabi
 > **Frequência:** 2x/semana · **Duração por dia:** 60 min (terça) e 120 min (sábado)
-> **Período:** 19/09/2026 a 27/10/2026 (6 semanas) · **Volume semanal:** 270 tempos
-> **Professor:** [Nome do professor]
+> **Período:** 19/09/2026 a 24/11/2026 (10 semanas) · **Volume semanal:** 270 tempos
+> **Professor:** Tiago Menegaz
 
 Gerado por `tools/gerar-ciclo.sh 01 ritmos`. **Não edite os HTML** —
-edite os Markdown em `ciclos/` e rode o gerador de novo.
+edite os Markdown em `professores/tiago/ciclos/` e rode o gerador de novo. Se você
+editar o guia do professor, ele está em `biblioteca/guia-do-professor.md` — é
+compartilhado por todos os professores do projeto.
 
 ## Navegação
 
@@ -23,17 +25,17 @@ botão "voltar ao topo" e rodapé com o link de volta ao índice.
 ## Calendário desta variante
 
 Veja o [Calendário do Ciclo](plano.html#calendario-do-ciclo) no plano: datas reais
-de cada aula, avaliação formativa (aula 06, 06/10/2026) e somativa
-(aula 12, 27/10/2026), calculadas a partir da frequência e da
+de cada aula, avaliação formativa (aula 10, 20/10/2026) e somativa
+(aula 20, 24/11/2026), calculadas a partir da frequência e da
 duração por dia desta escola.
 
 ## Como usar em aula
 
 1. Abra `index.html` no navegador e navegue até a aula do dia.
 2. Para projetar ou imprimir sem depender do navegador, use `ciclo-01-ritmos.pdf`.
-3. Para editar: altere os Markdown em `ciclos/` e rode
+3. Para editar: altere os Markdown em `professores/tiago/ciclos/` e rode
 
    ```bash
-   tools/gerar-ciclo.sh 01 ritmos
-   node tools/check-pacote.js ciclos/ciclo-01-ritmos
+   tools/gerar-ciclo.sh tiago 01 ritmos
+   node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-ritmos
    ```
