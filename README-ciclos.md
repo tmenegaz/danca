@@ -4,11 +4,12 @@ Este documento descreve como o material de um ciclo é **gerado e entregue** nes
 repositório: os arquivos-fonte, os dois formatos obrigatórios (PDF único e pacote
 HTML), as regras de navegação e como validar tudo antes de entregar ao professor.
 
-> **Estado atual:** `professores/tiago/ciclos/ciclo-01/` está **gerado e validado** com o conteúdo real
-> do ciclo: Plano (12 marcos + rubrica + calibração de volume) e Aula 01 completa
-> (conduzida em **60 min**, com 90 tempos ativos distribuídos em solo/barra/centro),
-> mais os cinco documentos de apoio. O que ainda depende do professor vem marcado como
-> `[Preencher]` (nome do professor) ou `[conferir]` (edição/ano de material didático).
+> **Estado atual.** Cada escola tem o seu ciclo, gerado e validado: o **Duo**
+> (Fundamentos do Balé Clássico, 12 aulas de 60 min, com Aula 01 de 90 tempos em
+> solo/barra/centro) e a **Ritmos e Movimento** (pas de deux, 20 encontros de 60 e
+> 120 min, com Aula 01 de 90 tempos e 180 no dia longo). O que ainda depende do
+> professor vem marcado `[Preencher]`; o que depende de conferência de edição/ano
+> vem marcado `[conferir]`.
 
 ## O que a entrega contém
 
@@ -81,22 +82,27 @@ O script, em ordem:
 
 ## Uma entrega por escola (Pré-requisito 5 / Regra 18)
 
-O Ciclo 01 é o mesmo conteúdo em **três variantes** — mesmo objetivo, mesmos marcos,
-volumes e calendários diferentes:
+**Cada escola tem o seu próprio ciclo** — objetivo, marcos, aulas e volumes
+distintos. Duas escolas com o mesmo número de ciclo não são a mesma coisa:
 
-| Variante | Escola | Frequência | Duração por dia | Calendário | Volume semanal |
-|:--|:--|:--|:--|:--|--:|
-| `duo` | Duo (Fernando) | 1x/semana (sextas) | 60 min | 18/09 → 04/12/2026 (12 semanas) | 90 tempos |
-| `ritmos` | Ritmos e Movimento (Gabi) | 2x/semana (terças e sábados) | 60 min + 120 min | 19/09 → 27/10/2026 (6 semanas) | 90 + 180 = 270 tempos |
-| `debora` | Débora (Marau) | 2x/semana (segundas e quartas) | 120 min + 120 min | 21/09 → 28/10/2026 (6 semanas) | 180 + 180 = 360 tempos |
+| Ciclo | Escola | Frequência e duração | Calendário | Volume semanal |
+|:--|:--|:--|:--|--:|
+| `ciclo-01-duo` | Duo (Fernando) | 1x/semana (sextas), 60 min | 18/09 → 04/12/2026 (12 semanas) | 90 tempos |
+| `ciclo-01-ritmos` | Ritmos e Movimento (Gabi) | 2x/semana (terças e sábados), 60 min + 120 min | 19/09 → 24/11/2026 (10 semanas) | 90 + 180 = 270 tempos |
 
-> **17/09/2026 é uma quinta-feira** — não é dia de aula em nenhuma das três escolas.
-> O cálculo **não arredonda para a data informada**: ele avisa e usa o próximo dia de
-> aula real (sexta 18/09, sábado 19/09, segunda 21/09). As avaliações (formativa na
-> aula 06 e somativa na última) saem dessas datas, não de um "quase certo".
+> **17/09/2026 é uma quinta-feira** — não é dia de aula em nenhuma das escolas. O
+> cálculo **não arredonda para a data informada**: ele avisa e usa o próximo dia de
+> aula real. As avaliações (formativa e somativa) saem dessas datas.
 
-Saídas: `professores/tiago/ciclos/ciclo-01-duo/`, `professores/tiago/ciclos/ciclo-01-ritmos/`, `professores/tiago/ciclos/ciclo-01-debora/`
-(cada uma com 8 páginas HTML, `assets/`, `README.md` e PDF de 24 páginas).
+**O ciclo da Débora (Marau) ainda não existe.** Houve cópias do ciclo da Duo nos
+nomes das outras escolas; elas foram removidas em 18/09/2026 (ver `REGISTRO.md`).
+O conteúdo de uma escola nunca é o de outra: o que a variante declara em
+`ciclo-XX-<escola>.conf` e nos arquivos `ciclo-XX-<escola>-*.md` tem precedência
+sobre os arquivos sem sufixo (`tools/lib-fontes.sh`).
+
+Saídas: `professores/tiago/ciclos/ciclo-01-duo/` (13 páginas HTML) e
+`professores/tiago/ciclos/ciclo-01-ritmos/` (4 páginas HTML), cada uma com
+`assets/`, `README.md` e o PDF do ciclo.
 
 
 ## Ambiente: por que o engine é `pdflatex` (e não `xelatex`)
@@ -231,8 +237,9 @@ página (`projeto`, `frente`, `ciclo`, `aula`, `data`, `objetivo-especifico`,
 
 ## Estrutura do repositório e versionamento (Regra 17)
 
-O projeto é um repositório único com as duas frentes, e as **saídas geradas não são
-versionadas** (são reconstruíveis das fontes por `tools/`):
+O projeto é um repositório único com as duas frentes. Os **pacotes de ciclo são
+versionados** (o deploy automático lê o repositório); as demais saídas geradas
+ficam fora do Git, porque são reconstruíveis das fontes por `tools/` (P-04):
 
 ```
 apresentacoes/apresentacao-01-rizoma/   frente Apresentação (deck + mapas)

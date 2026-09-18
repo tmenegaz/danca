@@ -12,8 +12,7 @@ cadernos/
 ├── README.md                       este guia
 └── ciclo-01/
     ├── caderno-01-duo.md           Duo (Fernando) — sextas, 60 min
-    ├── caderno-01-ritmos.md        Ritmos e Movimento (Gabi) — ter 60 + sáb 120
-    └── caderno-01-debora.md        Débora (Marau) — seg e qua, 120 min
+    └── caderno-01-ritmos.md        Ritmos e Movimento (Gabi) — ter 60 + sáb 120
 ```
 
 **Um caderno por ciclo, por escola** (P-09): as turmas não se misturam — nem nos

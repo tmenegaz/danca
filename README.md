@@ -29,7 +29,8 @@ aconteceu em aula, não classifica pessoas (P-06).
 │   └── tiago/
 │       ├── ciclos/
 │       │   ├── ciclo-01.conf             manifesto base (objetivo, aulas, faixas)
-│       │   ├── ciclo-01-<escola>.conf    contexto institucional: duo · ritmos · debora
+│       │   ├── ciclo-01-<escola>.conf    contexto institucional + conteúdo da escola
+│       │   │                             (cada escola tem o seu ciclo: duo · ritmos)
 │       │   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
 │       │   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (versionado — o
 │       │                                 deploy automático publica daqui)
@@ -46,7 +47,7 @@ aconteceu em aula, não classifica pessoas (P-06).
 
 | Quero… | Comando |
 |:--|:--|
-| Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh 01 duo` (ou `ritmos`, `debora`) |
+| Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh tiago 01 duo` (ou `01 ritmos`) |
 | Validar um pacote de ciclo | `node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo` |
 | Fazer deploy de um ciclo no Netlify | `tools/deploy-netlify.sh tiago 01 duo` |
 | Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |

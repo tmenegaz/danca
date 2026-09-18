@@ -53,4 +53,10 @@ Depois:
 
 | Professor | Ciclos | POs | Estado |
 |:--|:--|:--|:--|
-| **tiago** | Ciclo 01 — três variantes: `duo`, `ritmos`, `debora` | `ciclo-01-duo-po.md` validado; `ritmos` e `debora` aguardando aula | em execução |
+| **tiago** | Ciclo 01 — **uma por escola**: `duo` (Duo, Fernando) e `ritmos` (Ritmos e Movimento, Gabi) | `ciclo-01-duo-po.md` validado; `ciclo-01-ritmos-po.md` com os campos do professor, checklist aguardando a primeira aula | em execução |
+
+> **Cada escola tem o seu ciclo.** O conteúdo (objetivo, plano, aulas) é da escola,
+> não do número do ciclo: `ciclo-01-duo-*` e `ciclo-01-ritmos-*` são ciclos
+> distintos, com planos e aulas distintos. As fontes de uma variante têm
+> precedência sobre as sem sufixo — a regra está em `tools/lib-fontes.sh`. O ciclo
+> da **Débora (Marau)** ainda não existe: as cópias que havia foram removidas.

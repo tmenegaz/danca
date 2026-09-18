@@ -5,7 +5,7 @@
 #   uso: tools/deploy-netlify.sh <professor> <ciclo> <variante>
 #   ex.: tools/deploy-netlify.sh tiago 01 duo
 #
-# UMA CONTA POR ESCOLA. Cada escola (duo, ritmos, debora) tem a sua conta no
+# UMA CONTA POR ESCOLA. Cada escola (duo, ritmos) tem a sua conta no
 # Netlify, com o seu token e o seu site. Os dois valores ficam em
 # tools/.netlify-tokens (NÃO versionado — ver .gitignore), um par por escola:
 #
