@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T09:43:24-0300`
-Commit atual: `4fbe29f` — docs(protocolo): governanca do caderno com referencia por apelido
+Gerado em: `2026-09-18T10:13:20-0300`
+Commit atual: `157fc44` — feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,8 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+157fc44 feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
+adf5f6e chore(tools): regera HANDOFF
 4fbe29f docs(protocolo): governanca do caderno com referencia por apelido
 d602e53 feat(ciclo-01): declara os apelidos no PO do Duo (Ceci, Ana, Mel, Sofi)
 0868fbc feat(protocolo): acrescenta P-12 (apelidos estaveis dos sujeitos)
@@ -32,8 +34,6 @@ d6bddf8 chore(tools): regera o HANDOFF apos a gravacao de referencia
 d7dbc73 chore(tools): regera o HANDOFF apos a correcao
 028da5d fix(ciclo-01): corrige a transferencia de peso no tempo 2 (musicalidade)
 ee9176d chore(tools): regera o HANDOFF apos a musicalidade
-eaf9a18 feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
-05334bb chore(tools): regera o HANDOFF com o glossario Benesh do Ciclo 01
 ```
 
 ## POs — estado atual
@@ -41,7 +41,7 @@ eaf9a18 feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | Débora (Marau) | ciclo-01-debora-po.md | Input_PO_Aguardando | 21 |
-| Duo | ciclo-01-duo-po.md | Input_PO_Validado | 4 |
+| Duo | ciclo-01-duo-po.md | Input_PO_Validado | 0 |
 | Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 21 |
 
 ## Âncoras FIPP
@@ -49,7 +49,7 @@ eaf9a18 feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | debora | ciclo-01-debora.fipp | `75401eb1bff8` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `0b8fa861138f` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `6ec53b575128` | (vazio) | Input_PO_Validado |
 | ritmos | ciclo-01-ritmos.fipp | `52e785c295d5` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
