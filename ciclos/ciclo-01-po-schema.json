@@ -25,6 +25,10 @@
       "items": { "type": "string" },
       "description": "Quem será observado (RN-PO-05)."
     },
+    "linhaDeBase": {
+      "type": "string",
+      "description": "P-10 — linha de base dos sujeitos: o que trazem, o que falta, o que já dominam. Sem ela, 'evolução' não tem referencial."
+    },
     "inclusionCriteria": {
       "type": "array",
       "items": { "type": "string" },
@@ -69,6 +73,10 @@
       "items": { "type": "string" },
       "description": "Limitações e alcance da generalização (RN-PO-07)."
     },
+    "condicoesDeContorno": {
+      "type": "string",
+      "description": "P-11 — condições de contorno da execução: variáveis relacionais (interesse, ânimo, harmonia) que o plano não controla, declaradas como parte do que se observa."
+    },
     "validationChecklist": {
       "type": "object",
       "description": "Checklist de validação do próprio PO (RN-PO-07). Todos precisam estar marcados para o PO passar de Input_PO_Aguardando a Aprovado.",
@@ -95,9 +103,11 @@
     "field",
     "context",
     "subjects",
+    "linhaDeBase",
     "inclusionCriteria",
     "exclusionCriteria",
     "justification",
+    "condicoesDeContorno",
     "limitations",
     "validationChecklist"
   ],

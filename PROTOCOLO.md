@@ -5,7 +5,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 
 - o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
 - este documento diz **como a aula se torna objeto de investigação sem que a
-  investigação contamine a aula** (9 regras pétreas).
+  investigação contamine a aula** (11 regras pétreas).
 
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
@@ -16,7 +16,7 @@ em ato**, com cadeia de proveniência **FIPP**.
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
 
-## As 9 regras pétreas
+## As 11 regras pétreas
 
 **P-01 — O ciclo é PO latente.**
 A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
@@ -59,6 +59,16 @@ mestrado chama de "formulário dinâmico".
 **P-09 — Um caderno por ciclo, por escola.**
 Reforça o Pré-requisito 5 no domínio dos artefatos de observação. Não há mistura
 entre escolas — nem nos registros.
+
+**P-10 — O PO declara a linha de base dos sujeitos.**
+Antes de observar evolução, o PO declara o estado inicial dos sujeitos — o
+que trazem, o que falta, o que já dominam. Sem linha de base, "evolução" não
+tem referencial, e o ruído não pode ser distinguido de estado inicial.
+
+**P-11 — O PO declara as condições de contorno da execução.**
+O recorte é factível, mas a execução depende de variáveis relacionais
+(interesse, ânimo, harmonia) que o plano não controla. O PO declara essas
+condições — não como falha, mas como parte do que se observa.
 
 ## Nota metodológica
 
