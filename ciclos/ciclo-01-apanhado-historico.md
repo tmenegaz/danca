@@ -34,15 +34,21 @@ prática, e nunca no lugar dela.
 | **Estreia** | Carlotta Grisi (Giselle) e Lucien Petipa (Albrecht) |
 | **Contexto** | O Ato I é *grounded, bouncy* e cheio de vida — o oposto do Ato II, etéreo e trágico. Exige domínio do *petit allegro* e do **tendu preciso** |
 | **Música** | Adolphe Adam; **4/4 Allegretto (~98 BPM)**, com seções em 3/4 — os acentos marcam o tendu no tempo 1 e o plié no tempo 3 |
+| **Gravação de referência** | *Giselle, Peasant Pas de Deux (arr. March): Act I — Allegretto: Adagio*, Sofia National Opera Orchestra, regência de Boris Spassov (3:01) |
 | **Relação música-movimento** | O plié funcional aparece como mola para os saltos; o tendu é a base dos assembléos e sissonnes |
 | **Versão contemporânea** | *Giselle*, de Akram Khan (2016) — releitura que parte do mesmo material |
 | **Vídeo recomendado** | [Inserir link — conferir disponibilidade e direitos antes de projetar] |
 
 > **Compasso (anotado em aula):** o corpo principal do *Peasant Pas de Deux* está
 > em **4/4 (Allegretto, ~98 BPM)**, com seções em **3/4**. É esse tempo que permite
-> marcar o tendu no tempo 1 e o plié no tempo 3, como a aula faz. **A partitura de
-> Adolphe Adam é a fonte final** — conferir a gravação de referência antes de fixar
-> a contagem em aula.
+> marcar o tendu no tempo 1 e o plié no tempo 3, como a aula faz.
+>
+> **Duas camadas de referência, que não se substituem.** A **gravação de referência**
+> é o arranjo de *March* (Sofia National Opera Orchestra, regência de Boris Spassov,
+> 3:01) — é ela que a aula usa, e a contagem declarada acima vale para ela. **A
+> partitura de Adolphe Adam é a fonte final:** é ela que resolve divergência entre
+> gravações. Como outras gravações têm andamento e estrutura um pouco diferentes,
+> confira a duração (3:01) antes de fixar a contagem em aula.
 >
 > **Versão contemporânea:** *Giselle*, de Akram Khan (2016) — conferir ano e
 > companhia na fonte da produção antes de projetar.
