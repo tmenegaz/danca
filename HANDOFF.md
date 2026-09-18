@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T07:43:41-0300`
-Commit atual: `1d0a9fd` — fix(tools): integra validador de glossario ao check-pacote e ao pre-commit
+Gerado em: `2026-09-18T08:24:13-0300`
+Commit atual: `eaf9a18` — feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,6 +14,8 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+eaf9a18 feat(ciclo-01): reescreve a musicalidade e cria a folha da aluna
+05334bb chore(tools): regera o HANDOFF com o glossario Benesh do Ciclo 01
 1d0a9fd fix(tools): integra validador de glossario ao check-pacote e ao pre-commit
 971eb65 feat(tools): cria validador de consistencia do glossario
 1e18172 feat(ciclo-01): cria glossario Benesh exaustivo e corrige notacao
@@ -32,8 +34,6 @@ b29e8d0 feat(registro): cria REGISTRO.md com primeira entrada
 6779605 chore(ciclo-01): regera as ancoras FIPP com o PO do Duo incluido
 1ffc7b9 docs(protocolo): documenta como o PO se materializa no ciclo
 3b495b2 feat(tools): integra PO ao hash e ao pre-commit
-1b306db feat(schema): cria schema e validador do PO
-4605c2e feat(ciclo-01): declara o PO do Ciclo 01
 ```
 
 ## POs — estado atual
@@ -48,9 +48,9 @@ b29e8d0 feat(registro): cria REGISTRO.md com primeira entrada
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `1bd13d27cd1d` | (vazio) | Input_PO_Aguardando |
-| duo | ciclo-01-duo.fipp | `ffc242ff3212` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `2bd33f8fcedb` | (vazio) | Input_PO_Aguardando |
+| debora | ciclo-01-debora.fipp | `25dab71b834c` | (vazio) | Input_PO_Aguardando |
+| duo | ciclo-01-duo.fipp | `e8809f871e01` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `7ce238658129` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
