@@ -49,14 +49,17 @@
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFESSOR="tiago"
+# Slug do professor (a pasta em professores/). Não se chama PROFESSOR de propósito: os
+# manifestos declaram PROFESSOR com o nome de EXIBIÇÃO ("Tiago Menegaz" — vai para o rodapé
+# do pacote e para o author: do README), e a variável seria sobrescrita ao carregar o conf.
+PROFESSOR_SLUG="tiago"
 if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
-  PROFESSOR="$1"
+  PROFESSOR_SLUG="$1"
   shift
 fi
 CICLO="${1:-01}"
 ESCOLA_SLUG="${2:-}"
-CICLOS="$RAIZ/professores/$PROFESSOR/ciclos"
+CICLOS="$RAIZ/professores/$PROFESSOR_SLUG/ciclos"
 CONF_BASE="$CICLOS/ciclo-$CICLO.conf"
 CONF_VARIANTE="$CICLOS/ciclo-$CICLO${ESCOLA_SLUG:+-$ESCOLA_SLUG}.conf"
 TPL="$RAIZ/tools/templates"
@@ -429,6 +432,16 @@ sed -e "s|@NOME@|$(printf '%s' "$NOME" | sed -e 's/[&%#_]/\\&/g')|g" \
   cat "$TMP/consolidado.md"
 } > "$TMP/consolidado-final.md"
 
+# PDF reprodutível. Sem isto, cada geração grava a hora atual em /CreationDate e o PDF
+# versionado aparece como modificado mesmo sem nenhuma mudança de conteúdo. Com
+# SOURCE_DATE_EPOCH + FORCE_SOURCE_DATE o pdfTeX usa uma data determinística: a do último
+# commit que tocou as FONTES do ciclo — estável enquanto o ciclo não muda, e diferente
+# quando ele muda. (Os pacotes passaram a ser versionados para o deploy automático.)
+SOURCE_DATE_EPOCH="$(git -C "$RAIZ" log -1 --format=%ct -- "professores/$PROFESSOR_SLUG/ciclos" 2>/dev/null || true)"
+[ -n "$SOURCE_DATE_EPOCH" ] || SOURCE_DATE_EPOCH="$(date +%s)"
+export SOURCE_DATE_EPOCH
+export FORCE_SOURCE_DATE=1
+
 pandoc "$TMP/consolidado-final.md" \
   -o "$PACOTE/$ID.pdf" \
   --toc --toc-depth=3 \
@@ -455,7 +468,7 @@ if [ ! -f "$PACOTE/README.md" ]; then
 > **Professor:** $PROFESSOR
 
 Gerado por \`tools/gerar-ciclo.sh $CICLO ${VARIANTE:-}\`. **Não edite os HTML** —
-edite os Markdown em \`professores/$PROFESSOR/ciclos/\` e rode o gerador de novo. Se você
+edite os Markdown em \`professores/$PROFESSOR_SLUG/ciclos/\` e rode o gerador de novo. Se você
 editar o guia do professor, ele está em \`biblioteca/guia-do-professor.md\` — é
 compartilhado por todos os professores do projeto.
 
@@ -481,11 +494,11 @@ duração por dia desta escola.
 
 1. Abra \`index.html\` no navegador e navegue até a aula do dia.
 2. Para projetar ou imprimir sem depender do navegador, use \`$ID.pdf\`.
-3. Para editar: altere os Markdown em \`professores/$PROFESSOR/ciclos/\` e rode
+3. Para editar: altere os Markdown em \`professores/$PROFESSOR_SLUG/ciclos/\` e rode
 
    \`\`\`bash
-   tools/gerar-ciclo.sh $PROFESSOR $CICLO ${VARIANTE:-}
-   node tools/check-pacote.js professores/$PROFESSOR/ciclos/$ID
+   tools/gerar-ciclo.sh $PROFESSOR_SLUG $CICLO ${VARIANTE:-}
+   node tools/check-pacote.js professores/$PROFESSOR_SLUG/ciclos/$ID
    \`\`\`
 RD
   echo "readme: README.md"
