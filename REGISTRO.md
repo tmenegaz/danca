@@ -130,3 +130,59 @@ saídas ficavam fora do Git, por `.gitignore`.
 **O que ainda não está feito.**
 Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
 licença do repositório.
+
+## 18/09/2026 — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo
+
+**O que aconteceu.**
+Chegou a **entrega do professor** para a escola **Ritmos e Movimento** (ciclo de pas
+de deux, 20 encontros). Ao instalar, verificou-se que as três "variantes" do Ciclo 01
+liam o **mesmo conteúdo** — o da Duo: o gerador resolvia a fonte de cada documento sem
+sufixo de variante (`ciclos/ciclo-01-plano.md`), e o hasher cobria **todos** os `.md`
+do ciclo. O pacote da Ritmos saía com o plano e a aula da Duo, e a Débora com o ciclo
+inteiro que não é dela. Era um erro de instalação anterior, não da entrega.
+
+**O que foi decidido.**
+- **Cada escola tem o seu ciclo.** O conteúdo — objetivo, plano, aulas, referências —
+  é da escola, não do número do ciclo. Ficou uma regra única de resolução, em
+  `tools/lib-fontes.sh`, usada pelo gerador **e** pelo hasher: `ciclo-XX-<escola>-<doc>.md`
+  tem precedência sobre `ciclo-XX-<doc>.md`.
+- **Removidas as cópias da Débora** (21 arquivos: manifesto, PO, âncora e pacote). O
+  ciclo dela ainda **não existe** — será instalado quando houver entrega.
+- **O ciclo da Duo não foi tocado**: continua sendo o dela (Fundamentos do Balé
+  Clássico, 12 aulas). Sua âncora não mudou (`f99c8ef2879a`), o que confirma que a
+  correção das ferramentas não alterou o que já estava certo.
+- **Instalado o Ciclo 01 da Ritmos e Movimento** a partir da entrega do professor:
+  conteúdo próprio, 20 encontros, 60 min (terças) e 120 min (sábados), início
+  19/09/2026, PO com os campos dele. Nova âncora: `12a9ab9201f6`.
+- **Duas correções de ferramenta** que o caso revelou, da mesma natureza do erro
+  original: o rodapé do template e a lista de navegação do README **não** traziam os
+  documentos do ciclo, mas as quatro páginas do ciclo de fundamentos, escritas à mão —
+  num ciclo de pas de deux isso dava **links mortos** em todas as páginas; e o
+  validador `check-pacote.js` **exigia** essas quatro páginas de todo pacote. Agora
+  ambos derivam de `DOCS`, e a conferência de notação × glossário só roda quando o
+  ciclo declara esses documentos.
+
+**Com o quê.**
+`tools/lib-fontes.sh` (novo), `tools/gerar-ciclo.sh`, `tools/hash-ciclo.sh`,
+`tools/check-pacote.js`, `tools/templates/ciclo.html`, `tools/deploy-netlify.sh`,
+`README.md`, `README-ciclos.md`, `professores/README.md`,
+`professores/tiago/cadernos/README.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos{,.conf,-po.md,-index.md,-plano.md,-aula-01.md,-referencias.md,.fipp}`,
+`professores/tiago/campo/2026-09-18-ritmos/respostas.md`.
+
+**Referências.**
+`PROTOCOLO.md` P-09/P-10 (PO por escola), P-13 (PO por professor), P-05/P-06 (material
+bruto); `REGRAS.md` 9 (volume), 16 (entrega), 17 (versionamento); `README-ciclos.md`.
+
+**O que ainda não está feito.**
+- **Publicação (decisão da pesquisadora):** o PO da Ritmos cita os rótulos que o
+  professor usou ("Carol, Dafne, Anthony, Airton"), e ele mesmo observa que só "Carol"
+  é apelido. Pela **P-12**, os sujeitos entram por apelido estável — os apelidos do
+  ciclo estão `[Preencher]` no PO, e **o material não foi enviado ao GitHub** enquanto
+  essa decisão não for tomada.
+- Preparação de força e flexibilidade da Aula 01, gravação de referência da música,
+  marcos das aulas 02–20 e aplicabilidade da Regra 9, etapa 2, a este ciclo — todos
+  `[Preencher]` nas fontes, aguardando o professor.
+- O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
+  escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
+  fica para quando o ciclo dela for reancorado por outro motivo.

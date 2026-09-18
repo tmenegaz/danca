@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T14:02:52-0300`
-Commit atual: `d155cd7` — chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo GitHub)
+Gerado em: `2026-09-18T14:42:17-0300`
+Commit atual: `74e2ab4` — fix(tools): separa o slug do professor do nome de exibicao e datacao do PDF
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -9,12 +9,14 @@ Para: sessão nova (retomar o diálogo)
 - **Regras:** 17 em `REGRAS.md`
   + **14 pétreas** em `PROTOCOLO.md`
 - **Professores:** tiago (1)
-- **Ciclos com manifesto:** 3 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Últimos commits
 
 ```
+74e2ab4 fix(tools): separa o slug do professor do nome de exibicao e datacao do PDF
+53f41f4 chore(ciclo-01): versiona os pacotes entregues das tres escolas
 d155cd7 chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo GitHub)
 82e83f6 chore(tools): regenera os pacotes e o HANDOFF
 002d965 docs(tools): registra o comando de deploy no README
@@ -33,27 +35,23 @@ c88c7d8 chore(tools): regera ancoras e HANDOFF
 494f9ac fix(ciclo-01): ajusta redacao do PO do Duo (contagio, nota sobre dor)
 16ad569 chore(tools): regera ancoras e HANDOFF
 7630610 feat(ciclo-01): cria folha de captura para uso durante a Aula 01
-25fe19e chore(tools): regera HANDOFF
-157fc44 feat(ciclo-01): preenche a linha de base do PO do Duo (antes da Aula 01)
 ```
 
 ## Por professor
 
 ### tiago — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): debora, duo, ritmos
+**Ciclo 01** — variante(s): duo, ritmos
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| Débora (Marau) | ciclo-01-debora-po.md | Input_PO_Aguardando | 21 |
 | Duo | ciclo-01-duo-po.md | Input_PO_Validado | 0 |
-| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 21 |
+| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 10 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| debora | ciclo-01-debora.fipp | `23b1d1075d87` | (vazio) | Input_PO_Aguardando |
 | duo | ciclo-01-duo.fipp | `f99c8ef2879a` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `cb7822207ac0` | (vazio) | Input_PO_Aguardando |
+| ritmos | ciclo-01-ritmos.fipp | `12a9ab9201f6` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -94,38 +92,61 @@ c88c7d8 chore(tools): regera ancoras e HANDOFF
 
 ## Última entrada do REGISTRO
 
-## 18/09/2026 — Pacotes de ciclo passam a ser versionados (deploy automático)
+## 18/09/2026 — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo
 
 **O que aconteceu.**
-O deploy do material passou a ser **automático a partir do GitHub** (Netlify, uma conta por
-escola). Como o serviço lê o repositório, o pacote gerado precisa estar nele — e até aqui as
-saídas ficavam fora do Git, por `.gitignore`.
+Chegou a **entrega do professor** para a escola **Ritmos e Movimento** (ciclo de pas
+de deux, 20 encontros). Ao instalar, verificou-se que as três "variantes" do Ciclo 01
+liam o **mesmo conteúdo** — o da Duo: o gerador resolvia a fonte de cada documento sem
+sufixo de variante (`ciclos/ciclo-01-plano.md`), e o hasher cobria **todos** os `.md`
+do ciclo. O pacote da Ritmos saía com o plano e a aula da Duo, e a Débora com o ciclo
+inteiro que não é dela. Era um erro de instalação anterior, não da entrega.
 
 **O que foi decidido.**
-- Os pacotes (`professores/<p>/ciclos/ciclo-XX-<escola>/`: HTML, PDF e `assets/`) passam a
-  ser **versionados** — inclusive os `assets/`, que são o estilo e os mapas sem os quais a
-  página não funciona.
-- **A P-04 continua valendo integralmente:** o hash FIPP segue cobrindo apenas as fontes
-  (`.conf` e `.md`). Versionar a saída não altera âncora nenhuma — conferido com `--check`.
-- O `pre-commit` deixa de barrar essas saídas (a regra que recusava arquivos gerados ganhou
-  a exceção do pacote de ciclo). O `out/` da apresentação, os `.pptx` e os PNGs de slide
-  seguem barrados.
-- O que se aceita em troca: cada regeneração de pacote entra no histórico, e o diff passa a
-  mostrar HTML e PDF além das fontes. Foi o custo escolhido para ter deploy automático.
-- O `tools/deploy-netlify.sh` (deploy por linha de comando) continua disponível, mas com o
-  deploy pelo Git ele passa a ser opcional.
+- **Cada escola tem o seu ciclo.** O conteúdo — objetivo, plano, aulas, referências —
+  é da escola, não do número do ciclo. Ficou uma regra única de resolução, em
+  `tools/lib-fontes.sh`, usada pelo gerador **e** pelo hasher: `ciclo-XX-<escola>-<doc>.md`
+  tem precedência sobre `ciclo-XX-<doc>.md`.
+- **Removidas as cópias da Débora** (21 arquivos: manifesto, PO, âncora e pacote). O
+  ciclo dela ainda **não existe** — será instalado quando houver entrega.
+- **O ciclo da Duo não foi tocado**: continua sendo o dela (Fundamentos do Balé
+  Clássico, 12 aulas). Sua âncora não mudou (`f99c8ef2879a`), o que confirma que a
+  correção das ferramentas não alterou o que já estava certo.
+- **Instalado o Ciclo 01 da Ritmos e Movimento** a partir da entrega do professor:
+  conteúdo próprio, 20 encontros, 60 min (terças) e 120 min (sábados), início
+  19/09/2026, PO com os campos dele. Nova âncora: `12a9ab9201f6`.
+- **Duas correções de ferramenta** que o caso revelou, da mesma natureza do erro
+  original: o rodapé do template e a lista de navegação do README **não** traziam os
+  documentos do ciclo, mas as quatro páginas do ciclo de fundamentos, escritas à mão —
+  num ciclo de pas de deux isso dava **links mortos** em todas as páginas; e o
+  validador `check-pacote.js` **exigia** essas quatro páginas de todo pacote. Agora
+  ambos derivam de `DOCS`, e a conferência de notação × glossário só roda quando o
+  ciclo declara esses documentos.
 
 **Com o quê.**
-`.gitignore`, `tools/hooks/pre-commit`, `README.md`, `README-ciclos.md`,
-`tools/gerar-handoff.sh`, `professores/tiago/ciclos/ciclo-01-{duo,ritmos,debora}/`.
+`tools/lib-fontes.sh` (novo), `tools/gerar-ciclo.sh`, `tools/hash-ciclo.sh`,
+`tools/check-pacote.js`, `tools/templates/ciclo.html`, `tools/deploy-netlify.sh`,
+`README.md`, `README-ciclos.md`, `professores/README.md`,
+`professores/tiago/cadernos/README.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos{,.conf,-po.md,-index.md,-plano.md,-aula-01.md,-referencias.md,.fipp}`,
+`professores/tiago/campo/2026-09-18-ritmos/respostas.md`.
 
 **Referências.**
-`PROTOCOLO.md` P-04 (hash sobre fontes); `REGRAS.md` 17 (versionamento);
-`README-ciclos.md` (formato de entrega).
+`PROTOCOLO.md` P-09/P-10 (PO por escola), P-13 (PO por professor), P-05/P-06 (material
+bruto); `REGRAS.md` 9 (volume), 16 (entrega), 17 (versionamento); `README-ciclos.md`.
 
 **O que ainda não está feito.**
-Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
-licença do repositório.
+- **Publicação (decisão da pesquisadora):** o PO da Ritmos cita os rótulos que o
+  professor usou ("Carol, Dafne, Anthony, Airton"), e ele mesmo observa que só "Carol"
+  é apelido. Pela **P-12**, os sujeitos entram por apelido estável — os apelidos do
+  ciclo estão `[Preencher]` no PO, e **o material não foi enviado ao GitHub** enquanto
+  essa decisão não for tomada.
+- Preparação de força e flexibilidade da Aula 01, gravação de referência da música,
+  marcos das aulas 02–20 e aplicabilidade da Regra 9, etapa 2, a este ciclo — todos
+  `[Preencher]` nas fontes, aguardando o professor.
+- O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
+  escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
+  fica para quando o ciclo dela for reancorado por outro motivo.
 
 ## O que está pendente
 
@@ -145,10 +166,23 @@ repositório, na máquina da pesquisadora.
 
 Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
 licença do repositório.
-- PO de **tiago · debora** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+
+## 18/09/2026 — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo
+
+- **Publicação (decisão da pesquisadora):** o PO da Ritmos cita os rótulos que o
+  professor usou ("Carol, Dafne, Anthony, Airton"), e ele mesmo observa que só "Carol"
+  é apelido. Pela **P-12**, os sujeitos entram por apelido estável — os apelidos do
+  ciclo estão `[Preencher]` no PO, e **o material não foi enviado ao GitHub** enquanto
+  essa decisão não for tomada.
+- Preparação de força e flexibilidade da Aula 01, gravação de referência da música,
+  marcos das aulas 02–20 e aplicabilidade da Regra 9, etapa 2, a este ciclo — todos
+  `[Preencher]` nas fontes, aguardando o professor.
+- O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
+  escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
+  fica para quando o ciclo dela for reancorado por outro motivo.
 - PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
-- Material de campo de **tiago**: 1 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
+- Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
 ## Documentos-chave (para leitura)
 
