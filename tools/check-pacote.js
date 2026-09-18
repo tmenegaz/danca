@@ -116,6 +116,13 @@ ok.push(`links internos verificados: ${linksChecados}`);
 // ------------------------------------------------------------- 4) PDF
 // Os PDF do LaTeX comprimem os objetos: procurar "/Outlines" nos bytes crus dá
 // falso negativo. Aqui todos os streams são inflados antes da busca.
+//
+// maxBuffer alto de propósito: `pdftotext -bbox` de um ciclo inteiro passa de
+// 1 MB e o padrão do Node aborta com ENOBUFS (foi o que aconteceu quando o
+// pacote chegou a 27 páginas — as checagens de PDF eram puladas em silêncio).
+const executar = (comando, limite = 128 * 1024 * 1024) =>
+  cp.execSync(comando, { encoding: 'utf8', maxBuffer: limite, stdio: ['ignore', 'pipe', 'ignore'] });
+
 function textoDoPdf(caminho) {
   const cru = fs.readFileSync(caminho).toString('latin1');
   const partes = [cru];
@@ -141,7 +148,7 @@ if (fs.existsSync(pdf)) {
   else erros.push('PDF: nenhum link interno clicável encontrado');
 
   try {
-    const info = cp.execSync(`pdfinfo "${pdf}"`, { encoding: 'utf8' });
+    const info = executar(`pdfinfo "${pdf}"`);
     const total = parseInt((info.match(/^Pages:\s*(\d+)/m) || [, '0'])[1], 10);
     const minimo = paginas.length + 1; // capa/índice + ao menos uma página por documento
     if (total >= minimo) ok.push(`PDF: ${total} páginas (mínimo esperado: ${minimo})`);
@@ -151,7 +158,7 @@ if (fs.existsSync(pdf)) {
     // Uma única extração do documento inteiro, dividida por \f: evita o artefato
     // de fronteira da extração página a página (o rodapé de uma página pode ser
     // lido junto da seguinte) e não gera um processo por página.
-    const completo = cp.execSync(`pdftotext "${pdf}" - 2>/dev/null`, { encoding: 'utf8' });
+    const completo = executar(`pdftotext "${pdf}" -`);
     const paginasTexto = completo.split('\f');
     const semRodape = [];
     const normalizarTexto = (s) => s.replace(/[\u00a0\u2007\u202f]/g, ' ').replace(/\s+/g, ' ');
@@ -165,14 +172,14 @@ if (fs.existsSync(pdf)) {
     else erros.push(`PDF: rodapé ausente/incompleto nas páginas ${semRodape.join(', ')}`);
 
     // índice navegável nas páginas iniciais + títulos dos documentos no texto
-    const inicial = cp.execSync(`pdftotext -f 1 -l ${Math.min(3, total)} "${pdf}" - 2>/dev/null`, { encoding: 'utf8' });
+    const inicial = executar(`pdftotext -f 1 -l ${Math.min(3, total)} "${pdf}" -`);
     if (/Índice/i.test(inicial)) ok.push('PDF: índice navegável presente');
     else erros.push('PDF: título "Índice" não encontrado nas primeiras páginas');
 
     // nada pode passar da margem do texto (detecta tabela larga demais, por exemplo)
     // margem = 2 cm (geometry do gerador); 6 pt de tolerância para justificação
     const MARGEM = 56.7, TOLERANCIA = 6;
-    const bbox = cp.execSync(`pdftotext -bbox "${pdf}" - 2>/dev/null`, { encoding: 'utf8' });
+    const bbox = executar(`pdftotext -bbox "${pdf}" -`);
     const fora = [];
     const rePg = /<page width="([\d.]+)"[\s\S]*?<\/page>/g;
     let pg, numero = 0;
@@ -187,7 +194,7 @@ if (fs.existsSync(pdf)) {
     if (fora.length === 0) ok.push('PDF: nenhum texto passa da margem do texto (2 cm)');
     else erros.push(`PDF: ${fora.length} palavra(s) fora da margem → ${fora.slice(0, 4).join(', ')}`);
 
-    const texto = cp.execSync(`pdftotext "${pdf}" - 2>/dev/null`, { encoding: 'utf8' });
+    const texto = executar(`pdftotext "${pdf}" -`);
     // normaliza espaços: no PDF o título longo quebra linha e a comparação literal falharia
     const normalizar = (s) => s.replace(/\s+/g, ' ').trim();
     const textoNorm = normalizar(texto);
@@ -201,7 +208,8 @@ if (fs.existsSync(pdf)) {
     if (faltando.length === 0) ok.push('PDF: todos os documentos das páginas HTML estão no PDF');
     else erros.push(`PDF: documentos ausentes no texto do PDF → ${faltando.join(', ')}`);
   } catch (e) {
-    avisos.push('PDF: pdfinfo/pdftotext indisponíveis — checagens de paginação/rodapé puladas');
+    avisos.push('PDF: pdfinfo/pdftotext indisponíveis — checagens de paginação/rodapé puladas'
+      + ` (${String(e.message).split('\n')[0].slice(0, 90)})`);
   }
 } else {
   erros.push(`PDF ausente: ${path.relative(process.cwd(), pdf)}`);

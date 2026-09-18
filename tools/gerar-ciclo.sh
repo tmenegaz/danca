@@ -230,7 +230,10 @@ gerar_nav() {
     done
     echo '    </div>'
     echo '  </details>'
-    for doc in notacao pre-requisitos musicalidade apanhado-historico referencias; do
+    # demais documentos: o que está em DOCS e não é aula nem é o plano/index
+    # (a lista é derivada de DOCS, então um documento novo entra sozinho no menu)
+    for doc in $DOCS; do
+      case "$doc" in aula-*|plano) continue ;; esac
       r="$(rotulo "$doc")"
       if [ "$doc" = "$atual" ]; then
         echo "  <a class=\"ativo\" href=\"$doc.html\">$r</a>"

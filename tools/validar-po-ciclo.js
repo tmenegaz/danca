@@ -33,10 +33,12 @@ const MAPA_SECOES = {
   'campo empírico': 'field',
   'contexto': 'context',
   'sujeitos': 'subjects',
+  'linha de base': 'linhaDeBase',
   'critérios de inclusão': 'inclusionCriteria',
   'criterios de inclusao': 'inclusionCriteria',
   'critérios de exclusão': 'exclusionCriteria',
   'justificativa': 'justification',
+  'condições de contorno da execução': 'condicoesDeContorno',
   'limitações': 'limitations',
   'checklist de validação': 'validationChecklist',
 };
@@ -92,6 +94,26 @@ function extrair(linhas, schema) {
     // comentários e vazios não entram em nenhum valor
     if (limpa === '' || limpa === '---' || limpa.startsWith('>')) continue;
 
+    // onde este trecho entra: no subcampo (se houver) ou na seção
+    const acumular = (trecho) => {
+      if (subcampo) {
+        if (tipoSub(secao, subcampo) === 'boolean') return;
+        if (!campos[secao] || typeof campos[secao] !== 'object') campos[secao] = {};
+        const chave = `${secao}.${subcampo}`;
+        texto[chave] = ((texto[chave] || '') + ' ' + trecho).trim();
+        campos[secao][subcampo] = texto[chave];
+      } else if (tipo(secao) === 'string') {
+        texto[secao] = ((texto[secao] || '') + ' ' + trecho).trim();
+        campos[secao] = texto[secao];
+      }
+    };
+    const paraArray = (trecho) => {
+      if (subcampo) return;                       // array dentro de subcampo não existe neste schema
+      if (tipo(secao) !== 'array') return;
+      if (!Array.isArray(campos[secao])) campos[secao] = [];
+      campos[secao].push(trecho);
+    };
+
     // `- [ ]` / `- [x]` → booleano (checklist)
     const checkbox = limpa.match(/^-\s*\[( |x|X)\]\s*(.*)$/);
     if (checkbox) {
@@ -103,45 +125,25 @@ function extrair(linhas, schema) {
 
     const item = limpa.match(/^[-*]\s+(.+)$/);
     if (item) {
-      const alvo = tipo(secao);
-      if (alvo === 'array') {
-        if (!Array.isArray(campos[secao])) campos[secao] = [];
-        campos[secao].push(item[1]);
-      } else if (alvo === 'string') {
-        texto[secao] = ((texto[secao] || '') + ' ' + item[1]).trim();
-        campos[secao] = texto[secao];
-      }
+      if (subcampo) acumular(item[1]); else { paraArray(item[1]); acumular(item[1]); }
       continue;
     }
 
-    // linha de tabela: em campo string faz parte do texto; em array, é item
+    // linha de tabela
     if (limpa.startsWith('|')) {
       const celulas = limpa.replace(/^\|/, '').replace(/\|$/, '')
         .split('|').map((c) => c.trim()).filter(Boolean).join(' · ');
       if (!celulas || /^-+$/.test(celulas.replace(/[:\- ]/g, ''))) continue;
-      if (tipo(secao) === 'array') {
-        if (!Array.isArray(campos[secao])) campos[secao] = [];
-        campos[secao].push(celulas);
-      } else {
-        texto[secao] = ((texto[secao] || '') + ' ' + celulas).trim();
-        campos[secao] = texto[secao];
-      }
+      if (subcampo) acumular(celulas); else { paraArray(celulas); acumular(celulas); }
       continue;
     }
 
     // texto corrido
     if (subcampo) {
-      const chave = `${secao}.${subcampo}`;
-      if (tipoSub(secao, subcampo) === 'boolean') continue;
-      if (!campos[secao] || typeof campos[secao] !== 'object') campos[secao] = {};
-      texto[chave] = ((texto[chave] || '') + ' ' + limpa).trim();
-      campos[secao][subcampo] = texto[chave];
-    } else if (tipo(secao) === 'array') {
-      if (!Array.isArray(campos[secao])) campos[secao] = [];
-      campos[secao].push(limpa);
-    } else if (tipo(secao) === 'string') {
-      texto[secao] = ((texto[secao] || '') + ' ' + limpa).trim();
-      campos[secao] = texto[secao];
+      acumular(limpa);
+    } else {
+      paraArray(limpa);
+      acumular(limpa);
     }
   }
   return campos;
