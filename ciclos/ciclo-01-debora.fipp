@@ -1,0 +1,24 @@
+# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: ciclos/ciclo-01.conf, ciclos/ciclo-01-debora.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-debora
+type: Ciclo
+ciclo: 01
+variante: debora
+hash_conteudo: b600e6202973fa6c97870e30f440eaa425634cb3e394c09fbf279a9c8140c192
+parentHash: 
+hash: 9e49ad8ed7caf02a649e0531db122cbf3dd48dd6161427c649d7b5bec72d12fa
+algoritmo: SHA-256
+cobertura:
+  - ciclos/ciclo-01-apanhado-historico.md
+  - ciclos/ciclo-01-aula-01.md
+  - ciclos/ciclo-01-debora.conf
+  - ciclos/ciclo-01-index.md
+  - ciclos/ciclo-01-musicalidade.md
+  - ciclos/ciclo-01-notacao.md
+  - ciclos/ciclo-01-plano.md
+  - ciclos/ciclo-01-pre-requisitos.md
+  - ciclos/ciclo-01-referencias.md
+  - ciclos/ciclo-01.conf

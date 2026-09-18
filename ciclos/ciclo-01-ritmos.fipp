@@ -1,0 +1,24 @@
+# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: ciclos/ciclo-01.conf, ciclos/ciclo-01-ritmos.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-ritmos
+type: Ciclo
+ciclo: 01
+variante: ritmos
+hash_conteudo: adc71764510fb27ad11d6cc7a26ace45d9f51c30b2d14b10e5b01ca79c14b22d
+parentHash: 
+hash: d35f048681fa245402b42d36b249f781299d45cb282d15c981ecb9f52c68c331
+algoritmo: SHA-256
+cobertura:
+  - ciclos/ciclo-01-apanhado-historico.md
+  - ciclos/ciclo-01-aula-01.md
+  - ciclos/ciclo-01-index.md
+  - ciclos/ciclo-01-musicalidade.md
+  - ciclos/ciclo-01-notacao.md
+  - ciclos/ciclo-01-plano.md
+  - ciclos/ciclo-01-pre-requisitos.md
+  - ciclos/ciclo-01-referencias.md
+  - ciclos/ciclo-01-ritmos.conf
+  - ciclos/ciclo-01.conf
