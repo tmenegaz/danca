@@ -65,21 +65,24 @@ for c in $ciclos_hash; do
       fi
     fi
     echo "pre-commit: âncora FIPP do ciclo-$numero-$v ok"
-  done
 
-  # PO da variante: validado uma vez por escola (o PO é por escola)
-  arquivo_po="ciclos/ciclo-$numero-$v-po.md"
-  schema_po="ciclos/ciclo-$numero-po-schema.json"
-  if [ -f "$arquivo_po" ] && [ -f "$schema_po" ]; then
-    if ! node tools/validar-po-ciclo.js "$schema_po" "$arquivo_po" > /tmp/pre-commit-po-"$numero".log 2>&1; then
-      echo "pre-commit: recusado — o PO do ciclo $numero não satisfaz o schema do PO." >&2
-      grep -E '^  - |^erro' /tmp/pre-commit-po-"$numero".log | head -6 >&2
-      exit 1
+    # PO da variante: uma vez por variante, DENTRO do laço. O PO é por escola e cada
+    # variante tem o seu. (Antes esta checagem rodava depois do laço, uma vez por
+    # ciclo, e validava só a última variante — por causa do $v que sobrava da última
+    # iteração; a escola duo e a debora nunca eram validadas por commit.)
+    arquivo_po="ciclos/ciclo-$numero-$v-po.md"
+    schema_po="ciclos/ciclo-$numero-po-schema.json"
+    if [ -f "$arquivo_po" ] && [ -f "$schema_po" ]; then
+      if ! node tools/validar-po-ciclo.js "$schema_po" "$arquivo_po" > /tmp/pre-commit-po-"$numero-$v".log 2>&1; then
+        echo "pre-commit: recusado — o PO da variante ciclo-$numero-$v não satisfaz o schema do PO." >&2
+        grep -E '^  - |^erro' /tmp/pre-commit-po-"$numero-$v".log | head -6 >&2
+        exit 1
+      fi
+      echo "pre-commit: PO da variante ciclo-$numero-$v validado"
+    elif [ -f "$arquivo_po" ]; then
+      echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
     fi
-    echo "pre-commit: PO da variante ciclo-$numero-$v validado"
-  elif [ -f "$arquivo_po" ]; then
-    echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
-  fi
+  done
 done
 
 # ---------------------------------------------------------------------------
