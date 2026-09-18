@@ -5,7 +5,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 
 - o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
 - este documento diz **como a aula se torna objeto de investigação sem que a
-  investigação contamine a aula** (11 regras pétreas).
+  investigação contamine a aula** (12 regras pétreas).
 
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
@@ -16,7 +16,7 @@ em ato**, com cadeia de proveniência **FIPP**.
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
 
-## As 11 regras pétreas
+## As 12 regras pétreas
 
 **P-01 — O ciclo é PO latente.**
 A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
@@ -69,6 +69,13 @@ tem referencial, e o ruído não pode ser distinguido de estado inicial.
 O recorte é factível, mas a execução depende de variáveis relacionais
 (interesse, ânimo, harmonia) que o plano não controla. O PO declara essas
 condições — não como falha, mas como parte do que se observa.
+
+**P-12 — Os sujeitos são referidos por apelidos estáveis.**
+O PO declara os apelidos pelos quais os sujeitos são referidos no material do ciclo —
+apelidos que eles já usam, não pseudônimos criados para o projeto. A referência é
+estável ao longo do ciclo (a mesma pessoa é sempre o mesmo apelido) e não requer
+consulta a mapa externo. Apelidos substituem nomes completos; não os acompanham em
+nenhum arquivo do repositório.
 
 ## Nota metodológica
 
