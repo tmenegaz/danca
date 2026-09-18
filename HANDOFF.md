@@ -1,13 +1,13 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T16:27:08-0300`
-Commit atual: `d7d13e2` — feat(prompts): atualiza prompt de eliciacao com P-16 e P-18
+Gerado em: `2026-09-18T17:07:46-0300`
+Commit atual: `abd6c58` — feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguagem harmonizada)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
 
 - **Regras:** 17 em `REGRAS.md`
-  + **19 pétreas** em `PROTOCOLO.md`
+  + **21 pétreas** em `PROTOCOLO.md`
 - **Professores:** tiago (1)
 - **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
@@ -15,6 +15,12 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+abd6c58 feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguagem harmonizada)
+fa63fc5 feat(biblioteca): guia do professor explica o harmonizador
+7f2a29b feat(prompts): harmonizador de linguagem no instalar-ciclo (P-21 visivel ao professor)
+d734fff fix(tools): calendario emite uma aula por ocorrencia do dia (Ritmos: sabado com 2)
+074b74b docs(registro): registra completacao do Ritmos e P-15 a P-19
+87f41c8 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF
 d7d13e2 feat(prompts): atualiza prompt de eliciacao com P-16 e P-18
 e18cc66 feat(prompts): instala prompt de instalacao de ciclo no repositorio (P-19)
 c23ab15 feat(ciclo-01): gera artefatos auxiliares do Ritmos (replica estrutura do Duo)
@@ -29,12 +35,6 @@ b60830b chore(estrutura): remove as copias do ciclo da Debora
 74e2ab4 fix(tools): separa o slug do professor do nome de exibicao e datacao do PDF
 53f41f4 chore(ciclo-01): versiona os pacotes entregues das tres escolas
 d155cd7 chore(estrutura): versiona os pacotes de ciclo (deploy automatico pelo GitHub)
-82e83f6 chore(tools): regenera os pacotes e o HANDOFF
-002d965 docs(tools): registra o comando de deploy no README
-76d128f feat(tools): cria deploy-netlify.sh (uma conta por escola)
-d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
-31625b3 chore(tools): aceita o escopo template no commit-msg
-0ca9d5f docs(registro): corrige a ordem das entradas (cronologica, a mais recente no fim)
 ```
 
 ## Por professor
@@ -51,7 +51,7 @@ d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | duo | ciclo-01-duo.fipp | `f99c8ef2879a` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `a24fa5b07e0a` | (vazio) | Input_PO_Aguardando |
+| ritmos | ciclo-01-ritmos.fipp | `0303b51c64b5` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -74,6 +74,8 @@ d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
 - **P-17 — Todo ciclo produz os mesmos tipos de artefato do ciclo piloto.
 - **P-18 — A metodologia pode ser imposta pela escola.
 - **P-19 — Os prompts do projeto vivem no repositório.
+- **P-20 — Problemas semelhantes recebem soluções semelhantes.
+- **P-21 — Documentos publicados usam linguagem harmonizada.
 
 ## Regras (`REGRAS.md`)
 
@@ -97,61 +99,68 @@ d92eed9 fix(template): navbar deixa de cobrir o conteudo e fica responsiva
 
 ## Última entrada do REGISTRO
 
-## 18/09/2026 — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo
+## 18/09/2026 — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19
 
 **O que aconteceu.**
-Chegou a **entrega do professor** para a escola **Ritmos e Movimento** (ciclo de pas
-de deux, 20 encontros). Ao instalar, verificou-se que as três "variantes" do Ciclo 01
-liam o **mesmo conteúdo** — o da Duo: o gerador resolvia a fonte de cada documento sem
-sufixo de variante (`ciclos/ciclo-01-plano.md`), e o hasher cobria **todos** os `.md`
-do ciclo. O pacote da Ritmos saía com o plano e a aula da Duo, e a Débora com o ciclo
-inteiro que não é dela. Era um erro de instalação anterior, não da entrega.
+O ciclo do Ritmos e Movimento recebeu **quatro** dos oito artefatos auxiliares que
+faltavam: **relatório-preview** (guia do que observar, com a dimensão do **par**),
+**captura em aula** (folha de marcação com os cinco apelidos), **pré-requisitos**
+(o piso que o professor declarou) e **apanhado histórico** (o repertório declarado,
+com o pas de deux a identificar). O **PO foi corrigido**: apelidos estáveis fixados
+(**Carol, Dada, Tony, Pássaro Azul, Mari**), **21 aulas** (era 20) e a duração
+descrita como **3 aulas de 60 min por semana** (a terça é pas de deux; o sábado tem
+balé como preparação + pas de deux). O manifesto acompanhou (21 aulas,
+`DURACOES="60,60,60"`). **Cinco novas pétreas** foram declaradas (P-15 a P-19), e os
+**dois prompts do projeto** passaram a viver versionados em `prompts/`.
 
 **O que foi decidido.**
-- **Cada escola tem o seu ciclo.** O conteúdo — objetivo, plano, aulas, referências —
-  é da escola, não do número do ciclo. Ficou uma regra única de resolução, em
-  `tools/lib-fontes.sh`, usada pelo gerador **e** pelo hasher: `ciclo-XX-<escola>-<doc>.md`
-  tem precedência sobre `ciclo-XX-<doc>.md`.
-- **Removidas as cópias da Débora** (21 arquivos: manifesto, PO, âncora e pacote). O
-  ciclo dela ainda **não existe** — será instalado quando houver entrega.
-- **O ciclo da Duo não foi tocado**: continua sendo o dela (Fundamentos do Balé
-  Clássico, 12 aulas). Sua âncora não mudou (`f99c8ef2879a`), o que confirma que a
-  correção das ferramentas não alterou o que já estava certo.
-- **Instalado o Ciclo 01 da Ritmos e Movimento** a partir da entrega do professor:
-  conteúdo próprio, 20 encontros, 60 min (terças) e 120 min (sábados), início
-  19/09/2026, PO com os campos dele. Nova âncora: `12a9ab9201f6`.
-- **Duas correções de ferramenta** que o caso revelou, da mesma natureza do erro
-  original: o rodapé do template e a lista de navegação do README **não** traziam os
-  documentos do ciclo, mas as quatro páginas do ciclo de fundamentos, escritas à mão —
-  num ciclo de pas de deux isso dava **links mortos** em todas as páginas; e o
-  validador `check-pacote.js` **exigia** essas quatro páginas de todo pacote. Agora
-  ambos derivam de `DOCS`, e a conferência de notação × glossário só roda quando o
-  ciclo declara esses documentos.
+- A notação segue a metodologia declarada (P-15).
+- Metodologia e notação são perguntadas na eliciação (P-16).
+- Todo ciclo replica os artefatos do ciclo piloto (P-17).
+- A metodologia pode ser imposta pela escola, não só escolhida (P-18).
+- Prompts do projeto vivem no repositório (P-19).
+- **Quatro artefatos não foram gerados**, e isso foi decisão, não esquecimento:
+  `notacao`, `glossario-benesh`, `musicalidade` e `musicalidade-aluna` carregam, no
+  ciclo piloto, o **conteúdo daquele ciclo** — o registro dos exercícios dele, as
+  contagens das aulas dele, os exemplos dos passos dele. Replicá-los exigiria
+  inventar o que o professor não deu, e a resposta dele sobre notação foi
+  literalmente "[a decidir]". Proposta registrada: extrair a parte **conceitual**
+  para a `biblioteca/` (como já se fez com o guia do professor, que é resolvido por
+  caminho em todo pacote) e escrever, por ciclo, documentos curtos que só amarrem os
+  conceitos à aula e à música daquela escola — que é a pergunta que a P-16 manda
+  fazer na eliciação.
 
 **Com o quê.**
-`tools/lib-fontes.sh` (novo), `tools/gerar-ciclo.sh`, `tools/hash-ciclo.sh`,
-`tools/check-pacote.js`, `tools/templates/ciclo.html`, `tools/deploy-netlify.sh`,
-`README.md`, `README-ciclos.md`, `professores/README.md`,
-`professores/tiago/cadernos/README.md`,
-`professores/tiago/ciclos/ciclo-01-ritmos{,.conf,-po.md,-index.md,-plano.md,-aula-01.md,-referencias.md,.fipp}`,
-`professores/tiago/campo/2026-09-18-ritmos/respostas.md`.
+`PROTOCOLO.md` (P-15 a P-19), `prompts/eliciar-ciclo.md`, `prompts/instalar-ciclo.md`,
+`tools/hooks/commit-msg` (escopo `prompts`),
+`professores/tiago/ciclos/ciclo-01-ritmos{,.conf,-po.md,-relatorio-aula-01.md,-captura-aula-01.md,-pre-requisitos.md,-apanhado-historico.md,.fipp}`
+e o pacote gerado (9 páginas HTML, PDF de 22 páginas).
 
 **Referências.**
-`PROTOCOLO.md` P-09/P-10 (PO por escola), P-13 (PO por professor), P-05/P-06 (material
-bruto); `REGRAS.md` 9 (volume), 16 (entrega), 17 (versionamento); `README-ciclos.md`.
+RAD (2015); Taylor (2013); Polanyi (1966). *(A entrada prevista citava "Taylor
+(2003)"; a biblioteca do projeto registra a edição de **2013** — conferido antes de
+escrever.)*
 
 **O que ainda não está feito.**
-- **Publicação (decisão da pesquisadora):** o PO da Ritmos cita os rótulos que o
-  professor usou ("Carol, Dafne, Anthony, Airton"), e ele mesmo observa que só "Carol"
-  é apelido. Pela **P-12**, os sujeitos entram por apelido estável — os apelidos do
-  ciclo estão `[Preencher]` no PO, e **o material não foi enviado ao GitHub** enquanto
-  essa decisão não for tomada.
-- Preparação de força e flexibilidade da Aula 01, gravação de referência da música,
-  marcos das aulas 02–20 e aplicabilidade da Regra 9, etapa 2, a este ciclo — todos
-  `[Preencher]` nas fontes, aguardando o professor.
-- O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
-  escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
-  fica para quando o ciclo dela for reancorado por outro motivo.
+- **Calendário do projeto:** `tools/calendario.py` modela "uma aula por dia de
+  aula" (`por_semana = len(DIAS)`). Com 2 dias e 3 aulas, o pacote publica **21
+  aulas em 11 semanas** (o correto são 7) e um **volume semanal de 180 tempos** (o
+  correto são 270). É mudança de código, fora do escopo das sete etapas — aguarda
+  decisão da pesquisadora. **Enquanto isso, o pacote do Ritmos está pronto para
+  publicar, mas com o calendário errado.**
+- **Pacote do ciclo da Duo:** regenerado pelo template corrigido, ele ganha o rodapé
+  derivado de `DOCS` (11 documentos, com os títulos reais). Não foi commitado — o
+  ciclo da Duo não se altera sem autorização. A âncora dela não muda em nenhum caso.
+- **Plano e Aula 01 do Ritmos:** ainda dizem "20 encontros", "60 e 120 min" e
+  "Marcos 02–20"; a Aula 01 tem `volume-total-120` e um trecho sobre "o dia de 120
+  minutos" (que deixou de existir). Não entraram no escopo das etapas.
+- **P-12 na Aula 01 do Ritmos:** o documento publica o nome "Anthony"; os apelidos
+  fixados e os quatro documentos novos usam "Tony".
+- **Publicação:** 11 commits locais à frente do `origin/main`. Não houve push: a
+  decisão dos apelidos (que era o bloqueio) está tomada, mas o push publicaria o
+  nome citado acima. O deploy automático do Netlify continua esperando.
+- Ciclo da Débora; primeiro relatório pós-aula do Duo; primeiro relatório pós-aula
+  do Ritmos.
 
 ## O que está pendente
 
@@ -185,6 +194,28 @@ licença do repositório.
 - O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
   escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
   fica para quando o ciclo dela for reancorado por outro motivo.
+
+## 18/09/2026 — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19
+
+- **Calendário do projeto:** `tools/calendario.py` modela "uma aula por dia de
+  aula" (`por_semana = len(DIAS)`). Com 2 dias e 3 aulas, o pacote publica **21
+  aulas em 11 semanas** (o correto são 7) e um **volume semanal de 180 tempos** (o
+  correto são 270). É mudança de código, fora do escopo das sete etapas — aguarda
+  decisão da pesquisadora. **Enquanto isso, o pacote do Ritmos está pronto para
+  publicar, mas com o calendário errado.**
+- **Pacote do ciclo da Duo:** regenerado pelo template corrigido, ele ganha o rodapé
+  derivado de `DOCS` (11 documentos, com os títulos reais). Não foi commitado — o
+  ciclo da Duo não se altera sem autorização. A âncora dela não muda em nenhum caso.
+- **Plano e Aula 01 do Ritmos:** ainda dizem "20 encontros", "60 e 120 min" e
+  "Marcos 02–20"; a Aula 01 tem `volume-total-120` e um trecho sobre "o dia de 120
+  minutos" (que deixou de existir). Não entraram no escopo das etapas.
+- **P-12 na Aula 01 do Ritmos:** o documento publica o nome "Anthony"; os apelidos
+  fixados e os quatro documentos novos usam "Tony".
+- **Publicação:** 11 commits locais à frente do `origin/main`. Não houve push: a
+  decisão dos apelidos (que era o bloqueio) está tomada, mas o push publicaria o
+  nome citado acima. O deploy automático do Netlify continua esperando.
+- Ciclo da Débora; primeiro relatório pós-aula do Duo; primeiro relatório pós-aula
+  do Ritmos.
 - PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
