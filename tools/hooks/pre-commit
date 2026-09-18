@@ -30,7 +30,43 @@ if [ -n "$gerados" ]; then
 fi
 
 # ---------------------------------------------------------------------------
-# 2) ciclos tocados: gerar e validar (uma variante por escola)
+# 2) âncora FIPP: fontes de ciclo não entram no histórico com a âncora
+#    desatualizada — e a âncora que vai no commit tem de ser a mesma do disco
+#    (P-03: FIPP alinha; o passado não é reescrito, é incorporado)
+# ---------------------------------------------------------------------------
+ciclos_hash="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
+for c in $ciclos_hash; do
+  numero="${c#ciclo-}"
+  variantes_hash="$(printf '%s\n' "$arquivos" \
+    | grep -oE "^ciclos/ciclo-$numero-[a-z0-9]+\.conf$" \
+    | sed "s|^ciclos/ciclo-$numero-||; s|\.conf$||" | sort -u || true)"
+  if [ -z "$variantes_hash" ]; then
+    variantes_hash="$(ls -1 ciclos/ciclo-"$numero"-*.conf 2>/dev/null \
+      | sed "s|.*/ciclo-$numero-||; s|\.conf$||" || true)"
+  fi
+
+  for v in $variantes_hash; do
+    fipp="ciclos/ciclo-$numero-$v.fipp"
+    if ! tools/hash-ciclo.sh "$numero" "$v" --check > /tmp/pre-commit-hash-"$numero-$v".log 2>&1; then
+      echo "pre-commit: recusado — a âncora FIPP do ciclo-$numero-$v está desatualizada." >&2
+      grep -E '^erro|^aviso' /tmp/pre-commit-hash-"$numero-$v".log | head -6 >&2
+      echo "  regere a âncora: tools/hash-ciclo.sh $numero $v" >&2
+      exit 1
+    fi
+    # a âncora que entra no commit tem de ser a mesma que está no disco
+    if git cat-file -e ":$fipp" 2>/dev/null; then
+      if ! diff -q <(git show ":$fipp") "$fipp" > /dev/null 2>&1; then
+        echo "pre-commit: $fipp está no stage numa versão diferente da atual." >&2
+        echo "  re-adicione: git add $fipp" >&2
+        exit 1
+      fi
+    fi
+    echo "pre-commit: âncora FIPP do ciclo-$numero-$v ok"
+  done
+done
+
+# ---------------------------------------------------------------------------
+# 3) ciclos tocados: gerar e validar (uma variante por escola)
 # ---------------------------------------------------------------------------
 ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^ciclos/ciclo-[0-9]+' | sed 's|ciclos/||' | sort -u || true)"
 for c in $ciclos; do
@@ -62,7 +98,7 @@ for c in $ciclos; do
 done
 
 # ---------------------------------------------------------------------------
-# 3) apresentações tocadas: validar o deck
+# 4) apresentações tocadas: validar o deck
 # ---------------------------------------------------------------------------
 if printf '%s\n' "$arquivos" | grep -q '^apresentacoes/'; then
   echo "pre-commit: validando o deck ..."
