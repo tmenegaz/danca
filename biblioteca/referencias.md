@@ -67,8 +67,28 @@ algo ainda depende da fonte final, está dito **na própria linha** (Regra 8).
 
 ## Dados de repertório anotados em aula
 
-- ***Giselle* (1841), Ato I — *Peasant Pas de Deux*:** compasso **4/4 (Allegretto,
-  ~98 BPM)**, com seções em 3/4. Música de Adolphe Adam (coreografia de Jean Coralli
-  e Jules Perrot). **Anotação do professor** — a partitura é a fonte final; conferir
-  a gravação de referência antes de fixar a contagem em aula.
+- ***Giselle* (1841), Ato I — *Peasant Pas de Deux*:** música de **Friedrich
+  Burgmüller** (interpolada em *Giselle*, de Adolphe Adam); coreografia de Jean
+  Coralli e Jules Perrot. Corpo principal em **3/4** — *Entrée* (*tempo di polonaise*)
+  e *Adagio* (*andante moderato*); variações em 2/4; coda em valsas. **Anotação do
+  professor.** A partitura de Burgmüller é a fonte final; conferir a gravação de
+  referência (abaixo) antes de fixar a contagem em aula.
+
+## Música (partitura e gravações)
+
+- **BURGMÜLLER, Friedrich** (interpolado em *Giselle*, de Adolphe Adam). *Giselle:
+  Peasant pas de deux* (arr. March) — Ato I: *Allegretto: Adagio*. Sofia National
+  Opera Orchestra, regência de **Boris Spassov**. Capriccio, 2002 (3:01). — **Gravação
+  de referência do Ciclo 01** para o *Peasant Pas de Deux*. A faixa é intitulada
+  "Allegretto: Adagio", mas é o **Adagio em 3/4**. A partitura de Burgmüller permanece
+  como fonte final: é ela que resolve divergência entre gravações.
+
+## Fontes de repertório (não acadêmicas)
+
+- **BALLET ALERT** (fórum de repertório). *Discussão sobre a estrutura musical do
+  Peasant Pas de Deux (Giselle, Ato I)*. Disponível em: balletalert.invisionzone.com.
+  — **[Fonte de repertório, não acadêmica.]** Usada para confirmar a estrutura métrica
+  (Entrée em 3/4 como polonesa; Adagio em 3/4). A partitura de Burgmüller permanece
+  como fonte final; conferir antes de publicar.
+
 
