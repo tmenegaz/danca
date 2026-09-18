@@ -5,7 +5,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 
 - o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
 - este documento diz **como a aula se torna objeto de investigação sem que a
-  investigação contamine a aula** (21 regras pétreas).
+  investigação contamine a aula** (22 regras pétreas).
 
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
@@ -16,7 +16,7 @@ em ato**, com cadeia de proveniência **FIPP**.
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
 
-## As 21 regras pétreas
+## As 22 regras pétreas
 
 **P-01 — O ciclo é PO latente.**
 A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
@@ -140,6 +140,17 @@ a versão harmonizada.
 >
 > Cada resposta do professor gera uma **nova versão** do ciclo, reancorada; a
 > anterior permanece no histórico. A proveniência acrescenta, não edita (P-03/P-04).
+
+**P-22 — As condições materiais de execução são declaradas, registradas e comunicadas.**
+Restrições físicas individuais (lesões, dores, limitações médicas) que impedem ou
+alteram a execução de um movimento são:
+**(a) declaradas** no PO antes do ciclo (na linha de base por sujeito);
+**(b) registradas** no caderno a cada ocorrência durante a aula, e no relatório
+pós-aula quando significativa;
+**(c) comunicadas** à coordenação/direção (no caso do Ritmos, à Gabi) quando impedem o
+trabalho.
+O professor **não avalia** o que o sujeito não pode executar por restrição física —
+apenas registra. A decisão sobre o que fazer não é dele.
 
 ## Nota metodológica
 
