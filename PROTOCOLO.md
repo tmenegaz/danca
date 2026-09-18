@@ -5,7 +5,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 
 - o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
 - este documento diz **como a aula se torna objeto de investigação sem que a
-  investigação contamine a aula** (19 regras pétreas).
+  investigação contamine a aula** (21 regras pétreas).
 
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
@@ -16,7 +16,7 @@ em ato**, com cadeia de proveniência **FIPP**.
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
 
-## As 19 regras pétreas
+## As 21 regras pétreas
 
 **P-01 — O ciclo é PO latente.**
 A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
@@ -116,6 +116,30 @@ o professor escolhe, o PO é raiz.
 Os prompts que o projeto usa para eliciar e instalar ciclos ficam versionados em
 `prompts/`. O pesquisador não precisa carregá-los na cabeça nem recopiá-los entre
 ferramentas — o Cline os executa direto do repositório.
+
+**P-20 — Problemas semelhantes recebem soluções semelhantes.**
+Se o mesmo professor já definiu uma solução para um problema em um ciclo, a mesma
+solução é aplicada em qualquer outro ciclo dele onde o mesmo problema apareça. A
+solução é do professor, não da escola — porque quem conduz é ele. Vale para qualquer
+problema (posterior, adutor, rotadores, coordenação braço-perna, hiperlordose, etc.),
+não só os exemplos citados. A regra transporta **soluções para problemas recorrentes**
+(exercícios, correções, preparações), não conteúdo específico do ciclo (objetivo
+geral, música, repertório).
+
+**P-21 — Documentos publicados usam linguagem harmonizada.**
+Descrições de sujeitos em documentos publicados (pacote HTML/PDF) são harmonizadas —
+o fato permanece, o juízo sai. Termos como "ruim", "precária", "travado", "sem" são
+reescritos ("insuficiente", "em construção", "a desenvolver", "a aprimorar"). O
+material bruto (em `campo/`) preserva a linguagem original; o documento publicado usa
+a versão harmonizada.
+
+> **A harmonização é proposta, não imposição.** O professor revê a tabela bruto ×
+> harmonizado do seu ciclo (`ciclo-XX-<escola>-harmonizacao.md`) e pode reescrever
+> com as próprias palavras — ou manter o termo original, com nota de proveniência. O
+> sistema não censura; ele oferece uma segunda chance de dizer o que se quis dizer.
+>
+> Cada resposta do professor gera uma **nova versão** do ciclo, reancorada; a
+> anterior permanece no histórico. A proveniência acrescenta, não edita (P-03/P-04).
 
 ## Nota metodológica
 
