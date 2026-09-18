@@ -7,15 +7,16 @@ id: ciclo-01-duo
 type: Ciclo
 ciclo: 01
 variante: duo
-hash_conteudo: 25aea51e2424c803dc85b90b64f78c825df968f488c9d2fff234c50f9f3847e6
+hash_conteudo: 1c848e529faac3872831edb4f8f107c0376b7d267d5e2c32bc31a5931628d9ea
 parentHash: 
-hash: 6ec53b5751289c7eea12397f56078faca5162831724030cfc9b886bdd9860a23
+hash: 52ac6e229b10a15216a150816a3bded8853c10ac7d3a15b75473e854487d3378
 algoritmo: SHA-256
 po: ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado
 cobertura:
   - ciclos/ciclo-01-apanhado-historico.md
   - ciclos/ciclo-01-aula-01.md
+  - ciclos/ciclo-01-captura-aula-01.md
   - ciclos/ciclo-01-duo-po.md
   - ciclos/ciclo-01-duo.conf
   - ciclos/ciclo-01-glossario-benesh.md

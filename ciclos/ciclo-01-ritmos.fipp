@@ -7,15 +7,16 @@ id: ciclo-01-ritmos
 type: Ciclo
 ciclo: 01
 variante: ritmos
-hash_conteudo: d7875d3e3aca1a4d1b3e0b26ab5b78cf50858968bdd3ef8b3988eb0108c83252
+hash_conteudo: 14669026a6ef7931a7d2a059606d2a115d823ea0e314ca1268e99a59f5aa2c31
 parentHash: 
-hash: 52e785c295d59643d2a4c7ce0b5ea5cc6cab7451a37a2aa799bc4806ddec132c
+hash: ba526082a3e1875cccd1ea1f4294c75e0e1946635eaad24f1671278fb3b2f73b
 algoritmo: SHA-256
 po: ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Aguardando
 cobertura:
   - ciclos/ciclo-01-apanhado-historico.md
   - ciclos/ciclo-01-aula-01.md
+  - ciclos/ciclo-01-captura-aula-01.md
   - ciclos/ciclo-01-glossario-benesh.md
   - ciclos/ciclo-01-index.md
   - ciclos/ciclo-01-musicalidade-aluna.md
