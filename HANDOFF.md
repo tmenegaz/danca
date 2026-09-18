@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T13:27:29-0300`
-Commit atual: `547907e` — docs(estrutura): atualiza documentos da raiz para a estrutura por professor
+Gerado em: `2026-09-18T13:28:02-0300`
+Commit atual: `c1c3f4b` — chore(tools): regera HANDOFF
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,7 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+c1c3f4b chore(tools): regera HANDOFF
 547907e docs(estrutura): atualiza documentos da raiz para a estrutura por professor
 53692ba feat(biblioteca): guia do professor no pacote de ciclo
 51cf250 feat(protocolo): acrescenta P-13 e P-14 (PO por professor, departamento)
@@ -34,16 +35,13 @@ a5efb8b docs(biblioteca): documenta as duas listas de referencia (trabalho x pub
 b7b2d9a fix(tools): hook valida o PO de cada variante, nao so o da ultima
 dac289c chore(tools): regera o HANDOFF apos a gravacao na pagina publicada
 10b9910 docs(ciclo-01): registra a gravacao de referencia do Peasant Pas de Deux
-ca57b7e chore(tools): regera o HANDOFF apos as correcoes
 ```
 
 ## Por professor
 
 ### tiago — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): debora
-duo
-ritmos
+**Ciclo 01** — variante(s): debora, duo, ritmos
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|

@@ -76,7 +76,7 @@ variantes_de() {
     echo
     for c in $(ciclos_de "$p"); do
       variantes="$(variantes_de "$p" "$c")"
-      echo "**Ciclo $c** — variante(s): ${variantes:-nenhuma}"
+      echo "**Ciclo $c** — variante(s): $(printf '%s' "$variantes" | tr '\n' ' ' | sed 's/ $//; s/ /, /g')"
       echo
       echo "| Escola | PO | state | Marcadores [Preencher] |"
       echo "|:--|:--|:--|--:|"
