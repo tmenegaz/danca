@@ -31,7 +31,8 @@ aconteceu em aula, não classifica pessoas (P-06).
 │       │   ├── ciclo-01.conf             manifesto base (objetivo, aulas, faixas)
 │       │   ├── ciclo-01-<escola>.conf    contexto institucional: duo · ritmos · debora
 │       │   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
-│       │   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (não versionado)
+│       │   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (versionado — o
+│       │                                 deploy automático publica daqui)
 │       ├── cadernos/             caderno descritivo por aula (P-06)
 │       ├── relatorios/           relatórios pós-aula, um por aula
 │       └── campo/                material bruto de campo

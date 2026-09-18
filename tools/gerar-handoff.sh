@@ -60,7 +60,7 @@ variantes_de() {
   echo "  + **$total_petreas pétreas** em \`PROTOCOLO.md\`"
   echo "- **Professores:** ${professores:-nenhum} ($(printf '%s' "$professores" | wc -w))"
   echo "- **Ciclos com manifesto:** $(ls -1 professores/*/ciclos/ciclo-*.conf 2>/dev/null | grep -cE 'ciclo-[0-9]+-.*\.conf$' || echo 0) variante(s)"
-  echo "- **Saídas geradas:** fora do Git (reconstruíveis — P-04)"
+  echo "- **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)"
   echo
   echo "## Últimos commits"
   echo

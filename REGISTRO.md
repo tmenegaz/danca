@@ -97,3 +97,36 @@ regras), `PROTOCOLO.md` (P-04, P-12).
 **O que ainda não está feito.**
 Licença do repositório (a definir); o envio para o GitHub, que acontece fora do
 repositório, na máquina da pesquisadora.
+
+## 18/09/2026 — Pacotes de ciclo passam a ser versionados (deploy automático)
+
+**O que aconteceu.**
+O deploy do material passou a ser **automático a partir do GitHub** (Netlify, uma conta por
+escola). Como o serviço lê o repositório, o pacote gerado precisa estar nele — e até aqui as
+saídas ficavam fora do Git, por `.gitignore`.
+
+**O que foi decidido.**
+- Os pacotes (`professores/<p>/ciclos/ciclo-XX-<escola>/`: HTML, PDF e `assets/`) passam a
+  ser **versionados** — inclusive os `assets/`, que são o estilo e os mapas sem os quais a
+  página não funciona.
+- **A P-04 continua valendo integralmente:** o hash FIPP segue cobrindo apenas as fontes
+  (`.conf` e `.md`). Versionar a saída não altera âncora nenhuma — conferido com `--check`.
+- O `pre-commit` deixa de barrar essas saídas (a regra que recusava arquivos gerados ganhou
+  a exceção do pacote de ciclo). O `out/` da apresentação, os `.pptx` e os PNGs de slide
+  seguem barrados.
+- O que se aceita em troca: cada regeneração de pacote entra no histórico, e o diff passa a
+  mostrar HTML e PDF além das fontes. Foi o custo escolhido para ter deploy automático.
+- O `tools/deploy-netlify.sh` (deploy por linha de comando) continua disponível, mas com o
+  deploy pelo Git ele passa a ser opcional.
+
+**Com o quê.**
+`.gitignore`, `tools/hooks/pre-commit`, `README.md`, `README-ciclos.md`,
+`tools/gerar-handoff.sh`, `professores/tiago/ciclos/ciclo-01-{duo,ritmos,debora}/`.
+
+**Referências.**
+`PROTOCOLO.md` P-04 (hash sobre fontes); `REGRAS.md` 17 (versionamento);
+`README-ciclos.md` (formato de entrega).
+
+**O que ainda não está feito.**
+Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
+licença do repositório.

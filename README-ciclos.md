@@ -249,7 +249,7 @@ REGRAS.md · README.md · README-ciclos.md
 | **Escopos** | `ciclo-XX` · `aula-XX` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `apresentacao-XX` · `biblioteca` · `tools` · `regras` |
 | **Branches** | `main` só recebe conteúdo auditado; `ciclo-XX` e `apresentacao-XX` são linhas de trabalho, mergeadas após auditoria |
 | **Hooks** | `tools/instalar-hooks.sh` instala `pre-commit` e `commit-msg` (a fonte versionada fica em `tools/hooks/`, porque o Git não versiona `.git/hooks`) |
-| **Ignorado** | `out/`, `professores/*/ciclos/*/*.pdf`, `professores/*/ciclos/*/*.html`, `professores/*/ciclos/*/assets/`, `.vscode/settings.json` |
+| **Ignorado** | `out/`, `.pptx`, PNGs de slide da apresentação, `tools/.netlify-tokens`, `.vscode/settings.json`. Os **pacotes de ciclo são versionados** (HTML, PDF e `assets/`), porque o deploy automático lê o repositório |
 
 O que o `pre-commit` faz, na prática:
 

@@ -1,11 +1,14 @@
 # ============================================================================
 # Saídas geradas — reconstruíveis a partir das fontes por tools/*.sh|js.
-# Não versionar: infla o repositório e cria ruído de diff.
+#
+# Os PACOTES DE CICLO são a exceção: eles são versionados, porque o deploy é
+# automático a partir do GitHub (Netlify) e o serviço precisa dos arquivos no
+# repositório — HTML, PDF e assets/ (o CSS e os mapas sem os quais a página não
+# funciona). Isso NÃO muda a P-04: o hash FIPP continua cobrindo só as fontes.
+#
+# O `out/` da apresentação segue fora do Git.
 # ============================================================================
 out/
-professores/*/ciclos/*/*.pdf
-professores/*/ciclos/*/*.html
-professores/*/ciclos/*/assets/
 
 # ============================================================================
 # Credenciais — NUNCA versionar

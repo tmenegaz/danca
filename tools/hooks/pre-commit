@@ -24,7 +24,12 @@ arquivos="$(git diff --cached --name-only --diff-filter=ACMR)"
 # ---------------------------------------------------------------------------
 # 1) saídas geradas não entram no histórico: são reconstruíveis das fontes
 # ---------------------------------------------------------------------------
-gerados="$(printf '%s\n' "$arquivos" | grep -E '^(out/|.*\.pdf$|professores/[^/]+/ciclos/[^/]+/[^/]+\.html$|.*\.pptx$|.*/img/slide-.*\.png$)' || true)"
+# Os pacotes de ciclo (professores/*/ciclos/ciclo-NN-escola/) SÃO versionados, porque o
+# deploy é automático a partir do GitHub — por isso a exceção no fim do filtro. O `out/`
+# da apresentação, os .pptx e os PNGs de slide seguem barrados.
+gerados="$(printf '%s\n' "$arquivos" \
+  | grep -E '^(out/|.*\.pdf$|.*\.pptx$|.*/img/slide-.*\.png$)' \
+  | grep -vE '^professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/' || true)"
 if [ -n "$gerados" ]; then
   echo "pre-commit: arquivos gerados no stage (não versionar — são reconstruíveis):" >&2
   printf '  %s\n' $gerados >&2
