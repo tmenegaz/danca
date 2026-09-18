@@ -1,0 +1,133 @@
+# Protocolo Metodológico — Projeto Ciclo
+
+Este documento é **complementar** ao [`REGRAS.md`](REGRAS.md), não concorrente.
+Os dois são irmãos e respondem a perguntas diferentes:
+
+- o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
+- este documento diz **como a aula se torna objeto de investigação sem que a
+  investigação contamine a aula** (9 regras pétreas).
+
+Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
+artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
+ciclo, ao mesmo tempo, uma prática pedagógica e um **Protocolo de Observação (PO)
+em ato**, com cadeia de proveniência **FIPP**.
+
+> **Vocabulário desta camada** — **PO:** Protocolo de Observação · **PE:**
+> Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
+> Framework de Infraestrutura de Proveniência Peirceana.
+
+## As 9 regras pétreas
+
+**P-01 — O ciclo é PO latente.**
+A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
+o ciclo enuncia uma meta; o PO enuncia uma pergunta. Não há dois documentos —
+há duas leituras de um só artefato.
+
+**P-02 — O PO declarado de um ciclo vem do ciclo anterior.**
+O relatório pós-aula do Ciclo N alimenta a declaração do PO do Ciclo N+1. Não se
+declara depois de observar — declara-se antes do ciclo seguinte, com base no que
+o anterior revelou.
+
+**P-03 — FIPP alinha; Git ramifica.**
+O hash FIPP de um ciclo inclui o hash do ciclo anterior (`parentHash`). Não há
+ramificação — há acúmulo. O passado não é reescrito; é incorporado.
+
+**P-04 — Hash SHA-256 sobre fontes, versionado.**
+O hash cobre apenas os arquivos-fonte do ciclo (`.conf` + `.md`), em ordem
+determinística (LC_ALL=C). As saídas (HTML, PDF) não entram. O `.fipp` é âncora
+da cadeia, não saída reconstruível — é versionado.
+
+**P-05 — O ciclo produz material, não evidência.**
+Evidência é produzida pelo PPQ, e o PPQ exige condições metodológicas que não
+estão disponíveis durante a prática. Chamar material de evidência antes do tempo
+é teleologia.
+
+**P-06 — O caderno de ciclo é descritivo, não analítico.**
+O caderno descreve o que aconteceu; não classifica, não avalia, não conclui.
+Registra o *antes* da memória — a memória reescreve o passado para se tornar
+coerente.
+
+**P-07 — Nenhuma classificação tácito/arquivo sem as quatro condições.**
+Distância reflexiva, auditabilidade externa, validação por pares, separação de
+papéis. Enquanto essas condições não existirem, o material permanece bruto.
+
+**P-08 — Os campos do ciclo são declarados em schema.**
+Cada ciclo tem o seu `ciclo-XX-schema.json`. O `hash-ciclo.sh` valida os `.conf`
+contra o schema antes de calcular o hash. Isso formaliza o que o paper do
+mestrado chama de "formulário dinâmico".
+
+**P-09 — Um caderno por ciclo, por escola.**
+Reforça o Pré-requisito 5 no domínio dos artefatos de observação. Não há mistura
+entre escolas — nem nos registros.
+
+## Nota metodológica
+
+### PO latente × PO declarado
+
+Todo ciclo já é um protocolo de observação — só que **latente**. Quando o plano
+diz "ao final da aula, a aluna mantém o calcanhar no chão no demi-plié", ele está
+enunciando uma **meta**; o mesmo enunciado, lido como **pergunta**, é "como o
+calcanhar se comporta no demi-plié enquanto a aluna aprende?".
+
+| | Ciclo (como já existe) | PO declarado (camada nova) |
+|:--|:--|:--|
+| Enunciado | meta: "construir X" | pergunta: "observar como X se constrói" |
+| Quando se escreve | antes da aula | **antes do ciclo seguinte**, com base no que o anterior revelou |
+| Função | conduzir a prática | preservar comparabilidade entre ciclos |
+| Artefato | `ciclos/ciclo-XX-*.md` | o mesmo artefato + a declaração do PO |
+
+**Não são dois documentos.** São duas leituras do mesmo artefato. A declaração do
+PO de um ciclo é escrita com o relatório pós-aula do ciclo anterior em mãos
+(P-02) — declarar depois de observar seria descrever o resultado, não a pergunta.
+
+### Material × evidência
+
+| | Material bruto (o que o ciclo produz) | Evidência (o que o PPQ produz) |
+|:--|:--|:--|
+| O que é | registro descritivo do que aconteceu: caderno, planos, relatórios | material classificado contra uma norma |
+| Quando existe | durante e logo após a prática | depois da análise, sob condições metodológicas |
+| O que falta para virar evidência | as quatro condições da P-07 | — |
+| Risco de confundir | teleologia: chamar de prova o que ainda é registro | — |
+
+As quatro condições da **P-07** — distância reflexiva, auditabilidade externa,
+validação por pares e separação de papéis — não estão disponíveis **durante** a
+aula. Enquanto não estiverem, o material permanece bruto e é assim que ele deve
+ser tratado (inclusive nos textos que o citam).
+
+### FIPP alinha; Git ramifica
+
+O Git guarda **linhas** de desenvolvimento: ramos divergem, e um rebase pode
+reescrever o passado de um ramo sem que o outro saiba. O FIPP guarda
+**acúmulo**: o hash de um ciclo incorpora o hash do anterior, então mexer no
+passado deixa o presente sem bater — e a verificação acusa.
+
+```
+hash_conteudo = SHA256(fontes do ciclo, em ordem determinística)
+hash_fipp     = SHA256(id + ":" + type + ":" + parentHash + ":" + hash_conteudo)
+```
+
+- `id` = `ciclo-01-duo` · `type` = `Ciclo` · `parentHash` = hash FIPP do ciclo
+  anterior (vazio no Ciclo 01) · `conteudo` = hash das fontes.
+- As fontes são os `.conf` e os `.md` do ciclo; as saídas (HTML, PDF) **não**
+  entram: são reconstruíveis (P-04).
+- O `.fipp` é **versionado** — é a âncora da cadeia, não uma saída.
+
+Implementação: [`tools/hash-ciclo.sh`](tools/hash-ciclo.sh), com validação de
+schema ([`tools/validar-schema-ciclo.js`](tools/validar-schema-ciclo.js)) e
+verificação no `pre-commit`.
+
+## Relação com `REGRAS.md`
+
+| Pergunta | Onde está a resposta |
+|:--|:--|
+| Como montar a aula (estrutura, volume, musicalidade)? | `REGRAS.md` — regras 1 a 17 |
+| Que dados o professor precisa informar antes? | `REGRAS.md` — os 5 pré-requisitos |
+| Como registrar o que aconteceu sem contaminar a aula? | [`protocolo/governanca-caderno.md`](protocolo/governanca-caderno.md) |
+| Como declarar a pergunta que o próximo ciclo persegue? | este documento — P-01 e P-02 |
+| Como provar que o material não foi reescrito depois? | este documento — P-03 e P-04 + `tools/hash-ciclo.sh` |
+| Quando o material pode ser chamado de evidência? | este documento — P-05 e P-07 |
+
+> **Regra de convivência:** nenhuma regra pétrea altera uma regra do `REGRAS.md`.
+> Se um dia houver conflito, o conflito é sinal de que falta uma regra — não de
+> que uma das duas deve ceder em silêncio.
+
