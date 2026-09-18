@@ -59,6 +59,12 @@ Regras de escrita:
   uma linha, não um parágrafo;
 - **sem adjetivo essencializante** sobre pessoas (ver a tabela "O que evitar").
 
+> **Apelidos, não letras.** No caderno de um ciclo, as alunas são referidas pelos
+> **apelidos declarados no PO** (P-12) — nunca por letras (A, B, C) nem por descrições
+> permanentes ("a aluna mais alta"). O apelido é o mesmo da aula 01 à aula 12 e em
+> todos os relatórios. (O exemplo abaixo é **genérico e inventado**: não é de uma turma
+> do projeto, por isso não usa os apelidos do Duo.)
+
 ## Exemplo preenchido (fictício, para ilustração)
 
 > Este exemplo é **inventado** para mostrar a forma. Não descreve aula real de

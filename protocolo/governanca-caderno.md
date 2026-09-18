@@ -44,6 +44,12 @@ entender a cena:
 | **Fala da aluna (citação direta)** | "18/09 — 'quando eu penso no dedinho, eu perco o resto.'" |
 | **Condição do espaço/materiais** | "18/09 — espelho ocupado por outra turma; correções feitas por toque e vídeo." |
 
+> **Referência às alunas (P-12).** No caderno e no relatório, cada aluna é referida
+> pelo **apelido estável** declarado no PO (Ceci, Ana, Mel, Sofi). Nunca pelo nome
+> completo, nunca por letra (A, B, C), nunca por descrição ("a aluna mais alta"). O
+> apelido é o mesmo em todo o ciclo — se a aluna é Ceci na aula 01, é Ceci na aula 12
+> e em todos os relatórios.
+
 ## 4. O que NÃO se registra
 
 O caderno **não classifica, não julga, não conclui**. Não porque classificar seja
