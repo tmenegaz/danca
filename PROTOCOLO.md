@@ -5,7 +5,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 
 - o `REGRAS.md` diz **como dar aula com rigor** (17 regras + 5 pré-requisitos);
 - este documento diz **como a aula se torna objeto de investigação sem que a
-  investigação contamine a aula** (14 regras pétreas).
+  investigação contamine a aula** (19 regras pétreas).
 
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
@@ -16,7 +16,7 @@ em ato**, com cadeia de proveniência **FIPP**.
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
 
-## As 14 regras pétreas
+## As 19 regras pétreas
 
 **P-01 — O ciclo é PO latente.**
 A estrutura do ciclo e do PO são as mesmas. A diferença é a direção do olhar:
@@ -88,6 +88,34 @@ Quando a escola tem metodologia comum, existe um PO de departamento — a norma
 institucional. Cada PO de professor derivado tem `parentHash` = hash do PO de
 departamento. Quando a escola não tem metodologia comum, o PO do professor é raiz (sem
 `parentHash`). O PO de departamento é opcional: só existe onde a escola o declara.
+
+**P-15 — A notação segue a metodologia declarada.**
+Se a metodologia usa notação (ex.: RAD usa Benesh), o ciclo gera o documento de
+notação naquela notação. Se não usa notação formal, o ciclo **não gera** documento de
+notação — e declara a ausência com justificativa.
+
+**P-16 — Metodologia e notação são declaradas na eliciação.**
+A eliciação pergunta explicitamente: (a) que metodologia o professor usa? (b) que
+notação domina? (c) quem define a metodologia — o professor ou a escola? O ciclo só
+gera os artefatos que a resposta sustenta.
+
+**P-17 — Todo ciclo produz os mesmos tipos de artefato do ciclo piloto.**
+O ciclo do Duo é o padrão mínimo. Todo ciclo novo produz: plano, aulas, PO,
+relatório-preview, captura em aula, pré-requisitos, musicalidade, musicalidade-aluna,
+apanhado histórico, referências, guia do professor — e notação + glossário **quando a
+metodologia exigir** (P-15). Quando um artefato não se aplica, é declarado ausente com
+justificativa.
+
+**P-18 — A metodologia pode ser imposta pela escola.**
+O professor pode não escolher a metodologia — ela pode vir da escola (por departamento
+ou por decisão da direção). Nesse caso, o PO registra a origem da metodologia
+(professor ou escola). Se a escola impõe, o PO deriva da norma institucional (P-14). Se
+o professor escolhe, o PO é raiz.
+
+**P-19 — Os prompts do projeto vivem no repositório.**
+Os prompts que o projeto usa para eliciar e instalar ciclos ficam versionados em
+`prompts/`. O pesquisador não precisa carregá-los na cabeça nem recopiá-los entre
+ferramentas — o Cline os executa direto do repositório.
 
 ## Nota metodológica
 
