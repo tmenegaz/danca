@@ -133,12 +133,19 @@ ela é a própria **heterogeneidade das pré-condições**:
 | **Mel** | Potencial físico a desenvolver (a que mais tem atributos). Musicalidade forte. Harmonia. | Foco (dispersa; entedia-se). Resistência física e mental. Enfrentamento (desiste nas dificuldades). Sustentação de postura. Resiliência a dor. Alongamento do posterior. Rotadores externos. |
 | **Sofi** | Musicalidade, concentração, inteligência, força de vontade, alegria. Boa memória para exercícios. Proponente em sala. | Atributos físicos para o balé clássico — **observação da professora**: o que se observa é a ausência de atributos físicos no estado atual, o que não impede desenvolvimento, e é justamente o que o ciclo se propõe a acompanhar. |
 
+> **Nota sobre "resiliência a dor":** o termo descreve o **limiar atual** de cada aluna
+> (a Ana desiste ao primeiro desconforto; a Mel também), **não** um valor ou mérito. O
+> projeto não naturaliza a dor como parte do aprendizado (ver Regra 12 e a posição
+> declarada via Wulff). O que se observa é onde o limiar está hoje — e se ele se move
+> com o ciclo.
+
 > **Mel — proponente, mas fora do tema.** A Mel também é proponente em sala (como a
 > Sofi), mas as propostas tendem a sair do tema da aula — gosta muito de brincadeiras.
 >
 > **Ana — musicalidade em observação.** Não acompanha no início dos exercícios de
-> bater palma; segue a turma. Ainda não está decidido se é por destilação (acompanha
-> por contágio) ou por compreensão tardia. Em observação.
+> bater palma; segue a turma. Ainda não está decidido se é por **contágio** (acompanha
+> a turma por imitação, e não por compreensão própria) ou por compreensão tardia. Em
+> observação.
 
 ## Critérios de inclusão
 
