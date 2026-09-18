@@ -4,6 +4,10 @@ Documento de referência versionado com o código. Cada aula, ciclo ou apresenta
 gerado pelo projeto deve poder ser auditado contra estas regras, e cada commit
 declara quais delas aplicou (rodapé `Regras:`).
 
+> As 17 regras deste documento dizem **como dar aula com rigor**. As regras
+> pétreas que dizem **como a aula se torna objeto de investigação sem que a
+> investigação contamine a aula** estão em [`PROTOCOLO.md`](PROTOCOLO.md).
+
 ## Pré-requisitos obrigatórios (o que o professor informa antes de qualquer geração)
 
 | # | Pré-requisito | Observação |
