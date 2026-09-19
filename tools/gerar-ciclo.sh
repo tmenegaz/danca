@@ -313,15 +313,22 @@ gerar_nav() {
     }
 
     membros=""
+    # ------------------------------------------------------------------
+    # Sequência do menu (decisão da pesquisadora, 19/09/2026):
+    #   "Apoio" deixou de existir — notação e glossário vão para Planejamento;
+    #   "musicalidade" (a do professor) saiu de Planejamento para Área do
+    #   Professor; "musicalidade-aluna" (a folha da aluna) fica em Planejamento.
+    # `caderno-*` já está previsto no Acompanhamento: entra sozinho no dia em que
+    # o caderno for publicado no pacote (hoje ele vive fora, em cadernos/).
+    # ------------------------------------------------------------------
     for item in \
       "Início|index" \
       "Ciclos|plano referencias" \
       "Aulas|aula-*" \
-      "Acompanhamento|acompanhamento-* relatorio-aula-* captura-aula-*" \
-      "Planejamento|pre-requisitos musicalidade musicalidade-aluna" \
-      "Apoio|notacao glossario-*" \
+      "Acompanhamento|acompanhamento-* relatorio-aula-* captura-aula-* caderno-*" \
+      "Planejamento|pre-requisitos musicalidade-aluna notacao glossario-*" \
       "Apanhado Histórico|apanhado-historico" \
-      "Área do Professor|harmonizacao guia-do-professor"
+      "Área do Professor|musicalidade harmonizacao guia-do-professor"
     do
       nome="${item%%|*}"
       padroes="${item#*|}"
@@ -357,7 +364,7 @@ gerar_nav() {
     for doc in $DOCS $ACOMP_DOCS; do
       case "$doc" in
         index|plano|referencias|aula-*) ;;
-        relatorio-aula-*|captura-aula-*|acompanhamento-*) ;;
+        relatorio-aula-*|captura-aula-*|acompanhamento-*|caderno-*) ;;
         pre-requisitos|musicalidade|musicalidade-aluna) ;;
         notacao|glossario-*|harmonizacao|guia-do-professor) ;;
         apanhado-historico) ;;
