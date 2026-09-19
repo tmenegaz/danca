@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T22:17:28-0300`
-Commit atual: `8f4490b` — docs(relatorio-01): registra a aula 01 do Duo
+Gerado em: `2026-09-18T22:45:25-0300`
+Commit atual: `70c9d8d` — fix(ciclo-01): preview e nota da Ana do Duo (caminhos e formulacao)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,10 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+70c9d8d fix(ciclo-01): preview e nota da Ana do Duo (caminhos e formulacao)
+c0de989 fix(ciclo-01): corrige os caminhos no preview do relatorio do Ritmos
+39be66a chore(tools): regenera HANDOFF apos caderno e relatorio da aula 01
+790f242 chore(tools): aceita os escopos caderno-NN e relatorio-NN no hook
 8f4490b docs(relatorio-01): registra a aula 01 do Duo
 8ef22b9 docs(caderno-01): registra a aula 01 do Duo
 76ce650 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos harmonizacao
@@ -31,10 +35,6 @@ a5a56d2 fix(ciclo-01): completa apanhado historico do Ritmos (Quebra-Nozes, dois
 5ff12ac fix(ciclo-01): corrige PO do Ritmos (21 encontros, Homans, P-11, P-22, checklist)
 0386cf9 feat(protocolo): acrescenta P-22 (condicoes materiais de execucao)
 012c6dc fix(ciclo-01): corrige plano e aula-01 do Ritmos (21 encontros, Tony, sem volume-120)
-34645ef feat(ciclo-01): completa artefatos do Ritmos (notacao, glossario, musicalidade x2)
-4585d9a chore(tools): regenera ancoras, pacote e HANDOFF
-f70b738 feat(ciclo-01): tabela bruto x harmonizado do Ritmos
-abd6c58 feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguagem harmonizada)
 ```
 
 ## Por professor
@@ -50,8 +50,8 @@ abd6c58 feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguag
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `f99c8ef2879a` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `006aac3f8a29` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `ae7e63fb7964` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `28df49bea510` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -100,54 +100,50 @@ abd6c58 feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguag
 
 ## Última entrada do REGISTRO
 
-## 18/09/2026 — PO do Ritmos validado + P-22
+## 18/09/2026 — Publicação, primeira reancoragem da Duo e o caderno da Aula 01
 
 **O que aconteceu.**
-O PO do Ritmos passou para **`Input_PO_Validado`** (os cinco itens do checklist
-marcados), depois de quatro correções: o total de encontros (20 → **21**, com nota de
-correção no próprio campo), o `theoreticalBasis` (incorpora **Homans**, que o professor
-declarou em "Documentos auxiliares"), as **condições de contorno (P-11)** preenchidas e a
-linha de base com a subseção de **restrições físicas (P-22)**. O apanhado histórico foi
-completado: os dois pas de deux de *O Quebra-Nozes* identificados, com produção de
-referência, estrutura e elenco — e a exclusão da versão de Nureyev registrada como
-decisão do professor. A **P-22** entrou no `PROTOCOLO.md` (**22 pétreas**) e foi aplicada
-nos dois prompts e na governança do caderno.
+- **Publicado:** os commits acumulados foram enviados ao `origin/main` (o bloqueio
+  anterior — o nome próprio num documento publicado — tinha caído na harmonização). O
+  Netlify reconstrói os dois sites a partir do push.
+- **Caderno e relatório da Aula 01 do Duo** escritos a partir da aula de 18/09: o
+  primeiro **ciclo completo** do projeto — PO declarado → aula dada → caderno escrito →
+  relatório gerado.
+- **Preview e PO da Duo corrigidos:** os dois caminhos pré-migração no preview do
+  relatório, a formulação da nota da Ana e a nota de proveniência, que dizia que o
+  primeiro relatório pós-aula ainda não existia — ele existe, e a nota passou a apontar
+  o caminho.
+- **Preview do Ritmos corrigido** (os mesmos dois caminhos), no commit imediatamente
+  anterior a este.
 
 **O que foi decidido.**
-- **P-22:** as condições materiais de execução são **declaradas** (PO), **registradas**
-  (caderno e relatório) e **comunicadas** (coordenação); o professor **não avalia** o que
-  o sujeito não pode executar por restrição física.
-- Restrições conhecidas neste ciclo: **Carol** (tornozelos, joelhos) e **Pássaro Azul**
-  (ombro — provavelmente direito, a confirmar) — ambas declaradas pela **pesquisadora**,
-  porque a entrega do professor é anterior à pétrea.
-- Os dois pas de deux do ciclo: **PDD 1** (após a batalha com o Rei dos Ratos, Ato I) com
-  **Mari**; **PDD 2** (Grand Pas, Ato II) com **Carol e Dada**, que revezam.
-- A identificação dos números, da produção (Peter Wright, Royal Ballet) e do elenco é
-  declaração da **pesquisadora**; o professor declarou as músicas e a obra.
-- Exclusão da versão Nureyev: decisão pedagógica do professor, registrada no apanhado.
+- **A âncora do ciclo da Duo muda pela primeira vez:** `f99c8ef2879a` → **`ae7e63fb7964`**.
+  É o inverso do que está registrado mais acima, no mesmo dia: lá a âncora dela
+  permaneceu intacta justamente porque o ciclo **não** tinha sido tocado; aqui foi, com
+  autorização da pesquisadora.
+- A formulação nova descreve o **processo** (escutar mais tempo, começar depois e
+  responder certo), não o **efeito** (demorar). O que se observa não mudou; mudou o nome
+  do que se observa.
+- **O registro guarda os dois lados.** A nota de correção no próprio PO nomeia o termo
+  antigo, como a tabela de harmonização faz com os termos do professor. Uma correção que
+  apaga o que corrigiu não é proveniência — é edição.
+- A âncora do **Ritmos** foi regerada duas vezes nesta rodada (na harmonização e no
+  preview), e nenhuma delas mudou o conteúdo do ciclo.
 
 **Com o quê.**
-`PROTOCOLO.md`, `prompts/eliciar-ciclo.md`, `prompts/instalar-ciclo.md`,
-`protocolo/governanca-caderno.md`,
-`professores/tiago/ciclos/ciclo-01-ritmos{,-po.md,-apanhado-historico.md,.fipp}` e o
-pacote gerado.
+`professores/tiago/ciclos/ciclo-01-duo-po.md`, `…ciclo-01-relatorio-aula-01.md`,
+`…ciclo-01-duo.fipp`, `…ciclo-01-ritmos-relatorio-aula-01.md`, `…ciclo-01-ritmos.fipp`,
+`professores/tiago/cadernos/ciclo-01/caderno-01-duo.md`,
+`professores/tiago/relatorios/ciclo-01/aula-01-duo.md`, `tools/hooks/commit-msg`.
 
 **Referências.**
-RAD (2015); Homans (2010); Taylor (2013); Polanyi (1966); Clippinger (2024).
+P-05 (proveniência), P-06 (registro descritivo), P-10 (linha de base), P-12 (apelidos),
+P-21 (linguagem harmonizada).
 
 **O que ainda não está feito.**
-- **A notação não existe ainda.** O documento está publicado como **moldura**, com
-  `[Preencher: notação do passo]` em cada célula — quem escreve é o professor (P-15). Sem
-  ela, o glossário Benesh fica à frente do registro: o validador avisa, e é esperado.
-- **Gravações de referência** de cada pas de deux e o **cruzamento fino** entre os passos
-  da Aula 01 e cada número do repertório: `[Preencher]` — ninguém declarou ainda.
-- **Os termos entre aspas** no plano e na aula-01 ("execução ruim", "meninos travados")
-  continuam crus: citar é diferente de descrever, e a decisão é da pesquisadora.
-- **O pacote do ciclo da Duo** (rodapé derivado de `DOCS`) segue gerado e não commitado:
-  o ciclo dela não se altera sem autorização.
-- Ciclo da Débora; relatórios pós-aula do Duo e do Ritmos.
-- **Push:** os commits desta rodada estão prontos e **não foram enviados** — aguardam
-  decisão da pesquisadora.
+Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
+cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
+(após 19/09); conferir os dois sites no Netlify.
 
 ## O que está pendente
 
@@ -218,6 +214,12 @@ licença do repositório.
 - Ciclo da Débora; relatórios pós-aula do Duo e do Ritmos.
 - **Push:** os commits desta rodada estão prontos e **não foram enviados** — aguardam
   decisão da pesquisadora.
+
+## 18/09/2026 — Publicação, primeira reancoragem da Duo e o caderno da Aula 01
+
+Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
+cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
+(após 19/09); conferir os dois sites no Netlify.
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
