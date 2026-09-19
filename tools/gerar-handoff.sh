@@ -36,6 +36,13 @@ total_regras="$(awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md 2>/de
 # --- professores, ciclos e variantes ---------------------------------------
 professores="$(ls -1d professores/*/ 2>/dev/null | sed 's|professores/||; s|/$||' | LC_ALL=C sort || true)"
 
+# --- ideias documentadas (IDEIA-*.md na raiz) --------------------------------
+# Uma ideia é documento de INTENÇÃO, não de estado: fica fora do CONGELAMENTO, e
+# o HANDOFF só precisa dizer que ela existe — para a próxima sessão não ter de
+# reconstruir a conversa que a gerou. O resumo vem da linha que o próprio
+# documento declara (`> **Resumo (para o HANDOFF):**`); sem ela, vale o título.
+ideias="$(ls -1 IDEIA-*.md IDEIAS-*.md 2>/dev/null || true)"
+
 # ciclos de um professor: números dos manifestos base (ciclo-XX.conf)
 ciclos_de() {
   ls -1 "professores/$1/ciclos"/ciclo-[0-9]*.conf 2>/dev/null \
@@ -61,6 +68,26 @@ variantes_de() {
   echo "- **Professores:** ${professores:-nenhum} ($(printf '%s' "$professores" | wc -w))"
   echo "- **Ciclos com manifesto:** $(ls -1 professores/*/ciclos/ciclo-*.conf 2>/dev/null | grep -cE 'ciclo-[0-9]+-.*\.conf$' || echo 0) variante(s)"
   echo "- **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)"
+  echo
+  echo "## Ideias documentadas"
+  echo
+  if [ -n "$ideias" ]; then
+    for i in $ideias; do
+      titulo="$(sed -n 's/^# //p' "$i" | head -1)"
+      resumo="$(awk '
+        /^> \*\*Resumo \(para o HANDOFF\):/ { f=1 }
+        f {
+          l=$0
+          sub(/^> ?/, "", l)
+          if (l ~ /^[[:space:]]*$/) exit
+          print l
+        }' "$i" | tr '\n' ' ' | sed 's/\*\*Resumo (para o HANDOFF):\*\*//; s/  */ /g; s/^ //; s/ $//')"
+      [ -n "$resumo" ] || resumo="$titulo"
+      echo "- **\`$i\`** — $resumo"
+    done
+  else
+    echo "Nenhuma ideia documentada."
+  fi
   echo
   echo "## Últimos commits"
   echo
