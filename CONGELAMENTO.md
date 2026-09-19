@@ -12,6 +12,7 @@ motivo declarado, com commit próprio e entrada no `REGISTRO.md`.
 - `tools/templates/` — CSS, HTML, JS da navbar
 - `prompts/` — eliciação e instalação de ciclos
 - `biblioteca/guia-do-professor.md`
+- `METODO.md` — declaração de princípio (mudar exige motivo declarado)
 
 ## O que continua livre
 
