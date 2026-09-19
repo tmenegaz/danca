@@ -242,6 +242,11 @@ ancora() { printf '%s' "${ANCORA[$1]:-ciclo-$CICLO-$1}"; }
 # Rótulo do menu: o título declarado no YAML do próprio documento
 rotulo() {
   local src
+  # O caderno não tem front-matter (é registro, não documento): sem este caso o
+  # item do menu sairia vazio, porque a extração abaixo depende de `title:`.
+  case "$1" in
+    caderno-*) printf 'Caderno'; return ;;
+  esac
   src="$(fonte_md "$1")"
   if [ -f "$src" ]; then
     sed -n 's/^title:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$src" | head -1
@@ -397,6 +402,13 @@ for doc in $TODOS; do
     continue
   fi
   gerar_nav "$doc" "$TMP/nav.html"
+  # O caderno não tem front-matter (é registro, não documento): sem um título
+  # explícito, o pandoc usa o nome do arquivo e a aba do navegador sai
+  # "ciclo-01-caderno-01". Os demais documentos trazem `title:` da própria fonte.
+  METADADOS=()
+  case "$doc" in
+    caderno-*) METADADOS=(--metadata "title=Caderno — Ciclo $CICLO · $ESCOLA") ;;
+  esac
   pandoc "$src" \
     -o "$PACOTE/$doc.html" \
     --standalone --toc --toc-depth=3 \
@@ -405,6 +417,7 @@ for doc in $TODOS; do
     --template="$TPL/ciclo.html" \
     --css=assets/style.css \
     --include-before-body="$TMP/nav.html" \
+    "${METADADOS[@]}" \
     -V "lang=pt-BR" \
     -V "ciclo=$CICLO" \
     -V "ciclo-id=$ID" \

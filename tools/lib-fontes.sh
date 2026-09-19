@@ -19,6 +19,14 @@
 fonte_md() {
   case "$1" in
     guia-do-professor) printf '%s' "$RAIZ/biblioteca/guia-do-professor.md"; return ;;
+    caderno-*)
+      # O caderno é por ciclo e por escola, e vive FORA da pasta do ciclo:
+      #   professores/<professor>/cadernos/ciclo-XX/caderno-XX-<escola>.md
+      # É fonte do ciclo (entra no DOCS e no hash) e, publicado no pacote, é
+      # copiado como qualquer outro documento — decisão de 19/09/2026.
+      printf '%s' "${CICLOS%/ciclos}/cadernos/ciclo-$(printf '%02d' "${CICLO:-01}")/$1-${VARIANTE}.md"
+      return
+      ;;
   esac
   local proprio="$CICLOS/ciclo-$CICLO-${VARIANTE:-}-$1.md"
   if [ -n "${VARIANTE:-}" ] && [ -f "$proprio" ]; then
