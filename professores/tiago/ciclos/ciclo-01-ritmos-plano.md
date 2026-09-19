@@ -85,8 +85,11 @@ transferências de peso e estabilidade em par:
 | **Centro** | 30–40% | Integração dinâmica e autonomia postural |
 | **Musicalidade** | 5–10% | Treino auditivo e rítmico |
 
-> **[Preencher: confirmar com a pesquisadora se a proporção por blocos acima se
-> aplica a este ciclo.]** A Aula 01 distribui o volume nos blocos que o professor
+> **Nota (Regra 9):** a proporção por blocos (solo 30–40%, barra 20–30%, centro
+> 30–40%, musicalidade 5–10%) se aplica em **minutos** — a distribuição é do
+> tempo de aula, não do volume em tempos. A Regra 9 continua válida; o que muda é
+> a unidade da execução (o volume planejado permanece em tempos, como estimativa
+> do que se pretende tocar). A Aula 01 distribui o volume nos blocos que o professor
 > descreveu (tendus e jetés · transferência de peso · piqué arabesque) — a conta
 > está em
 > [Distribuição do Volume Físico da Aula 01](aula-01.html#distribuicao-do-volume-fisico).
