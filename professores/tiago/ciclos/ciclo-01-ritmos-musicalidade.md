@@ -16,8 +16,10 @@ referencias: "RAD (2025); RBO (2024)"
 > arabesque e a transferência de peso entre os parceiros.
 >
 > **Proveniência.** O professor declarou a **música** (os dois pas de deux de
-> *O Quebra-Nozes*) e a **dificuldade** da turma ("musicalidade precária", harmonizada
-> para "musicalidade em construção"). O aparato de ensino dos cinco conceitos é do
+> *O Quebra-Nozes*) e a **dificuldade** da turma em musicalidade — publicada como
+> **musicalidade em construção** (a formulação original dele está na
+> [tabela de harmonização](harmonizacao.html) e no material bruto, em `campo/`). O
+> aparato de ensino dos cinco conceitos é do
 > projeto, a partir de RAD (2025) e RBO (2024) — as mesmas fontes que sustentam o
 > bloco de musicalidade no ciclo piloto. Os exemplos são deste ciclo: **3/4**, com os
 > passos da Aula 01.
