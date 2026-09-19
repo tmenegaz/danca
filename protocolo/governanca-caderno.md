@@ -116,7 +116,32 @@ pessoas. O caderno existe para proteger a pesquisa de si mesma:
 - **protege o professor** — o caderno é o lugar legítimo do "não sei o que fazer
   com isso".
 
-## 8. Relação com as regras do projeto
+## 8. Ocorrências físicas (P-22)
+
+Se durante a aula algum aluno manifestar dor, lesão nova, agravamento de lesão prévia
+ou qualquer restrição física que afete a execução:
+
+1. **Registrar no caderno, durante a aula ou logo após** — descritivo, datado, com o
+   apelido do aluno. Uma linha basta: *"[data] · [apelido] — relatou dor no tornozelo
+   direito após a série de piqués; não executou o restante do exercício."*
+2. **Registrar no relatório pós-aula** se a ocorrência for significativa (impediu a
+   execução, exige acompanhamento, envolve comunicação à coordenação).
+3. **Comunicar à coordenação/direção** quando impede o trabalho — o professor não
+   decide sozinho o que fazer. Registra que comunicou, e em que data.
+4. **Não avaliar.** O professor não classifica a aluna como "resistente" ou
+   "fragilizada" — apenas registra o que aconteceu.
+
+O material bruto do caderno preserva o relato original. Se a aluna usou palavras
+específicas ("não tenho ligamento"), a citação direta permanece.
+
+> **Sobre os apelidos, e sobre o exemplo acima.** No caderno, o aluno é referido pelo
+> **apelido estável declarado no PO** (P-12) — nunca pelo nome completo. O exemplo usa
+> um marcador genérico (`[apelido]`) de propósito: um exemplo que parecesse o registro
+> de uma turma real seria pior do que o campo aberto. As restrições **conhecidas antes
+> do ciclo** ficam na linha de base do PO, na subseção "Restrições físicas declaradas
+> (P-22)"; o caderno registra o que **aconteceu** em aula.
+
+## 9. Relação com as regras do projeto
 
 | Regra do projeto | Como o caderno se relaciona |
 |:--|:--|
@@ -124,6 +149,7 @@ pessoas. O caderno existe para proteger a pesquisa de si mesma:
 | **12 — Observação pedagógica** | o caderno não julga estética nem compara corpos: registra episódio e contexto (arte ≠ ginástica) |
 | **17 — Versionamento com Git** | o caderno é **fonte**: é versionado, com commits no padrão do projeto (`tipo(escopo)` + `Refs:` · `Regras:` · `Auditoria:`) |
 | **P-06 e P-09** (deste protocolo) | caderno descritivo; um caderno por ciclo **por escola** — sem mistura entre turmas |
+| **P-22** (deste protocolo) | a ocorrência física é registrada, descrita e comunicada; o professor não avalia, e a fala do aluno é citada quando for específica |
 
 Ver também: [`PROTOCOLO.md`](../PROTOCOLO.md) · [`REGRAS.md`](../REGRAS.md) ·
 [`cadernos/README.md`](../cadernos/README.md).
