@@ -446,7 +446,10 @@ fi
 # ---------------------------------------------------------------------------
 # 2) PDF único consolidado: capa + índice navegável + seções em página nova
 # ---------------------------------------------------------------------------
-python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS $ACOMP_DOCS" > "$TMP/mapa-ancoras.txt" <<'PY'
+# Os ACOMPANHAMENTOS NÃO entram no PDF. Ele é publicado no site e ficaria em
+# claro: a política de segurança dos dados sensíveis protege por camadas, e esta
+# é uma delas (ver CONGELAMENTO.md). Eles existem no site, cifrados.
+python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" > "$TMP/mapa-ancoras.txt" <<'PY'
 import re, sys, pathlib
 ciclos, ciclo, destino, docs = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split()
 ancoras = {
