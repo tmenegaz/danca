@@ -43,11 +43,21 @@ data: "18/09/2026"
 - `ciclo-01-ritmos-pre-requisitos.md` — a seção "O ponto de partida da turma" e as
   duas notas da tabela de verificação.
 
-**O que ainda não foi harmonizado, e por quê:** `ciclo-01-ritmos-plano.md` e
-`ciclo-01-ritmos-aula-01.md` citam os mesmos termos entre aspas, como fala do
-professor. Não foram tocados porque citar é diferente de descrever — a decisão de
-como tratá-los (harmonizar, ou manter a citação com nota) é da pesquisadora.
-Nenhum dos dois entra em `DOCS` até essa decisão.
+**Decisão da pesquisadora (18/09/2026):** harmonização **sempre**, inclusive
+citações. Termos crus em documentos publicados são reescritos mesmo quando entre
+aspas — a citação original permanece no material bruto (`campo/`) e na coluna
+"Bruto" desta tabela.
+
+Os dois documentos que estavam fora por causa dessa decisão estão **dentro**: o
+plano e a aula 01 são publicados (entram no `DOCS` do ciclo) e não têm termo cru
+entre aspas — a verificação de 19/09/2026 não encontrou nenhum nos dois.
+
+**Resíduo conhecido, para decisão:** a tabela de progressão do plano
+(`ciclo-01-ritmos-plano.md`, linha "Estruturação dos braços") descreve o ponto de
+partida como "Braços caídos, desconectados" e "1ª alta demais" — os mesmos tipos
+de termo que a tabela acima harmoniza ("cotovelos caídos" → "cotovelos a
+alinhar"; "primeira posição alta demais" → "primeira posição a ajustar"). Não foi
+reescrito: é conteúdo publicado, e harmonizá-lo é decisão da pesquisadora.
 
 ## Como revisar
 
