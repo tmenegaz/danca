@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T20:48:42-0300`
-Commit atual: `32af3e9` — docs(ideia): documenta o formulario de captura em JSON (intencao futura)
+Gerado em: `2026-09-19T20:52:07-0300`
+Commit atual: `b6c2120` — docs(ideia): desenha a arquitetura da captura em JSON
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -14,11 +14,15 @@ Para: sessão nova (retomar o diálogo)
 
 ## Ideias documentadas
 
+- **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto. Não implementado.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
 
 ## Últimos commits
 
 ```
+b6c2120 docs(ideia): desenha a arquitetura da captura em JSON
+b1ffe43 chore(tools): regenera HANDOFF com a secao de ideias
+d99c72e feat(tools): gerar-handoff lista as ideias documentadas
 32af3e9 docs(ideia): documenta o formulario de captura em JSON (intencao futura)
 8879bfe fix(tools): hook aceita o escopo ideia
 922bc3d docs(registro): registra a varredura de marcas de indecisao
@@ -36,9 +40,6 @@ f602046 docs(entrega): corrige a tabela de escopos e o bloco de criar um ciclo n
 8f38de4 docs(registro): registra o metodo, o README-ciclos e os campos de duracao
 4bd9a92 chore(tools): regenera pacotes apos os campos de duracao
 f4b5007 fix(ciclo-01): caderno mede duracao em minutos (alinha com o relatorio)
-6078a8f fix(ciclo-01): relatorio e captura medem duracao em minutos (nao volume)
-915844c docs(entrega): corrige os numeros desatualizados do README-ciclos
-0ba7f8d docs(protocolo): inclui o METODO.md entre os documentos congelados
 ```
 
 ## Por professor
