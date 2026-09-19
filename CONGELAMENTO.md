@@ -8,7 +8,7 @@ motivo declarado, com commit próprio e entrada no `REGISTRO.md`.
 
 - `PROTOCOLO.md` — as 22 pétreas
 - `REGRAS.md` — as 17 regras + 5 pré-requisitos
-- `tools/` — geradores, validadores, hooks
+- `tools/` — geradores, validadores, hooks, criptografia dos acompanhamentos
 - `tools/templates/` — CSS, HTML, JS da navbar
 - `prompts/` — eliciação e instalação de ciclos
 - `biblioteca/guia-do-professor.md`
@@ -26,6 +26,8 @@ motivo declarado, com commit próprio e entrada no `REGISTRO.md`.
 - Alterar qualquer arquivo listado em "O que está congelado"
 - Alterar a lógica de hash, validação ou geração
 - Alterar a estrutura de menu ou navegação
+- Alterar a senha de criptografia dos acompanhamentos (exige regenerar os
+  pacotes e registrar o motivo)
 - Adicionar nova pétrea ou alterar alguma existente
 
 Motivo declarado significa: o commit tem um corpo explicando o **porquê**, o
