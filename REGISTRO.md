@@ -500,3 +500,40 @@ P-04 (proveniência), P-12 (apelidos), P-22 (restrição e dado sensível).
 A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
 push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
 pacote é a etapa seguinte.
+
+## 19/09/2026 — Caderno publicado e incluído no hash
+
+**O que aconteceu.**
+O caderno passou a ser publicado no pacote (HTML + PDF) e a ser fonte do hash
+FIPP. Antes, ficava fora por decisão do `cadernos/README.md` ("a ausência de
+forma final é parte da função"). O índice do Duo foi alinhado à taxonomia nova do
+menu — e o item 5 do mesmo README, que afirmava o oposto do item 3, foi corrigido
+junto: um guia que se contradiz não orienta ninguém.
+
+**O que foi decidido.**
+- O caderno entra no `DOCS` do ciclo. Foi preciso declará-lo nos **dois**
+  manifestos (`ciclo-01.conf` **e** `ciclo-01-ritmos.conf`): o da variante
+  sobrescreve o base, então pôr só no base não chegaria ao Ritmos.
+- O `tools/lib-fontes.sh` ganhou o caso do caderno em `fonte_md()`, como já tinha
+  o do `guia-do-professor`. É a definição **única** de fonte, compartilhada pelo
+  gerador e pelo hasher: o caderno passa a ser copiado para o pacote e contado no
+  hash sem nenhum caminho paralelo — que foi justamente a divergência que fez o
+  pacote do Ritmos sair com o plano do Duo.
+- O `rotulo()` e a geração do HTML ganharam tratamento porque o caderno **não tem
+  front-matter** (é registro, não documento): o rótulo do menu vem do nome do
+  documento ("Caderno") e o título da página é declarado na geração — sem isso o
+  menu sairia vazio e a aba do navegador diria "ciclo-01-caderno-01".
+- A regra 3 do `cadernos/README.md` foi atualizada, e com ela o item 5.
+
+**Com o quê.**
+`ciclos/ciclo-01.conf`, `ciclos/ciclo-01-ritmos.conf`, `tools/lib-fontes.sh`,
+`tools/gerar-ciclo.sh`, `cadernos/README.md`, `ciclos/ciclo-01-index.md`, os dois
+pacotes regerados.
+
+**Referências.**
+P-04 (proveniência), P-06 (registro descritivo), P-17 (artefatos do ciclo).
+
+**O que ainda não está feito.**
+Repositório privado (ação manual da pesquisadora — pendente). O caderno **não** é
+listado no índice: o índice cobre os documentos pedagógicos, e o caderno e os
+acompanhamentos por aluna aparecem no menu, no grupo "Acompanhamento".

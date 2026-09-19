@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T17:52:32-0300`
-Commit atual: `759d182` — feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
+Gerado em: `2026-09-19T18:07:23-0300`
+Commit atual: `e4c2cbd` — chore(tools): regenera os dois pacotes apos PDF sem acompanhamentos
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,11 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+e4c2cbd chore(tools): regenera os dois pacotes apos PDF sem acompanhamentos
+06b2308 docs(registro): registra a politica de seguranca dos dados sensiveis
+503d08c docs(protocolo): politica de seguranca dos dados sensiveis em camadas
+a87983f chore(tools): acompanhamentos .md fora do Git (regeneraveis)
+6ed0d3f feat(tools): PDF do ciclo sem os acompanhamentos
 759d182 feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
 3cc45ca chore(ciclo-01): regenera os acompanhamentos do Ritmos com a aula 01
 d7936c2 feat(ciclo-01): PO do Ritmos com equipe (Lete) e P-22 (lesao da Dada)
@@ -30,11 +35,6 @@ ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
 15117a3 docs(protocolo): inclui criptografia na lista de infraestrutura congelada
 919fc5e docs(caderno): documenta senha de protecao dos acompanhamentos
 3528452 feat(tools): criptografa acompanhamentos com PageCrypt (senhas fora do repo)
-8cb885f fix(ciclo-01): atualiza nota de harmonizacao do Ritmos (decisao 18/09)
-438daf3 chore(tools): regenera pacotes e HANDOFF apos a harmonizacao do Duo
-9ebe25b docs(registro): registra o congelamento e a verificacao da P-17 em codigo
-4a4abbc docs(protocolo): declara congelamento da infraestrutura
-2775748 feat(ciclo-01): harmonizacao de linguagem do Duo e termo harmonizado no PO
 ```
 
 ## Por professor
@@ -50,8 +50,8 @@ ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `9dd97d81236c` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `cb957cd20a87` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `d3c13110fa1f` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `d8174dbca45c` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
