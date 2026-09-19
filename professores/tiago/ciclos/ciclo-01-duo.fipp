@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: duo
-hash_conteudo: 863c21b2bdddacb6cac74a1067715ba2e69c365cd60f2e84a763c429e46ce28a
+hash_conteudo: 96a71abaa574fd0b78ccff29ec890f46100c6f68b480be87d5d2e1194c399645
 parentHash: 
-hash: d5aec0bcc2bd65ebc5f3526df17e0ac8d5e5f59f690aca1654fdaa9b71f3c536
+hash: eb75056eb6b41c065808f4fd543eae453199bf24b806250926722dfd57482348
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado

@@ -8,8 +8,8 @@ title: "Relatório pós-aula 01 — Ritmos e Movimento (preview)"
 ---
 
 > **Este documento não é o relatório.** É o guia do que observar durante a aula e
-> do que preencher depois. O relatório de verdade será criado em
-> `professores/tiago/relatorios/ciclo-01/aula-01-ritmos.md` **após** a aula.
+> do que preencher depois. O relatório preenchido está em
+> `professores/tiago/relatorios/ciclo-01/aula-01-ritmos.md`.
 >
 > **Data da aula:** sábado, **19/09/2026** — duas aulas de 60 min (balé como
 > preparação + pas de deux) · Ritmos e Movimento (Gabi) · professor Tiago Menegaz.

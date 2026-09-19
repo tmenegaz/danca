@@ -102,7 +102,7 @@ não uma impressão.
 | Critério | Insatisfatório | Em desenvolvimento | Satisfatório | Excelente |
 |:---|:---|:---|:---|:---|
 | **Execução dos comandos** | Não completa o comando | Completa com correção contínua | Completa sem correção | Completa com precisão e autonomia |
-| **Estruturação dos braços** | Braços caídos, desconectados | Acompanham com atraso; 1ª alta demais | Estruturados e no tempo | Estruturados, port de bras fluido |
+| **Estruturação dos braços** | Braços a estruturar | Acompanham com atraso; primeira posição a ajustar (alta) | Estruturados e no tempo | Estruturados, port de bras fluido |
 | **Transferência de peso** | Peso não transfere | Transfere com hesitação | Transfere por cima/por baixo com eixo | Transfere com fluidez e contrapeso no par |
 | **Eixo individual** | Perde o eixo em apoio unipodal | Recupera com correção | Mantém sem correção | Mantém e ajusta dentro do movimento |
 | **Eixo no par** | Depende do menino para se colocar no eixo | Coloca-se no eixo com ajuda | Coloca-se sem deslocar o parceiro | Ajustam-se sem deslocar nenhum dos eixos |

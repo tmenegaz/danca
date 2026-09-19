@@ -8,8 +8,8 @@ title: "Relatório pós-aula 01 — Duo (preview)"
 ---
 
 > **Este documento não é o relatório.** É o guia do que observar durante a aula e
-> do que preencher depois. O relatório de verdade será criado em
-> `professores/tiago/relatorios/ciclo-01/aula-01-duo.md` **após** a aula.
+> do que preencher depois. O relatório preenchido está em
+> `professores/tiago/relatorios/ciclo-01/aula-01-duo.md`.
 >
 > **Data da aula:** sexta, **18/09/2026** — 60 minutos · Duo (Fernando) · professor
 > Tiago Menegaz · quatro alunas de 11 anos.

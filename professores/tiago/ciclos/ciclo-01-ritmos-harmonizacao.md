@@ -36,6 +36,8 @@ data: "18/09/2026"
 | "braços curtos" — no PO, sobre a Carol | **mantido como está**: descreve proporção, não juízo | |
 | "conversa demais e chega atrasada" — no PO, sobre a Carol | **mantido como está**: descreve comportamento, e a P-21 reescreve caráter, não observação | |
 | "habilidades físicas diversas" | **mantido como está**: é o fato, sem adjetivo de juízo | |
+| "braços caídos, desconectados" — no plano, na tabela de progressão (rubrica) | "braços a estruturar" | **Aplicado em 19/09/2026.** É o vocabulário de um **nível da rubrica**, não a descrição de uma pessoa: o que se harmoniza é o termo do nível |
+| "1ª alta demais" — no plano, na tabela de progressão (rubrica) | "primeira posição a ajustar (alta)" | **Aplicado em 19/09/2026** — a mesma formulação que esta tabela já prescrevia |
 
 ## Onde isto foi aplicado
 
@@ -52,12 +54,14 @@ Os dois documentos que estavam fora por causa dessa decisão estão **dentro**: 
 plano e a aula 01 são publicados (entram no `DOCS` do ciclo) e não têm termo cru
 entre aspas — a verificação de 19/09/2026 não encontrou nenhum nos dois.
 
-**Resíduo conhecido, para decisão:** a tabela de progressão do plano
-(`ciclo-01-ritmos-plano.md`, linha "Estruturação dos braços") descreve o ponto de
-partida como "Braços caídos, desconectados" e "1ª alta demais" — os mesmos tipos
-de termo que a tabela acima harmoniza ("cotovelos caídos" → "cotovelos a
-alinhar"; "primeira posição alta demais" → "primeira posição a ajustar"). Não foi
-reescrito: é conteúdo publicado, e harmonizá-lo é decisão da pesquisadora.
+**Resíduo harmonizado (19/09/2026).** A tabela de progressão do plano
+(`ciclo-01-ritmos-plano.md`, linha "Estruturação dos braços") descrevia o ponto de
+partida como "Braços caídos, desconectados" e "1ª alta demais". Passou a "Braços a
+estruturar" e "primeira posição a ajustar (alta)" — esta última com a formulação
+que esta tabela já prescrevia. Uma observação fica registrada: a linha é **nível de
+uma rubrica de avaliação**, não descrição de uma pessoa — o que se harmonizou ali
+foi o vocabulário do nível, e o que a rubrica mede é o que se vê na execução, não
+quem executa.
 
 ## Como revisar
 
