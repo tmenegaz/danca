@@ -249,3 +249,52 @@ escrever.)*
   nome citado acima. O deploy automático do Netlify continua esperando.
 - Ciclo da Débora; primeiro relatório pós-aula do Duo; primeiro relatório pós-aula
   do Ritmos.
+
+## 18/09/2026 — PO do Ritmos validado + P-22
+
+**O que aconteceu.**
+O PO do Ritmos passou para **`Input_PO_Validado`** (os cinco itens do checklist
+marcados), depois de quatro correções: o total de encontros (20 → **21**, com nota de
+correção no próprio campo), o `theoreticalBasis` (incorpora **Homans**, que o professor
+declarou em "Documentos auxiliares"), as **condições de contorno (P-11)** preenchidas e a
+linha de base com a subseção de **restrições físicas (P-22)**. O apanhado histórico foi
+completado: os dois pas de deux de *O Quebra-Nozes* identificados, com produção de
+referência, estrutura e elenco — e a exclusão da versão de Nureyev registrada como
+decisão do professor. A **P-22** entrou no `PROTOCOLO.md` (**22 pétreas**) e foi aplicada
+nos dois prompts e na governança do caderno.
+
+**O que foi decidido.**
+- **P-22:** as condições materiais de execução são **declaradas** (PO), **registradas**
+  (caderno e relatório) e **comunicadas** (coordenação); o professor **não avalia** o que
+  o sujeito não pode executar por restrição física.
+- Restrições conhecidas neste ciclo: **Carol** (tornozelos, joelhos) e **Pássaro Azul**
+  (ombro — provavelmente direito, a confirmar) — ambas declaradas pela **pesquisadora**,
+  porque a entrega do professor é anterior à pétrea.
+- Os dois pas de deux do ciclo: **PDD 1** (após a batalha com o Rei dos Ratos, Ato I) com
+  **Mari**; **PDD 2** (Grand Pas, Ato II) com **Carol e Dada**, que revezam.
+- A identificação dos números, da produção (Peter Wright, Royal Ballet) e do elenco é
+  declaração da **pesquisadora**; o professor declarou as músicas e a obra.
+- Exclusão da versão Nureyev: decisão pedagógica do professor, registrada no apanhado.
+
+**Com o quê.**
+`PROTOCOLO.md`, `prompts/eliciar-ciclo.md`, `prompts/instalar-ciclo.md`,
+`protocolo/governanca-caderno.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos{,-po.md,-apanhado-historico.md,.fipp}` e o
+pacote gerado.
+
+**Referências.**
+RAD (2015); Homans (2010); Taylor (2013); Polanyi (1966); Clippinger (2024).
+
+**O que ainda não está feito.**
+- **A notação não existe ainda.** O documento está publicado como **moldura**, com
+  `[Preencher: notação do passo]` em cada célula — quem escreve é o professor (P-15). Sem
+  ela, o glossário Benesh fica à frente do registro: o validador avisa, e é esperado.
+- **Gravações de referência** de cada pas de deux e o **cruzamento fino** entre os passos
+  da Aula 01 e cada número do repertório: `[Preencher]` — ninguém declarou ainda.
+- **Os termos entre aspas** no plano e na aula-01 ("execução ruim", "meninos travados")
+  continuam crus: citar é diferente de descrever, e a decisão é da pesquisadora.
+- **O pacote do ciclo da Duo** (rodapé derivado de `DOCS`) segue gerado e não commitado:
+  o ciclo dela não se altera sem autorização.
+- Ciclo da Débora; relatórios pós-aula do Duo e do Ritmos.
+- **Push:** os commits desta rodada estão prontos e **não foram enviados** — aguardam
+  decisão da pesquisadora.
