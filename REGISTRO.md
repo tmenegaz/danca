@@ -392,3 +392,60 @@ E uma inconsistência declarada, para decisão da pesquisadora: a harmonização
 dois entra em `DOCS` até essa decisão" — mas o `.conf` do Ritmos lista os dois em
 `DOCS` desde então. Ou a nota fica, e os documentos saem; ou a decisão de harmonizar a
 citação é tomada, e a nota é atualizada. Não mexi em nenhum dos dois.
+
+## 19/09/2026 — Criptografia dos acompanhamentos (exceção pós-congelamento)
+
+**O que aconteceu.**
+A criptografia dos acompanhamentos foi implementada após o congelamento da
+infraestrutura. Exceção justificada: decisão tomada antes do congelamento,
+executada depois. Não altera o que existe — acrescenta componente novo. Os HTML
+de acompanhamento por aluna passaram a ser publicados cifrados (PageCrypt): o
+site pede senha para abrir cada um.
+
+**O que foi decidido.**
+- PageCrypt para criptografar os HTML de acompanhamento por aluna.
+- As senhas **não ficam no repositório** (ele é público). Ficam em
+  `tools/.senhas-locais` (não versionado, `chmod 600`).
+- Se o arquivo não existir, o script pede a senha interativamente; sem terminal e
+  sem senha ele **falha**, e o `check-pacote.js` reprova o pacote — um
+  acompanhamento não chega ao site em claro.
+- O `.conf` só declara `ACOMPANHAMENTO_CRIPTOGRAFADO="sim"` — sem valor.
+- A criptografia roda **dentro do `gerar-ciclo.sh`**, depois de o HTML nascer e
+  antes da validação. O `gerar-acompanhamento.sh` ganhou o modo
+  `--criptografar`; o prompt previa essa etapa no script dos acompanhamentos,
+  mas lá só existem os `.md` — o HTML nasce no gerador.
+- A nota de harmonização do Ritmos foi atualizada (decisão 18/09: harmonização
+  sempre, inclusive citações).
+
+**O que não está resolvido, e é o ponto sensível.**
+A criptografia protege **o site**, não o conteúdo. Os mesmos acompanhamentos
+continuam em claro em dois lugares do repositório público: o **PDF consolidado**
+de cada ciclo (`ciclo-01-duo.pdf`, `ciclo-01-ritmos.pdf` — o gerador inclui os
+acompanhamentos no PDF) e os **`.md` de origem**
+(`professores/tiago/ciclos/ciclo-XX-<escola>-acompanhamento-<aluna>.md`, 19
+arquivos rastreados). O conteúdo é pseudonimizado pelos apelidos (P-12) — não há
+nome próprio nem dado clínico —, mas é o mesmo conteúdo. Tirar os
+acompanhamentos do PDF é uma linha no gerador; tirar os `.md` do repositório
+quebraria a cadeia de proveniência (P-04), porque eles são fonte. As duas
+decisões são da pesquisadora e ficaram **pendentes**, declaradas aqui.
+
+Também pendente, do mesmo tipo: uma linha residual de termo cru na tabela de
+progressão do plano do Ritmos ("Braços caídos, desconectados" / "1ª alta demais",
+`ciclo-01-ritmos-plano.md`) — registrada na harmonização daquele ciclo, não
+reescrita por ser conteúdo publicado.
+
+**Com o quê.**
+`tools/gerar-acompanhamento.sh`, `tools/gerar-ciclo.sh`, `tools/check-pacote.js`,
+`package.json` (dependência `pagecrypt`), `ciclos/*.conf`, `.gitignore`,
+`tools/.senhas-locais` (não versionado), `tools/.senhas-locais.exemplo`,
+`CONGELAMENTO.md`, `cadernos/README.md`,
+`ciclo-01-ritmos-harmonizacao.md`.
+
+**Referências.**
+P-04 (proveniência), P-12 (apelidos), P-17 (artefatos do ciclo), P-21 (linguagem
+harmonizada).
+
+**O que ainda não está feito.**
+Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
+decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
+Ritmos.
