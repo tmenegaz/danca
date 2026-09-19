@@ -141,6 +141,45 @@ Auditoria: sim"
    cobre `.conf` + `.md` do ciclo): ele registra a aula, não o plano. A ligação
    com a cadeia FIPP é documental — o relatório pós-aula cita a entrada datada.
 
+## Senha de proteção dos acompanhamentos
+
+O **acompanhamento por aluna** (a vista individual do ciclo, gerada do PO e dos
+relatórios) é publicado no site como `acompanhamento-<aluna>.html` — e é o único
+material do pacote que fica **criptografado**. Ele não é um caderno: o caderno é o
+registro bruto da aula; o acompanhamento é a leitura por aluna, e é esse que sai
+do círculo do professor. A seção está aqui porque as duas peças nascem do mesmo
+material — quem lê o caderno costuma querer o acompanhamento.
+
+- As senhas **não ficam no repositório**: ele é público.
+- Ficam em `tools/.senhas-locais`, que **não é versionado** (está no `.gitignore`).
+- O formato está em `tools/.senhas-locais.exemplo` — uma variável por escola
+  (`SENHA_DUO`, `SENHA_RITMOS`, `SENHA_DEBORA`). Para criar:
+
+  ```bash
+  cp tools/.senhas-locais.exemplo tools/.senhas-locais
+  chmod 600 tools/.senhas-locais
+  ```
+
+- Se o arquivo não existir, ou a variável da escola estiver vazia, o
+  `tools/gerar-acompanhamento.sh` **pede a senha no terminal**. Sem terminal e sem
+  senha ele falha — e o `tools/check-pacote.js` **reprova** o pacote. Um
+  acompanhamento de aluna não chega ao site em claro.
+- **Para trocar a senha:** edite `tools/.senhas-locais` e rode
+  `tools/gerar-ciclo.sh <professor> <ciclo> <escola>` outra vez — o gerador
+  regrava o HTML e criptografa na sequência. A troca é alteração de
+  infraestrutura: exige motivo declarado no commit e entrada no `REGISTRO.md`
+  (ver `CONGELAMENTO.md`).
+- O `.conf` da escola declara apenas a **intenção**
+  (`ACOMPANHAMENTO_CRIPTOGRAFADO="sim"`), nunca a senha.
+
+> **O que a criptografia protege — e o que não protege.** Ela protege o **site**
+> (a página navegável publicada pelo Netlify). Não protege o **PDF consolidado**
+> do ciclo, que reúne os mesmos acompanhamentos, nem os **`.md` de origem** em
+> `professores/<professor>/ciclos/`. Ambos ficam em claro no repositório, que é
+> público — o conteúdo é pseudonimizado pelos apelidos (P-12), mas é o mesmo
+> conteúdo. Fechar essa parte é decisão da pesquisadora (ver `REGISTRO.md`,
+> 19/09/2026).
+
 ## Próximos passos
 
 ```bash
