@@ -227,11 +227,26 @@ grep -oP '[^\x00-\x7F]' professores/<professor>/ciclos/ciclo-XX-*.md | sort -u
 ## Criar um ciclo novo
 
 ```bash
-cp professores/tiago/ciclos/ciclo-01.conf ciclos/ciclo-02.conf       # ajuste nome, objetivo, período, DOCS
-cp professores/tiago/ciclos/ciclo-01-plano.md ciclos/ciclo-02-plano.md
-# escreva os demais com o prefixo ciclo-02- (index, aula-01, notacao,
-# pre-requisitos, musicalidade, apanhado-historico, referencias)
-tools/gerar-ciclo.sh 02
+# 1) os manifestos: o base (compartilhado) e o da variante
+cp professores/tiago/ciclos/ciclo-01.conf     professores/tiago/ciclos/ciclo-02.conf
+cp professores/tiago/ciclos/ciclo-01-duo.conf professores/tiago/ciclos/ciclo-02-duo.conf
+
+# 2) as fontes: com sufixo da escola quando o conteúdo é dela, sem sufixo quando é comum
+cp professores/tiago/ciclos/ciclo-01-plano.md professores/tiago/ciclos/ciclo-02-plano.md
+# escreva as demais com o prefixo ciclo-02- (index, aula-01, notacao, pre-requisitos,
+# musicalidade, musicalidade-aluna, apanhado-historico, referencias). `guia-do-professor`
+# não precisa de cópia: é compartilhado e vive na biblioteca (tools/lib-fontes.sh).
+
+# 3) o caderno desta escola NÃO vive na pasta do ciclo, e é fonte do hash:
+#    professores/tiago/cadernos/ciclo-02/caderno-02-duo.md
+
+# 4) declare o ciclo no DOCS dos DOIS manifestos — o da variante sobrescreve o base,
+#    então declarar só no base não chega à escola. Ex.:
+#    DOCS="plano harmonizacao aula-01 relatorio-aula-01 captura-aula-01 caderno-02 ..."
+
+# 5) gere e valide
+tools/gerar-ciclo.sh tiago 02 duo
+node tools/check-pacote.js professores/tiago/ciclos/ciclo-02-duo
 ```
 
 Cada documento começa com um bloco YAML que alimenta o cabeçalho e a ficha da
@@ -256,7 +271,7 @@ REGRAS.md · README.md · README-ciclos.md
 |:--|:--|
 | **Commit** | `tipo(escopo): resumo` + rodapé obrigatório `Refs:` · `Regras:` · `Auditoria:` |
 | **Tipos** | `feat` · `fix` · `docs` · `refactor` · `style` · `chore` · `audit` |
-| **Escopos** | `ciclo-XX` · `aula-XX` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `apresentacao-XX` · `biblioteca` · `tools` · `regras` |
+| **Escopos** | `ciclo-NN` · `aula-NN` · `apresentacao-NN` · `apresentacao-01-rizoma` · `caderno` · `caderno-NN` · `relatorio` · `relatorio-NN` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `biblioteca` · `po` · `campo` · `schema` · `registro` · `protocolo` · `entrega` · `estrutura` · `template` · `tools` · `regras` · `prompts` — a lista é a do hook (`tools/hooks/commit-msg`); escopo fora dela **recusa o commit** |
 | **Branches** | `main` só recebe conteúdo auditado; `ciclo-XX` e `apresentacao-XX` são linhas de trabalho, mergeadas após auditoria |
 | **Hooks** | `tools/instalar-hooks.sh` instala `pre-commit` e `commit-msg` (a fonte versionada fica em `tools/hooks/`, porque o Git não versiona `.git/hooks`) |
 | **Ignorado** | `out/`, `.pptx`, PNGs de slide da apresentação, `tools/.netlify-tokens`, `.vscode/settings.json`. Os **pacotes de ciclo são versionados** (HTML, PDF e `assets/`), porque o deploy automático lê o repositório |
