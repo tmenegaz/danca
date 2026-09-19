@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T19:47:20-0300`
-Commit atual: `a789300` — chore(tools): regenera pacotes e ancoras apos a varredura
+Gerado em: `2026-09-19T20:48:42-0300`
+Commit atual: `32af3e9` — docs(ideia): documenta o formulario de captura em JSON (intencao futura)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -12,9 +12,16 @@ Para: sessão nova (retomar o diálogo)
 - **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
+## Ideias documentadas
+
+- **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
+
 ## Últimos commits
 
 ```
+32af3e9 docs(ideia): documenta o formulario de captura em JSON (intencao futura)
+8879bfe fix(tools): hook aceita o escopo ideia
+922bc3d docs(registro): registra a varredura de marcas de indecisao
 a789300 chore(tools): regenera pacotes e ancoras apos a varredura
 13d5778 fix(ciclo-01): declara a pendencia da notacao nos dois documentos do Duo (P-15)
 b937815 fix(ciclo-01): proporcao por blocos vira nota (Regra 9 em minutos)
@@ -32,9 +39,6 @@ f4b5007 fix(ciclo-01): caderno mede duracao em minutos (alinha com o relatorio)
 6078a8f fix(ciclo-01): relatorio e captura medem duracao em minutos (nao volume)
 915844c docs(entrega): corrige os numeros desatualizados do README-ciclos
 0ba7f8d docs(protocolo): inclui o METODO.md entre os documentos congelados
-67e5670 docs(protocolo): aponta o README para o METODO.md no topo
-312c68a docs(protocolo): cria o METODO.md (visao de mundo do projeto)
-f0fad70 docs(registro): registra o caderno como fonte do hash
 ```
 
 ## Por professor
