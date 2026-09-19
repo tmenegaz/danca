@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T18:07:23-0300`
-Commit atual: `e4c2cbd` — chore(tools): regenera os dois pacotes apos PDF sem acompanhamentos
+Gerado em: `2026-09-19T18:28:59-0300`
+Commit atual: `4bd9a92` — chore(tools): regenera pacotes apos os campos de duracao
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,18 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+4bd9a92 chore(tools): regenera pacotes apos os campos de duracao
+f4b5007 fix(ciclo-01): caderno mede duracao em minutos (alinha com o relatorio)
+6078a8f fix(ciclo-01): relatorio e captura medem duracao em minutos (nao volume)
+915844c docs(entrega): corrige os numeros desatualizados do README-ciclos
+0ba7f8d docs(protocolo): inclui o METODO.md entre os documentos congelados
+67e5670 docs(protocolo): aponta o README para o METODO.md no topo
+312c68a docs(protocolo): cria o METODO.md (visao de mundo do projeto)
+f0fad70 docs(registro): registra o caderno como fonte do hash
+c6773f4 chore(tools): regenera pacotes, ancoras e HANDOFF apos caderno
+e5279f7 fix(ciclo-01): alinha o indice do Duo a taxonomia nova do menu
+caa756c docs(caderno): atualiza o guia dos cadernos (regra 3 e item 5)
+431cac9 feat(ciclo-01): caderno publicado no pacote e incluido no hash
 e4c2cbd chore(tools): regenera os dois pacotes apos PDF sem acompanhamentos
 06b2308 docs(registro): registra a politica de seguranca dos dados sensiveis
 503d08c docs(protocolo): politica de seguranca dos dados sensiveis em camadas
@@ -23,18 +35,6 @@ a87983f chore(tools): acompanhamentos .md fora do Git (regeneraveis)
 759d182 feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
 3cc45ca chore(ciclo-01): regenera os acompanhamentos do Ritmos com a aula 01
 d7936c2 feat(ciclo-01): PO do Ritmos com equipe (Lete) e P-22 (lesao da Dada)
-d66b15c docs(relatorio-01): registra a aula 01 do Ritmos
-5e360f6 docs(caderno-01): registra a aula 01 do Ritmos
-8b8c361 fix(ciclo-01): deriva o Bloco 5 da captura do PO do Ritmos (era do Duo)
-d34f577 docs(registro): corrige o registro — os .md de acompanhamento nao sao fonte do hash
-5900725 docs(registro): registra o nao determinismo da cifra como efeito colateral
-14d96ae docs(caderno): registra que o HTML cifrado nao e deterministico
-26b39ff fix(tools): guarda de cifra ja aplicada usa as marcas reais da biblioteca
-ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
-3a6c9fa docs(registro): registra a criptografia como excecao justificada
-15117a3 docs(protocolo): inclui criptografia na lista de infraestrutura congelada
-919fc5e docs(caderno): documenta senha de protecao dos acompanhamentos
-3528452 feat(tools): criptografa acompanhamentos com PageCrypt (senhas fora do repo)
 ```
 
 ## Por professor
@@ -50,8 +50,8 @@ ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `d3c13110fa1f` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `d8174dbca45c` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `d5aec0bcc2bd` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `97affd00dc38` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -100,39 +100,47 @@ ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
 
 ## Última entrada do REGISTRO
 
-## 19/09/2026 — Política de segurança dos dados sensíveis
+## 19/09/2026 — Método, README-ciclos e campos de duração
 
 **O que aconteceu.**
-Depois da criptografia dos acompanhamentos (HTML), ficou claro que ela não
-protegia tudo: o **PDF do ciclo** e os **`.md` versionados** expunham os mesmos
-dados em texto claro. A verificação no PDF do Duo encontrou 17 ocorrências de
-"Acompanhamento", com os apelidos e o conteúdo de cada aluna; os `.md` estavam
-entre os arquivos rastreados do repositório público. A pesquisadora decidiu
-proteger em camadas, em vez de apostar tudo numa só.
+O `METODO.md` foi criado — a visão de mundo que o projeto pressupunha e não
+declarava: o método é o norte, a aula é o caminho; o planejamento é feito sobre
+pessoas reais. O `README-ciclos.md` teve os números desatualizados corrigidos
+(seis, e não três — o caderno entrou no pacote e envelheceu os que sobravam). Os
+campos de volume do relatório e da captura passaram a medir **duração em
+minutos**, porque o professor não conta tempos musicais na aula.
 
 **O que foi decidido.**
-- **Repositório privado** (GitHub) — camada 1, **ação manual da pesquisadora**.
-- **PDF do ciclo sem acompanhamentos** — camada 2: o gerador passou a montar o
-  consolidado só com `DOCS`, e não com `DOCS + ACOMP_DOCS`. O que era decisão de
-  conteúdo ("o PDF do professor traz tudo") virou decisão de segurança.
-- **Acompanhamentos `.md` fora do Git** — camada 4: `git rm --cached` nos 9
-  arquivos + regra no `.gitignore`. São **vista derivada** do PO e dos
-  relatórios, e o `gerar-acompanhamento.sh` os reescreve no disco **antes** de o
-  pacote ser montado — nada depende de estarem versionados. A cadeia FIPP não é
-  tocada: eles já ficavam fora do hash por construção (`tools/lib-fontes.sh`).
-- **HTML cifrado** (PageCrypt) — camada 3, em vigor desde a entrada anterior.
+- **O volume continua em tempos** (Regra 5) — e a **duração, em minutos, calibra
+  a faixa** (Regra 9, Pré-requisito 4). Nenhuma das duas regras foi tocada.
+- O relatório e a captura medem **duração executada** (minutos). O campo existia
+  em **quatro arquivos**, não em dois: além do relatório e do fecho da captura
+  do Ritmos, também o Funcional do relatório do Duo, a coluna do Bloco 3 das
+  duas capturas e o fecho da captura do Duo.
+- **O caderno entrou na mesma unidade** (decisão da pesquisadora): ele registrava
+  "Volume: planejado 120, executado 120" e "volume 120" por aluno. Sem isso, o
+  caderno — que hoje é fonte do hash e página publicada — ficaria dizendo
+  "volume" ao lado de um relatório que diz "duração executada".
+- O `METODO.md` fica **congelado** (mudar exige motivo declarado).
+- O repositório está **privado** — camada 1 da política de segurança, fechada.
 
 **Com o quê.**
-`tools/gerar-ciclo.sh`, `.gitignore`, `CONGELAMENTO.md`, os dois pacotes
-regerados (o PDF deixa de publicar as páginas de acompanhamento).
+`METODO.md`, `README.md`, `CONGELAMENTO.md`, `README-ciclos.md`,
+`relatorios/ciclo-01/aula-01-{duo,ritmos}.md`,
+`ciclos/ciclo-01-{duo,ritmos}-captura-aula-01.md`,
+`cadernos/ciclo-01/caderno-01-{duo,ritmos}.md`, os dois pacotes regerados.
 
 **Referências.**
-P-04 (proveniência), P-12 (apelidos), P-22 (restrição e dado sensível).
+P-01 (ciclo é PO latente), P-02 (PO vem do ciclo anterior), P-06 (registro
+descritivo), P-10 (linha de base), Regra 1 (método como referência), Regra 5
+(unidade explícita), Regra 9 (faixa por duração).
 
 **O que ainda não está feito.**
-A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
-push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
-pacote é a etapa seguinte.
+O push (aguardando confirmação da pesquisadora). E dois pontos de defasagem no
+`README-ciclos.md` que **não** são números e ficaram fora do escopo desta rodada,
+declarados para decisão: a tabela "Escopos" lista 10 dos ~24 escopos que o hook
+`commit-msg` aceita (é a tabela que faz alguém errar o escopo do commit), e o
+bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
 
 ## O que está pendente
 
@@ -224,6 +232,20 @@ Ritmos.
 A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
 push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
 pacote é a etapa seguinte.
+
+## 19/09/2026 — Caderno publicado e incluído no hash
+
+Repositório privado (ação manual da pesquisadora — pendente). O caderno **não** é
+listado no índice: o índice cobre os documentos pedagógicos, e o caderno e os
+acompanhamentos por aluna aparecem no menu, no grupo "Acompanhamento".
+
+## 19/09/2026 — Método, README-ciclos e campos de duração
+
+O push (aguardando confirmação da pesquisadora). E dois pontos de defasagem no
+`README-ciclos.md` que **não** são números e ficaram fora do escopo desta rodada,
+declarados para decisão: a tabela "Escopos" lista 10 dos ~24 escopos que o hook
+`commit-msg` aceita (é a tabela que faz alguém errar o escopo do commit), e o
+bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
