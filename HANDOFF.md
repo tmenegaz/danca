@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T15:33:08-0300`
-Commit atual: `74fa832` — fix(template): hamburger responde em todas as páginas (navegação mobile)
+Gerado em: `2026-09-19T16:04:05-0300`
+Commit atual: `438daf3` — chore(tools): regenera pacotes e HANDOFF apos a harmonizacao do Duo
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,11 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+438daf3 chore(tools): regenera pacotes e HANDOFF apos a harmonizacao do Duo
+9ebe25b docs(registro): registra o congelamento e a verificacao da P-17 em codigo
+4a4abbc docs(protocolo): declara congelamento da infraestrutura
+2775748 feat(ciclo-01): harmonizacao de linguagem do Duo e termo harmonizado no PO
+0303390 feat(tools): check-pacote reprova ciclo com aula sem harmonizacao (P-17 + P-21)
 74fa832 fix(template): hamburger responde em todas as páginas (navegação mobile)
 e2c8c28 chore(tools): regenera ancoras e HANDOFF apos incluir os relatorios no hash
 eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
@@ -30,11 +35,6 @@ c0de989 fix(ciclo-01): corrige os caminhos no preview do relatorio do Ritmos
 8f4490b docs(relatorio-01): registra a aula 01 do Duo
 8ef22b9 docs(caderno-01): registra a aula 01 do Duo
 76ce650 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos harmonizacao
-39c2c6f chore(ciclo-01): regenera o pacote do Duo com rodape derivado
-c188985 fix(ciclo-01): regenera a pagina de musicalidade do pacote (P-21)
-22792d0 fix(ciclo-01): tira o ultimo termo cru do documento de musicalidade (P-21)
-3a7e4df fix(ciclo-01): harmoniza citacoes em documentos publicados do Ritmos (P-21)
-fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
 ```
 
 ## Por professor
@@ -50,8 +50,8 @@ fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `a9ee549b18e6` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `16f5092e7120` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `9dd97d81236c` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `511c51d6870c` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -100,50 +100,62 @@ fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
 
 ## Última entrada do REGISTRO
 
-## 18/09/2026 — Publicação, primeira reancoragem da Duo e o caderno da Aula 01
+## 19/09/2026 — Criptografia dos acompanhamentos (exceção pós-congelamento)
 
 **O que aconteceu.**
-- **Publicado:** os commits acumulados foram enviados ao `origin/main` (o bloqueio
-  anterior — o nome próprio num documento publicado — tinha caído na harmonização). O
-  Netlify reconstrói os dois sites a partir do push.
-- **Caderno e relatório da Aula 01 do Duo** escritos a partir da aula de 18/09: o
-  primeiro **ciclo completo** do projeto — PO declarado → aula dada → caderno escrito →
-  relatório gerado.
-- **Preview e PO da Duo corrigidos:** os dois caminhos pré-migração no preview do
-  relatório, a formulação da nota da Ana e a nota de proveniência, que dizia que o
-  primeiro relatório pós-aula ainda não existia — ele existe, e a nota passou a apontar
-  o caminho.
-- **Preview do Ritmos corrigido** (os mesmos dois caminhos), no commit imediatamente
-  anterior a este.
+A criptografia dos acompanhamentos foi implementada após o congelamento da
+infraestrutura. Exceção justificada: decisão tomada antes do congelamento,
+executada depois. Não altera o que existe — acrescenta componente novo. Os HTML
+de acompanhamento por aluna passaram a ser publicados cifrados (PageCrypt): o
+site pede senha para abrir cada um.
 
 **O que foi decidido.**
-- **A âncora do ciclo da Duo muda pela primeira vez:** `f99c8ef2879a` → **`ae7e63fb7964`**.
-  É o inverso do que está registrado mais acima, no mesmo dia: lá a âncora dela
-  permaneceu intacta justamente porque o ciclo **não** tinha sido tocado; aqui foi, com
-  autorização da pesquisadora.
-- A formulação nova descreve o **processo** (escutar mais tempo, começar depois e
-  responder certo), não o **efeito** (demorar). O que se observa não mudou; mudou o nome
-  do que se observa.
-- **O registro guarda os dois lados.** A nota de correção no próprio PO nomeia o termo
-  antigo, como a tabela de harmonização faz com os termos do professor. Uma correção que
-  apaga o que corrigiu não é proveniência — é edição.
-- A âncora do **Ritmos** foi regerada duas vezes nesta rodada (na harmonização e no
-  preview), e nenhuma delas mudou o conteúdo do ciclo.
+- PageCrypt para criptografar os HTML de acompanhamento por aluna.
+- As senhas **não ficam no repositório** (ele é público). Ficam em
+  `tools/.senhas-locais` (não versionado, `chmod 600`).
+- Se o arquivo não existir, o script pede a senha interativamente; sem terminal e
+  sem senha ele **falha**, e o `check-pacote.js` reprova o pacote — um
+  acompanhamento não chega ao site em claro.
+- O `.conf` só declara `ACOMPANHAMENTO_CRIPTOGRAFADO="sim"` — sem valor.
+- A criptografia roda **dentro do `gerar-ciclo.sh`**, depois de o HTML nascer e
+  antes da validação. O `gerar-acompanhamento.sh` ganhou o modo
+  `--criptografar`; o prompt previa essa etapa no script dos acompanhamentos,
+  mas lá só existem os `.md` — o HTML nasce no gerador.
+- A nota de harmonização do Ritmos foi atualizada (decisão 18/09: harmonização
+  sempre, inclusive citações).
+
+**O que não está resolvido, e é o ponto sensível.**
+A criptografia protege **o site**, não o conteúdo. Os mesmos acompanhamentos
+continuam em claro em dois lugares do repositório público: o **PDF consolidado**
+de cada ciclo (`ciclo-01-duo.pdf`, `ciclo-01-ritmos.pdf` — o gerador inclui os
+acompanhamentos no PDF) e os **`.md` de origem**
+(`professores/tiago/ciclos/ciclo-XX-<escola>-acompanhamento-<aluna>.md`, 19
+arquivos rastreados). O conteúdo é pseudonimizado pelos apelidos (P-12) — não há
+nome próprio nem dado clínico —, mas é o mesmo conteúdo. Tirar os
+acompanhamentos do PDF é uma linha no gerador; tirar os `.md` do repositório
+quebraria a cadeia de proveniência (P-04), porque eles são fonte. As duas
+decisões são da pesquisadora e ficaram **pendentes**, declaradas aqui.
+
+Também pendente, do mesmo tipo: uma linha residual de termo cru na tabela de
+progressão do plano do Ritmos ("Braços caídos, desconectados" / "1ª alta demais",
+`ciclo-01-ritmos-plano.md`) — registrada na harmonização daquele ciclo, não
+reescrita por ser conteúdo publicado.
 
 **Com o quê.**
-`professores/tiago/ciclos/ciclo-01-duo-po.md`, `…ciclo-01-relatorio-aula-01.md`,
-`…ciclo-01-duo.fipp`, `…ciclo-01-ritmos-relatorio-aula-01.md`, `…ciclo-01-ritmos.fipp`,
-`professores/tiago/cadernos/ciclo-01/caderno-01-duo.md`,
-`professores/tiago/relatorios/ciclo-01/aula-01-duo.md`, `tools/hooks/commit-msg`.
+`tools/gerar-acompanhamento.sh`, `tools/gerar-ciclo.sh`, `tools/check-pacote.js`,
+`package.json` (dependência `pagecrypt`), `ciclos/*.conf`, `.gitignore`,
+`tools/.senhas-locais` (não versionado), `tools/.senhas-locais.exemplo`,
+`CONGELAMENTO.md`, `cadernos/README.md`,
+`ciclo-01-ritmos-harmonizacao.md`.
 
 **Referências.**
-P-05 (proveniência), P-06 (registro descritivo), P-10 (linha de base), P-12 (apelidos),
-P-21 (linguagem harmonizada).
+P-04 (proveniência), P-12 (apelidos), P-17 (artefatos do ciclo), P-21 (linguagem
+harmonizada).
 
 **O que ainda não está feito.**
-Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
-cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
-(após 19/09); conferir os dois sites no Netlify.
+Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
+decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
+Ritmos.
 
 ## O que está pendente
 
@@ -220,6 +232,15 @@ licença do repositório.
 Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
 cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
 (após 19/09); conferir os dois sites no Netlify.
+
+## 19/09/2026 — Congelamento da infraestrutura
+
+Frente de conteúdo: revisão da Aula 01 do Duo (defeito do exercício no chão);
+Aula 01 do Ritmos (19/09); caderno + relatório do Ritmos; Aula 02 do Duo.
+E uma inconsistência declarada, para decisão da pesquisadora: a harmonização do
+Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
+decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
+Ritmos.
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
