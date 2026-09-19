@@ -6,7 +6,7 @@ escola: Ritmos e Movimento
 responsavel: Gabi
 professor: Tiago Menegaz
 title: "PO do Ciclo 01 — Ritmos e Movimento"
-state: Input_PO_Aguardando
+state: Input_PO_Validado
 ---
 
 > **O que é este arquivo.** O **Plano de Observação (PO)** do Ciclo 01 na escola
@@ -101,6 +101,21 @@ O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professo
   construir (porte a fortalecer) e sincronização de pas de deux com três meninas
   diferentes.
 
+### Restrições físicas declaradas (P-22)
+
+| Aluno | Restrição | Fonte |
+|:--|:--|:--|
+| **Carol** | Lesão nos tornozelos (relata ausência de ligamento); dificuldade em dobrar e estender os dois joelhos; relata dor | Declarado pela pesquisadora (18/09/2026) |
+| **Pássaro Azul** | Restrição no ombro — provavelmente direito, `[conferir com ele]`; lesão leve segundo ele, em tratamento; já faz 3 séries de 10 flexões | Declarado pela pesquisadora (18/09/2026) |
+| **Dada** | `[Preencher: a observar na primeira aula]` | — |
+| **Tony** | `[Preencher: a observar na primeira aula]` | — |
+| **Mari** | `[Preencher: a observar na primeira aula]` | — |
+
+> **Nota (P-22).** Estas restrições **não serão avaliadas** — o professor apenas
+> registra. Quando impedem o trabalho, são comunicadas à coordenação (Gabi). A decisão
+> sobre o que fazer não é do professor. O que entra no registro é o que **aconteceu**,
+> com data: "não executou a série de piqués" é registro; "é frágil" não é.
+
 ## Critérios de inclusão
 
 O que **será registrado**, nas palavras do professor:
@@ -133,10 +148,15 @@ desenvolvem a partir de bases técnicas ainda em formação.
 
 ### explanationOfCut
 
-Focar neste grupo heterogêneo de 20 encontros porque ele reúne simultaneamente
+Focar neste grupo heterogêneo de 21 encontros porque ele reúne simultaneamente
 bailarinos com anos de prática mas vícios de base e um iniciante absoluto,
 permitindo observar diretamente a construção dos comandos elementares do pas de
 deux.
+
+> **Nota de correção (18/09/2026):** o professor declarou 20 encontros na entrega; a
+> pesquisadora corrigiu para **21** — 3 aulas por semana (1 terça + 2 sábado) × 7
+> semanas. A declaração original permanece em
+> `professores/tiago/campo/2026-09-18-ritmos/respostas.md` (P-05).
 
 ### whatIsLeftOut
 
@@ -146,15 +166,19 @@ comportamentos observáveis de movimento.
 
 ### theoreticalBasis
 
-Método RAD, livros de técnica clássica e princípios de cinesiologia e preparação
-do corpo para a dança.
+Método RAD, livros de técnica clássica, princípios de cinesiologia e preparação do
+corpo para a dança. **HOMANS, Jennifer.** *Apollo's Angels* (2010) — referência para a
+leitura e abordagem do espetáculo *O Quebra-Nozes* voltado para o público infantil.
 
 ## Condições de contorno da execução
 
-`[Preencher: o professor não declarou este campo na entrega.]` Pela **P-11**, as
-variáveis relacionais que o plano não controla (interesse, ânimo, harmonia do
-grupo) entram no registro como parte do que se observa — e são declaradas
-**antes** da aula, não justificadas depois.
+O grupo é cooperativo. Não há problemas de ânimo, interesse ou indisposição. O que
+existe é **dispersão por conversa paralela** — assuntos fora do escopo (maquiagem, o
+que comeu, etc.). É tolerável por 30–45 segundos (descontrai); passando disso,
+atrapalha. Registrado como variável relacional que o plano não controla — e que será
+observada, não julgada.
+
+*Declarado pela pesquisadora em 18/09/2026.*
 
 ## Limitações
 
@@ -172,32 +196,39 @@ grupo) entram no registro como parte do que se observa — e são declaradas
 
 ### phenomenonOperationallyDefined
 
-- [ ] [Preencher: verificar após a primeira aula.]
+- [x] O fenômeno está definido de modo operacional: harmonia e estruturação dos braços, ação de peso e contrapeso no par, eixo individual e eixo no par, entrosamento e musicalidade — com os parâmetros de medição da Aula 01.
 
 ### scopeBoundariesClear
 
-- [ ] [Preencher: verificar após a primeira aula.]
+- [x] As bordas estão claras: 21 encontros, 3 aulas de 60 min por semana, os cinco apelidos do ciclo (e as flutuantes), com os critérios de exclusão declarados.
 
 ### criteriaMutuallyExclusive
 
-- [ ] [Preencher: verificar após a primeira aula.]
+- [x] Inclusão e exclusão não se sobrepõem: a inclusão é o que se registra do movimento executado; a exclusão são conversas sem efeito no movimento, humor, saúde e comparações subjetivas.
 
 ### justificationGrounded
 
-- [ ] [Preencher: verificar após a primeira aula.]
+- [x] A justificativa está ancorada em referência declarada: método RAD, técnica clássica, cinesiologia e preparação corporal, e Homans (2010) para a leitura do espetáculo.
 
 ### cutFeasible
 
-- [ ] [Preencher: verificar após a primeira aula.]
+- [x] O recorte é exequível: registro pelo caderno (com as ocorrências físicas da P-22) e pelos parâmetros da Aula 01, dentro das três aulas semanais, com as condições de contorno declaradas (P-11).
 
 ---
 
-> **Nota de proveniência.** **Todos** os campos acima — pergunta, fenômeno, campo
-> empírico, sujeitos, linha de base, critérios e justificativa — vêm da resposta
-> do professor à eliciação, entregue em **18/09/2026**, transcrita sem alteração.
-> Nada foi inferido: o que ele não declarou está marcado `[Preencher]`.
+> **Nota de proveniência.** Os campos **originais do professor** — pergunta, fenômeno,
+> campo empírico, sujeitos, linha de base, critérios de inclusão e exclusão,
+> justificativa (os quatro campos) e limitações — vêm da resposta à eliciação,
+> entregue em **18/09/2026**, transcrita sem alteração. A declaração bruta permanece em
+> `professores/tiago/campo/2026-09-18-ritmos/respostas.md` (P-05).
 >
-> O **checklist de validação** é a única parte deste documento que **não** é dele:
-> é a verificação da pesquisadora (P-08), e será marcada depois da primeira aula —
-> que é também o momento em que o estado deste PO pode passar a `Input_PO_Validado`.
+> **Correções da pesquisadora (18/09/2026), cada uma declarada no próprio campo:**
+> o total de encontros passa de 20 para **21** (3 aulas por semana × 7 semanas); o
+> `theoreticalBasis` incorpora **Homans (2010)**, que ele declarou em "Documentos
+> auxiliares"; as **condições de contorno (P-11)** foram preenchidas; e a **linha de
+> base** ganhou a subseção de **restrições físicas (P-22)**, declarada pela
+> pesquisadora — pela regra, o professor não avalia restrição física: registra.
+>
+> **Estado:** `Input_PO_Validado` — os cinco itens do checklist marcados. O ciclo
+> começa em **19/09/2026**.
 
