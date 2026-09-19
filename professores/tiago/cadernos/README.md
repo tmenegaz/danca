@@ -131,15 +131,19 @@ Regras: 8 (Proveniência), 12 (Observação pedagógica), 17 (Versionamento)
 Auditoria: sim"
    ```
 
-3. **Não** gerar HTML/PDF do caderno: ele é lido em texto, e a ausência de forma
-   final é parte da função (o caderno não é o material de entrega).
+3. O caderno é **publicado no pacote** (HTML + PDF) **e é fonte do hash FIPP**.
+   A versão-fonte continua sendo o `.md` — o HTML e o PDF do pacote são gerados a
+   partir dele. (Antes de 19/09/2026 ele ficava fora do pacote por decisão de
+   método: a ausência de forma final era parte da função. A decisão mudou.)
 4. **Não** editar uma entrada antiga para "corrigir" o que foi escrito. Se algo
    foi anotado errado, a correção é uma nova entrada datada — o registro anterior
    permanece. Isso é a P-06 aplicada ao próprio caderno: o passado não é
    reescrito, é acrescido.
-5. O caderno **não** entra na declaração de hash do ciclo (`tools/hash-ciclo.sh`
-   cobre `.conf` + `.md` do ciclo): ele registra a aula, não o plano. A ligação
-   com a cadeia FIPP é documental — o relatório pós-aula cita a entrada datada.
+5. O caderno **entra na declaração de hash do ciclo** desde 19/09/2026: ele está
+   no `DOCS` do manifesto e o `tools/hash-ciclo.sh` o cobre como qualquer outro
+   documento. A ligação com a cadeia FIPP deixou de ser apenas documental — o que
+   dá ainda mais peso à regra acima: editar uma entrada antiga muda a âncora do
+   ciclo. O passado não se reescreve; acrescenta-se.
 
 ## Senha de proteção dos acompanhamentos
 
