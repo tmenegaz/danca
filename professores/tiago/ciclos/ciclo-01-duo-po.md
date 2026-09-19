@@ -108,7 +108,7 @@ ela é a própria **heterogeneidade das pré-condições**:
 - Costelas abertas
 - Quadril para trás
 - Hiperlordose
-- Braços na 2ª posição com cotovelos caídos
+- Braços na 2ª posição com cotovelos a alinhar
 
 **Adutores e posterior de coxa — nenhuma tem desenvolvido:**
 
@@ -145,8 +145,7 @@ ela é a própria **heterogeneidade das pré-condições**:
 > **Ana — musicalidade em observação.** Não acompanha no início dos exercícios de
 > bater palma; segue a turma. Ainda não está decidido se é por **contágio** (acompanha
 > a turma por imitação, e não por compreensão própria) ou por **assimilação em tempo
-> próprio**. Em
-> observação.
+> próprio**. Em observação.
 
 ## Critérios de inclusão
 
@@ -298,4 +297,13 @@ Isso não é falha do plano nem ruído a descartar: é **parte do que se observa
 > a pesquisadora substituiu por **assimilação em tempo próprio** — a primeira descreve
 > o efeito (demorar), a segunda descreve o processo (escutar mais tempo e responder
 > depois, certo). O que se observa não mudou; mudou o nome do que se observa.
+>
+> **Harmonização de linguagem (19/09/2026).** A P-21 foi institucionalizada depois de
+> este PO ser escrito, então ele nasceu quase todo harmonizado: a verificação contra a
+> tabela de termos crus (`ciclo-01-ritmos-harmonizacao.md`) encontrou **um único** termo
+> ainda publicado — "cotovelos caídos", na linha de base do grupo (acima), que passou a
+> **"cotovelos a alinhar"**. O termo antigo fica nomeado aqui pela mesma razão que o
+> anterior: uma correção que apaga o que corrigiu não é proveniência, é edição (P-05).
+> A tabela bruto × harmonizado deste ciclo está em
+> [`ciclo-01-duo-harmonizacao.md`](ciclo-01-duo-harmonizacao.md).
 
