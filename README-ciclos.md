@@ -6,10 +6,11 @@ HTML), as regras de navegação e como validar tudo antes de entregar ao profess
 
 > **Estado atual.** Cada escola tem o seu ciclo, gerado e validado: o **Duo**
 > (Fundamentos do Balé Clássico, 12 aulas de 60 min, com Aula 01 de 90 tempos em
-> solo/barra/centro) e a **Ritmos e Movimento** (pas de deux, 20 encontros de 60 e
-> 120 min, com Aula 01 de 90 tempos e 180 no dia longo). O que ainda depende do
-> professor vem marcado `[Preencher]`; o que depende de conferência de edição/ano
-> vem marcado `[conferir]`.
+> solo/barra/centro) e a **Ritmos e Movimento** (pas de deux, **21 encontros** de
+> 60 min — três por semana: 1 na terça e 2 no sábado, 120 min no dia —, com
+> Aula 01 de 90 tempos e 180 no dia de sábado). O que ainda depende do professor
+> vem marcado `[Preencher]`; o que depende de conferência de edição/ano vem
+> marcado `[conferir]`.
 
 ## O que a entrega contém
 
@@ -17,8 +18,8 @@ HTML), as regras de navegação e como validar tudo antes de entregar ao profess
 |:--|:--|:--|
 | **Markdown-fonte** | `professores/<professor>/ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
 | **Manifesto do ciclo** | `professores/<professor>/ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
-| **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (23 páginas no ciclo 01) |
-| **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | 8 páginas interligadas, com barra de navegação fixa |
+| **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (**49 páginas** no Duo, **38** na Ritmos) |
+| **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | **19 páginas** interligadas no Duo, **20** na Ritmos, com barra de navegação fixa |
 | **Folha de estilo única** | `professores/<professor>/ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
 | **Mapas do rizoma** | `professores/<professor>/ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
 | **README do pacote** | `professores/<professor>/ciclos/ciclo-XX/README.md` | gerado uma única vez; o professor pode editar depois |
@@ -88,7 +89,7 @@ distintos. Duas escolas com o mesmo número de ciclo não são a mesma coisa:
 | Ciclo | Escola | Frequência e duração | Calendário | Volume semanal |
 |:--|:--|:--|:--|--:|
 | `ciclo-01-duo` | Duo (Fernando) | 1x/semana (sextas), 60 min | 18/09 → 04/12/2026 (12 semanas) | 90 tempos |
-| `ciclo-01-ritmos` | Ritmos e Movimento (Gabi) | 2x/semana (terças e sábados), 60 min + 120 min | 19/09 → 24/11/2026 (10 semanas) | 90 + 180 = 270 tempos |
+| `ciclo-01-ritmos` | Ritmos e Movimento (Gabi) | 3 aulas/semana (terças e sábados), 3 × 60 min | 19/09 → 03/11/2026 (7 semanas) | 90 + 90 + 90 = 270 tempos |
 
 > **17/09/2026 é uma quinta-feira** — não é dia de aula em nenhuma das escolas. O
 > cálculo **não arredonda para a data informada**: ele avisa e usa o próximo dia de
@@ -100,8 +101,8 @@ O conteúdo de uma escola nunca é o de outra: o que a variante declara em
 `ciclo-XX-<escola>.conf` e nos arquivos `ciclo-XX-<escola>-*.md` tem precedência
 sobre os arquivos sem sufixo (`tools/lib-fontes.sh`).
 
-Saídas: `professores/tiago/ciclos/ciclo-01-duo/` (13 páginas HTML) e
-`professores/tiago/ciclos/ciclo-01-ritmos/` (4 páginas HTML), cada uma com
+Saídas: `professores/tiago/ciclos/ciclo-01-duo/` (19 páginas HTML) e
+`professores/tiago/ciclos/ciclo-01-ritmos/` (20 páginas HTML), cada uma com
 `assets/`, `README.md` e o PDF do ciclo.
 
 
@@ -148,8 +149,8 @@ Markdown escrito à mão, mas da junção dos documentos do ciclo (cada um prece
 | Índice navegável | `--toc --toc-depth=3 -V toc-title="Índice"`, em página própria | "Índice" presente nas primeiras páginas (`pdftotext`) |
 | Referências cruzadas internas | links `arquivo.html#ancora` reescritos para `#ancora` com prefixo do documento | toda âncora usada tem título correspondente (checado no gerador) |
 | Bookmarks na barra lateral | `hyperref` + `bookmark.sty` | presença de `/Outlines` nos streams inflados do PDF |
-| Numeração e identificação no rodapé | `fancyhdr`, com o estilo `plain` redefinido para valer **também na capa** | checagem página a página: `p. N` e "Ciclo" em todas as 17 páginas |
-| Cada documento em página nova | `\clearpage` antes de cada título | 17 páginas para 9 documentos + capa + índice |
+| Numeração e identificação no rodapé | `fancyhdr`, com o estilo `plain` redefinido para valer **também na capa** | checagem página a página: `p. N` e "Ciclo" em todas as páginas (49 no Duo, 38 na Ritmos) |
+| Cada documento em página nova | `\clearpage` antes de cada título | 49 páginas para 15 documentos + capa + índice (Duo) |
 
 ## Âncoras: a armadilha que custou uma rodada
 
@@ -189,14 +190,16 @@ aparece em toda aula e, sem o prefixo, o link da Aula 02 levaria à seção da A
 Saída esperada hoje (Ciclo 01):
 
 ```
-  ok    páginas verificadas: 8
-  ok    links internos verificados: 276
+  ok    cifrada: acompanhamento-ana.html (21198 B, 4 marca(s) de cifra)
+  ...   (os acompanhamentos por aluna saem cifrados — ver "Política de segurança")
+  ok    páginas verificadas: 19
+  ok    links internos verificados: 876
   ok    PDF: bookmarks (barra lateral do leitor) presentes
-  ok    PDF: 109 links internos clicáveis
-  ok    PDF: 23 páginas (mínimo esperado: 9)
-  ok    PDF: rodapé com identificação do ciclo e número nas 23 páginas
+  ok    PDF: 305 links internos clicáveis
+  ok    PDF: 49 páginas (mínimo esperado: 20)
+  ok    PDF: rodapé com identificação do ciclo e número nas 49 páginas
   ok    PDF: nenhum texto passa da margem do texto (2 cm)
-OK: 0 erro(s), 0 aviso(s).
+OK: 0 erro(s), 5 aviso(s).
 ```
 
 ## Símbolos que o LaTeX não traz (e como foram resolvidos)
