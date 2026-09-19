@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: ritmos
-hash_conteudo: e1d000c754cc4c82d5fa40565c5508ec09c3887a1b8db0d935fed83bcad39d40
+hash_conteudo: 95a443430551e04e9254e1bb374ca1a4c1fedacbe81b221226d5f8bc32f912f8
 parentHash: 
-hash: 733458b151da7ea938e55d7245bb222affadd785b6d87c568d2e143549199e9f
+hash: 97affd00dc38708a557d66883d65c0eb96b66c8a1f4cbf74b775846833b0e42a
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Validado

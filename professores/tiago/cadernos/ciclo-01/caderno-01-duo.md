@@ -6,7 +6,8 @@
 - 4 alunas presentes (Ceci, Ana, Mel, Sofi). Nenhuma falta.
 - Aula das 18h30 às 19h30 — 60 min efetivos.
 - Estrutura executada: solo → centro → musicalidade · barra (só a parte final).
-- Todas fizeram todos os exercícios; o volume não foi contado em número de tempos.
+- Todas fizeram todos os exercícios. Duração executada: 60 min (planejado:
+  60 min). O volume em tempos não é contado em aula.
 - Nada foi abandonado.
 - Sem materiais brutos (foto, vídeo, áudio, comentário).
 

@@ -10,7 +10,8 @@
 - Estrutura executada, na ordem: tendus/jetés → transferência de peso → piqué
   arabesque → balé como preparação → **elementos de pas de deux**. A folha de
   captura não nomeia o bloco de pas de deux; ele aconteceu e fica nomeado aqui.
-- Todos fizeram todos os exercícios. Volume: planejado 120, executado 120.
+- Todos fizeram todos os exercícios. Duração executada: 120 min (planejado:
+  120 min). O volume em tempos não é contado em aula.
 - Nada foi abandonado. Sem materiais brutos (foto, vídeo, áudio, comentário).
 - **Lete** (Letícia) acompanhou como assistente de PDD. Ela não entra na medição.
 
@@ -45,12 +46,12 @@ outros três, e os três apareceram melhorando ou razoáveis.
 
 #### Funcional (sobrecarga por pessoa)
 
-- **Carol** — volume 120. Tônus sustenta até o fim: parcial. Fadiga antes do
+- **Carol** — duração 120 min. Tônus sustenta até o fim: parcial. Fadiga antes do
   previsto: apareceu.
-- **Dada** — volume 120. Tônus: parcial. Fadiga antes do previsto: parcial (um
+- **Dada** — duração 120 min. Tônus: parcial. Fadiga antes do previsto: parcial (um
   pouco melhor que a Carol).
-- **Tony** — volume 120. Tônus: parcial. Fadiga antes do previsto: apareceu.
-- **Pássaro Azul** — volume 120. Tônus: sustenta até o fim. Fadiga antes do
+- **Tony** — duração 120 min. Tônus: parcial. Fadiga antes do previsto: apareceu.
+- **Pássaro Azul** — duração 120 min. Tônus: sustenta até o fim. Fadiga antes do
   previsto: não aconteceu.
 - **Mari** — ausente. (Ausente não é "não aconteceu": ela não participou, então
   não há dado — é diferente de ter participado e o item não ter aparecido.)
