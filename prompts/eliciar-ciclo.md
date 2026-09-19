@@ -48,6 +48,10 @@ qualquer outro professor, mesmo em turmas parecidas.
 - Dificuldades conhecidas (se não souber, marcamos `[a observar]`)
 - **Apelidos pelos quais são chamadas** (podem ser apelidos reais ou
   inventados; nunca nome completo)
+- **Restrições físicas:** alguma aluna tem lesão, dor, limitação médica ou
+  restrição que afeta o movimento? (Se sim, quais? Se não, declarar "nenhuma")
+  — Esta informação é declarada por **P-22**. Ela não será avaliada; será
+  registrada e, se necessário, comunicada à coordenação.
 
 ## Bloco 4 — Primeira aula
 
@@ -90,6 +94,8 @@ qualquer outro professor, mesmo em turmas parecidas.
 - Você quer gerar os mesmos tipos de artefato do ciclo piloto?
   (relatório-preview, captura, pré-requisitos, musicalidade, notação
   — se aplicável)
+- **Se usar repertório:** qual espetáculo/obra? Qual versão/produção (se
+  houver escolha entre versões)? Há versões que você exclui por algum motivo?
 
 ## Formato de saída
 
