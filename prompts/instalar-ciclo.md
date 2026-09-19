@@ -136,6 +136,32 @@ Nada é sobrescrito: a proveniência acrescenta, não edita. O material bruto em
 > ainda incipiente*"). Regenere o ciclo com a troca; não edite os arquivos à mão,
 > nem a tabela anterior.
 
+## Condições materiais de execução (P-22)
+
+Ao instalar um ciclo, verificar se o professor declarou restrições físicas na
+resposta. Se sim:
+
+1. **Declarar na linha de base** do PO — subseção "Restrições físicas
+   declaradas (P-22)", com uma linha por aluno (apelido, restrição, fonte).
+2. **Se o professor não declarou** nenhuma restrição, registrar isso
+   explicitamente: *"O professor declarou não haver restrições físicas
+   conhecidas em [data]."* — a ausência é informação.
+3. **Se o professor declarou parcialmente** (só de alguns alunos), marcar
+   `[Preencher: a observar na primeira aula]` para os demais.
+
+Onde a restrição entrar, a **fonte** entra junto: quem declarou, e quando. Se veio
+da eliciação, é o professor; se veio da coordenação ou da pesquisadora, é quem
+declarou — como no ciclo do Ritmos, em que as restrições conhecidas foram
+declaradas pela pesquisadora porque a entrega do professor é anterior à P-22.
+
+Ao registrar uma ocorrência em aula, o professor **não avalia**: ele descreve o que
+aconteceu, com data (ver a governança do caderno, abaixo).
+
+> **Governança do caderno.** `protocolo/governanca-caderno.md` declara o campo de
+> ocorrência física (P-22) — conferir que a seção existe antes de gerar o pacote. Se
+> não existir, a instalação para e reporta: o caderno sem esse campo não sustenta o
+> item (b) da pétrea.
+
 ## Procedimento
 
 1. Criar `professores/<nome>/` com a estrutura
