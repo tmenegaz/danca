@@ -466,3 +466,37 @@ harmonizada).
 Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
 decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
 Ritmos.
+
+## 19/09/2026 — Política de segurança dos dados sensíveis
+
+**O que aconteceu.**
+Depois da criptografia dos acompanhamentos (HTML), ficou claro que ela não
+protegia tudo: o **PDF do ciclo** e os **`.md` versionados** expunham os mesmos
+dados em texto claro. A verificação no PDF do Duo encontrou 17 ocorrências de
+"Acompanhamento", com os apelidos e o conteúdo de cada aluna; os `.md` estavam
+entre os arquivos rastreados do repositório público. A pesquisadora decidiu
+proteger em camadas, em vez de apostar tudo numa só.
+
+**O que foi decidido.**
+- **Repositório privado** (GitHub) — camada 1, **ação manual da pesquisadora**.
+- **PDF do ciclo sem acompanhamentos** — camada 2: o gerador passou a montar o
+  consolidado só com `DOCS`, e não com `DOCS + ACOMP_DOCS`. O que era decisão de
+  conteúdo ("o PDF do professor traz tudo") virou decisão de segurança.
+- **Acompanhamentos `.md` fora do Git** — camada 4: `git rm --cached` nos 9
+  arquivos + regra no `.gitignore`. São **vista derivada** do PO e dos
+  relatórios, e o `gerar-acompanhamento.sh` os reescreve no disco **antes** de o
+  pacote ser montado — nada depende de estarem versionados. A cadeia FIPP não é
+  tocada: eles já ficavam fora do hash por construção (`tools/lib-fontes.sh`).
+- **HTML cifrado** (PageCrypt) — camada 3, em vigor desde a entrada anterior.
+
+**Com o quê.**
+`tools/gerar-ciclo.sh`, `.gitignore`, `CONGELAMENTO.md`, os dois pacotes
+regerados (o PDF deixa de publicar as páginas de acompanhamento).
+
+**Referências.**
+P-04 (proveniência), P-12 (apelidos), P-22 (restrição e dado sensível).
+
+**O que ainda não está feito.**
+A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
+push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
+pacote é a etapa seguinte.

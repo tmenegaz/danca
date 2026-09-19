@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T16:09:44-0300`
-Commit atual: `5900725` — docs(registro): registra o nao determinismo da cifra como efeito colateral
+Gerado em: `2026-09-19T17:52:32-0300`
+Commit atual: `759d182` — feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,13 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+759d182 feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
+3cc45ca chore(ciclo-01): regenera os acompanhamentos do Ritmos com a aula 01
+d7936c2 feat(ciclo-01): PO do Ritmos com equipe (Lete) e P-22 (lesao da Dada)
+d66b15c docs(relatorio-01): registra a aula 01 do Ritmos
+5e360f6 docs(caderno-01): registra a aula 01 do Ritmos
+8b8c361 fix(ciclo-01): deriva o Bloco 5 da captura do PO do Ritmos (era do Duo)
+d34f577 docs(registro): corrige o registro — os .md de acompanhamento nao sao fonte do hash
 5900725 docs(registro): registra o nao determinismo da cifra como efeito colateral
 14d96ae docs(caderno): registra que o HTML cifrado nao e deterministico
 26b39ff fix(tools): guarda de cifra ja aplicada usa as marcas reais da biblioteca
@@ -28,13 +35,6 @@ ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
 9ebe25b docs(registro): registra o congelamento e a verificacao da P-17 em codigo
 4a4abbc docs(protocolo): declara congelamento da infraestrutura
 2775748 feat(ciclo-01): harmonizacao de linguagem do Duo e termo harmonizado no PO
-0303390 feat(tools): check-pacote reprova ciclo com aula sem harmonizacao (P-17 + P-21)
-74fa832 fix(template): hamburger responde em todas as páginas (navegação mobile)
-e2c8c28 chore(tools): regenera ancoras e HANDOFF apos incluir os relatorios no hash
-eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
-3d01db0 feat(tools): integra o acompanhamento ao gerador do pacote
-4ce9fa8 chore(ciclo-01): gera os acompanhamentos por aluna (Duo e Ritmos)
-d46031c feat(tools): cria gerar-acompanhamento.sh (vista por aluna do ciclo)
 ```
 
 ## Por professor
@@ -46,12 +46,12 @@ d46031c feat(tools): cria gerar-acompanhamento.sh (vista por aluna do ciclo)
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | Duo | ciclo-01-duo-po.md | Input_PO_Validado | 0 |
-| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Validado | 6 |
+| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Validado | 5 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | duo | ciclo-01-duo.fipp | `9dd97d81236c` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `511c51d6870c` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `cb957cd20a87` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -100,79 +100,39 @@ d46031c feat(tools): cria gerar-acompanhamento.sh (vista por aluna do ciclo)
 
 ## Última entrada do REGISTRO
 
-## 19/09/2026 — Criptografia dos acompanhamentos (exceção pós-congelamento)
+## 19/09/2026 — Política de segurança dos dados sensíveis
 
 **O que aconteceu.**
-A criptografia dos acompanhamentos foi implementada após o congelamento da
-infraestrutura. Exceção justificada: decisão tomada antes do congelamento,
-executada depois. Não altera o que existe — acrescenta componente novo. Os HTML
-de acompanhamento por aluna passaram a ser publicados cifrados (PageCrypt): o
-site pede senha para abrir cada um.
+Depois da criptografia dos acompanhamentos (HTML), ficou claro que ela não
+protegia tudo: o **PDF do ciclo** e os **`.md` versionados** expunham os mesmos
+dados em texto claro. A verificação no PDF do Duo encontrou 17 ocorrências de
+"Acompanhamento", com os apelidos e o conteúdo de cada aluna; os `.md` estavam
+entre os arquivos rastreados do repositório público. A pesquisadora decidiu
+proteger em camadas, em vez de apostar tudo numa só.
 
 **O que foi decidido.**
-- PageCrypt para criptografar os HTML de acompanhamento por aluna.
-- As senhas **não ficam no repositório** (ele é público). Ficam em
-  `tools/.senhas-locais` (não versionado, `chmod 600`).
-- Se o arquivo não existir, o script pede a senha interativamente; sem terminal e
-  sem senha ele **falha**, e o `check-pacote.js` reprova o pacote — um
-  acompanhamento não chega ao site em claro.
-- O `.conf` só declara `ACOMPANHAMENTO_CRIPTOGRAFADO="sim"` — sem valor.
-- A criptografia roda **dentro do `gerar-ciclo.sh`**, depois de o HTML nascer e
-  antes da validação. O `gerar-acompanhamento.sh` ganhou o modo
-  `--criptografar`; o prompt previa essa etapa no script dos acompanhamentos,
-  mas lá só existem os `.md` — o HTML nasce no gerador.
-- A nota de harmonização do Ritmos foi atualizada (decisão 18/09: harmonização
-  sempre, inclusive citações).
-
-**Efeito colateral declarado.**
-O HTML cifrado **não é determinístico**: cada execução usa sal e IV novos, então os
-9 acompanhamentos mudam de bytes a cada geração — com a mesma senha e o mesmo
-conteúdo. Regenerar o pacote deixa essas páginas "modificadas" no Git, e é por isso
-que a árvore não fica limpa depois de gerar. O que não muda é o que a senha abre. A
-segunda execução da criptografia sem regerar o HTML é recusada de propósito: sem
-decifrar antes, ela cifraria a própria cifra e o arquivo deixaria de abrir.
-
-**O que não está resolvido, e é o ponto sensível.**
-A criptografia protege **o site**, não o conteúdo. Os mesmos acompanhamentos
-continuam em claro em dois lugares do repositório público: o **PDF consolidado**
-de cada ciclo (`ciclo-01-duo.pdf`, `ciclo-01-ritmos.pdf` — o gerador inclui os
-acompanhamentos no PDF) e os **`.md` de origem**
-(`professores/tiago/ciclos/ciclo-XX-<escola>-acompanhamento-<aluna>.md`, 19
-arquivos rastreados). O conteúdo é pseudonimizado pelos apelidos (P-12) — não há
-nome próprio nem dado clínico —, mas é o mesmo conteúdo. As duas saídas:
-
-- **tirar os acompanhamentos do PDF** é uma linha no gerador (o PDF é montado de
-  `$DOCS $ACOMP_DOCS`); o PDF não entra no hash, então a âncora não muda;
-- **tirar os `.md` do repositório** (`.gitignore` + `git rm --cached`) é possível
-  **sem tocar na cadeia FIPP**: `tools/lib-fontes.sh` os exclui do hash de
-  propósito — são vista derivada do PO e dos relatórios, que são as fontes reais.
-  O que continua necessário é tê-los em disco para o gerador montar o pacote antes
-  de cifrar; quem clonar o repositório não os terá, e o pacote publicado (cifrado)
-  é reconstruível a partir do PO e dos relatórios, que permanecem versionados.
-
-Nenhuma das duas foi feita: as duas mudam o que o site publica, e a decisão é da
-pesquisadora.
-
-Também pendente, do mesmo tipo: uma linha residual de termo cru na tabela de
-progressão do plano do Ritmos ("Braços caídos, desconectados" / "1ª alta demais",
-`ciclo-01-ritmos-plano.md`) — registrada na harmonização daquele ciclo, não
-reescrita por ser conteúdo publicado.
+- **Repositório privado** (GitHub) — camada 1, **ação manual da pesquisadora**.
+- **PDF do ciclo sem acompanhamentos** — camada 2: o gerador passou a montar o
+  consolidado só com `DOCS`, e não com `DOCS + ACOMP_DOCS`. O que era decisão de
+  conteúdo ("o PDF do professor traz tudo") virou decisão de segurança.
+- **Acompanhamentos `.md` fora do Git** — camada 4: `git rm --cached` nos 9
+  arquivos + regra no `.gitignore`. São **vista derivada** do PO e dos
+  relatórios, e o `gerar-acompanhamento.sh` os reescreve no disco **antes** de o
+  pacote ser montado — nada depende de estarem versionados. A cadeia FIPP não é
+  tocada: eles já ficavam fora do hash por construção (`tools/lib-fontes.sh`).
+- **HTML cifrado** (PageCrypt) — camada 3, em vigor desde a entrada anterior.
 
 **Com o quê.**
-`tools/gerar-acompanhamento.sh`, `tools/gerar-ciclo.sh`, `tools/check-pacote.js`,
-`package.json` (dependência `pagecrypt`), `ciclos/*.conf`, `.gitignore`,
-`tools/.senhas-locais` (não versionado), `tools/.senhas-locais.exemplo`,
-`CONGELAMENTO.md`, `cadernos/README.md`,
-`ciclo-01-ritmos-harmonizacao.md`.
+`tools/gerar-ciclo.sh`, `.gitignore`, `CONGELAMENTO.md`, os dois pacotes
+regerados (o PDF deixa de publicar as páginas de acompanhamento).
 
 **Referências.**
-P-04 (proveniência), P-12 (apelidos), P-17 (artefatos do ciclo), P-21 (linguagem
-harmonizada).
+P-04 (proveniência), P-12 (apelidos), P-22 (restrição e dado sensível).
 
 **O que ainda não está feito.**
-Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
-decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
-Ritmos.
+A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
+push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
+pacote é a etapa seguinte.
 
 ## O que está pendente
 
@@ -258,6 +218,12 @@ E uma inconsistência declarada, para decisão da pesquisadora: a harmonização
 Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
 decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
 Ritmos.
+
+## 19/09/2026 — Política de segurança dos dados sensíveis
+
+A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
+push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
+pacote é a etapa seguinte.
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
