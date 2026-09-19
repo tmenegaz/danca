@@ -63,15 +63,71 @@ data: "19/09/2026"
 
 ## Bloco 5 — Linha de base revisitada (P-10)
 
-Colunas com as dificuldades que **ele declarou** para a turma:
+> **Como esta folha foi montada (19/09/2026).** As linhas vêm da seção
+> "Linha de base" do PO **deste** ciclo (`ciclo-01-ritmos-po.md`) — o que cada
+> aluno **precisa desenvolver**, nas palavras do professor. A versão anterior
+> trazia as colunas do ciclo do Duo (posterior/adutores, rotadores externos,
+> postura/tronco, atenção/foco) e **não** as do Ritmos.
+>
+> **Forma escolhida: (b) — uma tabela por aluno.** O PO declara conjuntos
+> diferentes para cada um e não há item comum aos quatro; a forma (a) deixaria
+> colunas vazias para todos, e a (c) seria uma matriz de 17 colunas marcando o
+> que não se aplica a ninguém. Aqui cada aluno carrega só o que o PO declarou
+> para ele — e nada que o PO não declare.
+>
+> Marcação: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
 
-| Aluna(o) | Posterior/adutores | Rotadores externos | Postura/tronco | Atenção/foco |
-|:--|:--:|:--:|:--:|:--:|
-| Carol | | | | |
-| Dada | | | | |
-| Tony | | | | |
-| Pássaro Azul | | | | |
-| Mari | | | | |
+### Carol
+
+| O que o PO declara que ela precisa desenvolver | Observado na aula |
+|:--|:--:|
+| Subida e descida de pontas | |
+| Estabilidade no *en dehors* | |
+| Força para flexão e extensão dos joelhos | |
+| Coordenação motora | |
+| Braços curtos | |
+| Primeira posição a ajustar (alta), com o mesmo ângulo do cotovelo da segunda | |
+| Atenção (conversa demais e chega atrasada) | |
+
+### Dada
+
+| O que o PO declara que ela precisa desenvolver | Observado na aula |
+|:--|:--:|
+| Manutenção do *en dehors* | |
+| Expressividade | |
+| Segurança na musicalidade | |
+| Coordenação de braços e pernas | |
+| Segurança em movimentos grandes | |
+| Força e coordenação para pontas de forma harmônica | |
+
+### Tony
+
+| O que o PO declara que ele precisa desenvolver | Observado na aula |
+|:--|:--:|
+| Bases do balé (iniciante absoluto) | |
+| Flexibilidade de posterior e de costas | |
+| Postura | |
+| Estruturação de braços | |
+
+### Pássaro Azul
+
+| O que o PO declara que ele precisa desenvolver | Observado na aula |
+|:--|:--:|
+| Postura do tronco | |
+| Extensão dos pés | |
+| Fixação de correções ao longo do tempo | |
+| Sustentação de tônus muscular (porte a fortalecer) | |
+| Sincronização de pas de deux com três meninas diferentes | |
+
+### Mari
+
+`[Preencher: o PO não declara linha de base individual da Mari — a seção cobre
+quatro alunos. Sem linha de base, não há o que revisitar.]`
+
+> **Flutuantes.** O PO declara 5 alunos fixos e 4 alunas flutuantes, e fixa os
+> apelidos dos fixos (mais a Mari). As flutuantes não têm linha de base
+> declarada: para revisitar a delas, primeiro é preciso fixar os apelidos
+> (`[Preencher: mapear apelidos das flutuantes]`, no PO).
 
 **Notas soltas** — *o que surpreendeu? o que foi ajustado em tempo real? uma frase basta.*
 
