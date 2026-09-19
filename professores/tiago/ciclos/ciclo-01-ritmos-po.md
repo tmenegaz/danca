@@ -57,6 +57,13 @@ Aulas de balé clássico em Ritmos e Movimento.
 | Calendário | ver o [Calendário do Ciclo](ciclo-01-ritmos-plano.md#calendario-do-ciclo) |
 | Condições de registro | `[Preencher: o professor não declarou como o registro é feito em aula.]` |
 
+## Equipe
+
+| Nome | Papel | Observação |
+|:--|:--|:--|
+| Tiago Menegaz | Professor | — |
+| Lete (Letícia) | Assistente de PDD | Não entra na medição de resultados — só o professor mede |
+
 ## Sujeitos
 
 - **5 alunos fixos e 4 alunas flutuantes** (composição declarada pelo professor).
@@ -107,7 +114,7 @@ O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professo
 |:--|:--|:--|
 | **Carol** | Lesão nos tornozelos (relata ausência de ligamento); dificuldade em dobrar e estender os dois joelhos; relata dor | Declarado pela pesquisadora (18/09/2026) |
 | **Pássaro Azul** | Restrição no ombro — provavelmente direito, `[conferir com ele]`; lesão leve segundo ele, em tratamento; já faz 3 séries de 10 flexões | Declarado pela pesquisadora (18/09/2026) |
-| **Dada** | `[Preencher: a observar na primeira aula]` | — |
+| **Dada** | Lesão no tornozelo esquerdo (relato durante a aula 01, 19/09/2026) — descer da ponta é difícil | Declarado pela aluna em aula |
 | **Tony** | `[Preencher: a observar na primeira aula]` | — |
 | **Mari** | `[Preencher: a observar na primeira aula]` | — |
 
