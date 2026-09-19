@@ -24,6 +24,12 @@ sinais próprios, que exigem formação específica para escrever e ler).
 > Aula 01 escritas com um **código didático do ciclo** — baseado no sistema, não a
 > escrita integral dele.
 
+> **Nota (P-15).** Este registro é o **código didático do ciclo**, escrito pelo
+> projeto para estas aulas. A **notação Benesh em forma completa é do professor** —
+> quando ele a entregar, ela passa a ser a notação do ciclo, e este código
+> permanece como leitura de apoio. Até lá, o que está aqui vale pelo que declara:
+> código do ciclo, não o sistema escrito por quem o domina.
+
 ## Como ler o registro
 
 Cada linha descreve **um tempo** do exercício:

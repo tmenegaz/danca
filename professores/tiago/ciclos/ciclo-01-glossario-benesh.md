@@ -20,6 +20,11 @@ referencias: "Mirzabekiantz (2000); Parker (1990)"
 > Cada verbete declara a **origem**: *sistema* (conceito do Benesh) ou *convenção
 > do ciclo* (sinal criado para este registro).
 
+> **Nota (P-15).** O glossário descreve o **código didático do ciclo** — não o
+> sistema Benesh em forma completa, que é **do professor**. Quando ele entregar a
+> notação dos passos, os sinais que ele usar entram aqui como verbetes novos, com
+> a **origem declarada** (*sistema* ou *convenção do ciclo*), como todos os outros.
+
 ## Índice de símbolos
 
 | Símbolo | Nome | Onde aparece no registro |
