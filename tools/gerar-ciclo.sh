@@ -424,6 +424,19 @@ for img in "$APRESENTACAO"/rizoma-*.svg; do
 done
 
 # ---------------------------------------------------------------------------
+# 1b) Acompanhamentos: criptografia (PageCrypt) — depois do HTML, antes de validar
+# ---------------------------------------------------------------------------
+# O HTML do acompanhamento acaba de nascer; a validação ainda não rodou. É o
+# único ponto do fluxo em que dá para criptografar o pacote completo — dentro do
+# gerador, ninguém esquece a etapa. A senha vem de tools/.senhas-locais (fora do
+# repositório); sem ela, a criptografia falha e o check-pacote.js reprova o
+# pacote: acompanhamento de aluna não vai para o site em claro.
+if [ -n "$ACOMP_DOCS" ]; then
+  "$RAIZ/tools/gerar-acompanhamento.sh" "$PROFESSOR_SLUG" "$CICLO" "$VARIANTE" --criptografar || \
+    echo "aviso: acompanhamentos NÃO criptografados — o check-pacote.js vai reprovar" >&2
+fi
+
+# ---------------------------------------------------------------------------
 # 2) PDF único consolidado: capa + índice navegável + seções em página nova
 # ---------------------------------------------------------------------------
 python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS $ACOMP_DOCS" > "$TMP/mapa-ancoras.txt" <<'PY'

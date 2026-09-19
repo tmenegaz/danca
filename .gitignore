@@ -17,6 +17,11 @@ out/
 # tools/deploy-netlify.sh). O script cria o template na primeira execução.
 tools/.netlify-tokens
 
+# Senhas locais da criptografia dos acompanhamentos (lido por
+# tools/gerar-acompanhamento.sh). O repositório é PÚBLICO: só o
+# tools/.senhas-locais.exemplo é versionado, com senhas fictícias.
+tools/.senhas-locais
+
 # ============================================================================
 # Caches e ambientes
 # ============================================================================

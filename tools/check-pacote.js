@@ -16,7 +16,10 @@
  *   5) o PDF consolidado tem índice, links internos, bookmarks e rodapé numerado
  *      em todas as páginas;
  *   6) todo ciclo que tem aula tem harmonização de linguagem (P-17 + P-21): o
- *      artefato é obrigatório, e a ausência é erro — não aviso.
+ *      artefato é obrigatório, e a ausência é erro — não aviso;
+ *   7) quando o manifesto declara ACOMPANHAMENTO_CRIPTOGRAFADO="sim", as páginas
+ *      acompanhamento-*.html estão cifradas (PageCrypt): valida existência,
+ *      tamanho mínimo e ausência de conteúdo em claro — conteúdo, não.
  *
  * Sai com código 1 se algo estiver quebrado. É o último passo de
  * tools/gerar-ciclo.sh, então cada geração já sai verificada.
@@ -114,11 +117,55 @@ if (aulas.length > 0) {
 
 const paginas = fs.readdirSync(pacote).filter((f) => f.endsWith('.html')).sort();
 
+// A criptografia dos acompanhamentos é declarada no manifesto — o .conf NUNCA
+// carrega a senha, porque o repositório é público. Quando declarada, as páginas
+// acompanhamento-*.html deixam de ser verificáveis por conteúdo (estão cifradas):
+// o que se exige delas é existirem, terem tamanho de página de verdade e NÃO
+// trazerem o conteúdo em claro. É o que fecha o furo: um acompanhamento publicado
+// aberto, com a criptografia declarada, reprova — mesmo com a estrutura correta.
+const criptografiaDeclarada = (() => {
+  let flag = null;
+  const confs = [`ciclo-${ciclo}.conf`, variante && `ciclo-${ciclo}-${variante}.conf`]
+    .filter(Boolean);
+  for (const conf of confs) {
+    const p = path.join(dirFontes, conf);
+    if (!fs.existsSync(p)) continue;
+    const m = fs.readFileSync(p, 'utf8').match(/^\s*ACOMPANHAMENTO_CRIPTOGRAFADO="([^"]*)"/m);
+    if (m) flag = m[1].trim();
+  }
+  return flag === 'sim';
+})();
+
+const ehAcompanhamento = (f) => /^acompanhamento-.*\.html$/.test(f);
+// Marcas do PageCrypt no HTML cifrado. São várias de propósito: uma string só
+// quebraria numa atualização da biblioteca (o nome dela, por exemplo, não
+// aparece na página gerada). O que não pode aparecer é o conteúdo em claro.
+const MARCAS_CIFRADA = [/AES-GCM/, /PBKDF2/, /Protected Page/, /pre\[data-i\]/];
+const MARCA_CLARO = 'class="topnav"';        // conteúdo de página aberta
+const TAM_MIN_CIFRADA = 1000;                // bytes; cifra real fica bem acima
+
 // ------------------------------------------- 2) estrutura fixa de cada página
 const conteudos = {};
 paginas.forEach((f) => {
   const html = fs.readFileSync(path.join(pacote, f), 'utf8');
-  conteudos[f] = html;
+  const cifrada = criptografiaDeclarada && ehAcompanhamento(f);
+  conteudos[f] = cifrada ? '' : html;   // cifrada não tem conteúdo conferível
+  if (cifrada) {
+    const bytes = Buffer.byteLength(html, 'utf8');
+    const marcas = MARCAS_CIFRADA.filter((re) => re.test(html)).length;
+    if (marcas === 0) {
+      erros.push(`${f}: ACOMPANHAMENTO_CRIPTOGRAFADO="sim" mas a página não está cifrada`);
+    }
+    if (html.includes(MARCA_CLARO)) {
+      erros.push(`${f}: página cifrada contém conteúdo em claro (${MARCA_CLARO})`);
+    }
+    if (bytes < TAM_MIN_CIFRADA) {
+      erros.push(`${f}: página cifrada pequena demais (${bytes} B) — cifra suspeita`);
+    } else if (marcas > 0 && !html.includes(MARCA_CLARO)) {
+      ok.push(`cifrada: ${f} (${bytes} B, ${marcas} marca(s) de cifra)`);
+    }
+    return;
+  }
   const exigidos = [
     ['barra de navegação', 'class="topnav"'],
     ['índice interno', 'class="toc-local"'],

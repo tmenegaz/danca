@@ -1,0 +1,18 @@
+# Copie para tools/.senhas-locais e preencha com as senhas reais.
+# O arquivo .senhas-locais está no .gitignore e não é versionado.
+#
+#   cp tools/.senhas-locais.exemplo tools/.senhas-locais
+#   chmod 600 tools/.senhas-locais
+#
+# A variável de cada escola é SENHA_<ESCOLA> em maiúsculas, com o mesmo
+# identificador da variante do ciclo: duo → SENHA_DUO, ritmos → SENHA_RITMOS,
+# debora → SENHA_DEBORA (ver tools/gerar-acompanhamento.sh).
+#
+# Se o arquivo não existir, ou a variável da escola estiver vazia, o script
+# pede a senha no terminal — e a criptografia é pulada quando não há terminal
+# (um pacote gerado sem senha sai com os acompanhamentos em claro, e o
+# check-pacote.js reprova).
+
+SENHA_DUO="senha-do-duo"
+SENHA_RITMOS="senha-do-ritmos"
+SENHA_DEBORA="senha-do-debora"

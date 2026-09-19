@@ -2,7 +2,14 @@
 # ============================================================================
 # gerar-acompanhamento.sh — vista por aluna de um ciclo (memória visitável).
 #
-#   uso:  tools/gerar-acompanhamento.sh [<professor>] <ciclo> <variante>
+# uso:  tools/gerar-acompanhamento.sh [<professor>] <ciclo> <variante>
+#       tools/gerar-acompanhamento.sh [<professor>] <ciclo> <variante> --criptografar
+#
+# --criptografar: criptografa (PageCrypt) os acompanhamento-*.html já escritos
+# no pacote. É um modo separado porque o HTML nasce no gerar-ciclo.sh, a partir
+# dos .md escritos aqui — o gerador chama este modo DEPOIS da conversão e ANTES
+# da validação do pacote. A senha mora em tools/.senhas-locais (não versionado)
+# ou é pedida no terminal; nunca entra no repositório, que é público.
 #
 # Para cada aluna do PO, escreve
 #   professores/<p>/ciclos/ciclo-XX-<escola>-acompanhamento-<aluna>.md
@@ -26,6 +33,19 @@ set -euo pipefail
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$RAIZ"
+
+# modo: escrever os .md (padrão) ou criptografar os .html já gerados
+MODO="gerar"
+if [ "$#" -gt 0 ]; then
+  resto=()
+  for a in "$@"; do
+    case "$a" in
+      --criptografar) MODO="criptografar" ;;
+      *) resto+=("$a") ;;
+    esac
+  done
+  if [ "${#resto[@]}" -gt 0 ]; then set -- "${resto[@]}"; else set --; fi
+fi
 
 PROFESSOR_SLUG="tiago"
 if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
@@ -146,6 +166,93 @@ linha_do_tempo() {
 }
 
 ultimo_relatorio() { printf '%s\n' "$RELATORIOS" | grep . | tail -1; }
+
+# --- criptografia dos acompanhamentos (PageCrypt) ----------------------------
+# A senha NUNCA entra no repositório (ele é público): mora em
+# tools/.senhas-locais (não versionado) ou é pedida no terminal. O .conf só
+# declara a intenção, por ACOMPANHAMENTO_CRIPTOGRAFADO="sim".
+senha_da_escola() {
+  local var arquivo s
+  var="SENHA_$(printf '%s' "$ESCOLA_SLUG" | tr 'a-z' 'A-Z')"
+  arquivo="$RAIZ/tools/.senhas-locais"
+  if [ -f "$arquivo" ]; then
+    # shellcheck disable=SC1090
+    . "$arquivo"
+    if [ -n "${!var:-}" ]; then printf '%s' "${!var}"; return 0; fi
+    echo "aviso: $var não está definida em tools/.senhas-locais" >&2
+  else
+    echo "aviso: tools/.senhas-locais não existe (veja o .senhas-locais.exemplo)" >&2
+  fi
+  if [ -t 0 ]; then
+    printf 'Senha para criptografar os acompanhamentos (%s): ' "$ESCOLA_SLUG" >&2
+    read -rs s || true
+    printf '\n' >&2
+    if [ -n "$s" ]; then printf '%s' "$s"; return 0; fi
+  fi
+  echo "erro: sem senha para $ID — defina $var em tools/.senhas-locais" >&2
+  return 1
+}
+
+criptografar() {
+  local conf="$BASE/ciclo-$CICLO-$ESCOLA_SLUG.conf"
+  local pacote="$BASE/$ID"
+  local declarado senha bin f tmp n=0
+  local arquivos=()
+
+  if [ ! -f "$conf" ]; then
+    echo "erro: manifesto não encontrado: $conf" >&2
+    return 1
+  fi
+  declarado="$(sed -n 's/^ACOMPANHAMENTO_CRIPTOGRAFADO="\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$conf" | head -1)"
+  if [ "$declarado" != "sim" ]; then
+    echo "acompanhamento: criptografia não declarada em $(basename "$conf") — HTML fica aberto"
+    return 0
+  fi
+  [ -d "$pacote" ] || { echo "erro: pacote não encontrado: $pacote" >&2; return 1; }
+
+  for f in "$pacote"/acompanhamento-*.html; do
+    [ -f "$f" ] && arquivos+=("$f")
+  done
+  if [ "${#arquivos[@]}" -eq 0 ]; then
+    echo "acompanhamento: nenhum HTML de acompanhamento em $ID"
+    return 0
+  fi
+
+  senha="$(senha_da_escola)" || return 1
+
+  bin="$RAIZ/node_modules/.bin/pagecrypt"
+  if [ -x "$bin" ]; then
+    :
+  elif command -v npx >/dev/null 2>&1; then
+    bin="npx pagecrypt"
+  else
+    echo "erro: pagecrypt ausente — npm install --save-dev pagecrypt" >&2
+    return 1
+  fi
+
+  for f in "${arquivos[@]}"; do
+    if grep -q 'pagecrypt' "$f" 2>/dev/null; then
+      echo "erro: $(basename "$f") já está criptografado — regenere o HTML antes" >&2
+      return 1
+    fi
+    tmp="$(mktemp)"
+    if $bin "$f" "$tmp" "$senha" >/dev/null 2>&1 && [ -s "$tmp" ]; then
+      mv "$tmp" "$f"
+      echo "  criptografado: $(basename "$f")"
+      n=$((n + 1))
+    else
+      rm -f "$tmp"
+      echo "erro: pagecrypt falhou em $(basename "$f")" >&2
+      return 1
+    fi
+  done
+  echo "acompanhamento: $n arquivo(s) criptografado(s) — $ESCOLA_SLUG"
+}
+
+if [ "$MODO" = "criptografar" ]; then
+  criptografar
+  exit $?
+fi
 
 # --- escrita ----------------------------------------------------------------
 RELATORIOS="$(relatorios_da_escola)"
