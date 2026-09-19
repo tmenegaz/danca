@@ -2,7 +2,8 @@
 
 > **O que este projeto é e por quê → [`METODO.md`](METODO.md)**
 >
-> **Ideias futuras → [`IDEIA-CAPTURA.md`](IDEIA-CAPTURA.md)**
+> **Ideias futuras → [`IDEIA-CAPTURA.md`](IDEIA-CAPTURA.md) ·
+> [`ARQUITETURA-CAPTURA.md`](ARQUITETURA-CAPTURA.md)**
 
 Repositório único com as **duas frentes** do projeto: as **aulas** (ciclos de
 aprendizagem) e a **apresentação** (deck do rizoma). Tudo gerado por scripts,
