@@ -632,3 +632,47 @@ pacotes regerados.
 
 **O que ainda não está feito.**
 O push — agora é o único item aberto da infraestrutura.
+
+## 19/09/2026 — Varredura de marcas de indecisão
+
+**O que aconteceu.**
+Os documentos dos dois ciclos foram varridos em busca de marcas de indecisão
+(`[a decidir]`, `em aberto`, `[Preencher]`, `[conferir]`). A varredura achou 78
+linhas com marca, em 14 arquivos, e **15 arquivos limpos** — e classificou cada
+uma em três tipos, não dois:
+
+- **inconsistência** — a marca tinha resposta deliberada em outro lugar;
+- **pendência legítima** — depende do professor ou de dado futuro;
+- **decisão da pesquisadora** — nem uma coisa nem outra: o texto endereçava a
+  pergunta a ela (a proporção por blocos), e era dela a resposta.
+
+**O que foi decidido.**
+- **Notação do Ritmos:** corrigida. A referência dizia *"nenhum sistema de
+  notação foi adotado para este ciclo"* — falso, porque o ciclo publica o
+  documento de notação e o glossário. A decisão estava na **P-15** (a notação
+  segue a metodologia declarada: RAD usa Benesh) e na **P-16**. A resposta do
+  professor (*"Notação: [a decidir]"*) continua citada como proveniência; o
+  material bruto não foi tocado (P-05).
+- **Divisão do sábado:** o `aula-01.md` declarava a divisão e, três linhas
+  depois, pedia de novo o que estava dito. A marca saiu; o `.conf` já a definia.
+  E a decisão fechou o modelo que estava aberto desde a investigação do volume:
+  **a aula de 19/09/2026 cobre as aulas 01 e 02** (bloco contínuo de 120 min).
+- **Proporção por blocos:** virou **nota da Regra 9** — a proporção se aplica em
+  **minutos** (distribuição do tempo de aula), e o volume planejado permanece em
+  tempos. É a mesma unidade da decisão dos campos de duração.
+- **Duo (notação e glossário):** verificados. A Regra 8 **já estava satisfeita** —
+  os dois declaram em prosa a natureza do registro ("código didático do ciclo"),
+  as fontes e os limites ("Limites do registro"). O que faltava era dizer **de
+  quem é a notação em forma completa**; a pedido da pesquisadora, cada documento
+  ganhou uma **Nota (P-15)**, sem renomear nada.
+- As **pendências legítimas foram mantidas** — as 12 da musicalidade do Duo, as
+  13 da notação do Ritmos, as gravações de referência, os marcos 02–21, os
+  `[conferir]` de edição/ano. Nenhuma foi apagada.
+
+**Com o quê.**
+`ciclos/ciclo-01-ritmos-referencias.md`, `ciclos/ciclo-01-ritmos-aula-01.md`,
+`ciclos/ciclo-01-ritmos-plano.md`, `ciclos/ciclo-01-notacao.md`,
+`ciclos/ciclo-01-glossario-benesh.md`, os dois pacotes regerados.
+
+**O que ainda não está feito.**
+O push.
