@@ -127,8 +127,12 @@ mesma ordem, com a calibração de volume do projeto.
 >
 > **No sábado há duas aulas de 60 min** (a de balé, como preparação, e a de pas de
 > deux): cada uma com o seu volume de **90 tempos** — 180 no dia, dentro da faixa de
-> 150–200 da Regra 9. O que muda de uma aula para a outra é o foco, não o teto:
-> `[Preencher: definir com o professor a divisão do conteúdo entre as duas aulas]`.
+> 150–200 da Regra 9. O que muda de uma aula para a outra é o foco, não o teto.
+>
+> **Divisão do sábado:** o `.conf` declara duas aulas de 60 min no mesmo dia — a
+> primeira de balé (preparação para o PDD), a segunda de pas de deux (foco do
+> ciclo). A aula de **19/09/2026** foi conduzida como bloco contínuo de 120 min e
+> cobre **as aulas 01 e 02**.
 
 ## 5. Musicalidade e repertório
 

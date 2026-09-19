@@ -69,8 +69,15 @@ versão/edição.]` O uso desta faixa em cada bloco está em
 
 ## Notação
 
-> **Notação:** `[a decidir]` — foi assim que o professor respondeu, e a decisão
-> continua em aberto. Nenhum sistema de notação foi adotado para este ciclo.
+> **Notação: Benesh.** A metodologia adotada é RAD, que usa Benesh Movement
+> Notation. A notação é a mesma nas duas escolas em que o professor dá aula
+> (P-15 — a notação segue a metodologia declarada; P-16 — metodologia e notação
+> são declaradas na eliciação).
+>
+> **Nota de proveniência:** a resposta original do professor foi *"Notação: [a
+> decidir]"* (ver `professores/tiago/campo/2026-09-18-ritmos/respostas.md` —
+> material bruto, P-05). O protocolo decidiu Benesh porque a metodologia é RAD
+> (P-15).
 
 ## Notas de citação
 
