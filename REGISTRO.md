@@ -600,3 +600,35 @@ mais (`tools/gerar-ciclo.sh 02`, sem professor e sem escola).
 
 **O que ainda não está feito.**
 O push (aguardando confirmação da pesquisadora).
+
+## 19/09/2026 — Correções cosméticas
+
+**O que aconteceu.**
+Quatro pendências declaradas foram fechadas. O exemplo de restrição física no
+`METODO.md` ficou genérico. A nota do preview do relatório passou a apontar o
+arquivo real — e descobriu-se que o **Duo também estava em tempo futuro**: o
+prompt supunha que o Duo já tinha resolvido isso, e o que foi atualizado em 18/09
+foi a nota do **PO**, não a do preview. Corrigidos os dois. A linha residual de
+termo cru no plano do Ritmos foi harmonizada. E o escopo `metodo` passou a existir
+no hook.
+
+**O que foi decidido.**
+- O `METODO.md` continua **congelado** — mudanças com motivo declarado (esta foi
+  uma: o exemplo coincidia com dois casos reais).
+- O escopo `metodo` passa a existir no hook `commit-msg`.
+- A **mensagem de erro** do mesmo hook foi corrigida: listava 10 escopos enquanto
+  a regra aceitava 24, e foi ela que fez escolher dois escopos errados hoje
+  (`cadernos`, `congelamento`). Agora lista a lista completa e aponta a variável
+  `$escopos`, que é a fonte.
+- A rubrica é **nível de avaliação**, não descrição de pessoa: o que se harmonizou
+  na tabela de progressão foi o vocabulário do nível, e isso ficou registrado na
+  harmonização do ciclo.
+
+**Com o quê.**
+`METODO.md`, `ciclos/ciclo-01-ritmos-relatorio-aula-01.md`,
+`ciclos/ciclo-01-relatorio-aula-01.md`, `ciclos/ciclo-01-ritmos-plano.md`,
+`ciclos/ciclo-01-ritmos-harmonizacao.md`, `tools/hooks/commit-msg`, os dois
+pacotes regerados.
+
+**O que ainda não está feito.**
+O push — agora é o único item aberto da infraestrutura.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T18:42:11-0300`
-Commit atual: `f602046` — docs(entrega): corrige a tabela de escopos e o bloco de criar um ciclo novo
+Gerado em: `2026-09-19T19:15:24-0300`
+Commit atual: `0ba14f8` — chore(tools): regenera pacotes e ancoras apos as correcoes cosmeticas
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,11 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+0ba14f8 chore(tools): regenera pacotes e ancoras apos as correcoes cosmeticas
+8565a95 fix(tools): hook aceita o escopo metodo
+13fe587 fix(ciclo-01): preview do relatorio aponta o arquivo e harmoniza residuo no plano
+c78ed6a docs(protocolo): torna generico o exemplo de restricao fisica no METODO
+0754ae9 docs(registro): registra a correcao dos escopos e da criacao de ciclo
 f602046 docs(entrega): corrige a tabela de escopos e o bloco de criar um ciclo novo
 8f38de4 docs(registro): registra o metodo, o README-ciclos e os campos de duracao
 4bd9a92 chore(tools): regenera pacotes apos os campos de duracao
@@ -30,11 +35,6 @@ e5279f7 fix(ciclo-01): alinha o indice do Duo a taxonomia nova do menu
 caa756c docs(caderno): atualiza o guia dos cadernos (regra 3 e item 5)
 431cac9 feat(ciclo-01): caderno publicado no pacote e incluido no hash
 e4c2cbd chore(tools): regenera os dois pacotes apos PDF sem acompanhamentos
-06b2308 docs(registro): registra a politica de seguranca dos dados sensiveis
-503d08c docs(protocolo): politica de seguranca dos dados sensiveis em camadas
-a87983f chore(tools): acompanhamentos .md fora do Git (regeneraveis)
-6ed0d3f feat(tools): PDF do ciclo sem os acompanhamentos
-759d182 feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
 ```
 
 ## Por professor
@@ -50,8 +50,8 @@ a87983f chore(tools): acompanhamentos .md fora do Git (regeneraveis)
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `d5aec0bcc2bd` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `97affd00dc38` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `eb75056eb6b4` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `1d263d02704d` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -100,26 +100,37 @@ a87983f chore(tools): acompanhamentos .md fora do Git (regeneraveis)
 
 ## Última entrada do REGISTRO
 
-## 19/09/2026 — README-ciclos: escopos e criação de ciclo
+## 19/09/2026 — Correções cosméticas
 
 **O que aconteceu.**
-Os dois pontos de defasagem declarados na entrada anterior — os que **não** eram
-números — foram corrigidos. A tabela "Escopos" passou a listar os **24** escopos
-que o hook `commit-msg` aceita (listava 10; é a tabela que faz errar o escopo do
-commit, e errou duas vezes hoje), e o bloco "Criar um ciclo novo" deixou de trazer
-caminhos que não existem (`ciclos/` na raiz) e um comando que o gerador não aceita
-mais (`tools/gerar-ciclo.sh 02`, sem professor e sem escola).
+Quatro pendências declaradas foram fechadas. O exemplo de restrição física no
+`METODO.md` ficou genérico. A nota do preview do relatório passou a apontar o
+arquivo real — e descobriu-se que o **Duo também estava em tempo futuro**: o
+prompt supunha que o Duo já tinha resolvido isso, e o que foi atualizado em 18/09
+foi a nota do **PO**, não a do preview. Corrigidos os dois. A linha residual de
+termo cru no plano do Ritmos foi harmonizada. E o escopo `metodo` passou a existir
+no hook.
 
 **O que foi decidido.**
-- O bloco de criação de ciclo passa a declarar o passo que mais causa erro — o
-  `DOCS` precisa entrar nos **dois** manifestos, porque o da variante sobrescreve
-  o base — e aponta o caderno como fonte que vive fora da pasta do ciclo.
+- O `METODO.md` continua **congelado** — mudanças com motivo declarado (esta foi
+  uma: o exemplo coincidia com dois casos reais).
+- O escopo `metodo` passa a existir no hook `commit-msg`.
+- A **mensagem de erro** do mesmo hook foi corrigida: listava 10 escopos enquanto
+  a regra aceitava 24, e foi ela que fez escolher dois escopos errados hoje
+  (`cadernos`, `congelamento`). Agora lista a lista completa e aponta a variável
+  `$escopos`, que é a fonte.
+- A rubrica é **nível de avaliação**, não descrição de pessoa: o que se harmonizou
+  na tabela de progressão foi o vocabulário do nível, e isso ficou registrado na
+  harmonização do ciclo.
 
 **Com o quê.**
-`README-ciclos.md`.
+`METODO.md`, `ciclos/ciclo-01-ritmos-relatorio-aula-01.md`,
+`ciclos/ciclo-01-relatorio-aula-01.md`, `ciclos/ciclo-01-ritmos-plano.md`,
+`ciclos/ciclo-01-ritmos-harmonizacao.md`, `tools/hooks/commit-msg`, os dois
+pacotes regerados.
 
 **O que ainda não está feito.**
-O push (aguardando confirmação da pesquisadora).
+O push — agora é o único item aberto da infraestrutura.
 
 ## O que está pendente
 
@@ -229,6 +240,10 @@ bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
 ## 19/09/2026 — README-ciclos: escopos e criação de ciclo
 
 O push (aguardando confirmação da pesquisadora).
+
+## 19/09/2026 — Correções cosméticas
+
+O push — agora é o único item aberto da infraestrutura.
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
