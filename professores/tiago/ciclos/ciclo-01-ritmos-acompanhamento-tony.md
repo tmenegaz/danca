@@ -25,15 +25,29 @@ Tony — traz resiliência, vontade, inteligência, absorção rápida de
 
 ## Linha do tempo
 
-> *Nenhum relatório pós-aula registrado ainda. A linha do tempo será
-> preenchida à medida que as aulas acontecerem.*
+### Aula 01 — 19/09/2026
+
+- **Técnica:** X — não aconteceu (iniciante absoluto) · X · X
+- **Funcional:** 120 · ~ parcial · apareceu
+- **Musicalidade:** ~ parcial (em evolução) · ~ parcial (abaixo da Dada) · ~ razoável para menos — iniciante
+- **Estado da aula:** `[Preencher: não observado além do bloco técnico — iniciante]` · precisa de mais flexibilidade e força · `[Preencher]` · excelente
+
 ## Estado atual
 
-Nenhum relatório registrado ainda — não há estado a mostrar.
+*(Última observação registrada — fonte: relatório da aula 01, de 19/09/2026.)*
+
+- **Técnica:** X — não aconteceu (iniciante absoluto) · X · X
+- **Funcional:** 120 · ~ parcial · apareceu
+- **Musicalidade:** ~ parcial (em evolução) · ~ parcial (abaixo da Dada) · ~ razoável para menos — iniciante
+- **Estado da aula:** `[Preencher: não observado além do bloco técnico — iniciante]` · precisa de mais flexibilidade e força · `[Preencher]` · excelente
 
 ## Diferenças observadas em relação à linha de base
 
 *(Descritivo. Não classifica: uma aula não é evolução — é estado. O que difere
 da linha de base está abaixo, sem juízo sobre melhora ou piora.)*
 
-[relatório pendente] — sem relatório, não há diferença a observar.
+| Aluno | Postura de tronco | Adutores | Rotadores externos | Foco/atenção |
+|---|---|---|---|---|
+| `[Preencher: não observado além do bloco técnico — iniciante]` · precisa de mais flexibilidade e força · `[Preencher]` · excelente |
+
+O detalhe de cada aula está na linha do tempo, acima.

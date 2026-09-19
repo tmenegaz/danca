@@ -25,15 +25,29 @@ Pássaro Azul — traz experiência prévia, disciplina, vontade e boa absorçã
 
 ## Linha do tempo
 
-> *Nenhum relatório pós-aula registrado ainda. A linha do tempo será
-> preenchida à medida que as aulas acontecerem.*
+### Aula 01 — 19/09/2026
+
+- **Técnica:** ✓ bem · ✓ · ✓ — com observações: tronco tende a inclinar para trás, costelas abertas, abdômen solto; braços a melhorar na sustentação dos cotovelos
+- **Funcional:** 120 · ✓ sustenta até o fim · não aconteceu
+- **Musicalidade:** ✓ muito bom · ✓ muito bom · ~ razoável — não recebeu muita atenção hoje
+- **Estado da aula:** a ajustar (tronco mais à frente, costelas fechadas, ombros abertos, queixo levemente levantado) · precisa de mais flexibilidade e força · muito bom · excelente
+
 ## Estado atual
 
-Nenhum relatório registrado ainda — não há estado a mostrar.
+*(Última observação registrada — fonte: relatório da aula 01, de 19/09/2026.)*
+
+- **Técnica:** ✓ bem · ✓ · ✓ — com observações: tronco tende a inclinar para trás, costelas abertas, abdômen solto; braços a melhorar na sustentação dos cotovelos
+- **Funcional:** 120 · ✓ sustenta até o fim · não aconteceu
+- **Musicalidade:** ✓ muito bom · ✓ muito bom · ~ razoável — não recebeu muita atenção hoje
+- **Estado da aula:** a ajustar (tronco mais à frente, costelas fechadas, ombros abertos, queixo levemente levantado) · precisa de mais flexibilidade e força · muito bom · excelente
 
 ## Diferenças observadas em relação à linha de base
 
 *(Descritivo. Não classifica: uma aula não é evolução — é estado. O que difere
 da linha de base está abaixo, sem juízo sobre melhora ou piora.)*
 
-[relatório pendente] — sem relatório, não há diferença a observar.
+| Aluno | Postura de tronco | Adutores | Rotadores externos | Foco/atenção |
+|---|---|---|---|---|
+| a ajustar (tronco mais à frente, costelas fechadas, ombros abertos, queixo levemente levantado) · precisa de mais flexibilidade e força · muito bom · excelente |
+
+O detalhe de cada aula está na linha do tempo, acima.

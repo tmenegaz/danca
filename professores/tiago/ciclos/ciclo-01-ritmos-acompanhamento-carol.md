@@ -25,15 +25,29 @@ Carol — traz bastante musicalidade. Precisa desenvolver subida e descida de
 
 ## Linha do tempo
 
-> *Nenhum relatório pós-aula registrado ainda. A linha do tempo será
-> preenchida à medida que as aulas acontecerem.*
+### Aula 01 — 19/09/2026
+
+- **Técnica:** ~ instável; braços (1ª–2ª–3ª) instáveis · ~ instável (por cima e por baixo) · ~ joelhos não firmes; quadril não sobe como o exercício pede; a perna não libera
+- **Funcional:** 120 · ~ parcial · apareceu
+- **Musicalidade:** ✓ muito bom · ✓ muito bom · ~ parcial — as dificuldades estruturais de pé e joelho comprometem a estética
+- **Estado da aula:** boa · precisa de mais flexibilidade e força · tem flexibilidade; falta força · excelente
+
 ## Estado atual
 
-Nenhum relatório registrado ainda — não há estado a mostrar.
+*(Última observação registrada — fonte: relatório da aula 01, de 19/09/2026.)*
+
+- **Técnica:** ~ instável; braços (1ª–2ª–3ª) instáveis · ~ instável (por cima e por baixo) · ~ joelhos não firmes; quadril não sobe como o exercício pede; a perna não libera
+- **Funcional:** 120 · ~ parcial · apareceu
+- **Musicalidade:** ✓ muito bom · ✓ muito bom · ~ parcial — as dificuldades estruturais de pé e joelho comprometem a estética
+- **Estado da aula:** boa · precisa de mais flexibilidade e força · tem flexibilidade; falta força · excelente
 
 ## Diferenças observadas em relação à linha de base
 
 *(Descritivo. Não classifica: uma aula não é evolução — é estado. O que difere
 da linha de base está abaixo, sem juízo sobre melhora ou piora.)*
 
-[relatório pendente] — sem relatório, não há diferença a observar.
+| Aluno | Postura de tronco | Adutores | Rotadores externos | Foco/atenção |
+|---|---|---|---|---|
+| boa · precisa de mais flexibilidade e força · tem flexibilidade; falta força · excelente |
+
+O detalhe de cada aula está na linha do tempo, acima.
