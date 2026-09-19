@@ -9,7 +9,7 @@ title: "Relatório pós-aula 01 — Duo (preview)"
 
 > **Este documento não é o relatório.** É o guia do que observar durante a aula e
 > do que preencher depois. O relatório de verdade será criado em
-> `relatorios/ciclo-01/aula-01-duo.md` **após** a aula.
+> `professores/tiago/relatorios/ciclo-01/aula-01-duo.md` **após** a aula.
 >
 > **Data da aula:** sexta, **18/09/2026** — 60 minutos · Duo (Fernando) · professor
 > Tiago Menegaz · quatro alunas de 11 anos.
@@ -85,6 +85,7 @@ existirem (distância reflexiva, auditabilidade externa, validação por pares,
 separação de papéis).
 
 > **Onde escrever o que aconteceu durante a aula:** no **caderno** do ciclo —
-> `caderno-01-duo.md`, na pasta `cadernos/ciclo-01/` (fora deste pacote, na raiz
+> `caderno-01-duo.md`, na pasta `professores/tiago/cadernos/ciclo-01/` (fora deste
+> pacote, na raiz
 > do projeto). O caderno é descritivo e é escrito na hora; este relatório é a
 > leitura da aula, preenchida depois, no mesmo dia ou no dia seguinte.

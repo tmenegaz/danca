@@ -144,7 +144,8 @@ ela é a própria **heterogeneidade das pré-condições**:
 >
 > **Ana — musicalidade em observação.** Não acompanha no início dos exercícios de
 > bater palma; segue a turma. Ainda não está decidido se é por **contágio** (acompanha
-> a turma por imitação, e não por compreensão própria) ou por compreensão tardia. Em
+> a turma por imitação, e não por compreensão própria) ou por **assimilação em tempo
+> próprio**. Em
 > observação.
 
 ## Critérios de inclusão
@@ -289,6 +290,12 @@ Isso não é falha do plano nem ruído a descartar: é **parte do que se observa
 > [`ciclo-01-plano.md`](ciclo-01-plano.md), dos manifestos de variante e de
 > [`biblioteca/referencias.md`](../biblioteca/referencias.md). O estado
 > `Input_PO_Validado` corresponde aos cinco itens do checklist acima, marcados.
-> A execução começa na Aula 01 (18/09/2026) e o primeiro relatório pós-aula ainda
-> não existe: ele depende da aula.
+> A execução começou na Aula 01 (18/09/2026); o **relatório pós-aula 01** foi escrito
+> em `professores/tiago/relatorios/ciclo-01/aula-01-duo.md`, a partir do caderno do
+> ciclo.
+>
+> **Correção de formulação (18/09/2026).** A nota da Ana dizia "compreensão tardia";
+> a pesquisadora substituiu por **assimilação em tempo próprio** — a primeira descreve
+> o efeito (demorar), a segunda descreve o processo (escutar mais tempo e responder
+> depois, certo). O que se observa não mudou; mudou o nome do que se observa.
 
