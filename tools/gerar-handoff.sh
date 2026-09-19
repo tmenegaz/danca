@@ -36,12 +36,14 @@ total_regras="$(awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md 2>/de
 # --- professores, ciclos e variantes ---------------------------------------
 professores="$(ls -1d professores/*/ 2>/dev/null | sed 's|professores/||; s|/$||' | LC_ALL=C sort || true)"
 
-# --- ideias documentadas (IDEIA-*.md na raiz) --------------------------------
+# --- ideias documentadas (IDEIA-*.md e ARQUITETURA-*.md na raiz) -------------
 # Uma ideia é documento de INTENÇÃO, não de estado: fica fora do CONGELAMENTO, e
 # o HANDOFF só precisa dizer que ela existe — para a próxima sessão não ter de
 # reconstruir a conversa que a gerou. O resumo vem da linha que o próprio
 # documento declara (`> **Resumo (para o HANDOFF):**`); sem ela, vale o título.
-ideias="$(ls -1 IDEIA-*.md IDEIAS-*.md 2>/dev/null || true)"
+# Dois padrões de propósito: `IDEIA-*` (o porquê) e `ARQUITETURA-*` (o como) —
+# pares de documentos sobre a mesma ideia.
+ideias="$(ls -1 IDEIA-*.md IDEIAS-*.md ARQUITETURA-*.md 2>/dev/null || true)"
 
 # ciclos de um professor: números dos manifestos base (ciclo-XX.conf)
 ciclos_de() {
