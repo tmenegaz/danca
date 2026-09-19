@@ -194,7 +194,21 @@ mkdir -p "$PACOTE/assets"
 # ---------------------------------------------------------------------------
 
 mkdir -p "$TMP/src"
-for doc in index $DOCS; do
+# Acompanhamentos: vista por aluna, gerada sob demanda a partir do PO e dos
+# relatórios pós-aula. NÃO entram em DOCS (aquela lista é estática; estes são por
+# aluna) e, por isso, também não entram no hash FIPP: são derivados, não fontes.
+if [ -x "$RAIZ/tools/gerar-acompanhamento.sh" ]; then
+  "$RAIZ/tools/gerar-acompanhamento.sh" "$PROFESSOR_SLUG" "$CICLO" "$VARIANTE" || \
+    echo "aviso: não foi possível gerar os acompanhamentos deste ciclo" >&2
+fi
+ACOMP_DOCS=""
+for f in "$CICLOS"/ciclo-"$CICLO"-"$VARIANTE"-acompanhamento-*.md; do
+  [ -f "$f" ] || continue
+  ACOMP_DOCS="$ACOMP_DOCS $(basename "$f" | sed "s/^ciclo-$CICLO-$VARIANTE-//; s/\.md$//")"
+done
+ACOMP_DOCS="${ACOMP_DOCS# }"
+
+for doc in index $DOCS $ACOMP_DOCS; do
   src="$(fonte_md "$doc")"
   [ -f "$src" ] || continue
   destino="$TMP/src/ciclo-$CICLO-$doc.md"
@@ -289,6 +303,25 @@ gerar_nav() {
     done
     echo '    </div>'
     echo '  </details>'
+    # Acompanhamento: um link por aluna, num dropdown próprio — depois de "Aulas"
+    # e antes dos demais documentos. É lugar separado de propósito: a vista por
+    # aluna não é aula nem documento de apoio. A lista vem dos arquivos gerados.
+    if [ -n "${ACOMP_DOCS:-}" ]; then
+      echo '  <details class="menu">'
+      echo '    <summary>Acompanhamento</summary>'
+      echo '    <div class="submenu">'
+      for doc in $ACOMP_DOCS; do
+        r="$(sed -n 's/^aluna:[[:space:]]*//p' "$(fonte_md "$doc")" | head -1)"
+        [ -n "$r" ] || r="$(rotulo "$doc")"
+        if [ "$doc" = "$atual" ]; then
+          echo "      <a class=\"ativo\" href=\"$doc.html\">$r</a>"
+        else
+          echo "      <a href=\"$doc.html\">$r</a>"
+        fi
+      done
+      echo '    </div>'
+      echo '  </details>'
+    fi
     # demais documentos: o que está em DOCS e não é aula nem é o plano/index
     # (a lista é derivada de DOCS, então um documento novo entra sozinho no menu)
     for doc in $DOCS; do
@@ -309,7 +342,7 @@ gerar_nav() {
 # ---------------------------------------------------------------------------
 # 1) Pacote HTML: um arquivo por documento, todos com a mesma navegação
 # ---------------------------------------------------------------------------
-TODOS="index $DOCS"
+TODOS="index $DOCS $ACOMP_DOCS"
 gerados=0
 for doc in $TODOS; do
   src="$TMP/src/ciclo-$CICLO-$doc.md"
@@ -354,7 +387,7 @@ done
 # ---------------------------------------------------------------------------
 # 2) PDF único consolidado: capa + índice navegável + seções em página nova
 # ---------------------------------------------------------------------------
-python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" > "$TMP/mapa-ancoras.txt" <<'PY'
+python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS $ACOMP_DOCS" > "$TMP/mapa-ancoras.txt" <<'PY'
 import re, sys, pathlib
 ciclos, ciclo, destino, docs = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split()
 ancoras = {

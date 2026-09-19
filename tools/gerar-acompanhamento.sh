@@ -48,7 +48,7 @@ apelidos() {
   local secao lista
   # as linhas são unidas antes de procurar: o PO quebra a lista em duas linhas
   secao="$(sed -n '/^## Sujeitos/,/^## /p' "$PO" | tr '\n' ' ' | sed 's/  */ /g')"
-  lista="$(printf '%s\n' "$secao" | grep -oE '\*\*[^*]+\*\*' | grep ',' | tail -1)"
+  lista="$(printf '%s\n' "$secao" | grep -oE '\*\*[^*]+\*\*' | grep ',' | tail -1)" || true
   [ -n "$lista" ] || return 0
   printf '%s' "$lista" | sed 's/^\*\*//; s/\*\*$//' \
     | tr ',' '\n' \
@@ -57,7 +57,11 @@ apelidos() {
     | grep -v '^$'
 }
 
-slug() { printf '%s' "$1" | tr 'A-ZÁÉÍÓÚÂÊÔÃÕÇ' 'a-zaeiouaeoac' | tr ' ' '-' | sed 's/[^a-z0-9-]//g'; }
+slug() {
+  # transliteração explícita: `tr` com conjunto multibyte deixa byte cru no nome
+  printf '%s' "$1" | sed 'y/ÁÀÂÃÄÉÈÊËÍÌÎÏÓÒÔÕÖÚÙÛÜÇáàâãäéèêëíìîïóòôõöúùûüç/AAAAAEEEEIIIIOOOOOUUUUCaaaaaeeeeiiiiooooouuuuc/' \
+    | tr 'A-Z' 'a-z' | tr ' ' '-' | sed 's/[^a-z0-9-]//g'
+}
 
 # --- linha de base de uma aluna, do PO --------------------------------------
 linha_de_base() {
@@ -66,7 +70,7 @@ linha_de_base() {
   [ -n "$secao" ] || secao="$(sed -n '/^## Linha de base/,/^## /p' "$PO")"
   # bloco que começa pela aluna (com ou sem bullet, com ou sem negrito)
   bloco="$(printf '%s\n' "$secao" | grep -A2 -E "^[-*]? ?\*\*$aluna\*\*|^[-*] ?$aluna\b" | head -3 \
-    | sed 's/^[-*] //; s/\*\*//g')"
+    | sed 's/^[-*] //; s/\*\*//g')" || true
   if [ -n "$bloco" ]; then printf '%s' "$bloco"; else printf '%s' '[Preencher: linha de base individual não localizada no PO.]'; fi
 }
 
@@ -75,7 +79,7 @@ restricoes() {
   local aluna="$1" secao linha
   secao="$(sed -n '/Restrições físicas declaradas (P-22)/,/^## /p' "$PO" 2>/dev/null)"
   if [ -z "$secao" ]; then printf '%s' 'nada declarado no PO.'; return; fi
-  linha="$(printf '%s\n' "$secao" | grep -E "^\| \*\*$aluna\*\* \|" | head -1)"
+  linha="$(printf '%s\n' "$secao" | grep -E "^\| \*\*$aluna\*\* \|" | head -1)" || true
   if [ -n "$linha" ]; then
     printf '%s' "$linha" | awk -F'|' '{print $3}' | sed 's/^ //; s/ $//'
   else
@@ -95,7 +99,7 @@ celula() {
     /^#/ && index($0, t) > 0 { dentro=1; next }
     dentro && /^#/ { exit }
     dentro && /^\|/ { print }
-  ' "$arq" | grep -E "^\| \*{0,2}$aluna\*{0,2} \|" | head -1)"
+  ' "$arq" | grep -E "^\| \*{0,2}$aluna\*{0,2} \|" | head -1)" || true
   if [ -z "$linha" ]; then printf '%s' '[aluna ausente nesta aula]'; return; fi
   printf '%s' "$linha" | sed 's/^|//; s/|$//' | awk -F'|' '{for (i=2;i<=NF;i++){gsub(/^ +| +$/,"",$i); printf (i>2?" · ":""); printf "%s", $i}}'
 }
@@ -169,7 +173,7 @@ apelidos | while IFS= read -r ALUNA; do
     printf '## Linha do tempo\n\n'
     linha_do_tempo "$ALUNA"
     printf '## Estado atual\n\n'
-    UM="$(ultimo_relatorio)"
+    UM="$(ultimo_relatorio)" || true
     if [ -n "$UM" ]; then
       printf '*(Última observação registrada — fonte: relatório da aula %s, de %s.)*\n\n' \
         "$(basename "$UM" | sed -n 's/^aula-\([0-9][0-9]\)-.*/\1/p')" \
