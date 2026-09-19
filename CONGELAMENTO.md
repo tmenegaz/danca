@@ -34,6 +34,23 @@ Motivo declarado significa: o commit tem um corpo explicando o **porquê**, o
 `REGISTRO.md` ganha uma entrada, e a mudança tem o seu próprio commit (não vai
 junto com conteúdo).
 
+## Política de segurança dos dados sensíveis
+
+Os acompanhamentos por aluna contêm dados de menores. Proteção em camadas:
+
+1. **Repositório privado** (GitHub) — protege PO, relatórios, cadernos, `.md`
+2. **PDF do ciclo sem acompanhamentos** — o PDF publicado não expõe os dados
+3. **Acompanhamentos HTML criptografados** (PageCrypt) — no site, pedem senha
+4. **Acompanhamentos `.md` fora do Git** — regeneráveis, não versionados
+
+Alterar qualquer camada exige motivo declarado + commit próprio + entrada no
+REGISTRO.
+
+> **A camada 1 é ação manual da pesquisadora**, no GitHub
+> (`settings` → *Change repository visibility* → **Private**). Enquanto ela não
+> estiver feita, as camadas 2 a 4 são o que protege — e as três juntas já não
+> deixam os acompanhamentos em claro em nenhum lugar publicado.
+
 ## Por que congelar
 
 A infraestrutura está funcional há mais de duas semanas, com:
