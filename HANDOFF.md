@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T18:28:59-0300`
-Commit atual: `4bd9a92` — chore(tools): regenera pacotes apos os campos de duracao
+Gerado em: `2026-09-19T18:42:11-0300`
+Commit atual: `f602046` — docs(entrega): corrige a tabela de escopos e o bloco de criar um ciclo novo
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,8 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+f602046 docs(entrega): corrige a tabela de escopos e o bloco de criar um ciclo novo
+8f38de4 docs(registro): registra o metodo, o README-ciclos e os campos de duracao
 4bd9a92 chore(tools): regenera pacotes apos os campos de duracao
 f4b5007 fix(ciclo-01): caderno mede duracao em minutos (alinha com o relatorio)
 6078a8f fix(ciclo-01): relatorio e captura medem duracao em minutos (nao volume)
@@ -33,8 +35,6 @@ e4c2cbd chore(tools): regenera os dois pacotes apos PDF sem acompanhamentos
 a87983f chore(tools): acompanhamentos .md fora do Git (regeneraveis)
 6ed0d3f feat(tools): PDF do ciclo sem os acompanhamentos
 759d182 feat(template): reorganiza o menu — Apoio fora, Musicalidade na Area do Professor
-3cc45ca chore(ciclo-01): regenera os acompanhamentos do Ritmos com a aula 01
-d7936c2 feat(ciclo-01): PO do Ritmos com equipe (Lete) e P-22 (lesao da Dada)
 ```
 
 ## Por professor
@@ -100,47 +100,26 @@ d7936c2 feat(ciclo-01): PO do Ritmos com equipe (Lete) e P-22 (lesao da Dada)
 
 ## Última entrada do REGISTRO
 
-## 19/09/2026 — Método, README-ciclos e campos de duração
+## 19/09/2026 — README-ciclos: escopos e criação de ciclo
 
 **O que aconteceu.**
-O `METODO.md` foi criado — a visão de mundo que o projeto pressupunha e não
-declarava: o método é o norte, a aula é o caminho; o planejamento é feito sobre
-pessoas reais. O `README-ciclos.md` teve os números desatualizados corrigidos
-(seis, e não três — o caderno entrou no pacote e envelheceu os que sobravam). Os
-campos de volume do relatório e da captura passaram a medir **duração em
-minutos**, porque o professor não conta tempos musicais na aula.
+Os dois pontos de defasagem declarados na entrada anterior — os que **não** eram
+números — foram corrigidos. A tabela "Escopos" passou a listar os **24** escopos
+que o hook `commit-msg` aceita (listava 10; é a tabela que faz errar o escopo do
+commit, e errou duas vezes hoje), e o bloco "Criar um ciclo novo" deixou de trazer
+caminhos que não existem (`ciclos/` na raiz) e um comando que o gerador não aceita
+mais (`tools/gerar-ciclo.sh 02`, sem professor e sem escola).
 
 **O que foi decidido.**
-- **O volume continua em tempos** (Regra 5) — e a **duração, em minutos, calibra
-  a faixa** (Regra 9, Pré-requisito 4). Nenhuma das duas regras foi tocada.
-- O relatório e a captura medem **duração executada** (minutos). O campo existia
-  em **quatro arquivos**, não em dois: além do relatório e do fecho da captura
-  do Ritmos, também o Funcional do relatório do Duo, a coluna do Bloco 3 das
-  duas capturas e o fecho da captura do Duo.
-- **O caderno entrou na mesma unidade** (decisão da pesquisadora): ele registrava
-  "Volume: planejado 120, executado 120" e "volume 120" por aluno. Sem isso, o
-  caderno — que hoje é fonte do hash e página publicada — ficaria dizendo
-  "volume" ao lado de um relatório que diz "duração executada".
-- O `METODO.md` fica **congelado** (mudar exige motivo declarado).
-- O repositório está **privado** — camada 1 da política de segurança, fechada.
+- O bloco de criação de ciclo passa a declarar o passo que mais causa erro — o
+  `DOCS` precisa entrar nos **dois** manifestos, porque o da variante sobrescreve
+  o base — e aponta o caderno como fonte que vive fora da pasta do ciclo.
 
 **Com o quê.**
-`METODO.md`, `README.md`, `CONGELAMENTO.md`, `README-ciclos.md`,
-`relatorios/ciclo-01/aula-01-{duo,ritmos}.md`,
-`ciclos/ciclo-01-{duo,ritmos}-captura-aula-01.md`,
-`cadernos/ciclo-01/caderno-01-{duo,ritmos}.md`, os dois pacotes regerados.
-
-**Referências.**
-P-01 (ciclo é PO latente), P-02 (PO vem do ciclo anterior), P-06 (registro
-descritivo), P-10 (linha de base), Regra 1 (método como referência), Regra 5
-(unidade explícita), Regra 9 (faixa por duração).
+`README-ciclos.md`.
 
 **O que ainda não está feito.**
-O push (aguardando confirmação da pesquisadora). E dois pontos de defasagem no
-`README-ciclos.md` que **não** são números e ficaram fora do escopo desta rodada,
-declarados para decisão: a tabela "Escopos" lista 10 dos ~24 escopos que o hook
-`commit-msg` aceita (é a tabela que faz alguém errar o escopo do commit), e o
-bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
+O push (aguardando confirmação da pesquisadora).
 
 ## O que está pendente
 
@@ -246,6 +225,10 @@ O push (aguardando confirmação da pesquisadora). E dois pontos de defasagem no
 declarados para decisão: a tabela "Escopos" lista 10 dos ~24 escopos que o hook
 `commit-msg` aceita (é a tabela que faz alguém errar o escopo do commit), e o
 bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
+
+## 19/09/2026 — README-ciclos: escopos e criação de ciclo
+
+O push (aguardando confirmação da pesquisadora).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 

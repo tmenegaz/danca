@@ -579,3 +579,24 @@ O push (aguardando confirmação da pesquisadora). E dois pontos de defasagem no
 declarados para decisão: a tabela "Escopos" lista 10 dos ~24 escopos que o hook
 `commit-msg` aceita (é a tabela que faz alguém errar o escopo do commit), e o
 bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
+
+## 19/09/2026 — README-ciclos: escopos e criação de ciclo
+
+**O que aconteceu.**
+Os dois pontos de defasagem declarados na entrada anterior — os que **não** eram
+números — foram corrigidos. A tabela "Escopos" passou a listar os **24** escopos
+que o hook `commit-msg` aceita (listava 10; é a tabela que faz errar o escopo do
+commit, e errou duas vezes hoje), e o bloco "Criar um ciclo novo" deixou de trazer
+caminhos que não existem (`ciclos/` na raiz) e um comando que o gerador não aceita
+mais (`tools/gerar-ciclo.sh 02`, sem professor e sem escola).
+
+**O que foi decidido.**
+- O bloco de criação de ciclo passa a declarar o passo que mais causa erro — o
+  `DOCS` precisa entrar nos **dois** manifestos, porque o da variante sobrescreve
+  o base — e aponta o caderno como fonte que vive fora da pasta do ciclo.
+
+**Com o quê.**
+`README-ciclos.md`.
+
+**O que ainda não está feito.**
+O push (aguardando confirmação da pesquisadora).
