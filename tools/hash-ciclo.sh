@@ -147,10 +147,11 @@ source "$RAIZ/tools/lib-fontes.sh"
 
 FONTES="$( fontes_do_ciclo \
            | while IFS= read -r fonte; do
-               # só o que é DESTE ciclo; o guia-do-professor vive na biblioteca e é
-               # compartilhado por todos os professores, então não entra no hash
+               # Só o que é DESTE professor: o ciclo (manifestos, PO, documentos) e os
+               # relatórios pós-aula — que são fontes. O guia-do-professor vive na
+               # biblioteca e não entra; os acompanhamentos são derivados e ficam fora.
                case "$fonte" in
-                 "$BASE"/*) [ -f "$fonte" ] && printf '%s\n' "$fonte" ;;
+                 "${BASE%/ciclos}"/*) [ -f "$fonte" ] && printf '%s\n' "$fonte" ;;
                esac
              done \
            | LC_ALL=C sort -u )"

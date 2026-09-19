@@ -46,4 +46,16 @@ fontes_do_ciclo() {
       printf '%s\n' "$src"
     fi
   done
+  # Relatórios pós-aula desta escola: são FONTES — registram a aula, e a P-02
+  # declara o PO do ciclo seguinte a partir deles. Caminho derivado de CICLOS,
+  # para continuar relativo no hasher e absoluto no gerador.
+  local rel r
+  rel="${CICLOS%/ciclos}/relatorios/ciclo-$(printf '%02d' "${CICLO:-01}")"
+  for r in "$rel"/aula-*-"$VARIANTE".md; do
+    if [ -f "$r" ]; then
+      printf '%s\n' "$r"
+    fi
+  done
+  # Os ACOMPANHAMENTOS ficam fora de propósito: são vista derivada do PO e dos
+  # relatórios, não fonte. Por isso não entram em DOCS nem aqui.
 }
