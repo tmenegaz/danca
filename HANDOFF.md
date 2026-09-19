@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T22:45:25-0300`
-Commit atual: `70c9d8d` — fix(ciclo-01): preview e nota da Ana do Duo (caminhos e formulacao)
+Gerado em: `2026-09-18T23:52:27-0300`
+Commit atual: `eeed7cd` — feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,12 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
+3d01db0 feat(tools): integra o acompanhamento ao gerador do pacote
+4ce9fa8 chore(ciclo-01): gera os acompanhamentos por aluna (Duo e Ritmos)
+d46031c feat(tools): cria gerar-acompanhamento.sh (vista por aluna do ciclo)
+418a6f1 docs(registro): registra a publicacao, a reancoragem da Duo e o caderno da aula 01
+093bb67 chore(tools): regenera HANDOFF apos a reancoragem da Duo
 70c9d8d fix(ciclo-01): preview e nota da Ana do Duo (caminhos e formulacao)
 c0de989 fix(ciclo-01): corrige os caminhos no preview do relatorio do Ritmos
 39be66a chore(tools): regenera HANDOFF apos caderno e relatorio da aula 01
@@ -29,12 +35,6 @@ c188985 fix(ciclo-01): regenera a pagina de musicalidade do pacote (P-21)
 fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
 0111a71 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos P-22
 cdf14b6 docs(protocolo): governanca do caderno inclui ocorrencias fisicas (P-22)
-5c7abe8 feat(prompts): instalacao aplica P-22 (restricoes fisicas no PO)
-d312645 feat(prompts): eliciacao pergunta restricoes fisicas (P-22) e repertorio
-a5a56d2 fix(ciclo-01): completa apanhado historico do Ritmos (Quebra-Nozes, dois PDDs)
-5ff12ac fix(ciclo-01): corrige PO do Ritmos (21 encontros, Homans, P-11, P-22, checklist)
-0386cf9 feat(protocolo): acrescenta P-22 (condicoes materiais de execucao)
-012c6dc fix(ciclo-01): corrige plano e aula-01 do Ritmos (21 encontros, Tony, sem volume-120)
 ```
 
 ## Por professor
@@ -50,7 +50,7 @@ a5a56d2 fix(ciclo-01): completa apanhado historico do Ritmos (Quebra-Nozes, dois
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `ae7e63fb7964` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `ef0a60b08c97` | (vazio) | Input_PO_Validado |
 | ritmos | ciclo-01-ritmos.fipp | `28df49bea510` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
