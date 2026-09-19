@@ -231,8 +231,8 @@ criptografar() {
   fi
 
   for f in "${arquivos[@]}"; do
-    if grep -q 'pagecrypt' "$f" 2>/dev/null; then
-      echo "erro: $(basename "$f") já está criptografado — regenere o HTML antes" >&2
+    if grep -qE 'AES-GCM|PBKDF2|Protected Page' "$f" 2>/dev/null; then
+      echo "erro: $(basename "$f") já está cifrado — regenere o HTML antes (tools/gerar-ciclo.sh)" >&2
       return 1
     fi
     tmp="$(mktemp)"
