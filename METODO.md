@@ -11,9 +11,9 @@ coisa: é construída sobre as pessoas reais que estão na sala.
 
 O método descreve o que existe — o repertório de movimentos, a progressão,
 o que se espera ao final. Ele não descreve o que fazer na terça-feira às
-19h30 com quatro alunas de 11 anos, uma com lesão no tornozelo, outra com
-dificuldade de sustentar o en dehors, outra que escuta mais tempo antes de
-responder.
+19h30 com quatro alunas de 11 anos, uma que não pode fazer um movimento por
+restrição física, outra com dificuldade de sustentar o en dehors, outra que
+escuta mais tempo antes de responder.
 
 ## Sobre pessoas reais, não sobre ideais
 
