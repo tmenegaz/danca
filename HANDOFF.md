@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T21:29:59-0300`
-Commit atual: `cdf14b6` — docs(protocolo): governanca do caderno inclui ocorrencias fisicas (P-22)
+Gerado em: `2026-09-18T22:06:12-0300`
+Commit atual: `39c2c6f` — chore(ciclo-01): regenera o pacote do Duo com rodape derivado
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,12 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+39c2c6f chore(ciclo-01): regenera o pacote do Duo com rodape derivado
+c188985 fix(ciclo-01): regenera a pagina de musicalidade do pacote (P-21)
+22792d0 fix(ciclo-01): tira o ultimo termo cru do documento de musicalidade (P-21)
+3a7e4df fix(ciclo-01): harmoniza citacoes em documentos publicados do Ritmos (P-21)
+fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
+0111a71 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos P-22
 cdf14b6 docs(protocolo): governanca do caderno inclui ocorrencias fisicas (P-22)
 5c7abe8 feat(prompts): instalacao aplica P-22 (restricoes fisicas no PO)
 d312645 feat(prompts): eliciacao pergunta restricoes fisicas (P-22) e repertorio
@@ -29,12 +35,6 @@ abd6c58 feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguag
 fa63fc5 feat(biblioteca): guia do professor explica o harmonizador
 7f2a29b feat(prompts): harmonizador de linguagem no instalar-ciclo (P-21 visivel ao professor)
 d734fff fix(tools): calendario emite uma aula por ocorrencia do dia (Ritmos: sabado com 2)
-074b74b docs(registro): registra completacao do Ritmos e P-15 a P-19
-87f41c8 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF
-d7d13e2 feat(prompts): atualiza prompt de eliciacao com P-16 e P-18
-e18cc66 feat(prompts): instala prompt de instalacao de ciclo no repositorio (P-19)
-c23ab15 feat(ciclo-01): gera artefatos auxiliares do Ritmos (replica estrutura do Duo)
-1481c1a fix(ciclo-01): manifesto do Ritmos com 21 aulas e 3 aulas/semana
 ```
 
 ## Por professor
@@ -51,7 +51,7 @@ c23ab15 feat(ciclo-01): gera artefatos auxiliares do Ritmos (replica estrutura d
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | duo | ciclo-01-duo.fipp | `f99c8ef2879a` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `9497eea53a4d` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `006aac3f8a29` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
