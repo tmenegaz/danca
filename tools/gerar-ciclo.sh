@@ -280,59 +280,98 @@ gerar_nav() {
     echo '    <span></span><span></span><span></span>'
     echo '  </button>'
     echo '  <div class="nav-links" id="nav-links">'
-    for doc in index plano; do
-      r="$(rotulo "$doc")"
-      [ "$doc" = index ] && r="Início"
-      if [ "$doc" = "$atual" ]; then
-        echo "  <a class=\"ativo\" href=\"$doc.html\">$r</a>"
+    # ------------------------------------------------------------------
+    # Menu: sequência DECLARATIVA. Cada item é "Nome|padrões":
+    #   - um padrão só, sem glob  → link direto para esse documento
+    #   - um ou mais padrões      → dropdown (padrão é glob: aula-*, glossario-*)
+    # A LISTA de documentos continua vindo de DOCS + ACOMP_DOCS (documento novo
+    # entra sozinho); o que é declarativo é o AGRUPAMENTO. O que não cair em
+    # grupo nenhum vai para "Outros" — nada some do menu por esquecimento.
+    # ------------------------------------------------------------------
+    link_menu() {   # $1 = doc (link de topo)
+      local d="$1" rot
+      rot="$(rotulo "$d")"
+      [ "$d" = index ] && rot="Início"
+      if [ "$d" = "$atual" ]; then
+        echo "  <a class=\"ativo\" href=\"$d.html\">$rot</a>"
       else
-        echo "  <a href=\"$doc.html\">$r</a>"
+        echo "  <a href=\"$d.html\">$rot</a>"
       fi
-    done
-    echo '  <details class="menu">'
-    echo '    <summary>Aulas</summary>'
-    echo '    <div class="submenu">'
-    for doc in $DOCS; do
-      case "$doc" in aula-*) ;; *) continue ;; esac
-      r="$(rotulo "$doc")"
-      if [ "$doc" = "$atual" ]; then
-        echo "      <a class=\"ativo\" href=\"$doc.html\">$r</a>"
+    }
+    item_menu() {   # $1 = doc (item de submenu)
+      local d="$1" rot=""
+      # no acompanhamento o rótulo é o apelido (P-12), não o título do documento
+      case "$d" in
+        acompanhamento-*) rot="$(sed -n 's/^aluna:[[:space:]]*//p' "$(fonte_md "$d")" | head -1)" ;;
+      esac
+      [ -n "$rot" ] || rot="$(rotulo "$d")"
+      if [ "$d" = "$atual" ]; then
+        echo "      <a class=\"ativo\" href=\"$d.html\">$rot</a>"
       else
-        echo "      <a href=\"$doc.html\">$r</a>"
+        echo "      <a href=\"$d.html\">$rot</a>"
       fi
-    done
-    echo '    </div>'
-    echo '  </details>'
-    # Acompanhamento: um link por aluna, num dropdown próprio — depois de "Aulas"
-    # e antes dos demais documentos. É lugar separado de propósito: a vista por
-    # aluna não é aula nem documento de apoio. A lista vem dos arquivos gerados.
-    if [ -n "${ACOMP_DOCS:-}" ]; then
-      echo '  <details class="menu">'
-      echo '    <summary>Acompanhamento</summary>'
-      echo '    <div class="submenu">'
-      for doc in $ACOMP_DOCS; do
-        r="$(sed -n 's/^aluna:[[:space:]]*//p' "$(fonte_md "$doc")" | head -1)"
-        [ -n "$r" ] || r="$(rotulo "$doc")"
-        if [ "$doc" = "$atual" ]; then
-          echo "      <a class=\"ativo\" href=\"$doc.html\">$r</a>"
-        else
-          echo "      <a href=\"$doc.html\">$r</a>"
-        fi
+    }
+
+    membros=""
+    for item in \
+      "Início|index" \
+      "Ciclos|plano referencias" \
+      "Aulas|aula-*" \
+      "Acompanhamento|acompanhamento-* relatorio-aula-* captura-aula-*" \
+      "Planejamento|pre-requisitos musicalidade musicalidade-aluna" \
+      "Apoio|notacao glossario-*" \
+      "Apanhado Histórico|apanhado-historico" \
+      "Área do Professor|harmonizacao guia-do-professor"
+    do
+      nome="${item%%|*}"
+      padroes="${item#*|}"
+      # link direto: um único padrão, sem glob
+      case "$padroes" in
+        *'*'*|*' '*) ;;
+        *) link_menu "$padroes"; continue ;;
+      esac
+      membros=""
+      for pat in $padroes; do
+        for doc in $DOCS $ACOMP_DOCS; do
+          case "$doc" in
+            $pat)
+              case " $membros " in
+                *" $doc "*) ;;
+                *) membros="$membros $doc" ;;
+              esac
+              ;;
+          esac
+        done
       done
+      [ -n "$membros" ] || continue
+      echo '  <details class="menu">'
+      echo "    <summary>$nome</summary>"
+      echo '    <div class="submenu">'
+      for doc in $membros; do item_menu "$doc"; done
+      echo '    </div>'
+      echo '  </details>'
+    done
+
+    # catch-all: documento que não caiu em grupo nenhum
+    sobra=""
+    for doc in $DOCS $ACOMP_DOCS; do
+      case "$doc" in
+        index|plano|referencias|aula-*) ;;
+        relatorio-aula-*|captura-aula-*|acompanhamento-*) ;;
+        pre-requisitos|musicalidade|musicalidade-aluna) ;;
+        notacao|glossario-*|harmonizacao|guia-do-professor) ;;
+        apanhado-historico) ;;
+        *) sobra="$sobra $doc" ;;
+      esac
+    done
+    if [ -n "$sobra" ]; then
+      echo '  <details class="menu">'
+      echo '    <summary>Outros</summary>'
+      echo '    <div class="submenu">'
+      for doc in $sobra; do item_menu "$doc"; done
       echo '    </div>'
       echo '  </details>'
     fi
-    # demais documentos: o que está em DOCS e não é aula nem é o plano/index
-    # (a lista é derivada de DOCS, então um documento novo entra sozinho no menu)
-    for doc in $DOCS; do
-      case "$doc" in aula-*|plano) continue ;; esac
-      r="$(rotulo "$doc")"
-      if [ "$doc" = "$atual" ]; then
-        echo "  <a class=\"ativo\" href=\"$doc.html\">$r</a>"
-      else
-        echo "  <a href=\"$doc.html\">$r</a>"
-      fi
-    done
     echo "  <a class=\"pdf\" href=\"$ID.pdf\">PDF do ciclo</a>"
     echo '  </div>'
     echo '</nav>'

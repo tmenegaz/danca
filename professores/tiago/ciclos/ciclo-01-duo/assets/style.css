@@ -74,9 +74,15 @@ body {
   flex: 1 1 auto; min-width: 0;
 }
 
-/* Botão hamburger: invisível no desktop; aparece só na media query de celular. */
+/* Botão hamburger: invisível no desktop; aparece só na media query de celular.
+ * `position: relative` + `z-index` EXPLÍCITOS: sem eles o botão herda a pilha do
+ * .topnav (20) e fica ABAIXO do painel do submenu (21) — é o que fazia o botão
+ * sumir depois de navegar, quando algum resíduo de estado mantinha o painel no
+ * caminho. `pointer-events: auto` é defesa contra regra herdada que desabilite
+ * o clique. */
 .topnav .hamburger {
   display: none; margin-left: auto; cursor: pointer;
+  position: relative; z-index: 22; pointer-events: auto;
   background: none; border: 2px solid var(--gold); border-radius: 4px;
   padding: 6px 8px;
 }
@@ -171,7 +177,7 @@ hr { border: none; border-top: 1px solid var(--gold); margin: 28px 0; }
 }
 
 /* celular: menu colapsado atrás do hamburger */
-@media (max-width: 767px) {
+@media (max-width: 768px) {
   .topnav { flex-wrap: wrap; }
   .topnav .hamburger { display: block; }
   .topnav .nav-links { display: none; }

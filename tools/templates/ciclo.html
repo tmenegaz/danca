@@ -87,11 +87,78 @@ $endfor$
       botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
       ajustarAlturaNavbar();
     });
+
+    /* Ao escolher um item, o painel fecha — a navegação é do navegador, mas o
+       estado não pode ficar para trás. */
+    navbar.addEventListener('click', function (e) {
+      var link = e.target.closest('a');
+      if (!link) return;
+      navbar.classList.remove('aberto');
+      botao.setAttribute('aria-expanded', 'false');
+      botao.setAttribute('aria-label', 'Abrir menu');
+      var d = link.closest('details[open]');
+      if (d) d.removeAttribute('open');
+    });
+
+    /* Clicar fora fecha o dropdown aberto e, no celular, o painel. */
+    document.addEventListener('click', function (e) {
+      if (!navbar.contains(e.target)) {
+        navbar.classList.remove('aberto');
+        botao.setAttribute('aria-expanded', 'false');
+        botao.setAttribute('aria-label', 'Abrir menu');
+      }
+      document.querySelectorAll('.topnav details.menu[open]').forEach(function (d) {
+        if (!d.contains(e.target)) d.removeAttribute('open');
+      });
+    });
+
+    /* No desktop o dropdown abre por hover; no celular quem manda é o toque.
+       O estado de abertura é o atributo `open` do <details>, não display: um
+       <details> fechado não renderiza os filhos, então CSS não abriria nada. */
+    var desktop = window.matchMedia('(min-width: 769px)');
+    function ligarHover() {
+      document.querySelectorAll('.topnav details.menu').forEach(function (d) {
+        if (desktop.matches) {
+          d.addEventListener('mouseenter', abrir);
+          d.addEventListener('mouseleave', fechar);
+        } else {
+          d.removeEventListener('mouseenter', abrir);
+          d.removeEventListener('mouseleave', fechar);
+          d.removeAttribute('open');
+        }
+      });
+    }
+    function abrir() { this.setAttribute('open', ''); }
+    function fechar() { this.removeAttribute('open'); }
+    ligarHover();
+    if (desktop.addEventListener) desktop.addEventListener('change', ligarHover);
   }
 
   ajustarAlturaNavbar();
   window.addEventListener('load', ajustarAlturaNavbar);
   window.addEventListener('resize', ajustarAlturaNavbar);
+
+  /* Página restaurada do cache do navegador (o "voltar" no celular) traz o DOM
+     como estava — inclusive com o painel aberto e o botão marcado. Zera tudo e
+     garante o botão clicável, que é o estado em que a página deve começar. */
+  window.addEventListener('pageshow', function () {
+    document.querySelectorAll('.topnav.aberto').forEach(function (n) {
+      n.classList.remove('aberto');
+    });
+    document.querySelectorAll('.topnav details[open]').forEach(function (d) {
+      d.removeAttribute('open');
+    });
+    var b = document.querySelector('.hamburger');
+    if (b) {
+      b.setAttribute('aria-expanded', 'false');
+      b.setAttribute('aria-label', 'Abrir menu');
+      b.style.pointerEvents = 'auto';
+      b.style.display = '';
+      b.style.visibility = '';
+      b.style.opacity = '';
+    }
+    ajustarAlturaNavbar();
+  });
 })();
 </script>
 

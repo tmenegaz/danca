@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T23:52:27-0300`
-Commit atual: `eeed7cd` — feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
+Gerado em: `2026-09-19T14:38:55-0300`
+Commit atual: `e2c8c28` — chore(tools): regenera ancoras e HANDOFF apos incluir os relatorios no hash
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,7 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+e2c8c28 chore(tools): regenera ancoras e HANDOFF apos incluir os relatorios no hash
 eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
 3d01db0 feat(tools): integra o acompanhamento ao gerador do pacote
 4ce9fa8 chore(ciclo-01): gera os acompanhamentos por aluna (Duo e Ritmos)
@@ -34,7 +35,6 @@ c188985 fix(ciclo-01): regenera a pagina de musicalidade do pacote (P-21)
 3a7e4df fix(ciclo-01): harmoniza citacoes em documentos publicados do Ritmos (P-21)
 fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
 0111a71 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos P-22
-cdf14b6 docs(protocolo): governanca do caderno inclui ocorrencias fisicas (P-22)
 ```
 
 ## Por professor
