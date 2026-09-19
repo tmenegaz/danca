@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-18T22:06:12-0300`
-Commit atual: `39c2c6f` — chore(ciclo-01): regenera o pacote do Duo com rodape derivado
+Gerado em: `2026-09-18T22:17:28-0300`
+Commit atual: `8f4490b` — docs(relatorio-01): registra a aula 01 do Duo
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,9 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+8f4490b docs(relatorio-01): registra a aula 01 do Duo
+8ef22b9 docs(caderno-01): registra a aula 01 do Duo
+76ce650 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos harmonizacao
 39c2c6f chore(ciclo-01): regenera o pacote do Duo com rodape derivado
 c188985 fix(ciclo-01): regenera a pagina de musicalidade do pacote (P-21)
 22792d0 fix(ciclo-01): tira o ultimo termo cru do documento de musicalidade (P-21)
@@ -32,9 +35,6 @@ a5a56d2 fix(ciclo-01): completa apanhado historico do Ritmos (Quebra-Nozes, dois
 4585d9a chore(tools): regenera ancoras, pacote e HANDOFF
 f70b738 feat(ciclo-01): tabela bruto x harmonizado do Ritmos
 abd6c58 feat(protocolo): acrescenta P-20 (problemas semelhantes) e P-21 (linguagem harmonizada)
-fa63fc5 feat(biblioteca): guia do professor explica o harmonizador
-7f2a29b feat(prompts): harmonizador de linguagem no instalar-ciclo (P-21 visivel ao professor)
-d734fff fix(tools): calendario emite uma aula por ocorrencia do dia (Ritmos: sabado com 2)
 ```
 
 ## Por professor
