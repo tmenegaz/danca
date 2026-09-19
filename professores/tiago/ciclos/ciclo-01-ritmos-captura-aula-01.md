@@ -43,7 +43,7 @@ data: "19/09/2026"
 
 ## Bloco 3 — Funcional (sobrecarga por pessoa)
 
-| Aluna(o) | Volume (número) | Tônus sustenta até o fim? | Fadiga antes do previsto? |
+| Aluna(o) | Duração (min) | Tônus sustenta até o fim? | Fadiga antes do previsto? |
 |:--|:--:|:--:|:--:|
 | Carol | | | |
 | Dada | | | |
@@ -136,6 +136,6 @@ ______________________________________________________
 ______________________________________________________
 ```
 
-**Fecho da aula (preencher no fim):** **Blocos executados** ☐ tendus/jetés ☐ transferência de peso ☐ piqué arabesque ☐ balé como preparação · **Volume** `_____` (planejado: 90)
+**Fecho da aula (preencher no fim):** **Blocos executados** ☐ tendus/jetés ☐ transferência de peso ☐ piqué arabesque ☐ balé como preparação · **Duração executada** `_____` min (planejado: 120 min)
 
 **Abandonado?** `__________________` · **Materiais** ☐ fotos ☐ vídeo ☐ áudio ☐ comentário: `______________`

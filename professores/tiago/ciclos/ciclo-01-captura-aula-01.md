@@ -31,7 +31,7 @@ data: "18/09/2026"
 
 ## Bloco 2 — Funcional (sobrecarga por aluna)
 
-| Aluna | Volume (número) | Fadiga (antes do previsto?) |
+| Aluna | Duração (min) | Fadiga (antes do previsto?) |
 |:--|:--:|:--:|
 | Ceci | | |
 | Ana | | |
@@ -63,6 +63,6 @@ ______________________________________________________
 ______________________________________________________
 ```
 
-**Fecho da aula (preencher no fim):** **Estrutura** ☐ solo ☐ barra ☐ centro ☐ musicalidade · **Volume** `_____` (planejado: 90)
+**Fecho da aula (preencher no fim):** **Estrutura** ☐ solo ☐ barra ☐ centro ☐ musicalidade · **Duração executada** `_____` min (planejado: 60 min)
 
 **Abandonado?** `__________________` · **Materiais** ☐ fotos ☐ vídeo ☐ áudio ☐ comentário: `______________`

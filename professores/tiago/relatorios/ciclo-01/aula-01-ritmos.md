@@ -24,7 +24,8 @@ data: "19/09/2026"
 - **Nota de vocabulário:** a folha de captura (Blocos 1 a 4) não nomeia o bloco de
   **pas de deux** — o Bloco 2 o chama de "Par". O bloco existiu, foi executado
   depois do balé de preparação, e fica nomeado aqui com o nome do ciclo.
-- **Volume:** planejado **120** · executado **120** (todos fizeram tudo).
+- **Duração executada:** **120 min** (planejado: 120 min) · todos fizeram tudo.
+- **Volume (tempos):** não contado em tempos — o que se mede em aula é a duração.
 - **Abandonado:** nada.
 - **Plano seguido:** sim.
 
@@ -71,7 +72,7 @@ entrosamento) apareceram melhorando ou razoáveis, mas todos dependem dele.
 
 ### Funcional (sobrecarga por pessoa)
 
-| Aluno | Volume | Tônus sustenta até o fim | Fadiga antes do previsto |
+| Aluno | Duração (min) | Tônus sustenta até o fim | Fadiga antes do previsto |
 |:--|:--|:--|:--|
 | Carol | 120 | ~ parcial | apareceu |
 | Dada | 120 | ~ parcial | ~ parcial (um pouco melhor que a Carol) |

@@ -19,7 +19,8 @@ data: "18/09/2026"
 ## 1. Execução
 
 - **Estrutura executada:** solo → centro → musicalidade · barra (parte final)
-- **Volume:** não contado em número de tempos. Todas fizeram tudo.
+- **Duração executada:** **60 min** (planejado: 60 min) · todas fizeram tudo.
+- **Volume (tempos):** não contado em tempos — o que se mede em aula é a duração.
 - **Abandonado:** nada.
 - **Plano seguido:** sim.
 
@@ -48,7 +49,7 @@ bloco técnico. Não é falha; é o que a aula 01 mostra sobre o estado atual do
 
 ### Funcional (sobrecarga por aluna)
 
-**Volume:** todas fizeram tudo (não contado em número de tempos).
+**Duração executada:** 60 min · todas fizeram tudo.
 
 **Fadiga — antes do previsto:**
 
