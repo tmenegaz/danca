@@ -37,14 +37,24 @@ subtitle: "Índice geral do ciclo"
 > O gerador só aceita aulas com **`duracao:`** declarada no cabeçalho
 > (Pré-requisito 4) e volume dentro da faixa da duração (Regra 9).
 
-## 3. Documentos de Apoio
+## 3. Documentos de Planejamento
 
-- [Notação em Benesh](notacao.html)
 - [Condições Pré-Existentes (Força e Flexibilidade)](pre-requisitos.html)
-- [Musicalidade](musicalidade.html)
+- [Musicalidade — folha da aluna](musicalidade-aluna.html)
+- [Notação em Benesh](notacao.html)
+- [Glossário do código Benesh do ciclo](glossario-benesh.html)
+
+## 4. Apanhado Histórico
+
 - [Apanhado Histórico](apanhado-historico.html)
 
-## 4. Referências Bibliográficas
+## 5. Área do Professor
+
+- [Musicalidade](musicalidade.html)
+- [Harmonização de linguagem — Duo](harmonizacao.html)
+- [Guia do Professor — em que posição você está?](guia-do-professor.html)
+
+## 6. Referências Bibliográficas
 
 - [Bibliografia completa](referencias.html)
 
