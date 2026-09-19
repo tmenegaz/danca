@@ -14,7 +14,9 @@
  *   4) o registro em Benesh e o glossário do ciclo são consistentes entre si
  *      (glossário exaustivo: todo símbolo do corpo tem verbete — tools/check-glossario.js);
  *   5) o PDF consolidado tem índice, links internos, bookmarks e rodapé numerado
- *      em todas as páginas.
+ *      em todas as páginas;
+ *   6) todo ciclo que tem aula tem harmonização de linguagem (P-17 + P-21): o
+ *      artefato é obrigatório, e a ausência é erro — não aviso.
  *
  * Sai com código 1 se algo estiver quebrado. É o último passo de
  * tools/gerar-ciclo.sh, então cada geração já sai verificada.
@@ -82,6 +84,33 @@ obrigatorios.forEach((f) => {
 const aulas = fs.readdirSync(pacote).filter((f) => /^aula-\d+\.html$/.test(f)).sort();
 if (aulas.length === 0) erros.push('nenhuma aula encontrada (aula-NN.html)');
 else ok.push(`aulas: ${aulas.length} (${aulas.join(', ')})`);
+
+// ------------------------- 1b) P-17/P-21: ciclo com aula tem harmonização
+// A P-17 exige que todo ciclo novo produza os mesmos tipos de artefato do ciclo
+// piloto, e a P-21 manda que documento publicado use linguagem harmonizada. Sem esta
+// checagem a regra fica só declarada — um ciclo pode ser gerado e publicado sem a
+// tabela bruto × harmonizado, que é o caso do Duo até 19/09/2026.
+//
+// O texto da P-17 lista os artefatos sem nomear a harmonização (ela entrou na lista
+// depois), por isso a checagem cita as duas pétreas em vez de só uma. A presença do
+// `harmonizacao.html` já é exigida acima, pelo `DOCS`; o que se verifica aqui é a
+// declaração no manifesto e a existência da FONTE que o documento publica.
+if (aulas.length > 0) {
+  const candidatas = [
+    variante && `ciclo-${ciclo}-${variante}-harmonizacao.md`,
+    `ciclo-${ciclo}-harmonizacao.md`,
+  ].filter(Boolean);
+  const fonteH = candidatas
+    .map((f) => path.join(dirFontes, f))
+    .find((f) => fs.existsSync(f));
+  if (!docsDoCiclo || !docsDoCiclo.includes('harmonizacao')) {
+    erros.push('P-17/P-21: ciclo com aula precisa declarar `harmonizacao` no DOCS do manifesto');
+  } else if (!fonteH) {
+    erros.push(`P-17/P-21: DOCS declara harmonizacao, mas a fonte não existe (${candidatas.join(' ou ')})`);
+  } else {
+    ok.push(`harmonização: ${path.basename(fonteH)}`);
+  }
+}
 
 const paginas = fs.readdirSync(pacote).filter((f) => f.endsWith('.html')).sort();
 
