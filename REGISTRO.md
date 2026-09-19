@@ -298,3 +298,48 @@ RAD (2015); Homans (2010); Taylor (2013); Polanyi (1966); Clippinger (2024).
 - Ciclo da Débora; relatórios pós-aula do Duo e do Ritmos.
 - **Push:** os commits desta rodada estão prontos e **não foram enviados** — aguardam
   decisão da pesquisadora.
+
+## 18/09/2026 — Publicação, primeira reancoragem da Duo e o caderno da Aula 01
+
+**O que aconteceu.**
+- **Publicado:** os commits acumulados foram enviados ao `origin/main` (o bloqueio
+  anterior — o nome próprio num documento publicado — tinha caído na harmonização). O
+  Netlify reconstrói os dois sites a partir do push.
+- **Caderno e relatório da Aula 01 do Duo** escritos a partir da aula de 18/09: o
+  primeiro **ciclo completo** do projeto — PO declarado → aula dada → caderno escrito →
+  relatório gerado.
+- **Preview e PO da Duo corrigidos:** os dois caminhos pré-migração no preview do
+  relatório, a formulação da nota da Ana e a nota de proveniência, que dizia que o
+  primeiro relatório pós-aula ainda não existia — ele existe, e a nota passou a apontar
+  o caminho.
+- **Preview do Ritmos corrigido** (os mesmos dois caminhos), no commit imediatamente
+  anterior a este.
+
+**O que foi decidido.**
+- **A âncora do ciclo da Duo muda pela primeira vez:** `f99c8ef2879a` → **`ae7e63fb7964`**.
+  É o inverso do que está registrado mais acima, no mesmo dia: lá a âncora dela
+  permaneceu intacta justamente porque o ciclo **não** tinha sido tocado; aqui foi, com
+  autorização da pesquisadora.
+- A formulação nova descreve o **processo** (escutar mais tempo, começar depois e
+  responder certo), não o **efeito** (demorar). O que se observa não mudou; mudou o nome
+  do que se observa.
+- **O registro guarda os dois lados.** A nota de correção no próprio PO nomeia o termo
+  antigo, como a tabela de harmonização faz com os termos do professor. Uma correção que
+  apaga o que corrigiu não é proveniência — é edição.
+- A âncora do **Ritmos** foi regerada duas vezes nesta rodada (na harmonização e no
+  preview), e nenhuma delas mudou o conteúdo do ciclo.
+
+**Com o quê.**
+`professores/tiago/ciclos/ciclo-01-duo-po.md`, `…ciclo-01-relatorio-aula-01.md`,
+`…ciclo-01-duo.fipp`, `…ciclo-01-ritmos-relatorio-aula-01.md`, `…ciclo-01-ritmos.fipp`,
+`professores/tiago/cadernos/ciclo-01/caderno-01-duo.md`,
+`professores/tiago/relatorios/ciclo-01/aula-01-duo.md`, `tools/hooks/commit-msg`.
+
+**Referências.**
+P-05 (proveniência), P-06 (registro descritivo), P-10 (linha de base), P-12 (apelidos),
+P-21 (linguagem harmonizada).
+
+**O que ainda não está feito.**
+Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
+cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
+(após 19/09); conferir os dois sites no Netlify.
