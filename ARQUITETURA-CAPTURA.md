@@ -4,6 +4,11 @@
 > JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em
 > aberto. Não implementado.
 
+> **Por que esta ideia existe.** O projeto não tem problema de **volume** (ver
+> §6 — o limite físico de uma escola é ~230 MB em 10 anos). Tem problema de
+> **navegação**: um menu com N capturas e N relatórios fica imenso na medida em
+> que as aulas acontecem. Esta ideia resolve a navegação — não a escala.
+
 > **Documento técnico.** Complementa o `IDEIA-CAPTURA.md` (conceito) com o
 > desenho da arquitetura. Descreve o que **seria** implementado — não uma
 > implementação atual. Os diagramas vêm em duas formas: **Mermaid** (renderiza no
@@ -256,6 +261,52 @@ dispositivo moderno.
 
 **Otimização só faz sentido acima de ~500 aulas.** Não é o caso.
 
+### 6.3 Cenário de escola grande
+
+O cenário atual (1 professor, 2 escolas, ~21 aulas por ciclo) é pequeno. Mas
+vale medir o **limite físico** do domínio — para saber se a ideia continua
+viável em escala maior.
+
+Uma escola tem limites físicos:
+
+| Fator | Limite |
+|:--|:--|
+| Salas | 3 (raro ter mais) |
+| Horas por dia por sala | 8 |
+| Dias por semana | 6 |
+| Semanas por ano | 40 (descontando férias) |
+| Alunos por aula | 20 |
+
+**Total de aulas/ano** (3 salas × 8 h × 6 dias × 40 semanas): **~5.760
+aulas/ano**.
+
+**Volume de dados (JSON):**
+
+- ~80 KB por ciclo de 20 aulas
+- 5.760 aulas ÷ 20 aulas por ciclo = ~288 ciclos/ano
+- **~23 MB/ano**
+
+**Volume de dados (`.md`, o formato atual):**
+
+- ~10 KB por aula
+- **~58 MB/ano**
+
+**Em 10 anos:** ~230 MB (JSON) ou ~580 MB (`.md`).
+
+### 6.4 O que isso significa
+
+**Em qualquer formato, o volume é trivial.**
+
+| Volume | Tecnologia que aguenta |
+|:--|:--|
+| 580 MB (10 anos, `.md`) | Git lida — repositório grande, mas funcional |
+| 230 MB (10 anos, JSON) | Git lida com folga |
+| 230 MB (SQLite) | Trivial (SQLite lida com TB) |
+| 230 MB (PostgreSQL) | Ridiculamente pequeno |
+
+**Nenhuma migração para banco de dados é necessária por volume.** Nem agora, nem
+em 10 anos, nem em 20.
+
 ## 7. Perguntas em aberto
 
 Estas são as decisões que **ainda não têm resposta** — e que o desenho revelou (é
@@ -327,14 +378,23 @@ antigas.
 
 ## 8. O que isso revela
 
-O desenho da arquitetura mostrou que a ideia **funciona**, mas que há **seis
-perguntas em aberto** — nenhuma delas é trivial.
+**Esta ideia não é sobre escala. É sobre navegação.**
 
-**A boa notícia:** nenhuma das perguntas bloqueia a ideia. Todas podem ser
-respondidas quando a implementação for decidida.
+O desenho da arquitetura mostrou que:
 
-**A pergunta crítica:** **7.3** — onde o JSON vive. Isso define se a ideia mantém
-a arquitetura atual (sem servidor) ou exige backend.
+- A ideia **funciona** em qualquer volume (ver §6 — 10 anos de escola grande
+  cabem em ~230 MB).
+- O problema que ela resolve é **navegação**: o menu "Acompanhamento" fica imenso
+  com N capturas e N relatórios; navegar entre aulas exige abrir arquivos
+  separados.
+- A migração para JSON **não é necessária por volume**. Se for feita, é para
+  simplificar a interface.
+
+Há **seis perguntas em aberto** (§7) — nenhuma delas bloqueia a ideia; todas
+podem ser respondidas quando a implementação for decidida.
+
+**A pergunta crítica:** §7.3 (onde o JSON vive) — define se a ideia mantém a
+arquitetura atual (sem servidor) ou exige backend.
 
 ## Referências
 
