@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T14:38:55-0300`
-Commit atual: `e2c8c28` — chore(tools): regenera ancoras e HANDOFF apos incluir os relatorios no hash
+Gerado em: `2026-09-19T15:33:08-0300`
+Commit atual: `74fa832` — fix(template): hamburger responde em todas as páginas (navegação mobile)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,7 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+74fa832 fix(template): hamburger responde em todas as páginas (navegação mobile)
 e2c8c28 chore(tools): regenera ancoras e HANDOFF apos incluir os relatorios no hash
 eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos ficam fora
 3d01db0 feat(tools): integra o acompanhamento ao gerador do pacote
@@ -34,7 +35,6 @@ c188985 fix(ciclo-01): regenera a pagina de musicalidade do pacote (P-21)
 22792d0 fix(ciclo-01): tira o ultimo termo cru do documento de musicalidade (P-21)
 3a7e4df fix(ciclo-01): harmoniza citacoes em documentos publicados do Ritmos (P-21)
 fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
-0111a71 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos P-22
 ```
 
 ## Por professor
@@ -50,8 +50,8 @@ fafa07c docs(registro): registra validacao do PO do Ritmos e P-22
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `ef0a60b08c97` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `28df49bea510` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `a9ee549b18e6` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `16f5092e7120` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
