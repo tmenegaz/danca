@@ -117,13 +117,16 @@ não uma impressão.
 
 O professor declarou como **pré-requisitos do ciclo**: domínio das posições
 básicas dos pés (1ª, 2ª, 4ª e 5ª) e de braços (1ª, 2ª, 3ª, 4ª e 5ª), boa
-coordenação motora e distribuição de peso. A turma, na descrição dele, tem
-"execução ruim, falta de força, resistência, coordenação, musicalidade precária,
-rigidez corporal, rotadores externos fracos, problemas de braços e tônus" — é
-desse piso que o ciclo parte, e é ele que sustenta o recorte declarado em
+coordenação motora e distribuição de peso. A turma, na descrição dele —
+**harmonizada para publicação (P-21)** —, tem **execução insuficiente**, **força e
+resistência ainda insuficientes**, **coordenação motora a aprimorar**,
+**musicalidade em construção**, **rigidez corporal a trabalhar**, **rotadores
+externos a fortalecer** e **braços e tônus a construir**. É desse piso que o ciclo
+parte, e é ele que sustenta o recorte declarado em
 `explanationOfCut` no PO do ciclo
 (`professores/tiago/ciclos/ciclo-01-ritmos-po.md` — documento de projeto, não de
-entrega).
+entrega). Os termos originais do professor estão na
+[tabela de harmonização](harmonizacao.html) e no material bruto, em `campo/`.
 
 ## Registro de proveniência
 

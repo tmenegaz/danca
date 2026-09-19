@@ -46,13 +46,18 @@ e a razão declarada de o ciclo começar por comandos básicos.
 | Boa coordenação motora | idem |
 | Distribuição de peso | idem |
 
-> **Nota do professor sobre a turma:** "Conhecem todos os passos da aula de balé
-> (exceto o Tony), mas com execução ruim, falta de força e resistência,
-> coordenação motora baixa, musicalidade precária, sem virtuose, habilidades
-> físicas diversas, meninos travados (sem alongamento de posterior e adutores),
-> rotadores externos fracos, baixa sustentação de tônus muscular, cotovelos
-> caídos, primeira posição alta demais, quintas posições pequenas e coordenação
-> de braços antes das pernas praticamente inexistente."
+> **Nota do professor sobre a turma (linguagem harmonizada — P-21).** Conhecem todos
+> os passos da aula de balé (exceto o Tony), mas com **execução insuficiente**,
+> **força e resistência ainda insuficientes**, **coordenação motora a aprimorar** e
+> **musicalidade em construção**; **movimentos mais elaborados poderão ser explorados
+> após solidificação das bases**; **flexibilidade dos meninos deve ser mais
+> trabalhada** (**alongamento de posterior e adutor a desenvolver**); **rotadores
+> externos a fortalecer**; **sustentação de tônus muscular a construir**; **cotovelos
+> a alinhar**; **primeira posição a ajustar (alta)**; **quinta posição a ampliar**; e
+> **coordenação de braços e pernas a construir**. Habilidades físicas diversas.
+>
+> Os termos originais do professor estão na [tabela de
+> harmonização](harmonizacao.html) e no material bruto, em `campo/`.
 
 > **[Preencher: o professor não declarou uma sequência de preparação (força e
 > flexibilidade) para esta aula.]** A partir da Aula 02, com o que a Aula 01
