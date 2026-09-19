@@ -432,10 +432,19 @@ de cada ciclo (`ciclo-01-duo.pdf`, `ciclo-01-ritmos.pdf` — o gerador inclui os
 acompanhamentos no PDF) e os **`.md` de origem**
 (`professores/tiago/ciclos/ciclo-XX-<escola>-acompanhamento-<aluna>.md`, 19
 arquivos rastreados). O conteúdo é pseudonimizado pelos apelidos (P-12) — não há
-nome próprio nem dado clínico —, mas é o mesmo conteúdo. Tirar os
-acompanhamentos do PDF é uma linha no gerador; tirar os `.md` do repositório
-quebraria a cadeia de proveniência (P-04), porque eles são fonte. As duas
-decisões são da pesquisadora e ficaram **pendentes**, declaradas aqui.
+nome próprio nem dado clínico —, mas é o mesmo conteúdo. As duas saídas:
+
+- **tirar os acompanhamentos do PDF** é uma linha no gerador (o PDF é montado de
+  `$DOCS $ACOMP_DOCS`); o PDF não entra no hash, então a âncora não muda;
+- **tirar os `.md` do repositório** (`.gitignore` + `git rm --cached`) é possível
+  **sem tocar na cadeia FIPP**: `tools/lib-fontes.sh` os exclui do hash de
+  propósito — são vista derivada do PO e dos relatórios, que são as fontes reais.
+  O que continua necessário é tê-los em disco para o gerador montar o pacote antes
+  de cifrar; quem clonar o repositório não os terá, e o pacote publicado (cifrado)
+  é reconstruível a partir do PO e dos relatórios, que permanecem versionados.
+
+Nenhuma das duas foi feita: as duas mudam o que o site publica, e a decisão é da
+pesquisadora.
 
 Também pendente, do mesmo tipo: uma linha residual de termo cru na tabela de
 progressão do plano do Ritmos ("Braços caídos, desconectados" / "1ª alta demais",

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T16:08:35-0300`
-Commit atual: `14d96ae` — docs(caderno): registra que o HTML cifrado nao e deterministico
+Gerado em: `2026-09-19T16:09:44-0300`
+Commit atual: `5900725` — docs(registro): registra o nao determinismo da cifra como efeito colateral
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,7 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+5900725 docs(registro): registra o nao determinismo da cifra como efeito colateral
 14d96ae docs(caderno): registra que o HTML cifrado nao e deterministico
 26b39ff fix(tools): guarda de cifra ja aplicada usa as marcas reais da biblioteca
 ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
@@ -34,7 +35,6 @@ eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos fic
 3d01db0 feat(tools): integra o acompanhamento ao gerador do pacote
 4ce9fa8 chore(ciclo-01): gera os acompanhamentos por aluna (Duo e Ritmos)
 d46031c feat(tools): cria gerar-acompanhamento.sh (vista por aluna do ciclo)
-418a6f1 docs(registro): registra a publicacao, a reancoragem da Duo e o caderno da aula 01
 ```
 
 ## Por professor
@@ -139,10 +139,19 @@ de cada ciclo (`ciclo-01-duo.pdf`, `ciclo-01-ritmos.pdf` — o gerador inclui os
 acompanhamentos no PDF) e os **`.md` de origem**
 (`professores/tiago/ciclos/ciclo-XX-<escola>-acompanhamento-<aluna>.md`, 19
 arquivos rastreados). O conteúdo é pseudonimizado pelos apelidos (P-12) — não há
-nome próprio nem dado clínico —, mas é o mesmo conteúdo. Tirar os
-acompanhamentos do PDF é uma linha no gerador; tirar os `.md` do repositório
-quebraria a cadeia de proveniência (P-04), porque eles são fonte. As duas
-decisões são da pesquisadora e ficaram **pendentes**, declaradas aqui.
+nome próprio nem dado clínico —, mas é o mesmo conteúdo. As duas saídas:
+
+- **tirar os acompanhamentos do PDF** é uma linha no gerador (o PDF é montado de
+  `$DOCS $ACOMP_DOCS`); o PDF não entra no hash, então a âncora não muda;
+- **tirar os `.md` do repositório** (`.gitignore` + `git rm --cached`) é possível
+  **sem tocar na cadeia FIPP**: `tools/lib-fontes.sh` os exclui do hash de
+  propósito — são vista derivada do PO e dos relatórios, que são as fontes reais.
+  O que continua necessário é tê-los em disco para o gerador montar o pacote antes
+  de cifrar; quem clonar o repositório não os terá, e o pacote publicado (cifrado)
+  é reconstruível a partir do PO e dos relatórios, que permanecem versionados.
+
+Nenhuma das duas foi feita: as duas mudam o que o site publica, e a decisão é da
+pesquisadora.
 
 Também pendente, do mesmo tipo: uma linha residual de termo cru na tabela de
 progressão do plano do Ritmos ("Braços caídos, desconectados" / "1ª alta demais",
