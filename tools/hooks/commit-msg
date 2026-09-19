@@ -24,7 +24,7 @@ case "$primeira" in
 esac
 
 tipos='feat|fix|docs|refactor|style|chore|audit'
-escopos='ciclo-[0-9]+|aula-[0-9]+|notacao|pre-requisitos|musicalidade|apanhado|apresentacao-[0-9]+|apresentacao-01-rizoma|biblioteca|tools|template|regras|entrega|protocolo|caderno|schema|registro|po|campo|estrutura|prompts'
+escopos='ciclo-[0-9]+|aula-[0-9]+|notacao|pre-requisitos|musicalidade|apanhado|apresentacao-[0-9]+|apresentacao-01-rizoma|biblioteca|tools|template|regras|entrega|protocolo|caderno|caderno-[0-9]+|relatorio|relatorio-[0-9]+|schema|registro|po|campo|estrutura|prompts'
 
 if ! printf '%s' "$primeira" | grep -qE "^($tipos)\(($escopos)\): .{3,}$"; then
   echo "commit-msg: mensagem fora do padrão Conventional Commits do projeto." >&2
