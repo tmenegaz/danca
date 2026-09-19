@@ -171,6 +171,14 @@ material — quem lê o caderno costuma querer o acompanhamento.
   (ver `CONGELAMENTO.md`).
 - O `.conf` da escola declara apenas a **intenção**
   (`ACOMPANHAMENTO_CRIPTOGRAFADO="sim"`), nunca a senha.
+- O HTML cifrado **não é determinístico**: cada execução usa sal e IV novos, então
+  os acompanhamentos mudam de bytes a cada geração — com a mesma senha e o mesmo
+  conteúdo. Regenerar o pacote deixa essas páginas "modificadas" no Git: é
+  esperado. O que não muda é o que a senha abre.
+- Rodar a criptografia **duas vezes sem regerar o HTML** é recusado de propósito.
+  A segunda execução não sabe decifrar: cifraria a própria cifra e o arquivo
+  deixaria de abrir. Para cifrar de novo, gere o pacote outra vez
+  (`tools/gerar-ciclo.sh`) — o HTML nasce em claro e é cifrado na sequência.
 
 > **O que a criptografia protege — e o que não protege.** Ela protege o **site**
 > (a página navegável publicada pelo Netlify). Não protege o **PDF consolidado**
