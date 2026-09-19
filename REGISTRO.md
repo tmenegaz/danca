@@ -417,6 +417,14 @@ site pede senha para abrir cada um.
 - A nota de harmonização do Ritmos foi atualizada (decisão 18/09: harmonização
   sempre, inclusive citações).
 
+**Efeito colateral declarado.**
+O HTML cifrado **não é determinístico**: cada execução usa sal e IV novos, então os
+9 acompanhamentos mudam de bytes a cada geração — com a mesma senha e o mesmo
+conteúdo. Regenerar o pacote deixa essas páginas "modificadas" no Git, e é por isso
+que a árvore não fica limpa depois de gerar. O que não muda é o que a senha abre. A
+segunda execução da criptografia sem regerar o HTML é recusada de propósito: sem
+decifrar antes, ela cifraria a própria cifra e o arquivo deixaria de abrir.
+
 **O que não está resolvido, e é o ponto sensível.**
 A criptografia protege **o site**, não o conteúdo. Os mesmos acompanhamentos
 continuam em claro em dois lugares do repositório público: o **PDF consolidado**

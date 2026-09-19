@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T16:04:05-0300`
-Commit atual: `438daf3` — chore(tools): regenera pacotes e HANDOFF apos a harmonizacao do Duo
+Gerado em: `2026-09-19T16:08:35-0300`
+Commit atual: `14d96ae` — docs(caderno): registra que o HTML cifrado nao e deterministico
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -15,6 +15,14 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+14d96ae docs(caderno): registra que o HTML cifrado nao e deterministico
+26b39ff fix(tools): guarda de cifra ja aplicada usa as marcas reais da biblioteca
+ca9e599 chore(tools): regenera pacotes e HANDOFF apos criptografia
+3a6c9fa docs(registro): registra a criptografia como excecao justificada
+15117a3 docs(protocolo): inclui criptografia na lista de infraestrutura congelada
+919fc5e docs(caderno): documenta senha de protecao dos acompanhamentos
+3528452 feat(tools): criptografa acompanhamentos com PageCrypt (senhas fora do repo)
+8cb885f fix(ciclo-01): atualiza nota de harmonizacao do Ritmos (decisao 18/09)
 438daf3 chore(tools): regenera pacotes e HANDOFF apos a harmonizacao do Duo
 9ebe25b docs(registro): registra o congelamento e a verificacao da P-17 em codigo
 4a4abbc docs(protocolo): declara congelamento da infraestrutura
@@ -27,14 +35,6 @@ eeed7cd feat(tools): relatorios entram na cobertura do hash; acompanhamentos fic
 4ce9fa8 chore(ciclo-01): gera os acompanhamentos por aluna (Duo e Ritmos)
 d46031c feat(tools): cria gerar-acompanhamento.sh (vista por aluna do ciclo)
 418a6f1 docs(registro): registra a publicacao, a reancoragem da Duo e o caderno da aula 01
-093bb67 chore(tools): regenera HANDOFF apos a reancoragem da Duo
-70c9d8d fix(ciclo-01): preview e nota da Ana do Duo (caminhos e formulacao)
-c0de989 fix(ciclo-01): corrige os caminhos no preview do relatorio do Ritmos
-39be66a chore(tools): regenera HANDOFF apos caderno e relatorio da aula 01
-790f242 chore(tools): aceita os escopos caderno-NN e relatorio-NN no hook
-8f4490b docs(relatorio-01): registra a aula 01 do Duo
-8ef22b9 docs(caderno-01): registra a aula 01 do Duo
-76ce650 chore(tools): regenera ancoras, pacote do Ritmos e HANDOFF apos harmonizacao
 ```
 
 ## Por professor
@@ -123,6 +123,14 @@ site pede senha para abrir cada um.
   mas lá só existem os `.md` — o HTML nasce no gerador.
 - A nota de harmonização do Ritmos foi atualizada (decisão 18/09: harmonização
   sempre, inclusive citações).
+
+**Efeito colateral declarado.**
+O HTML cifrado **não é determinístico**: cada execução usa sal e IV novos, então os
+9 acompanhamentos mudam de bytes a cada geração — com a mesma senha e o mesmo
+conteúdo. Regenerar o pacote deixa essas páginas "modificadas" no Git, e é por isso
+que a árvore não fica limpa depois de gerar. O que não muda é o que a senha abre. A
+segunda execução da criptografia sem regerar o HTML é recusada de propósito: sem
+decifrar antes, ela cifraria a própria cifra e o arquivo deixaria de abrir.
 
 **O que não está resolvido, e é o ponto sensível.**
 A criptografia protege **o site**, não o conteúdo. Os mesmos acompanhamentos
