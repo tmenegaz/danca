@@ -343,3 +343,52 @@ P-21 (linguagem harmonizada).
 Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
 cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
 (após 19/09); conferir os dois sites no Netlify.
+
+## 19/09/2026 — Congelamento da infraestrutura
+
+**O que aconteceu.**
+A infraestrutura do Projeto Ciclo foi declarada congelada. O que está feito
+(22 pétreas, 17 regras, ferramentas, templates, prompts) não muda por padrão.
+Mudanças passam a exigir motivo declarado, commit próprio e entrada no
+REGISTRO. A harmonização de linguagem foi institucionalizada como documento
+estrutural obrigatório (P-17) e gerada para o Duo — faltava.
+
+**O que foi decidido.**
+- Congelamento declarado em `CONGELAMENTO.md`.
+- Harmonização é obrigatória em todo ciclo com aulas.
+- O que continua livre: conteúdo, POs novos, harmonizações.
+- O que exige motivo: infraestrutura.
+- **A verificação da P-17 virou código**, não declaração: o `check-pacote.js` reprova
+  (erro, não aviso) ciclo com aula que não declare `harmonizacao` no `DOCS` ou que
+  declare sem a fonte existir. A presença do `harmonizacao.html` já era exigida pelo
+  `DOCS`; o novo é a checagem do manifesto e da fonte.
+- **A P-17 é citada junto com a P-21 na checagem**, porque o texto da P-17 lista os
+  artefatos do ciclo piloto **sem nomear a harmonização** — ela entrou nessa lista
+  depois, pela P-21. Nenhuma pétrea foi alterada: a pétrea não se edita para caber no
+  código; o código se explica.
+- **A âncora do Duo mudou** (`ef0a60b08c97` → `a9ee549b18e6`) porque o conteúdo do
+  ciclo mudou: o termo "cotovelos caídos" foi harmonizado no PO e o documento de
+  harmonização entrou no `DOCS`.
+- **A âncora do Ritmos também mudou** (`28df49bea510` → `16f5092e7120`) **sem o
+  conteúdo dela mudar** — e isso é a regra funcionando, não um defeito: o
+  `ciclo-01.conf` base é uma das fontes declaradas de qualquer variante, e foi nele
+  que `harmonizacao` entrou no `DOCS` (o `.conf` da Duo não declara `DOCS`; herda o
+  base). Foi por isso que o ciclo da Ritmos moveu: a fonte compartilhada mudou.
+
+**Com o quê.**
+`CONGELAMENTO.md`, `tools/check-pacote.js`, `professores/tiago/ciclos/ciclo-01-duo-harmonizacao.md`,
+`professores/tiago/ciclos/ciclo-01.conf`, `professores/tiago/ciclos/ciclo-01-duo-po.md`
+(a harmonização do termo e a nota de proveniência), `HANDOFF.md`.
+
+**Referências.**
+P-03/P-04 (proveniência acrescenta, não edita), P-05 (proveniência), P-17 (mesmos
+artefatos do ciclo piloto), P-21 (linguagem harmonizada).
+
+**O que ainda não está feito.**
+Frente de conteúdo: revisão da Aula 01 do Duo (defeito do exercício no chão);
+Aula 01 do Ritmos (19/09); caderno + relatório do Ritmos; Aula 02 do Duo.
+E uma inconsistência declarada, para decisão da pesquisadora: a harmonização do
+**Ritmos** diz que o plano e a aula-01 citam termos crus entre aspas e que "nenhum dos
+dois entra em `DOCS` até essa decisão" — mas o `.conf` do Ritmos lista os dois em
+`DOCS` desde então. Ou a nota fica, e os documentos saem; ou a decisão de harmonizar a
+citação é tomada, e a nota é atualizada. Não mexi em nenhum dos dois.
