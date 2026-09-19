@@ -18,9 +18,19 @@ out/
 tools/.netlify-tokens
 
 # Senhas locais da criptografia dos acompanhamentos (lido por
-# tools/gerar-acompanhamento.sh). O repositório é PÚBLICO: só o
-# tools/.senhas-locais.exemplo é versionado, com senhas fictícias.
+# tools/gerar-acompanhamento.sh). Senha NUNCA é versionada, em repositório
+# público ou privado: a política protege por camadas, e esta é uma delas.
+# Só o tools/.senhas-locais.exemplo é versionado, com senhas fictícias.
 tools/.senhas-locais
+
+# Acompanhamentos por aluna — NÃO versionar.
+# São vista derivada (do PO + dos relatórios), reconstruíveis a qualquer momento
+# pelo tools/gerar-acompanhamento.sh, e contêm dados de menores. A política de
+# segurança os protege por camadas: repositório privado, PDF do ciclo sem
+# acompanhamentos, HTML cifrado no site (PageCrypt) e estes .md fora do Git.
+# O gerador os reescreve no disco a cada execução, ANTES de montar o pacote —
+# nada depende de eles estarem versionados (ver CONGELAMENTO.md).
+professores/*/ciclos/*-acompanhamento-*.md
 
 # ============================================================================
 # Caches e ambientes
