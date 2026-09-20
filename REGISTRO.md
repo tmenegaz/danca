@@ -1153,3 +1153,44 @@ documento** (com acento e travessão), e não o da leitura à mão em ASCII.
 `ARQUITETURA-CAPTURA.md`; `REGRAS.md` 8 (proveniência objetiva) e 17 (versionamento com Git); as
 entradas deste REGISTRO de 20/09 (o contrato lê tabela; as duas declarações; o extrator do plano).
 
+## 2026-09-20 — O fenômeno do PO é uma LISTA (o schema declarava string)
+
+**O que motivou.**
+O guia de observação mostrava, em "O que observar (do PO)", **um** item de prosa — onde a leitura à
+mão mostrava quatro. O extrator não tinha culpa: o schema do PO declarava `phenomenon` como
+**string**, e a seção `## Fenômeno` do PO do Duo é uma **LISTA de sete observáveis** — o documento
+sempre foi uma lista, e quem a achatava era o **schema**. A Ritmos escreve o fenômeno como
+parágrafo, e o tipo tem de ser o que o **documento** oferece.
+
+**O que foi decidido.**
+- `phenomenon` passa de `string` para **array de strings**: o fenômeno é a definição OPERACIONAL
+  (RN-PO-02), uma lista de comportamentos. O PO do Duo lista **sete**; a Ritmos escreve um parágrafo
+  — que o extrator entrega como as linhas do parágrafo, como faz com qualquer campo array.
+- **Nenhum documento foi reescrito**: o Duo já listava, e a Ritmos continua com a sua prosa.
+- A camada de leitura do guia ganhou uma pista a mais para reunir a linha quebrada: **um item que o
+  autor FECHOU (`;`, `.`, `:`) não recebe continuação** — sem isso, os observáveis (que começam com
+  minúscula, porque continuam a frase "definida operacionalmente por:") se colariam ao parágrafo
+  anterior. O limite fica declarado: o texto extraído **não guarda a indentação** que distinguiria
+  as duas coisas com certeza.
+
+**O que se mediu.**
+"O que observar (do PO)" passou de **1** para **8** bullets — o parágrafo + os **sete** observáveis,
+cada um na sua linha (a leitura à mão tinha quatro). O harness segue verde: guia **7 de 7** blocos e
+0 lacunas, musicalidade **3 de 3**, contrafactuais 1 de 7 e 1 de 3. Os **dois** POs continuam
+passando na validação (o da Ritmos, com o parágrafo), e o **schema não entra no FIPP**: nenhuma
+âncora mudou.
+
+**O que ainda não está feito.**
+- A extração é por LINHA e não preserva a indentação: a pontuação é a pista que resta. Guardá-la no
+  contrato é a alternativa estrutural — e mexeria em todo o texto extraído (é uma decisão maior).
+- As conversões (número, data ISO) continuam fora, por decisão.
+
+**Com o quê.**
+`professores/tiago/ciclos/ciclo-01-po-schema.json`; `experimentos/captura-json/` (local, não
+versionado).
+
+**Referências.**
+`PROTOCOLO.md` RN-PO-02 (a definição operacional do fenômeno); `REGRAS.md` 8 (proveniência
+objetiva) e 17 (versionamento com Git); as entradas deste REGISTRO de 20/09 (o contrato lê tabela;
+as duas declarações; o extrator do plano; o experimento consome o extrator).
+

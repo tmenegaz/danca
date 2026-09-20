@@ -9,8 +9,9 @@
       "description": "A pergunta de observação (RN-PO-01). É o objetivo geral do ciclo lido como pergunta (P-01)."
     },
     "phenomenon": {
-      "type": "string",
-      "description": "Definição operacional do fenômeno (RN-PO-02): descritível como comportamento, não como impressão."
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Definição operacional do fenômeno (RN-PO-02): descritível como comportamento, não como impressão. É uma LISTA de observáveis — o PO do Duo lista sete, e quem os achatava numa string era ESTE schema (a seção já era uma lista no documento). Um PO que escreva o fenômeno como parágrafo (a Ritmos escreve) entrega as linhas do parágrafo como itens: o tipo é o do DOCUMENTO, não o que o dado ideal teria."
     },
     "field": {
       "type": "string",
