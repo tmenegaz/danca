@@ -1306,3 +1306,52 @@ entrada); `ARQUITETURA-CAPTURA.md` (§7 as decisões, §8 as peças — atualiza
 `IDEIA-CAPTURA.md` (o JSON como fonte, e a linha da segurança corrigida hoje); `REGRAS.md` 8, 16 e
 17; `PROTOCOLO.md` P-03/P-04 (a âncora alinha; o passado se incorpora).
 
+## 2026-09-20 — Peça 2: os builders das vistas saem para uma lib
+
+**O que motivou.**
+Os cinco builders das vistas — caderno, relatório pós-aula, acompanhamento por aluna, guia de
+observação e musicalidade — nasceram **dentro** do `formulario.html` do experimento. Na migração as
+vistas passam a ser **geradas**, e quem gera é o **gerador** (Node), não só o formulário (browser):
+duas cópias dos builders divergiriam na primeira regra nova. É a mesma classe de erro que criou o
+`lib-fontes.sh` e a `lib-extracao-md.js`.
+
+**O que foi decidido.**
+- `tools/lib-vistas.js` (novo, ~530 linhas): **uma definição, dois consumidores**. UMD — no browser
+  define `window.Vistas` (basta um `<script src>`); no Node, `module.exports`.
+- A **interface é um objeto por vista**, para os nomes dizerem de onde vem cada coisa:
+  `Vistas.caderno({ meta, dados, aulas, prov })`, `Vistas.relatorio({ meta, dados, aulas, prov })`,
+  `Vistas.acompanhamento({ meta, dados, aluna, aulas, prov })`,
+  `Vistas.guia({ meta, po, plano, aula, prov })` e `Vistas.musicalidade({ meta, po, plano, prov })`.
+- O **CARIMBO É OPCIONAL**: quem passa `prov` ganha a linha *"gerado: …"*; **sem `prov`, a vista sai
+  sem ela** — é o que o gerador vai querer, e é o que dá determinismo (nada de `data_geracao` dentro
+  da lib). Na prática: os três `mdAjuste(prov.ajuste)` viraram `mdAjuste(prov && prov.ajuste)`, e o
+  carimbo do cabeçalho do guia e o *"Gerado em"* da musicalidade ficaram condicionais.
+- `Vistas.helpers` expõe as **19 peças puras** que o formulário já usava **fora** dos builders
+  (`dataBr`, `lacuna`, `linhaGerado`, `mdCel`, `mdSim`, o balanço, a junção da linha quebrada…) —
+  assim a Fase 2 remove as cópias do formulário sem criar cópia nova.
+- O código foi **movido, não reescrito**: saiu por recorte (um script localiza os blocos e os copia
+  por balanço de chaves/estilo do arquivo), com as duas mudanças acima declaradas.
+
+**O que se mediu.**
+- **Node**: `require` carrega ✓ e o guia sai com **50 linhas** usando os JSONs reais.
+- **Browser**: num contexto de `vm` que só tem `self`, a lib define `self.Vistas` com `guia` e
+  `helpers` ✓.
+- **Determinismo**: duas chamadas com a mesma entrada dão o MESMO texto ✓ — e sem a linha *"gerado:"*.
+- **Sem DOM**: nenhum acesso a `document`/`window`; as oito ocorrências da palavra são **comentários**
+  ("documento"), e a prova é o guia ter saído num contexto **sem DOM**.
+- `node --check` passa.
+
+**O que ainda não está feito.**
+- O formulário **ainda tem as suas cópias** (a Fase 2 as remove e passa a consumir a lib): até lá há
+  duplicação **temporária e declarada**.
+- O `gerar-ciclo.sh` **não lê o JSON** ainda — é a peça 3.
+- O `comoLista` do formulário ficou **sem uso** (código morto de uma rodada anterior): sai na Fase 2.
+
+**Com o quê.**
+`tools/lib-vistas.js` (novo).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `ARQUITETURA-CAPTURA.md` §8 (as peças da migração — esta é a 2); `tools/lib-fontes.sh` e
+`tools/lib-extracao-md.js` (os precedentes da mesma classe de risco); `REGRAS.md` 8, 16 e 17.
+
