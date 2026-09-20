@@ -1796,3 +1796,41 @@ os dois `.fipp` (regerados); os pacotes dos dois ciclos.
 `ARQUITETURA-CAPTURA.md` §8; `tools/lib-cifra.js` e `tools/cifrar-dados.js` (Fase 2.2);
 `experimentos/captura-json/` (onde o formulário foi provado); `REGRAS.md` 16 e 17.
 
+
+## 20/09/2026 — Musicalidade e Guia de observação marcados "(remover)"
+
+**O que aconteceu.**
+A Musicalidade e o Guia de observação agora são gerados por demanda (o formulário). Foram **marcados
+no menu** com o sufixo "(remover)" — um marcador de dívida explícito. A remoção de fato acontece
+**quando a verificação da cadeia de custódia existir**.
+
+**O que foi decidido.**
+- As duas páginas **não saem do pacote** — continuam no `DOCS`, no PDF, e as âncoras não mudam (o
+  menu é apresentação).
+- A investigação provou que **não ficam órfãs**: o rodapé as alcança (e, no caso da Musicalidade, o
+  índice também).
+- Quando a verificação da cadeia de custódia existir, a remoção do menu é segura — o acesso continua
+  pelo rodapé e pelo formulário.
+
+**O que se mediu.**
+- Menu, nos **dois** ciclos: `Musicalidade (remover)` e `Guia de observação — Aula 01 (remover)`, e o
+  menu é o **mesmo em todas as páginas**.
+- **Rodapé limpo** e **`<title>` das duas páginas limpos** ("Musicalidade"; "Guia de observação —
+  Aula 01"): o que está marcado é a **navegação**, não o documento.
+- **PDF do Duo: 0 ocorrências de "(remover)"** — o sumário não recebe a marca.
+- As duas páginas seguem no pacote; **âncoras intactas** (`d135ecec…` Duo, `4d81d6f3…` Ritmos) —
+  menu não é fonte, nada no hash mudou; `check-pacote`: **0 erro(s)** nos dois.
+- O sufixo sai de `rotulo_no_menu()`, e **não** do `rotulo()`: ele serve o menu, o rodapé e o README,
+  e mudá-lo teria posto a marca no rodapé e no título — o oposto da decisão.
+- A investigação da Fase 1 também mediu o que sustenta esta decisão: a **Musicalidade é fonte** (está
+  no `.fipp` e em `fontes_do_ciclo()` — tirá-la do `DOCS` mudaria o hash e deixaria **link morto no
+  índice**, que a linka), o **Guia não é fonte** (nasceu vista; não aparece em nenhum dos dois), e
+  **hoje há uma única página fora do menu** — o `apanhado-historico.html`, alcançado pelo rodapé.
+
+**Com o quê.**
+`tools/gerar-ciclo.sh` (o `gerar_nav()`), `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`ARQUITETURA-CAPTURA.md` §8; `tools/lib-fontes.sh` (a cobertura do hash); `REGRAS.md` 16 e 17.
+
