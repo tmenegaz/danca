@@ -262,8 +262,11 @@ fecha quando **ela** fica 48h sem ser tocada.
 - Cada gravação cria um **arquivo novo, com carimbo no nome**
   (`dados-exemplo-2026-09-20T1430.json`), e o índice (`ciclos.json`) passa a apontar
   para ele. O arquivo anterior **permanece** — acessível, e não é o vigente
-- O novo arquivo declara: `ajuste_de` (de onde veio), `ajustado_em`, `ajustado_por`
-  e `motivo`
+- O novo arquivo declara: `ajuste_de` (de onde veio), `ajustado_em`, `ajustado_por`,
+  `motivo` — e `ajustes`, a lista do que mudou, **gravada no ato do ajuste**. O
+  documento gerado depois (§3.4) reproduz o que mudou sem depender de o arquivo
+  anterior estar acessível: sem servidor, ele pode ter ido para a pasta de downloads
+  do navegador, e não para a pasta do ciclo
 
 **Por que o prazo:**
 
