@@ -11,7 +11,7 @@ subtitle: "Índice geral do ciclo"
 > "por cima", musicalidade e resistência progressiva.
 > **Duração:** 12 aulas (extensível a 16) · **cada aula: 60 minutos**
 > **Data de início:** 17/09/2026
-> **Encerramento previsto:** 10/12/2026
+> **Encerramento previsto:** 04/12/2026
 > **Professor:** [Nome do professor]
 
 ---
