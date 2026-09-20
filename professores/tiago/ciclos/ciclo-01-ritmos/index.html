@@ -83,6 +83,12 @@
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -98,7 +104,9 @@ Bibliográficas</a></li>
 usar este pacote</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <blockquote>
 <p><strong>Objetivo geral:</strong> passar comandos básicos para os
 meninos e as meninas nas aulas de pas de deux, exigindo como
@@ -326,6 +334,7 @@ gerados: não os edite à mão.</li>
 <p><strong>Documento-fonte:</strong>
 <code>professores/tiago/ciclos/ciclo-01-ritmos-index.md</code>.</p>
 </blockquote>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

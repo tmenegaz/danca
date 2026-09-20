@@ -82,6 +82,12 @@
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -135,7 +141,9 @@ id="toc-como-praticar-5-minutos-por-dia">Como praticar (5 minutos por
 dia)</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <blockquote>
 <p><strong>Oi!</strong> Esta folha é <strong>sua</strong>. Ela não é
 prova e não é tarefa para entregar: é para você entender a música da
@@ -350,6 +358,7 @@ continua sendo o <a href="musicalidade.html">documento do professor</a>
 — e, se a aluna travar em um símbolo do registro, existe a <a
 href="notacao.html">folha de notação</a>.</p>
 </blockquote>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

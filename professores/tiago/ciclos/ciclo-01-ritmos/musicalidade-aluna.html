@@ -83,6 +83,12 @@
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -135,7 +141,9 @@ id="toc-para-praticar-em-casa-4">Para praticar em casa</a></li>
 </ul></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <blockquote>
 <p><strong>A música deste ciclo é uma valsa</strong> (os pas de deux de
 <em>O Quebra-Nozes</em>): ela anda em <strong>3/4</strong> — conta-se
@@ -255,6 +263,7 @@ frase.</li>
 talento”. É <strong>perceber e conseguir fazer junto</strong>. Quando
 não sai, o que falta é uma referência — e é isso que a gente treina.</p>
 </blockquote>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

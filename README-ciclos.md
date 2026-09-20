@@ -136,7 +136,7 @@ Markdown escrito à mão, mas da junção dos documentos do ciclo (cada um prece
 | Regra 16 | Como está implementado |
 |:--|:--|
 | Barra de navegação fixa em todas as páginas | `<nav class="topnav">` gerado página a página, com a **página atual marcada** (`class="ativo"`), menu "Aulas" e atalho para o PDF |
-| Índice interno no topo | `<nav class="toc-local">` — índice da própria página (pandoc `--toc --toc-depth=3`) |
+| Índice interno da página | `<nav class="toc-local">` — índice da própria página (pandoc `--toc --toc-depth=3`); em tela **≥ 1200px** vai para uma **coluna à direita, presa abaixo da navbar** (`position: sticky`), que acompanha a rolagem; em tela estreita fica no topo, como antes |
 | Links cruzados entre arquivos | escritos na fonte como `[notação](notacao.html#exemplo-didatico-um-tendu)`; o validador confere arquivo **e** âncora |
 | Citação → referência completa | links como `[Referências](referencias.html#pedagogia-do-bale)`, apontando ao grupo certo da bibliografia |
 | Botão "voltar ao topo" | `<a class="topo">` fixo no canto inferior direito |

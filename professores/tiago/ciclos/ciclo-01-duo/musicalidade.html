@@ -83,6 +83,12 @@ avaliados dentro do movimento do dia</p>
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -146,7 +152,9 @@ id="toc-proveniencia-deste-documento">Proveniência deste
 documento</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <blockquote>
 <p><strong>Objetivo geral do ciclo:</strong> construir estabilidade e
 coordenação com musicalidade. <strong>Objetivo específico de
@@ -1045,6 +1053,7 @@ que a musicalidade seja ensinada como conteúdo, e não como dom. O que a
 aluna faz com a estrutura se observa na rubrica — e a rubrica é
 descritiva, não comparativa (Regra 12).</p>
 </blockquote>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

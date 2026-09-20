@@ -81,6 +81,12 @@
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -102,7 +108,9 @@ emergente</a></li>
 </ul></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <h1 id="caderno-ciclo-01-duo-fernando-sextas-60-min">Caderno — Ciclo 01
 · Duo (Fernando) · sextas, 60 min</h1>
 <h2 id="18092026-aula-01">18/09/2026 · aula 01</h2>
@@ -138,6 +146,7 @@ turma.</li>
 <ul>
 <li>[Nenhuma registrada hoje.]</li>
 </ul>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

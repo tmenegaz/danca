@@ -85,6 +85,12 @@ como calibrar a carga sem excluir ninguém</p>
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -104,7 +110,9 @@ da primeira aula</a></li>
 id="toc-como-isto-entra-no-ciclo">Como isto entra no ciclo</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <blockquote>
 <p><strong>Proveniência deste documento.</strong> Os
 <strong>pré-requisitos</strong> listados abaixo são os que o professor
@@ -233,6 +241,7 @@ do exercício.</p>
 calibrar — quem não tem a condição faz a mesma aula com outra dose, com
 apoio, ou em outro tempo.</p>
 </blockquote>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

@@ -83,6 +83,12 @@ calibração de volume</p>
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -113,7 +119,9 @@ aulas</a></li>
 id="toc-registro-de-proveniencia">Registro de proveniência</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <h2 id="objetivo-geral">Objetivo geral</h2>
 <p>Construir a capacidade de manter o <strong>alinhamento dos metatarsos
 com a saída do calcanhar</strong> nas cinco posições dos pés,
@@ -620,6 +628,7 @@ alinhamento de metatarsos, o demi-plié herda o vício</td>
 Referências completas em <a
 href="referencias.html#pedagogia-do-bale">Referências
 Bibliográficas</a>.</p>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

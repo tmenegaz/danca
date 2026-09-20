@@ -85,6 +85,12 @@ calcanhar nas cinco posições dos pés, no solo.</span>
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -143,7 +149,9 @@ aula</a></li>
 passo</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <blockquote>
 <p><strong>Navegação do ciclo:</strong> <a href="index.html">Índice</a>
 · <a href="plano.html">Plano</a> · <a href="notacao.html">Notação</a> ·
@@ -1178,6 +1186,7 @@ href="plano.html#marcos-parciais-por-aula">Plano do Ciclo</a>:
 introduzir a coordenação de braços na 1ª e 2ª posições com o movimento
 dos pés, no solo — mesma estrutura, mesmos 60 minutos, mesmo teto de
 volume.</p>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

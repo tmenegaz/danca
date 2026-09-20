@@ -833,3 +833,46 @@ esta entrada); `PROTOCOLO.md` P-08 (o schema é do ciclo), P-10 (linha de base);
 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com Git);
 `experimentos/captura-json/po-01.json` (o motivo, declarado no próprio arquivo).
 
+## 2026-09-20 — O índice da página sai do topo e vai para a direita, preso
+
+**O que motivou.**
+O índice da própria página (*"Nesta página"*) era um bloco no **topo** do conteúdo: para
+voltar a ele era preciso rolar de volta, e numa página longa — a Aula 01 e o Plano têm 20+
+seções — a navegação se perdia no meio da leitura. O pedido era: *à direita, fixo, para
+rolar a página sem perder a navegação*.
+
+**O que foi decidido.**
+- O índice vira uma **coluna à direita, presa abaixo da navbar** (`position: sticky`) a
+  partir de **1200px de largura**. Abaixo disso continua o bloco do topo: não há largura
+  para duas colunas, e a medida de leitura não pode encolher para caber o índice.
+- Quem decide é a **largura**, não o dispositivo — tablet largo, janela estreita e tela
+  cheia seguem o mesmo critério.
+- O contêiner da página alarga (900px → 1180px) **só quando há duas colunas**; a coluna de
+  texto mantém os **900px** (a medida de leitura da Regra 16 não muda, e o cabeçalho e o
+  rodapé continuam alinhados à esquerda com o texto).
+- O DOM **não muda de ordem**: o índice continua *antes* do corpo — quem navega por teclado
+  ou leitor de tela o encontra primeiro — e o CSS o coloca na coluna 2.
+- O `.rail` (o invólucro da coluna) existe porque o elemento preso precisa de um pai mais
+  alto para ter para onde subir: a coluna da grade estica, o índice não.
+- `@media print` devolve o índice ao fluxo: no papel não há rolagem.
+
+**O que se mediu.**
+16 das 20 páginas de **cada** pacote carregam a coluna (são as 16 do template do ciclo; as
+4 de acompanhamento são outro template, cifrado, e não têm este bloco). Os dois pacotes
+regerados: **OK: 0 erro(s), 5 aviso(s)** em cada um.
+
+**O que ainda não está feito.**
+- **Não houve conferência visual** — não há navegador nesta máquina. A regra foi escrita
+  para não depender de nada além da largura, e o comportamento em tela estreita é
+  exatamente o de antes; a conferência visual é do dono.
+- O **deploy** do pacote regerado é do dono.
+
+**Com o quê.**
+`tools/templates/ciclo.html`, `tools/templates/ciclo.css`, `README-ciclos.md`, os dois
+pacotes regerados (HTML + `assets/style.css`).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/templates é congelado: alterar exige motivo declarado, commit
+próprio e esta entrada); `REGRAS.md` 16 (Formato de entrega — índice, links, navegação);
+`README-ciclos.md` (*Regras de navegação implementadas*).
+

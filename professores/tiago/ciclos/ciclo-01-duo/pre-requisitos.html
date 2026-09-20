@@ -83,6 +83,12 @@ sem excluir ninguém</p>
 </header>
 
 <main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
 <nav class="toc-local" aria-label="Índice desta página">
   <p class="toc-titulo">Nesta página</p>
 <ul>
@@ -112,7 +118,9 @@ externa ativa (sentada)</a></li>
 id="toc-como-isto-entra-no-ciclo">Como isto entra no ciclo</a></li>
 </ul>
 </nav>
+</div>
 
+<div class="conteudo">
 <h2 id="o-que-verificar-antes-da-primeira-aula">O que verificar antes da
 primeira aula</h2>
 <p>Estas condições não são um vestibular: são a informação que permite
@@ -371,6 +379,7 @@ aula.</li>
 <li>A evolução é avaliada na <a
 href="plano.html#rubrica-de-avaliacao-final">rubrica final</a>.</li>
 </ul>
+</div>
 </main>
 
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
