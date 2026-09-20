@@ -127,6 +127,11 @@ seguido (`sim`), `mudou` fica **vazio** — e vazio quer dizer *nada mudou*. Os
 documentos gerados declaram os dois estados ("nada — o plano foi seguido"), em vez
 de ficarem em silêncio.
 
+O formulário **sugere** a data e a duração da aula a partir do plano do ciclo: a
+aula N é a N-ésima do período declarado, no intervalo declarado (`intervalo_dias`),
+e a duração de referência é a do ciclo (`duracao_min`). São valores **iniciais**,
+editáveis — a aula pode ter acontecido em outro dia ou durado outro tempo.
+
 ## 3. Fluxo
 
 ### 3.1 Antes da aula
