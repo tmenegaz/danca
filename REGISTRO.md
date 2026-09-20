@@ -2122,3 +2122,56 @@ schema.
 `tools/validar-captura-ciclo.js`; os `.conf` das duas variantes (o `VARIANTE`); `conferir-schema.js`
 (a prova, em `/tmp` — não versionado).
 
+
+## 20/09/2026 — O config da captura sai com chave e tipo por coluna
+
+**O que motivou.** A Fase 1 declarou, no schema, o par rótulo ↔ chave e o tipo de cada coluna; a
+declaração, sozinha, não serve a ninguém — **quem a lê é o extrator**. Esta fase faz o extrator
+consultá-la e o pacote receber o config **enriquecido**.
+
+**O que foi feito.**
+- `tools/validar-captura-ciclo.js`:
+  · lê o `_declaracao` do schema e resolve a **variante** — pelo `--variante <slug>` (o que o gerador
+    passa, do `VARIANTE` do `.conf`) ou, sem ele, pela `escola:` do front-matter da folha (dedução
+    verificada; com mais de uma candidata, ou nenhuma, **avisa** em vez de escolher);
+  · cada coluna sai como `{ rotulo, chave, tipo }` — e **coluna ou bloco que o schema não declara NÃO
+    é inventado**: sai `chave: null` e um **ERRO**, que faz o gerador parar **antes** de escrever o
+    pacote, com a mensagem dizendo qual coluna falta declarar;
+  · o **grão passa a vir da declaração** (o cabeçalho da folha é sugestão): no Bloco 5 do Ritmos o
+    primeiro cabeçalho é a pergunta do PO, que não é grão — o aviso diz isso e usa o declarado;
+  · o config ganha `variante` (qual declaração o produziu) e o bloco ganha `secoes` (os `### <nome>`),
+    quando o bloco tem uma tabela por seção.
+- `tools/gerar-ciclo.sh`: passa `--variante "$VARIANTE"` e, no erro, diz que a folha não fechou com o
+  schema (em vez de "não consegui ler").
+- `ciclo-01-captura-schema.json`: o `properties` acompanha a forma nova (`colunas` como **objetos**, e
+  não strings) e ganha `secoes` e `variante` — sem isso o schema passaria a **mentir** sobre a forma
+  do arquivo que ele mesmo descreve.
+
+**Os dois defeitos do extrator, declarados na Fase 1, foram corrigidos:**
+- o **grão** deixou de ser lido ao pé da letra do primeiro cabeçalho;
+- a leitura **misturava as tabelas das seções**: o cabeçalho das tabelas seguintes virava linha de
+  dado (a linha de base do Ritmos saía com 25 "linhas", três delas cabeçalhos). Agora o cabeçalho de
+  uma tabela seguinte é reconhecido **pela estrutura** — o que o segue é a linha de traços — e não
+  pelo texto: a folha escreve "que **ela** precisa desenvolver" numa seção e "que **ele** precisa"
+  noutra, e comparar texto deixava passar. O Bloco 5 do Ritmos sai com **22 linhas** (era 25) e
+  **5 seções** (era 4 — a primeira, a da aluna que vem antes da primeira tabela, não era colhida).
+
+**A prova.** Os dois pacotes geram com **0 erro(s)**; o config do Ritmos traz o Par com
+`grao: "dupla"`; **check-pacote 0 erro(s)** nos dois; **âncoras intactas** (a config é derivada — o
+schema muda, mas não está no `.fipp`); e a fixture da coluna não declarada: **exit 1**, com
+`chave: null` no JSON e a mensagem nomeando bloco e coluna.
+
+**O que fica declarado.**
+- O `linhas` de um bloco com `secoes` é a **união** das linhas das seções, **sem o vínculo** com ela:
+  quem tem esse vínculo é o PO (`linhaDeBase`), e é de lá que o formulário lerá os itens de cada aluna.
+- Uma seção pode não ter tabela (a da aluna ausente traz `[Preencher]`): o nome entra em `secoes` e
+  ela não contribui linhas.
+- Nada disto mudou os lançamentos nem as vistas — quem vai ler chave e tipo é a Fase 3.
+
+**Com o quê.** `tools/validar-captura-ciclo.js`; `tools/gerar-ciclo.sh`;
+`professores/tiago/ciclos/ciclo-01-captura-schema.json`; os dois `captura-01.json` do pacote.
+
+**Referências.** A Fase 1 da peça (d) (o schema que declara); as duas folhas de captura;
+`tools/lib-extracao-md.js` (as primitivas); a fixture e o relatório da coluna não declarada (em
+`/tmp`, não versionados).
+

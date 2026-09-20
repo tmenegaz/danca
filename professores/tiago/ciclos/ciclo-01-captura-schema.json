@@ -21,6 +21,10 @@
       "type": "string",
       "description": "O nome do arquivo-fonte da folha: o .md que se imprime para a aula."
     },
+    "variante": {
+      "type": "string",
+      "description": "O slug da variante que declarou as chaves e os tipos (`duo`, `ritmos`) — o mesmo do `VARIANTE` do .conf. O gerador o passa por `--variante`; sem ele, o extrator deduz pela `escola:` do front-matter."
+    },
     "blocos": {
       "type": "array",
       "description": "Os blocos, na ordem do documento: o `cabecalho` (data, presentes, início, fim, duração efetiva), as condições de contorno (P-11), os blocos de captura (um por dimensão, com a tabela de marcação) e o fecho da aula.",
@@ -38,17 +42,39 @@
           },
           "grao": {
             "type": "string",
-            "description": "Por quem a tabela é marcada — lido do PRIMEIRO cabeçalho da tabela: \"aluna\" (Aluna / Aluna(o)) ou \"dupla\" (Dupla). É o que diz ao formulário quantas linhas abrir e com que rótulo."
+            "description": "Por quem a tabela é marcada — o valor DECLARADO no `_declaracao` (não o que o cabeçalho da folha sugere: no bloco por aluna, o primeiro cabeçalho é a pergunta do PO, que não é grão). \"aluna\" (Aluna / Aluna(o)), \"dupla\" (a linha é um PAR de apelidos) ou o rótulo que a declaração der. É o que diz ao formulário quantas linhas abrir e com que rótulo."
           },
           "colunas": {
             "type": "array",
-            "items": { "type": "string" },
-            "description": "OS ITENS QUE SE MARCA, na ordem da folha: os cabeçalhos da tabela menos o primeiro. É esta lista que o formulário precisa imprimir — e hoje ele imprime as do Duo, fixas em código."
+            "items": {
+              "type": "object",
+              "required": ["rotulo", "chave"],
+              "properties": {
+                "rotulo": {
+                  "type": "string",
+                  "description": "O cabeçalho da coluna como está na folha — é o que a tela mostra."
+                },
+                "chave": {
+                  "type": ["string", "null"],
+                  "description": "A chave do dado, da declaração do schema. `null` quando a folha tem uma coluna que a declaração NÃO declara: o extrator sai com erro em vez de inventar (e o pacote não é escrito)."
+                },
+                "tipo": {
+                  "type": ["string", "null"],
+                  "description": "O tipo da resposta, da declaração: `marca`, `numero`, `booleano`, `texto` ou `checkbox`. É o que diz ao formulário COMO renderizar a coluna."
+                }
+              }
+            },
+            "description": "O QUE SE MARCA, na ordem da folha: os cabeçalhos da tabela menos o primeiro, cada um com o seu rótulo, a sua chave e o seu tipo. É esta lista que o formulário imprime — antes dela, ele imprimia as colunas do Duo fixas em código."
           },
           "linhas": {
             "type": "array",
             "items": { "type": "string" },
-            "description": "As linhas da tabela (os alunos, ou as duplas), na ordem da folha — os alunos vêm do PO (apelidos, P-12); as duplas são escritas à mão na folha, porque mudam a cada aula."
+            "description": "As linhas da tabela, na ordem da folha — os alunos vêm do PO (apelidos, P-12); as duplas são escritas à mão, porque mudam a cada aula. Nos blocos com `secoes`, é a UNIÃO das linhas das seções (os itens de cada aluna), sem o vínculo com a seção: quem tem esse vínculo é o PO (`linhaDeBase`), e é de lá que o formulário lê os itens de cada uma."
+          },
+          "secoes": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Os `### <nome>` do bloco, quando ele tem uma tabela por seção (a linha de base do Ritmos tem um por aluna), na ordem da folha. Uma seção pode não ter tabela (a da aluna ausente): o nome fica, e ela não contribui linhas. O cabeçalho repetido dessas tabelas é reconhecido e NÃO vira linha."
           },
           "rotulos": {
             "type": "array",

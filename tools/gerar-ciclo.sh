@@ -243,13 +243,15 @@ with open(sys.argv[1], 'w', encoding='utf-8') as f:
     f.write('\n')
 PY
 
-# A CONFIG DA FOLHA DE CAPTURA (Fase 2b): os blocos, as colunas e o grão que o formulário lê — para
-# ele deixar de ter as colunas fixas do Duo. O extrator lê a folha por FORMA, não por mapa de
-# títulos (os títulos mudam por ciclo: "syllabus RAD" no Duo, "método RAD" + um bloco "Par" no
-# Ritmos). Derivado como os outros: não é fonte, não entra na âncora.
+# A CONFIG DA FOLHA DE CAPTURA (peça d): os blocos, o grão e — por coluna — o rótulo, a CHAVE e o
+# TIPO. O extrator lê a folha por FORMA (os títulos mudam por ciclo: "syllabus RAD" no Duo, "método
+# RAD" + um bloco "Par" no Ritmos) e a DECLARAÇÃO do schema diz o que a folha não pode dizer (o par
+# rótulo ↔ chave e o tipo). Coluna da folha que o schema não declara NÃO é inventada: o extrator sai
+# com erro, o pacote não é escrito e a mensagem diz qual coluna falta declarar. Derivado: não é
+# fonte, não entra na âncora.
 node "$RAIZ/tools/validar-captura-ciclo.js" "$CICLOS/ciclo-$CICLO-captura-schema.json" \
-  "$(fonte_md captura-aula-01)" --json > "$PACOTE/captura-$CICLO.json" \
-  || { echo "erro: não consegui ler a folha de captura para o pacote (captura-$CICLO.json)." >&2; exit 1; }
+  "$(fonte_md captura-aula-01)" --variante "$VARIANTE" --json > "$PACOTE/captura-$CICLO.json" \
+  || { echo "erro: a folha de captura não fechou com o schema (captura-$CICLO.json) — veja o relatório acima." >&2; exit 1; }
 
 # O JSON de DADOS vai para o pacote CIFRADO (decisão de 20/09): o pacote é PÚBLICO e ele traz o
 # lançamento por aluna — é o mesmo cuidado dos acompanhamentos, com a mesma senha (a da escola), e

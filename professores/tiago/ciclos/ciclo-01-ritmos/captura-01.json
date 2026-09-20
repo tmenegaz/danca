@@ -30,12 +30,23 @@
     {
       "titulo": "Bloco 1 — Técnica (método RAD)",
       "tipo": "tabela",
-      "rotulos": [],
       "grao": "aluna",
       "colunas": [
-        "Tendus/jetés (braços 1ª–2ª–3ª)",
-        "Transferência (por cima/por baixo)",
-        "Piqué arabesque (descida; perna de base)"
+        {
+          "rotulo": "Tendus/jetés (braços 1ª–2ª–3ª)",
+          "chave": "tendus_jetes",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Transferência (por cima/por baixo)",
+          "chave": "transferencia",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Piqué arabesque (descida; perna de base)",
+          "chave": "pique_arabesque",
+          "tipo": "marca"
+        }
       ],
       "linhas": [
         "Carol",
@@ -48,13 +59,28 @@
     {
       "titulo": "Bloco 2 — Par (o que este ciclo tem de próprio)",
       "tipo": "tabela",
-      "rotulos": [],
       "grao": "dupla",
       "colunas": [
-        "Eixo individual",
-        "Eixo no par (sem deslocar)",
-        "Contrapeso na ação de peso",
-        "Entrosamento (respondem no tempo)"
+        {
+          "rotulo": "Eixo individual",
+          "chave": "eixo_individual",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Eixo no par (sem deslocar)",
+          "chave": "eixo_no_par",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Contrapeso na ação de peso",
+          "chave": "contrapeso",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Entrosamento (respondem no tempo)",
+          "chave": "entrosamento",
+          "tipo": "marca"
+        }
       ],
       "linhas": [
         "`______`",
@@ -65,12 +91,23 @@
     {
       "titulo": "Bloco 3 — Funcional (sobrecarga por pessoa)",
       "tipo": "tabela",
-      "rotulos": [],
       "grao": "aluna",
       "colunas": [
-        "Duração (min)",
-        "Tônus sustenta até o fim?",
-        "Fadiga antes do previsto?"
+        {
+          "rotulo": "Duração (min)",
+          "chave": "duracao_min",
+          "tipo": "numero"
+        },
+        {
+          "rotulo": "Tônus sustenta até o fim?",
+          "chave": "tonus",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Fadiga antes do previsto?",
+          "chave": "fadiga_antes",
+          "tipo": "booleano"
+        }
       ],
       "linhas": [
         "Carol",
@@ -83,12 +120,23 @@
     {
       "titulo": "Bloco 4 — Musicalidade (repertório em 3/4)",
       "tipo": "tabela",
-      "rotulos": [],
       "grao": "aluna",
       "colunas": [
-        "Pulso",
-        "Acento",
-        "Responde ao repertório do dia"
+        {
+          "rotulo": "Pulso",
+          "chave": "pulso",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Acento",
+          "chave": "acento",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Responde ao repertório do dia",
+          "chave": "responde_repertorio",
+          "tipo": "marca"
+        }
       ],
       "linhas": [
         "Carol",
@@ -101,23 +149,13 @@
     {
       "titulo": "Bloco 5 — Linha de base revisitada (P-10)",
       "tipo": "tabela",
-      "rotulos": [
-        "Como esta folha foi montada (19/09/2026).",
-        "deste",
-        "precisa desenvolver",
-        "não",
-        "Forma escolhida: (b) — uma tabela por aluno.",
-        "Flutuantes.",
-        "Notas soltas",
-        "Fecho da aula (preencher no fim)",
-        "Blocos executados",
-        "Duração executada",
-        "Abandonado",
-        "Materiais"
-      ],
-      "grao": "oQueOPODeclaraQueElaPrecisaDesenvolver",
+      "grao": "aluna",
       "colunas": [
-        "Observado na aula"
+        {
+          "rotulo": "Observado na aula",
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
       ],
       "linhas": [
         "Subida e descida de pontas",
@@ -127,25 +165,30 @@
         "Braços curtos",
         "Primeira posição a ajustar (alta), com o mesmo ângulo do cotovelo da segunda",
         "Atenção (conversa demais e chega atrasada)",
-        "O que o PO declara que ela precisa desenvolver",
         "Manutenção do *en dehors*",
         "Expressividade",
         "Segurança na musicalidade",
         "Coordenação de braços e pernas",
         "Segurança em movimentos grandes",
         "Força e coordenação para pontas de forma harmônica",
-        "O que o PO declara que ele precisa desenvolver",
         "Bases do balé (iniciante absoluto)",
         "Flexibilidade de posterior e de costas",
         "Postura",
         "Estruturação de braços",
-        "O que o PO declara que ele precisa desenvolver",
         "Postura do tronco",
         "Extensão dos pés",
         "Fixação de correções ao longo do tempo",
         "Sustentação de tônus muscular (porte a fortalecer)",
         "Sincronização de pas de deux com três meninas diferentes"
+      ],
+      "secoes": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
       ]
     }
-  ]
+  ],
+  "variante": "ritmos"
 }

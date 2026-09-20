@@ -4,7 +4,8 @@
 /*
  * validar-captura-ciclo.js — lê a FOLHA DE CAPTURA como config legível por máquina.
  *
- *   uso: node tools/validar-captura-ciclo.js <schema.json> <ciclo-XX-<escola>-captura-aula-NN.md> [--json]
+ *   uso: node tools/validar-captura-ciclo.js <schema.json> <ciclo-XX-<escola>-captura-aula-NN.md>
+ *                                            [--variante <slug>] [--json]
  *
  * IRMÃO do `validar-po-ciclo.js` e do `validar-plano-ciclo.js` — e distingue-se deles por isto:
  * **a folha varia por ciclo**, e os títulos das seções também ("Bloco 1 — Técnica (syllabus RAD)"
@@ -12,14 +13,21 @@
  * seções como o dos irmãos não serve: teria de ser escrito à mão por ciclo — que é exatamente o
  * problema que este extrator resolve.
  *
- * Então a leitura aqui é ESTRUTURAL, não por nome:
+ * A leitura da FOLHA é ESTRUTURAL, não por nome:
  *
  *   · cada `## Seção` é um BLOCO (o que vem antes da primeira é o `cabecalho`);
- *   · a primeira TABELA do bloco dá as COLUNAS (os cabeçalhos, menos o primeiro) e o GRÃO (o
- *     primeiro cabeçalho: "Aluna", "Aluna(o)", "Dupla");
+ *   · a primeira TABELA do bloco dá as COLUNAS (os cabeçalhos, menos o primeiro) e o GRÃO SUGERIDO
+ *     (o primeiro cabeçalho: "Aluna", "Aluna(o)", "Dupla");
  *   · as linhas da tabela viram as LINHAS (a primeira célula: os alunos, ou as duplas);
- *   · os RÓTULOS em negrito (`**Data:**`, `**Plano seguido?**`) são colhidos como os campos do
- *     bloco — é por eles que o cabeçalho, as condições de contorno (P-11) e o fecho aparecem.
+ *   · os `### <nome>` do bloco entram em `secoes`, e o cabeçalho repetido de uma tabela SEGUINTE é
+ *     reconhecido e pulado — é ele que, sem isto, virava "linha" no config (a linha de base do
+ *     Ritmos é uma tabela POR aluna);
+ *   · os RÓTULOS em negrito (`**Data:**`, `**Plano seguido?**`) viram os campos do bloco.
+ *
+ * E o que a folha NÃO pode dizer vem do SCHEMA (`_declaracao.porVariante`), que é a autoridade
+ * sobre as CHAVES e os TIPOS: cada coluna sai como `{ rotulo, chave, tipo }`, e o GRÃO passa a ser
+ * o declarado (o do cabeçalho é sugestão). Coluna ou bloco que o schema não declara **não é
+ * inventado**: sai com `chave: null` e um erro — o gerador para, e quem lê sabe o que falta.
  *
  * AS PRIMITIVAS SÃO DO CONTRATO (`tools/lib-extracao-md.js`): `celulasDaLinha`, `ehSeparador`,
  * `textoDaCelula`, `chaveDaColuna` — o mesmo jeito de partir uma linha de tabela que o PO e o
@@ -36,7 +44,7 @@ const {
 } = require('./lib-extracao-md.js');
 const { validar } = require('./lib-validacao-md.js');
 
-/** O grão de um bloco, a partir do primeiro cabeçalho da tabela. */
+/** O grão que o CABEÇALHO sugere. A declaração do schema é que decide — ver `enriquecer`. */
 const graoDe = (cabecalho) => {
   const t = String(cabecalho).toLowerCase();
   if (/dupla/.test(t)) return 'dupla';
@@ -44,7 +52,17 @@ const graoDe = (cabecalho) => {
   return chaveDaColuna(cabecalho) || 'item';
 };
 
-/** A leitura estrutural da folha: os blocos, com as colunas, o grão e as linhas. */
+/**
+ * A leitura estrutural da folha: os blocos, com as colunas, o grão sugerido e as linhas.
+ *
+ * Duas dores de folha real estão tratadas aqui:
+ *   · os `### <apelido>` (a linha de base do Ritmos é uma tabela POR aluna): o nome da seção vai
+ *     para `secoes`, e o cabeçalho da tabela seguinte é reconhecido e PULADO — sem isto ele virava
+ *     "linha" do config;
+ *   · o grão do cabeçalho é SUGESTÃO, guardada em `graoDaFolha`: no bloco por aluna o primeiro
+ *     cabeçalho é a pergunta do PO ("O que o PO declara que ela precisa desenvolver"), que não é
+ *     grão nenhum. Quem decide é o schema, e a divergência é reportada.
+ */
 function lerBlocos(linhas) {
   // O que vem antes do primeiro `##` é o cabeçalho da folha (data, presentes, início, fim…).
   const blocos = [{ titulo: 'cabecalho', tipo: 'texto', rotulos: [] }];
@@ -58,24 +76,51 @@ function lerBlocos(linhas) {
     }
   };
 
-  linhas.forEach((linha) => {
+  // O que decide se a linha `|` é cabeçalho: o que vem DEPOIS dela — a linha de traços. Comparar
+  // o TEXTO do cabeçalho não serve: a folha escreve "que ela precisa" numa seção e "que ele
+  // precisa" noutra, e o segundo deixava de ser reconhecido (virava linha de dado).
+  const proximaEhSeparador = (i) => {
+    for (let j = i + 1; j < linhas.length; j++) {
+      const l = linhas[j].trim();
+      if (!l) continue;
+      return /^\|/.test(l) ? ehSeparador(celulasDaLinha(l)) : false;
+    }
+    return false;
+  };
+
+  linhas.forEach((linha, i) => {
     const secao = /^##\s+(.+?)\s*$/.exec(linha);
     if (secao) {
       atual = { titulo: secao[1], tipo: 'texto', rotulos: [] };
       blocos.push(atual);
       return;
     }
+    const sub = /^###\s+(.+?)\s*$/.exec(linha);
+    if (sub) {
+      // As seções são colhidas SEMPRE: a primeira delas (a da 1ª aluna) vem ANTES da primeira
+      // tabela do bloco, e é ela que diz que o bloco é "uma tabela por seção". Bloco que não é
+      // tabela não as emite (o `enriquecer` só põe `secoes` em bloco de tabela).
+      atual.secoes = atual.secoes || [];
+      if (!atual.secoes.includes(sub[1])) atual.secoes.push(sub[1]);
+      return;
+    }
     if (/^\|/.test(linha)) {
       const celulas = celulasDaLinha(linha);
       if (ehSeparador(celulas)) return;
-      if (!atual.colunas) {                                     // a 1ª linha é o cabeçalho
+      const texto = celulas.map(textoDaCelula);
+      if (!atual.colunasBrutas) {                             // a 1ª linha é o cabeçalho
         atual.tipo = 'tabela';
-        atual.grao = graoDe(textoDaCelula(celulas[0] || ''));
-        atual.colunas = celulas.slice(1).map(textoDaCelula);
+        atual.graoDaFolha = graoDe(texto[0] || '');
+        atual.colunasBrutas = texto.slice(1);
         atual.linhas = [];
         return;
       }
-      const rotulo = textoDaCelula(celulas[0] || '');
+      // Cabeçalho de uma tabela SEGUINTE (as seções `###`): não é dado.
+      if (proximaEhSeparador(i)) {
+        atual.cabecalhosRepetidos = (atual.cabecalhosRepetidos || 0) + 1;
+        return;
+      }
+      const rotulo = texto[0] || '';
       if (rotulo) atual.linhas.push(rotulo);
       return;
     }
@@ -85,13 +130,71 @@ function lerBlocos(linhas) {
   return blocos.filter((b) => b.tipo === 'tabela' || b.rotulos.length);
 }
 
+/**
+ * A DECLARAÇÃO do schema entra aqui: cada coluna da folha ganha `{rotulo, chave, tipo}`, e o grão
+ * passa a ser o declarado. Coluna ou bloco que o schema não declara NÃO é inventado: sai
+ * `chave: null` e um ERRO (o gerador para — é a regra da peça: reportar, não inventar).
+ */
+function enriquecer(blocos, declaracao) {
+  const erros = [];
+  const avisos = [];
+  const declarados = (declaracao && declaracao.blocos) || {};
+
+  const saida = blocos.map((b) => {
+    if (b.tipo !== 'tabela') {
+      return { titulo: b.titulo, tipo: b.tipo, rotulos: b.rotulos };
+    }
+    const d = declarados[b.titulo];
+    if (!d) erros.push(`bloco da folha não declarado no schema: '${b.titulo}'`);
+
+    const colunas = (b.colunasBrutas || []).map((rotulo) => {
+      const c = d && d.colunas && d.colunas[rotulo];
+      if (!c) {
+        erros.push(`coluna da folha não declarada no schema: '${b.titulo}' → '${rotulo}'`);
+        return { rotulo, chave: null, tipo: null };
+      }
+      return { rotulo, chave: c.chave, tipo: c.tipo };
+    });
+
+    if (d && d.grao && b.graoDaFolha !== d.grao) {
+      const generico = b.graoDaFolha !== 'aluna' && b.graoDaFolha !== 'dupla';
+      avisos.push(`bloco '${b.titulo}': ` + (generico
+        ? `o primeiro cabeçalho da folha ('${b.graoDaFolha}') não é um grão —`
+        : `o cabeçalho da folha diz '${b.graoDaFolha}' e a declaração diz '${d.grao}' —`)
+        + ` usando o declarado ('${d.grao}')`);
+    }
+    if (b.cabecalhosRepetidos) {
+      avisos.push(`bloco '${b.titulo}': ${b.cabecalhosRepetidos} cabeçalho(s) de tabela(s)`
+        + ' seguinte(s) ignorado(s) — as linhas de cada seção não se misturam');
+    }
+
+    const bloco = {
+      titulo: b.titulo,
+      tipo: 'tabela',
+      grao: (d && d.grao) || b.graoDaFolha,
+      colunas,
+      linhas: b.linhas || [],
+    };
+    if (b.secoes && b.secoes.length) bloco.secoes = b.secoes;
+    return bloco;
+  });
+  return { blocos: saida, erros, avisos };
+}
+
 function main() {
   const args = process.argv.slice(2);
   const json = args.includes('--json');
-  const [caminhoSchema, caminhoCaptura] = args.filter((a) => !a.startsWith('--'));
+  // `--variante <slug>` tem valor: não pode cair no balde dos posicionais.
+  const posicionais = [];
+  let variante = '';
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--variante') { variante = args[i + 1] || ''; i++; continue; }
+    if (!args[i].startsWith('--')) posicionais.push(args[i]);
+  }
+  const [caminhoSchema, caminhoCaptura] = posicionais;
   if (!caminhoSchema || !caminhoCaptura) {
     console.error('uso: node tools/validar-captura-ciclo.js <schema.json>'
-      + ' <ciclo-XX-<escola>-captura-aula-NN.md> [--json]');
+      + ' <ciclo-XX-<escola>-captura-aula-NN.md> [--variante <slug>] [--json]');
     return 2;
   }
 
@@ -116,7 +219,33 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const blocos = lerBlocos(linhas);
+  const declaracao = schema._declaracao || null;
+  const porVariante = (declaracao && declaracao.porVariante) || {};
+  const avisos = [];
+
+  // QUAL variante: o `--variante` manda (é o que o gerador passa, do VARIANTE do .conf). Sem ele,
+  // a folha decide — pela `escola:` do front-matter, que a declaração repete em cada variante.
+  if (!variante) {
+    const achadas = Object.entries(porVariante)
+      .filter(([, d]) => d.escola === (meta.escola || '')).map(([k]) => k);
+    if (achadas.length === 1) variante = achadas[0];
+    else if (achadas.length > 1) avisos.push(`a escola '${meta.escola}' aparece em mais de uma`
+      + ` variante (${achadas.join(', ')}) — passe --variante <slug>`);
+    else if (declaracao) avisos.push(`nenhuma variante declara a escola '${meta.escola}':`
+      + ' as colunas saem sem chave — declare-a no _declaracao.porVariante');
+  }
+  const decl = porVariante[variante] || null;
+  if (declaracao && variante && !decl) {
+    avisos.push(`a variante '${variante}' não está declarada no schema`);
+  }
+  if (decl && decl.escola && decl.escola !== (meta.escola || '')) {
+    avisos.push(`a declaração da variante '${variante}' diz escola '${decl.escola}' e a folha diz`
+      + ` '${meta.escola}'`);
+  }
+  if (!declaracao) avisos.push('o schema não declara _declaracao: as colunas saem sem chave e sem tipo');
+
+  const { blocos, erros: errosDaDeclaracao, avisos: avisosDaDeclaracao } =
+    enriquecer(lerBlocos(linhas), decl);
   const campos = {
     escola: meta.escola || '',
     ciclo: meta.ciclo || '',
@@ -124,36 +253,42 @@ function main() {
     folha: path.basename(caminhoCaptura),
     blocos,
   };
+  if (variante) campos.variante = variante;
 
-  const { erros, avisos, provisorios } = validar(campos, schema, {});
+  const { erros: errosDaValidacao, avisos: avisosDaValidacao, provisorios } =
+    validar(campos, schema, {});
+  const erros = [...errosDaDeclaracao, ...errosDaValidacao];
+  const todosAvisos = [...avisos, ...avisosDaDeclaracao, ...avisosDaValidacao];
   const comTabela = blocos.filter((b) => b.tipo === 'tabela');
   const resumo = `captura: ${comTabela.length} bloco(s) com tabela`;
-  const detalhe = comTabela.map((b) => `${b.titulo} [${b.grao}: ${b.colunas.join(', ')}]`).join(' · ');
+  const detalhe = comTabela.map((b) => `${b.titulo} [${b.grao}: `
+    + `${b.colunas.map((c) => `${c.rotulo}→${c.chave || '(sem chave)'}`).join(', ')}]`).join(' · ');
 
   if (json) {
     process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);
-    if (erros.length) erros.forEach((e) => console.error(`  ERRO  ${e}`));
-    avisos.forEach((a) => console.error(`  aviso ${a}`));
+    erros.forEach((e) => console.error(`  ERRO  ${e}`));
+    todosAvisos.forEach((a) => console.error(`  aviso ${a}`));
     console.error(`${resumo} · ${detalhe}`);
     return erros.length ? 1 : 0;
   }
 
   console.log(`folha: ${campos.folha} · ciclo ${campos.ciclo} · aula ${campos.aula}`
-    + ` · escola ${campos.escola}`);
+    + ` · escola ${campos.escola}${variante ? ` · variante ${variante}` : ''}`);
   blocos.forEach((b) => {
     if (b.tipo === 'tabela') {
       console.log(`  bloco   ${b.titulo}`);
       console.log(`          grão: ${b.grao} · ${b.linhas.length} linha(s)`
-        + `${b.linhas.length ? ` (${b.linhas.slice(0, 3).join(', ')}${b.linhas.length > 3 ? ', …' : ''})` : ''}`);
-      b.colunas.forEach((c) => console.log(`          coluna: ${c}`));
+        + `${b.secoes ? ` · ${b.secoes.length} seção(ões): ${b.secoes.join(', ')}` : ''}`);
+      b.colunas.forEach((c) => console.log(`          ${c.rotulo} → ${c.chave || '(SEM CHAVE)'}`
+        + ` (${c.tipo || 'sem tipo'})`));
     } else {
       console.log(`  bloco   ${b.titulo} — rótulos: ${b.rotulos.join(' · ')}`);
     }
   });
-  avisos.forEach((a) => console.log(`  aviso   ${a}`));
+  todosAvisos.forEach((a) => console.log(`  aviso   ${a}`));
   erros.forEach((e) => console.log(`  ERRO    ${e}`));
   console.log(`\n${erros.length ? 'FALHOU' : 'OK'}: ${erros.length} erro(s), `
-    + `${avisos.length} aviso(s)${provisorios.length ? `, ${provisorios.length} provisório(s)` : ''}.`);
+    + `${todosAvisos.length} aviso(s)${provisorios.length ? `, ${provisorios.length} provisório(s)` : ''}.`);
   return erros.length ? 1 : 0;
 }
 
