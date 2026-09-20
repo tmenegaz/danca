@@ -119,6 +119,14 @@ Aula ──┘
 armazenadas — são calculadas pelo formulário. O `ultimo_lancamento` é o carimbo
 de gravação **daquela aula**: é o que ancora o prazo do ajuste (§5.1).
 
+E `plano_seguido` e `mudou` são **um par**, com regra declarada: se o plano **não**
+foi seguido (`parcial`/`não`), `mudou` é **obrigatório** — é ali que a mudança se
+registra, em uma linha (a estrutura executada e o que foi abandonado vão no
+`relatorio` da aula, que é o lugar da execução diferente); se o plano **foi**
+seguido (`sim`), `mudou` fica **vazio** — e vazio quer dizer *nada mudou*. Os
+documentos gerados declaram os dois estados ("nada — o plano foi seguido"), em vez
+de ficarem em silêncio.
+
 ## 3. Fluxo
 
 ### 3.1 Antes da aula
