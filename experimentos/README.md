@@ -67,6 +67,16 @@ experimentos/
 
 ## Experimentos em curso
 
-**Nenhum ainda.** A área foi criada em 19/09/2026, junto com a documentação da
+**`captura-json`** — o gerador de vistas sob demanda: lê o JSON do ciclo e deriva o caderno, o
+relatório e o acompanhamento; e, desde 20/09/2026, também o **guia de observação** e a
+**musicalidade**, que derivam das DUAS entradas — o PO e o plano.
+
+Os JSONs de entrada desse experimento **não são escritos à mão**: eles saem dos extratores
+(`tools/validar-po-ciclo.js --json`, `tools/validar-plano-ciclo.js --json`), pelo contrato
+compartilhado (`tools/lib-extracao-md.js`, `tools/lib-validacao-md.js`). A leitura à mão que
+existia antes ficou guardada como REFERÊNCIA, e é com ela que o `diff-classificado.js` (local)
+prova que a estrutura extraída **é o que o documento oferece** — sem diferença sem classe.
+
+A área foi criada em 19/09/2026, junto com a documentação da
 ideia de captura em JSON (`IDEIA-CAPTURA.md` e `ARQUITETURA-CAPTURA.md`), para
 que a experimentação tenha onde acontecer sem tocar no que está publicado.

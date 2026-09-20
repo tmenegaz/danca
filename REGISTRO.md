@@ -1113,3 +1113,43 @@ entrada); `REGRAS.md` 10 (estrutura de ciclos — camada 1), 16 (formato de entr
 (versionamento com Git); `PROTOCOLO.md` P-08 (o schema é do ciclo); `tools/lib-fontes.sh` (a
 precedência da fonte por variante).
 
+## 2026-09-20 — O experimento passa a consumir o extrator (o ciclo fecha)
+
+**O que motivou.**
+O guia de observação e a musicalidade derivam de duas entradas — o PO e o plano. O extrator estava
+provado, mas o experimento ainda lia os `po-01.json`/`plano-01.json` **escritos à mão**: o
+mecanismo funcionava, e o caminho de ponta a ponta **não existia**.
+
+**O que foi decidido.**
+- Os arquivos de entrada do experimento passam a ser **gerados**: `tools/validar-po-ciclo.js --json`
+  e `tools/validar-plano-ciclo.js --json`. As duas leituras à mão foram guardadas como
+  **referência** (`*-referencia-leitura-a-mao.json`) — é com elas que o diff classificado compara.
+- Os dois construtores (`mdGuia`, `mdMusicalidade`) passaram a ler a estrutura do **extraído** — o
+  extrator **não** mudou (ele está provado pelo diff). A adaptação é uma camada de
+  leitura/exibição: re-junta a linha quebrada (um item que começa com minúscula é continuação) e
+  aceita as **duas** formas, para o harness continuar podendo provar o contrafactual.
+- O que a adaptação teve de **aceitar**, porque é o que o documento oferece: `phenomenon` é
+  **prosa** (uma string); `linhaDeBase` e `distribuicaoDeVolume` são **arrays de objetos**; as
+  listas misturam o que a tabela produziu com o texto do bloco; e `duracaoMinutos` é **texto** — a
+  conversão ficou fora, por decisão.
+
+**O que se mediu.**
+O harness continua verde: **o guia sai com 7 de 7 blocos e 0 lacunas**, a musicalidade com **3 de
+3**, e os dois contrafactuais com 1 de 7 e 1 de 3 (as lacunas declaradas). Duas asserções do
+harness precisaram mudar — e são o registro honesto da troca de fonte: o texto passou a ser o **do
+documento** (com acento e travessão), e não o da leitura à mão em ASCII.
+
+**O que ainda não está feito.**
+- As **conversões** (número, data ISO) e a limpeza da prosa que fica dentro dos arrays: fora, por
+  decisão.
+- O `phenomenon` como prosa dá **um** item no guia, onde a leitura à mão dava quatro: para voltar a
+  quatro, a FONTE precisa listar os observáveis (e o schema declará-los como array).
+- Nada disso está no fluxo de produção: quem gera ainda é o experimento.
+
+**Com o quê.**
+`experimentos/captura-json/` (local, **não** versionado) e `experimentos/README.md`.
+
+**Referências.**
+`ARQUITETURA-CAPTURA.md`; `REGRAS.md` 8 (proveniência objetiva) e 17 (versionamento com Git); as
+entradas deste REGISTRO de 20/09 (o contrato lê tabela; as duas declarações; o extrator do plano).
+
