@@ -185,7 +185,7 @@
   <span><label for="autor">Gerado por:</label>
     <input id="autor" type="text" size="16" placeholder="quem gerou (obrigatório)"></span>
   <span><label for="senha">Senha da escola:</label>
-    <input id="senha" type="password" size="14" placeholder="só para ler o que já foi lançado"></span>
+    <input id="senha" type="password" size="14" placeholder="para abrir o que já foi lançado"></span>
   <span class="fraco" id="ajuda-md">gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
   <span id="aviso-gerado"></span>
 </div>
@@ -1270,6 +1270,34 @@ function opcoes() {
   if (alunas.has(vl)) sel.aluna.value = vl;
 }
 
+// O ciclo TEM LANÇAMENTO — e o lançamento vai CIFRADO no pacote (o site é público). Aqui a página
+// NÃO morre: ela pede a senha e continua viva. É o que o professor precisa nos dois casos — para LER
+// o que já foi lançado e para LANÇAR a próxima aula (o lançamento novo entra AO LADO do que já
+// existe, nunca por cima: por isso a senha também é necessária para lançar, quando há dado).
+function pedirSenha(c, e) {
+  const nome = c ? `Ciclo ${esc(c.id)} · ${esc(c.escola)}` : 'Os ciclos';
+  const semSenha = /sem senha/.test(e.message);
+  el('saida').innerHTML = '<div class="aviso"><strong>' + nome +
+    ' tem lançamento — e o lançamento vai cifrado no pacote.</strong> ' +
+    (semSenha
+      ? 'Digite a <strong>senha da escola</strong> no campo acima (ao lado de “Gerado por”) e clique ' +
+        'em <strong>Abrir</strong>.'
+      : 'A senha digitada foi <strong>recusada</strong> — confira e clique em <strong>Abrir</strong>.') +
+    '</div><p><button id="abrir-ciclo" type="button">Abrir</button> ' +
+    '<span class="fraco">detalhe: ' + esc(e.message) + '</span></p>';
+  const botao = el('abrir-ciclo');
+  if (botao) botao.addEventListener('click', () => { trocarCiclo(); });
+  const campo = el('senha');
+  if (campo) {
+    campo.focus();
+    // Enter no campo da senha também abre — quem digita uma senha espera que funcione
+    if (!campo.dataset.enter) {
+      campo.dataset.enter = '1';
+      campo.addEventListener('keydown', (ev) => { if (ev.key === 'Enter') trocarCiclo(); });
+    }
+  }
+}
+
 async function trocarCiclo() {
   const c = indice.ciclos.find((x) => x.id === sel.ciclo.value);
   // o período é informação, não filtro: aparece só com um ciclo escolhido — e em
@@ -1280,8 +1308,21 @@ async function trocarCiclo() {
   periodo.textContent = c
     ? `Período declarado do ciclo: ${Vistas.helpers.dataBr(c.inicio)} a ${Vistas.helpers.dataBr(c.fim)}`
     : '';
-  if (c) await carregarCiclo(c);    // ciclo escolhido: carrega só o JSON dele
-  else await todos();               // "(todos os ciclos)": carrega os demais sob demanda
+  if (c) {
+    try {
+      await carregarCiclo(c);       // ciclo escolhido: carrega só o JSON dele
+    } catch (e) {
+      pedirSenha(c, e);             // sem senha (ou senha errada): o painel pede, a página segue viva
+      return;
+    }
+  } else {
+    try {
+      await todos();                // "(todos os ciclos)": carrega os demais sob demanda
+    } catch (e) {
+      pedirSenha(null, e);
+      return;
+    }
+  }
   pagina = 1;                       // trocar de ciclo recomeça da primeira página
   ajustando = false;                // e sai do ajuste: o ciclo é outro
   entregavelEscolhido = false;      // e o entregável volta a ser o que o filtro sustenta
@@ -1382,9 +1423,12 @@ async function trocarCiclo() {
     sel.ciclo.value = cicloVigente(carimbo().slice(0, 10)).id;
     await trocarCiclo();
   } catch (e) {
-    el('saida').innerHTML = '<p class="erro">Não consegui abrir este ciclo. ' +
-      'Se você abriu o arquivo direto do disco (<code>file://</code>), sirva a pasta por HTTP ' +
-      '(<code>python3 -m http.server</code>, na raiz do pacote). ' +
+    el('saida').innerHTML = '<p class="erro">Não consegui abrir a página. ' +
+      (location.protocol === 'file:'
+        ? 'Você abriu o arquivo direto do disco (<code>file://</code>): sirva a pasta por HTTP ' +
+          '(<code>python3 -m http.server</code>, na raiz do pacote) — por <code>file://</code> o ' +
+          'navegador não lê os arquivos que ficam ao lado. '
+        : '') +
       'Detalhe: ' + esc(e.message) + '</p>';
   }
 })();

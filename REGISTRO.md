@@ -1905,3 +1905,33 @@ dois `.fipp` (regerados), os pacotes dos dois ciclos (o envelope cifrado, agora 
 `cadernos/ciclo-01/…` (conferência); `ARQUITETURA-CAPTURA.md` §2.1 (o modelo de dados); `REGRAS.md`
 8 e 17.
 
+
+## 20/09/2026 — O formulário abre com lançamento gravado, e pede a senha na tela
+
+**O que aconteceu.** A pesquisadora abriu o formulário do Ritmos e a página respondeu *"Não consegui
+abrir este ciclo … Detalhe: sem senha para ciclo-01-ritmos-dados.json"*: **a página morria** ✗. Com a
+Aula 01 transcrita, o boot busca o JSON do ciclo, o decifrar falha sem a senha — e o `catch` do boot
+trocava a página inteira por um erro. Quem só queria **lançar a Aula 02** ficava **sem a ferramenta**.
+
+**O que foi decidido.** O caso "sem senha" (e o "senha recusada") deixa de ser **erro de página** e
+vira **pedido**: o painel diz que o ciclo tem lançamento cifrado, o campo da senha é **focado**, e há
+um botão **Abrir** (e Enter no campo) que tenta de novo. A página **segue viva** nos dois casos.
+
+**O que se mediu.**
+- No navegador, o formulário do Ritmos **abre**, monta os ciclos e mostra: *"Ciclo 01 · Ritmos e
+  Movimento tem lançamento — e o lançamento vai cifrado no pacote. Digite a senha da escola no campo
+  acima (ao lado de "Gerado por") e clique em Abrir."* — com o botão **Abrir** presente e o erro
+  antigo **ausente**.
+- A mensagem de `file://` do boot passou a aparecer **só** quando o protocolo é `file:` — antes ela
+  encabeçava **qualquer** erro, inclusive este, e mandava procurar o problema no lugar errado.
+- Os dois pacotes geram com **0 erro(s)**; o bloco do formulário passa em `node --check`; e o harness
+  de 25 casos segue **OK**.
+
+**Com o quê.**
+`tools/templates/lancamento.html`; as páginas `lancamento.html` dos dois pacotes.
+
+**Referências.**
+`tools/lib-cifra.js` (a cifra) e `tools/cifrar-dados.js` (o envelope); a entrada de 20/09 da
+transcrição da Aula 01 (que trouxe o caso à tona); `CONGELAMENTO.md` (tools/ é congelado: motivo
+declarado, commit próprio e esta entrada).
+
