@@ -24,6 +24,11 @@ qualquer outro professor, mesmo em turmas parecidas.
   estilo: é a forma de que a folha de captura precisa. É ela que imprime os
   itens como colunas, e o formulário de lançamento os lê como campos. Escrito
   como frase, o item vira trabalho manual depois.
+- **Quando eu pedir os _marcos_, é uma linha por aula.** A compilação os escreve
+  como a tabela `| Aula | Objetivo específico (marco parcial) |` — é a tabela que
+  o extrator do plano lê como um objeto por aula (`{n, marco}`). Escrita como
+  item de lista, cada marco vira texto solto na lista, e quem consome precisa
+  descartar a prosa antes de usar.
 
 ## Bloco 1 — Contexto institucional
 
@@ -68,10 +73,22 @@ qualquer outro professor, mesmo em turmas parecidas.
   — Esta informação é declarada por **P-22**. Ela não será avaliada; será
   registrada e, se necessário, comunicada à coordenação.
 
-## Bloco 4 — Primeira aula
+## Bloco 4 — Aulas: a primeira e os marcos
 
-- Objetivo específico (o que se trabalha nesta aula)
-- Parâmetro de medição (o que você observa para saber se foi alcançado)
+- **Aula 1:** objetivo específico (o que se trabalha nesta aula) e parâmetro de
+  medição (o que você observa para saber se foi alcançado)
+- **Os marcos parciais, aula a aula** — o que fica pronto em cada aula, na ordem
+  em que as aulas acontecem, **uma linha por aula, com o número na frente**. É o
+  marco que o plano carrega e o que se consulta aula a aula:
+
+      **Aula 01:** Isolar o alinhamento dos metatarsos e a saída do calcanhar, no solo.
+      **Aula 02:** Introduzir a coordenação de braços na 1ª e 2ª posições, no solo.
+      **Aula 03:** Executar demi-plié nas cinco posições com controle do arco plantar.
+
+- **O ciclo é extensível?** Se sim, até que aula os marcos estão decididos, e o
+  que decide estender (o plano do ciclo piloto diz "12 aulas, extensível a 16,
+  conforme critério de extensão"). Os marcos das aulas além das decididas vão
+  como `[a decidir]`.
 
 ## Bloco 5 — PO — Pergunta e fenômeno
 
@@ -144,11 +161,16 @@ qualquer outro professor, mesmo em turmas parecidas.
 
 ## Formato de saída
 
-Um único Markdown com seções: contexto, objetivo geral, alunas, primeira
-aula, e o PO completo. Sem análise, sem classificação, sem inferência.
+Um único Markdown com seções: contexto, objetivo geral, alunas, **aulas e
+marcos**, e o PO completo. Sem análise, sem classificação, sem inferência.
 Onde algo não foi respondido, `[a decidir]`.
 
 **As listas saem como listas** — uma linha por item, na ordem em que foram
 ditas. Elas não viram frase: são os itens que a folha de captura imprime e o
 formulário lê.
+
+**Os marcos saem como tabela** — `| Aula | Objetivo específico (marco parcial) |`,
+uma linha por aula. O que foi ditado como lista vira tabela na compilação: é a
+tabela que o extrator do plano lê como um objeto por aula (`{n, marco}`) — e o
+que se consulta aula a aula.
 

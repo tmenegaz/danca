@@ -2021,3 +2021,52 @@ As duas folhas de captura (`ciclo-01-captura-aula-01.md`, `…-ritmos-…`);
 `tools/lib-extracao-md.js` (as primitivas); `tools/validar-plano-ciclo.js` (o molde); a entrada de
 20/09 da elicitação revisada (que passa a produzir os itens); `CONGELAMENTO.md`.
 
+
+## 20/09/2026 — Os marcos por aula: já eram legíveis; agora a eliciação os pede
+
+**O que motivou.** A Fase 3 (c) pede duas coisas: (1) que o extrator do plano leia os marcos por
+aula como lista estruturada; (2) que a eliciação os pergunte. A verificação respondeu a (1) — e
+mudou o sentido do trabalho.
+
+**(1) Já lê — verificado, não reimplementado.** O `validar-plano-ciclo.js` **já entrega**
+`marcosPorAula` como array de objetos `{n, marco}`: 12 objetos no plano real (aulas 01–12), com `n`
+e `marco` obrigatórios no schema. A lista **também traz prosa** (2 itens são o parágrafo que
+apresenta a tabela) — e isso **não é defeito**: é o contrato **declarado** ("o que não é tabela entra
+como texto"), o validador **avisa** ("campo marcosPorAula: 2 de 14 item(ns) não são objeto") e os
+consumidores **filtram** (`objetosDe`, em `lib-vistas.js`, comentado como "uma lista que mistura
+prosa"). Nada a mudar aqui.
+
+**(2) A eliciação não perguntava os marcos — agora pergunta.** O prompt pedia o objetivo e o
+parâmetro **da primeira aula** e mais nada: os doze marcos existiam no plano porque foram escritos
+como tabela na compilação — a mesma assimetria (conteúdo sem forma) que a revisão anterior corrigiu
+para as listas. Agora:
+- **Bloco 4** vira *"Aulas: a primeira e os marcos"* e pede **os marcos parciais, aula a aula**, uma
+  linha por aula com o número na frente — mais o limite do extensível (o ciclo piloto diz "12 aulas,
+  extensível a 16": os marcos além das decididas vão como `[a decidir]`);
+- **"Como conduzir"** ganha a regra da FORMA, ao lado da regra das listas: a compilação escreve os
+  marcos como a tabela `| Aula | Objetivo específico (marco parcial) |` — é a tabela que o extrator
+  lê como um objeto por aula. Ditada como item de lista, cada marco vira texto solto que quem
+  consome precisa descartar;
+- **"Formato de saída"** declara as duas formas (as listas, uma linha por item; os marcos, a tabela)
+  e passa a citar a seção "aulas e marcos".
+
+**A prova, ao vivo.** O mesmo conteúdo nas duas formas, pela mesma ferramenta:
+- forma **pedida** (tabela): `{total: 2, objetos: 2, texto: 0}` — **zero prosa**, e nenhum aviso;
+- forma **evitada** (lista): `{total: 3, objetos: 0, texto: 3}` — contaminação total, com o aviso
+  "3 de 3 item(ns) não são objeto".
+
+**Não-regressão.** As 58 perguntas anteriores seguem todas; os 10 blocos, idênticos em número (sem
+renumeração); o único removido foram as três linhas que a revisão reescreveu. O prompt vai de
+154 → 176 linhas.
+
+**O que fica declarado.** O formulário **ainda não consulta os marcos** (é o objetivo depois das três
+fases) e, hoje, **a folha de captura não imprime o marco da aula** — a folha é escrita à mão; se
+passar a imprimir, é decisão de desenho, não de extração.
+
+**Com o quê.** `prompts/eliciar-ciclo.md` (três edições: a regra da forma, o Bloco 4 e o formato de
+saída).
+
+**Referências.** `tools/validar-plano-ciclo.js` e `ciclos/ciclo-01-plano-schema.json` (a leitura
+verificada); `tools/lib-vistas.js` (`objetosDe`); `ciclos/ciclo-01-plano.md` (a tabela real);
+`tools/lib-extracao-md.js` (a regra da tabela).
+
