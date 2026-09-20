@@ -351,8 +351,36 @@ const objetosDe = (v) => (Array.isArray(v) ? v : [])
 // as dimensões da linha de base, nas DUAS formas: array de objetos (extrator) ou {dimensoes}
 const dimensoesDe = (po) => {
   if (!po || !po.linhaDeBase) return [];
-  if (Array.isArray(po.linhaDeBase)) return objetosDe(po.linhaDeBase);
-  return Array.isArray(po.linhaDeBase.dimensoes) ? po.linhaDeBase.dimensoes : [];
+  const itens = Array.isArray(po.linhaDeBase) ? po.linhaDeBase
+    : (Array.isArray(po.linhaDeBase.dimensoes) ? po.linhaDeBase.dimensoes : []);
+  // A lista vem COMO VEIO: mistura TEXTO (a prosa do PO, por pessoa) e OBJETO (as linhas da tabela
+  // de dimensões). O texto passa pelo `juntarQuebras` — o extrator devolve UMA entrada por linha do
+  // documento, e a frase quebrada é uma frase só; os objetos passam direto, porque juntá-los com
+  // `String()` os destruiria. Até 20/09 tudo isto passava por `objetosDe()`, que DESCARTAVA a prosa
+  // em silêncio.
+  const saida = [];
+  let corrida = [];
+  const despeja = () => { if (corrida.length) { saida.push(...juntarQuebras(corrida)); corrida = []; } };
+  itens.forEach((it) => {
+    if (it && typeof it === 'object' && !Array.isArray(it)) { despeja(); saida.push(it); }
+    else corrida.push(it);
+  });
+  despeja();
+  return saida;
+};
+// Uma linha da linha de base, COMO ELA VEIO (o texto é do professor — decisão de 20/09):
+//   · texto (a prosa do PO)  → o próprio texto, num bullet;
+//   · objeto (a linha de uma tabela) → o rótulo vem da PRIMEIRA coluna (`dimensao` quando existe,
+//     senão o primeiro campo: é assim que um `| Aluno | Traz | Precisa |` se lê) e os demais campos
+//     entram com o nome do campo.
+const linhaDaBase = (d) => {
+  if (d === null || d === undefined) return '';
+  if (typeof d !== 'object') return String(d);
+  const chaves = Object.keys(d).filter((k) => d[k] !== undefined && d[k] !== null && d[k] !== '');
+  if (!chaves.length) return '';
+  const rotulo = chaves.includes('dimensao') ? 'dimensao' : chaves[0];
+  const campos = chaves.filter((k) => k !== rotulo).map((k) => `${k} *${d[k]}*`);
+  return `**${d[rotulo]}:**${campos.length ? ` ${campos.join(' · ')}` : ''}`;
 };
 // a estrutura da aula: os itens NUMERADOS da lista (sem o número), com as quebras já juntadas
 const estruturaDaAula = (plano) => juntarQuebras(plano && plano.estruturaDeCadaAula)
@@ -438,10 +466,21 @@ function mdGuia(m, po, plano, aula, data, prov) {
     l.push(`- ${b.falta('o que observar', 'o PO do ciclo não está ao lado dos dados (po-<id>.json)')}`);
   }
   l.push('', '### Linha de base — o que já se sabe', '');
-  const dimensoes = dimensoesDe(po);
-  if (dimensoes.length) {
-    dimensoes.forEach((d) => l.push(`- **${d.dimensao}:** trazem *${d.trazem}* · falta *${d.falta}*`));
-    b.de('PO', 'linha de base', `${dimensoes.length} dimensão(ões)`);
+  // ATÉ 20/09 esta linha imprimia `undefined` para a prosa (o PO do Ritmos declara por pessoa, não
+  // por dimensão) e NÃO mostrava o `dominam` de cada dimensão — duas perdas de informação, as duas
+  // caladas. Agora cada linha sai como veio (ver `linhaDaBase`).
+  const base = dimensoesDe(po);
+  if (base.length) {
+    base.forEach((d) => {
+      // A subseção da própria linha de base (ex.: `### Linha de base do grupo`) é conteúdo: sai
+      // como subtítulo, e não como um bullet que começa com cerquilha.
+      if (typeof d === 'string' && /^#{1,6}\s/.test(d)) {
+        l.push('', d.replace(/\s*#+\s*$/, '').replace(/^#{1,6}\s+/, '#### '), '');
+      } else {
+        l.push(`- ${linhaDaBase(d)}`);
+      }
+    });
+    b.de('PO', 'linha de base', `${base.length} linha(s)`);
   } else {
     l.push(`- ${b.falta('linha de base', 'a linha de base — vem do PO')}`);
   }

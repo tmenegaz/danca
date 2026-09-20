@@ -1456,3 +1456,46 @@ a informação existia na fonte antiga e se perdia na migração. A data não se
 `CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
 entrada); `ARQUITETURA-CAPTURA.md` §8; `REGRAS.md` 10 (calendário), 16 e 17.
 
+
+## 2026-09-20 — A linha de base renderiza o texto como veio (nada de `undefined`, nada escondido)
+
+**O que motivou.** A peça 5 (migrar o guia do Ritmos) **parou antes de commitar**: o guia gerado do
+Ritmos saía com **5 `undefined`** na `### Linha de base` — `**undefined:** trazem *undefined* · falta
+*undefined*`. O PO do Ritmos declara a linha de base em **prosa, por pessoa**; a lib só entendia a
+**tabela de dimensões** do Duo, e o que não casava saía como `undefined` — em silêncio.
+
+**O que foi decidido** (pesquisadora, 20/09: *"o texto é do professor; esconder seria perder
+informação"*).
+- `linhaDaBase()`: cada item sai **como veio** — texto vira bullet; objeto vira `**rótulo:** campos`,
+  com o rótulo vindo da PRIMEIRA coluna (`dimensao` quando existe) e os demais campos com o nome do
+  campo.
+- `dimensoesDe()`: a lista vem **como veio** (texto + objetos), com o texto passando pelo
+  `juntarQuebras` (o extrator devolve uma entrada por LINHA do documento) e os objetos passando
+  direto — juntá-los com `String()` os destruiria. Até então tudo passava por `objetosDe()`, que
+  **descartava a prosa**.
+- A subseção da própria linha de base (`### Linha de base do grupo`) sai como subtítulo, e não como
+  bullet começando com cerquilha.
+
+**O que se mediu.**
+- Ritmos: **5 → 0 `undefined`**, e a prosa das quatro pessoas sai **inteira** (cada frase preservada),
+  com as restrições físicas (P-22) depois.
+- Duo: 0 `undefined` — e **ganhou informação que estava escondida**: o `dominam` de cada dimensão (o
+  PO declara o que as alunas já dominam e a lib não mostrava) e a subseção **Linha de base do grupo
+  (compartilhada)**, descartada junto com a prosa.
+- Harness: `OK: renderizacao, paginacao e .md coerentes`, **0 falhas**.
+- Pacote do Duo: 0 erro(s), 5 aviso(s) pré-existentes; âncoras **intactas** (`d0394adc…` Duo,
+  `3aeaa3b6…` Ritmos) — a mudança é de render, não de fonte.
+
+**O que ainda não está feito.**
+- O **extrator não leva blockquotes** (`> **Nota …**`): o PO do Ritmos tem 3 e o do Duo 2, e nenhuma
+  chega ao JSON — a nota P-22 está no documento e não na extração. É pré-existente e **não** foi
+  mexido aqui (mudaria o que todos os balanços veem); fica declarado.
+- A peça 5 — o guia do Ritmos gerado — segue na Fase 2, com a tabela do PO e a estrutura do plano.
+
+**Com o quê.**
+`tools/lib-vistas.js`; `professores/tiago/ciclos/ciclo-01-duo/` (guia e PDF regerados).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `ARQUITETURA-CAPTURA.md` §8 (a migração); `REGRAS.md` 8 (proveniência), 16 e 17.
+
