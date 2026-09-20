@@ -19,12 +19,13 @@
  * declarado, nunca inventado.
  *
  * Sai com 0 se os campos obrigatórios existem e têm o tipo correto; com 1 imprimindo os
- * problemas.
+ * erros.
  */
 
 const fs = require('fs');
 const path = require('path');
-const { extrair, lerYamlCabecalho, tipoDe } = require('./lib-extracao-md.js');
+const { extrair, lerYamlCabecalho } = require('./lib-extracao-md.js');
+const { validar } = require('./lib-validacao-md.js');
 
 // Títulos em português do documento → propriedades do schema. As CHAVES do mapa são o título
 // em minúsculas: é assim que o contrato normaliza o `## Seção` para procurar.
@@ -118,62 +119,24 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos } = extrair(linhas, schema, DECLARACAO);
+  const { campos, avisos: avisosDaExtracao } = extrair(linhas, schema, DECLARACAO);
   const lacunasSemLugar = aplicarLacunas(campos);
   if (lacunasSemLugar.length) campos._lacunas = lacunasSemLugar;
 
-  const problemas = [];
-  for (const obrigatorio of schema.required) {
-    const prop = schema.properties[obrigatorio] || {};
-    const valor = campos[obrigatorio];
-    if (!(obrigatorio in campos) || valor === undefined) {
-      problemas.push(`campo ausente: ${obrigatorio}`);
-      continue;
-    }
-    const tipos = Array.isArray(prop.type) ? prop.type : [prop.type];
-    if (prop.type && !tipos.includes(tipoDe(valor))) {
-      problemas.push(`campo ${obrigatorio}: esperado ${tipos.join(' ou ')}, encontrado ${tipoDe(valor)}`);
-      continue;
-    }
-    if (prop.type === 'object') {
-      for (const nome of prop.required || []) {
-        if (valor[nome] === undefined) problemas.push(`campo ausente: ${obrigatorio}.${nome}`);
-      }
-    }
-    if (prop.type === 'array' && valor.length === 0) {
-      problemas.push(`campo ${obrigatorio}: array vazio`);
-    }
-    if (prop.type === 'array' && (prop.items || {}).type === 'object') {
-      const fora = valor.filter((x) => !x || typeof x !== 'object' || Array.isArray(x)).length;
-      if (fora) {
-        avisos.push(`campo ${obrigatorio}: ${fora} de ${valor.length} item(ns) não são objeto`
-          + ' — a tabela do contrato produz objetos; o que não é tabela entra como texto');
-      }
-    }
-  }
-
-  // os provisórios: campos que existem, mas cuja decisão é da pesquisadora ou do gerador
-  const provisorios = [];
-  const coletar = (prefixo, v) => {
-    if (typeof v === 'string') {
-      if (v.includes('[Preencher')) provisorios.push(prefixo);
-    } else if (Array.isArray(v)) {
-      v.forEach((x, i) => coletar(`${prefixo}[${i}]`, x));
-    } else if (v && typeof v === 'object') {
-      Object.entries(v).forEach(([k, x]) => coletar(`${prefixo}.${k}`, x));
-    }
-  };
-  Object.entries(campos).forEach(([k, v]) => coletar(k, v));
+  // A VALIDAÇÃO É DA LIB (lib-validacao-md.js): obrigatórios, tipos, avisos da regra de
+  // tabela e provisórios. As lacunas declaradas saem em `lacunas`, para o tool decidir.
+  const { erros, avisos: avisosDaValidacao, provisorios } = validar(campos, schema, {});
+  const avisos = [...avisosDaExtracao, ...avisosDaValidacao];
 
   if (json) {
     process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);
   }
   const escrever = json ? (...a) => console.error(...a) : (...a) => console.log(...a);
 
-  if (problemas.length) {
+  if (erros.length) {
     console.error(`plano ${path.basename(caminhoPlano)} × schema ${path.basename(caminhoSchema)}`);
-    console.error(`${problemas.length} problema(s):`);
-    for (const p of problemas) console.error(`  - ${p}`);
+    console.error(`${erros.length} problema(s):`);
+    for (const p of erros) console.error(`  - ${p}`);
     return 1;
   }
 

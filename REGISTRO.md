@@ -1025,3 +1025,45 @@ entrada); `REGRAS.md` 8 (proveniência objetiva), 10 (estrutura de ciclos), 16 (
 e 17 (versionamento com Git); `PROTOCOLO.md` P-08 (o schema é do ciclo); `ARQUITETURA-CAPTURA.md`
 (os entregáveis derivados de PO + plano).
 
+## 2026-09-20 — O laço de validação vira lib (a segunda definição única)
+
+**O que motivou.**
+O laço de validação — campos obrigatórios, tipos, subcampos, os avisos da regra de tabela e os
+provisórios `[Preencher]` — estava **duplicado** nos dois validadores (`validar-po-ciclo.js` e
+`validar-plano-ciclo.js`). É a **mesma classe de risco** que a primeira lib fechou: duas cópias
+divergem na primeira regra nova — e foi uma divergência assim que criou o `lib-fontes.sh`.
+
+**O que foi decidido.**
+- `tools/lib-validacao-md.js` (novo): `validar(campos, schema, opcoes)` devolve
+  `{ ok, erros, avisos, provisorios, lacunas, extras }`.
+- A FRASE do array vazio vem de `opcoes.arrayVazio`, porque ela é do **documento**: o PO fala do
+  recorte ("o recorte precisa de ao menos um item"), o plano não diz nada — e as duas saídas
+  continuam exatamente as de antes.
+- `_algo` é **metadado**, não campo do schema: entra em `lacunas` (a convenção `_lacunas`, dos
+  entregáveis que declaram o que não têm) e **nunca** conta como extra.
+- **Desvio declarado** do que o pedido supunha: as lacunas saem em campo **próprio**, e não
+  dentro de `avisos`. Dentro de `avisos`, o validador do plano ganharia uma linha por lacuna — e a
+  prova pedida é byte a byte. Quem quiser a linha, usa a lista: é uma linha no tool.
+
+**O que se mediu (a prova da refatoração).**
+**42 arquivos** — `stdout`, `stderr` e `exit code` de **14 invocações** dos dois tools (os
+caminhos felizes, os `--json`, os dois planos, o campo obrigatório ausente, o uso sem argumento, o
+schema ilegível, o schema sem `required`) — capturados ANTES e DEPOIS: **`diff -r` vazio**, byte a
+byte. Os três `node --check` passam. O laço não existe mais em nenhum dos dois tools (`grep` por
+`erros.push`/`avisos.push`/`provisorios.push` não acha nada) e os dois importam as duas libs.
+`check-pacote`: **OK 0 erro(s), 5 aviso(s)** nos dois ciclos.
+
+**O que ainda não está feito.**
+- A lib **não tem teste próprio**: quem a prova são os documentos e a captura.
+- O que os documentos **não** exercitam (a frase do array vazio, `lacunas`, `extras`) foi
+  conferido por chamada direta à lib, e não por um caso da captura.
+
+**Com o quê.**
+`tools/lib-validacao-md.js` (novo), `tools/validar-po-ciclo.js`, `tools/validar-plano-ciclo.js`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `tools/lib-fontes.sh` e `tools/lib-extracao-md.js` (os precedentes, e a mesma classe de
+erro); `REGRAS.md` 8 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com
+Git).
+
