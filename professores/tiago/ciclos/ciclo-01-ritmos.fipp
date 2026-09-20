@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: ritmos
-hash_conteudo: 64846cf0bd37f3fa972abef5e0b5894ba9488dc8ea60fb95d33b6c8862af6a36
+hash_conteudo: 29344f18806786de3e6babd3e013880dfa87959b24555e385a6246a6f5da7915
 parentHash: 
-hash: 3aeaa3b6f3b1ff40b32d3edf57eaae7a61ac17354fc5c30e220ad34af8d9c4c1
+hash: 2f1724934191c5c42896da7d31a9d0f63e6a8de0fe3e3b1ffca29d58a352e6d9
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Validado
@@ -20,7 +20,6 @@ cobertura:
   - professores/tiago/ciclos/ciclo-01-ritmos-aula-01.md
   - professores/tiago/ciclos/ciclo-01-ritmos-captura-aula-01.md
   - professores/tiago/ciclos/ciclo-01-ritmos-glossario-benesh.md
-  - professores/tiago/ciclos/ciclo-01-ritmos-guia-de-observacao-01.md
   - professores/tiago/ciclos/ciclo-01-ritmos-harmonizacao.md
   - professores/tiago/ciclos/ciclo-01-ritmos-index.md
   - professores/tiago/ciclos/ciclo-01-ritmos-musicalidade-aluna.md

@@ -283,13 +283,22 @@ const cel = (v) => String(v).replace(/\|/g, '\\|');
  * duas listas SEPARADAS: o que veio da entrada (com a fonte de cada bloco) e o que ficou lacuna.
  * O total é a soma das duas, e é isso que se lê primeiro: `X de N` blocos sustentados.
  */
+// O VALOR de um bloco pode ser enorme e trazer token que não quebra (um caminho em `code`, por
+// exemplo). Numa célula de TABELA o TeX não tem como refluir: ele passa da margem — medido no guia
+// do Ritmos (20/09/2026), onde o caminho do material bruto saía da PÁGINA (xMax 616 numa página de
+// 612) e o check-pacote reprovava o pacote. A tabela é a CONTA, e o texto está no corpo — é o que a
+// própria nota dela diz. Valor que não cabe entra como referência, não repetido.
+const celulaDaConta = (v) => {
+  const s = String(v);
+  return (s.length > 160 || s.split(/\s+/).some((t) => t.length > 40)) ? '*(no corpo, acima)*' : cel(s);
+};
 function balancoDaEntrada(reg) {
   const total = reg.veio.length + reg.falta.length;
   const l = ['### Procedência — o que veio da entrada, o que falta', '',
     `**Da entrada (PO + plano) — ${reg.veio.length} de ${total} bloco(s)**`, ''];
   if (reg.veio.length) {
     l.push('| Bloco | Vem de | O que entrou |', '|:--|:--|:--|');
-    reg.veio.forEach((e) => l.push(`| ${cel(e.bloco)} | ${e.fonte} | ${cel(e.valor)} |`));
+    reg.veio.forEach((e) => l.push(`| ${cel(e.bloco)} | ${e.fonte} | ${celulaDaConta(e.valor)} |`));
   } else {
     l.push('- *(nenhum: a entrada não está ao lado dos dados)*');
   }
@@ -379,8 +388,26 @@ const linhaDaBase = (d) => {
   const chaves = Object.keys(d).filter((k) => d[k] !== undefined && d[k] !== null && d[k] !== '');
   if (!chaves.length) return '';
   const rotulo = chaves.includes('dimensao') ? 'dimensao' : chaves[0];
-  const campos = chaves.filter((k) => k !== rotulo).map((k) => `${k} *${d[k]}*`);
+  const campos = chaves.filter((k) => k !== rotulo).map((k) =>
+    // O VALOR pode trazer marcação própria (`*en dehors*`): aí ele sai como veio, sem o itálico de
+    // fora — envolver itálico em itálico quebra os dois na renderização.
+    `${k} ${/\*/.test(String(d[k])) ? d[k] : `*${d[k]}*`}`);
   return `**${d[rotulo]}:**${campos.length ? ` ${campos.join(' · ')}` : ''}`;
+};
+// Junta os itens de um campo numa linha só, com o separador da casa (` · `) — mas NUNCA dentro de um
+// `code` que atravessa linhas: o PO declara o placeholder assim (a crase abre numa linha e fecha
+// noutra), e o separador injetado ali CORROMPIA o texto e criava um `\texttt` enorme e inquebrável,
+// que saía da página no PDF. Medido: guia do Ritmos, p.18 (20/09/2026) — 616 pt numa página de 612,
+// e o check-pacote reprovando o pacote. Dentro do `code`, o separador é um espaço.
+const juntarComSeparador = (itens) => {
+  let saida = '';
+  let dentroDeCode = false;
+  itens.forEach((t, i) => {
+    if (i) saida += dentroDeCode ? ' ' : ' · ';
+    saida += t;
+    if (((String(t).match(/`/g) || []).length % 2) === 1) dentroDeCode = !dentroDeCode;
+  });
+  return saida;
 };
 // a estrutura da aula: os itens NUMERADOS da lista (sem o número), com as quebras já juntadas
 const estruturaDaAula = (plano) => juntarQuebras(plano && plano.estruturaDeCadaAula)
@@ -487,7 +514,7 @@ function mdGuia(m, po, plano, aula, data, prov) {
   l.push('', '### Quem é observado', '');
   const sujeitos = juntarQuebras(po && po.subjects);
   if (sujeitos.length) {
-    l.push(`- ${b.de('PO', 'quem é observado', sujeitos.join(' · '))} (apelidos do PO, P-12)`);
+    l.push(`- ${b.de('PO', 'quem é observado', juntarComSeparador(sujeitos))} (apelidos do PO, P-12)`);
   } else {
     l.push(`- ${b.falta('quem é observado', 'os sujeitos — vêm do PO')}`);
   }

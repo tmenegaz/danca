@@ -71,6 +71,19 @@ gerado.
 > também pausas, correções e repetições de ensaio — por isso o volume ativo é bem
 > menor que a duração da aula.
 
+## Estrutura de cada aula
+
+1. **Solo / preparação** — isolamento mecânico e recrutamento proprioceptivo, sem carga de apoio.
+2. **Barra** (opcional) — referência espacial para transferência de carga; a barra é **ferramenta de
+   apoio, nunca muleta**.
+3. **Centro** — integração dinâmica e autonomia postural. É onde a aula de **pas de deux** acontece:
+   transferências de peso, estabilidade em par, eixo individual e dos parceiros.
+4. **Musicalidade** — treino auditivo e rítmico dentro do movimento do dia.
+
+A ordem é fixa (Regra 3): solo → barra → centro. A aula de **fundamentos** percorre os quatro blocos;
+a de **pas de deux** organiza o trabalho no **centro**, com transferências de peso e estabilidade em
+par.
+
 ## Distribuição do volume pelos blocos (Regra 9, etapa 2)
 
 A Regra 9, etapa 2, distribui o volume nos blocos **solo → barra → centro →

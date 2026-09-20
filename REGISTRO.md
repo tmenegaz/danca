@@ -1499,3 +1499,64 @@ informação"*).
 `CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
 entrada); `ARQUITETURA-CAPTURA.md` §8 (a migração); `REGRAS.md` 8 (proveniência), 16 e 17.
 
+
+## 2026-09-20 — O guia do Ritmos passa a ser gerado (peça 5) — e o render para de perder texto
+
+**O que motivou.** A peça 5 existia para testar o modelo nas **duas formas**. O Duo (linha de base em
+tabela, estrutura numerada) já migrara; o Ritmos (base em **prosa por pessoa**, plano **sem estrutura
+declarada**) **não passava** — o guia gerado saía com 5 `undefined` e a estrutura em lacuna. A
+migração foi feita com o que apareceu, e o que apareceu foram **três defeitos do render** e **duas
+fontes por ajustar**.
+
+**O que foi decidido** (pesquisadora, 20/09).
+- **O PO do Ritmos vira tabela** — `| Aluno | Traz | Precisa desenvolver |`. A conferência foi
+  **palavra a palavra**: nenhuma palavra de conteúdo se perdeu (366 → 355; a diferença são os rótulos
+  de coluna, que viraram cabeçalho).
+- A subseção das **restrições físicas (P-22)** — que pertence à linha de base por declaração da
+  pesquisadora — passou a **texto declarado**: o contrato lê **uma tabela por bloco**, e uma segunda
+  tabela no mesmo bloco é descartada com aviso (foi o próprio validador que o disse).
+- **O plano do Ritmos declara a estrutura** — `## Estrutura de cada aula`, numerada (solo → barra →
+  centro → musicalidade, com a aula de pas de deux no centro), como o plano do Duo.
+- **A fonte escrita à mão saiu** (`git rm`): é o ato da migração, o mesmo do Duo.
+
+**Três defeitos do render, achados e corrigidos no caminho.**
+1. **`undefined` na linha de base em prosa** (5 ocorrências): a lista passava por `objetosDe()`, que
+   **descartava o texto em silêncio** — corrigido no commit anterior (`69bfee3`).
+2. **O separador injetado dentro de um `code`**: o PO declara um `[Preencher: …]` com a crase aberta
+   numa linha e fechada noutra; o `join(' · ')` metia o separador **dentro** do code span —
+   corrompia o texto e criava um `\texttt` enorme e inquebrável. Dentro do code, o separador é um
+   espaço.
+3. **A célula "O que entrou" repetia o texto inteiro do campo**. Numa **célula** o TeX não reflui, e o
+   caminho do material bruto **saía da página** (medido: `xMax` 616,7 pt numa página de 612) — o
+   `check-pacote` reprovava o pacote. A tabela é a **conta** e o texto está no corpo (é o que a nota
+   dela diz): valor que não cabe entra como `*(no corpo, acima)*`.
+
+**O que se mediu.**
+- Guia do Ritmos: **5 → 0 `undefined`**; a prosa das quatro pessoas sai inteira; a estrutura sai da
+  lista numerada do plano; a data da aula sai do calendário (**19/09/2026**, sábado).
+- **`check-pacote`: 0 erro(s) nos dois ciclos** — a palavra fora da margem sumiu do PDF.
+- Harness: `OK: renderizacao, paginacao e .md coerentes`, **0 falhas**.
+- Âncoras: Ritmos regerada (`3aeaa3b6…` → `2f172493…`); **Duo intacta** (`d0394adc…`).
+- O guia do Duo continua **byte a byte** o mesmo depois do conserto do join (`sha256` conferido).
+
+**O que ainda não está feito (declarado).**
+- O **extrator não leva blockquotes** (`> **Nota …**`): 3 no PO do Ritmos, 2 no do Duo — nenhuma
+  chega ao JSON. Pré-existente; mudaria o que todos os balanços veem.
+- **A Mari não tem linha de base** no PO (nem antes nem agora) — não foi inventada.
+- **A musicalidade do Ritmos** segue declarada como lacuna na vista: o PO não tem uma dimensão
+  "musical", e sim prosa por pessoa que a cita ("Carol — traz bastante musicalidade").
+- `\texttt` longo **não quebra no PDF**: `\emergencystretch` e `hyphenat` foram testados e **não
+  resolvem**; o `seqsplit` **quebra a compilação** (choca com os code spans que trazem `\ ` e
+  chaves). O caminho que resta é não repetir o token numa célula — que é o que se fez.
+- A §8 da `ARQUITETURA-CAPTURA.md` (peça 5 marcada) e o `README-ciclos.md` — Fase 3.
+
+**Com o quê.**
+`tools/lib-vistas.js`, `professores/tiago/ciclos/ciclo-01-ritmos-po.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-plano.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-guia-de-observacao-01.md` (removido),
+`professores/tiago/ciclos/ciclo-01-ritmos.fipp`, os pacotes dos dois ciclos.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`ARQUITETURA-CAPTURA.md` §8 (a migração — esta é a peça 5); `REGRAS.md` 8, 10, 16 e 17.
+

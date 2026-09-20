@@ -87,36 +87,23 @@ Aulas de balé clássico em Ritmos e Movimento.
 O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professor
 (P-10 — sem esta linha, "evolução" não tem referencial):
 
-- **Carol** — traz bastante musicalidade. Precisa desenvolver subida e descida de
-  pontas, estabilidade no *en dehors*, força para flexão e extensão dos joelhos,
-  coordenação motora, braços curtos, primeira posição a ajustar (alta) e com o
-  mesmo ângulo do cotovelo da segunda, além de atenção (conversa demais e chega
-  atrasada).
-- **Dada** — traz mais força, demi-plié e grand plié com boa extensão, boa
-  flexibilidade de costas para arabesque, linhas bonitas quando mantém rotadores
-  externos e disciplina. Precisa desenvolver manutenção do *en dehors*,
-  expressividade a desenvolver, segurança na musicalidade, coordenação de braços
-  e pernas, segurança em movimentos grandes, e força/coordenação para pontas de
-  forma harmônica.
-- **Tony** — traz resiliência, vontade, inteligência, absorção rápida de
-  musicalidade, boa coordenação motora após treino, saltos altos e força. Precisa
-  desenvolver as bases do balé por ser iniciante absoluto, flexibilidade de
-  posterior e costas, postura e estruturação de braços.
-- **Pássaro Azul** — traz experiência prévia, disciplina, vontade e boa absorção
-  inicial de informações. Precisa desenvolver postura do tronco, extensão dos
-  pés, fixação de correções ao longo do tempo, sustentação de tônus muscular a
-  construir (porte a fortalecer) e sincronização de pas de deux com três meninas
-  diferentes.
+| Aluno | Traz | Precisa desenvolver |
+|:--|:--|:--|
+| **Carol** | bastante musicalidade | subida e descida de pontas, estabilidade no *en dehors*, força para flexão e extensão dos joelhos, coordenação motora, braços curtos, primeira posição a ajustar (alta) e com o mesmo ângulo do cotovelo da segunda, além de atenção (conversa demais e chega atrasada) |
+| **Dada** | mais força, demi-plié e grand plié com boa extensão, boa flexibilidade de costas para arabesque, linhas bonitas quando mantém rotadores externos e disciplina | manutenção do *en dehors*, expressividade a desenvolver, segurança na musicalidade, coordenação de braços e pernas, segurança em movimentos grandes, e força/coordenação para pontas de forma harmônica |
+| **Tony** | resiliência, vontade, inteligência, absorção rápida de musicalidade, boa coordenação motora após treino, saltos altos e força | as bases do balé por ser iniciante absoluto, flexibilidade de posterior e costas, postura e estruturação de braços |
+| **Pássaro Azul** | experiência prévia, disciplina, vontade e boa absorção inicial de informações | postura do tronco, extensão dos pés, fixação de correções ao longo do tempo, sustentação de tônus muscular a construir (porte a fortalecer) e sincronização de pas de deux com três meninas diferentes |
 
 ### Restrições físicas declaradas (P-22)
 
-| Aluno | Restrição | Fonte |
-|:--|:--|:--|
-| **Carol** | Lesão nos tornozelos (relata ausência de ligamento); dificuldade em dobrar e estender os dois joelhos; relata dor | Declarado pela pesquisadora (18/09/2026) |
-| **Pássaro Azul** | Restrição no ombro — provavelmente direito, `[conferir com ele]`; lesão leve segundo ele, em tratamento; já faz 3 séries de 10 flexões | Declarado pela pesquisadora (18/09/2026) |
-| **Dada** | Lesão no tornozelo esquerdo (relato durante a aula 01, 19/09/2026) — descer da ponta é difícil | Declarado pela aluna em aula |
-| **Tony** | `[Preencher: a observar na primeira aula]` | — |
-| **Mari** | `[Preencher: a observar na primeira aula]` | — |
+- **Carol** — lesão nos tornozelos (relata ausência de ligamento); dificuldade em dobrar e estender
+  os dois joelhos; relata dor. *(Declarado pela pesquisadora, 18/09/2026.)*
+- **Pássaro Azul** — restrição no ombro, provavelmente direito, `[conferir com ele]`; lesão leve
+  segundo ele, em tratamento; já faz 3 séries de 10 flexões. *(Declarado pela pesquisadora, 18/09/2026.)*
+- **Dada** — lesão no tornozelo esquerdo (relato durante a aula 01, 19/09/2026); descer da ponta é
+  difícil. *(Declarado pela aluna, em aula.)*
+- **Tony** — `[Preencher: a observar na primeira aula]`.
+- **Mari** — `[Preencher: a observar na primeira aula]`.
 
 > **Nota (P-22).** Estas restrições **não serão avaliadas** — o professor apenas
 > registra. Quando impedem o trabalho, são comunicadas à coordenação (Gabi). A decisão
