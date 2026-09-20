@@ -11,6 +11,10 @@ calendario.py — calcula o calendário real de um ciclo (Pré-requisito 5 / Reg
         --duracao-curta 60 --volume-curto 90 \
         [--duracao-longa 120 --volume-longo 180]
 
+      python3 tools/calendario.py --escola "Duo" --frequencia "1x/semana" --dias "5" \
+        --inicio 17/09/2026 --total 12 --aula 01
+      → 2026-09-18     (a data da aula 01, em ISO — para quem precisa da data, não do bloco)
+
 Saída: bloco Markdown com o calendário (escola, frequência, volume semanal, datas,
 avaliação formativa e somativa, extensão e tabela aula → data) no stdout; resumo de
 uma linha no stderr, para o gerador mostrar no terminal.
@@ -70,12 +74,17 @@ def main() -> int:
     p.add_argument('--dias', required=True, help='dias ISO separados por vírgula: 2,6')
     p.add_argument('--inicio', required=True, help='dd/mm/aaaa')
     p.add_argument('--total', type=int, required=True)
-    p.add_argument('--duracao-curta', type=int, required=True)
-    p.add_argument('--volume-curto', type=int, required=True)
+    # Duração e volume do dia curto: obrigatórios para gerar o BLOCO (o volume aparece nele) e
+    # dispensados no modo `--aula`, que só quer a data — a conta das datas não usa nenhum dos dois.
+    p.add_argument('--duracao-curta', type=int, default=0)
+    p.add_argument('--volume-curto', type=int, default=0)
     p.add_argument('--duracao-longa', type=int, default=0)
     p.add_argument('--volume-longo', type=int, default=0)
     p.add_argument('--saida', default='-')
     p.add_argument('--vars-arquivo', default='', help='escreve variáveis de shell (KEY=valor) para o gerador')
+    p.add_argument('--aula', type=int, default=0,
+                   help='imprime SÓ a data da aula NN, em ISO (aaaa-mm-dd) — os argumentos de '
+                        'duração/volume são dispensados neste modo')
     a = p.parse_args()
 
     dias = [int(x) for x in a.dias.replace(' ', '').split(',') if x]
@@ -89,6 +98,22 @@ def main() -> int:
         return 2
 
     aulas = datas_das_aulas(inicio, dias, a.total)
+
+    # Modo `--aula NN`: SÓ a data, em ISO — como as datas do JSON. Quem mostra dd/mm/aaaa é a lib
+    # das vistas (`dataBr`). É por aqui que o guia gerado recebe a data da aula: do CALENDÁRIO, não
+    # de um texto escrito à mão. A data da aula 01 do Duo é 18/09/2026 porque o início declarado
+    # (17/09) não é dia de aula — a regra do ajuste vive AQUI, não no chamador.
+    if a.aula:
+        if not 1 <= a.aula <= a.total:
+            print(f'erro: --aula {a.aula} fora do ciclo (1..{a.total})', file=sys.stderr)
+            return 2
+        print(aulas[a.aula - 1].isoformat())
+        return 0
+    if not a.duracao_curta or not a.volume_curto:
+        print('erro: --duracao-curta e --volume-curto são obrigatórios para o bloco do calendário '
+              '(--aula os dispensa)', file=sys.stderr)
+        return 2
+
     por_semana = len(dias)
     semanas = (a.total + por_semana - 1) // por_semana
 

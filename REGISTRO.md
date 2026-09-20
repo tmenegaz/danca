@@ -1409,3 +1409,50 @@ pacote do Duo, `ARQUITETURA-CAPTURA.md` §8 e `professores/tiago/relatorios/READ
 `ARQUITETURA-CAPTURA.md` §8 (as peças da migração — esta é a 3); `IDEIA-CAPTURA.md`; `tools/lib-vistas.js`
 e `tools/lib-extracao-md.js` (os precedentes da mesma classe de risco); `REGRAS.md` 8, 16 e 17.
 
+
+## 2026-09-20 — O guia gerado passa a emitir a data da aula
+
+**O que motivou.** O guia escrito à mão trazia a data da aula ("sexta, 18/09/2026") e o gerado não:
+a informação existia na fonte antiga e se perdia na migração. A data não se digita — ela é do
+**calendário** (o `.conf` do ciclo).
+
+**O que foi decidido.**
+- `tools/calendario.py` ganhou o modo `--aula NN`: imprime SÓ a data daquela aula, em ISO. Duração e
+  volume passam a ser dispensados nesse modo (a conta das datas não os usa) e continuam obrigatórios
+  para o bloco — o bloco sai **byte a byte igual** ao de antes.
+- `Vistas.guia({ …, data })` emite no cabeçalho, junto do ciclo e da duração:
+  `**Ciclo 01 · Duo** · 60 minutos (Pré-requisito 4) · **Aula 01 — 18/09/2026**`. A data **não entra
+  no balanço** da entrada: os 7 blocos são do PO + do plano, e a data é do calendário — o balanço
+  continua 7 de 7.
+- Sem data, a lacuna fica **declarada** no lugar do valor: `[Preencher: data da aula — ver o
+  calendário do ciclo]`. Nada de data inventada.
+- `gerar-vista.js` a resolve **chamando o `calendario.py`** — não recalcula: a regra do ajuste
+  (início que não cai em dia de aula) e o sábado com duas aulas vivem lá.
+- O formulário passa a data do JSON do ciclo (a MESMA que a tabela mostra) — sem isso o guia dele
+  sairia com a lacuna, e o harness não admite `[Preencher]` com a entrada inteira.
+
+**O que se mediu.**
+- Duo: aula 01 → **18/09/2026**, que é **sexta** — exatamente a data que o guia escrito à mão
+  declarava (o início declarado, 17/09, é quinta: o calendário ajusta). Aula 12 → 04/12/2026.
+- **Ritmos: aulas 01 e 02 na MESMA data** (19/09/2026 — o sábado com duas aulas) e a 03 em
+  22/09/2026. O caso que testaria o modelo, testado.
+- Determinismo: duas corridas do `gerar-vista.js` dão o mesmo `sha256` (sem carimbo).
+- Harness: `OK: renderizacao, paginacao e .md coerentes`, **0 falhas** — e o guia do formulário sai
+  com `**Aula 01 — 18/09/2026**`, sem lacuna de data.
+- Pacote do Duo: 0 erro(s), 5 aviso(s) (pré-existentes); a data aparece no **HTML e no PDF**
+  consolidado. O `plano.html` **não mudou** — o bloco do calendário é o mesmo de antes.
+- O guia escrito à mão do Ritmos ficou **intacto** (a peça 5 é a Fase 2).
+
+**O que ainda não está feito.**
+- A nota *"este documento não é o relatório"* **não volta** no guia gerado (decisão da
+  pesquisadora, 20/09).
+- A peça 5 — migrar o guia do Ritmos (Fase 2).
+
+**Com o quê.**
+`tools/calendario.py`, `tools/lib-vistas.js`, `tools/gerar-vista.js`,
+`professores/tiago/ciclos/ciclo-01-duo/` (guia e PDF regerados).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `ARQUITETURA-CAPTURA.md` §8; `REGRAS.md` 10 (calendário), 16 e 17.
+

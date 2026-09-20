@@ -377,7 +377,7 @@ const duracaoDaAula = (plano) => {
   return typeof v === 'number' ? `${v} min` : String(v);
 };
 /** O GUIA DE OBSERVAÇÃO — por AULA: o que o PO manda observar + o marco desta aula. */
-function mdGuia(m, po, plano, aula, prov) {
+function mdGuia(m, po, plano, aula, data, prov) {
   /**
    * A AULA TEM DOIS GRÃOS NA FONTE ✗✓, e o casamento os normaliza: nos dados e no `ciclos.json` a aula é
    * `'01'` (**string** — é identidade, vira rota e nome de arquivo); no plano ela é `1` (**número** — é
@@ -408,6 +408,14 @@ function mdGuia(m, po, plano, aula, prov) {
     '---', '',
     `## Guia de observação — aula ${aula}`, '',
     `**Ciclo ${m.id} · ${m.escola}** · ${duracao}` +
+    // A DATA DA AULA vem do CALENDÁRIO (o `.conf` do ciclo), não de um texto escrito à mão: quem a
+    // resolve é quem chama — o gerador, por `tools/calendario.py` (a mesma definição do bloco do
+    // calendário), e o formulário, do JSON do ciclo. Sem ela, a lacuna fica DECLARADA aqui, como as
+    // demais — a data nunca é inventada. Ela NÃO entra no balanço da entrada: os 7 blocos são do PO
+    // + do plano, e a data é do calendário (o formato dd/mm/aaaa é do `dataBr`).
+    `${aula ? ` · **Aula ${aula} — ${data
+      ? dataBr(data)
+      : '[Preencher: data da aula — ver o calendário do ciclo]'}**` : ''}` +
     `${prov && prov.em ? ` · ${prov.em}` : ''}`, '',
     '### O que esta aula trabalha', ''];
   l.push(marco
@@ -502,7 +510,7 @@ const Vistas = {
   relatorio: ({ meta, dados, aulas, prov } = {}) => mdRelatorio(meta, dados, aulas, prov),
   acompanhamento: ({ meta, dados, aluna, aulas, prov } = {}) =>
     mdAcompanhamento(meta, dados, aluna, aulas, prov),
-  guia: ({ meta, po, plano, aula, prov } = {}) => mdGuia(meta, po, plano, aula, prov),
+  guia: ({ meta, po, plano, aula, data, prov } = {}) => mdGuia(meta, po, plano, aula, data, prov),
   musicalidade: ({ meta, po, plano, prov } = {}) => mdMusicalidade(meta, po, plano, prov),
   // as peças puras que o formulário já usava fora dos builders — uma definição, sem cópia
   helpers: {

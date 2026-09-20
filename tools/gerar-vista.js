@@ -15,6 +15,9 @@
  * resultado entra na LIB DAS VISTAS (`lib-vistas.js`). O gerador não lê Markdown nem monta texto:
  * ele é o TERCEIRO consumidor da mesma definição — o primeiro é o formulário do experimento.
  *
+ * A DATA DA AULA também não é montada aqui: ela vem do CALENDÁRIO (`tools/calendario.py`), a mesma
+ * definição que o gerador usa para o bloco do calendário do plano.
+ *
  * O CARIMBO NÃO ENTRA: o texto que sai daqui é determinístico (a lib só põe a linha "gerado: …"
  * se quem chama passar `prov`, e o gerador não passa). É o que faz o pacote ser reconstruível.
  *
@@ -73,6 +76,35 @@ function main() {
     [path.join(RAIZ, 'tools', ferramenta), schema, md, '--json'],
     { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, stdio: ['ignore', 'pipe', 'inherit'] }));
 
+  // A DATA DA AULA vem do CALENDÁRIO — de `tools/calendario.py`, a MESMA definição que o pacote usa
+  // para o bloco do calendário. Nada de recalcular aqui: a regra do ajuste ("início que não cai em
+  // dia de aula vira a próxima aula"; o sábado com duas aulas) vive lá, e um segundo cálculo
+  // divergiria no primeiro ciclo que começa fora de dia. Sem conf que baste, devolve vazio — e a
+  // lib DECLARA a lacuna no cabeçalho, em vez de inventar uma data.
+  const doConf = (chave) => confVar[chave] || confBase[chave] || '';
+  const dataDaAula = (numero) => {
+    const precisa = ['DATA_INICIO', 'FREQUENCIA', 'DIAS', 'TOTAL_AULAS'].filter((k) => !doConf(k));
+    if (precisa.length) {
+      console.error(`gerar-vista: sem ${precisa.join(', ')} no .conf — a data da aula ${numero} `
+        + 'sai como [Preencher] (quem a declara é o calendário do ciclo).');
+      return '';
+    }
+    try {
+      return execFileSync('python3', [
+        path.join(RAIZ, 'tools', 'calendario.py'),
+        '--escola', escola,
+        '--frequencia', doConf('FREQUENCIA'),
+        '--dias', doConf('DIAS'),
+        '--inicio', doConf('DATA_INICIO'),
+        '--total', doConf('TOTAL_AULAS'),
+        '--aula', String(numero),
+      ], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'inherit'] }).trim();
+    } catch (e) {
+      console.error(`gerar-vista: o calendário não deu a data da aula ${numero}: ${e.message}`);
+      return '';
+    }
+  };
+
   // A vista vem como a chave do `DOCS` (`guia-de-observacao-01`) — e o número da aula pode vir
   // também por argumento, para quem chama à mão.
   const guia = /^guia-de-observacao(?:-(\d+))?$/.exec(vista);
@@ -96,7 +128,7 @@ function main() {
     }
     const plano = extrair('validar-plano-ciclo.js',
       path.join(base, `ciclo-${ciclo}-plano-schema.json`), planoMd);
-    process.stdout.write(`${Vistas.guia({ meta, po, plano, aula: numero })}\n`);
+    process.stdout.write(`${Vistas.guia({ meta, po, plano, aula: numero, data: dataDaAula(numero) })}\n`);
     return 0;
   }
 
