@@ -24,6 +24,23 @@
  * O TIPO VEM DO SCHEMA: em campo string, listas e tabelas fazem parte do TEXTO ("o texto da
  * seção"); em campo array, cada item é um elemento — e uma tabela é o array de OBJETOS.
  *
+ * A DECLARAÇÃO DO DOCUMENTO (terceiro argumento) — o que o contrato não pode adivinhar:
+ *
+ *   · `secoes`  — título da seção em minúsculas → campo do schema;
+ *   · `colunas` — chave DERIVADA → chave do alvo. A derivada vem do cabeçalho da tabela
+ *                 (`Objetivo específico (marco parcial)` → `objetivoEspecificoMarcoParcial`)
+ *                 ou do rótulo do par (`Duração` → `duracao`), e o mapa a renomeia para o
+ *                 nome do alvo (`marco`, `duracaoAulas`). Sem par no mapa, fica a derivada;
+ *   · `pares`   — os blocos cuja tabela é ITEM/VALOR (`| Item | Valor |`): ela vira um
+ *                 OBJETO (o rótulo da linha é a chave), e não um array de objetos. O VALOR do
+ *                 mapa é o CAMPO QUE RECEBE o objeto — `{ objetivoGeral: 'ciclo' }` diz que a
+ *                 tabela daquele bloco alimenta `ciclo`. Um bloco pode ter prosa (num campo) e
+ *                 tabela (noutro): é o caso do plano, onde a identificação do ciclo está sob
+ *                 "Objetivo geral". `true` = o próprio campo do bloco.
+ *
+ * A renomeação é DECLARAÇÃO, não leitura: o contrato não interpreta o texto do documento —
+ * só aceita o nome que o documento declara.
+ *
  * CONTRATO DO PROVISÓRIO: `[Preencher…]` é aceito como valor provisório de qualquer campo
  * string — o campo existe, a decisão da pesquisadora ainda não. Campo AUSENTE é erro. Quem
  * aplica isso é o VALIDADOR de cada documento, não este módulo: aqui só se EXTRAI.
@@ -105,14 +122,16 @@ const ehSeparador = (celulas) =>
  * texto da seção"); em campo array, cada item é um elemento — e uma TABELA é o array de
  * objetos (a regra de 2026-09-20, acima).
  *
- * @param {string[]} linhas      as linhas do documento
- * @param {object}   schema      o schema (draft-07) do documento: é ele que diz o TIPO de cada
- *                               campo — e é por isso que ele entra aqui, e não como decoração
- * @param {object}   mapaSecoes  título da seção em minúsculas → campo do schema. O mapa é DO
- *                               DOCUMENTO (o PO e o plano têm os seus) e chega por argumento.
+ * @param {string[]} linhas       as linhas do documento
+ * @param {object}   schema       o schema (draft-07) do documento: é ele que diz o TIPO de cada
+ *                                campo — e é por isso que ele entra aqui, e não como decoração
+ * @param {object}   declaracao   o que o contrato não pode adivinhar (ver o cabeçalho):
+ *                                `{ secoes, colunas, pares }`. É DO DOCUMENTO — o PO e o plano
+ *                                têm as suas, e elas chegam por argumento.
  * @returns {{campos: object, avisos: string[]}}
  */
-function extrair(linhas, schema, mapaSecoes) {
+function extrair(linhas, schema, declaracao) {
+  const { secoes = {}, colunas = {}, pares = {} } = declaracao || {};
   const campos = {};
   const texto = {};
   const avisos = [];
@@ -123,7 +142,15 @@ function extrair(linhas, schema, mapaSecoes) {
   const tipoSub = (campo, sub) =>
     (((schema.properties[campo] || {}).properties || {})[sub] || {}).type;
   const ehArray = (campo, sub) => (sub ? tipoSub(campo, sub) : tipo(campo)) === 'array';
-  const campoDoBlocoEhArray = () => !!secao && ehArray(secao, subcampo);
+
+  // A DECLARAÇÃO RENOMEIA: a chave derivada do documento (cabeçalho de coluna, ou rótulo do
+  // par) vira a chave do alvo. Sem par no mapa, fica a derivada.
+  const chaveDoAlvo = (derivada) => colunas[derivada] || derivada;
+
+  // O bloco tem tabela estruturada? Quando o campo dele é ARRAY (tabela → array de objetos) ou
+  // quando o bloco é declarado ITEM/VALOR (tabela → objeto). Fora disso a tabela é texto.
+  const blocoTemTabelaEstruturada = () =>
+    !!secao && (ehArray(secao, subcampo) || (!subcampo && !!pares[secao]));
 
   // a tabela do bloco em construção — o buffer que a regra de tabela usa
   let tabela = null;
@@ -141,6 +168,20 @@ function extrair(linhas, schema, mapaSecoes) {
       return;
     }
     blocosComTabela.add(chave);
+    // ITEM/VALOR → OBJETO: o rótulo da linha (passado pela declaração) é a chave, a segunda
+    // célula é o valor. O bloco vira UM objeto — e não um array de objetos. O DESTINO é o que
+    // a declaração diz: um bloco pode ter prosa num campo e tabela noutro.
+    if (!t.subcampo && pares[t.secao]) {
+      const destino = pares[t.secao] === true ? t.secao : pares[t.secao];
+      if (!campos[destino] || typeof campos[destino] !== 'object' || Array.isArray(campos[destino])) {
+        campos[destino] = {};
+      }
+      t.linhas.forEach((linha) => {
+        const k = chaveDoAlvo(chaveDaColuna(linha[0] || ''));
+        if (k) campos[destino][k] = textoDaCelula(linha[1] || '');
+      });
+      return;
+    }
     const objetos = t.linhas.map((linha) => {
       const o = {};
       t.cabecalho.forEach((k, i) => { if (k) o[k] = textoDaCelula(linha[i] || ''); });
@@ -158,13 +199,14 @@ function extrair(linhas, schema, mapaSecoes) {
   for (const linha of linhas) {
     const limpa = linha.trim();
 
-    // --- a tabela do bloco (regra de 2026-09-20): quando o campo do bloco é ARRAY, a
-    // tabela É o array — as linhas ficam em buffer e saem como objetos quando a tabela
-    // (ou o bloco) termina. Fora disso, a linha de tabela segue o caminho antigo (texto).
-    if (limpa.startsWith('|') && !tabela && campoDoBlocoEhArray()) {
+    // --- a tabela do bloco (regra de 2026-09-20): quando o bloco tem tabela estruturada (campo
+    // ARRAY, ou bloco declarado item/valor), a tabela É o campo — as linhas ficam em buffer e
+    // saem como objetos (ou como um objeto, no item/valor) quando a tabela ou o bloco termina.
+    // Fora disso, a linha de tabela segue o caminho antigo (texto).
+    if (limpa.startsWith('|') && !tabela && blocoTemTabelaEstruturada()) {
       const celulas = celulasDaLinha(limpa);
       if (!ehSeparador(celulas)) {
-        tabela = { secao, subcampo, cabecalho: celulas.map(chaveDaColuna), linhas: [] };
+        tabela = { secao, subcampo, cabecalho: celulas.map((c) => chaveDoAlvo(chaveDaColuna(c))), linhas: [] };
         continue;
       }
     }
@@ -177,7 +219,7 @@ function extrair(linhas, schema, mapaSecoes) {
 
     const h2 = limpa.match(/^##\s+(.+?)\s*$/);
     if (h2) {
-      secao = mapaSecoes[normalizar(h2[1])] || null;
+      secao = secoes[normalizar(h2[1])] || null;
       subcampo = null;
       if (secao && !(secao in campos)) campos[secao] = undefined;
       continue;

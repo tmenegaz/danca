@@ -42,6 +42,21 @@ const MAPA_SECOES = {
   'checklist de validação': 'validationChecklist',
 };
 
+// O mapa das COLUNAS (chave derivada → chave do alvo), para a linha de base: a tabela do PO é
+// `| Dimensão | O que as alunas trazem | O que falta | O que já dominam |`, e sem o mapa as
+// chaves sairiam `oQueAsAlunasTrazem`/`oQueFalta`/`oQueJaDominam`. Com ele, saem as chaves que
+// o recorte usa — `trazem`, `falta`, `dominam` (é como o PO fala, e como o experimento
+// estruturou à mão).
+const MAPA_COLUNAS = {
+  oQueAsAlunasTrazem: 'trazem',
+  oQueFalta: 'falta',
+  oQueJaDominam: 'dominam',
+};
+
+// A DECLARAÇÃO DO PO para o contrato compartilhado (tools/lib-extracao-md.js): o mapa das
+// seções e o das colunas. O schema continua sendo o que diz o TIPO de cada campo.
+const DECLARACAO = { secoes: MAPA_SECOES, colunas: MAPA_COLUNAS };
+
 // O CONTRATO DE EXTRACAO vive em tools/lib-extracao-md.js -- definicao UNICA: o PO e o
 // plano leem pelo MESMO contrato. Aqui fica o que e DESTE documento: o mapa das secoes
 // (titulo em portugues -> campo do schema) e a validacao contra o schema.
@@ -80,7 +95,7 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos } = extrair(linhas, schema, MAPA_SECOES);
+  const { campos, avisos } = extrair(linhas, schema, DECLARACAO);
   const problemas = [];
 
   for (const obrigatorio of schema.required) {

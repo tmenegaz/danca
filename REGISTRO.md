@@ -918,3 +918,47 @@ MD5 do snapshot anterior —, com o resumo humano idêntico (avisos, provisório
 entrada); `tools/lib-fontes.sh` (a divergência da mesma classe, e o precedente); `REGRAS.md` 8
 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com Git).
 
+## 2026-09-20 — O contrato ganha as duas declarações (mapa de colunas e item/valor)
+
+**O que motivou.**
+Com o contrato na lib, faltavam as duas coisas que ele **não pode adivinhar** — e sem elas o plano
+sai inutilizável: (1) o **nome das chaves** (o documento diz `Aula` e `Objetivo específico (marco
+parcial)`; o alvo quer `n` e `marco`) e (2) a **forma** de um bloco cuja tabela é `| Item | Valor |`
+— essa é um **objeto**, não um array de objetos.
+
+**O que foi decidido.**
+- A declaração do documento passa a ser **um objeto**: `extrair(linhas, schema, { secoes, colunas,
+  pares })` — assim os mapas novos entram sem mexer na assinatura outra vez.
+- `colunas`: chave **derivada** (do cabeçalho da tabela, ou do rótulo do par) → chave do alvo.
+  É **declaração, não leitura**: o contrato não interpreta o texto — só aceita o nome que o
+  documento declara.
+- `pares`: os blocos cuja tabela é **item/valor**. O **valor** do mapa é o **campo que recebe** o
+  objeto — `{ objetivoGeral: 'ciclo' }` —, porque no plano a identificação do ciclo está sob
+  "Objetivo geral": um bloco pode ter prosa num campo e tabela noutro.
+- O PO usa a mesma declaração (`oQueAsAlunasTrazem → trazem`, `oQueFalta → falta`,
+  `oQueJaDominam → dominam`).
+
+**O que se mediu.**
+- PO do Duo: a linha de base passa a sair `{ dimensao, trazem, falta, dominam }` — **exatamente as
+  chaves do `po-01.json` escrito à mão**. É a ÚNICA mudança: o diff contra o snapshot são as 9
+  linhas (3 chaves × 3 dimensões), e o resumo humano e o exit code seguem iguais. O PO da Ritmos
+  saiu **idêntico** (a linha de base dela é prosa, não tabela).
+- Plano, prova local (`experimentos/captura-json/provar-declaracoes.js`, não versionado): com as
+  duas declarações, `## Marcos parciais por aula` sai com os **12 objetos `{ n, marco }`** e a
+  tabela de identificação sai como **`ciclo`**, com as 6 chaves (`duracaoAulas`, `duracaoMinutos`,
+  `inicio`, `encerramento`, `volumeAtivoPorAula`, `professor`) — **sem tocar no documento**.
+
+**O que ainda não está feito.**
+- O **irmão** (o extrator do plano) e o **schema do plano** — próximo passo.
+- As **conversões de valor** (`"60 minutos (Pré-requisito 4)"` → `60`; `"01"` → `1`) e as
+  diferenças de **tipografia** (`17/09/2026` × `2026-09-17`; travessão `–` × `-`): declará-las
+  exigiria regras de leitura, e a decisão foi **não ler prosa**.
+
+**Com o quê.**
+`tools/lib-extracao-md.js`, `tools/validar-po-ciclo.js`, `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `REGRAS.md` 8 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com
+Git); `experimentos/captura-json/provar-declaracoes.js` (a prova, local).
+
