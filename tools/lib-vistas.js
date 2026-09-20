@@ -394,7 +394,19 @@ function mdGuia(m, po, plano, aula, prov) {
   const duracao = dur
     ? b.de('plano', 'duração da aula', dur)
     : b.falta('duração da aula', 'duração — vem do plano');
-  const l = [`## Guia de observação — aula ${aula}`, '',
+  const l = [
+    // O FRONT-MATTER é o que o GERADOR lê para o título da página e o rótulo do menu — o mesmo que
+    // o relatório e o acompanhamento já emitiam. Sem ele, a página gerada sai sem título (e o
+    // menu, sem rótulo): foi o que apareceu quando o gerador passou a produzi-la (peça 3).
+    '---',
+    'projeto: Formação em Balé Clássico',
+    'frente: Guia de observação',
+    `ciclo: "${m.id}"`,
+    `aula: "${aula}"`,
+    `escola: ${m.escola}`,
+    `title: "Guia de observação — Aula ${aula}"`,
+    '---', '',
+    `## Guia de observação — aula ${aula}`, '',
     `**Ciclo ${m.id} · ${m.escola}** · ${duracao}` +
     `${prov && prov.em ? ` · ${prov.em}` : ''}`, '',
     '### O que esta aula trabalha', ''];

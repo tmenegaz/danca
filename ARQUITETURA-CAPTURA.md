@@ -19,7 +19,8 @@
 **O guia de observação** (`guia-de-observacao-<NN>.md`) é **derivado de PO + Aula** ✓ — ele declara *"o que
 observar durante a aula"* a partir do que o professor **declarou para aquela aula** (o PO) e do que ela
 trabalha (o plano). **Ele é, portanto, um entregável**, não uma fonte primária: ninguém "digita" o guia — ele
-se escreve do que já foi declarado.
+se escreve do que já foi declarado. Desde 2026-09-20 ele **não é digitado em lugar nenhum**: o pacote do ciclo
+o **gera** das duas entradas (peça 3 da migração — §8), e o Duo já é assim na prática.
 
 **O que ele tem em comum com o relatório, o caderno e os acompanhamentos:** o **grão por aula** ✓ — e, com
 ele, o mesmo problema que esta arquitetura resolve (**um item de menu por aula** ✗). Ele entra na mesma
@@ -468,9 +469,19 @@ em 10 anos, nem em 20.
    a consumi-los: uma definição, dois consumidores. A igualdade foi medida: com o mesmo `prov`, o
    guia do **Node é idêntico** ao do formulário; sem `prov` (o caso do gerador), a diferença é só o
    carimbo — declarado;
-3. **O `gerar-ciclo.sh` passa a ler o JSON** para as páginas de vista — a seguir;
-4. **As vistas saem da cobertura**; o JSON entra (e a âncora de cada ciclo regera uma vez);
-5. **Duo (12 aulas) primeiro; Ritmos (21) depois** — as duas formas testam o modelo.
+3. **Feita** — o `gerar-ciclo.sh` **gera as páginas de vista**: `tools/gerar-vista.js` (novo) resolve as
+   fontes pela precedência do `lib-fontes.sh`, passa o PO e o plano pelos **extratores** e chama a
+   **lib das vistas** — o terceiro consumidor da mesma definição. A vista **substitui a fonte escrita à
+   mão quando ela sai** (`e_vista()`): a migração é por variante, e apagar o `.md` é o ato. O Duo já
+   migrou (o guia dele é gerado, sem carimbo — determinístico); a Ritmos segue com o dela até a vez dela.
+   Medido: a página gerada traz a *Procedência* (7 de 7 blocos) que a escrita à mão não tinha, o rótulo
+   do menu sai do mesmo texto (via `src_do_doc()`), e o PDF consolidado a inclui;
+4. **Feita** (a parte que a peça 3 fecha) — **as vistas saem da cobertura**; o JSON entrou na peça 1. Das
+   vistas, quem sai da cobertura é **o guia** — o único derivável por inteiro (o caderno e o relatório
+   continuam fontes de registro, escritas por quem viveu a aula). A âncora do Duo regerou uma vez
+   (`cb721612…` → `ddd514ef…`); a Ritmos ficou intacta;
+5. **Duo (12 aulas) primeiro; Ritmos (21) depois** — as duas formas testam o modelo. O gerador já produz
+   o guia da Ritmos (medido), e migrá-la é uma linha: apagar o `.md` dela.
 
 ## 9. O que isso revela
 

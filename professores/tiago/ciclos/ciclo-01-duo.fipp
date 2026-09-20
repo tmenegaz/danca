@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: duo
-hash_conteudo: cb7216128a6510eac6672eb21575798351c9130c292edbd3a553b9c2b1491ba1
+hash_conteudo: ddd514ef9190be3a5548e7df46786fe1b9389af0c59a48a89525fa5c2c6e6104
 parentHash: 
-hash: c004b0ecbade4344e878204a991f715679cf267c8a559c2bc1fc1bbeb0345284
+hash: d0394adc6843e0306b578490d57edbc7c18598c20a72bf4576baf4ff7db7ebd9
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado
@@ -24,7 +24,6 @@ cobertura:
   - professores/tiago/ciclos/ciclo-01-duo-po.md
   - professores/tiago/ciclos/ciclo-01-duo.conf
   - professores/tiago/ciclos/ciclo-01-glossario-benesh.md
-  - professores/tiago/ciclos/ciclo-01-guia-de-observacao-01.md
   - professores/tiago/ciclos/ciclo-01-index.md
   - professores/tiago/ciclos/ciclo-01-musicalidade-aluna.md
   - professores/tiago/ciclos/ciclo-01-musicalidade.md

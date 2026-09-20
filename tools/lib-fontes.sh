@@ -53,6 +53,17 @@ fonte_dados() {
   printf '%s' "$CICLOS/ciclo-$CICLO-dados.json"
 }
 
+# Uma VISTA é um documento DERIVADO — hoje, o guia de observação, que sai das duas ENTRADAS (o PO
+# e o plano) e não da captura. Ela passa a ser GERADA pelo pacote quando a fonte escrita à mão
+# SAI: assim a migração acontece POR VARIANTE e de forma explícita — apagar o `.md` é o ato —, e
+# nenhuma escola é migrada por acidente (o Ritmos segue com o guia dele até a vez dele).
+e_vista() {
+  case "$1" in
+    guia-de-observacao-*) [ ! -f "$(fonte_md "$1")" ] ;;
+    *) return 1 ;;
+  esac
+}
+
 # Fontes que COMPÕEM o ciclo desta variante: os dois manifestos, o PO (quando
 # existe) e os documentos que o pacote de fato lê (`index $DOCS`), já resolvidos
 # por fonte_md(). O que é de outra escola não entra, e o documento sem sufixo que

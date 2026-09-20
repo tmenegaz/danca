@@ -24,6 +24,10 @@
 #   professores/<p>/ciclos/ciclo-XX-<doc>.md      um arquivo por documento
 #   biblioteca/guia-do-professor.md               documento COMPARTILHADO (ver abaixo)
 #
+# A VISTA — hoje o guia de observação — não vem daí: o gerador a ESCREVE a partir do PO e do plano,
+# por `tools/gerar-vista.js` (peça 3 da migração). O gatilho é a ausência da fonte escrita à mão:
+# `e_vista()` (em lib-fontes.sh) devolve verdadeiro quando o `.md` da variante já saiu.
+#
 # Decisão — o guia do professor no pacote:
 #   O guia é compartilhado (vive na biblioteca), mas o pacote é uma pasta plana.
 #   Em vez de duplicar o arquivo em cada professor (sairia de sincronia na primeira
@@ -209,7 +213,18 @@ done
 ACOMP_DOCS="${ACOMP_DOCS# }"
 
 for doc in index $DOCS $ACOMP_DOCS; do
-  src="$(fonte_md "$doc")"
+  if e_vista "$doc"; then
+    # A VISTA é GERADA (peça 3 da migração): o PO e o plano passam pelos extratores e pela lib das
+    # vistas, e o texto sai DETERMINÍSTICO — sem carimbo — para o pacote ser reconstruível. A fonte
+    # escrita à mão saiu; quem escreve agora é esta linha.
+    src="$TMP/src/ciclo-$CICLO-$doc.de-vista.md"
+    if ! node "$RAIZ/tools/gerar-vista.js" "$PROFESSOR_SLUG" "$CICLO" "$VARIANTE" "$doc" > "$src"; then
+      echo "erro: não consegui gerar a vista '$doc' (ciclo $CICLO-$VARIANTE)." >&2
+      exit 1
+    fi
+  else
+    src="$(fonte_md "$doc")"
+  fi
   [ -f "$src" ] || continue
   destino="$TMP/src/ciclo-$CICLO-$doc.md"
   python3 "$RAIZ/tools/normalizar-ids.py" "$src" "$destino"
@@ -240,6 +255,17 @@ declare -A ANCORA=(
 )
 ancora() { printf '%s' "${ANCORA[$1]:-ciclo-$CICLO-$1}"; }
 
+# A fonte que o PACOTE lê de um documento. Para a VISTA, é o texto que o gerador acabou de
+# escrever (em $TMP): a fonte dela não existe no disco antes de o pacote rodar — e o menu, o
+# rodapé e o corpo precisam da MESMA resposta. Para os demais, é o .md versionado.
+src_do_doc() {
+  if e_vista "$1"; then
+    printf '%s' "$TMP/src/ciclo-$CICLO-$1.de-vista.md"
+  else
+    fonte_md "$1"
+  fi
+}
+
 # Rótulo do menu: o título declarado no YAML do próprio documento
 rotulo() {
   local src
@@ -256,7 +282,7 @@ rotulo() {
     # `guia-de-observacao-NN` e o `title:` da fonte diz o que o documento é; o caso saiu,
     # porque o rótulo agora vem da fonte e o remendo não tem mais razão de existir.
   esac
-  src="$(fonte_md "$1")"
+  src="$(src_do_doc "$1")"
   if [ -f "$src" ]; then
     sed -n 's/^title:[[:space:]]*"\{0,1\}\([^"]*\)"\{0,1\}[[:space:]]*$/\1/p' "$src" | head -1
   fi
@@ -273,7 +299,7 @@ rodape_docs() {
   local doc r saida='<a href="index.html">Índice do ciclo</a> &middot; <a href="plano.html">Plano</a>'
   for doc in $DOCS; do
     case "$doc" in aula-*|plano) continue ;; esac
-    [ -f "$(fonte_md "$doc")" ] || continue
+    [ -f "$(src_do_doc "$doc")" ] || continue
     r="$(rotulo "$doc")"
     saida="$saida &middot; <a href=\"$doc.html\">$r</a>"
   done

@@ -1355,3 +1355,57 @@ duas cópias dos builders divergiriam na primeira regra nova. É a mesma classe 
 entrada); `ARQUITETURA-CAPTURA.md` §8 (as peças da migração — esta é a 2); `tools/lib-fontes.sh` e
 `tools/lib-extracao-md.js` (os precedentes da mesma classe de risco); `REGRAS.md` 8, 16 e 17.
 
+
+## 2026-09-20 — O gerador passa a GERAR a vista (peça 3 da migração)
+
+**O que motivou.** O guia de observação é derivado do PO e do plano — mas, no ciclo, ele era um `.md`
+escrito **à mão**, com o mesmo conteúdo digitado de novo, e que ninguém atualiza quando o PO muda. A lib
+das vistas existia desde a peça 2, e só o formulário a consumia: o pacote tinha a própria vida.
+
+**O que foi decidido.**
+- `tools/gerar-vista.js` (novo) resolve as fontes pela precedência do `lib-fontes.sh`, roda os dois
+  extratores (`validar-po-ciclo.js`, `validar-plano-ciclo.js` — `--json`) e chama `Vistas.guia`. Ele
+  **não escreve arquivo**: imprime o `.md`, e quem decide onde o texto fica é quem chama.
+- `e_vista()` (em `lib-fontes.sh`): a vista substitui a fonte escrita à mão **quando ela sai**. A
+  migração é **por variante** e explícita — apagar o `.md` é o ato. Nenhuma escola migra por acidente:
+  a Ritmos segue com o guia dela até a vez dela.
+- `gerar-ciclo.sh`: no laço dos documentos, a vista é gerada (o texto vai para `$TMP/src/…de-vista.md`), e
+  `src_do_doc()` dá a MESMA resposta ao corpo, ao menu e ao rodapé. Sem esse segundo ponto, `rotulo()` e
+  `rodape_docs()` leriam um arquivo que não existe mais — o guia sairia **sem rótulo** e fora do rodapé.
+- A lib ganhou o **front-matter** no guia (o relatório e o acompanhamento já o emitiam): sem ele, a
+  página gerada sai sem `title:` — sem título na aba e sem rótulo no menu. Foi o que apareceu na
+  primeira corrida. De quebra, o `frente:` do guia passa a dizer o que o documento é (a fonte dizia
+  "Relatório" — resquício de quando a chave mentia).
+- A fonte escrita à mão do Duo foi **removida**: é o ato da migração.
+
+**O que se mediu.**
+- O gerador roda: **0 erros, 5 avisos** de glossário — e os 5 são **pré-existentes** (nenhum dos
+  símbolos vem do guia apagado, conferido no `git show`).
+- A página gerada traz a **Procedência** (7 de 7 blocos, 0 lacunas) que a escrita à mão não tinha; o
+  `<title>` e o rótulo do menu saem do mesmo texto (`Guia de observação — Aula 01`), e o PDF consolidado
+  a inclui.
+- **Determinismo**: o texto não tem carimbo (o gerador não passa `prov`) — o pacote é reconstruível.
+- Âncora do Duo: a lista de fontes mudou (o guia saiu) → `cb721612…` → `ddd514ef…`. A **Ritmos ficou
+  intacta** (`3aeaa3b6…`), porque a fonte dela não saiu.
+- A Ritmos **já produz** o guia dela: `gerar-vista.js tiago 01 ritmos guia-de-observacao-01` sai com a
+  escola e a carga dela. Migrá-la é apagar o `.md`.
+
+**O que ainda não está feito.**
+- O guia gerado **não traz** três coisas que só existiam no escrito à mão: a nota "este documento não é o
+  relatório / onde ele está", a **data da aula** e o checklist "o que preencher depois" — este último,
+  por desenho (quem preenche é o formulário). Os dois primeiros são bloco fixo + dado do calendário;
+  **não foram inventados** — é decisão de quem escreve o guia.
+- As outras vistas (caderno, relatório, acompanhamento) **não** são geradas pelo pacote: elas derivam do
+  JSON de dados, que ainda está vazio (peça 1) e é alimentado pelo formulário.
+- §7.2, §7.4, §7.5 e §7.6 seguem em aberto — nenhuma bloqueia.
+
+**Com o quê.**
+`tools/gerar-vista.js` (novo), `tools/lib-fontes.sh`, `tools/lib-vistas.js`, `tools/gerar-ciclo.sh`,
+`professores/tiago/ciclos/ciclo-01-guia-de-observacao-01.md` (removido), o `.fipp` do Duo (regerado), o
+pacote do Duo, `ARQUITETURA-CAPTURA.md` §8 e `professores/tiago/relatorios/README.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta entrada);
+`ARQUITETURA-CAPTURA.md` §8 (as peças da migração — esta é a 3); `IDEIA-CAPTURA.md`; `tools/lib-vistas.js`
+e `tools/lib-extracao-md.js` (os precedentes da mesma classe de risco); `REGRAS.md` 8, 16 e 17.
+
