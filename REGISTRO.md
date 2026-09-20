@@ -1651,3 +1651,34 @@ teria o que ler.
 `ARQUITETURA-CAPTURA.md` §8; `tools/deploy-netlify.sh` (o que se publica); `tools/lib-fontes.sh`
 (`fonte_dados`); `REGRAS.md` 10 e 16.
 
+
+## 2026-09-20 — O JSON de dados do Ritmos entra como fonte (peça 1 do Ritmos)
+
+**O que motivou.** A peça 1 (o `ciclo-XX-dados.json` como **fonte**) começou pelo Duo. O formulário de
+lançamento, agora em produção, precisa de um arquivo de dados **por ciclo** — e o índice que o
+gerador escreve (Fase 2.1) já apontava `ciclo-01-ritmos-dados.json`, um arquivo que **ainda não
+existia**.
+
+**O que foi feito.**
+- `professores/tiago/ciclos/ciclo-01-ritmos-dados.json` criado **vazio** (`"aulas": {}`), com o mesmo
+  `_nota` do Duo: o dado da Aula 01 está no caderno e no relatório pós-aula; o primeiro lançamento
+  entra pela própria página.
+- `fonte_dados()` **já o resolve** pela precedência da variante (arquivo próprio vence o sem sufixo) —
+  a lib **não foi tocada**, só conferida.
+- `fontes_do_ciclo()` **já o inclui**: o JSON entra na cobertura do hash, como o do Duo.
+
+**O que se mediu.**
+- Âncora do Ritmos **regerada** (reancoragem declarada): `hash_conteudo 29344f18… → 4d06c495…`,
+  `hash 2f172493… → 3cb3babf…` — a fonte nova entrou na cobertura.
+- Âncora do **Duo intacta** (`d0394adc…`): o arquivo é do Ritmos e não toca o Duo.
+- `check-pacote`: **0 erro(s) nos dois**.
+- O índice do Ritmos (gerado na Fase 2.1) aponta `ciclo-01-ritmos-dados.json` — que **agora existe**.
+  Era o **pré-requisito declarado da Fase 2.2** (é ele que vai cifrado para o pacote).
+
+**Com o quê.**
+`professores/tiago/ciclos/ciclo-01-ritmos-dados.json` (novo) e `…-ritmos.fipp` (regerado).
+
+**Referências.**
+`ARQUITETURA-CAPTURA.md` §8 (a peça 1); `tools/lib-fontes.sh` (`fonte_dados`, `fontes_do_ciclo`);
+`professores/tiago/ciclos/ciclo-01-duo-dados.json` (o padrão).
+
