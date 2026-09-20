@@ -23,28 +23,36 @@
 ```mermaid
 flowchart LR
   PO["PO<br/><i>o que observar no ciclo</i>"] --> F["Formulário"]
+  CI["Ciclo<br/><i>o período e o plano</i>"] --> F
   AU["Aula<br/><i>o que trabalhar hoje</i>"] --> F
   F --> JS[("JSON<br/>um por ciclo")]
   JS --> V["Vistas<br/><i>calculadas em memória</i>"]
+  JS -.-> E["Entregáveis<br/><i>gerados sob demanda</i>"]
 ```
 
 **ASCII (mesma estrutura, para o PDF):**
 
 ```
-PO ────┐
-       │
-       ├───> Formulário ───> JSON (por ciclo) ───> Vistas (calculadas)
-       │
-Aula ──┘
+PO ─────┐
+        │
+Ciclo ──┼───> Formulário ───> JSON (um por ciclo)
+        │                       │
+Aula ───┘                       ├──> Vistas (calculadas em memória)
+                                │
+                                └──> Entregáveis (gerados sob demanda):
+                                     caderno · relatório · acompanhamento
 ```
 
 **Descrição:**
 
 - **PO** — define o que observar no ciclo (alunas, fenômeno, linha de base)
+- **Ciclo** — define o período, o intervalo e a duração de referência (o manifesto)
 - **Aula** — define o que trabalhar hoje (tipo, exercícios, objetivo)
-- **Formulário** — combina PO + aula para montar os campos daquela aula
+- **Formulário** — combina PO + ciclo + aula para montar os campos daquela aula
 - **JSON** — armazena os valores lançados (um por ciclo, com todas as aulas)
-- **Vistas** — recortes calculados em memória (por aluna, por período)
+- **Vistas** — recortes calculados em memória (por aula, por aluna): o que se lê na tela
+- **Entregáveis** — caderno, relatório pós-aula e acompanhamento por aluna: gerados
+  **sob demanda**, quando há um arquivo a entregar (§3.5)
 
 ### 1.2 Relações
 
@@ -55,6 +63,7 @@ Aula ──┘
 | **Formulário** | Campos (montados dinamicamente) | PO + Aula |
 | **JSON** | Valores + textos | Formulário (grava) |
 | **Vistas** | Recortes | JSON (lê) |
+| **Entregáveis** | Caderno, relatório pós-aula e acompanhamento — **sob demanda** | JSON (lê) |
 
 ## 2. Schema do JSON
 
@@ -197,8 +206,23 @@ Seleciona "Aula 03" → formulário carrega dados do JSON
     ↓
 OU seleciona "Carol" no filtro → formulário calcula a vista por aluna
     ↓
-OU seleciona um período → formulário calcula a evolução
+OU o período do ciclo aparece como informação (não é filtro)
 ```
+
+### 3.5 Gerar um entregável (sob demanda)
+
+Os artefatos de saída — **caderno**, **relatório pós-aula** e **acompanhamento por
+aluna** — são **vistas dos dados já lançados**: o professor clica em "Gerar" quando
+precisa de um arquivo para entregar (enviar, imprimir, arquivar), com o filtro que
+quiser. **Nada é mantido atualizado automaticamente.** O JSON é o armazenamento; os
+`.md` são os entregáveis.
+
+E não é escrever duas vezes: no modelo atual o caderno e o relatório são **escritos à
+mão**; aqui eles são **lidos** do que já foi lançado.
+
+Isso não muda o §3.3 — a gravação continua sendo lançar → baixar o JSON → commitar. O
+que muda é que o documento entregue deixa de ser escrito à mão: ele é o espelho do
+filtro, no momento em que se precisa dele.
 
 ## 4. Componentes
 
