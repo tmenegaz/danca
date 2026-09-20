@@ -286,6 +286,28 @@ declara de onde veio. A cadeia é íntegra — só ganha um elo novo.
 > sem esperar 48h: a página aceita `#agora=2026-10-01T10:00` no endereço. A gravação
 > usa o relógio de verdade, sempre — o carimbo do arquivo não se simula.
 
+### Aviso para implementação — colisão de nomes
+
+O campo `ajustes` (lista de mudanças do lançamento, na **raiz** do JSON)
+**não pode colidir** com `relatorio.ajustes` (o "O que foi ajustado" do
+relatório pós-aula, **dentro de cada aula**).
+
+**O risco:** um merge que grave a chave `ajustes` em qualquer nível de
+indentação sobrescreve o relatório da aula com a lista — e o JSON continua
+**válido** (o `JSON.parse` não pega), o que torna o bug silencioso. Aconteceu
+de verdade na primeira versão do experimento: o campo nasceu como lista e o
+relatório da aula virou array, sem que nada acusasse.
+
+**As opções:**
+
+- **(a)** O merge é **ciente do nível** — só toca a raiz, nunca o interior
+  das aulas
+- **(b)** O campo de raiz recebe **outro nome** (`ajustes_do_lancamento`)
+
+No experimento ficou **(a)**: a gravação ancora a indentação exata da raiz (dois
+espaços), e o harness ganhou asserção de regressão — `relatorio.ajustes` de uma
+aula tem de continuar texto. A decisão para o gerador continua em aberto.
+
 ## 6. Estimativas
 
 ### 6.1 Tamanho do JSON
