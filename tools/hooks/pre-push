@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+# ============================================================================
+# pre-push — o que não pode sair de casa, conferido ANTES de enviar.
+#
+#   uso:  git push            (o hook roda sozinho)
+#         tools/hooks/pre-push (conferir sem enviar; saída em stderr)
+#
+# Instalado por tools/instalar-hooks.sh, por link simbólico em .git/hooks/pre-push.
+#
+# Duas conferências, as duas MEDIDAS (20/09/2026):
+#
+#   1) AS SENHAS DOS ACOMPANHAMENTOS não podem estar em arquivo versionado. Elas vivem em
+#      `tools/.senhas-locais` — local, no .gitignore, **nunca commitado** —, e o hook as lê DE LÁ:
+#      uma definição só (se a senha mudar lá, o hook muda com ela). Se o arquivo não existir, a
+#      conferência é declarada como NÃO FEITA, em vez de passar em silêncio (o
+#      `gerar-acompanhamento.sh` também sabe pedir a senha na hora, então pode não haver arquivo).
+#
+#   2) ACOMPANHAMENTO EM TEXTO PURO. O que se versiona é a página **cifrada**
+#      (`acompanhamento-<apelido>.html`); o `.md` por aluna — que traz os apelidos em claro — é
+#      local e está no .gitignore (`professores/*/ciclos/*-acompanhamento-*.md`). O ALVO desta
+#      conferência é o `.md` VERSIONADO. Procurar a palavra `acompanhamento` solta casava também
+#      com `tools/gerar-acompanhamento.sh` (a ferramenta) e com as próprias páginas cifradas, que
+#      SÃO parte do pacote: o alarme acendia SEMPRE — e alarme que sempre acende não avisa nada.
+# ============================================================================
+set -uo pipefail
+
+RAIZ="$(git rev-parse --show-toplevel)"
+cd "$RAIZ" || exit 1
+
+# O arquivo das senhas é local; o caminho é trocável para o TESTE do próprio hook.
+SENHAS="${SENHAS_LOCAIS:-$RAIZ/tools/.senhas-locais}"
+erros=0
+alerta() { printf 'pre-push: ALERTA — %s\n' "$1" >&2; erros=$((erros + 1)); }
+
+# --- 1) as senhas não podem estar no que está versionado ---------------------
+if [ -f "$SENHAS" ]; then
+  n=0
+  while IFS='=' read -r nome valor; do
+    case "$nome" in ''|'#'*) continue ;; esac
+    valor="${valor%\"}"; valor="${valor#\"}"
+    valor="${valor%\'}"; valor="${valor#\'}"
+    [ -n "$valor" ] || continue
+    n=$((n + 1))
+    if git grep -qF -- "$valor" -- . 2>/dev/null; then
+      alerta "a senha de $nome aparece em arquivo VERSIONADO:"
+      git grep -nF -- "$valor" -- . | head -5 >&2
+    fi
+  done < "$SENHAS"
+  [ "$erros" -eq 0 ] && echo "pre-push: ok — as $n senha(s) de $(basename "$SENHAS") não estão em arquivo versionado" >&2
+else
+  echo "pre-push: aviso — $SENHAS não existe: as senhas NÃO foram conferidas" >&2
+fi
+
+# --- 2) acompanhamento em texto puro versionado ------------------------------
+if git ls-files | grep -q 'acompanhamento.*\.md$'; then
+  alerta 'acompanhamento em TEXTO PURO versionado (o que se versiona é a página cifrada):'
+  git ls-files | grep 'acompanhamento.*\.md$' | sed 's/^/  /' >&2
+else
+  cifradas="$(git ls-files | grep -c 'acompanhamento.*\.html$')"
+  echo "pre-push: ok — nenhum .md de acompanhamento versionado (as ${cifradas} página(s) cifrada(s) são do pacote)" >&2
+fi
+
+if [ "$erros" -gt 0 ]; then
+  printf 'pre-push: %d ALERTA(S) — push barrado. Conserte; se for enviar assim mesmo, é --no-verify, sabendo o que faz.\n' "$erros" >&2
+  exit 1
+fi
+exit 0

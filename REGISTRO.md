@@ -1560,3 +1560,44 @@ fontes por ajustar**.
 `CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
 `ARQUITETURA-CAPTURA.md` §8 (a migração — esta é a peça 5); `REGRAS.md` 8, 10, 16 e 17.
 
+
+## 2026-09-20 — O `pre-push` passa a existir — e a conferência do acompanhamento olha o alvo certo
+
+**O que motivou.** A conferência antes do push existia só como **texto no ritual** (colada à mão, a
+cada vez): não havia hook. E o alvo de uma das duas conferências estava **errado**:
+`git ls-files | grep acompanhamento` casa também com `tools/gerar-acompanhamento.sh` (a ferramenta) e
+com as **páginas cifradas**, que **são** parte do pacote — o alarme acendia **sempre**, e alarme que
+sempre acende não avisa nada. Foi o que aconteceu hoje: o check acendeu, e a conferência mostrou que
+os nove `.html` são as páginas cifradas e que **nenhum `.md` por aluna está versionado**.
+
+**O que foi decidido.**
+- `tools/hooks/pre-push` (novo), instalado por `tools/instalar-hooks.sh` como os demais.
+- As senhas são lidas de `tools/.senhas-locais` (local, no `.gitignore`, **nunca commitado**): uma
+  definição só. Sem o arquivo, a conferência é declarada **não feita** — em vez de passar em silêncio.
+- O alvo da segunda conferência passa a ser o **`.md` VERSIONADO**
+  (`git ls-files | grep 'acompanhamento.*\.md$'`), e o passe **diz quantas páginas cifradas existem**:
+  é a informação que distingue *"nada a declarar"* de *"não olhei"*.
+- O hook **barra o push** (`exit 1`) e diz como ir assim mesmo (`--no-verify`): é decisão de quem
+  envia, não acidente.
+
+**O que se mediu.**
+- Estado real: as 3 senhas não estão em arquivo versionado; nenhum `.md` de acompanhamento versionado
+  (9 páginas cifradas no pacote) → **exit 0**.
+- Com um `.md` de acompanhamento **plantado** (`git add -N`): **ALERTA + exit 1**.
+- Com uma senha de **teste** vazada num arquivo versionado (`SENHAS_LOCAIS` apontando para um arquivo
+  de teste — o arquivo real não foi tocado): **ALERTA com arquivo e linha + exit 1**.
+- Árvore limpa depois dos testes: nada foi commitado por eles.
+
+**O que ainda não está feito (declarado).**
+- O hook confere o que está **versionado na árvore**; segredo que já esteja **na história** não é
+  visto (nem por ele, nem pelo `pre-commit`). Aqui isso foi conferido à parte:
+  `git log -- tools/.senhas-locais` é **vazio** — nunca foi commitado.
+- O push dos 37 commits segue **pendente de decisão** da pesquisadora.
+
+**Com o quê.**
+`tools/hooks/pre-push` (novo).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`tools/instalar-hooks.sh` (o instalador); `tools/.senhas-locais.exemplo`; `REGRAS.md` 17.
+
