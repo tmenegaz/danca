@@ -21,7 +21,7 @@ giros ou mudanças de direção**.
 | **Duração** | 12 aulas (extensível a 16, conforme critério de extensão da Regra 10) |
 | **Duração de cada aula** | **60 minutos** (Pré-requisito 4) |
 | **Data de início** | 17/09/2026 |
-| **Encerramento previsto** | 04/12/2026 |
+| **Encerramento previsto** | ver o [Calendário do ciclo](#calendario-do-ciclo) |
 | **Volume ativo por aula** | 80–100 tempos (faixa de 60 min, Regra 9, etapa 1) |
 | **Professor** | [Nome do professor] |
 
