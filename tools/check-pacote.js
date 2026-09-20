@@ -172,7 +172,10 @@ paginas.forEach((f) => {
   }
   const exigidos = [
     ['barra de navegação', 'class="topnav"'],
-    ['índice interno', 'class="toc-local"'],
+    // O "índice desta página" NÃO é exigido das páginas de FERRAMENTA: o formulário não é documento,
+    // e o `toc-local` — coluna presa à direita a partir de 1200px — fica por cima do conteúdo dele
+    // (medido em 20/09/2026; a pesquisadora o apontou e ele saiu).
+    ...(FERRAMENTAS.includes(f) ? [] : [['índice interno', 'class="toc-local"']]),
     ['botão voltar ao topo', 'class="topo"'],
     ['rodapé', 'class="rodape"'],
     ['idioma pt-BR', 'lang="pt-BR"'],

@@ -1834,3 +1834,74 @@ no menu** com o sufixo "(remover)" — um marcador de dívida explícito. A remo
 `CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
 `ARQUITETURA-CAPTURA.md` §8; `tools/lib-fontes.sh` (a cobertura do hash); `REGRAS.md` 16 e 17.
 
+
+## 20/09/2026 — O bloco de índice do formulário sai (atrapalhava a navegação)
+
+**O que motivou.** A pesquisadora apontou, ao usar a página: o bloco fixo com *Lançar uma aula · O
+ciclo · Entregáveis* **atrapalhava e quebrava a navegação**. Ele era o `toc-local` que a Fase 2.3
+pôs no formulário para satisfazer a regra de estrutura do `check-pacote` — e o CSS do pacote o
+transforma em **coluna presa à direita** a partir de 1200px, sobre um layout que **não é o de
+documento**: o bloco fica **por cima do conteúdo**.
+
+**O que foi decidido.**
+- O `toc-local` **sai** de `tools/templates/lancamento.html`: o formulário **não é documento** — não
+  tem índice de página. O botão "voltar ao topo" **fica** (é fixo no canto, não ocupa lugar no fluxo).
+- A regra do "índice interno" deixa de ser exigida das **páginas de ferramenta** (hoje só o
+  formulário) — como já não era a do título no PDF. Sem isso, o check exigiria o bloco que atrapalha.
+
+**O que se mediu.** Os dois pacotes geram com **0 erro(s)**; a página do formulário segue com barra
+de navegação, botão ao topo, rodapé, idioma e folha de estilo (as demais regras continuam valendo), e
+o menu marca a página atual.
+
+**Com o quê.**
+`tools/templates/lancamento.html`, `tools/check-pacote.js`; as páginas `lancamento.html` dos dois
+pacotes.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`tools/templates/ciclo.css` (a coluna presa do `toc-local`, que explica o efeito); `ARQUITETURA-CAPTURA.md` §8.
+
+
+## 20/09/2026 — Os lançamentos da Aula 01 entram no JSON (transcrição dos registros)
+
+**O que motivou.** A pesquisadora: *"existe os dados lançados da Aula 01 do Ritmos e do Duo; eles
+precisam estar na listagem do formulário com os valores corretos"*. Os JSONs estavam **vazios** — o
+dado existia **escrito à mão**, no caderno e no relatório —, então o formulário não tinha o que
+mostrar.
+
+**O que foi feito.** Transcrição da Aula 01, **dos registros para o JSON, sem interpretação**:
+- **Duo** (18/09/2026, 60 min): 4 presentes (Ceci, Ana, Mel, Sofi), condições 5/5/5, plano seguido;
+  técnica — metatarsos, tempo e transferência `ok` para todas, braço-perna `parcial` para todas;
+  funcional — 60 min, fadiga antes do previsto **só na Mel**; o estado da aula e o que surpreendeu
+  vão nos campos de texto do relatório.
+- **Ritmos** (19/09/2026, 120 min): 4 presentes, **Mari ausente**, condições 5/5/5, plano seguido;
+  funcional — 120 min, tônus parcial (Pássaro Azul sustenta até o fim), fadiga apareceu em três.
+
+**O que a transcrição encontrou — e é decisão de MODELO, não de dados.** O ciclo de Ritmos tem
+**dimensões próprias** (tendus/jetés, piqué arabesque, par/pas de deux, repertório em 3/4) e o modelo
+de captura do formulário é o do Duo (alinhamento / tempo / transferência / braço-perna). Ficou no
+JSON **só o que encaixa sem inventar** (transferência, funcional, condições, presença), e o resto está
+no campo de texto, **nas palavras do relatório** — com a nota no próprio arquivo. Quando a
+pesquisadora decidir se o formulário ganha as dimensões do ciclo, isto vira campo.
+
+**O que se mediu.**
+- Os dois JSONs são válidos; os dois pacotes geram com **0 erro(s)** — inclusive a conferência
+  cópia × fonte do JSON cifrado.
+- **Âncoras regeradas** nos dois (o JSON de dados é **fonte**): Duo `d135ecec…` → `71dbc003…`, Ritmos
+  `4d81d6f3…` → `184213f5…`.
+- **O formulário, no navegador, pede a senha** — o comportamento desenhado (havendo lançamento, a
+  leitura pede a senha da escola): *"Detalhe: sem senha para ciclo-01-duo-dados.json"*.
+- **Os valores, provados nas vistas** — pelo mesmo caminho do formulário (decifra o envelope do
+  pacote e monta caderno, relatório e acompanhamento): no Duo — "Mel", "parcial", "leve reducao",
+  "barra ao solo", "18/09/2026"; no Ritmos — "Pássaro Azul", "Mari", "Tóquio", "tornozelo",
+  "19/09/2026". **10 de 10.**
+
+**Com o quê.**
+`professores/tiago/ciclos/ciclo-01-duo-dados.json` e `…ciclo-01-ritmos-dados.json` (transcritos), os
+dois `.fipp` (regerados), os pacotes dos dois ciclos (o envelope cifrado, agora com 1 lançamento).
+
+**Referências.**
+`relatorios/ciclo-01/aula-01-duo.md` e `…aula-01-ritmos.md` (a fonte da transcrição);
+`cadernos/ciclo-01/…` (conferência); `ARQUITETURA-CAPTURA.md` §2.1 (o modelo de dados); `REGRAS.md`
+8 e 17.
+

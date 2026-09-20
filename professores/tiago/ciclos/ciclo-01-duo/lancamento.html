@@ -68,7 +68,10 @@
 <body id="top">
 <!-- A barra de navegação do PACOTE entra no marcador abaixo — quem a escreve é o gerador, com a
      mesma `gerar_nav` das outras páginas: o formulário é uma página do site, não uma página fora
-     dele. O índice desta página fica no bloco ao lado do topo, como nas demais. -->
+     dele. SEM "índice desta página" (`toc-local`): o formulário não é documento, e aquele bloco —
+     coluna presa à direita a partir de 1200px — fica POR CIMA do conteúdo (medido em 20/09/2026:
+     atrapalhava e quebrava a navegação). O botão de voltar ao topo fica: é fixo no canto, não ocupa
+     lugar no fluxo. -->
 <nav class="topnav" aria-label="Navegação do ciclo">
   <a class="marca" href="index.html">Ciclo 01 · duo</a>
   <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
@@ -124,11 +127,6 @@
   </div>
 </nav>
 
-<nav class="toc-local" aria-label="Índice desta página">
-  <a href="#captura-campos">Lançar uma aula</a>
-  <a href="#saida">O ciclo</a>
-  <a href="#acoes-md">Entregáveis</a>
-</nav>
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
 <h1>Lançamento de aula — formulário eletrônico</h1>
 <div class="aviso">

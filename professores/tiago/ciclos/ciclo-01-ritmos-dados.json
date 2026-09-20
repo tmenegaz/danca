@@ -3,7 +3,47 @@
   "escola": "ritmos",
   "professor": "tiago",
   "criado_em": "2026-09-20",
-  "ultimo_lancamento": null,
-  "aulas": {},
-  "_nota": "O primeiro lancamento entra pela propria pagina, quando o formulario estiver em producao. O que existe hoje da Aula 01 esta no caderno e no relatorio pos-aula (relatorios/ciclo-01/aula-01-ritmos.md) -- a captura em JSON comeca aqui, vazia. O JSON e a FONTE do ciclo (decisao de 20/09): entra no hash, nao e publicado, e as vistas (caderno, relatorio, acompanhamento, guia) passam a ser geradas a partir dele. Sao 21 aulas (a peca 1 comecou pelo Duo, de 12; esta e a vez do Ritmos)."
+  "ultimo_lancamento": "2026-09-19T10:00",
+  "apelidos": {
+    "carol": "Carol",
+    "dada": "Dada",
+    "tony": "Tony",
+    "passaro-azul": "Pássaro Azul",
+    "mari": "Mari"
+  },
+  "aulas": {
+    "01": {
+      "data": "2026-09-19",
+      "presentes": ["carol", "dada", "tony", "passaro-azul"],
+      "ausentes": ["mari"],
+      "duracao_min": 120,
+      "condicoes_contorno": {
+        "plano_seguido": "sim",
+        "animo": 5,
+        "interesse": 5,
+        "harmonia": 5,
+        "mudou": ""
+      },
+      "tecnica": {
+        "carol": { "transferencia": "parcial" },
+        "dada": { "transferencia": "parcial" },
+        "tony": { "transferencia": "nao" },
+        "passaro-azul": { "transferencia": "ok" }
+      },
+      "funcional": {
+        "carol": { "duracao_min": 120, "tonus": "parcial", "fadiga_antes": true },
+        "dada": { "duracao_min": 120, "tonus": "parcial", "fadiga_antes": true },
+        "tony": { "duracao_min": 120, "tonus": "parcial", "fadiga_antes": true },
+        "passaro-azul": { "duracao_min": 120, "tonus": "ok", "fadiga_antes": false }
+      },
+      "relatorio": {
+        "texto": "Estado da aula 01 (não é evolução — é o estado). Técnica — tendus/jetés: Carol parcial (instável; braços 1ª–2ª–3ª instáveis); Dada parcial (instável, melhor que a Carol; o pé vira para dentro, o en dehors não se sustenta — causa muscular, não estrutural); Tony não aconteceu (iniciante absoluto); Pássaro Azul ok. Piqué arabesque: Carol parcial (joelhos não firmes; quadril não sobe como o exercício pede; a perna não libera); Dada parcial (quadril sobe e a perna vai atrás; falta energia até as extremidades); Tony não aconteceu; Pássaro Azul ok, com observações (tronco tende a inclinar para trás, costelas abertas, abdômen solto; braços a melhorar na sustentação dos cotovelos). Par (elementos de pas de deux) — duplas do dia: Carol + Pássaro Azul, e Dada + Tony: eixo individual NÃO aconteceu nas duas duplas, e é a base de tudo o que vem depois; eixo no par, contrapeso na ação de peso e entrosamento apareceram melhorando ou razoáveis. Musicalidade (repertório em 3/4) — pulso: Carol e Pássaro Azul ok, Dada ok, Tony parcial (em evolução); acento: Carol e Pássaro Azul ok, Dada e Tony parciais; resposta ao repertório do dia: Dada ok, Carol parcial (as dificuldades estruturais de pé e joelho comprometem a estética), Pássaro Azul razoável (não recebeu muita atenção hoje), Tony razoável para menos (iniciante). Estado — postura de tronco: Carol boa, Dada boa, Pássaro Azul a ajustar (tronco mais à frente, costelas fechadas, ombros abertos, queixo levemente levantado), Tony não observado além do bloco técnico; adutores: precisa de mais flexibilidade e força (todos); rotadores externos: Carol e Dada têm flexibilidade e falta força, Pássaro Azul muito bom, Tony não observado; foco/atenção: excelente em todos. Ocorrência (P-22): Dada — lesão no tornozelo esquerdo (descer da ponta é difícil), relatada em aula; registrada e a comunicar à Gabi. Mari faltou: a ausência não é 'não aconteceu' — não havia quem observar. Ajuste do Pássaro Azul: por consciência corporal, sem forçar.",
+        "surpresas": "O entrosamento está melhorando — não na velocidade esperada pela professora, mas melhorando. E a dificuldade da Carol em movimentos básicos sozinha (subir e descer da ponta), que não deveria depender de estar com um parceiro.",
+        "ajustes": "Troca de gravação musical: a versão orquestral usada no ensaio era mais brilhante e mais rápida; a aula passou a usar a versão do espetáculo (orquestra de Tóquio, nome a confirmar), mais arrastada.",
+        "_nota": "O ciclo de Ritmos tem dimensões PRÓPRIAS (tendus/jetés, piqué arabesque, par/pas de deux, repertório em 3/4) e o modelo de captura do formulário — o do Duo: alinhamento/tempo/transferência/braço-perna — não as cobre. Aqui ficou o que encaixa SEM INVENTAR (transferência, funcional, condições de contorno, presença) e o resto está no texto, nas palavras do relatório. É decisão de MODELO, não de transcrição: quando a pesquisadora decidir se o formulário ganha as dimensões do ciclo, isto vira campo."
+      }
+    }
+  },
+  "_nota": "A captura em JSON do ciclo, por aula. A Aula 01 foi transcrita do relatorio pos-aula e do caderno (20/09/2026) -- o dado ja existia, escrito a mao; daqui em diante o lancamento entra pela propria pagina. Sao 21 aulas (a peca 1 comecou pelo Duo, de 12). O JSON e a FONTE do ciclo (decisao de 20/09): entra no hash, nao e publicado, e as vistas (caderno, relatorio, acompanhamento, guia) sao geradas a partir dele."
 }
+
