@@ -876,3 +876,45 @@ pacotes regerados (HTML + `assets/style.css`).
 próprio e esta entrada); `REGRAS.md` 16 (Formato de entrega — índice, links, navegação);
 `README-ciclos.md` (*Regras de navegação implementadas*).
 
+## 2026-09-20 — O contrato de extração vira lib (definição única)
+
+**O que motivou.**
+O passo seguinte da automação é o **extrator do plano** — irmão do `validar-po-ciclo.js`, com o
+**mesmo** contrato de extração. Duplicar o contrato seria repetir, no mesmo dia, a divergência que
+criou o `lib-fontes.sh`: o gerador e o hasher resolviam as fontes cada um do seu jeito, e o pacote
+da Ritmos saiu com o plano da Duo. Dois documentos do mesmo tipo — PO e plano são Markdown com
+`## Seção`, `### Subcampo`, listas e tabelas — não podem ter duas leituras.
+
+**O que foi decidido.**
+- O contrato passa a viver em **`tools/lib-extracao-md.js`**: `extrair`, a regra de tabela e as suas
+  partes (`celulasDaLinha`, `semEnfase`, `textoDaCelula`, `chaveDaColuna`, `ehSeparador`),
+  `lerYamlCabecalho`, `normalizar`, `tipoDe`.
+- O **mapa das seções** (título em português → campo do schema) **não** vai para a lib: ele é DO
+  DOCUMENTO e entra por argumento — `extrair(linhas, schema, mapaSecoes)`. A lib é o contrato; cada
+  documento declara os seus nomes e o seu schema.
+- O código movido **não foi redigitado**: o bloco saiu do arquivo por recorte (`sed` sobre a versão
+  ancorada), e a única mudança de texto foi a assinatura (`schema, mapaSecoes`) e a linha que lê o
+  mapa.
+
+**O que se mediu (a prova da refatoração).**
+Sem mudança de comportamento: a extração `--json` dos dois POs saiu **byte a byte idêntica** à de
+antes — `duo 91358ce4da13f9f8fe8bc9e9e802eac1`, `ritmos c4aaeae9bdc0f0ef2ae07856fcc528f7`, os mesmos
+MD5 do snapshot anterior —, com o resumo humano idêntico (avisos, provisórios, estado) e exit 0.
+`node --check` passa nos dois arquivos. `validar-po-ciclo.js` foi de **384 → 170 linhas**; a lib tem
+**264**.
+
+**O que ainda não está feito.**
+- O **extrator do plano** (o irmão) — próximo passo.
+- O **mapa de colunas** (cabeçalho da tabela → chave do alvo) e a regra de **tabela item/valor →
+  objeto**: são as duas DECLARAÇÕES que ainda não existem.
+- O contrato da lib ainda não é exercitado por um teste próprio: hoje quem o prova são os dois POs
+  (e, de agora em diante, também o plano).
+
+**Com o quê.**
+`tools/lib-extracao-md.js` (novo), `tools/validar-po-ciclo.js`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `tools/lib-fontes.sh` (a divergência da mesma classe, e o precedente); `REGRAS.md` 8
+(proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com Git).
+

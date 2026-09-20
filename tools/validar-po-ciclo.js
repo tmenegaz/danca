@@ -4,19 +4,18 @@
 /*
  * validar-po-ciclo.js — valida o Plano de Observação (PO) de um ciclo.
  *
- *   uso: node tools/validar-po-ciclo.js <schema.json> <ciclo-XX-po.md>
+ *   uso: node tools/validar-po-ciclo.js <schema.json> <ciclo-XX-po.md> [--json]
  *
- * O PO é Markdown, então este script extrai os campos e valida o resultado contra
- * o schema (draft-07) do PO:
+ * A EXTRAÇÃO é do contrato compartilhado (tools/lib-extracao-md.js) — o MESMO do plano:
+ * `## Seção → campo`, `### Subcampo → subcampo`, `- item → array`, tabela → array de objetos
+ * e `- [ ]`/`- [x]` → booleano. O que é DESTE documento é o mapa das seções (título em
+ * português → campo do schema) e a validação:
  *
- *   · cabeçalho YAML  → `state` e demais chaves (parse manual, sem dependências);
- *   · `## Seção`      → um campo do schema (título em português → propriedade);
- *   · `### Subcampo`  → subcampo de um objeto (título já em camelCase);
- *   · linhas `- item` → elemento de array; `- [ ]` / `- [x]` → booleano;
- *   · texto corrido   → valor de um campo string.
- *
- * Contrato: `[Preencher]` é aceito como valor provisório de qualquer campo string
- * (o campo existe, a decisão da pesquisadora ainda não), mas campo AUSENTE é erro.
+ *   · campo obrigatório AUSENTE é erro; `[Preencher…]` é aceito como provisório (o campo
+ *     existe, a decisão da pesquisadora ainda não);
+ *   · o tipo de cada campo vem do schema — e quando ele declara `items.type: 'object'`, um
+ *     item que não é objeto sai em AVISO (o documento está em transição entre prosa e tabela);
+ *   · `--json` despeja o objeto extraído no stdout (o resumo humano vai para o stderr).
  *
  * Sai com 0 se todos os campos obrigatórios existem e têm o tipo correto;
  * com 1 imprimindo os problemas.
@@ -43,223 +42,10 @@ const MAPA_SECOES = {
   'checklist de validação': 'validationChecklist',
 };
 
-const normalizar = (s) => s.trim().toLowerCase();
-
-function lerYamlCabecalho(linhas) {
-  const meta = {};
-  if (linhas[0] && linhas[0].trim() === '---') {
-    for (let i = 1; i < linhas.length; i++) {
-      if (linhas[i].trim() === '---') break;
-      const m = linhas[i].match(/^([A-Za-z_][A-Za-z0-9_-]*)\s*:\s*(.*)$/);
-      if (!m) continue;
-      let v = m[2].trim();
-      if ((v.startsWith('"') && v.endsWith('"')) || (v.startsWith("'") && v.endsWith("'"))) {
-        v = v.slice(1, -1);
-      }
-      meta[m[1]] = v;
-    }
-  }
-  return meta;
-}
-
-// ----------------------------------------------------- a REGRA DE TABELA (2026-09-20)
-/**
- * A regra que faltava ao contrato: uma tabela cujo bloco tem campo ARRAY no schema vira um
- * ARRAY DE OBJETOS — uma linha de dados por objeto, o cabeçalho como chaves.
- *
- * Sem ela, cada linha virava UMA string (`célula · célula`), e os blocos que o guia de
- * observação consome — marcos por aula, rubrica, distribuição do volume, linha de base —
- * saíam inutilizáveis: era por isso que a `linhaDeBase` do experimento teve de ser
- * estruturada à mão.
- *
- * Cuidados declarados (todos com motivo):
- *   · a linha de separação (`:---`, `:---:`, `---`) é IGNORADA — inclusive fora da regra,
- *     porque ela vazava para o texto dos campos string (o teste antigo removia `:`, `-` e
- *     espaço e depois casava `^-+$`, o que nunca casa: `:-- · :--` entrava no valor);
- *   · `\|` dentro da célula é escape: não divide a célula, e volta a `|` no valor;
- *   · cabeçalho em **negrito** vira chave sem os asteriscos;
- *   · a chave é um IDENTIFICADOR — acento fora, não-alfanumérico vira fronteira, camelCase
- *     (`Dimensão` → `dimensao`, `Em desenvolvimento` → `emDesenvolvimento`);
- *   · a ênfase sai também do VALOR: o JSON não carrega marcação de markdown;
- *   · a célula vazia mantém a POSIÇÃO (não desloca coluna) — o filtro de células vazias
- *     do caminho antigo alinhava mal as linhas com buraco no meio;
- *   · só a PRIMEIRA tabela do bloco entra no campo: uma segunda tabela no mesmo bloco gera
- *     AVISO e fica de fora — o contrato não escolhe qual das duas é o campo, o documento
- *     precisa dar a cada tabela o seu bloco.
- */
-const celulasDaLinha = (linha) => {
-  const partes = [];
-  let atual = '';
-  for (let i = 0; i < linha.length; i++) {
-    if (linha[i] === '\\' && linha[i + 1] === '|') { atual += '\u0001'; i++; continue; }
-    if (linha[i] === '|') { partes.push(atual); atual = ''; continue; }
-    atual += linha[i];
-  }
-  partes.push(atual);
-  if (partes.length && partes[0].trim() === '') partes.shift();
-  if (partes.length && partes[partes.length - 1].trim() === '') partes.pop();
-  return partes.map((c) => c.trim());
-};
-
-const semEnfase = (s) => s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1');
-const textoDaCelula = (s) => semEnfase(s).replace(/\u0001/g, '|').trim();
-const chaveDaColuna = (s) => {
-  const palavras = textoDaCelula(s)
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[^A-Za-z0-9]+/g, ' ').trim().split(' ');
-  if (!palavras[0]) return '';
-  return palavras[0].toLowerCase() + palavras.slice(1)
-    .map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
-};
-const ehSeparador = (celulas) =>
-  celulas.length > 0 && celulas.every((c) => /^:?-+:?$/.test(c));
-
-// Extrai os campos observacionais do Markdown, respeitando o TIPO que o schema
-// espera para cada seção: em campo string, itens de lista e tabelas fazem parte do
-// texto (o spec diz "o texto da seção"); em campo array, cada item é um elemento —
-// e uma TABELA é o array de objetos (a regra de 2026-09-20, acima).
-function extrair(linhas, schema) {
-  const campos = {};
-  const texto = {};
-  const avisos = [];
-  let secao = null;
-  let subcampo = null;
-
-  const tipo = (campo) => (schema.properties[campo] || {}).type;
-  const tipoSub = (campo, sub) =>
-    (((schema.properties[campo] || {}).properties || {})[sub] || {}).type;
-  const ehArray = (campo, sub) => (sub ? tipoSub(campo, sub) : tipo(campo)) === 'array';
-  const campoDoBlocoEhArray = () => !!secao && ehArray(secao, subcampo);
-
-  // a tabela do bloco em construção — o buffer que a regra de tabela usa
-  let tabela = null;
-  const blocosComTabela = new Set();
-
-  const despejarTabela = () => {
-    if (!tabela) return;
-    const t = tabela;
-    tabela = null;
-    if (!t.cabecalho.some(Boolean)) return;          // tabela sem cabeçalho: não há chave
-    const chave = t.subcampo ? `${t.secao}.${t.subcampo}` : t.secao;
-    if (blocosComTabela.has(chave)) {
-      avisos.push(`bloco '${chave}': as ${t.linhas.length} linha(s) de uma SEGUNDA tabela`
-        + ' ficaram de fora — o contrato lê uma tabela por bloco (dê à tabela o seu bloco)');
-      return;
-    }
-    blocosComTabela.add(chave);
-    const objetos = t.linhas.map((linha) => {
-      const o = {};
-      t.cabecalho.forEach((k, i) => { if (k) o[k] = textoDaCelula(linha[i] || ''); });
-      return o;
-    });
-    if (t.subcampo) {
-      if (!campos[t.secao] || typeof campos[t.secao] !== 'object') campos[t.secao] = {};
-      campos[t.secao][t.subcampo] = (campos[t.secao][t.subcampo] || []).concat(objetos);
-    } else {
-      if (!Array.isArray(campos[t.secao])) campos[t.secao] = [];
-      objetos.forEach((o) => campos[t.secao].push(o));
-    }
-  };
-
-  for (const linha of linhas) {
-    const limpa = linha.trim();
-
-    // --- a tabela do bloco (regra de 2026-09-20): quando o campo do bloco é ARRAY, a
-    // tabela É o array — as linhas ficam em buffer e saem como objetos quando a tabela
-    // (ou o bloco) termina. Fora disso, a linha de tabela segue o caminho antigo (texto).
-    if (limpa.startsWith('|') && !tabela && campoDoBlocoEhArray()) {
-      const celulas = celulasDaLinha(limpa);
-      if (!ehSeparador(celulas)) {
-        tabela = { secao, subcampo, cabecalho: celulas.map(chaveDaColuna), linhas: [] };
-        continue;
-      }
-    }
-    if (tabela && limpa.startsWith('|')) {
-      const celulas = celulasDaLinha(limpa);
-      if (!ehSeparador(celulas)) tabela.linhas.push(celulas);
-      continue;
-    }
-    if (tabela) despejarTabela();        // o bloco terminou: a tabela fecha
-
-    const h2 = limpa.match(/^##\s+(.+?)\s*$/);
-    if (h2) {
-      secao = MAPA_SECOES[normalizar(h2[1])] || null;
-      subcampo = null;
-      if (secao && !(secao in campos)) campos[secao] = undefined;
-      continue;
-    }
-
-    const h3 = limpa.match(/^###\s+(\S+)\s*$/);
-    if (h3) { subcampo = h3[1]; continue; }
-
-    if (!secao) continue;
-
-    // comentários e vazios não entram em nenhum valor
-    if (limpa === '' || limpa === '---' || limpa.startsWith('>')) continue;
-
-    // onde este trecho entra: no subcampo (se houver) ou na seção
-    const acumular = (trecho) => {
-      if (subcampo) {
-        if (tipoSub(secao, subcampo) === 'boolean') return;
-        if (!campos[secao] || typeof campos[secao] !== 'object') campos[secao] = {};
-        const chave = `${secao}.${subcampo}`;
-        texto[chave] = ((texto[chave] || '') + ' ' + trecho).trim();
-        campos[secao][subcampo] = texto[chave];
-      } else if (tipo(secao) === 'string') {
-        texto[secao] = ((texto[secao] || '') + ' ' + trecho).trim();
-        campos[secao] = texto[secao];
-      }
-    };
-    const paraArray = (trecho) => {
-      if (subcampo) return;                       // array dentro de subcampo não existe neste schema
-      if (tipo(secao) !== 'array') return;
-      if (!Array.isArray(campos[secao])) campos[secao] = [];
-      campos[secao].push(trecho);
-    };
-
-    // `- [ ]` / `- [x]` → booleano (checklist)
-    const checkbox = limpa.match(/^-\s*\[( |x|X)\]\s*(.*)$/);
-    if (checkbox) {
-      if (!campos[secao] || typeof campos[secao] !== 'object') campos[secao] = {};
-      const chave = subcampo || 'item';
-      campos[secao][chave] = /x/i.test(checkbox[1]);
-      continue;
-    }
-
-    const item = limpa.match(/^[-*]\s+(.+)$/);
-    if (item) {
-      if (subcampo) acumular(item[1]); else { paraArray(item[1]); acumular(item[1]); }
-      continue;
-    }
-
-    // linha de tabela (bloco cujo campo é string: a tabela faz parte do TEXTO)
-    if (limpa.startsWith('|')) {
-      // a linha de separação (`:---`) NÃO é conteúdo — ver a regra de tabela, acima
-      if (ehSeparador(celulasDaLinha(limpa))) continue;
-      const celulas = limpa.replace(/^\|/, '').replace(/\|$/, '')
-        .split('|').map((c) => c.trim()).filter(Boolean).join(' · ');
-      if (!celulas) continue;
-      if (subcampo) acumular(celulas); else { paraArray(celulas); acumular(celulas); }
-      continue;
-    }
-
-    // texto corrido
-    if (subcampo) {
-      acumular(limpa);
-    } else {
-      paraArray(limpa);
-      acumular(limpa);
-    }
-  }
-  despejarTabela();          // a última tabela do documento
-  return { campos, avisos };
-}
-
-function tipoDe(v) {
-  if (Array.isArray(v)) return 'array';
-  if (v === null) return 'null';
-  return typeof v;
-}
+// O CONTRATO DE EXTRACAO vive em tools/lib-extracao-md.js -- definicao UNICA: o PO e o
+// plano leem pelo MESMO contrato. Aqui fica o que e DESTE documento: o mapa das secoes
+// (titulo em portugues -> campo do schema) e a validacao contra o schema.
+const { extrair, lerYamlCabecalho, tipoDe } = require('./lib-extracao-md.js');
 
 function main() {
   const args = process.argv.slice(2);
@@ -294,7 +80,7 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos } = extrair(linhas, schema);
+  const { campos, avisos } = extrair(linhas, schema, MAPA_SECOES);
   const problemas = [];
 
   for (const obrigatorio of schema.required) {
