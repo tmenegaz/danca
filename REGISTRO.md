@@ -776,3 +776,60 @@ os dois pacotes regerados — **`OK: 0 erro(s), 5 aviso(s)`** em ambos (os aviso
 `REGRAS.md` 8 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com Git);
 `PROTOCOLO.md` P-03/P-04 (a âncora alinha; o passado não é reescrito, é incorporado).
 
+## 2026-09-20 — O contrato de extração passa a ler tabela
+
+**O que motivou.**
+O guia de observação e a musicalidade derivam de duas entradas — o PO e o **plano** —, e automatizar
+depende de ler as duas. O contrato de extração (`## Seção → campo`, `- item → array`) **não lê
+tabela**: cada linha virava UMA string (`célula · célula`). Não é detalhe — é o impedimento: **6 dos
+7 blocos que o guia consome no plano estão em tabelas** (identificação, marcos por aula, calibração
+do volume, distribuição do volume, rubrica, critério de extensão), e a `linhaDeBase` do PO também.
+Foi por isso que ela teve de ser estruturada **à mão** no experimento — o `po-01.json` declara o
+motivo no próprio arquivo.
+
+**O que foi decidido.**
+- Regra nova, declarada: **tabela cujo bloco tem campo ARRAY vira um array de objetos** — uma linha
+  de dados por objeto, o cabeçalho como chaves.
+- A chave é um **identificador**: `**negrito**` fora, acento fora, não-alfanumérico vira fronteira,
+  camelCase (`Dimensão` → `dimensao`, `Em desenvolvimento` → `emDesenvolvimento`).
+- A **linha de separação** (`:---`) passa a ser ignorada de fato. Ela **vazava** para dentro dos
+  campos string — `:-- · :--` estava dentro do `contexto` do PO do Duo —, porque o teste antigo
+  removia `:`, `-` e espaço e depois casava `^-+$`, o que nunca casa. A correção tira esse ruído do
+  texto extraído, sem mudar tipo nem presença de campo.
+- `\|` dentro da célula é escape (não divide a célula); a célula vazia mantém a posição.
+- Só a **primeira** tabela do bloco entra no campo; uma segunda tabela no mesmo bloco fica de fora
+  e gera **aviso** — o contrato não escolhe qual é o campo: o documento precisa dar a cada tabela o
+  seu bloco.
+- `linhaDeBase` no schema do PO passa de `string` para **array de objetos** (P-10): era a forma do
+  bloco, declarada à mão no experimento.
+- `node tools/validar-po-ciclo.js <schema> <po.md> [--json]` — o `--json` despeja o objeto
+  extraído (o extrator e o validador são o mesmo código). O `po-01.json` registrava essa saída como
+  a que faltava.
+
+**O que se mediu.**
+- PO do Duo: `linhaDeBase` sai com **3 objetos** — `dimensao`, `oQueAsAlunasTrazem`, `oQueFalta`,
+  `oQueJaDominam` — mais 15 itens de texto (a prosa do bloco). Dois avisos: a segunda tabela do
+  bloco (a "por aluna", 4 linhas) ficou de fora; 15 de 18 itens não são objeto.
+- PO da Ritmos: a linha de base é prosa e lista — **não é tabela**: 23 de 28 itens não são objeto.
+  Os 5 objetos que saíram são a tabela das **restrições físicas (P-22)**, que está DENTRO do bloco
+  da linha de base. É o mesmo achado do outro lado: cada tabela precisa do seu bloco.
+
+**O que ainda não está feito.**
+- Os dois POs **não** foram reescritos: os avisos apontam o que falta em cada um, e nenhum aviso
+  reprova commit nem validação.
+- O **extrator do plano** (o irmão) — próximo passo. Ele depende deste contrato, e o
+  `plano-01.json` escrito à mão **não é uma extração: é uma leitura** (chaves renomeadas, coluna
+  descartada, valores convertidos, e o calendário que não está no `.md`).
+- O contrato vive **dentro** de `validar-po-ciclo.js`: para o irmão compartilhar o mesmo contrato —
+  e não divergir, como os dois resolvedores de fonte que geraram o `lib-fontes.sh` — ele terá de
+  sair para uma lib.
+
+**Com o quê.**
+`tools/validar-po-ciclo.js`, `ciclos/ciclo-01-po-schema.json`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar validação exige motivo declarado, commit próprio e
+esta entrada); `PROTOCOLO.md` P-08 (o schema é do ciclo), P-10 (linha de base); `REGRAS.md` 8
+(proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com Git);
+`experimentos/captura-json/po-01.json` (o motivo, declarado no próprio arquivo).
+

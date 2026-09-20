@@ -62,21 +62,124 @@ function lerYamlCabecalho(linhas) {
   return meta;
 }
 
+// ----------------------------------------------------- a REGRA DE TABELA (2026-09-20)
+/**
+ * A regra que faltava ao contrato: uma tabela cujo bloco tem campo ARRAY no schema vira um
+ * ARRAY DE OBJETOS — uma linha de dados por objeto, o cabeçalho como chaves.
+ *
+ * Sem ela, cada linha virava UMA string (`célula · célula`), e os blocos que o guia de
+ * observação consome — marcos por aula, rubrica, distribuição do volume, linha de base —
+ * saíam inutilizáveis: era por isso que a `linhaDeBase` do experimento teve de ser
+ * estruturada à mão.
+ *
+ * Cuidados declarados (todos com motivo):
+ *   · a linha de separação (`:---`, `:---:`, `---`) é IGNORADA — inclusive fora da regra,
+ *     porque ela vazava para o texto dos campos string (o teste antigo removia `:`, `-` e
+ *     espaço e depois casava `^-+$`, o que nunca casa: `:-- · :--` entrava no valor);
+ *   · `\|` dentro da célula é escape: não divide a célula, e volta a `|` no valor;
+ *   · cabeçalho em **negrito** vira chave sem os asteriscos;
+ *   · a chave é um IDENTIFICADOR — acento fora, não-alfanumérico vira fronteira, camelCase
+ *     (`Dimensão` → `dimensao`, `Em desenvolvimento` → `emDesenvolvimento`);
+ *   · a ênfase sai também do VALOR: o JSON não carrega marcação de markdown;
+ *   · a célula vazia mantém a POSIÇÃO (não desloca coluna) — o filtro de células vazias
+ *     do caminho antigo alinhava mal as linhas com buraco no meio;
+ *   · só a PRIMEIRA tabela do bloco entra no campo: uma segunda tabela no mesmo bloco gera
+ *     AVISO e fica de fora — o contrato não escolhe qual das duas é o campo, o documento
+ *     precisa dar a cada tabela o seu bloco.
+ */
+const celulasDaLinha = (linha) => {
+  const partes = [];
+  let atual = '';
+  for (let i = 0; i < linha.length; i++) {
+    if (linha[i] === '\\' && linha[i + 1] === '|') { atual += '\u0001'; i++; continue; }
+    if (linha[i] === '|') { partes.push(atual); atual = ''; continue; }
+    atual += linha[i];
+  }
+  partes.push(atual);
+  if (partes.length && partes[0].trim() === '') partes.shift();
+  if (partes.length && partes[partes.length - 1].trim() === '') partes.pop();
+  return partes.map((c) => c.trim());
+};
+
+const semEnfase = (s) => s.replace(/\*\*(.+?)\*\*/g, '$1').replace(/__(.+?)__/g, '$1');
+const textoDaCelula = (s) => semEnfase(s).replace(/\u0001/g, '|').trim();
+const chaveDaColuna = (s) => {
+  const palavras = textoDaCelula(s)
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^A-Za-z0-9]+/g, ' ').trim().split(' ');
+  if (!palavras[0]) return '';
+  return palavras[0].toLowerCase() + palavras.slice(1)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1)).join('');
+};
+const ehSeparador = (celulas) =>
+  celulas.length > 0 && celulas.every((c) => /^:?-+:?$/.test(c));
+
 // Extrai os campos observacionais do Markdown, respeitando o TIPO que o schema
 // espera para cada seção: em campo string, itens de lista e tabelas fazem parte do
-// texto (o spec diz "o texto da seção"); em campo array, cada item é um elemento.
+// texto (o spec diz "o texto da seção"); em campo array, cada item é um elemento —
+// e uma TABELA é o array de objetos (a regra de 2026-09-20, acima).
 function extrair(linhas, schema) {
   const campos = {};
   const texto = {};
+  const avisos = [];
   let secao = null;
   let subcampo = null;
 
   const tipo = (campo) => (schema.properties[campo] || {}).type;
   const tipoSub = (campo, sub) =>
     (((schema.properties[campo] || {}).properties || {})[sub] || {}).type;
+  const ehArray = (campo, sub) => (sub ? tipoSub(campo, sub) : tipo(campo)) === 'array';
+  const campoDoBlocoEhArray = () => !!secao && ehArray(secao, subcampo);
+
+  // a tabela do bloco em construção — o buffer que a regra de tabela usa
+  let tabela = null;
+  const blocosComTabela = new Set();
+
+  const despejarTabela = () => {
+    if (!tabela) return;
+    const t = tabela;
+    tabela = null;
+    if (!t.cabecalho.some(Boolean)) return;          // tabela sem cabeçalho: não há chave
+    const chave = t.subcampo ? `${t.secao}.${t.subcampo}` : t.secao;
+    if (blocosComTabela.has(chave)) {
+      avisos.push(`bloco '${chave}': as ${t.linhas.length} linha(s) de uma SEGUNDA tabela`
+        + ' ficaram de fora — o contrato lê uma tabela por bloco (dê à tabela o seu bloco)');
+      return;
+    }
+    blocosComTabela.add(chave);
+    const objetos = t.linhas.map((linha) => {
+      const o = {};
+      t.cabecalho.forEach((k, i) => { if (k) o[k] = textoDaCelula(linha[i] || ''); });
+      return o;
+    });
+    if (t.subcampo) {
+      if (!campos[t.secao] || typeof campos[t.secao] !== 'object') campos[t.secao] = {};
+      campos[t.secao][t.subcampo] = (campos[t.secao][t.subcampo] || []).concat(objetos);
+    } else {
+      if (!Array.isArray(campos[t.secao])) campos[t.secao] = [];
+      objetos.forEach((o) => campos[t.secao].push(o));
+    }
+  };
 
   for (const linha of linhas) {
     const limpa = linha.trim();
+
+    // --- a tabela do bloco (regra de 2026-09-20): quando o campo do bloco é ARRAY, a
+    // tabela É o array — as linhas ficam em buffer e saem como objetos quando a tabela
+    // (ou o bloco) termina. Fora disso, a linha de tabela segue o caminho antigo (texto).
+    if (limpa.startsWith('|') && !tabela && campoDoBlocoEhArray()) {
+      const celulas = celulasDaLinha(limpa);
+      if (!ehSeparador(celulas)) {
+        tabela = { secao, subcampo, cabecalho: celulas.map(chaveDaColuna), linhas: [] };
+        continue;
+      }
+    }
+    if (tabela && limpa.startsWith('|')) {
+      const celulas = celulasDaLinha(limpa);
+      if (!ehSeparador(celulas)) tabela.linhas.push(celulas);
+      continue;
+    }
+    if (tabela) despejarTabela();        // o bloco terminou: a tabela fecha
 
     const h2 = limpa.match(/^##\s+(.+?)\s*$/);
     if (h2) {
@@ -129,11 +232,13 @@ function extrair(linhas, schema) {
       continue;
     }
 
-    // linha de tabela
+    // linha de tabela (bloco cujo campo é string: a tabela faz parte do TEXTO)
     if (limpa.startsWith('|')) {
+      // a linha de separação (`:---`) NÃO é conteúdo — ver a regra de tabela, acima
+      if (ehSeparador(celulasDaLinha(limpa))) continue;
       const celulas = limpa.replace(/^\|/, '').replace(/\|$/, '')
         .split('|').map((c) => c.trim()).filter(Boolean).join(' · ');
-      if (!celulas || /^-+$/.test(celulas.replace(/[:\- ]/g, ''))) continue;
+      if (!celulas) continue;
       if (subcampo) acumular(celulas); else { paraArray(celulas); acumular(celulas); }
       continue;
     }
@@ -146,7 +251,8 @@ function extrair(linhas, schema) {
       acumular(limpa);
     }
   }
-  return campos;
+  despejarTabela();          // a última tabela do documento
+  return { campos, avisos };
 }
 
 function tipoDe(v) {
@@ -156,9 +262,14 @@ function tipoDe(v) {
 }
 
 function main() {
-  const [caminhoSchema, caminhoPo] = process.argv.slice(2);
+  const args = process.argv.slice(2);
+  // `--json` despeja o OBJETO EXTRAÍDO no stdout (o extrator e o validador são o mesmo
+  // código: o schema diz o que extrair, e o JSON é o que saiu). Com `--json`, o resumo
+  // humano vai para o stderr, para o stdout ficar limpo para quem consome o JSON.
+  const json = args.includes('--json');
+  const [caminhoSchema, caminhoPo] = args.filter((a) => !a.startsWith('--'));
   if (!caminhoSchema || !caminhoPo) {
-    console.error('uso: node tools/validar-po-ciclo.js <schema.json> <ciclo-XX-po.md>');
+    console.error('uso: node tools/validar-po-ciclo.js <schema.json> <ciclo-XX-po.md> [--json]');
     return 2;
   }
 
@@ -183,7 +294,7 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const campos = extrair(linhas, schema);
+  const { campos, avisos } = extrair(linhas, schema);
   const problemas = [];
 
   for (const obrigatorio of schema.required) {
@@ -211,6 +322,16 @@ function main() {
     if (prop.type === 'array' && valor.length === 0) {
       problemas.push(`campo ${obrigatorio}: array vazio (o recorte precisa de ao menos um item)`);
     }
+    // A REGRA DE TABELA ENTREGA OBJETOS quando o schema declara `items.type: 'object'`. O
+    // que não for objeto é DECLARADO em um aviso por campo (com a contagem), e não reprova:
+    // o documento pode estar em transição, e a contagem é o que faz o desvio aparecer.
+    if (prop.type === 'array' && (prop.items || {}).type === 'object') {
+      const fora = valor.filter((x) => !x || typeof x !== 'object' || Array.isArray(x)).length;
+      if (fora) {
+        avisos.push(`campo ${obrigatorio}: ${fora} de ${valor.length} item(ns) não são objeto`
+          + ' — a tabela do contrato produz objetos; o que não é tabela entra como texto');
+      }
+    }
   }
 
   // campos que existem, mas cuja decisão ainda é da pesquisadora
@@ -229,6 +350,11 @@ function main() {
   const pendentes = Object.entries(campos.validationChecklist || {})
     .filter(([, marcado]) => marcado !== true).map(([k]) => k);
 
+  if (json) {
+    process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);
+  }
+  const escrever = json ? (...a) => console.error(...a) : (...a) => console.log(...a);
+
   if (problemas.length) {
     console.error(`PO ${path.basename(caminhoPo)} × schema ${path.basename(caminhoSchema)}`);
     console.error(`${problemas.length} problema(s):`);
@@ -236,16 +362,20 @@ function main() {
     return 1;
   }
 
-  console.log(`ok: ${path.basename(caminhoPo)} satisfaz ${path.basename(caminhoSchema)}`
+  escrever(`ok: ${path.basename(caminhoPo)} satisfaz ${path.basename(caminhoSchema)}`
     + ` (${schema.required.length} campos de topo)`);
-  console.log(`    estado declarado: ${meta.state || '(sem state no cabeçalho)'}`);
+  escrever(`    estado declarado: ${meta.state || '(sem state no cabeçalho)'}`);
   if (provisorios.length) {
-    console.log(`    provisórios '[Preencher]': ${provisorios.length} campo(s) —`
+    escrever(`    provisórios '[Preencher]': ${provisorios.length} campo(s) —`
       + ' decisão da pesquisadora (aceitos pelo validador, mas o PO não está aprovado)');
   }
   if (pendentes.length) {
-    console.log(`    checklist: ${pendentes.length} item(ns) sem marcar`
+    escrever(`    checklist: ${pendentes.length} item(ns) sem marcar`
       + ' → o estado permanece Input_PO_Aguardando');
+  }
+  if (avisos.length) {
+    escrever(`    avisos: ${avisos.length}`);
+    avisos.forEach((a) => escrever(`      · ${a}`));
   }
   return 0;
 }

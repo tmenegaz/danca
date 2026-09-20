@@ -26,8 +26,9 @@
       "description": "Quem será observado (RN-PO-05)."
     },
     "linhaDeBase": {
-      "type": "string",
-      "description": "P-10 — linha de base dos sujeitos: o que trazem, o que falta, o que já dominam. Sem ela, 'evolução' não tem referencial."
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "P-10 — linha de base dos sujeitos: o que trazem, o que falta, o que já dominam. É uma TABELA DE DIMENSÕES no documento: a regra de tabela do contrato (2026-09-20) faz cada linha de dados virar um OBJETO, com o cabeçalho como chaves. Sem ela, 'evolução' não tem referencial."
     },
     "inclusionCriteria": {
       "type": "array",
