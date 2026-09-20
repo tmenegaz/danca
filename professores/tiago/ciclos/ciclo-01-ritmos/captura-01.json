@@ -1,0 +1,151 @@
+{
+  "escola": "Ritmos e Movimento",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-ritmos-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia do grupo",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Técnica (método RAD)",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "aluna",
+      "colunas": [
+        "Tendus/jetés (braços 1ª–2ª–3ª)",
+        "Transferência (por cima/por baixo)",
+        "Piqué arabesque (descida; perna de base)"
+      ],
+      "linhas": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Par (o que este ciclo tem de próprio)",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "dupla",
+      "colunas": [
+        "Eixo individual",
+        "Eixo no par (sem deslocar)",
+        "Contrapeso na ação de peso",
+        "Entrosamento (respondem no tempo)"
+      ],
+      "linhas": [
+        "`______`",
+        "`______`",
+        "`______`"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Funcional (sobrecarga por pessoa)",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "aluna",
+      "colunas": [
+        "Duração (min)",
+        "Tônus sustenta até o fim?",
+        "Fadiga antes do previsto?"
+      ],
+      "linhas": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Musicalidade (repertório em 3/4)",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "aluna",
+      "colunas": [
+        "Pulso",
+        "Acento",
+        "Responde ao repertório do dia"
+      ],
+      "linhas": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    },
+    {
+      "titulo": "Bloco 5 — Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "rotulos": [
+        "Como esta folha foi montada (19/09/2026).",
+        "deste",
+        "precisa desenvolver",
+        "não",
+        "Forma escolhida: (b) — uma tabela por aluno.",
+        "Flutuantes.",
+        "Notas soltas",
+        "Fecho da aula (preencher no fim)",
+        "Blocos executados",
+        "Duração executada",
+        "Abandonado",
+        "Materiais"
+      ],
+      "grao": "oQueOPODeclaraQueElaPrecisaDesenvolver",
+      "colunas": [
+        "Observado na aula"
+      ],
+      "linhas": [
+        "Subida e descida de pontas",
+        "Estabilidade no *en dehors*",
+        "Força para flexão e extensão dos joelhos",
+        "Coordenação motora",
+        "Braços curtos",
+        "Primeira posição a ajustar (alta), com o mesmo ângulo do cotovelo da segunda",
+        "Atenção (conversa demais e chega atrasada)",
+        "O que o PO declara que ela precisa desenvolver",
+        "Manutenção do *en dehors*",
+        "Expressividade",
+        "Segurança na musicalidade",
+        "Coordenação de braços e pernas",
+        "Segurança em movimentos grandes",
+        "Força e coordenação para pontas de forma harmônica",
+        "O que o PO declara que ele precisa desenvolver",
+        "Bases do balé (iniciante absoluto)",
+        "Flexibilidade de posterior e de costas",
+        "Postura",
+        "Estruturação de braços",
+        "O que o PO declara que ele precisa desenvolver",
+        "Postura do tronco",
+        "Extensão dos pés",
+        "Fixação de correções ao longo do tempo",
+        "Sustentação de tônus muscular (porte a fortalecer)",
+        "Sincronização de pas de deux com três meninas diferentes"
+      ]
+    }
+  ]
+}

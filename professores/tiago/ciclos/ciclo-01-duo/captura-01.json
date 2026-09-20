@@ -1,0 +1,107 @@
+{
+  "escola": "Duo",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Técnica (syllabus RAD)",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "aluna",
+      "colunas": [
+        "Metatarsos",
+        "Tempo (calcanhar t.1)",
+        "Transfer. (t.2)",
+        "Braço-perna"
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Funcional (sobrecarga por aluna)",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "aluna",
+      "colunas": [
+        "Duração (min)",
+        "Fadiga (antes do previsto?)"
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Musicalidade",
+      "tipo": "tabela",
+      "rotulos": [],
+      "grao": "aluna",
+      "colunas": [
+        "Pulso",
+        "Acento (calcanhar t.1)"
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "rotulos": [
+        "Notas soltas",
+        "Fecho da aula (preencher no fim)",
+        "Estrutura",
+        "Duração executada",
+        "Abandonado",
+        "Materiais"
+      ],
+      "grao": "aluna",
+      "colunas": [
+        "Posterior",
+        "Adutor",
+        "Rotadores",
+        "Resiliência à dor",
+        "Foco"
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    }
+  ]
+}

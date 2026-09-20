@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema da folha de captura — o config que o formulário de lançamento lê",
+  "description": "Declara a forma de `captura-XX.json`: a folha de captura de um ciclo como CONFIG legível por máquina — os blocos e, em cada um, as colunas (os itens que se marca), o grão (por aluna / por dupla) e as linhas (os alunos, ou as duplas). O arquivo-alvo é Markdown (ciclos/ciclo-XX-<escola>-captura-aula-NN.md), lido por tools/validar-captura-ciclo.js. É o único dos quatro documentos (ciclo, PO, plano, captura) cujo conteúdo MUDA por ciclo de forma legítima — e é por isso que o extrator o lê por FORMA, e não por um mapa de títulos: um mapa teria de ser escrito à mão por ciclo, que é exatamente o problema que ele resolve. Enquanto o formulário não consome isto, as colunas dele continuam fixas em código (as do Duo).",
+  "type": "object",
+  "required": ["escola", "ciclo", "aula", "folha", "blocos"],
+  "properties": {
+    "escola": {
+      "type": "string",
+      "description": "A escola da variante desta folha (o mesmo campo do .conf)."
+    },
+    "ciclo": {
+      "type": "string",
+      "description": "O ciclo (\"01\")."
+    },
+    "aula": {
+      "type": "string",
+      "description": "A aula desta folha (\"01\") — a folha é por aula; o config é o da aula."
+    },
+    "folha": {
+      "type": "string",
+      "description": "O nome do arquivo-fonte da folha: o .md que se imprime para a aula."
+    },
+    "blocos": {
+      "type": "array",
+      "description": "Os blocos, na ordem do documento: o `cabecalho` (data, presentes, início, fim, duração efetiva), as condições de contorno (P-11), os blocos de captura (um por dimensão, com a tabela de marcação) e o fecho da aula.",
+      "items": {
+        "type": "object",
+        "required": ["titulo", "tipo"],
+        "properties": {
+          "titulo": {
+            "type": "string",
+            "description": "O título da seção, como está na folha — \"Bloco 1 — Técnica (syllabus RAD)\" no Duo, \"Bloco 1 — Técnica (método RAD)\" no Ritmos. É ele que nomeia o bloco na tela."
+          },
+          "tipo": {
+            "type": "string",
+            "description": "\"tabela\" (o bloco tem a tabela de marcação) ou \"texto\" (o bloco só tem rótulos: o cabeçalho, as condições de contorno, o fecho)."
+          },
+          "grao": {
+            "type": "string",
+            "description": "Por quem a tabela é marcada — lido do PRIMEIRO cabeçalho da tabela: \"aluna\" (Aluna / Aluna(o)) ou \"dupla\" (Dupla). É o que diz ao formulário quantas linhas abrir e com que rótulo."
+          },
+          "colunas": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "OS ITENS QUE SE MARCA, na ordem da folha: os cabeçalhos da tabela menos o primeiro. É esta lista que o formulário precisa imprimir — e hoje ele imprime as do Duo, fixas em código."
+          },
+          "linhas": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "As linhas da tabela (os alunos, ou as duplas), na ordem da folha — os alunos vêm do PO (apelidos, P-12); as duplas são escritas à mão na folha, porque mudam a cada aula."
+          },
+          "rotulos": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "Os campos miúdos do bloco, em negrito na folha (`**Data:**`, `**Presentes:**`, `**Plano seguido?**`) — os do cabeçalho, das condições de contorno (P-11) e do fecho. Não são células de tabela: são o que o bloco pede em linha."
+          }
+        }
+      }
+    },
+    "_nota": {
+      "type": "string",
+      "description": "O campo de metadados do projeto (a convenção `_`), quando quem escreve o arquivo tiver o que declarar."
+    }
+  }
+}

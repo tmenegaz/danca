@@ -1975,3 +1975,49 @@ As duas folhas de captura (`ciclo-01-captura-aula-01.md`, `…-ritmos-…`) — 
 declara como ela foi montada a partir do PO; `ARQUITETURA-CAPTURA.md` §2.1 (o modelo de dados);
 `REGRAS.md` 16 e 17.
 
+
+## 20/09/2026 — A folha de captura vira config legível por máquina (`captura-XX.json`)
+
+**O que motivou.** O mapeamento mostrou que a folha de captura **varia por ciclo** porque é **escrita
+à mão** — e que as colunas dela **já estão declaradas**, nos **cabeçalhos das tabelas**. O formulário,
+ao contrário, tem as colunas do Duo **fixas em código**. Faltava o elo: um arquivo que diga, por
+ciclo, quais são os blocos e as colunas — e que o formulário possa ler.
+
+**O que foi feito.**
+- `tools/validar-captura-ciclo.js` (novo) — **irmão** do `validar-po-ciclo.js` e do
+  `validar-plano-ciclo.js`, com a diferença que é o motivo dele existir: **a folha varia por ciclo, e
+  os títulos das seções também** ("Bloco 1 — Técnica (syllabus RAD)" no Duo; "…(método RAD)" e um
+  "Bloco 2 — Par" a mais no Ritmos). Um mapa de seções — como o dos irmãos — teria de ser escrito **à
+  mão por ciclo**, que é o problema a resolver. Então ele lê **por forma**: cada `## Seção` é um
+  bloco; a **primeira tabela** dá as **colunas** (os cabeçalhos) e o **grão** ("Aluna" → `aluna`,
+  "Dupla" → `dupla`); as linhas da tabela viram as **linhas**; e os **rótulos em negrito** viram os
+  campos miúdos (o cabeçalho, o P-11, o fecho). As primitivas de leitura de tabela são **do contrato**
+  (`lib-extracao-md.js`) — nenhuma cópia.
+- `professores/tiago/ciclos/ciclo-01-captura-schema.json` (novo) — **o único dos quatro** (ciclo, PO,
+  plano, captura) que não existia; declara a forma do config e valida o resultado.
+- `gerar-ciclo.sh` grava `captura-$CICLO.json` no pacote, como já grava os JSONs de PO, plano e
+  índice. Derivado: não é fonte, **não entra na âncora**.
+
+**O que se mediu — e é a prova que a fase pedia:**
+- **As colunas dos dois ciclos são DIFERENTES**, cada um com as suas: o **Duo** com 4 na técnica
+  (Metatarsos · Tempo · Transfer. · Braço-perna), o **Ritmos** com 3 (Tendus/jetés · Transferência ·
+  Piqué arabesque) **e um bloco a mais** — o **Par**, com **grão `dupla`**.
+- Os grãos: `aluna` nos dois; **`dupla` só no Ritmos**; e o Bloco 5 do Ritmos (linha de base por
+  aluno) com o grão vindo do próprio cabeçalho.
+- Os dois pacotes geram com **0 erro(s)**; **âncoras intactas** (a folha não foi tocada — derivado não
+  entra na cobertura); o extrator passa em `node --check`.
+
+**O que ainda não está feito (declarado).**
+- O **formulário ainda não lê** este config: as colunas do painel continuam **fixas em código**.
+- O Bloco 5 do Ritmos sai com o grão como `oQueOPODeclaraQueElaPrecisaDesenvolver` — o cabeçalho da
+  tabela, lido ao pé da letra; quando o formulário consumir, é ali que se decide o rótulo da tela.
+
+**Com o quê.**
+`tools/validar-captura-ciclo.js` e `professores/tiago/ciclos/ciclo-01-captura-schema.json` (novos);
+`tools/gerar-ciclo.sh`; os pacotes dos dois ciclos (`captura-01.json`).
+
+**Referências.**
+As duas folhas de captura (`ciclo-01-captura-aula-01.md`, `…-ritmos-…`);
+`tools/lib-extracao-md.js` (as primitivas); `tools/validar-plano-ciclo.js` (o molde); a entrada de
+20/09 da elicitação revisada (que passa a produzir os itens); `CONGELAMENTO.md`.
+
