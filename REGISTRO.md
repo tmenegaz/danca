@@ -2070,3 +2070,55 @@ saída).
 verificada); `tools/lib-vistas.js` (`objetosDe`); `ciclos/ciclo-01-plano.md` (a tabela real);
 `tools/lib-extracao-md.js` (a regra da tabela).
 
+
+## 20/09/2026 — O schema da captura declara a chave e o tipo de cada coluna
+
+**O que motivou.** A verificação da peça (d) mostrou que as colunas da folha são **rótulos**
+("Metatarsos", "Tempo (calcanhar t.1)", "Transfer. (t.2)") e os lançamentos usam **chaves** de outro
+vocabulário (`alinhamento`, `tempo`, `transferencia`) — e que a folha **não diz o tipo** de cada
+coluna (marca, número, booleano). Sem chave e sem tipo declarados, o formulário não tem como montar o
+painel a partir do ciclo. As quatro decisões da pesquisadora (**rename**; **chave no schema**;
+**tipo no schema**; **grão `dupla` como lista de pares**) fecham o caminho, e esta fase escreve a
+declaração.
+
+**O que foi feito.** O `ciclo-01-captura-schema.json` ganha `_declaracao`:
+- `tipos` — o vocabulário dos cinco tipos (`marca` = os cinco do conjunto da folha · `numero` ·
+  `booleano` · `texto` · `checkbox`), com o que cada um é. As **colunas de tabela** dos dois ciclos
+  usam três (`marca`, `numero`, `booleano`); `texto` e `checkbox` existem para os campos de linha (o
+  fecho é uma lista de caixas), que esta fase não declara;
+- `porVariante` — por **slug da variante** (`duo`, `ritmos`: o do `VARIANTE` do `.conf` e o do nome do
+  pacote, que não muda quando a redação do rótulo muda), a `escola` (que confere com o front-matter
+  da folha) e, por **bloco da folha** (o título exato), o `grao` e as `colunas`, cada uma com
+  `{ chave, tipo }`.
+
+**As chaves foram escolhidas para a tabela de aliases ficar mínima** — e ficou:
+- **Duo:** 13 colunas; os lançamentos precisam de **um** alias (`alinhamento` → `metatarsos`); as
+  outras cinco já batem (`tempo`, `transferencia`, `braco_perna`, `duracao_min`, `fadiga_antes`);
+- **Ritmos:** 14 colunas; os lançamentos **não precisam de alias nenhum** (`transferencia`,
+  `duracao_min`, `tonus`, `fadiga_antes` já são as chaves declaradas);
+- o **Par** declara `grao: "dupla"` e as suas quatro chaves (`eixo_individual`, `eixo_no_par`,
+  `contrapeso`, `entrosamento`).
+
+**A verificação.** Um conferidor roda o extrator de verdade nas duas folhas e compara, **coluna por
+coluna**: as duas folhas estão **cobertas** (4 blocos/13 colunas no Duo; 5 blocos/14 colunas no
+Ritmos), sem coluna nem bloco declarado a mais. Um único item é apontado — e é a lacuna **já
+declarada** no `_estrutura` do Bloco 5 do Ritmos: a folha traz o cabeçalho literal
+(`oQueOPODeclaraQueElaPrecisaDesenvolver`) onde o grão é `aluna` (a folha tem um `### <apelido>` por
+aluna). O extrator atual lê o grão do primeiro cabeçalho, ao pé da letra — e **também mistura as
+tabelas das seções** (o config sai com 25 "linhas", três delas cabeçalhos repetidos). Os dois são
+defeitos **do extrator**, não da declaração: a Fase 2 os resolve, porque ele passa a ler o grão do
+schema.
+
+**O que fica declarado.**
+- Os campos de **linha** da folha (data, P-11, fecho, relatório) **não** entram na declaração: as
+  chaves deles são as mesmas em toda variante, e quem as fixa é o formulário.
+- Nenhuma **coluna de tabela** é do tipo `texto` ou `checkbox` nestes dois ciclos.
+- O schema é a autoridade que o extrator passa a consultar na Fase 2; a reancoragem acontece na
+  Fase 3, com o rename do JSON de dados.
+
+**Com o quê.** `professores/tiago/ciclos/ciclo-01-captura-schema.json`.
+
+**Referências.** O relatório da Fase 1 da peça (d); as duas folhas de captura (os rótulos);
+`tools/validar-captura-ciclo.js`; os `.conf` das duas variantes (o `VARIANTE`); `conferir-schema.js`
+(a prova, em `/tmp` — não versionado).
+

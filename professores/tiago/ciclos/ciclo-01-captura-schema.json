@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema da folha de captura — o config que o formulário de lançamento lê",
-  "description": "Declara a forma de `captura-XX.json`: a folha de captura de um ciclo como CONFIG legível por máquina — os blocos e, em cada um, as colunas (os itens que se marca), o grão (por aluna / por dupla) e as linhas (os alunos, ou as duplas). O arquivo-alvo é Markdown (ciclos/ciclo-XX-<escola>-captura-aula-NN.md), lido por tools/validar-captura-ciclo.js. É o único dos quatro documentos (ciclo, PO, plano, captura) cujo conteúdo MUDA por ciclo de forma legítima — e é por isso que o extrator o lê por FORMA, e não por um mapa de títulos: um mapa teria de ser escrito à mão por ciclo, que é exatamente o problema que ele resolve. Enquanto o formulário não consome isto, as colunas dele continuam fixas em código (as do Duo).",
+  "description": "Declara a forma de `captura-XX.json` — a folha de captura como CONFIG legível por máquina: os blocos e, em cada um, as colunas (os itens que se marca), o grão (por aluna / por dupla) e as linhas (os alunos, ou as duplas) — e declara também (`_declaracao`) o que a folha NÃO pode dizer sozinha: por VARIANTE, o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o grão de cada bloco. O arquivo-alvo é Markdown (ciclos/ciclo-XX-<escola>-captura-aula-NN.md), lido por tools/validar-captura-ciclo.js. É o único dos quatro documentos (ciclo, PO, plano, captura) cujo conteúdo MUDA por ciclo de forma legítima — e é por isso que o extrator o lê por FORMA, e não por um mapa de títulos: um mapa teria de ser escrito à mão por ciclo, que é exatamente o problema que ele resolve. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS, porque o rótulo é redação (muda quando a redação muda) e a chave é contrato (não muda). Os campos de LINHA da folha (a data, o P-11, o fecho, o relatório) NÃO entram aqui: as chaves deles são as mesmas em toda variante (`data`, `condicoes_contorno`, `relatorio`…), e é o formulário que as fixa.",
   "type": "object",
   "required": ["escola", "ciclo", "aula", "folha", "blocos"],
   "properties": {
@@ -61,6 +61,103 @@
     "_nota": {
       "type": "string",
       "description": "O campo de metadados do projeto (a convenção `_`), quando quem escreve o arquivo tiver o que declarar."
+    }
+  },
+
+  "_declaracao": {
+    "_nota": "O que a folha NÃO pode dizer sozinha: por VARIANTE (o slug do .conf VARIANTE e do nome do pacote — `duo`, `ritmos`), o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o GRÃO de cada bloco. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS. O extrator (tools/validar-captura-ciclo.js) lê isto e emite, por coluna, `rotulo`, `chave` e `tipo` — e REPORTA (não inventa) a coluna da folha que não estiver declarada aqui, e o bloco da folha que não estiver declarado. As chaves foram escolhidas CURTAS e ESTÁVEIS, próximas das que já existiam nos lançamentos (a tabela de aliases do rename fica mínima: uma só, no Duo).",
+    "tipos": {
+      "marca": "Um dos cinco do conjunto da folha: `ok` (✓ aconteceu), `parcial` (~ parcial), `nao` (X não aconteceu), `nao_vi` (? não vi) — ou `''` (vazio = não observei). É o que o formulário renderiza como select (o `marcaSel`).",
+      "numero": "Um número (a duração em minutos). No formulário, campo numérico.",
+      "booleano": "Sim/não (a fadiga antes do previsto). No formulário, caixa de marcação.",
+      "texto": "Texto livre. Nenhuma COLUNA de tabela dos dois ciclos é deste tipo: os textos da folha são hoje os rótulos de linha (o cabeçalho, o P-11, o fecho), que não são tabela.",
+      "checkbox": "Múltipla escolha (a estrutura executada, no fecho da aula). Como `texto`, não é coluna de tabela hoje — existe no vocabulário porque o fecho da folha é uma lista de caixas."
+    },
+    "porVariante": {
+      "duo": {
+        "escola": "Duo",
+        "blocos": {
+          "Bloco 1 — Técnica (syllabus RAD)": {
+            "grao": "aluna",
+            "colunas": {
+              "Metatarsos": { "chave": "metatarsos", "tipo": "marca" },
+              "Tempo (calcanhar t.1)": { "chave": "tempo", "tipo": "marca" },
+              "Transfer. (t.2)": { "chave": "transferencia", "tipo": "marca" },
+              "Braço-perna": { "chave": "braco_perna", "tipo": "marca" }
+            }
+          },
+          "Bloco 2 — Funcional (sobrecarga por aluna)": {
+            "grao": "aluna",
+            "colunas": {
+              "Duração (min)": { "chave": "duracao_min", "tipo": "numero" },
+              "Fadiga (antes do previsto?)": { "chave": "fadiga_antes", "tipo": "booleano" }
+            }
+          },
+          "Bloco 3 — Musicalidade": {
+            "grao": "aluna",
+            "colunas": {
+              "Pulso": { "chave": "pulso", "tipo": "marca" },
+              "Acento (calcanhar t.1)": { "chave": "acento", "tipo": "marca" }
+            }
+          },
+          "Bloco 4 — Linha de base revisitada (P-10)": {
+            "grao": "aluna",
+            "colunas": {
+              "Posterior": { "chave": "posterior", "tipo": "marca" },
+              "Adutor": { "chave": "adutor", "tipo": "marca" },
+              "Rotadores": { "chave": "rotadores", "tipo": "marca" },
+              "Resiliência à dor": { "chave": "resiliencia_dor", "tipo": "marca" },
+              "Foco": { "chave": "foco", "tipo": "marca" }
+            }
+          }
+        }
+      },
+      "ritmos": {
+        "escola": "Ritmos e Movimento",
+        "blocos": {
+          "Bloco 1 — Técnica (método RAD)": {
+            "grao": "aluna",
+            "colunas": {
+              "Tendus/jetés (braços 1ª–2ª–3ª)": { "chave": "tendus_jetes", "tipo": "marca" },
+              "Transferência (por cima/por baixo)": { "chave": "transferencia", "tipo": "marca" },
+              "Piqué arabesque (descida; perna de base)": { "chave": "pique_arabesque", "tipo": "marca" }
+            }
+          },
+          "Bloco 2 — Par (o que este ciclo tem de próprio)": {
+            "grao": "dupla",
+            "_estrutura": "a linha é um PAR (dois apelidos), não uma aluna: no JSON de dados este bloco vira uma LISTA de pares (`par: [{ p1, p2, <chaves declaradas> }]`), e é o professor que escolhe quem dançou com quem. Na folha as linhas são `______` em branco, porque os pares mudam a cada aula.",
+            "colunas": {
+              "Eixo individual": { "chave": "eixo_individual", "tipo": "marca" },
+              "Eixo no par (sem deslocar)": { "chave": "eixo_no_par", "tipo": "marca" },
+              "Contrapeso na ação de peso": { "chave": "contrapeso", "tipo": "marca" },
+              "Entrosamento (respondem no tempo)": { "chave": "entrosamento", "tipo": "marca" }
+            }
+          },
+          "Bloco 3 — Funcional (sobrecarga por pessoa)": {
+            "grao": "aluna",
+            "colunas": {
+              "Duração (min)": { "chave": "duracao_min", "tipo": "numero" },
+              "Tônus sustenta até o fim?": { "chave": "tonus", "tipo": "marca" },
+              "Fadiga antes do previsto?": { "chave": "fadiga_antes", "tipo": "booleano" }
+            }
+          },
+          "Bloco 4 — Musicalidade (repertório em 3/4)": {
+            "grao": "aluna",
+            "colunas": {
+              "Pulso": { "chave": "pulso", "tipo": "marca" },
+              "Acento": { "chave": "acento", "tipo": "marca" },
+              "Responde ao repertório do dia": { "chave": "responde_repertorio", "tipo": "marca" }
+            }
+          },
+          "Bloco 5 — Linha de base revisitada (P-10)": {
+            "grao": "aluna",
+            "_estrutura": "um `### <apelido>` por aluna, cada um com a sua tabela de duas colunas — a linha é um item do que o PO declara para ELA, e a coluna é a marca da aula. O extrator ainda MISTURA as tabelas das seções (os cabeçalhos das 2ª..Nª viraram linhas): lacuna declarada, a corrigir.",
+            "colunas": {
+              "Observado na aula": { "chave": "observado_na_aula", "tipo": "marca" }
+            }
+          }
+        }
+      }
     }
   }
 }
