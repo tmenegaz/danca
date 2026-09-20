@@ -962,3 +962,66 @@ parcial)`; o alvo quer `n` e `marco`) e (2) a **forma** de um bloco cuja tabela 
 entrada); `REGRAS.md` 8 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com
 Git); `experimentos/captura-json/provar-declaracoes.js` (a prova, local).
 
+## 2026-09-20 — O extrator do plano (o irmão), e o diff classificado
+
+**O que motivou.**
+O guia de observação deriva do PO e do **plano**; o PO já tinha extrator. Faltava o irmão: o mesmo
+contrato, o schema do plano e a declaração dos nomes — e, com ele, a resposta à pergunta que
+decidia a automação: **as duas regras de declaração bastam?**
+
+**O que foi decidido.**
+- `tools/validar-plano-ciclo.js` (novo): o irmão. Usa o contrato compartilhado
+  (`tools/lib-extracao-md.js`), declara o mapa das seções, o das colunas e o bloco item/valor, e
+  valida contra o schema. `--json` despeja o objeto extraído.
+- `ciclos/ciclo-01-plano-schema.json` (novo): os campos do plano, com os **tipos que o documento
+  oferece** — `n` é `"01"`, `duracaoMinutos` é `"60 minutos (Pré-requisito 4)"`. O extrator devolve
+  o que está escrito; converter exigiria ler prosa.
+- **As lacunas são declaradas**: o que o documento não tem em forma de dado sai `[Preencher: …]` —
+  no campo (o `calendario`, que é do `.conf`) ou em `_lacunas` (o `rubrica.aplicadaEm`, cuja casa
+  seria um array). Não se lê prosa.
+- O contrato ganhou a linha que o plano exigia: **comentário HTML não é conteúdo** — o
+  `<!-- CALENDARIO -->` virava o TEXTO da seção, e a lacuna do calendário nunca apareceria. Nos
+  POs não há comentário algum: a extração deles saiu **idêntica** (verificado).
+
+**O que se mediu (o diff classificado).**
+`experimentos/captura-json/diff-classificado.js` (local) compara o `--json` com a referência
+`plano-01.json` e classifica cada diferença. **Nenhuma diferença ficou sem classe:**
+`15 iguais · 42 tipografia · 11 conversão · 2 leitura · 1 lacuna · 11 só-no-extrator · 5 forma ·
+2 do leitor`.
+- **tipografia** (42): a referência foi digitada em ASCII — acento fora, `1a` por `1ª`, hífen por
+  travessão. É a maior parte, e não é erro de nenhum dos dois.
+- **conversão** (11): a referência usa número (`1`, `60`); o documento escreve texto (`"01"`,
+  `"60 minutos (Pré-requisito 4)"`).
+- **leitura** (2): o dado existe, mas só em prosa — `extensivelAte` (o texto diz "extensível a
+  16") e a `proveniencia`, que a referência **condensou**.
+- **lacuna** (1): `professor` — o documento ainda diz `[Nome do professor]`.
+- **forma** (5): a referência tem outra forma (o volume como mapa; a `rubrica` envolvendo os
+  critérios; o `calendario`; `condicoesPreliminares`) — e o `aplicadaEm`, que é prosa.
+- **só no extrator** (11): a prosa que fica DENTRO dos arrays (o preâmbulo dos marcos, as duas
+  linhas da rubrica, a lista numerada da estrutura) — o aviso "item que não é objeto" aponta isso.
+- **do leitor** (2): `_fonte` e `_nota`, que a referência acrescentou.
+
+**A resposta.** As duas regras de declaração **bastam para a FORMA**: os marcos saem `{ n, marco }`,
+a linha de base do PO sai `{ dimensao, trazem, falta, dominam }` (as chaves da referência), a
+rubrica sai com os cinco nomes do cabeçalho e o `ciclo` sai como objeto. O que resta **não é
+forma**: é tipografia da referência, conversão que exigiria ler, prosa e lacuna — cada uma
+declarada, não adivinhada.
+
+**O que ainda não está feito.**
+- Nada no fluxo de produção consome o extrator do plano: quem gera o guia e a musicalidade hoje é
+  o experimento `captura-json`. Ligar isso é o passo seguinte.
+- As conversões (número, data ISO) e a limpeza da prosa que fica nos arrays ficam **fora, por
+  decisão**: converter é ler.
+- O schema do plano **não** está no pre-commit: o plano ainda não é validado automaticamente.
+
+**Com o quê.**
+`tools/validar-plano-ciclo.js` (novo), `ciclos/ciclo-01-plano-schema.json` (novo),
+`tools/lib-extracao-md.js` (o comentário HTML), `REGISTRO.md`, e — locais, não versionados —
+`experimentos/captura-json/provar-declaracoes.js` e `diff-classificado.js`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `REGRAS.md` 8 (proveniência objetiva), 10 (estrutura de ciclos), 16 (formato de entrega)
+e 17 (versionamento com Git); `PROTOCOLO.md` P-08 (o schema é do ciclo); `ARQUITETURA-CAPTURA.md`
+(os entregáveis derivados de PO + plano).
+

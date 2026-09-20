@@ -230,8 +230,11 @@ function extrair(linhas, schema, declaracao) {
 
     if (!secao) continue;
 
-    // comentários e vazios não entram em nenhum valor
-    if (limpa === '' || limpa === '---' || limpa.startsWith('>')) continue;
+    // comentários e vazios não entram em nenhum valor. O COMENTÁRIO HTML entra aqui porque
+    // ele é marcação, não conteúdo: o `<!-- CALENDARIO -->` do plano é o marcador que o
+    // gerador substitui, e sem esta linha ele virava o TEXTO da seção (e a lacuna declarada
+    // do calendário nunca apareceria).
+    if (limpa === '' || limpa === '---' || limpa.startsWith('>') || limpa.startsWith('<!--')) continue;
 
     // onde este trecho entra: no subcampo (se houver) ou na seção
     const acumular = (trecho) => {
