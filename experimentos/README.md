@@ -33,6 +33,22 @@ experimentos consomem libs que vivem **fora** de `experimentos/` — a `tools/li
 exemplo, entra por `<script src="../../tools/lib-vistas.js">`. Servindo só a pasta `experimentos/`,
 a página abre (200) e a **lib dá 404** ✗: o experimento fica sem os builders.
 
+**O sintoma, quando acontece (medido, 20/09/2026):** a página abre e o painel diz *"Detalhe:
+Vistas is not defined"*. É a lib que deu 404 — mas o erro vem com a cara de outra coisa, porque o
+`ciclos.json` da mesma pasta carrega normalmente. A conferência é abrir
+`../../tools/lib-vistas.js` direto no navegador: **404 = o servidor não está na raiz.** Vale para
+servidor **antigo** também: um `http.server` no ar desde antes de a lib existir (a 8001 deste
+repositório ficou assim) serve a página e não serve a lib — derrube e suba de novo:
+
+```
+pkill -f 'http.server 8001'
+python3 -m http.server 8001 --bind 127.0.0.1        # da RAIZ do repositório
+```
+
+O formulário passou a dizer isso por si (o painel nomeia a lib que faltou, em vez de culpar o
+`ciclos.json`), mas o conserto é o servidor, não a página: a mensagem existe para o sintoma
+apontar para a causa sem passar por três tentativas.
+
 > **Atenção:** `tools/deploy-netlify.sh` **publica em produção** (uma conta por
 > escola). Ele **não** é o caminho de preview — não use para experimentos. Para
 > ver um experimento no ar, `git push` não serve: nada de `experimentos/` é
