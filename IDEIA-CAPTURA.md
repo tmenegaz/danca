@@ -106,6 +106,15 @@ ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instant
 
 - **A proveniência:** cada estado do JSON é um commit. O Git continua sendo o banco.
 - **O hash:** o JSON entra no hash como fonte.
+- **As vistas saem da cobertura.** Quando uma vista passa a ser **gerada** (o caderno, o
+  relatório, o acompanhamento, o guia de observação), ela **deixa de ser fonte** e sai da
+  cobertura do hash — o **JSON entra no lugar dela**. A âncora de cada ciclo é regerada uma
+  vez, com motivo declarado (P-03: a âncora alinha; o passado não se reescreve, se incorpora).
+- **O que é AUTORADO continua `.md`:** o PO, o plano, a aula, a notação e o documento de apoio
+  da musicalidade. O que é **VISTA** passa a ser gerado: o caderno, o relatório, o
+  acompanhamento por aluna e o guia de observação. A **musicalidade é caso à parte** — o
+  documento é autorado (os cinco conceitos), e a vista gerada (a dimensão do PO, o bloco do
+  plano e os marcos que a citam) **alimenta** o documento, não o substitui.
 - **As pétreas e regras:** intactas.
 - **O PO e a aula:** continuam `.md`.
 - **O caderno:** continua no formato `.md` — mas **gerado sob demanda** pelo formulário,
@@ -117,7 +126,9 @@ ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instant
 
 - O **gerador** passa a ler JSON
 - O **`check-pacote`** valida JSON
-- A **segurança** do JSON (dados de menores — fora do Git, criptografado quando publicado)
+- A **segurança** do JSON: **não publicado** — fora do pacote e do site, versionado no Git do
+  repositório privado, como o PO e o relatório. (Não confundir com os `.md` de acompanhamento,
+  que são derivados e por isso ficam fora do Git.)
 - O **menu**: "Acompanhamento" fica só com conteúdo (os acompanhamentos por aluna + o
   caderno); o formulário — como o preview do relatório e a folha de captura — é
   **ferramenta**, e vai para a "Área do Professor"
