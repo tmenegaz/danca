@@ -110,12 +110,14 @@ Aula ──┘
     "surpresas": "...",
     "ajustes": "..."
   },
-  "materiais": []
+  "materiais": [],
+  "ultimo_lancamento": "2026-09-20T14:30"
 }
 ```
 
 **Nota:** o schema é **por aula** dentro do JSON. As vistas não ficam
-armazenadas — são calculadas pelo formulário.
+armazenadas — são calculadas pelo formulário. O `ultimo_lancamento` é o carimbo
+de gravação **daquela aula**: é o que ancora o prazo do ajuste (§5.1).
 
 ## 3. Fluxo
 
@@ -165,7 +167,10 @@ Professor lança os dados → formulário atualiza o JSON em memória
     ↓
 Escreve o texto do relatório → também vai para o JSON
     ↓
-Baixa o JSON atualizado
+Cada gravação cria um ARQUIVO novo, com carimbo no nome, e o índice passa a
+apontar para ele — o anterior permanece (ver §5.1)
+    ↓
+Baixa o JSON novo e o índice atualizado
     ↓
 Commita no Git (repositório privado)
 ```
@@ -238,6 +243,45 @@ As proteções são as mesmas (ver `CONGELAMENTO.md`):
 | **Acesso** | Só o professor (com senha) |
 
 **Onde o JSON vive:** decisão pendente — ver seção 7.
+
+## 5.1 Ajuste com prazo
+
+O JSON pode ser **ajustado** dentro de um prazo de **48 horas** — contadas a partir
+da **última gravação daquela aula** (não do arquivo, nem do ciclo). Cada vez que a
+aula é salva — no lançamento **ou** num ajuste — o contador **dela** reinicia; o das
+outras não é tocado. **Lançar a aula 05 não reabre a janela da aula 01.** Cada aula
+fecha quando **ela** fica 48h sem ser tocada.
+
+**O que é um ajuste (não é edição):**
+
+- O professor abre a aula já lançada (modo leitura) → botão **"Ajustar
+  lançamento"** (só dentro do prazo)
+- O formulário **reabre em modo captura** com os dados atuais carregados
+- O professor corrige, preenche o **"Motivo do ajuste"** (obrigatório) e o
+  **"Gerado por"** — o ajuste fica registrado com autor — e salva
+- Cada gravação cria um **arquivo novo, com carimbo no nome**
+  (`dados-exemplo-2026-09-20T1430.json`), e o índice (`ciclos.json`) passa a apontar
+  para ele. O arquivo anterior **permanece** — acessível, e não é o vigente
+- O novo arquivo declara: `ajuste_de` (de onde veio), `ajustado_em`, `ajustado_por`
+  e `motivo`
+
+**Por que o prazo:**
+
+A memória do professor é uma edição da realidade. Dentro de 48h, o ajuste é
+memória fresca — vale corrigir. Depois, é reconstrução — não vale.
+
+**Depois do prazo:**
+
+O botão fica **cinza**, com aviso: *"Prazo encerrado em [data] — o registro
+é definitivo."* O professor vê que a possibilidade existiu, mas não está mais
+disponível.
+
+**A regra de proveniência se mantém:** o JSON antigo não é editado, e o novo
+declara de onde veio. A cadeia é íntegra — só ganha um elo novo.
+
+> **No experimento** (`experimentos/captura-json/`), o prazo fechado pode ser visto
+> sem esperar 48h: a página aceita `#agora=2026-10-01T10:00` no endereço. A gravação
+> usa o relógio de verdade, sempre — o carimbo do arquivo não se simula.
 
 ## 6. Estimativas
 
