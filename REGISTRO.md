@@ -1230,3 +1230,34 @@ própria lista de escopos existe para evitar.
 entrada); `REGRAS.md` 17 (versionamento com Git); `README-ciclos.md` (*Regra 17 em prática* — a
 lista de escopos); `experimentos/README.md` (a área e o que é versionado nela).
 
+## 2026-09-20 — A tabela de escopos do REGRAS.md passa a listar os 27 do hook
+
+**O que motivou.**
+A tabela "Escopos" (Regra 17 em prática) listava **10** escopos, enquanto o hook
+(`tools/hooks/commit-msg`) aceita **27** — e é essa tabela que faz errar o escopo do commit. O
+`HANDOFF.md` já a declarou defasada, e uma entrada anterior deste REGISTRO a deu por corrigida: o
+que havia sido corrigido era o `README-ciclos.md`, **não** o `REGRAS.md`. Com o escopo
+`experimentos` recém-criado, a defasagem ficou maior — 10 de 27.
+
+**O que foi decidido.**
+- A tabela passa a listar os **27**, os mesmos do regex, com a mesma frase do `README-ciclos.md`:
+  *"a lista é a do hook; escopo fora dela **recusa o commit**"*. A lista tem **um dono** (o hook) e
+  dois espelhos; o `REGRAS.md` passa a apontar para ele em vez de repetir dez.
+- Mantive a convenção de escrita do próprio arquivo (`ciclo-XX`, e não `ciclo-NN`).
+
+**O que se mediu.**
+Conferido por extração: o regex do hook e a lista do `README-ciclos.md` já batiam (27 = 27), e agora
+o `REGRAS.md` lista o mesmo conjunto. Nenhuma linha de REGRA mudou — só a tabela de apoio.
+
+**O que ainda não está feito.**
+- Nada impede a defasagem de voltar: os dois espelhos são **texto**, e ninguém os compara. Um teste
+  que confrontasse o regex com a documentação seria a garantia — o `pre-commit` não olha para isso.
+
+**Com o quê.**
+`REGRAS.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (REGRAS.md é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `tools/hooks/commit-msg` (a lista, e o dono dela); `README-ciclos.md` (o espelho
+principal); `HANDOFF.md` (a defasagem declarada).
+

@@ -52,7 +52,7 @@ declara quais delas aplicou (rodapé `Regras:`).
 | Item | Convenção |
 |:--|:--|
 | **Tipos de commit** | `feat` · `fix` · `docs` · `refactor` · `style` · `chore` · `audit` |
-| **Escopos** | `ciclo-XX` · `aula-XX` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `apresentacao-XX` · `biblioteca` · `tools` · `regras` |
+| **Escopos** | `ciclo-XX` · `aula-XX` · `apresentacao-XX` · `apresentacao-01-rizoma` · `caderno` · `caderno-XX` · `relatorio` · `relatorio-XX` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `biblioteca` · `po` · `campo` · `schema` · `registro` · `protocolo` · `metodo` · `ideia` · `experimentos` · `entrega` · `estrutura` · `template` · `tools` · `regras` · `prompts` — a lista é a do hook (`tools/hooks/commit-msg`); escopo fora dela **recusa o commit** |
 | **Formato** | `tipo(escopo): descrição curta` + corpo + rodapé |
 | **Rodapé obrigatório** | `Refs:` (o que foi tocado) · `Regras:` (quais regras aplicou) · `Auditoria:` (sim/não) |
 | **Branches** | `main` = conteúdo auditado · `ciclo-XX` / `apresentacao-XX` = trabalho · `hotfix/...` = urgência |
