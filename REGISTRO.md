@@ -676,3 +676,61 @@ uma em três tipos, não dois:
 
 **O que ainda não está feito.**
 O push.
+
+## 19/09/2026 — METODO no pacote e reorganização do menu
+
+**O que aconteceu.**
+O `METODO.md` passou a aparecer no pacote (Área do Professor). O menu foi
+reorganizado: "Acompanhamento" fica só com conteúdo real (acompanhamentos
+por aluna + caderno); "Área do Professor" ganha as ferramentas (preview do
+relatório + captura) e os guias (METODO).
+
+O preview do relatório passou a se chamar **"Guia de observação — Aula NN"** no
+menu, na aba, no cabeçalho e na seção do PDF. O `title:` da fonte dizia
+"Relatório pós-aula 01 — Duo (preview)", e no menu ainda se lia como se fosse o
+**relatório preenchido** — que é outro documento, e está fora do pacote. O
+rótulo é declarado no gerador, não na fonte: a fonte entra no hash, o rótulo não.
+
+O caderno tinha a mesma lacuna do METODO no PDF: sem front-matter, a seção saía
+como `caderno-01`. Agora sai "Caderno — Ciclo 01 · Duo" (e "… · Ritmos e
+Movimento") — o mesmo nome que a página mostra. Foi o `check-pacote` que apontou
+a divergência: ele compara o título de cada página HTML com o texto do PDF.
+
+**O que foi decidido.**
+* O `METODO.md` entra no pacote como documento compartilhado (como o
+  `guia-do-professor`). Não entra no hash.
+* "Acompanhamento" = conteúdo; "Área do Professor" = ferramentas e guias.
+* O relatório preenchido continua fora do pacote.
+* O acompanhamento por aluna continua como vista.
+* Rótulo de menu e título de página de documento sem front-matter são declarados
+  **no gerador**, não acrescentados à fonte (a fonte é congelada e entra no hash).
+
+**As âncoras FIPP foram regeradas (reancoragem declarada).**
+O `METODO.md` **não** entra na cobertura da âncora — como o `guia-do-professor`:
+vive fora do ciclo, e o hasher só aceita caminho sob `professores/<professor>/`
+(0 referências na âncora). Mas o `hash_conteudo` mudou, porque o
+`fontes_do_ciclo()` inclui **os dois manifestos**, e o `DOCS` de cada variante
+passou a declarar `metodo`:
+
+| Variante | hash_conteudo | hash |
+|:--|:--|:--|
+| duo | `cc1c3ad8c872…` → `05a471fb0233…` | `4ded616d92a1…` → `e9dbdd33bb39…` |
+| ritmos | `38a1f2a50a6c…` → `8ce229646c9f…` | `1059d02874da…` → `72922e303930…` |
+
+Não é escolha: para publicar um documento é preciso declará-lo em `DOCS`, e o
+manifesto é fonte hasheada. O `pre-commit` recusaria o commit com a âncora antiga
+(`hash-ciclo.sh --check`). A **lógica** de hash não foi alterada — a âncora foi
+regerada, que é o caminho previsto (P-03: o passado não é reescrito, é
+incorporado).
+
+**Com o quê.**
+`METODO.md`, `tools/gerar-ciclo.sh`, `tools/lib-fontes.sh`, `ciclos/ciclo-01.conf`,
+`ciclos/ciclo-01-ritmos.conf`, os dois pacotes regerados.
+
+**O que ainda não está feito.**
+O experimento `captura-json` (em andamento).
+
+**Referências.**
+`CONGELAMENTO.md` (documentos congelados; alterar hash/validação/geração exige
+motivo declarado); `README-ciclos.md` (menu e escopo); `tools/hooks/commit-msg`.
+
