@@ -30,6 +30,8 @@
     {
       "titulo": "Bloco 1 — Técnica (método RAD)",
       "tipo": "tabela",
+      "chave": "tecnica",
+      "rotulo": "Técnica",
       "grao": "aluna",
       "colunas": [
         {
@@ -59,6 +61,8 @@
     {
       "titulo": "Bloco 2 — Par (o que este ciclo tem de próprio)",
       "tipo": "tabela",
+      "chave": "par",
+      "rotulo": "Par",
       "grao": "dupla",
       "colunas": [
         {
@@ -91,6 +95,8 @@
     {
       "titulo": "Bloco 3 — Funcional (sobrecarga por pessoa)",
       "tipo": "tabela",
+      "chave": "funcional",
+      "rotulo": "Funcional",
       "grao": "aluna",
       "colunas": [
         {
@@ -120,6 +126,8 @@
     {
       "titulo": "Bloco 4 — Musicalidade (repertório em 3/4)",
       "tipo": "tabela",
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
       "grao": "aluna",
       "colunas": [
         {
@@ -149,6 +157,8 @@
     {
       "titulo": "Bloco 5 — Linha de base revisitada (P-10)",
       "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
       "grao": "aluna",
       "colunas": [
         {

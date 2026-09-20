@@ -73,7 +73,46 @@ function mdAjuste(aj) {
   return l;
 }
 function mdSim(v) { return v === true ? 'sim' : v === false ? 'não' : '—'; }
-function mdAcompanhamento(m, dados, chave, aulas, prov) {
+
+// -------------------------------------------------- as colunas do CICLO (o config da captura)
+// O que o ciclo observa vem do `captura-XX.json` — os blocos, o rótulo e a chave de cada coluna —,
+// e o valor vem do JSON do ciclo. Estas funções substituem os nomes que estavam FIXOS aqui
+// (`alinhamento · tempo · transferência · braço-perna` e `tônus · fadiga antes do previsto`): eram
+// os do Duo, mentiam nos outros ciclos, e não deixavam a vista ver os blocos que o ciclo declara
+// além da técnica e do funcional (a musicalidade, a linha de base, e o Par do Ritmos).
+const blocosDaCaptura = (captura) =>
+  ((captura && Array.isArray(captura.blocos)) ? captura.blocos : [])
+    .filter((b) => b && b.tipo === 'tabela' && b.chave);
+
+/** Os pares [rótulo da coluna, valor] de um bloco, para uma pessoa (ou para um par dela). */
+function marcasDaPessoa(aula, bloco, quem) {
+  const doBloco = (aula && aula[bloco.chave]) || null;
+  if (!doBloco) return [];
+  if (bloco.grao === 'dupla') {
+    const par = (Array.isArray(doBloco) ? doBloco : [])
+      .find((p) => p && (p.p1 === quem || p.p2 === quem));
+    return par ? bloco.colunas.map((c) => [c.rotulo, par[c.chave]]) : [];
+  }
+  const daPessoa = doBloco[quem];
+  if (daPessoa === undefined || daPessoa === null) return [];
+  // A linha de base revisitada tem uma marca POR ITEM do PO: ali o dado é uma LISTA de itens.
+  if (Array.isArray(daPessoa)) return daPessoa.map((x) => [x.item, x.marca]);
+  return bloco.colunas.map((c) => [c.rotulo, daPessoa[c.chave]]);
+}
+
+/** O valor de uma marca, para texto: booleano vira sim/não; vazio vira `—`. */
+const mdValor = (v) => (v === true ? 'sim' : v === false ? 'não' : mdCel(v));
+
+/** A linha de um bloco como as vistas a imprimem: `- **Rótulo:** coluna valor · coluna valor`. */
+function linhaDoBloco(aula, bloco, quem) {
+  const marcas = marcasDaPessoa(aula, bloco, quem);
+  if (!marcas.length) return null;
+  return `- **${bloco.rotulo}:** ` + marcas.map(([r, v]) => `${r} ${mdValor(v)}`).join(' · ');
+}
+
+const SEM_CAPTURA = '[Preencher: o captura-XX.json do ciclo não chegou à vista — sem ele não se sabe'
+  + ' o que este ciclo observa (blocos, colunas e chaves).]';
+function mdAcompanhamento(m, dados, chave, aulas, prov, captura) {
   const nome = dados.apelidos[chave] || chave;
   const l = [
     '---',
@@ -97,11 +136,8 @@ function mdAcompanhamento(m, dados, chave, aulas, prov) {
     const a = dados.aulas[k];
     l.push(`### Aula ${k} — ${dataBr(a.data)}`, '');
     if (a.ausentes.includes(chave)) { l.push('Ausente — não há dado.', ''); continue; }
-    const t = a.tecnica[chave] || {}, f = a.funcional[chave] || {};
-    l.push(`- **Técnica:** alinhamento ${mdCel(t.alinhamento)} · tempo ${mdCel(t.tempo)} · ` +
-           `transferência ${mdCel(t.transferencia)} · braço-perna ${mdCel(t.braco_perna)}`);
-    l.push(`- **Funcional:** duração ${mdCel(f.duracao_min)} min · tônus ${mdCel(f.tonus)} · ` +
-           `fadiga antes do previsto: ${mdSim(f.fadiga_antes)}`);
+    const linhas = blocosDaCaptura(captura).map((b) => linhaDoBloco(a, b, chave)).filter(Boolean);
+    if (linhas.length) l.push(...linhas); else l.push(SEM_CAPTURA);
     l.push(`- **Estado da aula:** ${a.relatorio.texto}`, '');
     if (a.relatorio.surpresas) l.push(`> Surpreendeu: ${a.relatorio.surpresas}`, '');
   }
@@ -109,11 +145,10 @@ function mdAcompanhamento(m, dados, chave, aulas, prov) {
   const ultima = comDado[comDado.length - 1];
   l.push('## Estado atual', '');
   if (ultima) {
-    const a = dados.aulas[ultima], t = a.tecnica[chave] || {}, f = a.funcional[chave] || {};
+    const a = dados.aulas[ultima];
     l.push(`*(Última observação registrada — fonte: aula ${ultima}, de ${dataBr(a.data)}.)*`, '');
-    l.push(`- **Técnica:** alinhamento ${mdCel(t.alinhamento)} · tempo ${mdCel(t.tempo)} · ` +
-           `transferência ${mdCel(t.transferencia)} · braço-perna ${mdCel(t.braco_perna)}`);
-    l.push(`- **Funcional:** tônus ${mdCel(f.tonus)} · fadiga antes do previsto: ${mdSim(f.fadiga_antes)}`, '');
+    const linhas = blocosDaCaptura(captura).map((b) => linhaDoBloco(a, b, chave)).filter(Boolean);
+    if (linhas.length) l.push(...linhas, ''); else l.push(SEM_CAPTURA, '');
   } else {
     l.push('Nenhuma aula com dado para esta aluna no filtro.', '');
   }
@@ -131,7 +166,7 @@ const dataBr = (iso) => {
   return m ? `${m[3]}/${m[2]}/${m[1]}` : String(iso || '');
 };
 const listaNomes = (dados, chaves) => chaves.map((k) => dados.apelidos[k] || k).join(', ');
-function mdEntradaCaderno(m, dados, id) {
+function mdEntradaCaderno(m, dados, id, captura) {
   const a = dados.aulas[id], cc = a.condicoes_contorno;
   const faltas = listaNomes(dados, a.ausentes);
   const l = [`## ${dataBr(a.data)} · aula ${id}`, '', '### O que aconteceu', ''];
@@ -139,6 +174,23 @@ function mdEntradaCaderno(m, dados, id) {
   l.push(`- ${a.presentes.length} presente(s) (${listaNomes(dados, a.presentes)}). ` +
     (faltas ? `Faltou: ${faltas}.` : 'Nenhuma falta.'));
   l.push(`- Duração executada: ${a.duracao_min} min (planejado: ${m.duracao_min || '—'} min).`);
+  // AS COLUNAS DO CICLO, por pessoa presente: o que a aula observou (antes esta entrada não
+  // registrava marca nenhuma — as do Duo ficavam nos outros documentos, e as dos outros ciclos em
+  // lugar nenhum).
+  const blocos = blocosDaCaptura(captura);
+  if (!blocos.length) {
+    l.push('', SEM_CAPTURA);
+  } else {
+    l.push('', '### O que se observou (as colunas do ciclo)', '');
+    a.presentes.forEach((k) => {
+      l.push(`**${dados.apelidos[k] || k}:**`);
+      blocos.forEach((b) => {
+        const linha = linhaDoBloco(a, b, k);
+        if (linha) l.push(linha);
+      });
+      l.push('');
+    });
+  }
   l.push('- Estrutura executada: [Preencher: a ordem dos blocos vem do plano da aula, ' +
     'que é uma das três entradas — o JSON não a guarda.]');
   l.push('', '### O que decidi', '');
@@ -156,14 +208,14 @@ function mdEntradaCaderno(m, dados, id) {
   l.push('');
   return l;
 }
-function mdCaderno(m, dados, aulas, prov) {
+function mdCaderno(m, dados, aulas, prov, captura) {
   const l = [
     `# Caderno — Ciclo ${m.id} · ${m.escola}` +
       `${m.duracao_min ? ` · ${m.duracao_min} min por aula` : ''}`, '',
     ...linhasDeGeracao(prov),
     ...mdAjuste(prov && prov.ajuste),
   ];
-  for (const k of aulas) l.push(...mdEntradaCaderno(m, dados, k));
+  for (const k of aulas) l.push(...mdEntradaCaderno(m, dados, k, captura));
   return l.join('\n');
 }
 // O relatório pós-aula — um por aula, no formato de `relatorios/ciclo-NN/aula-NN-<escola>.md`.
@@ -171,7 +223,7 @@ function mdCaderno(m, dados, aulas, prov) {
 // mesmas seções, na mesma ordem, até os títulos). Toda linha do arquivo de produção
 // aparece — e onde o JSON não tem o dado, a lacuna fica DECLARADA. É de propósito: a
 // lista de lacunas é o que este experimento veio mostrar sobre os campos que faltam.
-function mdRelatorio(m, dados, aulas, prov) {
+function mdRelatorio(m, dados, aulas, prov, captura) {
   const id = aulas[0];                       // o filtro garante UMA aula (ver o §3.5)
   const a = dados.aulas[id], cc = a.condicoes_contorno;
   const nome = (k) => dados.apelidos[k] || k;
@@ -215,30 +267,42 @@ function mdRelatorio(m, dados, aulas, prov) {
     `| Harmonia | ${mdCel(cc.harmonia)} |`,
     `| O que mudou em relação ao plano | ${plano} |`, '',
     '## 3. Observações por dimensão', '',
-    '### Técnica', '',
-    '| Aluna(o) | Alinhamento | Tempo | Transferência | Braço-perna |',
-    '|:--|:--:|:--:|:--:|:--:|',
   ];
-  for (const k of a.presentes) {
-    const t = a.tecnica[k] || {};
-    l.push(`| ${nome(k)} | ${mdCel(t.alinhamento)} | ${mdCel(t.tempo)} | ` +
-      `${mdCel(t.transferencia)} | ${mdCel(t.braco_perna)} |`);
+  // AS COLUNAS DO CICLO — os blocos e as chaves que o ciclo declara (`captura-XX.json`). Antes,
+  // esta seção imprimia a técnica e o funcional do Duo em código e declarava a musicalidade e a
+  // linha de base como lacuna; agora imprime os blocos que o ciclo declara, sejam quais forem.
+  const blocos = blocosDaCaptura(captura);
+  if (!blocos.length) {
+    l.push(SEM_CAPTURA, '');
+  } else {
+    blocos.forEach((b) => {
+      l.push(`### ${b.rotulo}`, '');
+      if (b.grao === 'dupla') {
+        const pares = Array.isArray(a[b.chave]) ? a[b.chave] : [];
+        if (!pares.length) { l.push('*(Nenhum par lançado nesta aula.)*', ''); return; }
+        l.push(`| Par | ${b.colunas.map((c) => c.rotulo).join(' | ')} |`);
+        l.push(`|:--|${b.colunas.map(() => ':--:').join('|')}|`);
+        pares.forEach((p) => l.push(`| ${nome(p.p1)} + ${nome(p.p2)} | ` +
+          b.colunas.map((c) => mdValor(p[c.chave])).join(' | ') + ' |'));
+        l.push('');
+        return;
+      }
+      if (b.secoes) {                      // a linha de base revisitada: uma marca por item do PO
+        l.push(`| Aluna(o) | ${b.colunas[0].rotulo} |`, '|:--|:--|');
+        a.presentes.forEach((k) => {
+          const itens = Array.isArray((a[b.chave] || {})[k]) ? a[b.chave][k] : [];
+          itens.forEach((x) => l.push(`| ${nome(k)} — ${x.item} | ${mdValor(x.marca)} |`));
+        });
+        l.push('');
+        return;
+      }
+      l.push(`| Aluna(o) | ${b.colunas.map((c) => c.rotulo).join(' | ')} |`);
+      l.push(`|:--|${b.colunas.map(() => ':--:').join('|')}|`);
+      a.presentes.forEach((k) => l.push(`| ${nome(k)} | ` +
+        marcasDaPessoa(a, b, k).map(([, v]) => mdValor(v)).join(' | ') + ' |'));
+      l.push('');
+    });
   }
-  l.push('', '*(As colunas são as do JSON. Na produção elas são as do PO — é o PO que',
-    'declara o que se observa em cada ciclo.)*', '');
-  l.push('### Funcional (sobrecarga por aluna)', '');
-  l.push(`**Duração executada:** ${a.duracao_min} min da aula; por aluna: ` +
-    a.presentes.map((k) => `${nome(k)} ${mdCel((a.funcional[k] || {}).duracao_min)} min`)
-      .join(' · ') + '.', '');
-  l.push('| Aluna(o) | Tônus | Fadiga antes do previsto |', '|:--|:--|:--|');
-  for (const k of a.presentes) {
-    const f = a.funcional[k] || {};
-    l.push(`| ${nome(k)} | ${mdCel(f.tonus)} | ${mdSim(f.fadiga_antes)} |`);
-  }
-  l.push('', '### Musicalidade', '',
-    '[Preencher: a musicalidade é uma dimensão do PO, e o JSON não tem campo para ela.]', '');
-  l.push(`### Estado da aula ${id} (Bloco 4 — Linha de base revisitada)`, '',
-    '[Preencher: a linha de base vem do PO — sem ela, não há o que revisitar.]', '');
   l.push('### Ocorrências físicas (P-22)', '',
     '[Preencher: o protocolo exige registrar dor, lesão ou restrição que afete a',
     'execução — o JSON não tem esse campo.]', '');
@@ -572,10 +636,14 @@ function linhasDeGeracao(prov) {
 }
 
 const Vistas = {
-  caderno: ({ meta, dados, aulas, prov } = {}) => mdCaderno(meta, dados, aulas, prov),
-  relatorio: ({ meta, dados, aulas, prov } = {}) => mdRelatorio(meta, dados, aulas, prov),
-  acompanhamento: ({ meta, dados, aluna, aulas, prov } = {}) =>
-    mdAcompanhamento(meta, dados, aluna, aulas, prov),
+  // `captura` é o `captura-XX.json` do ciclo: os blocos, os rótulos e as CHAVES que o ciclo
+  // declara. Quem chama passa; sem ele, a vista imprime a lacuna em vez de inventar as colunas.
+  caderno: ({ meta, dados, aulas, prov, captura } = {}) =>
+    mdCaderno(meta, dados, aulas, prov, captura),
+  relatorio: ({ meta, dados, aulas, prov, captura } = {}) =>
+    mdRelatorio(meta, dados, aulas, prov, captura),
+  acompanhamento: ({ meta, dados, aluna, aulas, prov, captura } = {}) =>
+    mdAcompanhamento(meta, dados, aluna, aulas, prov, captura),
   guia: ({ meta, po, plano, aula, data, prov } = {}) => mdGuia(meta, po, plano, aula, data, prov),
   musicalidade: ({ meta, po, plano, prov } = {}) => mdMusicalidade(meta, po, plano, prov),
   // as peças puras que o formulário já usava fora dos builders — uma definição, sem cópia
@@ -595,6 +663,10 @@ const Vistas = {
     juntarQuebras,
     objetosDe,
     dimensoesDe,
+    blocosDaCaptura,
+    marcasDaPessoa,
+    linhaDoBloco,
+    mdValor,
     estruturaDaAula,
     volumeDosBlocos,
     volumeDoBloco,

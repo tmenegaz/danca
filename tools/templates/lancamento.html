@@ -218,6 +218,18 @@ async function lerDadosDoCiclo(texto, arquivo) {
   return claro;
 }
 
+// As três peças que o PAINEL precisa vêm por convenção de nome, ao lado do JSON de dados:
+// `captura-XX.json` (o que o ciclo observa: blocos, colunas, chaves e tipos), `po-XX.json` (a
+// linha de base, para o bloco que revisita item por item) e `plano-XX.json` (o marco da aula).
+// NENHUMA É OBRIGATÓRIA: sem elas o painel declara o que falta em vez de inventar — o mesmo
+// princípio da `lib-vistas.js`, que sem a captura imprime a lacuna em vez das colunas do Duo.
+async function peca(ciclo, nome) {
+  try {
+    const r = await fetch(P + `${nome}-${ciclo}.json`);
+    return r.ok ? JSON.parse(await r.text()) : null;
+  } catch (e) { return null; }
+}
+
 // Carrega o JSON de um ciclo — uma vez por ciclo, sob demanda (a §2.3 do prompt).
 // Guarda o TEXTO junto: quem grava (a captura) escreve no texto do arquivo, não numa
 // re-serialização do objeto — é o que mantém o diff do commit pequeno.
@@ -235,7 +247,14 @@ async function carregarCiclo(c) {
     // tela não quebra: mostra a chave, que é o apelido em slug.
     dados.apelidos = dados.apelidos || {};
     dados.aulas = dados.aulas || {};
-    cache[c.id] = { meta: c, dados, texto };
+    cache[c.id] = {
+      meta: c,
+      dados,
+      texto,
+      captura: await peca(c.id, 'captura'),
+      po: await peca(c.id, 'po'),
+      plano: await peca(c.id, 'plano'),
+    };
   }
   return cache[c.id];
 }
@@ -448,7 +467,7 @@ async function mdDoFiltro() {
   const metas = id ? [indice.ciclos.find((c) => c.id === id)] : indice.ciclos;
   const partes = [];
   for (const meta of metas) {
-    const { meta: m, dados } = await carregarCiclo(meta);
+    const { meta: m, dados, captura } = await carregarCiclo(meta);
     let aulas = Object.keys(dados.aulas).sort();
     if (aula) aulas = aulas.filter((k) => k === aula);
     if (aulas.length === 0) continue;
@@ -457,11 +476,11 @@ async function mdDoFiltro() {
     const provParte = { ...prov, ajuste: await ajusteDoCiclo(cache[m.id]) };
     if (tipo === 'acompanhamento') {
       if (!(aluna in dados.apelidos)) continue;
-      partes.push(Vistas.acompanhamento({ meta: m, dados, aluna, aulas, prov: provParte }));
+      partes.push(Vistas.acompanhamento({ meta: m, dados, aluna, aulas, prov: provParte, captura }));
     } else if (tipo === 'relatorio') {
-      partes.push(Vistas.relatorio({ meta: m, dados, aulas, prov: provParte }));
+      partes.push(Vistas.relatorio({ meta: m, dados, aulas, prov: provParte, captura }));
     } else {
-      partes.push(Vistas.caderno({ meta: m, dados, aulas, prov: provParte }));
+      partes.push(Vistas.caderno({ meta: m, dados, aulas, prov: provParte, captura }));
     }
   }
   return { texto: partes.join('\n\n---\n\n') || '(Nada no filtro atual.)\n', prov };
@@ -766,7 +785,7 @@ function dataPlanejada(m, id) {
   return `${d.getUTCFullYear()}-${dois(d.getUTCMonth() + 1)}-${dois(d.getUTCDate())}`;
 }
 
-function camposCaptura(m, dados, id) {
+function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   const a = dados.aulas[id] || null;
   const ajuste = !!estadoAjuste();     // reabrindo o que já estava lançado
   const cc = (a && a.condicoes_contorno) || {};
@@ -774,25 +793,78 @@ function camposCaptura(m, dados, id) {
   // "o que mudou" JÁ NA PRIMEIRA RENDERIZAÇÃO, quando nada foi mudado ainda. Sem isto, a
   // aula nova nascia com "sim" no select e o campo do "o que mudou" habilitado.
   const plano = cc.plano_seguido || 'sim';
-  const marcaSel = (campo, chave, valor) =>
-    `<select id="t-${esc(chave)}-${campo}">${opcoesDe(MARCAS, valor)}</select>`;
-  const linhas = apelidosDoCiclo(dados).map(([k, nome]) => {
-    const presente = a ? a.presentes.includes(k) : true;   // aula nova: todos presentes
-    const t = (a && a.tecnica && a.tecnica[k]) || {};
-    const f = (a && a.funcional && a.funcional[k]) || {};
-    const dur = f.duracao_min !== undefined ? f.duracao_min
-      : (a && a.duracao_min !== undefined ? a.duracao_min : '');
-    return `<tr>
-      <td><label><input type="checkbox" id="pres-${esc(k)}"${presente ? ' checked' : ''}>
-        ${esc(nome)}</label></td>
-      <td>${marcaSel('alinhamento', k, t.alinhamento)}</td>
-      <td>${marcaSel('tempo', k, t.tempo)}</td>
-      <td>${marcaSel('transferencia', k, t.transferencia)}</td>
-      <td>${marcaSel('braco_perna', k, t.braco_perna)}</td>
-      <td>${marcaSel('tonus', k, f.tonus)}</td>
-      <td><input type="number" id="dur-${esc(k)}" min="0" step="5" value="${esc(dur)}"></td>
-      <td><input type="checkbox" id="fad-${esc(k)}"${f.fadiga_antes ? ' checked' : ''}></td>
-    </tr>`;
+  // O MARCO DA AULA vem do plano do ciclo (`plano-XX.json`): é o que esta aula existe para deixar
+  // pronto. Sem o plano não há linha de marco — não se inventa o que a aula persegue.
+  const marcos = Vistas.helpers.objetosDe((planoDoCiclo && planoDoCiclo.marcosPorAula) || []);
+  const marco = marcos.find((x) => String(Number(x.n)) === String(Number(id)));
+  // AS COLUNAS DO CICLO (o `captura-XX.json`): um bloco por dimensão declarada, com o rótulo e o
+  // TIPO de cada coluna. Antes, estas colunas eram fixas em código — as do Duo —, e o formulário
+  // lançava as mesmas em todo ciclo, mesmo nos que não as têm (o Ritmos lançava `tonus` e não
+  // alcançava o Par).
+  const blocos = captura ? Vistas.helpers.blocosDaCaptura(captura) : [];
+  const doBloco = (b, quem) => (a && a[b.chave] && a[b.chave][quem]) || {};
+  // Um campo por TIPO declarado: marca (os cinco da folha), número, booleano. `texto` e `checkbox`
+  // não são coluna de tabela nestes ciclos (ver a declaração no schema da captura).
+  const campo = (idCampo, tipo, valor, sugestao) => {
+    if (tipo === 'numero') {
+      return `<input type="number" id="${esc(idCampo)}" min="0" step="5"`
+        + ` value="${esc(valor ?? sugestao ?? '')}">`;
+    }
+    if (tipo === 'booleano') {
+      return `<input type="checkbox" id="${esc(idCampo)}"${valor ? ' checked' : ''}>`;
+    }
+    return `<select id="${esc(idCampo)}">${opcoesDe(MARCAS, valor)}</select>`;
+  };
+  const opcoesDeApelido = (sel) => '<option value=""></option>' + apelidosDoCiclo(dados)
+    .map(([k, nome]) => `<option value="${esc(k)}"${k === sel ? ' selected' : ''
+      }>${esc(nome)}</option>`).join('');
+
+  // Os itens da linha de base de uma pessoa: vêm do PO (`linhaDeBase`, por aluno, em lista) — é o
+  // que o bloco que revisita a base marca item por item.
+  const itensDoPo = (nome) => {
+    const base = Vistas.helpers.objetosDe((po && po.linhaDeBase) || []);
+    const eu = base.find((x) => (x.aluno || '') === nome);
+    return eu && eu.precisaDesenvolver
+      ? String(eu.precisaDesenvolver).split(',').map((s) => s.trim()).filter(Boolean) : [];
+  };
+
+  const tabelas = blocos.map((b) => {
+    const titulo = `<h4>${esc(b.rotulo || b.titulo)}</h4>`;
+    if (b.grao === 'dupla') {
+      const pares = Array.isArray(a && a[b.chave]) ? a[b.chave] : [];
+      const quantos = Math.max(pares.length, 3);        // a folha traz três linhas em branco
+      return titulo + '<p class="fraco">Por par — escolha quem dançou com quem.</p>'
+        + `<table class="captura"><tr><th>Par</th>${b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('')}</tr>`
+        + Array.from({ length: quantos }, (_, i) => {
+          const p = pares[i] || {};
+          return `<tr><th><select id="par-${i}-p1">${opcoesDeApelido(p.p1)}</select>`
+            + ` + <select id="par-${i}-p2">${opcoesDeApelido(p.p2)}</select></th>`
+            + b.colunas.map((c) => `<td>${campo(`t-${b.chave}-par${i}-${c.chave}`, c.tipo, p[c.chave])}</td>`).join('')
+            + '</tr>';
+        }).join('') + '</table>';
+    }
+    if (b.secoes) {
+      // A linha de base revisitada: uma marca por ITEM do PO, pessoa por pessoa.
+      return titulo + apelidosDoCiclo(dados)
+        .filter(([k]) => !a || a.presentes.includes(k))
+        .map(([k, nome]) => {
+          const itens = itensDoPo(nome);
+          if (!itens.length) return `<p class="fraco">${esc(nome)}: [o PO não declara linha de base dela.]</p>`;
+          const lancado = Array.isArray((a && a[b.chave] || {})[k]) ? a[b.chave][k] : [];
+          return `<table class="captura"><tr><th>${esc(nome)}</th>`
+            + `<th>${esc(b.colunas[0].rotulo)}</th></tr>`
+            + itens.map((item, j) => `<tr><th class="aluna">${esc(item)}</th><td>${
+              campo(`lb-${k}-${j}`, b.colunas[0].tipo, (lancado[j] || {}).marca)}</td></tr>`).join('')
+            + '</table>';
+        }).join('');
+    }
+    return titulo + '<table class="captura">'
+      + `<tr><th>Aluna(o)</th>${b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('')}</tr>`
+      + apelidosDoCiclo(dados).map(([k, nome]) => `<tr><th class="aluna">${esc(nome)}</th>`
+        + b.colunas.map((c) => `<td>${campo(`t-${b.chave}-${k}-${c.chave}`, c.tipo, doBloco(b, k)[c.chave],
+          c.tipo === 'numero' ? ((a && a.duracao_min) ?? (m.duracao_min ?? '')) : '')}</td>`).join('')
+        + '</tr>').join('')
+      + '</table>';
   }).join('');
 
   return `<p class="fraco">Ciclo ${esc(m.id)} · ${esc(m.escola)} — ` +
@@ -802,6 +874,10 @@ function camposCaptura(m, dados, id) {
          carregado, e o motivo é obrigatório.`
       : `Lançando a <strong>aula ${esc(id)}</strong> (ainda sem dado, campos em branco).
          Os resultados da leitura voltam quando você filtrar uma aula que já tem dado.`}</p>
+  ${marco ? `<p class="marco"><strong>Marco da aula ${esc(id)}</strong> (do plano do ciclo):
+    ${esc(marco.marco)}</p>` : ''}
+  ${captura ? '' : `<p class="fraco">[Preencher: o <code>captura-${esc(m.id)}.json</code> deste ciclo
+    não está no pacote — sem ele o painel não sabe o que este ciclo observa.]</p>`}
   ${ajuste ? `<p class="linha"><label for="captura-motivo">Motivo do ajuste
     (obrigatório):</label>
     <input id="captura-motivo" type="text" size="60"
@@ -840,11 +916,10 @@ function camposCaptura(m, dados, id) {
     <span class="fraco">Obrigatório quando o plano <strong>não</strong> for seguido. Com o
       plano seguido, fica vazio — vazio quer dizer <em>nada mudou</em>. A estrutura
       executada e o que foi abandonado vão no relatório.</span></p>
-  <table>
-    <tr><th>Presente</th><th>Alinhamento</th><th>Tempo</th><th>Transferência</th>
-      <th>Braço-perna</th><th>Tônus</th><th>Duração</th><th>Fadiga?</th></tr>
-    ${linhas}
-  </table>
+  <p class="linha"><strong>Presentes:</strong> ${apelidosDoCiclo(dados).map(([k, nome]) =>
+      `<label class="presenca"><input type="checkbox" id="pres-${esc(k)}"${
+        (a ? a.presentes.includes(k) : true) ? ' checked' : ''}> ${esc(nome)}</label>`).join(' · ')}</p>
+  ${tabelas}
   <p class="linha"><label for="captura-texto">Relatório — o que aconteceu:</label>
     <textarea id="captura-texto" rows="3">${esc(a ? a.relatorio.texto : '')}</textarea></p>
   <p class="linha"><label for="captura-surpresas">O que surpreendeu:</label>
@@ -867,25 +942,24 @@ function renderCaptura() {
   caixa.hidden = !f;
   if (!f) { alvo.innerHTML = ''; return; }
   if (!caixa.open) caixa.open = true;      // chegou numa aula sem dado: o painel abre
-  alvo.innerHTML = camposCaptura(f.meta, f.dados, sel.aula.value);
+  alvo.innerHTML = camposCaptura(f.meta, f.dados, sel.aula.value,
+    (cache[f.meta.id] || {}).captura, (cache[f.meta.id] || {}).po, (cache[f.meta.id] || {}).plano);
 }
 
 // Depois de gerar, os campos são limpos: o que ficou salvo está no arquivo, não no
-// formulário — lançar de novo (ou gerar o .md de novo) é um ato deliberado.
+// formulário — lançar de novo (ou gerar o .md de novo) é um ato deliberado. A limpeza é
+// GENÉRICA (o que a captura declarou, não uma lista fixa de colunas): anda pelos campos do painel
+// e zera; quem manda no que existe ali é o `captura-XX.json`.
 function limparCamposCaptura() {
   ['captura-data', 'captura-duracao', 'captura-plano', 'captura-animo', 'captura-interesse',
    'captura-harmonia', 'captura-mudou', 'captura-texto', 'captura-surpresas', 'captura-ajustes']
     .forEach((id) => { const x = el(id); if (x) x.value = ''; });
-  const f = estadoCaptura();
-  const dados = f ? f.dados : (sel.ciclo.value && cache[sel.ciclo.value]
-    ? cache[sel.ciclo.value].dados : { apelidos: {} });
-  apelidosDoCiclo(dados).forEach(([k]) => {
-    ['pres', 'fad'].forEach((p) => { const x = el(`${p}-${k}`); if (x) x.checked = false; });
-    ['alinhamento', 'tempo', 'transferencia', 'braco_perna', 'tonus'].forEach((c) => {
-      const x = el(`t-${k}-${c}`); if (x) x.value = '';
-    });
-    const d = el(`dur-${k}`); if (d) d.value = '';
-  });
+  const alvo = el('captura-campos');
+  if (alvo) {
+    alvo.querySelectorAll('select').forEach((x) => { x.value = ''; });
+    alvo.querySelectorAll('input[type="number"]').forEach((x) => { x.value = ''; });
+    alvo.querySelectorAll('input[type="checkbox"]').forEach((x) => { x.checked = false; });
+  }
 }
 
 // Lê o painel e monta a aula na ORDEM do schema — para o diff ficar no que mudou, e
@@ -938,29 +1012,69 @@ function coletarCaptura(dados) {
     if (!autor) faltando.push('quem ajusta (o campo "Gerado por")');
   }
 
-  const presentes = [], ausentes = [], tecnica = {}, funcional = {};
+  const presentes = [], ausentes = [];
   apelidosDoCiclo(dados).forEach(([k]) => {
     const p = el('pres-' + k);
     if (p && p.checked) presentes.push(k); else ausentes.push(k);
   });
-  presentes.forEach((k) => {
-    const m = (campo) => v(`t-${k}-${campo}`);
-    tecnica[k] = {
-      alinhamento: m('alinhamento'), tempo: m('tempo'),
-      transferencia: m('transferencia'), braco_perna: m('braco_perna'),
-    };
-    const d = v(`dur-${k}`), fad = el(`fad-${k}`);
-    funcional[k] = {
-      duracao_min: Number(d !== '' ? d : dur),
-      tonus: m('tonus'),
-      fadiga_antes: !!(fad && fad.checked),
-    };
+  // AS MARCAS POR CHAVE DECLARADA (o `captura-XX.json`): bloco por bloco, pela chave do bloco e a
+  // chave da coluna — não mais `tecnica`/`funcional` fixos em código. O tipo decide a leitura: o
+  // número sai número, o booleano sai booleano, e a marca sai como o select deixou (o vazio é
+  // "não observei", e fica — o vazio e o "não vi" são estados distintos).
+  const f0 = estadoCaptura() || estadoAjuste() || {};
+  // De onde sai o ciclo: o estado da captura manda; sem ele, o filtro. Sem este segundo caminho a
+  // gravação ficaria sem a config (e sem ela não há chave nenhuma para gravar).
+  const pecas = cache[(f0.meta && f0.meta.id) || sel.ciclo.value] || {};
+  const blocosDoCiclo = pecas.captura ? Vistas.helpers.blocosDaCaptura(pecas.captura) : [];
+  const lerValor = (id, tipo) => {
+    const x = el(id);
+    if (tipo === 'booleano') return !!(x && x.checked);
+    if (!x) return '';
+    if (tipo === 'numero') return Number(x.value !== '' ? x.value : dur);
+    return String(x.value ?? '');
+  };
+  const blocosGravados = {};
+  blocosDoCiclo.forEach((b) => {
+    if (b.grao === 'dupla') {
+      const pares = [];
+      for (let i = 0; el(`par-${i}-p1`) || el(`par-${i}-p2`); i++) {
+        const p1 = v(`par-${i}-p1`), p2 = v(`par-${i}-p2`);
+        if (!p1 && !p2) continue;                       // linha em branco não é par
+        const par = { p1, p2 };
+        b.colunas.forEach((c) => { par[c.chave] = lerValor(`t-${b.chave}-par${i}-${c.chave}`, c.tipo); });
+        pares.push(par);
+      }
+      if (pares.length) blocosGravados[b.chave] = pares;
+      return;
+    }
+    if (b.secoes) {
+      // A linha de base revisitada: uma marca por ITEM do PO — a lista mantém o texto do item,
+      // porque o slug perderia a redação que a professora leu.
+      const porPessoa = {};
+      presentes.forEach((k) => {
+        const eu = Vistas.helpers.objetosDe((pecas.po && pecas.po.linhaDeBase) || [])
+          .find((x) => (x.aluno || '') === (dados.apelidos[k] || k));
+        const itens = eu && eu.precisaDesenvolver
+          ? String(eu.precisaDesenvolver).split(',').map((s) => s.trim()).filter(Boolean) : [];
+        const marcas = itens.map((item, j) => ({ item, marca: lerValor(`lb-${k}-${j}`, b.colunas[0].tipo) }));
+        if (marcas.length) porPessoa[k] = marcas;
+      });
+      if (Object.keys(porPessoa).length) blocosGravados[b.chave] = porPessoa;
+      return;
+    }
+    const porPessoa = {};
+    presentes.forEach((k) => {
+      const marcas = {};
+      b.colunas.forEach((c) => { marcas[c.chave] = lerValor(`t-${b.chave}-${k}-${c.chave}`, c.tipo); });
+      porPessoa[k] = marcas;
+    });
+    blocosGravados[b.chave] = porPessoa;
   });
   return {
     id, faltando, motivo, autor,
     aula: {
       data, presentes, ausentes, duracao_min: Number(dur),
-      condicoes_contorno: cc, tecnica, funcional, relatorio,
+      condicoes_contorno: cc, ...blocosGravados, relatorio,
     },
   };
 }

@@ -36,6 +36,14 @@
             "type": "string",
             "description": "O título da seção, como está na folha — \"Bloco 1 — Técnica (syllabus RAD)\" no Duo, \"Bloco 1 — Técnica (método RAD)\" no Ritmos. É ele que nomeia o bloco na tela."
           },
+          "chave": {
+            "type": "string",
+            "description": "O NOME DO BLOCO NO JSON DE DADOS (`tecnica`, `funcional`, `musicalidade`, `par`, `linha_de_base`): é por ele que o lançamento guarda as marcas daquele bloco (`aula.tecnica.<aluna>.<chave>`). Vem da declaração, e é o que permite ao dado ter N blocos — antes, `tecnica` e `funcional` eram os únicos, fixos em código."
+          },
+          "rotulo": {
+            "type": "string",
+            "description": "O nome CURTO do bloco, para as vistas (`Técnica`, `Funcional`, `Linha de base`). Vem da declaração; sem ele a vista teria de encurtar o título."
+          },
           "tipo": {
             "type": "string",
             "description": "\"tabela\" (o bloco tem a tabela de marcação) ou \"texto\" (o bloco só tem rótulos: o cabeçalho, as condições de contorno, o fecho)."
@@ -91,7 +99,7 @@
   },
 
   "_declaracao": {
-    "_nota": "O que a folha NÃO pode dizer sozinha: por VARIANTE (o slug do .conf VARIANTE e do nome do pacote — `duo`, `ritmos`), o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o GRÃO de cada bloco. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS. O extrator (tools/validar-captura-ciclo.js) lê isto e emite, por coluna, `rotulo`, `chave` e `tipo` — e REPORTA (não inventa) a coluna da folha que não estiver declarada aqui, e o bloco da folha que não estiver declarado. As chaves foram escolhidas CURTAS e ESTÁVEIS, próximas das que já existiam nos lançamentos (a tabela de aliases do rename fica mínima: uma só, no Duo).",
+    "_nota": "O que a folha NÃO pode dizer sozinha: por VARIANTE (o slug do .conf VARIANTE e do nome do pacote — `duo`, `ritmos`), o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o GRÃO de cada bloco. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS. O extrator (tools/validar-captura-ciclo.js) lê isto e emite, por coluna, `rotulo`, `chave` e `tipo` — e REPORTA (não inventa) a coluna da folha que não estiver declarada aqui, e o bloco da folha que não estiver declarado. Cada BLOCO declara também a sua `chave` e o seu `rotulo`: a chave é o nome do bloco no JSON de dados (`tecnica`, `musicalidade`, `par`, `linha_de_base`…) e o rótulo é o nome curto que as vistas imprimem (`Técnica`, `Musicalidade`) — sem eles, o dado voltaria a ter os blocos fixos em código. As chaves foram escolhidas CURTAS e ESTÁVEIS, próximas das que já existiam nos lançamentos (a tabela de aliases do rename fica mínima: uma só, no Duo).",
     "tipos": {
       "marca": "Um dos cinco do conjunto da folha: `ok` (✓ aconteceu), `parcial` (~ parcial), `nao` (X não aconteceu), `nao_vi` (? não vi) — ou `''` (vazio = não observei). É o que o formulário renderiza como select (o `marcaSel`).",
       "numero": "Um número (a duração em minutos). No formulário, campo numérico.",
@@ -104,6 +112,8 @@
         "escola": "Duo",
         "blocos": {
           "Bloco 1 — Técnica (syllabus RAD)": {
+            "chave": "tecnica",
+            "rotulo": "Técnica",
             "grao": "aluna",
             "colunas": {
               "Metatarsos": { "chave": "metatarsos", "tipo": "marca" },
@@ -113,6 +123,8 @@
             }
           },
           "Bloco 2 — Funcional (sobrecarga por aluna)": {
+            "chave": "funcional",
+            "rotulo": "Funcional",
             "grao": "aluna",
             "colunas": {
               "Duração (min)": { "chave": "duracao_min", "tipo": "numero" },
@@ -120,6 +132,8 @@
             }
           },
           "Bloco 3 — Musicalidade": {
+            "chave": "musicalidade",
+            "rotulo": "Musicalidade",
             "grao": "aluna",
             "colunas": {
               "Pulso": { "chave": "pulso", "tipo": "marca" },
@@ -127,6 +141,8 @@
             }
           },
           "Bloco 4 — Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
             "grao": "aluna",
             "colunas": {
               "Posterior": { "chave": "posterior", "tipo": "marca" },
@@ -142,6 +158,8 @@
         "escola": "Ritmos e Movimento",
         "blocos": {
           "Bloco 1 — Técnica (método RAD)": {
+            "chave": "tecnica",
+            "rotulo": "Técnica",
             "grao": "aluna",
             "colunas": {
               "Tendus/jetés (braços 1ª–2ª–3ª)": { "chave": "tendus_jetes", "tipo": "marca" },
@@ -150,6 +168,8 @@
             }
           },
           "Bloco 2 — Par (o que este ciclo tem de próprio)": {
+            "chave": "par",
+            "rotulo": "Par",
             "grao": "dupla",
             "_estrutura": "a linha é um PAR (dois apelidos), não uma aluna: no JSON de dados este bloco vira uma LISTA de pares (`par: [{ p1, p2, <chaves declaradas> }]`), e é o professor que escolhe quem dançou com quem. Na folha as linhas são `______` em branco, porque os pares mudam a cada aula.",
             "colunas": {
@@ -160,6 +180,8 @@
             }
           },
           "Bloco 3 — Funcional (sobrecarga por pessoa)": {
+            "chave": "funcional",
+            "rotulo": "Funcional",
             "grao": "aluna",
             "colunas": {
               "Duração (min)": { "chave": "duracao_min", "tipo": "numero" },
@@ -168,6 +190,8 @@
             }
           },
           "Bloco 4 — Musicalidade (repertório em 3/4)": {
+            "chave": "musicalidade",
+            "rotulo": "Musicalidade",
             "grao": "aluna",
             "colunas": {
               "Pulso": { "chave": "pulso", "tipo": "marca" },
@@ -176,6 +200,8 @@
             }
           },
           "Bloco 5 — Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
             "grao": "aluna",
             "_estrutura": "um `### <apelido>` por aluna, cada um com a sua tabela de duas colunas — a linha é um item do que o PO declara para ELA, e a coluna é a marca da aula. O extrator ainda MISTURA as tabelas das seções (os cabeçalhos das 2ª..Nª viraram linhas): lacuna declarada, a corrigir.",
             "colunas": {

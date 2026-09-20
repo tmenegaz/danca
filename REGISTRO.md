@@ -2175,3 +2175,70 @@ schema muda, mas não está no `.fipp`); e a fixture da coluna não declarada: *
 `tools/lib-extracao-md.js` (as primitivas); a fixture e o relatório da coluna não declarada (em
 `/tmp`, não versionados).
 
+
+## 20/09/2026 — O formulário e as vistas leem as chaves do ciclo (o rename)
+
+**O que motivou.** A declaração (Fase 1) e a config (Fase 2) existem, mas ninguém as consumia: o
+formulário tinha **oito colunas fixas** (as do Duo) e o JSON de dados, as chaves do modelo fixo
+(`alinhamento`, `tempo`…). As quatro decisões da pesquisadora fecharam o caminho — **rename**, chave
+e tipo no schema, e o grão `dupla` como lista de pares —, e esta fase liga as pontas.
+
+**O que foi feito.**
+- **`tools/lib-vistas.js`** — os nomes fixos saíram dos **8 sítios, 3 funções**
+  (`mdAcompanhamento`, `mdEntradaCaderno`, `mdRelatorio`). Entraram quatro definições: `blocosDaCaptura`
+  (os blocos declarados), `marcasDaPessoa` (os pares rótulo → valor de um bloco, para uma pessoa ou
+  um par), `linhaDoBloco` e `mdValor`. As três funções ganharam o parâmetro `captura`, e quem chama
+  passa; **sem ele a vista imprime a lacuna** (`SEM_CAPTURA`) em vez de inventar colunas. As vistas
+  passaram a imprimir **a musicalidade, a linha de base e o Par** — que não apareciam.
+- **`tools/templates/lancamento.html`** — o painel deixa de ter oito colunas fixas e passa a ser
+  montado pelo `captura-XX.json`: um bloco por dimensão declarada, com o rótulo e o **tipo** de cada
+  coluna (marca → select · número → campo numérico · booleano → caixa). O **Par** vira uma lista de
+  pares (o professor escolhe os dois apelidos); a **linha de base** vira uma marca **por item do PO**
+  (`linhaDeBase.precisaDesenvolver`, em lista); a **presença** sai da tabela e vira uma linha só (a
+  aula é uma); e o **marco da aula** (do `plano-XX.json`) aparece no topo do painel. O
+  `coletarCaptura` grava **pelas chaves declaradas** — `aula.<chave do bloco>.<apelido>.<chave da
+  coluna>`, `aula.par = [{p1, p2, …}]`, e `linha_de_base.<apelido> = [{item, marca}]` —, e o
+  `limparCamposCaptura` limpa genericamente.
+- **`tools/renomear-chaves-dados.js`** (novo) — a migração do rename, com dry-run por padrão. Ela
+  roda sobre o **texto plano** (`ciclos/ciclo-XX[-<escola>]-dados.json`), que é FONTE: o envelope
+  cifrado do pacote é DERIVADO, e o gerador o reescreve. **A primeira tentativa desta fase migrou o
+  envelope errado** e foi perdida na geração seguinte — o tool agora **recusa** o envelope e diz onde
+  migrar. Aplicado: `alinhamento` → `metatarsos` no Duo (4 trocas, uma por aluna); o Ritmos não
+  precisou de nenhuma.
+- **`tools/validar-captura-ciclo.js`** — cada BLOCO sai com `chave` e `rotulo`, da declaração; sem
+  eles, o lançamento não saberia em que bloco do JSON gravar (era o que o prendia a
+  `tecnica`/`funcional`). O schema (`ciclo-01-captura-schema.json`) declara os dois por bloco e o
+  `properties` acompanha.
+
+**A prova, ao vivo.** As funções do painel foram **extraídas do template e rodadas em node** com um
+DOM falso (não é uma cópia da lógica — é a lógica):
+- **Duo:** blocos na tela *Técnica · Funcional · Musicalidade · Linha de base*; **nenhuma** coluna que
+  o ciclo não declara; **todas** as declaradas na tela; marco presente; gravação em
+  `metatarsos`/`duracao_min`/`fadiga_antes`/`pulso`/`acento`/`linha_de_base.*` (a musicalidade e a
+  linha de base **não eram lançáveis** antes);
+- **Ritmos:** *Técnica · Par · Funcional · Musicalidade · Linha de base*; o Par grava
+  `[{p1: "carol", p2: "dada", eixo_individual…}]`; a linha de base grava os **itens do PO** um a um.
+- **A lib:** `- **Técnica:** Metatarsos ok · Tempo (calcanhar t.1) ok · Transfer. (t.2) ok ·
+  Braço-perna parcial` — os rótulos do ciclo com o valor da chave renomeada.
+
+**O que fica declarado.**
+- O **grão `dupla`** grava uma lista de pares; o painel mostra 3 linhas em branco (como a folha) — o
+  professor escolhe os dois apelidos, e par em branco não é gravado.
+- A **linha de base** grava `{item, marca}` (com o texto do item, e não um slug): o slug perderia a
+  redação que a professora leu.
+- Os **marcos provisórios** (`[Preencher]`) e as **colunas sem dado** (8 no Duo, 10 no Ritmos)
+  aparecem vazias — não se inventa marca.
+- O `condicoes_contorno` e o `relatorio` continuam nas chaves fixas: são campos de LINHA, iguais em
+  toda variante.
+- Âncoras: o Duo **reancorado** (`4b49f2dd…` — o JSON de dados é fonte e mudou); o Ritmos **intacto**
+  (`184213f5…`).
+
+**Com o quê.** `tools/lib-vistas.js`; `tools/templates/lancamento.html` e os dois `lancamento.html` do
+pacote (+ `assets/lib-vistas.js`); `tools/renomear-chaves-dados.js` (novo);
+`tools/validar-captura-ciclo.js`; `ciclo-01-captura-schema.json`; `ciclo-01-duo-dados.json` (a fonte,
+renomeada) e o `ciclo-01-duo.fipp` (a âncora); os `captura-01.json` e o envelope do Duo no pacote.
+
+**Referências.** O relatório da Fase 1 da peça (d) (a tabela de aliases); as duas folhas de captura; o
+`po-01.json` de cada ciclo (a linha de base); o `plano-01.json` (o marco); as duas provas, em `/tmp`
+(não versionadas).
+

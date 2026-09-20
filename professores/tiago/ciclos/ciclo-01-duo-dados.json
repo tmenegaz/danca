@@ -13,7 +13,12 @@
   "aulas": {
     "01": {
       "data": "2026-09-18",
-      "presentes": ["ceci", "ana", "mel", "sofi"],
+      "presentes": [
+        "ceci",
+        "ana",
+        "mel",
+        "sofi"
+      ],
       "ausentes": [],
       "duracao_min": 60,
       "condicoes_contorno": {
@@ -24,16 +29,48 @@
         "mudou": ""
       },
       "tecnica": {
-        "ceci": { "alinhamento": "ok", "tempo": "ok", "transferencia": "ok", "braco_perna": "parcial" },
-        "ana": { "alinhamento": "ok", "tempo": "ok", "transferencia": "ok", "braco_perna": "parcial" },
-        "mel": { "alinhamento": "ok", "tempo": "ok", "transferencia": "ok", "braco_perna": "parcial" },
-        "sofi": { "alinhamento": "ok", "tempo": "ok", "transferencia": "ok", "braco_perna": "parcial" }
+        "ceci": {
+          "tempo": "ok",
+          "transferencia": "ok",
+          "braco_perna": "parcial",
+          "metatarsos": "ok"
+        },
+        "ana": {
+          "tempo": "ok",
+          "transferencia": "ok",
+          "braco_perna": "parcial",
+          "metatarsos": "ok"
+        },
+        "mel": {
+          "tempo": "ok",
+          "transferencia": "ok",
+          "braco_perna": "parcial",
+          "metatarsos": "ok"
+        },
+        "sofi": {
+          "tempo": "ok",
+          "transferencia": "ok",
+          "braco_perna": "parcial",
+          "metatarsos": "ok"
+        }
       },
       "funcional": {
-        "ceci": { "duracao_min": 60, "fadiga_antes": false },
-        "ana": { "duracao_min": 60, "fadiga_antes": false },
-        "mel": { "duracao_min": 60, "fadiga_antes": true },
-        "sofi": { "duracao_min": 60, "fadiga_antes": false }
+        "ceci": {
+          "duracao_min": 60,
+          "fadiga_antes": false
+        },
+        "ana": {
+          "duracao_min": 60,
+          "fadiga_antes": false
+        },
+        "mel": {
+          "duracao_min": 60,
+          "fadiga_antes": true
+        },
+        "sofi": {
+          "duracao_min": 60,
+          "fadiga_antes": false
+        }
       },
       "relatorio": {
         "texto": "Estado da aula 01 (nao e evolucao -- e o estado): Ceci -- posterior com pequena reducao de rigidez em relacao ao declarado, adutor com pequena reducao, rotadores muito bem, resiliencia a dor muito bem, muito focada. Ana -- posterior e adutor com a mesma intensidade, rotadores muito bem, leve reducao na resiliencia a dor, leve melhora no foco. Mel -- posterior e adutor com a mesma intensidade, rotadores excelente, leve reducao na resiliencia a dor, mais focada hoje. Sofi -- leve reducao no posterior, adutor com a mesma intensidade, rotadores excelente, resiliencia muito bem, muito focada. Nota do registro: o estado do posterior/adutor de Ceci e Sofi aparece com menor rigidez do que o declarado na linha de base -- mas pode ser variacao do dia, nao evolucao. Registro sem conclusao.",
@@ -45,4 +82,3 @@
   },
   "_nota": "A captura em JSON do ciclo, por aula. A Aula 01 foi transcrita do relatorio pos-aula e do caderno (20/09/2026) -- o dado ja existia, escrito a mao; daqui em diante o lancamento entra pela propria pagina. O JSON e a FONTE do ciclo (decisao de 20/09): entra no hash, nao e publicado, e as vistas (caderno, relatorio, acompanhamento, guia) sao geradas a partir dele."
 }
-

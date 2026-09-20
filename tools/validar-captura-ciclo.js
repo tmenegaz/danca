@@ -168,9 +168,17 @@ function enriquecer(blocos, declaracao) {
         + ' seguinte(s) ignorado(s) — as linhas de cada seção não se misturam');
     }
 
+    if (d && (!d.chave || !d.rotulo)) {
+      erros.push(`bloco declarado sem chave ou sem rótulo: '${b.titulo}'`);
+    }
     const bloco = {
       titulo: b.titulo,
       tipo: 'tabela',
+      // A CHAVE e o RÓTULO do bloco vêm da declaração: sem a chave, o lançamento não sabe em que
+      // bloco do JSON de dados guardar a marca (era o que o prendia a `tecnica`/`funcional`); sem o
+      // rótulo, as vistas teriam de encurtar o título da folha.
+      chave: (d && d.chave) || null,
+      rotulo: (d && d.rotulo) || null,
       grao: (d && d.grao) || b.graoDaFolha,
       colunas,
       linhas: b.linhas || [],

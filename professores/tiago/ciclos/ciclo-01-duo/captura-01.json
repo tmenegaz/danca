@@ -30,6 +30,8 @@
     {
       "titulo": "Bloco 1 — Técnica (syllabus RAD)",
       "tipo": "tabela",
+      "chave": "tecnica",
+      "rotulo": "Técnica",
       "grao": "aluna",
       "colunas": [
         {
@@ -63,6 +65,8 @@
     {
       "titulo": "Bloco 2 — Funcional (sobrecarga por aluna)",
       "tipo": "tabela",
+      "chave": "funcional",
+      "rotulo": "Funcional",
       "grao": "aluna",
       "colunas": [
         {
@@ -86,6 +90,8 @@
     {
       "titulo": "Bloco 3 — Musicalidade",
       "tipo": "tabela",
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
       "grao": "aluna",
       "colunas": [
         {
@@ -109,6 +115,8 @@
     {
       "titulo": "Bloco 4 — Linha de base revisitada (P-10)",
       "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
       "grao": "aluna",
       "colunas": [
         {
