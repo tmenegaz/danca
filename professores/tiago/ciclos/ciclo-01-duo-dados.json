@@ -1,0 +1,9 @@
+{
+  "ciclo": "01",
+  "escola": "duo",
+  "professor": "tiago",
+  "criado_em": "2026-09-20",
+  "ultimo_lancamento": null,
+  "aulas": {},
+  "_nota": "O primeiro lancamento entra pela propria pagina, quando o formulario estiver em producao. O que existe hoje da Aula 01 esta no caderno e no relatorio pos-aula (relatorios/ciclo-01/aula-01-duo.md) -- a captura em JSON comeca aqui, vazia. O JSON e a FONTE do ciclo (decisao de 20/09): entra no hash, nao e publicado, e as vistas (caderno, relatorio, acompanhamento, guia) passam a ser geradas a partir dele."
+}

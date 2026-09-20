@@ -1261,3 +1261,48 @@ o `REGRAS.md` lista o mesmo conjunto. Nenhuma linha de REGRA mudou — só a tab
 entrada); `tools/hooks/commit-msg` (a lista, e o dono dela); `README-ciclos.md` (o espelho
 principal); `HANDOFF.md` (a defasagem declarada).
 
+## 2026-09-20 — Peça 1: o JSON de dados do Duo entra como fonte
+
+**O que motivou.**
+A migração decidida (as cinco decisões de 20/09) começa pelo arquivo de dados: `ciclo-XX-dados.json`
+— a captura em JSON, que passa a ser a **fonte** do ciclo. Sem ele não há o que o gerador leia nem o
+que o hash cubra (decisão 4: o JSON entra no hash como fonte).
+
+**O que foi decidido.**
+- `professores/tiago/ciclos/ciclo-01-duo-dados.json` (novo): a estrutura do §2.1 da arquitetura
+  (`ciclo`, `escola`, `professor`, `criado_em`, `ultimo_lancamento`, `aulas`) — e **vazio**:
+  `"aulas": {}`. O dado da Aula 01 existe no **caderno e no relatório**, não numa captura em JSON; o
+  primeiro lançamento entra pela própria página quando o formulário estiver em produção. Um `_nota`
+  diz isso a quem abrir o arquivo (a convenção `_` dos metadados).
+- O `ARQUIVO_DADOS` entra como **resolvedor na lib** (`fonte_dados()`), e não no caller: o
+  `ARQUIVO_PO`, que serve de modelo, é definido no `hash-ciclo.sh` — e criar um SEGUNDO ponto de
+  definição do mesmo caminho é exatamente a divergência que o `lib-fontes.sh` existe para evitar. A
+  precedência é a do `fonte_md()`: `ciclo-XX-<escola>-dados.json` vence `ciclo-XX-dados.json` (a
+  captura é por ESCOLA, como o PO e os relatórios).
+- `fontes_do_ciclo()` passa a incluir o JSON — **e só isso**: ele não entra em `DOCS`, logo **não é
+  publicado**. Conferido: quem chama `fontes_do_ciclo()` é só o `hash-ciclo.sh`; o gerador monta o
+  pacote por `DOCS` + `fonte_md`.
+
+**O que se mediu.**
+- O **Duo** reancorou: `hash_conteudo` `2bcae3f79b43…` → **`cb7216128a65…`** e `hash`
+  `ab71e6c60ac8…` → **`c004b0ecbade…`**, com `ciclo-01-duo-dados.json` na cobertura do `.fipp` ✓.
+- A **Ritmos não mudou** — o `fonte_dados()` dela não resolve arquivo nenhum: `--check` ok, com o
+  mesmo `3aeaa3b6…`, e a cobertura dela **sem** o `dados.json` ✓. Sem churn desnecessário.
+- `check-pacote`: **OK 0 erro(s), 5 aviso(s)** nos dois ciclos.
+
+**O que ainda não está feito.**
+- O JSON da **Ritmos** (Duo primeiro, por decisão) e o primeiro lançamento real.
+- As **vistas ainda não saíram da cobertura** — convivem com o JSON até a peça 4, e é o que o
+  comentário no `fontes_do_ciclo()` declara.
+- O **gerador ainda não lê o JSON** (peça 3) e os **builders ainda vivem no experimento** (peça 2).
+
+**Com o quê.**
+`professores/tiago/ciclos/ciclo-01-duo-dados.json` (novo), `tools/lib-fontes.sh`,
+`professores/tiago/ciclos/ciclo-01-duo.fipp` (reancorado).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `ARQUITETURA-CAPTURA.md` (§7 as decisões, §8 as peças — atualizados hoje);
+`IDEIA-CAPTURA.md` (o JSON como fonte, e a linha da segurança corrigida hoje); `REGRAS.md` 8, 16 e
+17; `PROTOCOLO.md` P-03/P-04 (a âncora alinha; o passado se incorpora).
+

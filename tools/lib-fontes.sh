@@ -41,6 +41,18 @@ fonte_md() {
   printf '%s' "$CICLOS/ciclo-$CICLO-$1.md"
 }
 
+# Caminho do JSON de DADOS do ciclo — a captura em JSON (peça 1 da migração). É FONTE: entra no
+# hash FIPP, e NÃO é publicado (não está em DOCS). A variante vence a base, como em fonte_md():
+# a captura é POR ESCOLA, como o PO e os relatórios.
+fonte_dados() {
+  local proprio="$CICLOS/ciclo-$CICLO-${VARIANTE:-}-dados.json"
+  if [ -n "${VARIANTE:-}" ] && [ -f "$proprio" ]; then
+    printf '%s' "$proprio"
+    return
+  fi
+  printf '%s' "$CICLOS/ciclo-$CICLO-dados.json"
+}
+
 # Fontes que COMPÕEM o ciclo desta variante: os dois manifestos, o PO (quando
 # existe) e os documentos que o pacote de fato lê (`index $DOCS`), já resolvidos
 # por fonte_md(). O que é de outra escola não entra, e o documento sem sufixo que
@@ -52,6 +64,14 @@ fontes_do_ciclo() {
   printf '%s\n' "$CONF_BASE" "$CONF_VARIANTE"
   if [ -n "${ARQUIVO_PO:-}" ] && [ -f "$ARQUIVO_PO" ]; then
     printf '%s\n' "$ARQUIVO_PO"
+  fi
+  # O JSON de DADOS do ciclo (a captura): é FONTE — entra no hash como o PO, e não é publicado.
+  # Quando as vistas passarem a ser geradas, ELAS saem da cobertura e este fica no lugar
+  # (peça 4 da migração); até lá, os dois convivem.
+  local dados
+  dados="$(fonte_dados)"
+  if [ -f "$dados" ]; then
+    printf '%s\n' "$dados"
   fi
   for doc in index ${DOCS:-}; do
     src="$(fonte_md "$doc")"
