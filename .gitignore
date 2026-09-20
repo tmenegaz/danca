@@ -33,6 +33,18 @@ tools/.senhas-locais
 professores/*/ciclos/*-acompanhamento-*.md
 
 # ============================================================================
+# Área de teste — rascunhos, não produção
+# ============================================================================
+# O que fica em experimentos/ não é fonte do hash, não entra no pacote e não é
+# publicado: é espaço para experimentar sem risco para o que está no ar.
+#
+# Só o README é versionado — ele explica as regras da área. O que virar produção
+# sai daqui e entra nos diretórios oficiais, com commit próprio (e, se for
+# ferramenta ou infraestrutura, com motivo declarado — ver CONGELAMENTO.md).
+experimentos/*
+!experimentos/README.md
+
+# ============================================================================
 # Caches e ambientes
 # ============================================================================
 node_modules/
