@@ -20,13 +20,18 @@ Ou seja: **experimentar aqui não pode quebrar produção.**
 ## Como testar localmente
 
 ```bash
-python3 -m http.server 8000 --bind 127.0.0.1
+python3 -m http.server 8000 --bind 127.0.0.1     # da RAIZ do repositório
 # abra http://127.0.0.1:8000/experimentos/<experimento>/
 ```
 
 Use `127.0.0.1` (e não `file://`): páginas que usam WebCrypto — como o
 PageCrypt dos acompanhamentos — só funcionam em contexto seguro, e `file://`
 pode falhar sem dizer por quê.
+
+**E sirva da RAIZ, não com `--directory experimentos`** (medido, 20/09/2026): as páginas dos
+experimentos consomem libs que vivem **fora** de `experimentos/` — a `tools/lib-vistas.js`, por
+exemplo, entra por `<script src="../../tools/lib-vistas.js">`. Servindo só a pasta `experimentos/`,
+a página abre (200) e a **lib dá 404** ✗: o experimento fica sem os builders.
 
 > **Atenção:** `tools/deploy-netlify.sh` **publica em produção** (uma conta por
 > escola). Ele **não** é o caminho de preview — não use para experimentos. Para
@@ -76,6 +81,13 @@ Os JSONs de entrada desse experimento **não são escritos à mão**: eles saem 
 compartilhado (`tools/lib-extracao-md.js`, `tools/lib-validacao-md.js`). A leitura à mão que
 existia antes ficou guardada como REFERÊNCIA, e é com ela que o `diff-classificado.js` (local)
 prova que a estrutura extraída **é o que o documento oferece** — sem diferença sem classe.
+
+**E os builders das vistas saíram do formulário** (peça 2 da migração, 20/09/2026): o caderno, o
+relatório, o acompanhamento, o guia e a musicalidade agora vivem em **`tools/lib-vistas.js`** —
+uma definição só, consumida por este experimento (`<script src="../../tools/lib-vistas.js">`) **e
+pelo gerador** (Node). Aqui não há cópia: o formulário chama `Vistas.guia({…})`, `Vistas.caderno({…})`
+e `Vistas.helpers.*`. E a igualdade está provada: com o mesmo `prov`, **o guia do Node é idêntico
+ao do formulário**; sem `prov` (o caso do gerador), a única diferença é o carimbo — declarado.
 
 A área foi criada em 19/09/2026, junto com a documentação da
 ideia de captura em JSON (`IDEIA-CAPTURA.md` e `ARQUITETURA-CAPTURA.md`), para

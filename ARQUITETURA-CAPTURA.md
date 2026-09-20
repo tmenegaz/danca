@@ -461,10 +461,14 @@ em 10 anos, nem em 20.
 
 ## 8. As peças da migração (na ordem)
 
-1. **`ciclo-XX-dados.json`** + `ARQUIVO_DADOS` no `lib-fontes.sh` + cobertura do FIPP;
-2. **Os builders saem do experimento** para `tools/lib-vistas.js` — o mesmo princípio das duas
-   libs (uma definição, consumida **pelo formulário e pelo gerador**);
-3. **O `gerar-ciclo.sh` passa a ler o JSON** para as páginas de vista;
+1. **Feita** — `ciclo-XX-dados.json` + `ARQUIVO_DADOS` no `lib-fontes.sh` + cobertura do FIPP
+   (`86b06f2`): o JSON do Duo existe — **vazio**, porque o dado da Aula 01 está no caderno e no
+   relatório; o primeiro lançamento entra pela página — e a âncora regerou (a Ritmos ficou intacta);
+2. **Feita** — os builders saíram para **`tools/lib-vistas.js`** (`d65a247`), e o formulário passou
+   a consumi-los: uma definição, dois consumidores. A igualdade foi medida: com o mesmo `prov`, o
+   guia do **Node é idêntico** ao do formulário; sem `prov` (o caso do gerador), a diferença é só o
+   carimbo — declarado;
+3. **O `gerar-ciclo.sh` passa a ler o JSON** para as páginas de vista — a seguir;
 4. **As vistas saem da cobertura**; o JSON entra (e a âncora de cada ciclo regera uma vez);
 5. **Duo (12 aulas) primeiro; Ritmos (21) depois** — as duas formas testam o modelo.
 
