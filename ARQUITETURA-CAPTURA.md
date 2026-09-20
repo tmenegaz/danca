@@ -430,76 +430,45 @@ aulas/ano**.
 **Nenhuma migração para banco de dados é necessária por volume.** Nem agora, nem
 em 10 anos, nem em 20.
 
-## 7. Perguntas em aberto
+## 7. Decisões tomadas
 
-Estas são as decisões que **ainda não têm resposta** — e que o desenho revelou (é
-o ponto do documento):
+| Questão | Decisão | Consequência |
+|:--|:--|:--|
+| **Onde o JSON vive** | No Git do repositório privado, **não publicado** — como o PO e o relatório | O gerador lê JSON; cada aula lançada provoca reancoragem |
+| **Coexistência com `.md`** | **Só as vistas são geradas**; o autorado continua `.md` | As vistas saem da cobertura do hash; o JSON entra |
+| **O que migra primeiro** | O **guia** (é redundante com PO + plano). A **musicalidade** não migra — é autorada, e a vista **alimenta** o documento | O guia de produção é substituído; o documento de musicalidade permanece |
+| **O JSON no hash** | **Sim** — como o PO (fonte coberta sem estar no `DOCS`) | Reancoragem por lançamento |
+| **Escopo** | **Duo + Ritmos** | As duas formas (lista × prosa) testam o modelo |
 
-### 7.1 Como o formulário sabe quais campos montar para a aula 03?
+> **7.1 — que campos montar para cada aula?** Fica **respondida na prática pelo experimento**:
+> os campos saem do próprio ciclo (as alunas do índice + as colunas de técnica e funcional), e o
+> que muda por aula é o **conteúdo**, não a forma. Vale até a implementação dizer o contrário.
 
-**Hipótese A:** o formulário lê o plano da aula 03 (`.md`) e extrai os campos.
+**O que NÃO foi decidido ainda** (fica em aberto), com as hipóteses que o desenho levantou:
 
-**Hipótese B:** existe um schema central (por tipo de aula — balé, PDD, barra)
-que o formulário consulta.
+- **7.2 — o que acontece se o PO mudar no meio do ciclo?** (A) o JSON é migrado, em nova versão;
+  (B) o JSON fica na versão do PO que existia quando foi criado; (C) o JSON declara a versão do
+  PO, e a migração é manual. **Não decidido.**
+- **7.4 — como o Netlify serve um JSON criptografado?** (A) o JSON é servido cifrado e o
+  formulário o descriptografa no navegador (como o PageCrypt faz com os HTML hoje); (B) o JSON
+  não é servido publicamente — só existe no computador do professor. **Não decidido.**
+- **7.5 — durante a transição (JSON e `.md` coexistem), qual é a fonte?** (A) o `.md` continua
+  sendo a fonte até o JSON estar completo; (B) a partir de uma data, o JSON passa a ser a fonte;
+  (C) os dois coexistem — o JSON para as aulas novas, os `.md` para as antigas. **Não decidido.**
+- **7.6 — o formulário roda onde?** (A) no pacote publicado (site do ciclo), como parte dos HTML;
+  (B) fora do pacote — uma ferramenta separada do professor; (C) no VS Code, como extensão ou
+  app. **Não decidido.**
 
-**Hipótese C:** o formulário tem campos fixos (os mesmos para todas as aulas), e
-o que muda é só o conteúdo.
+## 8. As peças da migração (na ordem)
 
-**Não decidido.**
+1. **`ciclo-XX-dados.json`** + `ARQUIVO_DADOS` no `lib-fontes.sh` + cobertura do FIPP;
+2. **Os builders saem do experimento** para `tools/lib-vistas.js` — o mesmo princípio das duas
+   libs (uma definição, consumida **pelo formulário e pelo gerador**);
+3. **O `gerar-ciclo.sh` passa a ler o JSON** para as páginas de vista;
+4. **As vistas saem da cobertura**; o JSON entra (e a âncora de cada ciclo regera uma vez);
+5. **Duo (12 aulas) primeiro; Ritmos (21) depois** — as duas formas testam o modelo.
 
-### 7.2 O que acontece se o PO mudar no meio do ciclo?
-
-**Hipótese A:** o JSON é migrado (nova versão).
-
-**Hipótese B:** o JSON fica na versão do PO que existia quando foi criado.
-
-**Hipótese C:** o JSON tem uma versão do PO declarada, e a migração é manual.
-
-**Não decidido.**
-
-### 7.3 Onde o JSON vive no repositório?
-
-**Hipótese A:** dentro do Git (repositório privado).
-
-**Hipótese B:** fora do Git (como os `.md` de acompanhamento hoje), mas
-commitado o JSON cifrado.
-
-**Hipótese C:** no Git em claro (só protegido pelo repositório privado).
-
-**Não decidido.** — **Esta é a pergunta mais importante da arquitetura.**
-
-### 7.4 Como o Netlify serve um JSON criptografado?
-
-**Hipótese A:** o JSON é servido cifrado e o formulário o descriptografa no
-navegador (como o PageCrypt faz com os HTML hoje).
-
-**Hipótese B:** o JSON não é servido publicamente — só existe localmente no
-computador do professor.
-
-**Não decidido.**
-
-### 7.5 Durante a transição (JSON e `.md` coexistem), qual é a fonte?
-
-**Hipótese A:** o `.md` continua sendo a fonte até o JSON estar completo.
-
-**Hipótese B:** a partir de uma data, o JSON passa a ser a fonte.
-
-**Hipótese C:** os dois coexistem — o JSON para as aulas novas, os `.md` para as
-antigas.
-
-**Não decidido.**
-
-### 7.6 O formulário roda onde?
-
-**Hipótese A:** no pacote publicado (site do ciclo), como parte dos HTML.
-
-**Hipótese B:** fora do pacote — uma ferramenta separada do professor.
-
-**Hipótese C:** no VS Code, como uma extensão ou app.
-
-**Não decidido.**
-
-## 8. O que isso revela
+## 9. O que isso revela
 
 **Esta ideia não é sobre escala. É sobre navegação.**
 
@@ -513,11 +482,13 @@ O desenho da arquitetura mostrou que:
 - A migração para JSON **não é necessária por volume**. Se for feita, é para
   simplificar a interface.
 
-Há **seis perguntas em aberto** (§7) — nenhuma delas bloqueia a ideia; todas
-podem ser respondidas quando a implementação for decidida.
+Há **quatro perguntas em aberto** (§7) e **cinco decisões tomadas** — nenhuma das abertas
+bloqueia a ideia; todas podem ser respondidas quando a implementação for decidida.
 
-**A pergunta crítica:** §7.3 (onde o JSON vive) — define se a ideia mantém a
-arquitetura atual (sem servidor) ou exige backend.
+**A pergunta crítica era a §7.3 (onde o JSON vive) — decidida em 20/09: no Git do
+repositório privado, não publicado** (ver a tabela da §7). Ela define se a ideia mantém a
+arquitetura atual, sem servidor, ou exige backend: **mantém** — o JSON é mais um arquivo do
+ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 
 ## Referências
 
