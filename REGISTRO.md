@@ -1194,3 +1194,39 @@ versionado).
 objetiva) e 17 (versionamento com Git); as entradas deste REGISTRO de 20/09 (o contrato lê tabela;
 as duas declarações; o extrator do plano; o experimento consome o extrator).
 
+## 2026-09-20 — O escopo `experimentos` entra na lista do commit-msg
+
+**O que motivou.**
+A área `experimentos/` tem **README versionado** e commits próprios — e **não tinha escopo**. O
+commit que documentou os JSONs gerados usou `docs(ideia)`, emprestando um escopo que nomeia outra
+coisa (as notas de ideia e de arquitetura da captura). Escopo emprestado é o começo do erro que a
+própria lista de escopos existe para evitar.
+
+**O que foi decidido.**
+- `experimentos` entra na lista do `tools/hooks/commit-msg` — nos **dois** lugares: o regex
+  `$escopos` (a verdade) e a **mensagem de ajuda**, que a repete.
+- O espelho documental acompanha: o `README-ciclos.md` declara que "a lista é a do hook", e passa a
+  incluí-lo (26 → **27** escopos, nos dois).
+- **Nada foi afrouxado**: o escopo é exato — `experimentos` passa, `experimento` e `experimentosX`
+  continuam recusando; o rodapé de proveniência segue obrigatório.
+
+**O que se mediu.**
+`tools/hooks/commit-msg` com mensagens de exemplo: `exit 0` para `docs(experimentos)`,
+`fix(experimentos)` e `feat(tools)` (sem regressão); `exit 1` para `docs(experimento)` e
+`docs(experimentosX)`; e a mensagem de ajuda já imprime a lista nova.
+
+**O que ainda não está feito.**
+- A tabela "Escopos" do **`REGRAS.md`** (Regra 17 em prática) **continua listando 10** escopos,
+  enquanto o hook aceita 27. É a defasagem que o `HANDOFF.md` declarou (e que uma entrada anterior
+  deste REGISTRO deu por corrigida — o que foi corrigido foi o `README-ciclos.md`, não o
+  `REGRAS.md`). `REGRAS.md` é congelado: corrigir exige commit próprio, com motivo declarado. Fica
+  proposto, não feito.
+
+**Com o quê.**
+`tools/hooks/commit-msg`, `README-ciclos.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `REGRAS.md` 17 (versionamento com Git); `README-ciclos.md` (*Regra 17 em prática* — a
+lista de escopos); `experimentos/README.md` (a área e o que é versionado nela).
+

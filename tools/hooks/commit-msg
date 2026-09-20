@@ -24,7 +24,7 @@ case "$primeira" in
 esac
 
 tipos='feat|fix|docs|refactor|style|chore|audit'
-escopos='ciclo-[0-9]+|aula-[0-9]+|notacao|pre-requisitos|musicalidade|apanhado|apresentacao-[0-9]+|apresentacao-01-rizoma|biblioteca|tools|template|regras|entrega|protocolo|metodo|ideia|caderno|caderno-[0-9]+|relatorio|relatorio-[0-9]+|schema|registro|po|campo|estrutura|prompts'
+escopos='ciclo-[0-9]+|aula-[0-9]+|notacao|pre-requisitos|musicalidade|apanhado|apresentacao-[0-9]+|apresentacao-01-rizoma|biblioteca|tools|template|regras|entrega|protocolo|metodo|ideia|experimentos|caderno|caderno-[0-9]+|relatorio|relatorio-[0-9]+|schema|registro|po|campo|estrutura|prompts'
 
 if ! printf '%s' "$primeira" | grep -qE "^($tipos)\(($escopos)\): .{3,}$"; then
   echo "commit-msg: mensagem fora do padrão Conventional Commits do projeto." >&2
@@ -34,8 +34,8 @@ if ! printf '%s' "$primeira" | grep -qE "^($tipos)\(($escopos)\): .{3,}$"; then
   echo "  escopos:  ciclo-NN, aula-NN, apresentacao-NN, apresentacao-01-rizoma," >&2
   echo "            caderno, caderno-NN, relatorio, relatorio-NN, notacao," >&2
   echo "            pre-requisitos, musicalidade, apanhado, biblioteca, po, campo," >&2
-  echo "            schema, registro, protocolo, metodo, entrega, estrutura," >&2
-  echo "            template, tools, regras, prompts" >&2
+  echo "            schema, registro, protocolo, metodo, ideia, experimentos," >&2
+  echo "            entrega, estrutura, template, tools, regras, prompts" >&2
   echo "            (a lista completa e a variavel \$escopos, neste arquivo)" >&2
   echo "  veja REGRAS.md (Regra 17)." >&2
   exit 1
