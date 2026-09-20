@@ -1935,3 +1935,43 @@ um botão **Abrir** (e Enter no campo) que tenta de novo. A página **segue viva
 transcrição da Aula 01 (que trouxe o caso à tona); `CONGELAMENTO.md` (tools/ é congelado: motivo
 declarado, commit próprio e esta entrada).
 
+
+## 20/09/2026 — A elicitação pergunta a forma de que a folha de captura precisa
+
+**O que motivou.** O mapeamento da folha de captura mostrou que a elicitação **pergunta o conteúdo
+certo** — inclusive *"defina como comportamentos observáveis"* (B5) e *"o que você sabe de cada aluna
+antes do ciclo"* (B6) —, mas **não pergunta a forma**: os **itens, por pessoa, marcáveis**. Tudo o que
+a folha imprime vem do PO/plano **como prosa**, e a decomposição em colunas é feita **à mão, ciclo a
+ciclo**. A folha do Ritmos **registra isso**: *"a versão anterior trazia as colunas do ciclo do Duo e
+**não** as do Ritmos."*
+
+**O que foi feito — oito perguntas e uma regra de forma:**
+
+| # | Onde entra | O que ela pede |
+|:--|:--|:--|
+| 1 | Como conduzir | *quando eu pedir uma lista, é uma linha por item — não prosa* |
+| 2 | Bloco 3 | os **apelidos**, um por linha (com exemplo) |
+| 3 | Bloco 3 | as **flutuantes**: quem entra e sai do ciclo, e os apelidos delas |
+| 4 | Bloco 5 | os **itens** que se marca, por aluno(a), em cada dimensão |
+| 5 | Bloco 5 | as **dimensões próprias** do ciclo, e os itens de cada |
+| 6 | Bloco 5 | a **musicalidade** como dimensão observada, com os itens |
+| 7 | Bloco 5 | as **condições de contorno (P-11)**: ânimo, interesse, harmonia 1–5 |
+| 8 | Bloco 6 | a **linha de base por pessoa, item a item** |
+| 9 | Bloco 10 | o **compasso** do repertório |
+| 10 | Formato de saída | as listas saem como listas — não viram frase |
+
+*(São as oito lacunas do mapeamento; a #1 e a #10 são a regra de forma que as sustenta.)*
+
+**O que se mediu.** O documento vai de **105 para 154 linhas** (+52/−3), com os **dez blocos
+intactos** e **todas as perguntas atuais preservadas**; as oito novas estão no bloco certo; e os
+exemplos renderizam como **bloco de forma** — o formato esperado da resposta, distinguido das
+instruções.
+
+**Com o quê.**
+`prompts/eliciar-ciclo.md`.
+
+**Referências.**
+As duas folhas de captura (`ciclo-01-captura-aula-01.md`, `…-ritmos-…`) — e, na do Ritmos, a nota que
+declara como ela foi montada a partir do PO; `ARQUITETURA-CAPTURA.md` §2.1 (o modelo de dados);
+`REGRAS.md` 16 e 17.
+
