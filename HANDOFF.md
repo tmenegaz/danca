@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T20:52:07-0300`
-Commit atual: `b6c2120` — docs(ideia): desenha a arquitetura da captura em JSON
+Gerado em: `2026-09-19T23:25:53-0300`
+Commit atual: `45b7d88` — chore(estrutura): cria a area de experimentos (fora do hash, do pacote e do site)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -20,6 +20,12 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+45b7d88 chore(estrutura): cria a area de experimentos (fora do hash, do pacote e do site)
+496b0a1 docs(entrega): sincroniza a lista de escopos com o hook
+d034746 docs(ideia): complementa a arquitetura da captura (estimativa de escala, foco em navegacao)
+f7d7a9d chore(tools): regenera HANDOFF com as ideias documentadas
+13d266e feat(tools): gerar-handoff lista IDEIA-* e ARQUITETURA-*
+aa6b478 docs(protocolo): aponta o README para a arquitetura da captura em JSON
 b6c2120 docs(ideia): desenha a arquitetura da captura em JSON
 b1ffe43 chore(tools): regenera HANDOFF com a secao de ideias
 d99c72e feat(tools): gerar-handoff lista as ideias documentadas
@@ -34,12 +40,6 @@ c40dece docs(registro): registra as correcoes cosmeticas
 0ba14f8 chore(tools): regenera pacotes e ancoras apos as correcoes cosmeticas
 8565a95 fix(tools): hook aceita o escopo metodo
 13fe587 fix(ciclo-01): preview do relatorio aponta o arquivo e harmoniza residuo no plano
-c78ed6a docs(protocolo): torna generico o exemplo de restricao fisica no METODO
-0754ae9 docs(registro): registra a correcao dos escopos e da criacao de ciclo
-f602046 docs(entrega): corrige a tabela de escopos e o bloco de criar um ciclo novo
-8f38de4 docs(registro): registra o metodo, o README-ciclos e os campos de duracao
-4bd9a92 chore(tools): regenera pacotes apos os campos de duracao
-f4b5007 fix(ciclo-01): caderno mede duracao em minutos (alinha com o relatorio)
 ```
 
 ## Por professor
@@ -55,8 +55,8 @@ f4b5007 fix(ciclo-01): caderno mede duracao em minutos (alinha com o relatorio)
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `4ded616d92a1` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `1059d02874da` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `e9dbdd33bb39` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `72922e303930` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
