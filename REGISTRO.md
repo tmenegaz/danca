@@ -1067,3 +1067,49 @@ entrada); `tools/lib-fontes.sh` e `tools/lib-extracao-md.js` (os precedentes, e 
 erro); `REGRAS.md` 8 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com
 Git).
 
+## 2026-09-20 — O pre-commit passa a validar o PLANO (schema + tipos)
+
+**O que motivou.**
+O pre-commit validava o **PO** automaticamente desde que o PO existe; o **plano** não era
+validado — o schema existia (`professores/tiago/ciclos/ciclo-01-plano-schema.json`), o validador existia
+(`tools/validar-plano-ciclo.js`), e **nada os ligava**. O plano é a OUTRA entrada do guia de
+observação: um plano com um campo obrigatório faltando passava pelo commit.
+
+**O que foi decidido.**
+- O hook valida o plano **ao lado do PO**, dentro do mesmo laço por variante.
+- O schema é do **CICLO** (P-08), como o do PO; a FONTE pode ser própria da variante —
+  `ciclo-XX-<escola>-plano.md` tem precedência sobre `ciclo-XX-plano.md`, que é a **mesma regra**
+  do `tools/lib-fontes.sh`. (Medido: o Duo valida contra `ciclo-01-plano.md` e a Ritmos contra
+  `ciclo-01-ritmos-plano.md`, com o mesmo schema.)
+- **ERRO × AVISO** — a distinção que o PO já faz:
+  - campo obrigatório faltando (ou tipo errado) → **recusa** o commit (`exit 1`);
+  - **lacuna declarada** (`[Preencher]`) → **aviso**, e passa: a lacuna é legítima (a decisão da
+    pesquisadora, ou o dado que vem do `.conf` — o calendário).
+- Sem plano, ou sem schema, o hook **avisa e segue** (um ciclo sem plano ainda não é erro de
+  commit).
+
+**O que se mediu (os quatro casos).**
+- plano válido, com lacunas → **`exit 0`**, os dois planos "validado(s)" e as lacunas em **aviso**
+  (2 no Duo, 5 na Ritmos);
+- campo obrigatório faltando → **`exit 1`**: `recusado — o plano do tiago/ciclo-01 (variante duo)
+  não satisfaz o schema do plano` + `- campo ausente: condicoesPreliminares`;
+- schema ausente → **`exit 0`** com `aviso — ... existe sem schema; plano não validado`;
+- sem plano nenhum → o bloco do plano **pula** (nenhuma linha), e quem recusa é a **âncora FIPP**,
+  ANTES: `os fontes do ciclo mudaram` / `a lista de fontes cobertas mudou (arquivo criado ou
+  removido)`. Ou seja: quando o plano é fonte do FIPP, um ciclo que o perde é recusado por um
+  motivo melhor — a validação do plano é, nesse caso, a segunda linha de defesa.
+
+**O que ainda não está feito.**
+- O plano do **Ciclo 02** (e o da Débora) não existe ainda: o hook simplesmente não valida.
+- O aviso das lacunas só aparece no `git commit` de verdade (dentro do hook): não há um `--check`
+  avulso que o mostre.
+
+**Com o quê.**
+`tools/hooks/pre-commit`.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: alterar exige motivo declarado, commit próprio e esta
+entrada); `REGRAS.md` 10 (estrutura de ciclos — camada 1), 16 (formato de entrega) e 17
+(versionamento com Git); `PROTOCOLO.md` P-08 (o schema é do ciclo); `tools/lib-fontes.sh` (a
+precedência da fonte por variante).
+

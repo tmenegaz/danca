@@ -90,6 +90,30 @@ for alvo in $alvos_hash; do
     elif [ -f "$arquivo_po" ]; then
       echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
     fi
+
+    # PLANO do ciclo: o schema é do CICLO (P-08), como o do PO; a FONTE pode ser própria da
+    # variante — `ciclo-XX-<escola>-plano.md` tem precedência sobre `ciclo-XX-plano.md`, que é
+    # a MESMA regra do tools/lib-fontes.sh. Sem nenhuma das duas, o plano não existe para esta
+    # variante: PULA, sem falhar (um ciclo sem plano ainda não é erro de commit — e, quando o
+    # plano É fonte do FIPP, quem recusa antes é a âncora, com um motivo melhor).
+    schema_plano="$base/ciclo-$numero-plano-schema.json"
+    arquivo_plano="$base/ciclo-$numero-$v-plano.md"
+    [ -f "$arquivo_plano" ] || arquivo_plano="$base/ciclo-$numero-plano.md"
+    if [ -f "$arquivo_plano" ] && [ -f "$schema_plano" ]; then
+      if ! node tools/validar-plano-ciclo.js "$schema_plano" "$arquivo_plano" \
+           > /tmp/pre-commit-plano-"$prof-$numero-$v".log 2>&1; then
+        echo "pre-commit: recusado — o plano do $prof/ciclo-$numero (variante $v) não satisfaz o schema do plano." >&2
+        grep -E '^  - |^erro' /tmp/pre-commit-plano-"$prof-$numero-$v".log | head -6 >&2
+        exit 1
+      fi
+      echo "pre-commit: plano do $prof/ciclo-$numero (variante $v) validado"
+      # AS LACUNAS DECLARADAS NÃO BLOQUEIAM: `[Preencher]` é legítimo (como no PO) — é a
+      # pesquisadora que ainda não decidiu, ou o dado que vem do .conf (o calendário). O
+      # validador já sai 0 com elas; aqui elas viram AVISO.
+      grep 'provisórios' /tmp/pre-commit-plano-"$prof-$numero-$v".log | sed 's/^ */    /' >&2 || true
+    elif [ -f "$arquivo_plano" ]; then
+      echo "pre-commit: aviso — $arquivo_plano existe sem schema ($schema_plano); plano não validado" >&2
+    fi
   done
 done
 
