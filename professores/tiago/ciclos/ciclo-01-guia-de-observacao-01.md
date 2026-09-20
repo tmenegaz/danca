@@ -4,7 +4,7 @@ frente: Relatório
 ciclo: "01"
 aula: "01"
 escola: Duo
-title: "Relatório pós-aula 01 — Duo (preview)"
+title: "Guia de observação — Aula 01"
 ---
 
 > **Este documento não é o relatório.** É o guia do que observar durante a aula e

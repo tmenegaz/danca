@@ -734,3 +734,45 @@ O experimento `captura-json` (em andamento).
 `CONGELAMENTO.md` (documentos congelados; alterar hash/validação/geração exige
 motivo declarado); `README-ciclos.md` (menu e escopo); `tools/hooks/commit-msg`.
 
+## 2026-09-20 — O guia de observação passa a se chamar o que ele é
+
+**O que motivou.** O item de menu *"Guia de observação — Aula 01"* vinha de uma chave chamada
+`relatorio-aula-01`: o arquivo, o `.md` e o `title:` da fonte diziam "Relatório pós-aula … (preview)", e o
+rótulo era corrigido **no gerador** para disfarçar. Quem procurava *o relatório* no menu (ou *o guia*) se
+perdia — e a chave ainda **colidia** com o nome que o relatório usa no experimento `captura-json`
+(`relatorio-aula-NN-<escola>.md`, que **lá** é o relatório de verdade).
+
+**O que foi decidido.**
+* A chave passa a ser **`guia-de-observacao-<NN>`** — uma por aula, como as demais vistas por aula.
+* O `title:` **da fonte** diz o que o documento é, e o **remendo do gerador saiu**: a razão dele era a chave
+  mentirosa, e com a chave honesta o rótulo vem da fonte, como em todo documento com front-matter.
+* Com isso, **`relatorio-aula-<NN>` volta a significar só o relatório** — o que a arquitetura da captura
+  propõe gerar sob demanda (`ARQUITETURA-CAPTURA.md`, nova seção; `IDEIA-CAPTURA.md`, nota).
+* As duas páginas órfãs (`relatorio-aula-01.html`, nos dois pacotes) foram **removidas**.
+
+**As âncoras FIPP foram regeradas.** A âncora cobre os dois manifestos e os `.md` do ciclo — renomear fonte
+muda o hash, e isso é o previsto (a âncora alinha; o passado não se reescreve, se incorpora):
+
+| Variante | hash_conteudo | hash |
+|:--|:--|:--|
+| duo | `05a471fb0233…` → `590dc1c05be9…` | `e9dbdd33bb39…` → `6b60d0fc6848…` |
+| ritmos | `8ce229646c9f…` → `64846cf0bd37…` | `72922e303930…` → `3aeaa3b6f3b1…` |
+
+**Com o quê.**
+`tools/gerar-ciclo.sh` (o caso do rótulo saiu; a **Área do Professor**, o grupo, o **PDF** e o **preview**
+passam a citar `guia-de-observacao-*`), `ciclos/ciclo-01.conf`, `ciclos/ciclo-01-ritmos.conf`, as **duas
+fontes renomeadas**, `professores/tiago/relatorios/README.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`,
+os dois `guia-de-observacao-01.html` (novos), as duas páginas órfãs (removidas), os dois `.fipp` (regerados) e
+os dois pacotes regerados — **`OK: 0 erro(s), 5 aviso(s)`** em ambos (os avisos são do glossário, antigos).
+
+**O que ainda não está feito.**
+* **O deploy** — o pacote regenerado **não** foi publicado; o deploy é do dono.
+* O **relatório** continua escrito à mão; a geração sob demanda é a ideia do `captura-json` (não implementada).
+* O **guia** também continua escrito à mão: ele **já é** derivado de PO + Aula no conteúdo, mas quem o
+  escreve é a pesquisadora — a geração sob demanda não está implementada.
+
+**Referências.**
+`CONGELAMENTO.md` (alterar geração ou menu exige motivo declarado + commit próprio + esta entrada);
+`REGRAS.md` 8 (proveniência objetiva), 16 (formato de entrega) e 17 (versionamento com Git);
+`PROTOCOLO.md` P-03/P-04 (a âncora alinha; o passado não é reescrito, é incorporado).
+

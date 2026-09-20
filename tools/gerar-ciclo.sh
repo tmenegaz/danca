@@ -250,11 +250,11 @@ rotulo() {
   case "$1" in
     caderno-*) printf 'Caderno'; return ;;
     metodo) printf 'Método'; return ;;
-    # O preview do relatório é GUIA de observação, não o relatório: o `title:` da
-    # fonte diz "Relatório pós-aula 01 — Duo (preview)", que no menu ainda se lê
-    # como se fosse o relatório preenchido. O rótulo é corrigido AQUI, no gerador,
-    # para não mexer na fonte — a fonte entra no hash, o rótulo não.
-    relatorio-aula-*) printf 'Guia de observação — Aula %s' "${1#relatorio-aula-}"; return ;;
+    # Havia um caso para `relatorio-aula-*` aqui até 2026-09-20: a fonte se chamava
+    # `relatorio-aula-NN` e o `title:` dela dizia "Relatório pós-aula … (preview)" — o
+    # rótulo era corrigido no gerador porque a CHAVE MENTIA. A chave passou a se chamar
+    # `guia-de-observacao-NN` e o `title:` da fonte diz o que o documento é; o caso saiu,
+    # porque o rótulo agora vem da fonte e o remendo não tem mais razão de existir.
   esac
   src="$(fonte_md "$1")"
   if [ -f "$src" ]; then
@@ -334,8 +334,8 @@ gerar_nav() {
     #   Professor; "musicalidade-aluna" (a folha da aluna) fica em Planejamento.
     #   E a separação por NATUREZA: "Acompanhamento" tem só conteúdo real (o que
     #   aconteceu — os acompanhamentos por aluna e o caderno); "Área do Professor"
-    #   tem as ferramentas e os guias — por isso o preview do relatório
-    #   (`relatorio-aula-*`) e a folha de captura (`captura-aula-*`) saíram do
+    #   tem as ferramentas e os guias — por isso o GUIA DE OBSERVAÇÃO
+    #   (`guia-de-observacao-*`) e a folha de captura (`captura-aula-*`) saíram do
     #   Acompanhamento e entraram aqui, junto do guia-do-professor e do METODO.
     # ------------------------------------------------------------------
     for item in \
@@ -345,7 +345,7 @@ gerar_nav() {
       "Acompanhamento|acompanhamento-* caderno-*" \
       "Planejamento|pre-requisitos musicalidade-aluna notacao glossario-*" \
       "Apanhado Histórico|apanhado-historico" \
-      "Área do Professor|musicalidade harmonizacao guia-do-professor metodo relatorio-aula-* captura-aula-*"
+      "Área do Professor|musicalidade harmonizacao guia-do-professor metodo guia-de-observacao-* captura-aula-*"
     do
       nome="${item%%|*}"
       padroes="${item#*|}"
@@ -381,7 +381,7 @@ gerar_nav() {
     for doc in $DOCS $ACOMP_DOCS; do
       case "$doc" in
         index|plano|referencias|aula-*) ;;
-        relatorio-aula-*|captura-aula-*|acompanhamento-*|caderno-*) ;;
+        guia-de-observacao-*|captura-aula-*|acompanhamento-*|caderno-*) ;;
         pre-requisitos|musicalidade|musicalidade-aluna) ;;
         notacao|glossario-*|harmonizacao|guia-do-professor|metodo) ;;
         apanhado-historico) ;;
@@ -421,12 +421,14 @@ for doc in $TODOS; do
   case "$doc" in
     caderno-*) METADADOS=(--metadata "title=Caderno — Ciclo $CICLO · $ESCOLA") ;;
     metodo) METADADOS=(--metadata "title=Método") ;;
-    # O guia de observação não tem H1 na fonte: o título visível da página vem
-    # daqui, e o `title:` dela diz "Relatório pós-aula … (preview)" — o mesmo
-    # engano. Mesmo rótulo do menu, para a aba e o cabeçalho não dizerem outra
-    # coisa nem sugerirem que este é o relatório preenchido.
-    relatorio-aula-*)
-      METADADOS=(--metadata "title=Guia de observação — Aula ${doc#relatorio-aula-}") ;;
+    # O título visível do GUIA DE OBSERVAÇÃO vem da FONTE, como o de todo documento com
+    # front-matter: desde 2026-09-20 o `title:` dela diz "Guia de observação — Aula NN",
+    # quando a chave passou a se chamar o que o documento É (antes era `relatorio-aula-NN`,
+    # e o rótulo tinha de ser corrigido aqui, porque a chave mentia). Este caso mantém o
+    # rótulo para a aba e o cabeçalho — e é ele que o `check-pacote` compara com o título
+    # da seção do PDF.
+    guia-de-observacao-*)
+      METADADOS=(--metadata "title=Guia de observação — Aula ${doc#guia-de-observacao-}") ;;
   esac
   pandoc "$src" \
     -o "$PACOTE/$doc.html" \
@@ -503,8 +505,8 @@ titulos = {'metodo': 'Método'}
 # que entra no hash) — a dupla declaração está de propósito, e a divergência
 # entre as duas é pega pela validação.
 def titulo_legivel(doc, meta):
-    if doc.startswith('relatorio-aula-'):
-        return 'Guia de observação — Aula %s' % doc[len('relatorio-aula-'):]
+    if doc.startswith('guia-de-observacao-'):
+        return 'Guia de observação — Aula %s' % doc[len('guia-de-observacao-'):]
     if doc.startswith('caderno-'):
         return 'Caderno — Ciclo %s · %s' % (ciclo, escola)
     return meta.get('title') or titulos.get(doc) or doc
