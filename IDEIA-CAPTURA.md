@@ -32,7 +32,7 @@ Formulário dinâmico (um só, por ciclo)
     ↓
 JSON (um por ciclo) — armazena os valores lançados e os textos
     ↓
-Exibição: por aula · por aluna · por período (filtros em memória)
+Exibição: por aula · por aluna (filtros em memória; o período é informação, não filtro)
 ```
 
 **O que o PO fornece ao formulário:**
@@ -75,14 +75,20 @@ Exibição: por aula · por aluna · por período (filtros em memória)
 
 - O mesmo formulário, ao escolher a aula, carrega os dados do JSON
 - O filtro por aluna mostra tudo o que é dela, aula a aula
-- O filtro por período mostra a evolução ao longo do ciclo
+- O período do ciclo aparece como **informação**, não como filtro: filtrar por data
+  esconderia aulas, e o período é um fato declarado do ciclo
+
+**Gerar um entregável (sob demanda):**
+
+- O caderno, o relatório pós-aula e o acompanhamento por aluna saem pelo botão **Gerar**,
+  no filtro que o professor quiser — quando precisa de um arquivo para entregar
 
 ## Um JSON só (não dois)
 
 Há uma tentação de separar em dois arquivos: `payload.json` (fonte) e
 `consulta.json` (vistas pré-calculadas). **Não vamos fazer isso.**
 
-As vistas (por aula, por aluna, por período) são **transformações** do payload —
+As vistas (por aula, por aluna) são **transformações** do payload —
 não armazenamento. O formulário calcula em memória. Se em algum momento o filtro
 ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instantâneo.
 
@@ -94,7 +100,9 @@ ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instant
 - **O hash:** o JSON entra no hash como fonte.
 - **As pétreas e regras:** intactas.
 - **O PO e a aula:** continuam `.md`.
-- **O caderno:** continua `.md`.
+- **O caderno:** continua no formato `.md` — mas **gerado sob demanda** pelo formulário,
+  como o acompanhamento por aluna (não é escrito à mão nem mantido atualizado
+  automaticamente).
 - **Nenhum backend:** o formulário é HTML + JavaScript. Salvar = baixar o arquivo.
 
 ## O que muda (quando for implementado)
@@ -102,15 +110,23 @@ ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instant
 - O **gerador** passa a ler JSON
 - O **`check-pacote`** valida JSON
 - A **segurança** do JSON (dados de menores — fora do Git, criptografado quando publicado)
-- O **menu** "Acompanhamento" fica com: formulário + caderno
+- O **menu**: "Acompanhamento" fica só com conteúdo (os acompanhamentos por aluna + o
+  caderno); o formulário — como o preview do relatório e a folha de captura — é
+  **ferramenta**, e vai para a "Área do Professor"
 - Os arquivos `captura-aula-XX.md`, `relatorio-aula-XX.md` e `acompanhamento-<apelido>.md` deixam de existir
+
+**Os artefatos de saída são gerados sob demanda.** O caderno, o relatório pós-aula e o
+acompanhamento por aluna são **vistas dos dados já lançados**: o professor clica em
+"Gerar" quando precisa de um arquivo para entregar (enviar, imprimir, arquivar), com o
+filtro que quiser. **Nada é mantido atualizado automaticamente.** O JSON é o
+armazenamento; os `.md` são os entregáveis.
 
 ## O que precisa ser implementado (quando for hora)
 
 1. Formulário HTML com `select` de aulas e filtro por aluna
 2. Carregamento do JSON no navegador
 3. Gravação (download do JSON atualizado)
-4. Visualização por aula, por aluna, por período
+4. Visualização por aula e por aluna (o período é **informação**, não filtro)
 5. Integração com o gerador
 
 ## Quando faz sentido implementar
