@@ -236,6 +236,7 @@ declare -A ANCORA=(
   [apanhado-historico]="apanhado-historico"
   [referencias]="referencias-bibliograficas"
   [guia-do-professor]="guia-do-professor"
+  [metodo]="metodo"
 )
 ancora() { printf '%s' "${ANCORA[$1]:-ciclo-$CICLO-$1}"; }
 
@@ -244,8 +245,16 @@ rotulo() {
   local src
   # O caderno não tem front-matter (é registro, não documento): sem este caso o
   # item do menu sairia vazio, porque a extração abaixo depende de `title:`.
+  # O METODO.md também não tem front-matter — e é documento congelado: o rótulo
+  # vem daqui, não de um `title:` acrescentado à fonte (`Método` é o H1 dele).
   case "$1" in
     caderno-*) printf 'Caderno'; return ;;
+    metodo) printf 'Método'; return ;;
+    # O preview do relatório é GUIA de observação, não o relatório: o `title:` da
+    # fonte diz "Relatório pós-aula 01 — Duo (preview)", que no menu ainda se lê
+    # como se fosse o relatório preenchido. O rótulo é corrigido AQUI, no gerador,
+    # para não mexer na fonte — a fonte entra no hash, o rótulo não.
+    relatorio-aula-*) printf 'Guia de observação — Aula %s' "${1#relatorio-aula-}"; return ;;
   esac
   src="$(fonte_md "$1")"
   if [ -f "$src" ]; then
@@ -319,21 +328,24 @@ gerar_nav() {
 
     membros=""
     # ------------------------------------------------------------------
-    # Sequência do menu (decisão da pesquisadora, 19/09/2026):
+    # Sequência do menu (decisões da pesquisadora, 19/09/2026):
     #   "Apoio" deixou de existir — notação e glossário vão para Planejamento;
     #   "musicalidade" (a do professor) saiu de Planejamento para Área do
     #   Professor; "musicalidade-aluna" (a folha da aluna) fica em Planejamento.
-    # `caderno-*` já está previsto no Acompanhamento: entra sozinho no dia em que
-    # o caderno for publicado no pacote (hoje ele vive fora, em cadernos/).
+    #   E a separação por NATUREZA: "Acompanhamento" tem só conteúdo real (o que
+    #   aconteceu — os acompanhamentos por aluna e o caderno); "Área do Professor"
+    #   tem as ferramentas e os guias — por isso o preview do relatório
+    #   (`relatorio-aula-*`) e a folha de captura (`captura-aula-*`) saíram do
+    #   Acompanhamento e entraram aqui, junto do guia-do-professor e do METODO.
     # ------------------------------------------------------------------
     for item in \
       "Início|index" \
       "Ciclos|plano referencias" \
       "Aulas|aula-*" \
-      "Acompanhamento|acompanhamento-* relatorio-aula-* captura-aula-* caderno-*" \
+      "Acompanhamento|acompanhamento-* caderno-*" \
       "Planejamento|pre-requisitos musicalidade-aluna notacao glossario-*" \
       "Apanhado Histórico|apanhado-historico" \
-      "Área do Professor|musicalidade harmonizacao guia-do-professor"
+      "Área do Professor|musicalidade harmonizacao guia-do-professor metodo relatorio-aula-* captura-aula-*"
     do
       nome="${item%%|*}"
       padroes="${item#*|}"
@@ -371,7 +383,7 @@ gerar_nav() {
         index|plano|referencias|aula-*) ;;
         relatorio-aula-*|captura-aula-*|acompanhamento-*|caderno-*) ;;
         pre-requisitos|musicalidade|musicalidade-aluna) ;;
-        notacao|glossario-*|harmonizacao|guia-do-professor) ;;
+        notacao|glossario-*|harmonizacao|guia-do-professor|metodo) ;;
         apanhado-historico) ;;
         *) sobra="$sobra $doc" ;;
       esac
@@ -408,6 +420,13 @@ for doc in $TODOS; do
   METADADOS=()
   case "$doc" in
     caderno-*) METADADOS=(--metadata "title=Caderno — Ciclo $CICLO · $ESCOLA") ;;
+    metodo) METADADOS=(--metadata "title=Método") ;;
+    # O guia de observação não tem H1 na fonte: o título visível da página vem
+    # daqui, e o `title:` dela diz "Relatório pós-aula … (preview)" — o mesmo
+    # engano. Mesmo rótulo do menu, para a aba e o cabeçalho não dizerem outra
+    # coisa nem sugerirem que este é o relatório preenchido.
+    relatorio-aula-*)
+      METADADOS=(--metadata "title=Guia de observação — Aula ${doc#relatorio-aula-}") ;;
   esac
   pandoc "$src" \
     -o "$PACOTE/$doc.html" \
@@ -462,15 +481,33 @@ fi
 # Os ACOMPANHAMENTOS NÃO entram no PDF. Ele é publicado no site e ficaria em
 # claro: a política de segurança dos dados sensíveis protege por camadas, e esta
 # é uma delas (ver CONGELAMENTO.md). Eles existem no site, cifrados.
-python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" > "$TMP/mapa-ancoras.txt" <<'PY'
+python3 - "$TMP/src" "$CICLO" "$TMP/consolidado.md" "$DOCS" "$ESCOLA" > "$TMP/mapa-ancoras.txt" <<'PY'
 import re, sys, pathlib
-ciclos, ciclo, destino, docs = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split()
+ciclos, ciclo, destino, docs, escola = \
+    sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4].split(), sys.argv[5]
 ancoras = {
     'index': 'indice-geral', 'plano': 'plano-do-ciclo', 'notacao': 'notacao-em-benesh',
     'pre-requisitos': 'condicoes-pre-existentes', 'musicalidade': 'musicalidade',
     'apanhado-historico': 'apanhado-historico', 'referencias': 'referencias-bibliograficas',
-    'guia-do-professor': 'guia-do-professor',
+    'guia-do-professor': 'guia-do-professor', 'metodo': 'metodo',
 }
+# Documento sem front-matter não tem `title:`, e a seção do PDF sairia com a chave
+# interna. Aqui o nome legível de quem não traz `title:` na própria fonte.
+titulos = {'metodo': 'Método'}
+# O preview do relatório aparece no site como "Guia de observação — Aula NN"
+# (decisão de 19/09/2026): o PDF usa o MESMO nome — o check-pacote compara os
+# títulos das páginas HTML com o texto do PDF, e acusa quando divergem.
+# O título de cada seção do PDF tem de ser o MESMO que a página HTML mostra: o
+# check-pacote compara os dois e reprova quando divergem. Dois documentos não
+# trazem `title:` na fonte, e o nome deles é declarado no gerador (não na fonte,
+# que entra no hash) — a dupla declaração está de propósito, e a divergência
+# entre as duas é pega pela validação.
+def titulo_legivel(doc, meta):
+    if doc.startswith('relatorio-aula-'):
+        return 'Guia de observação — Aula %s' % doc[len('relatorio-aula-'):]
+    if doc.startswith('caderno-'):
+        return 'Caderno — Ciclo %s · %s' % (ciclo, escola)
+    return meta.get('title') or titulos.get(doc) or doc
 def ancora(d):
     return ancoras.get(d, 'ciclo-%s-%s' % (ciclo, d))
 
@@ -495,7 +532,7 @@ for doc in docs:
                 k, v = linha.split(':', 1)
                 meta[k.strip().lower()] = v.strip().strip('"')
         corpo = bruto[m.end():]
-    titulo = meta.get('title') or doc
+    titulo = titulo_legivel(doc, meta)
 
     # 1) links LOCAIS primeiro (enquanto os cruzados ainda têm a forma arquivo.html):
     #    cada um recebe o prefixo deste documento.

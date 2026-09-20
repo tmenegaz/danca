@@ -15,10 +15,15 @@
 # ============================================================================
 
 # Caminho da fonte de um documento (`plano`, `aula-01`, `index`, ...).
-# `guia-do-professor` é COMPARTILHADO por todos os professores: vive na biblioteca.
+# Dois documentos são COMPARTILHADOS por todos os professores e não vivem no ciclo:
+#   guia-do-professor  → biblioteca/   (o guia de posição)
+#   metodo             → raiz          (METODO.md, declaração de princípio)
+# Por viverem fora do ciclo, os dois ficam FORA do hash por construção: o hasher
+# só aceita caminho sob `professores/<professor>/` (ver hash-ciclo.sh).
 fonte_md() {
   case "$1" in
     guia-do-professor) printf '%s' "$RAIZ/biblioteca/guia-do-professor.md"; return ;;
+    metodo) printf '%s' "$RAIZ/METODO.md"; return ;;
     caderno-*)
       # O caderno é por ciclo e por escola, e vive FORA da pasta do ciclo:
       #   professores/<professor>/cadernos/ciclo-XX/caderno-XX-<escola>.md
