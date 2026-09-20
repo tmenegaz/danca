@@ -377,6 +377,18 @@ rotulo() {
   fi
 }
 
+# Rótulo de item do MENU. Igual ao `rotulo()`, com uma marca de DÍVIDA: a Musicalidade e o Guia de
+# observação são gerados por demanda (o formulário de lançamento) e saem do menu quando a verificação
+# da cadeia de custódia existir — até lá ficam marcados. SÓ NO MENU: o `title:` da página e o
+# sumário do PDF continuam limpos, porque o que está marcado é a NAVEGAÇÃO, não o documento. Por isso
+# a marca não entra no `rotulo()`: ele serve o menu, o rodapé e o README, e o rodapé não é o menu.
+rotulo_no_menu() {
+  case "$1" in
+    musicalidade|guia-de-observacao-*) printf '%s (remover)' "$(rotulo "$1")" ;;
+    *) rotulo "$1" ;;
+  esac
+}
+
 # ---------------------------------------------------------------------------
 # Rodapé: a lista de documentos é DERIVADA de DOCS, não fixa no template.
 # Antes o template trazia as páginas do ciclo de fundamentos (notação,
@@ -419,7 +431,7 @@ gerar_nav() {
     # ------------------------------------------------------------------
     link_menu() {   # $1 = doc (link de topo)
       local d="$1" rot
-      rot="$(rotulo "$d")"
+      rot="$(rotulo_no_menu "$d")"
       [ "$d" = index ] && rot="Início"
       if [ "$d" = "$atual" ]; then
         echo "  <a class=\"ativo\" href=\"$d.html\">$rot</a>"
@@ -433,7 +445,7 @@ gerar_nav() {
       case "$d" in
         acompanhamento-*) rot="$(sed -n 's/^aluna:[[:space:]]*//p' "$(fonte_md "$d")" | head -1)" ;;
       esac
-      [ -n "$rot" ] || rot="$(rotulo "$d")"
+      [ -n "$rot" ] || rot="$(rotulo_no_menu "$d")"
       if [ "$d" = "$atual" ]; then
         echo "      <a class=\"ativo\" href=\"$d.html\">$rot</a>"
       else
