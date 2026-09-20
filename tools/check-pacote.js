@@ -349,6 +349,60 @@ if (fs.existsSync(pdf)) {
   erros.push(`PDF ausente: ${path.relative(process.cwd(), pdf)}`);
 }
 
+// ------------------------------------------- 2b) o JSON de dados: a cópia × a fonte
+// O pacote publica a CÓPIA CIFRADA (o formulário a decifra no navegador). A cifra NÃO é
+// determinística — o sal muda a cada cifragem, como nos acompanhamentos —, então comparar byte a
+// byte a cópia com a fonte é impossível: o que se confere é o CONTEÚDO. Aqui se decifra a cópia e
+// se compara com a fonte; divergência é erro, porque o formulário trabalharia sobre dado velho sem
+// avisar ninguém.
+const arquivoDados = `ciclo-${ciclo}${variante ? `-${variante}` : ''}-dados.json`;
+const copiaDados = path.join(pacote, arquivoDados);
+const fonteDados = path.join(dirFontes, arquivoDados);
+if (!fs.existsSync(copiaDados)) {
+  erros.push(`JSON de dados ausente no pacote: ${arquivoDados}`);
+} else if (fs.statSync(copiaDados).size === 0) {
+  erros.push(`JSON de dados vazio no pacote: ${arquivoDados}`);
+} else if (!fs.existsSync(fonteDados)) {
+  erros.push(`fonte do JSON de dados ausente ao lado do pacote: ${arquivoDados}`);
+} else {
+  let envelopeDados = null;
+  try {
+    envelopeDados = JSON.parse(fs.readFileSync(copiaDados, 'utf8'));
+  } catch (e) {
+    erros.push(`JSON de dados do pacote ilegível: ${String(e.message).split('\n')[0]}`);
+  }
+  if (envelopeDados) {
+    if (!envelopeDados._cifrado || !envelopeDados._cifrado.endereco) {
+      erros.push(`JSON de dados do pacote NÃO está cifrado: ${arquivoDados}`);
+    } else {
+      // A senha é a da escola (SENHA_<ESCOLA>), de tools/.senhas-locais — o mesmo caminho e a mesma
+      // convenção do cifrador (tools/cifrar-dados.js via tools/lib-senhas.sh).
+      const arqSenhas = path.join(__dirname, '.senhas-locais');
+      const chaveSenha = `SENHA_${String(variante).toUpperCase()}`;
+      const senhas = fs.existsSync(arqSenhas) ? fs.readFileSync(arqSenhas, 'utf8') : '';
+      const achou = senhas.match(new RegExp(`^${chaveSenha}="?([^"\\n]+)"?`, 'm'));
+      if (!achou) {
+        avisos.push(`JSON de dados: ${chaveSenha} não está em tools/.senhas-locais — cópia × fonte não conferida`);
+      } else {
+        try {
+          const Cifra = require('./lib-cifra.js');
+          const claro = Cifra.decifrarSync(envelopeDados._cifrado, achou[1]);
+          const fonte = fs.readFileSync(fonteDados, 'utf8');
+          if (claro === fonte) {
+            ok.push('JSON de dados: a cópia cifrada do pacote decifra na fonte, byte a byte '
+              + `(${envelopeDados.lancamentos} lançamento(s))`);
+          } else {
+            erros.push('JSON de dados: a cópia do pacote DIVERGE da fonte — o formulário trabalharia sobre dado velho');
+          }
+        } catch (e) {
+          erros.push('JSON de dados: não consegui decifrar a cópia do pacote '
+            + `(${String(e.message).split('\n')[0].slice(0, 80)})`);
+        }
+      }
+    }
+  }
+}
+
 // ------------------------------------------------------------- relatório
 console.log(`Pacote: ${path.relative(process.cwd(), pacote)}`);
 ok.forEach((l) => console.log(`  ok    ${l}`));

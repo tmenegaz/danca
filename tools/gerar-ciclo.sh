@@ -243,6 +243,23 @@ with open(sys.argv[1], 'w', encoding='utf-8') as f:
     f.write('\n')
 PY
 
+# O JSON de DADOS vai para o pacote CIFRADO (decisão de 20/09): o pacote é PÚBLICO e ele traz o
+# lançamento por aluna — é o mesmo cuidado dos acompanhamentos, com a mesma senha (a da escola), e
+# a definição dela mora em tools/lib-senhas.sh. Sem senha, o arquivo NÃO vai e o check-pacote
+# reprova: silêncio, aqui, seria pior que erro.
+# shellcheck source=tools/lib-senhas.sh
+. "$RAIZ/tools/lib-senhas.sh"
+DADOS="$(fonte_dados)"
+if [ ! -f "$DADOS" ]; then
+  echo "aviso: sem $DADOS — o pacote sai sem o JSON de dados, e o formulário não abre este ciclo" >&2
+elif senha="$(senha_da_escola)"; then
+  SENHA="$senha" node "$RAIZ/tools/cifrar-dados.js" "$DADOS" \
+    "$PACOTE/ciclo-$CICLO${VARIANTE:+-$VARIANTE}-dados.json" \
+    || { echo "erro: não consegui cifrar o JSON de dados para o pacote." >&2; exit 1; }
+else
+  echo "aviso: o JSON de dados NÃO foi para o pacote (sem senha) — o check-pacote.js vai reprovar" >&2
+fi
+
 # ---------------------------------------------------------------------------
 # 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML e PDF,
 #    para que os dois formatos tenham exatamente as mesmas âncoras (ASCII).

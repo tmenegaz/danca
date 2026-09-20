@@ -167,31 +167,11 @@ linha_do_tempo() {
 
 ultimo_relatorio() { printf '%s\n' "$RELATORIOS" | grep . | tail -1; }
 
-# --- criptografia dos acompanhamentos (PageCrypt) ----------------------------
-# A senha NUNCA entra no repositório (ele é público): mora em
-# tools/.senhas-locais (não versionado) ou é pedida no terminal. O .conf só
-# declara a intenção, por ACOMPANHAMENTO_CRIPTOGRAFADO="sim".
-senha_da_escola() {
-  local var arquivo s
-  var="SENHA_$(printf '%s' "$ESCOLA_SLUG" | tr 'a-z' 'A-Z')"
-  arquivo="$RAIZ/tools/.senhas-locais"
-  if [ -f "$arquivo" ]; then
-    # shellcheck disable=SC1090
-    . "$arquivo"
-    if [ -n "${!var:-}" ]; then printf '%s' "${!var}"; return 0; fi
-    echo "aviso: $var não está definida em tools/.senhas-locais" >&2
-  else
-    echo "aviso: tools/.senhas-locais não existe (veja o .senhas-locais.exemplo)" >&2
-  fi
-  if [ -t 0 ]; then
-    printf 'Senha para criptografar os acompanhamentos (%s): ' "$ESCOLA_SLUG" >&2
-    read -rs s || true
-    printf '\n' >&2
-    if [ -n "$s" ]; then printf '%s' "$s"; return 0; fi
-  fi
-  echo "erro: sem senha para $ID — defina $var em tools/.senhas-locais" >&2
-  return 1
-}
+# --- a senha da escola: a definição mora em tools/lib-senhas.sh --------------
+# Ela saiu daqui quando o gerar-ciclo.sh também passou a precisar dela (o JSON de dados vai cifrado
+# para o pacote). Uma definição só — como o lib-fontes.sh —, e a senha continua fora do repositório.
+# shellcheck source=tools/lib-senhas.sh
+. "$RAIZ/tools/lib-senhas.sh"
 
 criptografar() {
   local conf="$BASE/ciclo-$CICLO-$ESCOLA_SLUG.conf"

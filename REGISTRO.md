@@ -1682,3 +1682,60 @@ existia**.
 `ARQUITETURA-CAPTURA.md` §8 (a peça 1); `tools/lib-fontes.sh` (`fonte_dados`, `fontes_do_ciclo`);
 `professores/tiago/ciclos/ciclo-01-duo-dados.json` (o padrão).
 
+
+## 2026-09-20 — O JSON de dados vai para o pacote cifrado (Fase 2.2)
+
+**O que motivou.** O formulário de produção lê o JSON de dados **ao lado dele** — e o pacote é
+**público**: o JSON traz o lançamento por aluna. Decisão da pesquisadora (20/09): vai **cifrado**,
+como os acompanhamentos, com a mesma senha.
+
+**O achado que definiu o desenho.** O PageCrypt **não exporta `decrypt`** — publica `encryptHTML` e
+`generatePassword`, e o que ele produz é uma **página** que se autodecifra, inútil para um JSON. Mas
+o esquema dele é simples e está **embutido** em cada página que ele gera:
+`PBKDF2(senha, salt, 2e6, SHA-256) → AES-GCM 256`, endereço = `base64([salt 32][iv 16][ciphertext+tag])`.
+A pesquisadora já autorizara a saída (*"a lib do PageCrypt **ou equivalente**"*), então o esquema
+virou lib.
+
+**O que foi feito.**
+- `tools/lib-cifra.js` (novo, UMD): `cifrar`/`decifrar` (WebCrypto — **Node e navegador**) e
+  `cifrarSync`/`decifrarSync` (Node, para o `check-pacote`, que é **síncrono** do começo ao fim).
+- `tools/lib-senhas.sh` (novo): `senha_da_escola()` **saiu** do `gerar-acompanhamento.sh` e virou
+  lib — os dois geradores precisam dela agora, e uma definição só evita a divergência de sempre.
+- `tools/cifrar-dados.js` (novo): cifra o JSON e escreve o **envelope** — `_cifrado`, `_nota` e
+  `lancamentos`, que **não é segredo** e é o que permite ao formulário abrir sem pedir a senha quando
+  não há nada lançado. A senha chega por **ambiente**, não por argumento (argumento aparece na lista
+  de processos do sistema).
+- `gerar-ciclo.sh`: copia o JSON de dados para o pacote **cifrado**; sem senha, avisa e **não
+  escreve** — e o `check-pacote` reprova (silêncio seria pior que erro).
+- `check-pacote.js`: confere **cópia × fonte** — decifra a cópia e compara o **conteúdo**. Byte a byte
+  é impossível (o sal muda a cada cifragem, como nos acompanhamentos); o que se compara é o que o
+  formulário vai ler.
+
+**O que se mediu.**
+- **Compatibilidade com o PageCrypt, provada:** a lib abre um **acompanhamento real** (o do Ritmos,
+  `acompanhamento-carol.html`) — 2 000 000 de iterações, 12 313 chars —, e as **duas implementações
+  (async e sync) dão o mesmo resultado**; senha errada lança nas duas.
+- `async→sync` e `sync→async` idênticos (round-trip nos dois sentidos).
+- Os dois pacotes: `ok JSON de dados: a cópia cifrada do pacote decifra na fonte, byte a byte
+  (0 lançamento(s))` — **0 erro(s)** nos dois; as **duas âncoras intactas**.
+- **O teste que importa:** com a cópia do pacote **adulterada** (cifrada de novo, com conteúdo
+  diferente — a **fonte intocada**), o `check-pacote` **reprova**: *"a cópia do pacote DIVERGE da
+  fonte — o formulário trabalharia sobre dado velho"*. Regerado, volta a passar.
+- Nada de texto puro no arquivo publicado: o envelope não contém o JSON, só o endereço cifrado.
+
+**O que ainda não está feito (declarado).**
+- A cópia cifrada **não é determinística** (o sal muda a cada cifragem, como nos acompanhamentos):
+  ela aparece modificada depois de cada geração, e o commit carrega a versão do dia. Não é risco — a
+  conferência é por conteúdo —, mas é churn conhecido.
+- O formulário no pacote, o menu e o comportamento da senha na tela — **Fase 2.3**.
+
+**Com o quê.**
+`tools/lib-cifra.js`, `tools/lib-senhas.sh`, `tools/cifrar-dados.js` (novos); `tools/gerar-ciclo.sh`,
+`tools/gerar-acompanhamento.sh`, `tools/check-pacote.js`; os pacotes dos dois ciclos (o JSON de dados
+cifrado).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`tools/.senhas-locais.exemplo`; `tools/gerar-acompanhamento.sh` (o precedente da cifra); `REGRAS.md`
+16 e 17.
+
