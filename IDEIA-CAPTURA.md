@@ -12,9 +12,17 @@
 ## O problema que a ideia resolve
 
 Hoje, cada aula gera arquivos separados: uma captura (`captura-aula-XX.md`),
-um relatório (`relatorio-aula-XX.md`) e os acompanhamentos por aluna
+um **guia de observação** (`guia-de-observacao-XX.md`) e um relatório
+(`relatorio-aula-XX.md`), mais os acompanhamentos por aluna
 (`acompanhamento-<apelido>.md`). Em um ciclo de 12 aulas (Duo) ou 21 (Ritmos),
 são ~30 arquivos por ciclo.
+
+> **Nota (2026-09-20).** O guia de observação se chamava `relatorio-aula-XX` e o
+> `title:` dele dizia "Relatório pós-aula … (preview)" — a chave **mentia**, e o
+> rótulo do menu era corrigido no gerador para disfarçar. A chave passou a se
+> chamar o que o documento **é** (`guia-de-observacao-XX`), e o remendo saiu.
+> Com isso, `relatorio-aula-XX` volta a significar **só o relatório** — que é o
+> que este documento propõe gerar sob demanda.
 
 Consequências:
 

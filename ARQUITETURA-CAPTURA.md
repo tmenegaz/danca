@@ -14,6 +14,23 @@
 > implementação atual. Os diagramas vêm em duas formas: **Mermaid** (renderiza no
 > GitHub) e **ASCII** (para o PDF, onde o Mermaid não renderiza sem plugin).
 
+## O que é entregável derivado — e um deles já existe hoje
+
+**O guia de observação** (`guia-de-observacao-<NN>.md`) é **derivado de PO + Aula** ✓ — ele declara *"o que
+observar durante a aula"* a partir do que o professor **declarou para aquela aula** (o PO) e do que ela
+trabalha (o plano). **Ele é, portanto, um entregável**, não uma fonte primária: ninguém "digita" o guia — ele
+se escreve do que já foi declarado.
+
+**O que ele tem em comum com o relatório, o caderno e os acompanhamentos:** o **grão por aula** ✓ — e, com
+ele, o mesmo problema que esta arquitetura resolve (**um item de menu por aula** ✗). Ele entra na mesma
+categoria: **vista gerada sob demanda** ✓.
+
+**O que mudou, e por que isto está escrito aqui:** até 2026-09-20 o guia se chamava `relatorio-aula-<NN>` —
+a chave dizia *relatório* e o documento era *guia*, e o rótulo do menu era corrigido **no gerador** para
+disfarçar ✗. A chave passou a se chamar o que o documento **é** (`guia-de-observacao-<NN>`), e o remendo saiu.
+**Com a chave honesta, `relatorio-aula-<NN>` volta a significar só o relatório** — que é o que este documento
+propõe gerar sob demanda.
+
 ## 1. Modelo de dados
 
 ### 1.1 Entidades
