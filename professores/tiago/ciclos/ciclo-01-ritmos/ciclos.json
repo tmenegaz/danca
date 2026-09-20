@@ -1,0 +1,14 @@
+{
+  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\".",
+  "ciclos": [
+    {
+      "id": "01",
+      "escola": "Ritmos e Movimento",
+      "inicio": "2026-09-19",
+      "fim": "2026-11-03",
+      "total_aulas": 21,
+      "duracao_min": 60,
+      "arquivo": "ciclo-01-ritmos-dados.json"
+    }
+  ]
+}

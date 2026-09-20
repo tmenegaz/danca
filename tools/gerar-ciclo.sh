@@ -187,6 +187,63 @@ PACOTE="$CICLOS/$ID"
 mkdir -p "$PACOTE/assets"
 
 # ---------------------------------------------------------------------------
+# Os JSONs do FORMULÁRIO (Fase 2.1). O formulário lê tudo o que precisa AO LADO
+# DELE, e o deploy publica SÓ a pasta do pacote — o que não estiver aqui não
+# existe para quem abre o site. São três arquivos, e os três são DERIVADOS, como
+# o HTML e o PDF: não são fonte, não entram na âncora.
+#
+#   po-$CICLO.json     o PO extraído     (tools/validar-po-ciclo.js --json)
+#   plano-$CICLO.json  o plano extraído  (tools/validar-plano-ciclo.js --json)
+#   ciclos.json        o índice que o formulário lê primeiro (`.conf` + calendário)
+#
+# É o MESMO extrator que o gerador já usa para as vistas — uma definição só —,
+# aqui GRAVADO em vez de descartado depois de gerar a página. O JSON de DADOS
+# entra cifrado, na fase seguinte.
+# ---------------------------------------------------------------------------
+node "$RAIZ/tools/validar-po-ciclo.js" "$CICLOS/ciclo-$CICLO-po-schema.json" \
+  "$(fonte_md po)" --json > "$PACOTE/po-$CICLO.json" \
+  || { echo "erro: não consegui extrair o PO para o pacote (po-$CICLO.json)." >&2; exit 1; }
+node "$RAIZ/tools/validar-plano-ciclo.js" "$CICLOS/ciclo-$CICLO-plano-schema.json" \
+  "$(fonte_md plano)" --json > "$PACOTE/plano-$CICLO.json" \
+  || { echo "erro: não consegui extrair o plano para o pacote (plano-$CICLO.json)." >&2; exit 1; }
+
+# O índice do formulário. Os campos são os que ELE lê (`id`, `escola`, `inicio`,
+# `fim`, `arquivo`), os que a lib das vistas lê (`duracao_min`) e o `total_aulas`
+# do ciclo. `inicio` e `fim` vêm do CALENDÁRIO — a primeira aula é a ajustada
+# para dia de aula, não a data declarada no `.conf`.
+#
+# `arquivo` é o nome do arquivo de dados DESTA variante POR CONVENÇÃO
+# (`ciclo-XX-<escola>-dados.json`), e NÃO o que o `fonte_dados()` resolve: ele
+# devolve o nome sem a escola quando o arquivo da variante ainda não existe — o
+# que fazia o índice do Ritmos declarar `ciclo-01-dados.json`, um arquivo que
+# não existe. O formulário lê este nome: ele é que manda.
+CICLO="$CICLO" ESCOLA="$ESCOLA" INICIO="$DATA_PRIMEIRA_AULA" FIM="$DATA_ULTIMA_AULA" \
+TOTAL_AULAS="$TOTAL_AULAS" DURACAO_MIN="$DUR_CURTA" \
+ARQUIVO="ciclo-$CICLO${VARIANTE:+-$VARIANTE}-dados.json" \
+python3 - "$PACOTE/ciclos.json" <<'PY'
+import json, os, sys
+
+br_para_iso = lambda br: '-'.join(reversed(br.split('/')))
+indice = {
+    '_nota': 'Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de '
+             'lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o '
+             'arquivo de dados declarado em "arquivo".',
+    'ciclos': [{
+        'id': os.environ['CICLO'],
+        'escola': os.environ['ESCOLA'],
+        'inicio': br_para_iso(os.environ['INICIO']),
+        'fim': br_para_iso(os.environ['FIM']),
+        'total_aulas': int(os.environ['TOTAL_AULAS']),
+        'duracao_min': int(os.environ['DURACAO_MIN']),
+        'arquivo': os.environ['ARQUIVO'],
+    }],
+}
+with open(sys.argv[1], 'w', encoding='utf-8') as f:
+    json.dump(indice, f, ensure_ascii=False, indent=2)
+    f.write('\n')
+PY
+
+# ---------------------------------------------------------------------------
 # 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML e PDF,
 #    para que os dois formatos tenham exatamente as mesmas âncoras (ASCII).
 # ---------------------------------------------------------------------------

@@ -1601,3 +1601,53 @@ os nove `.html` são as páginas cifradas e que **nenhum `.md` por aluna está v
 `CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
 `tools/instalar-hooks.sh` (o instalador); `tools/.senhas-locais.exemplo`; `REGRAS.md` 17.
 
+
+## 2026-09-20 — O gerador grava os JSONs do formulário no pacote (Fase 2.1)
+
+**O que motivou.** A Fase 1 mostrou o que decide o desenho: o formulário lê **ao lado dele** (o
+`fetch` é relativo à própria URL) e o deploy publica **só a pasta do pacote** (`deploy-netlify.sh` →
+`netlify deploy --dir="$PACOTE"`). O pacote não tinha nenhum JSON — o formulário de produção não
+teria o que ler.
+
+**O que foi decidido.**
+- O `gerar-ciclo.sh` grava, a cada geração, **três JSONs no pacote**, todos **DERIVADOS** (como o HTML
+  e o PDF: não são fonte, não entram na âncora):
+  - `po-$CICLO.json` — o PO extraído (`validar-po-ciclo.js --json`);
+  - `plano-$CICLO.json` — o plano extraído (`validar-plano-ciclo.js --json`);
+  - `ciclos.json` — o índice que o formulário lê primeiro.
+- O extrator é o **mesmo** que o gerador já usava para as vistas (`gerar-vista.js`): agora **gravado**
+  em vez de descartado depois de gerar a página. Uma definição só.
+- O índice traz os campos que o **formulário** lê (`id`, `escola`, `inicio`, `fim`, `arquivo`), os que
+  a **lib** lê (`duracao_min`) e o `total_aulas`. `inicio`/`fim` vêm do **calendário** — a primeira
+  aula é a ajustada para dia de aula, não a data do `.conf`.
+- `arquivo` sai **por convenção** (`ciclo-XX-<escola>-dados.json`), **não** do `fonte_dados()`: ele
+  devolve o nome sem a escola quando o arquivo da variante ainda não existe, e o índice do Ritmos
+  declarava `ciclo-01-dados.json` — **um arquivo que não existe**. Foi o defeito que apareceu no
+  teste, e o conserto ficou no lugar do defeito: o nome é o do formulário, não o da resolução de
+  leitura.
+
+**O que se mediu.**
+- Duo e Ritmos: **0 erro(s) em ambos**; âncoras **intactas** (derivado não entra na cobertura).
+- Os três JSONs são parseáveis nos dois ciclos — e os dois de entrada do Duo são **idênticos aos do
+  experimento** (mesmo `sha256`): a extração de produção é a mesma do laboratório, **provado**.
+- Índice do Duo: `inicio 2026-09-18` (ajustado de 17/09), `fim 2026-12-04`, `total_aulas 12`,
+  `duracao_min 60`, `arquivo ciclo-01-duo-dados.json`. Índice do Ritmos: `2026-09-19` a
+  `2026-11-03`, 21 aulas, `arquivo ciclo-01-ritmos-dados.json`.
+- O PO do Ritmos chega ao JSON com a forma que a lib agora renderiza: 15 itens — **4 objetos** (a
+  tabela) + 11 textos (a prosa declarada).
+
+**O que ainda não está feito (declarado).**
+- **O JSON de dados do Ritmos não existe** (`ciclos/ciclo-01-ritmos-dados.json`): a peça 1 criou só o
+  do Duo. O índice dele já aponta o nome certo, mas o arquivo só existirá quando a peça 1 chegar ao
+  Ritmos — é **pré-requisito da Fase 2.2**, que é quem o leva cifrado para o pacote.
+- O JSON de **dados** no pacote (cifrado) e a conferência cópia × fonte — Fase 2.2.
+- O formulário no pacote e o menu (Apanhado Histórico fora, Captura renomeada) — Fase 2.3.
+
+**Com o quê.**
+`tools/gerar-ciclo.sh`; os pacotes dos dois ciclos (três JSONs cada).
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`ARQUITETURA-CAPTURA.md` §8; `tools/deploy-netlify.sh` (o que se publica); `tools/lib-fontes.sh`
+(`fonte_dados`); `REGRAS.md` 10 e 16.
+

@@ -1,0 +1,164 @@
+{
+  "objetivoGeral": "Construir a capacidade de manter o **alinhamento dos metatarsos com a saída do calcanhar** nas cinco posições dos pés, **coordenar os braços** na 1ª e 2ª posições e seus intermediários (3ª baixa), executar **demi-plié e grand-plié** com controle articular, realizar **tendu à frente e ao lado com transferência de peso \"por cima\"**, tudo com **musicalidade e resistência progressiva** — **sem deslocamento, giros ou mudanças de direção**.",
+  "ciclo": {
+    "duracaoAulas": "12 aulas (extensível a 16, conforme critério de extensão da Regra 10)",
+    "duracaoMinutos": "60 minutos (Pré-requisito 4)",
+    "inicio": "17/09/2026",
+    "encerramento": "ver o [Calendário do ciclo](#calendario-do-ciclo)",
+    "volumeAtivoPorAula": "80–100 tempos (faixa de 60 min, Regra 9, etapa 1)",
+    "professor": "[Nome do professor]"
+  },
+  "marcosPorAula": [
+    "Cada aula tem um marco (o que fica pronto). A ordem não é estética: cada aula",
+    "existe porque a anterior deixou uma condição necessária (Regra 2).",
+    {
+      "n": "01",
+      "marco": "Isolar o alinhamento dos metatarsos e a saída do calcanhar nas cinco posições dos pés, no solo."
+    },
+    {
+      "n": "02",
+      "marco": "Introduzir a coordenação de braços na 1ª e 2ª posições com o movimento dos pés, no solo."
+    },
+    {
+      "n": "03",
+      "marco": "Executar demi-plié nas cinco posições com controle do arco plantar e alinhamento do joelho."
+    },
+    {
+      "n": "04",
+      "marco": "Executar grand-plié nas cinco posições com saída do calcanhar controlada."
+    },
+    {
+      "n": "05",
+      "marco": "Coordenar port de bras (1ª → 3ª baixa → 2ª) com demi-plié, em pé."
+    },
+    {
+      "n": "06",
+      "marco": "Executar tendu à frente com transferência de peso \"por cima\", em pé."
+    },
+    {
+      "n": "07",
+      "marco": "Executar tendu ao lado com transferência de peso \"por cima\", em pé."
+    },
+    {
+      "n": "08",
+      "marco": "Combinar tendu à frente e ao lado com port de bras e musicalidade."
+    },
+    {
+      "n": "09",
+      "marco": "Aumentar a resistência: 16 tendus por perna com qualidade técnica mantida."
+    },
+    {
+      "n": "10",
+      "marco": "Integrar todos os elementos (plié, tendu, braços, musicalidade) no centro."
+    },
+    {
+      "n": "11",
+      "marco": "Avaliação formativa: verificar consolidação dos marcos 1–10."
+    },
+    {
+      "n": "12",
+      "marco": "Avaliação somativa e fechamento do ciclo."
+    }
+  ],
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
+  "estruturaDeCadaAula": [
+    "1. **Solo** — isolamento mecânico e recrutamento proprioceptivo, sem carga de apoio.",
+    "2. **Barra** (opcional) — referência espacial para transferência de carga; a barra",
+    "é **ferramenta de apoio, nunca muleta**.",
+    "3. **Centro** — integração dinâmica e autonomia postural.",
+    "4. **Musicalidade** — treino auditivo e rítmico dentro do movimento do dia.",
+    "A ordem é fixa (Regra 3): solo → barra → centro. O centro só aparece quando a",
+    "barra já sustentou a condição que o centro exige."
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Solo",
+      "proporcaoAlvo60Min": "30–40%",
+      "justificativa": "Isolamento mecânico e recrutamento proprioceptivo"
+    },
+    {
+      "bloco": "Barra (opcional)",
+      "proporcaoAlvo60Min": "20–30%",
+      "justificativa": "Referência espacial para transferência de carga"
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo60Min": "30–40%",
+      "justificativa": "Integração dinâmica e autonomia postural"
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo60Min": "5–10%",
+      "justificativa": "Treino auditivo e rítmico"
+    },
+    "A distribuição concreta da aula 01, com a conta feita, está em",
+    "[Distribuição do Volume Físico da Aula 01](aula-01.html#distribuicao-do-volume-fisico)."
+  ],
+  "rubrica": [
+    "Aplicada na Aula 11 (formativa) e na Aula 12 (somativa). O parâmetro é observável:",
+    "cada nível descreve **o que se vê**, não uma impressão.",
+    {
+      "criterio": "Alinhamento dos metatarsos",
+      "insatisfatorio": "Calcanhar sai antes do tempo; metatarsos desalinhados",
+      "emDesenvolvimento": "Calcanhar sai com hesitação; metatarsos parcialmente alinhados",
+      "satisfatorio": "Calcanhar sai no tempo; metatarsos alinhados",
+      "excelente": "Calcanhar sai com precisão; metatarsos alinhados com pressão uniforme"
+    },
+    {
+      "criterio": "Demi-plié",
+      "insatisfatorio": "Joelho colapsa (valgo); arco plantar desaba",
+      "emDesenvolvimento": "Joelho instável; arco parcialmente ativo",
+      "satisfatorio": "Joelho alinhado; arco ativo",
+      "excelente": "Joelho alinhado e estável; arco ativo com controle excêntrico"
+    },
+    {
+      "criterio": "Grand-plié",
+      "insatisfatorio": "Calcanhar sai abruptamente; tronco inclina",
+      "emDesenvolvimento": "Calcanhar sai com hesitação; tronco oscila",
+      "satisfatorio": "Calcanhar sai controladamente; tronco ereto",
+      "excelente": "Calcanhar sai com controle; tronco ereto com port de bras integrado"
+    },
+    {
+      "criterio": "Tendu à frente",
+      "insatisfatorio": "Pé não articula; peso não transfere",
+      "emDesenvolvimento": "Pé articula parcialmente; peso transfere com hesitação",
+      "satisfatorio": "Pé articula completamente; peso transfere \"por cima\"",
+      "excelente": "Pé articula com precisão; peso transfere \"por cima\" com fluidez"
+    },
+    {
+      "criterio": "Tendu ao lado",
+      "insatisfatorio": "Joelho entra em valgo; quadril desalinha",
+      "emDesenvolvimento": "Joelho instável; quadril parcialmente alinhado",
+      "satisfatorio": "Joelho alinhado; quadril estável",
+      "excelente": "Joelho alinhado; quadril estável com rotação ativa"
+    },
+    {
+      "criterio": "Coordenação braço-perna",
+      "insatisfatorio": "Braço não acompanha a perna",
+      "emDesenvolvimento": "Braço acompanha com atraso",
+      "satisfatorio": "Braço acompanha no tempo",
+      "excelente": "Braço acompanha no tempo com port de bras fluido"
+    },
+    {
+      "criterio": "Musicalidade",
+      "insatisfatorio": "Não acompanha o pulso",
+      "emDesenvolvimento": "Acompanha com hesitação",
+      "satisfatorio": "Acompanha com estabilidade",
+      "excelente": "Acompanha com precisão e antecipação"
+    },
+    {
+      "criterio": "Resistência",
+      "insatisfatorio": "Perde qualidade após 4 repetições",
+      "emDesenvolvimento": "Perde qualidade após 8 repetições",
+      "satisfatorio": "Mantém qualidade por 12 repetições",
+      "excelente": "Mantém qualidade por 16 repetições"
+    }
+  ],
+  "proveniencia": "Base pedagógica deste plano: **RAD (2015)** (Grade 1 — *legs and feet*, *transfer of weight*), **Clippinger (2024)** (cap. 4 — pé e tornozelo), **Warren (1989)** e **Homans (2010)** para contexto. Referências completas em [Referências Bibliográficas](referencias.html#pedagogia-do-bale).",
+  "_lacunas": [
+    {
+      "campo": "rubrica.aplicadaEm",
+      "declara": "[Preencher: leitura de prosa não implementada — o documento diz \"Aplicada na Aula 11 (formativa) e na Aula 12 (somativa)\"]"
+    }
+  ]
+}

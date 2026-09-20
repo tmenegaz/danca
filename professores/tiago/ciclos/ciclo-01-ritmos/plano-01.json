@@ -1,0 +1,135 @@
+{
+  "objetivoGeral": "Passar comandos básicos para os meninos e as meninas nas aulas de pas de deux, exigindo como pré-requisitos o domínio das posições básicas do balé (primeira, segunda, quarta e quinta), posições de braços (primeira, segunda, terceira, quarta e quinta), além de boa coordenação motora e distribuição de peso.",
+  "ciclo": {
+    "duracaoAulas": "21 encontros (declarado pelo professor)",
+    "duracaoMinutos": "3 aulas de 60 min por semana: 1 na terça (pas de deux) e 2 no sábado (1 de balé, como preparação, + 1 de pas de deux — 120 min no dia)",
+    "inicio": "19/09/2026 (sábado — dia de aula desta escola)",
+    "encerramento": "ver o [Calendário do ciclo](#calendario-do-ciclo)",
+    "volumeAtivoPorAula": "80–100 tempos por aula (as três têm 60 min) — Regra 9, etapa 1. No sábado as duas aulas somam 180 tempos, dentro da faixa de 150–200 do dia de 120 min",
+    "professor": "Tiago Menegaz"
+  },
+  "marcosPorAula": [
+    "Cada aula tem um marco (o que fica pronto). A ordem não é estética: cada aula",
+    "existe porque a anterior deixou uma condição necessária (Regra 2).",
+    {
+      "n": "01",
+      "marco": "No centro: tendus e jetés (frente, lado e trás) com coordenação de braços (1ª, 2ª e 3ª); transferência de peso por cima e por baixo (de demi-plié em 2ª, 4ª ou 5ª para o passé); estabilidade em piqué arabesque com o pé todo no chão (da meia ponta, descendo devagar, sem titubear a perna de base e mantendo a estrutura do arabesque e dos braços)."
+    },
+    {
+      "n": "02–20",
+      "marco": "[Preencher: o professor não declarou. Cada marco é escrito após a aula anterior, com o parâmetro medido em mãos — não antes.]"
+    },
+    {
+      "n": "21",
+      "marco": "[Preencher: último encontro do ciclo — fechamento e avaliação, a declarar com o professor.]"
+    }
+  ],
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
+  "estruturaDeCadaAula": [
+    "1. **Solo / preparação** — isolamento mecânico e recrutamento proprioceptivo, sem carga de apoio.",
+    "2. **Barra** (opcional) — referência espacial para transferência de carga; a barra é **ferramenta de",
+    "apoio, nunca muleta**.",
+    "3. **Centro** — integração dinâmica e autonomia postural. É onde a aula de **pas de deux** acontece:",
+    "transferências de peso, estabilidade em par, eixo individual e dos parceiros.",
+    "4. **Musicalidade** — treino auditivo e rítmico dentro do movimento do dia.",
+    "A ordem é fixa (Regra 3): solo → barra → centro. A aula de **fundamentos** percorre os quatro blocos;",
+    "a de **pas de deux** organiza o trabalho no **centro**, com transferências de peso e estabilidade em",
+    "par."
+  ],
+  "distribuicaoDeVolume": [
+    "A Regra 9, etapa 2, distribui o volume nos blocos **solo → barra → centro →",
+    "musicalidade**. Essa é a estrutura da aula de fundamentos; a aula de **pas de",
+    "deux** que o professor descreveu organiza o trabalho em **centro**, com",
+    "transferências de peso e estabilidade em par:",
+    {
+      "bloco": "Solo / preparação",
+      "proporcaoAlvo60Min": "30–40%",
+      "justificativa": "Isolamento mecânico e recrutamento proprioceptivo"
+    },
+    {
+      "bloco": "Barra (opcional)",
+      "proporcaoAlvo60Min": "20–30%",
+      "justificativa": "Referência espacial para transferência de carga"
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo60Min": "30–40%",
+      "justificativa": "Integração dinâmica e autonomia postural"
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo60Min": "5–10%",
+      "justificativa": "Treino auditivo e rítmico"
+    }
+  ],
+  "rubrica": [
+    "Aplicada no encerramento do ciclo. Os critérios são **derivados dos eixos que o",
+    "professor declarou** no fenômeno e nos critérios de inclusão do PO — execução dos",
+    "comandos, estruturação dos braços, transferência de peso, eixo individual e em",
+    "par, entrosamento, musicalidade e tônus. Cada nível descreve **o que se vê**,",
+    "não uma impressão.",
+    {
+      "criterio": "Execução dos comandos",
+      "insatisfatorio": "Não completa o comando",
+      "emDesenvolvimento": "Completa com correção contínua",
+      "satisfatorio": "Completa sem correção",
+      "excelente": "Completa com precisão e autonomia"
+    },
+    {
+      "criterio": "Estruturação dos braços",
+      "insatisfatorio": "Braços a estruturar",
+      "emDesenvolvimento": "Acompanham com atraso; primeira posição a ajustar (alta)",
+      "satisfatorio": "Estruturados e no tempo",
+      "excelente": "Estruturados, port de bras fluido"
+    },
+    {
+      "criterio": "Transferência de peso",
+      "insatisfatorio": "Peso não transfere",
+      "emDesenvolvimento": "Transfere com hesitação",
+      "satisfatorio": "Transfere por cima/por baixo com eixo",
+      "excelente": "Transfere com fluidez e contrapeso no par"
+    },
+    {
+      "criterio": "Eixo individual",
+      "insatisfatorio": "Perde o eixo em apoio unipodal",
+      "emDesenvolvimento": "Recupera com correção",
+      "satisfatorio": "Mantém sem correção",
+      "excelente": "Mantém e ajusta dentro do movimento"
+    },
+    {
+      "criterio": "Eixo no par",
+      "insatisfatorio": "Depende do menino para se colocar no eixo",
+      "emDesenvolvimento": "Coloca-se no eixo com ajuda",
+      "satisfatorio": "Coloca-se sem deslocar o parceiro",
+      "excelente": "Ajustam-se sem deslocar nenhum dos eixos"
+    },
+    {
+      "criterio": "Entrosamento",
+      "insatisfatorio": "Cada um executa por si",
+      "emDesenvolvimento": "Respondem com atraso",
+      "satisfatorio": "Respondem no tempo",
+      "excelente": "Antecipam o tempo um do outro"
+    },
+    {
+      "criterio": "Musicalidade",
+      "insatisfatorio": "Não acompanha o pulso",
+      "emDesenvolvimento": "Acompanha com hesitação",
+      "satisfatorio": "Acompanha com estabilidade",
+      "excelente": "Acompanha com precisão e antecipação"
+    },
+    {
+      "criterio": "Tônus e força",
+      "insatisfatorio": "Não sustenta a posição",
+      "emDesenvolvimento": "Colapsa no fim da série",
+      "satisfatorio": "Sustenta a série",
+      "excelente": "Sustenta com controle excêntrico"
+    }
+  ],
+  "proveniencia": "Parte deste plano · Origem Objetivo geral · 21 encontros · a estrutura de 3 aulas semanais · data de início · marco da Aula 01 · pré-requisitos e dificuldades da turma · **Entrega do professor, 18/09/2026**, transcrita sem alteração Marcos 02–21 · `[Preencher]` — não declarados; escrever após cada aula Faixa de volume (80–100 tempos por aula) · **Regra 9**, etapa 1, do projeto Proporção por blocos · **Regra 9**, etapa 2 — aplicabilidade a este ciclo `[Preencher]` Rubrica · Derivada dos eixos declarados por ele (fenômeno e critérios de inclusão do PO) Base teórica · Método RAD, técnica clássica, cinesiologia e preparação corporal (declarados por ele; ver [Referências](referencias.html))",
+  "_lacunas": [
+    {
+      "campo": "rubrica.aplicadaEm",
+      "declara": "[Preencher: leitura de prosa não implementada — o documento diz \"Aplicada na Aula 11 (formativa) e na Aula 12 (somativa)\"]"
+    }
+  ]
+}
