@@ -12,7 +12,7 @@
 ## O problema que a ideia resolve
 
 Hoje, cada aula gera arquivos separados: uma captura (`captura-aula-XX.md`),
-um **guia de observação** (`guia-de-observacao-XX.md`) e um relatório
+um **guia de observação** (um por aula; desde 20/09/2026 o pacote o gera) e um relatório
 (`relatorio-aula-XX.md`), mais os acompanhamentos por aluna
 (`acompanhamento-<apelido>.md`). Em um ciclo de 12 aulas (Duo) ou 21 (Ritmos),
 são ~30 arquivos por ciclo.
@@ -110,6 +110,12 @@ ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instant
   relatório, o acompanhamento, o guia de observação), ela **deixa de ser fonte** e sai da
   cobertura do hash — o **JSON entra no lugar dela**. A âncora de cada ciclo é regerada uma
   vez, com motivo declarado (P-03: a âncora alinha; o passado não se reescreve, se incorpora).
+
+  > **Nota (2026-09-20).** Na implementação, quem **saiu da cobertura até agora é o guia de
+  > observação** — o único derivável por inteiro das duas entradas (`8ec57ec`). O **caderno** e o
+  > **relatório** continuam fontes de registro: são escritos por quem viveu a aula, e o JSON deles
+  > ainda está vazio (peça 1). A decisão fixa o destino — quando o dado existir, eles saem pelo
+  > mesmo caminho.
 - **O que é AUTORADO continua `.md`:** o PO, o plano, a aula, a notação e o documento de apoio
   da musicalidade. O que é **VISTA** passa a ser gerado: o caderno, o relatório, o
   acompanhamento por aluna e o guia de observação. A **musicalidade é caso à parte** — o

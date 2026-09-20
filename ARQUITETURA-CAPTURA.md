@@ -16,11 +16,12 @@
 
 ## O que é entregável derivado — e um deles já existe hoje
 
-**O guia de observação** (`guia-de-observacao-<NN>.md`) é **derivado de PO + Aula** ✓ — ele declara *"o que
+**O guia de observação** (`guia-de-observacao-<NN>`) é **derivado de PO + Aula** ✓ — ele declara *"o que
 observar durante a aula"* a partir do que o professor **declarou para aquela aula** (o PO) e do que ela
 trabalha (o plano). **Ele é, portanto, um entregável**, não uma fonte primária: ninguém "digita" o guia — ele
 se escreve do que já foi declarado. Desde 2026-09-20 ele **não é digitado em lugar nenhum**: o pacote do ciclo
-o **gera** das duas entradas (peça 3 da migração — §8), e o Duo já é assim na prática.
+o **gera** das duas entradas, com a **data da aula vinda do calendário** (peças 3 e 5 da migração — §8), e o
+Duo e a Ritmos já são assim na prática.
 
 **O que ele tem em comum com o relatório, o caderno e os acompanhamentos:** o **grão por aula** ✓ — e, com
 ele, o mesmo problema que esta arquitetura resolve (**um item de menu por aula** ✗). Ele entra na mesma
@@ -475,13 +476,23 @@ em 10 anos, nem em 20.
    mão quando ela sai** (`e_vista()`): a migração é por variante, e apagar o `.md` é o ato. O Duo já
    migrou (o guia dele é gerado, sem carimbo — determinístico); a Ritmos segue com o dela até a vez dela.
    Medido: a página gerada traz a *Procedência* (7 de 7 blocos) que a escrita à mão não tinha, o rótulo
-   do menu sai do mesmo texto (via `src_do_doc()`), e o PDF consolidado a inclui;
+   do menu sai do mesmo texto (via `src_do_doc()`), **emite a data da aula** (do calendário — `c0edc68`)
+   e o PDF consolidado a inclui;
 4. **Feita** (a parte que a peça 3 fecha) — **as vistas saem da cobertura**; o JSON entrou na peça 1. Das
    vistas, quem sai da cobertura é **o guia** — o único derivável por inteiro (o caderno e o relatório
    continuam fontes de registro, escritas por quem viveu a aula). A âncora do Duo regerou uma vez
-   (`cb721612…` → `ddd514ef…`); a Ritmos ficou intacta;
-5. **Duo (12 aulas) primeiro; Ritmos (21) depois** — as duas formas testam o modelo. O gerador já produz
-   o guia da Ritmos (medido), e migrá-la é uma linha: apagar o `.md` dela.
+   (`cb721612…` → `ddd514ef…`); a da Ritmos ficou intacta até a peça 5, quando a fonte dela saiu;
+5. **Feita** — **a Ritmos migrou** (`8ec57ec`). As duas formas testaram o modelo, e o teste valeu: o PO
+   da Ritmos declara a linha de base em **prosa, por pessoa** (não em tabela) e o plano não declarava a
+   estrutura, então o guia gerado saía com **5 `undefined`** e a estrutura em lacuna. Ficou: a lib
+   **renderiza o texto como veio** (nada de `undefined`, nada escondido — `69bfee3`), o PO vira
+   **tabela** (conferido **palavra a palavra**: 366 → 355, e a diferença são os rótulos de coluna, que
+   viraram cabeçalho), o plano **declara a estrutura** numerada, e a fonte escrita à mão saiu. No
+   caminho apareceram e foram consertados **três defeitos do render**: a prosa descartada em silêncio, o
+   separador injetado dentro de um `code` que atravessa linhas, e a célula da *Procedência* repetindo o
+   texto inteiro (o caminho do material bruto **saía da página**: `xMax` 616,7 pt numa página de 612 —
+   a tabela é a conta, o texto está no corpo). Âncora da Ritmos: `3aeaa3b6…` → `2f172493…`; a do Duo
+   ficou intacta.
 
 ## 9. O que isso revela
 

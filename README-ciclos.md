@@ -242,7 +242,9 @@ cp professores/tiago/ciclos/ciclo-01-plano.md professores/tiago/ciclos/ciclo-02-
 
 # 4) declare o ciclo no DOCS dos DOIS manifestos — o da variante sobrescreve o base,
 #    então declarar só no base não chega à escola. Ex.:
-#    DOCS="plano harmonizacao aula-01 relatorio-aula-01 captura-aula-01 caderno-02 ..."
+#    DOCS="plano harmonizacao aula-01 guia-de-observacao-01 captura-aula-01 caderno-02 ..."
+#    (o `guia-de-observacao-NN` é VISTA: o pacote o GERA do PO e do plano — não precisa de um
+#     `.md` escrito à mão, e é o único documento de DOCS que funciona assim.)
 
 # 5) gere e valide
 tools/gerar-ciclo.sh tiago 02 duo

@@ -31,7 +31,6 @@ professores/<nome>/ciclos/
 ├── ciclo-01-<escola>-plano.md
 ├── ciclo-01-<escola>-aula-01.md
 ├── ciclo-01-<escola>-referencias.md
-├── ciclo-01-<escola>-relatorio-aula-01.md
 ├── ciclo-01-<escola>-captura-aula-01.md
 ├── ciclo-01-<escola>-pre-requisitos.md          (se aplicável — ver P-15/P-16)
 ├── ciclo-01-<escola>-musicalidade.md            (se aplicável)
@@ -40,6 +39,11 @@ professores/<nome>/ciclos/
 ├── ciclo-01-<escola>-glossario-<notacao>.md     (só se o professor declarar notação)
 └── ciclo-01-<escola>-apanhado-historico.md
 ```
+
+> O **guia de observação** não está nesta lista de propósito: desde 20/09/2026 ele é **VISTA** — o
+> pacote o **gera** do PO e do plano (`tools/gerar-vista.js`), e na pasta do ciclo **não se cria
+> arquivo** para ele. O relatório preenchido vive em `professores/<nome>/relatorios/ciclo-NN/`, não
+> aqui.
 
 ## Regras
 
