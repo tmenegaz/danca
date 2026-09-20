@@ -1,0 +1,1399 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lançamento de aula — formulário eletrônico</title>
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  :root { --tinta:#2b1b10; --fundo:#fdfaf6; --borda:#ddd0bd; --destaque:#7a1f2b; }
+  body { font: 15px/1.5 system-ui, sans-serif; color: var(--tinta); background: var(--fundo);
+         max-width: 1000px; margin: 0 auto; padding: 20px; }
+  h1 { font-size: 1.3rem; margin: 0 0 4px; }
+  .aviso { background:#fff4e5; border-left:4px solid #b8860b; padding:10px 12px;
+           margin:12px 0 18px; font-size:.92rem; }
+  fieldset { border:1px solid var(--borda); border-radius:6px; padding:10px 12px; margin:0 0 18px; }
+  legend { font-weight:600; padding:0 6px; }
+  label { font-weight:600; margin-right:6px; }
+  select, input[type=text], input[type=number], input[type=date] { font:inherit;
+           padding:5px 8px; border:1px solid var(--borda); border-radius:4px; background:#fff; }
+  .filtros { display:flex; flex-wrap:wrap; gap:12px 22px; align-items:center; }
+  .vazio { color:#8a7a68; }
+  .erro { color:#9b1c1c; }
+  .fraco { color:#8a7a68; font-size:.88rem; }
+  table { border-collapse:collapse; width:100%; margin:8px 0 16px; font-size:.92rem; }
+  th,td { border:1px solid var(--borda); padding:6px 8px; text-align:left; }
+  th { background:#f3ece2; }
+  .ok{color:#1d6b2f} .parcial{color:#a06000} .nao{color:#9b1c1c}
+  h2 { font-size:1.05rem; margin:22px 0 4px; border-bottom:2px solid var(--destaque); padding-bottom:3px; }
+  h3 { font-size:.98rem; margin:14px 0 4px; }
+  dl{margin:0} dt{font-weight:600; margin-top:8px} dd{margin:0 0 4px}
+  .acoes { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 18px; }
+  button { font:inherit; padding:5px 10px; border:1px solid var(--destaque); border-radius:4px;
+           background:#fff; color:var(--destaque); cursor:pointer; }
+  button:hover:not(:disabled) { background:var(--destaque); color:#fff; }
+  button:disabled { border-color:var(--borda); color:#b9ab99; background:#faf7f2;
+                    cursor:default; }
+  /* O rodapé gruda no pé da tela: o tamanho da página e a navegação nunca saem
+     de vista — e ficam fora do que se lê, como o controle que são. */
+  footer.rodape { position:sticky; bottom:0; display:flex; gap:12px 18px; align-items:center;
+                  flex-wrap:wrap; margin-top:22px; padding:10px 12px;
+                  border-top:2px solid var(--destaque); background:var(--fundo); }
+  .paginacao { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  /* Captura: um painel de lançamento, fechado por padrão (a leitura vem primeiro). */
+  .captura { border:1px solid var(--borda); border-radius:6px; padding:8px 12px;
+             margin:0 0 18px; background:#fbf7f1; }
+  .captura summary { cursor:pointer; font-weight:600; }
+  .captura[open] summary { margin-bottom:10px; }
+  /* table-layout:fixed + campos em 100%: sem isso a tabela de lançamento crescia para
+     fora do bloco (as duas últimas colunas passavam por cima da margem). */
+  .captura table { font-size:.88rem; margin:6px 0 10px; table-layout:fixed; }
+  .captura th, .captura td { padding:4px 5px; overflow-wrap:break-word; }
+  .captura input[type=number] { width:5.5em; }
+  .captura td select, .captura td input[type=number] { width:100%; box-sizing:border-box; }
+  .captura input[type=text] { width:min(100%, 30em); }
+  .captura textarea { font:inherit; width:100%; padding:5px 8px;
+                      border:1px solid var(--borda); border-radius:4px;
+                      background:#fff; box-sizing:border-box; }
+  .captura .linha { margin:6px 0; }
+  .captura .filtros input[type=text] { width:auto; }
+  /* `hidden` de VERDADE. A classe .acoes tem display:flex, e CSS de autor vence o
+     `display:none` que o navegador dá ao atributo `hidden`: sem esta regra, o botão
+     "Gerar .md" continuava aparecendo no modo captura — o atributo era ignorado. O
+     harness não vê CSS, então ele aprovava o que a tela mostrava; esta regra é
+     verificada no HTML pelo próprio teste. */
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body id="top">
+<!-- A barra de navegação do PACOTE entra no marcador abaixo — quem a escreve é o gerador, com a
+     mesma `gerar_nav` das outras páginas: o formulário é uma página do site, não uma página fora
+     dele. O índice desta página fica no bloco ao lado do topo, como nas demais. -->
+<nav class="topnav" aria-label="Navegação do ciclo">
+  <a class="marca" href="index.html">Ciclo 01 · ritmos</a>
+  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+  <a href="index.html">Início</a>
+  <details class="menu">
+    <summary>Ciclos</summary>
+    <div class="submenu">
+      <a href="plano.html">Plano do Ciclo 01 — Ritmos e Movimento</a>
+      <a href="referencias.html">Referências do Ciclo 01 — Ritmos e Movimento</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Aulas</summary>
+    <div class="submenu">
+      <a href="aula-01.html">Aula 01 — Tendus e jetés no centro, transferência de peso e piqué arabesque</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Acompanhamento</summary>
+    <div class="submenu">
+      <a href="acompanhamento-carol.html">Carol</a>
+      <a href="acompanhamento-dada.html">Dada</a>
+      <a href="acompanhamento-mari.html">Mari</a>
+      <a href="acompanhamento-passaro-azul.html">Pássaro Azul</a>
+      <a href="acompanhamento-tony.html">Tony</a>
+      <a href="caderno-01.html">Caderno</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Planejamento</summary>
+    <div class="submenu">
+      <a href="pre-requisitos.html">Condições Pré-Existentes — os pré-requisitos declarados do ciclo</a>
+      <a href="musicalidade-aluna.html">Musicalidade — folha da aluna</a>
+      <a href="notacao.html">Notação em Benesh</a>
+      <a href="glossario-benesh.html">Glossário do código Benesh do ciclo</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Área do Professor</summary>
+    <div class="submenu">
+      <a href="musicalidade.html">Musicalidade</a>
+      <a href="harmonizacao.html">Harmonização de linguagem — Ritmos e Movimento</a>
+      <a href="guia-do-professor.html">Guia do Professor — em que posição você está?</a>
+      <a href="metodo.html">Método</a>
+      <a href="guia-de-observacao-01.html">Guia de observação — Aula 01</a>
+      <a href="captura-aula-01.html">Captura em aula — para impressão</a>
+      <a class="ativo" href="lancamento.html">Lançamento de aula — formulário eletrônico</a>
+    </div>
+  </details>
+  <a class="pdf" href="ciclo-01-ritmos.pdf">PDF do ciclo</a>
+  </div>
+</nav>
+
+<nav class="toc-local" aria-label="Índice desta página">
+  <a href="#captura-campos">Lançar uma aula</a>
+  <a href="#saida">O ciclo</a>
+  <a href="#acoes-md">Entregáveis</a>
+</nav>
+<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
+<h1>Lançamento de aula — formulário eletrônico</h1>
+<div class="aviso">
+  <strong>Área do Professor.</strong> Lê um índice de ciclos (<code>ciclos.json</code>) e, sob
+  demanda, o JSON de dados do ciclo escolhido — que vai <strong>cifrado</strong> no pacote, como os
+  acompanhamentos. As vistas são calculadas na memória, e o lançamento sai em arquivo para o
+  professor commitar: <strong>esta página não grava sozinha.</strong>
+</div>
+
+<fieldset>
+  <legend>Filtros — vazio quer dizer "todos"</legend>
+  <div class="filtros">
+    <span><label for="ciclo">Ciclo:</label><select id="ciclo"></select></span>
+    <span><label for="aula">Aula:</label><select id="aula"></select></span>
+    <span><label for="aluna">Aluna:</label><select id="aluna"></select></span>
+  </div>
+</fieldset>
+
+<p class="fraco" id="periodo"></p>
+
+<!-- Ajuste: só no modo leitura, com uma aula filtrada que já tem dado. Dentro do prazo
+     (48h desde a última gravação), o botão abre o formulário com o que estava lançado;
+     fora do prazo ele fica cinza com a data — o professor VÊ que a possibilidade
+     existiu, em vez de o botão sumir sem explicação. -->
+<div class="acoes" id="acoes-ajuste" hidden>
+  <button id="ajustar" type="button">Ajustar lançamento</button>
+  <button id="cancelar-ajuste" type="button" hidden>Cancelar ajuste</button>
+  <span id="aviso-ajuste" class="fraco"></span>
+</div>
+
+<!-- Captura — o §3 do IDEIA-CAPTURA (antes / durante / depois da aula). Fechada por
+     padrão: a leitura vem primeiro; o lançamento fica a um clique, sem procurar. -->
+<details class="captura" id="captura">
+  <summary>Lançar uma aula (grava no JSON)</summary>
+  <div id="captura-campos"><p class="vazio">Escolha um ciclo — o lançamento é por aula,
+    dentro de um ciclo.</p></div>
+  <div class="acoes">
+    <button id="gerar-json" type="button">Gerar JSON atualizado</button>
+    <span class="fraco">baixa o JSON <strong>do ciclo inteiro</strong> com esta aula dentro —
+      o arquivo do disco só muda quando você commitar: a proveniência do JSON é o
+      commit, não um carimbo dentro dele</span>
+    <span id="aviso-json"></span>
+  </div>
+</details>
+
+<!-- A ação fica FORA do bloco de filtros (não é um filtro, é o entregável) e
+     sempre à vista: quem acabou de ler quer o arquivo sem procurar botão.
+     São TRÊS entregáveis (§3.5), e cada um tem a forma do arquivo de produção: o
+     acompanhamento (uma aluna), o relatório pós-aula (uma aula) e o caderno (o ciclo).
+     A escolha é do professor; o que o filtro não sustenta fica desabilitado — a opção
+     cinza diz que o filtro, ali, não tem aquilo. As opções nascem no script. -->
+<div class="acoes" id="acoes-md">
+  <button id="gerar" type="button" disabled>Gerar .md</button>
+  <span><label for="entregavel">Entregável:</label>
+    <select id="entregavel"></select></span>
+  <span><label for="autor">Gerado por:</label>
+    <input id="autor" type="text" size="16" placeholder="quem gerou (obrigatório)"></span>
+  <span><label for="senha">Senha da escola:</label>
+    <input id="senha" type="password" size="14" placeholder="só para ler o que já foi lançado"></span>
+  <span class="fraco" id="ajuda-md">gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
+  <span id="aviso-gerado"></span>
+</div>
+
+<div id="saida"><p class="vazio">Carregando…</p></div>
+
+<!-- Rodapé: tamanho da página e navegação. Não é conteúdo — é o controle de
+     quem lê, então fica sempre no pé da tela, nunca escondido. -->
+<footer class="rodape">
+  <span><label for="porPagina">Blocos por página:</label>
+    <select id="porPagina">
+      <option value="5">5</option>
+      <option value="10">10</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select></span>
+  <nav id="paginacao" class="paginacao" aria-label="Paginação"></nav>
+</footer>
+
+<!-- As duas libs do projeto, publicadas em assets/ pelo gerador: o pacote é o que se publica, e
+     esta página lê tudo o que precisa AO LADO DELA — as libs, o índice (ciclos.json), os JSONs de
+     entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). -->
+<script src="assets/lib-vistas.js"></script>
+<script src="assets/lib-cifra.js"></script>
+<script>
+const P = './';
+// A lib das vistas entra por <script src="../../tools/lib-vistas.js"> (linha acima, ANTES deste
+// bloco). Se ela não carregou, o sintoma lá dentro é "Vistas is not defined" — que não diz nada a
+// quem só abriu a página, e ainda faz a mensagem de erro culpar o arquivo errado. Aqui o problema
+// é nomeado onde ele nasce.
+const LIB_OK = typeof Vistas !== 'undefined';
+let indice = null, indiceTexto = '';
+const cache = {};
+
+const el = (id) => document.getElementById(id);
+const sel = { ciclo: el('ciclo'), aula: el('aula'), aluna: el('aluna') };
+// O período do ciclo NÃO é filtro: são as strings que o índice declara, mostradas
+// como informação — e só quando um ciclo específico está selecionado.
+const periodo = el('periodo');
+let pagina = 1;                    // página atual
+// Quantos blocos por página: quem lê escolhe (5 é o padrão, e é a primeira opção
+// do seletor). Se o seletor sumir/ficar vazio, o padrão vale.
+const porPaginaSel = el('porPagina');
+const quantosPorPagina = () => {
+  const v = porPaginaSel && porPaginaSel.value;
+  return v === 'todos' ? Infinity : (Number(v) || 5);
+};
+
+const esc = (s) => String(s ?? '').replace(/[&<>"]/g,
+  (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const MARCA = { ok: ['✓', 'ok'], parcial: ['~', 'parcial'], nao: ['X', 'não aconteceu'],
+  nao_vi: ['?', 'não vi'] };
+const marca = (v) => {
+  if (v === undefined || v === null || v === '') return '<span class="fraco">—</span>';
+  const m = MARCA[v] || [v, v];
+  return `<span class="${esc(v)}">${esc(m[0])}</span> ${esc(m[1])}`;
+};
+const sim = (v) => (v === true ? 'sim' : v === false ? 'não' : '—');
+const selo = (c) => `Ciclo ${esc(c.id)} · ${esc(c.escola)}`;
+
+// O JSON de dados do ciclo vem CIFRADO no pacote (o pacote é público e ele traz o lançamento por
+// aluna). O invólucro diz QUANTAS aulas já têm dado — e esse número não é segredo: sem lançamento
+// nenhum não há o que ler, e a página abre sem pedir senha. Com lançamento, a senha é a da escola
+// (a mesma dos acompanhamentos) e fica valendo para a sessão.
+const CHAVE_SENHA = 'lancamento:senha';
+function senhaDaEscola() {
+  const campo = el('senha');
+  if (campo && campo.value) return campo.value;
+  try { return sessionStorage.getItem(CHAVE_SENHA) || ''; } catch (e) { return ''; }
+}
+async function lerDadosDoCiclo(texto, arquivo) {
+  const bruto = JSON.parse(texto);
+  if (!bruto || !bruto._cifrado) return texto;         // em claro (o caso do arquivo baixado)
+  if (!bruto.lancamentos) return '';                   // nada lançado: não há o que ler
+  const senha = senhaDaEscola();
+  if (!senha) throw new Error(`sem senha para ${arquivo}`);
+  let claro;
+  try {
+    claro = await Cifra.decifrar(bruto._cifrado, senha);
+  } catch (e) {
+    throw new Error(`a senha da escola foi recusada em ${arquivo}`);
+  }
+  try { sessionStorage.setItem(CHAVE_SENHA, senha); } catch (e) { /* sem armazenamento */ }
+  return claro;
+}
+
+// Carrega o JSON de um ciclo — uma vez por ciclo, sob demanda (a §2.3 do prompt).
+// Guarda o TEXTO junto: quem grava (a captura) escreve no texto do arquivo, não numa
+// re-serialização do objeto — é o que mantém o diff do commit pequeno.
+async function carregarCiclo(c) {
+  if (!cache[c.id]) {
+    const r = await fetch(P + c.arquivo);
+    if (!r.ok) throw new Error(`não consegui ler ${c.arquivo} (HTTP ${r.status})`);
+    let texto = await lerDadosDoCiclo(await r.text(), c.arquivo);
+    if (!texto) {
+      // cifrado e sem lançamento: a estrutura vazia do ciclo — o primeiro lançamento começa do zero
+      texto = JSON.stringify({ ciclo: c.id, escola: c.escola, aulas: {}, apelidos: {} }, null, 2) + '\n';
+    }
+    const dados = JSON.parse(texto);
+    // O JSON de produção pode não trazer o mapa de apelidos (o do experimento trazia). Sem ele a
+    // tela não quebra: mostra a chave, que é o apelido em slug.
+    dados.apelidos = dados.apelidos || {};
+    dados.aulas = dados.aulas || {};
+    cache[c.id] = { meta: c, dados, texto };
+  }
+  return cache[c.id];
+}
+const todos = () => Promise.all(indice.ciclos.map(carregarCiclo));
+
+// Não há filtro por data: o período do ciclo (início e fim) é informação do índice,
+// mostrada em `#periodo` — e só quando um ciclo específico está selecionado.
+
+// ---------------------------------------------------------------- as vistas
+function tabelaTecnica(dados, a) {
+  const linhas = a.presentes.map((k) => {
+    const t = a.tecnica[k] || {}, f = a.funcional[k] || {};
+    return `<tr><th>${esc(dados.apelidos[k])}</th>
+      <td>${marca(t.alinhamento)}</td><td>${marca(t.tempo)}</td>
+      <td>${marca(t.transferencia)}</td><td>${marca(t.braco_perna)}</td>
+      <td>${marca(f.tonus)}</td><td>${sim(f.fadiga_antes)}</td></tr>`;
+  }).join('');
+  return `<table><tr><th>Aluna(o)</th><th>Alinhamento</th><th>Tempo</th>
+    <th>Transferência</th><th>Braço-perna</th><th>Tônus</th>
+    <th>Fadiga antes do previsto?</th></tr>${linhas}</table>`;
+}
+
+function blocoAula(meta, dados, id) {
+  const a = dados.aulas[id];
+  const ausentes = a.ausentes.map((k) => dados.apelidos[k]).join(', ') || 'nenhum';
+  const cc = a.condicoes_contorno;
+  return `<h3>Aula ${esc(id)} — ${esc(Vistas.helpers.dataBr(a.data))} <span class="fraco">(${selo(meta)})</span></h3>
+    <p class="fraco">Duração executada: <strong>${a.duracao_min} min</strong> ·
+    Plano seguido: ${esc(cc.plano_seguido)} · Ânimo ${cc.animo} · Interesse ${cc.interesse} ·
+    Harmonia ${cc.harmonia} · Ausentes: ${esc(ausentes)}</p>
+    ${tabelaTecnica(dados, a)}
+    ${cc.mudou
+      ? `<p><strong>O que mudou em relação ao plano:</strong> ${esc(cc.mudou)}</p>`
+      : (cc.plano_seguido === 'sim'
+        ? '<p class="fraco">O que mudou em relação ao plano: nada — o plano foi seguido.</p>'
+        : '')}
+    <dl><dt>Relatório</dt><dd>${esc(a.relatorio.texto)}</dd>
+    <dt>O que surpreendeu</dt><dd>${esc(a.relatorio.surpresas)}</dd>
+    <dt>O que foi ajustado</dt><dd>${esc(a.relatorio.ajustes)}</dd></dl>`;
+}
+
+function blocoAluna(meta, dados, chave, soAula) {
+  const ids = Object.keys(dados.aulas).sort().filter((id) => !soAula || id === soAula);
+  const linhas = ids.map((id) => {
+    const a = dados.aulas[id];
+    if (a.ausentes.includes(chave)) {
+      return `<tr><th>${esc(id)} <span class="fraco">${esc(Vistas.helpers.dataBr(a.data))}</span></th>
+        <td colspan="6" class="fraco">ausente — não há dado</td></tr>`;
+    }
+    const t = a.tecnica[chave] || {}, f = a.funcional[chave] || {};
+    return `<tr><th>${esc(id)} <span class="fraco">${esc(Vistas.helpers.dataBr(a.data))}</span></th>
+      <td>${marca(t.alinhamento)}</td><td>${marca(t.tempo)}</td>
+      <td>${marca(t.transferencia)}</td><td>${marca(t.braco_perna)}</td>
+      <td>${marca(f.tonus)}</td><td>${sim(f.fadiga_antes)}</td></tr>`;
+  }).join('');
+  return `<h3>${esc(dados.apelidos[chave] || chave)} — linha do tempo
+    <span class="fraco">(${selo(meta)})</span></h3>
+    <p class="fraco">A mesma vista que o acompanhamento em <code>.md</code> monta hoje à mão:
+    calculada em memória, do mesmo JSON, sem arquivo por aluna.</p>
+    <table><tr><th>Aula</th><th>Alinhamento</th><th>Tempo</th><th>Transferência</th>
+    <th>Braço-perna</th><th>Tônus</th><th>Fadiga antes do previsto?</th></tr>${linhas}</table>`;
+}
+
+// ------------------------------------------------------------------ paginação
+// Quem lê escolhe o tamanho da página: 5 (padrão), 10, 50 ou 100 blocos. Um bloco
+// é uma aula — ou o ciclo inteiro de uma aluna, quando se filtra por aluna. Com o
+// padrão, um ciclo cabe de uma vez; as páginas maiores servem às vistas de todos
+// os ciclos, e é aí que a navegação do rodapé passa a ter o que folhear.
+function paginar(blocos) {
+  const n = quantosPorPagina();          // pode ser Infinity ("todos")
+  const infinito = !Number.isFinite(n);
+  const total = infinito ? 1 : Math.max(1, Math.ceil(blocos.length / n));
+  pagina = Math.min(Math.max(1, pagina), total);
+  // Cuidado com a aritmética: (pagina - 1) * Infinity = NaN, e slice(NaN, NaN) = [].
+  const inicio = infinito ? 0 : (pagina - 1) * n;
+  return { visiveis: blocos.slice(inicio, infinito ? blocos.length : inicio + n),
+           total, quantos: blocos.length };
+}
+// A barra do rodapé tem SEMPRE a mesma forma: os dois botões existem sempre (ficam
+// desabilitados quando não há para onde ir) e a contagem aparece sempre. O controle
+// não pisca nem muda de lugar quando o filtro muda de tamanho.
+function barra(total, quantos) {
+  const botao = (ir, rotulo) => {
+    const fora = ir < 1 || ir > total;
+    return `<button type="button" data-ir="${ir}"${fora ? ' disabled' : ''}>${rotulo}</button>`;
+  };
+  return botao(pagina - 1, '‹ anterior') +
+    `<strong>Página ${pagina} de ${total}</strong>` +
+    botao(pagina + 1, 'próxima ›') +
+    `<span class="fraco">${quantos} bloco(s) no filtro</span>`;
+}
+
+// --------------------------------------------------------------- proveniência
+// O carimbo usa o mesmo formato que o repositório já usa (`date +%Y-%m-%dT%H:%M:%S%z`,
+// o do "Gerado em:" do HANDOFF.md): hora local COM deslocamento — não UTC, porque
+// quem lê o arquivo está no mesmo lugar em que a aula aconteceu.
+const dois = (n) => String(n).padStart(2, '0');
+function carimbo(d = new Date()) {
+  const off = -d.getTimezoneOffset();            // minutos a leste de UTC
+  const sinal = off >= 0 ? '+' : '-';
+  return `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}T` +
+    `${dois(d.getHours())}:${dois(d.getMinutes())}:${dois(d.getSeconds())}` +
+    `${sinal}${dois(Math.floor(Math.abs(off) / 60))}${dois(Math.abs(off) % 60)}`;
+}
+
+// Quem gerou: o campo "Gerado por", que fica FORA do bloco de filtros (não é um filtro,
+// é quem assina). O campo é OBRIGATÓRIO: sem ele o botão "Gerar .md" fica desabilitado.
+const CHAVE_AUTOR = 'captura-json:autor';
+function nomeDoAutor() {
+  const campo = el('autor');
+  return campo && campo.value ? campo.value.trim() : '';
+}
+function atualizarBotaoMd() {
+  const botao = el('gerar');
+  if (botao) botao.disabled = nomeDoAutor() === '';
+}
+
+// Quando foi gerado, em português: "22h31 de 19/09/2026".
+const legivel = (d = new Date()) =>
+  `${dois(d.getHours())}h${dois(d.getMinutes())} de ${dois(d.getDate())}/` +
+  `${dois(d.getMonth() + 1)}/${d.getFullYear()}`;
+
+
+
+// ------------------------------------------------- o ajuste, declarado no .md (2.3)
+// O JSON ajustado aponta para o anterior (`ajuste_de`): a página busca o anterior e
+// compara — "o que foi ajustado" sai dos DADOS, não da memória de quem ajustou.
+function diffAulas(antes, depois) {
+  const mudancas = [];
+  const obj = (x) => x && typeof x === 'object' && !Array.isArray(x);
+  const anda = (a, b, caminho) => {
+    if (JSON.stringify(a) === JSON.stringify(b)) return;
+    if (obj(a) && obj(b)) {
+      [...new Set([...Object.keys(a), ...Object.keys(b)])].sort()
+        .filter((k) => k !== 'ultimo_lancamento')   // carimbo de gravação, não conteúdo
+        .forEach((k) => anda(a[k], b[k], `${caminho}.${k}`));
+      return;
+    }
+    mudancas.push({ caminho, antes: a, depois: b });
+  };
+  Object.keys({ ...(antes || {}), ...(depois || {}) }).sort()
+    .forEach((id) => anda(antes && antes[id], depois && depois[id], `aula ${id}`));
+  return mudancas;
+}
+async function ajusteDoCiclo(f) {
+  const d = f.dados;
+  if (!d.ajuste_de) return null;
+  let anterior = null;
+  try {
+    const r = await fetch(P + d.ajuste_de);
+    if (r.ok) anterior = (await r.json()).aulas || {};
+  } catch (e) { /* o anterior não está acessível: declara-se só o que o JSON diz */ }
+  return {
+    de: d.ajuste_de, em: d.ajustado_em, por: d.ajustado_por, motivo: d.motivo,
+    gravadas: Array.isArray(d.ajustes) ? d.ajustes : null,
+    mudancas: anterior ? diffAulas(anterior, d.aulas) : [],
+    comparado: !!anterior,
+  };
+}
+
+
+
+
+
+
+async function mdDoFiltro() {
+  const id = sel.ciclo.value, aula = sel.aula.value, aluna = sel.aluna.value;
+  const tipo = entregavelAtual();
+  // Um carimbo e um autor para o ARQUIVO inteiro: todos os documentos de dentro dele
+  // declaram o mesmo instante — o do clique, não o de cada trecho.
+  const prov = {
+    arquivo: nomeDoArquivo(tipo),
+    por: nomeDoAutor(),
+    em: legivel(),
+  };
+
+  /**
+   * OS DOIS ENTREGÁVEIS DA TERCEIRA ENTRADA ✗✓ — o **guia** e a **musicalidade** NÃO saem da captura:
+   * eles derivam do **PO** (o que observar) e do **PLANO** (o que a aula trabalha, a estrutura, o volume).
+   * Por isso saem AQUI, **antes** do laço que percorre os JSONs de dados — o que eles precisam é dos dois
+   * JSONs de entrada (`po-<id>.json`, `plano-<id>.json`), buscados ao lado dos dados do ciclo.
+   */
+  if (tipo === 'guia' || tipo === 'musicalidade') {
+    const metas = id ? indice.ciclos.filter((c) => c.id === id) : indice.ciclos;
+    const partes = [];
+    for (const meta of metas) {
+      const { po, plano } = await carregarEntradas(meta.id);
+      if (!po && !plano) {
+        partes.push(`> **Sem entrada para o ciclo ${meta.id}.** Faltam \`po-${meta.id}.json\` e ` +
+          `\`plano-${meta.id}.json\` ao lado dos dados — sem eles não há o que observar nem o que a aula trabalha.`);
+        continue;
+      }
+      partes.push(tipo === 'guia'
+        ? Vistas.guia({ meta, po, plano, aula: aula || '', data: await dataDaAula(meta, aula), prov })
+        : Vistas.musicalidade({ meta, po, plano, prov }));
+    }
+    return { texto: partes.join('\n\n---\n\n') || '(Nada no filtro atual.)\n', prov };
+  }
+  // O filtro pode não sustentar o entregável escolhido (o seletor desabilita a opção,
+  // mas o código não depende disso): melhor recusar dizendo o que falta do que baixar
+  // um arquivo que não corresponde a nada.
+  if (!entregavelPossivel(tipo)) {
+    const falta = ENTREGAVEIS[tipo] ? ENTREGAVEIS[tipo].exige : null;
+    return { texto: '', prov, recusa: falta === 'aula'
+      ? 'o relatório pós-aula é de UMA aula: filtre a aula que você quer entregar.'
+      : falta === 'aluna'
+        ? 'o acompanhamento por aluna é de UMA aluna: filtre a aluna.'
+        : 'escolha um entregável — nenhum está selecionado.' };
+  }
+  const metas = id ? [indice.ciclos.find((c) => c.id === id)] : indice.ciclos;
+  const partes = [];
+  for (const meta of metas) {
+    const { meta: m, dados } = await carregarCiclo(meta);
+    let aulas = Object.keys(dados.aulas).sort();
+    if (aula) aulas = aulas.filter((k) => k === aula);
+    if (aulas.length === 0) continue;
+    // o mesmo arquivo, autor e hora em todas as partes; o AJUSTE é do ciclo e vai em
+    // cada documento dele — cada parte é um documento, e declara de onde veio
+    const provParte = { ...prov, ajuste: await ajusteDoCiclo(cache[m.id]) };
+    if (tipo === 'acompanhamento') {
+      if (!(aluna in dados.apelidos)) continue;
+      partes.push(Vistas.acompanhamento({ meta: m, dados, aluna, aulas, prov: provParte }));
+    } else if (tipo === 'relatorio') {
+      partes.push(Vistas.relatorio({ meta: m, dados, aulas, prov: provParte }));
+    } else {
+      partes.push(Vistas.caderno({ meta: m, dados, aulas, prov: provParte }));
+    }
+  }
+  return { texto: partes.join('\n\n---\n\n') || '(Nada no filtro atual.)\n', prov };
+}
+
+// ------------------------------------------------- os três entregáveis (§3.5)
+// Os artefatos de saída são VISTAS dos dados já lançados, geradas sob demanda, no
+// filtro que o professor quiser: o acompanhamento por aluna, o relatório pós-aula e o
+// caderno. Cada um só existe com o filtro que o sustenta — o acompanhamento é de UMA
+// aluna, o relatório é de UMA aula, o caderno é do ciclo (com ou sem aula) —, e o que
+// o filtro não sustenta fica DESABILITADO, em vez de sair um arquivo que não
+// corresponde a nada. O padrão é o primeiro que o filtro comporta, na ordem abaixo.
+const ENTREGAVEIS = {
+  acompanhamento: { rotulo: 'acompanhamento por aluna', exige: 'aluna' },
+  relatorio:      { rotulo: 'relatório pós-aula',       exige: 'aula' },
+  caderno:        { rotulo: 'caderno do ciclo',         exige: null },
+  // Os DOIS DA TERCEIRA ENTRADA (PO + plano) ✗✓ — o guia é de UMA aula (o marco dela + o que observar);
+  // a musicalidade é do ciclo (a dimensão do PO + o bloco do plano). Eles entram DEPOIS dos três porque a
+  // ordem é a da declaração no menu — e o padrão que o filtro deriva continua sendo o primeiro que ele
+  // sustenta (com ciclo + aula, é o relatório; o guia é escolha).
+  guia:           { rotulo: 'guia de observação (PO + plano)', exige: 'aula' },
+  musicalidade:   { rotulo: 'musicalidade do ciclo (PO + plano)', exige: null },
+};
+const ORDEM_ENTREGAVEIS = ['acompanhamento', 'relatorio', 'caderno', 'guia', 'musicalidade'];
+// O professor pode escolher outro entregável; a escolha vale enquanto o FILTRO não
+// mudar. Mudar o filtro re-deriva o padrão — o entregável segue o filtro (§3.5).
+let entregavelEscolhido = false;
+const entrega = el('entregavel');
+// Sem escolha ainda, o valor é '' — e '' NÃO é um entregável: é o que faz o padrão ser
+// derivado do filtro (acompanhamento → relatório → caderno) em `atualizarEntregavel`.
+const entregavelAtual = () => (entrega ? entrega.value : '');
+const entregavelPossivel = (t) => {
+  const def = ENTREGAVEIS[t];
+  if (!def) return false;                     // nenhum entregável escolhido ainda
+  return !def.exige || !!sel[def.exige].value;
+};
+// As opções nascem UMA vez (a ordem é a da declaração); o que muda é só o habilitado.
+function montarEntregaveis() {
+  if (!entrega) return;
+  ORDEM_ENTREGAVEIS.forEach((t) => entrega.add(new Option(ENTREGAVEIS[t].rotulo, t)));
+  entregavelEscolhido = false;
+  entrega.value = '';   // sem escolha: o filtro decide — ver `atualizarEntregavel`
+}
+function atualizarEntregavel() {
+  if (!entrega) return;
+  ORDEM_ENTREGAVEIS.forEach((t, i) => {
+    const o = entrega.options[i];
+    if (o) o.disabled = !entregavelPossivel(t);
+  });
+  // O padrão segue o filtro: o acompanhamento é de UMA aluna, o relatório de UMA aula, o
+  // caderno é do ciclo. A escolha do professor vence — mas só enquanto for possível.
+  const natural = ORDEM_ENTREGAVEIS.find(entregavelPossivel) || 'caderno';
+  if (!entregavelEscolhido || !entregavelPossivel(entregavelAtual())) entrega.value = natural;
+  // A ajuda diz QUAL arquivo vai sair: o nome é a única coisa que o professor vê antes
+  // de clicar (depois do clique, ele já está na pasta de downloads).
+  const ajuda = el('ajuda-md');
+  if (ajuda) {
+    const nome = nomeDoArquivo(entregavelAtual());
+    ajuda.innerHTML = 'gera o <strong>filtro inteiro</strong> em arquivo ' +
+      `(<code>${esc(nome)}</code>), não só a página aberta`;
+  }
+}
+
+// O nome do arquivo diz o que ele é. O acompanhamento pode atravessar ciclos (o filtro
+// é "só aluna"), então o nome dele não leva ciclo — um ciclo no nome seria falso. O
+// caderno e o relatório são do ciclo quando há um ciclo no filtro, e é aí que o nome
+// leva ciclo e escola, como na produção: `caderno-01-duo.md` e `aula-01-duo.md` (no
+// relatório o ciclo fica no front-matter, como no arquivo real, que vive na pasta
+// `relatorios/ciclo-01/`). Sem ciclo no filtro, o arquivo reúne os ciclos: o nome diz
+// "todos", não escolhe um.
+//
+// O GUIA E A MUSICALIDADE PRECISAM DO SEU PRÓPRIO NOME ✗✓: sem ramo, os dois caíam no
+// `return` do caderno e baixavam como `caderno-01-duo.md` — o nome dizia uma coisa e o
+// arquivo era outra, e os dois (mesmo nome) se sobrescreviam na pasta de downloads. O
+// guia é de UMA aula, como o relatório; a musicalidade é do ciclo, como o caderno.
+function nomeDoArquivo(tipo) {
+  const id = sel.ciclo.value, aula = sel.aula.value, aluna = sel.aluna.value;
+  const dados = id && cache[id] ? cache[id].dados : null;
+  const escola = (dados && dados.escola) || '';
+  if (tipo === 'acompanhamento') return `acompanhamento-${aluna}.md`;
+  if (tipo === 'relatorio') {
+    return `relatorio-aula-${aula || 'todas'}-${escola || id || 'todos'}.md`;
+  }
+  if (tipo === 'guia') return `guia-de-observacao-${aula || 'todas'}-${escola || id || 'todos'}.md`;
+  if (tipo === 'musicalidade') return `musicalidade-${id ? `${id}${escola ? '-' + escola : ''}` : 'todos'}.md`;
+  return `caderno-${id ? `${id}${escola ? '-' + escola : ''}` : 'todos'}.md`;
+}
+
+// ----------------------------------------------------------- baixar um arquivo
+function baixar(nome, texto, tipo) {
+  const blob = new Blob([texto], { type: tipo });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nome;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+}
+
+async function gerarMd() {
+  const aviso = el('aviso-gerado');
+  const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
+  // o botão já nasce desabilitado sem o campo; aqui é a mesma regra, de novo — o clique
+  // não passa por um botão desabilitado, mas o código não deve depender disso
+  if (!nomeDoAutor()) {
+    dizer('<span class="erro">preencha "Gerado por" para gerar o arquivo.</span>');
+    return;
+  }
+  const { texto, prov, recusa } = await mdDoFiltro();
+  // O filtro pode não sustentar o entregável escolhido: recusa dizendo o que falta, em
+  // vez de baixar um arquivo que não corresponde a nada.
+  if (recusa) { dizer(`<span class="erro">${esc(recusa)}</span>`); return; }
+  baixar(prov.arquivo, texto, 'text/markdown;charset=utf-8');
+  // a MESMA linha que foi para dentro do arquivo: a tela não diz outra coisa
+  dizer(`<span class="fraco">${esc(Vistas.helpers.linhaGerado(prov.arquivo, prov.por, prov.em))}</span>`);
+  // O campo é limpo depois de gerar: assinar é um ato por arquivo, não um estado da
+  // página (e o botão volta a ficar travado até o nome ser digitado de novo).
+  el('autor').value = '';
+  atualizarBotaoMd();
+}
+
+// ------------------------------------------------------------------- captura
+// O §3 do IDEIA-CAPTURA — antes (monta os campos), durante (marca) e depois
+// (lança → atualiza o JSON em memória → baixa → commita). O JSON é a fonte, então o
+// que se baixa é o ARQUIVO DO CICLO INTEIRO com esta aula dentro: diff pequeno,
+// commit legível. E é por isso que não há carimbo dentro do JSON — a proveniência
+// dele é o commit ("cada estado do JSON é um commit", IDEIA-CAPTURA).
+const MARCAS = [['', 'não observei'], ['ok', '✓ ok'], ['parcial', '~ parcial'],
+  ['nao', 'X não aconteceu'], ['nao_vi', '? não vi']];
+
+const opcoesDe = (pares, valor) => pares.map(([v, t]) =>
+  `<option value="${esc(v)}"${v === (valor || '') ? ' selected' : ''}>${esc(t)}</option>`).join('');
+
+const apelidosDoCiclo = (dados) =>
+  Object.entries(dados.apelidos).sort((a, b) => a[1].localeCompare(b[1]));
+
+// A aula que falta lançar é a PRIMEIRA sem dado entre as planejadas no índice. É ela
+// que o filtro oferece — e é só nela que o painel de captura aparece.
+function primeiraSemDado(m, dados) {
+  const ids = Object.keys(dados.aulas);
+  const n = Math.max(m.total_aulas || 0, ids.length + 1);
+  for (let i = 1; i <= n; i++) {
+    const id = dois(i);
+    if (!dados.aulas[id]) return id;
+  }
+  return '';
+}
+// O ciclo vigente é o cujo período declarado contém hoje (§3.1: o formulário abre já
+// na aula que se vai lançar). Se nenhum contém, o primeiro.
+const cicloVigente = (hoje) =>
+  indice.ciclos.find((c) => hoje >= c.inicio && hoje <= c.fim) || indice.ciclos[0];
+// Captura ativa = o filtro está numa aula SEM dado. Fora disso, a página é leitura:
+// os dois modos não se misturam (o formulário não fica ao lado dos resultados).
+function estadoCaptura() {
+  const id = sel.ciclo.value, aula = sel.aula.value;
+  const f = id ? cache[id] : null;
+  if (!f || !aula) return null;
+  return f.dados.aulas[aula] ? null : f;
+}
+
+// ------------------------------------------------------------------ o prazo (48h)
+// O JSON pode ser ajustado enquanto o professor está trabalhando NELE: cada gravação
+// (lançamento ou ajuste) reinicia o contador de 48h, e o prazo só fecha quando ele
+// PARA por 48h. Fechado, é definitivo — dentro do prazo o ajuste é memória fresca;
+// depois, é reconstrução, e não vale.
+const HORAS_DO_PRAZO = 48;
+// "2026-09-19T18:00" → Date, na hora local (o carimbo é local, como o da proveniência).
+const semZona = (iso) => {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})/.exec(iso || '');
+  return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null;
+};
+const fimDoPrazo = (ultimo) => {
+  const d = semZona(ultimo);
+  return d ? new Date(d.getTime() + HORAS_DO_PRAZO * 3600 * 1000) : null;
+};
+// "Agora" para o prazo: por padrão o relógio de verdade. A página aceita
+// `#agora=2026-10-01T10:00` para DEMONSTRAR o prazo encerrado sem esperar 48h — é o
+// mesmo recurso que o harness usa para conferir o estado "cinza". A GRAVAÇÃO usa o
+// relógio de verdade, sempre: o carimbo do arquivo não pode ser simulado.
+function agora() {
+  const h = (typeof location !== 'undefined' && location.hash) || '';
+  const m = /agora=(\d{4}-\d{2}-\d{2}T\d{2}:\d{2})/.exec(h);
+  return (m && semZona(m[1])) || new Date();
+}
+// Sem declaração, o prazo está aberto: o registro é recente por definição, e fechar
+// por ausência de campo puniria quem lançou antes do campo existir.
+//
+// E UM CARIMBO NO FUTURO NÃO ABRE JANELA NENHUMA. A janela é `carimbo … carimbo + 48h`, e
+// um carimbo futuro (`2027-01-22` num relógio de `2026-09-20`) fazia a conta dar "aberta"
+// por anos — o ajuste aparecia habilitado em TODO lançamento do ciclo, que foi o defeito
+// relatado. Ajustar é corrigir o que ACONTECEU, dentro de 48h de ter acontecido: o que
+// ainda não foi carimbado pelo relógio de verdade não tem janela para abrir.
+const prazoAberto = (ultimo, quando = agora()) => {
+  const fim = fimDoPrazo(ultimo);
+  if (!fim) return true;
+  const carimbo = semZona(ultimo);
+  if (carimbo && quando.getTime() < carimbo.getTime()) return false;
+  return quando.getTime() <= fim.getTime();
+};
+// "21/09/2026 às 18h00"
+const dataHora = (d) => (d ? `${dois(d.getDate())}/${dois(d.getMonth() + 1)}/${d.getFullYear()}` +
+  ` às ${dois(d.getHours())}h${dois(d.getMinutes())}` : '');
+// Carimbo de nome de arquivo: sem segundos e sem ":" — `2026-09-20T1430`.
+const carimboArquivo = (d = new Date()) =>
+  `${d.getFullYear()}-${dois(d.getMonth() + 1)}-${dois(d.getDate())}T` +
+  `${dois(d.getHours())}${dois(d.getMinutes())}`;
+// "dados-exemplo-2026-09-20T1430.json" → "dados-exemplo" (e "dados-exemplo.json" idem).
+const baseDoArquivo = (nome) => String(nome).replace(/\.json$/, '')
+  .replace(/-\d{4}-\d{2}-\d{2}T\d{4}$/, '');
+const nomeVersionado = (nome, d = new Date()) => `${baseDoArquivo(nome)}-${carimboArquivo(d)}.json`;
+// Duas gravações no mesmo minuto dariam o mesmo nome — e o anterior seria sobrescrito.
+// Se o carimbo do relógio não ficar MAIOR que o nome anterior (mesmo minuto, ou um
+// anterior que já foi adiantado), o carimbo é derivado DO ANTERIOR, minuto a minuto:
+// os nomes crescem sempre, a pasta ordena na ordem da gravação, e nada é sobrescrito.
+const nomeNovo = (anterior, d) => {
+  const doRelogio = nomeVersionado(anterior, d);
+  if (doRelogio > anterior) return doRelogio;
+  const m = /-(\d{4})-(\d{2})-(\d{2})T(\d{2})(\d{2})\.json$/.exec(anterior);
+  if (!m) return doRelogio;
+  const base = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
+  for (let i = 1; i <= 24 * 60; i++) {
+    const nome = nomeVersionado(anterior, new Date(base.getTime() + i * 60000));
+    if (nome > anterior) return nome;
+  }
+  return doRelogio;
+};
+
+// Modo ajuste: o formulário reabre com o que já estava lançado. Dura até a página ser
+// filtrada de novo (trocar de filtro sai do ajuste) ou até ser salvo/cancelado.
+let ajustando = false;
+function estadoAjuste() {
+  if (!ajustando) return null;
+  const f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
+  const aula = sel.aula.value;
+  return (f && aula && f.dados.aulas[aula]) ? f : null;
+}
+// O contador é DA AULA: cada aula tem o seu prazo, e cada gravação renova o daquela
+// aula — lançar a aula 05 não reabre a janela da aula 01. O `ultimo_lancamento` da raiz
+// é anterior a esta regra: vale como ponto de partida de quem ainda não tem o seu (dado
+// lançado antes dela), e a partir daqui não é mais escrito.
+const prazoDaAula = (f, id) =>
+  (f.dados.aulas[id] && f.dados.aulas[id].ultimo_lancamento) || f.dados.ultimo_lancamento;
+// Só se ajusta o que já foi lançado — e só dentro do prazo.
+function podeAjustar() {
+  const f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
+  if (!f || !sel.aula.value || !f.dados.aulas[sel.aula.value]) return false;
+  return prazoAberto(prazoDaAula(f, sel.aula.value));
+}
+
+// A data que o PLANO do ciclo prevê para a aula N: o período declarado começa na aula 01
+// e as aulas se sucedem no intervalo declarado (`intervalo_dias`). Conta em UTC de
+// propósito — é aritmética de calendário, e fuso horário não pode mudar o dia.
+// ------------------------------------------------ o guia e a musicalidade (P-08)
+// OS DOIS ENTREGÁVEIS QUE NÃO SAEM DA CAPTURA ✗✓: eles derivam da TERCEIRA ENTRADA — o **PO** (o que
+// observar) e o **PLANO** (o que esta aula trabalha). A página busca os dois JSONs ao lado dos dados do
+// ciclo (`po-<id>.json` e `plano-<id>.json`); o que não existir sai **declarado** — `[Preencher: …]` —,
+// nunca inventado. É a mesma regra dos outros entregáveis.
+const cacheEntradas = {};
+async function carregarEntradas(id) {
+  if (cacheEntradas[id] !== undefined) return cacheEntradas[id];
+  const ler = async (nome) => {
+    try {
+      const r = await fetch(P + nome);
+      return r.ok ? await r.json() : null;
+    } catch {
+      return null;
+    }
+  };
+  cacheEntradas[id] = { po: await ler(`po-${id}.json`), plano: await ler(`plano-${id}.json`) };
+  return cacheEntradas[id];
+}
+
+// A data da aula para o GUIA — do JSON do ciclo, que a declara uma vez por aula (é a MESMA data
+// que a tabela mostra). Sem o arquivo do ciclo acessível, devolve vazio: aí a lib DECLARA a
+// lacuna no cabeçalho, em vez de inventar data. A regra do calendário não vive aqui — no
+// repositório quem a resolve é `tools/calendario.py`; esta página só lê o que o JSON diz.
+async function dataDaAula(meta, aula) {
+  if (!aula) return '';
+  try {
+    const { dados } = await carregarCiclo(meta);
+    const a = dados && dados.aulas && dados.aulas[aula];
+    return (a && a.data) || '';
+  } catch (e) {
+    return '';
+  }
+}
+
+
+
+
+
+
+
+function dataPlanejada(m, id) {
+  const n = Number(id);
+  const p = /^(\d{4})-(\d{2})-(\d{2})/.exec(m.inicio || '');
+  const passo = Number(m.intervalo_dias) || 7;
+  if (!p || !n) return carimbo(agora()).slice(0, 10);
+  const d = new Date(Date.UTC(+p[1], +p[2] - 1, +p[3]) + (n - 1) * passo * 86400000);
+  return `${d.getUTCFullYear()}-${dois(d.getUTCMonth() + 1)}-${dois(d.getUTCDate())}`;
+}
+
+function camposCaptura(m, dados, id) {
+  const a = dados.aulas[id] || null;
+  const ajuste = !!estadoAjuste();     // reabrindo o que já estava lançado
+  const cc = (a && a.condicoes_contorno) || {};
+  // O plano seguido já vem escolhido — "sim" é o caso comum — e é ele que governa o campo
+  // "o que mudou" JÁ NA PRIMEIRA RENDERIZAÇÃO, quando nada foi mudado ainda. Sem isto, a
+  // aula nova nascia com "sim" no select e o campo do "o que mudou" habilitado.
+  const plano = cc.plano_seguido || 'sim';
+  const marcaSel = (campo, chave, valor) =>
+    `<select id="t-${esc(chave)}-${campo}">${opcoesDe(MARCAS, valor)}</select>`;
+  const linhas = apelidosDoCiclo(dados).map(([k, nome]) => {
+    const presente = a ? a.presentes.includes(k) : true;   // aula nova: todos presentes
+    const t = (a && a.tecnica && a.tecnica[k]) || {};
+    const f = (a && a.funcional && a.funcional[k]) || {};
+    const dur = f.duracao_min !== undefined ? f.duracao_min
+      : (a && a.duracao_min !== undefined ? a.duracao_min : '');
+    return `<tr>
+      <td><label><input type="checkbox" id="pres-${esc(k)}"${presente ? ' checked' : ''}>
+        ${esc(nome)}</label></td>
+      <td>${marcaSel('alinhamento', k, t.alinhamento)}</td>
+      <td>${marcaSel('tempo', k, t.tempo)}</td>
+      <td>${marcaSel('transferencia', k, t.transferencia)}</td>
+      <td>${marcaSel('braco_perna', k, t.braco_perna)}</td>
+      <td>${marcaSel('tonus', k, f.tonus)}</td>
+      <td><input type="number" id="dur-${esc(k)}" min="0" step="5" value="${esc(dur)}"></td>
+      <td><input type="checkbox" id="fad-${esc(k)}"${f.fadiga_antes ? ' checked' : ''}></td>
+    </tr>`;
+  }).join('');
+
+  return `<p class="fraco">Ciclo ${esc(m.id)} · ${esc(m.escola)} — ` +
+    `${Object.keys(dados.aulas).length} de ${m.total_aulas || '?'} aula(s) lançada(s).
+    ${ajuste
+      ? `Ajustando a <strong>aula ${esc(id)}</strong> — o que estava lançado vem
+         carregado, e o motivo é obrigatório.`
+      : `Lançando a <strong>aula ${esc(id)}</strong> (ainda sem dado, campos em branco).
+         Os resultados da leitura voltam quando você filtrar uma aula que já tem dado.`}</p>
+  ${ajuste ? `<p class="linha"><label for="captura-motivo">Motivo do ajuste
+    (obrigatório):</label>
+    <input id="captura-motivo" type="text" size="60"
+      placeholder="por que este lançamento está sendo corrigido"></p>
+  <p class="linha"><label for="captura-autor">Gerado por (obrigatório):</label>
+    <input id="captura-autor" type="text" size="24" value="${esc(nomeDoAutor())}"
+      placeholder="quem está ajustando"></p>` : ''}
+  <div class="filtros">
+    <span><label for="captura-data">Data:</label>
+      <input id="captura-data" type="date"
+        value="${esc(a ? a.data : dataPlanejada(m, id))}"></span>
+    <span><label for="captura-duracao">Duração executada (min):</label>
+      <input id="captura-duracao" type="number" min="0" step="5"
+        value="${esc(a ? a.duracao_min : (m.duracao_min ?? ''))}"></span>
+    <span><label for="captura-plano">Plano seguido:</label>
+      <select id="captura-plano">${opcoesDe([['sim', 'sim'], ['parcial', 'parcial'],
+        ['nao', 'não']], plano)}</select></span>
+  </div>
+  <p class="linha"><span class="fraco">A data e a duração vêm do <strong>planejamento do
+    ciclo</strong> como sugestão — ajuste se a aula aconteceu em outro dia ou durou outro
+    tempo.</span></p>
+  <div class="filtros">
+    <span><label for="captura-animo">Ânimo (1-5):</label>
+      <input id="captura-animo" type="number" min="1" max="5" value="${esc(cc.animo ?? '')}"></span>
+    <span><label for="captura-interesse">Interesse (1-5):</label>
+      <input id="captura-interesse" type="number" min="1" max="5"
+        value="${esc(cc.interesse ?? '')}"></span>
+    <span><label for="captura-harmonia">Harmonia (1-5):</label>
+      <input id="captura-harmonia" type="number" min="1" max="5" value="${esc(cc.harmonia ?? '')}"></span>
+  </div>
+  <p class="linha"><label for="captura-mudou">O que mudou em relação ao plano:</label>
+    <input id="captura-mudou" type="text"
+      value="${esc(plano === 'sim' ? '' : (cc.mudou || ''))}"
+      ${plano === 'sim' ? 'disabled' : ''}
+      placeholder="o que mudou, em uma linha"><br>
+    <span class="fraco">Obrigatório quando o plano <strong>não</strong> for seguido. Com o
+      plano seguido, fica vazio — vazio quer dizer <em>nada mudou</em>. A estrutura
+      executada e o que foi abandonado vão no relatório.</span></p>
+  <table>
+    <tr><th>Presente</th><th>Alinhamento</th><th>Tempo</th><th>Transferência</th>
+      <th>Braço-perna</th><th>Tônus</th><th>Duração</th><th>Fadiga?</th></tr>
+    ${linhas}
+  </table>
+  <p class="linha"><label for="captura-texto">Relatório — o que aconteceu:</label>
+    <textarea id="captura-texto" rows="3">${esc(a ? a.relatorio.texto : '')}</textarea></p>
+  <p class="linha"><label for="captura-surpresas">O que surpreendeu:</label>
+    <textarea id="captura-surpresas" rows="2">${esc(a ? a.relatorio.surpresas : '')}</textarea></p>
+  <p class="linha"><label for="captura-ajustes">O que foi ajustado:</label>
+    <textarea id="captura-ajustes" rows="2">${esc(a ? a.relatorio.ajustes : '')}</textarea></p>
+  <p class="fraco">Marcas: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
+    vazio = não observei — as mesmas da folha de captura. Marca é âncora de memória,
+    não classificação (P-06).</p>`;
+}
+
+// O painel existe SÓ no modo captura (o filtro numa aula sem dado). Fora disso ele sai
+// de cena: o formulário de lançamento não fica ao lado dos resultados da leitura.
+function renderCaptura() {
+  const caixa = el('captura'), alvo = el('captura-campos');
+  if (!caixa || !alvo) return;
+  // O painel serve aos dois casos: lançar (aula sem dado) e ajustar (aula com dado,
+  // dentro do prazo). Fora deles, sai de cena.
+  const f = estadoCaptura() || estadoAjuste();
+  caixa.hidden = !f;
+  if (!f) { alvo.innerHTML = ''; return; }
+  if (!caixa.open) caixa.open = true;      // chegou numa aula sem dado: o painel abre
+  alvo.innerHTML = camposCaptura(f.meta, f.dados, sel.aula.value);
+}
+
+// Depois de gerar, os campos são limpos: o que ficou salvo está no arquivo, não no
+// formulário — lançar de novo (ou gerar o .md de novo) é um ato deliberado.
+function limparCamposCaptura() {
+  ['captura-data', 'captura-duracao', 'captura-plano', 'captura-animo', 'captura-interesse',
+   'captura-harmonia', 'captura-mudou', 'captura-texto', 'captura-surpresas', 'captura-ajustes']
+    .forEach((id) => { const x = el(id); if (x) x.value = ''; });
+  const f = estadoCaptura();
+  const dados = f ? f.dados : (sel.ciclo.value && cache[sel.ciclo.value]
+    ? cache[sel.ciclo.value].dados : { apelidos: {} });
+  apelidosDoCiclo(dados).forEach(([k]) => {
+    ['pres', 'fad'].forEach((p) => { const x = el(`${p}-${k}`); if (x) x.checked = false; });
+    ['alinhamento', 'tempo', 'transferencia', 'braco_perna', 'tonus'].forEach((c) => {
+      const x = el(`t-${k}-${c}`); if (x) x.value = '';
+    });
+    const d = el(`dur-${k}`); if (d) d.value = '';
+  });
+}
+
+// Lê o painel e monta a aula na ORDEM do schema — para o diff ficar no que mudou, e
+// não na ordem das chaves. "não observei" (vazio) e "? não vi" são estados
+// distintos, e por isso o vazio vai como "" em vez de sumir do JSON.
+function coletarCaptura(dados) {
+  const faltando = [];
+  const v = (id) => { const x = el(id); return x ? String(x.value ?? '') : ''; };
+  // A aula a lançar é a do FILTRO — a que não tem dado. Não há um select aqui dentro:
+  // se houver duas fontes de verdade, elas divergem.
+  const id = sel.aula.value;
+  const motivo = v('captura-motivo').trim();
+  // No ajuste, o autor é um campo DO FORMULÁRIO (a barra do .md está fora de cena): é
+  // ele que vai para `ajustado_por`.
+  const autor = v('captura-autor').trim();
+  const data = v('captura-data'), dur = v('captura-duracao');
+  const cc = {
+    plano_seguido: v('captura-plano'),
+    animo: Number(v('captura-animo')),
+    interesse: Number(v('captura-interesse')),
+    harmonia: Number(v('captura-harmonia')),
+    mudou: v('captura-mudou').trim(),
+  };
+  const relatorio = {
+    texto: v('captura-texto').trim(),
+    surpresas: v('captura-surpresas').trim(),
+    ajustes: v('captura-ajustes').trim(),
+  };
+  // A regra do PAR: `plano_seguido` e `mudou` andam juntos. Plano seguido → `mudou` vazio
+  // (vazio quer dizer "nada mudou"); plano não seguido → `mudou` obrigatório. O valor é
+  // forçado aqui também, e não só no campo: não se confia no DOM para uma regra de dado.
+  if (cc.plano_seguido === 'sim') cc.mudou = '';
+  else if (!cc.mudou) faltando.push('o que mudou em relação ao plano');
+  if (!id) faltando.push('a aula');
+  if (!data) faltando.push('a data');
+  if (dur === '' || Number.isNaN(Number(dur))) faltando.push('a duração executada');
+  if (!cc.plano_seguido) faltando.push('o plano seguido');
+  const cinco = (n, nome) => { if (!(n >= 1 && n <= 5)) faltando.push(nome); };
+  cinco(cc.animo, 'o ânimo (1-5)');
+  cinco(cc.interesse, 'o interesse (1-5)');
+  cinco(cc.harmonia, 'a harmonia (1-5)');
+  if (!relatorio.texto) faltando.push('o relatório');
+  // O motivo só existe no ajuste — e lá é obrigatório: sem ele, o ajuste muda o
+  // registro sem dizer por quê, e a correção deixa de ser auditável.
+  if (estadoAjuste()) {
+    // No ajuste, o motivo é obrigatório — e também QUEM ajusta: é o ajuste que fica
+    // registrado no JSON, e um ajuste sem autor não é auditável. Os dois campos são do
+    // formulário, um ao lado do outro.
+    if (!motivo) faltando.push('o motivo do ajuste');
+    if (!autor) faltando.push('quem ajusta (o campo "Gerado por")');
+  }
+
+  const presentes = [], ausentes = [], tecnica = {}, funcional = {};
+  apelidosDoCiclo(dados).forEach(([k]) => {
+    const p = el('pres-' + k);
+    if (p && p.checked) presentes.push(k); else ausentes.push(k);
+  });
+  presentes.forEach((k) => {
+    const m = (campo) => v(`t-${k}-${campo}`);
+    tecnica[k] = {
+      alinhamento: m('alinhamento'), tempo: m('tempo'),
+      transferencia: m('transferencia'), braco_perna: m('braco_perna'),
+    };
+    const d = v(`dur-${k}`), fad = el(`fad-${k}`);
+    funcional[k] = {
+      duracao_min: Number(d !== '' ? d : dur),
+      tonus: m('tonus'),
+      fadiga_antes: !!(fad && fad.checked),
+    };
+  });
+  return {
+    id, faltando, motivo, autor,
+    aula: {
+      data, presentes, ausentes, duracao_min: Number(dur),
+      condicoes_contorno: cc, tecnica, funcional, relatorio,
+    },
+  };
+}
+
+// --------------------------------------------------- gravar no TEXTO do arquivo
+// Reescrever o objeto com JSON.stringify reformataria TODAS as linhas (ele expande
+// tudo), e o commit — que é a proveniência do JSON — viraria um diff ilegível. Então a
+// aula é escrita no TEXTO do arquivo, no lugar dela: o resto fica byte a byte como
+// estava, e o diff é só do que mudou. O bloco da aula sai no formato canônico.
+function fimDoObjeto(texto, i) {
+  let prof = 0, dentro = false, esc = false;
+  for (; i < texto.length; i++) {
+    const c = texto[i];
+    if (dentro) {
+      if (esc) esc = false;
+      else if (c === '\\') esc = true;
+      else if (c === '"') dentro = false;
+    } else if (c === '"') dentro = true;
+    else if (c === '{') prof++;
+    else if (c === '}' && --prof === 0) return i;
+  }
+  return -1;
+}
+// Arrays de strings curtas numa linha só, como o arquivo é escrito à mão
+// ("presentes": ["lia", "nina", "rui", "tessa"]) — sem isto, cada nome vira uma linha.
+const umaLinha = (json) =>
+  json.replace(/\[\n\s+("[^"\n]{1,40}"(?:,\n\s+"[^"\n]{1,40}")*)\n\s+\]/g,
+    (todo, dentro) => '[' + dentro.split(/,\s*\n\s*/).join(', ') + ']');
+const blocoDaAula = (id, aula) =>
+  `    ${JSON.stringify(id)}: ` +
+  umaLinha(JSON.stringify(aula, null, 2)).split('\n')
+    .map((l, i) => (i === 0 ? '' : '    ') + l).join('\n');
+
+// Se a aula já existe, troca só o bloco dela; se não, acrescenta depois da última.
+function textoComAula(texto, id, aula) {
+  const bloco = blocoDaAula(id, aula);
+  const iAulas = texto.indexOf('"aulas"');
+  const ini = texto.indexOf('{', iAulas);
+  const fim = fimDoObjeto(texto, ini);
+  const p = texto.indexOf(`    ${JSON.stringify(id)}:`, ini);
+  if (p >= 0 && p < fim) {                       // já existe: troca só o bloco dela
+    const q = fimDoObjeto(texto, texto.indexOf('{', p));
+    return texto.slice(0, p) + bloco + texto.slice(q + 1);
+  }
+  let k = fim - 1;                               // não existe: entra depois do último...
+  while (k > ini && /\s/.test(texto[k])) k--;    // ...com vírgula, antes de fechar "aulas"
+  return texto.slice(0, k + 1) + ',\n' + bloco + texto.slice(k + 1);
+}
+
+// Campos na RAIZ do texto do JSON, cirurgicamente: troca o valor se o campo existe,
+// senão insere depois de `criado_em` (e, se nem isso, logo depois da chave de abertura).
+// CUIDADO: a raiz é indentada com DOIS espaços, e o que está dentro das aulas com quatro
+// ou mais — casar `\s*` pegava `relatorio.ajustes` (chave de mesmo nome, dentro da aula) e
+// sobrescrevia o relatório. A âncora é a indentação exata da raiz.
+function camposNaRaiz(texto, campos) {
+  let t = texto;
+  for (const [k, v] of Object.entries(campos)) {
+    const val = JSON.stringify(v);
+    const re = new RegExp(`^(  "${k}":\\s*)[^\\n]*?(,?)\\s*$`, 'm');
+    if (re.test(t)) t = t.replace(re, `$1${val}$2`);
+    else if (/^  "criado_em":/m.test(t)) {
+      t = t.replace(/^(  "criado_em":\s*[^\n]*,?\n)/m, `$1  ${JSON.stringify(k)}: ${val},\n`);
+    } else {
+      t = t.replace(/^\{/, `{\n  ${JSON.stringify(k)}: ${val},`);
+    }
+  }
+  return t;
+}
+
+// O índice aponta para o arquivo VIGENTE de cada ciclo; como cada gravação cria um
+// arquivo novo, o índice tem de acompanhar. Troca cirúrgica, no texto do índice.
+function indiceComArquivo(id, nome) {
+  const i = indiceTexto.indexOf(`"id": ${JSON.stringify(id)}`);
+  const j = i < 0 ? -1 : indiceTexto.indexOf('"arquivo"', i);
+  if (j < 0) return indiceTexto;
+  const fim = indiceTexto.indexOf('\n', j);
+  return indiceTexto.slice(0, j) + `"arquivo": ${JSON.stringify(nome)}` +
+    indiceTexto.slice(fim);
+}
+
+// §3.3: lança no JSON EM MEMÓRIA → baixa o arquivo do ciclo → o commit é de quem lê.
+// Cada gravação cria um ARQUIVO NOVO, com carimbo no nome, e o índice passa a apontar
+// para ele — o anterior permanece (acessível, e não é o vigente). O ajuste usa o mesmo
+// caminho, com mais campos na raiz: de onde veio, quando, por quem e por quê.
+async function gerarJson() {
+  const aviso = el('aviso-json');
+  const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
+  const f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
+  if (!f) { dizer('<span class="erro">Escolha um ciclo — o JSON é por ciclo.</span>'); return; }
+  const { id, aula, faltando, motivo, autor } = coletarCaptura(f.dados);
+  if (faltando.length) {
+    dizer(`<span class="erro">não gerei: falta ${esc(faltando.join(', '))}.</span>`);
+    return;
+  }
+  const ajuste = !!estadoAjuste();
+  const agora = new Date();
+  const carimbo = carimboArquivo(agora);
+  const quando = `${carimbo.slice(0, 10)}T${carimbo.slice(11, 13)}:${carimbo.slice(13)}`;
+  const deOnde = f.meta.arquivo;
+  const jaTinha = !!f.dados.aulas[id];
+  // O prazo é DA AULA: o carimbo vai DENTRO dela, não na raiz — lançar a aula 05 não
+  // reabre a janela da aula 01.
+  const aulaGravada = { ...aula, ultimo_lancamento: quando };
+  let texto = textoComAula(f.texto, id, aulaGravada);
+  // O "o que mudou" é gravado AQUI, no ato do ajuste: a página tem o lançamento anterior
+  // em memória neste instante. Guardá-lo no arquivo faz o .md declarar a mudança sem
+  // depender de o anterior continuar acessível — sem servidor, ele pode ter ido para a
+  // pasta de downloads, e não para a pasta do experimento.
+  const mudancas = ajuste
+    ? diffAulas(f.dados.aulas, { ...f.dados.aulas, [id]: aulaGravada })
+      .map((m) => `${m.caminho}: ${Vistas.helpers.mdCel(m.antes)} → ${Vistas.helpers.mdCel(m.depois)}`)
+    : [];
+  texto = camposNaRaiz(texto, ajuste
+    ? { ajuste_de: deOnde, ajustado_em: quando, ajustado_por: autor, motivo,
+        ajustes: mudancas }
+    : {});
+  try {
+    JSON.parse(texto);
+  } catch (e) {
+    dizer(`<span class="erro">não gerei: o arquivo sairia inválido (${esc(e.message)}).</span>`);
+    return;
+  }
+  f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser escrito
+  f.texto = texto;               // e o texto, para a próxima gravação não perder esta
+  const novoNome = nomeNovo(deOnde, agora);
+  f.meta.arquivo = novoNome;     // a página passa a apontar para o vigente
+  baixar(novoNome, texto, 'application/json;charset=utf-8');
+  baixar('ciclos.json', indiceComArquivo(sel.ciclo.value, novoNome),
+    'application/json;charset=utf-8');
+  dizer(`<span class="fraco">gerado: <code>${esc(novoNome)}</code>` +
+    `${ajuste ? ` — ajuste de <code>${esc(deOnde)}</code>, motivo: ${esc(motivo)}` : ''}` +
+    ` · aula ${esc(id)} ${jaTinha ? 'atualizada' : 'acrescentada'} · ` +
+    `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s) · ` +
+    `e <code>ciclos.json</code> apontando para ele — o disco só muda quando você ` +
+    `commitar: a proveniência do JSON é o commit</span>`);
+  ajustando = false;             // gravou: ou entrou no registro, ou corrigiu o que havia
+  pagina = 1;
+  // A aula lançada passa a existir para a leitura — e o painel sai de cena, porque o
+  // filtro agora está numa aula COM dado: a página volta a ser leitura.
+  limparCamposCaptura();    // os campos não ficam preenchidos esperando outro clique
+  opcoes();
+  await render();
+  renderCaptura();
+}
+
+// ------------------------------------------------------ roteamento dos filtros
+// Ciclo só: todas as aulas do ciclo · Ciclo + aula: a turma daquela aula ·
+// Ciclo + aluna: a linha do tempo dela · Ciclo + aula + aluna: ela naquela aula ·
+// Só aluna: a linha do tempo dela em TODOS os ciclos ·
+// Tudo vazio: todos os ciclos, todas as aulas.
+async function render() {
+  const id = sel.ciclo.value, aula = sel.aula.value, aluna = sel.aluna.value;
+  const out = el('saida');
+  // O entregável segue o filtro: o que o filtro não sustenta fica desabilitado, e a
+  // escolha cai no primeiro que ele comporta (acompanhamento → relatório → caderno).
+  atualizarEntregavel();
+  const captura = estadoCaptura();
+  const emAjuste = !!estadoAjuste();
+  const emFormulario = !!captura || emAjuste;
+  // A barra do ".md" — botão, ajuda e o campo "Gerado por" — existe SÓ na leitura: em
+  // captura não há o que gerar nem o que assinar, e no ajuste o autor é um campo do
+  // próprio formulário, ao lado do motivo, que é da mesma natureza.
+  const acoesMd = el('acoes-md');
+  if (acoesMd) acoesMd.hidden = emFormulario;
+  // O FILTRO DE ALUNA NÃO EXISTE NO LANÇAMENTO ✗✓: a aula é lançada INTEIRA — a presença e a
+  // técnica são por aluna, DENTRO do painel —, e deixar filtrar por uma aluna na hora de lançar
+  // sugeriria que o lançamento é dela, o que não é. Ele fica DESABILITADO enquanto o formulário
+  // está em cena (captura E ajuste: o ajuste também é da aula) e volta ao normal na leitura.
+  // O valor NÃO é zerado: sair do formulário devolve o filtro como o professor o deixou.
+  if (sel.aluna) {
+    sel.aluna.disabled = !!emFormulario;
+    sel.aluna.title = emFormulario
+      ? 'no lançamento a aula é da turma inteira — a aluna se marca no painel'
+      : '';
+  }
+  // A barra do ajuste: só no modo leitura e com UMA aula filtrada que já tem dado — é
+  // ela que se ajusta. Fora do prazo, o botão fica CINZA com a data (visível: o
+  // professor vê que a possibilidade existiu, em vez de o botão sumir sem explicação).
+  const barraAjuste = el('acoes-ajuste');
+  if (barraAjuste) {
+    const f = id ? cache[id] : null;
+    const temAula = !!(f && aula && f.dados.aulas[aula]);
+    barraAjuste.hidden = !!captura || !temAula;
+    const botao = el('ajustar'), cancelar = el('cancelar-ajuste'), aviso = el('aviso-ajuste');
+    if (botao) {
+      botao.hidden = emAjuste;
+      botao.disabled = !podeAjustar();
+    }
+    if (cancelar) cancelar.hidden = !emAjuste;
+    if (aviso) {
+      const fim = temAula ? fimDoPrazo(prazoDaAula(f, aula)) : null;
+      aviso.textContent = (barraAjuste.hidden || emAjuste) ? ''
+        : (podeAjustar()
+          ? `ajustável até ${dataHora(fim)} — 48h desde a última gravação, e cada gravação renova`
+          : `Prazo encerrado em ${dataHora(fim)} — o registro é definitivo.`);
+    }
+  }
+  // Modo captura (o filtro numa aula sem dado): a página é o formulário. Os resultados
+  // da leitura NÃO aparecem junto — quem quer ler, filtra uma aula que já tem dado.
+  if (emFormulario) {
+    out.innerHTML = '';
+    if (el('paginacao')) el('paginacao').innerHTML = barra(1, 0);
+    return;
+  }
+  out.innerHTML = '<p class="vazio">Carregando…</p>';
+  try {
+    const metas = id ? [indice.ciclos.find((c) => c.id === id)] : indice.ciclos;
+    const blocos = [];
+    for (const meta of metas) {
+      const { meta: m, dados } = await carregarCiclo(meta);
+      let aulas = Object.keys(dados.aulas).sort();
+      if (aula) aulas = aulas.filter((k) => k === aula);
+      if (aluna && !(aluna in dados.apelidos)) continue;
+      if (aula && aulas.length === 0) continue;
+      // O cabeçalho do ciclo e LEITURA: as datas entram em `dd/mm/aaaa` (o ISO fica no
+      // JSON, no nome do arquivo e no `type=date` da captura -- que e o unico lugar em que
+      // ele PRECISA ser ISO, porque e o navegador que localiza o campo).
+      const cabecalho = `<h2>${selo(m)} <span class="fraco">${esc(Vistas.helpers.dataBr(m.inicio))} .. ${esc(Vistas.helpers.dataBr(m.fim))} · ` +
+        `${m.total_aulas} aulas no ciclo · ${aulas.length} no filtro</span></h2>`;
+      if (aluna) blocos.push(cabecalho + blocoAluna(m, dados, aluna, aula));
+      else aulas.forEach((k) => blocos.push(cabecalho + blocoAula(m, dados, k)));
+    }
+    const { visiveis, total, quantos } = paginar(blocos);
+    out.innerHTML = visiveis.length
+      ? visiveis.join('')
+      : '<p class="vazio">Nenhum dado para estes filtros.</p>';
+    el('paginacao').innerHTML = barra(total, quantos);
+  } catch (e) {
+    out.innerHTML = `<p class="erro">${esc(e.message)}</p>`;
+  }
+}
+
+function opcoes() {
+  const f0 = sel.ciclo.value ? cache[sel.ciclo.value] : null;
+  const fontes = f0 ? [f0] : Object.values(cache);
+  const aulas = new Set(), alunas = new Map();
+  fontes.filter(Boolean).forEach((f) => {
+    Object.keys(f.dados.aulas).forEach((k) => aulas.add(k));
+    Object.entries(f.dados.apelidos).forEach(([k, v]) => alunas.set(k, v));
+  });
+  // O filtro também oferece a PRIMEIRA aula sem dado do ciclo: é por ela que a captura
+  // entra — o painel de lançamento só aparece quando o filtro está numa aula sem dado.
+  const falta = f0 ? primeiraSemDado(f0.meta, f0.dados) : '';
+  if (falta) aulas.add(falta);
+  const va = sel.aula.value, vl = sel.aluna.value;
+  sel.aula.innerHTML = '<option value="">(todas)</option>';
+  [...aulas].sort().forEach((k) => sel.aula.add(new Option(
+    k === falta ? `Aula ${k} · sem dado` : 'Aula ' + k, k)));
+  sel.aluna.innerHTML = '<option value="">(todas)</option>';
+  [...alunas].sort((a, b) => a[1].localeCompare(b[1]))
+    .forEach(([k, v]) => sel.aluna.add(new Option(v, k)));
+  if (aulas.has(va)) sel.aula.value = va;
+  if (alunas.has(vl)) sel.aluna.value = vl;
+}
+
+async function trocarCiclo() {
+  const c = indice.ciclos.find((x) => x.id === sel.ciclo.value);
+  // o período é informação, não filtro: aparece só com um ciclo escolhido — e em
+  // `dd/mm/aaaa`, que é o formato de quem lê (o ISO fica no JSON e nos nomes de arquivo).
+  // O `fim` é a ÚLTIMA AULA do ciclo (`inicio + (total_aulas-1) x intervalo_dias`) — e quem
+  // confere isso contra o índice é o `teste.js`, não a tela: declarar errado não pode
+  // passar despercebido só porque a conta foi feita no lugar errado.
+  periodo.textContent = c
+    ? `Período declarado do ciclo: ${Vistas.helpers.dataBr(c.inicio)} a ${Vistas.helpers.dataBr(c.fim)}`
+    : '';
+  if (c) await carregarCiclo(c);    // ciclo escolhido: carrega só o JSON dele
+  else await todos();               // "(todos os ciclos)": carrega os demais sob demanda
+  pagina = 1;                       // trocar de ciclo recomeça da primeira página
+  ajustando = false;                // e sai do ajuste: o ciclo é outro
+  entregavelEscolhido = false;      // e o entregável volta a ser o que o filtro sustenta
+  opcoes();
+  // Trocar de ciclo leva o filtro para a aula que falta lançar nele (é onde o trabalho
+  // está). Para ler, é só filtrar outra aula — ou "(todas)".
+  sel.aula.value = c ? primeiraSemDado(c, cache[c.id].dados) : '';
+  renderCaptura();                  // o painel de captura é do filtro escolhido
+  await render();
+}
+
+(async () => {
+  if (!LIB_OK) {
+    el('saida').innerHTML = '<p class="erro">As <strong>libs do projeto</strong> não carregaram — o ' +
+      'formulário abre, mas quem escreve as vistas é a <code>lib-vistas.js</code>. Elas vêm ' +
+      'publicadas em <code>assets/</code>: se não carregaram, o pacote está incompleto — rode ' +
+      '<code>tools/gerar-ciclo.sh</code> de novo e publique. Para conferir: ' +
+      '<a href="assets/lib-vistas.js">assets/lib-vistas.js</a> tem de abrir, não dar 404.</p>';
+    return;
+  }
+  try {
+    // O TEXTO do índice também é guardado: ao gravar, a página reescreve o `arquivo` do
+    // ciclo (cirurgicamente) e baixa o `ciclos.json` apontando para o vigente — sem
+    // servidor, a página não escreve no disco: ela entrega o arquivo.
+    // O `r.ok` é conferido porque um 404 não lança: sem ele o erro só apareceria no
+    // JSON.parse — e com a cara do arquivo errado.
+    const rIndice = await fetch(P + 'ciclos.json');
+    if (!rIndice.ok) throw new Error(`ciclos.json: HTTP ${rIndice.status} em ${P}ciclos.json`);
+    indiceTexto = await rIndice.text();
+    indice = JSON.parse(indiceTexto);
+    sel.ciclo.innerHTML = '<option value="">(todos os ciclos)</option>';
+    indice.ciclos.forEach((c) => sel.ciclo.add(new Option(`Ciclo ${c.id} · ${c.escola}`, c.id)));
+    sel.ciclo.addEventListener('change', trocarCiclo);
+    // qualquer mudança de filtro volta para a primeira página...
+    // O filtro mudou: o entregável volta a ser o que o filtro sustenta (a escolha
+    // explícita do professor não atravessa a troca de filtro).
+    const aoFiltrar = () => {
+      pagina = 1; ajustando = false; entregavelEscolhido = false;
+      render(); renderCaptura();
+    };
+    ['aula', 'aluna'].forEach((k) => sel[k].addEventListener('change', aoFiltrar));
+    // ...e a paginação NÃO volta: é ela que permite folhear
+    el('paginacao').addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-ir]');
+      if (!b) return;
+      pagina = Number(b.dataset.ir);
+      render();
+    });
+    // Os três entregáveis: as opções nascem UMA vez; o filtro decide o que dá para gerar.
+    montarEntregaveis();
+    entrega.addEventListener('change', () => {
+      entregavelEscolhido = true;      // escolha explícita: vale enquanto o filtro não mudar
+      atualizarEntregavel();
+    });
+    el('gerar').addEventListener('click', gerarMd);
+    // o campo "Gerado por" é obrigatório: enquanto estiver vazio, o botão fica travado
+    el('autor').addEventListener('input', atualizarBotaoMd);
+    el('gerar-json').addEventListener('click', gerarJson);
+    // o ajuste: abre o formulário com o que já estava lançado; cancelar volta à leitura
+    el('ajustar').addEventListener('click', () => {
+      ajustando = true;
+      render();
+      renderCaptura();
+    });
+    el('cancelar-ajuste').addEventListener('click', () => {
+      ajustando = false;
+      render();
+      renderCaptura();
+    });
+    // abrir o painel reconstrói os campos (o que não foi gerado se perde — de propósito)
+    el('captura').addEventListener('toggle', renderCaptura);
+    // A regra do par plano_seguido × mudou, no ato da escolha: com o plano seguido, o
+    // campo do "o que mudou" limpa e desabilita; fora disso, habilita (e vira obrigatório).
+    el('captura-campos').addEventListener('change', (e) => {
+      if (!e.target || e.target.id !== 'captura-plano') return;
+      const campo = el('captura-mudou');
+      if (!campo) return;
+      const seguido = e.target.value === 'sim';
+      campo.disabled = seguido;
+      if (seguido) campo.value = '';
+    });
+    // O autor é lembrado no navegador: digitar o nome uma vez basta. Se o navegador
+    // não deixar guardar, o campo funciona igual — só não é lembrado.
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const guardado = localStorage.getItem(CHAVE_AUTOR);
+        if (guardado) el('autor').value = guardado;
+        el('autor').addEventListener('change', () => {
+          try { localStorage.setItem(CHAVE_AUTOR, el('autor').value); } catch (e) {}
+        });
+      }
+    } catch (e) { /* sem armazenamento: o campo só não é lembrado */ }
+    atualizarBotaoMd();        // o botão nasce desabilitado: "Gerado por" é obrigatório
+    // mudar quantos blocos por página também volta à primeira
+    porPaginaSel.addEventListener('change', aoFiltrar);
+    // Começa onde o trabalho está: no ciclo vigente (o período declarado contém hoje) e
+    // na aula sem dado — o painel de captura abre nela (§3.1). Para ler, é só filtrar.
+    sel.ciclo.value = cicloVigente(carimbo().slice(0, 10)).id;
+    await trocarCiclo();
+  } catch (e) {
+    el('saida').innerHTML = '<p class="erro">Não consegui abrir este ciclo. ' +
+      'Se você abriu o arquivo direto do disco (<code>file://</code>), sirva a pasta por HTTP ' +
+      '(<code>python3 -m http.server</code>, na raiz do pacote). ' +
+      'Detalhe: ' + esc(e.message) + '</p>';
+  }
+})();
+</script>
+</body>
+</html>
+
+
+

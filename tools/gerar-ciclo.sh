@@ -260,6 +260,13 @@ else
   echo "aviso: o JSON de dados NÃO foi para o pacote (sem senha) — o check-pacote.js vai reprovar" >&2
 fi
 
+# A PÁGINA DO FORMULÁRIO (Fase 2.3). O formulário nasceu no experimento; aqui ele é TEMPLATE
+# versionado (tools/templates/lancamento.html) e o gerador o publica no pacote — junto das duas libs
+# que ele consome (lib-vistas.js e lib-cifra.js), porque o pacote é o que se publica e a página lê
+# tudo AO LADO DELA: as libs em assets/, o índice, os JSONs de entrada e o JSON de dados cifrado.
+cp "$TPL/lancamento.html" "$PACOTE/lancamento.html"
+cp "$RAIZ/tools/lib-vistas.js" "$RAIZ/tools/lib-cifra.js" "$PACOTE/assets/"
+
 # ---------------------------------------------------------------------------
 # 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML e PDF,
 #    para que os dois formatos tenham exatamente as mesmas âncoras (ASCII).
@@ -285,6 +292,11 @@ for f in "$CICLOS"/ciclo-"$CICLO"-"$VARIANTE"-acompanhamento-*.md; do
   ACOMP_DOCS="$ACOMP_DOCS $(basename "$f" | sed "s/^ciclo-$CICLO-$VARIANTE-//; s/\.md$//")"
 done
 ACOMP_DOCS="${ACOMP_DOCS# }"
+
+# As páginas de FERRAMENTA: têm HTML no pacote mas NÃO são documento — não entram em DOCS, não vão
+# ao PDF e não têm fonte `.md` (o rótulo do menu é declarado no gerador, como o do caderno). Hoje é
+# uma só: o formulário de lançamento (Fase 2.3).
+FERRAMENTAS="lancamento"
 
 for doc in index $DOCS $ACOMP_DOCS; do
   if e_vista "$doc"; then
@@ -350,6 +362,9 @@ rotulo() {
   case "$1" in
     caderno-*) printf 'Caderno'; return ;;
     metodo) printf 'Método'; return ;;
+    # A página do formulário não tem fonte `.md` — o rótulo é declarado aqui (decisão de 20/09:
+    # "Lançamento de aula — formulário eletrônico", ao lado da captura, na Área do Professor).
+    lancamento) printf 'Lançamento de aula — formulário eletrônico'; return ;;
     # Havia um caso para `relatorio-aula-*` aqui até 2026-09-20: a fonte se chamava
     # `relatorio-aula-NN` e o `title:` dela dizia "Relatório pós-aula … (preview)" — o
     # rótulo era corrigido no gerador porque a CHAVE MENTIA. A chave passou a se chamar
@@ -444,8 +459,7 @@ gerar_nav() {
       "Aulas|aula-*" \
       "Acompanhamento|acompanhamento-* caderno-*" \
       "Planejamento|pre-requisitos musicalidade-aluna notacao glossario-*" \
-      "Apanhado Histórico|apanhado-historico" \
-      "Área do Professor|musicalidade harmonizacao guia-do-professor metodo guia-de-observacao-* captura-aula-*"
+      "Área do Professor|musicalidade harmonizacao guia-do-professor metodo guia-de-observacao-* captura-aula-* lancamento"
     do
       nome="${item%%|*}"
       padroes="${item#*|}"
@@ -456,7 +470,7 @@ gerar_nav() {
       esac
       membros=""
       for pat in $padroes; do
-        for doc in $DOCS $ACOMP_DOCS; do
+        for doc in $DOCS $ACOMP_DOCS $FERRAMENTAS; do
           case "$doc" in
             $pat)
               case " $membros " in
@@ -506,6 +520,20 @@ gerar_nav() {
 # 1) Pacote HTML: um arquivo por documento, todos com a mesma navegação
 # ---------------------------------------------------------------------------
 TODOS="index $DOCS $ACOMP_DOCS"
+
+# A barra de navegação do PACOTE entra no formulário (ele é uma página do site, não uma página fora
+# dele): aqui a MESMA `gerar_nav` das demais páginas é escrita no lugar do marcador `<!-- NAV -->`.
+# Fica aqui, e não junto do `cp`, porque a função se define mais abaixo — e bash lê o script na ordem.
+gerar_nav lancamento "$TMP/nav-lancamento.html"
+python3 - "$PACOTE/lancamento.html" "$TMP/nav-lancamento.html" <<'PY'
+import pathlib, sys
+alvo = pathlib.Path(sys.argv[1])
+nav = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8')
+texto = alvo.read_text(encoding='utf-8')
+if '<!-- NAV -->' not in texto:
+    sys.exit('lancamento.html: marcador <!-- NAV --> não encontrado')
+alvo.write_text(texto.replace('<!-- NAV -->', nav), encoding='utf-8')
+PY
 gerados=0
 for doc in $TODOS; do
   src="$TMP/src/ciclo-$CICLO-$doc.md"

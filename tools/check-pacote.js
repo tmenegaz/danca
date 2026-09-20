@@ -145,11 +145,15 @@ const MARCA_CLARO = 'class="topnav"';        // conteúdo de página aberta
 const TAM_MIN_CIFRADA = 1000;                // bytes; cifra real fica bem acima
 
 // ------------------------------------------- 2) estrutura fixa de cada página
+// Páginas de FERRAMENTA: têm HTML, mas não são documento — não vão ao PDF e não têm título
+// conferível lá. Hoje é uma só: o formulário de lançamento (Fase 2.3).
+const FERRAMENTAS = ['lancamento.html'];
 const conteudos = {};
 paginas.forEach((f) => {
   const html = fs.readFileSync(path.join(pacote, f), 'utf8');
   const cifrada = criptografiaDeclarada && ehAcompanhamento(f);
-  conteudos[f] = cifrada ? '' : html;   // cifrada não tem conteúdo conferível
+  const ferramenta = FERRAMENTAS.includes(f);
+  conteudos[f] = (cifrada || ferramenta) ? '' : html;   // cifrada/ferramenta: sem conteúdo conferível
   if (cifrada) {
     const bytes = Buffer.byteLength(html, 'utf8');
     const marcas = MARCAS_CIFRADA.filter((re) => re.test(html)).length;
@@ -178,7 +182,18 @@ paginas.forEach((f) => {
     if (!html.includes(marca)) erros.push(`${f}: falta ${rotulo} (${marca})`);
   });
   const ativos = (html.match(/class="ativo"/g) || []).length;
-  if (ativos !== 1) erros.push(`${f}: esperava 1 link marcado como página atual, encontrei ${ativos}`);
+  // A página tem de estar marcada no menu — MAS só se o MENU a lista. Duas razões medidas aqui:
+  // (1) o `apanhado-historico` saiu do menu em 20/09 (não pertence a grupo nenhum — decisão da
+  // pesquisadora) e o RODAPÉ continua citando-o, então o que vale é o menu, não qualquer link da
+  // página; (2) o `lancamento.html` não tem conteúdo conferível (é ferramenta), e a marca dele só
+  // existe no menu. Fora do menu, cabe aviso — não erro.
+  const menu = (html.match(/<nav class="topnav"[\s\S]*?<\/nav>/) || [''])[0];
+  const marcados = (menu.match(/class="ativo"/g) || []).length;
+  if (menu.includes(`href="${f}"`)) {
+    if (marcados !== 1) erros.push(`${f}: esperava 1 link marcado como página atual, encontrei ${marcados}`);
+  } else {
+    avisos.push(`${f}: fora do menu — sem link marcado`);
+  }
 });
 ok.push(`páginas verificadas: ${paginas.length}`);
 

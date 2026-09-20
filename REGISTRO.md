@@ -1739,3 +1739,60 @@ cifrado).
 `tools/.senhas-locais.exemplo`; `tools/gerar-acompanhamento.sh` (o precedente da cifra); `REGRAS.md`
 16 e 17.
 
+
+## 2026-09-20 — O formulário de lançamento vai para produção (Área do Professor)
+
+**O que motivou.** O formulário nasceu no experimento (`experimentos/captura-json/`, **não
+versionado**) e está provado lá (harness de 25 casos, exit 0). O que faltava era ele ser **uma página
+do pacote** — porque o que se publica é o pacote, e o professor precisa da ferramenta no site.
+
+**O que foi feito.**
+- `tools/templates/lancamento.html` (novo): o formulário como **template versionado**. Ele lê tudo
+  **ao lado dele** (as libs em `assets/`, o `ciclos.json`, os `po-XX/plano-XX.json` e o JSON de dados
+  do ciclo), e o gerador o publica no pacote junto das duas libs.
+- **A página ganhou a estrutura do pacote**: folha de estilo, barra de navegação — o gerador escreve
+  a **mesma `gerar_nav`** no marcador `<!-- NAV -->` —, índice desta página e botão voltar ao topo.
+- **O formulário descriptografa o JSON de dados.** O envelope diz **quantas aulas já têm dado** — e
+  esse número não é segredo —, então com **zero lançamento a página abre SEM PEDIR SENHA**, e com
+  lançamento pede a senha da escola (a mesma dos acompanhamentos), guardando-a na sessão. Era a
+  decisão da pesquisadora, e o envelope da Fase 2.2 foi desenhado exatamente para isso.
+- **Menu** (decisões de 20/09): o grupo **"Apanhado Histórico" saiu** — era um grupo de **um membro
+  só**, e a regra "um padrão sem glob = link direto" o transformava em **link de topo**, que é o
+  "solto" apontado. A página continua existindo e alcançável **pelo rodapé**; no menu, não está mais.
+  A **"Captura em aula" virou "Captura em aula — para impressão"** (o `title:` é da fonte `.md`, nos
+  dois ciclos) e o **formulário entrou na Área do Professor**, ao lado dela.
+- **`check-pacote`**: páginas de **FERRAMENTA** (hoje só o formulário) não vão ao PDF e não têm título
+  conferível lá — como as cifradas; e a exigência de "link marcado como página atual" passou a valer
+  **só para página que está no menu**. Sem isso, o próprio check exigiria que a decisão do apanhado
+  não valesse (a página sairia do menu **e** seria reprovada por isso).
+
+**O que se mediu.**
+- Os dois pacotes: **0 erro(s)** (6 avisos, um deles **declarando** o apanhado fora do menu).
+- **Âncoras regeradas nos dois** (a fonte da captura mudou): Duo `d0394adc…` → `d135ecec…`, Ritmos
+  `3cb3babf…` → `4d81d6f3…`.
+- **O formulário SERVIDO DO PACOTE, em navegador** (Chrome headless, `--dump-dom`): lê o
+  `ciclos.json` do pacote (monta "Ciclo 01 · Duo"), **abre sem erro e sem pedir senha** (0
+  lançamentos) — o comportamento decidido, medido.
+- **O harness de 25 casos roda contra o TEMPLATE de produção** (com a lib da cifra injetada):
+  `OK: renderizacao, paginacao e .md coerentes`, **0 falhas**.
+- O menu, conferido no pacote: grupos *Ciclos · Aulas · Acompanhamento · Planejamento · Área do
+  Professor*; a Área do Professor termina com *Captura em aula — para impressão* e *Lançamento de
+  aula — formulário eletrônico*; `apanhado-historico.html` **não** aparece no menu.
+
+**O que ainda não está feito (declarado).**
+- **O mapa de apelidos (`dados.apelidos`) não existe no JSON de produção** (o do experimento tinha):
+  a tela **não quebra** — mostra a chave, que é o apelido em slug —, mas incluir esse mapa é decisão
+  de **fonte** (muda o JSON e a âncora).
+- Com mais de uma aula, os dois rótulos de captura ficariam iguais no menu (hoje há uma por ciclo).
+- O envio (Fase 3) segue pendente de decisão.
+
+**Com o quê.**
+`tools/templates/lancamento.html` (novo); `tools/gerar-ciclo.sh`, `tools/check-pacote.js`;
+`…ciclo-01-captura-aula-01.md` e `…ciclo-01-ritmos-captura-aula-01.md` (título);
+os dois `.fipp` (regerados); os pacotes dos dois ciclos.
+
+**Referências.**
+`CONGELAMENTO.md` (tools/ é congelado: motivo declarado, commit próprio e esta entrada);
+`ARQUITETURA-CAPTURA.md` §8; `tools/lib-cifra.js` e `tools/cifrar-dados.js` (Fase 2.2);
+`experimentos/captura-json/` (onde o formulário foi provado); `REGRAS.md` 16 e 17.
+

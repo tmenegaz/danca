@@ -4,7 +4,7 @@ frente: Captura
 ciclo: "01"
 aula: "01"
 escola: Ritmos e Movimento
-title: "Captura em aula — Aula 01 (Ritmos e Movimento)"
+title: "Captura em aula — para impressão"
 subtitle: "Folha de marcação para uso durante a aula"
 data: "19/09/2026"
 ---
