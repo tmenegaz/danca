@@ -319,20 +319,93 @@ const todos = () => Promise.all(indice.ciclos.map(carregarCiclo));
 // mostrada em `#periodo` — e só quando um ciclo específico está selecionado.
 
 // ---------------------------------------------------------------- as vistas
-function tabelaTecnica(dados, a) {
-  const linhas = a.presentes.map((k) => {
-    const t = a.tecnica[k] || {}, f = a.funcional[k] || {};
-    return `<tr><th>${esc(dados.apelidos[k])}</th>
-      <td>${marca(t.alinhamento)}</td><td>${marca(t.tempo)}</td>
-      <td>${marca(t.transferencia)}</td><td>${marca(t.braco_perna)}</td>
-      <td>${marca(f.tonus)}</td><td>${sim(f.fadiga_antes)}</td></tr>`;
-  }).join('');
-  return `<table><tr><th>Aluna(o)</th><th>Alinhamento</th><th>Tempo</th>
-    <th>Transferência</th><th>Braço-perna</th><th>Tônus</th>
-    <th>Fadiga antes do previsto?</th></tr>${linhas}</table>`;
+// (Aqui havia a `tabelaTecnica`: UMA tabela, com as quatro colunas de técnica do Duo e duas de
+// funcional, fixas em código. Ela saiu na peça (d): a leitura passa a ler as colunas que o ciclo
+// declara, em `tabelaDoBloco` — abaixo.)
+
+// ------------------------------------------------------------------ a leitura por COLUNA do ciclo
+// A TABELA DE UM BLOCO, PELAS COLUNAS QUE O CICLO DECLARA. Antes havia uma tabela só, fixa — as
+// quatro colunas de técnica do Duo e duas de funcional —, e a leitura mostrava isso em TODO ciclo:
+// no Ritmos, as colunas que a folha dele tem (tendus/jetés, piqué arabesque, o Par) não apareciam,
+// e a musicalidade e a linha de base não apareciam em ciclo nenhum. O rótulo vem do config e o
+// valor da chave — é a mesma fonte do painel (`Vistas.helpers.blocosDaCaptura`).
+//
+// `pessoas` é quem a tabela lista (por padrão, as presentes): a leitura da aula usa a turma e a
+// linha do tempo de uma aluna usa só a dela.
+function tabelaDoBloco(b, dados, a, pessoas) {
+  if (b.grao === 'dupla') return tabelaDoPar(b, dados, a, pessoas);
+  if (b.secoes) return tabelaPorSecao(b, dados, a, pessoas);
+  const quem = pessoas || a.presentes;
+  const linhas = quem.map((k) => `<tr><th>${esc(dados.apelidos[k] || k)}</th>`
+    + b.colunas.map((c) => `<td>${mdCelula(c, ((a[b.chave] || {})[k] || {})[c.chave])}</td>`).join('')
+    + '</tr>').join('');
+  return `<h4>${esc(b.rotulo || b.titulo)}</h4><table><tr><th>Aluna(o)</th>`
+    + b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('') + `</tr>${linhas}</table>`;
 }
 
-function blocoAula(meta, dados, id) {
+// O grão `dupla` — o bloco do Par. A tabela tem uma linha por PAR, e o dado é uma lista
+// (`a.par = [{ p1, p2, <chave da coluna> }]`). Um par em branco não existe: se a lista estiver
+// vazia, a leitura DECLARA — nunca uma tabela vazia.
+function tabelaDoPar(b, dados, a, pessoas) {
+  const todos = Array.isArray(a && a[b.chave]) ? a[b.chave] : [];
+  // Numa leitura por aluna, só os pares dela; na leitura da aula, todos.
+  const pares = pessoas ? todos.filter((p) => p && (pessoas.includes(p.p1) || pessoas.includes(p.p2)))
+    : todos;
+  if (!pares.length) {
+    return `<h4>${esc(b.rotulo || b.titulo)}</h4>
+      <p class="fraco">[Nenhum par lançado nesta aula.]</p>`;
+  }
+  const nome = (k) => dados.apelidos[k] || k;
+  const linhas = pares.map((p) => `<tr><th>${esc(nome(p.p1))} + ${esc(nome(p.p2))}</th>`
+    + b.colunas.map((c) => `<td>${mdCelula(c, p[c.chave])}</td>`).join('') + '</tr>').join('');
+  return `<h4>${esc(b.rotulo || b.titulo)}</h4><table><tr><th>Par</th>`
+    + b.colunas.map((c) => `<th>${esc(c.rotulo)}</th>`).join('') + `</tr>${linhas}</table>`;
+}
+
+// A LINHA DE BASE REVISITADA: o dado é, por aluna, uma lista de marcas POR ITEM do PO
+// (`a.linha_de_base[k] = [{ item, marca }]`). Uma tabela por aluna, uma linha por item — e quem
+// não tiver itens é declarado, não inventado.
+function tabelaPorSecao(b, dados, a, pessoas) {
+  const quem = pessoas || a.presentes;
+  const fora = [];
+  const tabelas = quem.map((k) => {
+    const itens = Array.isArray((a[b.chave] || {})[k]) ? a[b.chave][k] : [];
+    if (!itens.length) return '';                       // declarado abaixo, junto com os demais
+    return `<table><tr><th>${esc(dados.apelidos[k] || k)}</th><th>${esc(b.colunas[0].rotulo)}</th></tr>`
+      + itens.map((x) => `<tr><th class="aluna">${esc(x.item)}</th>`
+        + `<td>${mdCelula(b.colunas[0], x.marca)}</td></tr>`).join('') + '</table>';
+  }).join('');
+  const semItens = quem.filter((k) => !(Array.isArray((a[b.chave] || {})[k]) && a[b.chave][k].length));
+  if (semItens.length) {
+    fora.push(`<p class="fraco">Sem linha de base lançada para: `
+      + `${semItens.map((k) => esc(dados.apelidos[k] || k)).join(', ')}.</p>`);
+  }
+  return `<h4>${esc(b.rotulo || b.titulo)}</h4>`
+    + (tabelas || '<p class="fraco">[Nenhuma linha de base lançada nesta aula.]</p>') + fora.join('');
+}
+
+// A célula de uma coluna: o TIPO declarado decide o formato. Uma definição só — a tabela do bloco,
+// a do par e a do item chamam esta.
+const mdCelula = (c, v) => {
+  if (c.tipo === 'booleano') return esc(sim(v));
+  if (c.tipo === 'numero') return v === undefined || v === null || v === '' ? '—' : esc(v);
+  if (c.tipo === 'texto') return v ? esc(v) : '<span class="fraco">—</span>';
+  return marca(v);                         // marca — e o que não declarar tipo sai como marca
+};
+
+// AS TABELAS DE UMA AULA — uma por bloco que o ciclo declara, na ordem da folha. Sem a config a
+// leitura DECLARA; ela NÃO cai de volta nas colunas do Duo, porque essas eram justamente o defeito:
+// apareciam em todo ciclo, inclusive nos que não as têm.
+const SEM_CAPTURA_LEITURA = '[Preencher: o captura-XX.json deste ciclo não está no pacote — a leitura'
+  + ' não sabe o que este ciclo observa]';
+
+function tabelasDaAula(dados, a, captura, soPessoa) {
+  const blocos = captura ? Vistas.helpers.blocosDaCaptura(captura) : [];
+  if (!blocos.length) return `<p class="fraco">${SEM_CAPTURA_LEITURA}</p>`;
+  return blocos.map((b) => tabelaDoBloco(b, dados, a, soPessoa ? [soPessoa] : undefined)).join('');
+}
+
+function blocoAula(meta, dados, id, captura) {
   const a = dados.aulas[id];
   const ausentes = a.ausentes.map((k) => dados.apelidos[k]).join(', ') || 'nenhum';
   const cc = a.condicoes_contorno;
@@ -340,7 +413,7 @@ function blocoAula(meta, dados, id) {
     <p class="fraco">Duração executada: <strong>${a.duracao_min} min</strong> ·
     Plano seguido: ${esc(cc.plano_seguido)} · Ânimo ${cc.animo} · Interesse ${cc.interesse} ·
     Harmonia ${cc.harmonia} · Ausentes: ${esc(ausentes)}</p>
-    ${tabelaTecnica(dados, a)}
+    ${tabelasDaAula(dados, a, captura)}
     ${cc.mudou
       ? `<p><strong>O que mudou em relação ao plano:</strong> ${esc(cc.mudou)}</p>`
       : (cc.plano_seguido === 'sim'
@@ -351,26 +424,22 @@ function blocoAula(meta, dados, id) {
     <dt>O que foi ajustado</dt><dd>${esc(a.relatorio.ajustes)}</dd></dl>`;
 }
 
-function blocoAluna(meta, dados, chave, soAula) {
+function blocoAluna(meta, dados, chave, soAula, captura) {
   const ids = Object.keys(dados.aulas).sort().filter((id) => !soAula || id === soAula);
-  const linhas = ids.map((id) => {
+  const nome = dados.apelidos[chave] || chave;
+  // A MESMA LEITURA DA AULA, restrita a ela: por aula, as tabelas dos blocos que o ciclo declara,
+  // com a linha dela. Antes, esta vista tinha a tabela fixa das colunas do Duo — e o Par e a linha
+  // de base não tinham como aparecer.
+  const partes = ids.map((id) => {
     const a = dados.aulas[id];
-    if (a.ausentes.includes(chave)) {
-      return `<tr><th>${esc(id)} <span class="fraco">${esc(Vistas.helpers.dataBr(a.data))}</span></th>
-        <td colspan="6" class="fraco">ausente — não há dado</td></tr>`;
-    }
-    const t = a.tecnica[chave] || {}, f = a.funcional[chave] || {};
-    return `<tr><th>${esc(id)} <span class="fraco">${esc(Vistas.helpers.dataBr(a.data))}</span></th>
-      <td>${marca(t.alinhamento)}</td><td>${marca(t.tempo)}</td>
-      <td>${marca(t.transferencia)}</td><td>${marca(t.braco_perna)}</td>
-      <td>${marca(f.tonus)}</td><td>${sim(f.fadiga_antes)}</td></tr>`;
+    const cab = `<h4>Aula ${esc(id)} <span class="fraco">${esc(Vistas.helpers.dataBr(a.data))}</span></h4>`;
+    if (a.ausentes.includes(chave)) return cab + '<p class="fraco">ausente — não há dado.</p>';
+    return cab + tabelasDaAula(dados, a, captura, chave);
   }).join('');
-  return `<h3>${esc(dados.apelidos[chave] || chave)} — linha do tempo
-    <span class="fraco">(${selo(meta)})</span></h3>
-    <p class="fraco">A mesma vista que o acompanhamento em <code>.md</code> monta hoje à mão:
-    calculada em memória, do mesmo JSON, sem arquivo por aluna.</p>
-    <table><tr><th>Aula</th><th>Alinhamento</th><th>Tempo</th><th>Transferência</th>
-    <th>Braço-perna</th><th>Tônus</th><th>Fadiga antes do previsto?</th></tr>${linhas}</table>`;
+  return `<h3>${esc(nome)} — linha do tempo <span class="fraco">(${selo(meta)})</span></h3>
+    <p class="fraco">A mesma leitura da aula, restrita a ela — um bloco do ciclo por vez, com a
+    linha dela: calculada em memória, do mesmo JSON, sem arquivo por aluna.</p>
+    ${partes}`;
 }
 
 // ------------------------------------------------------------------ paginação
@@ -1339,7 +1408,7 @@ async function render() {
     const metas = id ? [indice.ciclos.find((c) => c.id === id)] : indice.ciclos;
     const blocos = [];
     for (const meta of metas) {
-      const { meta: m, dados } = await carregarCiclo(meta);
+      const { meta: m, dados, captura } = await carregarCiclo(meta);
       let aulas = Object.keys(dados.aulas).sort();
       if (aula) aulas = aulas.filter((k) => k === aula);
       if (aluna && !(aluna in dados.apelidos)) continue;
@@ -1349,8 +1418,8 @@ async function render() {
       // ele PRECISA ser ISO, porque e o navegador que localiza o campo).
       const cabecalho = `<h2>${selo(m)} <span class="fraco">${esc(Vistas.helpers.dataBr(m.inicio))} .. ${esc(Vistas.helpers.dataBr(m.fim))} · ` +
         `${m.total_aulas} aulas no ciclo · ${aulas.length} no filtro</span></h2>`;
-      if (aluna) blocos.push(cabecalho + blocoAluna(m, dados, aluna, aula));
-      else aulas.forEach((k) => blocos.push(cabecalho + blocoAula(m, dados, k)));
+      if (aluna) blocos.push(cabecalho + blocoAluna(m, dados, aluna, aula, captura));
+      else aulas.forEach((k) => blocos.push(cabecalho + blocoAula(m, dados, k, captura)));
     }
     const { visiveis, total, quantos } = paginar(blocos);
     out.innerHTML = visiveis.length

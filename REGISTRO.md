@@ -2242,3 +2242,49 @@ renomeada) e o `ciclo-01-duo.fipp` (a âncora); os `captura-01.json` e o envelop
 `po-01.json` de cada ciclo (a linha de base); o `plano-01.json` (o marco); as duas provas, em `/tmp`
 (não versionadas).
 
+
+
+## 20/09/2026 — A leitura do formulário usa as colunas do ciclo
+
+**O que motivou.** A peça (d) migrou **o painel** de captura para o `captura-XX.json`, mas a
+**leitura** ficou para trás: `tabelaTecnica`, `blocoAula` e `blocoAluna` imprimiam as colunas do Duo
+(`alinhamento`, `tempo`, `transferencia`, `braco_perna`, `tonus`, `fadiga_antes`) em **todo ciclo**.
+No formulário do Ritmos, a leitura mostrava as colunas do Duo; as dele (tendus/jetés, piqué
+arabesque, o Par, responde ao repertório) não apareciam, e a musicalidade e a linha de base não
+apareciam em ciclo nenhum. O bloco **Par** (grão `dupla`) não tinha como ser renderizado.
+
+**O que foi feito** (`tools/templates/lancamento.html`, +101/−32):
+- **`tabelaTecnica` removida** (a tabela única, fixa) — no lugar, **`tabelaDoBloco(b, dados, a,
+  pessoas)`**, que monta a tabela pelas **colunas declaradas**: rótulo do config, valor da chave, e
+  o **tipo** decidindo o formato (`mdCelula`: marca → os símbolos da folha · numero · booleano →
+  sim/não · texto);
+- **o grão `dupla`** — `tabelaDoPar`: uma linha por par (`p1 + p2`), e **lista vazia declara**;
+- **a linha de base revisitada** — `tabelaPorSecao`: uma tabela por aluna, uma linha por **item do
+  PO** (com o texto do item, nunca um slug); aluna sem item é declarada;
+- **`blocoAula(…, captura)`** e **`blocoAluna(…, soAula, captura)`** leem o config — a linha do tempo
+  virou **a mesma leitura da aula, restrita a ela** (por aula, os blocos do ciclo com a linha dela);
+  e o `render()` passa o `captura`;
+- **sem o config, a leitura DECLARA** (`SEM_CAPTURA_LEITURA`) — não cai de volta nas colunas do Duo,
+  que eram o defeito;
+- `pessoas` desce até o par e a seção: na leitura por aluna, só os pares dela e só os itens dela.
+
+**A prova.** O código do template **e a cópia publicada em cada pacote**, extraídos e rodados em
+node, nos dois ciclos:
+- **Duo** — *Técnica · Funcional · Musicalidade · Linha de base*; **nenhum** rótulo fixo fora do que
+  o ciclo declara; tipos respeitados; `blocoAluna` só com a aluna filtrada;
+- **Ritmos** — *Técnica · **Par** · Funcional · Musicalidade · Linha de base*; as três colunas
+  técnicas dele, "Responde ao repertório do dia" na musicalidade, e o **Par** presente;
+- **sem config**, os dois blocos declaram, e nenhuma coluna do Duo aparece.
+
+**O que fica declarado.**
+- O `duracao_min` que a lib ainda cita é a duração **da aula** e **do ciclo** (`a.duracao_min`,
+  `m.duracao_min`) — campo de **linha**, igual em toda variante, não coluna de bloco.
+- Os títulos dos blocos são `<h4>`, e o cabeçalho da aula na linha do tempo também — achatamento
+  cosmético, sem efeito de dado.
+- **Âncoras intactas** (o template não é fonte): `4b49f2dd…` (Duo) e `184213f5…` (Ritmos);
+  `check-pacote` 0 erro(s) nos dois pacotes.
+
+**Com o quê.** `tools/templates/lancamento.html`; os dois `lancamento.html` do pacote; `HANDOFF.md`.
+
+**Referências.** A peça (d) (o painel, que já lia o config); o relatório da Fase 1 da peça (d) (a
+tabela de colunas dos dois ciclos); as provas em `/tmp` (não versionadas).

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-19T23:25:53-0300`
-Commit atual: `45b7d88` — chore(estrutura): cria a area de experimentos (fora do hash, do pacote e do site)
+Gerado em: `2026-09-20T22:32:19-0300`
+Commit atual: `dd81789` — feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 Para: sessão nova (retomar o diálogo)
 
 ## Estado do projeto
@@ -20,26 +20,26 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
-45b7d88 chore(estrutura): cria a area de experimentos (fora do hash, do pacote e do site)
-496b0a1 docs(entrega): sincroniza a lista de escopos com o hook
-d034746 docs(ideia): complementa a arquitetura da captura (estimativa de escala, foco em navegacao)
-f7d7a9d chore(tools): regenera HANDOFF com as ideias documentadas
-13d266e feat(tools): gerar-handoff lista IDEIA-* e ARQUITETURA-*
-aa6b478 docs(protocolo): aponta o README para a arquitetura da captura em JSON
-b6c2120 docs(ideia): desenha a arquitetura da captura em JSON
-b1ffe43 chore(tools): regenera HANDOFF com a secao de ideias
-d99c72e feat(tools): gerar-handoff lista as ideias documentadas
-32af3e9 docs(ideia): documenta o formulario de captura em JSON (intencao futura)
-8879bfe fix(tools): hook aceita o escopo ideia
-922bc3d docs(registro): registra a varredura de marcas de indecisao
-a789300 chore(tools): regenera pacotes e ancoras apos a varredura
-13d5778 fix(ciclo-01): declara a pendencia da notacao nos dois documentos do Duo (P-15)
-b937815 fix(ciclo-01): proporcao por blocos vira nota (Regra 9 em minutos)
-cce10fa fix(ciclo-01): corrige a notacao do Ritmos (Benesh) e a divisao do sabado
-c40dece docs(registro): registra as correcoes cosmeticas
-0ba14f8 chore(tools): regenera pacotes e ancoras apos as correcoes cosmeticas
-8565a95 fix(tools): hook aceita o escopo metodo
-13fe587 fix(ciclo-01): preview do relatorio aponta o arquivo e harmoniza residuo no plano
+dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
+7670128 feat(tools): o config da captura sai com chave e tipo por coluna
+3acf301 feat(ciclo-01): o schema da captura declara a chave e o tipo de cada coluna
+5a86b83 feat(prompts): a eliciacao pede os marcos por aula -- o plano ja os le
+b122559 feat(tools): a folha de captura vira fonte legivel por maquina (captura-XX.json)
+ab2ff84 feat(prompts): a eliciacao pergunta a forma de que a folha de captura precisa
+72bde8d fix(entrega): o formulario abre com lancamento gravado, e pede a senha na tela
+d54754a feat(ciclo-01): os lancamentos da Aula 01 entram no JSON (e o indice do formulario sai)
+61f2c7b docs(registro): a Musicalidade e o Guia de observacao estao marcados (remover)
+548660a feat(entrega): marca Musicalidade e Guia de observacao como (remover) no menu
+e5c45ae feat(entrega): o formulario de lancamento vai para producao (Area do Professor)
+42eb311 feat(tools): o JSON de dados vai para o pacote cifrado (e o check confere)
+34cb132 feat(ciclo-01): o JSON de dados do Ritmos entra como fonte (peca 1)
+334812c feat(tools): o gerador grava os JSONs de entrada no pacote (po, plano, ciclos)
+d57d9a2 feat(tools): o pre-push existe em arquivo -- e confere o alvo certo no acompanhamento
+242522e docs(ideia): a peca 5 da migracao esta feita
+8ec57ed feat(tools): o guia do Ritmos passa a ser gerado (peca 5 da migracao)
+69bfee3 fix(tools): a linha de base renderiza o texto como veio (nada de undefined)
+c0edc68 feat(tools): o guia gerado emite a data da aula (do calendario)
+b8c7ba6 docs(experimentos): o sintoma da lib que nao carrega vira o que ele e
 ```
 
 ## Por professor
@@ -55,8 +55,8 @@ c40dece docs(registro): registra as correcoes cosmeticas
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `e9dbdd33bb39` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `72922e303930` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `4b49f2dd912e` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `184213f5b603` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -105,49 +105,72 @@ c40dece docs(registro): registra as correcoes cosmeticas
 
 ## Última entrada do REGISTRO
 
-## 19/09/2026 — Varredura de marcas de indecisão
+## 20/09/2026 — O formulário e as vistas leem as chaves do ciclo (o rename)
 
-**O que aconteceu.**
-Os documentos dos dois ciclos foram varridos em busca de marcas de indecisão
-(`[a decidir]`, `em aberto`, `[Preencher]`, `[conferir]`). A varredura achou 78
-linhas com marca, em 14 arquivos, e **15 arquivos limpos** — e classificou cada
-uma em três tipos, não dois:
+**O que motivou.** A declaração (Fase 1) e a config (Fase 2) existem, mas ninguém as consumia: o
+formulário tinha **oito colunas fixas** (as do Duo) e o JSON de dados, as chaves do modelo fixo
+(`alinhamento`, `tempo`…). As quatro decisões da pesquisadora fecharam o caminho — **rename**, chave
+e tipo no schema, e o grão `dupla` como lista de pares —, e esta fase liga as pontas.
 
-- **inconsistência** — a marca tinha resposta deliberada em outro lugar;
-- **pendência legítima** — depende do professor ou de dado futuro;
-- **decisão da pesquisadora** — nem uma coisa nem outra: o texto endereçava a
-  pergunta a ela (a proporção por blocos), e era dela a resposta.
+**O que foi feito.**
+- **`tools/lib-vistas.js`** — os nomes fixos saíram dos **8 sítios, 3 funções**
+  (`mdAcompanhamento`, `mdEntradaCaderno`, `mdRelatorio`). Entraram quatro definições: `blocosDaCaptura`
+  (os blocos declarados), `marcasDaPessoa` (os pares rótulo → valor de um bloco, para uma pessoa ou
+  um par), `linhaDoBloco` e `mdValor`. As três funções ganharam o parâmetro `captura`, e quem chama
+  passa; **sem ele a vista imprime a lacuna** (`SEM_CAPTURA`) em vez de inventar colunas. As vistas
+  passaram a imprimir **a musicalidade, a linha de base e o Par** — que não apareciam.
+- **`tools/templates/lancamento.html`** — o painel deixa de ter oito colunas fixas e passa a ser
+  montado pelo `captura-XX.json`: um bloco por dimensão declarada, com o rótulo e o **tipo** de cada
+  coluna (marca → select · número → campo numérico · booleano → caixa). O **Par** vira uma lista de
+  pares (o professor escolhe os dois apelidos); a **linha de base** vira uma marca **por item do PO**
+  (`linhaDeBase.precisaDesenvolver`, em lista); a **presença** sai da tabela e vira uma linha só (a
+  aula é uma); e o **marco da aula** (do `plano-XX.json`) aparece no topo do painel. O
+  `coletarCaptura` grava **pelas chaves declaradas** — `aula.<chave do bloco>.<apelido>.<chave da
+  coluna>`, `aula.par = [{p1, p2, …}]`, e `linha_de_base.<apelido> = [{item, marca}]` —, e o
+  `limparCamposCaptura` limpa genericamente.
+- **`tools/renomear-chaves-dados.js`** (novo) — a migração do rename, com dry-run por padrão. Ela
+  roda sobre o **texto plano** (`ciclos/ciclo-XX[-<escola>]-dados.json`), que é FONTE: o envelope
+  cifrado do pacote é DERIVADO, e o gerador o reescreve. **A primeira tentativa desta fase migrou o
+  envelope errado** e foi perdida na geração seguinte — o tool agora **recusa** o envelope e diz onde
+  migrar. Aplicado: `alinhamento` → `metatarsos` no Duo (4 trocas, uma por aluna); o Ritmos não
+  precisou de nenhuma.
+- **`tools/validar-captura-ciclo.js`** — cada BLOCO sai com `chave` e `rotulo`, da declaração; sem
+  eles, o lançamento não saberia em que bloco do JSON gravar (era o que o prendia a
+  `tecnica`/`funcional`). O schema (`ciclo-01-captura-schema.json`) declara os dois por bloco e o
+  `properties` acompanha.
 
-**O que foi decidido.**
-- **Notação do Ritmos:** corrigida. A referência dizia *"nenhum sistema de
-  notação foi adotado para este ciclo"* — falso, porque o ciclo publica o
-  documento de notação e o glossário. A decisão estava na **P-15** (a notação
-  segue a metodologia declarada: RAD usa Benesh) e na **P-16**. A resposta do
-  professor (*"Notação: [a decidir]"*) continua citada como proveniência; o
-  material bruto não foi tocado (P-05).
-- **Divisão do sábado:** o `aula-01.md` declarava a divisão e, três linhas
-  depois, pedia de novo o que estava dito. A marca saiu; o `.conf` já a definia.
-  E a decisão fechou o modelo que estava aberto desde a investigação do volume:
-  **a aula de 19/09/2026 cobre as aulas 01 e 02** (bloco contínuo de 120 min).
-- **Proporção por blocos:** virou **nota da Regra 9** — a proporção se aplica em
-  **minutos** (distribuição do tempo de aula), e o volume planejado permanece em
-  tempos. É a mesma unidade da decisão dos campos de duração.
-- **Duo (notação e glossário):** verificados. A Regra 8 **já estava satisfeita** —
-  os dois declaram em prosa a natureza do registro ("código didático do ciclo"),
-  as fontes e os limites ("Limites do registro"). O que faltava era dizer **de
-  quem é a notação em forma completa**; a pedido da pesquisadora, cada documento
-  ganhou uma **Nota (P-15)**, sem renomear nada.
-- As **pendências legítimas foram mantidas** — as 12 da musicalidade do Duo, as
-  13 da notação do Ritmos, as gravações de referência, os marcos 02–21, os
-  `[conferir]` de edição/ano. Nenhuma foi apagada.
+**A prova, ao vivo.** As funções do painel foram **extraídas do template e rodadas em node** com um
+DOM falso (não é uma cópia da lógica — é a lógica):
+- **Duo:** blocos na tela *Técnica · Funcional · Musicalidade · Linha de base*; **nenhuma** coluna que
+  o ciclo não declara; **todas** as declaradas na tela; marco presente; gravação em
+  `metatarsos`/`duracao_min`/`fadiga_antes`/`pulso`/`acento`/`linha_de_base.*` (a musicalidade e a
+  linha de base **não eram lançáveis** antes);
+- **Ritmos:** *Técnica · Par · Funcional · Musicalidade · Linha de base*; o Par grava
+  `[{p1: "carol", p2: "dada", eixo_individual…}]`; a linha de base grava os **itens do PO** um a um.
+- **A lib:** `- **Técnica:** Metatarsos ok · Tempo (calcanhar t.1) ok · Transfer. (t.2) ok ·
+  Braço-perna parcial` — os rótulos do ciclo com o valor da chave renomeada.
 
-**Com o quê.**
-`ciclos/ciclo-01-ritmos-referencias.md`, `ciclos/ciclo-01-ritmos-aula-01.md`,
-`ciclos/ciclo-01-ritmos-plano.md`, `ciclos/ciclo-01-notacao.md`,
-`ciclos/ciclo-01-glossario-benesh.md`, os dois pacotes regerados.
+**O que fica declarado.**
+- O **grão `dupla`** grava uma lista de pares; o painel mostra 3 linhas em branco (como a folha) — o
+  professor escolhe os dois apelidos, e par em branco não é gravado.
+- A **linha de base** grava `{item, marca}` (com o texto do item, e não um slug): o slug perderia a
+  redação que a professora leu.
+- Os **marcos provisórios** (`[Preencher]`) e as **colunas sem dado** (8 no Duo, 10 no Ritmos)
+  aparecem vazias — não se inventa marca.
+- O `condicoes_contorno` e o `relatorio` continuam nas chaves fixas: são campos de LINHA, iguais em
+  toda variante.
+- Âncoras: o Duo **reancorado** (`4b49f2dd…` — o JSON de dados é fonte e mudou); o Ritmos **intacto**
+  (`184213f5…`).
 
-**O que ainda não está feito.**
-O push.
+**Com o quê.** `tools/lib-vistas.js`; `tools/templates/lancamento.html` e os dois `lancamento.html` do
+pacote (+ `assets/lib-vistas.js`); `tools/renomear-chaves-dados.js` (novo);
+`tools/validar-captura-ciclo.js`; `ciclo-01-captura-schema.json`; `ciclo-01-duo-dados.json` (a fonte,
+renomeada) e o `ciclo-01-duo.fipp` (a âncora); os `captura-01.json` e o envelope do Duo no pacote.
+
+**Referências.** O relatório da Fase 1 da peça (d) (a tabela de aliases); as duas folhas de captura; o
+`po-01.json` de cada ciclo (a linha de base); o `plano-01.json` (o marco); as duas provas, em `/tmp`
+(não versionadas).
+
 
 ## O que está pendente
 
@@ -265,6 +288,101 @@ O push — agora é o único item aberto da infraestrutura.
 ## 19/09/2026 — Varredura de marcas de indecisão
 
 O push.
+
+## 19/09/2026 — METODO no pacote e reorganização do menu
+
+O experimento `captura-json` (em andamento).
+
+* **O deploy** — o pacote regenerado **não** foi publicado; o deploy é do dono.
+* O **relatório** continua escrito à mão; a geração sob demanda é a ideia do `captura-json` (não implementada).
+* O **guia** também continua escrito à mão: ele **já é** derivado de PO + Aula no conteúdo, mas quem o
+  escreve é a pesquisadora — a geração sob demanda não está implementada.
+
+- Os dois POs **não** foram reescritos: os avisos apontam o que falta em cada um, e nenhum aviso
+  reprova commit nem validação.
+- O **extrator do plano** (o irmão) — próximo passo. Ele depende deste contrato, e o
+  `plano-01.json` escrito à mão **não é uma extração: é uma leitura** (chaves renomeadas, coluna
+  descartada, valores convertidos, e o calendário que não está no `.md`).
+- O contrato vive **dentro** de `validar-po-ciclo.js`: para o irmão compartilhar o mesmo contrato —
+  e não divergir, como os dois resolvedores de fonte que geraram o `lib-fontes.sh` — ele terá de
+  sair para uma lib.
+
+- **Não houve conferência visual** — não há navegador nesta máquina. A regra foi escrita
+  para não depender de nada além da largura, e o comportamento em tela estreita é
+  exatamente o de antes; a conferência visual é do dono.
+- O **deploy** do pacote regerado é do dono.
+
+- O **extrator do plano** (o irmão) — próximo passo.
+- O **mapa de colunas** (cabeçalho da tabela → chave do alvo) e a regra de **tabela item/valor →
+  objeto**: são as duas DECLARAÇÕES que ainda não existem.
+- O contrato da lib ainda não é exercitado por um teste próprio: hoje quem o prova são os dois POs
+  (e, de agora em diante, também o plano).
+
+- O **irmão** (o extrator do plano) e o **schema do plano** — próximo passo.
+- As **conversões de valor** (`"60 minutos (Pré-requisito 4)"` → `60`; `"01"` → `1`) e as
+  diferenças de **tipografia** (`17/09/2026` × `2026-09-17`; travessão `–` × `-`): declará-las
+  exigiria regras de leitura, e a decisão foi **não ler prosa**.
+
+- Nada no fluxo de produção consome o extrator do plano: quem gera o guia e a musicalidade hoje é
+  o experimento `captura-json`. Ligar isso é o passo seguinte.
+- As conversões (número, data ISO) e a limpeza da prosa que fica nos arrays ficam **fora, por
+  decisão**: converter é ler.
+- O schema do plano **não** está no pre-commit: o plano ainda não é validado automaticamente.
+
+- A lib **não tem teste próprio**: quem a prova são os documentos e a captura.
+- O que os documentos **não** exercitam (a frase do array vazio, `lacunas`, `extras`) foi
+  conferido por chamada direta à lib, e não por um caso da captura.
+
+- O plano do **Ciclo 02** (e o da Débora) não existe ainda: o hook simplesmente não valida.
+- O aviso das lacunas só aparece no `git commit` de verdade (dentro do hook): não há um `--check`
+  avulso que o mostre.
+
+- As **conversões** (número, data ISO) e a limpeza da prosa que fica dentro dos arrays: fora, por
+  decisão.
+- O `phenomenon` como prosa dá **um** item no guia, onde a leitura à mão dava quatro: para voltar a
+  quatro, a FONTE precisa listar os observáveis (e o schema declará-los como array).
+- Nada disso está no fluxo de produção: quem gera ainda é o experimento.
+
+- A extração é por LINHA e não preserva a indentação: a pontuação é a pista que resta. Guardá-la no
+  contrato é a alternativa estrutural — e mexeria em todo o texto extraído (é uma decisão maior).
+- As conversões (número, data ISO) continuam fora, por decisão.
+
+- A tabela "Escopos" do **`REGRAS.md`** (Regra 17 em prática) **continua listando 10** escopos,
+  enquanto o hook aceita 27. É a defasagem que o `HANDOFF.md` declarou (e que uma entrada anterior
+  deste REGISTRO deu por corrigida — o que foi corrigido foi o `README-ciclos.md`, não o
+  `REGRAS.md`). `REGRAS.md` é congelado: corrigir exige commit próprio, com motivo declarado. Fica
+  proposto, não feito.
+
+- Nada impede a defasagem de voltar: os dois espelhos são **texto**, e ninguém os compara. Um teste
+  que confrontasse o regex com a documentação seria a garantia — o `pre-commit` não olha para isso.
+
+- O JSON da **Ritmos** (Duo primeiro, por decisão) e o primeiro lançamento real.
+- As **vistas ainda não saíram da cobertura** — convivem com o JSON até a peça 4, e é o que o
+  comentário no `fontes_do_ciclo()` declara.
+- O **gerador ainda não lê o JSON** (peça 3) e os **builders ainda vivem no experimento** (peça 2).
+
+- O formulário **ainda tem as suas cópias** (a Fase 2 as remove e passa a consumir a lib): até lá há
+  duplicação **temporária e declarada**.
+- O `gerar-ciclo.sh` **não lê o JSON** ainda — é a peça 3.
+- O `comoLista` do formulário ficou **sem uso** (código morto de uma rodada anterior): sai na Fase 2.
+
+- O guia gerado **não traz** três coisas que só existiam no escrito à mão: a nota "este documento não é o
+  relatório / onde ele está", a **data da aula** e o checklist "o que preencher depois" — este último,
+  por desenho (quem preenche é o formulário). Os dois primeiros são bloco fixo + dado do calendário;
+  **não foram inventados** — é decisão de quem escreve o guia.
+- As outras vistas (caderno, relatório, acompanhamento) **não** são geradas pelo pacote: elas derivam do
+  JSON de dados, que ainda está vazio (peça 1) e é alimentado pelo formulário.
+- §7.2, §7.4, §7.5 e §7.6 seguem em aberto — nenhuma bloqueia.
+
+- A nota *"este documento não é o relatório"* **não volta** no guia gerado (decisão da
+  pesquisadora, 20/09).
+- A peça 5 — migrar o guia do Ritmos (Fase 2).
+
+- O **extrator não leva blockquotes** (`> **Nota …**`): o PO do Ritmos tem 3 e o do Duo 2, e nenhuma
+  chega ao JSON — a nota P-22 está no documento e não na extração. É pré-existente e **não** foi
+  mexido aqui (mudaria o que todos os balanços veem); fica declarado.
+- A peça 5 — o guia do Ritmos gerado — segue na Fase 2, com a tabela do PO e a estrutura do plano.
+
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
