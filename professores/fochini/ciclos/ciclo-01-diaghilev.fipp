@@ -1,0 +1,31 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/fochini/ciclos/ciclo-01.conf, professores/fochini/ciclos/ciclo-01-diaghilev.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-diaghilev
+type: Ciclo
+professor: Fochini
+ciclo: 01
+variante: diaghilev
+hash_conteudo: fbcf1ec624f1b8c5639ad2bda4a04740a49fb1a92f840ec5b47e87019fc5b933
+parentHash: 
+hash: ae357e24766914ee3d7d4ba3adc14fab6e65c321368fb83bfa3acc7da1ddbd03
+algoritmo: SHA-256
+po: professores/fochini/ciclos/ciclo-01-diaghilev-po.md
+po_state: Input_PO_Validado
+cobertura:
+  - professores/fochini/cadernos/ciclo-01/caderno-01-diaghilev.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-01.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-02.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-03.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-04.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-01.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-dados.json
+  - professores/fochini/ciclos/ciclo-01-diaghilev-harmonizacao.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-po.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev.conf
+  - professores/fochini/ciclos/ciclo-01-index.md
+  - professores/fochini/ciclos/ciclo-01-plano.md
+  - professores/fochini/ciclos/ciclo-01-referencias.md
+  - professores/fochini/ciclos/ciclo-01.conf
