@@ -1,0 +1,9 @@
+{
+  "_cifrado": {
+    "algoritmo": "PBKDF2-SHA256+AES-GCM",
+    "iteracoes": 2000000,
+    "endereco": "Bkg52EkTm2AEHejHubZkaYXJKos02fOcqN/y4Q70o4gbpiyhuX5qlXOV7oDTBgKIoshJtsNhsVarZ3bigDQF7ybl5t2bmkz5Mzt6tDVwsdVHiGahGA+YyUhpeoCTK6DsFHTRabXKnJypsUTg/jqUkJJPHWZ2cI1E6uNdb7Z4k13BRkQwwEaCMBFfxLjfEV5kTEzW1y6EAj6s2NvOj8/XvtlITQjB0NwTGA7S5zFRaJ8ft3m6SeRxJia6JtRmHTKUsCsRFA/asbxwMzXwK+rmLGeA1WhqmVZUDf0Aw1o6iiPR6RZ3Rsn0ScfvQB/QoAGoxjP4k85vzDwbSUPfTkgCyT2uHeTGLwNvIteBAwQCYKBgUwNOYjISYkQpXaceRSgC4HPGiMBuZaLsOa/qbS2hLjgMCA0DOqzdKt6nLJDvM7Z8AYDDRpggmJMGXO0Q/9MvW2+lRKmBbcq3Dd/GN0bhmAmySdCdlc6kCPFOSyBgVkAanoud7dpPJL/Hq6mjXNTULLMDW3oQ+Kg9CjwI38n3hqk0NnKcAyYLRsGPwsA5vFJZAfbdiBYkg53lu9dy0OAL0b6tIyTefxv9W5dyjas10/quknXI1+5x4QM9Z/QJ+BScaMTQSxiDOUVLSTbtjPX0MiCIJTc0ba56wjNVKnoCBDPa/lOC0tcH1GYi4OGYMnjDkNKencqb4grciuWbHfZDmrS70hjliUuU2ay09Fi7PM72Ar081iocauoSGbyQzGCwwMab16u3M+GQSzk5s5C9nasai/6HsKxShoLiQzIsadIwQVGqNg=="
+  },
+  "lancamentos": 0,
+  "_nota": "O JSON de dados do ciclo, CIFRADO com a senha da escola (a mesma dos acompanhamentos): o pacote e publico e ele traz o lancamento por aluna. Quem decifra e o formulario de lancamento, no navegador, com tools/lib-cifra.js. O campo \"lancamentos\" NAO e secreto: diz se ha o que mostrar, para o formulario nao pedir a senha a toa. Nao editar a mao."
+}
