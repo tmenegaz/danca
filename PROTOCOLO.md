@@ -10,11 +10,18 @@ Os dois são irmãos e respondem a perguntas diferentes:
 Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
 ciclo, ao mesmo tempo, uma prática pedagógica e um **Protocolo de Observação (PO)
-em ato**, com cadeia de proveniência **FIPP**.
+em ato**, com cadeia de proveniência encadeada.
 
 > **Vocabulário desta camada** — **PO:** Protocolo de Observação · **PE:**
 > Protocolo de Elicitação · **PPQ:** Protocolo de Pesquisa Qualitativa · **FIPP:**
 > Framework de Infraestrutura de Proveniência Peirceana.
+>
+> **Ressalva de escopo (2026-09-23).** O **FIPP pertence ao projeto de mestrado**, em
+> outro diretório, e a arquitetura dele **não está implementada aqui** — nem perto.
+> O que este repositório tem é uma **âncora de proveniência encadeada**
+> (`tools/hash-ciclo.sh` → `.fipp`) que compartilha o seu princípio (o passado se
+> incorpora, não se reescreve), mas é uma **aproximação**. Neste repositório, onde se
+> lê "FIPP" entenda-se essa âncora — e o Projeto Ciclo **não é** o projeto de mestrado.
 
 ## As 22 regras pétreas
 

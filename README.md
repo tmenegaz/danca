@@ -1,20 +1,36 @@
-# Formação em Balé Clássico — visão geral
+# Projeto Ciclo — visão geral
 
 > **O que este projeto é e por quê → [`METODO.md`](METODO.md)**
 >
 > **Ideias futuras → [`IDEIA-CAPTURA.md`](IDEIA-CAPTURA.md) ·
 > [`ARQUITETURA-CAPTURA.md`](ARQUITETURA-CAPTURA.md)**
 
-Repositório único com as **duas frentes** do projeto: as **aulas** (ciclos de
-aprendizagem) e a **apresentação** (deck do rizoma). Tudo gerado por scripts,
-validado automaticamente e versionado com proveniência.
+**Projeto Ciclo** é a **memória da aula dada**: registra o processo de ensino-aprendizagem
+que de fato se aplicou, não o que foi planejado, e encadeia tudo o que muda. Repositório
+único com as **duas frentes**: as **aulas** (ciclos de aprendizagem) e a **apresentação**
+(deck do rizoma). Tudo gerado por scripts, validado automaticamente e versionado com
+proveniência.
+
+## O que este repositório não é
+
+- **Não é o projeto de mestrado.** O mestrado está em **outro diretório**; é de lá que vêm
+  o PO (Protocolo de Observação) e o FIPP. Este repositório **aplica** um PO — e o usa como
+  experimentação — mas **não implementa o FIPP**.
+- **A âncora de proveniência aqui é uma aproximação.** `tools/hash-ciclo.sh` produz uma
+  âncora encadeada (`.fipp`) que compartilha o princípio do FIPP — o passado se incorpora,
+  não se reescreve —, mas está **longe** do que a arquitetura do FIPP desenha.
+- **O balé é o protótipo, não a identidade.** O projeto deve ser **agnóstico e
+  completamente adaptativo**: nenhum ciclo é igual a outro, nem com o mesmo professor. Ele
+  deve receber oficina de balé, oficina de matemática, improvisação em dança contemporânea,
+  disciplina de mestrado.
+- **O projeto não avalia.** Registra o cotidiano do professor em sala de aula; a avaliação
+  é fronteira de outro módulo, ainda não desenhado.
 
 ## Sobre os dados deste repositório
 
 O material de observação refere as alunas **por apelidos estáveis** (P-12), nunca por nome
 completo, e não inclui dados de contato, de saúde ou de avaliação fora do recorte
-declarado no PO. É material de **pesquisa em andamento** (mestrado): descreve o que
-aconteceu em aula, não classifica pessoas (P-06).
+declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** (P-06).
 
 ```
 .

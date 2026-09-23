@@ -1,8 +1,23 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-20T22:32:19-0300`
-Commit atual: `dd81789` — feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
+Gerado em: `2026-09-23T00:12:43-0300`
+Commit atual: `53bc9c1` — chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
 Para: sessão nova (retomar o diálogo)
+
+## O que é este projeto
+
+**A memória da aula dada** — registra o processo de ensino-aprendizagem que de fato
+se aplicou, não o que foi planejado, e encadeia tudo o que muda.
+
+- **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP).
+- **Não implementa o FIPP**: o `.fipp` daqui é uma **âncora de proveniência
+  encadeada** (`tools/hash-ciclo.sh`), aproximação do framework — não ele.
+- **Agnóstico e adaptativo**: o balé é o protótipo, não a identidade (deve receber
+  oficina de matemática, improvisação, disciplina de mestrado).
+- **Não avalia** — registra o cotidiano do professor; a avaliação é fronteira de
+  outro módulo, ainda não desenhado.
+- **Proveniência acrescenta, não edita**: um ajuste é um elo novo, nunca sobrescrita.
+- **Estado: protótipo.** A integração com o projeto das secretarias não foi desenhada.
 
 ## Estado do projeto
 
@@ -20,6 +35,8 @@ Para: sessão nova (retomar o diálogo)
 ## Últimos commits
 
 ```
+53bc9c1 chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
+8b59555 fix(entrega): a leitura do formulario usa as colunas do ciclo
 dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 7670128 feat(tools): o config da captura sai com chave e tipo por coluna
 3acf301 feat(ciclo-01): o schema da captura declara a chave e o tipo de cada coluna
@@ -38,8 +55,6 @@ d57d9a2 feat(tools): o pre-push existe em arquivo -- e confere o alvo certo no a
 242522e docs(ideia): a peca 5 da migracao esta feita
 8ec57ed feat(tools): o guia do Ritmos passa a ser gerado (peca 5 da migracao)
 69bfee3 fix(tools): a linha de base renderiza o texto como veio (nada de undefined)
-c0edc68 feat(tools): o guia gerado emite a data da aula (do calendario)
-b8c7ba6 docs(experimentos): o sintoma da lib que nao carrega vira o que ele e
 ```
 
 ## Por professor
@@ -105,72 +120,73 @@ b8c7ba6 docs(experimentos): o sintoma da lib que nao carrega vira o que ele e
 
 ## Última entrada do REGISTRO
 
-## 20/09/2026 — O formulário e as vistas leem as chaves do ciclo (o rename)
+## 23/09/2026 — A identidade do projeto entra na documentação (e a ressalva do FIPP)
 
-**O que motivou.** A declaração (Fase 1) e a config (Fase 2) existem, mas ninguém as consumia: o
-formulário tinha **oito colunas fixas** (as do Duo) e o JSON de dados, as chaves do modelo fixo
-(`alinhamento`, `tempo`…). As quatro decisões da pesquisadora fecharam o caminho — **rename**, chave
-e tipo no schema, e o grão `dupla` como lista de pares —, e esta fase liga as pontas.
+**O que motivou.**
+A documentação não dizia o que este projeto é. Dizia o que ele *tem* (regras, pétreas,
+ferramentas) e descrevia o balé como se fosse a identidade — quando o balé é o **protótipo**.
+Pior: três documentos citavam "mestrado" e um anunciava "cadeia de proveniência FIPP", o que
+leva qualquer leitor novo — pessoa ou IA — a concluir que (a) este repo é o projeto de
+mestrado e (b) o FIPP está implementado aqui. Nenhuma das duas é verdade. O erro foi
+cometido de fato por uma sessão de IA nesta data, e o sintoma é o que esta entrada corrige:
+**quem entrava sem contexto, saía com o contexto errado.**
 
-**O que foi feito.**
-- **`tools/lib-vistas.js`** — os nomes fixos saíram dos **8 sítios, 3 funções**
-  (`mdAcompanhamento`, `mdEntradaCaderno`, `mdRelatorio`). Entraram quatro definições: `blocosDaCaptura`
-  (os blocos declarados), `marcasDaPessoa` (os pares rótulo → valor de um bloco, para uma pessoa ou
-  um par), `linhaDoBloco` e `mdValor`. As três funções ganharam o parâmetro `captura`, e quem chama
-  passa; **sem ele a vista imprime a lacuna** (`SEM_CAPTURA`) em vez de inventar colunas. As vistas
-  passaram a imprimir **a musicalidade, a linha de base e o Par** — que não apareciam.
-- **`tools/templates/lancamento.html`** — o painel deixa de ter oito colunas fixas e passa a ser
-  montado pelo `captura-XX.json`: um bloco por dimensão declarada, com o rótulo e o **tipo** de cada
-  coluna (marca → select · número → campo numérico · booleano → caixa). O **Par** vira uma lista de
-  pares (o professor escolhe os dois apelidos); a **linha de base** vira uma marca **por item do PO**
-  (`linhaDeBase.precisaDesenvolver`, em lista); a **presença** sai da tabela e vira uma linha só (a
-  aula é uma); e o **marco da aula** (do `plano-XX.json`) aparece no topo do painel. O
-  `coletarCaptura` grava **pelas chaves declaradas** — `aula.<chave do bloco>.<apelido>.<chave da
-  coluna>`, `aula.par = [{p1, p2, …}]`, e `linha_de_base.<apelido> = [{item, marca}]` —, e o
-  `limparCamposCaptura` limpa genericamente.
-- **`tools/renomear-chaves-dados.js`** (novo) — a migração do rename, com dry-run por padrão. Ela
-  roda sobre o **texto plano** (`ciclos/ciclo-XX[-<escola>]-dados.json`), que é FONTE: o envelope
-  cifrado do pacote é DERIVADO, e o gerador o reescreve. **A primeira tentativa desta fase migrou o
-  envelope errado** e foi perdida na geração seguinte — o tool agora **recusa** o envelope e diz onde
-  migrar. Aplicado: `alinhamento` → `metatarsos` no Duo (4 trocas, uma por aluna); o Ritmos não
-  precisou de nenhuma.
-- **`tools/validar-captura-ciclo.js`** — cada BLOCO sai com `chave` e `rotulo`, da declaração; sem
-  eles, o lançamento não saberia em que bloco do JSON gravar (era o que o prendia a
-  `tecnica`/`funcional`). O schema (`ciclo-01-captura-schema.json`) declara os dois por bloco e o
-  `properties` acompanha.
+**O que foi decidido.**
+- O projeto passa a se declarar, no topo dos documentos de entrada, como **a memória da aula
+  dada** — o processo de ensino-aprendizagem que **de fato se aplicou**, não o planejado.
+- **Não é o projeto de mestrado**: o mestrado está em outro diretório, e é de lá que vêm o PO
+  e o FIPP. Este repositório **aplica** um PO (como experimentação) e **não implementa o
+  FIPP**, nem perto do que a arquitetura dele desenha. O `.fipp` daqui é uma **âncora de
+  proveniência encadeada** que compartilha o princípio — o passado se incorpora, não se
+  reescreve — mas é uma **aproximação**.
+- **Agnóstico e completamente adaptativo**: o balé é o protótipo, não a identidade. O projeto
+  deve receber oficina de matemática, improvisação em dança contemporânea e disciplina de
+  mestrado — "tem que transitar em todos os universos".
+- **Não avalia**: registra o cotidiano do professor em sala de aula. A avaliação é fronteira
+  de outro módulo, ainda não desenhado.
+- **Estado: protótipo** — a integração com o projeto das secretarias (Projeto Cultura) não foi
+  desenhada, nem a fronteira de entrada nem a de saída.
 
-**A prova, ao vivo.** As funções do painel foram **extraídas do template e rodadas em node** com um
-DOM falso (não é uma cópia da lógica — é a lógica):
-- **Duo:** blocos na tela *Técnica · Funcional · Musicalidade · Linha de base*; **nenhuma** coluna que
-  o ciclo não declara; **todas** as declaradas na tela; marco presente; gravação em
-  `metatarsos`/`duracao_min`/`fadiga_antes`/`pulso`/`acento`/`linha_de_base.*` (a musicalidade e a
-  linha de base **não eram lançáveis** antes);
-- **Ritmos:** *Técnica · Par · Funcional · Musicalidade · Linha de base*; o Par grava
-  `[{p1: "carol", p2: "dada", eixo_individual…}]`; a linha de base grava os **itens do PO** um a um.
-- **A lib:** `- **Técnica:** Metatarsos ok · Tempo (calcanhar t.1) ok · Transfer. (t.2) ok ·
-  Braço-perna parcial` — os rótulos do ciclo com o valor da chave renomeada.
+**Onde entrou.**
+- `AGENTS.md` — seção nova **"O que é este projeto (leia antes de qualquer coisa)"**, no topo,
+  com a armadilha de leitura declarada;
+- `tools/gerar-handoff.sh` — o HANDOFF passa a **emitir a identidade** (é o artefato que uma
+  sessão nova lê primeiro); `HANDOFF.md` regenerado;
+- `README.md` — título passa a **"Projeto Ciclo — visão geral"**, com nova seção **"O que este
+  repositório não é"**; a frase "pesquisa em andamento (mestrado)" sai;
+- `METODO.md`, `README-ciclos.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`,
+  `CONGELAMENTO.md` — nota de escopo no topo;
+- `.github/` — os três agentes e as `ciclo-fontes.instructions.md` ganham a seção de escopo,
+  para que agente algum volte a chamar isto de "projeto de mestrado" nem a âncora de "FIPP";
+- `PROTOCOLO.md` e `REGRAS.md` — **congelados**, alterados com o motivo declarado abaixo.
 
-**O que fica declarado.**
-- O **grão `dupla`** grava uma lista de pares; o painel mostra 3 linhas em branco (como a folha) — o
-  professor escolhe os dois apelidos, e par em branco não é gravado.
-- A **linha de base** grava `{item, marca}` (com o texto do item, e não um slug): o slug perderia a
-  redação que a professora leu.
-- Os **marcos provisórios** (`[Preencher]`) e as **colunas sem dado** (8 no Duo, 10 no Ritmos)
-  aparecem vazias — não se inventa marca.
-- O `condicoes_contorno` e o `relatorio` continuam nas chaves fixas: são campos de LINHA, iguais em
-  toda variante.
-- Âncoras: o Duo **reancorado** (`4b49f2dd…` — o JSON de dados é fonte e mudou); o Ritmos **intacto**
-  (`184213f5…`).
+**Motivo declarado — os dois congelados.**
+`PROTOCOLO.md` e `REGRAS.md` estão na lista de `CONGELAMENTO.md`; a alteração é **cirúrgica e
+só de escopo**, sem tocar em nenhuma das 22 pétreas nem das 17 regras: no `PROTOCOLO.md`,
+"cadeia de proveniência **FIPP**" vira "cadeia de proveniência encadeada" e ganha a ressalva de
+que o FIPP pertence ao outro projeto; no `REGRAS.md`, a Premissa 7 passa a dizer "o **mesmo
+princípio** de encadeamento" e declara que a implementação do FIPP não está aqui. Nenhum
+comando, validador ou hash muda: o `.fipp` continua com o mesmo nome e a mesma fórmula — a
+**âncora não foi regerada**, e `hash-ciclo.sh … --check` segue passando. O porquê: a
+documentação induzia ao erro sobre a natureza do projeto, e a correção exige tocar os dois
+arquivos que enunciam o método.
 
-**Com o quê.** `tools/lib-vistas.js`; `tools/templates/lancamento.html` e os dois `lancamento.html` do
-pacote (+ `assets/lib-vistas.js`); `tools/renomear-chaves-dados.js` (novo);
-`tools/validar-captura-ciclo.js`; `ciclo-01-captura-schema.json`; `ciclo-01-duo-dados.json` (a fonte,
-renomeada) e o `ciclo-01-duo.fipp` (a âncora); os `captura-01.json` e o envelope do Duo no pacote.
+**Com o quê.**
+`AGENTS.md`, `README.md`, `README-ciclos.md`, `METODO.md`, `PROTOCOLO.md`, `REGRAS.md`,
+`CONGELAMENTO.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`, `tools/gerar-handoff.sh`,
+`HANDOFF.md`, `.github/agents/*.agent.md`, `.github/instructions/ciclo-fontes.instructions.md`.
 
-**Referências.** O relatório da Fase 1 da peça (d) (a tabela de aliases); as duas folhas de captura; o
-`po-01.json` de cada ciclo (a linha de base); o `plano-01.json` (o marco); as duas provas, em `/tmp`
-(não versionadas).
+**Referências.**
+`METODO.md` (declaração de princípio); `PROTOCOLO.md` (P-05/P-07 — material × evidência);
+`CONGELAMENTO.md` (o procedimento de alteração com motivo declarado); `biblioteca/referencias.md`
+(Taylor, *O Arquivo e o Repertório*; Polanyi, *The Tacit Dimension* — memória, repertório e
+filosofia); `ARQUITETURA-CAPTURA.md` §7 (decisões em aberto — 7.2, 7.4, 7.5, 7.6).
 
+**O que ainda não está feito.**
+O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.md` copiado à mão)
+e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
+questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
+fazer.
 
 ## O que está pendente
 
@@ -383,6 +399,16 @@ O experimento `captura-json` (em andamento).
   mexido aqui (mudaria o que todos os balanços veem); fica declarado.
 - A peça 5 — o guia do Ritmos gerado — segue na Fase 2, com a tabela do PO e a estrutura do plano.
 
+Hook `PreToolUse` para o auditor. Fica declarado que o `REGISTRO.md` apareceu no worktree em
+variante divergente (15 entradas duplicadas e arquivo truncado) e foi restaurado do commit
+anterior antes desta entrada — nenhuma daquelas reescritas foi aproveitada.
+
+## 23/09/2026 — A identidade do projeto entra na documentação (e a ressalva do FIPP)
+
+O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.md` copiado à mão)
+e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
+questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
+fazer.
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 

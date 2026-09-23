@@ -4,6 +4,12 @@
 > JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em
 > aberto. Não implementado.
 
+> **Escopo.** Documento do **Projeto Ciclo** — a memória da aula dada, agnóstica e
+> adaptativa; o balé é o protótipo, não a identidade. O PO usado nos exemplos vem do
+> projeto de mestrado, e o **FIPP não é implementado aqui**: a cobertura de hash descrita
+> abaixo é a da **âncora encadeada deste repositório** (`tools/hash-ciclo.sh` → `.fipp`),
+> uma aproximação do framework.
+
 > **Por que esta ideia existe.** O projeto não tem problema de **volume** (ver
 > §6 — o limite físico de uma escola é ~230 MB em 10 anos). Tem problema de
 > **navegação**: um menu com N capturas e N relatórios fica imenso na medida em
@@ -463,8 +469,8 @@ em 10 anos, nem em 20.
 
 ## 8. As peças da migração (na ordem)
 
-1. **Feita** — `ciclo-XX-dados.json` + `ARQUIVO_DADOS` no `lib-fontes.sh` + cobertura do FIPP
-   (`86b06f2`): o JSON do Duo existe — **vazio**, porque o dado da Aula 01 está no caderno e no
+1. **Feita** — `ciclo-XX-dados.json` + `ARQUIVO_DADOS` no `lib-fontes.sh` + cobertura da âncora
+   de proveniência (`86b06f2`): o JSON do Duo existe — **vazio**, porque o dado da Aula 01 está no caderno e no
    relatório; o primeiro lançamento entra pela página — e a âncora regerou (a Ritmos ficou intacta);
 2. **Feita** — os builders saíram para **`tools/lib-vistas.js`** (`d65a247`), e o formulário passou
    a consumi-los: uma definição, dois consumidores. A igualdade foi medida: com o mesmo `prov`, o

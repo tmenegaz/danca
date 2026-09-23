@@ -70,5 +70,7 @@ git log --oneline -- ciclos/ciclo-01/           # histórico de um ciclo
 ```
 
 > **Premissa 7 — o commit é proveniência.** Cada commit é um nó que registra quem,
-> o quê, quando, por quê e com base em qual referência — o mesmo desenho de encadeamento
-> por hash usado no projeto de mestrado.
+> o quê, quando, por quê e com base em qual referência — o **mesmo princípio** de
+> encadeamento por hash usado no projeto de mestrado (noutro diretório). Aqui o
+> encadeamento vive na âncora de proveniência (`tools/hash-ciclo.sh` → `.fipp`), que é
+> uma **aproximação** do FIPP daquele projeto, não a sua implementação.

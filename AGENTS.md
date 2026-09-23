@@ -1,5 +1,38 @@
 # Orientações para agentes
 
+## O que é este projeto (leia antes de qualquer coisa)
+
+**Projeto Ciclo** — a **memória da aula dada**. Registra o processo de ensino-aprendizagem
+que de fato se aplicou, não o que foi planejado, e encadeia tudo o que muda.
+
+- **NÃO é o projeto de mestrado.** O mestrado está em **outro diretório**, e é de lá que
+  vem o PO (Protocolo de Observação) e o FIPP. Este repositório **aplica** um PO; não o
+  define, e **não implementa o FIPP**.
+- **Aqui o FIPP não está implementado**, nem perto do que a arquitetura dele desenha. O que
+  existe é uma **âncora de proveniência encadeada** (`tools/hash-ciclo.sh` → `.fipp`), que
+  compartilha o princípio do FIPP — o passado se incorpora, não se reescreve — mas é uma
+  **aproximação**, não o framework.
+- **O balé é o protótipo, não a identidade.** O projeto deve ser **agnóstico e
+  completamente adaptativo**: nenhum ciclo é igual a outro, nenhuma aula é igual a outra,
+  nem com o mesmo professor. Ele deve receber oficina de balé, oficina de matemática,
+  improvisação em dança contemporânea, disciplina de mestrado — "tem que transitar em
+  todos os universos".
+- **O projeto não avalia.** Ele registra o **cotidiano do professor em sala de aula**. A
+  avaliação é fronteira de outro módulo, ainda não desenhado.
+- **Os artefatos são evidência com cadeia de custódia** — não julgamento. O que gera valor
+  é o rastro: o que foi respondido, quando, por quem, e por que mudou. A proveniência
+  **acrescenta, não edita**: um ajuste é um elo novo, nunca uma sobrescrita.
+- **Estado atual: protótipo.** A integração com o projeto das secretarias (Projeto Cultura)
+  ainda **não foi desenhada**, nem a fronteira de entrada nem a de saída. O módulo de
+  avaliação — que derivaria da cadeia de custódia em vez de aproximar questões do plano —
+  é ideia, não implementação.
+
+> **Armadilha de leitura.** Três documentos dizem "mestrado" (`README.md`, `PROTOCOLO.md`,
+> `REGRAS.md`) e um fala em "proveniência Peirceana" (`PROTOCOLO.md`). Esses trechos são
+> **verdadeiros** — referem-se ao outro diretório e ao nome do framework — mas induzem à
+> leitura errada de que **este** repo é o projeto de mestrado ou que o FIPP roda aqui.
+> Não é o caso, nas duas hipóteses.
+
 ## Antes de editar
 
 - Leia [README.md](README.md) para a visão geral e [REGRAS.md](REGRAS.md) para as regras pedagógicas e de versionamento.
@@ -21,7 +54,7 @@
 
 - Gere uma entrega com `tools/gerar-ciclo.sh <professor> <ciclo> <escola>`; a duração da aula e o contexto institucional são obrigatórios.
 - Valide um pacote com `node tools/check-pacote.js professores/<professor>/ciclos/ciclo-XX-<escola>`.
-- Depois de alterar fontes, regenere a âncora FIPP com `tools/hash-ciclo.sh <professor> <ciclo> <escola>` e confirme o resultado quando necessário com `--check`.
+- Após alterar fontes, regenere a âncora de proveniência com `tools/hash-ciclo.sh <professor> <ciclo> <escola>` e confirme com `--check`. A âncora sai em `<professor>/ciclos/ciclo-XX-<escola>.fipp` e é **versionada** — é a âncora da cadeia, não saída.
 - Para validações isoladas, use `node tools/validar-schema-ciclo.js`, `node tools/validar-po-ciclo.js`, `node tools/validar-plano-ciclo.js` e `node tools/validar-captura-ciclo.js` conforme o artefato alterado.
 - IDs de títulos devem ser normalizados por `tools/normalizar-ids.py`; links entre páginas HTML devem apontar para a pasta plana gerada e para âncoras ASCII estáveis.
 - Acompanhamentos com dados sensíveis devem permanecer cifrados no pacote publicado e fora do Git em Markdown. Não versione `tools/.netlify-tokens` nem `tools/.senhas-locais`.

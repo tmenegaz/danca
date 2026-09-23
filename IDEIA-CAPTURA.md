@@ -1,5 +1,12 @@
 # Ideia — Formulário de captura em JSON
 
+> **Escopo.** Documento do **Projeto Ciclo** — a memória da aula dada. O projeto é
+> **agnóstico e adaptativo** (o balé é o protótipo, não a identidade), **não avalia** (a
+> avaliação é fronteira de outro módulo) e **não implementa o FIPP** — o Framework de
+> Infraestrutura de Proveniência Peirceana pertence ao projeto de mestrado, em outro
+> diretório. O que existe aqui é uma **âncora de proveniência encadeada**
+> (`tools/hash-ciclo.sh` → `.fipp`), aproximação daquele framework.
+
 > **Resumo (para o HANDOFF):** formulário dinâmico com JSON por ciclo —
 > substitui as capturas, relatórios e acompanhamentos `.md` individuais.
 > Não implementado.

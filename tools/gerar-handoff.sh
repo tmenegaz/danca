@@ -63,6 +63,21 @@ variantes_de() {
   echo "Commit atual: \`$commit_curto\` — $commit_msg"
   echo "Para: sessão nova (retomar o diálogo)"
   echo
+  echo "## O que é este projeto"
+  echo
+  echo "**A memória da aula dada** — registra o processo de ensino-aprendizagem que de fato"
+  echo "se aplicou, não o que foi planejado, e encadeia tudo o que muda."
+  echo
+  echo "- **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP)."
+  echo "- **Não implementa o FIPP**: o \`.fipp\` daqui é uma **âncora de proveniência"
+  echo "  encadeada** (\`tools/hash-ciclo.sh\`), aproximação do framework — não ele."
+  echo "- **Agnóstico e adaptativo**: o balé é o protótipo, não a identidade (deve receber"
+  echo "  oficina de matemática, improvisação, disciplina de mestrado)."
+  echo "- **Não avalia** — registra o cotidiano do professor; a avaliação é fronteira de"
+  echo "  outro módulo, ainda não desenhado."
+  echo "- **Proveniência acrescenta, não edita**: um ajuste é um elo novo, nunca sobrescrita."
+  echo "- **Estado: protótipo.** A integração com o projeto das secretarias não foi desenhada."
+  echo
   echo "## Estado do projeto"
   echo
   echo "- **Regras:** $(awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md 2>/dev/null | grep -c '^| [0-9]\+ | \*\*' || echo '?') em \`REGRAS.md\`"

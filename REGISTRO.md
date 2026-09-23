@@ -2335,3 +2335,71 @@ infraestrutura do método. Três agentes, um prompt e um arquivo de instruções
 Hook `PreToolUse` para o auditor. Fica declarado que o `REGISTRO.md` apareceu no worktree em
 variante divergente (15 entradas duplicadas e arquivo truncado) e foi restaurado do commit
 anterior antes desta entrada — nenhuma daquelas reescritas foi aproveitada.
+
+## 23/09/2026 — A identidade do projeto entra na documentação (e a ressalva do FIPP)
+
+**O que motivou.**
+A documentação não dizia o que este projeto é. Dizia o que ele *tem* (regras, pétreas,
+ferramentas) e descrevia o balé como se fosse a identidade — quando o balé é o **protótipo**.
+Pior: três documentos citavam "mestrado" e um anunciava "cadeia de proveniência FIPP", o que
+leva qualquer leitor novo — pessoa ou IA — a concluir que (a) este repo é o projeto de
+mestrado e (b) o FIPP está implementado aqui. Nenhuma das duas é verdade. O erro foi
+cometido de fato por uma sessão de IA nesta data, e o sintoma é o que esta entrada corrige:
+**quem entrava sem contexto, saía com o contexto errado.**
+
+**O que foi decidido.**
+- O projeto passa a se declarar, no topo dos documentos de entrada, como **a memória da aula
+  dada** — o processo de ensino-aprendizagem que **de fato se aplicou**, não o planejado.
+- **Não é o projeto de mestrado**: o mestrado está em outro diretório, e é de lá que vêm o PO
+  e o FIPP. Este repositório **aplica** um PO (como experimentação) e **não implementa o
+  FIPP**, nem perto do que a arquitetura dele desenha. O `.fipp` daqui é uma **âncora de
+  proveniência encadeada** que compartilha o princípio — o passado se incorpora, não se
+  reescreve — mas é uma **aproximação**.
+- **Agnóstico e completamente adaptativo**: o balé é o protótipo, não a identidade. O projeto
+  deve receber oficina de matemática, improvisação em dança contemporânea e disciplina de
+  mestrado — "tem que transitar em todos os universos".
+- **Não avalia**: registra o cotidiano do professor em sala de aula. A avaliação é fronteira
+  de outro módulo, ainda não desenhado.
+- **Estado: protótipo** — a integração com o projeto das secretarias (Projeto Cultura) não foi
+  desenhada, nem a fronteira de entrada nem a de saída.
+
+**Onde entrou.**
+- `AGENTS.md` — seção nova **"O que é este projeto (leia antes de qualquer coisa)"**, no topo,
+  com a armadilha de leitura declarada;
+- `tools/gerar-handoff.sh` — o HANDOFF passa a **emitir a identidade** (é o artefato que uma
+  sessão nova lê primeiro); `HANDOFF.md` regenerado;
+- `README.md` — título passa a **"Projeto Ciclo — visão geral"**, com nova seção **"O que este
+  repositório não é"**; a frase "pesquisa em andamento (mestrado)" sai;
+- `METODO.md`, `README-ciclos.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`,
+  `CONGELAMENTO.md` — nota de escopo no topo;
+- `.github/` — os três agentes e as `ciclo-fontes.instructions.md` ganham a seção de escopo,
+  para que agente algum volte a chamar isto de "projeto de mestrado" nem a âncora de "FIPP";
+- `PROTOCOLO.md` e `REGRAS.md` — **congelados**, alterados com o motivo declarado abaixo.
+
+**Motivo declarado — os dois congelados.**
+`PROTOCOLO.md` e `REGRAS.md` estão na lista de `CONGELAMENTO.md`; a alteração é **cirúrgica e
+só de escopo**, sem tocar em nenhuma das 22 pétreas nem das 17 regras: no `PROTOCOLO.md`,
+"cadeia de proveniência **FIPP**" vira "cadeia de proveniência encadeada" e ganha a ressalva de
+que o FIPP pertence ao outro projeto; no `REGRAS.md`, a Premissa 7 passa a dizer "o **mesmo
+princípio** de encadeamento" e declara que a implementação do FIPP não está aqui. Nenhum
+comando, validador ou hash muda: o `.fipp` continua com o mesmo nome e a mesma fórmula — a
+**âncora não foi regerada**, e `hash-ciclo.sh … --check` segue passando. O porquê: a
+documentação induzia ao erro sobre a natureza do projeto, e a correção exige tocar os dois
+arquivos que enunciam o método.
+
+**Com o quê.**
+`AGENTS.md`, `README.md`, `README-ciclos.md`, `METODO.md`, `PROTOCOLO.md`, `REGRAS.md`,
+`CONGELAMENTO.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`, `tools/gerar-handoff.sh`,
+`HANDOFF.md`, `.github/agents/*.agent.md`, `.github/instructions/ciclo-fontes.instructions.md`.
+
+**Referências.**
+`METODO.md` (declaração de princípio); `PROTOCOLO.md` (P-05/P-07 — material × evidência);
+`CONGELAMENTO.md` (o procedimento de alteração com motivo declarado); `biblioteca/referencias.md`
+(Taylor, *O Arquivo e o Repertório*; Polanyi, *The Tacit Dimension* — memória, repertório e
+filosofia); `ARQUITETURA-CAPTURA.md` §7 (decisões em aberto — 7.2, 7.4, 7.5, 7.6).
+
+**O que ainda não está feito.**
+O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.md` copiado à mão)
+e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
+questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
+fazer.

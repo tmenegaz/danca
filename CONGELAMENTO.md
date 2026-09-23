@@ -1,5 +1,11 @@
 # Congelamento da infraestrutura — 19/09/2026
 
+> **Escopo.** O congelamento é do **Projeto Ciclo** — a memória da aula dada, agnóstica e
+> adaptativa, cujo protótipo é o balé. A "proveniência" citada aqui é a **âncora encadeada
+> deste repositório** (`tools/hash-ciclo.sh` → `.fipp`), que é uma **aproximação** do FIPP;
+> o Framework de Infraestrutura de Proveniência Peirceana pertence ao projeto de mestrado,
+> em outro diretório, e **não está implementado aqui**.
+
 A partir desta data, a **infraestrutura** do Projeto Ciclo está **congelada**.
 Isso significa que os componentes abaixo **não mudam por padrão** — só por
 motivo declarado, com commit próprio e entrada no `REGISTRO.md`.
@@ -59,7 +65,7 @@ A infraestrutura está funcional há mais de duas semanas, com:
 - 2 POs validados
 - 1 relatório pós-aula
 - 1 primeiro ciclo completo (PO → aula → caderno → relatório → acompanhamento)
-- Hash FIPP encadeado, deploy automático via Netlify
+- Âncora de proveniência encadeada (`hash-ciclo.sh`), deploy automático via Netlify
 - Harmonização estrutural em ambos os ciclos (P-17)
 
 Continuar mexendo na infraestrutura sem motivo é trabalho que não gera valor
