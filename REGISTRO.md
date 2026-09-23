@@ -2656,4 +2656,3 @@ chama).
 > procura U+FFFD, e se o PDF fosse regerado — impossível, o `pdflatex` morre antes — os dois lados
 > estariam corrompidos e **coincidiriam**); mas o guarda existente **não** passou em silêncio. A
 > versão anterior não é apagada: fica como o elo que registra o que se pensou antes da correção.
-<!-- ...existing code... -->

@@ -55,7 +55,6 @@ set -euo pipefail
 # O gerador NAO herda o locale de quem o chama (REGISTRO.md, 23/09/2026).
 . "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib-locale.sh" || exit 1
 exigir_locale_utf8 || exit 1
-# ...existing code...
 
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Slug do professor (a pasta em professores/). Não se chama PROFESSOR de propósito: os

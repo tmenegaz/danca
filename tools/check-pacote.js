@@ -427,5 +427,26 @@ ok.forEach((l) => console.log(`  ok    ${l}`));
 avisos.forEach((l) => console.log(`  aviso ${l}`));
 erros.forEach((l) => console.log(`  ERRO  ${l}`));
 console.log(`\n${erros.length ? 'FALHOU' : 'OK'}: ${erros.length} erro(s), ${avisos.length} aviso(s).`);
+
+// --- guarda: nenhum U+FFFD nas saidas (REGISTRO.md, 23/09/2026) ---
+{
+  const U = String.fromCharCode(0xFFFD);
+  const arqs = [];
+  (function anda(d) {
+    for (const e of fs.readdirSync(d, { withFileTypes: true })) {
+      const q = path.join(d, e.name);
+      if (e.isDirectory()) anda(q);
+      else if (/\.(html|md|css|json|txt|js)$/i.test(e.name)) arqs.push(q);
+    }
+  })(pacote);
+  const ruins = [];
+  for (const q of arqs) {
+    fs.readFileSync(q, 'utf8').split('\n').forEach((l, i) => {
+      if (l.includes(U)) ruins.push(path.relative(pacote, q) + ':' + (i + 1));
+    });
+  }
+  if (ruins.length === 0) ok.push('Texto: nenhum U+FFFD nas saidas');
+  else erros.push('Texto: U+FFFD em ' + ruins.length + ' linha(s): ' + ruins.slice(0, 5).join(', '));
+}
 process.exit(erros.length ? 1 : 0);
 
