@@ -2288,3 +2288,50 @@ node, nos dois ciclos:
 
 **Referências.** A peça (d) (o painel, que já lia o config); o relatório da Fase 1 da peça (d) (a
 tabela de colunas dos dois ciclos); as provas em `/tmp` (não versionadas).
+
+## 22/09/2026 — Agentes de workspace: geração, auditoria e apresentação
+
+**O que aconteceu.**
+O repositório ganhou customizações de agente em `.github/` — ferramenta de trabalho, não
+infraestrutura do método. Três agentes, um prompt e um arquivo de instruções:
+
+- `.github/agents/ciclo-entrega.agent.md` — geração e validação de pacotes: `gerar-ciclo.sh`,
+  `check-pacote.js`, validadores isolados, âncora FIPP, deploy;
+- `.github/agents/ciclo-auditor.agent.md` — auditoria **somente leitura** contra `REGRAS.md`,
+  `PROTOCOLO.md` e `CONGELAMENTO.md`, com laudo que cita a regra;
+- `.github/agents/deck-rizoma.agent.md` — frente Marp: edição do deck, `check-overflow.js`,
+  `check-mapa.js`, `medir-rotulos.js`, sincronização do slide 68;
+- `.github/prompts/instalar-ciclo.prompt.md` — instalação de ciclo a partir do Markdown
+  elicitado (aponta para `prompts/instalar-ciclo.md`, que segue sendo o contrato);
+- `.github/instructions/ciclo-fontes.instructions.md` — convenções das fontes de ciclo e
+  material de observação, com `applyTo` sobre `professores/**`.
+
+**O que foi decidido.**
+- A divisão é por **fronteira de escrita**, não por assunto: o agente de entrega produz saídas
+  a partir de fontes prontas; o de auditoria **verifica e não escreve**; o da apresentação
+  edita só a fonte do deck e as saídas derivadas. O que os separa é o que cada um pode tocar —
+  fundi-los recriaria o agente que faz tudo, que é o anti-padrão.
+- Os três nascem com `tools: [read, search, execute]`, **sem `edit`**. Editar fonte de ciclo é
+  decisão do professor; quem escreve conteúdo não deve ser quem confere o conteúdo.
+- A restrição de escrita do auditor é **orientação, não bloqueio**: não há hook. É decisão
+  declarada, não esquecimento — se for furada na prática, o passo seguinte é um `PreToolUse`
+  que recuse `gerar-ciclo.sh`, `hash-ciclo.sh` sem `--check`, `normalizar-ids.py` e
+  `deploy-netlify.sh`.
+- **Nada de infraestrutura mudou.** `.github/` não está na lista congelada de
+  `CONGELAMENTO.md`; `tools/`, `prompts/`, `PROTOCOLO.md`, `REGRAS.md` e `METODO.md` seguem
+  intocados, e o fluxo continua sendo o dos comandos do `README.md`.
+- `AGENTS.md` entra no versionamento: estava fora do Git e é o arquivo que orienta os agentes.
+
+**Com o quê.**
+`.github/agents/*.agent.md`, `.github/prompts/instalar-ciclo.prompt.md`,
+`.github/instructions/ciclo-fontes.instructions.md`, `AGENTS.md`.
+
+**Referências.**
+`AGENTS.md` (orientações para agentes); `REGRAS.md` (pré-requisitos 4 e 5; Regras 9, 16 e 17);
+`PROTOCOLO.md` (P-06, P-12, P-15/P-16, P-17, P-19, P-21, P-22); `CONGELAMENTO.md`;
+`README-ciclos.md`; `apresentacoes/apresentacao-01-rizoma/README.md` (regras pétreas A e B).
+
+**O que ainda não está feito.**
+Hook `PreToolUse` para o auditor. Fica declarado que o `REGISTRO.md` apareceu no worktree em
+variante divergente (15 entradas duplicadas e arquivo truncado) e foi restaurado do commit
+anterior antes desta entrada — nenhuma daquelas reescritas foi aproveitada.
