@@ -71,12 +71,14 @@ variantes_de() {
   echo "- **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP)."
   echo "- **Não implementa o FIPP**: o \`.fipp\` daqui é uma **âncora de proveniência"
   echo "  encadeada** (\`tools/hash-ciclo.sh\`), aproximação do framework — não ele."
-  echo "- **Agnóstico e adaptativo**: o balé é o protótipo, não a identidade (deve receber"
-  echo "  oficina de matemática, improvisação, disciplina de mestrado)."
+  echo "- **PROTÓTIPO, testado no universo da dança** — este projeto **não é agnóstico**; o"
+  echo "  projeto agnóstico será criado a partir dele. Nenhum ciclo é igual a outro, nenhuma"
+  echo "  aula é igual a outra — nem com o mesmo professor."
   echo "- **Não avalia** — registra o cotidiano do professor; a avaliação é fronteira de"
   echo "  outro módulo, ainda não desenhado."
   echo "- **Proveniência acrescenta, não edita**: um ajuste é um elo novo, nunca sobrescrita."
-  echo "- **Estado: protótipo.** A integração com o projeto das secretarias não foi desenhada."
+  echo "- **A integração ainda não existe** — com o projeto das secretarias não foram"
+  echo "  desenhadas nem a fronteira de entrada nem a de saída."
   echo
   echo "## Estado do projeto"
   echo

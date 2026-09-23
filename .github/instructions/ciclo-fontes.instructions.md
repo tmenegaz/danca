@@ -4,7 +4,7 @@ applyTo: "professores/**/ciclos/*.md,professores/**/ciclos/*.conf,professores/**
 ---
 # Fontes de ciclo e material de observação
 
-Este é o **Projeto Ciclo** — a memória da aula dada (o processo de ensino-aprendizagem que de fato se aplicou, não o que foi planejado). Ele é **agnóstico e adaptativo**: o balé é o protótipo, não a identidade, e o mesmo motor deve receber oficina de matemática, improvisação ou disciplina de mestrado. Ele **não avalia** — registra o cotidiano do professor. E **não implementa o FIPP**: a âncora de proveniência encadeada (`hash-ciclo.sh` → `.fipp`) é uma **aproximação** do Framework de Infraestrutura de Proveniência Peirceana, que pertence ao projeto de mestrado, em outro diretório.
+Este é o **Projeto Ciclo** — a memória da aula dada (o processo de ensino-aprendizagem que de fato se aplicou, não o que foi planejado). Ele é **protótipo**, testado no **universo da dança**: **não é agnóstico** — o projeto agnóstico será criado a partir dele, para transitar em outros universos (oficina de matemática, improvisação, disciplina de mestrado). Ele **não avalia** — registra o cotidiano do professor. E **não implementa o FIPP**: a âncora de proveniência encadeada (`hash-ciclo.sh` → `.fipp`) é uma **aproximação** do Framework de Infraestrutura de Proveniência Peirceana, que pertence ao projeto de mestrado, em outro diretório.
 
 Estes arquivos são **fontes**: o professor os edita e os geradores os consomem. As saídas (HTML, PDF, CSS, assets, `README.md` do pacote) vivem na pasta `ciclo-XX-<escola>/` e **não se editam à mão** — são reconstruíveis por `tools/gerar-ciclo.sh`.
 

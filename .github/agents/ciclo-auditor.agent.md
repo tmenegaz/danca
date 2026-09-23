@@ -7,7 +7,7 @@ Você é o **auditor** deste repositório. Seu papel é ler e conferir — fonte
 
 ## Escopo do projeto
 
-Este é o **Projeto Ciclo** — a memória da aula dada, **agnóstica e adaptativa**; o balé é o protótipo, não a identidade. Ele **não avalia** e **não implementa o FIPP**: a âncora verificada por `hash-ciclo.sh --check` é uma âncora de proveniência encadeada, **aproximação** do Framework de Infraestrutura de Proveniência Peirceana — que pertence ao projeto de mestrado, em outro diretório. No laudo, não chame o projeto de "projeto de mestrado" nem a âncora de "FIPP".
+Este é o **Projeto Ciclo** — a memória da aula dada. Ele é **protótipo**, testado no **universo da dança**; **não é agnóstico** — o projeto agnóstico será criado a partir dele. Ele **não avalia** e **não implementa o FIPP**: a âncora verificada por `hash-ciclo.sh --check` é uma âncora de proveniência encadeada, **aproximação** do Framework de Infraestrutura de Proveniência Peirceana — que pertence ao projeto de mestrado, em outro diretório. No laudo, não chame o projeto de "projeto de mestrado", não o descreva como agnóstico, nem a âncora de "FIPP".
 
 ## Fronteira
 

@@ -1,9 +1,10 @@
 # Ciclos de Aprendizagem — formato de entrega (Regra 16)
 
 > **Onde isto se encaixa.** O **Projeto Ciclo** é a memória da aula dada — o processo de
-> ensino-aprendizagem que de fato se aplicou. Ele é **agnóstico e adaptativo**: o balé é o
-> protótipo, não a identidade. Este documento descreve a **entrega** de um ciclo, e os
-> exemplos que usa são do protótipo de balé.
+> ensino-aprendizagem que de fato se aplicou. **Ele é protótipo, e está sendo testado no
+> universo da dança**; a partir dele será criado o projeto que deve ser **agnóstico**. Este
+> documento descreve a **entrega** de um ciclo, e os exemplos que usa são do protótipo de
+> balé.
 >
 > A âncora de proveniência deste repositório (`tools/hash-ciclo.sh` → `.fipp`) é uma
 > **aproximação** do FIPP, que pertence a outro projeto e **não está implementado aqui**.

@@ -2355,13 +2355,26 @@ cometido de fato por uma sessão de IA nesta data, e o sintoma é o que esta ent
   FIPP**, nem perto do que a arquitetura dele desenha. O `.fipp` daqui é uma **âncora de
   proveniência encadeada** que compartilha o princípio — o passado se incorpora, não se
   reescreve — mas é uma **aproximação**.
-- **Agnóstico e completamente adaptativo**: o balé é o protótipo, não a identidade. O projeto
-  deve receber oficina de matemática, improvisação em dança contemporânea e disciplina de
-  mestrado — "tem que transitar em todos os universos".
+- **Protótipo testado no universo da dança.** Este projeto **não é agnóstico**: ele é o
+  protótipo, e o projeto que **deve ser agnóstico** será criado a partir dele, para transitar
+  em todos os universos (oficina de matemática, improvisação em dança contemporânea,
+  disciplina de mestrado).
+- **Nenhum ciclo é igual a outro, nenhuma aula é igual a outra** — nem com o mesmo professor.
+  O protótipo existe para provar que o modelo se sustenta nessa variação.
 - **Não avalia**: registra o cotidiano do professor em sala de aula. A avaliação é fronteira
   de outro módulo, ainda não desenhado.
-- **Estado: protótipo** — a integração com o projeto das secretarias (Projeto Cultura) não foi
-  desenhada, nem a fronteira de entrada nem a de saída.
+- **A integração ainda não existe** — com o projeto das secretarias (Projeto Cultura), nem a
+  fronteira de entrada nem a de saída foram desenhadas.
+
+> **Correção de 23/09/2026 (mesmo dia).** A primeira redação desta entrada dizia que o
+> projeto era "**agnóstico e completamente adaptativo**". **Está errado**: o agnosticismo é
+> a meta do **projeto sucessor**, não uma propriedade deste. O que existe aqui é o
+> **protótipo**, sendo testado no universo da dança. A redação foi corrigida em todos os
+> documentos onde a afirmação apareceu (`AGENTS.md`, `README.md`, `METODO.md`,
+> `README-ciclos.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`, `CONGELAMENTO.md`, os
+> agentes de `.github/` e este registro), e o próprio `tools/gerar-handoff.sh` passou a
+> emitir a formulação correta. A versão anterior não é apagada: fica como o elo que registra
+> o que se pensou antes da correção (P-03/P-04 — a proveniência acrescenta, não edita).
 
 **Onde entrou.**
 - `AGENTS.md` — seção nova **"O que é este projeto (leia antes de qualquer coisa)"**, no topo,

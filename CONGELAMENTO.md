@@ -1,10 +1,11 @@
 # Congelamento da infraestrutura — 19/09/2026
 
-> **Escopo.** O congelamento é do **Projeto Ciclo** — a memória da aula dada, agnóstica e
-> adaptativa, cujo protótipo é o balé. A "proveniência" citada aqui é a **âncora encadeada
-> deste repositório** (`tools/hash-ciclo.sh` → `.fipp`), que é uma **aproximação** do FIPP;
-> o Framework de Infraestrutura de Proveniência Peirceana pertence ao projeto de mestrado,
-> em outro diretório, e **não está implementado aqui**.
+> **Escopo.** O congelamento é do **Projeto Ciclo** — a memória da aula dada, **protótipo
+> testado no universo da dança** (não é agnóstico: o projeto agnóstico será criado a partir
+> dele). A "proveniência" citada aqui é a **âncora encadeada deste repositório**
+> (`tools/hash-ciclo.sh` → `.fipp`), que é uma **aproximação** do FIPP; o Framework de
+> Infraestrutura de Proveniência Peirceana pertence ao projeto de mestrado, em outro
+> diretório, e **não está implementado aqui**.
 
 A partir desta data, a **infraestrutura** do Projeto Ciclo está **congelada**.
 Isso significa que os componentes abaixo **não mudam por padrão** — só por

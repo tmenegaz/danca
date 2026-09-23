@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-23T00:12:43-0300`
-Commit atual: `53bc9c1` — chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
+Gerado em: `2026-09-23T00:18:32-0300`
+Commit atual: `3b7aa7c` — docs(estrutura): a identidade do projeto entra na documentacao (e a ressalva do FIPP)
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -12,12 +12,14 @@ se aplicou, não o que foi planejado, e encadeia tudo o que muda.
 - **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP).
 - **Não implementa o FIPP**: o `.fipp` daqui é uma **âncora de proveniência
   encadeada** (`tools/hash-ciclo.sh`), aproximação do framework — não ele.
-- **Agnóstico e adaptativo**: o balé é o protótipo, não a identidade (deve receber
-  oficina de matemática, improvisação, disciplina de mestrado).
+- **PROTÓTIPO, testado no universo da dança** — este projeto **não é agnóstico**; o
+  projeto agnóstico será criado a partir dele. Nenhum ciclo é igual a outro, nenhuma
+  aula é igual a outra — nem com o mesmo professor.
 - **Não avalia** — registra o cotidiano do professor; a avaliação é fronteira de
   outro módulo, ainda não desenhado.
 - **Proveniência acrescenta, não edita**: um ajuste é um elo novo, nunca sobrescrita.
-- **Estado: protótipo.** A integração com o projeto das secretarias não foi desenhada.
+- **A integração ainda não existe** — com o projeto das secretarias não foram
+  desenhadas nem a fronteira de entrada nem a de saída.
 
 ## Estado do projeto
 
@@ -35,6 +37,7 @@ se aplicou, não o que foi planejado, e encadeia tudo o que muda.
 ## Últimos commits
 
 ```
+3b7aa7c docs(estrutura): a identidade do projeto entra na documentacao (e a ressalva do FIPP)
 53bc9c1 chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
 8b59555 fix(entrega): a leitura do formulario usa as colunas do ciclo
 dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
@@ -54,7 +57,6 @@ e5c45ae feat(entrega): o formulario de lancamento vai para producao (Area do Pro
 d57d9a2 feat(tools): o pre-push existe em arquivo -- e confere o alvo certo no acompanhamento
 242522e docs(ideia): a peca 5 da migracao esta feita
 8ec57ed feat(tools): o guia do Ritmos passa a ser gerado (peca 5 da migracao)
-69bfee3 fix(tools): a linha de base renderiza o texto como veio (nada de undefined)
 ```
 
 ## Por professor
@@ -139,13 +141,26 @@ cometido de fato por uma sessão de IA nesta data, e o sintoma é o que esta ent
   FIPP**, nem perto do que a arquitetura dele desenha. O `.fipp` daqui é uma **âncora de
   proveniência encadeada** que compartilha o princípio — o passado se incorpora, não se
   reescreve — mas é uma **aproximação**.
-- **Agnóstico e completamente adaptativo**: o balé é o protótipo, não a identidade. O projeto
-  deve receber oficina de matemática, improvisação em dança contemporânea e disciplina de
-  mestrado — "tem que transitar em todos os universos".
+- **Protótipo testado no universo da dança.** Este projeto **não é agnóstico**: ele é o
+  protótipo, e o projeto que **deve ser agnóstico** será criado a partir dele, para transitar
+  em todos os universos (oficina de matemática, improvisação em dança contemporânea,
+  disciplina de mestrado).
+- **Nenhum ciclo é igual a outro, nenhuma aula é igual a outra** — nem com o mesmo professor.
+  O protótipo existe para provar que o modelo se sustenta nessa variação.
 - **Não avalia**: registra o cotidiano do professor em sala de aula. A avaliação é fronteira
   de outro módulo, ainda não desenhado.
-- **Estado: protótipo** — a integração com o projeto das secretarias (Projeto Cultura) não foi
-  desenhada, nem a fronteira de entrada nem a de saída.
+- **A integração ainda não existe** — com o projeto das secretarias (Projeto Cultura), nem a
+  fronteira de entrada nem a de saída foram desenhadas.
+
+> **Correção de 23/09/2026 (mesmo dia).** A primeira redação desta entrada dizia que o
+> projeto era "**agnóstico e completamente adaptativo**". **Está errado**: o agnosticismo é
+> a meta do **projeto sucessor**, não uma propriedade deste. O que existe aqui é o
+> **protótipo**, sendo testado no universo da dança. A redação foi corrigida em todos os
+> documentos onde a afirmação apareceu (`AGENTS.md`, `README.md`, `METODO.md`,
+> `README-ciclos.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`, `CONGELAMENTO.md`, os
+> agentes de `.github/` e este registro), e o próprio `tools/gerar-handoff.sh` passou a
+> emitir a formulação correta. A versão anterior não é apagada: fica como o elo que registra
+> o que se pensou antes da correção (P-03/P-04 — a proveniência acrescenta, não edita).
 
 **Onde entrou.**
 - `AGENTS.md` — seção nova **"O que é este projeto (leia antes de qualquer coisa)"**, no topo,

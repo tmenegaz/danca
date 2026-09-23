@@ -1,10 +1,10 @@
 # Método — a visão de mundo do Projeto Ciclo
 
-> **Nota de escopo.** Os exemplos deste documento são de **balé clássico**, porque foi o
-> primeiro caso — o protótipo. O projeto **não é de balé**: ele é **agnóstico e
-> completamente adaptativo**, e deve receber oficina de matemática, improvisação em dança
-> contemporânea, disciplina de mestrado — "tem que transitar em todos os universos".
-> O balé é o caso que testou o modelo.
+> **Nota de escopo.** Os exemplos deste documento são de **balé clássico** porque é o
+> universo em que este **protótipo** está sendo testado. **Este projeto é protótipo — ele não
+> é agnóstico.** A partir dele será criado o projeto que **deve ser agnóstico**, para
+> transitar em todos os universos (oficina de matemática, improvisação em dança
+> contemporânea, disciplina de mestrado).
 >
 > **Sobre o FIPP.** O **Framework de Infraestrutura de Proveniência Peirceana** pertence ao
 > projeto de mestrado, em **outro diretório**. Aqui **não há FIPP implementado**: o que

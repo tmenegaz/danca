@@ -12,20 +12,22 @@ que de fato se aplicou, não o que foi planejado, e encadeia tudo o que muda.
   existe é uma **âncora de proveniência encadeada** (`tools/hash-ciclo.sh` → `.fipp`), que
   compartilha o princípio do FIPP — o passado se incorpora, não se reescreve — mas é uma
   **aproximação**, não o framework.
-- **O balé é o protótipo, não a identidade.** O projeto deve ser **agnóstico e
-  completamente adaptativo**: nenhum ciclo é igual a outro, nenhuma aula é igual a outra,
-  nem com o mesmo professor. Ele deve receber oficina de balé, oficina de matemática,
-  improvisação em dança contemporânea, disciplina de mestrado — "tem que transitar em
-  todos os universos".
+- **Este projeto é PROTÓTIPO — ele não é agnóstico.** Está sendo **testado no universo da
+  dança**. A partir dele será criado o projeto que **deve ser agnóstico** (o projeto-alvo,
+  ainda não existente), que deverá transitar em todos os universos: oficina de balé, oficina
+  de matemática, improvisação em dança contemporânea, disciplina de mestrado. Não descreva
+  este repositório como "agnóstico" — ele é o protótipo que provará o modelo.
+- **Nenhum ciclo é igual a outro, nenhuma aula é igual a outra** — nem com o mesmo professor.
+  O protótipo existe para provar que o modelo se sustenta nessa variação.
 - **O projeto não avalia.** Ele registra o **cotidiano do professor em sala de aula**. A
   avaliação é fronteira de outro módulo, ainda não desenhado.
 - **Os artefatos são evidência com cadeia de custódia** — não julgamento. O que gera valor
   é o rastro: o que foi respondido, quando, por quem, e por que mudou. A proveniência
   **acrescenta, não edita**: um ajuste é um elo novo, nunca uma sobrescrita.
-- **Estado atual: protótipo.** A integração com o projeto das secretarias (Projeto Cultura)
-  ainda **não foi desenhada**, nem a fronteira de entrada nem a de saída. O módulo de
-  avaliação — que derivaria da cadeia de custódia em vez de aproximar questões do plano —
-  é ideia, não implementação.
+- **A integração ainda não existe.** Com o projeto das secretarias (Projeto Cultura), nem a
+  fronteira de entrada nem a de saída foram desenhadas. O módulo de avaliação — que
+  derivaria da cadeia de custódia em vez de aproximar questões do plano — é ideia, não
+  implementação.
 
 > **Armadilha de leitura.** Três documentos dizem "mestrado" (`README.md`, `PROTOCOLO.md`,
 > `REGRAS.md`) e um fala em "proveniência Peirceana" (`PROTOCOLO.md`). Esses trechos são

@@ -19,10 +19,10 @@ proveniência.
 - **A âncora de proveniência aqui é uma aproximação.** `tools/hash-ciclo.sh` produz uma
   âncora encadeada (`.fipp`) que compartilha o princípio do FIPP — o passado se incorpora,
   não se reescreve —, mas está **longe** do que a arquitetura do FIPP desenha.
-- **O balé é o protótipo, não a identidade.** O projeto deve ser **agnóstico e
-  completamente adaptativo**: nenhum ciclo é igual a outro, nem com o mesmo professor. Ele
-  deve receber oficina de balé, oficina de matemática, improvisação em dança contemporânea,
-  disciplina de mestrado.
+- **Este projeto é PROTÓTIPO — ele não é agnóstico.** Está sendo **testado no universo da
+  dança**. A partir dele será criado o projeto que **deve ser agnóstico** (o projeto-alvo,
+  ainda não existente), para transitar em todos os universos: oficina de balé, oficina de
+  matemática, improvisação em dança contemporânea, disciplina de mestrado.
 - **O projeto não avalia.** Registra o cotidiano do professor em sala de aula; a avaliação
   é fronteira de outro módulo, ainda não desenhado.
 
