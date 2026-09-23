@@ -52,6 +52,11 @@
 
 set -euo pipefail
 
+# O gerador NAO herda o locale de quem o chama (REGISTRO.md, 23/09/2026).
+. "$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/lib-locale.sh" || exit 1
+exigir_locale_utf8 || exit 1
+# ...existing code...
+
 RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Slug do professor (a pasta em professores/). Não se chama PROFESSOR de propósito: os
 # manifestos declaram PROFESSOR com o nome de EXIBIÇÃO ("Tiago Menegaz" — vai para o rodapé
@@ -291,7 +296,7 @@ cp "$RAIZ/tools/lib-vistas.js" "$RAIZ/tools/lib-cifra.js" "$PACOTE/assets/"
 mkdir -p "$TMP/src"
 # Acompanhamentos: vista por aluna, gerada sob demanda a partir do PO e dos
 # relatórios pós-aula. NÃO entram em DOCS (aquela lista é estática; estes são por
-# aluna) e, por isso, também não entram no hash FIPP: são derivados, não fontes.
+# aluna) e, por isso, também não entram no hash da âncora: são derivados, não fontes.
 if [ -x "$RAIZ/tools/gerar-acompanhamento.sh" ]; then
   "$RAIZ/tools/gerar-acompanhamento.sh" "$PROFESSOR_SLUG" "$CICLO" "$VARIANTE" || \
     echo "aviso: não foi possível gerar os acompanhamentos deste ciclo" >&2

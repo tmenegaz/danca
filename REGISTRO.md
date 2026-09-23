@@ -2416,3 +2416,244 @@ O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.m
 e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
 questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
 fazer.
+
+## 23/09/2026 — A varredura da deriva de identidade: o que ficou fora da primeira correção
+
+**O que motivou.**
+A correção da véspera (entrada acima) declarou a identidade **nos pontos de entrada** — mas a
+varredura foi feita à mão, sobre a lista de arquivos de que se lembrava, e **não conferiu o
+repositório inteiro**. Ficaram de fora: as `description:` de dois agentes de `.github/`, os
+arquivos de **harmonização** dos dois ciclos, `biblioteca/README.md`, `biblioteca/guia-do-professor.md`,
+`departamentos/README.md`, `experimentos/README.md`, `professores/README.md`, o `README.md` de
+`cadernos/`, o `prompts/instalar-ciclo.md` e os **comentários internos de `tools/`**.
+
+O achado mais grave é a contradição **dentro do mesmo arquivo**: a `description:` do
+`ciclo-entrega.agent.md` anunciava "recalcular a **âncora FIPP**", enquanto o corpo do mesmo
+agente proíbe — "não chame esta âncora de 'FIPP'". Como a `description` é a **superfície de
+descoberta** (é por ela que o agente é convocado), a contradição entrega a identidade errada
+**antes** de o corpo correto ser lido. O mesmo em `ciclo-auditor.agent.md`.
+
+**O que foi decidido.**
+- A deriva não é a **palavra** `FIPP` — é o uso **sem ressalva de escopo**. Onde o termo nomeia
+  cadeia, arquivo ou campo (`parentHash`, `.fipp`), permanece legítimo; onde descreve o que **este
+  repositório faz**, passa a "âncora de proveniência encadeada".
+- Uma **skill de workspace** (`.github/skills/identidade-do-projeto/`) passa a manter isto:
+  varredura de deriva, a decisão **congelado/gerado/livre**, o formato da entrada no `REGISTRO.md`
+  e a regeneração do `HANDOFF.md`. Traz `scripts/varrer-deriva.sh` para que a próxima varredura
+  seja mecânica, não de memória.
+- A deriva foi encerrada **na raiz**, não só nos documentos de entrada: `tools/` (comentários) e
+  as harmonizações também foram varridos.
+- Fronteira mantida: o `ciclo-auditor` **não** acumula a checagem de identidade — ela vive na
+  skill, por decisão da pesquisadora.
+
+**Onde entrou.**
+- `.github/skills/identidade-do-projeto/` (novo) — `SKILL.md`, `references/` (bloco canônico,
+  mapa dos pontos de entrada, congelamento e registro) e `scripts/varrer-deriva.sh`;
+- `.github/agents/ciclo-entrega.agent.md` e `ciclo-auditor.agent.md` — `description:` e o rótulo
+  da âncora no formato de resposta;
+- `professores/tiago/ciclos/ciclo-01-duo-harmonizacao.md` e `…-ritmos-harmonizacao.md` — **fontes
+  do hash**: a redação mudou e a âncora foi **regerada**;
+- `biblioteca/README.md`, `biblioteca/guia-do-professor.md`, `departamentos/README.md`,
+  `experimentos/README.md`, `professores/README.md`, `professores/tiago/cadernos/README.md`,
+  `prompts/instalar-ciclo.md`;
+- `tools/hash-ciclo.sh`, `tools/lib-fontes.sh`, `tools/gerar-ciclo.sh`,
+  `tools/gerar-acompanhamento.sh`, `tools/renomear-chaves-dados.js`, `tools/gerar-handoff.sh` —
+  comentários e uma linha de emissão do HANDOFF.
+
+**Motivo declarado — os congelados.**
+`tools/`, `prompts/`, `biblioteca/guia-do-professor.md` e `METODO.md` estão em `CONGELAMENTO.md`.
+As alterações são de **redação de escopo**, não de comportamento: nenhuma fórmula de hash, nenhum
+validador, nenhuma regra e nenhuma pétrea mudou. Nos scripts, apenas **comentários** — exceto
+`tools/gerar-handoff.sh`, em que muda **uma string emitida** (o rótulo "âncoras FIPP" vira
+"âncoras de proveniência"), sem tocar na lógica de extração. O porquê: o repositório continuava
+ensinando a identidade errada a quem lê o código, e a primeira correção havia declarado encerrada
+uma varredura que não cobria o repositório.
+
+**Reancoragem — declarada.**
+As harmonizações são fontes dos dois ciclos; a redação mudou nelas, então **as duas âncoras foram
+regeradas** e `hash-ciclo.sh … --check` passa nos dois. O que **não** mudou: a fórmula, a
+cobertura (`docs`/`index`/PO/manifestos/relatórios) e a cadeia — `parentHash` segue vazio nos
+dois (Ciclo 01 é raiz). Os pacotes HTML/PDF **não** foram regerados: as páginas publicadas ainda
+portam a redação antiga e são saídas reconstruíveis (P-04); a próxima geração as atualiza.
+
+**Com o quê.**
+`.github/skills/identidade-do-projeto/{SKILL.md,references/*,scripts/varrer-deriva.sh}`,
+`.github/agents/ciclo-entrega.agent.md`, `.github/agents/ciclo-auditor.agent.md`,
+`professores/tiago/ciclos/ciclo-01-duo-harmonizacao.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-harmonizacao.md`, `biblioteca/README.md`,
+`biblioteca/guia-do-professor.md`, `departamentos/README.md`, `experimentos/README.md`,
+`professores/README.md`, `professores/tiago/cadernos/README.md`, `prompts/instalar-ciclo.md`,
+`tools/hash-ciclo.sh`, `tools/lib-fontes.sh`, `tools/gerar-ciclo.sh`,
+`tools/gerar-acompanhamento.sh`, `tools/renomear-chaves-dados.js`, `tools/gerar-handoff.sh`,
+`HANDOFF.md`, `professores/tiago/ciclos/ciclo-01-duo.fipp`,
+`professores/tiago/ciclos/ciclo-01-ritmos.fipp`.
+
+**Referências.**
+`AGENTS.md` (a identidade canônica); `CONGELAMENTO.md` (o procedimento de alteração); a entrada
+de 23/09/2026 acima (o precedente que esta varredura completa); `tools/hash-ciclo.sh` (a fórmula
+e a cobertura da âncora).
+
+**O que ainda não está feito.**
+Os pacotes (HTML + PDF) dos dois ciclos **não** foram regerados, e portanto as páginas publicadas
+ainda trazem "hash FIPP". Regerar exige `tools/gerar-ciclo.sh` e novo deploy — deixado para
+quando o professor pedir. Fica também por fazer o desenho das fronteiras de entrada e saída, acima.
+
+## 23/09/2026 — A seção que só tinha citação, e o ciclo simulado da Diaghilev
+
+**O que motivou.**
+Ao instalar um ciclo novo por eliciação, o plano foi **recusado** com `campo ausente:
+proveniencia`. A seção existia, com título e conteúdo — o conteúdo é que era uma citação
+(`> …`). O contrato de extração descarta as linhas `>` de propósito: blockquote é comentário do
+documento, não conteúdo (é o que impede a nota de método de virar o TEXTO do campo, e o
+`<!-- CALENDARIO -->` de virar valor). O efeito colateral não estava tratado: **seção cujo ÚNICO
+conteúdo é citação não produz campo nenhum**, e o erro que aparecia dizia só `campo ausente` —
+apontando para o sintoma, não para a causa. Quem escreveu o documento vai procurar o campo que
+"faltou" em vez da citação que o engoliu.
+
+**O que foi decidido.**
+- O contrato **registra** as seções cujo único conteúdo foi citação (`secoesSoCitacao`), e cada
+  validador as converte em **aviso nomeado** com o título e a LINHA: *"seção '## Registro de
+  proveniência' (linha 9): só tem citação ('> …') — o campo 'proveniencia' não é criado"*.
+- **Os avisos passam a sair também quando há erro.** Antes, o validador imprimia os erros e
+  retornava — e o aviso que explica o erro ficava invisível, justamente no caso em que ele é a
+  resposta. A ordem nova: erros, depois os avisos.
+- O comportamento de extração **não mudou**: a citação continua fora do valor. O que mudou é o
+  que se reporta, não o que se extrai — provado por comparação byte a byte (§adiante).
+- **A escola nova foi mantida como teste permanente**: o ciclo simulado da **Diaghilev**
+  (professor **Fochini**, 4 encontros) fica no repositório como o caso de escola que nasce do
+  zero, com as suas quatro folhas de captura distintas.
+
+**Onde entrou.**
+- `tools/lib-extracao-md.js` — o rastreio (`secoesSoCitacao`) e `avisosDeSecaoSoCitacao()`
+  (definição única, comum ao PO e ao plano);
+- `tools/validar-po-ciclo.js` e `tools/validar-plano-ciclo.js` — o aviso entra na lista e os
+  avisos saem também no erro;
+- `professores/fochini/` (novo) — o professor e a escola **simulados**: manifesto base e da
+  variante, `ciclo-01-schema.json`, `po-schema.json`, `plano-schema.json`, `captura-schema.json`,
+  o PO, o plano, **quatro aulas** (`aula-01` a `aula-04`), **quatro folhas de captura**, o
+  `index`, as `referencias`, a `harmonizacao`, o caderno e o JSON de dados;
+- `professores/fochini/ciclos/ciclo-01-diaghilev.fipp` (novo) — a âncora do ciclo.
+
+**Motivo declarado — o congelado.**
+`tools/` está em `CONGELAMENTO.md`. A alteração é **de diagnóstico, não de contrato**: nenhuma
+fórmula de hash, nenhum validador, nenhuma regra e nenhuma pétrea mudou. A **prova** de que nada
+mudou no que se extrai: antes e depois da alteração, os cinco JSONs extraídos das fontes
+existentes saem **idênticos** (comparação byte a byte de `po-01.json` do Duo e do Ritmos,
+`plano-01.json`, `captura-01.json` do Duo e do Ritmos) — e as duas âncoras do Ciclo 01 seguem
+íntegras, **sem reancoragem**. O porquê: um erro de extração que não nomeia a causa custa a
+geração inteira, e o mesmo defeito voltaria no próximo ciclo escrito à mão.
+
+**O ciclo simulado — e o que ele mediu.**
+A **Diaghilev** (homenagem a Diaghilev, dos Ballets Russes; professor **Fochini**) é **fictícia**
+e existe para testar a cadeia numa escola que nasce do zero. O ciclo foi gerado de ponta a ponta:
+`tools/gerar-ciclo.sh fochini 01 diaghilev` → **14 páginas, 4 aulas, PDF de 31 páginas, 0 erro(s)
+e 0 aviso(s)** — o campo `proveniencia` passou. A âncora saiu e verifica:
+`hash: ae357e24766914ee3d7d4ba3adc14fab6e65c321368fb83bfa3acc7da1ddbd03` (`parentHash` vazio —
+o Ciclo 01 abre a cadeia).
+
+O teste dos **quatro formulários** revelou **dois achados que ficam em aberto**, ambos medidos e
+não supostos:
+
+1. **O config da captura é UM por ciclo, não um por aula.** O gerador extrai só
+   `captura-aula-01` e o publica como `captura-XX.json`; a página monta o painel desse arquivo em
+   **qualquer** aula. Resultado medido: as quatro folhas da Diaghilev — que declaram colunas
+   genuinamente diferentes (eixo/peso, transferência/musicalidade, meia ponta/giro, frase/somativa)
+   — produzem **quatro formulários IDÊNTICOS**, todos com as colunas da Aula 01. A prova do
+   conceito está feita: entregando a config da aula certa, saem **quatro formulários diferentes**,
+   com o `Funcional` e a `Linha de base` permanecendo comuns (são do ciclo, não da aula — e é
+   correto que se repitam).
+2. **O ciclo sem lançamento não lista os alunos.** O mapa de apelidos viaja **dentro** da parte
+   cifrada do JSON de dados, e a página **não decifra** quando o envelope declara
+   `lancamentos: 0` (decisão correta: sem lançamento não há o que ler, e a página abre sem pedir
+   senha). Consequência: numa escola nova — na **primeira aula**, que é quando o formulário mais
+   serve — o professor abre a tela e **não encontra quem marcar**: as tabelas saem sem linha.
+   Medido contra o pacote real do Duo (que tem 1 lançamento, decifra e recebe os 4 apelidos) e
+   contra o da Diaghilev (0 lançamentos, `apelidos` fica `{}`).
+
+**Com o quê.**
+`tools/lib-extracao-md.js`, `tools/validar-po-ciclo.js`, `tools/validar-plano-ciclo.js`,
+`professores/fochini/` (o ciclo inteiro: `.conf` base e variante, quatro schemas, PO, plano,
+`aula-01`–`aula-04`, `captura-aula-01`–`04`, `index`, `referencias`, `harmonizacao`, o caderno do
+ciclo e o `-dados.json`), `professores/fochini/ciclos/ciclo-01-diaghilev.fipp` (regerado).
+
+**Referências.**
+`CONGELAMENTO.md` (o procedimento de alteração); `ARQUITETURA-CAPTURA.md` §7 (as decisões em
+aberto — o config por aula entra aqui); `IDEIA-CAPTURA.md`; `PROTOCOLO.md` (P-08 — os campos
+declarados em schema; P-17 — os mesmos tipos de artefato do ciclo piloto); `REGISTRO.md` (a
+entrada de 20/09/2026, que fixou o JSON como fonte).
+
+**O que ainda não está feito.**
+Os **dois achados acima não foram corrigidos** — mudam comportamento em `tools/` (congelado) e a
+decisão é da pesquisadora: (a) o config da captura passar a ser **por aula**; (b) o mapa de
+apelidos sair da parte cifrada (ou a página decifrar quando a aula ainda não tem dado). Os
+pacotes dos ciclos anteriores **não** foram regerados. A porta de entrada na tela (modo IA × modo
+formulário) segue por fazer, como acima.
+
+## 23/09/2026 — O gerador não herda mais o locale de quem o chama
+
+**O que motivou.**
+O commit do ciclo da Diaghilev foi recusado pelo `pre-commit` com `! LaTeX Error: Unicode
+character � (U+FFFD)` — e o **mesmo ciclo**, gerado à mão minutos antes, passava com
+`0 erro(s)`. Código igual não dá resultado diferente: o que mudou foi o **ambiente**. O commit
+foi feito pelo **VS Code**, e processo lançado pela interface gráfica herda o ambiente **sem
+`LANG`/`LC_*`** — locale **C**. Reproduzido de forma decisiva:
+`LC_ALL=C tools/gerar-ciclo.sh fochini 01 diaghilev` corrompe o pacote e o `pdflatex` morre
+(`exit=43`); o mesmo comando com o locale do terminal (`pt_BR.UTF-8`) passa.
+
+A assinatura foi medida **antes** de qualquer hipótese: **um U+FFFD por byte**, não por
+carácter. `é` (2 bytes) virava `��`; `—` (3 bytes) virava `���`; `çã` (4 bytes) virava `����` —
+em todas as oito linhas afetadas, sem exceção. É a assinatura de decodificar UTF-8 como ASCII,
+byte a byte. As **fontes estavam intactas** (o `--check` da âncora já o provava) e o defeito
+nascia **dentro da geração**.
+
+**O que foi decidido.**
+- O gerador **não herda o locale do chamador**: `tools/lib-locale.sh` fixa um locale UTF-8 e
+  **prova que ele resolve**, em vez de confiar no ambiente.
+- A lib **falha alto** quando nenhum locale UTF-8 existe: sem ele, cada byte ≥ 0x80 vira
+  U+FFFD — recusar é melhor que publicar corrupção em silêncio.
+- O `check-pacote.js` passa a **procurar U+FFFD** nas saídas (HTML, CSS, JSON, Markdown) e
+  **reprova**. Foi a lacuna que deixou o defeito chegar ao `pdflatex`: o pacote corrompido
+  passava com **0 erro(s)**, 528 links internos e 31 páginas.
+
+**Onde entrou.**
+- `tools/lib-locale.sh` — **novo**; `exigir_locale_utf8()`, com prova do locale e falha explícita;
+- `tools/gerar-ciclo.sh` — chama a lib no topo, antes de qualquer leitura ou escrita;
+- `tools/check-pacote.js` — a checagem de U+FFFD nas saídas.
+
+**Motivo declarado — os congelados.**
+`tools/` está em `CONGELAMENTO.md`. A alteração **acrescenta um guarda e fixa o ambiente da
+geração**: **não muda** a fórmula de hash, a cobertura da âncora, o contrato de extração, os
+validadores, as regras nem as pétreas. O que se extrai das fontes sai **idêntico** — a correção
+não toca o que se lê, e sim o locale sob o qual se lê. As âncoras dos ciclos existentes **não
+foram regeradas**: as fontes nunca estiveram envolvidas. O porquê: a geração dependia do
+ambiente de quem a invoca, e o defeito só aparecia no `pdflatex` — três camadas longe da causa.
+
+**Com o quê.**
+`tools/lib-locale.sh` (novo), `tools/gerar-ciclo.sh`, `tools/check-pacote.js`, `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (o procedimento); `REGRAS.md` 16 (formato de entrega) e 17 (versionamento);
+`PROTOCOLO.md` P-04 (saídas reconstruíveis — a geração não pode depender do ambiente de quem a
+chama).
+
+**O que ainda não está feito.**
+- Os demais pontos de entrada que escrevem texto (`gerar-acompanhamento.sh`, `gerar-handoff.sh`,
+  `gerar-vista.js`, `calendario.py`, `cifrar-dados.js`) **não** foram tocados: quando chamados
+  pelo `gerar-ciclo.sh` herdam o locale corrigido, mas **invocados isoladamente** continuam
+  dependendo do ambiente. Declarado, não resolvido.
+- O ciclo da Diaghilev **ainda não foi commitado** — e é o commit seguinte a este.
+
+- O `check-pacote.js` passa a **procurar U+FFFD** nas saídas (HTML, CSS, JSON, Markdown) e
+  **reprova**. Foi a lacuna que deixou o defeito chegar ao `pdflatex`: o pacote corrompido
+  passava com **0 erro(s)**, 528 links internos e 31 páginas.
+
+> **Correção de 23/09/2026 (mesmo dia).** A primeira redação desta entrada dizia que "o pacote
+> corrompido passava com 0 erro(s), 528 links internos e 31 páginas". **Está errado**: aquela
+> medição — 0 erro(s), 528 links, 31 páginas — foi feita sobre um pacote **saudável**, gerado sob
+> o locale do terminal; não mediu o pacote corrompido. O que se mediu no estado corrompido foi o
+> contrário: o `check-pacote` **reprovou**, com 1 erro — `PDF: documentos ausentes no texto do
+> PDF`, nomeando Caderno, Guia de observação e Método. A lacuna continua a existir (o check não
+> procura U+FFFD, e se o PDF fosse regerado — impossível, o `pdflatex` morre antes — os dois lados
+> estariam corrompidos e **coincidiriam**); mas o guarda existente **não** passou em silêncio. A
+> versão anterior não é apagada: fica como o elo que registra o que se pensou antes da correção.
+<!-- ...existing code... -->
