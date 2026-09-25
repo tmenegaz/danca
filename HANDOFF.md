@@ -1,13 +1,21 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-25T08:09:57-0300`
-Commit atual: `ea80ad4` — fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
+Gerado em: `2026-09-25T12:20:32-0300`
+Commit atual: `8a70634` — fix(tools): o HANDOFF emite a identidade corrigida, e o plano entra nela
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
 
-**A memória da aula dada** — registra o processo de ensino-aprendizagem que de fato
-se aplicou, não o que foi planejado, e encadeia tudo o que muda.
+**A memória da aula dada** — cada aula é **planejada** antes de ser dada: o plano
+(`aula-NN.md`, fonte da âncora) fixa objetivo, marcos e volume, e é ele que dá a
+**linha de base**. O que se registra é o processo de ensino-aprendizagem que de fato
+se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda.
+
+- **Planejar e registrar são coisas distintas — e as duas acontecem.** O plano é
+  **intenção** (editável enquanto a aula não foi dada); a partir da declaração
+  "aula dada", o registro passa a **fato** e só se acrescenta ajuste
+  (`ARQUITETURA-AULA.md`). O formulário de lançamento **consome o plano** como
+  entrada: sem ele não há marco da aula nem "o que mudou em relação ao plano".
 
 - **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP).
 - **Não implementa o FIPP**: o `.fipp` daqui é uma **âncora de proveniência
@@ -40,6 +48,15 @@ tiago (2)
 ## Últimos commits
 
 ```
+8a70634 fix(tools): o HANDOFF emite a identidade corrigida, e o plano entra nela
+ca560c4 docs(estrutura): a memória da aula dada deixa de negar o planejamento da aula
+bee3cb5 fix(ciclo-01): a harmonização deixa de citar "FIPP", e as âncoras do tiago acompanham
+0b92a01 docs(estrutura): os congelados perdem a sigla, e o hash-ciclo declara o que é aproximação
+2f0bcea docs(estrutura): a deriva de identidade que ficou fora da primeira correção
+01b12d2 feat(caderno): o caderno do Ciclo 01 da Diaghilev entra no repositório
+a5e6e7b docs(ideia): a aula como unidade, e o painel da escola como a outra face dela
+826d008 chore(estrutura): a varredura de deriva de identidade vira skill, e o REGISTRO ganha instrução
+8820adb fix(tools): a seção que só tinha citação é reportada, e o HANDOFF deixa de sair truncado
 ea80ad4 fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
 0dbd0af feat(ciclo-01): Ciclo 01 da Diaghilev — fontes e âncora
 4462d6a feat(ciclo-01): Ciclo 01 da Diaghilev — quatro aulas desiguais
@@ -51,15 +68,6 @@ ea80ad4 fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
 dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 7670128 feat(tools): o config da captura sai com chave e tipo por coluna
 3acf301 feat(ciclo-01): o schema da captura declara a chave e o tipo de cada coluna
-5a86b83 feat(prompts): a eliciacao pede os marcos por aula -- o plano ja os le
-b122559 feat(tools): a folha de captura vira fonte legivel por maquina (captura-XX.json)
-ab2ff84 feat(prompts): a eliciacao pergunta a forma de que a folha de captura precisa
-72bde8d fix(entrega): o formulario abre com lancamento gravado, e pede a senha na tela
-d54754a feat(ciclo-01): os lancamentos da Aula 01 entram no JSON (e o indice do formulario sai)
-61f2c7b docs(registro): a Musicalidade e o Guia de observacao estao marcados (remover)
-548660a feat(entrega): marca Musicalidade e Guia de observacao como (remover) no menu
-e5c45ae feat(entrega): o formulario de lancamento vai para producao (Area do Professor)
-42eb311 feat(tools): o JSON de dados vai para o pacote cifrado (e o check confere)
 ```
 
 ## Por professor
@@ -137,79 +145,114 @@ e5c45ae feat(entrega): o formulario de lancamento vai para producao (Area do Pro
 
 ## Última entrada do REGISTRO
 
-## 25/09/2026 — O HANDOFF truncado: o glob que abortava a geração em silêncio
+## 25/09/2026 — "Não o que foi planejado": a memória da aula dada e o plano como linha de base
 
 **O que motivou.**
-O `HANDOFF.md` — o **primeiro artefato que uma sessão nova lê** — estava sendo gerado **incompleto**.
-A geração terminava com `exit=2`, o arquivo era escrito até a metade do laço e **duas seções inteiras
-não saíam**: `## Documentos-chave (para leitura)` e `## Como retomar`. O arquivo no disco parecia
-normal (464 linhas), e é justamente por isso que o defeito passou: **um HANDOFF truncado se lê como
-um HANDOFF curto**. Quem abrisse a sessão seguinte não veria erro nenhum — veria menos.
+O usuário contestou a frase canônica do projeto — *"a **memória da aula dada** … registra o processo
+de ensino-aprendizagem que de fato se aplicou, **não o que foi planejado**"* — com um argumento
+direto: **não existe memória da aula dada sem o planejamento da aula**. Se a eliciação fixa objetivo
+específico, marcos por aula e volume, então **elicitar é também planejar**; e se o projeto de fato
+não planejasse aula, estaria indo na direção errada.
 
-A causa foi medida, não suposta. Em `tools/gerar-handoff.sh:189`, sob `set -euo pipefail`:
+O argumento foi verificado contra o repositório, e **o usuário estava certo**. Verificou-se:
 
-```bash
-aulas_escritas="$(ls -1 "professores/$p/ciclos"/ciclo-"$c"-aula-*.md 2>/dev/null | wc -l)"
-```
+- `professores/fochini/ciclos/ciclo-01-diaghilev-aula-02.md` é um **plano de aula completo** —
+  front-matter (`objetivo-especifico`, `duracao: "60 minutos"`, `volume-total: "94 tempos"`,
+  `referencias`) e nove seções, incluindo distribuição do tempo por parte da aula e a conta de
+  volume que fecha em **94 tempos**, auditada contra as Regras 4 e 9. Há quatro irmãos (`aula-01`,
+  `03`, `04`).
+- E esses planos **entram na âncora**: `ciclo-01-diaghilev.conf` lista `aula-01 … aula-04` em
+  `DOCS`. Entre os arquivos `aula-NN`, só `captura-aula-01` é artefato de captura — os demais são
+  **planejamento**.
+- `prompts/eliciar-ciclo.md` (congelado) **é** uma entrevista de planejamento: o Bloco 4 elicia o
+  objetivo específico e o **parâmetro de medição da Aula 1** e "**os marcos parciais, aula a aula**",
+  e impõe a forma da tabela de marcos "porque é a tabela que o extrator do plano lê como um objeto
+  por aula (`{n, marco}`)". `prompts/instalar-ciclo.md` preenche, no passo 4, `-plano.md`,
+  `-aula-01.md` e `-referencias.md`.
+- `ARQUITETURA-AULA.md:3` descreve o ciclo de vida **planejada → dada → lançada → ajustada**, e a
+  tabela de estados (`:20-21`) diz que **Planejada** é quando "existe a fonte `aula-NN.md`" e seu
+  estado epistêmico é **intenção** — CRUD livre.
+- O plano é **entrada do formulário**: `tools/templates/lancamento.html` carrega `po-<id>.json` e
+  `plano-<id>.json` (`carregarEntradas`), e de `planoDoCiclo.marcosPorAula` sai o marco da aula —
+  *"Sem o plano não há linha de marco — não se inventa o que a aula persegue."* E, quando a aula não
+  segue o plano, o formulário **obriga** a responder *"O que mudou em relação ao plano:"*.
 
-O glob era **cego ao sufixo da escola**: procurava `ciclo-01-aula-*.md`, e as aulas da Diaghilev se
-chamam `ciclo-01-diaghilev-aula-0N.md`. Sem casamento, o `ls` saía com código **2**; o `2>/dev/null`
-escondia a **mensagem**, não o **status** — e a atribuição herda o status do comando. O `set -e`
-matava o script **sem imprimir nada**. O idioma `|| true` já é usado duas linhas abaixo, para
-`eventos`/`n_eventos`: a armadilha era conhecida, e esta linha ficou de fora.
-
-Como a iteração é `LC_ALL=C sort`, **fochini vem antes de tiago**: o aborto cortou também o
-bullet que faltava ao tiago e as **duas seções finais**, que são escritas depois do laço.
+Diagnóstico: **a direção está certa, a redação estava errada.** A frase era uma oposição entre
+**plano** e **registro** — mas, sem qualificação, lê-se como **negação de que se planeje**. Lida nos
+**pontos de entrada** (é a primeira coisa que uma sessão nova encontra, e era também emitida pelo
+`HANDOFF.md`), ela instituía uma identidade falsa — o mesmo tipo de defeito que a correção de
+23/09 tratou: *quem entrava sem contexto saía com o contexto errado*.
 
 **O que foi decidido.**
-- O glob passa a ser **ciente da variante**: `find` com duas alternativas de nome
-  (`ciclo-$c-aula-*.md` e `ciclo-$c-*-aula-*.md`), `-maxdepth 1` e **exclusão explícita de
-  `*captura*`**.
-- **Por que a exclusão importa:** `ciclo-01-diaghilev-captura-aula-01.md` casa com o padrão
-  frouxo `ciclo-$c-*-aula-*.md`. Sem `! -name "*captura*"` o número **inflaria** — trocaríamos um
-  defeito silencioso por outro, com o contador errado em vez do arquivo truncado. O `-maxdepth 1`
-  impede descer para dentro das pastas de pacote (`ciclo-01-diaghilev/`).
-- A contagem **não** muda de significado: continua sendo **aulas escritas em detalhe**, e folha de
-  captura **não** é aula escrita.
+- A oposição **plano × registro** passa a ser declarada como **linha de base**, não como negação:
+  > **Projeto Ciclo** — a **memória da aula dada**. Cada aula é **planejada** antes de ser dada: o
+  > plano (`aula-NN.md`, que entra na âncora de proveniência) fixa objetivo, marcos e volume, e é
+  > ele que dá a **linha de base**. O que a memória registra é o processo de ensino-aprendizagem que
+  > de fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda.
+- Acrescenta-se o par **intenção × fato**, que é a distinção real do projeto: o plano é **intenção**
+  (editável enquanto a aula não foi dada); a partir da declaração **"aula dada"**, o registro passa a
+  **fato** e **só se acrescenta ajuste** (`ARQUITETURA-AULA.md:35`).
+- A formulação antiga entra na tabela de **"Formulações que não devem ser usadas"** do bloco
+  canônico, para que a paráfrase errada não volte por imitação.
+- **A versão curta** (nota de escopo do perfil `METODO.md`) e as seções "Escopo do projeto" dos
+  agentes **não** carregavam a cláusula — nenhuma mudança nelas. `README-ciclos.md` já dizia
+  "que de fato se aplicou." **com ponto final**, sem a negação — também fica como está.
+- **`REGISTRO.md:2352` fica como está.** A redação antiga dentro da entrada de 23/09 é **elo**, não
+  defeito: pela P-03/P-04 o passado se incorpora, não se reescreve. Esta entrada é que a corrige, e a
+  aponta.
 
 **Onde entrou.**
-- `tools/gerar-handoff.sh` — a linha 189 (`ls` → `find` ciente da variante) e, na mesma passagem,
-  a redação de escopo da linha 213 (`âncoras FIPP` → `âncoras de proveniência`).
+- `AGENTS.md` (bloco de identidade, o primeiro que se lê) e `README.md` — a versão longa nova, mais
+  o bullet **intenção × fato**.
+- `.github/instructions/ciclo-fontes.instructions.md` — o parágrafo de identidade.
+- `.github/skills/identidade-do-projeto/SKILL.md` — a linha da tabela "A identidade canônica".
+- `.github/skills/identidade-do-projeto/references/bloco-identidade.md` — a **fonte de cópia**: a
+  versão longa, o bullet novo e a linha nova na tabela de formulações proibidas.
+- `tools/gerar-handoff.sh` — a emissão da identidade no `HANDOFF.md`.
 
 **Motivo declarado — os congelados.**
-`tools/` está em `CONGELAMENTO.md`. Diferente das entradas de 23/09 — que declararam as mudanças em
-`tools/` como **de redação, não de comportamento** —, **esta muda comportamento**, e por isso não
-cabe naquelas: o gerador deixa de abortar e passa a **emitir seções que hoje não emite**. A
-**fórmula de hash, a cobertura da âncora, o contrato de extração, os validadores, as regras e as
-pétreas não foram tocados**; nenhuma âncora foi regerada e `--check` segue passando nos três ciclos.
-O porquê: o HANDOFF é o ponto de entrada de toda sessão nova, e um gerador que falha em silêncio
-deixa de ser fonte de verdade — sem que ninguém perceba, porque o resultado pela metade **parece
-válido**. Não é obstáculo contornável: a correção foi levada ao usuário e aprovada antes de entrar.
+`tools/` está em `CONGELAMENTO.md`. A mudança é, como nas entradas de `tools/` de 23/09, **de
+redação, não de comportamento**: o gerador passa a emitir o texto novo da identidade no lugar do
+antigo, e continua emitindo as mesmas seções, na mesma ordem, a partir das mesmas fontes. **A
+cláusula que motivou a mudança é uma afirmação sobre o objeto da memória — não uma regra de
+geração.** A **fórmula de hash, a cobertura da âncora, o contrato de extração, os validadores, as
+regras e as pétreas não foram tocados**; nenhuma âncora foi regerada e `--check` segue passando nos
+três ciclos. O porquê: o HANDOFF é o primeiro artefato que uma sessão nova lê, e era ele que
+repetia a identidade viciada — corrigir só os `.md` deixaria a emissão divergindo da fonte.
+**Nenhuma fonte de ciclo mudou**, e por isso **não se reancora**.
 
-**Prova de que o defeito é anterior a este trabalho.**
-Em uma *worktree* limpa, destacada no `HEAD` (`ea80ad4`) e sem nenhuma alteração pendente,
-`./tools/gerar-handoff.sh` reproduz **`exit=2`**, **462 linhas** e **zero** ocorrências de
-`## Documentos-chave` e `## Como retomar`. A correção foi validada em isolamento nessa mesma
-worktree — com ela, `exit=0`, as duas seções presentes, **486 linhas** e os bullets
-`fochini · ciclo 01: aulas escritas em detalhe: 4 de 4` e `tiago · ciclo 01: … 2 de 12` (as quatro
-capturas da Diaghilev **corretamente fora** da conta). No repositório real: `exit=0`, **489 linhas**,
-as duas seções e a redação `âncoras de proveniência`. Rodado duas vezes seguidas, o resultado
-difere **só** no carimbo `Gerado em:` — é idempotente no conteúdo.
+**A redação anterior não é apagada.** Até esta entrada, a identidade publicada dizia, em `AGENTS.md`,
+`README.md`, no bloco canônico e na emissão do `HANDOFF.md`:
+
+> **Projeto Ciclo** — a **memória da aula dada**. Registra o processo de ensino-aprendizagem que de
+> fato se aplicou, **não o que foi planejado**, e encadeia tudo o que muda.
+
+**A cláusula está errada** — é ela que negava o planejamento da aula. O texto continua onde foi
+escrito pela primeira vez: `REGISTRO.md:2352`, na entrada de 23/09/2026, e no histórico do Git. Fica
+como o elo que registra o que se pensou antes da correção; esta entrada é a que o corrige.
 
 **Com o quê.**
-`tools/gerar-handoff.sh`, `HANDOFF.md` (regerado), `REGISTRO.md`.
+`AGENTS.md`, `README.md`, `.github/instructions/ciclo-fontes.instructions.md`,
+`.github/skills/identidade-do-projeto/SKILL.md`,
+`.github/skills/identidade-do-projeto/references/bloco-identidade.md`, `tools/gerar-handoff.sh`,
+`HANDOFF.md` (regerado), `REGISTRO.md`.
 
 **Referências.**
-`CONGELAMENTO.md` (o procedimento); a entrada de 23/09/2026 (o gerador e o locale) — é dela a
-declaração de que as mudanças em `tools/` eram de redação, o que **valia para o que foi commitado
-em `7accb29`** e não cobre esta; `REGRAS.md` 16 (formato de entrega) e 17 (versionamento);
-`PROTOCOLO.md` P-04 (saídas reconstruíveis).
+`CONGELAMENTO.md` (o procedimento); a entrada de 23/09/2026 (a deriva de identidade e o segundo
+passo da correção) — é dela o critério de que a redação antiga fica preservada como elo;
+`ARQUITETURA-AULA.md` (planejada → dada → lançada → ajustada; intenção × fato);
+`prompts/eliciar-ciclo.md` (a eliciação que planeja); `REGRAS.md` 17 (versionamento); `PROTOCOLO.md`
+P-03/P-04 (a proveniência acrescenta, não edita).
 
 **O que ainda não está feito.**
-O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior não via) e a trazer as
-âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
-**demais seções do laço** que usam glob direto não foram auditadas uma a uma; a única corrigida foi
-a que abortava. Fica declarado, não resolvido.
+O **planejamento da aula ainda não tem todos os campos de que precisa** — o próprio
+`experimentos/captura-json/RELATORIO.md` §4.6 declara a lacuna: **falta a estrutura executada** (que
+viria do plano da aula e o JSON não carrega), o volume em tempos, o que foi abandonado, a linha de
+base. E `ciclo-01-plano-schema.json` declara a sua própria: *"o calendário **NÃO** está no `.md`"*, e
+os tipos do schema são os que **o documento oferece**, não os que o dado ideal teria. Corrigir a
+redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
+repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
+hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.
 
 ## O que está pendente
 
@@ -473,6 +516,14 @@ formulário) segue por fazer, como acima.
 
 O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior não via) e a trazer as
 âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
+O **planejamento da aula ainda não tem todos os campos de que precisa** — o próprio
+`experimentos/captura-json/RELATORIO.md` §4.6 declara a lacuna: **falta a estrutura executada** (que
+viria do plano da aula e o JSON não carrega), o volume em tempos, o que foi abandonado, a linha de
+base. E `ciclo-01-plano-schema.json` declara a sua própria: *"o calendário **NÃO** está no `.md`"*, e
+os tipos do schema são os que **o documento oferece**, não os que o dado ideal teria. Corrigir a
+redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
+repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
+hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.
 - **fochini · ciclo 01:** aulas escritas em detalhe: 4 de 4 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 2 de 12 (as demais entram depois da aula anterior).
