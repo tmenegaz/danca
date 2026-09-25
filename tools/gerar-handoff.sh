@@ -65,8 +65,16 @@ variantes_de() {
   echo
   echo "## O que é este projeto"
   echo
-  echo "**A memória da aula dada** — registra o processo de ensino-aprendizagem que de fato"
-  echo "se aplicou, não o que foi planejado, e encadeia tudo o que muda."
+  echo "**A memória da aula dada** — cada aula é **planejada** antes de ser dada: o plano"
+  echo "(\`aula-NN.md\`, fonte da âncora) fixa objetivo, marcos e volume, e é ele que dá a"
+  echo "**linha de base**. O que se registra é o processo de ensino-aprendizagem que de fato"
+  echo "se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda."
+  echo
+  echo "- **Planejar e registrar são coisas distintas — e as duas acontecem.** O plano é"
+  echo "  **intenção** (editável enquanto a aula não foi dada); a partir da declaração"
+  echo "  \"aula dada\", o registro passa a **fato** e só se acrescenta ajuste"
+  echo "  (\`ARQUITETURA-AULA.md\`). O formulário de lançamento **consome o plano** como"
+  echo "  entrada: sem ele não há marco da aula nem \"o que mudou em relação ao plano\"."
   echo
   echo "- **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP)."
   echo "- **Não implementa o FIPP**: o \`.fipp\` daqui é uma **âncora de proveniência"
