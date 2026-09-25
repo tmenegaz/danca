@@ -1,6 +1,6 @@
 # experimentos/ — área de teste
 
-O que fica aqui **não entra no hash FIPP**, **não entra no pacote** e **não é
+O que fica aqui **não entra no hash da âncora**, **não entra no pacote** e **não é
 publicado**. É área de teste: se funcionar, sai daqui e entra nos diretórios
 oficiais; se não, some.
 
@@ -10,7 +10,7 @@ Não depende de disciplina — depende de como o projeto é montado:
 
 | O que | Por que o `experimentos/` não afeta |
 |:--|:--|
-| **Hash FIPP** | cobre as fontes do ciclo, resolvidas por `tools/lib-fontes.sh` (`index` + `DOCS` + PO + manifestos + relatórios). Nada daqui é fonte |
+| **Hash da âncora** | cobre as fontes do ciclo, resolvidas por `tools/lib-fontes.sh` (`index` + `DOCS` + PO + manifestos + relatórios). Nada daqui é fonte |
 | **Pacote** | é montado de `DOCS` + acompanhamentos. Nada daqui está nessas listas |
 | **Site publicado** | o Netlify serve os pacotes versionados. Nada daqui é publicado |
 | **`check-pacote`** | valida o pacote, não a raiz do repositório |

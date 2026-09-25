@@ -1,5 +1,5 @@
 ---
-description: "Use when: auditar um ciclo ou uma fonte contra as 17 regras de REGRAS.md, as 22 pétreas de PROTOCOLO.md e o congelamento de CONGELAMENTO.md; revisar .md/.conf de ciclo (apelidos estáveis P-12, lacunas [Preencher]/[conferir], sufixo da escola, ids e âncoras, harmonização P-21); ou conferir a proveniência FIPP e a política de dados sensíveis."
+description: "Use when: auditar um ciclo ou uma fonte contra as 17 regras de REGRAS.md, as 22 pétreas de PROTOCOLO.md e o congelamento de CONGELAMENTO.md; revisar .md/.conf de ciclo (apelidos estáveis P-12, lacunas [Preencher]/[conferir], sufixo da escola, ids e âncoras, harmonização P-21); ou conferir a âncora de proveniência encadeada e a política de dados sensíveis."
 tools: [read, search, execute]
 argument-hint: "ciclo ou arquivo a auditar — ex.: ciclo-01-ritmos"
 ---

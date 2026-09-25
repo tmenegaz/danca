@@ -18,7 +18,7 @@ de um **PO de departamento** (ver [`../departamentos/README.md`](../departamento
 
 | Pasta | O que é |
 |:--|:--|
-| `ciclos/` | manifestos, planos, aulas, POs e âncoras FIPP dos ciclos daquele professor |
+| `ciclos/` | manifestos, planos, aulas, POs e âncoras de proveniência (`.fipp`) dos ciclos daquele professor |
 | `cadernos/` | o caderno descritivo por aula (P-06) |
 | `relatorios/` | os relatórios pós-aula, um por aula |
 | `campo/` | o material bruto de campo (formulários, respostas, registros) |

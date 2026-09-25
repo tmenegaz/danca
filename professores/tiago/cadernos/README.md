@@ -131,7 +131,7 @@ Regras: 8 (Proveniência), 12 (Observação pedagógica), 17 (Versionamento)
 Auditoria: sim"
    ```
 
-3. O caderno é **publicado no pacote** (HTML + PDF) **e é fonte do hash FIPP**.
+3. O caderno é **publicado no pacote** (HTML + PDF) **e é fonte do hash da âncora**.
    A versão-fonte continua sendo o `.md` — o HTML e o PDF do pacote são gerados a
    partir dele. (Antes de 19/09/2026 ele ficava fora do pacote por decisão de
    método: a ausência de forma final era parte da função. A decisão mudou.)
@@ -141,7 +141,7 @@ Auditoria: sim"
    reescrito, é acrescido.
 5. O caderno **entra na declaração de hash do ciclo** desde 19/09/2026: ele está
    no `DOCS` do manifesto e o `tools/hash-ciclo.sh` o cobre como qualquer outro
-   documento. A ligação com a cadeia FIPP deixou de ser apenas documental — o que
+   documento. A ligação com a cadeia de proveniência deixou de ser apenas documental — o que
    dá ainda mais peso à regra acima: editar uma entrada antiga muda a âncora do
    ciclo. O passado não se reescreve; acrescenta-se.
 

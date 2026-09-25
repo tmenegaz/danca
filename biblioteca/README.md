@@ -27,7 +27,7 @@ nem alternativas: são coisas distintas, e confundi-las já custou uma rodada in
 correção — um link `../biblioteca/referencias.md` saído de um documento do ciclo, que
 não resolve dentro do pacote.
 
-| Arquivo | Papel | Entra no hash FIPP? |
+| Arquivo | Papel | Entra no hash da âncora? |
 |:--|:--|:--|
 | `biblioteca/referencias.md` | lista de trabalho compartilhada, reutilizável por qualquer ciclo | **não** |
 | `ciclos/ciclo-XX-referencias.md` | página publicada do pacote — seleção curada, com seções editoriais | **sim** |
@@ -39,7 +39,7 @@ apresentação, ciclos futuros), com o status epistêmico declarado quando for o
 (ex.: "fonte de repertório, não acadêmica").
 
 - **Reutilizável:** qualquer ciclo pode consultar.
-- **Não entra no hash FIPP de ciclo nenhum** — é fonte de trabalho, não artefato
+- **Não entra no hash da âncora de ciclo nenhum** — é fonte de trabalho, não artefato
   publicado.
 - **Cresce por acúmulo:** cada nova referência entra aqui, no commit que a introduziu.
 
@@ -49,7 +49,7 @@ A bibliografia que aparece **dentro do pacote** do ciclo (HTML + PDF).
 
 - **Seleção curada:** nem tudo da biblioteca entra — só o que é relevante para aquele
   ciclo.
-- **Entra no hash FIPP do ciclo** — é artefato publicado (P-04).
+- **Entra no hash da âncora do ciclo** — é artefato publicado (P-04).
 - **Tem seções editoriais próprias** ("Pedagogia do balé", "Notação em Benesh",
   "História e política"…), que a biblioteca não tem.
 

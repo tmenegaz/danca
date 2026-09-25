@@ -2,7 +2,9 @@
 
 Um **PO de departamento** é a norma de observação de uma escola que adota metodologia
 comum (RAD, Vaganova, Cecchetti, ou outra). Ele não substitui o PO do professor: é o
-**pai** dele na cadeia FIPP.
+**pai** dele na cadeia de proveniência encadeada (a âncora `.fipp` deste repositório;
+ver a ressalva de escopo em `README.md` — o FIPP, do projeto de mestrado, **não** está
+implementado aqui).
 
 ## Quando existe
 
@@ -29,7 +31,7 @@ observa (o padrão); o professor define **como** observa na turma dele.
 departamentos/
 └── <escola>/
     ├── po-departamento.md      a norma (campos do PO, sem linha de base de turma)
-    └── po-departamento.fipp    âncora da cadeia FIPP
+    └── po-departamento.fipp    âncora da cadeia de proveniência
 ```
 
 ## Hoje neste projeto

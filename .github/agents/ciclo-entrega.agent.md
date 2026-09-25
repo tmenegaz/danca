@@ -1,5 +1,5 @@
 ---
-description: "Use when: gerar, regerar ou validar o pacote de um ciclo (HTML + PDF), recalcular a âncora FIPP com hash-ciclo.sh, rodar check-pacote.js e os validadores isolados, publicar um ciclo no Netlify, ou diagnosticar uma geração interrompida por duração, volume ou contexto institucional ausente."
+description: "Use when: gerar, regerar ou validar o pacote de um ciclo (HTML + PDF), recalcular a âncora de proveniência com hash-ciclo.sh, rodar check-pacote.js e os validadores isolados, publicar um ciclo no Netlify, ou diagnosticar uma geração interrompida por duração, volume ou contexto institucional ausente."
 tools: [read, search, execute]
 argument-hint: "professor, ciclo e escola — ex.: tiago 01 duo"
 ---
@@ -48,7 +48,7 @@ Diga qual arquivo e qual linha declarar, e deixe a correção para quem é dono 
 
 1. **Comando executado** e o que ele produziu (caminho do pacote, contagem de páginas/arquivos).
 2. **Resultado da validação** — passo, ou a lista de violações com o arquivo e o motivo.
-3. **Âncora FIPP** — hash gerado ou resultado do `--check`.
+3. **Âncora de proveniência** — hash gerado ou resultado do `--check`.
 4. **O que ficou pendente** — lacunas `[Preencher]`, `[conferir]`, arquivos ausentes.
 
 Seja conciso. Não reproduza o conteúdo das aulas no relatório: aponte o arquivo.
