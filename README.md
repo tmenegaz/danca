@@ -5,8 +5,10 @@
 > **Ideias futuras → [`IDEIA-CAPTURA.md`](IDEIA-CAPTURA.md) ·
 > [`ARQUITETURA-CAPTURA.md`](ARQUITETURA-CAPTURA.md)**
 
-**Projeto Ciclo** é a **memória da aula dada**: registra o processo de ensino-aprendizagem
-que de fato se aplicou, não o que foi planejado, e encadeia tudo o que muda. Repositório
+**Projeto Ciclo** é a **memória da aula dada**. Cada aula é **planejada** antes de ser dada: o
+plano (`aula-NN.md`, que entra na âncora de proveniência) fixa objetivo, marcos e volume, e é ele
+que dá a **linha de base**. O que a memória registra é o processo de ensino-aprendizagem que de
+fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda. Repositório
 único com as **duas frentes**: as **aulas** (ciclos de aprendizagem) e a **apresentação**
 (deck do rizoma). Tudo gerado por scripts, validado automaticamente e versionado com
 proveniência.

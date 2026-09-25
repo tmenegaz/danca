@@ -28,7 +28,7 @@ improvise paráfrase.
 
 | É | Não é |
 |:--|:--|
-| A **memória da aula dada** — o processo que **de fato se aplicou**, não o planejado | — |
+| A **memória da aula dada** — cada aula é **planejada** (`aula-NN.md`, fonte da âncora), e o plano é a **linha de base**; o que se registra é **o que mudou** em relação a ele | — |
 | **Protótipo**, testado no **universo da dança** | **Não é agnóstico** — o projeto agnóstico será criado **a partir** dele |
 | Aplica um PO, como **experimentação** | **Não é o projeto de mestrado** — o mestrado está em outro diretório |
 | Tem **âncora de proveniência encadeada** (`hash-ciclo.sh` → `.fipp`), **aproximação** do FIPP | **Não implementa o FIPP** — o FIPP pertence ao outro projeto |

@@ -2730,3 +2730,113 @@ O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior nã
 âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
 **demais seções do laço** que usam glob direto não foram auditadas uma a uma; a única corrigida foi
 a que abortava. Fica declarado, não resolvido.
+---
+
+## 25/09/2026 — "Não o que foi planejado": a memória da aula dada e o plano como linha de base
+
+**O que motivou.**
+O usuário contestou a frase canônica do projeto — *"a **memória da aula dada** … registra o processo
+de ensino-aprendizagem que de fato se aplicou, **não o que foi planejado**"* — com um argumento
+direto: **não existe memória da aula dada sem o planejamento da aula**. Se a eliciação fixa objetivo
+específico, marcos por aula e volume, então **elicitar é também planejar**; e se o projeto de fato
+não planejasse aula, estaria indo na direção errada.
+
+O argumento foi verificado contra o repositório, e **o usuário estava certo**. Verificou-se:
+
+- `professores/fochini/ciclos/ciclo-01-diaghilev-aula-02.md` é um **plano de aula completo** —
+  front-matter (`objetivo-especifico`, `duracao: "60 minutos"`, `volume-total: "94 tempos"`,
+  `referencias`) e nove seções, incluindo distribuição do tempo por parte da aula e a conta de
+  volume que fecha em **94 tempos**, auditada contra as Regras 4 e 9. Há quatro irmãos (`aula-01`,
+  `03`, `04`).
+- E esses planos **entram na âncora**: `ciclo-01-diaghilev.conf` lista `aula-01 … aula-04` em
+  `DOCS`. Entre os arquivos `aula-NN`, só `captura-aula-01` é artefato de captura — os demais são
+  **planejamento**.
+- `prompts/eliciar-ciclo.md` (congelado) **é** uma entrevista de planejamento: o Bloco 4 elicia o
+  objetivo específico e o **parâmetro de medição da Aula 1** e "**os marcos parciais, aula a aula**",
+  e impõe a forma da tabela de marcos "porque é a tabela que o extrator do plano lê como um objeto
+  por aula (`{n, marco}`)". `prompts/instalar-ciclo.md` preenche, no passo 4, `-plano.md`,
+  `-aula-01.md` e `-referencias.md`.
+- `ARQUITETURA-AULA.md:3` descreve o ciclo de vida **planejada → dada → lançada → ajustada**, e a
+  tabela de estados (`:20-21`) diz que **Planejada** é quando "existe a fonte `aula-NN.md`" e seu
+  estado epistêmico é **intenção** — CRUD livre.
+- O plano é **entrada do formulário**: `tools/templates/lancamento.html` carrega `po-<id>.json` e
+  `plano-<id>.json` (`carregarEntradas`), e de `planoDoCiclo.marcosPorAula` sai o marco da aula —
+  *"Sem o plano não há linha de marco — não se inventa o que a aula persegue."* E, quando a aula não
+  segue o plano, o formulário **obriga** a responder *"O que mudou em relação ao plano:"*.
+
+Diagnóstico: **a direção está certa, a redação estava errada.** A frase era uma oposição entre
+**plano** e **registro** — mas, sem qualificação, lê-se como **negação de que se planeje**. Lida nos
+**pontos de entrada** (é a primeira coisa que uma sessão nova encontra, e era também emitida pelo
+`HANDOFF.md`), ela instituía uma identidade falsa — o mesmo tipo de defeito que a correção de
+23/09 tratou: *quem entrava sem contexto saía com o contexto errado*.
+
+**O que foi decidido.**
+- A oposição **plano × registro** passa a ser declarada como **linha de base**, não como negação:
+  > **Projeto Ciclo** — a **memória da aula dada**. Cada aula é **planejada** antes de ser dada: o
+  > plano (`aula-NN.md`, que entra na âncora de proveniência) fixa objetivo, marcos e volume, e é
+  > ele que dá a **linha de base**. O que a memória registra é o processo de ensino-aprendizagem que
+  > de fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda.
+- Acrescenta-se o par **intenção × fato**, que é a distinção real do projeto: o plano é **intenção**
+  (editável enquanto a aula não foi dada); a partir da declaração **"aula dada"**, o registro passa a
+  **fato** e **só se acrescenta ajuste** (`ARQUITETURA-AULA.md:35`).
+- A formulação antiga entra na tabela de **"Formulações que não devem ser usadas"** do bloco
+  canônico, para que a paráfrase errada não volte por imitação.
+- **A versão curta** (nota de escopo do perfil `METODO.md`) e as seções "Escopo do projeto" dos
+  agentes **não** carregavam a cláusula — nenhuma mudança nelas. `README-ciclos.md` já dizia
+  "que de fato se aplicou." **com ponto final**, sem a negação — também fica como está.
+- **`REGISTRO.md:2352` fica como está.** A redação antiga dentro da entrada de 23/09 é **elo**, não
+  defeito: pela P-03/P-04 o passado se incorpora, não se reescreve. Esta entrada é que a corrige, e a
+  aponta.
+
+**Onde entrou.**
+- `AGENTS.md` (bloco de identidade, o primeiro que se lê) e `README.md` — a versão longa nova, mais
+  o bullet **intenção × fato**.
+- `.github/instructions/ciclo-fontes.instructions.md` — o parágrafo de identidade.
+- `.github/skills/identidade-do-projeto/SKILL.md` — a linha da tabela "A identidade canônica".
+- `.github/skills/identidade-do-projeto/references/bloco-identidade.md` — a **fonte de cópia**: a
+  versão longa, o bullet novo e a linha nova na tabela de formulações proibidas.
+- `tools/gerar-handoff.sh` — a emissão da identidade no `HANDOFF.md`.
+
+**Motivo declarado — os congelados.**
+`tools/` está em `CONGELAMENTO.md`. A mudança é, como nas entradas de `tools/` de 23/09, **de
+redação, não de comportamento**: o gerador passa a emitir o texto novo da identidade no lugar do
+antigo, e continua emitindo as mesmas seções, na mesma ordem, a partir das mesmas fontes. **A
+cláusula que motivou a mudança é uma afirmação sobre o objeto da memória — não uma regra de
+geração.** A **fórmula de hash, a cobertura da âncora, o contrato de extração, os validadores, as
+regras e as pétreas não foram tocados**; nenhuma âncora foi regerada e `--check` segue passando nos
+três ciclos. O porquê: o HANDOFF é o primeiro artefato que uma sessão nova lê, e era ele que
+repetia a identidade viciada — corrigir só os `.md` deixaria a emissão divergindo da fonte.
+**Nenhuma fonte de ciclo mudou**, e por isso **não se reancora**.
+
+**A redação anterior não é apagada.** Até esta entrada, a identidade publicada dizia, em `AGENTS.md`,
+`README.md`, no bloco canônico e na emissão do `HANDOFF.md`:
+
+> **Projeto Ciclo** — a **memória da aula dada**. Registra o processo de ensino-aprendizagem que de
+> fato se aplicou, **não o que foi planejado**, e encadeia tudo o que muda.
+
+**A cláusula está errada** — é ela que negava o planejamento da aula. O texto continua onde foi
+escrito pela primeira vez: `REGISTRO.md:2352`, na entrada de 23/09/2026, e no histórico do Git. Fica
+como o elo que registra o que se pensou antes da correção; esta entrada é a que o corrige.
+
+**Com o quê.**
+`AGENTS.md`, `README.md`, `.github/instructions/ciclo-fontes.instructions.md`,
+`.github/skills/identidade-do-projeto/SKILL.md`,
+`.github/skills/identidade-do-projeto/references/bloco-identidade.md`, `tools/gerar-handoff.sh`,
+`HANDOFF.md` (regerado), `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (o procedimento); a entrada de 23/09/2026 (a deriva de identidade e o segundo
+passo da correção) — é dela o critério de que a redação antiga fica preservada como elo;
+`ARQUITETURA-AULA.md` (planejada → dada → lançada → ajustada; intenção × fato);
+`prompts/eliciar-ciclo.md` (a eliciação que planeja); `REGRAS.md` 17 (versionamento); `PROTOCOLO.md`
+P-03/P-04 (a proveniência acrescenta, não edita).
+
+**O que ainda não está feito.**
+O **planejamento da aula ainda não tem todos os campos de que precisa** — o próprio
+`experimentos/captura-json/RELATORIO.md` §4.6 declara a lacuna: **falta a estrutura executada** (que
+viria do plano da aula e o JSON não carrega), o volume em tempos, o que foi abandonado, a linha de
+base. E `ciclo-01-plano-schema.json` declara a sua própria: *"o calendário **NÃO** está no `.md`"*, e
+os tipos do schema são os que **o documento oferece**, não os que o dado ideal teria. Corrigir a
+redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
+repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
+hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.

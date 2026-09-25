@@ -2,8 +2,16 @@
 
 ## O que é este projeto (leia antes de qualquer coisa)
 
-**Projeto Ciclo** — a **memória da aula dada**. Registra o processo de ensino-aprendizagem
-que de fato se aplicou, não o que foi planejado, e encadeia tudo o que muda.
+**Projeto Ciclo** — a **memória da aula dada**. Cada aula é **planejada** antes de ser dada: o
+plano (`aula-NN.md`, que entra na âncora de proveniência) fixa objetivo, marcos e volume, e é ele
+que dá a **linha de base**. O que a memória registra é o processo de ensino-aprendizagem que de
+fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda.
+
+- **Planejar e registrar são coisas distintas — e as duas acontecem.** A aula é planejada
+  (`aula-NN.md`), dada, e então lançada. O plano é **intenção**: editável enquanto a aula não foi
+  dada. A partir da declaração "aula dada", o registro passa a **fato** — só se acrescenta ajuste,
+  nunca se reescreve a intenção (`ARQUITETURA-AULA.md`). O formulário de lançamento **consome o
+  plano** como entrada: sem ele não há marco da aula nem "o que mudou em relação ao plano".
 
 - **NÃO é o projeto de mestrado.** O mestrado está em **outro diretório**, e é de lá que
   vem o PO (Protocolo de Observação) e o FIPP. Este repositório **aplica** um PO; não o
