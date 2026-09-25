@@ -78,7 +78,7 @@ observacional é decisão do professor: a norma do departamento define **o que**
 Isso protege:
 
 - a autonomia pedagógica do professor;
-- a rastreabilidade — cada PO tem a sua cadeia FIPP, com a sua âncora;
+- a rastreabilidade — cada PO tem a sua cadeia de proveniência encadeada, com a sua âncora;
 - a comparabilidade — POs derivados do mesmo departamento compartilham a norma, mas
   mantêm recortes próprios.
 

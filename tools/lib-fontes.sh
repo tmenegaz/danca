@@ -42,7 +42,7 @@ fonte_md() {
 }
 
 # Caminho do JSON de DADOS do ciclo — a captura em JSON (peça 1 da migração). É FONTE: entra no
-# hash FIPP, e NÃO é publicado (não está em DOCS). A variante vence a base, como em fonte_md():
+# hash da âncora, e NÃO é publicado (não está em DOCS). A variante vence a base, como em fonte_md():
 # a captura é POR ESCOLA, como o PO e os relatórios.
 fonte_dados() {
   local proprio="$CICLOS/ciclo-$CICLO-${VARIANTE:-}-dados.json"

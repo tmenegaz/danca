@@ -10,7 +10,7 @@
  * POR QUE EXISTE, E POR QUE É NA FONTE. As chaves do JSON de dados eram as do modelo fixo
  * (`alinhamento`, `tempo`…) e o ciclo passou a declarar as suas (o schema da captura: rótulo ↔
  * chave). O rename acontece no TEXTO PLANO — `ciclos/ciclo-XX[-<escola>]-dados.json`, que é FONTE
- * (entra no hash FIPP) —, e não no envelope cifrado do pacote: o envelope é DERIVADO, e o gerador
+ * (entra no hash da âncora) —, e não no envelope cifrado do pacote: o envelope é DERIVADO, e o gerador
  * o reescreve a partir deste arquivo a cada `gerar-ciclo.sh`. Migrar o envelope seria perdido na
  * geração seguinte (foi o que aconteceu na primeira tentativa desta fase).
  *

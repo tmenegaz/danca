@@ -129,8 +129,8 @@ não impõe harmonização; ele a oferece.
 ### O que acontece quando o professor discorda
 
 A discordância **não edita** a versão anterior: ela gera uma **nova versão do
-ciclo**, com a decisão do professor incorporada e **reancorada** (novo hash
-FIPP). A versão anterior continua registrada — no histórico do Git (o `.fipp` é
+ciclo**, com a decisão do professor incorporada e **reancorada** (nova âncora de
+proveniência). A versão anterior continua registrada — no histórico do Git (o `.fipp` é
 versionado) e no `REGISTRO.md` —, e a tabela é **acrescida** com a linha nova.
 Nada é sobrescrito: a proveniência acrescenta, não edita. O material bruto em
 `campo/` segue intocado.
@@ -174,7 +174,7 @@ aconteceu, com data (ver a governança do caderno, abaixo).
 3. Preencher `-po.md` com os campos respondidos
 4. Preencher `ciclo-01-<escola>-plano.md`, `-aula-01.md`, `-referencias.md`
 5. Descobrir os artefatos do Duo (ciclo piloto) e replicar a estrutura
-6. Gerar âncora FIPP: `tools/hash-ciclo.sh <nome> 01 <escola>`
+6. Gerar âncora de proveniência: `tools/hash-ciclo.sh <nome> 01 <escola>`
 7. Gerar pacote: `tools/gerar-ciclo.sh <nome> 01 <escola>`
 8. Validar: `tools/check-pacote.js`
 9. Registrar em `REGISTRO.md`

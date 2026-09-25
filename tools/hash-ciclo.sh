@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # ============================================================================
-# hash-ciclo.sh — âncora de proveniência FIPP de um ciclo (P-03, P-04, P-08).
+# hash-ciclo.sh — âncora de proveniência encadeada de um ciclo (P-03, P-04, P-08).
+#
+# A âncora deste repositório é uma APROXIMAÇÃO do FIPP do projeto de mestrado
+# (outro diretório), que NÃO está implementado aqui. Ao falar dela, prefira
+# "âncora de proveniência encadeada" a "FIPP" — ver a ressalva em README.md.
 #
 #   uso:
 #     tools/hash-ciclo.sh [<professor>] <ciclo> <variante> [--check]
@@ -20,7 +24,7 @@
 #
 #   id .......... "ciclo-01-duo"   (identificador do artefato)
 #   type ........ "Ciclo"          (tipo fixo)
-#   parentHash .. hash FIPP do ciclo anterior, mesma variante (vazio no Ciclo 01)
+#   parentHash .. hash da âncora do ciclo anterior, mesma variante (vazio no Ciclo 01)
 #   conteudo .... hash das fontes
 #
 # Cobertura: apenas FONTES — professores/<professor>/ciclos/ciclo-XX.conf,
@@ -164,7 +168,7 @@ HASH_CONTEUDO="$( for f in $FONTES; do
                     printf '\n'
                   done | sha )"
 
-# --- 4) parentHash: hash FIPP do ciclo anterior, mesma variante -------------
+# --- 4) parentHash: hash da âncora do ciclo anterior, mesma variante ---------
 PARENT_HASH=""
 NUM="$(printf '%d' "$CICLO")"
 if [ "$NUM" -gt 1 ]; then
@@ -178,7 +182,7 @@ if [ "$NUM" -gt 1 ]; then
   fi
 fi
 
-# --- 5) hash FIPP -----------------------------------------------------------
+# --- 5) hash da âncora ------------------------------------------------------
 HASH_FIPP="$(printf '%s' "$ID:$TIPO:$PARENT_HASH:$HASH_CONTEUDO" | sha)"
 
 # --- 6) verificação (--check) ----------------------------------------------
@@ -235,7 +239,7 @@ fi
 
 # --- 7) gravação do .fipp ---------------------------------------------------
 {
-  echo "# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh"
+  echo "# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh"
   echo "# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04)."
   echo "# Fontes cobertas: $CONF_BASE, $CONF_VARIANTE e os .md deste ciclo."
   echo "# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)"

@@ -25,7 +25,7 @@
 # AULA, lida do relatório. Rodar duas vezes produz o mesmo arquivo — é o que
 # torna o documento uma vista conferível, e não um instantâneo.
 #
-# O acompanhamento NÃO entra no hash FIPP: ele é derivado (PO + relatórios), e
+# O acompanhamento NÃO entra no hash da âncora: ele é derivado (PO + relatórios), e
 # o hash cobre as fontes. Ver tools/lib-fontes.sh.
 # ============================================================================
 
