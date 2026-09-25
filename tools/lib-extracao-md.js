@@ -21,6 +21,12 @@
  *   · linha de tabela → a REGRA DE TABELA (logo abaixo);
  *   · texto corrido   → valor de um campo string (e, em campo array, um item).
  *
+ * A CITAÇÃO (`> …`) NÃO É CONTEÚDO: ela não entra em valor nenhum — é comentário do documento
+ * (a nota de método, o aviso ao leitor). Consequência que já custou uma geração: uma seção cujo
+ * ÚNICO conteúdo é citação não produz campo algum, e o validador acusa `campo ausente` sem dizer
+ * por quê. O contrato REGISTRA essas seções em `secoesSoCitacao`, e cada validador as converte em
+ * aviso nomeado (`avisosDeSecaoSoCitacao`) — a causa dita, no lugar do sintoma mudo.
+ *
  * O TIPO VEM DO SCHEMA: em campo string, listas e tabelas fazem parte do TEXTO ("o texto da
  * seção"); em campo array, cada item é um elemento — e uma tabela é o array de OBJETOS.
  *
@@ -128,7 +134,10 @@ const ehSeparador = (celulas) =>
  * @param {object}   declaracao   o que o contrato não pode adivinhar (ver o cabeçalho):
  *                                `{ secoes, colunas, pares }`. É DO DOCUMENTO — o PO e o plano
  *                                têm as suas, e elas chegam por argumento.
- * @returns {{campos: object, avisos: string[]}}
+ * @returns {{campos: object, avisos: string[], secoesSoCitacao: Array<{titulo:string,
+ *   campo:string|null, subcampo:string|null}>}}  `secoesSoCitacao` são as seções cujo ÚNICO
+ *   conteúdo foi citação — o validador as transforma em aviso nomeado por
+ *   `avisosDeSecaoSoCitacao()`.
  */
 function extrair(linhas, schema, declaracao) {
   const { secoes = {}, colunas = {}, pares = {} } = declaracao || {};
@@ -142,6 +151,25 @@ function extrair(linhas, schema, declaracao) {
   const tipoSub = (campo, sub) =>
     (((schema.properties[campo] || {}).properties || {})[sub] || {}).type;
   const ehArray = (campo, sub) => (sub ? tipoSub(campo, sub) : tipo(campo)) === 'array';
+
+  // A SEÇÃO QUE SÓ TEM CITAÇÃO — o defeito que custou uma geração inteira (23/09/2026).
+  // O contrato descarta as linhas `>` de propósito (blockquote é comentário do documento,
+  // não conteúdo — é o que faz o `<!-- CALENDARIO -->` e as notas de método não virarem
+  // TEXTO do campo). Mas quando uma seção tem SÓ citação, o campo nunca é criado: ele sai
+  // como `campo ausente`, e a mensagem não diz que a causa é a citação — quem escreveu o
+  // documento vê "faltou o campo" e vai procurar no lugar errado.
+  // O que se registra aqui: a seção (pelo título, e o tipo do campo) que teve citação e
+  // NENHUM conteúdo real. Vale para campo de topo e para subcampo (`###`).
+  const secoesSoCitacao = [];
+  let tituloDaSecao = null;      // o título cru, para a mensagem ; `secao` é o campo
+  let secaoTeveConteudo = false;
+  let secaoTeveCitacao = false;
+  let subcampoDaSecao = null;
+  const fecharSecao = () => {
+    if (tituloDaSecao && secaoTeveCitacao && !secaoTeveConteudo) {
+      secoesSoCitacao.push({ titulo: tituloDaSecao, campo: secao, subcampo: subcampoDaSecao });
+    }
+  };
 
   // A DECLARAÇÃO RENOMEIA: a chave derivada do documento (cabeçalho de coluna, ou rótulo do
   // par) vira a chave do alvo. Sem par no mapa, fica a derivada.
@@ -219,14 +247,19 @@ function extrair(linhas, schema, declaracao) {
 
     const h2 = limpa.match(/^##\s+(.+?)\s*$/);
     if (h2) {
+      fecharSecao();
       secao = secoes[normalizar(h2[1])] || null;
       subcampo = null;
+      tituloDaSecao = h2[1];
+      subcampoDaSecao = null;
+      secaoTeveConteudo = false;
+      secaoTeveCitacao = false;
       if (secao && !(secao in campos)) campos[secao] = undefined;
       continue;
     }
 
     const h3 = limpa.match(/^###\s+(\S+)\s*$/);
-    if (h3) { subcampo = h3[1]; continue; }
+    if (h3) { subcampo = h3[1]; subcampoDaSecao = h3[1]; continue; }
 
     if (!secao) continue;
 
@@ -234,7 +267,14 @@ function extrair(linhas, schema, declaracao) {
     // ele é marcação, não conteúdo: o `<!-- CALENDARIO -->` do plano é o marcador que o
     // gerador substitui, e sem esta linha ele virava o TEXTO da seção (e a lacuna declarada
     // do calendário nunca apareceria).
-    if (limpa === '' || limpa === '---' || limpa.startsWith('>') || limpa.startsWith('<!--')) continue;
+    if (limpa === '' || limpa === '---' || limpa.startsWith('<!--')) continue;
+    // A CITAÇÃO é comentário do documento — não vira texto do campo (é o que impede a nota
+    // de método de entrar no valor). Mas ela é CONTADA: uma seção cujo único conteúdo é
+    // citação não gera campo nenhum, e o aviso nomeado do fim diz exatamente isso. Sem este
+    // registro, a causa (`> nota`) ficava invisível e o sintoma era `campo ausente`.
+    if (limpa.startsWith('>')) { secaoTeveCitacao = true; continue; }
+    // o que resta é conteúdo do campo: item, linha de tabela (fora da regra) ou texto
+    secaoTeveConteudo = true;
 
     // onde este trecho entra: no subcampo (se houver) ou na seção
     const acumular = (trecho) => {
@@ -291,7 +331,8 @@ function extrair(linhas, schema, declaracao) {
     }
   }
   despejarTabela();          // a última tabela do documento
-  return { campos, avisos };
+  fecharSecao();             // e a última seção
+  return { campos, avisos, secoesSoCitacao };
 }
 
 function tipoDe(v) {
@@ -300,10 +341,39 @@ function tipoDe(v) {
   return typeof v;
 }
 
+/**
+ * O AVISO NOMEADO para cada seção cujo único conteúdo é citação — ver `secoesSoCitacao`, acima.
+ *
+ * Existe para trocar um sintoma mudo por uma causa dita. Sem ele, a seção só com `> nota`
+ * produzia `campo ausente: proveniencia` no validador: a mensagem está correta e é inútil — quem
+ * escreveu o documento vai procurar o campo que "faltou" em vez da citação que o engoliu.
+ *
+ * A localização sai do TÍTULO (`## Registro de proveniência`), achado nas linhas do documento
+ * pelo texto do cabeçalho: é o endereço que quem edita o `.md` usa.
+ *
+ * @param {Array<{titulo:string, campo:string|null, subcampo:string|null}>} secoes
+ * @param {string[]} linhas  as mesmas linhas passadas a `extrair`, para localizar o título
+ * @returns {string[]} um aviso por seção
+ */
+function avisosDeSecaoSoCitacao(secoes, linhas) {
+  return (secoes || []).map((s) => {
+    const i = (linhas || []).findIndex((l) => l.trim() === `## ${s.titulo}`);
+    const onde = i >= 0 ? ` (linha ${i + 1})` : '';
+    const alvo = s.subcampo ? `'${s.campo}.${s.subcampo}'` : `'${s.campo}'`;
+    const destino = s.campo
+      ? `o campo ${alvo} não é criado`
+      : 'a seção não corresponde a campo nenhum do schema (o título não está no mapa das seções)';
+    return `seção '## ${s.titulo}'${onde}: só tem citação ('> …') — ${destino}.`
+      + ' O blockquote é comentário e não vira conteúdo: escreva o texto fora dele.';
+  });
+}
+
 module.exports = {
   // o contrato
   extrair,
   // as partes do contrato que o validador de cada documento confere (e que o teste exercita)
   celulasDaLinha, semEnfase, textoDaCelula, chaveDaColuna, ehSeparador,
   lerYamlCabecalho, normalizar, tipoDe,
+  // o aviso nomeado da seção só com citação (comum ao PO e ao plano — definição única)
+  avisosDeSecaoSoCitacao,
 };

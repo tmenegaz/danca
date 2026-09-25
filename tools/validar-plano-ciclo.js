@@ -24,7 +24,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { extrair, lerYamlCabecalho } = require('./lib-extracao-md.js');
+const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao } = require('./lib-extracao-md.js');
 const { validar } = require('./lib-validacao-md.js');
 
 // Títulos em português do documento → propriedades do schema. As CHAVES do mapa são o título
@@ -119,14 +119,15 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos: avisosDaExtracao } = extrair(linhas, schema, DECLARACAO);
+  const { campos, avisos: avisosDaExtracao, secoesSoCitacao } = extrair(linhas, schema, DECLARACAO);
   const lacunasSemLugar = aplicarLacunas(campos);
   if (lacunasSemLugar.length) campos._lacunas = lacunasSemLugar;
 
   // A VALIDAÇÃO É DA LIB (lib-validacao-md.js): obrigatórios, tipos, avisos da regra de
   // tabela e provisórios. As lacunas declaradas saem em `lacunas`, para o tool decidir.
   const { erros, avisos: avisosDaValidacao, provisorios } = validar(campos, schema, {});
-  const avisos = [...avisosDaExtracao, ...avisosDaValidacao];
+  const avisos = [...avisosDaExtracao, ...avisosDaValidacao,
+    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas)];
 
   if (json) {
     process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);
@@ -137,6 +138,13 @@ function main() {
     console.error(`plano ${path.basename(caminhoPlano)} × schema ${path.basename(caminhoSchema)}`);
     console.error(`${erros.length} problema(s):`);
     for (const p of erros) console.error(`  - ${p}`);
+    // OS AVISOS SAEM TAMBÉM NO ERRO — é aqui que eles mais servem: uma seção cujo único
+    // conteúdo é citação não gera o campo, e o erro diz só `campo ausente`. Sem esta linha,
+    // a causa (`> nota`) ficava escondida atrás do sintoma.
+    if (avisos.length) {
+      console.error(`    aviso(s): ${avisos.length}`);
+      for (const a of avisos) console.error(`      · ${a}`);
+    }
     return 1;
   }
 

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-23T00:18:32-0300`
-Commit atual: `3b7aa7c` — docs(estrutura): a identidade do projeto entra na documentacao (e a ressalva do FIPP)
+Gerado em: `2026-09-25T08:09:57-0300`
+Commit atual: `ea80ad4` — fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -25,18 +25,26 @@ se aplicou, não o que foi planejado, e encadeia tudo o que muda.
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** tiago (1)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Professores:** fochini
+tiago (2)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
 
+- **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada → ajustada), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. Não implementado.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto. Não implementado.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
+- **`IDEIA-PAINEL-ESCOLA.md`** — painel de gestão para a direção da escola (aulas dadas, horas trabalhadas, valor-hora, cadeia de custódia, retenção) e a página pública da cadeia para pais e alunos. Não implementado.
 
 ## Últimos commits
 
 ```
+ea80ad4 fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
+0dbd0af feat(ciclo-01): Ciclo 01 da Diaghilev — fontes e âncora
+4462d6a feat(ciclo-01): Ciclo 01 da Diaghilev — quatro aulas desiguais
+7accb29 fix(tools): o gerador não herda o locale de quem o chama
+12e1a9c docs(estrutura): este projeto e PROTOTIPO, nao e agnostico
 3b7aa7c docs(estrutura): a identidade do projeto entra na documentacao (e a ressalva do FIPP)
 53bc9c1 chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
 8b59555 fix(entrega): a leitura do formulario usa as colunas do ciclo
@@ -52,14 +60,21 @@ d54754a feat(ciclo-01): os lancamentos da Aula 01 entram no JSON (e o indice do 
 548660a feat(entrega): marca Musicalidade e Guia de observacao como (remover) no menu
 e5c45ae feat(entrega): o formulario de lancamento vai para producao (Area do Professor)
 42eb311 feat(tools): o JSON de dados vai para o pacote cifrado (e o check confere)
-34cb132 feat(ciclo-01): o JSON de dados do Ritmos entra como fonte (peca 1)
-334812c feat(tools): o gerador grava os JSONs de entrada no pacote (po, plano, ciclos)
-d57d9a2 feat(tools): o pre-push existe em arquivo -- e confere o alvo certo no acompanhamento
-242522e docs(ideia): a peca 5 da migracao esta feita
-8ec57ed feat(tools): o guia do Ritmos passa a ser gerado (peca 5 da migracao)
 ```
 
 ## Por professor
+
+### fochini — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): diaghilev
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| Diaghilev | ciclo-01-diaghilev-po.md | Input_PO_Validado | 0 |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| diaghilev | ciclo-01-diaghilev.fipp | `ae357e247669` | (vazio) | Input_PO_Validado |
 
 ### tiago — 1 ciclo(s)
 
@@ -72,8 +87,8 @@ d57d9a2 feat(tools): o pre-push existe em arquivo -- e confere o alvo certo no a
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `4b49f2dd912e` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `184213f5b603` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `ef3813375cec` | (vazio) | Input_PO_Validado |
+| ritmos | ciclo-01-ritmos.fipp | `9cb13e85fc69` | (vazio) | Input_PO_Validado |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -122,86 +137,79 @@ d57d9a2 feat(tools): o pre-push existe em arquivo -- e confere o alvo certo no a
 
 ## Última entrada do REGISTRO
 
-## 23/09/2026 — A identidade do projeto entra na documentação (e a ressalva do FIPP)
+## 25/09/2026 — O HANDOFF truncado: o glob que abortava a geração em silêncio
 
 **O que motivou.**
-A documentação não dizia o que este projeto é. Dizia o que ele *tem* (regras, pétreas,
-ferramentas) e descrevia o balé como se fosse a identidade — quando o balé é o **protótipo**.
-Pior: três documentos citavam "mestrado" e um anunciava "cadeia de proveniência FIPP", o que
-leva qualquer leitor novo — pessoa ou IA — a concluir que (a) este repo é o projeto de
-mestrado e (b) o FIPP está implementado aqui. Nenhuma das duas é verdade. O erro foi
-cometido de fato por uma sessão de IA nesta data, e o sintoma é o que esta entrada corrige:
-**quem entrava sem contexto, saía com o contexto errado.**
+O `HANDOFF.md` — o **primeiro artefato que uma sessão nova lê** — estava sendo gerado **incompleto**.
+A geração terminava com `exit=2`, o arquivo era escrito até a metade do laço e **duas seções inteiras
+não saíam**: `## Documentos-chave (para leitura)` e `## Como retomar`. O arquivo no disco parecia
+normal (464 linhas), e é justamente por isso que o defeito passou: **um HANDOFF truncado se lê como
+um HANDOFF curto**. Quem abrisse a sessão seguinte não veria erro nenhum — veria menos.
+
+A causa foi medida, não suposta. Em `tools/gerar-handoff.sh:189`, sob `set -euo pipefail`:
+
+```bash
+aulas_escritas="$(ls -1 "professores/$p/ciclos"/ciclo-"$c"-aula-*.md 2>/dev/null | wc -l)"
+```
+
+O glob era **cego ao sufixo da escola**: procurava `ciclo-01-aula-*.md`, e as aulas da Diaghilev se
+chamam `ciclo-01-diaghilev-aula-0N.md`. Sem casamento, o `ls` saía com código **2**; o `2>/dev/null`
+escondia a **mensagem**, não o **status** — e a atribuição herda o status do comando. O `set -e`
+matava o script **sem imprimir nada**. O idioma `|| true` já é usado duas linhas abaixo, para
+`eventos`/`n_eventos`: a armadilha era conhecida, e esta linha ficou de fora.
+
+Como a iteração é `LC_ALL=C sort`, **fochini vem antes de tiago**: o aborto cortou também o
+bullet que faltava ao tiago e as **duas seções finais**, que são escritas depois do laço.
 
 **O que foi decidido.**
-- O projeto passa a se declarar, no topo dos documentos de entrada, como **a memória da aula
-  dada** — o processo de ensino-aprendizagem que **de fato se aplicou**, não o planejado.
-- **Não é o projeto de mestrado**: o mestrado está em outro diretório, e é de lá que vêm o PO
-  e o FIPP. Este repositório **aplica** um PO (como experimentação) e **não implementa o
-  FIPP**, nem perto do que a arquitetura dele desenha. O `.fipp` daqui é uma **âncora de
-  proveniência encadeada** que compartilha o princípio — o passado se incorpora, não se
-  reescreve — mas é uma **aproximação**.
-- **Protótipo testado no universo da dança.** Este projeto **não é agnóstico**: ele é o
-  protótipo, e o projeto que **deve ser agnóstico** será criado a partir dele, para transitar
-  em todos os universos (oficina de matemática, improvisação em dança contemporânea,
-  disciplina de mestrado).
-- **Nenhum ciclo é igual a outro, nenhuma aula é igual a outra** — nem com o mesmo professor.
-  O protótipo existe para provar que o modelo se sustenta nessa variação.
-- **Não avalia**: registra o cotidiano do professor em sala de aula. A avaliação é fronteira
-  de outro módulo, ainda não desenhado.
-- **A integração ainda não existe** — com o projeto das secretarias (Projeto Cultura), nem a
-  fronteira de entrada nem a de saída foram desenhadas.
-
-> **Correção de 23/09/2026 (mesmo dia).** A primeira redação desta entrada dizia que o
-> projeto era "**agnóstico e completamente adaptativo**". **Está errado**: o agnosticismo é
-> a meta do **projeto sucessor**, não uma propriedade deste. O que existe aqui é o
-> **protótipo**, sendo testado no universo da dança. A redação foi corrigida em todos os
-> documentos onde a afirmação apareceu (`AGENTS.md`, `README.md`, `METODO.md`,
-> `README-ciclos.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`, `CONGELAMENTO.md`, os
-> agentes de `.github/` e este registro), e o próprio `tools/gerar-handoff.sh` passou a
-> emitir a formulação correta. A versão anterior não é apagada: fica como o elo que registra
-> o que se pensou antes da correção (P-03/P-04 — a proveniência acrescenta, não edita).
+- O glob passa a ser **ciente da variante**: `find` com duas alternativas de nome
+  (`ciclo-$c-aula-*.md` e `ciclo-$c-*-aula-*.md`), `-maxdepth 1` e **exclusão explícita de
+  `*captura*`**.
+- **Por que a exclusão importa:** `ciclo-01-diaghilev-captura-aula-01.md` casa com o padrão
+  frouxo `ciclo-$c-*-aula-*.md`. Sem `! -name "*captura*"` o número **inflaria** — trocaríamos um
+  defeito silencioso por outro, com o contador errado em vez do arquivo truncado. O `-maxdepth 1`
+  impede descer para dentro das pastas de pacote (`ciclo-01-diaghilev/`).
+- A contagem **não** muda de significado: continua sendo **aulas escritas em detalhe**, e folha de
+  captura **não** é aula escrita.
 
 **Onde entrou.**
-- `AGENTS.md` — seção nova **"O que é este projeto (leia antes de qualquer coisa)"**, no topo,
-  com a armadilha de leitura declarada;
-- `tools/gerar-handoff.sh` — o HANDOFF passa a **emitir a identidade** (é o artefato que uma
-  sessão nova lê primeiro); `HANDOFF.md` regenerado;
-- `README.md` — título passa a **"Projeto Ciclo — visão geral"**, com nova seção **"O que este
-  repositório não é"**; a frase "pesquisa em andamento (mestrado)" sai;
-- `METODO.md`, `README-ciclos.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`,
-  `CONGELAMENTO.md` — nota de escopo no topo;
-- `.github/` — os três agentes e as `ciclo-fontes.instructions.md` ganham a seção de escopo,
-  para que agente algum volte a chamar isto de "projeto de mestrado" nem a âncora de "FIPP";
-- `PROTOCOLO.md` e `REGRAS.md` — **congelados**, alterados com o motivo declarado abaixo.
+- `tools/gerar-handoff.sh` — a linha 189 (`ls` → `find` ciente da variante) e, na mesma passagem,
+  a redação de escopo da linha 213 (`âncoras FIPP` → `âncoras de proveniência`).
 
-**Motivo declarado — os dois congelados.**
-`PROTOCOLO.md` e `REGRAS.md` estão na lista de `CONGELAMENTO.md`; a alteração é **cirúrgica e
-só de escopo**, sem tocar em nenhuma das 22 pétreas nem das 17 regras: no `PROTOCOLO.md`,
-"cadeia de proveniência **FIPP**" vira "cadeia de proveniência encadeada" e ganha a ressalva de
-que o FIPP pertence ao outro projeto; no `REGRAS.md`, a Premissa 7 passa a dizer "o **mesmo
-princípio** de encadeamento" e declara que a implementação do FIPP não está aqui. Nenhum
-comando, validador ou hash muda: o `.fipp` continua com o mesmo nome e a mesma fórmula — a
-**âncora não foi regerada**, e `hash-ciclo.sh … --check` segue passando. O porquê: a
-documentação induzia ao erro sobre a natureza do projeto, e a correção exige tocar os dois
-arquivos que enunciam o método.
+**Motivo declarado — os congelados.**
+`tools/` está em `CONGELAMENTO.md`. Diferente das entradas de 23/09 — que declararam as mudanças em
+`tools/` como **de redação, não de comportamento** —, **esta muda comportamento**, e por isso não
+cabe naquelas: o gerador deixa de abortar e passa a **emitir seções que hoje não emite**. A
+**fórmula de hash, a cobertura da âncora, o contrato de extração, os validadores, as regras e as
+pétreas não foram tocados**; nenhuma âncora foi regerada e `--check` segue passando nos três ciclos.
+O porquê: o HANDOFF é o ponto de entrada de toda sessão nova, e um gerador que falha em silêncio
+deixa de ser fonte de verdade — sem que ninguém perceba, porque o resultado pela metade **parece
+válido**. Não é obstáculo contornável: a correção foi levada ao usuário e aprovada antes de entrar.
+
+**Prova de que o defeito é anterior a este trabalho.**
+Em uma *worktree* limpa, destacada no `HEAD` (`ea80ad4`) e sem nenhuma alteração pendente,
+`./tools/gerar-handoff.sh` reproduz **`exit=2`**, **462 linhas** e **zero** ocorrências de
+`## Documentos-chave` e `## Como retomar`. A correção foi validada em isolamento nessa mesma
+worktree — com ela, `exit=0`, as duas seções presentes, **486 linhas** e os bullets
+`fochini · ciclo 01: aulas escritas em detalhe: 4 de 4` e `tiago · ciclo 01: … 2 de 12` (as quatro
+capturas da Diaghilev **corretamente fora** da conta). No repositório real: `exit=0`, **489 linhas**,
+as duas seções e a redação `âncoras de proveniência`. Rodado duas vezes seguidas, o resultado
+difere **só** no carimbo `Gerado em:` — é idempotente no conteúdo.
 
 **Com o quê.**
-`AGENTS.md`, `README.md`, `README-ciclos.md`, `METODO.md`, `PROTOCOLO.md`, `REGRAS.md`,
-`CONGELAMENTO.md`, `IDEIA-CAPTURA.md`, `ARQUITETURA-CAPTURA.md`, `tools/gerar-handoff.sh`,
-`HANDOFF.md`, `.github/agents/*.agent.md`, `.github/instructions/ciclo-fontes.instructions.md`.
+`tools/gerar-handoff.sh`, `HANDOFF.md` (regerado), `REGISTRO.md`.
 
 **Referências.**
-`METODO.md` (declaração de princípio); `PROTOCOLO.md` (P-05/P-07 — material × evidência);
-`CONGELAMENTO.md` (o procedimento de alteração com motivo declarado); `biblioteca/referencias.md`
-(Taylor, *O Arquivo e o Repertório*; Polanyi, *The Tacit Dimension* — memória, repertório e
-filosofia); `ARQUITETURA-CAPTURA.md` §7 (decisões em aberto — 7.2, 7.4, 7.5, 7.6).
+`CONGELAMENTO.md` (o procedimento); a entrada de 23/09/2026 (o gerador e o locale) — é dela a
+declaração de que as mudanças em `tools/` eram de redação, o que **valia para o que foi commitado
+em `7accb29`** e não cobre esta; `REGRAS.md` 16 (formato de entrega) e 17 (versionamento);
+`PROTOCOLO.md` P-04 (saídas reconstruíveis).
 
 **O que ainda não está feito.**
-O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.md` copiado à mão)
-e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
-questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
-fazer.
+O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior não via) e a trazer as
+âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
+**demais seções do laço** que usam glob direto não foram auditadas uma a uma; a única corrigida foi
+a que abortava. Fica declarado, não resolvido.
 
 ## O que está pendente
 
@@ -424,7 +432,50 @@ O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.m
 e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
 questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
 fazer.
-- **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 12 (as demais entram depois da aula anterior).
+
+## 23/09/2026 — A varredura da deriva de identidade: o que ficou fora da primeira correção
+
+Os pacotes (HTML + PDF) dos dois ciclos **não** foram regerados, e portanto as páginas publicadas
+ainda trazem "hash FIPP". Regerar exige `tools/gerar-ciclo.sh` e novo deploy — deixado para
+quando o professor pedir. Fica também por fazer o desenho das fronteiras de entrada e saída, acima.
+
+## 23/09/2026 — A seção que só tinha citação, e o ciclo simulado da Diaghilev
+
+Os **dois achados acima não foram corrigidos** — mudam comportamento em `tools/` (congelado) e a
+decisão é da pesquisadora: (a) o config da captura passar a ser **por aula**; (b) o mapa de
+apelidos sair da parte cifrada (ou a página decifrar quando a aula ainda não tem dado). Os
+pacotes dos ciclos anteriores **não** foram regerados. A porta de entrada na tela (modo IA × modo
+formulário) segue por fazer, como acima.
+
+## 23/09/2026 — O gerador não herda mais o locale de quem o chama
+
+- Os demais pontos de entrada que escrevem texto (`gerar-acompanhamento.sh`, `gerar-handoff.sh`,
+  `gerar-vista.js`, `calendario.py`, `cifrar-dados.js`) **não** foram tocados: quando chamados
+  pelo `gerar-ciclo.sh` herdam o locale corrigido, mas **invocados isoladamente** continuam
+  dependendo do ambiente. Declarado, não resolvido.
+- O ciclo da Diaghilev **ainda não foi commitado** — e é o commit seguinte a este.
+
+- O `check-pacote.js` passa a **procurar U+FFFD** nas saídas (HTML, CSS, JSON, Markdown) e
+  **reprova**. Foi a lacuna que deixou o defeito chegar ao `pdflatex`: o pacote corrompido
+  passava com **0 erro(s)**, 528 links internos e 31 páginas.
+
+> **Correção de 23/09/2026 (mesmo dia).** A primeira redação desta entrada dizia que "o pacote
+> corrompido passava com 0 erro(s), 528 links internos e 31 páginas". **Está errado**: aquela
+> medição — 0 erro(s), 528 links, 31 páginas — foi feita sobre um pacote **saudável**, gerado sob
+> o locale do terminal; não mediu o pacote corrompido. O que se mediu no estado corrompido foi o
+> contrário: o `check-pacote` **reprovou**, com 1 erro — `PDF: documentos ausentes no texto do
+> PDF`, nomeando Caderno, Guia de observação e Método. A lacuna continua a existir (o check não
+> procura U+FFFD, e se o PDF fosse regerado — impossível, o `pdflatex` morre antes — os dois lados
+> estariam corrompidos e **coincidiriam**); mas o guarda existente **não** passou em silêncio. A
+> versão anterior não é apagada: fica como o elo que registra o que se pensou antes da correção.
+
+## 25/09/2026 — O HANDOFF truncado: o glob que abortava a geração em silêncio
+
+O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior não via) e a trazer as
+âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
+- **fochini · ciclo 01:** aulas escritas em detalhe: 4 de 4 (as demais entram depois da aula anterior).
+- Material de campo de **fochini**: 0 evento(s) versionado(s).
+- **tiago · ciclo 01:** aulas escritas em detalhe: 2 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
 ## Documentos-chave (para leitura)
@@ -434,7 +485,7 @@ fazer.
 - `REGISTRO.md` — marcos metodológicos
 - `professores/<nome>/` — um professor por pasta (P-13): ciclos, cadernos, relatórios, campo
 - `professores/<nome>/ciclos/ciclo-XX-<escola>-po.md` — POs por escola
-- `professores/<nome>/ciclos/ciclo-XX-<escola>.fipp` — âncoras FIPP
+- `professores/<nome>/ciclos/ciclo-XX-<escola>.fipp` — âncoras de proveniência
 - `departamentos/` — PO de departamento, quando a escola tiver metodologia comum (P-14)
 - `biblioteca/guia-do-professor.md` — o guia de posição (departamento ou PO próprio)
 

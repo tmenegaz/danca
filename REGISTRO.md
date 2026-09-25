@@ -2656,3 +2656,77 @@ chama).
 > procura U+FFFD, e se o PDF fosse regerado — impossível, o `pdflatex` morre antes — os dois lados
 > estariam corrompidos e **coincidiriam**); mas o guarda existente **não** passou em silêncio. A
 > versão anterior não é apagada: fica como o elo que registra o que se pensou antes da correção.
+
+## 25/09/2026 — O HANDOFF truncado: o glob que abortava a geração em silêncio
+
+**O que motivou.**
+O `HANDOFF.md` — o **primeiro artefato que uma sessão nova lê** — estava sendo gerado **incompleto**.
+A geração terminava com `exit=2`, o arquivo era escrito até a metade do laço e **duas seções inteiras
+não saíam**: `## Documentos-chave (para leitura)` e `## Como retomar`. O arquivo no disco parecia
+normal (464 linhas), e é justamente por isso que o defeito passou: **um HANDOFF truncado se lê como
+um HANDOFF curto**. Quem abrisse a sessão seguinte não veria erro nenhum — veria menos.
+
+A causa foi medida, não suposta. Em `tools/gerar-handoff.sh:189`, sob `set -euo pipefail`:
+
+```bash
+aulas_escritas="$(ls -1 "professores/$p/ciclos"/ciclo-"$c"-aula-*.md 2>/dev/null | wc -l)"
+```
+
+O glob era **cego ao sufixo da escola**: procurava `ciclo-01-aula-*.md`, e as aulas da Diaghilev se
+chamam `ciclo-01-diaghilev-aula-0N.md`. Sem casamento, o `ls` saía com código **2**; o `2>/dev/null`
+escondia a **mensagem**, não o **status** — e a atribuição herda o status do comando. O `set -e`
+matava o script **sem imprimir nada**. O idioma `|| true` já é usado duas linhas abaixo, para
+`eventos`/`n_eventos`: a armadilha era conhecida, e esta linha ficou de fora.
+
+Como a iteração é `LC_ALL=C sort`, **fochini vem antes de tiago**: o aborto cortou também o
+bullet que faltava ao tiago e as **duas seções finais**, que são escritas depois do laço.
+
+**O que foi decidido.**
+- O glob passa a ser **ciente da variante**: `find` com duas alternativas de nome
+  (`ciclo-$c-aula-*.md` e `ciclo-$c-*-aula-*.md`), `-maxdepth 1` e **exclusão explícita de
+  `*captura*`**.
+- **Por que a exclusão importa:** `ciclo-01-diaghilev-captura-aula-01.md` casa com o padrão
+  frouxo `ciclo-$c-*-aula-*.md`. Sem `! -name "*captura*"` o número **inflaria** — trocaríamos um
+  defeito silencioso por outro, com o contador errado em vez do arquivo truncado. O `-maxdepth 1`
+  impede descer para dentro das pastas de pacote (`ciclo-01-diaghilev/`).
+- A contagem **não** muda de significado: continua sendo **aulas escritas em detalhe**, e folha de
+  captura **não** é aula escrita.
+
+**Onde entrou.**
+- `tools/gerar-handoff.sh` — a linha 189 (`ls` → `find` ciente da variante) e, na mesma passagem,
+  a redação de escopo da linha 213 (`âncoras FIPP` → `âncoras de proveniência`).
+
+**Motivo declarado — os congelados.**
+`tools/` está em `CONGELAMENTO.md`. Diferente das entradas de 23/09 — que declararam as mudanças em
+`tools/` como **de redação, não de comportamento** —, **esta muda comportamento**, e por isso não
+cabe naquelas: o gerador deixa de abortar e passa a **emitir seções que hoje não emite**. A
+**fórmula de hash, a cobertura da âncora, o contrato de extração, os validadores, as regras e as
+pétreas não foram tocados**; nenhuma âncora foi regerada e `--check` segue passando nos três ciclos.
+O porquê: o HANDOFF é o ponto de entrada de toda sessão nova, e um gerador que falha em silêncio
+deixa de ser fonte de verdade — sem que ninguém perceba, porque o resultado pela metade **parece
+válido**. Não é obstáculo contornável: a correção foi levada ao usuário e aprovada antes de entrar.
+
+**Prova de que o defeito é anterior a este trabalho.**
+Em uma *worktree* limpa, destacada no `HEAD` (`ea80ad4`) e sem nenhuma alteração pendente,
+`./tools/gerar-handoff.sh` reproduz **`exit=2`**, **462 linhas** e **zero** ocorrências de
+`## Documentos-chave` e `## Como retomar`. A correção foi validada em isolamento nessa mesma
+worktree — com ela, `exit=0`, as duas seções presentes, **486 linhas** e os bullets
+`fochini · ciclo 01: aulas escritas em detalhe: 4 de 4` e `tiago · ciclo 01: … 2 de 12` (as quatro
+capturas da Diaghilev **corretamente fora** da conta). No repositório real: `exit=0`, **489 linhas**,
+as duas seções e a redação `âncoras de proveniência`. Rodado duas vezes seguidas, o resultado
+difere **só** no carimbo `Gerado em:` — é idempotente no conteúdo.
+
+**Com o quê.**
+`tools/gerar-handoff.sh`, `HANDOFF.md` (regerado), `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (o procedimento); a entrada de 23/09/2026 (o gerador e o locale) — é dela a
+declaração de que as mudanças em `tools/` eram de redação, o que **valia para o que foi commitado
+em `7accb29`** e não cobre esta; `REGRAS.md` 16 (formato de entrega) e 17 (versionamento);
+`PROTOCOLO.md` P-04 (saídas reconstruíveis).
+
+**O que ainda não está feito.**
+O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior não via) e a trazer as
+âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
+**demais seções do laço** que usam glob direto não foram auditadas uma a uma; a única corrigida foi
+a que abortava. Fica declarado, não resolvido.

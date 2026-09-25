@@ -186,7 +186,7 @@ variantes_de() {
         esac
       done
       total_aulas="$(sed -n 's/^TOTAL_AULAS="\{0,1\}\([0-9]\{1,\}\).*/\1/p' "professores/$p/ciclos/ciclo-$c.conf" | head -1)"
-      aulas_escritas="$(ls -1 "professores/$p/ciclos"/ciclo-"$c"-aula-*.md 2>/dev/null | wc -l)"
+      aulas_escritas="$(find "professores/$p/ciclos" -maxdepth 1 \( -name "ciclo-$c-aula-*.md" -o -name "ciclo-$c-*-aula-*.md" \) ! -name "*captura*" 2>/dev/null | wc -l)"
       if [ -n "$total_aulas" ]; then
         echo "- **$p · ciclo $c:** aulas escritas em detalhe: $aulas_escritas de $total_aulas (as demais entram depois da aula anterior)."
       fi
@@ -210,7 +210,7 @@ variantes_de() {
   echo "- \`REGISTRO.md\` — marcos metodológicos"
   echo "- \`professores/<nome>/\` — um professor por pasta (P-13): ciclos, cadernos, relatórios, campo"
   echo "- \`professores/<nome>/ciclos/ciclo-XX-<escola>-po.md\` — POs por escola"
-  echo "- \`professores/<nome>/ciclos/ciclo-XX-<escola>.fipp\` — âncoras FIPP"
+  echo "- \`professores/<nome>/ciclos/ciclo-XX-<escola>.fipp\` — âncoras de proveniência"
   echo "- \`departamentos/\` — PO de departamento, quando a escola tiver metodologia comum (P-14)"
   echo "- \`biblioteca/guia-do-professor.md\` — o guia de posição (departamento ou PO próprio)"
   echo

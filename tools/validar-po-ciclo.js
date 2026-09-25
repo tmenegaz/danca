@@ -60,7 +60,7 @@ const DECLARACAO = { secoes: MAPA_SECOES, colunas: MAPA_COLUNAS };
 // O CONTRATO DE EXTRACAO vive em tools/lib-extracao-md.js -- definicao UNICA: o PO e o
 // plano leem pelo MESMO contrato. Aqui fica o que e DESTE documento: o mapa das secoes
 // (titulo em portugues -> campo do schema) e a validacao contra o schema.
-const { extrair, lerYamlCabecalho } = require('./lib-extracao-md.js');
+const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao } = require('./lib-extracao-md.js');
 const { validar } = require('./lib-validacao-md.js');
 
 function main() {
@@ -96,12 +96,13 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos: avisosDaExtracao } = extrair(linhas, schema, DECLARACAO);
+  const { campos, avisos: avisosDaExtracao, secoesSoCitacao } = extrair(linhas, schema, DECLARACAO);
   // A VALIDAÇÃO É DA LIB (lib-validacao-md.js): obrigatórios, tipos, avisos da regra de
   // tabela e provisórios. As lacunas declaradas saem em `lacunas`, para o tool decidir.
   const { erros, avisos: avisosDaValidacao, provisorios } = validar(campos, schema,
     { arrayVazio: 'o recorte precisa de ao menos um item' });
-  const avisos = [...avisosDaExtracao, ...avisosDaValidacao];
+  const avisos = [...avisosDaExtracao, ...avisosDaValidacao,
+    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas)];
 
   const pendentes = Object.entries(campos.validationChecklist || {})
     .filter(([, marcado]) => marcado !== true).map(([k]) => k);
@@ -115,6 +116,13 @@ function main() {
     console.error(`PO ${path.basename(caminhoPo)} × schema ${path.basename(caminhoSchema)}`);
     console.error(`${erros.length} problema(s):`);
     for (const p of erros) console.error(`  - ${p}`);
+    // OS AVISOS SAEM TAMBÉM NO ERRO — é aqui que eles mais servem: uma seção cujo único
+    // conteúdo é citação não gera o campo, e o erro diz só `campo ausente`. Sem esta linha,
+    // a causa (`> nota`) ficava escondida atrás do sintoma.
+    if (avisos.length) {
+      console.error(`    aviso(s): ${avisos.length}`);
+      for (const a of avisos) console.error(`      · ${a}`);
+    }
     return 1;
   }
 
