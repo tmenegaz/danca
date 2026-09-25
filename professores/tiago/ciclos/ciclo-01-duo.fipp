@@ -1,4 +1,4 @@
-# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
 # Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
 # Fontes cobertas: professores/tiago/ciclos/ciclo-01.conf, professores/tiago/ciclos/ciclo-01-duo.conf e os .md deste ciclo.
 # Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: duo
-hash_conteudo: a13e1d3379d271cd50af5226d6bcfc01155c8aad81c8fe023d9dec1366a249a1
+hash_conteudo: f5a3a3271a1e9e5782c748f9c1927d6a4faa3c2537a439bd252596bd50778548
 parentHash: 
-hash: 4b49f2dd912e928bafa6232fce84998e698e0afe6e8913af88d67e0e69a882e7
+hash: ef3813375cece44f249d7dd15caf2e9994b84a0460dcc7408b36fd9dcf823704
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-duo-po.md
 po_state: Input_PO_Validado

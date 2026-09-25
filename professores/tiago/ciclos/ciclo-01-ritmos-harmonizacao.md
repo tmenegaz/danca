@@ -84,7 +84,8 @@ professor revisou e manteve a formulação original. O sistema não impõe harmo
 ele a oferece.
 
 > **Como a sua decisão entra:** a divergência **não edita** esta tabela nem os
-> documentos. Ela gera uma **nova versão do ciclo**, reancorada (novo hash FIPP),
+> documentos. Ela gera uma **nova versão do ciclo**, reancorada (nova âncora de
+> proveniência),
 > com a sua formulação; esta versão e a anterior ficam as duas registradas — a
 > anterior no histórico do Git e no `REGISTRO.md`. A proveniência acrescenta, não
 > edita (P-03/P-04).

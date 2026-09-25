@@ -1,4 +1,4 @@
-# Âncora de proveniência FIPP — gerada por tools/hash-ciclo.sh
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
 # Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
 # Fontes cobertas: professores/tiago/ciclos/ciclo-01.conf, professores/tiago/ciclos/ciclo-01-ritmos.conf e os .md deste ciclo.
 # Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: ritmos
-hash_conteudo: 4f0e179f9a02ff9a3a39f0cb02a7a49bec7dd8be33faf39a2fe38ec9a54edeec
+hash_conteudo: a0e2751e73406b623be74371107176cc75cd7268218891053e4f5a2ed416e1b0
 parentHash: 
-hash: 184213f5b6031e97e062fcd13403bc6438cd05c4bf33c15a5f19ce95de32fa2a
+hash: 9cb13e85fc69c1a35db335cb34d199271a17f566f6aac5b6204a157cf210eaf4
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-ritmos-po.md
 po_state: Input_PO_Validado
