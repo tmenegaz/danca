@@ -6,12 +6,17 @@ escola: Diaghilev
 responsavel: Fochini
 professor: Fochini
 title: "PO do Ciclo 01 — Diaghilev"
-state: Input_PO_Validado
+state: Input_PO_Aguardando
 ---
 
 > **O que é este arquivo.** O **Plano de Observação (PO)** do Ciclo 01 na escola **Diaghilev**
 > (Fochini · terças e quintas, 60 min), com **quatro encontros**. É **simulado** — exercício de
 > instalação de ciclo, com professor e escola fictícios.
+>
+> **Estado:** `Input_PO_Aguardando` — desde 25/09/2026 o checklist tem **seis** itens, e o
+> item da norma (`normClearlyEstablished`) segue **sem marcar**: a norma ainda não foi
+> elicitada, e o campo `## Norma estabelecida` está em `[Preencher]`. Antes disso, o estado
+> era `Input_PO_Validado`, quando os **cinco** itens então existentes estavam marcados.
 
 ## Pergunta
 
@@ -52,6 +57,10 @@ inicial, em dois encontros semanais de 60 minutos, com quatro aulas no ciclo.
 - **Professor:** Fochini.
 - **Registro específico dos alunos:** opcional (não é condição do recorte).
 
+## Norma estabelecida
+
+- [Preencher: norma — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]
+
 ## Linha de base
 
 O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professor (P-10 — sem
@@ -67,7 +76,6 @@ esta linha, "evolução" não tem referencial):
 ### Restrições físicas declaradas (P-22)
 
 - **Nenhuma** restrição declarada até o início do ciclo. *(Declarado pelo professor, 29/09/2026.)*
-
 ## Critérios de inclusão
 
 - A **aula como ela aconteceu** — o caderno descritivo (P-06).
@@ -131,6 +139,10 @@ encontro efetivamente pede enquanto acontece.
 ### scopeBoundariesClear
 
 - [x] As bordas do recorte estão claras: 4 encontros de 60 min, quatro bailarinos, exclusões declaradas.
+
+### normClearlyEstablished
+
+- [ ] A norma está estabelecida: é possível identificar o padrão de referência contra o qual a execução será confrontada. **Sem marcar** — a norma ainda não foi elicitada, e o campo `## Norma estabelecida` está em `[Preencher]`.
 
 ### criteriaMutuallyExclusive
 

@@ -32,6 +32,7 @@ const MAPA_SECOES = {
   'campo empírico': 'field',
   'contexto': 'context',
   'sujeitos': 'subjects',
+  'norma estabelecida': 'norma',
   'linha de base': 'linhaDeBase',
   'critérios de inclusão': 'inclusionCriteria',
   'criterios de inclusao': 'inclusionCriteria',

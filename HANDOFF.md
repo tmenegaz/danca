@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-25T12:26:16-0300`
-Commit atual: `28f340a` — docs(estrutura): as notas de escopo dos temáticos e os agentes declaram o plano
+Gerado em: `2026-09-25T15:24:29-0300`
+Commit atual: `a8c9472` — docs(estrutura): o HANDOFF regerado com os quatro elos da correção
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -48,6 +48,7 @@ tiago (2)
 ## Últimos commits
 
 ```
+a8c9472 docs(estrutura): o HANDOFF regerado com os quatro elos da correção
 28f340a docs(estrutura): as notas de escopo dos temáticos e os agentes declaram o plano
 5de3d3d docs(estrutura): o HANDOFF regerado com a identidade corrigida
 8a70634 fix(tools): o HANDOFF emite a identidade corrigida, e o plano entra nela
@@ -67,7 +68,6 @@ ea80ad4 fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
 3b7aa7c docs(estrutura): a identidade do projeto entra na documentacao (e a ressalva do FIPP)
 53bc9c1 chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
 8b59555 fix(entrega): a leitura do formulario usa as colunas do ciclo
-dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 ```
 
 ## Por professor
@@ -78,11 +78,11 @@ dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| Diaghilev | ciclo-01-diaghilev-po.md | Input_PO_Validado | 0 |
+| Diaghilev | ciclo-01-diaghilev-po.md | Input_PO_Aguardando | 3 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| diaghilev | ciclo-01-diaghilev.fipp | `ae357e247669` | (vazio) | Input_PO_Validado |
+| diaghilev | ciclo-01-diaghilev.fipp | `da0193c1ec0a` | (vazio) | Input_PO_Aguardando |
 
 ### tiago — 1 ciclo(s)
 
@@ -90,13 +90,13 @@ dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| Duo | ciclo-01-duo-po.md | Input_PO_Validado | 0 |
-| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Validado | 5 |
+| Duo | ciclo-01-duo-po.md | Input_PO_Aguardando | 2 |
+| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 7 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `ef3813375cec` | (vazio) | Input_PO_Validado |
-| ritmos | ciclo-01-ritmos.fipp | `9cb13e85fc69` | (vazio) | Input_PO_Validado |
+| duo | ciclo-01-duo.fipp | `d359e400f1f5` | (vazio) | Input_PO_Aguardando |
+| ritmos | ciclo-01-ritmos.fipp | `938641a34549` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -145,114 +145,144 @@ dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
 
 ## Última entrada do REGISTRO
 
-## 25/09/2026 — "Não o que foi planejado": a memória da aula dada e o plano como linha de base
+## 25/09/2026 — O campo `norma`: o PO ganha o padrão de referência que era o seu próprio produto
 
 **O que motivou.**
-O usuário contestou a frase canônica do projeto — *"a **memória da aula dada** … registra o processo
-de ensino-aprendizagem que de fato se aplicou, **não o que foi planejado**"* — com um argumento
-direto: **não existe memória da aula dada sem o planejamento da aula**. Se a eliciação fixa objetivo
-específico, marcos por aula e volume, então **elicitar é também planejar**; e se o projeto de fato
-não planejasse aula, estaria indo na direção errada.
+O `po_ref/po.md` §6 é explícito: o produto do Plano de Observação **é a Norma** — "o PO estabelece a
+NORMA que orientará toda a investigação", e "sem um Plano de Observação válido, a análise do ruído
+não é possível". O §6.1 lista `Norma Estabelecida` ("padrão de referência contra o qual a execução
+será confrontada") como componente **obrigatório**.
 
-O argumento foi verificado contra o repositório, e **o usuário estava certo**. Verificou-se:
+O PO deste repositório não tinha campo para ela. O schema declarava 12 campos de topo, e a norma só
+existia de forma **implícita**, diluída em `linhaDeBase`. A consequência é a que o `po_ref` §6
+nomeia: sem o campo, o padrão de referência não é explícito, e o ruído não pode ser identificado.
+**A norma era o produto do PO e não tinha onde ser escrita.**
 
-- `professores/fochini/ciclos/ciclo-01-diaghilev-aula-02.md` é um **plano de aula completo** —
-  front-matter (`objetivo-especifico`, `duracao: "60 minutos"`, `volume-total: "94 tempos"`,
-  `referencias`) e nove seções, incluindo distribuição do tempo por parte da aula e a conta de
-  volume que fecha em **94 tempos**, auditada contra as Regras 4 e 9. Há quatro irmãos (`aula-01`,
-  `03`, `04`).
-- E esses planos **entram na âncora**: `ciclo-01-diaghilev.conf` lista `aula-01 … aula-04` em
-  `DOCS`. Entre os arquivos `aula-NN`, só `captura-aula-01` é artefato de captura — os demais são
-  **planejamento**.
-- `prompts/eliciar-ciclo.md` (congelado) **é** uma entrevista de planejamento: o Bloco 4 elicia o
-  objetivo específico e o **parâmetro de medição da Aula 1** e "**os marcos parciais, aula a aula**",
-  e impõe a forma da tabela de marcos "porque é a tabela que o extrator do plano lê como um objeto
-  por aula (`{n, marco}`)". `prompts/instalar-ciclo.md` preenche, no passo 4, `-plano.md`,
-  `-aula-01.md` e `-referencias.md`.
-- `ARQUITETURA-AULA.md:3` descreve o ciclo de vida **planejada → dada → lançada → ajustada**, e a
-  tabela de estados (`:20-21`) diz que **Planejada** é quando "existe a fonte `aula-NN.md`" e seu
-  estado epistêmico é **intenção** — CRUD livre.
-- O plano é **entrada do formulário**: `tools/templates/lancamento.html` carrega `po-<id>.json` e
-  `plano-<id>.json` (`carregarEntradas`), e de `planoDoCiclo.marcosPorAula` sai o marco da aula —
-  *"Sem o plano não há linha de marco — não se inventa o que a aula persegue."* E, quando a aula não
-  segue o plano, o formulário **obriga** a responder *"O que mudou em relação ao plano:"*.
-
-Diagnóstico: **a direção está certa, a redação estava errada.** A frase era uma oposição entre
-**plano** e **registro** — mas, sem qualificação, lê-se como **negação de que se planeje**. Lida nos
-**pontos de entrada** (é a primeira coisa que uma sessão nova encontra, e era também emitida pelo
-`HANDOFF.md`), ela instituía uma identidade falsa — o mesmo tipo de defeito que a correção de
-23/09 tratou: *quem entrava sem contexto saía com o contexto errado*.
+Junto com isso, uma medição. O cabeçalho do schema dizia `10 campos de topo (4 strings, 4 arrays, 2
+objetos), que somam 17 folhas` desde `0dbd0af` — a criação. Medido com `python3` sobre `0dbd0af`,
+sobre `HEAD` e sobre a árvore de trabalho, o schema **nunca** teve esses números: em `0dbd0af` media
+`12 campos de topo (4 strings, 6 arrays, 2 objetos) = 19 folhas`. A prosa do cabeçalho contradizia o
+próprio schema desde o dia em que foi commitada — 4 arrays declarados, 6 reais.
 
 **O que foi decidido.**
-- A oposição **plano × registro** passa a ser declarada como **linha de base**, não como negação:
-  > **Projeto Ciclo** — a **memória da aula dada**. Cada aula é **planejada** antes de ser dada: o
-  > plano (`aula-NN.md`, que entra na âncora de proveniência) fixa objetivo, marcos e volume, e é
-  > ele que dá a **linha de base**. O que a memória registra é o processo de ensino-aprendizagem que
-  > de fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda.
-- Acrescenta-se o par **intenção × fato**, que é a distinção real do projeto: o plano é **intenção**
-  (editável enquanto a aula não foi dada); a partir da declaração **"aula dada"**, o registro passa a
-  **fato** e **só se acrescenta ajuste** (`ARQUITETURA-AULA.md:35`).
-- A formulação antiga entra na tabela de **"Formulações que não devem ser usadas"** do bloco
-  canônico, para que a paráfrase errada não volte por imitação.
-- **A versão curta** (nota de escopo do perfil `METODO.md`) e as seções "Escopo do projeto" dos
-  agentes **não** carregavam a cláusula — nenhuma mudança nelas. `README-ciclos.md` já dizia
-  "que de fato se aplicou." **com ponto final**, sem a negação — também fica como está.
-- **`REGISTRO.md:2352` fica como está.** A redação antiga dentro da entrada de 23/09 é **elo**, não
-  defeito: pela P-03/P-04 o passado se incorpora, não se reescreve. Esta entrada é que a corrige, e a
-  aponta.
+
+- O campo de topo **`norma`** (string) entra depois de `subjects`, na **posição 6** de `required`.
+  Posição ancorada: `po_ref` §5.3 `Definição dos Sujeitos` → §5.5 `Estabelecimento da Norma` → §5.6
+  `Critérios de Conformidade`. O `linhaDeBase` é inserção **deste** repositório e não tem posição
+  autoritativa — por isso a norma entra **antes** dele.
+- O item de checklist **`normClearlyEstablished`** entra entre `scopeBoundariesClear` e
+  `criteriaMutuallyExclusive`. O checklist vai de **5 para 6 itens**. Isto é **desvio deliberado** do
+  `po_ref` §5.10, que lista cinco (`phenomenon_operationally_defined`, `scope_boundaries_clear`,
+  `norm_clearly_established`, `justification_grounded`, `cut_feasible`). O desvio fica **declarado
+  aqui**, não escondido.
+- Fica declarada a distinção, para que os dois não se confundam: o **item do checklist** pergunta
+  **SE** o padrão é identificável; o **campo `norma`** guarda **QUAL** é o padrão.
+- A norma **não exige departamento formal**: pode ser a do próprio professor (a metodologia dele,
+  que a P-13 já reconhece). A P-14 não se aplica a este campo.
+- Quem escreve o campo é a **entrevista, nunca a dedução**. Enquanto a norma não for elicitada, o
+  campo fica `[Preencher: norma — descreva o padrão de referência contra o qual a execução deste
+  ciclo será confrontada]`.
+- Os três `-po.md` ganham a seção `## Norma estabelecida` **entre `## Sujeitos` e `## Linha de
+  base`**. A ordem foi **reordenada** neste commit: a seção estava depois de `## Linha de base`. A
+  extração mapeia por **título**, não por ordem — a posição anterior era inofensiva em execução; a
+  correção é pelo explícito, não por defeito funcional.
+- O sexto item do checklist entra **desmarcado** (`- [ ]`). O `state` das três variantes é rebaixado
+  de `Input_PO_Validado` para **`Input_PO_Aguardando`** — consequência visível e honesta: a norma
+  ainda não foi elicitada.
 
 **Onde entrou.**
-- `AGENTS.md` (bloco de identidade, o primeiro que se lê) e `README.md` — a versão longa nova, mais
-  o bullet **intenção × fato**.
-- `.github/instructions/ciclo-fontes.instructions.md` — o parágrafo de identidade.
-- `.github/skills/identidade-do-projeto/SKILL.md` — a linha da tabela "A identidade canônica".
-- `.github/skills/identidade-do-projeto/references/bloco-identidade.md` — a **fonte de cópia**: a
-  versão longa, o bullet novo e a linha nova na tabela de formulações proibidas.
-- `tools/gerar-handoff.sh` — a emissão da identidade no `HANDOFF.md`.
+
+`professores/fochini/ciclos/ciclo-01-po-schema.json` e
+`professores/tiago/ciclos/ciclo-01-po-schema.json` (**byte-idênticos**,
+`md5 c4dae983a15431d77d98fd4380b7404d`) — campo `norma`; item `normClearlyEstablished`; `required` de
+topo 12 → 13; `validationChecklist.required` de 5 → 6; cabeçalho corrigido para `13 campos de topo
+(5 strings, 6 arrays, 2 objetos), que somam 21 folhas`.
+
+`professores/fochini/ciclos/ciclo-01-diaghilev-po.md`,
+`professores/tiago/ciclos/ciclo-01-duo-po.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-po.md` — seção `## Norma estabelecida` com a lacuna
+explícita, reposicionada antes de `## Linha de base`; sexto item `### normClearlyEstablished`
+desmarcado; `state` rebaixado a `Input_PO_Aguardando` no cabeçalho e nas notas de estado em prosa.
+
+`REGISTRO.md` — esta entrada.
 
 **Motivo declarado — os congelados.**
-`tools/` está em `CONGELAMENTO.md`. A mudança é, como nas entradas de `tools/` de 23/09, **de
-redação, não de comportamento**: o gerador passa a emitir o texto novo da identidade no lugar do
-antigo, e continua emitindo as mesmas seções, na mesma ordem, a partir das mesmas fontes. **A
-cláusula que motivou a mudança é uma afirmação sobre o objeto da memória — não uma regra de
-geração.** A **fórmula de hash, a cobertura da âncora, o contrato de extração, os validadores, as
-regras e as pétreas não foram tocados**; nenhuma âncora foi regerada e `--check` segue passando nos
-três ciclos. O porquê: o HANDOFF é o primeiro artefato que uma sessão nova lê, e era ele que
-repetia a identidade viciada — corrigir só os `.md` deixaria a emissão divergindo da fonte.
-**Nenhuma fonte de ciclo mudou**, e por isso **não se reancora**.
+`tools/validar-po-ciclo.js` é congelado (`CONGELAMENTO.md`) e foi tocado: `MAPA_SECOES` ganha uma
+chave, `'norma estabelecida': 'norma',` — 15 chaves agora, era 14. Sem isso o schema novo e o
+documento novo não se encontrariam: a seção `## Norma estabelecida` seria **descartada** na extração,
+e o validador acusaria `campo ausente: validationChecklist.normClearlyEstablished`. Comportamento
+**verificado**, não suposto — foi o erro que apareceu antes do ajuste do mapa.
 
-**A redação anterior não é apagada.** Até esta entrada, a identidade publicada dizia, em `AGENTS.md`,
-`README.md`, no bloco canônico e na emissão do `HANDOFF.md`:
+**O que não muda:** a fórmula do hash, a cobertura da âncora, `MAPA_COLUNAS`, a declaração
+`DECLARACAO`, e a lógica de estado/saída — `estado declarado` continua sendo **eco**, nunca imposto;
+nenhum estado novo é exigido ou validado. **Não há regra nem pétrea nova.** O campo é **aditivo**:
+nenhum campo existente foi removido, renomeado ou teve tipo alterado.
 
-> **Projeto Ciclo** — a **memória da aula dada**. Registra o processo de ensino-aprendizagem que de
-> fato se aplicou, **não o que foi planejado**, e encadeia tudo o que muda.
+O guarda-chuva do `pre-commit` é o que **obriga** este commit a ser único: o hook valida o PO em
+**todo** commit, e os três `-po.md` já declaram o campo novo. Schema, mapa, três POs e as três âncoras
+não podem landar separados — o repositório ficaria **incapaz de commitar**. Por isso um arquivo
+congelado (`tools/validar-po-ciclo.js`) entra junto com conteúdo **aqui**, e o `PROTOCOLO.md` — que é
+prosa pura e **não** está acoplado — foi deliberadamente deixado para um **commit próprio**, conforme
+`CONGELAMENTO.md`: *"a mudança tem o seu próprio commit (não vai junto com conteúdo)"*.
 
-**A cláusula está errada** — é ela que negava o planejamento da aula. O texto continua onde foi
-escrito pela primeira vez: `REGISTRO.md:2352`, na entrada de 23/09/2026, e no histórico do Git. Fica
-como o elo que registra o que se pensou antes da correção; esta entrada é a que o corrige.
+**A redação anterior não é apagada.**
+O cabeçalho do schema dizia, desde `0dbd0af`:
+
+> "Estrutura: 10 campos de topo (4 strings, 4 arrays, 2 objetos), que somam 17 folhas."
+
+Sempre foi falso — media 12 e 19 já na criação. A redação antiga fica como o **elo** que registra o
+que se pensou antes; é recuperável pelo histórico do Git (`0dbd0af`). Não é reescrita silenciosamente.
+
+E o elo maior: a entrada `## 25/09/2026 — "Não o que foi planejado"` (este mesmo dia) registrou o
+argumento de que **não existe memória da aula dada sem o planejamento da aula**, e que **elicitar é
+também planejar**. O campo `norma` continua essa linha — a norma do ciclo só existe se for elicitada,
+e elicitá-la **é** planejar. O que aquela entrada deixou em aberto, *"o planejamento da aula ainda não
+tem todos os campos de que precisa"*, é exatamente a lacuna que este campo começa a fechar, agora do
+lado do PO.
 
 **Com o quê.**
-`AGENTS.md`, `README.md`, `.github/instructions/ciclo-fontes.instructions.md`,
-`.github/skills/identidade-do-projeto/SKILL.md`,
-`.github/skills/identidade-do-projeto/references/bloco-identidade.md`, `tools/gerar-handoff.sh`,
-`HANDOFF.md` (regerado), `REGISTRO.md`.
+
+- `professores/fochini/ciclos/ciclo-01-po-schema.json`
+- `professores/tiago/ciclos/ciclo-01-po-schema.json`
+- `tools/validar-po-ciclo.js` (congelado)
+- `professores/fochini/ciclos/ciclo-01-diaghilev-po.md`
+- `professores/tiago/ciclos/ciclo-01-duo-po.md`
+- `professores/tiago/ciclos/ciclo-01-ritmos-po.md`
+- `professores/fochini/ciclos/ciclo-01-diaghilev.fipp`
+- `professores/tiago/ciclos/ciclo-01-duo.fipp`
+- `professores/tiago/ciclos/ciclo-01-ritmos.fipp`
+- os pacotes regerados sob `professores/*/ciclos/ciclo-01-*` (passo 3 do `pre-commit`)
+- `HANDOFF.md` (regerado)
+- `REGISTRO.md`
+
+**Reancoragem.** As três fontes de ciclo mudaram (os `*-po.md`), então os três `.fipp` foram
+regerados com `tools/hash-ciclo.sh <professor> 01 <escola>` e conferidos com `--check`. O
+`*-po-schema.json` **não** está na cobertura da âncora — o `3aeb3e7` já o provou: o schema sozinho
+não reancoraria nada.
 
 **Referências.**
-`CONGELAMENTO.md` (o procedimento); a entrada de 23/09/2026 (a deriva de identidade e o segundo
-passo da correção) — é dela o critério de que a redação antiga fica preservada como elo;
-`ARQUITETURA-AULA.md` (planejada → dada → lançada → ajustada; intenção × fato);
-`prompts/eliciar-ciclo.md` (a eliciação que planeja); `REGRAS.md` 17 (versionamento); `PROTOCOLO.md`
-P-03/P-04 (a proveniência acrescenta, não edita).
+
+- `po_ref/po.md` §5.3, §5.5, §5.6, §5.10, §6, §6.1 — a ordem autoritativa e a norma como produto.
+- `REGISTRO.md` — a entrada `## 25/09/2026 — "Não o que foi planejado"`, deste mesmo dia.
+- `PROTOCOLO.md` — P-03/P-04 (a proveniência acrescenta, não edita), P-13, P-14.
+- `REGRAS.md` — Regra 8 (proveniência objetiva) e Regra 17 (versionamento com Git).
+- `CONGELAMENTO.md` — o motivo declarado e o commit próprio.
 
 **O que ainda não está feito.**
-O **planejamento da aula ainda não tem todos os campos de que precisa** — o próprio
-`experimentos/captura-json/RELATORIO.md` §4.6 declara a lacuna: **falta a estrutura executada** (que
-viria do plano da aula e o JSON não carrega), o volume em tempos, o que foi abandonado, a linha de
-base. E `ciclo-01-plano-schema.json` declara a sua própria: *"o calendário **NÃO** está no `.md`"*, e
-os tipos do schema são os que **o documento oferece**, não os que o dado ideal teria. Corrigir a
-redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
-repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
-hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.
+
+- **`PROTOCOLO.md:224` e `:229` estão desatualizados e não foram tocados aqui.** O `:224` lista os
+  campos do PO e omite `norma`, `linhaDeBase` e `condicoesDeContorno` — a omissão é **anterior** a
+  este campo; o `:229` diz *"os cinco itens do checklist"*, e agora são **seis**. Vão para um
+  **commit próprio**, congelado, com o seu próprio motivo declarado. No mesmo `:224`,
+  *"justificativa (4 subcampos)"* está **correto** (medido) e **não** muda.
+- **A norma continua em `[Preencher]` nos três ciclos.** O campo existe; o conteúdo não. Quem o
+  preenche é a **entrevista**, e ela ainda não foi reescrita — a próxima etapa é a versão amigável em
+  `prompts/eliciar-ciclo.md`.
+- O item `normClearlyEstablished` fica **desmarcado** até a norma ser elicitada; só então o `state`
+  volta a `Input_PO_Validado`.
+- **Pendência de forma em `ciclo-01-duo-po.md`:** o bloco `linha de base` tem **duas** tabelas; o
+  extrator descarta a segunda e ainda assim sai com `exit=0` (2 avisos). Fica como dívida declarada,
+  **não** corrigida neste commit.
 
 ## O que está pendente
 
@@ -524,8 +554,30 @@ os tipos do schema são os que **o documento oferece**, não os que o dado ideal
 redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
 repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
 hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.
+
+---
+
+## 25/09/2026 — O campo `norma`: o PO ganha o padrão de referência que era o seu próprio produto
+
+
+- **`PROTOCOLO.md:224` e `:229` estão desatualizados e não foram tocados aqui.** O `:224` lista os
+  campos do PO e omite `norma`, `linhaDeBase` e `condicoesDeContorno` — a omissão é **anterior** a
+  este campo; o `:229` diz *"os cinco itens do checklist"*, e agora são **seis**. Vão para um
+  **commit próprio**, congelado, com o seu próprio motivo declarado. No mesmo `:224`,
+  *"justificativa (4 subcampos)"* está **correto** (medido) e **não** muda.
+- **A norma continua em `[Preencher]` nos três ciclos.** O campo existe; o conteúdo não. Quem o
+  preenche é a **entrevista**, e ela ainda não foi reescrita — a próxima etapa é a versão amigável em
+  `prompts/eliciar-ciclo.md`.
+- O item `normClearlyEstablished` fica **desmarcado** até a norma ser elicitada; só então o `state`
+  volta a `Input_PO_Validado`.
+- **Pendência de forma em `ciclo-01-duo-po.md`:** o bloco `linha de base` tem **duas** tabelas; o
+  extrator descarta a segunda e ainda assim sai com `exit=0` (2 avisos). Fica como dívida declarada,
+  **não** corrigida neste commit.
+- PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 4 de 4 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
+- PO de **tiago · duo** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 2 de 12 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 

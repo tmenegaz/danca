@@ -2840,3 +2840,144 @@ os tipos do schema são os que **o documento oferece**, não os que o dado ideal
 redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
 repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
 hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.
+
+---
+
+## 25/09/2026 — O campo `norma`: o PO ganha o padrão de referência que era o seu próprio produto
+
+**O que motivou.**
+O `po_ref/po.md` §6 é explícito: o produto do Plano de Observação **é a Norma** — "o PO estabelece a
+NORMA que orientará toda a investigação", e "sem um Plano de Observação válido, a análise do ruído
+não é possível". O §6.1 lista `Norma Estabelecida` ("padrão de referência contra o qual a execução
+será confrontada") como componente **obrigatório**.
+
+O PO deste repositório não tinha campo para ela. O schema declarava 12 campos de topo, e a norma só
+existia de forma **implícita**, diluída em `linhaDeBase`. A consequência é a que o `po_ref` §6
+nomeia: sem o campo, o padrão de referência não é explícito, e o ruído não pode ser identificado.
+**A norma era o produto do PO e não tinha onde ser escrita.**
+
+Junto com isso, uma medição. O cabeçalho do schema dizia `10 campos de topo (4 strings, 4 arrays, 2
+objetos), que somam 17 folhas` desde `0dbd0af` — a criação. Medido com `python3` sobre `0dbd0af`,
+sobre `HEAD` e sobre a árvore de trabalho, o schema **nunca** teve esses números: em `0dbd0af` media
+`12 campos de topo (4 strings, 6 arrays, 2 objetos) = 19 folhas`. A prosa do cabeçalho contradizia o
+próprio schema desde o dia em que foi commitada — 4 arrays declarados, 6 reais.
+
+**O que foi decidido.**
+
+- O campo de topo **`norma`** (string) entra depois de `subjects`, na **posição 6** de `required`.
+  Posição ancorada: `po_ref` §5.3 `Definição dos Sujeitos` → §5.5 `Estabelecimento da Norma` → §5.6
+  `Critérios de Conformidade`. O `linhaDeBase` é inserção **deste** repositório e não tem posição
+  autoritativa — por isso a norma entra **antes** dele.
+- O item de checklist **`normClearlyEstablished`** entra entre `scopeBoundariesClear` e
+  `criteriaMutuallyExclusive`. O checklist vai de **5 para 6 itens**. Isto é **desvio deliberado** do
+  `po_ref` §5.10, que lista cinco (`phenomenon_operationally_defined`, `scope_boundaries_clear`,
+  `norm_clearly_established`, `justification_grounded`, `cut_feasible`). O desvio fica **declarado
+  aqui**, não escondido.
+- Fica declarada a distinção, para que os dois não se confundam: o **item do checklist** pergunta
+  **SE** o padrão é identificável; o **campo `norma`** guarda **QUAL** é o padrão.
+- A norma **não exige departamento formal**: pode ser a do próprio professor (a metodologia dele,
+  que a P-13 já reconhece). A P-14 não se aplica a este campo.
+- Quem escreve o campo é a **entrevista, nunca a dedução**. Enquanto a norma não for elicitada, o
+  campo fica `[Preencher: norma — descreva o padrão de referência contra o qual a execução deste
+  ciclo será confrontada]`.
+- Os três `-po.md` ganham a seção `## Norma estabelecida` **entre `## Sujeitos` e `## Linha de
+  base`**. A ordem foi **reordenada** neste commit: a seção estava depois de `## Linha de base`. A
+  extração mapeia por **título**, não por ordem — a posição anterior era inofensiva em execução; a
+  correção é pelo explícito, não por defeito funcional.
+- O sexto item do checklist entra **desmarcado** (`- [ ]`). O `state` das três variantes é rebaixado
+  de `Input_PO_Validado` para **`Input_PO_Aguardando`** — consequência visível e honesta: a norma
+  ainda não foi elicitada.
+
+**Onde entrou.**
+
+`professores/fochini/ciclos/ciclo-01-po-schema.json` e
+`professores/tiago/ciclos/ciclo-01-po-schema.json` (**byte-idênticos**,
+`md5 c4dae983a15431d77d98fd4380b7404d`) — campo `norma`; item `normClearlyEstablished`; `required` de
+topo 12 → 13; `validationChecklist.required` de 5 → 6; cabeçalho corrigido para `13 campos de topo
+(5 strings, 6 arrays, 2 objetos), que somam 21 folhas`.
+
+`professores/fochini/ciclos/ciclo-01-diaghilev-po.md`,
+`professores/tiago/ciclos/ciclo-01-duo-po.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-po.md` — seção `## Norma estabelecida` com a lacuna
+explícita, reposicionada antes de `## Linha de base`; sexto item `### normClearlyEstablished`
+desmarcado; `state` rebaixado a `Input_PO_Aguardando` no cabeçalho e nas notas de estado em prosa.
+
+`REGISTRO.md` — esta entrada.
+
+**Motivo declarado — os congelados.**
+`tools/validar-po-ciclo.js` é congelado (`CONGELAMENTO.md`) e foi tocado: `MAPA_SECOES` ganha uma
+chave, `'norma estabelecida': 'norma',` — 15 chaves agora, era 14. Sem isso o schema novo e o
+documento novo não se encontrariam: a seção `## Norma estabelecida` seria **descartada** na extração,
+e o validador acusaria `campo ausente: validationChecklist.normClearlyEstablished`. Comportamento
+**verificado**, não suposto — foi o erro que apareceu antes do ajuste do mapa.
+
+**O que não muda:** a fórmula do hash, a cobertura da âncora, `MAPA_COLUNAS`, a declaração
+`DECLARACAO`, e a lógica de estado/saída — `estado declarado` continua sendo **eco**, nunca imposto;
+nenhum estado novo é exigido ou validado. **Não há regra nem pétrea nova.** O campo é **aditivo**:
+nenhum campo existente foi removido, renomeado ou teve tipo alterado.
+
+O guarda-chuva do `pre-commit` é o que **obriga** este commit a ser único: o hook valida o PO em
+**todo** commit, e os três `-po.md` já declaram o campo novo. Schema, mapa, três POs e as três âncoras
+não podem landar separados — o repositório ficaria **incapaz de commitar**. Por isso um arquivo
+congelado (`tools/validar-po-ciclo.js`) entra junto com conteúdo **aqui**, e o `PROTOCOLO.md` — que é
+prosa pura e **não** está acoplado — foi deliberadamente deixado para um **commit próprio**, conforme
+`CONGELAMENTO.md`: *"a mudança tem o seu próprio commit (não vai junto com conteúdo)"*.
+
+**A redação anterior não é apagada.**
+O cabeçalho do schema dizia, desde `0dbd0af`:
+
+> "Estrutura: 10 campos de topo (4 strings, 4 arrays, 2 objetos), que somam 17 folhas."
+
+Sempre foi falso — media 12 e 19 já na criação. A redação antiga fica como o **elo** que registra o
+que se pensou antes; é recuperável pelo histórico do Git (`0dbd0af`). Não é reescrita silenciosamente.
+
+E o elo maior: a entrada `## 25/09/2026 — "Não o que foi planejado"` (este mesmo dia) registrou o
+argumento de que **não existe memória da aula dada sem o planejamento da aula**, e que **elicitar é
+também planejar**. O campo `norma` continua essa linha — a norma do ciclo só existe se for elicitada,
+e elicitá-la **é** planejar. O que aquela entrada deixou em aberto, *"o planejamento da aula ainda não
+tem todos os campos de que precisa"*, é exatamente a lacuna que este campo começa a fechar, agora do
+lado do PO.
+
+**Com o quê.**
+
+- `professores/fochini/ciclos/ciclo-01-po-schema.json`
+- `professores/tiago/ciclos/ciclo-01-po-schema.json`
+- `tools/validar-po-ciclo.js` (congelado)
+- `professores/fochini/ciclos/ciclo-01-diaghilev-po.md`
+- `professores/tiago/ciclos/ciclo-01-duo-po.md`
+- `professores/tiago/ciclos/ciclo-01-ritmos-po.md`
+- `professores/fochini/ciclos/ciclo-01-diaghilev.fipp`
+- `professores/tiago/ciclos/ciclo-01-duo.fipp`
+- `professores/tiago/ciclos/ciclo-01-ritmos.fipp`
+- os pacotes regerados sob `professores/*/ciclos/ciclo-01-*` (passo 3 do `pre-commit`)
+- `HANDOFF.md` (regerado)
+- `REGISTRO.md`
+
+**Reancoragem.** As três fontes de ciclo mudaram (os `*-po.md`), então os três `.fipp` foram
+regerados com `tools/hash-ciclo.sh <professor> 01 <escola>` e conferidos com `--check`. O
+`*-po-schema.json` **não** está na cobertura da âncora — o `3aeb3e7` já o provou: o schema sozinho
+não reancoraria nada.
+
+**Referências.**
+
+- `po_ref/po.md` §5.3, §5.5, §5.6, §5.10, §6, §6.1 — a ordem autoritativa e a norma como produto.
+- `REGISTRO.md` — a entrada `## 25/09/2026 — "Não o que foi planejado"`, deste mesmo dia.
+- `PROTOCOLO.md` — P-03/P-04 (a proveniência acrescenta, não edita), P-13, P-14.
+- `REGRAS.md` — Regra 8 (proveniência objetiva) e Regra 17 (versionamento com Git).
+- `CONGELAMENTO.md` — o motivo declarado e o commit próprio.
+
+**O que ainda não está feito.**
+
+- **`PROTOCOLO.md:224` e `:229` estão desatualizados e não foram tocados aqui.** O `:224` lista os
+  campos do PO e omite `norma`, `linhaDeBase` e `condicoesDeContorno` — a omissão é **anterior** a
+  este campo; o `:229` diz *"os cinco itens do checklist"*, e agora são **seis**. Vão para um
+  **commit próprio**, congelado, com o seu próprio motivo declarado. No mesmo `:224`,
+  *"justificativa (4 subcampos)"* está **correto** (medido) e **não** muda.
+- **A norma continua em `[Preencher]` nos três ciclos.** O campo existe; o conteúdo não. Quem o
+  preenche é a **entrevista**, e ela ainda não foi reescrita — a próxima etapa é a versão amigável em
+  `prompts/eliciar-ciclo.md`.
+- O item `normClearlyEstablished` fica **desmarcado** até a norma ser elicitada; só então o `state`
+  volta a `Input_PO_Validado`.
+- **Pendência de forma em `ciclo-01-duo-po.md`:** o bloco `linha de base` tem **duas** tabelas; o
+  extrator descarta a segunda e ainda assim sai com `exit=0` (2 avisos). Fica como dívida declarada,
+  **não** corrigida neste commit.

@@ -16,6 +16,7 @@
     "**Professor:** Fochini.",
     "**Registro específico dos alunos:** opcional (não é condição do recorte)."
   ],
+  "norma": "[Preencher: norma — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
     "O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professor (P-10 — sem",
     "esta linha, \"evolução\" não tem referencial):",
@@ -72,6 +73,7 @@
   "validationChecklist": {
     "phenomenonOperationallyDefined": true,
     "scopeBoundariesClear": true,
+    "normClearlyEstablished": false,
     "criteriaMutuallyExclusive": true,
     "justificationGrounded": true,
     "cutFeasible": true

@@ -6,7 +6,7 @@ escola: Duo
 responsavel: Fernando
 professor: Tiago Menegaz
 title: "PO do Ciclo 01 — Duo"
-state: Input_PO_Validado
+state: Input_PO_Aguardando
 ---
 
 > **O que é este arquivo.** O **Plano de Observação (PO)** do Ciclo 01 na escola
@@ -17,8 +17,10 @@ state: Input_PO_Validado
 > **Relação com o ciclo (P-01).** O plano do ciclo enuncia **metas**; este PO
 > enuncia a **pergunta**. É o mesmo artefato lido duas vezes.
 >
-> **Estado:** `Input_PO_Validado` — os cinco itens do checklist estão marcados e as
-> decisões de recorte estão tomadas.
+> **Estado:** `Input_PO_Aguardando` — desde 25/09/2026 o checklist tem **seis** itens, e o
+> item da norma (`normClearlyEstablished`) segue **sem marcar**: a norma ainda não foi
+> elicitada. Antes disso, o estado era `Input_PO_Validado`, quando os **cinco** itens então
+> existentes estavam marcados e as decisões de recorte estavam tomadas.
 
 ## Pergunta
 
@@ -85,6 +87,10 @@ com professor único.
 - **Professor:** Tiago Menegaz.
 - **Registro específico das alunas:** opcional (não é condição do recorte).
 
+## Norma estabelecida
+
+- [Preencher: norma — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]
+
 ## Linha de base
 
 Pela **P-10**, a linha de base é declarada antes de se falar em evolução — aqui,
@@ -146,7 +152,6 @@ ela é a própria **heterogeneidade das pré-condições**:
 > bater palma; segue a turma. Ainda não está decidido se é por **contágio** (acompanha
 > a turma por imitação, e não por compreensão própria) ou por **assimilação em tempo
 > próprio**. Em observação.
-
 ## Critérios de inclusão
 
 - O **caderno descritivo por aula** (registro do que aconteceu, sem classificação — P-06).
@@ -270,6 +275,10 @@ Isso não é falha do plano nem ruído a descartar: é **parte do que se observa
 
 - [x] As bordas do recorte estão claras: 12 aulas de 60 min no Duo, quatro alunas, exclusões declaradas, e a decisão de incluir outros professores do Duo.
 
+### normClearlyEstablished
+
+- [ ] A norma está estabelecida: é possível identificar o padrão de referência contra o qual a execução será confrontada. **Sem marcar** — a norma ainda não foi elicitada, e o campo `## Norma estabelecida` está em `[Preencher]`.
+
 ### criteriaMutuallyExclusive
 
 - [x] Os critérios de inclusão e exclusão não se sobrepõem — o que é opcional ("registro específico das alunas") está na inclusão, não na exclusão.
@@ -288,7 +297,10 @@ Isso não é falha do plano nem ruído a descartar: é **parte do que se observa
 > (18/09/2026); os campos derivados do material do ciclo vêm de
 > [`ciclo-01-plano.md`](ciclo-01-plano.md), dos manifestos de variante e de
 > [`biblioteca/referencias.md`](../biblioteca/referencias.md). O estado
-> `Input_PO_Validado` corresponde aos cinco itens do checklist acima, marcados.
+> `Input_PO_Validado` correspondeu aos cinco itens do checklist acima, marcados; em
+> **25/09/2026** o checklist passou a **seis** itens, com a norma, e o item novo
+> (`normClearlyEstablished`) ficou **sem marcar** — a norma ainda não foi elicitada. O
+> estado do PO volta a `Input_PO_Aguardando` até que ela seja.
 > A execução começou na Aula 01 (18/09/2026); o **relatório pós-aula 01** foi escrito
 > em `professores/tiago/relatorios/ciclo-01/aula-01-duo.md`, a partir do caderno do
 > ciclo.

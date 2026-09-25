@@ -26,6 +26,7 @@
     "**Professor:** Tiago Menegaz.",
     "**Registro específico das alunas:** opcional (não é condição do recorte)."
   ],
+  "norma": "[Preencher: norma — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
   "linhaDeBase": [
     "Pela **P-10**, a linha de base é declarada antes de se falar em evolução — aqui,",
     "ela é a própria **heterogeneidade das pré-condições**:",
@@ -97,6 +98,7 @@
   "validationChecklist": {
     "phenomenonOperationallyDefined": true,
     "scopeBoundariesClear": true,
+    "normClearlyEstablished": false,
     "criteriaMutuallyExclusive": true,
     "justificationGrounded": true,
     "cutFeasible": true

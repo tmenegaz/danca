@@ -6,7 +6,7 @@ escola: Ritmos e Movimento
 responsavel: Gabi
 professor: Tiago Menegaz
 title: "PO do Ciclo 01 — Ritmos e Movimento"
-state: Input_PO_Validado
+state: Input_PO_Aguardando
 ---
 
 > **O que é este arquivo.** O **Plano de Observação (PO)** do Ciclo 01 na escola
@@ -82,6 +82,10 @@ Aulas de balé clássico em Ritmos e Movimento.
   flutuantes além dos alunos fixos, e os cinco apelidos fixados cobrem os fixos
   mais a Mari. Quem é flutuante e entra em qual aula está em aberto.]`
 
+## Norma estabelecida
+
+- [Preencher: norma — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]
+
 ## Linha de base
 
 O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professor
@@ -109,7 +113,6 @@ O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professo
 > registra. Quando impedem o trabalho, são comunicadas à coordenação (Gabi). A decisão
 > sobre o que fazer não é do professor. O que entra no registro é o que **aconteceu**,
 > com data: "não executou a série de piqués" é registro; "é frágil" não é.
-
 ## Critérios de inclusão
 
 O que **será registrado**, nas palavras do professor:
@@ -196,6 +199,10 @@ observada, não julgada.
 
 - [x] As bordas estão claras: 21 encontros, 3 aulas de 60 min por semana, os cinco apelidos do ciclo (e as flutuantes), com os critérios de exclusão declarados.
 
+### normClearlyEstablished
+
+- [ ] A norma está estabelecida: é possível identificar o padrão de referência contra o qual a execução será confrontada. **Sem marcar** — a norma ainda não foi elicitada, e o campo `## Norma estabelecida` está em `[Preencher]`.
+
 ### criteriaMutuallyExclusive
 
 - [x] Inclusão e exclusão não se sobrepõem: a inclusão é o que se registra do movimento executado; a exclusão são conversas sem efeito no movimento, humor, saúde e comparações subjetivas.
@@ -223,6 +230,8 @@ observada, não julgada.
 > base** ganhou a subseção de **restrições físicas (P-22)**, declarada pela
 > pesquisadora — pela regra, o professor não avalia restrição física: registra.
 >
-> **Estado:** `Input_PO_Validado` — os cinco itens do checklist marcados. O ciclo
-> começa em **19/09/2026**.
+> **Estado:** `Input_PO_Aguardando` — desde 25/09/2026 o checklist tem **seis** itens, e o
+> item da norma segue **sem marcar**: a norma ainda não foi elicitada. O ciclo começa em
+> **19/09/2026**. Antes disso, o estado era `Input_PO_Validado`, quando os **cinco** itens
+> então existentes estavam marcados.
 

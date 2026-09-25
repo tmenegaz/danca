@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "Schema do Plano de Observação (PO) — domínio balé clássico",
-  "description": "Declara os campos observacionais de um PO de ciclo. Estrutura: 10 campos de topo (4 strings, 4 arrays, 2 objetos), que somam 17 folhas. Cada ciclo pode ter o seu schema (P-08). O PO é do CICLO, não da variante: as escolas compartilham o PO e têm cadernos próprios (P-09). O arquivo-alvo é Markdown (ciclos/ciclo-XX-po.md), extraído por tools/validar-po-ciclo.js. Campos ainda não decididos pela pesquisadora podem conter '[Preencher: ...]' — o validador aceita o provisório, mas exige que o campo exista.",
+  "description": "Declara os campos observacionais de um PO de ciclo. Estrutura: 13 campos de topo (5 strings, 6 arrays, 2 objetos), que somam 21 folhas. Cada ciclo pode ter o seu schema (P-08). O PO é do CICLO, não da variante: as escolas compartilham o PO e têm cadernos próprios (P-09). O arquivo-alvo é Markdown (ciclos/ciclo-XX-po.md), extraído por tools/validar-po-ciclo.js. Campos ainda não decididos pela pesquisadora podem conter '[Preencher: ...]' — o validador aceita o provisório, mas exige que o campo exista.",
   "type": "object",
   "properties": {
     "question": {
@@ -25,6 +25,10 @@
       "type": "array",
       "items": { "type": "string" },
       "description": "Quem será observado (RN-PO-05)."
+    },
+    "norma": {
+      "type": "string",
+      "description": "A NORMA ESTABELECIDA: o padrão de referência contra o qual a execução será confrontada (decidida em 2026-09-25). É o produto que o PO inteiro existe para estabelecer — e, sem ele, o ruído não pode ser identificado. Não confundir com normClearlyEstablished, no checklist: o item pergunta SE o padrão é identificável; este campo guarda QUAL é o padrão. O critério pode ser satisfeito por uma norma DO PROFESSOR (a metodologia dele, que a P-13 já reconhece), sem exigir departamento formal (P-14 não se aplica aqui). Quem escreve este campo é a entrevista, nunca a dedução: enquanto a norma não for elicitada, o campo fica '[Preencher: norma — descreva o padrão de referência contra o qual a execução será confrontada]'."
     },
     "linhaDeBase": {
       "type": "array",
@@ -85,6 +89,7 @@
       "properties": {
         "phenomenonOperationallyDefined": { "type": "boolean" },
         "scopeBoundariesClear": { "type": "boolean" },
+        "normClearlyEstablished": { "type": "boolean" },
         "criteriaMutuallyExclusive": { "type": "boolean" },
         "justificationGrounded": { "type": "boolean" },
         "cutFeasible": { "type": "boolean" }
@@ -92,6 +97,7 @@
       "required": [
         "phenomenonOperationallyDefined",
         "scopeBoundariesClear",
+        "normClearlyEstablished",
         "criteriaMutuallyExclusive",
         "justificationGrounded",
         "cutFeasible"
@@ -105,6 +111,7 @@
     "field",
     "context",
     "subjects",
+    "norma",
     "linhaDeBase",
     "inclusionCriteria",
     "exclusionCriteria",
