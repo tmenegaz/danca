@@ -2981,3 +2981,62 @@ não reancoraria nada.
 - **Pendência de forma em `ciclo-01-duo-po.md`:** o bloco `linha de base` tem **duas** tabelas; o
   extrator descarta a segunda e ainda assim sai com `exit=0` (2 avisos). Fica como dívida declarada,
   **não** corrigida neste commit.
+---
+
+## 25/09/2026 — `PROTOCOLO.md`: a tabela do PO passa a nomear o que o schema já exigia
+
+**O que motivou.**
+O commit `f5980c4` acrescentou o campo `norma` ao PO e levou o checklist de cinco para seis itens.
+`PROTOCOLO.md` descreve, na seção `## Como o PO se materializa no ciclo`, **quais** campos o PO tem e
+**quantos** itens o checklist exige. As duas frases ficaram desatualizadas no mesmo instante — e uma
+delas já estava errada **antes**: o `:224` omitia `norma`, `linhaDeBase` e `condicoesDeContorno`
+desde que esses campos entraram, muito antes deste dia.
+
+A omissão é do tipo que custa caro. Um PO declara a norma; a norma é o **produto** do PO pelo
+`po_ref` §6. Se `PROTOCOLO.md` — o documento que define o ciclo — não nomeia o campo, quem lê o
+protocolo não sabe que ele existe. É o mesmo defeito que o `REGISTRO.md` já tratou como **defeito,
+não detalhe de redação**: quem entrava sem contexto saía com o contexto errado.
+
+**O que foi decidido.**
+
+- **`:224`** passa a nomear os três campos ausentes, na ordem do schema: *"pergunta, fenômeno, campo
+  empírico, contexto, sujeitos, **norma**, **linha de base**, critérios de inclusão e exclusão,
+  justificativa (4 subcampos), **condições de contorno da execução**, limitações e checklist de
+  validação"*.
+- **`:229`** deixa de afirmar um número fixo. Em vez de trocar "cinco" por "seis" — o que só adiaria
+  o mesmo defeito para a próxima mudança —, a redação passa a apontar para a **fonte**: *"quando
+  **todos** os itens de `validationChecklist.required` estiverem marcados — hoje **seis**"*, com os
+  seis nomeados. A contagem passa a ser a do **schema**, não a de `PROTOCOLO.md`. Acrescenta também a
+  regra que o validador já pratica: item **presente e desmarcado** mantém o estado no aguardo.
+- **`justificativa (4 subcampos)` não muda.** Foi medido: `justification` tem exatamente 4 subcampos.
+  O texto estava correto e a correção não é varredura cega.
+- **Nenhuma reancoragem.** Este é prosa sobre o PO, não fonte de ciclo. Os `professores/**/ciclos/
+  ciclo-XX-*.md` não foram tocados, então os três `.fipp` permanecem válidos (`--check` sem
+  alteração).
+
+**Por que um commit próprio.**
+`PROTOCOLO.md` é **congelado**. O `CONGELAMENTO.md` é explícito: a mudança em congelado *"tem o seu
+próprio commit (não vai junto com conteúdo)"*. Por isso ela **não** entrou em `f5980c4`, mesmo sendo
+consequência direta dele, e não entra em nenhum commit de conteúdo. É o mesmo desenho de `0b92a01`
+(*"os congelados perdem a sigla"*): um motivo declarado, só arquivos congelados, zero conteúdo.
+
+**Onde entrou.**
+
+- `PROTOCOLO.md` (congelado) — as linhas `:224` e `:229` da tabela de `## Como o PO se materializa no
+  ciclo`. Nada mais foi tocado no arquivo.
+- `REGISTRO.md` — esta entrada.
+- `HANDOFF.md` (regerado, porque é gerado e precisa emitir o estado novo).
+
+**O que NÃO foi tocado.**
+
+- `REGRAS.md`, `METODO.md`, `tools/`, `tools/templates/`, `prompts/`,
+  `biblioteca/guia-do-professor.md` — congelados, sem motivo para mudar aqui.
+- Os três `*-po.md` e os dois `*-po-schema.json` — já corrigidos em `f5980c4`.
+- Os três `.fipp` — nenhuma fonte de ciclo mudou.
+
+**Referências.**
+
+- `f5980c4` — o commit que tornou as duas frases falsas.
+- `po_ref/po.md` §6 — a norma como produto do PO; é a razão pela qual omitir o campo é grave.
+- `CONGELAMENTO.md` — o motivo declarado e o commit próprio.
+- `REGISTRO.md` — a entrada `## 25/09/2026 — O campo \`norma\`: …`, do mesmo dia.
