@@ -2,7 +2,9 @@
 
 > **Escopo.** O congelamento é do **Projeto Ciclo** — a memória da aula dada, **protótipo
 > testado no universo da dança** (não é agnóstico: o projeto agnóstico será criado a partir
-> dele). A "proveniência" citada aqui é a **âncora encadeada deste repositório**
+> dele). Cada aula é **planejada** antes de ser dada: o plano (`aula-NN.md`) fixa objetivo,
+> marcos e volume, e é ele que dá a **linha de base** — o que se registra é **o que mudou em
+> relação ao plano**. A "proveniência" citada aqui é a **âncora encadeada deste repositório**
 > (`tools/hash-ciclo.sh` → `.fipp`), que é uma **aproximação** do FIPP; o Framework de
 > Infraestrutura de Proveniência Peirceana pertence ao projeto de mestrado, em outro
 > diretório, e **não está implementado aqui**.

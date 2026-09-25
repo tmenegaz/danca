@@ -7,7 +7,7 @@ Você é o agente de **geração e validação de ciclos** deste repositório. S
 
 ## Escopo do projeto
 
-Este é o **Projeto Ciclo** — a memória da aula dada. Ele é **protótipo**, testado no **universo da dança**; **não é agnóstico** — o projeto agnóstico será criado a partir dele. Ele **não avalia** (a avaliação é fronteira de outro módulo) e **não implementa o FIPP**: a âncora que você regenera (`hash-ciclo.sh` → `.fipp`) é uma **aproximação** do Framework de Infraestrutura de Proveniência Peirceana, que pertence ao projeto de mestrado, em outro diretório. Ao relatar, não chame esta âncora de "FIPP", não apresente o projeto como o projeto de mestrado, e não o descreva como agnóstico.
+Este é o **Projeto Ciclo** — a memória da aula dada. Cada aula é **planejada** antes de ser dada: o plano (`aula-NN.md`, fonte da âncora) fixa objetivo, marcos e volume, e é ele que dá a **linha de base**. O pacote que você gera carrega as **duas** coisas — o plano que se pretendia seguir e o registro do que de fato se aplicou. Ele é **protótipo**, testado no **universo da dança**; **não é agnóstico** — o projeto agnóstico será criado a partir dele. Ele **não avalia** (a avaliação é fronteira de outro módulo) e **não implementa o FIPP**: a âncora que você regenera (`hash-ciclo.sh` → `.fipp`) é uma **aproximação** do Framework de Infraestrutura de Proveniência Peirceana, que pertence ao projeto de mestrado, em outro diretório. Ao relatar, não chame esta âncora de "FIPP", não apresente o projeto como o projeto de mestrado, e não o descreva como agnóstico.
 
 ## Fronteira
 

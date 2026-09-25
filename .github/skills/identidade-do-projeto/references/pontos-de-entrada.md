@@ -15,8 +15,8 @@ o passo 7 ("verificar") confere. **Ordem = ordem de leitura real.**
 | 8 | `REGRAS.md` | **congelado** | premissa com "o mesmo princípio de encadeamento" | Premissa 7 (~L74) |
 | 9 | `IDEIA-CAPTURA.md` | livre | nota de escopo no topo | `> **Escopo.**` |
 | 10 | `ARQUITETURA-CAPTURA.md` | livre | nota de escopo no topo | `> **Escopo.**` |
-| 11 | `.github/agents/ciclo-entrega.agent.md` | livre | seção `## Escopo do projeto` | após a frase de papel |
-| 12 | `.github/agents/ciclo-auditor.agent.md` | livre | seção `## Escopo do projeto` | após a frase de papel |
+| 11 | `.github/agents/ciclo-entrega.agent.md` | livre | seção `## Escopo do projeto` | após a frase de papel — **declara que o pacote carrega o plano e o registro** |
+| 12 | `.github/agents/ciclo-auditor.agent.md` | livre | seção `## Escopo do projeto` | após a frase de papel — **o plano é artefato a conferir, não a dispensar** |
 | 13 | `.github/instructions/ciclo-fontes.instructions.md` | livre | 1º parágrafo do corpo | após o `#` título |
 | 14 | `.github/prompts/instalar-ciclo.prompt.md` | livre | item nas "Travas" | `## Travas` |
 

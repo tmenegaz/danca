@@ -4,11 +4,13 @@
 > JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em
 > aberto. Não implementado.
 
-> **Escopo.** Documento do **Projeto Ciclo** — a memória da aula dada. Este projeto é
-> **protótipo**, testado no **universo da dança**; o projeto que deve ser **agnóstico** será
-> criado a partir dele. O PO usado nos exemplos vem do projeto de mestrado, e o **FIPP não é
-> implementado aqui**: a cobertura de hash descrita abaixo é a da **âncora encadeada deste
-> repositório** (`tools/hash-ciclo.sh` → `.fipp`), uma aproximação do framework.
+> **Escopo.** Documento do **Projeto Ciclo** — a memória da aula dada. Cada aula é
+> **planejada** antes de ser dada, e o plano é a **linha de base** do que se registra. Este
+> projeto é **protótipo**, testado no **universo da dança**; o projeto que deve ser
+> **agnóstico** será criado a partir dele. O PO usado nos exemplos vem do projeto de
+> mestrado, e o **FIPP não é implementado aqui**: a cobertura de hash descrita abaixo é a da
+> **âncora encadeada deste repositório** (`tools/hash-ciclo.sh` → `.fipp`), uma aproximação do
+> framework.
 
 > **Por que esta ideia existe.** O projeto não tem problema de **volume** (ver
 > §6 — o limite físico de uma escola é ~230 MB em 10 anos). Tem problema de
