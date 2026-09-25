@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-25T12:20:32-0300`
-Commit atual: `8a70634` — fix(tools): o HANDOFF emite a identidade corrigida, e o plano entra nela
+Gerado em: `2026-09-25T12:26:16-0300`
+Commit atual: `28f340a` — docs(estrutura): as notas de escopo dos temáticos e os agentes declaram o plano
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -48,6 +48,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+28f340a docs(estrutura): as notas de escopo dos temáticos e os agentes declaram o plano
+5de3d3d docs(estrutura): o HANDOFF regerado com a identidade corrigida
 8a70634 fix(tools): o HANDOFF emite a identidade corrigida, e o plano entra nela
 ca560c4 docs(estrutura): a memória da aula dada deixa de negar o planejamento da aula
 bee3cb5 fix(ciclo-01): a harmonização deixa de citar "FIPP", e as âncoras do tiago acompanham
@@ -66,8 +68,6 @@ ea80ad4 fix(tools): o check-pacote passa a reprovar U+FFFD nas saídas
 53bc9c1 chore(estrutura): agentes de workspace em .github/ e AGENTS.md versionado
 8b59555 fix(entrega): a leitura do formulario usa as colunas do ciclo
 dd81789 feat(tools): o formulario e as vistas leem as chaves do ciclo (rename)
-7670128 feat(tools): o config da captura sai com chave e tipo por coluna
-3acf301 feat(ciclo-01): o schema da captura declara a chave e o tipo de cada coluna
 ```
 
 ## Por professor
