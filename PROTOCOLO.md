@@ -90,6 +90,13 @@ alunos, o mesmo objetivo geral — ainda assim têm POs distintos, porque o reco
 observacional é decisão de cada um. Um PO nunca é compartilhado entre professores. A
 cadeia FIPP preserva a separação: cada PO tem a sua âncora.
 
+O que é do professor não é material privado dele: **o dado pertence à escola**, que pagou
+pelo processo e o custodia — o professor **conduz**. Por isso o **acesso é por escola**: a
+senha é da escola. A **organização e o lançamento**, porém, são **por professor** — é ele
+que conhece o plano, é ele que lança, e é por ele que a escola procura (*"quero saber as
+aulas da professora Rita"*). Separar o PO separa o **recorte observacional**, não o
+material: ele continua interessando a quem responde por ele.
+
 **P-14 — O PO pode derivar de um PO de departamento.**
 Quando a escola tem metodologia comum, existe um PO de departamento — a norma
 institucional. Cada PO de professor derivado tem `parentHash` = hash do PO de

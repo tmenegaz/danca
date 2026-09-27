@@ -40,7 +40,8 @@ Depois:
 1. crie o ciclo inicial (`ciclo-01.conf` + `ciclo-01-<escola>.conf`) — ver
    [`../README-ciclos.md`](../README-ciclos.md) e, como exemplo,
    [`tiago/ciclos/`](tiago/ciclos);
-2. declare o PO do professor (`ciclo-01-<escola>-po.md`): é dele, não do projeto (P-13);
+2. declare o PO do professor (`ciclo-01-<escola>-po.md`): o recorte é dele (P-13) — o dado,
+   porém, pertence à escola;
 3. gere a âncora e o pacote:
    ```bash
    tools/hash-ciclo.sh <nome> 01 <escola>
