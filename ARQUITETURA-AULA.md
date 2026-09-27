@@ -1,42 +1,78 @@
 # Arquitetura da aula — o ciclo de vida, o prazo e a âncora por aula
 
-> **Resumo (para o HANDOFF):** o ciclo de vida da aula (planejada → dada → lançada →
-> ajustada), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por
-> aula. Não implementado.
+> **Resumo (para o HANDOFF):** o ciclo de vida da aula (planejada → dada → lançada, mais a
+> **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por
+> aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o
+> resto, não.
 
-> **Documento de desenho.** Escrito em 23/09/2026, ao fim da conversa que definiu as
-> regras. **Nada disto está implementado**: o que existe hoje está descrito em cada seção
-> como "hoje", e o que se propõe como "proposto". O par de conceito está em
+> **Documento de desenho, com o que já foi implementado marcado.** Escrito em 23/09/2026, ao
+> fim da conversa que definiu as regras. O que existe hoje está descrito em cada seção como
+> "hoje", e o que se propõe como "proposto". Das peças da §10, **as oito de implementação
+> estão feitas** (1 a 8; a 8, o **`B8`**, em 27/09/2026); a **9** entregou **só a P-13** — a
+> eliciação (§6.2) segue pendente —, e a **10** (o painel da escola) é ideia nova, *"para
+> depois"* por decisão. A **`B13`** — a `linha_de_base` por aluna — **não é peça da §10**: é item
+> do validador de dados, e segue **tolerada, não implementada** (`REGISTRO.md:4721`).
+> Cada seção marca o seu estado, e onde não houver marca vale o proposto. O par de conceito
+> está em
 > `IDEIA-CAPTURA.md` (o porquê) e `ARQUITETURA-CAPTURA.md` (o como do JSON); este documento
 > cobre **a aula como unidade** — o que ela é antes e depois de acontecer.
 
 ## 1. O ciclo de vida da aula
 
-A aula tem **três estados**, e o que se pode fazer com ela depende do estado. O corte não
-é a data: é **o ato de dar a aula**, declarado pelo professor.
+A aula tem **quatro estados**, e o que se pode fazer com ela depende do estado. O corte
+**não é a declaração de um ato — não existe em lugar nenhum um campo "aula dada"**: é o
+**cronograma casado com o prazo** (§3), lido contra o registro do lançamento. O estado é
+**derivado**, e derivado a cada leitura.
 
 | Estado | Como é reconhecido | O plano da aula | O lançamento |
 |:--|:--|:--|:--|
-| **Planejada** | existe a fonte `aula-NN.md`; o índice a declara | **intenção** — CRUD livre | não existe |
-| **Dada** | o professor **declara** "aula dada" | **passa a fato** | o formulário é gerado |
+| **Planejada** | a aula ainda não terminou | **intenção** — CRUD livre | não existe |
+| **Dada** | o prazo corre e a aula já terminou | **passa a fato** | o formulário é gerado |
 | **Lançada** | existe o registro no JSON de dados | só **ajuste** | só **ajuste** |
+| **Não dada** | o prazo venceu **sem** registro | — a aula pulada (§3.3) | não há o que lançar |
 
-**A declaração "aula dada" é o ato que institui o fato.** Ela não é uma formalidade: é o
-que separa intenção de memória, e tem consequência fora do sistema — é o **indicativo de
-folha de ponto**. Se o professor não declara, ele não recebe por aquela aula. O sistema
-não precisa fiscalizar: a consequência é do processo, não do software.
+**Quem institui o fato é o professor dar a aula e o prazo correr até o registro** — não uma
+declaração à parte. O professor dá a aula no dia do cronograma (§6), lança dentro do prazo
+(§3), e é o **registro** que fecha o ciclo. O sistema não pede que ele confirme o que já
+fez.
+
+**A consequência fora do sistema não se perde.** A folha de ponto continua sendo lida
+daqui: **não recebe por aquela aula quem não tem registro até o prazo** — e a aula nesse
+estado é a **não dada**, que é justamente o que o pulo deixa visível. A diferença é que a
+consequência decorre do que **falta**, não de um ato que alguém teve de declarar; e o
+professor não precisa ficar em dia com um carimbo para que o sistema saiba o que houve. O
+sistema não fiscaliza: a consequência é do processo, não do software.
 
 **O que o sistema não faz.** Ele não julga por que o professor demorou a lançar, nem
 verifica se ele guardou o material num papel, num vídeo ou na memória. Isso **não é
 problema do sistema** — é do professor. O sistema faz o corte e declara o estado.
 
+> **Implementado (B6, 27/09/2026).** O índice declara `estado` por aula — `planejada`,
+> `dada`, `lancada`, `nao_dada` —, derivado por `derivar_estado()` em `tools/gerar-ciclo.sh`;
+> e o formulário **re-deriva com o próprio relógio** (`estadoDaAula()`), em vez de confiar no
+> veredito do índice, que é do instante em que ele foi gerado. Nada foi acrescentado a
+> nenhum arquivo de dados: o estado sai do cronograma, do prazo e do registro. A **aula não
+> dada** é a única a que o formulário não serve — não houve aula, não há o que lançar, e o
+> ajuste já estaria fora do prazo —, e o painel dela é o único que não abre.
+>
+> **A aula não dada não é declarada — é o que sobra.** Não há campo, nem botão, nem lista de
+> "aulas dadas": o professor edita o plano da aula seguinte **livremente até a data dela**
+> (é a intenção, §1.1), e o que não foi dado simplesmente não virou registro. A linha de base
+> da aula seguinte continua sendo o registro da última aula que teve dado (§2) — que é
+> exatamente o cenário B abaixo.
+
 ### 1.1 A regra, em uma linha
 
-> **Aula não dada: CRUD comum. Aula dada: só ajuste — de jeito nenhum CRUD.**
+> **Aula `planejada`: CRUD comum. Aula que já aconteceu: só ajuste — de jeito nenhum CRUD.**
+
+O corte é **o estado** (§1), não a data solta: enquanto a aula está `planejada` — a
+**intenção** —, o plano é do professor, e ele o muda como quiser. Depois que a aula acontece,
+a mesma fonte já é **fato**, e o que se acrescenta é um elo, nunca uma sobrescrita. **O
+lançamento segue a mesma curva:** aberto enquanto `dada`, só ajuste quando `lancada`.
 
 E o ajuste, nos dois objetos (o plano e o lançamento), é o **mesmo mecanismo**: o anterior
 permanece, o novo é um elo, e o **diff é a justificativa** — sem campo de motivo
-obrigatório. O professor tem autonomia para mudar o plano seis horas antes da aula; o que
+obrigatório. O professor tem autonomia para mudar o plano **até a aula acontecer**; o que
 ele não tem é o direito de apagar que houve um plano antes.
 
 ### 1.2 Por que o diff basta
@@ -45,6 +81,18 @@ A cadeia de custódia é lida pela **escola**, e o que ela quer saber é *que de
 professor toma, que dificuldades ele tem, que caminho segue* — e se ele tem autonomia para
 mudar. O diff responde isso sem que ninguém precise justificar por escrito: a mudança já
 é o dado. Pedir justificativa transformaria autonomia em burocracia.
+
+> **Feito em 27/09/2026** (peça 8 da §10) — o **`B8`**, o ajuste **no plano**. O mesmo
+> mecanismo do lançamento passou a valer para a fonte `aula-NN.md`: o gerador arquiva o
+> `plano-aula-NN.json` como `plano-aula-NN-anterior.json` antes de sobrescrevê-lo, o
+> formulário exporta o elo (`## Ajuste do plano da aula NN`, com `De:` apontando a fonte que
+> o professor vai abrir) e **o Git registra** — o elo não é escrito por ninguém, é anexado.
+> **Quem manda é o relógio do PLANO**, que não é o do lançamento: `podeAjustarPlano()`
+> libera enquanto a aula é `planejada`, `dada` ou `nao_dada`, e fecha no **lançamento**;
+> `podeAjustar()` libera depois da aula e só dentro do prazo. Os dois nunca ficam abertos ao
+> mesmo tempo, porque o predicado dos dois é o mesmo estado derivado. O guard do
+> `pre-commit` (`§8`) aplica a distinção — plano mudado antes da aula deixa, depois recusa.
+> ⇒ o *"hook ainda não a aplica"* do §5 fica **desatualizado por esta peça**.
 
 ## 2. A linha de corte
 
@@ -91,7 +139,7 @@ produz.
 ```
 fim do bloco      = fim da ÚLTIMA aula daquela data (aula dupla lança-se uma vez só)
 próxima data      = a próxima DATA de aula (não a próxima aula)
-prazo             = menor entre
+prazo             = maior entre
                       (a) 24h antes da próxima data de aula
                       (b) fim do bloco + 18h          ← piso: tempo hábil
 ```
@@ -100,18 +148,28 @@ O **piso de 18h** existe para o caso denso (aula às 20h, próxima às 8h): o pr
 ter tempo hábil para lançar. Ele foi calibrado com a pesquisadora como *"dezoito horas
 atende bem"*.
 
+Medido nos três ciclos vivos: **o piso nunca dispara** — a menor janela real é **23 h**
+(Diaghilev, terça → quinta), acima das 18 h. Ele é rede de segurança para o caso denso, não
+o prazo praticado; não é código morto.
+
+> **Feito em 26/09/2026** (peça 7 da §10) — o **`B7`**. O prazo deixou de ser 48 h fixas:
+> `aulas[].prazo` sai calculado do calendário pelo gerador, `HORAS_DE_RESSALVA = 48`
+> sobrevive só para ciclo anterior à regra, e o rename `prazoDaAula` → `carimboDaAula`
+> marcou que o prazo vem do **índice**, não do carimbo do último lançamento.
+> (`REGISTRO.md:4862`.)
+
 ### 3.2 O que a medição mostrou
 
 Rode a fórmula contra os três ciclos reais do repositório (`tools/calendario.py` dá as
 datas):
 
-| Ciclo | Cronograma | Janela que resulta |
+| Ciclo | Cronograma | Prazo que resulta |
 |:--|:--|--:|
 | **Duo** | sextas, 1x/semana (gap 7d) | **143 h** — vale "24h antes" |
 | **Diaghilev** | ter e qui (gap 2d) | **23 h** |
 | **Diaghilev** | qui → ter (gap 5d, fim de semana) | **95 h** |
-| **Ritmos** | sábado com **2 aulas na mesma data** | **47 h** |
-| **Ritmos** | ter → sáb (gap 4d) | **71 h** |
+| **Ritmos** | sábado com **2 aulas na mesma data** | **57 h** |
+| **Ritmos** | ter → sáb (gap 4d) | **60 h** |
 
 **O caso que a regra ingênua quebrava.** O Ritmos tem `DIAS="2,6,6"` — terça com 1 aula e
 sábado com **duas, na mesma data** (medido: **7 datas com mais de uma aula** num ciclo de
@@ -122,13 +180,14 @@ termina e vai lançar.
 
 ### 3.3 Duas regras que fecham os casos-limite
 
-- **A aula pulada não tem prazo.** Não houve aula, não há o que lançar. Como o prazo mora
-  **na aula** (não no ciclo), a aula pulada simplesmente não o tem — e não afeta nada.
+- **A aula pulada não tem prazo.** Não houve aula, não há o que lançar — e é a ausência de
+  registro **até o prazo vencer** que a define (§1). Como o prazo mora **na aula** (não no
+  ciclo), a aula pulada simplesmente não o tem — e não afeta nada.
 - **A última aula do ciclo tem o MAIOR prazo já praticado nele.** Não há "próxima aula" de
   onde contar, então o número vem do próprio ciclo: se as aulas são semanais, ela tem uma
   semana; se são de dois em dois dias, tem dois dias. O professor já está acostumado àquele
   ritmo, e o fim do ciclo não o muda. Medido: Duo **143 h**, Diaghilev **95 h**, Ritmos
-  **71 h**.
+  **60 h**.
 
 **Os prazos são independentes.** Cada prazo é função de duas datas — a daquela aula e a da
 próxima. Nenhum prazo entra na conta de outro. Medido na Diaghilev:
@@ -139,8 +198,8 @@ aula 02  08/10 qui  →  prazo seg 12/10 19:00
 aula 03  13/10 ter  →  prazo qua 14/10 19:00
 ```
 
-Ou seja: **pular a 02 não desloca o prazo da 03.** O prazo que estoura é o da aula pulada,
-e ele não existe.
+Ou seja: **pular a 02 não desloca o prazo da 03.** O prazo da aula pulada é o dela, e
+vencido sem registro é ele que a **define** como não dada (§1) — a 03 não herda nada disso.
 
 ### 3.4 A data de fechamento (opcional)
 
@@ -175,6 +234,10 @@ tem **quatro folhas com colunas diferentes**: os quatro formulários saem **idê
 todos com as colunas da Aula 01. Entregando a config da aula certa, saem **quatro
 diferentes** — a prova está em `experimentos/provar-por-aula.js`.
 
+> **Corrigido (B3, 27/09/2026).** O `config` saiu da raiz do ciclo e passou a ser **por
+> aula** (`aulas[].config`), um `captura-aula-NN.json` por folha — o formulário lê o da aula
+> do filtro.
+
 **Defeito 2 — as folhas 02..N não são fontes.** O `DOCS` do manifesto é uma **lista à
 mão**, herdada de quando só a primeira aula estava escrita. Medido:
 
@@ -186,6 +249,15 @@ no .fipp:       captura-aula-01       (só a 01 é FONTE)
 
 Consequência: **apagar a folha da aula 02 não quebra a âncora** — ela não é fonte, e o
 `--check` passa. As folhas 02–04 existem no disco e o sistema **não as vê**.
+
+> **Corrigido (B2, 26/09/2026).** O `DOCS` deixou de ser lista nominal e passou a ser
+> **tipos + ordem**: `aula-*` e `captura-aula-*` expandem, em `tools/lib-fontes.sh`, para todo
+> NN existente no disco, na posição do primeiro membro declarado. A expansão mora na lib
+> porque é o único ponto que o gerador (`gerar-ciclo.sh:99`) e a âncora (`hash-ciclo.sh:150`)
+> atravessam — fora dela, a âncora cobriria um conjunto diferente do publicado e cada
+> `--check` acusaria divergência inexistente. Medido: a cobertura do `.fipp` da Diaghilev
+> passou de 13 para 17 fontes, e **apagar a folha da aula 02 agora acusa**
+> (`erro: a lista de fontes cobertas mudou`).
 
 ### 4.2 O proposto
 
@@ -212,13 +284,23 @@ nascer do que é da aula N":
 |:--|:--|
 | `data`, `inicio`, `fim` | `calendario.py` (datas) + `DIAS` com hora (§6) |
 | `marco` | `plano.md` → `marcosPorAula` (extraído por `validar-plano-ciclo.js`) |
-| `estado`, `lancada` | o ato declarado + o JSON de dados (`aulas['02']`) |
+| `estado` | **derivado** (§1): o cronograma + o prazo (§3) + o JSON de dados (`aulas['02']`) |
+| `lancada` | o JSON de dados (`aulas['02']`) |
 | `config` | a folha da aula (`captura-aula-NN.md` → `captura-aula-NN.json`) |
-| `ancora` | o `.fipp` da aula (§5) |
+| `ancora` | o `.fipp` da aula (§5) — **o gerador ainda grava `null`**; ver adiante |
 | `prazo` | §3 |
+| `gerado_em` | o relógio do build — carimba **o instante** do juízo de `estado` |
 
 Nada disto precisa ser escrito à mão: o índice é **pré-produzido** pelo gerador, a partir do
 plano, do calendário e do `.conf`.
+
+> **O `estado` do índice é um carimbo, não um atributo.** Ele vale para o instante em que o
+> índice foi gerado (`gerado_em`); quem lê um índice velho re-deriva com o próprio relógio,
+> em vez de confiar num veredito que o tempo já venceu. É o que o formulário faz
+> (`estadoDaAula()`), e é por isso que o campo pode ser declarado sem contradizer a §1.
+>
+> **`ancora` ainda sai `null`** nos três ciclos — o `.fipp` por aula existe (§5, `B5`), mas o
+> gerador não o consulta. A coluna é a promessa, não o estado.
 
 ## 5. A âncora por aula
 
@@ -250,8 +332,10 @@ Ganhos, e cada um responde a um problema medido:
   inteiro. Hoje, *"cada aula lançada provoca reancoragem"* do ciclo todo (ARQUITETURA-CAPTURA
   §7).
 - **O corte antes/depois.** A âncora da aula, com data, é o que permite ao `pre-commit`
-  distinguir o plano mudado antes da aula (deixa) do mudado depois (recusa). Sem isso, a
-  regra do §1 não é verificável — só declarada.
+  distinguir o plano mudado antes da aula (deixa) do mudado depois (recusa). A regra do §1
+  **passou a ser verificável** com o `B6` — o estado é derivado, não declarado —, e **o
+  `B8` fechou o outro lado**: o guard do `pre-commit` (§2c) aplica a distinção, lendo o
+  estado do `ciclos.json` do pacote da variante.
 
 ## 6. O que precisa entrar na eliciação
 
@@ -271,6 +355,15 @@ DIAS="2@19:00,6@09:00,6@11:00"     # terça 19h · sábado 9h e 11h
 novo. Muda: o schema (`ciclo-01-schema.json`), o `Pré-requisito 5` (congelado) e os três
 `.conf` existentes. A opção de lista paralela (`HORARIOS=`) foi **recusada**: quem editasse
 o `DIAS` sem o `HORARIOS` desalinharia, e o erro seria silencioso.
+
+> **Feito em 25/09/2026** (peça 1 da §10). O padrão passou a
+> `^[1-7]@HH:MM(,...)*$` nos dois schemas; os três `.conf` trazem a hora (a do Diaghilev é
+> **fictícia** — o ciclo é simulado e não houve aula real de onde transcrevê-la); o
+> `calendario.py` parseia, deriva a hora do bloco e ganhou `--aulas-arquivo` (TSV
+> `NN  data  inicio  fim`); o bloco do calendário publica a linha `Horário:`. Os três
+> pacotes foram regerados e os três `.fipp` **reancorados**. A forma antiga, só com o
+> número, é **recusada com mensagem** — migrar três `.conf` é barato; descobrir depois que
+> o prazo saiu errado, não.
 
 ### 6.2 As perguntas novas na eliciação
 
@@ -335,7 +428,7 @@ apagar quebraria a cadeia; **selar a preserva**.
 | `tools/lib-fontes.sh` | o `DOCS` derivado; a âncora por aula |
 | `tools/gerar-ciclo.sh` | o índice por aula; o config por aula; o `captura-aula-NN.json` |
 | `tools/hash-ciclo.sh` | a âncora por aula e a data na âncora |
-| `tools/templates/lancamento.html` | ler a config da aula; a declaração "aula dada" |
+| `tools/templates/lancamento.html` | ler a config da aula; o **estado derivado** (§1) |
 | `tools/validar-captura-ciclo.js` | validar a folha de cada aula |
 | `tools/check-pacote.js` | exigir o config de cada aula declarada |
 | `tools/hooks/pre-commit` | distinguir plano antes × depois da aula |
@@ -382,17 +475,19 @@ outra pétrea, nenhuma regra e nenhum comando mudam.
 Ordenadas por dependência — cada uma destrava a seguinte:
 
 1. **A hora no `DIAS`** (§6) — sem ela, o prazo não tem de onde contar. Toca o schema, o
-   Pré-requisito 5 e os `.conf`.
+   Pré-requisito 5 e os `.conf`. **Feito em 25/09/2026.**
 2. **O `DOCS` derivado** (§4.1, Defeito 2) — conserta a raiz: as folhas 02..N passam a ser
-   fontes só por existirem. É o que permite a 3.
+   fontes só por existirem. É o que permite a 3. **Feito em 26/09/2026** — ver a nota do §4.1.
 3. **O config por aula** (§4.1, Defeito 1) — `captura-aula-NN.json`, um por aula, e a página
    lê o da aula do filtro.
 4. **O índice por aula** (§4.2) — a estrutura que a 3 e a 5 consultam.
 5. **A âncora por aula** (§5) — com data, para o corte antes × depois ser verificável.
-6. **A declaração "aula dada"** (§1) — o ato; é o que gera o formulário.
+6. **O estado derivado** (§1) — o cronograma + o prazo + o registro; é o que gera o
+   formulário. **Feito em 27/09/2026** — ver a nota do §1.
 7. **O prazo** (§3) — a fórmula, os prazos por aula no índice, a data de fechamento.
+   **Feito em 26/09/2026** — ver a nota do §3.
 8. **O ajuste no plano** (§1.2) — o mesmo mecanismo do ajuste do lançamento, aplicado à
-   fonte `aula-NN.md`.
+   fonte `aula-NN.md`. **Feito em 27/09/2026** — ver a nota do §1.2.
 9. **P-13** (§9) e a eliciação (§6.2) — os textos.
 10. **O painel da escola** (§7) — ideia nova; documento próprio, para depois.
 

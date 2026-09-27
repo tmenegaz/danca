@@ -8,9 +8,10 @@ que dá a **linha de base**. O que a memória registra é o processo de ensino-a
 fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda.
 
 - **Planejar e registrar são coisas distintas — e as duas acontecem.** A aula é planejada
-  (`aula-NN.md`), dada, e então lançada. O plano é **intenção**: editável enquanto a aula não foi
-  dada. A partir da declaração "aula dada", o registro passa a **fato** — só se acrescenta ajuste,
-  nunca se reescreve a intenção (`ARQUITETURA-AULA.md`). O formulário de lançamento **consome o
+  (`aula-NN.md`), dada, e então lançada. O plano é **intenção**: editável enquanto a aula está
+  `planejada`. Depois que a aula acontece, o registro passa a **fato** — só se acrescenta ajuste,
+  nunca se reescreve a intenção (`ARQUITETURA-AULA.md`). O estado é **derivado** do cronograma, do
+  prazo e do registro: não existe campo "aula dada". O formulário de lançamento **consome o
   plano** como entrada: sem ele não há marco da aula nem "o que mudou em relação ao plano".
 
 - **NÃO é o projeto de mestrado.** O mestrado está em **outro diretório**, e é de lá que

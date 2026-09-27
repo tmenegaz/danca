@@ -11,6 +11,13 @@
 > A âncora de proveniência deste repositório (`tools/hash-ciclo.sh` → `.fipp`) é uma
 > **aproximação** do FIPP, que pertence a outro projeto e **não está implementado aqui**.
 
+**Dois nomes parecidos, três referentes.** O plano (`aula-NN.md`) é a **linha de base daquela
+aula**: é contra ele que se registra o que mudou. Separadamente, o PO declara a **linha de base
+dos sujeitos** (P-10) — o estado inicial de que a primeira aula parte. Depois do primeiro
+lançamento essa referência **desloca**, e passa a ser a **linha de corte**: o registro da
+última aula que teve dado, e é ela que alimenta o formulário da aula seguinte. A regra e os
+dois cenários estão em `ARQUITETURA-AULA.md` §2.
+
 Este documento descreve como o material de um ciclo é **gerado e entregue** neste
 repositório: os arquivos-fonte, os dois formatos obrigatórios (PDF único e pacote
 HTML), as regras de navegação e como validar tudo antes de entregar ao professor.
@@ -81,7 +88,7 @@ As variantes disponíveis ficam em `professores/<professor>/ciclos/ciclo-XX-<esc
 O script, em ordem:
 
 1. lê o manifesto **base** (`ciclo-XX.conf`) e a **variante** (`ciclo-XX-<escola>.conf`);
-2. confere o Pré-requisito 5 (escola, frequência, dias, duração por dia, total de aulas);
+2. confere o Pré-requisito 5 (escola, frequência, dias e horários, duração por dia, total de aulas);
 3. confere o Pré-requisito 4 e a Regra 9 **por duração de dia** (60 min → 80–100 tempos;
    120 min → 150–200);
 4. **calcula o calendário real** (`tools/calendario.py`) e injeta no lugar do marcador
@@ -254,6 +261,9 @@ cp professores/tiago/ciclos/ciclo-01-plano.md professores/tiago/ciclos/ciclo-02-
 # 4) declare o ciclo no DOCS dos DOIS manifestos — o da variante sobrescreve o base,
 #    então declarar só no base não chega à escola. Ex.:
 #    DOCS="plano harmonizacao aula-01 guia-de-observacao-01 captura-aula-01 caderno-02 ..."
+#    O DOCS é TIPOS + ORDEM, não lista nominal: `aula-*` e `captura-aula-*` expandem para todo
+#    NN que existir no disco (tools/lib-fontes.sh), na posição do primeiro membro declarado —
+#    escrever `aula-01` cobre `aula-01..04`. Declare a família onde ela deve começar.
 #    (o `guia-de-observacao-NN` é VISTA: o pacote o GERA do PO e do plano — não precisa de um
 #     `.md` escrito à mão, e é o único documento de DOCS que funciona assim.)
 

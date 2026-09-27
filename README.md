@@ -73,7 +73,7 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 | Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh tiago 01 duo` (ou `01 ritmos`) |
 | Validar um pacote de ciclo | `node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo` |
 | Fazer deploy de um ciclo no Netlify | `tools/deploy-netlify.sh tiago 01 duo` |
-| Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |
+| Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5@18:30 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |
 | Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
 | Validar os mapas do rizoma | `node tools/check-mapa.js` · `node tools/medir-rotulos.js` |

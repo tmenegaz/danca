@@ -2,15 +2,46 @@
 
 > **Resumo (para o HANDOFF):** arquitetura técnica do formulário dinâmico com
 > JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em
-> aberto. Não implementado.
+> aberto.
+
+> **Estado (27/09/2026).** O que este documento desenha **não é mais só proposta**. O
+> **estado derivado** da aula (§1 do `ARQUITETURA-AULA.md`) vigora desde o `B6`; o **prazo
+> declarado pelo índice**, desde o `B7`; e o **ajuste no plano** — o segundo dos dois
+> ajustes descritos abaixo —, desde o `B8`. O que segue desenhado e **não implementado** é
+> o **painel da escola** (§7 do `ARQUITETURA-AULA.md`) e as perguntas abertas do fim deste
+> arquivo. Leia as seções pelo que elas **são**: onde houver nota datada, ela manda.
 
 > **Escopo.** Documento do **Projeto Ciclo** — a memória da aula dada. Cada aula é
-> **planejada** antes de ser dada, e o plano é a **linha de base** do que se registra. Este
+> **planejada** antes de ser dada, e o plano é a **linha de base daquela aula** do que se
+> registra — a outra, a **linha de base dos sujeitos**, é declarada no PO (P-10), e depois do
+> primeiro lançamento a referência vira a **linha de corte** (`ARQUITETURA-AULA.md` §2). Este
 > projeto é **protótipo**, testado no **universo da dança**; o projeto que deve ser
 > **agnóstico** será criado a partir dele. O PO usado nos exemplos vem do projeto de
 > mestrado, e o **FIPP não é implementado aqui**: a cobertura de hash descrita abaixo é a da
 > **âncora encadeada deste repositório** (`tools/hash-ciclo.sh` → `.fipp`), uma aproximação do
 > framework.
+
+**Do plano à captura: três referentes.** O plano é a **linha de base daquela aula** — é contra
+ele que o formulário registra o que mudou. O PO declara à parte a **linha de base dos sujeitos**
+(P-10), o estado inicial do ciclo. E depois do primeiro lançamento a referência **desloca**:
+passa a valer a **linha de corte**, o registro da última aula que teve dado — por isso uma aula
+pulada não interrompe a corrente, e o lançamento atrasado reordena a linha. A regra, com os dois
+cenários, está em `ARQUITETURA-AULA.md` §2. Efeito na captura: são **dois** ajustes, e cada um
+compara contra o seu próprio anterior — o do **plano** contra o plano anterior
+(`plano-aula-NN-anterior.json`) e o do **lançamento** contra a versão anterior daquele mesmo
+lançamento (`ajuste_de`). A **linha de corte** não é o referente do formulário: ela é o estado
+dos sujeitos entre aulas. E o que fecha o plano é o **lançamento** — a partir dele o plano deixou
+de ser intenção (§1.1).
+
+> **Os dois ajustes existem desde 27/09/2026** (o `B8`; `REGISTRO.md`). O do lançamento já tinha
+> o seu par; o do **plano** ganhou o dele: o gerador arquiva `plano-aula-NN.json` como
+> `plano-aula-NN-anterior.json` antes de sobrescrevê-lo, e o formulário exporta o elo para o
+> professor anexar à fonte `aula-NN.md` — **o Git registra**, ninguém reescreve o passado.
+> Medido: os três ciclos têm o par em disco (Diaghilev, todas as cinco aulas; Duo e Ritmos, a
+> aula 01). O **relógio** de cada um é diferente — o do plano fecha no **lançamento**, o do
+> lançamento fecha no **prazo** —, e é isso que os impede de estar abertos ao mesmo tempo; a
+> divergência do *"Motivo do ajuste"* entre o `§1.1` e o formulário segue **aberta**, como a
+> nota datada da §5.1 declara.
 
 > **Por que esta ideia existe.** O projeto não tem problema de **volume** (ver
 > §6 — o limite físico de uma escola é ~230 MB em 10 anos). Tem problema de
@@ -18,8 +49,9 @@
 > que as aulas acontecem. Esta ideia resolve a navegação — não a escala.
 
 > **Documento técnico.** Complementa o `IDEIA-CAPTURA.md` (conceito) com o
-> desenho da arquitetura. Descreve o que **seria** implementado — não uma
-> implementação atual. Os diagramas vêm em duas formas: **Mermaid** (renderiza no
+> desenho da arquitetura. O que descreve vale como **contrato do que foi implementado** onde há
+> nota datada dizendo que foi (o `B6`, o `B7`, o `B8`) e como **desenho do que seria** no resto.
+> Os diagramas vêm em duas formas: **Mermaid** (renderiza no
 > GitHub) e **ASCII** (para o PDF, onde o Mermaid não renderiza sem plugin).
 
 ## O que é entregável derivado — e um deles já existe hoje
@@ -153,7 +185,14 @@ Aula ───┘                       ├──> Vistas (calculadas em memóri
 
 **Nota:** o schema é **por aula** dentro do JSON. As vistas não ficam
 armazenadas — são calculadas pelo formulário. O `ultimo_lancamento` é o carimbo
-de gravação **daquela aula**: é o que ancora o prazo do ajuste (§5.1).
+de gravação **daquela aula**.
+
+> **Nota datada — 27/09/2026. A redação acima envelheceu.** Ela dizia, e não diz mais,
+> *"é o que ancora o prazo do ajuste (§5.1)"*. Desde o `B7`, o prazo é **declarado pelo
+> índice** — `aulas[].prazo`, calculado do cronograma (§3.1 do `ARQUITETURA-AULA.md`) —
+> e o carimbo passou a ser só o que ele é: a hora da última escrita daquela aula. A
+> redação antiga **não** foi apagada (P-03/P-04): esta nota é o elo novo, e a §5.1
+> registra o que o prazo virou.
 
 E `plano_seguido` e `mudou` são **um par**, com regra declarada: se o plano **não**
 foi seguido (`parcial`/`não`), `mudou` é **obrigatório** — é ali que a mudança se
@@ -310,19 +349,39 @@ As proteções são as mesmas (ver `CONGELAMENTO.md`):
 
 ## 5.1 Ajuste com prazo
 
-O JSON pode ser **ajustado** dentro de um prazo de **48 horas** — contadas a partir
-da **última gravação daquela aula** (não do arquivo, nem do ciclo). Cada vez que a
-aula é salva — no lançamento **ou** num ajuste — o contador **dela** reinicia; o das
-outras não é tocado. **Lançar a aula 05 não reabre a janela da aula 01.** Cada aula
-fecha quando **ela** fica 48h sem ser tocada.
+O JSON pode ser **ajustado** dentro do prazo **daquela aula**. O prazo **não é fixo em
+48 h**: ele é **declarado pelo índice** — `aulas[].prazo`, calculado do cronograma pela
+fórmula da §3.1 do `ARQUITETURA-AULA.md` (`maior` entre *24 h antes da próxima DATA de
+aula* e *fim do bloco + 18 h*, o piso de tempo hábil). Medido nos três ciclos vivos: 143 h
+(Duo), 23 h e 95 h (Diaghilev), 57 h e 60 h (Ritmos).
+
+Duas consequências da fórmula valem aqui, porque são elas que a contagem antiga não tinha
+(§3.3 do `ARQUITETURA-AULA.md`):
+
+- **O prazo é fixo por aula, e nenhuma gravação o renova.** Salvar a aula 05 **não** reabre
+  a janela da aula 01 — e salvar um ajuste da 01 também não a reabre. Fechado, é definitivo.
+  É o *contrário* da contagem antiga, que reiniciava a cada escrita: dentro do prazo o
+  ajuste é memória fresca; depois, é reconstrução, e não vale.
+- **Os prazos são independentes**, e a aula pulada simplesmente não tem um. Pular a 02 não
+  desloca o prazo da 03.
+
+> **A ressalva das 48 h (27/09/2026).** A redação antiga — *"cada vez que a aula é salva o
+> contador **dela** reinicia… cada aula fecha quando **ela** fica 48 h sem ser tocada"* —
+> **não** foi apagada (P-03/P-04). Ela sobrevive como **RESSALVA**, e só para um caso: um
+> ciclo **anterior a esta regra**, que não declara o prazo (índice sem `aulas[]`, aula
+> antiga). Aí não há declaração nenhuma a respeitar e valem as 48 h contadas do último
+> carimbo, renovadas a cada gravação — é o comportamento que o formulário já tinha para
+> esses ciclos, e ele não muda. **Nos ciclos atuais a ressalva não dispara.** Quem a
+> implementa é `HORAS_DE_RESSALVA = 48` no `lancamento.html` (peça 7 do §10 do
+> `ARQUITETURA-AULA.md`).
 
 **O que é um ajuste (não é edição):**
 
 - O professor abre a aula já lançada (modo leitura) → botão **"Ajustar
-  lançamento"** (só dentro do prazo)
+  lançamento"** (só dentro do prazo **daquela aula**)
 - O formulário **reabre em modo captura** com os dados atuais carregados
-- O professor corrige, preenche o **"Motivo do ajuste"** (obrigatório) e o
-  **"Gerado por"** — o ajuste fica registrado com autor — e salva
+- O professor corrige e salva; a gravação fica registrada com autor
+  (**"Gerado por"**)
 - Cada gravação cria um **arquivo novo, com carimbo no nome**
   (`dados-exemplo-2026-09-20T1430.json`), e o índice (`ciclos.json`) passa a apontar
   para ele. O arquivo anterior **permanece** — acessível, e não é o vigente
@@ -332,10 +391,28 @@ fecha quando **ela** fica 48h sem ser tocada.
   anterior estar acessível: sem servidor, ele pode ter ido para a pasta de downloads
   do navegador, e não para a pasta do ciclo
 
+> **Divergência declarada — o "Motivo do ajuste" (27/09/2026).** Este documento descreve
+> o ajuste com um campo de **motivo**, e o formulário implementado o exige: sem ele, e sem
+> autor, a gravação é **bloqueada** — a justificativa no código é que *"sem ele, o ajuste
+> muda o registro sem dizer por quê, e a correção deixa de ser auditável"*. A regra geral
+> do modelo canônico é outra: em **ambos** os objetos — o plano e o lançamento — o ajuste é
+> o **mesmo mecanismo**, o anterior permanece, o novo é um elo, e **o diff é a
+> justificativa, sem campo de motivo obrigatório** (§1.1 e §1.2 do `ARQUITETURA-AULA.md`).
+> Não é contradição de princípio, é **divergência de implementação**: o formulário é
+> congelado, e onde ele e o modelo se desencontram, o documento diz o que foi feito. Fica
+> **declarada**, a resolver quando o formulário for revisto — e a peça que unifica os dois
+> objetos é o **item 8 do §10 do `ARQUITETURA-AULA.md` (o `B8`): o ajuste no plano, com o
+> mesmo mecanismo do ajuste do lançamento.**
+
 **Por que o prazo:**
 
-A memória do professor é uma edição da realidade. Dentro de 48h, o ajuste é
+A memória do professor é uma edição da realidade. Dentro do prazo, o ajuste é
 memória fresca — vale corrigir. Depois, é reconstrução — não vale.
+
+O prazo **não é o mesmo para toda aula** (§3.3 do `ARQUITETURA-AULA.md`): ele
+fecha quando a próxima data de aula se aproxima, e cada aula tem o seu. A
+**última aula do ciclo**, que não tem próxima data, herda a **maior janela já
+praticada naquele ciclo** — Medido: 143 h (Duo), 95 h (Diaghilev), 60 h (Ritmos).
 
 **Depois do prazo:**
 
@@ -347,8 +424,8 @@ disponível.
 declara de onde veio. A cadeia é íntegra — só ganha um elo novo.
 
 > **No experimento** (`experimentos/captura-json/`), o prazo fechado pode ser visto
-> sem esperar 48h: a página aceita `#agora=2026-10-01T10:00` no endereço. A gravação
-> usa o relógio de verdade, sempre — o carimbo do arquivo não se simula.
+> sem esperar o prazo vencer: a página aceita `#agora=2026-10-01T10:00` no endereço. A
+> gravação usa o relógio de verdade, sempre — o carimbo do arquivo não se simula.
 
 ### Aviso para implementação — colisão de nomes
 
@@ -528,6 +605,8 @@ ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 
 - `IDEIA-CAPTURA.md` — conceito (o "por quê")
 - `ARQUITETURA-CAPTURA.md` — este documento (o "como")
+- `ARQUITETURA-AULA.md` — o modelo canônico do ciclo de vida da aula: os quatro
+  estados, o prazo (§3), a linha de base e **os dois objetos do ajuste** (§1.1/§1.2)
 - `PROTOCOLO.md` — as 22 pétreas
 - `REGRAS.md` — as 17 regras
 - `METODO.md` — a visão de mundo

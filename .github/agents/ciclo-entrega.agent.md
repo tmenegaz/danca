@@ -36,7 +36,7 @@ Interrupção é **diagnóstico**, não obstáculo a contornar. Na ordem em que 
 
 | Sintoma | Causa provável |
 |:--|:--|
-| Recusa por contexto institucional | `ciclo-XX-<escola>.conf` sem escola, frequência, dias, duração por dia ou total de aulas |
+| Recusa por contexto institucional | `ciclo-XX-<escola>.conf` sem escola, frequência, dias e horários, duração por dia ou total de aulas |
 | Recusa por duração | `DURACAO` ausente no manifesto ou `duracao:` ausente no cabeçalho do `aula-*.md` |
 | Recusa por volume | `volume-total:` fora da faixa da duração (60 min → 80–100 tempos; 120 min → 150–200) |
 | Data não confere | a data informada não é dia de aula — o cálculo usa o próximo dia real e avisa, **não arredonda** |
