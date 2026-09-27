@@ -16,7 +16,7 @@ declara quais delas aplicou (rodapé `Regras:`).
 | 2 | **Objetivo específico** da aula | o marco parcial daquela aula |
 | 3 | **Parâmetro de medição** | o que o professor observa para dizer "alcançado" |
 | 4 | **Duração da aula**, em minutos | calibra o volume total. **Sem ela, não se gera aula** |
-| 5 | **Contexto institucional** | escola/espaço, frequência semanal, dias e duração por dia. **Sem isso, não se gera o ciclo** |
+| 5 | **Contexto institucional** | escola/espaço, frequência semanal, dias de aula **com o horário de início de cada aula** e duração por dia. **Sem isso, não se gera o ciclo** |
 
 > Os pré-requisitos 4 e 5 estão implementados em código em `tools/gerar-ciclo.sh`:
 > o gerador **recusa** construir o material quando falta a duração ou o contexto
