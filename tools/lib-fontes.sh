@@ -64,6 +64,70 @@ e_vista() {
   esac
 }
 
+# ============================================================================
+# DOCS DERIVADO — as famílias POR AULA
+#
+# O DOCS nasceu de quando só a primeira aula estava escrita, e por isso virou uma lista NOMINAL à
+# mão, que drifta: as folhas `captura-aula-02..04` existem no disco e o sistema não as via — apagar
+# a folha da aula 02 não quebrava a âncora (Defeito 2, ARQUITETURA-AULA.md §4.1). Aqui a lista
+# deixa de ser nominal e passa a ser DECLARAÇÃO DE TIPOS + ORDEM: `aula-*` e `captura-aula-*`
+# expandem para todo NN que existir no disco, no lugar em que o tipo foi declarado.
+#
+# Esta expansão mora AQUI, e não no gerador, por uma razão medida: o gerador e o hasher leem o DOCS
+# em PROCESSOS SEPARADOS, e o único ponto que os dois atravessam é esta lib
+# (gerar-ciclo.sh:99 e hash-ciclo.sh:150). Se ela ficasse só no gerador, a âncora cobriria um
+# conjunto de arquivos diferente do pacote publicado — e cada `--check` acusaria uma divergência
+# inexistente. O `export` é porque o hasher consome o DOCS num subshell.
+#
+# Três cuidados, todos pagos por medição:
+#   * roda UMA vez, ao carregar a lib, e é IDEMPOTENTE (o `source` pode repetir);
+#   * a família expande UMA vez, na posição do seu PRIMEIRO membro declarado, e os membros
+#     seguintes são absorvidos: expandir cada nome declarado duplicaria (o DOCS do fochini declara
+#     `aula-01` a `aula-04` — seriam 16 entradas em vez de 4);
+#   * a expansão só ACRESCENTA documento que existe: onde nada foi declarado, nada muda — a Duo e
+#     o Ritmos ficam com o DOCS idêntico ao de antes, e o `guia-de-observacao-NN` (que é VISTA, sem
+#     `.md`) segue resolvido por `e_vista()`.
+# ============================================================================
+
+# Os NN desta família que existem em disco, crescentes, um por linha.
+familias_por_aula() {   # <tipo>  (ex.: aula, captura-aula)
+  local tipo="$1" f base nn
+  # O `*` casa também VAZIO: pega `ciclo-01-aula-01.md` (compartilhado) e
+  # `ciclo-01-<escola>-aula-01.md` (da variante), que é a precedência de fonte_md().
+  for f in "$CICLOS/ciclo-$CICLO-"*"$tipo-"*.md; do
+    [ -f "$f" ] || continue
+    base="$(basename "$f")"
+    # `aula-01` é conteúdo de `captura-aula-01`: sem esta guarda o curinga levaria as duas famílias
+    # juntas e `captura-aula-01` viraria membro da família `aula`.
+    [ "$tipo" = aula ] && case "$base" in *-captura-*) continue ;; esac
+    nn="$(printf '%s' "$base" | sed 's/.*-\([0-9][0-9]*\)\.md$/\1/')"
+    case "$nn" in ''|*[!0-9]*) continue ;; esac
+    printf '%s\n' "$nn"
+  done | sort -u
+}
+
+# O DOCS efetivo: a lista declarada, com cada família trocada pelos seus NN em disco.
+docs_derivado() {
+  local doc familia nn vistas=" " out=""
+  for doc in ${DOCS:-}; do
+    case "$doc" in
+      aula-*|captura-aula-*) familia="${doc%-*}" ;;
+      *) out="$out $doc"; continue ;;
+    esac
+    case "$vistas" in *" $familia "*) continue ;; esac   # o resto da família já foi absorvido
+    vistas="$vistas$familia "
+    for nn in $(familias_por_aula "$familia"); do
+      out="$out $familia-$nn"
+    done
+  done
+  printf '%s' "${out# }"
+}
+
+if [ -n "${DOCS:-}" ]; then
+  DOCS="$(docs_derivado)"
+  export DOCS
+fi
+
 # Fontes que COMPÕEM o ciclo desta variante: os dois manifestos, o PO (quando
 # existe) e os documentos que o pacote de fato lê (`index $DOCS`), já resolvidos
 # por fonte_md(). O que é de outra escola não entra, e o documento sem sufixo que

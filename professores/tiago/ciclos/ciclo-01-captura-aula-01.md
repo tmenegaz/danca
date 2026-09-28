@@ -4,7 +4,7 @@ frente: Captura
 ciclo: "01"
 aula: "01"
 escola: Duo
-title: "Captura em aula — para impressão"
+title: "Captura em aula — Aula 01 — para impressão"
 subtitle: "Folha de marcação para uso durante a aula"
 data: "18/09/2026"
 ---

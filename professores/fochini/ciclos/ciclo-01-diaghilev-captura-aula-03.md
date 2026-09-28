@@ -4,7 +4,7 @@ frente: Captura
 ciclo: "01"
 aula: "03"
 escola: Diaghilev
-title: "Captura em aula — para impressão"
+title: "Captura em aula — Aula 03 — para impressão"
 subtitle: "Folha de marcação para uso durante a aula"
 data: "13/10/2026"
 ---
