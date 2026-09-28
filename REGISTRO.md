@@ -7149,3 +7149,96 @@ regra exige **existe e está datada**; a entrada anterior afirmava o contrário,
 > todo o parágrafo 5 desta nota, que registra a parada que a peça anterior não fez. A regra do
 > `CONGELAMENTO.md` segue: quando o **comportamento** muda, para-se e confirma-se; foi o que
 > aconteceu aqui, e a escolha está em "Motivo declarado".
+
+## 28/09/2026 — A legenda ao lado do botão `Salvar` sai; o botão fica sozinho
+
+**O que motivou.**
+
+Depois de a entrada `:6821` trocar o rótulo e o destino do botão, sobrou-lhe ao lado um texto de
+apoio que continuava falando de repositório: *"o ciclo com esta aula dentro, na pasta do ciclo — e só
+entra no Git quando você commitar."* A pesquisadora leu e pediu a remoção, sem nada no lugar:
+*"tira isso 'o ciclo com esta aula dentro, na pasta do ciclo — e só entra no Git quando você
+commitar'. deixa o botão Salvar sem nenhum texto o acompanhando"*.
+
+A frase era **endereçada a quem programa**, não a quem dá aula: nomeia Git, commit e a pasta de
+destino — três coisas que a professora que lança a aula não precisa saber para usar a página. O
+botão diz o que faz (`Salvar`), e o resultado da gravação aparece em `#aviso-json`, que a peça
+anterior já escrevia. Ficar sem legenda é a redação correta, não uma lacuna a preencher.
+
+Esta é a **entrada própria** que a nota de correção desta mesma entrada prometeu, no item 8
+(`:7137-7146`): *"A remoção de uma linha de texto, se ela um dia quiser, é mudança de uma linha com
+entrada própria, como qualquer outra."* Aquele item registrou a remoção que o VS Code fez às 10:04
+como **descartada**, por ter vindo de fora da conversa — restaurada com `git checkout --`. Esta é
+outra remoção: pedida, medida e assumida. **O item 8 não é reescrito** (P-03/P-04): ele fica como o
+elo que registra o que se pensou antes.
+
+**O que foi decidido.**
+
+- O `<span class="fraco">` que acompanhava o botão **sai**, e nada ocupa o lugar dele.
+- O botão **fica sozinho** antes de `<span id="aviso-json">` — que **permanece**, porque é onde o
+  JavaScript escreve o resultado da gravação e o que a suíte de teste lê.
+- **Só isso.** Nenhuma outra frase do formulário é tocada nesta peça. O cabeçalho (`:98-104`) e as
+  demais redações em voz de programador continuam como estão — a pesquisadora as deixou para depois
+  (*"podemos editar depois"*).
+- **Sem reancoragem.** A âncora cobre as fontes de ciclo; o `lancamento.html` não está entre os 21
+  caminhos cobertos (`grep -c 'lancamento'` na `.fipp` → **0**).
+
+**Onde entrou.**
+
+`tools/templates/lancamento.html` — a remoção de **duas linhas**, medidas com `git diff -U0`:
+
+```diff
+@@ -156,2 +155,0 @@
+-    <span class="fraco">o ciclo com esta aula dentro, na pasta do ciclo — e só entra no Git
+-      quando você commitar.</span>
+```
+
+A fonte é congelada e é **a única**: as três cópias empacotadas saem dela por `cp` direto
+(`tools/gerar-ciclo.sh:563`), sem templating. Regeneradas com
+`tools/gerar-ciclo.sh <professor> <ciclo> <escola>`:
+
+| arquivo | antes | depois | `>Salvar<` | legenda | `Gerar JSON atualizado` |
+|---|---|---|---|---|---|
+| `tools/templates/lancamento.html` | 2089 | **2087** | 1 | 0 | 0 |
+| `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html` | 2144 | **2142** | 1 | 0 | 0 |
+| `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` | 2143 | **2141** | 1 | 0 | 0 |
+| `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` | 2144 | **2142** | 1 | 0 | 0 |
+
+`git diff --numstat` → **`0 2`** em cada um dos quatro: nenhuma linha reflui, nada mais mudou.
+
+**Motivo declarado — os congelados.**
+
+`tools/templates/lancamento.html` está em `CONGELAMENTO.md`. O motivo é o de cima: a legenda
+endereçava-se a quem programa (Git, commit, pasta de destino), e a pesquisadora pediu que o botão
+ficasse sozinho.
+
+**O que NÃO muda:** a fórmula de hash (`tools/hash-ciclo.sh`), a cobertura da âncora, os validadores
+e as pétreas. A mudança é **de redação visível**, não de comportamento: o botão continua gravando o
+mesmo arquivo, no mesmo lugar, com o mesmo `id` (`gerar-json`) e o mesmo aviso. A cláusula do
+`CONGELAMENTO.md` — *"quando o comportamento muda, pare e confirme"* — **não dispara**.
+
+**Com o quê.**
+
+- `tools/templates/lancamento.html` (a fonte, 2087 linhas)
+- as três cópias empacotadas listadas acima
+- este `REGISTRO.md`
+
+**Referências.**
+
+- `REGISTRO.md:6821` — a entrada do botão `Salvar`; `:7137-7146` — o item 8, que prometeu esta
+  entrada própria; `:7014` e `:7072` — as duas notas de correção daquela entrada.
+- `tools/templates/lancamento.html:155` — `<button id="gerar-json" type="button">Salvar</button>`;
+  `:156` — `<span id="aviso-json"></span>`; `:98-104` — o cabeçalho, **não** tocado aqui.
+- `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
+- `AGENTS.md` — a ordem de trabalho sobre `tools/templates/`.
+
+**O que ainda não está feito.**
+
+- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **4 commits à
+  frente** de `origin/main`; o push não foi pedido.
+- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
+  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **A voz de professor no resto do formulário segue pendente.** O cabeçalho (`:98-104`) ainda diz
+  *"índice de ciclos"*, *"cifrados no pacote"*, *"não commita"*; o `<summary>` (`:151`) diz *"salva
+  no JSON"*; a ajuda do botão de relatórios e as mensagens de erro falam de `assets/`,
+  `lib-vistas.js` e `tools/gerar-ciclo.sh`. A pesquisadora deferiu a reescrita.
