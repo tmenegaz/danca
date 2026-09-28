@@ -94,6 +94,22 @@ mudar. O diff responde isso sem que ninguém precise justificar por escrito: a m
 > `pre-commit` (`§8`) aplica a distinção — plano mudado antes da aula deixa, depois recusa.
 > ⇒ o *"hook ainda não a aplica"* do §5 fica **desatualizado por esta peça**.
 
+> **Correção de 28/09/2026.** A redação acima descreve **metade** do que a peça 8 do §10 entregou,
+> e a metade que ficou **não devia existir**. O que vale, medido em `tools/templates/lancamento.html`:
+>
+> - **A distinção dos dois relógios fica** — o do plano fecha no **lançamento**, o do lançamento
+>   fecha no **prazo**; o guard do `pre-commit` (`§8`) continua aplicando a distinção, e o
+>   `plano-aula-NN-anterior.json` continua sendo arquivado pelo gerador.
+> - **O "formulário exporta o elo" era erro de assistente e saiu.** O botão
+>   `#ajustar-plano` (*"Exportar ajuste do plano"*) foi introduzido em `282fbcb` — commit
+>   co-assinado por Copilot — e a pesquisadora o recusou por inteiro: *"não faz sentido um usuário
+>   querer exportar um ajuste do plano"*. Não há **consumidor** para o elo do plano: a fonte
+>   `aula-NN.md` é do professor, e o ajuste que fecha no lançamento é o **do lançamento** (§3), que
+>   já tem o seu par. A página exportava um `.md` que ninguém anexava.
+> - **O que sobra do `B8`** é o estado derivado do §1 e o arquivamento do anterior — não a
+>   exportação. Ver o `REGISTRO.md`, 28/09/2026, *"O botão `Exportar ajuste do plano` sai do
+>   formulário: era erro de assistente"*.
+
 ## 2. A linha de corte
 
 > **A linha de corte de uma aula é o registro da última aula que teve dado — por ORDEM DE
@@ -487,7 +503,9 @@ Ordenadas por dependência — cada uma destrava a seguinte:
 7. **O prazo** (§3) — a fórmula, os prazos por aula no índice, a data de fechamento.
    **Feito em 26/09/2026** — ver a nota do §3.
 8. **O ajuste no plano** (§1.2) — o mesmo mecanismo do ajuste do lançamento, aplicado à
-   fonte `aula-NN.md`. **Feito em 27/09/2026** — ver a nota do §1.2.
+   fonte `aula-NN.md`. **Feito em 27/09/2026** — ver a nota do §1.2. ⚠️ **Reduzido em
+   28/09/2026:** a distinção dos relógios e o arquivamento do anterior ficam; **a exportação do
+   elo pelo formulário saiu** (era erro de assistente). Ver a correção datada do §1.2.
 9. **P-13** (§9) e a eliciação (§6.2) — os textos.
 10. **O painel da escola** (§7) — ideia nova; documento próprio, para depois.
 

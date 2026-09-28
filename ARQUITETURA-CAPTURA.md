@@ -35,13 +35,18 @@ de ser intenção (§1.1).
 
 > **Os dois ajustes existem desde 27/09/2026** (o `B8`; `REGISTRO.md`). O do lançamento já tinha
 > o seu par; o do **plano** ganhou o dele: o gerador arquiva `plano-aula-NN.json` como
-> `plano-aula-NN-anterior.json` antes de sobrescrevê-lo, e o formulário exporta o elo para o
-> professor anexar à fonte `aula-NN.md` — **o Git registra**, ninguém reescreve o passado.
-> Medido: os três ciclos têm o par em disco (Diaghilev, todas as cinco aulas; Duo e Ritmos, a
-> aula 01). O **relógio** de cada um é diferente — o do plano fecha no **lançamento**, o do
-> lançamento fecha no **prazo** —, e é isso que os impede de estar abertos ao mesmo tempo; a
-> divergência do *"Motivo do ajuste"* entre o `§1.1` e o formulário segue **aberta**, como a
-> nota datada da §5.1 declara.
+> `plano-aula-NN-anterior.json` antes de sobrescrevê-lo. Medido: os três ciclos têm o par em disco
+> (Diaghilev, todas as cinco aulas; Duo e Ritmos, a aula 01). O **relógio** de cada um é diferente —
+> o do plano fecha no **lançamento**, o do lançamento fecha no **prazo** —, e é isso que os impede
+> de estar abertos ao mesmo tempo; a divergência do *"Motivo do ajuste"* entre o `§1.1` e o
+> formulário segue **aberta**, como a nota datada da §5.1 declara.
+>
+> **Correção de 28/09/2026.** A redação acima dizia que *"o formulário exporta o elo para o
+> professor anexar à fonte `aula-NN.md`"*. **Isso era erro de assistente e saiu** — o botão
+> `#ajustar-plano` (*"Exportar ajuste do plano"*) foi removido de `tools/templates/lancamento.html`
+> e das três cópias. **O par `plano-aula-NN.json` / `-anterior.json` continua sendo produzido** (é
+> a proveniência do estado anterior do plano, e é o que o guard do `pre-commit` lê), mas **não tem
+> leitor na página**. Ver o `REGISTRO.md`, 28/09/2026.
 
 > **Por que esta ideia existe.** O projeto não tem problema de **volume** (ver
 > §6 — o limite físico de uma escola é ~230 MB em 10 anos). Tem problema de
@@ -412,6 +417,15 @@ Duas consequências da fórmula valem aqui, porque são elas que a contagem anti
 > **declarada**, a resolver quando o formulário for revisto — e a peça que unifica os dois
 > objetos é o **item 8 do §10 do `ARQUITETURA-AULA.md` (o `B8`): o ajuste no plano, com o
 > mesmo mecanismo do ajuste do lançamento.**
+>
+> **Correção de 28/09/2026 (a revisão chegou).** A ressalva acima dizia *"a resolver quando o
+> formulário for revisto"*. A revisão aconteceu, e resolveu **pelo lado de fora**: o botão de
+> exportar o ajuste do plano **saiu**, e com ele a fonte da divergência do **plano**. O que resta
+> — e é o que a regra geral do §1.1 do `ARQUITETURA-AULA.md` descreve — é o ajuste **do
+> lançamento**, que é o único objeto que o formulário ajusta. ⚠️ **A divergência do campo de
+> motivo no ajuste do LANÇAMENTO segue aberta**: o formulário ainda o exige para gravar
+> (`#motivo`), e o modelo canônico não. Esta correção fecha a divergência do **plano**, não a do
+> lançamento.
 
 **Por que o prazo:**
 

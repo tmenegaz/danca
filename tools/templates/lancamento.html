@@ -121,27 +121,6 @@
   <span id="aviso-ajuste" class="fraco"></span>
 </div>
 
-<!-- O PLANO DA AULA TAMBÉM SE AJUSTA — pelo MESMO mecanismo do lançamento (§1.2): o anterior
-     permanece, o novo é um elo, e o DIFF é a justificativa — sem campo de motivo obrigatório.
-     O botão NÃO reescreve o plano pelo navegador: ele exporta o ELO em .md — de onde veio,
-     quando, quem ajustou e o que mudou —, e quem o anexa à fonte é o professor, com o Git
-     registrando o elo. Sem servidor, não há como a página gravar na fonte.
-
-     O plano aqui é o DA AULA (`plano-aula-NN.json`, extraído de `aula-NN.md`), e não o do
-     ciclo: cada aula tem o seu. Por isso a barra exige uma aula filtrada — sem aula não há
-     plano. É também por isso que ela não é a de cima.
-
-     O que FECHA o ajuste é o LANÇAMENTO, não a data: enquanto a aula não foi lançada
-     — planejada, dada ou não dada —, o plano ainda é intenção e se ajusta. Depois do
-     lançamento, o que se ajusta é o REGISTRO, e quem trata disso é a barra de cima.
-     As duas são mutuamente exclusivas: nunca aparecem abertas juntas. -->
-<div class="acoes" id="acoes-plano" hidden>
-  <button id="ajustar-plano" type="button">Exportar ajuste do plano</button>
-  <span><label for="motivo-plano">Motivo (opcional):</label>
-    <input id="motivo-plano" type="text" size="28" placeholder="por que o plano mudou — o diff já o justifica"></span>
-  <span id="aviso-plano" class="fraco"></span>
-</div>
-
 <!-- Captura — o §3 do IDEIA-CAPTURA (antes / durante / depois da aula). Fechada por
      padrão: a leitura vem primeiro; o lançamento fica a um clique, sem procurar. -->
 <details class="captura" id="captura">
@@ -549,11 +528,6 @@ function atualizarBotaoMd() {
   const assinado = nomeDoAutor() !== '';
   const botao = el('gerar');
   if (botao) botao.disabled = !assinado;
-  // O elo do ajuste do plano é assinado pela MESMA pessoa, no MESMO campo: sem autor não
-  // há quem ajustou. A regra é uma só, e o campo é um só — mas ela vale para os dois
-  // botões, e é por isso que ela mora aqui, e não no `render()`.
-  const ajustePlano = el('ajustar-plano');
-  if (ajustePlano && !ajustePlano.hidden) ajustePlano.disabled = !assinado;
 }
 // Quando foi gerado, em português: "22h31 de 19/09/2026".
 const legivel = (d = new Date()) =>
@@ -597,222 +571,6 @@ async function ajusteDoCiclo(f) {
     comparado: !!anterior,
   };
 }
-
-
-// ------------------------------------------- o ajuste do PLANO DA AULA (§1.1/§1.2)
-// O plano da aula é a LINHA DE BASE: ele é a intenção, e vale até a aula acontecer. O
-// ajuste é o mesmo mecanismo do lançamento — o anterior permanece, o novo é um elo, e o
-// diff é a justificativa —, e o mesmo par de arquivos o sustenta: `plano-aula-NN.json` é
-// o vigente e `plano-aula-NN-anterior.json`, o estado de que ele veio.
-
-// QUEM PODE AJUSTAR O PLANO NÃO É `podeAjustar()`. Aquele é o relógio do LANÇAMENTO
-// ("só se ajusta o que já foi lançado — e só dentro do prazo"): ele libera DEPOIS da
-// aula. Este libera ANTES (§1.1: "autonomia para mudar o plano até a aula acontecer").
-// São simétricos, e o predicado dos dois é o mesmo estado DERIVADO (§1) — por isso os
-// dois nunca ficam abertos ao mesmo tempo. O que fecha o plano é o LANÇAMENTO: a partir
-// dele o plano deixou de ser intenção e o que se ajusta é o registro.
-function podeAjustarPlano() {
-  const id = sel.ciclo.value, aula = sel.aula.value;
-  const f = id ? cache[id] : null;
-  if (!f || !aula) return false;
-  const e = estadoDaAula(f.meta, f.dados, aula);
-  return e === 'planejada' || e === 'dada' || e === 'nao_dada';
-}
-
-// O SUFIXO DA ESCOLA é o mesmo que o índice declara para os dados — o das fontes em
-// disco é o slug, e não o nome de exibição da escola (é a distinção de `escolaDoArquivo`).
-function escolaDaAula() {
-  const id = sel.ciclo.value;
-  const c = indice && id ? indice.ciclos.find((x) => x.id === id) : null;
-  return escolaDoArquivo(c && c.arquivo);
-}
-
-// O nome da FONTE da aula. A convenção sozinha NÃO basta: `fonte_md` resolve a fonte da
-// variante QUANDO ELA EXISTE e cai na compartilhada quando não (`ciclo-01-<escola>-aula-01.md`
-// vence `ciclo-01-aula-01.md`; no `duo` só a segunda existe). A página não lista diretório,
-// mas a fonte fica uma pasta ACIMA do pacote — e o pacote é publicado; num deploy só com o
-// pacote a sonda falha e a convenção volta a valer. O `De:` do elo precisa do nome que o
-// professor vai ABRIR: errado, o elo aponta para um arquivo inexistente.
-async function nomeFonteDaAula() {
-  const escola = escolaDaAula();
-  const cand = escola ? [`ciclo-${sel.ciclo.value}-${escola}-aula-${sel.aula.value}.md`] : [];
-  cand.push(`ciclo-${sel.ciclo.value}-aula-${sel.aula.value}.md`);
-  for (const nome of cand) {
-    try {
-      const r = await fetch(`../${nome}`, { method: 'HEAD' });
-      if (r.ok) return { nome, medido: true };
-    } catch (e) { /* sem a fonte ao lado: cai na convenção */ }
-  }
-  return { nome: cand[0], medido: false };
-}
-
-// O par (vigente, anterior) do plano da aula filtrada. O ANTERIOR é uma CÓPIA do vigente
-// feita antes de sobrescrevê-lo, e é isso que ele é: quando os dois têm o MESMO conteúdo,
-// não houve geração intermediária — o arquivo existe, mas o estado de que ele veio é ele
-// mesmo. Comparar daria "nada mudou", que é uma afirmação que a página NÃO PODE fazer: ela
-// não viu o plano anterior, viu uma cópia do atual. Nesse caso o elo não existe, e a página
-// diz isso em vez de inventar um diff vazio.
-//
-// A IGUALDADE É DE CONTEÚDO, e não de carimbo: o JSON extraído não carrega `gerado_em`
-// (quem carimba é o `ciclos.json`, um só para o pacote). Duas gerações seguidas da mesma
-// fonte dão o MESMO arquivo byte a byte — o extrator é determinístico —, então conteúdo
-// igual é exatamente "o professor não mexeu na fonte entre as duas gerações".
-const canonico = (o) => {
-  if (Array.isArray(o)) return '[' + o.map(canonico).join(',') + ']';
-  if (o && typeof o === 'object') {
-    return '{' + Object.keys(o).sort().map((k) => JSON.stringify(k) + ':' + canonico(o[k])).join(',') + '}';
-  }
-  return JSON.stringify(o === undefined ? null : o);
-};
-async function carregarPlanoDaAula() {
-  const aula = sel.aula.value;
-  if (!aula) return null;
-  const agora_ = await pecaArquivo(`plano-aula-${aula}.json`);
-  if (!agora_) return null;
-  const antes = await pecaArquivo(`plano-aula-${aula}-anterior.json`);
-  const semElo = !!antes && canonico(antes) === canonico(agora_);
-  const fonte = await nomeFonteDaAula();
-  return {
-    atual: agora_, anterior: semElo ? null : antes,
-    fonte: fonte.nome, fonteMedida: fonte.medido, semElo,
-    nome: `plano-aula-${aula}.json`,
-    nomeAnterior: `plano-aula-${aula}-anterior.json`,
-  };
-}
-
-function contarFolhas(o) {
-  if (o === null || o === undefined || typeof o === 'boolean') return 0;
-  if (Array.isArray(o)) return o.reduce((s, x) => s + contarFolhas(x), 0);
-  if (typeof o === 'object') return Object.keys(o).reduce((s, k) => s + contarFolhas(o[k]), 0);
-  return 1;
-}
-
-// O PLANO VIRA UM MAPA ANTES DE SER DIFERENCIADO — e por dois motivos.
-// O primeiro é o RÓTULO: o diff anda por `Object.keys`, e uma lista indexada daria
-// caminhos sem nome ("item 0"); o rótulo de cada item é o que o professor reconhece
-// ("marco 3", "bloco 2"). O segundo é o RUÍDO: o extraído tem ~50 folhas, quase todas
-// fatiadas (uma linha da tabela, um item do guia), então um diff de folha contra folha
-// afogaria o ajuste em dezenas de linhas de "antes → depois" de pedaços de tabela.
-// Aqui a UNIDADE COMPARADA é o objeto de cada seção: `sequenciaDaAula` é uma tabela
-// inteira, idem cada item do guia. Continua sendo o mesmo `diffAulas` — ele desce
-// recursivamente por dentro do que mudou, e o caminho sai com a seção: "aula
-// sequenciaDaAula" diz que a sequência mudou, e não qual célula.
-const MAPA_DO_PLANO = {
-  blocoDeMusicalidade: (x) => `item ${x.item}`,
-  guiaDeObservacao: (x, i) => `dimensão ${dois(i + 1)}: ${x.dimensao}`,
-  distribuicaoDoVolume: (x) => `bloco ${x.bloco}`,
-  auditoria: (x) => `verificação ${x.verificacao}`,
-};
-function mapaDoPlano(p) {
-  if (!p) return null;
-  const m = {};
-  // As seções de CONTEÚDO ÚNICO vão como estão: o diff recursivo já anda dentro delas.
-  Object.keys(p).sort().forEach((k) => { if (!(k in MAPA_DO_PLANO)) m[k] = p[k]; });
-  // As LISTAS viram MAPAS — e a chave de cada item é o rótulo que a página mostra.
-  Object.keys(MAPA_DO_PLANO).forEach((k) => {
-    if (!Array.isArray(p[k])) return;
-    m[k] = {};
-    p[k].forEach((x, i) => { m[k][MAPA_DO_PLANO[k](x, i)] = x; });
-  });
-  return m;
-}
-
-// O `caminho` que o `diffAulas` devolve começa com `aula ` — é o prefixo do lançamento,
-// que é POR AULA. O plano também é por aula (a aula está no filtro, e no nome do
-// arquivo), então repetir "aula 02." em cada linha do elo só gastaria a linha. Cai.
-const semPrefixoDaAula = (caminho) => caminho.replace(/^aula\s+/, '');
-
-async function montarAjusteDoPlano() {
-  const f = sel.ciclo.value ? cache[sel.ciclo.value] : null;
-  if (!f) return null;
-  const p = await carregarPlanoDaAula();
-  if (!p) return null;
-  const mudancas = p.anterior
-    ? diffAulas(mapaDoPlano(p.anterior), mapaDoPlano(p.atual))
-      .map((m) => ({ ...m, caminho: semPrefixoDaAula(m.caminho) }))
-    : [];
-  // A AUTORIA é o que a barra governa: sem autor o botão não exporta (mesma regra do
-  // "Gerar .md" — quem assina o elo é quem o assina, e o .md não vai anônimo).
-  return {
-    de: p.fonte, fonteMedida: p.fonteMedida,
-    em: legivel(), por: nomeDoAutor(),
-    motivo: (el('motivo-plano') && el('motivo-plano').value.trim()) || '',
-    comparado: !!p.anterior, semElo: p.semElo,
-    anteriorNome: p.nomeAnterior, atualNome: p.nome,
-    mudancas, folhas: { antes: contarFolhas(p.anterior), depois: contarFolhas(p.atual) },
-  };
-}
-
-// O MESMO molde do `mdAjuste` do lançamento (lib-vistas.js:48): De / Quando / Quem /
-// Motivo, e "o que foi ajustado" em `caminho: antes → depois`. Sem motivo obrigatório:
-// o diff é a justificativa (§1.2).
-function mdAjusteDoPlano(aj) {
-  const l = [`## Ajuste do plano da aula ${sel.aula.value}`, '',
-    `- **De:** \`${aj.de}\``,
-    `- **Quando:** ${aj.em || '—'}`,
-    `- **Quem ajustou:** ${aj.por || '—'}`,
-    `- **Motivo:** ${aj.motivo || '—'}`, '',
-    `**A linha de base desta aula, ajustada:** \`${aj.atualNome}\`, comparado com \`${aj.anteriorNome}\`.`,
-    ''];
-  // Três casos, e cada um diz o que SABE: sem elo não se compara; elo sem mudança não é
-  // mudança; e o resto é o diff. Nenhum deles inventa um "antes" que não está em disco.
-  if (!aj.comparado) {
-    l.push(aj.semElo
-      ? `*(O \`${aj.anteriorNome}\` é o próprio plano vigente — entre ele e este não houve ` +
-        'regeração do pacote. A comparação não foi feita: regere o pacote depois de ajustar a ' +
-        'fonte, e o próximo ajuste sairá com o elo.)*'
-      : `*(O \`${aj.anteriorNome}\` não está acessível — a comparação não foi feita.)*`, '');
-    return l;
-  }
-  if (!aj.mudancas.length) {
-    l.push('*(Nenhum campo mudou entre os dois planos.)*', '');
-    return l;
-  }
-  l.push('**O que foi ajustado:**', '');
-  aj.mudancas.slice(0, 40).forEach((m) => {
-    l.push(`- ${m.caminho}: ${Vistas.helpers.mdCel(m.antes)} → ${Vistas.helpers.mdCel(m.depois)}`);
-  });
-  if (aj.mudancas.length > 40) l.push(`- … e ${aj.mudancas.length - 40} outra(s).`);
-  l.push('');
-  return l;
-}
-
-// A exportação do elo. O arquivo é o PAR: o ajuste e os dois planos, para o professor
-// anexar o ajuste à fonte e guardar o "anterior" ao lado do pacote. Sem o anterior não
-// há o que comparar — e o módulo .md não é baixado para não deixar no disco um elo que
-// não existe: a mensagem diz o que fazer.
-async function exportarAjusteDoPlano() {
-  const aviso = el('aviso-plano');
-  const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
-  const aj = await montarAjusteDoPlano();
-  if (!aj) { dizer('<span class="erro">não exportei: não achei o plano desta aula no pacote ' +
-    '(<code>plano-aula-XX.json</code>) — regere o pacote.</span>'); return; }
-  if (!nomeDoAutor()) { dizer('<span class="erro">não exportei: falta quem ajusta — o elo é assinado.</span>'); return; }
-  if (!aj.comparado) {
-    dizer(aj.semElo
-      ? `não exportei: o <code>${esc(aj.anteriorNome)}</code> é cópia do vigente — regere o ` +
-        'pacote com a fonte já ajustada, e exporte de novo.'
-      : `não exportei: o <code>${esc(aj.anteriorNome)}</code> não está no pacote — sem o ` +
-        'plano anterior não há elo, e o diff é a justificativa.');
-    return;
-  }
-  if (!aj.mudancas.length) { dizer('não exportei: nenhum campo mudou entre os dois planos.'); return; }
-  // Como no "Gerar .md": um carimbo para o arquivo inteiro, e a recusa antes de baixar.
-  const nome = `ajuste-plano-aula-${sel.aula.value}` +
-    `${escolaDaAula() ? '-' + escolaDaAula() : ''}-${carimboArquivo()}.md`;
-  baixar(nome, mdAjusteDoPlano(aj).join('\n'), 'text/markdown;charset=utf-8');
-  dizer(`<span class="fraco">exportei <code>${esc(nome)}</code> — anexe o bloco ` +
-    `(<code>## Ajuste do plano da aula ${esc(sel.aula.value)}</code>) ao fim de ` +
-    `<code>${esc(aj.de)}</code>${aj.fonteMedida ? '' : ' <strong>(o pacote não tem a fonte ao ' +
-    'lado para conferir o nome: confira se é esse mesmo o arquivo que você vai abrir)</strong>'}` +
-    `. O Git registra o elo; o plano anterior é o ` +
-    `<code>${esc(aj.anteriorNome)}</code>. A âncora se move — e é isso que se quer. · ` +
-    `${aj.mudancas.length} campo(s) ajustado(s) em ${aj.folhas.depois} folha(s) do plano vigente.</span>`);
-}
-
-
-
-
 
 
 async function mdDoFiltro() {
@@ -1818,35 +1576,6 @@ async function render() {
           : `Prazo encerrado em ${dataHora(fim)} — o registro é definitivo.`);
     }
   }
-  // A barra do ajuste do PLANO. Ela é o OUTRO lado do mesmo estado derivado (§1): aqui o
-  // plano ainda é intenção — a aula não foi lançada —, então o que se ajusta é o plano, e
-  // não o registro. Não é `captura` que a esconde (numa aula planejada `captura` é
-  // VERDADEIRO, e é justamente aí que o plano se ajusta): quem a governa é o predicado do
-  // plano, sozinho. Fica ANTES do `return` do modo formulário — a barra vive fora do
-  // painel, junto do filtro, e não pode depender de o painel estar aberto.
-  // Como na barra de cima, ela não SOME quando não se pode ajustar: ela fica com a data e
-  // com o motivo à vista. O professor vê que a possibilidade existiu, e por que não vale.
-  const barraPlano = el('acoes-plano');
-  if (barraPlano) {
-    const f = id ? cache[id] : null;
-    const e = f && aula ? estadoDaAula(f.meta, f.dados, aula) : '';
-    const pode = podeAjustarPlano();
-    barraPlano.hidden = !aula || emAjuste;
-    const botao = el('ajustar-plano'), aviso = el('aviso-plano');
-    if (botao) botao.disabled = !pode || nomeDoAutor() === '';
-    // O carimbo do lançamento, em português — a data que abre a janela do ajuste. Sem
-    // carimbo (aula lançada antes desta regra) não se inventa data: diz-se que não há.
-    const carimbo = semZona(carimboDaAula(f, aula));
-    if (aviso) {
-      aviso.textContent = barraPlano.hidden ? ''
-        : (!pode
-          ? (e === 'lancada'
-            ? `O plano desta aula fecha no lançamento — o que se ajusta desde então é o registro ` +
-              `(${carimbo ? 'em ' + legivel(carimbo) : 'ainda não carimbado'}).`
-            : 'Escolha a aula: o plano é o DA AULA.')
-          : 'o plano ainda é a intenção desta aula — ajustável até o lançamento');
-    }
-  }
   // Modo captura (o filtro numa aula sem dado): a página é o formulário. Os resultados
   // da leitura NÃO aparecem junto — quem quer ler, filtra uma aula que já tem dado.
   if (emFormulario) {
@@ -2034,8 +1763,6 @@ async function trocarCiclo() {
       render();
       renderCaptura();
     });
-    // o ajuste do PLANO da aula: exporta o elo em .md (o professor anexa à fonte)
-    el('ajustar-plano').addEventListener('click', exportarAjusteDoPlano);
     // abrir o painel reconstrói os campos (o que não foi gerado se perde — de propósito)
     el('captura').addEventListener('toggle', renderCaptura);
     // A regra do par plano_seguido × mudou, no ato da escolha: com o plano seguido, o

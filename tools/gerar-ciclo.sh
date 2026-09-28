@@ -218,11 +218,17 @@ node "$RAIZ/tools/validar-plano-ciclo.js" "$CICLOS/ciclo-$CICLO-plano-schema.jso
   "$(fonte_md plano)" --json > "$PACOTE/plano-$CICLO.json" \
   || { echo "erro: não consegui extrair o plano para o pacote (plano-$CICLO.json)." >&2; exit 1; }
 
-# O PLANO DE CADA AULA (ARQUITETURA-AULA.md §1.2 — o item 8 do §10). O ajuste do plano é o
-# MESMO mecanismo do ajuste do lançamento, aplicado à fonte `aula-NN.md`: o anterior permanece,
-# o novo é um elo, e o diff é a justificativa. O formulário precisa do plano da aula AO LADO
-# DELE para comparar campo a campo e emitir o bloco de ajuste — sem este JSON não há o que
-# comparar, e o botão do modo "ajuste do plano" não tem entrada.
+# O PLANO DE CADA AULA (ARQUITETURA-AULA.md §1.2 — o item 8 do §10). O ANTERIOR NÃO SE PERDE
+# (P-03/P-04): esta é a proveniência do estado anterior do plano — o ajuste não se declara, ele
+# se VÊ. É o elo, e não um histórico: guarda o estado de que o atual veio.
+#
+# CORREÇÃO DE 28/09/2026 — o formulário NÃO lê mais este par. A redação anterior dizia que ele
+# precisava do plano "AO LADO DELE para comparar campo a campo e emitir o bloco de ajuste", e que
+# "o botão do modo 'ajuste do plano' não tem entrada"; ambas as afirmações caducaram quando o botão
+# `#ajustar-plano` foi removido de `tools/templates/lancamento.html` (era erro de assistente: não
+# há consumidor para o elo do plano). Os validadores continuam a usar `plano-aula-NN.json`, e o
+# guard do `pre-commit` (§2c) continua a ler o diff da fonte `aula-NN.md`; o PAR segue sendo
+# produzido como proveniência. Ver o `REGISTRO.md`, 28/09/2026.
 #
 # Os NN vêm da família `aula-*` em disco (`familias_por_aula`, a MESMA derivação do DOCS em
 # lib-fontes.sh), e ela já resolve as TRÊS formas de nome da fonte da aula — `ciclo-01-aula-01`,
@@ -235,11 +241,6 @@ node "$RAIZ/tools/validar-plano-ciclo.js" "$CICLOS/ciclo-$CICLO-plano-schema.jso
 # professor pode ainda não o ter (o `tiago` chegou depois do `fochini`). Sem schema não há
 # validação — mas o pacote continua a ser gerado, como qualquer outro documento que a variante
 # não declarou. Com schema, a fonte tem de fechar: o pacote não sai torto.
-#
-# O ANTERIOR NÃO SE PERDE (P-03/P-04): antes de sobrescrever `plano-aula-NN.json`, o que estava
-# lá vira `plano-aula-NN-anterior.json`. É esse par que o formulário compara para emitir o elo do
-# ajuste (§1.1: "o anterior permanece, o novo é um elo, e o diff é a justificativa") — o ajuste
-# não se declara, ele se VÊ. É o elo, e não um histórico: guarda o estado de que o atual veio.
 #
 # A ORDEM importa: o `cp` do anterior vem ANTES do `mv` do atual, e o `mv` é o mesmo rename que o
 # `>` faria. Interrompido entre os dois, o anterior fica igual ao atual — o estado "sem elo", que é

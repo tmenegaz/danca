@@ -7376,3 +7376,112 @@ antigo. A cláusula do `CONGELAMENTO.md` — *"quando o comportamento muda, pare
   (`:1980`) e do `pedirSenha` (`:1918`) nomeiam `assets/`, `lib-vistas.js` e o JSON; e o comentário
   dos *"TRÊS entregáveis"* (`:159`) contradiz os cinco de `ORDEM_ENTREGAVEIS` (`:902`). A
   pesquisadora limitou esta peça ao cabeçalho.
+
+## 28/09/2026 — O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente
+
+**O que motivou.** A pesquisadora pediu a remoção **completa** do botão *"Exportar ajuste do
+plano"* (`#ajustar-plano`, a segunda barra do formulário) e que ficasse **registrado** que aquilo
+foi **erro de assistente** e não faz sentido existir. A pergunta dela foi direta e continua sem
+resposta possível: *"por que é que ele iria usar um exportar ajuste do plano? Vai exportar para
+onde? Para fazer o quê com isso?"* Uma explicação anterior já tinha sido recusada por citar
+documentação em vez de justificar o ponto de vista do usuário — **documentado ≠ justificado**.
+
+**O que foi decidido.** O botão e tudo que só ele sustentava **saem**; a distinção dos dois
+relógios e o arquivamento do plano anterior **ficam**.
+
+- **A distinção fica.** O relógio do **plano** fecha no **lançamento**; o do **lançamento** fecha
+  no **prazo** (`§3.1`). É o que impede os dois ajustes de estarem abertos ao mesmo tempo, e é o
+  que o guard do `pre-commit` (`§2c`, `:172–305`) aplica — **ele difere a fonte `aula-NN.md`
+  contra o `HEAD`, não lê nenhum id de HTML**, e por isso não é afetado por esta remoção.
+- **O arquivamento fica.** `plano-aula-NN.json` → `plano-aula-NN-anterior.json` continua sendo
+  produzido por `tools/gerar-ciclo.sh`. É a proveniência do estado anterior do plano.
+- **O que sai é a exportação.** A fonte `aula-NN.md` é do professor; o que o formulário ajusta é
+  o **lançamento**, que tem o seu próprio par (o `#ajustar` da barra 1, com `podeAjustar()`).
+  Não havia **consumidor** para o elo do plano: a página montava um `.md` que ninguém anexava.
+
+**A assinatura do erro — verificada, não presumida.** `git log -1 -S'Exportar ajuste do plano'`
+aponta **`282fbcb`** — *"feat(template): o estado derivado e o ajuste no plano no formulário"*,
+28/09/2026, commit **co-assinado por Copilot** (`Co-authored-by: Copilot`), que trouxe o `B8`
+(peça 7) inteiro. O botão nasceu aí, **não** de um pedido da pesquisadora. O pedido dela, na
+origem, era outro: um botão para ajustar **quando o "Plano seguido" fosse diferente de *sim***,
+com o campo *"O que mudou em relação ao plano"* — que é o **ajuste do lançamento**, e esse
+`#ajustar` **está funcionando e foi aprovado**. O que se registra aqui é o elo errado, não uma
+mudança de rumo dela.
+
+**O que NÃO se toca.** O ajuste do lançamento (barra 1) fica inteiro: `#acoes-ajuste`, `#ajustar`,
+`#cancelar-ajuste`, `#aviso-ajuste`, a gate `podeAjustar()` (`:975`), o bloco do `render()`
+(`:1560–1574`) e o listener (`:1761`). Também ficam os auxiliares **compartilhados** com ele
+(`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`, `estadoDaAula`,
+`semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`, `fimDoPrazo`,
+`gravarNaPasta`, `#gerar-json` e `#aviso-json` — este último pinado pelo teste de regressão).
+O `mdAjuste` de `biblioteca/lib-vistas.js:48` é o elo do **lançamento** — função **diferente** da
+`mdAjusteDoPlano` que saiu.
+
+**Onde entrou.**
+
+- `tools/templates/lancamento.html` — a remoção. 273 linhas a menos, **só deleções, zero
+  adições**: HTML da barra (5 linhas), o CSS dela, o `render()`, os dois listeners, o `motivo` do
+  ajuste do plano, e os **12** auxiliares exclusivos dela (`podeAjustarPlano`, `escolaDaAula`,
+  `nomeFonteDaAula`, `canonico`, `carregarPlanoDaAula`, `contarFolhas`, `MAPA_DO_PLANO`,
+  `mapaDoPlano`, `semPrefixoDaAula`, `montarAjusteDoPlano`, `mdAjusteDoPlano` e
+  `exportarAjusteDoPlano`).
+- Os três pacotes gerados — `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html`,
+  `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` e
+  `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` — reconstruídos a partir do template
+  limpo com o `<nav>` próprio de cada um reposto no lugar do marcador `<!-- NAV -->`.
+- `ARQUITETURA-AULA.md` — correção datada no `§1.2` (a nota do `B8`) e no item 8 do `§10`.
+- `ARQUITETURA-CAPTURA.md` — correção datada na nota dos *"dois ajustes"* e na **caixa da
+  divergência declarada** do `§5.1` (*"a resolver quando o formulário for revisto"* — a revisão
+  chegou, e resolveu a divergência **do plano**; a do **lançamento** segue aberta).
+- `tools/gerar-ciclo.sh` — o comentário do plano por aula, que dizia *"o botão do modo 'ajuste do
+  plano' não tem entrada"*.
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` e `tools/gerar-ciclo.sh`
+estão em `tools/` (`CONGELAMENTO.md`), e por isso mudam **só com motivo declarado, entrada no
+`REGISTRO.md` e commit próprio** — que é esta entrada. O motivo: o template **é** a peça; não há
+como remover um botão dele sem alterá-lo. No `gerar-ciclo.sh` a mudança é **só de comentário**
+(nenhuma linha executável): o texto vigente descrevia um consumidor que deixou de existir, e
+deixá-lo faria o próximo leitor procurar um botão que não está lá.
+
+**Com o quê.** Verificação medida, não presumida:
+
+- `node tools/check-pacote.js` nos três pacotes ⇒ `0 erro(s)`.
+- `node --check` no JS embutido do template ⇒ OK; `simular-formulario.js` ⇒ `EXIT=0`.
+- Os 18 símbolos exclusivos da barra 2 ⇒ **0 ocorrências** no template e nas três cópias;
+  `#acoes-ajuste`/`#ajustar` ⇒ **7** em cada.
+- `tools/gerar-ciclo.sh fochini 01 diaghilev` (execução real) ⇒ `EXIT=0` e o `lancamento.html`
+  emitido **idêntico** à cópia reconstruída à mão — a propagação é o que o próprio gerador
+  produz, a menos de uma linha em branco.
+- Os artefatos de arrasto da execução de teste (`ciclos.json`, `-dados.json`, o PDF) foram
+  revertidos; o diff final é **deleção pura**.
+- Âncora: **não** exige reancorar — o `.fipp` cobre 21 caminhos por ciclo e **nenhum** é
+  `lancamento.html` (`grep -c lancamento` ⇒ 0). Os três `--check` seguem `EXIT=0`.
+
+**Referências.**
+
+- O commit que introduziu o erro: **`282fbcb`** (*"o estado derivado e o ajuste no plano no
+  formulário"*, co-assinado por Copilot).
+- `ARQUITETURA-AULA.md` §1.1 (os quatro estados e o CRUD da aula planejada), §1.2 (a distinção
+  dos dois relógios), §10 item 8 (o `B8`).
+- `ARQUITETURA-CAPTURA.md` §5.1 (a caixa da divergência declarada) e a nota dos *"dois ajustes"*.
+- `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
+- `tools/hooks/pre-commit:172–305` — o guard do `B8`, que difere a **fonte**, não o HTML.
+- `prompts/eliciar-ciclo.md` foi deixado **de fora** do commit (modificação anterior, sem relação
+  com esta peça), e `po_ref/` continua não versionado.
+
+**O que ainda não está feito.**
+
+- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
+  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
+  proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
+  continuar produzindo ou parar.
+- **A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
+  lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
+  `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
+  `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
+  27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
+  silenciosa.
+- **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
+  processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
+  **não foi respondida**.
