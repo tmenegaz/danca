@@ -27,6 +27,12 @@
 #   parentHash .. hash da âncora do ciclo anterior, mesma variante (vazio no Ciclo 01)
 #   conteudo .... hash das fontes
 #
+# A âncora POR AULA usa a MESMA fórmula, com id "ciclo-01-duo-aula-01", type
+# "Aula", parentHash VAZIO (a âncora de uma aula não encadeia com a da anterior) e
+# conteudo restrito às fontes daquela aula. O campo ancorado_em fica FORA da
+# fórmula, como o po_state: se entrasse, o --check — que recalcula o hash sobre as
+# fontes vivas — falharia no dia seguinte à ancoragem.
+#
 # Cobertura: apenas FONTES — professores/<professor>/ciclos/ciclo-XX.conf,
 # .../ciclo-XX-<variante>.conf e os .../ciclo-XX-*.md QUE NÃO SEJAM de outra
 # escola. Como o PO é por escola (ciclo-XX-<escola>-po.md), a coleta exclui os .md
@@ -37,6 +43,14 @@
 # também altere o hash.
 #
 # O arquivo .fipp é a ÂNCORA da cadeia e por isso é VERSIONADO — não é saída.
+#
+# Âncora POR AULA (ARQUITETURA-AULA.md §5.2, peça 5): além do .fipp do ciclo,
+# cada aula com fonte própria ganha o seu — ciclo-XX-<escola>-aula-NN.fipp — e
+# com ele a atribuição (a âncora da aula NN não tem par), a reancoragem cirúrgica
+# (lançar a 03 não reancora o ciclo) e o corte antes/depois da aula, que é o que
+# dá verificabilidade à regra do §1. O .fipp do ciclo NÃO muda: continua cobrindo
+# todas as fontes, inclusive as das aulas. A peça é ADITIVA justamente para poder
+# ancorar sobre o passado sem reescrevê-lo.
 # ============================================================================
 
 set -euo pipefail
@@ -49,6 +63,11 @@ if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
   shift
 fi
 PROFESSOR="${PROFESSOR:-tiago}"
+
+# O .conf sobrescreve PROFESSOR com o NOME DE EXIBIÇÃO ("Tiago Menegaz"), que não
+# serve para reexecutar o script — o argumento é o diretório. Guardado aqui, antes
+# do source, para as dicas de comando saírem executáveis.
+PROFESSOR_DIR="$PROFESSOR"
 
 if [ "$#" -lt 2 ] || [ "$#" -gt 3 ]; then
   echo "uso: tools/hash-ciclo.sh [<professor>] <ciclo> <variante> [--check]" >&2
@@ -80,6 +99,11 @@ SCHEMA="$BASE/ciclo-$CICLO-schema.json"
 ARQUIVO_FIPP="$BASE/ciclo-$CICLO-$VARIANTE.fipp"
 ID="ciclo-$CICLO-$VARIANTE"
 TIPO="Ciclo"
+# A data da ancoragem é informativa: fica FORA da fórmula, como o po_state. Se
+# entrasse, o --check — que recalcula o hash sobre as fontes VIVAS — passaria a
+# falhar no dia seguinte à ancoragem, e o arquivo nunca mais fecharia.
+ANCORADO_EM="$(date +%F)"
+TIPO_AULA="Aula"
 
 [ -f "$CONF_BASE" ] || { echo "erro: manifesto base não encontrado: $CONF_BASE" >&2; exit 1; }
 [ -f "$CONF_VARIANTE" ] || {
@@ -178,17 +202,67 @@ if [ "$NUM" -gt 1 ]; then
     PARENT_HASH="$(sed -n 's/^hash:[[:space:]]*//p' "$ARQ_ANTERIOR" | head -1)"
   else
     echo "aviso: $ARQ_ANTERIOR não existe — o ciclo $CICLO-$VARIANTE fica sem parentHash" >&2
-    echo "       ancore o anterior primeiro: tools/hash-ciclo.sh $PROFESSOR $ANTERIOR $VARIANTE" >&2
+    echo "       ancore o anterior primeiro: tools/hash-ciclo.sh $PROFESSOR_DIR $ANTERIOR $VARIANTE" >&2
   fi
 fi
 
 # --- 5) hash da âncora ------------------------------------------------------
 HASH_FIPP="$(printf '%s' "$ID:$TIPO:$PARENT_HASH:$HASH_CONTEUDO" | sha)"
 
+# --- 5b) as aulas que têm fonte própria (§5.2) ------------------------------
+# O conjunto de aulas não é declarado: é o que existe no disco, via a MESMA
+# função que o gerador usa para montar o pacote (familias_por_aula). Assim o
+# .fipp por aula nasce só onde há aula, e nunca onde só há a folha de captura.
+AULAS="$( { familias_por_aula aula; familias_por_aula captura-aula; } | LC_ALL=C sort -u )"
+
+# As fontes da aula NN: o documento, a folha de captura e o relatório pós-aula
+# da variante. O relatório pertence à AULA — ele já consta da cobertura do ciclo
+# (fontes_do_ciclo o injeta por glob, sem passar por fonte_md), e sem alcançá-lo
+# aqui mudar o relatório não acusaria na âncora da própria aula.
+fontes_da_aula() {   # <nn>
+  local nn="$1" doc src rel
+  for doc in aula-"$nn" captura-aula-"$nn"; do
+    src="$(fonte_md "$doc")"
+    if [ -f "$src" ]; then printf '%s\n' "$src"; fi
+  done
+  rel="${CICLOS%/ciclos}/relatorios/ciclo-$CICLO"
+  if [ -f "$rel/aula-$nn-$VARIANTE.md" ]; then
+    printf '%s\n' "$rel/aula-$nn-$VARIANTE.md"
+  fi
+}
+
+# --- 5c) as âncoras por aula (§5.2) -----------------------------------------
+# A peça é ADITIVA: o .fipp do ciclo continua existindo e cobrindo todas as
+# fontes, inclusive as das aulas. O que a âncora da aula acrescenta é a
+# atribuição (a da aula NN não tem par — parentHash vazio) e a reancoragem
+# cirúrgica: lançar a 03 não reancora o ciclo. A data, como no ciclo, fica FORA
+# da fórmula — o --check recalcula sobre as fontes vivas e falharia no dia
+# seguinte à ancoragem.
+fontes_da_aula_filtradas() {   # <nn> — só o que está no escopo do professor
+  fontes_da_aula "$1" | while IFS= read -r fonte; do
+    case "$fonte" in "${BASE%/ciclos}"/*) [ -f "$fonte" ] && printf '%s\n' "$fonte" ;; esac
+  done | LC_ALL=C sort -u
+}
+
+N_AULAS=0
+AULA_NN=(); AULA_ID=(); AULA_HC=(); AULA_HASH=(); AULA_ARQ=()
+for nn in $AULAS; do
+  FONTES_AULA="$(fontes_da_aula_filtradas "$nn")"
+  [ -n "$FONTES_AULA" ] || continue
+  HASH_CONTEUDO_AULA="$( for f in $FONTES_AULA; do printf 'arquivo: %s\n' "$f"; cat "$f"; printf '\n'; done | sha )"
+  ID_AULA="$ID-aula-$nn"
+  AULA_NN[$N_AULAS]="$nn"
+  AULA_ID[$N_AULAS]="$ID_AULA"
+  AULA_HC[$N_AULAS]="$HASH_CONTEUDO_AULA"
+  AULA_HASH[$N_AULAS]="$(printf '%s' "$ID_AULA:$TIPO_AULA::$HASH_CONTEUDO_AULA" | sha)"
+  AULA_ARQ[$N_AULAS]="$BASE/ciclo-$CICLO-$VARIANTE-aula-$nn.fipp"
+  N_AULAS=$((N_AULAS + 1))
+done
+
 # --- 6) verificação (--check) ----------------------------------------------
 if [ "$MODO" = "--check" ]; then
   if [ ! -f "$ARQUIVO_FIPP" ]; then
-    echo "erro: $ARQUIVO_FIPP não existe — ancore com: tools/hash-ciclo.sh $PROFESSOR $CICLO $VARIANTE" >&2
+    echo "erro: $ARQUIVO_FIPP não existe — ancore com: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
     exit 1
   fi
   ARMAZENADO="$(sed -n 's/^hash:[[:space:]]*//p' "$ARQUIVO_FIPP" | head -1)"
@@ -201,7 +275,7 @@ if [ "$MODO" = "--check" ]; then
     echo "erro: os fontes do ciclo $CICLO-$VARIANTE mudaram desde a última ancoragem." >&2
     echo "  no .fipp:  $CONTEUDO_ARMAZENADO" >&2
     echo "  agora:     $HASH_CONTEUDO" >&2
-    echo "  regere a âncora com: tools/hash-ciclo.sh $PROFESSOR $CICLO $VARIANTE" >&2
+    echo "  regere a âncora com: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
     FALHOU=1
   fi
 
@@ -231,6 +305,51 @@ if [ "$MODO" = "--check" ]; then
     FALHOU=1
   fi
 
+  # (d) as âncoras por aula (§5.2). A peça é aditiva: a âncora de aula que ainda
+  # não existe é AVISO, não erro — quem ancora sobre o passado não é obrigado a
+  # já ter a peça nova. Mas a que existe tem de bater com as fontes de hoje.
+  i=0
+  while [ "$i" -lt "$N_AULAS" ]; do
+    nn="${AULA_NN[$i]}"; arq="${AULA_ARQ[$i]}"
+    if [ ! -f "$arq" ]; then
+      echo "aviso: a aula $nn ainda não tem âncora ($arq)" >&2
+      echo "       ancore-a com: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
+    else
+      AULA_HC_ARMAZENADO="$(sed -n 's/^hash_conteudo:[[:space:]]*//p' "$arq" | head -1)"
+      AULA_HASH_ARMAZENADO="$(sed -n 's/^hash:[[:space:]]*//p' "$arq" | head -1)"
+      if [ "$AULA_HC_ARMAZENADO" != "${AULA_HC[$i]}" ]; then
+        echo "erro: as fontes da aula $nn mudaram desde a última ancoragem." >&2
+        echo "  no .fipp:  $AULA_HC_ARMAZENADO" >&2
+        echo "  agora:     ${AULA_HC[$i]}" >&2
+        echo "  regere a âncora com: tools/hash-ciclo.sh $PROFESSOR_DIR $CICLO $VARIANTE" >&2
+        FALHOU=1
+      fi
+      if [ "$AULA_HASH_ARMAZENADO" != "${AULA_HASH[$i]}" ] && [ "$FALHOU" -eq 0 ]; then
+        echo "erro: o hash registrado não corresponde aos campos do .fipp da aula $nn." >&2
+        echo "  no .fipp:   $AULA_HASH_ARMAZENADO" >&2
+        echo "  recalculado: ${AULA_HASH[$i]}" >&2
+        FALHOU=1
+      fi
+      COB_AULA_ATUAL="$(fontes_da_aula_filtradas "$nn")"
+      COB_AULA_FIPP="$(grep '^  - ' "$arq" | sed 's/^  - //' | LC_ALL=C sort -u || true)"
+      if [ "$COB_AULA_ATUAL" != "$COB_AULA_FIPP" ]; then
+        echo "erro: a lista de fontes cobertas da aula $nn mudou (arquivo criado ou removido)." >&2
+        diff <(printf '%s\n' "$COB_AULA_FIPP") <(printf '%s\n' "$COB_AULA_ATUAL") | sed 's/^/  /' >&2 || true
+        FALHOU=1
+      fi
+    fi
+    i=$((i + 1))
+  done
+
+  # âncoras de aula órfãs: o .fipp ficou sem a aula correspondente
+  for arq in "$BASE"/ciclo-"$CICLO"-"$VARIANTE"-aula-*.fipp; do
+    [ -f "$arq" ] || continue
+    case " ${AULA_ARQ[*]:-} " in
+      *" $arq "*) ;;
+      *) echo "aviso: $arq não corresponde a nenhuma aula de hoje" >&2 ;;
+    esac
+  done
+
   [ "$FALHOU" -eq 0 ] || exit 1
   echo "ok: ciclo $CICLO-$VARIANTE íntegro; cadeia intacta"
   echo "    hash: $HASH_FIPP"
@@ -255,16 +374,53 @@ fi
   echo "algoritmo: SHA-256"
   echo "po: $PO_INFO"
   echo "po_state: $PO_STATE"
+  echo "ancorado_em: $ANCORADO_EM"
   echo "cobertura:"
   for f in $FONTES; do echo "  - $f"; done
 } > "$ARQUIVO_FIPP"
+
+# --- 7b) gravação dos .fipp por aula (§5.2) ---------------------------------
+i=0
+while [ "$i" -lt "$N_AULAS" ]; do
+  {
+    echo "# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh"
+    echo "# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04)."
+    echo "# Âncora da AULA ${AULA_NN[$i]} do ciclo $CICLO-$VARIANTE: cobre só as fontes desta aula."
+    echo "# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)"
+    echo "# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior."
+    echo ""
+    echo "id: ${AULA_ID[$i]}"
+    echo "type: $TIPO_AULA"
+    echo "professor: $PROFESSOR"
+    echo "ciclo: $CICLO"
+    echo "variante: $VARIANTE"
+    echo "aula: ${AULA_NN[$i]}"
+    echo "hash_conteudo: ${AULA_HC[$i]}"
+    echo "parentHash: "
+    echo "hash: ${AULA_HASH[$i]}"
+    echo "algoritmo: SHA-256"
+    echo "ancorado_em: $ANCORADO_EM"
+    echo "cobertura:"
+    for f in $(fontes_da_aula_filtradas "${AULA_NN[$i]}"); do echo "  - $f"; done
+  } > "${AULA_ARQ[$i]}"
+  i=$((i + 1))
+done
 
 echo "ancorado: $ARQUIVO_FIPP"
 echo "  id:            $ID"
 echo "  hash_conteudo: $HASH_CONTEUDO"
 echo "  parentHash:    ${PARENT_HASH:-(vazio — o Ciclo $CICLO abre a cadeia)}"
 echo "  hash:          $HASH_FIPP"
+echo "  ancorado_em:   $ANCORADO_EM"
 if [ -n "$PARENT_HASH" ]; then
   echo "  cadeia: $(printf '%02d' "$((NUM - 1))")-$VARIANTE → $CICLO-$VARIANTE"
 fi
+i=0
+while [ "$i" -lt "$N_AULAS" ]; do
+  echo "ancorado: ${AULA_ARQ[$i]}"
+  echo "  id:            ${AULA_ID[$i]}"
+  echo "  hash_conteudo: ${AULA_HC[$i]}"
+  echo "  hash:          ${AULA_HASH[$i]}"
+  i=$((i + 1))
+done
 

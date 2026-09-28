@@ -1,0 +1,21 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-ritmos: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-ritmos-aula-01
+type: Aula
+professor: Tiago Menegaz
+ciclo: 01
+variante: ritmos
+aula: 01
+hash_conteudo: efe2209b0dd2b659a3a48edc380fd466efc560a7d424c55b8bdbcc06d96f6e06
+parentHash: 
+hash: 56533949d50f11a8affe2f1eca5488bc48e06cff0908a052f0428665beadc815
+algoritmo: SHA-256
+ancorado_em: 2026-09-27
+cobertura:
+  - professores/tiago/ciclos/ciclo-01-ritmos-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-ritmos-captura-aula-01.md
+  - professores/tiago/relatorios/ciclo-01/aula-01-ritmos.md

@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-diaghilev: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-diaghilev-aula-01
+type: Aula
+professor: Fochini
+ciclo: 01
+variante: diaghilev
+aula: 01
+hash_conteudo: 98e548dd1caa031f70467d81a93f49049b5a2abce341f8ca476dc3723d6b8cbf
+parentHash: 
+hash: cff9dee11637a3c9f08d9d3e45349266555dd309b09333da8cb4831a3df05c3c
+algoritmo: SHA-256
+ancorado_em: 2026-09-27
+cobertura:
+  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-01.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-01.md
