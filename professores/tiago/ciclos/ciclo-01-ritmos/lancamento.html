@@ -153,8 +153,8 @@
 <div class="aviso">
   <strong>Área do Professor.</strong> Lê um índice de ciclos (<code>ciclos.json</code>) e, sob
   demanda, o JSON de dados do ciclo escolhido — que vai <strong>cifrado</strong> no pacote, como os
-  acompanhamentos. As vistas são calculadas na memória, e o lançamento sai em arquivo para o
-  professor commitar: <strong>esta página não grava sozinha.</strong>
+  acompanhamentos. As vistas são calculadas na memória, e o lançamento é <strong>salvo</strong> na
+  pasta do ciclo que você escolher: a página grava, mas <strong>não commita</strong> — o commit é seu.
 </div>
 
 <fieldset>
@@ -202,17 +202,13 @@
 <!-- Captura — o §3 do IDEIA-CAPTURA (antes / durante / depois da aula). Fechada por
      padrão: a leitura vem primeiro; o lançamento fica a um clique, sem procurar. -->
 <details class="captura" id="captura">
-  <summary>Lançar uma aula (grava no JSON)</summary>
+  <summary>Lançar uma aula (salva no JSON)</summary>
   <div id="captura-campos"><p class="vazio">Escolha um ciclo — o lançamento é por aula,
     dentro de um ciclo.</p></div>
   <div class="acoes">
-    <button id="gerar-json" type="button">Gerar JSON atualizado</button>
-    <span class="fraco">baixa <strong>dois</strong> arquivos — e os dois vão para o repositório,
-      não para a pasta de downloads. O <strong>JSON de dados</strong>: o ciclo inteiro com esta
-      aula dentro, num nome novo com carimbo de hora — é ele que guarda o lançamento. E o
-      <code>ciclos.json</code>, o <strong>índice</strong> dos ciclos (os metadados das aulas,
-      nunca o lançamento), que passa a apontar para aquele nome. O arquivo do disco só muda
-      quando você commitar: a proveniência do JSON é o commit, não um carimbo dentro dele</span>
+    <button id="gerar-json" type="button">Salvar</button>
+    <span class="fraco">o ciclo com esta aula dentro, na pasta do ciclo — e só entra no Git
+      quando você commitar.</span>
     <span id="aviso-json"></span>
   </div>
 </details>
@@ -252,7 +248,8 @@
 
 <!-- As duas libs do projeto, publicadas em assets/ pelo gerador: o pacote é o que se publica, e
      esta página lê tudo o que precisa AO LADO DELA — as libs, o índice (ciclos.json), os JSONs de
-     entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). -->
+     entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). O que ela salva
+     (o lançamento) vai para a pasta do ciclo que o professor escolher, ao lado de tudo isso. -->
 <script src="assets/lib-vistas.js"></script>
 <script src="assets/lib-cifra.js"></script>
 <!-- O comportamento da barra fixa e do menu mobile é o MESMO do resto do site, e vive num
@@ -1026,6 +1023,33 @@ function nomeDoArquivo(tipo) {
   return `caderno-${id ? `${id}${escola ? '-' + escola : ''}` : 'todos'}.md`;
 }
 
+// --------------------------------------------------- gravar na pasta do ciclo
+// A pasta é escolhida UMA vez por carga da página e fica guardada: pedir a pasta a cada
+// salvamento seria pedir ao professor que localizasse o ciclo de novo, toda vez.
+let pasta = null;
+
+// Grava os arquivos DIRETO na pasta escolhida, pelo File System Access API. Devolve `false`
+// — sem lançar — quando o navegador não sabe fazer isso (Firefox/Safari), quando a página
+// não é contexto seguro, ou quando o professor cancela o seletor: quem chamou decide o que
+// dizer. `showDirectoryPicker` exige gesto do usuário, e o clique no botão é o gesto.
+async function gravarNaPasta(arquivos) {
+  if (!globalThis.showDirectoryPicker || !globalThis.isSecureContext) return false;
+  try {
+    if (!pasta) pasta = await globalThis.showDirectoryPicker({ id: 'ciclo', mode: 'readwrite' });
+    if (await pasta.queryPermission({ mode: 'readwrite' }) !== 'granted' &&
+        await pasta.requestPermission({ mode: 'readwrite' }) !== 'granted') return false;
+    for (const a of arquivos) {
+      const h = await pasta.getFileHandle(a.nome, { create: true });
+      const w = await h.createWritable();
+      await w.write(new Blob([a.texto], { type: a.tipo }));
+      await w.close();
+    }
+    return true;
+  } catch (e) {
+    return false;                 // AbortError do seletor, ou falha de escrita no disco
+  }
+}
+
 // ----------------------------------------------------------- baixar um arquivo
 function baixar(nome, texto, tipo) {
   const blob = new Blob([texto], { type: tipo });
@@ -1063,8 +1087,8 @@ async function gerarMd() {
 
 // ------------------------------------------------------------------- captura
 // O §3 do IDEIA-CAPTURA — antes (monta os campos), durante (marca) e depois
-// (lança → atualiza o JSON em memória → baixa → commita). O JSON é a fonte, então o
-// que se baixa é o ARQUIVO DO CICLO INTEIRO com esta aula dentro: diff pequeno,
+// (lança → atualiza o JSON em memória → salva → commita). O JSON é a fonte, então o
+// que se salva é o ARQUIVO DO CICLO INTEIRO com esta aula dentro: diff pequeno,
 // commit legível. E é por isso que não há carimbo dentro do JSON — a proveniência
 // dele é o commit ("cada estado do JSON é um commit", IDEIA-CAPTURA).
 const MARCAS = [['', 'não observei'], ['ok', '✓ ok'], ['parcial', '~ parcial'],
@@ -1714,10 +1738,10 @@ function indiceComArquivo(id, nome) {
     indiceTexto.slice(fim);
 }
 
-// §3.3: lança no JSON EM MEMÓRIA → baixa o arquivo do ciclo → o commit é de quem lê.
-// Cada gravação cria um ARQUIVO NOVO, com carimbo no nome, e o índice passa a apontar
-// para ele — o anterior permanece (acessível, e não é o vigente). O ajuste usa o mesmo
-// caminho, com mais campos na raiz: de onde veio, quando, por quem e por quê.
+// §3.3: lança no JSON EM MEMÓRIA → SALVA o arquivo do ciclo na pasta escolhida → o commit
+// é de quem lê. Cada gravação cria um ARQUIVO NOVO, com carimbo no nome, e o índice passa a
+// apontar para ele — o anterior permanece (acessível, e não é o vigente). O ajuste usa o
+// mesmo caminho, com mais campos na raiz: de onde veio, quando, por quem e por quê.
 async function gerarJson() {
   const aviso = el('aviso-json');
   const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
@@ -1740,8 +1764,8 @@ async function gerarJson() {
   let texto = textoComAula(f.texto, id, aulaGravada);
   // O "o que mudou" é gravado AQUI, no ato do ajuste: a página tem o lançamento anterior
   // em memória neste instante. Guardá-lo no arquivo faz o .md declarar a mudança sem
-  // depender de o anterior continuar acessível — sem servidor, ele pode ter ido para a
-  // pasta de downloads, e não para a pasta do experimento.
+  // depender de o anterior continuar acessível — a cada gravação o vigente passa a ser um
+  // arquivo NOVO, e o anterior pode já não estar à mão de quem lê.
   const mudancas = ajuste
     ? diffAulas(f.dados.aulas, { ...f.dados.aulas, [id]: aulaGravada })
       .map((m) => `${m.caminho}: ${Vistas.helpers.mdCel(m.antes)} → ${Vistas.helpers.mdCel(m.depois)}`)
@@ -1769,14 +1793,25 @@ async function gerarJson() {
   f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser escrito
   f.texto = texto;               // e o texto, para a próxima gravação não perder esta
   f.meta.arquivo = novoNome;     // a página passa a apontar para o vigente
-  baixar(novoNome, texto, 'application/json;charset=utf-8');
-  baixar('ciclos.json', indiceNovo, 'application/json;charset=utf-8');
-  dizer(`<span class="fraco">gerado: <code>${esc(novoNome)}</code>` +
+  // O ARQUIVO DE DADOS vai primeiro: se o índice chegasse ao disco apontando para um
+  // arquivo que não está lá, a próxima abertura da página leria um ciclo inexistente.
+  const arquivos = [
+    { nome: novoNome, texto, tipo: 'application/json;charset=utf-8' },
+    { nome: 'ciclos.json', texto: indiceNovo, tipo: 'application/json;charset=utf-8' },
+  ];
+  const gravou = await gravarNaPasta(arquivos);
+  // Sem File System Access (Firefox/Safari, ou contexto não seguro) o par desce como
+  // download, e a página DIZ que desceu — o professor tem de mover à mão, e não pode
+  // descobrir isso depois, na pasta errada.
+  if (!gravou) arquivos.forEach((a) => baixar(a.nome, a.texto, a.tipo));
+  const onde = gravou
+    ? 'salvo na pasta do ciclo'
+    : '<span class="erro">este navegador não escreve na pasta — os arquivos foram para a pasta de ' +
+      'downloads: mova-os para a pasta do ciclo, no lugar dos antigos</span>';
+  dizer(`<span class="fraco">${onde}` +
     `${ajuste ? ` — ajuste de <code>${esc(deOnde)}</code>, motivo: ${esc(motivo)}` : ''}` +
     ` · aula ${esc(id)} ${jaTinha ? 'atualizada' : 'acrescentada'} · ` +
-    `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s) · ` +
-    `e <code>ciclos.json</code> apontando para ele — o disco só muda quando você ` +
-    `commitar: a proveniência do JSON é o commit</span>`);
+    `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s)</span>`);
   ajustando = false;             // gravou: ou entrou no registro, ou corrigiu o que havia
   pagina = 1;
   // A aula lançada passa a existir para a leitura — e o painel sai de cena, porque o
@@ -2010,8 +2045,9 @@ async function trocarCiclo() {
   }
   try {
     // O TEXTO do índice também é guardado: ao gravar, a página reescreve o `arquivo` do
-    // ciclo (cirurgicamente) e baixa o `ciclos.json` apontando para o vigente — sem
-    // servidor, a página não escreve no disco: ela entrega o arquivo.
+    // ciclo (cirurgicamente) e salva o `ciclos.json` apontando para o vigente. Não há
+    // servidor: quem escreve no disco é o File System Access, na pasta que o professor
+    // escolhe — e, onde ele não existir, o par desce como download.
     // O `r.ok` é conferido porque um 404 não lança: sem ele o erro só apareceria no
     // JSON.parse — e com a cara do arquivo errado.
     const rIndice = await fetch(P + 'ciclos.json');
