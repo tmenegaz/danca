@@ -135,7 +135,8 @@ ficar lento, aí sim otimiza — mas para 12 ou 21 aulas, um JSON só é instant
 - **O caderno:** continua no formato `.md` — mas **gerado sob demanda** pelo formulário,
   como o acompanhamento por aluna (não é escrito à mão nem mantido atualizado
   automaticamente).
-- **Nenhum backend:** o formulário é HTML + JavaScript. Salvar = baixar o arquivo.
+- **Nenhum backend:** o formulário é HTML + JavaScript. Salvar = gravar os arquivos na
+  pasta do ciclo (File System Access API), com download de reserva onde ela não existe.
 
 ## O que muda (quando for implementado)
 
@@ -159,7 +160,7 @@ armazenamento; os `.md` são os entregáveis.
 
 1. Formulário HTML com `select` de aulas e filtro por aluna
 2. Carregamento do JSON no navegador
-3. Gravação (download do JSON atualizado)
+3. Gravação (os arquivos na pasta do ciclo)
 4. Visualização por aula e por aluna (o período é **informação**, não filtro)
 5. Integração com o gerador
 

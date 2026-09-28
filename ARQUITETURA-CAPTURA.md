@@ -258,10 +258,18 @@ Escreve o texto do relatório → também vai para o JSON
 Cada gravação cria um ARQUIVO novo, com carimbo no nome, e o índice passa a
 apontar para ele — o anterior permanece (ver §5.1)
     ↓
-Baixa o JSON novo e o índice atualizado
+Salva o JSON novo e o índice atualizado na pasta do ciclo
     ↓
 Commita no Git (repositório privado)
 ```
+
+> **Nota datada — 28/09/2026. A redação acima envelheceu.** O penúltimo passo dizia, e não
+> diz mais, *"Baixa o JSON novo e o índice atualizado"*. Desde o `Salvar`, o formulário
+> **grava os dois arquivos na pasta do ciclo** que o professor escolher, com a File System
+> Access API; onde o navegador não a oferece (Firefox, Safari), ele cai no download e
+> **declara a queda** ao professor. O commit continua sendo dele — a página grava, não
+> commita. A redação antiga **não** foi apagada (P-03/P-04): esta nota é o elo novo, e ela
+> governa as demais ocorrências da §3.5, da §4 e da §5.1 abaixo.
 
 ### 3.4 Visualizar
 
@@ -286,7 +294,8 @@ quiser. **Nada é mantido atualizado automaticamente.** O JSON é o armazenament
 E não é escrever duas vezes: no modelo atual o caderno e o relatório são **escritos à
 mão**; aqui eles são **lidos** do que já foi lançado.
 
-Isso não muda o §3.3 — a gravação continua sendo lançar → baixar o JSON → commitar. O
+Isso não muda o §3.3 — a gravação continua sendo lançar → salvar na pasta do ciclo →
+commitar. O
 que muda é que o documento entregue deixa de ser escrito à mão: ele é o espelho do
 filtro, no momento em que se precisa dele.
 
@@ -303,7 +312,7 @@ flowchart TB
     F --> J
     V --> J
   end
-  J -->|"download manual"| G["Git — repositório privado<br/>JSON é fonte · cada estado é um commit"]
+  J -->|"gravação na pasta do ciclo"| G["Git — repositório privado<br/>JSON é fonte · cada estado é um commit"]
 ```
 
 **ASCII:**
@@ -324,7 +333,7 @@ flowchart TB
 │           └─────────────────────┘             │
 └─────────────────────────────────────────────┘
               │
-              │ download / commit manual
+              │ gravação na pasta do ciclo / commit manual
               ▼
 ┌─────────────────────────────────────────────┐
 │        Git (repositório privado)             │
@@ -388,8 +397,8 @@ Duas consequências da fórmula valem aqui, porque são elas que a contagem anti
 - O novo arquivo declara: `ajuste_de` (de onde veio), `ajustado_em`, `ajustado_por`,
   `motivo` — e `ajustes`, a lista do que mudou, **gravada no ato do ajuste**. O
   documento gerado depois (§3.4) reproduz o que mudou sem depender de o arquivo
-  anterior estar acessível: sem servidor, ele pode ter ido para a pasta de downloads
-  do navegador, e não para a pasta do ciclo
+  anterior estar acessível: sem servidor, ele pode ter ficado fora da pasta do ciclo
+  — se o navegador não oferece a gravação direta, o formulário cai no download
 
 > **Divergência declarada — o "Motivo do ajuste" (27/09/2026).** Este documento descreve
 > o ajuste com um campo de **motivo**, e o formulário implementado o exige: sem ele, e sem

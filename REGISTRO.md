@@ -7068,3 +7068,84 @@ regra exige **existe e está datada**; a entrada anterior afirmava o contrário,
 > O próprio bullet declara *"não foi feita nesta peça"*, e é isso que **autoriza** o conserto aqui: a
 > frase **já foi publicada**, e a correção é o elo. Corrigido nesta peça, junto dos dois espelhos no
 > `HANDOFF.md`.
+
+> **Correção de 28/09/2026 (mesmo dia) — o que esta própria entrada tornou falso, e o conserto
+> que ela autorizou.** Cinco afirmações feitas acima **não se sustentam** depois que a peça
+> terminou de andar. Corrigem-se aqui, como elo — o texto anterior **não é apagado** (P-03/P-04).
+>
+> 1. *"**As três cópias empacotadas ainda dizem `Gerar JSON atualizado`** — propagadas nesta mesma
+>    peça logo adiante"* (`:6999-7000`). **Verdadeiro na hora em que foi escrito, falso depois do
+>    commit `b1d85ab`.** A propagação aconteceu, e as três cópias foram commitadas. Medido agora:
+>    `grep -c 'Gerar JSON atualizado'` → **0** em cada uma das três, e `grep -c '>Salvar<'` → **1**
+>    em cada uma. O bullet descrevia o **durante**, não o **depois**.
+> 2. *"**O `HANDOFF.md` ainda não foi regenerado.** Ele carrega o rótulo antigo (`:168`) e a cauda
+>    preservada (`:175`)"* (`:7001-7002`, ecoado em `HANDOFF.md:1402-1405`). **Verdadeiro na hora,
+>    falso desde a regeneração.** O `HANDOFF.md` foi regerado com `:4` = `b1d85ab`, e o rótulo
+>    antigo não existe mais no arquivo. A **estrutura** do bullet, porém, é o que importa para o
+>    método: o gerador **colhe todo** bloco *"O que ainda não está feito"* e **não reinicia** em
+>    linhas `> ` (medido: o `HANDOFF.md` carrega a nota de correção inteira, `:1417-1470`). Por
+>    isso os dois primeiros bullets ficam **cumulativos** no handoff, e é **aqui** que eles são
+>    contrapostos — nunca lá.
+> 3. As duas linhas da tabela *"Com o quê"* que mediam o estado das cópias (`:6938` *"**0** em cada
+>    uma das três cópias — *ainda não propagadas*"*; `:6939` *"**1** em cada cópia (stale)"*).
+>    **Estão invertidas hoje, e a §Referências acima (`:6972-6973`) já as qualificava como "o estado
+>    medido na hora".** A qualificação é o que as salva como **instantâneo**, e é o que se mantém:
+>    elas continuam verdadeiras *para o instante da geração*. O que se corrige é a leitura — quem lê
+>    depois **re-deriva com o próprio relógio**, exatamente como o `_nota` do índice manda. Medido
+>    agora: `:6938` → **1** em cada cópia; `:6939` → **0** em cada.
+> 4. ⭐ **A linha falsa da entrada anterior.** Ela afirma que *"O texto novo chegou nas **quatro**
+>    cópias"*, com a medição *"`grep -c 'baixa <strong>dois</strong> arquivos'` → **1** em cada"*
+>    (`:6767`), e dá `git diff --numstat` **`6/3`** (`:6768`). **As duas não se sustentam.** Medido
+>    agora: `grep -c 'baixa <strong>dois</strong> arquivos'` → **0** nas quatro; e o `--numstat`
+>    real do commit `ce69bc5` é **`63 27`** em `tools/templates/lancamento.html` — não `6/3`. Uma
+>    entrada anterior que mede errado contamina a tabela de quem vem depois; o conserto é a medição
+>    nova, e não a reescrita da antiga.
+> 5. ⭐ **A citação fantasma — a régua verdadeira.** O bullet de `:6817-6819` afirma que
+>    *"`ARQUITETURA-CAPTURA.md:260-266` afirma que o carimbo de hora *"cai na cauda ignorada"*"*.
+>    **A citação não se sustenta: a frase nunca existiu naquele arquivo** (medido:
+>    `grep -c "cauda" ARQUITETURA-CAPTURA.md` → **0**). A regra verdadeira é a `> **Nota datada —
+>    27/09/2026**` de `ARQUITETURA-CAPTURA.md:190-195`, sobre o `ultimo_lancamento`. A nota de método
+>    acima (`:7057-7070`) conclui com *"Corrigido nesta peça, junto dos dois espelhos no
+>    `HANDOFF.md`"* — e **essa conclusão estava adiantada**: o arquivo livre seguia intocado. Ela
+>    passa a valer **agora**, com o conserto do item 6 abaixo, e a enumeração de `:7062-7063`
+>    (`REGISTRO.md:6731` e `:6817`; `HANDOFF.md:175`, `:261` e `:1261`) troca pelos cinco lugares
+>    medidos hoje: `REGISTRO.md:6817` e `:7064`, `HANDOFF.md:392`, `:1395` e `:1467`.
+> 6. ⭐ **Os documentos livres foram corrigidos nesta peça — era o que faltava, e a entrada os
+>    declarava intocados.** O bullet de `:7007-7010` dizia *"a correção é barata, e **não foi feita
+>    nesta peça** — a peça é o formulário"*. Correção barata que fica para depois envelhece quem a
+>    lê: quem abrisse `ARQUITETURA-CAPTURA.md` aprenderia que o lançamento *"baixa o JSON"*. Feito
+>    agora, com nota datada no próprio arquivo livre (P-03/P-04), nos quatro pontos do fluxo:
+>    - `ARQUITETURA-CAPTURA.md:261` (*"Baixa o JSON novo e o índice atualizado"*) → *"Salva o JSON
+>      novo e o índice atualizado na pasta do ciclo"*, sob **nota datada 28/09/2026** na §3.3, que
+>      declara o recuo para download onde não há File System Access API;
+>    - `:306` (Mermaid, `-->|"download manual"|`) → `-->|"gravação na pasta do ciclo"|`;
+>    - `:327` (caixa ASCII, `│ download / commit manual`) → `│ gravação na pasta do ciclo / commit
+>      manual`;
+>    - `:391` (*"pode ter ido para a pasta de downloads do navegador"*) → o download como **recuo**,
+>      não como destino.
+>    E em `IDEIA-CAPTURA.md`, os dois pontos que descreviam a gravação como download de saída:
+>    `:138` (*"Salvar = baixar o arquivo"*) e `:162` (*"Gravação (download do JSON atualizado)"*).
+> 7. ⭐ **O texto de apoio da página — pedido novo, feito nesta peça.** A pesquisadora pediu, depois
+>    da decisão, que a redação do cabeçalho (`tools/templates/lancamento.html:97-103`) fosse
+>    reescrita em linguagem mais legível, cobrindo os quatro verbos do que a página faz — **lê** o
+>    índice e os dados do ciclo (que viajam cifrados no pacote, como os acompanhamentos), **salva**
+>    o lançamento na pasta do ciclo escolhida, **ajusta** o que precisar e **gera** os relatórios.
+>    A consequência **verdadeira** foi preservada palavra a palavra: as vistas são calculadas na
+>    memória, a página **grava mas não commita**, e **o commit é do professor**.
+> 8. ⭐ **A alteração das 10:04 — descartada, e registrada como método.** Entre esta entrada e a
+>    anterior, o VS Code reescreveu os quatro `lancamento.html` no disco (`files.autoSave:
+>    "onFocusChange"` + `editor.formatOnSave`, ambos em `~/.config/Code/User/settings.json`). O delta
+>    de conteúdo foi a **remoção de uma frase** — a legenda *"o ciclo com esta aula dentro, na pasta
+>    do ciclo — e só entra no Git quando você commitar"* —, idêntica nos quatro arquivos, com o
+>    JavaScript **inalterado** (medido: os quatro reduzem a exatamente **−97** caracteres, e o JS
+>    tem os mesmos 79754 caracteres nos dois lados). Um formatador **não apaga texto**: a assinatura
+>    é de **"Replace in Files"**. A pesquisadora foi consultada e escolheu **descartar** —
+>    `git checkout --` nos quatro caminhos. **A remoção de uma linha de texto, se ela um dia quiser,
+>    é mudança de uma linha com entrada própria**, como qualquer outra. O remédio durável, oferecido:
+>    fechar as abas, ou desligar `editor.formatOnSave` para HTML.
+>
+> **O que continua valendo sem correção.** O "Motivo declarado", a tabela "Onde entrou" na sua
+> parte de código (`:6940`, `:6941`, `:6942` — medidos de novo, corretos), a §"O que motivou" e
+> todo o parágrafo 5 desta nota, que registra a parada que a peça anterior não fez. A regra do
+> `CONGELAMENTO.md` segue: quando o **comportamento** muda, para-se e confirma-se; foi o que
+> aconteceu aqui, e a escolha está em "Motivo declarado".
