@@ -6,14 +6,17 @@ calendario.py — calcula o calendário real de um ciclo (Pré-requisito 5 / Reg
     uso:
       python3 tools/calendario.py \
         --escola "Duo" --responsavel "Fernando" \
-        --frequencia "1x/semana" --dias "5" \
+        --frequencia "1x/semana" --dias "5@18:30" \
         --inicio 17/09/2026 --total 12 \
         --duracao-curta 60 --volume-curto 90 \
         [--duracao-longa 120 --volume-longo 180]
 
-      python3 tools/calendario.py --escola "Duo" --frequencia "1x/semana" --dias "5" \
+      python3 tools/calendario.py --escola "Duo" --frequencia "1x/semana" --dias "5@18:30" \
         --inicio 17/09/2026 --total 12 --aula 01
       → 2026-09-18     (a data da aula 01, em ISO — para quem precisa da data, não do bloco)
+
+      ... --aulas-arquivo /tmp/aulas.tsv
+      → 01  2026-09-18  18:30  19:30   (uma linha por aula: NN, data ISO, início, fim)
 
 Saída: bloco Markdown com o calendário (escola, frequência, volume semanal, datas,
 avaliação formativa e somativa, extensão e tabela aula → data) no stdout; resumo de
@@ -31,6 +34,14 @@ Regras de cálculo:
 ser **repetido** para indicar mais de uma aula no mesmo dia: `"2,6,6"` = terça com
 1 aula e sábado com 2 aulas (as duas na mesma data, numeradas 1ª e 2ª). O total de
 aulas por semana é o número de entradas da lista.
+
+Cada entrada pode declarar a **hora de início**, com `@`: `"2@19:00,6@09:00,6@11:00"`
+(terça 19h · sábado 9h e 11h). A hora é **obrigatória** — a forma antiga, só com o
+número, é recusada —, porque o **prazo de lançamento** conta do **fim do bloco**
+(ARQUITETURA-AULA.md §3.1) e, sem hora, não tem de onde contar. A hora fica **junto
+do dia**, e não em lista paralela: quem editasse uma sem a outra desalinharia em
+silêncio. Cada ocorrência do dia traz a SUA hora — é isso que distingue as duas
+aulas do sábado.
 """
 
 import argparse
@@ -41,20 +52,53 @@ DIAS_SEMANA = {1: 'segunda', 2: 'terça', 3: 'quarta', 4: 'quinta',
                5: 'sexta', 6: 'sábado', 7: 'domingo'}
 
 
+def parse_dias(texto: str) -> list:
+    """`"2@19:00,6@09:00,6@11:00"` → [(2, 19*60), (6, 9*60), (6, 11*60)].
+
+    O dia pode repetir (duas aulas na mesma data) e cada ocorrência traz a SUA hora.
+    A hora é obrigatória: sem ela o prazo (§3.1) não tem de onde contar. A antiga
+    forma só-número é recusada com uma mensagem que diz o que fazer — migrar três
+    `.conf` é barato; descobrir depois que o prazo saiu errado, não.
+    """
+    itens = []
+    for bruto in texto.replace(' ', '').split(','):
+        if not bruto:
+            continue
+        dia_s, _, hora_s = bruto.partition('@')
+        if not dia_s.isdigit() or not 1 <= int(dia_s) <= 7:
+            raise ValueError(f'dia inválido "{bruto}" (use 1=segunda … 7=domingo)')
+        if not hora_s:
+            raise ValueError(f'"{bruto}" não declara a hora — use o formato DIA@HH:MM '
+                             f'(ex.: 5@18:30). A hora é obrigatória desde 25/09/2026: o '
+                             f'prazo de lançamento conta do fim da aula.')
+        try:
+            h, m = (int(x) for x in hora_s.split(':'))
+            if not 0 <= h <= 23 or not 0 <= m <= 59:
+                raise ValueError
+        except ValueError:
+            raise ValueError(f'hora inválida "{hora_s}" em "{bruto}" (use HH:MM, 24h)')
+        itens.append((int(dia_s), h * 60 + m))
+    if not itens:
+        raise ValueError('--dias vazio')
+    return itens
+
+
 def datas_das_aulas(inicio: dt.date, dias: list, total: int) -> list:
     """Datas reais: uma aula por OCORRÊNCIA do dia na lista `dias`.
 
-    `dias` é tratado como multiconjunto: se um dia aparece mais de uma vez
-    (ex.: "2,6,6"), ele gera mais de uma aula na MESMA data — é o caso de duas
-    aulas no mesmo sábado (1 de balé como preparação + 1 de pas de deux). A
-    contagem por dia é simplesmente o número de vezes que o dia aparece.
+    `dias` é o que sai de `parse_dias()` — pares (dia, minuto) —, tratado como
+    multiconjunto: se um dia aparece mais de uma vez (ex.: "2,6,6"), ele gera mais de
+    uma aula na MESMA data, é o caso de duas aulas no mesmo sábado (1 de balé como
+    preparação + 1 de pas de deux). A contagem por dia é o número de vezes que ele
+    aparece — a hora não interfere na contagem.
     """
+    numeros = [d for d, _ in dias]
     aulas = []
     dia = inicio
-    while dia.isoweekday() not in dias:
+    while dia.isoweekday() not in numeros:
         dia += dt.timedelta(days=1)
     while len(aulas) < total:
-        for _ in range(dias.count(dia.isoweekday())):
+        for _ in range(numeros.count(dia.isoweekday())):
             if len(aulas) >= total:
                 break
             aulas.append(dia)
@@ -62,8 +106,23 @@ def datas_das_aulas(inicio: dt.date, dias: list, total: int) -> list:
     return aulas
 
 
+def minutos_do_dia(dias: list, dow: int, ocorrencia: int) -> int:
+    """O minuto do início da N-ésima aula daquele dia da semana (1 = a primeira)."""
+    vistos = 0
+    for dia, minuto in dias:
+        if dia == dow:
+            vistos += 1
+            if vistos == ocorrencia:
+                return minuto
+    raise ValueError(f'pedi a {ocorrencia}ª aula de {DIAS_SEMANA[dow]} e a lista não a tem')
+
+
 def br(d: dt.date) -> str:
     return d.strftime('%d/%m/%Y')
+
+
+def hhmm(minutos: int) -> str:
+    return f'{minutos // 60:02d}:{minutos % 60:02d}'
 
 
 def main() -> int:
@@ -71,7 +130,9 @@ def main() -> int:
     p.add_argument('--escola', required=True)
     p.add_argument('--responsavel', default='')
     p.add_argument('--frequencia', required=True)
-    p.add_argument('--dias', required=True, help='dias ISO separados por vírgula: 2,6')
+    p.add_argument('--dias', required=True,
+                   help='aulas da semana: DIA@HH:MM separados por vírgula (ex.: 2@19:00,6@09:00). '
+                        'Repetir o dia = mais de uma aula na mesma data, cada uma com sua hora.')
     p.add_argument('--inicio', required=True, help='dd/mm/aaaa')
     p.add_argument('--total', type=int, required=True)
     # Duração e volume do dia curto: obrigatórios para gerar o BLOCO (o volume aparece nele) e
@@ -85,11 +146,15 @@ def main() -> int:
     p.add_argument('--aula', type=int, default=0,
                    help='imprime SÓ a data da aula NN, em ISO (aaaa-mm-dd) — os argumentos de '
                         'duração/volume são dispensados neste modo')
+    p.add_argument('--aulas-arquivo', default='',
+                   help='escreve uma linha por aula (NN\\tdata ISO\\tinício\\tfim) — é o que o '
+                        'índice por aula e o prazo (ARQUITETURA-AULA.md §3 e §4.2) consomem')
     a = p.parse_args()
 
-    dias = [int(x) for x in a.dias.replace(' ', '').split(',') if x]
-    if not dias:
-        print('erro: --dias vazio', file=sys.stderr)
+    try:
+        dias = parse_dias(a.dias)
+    except ValueError as e:
+        print(f'erro: --dias — {e}', file=sys.stderr)
         return 2
     try:
         inicio = dt.datetime.strptime(a.inicio, '%d/%m/%Y').date()
@@ -115,15 +180,36 @@ def main() -> int:
         return 2
 
     por_semana = len(dias)
+    numeros = [d for d, _ in dias]
     semanas = (a.total + por_semana - 1) // por_semana
 
     # dias_do_ciclo: o primeiro dia da lista é o "curto" quando as durações diferem
     if a.duracao_longa and a.volume_longo:
-        dias_do_ciclo = [(dias[0], a.duracao_curta, a.volume_curto)] + \
-                        [(d, a.duracao_longa, a.volume_longo) for d in dias[1:]]
+        dias_do_ciclo = [(numeros[0], a.duracao_curta, a.volume_curto)] + \
+                        [(d, a.duracao_longa, a.volume_longo) for d in numeros[1:]]
     else:
-        dias_do_ciclo = [(d, a.duracao_curta, a.volume_curto) for d in dias]
+        dias_do_ciclo = [(d, a.duracao_curta, a.volume_curto) for d in numeros]
     volume_semanal = sum(v for _, _, v in dias_do_ciclo)
+
+    # A hora de início e a duração de CADA aula, na ordem cronológica. A duração segue
+    # a posição da aula dentro da semana (a 1ª é a curta quando há dia longo); a hora
+    # vem da N-ésima ocorrência daquele dia na lista.
+    ocorrencia_no_dia = {}
+    por_aula = []          # (data, início em min, duração em min)
+    for i, d in enumerate(aulas, 1):
+        k = ocorrencia_no_dia[d] = ocorrencia_no_dia.get(d, 0) + 1
+        inicio_min = minutos_do_dia(dias, d.isoweekday(), k)
+        idx = (i - 1) % por_semana
+        dur = a.duracao_longa if (a.duracao_longa and a.volume_longo and idx > 0) else a.duracao_curta
+        por_aula.append((d, inicio_min, dur))
+
+    if a.aulas_arquivo:
+        # O contrato com o gerador: uma linha por aula. `fim` já inclui a duração, então
+        # quem calcula o prazo (§3.1) sabe quando a aula TERMINA — é do fim do bloco que
+        # ele conta, não do início.
+        with open(a.aulas_arquivo, 'w', encoding='utf-8') as f:
+            for i, (d, ini, dur) in enumerate(por_aula, 1):
+                f.write(f'{i:02d}\t{d.isoformat()}\t{hhmm(ini)}\t{hhmm(ini + dur)}\n')
 
     formativa = (a.total + 1) // 2
     extensao_semanas = 4 // por_semana
@@ -133,23 +219,28 @@ def main() -> int:
     # Um dia pode ter mais de uma aula (ex.: sábado com balé + pas de deux): a
     # lista `dias` então repete o número. Quando não repete, a saída abaixo é
     # byte a byte a mesma de antes — nenhum ciclo existente muda de calendário.
-    distinctos = [d for i, d in enumerate(dias) if d not in dias[:i]]
-    if len(distinctos) != len(dias):
+    distinctos = [d for i, d in enumerate(numeros) if d not in numeros[:i]]
+    horas_do_dia = {}
+    for d, m in dias:
+        horas_do_dia.setdefault(d, []).append(hhmm(m))
+    if len(distinctos) != len(numeros):
         L.append(f'- **Frequência semanal:** {a.frequencia} (' + '; '.join(
-            f'{DIAS_SEMANA[d]}' + (f' ×{dias.count(d)}' if dias.count(d) > 1 else '')
+            f'{DIAS_SEMANA[d]}' + (f' ×{numeros.count(d)}' if numeros.count(d) > 1 else '')
             for d in distinctos) + ')')
         L.append('- **Duração por dia:** ' + ' · '.join(
-            f'{DIAS_SEMANA[d]}: {a.duracao_curta * dias.count(d)} min'
-            + (f' ({dias.count(d)} aulas de {a.duracao_curta} min)' if dias.count(d) > 1 else '')
+            f'{DIAS_SEMANA[d]}: {a.duracao_curta * numeros.count(d)} min'
+            + (f' ({numeros.count(d)} aulas de {a.duracao_curta} min)' if numeros.count(d) > 1 else '')
             for d in distinctos))
     else:
         L.append(f'- **Frequência semanal:** {a.frequencia} '
-                 f'({", ".join(DIAS_SEMANA[d] for d in dias)})')
+                 f'({", ".join(DIAS_SEMANA[d] for d in distinctos)})')
         if a.duracao_longa and a.volume_longo:
-            L.append(f'- **Duração por dia:** {a.duracao_curta} min ({DIAS_SEMANA[dias[0]]}) e '
-                     f'{a.duracao_longa} min ({", ".join(DIAS_SEMANA[d] for d in dias[1:])})')
+            L.append(f'- **Duração por dia:** {a.duracao_curta} min ({DIAS_SEMANA[distinctos[0]]}) e '
+                     f'{a.duracao_longa} min ({", ".join(DIAS_SEMANA[d] for d in distinctos[1:])})')
         else:
             L.append(f'- **Duração por dia:** {a.duracao_curta} minutos')
+    L.append('- **Horário:** ' + ' · '.join(
+        f'{DIAS_SEMANA[d]} ' + ' e '.join(horas_do_dia[d]) for d in distinctos))
     L.append('- **Volume semanal:** ' + ' + '.join(str(v) for _, _, v in dias_do_ciclo) +
              f' = **{volume_semanal} tempos/semana**')
     if aulas[0] != inicio:
@@ -173,16 +264,11 @@ def main() -> int:
     def rotulo_do_dia(d):
         vistos_no_dia[d] = vistos_no_dia.get(d, 0) + 1
         nome = DIAS_SEMANA[d.isoweekday()]
-        if dias.count(d.isoweekday()) > 1:
+        if numeros.count(d.isoweekday()) > 1:
             return f'{nome} ({vistos_no_dia[d]}ª)'
         return nome
 
-    for i, d in enumerate(aulas, 1):
-        idx = (i - 1) % por_semana
-        if a.duracao_longa and a.volume_longo and idx > 0:
-            dur = a.duracao_longa
-        else:
-            dur = a.duracao_curta
+    for i, (d, _, dur) in enumerate(por_aula, 1):
         marco = ' *(formativa)*' if i == formativa else (' *(somativa)*' if i == a.total else '')
         L.append(f'| {i:02d}{marco} | {br(d)} | {rotulo_do_dia(d)} | {dur} min |')
     L.append('')
