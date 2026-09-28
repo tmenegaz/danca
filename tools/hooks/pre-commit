@@ -7,11 +7,18 @@
 #
 # O que faz:
 #   1) barra arquivos GERADOS no stage (defesa contra .gitignore furado);
-#   2) valida a âncora FIPP e o PO de cada ciclo tocado;
+#   2) valida a âncora FIPP, o PO, o plano do ciclo e os dados (o `-dados.json` do
+#      lançamento por aula) de cada ciclo tocado;
 #   3) se o registro/glossário Benesh entrou no stage, valida a consistência
 #      entre os dois (todo símbolo do corpo precisa de verbete);
-#   4) para cada ciclo tocado, roda o gerador + validador do pacote;
-#   5) se a apresentação foi tocada, roda os validadores do deck.
+#   4) se o PLANO DE UMA AULA (`aula-NN.md`) entrou no stage, valida-o contra o
+#      schema da aula e, com a aula já LANÇADA, exige que a edição seja só
+#      ACRÉSCIMO — o elo novo (`## Ajuste do plano da aula NN`) no fim, o
+#      passado intacto (§1.1/§1.2: o anterior permanece, o novo é um elo);
+#   5) para cada ciclo tocado, roda o gerador + validador do pacote;
+#   6) se a apresentação foi tocada, roda os validadores do deck;
+#   7) se entraram no stage tools/, os assets de um pacote de ciclo ou o deck,
+#      valida a identidade visual (paleta com cópia única e cópias em dia).
 # ============================================================================
 set -uo pipefail
 
@@ -91,6 +98,24 @@ for alvo in $alvos_hash; do
       echo "pre-commit: aviso — $arquivo_po existe sem schema ($schema_po); PO não validado" >&2
     fi
 
+    # DADOS do ciclo: o JSON de dados é a FONTE do lançamento por aula (§4.1/§4.3/§4.6), e ele
+    # não tem schema em arquivo — as regras são INLINE no validador (um `-dados-schema.json`
+    # exigiria um por escola). A variante tem precedência sobre o compartilhado, como o plano e
+    # como o tools/lib-fontes.sh. Sem dados, PULA sem falhar: o ciclo ainda não teve lançamento.
+    arquivo_dados="$base/ciclo-$numero-$v-dados.json"
+    [ -f "$arquivo_dados" ] || arquivo_dados="$base/ciclo-$numero-dados.json"
+    if [ -f "$arquivo_dados" ]; then
+      if ! node tools/validar-dados-ciclo.js "$arquivo_dados" \
+           > /tmp/pre-commit-dados-"$prof-$numero-$v".log 2>&1; then
+        echo "pre-commit: recusado — os dados do $prof/ciclo-$numero (variante $v) não satisfazem as regras do lançamento (§4.1, §4.3, §4.6)." >&2
+        grep -E '^  - |^erro' /tmp/pre-commit-dados-"$prof-$numero-$v".log | head -6 >&2
+        exit 1
+      fi
+      echo "pre-commit: dados do $prof/ciclo-$numero (variante $v) validados"
+      # As lacunas do §4.6 são DECLARADAS, não erro: o JSON cobre a aula, não o PO nem o plano.
+      grep 'lacunas declaradas' /tmp/pre-commit-dados-"$prof-$numero-$v".log | sed 's/^ */    /' >&2 || true
+    fi
+
     # PLANO do ciclo: o schema é do CICLO (P-08), como o do PO; a FONTE pode ser própria da
     # variante — `ciclo-XX-<escola>-plano.md` tem precedência sobre `ciclo-XX-plano.md`, que é
     # a MESMA regra do tools/lib-fontes.sh. Sem nenhuma das duas, o plano não existe para esta
@@ -144,6 +169,144 @@ if [ -n "$arquivos_glossario" ]; then
 fi
 
 # ---------------------------------------------------------------------------
+# 2c) PLANO DE UMA AULA tocado (`aula-NN.md`): valida contra o schema da aula e,
+#     com a aula JÁ LANÇADA, exige que a edição seja só ACRÉSCIMO (§1.1/§1.2).
+#
+#     É esta a razão declarada do congelamento deste arquivo (ARQUITETURA-AULA.md §8:
+#     "distinguir plano antes × depois da aula"). Até o lançamento, `aula-NN.md` é
+#     INTENÇÃO e a edição é LIVRE — inclusive para a aula que não aconteceu, que não
+#     se declara em lugar nenhum (§1, literal: "A aula não dada não é declarada — é o
+#     que sobra"). Do LANÇAMENTO em diante o plano é FATO: o anterior permanece, o
+#     novo é um elo, e o diff é a justificativa (§1.2).
+#
+#     O elo é um bloco `## Ajuste do plano da aula NN` anexado ao FIM do arquivo — é o
+#     próprio formulário que o exporta (tools/templates/lancamento.html,
+#     exportarAjusteDoPlano). Ele é do PROFESSOR, não do hook: aqui só se confere que
+#     nada acima dele mudou e que o que já estava lá continua lá.
+#
+#     O QUE NÃO ENTRA: `-captura-aula-NN.md` (material de observação, não plano). E o
+#     guard é obrigatório, não precaução: a fonte COMPARTILHADA `ciclo-NN-captura-aula-NN.md`
+#     casa com o padrão do plano e seria lida como variante `captura`.
+#
+#     QUEM MANDA é o `ciclos.json` do PACOTE da variante (`aulas[].lancada`), não o
+#     cabeçalho do .md: o estado é DERIVADO (§4.2). Uma fonte COMPARTILHADA alimenta
+#     TODAS as variantes do professor (tools/lib-fontes.sh) — logo, se QUALQUER variante
+#     que ela alimenta está lançada, o acréscimo é exigido, e a mensagem diz quais.
+#
+#     Sem schema, sem índice ou sem HEAD: AVISO, nunca recusa — o hook não inventa uma
+#     trava que a fonte não sustenta.
+# ---------------------------------------------------------------------------
+arquivos_aula="$(printf '%s\n' "$arquivos" \
+  | grep -E '^professores/[^/]+/ciclos/ciclo-[0-9]+(-[a-z0-9]+)?-aula-[0-9]{2}\.md$' \
+  | grep -v 'captura-aula-' || true)"
+for fonte_aula in $arquivos_aula; do
+  pa="$(printf '%s' "$fonte_aula" | sed 's|^professores/||; s|/ciclos/.*||')"
+  na="$(printf '%s' "$fonte_aula" | sed 's|.*/ciclos/ciclo-||; s|-.*||')"
+  bn="$(basename "$fonte_aula")"
+  # `ciclo-NN-<variante>-aula-NN.md` × `ciclo-NN-aula-NN.md` (compartilhada): a variante sai
+  # do NOME, e é o VAZIO que diz que a fonte serve a todas as variantes do professor.
+  va="$(printf '%s' "$bn" | sed -n "s|^ciclo-$na-\([a-z0-9]\+\)-aula-[0-9]\{2\}\.md\$|\1|p")"
+  nn="$(printf '%s' "$bn" | sed -n "s|^ciclo-$na-\([a-z0-9]\+\)-aula-\([0-9]\{2\}\)\.md\$|\2|p")"
+  if [ -z "$nn" ]; then
+    nn="$(printf '%s' "$bn" | sed -n "s|^ciclo-$na-aula-\([0-9]\{2\}\)\.md\$|\1|p")"
+  fi
+  if [ -z "$nn" ]; then
+    echo "pre-commit: aviso — não consegui ler o número da aula em $fonte_aula; não validado" >&2
+    continue
+  fi
+  base_aula="professores/$pa/ciclos"
+
+  # VALIDAÇÃO: uma vez por FONTE — o schema da aula é do PROFESSOR, não da variante.
+  schema_aula="$base_aula/ciclo-$na-aula-schema.json"
+  log_aula="/tmp/pre-commit-aula-$pa-$na-$nn.log"
+  if [ ! -f "$schema_aula" ]; then
+    echo "pre-commit: aviso — $schema_aula ausente; plano da aula $nn de $pa/ciclo-$na não validado" >&2
+  elif ! node tools/validar-aula-ciclo.js "$schema_aula" "$fonte_aula" > "$log_aula" 2>&1; then
+    echo "pre-commit: recusado — o plano da aula $nn de $pa/ciclo-$na não satisfaz o schema da aula." >&2
+    grep -E '^  - |^erro' "$log_aula" | head -6 >&2
+    exit 1
+  else
+    echo "pre-commit: plano da aula $nn de $pa/ciclo-$na validado"
+    # Lacunas e avisos NÃO bloqueiam: `[Preencher]` é decisão da pesquisadora ainda pendente,
+    # e o aviso aponta seção que a extração deixou de fora (um `##` fora do mapa de seções).
+    grep 'provisórios' "$log_aula" | sed 's/^ */    /' >&2 || true
+    grep 'avisos:' "$log_aula" | sed 's/^ */    /' >&2 || true
+  fi
+
+  # ESTADO: do índice do PACOTE da variante (`ciclos[].aulas[].lancada`), nunca do .md.
+  variantes_aula="$va"
+  if [ -z "$variantes_aula" ]; then
+    variantes_aula="$(ls -1 "$base_aula"/ciclo-"$na"-*.conf 2>/dev/null \
+      | sed "s|.*/ciclo-$na-||; s|\.conf\$||" || true)"
+  fi
+  if [ -z "$variantes_aula" ]; then
+    echo "pre-commit: aviso — $pa/ciclo-$na sem variantes por escola; estado da aula $nn não verificado" >&2
+    continue
+  fi
+  lancada_em=""
+  aviso_indice=""
+  for v in $variantes_aula; do
+    indice_aula="$base_aula/ciclo-$na-$v/ciclos.json"
+    if [ ! -f "$indice_aula" ]; then
+      aviso_indice="${aviso_indice:+$aviso_indice, }$v (sem ciclos.json)"
+      continue
+    fi
+    # `process.argv.slice(1)` com `node -e` = os argumentos do usuário (medido).
+    sinal="$(node -e '
+const fs = require("fs");
+const [arq, ci, au] = process.argv.slice(1);
+let r = "ausente";
+try {
+  const j = JSON.parse(fs.readFileSync(arq, "utf8"));
+  const c = (j.ciclos || []).find((x) => x.id === ci);
+  const a = c ? (c.aulas || []).find((x) => x.n === au) : null;
+  r = a ? (a.lancada ? "lancada" : "aberta") : "ausente";
+} catch (e) { r = "ilegivel"; }
+process.stdout.write(r);
+' "$indice_aula" "$na" "$nn" 2>/dev/null || true)"
+    case "$sinal" in
+      lancada)  lancada_em="${lancada_em:+$lancada_em, }$v" ;;
+      ausente)  aviso_indice="${aviso_indice:+$aviso_indice, }$v (aula $nn fora do índice)" ;;
+      ilegivel) aviso_indice="${aviso_indice:+$aviso_indice, }$v (índice ilegível)" ;;
+    esac
+  done
+  if [ -n "$aviso_indice" ]; then
+    echo "pre-commit: aviso — estado da aula $nn de $pa/ciclo-$na não verificado em: $aviso_indice" >&2
+  fi
+  if [ -z "$lancada_em" ]; then
+    continue
+  fi
+
+  # ACRÉSCIMO: a aula está LANÇADA ⇒ o passado não se reescreve. Compara-se o PREFIXO
+  # (tudo antes do primeiro elo) com o do HEAD, e o elo do HEAD linha a linha.
+  head_aula="/tmp/pre-commit-aula-$pa-$na-$nn.head"
+  if ! git cat-file -e "HEAD:$fonte_aula" 2>/dev/null; then
+    echo "pre-commit: aviso — $fonte_aula é novo e a aula $nn já está lançada ($lancada_em); acréscimo não confrontado com o HEAD" >&2
+  else
+    git show "HEAD:$fonte_aula" > "$head_aula" 2>/dev/null || true
+    pref_atual="$(sed '/^## Ajuste do plano da aula /,$d' "$fonte_aula")"
+    pref_head="$(sed '/^## Ajuste do plano da aula /,$d' "$head_aula")"
+    if [ "$pref_atual" != "$pref_head" ]; then
+      echo "pre-commit: recusado — o plano da aula $nn de $pa/ciclo-$na já foi LANÇADO ($lancada_em): do lançamento em diante o plano é FATO." >&2
+      echo "  a intenção não se reescreve; o ajuste é um elo NOVO, no fim do arquivo (§1.1/§1.2)." >&2
+      echo "  o formulário de lançamento exporta o bloco '## Ajuste do plano da aula $nn' — anexe-o ao fim de $fonte_aula." >&2
+      exit 1
+    fi
+    cauda_head="$(sed -n '/^## Ajuste do plano da aula /,$p' "$head_aula")"
+    if [ -n "$cauda_head" ]; then
+      n_elo="$(printf '%s\n' "$cauda_head" | grep -c '')"
+      cauda_atual="$(sed -n '/^## Ajuste do plano da aula /,$p' "$fonte_aula")"
+      if [ "$(printf '%s\n' "$cauda_atual" | head -n "$n_elo")" != "$cauda_head" ]; then
+        echo "pre-commit: recusado — o elo já registrado no plano da aula $nn de $pa/ciclo-$na foi alterado ou removido." >&2
+        echo "  o elo anterior permanece; um ajuste novo é outro elo, anexado depois dele (§1.1/§1.2)." >&2
+        exit 1
+      fi
+    fi
+    echo "pre-commit: plano da aula $nn de $pa/ciclo-$na preserva o passado lançado ($lancada_em)"
+  fi
+done
+
+# ---------------------------------------------------------------------------
 # 3) ciclos tocados: gerar e validar (uma variante por escola), por professor
 # ---------------------------------------------------------------------------
 ciclos="$(printf '%s\n' "$arquivos" | grep -oE '^professores/[^/]+/ciclos/ciclo-[0-9]+' | sort -u || true)"
@@ -187,6 +350,41 @@ if printf '%s\n' "$arquivos" | grep -q '^apresentacoes/'; then
   node tools/check-mapa.js > /tmp/pre-commit-mapa.log 2>&1 || {
     echo "pre-commit: FALHOU a validação do mapa." >&2; tail -5 /tmp/pre-commit-mapa.log >&2; exit 1; }
   tail -1 /tmp/pre-commit-deck.log
+fi
+
+# ---------------------------------------------------------------------------
+# 5) identidade visual: a paleta tem UM só lugar, e as cópias têm de estar em dia
+#    (IDENTIDADE-VISUAL.md). A âncora .fipp NÃO cobre isto: o tools/templates/ciclo.css
+#    mora em tools/, que não é fonte de ciclo — logo este validador é a ÚNICA trava da
+#    identidade. Sem ele, um hex novo em tools/templates/ciclo.css e as páginas servidas
+#    divergindo passam em silêncio.
+#
+#    GUARD ESTREITO, pelo que o validador de fato LÊ — não por precaução:
+#      a) `tools/` — a fonte (tools/templates/ciclo.css, tools/templates/nav.js) e os
+#         consumidores que ele varre atrás de hex redeclarado (os dois templates HTML e
+#         os scripts de geração/hash);
+#      b) `professores/<p>/ciclos/ciclo-NN-<escola>/assets/` — a checagem "Circuito"
+#         compara byte a byte a cópia do pacote com a fonte; é a única parte de
+#         professores/ que ele lê;
+#      c) o deck do Rizoma — único consumidor que DECLARA os hex (Marp não referencia
+#         token), e por isso ele entra sozinho, e não todo o `apresentacoes/`.
+#    Um commit de docs, biblioteca, PO, plano ou só de fontes de ciclo NÃO pode
+#    afetá-lo — e o hook já é pesado o bastante para não rodá-lo por nada.
+#
+#    Roda DEPOIS do 3) de propósito: é o gerador que recopia tools/templates/ para
+#    dentro do pacote, então a checagem de circuito tem de ver o pacote JÁ regenerado.
+# ---------------------------------------------------------------------------
+if printf '%s\n' "$arquivos" | grep -qE '^(tools/|professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/assets/|apresentacoes/apresentacao-01-rizoma/apresentacao-ballet\.md$)'; then
+  echo "pre-commit: validando a identidade visual ..."
+  if node tools/check-identidade.js > /tmp/pre-commit-identidade.log 2>&1; then
+    echo "pre-commit: identidade visual ok ($(grep -c '^ok: ' /tmp/pre-commit-identidade.log) verificações passaram)"
+  else
+    echo "pre-commit: recusado — a identidade visual não se sustenta." >&2
+    grep -E '^erro: ' /tmp/pre-commit-identidade.log | head -6 >&2
+    echo "  a paleta mora só em tools/templates/ciclo.css; regenere o pacote se a cópia divergiu" >&2
+    echo "  ver IDENTIDADE-VISUAL.md" >&2
+    exit 1
+  fi
 fi
 
 exit 0
