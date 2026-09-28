@@ -6818,3 +6818,253 @@ formulário. **O que NÃO muda:**
   medição mostra que não cai** (a regex é ancorada em `$`). É arquivo livre, então a correção é
   barata; não foi feita nesta peça.
 
+## 28/09/2026 — O botão passa a ser `Salvar`, e o arquivo vai para a pasta do ciclo
+
+**O que motivou.**
+
+A pesquisadora leu o texto de apoio que a entrada anterior (`:6705`) tinha acabado de escrever e
+respondeu com a objeção que aquela entrada **não havia escutado**: *"Não é para entregar no Download
+do usuário o XML pois ele não sabe o que é isso. Basta Enviar os dados fornecidos no preenchimento do
+formulário lancamento.html faça o ajuste: Mudar o nome do botão e não fazer o download do xml para o
+usuário"*. E, separando o essencial do acessório: *"Vc não respondeu as minhas perguntas. E o botão
+continua com o nome Gerar JSON atualizado."*
+
+A entrada anterior tinha medido **quantos** arquivos o botão baixa e ajustado **o texto** — mas deixou
+**o rótulo** e **o destino** intocados, por ler a §7.3 de `ARQUITETURA-CAPTURA.md:599-601`
+(*"sem servidor, ou exige backend: **mantém**"*) como proibição de mexer em qualquer coisa. A medição
+mostra que a §7.3 mantém **o desenho** (não haver servidor nem backend), não **o lugar** onde o
+arquivo cai: o File System Access API grava no disco a partir da página, sem backend nenhum. O que a
+decisão anterior protegia era o desenho; o que ela deixou de pé foi o download na pasta do usuário —
+que é justamente o que a pesquisadora recusa.
+
+**O que foi decidido.**
+
+- **O rótulo passa a ser `Salvar`.** A pesquisadora recusou `Enviar` — *"Coloca o nome Salvar pois é
+  mais coerente do que Enviar"* — e a coerência é exata: nada é enviado a lugar nenhum; o que
+  acontece é gravação local, seguida do **commit de quem lê**.
+- **O par de arquivos passa a ir para a pasta do ciclo**, escolhida no seletor do navegador, e **não**
+  para a pasta de downloads: o nome é estável e o carimbo vive no índice, então a página escreve no
+  lugar do arquivo antigo, ao lado das fontes.
+- **O `id` interno continua `gerar-json`.** O rótulo é contrato de gente; o `id` é contrato de teste.
+  `experimentos/captura-json/teste.js` clica `els['gerar-json']` em **oito** pontos (`:318`, `:422`,
+  `:443`, `:526`, `:550`, `:717`, `:742`, `:752`): renomear o `id` por causa de um rótulo quebraria a
+  rede de regressão inteira.
+- **O texto de apoio encolhe a duas linhas, e o parágrafo que a pesquisadora mandou apagar sai.** O
+  trecho *"os dois vão para o **repositório**, não para a pasta de downloads"* (`:6728-6730`) **não
+  está mais no texto visível** — nem no cabeçalho, nem no `summary`, nem na legenda, nem na mensagem
+  pós-salvamento. A pesquisadora cortou a explicação no mesmo pedido em que pediu o rótulo novo.
+
+**Onde entrou.**
+
+`tools/templates/lancamento.html` — **um** arquivo. O diff contra `HEAD` são **63 inserções / 27
+remoções**, em **onze hunks** (`git diff -U0`):
+
+```
+@@ -101,2  +101,2   @@  cabeçalho: "baixa" → "salvo na pasta do ciclo que você escolher"
+@@ -150     +150     @@  summary: "Lançar uma aula (salva no JSON)"
+@@ -154,7   +154,3   @@  <button id="gerar-json">Salvar</button> + legenda de 2 linhas
+@@ -200     +196,2   @@  comentário do propósito da página: o que ela salva vai para a pasta
+@@ -973,0   +971,27  @@  <-- O NOVO: `let pasta` (:974) + `gravarNaPasta()` (:980)
+@@ -1011,2  +1035,2  @@  comentário da captura: "baixa" → "salva" (§3 do IDEIA-CAPTURA)
+@@ -1662,4  +1686,4  @@  comentário §3.3: SALVA na pasta escolhida → o commit é de quem lê
+@@ -1688,2  +1712,2  @@  a razão do download, reescrita
+@@ -1717,3  +1741,16 @@  o bloco de escrita: `gravarNaPasta` + o fallback declarado
+@@ -1722,3  +1759    @@  o `dizer()` de fechamento, encurtado
+@@ -1958,2  +1993,3  @@  `trocarCiclo`: quem escreve no disco é o File System Access
+```
+
+As linhas, medidas no arquivo já alterado (**2088** linhas, era **2052**):
+
+- **`:154`** — *a* mudança pedida: `<button id="gerar-json" type="button">Salvar</button>`. O `id`
+  fica; **só o rótulo mudou**. **`:155-156`** é a legenda que sobrou: *"o ciclo com esta aula dentro,
+  na pasta do ciclo — e só entra no Git quando você commitar."*
+- **`:101-102`** — o cabeçalho da **Área do Professor**: *"o lançamento é **salvo** na pasta do ciclo
+  que você escolher: a página grava, mas **não commita** — o commit é seu."*
+- **`:197`** — o comentário do propósito da página: *"O que ela salva (o lançamento) vai para a pasta
+  do ciclo que o professor escolher, ao lado de tudo isso."*
+- **`:971-995`** — o corpo novo. `:971-973` o comentário da pasta escolhida **uma vez por carga**;
+  `:974` `let pasta = null;` (escopo de módulo, é o cache); `:976-979` a razão do `false` que nunca
+  lança; `:980` `async function gravarNaPasta(arquivos)`; `:981` a guarda
+  `if (!globalThis.showDirectoryPicker || !globalThis.isSecureContext) return false;`; `:983` o
+  `showDirectoryPicker({ id: 'ciclo', mode: 'readwrite' })`; `:984-985` `queryPermission` e
+  `requestPermission` (`readwrite`); `:986-991` o laço `getFileHandle(create: true)` →
+  `createWritable()` → `write(new Blob(...))` → `close()`; `:992` `return true`; `:993-995`
+  `catch (e) { return false; }` — *"AbortError do seletor, ou falha de escrita no disco"*.
+- **`:1741-1759`** — onde a gravação acontece. `:1741-1742` a ordem: **o arquivo de dados primeiro**
+  (*"se o índice chegasse ao disco apontando para um arquivo que não está lá, a próxima abertura da
+  página leria um ciclo inexistente"*); `:1743-1746` o vetor `arquivos` (`novoNome` e `ciclos.json`);
+  **`:1747`** `const gravou = await gravarNaPasta(arquivos);`; `:1748-1750` o comentário do recuo;
+  **`:1751`** `if (!gravou) arquivos.forEach((a) => baixar(a.nome, a.texto, a.tipo));`;
+  **`:1752-1755`** o `onde` — *"salvo na pasta do ciclo"* **ou** o
+  `<span class="erro">este navegador não escreve na pasta — os arquivos foram para a pasta de
+  downloads: mova-os para a pasta do ciclo, no lugar dos antigos</span>`; `:1756-1759` o `dizer()`.
+- **`:1035-1038`** — o comentário da captura: *"lança → atualiza o JSON em memória → salva →
+  commita"* (era *"baixa"*).
+- **`:1686-1689`** — o comentário do §3.3: *"SALVA o arquivo do ciclo na pasta escolhida → o commit é
+  de quem lê"*.
+- **`:1993-1995`** — `trocarCiclo`: *"Não há servidor: quem escreve no disco é o File System Access,
+  na pasta que o professor escolhe — e, onde ele não existir, o par desce como download."*
+
+**Motivo declarado — os congelados.**
+
+`tools/templates/` está em `CONGELAMENTO.md`, e esta entrada é o **motivo declarado** da peça. O
+próprio `CONGELAMENTO.md` manda *"diga **o que não muda**"* e, se a alteração muda **comportamento**
+(e não só redação), *"pare e confirme com o usuário"*. **A alteração muda comportamento** — e isso
+não é suposição, é a decisão que a pesquisadora tomou: ela escolheu, entre as opções apresentadas, a
+**opção (a)** — gravar na pasta pelo File System Access, com o rótulo `Salvar`. A confirmação que a
+regra exige **existe e está datada**; a entrada anterior afirmava o contrário, e é corrigida adiante.
+**O que NÃO muda:**
+
+- **A fórmula de hash e a cobertura da âncora.** `tools/hash-ciclo.sh` não foi tocado. Medido, não
+  suposto: o `.fipp` do diaghilev cobre **21 caminhos** e `grep -c "lancamento"` neles dá **0** —
+  `lancamento.html` **não** entra em `fontes_do_ciclo()`. As três âncoras seguem **exatamente** as de
+  antes, e `--check` sai **exit 0** nos três.
+- **Nenhum validador afrouxa.** `check-pacote.js`, `validar-po-ciclo.js`, `validar-plano-ciclo.js`,
+  `validar-dados-ciclo.js`, `check-glossario.js` e `check-identidade.js` seguem como estavam.
+- **Nenhuma regra e nenhuma pétrea muda.** `REGRAS.md`, `PROTOCOLO.md` e `CONGELAMENTO.md` não foram
+  tocados.
+- **O caso nominal do congelamento** — *"alterar a estrutura de menu ou navegação"* — não é desta
+  peça: não se mexeu em menu. O rótulo do botão e a gravação não são estrutura de navegação.
+- **A regra da proveniência não se perdeu — mudou de casa.** A entrada anterior guardou a cauda
+  *"a proveniência do JSON é o commit, não um carimbo dentro dele"* como texto **visível**. Ela sai do
+  texto visível (a pesquisadora cortou a explicação), mas a regra continua **escrita no próprio
+  arquivo**, no comentário de `:1605`: *"o commit — que é a proveniência do JSON — viraria um diff
+  ilegível"*. O que saiu foi a explicação ao professor; a regra ficou onde governa o código.
+
+**Com o quê.**
+
+| Verificação | Comando | Resultado real |
+|:--|:--|:--|
+| O rótulo novo chegou | `grep -c '>Salvar<'` | **1** no template; **0** em cada uma das três cópias — *ainda não propagadas* |
+| O rótulo velho saiu | `grep -c 'Gerar JSON atualizado'` | **0** no template; **1** em cada cópia (stale) |
+| O `id` **não** foi renomeado | `grep -rn 'salvar-json'` | **0** ocorrências em todo o repositório |
+| O tamanho do diff | `git diff --numstat` | **63 / 27** em `tools/templates/lancamento.html` |
+| O script embutido continua válido | `new vm.Script(<script>)` | **1 script, OK** |
+| O formulário real roda em Node | `node experimentos/simulacao-marau/simular-formulario.js` | **exit 0** |
+| O caminho FSA grava e devolve `true` | `sonda-gravar.js fsa` | **verde** (stub de `showDirectoryPicker`; 1 seletor para 2 cliques) |
+| O recuo por download ainda funciona | `sonda-gravar.js download` | **verde** |
+| O caminho real no navegador | Chromium headless via CDP | **tudo verde**, inclusive `condicoes_contorno` |
+| O recuo se **declara** | Firefox 156.0.1 | `showDirectoryPicker` **undefined**; rótulo `Salvar`; a mensagem diz que o par desceu |
+| A rede de regressão | `node experimentos/captura-json/teste.js` | **exit 1** em `caso 2` — **pré-existente, provado** (ver abaixo) |
+| As três âncoras | `tools/hash-ciclo.sh <prof> 01 <escola> --check` | **exit 0** nos três; `a05f05c0…`, `8bba2c5e…`, `4175cdf1…` — **inalteradas** |
+| A identidade visual | `node tools/check-identidade.js` | **exit 0** (a tabela de `:123` já listava o template) |
+
+- **⭐ O `teste.js` já falhava antes — e foi provado, não argumentado.** O harness morre em `caso 2`
+  com `TypeError` dentro de `carimboDaAula`/`render`, alcançado por `trocarCiclo` (`teste.js:139`):
+  a fixture "todos os ciclos" traz `f.dados = null` e o código lê `f.dados.aulas`
+  (`lancamento.html:1009`, `:1633`, `:1769`). Rodei o **harness de base** contra o template de `HEAD`
+  (`lancamento-baseline.html`, cópia fiel de `6cf847e`) e ele morre **no mesmo `caso 2`**, com o mesmo
+  erro; os `caso 1` e `1b` passam nos dois. **Não é regressão desta peça, e não foi "consertado"
+  aqui** — consertar a fixture seria mudar a rede para acomodar a peça, que é o contrário do que ela
+  serve para fazer.
+- **A gravação é uma só por carga, e a ordem importa.** O `pasta` é cache de módulo (`:974`), então o
+  seletor abre **uma vez** e os salvamentos seguintes reusam a pasta — medido: dois cliques, um
+  seletor. E o arquivo de dados é escrito **antes** do índice (`:1741-1746`): se a página falhasse no
+  meio, o índice nunca apontaria para um arquivo ausente.
+- **`globalThis`, não `window`** — os dois harnesses de Node (`teste.js` e `simular-formulario.js`)
+  fazem `eval()` do template, onde `window` não existe. Com `window`, o helper lançaria no harness.
+- **O recuo é obrigatório, não gentileza.** Firefox e Safari **não têm** `showDirectoryPicker`; sem o
+  `baixar()` de `:1751` a peça tiraria do professor o único transporte que ele tinha. O recuo
+  **declara-se** (`:1752-1755`): o professor não pode descobrir na pasta errada que o arquivo não
+  chegou onde ele esperava.
+
+**Referências.**
+
+- `tools/templates/lancamento.html` — o botão em `:154`; `baixar()` em `:972` (preservado: serve o
+  `.md` e o recuo); `gravarNaPasta()` em `:980-996`; `gerarJson()` a partir de `:1690`, com o bloco de
+  escrita em `:1741-1759`; a regra da proveniência em `:1605`.
+- `CONGELAMENTO.md` — a lista que inclui `tools/` e `tools/templates/`; a exigência de motivo
+  declarado, entrada no `REGISTRO.md` e **commit próprio**; e a cláusula *"se a alteração muda
+  comportamento… pare e confirme"*, que é o que a opção (a) da pesquisadora satisfaz.
+- `ARQUITETURA-CAPTURA.md:599-601` (§7.3) — a decisão *"sem servidor, ou exige backend: **mantém**"*.
+  Continua valendo **para o desenho**; o que ela não diz é que o arquivo tenha de cair na pasta de
+  downloads. É a distinção que a entrada anterior não fez.
+- `ARQUITETURA-CAPTURA.md:385-391` — o precedente do `dados-exemplo-…json`, e a nota *"sem servidor,
+  ele pode ter ido para a pasta de downloads do navegador"*: era descrição do que acontecia, não
+  decisão de que devesse acontecer.
+- `ARQUITETURA-CAPTURA.md:190-195` — o modelo da nota datada que corrige redação envelhecida sem
+  apagá-la (*"A redação antiga **não** foi apagada (P-03/P-04): esta nota é o elo novo"*).
+- `IDEIA-CAPTURA.md:138` — *"**Nenhum backend:** … **Salvar = baixar o arquivo.**"*: a equação
+  **envelheceu**. Salvar continua não exigindo backend, e o File System Access o prova; mas salvar
+  **deixou de ser** baixar. Fica declarado como defeito de documento livre, não corrigido nesta peça.
+- `tools/gerar-ciclo.sh:563` — a propagação é `cp` puro (`cp "$TPL/lancamento.html"
+  "$PACOTE/lancamento.html"`): **sem templating**, o rótulo novo chega verbatim às três cópias.
+- `experimentos/captura-json/teste.js:318`, `:422`, `:443`, `:526`, `:550`, `:717`, `:742`, `:752` —
+  os oito cliques em `gerar-json`, razão de o `id` não mudar.
+- `REGISTRO.md:6705` — a entrada anterior, do mesmo formulário no mesmo dia: lá o defeito medido era
+  **quantos** arquivos o botão baixa; aqui é **para onde** eles vão e **como o botão se chama**.
+
+**O que ainda não está feito.**
+
+- **As três cópias empacotadas ainda dizem `Gerar JSON atualizado`** — propagadas nesta mesma peça
+  logo adiante; a tabela acima registra o estado medido **antes** da propagação.
+- **O `HANDOFF.md` ainda não foi regenerado.** Ele carrega o rótulo antigo (`:168`) e a cauda
+  preservada (`:175`) da entrada anterior. Regerado depois do commit, como manda o método.
+- **O lançamento da pesquisadora continua fora do repositório** — o
+  `~/Downloads/ciclo-01-diaghilev-dados-2026-09-28T0840.json` precisa chegar a
+  `professores/fochini/ciclos/`. Herdado da entrada anterior; **não é desta peça**, e não foi feito
+  sem autorização.
+- **Os documentos livres que descrevem o fluxo antigo seguem desatualizados:** `ARQUITETURA-CAPTURA.md
+  :289` (*"a gravação continua sendo lançar → baixar o JSON → commitar"*), `:306`, `:327` e `:391`
+  (o download como destino, não como recuo), e `IDEIA-CAPTURA.md:138`/`:162`. São livres, a correção é
+  barata, e **não foi feita nesta peça** — a peça é o formulário.
+- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** Herdado, e ainda
+  sem dono.
+
+> **Correção de 28/09/2026 (mesmo dia).** Cinco afirmações da entrada imediatamente acima (`:6705`)
+> **não se sustentam** depois desta peça — a pesquisadora reverteu, no mesmo dia, o rótulo e o texto
+> que aquela entrada tinha decidido preservar. Corrigem-se aqui, como elo — o texto anterior **não é
+> apagado** (P-03/P-04).
+>
+> 1. *"**O rótulo do botão fica como está** — `Gerar JSON atualizado`. A pesquisadora decidiu
+>    manter…"* (`:6724-6726`). **Revertido no mesmo dia.** O rótulo **é** `Salvar` (`:154`). A decisão
+>    de manter durou uma mensagem; a pesquisadora voltou pedindo exatamente o contrário — *"Mudar o
+>    nome do botão"* — e recusou `Enviar` por coerência. O que a entrada anterior acertou foi a
+>    **razão** (`Enviar` não cabe sem servidor); o que ela errou foi concluir que, por isso, **nenhum**
+>    rótulo novo caberia: `Salvar` descreve gravação local, não envio.
+> 2. *"Renomear o botão para `Enviar` não cabe: não há servidor, e nada é enviado a lugar nenhum"*
+>    (`:6725-6727`). **Continua verdadeiro, e foi o que a pesquisadora escolheu honrar** — ela recusou
+>    `Enviar` pelo mesmo motivo. O erro não estava nesta frase; estava na §7.3 lida como veto ao
+>    rótulo.
+> 3. *"E fica dito que os dois vão para o **repositório**, não para a pasta de downloads"*
+>    (`:6728-6730`). **Revertido.** A pesquisadora mandou cortar o parágrafo explicativo, e ele saiu
+>    do texto visível. Além disso a afirmação **descrevia o errado**: os dois **iam** para a pasta de
+>    downloads — é para lá que o navegador baixa — e só chegariam ao repositório se a professora os
+>    movesse à mão. É exatamente a confusão que motivou esta peça: **a frase dizia "repositório" e o
+>    comportamento dizia "downloads".** Agora o comportamento **é** o repositório.
+> 4. *"O rótulo do botão (`:154`) e a mensagem de `gerarJson()` **não** foram tocados"* (`:6737`).
+>    **Os dois foram tocados.** O rótulo está em `:154` com outro texto; a mensagem de `gerarJson()`
+>    foi reescrita (`:1752-1759`), e agora **diz onde o arquivo foi parar** em vez de o silenciar.
+> 5. ⚠️ *"**É redação, não comportamento.** Nenhuma linha de JavaScript mudou; a alteração é de texto
+>    visível."* (`:6760-6761`). **A afirmação mais séria, e é falsa em dobro — naquela peça e nesta.**
+>    Nesta peça, **27 linhas de JavaScript entraram** (`:971-995`, o `gravarNaPasta()`) e o bloco de
+>    escrita foi reescrito (`:1741-1759`): o comportamento **mudou** — no Chromium o arquivo **não**
+>    desce mais para a pasta de downloads, ele é escrito no disco. E na própria peça anterior a frase
+>    já era falsa: aquele diff **não** era só redação, ele mudava o **texto de apoio** e nada mais —
+>    mas o texto de apoio **é** o contrato visível da página, e chamá-lo de "não comportamento" foi o
+>    que autorizou deixar o rótulo de pé. **A regra do `CONGELAMENTO.md` pede parada e confirmação
+>    quando o comportamento muda; a frase pulou a parada.** Nesta peça **não se pulou**: as opções
+>    foram apresentadas, a pesquisadora escolheu a (a), e a escolha está registrada acima, em
+>    "Motivo declarado".
+>
+> **Nota de método, como elo.** A cauda que a entrada anterior diz ter preservado *"palavra a palavra"*
+> (`:6731-6732`) **saiu do texto visível** nesta peça, por pedido da pesquisadora. Ela não se perdeu:
+> a **regra** continua escrita em `tools/templates/lancamento.html:1605` (*"o commit — que é a
+> proveniência do JSON — viraria um diff ilegível"*), e a **frase** continua em `REGISTRO.md:6731`.
+> Quem lê a entrada anterior precisa saber que a preservação valeu para a redação da **página**, e não
+> como proibição de mexer no assunto depois.
+>
+> **Segunda nota de método — a citação fantasma da entrada anterior.** O bullet de `:6817-6819`
+> afirma que *"`ARQUITETURA-CAPTURA.md:260-266` afirma que o carimbo de hora *"cai na cauda
+> ignorada"*"*. **A citação não se sustenta: a frase não existe naquele arquivo.** Medido:
+> `grep -c "cauda" ARQUITETURA-CAPTURA.md` → **0**; `:260` é uma seta `↓`, `:261` é *"Baixa o JSON
+> novo e o índice atualizado"*, `:266` é `### 3.4 Visualizar`. No repositório inteiro a frase aparece
+> em **5** lugares, todos em Markdown: `REGISTRO.md:6731` e `:6817`, `HANDOFF.md:175`, `:261` e
+> `:1261` — ou seja, **ela nasceu nesta própria entrada e foi espelhada para o `HANDOFF.md`**. A
+> origem foi rastreada: `git log --all -S"cauda ignorada"` devolve `991aa83` e `6cf847e`, que são a
+> **mesma** mudança (o `991aa83` é o checkpoint da sessão, `…/checkpoints/turn/8`; o `6cf847e` é o
+> commit na `main`). A regra **verdadeira** que a entrada queria citar está em
+> `ARQUITETURA-CAPTURA.md:190-195` — a `> **Nota datada — 27/09/2026**` sobre o `ultimo_lancamento`.
+> O próprio bullet declara *"não foi feita nesta peça"*, e é isso que **autoriza** o conserto aqui: a
+> frase **já foi publicada**, e a correção é o elo. Corrigido nesta peça, junto dos dois espelhos no
+> `HANDOFF.md`.
