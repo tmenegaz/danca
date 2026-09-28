@@ -20,6 +20,11 @@
  *   7) quando o manifesto declara ACOMPANHAMENTO_CRIPTOGRAFADO="sim", as páginas
  *      acompanhamento-*.html estão cifradas (PageCrypt): valida existência,
  *      tamanho mínimo e ausência de conteúdo em claro — conteúdo, não.
+ *   8) o config da captura POR AULA casa com o que o pacote publica: toda aula
+ *      cuja folha de captura existe na fonte tem o seu `captura-aula-NN.json` no
+ *      pacote, e todo `captura-aula-NN.json` do pacote é declarado por uma aula só.
+ *      O `config` declarado sem folha na fonte é aviso, não erro (o produtor o
+ *      declara incondicionalmente — ver ARQUITETURA-AULA.md §4.1/§4.2).
  *
  * Sai com código 1 se algo estiver quebrado. É o último passo de
  * tools/gerar-ciclo.sh, então cada geração já sai verificada.
@@ -419,6 +424,84 @@ if (!fs.existsSync(copiaDados)) {
       }
     }
   }
+}
+
+// ------------------------------ 8) o config da captura POR AULA (§4.1, Defeito 1)
+// O índice do pacote (`ciclos.json`) declara `aulas[]`, e cada aula traz o seu `config`
+// (`captura-aula-NN.json`). Conferir esse vínculo é o que faltava desde que o config
+// deixou de ser um só por ciclo: sem esta checagem, uma geração que perde o arquivo da
+// aula passa despercebida, porque nada mais no pacote o cita.
+//
+// O critério NÃO é "todo `config` declarado tem arquivo": medido em 26/09/2026, o produtor
+// declara o `config` incondicionalmente — `gerar-ciclo.sh` emite `'config': 'captura-aula-%s.json' % nn`
+// para todo NN de `aulas[]` —, mas só emite o ARQUIVO quando a folha de captura existe na
+// fonte. Exigir o arquivo de todo `config` reprovaria Duo (1 folha de 12) e Ritmos (1 de 21)
+// POR DESENHO. O critério é a FOLHA NA FONTE, que é a mesma resolução que o produtor usa
+// (`fonte_md` de `tools/lib-fontes.sh`: a da variante vence a compartilhada).
+const indicePacote = path.join(pacote, 'ciclos.json');
+const aulasIndice = (() => {
+  if (!fs.existsSync(indicePacote)) return null;
+  try {
+    const j = JSON.parse(fs.readFileSync(indicePacote, 'utf8'));
+    return (j.ciclos && j.ciclos[0] && Array.isArray(j.ciclos[0].aulas)) ? j.ciclos[0].aulas : null;
+  } catch (e) {
+    erros.push(`ciclos.json ilegível: ${String(e.message).split('\n')[0].slice(0, 80)}`);
+    return null;
+  }
+})();
+
+if (aulasIndice === null) {
+  // Postura do arquivo: formato antigo (ou manifesto ausente) não é defeito do pacote —
+  // avisa e não falha, como quando o `.conf` não é achado.
+  avisos.push('config por aula: ciclos.json sem `aulas[]` (formato antigo) — vínculo não conferido');
+} else {
+  // A resolução da folha é a de `fonte_md`: a da variante vence; a sem variante é a base.
+  const folhaDeAula = (nn) => {
+    const candidatas = [
+      variante && path.join(dirFontes, `ciclo-${ciclo}-${variante}-captura-aula-${nn}.md`),
+      path.join(dirFontes, `ciclo-${ciclo}-captura-aula-${nn}.md`),
+    ].filter(Boolean);
+    return candidatas.find((f) => fs.existsSync(f)) || null;
+  };
+
+  const declaradoPor = new Map();      // arquivo → NN que o declara
+  const duplicado = [];
+  let estritos = 0;
+  aulasIndice.forEach((a) => {
+    if (!a || !a.config) return;       // config omitido = não há folha (§4.2) — nada a conferir
+    const cfg = String(a.config);
+    // O legado `captura-<id do ciclo>.json` é a cópia do config da aula 01 que o formulário
+    // publicado ainda lê (`tools/templates/lancamento.html`, até o B3b): por desenho NÃO é
+    // declarado por aula, então não é órfão e não é conferido por este bloco.
+    if (cfg === `captura-${ciclo}.json`) return;
+    if (declaradoPor.has(cfg)) duplicado.push(`${cfg} (aulas ${declaradoPor.get(cfg)} e ${a.n})`);
+    else declaradoPor.set(cfg, a.n);
+
+    if (folhaDeAula(a.n)) {
+      // Sentido estrito: há folha na fonte ⇒ o arquivo tem de sair no pacote.
+      estritos++;
+      const p = path.join(pacote, cfg);
+      if (!fs.existsSync(p) || fs.statSync(p).size === 0) {
+        erros.push(`config da aula ${a.n}: ${cfg} declarado no índice e a folha existe na fonte, mas o arquivo está ausente ou vazio no pacote`);
+      }
+    } else {
+      // Declarado sem folha: o produtor promete um config que não tem fonte. A correção é o
+      // produtor parar de declarar (§4.2 já mostra `config` omitido nesse caso) — follow-up
+      // de `gerar-ciclo.sh`, fora da fronteira deste arquivo.
+      avisos.push(`config da aula ${a.n}: ${cfg} declarado no índice, mas a folha de captura não existe na fonte — o produtor declara "config" sem folha`);
+    }
+  });
+  duplicado.forEach((d) => erros.push(`config declarado por mais de uma aula: ${d}`));
+
+  // Sentido inverso (órfãos): todo `captura-aula-NN.json` do pacote tem de ser declarado.
+  const orfaos = fs.readdirSync(pacote)
+    .filter((f) => /^captura-aula-\d+\.json$/.test(f))
+    .filter((f) => !declaradoPor.has(f))
+    .sort();
+  orfaos.forEach((f) => erros.push(`config órfão no pacote: ${f} não é declarado por nenhuma aula de ciclos.json`));
+
+  if (estritos > 0) ok.push(`config por aula: ${estritos} arquivo(s) exigido(s) pela folha na fonte`);
+  ok.push(`config por aula: ${declaradoPor.size} declarado(s) no índice, ${orfaos.length} órfão(s)`);
 }
 
 // ------------------------------------------------------------- relatório
