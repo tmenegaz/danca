@@ -71,9 +71,10 @@ variantes_de() {
   echo "se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que muda."
   echo
   echo "- **Planejar e registrar são coisas distintas — e as duas acontecem.** O plano é"
-  echo "  **intenção** (editável enquanto a aula não foi dada); a partir da declaração"
-  echo "  \"aula dada\", o registro passa a **fato** e só se acrescenta ajuste"
-  echo "  (\`ARQUITETURA-AULA.md\`). O formulário de lançamento **consome o plano** como"
+  echo "  **intenção** (editável enquanto a aula está \`planejada\`); depois que a aula acontece,"
+  echo "  o registro passa a **fato** e só se acrescenta ajuste (\`ARQUITETURA-AULA.md\`). O"
+  echo "  estado é **derivado** do cronograma, do prazo e do registro — não existe campo"
+  echo "  \"aula dada\". O formulário de lançamento **consome o plano** como"
   echo "  entrada: sem ele não há marco da aula nem \"o que mudou em relação ao plano\"."
   echo
   echo "- **Não é o projeto de mestrado** (outro diretório, de onde vêm o PO e o FIPP)."

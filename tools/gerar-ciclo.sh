@@ -182,7 +182,8 @@ python3 "$RAIZ/tools/calendario.py" \
   --volume-curto "$VOL_CURTO" \
   ${EXTRA[@]+"${EXTRA[@]}"} \
   --saida "$TMP/calendario.md" \
-  --vars-arquivo "$TMP/calendario.vars"
+  --vars-arquivo "$TMP/calendario.vars" \
+  --aulas-arquivo "$TMP/aulas.tsv"
 # shellcheck disable=SC1090
 source "$TMP/calendario.vars"
 echo "calendário: $PERIODO · $SEMANAS semana(s) · $VOLUME_SEMANAL tempos/semana · formativa $AULA_FORMATIVA ($DATA_FORMATIVA)"
@@ -196,13 +197,19 @@ mkdir -p "$PACOTE/assets"
 # existe para quem abre o site. São três arquivos, e os três são DERIVADOS, como
 # o HTML e o PDF: não são fonte, não entram na âncora.
 #
-#   po-$CICLO.json     o PO extraído     (tools/validar-po-ciclo.js --json)
-#   plano-$CICLO.json  o plano extraído  (tools/validar-plano-ciclo.js --json)
-#   ciclos.json        o índice que o formulário lê primeiro (`.conf` + calendário)
+#   po-$CICLO.json         o PO extraído     (tools/validar-po-ciclo.js --json)
+#   plano-$CICLO.json      o plano extraído  (tools/validar-plano-ciclo.js --json)
+#   plano-aula-NN.json     o plano DA AULA   (tools/validar-aula-ciclo.js --json)
+#   plano-aula-NN-anterior.json   o estado de que o atual veio (só existe a partir da 2ª geração)
+#   ciclos.json            o índice que o formulário lê primeiro (`.conf` + calendário)
 #
 # É o MESMO extrator que o gerador já usa para as vistas — uma definição só —,
 # aqui GRAVADO em vez de descartado depois de gerar a página. O JSON de DADOS
 # entra cifrado, na fase seguinte.
+#
+# As quatro primeiras são DERIVADAS e reconstruíveis da fonte; vão para o pacote mesmo
+# assim, porque é o pacote que é publicado. O `-anterior` só existe depois de uma SEGUNDA
+# geração, e é isso que ele significa: a primeira vez não tem elo nenhum atrás.
 # ---------------------------------------------------------------------------
 node "$RAIZ/tools/validar-po-ciclo.js" "$CICLOS/ciclo-$CICLO-po-schema.json" \
   "$(fonte_md po)" --json > "$PACOTE/po-$CICLO.json" \
@@ -210,6 +217,47 @@ node "$RAIZ/tools/validar-po-ciclo.js" "$CICLOS/ciclo-$CICLO-po-schema.json" \
 node "$RAIZ/tools/validar-plano-ciclo.js" "$CICLOS/ciclo-$CICLO-plano-schema.json" \
   "$(fonte_md plano)" --json > "$PACOTE/plano-$CICLO.json" \
   || { echo "erro: não consegui extrair o plano para o pacote (plano-$CICLO.json)." >&2; exit 1; }
+
+# O PLANO DE CADA AULA (ARQUITETURA-AULA.md §1.2 — o item 8 do §10). O ajuste do plano é o
+# MESMO mecanismo do ajuste do lançamento, aplicado à fonte `aula-NN.md`: o anterior permanece,
+# o novo é um elo, e o diff é a justificativa. O formulário precisa do plano da aula AO LADO
+# DELE para comparar campo a campo e emitir o bloco de ajuste — sem este JSON não há o que
+# comparar, e o botão do modo "ajuste do plano" não tem entrada.
+#
+# Os NN vêm da família `aula-*` em disco (`familias_por_aula`, a MESMA derivação do DOCS em
+# lib-fontes.sh), e ela já resolve as TRÊS formas de nome da fonte da aula — `ciclo-01-aula-01`,
+# `ciclo-01-<escola>-aula-01` e `ciclo-01-<outro-nome>-aula-01` —, ao mesmo tempo que exclui a
+# família `captura-aula-*` pela guarda interna. A fonte de cada NN é resolvida por `fonte_md`,
+# onde a da variante vence a compartilhada, e o `[ -f ]` é obrigatório: `fonte_md` devolve
+# caminho mesmo quando o arquivo não existe, e o NN pode ter entrado no glob pela escola de OUTRA.
+#
+# A ausência do schema NÃO derruba o pacote: o schema da aula é por CICLO e por PROFESSOR, e um
+# professor pode ainda não o ter (o `tiago` chegou depois do `fochini`). Sem schema não há
+# validação — mas o pacote continua a ser gerado, como qualquer outro documento que a variante
+# não declarou. Com schema, a fonte tem de fechar: o pacote não sai torto.
+#
+# O ANTERIOR NÃO SE PERDE (P-03/P-04): antes de sobrescrever `plano-aula-NN.json`, o que estava
+# lá vira `plano-aula-NN-anterior.json`. É esse par que o formulário compara para emitir o elo do
+# ajuste (§1.1: "o anterior permanece, o novo é um elo, e o diff é a justificativa") — o ajuste
+# não se declara, ele se VÊ. É o elo, e não um histórico: guarda o estado de que o atual veio.
+#
+# A ORDEM importa: o `cp` do anterior vem ANTES do `mv` do atual, e o `mv` é o mesmo rename que o
+# `>` faria. Interrompido entre os dois, o anterior fica igual ao atual — o estado "sem elo", que é
+# o de antes da primeira gravação —, e a próxima geração o reescreve. O que não se admite é o
+# anterior virar uma cópia do NOVO, e é isso que a ordem evita.
+AULA_SCHEMA="$CICLOS/ciclo-$CICLO-aula-schema.json"
+if [ -f "$AULA_SCHEMA" ]; then
+  for aula_nn in $(familias_por_aula aula); do
+    aula_src="$(fonte_md "aula-$aula_nn")"
+    [ -f "$aula_src" ] || continue
+    node "$RAIZ/tools/validar-aula-ciclo.js" "$AULA_SCHEMA" "$aula_src" --json \
+      > "$PACOTE/plano-aula-$aula_nn.json.tmp" \
+      || { rm -f "$PACOTE/plano-aula-$aula_nn.json.tmp"; echo "erro: a fonte da aula $aula_nn ($aula_src) não fechou com o schema da aula (plano-aula-$aula_nn.json) — veja o relatório acima." >&2; exit 1; }
+    [ -f "$PACOTE/plano-aula-$aula_nn.json" ] \
+      && cp "$PACOTE/plano-aula-$aula_nn.json" "$PACOTE/plano-aula-$aula_nn-anterior.json" || true
+    mv "$PACOTE/plano-aula-$aula_nn.json.tmp" "$PACOTE/plano-aula-$aula_nn.json"
+  done
+fi
 
 # O índice do formulário. Os campos são os que ELE lê (`id`, `escola`, `inicio`,
 # `fim`, `arquivo`), os que a lib das vistas lê (`duracao_min`) e o `total_aulas`
@@ -221,17 +269,227 @@ node "$RAIZ/tools/validar-plano-ciclo.js" "$CICLOS/ciclo-$CICLO-plano-schema.jso
 # devolve o nome sem a escola quando o arquivo da variante ainda não existe — o
 # que fazia o índice do Ritmos declarar `ciclo-01-dados.json`, um arquivo que
 # não existe. O formulário lê este nome: ele é que manda.
+#
+# O `aulas[]` é o ÍNDICE POR AULA (§4.2 de ARQUITETURA-AULA.md): uma entrada por
+# aula, com a data e a hora DECLARADAS pelo TSV do calendário. Ele existe porque o
+# cronograma real não é uma progressão de passo fixo: o Ritmos tem 21 aulas em 14
+# datas (duas no mesmo dia, uma hora depois) e o Diaghilev tem semanas de 5 e 2
+# dias. `intervalo_dias` fica FORA de propósito — um número único só descreveria o
+# Duo, e declarar um passo para um cronograma não uniforme trocaria um erro
+# silencioso por outro. O `prazo` (§3.1) já TEM produtor — o calendário: ele é fixo por
+# aula e sai calculado, com o bloco (§3.2) e o piso de 18h (§3.1); com `FECHAMENTO`
+# declarado no `.conf` ele é o teto (§3.4). Só `ancora` (§5) ainda não tem produtor e sai
+# NULO: não se inventa valor sem fonte medida.
+#
+# `CAP_FOLHAS` (§4.2): os NN de aula que TÊM folha de captura na fonte, pela MESMA derivação que o
+# pacote usa adiante (`familias_por_aula` + `fonte_md`, e o `[ -f ]` porque `fonte_md` devolve
+# caminho mesmo quando o arquivo não existe). Sem esta lista o emissor declarava
+# `captura-aula-NN.json` para TODA aula, e o `check-pacote.js` acusava 31 avisos nos ciclos que só
+# têm a folha da aula 01 — o índice prometia um config que ninguém produz, e o formulário da aula
+# apontaria para um 404. O §4.2 já diz o contrato: `config` omitido = não há folha.
+CAP_FOLHAS=""
+for folha_nn in $(familias_por_aula captura-aula); do
+  [ -f "$(fonte_md "captura-aula-$folha_nn")" ] || continue
+  CAP_FOLHAS="$CAP_FOLHAS $folha_nn"
+done
 CICLO="$CICLO" ESCOLA="$ESCOLA" INICIO="$DATA_PRIMEIRA_AULA" FIM="$DATA_ULTIMA_AULA" \
 TOTAL_AULAS="$TOTAL_AULAS" DURACAO_MIN="$DUR_CURTA" \
 ARQUIVO="ciclo-$CICLO${VARIANTE:+-$VARIANTE}-dados.json" \
+AULAS_TSV="$TMP/aulas.tsv" PLANO_JSON="$PACOTE/plano-$CICLO.json" \
+DADOS_FONTE="$(fonte_dados)" FECHAMENTO="${FECHAMENTO:-}" \
+CAP_FOLHAS="$CAP_FOLHAS" \
 python3 - "$PACOTE/ciclos.json" <<'PY'
-import json, os, sys
+import datetime, json, os, sys
 
 br_para_iso = lambda br: '-'.join(reversed(br.split('/')))
+
+# O TSV do calendário (`calendario.py --aulas-arquivo`): `NN \t data \t início \t fim`,
+# uma linha por aula, `fim` JÁ incluindo a duração.
+def ler_aulas(caminho):
+    if not caminho or not os.path.exists(caminho):
+        print('aviso: sem o TSV por aula (%s) — o índice sai sem `aulas[]`.' % caminho, file=sys.stderr)
+        return []
+    aulas = []
+    with open(caminho, encoding='utf-8') as f:
+        for linha in f:
+            if not linha.strip():
+                continue
+            n, data, inicio, fim = linha.rstrip('\n').split('\t')
+            aulas.append({'n': n, 'data': data, 'inicio': inicio, 'fim': fim})
+    return aulas
+
+# O PRAZO POR AULA (§3.1 de ARQUITETURA-AULA.md). Duas coisas aqui NÃO são o que parecem:
+#
+#   1. o prazo NÃO é contado de um carimbo de gravação, e sim do CALENDÁRIO: é fixo, e
+#      já nasce sabido no índice. O contador que reinicia a cada gravação é OUTRA coisa
+#      (a janela de ajuste do formulário) e não mora aqui;
+#   2. o prazo mora NA AULA — é por isso que a aula pulada não tem prazo e não desloca o
+#      de nenhuma outra (§3.3): ela simplesmente não tem elo, e a corrente segue.
+#
+# O BLOCO é o conjunto das aulas da MESMA data (o Ritmos tem duas, uma hora depois), e
+# conta o FIM DA ÚLTIMA delas: a aula dupla lança-se uma vez só. Contar "24h antes da
+# próxima AULA" daria prazo NEGATIVO nas 7 datas com duas aulas do Ritmos; a correção é
+# o bloco, e o que se olha adiante é a próxima DATA — não o próximo elo.
+#
+#   fim do bloco = fim da ÚLTIMA aula daquela data
+#   próxima data = a próxima DATA de aula
+#   prazo        = MAIOR entre
+#                    (a) 24h antes da próxima data de aula
+#                    (b) fim do bloco + 18h          <- o piso: tempo hábil
+#
+# O piso de 18h NÃO é código morto: é ele que atende o caso denso (aula às 20h, próxima
+# às 8h). Medido nos três ciclos vivos ele não dispara — a menor janela real é 23h
+# (Diaghilev, terça → quinta) —, mas a calibração é da pesquisadora e o piso fica.
+#
+# A ÚLTIMA aula do ciclo não tem próxima data: ela recebe o MAIOR prazo já praticado no
+# ciclo — a maior janela que o cronograma dele produz (§3.3).
+def calcular_prazos(aulas, fechamento):
+    momento = lambda data, hora: datetime.datetime.strptime(data + ' ' + hora, '%Y-%m-%d %H:%M')
+    fim_do_bloco, inicio_da_data = {}, {}
+    for a in aulas:
+        fim = momento(a['data'], a['fim'])
+        if a['data'] not in fim_do_bloco or fim > fim_do_bloco[a['data']]:
+            fim_do_bloco[a['data']] = fim
+        inicio = momento(a['data'], a['inicio'])
+        if a['data'] not in inicio_da_data or inicio < inicio_da_data[a['data']]:
+            inicio_da_data[a['data']] = inicio
+    datas = sorted(inicio_da_data)
+    proxima = {d: datas[i + 1] for i, d in enumerate(datas[:-1])}
+    prazos, janelas = {}, []
+    for a in aulas:
+        piso = fim_do_bloco[a['data']] + datetime.timedelta(hours=18)
+        if a['data'] in proxima:
+            # (a) conta do INÍCIO DA PRÓXIMA DATA — o horário DELA, não o desta aula: usar
+            # o relógio do bloco corrente é o defeito que já produziu número falso.
+            antes = inicio_da_data[proxima[a['data']]] - datetime.timedelta(hours=24)
+            prazo = max(antes, piso)
+            # A JANELA é o que o professor tem de fato (`prazo` − fim do bloco): é ela que
+            # a §3.2 mede, e é a MAIOR delas que a última aula herda (§3.3) — não o maior
+            # instante, que numa aula passada cairia no passado.
+            janelas.append(prazo - fim_do_bloco[a['data']])
+        else:
+            # Sem próxima data, herda a MAIOR JANELA já praticada. Um ciclo de uma única
+            # data não pratica nenhuma: aí vale o piso, que é o menor prazo possível.
+            prazo = fim_do_bloco[a['data']] + (max(janelas) if janelas else datetime.timedelta(hours=18))
+        # §3.4: com `FECHAMENTO` declarado, ele é TETO de tudo. Sem ele, valem só os
+        # prazos por aula — e a ausência do campo não se inventa.
+        if fechamento and prazo > fechamento:
+            prazo = fechamento
+        prazos[a['n']] = prazo.strftime('%Y-%m-%dT%H:%M')
+    return prazos
+
+# `FECHAMENTO="20/12/2026"` (§3.4) — OPCIONAL: vazio (o normal hoje) = só os prazos por
+# aula. Declarado, ele é a data até a qual a escola fecha o ciclo; ilegível, o gerador
+# PÁRA em vez de adivinhar — é data de escola, não parâmetro de conveniência.
+def ler_fechamento(br):
+    if not br:
+        return None
+    try:
+        return datetime.datetime.strptime(br_para_iso(br), '%Y-%m-%d')
+    except ValueError:
+        raise SystemExit('erro: FECHAMENTO="%s" não é DD/MM/AAAA.' % br)
+
+# O MARCO da aula vem do PLANO do ciclo (`marcosPorAula`), casado por NÚMERO de aula.
+# O plano abre com prosa (que não é objeto) e o Ritmos declara um BLOCO (`02–20`) que
+# não casa com nenhuma aula singular: as duas coisas são descartadas, e a aula fica sem
+# marco — a lacuna que o próprio plano declara. Não se inventa o que a aula persegue.
+def ler_marcos(caminho):
+    if not caminho or not os.path.exists(caminho):
+        return {}
+    with open(caminho, encoding='utf-8') as f:
+        plano = json.load(f)
+    marcos = {}
+    for x in plano.get('marcosPorAula') or []:
+        if not isinstance(x, dict) or 'n' not in x or 'marco' not in x:
+            continue
+        try:
+            marcos[int(str(x['n']).strip())] = x['marco']
+        except ValueError:
+            continue
+    return marcos
+
+# O ÚNICO sinal GRAVADO que o estado consome: o registro da aula no JSON de dados
+# (`aulas['NN']`). Todo o resto é derivado do calendário — não há "ato declarado" para ler.
+def ler_lancadas(caminho):
+    if not caminho or not os.path.exists(caminho):
+        return set()
+    try:
+        with open(caminho, encoding='utf-8') as f:
+            return {str(k) for k in (json.load(f).get('aulas') or {})}
+    except (ValueError, OSError):
+        return set()
+
+# O ESTADO da aula é DERIVADO (§1) — não existe campo declarado, nem no `.conf`, nem no
+# JSON de dados, nem no índice. O corte não é a data solta: é a data CASADA com o prazo
+# (§3.1–§3.3), que é o que sabe distinguir "ainda vai acontecer" de "não aconteceu".
+#
+#   lancada    registro no JSON       o fato virou memória — só ajuste (§1.1)
+#   nao_dada   prazo vencido sem
+#              registro               a aula pulada (§3.3)
+#   dada       prazo aberto e a aula
+#              já terminou             o lançamento está em curso
+#   planejada  a aula ainda não
+#              terminou               a intenção — CRUD livre (§1)
+#
+# O JUÍZO É CARIMBADO (`gerado_em`, no índice): ele é do INSTANTE DA GERAÇÃO, não um
+# atributo atemporal da aula. Quem lê um índice gerado há dias re-deriva com o próprio
+# relógio — o formulário faz isso com `agora()` —, em vez de confiar num veredito que o
+# tempo já venceu.
+def derivar_estado(a, prazo, lancadas, agora):
+    if a['n'] in lancadas:
+        return 'lancada'
+    # `calcular_prazos` dá prazo a toda aula, então este ramo não é o `planejada` normal:
+    # é a guarda de quando o prazo NÃO pôde ser calculado — sem ele não se sabe se a aula
+    # fechou, e o estado que não afirma nada é o da intenção.
+    if prazo is None:
+        return 'planejada'
+    if agora < datetime.datetime.strptime(prazo, '%Y-%m-%dT%H:%M'):
+        fim = datetime.datetime.strptime(a['data'] + ' ' + a['fim'], '%Y-%m-%d %H:%M')
+        return 'dada' if agora >= fim else 'planejada'
+    return 'nao_dada'
+
+marcos = ler_marcos(os.environ.get('PLANO_JSON', ''))
+lancadas = ler_lancadas(os.environ.get('DADOS_FONTE', ''))
+fechamento = ler_fechamento(os.environ.get('FECHAMENTO', ''))
+aulas = ler_aulas(os.environ.get('AULAS_TSV', ''))
+prazos = calcular_prazos(aulas, fechamento)
+agora = datetime.datetime.now()
+# §4.2: `config` só entra na aula que TEM folha na fonte. A lista vem do shell (CAP_FOLHAS), com a
+# mesma resolução da folha que o produtor do pacote usa — a variante vence a compartilhada.
+cap_folhas = set(os.environ.get('CAP_FOLHAS', '').split())
+indice_aulas = []
+for a in aulas:
+    nn = a['n']
+    prazo = prazos.get(nn)
+    entrada = {
+        'n': nn,
+        'data': a['data'],
+        'inicio': a['inicio'],
+        'fim': a['fim'],
+        'marco': marcos.get(int(nn)),
+        'estado': derivar_estado(a, prazo, lancadas, agora),
+        'lancada': nn in lancadas,
+        'ancora': None,        # o `.fipp` da aula (§5) — sem produtor ainda
+        'prazo': prazo,        # a janela do prazo (§3.1) — do calendário, não de carimbo
+    }
+    # A peça de captura DA AULA: a MESMA convenção que a publicação do pacote já usa
+    # (`captura-aula-NN.json`), decidida pelo índice — não uma segunda convenção. Omitida quando
+    # não há folha na fonte (§4.2): prometer o arquivo sem fonte faz o formulário apontar para 404.
+    if nn in cap_folhas:
+        entrada['config'] = 'captura-aula-%s.json' % nn
+    indice_aulas.append(entrada)
+
 indice = {
     '_nota': 'Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de '
              'lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o '
-             'arquivo de dados declarado em "arquivo".',
+             'arquivo de dados declarado em "arquivo". O `aulas[]` e o INDICE POR AULA: '
+             'a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo '
+             'fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o '
+             'instante-limite de lancamento da aula, calculado do calendario. `estado` '
+             '(§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo '
+             'declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois '
+             're-deriva com o proprio relogio.',
+    'gerado_em': agora.strftime('%Y-%m-%dT%H:%M'),
     'ciclos': [{
         'id': os.environ['CICLO'],
         'escola': os.environ['ESCOLA'],
@@ -240,6 +498,7 @@ indice = {
         'total_aulas': int(os.environ['TOTAL_AULAS']),
         'duracao_min': int(os.environ['DURACAO_MIN']),
         'arquivo': os.environ['ARQUIVO'],
+        'aulas': indice_aulas,
     }],
 }
 with open(sys.argv[1], 'w', encoding='utf-8') as f:
@@ -253,9 +512,31 @@ PY
 # rótulo ↔ chave e o tipo). Coluna da folha que o schema não declara NÃO é inventada: o extrator sai
 # com erro, o pacote não é escrito e a mensagem diz qual coluna falta declarar. Derivado: não é
 # fonte, não entra na âncora.
-node "$RAIZ/tools/validar-captura-ciclo.js" "$CICLOS/ciclo-$CICLO-captura-schema.json" \
-  "$(fonte_md captura-aula-01)" --variante "$VARIANTE" --json > "$PACOTE/captura-$CICLO.json" \
-  || { echo "erro: a folha de captura não fechou com o schema (captura-$CICLO.json) — veja o relatório acima." >&2; exit 1; }
+# UM CONFIG POR AULA (Defeito 1, ARQUITETURA-AULA.md §4.1): a folha da aula 02 pode ter colunas
+# que a da 01 não tem, e enquanto o config era um só por ciclo os quatro formulários da Diaghilev
+# saíam idênticos. Os NN vêm da família `captura-aula-*` em disco (`familias_por_aula`, a MESMA
+# derivação que o DOCS usa em lib-fontes.sh) e a folha de cada NN é resolvida por `fonte_md` — a da
+# variante vence a compartilhada. O `[ -f ]` é obrigatório: `fonte_md` devolve caminho mesmo quando
+# o arquivo não existe, e o NN pode ter entrado no glob pela folha de OUTRA escola.
+CAP_SCHEMA="$CICLOS/ciclo-$CICLO-captura-schema.json"
+for cap_nn in $(familias_por_aula captura-aula); do
+  cap_src="$(fonte_md "captura-aula-$cap_nn")"
+  [ -f "$cap_src" ] || continue
+  node "$RAIZ/tools/validar-captura-ciclo.js" "$CAP_SCHEMA" "$cap_src" \
+    --variante "$VARIANTE" --json > "$PACOTE/captura-aula-$cap_nn.json" \
+    || { echo "erro: a folha de captura da aula $cap_nn não fechou com o schema (captura-aula-$cap_nn.json) — veja o relatório acima." >&2; exit 1; }
+done
+
+# O CONFIG DO CICLO continua saindo: é o que o formulário publicado lê hoje (`captura-<id do
+# ciclo>.json`, tools/templates/lancamento.html) e apagá-lo quebraria o formulário até o B3b. Ele É
+# o config da aula 01 — sai do arquivo já validado acima, para não depender de ordem nem de cópia
+# fora do disco.
+if [ -f "$PACOTE/captura-aula-01.json" ]; then
+  cp "$PACOTE/captura-aula-01.json" "$PACOTE/captura-$CICLO.json"
+else
+  echo "erro: a folha de captura da aula 01 ($(fonte_md captura-aula-01)) não está no disco — sem ela não há captura-$CICLO.json." >&2
+  exit 1
+fi
 
 # O JSON de DADOS vai para o pacote CIFRADO (decisão de 20/09): o pacote é PÚBLICO e ele traz o
 # lançamento por aluna — é o mesmo cuidado dos acompanhamentos, com a mesma senha (a da escola), e
@@ -276,10 +557,11 @@ fi
 
 # A PÁGINA DO FORMULÁRIO (Fase 2.3). O formulário nasceu no experimento; aqui ele é TEMPLATE
 # versionado (tools/templates/lancamento.html) e o gerador o publica no pacote — junto das duas libs
-# que ele consome (lib-vistas.js e lib-cifra.js), porque o pacote é o que se publica e a página lê
-# tudo AO LADO DELA: as libs em assets/, o índice, os JSONs de entrada e o JSON de dados cifrado.
+# que ele consome (lib-vistas.js e lib-cifra.js) e do `nav.js` que ele COMPARTILHA com as páginas de
+# documento, porque o pacote é o que se publica e a página lê tudo AO LADO DELA: as libs em assets/,
+# o índice, os JSONs de entrada e o JSON de dados cifrado.
 cp "$TPL/lancamento.html" "$PACOTE/lancamento.html"
-cp "$RAIZ/tools/lib-vistas.js" "$RAIZ/tools/lib-cifra.js" "$PACOTE/assets/"
+cp "$RAIZ/tools/lib-vistas.js" "$RAIZ/tools/lib-cifra.js" "$TPL/nav.js" "$PACOTE/assets/"
 
 # ---------------------------------------------------------------------------
 # 0) Normalização dos ids: TODA fonte passa por aqui antes de virar HTML e PDF,
@@ -335,7 +617,15 @@ for doc in index $DOCS $ACOMP_DOCS; do
 import sys, pathlib
 alvo = pathlib.Path(sys.argv[1])
 cal = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8').strip()
-alvo.write_text(alvo.read_text(encoding='utf-8').replace('<!-- CALENDARIO -->', cal), encoding='utf-8')
+texto = alvo.read_text(encoding='utf-8')
+# Mesma armadilha do `<!-- NAV -->` (ver o bloco do `lancamento.html`): o `replace` sem limite
+# injetaria o calendário em TODAS as ocorrências do marcador, e o bloco duplicado repetiria o
+# `id="calendario-do-ciclo"` na página. Falha alto em vez de duplicar calado.
+marca = texto.count('<!-- CALENDARIO -->')
+if marca != 1:
+    sys.exit('%s: marcador <!-- CALENDARIO --> aparece %d vezes (esperado 1).'
+             % (alvo.name, marca))
+alvo.write_text(texto.replace('<!-- CALENDARIO -->', cal), encoding='utf-8')
 PY
   fi
 done
@@ -556,9 +846,16 @@ import pathlib, sys
 alvo = pathlib.Path(sys.argv[1])
 nav = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8')
 texto = alvo.read_text(encoding='utf-8')
-if '<!-- NAV -->' not in texto:
+marca = texto.count('<!-- NAV -->')
+if marca == 0:
     sys.exit('lancamento.html: marcador <!-- NAV --> não encontrado')
-alvo.write_text(texto.replace('<!-- NAV -->', nav), encoding='utf-8')
+if marca > 1:
+    sys.exit('lancamento.html: marcador <!-- NAV --> aparece %d vezes (esperado 1) — a nav '
+             'sairia duplicada. Há uma ocorrência solta no template, provavelmente dentro de '
+             'um comentário em prosa.' % marca)
+# Troca UMA vez: a nav é um bloco único, e um `replace` sem limite injetaria a barra em todas as
+# ocorrências do marcador que o template trouxesse.
+alvo.write_text(texto.replace('<!-- NAV -->', nav, 1), encoding='utf-8')
 PY
 gerados=0
 for doc in $TODOS; do
@@ -723,11 +1020,39 @@ if faltando:
     sys.exit(3)
 PY
 
-# Cabeçalho LaTeX: rodapé numerado em todas as páginas + índice em página nova
+# Cabeçalho LaTeX: rodapé numerado em todas as páginas + índice em página nova.
+# As cores da identidade são INJETADAS da fonte de verdade (tools/lib-tokens.js lê
+# o ciclo.css): o LaTeX não sabe ler CSS, e repetir os valores aqui criaria a
+# segunda lista que o IDENTIDADE-VISUAL.md proíbe.
 sed -e "s|@NOME@|$(printf '%s' "$NOME" | sed -e 's/[&%#_]/\\&/g')|g" \
     -e "s|@CICLO@|$CICLO|g" \
     -e "s|@PERIODO@|$PERIODO|g" \
     "$TPL/ciclo-cabecalho.tex" > "$TMP/cabecalho.tex"
+if grep -q '@CORES@' "$TMP/cabecalho.tex"; then
+  node "$RAIZ/tools/lib-tokens.js" --latex > "$TMP/cores.tex"
+  python3 - "$TMP/cabecalho.tex" "$TMP/cores.tex" <<'PY'
+import sys
+# A substituição é feita em Python, e não com `sed`: o bloco tem `\`, `{`, `}` e
+# `\n`, que o `sed` interpretaria — e o `@CORES@` fica numa linha só, então o
+# texto multilinha precisa entrar por arquivo, não por argumento de comando.
+#
+# Substitui APENAS a linha que é só o marcador. O cabeçalho CITA `@CORES@` em dois
+# comentários, para documentar a injeção; um `replace` global injetaria o bloco
+# inteiro dentro deles e quebraria o preâmbulo (o LaTeX compila, mas com o
+# primeiro `\definecolor` dentro do comentário e as três cópias do bloco).
+alvo, cores = sys.argv[1], sys.argv[2]
+with open(alvo, encoding='utf-8') as f:
+    linhas = f.read().split('\n')
+with open(cores, encoding='utf-8') as f:
+    bloco = f.read().rstrip('\n')
+marcadores = [i for i, l in enumerate(linhas) if l.strip() == '@CORES@']
+if len(marcadores) != 1:
+    sys.exit(f'@CORES@: esperava exatamente 1 linha de injeção, achei {len(marcadores)}')
+linhas[marcadores[0]:marcadores[0] + 1] = bloco.split('\n')
+with open(alvo, 'w', encoding='utf-8') as f:
+    f.write('\n'.join(linhas))
+PY
+fi
 
 
 # Capa + aviso + documentos (o corpo do PDF vem do arquivo consolidado)
