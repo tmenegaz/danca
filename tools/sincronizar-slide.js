@@ -27,7 +27,11 @@ const raiz = path.resolve(__dirname, '..');
 const APRESENTACAO = process.env.APRESENTACAO || path.join(raiz, 'apresentacoes', 'apresentacao-01-rizoma');
 const svgPath = path.join(APRESENTACAO, 'rizoma-slide.svg');
 const deckPath = path.join(APRESENTACAO, 'apresentacao-ballet.md');
-const ESTILO = 'display:block;margin:0 auto;width:100%;height:auto;max-height:540px;background:#fbf8f3;font-family:Georgia,serif;';
+// O fundo do mapa é o `--cream` da identidade: lido da fonte de verdade, não
+// reescrito aqui. O deck é Marp (Markdown), então o valor precisa ser resolvido.
+const tokens = require('./lib-tokens').ler();
+const ESTILO = 'display:block;margin:0 auto;width:100%;height:auto;max-height:540px;background:'
+  + tokens['--cream'] + ";font-family:Georgia,serif;";
 const INICIO = '<!-- MAPA:INICIO';
 const FIM = '<!-- MAPA:FIM';
 

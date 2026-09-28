@@ -21,6 +21,18 @@
 const fs = require('fs');
 const path = require('path');
 
+// A paleta vem da FONTE DE VERDADE (tools/lib-tokens.js lê o ciclo.css). O HTML
+// gerado se abre sozinho, sem servidor, então os valores precisam ser RESOLVIDOS
+// aqui — mas ninguém os escreve à mão: mudar o ciclo.css muda esta página.
+const tokens = require('./lib-tokens').ler();
+const TOKENS_USADOS = ['--burgundy', '--burgundy-claro', '--gold', '--soft', '--tinta', '--cream'];
+for (const t of TOKENS_USADOS) {
+  if (!tokens[t]) throw new Error('token ausente na paleta de ciclo.css: ' + t);
+}
+// Montado por concatenação, e não com template literal: este valor entra dentro
+// do template literal do HTML, e crases aninhadas quebrariam a string.
+const blocoRoot = ':root { ' + TOKENS_USADOS.map((t) => t + ':' + tokens[t] + ';').join(' ') + ' }';
+
 const raiz = path.resolve(__dirname, '..');
 // A apresentação vive em apresentacoes/apresentacao-01-rizoma/ (Regra 17).
 // Troque com APRESENTACAO=/caminho node tools/gerar-animacao.js
@@ -44,13 +56,20 @@ const iDefs = interno.indexOf('<defs>');
 const fDefs = interno.indexOf('</defs>');
 const defs = iDefs >= 0 && fDefs > iDefs ? interno.slice(iDefs, fDefs + '</defs>'.length) : '';
 
-const iArestas = interno.indexOf('<g stroke="#b08d57"');
-if (iArestas < 0) throw new Error('grupo de arestas (stroke="#b08d57") não encontrado');
+// O grupo das arestas é localizado pelo traço de ouro, que vem da paleta — o SVG
+// de origem é casado como texto, então o valor tem de ser o mesmo dos dois lados.
+const iArestas = interno.indexOf('<g stroke="' + tokens['--gold'] + '"');
+if (iArestas < 0) throw new Error('grupo de arestas (stroke="' + tokens['--gold'] + '") não encontrado');
 const fArestas = interno.indexOf('</g>', iArestas) + '</g>'.length;
 const arestas = interno.slice(iArestas, fArestas);
 const corpos = interno.slice(fArestas);
 
 const viewBox = (tagSvg.match(/viewBox="([^"]+)"/) || [, '0 0 1300 700'])[1];
+
+// Os atributos da tag do SVG de origem NÃO são reaproveitados: o `xmlns` e o
+// `style` são declarados aqui, resolvidos da paleta. Antes os dois eram copiados
+// E re-declarados, e o `<svg>` saía com os atributos em dobro.
+const estiloSvg = 'background:' + tokens['--cream'] + ";font-family:Georgia,serif;";
 
 // ---- arestas: acrescenta class="edge" e o atraso de cada uma ----
 let nAresta = 0;
@@ -77,10 +96,15 @@ const html = `<!DOCTYPE html>
 <meta charset="UTF-8">
 <title>O Rizoma da Dança — Versão Animada</title>
 <style>
-  :root { --burgundy:#6b1f2e; --gold:#b08d57; --gold-dark:#8a6a3b; --soft:#5a5348; --cream:#fbf8f3; }
+  /* A paleta é a do Projeto Ciclo, resolvida a partir de tools/templates/ciclo.css
+     (fonte de verdade) por tools/lib-tokens.js. Vão só os tokens que a página USA,
+     com os nomes canônicos, para que um ajuste futuro se procure por eles — e não
+     por um valor solto. O desenho vem do SVG de origem, que tem as suas próprias
+     cores literais (o gerador casa esse SVG como texto). */
+  ${blocoRoot}
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    background:var(--cream); color:#1f1c1a; font-family:Georgia,'Times New Roman',serif;
+    background:var(--cream); color:var(--tinta); font-family:Georgia,'Times New Roman',serif;
     min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
     padding:18px; overflow:hidden;
   }
@@ -96,7 +120,7 @@ const html = `<!DOCTYPE html>
     padding:12px 22px; font-family:Georgia,'Times New Roman',serif; font-size:16px;
     cursor:pointer; text-decoration:none;
   }
-  .ctrl button:hover, .ctrl a:hover { background:#8a2a3d; }
+  .ctrl button:hover, .ctrl a:hover { background:var(--burgundy-claro); }
   .ctrl .hint { color:var(--soft); font-size:13px; font-style:italic; }
   svg text { font-family: Georgia, 'Times New Roman', serif; }
   .node { opacity:0; transform-box:fill-box; transform-origin:center; animation:popIn .5s ease-out forwards; }
@@ -118,7 +142,7 @@ const html = `<!DOCTYPE html>
 <p class="subtitle">De John Weaver (1717) a Tiago Menegaz (2026) — três linhagens, um rizoma</p>
 
 <!-- Gerado por tools/gerar-animacao.js a partir de rizoma-corrigido.svg. Não edite à mão. -->
-<svg id="rizoma" ${tagSvg.replace(/^<svg\s*/, '').replace(/\/?>$/, '')} xmlns="http://www.w3.org/2000/svg" style="background:#fbf8f3;font-family:Georgia,serif;">
+<svg id="rizoma" viewBox="${viewBox}" role="img" xmlns="http://www.w3.org/2000/svg" style="${estiloSvg}">
 ${defs}
 
 ${arestasAnimadas}

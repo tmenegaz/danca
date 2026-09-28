@@ -15,15 +15,29 @@
 
 \usepackage{fancyhdr}
 
+% ---------------------------------------------------------------------------
+% Identidade visual (ver IDENTIDADE-VISUAL.md). O bloco de cores NÃO é escrito
+% aqui: o `@CORES@` abaixo é substituído, na geração, pelas definições lidas da
+% fonte de verdade (tools/templates/ciclo.css, via tools/lib-tokens.js). Assim o
+% PDF carrega a mesma paleta do site sem manter uma segunda lista de valores.
+% ---------------------------------------------------------------------------
+\usepackage{xcolor}
+\usepackage{sectsty}
+% @CORES@ vira: \definecolor{cicloX}{HTML}{...} para cada token, mais o
+% \hypersetup dos links e o \allsectionsfont dos títulos.
+@CORES@
+
 % Texto do rodapé: identificação do ciclo + número da página
 \newcommand{\rodapeciclo}{@NOME@ \textperiodcentered\ p.\ \thepage}
 
-% Estilo aplicado ao documento inteiro
+% Estilo aplicado ao documento inteiro. O filete de ouro separa o rodapé do
+% corpo: tem função, então usa o tom de traço (--gold-escuro), não o de texto.
 \fancypagestyle{ciclo}{%
   \fancyhf{}%
   \fancyfoot[C]{\footnotesize\rodapeciclo}%
   \renewcommand{\headrulewidth}{0pt}%
-  \renewcommand{\footrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0.4pt}%
+  \renewcommand{\footrule}{\hbox to\headwidth{\color{ciclogoldescuro}\leaders\hrule height \footrulewidth\hfill}}%
 }
 
 % A capa (primeira página) usa o estilo 'plain' por padrão: redefinimos para
@@ -32,7 +46,8 @@
   \fancyhf{}%
   \fancyfoot[C]{\footnotesize\rodapeciclo}%
   \renewcommand{\headrulewidth}{0pt}%
-  \renewcommand{\footrulewidth}{0pt}%
+  \renewcommand{\footrulewidth}{0.4pt}%
+  \renewcommand{\footrule}{\hbox to\headwidth{\color{ciclogoldescuro}\leaders\hrule height \footrulewidth\hfill}}%
 }
 
 \pagestyle{ciclo}

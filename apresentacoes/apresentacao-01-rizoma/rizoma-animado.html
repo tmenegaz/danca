@@ -4,10 +4,15 @@
 <meta charset="UTF-8">
 <title>O Rizoma da Dança — Versão Animada</title>
 <style>
-  :root { --burgundy:#6b1f2e; --gold:#b08d57; --gold-dark:#8a6a3b; --soft:#5a5348; --cream:#fbf8f3; }
+  /* A paleta é a do Projeto Ciclo, resolvida a partir de tools/templates/ciclo.css
+     (fonte de verdade) por tools/lib-tokens.js. Vão só os tokens que a página USA,
+     com os nomes canônicos, para que um ajuste futuro se procure por eles — e não
+     por um valor solto. O desenho vem do SVG de origem, que tem as suas próprias
+     cores literais (o gerador casa esse SVG como texto). */
+  :root { --burgundy:#6b1f2e; --burgundy-claro:#8a2a3d; --gold:#b08d57; --soft:#5a5348; --tinta:#1f1c1a; --cream:#fbf8f3; }
   * { box-sizing:border-box; margin:0; padding:0; }
   body {
-    background:var(--cream); color:#1f1c1a; font-family:Georgia,'Times New Roman',serif;
+    background:var(--cream); color:var(--tinta); font-family:Georgia,'Times New Roman',serif;
     min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;
     padding:18px; overflow:hidden;
   }
@@ -23,7 +28,7 @@
     padding:12px 22px; font-family:Georgia,'Times New Roman',serif; font-size:16px;
     cursor:pointer; text-decoration:none;
   }
-  .ctrl button:hover, .ctrl a:hover { background:#8a2a3d; }
+  .ctrl button:hover, .ctrl a:hover { background:var(--burgundy-claro); }
   .ctrl .hint { color:var(--soft); font-size:13px; font-style:italic; }
   svg text { font-family: Georgia, 'Times New Roman', serif; }
   .node { opacity:0; transform-box:fill-box; transform-origin:center; animation:popIn .5s ease-out forwards; }
@@ -45,7 +50,7 @@
 <p class="subtitle">De John Weaver (1717) a Tiago Menegaz (2026) — três linhagens, um rizoma</p>
 
 <!-- Gerado por tools/gerar-animacao.js a partir de rizoma-corrigido.svg. Não edite à mão. -->
-<svg id="rizoma" viewBox="0 0 1300 700" xmlns="http://www.w3.org/2000/svg" style="background:#fbf8f3;font-family:Georgia,serif;" xmlns="http://www.w3.org/2000/svg" style="background:#fbf8f3;font-family:Georgia,serif;">
+<svg id="rizoma" viewBox="0 0 1300 700" role="img" xmlns="http://www.w3.org/2000/svg" style="background:#fbf8f3;font-family:Georgia,serif;">
 <defs>
     <style>
       .lbl { font-family: Georgia, serif; text-anchor: middle; }

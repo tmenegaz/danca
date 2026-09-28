@@ -6,18 +6,24 @@ paginate: true
 header: '**O Repertório Vivo** — O Corpo, o Arquivo e o Rizoma'
 footer: 'Formação em Balé Clássico (7 a 12 anos)'
 style: |
+  /* Identidade visual do Projeto Ciclo (ver IDENTIDADE-VISUAL.md, na raiz).
+     Esta paleta É a identidade — os mesmos valores de tools/templates/ciclo.css,
+     a fonte de verdade, com os nomes canônicos. O deck é Marp (Markdown), então
+     não pode consumir os tokens por referência: a correspondência é declarada
+     aqui e conferida por tools/check-identidade.js. */
   :root {
     --burgundy: #6b1f2e;
     --gold: #b08d57;
-    --gold-dark: #8a6a3b;
-    --ink: #1f1c1a;
+    --gold-escuro: #8a6a3b;
+    --tinta: #1f1c1a;
     --soft: #5a5348;
     --cream: #fbf8f3;
+    --branco: #ffffff;
   }
   section {
     font-family: Georgia, 'Times New Roman', 'DejaVu Serif', serif;
     background: var(--cream);
-    color: var(--ink);
+    color: var(--tinta);
     font-size: 26px;
     line-height: 1.34;
     padding: 56px 68px 66px;
@@ -43,7 +49,7 @@ style: |
   }
   h3 {
     font-size: 22px;
-    color: var(--gold-dark);
+    color: var(--gold-escuro);
     margin-top: 0.7em;
     text-transform: uppercase;
     letter-spacing: 1px;
@@ -84,7 +90,7 @@ style: |
     flex-direction: column;
     justify-content: center;
     text-align: center;
-    background: radial-gradient(circle at 50% 0%, #ffffff 0%, var(--cream) 55%, #f2ebdf 100%);
+    background: radial-gradient(circle at 50% 0%, var(--branco) 0%, var(--cream) 55%, #f2ebdf 100%);
   }
   section.lead h1 { font-size: 52px; margin-bottom: 0.25em; }
   section.lead h3 { font-size: 20px; letter-spacing: 2px; }
