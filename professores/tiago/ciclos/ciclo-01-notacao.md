@@ -4,7 +4,6 @@ frente: Documento de apoio
 ciclo: "01"
 title: "Notação em Benesh"
 subtitle: "Registro dos exercícios da Aula 01 para repetição sem depender da memória"
-data: "17/09/2026"
 referencias: "Mirzabekiantz (2000); Parker (1990)"
 ---
 
@@ -46,6 +45,8 @@ Cada linha descreve **um tempo** do exercício:
 > blocos está na legenda abaixo, com link para o verbete correspondente no
 > [Glossário do código Benesh](glossario-benesh.html)** — que traz nome,
 > significado, origem (sistema ou convenção do ciclo) e onde cada sinal aparece.
+
+<!-- CALENDARIO -->
 
 ## Legenda completa (código do ciclo)
 

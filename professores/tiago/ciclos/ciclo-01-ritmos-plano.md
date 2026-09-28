@@ -47,8 +47,6 @@ existe porque a anterior deixou uma condição necessária (Regra 2).
 
 > **Escrito em detalhe até aqui:** [Aula 01](aula-01.html).
 
-## Calendário do ciclo
-
 <!-- CALENDARIO -->
 
 ## Calibração do volume pela duração (Regra 9, etapa 1)

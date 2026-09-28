@@ -5,7 +5,6 @@ ciclo: "01"
 escola: Ritmos e Movimento
 title: "Notação em Benesh"
 subtitle: "Registro dos exercícios da Aula 01 para repetição sem depender da memória"
-data: "18/09/2026"
 referencias: "Mirzabekiantz (2000); Parker (1990)"
 ---
 
@@ -29,6 +28,8 @@ referencias: "Mirzabekiantz (2000); Parker (1990)"
 
 Símbolo por símbolo, ver o [Glossário do código Benesh](glossario-benesh.html) deste
 ciclo: ele traz os sinais que o registro usa, cada um com a sua fonte.
+
+<!-- CALENDARIO -->
 
 ## Exercício 1.1 — Tendus e jetés nas três direções
 

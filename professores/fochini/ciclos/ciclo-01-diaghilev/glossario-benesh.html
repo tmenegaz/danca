@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Glossário do código Benesh do ciclo</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body id="top">
+
+<nav class="topnav" aria-label="Navegação do ciclo">
+  <a class="marca" href="index.html">Ciclo 01 · diaghilev</a>
+  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+  <a href="index.html">Início</a>
+  <details class="menu">
+    <summary>Ciclos</summary>
+    <div class="submenu">
+      <a href="plano.html">Plano do Ciclo 01 — Áglev</a>
+      <a href="referencias.html">Referências Bibliográficas</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Aulas</summary>
+    <div class="submenu">
+      <a href="aula-01.html">Aula 01 — Eixo vertical e distribuição do peso (solo)</a>
+      <a href="aula-02.html">Aula 02 — Transferência de peso em movimento (avaliação formativa)</a>
+      <a href="aula-03.html">Aula 03 — Eixo na meia ponta e no giro</a>
+      <a href="aula-04.html">Aula 04 — Frase completa (avaliação somativa)</a>
+      <a href="aula-05.html">Aula 05 — Tendu, jeté, fondu e braços básicos (suplementar, RAD com registro Benesh)</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Acompanhamento</summary>
+    <div class="submenu">
+      <a href="caderno-01.html">Caderno</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Planejamento</summary>
+    <div class="submenu">
+      <a href="notacao.html">Notação em Benesh</a>
+      <a class="ativo" href="glossario-benesh.html">Glossário do código Benesh do ciclo</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Área do Professor</summary>
+    <div class="submenu">
+      <a href="harmonizacao.html"></a>
+      <a href="guia-do-professor.html">Guia do Professor — em que posição você está?</a>
+      <a href="metodo.html">Método</a>
+      <a href="guia-de-observacao-01.html">Guia de observação — Aula 01 (remover)</a>
+      <a href="captura-aula-01.html">Captura em aula — Aula 01 — para impressão</a>
+      <a href="captura-aula-02.html">Captura em aula — Aula 02 — para impressão</a>
+      <a href="captura-aula-03.html">Captura em aula — Aula 03 — para impressão</a>
+      <a href="captura-aula-04.html">Captura em aula — Aula 04 — para impressão</a>
+      <a href="captura-aula-05.html">Captura em aula — Aula 05 — para impressão</a>
+      <a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>
+    </div>
+  </details>
+  <a class="pdf" href="ciclo-01-diaghilev.pdf">PDF do ciclo</a>
+  </div>
+</nav>
+
+<header class="doc">
+  <h1>Glossário do código Benesh do ciclo</h1>
+    <p class="subtitulo">Todo símbolo, termo e categoria que aparece no
+registro da Aula 05</p>
+    <p class="ficha">
+    <span>Escola: Diaghilev — Fochini</span>
+    <span>2x/semana</span>
+    <span>60 min em cada um dos dois encontros semanais</span>
+    <span>Documento de apoio</span>
+    <span>Ciclo 01 (3 semanas)</span>
+    
+    <span>20/10/2026</span>
+    
+    <span>Volume semanal: 176 tempos/semana</span>
+    
+    
+  </p>
+</header>
+
+<main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
+<nav class="toc-local" aria-label="Índice desta página">
+  <p class="toc-titulo">Nesta página</p>
+<ul>
+<li><a href="#indice-de-simbolos" id="toc-indice-de-simbolos">Índice de
+símbolos</a></li>
+<li><a href="#convencoes-de-escrita-do-ciclo"
+id="toc-convencoes-de-escrita-do-ciclo">Convenções de escrita do
+ciclo</a>
+<ul>
+<li><a href="#abre-bloco" id="toc-abre-bloco"><code>[</code> — abre
+bloco</a></li>
+<li><a href="#fecha-bloco" id="toc-fecha-bloco"><code>]</code> — fecha
+bloco</a></li>
+<li><a href="#dois-pontos" id="toc-dois-pontos"><code>:</code> —
+dois-pontos</a></li>
+<li><a href="#categoria-pe" id="toc-categoria-pe"><code>Pé</code> —
+categoria pé</a></li>
+<li><a href="#categoria-peso" id="toc-categoria-peso"><code>Peso</code>
+— categoria peso</a></li>
+<li><a href="#categoria-plie" id="toc-categoria-plie"><code>Plié</code>
+— categoria plié</a></li>
+<li><a href="#categoria-braco"
+id="toc-categoria-braco"><code>Braço</code> — categoria braço</a></li>
+</ul></li>
+<li><a href="#movimento" id="toc-movimento">Movimento</a>
+<ul>
+<li><a href="#conduz-a" id="toc-conduz-a"><code>→</code> — conduz
+a</a></li>
+<li><a href="#fecha" id="toc-fecha"><code>●</code> — fecha</a></li>
+<li><a href="#a-frente" id="toc-a-frente"><code>+</code> — à
+frente</a></li>
+<li><a href="#ao-lado" id="toc-ao-lado"><code>-</code> — ao
+lado</a></li>
+<li><a href="#atras" id="toc-atras"><code>×</code> — atrás</a></li>
+<li><a href="#arco" id="toc-arco"><code>⌒</code> — arco</a></li>
+<li><a href="#rotacao-para-fora"
+id="toc-rotacao-para-fora"><code>↺</code> — rotação para fora</a></li>
+</ul></li>
+<li><a href="#posicoes-dos-pes" id="toc-posicoes-dos-pes">Posições dos
+pés</a>
+<ul>
+<li><a href="#posicao-1" id="toc-posicao-1"><code>1ª</code> — primeira
+posição</a></li>
+<li><a href="#posicao-2" id="toc-posicao-2"><code>2ª</code> — segunda
+posição</a></li>
+<li><a href="#posicao-3" id="toc-posicao-3"><code>3ª</code> — terceira
+posição</a></li>
+<li><a href="#posicao-5" id="toc-posicao-5"><code>5ª</code> — quinta
+posição</a></li>
+</ul></li>
+<li><a href="#lados" id="toc-lados">Lados</a>
+<ul>
+<li><a href="#lado-d" id="toc-lado-d"><code>D</code> — lado
+direito</a></li>
+<li><a href="#lado-e" id="toc-lado-e"><code>E</code> — lado
+esquerdo</a></li>
+</ul></li>
+<li><a href="#como-este-glossario-se-mantem-completo"
+id="toc-como-este-glossario-se-mantem-completo">Como este glossário se
+mantém completo</a></li>
+</ul>
+</nav>
+</div>
+
+<div class="conteudo">
+<blockquote>
+<p><strong>Aviso de proveniência (Regra 8).</strong> Este glossário
+explica um <strong>código do ciclo</strong>, não o sistema Benesh. O
+sistema tem sintaxe própria, completa e normatizada; o que está aqui é
+um conjunto pequeno de sinais <strong>baseado em conceitos do
+sistema</strong>, escrito com os sinais que os exercícios deste ciclo
+usaram.</p>
+<p>Cada verbete declara a sua <strong>origem</strong>: <em>sistema</em>,
+quando o sinal corresponde a um conceito do sistema de notação;
+<em>convenção do ciclo</em>, quando o sinal foi escolhido para este
+código. A distinção importa — um sinal de sistema pode ser conferido na
+fonte; um de convenção só vale aqui.</p>
+</blockquote>
+<blockquote>
+<p><strong>Nota (P-15).</strong> O glossário e o registro são um par: um
+símbolo só existe no registro se tiver verbete aqui, e todo verbete aqui
+aponta para onde aparece. É o que a Regra 16 verifica.</p>
+</blockquote>
+<h2 id="indice-de-simbolos">Índice de símbolos</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: center;">Símbolo</th>
+<th style="text-align: left;">Nome</th>
+<th style="text-align: left;">Onde aparece no registro</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: center;"><code>[</code></td>
+<td style="text-align: left;">abre bloco</td>
+<td style="text-align: left;">em todos os blocos de notação</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>]</code></td>
+<td style="text-align: left;">fecha bloco</td>
+<td style="text-align: left;">em todos os blocos de notação</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>:</code></td>
+<td style="text-align: left;">dois-pontos</td>
+<td style="text-align: left;">em todos os blocos de notação</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>Pé</code></td>
+<td style="text-align: left;">categoria pé</td>
+<td style="text-align: left;">Exercícios 1.1, 1.2 e 2.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>Peso</code></td>
+<td style="text-align: left;">categoria peso</td>
+<td style="text-align: left;">Exercícios 1.1, 2.1 e 3.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>Plié</code></td>
+<td style="text-align: left;">categoria plié</td>
+<td style="text-align: left;">Exercício 3.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>Braço</code></td>
+<td style="text-align: left;">categoria braço</td>
+<td style="text-align: left;">Exercícios 1.1 e 4.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>→</code></td>
+<td style="text-align: left;">conduz a</td>
+<td style="text-align: left;">em todos os blocos de notação</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>●</code></td>
+<td style="text-align: left;">fecha</td>
+<td style="text-align: left;">Exercícios 1.1, 1.2, 2.1 e 3.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>+</code></td>
+<td style="text-align: left;">à frente</td>
+<td style="text-align: left;">Exercícios 1.2, 3.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>-</code></td>
+<td style="text-align: left;">ao lado</td>
+<td style="text-align: left;">Exercício 2.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>×</code></td>
+<td style="text-align: left;">atrás</td>
+<td style="text-align: left;">Exercício 1.2</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>⌒</code></td>
+<td style="text-align: left;">arco</td>
+<td style="text-align: left;">Exercício 4.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>↺</code></td>
+<td style="text-align: left;">rotação para fora</td>
+<td style="text-align: left;">Exercício 4.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>1ª</code></td>
+<td style="text-align: left;">primeira posição</td>
+<td style="text-align: left;">Exercícios 1.1, 1.2, 2.1, 3.1 e 4.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>2ª</code></td>
+<td style="text-align: left;">segunda posição</td>
+<td style="text-align: left;">Exercícios 1.1 e 4.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>3ª</code></td>
+<td style="text-align: left;">terceira posição</td>
+<td style="text-align: left;">Exercício 4.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>5ª</code></td>
+<td style="text-align: left;">quinta posição</td>
+<td style="text-align: left;">Exercício 3.1</td>
+</tr>
+<tr class="odd">
+<td style="text-align: center;"><code>D</code></td>
+<td style="text-align: left;">lado direito</td>
+<td style="text-align: left;">Exercícios 1.1, 2.1, 3.1 e 4.1</td>
+</tr>
+<tr class="even">
+<td style="text-align: center;"><code>E</code></td>
+<td style="text-align: left;">lado esquerdo</td>
+<td style="text-align: left;">Exercícios 2.1 e 4.1</td>
+</tr>
+</tbody>
+</table>
+<h2 id="convencoes-de-escrita-do-ciclo">Convenções de escrita do
+ciclo</h2>
+<h3 id="abre-bloco"><code>[</code> — abre bloco</h3>
+<ul>
+<li><strong>Significado:</strong> início de um bloco de notação. Tudo o
+que vem até o <code>]</code> correspondente descreve um mesmo gesto, no
+tempo do compasso indicado.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> em todos os blocos do registro — é o
+que os delimita na coluna <em>Notação</em>.</li>
+</ul>
+<h3 id="fecha-bloco"><code>]</code> — fecha bloco</h3>
+<ul>
+<li><strong>Significado:</strong> fim de um bloco de notação.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> em todos os blocos do registro.</li>
+</ul>
+<h3 id="dois-pontos"><code>:</code> — dois-pontos</h3>
+<ul>
+<li><strong>Significado:</strong> separa a <strong>categoria</strong>
+(de que se fala: pé, peso, plié, braço) do <strong>conteúdo</strong> (o
+que acontece: partida, movimento, chegada). Vem sempre logo depois da
+categoria.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> em todos os blocos do registro.</li>
+</ul>
+<h3 id="categoria-pe"><code>Pé</code> — categoria pé</h3>
+<ul>
+<li><strong>Significado:</strong> o bloco fala do pé — a extensão, a
+saída do apoio e o retorno. É a categoria dos três exercícios de barra
+do RAD: tendu, jeté e fondu.</li>
+<li><strong>Origem:</strong> sistema (a notação do pé é o eixo do
+sistema); a palavra, aqui, é convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1, 1.2 e 2.1.</li>
+</ul>
+<h3 id="categoria-peso"><code>Peso</code> — categoria peso</h3>
+<ul>
+<li><strong>Significado:</strong> o bloco fala da distribuição do peso —
+de qual pé para qual pé, e em que momento a condução passa. Numa aula de
+barra, é o que diz se o eixo aguentou a troca.</li>
+<li><strong>Origem:</strong> sistema (a transferência de peso é notada);
+a palavra, aqui, é convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1, 2.1 e 3.1.</li>
+</ul>
+<h3 id="categoria-plie"><code>Plié</code> — categoria plié</h3>
+<ul>
+<li><strong>Significado:</strong> o bloco fala do apoio que cede — a
+descida controlada e a subida. No fondu, é o próprio exercício.</li>
+<li><strong>Origem:</strong> sistema (a flexão do joelho tem notação
+própria); a palavra, aqui, é convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 3.1.</li>
+</ul>
+<h3 id="categoria-braco"><code>Braço</code> — categoria braço</h3>
+<ul>
+<li><strong>Significado:</strong> o bloco fala dos braços — as posições
+básicas e o caminho por onde eles passam de uma para outra. É a
+categoria do bloco de braços básicos.</li>
+<li><strong>Origem:</strong> sistema (a notação de braço é parte do
+sistema); a palavra, aqui, é convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1 e 4.1.</li>
+</ul>
+<h2 id="movimento">Movimento</h2>
+<h3 id="conduz-a"><code>→</code> — conduz a</h3>
+<ul>
+<li><strong>Significado:</strong> o estado de <strong>chegada</strong>
+do movimento. O que está à esquerda da seta é de onde se sai; o que está
+à direita, para onde se vai.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> em todos os blocos do registro.</li>
+</ul>
+<h3 id="fecha"><code>●</code> — fecha</h3>
+<ul>
+<li><strong>Significado:</strong> retorno à posição fechada ou ao apoio.
+Diferente da seta: aqui não se vai <em>para</em> um lugar,
+<strong>volta-se</strong> ao que já era. É o que marca o retorno do
+tendu e a reentrada do jeté.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1, 1.2, 2.1 e 3.1.</li>
+</ul>
+<h3 id="a-frente"><code>+</code> — à frente</h3>
+<ul>
+<li><strong>Significado:</strong> o pé viaja <strong>à frente</strong>
+(devant), a ponta no chão.</li>
+<li><strong>Origem:</strong> convenção do ciclo — o sinal foi escolhido
+por ser digitável, não por vir do sistema.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.2 e 3.1.</li>
+</ul>
+<h3 id="ao-lado"><code>-</code> — ao lado</h3>
+<ul>
+<li><strong>Significado:</strong> o pé viaja <strong>ao lado</strong> (à
+la seconde), a ponta no chão.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 2.1.</li>
+</ul>
+<h3 id="atras"><code>×</code> — atrás</h3>
+<ul>
+<li><strong>Significado:</strong> o pé viaja <strong>atrás</strong>
+(derrière), a ponta no chão.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 1.2.</li>
+</ul>
+<h3 id="arco"><code>⌒</code> — arco</h3>
+<ul>
+<li><strong>Significado:</strong> o braço não vai em linha reta até a
+posição seguinte — ele <strong>viaja em arco</strong>. É o que distingue
+os braços básicos de um simples mudar de posição.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 4.1.</li>
+</ul>
+<h3 id="rotacao-para-fora"><code>↺</code> — rotação para fora</h3>
+<ul>
+<li><strong>Significado:</strong> o braço <strong>roda para
+fora</strong> (en dehors) enquanto volta à primeira posição. A rotação
+acontece no caminho, não como posição de chegada.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 4.1.</li>
+</ul>
+<h2 id="posicoes-dos-pes">Posições dos pés</h2>
+<h3 id="posicao-1"><code>1ª</code> — primeira posição</h3>
+<ul>
+<li><strong>Significado:</strong> a posição de partida e de retorno de
+quase tudo neste registro — pés juntos pelo calcanhar, pernas rodadas
+para fora.</li>
+<li><strong>Origem:</strong> sistema (a primeira posição é nomeada no
+sistema); a abreviação é do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1, 1.2, 2.1, 3.1 e
+4.1.</li>
+</ul>
+<h3 id="posicao-2"><code>2ª</code> — segunda posição</h3>
+<ul>
+<li><strong>Significado:</strong> a posição aberta ao lado — destino do
+tendu lateral e do braço que abre.</li>
+<li><strong>Origem:</strong> sistema; a abreviação é do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1 e 4.1.</li>
+</ul>
+<h3 id="posicao-3"><code>3ª</code> — terceira posição</h3>
+<ul>
+<li><strong>Significado:</strong> a posição de fechamento dos braços na
+série de braços básicos.</li>
+<li><strong>Origem:</strong> sistema; a abreviação é do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 4.1.</li>
+</ul>
+<h3 id="posicao-5"><code>5ª</code> — quinta posição</h3>
+<ul>
+<li><strong>Significado:</strong> a posição de apoio do fondu — é até
+onde o apoio cede e de onde ele sobe.</li>
+<li><strong>Origem:</strong> sistema; a abreviação é do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercício 3.1.</li>
+</ul>
+<h2 id="lados">Lados</h2>
+<h3 id="lado-d"><code>D</code> — lado direito</h3>
+<ul>
+<li><strong>Significado:</strong> o lado <strong>direito</strong> do
+corpo — o pé, a perna ou o braço daquele lado. O sinal é relativo ao
+corpo de quem dança, não a quem olha.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 1.1, 2.1, 3.1 e 4.1.</li>
+</ul>
+<h3 id="lado-e"><code>E</code> — lado esquerdo</h3>
+<ul>
+<li><strong>Significado:</strong> o lado <strong>esquerdo</strong> do
+corpo.</li>
+<li><strong>Origem:</strong> convenção do ciclo.</li>
+<li><strong>Onde aparece:</strong> Exercícios 2.1 e 4.1.</li>
+</ul>
+<h2 id="como-este-glossario-se-mantem-completo">Como este glossário se
+mantém completo</h2>
+<p>O par registro × glossário é verificado:
+<code>tools/check-glossario.js</code> confere, a cada geração do pacote,
+que <strong>todo símbolo usado no corpo do registro tem verbete
+aqui</strong> e que <strong>todo verbete tem linha no índice e âncora
+válida</strong>. Um símbolo sem verbete, ou um verbete que perdeu a
+âncora, reprova (Regra 16).</p>
+<p>Na prática:</p>
+<ol type="1">
+<li>Um sinal novo no registro exige <strong>verbete novo aqui</strong>,
+com significado, origem e onde aparece.</li>
+<li>Um sinal retirado do registro <strong>não sai</strong> do glossário
+enquanto outros exercícios o usarem; se ninguém mais o usa, o verbete
+permanece com a nota de que saiu de uso.</li>
+<li>Símbolo <em>de sistema</em> e sinal <em>de convenção</em> não se
+misturam sem declaração: o campo <strong>Origem</strong> é o que impede
+que o código do ciclo passe por sistema.</li>
+</ol>
+</div>
+</main>
+
+<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
+
+<footer class="rodape">
+  <p>Ciclo 01 — Diaghilev &middot; <strong>Diaghilev</strong> &middot; 2x/semana &middot; 60 min em cada um dos dois encontros semanais &middot; 06/10/2026 a 20/10/2026 &middot; Fochini</p>
+  <p><a href="index.html">Índice do ciclo</a> &middot; <a href="plano.html">Plano</a> &middot; <a href="harmonizacao.html"></a> &middot; <a href="guia-de-observacao-01.html">Guia de observação — Aula 01</a> &middot; <a href="captura-aula-01.html">Captura em aula — Aula 01 — para impressão</a> &middot; <a href="captura-aula-02.html">Captura em aula — Aula 02 — para impressão</a> &middot; <a href="captura-aula-03.html">Captura em aula — Aula 03 — para impressão</a> &middot; <a href="captura-aula-04.html">Captura em aula — Aula 04 — para impressão</a> &middot; <a href="captura-aula-05.html">Captura em aula — Aula 05 — para impressão</a> &middot; <a href="caderno-01.html">Caderno</a> &middot; <a href="notacao.html">Notação em Benesh</a> &middot; <a href="glossario-benesh.html">Glossário do código Benesh do ciclo</a> &middot; <a href="referencias.html">Referências Bibliográficas</a> &middot; <a href="guia-do-professor.html">Guia do Professor — em que posição você está?</a> &middot; <a href="metodo.html">Método</a> &middot; <a href="ciclo-01-diaghilev.pdf">PDF do ciclo</a></p>
+</footer>
+
+
+<!-- O comportamento da barra fixa e do menu mobile vive em `assets/nav.js`: a MESMA
+     cópia é carregada pelo `lancamento.html`, que não passa pelo pandoc. Enquanto era um
+     bloco inline daqui, o formulário ficava sem ele (barra cobrindo o título, hamburger
+     morto no celular). -->
+<script src="assets/nav.js"></script>
+
+</body>
+</html>

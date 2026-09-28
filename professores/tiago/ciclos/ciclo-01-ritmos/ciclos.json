@@ -1,5 +1,6 @@
 {
-  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\".",
+  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\". O `aulas[]` e o INDICE POR AULA: a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o instante-limite de lancamento da aula, calculado do calendario. `estado` (§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois re-deriva com o proprio relogio.",
+  "gerado_em": "2026-09-28T08:24",
   "ciclos": [
     {
       "id": "01",
@@ -8,7 +9,241 @@
       "fim": "2026-11-03",
       "total_aulas": 21,
       "duracao_min": 60,
-      "arquivo": "ciclo-01-ritmos-dados.json"
+      "arquivo": "ciclo-01-ritmos-dados.json",
+      "aulas": [
+        {
+          "n": "01",
+          "data": "2026-09-19",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": "No centro: tendus e jetés (frente, lado e trás) com coordenação de braços (1ª, 2ª e 3ª); transferência de peso por cima e por baixo (de demi-plié em 2ª, 4ª ou 5ª para o passé); estabilidade em piqué arabesque com o pé todo no chão (da meia ponta, descendo devagar, sem titubear a perna de base e mantendo a estrutura do arabesque e dos braços).",
+          "estado": "lancada",
+          "lancada": true,
+          "ancora": null,
+          "prazo": "2026-09-21T19:00",
+          "config": "captura-aula-01.json"
+        },
+        {
+          "n": "02",
+          "data": "2026-09-19",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "nao_dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-09-21T19:00"
+        },
+        {
+          "n": "03",
+          "data": "2026-09-22",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "nao_dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-09-25T08:00"
+        },
+        {
+          "n": "04",
+          "data": "2026-09-26",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": null,
+          "estado": "dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-09-28T19:00"
+        },
+        {
+          "n": "05",
+          "data": "2026-09-26",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-09-28T19:00"
+        },
+        {
+          "n": "06",
+          "data": "2026-09-29",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-02T08:00"
+        },
+        {
+          "n": "07",
+          "data": "2026-10-03",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-05T19:00"
+        },
+        {
+          "n": "08",
+          "data": "2026-10-03",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-05T19:00"
+        },
+        {
+          "n": "09",
+          "data": "2026-10-06",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-09T08:00"
+        },
+        {
+          "n": "10",
+          "data": "2026-10-10",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-12T19:00"
+        },
+        {
+          "n": "11",
+          "data": "2026-10-10",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-12T19:00"
+        },
+        {
+          "n": "12",
+          "data": "2026-10-13",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-16T08:00"
+        },
+        {
+          "n": "13",
+          "data": "2026-10-17",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-19T19:00"
+        },
+        {
+          "n": "14",
+          "data": "2026-10-17",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-19T19:00"
+        },
+        {
+          "n": "15",
+          "data": "2026-10-20",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-23T08:00"
+        },
+        {
+          "n": "16",
+          "data": "2026-10-24",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-26T19:00"
+        },
+        {
+          "n": "17",
+          "data": "2026-10-24",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-26T19:00"
+        },
+        {
+          "n": "18",
+          "data": "2026-10-27",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-30T08:00"
+        },
+        {
+          "n": "19",
+          "data": "2026-10-31",
+          "inicio": "08:00",
+          "fim": "09:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-02T19:00"
+        },
+        {
+          "n": "20",
+          "data": "2026-10-31",
+          "inicio": "09:00",
+          "fim": "10:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-02T19:00"
+        },
+        {
+          "n": "21",
+          "data": "2026-11-03",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": "[Preencher: último encontro do ciclo — fechamento e avaliação, a declarar com o professor.]",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-06T08:00"
+        }
+      ]
     }
   ]
 }

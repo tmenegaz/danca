@@ -1,0 +1,204 @@
+{
+  "escola": "Ritmos e Movimento",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-ritmos-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia do grupo",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Técnica (método RAD)",
+      "tipo": "tabela",
+      "chave": "tecnica",
+      "rotulo": "Técnica",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Tendus/jetés (braços 1ª–2ª–3ª)",
+          "chave": "tendus_jetes",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Transferência (por cima/por baixo)",
+          "chave": "transferencia",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Piqué arabesque (descida; perna de base)",
+          "chave": "pique_arabesque",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Par (o que este ciclo tem de próprio)",
+      "tipo": "tabela",
+      "chave": "par",
+      "rotulo": "Par",
+      "grao": "dupla",
+      "colunas": [
+        {
+          "rotulo": "Eixo individual",
+          "chave": "eixo_individual",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Eixo no par (sem deslocar)",
+          "chave": "eixo_no_par",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Contrapeso na ação de peso",
+          "chave": "contrapeso",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Entrosamento (respondem no tempo)",
+          "chave": "entrosamento",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "`______`",
+        "`______`",
+        "`______`"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Funcional (sobrecarga por pessoa)",
+      "tipo": "tabela",
+      "chave": "funcional",
+      "rotulo": "Funcional",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Duração (min)",
+          "chave": "duracao_min",
+          "tipo": "numero"
+        },
+        {
+          "rotulo": "Tônus sustenta até o fim?",
+          "chave": "tonus",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Fadiga antes do previsto?",
+          "chave": "fadiga_antes",
+          "tipo": "booleano"
+        }
+      ],
+      "linhas": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Musicalidade (repertório em 3/4)",
+      "tipo": "tabela",
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Pulso",
+          "chave": "pulso",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Acento",
+          "chave": "acento",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Responde ao repertório do dia",
+          "chave": "responde_repertorio",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    },
+    {
+      "titulo": "Bloco 5 — Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Observado na aula",
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Subida e descida de pontas",
+        "Estabilidade no *en dehors*",
+        "Força para flexão e extensão dos joelhos",
+        "Coordenação motora",
+        "Braços curtos",
+        "Primeira posição a ajustar (alta), com o mesmo ângulo do cotovelo da segunda",
+        "Atenção (conversa demais e chega atrasada)",
+        "Manutenção do *en dehors*",
+        "Expressividade",
+        "Segurança na musicalidade",
+        "Coordenação de braços e pernas",
+        "Segurança em movimentos grandes",
+        "Força e coordenação para pontas de forma harmônica",
+        "Bases do balé (iniciante absoluto)",
+        "Flexibilidade de posterior e de costas",
+        "Postura",
+        "Estruturação de braços",
+        "Postura do tronco",
+        "Extensão dos pés",
+        "Fixação de correções ao longo do tempo",
+        "Sustentação de tônus muscular (porte a fortalecer)",
+        "Sincronização de pas de deux com três meninas diferentes"
+      ],
+      "secoes": [
+        "Carol",
+        "Dada",
+        "Tony",
+        "Pássaro Azul",
+        "Mari"
+      ]
+    }
+  ],
+  "variante": "ritmos"
+}

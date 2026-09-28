@@ -1,5 +1,6 @@
 {
-  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\".",
+  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\". O `aulas[]` e o INDICE POR AULA: a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o instante-limite de lancamento da aula, calculado do calendario. `estado` (§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois re-deriva com o proprio relogio.",
+  "gerado_em": "2026-09-28T08:24",
   "ciclos": [
     {
       "id": "01",
@@ -8,7 +9,142 @@
       "fim": "2026-12-04",
       "total_aulas": 12,
       "duracao_min": 60,
-      "arquivo": "ciclo-01-duo-dados.json"
+      "arquivo": "ciclo-01-duo-dados.json",
+      "aulas": [
+        {
+          "n": "01",
+          "data": "2026-09-18",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Isolar o alinhamento dos metatarsos e a saída do calcanhar nas cinco posições dos pés, no solo.",
+          "estado": "lancada",
+          "lancada": true,
+          "ancora": null,
+          "prazo": "2026-09-24T18:30",
+          "config": "captura-aula-01.json"
+        },
+        {
+          "n": "02",
+          "data": "2026-09-25",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Introduzir a coordenação de braços na 1ª e 2ª posições com o movimento dos pés, no solo.",
+          "estado": "dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-01T18:30"
+        },
+        {
+          "n": "03",
+          "data": "2026-10-02",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Executar demi-plié nas cinco posições com controle do arco plantar e alinhamento do joelho.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-08T18:30"
+        },
+        {
+          "n": "04",
+          "data": "2026-10-09",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Executar grand-plié nas cinco posições com saída do calcanhar controlada.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-15T18:30"
+        },
+        {
+          "n": "05",
+          "data": "2026-10-16",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Coordenar port de bras (1ª → 3ª baixa → 2ª) com demi-plié, em pé.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-22T18:30"
+        },
+        {
+          "n": "06",
+          "data": "2026-10-23",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Executar tendu à frente com transferência de peso \"por cima\", em pé.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-29T18:30"
+        },
+        {
+          "n": "07",
+          "data": "2026-10-30",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Executar tendu ao lado com transferência de peso \"por cima\", em pé.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-05T18:30"
+        },
+        {
+          "n": "08",
+          "data": "2026-11-06",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Combinar tendu à frente e ao lado com port de bras e musicalidade.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-12T18:30"
+        },
+        {
+          "n": "09",
+          "data": "2026-11-13",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Aumentar a resistência: 16 tendus por perna com qualidade técnica mantida.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-19T18:30"
+        },
+        {
+          "n": "10",
+          "data": "2026-11-20",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Integrar todos os elementos (plié, tendu, braços, musicalidade) no centro.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-26T18:30"
+        },
+        {
+          "n": "11",
+          "data": "2026-11-27",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Avaliação formativa: verificar consolidação dos marcos 1–10.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-03T18:30"
+        },
+        {
+          "n": "12",
+          "data": "2026-12-04",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "Avaliação somativa e fechamento do ciclo.",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-10T18:30"
+        }
+      ]
     }
   ]
 }

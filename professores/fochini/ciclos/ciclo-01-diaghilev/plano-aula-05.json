@@ -1,0 +1,145 @@
+{
+  "validacaoDaAula": "**Este encontro é suplementar.** O ciclo cumpriu os quatro marcos do plano e a **avaliação somativa ficou na Aula 04**; esta aula não a substitui nem a repete. O que ela acrescenta é **vocabulário de barra do RAD** — tendu, jeté e fondu — e o **registro em notação Benesh** do exercício trabalhado, para que ele possa ser repetido sem depender da memória do professor. **O método do ciclo não muda.** As quatro aulas já declaravam o RAD; aqui ele aparece pelo nome, nos exercícios de barra que a Aula 02 tratou por transferência de peso.",
+  "identificacao": {
+    "objetivoEspecifico": "Syllabus RAD na barra — tendu, jeté e fondu — e braços básicos, com o exercício registrado em notação Benesh.",
+    "parametroDeMedicao": "Executa tendu, jeté e fondu na barra com extensão, saída e retorno identificáveis, e sustenta os braços básicos na frase do centro.",
+    "duracao": "60 minutos (Pré-requisito 4)",
+    "volumeAtivo": "88 tempos (faixa 80–100 da duração de 60 min — Regra 9, etapa 1)",
+    "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
+  },
+  "condicoesPreliminares": "A preparação **não consome o volume ativo** (Regra 4). aquecimento de tornozelo e pé, específico para a série de tendu, jeté e fondu; abertura de ombro e costas, antes de levar os braços básicos à frase do centro.",
+  "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Solo · 28 · 32% Barra RAD · 22 · 25% Centro · 30 · 34% Presença · 8 · 9% **Total** · **88** · **100%** ### Bloco 1 — Solo (28 tempos · 32%) Retomada do eixo da Aula 01, agora com os pés preparados para a série de barra. **Reencontro do eixo, 14 tempos**: a série de distribuição da Aula 01, sem os braços ainda; **Apoio e prontidão de pé, 14 tempos**: a mesma série com a atenção no metatarso. ### Bloco 2 — Barra RAD (22 tempos · 25%) É o bloco que dá nome a este encontro: os três exercícios da série elementar do RAD, na ordem em que o syllabus os apresenta. **Tendu, 8 tempos**: extensão a partir da 1ª posição e retorno, com o pé conduzindo; **Jeté, 6 tempos**: a saída do apoio e a reentrada, sem deslocamento de eixo; **Fondu, 8 tempos**: a descida controlada, um pé por vez. ### Bloco 3 — Centro (30 tempos · 34%) **A série da barra sem a barra, 16 tempos**: tendu, jeté e fondu sustentados só pelo eixo; **Braços básicos sobre a série, 14 tempos**: as posições de braço acompanham os três exercícios, sem mudar o que o pé faz. ### Bloco 4 — Presença (8 tempos · 9%) **Direção do olhar com os braços, 8 tempos**: o olhar conduz o braço, e o braço não puxa o eixo.",
+  "blocoDeMusicalidade": [
+    {
+      "item": "Pulso",
+      "trabalho": "a série de barra em 4/4, com a contagem em voz alta na primeira passagem"
+    },
+    {
+      "item": "Acento",
+      "trabalho": "acento no retorno do tendu e na reentrada do jeté"
+    },
+    {
+      "item": "Resposta",
+      "trabalho": "na segunda passagem, só a música — a contagem sai"
+    }
+  ],
+  "guiaDeObservacao": [
+    {
+      "dimensao": "Tendu",
+      "oQueSeObserva": "a extensão acontece antes do retorno; o pé não arrasta",
+      "comoSeRegistra": "marca por aluno"
+    },
+    {
+      "dimensao": "Jeté",
+      "oQueSeObserva": "a saída e a reentrada não deslocam o eixo",
+      "comoSeRegistra": "marca por aluno"
+    },
+    {
+      "dimensao": "Fondu",
+      "oQueSeObserva": "a descida é controlada e o apoio não trava",
+      "comoSeRegistra": "marca por aluno"
+    },
+    {
+      "dimensao": "Braços",
+      "oQueSeObserva": "as posições básicas se sustentam sem puxar o eixo",
+      "comoSeRegistra": "marca por aluno"
+    },
+    "**Registro em notação Benesh:** o exercício da barra é registrado antes de ser dado, e conferido",
+    "durante a aula. O registro está em [Notação em Benesh](notacao.html) e o código usado, com todo",
+    "símbolo e termo, em [Glossário do código Benesh](glossario-benesh.html)."
+  ],
+  "distribuicaoDoVolume": [
+    {
+      "bloco": "Solo",
+      "tempos": "28",
+      "fatia": "32%"
+    },
+    {
+      "bloco": "Barra RAD",
+      "tempos": "22",
+      "fatia": "25%"
+    },
+    {
+      "bloco": "Centro",
+      "tempos": "30",
+      "fatia": "34%"
+    },
+    {
+      "bloco": "Presença",
+      "tempos": "8",
+      "fatia": "9%"
+    },
+    {
+      "bloco": "Total",
+      "tempos": "88",
+      "fatia": "100%"
+    },
+    "### Conta por exercício"
+  ],
+  "distribuicaoPelosBlocos": [
+    {
+      "bloco": "Solo",
+      "aula01": "32",
+      "aula02": "24",
+      "aula03": "20",
+      "aula04": "12",
+      "aula05": "28"
+    },
+    {
+      "bloco": "Barra",
+      "aula01": "20",
+      "aula02": "18",
+      "aula03": "26",
+      "aula04": "12",
+      "aula05": "22"
+    },
+    {
+      "bloco": "Centro",
+      "aula01": "28",
+      "aula02": "36",
+      "aula03": "36",
+      "aula04": "48",
+      "aula05": "30"
+    },
+    {
+      "bloco": "Presença",
+      "aula01": "8",
+      "aula02": "16",
+      "aula03": "8",
+      "aula04": "12",
+      "aula05": "8"
+    },
+    {
+      "bloco": "Total",
+      "aula01": "88",
+      "aula02": "94",
+      "aula03": "90",
+      "aula04": "84",
+      "aula05": "88"
+    }
+  ],
+  "proveniencia": "Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — exercício de instalação (23/09/2026). O vocabulário de barra segue o **RAD (2015)**; a notação segue **Mirzabekiantz (2000)** e **Parker (1990)**.",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 60 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 88 tempos em 80–100"
+    },
+    {
+      "verificacao": "Papel no ciclo",
+      "resultado": "aula suplementar de RAD/Benesh (aula 05 de 05)"
+    },
+    {
+      "verificacao": "Consistência registro × glossário (Regra 16)",
+      "resultado": "ok — `check-glossario.js` sem erro"
+    }
+  ],
+  "proximoPasso": "O ciclo se encerra na **Aula 04** — a somativa está lá. O que esta aula deixa é o **registro em notação** do exercício de barra, que permite repeti-lo em qualquer encontro seguinte sem reconstruí-lo de memória. O **PO do Ciclo 02** continua derivando do registro da Aula 04."
+}

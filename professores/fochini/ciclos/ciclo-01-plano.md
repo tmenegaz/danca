@@ -10,11 +10,11 @@ referencias: "RAD (2015); Clippinger (2024)"
 ## Objetivo geral
 
 Construir o **eixo vertical** e a **transferência de peso em movimento**, com **resposta ao
-pulso** e **presença cênica**, em quatro encontros.
+pulso** e **presença cênica**, em cinco encontros.
 
 | Item | Valor |
 |:--|:--|
-| **Duração** | 4 encontros |
+| **Duração** | 5 encontros |
 | **Duração de cada aula** | **60 minutos** (Pré-requisito 4) |
 | **Data de início** | 06/10/2026 |
 | **Encerramento previsto** | ver o [Calendário do ciclo](#calendario-do-ciclo) |
@@ -29,8 +29,7 @@ pulso** e **presença cênica**, em quatro encontros.
 | **02** | Transferir o peso em movimento, mantendo o eixo entre os apoios. |
 | **03** | Sustentar o eixo na meia ponta e no giro, com retorno controlado. |
 | **04** | Frase completa: eixo, peso, pulso e presença cênica, com avaliação somativa. |
-
-## Calendário do ciclo
+| **05** | Suplementar: syllabus RAD na barra (tendu, jeté, fondu) e braços básicos, com o exercício registrado em notação Benesh. |
 
 <!-- CALENDARIO -->
 
@@ -77,9 +76,11 @@ pulso** e **presença cênica**, em quatro encontros.
 
 ## Critério de extensão
 
-Este ciclo **não é extensível**: são quatro encontros de um módulo fechado. Se os marcos 01 e 02
-não consolidarem até a Aula 02, o ajuste é **retomar o eixo** na Aula 03 em lugar de avançar para
-o giro — e a decisão entra no registro.
+Este ciclo **é um módulo fechado de quatro encontros — o quinto é suplementar**. A Aula 05 não
+reabre o módulo nem substitui nenhuma das quatro: ela só declara o método RAD na barra e registra
+um exercício em notação Benesh, sem mover nenhum marco. Se os marcos 01 e 02 não consolidarem até a
+Aula 02, o ajuste é **retomar o eixo** na Aula 03 em lugar de avançar para o giro — e a decisão entra
+no registro.
 
 ## Registro de proveniência
 

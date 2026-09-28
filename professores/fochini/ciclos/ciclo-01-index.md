@@ -7,9 +7,9 @@ subtitle: "Índice geral do ciclo"
 ---
 
 > **Objetivo geral:** construir o eixo vertical e a transferência de peso em
-> movimento, com resposta ao pulso e presença cênica, em quatro encontros de 60
+> movimento, com resposta ao pulso e presença cênica, em cinco encontros de 60
 > minutos.
-> **Duração:** 4 encontros · **cada aula: 60 minutos**
+> **Duração:** 5 encontros · **cada aula: 60 minutos**
 > **Data de início:** 06/10/2026
 > **Encerramento previsto:** ver o [Calendário do ciclo](plano.html#calendario-do-ciclo)
 > **Professor:** Fochini
@@ -32,11 +32,14 @@ subtitle: "Índice geral do ciclo"
 - [Aula 02 — Transferência de peso em movimento (avaliação formativa)](aula-02.html)
 - [Aula 03 — Eixo na meia ponta e no giro](aula-03.html)
 - [Aula 04 — Frase completa (avaliação somativa)](aula-04.html)
+- [Aula 05 — Tendu, jeté, fondu e braços básicos (suplementar, RAD com registro Benesh)](aula-05.html)
 
 ## 3. Documentos de Planejamento
 
 - [Folha de captura — Aula 01](captura-aula-01.html)
 - [Caderno 01](caderno-01.html)
+- [Notação em Benesh](notacao.html)
+- [Glossário do código Benesh do ciclo](glossario-benesh.html)
 
 ## 4. Área do Professor
 

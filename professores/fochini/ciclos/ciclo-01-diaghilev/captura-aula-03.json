@@ -1,0 +1,152 @@
+{
+  "escola": "Diaghilev",
+  "ciclo": "01",
+  "aula": "03",
+  "folha": "ciclo-01-diaghilev-captura-aula-03.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia da turma",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Meia ponta",
+      "tipo": "tabela",
+      "chave": "meia_ponta",
+      "rotulo": "Meia ponta",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Pelve no apoio estreito",
+          "chave": "pelve_apoio",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Retenção (3 tempos)",
+          "chave": "retencao",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Descida controlada",
+          "chave": "descida_controlada",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Vronsky",
+        "Karsavina",
+        "Nijinsky",
+        "Pavlova"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Giro e retorno",
+      "tipo": "tabela",
+      "chave": "giro",
+      "rotulo": "Giro e retorno",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Quarto de giro",
+          "chave": "quarto_giro",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Giro completo",
+          "chave": "giro_completo",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Retorno ao eixo (2 tempos)",
+          "chave": "retorno_eixo",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Ponto focal reencontrado",
+          "chave": "ponto_focal",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Vronsky",
+        "Karsavina",
+        "Nijinsky",
+        "Pavlova"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Funcional (sobrecarga por bailarino)",
+      "tipo": "tabela",
+      "chave": "funcional",
+      "rotulo": "Funcional",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Duração (min)",
+          "chave": "duracao_min",
+          "tipo": "numero"
+        },
+        {
+          "rotulo": "Fadiga antes do previsto?",
+          "chave": "fadiga_antes",
+          "tipo": "booleano"
+        }
+      ],
+      "linhas": [
+        "Vronsky",
+        "Karsavina",
+        "Nijinsky",
+        "Pavlova"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Observado na aula",
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Transferir o peso em movimento",
+        "Abrir o olhar na direção do movimento",
+        "Firmar o eixo na meia ponta",
+        "Sustentar o eixo no giro",
+        "Recuperar o eixo depois da perturbação",
+        "Conter a amplitude sem perder a intenção",
+        "Alinhar a pelve sobre os apoios",
+        "Distribuir o peso entre os dois pés"
+      ],
+      "secoes": [
+        "Vronsky",
+        "Karsavina",
+        "Nijinsky",
+        "Pavlova"
+      ]
+    }
+  ],
+  "variante": "diaghilev"
+}

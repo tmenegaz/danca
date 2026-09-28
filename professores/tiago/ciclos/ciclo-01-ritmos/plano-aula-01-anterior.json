@@ -1,0 +1,36 @@
+{
+  "identificacao": {
+    "objetivoGeralDoCiclo": "Passar comandos básicos para os meninos e as meninas nas aulas de pas de deux, exigindo como pré-requisitos o domínio das posições básicas do balé (1ª, 2ª, 4ª e 5ª), de braços (1ª, 2ª, 3ª, 4ª e 5ª), boa coordenação motora e distribuição de peso.",
+    "objetivoEspecificoDaAula": "Trabalhar a capacidade de ficar em pé no centro: tendus e jetés (frente, lado e trás) com coordenação de braços (1ª, 2ª e 3ª); transferência de peso por cima e por baixo (de demi-plié em 2ª, 4ª ou 5ª para o passé); e estabilidade em piqué arabesque com o pé todo no chão.",
+    "parametroDeMedicao": "1. Tendus e jetés: o pé articula nas três direções e o braço acompanha na posição prevista, no tempo. 2. Transferência de peso: o peso passa por cima (e por baixo, no retorno), sem que o tronco desloque o eixo. 3. Piqué arabesque: o pé desce da meia ponta devagar, até o pé todo no chão, sem titubear a perna de base e mantendo a estrutura do arabesque e dos braços.",
+    "duracaoDaAulaPreRequisito4": "60 minutos — as três aulas da semana têm a mesma duração → faixa de volume ativo 80–100 tempos (Regra 9, etapa 1).",
+    "volumePlanejado": "90 tempos por aula, dentro da faixa (conta no item 4). No sábado são duas aulas: 180 tempos no dia.",
+    "dataEHorarioDestaAula": "ver o [Calendário do Ciclo](plano.html#calendario-do-ciclo) — a data real depende da frequência da escola"
+  },
+  "condicoesPreliminares": "Ele declarou o **piso de entrada** do ciclo. Não é uma lista de exercícios de preparação: é a condição que a turma precisa ter para que a aula faça sentido — e a razão declarada de o ciclo começar por comandos básicos. Pré-requisito declarado · Por que está aqui (palavras do professor) Posições básicas dos pés (1ª, 2ª, 4ª e 5ª) · \"exigindo como pré-requisitos o domínio das posições básicas do balé\" Posições de braços (1ª, 2ª, 3ª, 4ª e 5ª) · idem Boa coordenação motora · idem Distribuição de peso · idem",
+  "sequenciaDaAula": "O professor descreveu **três trabalhos** para esta aula, todos **em pé, no centro**, e nessa ordem: tendus e jetés com braços; transferência de peso por cima e por baixo; e estabilidade em piqué arabesque. A sequência abaixo é a mesma ordem, com a calibração de volume do projeto. ### Bloco 1 — Tendus e jetés, com coordenação de braços (48 tempos) #### Exercício 1.1 — Tendus frente, lado e trás (24 tempos) Item · Descrição **Movimento principal** · No centro, em pé: tendu **à frente, ao lado e atrás**, uma direção por vez, com o pé articulando até o fim e o peso distribuído de modo que o tronco não desloque o eixo. **Coordenação de braços** · 1ª posição → 2ª na abertura → 3ª no fechamento, acompanhando a direção do tendu (declarado por ele: \"coordenação de braços (primeira, segunda e terceira posições)\"). **Parâmetro de medição** · O pé articula completamente; o braço chega à posição prevista **no tempo**; o eixo não desloca. **Volume** · 2 repetições por direção × 3 direções = 6 × 4 tempos = **24 tempos** **Compasso** · 4/4 — abertura no tempo 1, extensão no 2, retorno no 3, fechamento no 4 #### Exercício 1.2 — Jetés frente, lado e trás (24 tempos) Item · Descrição **Movimento principal** · Mesma estrutura do 1.1, com **jeté** nas três direções — o pé sai do chão e volta, mantendo a articulação e o eixo. **Coordenação de braços** · Idem 1.1 (1ª → 2ª → 3ª), agora com a saída do pé exigindo mais do apoio. **Parâmetro de medição** · O pé sai e volta articulado; o braço não atrasa em relação à perna; o apoio não titubeia. **Volume** · 2 repetições por direção × 3 direções = 6 × 4 tempos = **24 tempos** **Compasso** · 4/4 ### Bloco 2 — Transferência de peso por cima e por baixo (24 tempos) Item · Descrição **Movimento principal** · De **demi-plié em 2ª, 4ª ou 5ª** para o **passé**, transferindo o peso **por cima** — e o retorno **por baixo**, como ele descreveu. **Coordenação de braços** · O braço acompanha a mudança de nível do corpo (sem antecipar a perna). **Parâmetro de medição** · O peso passa por cima (e volta por baixo) sem que o tronco desloque o eixo; o passé se sustenta no apoio. **Volume** · 6 transferências × 4 tempos = **24 tempos** **Compasso** · 4/4 — plié no tempo 1, subida ao passé no 2, transferência no 3, retorno no 4 ### Bloco 3 — Estabilidade em piqué arabesque (18 tempos) Item · Descrição **Movimento principal** · Piqué arabesque; o pé desce da **meia ponta até o pé todo no chão, devagar**. **Coordenação de braços** · A estrutura do arabesque **e dos braços** mantida durante toda a descida (palavras dele). **Parâmetro de medição** · **Sem titubear a perna de base**; a estrutura do arabesque não se desfaz na descida; o pé chega ao chão por inteiro. **Volume** · 6 descidas × 3 tempos = **18 tempos** **Compasso** · 3/4 — o repertório desta aula é em 3/4, e a descida lenta cabe no compasso sem cortar o movimento",
+  "distribuicaoDoVolume": [
+    {
+      "bloco": "Tendus e jetés (bloco 1)",
+      "tempoEstimado": "32 min",
+      "volumeTempos": "48"
+    },
+    {
+      "bloco": "Transferência de peso (bloco 2)",
+      "tempoEstimado": "16 min",
+      "volumeTempos": "24"
+    },
+    {
+      "bloco": "Estabilidade em piqué arabesque (bloco 3)",
+      "tempoEstimado": "12 min",
+      "volumeTempos": "18"
+    },
+    {
+      "bloco": "Total",
+      "tempoEstimado": "60 min",
+      "volumeTempos": "90"
+    }
+  ],
+  "musicalidade": "Ele declarou a fonte musical desta aula: **as músicas dos dois pas de deux do balé *O Quebra-Nozes***, \"com exclusão explícita de versões inapropriadas ou obscenas, como a de Nureyev\". O repertório não é decoração: é o material rítmico em 3/4 que sustenta a descida do piqué arabesque — e a leitura musical é um dos eixos que o PO observa. **O que se registra:** qual faixa foi usada em cada bloco. **O que está em aberto:** `[Preencher: qual gravação de referência — a entrega não indicou versão/edição.]`",
+  "proveniencia": "Parte desta aula · Origem Objetivo específico · as três direções dos tendus e jetés · braços 1ª/2ª/3ª · \"por cima e por baixo\" (demi-plié em 2ª/4ª/5ª → passé) · piqué arabesque com o pé todo no chão · \"sem titubear a perna de base\" · música do Quebra-Nozes com a exclusão declarada · **Entrega do professor, 18/09/2026** Volume por exercício, compasso e distribuição no tempo (90 tempos em 60 min; 180 em 120 min) · **Calibração do projeto**, a partir das durações declaradas e do conteúdo descrito por ele Preparação de força e flexibilidade · `[Preencher]` — não declarada Gravação de referência da música · `[Preencher]` — não indicada"
+}

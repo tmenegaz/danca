@@ -23,5 +23,15 @@ subtitle: "Fontes que sustentam o recorte e a progressão do Ciclo 01"
 - **POLANYI, Michael** (1966). *The Tacit Dimension.* Chicago: University of Chicago Press.
   — saber tácito: o que o bailarino demonstra sem conseguir enunciar.
 
+## Notação em Benesh
+
+- **MIRZABEKIANTZ, Éliane** (2000). *Grammaire de la notation Benesh: manuel élémentaire.*
+  Paris: Centre national de la danse, 2000 (132 p.).
+  — manual introdutório do sistema, publicado pelo CND; é a fonte que sustenta a
+  [Notação em Benesh](notacao.html).
+- **PARKER, Monica** (1990). *Benesh Movement Notation: Elementary Solo Syllabus — Ballet
+  Application.* Londres: Benesh Institute of Choreology.
+  — aplicação do sistema ao balé clássico; referência complementar do registro da Aula 05.
+
 > **Nota de escopo.** As referências acima são **reais**; o ciclo que as usa é que é simulado.
 > Nenhum dado pedagógico deste ciclo deve ser tomado como material de aula.

@@ -1,0 +1,157 @@
+{
+  "escola": "Duo",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Técnica (syllabus RAD)",
+      "tipo": "tabela",
+      "chave": "tecnica",
+      "rotulo": "Técnica",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Metatarsos",
+          "chave": "metatarsos",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Tempo (calcanhar t.1)",
+          "chave": "tempo",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Transfer. (t.2)",
+          "chave": "transferencia",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Braço-perna",
+          "chave": "braco_perna",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Funcional (sobrecarga por aluna)",
+      "tipo": "tabela",
+      "chave": "funcional",
+      "rotulo": "Funcional",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Duração (min)",
+          "chave": "duracao_min",
+          "tipo": "numero"
+        },
+        {
+          "rotulo": "Fadiga (antes do previsto?)",
+          "chave": "fadiga_antes",
+          "tipo": "booleano"
+        }
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Musicalidade",
+      "tipo": "tabela",
+      "chave": "musicalidade",
+      "rotulo": "Musicalidade",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Pulso",
+          "chave": "pulso",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Acento (calcanhar t.1)",
+          "chave": "acento",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Posterior",
+          "chave": "posterior",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Adutor",
+          "chave": "adutor",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Rotadores",
+          "chave": "rotadores",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Resiliência à dor",
+          "chave": "resiliencia_dor",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Foco",
+          "chave": "foco",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Ceci",
+        "Ana",
+        "Mel",
+        "Sofi"
+      ]
+    }
+  ],
+  "variante": "duo"
+}

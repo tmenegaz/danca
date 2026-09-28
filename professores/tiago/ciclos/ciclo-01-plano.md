@@ -49,8 +49,6 @@ existe porque a anterior deixou uma condição necessária (Regra 2).
 > escritas depois da aula anterior, com o parâmetro medido em mãos — o marco é
 > ajustado ao que a turma realmente consolidou.
 
-## Calendário do ciclo
-
 <!-- CALENDARIO -->
 
 ## Calibração do volume pela duração (Regra 9, etapa 1)

@@ -274,6 +274,40 @@
               }
             }
           },
+          "Bloco 1 — Barra RAD: tendu, jeté e fondu": {
+            "chave": "rad_barra",
+            "rotulo": "Barra RAD",
+            "grao": "aluna",
+            "colunas": {
+              "Tendu: extensão e retorno": {
+                "chave": "tendu",
+                "tipo": "marca"
+              },
+              "Jeté: saída e reentrada": {
+                "chave": "jete",
+                "tipo": "marca"
+              },
+              "Fondu: descida controlada": {
+                "chave": "fondu",
+                "tipo": "marca"
+              }
+            }
+          },
+          "Bloco 2 — Braços básicos e registro Benesh": {
+            "chave": "bracos_benesh",
+            "rotulo": "Braços e registro",
+            "grao": "aluna",
+            "colunas": {
+              "Braços básicos": {
+                "chave": "bracos",
+                "tipo": "marca"
+              },
+              "Notação conferida": {
+                "chave": "notacao_conferida",
+                "tipo": "texto"
+              }
+            }
+          },
           "Bloco 3 — Funcional (sobrecarga por bailarino)": {
             "chave": "funcional",
             "rotulo": "Funcional",

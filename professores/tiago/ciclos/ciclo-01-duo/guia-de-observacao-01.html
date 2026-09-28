@@ -55,7 +55,7 @@
       <a href="guia-do-professor.html">Guia do Professor — em que posição você está?</a>
       <a href="metodo.html">Método</a>
       <a class="ativo" href="guia-de-observacao-01.html">Guia de observação — Aula 01 (remover)</a>
-      <a href="captura-aula-01.html">Captura em aula — para impressão</a>
+      <a href="captura-aula-01.html">Captura em aula — Aula 01 — para impressão</a>
       <a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>
     </div>
   </details>
@@ -268,112 +268,15 @@ sustenta ou não.</p>
 
 <footer class="rodape">
   <p>Ciclo 01 — Fundamentos do Balé Clássico &middot; <strong>Duo</strong> &middot; 1x/semana &middot; 60 min &middot; 18/09/2026 a 04/12/2026 &middot; Tiago Menegaz</p>
-  <p><a href="index.html">Índice do ciclo</a> &middot; <a href="plano.html">Plano</a> &middot; <a href="harmonizacao.html">Harmonização de linguagem — Duo</a> &middot; <a href="guia-de-observacao-01.html">Guia de observação — Aula 01</a> &middot; <a href="captura-aula-01.html">Captura em aula — para impressão</a> &middot; <a href="caderno-01.html">Caderno</a> &middot; <a href="notacao.html">Notação em Benesh</a> &middot; <a href="glossario-benesh.html">Glossário do código Benesh do ciclo</a> &middot; <a href="pre-requisitos.html">Condições Pré-Existentes (Força e Flexibilidade)</a> &middot; <a href="musicalidade.html">Musicalidade</a> &middot; <a href="musicalidade-aluna.html">Musicalidade — folha da aluna</a> &middot; <a href="apanhado-historico.html">Apanhado Histórico</a> &middot; <a href="referencias.html">Referências Bibliográficas</a> &middot; <a href="guia-do-professor.html">Guia do Professor — em que posição você está?</a> &middot; <a href="metodo.html">Método</a> &middot; <a href="ciclo-01-duo.pdf">PDF do ciclo</a></p>
+  <p><a href="index.html">Índice do ciclo</a> &middot; <a href="plano.html">Plano</a> &middot; <a href="harmonizacao.html">Harmonização de linguagem — Duo</a> &middot; <a href="guia-de-observacao-01.html">Guia de observação — Aula 01</a> &middot; <a href="captura-aula-01.html">Captura em aula — Aula 01 — para impressão</a> &middot; <a href="caderno-01.html">Caderno</a> &middot; <a href="notacao.html">Notação em Benesh</a> &middot; <a href="glossario-benesh.html">Glossário do código Benesh do ciclo</a> &middot; <a href="pre-requisitos.html">Condições Pré-Existentes (Força e Flexibilidade)</a> &middot; <a href="musicalidade.html">Musicalidade</a> &middot; <a href="musicalidade-aluna.html">Musicalidade — folha da aluna</a> &middot; <a href="apanhado-historico.html">Apanhado Histórico</a> &middot; <a href="referencias.html">Referências Bibliográficas</a> &middot; <a href="guia-do-professor.html">Guia do Professor — em que posição você está?</a> &middot; <a href="metodo.html">Método</a> &middot; <a href="ciclo-01-duo.pdf">PDF do ciclo</a></p>
 </footer>
 
 
-<script>
-/* Barra fixa e menu mobile.
- *
- * 1) A barra é position: fixed, então sai do fluxo e cobriria o título. Em vez de
- *    um padding fixo no CSS (que não acompanha a altura real, e quebra quando a
- *    barra quebra em duas linhas), medimos a altura da barra e publicamos em
- *    --header-height, que o CSS usa no padding do body e no scroll-padding-top.
- *    Sem JavaScript, o CSS usa o fallback declarado em :root.
- * 2) Em tela pequena, o botão hamburger abre e fecha o painel de links. O estado
- *    vai para aria-expanded, para leitores de tela.
- */
-(function () {
-  var navbar = document.querySelector('.topnav');
-  var botao = document.querySelector('.hamburger');
-
-  function ajustarAlturaNavbar() {
-    if (navbar) {
-      document.documentElement.style.setProperty('--header-height', navbar.offsetHeight + 'px');
-    }
-  }
-
-  if (botao && navbar) {
-    botao.addEventListener('click', function () {
-      var aberto = navbar.classList.toggle('aberto');
-      botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
-      botao.setAttribute('aria-label', aberto ? 'Fechar menu' : 'Abrir menu');
-      ajustarAlturaNavbar();
-    });
-
-    /* Ao escolher um item, o painel fecha — a navegação é do navegador, mas o
-       estado não pode ficar para trás. */
-    navbar.addEventListener('click', function (e) {
-      var link = e.target.closest('a');
-      if (!link) return;
-      navbar.classList.remove('aberto');
-      botao.setAttribute('aria-expanded', 'false');
-      botao.setAttribute('aria-label', 'Abrir menu');
-      var d = link.closest('details[open]');
-      if (d) d.removeAttribute('open');
-    });
-
-    /* Clicar fora fecha o dropdown aberto e, no celular, o painel. */
-    document.addEventListener('click', function (e) {
-      if (!navbar.contains(e.target)) {
-        navbar.classList.remove('aberto');
-        botao.setAttribute('aria-expanded', 'false');
-        botao.setAttribute('aria-label', 'Abrir menu');
-      }
-      document.querySelectorAll('.topnav details.menu[open]').forEach(function (d) {
-        if (!d.contains(e.target)) d.removeAttribute('open');
-      });
-    });
-
-    /* No desktop o dropdown abre por hover; no celular quem manda é o toque.
-       O estado de abertura é o atributo `open` do <details>, não display: um
-       <details> fechado não renderiza os filhos, então CSS não abriria nada. */
-    var desktop = window.matchMedia('(min-width: 769px)');
-    function ligarHover() {
-      document.querySelectorAll('.topnav details.menu').forEach(function (d) {
-        if (desktop.matches) {
-          d.addEventListener('mouseenter', abrir);
-          d.addEventListener('mouseleave', fechar);
-        } else {
-          d.removeEventListener('mouseenter', abrir);
-          d.removeEventListener('mouseleave', fechar);
-          d.removeAttribute('open');
-        }
-      });
-    }
-    function abrir() { this.setAttribute('open', ''); }
-    function fechar() { this.removeAttribute('open'); }
-    ligarHover();
-    if (desktop.addEventListener) desktop.addEventListener('change', ligarHover);
-  }
-
-  ajustarAlturaNavbar();
-  window.addEventListener('load', ajustarAlturaNavbar);
-  window.addEventListener('resize', ajustarAlturaNavbar);
-
-  /* Página restaurada do cache do navegador (o "voltar" no celular) traz o DOM
-     como estava — inclusive com o painel aberto e o botão marcado. Zera tudo e
-     garante o botão clicável, que é o estado em que a página deve começar. */
-  window.addEventListener('pageshow', function () {
-    document.querySelectorAll('.topnav.aberto').forEach(function (n) {
-      n.classList.remove('aberto');
-    });
-    document.querySelectorAll('.topnav details[open]').forEach(function (d) {
-      d.removeAttribute('open');
-    });
-    var b = document.querySelector('.hamburger');
-    if (b) {
-      b.setAttribute('aria-expanded', 'false');
-      b.setAttribute('aria-label', 'Abrir menu');
-      b.style.pointerEvents = 'auto';
-      b.style.display = '';
-      b.style.visibility = '';
-      b.style.opacity = '';
-    }
-    ajustarAlturaNavbar();
-  });
-})();
-</script>
+<!-- O comportamento da barra fixa e do menu mobile vive em `assets/nav.js`: a MESMA
+     cópia é carregada pelo `lancamento.html`, que não passa pelo pandoc. Enquanto era um
+     bloco inline daqui, o formulário ficava sem ele (barra cobrindo o título, hamburger
+     morto no celular). -->
+<script src="assets/nav.js"></script>
 
 </body>
 </html>
