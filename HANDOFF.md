@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-28T08:28:20-0300`
-Commit atual: `85844c1` — feat(notacao): o ciclo ganha a notação Benesh, o glossário e o filtro
+Gerado em: `2026-09-28T08:55:08-0300`
+Commit atual: `c18c0f2` — docs(registro): o rito de 27/09/2026 — os elos das frentes que entraram
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -49,6 +49,7 @@ tiago (2)
 ## Últimos commits
 
 ```
+c18c0f2 docs(registro): o rito de 27/09/2026 — os elos das frentes que entraram
 85844c1 feat(notacao): o ciclo ganha a notação Benesh, o glossário e o filtro
 14daa27 feat(tools): o envelope passa a publicar os apelidos em claro
 3338339 feat(entrega): o config da captura por aula passa a ser conferido no fim de toda geração
@@ -68,7 +69,6 @@ ce34e36 docs(protocolo): a tabela do PO nomeia os campos e aponta o checklist ao
 f5980c4 fix(po): o PO ganha o campo `norma` -- o padrão de referência era o seu próprio produto
 a8c9472 docs(estrutura): o HANDOFF regerado com os quatro elos da correção
 28f340a docs(estrutura): as notas de escopo dos temáticos e os agentes declaram o plano
-5de3d3d docs(estrutura): o HANDOFF regerado com a identidade corrigida
 ```
 
 ## Por professor
@@ -146,140 +146,125 @@ a8c9472 docs(estrutura): o HANDOFF regerado com os quatro elos da correção
 
 ## Última entrada do REGISTRO
 
-## 27/09/2026 — A Aula 05 declara o método RAD e o ciclo ganha notação (P-15)
+## 28/09/2026 — O índice do formulário saía sem a vírgula: a gravação passa a recusar índice inválido
 
 **O que motivou.**
 
-A pesquisadora pediu uma aula de teste no ciclo do Diaghilev — o mesmo ciclo, uma aula a mais —
-para verificar a **notação Benesh** numa aula de balé com *tendu*, *jeté*, *fondu* e braços
-básicos. O pedido esbarrou numa regra que já estava escrita e **não estava sendo cumprida**:
-a **P-15** manda que a notação siga a **metodologia declarada** — *"se a metodologia usa notação
-(ex.: RAD usa Benesh), o ciclo gera o documento de notação naquela notação"* — e a **P-16** manda
-declarar o par na eliciação. O Diaghilev declara **RAD** e **não tinha documento de notação
-nenhum**: o `.conf` dizia, em comentário, que a ausência era deliberada porque o ciclo "não
-declarou metodologia com notação". **A premissa do comentário era falsa** — é a mesma deriva que
-já tinha sido corrigida no Ritmos em 19/09/2026 (`REGISTRO.md:652-668`), onde a referência dizia
-*"nenhum sistema de notação foi adotado"* e o ciclo publicava o glossário.
+A pesquisadora usou o formulário de lançamento e trouxe o `ciclos.json` que ele baixou, pedindo
+conferência contra o que existe no repositório. A comparação campo a campo mostrou **uma** diferença
+de valor — `arquivo` apontando para o nome carimbado, que é o desenho do formulário — e **uma
+diferença de forma**: no arquivo baixado, a linha de `"arquivo"` ficava **sem a vírgula** que a
+separa de `"aulas": [`. O `JSON.parse` do próprio navegador recusava o arquivo: *"Expected ',' or '}'
+after property value in JSON at position 914 (line 13 column 7)"*.
 
-Havia ainda um segundo problema, e era o que assustava mais: **a notação não escalava**. Se toda
-aula de todo ciclo passar a ter Benesh, o menu "Planejamento" fica carregado de uma lista de
-notações — uma por aula. A correção que a pesquisadora pediu não foi *"mais um documento"*, foi
-**um filtro**: um só registro de notação por ciclo, que se **recorta por aula, por exercício,
-por ciclo e por data**.
+Não era artefato de cópia. O `indiceComArquivo()` do formulário localizava `"arquivo"`, achava o
+`\n` seguinte e reescrevia **até o `\n`** — e a vírgula mora **antes** desse `\n`. Ela era consumida
+e nunca reemitida. Enquanto `"arquivo"` foi a **última** chave do objeto do ciclo, a escrita saía
+byte-correta e o defeito **não disparava**. Quando `"aulas": [` passou a vir depois dele, toda
+gravação do formulário produzia um índice inválido.
 
 **O que foi decidido.**
 
-- **A notação passa a ser um documento do CICLO, com filtro — não um documento por aula.** O
-  `ciclo-01-notacao.md` é um só, e traz a **"Legenda completa (código do ciclo)"**; o que muda por
-  aula é o **recorte**. Sem isso, a leitura por aula vira lista.
-- **Os quatro estados do filtro, na redação canônica** (`ciclo-01-notacao.md:306-334`):
-  - **nenhum campo preenchido** ⇒ *"Nenhum filtro foi aplicado"* e a legenda inteira aparece;
-  - **data sem exercício** ⇒ *"Não existe(m) registro(s) de exercício(s) para essa data"*;
-  - **filtro sem correspondência** (com data ou sem) ⇒ *"Nenhum exercício corresponde ao filtro
-    aplicado."*;
-  - **exercício sem aula e sem ciclo** ⇒ o próprio campo fica **desabilitado** —
-    `var fe = (fc || fa) ? selEx.value : '';`. *"Ciclo contém aulas e exercícios; aula sem ciclo
-    contém exercícios"* é a hierarquia, e ela está no código, não na prosa.
-  - **Nenhum campo é obrigatório** — a regra é a de cima, e a lista de exercícios funciona por
-    interseção: o que casa com **todos** os campos preenchidos sobrevive.
-- **A data sai do calendário, nunca chumbada.** Este foi um ajuste pedido no meio da peça: a
-  primeira redação tinha as datas fixas no arquivo, e a pesquisadora recusou — *"use o calendário"*.
-  O filtro passou a montar a lista de datas de **duas fontes, ambas do planejamento**:
-  `datasDoCalendario()` lê a **tabela `## Calendário do ciclo`** da própria página, e
-  `datasDoPlanejamento()` lê `ciclos[].aulas[].data` do `ciclos.json` do pacote. **Nada é
-  digitado.** As duas notações do Tiago receberam a **mesma** correção: perderam o `data:` do
-  front matter e ganharam o marcador `<!-- CALENDARIO -->`.
-- **As quatro estruturas que já existiam continuam existindo**, e são a espinha do registro:
-  **`Blocos de categorias`** (7 itens), **`Direções e movimento`** (7) e **`Posições e lados`**
-  (6) — as três da legenda, com o rótulo **exato** que a pesquisadora escreveu — e as **tabelas de
-  exercício**, cada uma com o seu comentário em blockquote. O filtro **não as substitui**: ele as
-  recorta (`montarGrupos()` reconstrói as caixas a partir dos sobreviventes).
-- **A linha informativa fica ACIMA do filtro, e o "Como usar em aula" ABAIXO dos resultados.**
-  Acima: *"Todos os sinais estão no [Glossário do código Benesh](glossario-benesh.html), verbete
-  por verbete, com o significado, a origem e onde cada um aparece."* Abaixo: `## Como usar em aula`
-  e `## Limites do registro`. A ordem é a lição, não o enfeite: primeiro **onde ler**, depois
-  **filtrar**, depois **como usar**.
-- **A Aula 05 é suplementar — ela não reabre o módulo.** O ciclo passa de 4 para 5 encontros, e o
-  plano diz o que isso significa na redação canônica: *"é um módulo fechado de quatro encontros — o
-  quinto é suplementar. A Aula 05 não reabre o módulo nem substitui nenhuma das quatro"*. **Nenhum
-  marco se move**; é a P-17 no caso-limite.
-- **A ordem dos `DOCS` é intencional e não é numérica.** `notacao` e `glossario-benesh` entram
-  **antes** das páginas de aula, para que a *página anterior* de `notacao.html` seja `aula-05.html`
-  — a leitura encadeada vai da aula para o registro. É desvio deliberado da ordem por número, e
-  está comentado no `.conf`.
+- **A vírgula é do TEXTO, não do valor.** O fix relê o trecho que está sendo substituído e reemite a
+  vírgula **só se ela já estava lá** (`const virgula = …trimEnd().endsWith(',') ? ',' : '';`). A
+  função **nunca inventa** uma vírgula: não há como ela criar JSON inválido por excesso, e a forma
+  antiga (`arquivo` por último) sai **byte-idêntica** ao que saía antes. Essa preservação é medida,
+  não afirmada: o harness compara, para a ordem com `arquivo` por último, a saída do código novo com
+  a do código anterior — **iguais**.
+- **O índice passa a ter o mesmo guard do arquivo de dados.** O `gerarJson()` já validava o
+  `-dados.json` com `JSON.parse` antes de baixar; o índice saía sem essa conferência. Agora o
+  índice é calculado, submetido a `JSON.parse` e **só então** liberado. A guarda roda **antes** das
+  mutações em memória (`f.dados`, `f.texto`, `f.meta.arquivo`) e **antes** dos dois `baixar` — de
+  modo que um índice inválido aborta com **zero download e zero mutação**, a mesma semântica do
+  guard que já existia. A mensagem segue a forma do irmão: `não gerei: o índice sairia inválido (…)`.
+- **A atribuição fica registrada com a correção.** O defeito foi **escrito** em `e5c45ae`
+  (*"o formulário de lançamento vai para produção"*), mas nasceu **adormecido**: naquele commit o
+  índice `ciclos.json` **não existia** no repositório, e a ordenação que o manteve inofensivo
+  sobreviveu a vários commits. Ele foi **acordado** quando `"aulas": [` entrou no índice gerado —
+  e o primeiro commit cujo índice realmente carrega `aulas[]` é **`85844c1`**, desta mesma série
+  (`feat(notacao): …`). O `tools/gerar-ciclo.sh` é quem fixa a adjacência que acorda o defeito:
+  `'arquivo'` e `'aulas'` são chaves vizinhas no dicionário do ciclo. Não é falha da frente da
+  notação — é defeito latente que uma mudança legítima de forma expôs. Registrar assim é o que
+  mantém a proveniência honesta: o elo diz o que se pensou **antes**, não o que convém agora.
+- **O defeito era vivo nos três pacotes.** Cada índice dos três ciclos tem uma ocorrência de
+  `"aulas":` — `diaghilev`, `duo` e `ritmos` estavam todos sujeitos.
+- **O `indiceComArquivo()` é o escritor único do índice.** A varredura mostra uma única chamada
+  (`:1702`) e uma única escrita (`:1715`); o bootstrap da página apenas **lê** o arquivo
+  (`JSON.parse` em `:1962`, já sob `rIndice.ok`). Não há segunda rota a corrigir.
 
 **Onde entrou.**
 
-- `professores/fochini/ciclos/ciclo-01-notacao.md` — **novo**, 490 linhas. A legenda (§`Legenda
-  completa (código do ciclo)`), o filtro, os **5 exercícios** registrados — 1.1 tendu · 1.2 tendu
-  devant e derrière · 2.1 jeté · 3.1 fondu · 4.1 braços básicos, todos da Aula 05 —, `## Como usar
-  em aula` e `## Limites do registro`.
-- `professores/fochini/ciclos/ciclo-01-glossario-benesh.md` — **novo**, 202 linhas / **20
-  verbetes**. `node tools/check-glossario.js ciclo-01-notacao.md ciclo-01-glossario-benesh.md` →
-  **`20 símbolos no corpo, 20 verbetes`**, `exit 0` ⇒ o portão §2b do `pre-commit` passa.
-- `professores/fochini/ciclos/ciclo-01-diaghilev-aula-05.md` — **novo**. O objetivo específico é
-  literal: *"Syllabus RAD na barra — tendu, jeté e fondu — e braços básicos, com o exercício
-  registrado em notação Benesh."* 60 minutos (Pré-requisito 4), volume ativo de 88 tempos.
-- `professores/fochini/ciclos/ciclo-01.conf` e `ciclo-01-diaghilev.conf` — **`TOTAL_AULAS` 4→5**,
-  **`OBJETIVO_GERAL` "quatro"→"cinco"**, e o **`DOCS`** com `aula-05 notacao glossario-benesh`
-  (e o comentário da P-15/P-16 substituindo o que declarava a ausência).
-- `professores/fochini/ciclos/ciclo-01-index.md` — as três ligações novas (`aula-05.html`,
-  `notacao.html`, `glossario-benesh.html`) e *4 encontros* → *5 encontros*.
-- `professores/fochini/ciclos/ciclo-01-plano.md` — a linha **`**05** | Suplementar…`**, a
-  `**Duração**` e o critério de extensão.
-- `professores/fochini/ciclos/ciclo-01-referencias.md` — a seção **`## Notação em Benesh`**:
-  Mirzabekiantz (2000) e Parker (1990).
-- `professores/tiago/ciclos/ciclo-01-notacao.md` e `ciclo-01-ritmos-notacao.md` — a **correção do
-  calendário**, e só ela: o `data:` do front matter sai, o `<!-- CALENDARIO -->` entra. **O filtro
-  é do `fochini`** — medido: `filtro-notacao` aparece **0** vezes nas duas notações do Tiago.
-- Os pacotes regerados: `aula-05.html`, `notacao.html`, `glossario-benesh.html`,
-  `plano-aula-05.json` (+ `-anterior.json`), `captura-aula-05.{html,json}` e as cópias
-  `notacao.html` / `glossario-benesh.html` dos dois pacotes do Tiago.
-- `professores/fochini/ciclos/ciclo-01-captura-schema.json` — os **dois blocos da Aula 05**
-  (`Bloco 1 — Barra RAD`, com `tendu`/`jete`/`fondu`, e `Bloco 2 — Braços básicos e registro
-  Benesh`). O material de observação da aula nova não é opcional: a captura é o que registra o que
-  de fato se aplicou.
-- `professores/fochini/ciclos/ciclo-01-diaghilev-aula-05.fipp` — a **âncora por aula** da aula nova
-  (§5.2 do `ARQUITETURA-AULA.md`; o produtor é a `B5`, mas o elo é desta aula).
+- `tools/templates/lancamento.html` — `indiceComArquivo()`, agora `:1646-1660`: a vírgula é lida do
+  trecho substituído e reemitida. E `gerarJson()`, agora `:~1701-1715`: `novoNome` e `indiceNovo`
+  subiram **para antes** das mutações em memória, com o `try { JSON.parse(indiceNovo) } catch` que
+  aborta sem efeito.
+- `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html`,
+  `professores/tiago/ciclos/ciclo-01-duo/lancamento.html`,
+  `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` — as **três cópias empacotadas**, regeradas.
+
+**Motivo declarado — os congelados.**
+
+`tools/templates/` está em `CONGELAMENTO.md`, e esta entrada é o motivo declarado do que mudou no
+formulário. **O que NÃO muda:**
+
+- **A fórmula de hash e a cobertura da âncora.** `tools/hash-ciclo.sh` não foi tocado; o `.fipp`
+  continua cobrindo os mesmos `ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e `ciclo-XX-*.md`. Nenhuma
+  fonte de ciclo mudou — `lancamento.html` **não** entra em `fontes_do_ciclo()`, e as três âncoras
+  seguem **exatamente** as de antes.
+- **Nenhum validador afrouxa.** `check-pacote.js`, `validar-po-ciclo.js`, `validar-plano-ciclo.js`,
+  `validar-dados-ciclo.js`, `check-glossario.js` e `check-identidade.js` seguem como estavam; esta
+  peça não os toca.
+- **Nenhuma regra e nenhuma pétrea muda.** `REGRAS.md`, `PROTOCOLO.md` e `CONGELAMENTO.md` não foram
+  tocados. O que muda é **como** o formulário grava, não o que ele promete gravar: o carimbo no nome
+  do arquivo, o `arquivo` do índice apontando para o vigente e a proveniência pelo commit continuam
+  sendo o desenho declarado.
+- **O caso nominal do congelamento** — *"alterar a estrutura de menu ou navegação"* — não é desta
+  peça: não se mexeu em menu.
+- **A decisão de comportamento é da pesquisadora**, e foi pedida antes de escrever: as duas
+  alterações foram autorizadas em separado — a correção da vírgula e, na mesma frente, a guarda do
+  índice — depois de apresentado o motivo declarado.
 
 **Com o quê.**
 
-`professores/fochini/ciclos/`: `ciclo-01-notacao.md` e `ciclo-01-glossario-benesh.md` (**novos**),
-`ciclo-01-diaghilev-aula-05.md` (**novo**), `ciclo-01-captura-schema.json` (**novo** — o material de
-observação da aula nova), `ciclo-01.conf`, `ciclo-01-diaghilev.conf`, `ciclo-01-index.md`,
-`ciclo-01-plano.md`, `ciclo-01-referencias.md`, `ciclo-01-diaghilev-aula-05.fipp`;
-`professores/tiago/ciclos/`: `ciclo-01-notacao.md` e `ciclo-01-ritmos-notacao.md` (a correção do
-calendário); e os **três pacotes regerados**.
+| Verificação | Comando | Resultado real |
+|:--|:--|:--|
+| A função, extraída **do template** | `/tmp/prova5.js` — `eval` do trecho lido do arquivo, 3 ordens de chave | as 3 saem `JSON VALIDO` **com o valor aplicado** |
+| Controle negativo, **o mesmo insumo** | idem — o código **anterior** sobre a forma do repositório | `INVALIDO -> Expected ',' or '}' after property value in JSON at position 914 (line 13 column 7)` — **a mensagem exata da pesquisadora** |
+| Não-regressão da forma antiga | idem — ordem com `arquivo` por último | saída do fix **===** saída anterior (`true`) |
+| A guarda, na cópia **empacotada** | `/tmp/prova6.js` — função extraída de `professores/fochini/…/lancamento.html` | caminho feliz: **2 downloads**, valor aplicado. Índice inválido: **aborta**, `baixados=[]`, `texto` e `meta.arquivo` **intactos** |
+| O fix chegou aos três pacotes | `grep -c 'const indiceNovo'` nas três cópias | **1** em cada |
+| As três âncoras | `tools/hash-ciclo.sh <prof> 01 <escola> --check` | **exit 0** nos três; `a05f05c0…` (diaghilev), `8bba2c5e…` (duo), `4175cdf1…` (ritmos) — **inalteradas** |
+| Os três pacotes | `node tools/check-pacote.js` | diaghilev **0 erros, 0 avisos**; duo e ritmos **0 erros, 6 avisos** (pré-existentes) |
+| A identidade visual | `node tools/check-identidade.js` | **exit 0** — Contraste, Cópia única, Deck e Circuito, os quatro `ok:` |
+| O escritor único | `grep -n 'indiceComArquivo'` e `baixar('ciclos.json'` | **1** chamada (`:1702`), **1** escrita (`:1715`); a leitura em `:1962` |
 
-**Nada de `tools/` mudou por esta frente.** O `DOCS` do `.conf` é quem manda emitir as páginas — a
-medida é `grep -n 'notacao\|glossario' tools/gerar-ciclo.sh`: só texto pré-existente.
+- **O churn da regeração foi descartado, não commitado.** Rodar o gerador reescreve `gerado_em` e o
+  `-dados.json` cifrado (IV aleatório) e o acompanhamento minificado — nada disso é desta peça. As
+  três cópias corrigidas foram preservadas em `/tmp`, o resto voltou com `git checkout --
+  professores/`, e as cópias foram repostas. O `diff --numstat` de cada `lancamento.html` é só o
+  fix.
+- **`SOURCE_DATE_EPOCH` não pinar `gerado_em`** — daí o churn ser esperado e não perseguido.
 
 **Referências.**
 
-- `PROTOCOLO.md:106` — **P-15**, na redação canônica: *"Se a metodologia usa notação (ex.: RAD usa
-  Benesh), o ciclo gera o documento de notação naquela notação. Se não usa notação formal, o ciclo
-  **não gera** documento de notação — e declara a ausência com justificativa."*
-- `PROTOCOLO.md:111` — **P-16** (metodologia e notação declaradas na eliciação); `:116` e `:120` —
-  **P-17** (todo ciclo produz os mesmos tipos de artefato, *"e notação + glossário **quando a
-  metodologia exigir**"*).
-- `tools/check-glossario.js` — o validador que sustenta a exaustividade do par; o `pre-commit` §2b
-  (`:146-166`) é o portão.
-- Mirzabekiantz, Muriel. *Grammaire de la notation Benesh.* Paris: Centre national de la danse,
-  2000 (132 p.). Parker, Rudolph. *Benesh Movement Notation: Elementary Solo Syllabus — Ballet
-  Application.* Londres: Benesh Institute of Choreology.
-- `REGISTRO.md:652-668` — a correção do Ritmos em 19/09/2026, **mesmo defeito e mesma regra**: é o
-  elo anterior desta frente.
+- `tools/templates/lancamento.html` — `indiceComArquivo()` e `gerarJson()`; o irmão bem-comportado é
+  `camposNaRaiz()` (`:1629`), que já preservava a vírgula pela captura `(,?)`.
+- `tools/gerar-ciclo.sh` — o dicionário do índice, com `'arquivo'` e `'aulas'` vizinhos: é a
+  adjacência estrutural que acorda o defeito. E a linha `ARQUIVO="ciclo-…-dados.json"` — o gerador
+  **nunca** carimba o nome; o carimbo é do formulário.
+- `tools/check-pacote.js` — o validador do pacote, e `check-identidade.js` — o §5 do `pre-commit`.
+- `REGISTRO.md:5856` — a outra frente que mexeu no mesmo formulário (*"A nav sai uma vez: o
+  formulário deixa de ser a única página com o `id` dela duplicado"*): lá o problema era `id`
+  duplicado, aqui é JSON inválido. É o elo anterior desta família.
 
 **O que ainda não está feito.**
 
-- **A notação do `tiago` continua sem filtro.** A correção lá foi só a do calendário; o filtro
-  existe **apenas** no `fochini`. Não há decisão tomada sobre estender — está declarado, não
-  esquecido.
-- **A `notacao.html` do `tiago` não é a mesma página do `fochini`.** Quando o filtro for estendido,
-  é outra peça.
-- **A entrada fica no worktree junto do resto.** O commit próprio desta frente — com
-  `Refs:`/`Regras:`/`Auditoria:` — depende de pedido explícito.
-- **Nada foi commitado.**
+- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** É congelado, a
+  alteração é anterior a esta frente, e nenhuma entrada a reivindica — precisa de motivo próprio ou
+  de reversão. Está declarado, não esquecido.
+- **A causa de raiz do carimbo não mudou de dono, e não precisa:** o `arquivo` carimbado é por
+  desenho. A consequência prática continua valendo — o índice baixado aponta para um arquivo que
+  **ainda não existe** no repositório até o commit da gravação, e até lá o ciclo responde 404.
 
 ## O que está pendente
 
@@ -1254,6 +1239,16 @@ hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo
 - **A entrada fica no worktree junto do resto.** O commit próprio desta frente — com
   `Refs:`/`Regras:`/`Auditoria:` — depende de pedido explícito.
 - **Nada foi commitado.**
+
+## 28/09/2026 — O índice do formulário saía sem a vírgula: a gravação passa a recusar índice inválido
+
+
+- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** É congelado, a
+  alteração é anterior a esta frente, e nenhuma entrada a reivindica — precisa de motivo próprio ou
+  de reversão. Está declarado, não esquecido.
+- **A causa de raiz do carimbo não mudou de dono, e não precisa:** o `arquivo` carimbado é por
+  desenho. A consequência prática continua valendo — o índice baixado aponta para um arquivo que
+  **ainda não existe** no repositório até o commit da gravação, e até lá o ciclo responde 404.
 - PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).

@@ -1648,7 +1648,11 @@ function indiceComArquivo(id, nome) {
   const j = i < 0 ? -1 : indiceTexto.indexOf('"arquivo"', i);
   if (j < 0) return indiceTexto;
   const fim = indiceTexto.indexOf('\n', j);
-  return indiceTexto.slice(0, j) + `"arquivo": ${JSON.stringify(nome)}` +
+  // A vírgula que separa `arquivo` de `aulas` é do TEXTO, não do valor: ela fica logo
+  // depois do valor e reescrever só a linha a descartava — o índice saía com
+  // `"arquivo": "..."` colado em `"aulas"`, inválido.
+  const virgula = indiceTexto.slice(j, fim).trimEnd().endsWith(',') ? ',' : '';
+  return indiceTexto.slice(0, j) + `"arquivo": ${JSON.stringify(nome)}${virgula}` +
     indiceTexto.slice(fim);
 }
 
@@ -1694,13 +1698,21 @@ async function gerarJson() {
     dizer(`<span class="erro">não gerei: o arquivo sairia inválido (${esc(e.message)}).</span>`);
     return;
   }
+  const novoNome = nomeNovo(deOnde, agora);
+  const indiceNovo = indiceComArquivo(sel.ciclo.value, novoNome);
+  // O índice sai no mesmo ato, mas não passava pelo mesmo guard do arquivo de dados: um
+  // índice inválido ia para o disco sem aviso, e a falha só aparecia depois, na leitura.
+  try {
+    JSON.parse(indiceNovo);
+  } catch (e) {
+    dizer(`<span class="erro">não gerei: o índice sairia inválido (${esc(e.message)}).</span>`);
+    return;
+  }
   f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser escrito
   f.texto = texto;               // e o texto, para a próxima gravação não perder esta
-  const novoNome = nomeNovo(deOnde, agora);
   f.meta.arquivo = novoNome;     // a página passa a apontar para o vigente
   baixar(novoNome, texto, 'application/json;charset=utf-8');
-  baixar('ciclos.json', indiceComArquivo(sel.ciclo.value, novoNome),
-    'application/json;charset=utf-8');
+  baixar('ciclos.json', indiceNovo, 'application/json;charset=utf-8');
   dizer(`<span class="fraco">gerado: <code>${esc(novoNome)}</code>` +
     `${ajuste ? ` — ajuste de <code>${esc(deOnde)}</code>, motivo: ${esc(motivo)}` : ''}` +
     ` · aula ${esc(id)} ${jaTinha ? 'atualizada' : 'acrescentada'} · ` +
