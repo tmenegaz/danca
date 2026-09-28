@@ -24,7 +24,6 @@
       "marco": "[Preencher: último encontro do ciclo — fechamento e avaliação, a declarar com o professor.]"
     }
   ],
-  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
   "estruturaDeCadaAula": [
     "1. **Solo / preparação** — isolamento mecânico e recrutamento proprioceptivo, sem carga de apoio.",
     "2. **Barra** (opcional) — referência espacial para transferência de carga; a barra é **ferramenta de",
@@ -126,6 +125,7 @@
     }
   ],
   "proveniencia": "Parte deste plano · Origem Objetivo geral · 21 encontros · a estrutura de 3 aulas semanais · data de início · marco da Aula 01 · pré-requisitos e dificuldades da turma · **Entrega do professor, 18/09/2026**, transcrita sem alteração Marcos 02–21 · `[Preencher]` — não declarados; escrever após cada aula Faixa de volume (80–100 tempos por aula) · **Regra 9**, etapa 1, do projeto Proporção por blocos · **Regra 9**, etapa 2 — aplicabilidade a este ciclo `[Preencher]` Rubrica · Derivada dos eixos declarados por ele (fenômeno e critérios de inclusão do PO) Base teórica · Método RAD, técnica clássica, cinesiologia e preparação corporal (declarados por ele; ver [Referências](referencias.html))",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
   "_lacunas": [
     {
       "campo": "rubrica.aplicadaEm",

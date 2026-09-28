@@ -60,7 +60,6 @@
       "marco": "Avaliação somativa e fechamento do ciclo."
     }
   ],
-  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
   "estruturaDeCadaAula": [
     "1. **Solo** — isolamento mecânico e recrutamento proprioceptivo, sem carga de apoio.",
     "2. **Barra** (opcional) — referência espacial para transferência de carga; a barra",
@@ -155,6 +154,7 @@
     }
   ],
   "proveniencia": "Base pedagógica deste plano: **RAD (2015)** (Grade 1 — *legs and feet*, *transfer of weight*), **Clippinger (2024)** (cap. 4 — pé e tornozelo), **Warren (1989)** e **Homans (2010)** para contexto. Referências completas em [Referências Bibliográficas](referencias.html#pedagogia-do-bale).",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
   "_lacunas": [
     {
       "campo": "rubrica.aplicadaEm",

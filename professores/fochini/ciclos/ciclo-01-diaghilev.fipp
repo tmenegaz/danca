@@ -8,24 +8,32 @@ type: Ciclo
 professor: Fochini
 ciclo: 01
 variante: diaghilev
-hash_conteudo: 3058b4d1241c19791dbcefb390d2d09225523b00ca9ea7e21217d8e78b041a9b
+hash_conteudo: bca4bcfb135b5f18970dfd611edf8dc2c4c029eb26cc9ac4a00ad8ba13d89157
 parentHash: 
-hash: da0193c1ec0a0f5b38cfe154014b263572020ea5e35556eaea08e2903915aeed
+hash: a05f05c06c8553503d220d419679743696ec6fd5fa36c6613dc2b5e46ab5fae0
 algoritmo: SHA-256
 po: professores/fochini/ciclos/ciclo-01-diaghilev-po.md
 po_state: Input_PO_Aguardando
+ancorado_em: 2026-09-27
 cobertura:
   - professores/fochini/cadernos/ciclo-01/caderno-01-diaghilev.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-aula-01.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-aula-02.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-aula-03.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-aula-04.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-05.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-01.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-02.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-03.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-04.md
+  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-05.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-dados.json
   - professores/fochini/ciclos/ciclo-01-diaghilev-harmonizacao.md
   - professores/fochini/ciclos/ciclo-01-diaghilev-po.md
   - professores/fochini/ciclos/ciclo-01-diaghilev.conf
+  - professores/fochini/ciclos/ciclo-01-glossario-benesh.md
   - professores/fochini/ciclos/ciclo-01-index.md
+  - professores/fochini/ciclos/ciclo-01-notacao.md
   - professores/fochini/ciclos/ciclo-01-plano.md
   - professores/fochini/ciclos/ciclo-01-referencias.md
   - professores/fochini/ciclos/ciclo-01.conf
