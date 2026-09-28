@@ -6701,3 +6701,120 @@ formulário. **O que NÃO muda:**
 - **A causa de raiz do carimbo não mudou de dono, e não precisa:** o `arquivo` carimbado é por
   desenho. A consequência prática continua valendo — o índice baixado aponta para um arquivo que
   **ainda não existe** no repositório até o commit da gravação, e até lá o ciclo responde 404.
+
+## 28/09/2026 — O formulário baixa **dois** arquivos, e o texto passa a dizer isso
+
+**O que motivou.**
+
+A pesquisadora enviou o formulário, trouxe o `ciclos.json` que ele baixou e perguntou: *"por que o
+xml não tem os campos que preenchi? para onde foram os dados? e por que precisa gerar o xml para o
+usuário?"* A medição respondeu as duas primeiras: **os dados não se perderam** — o lançamento está
+no `~/Downloads/ciclo-01-diaghilev-dados-2026-09-28T0840.json` (2963 B, 28/09 08:40:32, **em claro**,
+a aula 01 com as onze chaves de aula), e o índice baixado (`ciclos (10).json`, 2949 B, 08:40:41) é
+**inválido** e **anterior** à correção `84bc1db` — é forma do código antigo, não defeito novo.
+
+Mas a pergunta que sobrava era a terceira, e ela não era sobre JSON: era sobre **quantos arquivos o
+botão baixa**. O texto de apoio dizia *"baixa o JSON **do ciclo inteiro** com esta aula dentro"* — um
+arquivo. E o botão baixa **dois**: o JSON de dados carimbado e o `ciclos.json`. Quem lê *"baixa o
+JSON"* e abre **o** arquivo do índice não encontra lá o lançamento — porque o índice guarda
+metadados de aula, **nunca** o lançamento. A dúvida *"não tem os campos que preenchi"* nasce daí.
+
+**O que foi decidido.**
+
+- **O rótulo do botão fica como está** — `Gerar JSON atualizado`. A pesquisadora decidiu manter, e a
+  pergunta escolhida foi a outra: ajustar o **texto de apoio**. Renomear o botão para `Enviar` não
+  cabe: não há servidor, e nada é enviado a lugar nenhum — o que sai é arquivo para o professor
+  commitar.
+- **O texto passa a declarar os dois arquivos e o papel de cada um** — o JSON de dados guarda o
+  lançamento; o `ciclos.json` é o índice e passa a apontar para aquele nome. E fica dito que os dois
+  vão para o **repositório**, não para a pasta de downloads.
+- **A cauda é preservada palavra a palavra:** *"a proveniência do JSON é o commit, não um carimbo
+  dentro dele"* — é a regra que a redação anterior já carregava, e ela não muda.
+
+**Onde entrou.**
+
+- `tools/templates/lancamento.html` — o `span.fraco` do bloco de exportação, agora `:155-162` (era
+  `:155-157`). O rótulo do botão (`:154`) e a mensagem de `gerarJson()` **não** foram tocados.
+- `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html` (`:210`),
+  `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` (`:209`),
+  `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` (`:210`) — as **três cópias
+  empacotadas**, regeradas.
+
+**Motivo declarado — os congelados.**
+
+`tools/templates/` está em `CONGELAMENTO.md`, e esta entrada é o motivo declarado do que mudou no
+formulário. **O que NÃO muda:**
+
+- **A fórmula de hash e a cobertura da âncora.** `tools/hash-ciclo.sh` não foi tocado; o `.fipp`
+  continua cobrindo os mesmos `ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e `ciclo-XX-*.md`.
+  `lancamento.html` **não** entra em `fontes_do_ciclo()`, e as três âncoras seguem **exatamente** as
+  de antes — medidas, não supostas (tabela abaixo).
+- **Nenhum validador afrouxa.** `check-pacote.js`, `validar-po-ciclo.js`, `validar-plano-ciclo.js`,
+  `validar-dados-ciclo.js`, `check-glossario.js` e `check-identidade.js` seguem como estavam; esta
+  peça não os toca.
+- **Nenhuma regra e nenhuma pétrea muda.** `REGRAS.md`, `PROTOCOLO.md` e `CONGELAMENTO.md` não foram
+  tocados. O que muda é **o que o formulário declara baixar**, não o que ele baixa: as duas chamadas
+  `baixar()` e seus destinos já eram os do desenho — o texto é que contava um arquivo só.
+- **O caso nominal do congelamento** — *"alterar a estrutura de menu ou navegação"* — não é desta
+  peça: não se mexeu em menu.
+- **É redação, não comportamento.** Nenhuma linha de JavaScript mudou; a alteração é de texto
+  visível. A decisão foi pedida antes de escrever.
+
+**Com o quê.**
+
+| Verificação | Comando | Resultado real |
+|:--|:--|:--|
+| O texto novo chegou nas **quatro** cópias | `grep -c 'baixa <strong>dois</strong> arquivos'` | **1** em cada (`:155`, `:210`, `:209`, `:210`) |
+| O diff é só a redação | `git diff --numstat` | **6/3** em cada um dos quatro arquivos — nada mais |
+| Nada além dos quatro foi tocado | `git status --porcelain` | os 4 `lancamento.html` + o `prompts/eliciar-ciclo.md` pré-existente + `po_ref/` não versionado |
+| As três âncoras | `tools/hash-ciclo.sh <prof> 01 <escola> --check` | **exit 0** nos três; `a05f05c0…` (diaghilev), `8bba2c5e…` (duo), `4175cdf1…` (ritmos) — **inalteradas** |
+| Os três pacotes | `node tools/check-pacote.js` | diaghilev **0 erros, 0 avisos**; duo e ritmos **0 erros, 6 avisos** (pré-existentes) |
+| A identidade visual | `node tools/check-identidade.js` | **exit 0** |
+
+- **O churn da regeração foi descartado, não commitado** — mesmo procedimento da entrada anterior. A
+  regeração suja **20** arquivos gerados (`ciclos.json` × 3 só com `gerado_em`; `-dados.json` × 3
+  com o cifrado; `.pdf` × 3; `acompanhamento-*.html` × 10 com o blob `data-i`), **todos sem conteúdo
+  novo**. As três cópias corrigidas foram preservadas em `/tmp/cap-b4`, o resto voltou com
+  `git checkout -- professores/`, e as cópias foram repostas — sha256 conferido antes e depois.
+- **⭐ Achado novo, declarado e NÃO tratado: o gerador não é determinístico.** Medido com
+  `sha256sum` → `tools/gerar-ciclo.sh fochini 01 diaghilev` → `sha256sum`: o mesmo `-dados.json` sai
+  `a8ef59d9…` numa rodada e `110abab2…` na seguinte. A causa é o IV aleatório de `cifrar-dados.js`
+  (`tools/gerar-ciclo.sh:540-556`). **Consequência prática:** propagar **qualquer** mudança de
+  template suja os artefatos selados, e commitar isso seria ruído que **parece** mudança de
+  conteúdo. **Não se mexeu em `tools/`** para "consertar": a cifra é comportamento congelado, e
+  pinar o IV mudaria a cadeia de âncoras. Fica declarado como nota operacional.
+- **`SOURCE_DATE_EPOCH` não pinar `gerado_em`** — daí o churn do índice ser esperado e não
+  perseguido.
+
+**Referências.**
+
+- `tools/templates/lancamento.html` — o bloco de exportação (`:145-175`); `baixar()` em `:972`;
+  `gerarJson()` em `:1663-1730`, com as **duas** chamadas `baixar()` em `:1714` e `:1715`.
+- `ARQUITETURA-CAPTURA.md:240-262` (§3.3) — *"Baixa o JSON novo e o índice atualizado"*: o desenho já
+  dizia **dois** arquivos. É o documento que o texto de apoio agora cumpre.
+- `ARQUITETURA-CAPTURA.md:385-391` — o precedente `dados-exemplo-2026-09-20T1430.json` e a nota
+  *"sem servidor, ele pode ter ido para a pasta de downloads do navegador"* — que é **o que de fato
+  aconteceu** com o lançamento da pesquisadora.
+- `ARQUITETURA-CAPTURA.md:599-601` (§7.3) — a decisão *"sem servidor, ou exige backend: **mantém**"*:
+  é ela que impede renomear o botão para `Enviar`.
+- `tools/check-pacote.js:381` — o validador **recalcula** o nome do arquivo de dados a partir da
+  variante e **nunca lê o `"arquivo"` do índice**; os dois podem divergir sem aviso. Declarado, não
+  corrigido (é comportamento congelado).
+- `tools/check-pacote.js:375-440` — o validador que decifra e compara com `fonte_dados()`.
+- `REGISTRO.md:6585` — a entrada anterior, do mesmo formulário: lá o defeito era o JSON inválido;
+  aqui é o texto que contava um arquivo só.
+
+**O que ainda não está feito.**
+
+- **O lançamento da pesquisadora ainda não está no repositório.** O
+  `~/Downloads/ciclo-01-diaghilev-dados-2026-09-28T0840.json` precisa chegar a
+  `professores/fochini/ciclos/` — com o carimbo e no nome estável de `fonte_dados()` — junto do
+  `ciclos.json` corrigido, e então regerar. **Isso moverá a âncora do diaghilev, e corretamente.**
+  Não é desta peça, e não foi feito sem autorização.
+- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** É congelado, a
+  alteração é anterior a esta frente, e nenhuma entrada a reivindica — precisa de motivo próprio ou
+  de reversão. Está declarado, não esquecido.
+- **`ARQUITETURA-CAPTURA.md:260-266` afirma que o carimbo de hora *"cai na cauda ignorada"* — a
+  medição mostra que não cai** (a regex é ancorada em `$`). É arquivo livre, então a correção é
+  barata; não foi feita nesta peça.
+
