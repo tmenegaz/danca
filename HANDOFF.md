@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-28T10:50:55-0300`
-Commit atual: `e592373` — docs(template): o botão `Salvar` deixa de ter legenda
+Gerado em: `2026-09-28T11:01:27-0300`
+Commit atual: `7e21bd4` — docs(template): cabeçalho do formulário passa à voz de professor
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -49,6 +49,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+7e21bd4 docs(template): cabeçalho do formulário passa à voz de professor
+aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
 e592373 docs(template): o botão `Salvar` deixa de ter legenda
 f7b3707 docs(estrutura): regenera o HANDOFF depois de `fcda6d7`
 fcda6d7 docs(registro): a entrada ⑲ corrige o que a mesma peça tornou falso
@@ -67,8 +69,6 @@ ed3fce9 docs(campo): o campo ganha a forma canônica, o consentimento e o formul
 282fbcb feat(template): o estado derivado e o ajuste no plano no formulário
 502f77d fix(tools): o DOCS deixa de ser lista à mão e passa a ser derivado do disco
 349fe83 feat(entrega): a identidade visual passa a ser medida por comando
-0fb5265 feat(ciclo-01): o DIAS declara a hora de início no schema e nos conf
-8cf9960 feat(tools): o DIAS ganha a hora de início e o prazo conta do fim da aula
 ```
 
 ## Por professor
@@ -146,98 +146,131 @@ ed3fce9 docs(campo): o campo ganha a forma canônica, o consentimento e o formul
 
 ## Última entrada do REGISTRO
 
-## 28/09/2026 — A legenda ao lado do botão `Salvar` sai; o botão fica sozinho
+## 28/09/2026 — O cabeçalho do formulário passa à voz de professor: só o que a página faz por ele
 
 **O que motivou.**
 
-Depois de a entrada `:6821` trocar o rótulo e o destino do botão, sobrou-lhe ao lado um texto de
-apoio que continuava falando de repositório: *"o ciclo com esta aula dentro, na pasta do ciclo — e só
-entra no Git quando você commitar."* A pesquisadora leu e pediu a remoção, sem nada no lugar:
-*"tira isso 'o ciclo com esta aula dentro, na pasta do ciclo — e só entra no Git quando você
-commitar'. deixa o botão Salvar sem nenhum texto o acompanhando"*.
+A entrada anterior (`:7153`) registrou, no seu "O que ainda não está feito", que *"a voz de professor
+no resto do formulário segue pendente"* — o cabeçalho (`:98-104`) ainda dizia *"índice de ciclos"*,
+*"cifrados no pacote"*, *"não commita"*; o `<summary>` dizia *"salva no JSON"*; a ajuda do botão de
+relatórios e as mensagens de erro falavam de `assets/`, `lib-vistas.js` e `tools/gerar-ciclo.sh`. A
+pesquisadora tinha deferido a reescrita (*"podemos editar depois"*).
 
-A frase era **endereçada a quem programa**, não a quem dá aula: nomeia Git, commit e a pasta de
-destino — três coisas que a professora que lança a aula não precisa saber para usar a página. O
-botão diz o que faz (`Salvar`), e o resultado da gravação aparece em `#aviso-json`, que a peça
-anterior já escrevia. Ficar sem legenda é a redação correta, não uma lacuna a preencher.
+Nesta peça ela ditou a redação do **cabeçalho** e só dele: *"O texto deve ficar apenas assim
+"**Área do Professor.** Aqui você lê os dados da aula, **salva** o lançamento, faz ajustes e gera os
+relatórios.""*
 
-Esta é a **entrada própria** que a nota de correção desta mesma entrada prometeu, no item 8
-(`:7137-7146`): *"A remoção de uma linha de texto, se ela um dia quiser, é mudança de uma linha com
-entrada própria, como qualquer outra."* Aquele item registrou a remoção que o VS Code fez às 10:04
-como **descartada**, por ter vindo de fora da conversa — restaurada com `git checkout --`. Esta é
-outra remoção: pedida, medida e assumida. **O item 8 não é reescrito** (P-03/P-04): ele fica como o
-elo que registra o que se pensou antes.
+O critério é o mesmo das duas peças anteriores — o texto é **para o professor**, não para quem
+programa. Depois de uma redação que ainda nomeava *índice*, *cifrado*, *pacote*, *pasta*, *memória*
+e *commit*, a pesquisadora recusou explicitamente esse vocabulário: *"ele não precisa saber de
+commit, git, cifrado, pacote, pasta, índice etc. Ele precisa saber o que a página faz por ele, qual
+a utilidade da página."*
 
 **O que foi decidido.**
 
-- O `<span class="fraco">` que acompanhava o botão **sai**, e nada ocupa o lugar dele.
-- O botão **fica sozinho** antes de `<span id="aviso-json">` — que **permanece**, porque é onde o
-  JavaScript escreve o resultado da gravação e o que a suíte de teste lê.
-- **Só isso.** Nenhuma outra frase do formulário é tocada nesta peça. O cabeçalho (`:98-104`) e as
-  demais redações em voz de programador continuam como estão — a pesquisadora as deixou para depois
-  (*"podemos editar depois"*).
+- O aviso do topo passa a ser **duas linhas**: o realce `**Área do Professor.**` seguido de uma
+  frase que diz o que a página faz pelo professor — **lê** os dados da aula, **salva** o lançamento,
+  **faz ajustes** e **gera os relatórios**. O realce em `salva` é da pesquisadora e fica.
+- **Sai** toda a menção a implementação: o índice de ciclos, os dados que viajam cifrados no pacote,
+  a pasta do ciclo, as vistas calculadas na memória e o commit que é do professor.
+- **A consequência verdadeira não se perde — ela sai da página.** A que o texto antigo preservava
+  (*"a página grava, mas não commita"*) é verdade de **operação do repositório**, não informação de
+  quem lança a aula; o professor não precisa dela para usar o formulário, e ela continua registrada
+  onde pertence — neste `REGISTRO.md`, em `ARQUITETURA-CAPTURA.md` e nas regras de versionamento.
+- **Só o cabeçalho.** O `<h1>` (`:97`), o `<summary>` (`:148`), o `#captura-campos` (`:149`), a nota
+  do painel de captura (`:1409`), a ajuda do botão de relatórios (`:171`), as mensagens de erro e o
+  comentário dos *"TRÊS entregáveis"* (`:159`) **não** são tocados aqui. A pesquisadora limitou o
+  pedido: *"o texto deve ficar apenas assim"*.
 - **Sem reancoragem.** A âncora cobre as fontes de ciclo; o `lancamento.html` não está entre os 21
   caminhos cobertos (`grep -c 'lancamento'` na `.fipp` → **0**).
 
 **Onde entrou.**
 
-`tools/templates/lancamento.html` — a remoção de **duas linhas**, medidas com `git diff -U0`:
+`tools/templates/lancamento.html` — **cinco linhas viram duas** (`2 5` no `git diff --numstat`),
+medidas com `git diff -U0 HEAD`:
 
 ```diff
-@@ -156,2 +155,0 @@
--    <span class="fraco">o ciclo com esta aula dentro, na pasta do ciclo — e só entra no Git
--      quando você commitar.</span>
+@@ -99,5 +99,2 @@
+-  <strong>Área do Professor.</strong> Lê o índice de ciclos e, sob demanda, os dados do ciclo
+-  escolhido — que viajam <strong>cifrados</strong> no pacote, como os acompanhamentos. Aqui você
+-  lança a aula, <strong>salva</strong> o lançamento na pasta do ciclo que escolher, faz ajustes e
+-  gera os relatórios. As vistas são calculadas na memória: a página grava, mas
+-  <strong>não commita</strong> — o commit é seu.
++  <strong>Área do Professor.</strong> Aqui você lê os dados da aula, <strong>salva</strong> o
++  lançamento, faz ajustes e gera os relatórios.
 ```
 
-A fonte é congelada e é **a única**: as três cópias empacotadas saem dela por `cp` direto
+O `<h1>` (`:97`) e o `</div>` (`:101`) ficam intactos — são as linhas de contexto do hunk. A fonte é
+congelada e é **a única**: as três cópias empacotadas saem dela por `cp` direto
 (`tools/gerar-ciclo.sh:563`), sem templating. Regeneradas com
 `tools/gerar-ciclo.sh <professor> <ciclo> <escola>`:
 
-| arquivo | antes | depois | `>Salvar<` | legenda | `Gerar JSON atualizado` |
-|---|---|---|---|---|---|
-| `tools/templates/lancamento.html` | 2089 | **2087** | 1 | 0 | 0 |
-| `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html` | 2144 | **2142** | 1 | 0 | 0 |
-| `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` | 2143 | **2141** | 1 | 0 | 0 |
-| `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` | 2144 | **2142** | 1 | 0 | 0 |
+| arquivo | antes | depois | novo cabeçalho em | hunk | `>Salvar<` | `id="aviso-json"` |
+|---|---|---|---|---|---|---|
+| `tools/templates/lancamento.html` | 2087 | **2084** | `:99` | `@@ -99,5 +99,2 @@` | 1 | 1 |
+| `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html` | 2142 | **2139** | `:154` | `@@ -154,5 +154,2 @@` | 1 | 1 |
+| `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` | 2141 | **2138** | `:153` | `@@ -153,5 +153,2 @@` | 1 | 1 |
+| `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` | 2142 | **2139** | `:154` | `@@ -154,5 +154,2 @@` | 1 | 1 |
 
-`git diff --numstat` → **`0 2`** em cada um dos quatro: nenhuma linha reflui, nada mais mudou.
+**A regeneração churnou 21 arquivos e 18 foram descartados.** O `gerar-ciclo.sh` não é
+determinístico: o `ciclos.json` carimba `gerado_em`, o `-dados.json` é recifrado com IV aleatório, os
+dez `acompanhamento-*.html` trazem uma linha longa que reflui e os três PDFs mudam por carimbo de
+tempo. `git checkout -- professores/` com três `:(exclude)` — os três `lancamento.html` — restaurou
+os 18, e sobraram exatamente **quatro** arquivos modificados, todos `2 5`: a fonte e as três cópias.
+O churn não é entrega e não vai no commit.
+
+**O elo anterior não é reescrito.** O item 7 da nota de correção da entrada `:7153`
+(`REGISTRO.md:7128-7136`) registrou a **primeira** redação do cabeçalho como feita, citando
+`tools/templates/lancamento.html:97-103`. A pesquisadora **mudou a redação depois**; esta entrada é
+o elo novo e **não** substitui aquele texto. Fica valendo o que o item 7 registrava sobre o
+**método** (a redação em voz de professor, pedida depois da decisão), e o que fica no arquivo é a
+**segunda** redação — a ditada nesta peça. Nada foi apagado: o elo anterior permanece legível em
+`:7128-7136`.
 
 **Motivo declarado — os congelados.**
 
-`tools/templates/lancamento.html` está em `CONGELAMENTO.md`. O motivo é o de cima: a legenda
-endereçava-se a quem programa (Git, commit, pasta de destino), e a pesquisadora pediu que o botão
-ficasse sozinho.
+`tools/templates/lancamento.html` está em `CONGELAMENTO.md`. O motivo é o de cima: o texto do
+cabeçalho endereçava-se a quem programa — nomeava o índice, o cifrado, o pacote, a pasta e o commit
+— e a pesquisadora pediu que ele dissesse apenas o que a página faz pelo professor.
 
 **O que NÃO muda:** a fórmula de hash (`tools/hash-ciclo.sh`), a cobertura da âncora, os validadores
-e as pétreas. A mudança é **de redação visível**, não de comportamento: o botão continua gravando o
-mesmo arquivo, no mesmo lugar, com o mesmo `id` (`gerar-json`) e o mesmo aviso. A cláusula do
-`CONGELAMENTO.md` — *"quando o comportamento muda, pare e confirme"* — **não dispara**.
+e as pétreas. A mudança é **de redação visível**, não de comportamento: o aviso é `display` de texto
+estático, sem `id` próprio que o JavaScript leia, sem seletor em folha de estilo e sem asserção em
+teste. Medido: nenhum teste ou artefato de `experimentos/`, `tools/` ou `.github/` fixa o texto
+antigo. A cláusula do `CONGELAMENTO.md` — *"quando o comportamento muda, pare e confirme"* —
+**não dispara**.
 
 **Com o quê.**
 
-- `tools/templates/lancamento.html` (a fonte, 2087 linhas)
+- `tools/templates/lancamento.html` (a fonte, 2084 linhas)
 - as três cópias empacotadas listadas acima
 - este `REGISTRO.md`
 
 **Referências.**
 
-- `REGISTRO.md:6821` — a entrada do botão `Salvar`; `:7137-7146` — o item 8, que prometeu esta
-  entrada própria; `:7014` e `:7072` — as duas notas de correção daquela entrada.
-- `tools/templates/lancamento.html:155` — `<button id="gerar-json" type="button">Salvar</button>`;
-  `:156` — `<span id="aviso-json"></span>`; `:98-104` — o cabeçalho, **não** tocado aqui.
-- `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
-- `AGENTS.md` — a ordem de trabalho sobre `tools/templates/`.
+- `REGISTRO.md:7153` — a entrada da legenda do `Salvar`; `:7128-7136` — o item 7 da nota de correção,
+  que registrou a primeira redação do cabeçalho; `:7241-7244` — o pendente que esta entrada cumpre
+  em parte.
+- `biblioteca/guia-do-professor.md` — o **modelo de voz** que o cabeçalho novo passa a seguir:
+  realce de abertura, segunda pessoa, prosa de utilidade e **zero** palavra de implementação.
+- `AGENTS.md` — a ordem de trabalho sobre `tools/templates/`; `CONGELAMENTO.md` — a lista dos
+  congelados e a regra do comportamento.
+- `tools/gerar-ciclo.sh:563` — o `cp` que propaga a fonte às cópias, sem templating.
 
 **O que ainda não está feito.**
 
-- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **4 commits à
+- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **6 commits à
   frente** de `origin/main`; o push não foi pedido.
 - **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
   `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **A voz de professor no resto do formulário segue pendente.** O cabeçalho (`:98-104`) ainda diz
-  *"índice de ciclos"*, *"cifrados no pacote"*, *"não commita"*; o `<summary>` (`:151`) diz *"salva
-  no JSON"*; a ajuda do botão de relatórios e as mensagens de erro falam de `assets/`,
-  `lib-vistas.js` e `tools/gerar-ciclo.sh`. A pesquisadora deferiu a reescrita.
+- **O resto da voz de programador no formulário segue pendente**, e **esta** é agora a lista
+  verdadeira: o `<h1>` (`:97`) e o `<title>` (`:6`) dizem *"formulário eletrônico"*; o `<summary>`
+  (`:148`) diz *"salva no JSON"*; o `#captura-campos` (`:149`) e a nota do painel de captura
+  (`:1409`) falam do *"índice do ciclo"*; a ajuda do botão de relatórios (`:171`) diz *"gera o filtro
+  inteiro em arquivo"*; a mensagem *"o JSON é por ciclo"* (`:1690`) e as mensagens de erro das libs
+  (`:1980`) e do `pedirSenha` (`:1918`) nomeiam `assets/`, `lib-vistas.js` e o JSON; e o comentário
+  dos *"TRÊS entregáveis"* (`:159`) contradiz os cinco de `ORDEM_ENTREGAVEIS` (`:902`). A
+  pesquisadora limitou esta peça ao cabeçalho.
 
 ## O que está pendente
 
@@ -1406,6 +1439,30 @@ hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo
   *"índice de ciclos"*, *"cifrados no pacote"*, *"não commita"*; o `<summary>` (`:151`) diz *"salva
   no JSON"*; a ajuda do botão de relatórios e as mensagens de erro falam de `assets/`,
   `lib-vistas.js` e `tools/gerar-ciclo.sh`. A pesquisadora deferiu a reescrita.
+
+> **Correção de 28/09/2026 (mesmo dia).** O pendente acima dizia *"A voz de professor no resto do
+> formulário segue pendente. O cabeçalho (`:98-104`) ainda diz "índice de ciclos", …"*. A **primeira**
+> cláusula — a do cabeçalho — **deixou de valer** na entrada seguinte, que a pesquisadora ditou e que
+> está logo abaixo. O pendente **não é reescrito**: ele fica como está, porque registra o estado em
+> que a peça anterior foi fechada. O que continua valendo dele, sem correção, é a **segunda** parte:
+> o `<summary>`, a ajuda do botão de relatórios e as mensagens de erro — e é essa parte que a entrada
+> seguinte retoma como lista verdadeira.
+
+## 28/09/2026 — O cabeçalho do formulário passa à voz de professor: só o que a página faz por ele
+
+
+- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **6 commits à
+  frente** de `origin/main`; o push não foi pedido.
+- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
+  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **O resto da voz de programador no formulário segue pendente**, e **esta** é agora a lista
+  verdadeira: o `<h1>` (`:97`) e o `<title>` (`:6`) dizem *"formulário eletrônico"*; o `<summary>`
+  (`:148`) diz *"salva no JSON"*; o `#captura-campos` (`:149`) e a nota do painel de captura
+  (`:1409`) falam do *"índice do ciclo"*; a ajuda do botão de relatórios (`:171`) diz *"gera o filtro
+  inteiro em arquivo"*; a mensagem *"o JSON é por ciclo"* (`:1690`) e as mensagens de erro das libs
+  (`:1980`) e do `pedirSenha` (`:1918`) nomeiam `assets/`, `lib-vistas.js` e o JSON; e o comentário
+  dos *"TRÊS entregáveis"* (`:159`) contradiz os cinco de `ORDEM_ENTREGAVEIS` (`:902`). A
+  pesquisadora limitou esta peça ao cabeçalho.
 - PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
