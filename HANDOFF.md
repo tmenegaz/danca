@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-28T11:01:27-0300`
-Commit atual: `7e21bd4` — docs(template): cabeçalho do formulário passa à voz de professor
+Gerado em: `2026-09-28T11:50:28-0300`
+Commit atual: `17ed444` — refactor(template): o botão `Exportar ajuste do plano` sai do formulário
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -49,6 +49,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+17ed444 refactor(template): o botão `Exportar ajuste do plano` sai do formulário
+3cbd318 docs(estrutura): regenera o HANDOFF depois de 7e21bd4
 7e21bd4 docs(template): cabeçalho do formulário passa à voz de professor
 aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
 e592373 docs(template): o botão `Salvar` deixa de ter legenda
@@ -67,8 +69,6 @@ ed3fce9 docs(campo): o campo ganha a forma canônica, o consentimento e o formul
 3ef2274 feat(aula-01): a âncora passa a existir por aula, não só por ciclo (§5.2)
 136361b feat(schema): o plano da aula ganha schema, validador e guarda no pre-commit
 282fbcb feat(template): o estado derivado e o ajuste no plano no formulário
-502f77d fix(tools): o DOCS deixa de ser lista à mão e passa a ser derivado do disco
-349fe83 feat(entrega): a identidade visual passa a ser medida por comando
 ```
 
 ## Por professor
@@ -146,131 +146,114 @@ ed3fce9 docs(campo): o campo ganha a forma canônica, o consentimento e o formul
 
 ## Última entrada do REGISTRO
 
-## 28/09/2026 — O cabeçalho do formulário passa à voz de professor: só o que a página faz por ele
+## 28/09/2026 — O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente
 
-**O que motivou.**
+**O que motivou.** A pesquisadora pediu a remoção **completa** do botão *"Exportar ajuste do
+plano"* (`#ajustar-plano`, a segunda barra do formulário) e que ficasse **registrado** que aquilo
+foi **erro de assistente** e não faz sentido existir. A pergunta dela foi direta e continua sem
+resposta possível: *"por que é que ele iria usar um exportar ajuste do plano? Vai exportar para
+onde? Para fazer o quê com isso?"* Uma explicação anterior já tinha sido recusada por citar
+documentação em vez de justificar o ponto de vista do usuário — **documentado ≠ justificado**.
 
-A entrada anterior (`:7153`) registrou, no seu "O que ainda não está feito", que *"a voz de professor
-no resto do formulário segue pendente"* — o cabeçalho (`:98-104`) ainda dizia *"índice de ciclos"*,
-*"cifrados no pacote"*, *"não commita"*; o `<summary>` dizia *"salva no JSON"*; a ajuda do botão de
-relatórios e as mensagens de erro falavam de `assets/`, `lib-vistas.js` e `tools/gerar-ciclo.sh`. A
-pesquisadora tinha deferido a reescrita (*"podemos editar depois"*).
+**O que foi decidido.** O botão e tudo que só ele sustentava **saem**; a distinção dos dois
+relógios e o arquivamento do plano anterior **ficam**.
 
-Nesta peça ela ditou a redação do **cabeçalho** e só dele: *"O texto deve ficar apenas assim
-"**Área do Professor.** Aqui você lê os dados da aula, **salva** o lançamento, faz ajustes e gera os
-relatórios.""*
+- **A distinção fica.** O relógio do **plano** fecha no **lançamento**; o do **lançamento** fecha
+  no **prazo** (`§3.1`). É o que impede os dois ajustes de estarem abertos ao mesmo tempo, e é o
+  que o guard do `pre-commit` (`§2c`, `:172–305`) aplica — **ele difere a fonte `aula-NN.md`
+  contra o `HEAD`, não lê nenhum id de HTML**, e por isso não é afetado por esta remoção.
+- **O arquivamento fica.** `plano-aula-NN.json` → `plano-aula-NN-anterior.json` continua sendo
+  produzido por `tools/gerar-ciclo.sh`. É a proveniência do estado anterior do plano.
+- **O que sai é a exportação.** A fonte `aula-NN.md` é do professor; o que o formulário ajusta é
+  o **lançamento**, que tem o seu próprio par (o `#ajustar` da barra 1, com `podeAjustar()`).
+  Não havia **consumidor** para o elo do plano: a página montava um `.md` que ninguém anexava.
 
-O critério é o mesmo das duas peças anteriores — o texto é **para o professor**, não para quem
-programa. Depois de uma redação que ainda nomeava *índice*, *cifrado*, *pacote*, *pasta*, *memória*
-e *commit*, a pesquisadora recusou explicitamente esse vocabulário: *"ele não precisa saber de
-commit, git, cifrado, pacote, pasta, índice etc. Ele precisa saber o que a página faz por ele, qual
-a utilidade da página."*
+**A assinatura do erro — verificada, não presumida.** `git log -1 -S'Exportar ajuste do plano'`
+aponta **`282fbcb`** — *"feat(template): o estado derivado e o ajuste no plano no formulário"*,
+28/09/2026, commit **co-assinado por Copilot** (`Co-authored-by: Copilot`), que trouxe o `B8`
+(peça 7) inteiro. O botão nasceu aí, **não** de um pedido da pesquisadora. O pedido dela, na
+origem, era outro: um botão para ajustar **quando o "Plano seguido" fosse diferente de *sim***,
+com o campo *"O que mudou em relação ao plano"* — que é o **ajuste do lançamento**, e esse
+`#ajustar` **está funcionando e foi aprovado**. O que se registra aqui é o elo errado, não uma
+mudança de rumo dela.
 
-**O que foi decidido.**
-
-- O aviso do topo passa a ser **duas linhas**: o realce `**Área do Professor.**` seguido de uma
-  frase que diz o que a página faz pelo professor — **lê** os dados da aula, **salva** o lançamento,
-  **faz ajustes** e **gera os relatórios**. O realce em `salva` é da pesquisadora e fica.
-- **Sai** toda a menção a implementação: o índice de ciclos, os dados que viajam cifrados no pacote,
-  a pasta do ciclo, as vistas calculadas na memória e o commit que é do professor.
-- **A consequência verdadeira não se perde — ela sai da página.** A que o texto antigo preservava
-  (*"a página grava, mas não commita"*) é verdade de **operação do repositório**, não informação de
-  quem lança a aula; o professor não precisa dela para usar o formulário, e ela continua registrada
-  onde pertence — neste `REGISTRO.md`, em `ARQUITETURA-CAPTURA.md` e nas regras de versionamento.
-- **Só o cabeçalho.** O `<h1>` (`:97`), o `<summary>` (`:148`), o `#captura-campos` (`:149`), a nota
-  do painel de captura (`:1409`), a ajuda do botão de relatórios (`:171`), as mensagens de erro e o
-  comentário dos *"TRÊS entregáveis"* (`:159`) **não** são tocados aqui. A pesquisadora limitou o
-  pedido: *"o texto deve ficar apenas assim"*.
-- **Sem reancoragem.** A âncora cobre as fontes de ciclo; o `lancamento.html` não está entre os 21
-  caminhos cobertos (`grep -c 'lancamento'` na `.fipp` → **0**).
+**O que NÃO se toca.** O ajuste do lançamento (barra 1) fica inteiro: `#acoes-ajuste`, `#ajustar`,
+`#cancelar-ajuste`, `#aviso-ajuste`, a gate `podeAjustar()` (`:975`), o bloco do `render()`
+(`:1560–1574`) e o listener (`:1761`). Também ficam os auxiliares **compartilhados** com ele
+(`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`, `estadoDaAula`,
+`semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`, `fimDoPrazo`,
+`gravarNaPasta`, `#gerar-json` e `#aviso-json` — este último pinado pelo teste de regressão).
+O `mdAjuste` de `biblioteca/lib-vistas.js:48` é o elo do **lançamento** — função **diferente** da
+`mdAjusteDoPlano` que saiu.
 
 **Onde entrou.**
 
-`tools/templates/lancamento.html` — **cinco linhas viram duas** (`2 5` no `git diff --numstat`),
-medidas com `git diff -U0 HEAD`:
+- `tools/templates/lancamento.html` — a remoção. 273 linhas a menos, **só deleções, zero
+  adições**: HTML da barra (5 linhas), o CSS dela, o `render()`, os dois listeners, o `motivo` do
+  ajuste do plano, e os **12** auxiliares exclusivos dela (`podeAjustarPlano`, `escolaDaAula`,
+  `nomeFonteDaAula`, `canonico`, `carregarPlanoDaAula`, `contarFolhas`, `MAPA_DO_PLANO`,
+  `mapaDoPlano`, `semPrefixoDaAula`, `montarAjusteDoPlano`, `mdAjusteDoPlano` e
+  `exportarAjusteDoPlano`).
+- Os três pacotes gerados — `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html`,
+  `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` e
+  `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` — reconstruídos a partir do template
+  limpo com o `<nav>` próprio de cada um reposto no lugar do marcador `<!-- NAV -->`.
+- `ARQUITETURA-AULA.md` — correção datada no `§1.2` (a nota do `B8`) e no item 8 do `§10`.
+- `ARQUITETURA-CAPTURA.md` — correção datada na nota dos *"dois ajustes"* e na **caixa da
+  divergência declarada** do `§5.1` (*"a resolver quando o formulário for revisto"* — a revisão
+  chegou, e resolveu a divergência **do plano**; a do **lançamento** segue aberta).
+- `tools/gerar-ciclo.sh` — o comentário do plano por aula, que dizia *"o botão do modo 'ajuste do
+  plano' não tem entrada"*.
 
-```diff
-@@ -99,5 +99,2 @@
--  <strong>Área do Professor.</strong> Lê o índice de ciclos e, sob demanda, os dados do ciclo
--  escolhido — que viajam <strong>cifrados</strong> no pacote, como os acompanhamentos. Aqui você
--  lança a aula, <strong>salva</strong> o lançamento na pasta do ciclo que escolher, faz ajustes e
--  gera os relatórios. As vistas são calculadas na memória: a página grava, mas
--  <strong>não commita</strong> — o commit é seu.
-+  <strong>Área do Professor.</strong> Aqui você lê os dados da aula, <strong>salva</strong> o
-+  lançamento, faz ajustes e gera os relatórios.
-```
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` e `tools/gerar-ciclo.sh`
+estão em `tools/` (`CONGELAMENTO.md`), e por isso mudam **só com motivo declarado, entrada no
+`REGISTRO.md` e commit próprio** — que é esta entrada. O motivo: o template **é** a peça; não há
+como remover um botão dele sem alterá-lo. No `gerar-ciclo.sh` a mudança é **só de comentário**
+(nenhuma linha executável): o texto vigente descrevia um consumidor que deixou de existir, e
+deixá-lo faria o próximo leitor procurar um botão que não está lá.
 
-O `<h1>` (`:97`) e o `</div>` (`:101`) ficam intactos — são as linhas de contexto do hunk. A fonte é
-congelada e é **a única**: as três cópias empacotadas saem dela por `cp` direto
-(`tools/gerar-ciclo.sh:563`), sem templating. Regeneradas com
-`tools/gerar-ciclo.sh <professor> <ciclo> <escola>`:
+**Com o quê.** Verificação medida, não presumida:
 
-| arquivo | antes | depois | novo cabeçalho em | hunk | `>Salvar<` | `id="aviso-json"` |
-|---|---|---|---|---|---|---|
-| `tools/templates/lancamento.html` | 2087 | **2084** | `:99` | `@@ -99,5 +99,2 @@` | 1 | 1 |
-| `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html` | 2142 | **2139** | `:154` | `@@ -154,5 +154,2 @@` | 1 | 1 |
-| `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` | 2141 | **2138** | `:153` | `@@ -153,5 +153,2 @@` | 1 | 1 |
-| `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` | 2142 | **2139** | `:154` | `@@ -154,5 +154,2 @@` | 1 | 1 |
-
-**A regeneração churnou 21 arquivos e 18 foram descartados.** O `gerar-ciclo.sh` não é
-determinístico: o `ciclos.json` carimba `gerado_em`, o `-dados.json` é recifrado com IV aleatório, os
-dez `acompanhamento-*.html` trazem uma linha longa que reflui e os três PDFs mudam por carimbo de
-tempo. `git checkout -- professores/` com três `:(exclude)` — os três `lancamento.html` — restaurou
-os 18, e sobraram exatamente **quatro** arquivos modificados, todos `2 5`: a fonte e as três cópias.
-O churn não é entrega e não vai no commit.
-
-**O elo anterior não é reescrito.** O item 7 da nota de correção da entrada `:7153`
-(`REGISTRO.md:7128-7136`) registrou a **primeira** redação do cabeçalho como feita, citando
-`tools/templates/lancamento.html:97-103`. A pesquisadora **mudou a redação depois**; esta entrada é
-o elo novo e **não** substitui aquele texto. Fica valendo o que o item 7 registrava sobre o
-**método** (a redação em voz de professor, pedida depois da decisão), e o que fica no arquivo é a
-**segunda** redação — a ditada nesta peça. Nada foi apagado: o elo anterior permanece legível em
-`:7128-7136`.
-
-**Motivo declarado — os congelados.**
-
-`tools/templates/lancamento.html` está em `CONGELAMENTO.md`. O motivo é o de cima: o texto do
-cabeçalho endereçava-se a quem programa — nomeava o índice, o cifrado, o pacote, a pasta e o commit
-— e a pesquisadora pediu que ele dissesse apenas o que a página faz pelo professor.
-
-**O que NÃO muda:** a fórmula de hash (`tools/hash-ciclo.sh`), a cobertura da âncora, os validadores
-e as pétreas. A mudança é **de redação visível**, não de comportamento: o aviso é `display` de texto
-estático, sem `id` próprio que o JavaScript leia, sem seletor em folha de estilo e sem asserção em
-teste. Medido: nenhum teste ou artefato de `experimentos/`, `tools/` ou `.github/` fixa o texto
-antigo. A cláusula do `CONGELAMENTO.md` — *"quando o comportamento muda, pare e confirme"* —
-**não dispara**.
-
-**Com o quê.**
-
-- `tools/templates/lancamento.html` (a fonte, 2084 linhas)
-- as três cópias empacotadas listadas acima
-- este `REGISTRO.md`
+- `node tools/check-pacote.js` nos três pacotes ⇒ `0 erro(s)`.
+- `node --check` no JS embutido do template ⇒ OK; `simular-formulario.js` ⇒ `EXIT=0`.
+- Os 18 símbolos exclusivos da barra 2 ⇒ **0 ocorrências** no template e nas três cópias;
+  `#acoes-ajuste`/`#ajustar` ⇒ **7** em cada.
+- `tools/gerar-ciclo.sh fochini 01 diaghilev` (execução real) ⇒ `EXIT=0` e o `lancamento.html`
+  emitido **idêntico** à cópia reconstruída à mão — a propagação é o que o próprio gerador
+  produz, a menos de uma linha em branco.
+- Os artefatos de arrasto da execução de teste (`ciclos.json`, `-dados.json`, o PDF) foram
+  revertidos; o diff final é **deleção pura**.
+- Âncora: **não** exige reancorar — o `.fipp` cobre 21 caminhos por ciclo e **nenhum** é
+  `lancamento.html` (`grep -c lancamento` ⇒ 0). Os três `--check` seguem `EXIT=0`.
 
 **Referências.**
 
-- `REGISTRO.md:7153` — a entrada da legenda do `Salvar`; `:7128-7136` — o item 7 da nota de correção,
-  que registrou a primeira redação do cabeçalho; `:7241-7244` — o pendente que esta entrada cumpre
-  em parte.
-- `biblioteca/guia-do-professor.md` — o **modelo de voz** que o cabeçalho novo passa a seguir:
-  realce de abertura, segunda pessoa, prosa de utilidade e **zero** palavra de implementação.
-- `AGENTS.md` — a ordem de trabalho sobre `tools/templates/`; `CONGELAMENTO.md` — a lista dos
-  congelados e a regra do comportamento.
-- `tools/gerar-ciclo.sh:563` — o `cp` que propaga a fonte às cópias, sem templating.
+- O commit que introduziu o erro: **`282fbcb`** (*"o estado derivado e o ajuste no plano no
+  formulário"*, co-assinado por Copilot).
+- `ARQUITETURA-AULA.md` §1.1 (os quatro estados e o CRUD da aula planejada), §1.2 (a distinção
+  dos dois relógios), §10 item 8 (o `B8`).
+- `ARQUITETURA-CAPTURA.md` §5.1 (a caixa da divergência declarada) e a nota dos *"dois ajustes"*.
+- `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
+- `tools/hooks/pre-commit:172–305` — o guard do `B8`, que difere a **fonte**, não o HTML.
+- `prompts/eliciar-ciclo.md` foi deixado **de fora** do commit (modificação anterior, sem relação
+  com esta peça), e `po_ref/` continua não versionado.
 
 **O que ainda não está feito.**
 
-- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **6 commits à
-  frente** de `origin/main`; o push não foi pedido.
 - **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
   `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **O resto da voz de programador no formulário segue pendente**, e **esta** é agora a lista
-  verdadeira: o `<h1>` (`:97`) e o `<title>` (`:6`) dizem *"formulário eletrônico"*; o `<summary>`
-  (`:148`) diz *"salva no JSON"*; o `#captura-campos` (`:149`) e a nota do painel de captura
-  (`:1409`) falam do *"índice do ciclo"*; a ajuda do botão de relatórios (`:171`) diz *"gera o filtro
-  inteiro em arquivo"*; a mensagem *"o JSON é por ciclo"* (`:1690`) e as mensagens de erro das libs
-  (`:1980`) e do `pedirSenha` (`:1918`) nomeiam `assets/`, `lib-vistas.js` e o JSON; e o comentário
-  dos *"TRÊS entregáveis"* (`:159`) contradiz os cinco de `ORDEM_ENTREGAVEIS` (`:902`). A
-  pesquisadora limitou esta peça ao cabeçalho.
+- **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
+  proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
+  continuar produzindo ou parar.
+- **A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
+  lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
+  `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
+  `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
+  27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
+  silenciosa.
+- **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
+  processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
+  **não foi respondida**.
 
 ## O que está pendente
 
@@ -1463,6 +1446,24 @@ hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo
   (`:1980`) e do `pedirSenha` (`:1918`) nomeiam `assets/`, `lib-vistas.js` e o JSON; e o comentário
   dos *"TRÊS entregáveis"* (`:159`) contradiz os cinco de `ORDEM_ENTREGAVEIS` (`:902`). A
   pesquisadora limitou esta peça ao cabeçalho.
+
+## 28/09/2026 — O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente
+
+
+- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
+  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
+  proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
+  continuar produzindo ou parar.
+- **A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
+  lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
+  `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
+  `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
+  27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
+  silenciosa.
+- **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
+  processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
+  **não foi respondida**.
 - PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
