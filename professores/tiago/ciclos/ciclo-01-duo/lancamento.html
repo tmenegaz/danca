@@ -178,11 +178,11 @@
 <!-- Captura — o §3 do IDEIA-CAPTURA (antes / durante / depois da aula). Fechada por
      padrão: a leitura vem primeiro; o lançamento fica a um clique, sem procurar. -->
 <details class="captura" id="captura">
-  <summary>Lançar uma aula (salva no JSON)</summary>
+  <summary>Lançar uma aula</summary>
   <div id="captura-campos"><p class="vazio">Escolha um ciclo — o lançamento é por aula,
     dentro de um ciclo.</p></div>
   <div class="acoes">
-    <button id="gerar-json" type="button">Salvar</button>
+    <button id="gerar-json" type="button">Enviar</button>
     <span id="aviso-json"></span>
   </div>
 </details>
@@ -222,8 +222,8 @@
 
 <!-- As duas libs do projeto, publicadas em assets/ pelo gerador: o pacote é o que se publica, e
      esta página lê tudo o que precisa AO LADO DELA — as libs, o índice (ciclos.json), os JSONs de
-     entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). O que ela salva
-     (o lançamento) vai para a pasta do ciclo que o professor escolher, ao lado de tudo isso. -->
+     entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). O lançamento ela
+     ENVIA para o site: nada aqui é gravado no computador de quem usa. -->
 <script src="assets/lib-vistas.js"></script>
 <script src="assets/lib-cifra.js"></script>
 <!-- O comportamento da barra fixa e do menu mobile é o MESMO do resto do site, e vive num
@@ -661,7 +661,7 @@ async function mdDoFiltro() {
     return { texto: partes.join('\n\n---\n\n') || '(Nada no filtro atual.)\n', prov };
   }
   // O filtro pode não sustentar o entregável escolhido (o seletor desabilita a opção,
-  // mas o código não depende disso): melhor recusar dizendo o que falta do que baixar
+  // mas o código não depende disso): melhor recusar dizendo o que falta do que gerar
   // um arquivo que não corresponde a nada.
   if (!entregavelPossivel(tipo)) {
     const falta = ENTREGAVEIS[tipo] ? ENTREGAVEIS[tipo].exige : null;
@@ -742,7 +742,7 @@ function atualizarEntregavel() {
   const natural = ORDEM_ENTREGAVEIS.find(entregavelPossivel) || 'caderno';
   if (!entregavelEscolhido || !entregavelPossivel(entregavelAtual())) entrega.value = natural;
   // A ajuda diz QUAL arquivo vai sair: o nome é a única coisa que o professor vê antes
-  // de clicar (depois do clique, ele já está na pasta de downloads).
+  // de clicar.
   const ajuda = el('ajuda-md');
   if (ajuda) {
     const nome = nomeDoArquivo(entregavelAtual());
@@ -776,31 +776,26 @@ function nomeDoArquivo(tipo) {
   return `caderno-${id ? `${id}${escola ? '-' + escola : ''}` : 'todos'}.md`;
 }
 
-// --------------------------------------------------- gravar na pasta do ciclo
-// A pasta é escolhida UMA vez por carga da página e fica guardada: pedir a pasta a cada
-// salvamento seria pedir ao professor que localizasse o ciclo de novo, toda vez.
-let pasta = null;
-
-// Grava os arquivos DIRETO na pasta escolhida, pelo File System Access API. Devolve `false`
-// — sem lançar — quando o navegador não sabe fazer isso (Firefox/Safari), quando a página
-// não é contexto seguro, ou quando o professor cancela o seletor: quem chamou decide o que
-// dizer. `showDirectoryPicker` exige gesto do usuário, e o clique no botão é o gesto.
-async function gravarNaPasta(arquivos) {
-  if (!globalThis.showDirectoryPicker || !globalThis.isSecureContext) return false;
-  try {
-    if (!pasta) pasta = await globalThis.showDirectoryPicker({ id: 'ciclo', mode: 'readwrite' });
-    if (await pasta.queryPermission({ mode: 'readwrite' }) !== 'granted' &&
-        await pasta.requestPermission({ mode: 'readwrite' }) !== 'granted') return false;
-    for (const a of arquivos) {
-      const h = await pasta.getFileHandle(a.nome, { create: true });
-      const w = await h.createWritable();
-      await w.write(new Blob([a.texto], { type: a.tipo }));
-      await w.close();
-    }
-    return true;
-  } catch (e) {
-    return false;                 // AbortError do seletor, ou falha de escrita no disco
+// --------------------------------------------------------- enviar o lançamento
+// O único caminho de saída da página: o POST leva o par (dados do ciclo + índice) para a
+// função do site, e é lá que o lançamento fica guardado. Não há seletor de pasta e não há
+// download: quem usa a página não escolhe onde o dado mora, nem fica com cópia solta no
+// computador. Se a resposta não vier `ok`, quem chamou avisa e NÃO dá o lançamento por
+// feito — os campos continuam na tela, para o professor tentar de novo.
+const RECEBER = '/.netlify/functions/receber';
+async function enviar(arquivos) {
+  const r = await fetch(RECEBER, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ciclo: sel.ciclo.value, arquivos }),
+  });
+  // A resposta pode não ser JSON (endpoint ausente, erro do servidor): nesse caso o que
+  // resta dizer é o código, e o lançamento continua na tela.
+  const dados = await r.json().catch(() => null);
+  if (!r.ok || !dados || dados.ok === false) {
+    throw new Error((dados && dados.erro) || `HTTP ${r.status}`);
   }
+  return dados;
 }
 
 // ----------------------------------------------------------- baixar um arquivo
@@ -840,9 +835,9 @@ async function gerarMd() {
 
 // ------------------------------------------------------------------- captura
 // O §3 do IDEIA-CAPTURA — antes (monta os campos), durante (marca) e depois
-// (lança → atualiza o JSON em memória → salva → commita). O JSON é a fonte, então o
-// que se salva é o ARQUIVO DO CICLO INTEIRO com esta aula dentro: diff pequeno,
-// commit legível. E é por isso que não há carimbo dentro do JSON — a proveniência
+// (lança → atualiza o JSON em memória → envia ao site → é o site que guarda). O JSON é a
+// fonte, então o que se envia é o ARQUIVO DO CICLO INTEIRO com esta aula dentro: diff
+// pequeno, commit legível. E é por isso que não há carimbo dentro do JSON — a proveniência
 // dele é o commit ("cada estado do JSON é um commit", IDEIA-CAPTURA).
 const MARCAS = [['', 'não observei'], ['ok', '✓ ok'], ['parcial', '~ parcial'],
   ['nao', 'X não aconteceu'], ['nao_vi', '? não vi']];
@@ -996,7 +991,7 @@ const nomeVersionado = (nome, d = new Date()) => `${baseDoArquivo(nome)}-${carim
 // Duas gravações no mesmo minuto dariam o mesmo nome — e o anterior seria sobrescrito.
 // Se o carimbo do relógio não ficar MAIOR que o nome anterior (mesmo minuto, ou um
 // anterior que já foi adiantado), o carimbo é derivado DO ANTERIOR, minuto a minuto:
-// os nomes crescem sempre, a pasta ordena na ordem da gravação, e nada é sobrescrito.
+// os nomes crescem sempre, ordenam na ordem da gravação, e nada é sobrescrito.
 const nomeNovo = (anterior, d) => {
   const doRelogio = nomeVersionado(anterior, d);
   if (doRelogio > anterior) return doRelogio;
@@ -1491,10 +1486,10 @@ function indiceComArquivo(id, nome) {
     indiceTexto.slice(fim);
 }
 
-// §3.3: lança no JSON EM MEMÓRIA → SALVA o arquivo do ciclo na pasta escolhida → o commit
-// é de quem lê. Cada gravação cria um ARQUIVO NOVO, com carimbo no nome, e o índice passa a
-// apontar para ele — o anterior permanece (acessível, e não é o vigente). O ajuste usa o
-// mesmo caminho, com mais campos na raiz: de onde veio, quando, por quem e por quê.
+// §3.3: lança no JSON em memória → ENVIA o par (dados do ciclo + índice) para o site.
+// Cada envio cria um ARQUIVO NOVO, com carimbo no nome, e o índice passa a apontar para ele
+// — o anterior permanece (acessível, e não é o vigente). O ajuste usa o mesmo caminho, com
+// mais campos na raiz: de onde veio, quando, por quem e por quê.
 async function gerarJson() {
   const aviso = el('aviso-json');
   const dizer = (html) => { if (aviso) aviso.innerHTML = html; };
@@ -1502,7 +1497,7 @@ async function gerarJson() {
   if (!f) { dizer('<span class="erro">Escolha um ciclo — o JSON é por ciclo.</span>'); return; }
   const { id, aula, faltando, motivo, autor } = coletarCaptura(f.dados);
   if (faltando.length) {
-    dizer(`<span class="erro">não gerei: falta ${esc(faltando.join(', '))}.</span>`);
+    dizer(`<span class="erro">não enviei: falta ${esc(faltando.join(', '))}.</span>`);
     return;
   }
   const ajuste = !!estadoAjuste();
@@ -1530,42 +1525,45 @@ async function gerarJson() {
   try {
     JSON.parse(texto);
   } catch (e) {
-    dizer(`<span class="erro">não gerei: o arquivo sairia inválido (${esc(e.message)}).</span>`);
+    dizer(`<span class="erro">não enviei: o arquivo sairia inválido (${esc(e.message)}).</span>`);
     return;
   }
   const novoNome = nomeNovo(deOnde, agora);
   const indiceNovo = indiceComArquivo(sel.ciclo.value, novoNome);
   // O índice sai no mesmo ato, mas não passava pelo mesmo guard do arquivo de dados: um
-  // índice inválido ia para o disco sem aviso, e a falha só aparecia depois, na leitura.
+  // índice inválido ia embora sem aviso, e a falha só aparecia depois, na leitura.
   try {
     JSON.parse(indiceNovo);
   } catch (e) {
-    dizer(`<span class="erro">não gerei: o índice sairia inválido (${esc(e.message)}).</span>`);
+    dizer(`<span class="erro">não enviei: o índice sairia inválido (${esc(e.message)}).</span>`);
     return;
   }
-  f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser escrito
-  f.texto = texto;               // e o texto, para a próxima gravação não perder esta
-  f.meta.arquivo = novoNome;     // a página passa a apontar para o vigente
-  // O ARQUIVO DE DADOS vai primeiro: se o índice chegasse ao disco apontando para um
+  // NADA em memória muda antes de o envio dar certo: se ele falhar, a página continua
+  // lendo o ciclo como estava, e o professor reenvia sem ter perdido o que digitou.
+  // O ARQUIVO DE DADOS vai primeiro: se o índice chegasse ao destino apontando para um
   // arquivo que não está lá, a próxima abertura da página leria um ciclo inexistente.
   const arquivos = [
     { nome: novoNome, texto, tipo: 'application/json;charset=utf-8' },
     { nome: 'ciclos.json', texto: indiceNovo, tipo: 'application/json;charset=utf-8' },
   ];
-  const gravou = await gravarNaPasta(arquivos);
-  // Sem File System Access (Firefox/Safari, ou contexto não seguro) o par desce como
-  // download, e a página DIZ que desceu — o professor tem de mover à mão, e não pode
-  // descobrir isso depois, na pasta errada.
-  if (!gravou) arquivos.forEach((a) => baixar(a.nome, a.texto, a.tipo));
-  const onde = gravou
-    ? 'salvo na pasta do ciclo'
-    : '<span class="erro">este navegador não escreve na pasta — os arquivos foram para a pasta de ' +
-      'downloads: mova-os para a pasta do ciclo, no lugar dos antigos</span>';
-  dizer(`<span class="fraco">${onde}` +
+  try {
+    await enviar(arquivos);
+  } catch (e) {
+    // O envio falhou: os campos ficam como estão, o ajuste continua aberto e a página
+    // DIZ que não foi — a alternativa (limpar a tela como se tivesse dado certo) faria
+    // o professor perder o lançamento sem saber.
+    dizer(`<span class="erro">não enviei: ${esc(e.message)}. ` +
+      'Os dados continuam aqui — tente de novo.</span>');
+    return;
+  }
+  f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser enviado
+  f.texto = texto;               // e o texto, para o próximo envio não perder este
+  f.meta.arquivo = novoNome;     // a página passa a apontar para o vigente
+  dizer(`<span class="fraco">lançamento enviado como <code>${esc(novoNome)}</code>` +
     `${ajuste ? ` — ajuste de <code>${esc(deOnde)}</code>, motivo: ${esc(motivo)}` : ''}` +
     ` · aula ${esc(id)} ${jaTinha ? 'atualizada' : 'acrescentada'} · ` +
     `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s)</span>`);
-  ajustando = false;             // gravou: ou entrou no registro, ou corrigiu o que havia
+  ajustando = false;             // enviado: ou entrou no registro, ou corrigiu o que havia
   pagina = 1;
   // A aula lançada passa a existir para a leitura — e o painel sai de cena, porque o
   // filtro agora está numa aula COM dado: a página volta a ser leitura.
@@ -1768,10 +1766,9 @@ async function trocarCiclo() {
     return;
   }
   try {
-    // O TEXTO do índice também é guardado: ao gravar, a página reescreve o `arquivo` do
-    // ciclo (cirurgicamente) e salva o `ciclos.json` apontando para o vigente. Não há
-    // servidor: quem escreve no disco é o File System Access, na pasta que o professor
-    // escolhe — e, onde ele não existir, o par desce como download.
+    // O TEXTO do índice também é guardado: ao enviar, a página reescreve o `arquivo` do
+    // ciclo (cirurgicamente) e manda o `ciclos.json` apontando para o vigente. Quem
+    // escreve é a função do site — a página não toca no computador de quem usa.
     // O `r.ok` é conferido porque um 404 não lança: sem ele o erro só apareceria no
     // JSON.parse — e com a cara do arquivo errado.
     const rIndice = await fetch(P + 'ciclos.json');
