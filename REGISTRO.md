@@ -7894,3 +7894,73 @@ fecho do Passo 1).
 - Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
   leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
   `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
+
+## 29/09/2026 — Os dois congelados entram: o índice ganha o slug e a entrevista declara dois artefatos
+
+**O que motivou.** Duas alterações estavam paradas no worktree, ambas em arquivo congelado, e
+nenhuma com entrada neste registro. A primeira é de outra sessão: o `ciclos.json` que o
+`gerar-ciclo.sh` escreve não traz o **slug** da pasta do professor, e o backend que passou a existir
+hoje (`receber.js`) o procura ali — o `slugDe` tem `c.professor` como **primeira** regra, e sem ela
+cai no nome do arquivo de dados. A segunda é uma deriva documental: o prompt da entrevista dizia, na
+abertura, que ela compila *"tudo num documento único em Markdown"*, quando a seção `## O que esta
+entrevista produz` — já no mesmo arquivo — diz o contrário: *"dois artefatos do mesmo ciclo — não
+um só"*. Documento com informação conflitante é o que a pesquisadora proibiu explicitamente.
+
+**O que foi decidido.** Publicar as duas, com o motivo declarado que o `CONGELAMENTO.md` exige, e
+deixar registrado o que **não** foi feito.
+
+1. **`tools/gerar-ciclo.sh` — o índice passa a declarar `professor`.** O contrato que a Function
+   implementa é: o slug da pasta (`professores/<slug>/`) é o que endereça o pacote, e o pacote
+   publicado não tem de onde tirá-lo — a chave do store é montada como
+   `<professor>/<ciclo>-<carimbo>`.
+   - **Por que `professor` e não `escola`.** `escola` é o **nome de exibição** (`"Diaghilev"`), e o
+     slug da variante só existe dentro do nome do arquivo de dados. Trocar um pelo outro daria
+     chave com espaço, acento e maiúscula.
+   - **A ordem das regras resolve o caso.** `slugDe` lê `c.professor`, depois `dados.professor`,
+     depois o regex sobre `c.arquivo`. Enquanto o índice não traz o campo, a primeira regra nunca
+     dispara e a chave sai do nome do arquivo de dados.
+   - **`PROFESSOR_SLUG` já existia no escopo.** Ele é o `$1` do script (default `tiago`) e é ele que
+     resolve a pasta de trabalho; a emenda só o repassa ao processo Python que monta o índice.
+
+2. **`prompts/eliciar-ciclo.md` — a entrevista declara os dois artefatos.** A abertura passa a
+   nomear **o plano das aulas** e **o recorte do que eu vou observar**, ganha a seção `## O que esta
+   entrevista produz`, e dois itens em *"Como conduzir"*.
+   - **A cauda de `:4` foi corrigida nesta peça.** Ela dizia *"você compila tudo num documento único
+     em Markdown"* — o resíduo que contradizia a seção nova. Agora diz *"você compila os dois
+     artefatos do mesmo ciclo em Markdown"*. A varredura por `documento único` no repositório volta
+     vazia: era o último.
+   - **As linhas de `:3`/`:4` não foram tocadas.** Elas já estavam corretas — nomeavam o plano e o
+     recorte. O erro era só a cauda.
+
+**Onde entrou.** `tools/gerar-ciclo.sh` — `PROFESSOR_SLUG` no ambiente do bloco Python (`:298`) e o
+campo `'professor'` no `indice` (`:501`), com o comentário que explica por que não é `escola` ·
+`prompts/eliciar-ciclo.md` — abertura, seção nova e dois itens de conduta · `REGISTRO.md` — esta
+entrada.
+
+**Motivo declarado — os congelados.** Os dois arquivos são congelados, e a mudança de cada um tem
+motivo próprio. `tools/gerar-ciclo.sh` **não muda o que gera** — não toca layout, hash, âncora nem
+nome de arquivo; acrescenta **um campo de metadado** ao índice, e o índice já era o artefato que
+declara quem é o ciclo. Sem ele, o transporte que entrou hoje (a Function e o store) **não teria
+como saber o dono do pacote**: o `ciclos.json` publicado hoje traz só `id`, `escola`, `inicio`,
+`fim`, `total_aulas` e `aulas[]`, e o slug não está em nenhum deles. A alteração é **aditiva e
+retrocompatível** — quem lê o índice hoje ignora o campo novo, e o `receber.js` só o consulta como
+primeira tentativa. `prompts/eliciar-ciclo.md` **não é consumido por nenhum gerador**: é texto de
+entrevista, lido por humano e por sessão de IA. A emenda só o alinha ao que ele mesmo já dizia
+adiante; a correção da cauda remove a única contradição que restava no repositório. Em nenhum dos
+dois casos há dependência nova, mudança de contrato de arquivo ou efeito sobre ciclo publicado.
+
+**Com o quê.** `tools/gerar-ciclo.sh`, `prompts/eliciar-ciclo.md`, `REGISTRO.md`. Commit próprio,
+separado das alterações livres do mesmo worktree, como o `CONGELAMENTO.md` pede.
+
+**Referências.** `CONGELAMENTO.md` (a regra do motivo declarado) · `netlify/functions/receber.js`
+(`slugDe` e a ordem das regras) · a entrada de 29/09/2026 acima, *"o `POST` ganha destino e a cadeia
+reancora por push"* · `ARQUITETURA-PE.md` e `ARQUITETURA-ANAMNESE.md`, que já citam o prompt como
+produtor de dois artefatos.
+
+**O que ainda não está feito.** A emenda do `gerar-ciclo.sh` **não foi propagada**: medido nos três
+índices publicados (`fochini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`), o
+campo `professor` está **ausente nos três** — a fonte mudou, os pacotes não. Enquanto não forem
+regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `receber.js` as
+mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
+Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
+ser refeito por causa desta peça.

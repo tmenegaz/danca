@@ -1,8 +1,9 @@
 # Eliciação de Ciclo de Aulas de Balé — Entrevista Guiada
 
-Você vai me ajudar a estruturar um ciclo de aulas de balé clássico. Vou
-responder suas perguntas e, ao final, você compila tudo num documento único
-em Markdown.
+Você vai me ajudar a estruturar um ciclo de aulas de balé clássico — o **plano
+das aulas** e o **recorte do que eu vou observar** enquanto elas acontecem. Vou
+responder suas perguntas e, ao final, você compila **os dois artefatos** do
+mesmo ciclo em Markdown.
 
 ## O que é um ciclo
 
@@ -12,6 +13,30 @@ pedagógico comum, com avaliação formativa no meio e somativa no fim.
 Junto com o ciclo, vamos construir o **Plano de Observação (PO)** — o
 recorte do que você observa durante o ciclo. O PO é seu, diferente do de
 qualquer outro professor, mesmo em turmas parecidas.
+
+## O que esta entrevista produz
+
+Esta entrevista produz **dois artefatos do mesmo ciclo** — não um só. É o mesmo
+conjunto de aulas, lido de dois jeitos:
+
+- **Os Blocos 1 a 4 constroem o plano do ciclo e das aulas** — o contexto, o
+  objetivo, as alunas, a primeira aula e os marcos aula a aula. É **o que você
+  pretende fazer**.
+- **Os Blocos 5 a 9 constroem o Plano de Observação (PO)** — o recorte do que
+  você vai olhar enquanto faz. É **o que você observa**.
+
+São **duas leituras de um só artefato** (P-01 — o ciclo é PO latente). Por isso o
+contexto (Bloco 1) e as alunas (Bloco 3) alimentam os dois: são, ao mesmo tempo,
+o que se planeja e o que se observa.
+
+**Eliciar o ciclo é planejar as aulas.** Não existe memória da aula dada sem o
+planejamento da aula: o que se registra depois é **o que mudou em relação ao
+plano** — e é o plano que dá a linha de base. Esta entrevista é o **primeiro elo
+da cadeia**: ela planeja, e é o plano que torna a memória possível.
+
+O **Bloco 10** (documentos auxiliares) não é nem plano nem PO — é material de
+apoio. O **fechamento** não acrescenta pergunta nova: relê o PO contra o
+checklist de validação.
 
 ## Como conduzir
 
@@ -29,6 +54,18 @@ qualquer outro professor, mesmo em turmas parecidas.
   o extrator do plano lê como um objeto por aula (`{n, marco}`). Escrita como
   item de lista, cada marco vira texto solto na lista, e quem consome precisa
   descartar a prosa antes de usar.
+- **Quando você me der uma pergunta, eu respondo primeiro na minha língua.** Os
+  termos do protocolo não somem: eles aparecem **na linha de baixo, entre
+  crases**, nomeando o que a minha resposta vira. Chamamos isto de **ponte**: a
+  substância da pergunta é a do protocolo, a redação é a minha, e o elo entre as
+  duas fica **escrito** — nunca implícito.
+- **Atenção à palavra "bloco": ela tem três sentidos.** Nesta entrevista,
+  "Bloco N" é um dos **dez blocos da entrevista** (1 a 10). No **plano da aula**,
+  "Bloco 1..4" são as partes da aula (solo, barra, centro, presença), com tempos e
+  porcentagem. Na **folha de captura**, "Bloco 1..5" são as seções de registro
+  (técnica, funcional, musicalidade, linha de base revisitada). São **três listas
+  independentes** — quando eu disser "o Bloco 6", é ao da entrevista que me
+  refiro.
 
 ## Bloco 1 — Contexto institucional
 

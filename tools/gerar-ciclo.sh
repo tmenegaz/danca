@@ -295,6 +295,7 @@ for folha_nn in $(familias_por_aula captura-aula); do
 done
 CICLO="$CICLO" ESCOLA="$ESCOLA" INICIO="$DATA_PRIMEIRA_AULA" FIM="$DATA_ULTIMA_AULA" \
 TOTAL_AULAS="$TOTAL_AULAS" DURACAO_MIN="$DUR_CURTA" \
+PROFESSOR_SLUG="$PROFESSOR_SLUG" \
 ARQUIVO="ciclo-$CICLO${VARIANTE:+-$VARIANTE}-dados.json" \
 AULAS_TSV="$TMP/aulas.tsv" PLANO_JSON="$PACOTE/plano-$CICLO.json" \
 DADOS_FONTE="$(fonte_dados)" FECHAMENTO="${FECHAMENTO:-}" \
@@ -493,6 +494,11 @@ indice = {
     'gerado_em': agora.strftime('%Y-%m-%dT%H:%M'),
     'ciclos': [{
         'id': os.environ['CICLO'],
+        # O SLUG da pasta (`professores/<slug>/`), não o nome de exibição: é por ele que o
+        # backend endereça o pacote, e o pacote publicado não tem outro lugar de onde tirá-lo.
+        # `escola` NÃO serve para isso — ela é o nome de exibição ("Diaghilev"), e o slug da
+        # variante só existe dentro do nome do arquivo de dados.
+        'professor': os.environ['PROFESSOR_SLUG'],
         'escola': os.environ['ESCOLA'],
         'inicio': br_para_iso(os.environ['INICIO']),
         'fim': br_para_iso(os.environ['FIM']),
