@@ -27,6 +27,14 @@ const recusar = (erro) => responder(200, { ok: false, erro }); // erro de negoci
 
 const basename = (nome) => String(nome).split(/[\\/]/).pop();
 
+// O NOME DO ARQUIVO DE DADOS TEM DUAS FORMAS, e as duas chegam aqui:
+//   ciclo-01-duo-dados.json                   — o pacote recem-gerado, ainda sem lancamento
+//   ciclo-01-duo-dados-2026-10-07T1900.json   — o lancamento, com o carimbo do cliente
+// O carimbo de `carimboArquivo()` e `AAAA-MM-DDTHHMM` (hora local, sem segundos), e ele fica
+// ENTRE `dados` e `.json`. Ancorar o `.json` no fim (`/-dados\.json$/`) casa a primeira forma
+// e RECUSA a segunda — que e a unica que o formulario envia.
+const RE_DADOS = /-dados(-[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4})?\.json$/;
+
 const slugDe = (indice, dados) => {
   const c = (indice && indice.ciclos && indice.ciclos[0]) || {};
   if (c.professor) return String(c.professor);
@@ -51,7 +59,7 @@ exports.handler = async (event) => {
     if (!a || typeof a.texto !== 'string' || !a.nome) return recusar('arquivo sem nome ou sem texto');
     try { JSON.parse(a.texto); } catch { return recusar('o texto de ' + basename(a.nome) + ' nao e JSON'); }
   }
-  const dadosDe = arquivos.find((a) => /-dados\.json$/.test(basename(a.nome)));
+  const dadosDe = arquivos.find((a) => RE_DADOS.test(basename(a.nome)));
   const indiceDe = arquivos.find((a) => basename(a.nome) === 'ciclos.json');
   if (!dadosDe || !indiceDe) return recusar('faltou o arquivo de dados ou o ciclos.json');
 
