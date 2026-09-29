@@ -624,6 +624,15 @@ repositório privado, não publicado** (ver a tabela da §7). Ela define se a id
 arquitetura atual, sem servidor, ou exige backend: **mantém** — o JSON é mais um arquivo do
 ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 
+> **Nota de 29/09/2026.** A decisão acima **deixou de valer integralmente**: o transporte do
+> lançamento passou a ter backend — `netlify/functions/receber.js` grava no Netlify Blobs e o
+> `.github/workflows/reancorar.yml` reancora a cadeia por push (ver a entrada de 29/09/2026 do
+> `REGISTRO.md`). O que **permanece** do desenho original: o JSON continua sendo mais um arquivo do
+> ciclo, e a página continua sendo HTML + JavaScript puro, sem framework. A **§7.3 segue
+> parcialmente aberta** apenas na metade que falta — a consolidação dos lançamentos do Blob de volta
+> para o repositório **não existe**. A redação acima **não é apagada**: fica como o elo do que se
+> decidiu em 20/09/2026.
+
 ## Referências
 
 - `IDEIA-CAPTURA.md` — conceito (o "por quê")
