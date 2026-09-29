@@ -6837,6 +6837,12 @@ arquivo cai: o File System Access API grava no disco a partir da página, sem ba
 decisão anterior protegia era o desenho; o que ela deixou de pé foi o download na pasta do usuário —
 que é justamente o que a pesquisadora recusa.
 
+> **Nota de 29/09/2026.** A medição acima descrevia o estado **de então**: o File System Access API
+> gravava no disco a partir da página, e não havia backend nenhum. **O Passo 0 mudou isso** — a
+> Function `netlify/functions/receber.js` passou a escrever o lançamento no **servidor**, e o
+> formulário deixou de exportar para a máquina do professor. A redação acima **não é apagada**: fica
+> como o elo do que se mediu em 28/09/2026, antes de o transporte existir.
+
 **O que foi decidido.**
 
 - **O rótulo passa a ser `Salvar`.** A pesquisadora recusou `Enviar` — *"Coloca o nome Salvar pois é
@@ -7476,12 +7482,15 @@ deixá-lo faria o próximo leitor procurar um botão que não está lá.
 - **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
   proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
   continuar produzindo ou parar.
-- **A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
+- ~~**A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
   lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
   `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
   `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
   27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
-  silenciosa.
+  silenciosa.~~ **Superado em 29/09/2026.** O motivo declarado e a entrada própria são os da entrada
+  de **29/09/2026** (o Passo 0), que dá destino ao `POST` e reancora por push. O que **continua em
+  aberto** é a metade que falta — a **consolidação agendada** —, e está declarada lá com as
+  perguntas. A redação antiga **não é apagada**: fica como o elo do que estava aberto em 27/09/2026.
 - **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
   processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
   **não foi respondida**.
@@ -7568,8 +7577,12 @@ mesmo commit: deixar o template corrigido e a cópia não seria correção, seri
   entram **nesta** peça, em dois commits: o template e, depois, as três cópias.
 - `tools/gerar-ciclo.sh:564` (a cópia do template) e `:844–860` (a injeção da nav).
 - `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
-- `ARQUITETURA-CAPTURA.md` §7.3 — *"sem backend"* (`:625`), **reaberto** pela peça anterior e
-  **ainda não resolvido**: o `POST` aponta para uma função que **não existe** no repositório.
+- ~~`ARQUITETURA-CAPTURA.md` §7.3 — *"sem backend"* (`:625`), **reaberto** pela peça anterior e
+  **ainda não resolvido**: o `POST` aponta para uma função que **não existe** no repositório.~~
+  **Superado em 29/09/2026.** A função **existe** — `netlify/functions/receber.js` —, o
+  `netlify.toml` existe e o `.github/workflows/reancorar.yml` fecha a reancoragem; o que **não**
+  existe é a **consolidação agendada**, e é isso que mantém o §7.3 parcialmente aberto. A redação
+  antiga **não é apagada**: fica como o elo do que se mediu naquele momento.
 - `prompts/eliciar-ciclo.md` (congelado, modificação anterior, sem relação com esta peça) foi
   deixado **de fora** do commit, e `po_ref/` continua não versionado.
 
@@ -7585,11 +7598,17 @@ era compartilhado, e que esta peça mediu o contrário. O `#gerar-json` e o `#av
 
 - **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
   `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **⚠️ O `POST` não tem destino.** `netlify/functions/receber.js` **não existe**, `netlify.toml`
+- ~~**⚠️ O `POST` não tem destino.** `netlify/functions/receber.js` **não existe**, `netlify.toml`
   **não existe** e o repositório **não tem** `.github/workflows/`. Enquanto isso, o `Enviar`
   falha com `HTTP 404` — **honestamente** (avisa e preserva os campos), mas **falha**. O
   transporte decidido — Netlify Function + Blobs + consolidação agendada — **não foi implementado**.
-  É o próximo bloco, e reabre formalmente o `§7.3` do `ARQUITETURA-CAPTURA.md`.
+  É o próximo bloco, e reabre formalmente o `§7.3` do `ARQUITETURA-CAPTURA.md`.~~ **Superado em
+  29/09/2026.** Os três arquivos **existem** desde aquela data — `netlify.toml`,
+  `netlify/functions/receber.js` e `.github/workflows/reancorar.yml` —, mas o transporte ficou
+  **pela metade**: a Function que recebe o `POST` e a reancoragem entraram, a **consolidação
+  agendada** não. O `HTTP 404` só continua possível onde **não há site publicado**; a falha deixou
+  de ser de destino inexistente e passou a ser de site ausente. A redação antiga **não é apagada**:
+  fica como o elo do que se mediu naquele momento.
 - **O teste de regressão diverge do contrato novo.** Os casos 10–17 ainda leem `baixados[]` pelo
   contrato **antigo** de download, e o caso 10 espera o JSON na ordem de schema obsoleta
   (`tecnica`/`funcional` no lugar de `eixo_peso`). A suíte **não fica verde** até esses casos
@@ -7722,23 +7741,139 @@ e de `<!-- CALENDARIO -->` nas **quatro fontes** ⇒ `0`/`1`; o mesmo `grep` nos
 
 **O que ainda não está feito.**
 
-- **⚠️ O Passo 0 segue aberto, e agora com o represamento medido.** `netlify.toml` **não existe**,
-  `netlify/` **não existe** e o repositório **não tem** `.github/workflows/`. A CLI `netlify` está
+- **⚠️ O Passo 0 segue aberto, e agora com o represamento medido.** ~~`netlify.toml` **não existe**,
+  `netlify/` **não existe** e o repositório **não tem** `.github/workflows/`.~~ **Superado em
+  29/09/2026:** os três **existem**. A CLI `netlify` está
   **ausente** da máquina. E as **6 chaves** de `tools/.netlify-tokens` estão **vazias**
   (`NETLIFY_TOKEN_DUO`, `NETLIFY_SITE_DUO`, `NETLIFY_TOKEN_RITMOS`, `NETLIFY_SITE_RITMOS`,
   `NETLIFY_TOKEN_DEBORA`, `NETLIFY_SITE_DEBORA` — valor com comprimento zero, medido). ⇒ **não há
   site ID local e nada foi publicado por este repositório**; o site do Ritmos existe **só no painel
-  do Netlify da pesquisadora**. **O Passo 0 depende de credencial que só ela tem.** Enquanto isso,
-  o `Enviar` falha com `HTTP 404` — honestamente (avisa e preserva os campos), mas falha.
-- **⚠️ Duas decisões continuam abertas para o Passo 0** e nenhuma delas é resolvível só no código:
+  do Netlify da pesquisadora**. **O Passo 0 depende de credencial que só ela tem** — e isso
+  **continua verdadeiro**: os arquivos existem, mas sem site publicado o `Enviar` ainda falha com
+  `HTTP 404`, honestamente (avisa e preserva os campos).
+- **⚠️ Uma decisão continua aberta para o Passo 0**, e não é resolvível só no código:
   **onde vivem as Functions** — o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do
-  ciclo, **não a raiz**; e **quem reancora a cadeia** quando a consolidação commita pela API do
+  ciclo, **não a raiz**. O `netlify.toml` da raiz fica no disco como a peça que a pressupõe.
+  ~~**A outra decisão** — **quem reancora a cadeia** quando a consolidação commita pela API do
   GitHub, que não roda hook nenhum (o `hash-ciclo.sh` é bash puro) — a saída provável é um
-  `.github/workflows/` rodando o `hash-ciclo.sh`.
+  `.github/workflows/` rodando o `hash-ciclo.sh`.~~ **Superado em 29/09/2026:** está **respondida**
+  — o `.github/workflows/reancorar.yml` reancora **por push**, rodando o `hash-ciclo.sh --check`
+  antes de gerar, com o commit do próprio workflow. A redação antiga **não é apagada**: fica como
+  o elo do que se supunha antes de medir.
 - **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
   entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
 - **A entrada de 29/09/2026 acima desta** (o botão `Salvar`) mantém em `:7485` a pergunta pela
   **revisão dos demais botões**, ainda sem resposta — e ela é do mesmo bloco do Passo 0.
+- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
+  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
+  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
+
+## 29/09/2026 — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora por push
+
+**O que motivou.** A pesquisadora pediu *"feche o passo 1 e 0"*. O **Passo 1** foi fechado na entrada
+imediatamente acima desta. O **Passo 0** é o transporte que o formulário de lançamento espera desde
+que o `POST` entrou no template: o `Enviar` apontava para uma rota que não existia em lugar nenhum, e
+o `ARQUITETURA-CAPTURA.md` §7.3 continuava reaberto por isso. A decisão de arquitetura já estava
+tomada e registrada desde a peça anterior — *"Netlify Function + Blobs + consolidação agendada"* —,
+mas **nenhuma das três partes estava implementada**.
+
+**O que foi decidido.** Implementar as partes do transporte que **não dependem de credencial**, e
+deixar a terceira como pendência declarada, com as perguntas em aberto. Três arquivos novos:
+
+1. **`netlify/functions/receber.js`** — a Function que recebe o `POST` do formulário. CommonJS, como
+   o resto do repositório (o Netlify não faz *bundle*: publica `netlify/functions/*.js` como estão e
+   roda `npm install` na raiz). Grava os dois JSON do lançamento em **Netlify Blobs**, no store
+   `lancamentos`, com `consistency: 'strong'`. Três decisões de contrato que importam:
+   - **A ordem de escrita é a do cliente.** O `gerarJson()` do template grava primeiro o arquivo de
+     **dados** e só depois o `ciclos.json`, porque *"se o índice chegasse ao destino apontando para
+     um arquivo que não está lá, a próxima abertura da página leria um ciclo inexistente"*. A
+     Function preserva esse invariante: grava na ordem em que os `arquivos[]` chegam.
+   - **A Function não inventa nome nem carimbo.** O `nomeNovo()` do template garante monotonicidade
+     minuto a minuto, e o carimbo é `YYYY-MM-DDTHHmm` em hora **local** do professor. Reconstruir
+     isso no servidor daria nome diferente do que o cliente escreveu no índice. A Function usa o
+     `nome` que o cliente mandou, verbatim, com `{ onlyIfNew: true }` como rede de segurança: se a
+     chave já existe, `store.set` devolve `{ modified: false }` e a Function **não** sobrescreve —
+     responde colisão, não grava por cima.
+   - **Falha de negócio não é erro de transporte.** O cliente trata sucesso como **HTTP 2xx + `ok`
+     truthy**; falha de negócio como **HTTP 200 + `{ ok: false, erro }`**. A Function segue isso, e
+     trata a ausência de ambiente de Blobs como erro legível — não como `500`.
+
+2. **`netlify.toml`** — mínimo, e **sem `publish`**. O *publish directory* é **por site**, não do
+   repositório: a decisão de 18/09/2026 já registrava *"Configurar o publish directory de cada site
+   no Netlify"* como pendência de configuração. Pôr `publish` aqui obrigaria todos os sites à mesma
+   pasta e contrariaria aquela decisão. O que o arquivo faz é declarar
+   `[functions] directory = "netlify/functions"`.
+
+3. **`.github/workflows/reancorar.yml`** — o **primeiro workflow** deste repositório. Lançar uma
+   aula desatualiza a âncora do ciclo, e até aqui a reancoragem era manual. O workflow roda em
+   `push` para `main` tocando `professores/**` ou `tools/lib-fontes.sh`, **descobre a matriz do
+   disco** (`professores/*/ciclos/ciclo-*-*.conf`) em vez de hardcodá-la, e para cada variante
+   **valida antes de gerar** (`hash-ciclo.sh … --check`): se a âncora já está em dia, não toca em
+   nada. ⭐ **Não é detalhe.** `hash-ciclo.sh` carimba `ANCORADO_EM="$(date +%F)"`, que fica **fora**
+   da fórmula do hash — sem o `--check` primeiro, o arquivo mudaria de conteúdo todo dia só pela
+   data, gerando um commit diário por variante. Depois de gerar, revalida, e só commita se algo
+   mudou de fato. O commit sai como `github-actions[bot]`, com `chore(estrutura):` e os três
+   rodapés.
+
+**Onde entrou.** `netlify/functions/receber.js` · `netlify.toml` · `.github/workflows/reancorar.yml`
+· esta entrada · `package.json` / `package-lock.json` (a dependência `@netlify/blobs ^11.1.1`, que a
+Function usa). **As três fontes de ciclo não mudaram** — nenhuma âncora precisa ser regerada por esta
+peça, e as dez âncoras do repositório seguem passando `--check`.
+
+**Motivo declarado — os congelados.** Nenhum arquivo congelado foi **alterado**: `netlify.toml`,
+`netlify/` e `.github/workflows/` são arquivos **novos**, e `CONGELAMENTO.md` lista o que exige
+motivo declarado, não o que é novo. Mas esta peça cai em duas das categorias que **sim** exigem
+declaração: **altera a lógica de geração/deploy** (o `netlify.toml` passa a valer para os sites, e a
+reancoragem deixa de ser manual) e **reabre um congelado por decisão** — o `§7.3` do
+`ARQUITETURA-CAPTURA.md`, que dizia *"sem backend"*. O motivo vai no corpo do commit, e é este: o
+formulário **deixa de exportar e passa a enviar**; o elo passa a ser escrito no servidor em vez de
+anexado à mão pelo professor.
+
+> **O que esta peça supera — e o elo que se preserva.** A entrada que registrou a decisão de
+> 20/09/2026 declarava, verbatim: *"a **opção A** — o formulário exporta o elo e o professor anexa;
+> **o Git registra**. **Não há script que escreva na fonte.**"* **O Passo 0 supera a opção A.** Agora
+> há escrita no servidor (Blobs) e há escrita no Git (o workflow commita a âncora). As quatro
+> ocorrências de *"sem backend"* que ficam superadas — `REGISTRO.md:6836`, `:7482`, a seção
+> *Referências* da entrada do botão `Salvar`, e `ARQUITETURA-CAPTURA.md:625` — recebem nota datada
+> ou são tachadas na própria entrada, conforme o caso. **A redação antiga não é apagada**: fica como
+> o elo do que se decidiu antes, e do que se acreditava naquele momento.
+
+**Com o quê.** Medição, não presunção: `node --check netlify/functions/receber.js` ⇒ **OK**;
+`require('@netlify/blobs')` resolve a partir da raiz; o `netlify.toml` e o workflow passam pelo
+parser de YAML; a matriz do workflow foi **provada** enumerando o glob do disco ⇒
+`fochini 01 diaghilev`, `tiago 01 duo`, `tiago 01 ritmos` (o `ciclo-01.conf` base não entra, porque
+não casa o padrão `ciclo-*-*.conf`); `fontes_do_ciclo()` em `tools/lib-fontes.sh` **já declara o
+`-dados.json` do ciclo como FONTE** — e a `cobertura:` do `ciclo-01-duo.fipp` **já o inclui**, o que
+fecha a questão de saber se o lançamento entra no hash (entra). Varredura de "consolidação":
+`grep -n -i "consolid" REGISTRO.md` ⇒ só `:7591` e `:7735`, e `find . -name 'consolidar*'` ⇒ **vazio**.
+
+**Referências.** `tools/hash-ciclo.sh:105` (`ANCORADO_EM`) · `tools/lib-fontes.sh`
+(`fontes_do_ciclo`) · `tools/hooks/pre-commit:67–82` (a trava de âncora desatualizada) ·
+`tools/gerar-ciclo.sh:455–525` e `:614–631` (o índice e o calendário) · `tools/templates/lancamento.html`
+(`:722–745` o contrato do `POST`; `:925–960` o carimbo e o `nomeNovo`; `:1440–1525` o `gerarJson`) ·
+`ARQUITETURA-CAPTURA.md` §7.3 e §7.6 · `ARQUITETURA-AULA.md` §5.2 · `README.md:93–96` · a entrada de
+18/09/2026 deste registro (o deploy a partir do Git, uma conta por escola) · a entrada de 20/09/2026
+(a "opção A") · a entrada de 28/09/2026 (o botão `Salvar`) · a entrada imediatamente acima desta (o
+fecho do Passo 1).
+
+**O que ainda não está feito.**
+
+- **⚠️ A consolidação agendada não existe — e é a metade que falta.** Hoje a Function **grava** o
+  lançamento no Blob, mas **nada move o Blob de volta para o Git**: o `-dados.json` do pacote
+  continua o antigo, a âncora não regera sozinha e o workflow não tem o que commitar. As perguntas
+  em aberto, para quem pegar esta peça: **o que varre** (o store `lancamentos` por prefixo?) · **o
+  que commita**, e **por qual API** (o workflow tem `contents: write`, mas a consolidação não
+  conhece o caminho do arquivo no pacote) · **com que frequência** · e **se regenera o pacote**
+  depois. Enquanto isso, o lançamento **não vira fonte**. **Não implementado — decisão explícita da
+  pesquisadora nesta rodada: documentar como pendência e commitar só as três partes prontas.**
+- **⚠️ "Onde vivem as Functions" continua aberta** (`ARQUITETURA-CAPTURA.md` §7.6 = *"o formulário
+  roda onde?"*). O `tools/deploy-netlify.sh:118/120` publica `netlify deploy --prod --dir="$PACOTE"`
+  — o **pacote do ciclo**, não a raiz. Se o deploy continuar por esse caminho, o `netlify.toml` da
+  raiz **pode não ser lido**, e as Functions podem não subir. É inferência forte, **não medida**.
+- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
+  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **A pergunta de `REGISTRO.md:7485`** pela **revisão dos demais botões** do formulário **segue sem
+  resposta**, e é do mesmo bloco do Passo 0.
 - Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
   leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
   `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.

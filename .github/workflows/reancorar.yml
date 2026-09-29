@@ -1,0 +1,130 @@
+name: Reancorar a cadeia
+
+# A âncora de proveniência (tools/hash-ciclo.sh -> .fipp) cobre as FONTES do ciclo.
+# Entre elas está o `-dados.json` — o arquivo que o formulário de lançamento reescreve
+# a cada aula lançada (tools/lib-fontes.sh, fontes_do_ciclo). Ou seja: lançar uma aula
+# desatualiza a âncora, e reancorar deixou de ser evento raro.
+#
+# Este workflow fecha esse ciclo: quando uma fonte muda, ele reancora e commita o
+# .fipp. A cadência é a do push — não há relógio próprio.
+#
+# Ele VALIDA antes de reancorar. Rodar o modo `gerar` sempre reescreveria `ancorado_em`
+# (hash-ciclo.sh:105, `date +%F`) mesmo sem mudança de conteúdo, e o repositório
+# ganharia um commit por dia por nada. Com o `--check` na frente, o `.fipp` só é
+# tocado quando há divergência de verdade, e o workflow é idempotente.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'professores/**'
+      - 'tools/lib-fontes.sh'
+  workflow_dispatch:
+
+# O push do commit de reancoragem precisa de escrita. Um push feito com o
+# GITHUB_TOKEN não redispara workflows, então isto não vira laço.
+permissions:
+  contents: write
+
+# Duas execuções correndo juntas reancorariam a mesma cadeia e uma sobrescreveria a
+# outra. A última fila espera a anterior terminar.
+concurrency:
+  group: reancorar-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  reancorar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # `hash-ciclo.sh` chama `node` duas vezes: validar-schema-ciclo.js e
+      # validar-po-ciclo.js. Os validadores não têm dependência externa, então
+      # `npm ci` não é necessário — só o interpretador.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Reancorar os ciclos que divergiram
+        id: reancorar
+        shell: bash
+        run: |
+          set -uo pipefail
+
+          # A matriz sai do disco: um professor/ciclo/escola por manifesto de variante
+          # (`ciclo-XX-<escola>.conf`). O `ciclo-XX.conf` sozinho é o manifesto base, não
+          # uma escola — por isso ele não casa neste glob. Assim uma escola nova entra
+          # na reancoragem sem editar este arquivo.
+          shopt -s nullglob
+          manifestos=(professores/*/ciclos/ciclo-*-*.conf)
+
+          if [ "${#manifestos[@]}" -eq 0 ]; then
+            echo "nenhum manifesto de variante encontrado" >&2
+            exit 1
+          fi
+
+          tocados=0
+
+          for manifesto in "${manifestos[@]}"; do
+            # professores/<professor>/ciclos/ciclo-<NN>-<escola>.conf
+            resto="${manifesto#professores/}"
+            professor="${resto%%/*}"
+            nome="$(basename "$manifesto" .conf)"       # ciclo-<NN>-<escola>
+            sem_ciclo="${nome#ciclo-}"                  # <NN>-<escola>
+            ciclo="${sem_ciclo%%-*}"                    # <NN>  (já com dois dígitos)
+            escola="${sem_ciclo#*-}"                    # <escola>
+
+            alvo="$professor $ciclo $escola"
+
+            if tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+              echo "ok: $alvo — âncora íntegra"
+              continue
+            fi
+
+            echo "divergiu: $alvo — reancorando"
+
+            # Modo `gerar`: reescreve o .fipp do ciclo E os -aula-NN.fipp, numa só chamada.
+            # Se a fonte estiver inválida (schema da aula, PO), o próprio script recusa e
+            # o passo falha — é o sinal de que o problema é a fonte, não a âncora.
+            if ! tools/hash-ciclo.sh "$professor" "$ciclo" "$escola"; then
+              echo "erro: não foi possível reancorar $alvo" >&2
+              exit 1
+            fi
+
+            # O script saiu 0; confirmar que o .fipp resultante fecha.
+            if ! tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+              echo "erro: $alvo continua divergente depois de reancorar" >&2
+              exit 1
+            fi
+
+            tocados=$((tocados + 1))
+          done
+
+          echo "ciclos reancorados: $tocados"
+          echo "tocados=$tocados" >> "$GITHUB_OUTPUT"
+
+      - name: Commitar as âncoras novas
+        if: steps.reancorar.outputs.tocados != '0'
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add -- '*.fipp'
+
+          if git diff --cached --quiet; then
+            echo "nada a commitar"
+            exit 0
+          fi
+
+          git commit -m "chore(estrutura): reancorar a cadeia das fontes alteradas" \
+            -m "A âncora cobre as fontes do ciclo, e o -dados.json é uma delas: lançar
+          uma aula desatualiza a âncora. Reancoragem automática, pelo .github/workflows." \
+            -m "Refs: tools/hash-ciclo.sh, REGISTRO.md
+          Regras: P-03, P-04, P-08
+          Auditoria: .github/workflows/reancorar.yml --check antes de gerar"
+
+          git push

@@ -1,0 +1,13 @@
+# Configuracao comum dos sites das escolas.
+#
+# Um arquivo so na raiz, tres sites: cada escola publica a PROPRIA pasta do ciclo
+# (professores/<professor>/ciclos/ciclo-XX-<escola>), e essa pasta e diferente entre elas.
+# Por isso o `publish` NAO e declarado aqui — ele e do site, e se configura no painel do
+# Netlify, onde cada escola ja tem a sua conta. Declarar um `publish` fixo neste arquivo
+# publicaria a pasta de uma escola nos sites das outras.
+#
+# O que e IGUAL para os tres e a pasta das Functions: e ela que da destino ao POST do
+# formulario de lancamento (tools/templates/lancamento.html -> /.netlify/functions/receber).
+
+[functions]
+  directory = "netlify/functions"
