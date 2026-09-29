@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-29T16:53:19-0300`
-Commit atual: `55a7c20` — docs(registro): a medição do Passo 0 media sintaxe — a nota do defeito do regex
+Gerado em: `2026-09-29T17:05:01-0300`
+Commit atual: `da2cd8b` — docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -51,6 +51,9 @@ tiago (2)
 ## Últimos commits
 
 ```
+da2cd8b docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
+ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a entrevista declara dois artefatos
+76c3cf2 docs(registro): regenera o HANDOFF sobre 55a7c20
 55a7c20 docs(registro): a medição do Passo 0 media sintaxe — a nota do defeito do regex
 9a0b5c3 fix(estrutura): a Function aceita o nome carimbado do lancamento
 d4f3cc6 docs(registro): regenera o HANDOFF sobre ccdc38d
@@ -68,9 +71,6 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
 e592373 docs(template): o botão `Salvar` deixa de ter legenda
 f7b3707 docs(estrutura): regenera o HANDOFF depois de `fcda6d7`
-fcda6d7 docs(registro): a entrada ⑲ corrige o que a mesma peça tornou falso
-b1d85ab chore(ciclo-01): propaga o `Salvar` às três cópias empacotadas
-ce69bc5 fix(template): o botão passa a ser `Salvar`, e o arquivo vai para a pasta do ciclo
 ```
 
 ## Por professor
@@ -148,132 +148,75 @@ ce69bc5 fix(template): o botão passa a ser `Salvar`, e o arquivo vai para a pas
 
 ## Última entrada do REGISTRO
 
-## 29/09/2026 — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora por push
+## 29/09/2026 — Os dois congelados entram: o índice ganha o slug e a entrevista declara dois artefatos
 
-**O que motivou.** A pesquisadora pediu *"feche o passo 1 e 0"*. O **Passo 1** foi fechado na entrada
-imediatamente acima desta. O **Passo 0** é o transporte que o formulário de lançamento espera desde
-que o `POST` entrou no template: o `Enviar` apontava para uma rota que não existia em lugar nenhum, e
-o `ARQUITETURA-CAPTURA.md` §7.3 continuava reaberto por isso. A decisão de arquitetura já estava
-tomada e registrada desde a peça anterior — *"Netlify Function + Blobs + consolidação agendada"* —,
-mas **nenhuma das três partes estava implementada**.
+**O que motivou.** Duas alterações estavam paradas no worktree, ambas em arquivo congelado, e
+nenhuma com entrada neste registro. A primeira é de outra sessão: o `ciclos.json` que o
+`gerar-ciclo.sh` escreve não traz o **slug** da pasta do professor, e o backend que passou a existir
+hoje (`receber.js`) o procura ali — o `slugDe` tem `c.professor` como **primeira** regra, e sem ela
+cai no nome do arquivo de dados. A segunda é uma deriva documental: o prompt da entrevista dizia, na
+abertura, que ela compila *"tudo num documento único em Markdown"*, quando a seção `## O que esta
+entrevista produz` — já no mesmo arquivo — diz o contrário: *"dois artefatos do mesmo ciclo — não
+um só"*. Documento com informação conflitante é o que a pesquisadora proibiu explicitamente.
 
-**O que foi decidido.** Implementar as partes do transporte que **não dependem de credencial**, e
-deixar a terceira como pendência declarada, com as perguntas em aberto. Três arquivos novos:
+**O que foi decidido.** Publicar as duas, com o motivo declarado que o `CONGELAMENTO.md` exige, e
+deixar registrado o que **não** foi feito.
 
-1. **`netlify/functions/receber.js`** — a Function que recebe o `POST` do formulário. CommonJS, como
-   o resto do repositório (o Netlify não faz *bundle*: publica `netlify/functions/*.js` como estão e
-   roda `npm install` na raiz). Grava os dois JSON do lançamento em **Netlify Blobs**, no store
-   `lancamentos`, com `consistency: 'strong'`. Três decisões de contrato que importam:
-   - **A ordem de escrita é a do cliente.** O `gerarJson()` do template grava primeiro o arquivo de
-     **dados** e só depois o `ciclos.json`, porque *"se o índice chegasse ao destino apontando para
-     um arquivo que não está lá, a próxima abertura da página leria um ciclo inexistente"*. A
-     Function preserva esse invariante: grava na ordem em que os `arquivos[]` chegam.
-   - **A Function não inventa nome nem carimbo.** O `nomeNovo()` do template garante monotonicidade
-     minuto a minuto, e o carimbo é `YYYY-MM-DDTHHmm` em hora **local** do professor. Reconstruir
-     isso no servidor daria nome diferente do que o cliente escreveu no índice. A Function usa o
-     `nome` que o cliente mandou, verbatim, com `{ onlyIfNew: true }` como rede de segurança: se a
-     chave já existe, `store.set` devolve `{ modified: false }` e a Function **não** sobrescreve —
-     responde colisão, não grava por cima.
-   - **Falha de negócio não é erro de transporte.** O cliente trata sucesso como **HTTP 2xx + `ok`
-     truthy**; falha de negócio como **HTTP 200 + `{ ok: false, erro }`**. A Function segue isso, e
-     trata a ausência de ambiente de Blobs como erro legível — não como `500`.
+1. **`tools/gerar-ciclo.sh` — o índice passa a declarar `professor`.** O contrato que a Function
+   implementa é: o slug da pasta (`professores/<slug>/`) é o que endereça o pacote, e o pacote
+   publicado não tem de onde tirá-lo — a chave do store é montada como
+   `<professor>/<ciclo>-<carimbo>`.
+   - **Por que `professor` e não `escola`.** `escola` é o **nome de exibição** (`"Diaghilev"`), e o
+     slug da variante só existe dentro do nome do arquivo de dados. Trocar um pelo outro daria
+     chave com espaço, acento e maiúscula.
+   - **A ordem das regras resolve o caso.** `slugDe` lê `c.professor`, depois `dados.professor`,
+     depois o regex sobre `c.arquivo`. Enquanto o índice não traz o campo, a primeira regra nunca
+     dispara e a chave sai do nome do arquivo de dados.
+   - **`PROFESSOR_SLUG` já existia no escopo.** Ele é o `$1` do script (default `tiago`) e é ele que
+     resolve a pasta de trabalho; a emenda só o repassa ao processo Python que monta o índice.
 
-2. **`netlify.toml`** — mínimo, e **sem `publish`**. O *publish directory* é **por site**, não do
-   repositório: a decisão de 18/09/2026 já registrava *"Configurar o publish directory de cada site
-   no Netlify"* como pendência de configuração. Pôr `publish` aqui obrigaria todos os sites à mesma
-   pasta e contrariaria aquela decisão. O que o arquivo faz é declarar
-   `[functions] directory = "netlify/functions"`.
+2. **`prompts/eliciar-ciclo.md` — a entrevista declara os dois artefatos.** A abertura passa a
+   nomear **o plano das aulas** e **o recorte do que eu vou observar**, ganha a seção `## O que esta
+   entrevista produz`, e dois itens em *"Como conduzir"*.
+   - **A cauda de `:4` foi corrigida nesta peça.** Ela dizia *"você compila tudo num documento único
+     em Markdown"* — o resíduo que contradizia a seção nova. Agora diz *"você compila os dois
+     artefatos do mesmo ciclo em Markdown"*. A varredura por `documento único` no repositório volta
+     vazia: era o último.
+   - **As linhas de `:3`/`:4` não foram tocadas.** Elas já estavam corretas — nomeavam o plano e o
+     recorte. O erro era só a cauda.
 
-3. **`.github/workflows/reancorar.yml`** — o **primeiro workflow** deste repositório. Lançar uma
-   aula desatualiza a âncora do ciclo, e até aqui a reancoragem era manual. O workflow roda em
-   `push` para `main` tocando `professores/**` ou `tools/lib-fontes.sh`, **descobre a matriz do
-   disco** (`professores/*/ciclos/ciclo-*-*.conf`) em vez de hardcodá-la, e para cada variante
-   **valida antes de gerar** (`hash-ciclo.sh … --check`): se a âncora já está em dia, não toca em
-   nada. ⭐ **Não é detalhe.** `hash-ciclo.sh` carimba `ANCORADO_EM="$(date +%F)"`, que fica **fora**
-   da fórmula do hash — sem o `--check` primeiro, o arquivo mudaria de conteúdo todo dia só pela
-   data, gerando um commit diário por variante. Depois de gerar, revalida, e só commita se algo
-   mudou de fato. O commit sai como `github-actions[bot]`, com `chore(estrutura):` e os três
-   rodapés.
+**Onde entrou.** `tools/gerar-ciclo.sh` — `PROFESSOR_SLUG` no ambiente do bloco Python (`:298`) e o
+campo `'professor'` no `indice` (`:501`), com o comentário que explica por que não é `escola` ·
+`prompts/eliciar-ciclo.md` — abertura, seção nova e dois itens de conduta · `REGISTRO.md` — esta
+entrada.
 
-**Onde entrou.** `netlify/functions/receber.js` · `netlify.toml` · `.github/workflows/reancorar.yml`
-· esta entrada · `package.json` / `package-lock.json` (a dependência `@netlify/blobs ^11.1.1`, que a
-Function usa). **As três fontes de ciclo não mudaram** — nenhuma âncora precisa ser regerada por esta
-peça, e as dez âncoras do repositório seguem passando `--check`.
+**Motivo declarado — os congelados.** Os dois arquivos são congelados, e a mudança de cada um tem
+motivo próprio. `tools/gerar-ciclo.sh` **não muda o que gera** — não toca layout, hash, âncora nem
+nome de arquivo; acrescenta **um campo de metadado** ao índice, e o índice já era o artefato que
+declara quem é o ciclo. Sem ele, o transporte que entrou hoje (a Function e o store) **não teria
+como saber o dono do pacote**: o `ciclos.json` publicado hoje traz só `id`, `escola`, `inicio`,
+`fim`, `total_aulas` e `aulas[]`, e o slug não está em nenhum deles. A alteração é **aditiva e
+retrocompatível** — quem lê o índice hoje ignora o campo novo, e o `receber.js` só o consulta como
+primeira tentativa. `prompts/eliciar-ciclo.md` **não é consumido por nenhum gerador**: é texto de
+entrevista, lido por humano e por sessão de IA. A emenda só o alinha ao que ele mesmo já dizia
+adiante; a correção da cauda remove a única contradição que restava no repositório. Em nenhum dos
+dois casos há dependência nova, mudança de contrato de arquivo ou efeito sobre ciclo publicado.
 
-**Motivo declarado — os congelados.** Nenhum arquivo congelado foi **alterado**: `netlify.toml`,
-`netlify/` e `.github/workflows/` são arquivos **novos**, e `CONGELAMENTO.md` lista o que exige
-motivo declarado, não o que é novo. Mas esta peça cai em duas das categorias que **sim** exigem
-declaração: **altera a lógica de geração/deploy** (o `netlify.toml` passa a valer para os sites, e a
-reancoragem deixa de ser manual) e **reabre um congelado por decisão** — o `§7.3` do
-`ARQUITETURA-CAPTURA.md`, que dizia *"sem backend"*. O motivo vai no corpo do commit, e é este: o
-formulário **deixa de exportar e passa a enviar**; o elo passa a ser escrito no servidor em vez de
-anexado à mão pelo professor.
+**Com o quê.** `tools/gerar-ciclo.sh`, `prompts/eliciar-ciclo.md`, `REGISTRO.md`. Commit próprio,
+separado das alterações livres do mesmo worktree, como o `CONGELAMENTO.md` pede.
 
-> **O que esta peça supera — e o elo que se preserva.** A entrada que registrou a decisão de
-> 20/09/2026 declarava, verbatim: *"a **opção A** — o formulário exporta o elo e o professor anexa;
-> **o Git registra**. **Não há script que escreva na fonte.**"* **O Passo 0 supera a opção A.** Agora
-> há escrita no servidor (Blobs) e há escrita no Git (o workflow commita a âncora). As quatro
-> ocorrências de *"sem backend"* que ficam superadas — `REGISTRO.md:6836`, `:7482`, a seção
-> *Referências* da entrada do botão `Salvar`, e `ARQUITETURA-CAPTURA.md:625` — recebem nota datada
-> ou são tachadas na própria entrada, conforme o caso. **A redação antiga não é apagada**: fica como
-> o elo do que se decidiu antes, e do que se acreditava naquele momento.
+**Referências.** `CONGELAMENTO.md` (a regra do motivo declarado) · `netlify/functions/receber.js`
+(`slugDe` e a ordem das regras) · a entrada de 29/09/2026 acima, *"o `POST` ganha destino e a cadeia
+reancora por push"* · `ARQUITETURA-PE.md` e `ARQUITETURA-ANAMNESE.md`, que já citam o prompt como
+produtor de dois artefatos.
 
-**Com o quê.** Medição, não presunção: `node --check netlify/functions/receber.js` ⇒ **OK**;
-`require('@netlify/blobs')` resolve a partir da raiz; o `netlify.toml` e o workflow passam pelo
-parser de YAML; a matriz do workflow foi **provada** enumerando o glob do disco ⇒
-`fochini 01 diaghilev`, `tiago 01 duo`, `tiago 01 ritmos` (o `ciclo-01.conf` base não entra, porque
-não casa o padrão `ciclo-*-*.conf`); `fontes_do_ciclo()` em `tools/lib-fontes.sh` **já declara o
-`-dados.json` do ciclo como FONTE** — e a `cobertura:` do `ciclo-01-duo.fipp` **já o inclui**, o que
-fecha a questão de saber se o lançamento entra no hash (entra). Varredura de "consolidação":
-`grep -n -i "consolid" REGISTRO.md` ⇒ só `:7591` e `:7735`, e `find . -name 'consolidar*'` ⇒ **vazio**.
-
-> **Nota de 29/09/2026.** A medição acima descrevia o estado **de então**, e o que ela **não** media é
-> o que importava: `node --check` prova que o arquivo *parseia*, não que ele **funciona**. Publicada
-> a Function, o caminho feliz foi exercitado pela primeira vez — e ele falhava **sempre**. O `find`
-> do `dadosDe` usava `/-dados\.json$/`, que exige que `dados.json` **encerre** o nome; mas o cliente
-> **nunca** envia esse nome: o `gerarJson()` manda o nome **carimbado** por `nomeNovo()`, e o carimbo
-> de `carimboArquivo()` (`AAAA-MM-DDTHHMM`, hora local, sem segundos) fica **entre** `dados` e
-> `.json`. O `dadosDe` ficava `undefined` e a Function recusava em `faltou o arquivo de dados ou o
-> ciclos.json` — **antes de qualquer `store.set`**: nenhum lançamento real seria aceito. Corrigido
-> oito minutos depois, no mesmo dia (`50f73f9` 16h40, `9a0b5c3` 16h48): o regex passa a aceitar as
-> duas formas — `/-dados(-[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4})?\.json$/`, em
-> `netlify/functions/receber.js:36` — e a forma do carimbo é **copiada** de `carimboArquivo()`. O
-> `slugDe` do **mesmo** arquivo já usava o regex prefixado correto — os dois estavam
-> **inconsistentes entre si**, e só a **detecção** dependia do defeituoso. A redação acima **não é
-> apagada**: fica como o elo de uma medição que era verdadeira e **insuficiente**. A lição vale
-> também para o **irmão gêmeo** desta peça — o `yaml.safe_load` que validou o workflow: parser e
-> `--check` provam **sintaxe**; quem prova contrato é **executar o caminho feliz**.
-
-**Referências.** `tools/hash-ciclo.sh:105` (`ANCORADO_EM`) · `tools/lib-fontes.sh`
-(`fontes_do_ciclo`) · `tools/hooks/pre-commit:67–82` (a trava de âncora desatualizada) ·
-`tools/gerar-ciclo.sh:455–525` e `:614–631` (o índice e o calendário) · `tools/templates/lancamento.html`
-(`:722–745` o contrato do `POST`; `:925–960` o carimbo e o `nomeNovo`; `:1440–1525` o `gerarJson`) ·
-`ARQUITETURA-CAPTURA.md` §7.3 e §7.6 · `ARQUITETURA-AULA.md` §5.2 · `README.md:93–96` · a entrada de
-18/09/2026 deste registro (o deploy a partir do Git, uma conta por escola) · a entrada de 20/09/2026
-(a "opção A") · a entrada de 28/09/2026 (o botão `Salvar`) · a entrada imediatamente acima desta (o
-fecho do Passo 1).
-
-**O que ainda não está feito.**
-
-- **⚠️ A consolidação agendada não existe — e é a metade que falta.** Hoje a Function **grava** o
-  lançamento no Blob, mas **nada move o Blob de volta para o Git**: o `-dados.json` do pacote
-  continua o antigo, a âncora não regera sozinha e o workflow não tem o que commitar. As perguntas
-  em aberto, para quem pegar esta peça: **o que varre** (o store `lancamentos` por prefixo?) · **o
-  que commita**, e **por qual API** (o workflow tem `contents: write`, mas a consolidação não
-  conhece o caminho do arquivo no pacote) · **com que frequência** · e **se regenera o pacote**
-  depois. Enquanto isso, o lançamento **não vira fonte**. **Não implementado — decisão explícita da
-  pesquisadora nesta rodada: documentar como pendência e commitar só as três partes prontas.**
-- **⚠️ "Onde vivem as Functions" continua aberta** (`ARQUITETURA-CAPTURA.md` §7.6 = *"o formulário
-  roda onde?"*). O `tools/deploy-netlify.sh:118/120` publica `netlify deploy --prod --dir="$PACOTE"`
-  — o **pacote do ciclo**, não a raiz. Se o deploy continuar por esse caminho, o `netlify.toml` da
-  raiz **pode não ser lido**, e as Functions podem não subir. É inferência forte, **não medida**.
-- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
-  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **A pergunta de `REGISTRO.md:7485`** pela **revisão dos demais botões** do formulário **segue sem
-  resposta**, e é do mesmo bloco do Passo 0.
-- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
-  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
-  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
+**O que ainda não está feito.** A emenda do `gerar-ciclo.sh` **não foi propagada**: medido nos três
+índices publicados (`fochini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`), o
+campo `professor` está **ausente nos três** — a fonte mudou, os pacotes não. Enquanto não forem
+regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `receber.js` as
+mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
+Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
+ser refeito por causa desta peça.
 
 ## O que está pendente
 
@@ -1567,6 +1510,15 @@ hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo
 - Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
   leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
   `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
+
+## 29/09/2026 — Os dois congelados entram: o índice ganha o slug e a entrevista declara dois artefatos
+
+índices publicados (`fochini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`), o
+campo `professor` está **ausente nos três** — a fonte mudou, os pacotes não. Enquanto não forem
+regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `receber.js` as
+mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
+Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
+ser refeito por causa desta peça.
 - PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
