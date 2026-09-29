@@ -7473,7 +7473,7 @@ deixá-lo faria o próximo leitor procurar um botão que não está lá.
 - `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
 - `tools/hooks/pre-commit:172–305` — o guard do `B8`, que difere a **fonte**, não o HTML.
 - `prompts/eliciar-ciclo.md` foi deixado **de fora** do commit (modificação anterior, sem relação
-  com esta peça), e `po_ref/` continua não versionado.
+  com esta peça), e `po_ref/` continua não versionado e no `gitignore`.
 
 **O que ainda não está feito.**
 
