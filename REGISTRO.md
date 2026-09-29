@@ -7485,3 +7485,115 @@ deixá-lo faria o próximo leitor procurar um botão que não está lá.
 - **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
   processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
   **não foi respondida**.
+
+## 29/09/2026 — O botão `Salvar` deixa de abrir a pasta do computador: a causa era a cópia, não o template
+
+**O que motivou.** A pesquisadora relatou o mesmo defeito **duas vezes**, a segunda com
+impaciência — *"o botão salvar no lancamento.html ainda está abrindo a janela do gerenciador de
+arquivos do SO. Não pode fazer isso. eu fiz o click em cancelar e foi feito o download de 2
+arquivos para Downloads. Vc entendeu o que deve ser feito? acho que vc não me entendeu ainda"*.
+O relato tem **dois** sintomas e o segundo é o mais grave: **cancelar não cancelava** — o
+`gravou` colapsava *cancelou* / *navegador sem suporte* / *erro de disco* no mesmo `false`, e o
+recuo para download disparava nos três casos. Cancelar a janela do sistema produzia o download
+que o usuário estava recusando. Depois do cancelamento os campos digitados também se perdiam,
+porque o `showDirectoryPicker` fechava o ajuste em curso.
+
+**A causa real — e por que o defeito sobreviveu à peça anterior.** O que a pesquisadora abre
+**não é o template**: o `tools/gerar-ciclo.sh` **copia** o template para dentro de cada pacote
+(`tools/gerar-ciclo.sh:564`, `cp "$TPL/lancamento.html" "$PACOTE/lancamento.html"`), e é uma das
+**três cópias empacotadas** que se abre no navegador. Editar o template **não muda o que a
+pesquisadora vê** até a cópia ser propagada.
+
+Medido, e não presumido: o commit anterior (`07c5b95`) ainda traz o `showDirectoryPicker` **×3 no
+template** *e* **×3 em cada uma das três cópias** — ou seja, a peça do `Enviar` (rótulo, `POST`,
+remoção do seletor) **não estava commitada**: vivia apenas no worktree. Esta peça é o commit que a
+leva, e o primeiro commit a leva **só ao template** (`193287b`, `+58/−61` em um arquivo) — as
+cópias vieram no commit imediatamente seguinte (`+58/−61` em três). É a lição do dia: **enquanto a
+cópia não é propagada, o defeito continua no navegador**, por mais correto que esteja o template.
+
+**O que foi feito.** As três cópias foram reescritas a partir do template já corrigido, cada uma
+mantendo o `<nav>` **próprio** (o `class="ativo"` e os rótulos de cada escola), reposto no lugar
+do marcador `<!-- NAV -->` — que é exatamente o que o gerador faz
+(`tools/gerar-ciclo.sh:844–860`, um heredoc Python que exige **uma** ocorrência do marcador e
+faz `replace(..., 1)`). O diff das quatro (template + três cópias) é **idêntico**: **18 hunks,
++58/−61**. A nav **não** foi tocada: `git diff -U0 | grep -c topnav` ⇒ **0** nas três.
+
+O que a alteração faz, em comportamento:
+
+- **`showDirectoryPicker` não existe mais** em nenhuma das quatro — nem `File System Access`,
+  `getFileHandle`, `createWritable` ou `gravarNaPasta`. `grep` ⇒ **0** em todas.
+- **O botão não abre mais o gerenciador de arquivos do SO**, e por consequência **cancelar não
+  produz mais download nenhum**: o caminho que fazia isso deixou de existir.
+- **O rótulo é `Enviar`** nas quatro (`id="gerar-json"`), e o envio é um `POST` para
+  `/.netlify/functions/receber` (`const RECEBER`).
+- **Os campos digitados não se perdem em caso de falha**: a mutação do estado em memória passou a
+  acontecer **depois** do sucesso do envio (`try { await enviar(arquivos) } catch { dizer(erro);
+  return }`).
+- As mensagens de falha passaram de *"não gerei"* para *"não enviei"* (5×), a prosa interna
+  deixou de dizer *"baixar um arquivo"* e o comentário do bloco de captura passou a
+  *"envia ao site → é o site que guarda"*.
+
+**O que NÃO foi tocado.** A função `baixar()` **fica**: ela não é da gravação, é do `.md` do
+relatório (`baixar(prov.arquivo, ...)`), e ali o download é legítimo. Ficam também o cabeçalho da
+`Área do Professor` na redação pedida pela pesquisadora, o ajuste do lançamento (barra 1) inteiro,
+e o `#aviso-json` — pinado pelo teste de regressão.
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` está em
+`tools/` (`CONGELAMENTO.md`) e muda só com **motivo declarado, entrada no `REGISTRO.md` e commit
+próprio** — que é esta entrada. O motivo: o template **é** a peça, e não há como remover o
+caminho de gravação dele sem alterá-lo. As três cópias **empacotadas** não são congeladas (são
+saídas versionadas), mas são a **mesma peça** vista pelo navegador, e é por isso que entram no
+mesmo commit: deixar o template corrigido e a cópia não seria correção, seria divergência.
+
+**Com o quê.** Verificação medida, não presumida:
+
+- `node tools/check-pacote.js` nos três pacotes ⇒ **`0 erro(s)`**. Os avisos de glossário do `duo`
+  e do `ritmos` (6 cada) são **pré-existentes** e não têm relação com esta peça.
+- O servidor local (`python3 -m http.server`, `127.0.0.1:8000`) entrega o `lancamento.html` do
+  `diaghilev` com **HTTP 200** e **0** ocorrências de `showDirectoryPicker` — o mesmo arquivo que
+  a pesquisadora abriu.
+- Âncora: **não** exige reancorar. O `.fipp` das três escolas não cita `lancamento.html`
+  (`grep -c lancamento` ⇒ **0** nas três) e o `tools/lib-fontes.sh` confirma em código que o HTML
+  não é fonte hasheada. Os três `--check` seguem **`EXIT=0`**.
+- O teste de regressão (`experimentos/captura-json/teste.js`, **não versionado**) roda com os
+  casos **1–9 passando**; o **caso 10** agora falha pelo motivo **novo e correto** — a rota
+  ausente devolve `HTTP 404`, a página diz *"não enviei: HTTP 404. Os dados continuam aqui — tente
+  de novo."* e **nenhum download acontece** (`baixados: (nenhum)`). É a **prova de execução** de
+  que o caminho proibido está morto e de que a falha de transporte **não** limpa os campos.
+
+**Referências.**
+
+- O commit `17ed444` (o botão `Exportar ajuste do plano` sai do formulário) é o elo imediatamente
+  anterior desta cadeia no template; a remoção do seletor de pasta, o rótulo `Enviar` e o `POST`
+  entram **nesta** peça, em dois commits: o template e, depois, as três cópias.
+- `tools/gerar-ciclo.sh:564` (a cópia do template) e `:844–860` (a injeção da nav).
+- `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
+- `ARQUITETURA-CAPTURA.md` §7.3 — *"sem backend"* (`:625`), **reaberto** pela peça anterior e
+  **ainda não resolvido**: o `POST` aponta para uma função que **não existe** no repositório.
+- `prompts/eliciar-ciclo.md` (congelado, modificação anterior, sem relação com esta peça) foi
+  deixado **de fora** do commit, e `po_ref/` continua não versionado.
+
+**Nota datada — superação da entrada de 28/09/2026 (o `Exportar ajuste do plano`).** Aquela
+entrada lista `gravarNaPasta` entre os auxiliares **"compartilhados"** que *ficam* (`:7416`), e o
+`HANDOFF.md` repete a lista (`:185`). **A afirmação está superada por esta peça.** O
+`gravarNaPasta` **saiu** — não era compartilhado: existia só para a gravação em pasta, e a barra 1
+do ajuste não o usa. O elo não se apaga: fica registrado que naquele momento se acreditou que ele
+era compartilhado, e que esta peça mediu o contrário. O `#gerar-json` e o `#aviso-json`, esses
+**continuam** pinados pelo teste, como aquela entrada diz.
+
+**O que ainda não está feito.**
+
+- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
+  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **⚠️ O `POST` não tem destino.** `netlify/functions/receber.js` **não existe**, `netlify.toml`
+  **não existe** e o repositório **não tem** `.github/workflows/`. Enquanto isso, o `Enviar`
+  falha com `HTTP 404` — **honestamente** (avisa e preserva os campos), mas **falha**. O
+  transporte decidido — Netlify Function + Blobs + consolidação agendada — **não foi implementado**.
+  É o próximo bloco, e reabre formalmente o `§7.3` do `ARQUITETURA-CAPTURA.md`.
+- **O teste de regressão diverge do contrato novo.** Os casos 10–17 ainda leem `baixados[]` pelo
+  contrato **antigo** de download, e o caso 10 espera o JSON na ordem de schema obsoleta
+  (`tecnica`/`funcional` no lugar de `eixo_peso`). A suíte **não fica verde** até esses casos
+  serem realinhados. O arquivo é `gitignored` (`experimentos/`), logo **não entra em commit nenhum**.
+- **A `simulacao-marau/simular-formulario.js`** ainda tem dublê de `fetch` só para `GET`.
+- **Os passos 0 a 3 da fila da pesquisadora seguem abertos**: o nível 2 `tiago`, o `id` duplicado
+  do `plano.html`, e o `B6`→`B8` (aula dada / não dada pela LB da aula anterior).
