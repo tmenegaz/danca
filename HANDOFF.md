@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-29T16:41:41-0300`
-Commit atual: `ccdc38d` — chore(estrutura): @netlify/blobs — a dependência da Function
+Gerado em: `2026-09-29T16:53:19-0300`
+Commit atual: `55a7c20` — docs(registro): a medição do Passo 0 media sintaxe — a nota do defeito do regex
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -51,6 +51,9 @@ tiago (2)
 ## Últimos commits
 
 ```
+55a7c20 docs(registro): a medição do Passo 0 media sintaxe — a nota do defeito do regex
+9a0b5c3 fix(estrutura): a Function aceita o nome carimbado do lancamento
+d4f3cc6 docs(registro): regenera o HANDOFF sobre ccdc38d
 ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 4a4b52f docs(registro): a §7.3 deixa de valer integralmente — nota datada
 50f73f9 feat(estrutura): o lançamento ganha destino — Function, Blobs e reancoragem por push
@@ -68,9 +71,6 @@ f7b3707 docs(estrutura): regenera o HANDOFF depois de `fcda6d7`
 fcda6d7 docs(registro): a entrada ⑲ corrige o que a mesma peça tornou falso
 b1d85ab chore(ciclo-01): propaga o `Salvar` às três cópias empacotadas
 ce69bc5 fix(template): o botão passa a ser `Salvar`, e o arquivo vai para a pasta do ciclo
-6cf847e fix(template): o formulário declara os dois arquivos que baixa
-84bc1db fix(template): o índice do formulário deixa de sair sem a vírgula
-c18c0f2 docs(registro): o rito de 27/09/2026 — os elos das frentes que entraram
 ```
 
 ## Por professor
@@ -226,6 +226,23 @@ não casa o padrão `ciclo-*-*.conf`); `fontes_do_ciclo()` em `tools/lib-fontes.
 `-dados.json` do ciclo como FONTE** — e a `cobertura:` do `ciclo-01-duo.fipp` **já o inclui**, o que
 fecha a questão de saber se o lançamento entra no hash (entra). Varredura de "consolidação":
 `grep -n -i "consolid" REGISTRO.md` ⇒ só `:7591` e `:7735`, e `find . -name 'consolidar*'` ⇒ **vazio**.
+
+> **Nota de 29/09/2026.** A medição acima descrevia o estado **de então**, e o que ela **não** media é
+> o que importava: `node --check` prova que o arquivo *parseia*, não que ele **funciona**. Publicada
+> a Function, o caminho feliz foi exercitado pela primeira vez — e ele falhava **sempre**. O `find`
+> do `dadosDe` usava `/-dados\.json$/`, que exige que `dados.json` **encerre** o nome; mas o cliente
+> **nunca** envia esse nome: o `gerarJson()` manda o nome **carimbado** por `nomeNovo()`, e o carimbo
+> de `carimboArquivo()` (`AAAA-MM-DDTHHMM`, hora local, sem segundos) fica **entre** `dados` e
+> `.json`. O `dadosDe` ficava `undefined` e a Function recusava em `faltou o arquivo de dados ou o
+> ciclos.json` — **antes de qualquer `store.set`**: nenhum lançamento real seria aceito. Corrigido
+> oito minutos depois, no mesmo dia (`50f73f9` 16h40, `9a0b5c3` 16h48): o regex passa a aceitar as
+> duas formas — `/-dados(-[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{4})?\.json$/`, em
+> `netlify/functions/receber.js:36` — e a forma do carimbo é **copiada** de `carimboArquivo()`. O
+> `slugDe` do **mesmo** arquivo já usava o regex prefixado correto — os dois estavam
+> **inconsistentes entre si**, e só a **detecção** dependia do defeituoso. A redação acima **não é
+> apagada**: fica como o elo de uma medição que era verdadeira e **insuficiente**. A lição vale
+> também para o **irmão gêmeo** desta peça — o `yaml.safe_load` que validou o workflow: parser e
+> `--check` provam **sintaxe**; quem prova contrato é **executar o caminho feliz**.
 
 **Referências.** `tools/hash-ciclo.sh:105` (`ANCORADO_EM`) · `tools/lib-fontes.sh`
 (`fontes_do_ciclo`) · `tools/hooks/pre-commit:67–82` (a trava de âncora desatualizada) ·
