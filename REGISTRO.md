@@ -7595,5 +7595,150 @@ era compartilhado, e que esta peça mediu o contrário. O `#gerar-json` e o `#av
   (`tecnica`/`funcional` no lugar de `eixo_peso`). A suíte **não fica verde** até esses casos
   serem realinhados. O arquivo é `gitignored` (`experimentos/`), logo **não entra em commit nenhum**.
 - **A `simulacao-marau/simular-formulario.js`** ainda tem dublê de `fetch` só para `GET`.
-- **Os passos 0 a 3 da fila da pesquisadora seguem abertos**: o nível 2 `tiago`, o `id` duplicado
-  do `plano.html`, e o `B6`→`B8` (aula dada / não dada pela LB da aula anterior).
+- ~~**Os passos 0 a 3 da fila da pesquisadora seguem abertos**: o nível 2 `tiago`, o `id` duplicado
+  do `plano.html`, e o `B6`→`B8` (aula dada / não dada pela LB da aula anterior).~~ **Superado em
+  29/09/2026.** Os passos **1, 2 e 3** já estavam cumpridos no repositório quando esta linha foi
+  escrita — ela não foi remedida. Só o **passo 0** segue aberto, e o motivo está na entrada de
+  29/09/2026 abaixo. A redação antiga **não é apagada**: fica como o elo do que se acreditava.
+
+## 29/09/2026 — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava cumprido, e a pendência era eco de uma nota minha
+
+**O que motivou.** A pesquisadora pediu *"feche o passo 1 e 0"*. A fila dela — transcrita verbatim na
+entrada de 28/09/2026 deste registro — traz o **Passo 1** como *"**Nível 2 `tiago`** — aplicar o mesmo
+tratamento"*, com o Passo 0 (o transporte Netlify) declarado **depois** do Passo 3. Fechar o Passo 1
+exige, antes de qualquer edição, **medir se ele ainda estava aberto** — e a medição diz que **não**.
+
+**O que foi decidido.** O Passo 1 **já estava cumprido** quando a pendência foi listada, e o commit
+que o cumpriu é o **`85844c1`** — `feat(notacao): o ciclo ganha a notação Benesh, o glossário e o
+filtro`, **ancestral do `HEAD`** (`git merge-base --is-ancestor` ⇒ sim). O corpo daquele commit
+declara a peça verbatim:
+
+> *"`professores/tiago/ciclos/ciclo-01-notacao.md` e `ciclo-01-ritmos-notacao.md` — a **correção do
+> calendário**, e só ela: o `data:` do front matter sai e o `<!-- CALENDARIO -->` entra.
+> `ciclo-01-plano.md` e `ciclo-01-ritmos-plano.md` — a remoção do título `## Calendário do ciclo`,
+> duplicado, pelo mesmo motivo."*
+
+**"O mesmo tratamento" é o do `fochini`** — o precedente é **`4462d6a`**, anterior a esta frente.
+
+**Onde entrou.** Só neste registro, em duas peças: a **nota de superação** que tacha a linha que dava
+os passos 1 a 3 como abertos (na entrada de 29/09/2026 anterior a esta) e **esta entrada**. **Nenhuma
+fonte de ciclo foi tocada** — as quatro já estavam corrigidas desde o `85844c1` —, **nenhum ciclo foi
+regenerado** e **nenhuma âncora foi reancorada** (o `--check` das três segue válido, porque a lista de
+fontes cobertas não mudou).
+
+**Os passos 2 e 3, pela mesma medição.** A linha stale dava **três** passos como abertos, não um. Os
+outros dois também foram **remedidos** e também **já estavam cumpridos**, cada um com o seu commit:
+o **Passo 2** (o `id` duplicado do `plano.html`) ⇒ `id="calendario-do-ciclo"` aparece **exatamente 1×**
+nos **três** `plano.html` entregues, e `nav-links` **2×** nos três; o commit que alinhou os do `tiago`
+é **`53f41f4`** (o `fochini` já os tinha desde `4462d6a`). O **Passo 3** (`B6`→`B8`, a aula dada / não
+dada pela linha de base) ⇒ `derivar_estado` em `tools/gerar-ciclo.sh:439`, `estadoDaAula` em
+`tools/templates/lancamento.html:885`, e a regra da **linha de corte** documentada em
+`ARQUITETURA-AULA.md` §2 — commit **`282fbcb`**. **Os três são ancestrais do `HEAD`.**
+
+**A regra que sustenta a peça.** O **Nível 2 é a Camada 2 da Regra 10** — `REGRAS.md:39`: *"Camada 1:
+objetivo geral + marcos por aula + rubrica. **Camada 2: escola, frequência, duração por dia, volume
+semanal e datas reais** (formativa e somativa)"*. A "correção do calendário" é exatamente a Camada 2
+entrando no documento pelo caminho certo: a data **não se chumba no front matter** — ela é
+**injetada na geração**.
+
+**O consumidor do marcador.** `tools/gerar-ciclo.sh:614–631` injeta o calendário real (calculado da
+variante) no lugar do marcador — *"Regra 10, camada 2"*, diz o comentário ali. E ele **falha alto**
+se o contrato do marcador for violado:
+
+```python
+marca = texto.count('<!-- CALENDARIO -->')
+if marca != 1:
+    sys.exit('%s: marcador <!-- CALENDARIO --> aparece %d vezes (esperado 1).' % (alvo.name, marca))
+```
+
+O comentário interno nomeia a armadilha: *"o `replace` sem limite injetaria o calendário em TODAS as
+ocorrências do marcador, e o bloco duplicado repetiria o `id="calendario-do-ciclo"` na página.
+Falha alto em vez de duplicar calado."* ⇒ **o marcador é o contrato: sem ele, ou duplicado, o
+calendário não é injetado.**
+
+**Os hunks exatos — medidos com `-U0`, não presumidos.** Os diffs da peça dizem qual era o
+**defeito de cada arquivo**, e eles **não são o mesmo**:
+
+| Arquivo | Hunk | O que muda |
+|:--|:--|:--|
+| `ciclo-01-notacao.md` | `@@ -7 +6,0 @@` | sai `data: "17/09/2026"` |
+| `ciclo-01-notacao.md` | `@@ -49,0 +49,2 @@` | entram `<!-- CALENDARIO -->` + linha em branco |
+| `ciclo-01-ritmos-notacao.md` | `@@ -8 +7,0 @@` | sai `data: "18/09/2026"` |
+| `ciclo-01-ritmos-notacao.md` | `@@ -32,0 +32,2 @@` | entram `<!-- CALENDARIO -->` + linha em branco |
+| `ciclo-01-plano.md` | `@@ -52,2 +51,0 @@` | sai `## Calendário do ciclo` + linha em branco |
+| `ciclo-01-ritmos-plano.md` | `@@ -50,2 +49,0 @@` | sai `## Calendário do ciclo` + linha em branco |
+
+⇒ Nas duas `-notacao.md` o defeito era o **`data:` do front matter**; nas duas `-plano.md` o
+**marcador já existia** e o defeito era o **título `## Calendário do ciclo` duplicado**. Tratar os
+quatro como um só caso teria escondido a diferença.
+
+**Volume medido.** `git show --name-only --format='' 85844c1 | wc -l` ⇒ **116**; dos quais **63**
+têm `/tiago/` no caminho. O `--stat` total é **116 files changed, 10689 insertions(+), 5189
+deletions(-)**.
+
+> ⚠️ **Armadilha de contagem, registrada por ter custado um erro nesta medição.** `git show --stat
+> 85844c1 | grep -c "tiago"` devolve **36** — errado. A barra de truncamento do `--stat`
+> (`.../tiago/...`) colapsa caminhos diferentes numa mesma linha, e o cabeçalho também casa. A
+> contagem correta sai de `--name-only` com o filtro `grep -c '/tiago/'` ⇒ **63**.
+
+**A medição que confirma o fecho.** As **quatro fontes** estão, hoje, com `data:0` e `cal:1` —
+`grep -c '^data:'` e `grep -c '<!-- CALENDARIO -->'`. Não há nada a editar.
+
+**O contraexemplo legítimo — NÃO EDITAR.** `data:` **continua válido** onde o documento é **um
+achado com data própria**, e não um documento cujo calendário a geração injeta. Medido nesta rodada:
+
+| Arquivo | `data:` | `<!-- CALENDARIO -->` | Leitura |
+|:--|:--|:--|:--|
+| `fochini/ciclos/ciclo-01-glossario-benesh.md` | 1 | 0 | **legítimo** |
+| `tiago/ciclos/ciclo-01-glossario-benesh.md` | 1 | 0 | **legítimo** |
+| as quatro fontes do Passo 1 | 0 | 1 | contrato correto |
+
+O mesmo vale para os `captura-aula-NN.md`. **O defeito nunca foi o `data:` em si** — era o `data:`
+num documento cuja data **vem** do calendário.
+
+**Correção datada — a pendência era eco de uma nota de sessão, escrita antes do commit.** A linha
+que dava o Passo 1 como aberto **não veio de uma medição do repositório**: ela reproduzia uma nota
+redigida **durante a sessão de trabalho**, **antes** de o `85844c1` existir, e que ficou congelada no
+artefato de planejamento daquela sessão (`plan.md`, §0.3). Quando lida depois, ela parecia afirmação
+sobre o repositório — e não era. **P-03/P-04: a proveniência acrescenta, não edita.** A redação antiga **não é apagada**; ela foi **tachada e superada** na entrada de 29/09/2026 acima
+desta, com nota datada, e fica como o elo do que se acreditava.
+
+**O elo documental já existia.** A entrada de 28/09/2026 deste registro **já registrava** a peça —
+*"As duas notações do Tiago receberam a **mesma** correção: perderam o `data:` do front matter e
+ganharam o marcador `<!-- CALENDARIO -->`"*. ⇒ Esta entrada **não descobre nada novo**: ela fecha
+**formalmente** o que já estava registrado, e corrige a contagem de estado.
+
+**Com o quê.** Verificação medida, não presumida: `git merge-base --is-ancestor 85844c1 HEAD` ⇒
+**sim**; `git show --name-only --format='' 85844c1 | grep -c '/tiago/'` ⇒ **63** de **116**;
+`git show 85844c1 -U0 --format='' -- <as quatro fontes>` ⇒ os hunks da tabela; `grep -c` de `^data:`
+e de `<!-- CALENDARIO -->` nas **quatro fontes** ⇒ `0`/`1`; o mesmo `grep` nos **dois glossários** ⇒
+`1`/`0`; `derivar_estado` em `tools/gerar-ciclo.sh:439`; o bloco do marcador em
+`tools/gerar-ciclo.sh:614–631`; a Regra 10 em `REGRAS.md:39`.
+
+**Referências.** `85844c1` (a peça) · `4462d6a` (o precedente do `fochini`) · `REGRAS.md:39`
+(Regra 10, Camada 2) · `tools/gerar-ciclo.sh:614–631` (o consumidor) · `PROTOCOLO.md:38/42`
+(P-03/P-04) · entrada de 28/09/2026 deste registro (o elo) · a entrada imediatamente acima desta
+(a nota de superação da linha stale).
+
+**O que ainda não está feito.**
+
+- **⚠️ O Passo 0 segue aberto, e agora com o represamento medido.** `netlify.toml` **não existe**,
+  `netlify/` **não existe** e o repositório **não tem** `.github/workflows/`. A CLI `netlify` está
+  **ausente** da máquina. E as **6 chaves** de `tools/.netlify-tokens` estão **vazias**
+  (`NETLIFY_TOKEN_DUO`, `NETLIFY_SITE_DUO`, `NETLIFY_TOKEN_RITMOS`, `NETLIFY_SITE_RITMOS`,
+  `NETLIFY_TOKEN_DEBORA`, `NETLIFY_SITE_DEBORA` — valor com comprimento zero, medido). ⇒ **não há
+  site ID local e nada foi publicado por este repositório**; o site do Ritmos existe **só no painel
+  do Netlify da pesquisadora**. **O Passo 0 depende de credencial que só ela tem.** Enquanto isso,
+  o `Enviar` falha com `HTTP 404` — honestamente (avisa e preserva os campos), mas falha.
+- **⚠️ Duas decisões continuam abertas para o Passo 0** e nenhuma delas é resolvível só no código:
+  **onde vivem as Functions** — o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do
+  ciclo, **não a raiz**; e **quem reancora a cadeia** quando a consolidação commita pela API do
+  GitHub, que não roda hook nenhum (o `hash-ciclo.sh` é bash puro) — a saída provável é um
+  `.github/workflows/` rodando o `hash-ciclo.sh`.
+- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
+  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **A entrada de 29/09/2026 acima desta** (o botão `Salvar`) mantém em `:7485` a pergunta pela
+  **revisão dos demais botões**, ainda sem resposta — e ela é do mesmo bloco do Passo 0.
+- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
+  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
+  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
