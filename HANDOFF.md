@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-28T11:50:28-0300`
-Commit atual: `17ed444` — refactor(template): o botão `Exportar ajuste do plano` sai do formulário
+Gerado em: `2026-09-29T16:41:41-0300`
+Commit atual: `ccdc38d` — chore(estrutura): @netlify/blobs — a dependência da Function
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -41,14 +41,24 @@ tiago (2)
 
 ## Ideias documentadas
 
+- **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** (domínios de alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor — o **recipiente** é do PE, o **conteúdo** é do PO.
 - **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o resto, não.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto.
+- **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
 - **`IDEIA-PAINEL-ESCOLA.md`** — painel de gestão para a direção da escola (aulas dadas, horas trabalhadas, valor-hora, cadeia de custódia, retenção) e a página pública da cadeia para pais e alunos. Não implementado.
 
 ## Últimos commits
 
 ```
+ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
+4a4b52f docs(registro): a §7.3 deixa de valer integralmente — nota datada
+50f73f9 feat(estrutura): o lançamento ganha destino — Function, Blobs e reancoragem por push
+7a453c8 docs(registro): o fecho do Passo 1 registra que a peca ja estava cumprida
+76a0481 docs(registro): a entrada ㉑ registra o botão que abria a pasta do computador
+131907a fix(tools): propaga às três cópias empacotadas a saída do gerenciador de arquivos
+193287b fix(template): remove o caminho que abria a pasta do computador no botão Salvar
+07c5b95 docs(registro): regenera o HANDOFF sobre 17ed444
 17ed444 refactor(template): o botão `Exportar ajuste do plano` sai do formulário
 3cbd318 docs(estrutura): regenera o HANDOFF depois de 7e21bd4
 7e21bd4 docs(template): cabeçalho do formulário passa à voz de professor
@@ -61,14 +71,6 @@ ce69bc5 fix(template): o botão passa a ser `Salvar`, e o arquivo vai para a pas
 6cf847e fix(template): o formulário declara os dois arquivos que baixa
 84bc1db fix(template): o índice do formulário deixa de sair sem a vírgula
 c18c0f2 docs(registro): o rito de 27/09/2026 — os elos das frentes que entraram
-85844c1 feat(notacao): o ciclo ganha a notação Benesh, o glossário e o filtro
-14daa27 feat(tools): o envelope passa a publicar os apelidos em claro
-3338339 feat(entrega): o config da captura por aula passa a ser conferido no fim de toda geração
-738caea fix(tools): o validador do `-dados.json` entra no repositório — o hook o chamava sem ele
-ed3fce9 docs(campo): o campo ganha a forma canônica, o consentimento e o formulário da aula
-3ef2274 feat(aula-01): a âncora passa a existir por aula, não só por ciclo (§5.2)
-136361b feat(schema): o plano da aula ganha schema, validador e guarda no pre-commit
-282fbcb feat(template): o estado derivado e o ajuste no plano no formulário
 ```
 
 ## Por professor
@@ -146,114 +148,115 @@ ed3fce9 docs(campo): o campo ganha a forma canônica, o consentimento e o formul
 
 ## Última entrada do REGISTRO
 
-## 28/09/2026 — O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente
+## 29/09/2026 — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora por push
 
-**O que motivou.** A pesquisadora pediu a remoção **completa** do botão *"Exportar ajuste do
-plano"* (`#ajustar-plano`, a segunda barra do formulário) e que ficasse **registrado** que aquilo
-foi **erro de assistente** e não faz sentido existir. A pergunta dela foi direta e continua sem
-resposta possível: *"por que é que ele iria usar um exportar ajuste do plano? Vai exportar para
-onde? Para fazer o quê com isso?"* Uma explicação anterior já tinha sido recusada por citar
-documentação em vez de justificar o ponto de vista do usuário — **documentado ≠ justificado**.
+**O que motivou.** A pesquisadora pediu *"feche o passo 1 e 0"*. O **Passo 1** foi fechado na entrada
+imediatamente acima desta. O **Passo 0** é o transporte que o formulário de lançamento espera desde
+que o `POST` entrou no template: o `Enviar` apontava para uma rota que não existia em lugar nenhum, e
+o `ARQUITETURA-CAPTURA.md` §7.3 continuava reaberto por isso. A decisão de arquitetura já estava
+tomada e registrada desde a peça anterior — *"Netlify Function + Blobs + consolidação agendada"* —,
+mas **nenhuma das três partes estava implementada**.
 
-**O que foi decidido.** O botão e tudo que só ele sustentava **saem**; a distinção dos dois
-relógios e o arquivamento do plano anterior **ficam**.
+**O que foi decidido.** Implementar as partes do transporte que **não dependem de credencial**, e
+deixar a terceira como pendência declarada, com as perguntas em aberto. Três arquivos novos:
 
-- **A distinção fica.** O relógio do **plano** fecha no **lançamento**; o do **lançamento** fecha
-  no **prazo** (`§3.1`). É o que impede os dois ajustes de estarem abertos ao mesmo tempo, e é o
-  que o guard do `pre-commit` (`§2c`, `:172–305`) aplica — **ele difere a fonte `aula-NN.md`
-  contra o `HEAD`, não lê nenhum id de HTML**, e por isso não é afetado por esta remoção.
-- **O arquivamento fica.** `plano-aula-NN.json` → `plano-aula-NN-anterior.json` continua sendo
-  produzido por `tools/gerar-ciclo.sh`. É a proveniência do estado anterior do plano.
-- **O que sai é a exportação.** A fonte `aula-NN.md` é do professor; o que o formulário ajusta é
-  o **lançamento**, que tem o seu próprio par (o `#ajustar` da barra 1, com `podeAjustar()`).
-  Não havia **consumidor** para o elo do plano: a página montava um `.md` que ninguém anexava.
+1. **`netlify/functions/receber.js`** — a Function que recebe o `POST` do formulário. CommonJS, como
+   o resto do repositório (o Netlify não faz *bundle*: publica `netlify/functions/*.js` como estão e
+   roda `npm install` na raiz). Grava os dois JSON do lançamento em **Netlify Blobs**, no store
+   `lancamentos`, com `consistency: 'strong'`. Três decisões de contrato que importam:
+   - **A ordem de escrita é a do cliente.** O `gerarJson()` do template grava primeiro o arquivo de
+     **dados** e só depois o `ciclos.json`, porque *"se o índice chegasse ao destino apontando para
+     um arquivo que não está lá, a próxima abertura da página leria um ciclo inexistente"*. A
+     Function preserva esse invariante: grava na ordem em que os `arquivos[]` chegam.
+   - **A Function não inventa nome nem carimbo.** O `nomeNovo()` do template garante monotonicidade
+     minuto a minuto, e o carimbo é `YYYY-MM-DDTHHmm` em hora **local** do professor. Reconstruir
+     isso no servidor daria nome diferente do que o cliente escreveu no índice. A Function usa o
+     `nome` que o cliente mandou, verbatim, com `{ onlyIfNew: true }` como rede de segurança: se a
+     chave já existe, `store.set` devolve `{ modified: false }` e a Function **não** sobrescreve —
+     responde colisão, não grava por cima.
+   - **Falha de negócio não é erro de transporte.** O cliente trata sucesso como **HTTP 2xx + `ok`
+     truthy**; falha de negócio como **HTTP 200 + `{ ok: false, erro }`**. A Function segue isso, e
+     trata a ausência de ambiente de Blobs como erro legível — não como `500`.
 
-**A assinatura do erro — verificada, não presumida.** `git log -1 -S'Exportar ajuste do plano'`
-aponta **`282fbcb`** — *"feat(template): o estado derivado e o ajuste no plano no formulário"*,
-28/09/2026, commit **co-assinado por Copilot** (`Co-authored-by: Copilot`), que trouxe o `B8`
-(peça 7) inteiro. O botão nasceu aí, **não** de um pedido da pesquisadora. O pedido dela, na
-origem, era outro: um botão para ajustar **quando o "Plano seguido" fosse diferente de *sim***,
-com o campo *"O que mudou em relação ao plano"* — que é o **ajuste do lançamento**, e esse
-`#ajustar` **está funcionando e foi aprovado**. O que se registra aqui é o elo errado, não uma
-mudança de rumo dela.
+2. **`netlify.toml`** — mínimo, e **sem `publish`**. O *publish directory* é **por site**, não do
+   repositório: a decisão de 18/09/2026 já registrava *"Configurar o publish directory de cada site
+   no Netlify"* como pendência de configuração. Pôr `publish` aqui obrigaria todos os sites à mesma
+   pasta e contrariaria aquela decisão. O que o arquivo faz é declarar
+   `[functions] directory = "netlify/functions"`.
 
-**O que NÃO se toca.** O ajuste do lançamento (barra 1) fica inteiro: `#acoes-ajuste`, `#ajustar`,
-`#cancelar-ajuste`, `#aviso-ajuste`, a gate `podeAjustar()` (`:975`), o bloco do `render()`
-(`:1560–1574`) e o listener (`:1761`). Também ficam os auxiliares **compartilhados** com ele
-(`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`, `estadoDaAula`,
-`semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`, `fimDoPrazo`,
-`gravarNaPasta`, `#gerar-json` e `#aviso-json` — este último pinado pelo teste de regressão).
-O `mdAjuste` de `biblioteca/lib-vistas.js:48` é o elo do **lançamento** — função **diferente** da
-`mdAjusteDoPlano` que saiu.
+3. **`.github/workflows/reancorar.yml`** — o **primeiro workflow** deste repositório. Lançar uma
+   aula desatualiza a âncora do ciclo, e até aqui a reancoragem era manual. O workflow roda em
+   `push` para `main` tocando `professores/**` ou `tools/lib-fontes.sh`, **descobre a matriz do
+   disco** (`professores/*/ciclos/ciclo-*-*.conf`) em vez de hardcodá-la, e para cada variante
+   **valida antes de gerar** (`hash-ciclo.sh … --check`): se a âncora já está em dia, não toca em
+   nada. ⭐ **Não é detalhe.** `hash-ciclo.sh` carimba `ANCORADO_EM="$(date +%F)"`, que fica **fora**
+   da fórmula do hash — sem o `--check` primeiro, o arquivo mudaria de conteúdo todo dia só pela
+   data, gerando um commit diário por variante. Depois de gerar, revalida, e só commita se algo
+   mudou de fato. O commit sai como `github-actions[bot]`, com `chore(estrutura):` e os três
+   rodapés.
 
-**Onde entrou.**
+**Onde entrou.** `netlify/functions/receber.js` · `netlify.toml` · `.github/workflows/reancorar.yml`
+· esta entrada · `package.json` / `package-lock.json` (a dependência `@netlify/blobs ^11.1.1`, que a
+Function usa). **As três fontes de ciclo não mudaram** — nenhuma âncora precisa ser regerada por esta
+peça, e as dez âncoras do repositório seguem passando `--check`.
 
-- `tools/templates/lancamento.html` — a remoção. 273 linhas a menos, **só deleções, zero
-  adições**: HTML da barra (5 linhas), o CSS dela, o `render()`, os dois listeners, o `motivo` do
-  ajuste do plano, e os **12** auxiliares exclusivos dela (`podeAjustarPlano`, `escolaDaAula`,
-  `nomeFonteDaAula`, `canonico`, `carregarPlanoDaAula`, `contarFolhas`, `MAPA_DO_PLANO`,
-  `mapaDoPlano`, `semPrefixoDaAula`, `montarAjusteDoPlano`, `mdAjusteDoPlano` e
-  `exportarAjusteDoPlano`).
-- Os três pacotes gerados — `professores/fochini/ciclos/ciclo-01-diaghilev/lancamento.html`,
-  `professores/tiago/ciclos/ciclo-01-duo/lancamento.html` e
-  `professores/tiago/ciclos/ciclo-01-ritmos/lancamento.html` — reconstruídos a partir do template
-  limpo com o `<nav>` próprio de cada um reposto no lugar do marcador `<!-- NAV -->`.
-- `ARQUITETURA-AULA.md` — correção datada no `§1.2` (a nota do `B8`) e no item 8 do `§10`.
-- `ARQUITETURA-CAPTURA.md` — correção datada na nota dos *"dois ajustes"* e na **caixa da
-  divergência declarada** do `§5.1` (*"a resolver quando o formulário for revisto"* — a revisão
-  chegou, e resolveu a divergência **do plano**; a do **lançamento** segue aberta).
-- `tools/gerar-ciclo.sh` — o comentário do plano por aula, que dizia *"o botão do modo 'ajuste do
-  plano' não tem entrada"*.
+**Motivo declarado — os congelados.** Nenhum arquivo congelado foi **alterado**: `netlify.toml`,
+`netlify/` e `.github/workflows/` são arquivos **novos**, e `CONGELAMENTO.md` lista o que exige
+motivo declarado, não o que é novo. Mas esta peça cai em duas das categorias que **sim** exigem
+declaração: **altera a lógica de geração/deploy** (o `netlify.toml` passa a valer para os sites, e a
+reancoragem deixa de ser manual) e **reabre um congelado por decisão** — o `§7.3` do
+`ARQUITETURA-CAPTURA.md`, que dizia *"sem backend"*. O motivo vai no corpo do commit, e é este: o
+formulário **deixa de exportar e passa a enviar**; o elo passa a ser escrito no servidor em vez de
+anexado à mão pelo professor.
 
-**Motivo declarado — os congelados.** `tools/templates/lancamento.html` e `tools/gerar-ciclo.sh`
-estão em `tools/` (`CONGELAMENTO.md`), e por isso mudam **só com motivo declarado, entrada no
-`REGISTRO.md` e commit próprio** — que é esta entrada. O motivo: o template **é** a peça; não há
-como remover um botão dele sem alterá-lo. No `gerar-ciclo.sh` a mudança é **só de comentário**
-(nenhuma linha executável): o texto vigente descrevia um consumidor que deixou de existir, e
-deixá-lo faria o próximo leitor procurar um botão que não está lá.
+> **O que esta peça supera — e o elo que se preserva.** A entrada que registrou a decisão de
+> 20/09/2026 declarava, verbatim: *"a **opção A** — o formulário exporta o elo e o professor anexa;
+> **o Git registra**. **Não há script que escreva na fonte.**"* **O Passo 0 supera a opção A.** Agora
+> há escrita no servidor (Blobs) e há escrita no Git (o workflow commita a âncora). As quatro
+> ocorrências de *"sem backend"* que ficam superadas — `REGISTRO.md:6836`, `:7482`, a seção
+> *Referências* da entrada do botão `Salvar`, e `ARQUITETURA-CAPTURA.md:625` — recebem nota datada
+> ou são tachadas na própria entrada, conforme o caso. **A redação antiga não é apagada**: fica como
+> o elo do que se decidiu antes, e do que se acreditava naquele momento.
 
-**Com o quê.** Verificação medida, não presumida:
+**Com o quê.** Medição, não presunção: `node --check netlify/functions/receber.js` ⇒ **OK**;
+`require('@netlify/blobs')` resolve a partir da raiz; o `netlify.toml` e o workflow passam pelo
+parser de YAML; a matriz do workflow foi **provada** enumerando o glob do disco ⇒
+`fochini 01 diaghilev`, `tiago 01 duo`, `tiago 01 ritmos` (o `ciclo-01.conf` base não entra, porque
+não casa o padrão `ciclo-*-*.conf`); `fontes_do_ciclo()` em `tools/lib-fontes.sh` **já declara o
+`-dados.json` do ciclo como FONTE** — e a `cobertura:` do `ciclo-01-duo.fipp` **já o inclui**, o que
+fecha a questão de saber se o lançamento entra no hash (entra). Varredura de "consolidação":
+`grep -n -i "consolid" REGISTRO.md` ⇒ só `:7591` e `:7735`, e `find . -name 'consolidar*'` ⇒ **vazio**.
 
-- `node tools/check-pacote.js` nos três pacotes ⇒ `0 erro(s)`.
-- `node --check` no JS embutido do template ⇒ OK; `simular-formulario.js` ⇒ `EXIT=0`.
-- Os 18 símbolos exclusivos da barra 2 ⇒ **0 ocorrências** no template e nas três cópias;
-  `#acoes-ajuste`/`#ajustar` ⇒ **7** em cada.
-- `tools/gerar-ciclo.sh fochini 01 diaghilev` (execução real) ⇒ `EXIT=0` e o `lancamento.html`
-  emitido **idêntico** à cópia reconstruída à mão — a propagação é o que o próprio gerador
-  produz, a menos de uma linha em branco.
-- Os artefatos de arrasto da execução de teste (`ciclos.json`, `-dados.json`, o PDF) foram
-  revertidos; o diff final é **deleção pura**.
-- Âncora: **não** exige reancorar — o `.fipp` cobre 21 caminhos por ciclo e **nenhum** é
-  `lancamento.html` (`grep -c lancamento` ⇒ 0). Os três `--check` seguem `EXIT=0`.
-
-**Referências.**
-
-- O commit que introduziu o erro: **`282fbcb`** (*"o estado derivado e o ajuste no plano no
-  formulário"*, co-assinado por Copilot).
-- `ARQUITETURA-AULA.md` §1.1 (os quatro estados e o CRUD da aula planejada), §1.2 (a distinção
-  dos dois relógios), §10 item 8 (o `B8`).
-- `ARQUITETURA-CAPTURA.md` §5.1 (a caixa da divergência declarada) e a nota dos *"dois ajustes"*.
-- `CONGELAMENTO.md` — a lista dos congelados e a regra do comportamento.
-- `tools/hooks/pre-commit:172–305` — o guard do `B8`, que difere a **fonte**, não o HTML.
-- `prompts/eliciar-ciclo.md` foi deixado **de fora** do commit (modificação anterior, sem relação
-  com esta peça), e `po_ref/` continua não versionado.
+**Referências.** `tools/hash-ciclo.sh:105` (`ANCORADO_EM`) · `tools/lib-fontes.sh`
+(`fontes_do_ciclo`) · `tools/hooks/pre-commit:67–82` (a trava de âncora desatualizada) ·
+`tools/gerar-ciclo.sh:455–525` e `:614–631` (o índice e o calendário) · `tools/templates/lancamento.html`
+(`:722–745` o contrato do `POST`; `:925–960` o carimbo e o `nomeNovo`; `:1440–1525` o `gerarJson`) ·
+`ARQUITETURA-CAPTURA.md` §7.3 e §7.6 · `ARQUITETURA-AULA.md` §5.2 · `README.md:93–96` · a entrada de
+18/09/2026 deste registro (o deploy a partir do Git, uma conta por escola) · a entrada de 20/09/2026
+(a "opção A") · a entrada de 28/09/2026 (o botão `Salvar`) · a entrada imediatamente acima desta (o
+fecho do Passo 1).
 
 **O que ainda não está feito.**
 
-- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
-  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
-  proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
-  continuar produzindo ou parar.
-- **A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
-  lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
-  `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
-  `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
-  27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
-  silenciosa.
-- **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
-  processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
-  **não foi respondida**.
+- **⚠️ A consolidação agendada não existe — e é a metade que falta.** Hoje a Function **grava** o
+  lançamento no Blob, mas **nada move o Blob de volta para o Git**: o `-dados.json` do pacote
+  continua o antigo, a âncora não regera sozinha e o workflow não tem o que commitar. As perguntas
+  em aberto, para quem pegar esta peça: **o que varre** (o store `lancamentos` por prefixo?) · **o
+  que commita**, e **por qual API** (o workflow tem `contents: write`, mas a consolidação não
+  conhece o caminho do arquivo no pacote) · **com que frequência** · e **se regenera o pacote**
+  depois. Enquanto isso, o lançamento **não vira fonte**. **Não implementado — decisão explícita da
+  pesquisadora nesta rodada: documentar como pendência e commitar só as três partes prontas.**
+- **⚠️ "Onde vivem as Functions" continua aberta** (`ARQUITETURA-CAPTURA.md` §7.6 = *"o formulário
+  roda onde?"*). O `tools/deploy-netlify.sh:118/120` publica `netlify deploy --prod --dir="$PACOTE"`
+  — o **pacote do ciclo**, não a raiz. Se o deploy continuar por esse caminho, o `netlify.toml` da
+  raiz **pode não ser lido**, e as Functions podem não subir. É inferência forte, **não medida**.
+- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
+  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **A pergunta de `REGISTRO.md:7485`** pela **revisão dos demais botões** do formulário **segue sem
+  resposta**, e é do mesmo bloco do Passo 0.
+- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
+  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
+  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
 
 ## O que está pendente
 
@@ -1455,15 +1458,98 @@ hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo
 - **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
   proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
   continuar produzindo ou parar.
-- **A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
+- ~~**A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
   lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
   `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
   `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
   27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
-  silenciosa.
+  silenciosa.~~ **Superado em 29/09/2026.** O motivo declarado e a entrada própria são os da entrada
+  de **29/09/2026** (o Passo 0), que dá destino ao `POST` e reancora por push. O que **continua em
+  aberto** é a metade que falta — a **consolidação agendada** —, e está declarada lá com as
+  perguntas. A redação antiga **não é apagada**: fica como o elo do que estava aberto em 27/09/2026.
 - **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
   processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
   **não foi respondida**.
+
+## 29/09/2026 — O botão `Salvar` deixa de abrir a pasta do computador: a causa era a cópia, não o template
+
+
+- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
+  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- ~~**⚠️ O `POST` não tem destino.** `netlify/functions/receber.js` **não existe**, `netlify.toml`
+  **não existe** e o repositório **não tem** `.github/workflows/`. Enquanto isso, o `Enviar`
+  falha com `HTTP 404` — **honestamente** (avisa e preserva os campos), mas **falha**. O
+  transporte decidido — Netlify Function + Blobs + consolidação agendada — **não foi implementado**.
+  É o próximo bloco, e reabre formalmente o `§7.3` do `ARQUITETURA-CAPTURA.md`.~~ **Superado em
+  29/09/2026.** Os três arquivos **existem** desde aquela data — `netlify.toml`,
+  `netlify/functions/receber.js` e `.github/workflows/reancorar.yml` —, mas o transporte ficou
+  **pela metade**: a Function que recebe o `POST` e a reancoragem entraram, a **consolidação
+  agendada** não. O `HTTP 404` só continua possível onde **não há site publicado**; a falha deixou
+  de ser de destino inexistente e passou a ser de site ausente. A redação antiga **não é apagada**:
+  fica como o elo do que se mediu naquele momento.
+- **O teste de regressão diverge do contrato novo.** Os casos 10–17 ainda leem `baixados[]` pelo
+  contrato **antigo** de download, e o caso 10 espera o JSON na ordem de schema obsoleta
+  (`tecnica`/`funcional` no lugar de `eixo_peso`). A suíte **não fica verde** até esses casos
+  serem realinhados. O arquivo é `gitignored` (`experimentos/`), logo **não entra em commit nenhum**.
+- **A `simulacao-marau/simular-formulario.js`** ainda tem dublê de `fetch` só para `GET`.
+- ~~**Os passos 0 a 3 da fila da pesquisadora seguem abertos**: o nível 2 `tiago`, o `id` duplicado
+  do `plano.html`, e o `B6`→`B8` (aula dada / não dada pela LB da aula anterior).~~ **Superado em
+  29/09/2026.** Os passos **1, 2 e 3** já estavam cumpridos no repositório quando esta linha foi
+  escrita — ela não foi remedida. Só o **passo 0** segue aberto, e o motivo está na entrada de
+  29/09/2026 abaixo. A redação antiga **não é apagada**: fica como o elo do que se acreditava.
+
+## 29/09/2026 — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava cumprido, e a pendência era eco de uma nota minha
+
+
+- **⚠️ O Passo 0 segue aberto, e agora com o represamento medido.** ~~`netlify.toml` **não existe**,
+  `netlify/` **não existe** e o repositório **não tem** `.github/workflows/`.~~ **Superado em
+  29/09/2026:** os três **existem**. A CLI `netlify` está
+  **ausente** da máquina. E as **6 chaves** de `tools/.netlify-tokens` estão **vazias**
+  (`NETLIFY_TOKEN_DUO`, `NETLIFY_SITE_DUO`, `NETLIFY_TOKEN_RITMOS`, `NETLIFY_SITE_RITMOS`,
+  `NETLIFY_TOKEN_DEBORA`, `NETLIFY_SITE_DEBORA` — valor com comprimento zero, medido). ⇒ **não há
+  site ID local e nada foi publicado por este repositório**; o site do Ritmos existe **só no painel
+  do Netlify da pesquisadora**. **O Passo 0 depende de credencial que só ela tem** — e isso
+  **continua verdadeiro**: os arquivos existem, mas sem site publicado o `Enviar` ainda falha com
+  `HTTP 404`, honestamente (avisa e preserva os campos).
+- **⚠️ Uma decisão continua aberta para o Passo 0**, e não é resolvível só no código:
+  **onde vivem as Functions** — o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do
+  ciclo, **não a raiz**. O `netlify.toml` da raiz fica no disco como a peça que a pressupõe.
+  ~~**A outra decisão** — **quem reancora a cadeia** quando a consolidação commita pela API do
+  GitHub, que não roda hook nenhum (o `hash-ciclo.sh` é bash puro) — a saída provável é um
+  `.github/workflows/` rodando o `hash-ciclo.sh`.~~ **Superado em 29/09/2026:** está **respondida**
+  — o `.github/workflows/reancorar.yml` reancora **por push**, rodando o `hash-ciclo.sh --check`
+  antes de gerar, com o commit do próprio workflow. A redação antiga **não é apagada**: fica como
+  o elo do que se supunha antes de medir.
+- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
+  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **A entrada de 29/09/2026 acima desta** (o botão `Salvar`) mantém em `:7485` a pergunta pela
+  **revisão dos demais botões**, ainda sem resposta — e ela é do mesmo bloco do Passo 0.
+- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
+  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
+  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
+
+## 29/09/2026 — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora por push
+
+
+- **⚠️ A consolidação agendada não existe — e é a metade que falta.** Hoje a Function **grava** o
+  lançamento no Blob, mas **nada move o Blob de volta para o Git**: o `-dados.json` do pacote
+  continua o antigo, a âncora não regera sozinha e o workflow não tem o que commitar. As perguntas
+  em aberto, para quem pegar esta peça: **o que varre** (o store `lancamentos` por prefixo?) · **o
+  que commita**, e **por qual API** (o workflow tem `contents: write`, mas a consolidação não
+  conhece o caminho do arquivo no pacote) · **com que frequência** · e **se regenera o pacote**
+  depois. Enquanto isso, o lançamento **não vira fonte**. **Não implementado — decisão explícita da
+  pesquisadora nesta rodada: documentar como pendência e commitar só as três partes prontas.**
+- **⚠️ "Onde vivem as Functions" continua aberta** (`ARQUITETURA-CAPTURA.md` §7.6 = *"o formulário
+  roda onde?"*). O `tools/deploy-netlify.sh:118/120` publica `netlify deploy --prod --dir="$PACOTE"`
+  — o **pacote do ciclo**, não a raiz. Se o deploy continuar por esse caminho, o `netlify.toml` da
+  raiz **pode não ser lido**, e as Functions podem não subir. É inferência forte, **não medida**.
+- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
+  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
+- **A pergunta de `REGISTRO.md:7485`** pela **revisão dos demais botões** do formulário **segue sem
+  resposta**, e é do mesmo bloco do Passo 0.
+- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
+  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
+  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
 - PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
