@@ -110,6 +110,27 @@ mudar. O diff responde isso sem que ninguém precise justificar por escrito: a m
 >   exportação. Ver o `REGISTRO.md`, 28/09/2026, *"O botão `Exportar ajuste do plano` sai do
 >   formulário: era erro de assistente"*.
 
+> **Correção de 29/09/2026.** A medição de hoje fecha a conta das duas notas acima — e o que caiu
+> não foi só a exportação. `podeAjustarPlano()`, a função que a redação de 27/09 nomeia como
+> *"quem manda"*, **não existe**: saiu com a barra `#acoes-plano` na peça de 28/09/2026, e a
+> varredura do nome em `tools/templates/lancamento.html` volta **zero**. Do par que a primeira
+> nota descrevia resta **um** relógio só, o do lançamento — `podeAjustar()`
+> (`tools/templates/lancamento.html:970`), consumida em **`:1566`** (o `disabled` do botão) e
+> **`:1572`** (o texto do aviso). A frase *"os dois nunca ficam abertos ao mesmo tempo"* descrevia
+> um par que já não existe no formulário.
+>
+> **O que fica de pé**, e é o que esta seção precisa guardar: a **distinção** entre plano e
+> lançamento nunca dependeu do formulário. Ela é aplicada pelo guard do `pre-commit` — a
+> sub-seção `§2c` do hook, que lê a fonte `aula-NN.md` e distingue plano antes × depois da aula
+> —, e o `plano-aula-NN-anterior.json` continua sendo arquivado pelo gerador
+> (`tools/gerar-ciclo.sh`, a ordem `cp` → `mv`). O `(§8)` das duas notas acima é a seção **deste**
+> documento que lista os arquivos congelados, e é ali que o `tools/hooks/pre-commit` figura (a
+> razão declarada do congelamento, citada pelo próprio guard); **não é erro de referência**.
+>
+> **A redação anterior não é apagada** (P-03/P-04): fica como o elo do que se acreditou naquele
+> momento. Ver o `REGISTRO.md`, 29/09/2026, *"O `B8` medido: `podeAjustarPlano()` não existe, e o
+> elo do que se acreditava"*.
+
 ## 2. A linha de corte
 
 > **A linha de corte de uma aula é o registro da última aula que teve dado — por ORDEM DE

@@ -6121,27 +6121,42 @@ como ele deve receber qualquer mudança.
 >    **as oito de implementação estão feitas**; a **9** entregou só a **P-13** (a eliciação segue
 >    pendente, `HANDOFF.md:655`), e a **10** (o painel) é *"para depois"* por decisão.
 > 2. *"`podeAjustar()` continua fechado (`tools/templates/lancamento.html:948`)"*. **A linha está
->    errada e a afirmação é falsa.** `podeAjustar()` está em **`:1194`** e é **consumido** — em
->    `:1761` (o `disabled` do botão *ajustar*) e `:1767` (o texto do aviso). O que a peça `B6`
->    mediu em `:948` foi outra coisa. Quem **governa o plano** não é `podeAjustar()`: é
+>    errada e a afirmação é falsa.** `podeAjustar()` está em ~~**`:1194`**~~ e é **consumido** — em
+>    ~~`:1761` (o `disabled` do botão *ajustar*) e `:1767` (o texto do aviso)~~. O que a peça `B6`
+>    mediu em `:948` foi outra coisa. ~~Quem **governa o plano** não é `podeAjustar()`: é
 >    **`podeAjustarPlano()` (`:618`)**, com o comentário de `:612` explicando que são **dois
 >    relógios** — aquele é o do lançamento (depois da aula, dentro do prazo), este o do plano
 >    (antes ou depois da aula, até o lançamento). O `B8` entregou o segundo; o `:1784` é quem
->    o consome.
+>    o consome.~~ **Superado em 29/09/2026.** As coordenadas deslocaram outra vez — e a função que
+>    esta correção nomeia como *"quem manda"* **não existe**: `podeAjustarPlano()` saiu com a barra
+>    `#acoes-plano` na peça de 28/09/2026 (`17ed444`), e a varredura do nome no template volta
+>    **zero**. Do par resta **um** relógio só, o do lançamento — `podeAjustar()` em **`:970`**,
+>    consumida em **`:1566`** (o `disabled` do botão) e **`:1572`** (o texto do aviso). A redação
+>    antiga **não é apagada**: fica como o elo do que se mediu naquele momento.
 > 3. *"`lib-vistas.js:148-154` — `capturarDepois()` não tem chamador"*. **A função não existe** —
 >    nunca existiu. `grep -c 'capturarDepois' tools/lib-vistas.js` → **0**, e
 >    `git log --all -S'capturarDepois'` volta **vazio**. Não há bug latente ali; há um nome que
 >    foi citado de memória. **Retirado de todas as listas de pendência.**
 > 4. *"`grep -n "function estadoDaAula"` → `:871`; `"const pulada"` → `:887`"*. **Os números
->    deslocaram** — com o `B8` o arquivo cresceu: hoje são **`:1109`** e **`:1125`**. As duas
->    funções estão no arquivo e fazem o que a entrada diz; só as coordenadas mudaram.
+>    deslocaram** — com o `B8` o arquivo cresceu: ~~hoje são **`:1109`** e **`:1125`**~~.
+>    **Superado em 29/09/2026:** hoje são **`:885`** e **`:901`**. O `B8` morava **depois** destas
+>    duas funções: quando a barra do plano saiu, na peça de 28/09/2026, o arquivo perdeu 1 110
+>    linhas **abaixo** delas e as coordenadas voltaram para perto das originais. As duas funções
+>    estão no arquivo e fazem o que a entrada diz; só as coordenadas mudaram — duas vezes.
 >
 > Uma quinta afirmação **estava certa e continua certa**: o *"Efeito colateral confirmado"* — na
-> aula `dada` **sem** registro o bloco `#acoes-ajuste` fica oculto (`barraAjuste.hidden = !!
-> captura || !temAula`, `:1757`). O `B8` **olhou de frente**, como a entrada pedia: a ação não se
+> aula `dada` **sem** registro o bloco `#acoes-ajuste` fica oculto ~~(`barraAjuste.hidden = !!
+> captura || !temAula`, `:1757`)~~ (**`barraAjuste.hidden = !!captura || !temAula`**, hoje em
+> `:1562`). O `B8` **olhou de frente**, como a entrada pedia: ~~a ação não se
 > perde, porque quem a oferece é a **barra do plano** (`#acoes-plano`, `:1780`), que vive fora do
 > painel e não depende de o painel estar aberto. Fica como assimetria **deliberada** e comentada
-> no código, não como pendência.
+> no código, não como pendência.~~ **Superado em 29/09/2026.** A **barra do plano não existe** —
+> `#acoes-plano` saiu na peça de 28/09/2026 e a varredura do id no template volta **zero**. O que
+> resta é o predicado do formulário: `const captura = …` (`:1536`), `const emFormulario = !!
+> captura || emAjuste` (`:1538`) e o `hidden` de `:1562`. A assimetria, portanto, **não está
+> resolvida por desenho**: volta a ser **pendência** — e é assim que fica registrada aqui, com o
+> comentário de `:1555–1557` no código como o único elo. A redação antiga **não é apagada**: fica
+> como o elo do que se mediu naquele momento.
 
 ## 27/09/2026 — A §5.1 para de dizer 48 h: o ajuste com prazo passa a descrever o prazo que o `B7` implementou
 
@@ -6316,9 +6331,15 @@ tocam arquivos congelados; entra aqui com o rito que o congelamento exige.
 **O que foi decidido.**
 
 - **O elo é anexado, não escrito à mão.** O bloco `## Ajuste do plano da aula NN` vai para o **fim**
-  do `aula-NN.md` e é o **próprio formulário** que o exporta (`exportarAjusteDoPlano`). O professor
+  do `aula-NN.md` e ~~é o **próprio formulário** que o exporta (`exportarAjusteDoPlano`). O professor
   baixa o `.md`, anexa, e **o Git registra**. Ninguém transcreve ajuste — do mesmo jeito que o elo
-  do lançamento já funcionava.
+  do lançamento já funcionava.~~ **Superado em 29/09/2026.** O exportador **não existe**:
+  `exportarAjusteDoPlano` saiu do formulário na peça de 28/09/2026 (`17ed444`), com a barra
+  `#acoes-plano` e o `mdAjusteDoPlano()` — a varredura dos três nomes no template volta **zero**. O
+  elo do plano, hoje, **não tem produtor no formulário**: o que o professor baixa e anexa é o elo do
+  **lançamento**. Quem sustenta a distinção é o guard `§2c` do `pre-commit`, que difere a fonte
+  `aula-NN.md` contra o `HEAD` e não lê id nenhum de HTML. A redação antiga **não é apagada**: fica
+  como o elo do que se mediu naquele momento.
 - **O que já estava acima do elo não se toca.** O guard compara **o prefixo** (tudo antes do
   primeiro `## Ajuste do plano da aula `) com o do `HEAD`, e o elo do `HEAD` linha a linha. Prefixo
   diferente ⇒ **recusa**; elo anterior alterado ou removido ⇒ **recusa**; elo novo **anexado**
@@ -6330,9 +6351,16 @@ tocam arquivos congelados; entra aqui com o rito que o congelamento exige.
 - **A ausência de estado é aviso, nunca recusa.** Sem schema, sem índice ou sem `HEAD`: **aviso**.
   O hook não inventa uma trava que a fonte não sustenta.
 - **Não bastava o `podeAjustar()`.** Ele é o relógio do **lançamento** (só se ajusta o que já foi
-  lançado, e só dentro do prazo). O plano é o **outro** relógio — libera **antes** da aula. Entrou
+  lançado, e só dentro do prazo). O plano é o **outro** relógio — libera **antes** da aula. ~~Entrou
   `podeAjustarPlano()` (`lancamento.html:618`), e o comentário de `:612` registra por que os dois
-  nunca ficam abertos ao mesmo tempo: o predicado dos dois é o mesmo estado derivado.
+  nunca ficam abertos ao mesmo tempo: o predicado dos dois é o mesmo estado derivado.~~ **Superado em
+  29/09/2026.** O segundo relógio **saiu do formulário** na peça de 28/09/2026 (`17ed444`): nem
+  `podeAjustarPlano()` nem o comentário de `:612` existem — as duas coordenadas são do estado
+  pré-remoção. Do par resta **um** relógio na página, o do lançamento: `podeAjustar()` em **`:970`**,
+  consumida em **`:1566`** (o `disabled` do botão) e **`:1572`** (o texto do aviso). O predicado
+  compartilhado que o comentário descrevia **não está mais no formulário** — quem aplica os dois
+  relógios é o guard `§2c` do `pre-commit`, sobre a fonte. A redação antiga **não é apagada**: fica
+  como o elo do que se mediu naquele momento.
 - **O antigo não se perde.** Antes de o gerador sobrescrever `plano-aula-NN.json`, o que estava lá
   vira **`plano-aula-NN-anterior.json`** — é esse par que o formulário compara para emitir o elo
   ("o ajuste não se declara, ele se **vê**"). A ordem `cp` → `mv` é deliberada: interrompida entre
@@ -6352,8 +6380,13 @@ tocam arquivos congelados; entra aqui com o rito que o congelamento exige.
   contra o schema e sai em `--json` para o gerador.
 - `tools/gerar-ciclo.sh` — o `plano-aula-NN.json` por aula, com o `-anterior.json` e o guarda de
   schema ausente; `CAP_FOLHAS` (§4.2) para não prometer `config` sem folha na fonte.
-- `tools/templates/lancamento.html` — a barra do ajuste do plano (`#acoes-plano`), `podeAjustarPlano()`,
-  `mdAjusteDoPlano()` e `exportarAjusteDoPlano()`.
+- `tools/templates/lancamento.html` — ~~a barra do ajuste do plano (`#acoes-plano`),
+  `podeAjustarPlano()`, `mdAjusteDoPlano()` e `exportarAjusteDoPlano()`.~~ **Superado em 29/09/2026.**
+  Os quatro **saíram** na peça de 28/09/2026 (`17ed444`), 273 linhas a menos, só deleções; a varredura
+  dos três nomes e do id no template volta **zero**. O que a peça entregou de **durável** não morava
+  na página: é o guard `§2c` do `pre-commit` (o bullet seguinte) e o par
+  `plano-aula-NN-anterior.json` do `gerar-ciclo.sh`. A redação antiga **não é apagada**: fica como o
+  elo do que se mediu naquele momento.
 - `tools/hooks/pre-commit` — o bloco §2c, o guard do plano.
 - `ARQUITETURA-AULA.md` (§1, §1.2, §3.1, §5, §10) e `ARQUITETURA-CAPTURA.md` — o estado de cada peça.
 
@@ -7415,13 +7448,22 @@ com o campo *"O que mudou em relação ao plano"* — que é o **ajuste do lanç
 mudança de rumo dela.
 
 **O que NÃO se toca.** O ajuste do lançamento (barra 1) fica inteiro: `#acoes-ajuste`, `#ajustar`,
-`#cancelar-ajuste`, `#aviso-ajuste`, a gate `podeAjustar()` (`:975`), o bloco do `render()`
-(`:1560–1574`) e o listener (`:1761`). Também ficam os auxiliares **compartilhados** com ele
+`#cancelar-ajuste`, `#aviso-ajuste`, a gate `podeAjustar()` (~~`:975`~~), o bloco do `render()`
+(`:1560–1574`) e o listener (~~`:1761`~~). Também ficam os auxiliares **compartilhados** com ele
 (`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`, `estadoDaAula`,
 `semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`, `fimDoPrazo`,
 `gravarNaPasta`, `#gerar-json` e `#aviso-json` — este último pinado pelo teste de regressão).
-O `mdAjuste` de `biblioteca/lib-vistas.js:48` é o elo do **lançamento** — função **diferente** da
+O `mdAjuste` de ~~`biblioteca/lib-vistas.js:48`~~ é o elo do **lançamento** — função **diferente** da
 `mdAjusteDoPlano` que saiu.
+
+**Superado em 29/09/2026.** As listas continuam certas — a varredura confirma que **todos** os ids e
+auxiliares nomeados acima existem no template —, mas **três coordenadas** desta entrada estavam
+erradas: a gate `podeAjustar()` está em **`:970`** (o `:975` é linha em branco); o listener do
+`#ajustar` está em **`:1753`** — o `:1761` é `renderCaptura();`, e pertence ao listener do
+`#cancelar-ajuste` de `:1758`; e a `lib-vistas` vive em **`tools/lib-vistas.js`**, não em
+`biblioteca/` — `tools/lib-vistas.js:48` é `function mdAjuste(aj) {`. O bloco do `render()` citado
+(`:1560–1574`) **confere** com o medido. A redação antiga **não é apagada**: fica como o elo do que
+se mediu naquele momento.
 
 **Onde entrou.**
 
@@ -7964,3 +8006,69 @@ regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `
 mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
 Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
 ser refeito por causa desta peça.
+
+## 29/09/2026 — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que se acreditava
+
+**O que motivou.** A pergunta *"fizemos os passos 0, 1, 2 e 3?"* obrigou a **medir** o formulário em
+vez de citá-lo — e a medição derrubou uma premissa que este registro sustentava desde 27/09: o `B8`,
+o ajuste **no plano**, era descrito como vivo em **oito** pontos deste arquivo. Ele **saiu do
+código** em 28/09/2026 (`17ed444`, *"O botão `Exportar ajuste do plano` sai do formulário"*), e o
+que sobrou foram afirmações conflitantes: um documento dizendo que a coisa existe e o código dizendo
+que não. A pesquisadora foi explícita: *"não dá para ter informações conflitantes em documentos
+diferentes"*.
+
+**O que foi decidido.** Nenhuma redação antiga é apagada (P-03/P-04). Os oito pontos ganham **nota
+de superação datada, no lugar**, e esta entrada é o elo que a nota do `ARQUITETURA-AULA.md` já
+citava pelo título.
+
+1. **A varredura de código é zero.** `podeAjustarPlano`, `#acoes-plano` e `mdAjusteDoPlano` não
+   existem em `tools/templates/lancamento.html` nem em `tools/`; de `exportarAjusteDoPlano` resta
+   **um comentário** — `tools/hooks/pre-commit:184` —, resíduo que o hook ainda carrega ao explicar
+   de quem é o elo. A remoção não foi parcial: os quatro saíram juntos, com a barra que os
+   sustentava.
+   - **O que fica de pé é o guard, não a página.** A distinção que a redação de 27/09 atribuía ao
+     formulário nunca dependeu dele: `tools/hooks/pre-commit` aplica a sub-seção **`§2c`** (bloco
+     `:172–305`) sobre a **fonte** `aula-NN.md`, deferindo-a contra o `HEAD` — **não lê id nenhum de
+     HTML**, e por isso a remoção não o alcança.
+   - **O `§8` não é do hook.** Ele é a seção do `ARQUITETURA-AULA.md` que lista os arquivos
+     congelados, e é o próprio guard que a cita (`pre-commit:175`). As duas referências permanecem:
+     `§8` é do documento, `§2c` é do hook.
+
+2. **O relógio do formulário é um só — e a assimetria voltou a ser pendência.** `podeAjustar()` está
+   em `tools/templates/lancamento.html:970` e é consumida em **`:1566`** (o `disabled` do botão) e
+   **`:1572`** (o texto do aviso); `estadoDaAula`/`pulada` estão em **`:885`**/**`:901`**. O "efeito
+   colateral" que a quinta afirmação descrevia — a aula `dada` sem registro deixar o bloco do ajuste
+   oculto — **não tem mais o desenho que o resolvia**: o mecanismo hoje é o predicado de
+   `:1536`/`:1538` sobre `:1562`, e o comentário-elo de `:1555–1557` continua declarando a intenção.
+   Fica registrado como **pendência**, não como virtude.
+   - **Nenhum auxiliar do "O que NÃO se toca" foi perdido.** A varredura confirmou os catorze
+     (`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`,
+     `estadoDaAula`, `semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`,
+     `fimDoPrazo`) e os ids da barra 1 (`#acoes-ajuste` `:118`, `#ajustar` `:119`,
+     `#cancelar-ajuste` `:120`, `#aviso-ajuste` `:121`, `#gerar-json` `:131`, `#aviso-json` `:132`).
+   - **Três coordenadas da entrada de 28/09 estavam erradas.** A gate é **`:970`** — o `:975` é
+     linha em branco; o listener do `#ajustar` é **`:1753`** — o `:1761` é `renderCaptura();`, e
+     pertence ao listener do `#cancelar-ajuste` de `:1758`; e a `lib-vistas` vive em
+     **`tools/lib-vistas.js`** — `:48` é `function mdAjuste(aj) {` —, não em `biblioteca/`.
+
+**Onde entrou.** `REGISTRO.md` — esta entrada e os oito pontos superados (o item 2, o item 4 e a
+quinta afirmação de *"o ajuste no plano deixa de ser promessa"*; os três da entrada do `B8`; e a
+imprecisão tripla da entrada de 28/09) · `ARQUITETURA-AULA.md` — a nota de 29/09/2026 no `§1`
+(`:113–132`), que cita esta entrada pelo título.
+
+**Com o quê.** `REGISTRO.md`, `ARQUITETURA-AULA.md`. Nenhum dos dois é congelado
+(`CONGELAMENTO.md`), e nenhum é fonte de ciclo: nenhum `.fipp` precisa ser refeito por causa desta
+peça.
+
+**Referências.** `git show --stat 17ed444` (8 arquivos, 160 inserções, 1 110 deleções) · a entrada de
+28/09/2026 acima, *"O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente"* ·
+`tools/gerar-ciclo.sh:221–231` (o par `plano-aula-NN-anterior.json` **segue** produzido como
+proveniência, e o `cp` de `:258` vem antes do `mv` de `:259`) · `ARQUITETURA-AULA.md`, a nota de
+29/09/2026 que esta entrada fecha.
+
+**O que ainda não está feito.** A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
+sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
+não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
+`tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
+congelado, e corrigi-lo exige motivo declarado e commit próprio. E o `HANDOFF.md`, que espelha este
+registro, precisa ser regenerado **depois** desta entrada.
