@@ -1,7 +1,10 @@
 # Arquitetura — a anamnese de balé clássico
 
 > **Resumo (para o HANDOFF):** Desenho da malha de anamnese de balé clássico como **conteúdo do
-> PO** (domínios de alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema
+> PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha,
+> os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três
+> dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de
+> domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema
 > vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível
 > declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor — o
 > **recipiente** é do PE, o **conteúdo** é do PO.
@@ -9,7 +12,8 @@
 > **Estado:** Especificação de arquitetura (sem alteração de código ou arquivos congelados).
 
 > **Escopo:** Onde a anamnese se apoia no que já existe (P-08, P-10, P-16, P-20, P-22); a
-> separação estrita PE × PO para a anamnese; os domínios declarados; a ramificação condicional;
+> observação inicial e os nove blocos da ficha; os módulos condicionais; as dimensões da linha de
+> base; a separação estrita PE × PO para a anamnese; os domínios declarados; a ramificação condicional;
 > o CRUD autoral e o seu limite; onde o dado vive e sob qual política; o que precisará descongelar.
 
 > **Leia antes de citar.** Este documento é do **Projeto Ciclo** — a memória da aula dada,
@@ -122,60 +126,45 @@ anamnese:
 5. **A degradação graciosa** (§3 do [`ARQUITETURA-PE.md`](ARQUITETURA-PE.md)): sem PE, a anamnese
    continua existindo — só deixa de ter o envelope.
 
-## 3. A observação inicial: os elementos basilares do balé clássico
+## 3. A malha de anamnese do balé clássico
 
-### 3.1 A norma do domínio
+### 3.1 A observação inicial: os elementos basilares
 
-A linha de base zero do balé clássico exige uma **observação inicial obrigatória**, que passa
-pelos **elementos basilares** do domínio. Esta exigência é **norma do domínio** — não é pétrea do
-PE, e não vale para outras áreas. O PE exige que a linha de base seja declarada (P-10); o domínio
-do balé clássico **define o que ela observa**. Em outra área, a linha de base zero terá outros
-elementos basilares, e a obrigação de declará-los será daquela norma de domínio.
+**A norma do domínio.** A linha de base zero do balé clássico exige uma **observação inicial
+obrigatória**, que passa pelos **elementos basilares** do domínio. Esta exigência é **norma do
+domínio** — não é pétrea do PE, e não vale para outras áreas. O PE exige que a linha de base seja
+declarada (P-10); o domínio do balé clássico **define o que ela observa**. Em outra área, a linha
+de base zero terá outros elementos basilares, e a obrigação de declará-los será daquela norma de
+domínio.
+
+A observação é **rápida** — o primeiro olhar, antes dos blocos —, e serve para dar o **Norte**: a
+partir dela, o professor decide o que aprofundar. Os elementos basilares são uma **versão rápida**
+do que os blocos investigam em detalhe. Não são um bloco à parte: são a **porta de entrada**.
 
 A observação **não é ensino**. A anamnese não ensina as posições, o `tendu` ou o `passé`; ela
 **verifica o que já existe** no corpo do sujeito. O professor observa; não instrui.
 
-### 3.2 A lista mínima
+**Os seis elementos.** Os elementos basilares do balé clássico são **seis**, e têm três naturezas
+distintas:
 
-Os elementos basilares do balé clássico são **seis**, e têm três naturezas distintas:
-
-| Natureza | Elemento | O que é |
-|:--|:--|:--|
-| **Fundamento** | **`en dehors` (rotação externa)** | A rotação externa da perna — o *turnout*. É a base de todos os outros elementos |
-| **Vocabulário** | **As cinco posições** | 1ª, 2ª, 3ª, 4ª e 5ª — dos pés e dos braços |
-| **Vocabulário** | **O `tendu`** | À frente, ao lado e atrás |
-| **Vocabulário** | **O `passé`** | O pé que sobe pela perna de apoio até a altura do joelho |
-| **Vocabulário** | **A meia ponta** | A subida sobre os metatarsos |
-| **Qualidade** | **A musicalidade** | A relação do corpo com o tempo, o compasso e a frase musical |
+| # | Elemento | Natureza | O que é | Onde aprofunda |
+|:--|:--|:--|:--|:--|
+| 1 | **`en dehors` (rotação externa)** | Fundamento | A rotação externa da perna — o *turnout*. É a base de todos os outros elementos | Bloco 2 |
+| 2 | **As cinco posições** (pés e braços) | Vocabulário | 1ª, 2ª, 3ª, 4ª e 5ª — dos pés e dos braços | Blocos 2 e 4 |
+| 3 | **O `tendu`** | Vocabulário | À frente, ao lado e atrás | Bloco 5 |
+| 4 | **O `passé`** | Vocabulário | O pé que sobe pela perna de apoio até a altura do joelho | Bloco 7 |
+| 5 | **A meia ponta** | Vocabulário | A subida sobre os metatarsos | Bloco 5 |
+| 6 | **A musicalidade** | Qualidade | A relação do corpo com o tempo, o compasso e a frase musical | Bloco 6 |
 
 O `en dehors` é o primeiro porque é **fundamento**: sem rotação externa, não há quinta posição,
 não há `tendu` nem `passé` na acepção clássica. Os elementos de vocabulário **pressupõem** o
 fundamento. A musicalidade é de outra natureza — ela **atravessa** todos os outros.
 
-### 3.3 A lista é aberta
+A coluna **"Onde aprofunda"** é o encadeamento da observação inicial com a malha dos nove blocos
+(§3.2): o que a entrada verifica de passagem, o bloco correspondente investiga em detalhe.
 
-Os seis elementos são o **mínimo obrigatório** — não o teto. O professor **acrescenta** os
-elementos que o método declarado exigir (P-16: metodologia e notação são declaradas na eliciação).
-A lista é **aberta**: o que é obrigatório é que os seis estejam presentes; o que é discricionário
-é o que se acrescenta a eles.
-
-### 3.4 A dupla presença da musicalidade
-
-A musicalidade aparece **duas vezes** na anamnese — como elemento basilar (§3.2) e como domínio
-(§4, a malha de domínios). Não é duplicação; são **momentos distintos** do mesmo trabalho:
-
-- **Como elemento basilar:** é verificada na **linha de base zero**. Observa-se o que a aluna
-  **traz** — a relação dela com o tempo, o compasso e a frase musical, antes de qualquer trabalho.
-- **Como domínio:** é **aprofundada** ao longo do ciclo. O domínio *Musicalidade* trabalha o que a
-  linha de base registrou como estado inicial.
-
-A primeira é **estado**; a segunda é **trabalho**. A linha de base **declara o ponto de partida**;
-o domínio **conduz o percurso**.
-
-### 3.5 Os desdobramentos
-
-Cada elemento basilar admite **formas distintas de verificação**. São exemplos — não uma lista
-fechada:
+**Os desdobramentos.** Cada elemento basilar admite **formas distintas de verificação**. São
+exemplos — não uma lista fechada:
 
 - **Com toque:** o professor posiciona a aluna (por exemplo, sustentando o `arabesque` para
   observar o arco das costas e a flexibilidade do quadril).
@@ -187,10 +176,8 @@ fechada:
 O professor **escolhe a forma** conforme o que observa e conforme a relação que estabelece com a
 aluna. O que importa não é a forma escolhida, mas a **declaração** do que se observou.
 
-### 3.6 A função: os quatro perfis de entrada
-
-A observação inicial serve para **posicionar** a aluna e **orientar** o trabalho. O que ela
-verifica depende do que a aluna traz:
+**A função: os quatro perfis de entrada.** A observação inicial serve para **posicionar** a aluna
+e **orientar** o trabalho. O que ela verifica depende do que a aluna traz:
 
 | Perfil de entrada | O que a observação verifica |
 |:--|:--|
@@ -203,18 +190,197 @@ A anamnese **não avalia**. Ela **declara o estado inicial**; a decisão sobre a
 trabalho é do **professor**. É o mesmo corte que separa o registro da avaliação no
 `ARQUITETURA-AULA.md` e no `AGENTS.md`.
 
-### 3.7 Onde o dado vive
+**A musicalidade em três momentos.** A musicalidade aparece **três vezes** na anamnese, e não é
+duplicação: são **momentos distintos** do mesmo trabalho.
 
-Os elementos basilares **caem dentro da `linhaDeBase`** que já existe. **Nenhum campo novo é
-criado** — a P-08 permanece satisfeita sem tocar no `po-schema.json`. A forma canônica da linha de
-base (`{aluno, traz, precisaDesenvolver}`, `campo/README.md`, 26/09/2026) continua valendo; os
-elementos basilares são **dimensões** dentro dela.
+- **Como elemento basilar (aqui):** é verificada na **linha de base zero**. Observa-se o que a
+  aluna **traz** — a relação dela com o tempo, o compasso e a frase musical, antes de qualquer
+  trabalho. É **estado**.
+- **Como o Bloco 6 (a malha dos nove blocos — §3.2):** é **aprofundada** em campos próprios, a
+  partir do que a entrada verificou de passagem. É **trabalho**.
+- **Como domínio (§4, a malha de domínios declarados):** é **conduzida** ao longo do ciclo. O
+  domínio *Musicalidade* trabalha o que a linha de base registrou como estado inicial. É
+  **percurso**.
 
-### 3.8 O que fica fora
+A linha de base **declara o ponto de partida**; o bloco **o aprofunda**; o domínio **conduz o
+percurso**.
 
-A observação inicial **não decide** para que turma a aluna vai, nem o que se trabalha com ela. Ela
-**registra** o que se observou. A decisão é do professor, e a anamnese é o **insumo** dessa
-decisão — não o seu substituto.
+### 3.2 A malha dos nove blocos
+
+A observação inicial dá o **Norte**; os nove blocos **investigam em detalhe** o que ela verifica de
+passagem. Os blocos são **fixos**: aplicam-se a toda anamnese. Cada um declara a sua **dimensão**, o
+seu **objetivo** e os **campos** que o professor preenche.
+
+**Bloco 1 — *Identificação e Histórico Prévio*.** **Dimensão:** cabeçalho — não pertence a nenhuma
+das três. **Objetivo:** mapear a maturidade biológica, o tempo de exposição à modalidade e a
+proveniência da aluna.
+
+| Campo | Forma |
+|:--|:--|
+| **Idade** | Campo numérico ou faixa etária |
+| **Conhecimento prévio de balé clássico** | Nunca fez · Básico (até 2 anos) · Intermediário (2 a 5 anos) · Avançado (mais de 5 anos ou migração) |
+| **Histórico de outras práticas corporais** | Campo aberto (ginástica, jazz, patinação, nenhuma) |
+
+**Bloco 2 — *Estrutura Óssea e Alinhamento Global (Membros Inferiores)*.** **Dimensão:** Técnica.
+**Objetivo:** identificar as características morfológicas estruturais que condicionam o eixo e a
+rotação externa (`en dehors`).
+
+| Campo | Opções |
+|:--|:--|
+| **Formato anatômico dos joelhos** | Normal/alinhado · Valgo ("X") · Varo ("arqueado") · Recurvato (hiperflexão) |
+| **Mobilidade de quadril (`en dehors` de origem)** | Origem clara no quadril · Origem restrita (rotação forçada a partir dos joelhos/tornozelos) |
+| **Mobilidade de quadril (pelve)** | Controle ativo da pelve · Tendência à anteversão (hiperlordose) · Tendência à retroversão |
+
+**Bloco 3 — *Flexibilidade e Amplitude Articular*.** **Dimensão:** Funcional. **Objetivo:** medir os
+limites passivos e ativos dos grandes grupos musculares e articulações centrais.
+
+| Campo | Opções |
+|:--|:--|
+| **Flexibilidade dos isquiotibiais** | Alta · Média · Baixa ("dura") |
+| **Flexibilidade dos adutores** | Abertura completa (180°+) · Abertura parcial · Rigidez acentuada |
+| **Flexibilidade anteroposterior (grand écart)** | Completo · Parcial (elevação do quadril) |
+| **Mobilidade das costas e tronco (cambre)** | Ampla · Limitada · Dor/desconforto |
+
+**Bloco 4 — *Complexo Escapulo-Umeral e Cervical*.** **Dimensão:** Técnica. **Objetivo:** avaliar o
+suporte de tronco, a colocação dos ombros e a liberdade de movimento do pescoço (`port de bras`).
+
+| Campo | Opções |
+|:--|:--|
+| **Mobilidade e estabilidade da escápula** | Estabilidade adequada · Elevação crônica dos ombros · Aladas/proeminentes |
+| **Rotação e amplitude dos ombros** | Completa e fluida · Limitada por tensão |
+| **Mobilidade da coluna cervical e cabeça** | Rotação lateral completa · Flexão/extensão livres · Tensão associada |
+
+**Bloco 5 — *Morfologia e Funcionalidade dos Pés e Tornozelos*.** **Dimensão:** Técnica.
+**Objetivo:** avaliar o principal instrumento de contato com o solo e de absorção de impacto no
+balé.
+
+| Campo | Opções |
+|:--|:--|
+| **Arquitetura do arco plantar** | Normal/curvo · Cavo (arco alto, rigidez) · Chato/plano (desabamento) |
+| **Mobilidade de flexão/extensão do tornozelo** | Excelente (*instep* / *coup-de-pied*) · Moderada · Duro (restrição frontal) |
+| **Articulação e força intrínseca dos dedos** | Flexíveis e articulados · Rígidos em garra / sem tônus |
+
+**Bloco 6 — *Aptidões Coordenadas e Cognitivo-Musicais*.** **Dimensão:** Musicalidade.
+**Objetivo:** verificar a integração entre ritmo, espaço e comando motor.
+
+| Campo | Opções |
+|:--|:--|
+| **Musicalidade e pulsação rítmica** | Responde prontamente (pulso, compasso, acento) · Dificuldade temporal · Ausência de percepção inicial |
+| **Coordenação motora e dissociação** | Executa movimentos cruzados · Confusão motora severa |
+| **Memória e retenção de sequências** | Retém sequências de 3 a 4 passos · Precisa de apoio visual prolongado |
+
+**Bloco 7 — *Força Ativa, Potência e Controle Dinâmico*.** **Dimensão:** Funcional. **Objetivo:**
+avaliar a geração de força concêntrica e excêntrica sob carga corporal, o controle de ejeção
+(`plié`) e a impulsão (saltos).
+
+| Campo | Opções |
+|:--|:--|
+| **Controle de carga no `demi`/`grand plié`** | Controla fluido, sem perda de eixo · Dificuldade na subida · Instabilidade / `en dehors` perdido |
+| **Força excêntrica / recuo na flexão de tronco** | Desce e retorna com coluna reta · Retorna enrolando (*roll-up*) · Parcial |
+| **Impulsão e absorção (*allegro*)** | Boa elasticidade e potência · Rigidez / aterrissagem dura |
+
+**Bloco 8 — *Equilíbrio, Sustentação e Força de MMSS/Core*.** **Dimensão:** Funcional.
+**Objetivo:** medir a estabilidade estática e dinâmica e o tônus dos membros superiores e dos
+estabilizadores centrais.
+
+| Campo | Opções |
+|:--|:--|
+| **Sustentação ativa de MMII (força de adágio)** | Sustenta a perna a 90°+ sem apoio · Incapacidade por colapso |
+| **Equilíbrio unipodal** | Mantém > 5 s sem oscilação severa · Perda rápida |
+| **Força de empurrar (*push-ups*)** | Completas com prancha · Adaptadas (joelhos) · Incapacidade |
+| **Força de puxar (tração)** | Tração completa · Dificuldade severa |
+| **Resistência de MMSS (`port de bras` prolongado)** | Sustenta sem elevar escápulas · Fadiga rápida com queda |
+
+**Bloco 9 — *Sistema Vestibular, Orientação Espacial, Lateralidade e Consciência Corporal*.**
+**Dimensão:** Funcional (vestibular) **e** Musicalidade (orientação e lateralidade) — os itens são
+marcados individualmente. **Objetivo:** avaliar a integração sensório-motora, a direcionalidade, o
+equilíbrio dinâmico sob perturbação vestibular e a discriminação de lateralidade.
+
+| Campo | Dimensão | Opções |
+|:--|:--|:--|
+| **Discriminação de lateralidade** | Musicalidade | Executa comandos cruzados · Hesitação moderada · Confusão severa |
+| **Orientação espacial básica** | Musicalidade | Desloca com precisão (frente, trás, lados, diagonais) · Perde a referência ao mudar de direção |
+| **Estabilidade vestibular e deslocamento** | Funcional | Caminha virando a cabeça sem desviar · Perde o prumo |
+| **Coordenação fina (dedo-nariz)** | Funcional | Precisa (olhos abertos/fechados) · Desorganização / tremor |
+| **Cócoras profundas (*squat*)** | Funcional | Calcanhares apoiados, tronco erguido · Incapacidade (dorsiflexão / encurtamento) |
+| **Espiral / rotação de tronco** | Musicalidade | Compreende e executa torções guiadas · Rigidez total |
+
+**A lista é aberta.** Os nove blocos são o **mínimo obrigatório** — não o teto: o professor
+**acrescenta** os que o método declarado exigir, e a mesma abertura vale no nível dos seis elementos
+basilares da §3.1. O que é obrigatório é que os nove blocos estejam presentes; o que é
+discricionário é o que se acrescenta a eles. A P-16 governa os dois níveis de uma vez — metodologia
+e notação são **declaradas**, nunca deduzidas.
+
+### 3.3 Os dois módulos condicionais
+
+Os módulos condicionais **não são bloco fixo**: aplicam-se apenas quando a **condição de entrada** é
+satisfeita. São dois, e ambos partilham a mesma condição — a aluna **não** é iniciante total, isto
+é, declarou experiência prévia no Bloco 1.
+
+**Módulo A — *Validação de Nível Prévio*.** **Condição de entrada:** experiência prévia ≠ "nunca fez
+balé". **Função:** validar se o nível declarado no Bloco 1 corresponde à **execução real**.
+Ramifica em três:
+
+| Ramo | Nível declarado | O que verifica |
+|:--|:--|:--|
+| **Ramo 1** | Básico (até 2 anos) | Estabilidade postural, posições e transições simples |
+| **Ramo 2** | Intermediário (2 a 5 anos) | Dissociação, eixo dinâmico e `en dehors` em movimento |
+| **Ramo 3** | Avançado (mais de 5 anos) | Complexidade técnica, giros, grandes saltos e virtuosismo |
+
+**Módulo B — *Contexto de Origem e Incorporação*.** **Condição de entrada:** experiência prévia ≠
+"nunca fez balé". **Função:** investigar a **origem metodológica** e o **ruído de destreino**, e
+auditar a **incorporação real** — o que sobreviveu ao tempo ou ao método.
+
+| Campo | O que investiga |
+|:--|:--|
+| **Matriz metodológica de origem** | RAD · Vaganova · Francesa/Cecchetti · Escola livre |
+| **Tempo de interrupção** | Prática contínua · Pausa curta · Pausa longa · Retorno após anos |
+| **Auditoria de `port de bras`** | Incorporado · Desincorporado (sobe os braços soltando as costelas) |
+| **Auditoria de memória motora sob destreino** | Memória latente ativa · *Tabula rasa* |
+
+Cada ramo do Módulo A traz **três perguntas de triagem**; o Módulo B traz **quatro campos de
+auditoria**. As perguntas exatas são declaração da entrevista, não deste desenho — e este documento
+não as transcreve: ele fixa a **estrutura** (quantas são, a que nível pertencem e o que cada uma
+decide). A redação de cada pergunta entra em `prompts/eliciar-ciclo.md` quando a malha for
+incorporada à entrevista, e essa incorporação é a §9 pergunta 6 deste documento.
+
+[Preencher: a redação das três perguntas de triagem de cada ramo do Módulo A — a fonte é externa a este repositório]
+
+### 3.4 As três dimensões da linha de base
+
+A malha dos nove blocos **organiza-se pelas três dimensões que o `po-01.json` já usa na
+`linhaDeBase`** — não por uma taxonomia nova:
+
+| Dimensão | Blocos | O que cobre |
+|:--|:--|:--|
+| **Técnica** | 2, 4, 5 | Estrutura óssea, alinhamento, complexo escapulo-umeral, pés e tornozelos |
+| **Funcional** | 3, 7, 8, 9 | Flexibilidade, força ativa e potência, equilíbrio e sustentação, sistema vestibular |
+| **Musicalidade** | 6 (e itens do 9) | Coordenação, ritmo, memória de sequências, orientação espacial, lateralidade |
+
+Duas observações, e as duas são medidas:
+
+**(a) O Bloco 9 tem itens em duas dimensões.** Ele não se resolve por inteiro numa delas: os itens
+de vestibular e de coordenação fina são **Funcional**; os de lateralidade, orientação espacial e
+espiral são **Musicalidade**. Cada item é **marcado com a sua dimensão**, e não pelo bloco a que
+pertence.
+
+**(b) O Bloco 1 não é dimensão — é o cabeçalho da ficha.** A identificação e o histórico prévio
+**não** pertencem a nenhuma das três: eles **posicionam** a aluna, não a medem.
+
+### 3.5 Onde o dado vive
+
+Tudo — a observação inicial, os nove blocos e os módulos condicionais — **cai dentro da
+`linhaDeBase`** que já existe. **Nenhum campo novo é criado** — a P-08 permanece satisfeita sem
+tocar no `po-schema.json`. A forma canônica da linha de base (`{aluno, traz, precisaDesenvolver}`,
+`campo/README.md`, 26/09/2026) continua valendo; os blocos e os módulos são **dimensões** dentro
+dela. O dado organiza-se pelas três dimensões da §3.4, com o Bloco 1 no cabeçalho (não como
+dimensão) e os itens do Bloco 9 marcados individualmente.
+
+### 3.6 O que fica fora
+
+A observação inicial, os nove blocos e os módulos condicionais **não decidem** para que turma a
+aluna vai, nem o que se trabalha com ela. Eles **registram** o que se observou. A decisão é do
+professor, e a anamnese é o **insumo** dessa decisão — não o seu substituto.
 
 ## 4. A malha de domínios declarados
 
@@ -232,9 +398,9 @@ a ausência de resposta é uma **lacuna explícita** (`[Preencher: …]`), nunca
 | 5 | **Sistema vestibular** | Tolerância a giro, equilíbrio, referência visual | `linhaDeBase` — dimensão `Funcional` |
 | 6 | **Orientação espacial e lateralidade** | Domínio de lado, espaço, diagonal, espelhamento | `linhaDeBase` — dimensão `Musicalidade` / `Funcional` |
 
-A dimensão **Musicalidade** aparece **duas vezes** na anamnese — aqui, na malha de domínios, e como
-elemento basilar da observação inicial (§3.2). Não é duplicação: a §3.4 explica por que são
-**momentos distintos** do mesmo trabalho.
+A dimensão **Musicalidade** aparece **três vezes** na anamnese — aqui, na malha de domínios, como
+elemento basilar da observação inicial e como o Bloco 6 (a malha dos nove blocos). Não é
+duplicação: a §3.1 explica por que são **momentos distintos** do mesmo trabalho.
 
 Duas observações sobre a tabela, e as duas são medidas:
 
@@ -541,7 +707,7 @@ no `REGISTRO.md` + commit próprio**.
 |:--|:--|:--|:--|
 | 1 | `tools/` (o diretório inteiro, **inclusive arquivo novo**) | Um helper de anamnese, ou a resolução de onde o artefato mora, é arquivo novo em `tools/` | **Sim** — é descongelamento declarado |
 | 2 | `tools/templates/` | Se a anamnese for renderizada, depende de template | **Sim** |
-| 3 | `prompts/` | A entrevista de dez blocos é de lá; aprofundar o Bloco 3/6 é editá-la | **Sim** |
+| 3 | `prompts/` | A entrevista de dez blocos é de lá; aprofundar o Bloco 3 e o Bloco 6 da entrevista é editá-la | **Sim** |
 | 4 | `PROTOCOLO.md` | **Só** se uma pétrea nova for necessária — e este documento lê que **não é** (§1.1) | Provavelmente **não** |
 | 5 | `tools/lib-fontes.sh` | Decide se a anamnese entra na cobertura da âncora | **Sim**, se entrar (§9 pergunta 3) |
 | 6 | `.gitignore` | Um par `.env` / `.env.exemplo` precisa de entrada — e ele **não existe hoje** | **Não congelado**, mas mesmo rito |
@@ -587,8 +753,9 @@ implementação.
    deliberada (`tools/cifrar-dados.js:19`). A anamnese torna a decisão urgente porque identifica
    pelo corpo. E a decisão correlata — "Fora do Git?" — segue **pendente** em
    [`ARQUITETURA-CAPTURA.md`](ARQUITETURA-CAPTURA.md) §5.
-6. **A malha da §4 é um bloco novo ou aprofunda o Bloco 3/6?** Ela nasce do Bloco 3. Hipóteses:
-   **(A)** aprofunda o Bloco 3 e o Bloco 6, sem bloco novo (preserva os "dez blocos"); **(B)** é um
+6. **A malha da §4 é um bloco novo ou aprofunda o Bloco 3 e o Bloco 6 da entrevista?** Ela nasce do
+   Bloco 3 da entrevista. Hipóteses:
+   **(A)** aprofunda o Bloco 3 e o Bloco 6 da entrevista, sem bloco novo (preserva os "dez blocos"); **(B)** é um
    instrumento próprio em `campo/`, como o formulário de campo; **(C)** é um bloco novo na
    entrevista, passando a onze.
 7. **A biblioteca autoral da §6.2 é do ciclo ou do professor?** P-20 diz que a solução é **do
@@ -609,6 +776,19 @@ implementação.
    **(B)** o destreino é declarado como parte da **linha de base**, sem tocar na P-11; **(C)** o
    destreino entra no caderno como fato observado, e a divergência de execução fica registrada sem
    explicação atribuída. A §5.4 **não** fecha isso.
+10. **A linha de base zero fica dentro ou fora do planejamento?** A pergunta **não se fecha neste
+   documento**: quem a responde é quem aplica, e a P-18 já dá o modelo do registro — o PO registra a
+   **origem** da decisão, se do professor ou da escola. A §4.1(b) fixa a mesma coisa para esta malha:
+   ela é **pergunta de eliciação, não inferência**. O **padrão** é a linha de base **dentro** do
+   planejamento: ela é a **aula 1**, e há `aula-NN.md` para o "revisitar a linha de base, aula a aula"
+   do Bloco 6 da entrevista. Medido: as fontes de plano vivem em
+   `professores/<professor>/relatorios/ciclo-XX/aula-NN.md`, a numeração começa em `01`, e não existe
+   `aula-00.md`. A **exceção** é a escola que entende que ela fica **fora** — e então o evento é a
+   **"aula 0"**, sem plano contra o qual comparar. É o caso do professor que usa **apenas a ficha,
+   sem integração**; é por isso que a posição permanece aberta. Hipóteses: **(A)** fica dentro — a
+   linha de base é a aula 1, e o plano dessa aula é o seu par; **(B)** fica fora — a "aula 0" é só a
+   ficha de eliciação; **(C)** a posição é **declarada** no PO, e o rótulo da aula é **derivado**
+   dela — a mesma leitura da pergunta 4(B).
 
 ## Referências
 
