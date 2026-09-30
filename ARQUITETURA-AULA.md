@@ -130,6 +130,25 @@ mudar. O diff responde isso sem que ninguém precise justificar por escrito: a m
 > **A redação anterior não é apagada** (P-03/P-04): fica como o elo do que se acreditou naquele
 > momento. Ver o `REGISTRO.md`, 29/09/2026, *"O `B8` medido: `podeAjustarPlano()` não existe, e o
 > elo do que se acreditava"*.
+>
+> **Correção de 30/09/2026.** A medição do template fechou a pendência que a nota de 29/09 acima
+> deixou aberta — e o que caiu não foi comportamento faltando: era redação descrevendo um defeito
+> que não existe. O predicado da barra de ajuste é `tools/templates/lancamento.html:1562`
+> (`barraAjuste.hidden = !!captura || !temAula`): ele esconde a barra **só no modo lançamento**
+> (`captura`/`emAjuste`, onde não haveria o que ajustar) e **não** a esconde de uma aula `dada` sem
+> registro. No **modo leitura**, a barra aparece, e o botão obedece a `podeAjustar()`
+> (`:970`, o `disabled` de `:1566`): **habilitado** dentro do prazo, e **cinza com a data** visível
+> fora dele (`:1572–1574`, *"Prazo encerrado em … — o registro é definitivo."*). O professor vê que
+> a possibilidade existiu, em vez de o botão sumir sem explicação.
+>
+> **O comentário do `pre-commit` também deixou de mentir.** Ele nomeava `exportarAjusteDoPlano` e a
+> barra `#acoes-plano` como coisa viva; a função e a barra saíram em `17ed444` (28/09/2026). O guard
+> da `§2c` **nunca dependeu dela** — ele lê a fonte `aula-NN.md` e a defere contra o `HEAD`, não lê
+> id nenhum de HTML. O texto passou a dizer isso; o comportamento do hook **não mudou**.
+>
+> **A redação anterior não é apagada** (P-03/P-04): fica como o elo do que se acreditou naquele
+> momento. Ver o `REGISTRO.md`, 30/09/2026, *"Os pontos 2, 3 e 4 fechados: a grafia, o campo
+> `professor` e duas pendências que a medição derrubou"*.
 
 ## 2. A linha de corte
 

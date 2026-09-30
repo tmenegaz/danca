@@ -8040,7 +8040,12 @@ citava pelo título.
    colateral" que a quinta afirmação descrevia — a aula `dada` sem registro deixar o bloco do ajuste
    oculto — **não tem mais o desenho que o resolvia**: o mecanismo hoje é o predicado de
    `:1536`/`:1538` sobre `:1562`, e o comentário-elo de `:1555–1557` continua declarando a intenção.
-   Fica registrado como **pendência**, não como virtude.
+   ~~Fica registrado como **pendência**, não como virtude.~~ **Superado em 30/09/2026.** A medição
+   do mesmo template mostrou que o comportamento é **correto**: o predicado de `:1562` esconde a
+   barra **só no modo lançamento** (`captura`/`emAjuste`), onde não haveria o que ajustar; no **modo
+   leitura** ela aparece, com o botão habilitado dentro do prazo (`podeAjustar()`, `:970`) ou **cinza
+   com a data visível** fora dele (`:1572–1574`). A redação antiga **não é apagada**: fica como o elo
+   do que se mediu naquele momento.
    - **Nenhum auxiliar do "O que NÃO se toca" foi perdido.** A varredura confirmou os catorze
      (`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`,
      `estadoDaAula`, `semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`,
@@ -8066,9 +8071,105 @@ peça.
 proveniência, e o `cp` de `:258` vem antes do `mv` de `:259`) · `ARQUITETURA-AULA.md`, a nota de
 29/09/2026 que esta entrada fecha.
 
-**O que ainda não está feito.** A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
+**O que ainda não está feito.** ~~A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
 sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
 não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
 `tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
-congelado, e corrigi-lo exige motivo declarado e commit próprio. E o `HANDOFF.md`, que espelha este
-registro, precisa ser regenerado **depois** desta entrada.
+congelado, e corrigi-lo exige motivo declarado e commit próprio.~~ **Superado em 30/09/2026.** As
+duas pendências caíram **por medição**, não por remendo: a assimetria **não se aplica** ao
+comportamento real — o predicado de `:1562` esconde a barra só no **modo lançamento** —, e o
+comentário do `pre-commit` deixou de nomear a função que não existe. A redação antiga **não é
+apagada**: fica como o elo do que se mediu naquele momento. Quanto ao `HANDOFF.md`, ele **precisa
+ser regenerado depois** da entrada de 30/09/2026, que passa a ser a última deste registro.
+
+**A baixa do que estava pendente acima está declarada e medida na entrada de 30/09/2026**, abaixo
+— inclusive a coordenada do `pre-commit` que esta redação deixa de nomear.
+
+## 30/09/2026 — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor` e duas pendências que a medição derrubou
+
+**O que motivou.** Três pendências declaradas neste registro se tocavam, e por isso foram fechadas
+na mesma rodada, numa ordem que não podia ser invertida: a grafia `fochini` → `fokini` **antes** de
+regerar os pacotes (senão o `ciclos.json` sai com o nome errado e o trabalho é feito duas vezes), a
+baixa do ponto 3 **junto** com o rito do comentário do `pre-commit`, e a reancoragem **por último**.
+O rito do `CONGELAMENTO.md` vale para `tools/`: motivo declarado, entrada neste arquivo e commit
+próprio.
+
+**O que foi decidido.** Quatro frentes, nenhuma delas reescrevendo fonte pedagógica:
+
+1. **O rename — `fochini` → `fokini`.** O diretório `professores/fochini/` virou
+   `professores/fokini/`, o campo `PROFESSOR=` do `ciclo-01.conf` acompanhou, e as citações de
+   **caminho** em documentos e prosa foram corrigidas. Os nomes de **exibição** dentro dos `.fipp`
+   **não** foram tocados: aqueles gravam o rótulo intencionalmente, e se ele deve acompanhar é
+   decisão separada, que **não foi tomada aqui**. A varredura fechou: `grep -rn -i "fochini" .`
+   volta **zero** fora de `REGISTRO.md` e `HANDOFF.md`, e ali o que resta é **elo histórico** (as
+   entradas antigas, que não se apagam) e o **espelho gerado**, que cai na regeneração.
+2. **A regeração propaga o campo `professor`.** Fecha a pendência que a entrada *"Os dois congelados
+   entram: o índice ganha o slug e a entrevista declara dois artefatos"* deixou declarada: o campo
+   estava **ausente nos três** índices publicados, e os pacotes não tinham acompanhado a fonte.
+   Rodado `tools/gerar-ciclo.sh` nos três ciclos, o campo sai **preenchido** em
+   `ciclos.json:7` — `"fokini"`, `"tiago"`, `"tiago"`, o **nome do diretório**. Com isso a
+   **primeira** regra do `slugDe()` (`netlify/functions/receber.js:40`) passa a valer; as duas
+   outras viram **fallback declarado**, e é por isso que continuam no arquivo.
+3. **O ponto 3 baixa por medição.** O comportamento do botão de ajuste **está correto**, e foi
+   medido no template em vez de citado: no **modo lançamento** o predicado de
+   `tools/templates/lancamento.html:1562` esconde a barra (`!temAula`) — não há o que ajustar,
+   porque não há lançamento; no **modo leitura** ela aparece, e o botão fica **habilitado** dentro do
+   prazo (`podeAjustar()`, `:970`, consumida em `:1566` e `:1572`) ou **cinza com a data visível**
+   fora dele. O professor **vê que a possibilidade existiu**, em vez de o botão sumir sem
+   explicação. A "assimetria do efeito colateral" **não se aplica**: ela supunha oculto o bloco no
+   modo leitura, e o que o código faz é ocultá-lo no modo lançamento. As duas notas de superação
+   datadas ficam na entrada do `B8` (*"O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que
+   se acreditava"*), no item 2 e no pendente dela.
+4. **O comentário do `pre-commit` deixa de nomear o que não existe.** `tools/hooks/pre-commit:182–188`
+   passa a dizer o que é verdade: `exportarAjusteDoPlano` — e a barra `#acoes-plano` que a sustentava
+   — saíram de `tools/templates/lancamento.html` em 28/09/2026 (`17ed444`), e **o guard da `§2c`
+   nunca dependeu delas**: ele lê a fonte `aula-NN.md` e a defere contra o `HEAD`, **não lê id nenhum
+   de HTML**. O `echo` de `:296`, que orientava o professor a usar o botão, foi corrigido na mesma
+   direção.
+
+**Onde entrou.** `REGISTRO.md` — esta entrada e as duas notas de superação na entrada do `B8` ·
+`ARQUITETURA-AULA.md` — a nota de 30/09/2026 no `§1` · `ARQUITETURA-ANAMNESE.md` — a §3 nova (a
+observação inicial e os elementos basilares), com a renumeração das seções seguintes · os três
+pacotes regerados (`fokini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`),
+com os índices, os dados e os PDFs · `tools/gerar-ciclo.sh:241`, `tools/lib-fontes.sh:85` e
+`tools/validar-aula-ciclo.js:14`/`:32` — quatro linhas de **prosa** que ainda diziam `fochini`.
+
+**Motivo declarado — os congelados.** `tools/` é congelado (`CONGELAMENTO.md`), e esta rodada o
+tocou em **quatro arquivos**. O que **não muda**: a fórmula de hash da âncora, a cobertura da
+âncora, os validadores, as regras pedagógicas e as pétreas. Em `gerar-ciclo.sh`, `lib-fontes.sh` e
+`validar-aula-ciclo.js` a alteração é **prosa** — o nome do professor num comentário —, e **nada**
+de comportamento: o `PROFESSOR_SLUG` de `:298` e o campo `'professor'` de `:501` já liam o nome do
+**diretório**, e é justamente por isso que a regeração do item 2 era necessária. Em
+`tools/hooks/pre-commit` a alteração é **só o texto** do comentário e da mensagem; o guard da `§2c`
+(`:172–305`) tem o **mesmo** comportamento: continua deferindo `aula-NN.md` contra o `HEAD`, e
+continua recusando o commit nos mesmos casos. Nenhum dos quatro arquivos é fonte de ciclo — nenhum
+`.fipp` foi refeito por causa desta peça.
+
+**Com o quê.** `tools/gerar-ciclo.sh`, `tools/lib-fontes.sh`, `tools/validar-aula-ciclo.js`,
+`tools/hooks/pre-commit`, `REGISTRO.md`, `ARQUITETURA-AULA.md`, `ARQUITETURA-ANAMNESE.md`. Os quatro
+de `tools/` são congelados ⇒ **commit próprio**, separado das alterações livres do mesmo worktree,
+como o `CONGELAMENTO.md` pede. O rename e a reancoragem já foram declarados em `31d97fe`, *"o slug e
+o nome de exibição"* — esta entrada **não duplica** aquele motivo (P-04), apenas o refere: a âncora
+mudou porque a **fonte mudou de caminho**, não porque o conteúdo pedagógico mudou.
+
+**Referências.** `31d97fe` (o rename e a reancoragem declarados) · `17ed444` (a saída do botão
+`Exportar ajuste do plano`) · os três `--check` de `tools/hash-ciclo.sh` — **verdes nos três
+ciclos** antes deste commit · o harness de `netlify/functions/receber.js` — 17/17 · `node
+tools/check-pacote.js` — 0 erro nos três pacotes · a entrada de 29/09/2026, *"Os dois congelados
+entram: o índice ganha o slug e a entrevista declara dois artefatos"*, que declara a pendência do
+campo `professor` que o item 2 fecha · `tools/templates/lancamento.html:118`, `:885`, `:901`,
+`:970`, `:1535–1538`, `:1555–1557`, `:1562`, `:1566`, `:1572–1574`, `:1753` (a medição do item 3).
+
+**O que ainda não está feito.** O **Passo 0** segue aberto, e continua dependendo de **credencial
+que só a pesquisadora tem**: as **6 chaves** de `tools/.netlify-tokens` estão **vazias**, e sem site
+publicado o `Enviar` do formulário ainda falha com `HTTP 404` — honestamente: avisa e preserva os
+campos. Do mesmo bloco, **segue aberta** a decisão de **onde vivem as Functions** (o
+`tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, **não a raiz**, e o
+`netlify.toml` da raiz pode não ser lido), e **segue sem resposta** a pergunta pela **revisão dos
+demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e `:7934` — a
+medição desta rodada corrigiu a coordenada que a última delas cita: é **`:7536`**, não `:7485`.
+Permanecem, sem mudança nesta peça: o par `plano-aula-NN.json` / `-anterior.json` **órfão de
+leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); o **dublê de
+`fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
+resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
+depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
