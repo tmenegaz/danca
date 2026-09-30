@@ -179,10 +179,14 @@ fi
 #     que sobra"). Do LANÇAMENTO em diante o plano é FATO: o anterior permanece, o
 #     novo é um elo, e o diff é a justificativa (§1.2).
 #
-#     O elo é um bloco `## Ajuste do plano da aula NN` anexado ao FIM do arquivo — é o
-#     próprio formulário que o exporta (tools/templates/lancamento.html,
-#     exportarAjusteDoPlano). Ele é do PROFESSOR, não do hook: aqui só se confere que
-#     nada acima dele mudou e que o que já estava lá continua lá.
+#     O elo é um bloco `## Ajuste do plano da aula NN` anexado ao FIM do arquivo, e é do
+#     PROFESSOR: aqui só se confere que nada acima dele mudou e que o que já estava lá
+#     continua lá. NÃO é o formulário que o escreve: `exportarAjusteDoPlano` e a barra
+#     `#acoes-plano` que a sustentava saíram de tools/templates/lancamento.html em
+#     28/09/2026 (17ed444) — não havia consumidor para o elo do plano, porque o ajuste que
+#     fecha no LANÇAMENTO é o DO LANÇAMENTO (§3) e já tem o seu par. Este guard nunca
+#     dependeu dela: ele lê a FONTE `aula-NN.md` e a defere contra o HEAD — não lê id
+#     nenhum de HTML.
 #
 #     O QUE NÃO ENTRA: `-captura-aula-NN.md` (material de observação, não plano). E o
 #     guard é obrigatório, não precaução: a fonte COMPARTILHADA `ciclo-NN-captura-aula-NN.md`
@@ -289,7 +293,7 @@ process.stdout.write(r);
     if [ "$pref_atual" != "$pref_head" ]; then
       echo "pre-commit: recusado — o plano da aula $nn de $pa/ciclo-$na já foi LANÇADO ($lancada_em): do lançamento em diante o plano é FATO." >&2
       echo "  a intenção não se reescreve; o ajuste é um elo NOVO, no fim do arquivo (§1.1/§1.2)." >&2
-      echo "  o formulário de lançamento exporta o bloco '## Ajuste do plano da aula $nn' — anexe-o ao fim de $fonte_aula." >&2
+      echo "  o formulário de lançamento NÃO exporta mais esse elo (o botão saiu em 17ed444): anexe o bloco '## Ajuste do plano da aula $nn' ao fim de $fonte_aula." >&2
       exit 1
     fi
     cauda_head="$(sed -n '/^## Ajuste do plano da aula /,$p' "$head_aula")"
