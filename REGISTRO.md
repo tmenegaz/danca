@@ -8173,3 +8173,90 @@ leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored
 `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
 resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
 depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
+
+## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
+
+**O que motivou.** O prompt que abriu esta rodada descreve o agente com **dois papéis**: o papel 1
+escuta o `salvar` (o `POST`, que já estava descrito), e o papel 2 serviria os dados ao formulário
+por `GET /dados/<professor>/<ciclo>`, lendo o repositório local — para o professor continuar
+lançando **sem internet**, quando o pacote publicado não está acessível. Antes de implementar o
+papel 2, era preciso **medir se ele existe**. Na mesma rodada, o **Ponto 1** (a publicação do
+`ciclo-ritmos` no Netlify) arrastava desde 19/09 sem causa declarada.
+
+**O que foi decidido.** Seis pontos, todos medidos nesta rodada.
+
+1. **O papel 2 não existe.** É hipótese do prompt, não código. O único arquivo de
+   `netlify/functions/` é `receber.js` (4 988 B, 29/09 16:47), e a resposta dele a `GET` é um
+   *health check* puro — `receber.js:47`, `{ ok: true, receber: 'pronto' }`. Nenhuma especificação
+   de leitura local do repositório aparece em `prompts/`, `.github/`, `ARQUITETURA-*.md`,
+   `METODO.md`, `PROTOCOLO.md`, `REGRAS.md`, `CONGELAMENTO.md` ou `tools/`.
+2. **O papel 1 também não grava no repositório.** `receber.js:82` grava em **Netlify Blobs**
+   (`store.set(chave + '/' + basename(a.nome), a.texto, { onlyIfNew: true })`), não em arquivo
+   versionado. A **consolidação do Blob de volta ao repositório não existe** — é a metade aberta da
+   §7.3 do `ARQUITETURA-CAPTURA.md`, declarada na nota de 29/09/2026.
+3. **A leitura local, em parte, já funciona.** `lancamento.html:187` fixa `const P = './'` — tudo é
+   lido **ao lado da página** —, e há **seis** leituras relativas, `fetch(P + …)`, em `:285`,
+   `:291`, `:313`, `:564`, `:992` e `:1720`; o **único** `POST` do arquivo é `:733`,
+   `fetch(RECEBER, …)`, com `RECEBER` declarado em `:731`. Um `python3 -m http.server` sobre o
+   pacote **já entrega** o `ciclos.json` e o `ciclo-NN-<escola>-dados.json`. Falta ler do
+   **repositório canônico** — e isso é o papel 2, que não existe.
+4. **É decisão aberta, não atraso.** No `ARQUITETURA-CAPTURA.md` §7 estão **"Não decidido"** a §7.2
+   (`:561`), a §7.4 (`:564`), a §7.5 (`:567`) e a §7.6 (`:568`); a §7.3 (`:622`) foi decidida em
+   20/09, e a nota de 29/09 (`:627`) declara que ela "deixou de valer integralmente". O próprio
+   documento resume: "Há **quatro perguntas em aberto** (§7) e **cinco decisões tomadas**"
+   (`:619–620`). Implementar o agente local decidiria, por código, o que a §7.6 mantém em aberto.
+5. **`tools/` é congelado.** Se o agente local nascer ali, paga o rito do `CONGELAMENTO.md` (motivo
+   declarado + entrada neste registro + commit próprio) — e exige decidir antes a **porta** e o
+   **CORS**, porque a página é servida por `python3 -m http.server` e o agente seria outro serviço.
+6. **O Ponto 1 fica fechado como diagnóstico**, por declaração da pesquisadora. A causa **não é
+   código**: é **crédito da conta**. Medido pelo token de `tools/.netlify-tokens` (usado, **nunca
+   impresso**) — o site `ciclo-ritmos` tem `published_at: None`; o último deploy `ready` é de
+   19/09/2026T22:48:49Z; são **44 deploys** (35 `error` e 9 `ready`), **44/44** com `deploy_source:
+   api` e `manual_deploy: False`, e **os 35 erros** trazem a mesma `error_message`, *"Skipped due to
+   account credit usage exceeded"*. O mais novo é de 30/09/2026T11:32:33Z — recusado **antes do
+   build**, com `commit_ref` no `5309cc3`. A conta `tmenegaz77` se declara `type_name: Free`,
+   `plan_credits: 300`, `usages_exceeded: []` — uma contradição que **não** invalida a medição,
+   porque a recusa é de crédito e vem do serviço, não do cadastro. O pacote no ar é de **19/09**,
+   anterior aos JSONs do formulário. O que está feito é a **decisão de parar**; publicar depende de
+   **terceiro**.
+
+> **Correção de 30/09/2026 (mesmo dia).** Duas redações declaram as **6 chaves** de
+> `tools/.netlify-tokens` como **vazias**: o bloco abaixo, nesta entrada, e a entrada anterior
+> (`REGISTRO.md:7789`). Está **errado** — medido por **comprimento** (não pelo `sed`, que mente):
+> **RITMOS está preenchido** (token de 40 caracteres, site ID de 36); só **DUO** e **DEBORA**
+> seguem em `=""`. A redação anterior **não é apagada**: fica como o elo do que se mediu primeiro
+> (P-03/P-04).
+
+**Onde entrou.** `REGISTRO.md` — esta entrada, e mais nada. Nenhum arquivo de
+`ARQUITETURA-CAPTURA.md` foi tocado: as decisões §7.2 a §7.6 continuam onde estão, e é lá que o
+desenho do agente local deve ser declarado, se e quando for decidido.
+
+**Com o quê.** Só `REGISTRO.md`. **Nenhum** arquivo do `CONGELAMENTO.md` foi tocado, **nenhuma**
+fonte de ciclo foi alterada e **nenhuma** âncora de proveniência foi regerada — os três
+`tools/hash-ciclo.sh --check` (diaghilev, duo e ritmos) seguem **verdes**. Sem commit e sem push
+nesta peça.
+
+**Referências.** `netlify/functions/receber.js` — `:38` (o `slugDe`), `:39` (a primeira regra,
+sobre o índice), `:40–42` (as duas seguintes), `:47` (o `GET`, *health check*), `:82` (o
+`store.set`), `:89` (a resposta) · `tools/templates/lancamento.html` — `:187`, `:731`, `:733`,
+`:970`, `:1562` (o predicado da barra de ajuste), `:1555–1557` · `ARQUITETURA-CAPTURA.md` — §7
+(`:543`), §7.2 `:561`, §7.4 `:564`, §7.5 `:567`, §7.6 `:568`, §7.3 `:622`, e a nota de 29/09 em
+`:627–634` · as medições de rede: `GET /sites/<id>`, `GET /sites/<id>/deploys?per_page=100`,
+`GET /sites/<id>/deploys/<deploy>` e `GET /accounts` · a entrada de 29/09/2026, *"Os dois congelados
+entram: o índice ganha o slug e a entrevista declara dois artefatos"*.
+
+**O que ainda não está feito.** O **agente local** continua **não implementado** — e agora se sabe
+que ele era **hipótese**, não pendência de código: a medição desta rodada **derrubou** a premissa do
+prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta ao repositório (§7.3).
+Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
+governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
+conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
+**revisão dos demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e
+`:7934` (a medição desta rodada **confirma** a coordenada `:7536`); a decisão de **onde vivem as
+Functions** (o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, não a raiz);
+e a decisão sobre o **nome de exibição** dentro dos `.fipp`, que **não** acompanha a correção de
+grafia do diretório — é pergunta separada, e não foi tomada. A anotação do "comentário resíduo de
+`tools/templates/lancamento.html:133`", herdada da entrada anterior, **não se confirma**: medido por
+texto, nenhum comentário do template nomeia função removida, e `:133` é o fecho de um `<div>`. Por
+fim, o `HANDOFF.md` precisa ser **regenerado depois** desta entrada — ele espelha a **última** deste
+registro, e passa a ser esta.
