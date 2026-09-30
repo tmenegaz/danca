@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-29T17:05:01-0300`
-Commit atual: `da2cd8b` — docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
+Gerado em: `2026-09-29T22:57:03-0300`
+Commit atual: `ee1863f` — docs(registro): o `B8` medido — `podeAjustarPlano()` não existe
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -51,6 +51,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+ee1863f docs(registro): o `B8` medido — `podeAjustarPlano()` não existe
+5b6b793 docs(registro): regenera o HANDOFF sobre da2cd8b
 da2cd8b docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
 ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a entrevista declara dois artefatos
 76c3cf2 docs(registro): regenera o HANDOFF sobre 55a7c20
@@ -69,8 +71,6 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 3cbd318 docs(estrutura): regenera o HANDOFF depois de 7e21bd4
 7e21bd4 docs(template): cabeçalho do formulário passa à voz de professor
 aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
-e592373 docs(template): o botão `Salvar` deixa de ter legenda
-f7b3707 docs(estrutura): regenera o HANDOFF depois de `fcda6d7`
 ```
 
 ## Por professor
@@ -148,75 +148,71 @@ f7b3707 docs(estrutura): regenera o HANDOFF depois de `fcda6d7`
 
 ## Última entrada do REGISTRO
 
-## 29/09/2026 — Os dois congelados entram: o índice ganha o slug e a entrevista declara dois artefatos
+## 29/09/2026 — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que se acreditava
 
-**O que motivou.** Duas alterações estavam paradas no worktree, ambas em arquivo congelado, e
-nenhuma com entrada neste registro. A primeira é de outra sessão: o `ciclos.json` que o
-`gerar-ciclo.sh` escreve não traz o **slug** da pasta do professor, e o backend que passou a existir
-hoje (`receber.js`) o procura ali — o `slugDe` tem `c.professor` como **primeira** regra, e sem ela
-cai no nome do arquivo de dados. A segunda é uma deriva documental: o prompt da entrevista dizia, na
-abertura, que ela compila *"tudo num documento único em Markdown"*, quando a seção `## O que esta
-entrevista produz` — já no mesmo arquivo — diz o contrário: *"dois artefatos do mesmo ciclo — não
-um só"*. Documento com informação conflitante é o que a pesquisadora proibiu explicitamente.
+**O que motivou.** A pergunta *"fizemos os passos 0, 1, 2 e 3?"* obrigou a **medir** o formulário em
+vez de citá-lo — e a medição derrubou uma premissa que este registro sustentava desde 27/09: o `B8`,
+o ajuste **no plano**, era descrito como vivo em **oito** pontos deste arquivo. Ele **saiu do
+código** em 28/09/2026 (`17ed444`, *"O botão `Exportar ajuste do plano` sai do formulário"*), e o
+que sobrou foram afirmações conflitantes: um documento dizendo que a coisa existe e o código dizendo
+que não. A pesquisadora foi explícita: *"não dá para ter informações conflitantes em documentos
+diferentes"*.
 
-**O que foi decidido.** Publicar as duas, com o motivo declarado que o `CONGELAMENTO.md` exige, e
-deixar registrado o que **não** foi feito.
+**O que foi decidido.** Nenhuma redação antiga é apagada (P-03/P-04). Os oito pontos ganham **nota
+de superação datada, no lugar**, e esta entrada é o elo que a nota do `ARQUITETURA-AULA.md` já
+citava pelo título.
 
-1. **`tools/gerar-ciclo.sh` — o índice passa a declarar `professor`.** O contrato que a Function
-   implementa é: o slug da pasta (`professores/<slug>/`) é o que endereça o pacote, e o pacote
-   publicado não tem de onde tirá-lo — a chave do store é montada como
-   `<professor>/<ciclo>-<carimbo>`.
-   - **Por que `professor` e não `escola`.** `escola` é o **nome de exibição** (`"Diaghilev"`), e o
-     slug da variante só existe dentro do nome do arquivo de dados. Trocar um pelo outro daria
-     chave com espaço, acento e maiúscula.
-   - **A ordem das regras resolve o caso.** `slugDe` lê `c.professor`, depois `dados.professor`,
-     depois o regex sobre `c.arquivo`. Enquanto o índice não traz o campo, a primeira regra nunca
-     dispara e a chave sai do nome do arquivo de dados.
-   - **`PROFESSOR_SLUG` já existia no escopo.** Ele é o `$1` do script (default `tiago`) e é ele que
-     resolve a pasta de trabalho; a emenda só o repassa ao processo Python que monta o índice.
+1. **A varredura de código é zero.** `podeAjustarPlano`, `#acoes-plano` e `mdAjusteDoPlano` não
+   existem em `tools/templates/lancamento.html` nem em `tools/`; de `exportarAjusteDoPlano` resta
+   **um comentário** — `tools/hooks/pre-commit:184` —, resíduo que o hook ainda carrega ao explicar
+   de quem é o elo. A remoção não foi parcial: os quatro saíram juntos, com a barra que os
+   sustentava.
+   - **O que fica de pé é o guard, não a página.** A distinção que a redação de 27/09 atribuía ao
+     formulário nunca dependeu dele: `tools/hooks/pre-commit` aplica a sub-seção **`§2c`** (bloco
+     `:172–305`) sobre a **fonte** `aula-NN.md`, deferindo-a contra o `HEAD` — **não lê id nenhum de
+     HTML**, e por isso a remoção não o alcança.
+   - **O `§8` não é do hook.** Ele é a seção do `ARQUITETURA-AULA.md` que lista os arquivos
+     congelados, e é o próprio guard que a cita (`pre-commit:175`). As duas referências permanecem:
+     `§8` é do documento, `§2c` é do hook.
 
-2. **`prompts/eliciar-ciclo.md` — a entrevista declara os dois artefatos.** A abertura passa a
-   nomear **o plano das aulas** e **o recorte do que eu vou observar**, ganha a seção `## O que esta
-   entrevista produz`, e dois itens em *"Como conduzir"*.
-   - **A cauda de `:4` foi corrigida nesta peça.** Ela dizia *"você compila tudo num documento único
-     em Markdown"* — o resíduo que contradizia a seção nova. Agora diz *"você compila os dois
-     artefatos do mesmo ciclo em Markdown"*. A varredura por `documento único` no repositório volta
-     vazia: era o último.
-   - **As linhas de `:3`/`:4` não foram tocadas.** Elas já estavam corretas — nomeavam o plano e o
-     recorte. O erro era só a cauda.
+2. **O relógio do formulário é um só — e a assimetria voltou a ser pendência.** `podeAjustar()` está
+   em `tools/templates/lancamento.html:970` e é consumida em **`:1566`** (o `disabled` do botão) e
+   **`:1572`** (o texto do aviso); `estadoDaAula`/`pulada` estão em **`:885`**/**`:901`**. O "efeito
+   colateral" que a quinta afirmação descrevia — a aula `dada` sem registro deixar o bloco do ajuste
+   oculto — **não tem mais o desenho que o resolvia**: o mecanismo hoje é o predicado de
+   `:1536`/`:1538` sobre `:1562`, e o comentário-elo de `:1555–1557` continua declarando a intenção.
+   Fica registrado como **pendência**, não como virtude.
+   - **Nenhum auxiliar do "O que NÃO se toca" foi perdido.** A varredura confirmou os catorze
+     (`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`,
+     `estadoDaAula`, `semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`,
+     `fimDoPrazo`) e os ids da barra 1 (`#acoes-ajuste` `:118`, `#ajustar` `:119`,
+     `#cancelar-ajuste` `:120`, `#aviso-ajuste` `:121`, `#gerar-json` `:131`, `#aviso-json` `:132`).
+   - **Três coordenadas da entrada de 28/09 estavam erradas.** A gate é **`:970`** — o `:975` é
+     linha em branco; o listener do `#ajustar` é **`:1753`** — o `:1761` é `renderCaptura();`, e
+     pertence ao listener do `#cancelar-ajuste` de `:1758`; e a `lib-vistas` vive em
+     **`tools/lib-vistas.js`** — `:48` é `function mdAjuste(aj) {` —, não em `biblioteca/`.
 
-**Onde entrou.** `tools/gerar-ciclo.sh` — `PROFESSOR_SLUG` no ambiente do bloco Python (`:298`) e o
-campo `'professor'` no `indice` (`:501`), com o comentário que explica por que não é `escola` ·
-`prompts/eliciar-ciclo.md` — abertura, seção nova e dois itens de conduta · `REGISTRO.md` — esta
-entrada.
+**Onde entrou.** `REGISTRO.md` — esta entrada e os oito pontos superados (o item 2, o item 4 e a
+quinta afirmação de *"o ajuste no plano deixa de ser promessa"*; os três da entrada do `B8`; e a
+imprecisão tripla da entrada de 28/09) · `ARQUITETURA-AULA.md` — a nota de 29/09/2026 no `§1`
+(`:113–132`), que cita esta entrada pelo título.
 
-**Motivo declarado — os congelados.** Os dois arquivos são congelados, e a mudança de cada um tem
-motivo próprio. `tools/gerar-ciclo.sh` **não muda o que gera** — não toca layout, hash, âncora nem
-nome de arquivo; acrescenta **um campo de metadado** ao índice, e o índice já era o artefato que
-declara quem é o ciclo. Sem ele, o transporte que entrou hoje (a Function e o store) **não teria
-como saber o dono do pacote**: o `ciclos.json` publicado hoje traz só `id`, `escola`, `inicio`,
-`fim`, `total_aulas` e `aulas[]`, e o slug não está em nenhum deles. A alteração é **aditiva e
-retrocompatível** — quem lê o índice hoje ignora o campo novo, e o `receber.js` só o consulta como
-primeira tentativa. `prompts/eliciar-ciclo.md` **não é consumido por nenhum gerador**: é texto de
-entrevista, lido por humano e por sessão de IA. A emenda só o alinha ao que ele mesmo já dizia
-adiante; a correção da cauda remove a única contradição que restava no repositório. Em nenhum dos
-dois casos há dependência nova, mudança de contrato de arquivo ou efeito sobre ciclo publicado.
+**Com o quê.** `REGISTRO.md`, `ARQUITETURA-AULA.md`. Nenhum dos dois é congelado
+(`CONGELAMENTO.md`), e nenhum é fonte de ciclo: nenhum `.fipp` precisa ser refeito por causa desta
+peça.
 
-**Com o quê.** `tools/gerar-ciclo.sh`, `prompts/eliciar-ciclo.md`, `REGISTRO.md`. Commit próprio,
-separado das alterações livres do mesmo worktree, como o `CONGELAMENTO.md` pede.
+**Referências.** `git show --stat 17ed444` (8 arquivos, 160 inserções, 1 110 deleções) · a entrada de
+28/09/2026 acima, *"O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente"* ·
+`tools/gerar-ciclo.sh:221–231` (o par `plano-aula-NN-anterior.json` **segue** produzido como
+proveniência, e o `cp` de `:258` vem antes do `mv` de `:259`) · `ARQUITETURA-AULA.md`, a nota de
+29/09/2026 que esta entrada fecha.
 
-**Referências.** `CONGELAMENTO.md` (a regra do motivo declarado) · `netlify/functions/receber.js`
-(`slugDe` e a ordem das regras) · a entrada de 29/09/2026 acima, *"o `POST` ganha destino e a cadeia
-reancora por push"* · `ARQUITETURA-PE.md` e `ARQUITETURA-ANAMNESE.md`, que já citam o prompt como
-produtor de dois artefatos.
-
-**O que ainda não está feito.** A emenda do `gerar-ciclo.sh` **não foi propagada**: medido nos três
-índices publicados (`fochini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`), o
-campo `professor` está **ausente nos três** — a fonte mudou, os pacotes não. Enquanto não forem
-regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `receber.js` as
-mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
-Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
-ser refeito por causa desta peça.
+**O que ainda não está feito.** A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
+sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
+não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
+`tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
+congelado, e corrigi-lo exige motivo declarado e commit próprio. E o `HANDOFF.md`, que espelha este
+registro, precisa ser regenerado **depois** desta entrada.
 
 ## O que está pendente
 
@@ -1086,27 +1082,42 @@ hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo
 >    **as oito de implementação estão feitas**; a **9** entregou só a **P-13** (a eliciação segue
 >    pendente, `HANDOFF.md:655`), e a **10** (o painel) é *"para depois"* por decisão.
 > 2. *"`podeAjustar()` continua fechado (`tools/templates/lancamento.html:948`)"*. **A linha está
->    errada e a afirmação é falsa.** `podeAjustar()` está em **`:1194`** e é **consumido** — em
->    `:1761` (o `disabled` do botão *ajustar*) e `:1767` (o texto do aviso). O que a peça `B6`
->    mediu em `:948` foi outra coisa. Quem **governa o plano** não é `podeAjustar()`: é
+>    errada e a afirmação é falsa.** `podeAjustar()` está em ~~**`:1194`**~~ e é **consumido** — em
+>    ~~`:1761` (o `disabled` do botão *ajustar*) e `:1767` (o texto do aviso)~~. O que a peça `B6`
+>    mediu em `:948` foi outra coisa. ~~Quem **governa o plano** não é `podeAjustar()`: é
 >    **`podeAjustarPlano()` (`:618`)**, com o comentário de `:612` explicando que são **dois
 >    relógios** — aquele é o do lançamento (depois da aula, dentro do prazo), este o do plano
 >    (antes ou depois da aula, até o lançamento). O `B8` entregou o segundo; o `:1784` é quem
->    o consome.
+>    o consome.~~ **Superado em 29/09/2026.** As coordenadas deslocaram outra vez — e a função que
+>    esta correção nomeia como *"quem manda"* **não existe**: `podeAjustarPlano()` saiu com a barra
+>    `#acoes-plano` na peça de 28/09/2026 (`17ed444`), e a varredura do nome no template volta
+>    **zero**. Do par resta **um** relógio só, o do lançamento — `podeAjustar()` em **`:970`**,
+>    consumida em **`:1566`** (o `disabled` do botão) e **`:1572`** (o texto do aviso). A redação
+>    antiga **não é apagada**: fica como o elo do que se mediu naquele momento.
 > 3. *"`lib-vistas.js:148-154` — `capturarDepois()` não tem chamador"*. **A função não existe** —
 >    nunca existiu. `grep -c 'capturarDepois' tools/lib-vistas.js` → **0**, e
 >    `git log --all -S'capturarDepois'` volta **vazio**. Não há bug latente ali; há um nome que
 >    foi citado de memória. **Retirado de todas as listas de pendência.**
 > 4. *"`grep -n "function estadoDaAula"` → `:871`; `"const pulada"` → `:887`"*. **Os números
->    deslocaram** — com o `B8` o arquivo cresceu: hoje são **`:1109`** e **`:1125`**. As duas
->    funções estão no arquivo e fazem o que a entrada diz; só as coordenadas mudaram.
+>    deslocaram** — com o `B8` o arquivo cresceu: ~~hoje são **`:1109`** e **`:1125`**~~.
+>    **Superado em 29/09/2026:** hoje são **`:885`** e **`:901`**. O `B8` morava **depois** destas
+>    duas funções: quando a barra do plano saiu, na peça de 28/09/2026, o arquivo perdeu 1 110
+>    linhas **abaixo** delas e as coordenadas voltaram para perto das originais. As duas funções
+>    estão no arquivo e fazem o que a entrada diz; só as coordenadas mudaram — duas vezes.
 >
 > Uma quinta afirmação **estava certa e continua certa**: o *"Efeito colateral confirmado"* — na
-> aula `dada` **sem** registro o bloco `#acoes-ajuste` fica oculto (`barraAjuste.hidden = !!
-> captura || !temAula`, `:1757`). O `B8` **olhou de frente**, como a entrada pedia: a ação não se
+> aula `dada` **sem** registro o bloco `#acoes-ajuste` fica oculto ~~(`barraAjuste.hidden = !!
+> captura || !temAula`, `:1757`)~~ (**`barraAjuste.hidden = !!captura || !temAula`**, hoje em
+> `:1562`). O `B8` **olhou de frente**, como a entrada pedia: ~~a ação não se
 > perde, porque quem a oferece é a **barra do plano** (`#acoes-plano`, `:1780`), que vive fora do
 > painel e não depende de o painel estar aberto. Fica como assimetria **deliberada** e comentada
-> no código, não como pendência.
+> no código, não como pendência.~~ **Superado em 29/09/2026.** A **barra do plano não existe** —
+> `#acoes-plano` saiu na peça de 28/09/2026 e a varredura do id no template volta **zero**. O que
+> resta é o predicado do formulário: `const captura = …` (`:1536`), `const emFormulario = !!
+> captura || emAjuste` (`:1538`) e o `hidden` de `:1562`. A assimetria, portanto, **não está
+> resolvida por desenho**: volta a ser **pendência** — e é assim que fica registrada aqui, com o
+> comentário de `:1555–1557` no código como o único elo. A redação antiga **não é apagada**: fica
+> como o elo do que se mediu naquele momento.
 
 ## 27/09/2026 — A §5.1 para de dizer 48 h: o ajuste com prazo passa a descrever o prazo que o `B7` implementou
 
@@ -1519,6 +1530,14 @@ regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `
 mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
 Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
 ser refeito por causa desta peça.
+
+## 29/09/2026 — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que se acreditava
+
+sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
+não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
+`tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
+congelado, e corrigi-lo exige motivo declarado e commit próprio. E o `HANDOFF.md`, que espelha este
+registro, precisa ser regenerado **depois** desta entrada.
 - PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fochini**: 0 evento(s) versionado(s).
