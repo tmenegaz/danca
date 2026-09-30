@@ -81,7 +81,7 @@ Medido, linha por linha:
 | `professores/tiago/ciclos/ciclo-01-ritmos-po.md` | 89 (`## Linha de base`), 91–92 (intro: "O que cada um **traz** e o que **precisa desenvolver**, nas palavras do professor (P-10)"), 94–95 (cabeçalho `\| Aluno \| Traz \| Precisa desenvolver \|`), 96–99 (Carol, Dada, Tony, Pássaro Azul) | a tabela por aluna, limpa |
 | `professores/tiago/ciclos/ciclo-01-duo-po.md` | 94 (`## Linha de base`), 110 (`### Linha de base do grupo (compartilhada)`), 133 (`### Linha de base por aluna`), 135–136 (`\| Aluna \| Traz \| Precisa desenvolver \|`), 137–140 (Ceci, Ana, Mel, Sofi) | a tabela por aluna existe no PO |
 | `professores/tiago/ciclos/ciclo-01-ritmos/po-01.json` | chave `linhaDeBase`, 15 itens | 4 objetos `{aluno, traz, precisaDesenvolver}` + 11 strings (prosa e restrições da P-22) |
-| `professores/fochini/ciclos/ciclo-01-diaghilev/po-01.json` | chave `linhaDeBase`, 8 itens | 4 objetos `{aluno, traz, precisaDesenvolver}` + 4 strings |
+| `professores/fokini/ciclos/ciclo-01-diaghilev/po-01.json` | chave `linhaDeBase`, 8 itens | 4 objetos `{aluno, traz, precisaDesenvolver}` + 4 strings |
 | `professores/tiago/ciclos/ciclo-01-duo/po-01.json` | chave `linhaDeBase`, 18 itens | 3 objetos `{dimensao, trazem, falta, dominam}` + 15 strings — **as linhas por aluna não estão lá** (ver a lacuna de extração abaixo) |
 | `campo/2026-09-18-ritmos/respostas.md` | 96 (`### Linha de base`), 97–116 | material bruto, **em prosa por aluna** — foi o que se disse antes de virar tabela; **não é a forma canônica** |
 
@@ -142,7 +142,7 @@ aluna do PO do Duo um bloco próprio, para a extração pegá-la]`.
 
 `linhaDeBase` **não** aparece em nenhum `*-dados.json`. Medido: **0 ocorrências** em
 `professores/tiago/ciclos/ciclo-01-duo-dados.json`, `professores/tiago/ciclos/ciclo-01-ritmos-dados.json`
-e `professores/fochini/ciclos/ciclo-01-diaghilev-dados.json` — cujas chaves são
+e `professores/fokini/ciclos/ciclo-01-diaghilev-dados.json` — cujas chaves são
 `[ciclo, escola, professor, criado_em, ultimo_lancamento, apelidos, aulas, _nota]`.
 
 O dado por aluna vive no **PO** e no **JSON extraído do PO**. O `-dados.json` guarda os
@@ -242,7 +242,7 @@ aulas. Existe um terceiro artefato — o **formulário de campo da aula**, a fol
 É a folha que o professor usa **durante** a aula, impressa, para marcar. Não é questionário nem
 transcrição: é uma folha de **marcação**, e o que ela marca são **âncoras de memória** — depois da
 aula, o professor escreve a partir delas. Ela mesma o declara no cabeçalho
-(`professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-01.md:12–13`):
+(`professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-01.md:12–13`):
 
 > **Durante a aula, marque; depois, escreva** — as marcas são âncoras de memória, não classificação
 > (P-06). Marcação: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.
@@ -252,7 +252,7 @@ aula, o professor escreve a partir delas. Ela mesma o declara no cabeçalho
 Vive em **`professores/<professor>/ciclos/`**, com o sufixo da escola:
 `ciclo-XX-<escola>-captura-aula-NN.md` — **uma folha por aula** (`captura-aula-01`, `captura-aula-02`, …).
 Exemplos reais: `professores/tiago/ciclos/ciclo-01-ritmos-captura-aula-01.md` (141 linhas) e
-`professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-01.md` (89 linhas).
+`professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-01.md` (89 linhas).
 
 Ele é **fonte de ciclo**, não material de campo — e a diferença é medida, não de estilo.
 `tools/hash-ciclo.sh:18–45` declara que a âncora `.fipp` cobre **apenas fontes**: `ciclo-XX.conf`,

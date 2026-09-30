@@ -12,7 +12,7 @@ subtitle: "Índice geral do ciclo"
 > **Duração:** 5 encontros · **cada aula: 60 minutos**
 > **Data de início:** 06/10/2026
 > **Encerramento previsto:** ver o [Calendário do ciclo](plano.html#calendario-do-ciclo)
-> **Professor:** Fochini
+> **Professor:** Fokini
 
 ---
 

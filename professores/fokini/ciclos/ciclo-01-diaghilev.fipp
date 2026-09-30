@@ -1,0 +1,39 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/fokini/ciclos/ciclo-01.conf, professores/fokini/ciclos/ciclo-01-diaghilev.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-diaghilev
+type: Ciclo
+professor: Fokini
+ciclo: 01
+variante: diaghilev
+hash_conteudo: 5e752f1f475c708fcde6bb4a3af61f737ed9712361d8d1f2c5cd652d351cd4a1
+parentHash: 
+hash: 7e32e5a49c0a5b5c0ab7a1467ba807db4f713eb957c83f2dcaa4a026b68b5738
+algoritmo: SHA-256
+po: professores/fokini/ciclos/ciclo-01-diaghilev-po.md
+po_state: Input_PO_Aguardando
+ancorado_em: 2026-09-30
+cobertura:
+  - professores/fokini/cadernos/ciclo-01/caderno-01-diaghilev.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-01.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-02.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-03.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-04.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-05.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-01.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-02.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-03.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-04.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-05.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-dados.json
+  - professores/fokini/ciclos/ciclo-01-diaghilev-harmonizacao.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-po.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev.conf
+  - professores/fokini/ciclos/ciclo-01-glossario-benesh.md
+  - professores/fokini/ciclos/ciclo-01-index.md
+  - professores/fokini/ciclos/ciclo-01-notacao.md
+  - professores/fokini/ciclos/ciclo-01-plano.md
+  - professores/fokini/ciclos/ciclo-01-referencias.md
+  - professores/fokini/ciclos/ciclo-01.conf

@@ -6,15 +6,15 @@
 
 id: ciclo-01-diaghilev-aula-03
 type: Aula
-professor: Fochini
+professor: Fokini
 ciclo: 01
 variante: diaghilev
 aula: 03
-hash_conteudo: 097f49ff66427c1f85c4a0fa46630f6b4c983ac43a7af35784221de1310bfccc
+hash_conteudo: 38b979c9dc94e1d1c9dc67bf1c982c62edba5b304f2269d134936873a1f2b363
 parentHash: 
-hash: 0395634f36380598d9ad9b7a1267528f97bed1a74476fc3d2ccca7fc8ec91884
+hash: b3e0a6242564dbda792ae870a6baeb267d3783a3d881de4a7a29372222f1846e
 algoritmo: SHA-256
-ancorado_em: 2026-09-27
+ancorado_em: 2026-09-30
 cobertura:
-  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-03.md
-  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-03.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-03.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-03.md

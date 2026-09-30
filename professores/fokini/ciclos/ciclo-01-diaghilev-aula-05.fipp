@@ -6,15 +6,15 @@
 
 id: ciclo-01-diaghilev-aula-05
 type: Aula
-professor: Fochini
+professor: Fokini
 ciclo: 01
 variante: diaghilev
 aula: 05
-hash_conteudo: 4210fb3f80fc0379454bd7bc94f4fdea232f23faf801155c3d95a7cd883fbaa8
+hash_conteudo: d0f29f98e1220f40c5caa2a7977602f4df7f83d4ce179a65100cf2a1bd4f0e3e
 parentHash: 
-hash: 37b70c8273d418a11be98b845d21a239c3839b247dfed1dce0807a7a85feff49
+hash: 5260a9c7451a2665416a52be7a607c8dfcc63392a56afb8d04d6848c445f9bd1
 algoritmo: SHA-256
-ancorado_em: 2026-09-28
+ancorado_em: 2026-09-30
 cobertura:
-  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-05.md
-  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-05.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-05.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-05.md

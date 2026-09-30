@@ -19,7 +19,7 @@ pulso** e **presença cênica**, em cinco encontros.
 | **Data de início** | 06/10/2026 |
 | **Encerramento previsto** | ver o [Calendário do ciclo](#calendario-do-ciclo) |
 | **Volume ativo por aula** | 80–100 tempos (faixa de 60 min, Regra 9, etapa 1) |
-| **Professor** | Fochini |
+| **Professor** | Fokini |
 
 ## Marcos parciais por aula
 

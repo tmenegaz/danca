@@ -3,14 +3,14 @@ projeto: Formação em Balé Clássico
 frente: PO
 ciclo: "01"
 escola: Diaghilev
-responsavel: Fochini
-professor: Fochini
+responsavel: Fokini
+professor: Fokini
 title: "PO do Ciclo 01 — Diaghilev"
 state: Input_PO_Aguardando
 ---
 
 > **O que é este arquivo.** O **Plano de Observação (PO)** do Ciclo 01 na escola **Diaghilev**
-> (Fochini · terças e quintas, 60 min), com **quatro encontros**. É **simulado** — exercício de
+> (Fokini · terças e quintas, 60 min), com **quatro encontros**. É **simulado** — exercício de
 > instalação de ciclo, com professor e escola fictícios.
 >
 > **Estado:** `Input_PO_Aguardando` — desde 25/09/2026 o checklist tem **seis** itens, e o
@@ -40,7 +40,7 @@ inicial, em dois encontros semanais de 60 minutos, com quatro aulas no ciclo.
 
 | Item | Valor |
 |:--|:--|
-| Escola | Diaghilev (responsável: Fochini) |
+| Escola | Diaghilev (responsável: Fokini) |
 | Frequência | 2x/semana — **terças e quintas** |
 | Duração por aula | **60 minutos** |
 | Calendário | 06/10/2026 → [a decidir] (4 encontros) |
@@ -54,7 +54,7 @@ inicial, em dois encontros semanais de 60 minutos, com quatro aulas no ciclo.
 - **Quatro bailarinos em formação inicial**, referidos por **apelidos estáveis** (P-12):
   Vronsky, Karsavina, Nijinsky e Pavlova.
 - **Nenhum é flutuante:** os quatro são fixos nos quatro encontros.
-- **Professor:** Fochini.
+- **Professor:** Fokini.
 - **Registro específico dos alunos:** opcional (não é condição do recorte).
 
 ## Norma estabelecida

@@ -18,7 +18,7 @@ a pressão era no primeiro ou no quinto metatarso.
 Na série de pelve nivelada, Nijinsky mantinha a linha das cristas ilíacas sem esforço visível.
 Karsavina pedia para repetir a conferência no espelho.
 
-No bloco de presença, o trabalho foi de olhar sustentado no lugar. Fochini pediu que cada um
+No bloco de presença, o trabalho foi de olhar sustentado no lugar. Fokini pediu que cada um
 escolhesse um ponto fixo na parede e o mantivesse durante os 8 tempos.
 
 **O que mudou em relação ao plano.** Nada: o plano foi seguido como estava.

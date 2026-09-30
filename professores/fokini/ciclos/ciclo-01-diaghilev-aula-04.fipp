@@ -6,15 +6,15 @@
 
 id: ciclo-01-diaghilev-aula-04
 type: Aula
-professor: Fochini
+professor: Fokini
 ciclo: 01
 variante: diaghilev
 aula: 04
-hash_conteudo: e597757503f93a47c4821f44f28368b7bac0644d43a9b862240c36bbd4d67b7b
+hash_conteudo: a1c09c804243e73db0a888e704811a656413571a77f773b430137bca5ae2f8e6
 parentHash: 
-hash: c7dc935b95385aa878d2ba4d3e3c5383b0914adcb41f09238c72d7eed4466a0e
+hash: f3a2cf3b6099a03fd249d15473d37b35b7aae3b874eed29c2b11d7986de59fa7
 algoritmo: SHA-256
-ancorado_em: 2026-09-27
+ancorado_em: 2026-09-30
 cobertura:
-  - professores/fochini/ciclos/ciclo-01-diaghilev-aula-04.md
-  - professores/fochini/ciclos/ciclo-01-diaghilev-captura-aula-04.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-aula-04.md
+  - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-04.md
