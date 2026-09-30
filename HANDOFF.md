@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-30T08:26:38-0300`
-Commit atual: `bf98e68` — chore(ciclo-01): regera os três ciclos para propagar o campo professor
+Gerado em: `2026-09-30T10:49:50-0300`
+Commit atual: `c000dcd` — docs(registro): a medição do GET /dados e o segundo papel do agente
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -41,7 +41,7 @@ tiago (2)
 
 ## Ideias documentadas
 
-- **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** (domínios de alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor — o **recipiente** é do PE, o **conteúdo** é do PO.
+- **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha, os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor — o **recipiente** é do PE, o **conteúdo** é do PO.
 - **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o resto, não.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto.
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
@@ -51,6 +51,9 @@ tiago (2)
 ## Últimos commits
 
 ```
+c000dcd docs(registro): a medição do GET /dados e o segundo papel do agente
+5910dfc docs(estrutura): a observação inicial e a §9 Q10 no ARQUITETURA-ANAMNESE
+5309cc3 docs(registro): regenera o HANDOFF sobre bf98e68
 bf98e68 chore(ciclo-01): regera os três ciclos para propagar o campo professor
 b2e8a6f docs(registro): a baixa do ponto 3 e o rito dos congelados
 1484527 fix(tools): o comentário do pre-commit deixa de nomear função que não existe
@@ -68,9 +71,6 @@ ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a 
 d4f3cc6 docs(registro): regenera o HANDOFF sobre ccdc38d
 ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 4a4b52f docs(registro): a §7.3 deixa de valer integralmente — nota datada
-50f73f9 feat(estrutura): o lançamento ganha destino — Function, Blobs e reancoragem por push
-7a453c8 docs(registro): o fecho do Passo 1 registra que a peca ja estava cumprida
-76a0481 docs(registro): a entrada ㉑ registra o botão que abria a pasta do computador
 ```
 
 ## Por professor
@@ -148,94 +148,92 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 
 ## Última entrada do REGISTRO
 
-## 30/09/2026 — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor` e duas pendências que a medição derrubou
+## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
 
-**O que motivou.** Três pendências declaradas neste registro se tocavam, e por isso foram fechadas
-na mesma rodada, numa ordem que não podia ser invertida: a grafia `fochini` → `fokini` **antes** de
-regerar os pacotes (senão o `ciclos.json` sai com o nome errado e o trabalho é feito duas vezes), a
-baixa do ponto 3 **junto** com o rito do comentário do `pre-commit`, e a reancoragem **por último**.
-O rito do `CONGELAMENTO.md` vale para `tools/`: motivo declarado, entrada neste arquivo e commit
-próprio.
+**O que motivou.** O prompt que abriu esta rodada descreve o agente com **dois papéis**: o papel 1
+escuta o `salvar` (o `POST`, que já estava descrito), e o papel 2 serviria os dados ao formulário
+por `GET /dados/<professor>/<ciclo>`, lendo o repositório local — para o professor continuar
+lançando **sem internet**, quando o pacote publicado não está acessível. Antes de implementar o
+papel 2, era preciso **medir se ele existe**. Na mesma rodada, o **Ponto 1** (a publicação do
+`ciclo-ritmos` no Netlify) arrastava desde 19/09 sem causa declarada.
 
-**O que foi decidido.** Quatro frentes, nenhuma delas reescrevendo fonte pedagógica:
+**O que foi decidido.** Seis pontos, todos medidos nesta rodada.
 
-1. **O rename — `fochini` → `fokini`.** O diretório `professores/fochini/` virou
-   `professores/fokini/`, o campo `PROFESSOR=` do `ciclo-01.conf` acompanhou, e as citações de
-   **caminho** em documentos e prosa foram corrigidas. Os nomes de **exibição** dentro dos `.fipp`
-   **não** foram tocados: aqueles gravam o rótulo intencionalmente, e se ele deve acompanhar é
-   decisão separada, que **não foi tomada aqui**. A varredura fechou: `grep -rn -i "fochini" .`
-   volta **zero** fora de `REGISTRO.md` e `HANDOFF.md`, e ali o que resta é **elo histórico** (as
-   entradas antigas, que não se apagam) e o **espelho gerado**, que cai na regeneração.
-2. **A regeração propaga o campo `professor`.** Fecha a pendência que a entrada *"Os dois congelados
-   entram: o índice ganha o slug e a entrevista declara dois artefatos"* deixou declarada: o campo
-   estava **ausente nos três** índices publicados, e os pacotes não tinham acompanhado a fonte.
-   Rodado `tools/gerar-ciclo.sh` nos três ciclos, o campo sai **preenchido** em
-   `ciclos.json:7` — `"fokini"`, `"tiago"`, `"tiago"`, o **nome do diretório**. Com isso a
-   **primeira** regra do `slugDe()` (`netlify/functions/receber.js:40`) passa a valer; as duas
-   outras viram **fallback declarado**, e é por isso que continuam no arquivo.
-3. **O ponto 3 baixa por medição.** O comportamento do botão de ajuste **está correto**, e foi
-   medido no template em vez de citado: no **modo lançamento** o predicado de
-   `tools/templates/lancamento.html:1562` esconde a barra (`!temAula`) — não há o que ajustar,
-   porque não há lançamento; no **modo leitura** ela aparece, e o botão fica **habilitado** dentro do
-   prazo (`podeAjustar()`, `:970`, consumida em `:1566` e `:1572`) ou **cinza com a data visível**
-   fora dele. O professor **vê que a possibilidade existiu**, em vez de o botão sumir sem
-   explicação. A "assimetria do efeito colateral" **não se aplica**: ela supunha oculto o bloco no
-   modo leitura, e o que o código faz é ocultá-lo no modo lançamento. As duas notas de superação
-   datadas ficam na entrada do `B8` (*"O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que
-   se acreditava"*), no item 2 e no pendente dela.
-4. **O comentário do `pre-commit` deixa de nomear o que não existe.** `tools/hooks/pre-commit:182–188`
-   passa a dizer o que é verdade: `exportarAjusteDoPlano` — e a barra `#acoes-plano` que a sustentava
-   — saíram de `tools/templates/lancamento.html` em 28/09/2026 (`17ed444`), e **o guard da `§2c`
-   nunca dependeu delas**: ele lê a fonte `aula-NN.md` e a defere contra o `HEAD`, **não lê id nenhum
-   de HTML**. O `echo` de `:296`, que orientava o professor a usar o botão, foi corrigido na mesma
-   direção.
+1. **O papel 2 não existe.** É hipótese do prompt, não código. O único arquivo de
+   `netlify/functions/` é `receber.js` (4 988 B, 29/09 16:47), e a resposta dele a `GET` é um
+   *health check* puro — `receber.js:47`, `{ ok: true, receber: 'pronto' }`. Nenhuma especificação
+   de leitura local do repositório aparece em `prompts/`, `.github/`, `ARQUITETURA-*.md`,
+   `METODO.md`, `PROTOCOLO.md`, `REGRAS.md`, `CONGELAMENTO.md` ou `tools/`.
+2. **O papel 1 também não grava no repositório.** `receber.js:82` grava em **Netlify Blobs**
+   (`store.set(chave + '/' + basename(a.nome), a.texto, { onlyIfNew: true })`), não em arquivo
+   versionado. A **consolidação do Blob de volta ao repositório não existe** — é a metade aberta da
+   §7.3 do `ARQUITETURA-CAPTURA.md`, declarada na nota de 29/09/2026.
+3. **A leitura local, em parte, já funciona.** `lancamento.html:187` fixa `const P = './'` — tudo é
+   lido **ao lado da página** —, e há **seis** leituras relativas, `fetch(P + …)`, em `:285`,
+   `:291`, `:313`, `:564`, `:992` e `:1720`; o **único** `POST` do arquivo é `:733`,
+   `fetch(RECEBER, …)`, com `RECEBER` declarado em `:731`. Um `python3 -m http.server` sobre o
+   pacote **já entrega** o `ciclos.json` e o `ciclo-NN-<escola>-dados.json`. Falta ler do
+   **repositório canônico** — e isso é o papel 2, que não existe.
+4. **É decisão aberta, não atraso.** No `ARQUITETURA-CAPTURA.md` §7 estão **"Não decidido"** a §7.2
+   (`:561`), a §7.4 (`:564`), a §7.5 (`:567`) e a §7.6 (`:568`); a §7.3 (`:622`) foi decidida em
+   20/09, e a nota de 29/09 (`:627`) declara que ela "deixou de valer integralmente". O próprio
+   documento resume: "Há **quatro perguntas em aberto** (§7) e **cinco decisões tomadas**"
+   (`:619–620`). Implementar o agente local decidiria, por código, o que a §7.6 mantém em aberto.
+5. **`tools/` é congelado.** Se o agente local nascer ali, paga o rito do `CONGELAMENTO.md` (motivo
+   declarado + entrada neste registro + commit próprio) — e exige decidir antes a **porta** e o
+   **CORS**, porque a página é servida por `python3 -m http.server` e o agente seria outro serviço.
+6. **O Ponto 1 fica fechado como diagnóstico**, por declaração da pesquisadora. A causa **não é
+   código**: é **crédito da conta**. Medido pelo token de `tools/.netlify-tokens` (usado, **nunca
+   impresso**) — o site `ciclo-ritmos` tem `published_at: None`; o último deploy `ready` é de
+   19/09/2026T22:48:49Z; são **44 deploys** (35 `error` e 9 `ready`), **44/44** com `deploy_source:
+   api` e `manual_deploy: False`, e **os 35 erros** trazem a mesma `error_message`, *"Skipped due to
+   account credit usage exceeded"*. O mais novo é de 30/09/2026T11:32:33Z — recusado **antes do
+   build**, com `commit_ref` no `5309cc3`. A conta `tmenegaz77` se declara `type_name: Free`,
+   `plan_credits: 300`, `usages_exceeded: []` — uma contradição que **não** invalida a medição,
+   porque a recusa é de crédito e vem do serviço, não do cadastro. O pacote no ar é de **19/09**,
+   anterior aos JSONs do formulário. O que está feito é a **decisão de parar**; publicar depende de
+   **terceiro**.
 
-**Onde entrou.** `REGISTRO.md` — esta entrada e as duas notas de superação na entrada do `B8` ·
-`ARQUITETURA-AULA.md` — a nota de 30/09/2026 no `§1` · `ARQUITETURA-ANAMNESE.md` — a §3 nova (a
-observação inicial e os elementos basilares), com a renumeração das seções seguintes · os três
-pacotes regerados (`fokini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`),
-com os índices, os dados e os PDFs · `tools/gerar-ciclo.sh:241`, `tools/lib-fontes.sh:85` e
-`tools/validar-aula-ciclo.js:14`/`:32` — quatro linhas de **prosa** que ainda diziam `fochini`.
+> **Correção de 30/09/2026 (mesmo dia).** Duas redações declaram as **6 chaves** de
+> `tools/.netlify-tokens` como **vazias**: o bloco abaixo, nesta entrada, e a entrada anterior
+> (`REGISTRO.md:7789`). Está **errado** — medido por **comprimento** (não pelo `sed`, que mente):
+> **RITMOS está preenchido** (token de 40 caracteres, site ID de 36); só **DUO** e **DEBORA**
+> seguem em `=""`. A redação anterior **não é apagada**: fica como o elo do que se mediu primeiro
+> (P-03/P-04).
 
-**Motivo declarado — os congelados.** `tools/` é congelado (`CONGELAMENTO.md`), e esta rodada o
-tocou em **quatro arquivos**. O que **não muda**: a fórmula de hash da âncora, a cobertura da
-âncora, os validadores, as regras pedagógicas e as pétreas. Em `gerar-ciclo.sh`, `lib-fontes.sh` e
-`validar-aula-ciclo.js` a alteração é **prosa** — o nome do professor num comentário —, e **nada**
-de comportamento: o `PROFESSOR_SLUG` de `:298` e o campo `'professor'` de `:501` já liam o nome do
-**diretório**, e é justamente por isso que a regeração do item 2 era necessária. Em
-`tools/hooks/pre-commit` a alteração é **só o texto** do comentário e da mensagem; o guard da `§2c`
-(`:172–305`) tem o **mesmo** comportamento: continua deferindo `aula-NN.md` contra o `HEAD`, e
-continua recusando o commit nos mesmos casos. Nenhum dos quatro arquivos é fonte de ciclo — nenhum
-`.fipp` foi refeito por causa desta peça.
+**Onde entrou.** `REGISTRO.md` — esta entrada, e mais nada. Nenhum arquivo de
+`ARQUITETURA-CAPTURA.md` foi tocado: as decisões §7.2 a §7.6 continuam onde estão, e é lá que o
+desenho do agente local deve ser declarado, se e quando for decidido.
 
-**Com o quê.** `tools/gerar-ciclo.sh`, `tools/lib-fontes.sh`, `tools/validar-aula-ciclo.js`,
-`tools/hooks/pre-commit`, `REGISTRO.md`, `ARQUITETURA-AULA.md`, `ARQUITETURA-ANAMNESE.md`. Os quatro
-de `tools/` são congelados ⇒ **commit próprio**, separado das alterações livres do mesmo worktree,
-como o `CONGELAMENTO.md` pede. O rename e a reancoragem já foram declarados em `31d97fe`, *"o slug e
-o nome de exibição"* — esta entrada **não duplica** aquele motivo (P-04), apenas o refere: a âncora
-mudou porque a **fonte mudou de caminho**, não porque o conteúdo pedagógico mudou.
+**Com o quê.** Só `REGISTRO.md`. **Nenhum** arquivo do `CONGELAMENTO.md` foi tocado, **nenhuma**
+fonte de ciclo foi alterada e **nenhuma** âncora de proveniência foi regerada — os três
+`tools/hash-ciclo.sh --check` (diaghilev, duo e ritmos) seguem **verdes**. Sem commit e sem push
+nesta peça.
 
-**Referências.** `31d97fe` (o rename e a reancoragem declarados) · `17ed444` (a saída do botão
-`Exportar ajuste do plano`) · os três `--check` de `tools/hash-ciclo.sh` — **verdes nos três
-ciclos** antes deste commit · o harness de `netlify/functions/receber.js` — 17/17 · `node
-tools/check-pacote.js` — 0 erro nos três pacotes · a entrada de 29/09/2026, *"Os dois congelados
-entram: o índice ganha o slug e a entrevista declara dois artefatos"*, que declara a pendência do
-campo `professor` que o item 2 fecha · `tools/templates/lancamento.html:118`, `:885`, `:901`,
-`:970`, `:1535–1538`, `:1555–1557`, `:1562`, `:1566`, `:1572–1574`, `:1753` (a medição do item 3).
+**Referências.** `netlify/functions/receber.js` — `:38` (o `slugDe`), `:39` (a primeira regra,
+sobre o índice), `:40–42` (as duas seguintes), `:47` (o `GET`, *health check*), `:82` (o
+`store.set`), `:89` (a resposta) · `tools/templates/lancamento.html` — `:187`, `:731`, `:733`,
+`:970`, `:1562` (o predicado da barra de ajuste), `:1555–1557` · `ARQUITETURA-CAPTURA.md` — §7
+(`:543`), §7.2 `:561`, §7.4 `:564`, §7.5 `:567`, §7.6 `:568`, §7.3 `:622`, e a nota de 29/09 em
+`:627–634` · as medições de rede: `GET /sites/<id>`, `GET /sites/<id>/deploys?per_page=100`,
+`GET /sites/<id>/deploys/<deploy>` e `GET /accounts` · a entrada de 29/09/2026, *"Os dois congelados
+entram: o índice ganha o slug e a entrevista declara dois artefatos"*.
 
-**O que ainda não está feito.** O **Passo 0** segue aberto, e continua dependendo de **credencial
-que só a pesquisadora tem**: as **6 chaves** de `tools/.netlify-tokens` estão **vazias**, e sem site
-publicado o `Enviar` do formulário ainda falha com `HTTP 404` — honestamente: avisa e preserva os
-campos. Do mesmo bloco, **segue aberta** a decisão de **onde vivem as Functions** (o
-`tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, **não a raiz**, e o
-`netlify.toml` da raiz pode não ser lido), e **segue sem resposta** a pergunta pela **revisão dos
-demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e `:7934` — a
-medição desta rodada corrigiu a coordenada que a última delas cita: é **`:7536`**, não `:7485`.
-Permanecem, sem mudança nesta peça: o par `plano-aula-NN.json` / `-anterior.json` **órfão de
-leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); o **dublê de
-`fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
-resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
-depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
+**O que ainda não está feito.** O **agente local** continua **não implementado** — e agora se sabe
+que ele era **hipótese**, não pendência de código: a medição desta rodada **derrubou** a premissa do
+prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta ao repositório (§7.3).
+Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
+governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
+conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
+**revisão dos demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e
+`:7934` (a medição desta rodada **confirma** a coordenada `:7536`); a decisão de **onde vivem as
+Functions** (o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, não a raiz);
+e a decisão sobre o **nome de exibição** dentro dos `.fipp`, que **não** acompanha a correção de
+grafia do diretório — é pergunta separada, e não foi tomada. A anotação do "comentário resíduo de
+`tools/templates/lancamento.html:133`", herdada da entrada anterior, **não se confirma**: medido por
+texto, nenhum comentário do template nomeia função removida, e `:133` é o fecho de um `<div>`. Por
+fim, o `HANDOFF.md` precisa ser **regenerado depois** desta entrada — ele espelha a **última** deste
+registro, e passa a ser esta.
 
 ## O que está pendente
 
@@ -1578,6 +1576,14 @@ leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored
 `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
 resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
 depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
+
+## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
+
+que ele era **hipótese**, não pendência de código: a medição desta rodada **derrubou** a premissa do
+prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta ao repositório (§7.3).
+Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
+governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
+conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
