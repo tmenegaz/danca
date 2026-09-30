@@ -238,7 +238,7 @@ node "$RAIZ/tools/validar-plano-ciclo.js" "$CICLOS/ciclo-$CICLO-plano-schema.jso
 # caminho mesmo quando o arquivo não existe, e o NN pode ter entrado no glob pela escola de OUTRA.
 #
 # A ausência do schema NÃO derruba o pacote: o schema da aula é por CICLO e por PROFESSOR, e um
-# professor pode ainda não o ter (o `tiago` chegou depois do `fochini`). Sem schema não há
+# professor pode ainda não o ter (o `tiago` chegou depois do `fokini`). Sem schema não há
 # validação — mas o pacote continua a ser gerado, como qualquer outro documento que a variante
 # não declarou. Com schema, a fonte tem de fechar: o pacote não sai torto.
 #

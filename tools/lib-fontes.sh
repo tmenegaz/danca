@@ -82,7 +82,7 @@ e_vista() {
 # Três cuidados, todos pagos por medição:
 #   * roda UMA vez, ao carregar a lib, e é IDEMPOTENTE (o `source` pode repetir);
 #   * a família expande UMA vez, na posição do seu PRIMEIRO membro declarado, e os membros
-#     seguintes são absorvidos: expandir cada nome declarado duplicaria (o DOCS do fochini declara
+#     seguintes são absorvidos: expandir cada nome declarado duplicaria (o DOCS do fokini declara
 #     `aula-01` a `aula-04` — seriam 16 entradas em vez de 4);
 #   * a expansão só ACRESCENTA documento que existe: onde nada foi declarado, nada muda — a Duo e
 #     o Ritmos ficam com o DOCS idêntico ao de antes, e o `guia-de-observacao-NN` (que é VISTA, sem

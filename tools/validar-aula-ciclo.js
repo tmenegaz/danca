@@ -11,7 +11,7 @@
  * array`, tabela → array de objetos (ou OBJETO, quando o bloco é item/valor). O que é DESTE
  * documento é a DECLARAÇÃO (o mapa das seções e os blocos item/valor) e a validação contra o
  * schema da aula. O `MAPA_COLUNAS` está vazio de propósito: as colunas das tabelas da aula
- * divergem por dialeto (a §5 abre com `Dimensão` no `fochini` e com `Critério` no `tiago`), e
+ * divergem por dialeto (a §5 abre com `Dimensão` no `fokini` e com `Critério` no `tiago`), e
  * a chave derivada do cabeçalho — que já sai em camelCase — é a que o documento oferece.
  *
  * ⚠️ O MODO DE FALHA POR OMISSÃO DESTE CONTRATO. As chaves de MAPA_SECOES são casadas
@@ -29,7 +29,7 @@
  *
  * O `required` É SÓ `identificacao`, E O MOTIVO É MEDIDO. Os três dialetos de aula vivos no
  * repositório não têm as mesmas seções (AGENTS.md:29 — o protótipo existe para provar que o
- * modelo se sustenta nessa variação): o `fochini` tem 9 seções, o `tiago` (aula-01) tem a §7
+ * modelo se sustenta nessa variação): o `fokini` tem 9 seções, o `tiago` (aula-01) tem a §7
  * Notação em Benesh, e o `tiago` (ritmos-aula-01) tem 6. `identificacao` é o único campo
  * presente e com o tipo esperado nos sete ficheiros de aula; tudo o mais sai `undefined`
  * exatamente onde o dialeto não tem a seção, e como `undefined` só existe fora do `required`,
