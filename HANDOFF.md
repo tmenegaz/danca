@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-29T22:57:03-0300`
-Commit atual: `ee1863f` — docs(registro): o `B8` medido — `podeAjustarPlano()` não existe
+Gerado em: `2026-09-30T08:26:38-0300`
+Commit atual: `bf98e68` — chore(ciclo-01): regera os três ciclos para propagar o campo professor
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -34,7 +34,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** fochini
+- **Professores:** fokini
 tiago (2)
 - **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
@@ -51,6 +51,13 @@ tiago (2)
 ## Últimos commits
 
 ```
+bf98e68 chore(ciclo-01): regera os três ciclos para propagar o campo professor
+b2e8a6f docs(registro): a baixa do ponto 3 e o rito dos congelados
+1484527 fix(tools): o comentário do pre-commit deixa de nomear função que não existe
+52b44f3 docs(tools): as quatro linhas de prosa passam a dizer fokini
+aa4c428 docs(estrutura): a observação inicial e os elementos basilares entram como §3
+31d97fe refactor(estrutura): fochini → fokini (o slug e o nome de exibição)
+12a5462 docs(registro): regenera o HANDOFF sobre ee1863f
 ee1863f docs(registro): o `B8` medido — `podeAjustarPlano()` não existe
 5b6b793 docs(registro): regenera o HANDOFF sobre da2cd8b
 da2cd8b docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
@@ -64,18 +71,11 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 50f73f9 feat(estrutura): o lançamento ganha destino — Function, Blobs e reancoragem por push
 7a453c8 docs(registro): o fecho do Passo 1 registra que a peca ja estava cumprida
 76a0481 docs(registro): a entrada ㉑ registra o botão que abria a pasta do computador
-131907a fix(tools): propaga às três cópias empacotadas a saída do gerenciador de arquivos
-193287b fix(template): remove o caminho que abria a pasta do computador no botão Salvar
-07c5b95 docs(registro): regenera o HANDOFF sobre 17ed444
-17ed444 refactor(template): o botão `Exportar ajuste do plano` sai do formulário
-3cbd318 docs(estrutura): regenera o HANDOFF depois de 7e21bd4
-7e21bd4 docs(template): cabeçalho do formulário passa à voz de professor
-aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
 ```
 
 ## Por professor
 
-### fochini — 1 ciclo(s)
+### fokini — 1 ciclo(s)
 
 **Ciclo 01** — variante(s): diaghilev
 
@@ -85,7 +85,7 @@ aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| diaghilev | ciclo-01-diaghilev.fipp | `a05f05c06c85` | (vazio) | Input_PO_Aguardando |
+| diaghilev | ciclo-01-diaghilev.fipp | `7e32e5a49c0a` | (vazio) | Input_PO_Aguardando |
 
 ### tiago — 1 ciclo(s)
 
@@ -148,71 +148,94 @@ aeb3474 docs(estrutura): regenera o HANDOFF depois de e592373
 
 ## Última entrada do REGISTRO
 
-## 29/09/2026 — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que se acreditava
+## 30/09/2026 — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor` e duas pendências que a medição derrubou
 
-**O que motivou.** A pergunta *"fizemos os passos 0, 1, 2 e 3?"* obrigou a **medir** o formulário em
-vez de citá-lo — e a medição derrubou uma premissa que este registro sustentava desde 27/09: o `B8`,
-o ajuste **no plano**, era descrito como vivo em **oito** pontos deste arquivo. Ele **saiu do
-código** em 28/09/2026 (`17ed444`, *"O botão `Exportar ajuste do plano` sai do formulário"*), e o
-que sobrou foram afirmações conflitantes: um documento dizendo que a coisa existe e o código dizendo
-que não. A pesquisadora foi explícita: *"não dá para ter informações conflitantes em documentos
-diferentes"*.
+**O que motivou.** Três pendências declaradas neste registro se tocavam, e por isso foram fechadas
+na mesma rodada, numa ordem que não podia ser invertida: a grafia `fochini` → `fokini` **antes** de
+regerar os pacotes (senão o `ciclos.json` sai com o nome errado e o trabalho é feito duas vezes), a
+baixa do ponto 3 **junto** com o rito do comentário do `pre-commit`, e a reancoragem **por último**.
+O rito do `CONGELAMENTO.md` vale para `tools/`: motivo declarado, entrada neste arquivo e commit
+próprio.
 
-**O que foi decidido.** Nenhuma redação antiga é apagada (P-03/P-04). Os oito pontos ganham **nota
-de superação datada, no lugar**, e esta entrada é o elo que a nota do `ARQUITETURA-AULA.md` já
-citava pelo título.
+**O que foi decidido.** Quatro frentes, nenhuma delas reescrevendo fonte pedagógica:
 
-1. **A varredura de código é zero.** `podeAjustarPlano`, `#acoes-plano` e `mdAjusteDoPlano` não
-   existem em `tools/templates/lancamento.html` nem em `tools/`; de `exportarAjusteDoPlano` resta
-   **um comentário** — `tools/hooks/pre-commit:184` —, resíduo que o hook ainda carrega ao explicar
-   de quem é o elo. A remoção não foi parcial: os quatro saíram juntos, com a barra que os
-   sustentava.
-   - **O que fica de pé é o guard, não a página.** A distinção que a redação de 27/09 atribuía ao
-     formulário nunca dependeu dele: `tools/hooks/pre-commit` aplica a sub-seção **`§2c`** (bloco
-     `:172–305`) sobre a **fonte** `aula-NN.md`, deferindo-a contra o `HEAD` — **não lê id nenhum de
-     HTML**, e por isso a remoção não o alcança.
-   - **O `§8` não é do hook.** Ele é a seção do `ARQUITETURA-AULA.md` que lista os arquivos
-     congelados, e é o próprio guard que a cita (`pre-commit:175`). As duas referências permanecem:
-     `§8` é do documento, `§2c` é do hook.
+1. **O rename — `fochini` → `fokini`.** O diretório `professores/fochini/` virou
+   `professores/fokini/`, o campo `PROFESSOR=` do `ciclo-01.conf` acompanhou, e as citações de
+   **caminho** em documentos e prosa foram corrigidas. Os nomes de **exibição** dentro dos `.fipp`
+   **não** foram tocados: aqueles gravam o rótulo intencionalmente, e se ele deve acompanhar é
+   decisão separada, que **não foi tomada aqui**. A varredura fechou: `grep -rn -i "fochini" .`
+   volta **zero** fora de `REGISTRO.md` e `HANDOFF.md`, e ali o que resta é **elo histórico** (as
+   entradas antigas, que não se apagam) e o **espelho gerado**, que cai na regeneração.
+2. **A regeração propaga o campo `professor`.** Fecha a pendência que a entrada *"Os dois congelados
+   entram: o índice ganha o slug e a entrevista declara dois artefatos"* deixou declarada: o campo
+   estava **ausente nos três** índices publicados, e os pacotes não tinham acompanhado a fonte.
+   Rodado `tools/gerar-ciclo.sh` nos três ciclos, o campo sai **preenchido** em
+   `ciclos.json:7` — `"fokini"`, `"tiago"`, `"tiago"`, o **nome do diretório**. Com isso a
+   **primeira** regra do `slugDe()` (`netlify/functions/receber.js:40`) passa a valer; as duas
+   outras viram **fallback declarado**, e é por isso que continuam no arquivo.
+3. **O ponto 3 baixa por medição.** O comportamento do botão de ajuste **está correto**, e foi
+   medido no template em vez de citado: no **modo lançamento** o predicado de
+   `tools/templates/lancamento.html:1562` esconde a barra (`!temAula`) — não há o que ajustar,
+   porque não há lançamento; no **modo leitura** ela aparece, e o botão fica **habilitado** dentro do
+   prazo (`podeAjustar()`, `:970`, consumida em `:1566` e `:1572`) ou **cinza com a data visível**
+   fora dele. O professor **vê que a possibilidade existiu**, em vez de o botão sumir sem
+   explicação. A "assimetria do efeito colateral" **não se aplica**: ela supunha oculto o bloco no
+   modo leitura, e o que o código faz é ocultá-lo no modo lançamento. As duas notas de superação
+   datadas ficam na entrada do `B8` (*"O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que
+   se acreditava"*), no item 2 e no pendente dela.
+4. **O comentário do `pre-commit` deixa de nomear o que não existe.** `tools/hooks/pre-commit:182–188`
+   passa a dizer o que é verdade: `exportarAjusteDoPlano` — e a barra `#acoes-plano` que a sustentava
+   — saíram de `tools/templates/lancamento.html` em 28/09/2026 (`17ed444`), e **o guard da `§2c`
+   nunca dependeu delas**: ele lê a fonte `aula-NN.md` e a defere contra o `HEAD`, **não lê id nenhum
+   de HTML**. O `echo` de `:296`, que orientava o professor a usar o botão, foi corrigido na mesma
+   direção.
 
-2. **O relógio do formulário é um só — e a assimetria voltou a ser pendência.** `podeAjustar()` está
-   em `tools/templates/lancamento.html:970` e é consumida em **`:1566`** (o `disabled` do botão) e
-   **`:1572`** (o texto do aviso); `estadoDaAula`/`pulada` estão em **`:885`**/**`:901`**. O "efeito
-   colateral" que a quinta afirmação descrevia — a aula `dada` sem registro deixar o bloco do ajuste
-   oculto — **não tem mais o desenho que o resolvia**: o mecanismo hoje é o predicado de
-   `:1536`/`:1538` sobre `:1562`, e o comentário-elo de `:1555–1557` continua declarando a intenção.
-   Fica registrado como **pendência**, não como virtude.
-   - **Nenhum auxiliar do "O que NÃO se toca" foi perdido.** A varredura confirmou os catorze
-     (`diffAulas`, `baixar`, `legivel`, `nomeDoAutor`, `carimboArquivo`, `pecaArquivo`,
-     `estadoDaAula`, `semZona`, `carimboDaAula`, `escolaDoArquivo`, `podeAjustar`, `esc`, `pulada`,
-     `fimDoPrazo`) e os ids da barra 1 (`#acoes-ajuste` `:118`, `#ajustar` `:119`,
-     `#cancelar-ajuste` `:120`, `#aviso-ajuste` `:121`, `#gerar-json` `:131`, `#aviso-json` `:132`).
-   - **Três coordenadas da entrada de 28/09 estavam erradas.** A gate é **`:970`** — o `:975` é
-     linha em branco; o listener do `#ajustar` é **`:1753`** — o `:1761` é `renderCaptura();`, e
-     pertence ao listener do `#cancelar-ajuste` de `:1758`; e a `lib-vistas` vive em
-     **`tools/lib-vistas.js`** — `:48` é `function mdAjuste(aj) {` —, não em `biblioteca/`.
+**Onde entrou.** `REGISTRO.md` — esta entrada e as duas notas de superação na entrada do `B8` ·
+`ARQUITETURA-AULA.md` — a nota de 30/09/2026 no `§1` · `ARQUITETURA-ANAMNESE.md` — a §3 nova (a
+observação inicial e os elementos basilares), com a renumeração das seções seguintes · os três
+pacotes regerados (`fokini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`),
+com os índices, os dados e os PDFs · `tools/gerar-ciclo.sh:241`, `tools/lib-fontes.sh:85` e
+`tools/validar-aula-ciclo.js:14`/`:32` — quatro linhas de **prosa** que ainda diziam `fochini`.
 
-**Onde entrou.** `REGISTRO.md` — esta entrada e os oito pontos superados (o item 2, o item 4 e a
-quinta afirmação de *"o ajuste no plano deixa de ser promessa"*; os três da entrada do `B8`; e a
-imprecisão tripla da entrada de 28/09) · `ARQUITETURA-AULA.md` — a nota de 29/09/2026 no `§1`
-(`:113–132`), que cita esta entrada pelo título.
+**Motivo declarado — os congelados.** `tools/` é congelado (`CONGELAMENTO.md`), e esta rodada o
+tocou em **quatro arquivos**. O que **não muda**: a fórmula de hash da âncora, a cobertura da
+âncora, os validadores, as regras pedagógicas e as pétreas. Em `gerar-ciclo.sh`, `lib-fontes.sh` e
+`validar-aula-ciclo.js` a alteração é **prosa** — o nome do professor num comentário —, e **nada**
+de comportamento: o `PROFESSOR_SLUG` de `:298` e o campo `'professor'` de `:501` já liam o nome do
+**diretório**, e é justamente por isso que a regeração do item 2 era necessária. Em
+`tools/hooks/pre-commit` a alteração é **só o texto** do comentário e da mensagem; o guard da `§2c`
+(`:172–305`) tem o **mesmo** comportamento: continua deferindo `aula-NN.md` contra o `HEAD`, e
+continua recusando o commit nos mesmos casos. Nenhum dos quatro arquivos é fonte de ciclo — nenhum
+`.fipp` foi refeito por causa desta peça.
 
-**Com o quê.** `REGISTRO.md`, `ARQUITETURA-AULA.md`. Nenhum dos dois é congelado
-(`CONGELAMENTO.md`), e nenhum é fonte de ciclo: nenhum `.fipp` precisa ser refeito por causa desta
-peça.
+**Com o quê.** `tools/gerar-ciclo.sh`, `tools/lib-fontes.sh`, `tools/validar-aula-ciclo.js`,
+`tools/hooks/pre-commit`, `REGISTRO.md`, `ARQUITETURA-AULA.md`, `ARQUITETURA-ANAMNESE.md`. Os quatro
+de `tools/` são congelados ⇒ **commit próprio**, separado das alterações livres do mesmo worktree,
+como o `CONGELAMENTO.md` pede. O rename e a reancoragem já foram declarados em `31d97fe`, *"o slug e
+o nome de exibição"* — esta entrada **não duplica** aquele motivo (P-04), apenas o refere: a âncora
+mudou porque a **fonte mudou de caminho**, não porque o conteúdo pedagógico mudou.
 
-**Referências.** `git show --stat 17ed444` (8 arquivos, 160 inserções, 1 110 deleções) · a entrada de
-28/09/2026 acima, *"O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente"* ·
-`tools/gerar-ciclo.sh:221–231` (o par `plano-aula-NN-anterior.json` **segue** produzido como
-proveniência, e o `cp` de `:258` vem antes do `mv` de `:259`) · `ARQUITETURA-AULA.md`, a nota de
-29/09/2026 que esta entrada fecha.
+**Referências.** `31d97fe` (o rename e a reancoragem declarados) · `17ed444` (a saída do botão
+`Exportar ajuste do plano`) · os três `--check` de `tools/hash-ciclo.sh` — **verdes nos três
+ciclos** antes deste commit · o harness de `netlify/functions/receber.js` — 17/17 · `node
+tools/check-pacote.js` — 0 erro nos três pacotes · a entrada de 29/09/2026, *"Os dois congelados
+entram: o índice ganha o slug e a entrevista declara dois artefatos"*, que declara a pendência do
+campo `professor` que o item 2 fecha · `tools/templates/lancamento.html:118`, `:885`, `:901`,
+`:970`, `:1535–1538`, `:1555–1557`, `:1562`, `:1566`, `:1572–1574`, `:1753` (a medição do item 3).
 
-**O que ainda não está feito.** A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
-sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
-não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
-`tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
-congelado, e corrigi-lo exige motivo declarado e commit próprio. E o `HANDOFF.md`, que espelha este
-registro, precisa ser regenerado **depois** desta entrada.
+**O que ainda não está feito.** O **Passo 0** segue aberto, e continua dependendo de **credencial
+que só a pesquisadora tem**: as **6 chaves** de `tools/.netlify-tokens` estão **vazias**, e sem site
+publicado o `Enviar` do formulário ainda falha com `HTTP 404` — honestamente: avisa e preserva os
+campos. Do mesmo bloco, **segue aberta** a decisão de **onde vivem as Functions** (o
+`tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, **não a raiz**, e o
+`netlify.toml` da raiz pode não ser lido), e **segue sem resposta** a pergunta pela **revisão dos
+demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e `:7934` — a
+medição desta rodada corrigiu a coordenada que a última delas cita: é **`:7536`**, não `:7485`.
+Permanecem, sem mudança nesta peça: o par `plano-aula-NN.json` / `-anterior.json` **órfão de
+leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); o **dublê de
+`fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
+resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
+depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
 
 ## O que está pendente
 
@@ -1536,11 +1559,28 @@ ser refeito por causa desta peça.
 sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
 não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
 `tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
-congelado, e corrigi-lo exige motivo declarado e commit próprio. E o `HANDOFF.md`, que espelha este
-registro, precisa ser regenerado **depois** desta entrada.
-- PO de **fochini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **fochini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
-- Material de campo de **fochini**: 0 evento(s) versionado(s).
+congelado, e corrigi-lo exige motivo declarado e commit próprio.~~ **Superado em 30/09/2026.** As
+duas pendências caíram **por medição**, não por remendo: a assimetria **não se aplica** ao
+comportamento real — o predicado de `:1562` esconde a barra só no **modo lançamento** —, e o
+comentário do `pre-commit` deixou de nomear a função que não existe. A redação antiga **não é
+apagada**: fica como o elo do que se mediu naquele momento. Quanto ao `HANDOFF.md`, ele **precisa
+ser regenerado depois** da entrada de 30/09/2026, que passa a ser a última deste registro.
+
+que só a pesquisadora tem**: as **6 chaves** de `tools/.netlify-tokens` estão **vazias**, e sem site
+publicado o `Enviar` do formulário ainda falha com `HTTP 404` — honestamente: avisa e preserva os
+campos. Do mesmo bloco, **segue aberta** a decisão de **onde vivem as Functions** (o
+`tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, **não a raiz**, e o
+`netlify.toml` da raiz pode não ser lido), e **segue sem resposta** a pergunta pela **revisão dos
+demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e `:7934` — a
+medição desta rodada corrigiu a coordenada que a última delas cita: é **`:7536`**, não `:7485`.
+Permanecem, sem mudança nesta peça: o par `plano-aula-NN.json` / `-anterior.json` **órfão de
+leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); o **dublê de
+`fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
+resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
+depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
+- PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
+- Material de campo de **fokini**: 0 evento(s) versionado(s).
 - PO de **tiago · duo** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 2 de 12 (as demais entram depois da aula anterior).
