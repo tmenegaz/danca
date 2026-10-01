@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-09-30T10:49:50-0300`
-Commit atual: `c000dcd` — docs(registro): a medição do GET /dados e o segundo papel do agente
+Gerado em: `2026-10-01T20:44:55-0300`
+Commit atual: `7b46e5c` — docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -51,6 +51,10 @@ tiago (2)
 ## Últimos commits
 
 ```
+7b46e5c docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
+f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do prompt congelado ganha dono
+bf0e700 docs(experimentos): o README descreve o que existe hoje, e não o que foi previsto
+528c824 docs(registro): regenera o HANDOFF sobre c000dcd
 c000dcd docs(registro): a medição do GET /dados e o segundo papel do agente
 5910dfc docs(estrutura): a observação inicial e a §9 Q10 no ARQUITETURA-ANAMNESE
 5309cc3 docs(registro): regenera o HANDOFF sobre bf98e68
@@ -67,10 +71,6 @@ da2cd8b docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do contro
 ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a entrevista declara dois artefatos
 76c3cf2 docs(registro): regenera o HANDOFF sobre 55a7c20
 55a7c20 docs(registro): a medição do Passo 0 media sintaxe — a nota do defeito do regex
-9a0b5c3 fix(estrutura): a Function aceita o nome carimbado do lancamento
-d4f3cc6 docs(registro): regenera o HANDOFF sobre ccdc38d
-ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
-4a4b52f docs(registro): a §7.3 deixa de valer integralmente — nota datada
 ```
 
 ## Por professor
@@ -99,7 +99,7 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | duo | ciclo-01-duo.fipp | `8bba2c5e8a27` | (vazio) | Input_PO_Aguardando |
-| ritmos | ciclo-01-ritmos.fipp | `4175cdf1b410` | (vazio) | Input_PO_Aguardando |
+| ritmos | ciclo-01-ritmos.fipp | `18649803dd59` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -118,7 +118,7 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 - **P-13 — Cada professor tem o seu próprio PO.
 - **P-14 — O PO pode derivar de um PO de departamento.
 - **P-15 — A notação segue a metodologia declarada.
-- **P-16 — Metodologia e notação são declaradas na eliciação.
+- **P-16 — Metodologia e notação são declaradas na Elicitação.
 - **P-17 — Todo ciclo produz os mesmos tipos de artefato do ciclo piloto.
 - **P-18 — A metodologia pode ser imposta pela escola.
 - **P-19 — Os prompts do projeto vivem no repositório.
@@ -148,92 +148,146 @@ ccdc38d chore(estrutura): @netlify/blobs — a dependência da Function
 
 ## Última entrada do REGISTRO
 
-## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
+## 01/10/2026 — A grafia de "Elicitação" se propaga, e a pendência do prompt congelado ganha dono
 
-**O que motivou.** O prompt que abriu esta rodada descreve o agente com **dois papéis**: o papel 1
-escuta o `salvar` (o `POST`, que já estava descrito), e o papel 2 serviria os dados ao formulário
-por `GET /dados/<professor>/<ciclo>`, lendo o repositório local — para o professor continuar
-lançando **sem internet**, quando o pacote publicado não está acessível. Antes de implementar o
-papel 2, era preciso **medir se ele existe**. Na mesma rodada, o **Ponto 1** (a publicação do
-`ciclo-ritmos` no Netlify) arrastava desde 19/09 sem causa declarada.
+**O que motivou.** Duas coisas se tocaram e foram fechadas na mesma rodada. A primeira é a **grafia**
+do termo que nomeia a entrevista que abre todo ciclo: o repositório estava **partido** — cinco
+lugares no `HEAD` já escreviam **"Elicitação"**, com o `t` (*"Protocolo de Elicitação"* em
+`PROTOCOLO.md:16`, os três de `ARQUITETURA-PE.md:135`/`:162`/`:176`, e o glossário de
+`professores/tiago/campo/README.md:43`). E **as cinco são o desdobramento da sigla `PE:`** — a
+tabela *"Vocabulário desta camada"* (`:15–17`) define `PE:` e, na linha seguinte, `Protocolo de
+Elicitação` —, e o repositório inteiro usa a sigla. Ou seja, o texto minúsculo contradizia a própria
+sigla que ele escrevia ao lado, e são 73 ocorrências em 17 arquivos versionados, fora `REGISTRO.md` e
+`HANDOFF.md`. Duas grafias para o mesmo termo é a deriva que a pesquisadora proibiu; e este é o único
+caso em que a forma **certa** já estava declarada, de modo que o trabalho é **propagação**, não
+invenção de termo (P-04). A segunda é a **pendência herdada**: desde 28/09/2026 este registro
+declara, em três entradas, que o `prompts/eliciar-ciclo.md` *"segue alterado no worktree e fora de
+todo commit… precisa de motivo próprio ou de reversão"* (`:6731`, `:6847`, `:7050`). Nenhuma
+entrada a reivindicou. Ela fica com dono aqui.
 
-**O que foi decidido.** Seis pontos, todos medidos nesta rodada.
+**O que foi decidido.** Propagar a grafia com `t` (**"Elicitação"**/**"Elicitar"** onde é prosa) e
+resolver a pendência pela via do **motivo declarado** — não pela reversão.
 
-1. **O papel 2 não existe.** É hipótese do prompt, não código. O único arquivo de
-   `netlify/functions/` é `receber.js` (4 988 B, 29/09 16:47), e a resposta dele a `GET` é um
-   *health check* puro — `receber.js:47`, `{ ok: true, receber: 'pronto' }`. Nenhuma especificação
-   de leitura local do repositório aparece em `prompts/`, `.github/`, `ARQUITETURA-*.md`,
-   `METODO.md`, `PROTOCOLO.md`, `REGRAS.md`, `CONGELAMENTO.md` ou `tools/`.
-2. **O papel 1 também não grava no repositório.** `receber.js:82` grava em **Netlify Blobs**
-   (`store.set(chave + '/' + basename(a.nome), a.texto, { onlyIfNew: true })`), não em arquivo
-   versionado. A **consolidação do Blob de volta ao repositório não existe** — é a metade aberta da
-   §7.3 do `ARQUITETURA-CAPTURA.md`, declarada na nota de 29/09/2026.
-3. **A leitura local, em parte, já funciona.** `lancamento.html:187` fixa `const P = './'` — tudo é
-   lido **ao lado da página** —, e há **seis** leituras relativas, `fetch(P + …)`, em `:285`,
-   `:291`, `:313`, `:564`, `:992` e `:1720`; o **único** `POST` do arquivo é `:733`,
-   `fetch(RECEBER, …)`, com `RECEBER` declarado em `:731`. Um `python3 -m http.server` sobre o
-   pacote **já entrega** o `ciclos.json` e o `ciclo-NN-<escola>-dados.json`. Falta ler do
-   **repositório canônico** — e isso é o papel 2, que não existe.
-4. **É decisão aberta, não atraso.** No `ARQUITETURA-CAPTURA.md` §7 estão **"Não decidido"** a §7.2
-   (`:561`), a §7.4 (`:564`), a §7.5 (`:567`) e a §7.6 (`:568`); a §7.3 (`:622`) foi decidida em
-   20/09, e a nota de 29/09 (`:627`) declara que ela "deixou de valer integralmente". O próprio
-   documento resume: "Há **quatro perguntas em aberto** (§7) e **cinco decisões tomadas**"
-   (`:619–620`). Implementar o agente local decidiria, por código, o que a §7.6 mantém em aberto.
-5. **`tools/` é congelado.** Se o agente local nascer ali, paga o rito do `CONGELAMENTO.md` (motivo
-   declarado + entrada neste registro + commit próprio) — e exige decidir antes a **porta** e o
-   **CORS**, porque a página é servida por `python3 -m http.server` e o agente seria outro serviço.
-6. **O Ponto 1 fica fechado como diagnóstico**, por declaração da pesquisadora. A causa **não é
-   código**: é **crédito da conta**. Medido pelo token de `tools/.netlify-tokens` (usado, **nunca
-   impresso**) — o site `ciclo-ritmos` tem `published_at: None`; o último deploy `ready` é de
-   19/09/2026T22:48:49Z; são **44 deploys** (35 `error` e 9 `ready`), **44/44** com `deploy_source:
-   api` e `manual_deploy: False`, e **os 35 erros** trazem a mesma `error_message`, *"Skipped due to
-   account credit usage exceeded"*. O mais novo é de 30/09/2026T11:32:33Z — recusado **antes do
-   build**, com `commit_ref` no `5309cc3`. A conta `tmenegaz77` se declara `type_name: Free`,
-   `plan_credits: 300`, `usages_exceeded: []` — uma contradição que **não** invalida a medição,
-   porque a recusa é de crédito e vem do serviço, não do cadastro. O pacote no ar é de **19/09**,
-   anterior aos JSONs do formulário. O que está feito é a **decisão de parar**; publicar depende de
-   **terceiro**.
+1. **A grafia se separa por natureza, e é isso que a mantém segura.** Em **prosa**, o termo passa a
+   ser **"Elicitação"** e o verbo **"elicitar"**. Em **identificador de código**, **nome de
+   diretório** e **nome de arquivo**, a grafia fica **minúscula e sem acento** — porque ali não é a
+   palavra que se lê, é um **endereço** que precisa casar byte a byte: `tools/hash-ciclo.sh`,
+   `PROFESSOR_SLUG` e os `.fipp` resolvem caminho, não texto. A varredura fecha assim: a única
+   ocorrência de `elicia*` minúsculo que **sobrevive** em arquivo versionado fora de
+   `REGISTRO.md`/`HANDOFF.md` é o **nome real** do arquivo simulado,
+   `00-eliciacao-simulada.md` (`experimentos/README.md:125`) — que **não se renomeia**: renomeá-lo
+   quebraria a referência. O erro que a rodada corrigiu foi o **contrário**: a varredura cega
+   havia geminado a consoante e escrito `00-elicitacao-simulada.md`, um arquivo **que não existe**.
+   Medição final: `git grep -E 'elicia[çc]|eliciar' -- ':!REGISTRO.md' ':!HANDOFF.md' .` devolve
+   **uma** linha — essa —, o que mostra que a regra parou onde devia e não alcançou o que **não**
+   devia ser tocado. Em particular, o `PROFESSOR_SLUG` e os diretórios ficaram **intactos**: a
+   rodada não renomeou pasta, não mexeu em `experimentos/` (a não ser no texto que o descreve) e
+   não tocou em nenhum caminho resolvido por `tools/lib-fontes.sh`.
+2. **A regra vale para o que um gerador lê.** Os **títulos** de pétrea entram no `HANDOFF.md` pela
+   `grep` de `tools/gerar-handoff.sh:168`, que casa `^\*\*P-[0-9]\{2\} —`. A linha da **P-16** mudou
+   de redação no `PROTOCOLO.md:111`, e por isso a regeneração **publica** a forma nova — sem que
+   ninguém edite o `HANDOFF.md` à mão, que é o que a skill proíbe.
+3. **A pendência do prompt congelado é reivindicada, não revertida.** O
+   `prompts/eliciar-ciclo.md` → `prompts/elicitar-ciclo.md` é um **rename** com correção de **duas
+   linhas** (`:1` e `:32`), que também diziam `elicia`. Não é reversão: é o mesmo arquivo, com o
+   termo certo e o endereço certo. As três declarações de `:6731`/`:6847`/`:7050` ficam **fechadas
+   por esta entrada** — é ela o **dono** que faltava.
+4. **O que o `HANDOFF.md` continua dizendo, e por quê — isto foi medido, não suposto.** O gerador
+   **não** copia só o bloco da última entrada: ele copia **todos** os 76 blocos *"O que ainda não
+   está feito."* do registro (`tools/gerar-handoff.sh:185`), e por isso as **quatro** menções
+   espelhadas a `prompts/eliciar-ciclo.md` que trazem a frase *"segue alterado no worktree"* —
+   `grep -c` → **4** no `HANDOFF.md` — **não desaparecem** com esta regeneração. Elas continuam lá
+   porque são **citação** das entradas de 28/09 e 29/09/2026, e citar o passado é o que o
+   `HANDOFF.md` faz. Quem **lê** o handoff precisa saber disso: as quatro linhas são **história
+   declarada**, não pendência viva — a pendência viva é esta entrada, e ela a fecha. Se o
+   `HANDOFF.md` fosse editado à mão para removê-las, a próxima regeneração as traria de volta, e é
+   exatamente por isso que **não se edita o `HANDOFF.md` à mão**. (Nota de método: por isso esta
+   entrada **não** cita número de linha do `HANDOFF.md` — o bloco da última entrada é copiado para
+   dentro dele, e todo número de linha de lá se desloca quando este texto muda.)
 
-> **Correção de 30/09/2026 (mesmo dia).** Duas redações declaram as **6 chaves** de
-> `tools/.netlify-tokens` como **vazias**: o bloco abaixo, nesta entrada, e a entrada anterior
-> (`REGISTRO.md:7789`). Está **errado** — medido por **comprimento** (não pelo `sed`, que mente):
-> **RITMOS está preenchido** (token de 40 caracteres, site ID de 36); só **DUO** e **DEBORA**
-> seguem em `=""`. A redação anterior **não é apagada**: fica como o elo do que se mediu primeiro
-> (P-03/P-04).
+**Onde entrou.** `PROTOCOLO.md` — quatro linhas de prosa: `:10` (*elicitar necessidades* — verbo em
+minúscula, **de propósito**: ali é o ato de perguntar, não o nome do artefato `PE`), o título
+da **P-16** (`:111`) e o corpo (`:112`), a **P-19** (`:130`) · `prompts/instalar-ciclo.md` — `:11` e
+`:157` · `prompts/eliciar-ciclo.md` **removido** e `prompts/elicitar-ciclo.md` **criado** (as duas
+linhas de `elicia`; o resto é 1:1 com o arquivo anterior) · `CONGELAMENTO.md` — o rótulo da pasta
+congelada (`:22`) · `ARQUITETURA-ANAMNESE.md` (9 linhas), `ARQUITETURA-AULA.md` (7) e
+`ARQUITETURA-PE.md` (8) — prosa · `.github/prompts/instalar-ciclo.prompt.md` (4),
+`.github/skills/identidade-do-projeto/SKILL.md` (1) e as duas `references/*.md` (1 cada) — prosa ·
+`experimentos/README.md` — cinco linhas de prosa **e** a reparação do nome de arquivo de `:125` ·
+`professores/tiago/campo/README.md` (2) e `.../2026-09-18-ritmos/respostas.md` (3) — prosa ·
+`professores/tiago/ciclos/ciclo-01-ritmos-po.md` (2) e `-referencias.md` (1) — prosa ·
+`.../ciclo-01-ritmos/referencias.html` — a peça gerada acompanha a fonte · o `.fipp` da Ritmos —
+reancorado · `HANDOFF.md` — regenerado depois desta entrada · `REGISTRO.md` — esta entrada.
 
-**Onde entrou.** `REGISTRO.md` — esta entrada, e mais nada. Nenhum arquivo de
-`ARQUITETURA-CAPTURA.md` foi tocado: as decisões §7.2 a §7.6 continuam onde estão, e é lá que o
-desenho do agente local deve ser declarado, se e quando for decidido.
+**Motivo declarado — os congelados.** Dois arquivos do `CONGELAMENTO.md` foram tocados:
+**`PROTOCOLO.md`** e **`prompts/`** (a raiz — que é congelada; `.github/prompts/` não é, e é outra
+pasta). A alteração de cada um é **só redação**: a mesma frase, com o `t` que o próprio
+`PROTOCOLO.md` já usava na sua tabela de vocabulário (`:16`). **O que não muda**, e foi conferido
+nesta rodada: a **fórmula de hash** da
+âncora (`SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)`, intacta no cabeçalho do
+`.fipp`), a **cobertura** do `.fipp`, os **validadores**, as **regras** e as **pétreas** — as
+**22** continuam **22**, com o mesmo número na P-16, e os títulos só ganharam a letra. O
+`prompts/elicitar-ciclo.md` **não é consumido por nenhum gerador** — é texto de entrevista, lido por
+humano e por sessão de IA (o mesmo motivo já declarado na entrada de 29/09/2026); o nome antigo
+sobrevive só em `REGISTRO.md` (elo histórico, que **não se apaga**) e no `HANDOFF.md` gerado — onde
+**continua**, porque é citação (ponto 4). Nenhuma dependência nova, nenhum contrato de arquivo
+alterado, nenhum comportamento novo. Os **dois** arquivos congelados entram no commit **da própria
+propagação de grafia**, e **não** no commit do **conteúdo** — que é o que o `CONGELAMENTO.md` separa
+(«não vai junto com conteúdo»). A regra é satisfeita: nenhum `.md` de aula, caderno, relatório ou
+acompanhamento entra junto com o que é congelado.
 
-**Com o quê.** Só `REGISTRO.md`. **Nenhum** arquivo do `CONGELAMENTO.md` foi tocado, **nenhuma**
-fonte de ciclo foi alterada e **nenhuma** âncora de proveniência foi regerada — os três
-`tools/hash-ciclo.sh --check` (diaghilev, duo e ritmos) seguem **verdes**. Sem commit e sem push
-nesta peça.
+**Com o quê.** `PROTOCOLO.md`, `prompts/instalar-ciclo.md`, `prompts/eliciar-ciclo.md` (removido),
+`prompts/elicitar-ciclo.md` (criado), `CONGELAMENTO.md`, `ARQUITETURA-ANAMNESE.md`,
+`ARQUITETURA-AULA.md`, `ARQUITETURA-PE.md`, `.github/prompts/instalar-ciclo.prompt.md`,
+`.github/skills/identidade-do-projeto/SKILL.md`, `.github/skills/identidade-do-projeto/references/
+bloco-identidade.md`, `.github/skills/identidade-do-projeto/references/congelamento-e-registro.md`,
+`experimentos/README.md`, `professores/tiago/campo/README.md`,
+`professores/tiago/campo/2026-09-18-ritmos/respostas.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-po.md`, `professores/tiago/ciclos/ciclo-01-ritmos-
+referencias.md`, `professores/tiago/ciclos/ciclo-01-ritmos/referencias.html`,
+`professores/tiago/ciclos/ciclo-01-ritmos.fipp`, `HANDOFF.md`, `REGISTRO.md`. Do lado dos congelados:
+`prompts/eliciar-ciclo.md` é a **remoção** e `prompts/elicitar-ciclo.md` a
+**adição** do mesmo rename; vão juntos para não deixar o caminho congelado sem o arquivo.
 
-**Referências.** `netlify/functions/receber.js` — `:38` (o `slugDe`), `:39` (a primeira regra,
-sobre o índice), `:40–42` (as duas seguintes), `:47` (o `GET`, *health check*), `:82` (o
-`store.set`), `:89` (a resposta) · `tools/templates/lancamento.html` — `:187`, `:731`, `:733`,
-`:970`, `:1562` (o predicado da barra de ajuste), `:1555–1557` · `ARQUITETURA-CAPTURA.md` — §7
-(`:543`), §7.2 `:561`, §7.4 `:564`, §7.5 `:567`, §7.6 `:568`, §7.3 `:622`, e a nota de 29/09 em
-`:627–634` · as medições de rede: `GET /sites/<id>`, `GET /sites/<id>/deploys?per_page=100`,
-`GET /sites/<id>/deploys/<deploy>` e `GET /accounts` · a entrada de 29/09/2026, *"Os dois congelados
-entram: o índice ganha o slug e a entrevista declara dois artefatos"*.
+**Reancoragem.** `PROTOCOLO.md` **não** é fonte de ciclo, e nenhum `.md`/`.conf` de ciclo foi
+alterado pela grafia — **exceto** dois, que são: `ciclo-01-ritmos-po.md` e
+`ciclo-01-ritmos-referencias.md` são **cobertos** pelo `.fipp`. A âncora da Ritmos foi regerada com
+`tools/hash-ciclo.sh tiago 01 ritmos`: `hash_conteudo` passa a `166f15b9…` e o `hash` a
+`18649803…6f92c`, com `ancorado_em: 2026-10-01`. O `--check` responde **verde** — *"ciclo 01-ritmos
+íntegro; cadeia intacta"*. As outras duas cadeias **não se movem** e foram conferidas verdes:
+`01-duo` (`8bba2c5e…`) e `01-diaghilev`. O `ciclo-01-ritmos-aula-01.fipp` **não** difere do `HEAD`:
+fonte coberta dele não mudou.
 
-**O que ainda não está feito.** O **agente local** continua **não implementado** — e agora se sabe
-que ele era **hipótese**, não pendência de código: a medição desta rodada **derrubou** a premissa do
-prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta ao repositório (§7.3).
-Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
-governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
-conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
-**revisão dos demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e
-`:7934` (a medição desta rodada **confirma** a coordenada `:7536`); a decisão de **onde vivem as
-Functions** (o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, não a raiz);
-e a decisão sobre o **nome de exibição** dentro dos `.fipp`, que **não** acompanha a correção de
-grafia do diretório — é pergunta separada, e não foi tomada. A anotação do "comentário resíduo de
-`tools/templates/lancamento.html:133`", herdada da entrada anterior, **não se confirma**: medido por
-texto, nenhum comentário do template nomeia função removida, e `:133` é o fecho de um `<div>`. Por
-fim, o `HANDOFF.md` precisa ser **regenerado depois** desta entrada — ele espelha a **última** deste
-registro, e passa a ser esta.
+**Referências.** Os cinco pontos que já escreviam `Elicitação` no `HEAD`: `PROTOCOLO.md:16`,
+`ARQUITETURA-PE.md:135`/`:162`/`:176`, `professores/tiago/campo/README.md:43` — a forma declarada
+que esta entrada **propaga** · as três declarações de pendência que esta entrada **fecha**:
+`REGISTRO.md:6731` (entrada `:6618`), `:6847` (entrada `:6738`) e `:7050` (entrada `:6854`), todas
+de 28/09/2026, herdadas em `:7517`/`:7628` e tocadas pela última vez em `:7967`/`:7979` (entrada de
+29/09/2026, commit `ebc62bb`) · `tools/gerar-handoff.sh:168` (a `grep` das pétreas) e `:185` (o
+bloco *"O que ainda não está feito."*) · `tools/hash-ciclo.sh` — os três `--check` verdes ·
+`.github/instructions/registro-md.instructions.md` e `.github/skills/identidade-do-projeto/SKILL.md`
+— a decisão congelado/gerado/livre · `CONGELAMENTO.md:22` · dois precedentes do **rito** (não do
+termo): a entrada de 30/09/2026, *"Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`…"* —
+que trata de **outra** grafia (`fochini` → `fokini`) e é citada só pelo **modo**: congelado ⇒ motivo
+declarado, entrada aqui e commit próprio — e a de 29/09/2026, *"Os dois congelados entram: o índice
+ganha o slug e a entrevista declara dois artefatos"*, que é a que **criou** a pendência da entrevista
+fechada por esta entrada (commit `ebc62bb`).
+
+**O que ainda não está feito.** A **publicação** do pacote da Ritmos segue **bloqueada por crédito
+da conta**, não por código — herdado e sem mudança nesta peça. A âncora da Ritmos foi regerada, mas
+o **pacote não foi regerado** para acompanhar: o `referencias.html` publicado traz a prosa nova, e
+as demais saídas (PDF, `dados.json`, `ciclos.json`) **não** foram refeitas nesta peça — a regeração
+é a próxima do fluxo, se o pacote for publicado. Os **18** `eliciação` minúsculos de `REGISTRO.md`
+ficam **como estão**, de propósito: a proveniência **acrescenta, não edita** (P-03/P-04), e reescrevê-los
+apagaria o elo do que se pensou antes. Pelo mesmo motivo, a documentação que o **`HANDOFF.md`**
+espelha continua dizendo `eliciar-ciclo.md` — é **citação** do registro, não texto do handoff. Como
+medido acima, são **quatro** as linhas espelhadas, e elas **permanecem** na regeneração: só sairiam
+reescrevendo-se as entradas de 28/09 e 29/09/2026 que as contêm, o que a proveniência proíbe.
+Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vivem as Functions**
+(§7.6), a consolidação dos
+lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
+do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
+**regenerado depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
 
 ## O que está pendente
 
@@ -1584,6 +1638,19 @@ prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta
 Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
 governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
 conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
+da conta**, não por código — herdado e sem mudança nesta peça. A âncora da Ritmos foi regerada, mas
+o **pacote não foi regerado** para acompanhar: o `referencias.html` publicado traz a prosa nova, e
+as demais saídas (PDF, `dados.json`, `ciclos.json`) **não** foram refeitas nesta peça — a regeração
+é a próxima do fluxo, se o pacote for publicado. Os **18** `eliciação` minúsculos de `REGISTRO.md`
+ficam **como estão**, de propósito: a proveniência **acrescenta, não edita** (P-03/P-04), e reescrevê-los
+apagaria o elo do que se pensou antes. Pelo mesmo motivo, a documentação que o **`HANDOFF.md`**
+espelha continua dizendo `eliciar-ciclo.md` — é **citação** do registro, não texto do handoff. Como
+medido acima, são **quatro** as linhas espelhadas, e elas **permanecem** na regeneração: só sairiam
+reescrevendo-se as entradas de 28/09 e 29/09/2026 que as contêm, o que a proveniência proíbe.
+Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vivem as Functions**
+(§7.6), a consolidação dos
+lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
+do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
