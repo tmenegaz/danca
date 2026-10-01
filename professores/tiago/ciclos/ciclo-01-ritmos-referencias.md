@@ -72,7 +72,7 @@ versão/edição.]` O uso desta faixa em cada bloco está em
 > **Notação: Benesh.** A metodologia adotada é RAD, que usa Benesh Movement
 > Notation. A notação é a mesma nas duas escolas em que o professor dá aula
 > (P-15 — a notação segue a metodologia declarada; P-16 — metodologia e notação
-> são declaradas na eliciação).
+> são declaradas na Elicitação).
 >
 > **Nota de proveniência:** a resposta original do professor foi *"Notação: [a
 > decidir]"* (ver `professores/tiago/campo/2026-09-18-ritmos/respostas.md` —

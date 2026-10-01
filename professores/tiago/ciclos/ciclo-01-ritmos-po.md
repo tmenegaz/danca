@@ -11,7 +11,7 @@ state: Input_PO_Aguardando
 
 > **O que é este arquivo.** O **Plano de Observação (PO)** do Ciclo 01 na escola
 > **Ritmos e Movimento**. Os campos abaixo são a **resposta do professor** à
-> eliciação (entrega de **18/09/2026**), transcrita sem alteração — nada foi
+> Elicitação (entrega de **18/09/2026**), transcrita sem alteração — nada foi
 > completado, corrigido ou "melhorado" pelo projeto. O PO é dele (P-13).
 >
 > **O que ainda falta para o PO mudar de estado (P-08):** o **checklist de
@@ -219,7 +219,7 @@ observada, não julgada.
 
 > **Nota de proveniência.** Os campos **originais do professor** — pergunta, fenômeno,
 > campo empírico, sujeitos, linha de base, critérios de inclusão e exclusão,
-> justificativa (os quatro campos) e limitações — vêm da resposta à eliciação,
+> justificativa (os quatro campos) e limitações — vêm da resposta à Elicitação,
 > entregue em **18/09/2026**, transcrita sem alteração. A declaração bruta permanece em
 > `professores/tiago/campo/2026-09-18-ritmos/respostas.md` (P-05).
 >
