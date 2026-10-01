@@ -63,16 +63,23 @@ tentativas que ninguém vai ler — e o que vale vira produção, com commit pr�
 Se um experimento precisar ser guardado como está, ele vira um documento
 (`IDEIA-*.md`, `ARQUITETURA-*.md`) na raiz, que é onde as ideias são registradas.
 
-## Estrutura sugerida
+## O que existe hoje
+
+Um diretório por experimento — sem nome reservado e sem a obrigação de nascer
+preenchido. Os que estão em curso, medidos em 01/10/2026:
 
 ```
 experimentos/
-├── README.md                    este arquivo (o único versionado)
-└── captura-json/                um diretório por experimento
-    ├── formulario.html
-    ├── dados-exemplo.json
-    └── anotacoes.md
+├── README.md                 este arquivo (o único versionado)
+├── captura-json/             o gerador de vistas sob demanda
+├── simulacao-marau/          a eliciação inventada até a página de produção
+├── pe/                       o piloto do PE — ver o README de cada um
+└── *.js · preview-*.html     provas e rascunhos soltos na raiz da área
 ```
+
+Os diretórios de experimento são **ignorados pelo Git**; o `README.md` de cada um
+existe para quem lê o diretório no disco, não para o histórico. O que vale vira
+produção, com commit próprio — e é aí que entra no Git.
 
 ## Quando um experimento vira produção
 
@@ -108,3 +115,52 @@ ao do formulário**; sem `prov` (o caso do gerador), a única diferença é o ca
 A área foi criada em 19/09/2026, junto com a documentação da
 ideia de captura em JSON (`IDEIA-CAPTURA.md` e `ARQUITETURA-CAPTURA.md`), para
 que a experimentação tenha onde acontecer sem tocar no que está publicado.
+
+**`simulacao-marau`** — o diagnóstico de 23/09/2026: *o JSON está construindo o formulário
+corretamente?* A pergunta é do formulário de lançamento, e para respondê-la o experimento faz a
+cadeia inteira **sem atalho**: dez blocos elicitados → documentos `.md` → extratores
+(`tools/validar-*-ciclo.js`) → `po-01.json` e `plano-01.json` → `tools/templates/lancamento.html`,
+rodada em Node. A eliciação é **inventada** — o "Estúdio Marau" e a professora não existem
+(`README-ciclos.md`: a escola "ainda não existe") — e está preservada como matéria-prima em
+`00-eliciacao-simulada.md`: é dela que os documentos saem, e refazê-la apagando-a não reproduz o
+mesmo resultado. Um experimento inventado responde por um caminho real; o que ele **não** prova é
+fidelidade a um ciclo de verdade.
+
+**`pe`** — o piloto do **PE** (Processo de Eliciação), que é a frente mais recente. O ponto de
+partida é uma separação: `prompts/eliciar-ciclo.md` carrega **duas camadas juntas** — o **conteúdo**
+(blocos, perguntas, forma de saída) e o **mecanismo** (uma pergunta por vez, como persistir, como
+ramificar). Pelo `ARQUITETURA-PE.md` §2.2, só a segunda é PE; pelo §2.5, a entrevista de dez blocos
+**não é o PE** — é conteúdo de PO que passa a ser **hospedado** pelo recipiente dele. Separar as
+camadas é o trabalho, e nada em `prompts/` (congelado) foi tocado: o experimento vive só aqui.
+
+O piloto é a **anamnese** — não o ciclo — por quatro razões: é nova (não tem legado a migrar), já
+tem ramificação declarada (os dois módulos condicionais), já tem forma canônica de saída
+(`{aluno, traz, precisaDesenvolver}`), e a ficha é o primeiro entregável real. A cadeia roda
+inteira, em três motores puros que não saem com `process.exit`:
+
+```
+conteudo/anamnese.json          o conteúdo (DADO, não norma; a norma é ARQUITETURA-ANAMNESE.md §3)
+   ↓ derivar-plano.js           deriva o plano de ramificação
+ramificacao/plano.json          nunca escrito à mão
+   ↓ validar.js --contrato plano    mede a instância contra o contrato registrado
+   ↓ elicitar.js --respostas r.json  conduz a eliciação, com validar.js como porteiro
+envelope/anamnese-*.json       o envelope, validado contra envelope/elicitacao-schema.json
+```
+
+Medido em 01/10/2026: `derivar-plano` dá **1 gatilho · 2 destinos · 3 paradas · 2 divergências ·
+1 não-ramifica · 3 lacunas**; `validar --autoteste` passa **22 de 22**; `elicitar --autoteste`
+passa **34 de 34**; uma eliciação real sai com `estado: em_curso`, a ramificação executada e uma
+**parada declarada** — o motor se recusa a inferir o gatilho do Módulo B e diz por quê, em vez de
+supor. As três lacunas do plano são exatamente essas paradas declaradas.
+
+**Isto não está integrado, e o experimento não afirma que está.** O contrato de degradação graciosa
+(`ARQUITETURA-PE.md` §7.1) tem três casos, e só o **primeiro** está medido: sem `PE_RAIZ`, o fluxo
+produz o mesmo de antes e as três âncoras continuam íntegras. O caso do `PE_RAIZ` apontando para
+caminho inexistente e o do `PE_RAIZ` válido continuam **declarados, não medidos** — e o segundo e o
+terceiro dependem de um arreio no lado de `tools/`, que é congelado e exigiria motivo declarado.
+Hoje **nada em `tools/` consulta este diretório**, e `PE_RAIZ` ainda não nasceu no projeto.
+
+As três regras de fronteira do piloto, que valem para o `experimentos/` inteiro: **nada aqui é fonte
+de ciclo** (esta área está fora do hash por construção); **nada aqui escreve fora daqui** (o motor
+grava em `experimentos/pe/`, e a promoção é decisão, não efeito colateral); e **nada aqui toca
+congelado**.
