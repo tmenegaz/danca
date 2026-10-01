@@ -8,7 +8,7 @@
 > todas (`tools/lib-fontes.sh`). Sem esse sufixo, este prompt reinstalaria o erro
 > que fez o pacote da Ritmos sair com o plano da Duo. Nada mais foi alterado.
 
-Quando um professor responde à eliciação (via `prompts/eliciar-ciclo.md`),
+Quando um professor responde à Elicitação (via `prompts/elicitar-ciclo.md`),
 o resultado é colado aqui. Este prompt transforma o Markdown entregue em
 estrutura instalada no projeto.
 
@@ -154,7 +154,7 @@ resposta. Se sim:
    `[Preencher: a observar na primeira aula]` para os demais.
 
 Onde a restrição entrar, a **fonte** entra junto: quem declarou, e quando. Se veio
-da eliciação, é o professor; se veio da coordenação ou da pesquisadora, é quem
+da Elicitação, é o professor; se veio da coordenação ou da pesquisadora, é quem
 declarou — como no ciclo do Ritmos, em que as restrições conhecidas foram
 declaradas pela pesquisadora porque a entrega do professor é anterior à P-22.
 

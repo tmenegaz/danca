@@ -1,10 +1,10 @@
 ---
 description: "Instalar um ciclo novo a partir do Markdown elicitado: cria .conf, PO, plano, aulas, captura e demais artefatos em professores/<professor>/ciclos/, sem inferir nada."
 name: "Instalar ciclo"
-argument-hint: "Cole o Markdown da eliciação e diga professor, ciclo e escola"
+argument-hint: "Cole o Markdown da Elicitação e diga professor, ciclo e escola"
 tools: [read, edit, search]
 ---
-Transforme o Markdown da eliciação em estrutura instalada em `professores/<professor>/ciclos/`.
+Transforme o Markdown da Elicitação em estrutura instalada em `professores/<professor>/ciclos/`.
 
 O contrato completo está versionado em [instalar-ciclo.md](../../prompts/instalar-ciclo.md) (P-19) — leia-o antes de escrever e siga-o. Este prompt só fixa as travas que costumam ser furadas.
 
@@ -16,9 +16,9 @@ O contrato completo está versionado em [instalar-ciclo.md](../../prompts/instal
 
 ## Travas
 
-- **Não inferir.** O que a eliciação não declarou vira `[Preencher: …]`; o que depende de conferência de edição/ano vira `[conferir]`. Nunca complete com conhecimento próprio.
+- **Não inferir.** O que a Elicitação não declarou vira `[Preencher: …]`; o que depende de conferência de edição/ano vira `[conferir]`. Nunca complete com conhecimento próprio.
 - **Não copiar** o conteúdo de outro ciclo. Replica-se a **estrutura** do piloto (P-17), nunca o texto: contagens, exercícios e marcos de outra escola não transportam.
-- **P-12.** Sujeitos entram por **apelido estável**, um por linha. Se a eliciação só trouxe nomes próprios, marque `[Preencher: apelidos estáveis]` e não publique.
+- **P-12.** Sujeitos entram por **apelido estável**, um por linha. Se a Elicitação só trouxe nomes próprios, marque `[Preencher: apelidos estáveis]` e não publique.
 - **P-15/P-16.** Só gere `notacao.md` e `glossario-<notacao>.md` se o professor tiver declarado metodologia com notação. Caso contrário, **declare a ausência com justificativa** — não crie o arquivo vazio.
 - **P-22.** Restrição física declarada entra na linha de base do PO com uma linha por aluna e a **fonte** (quem declarou, quando). Se o professor declarou não haver restrições, registre isso explicitamente — a ausência é informação.
 - **Pré-requisitos 4 e 5.** Declare `DURACAO` no manifesto e `duracao:` no cabeçalho de cada aula. `volume-total:` precisa caber na faixa (60 min → 80–100 tempos; 120 min → 150–200).

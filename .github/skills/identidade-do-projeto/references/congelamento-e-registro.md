@@ -9,7 +9,7 @@ PROTOCOLO.md          as 22 pétreas
 REGRAS.md             as 17 regras + 5 pré-requisitos
 tools/                geradores, validadores, hooks, criptografia
 tools/templates/      CSS, HTML, JS da navbar
-prompts/              eliciação e instalação de ciclos
+prompts/              Elicitação e instalação de ciclos
 biblioteca/guia-do-professor.md
 METODO.md             declaração de princípio
 ```

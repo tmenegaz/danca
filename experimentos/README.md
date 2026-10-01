@@ -72,7 +72,7 @@ preenchido. Os que estão em curso, medidos em 01/10/2026:
 experimentos/
 ├── README.md                 este arquivo (o único versionado)
 ├── captura-json/             o gerador de vistas sob demanda
-├── simulacao-marau/          a eliciação inventada até a página de produção
+├── simulacao-marau/          a Elicitação inventada até a página de produção
 ├── pe/                       o piloto do PE — ver o README de cada um
 └── *.js · preview-*.html     provas e rascunhos soltos na raiz da área
 ```
@@ -120,14 +120,14 @@ que a experimentação tenha onde acontecer sem tocar no que está publicado.
 corretamente?* A pergunta é do formulário de lançamento, e para respondê-la o experimento faz a
 cadeia inteira **sem atalho**: dez blocos elicitados → documentos `.md` → extratores
 (`tools/validar-*-ciclo.js`) → `po-01.json` e `plano-01.json` → `tools/templates/lancamento.html`,
-rodada em Node. A eliciação é **inventada** — o "Estúdio Marau" e a professora não existem
+rodada em Node. A Elicitação é **inventada** — o "Estúdio Marau" e a professora não existem
 (`README-ciclos.md`: a escola "ainda não existe") — e está preservada como matéria-prima em
 `00-eliciacao-simulada.md`: é dela que os documentos saem, e refazê-la apagando-a não reproduz o
 mesmo resultado. Um experimento inventado responde por um caminho real; o que ele **não** prova é
 fidelidade a um ciclo de verdade.
 
-**`pe`** — o piloto do **PE** (Processo de Eliciação), que é a frente mais recente. O ponto de
-partida é uma separação: `prompts/eliciar-ciclo.md` carrega **duas camadas juntas** — o **conteúdo**
+**`pe`** — o piloto do **PE** (Processo de Elicitação), que é a frente mais recente. O ponto de
+partida é uma separação: `prompts/elicitar-ciclo.md` carrega **duas camadas juntas** — o **conteúdo**
 (blocos, perguntas, forma de saída) e o **mecanismo** (uma pergunta por vez, como persistir, como
 ramificar). Pelo `ARQUITETURA-PE.md` §2.2, só a segunda é PE; pelo §2.5, a entrevista de dez blocos
 **não é o PE** — é conteúdo de PO que passa a ser **hospedado** pelo recipiente dele. Separar as
@@ -143,13 +143,13 @@ conteudo/anamnese.json          o conteúdo (DADO, não norma; a norma é ARQUIT
    ↓ derivar-plano.js           deriva o plano de ramificação
 ramificacao/plano.json          nunca escrito à mão
    ↓ validar.js --contrato plano    mede a instância contra o contrato registrado
-   ↓ elicitar.js --respostas r.json  conduz a eliciação, com validar.js como porteiro
+   ↓ elicitar.js --respostas r.json  conduz a Elicitação, com validar.js como porteiro
 envelope/anamnese-*.json       o envelope, validado contra envelope/elicitacao-schema.json
 ```
 
 Medido em 01/10/2026: `derivar-plano` dá **1 gatilho · 2 destinos · 3 paradas · 2 divergências ·
 1 não-ramifica · 3 lacunas**; `validar --autoteste` passa **22 de 22**; `elicitar --autoteste`
-passa **34 de 34**; uma eliciação real sai com `estado: em_curso`, a ramificação executada e uma
+passa **34 de 34**; uma Elicitação real sai com `estado: em_curso`, a ramificação executada e uma
 **parada declarada** — o motor se recusa a inferir o gatilho do Módulo B e diz por quê, em vez de
 supor. As três lacunas do plano são exatamente essas paradas declaradas.
 

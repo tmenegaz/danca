@@ -50,13 +50,13 @@ Isto é o achado que organiza todo o resto. A malha de anamnese **não introduz 
 
 | Pétrea | O que ela já diz | O que a anamnese acrescenta |
 |:--|:--|:--|
-| **P-16** | "**Metodologia e notação são declaradas na eliciação.**" A eliciação pergunta *que metodologia*, *que notação* e *quem define* | É a pétrea que **autoriza o ramo RAD/Vaganova**: o método de origem é **perguntado**, nunca deduzido (§5.3) |
+| **P-16** | "**Metodologia e notação são declaradas na Elicitação.**" A Elicitação pergunta *que metodologia*, *que notação* e *quem define* | É a pétrea que **autoriza o ramo RAD/Vaganova**: o método de origem é **perguntado**, nunca deduzido (§5.3) |
 | **P-10** | "O PO declara a linha de base dos sujeitos… o que trazem, o que falta, o que já dominam. Sem linha de base, 'evolução' não [se mede]" | A anamnese é a **fonte declarada** dessa linha de base, por sujeito |
 | **P-22(a)** | Restrições físicas (lesões, dores, limitações médicas) são **"declaradas no PO antes do ciclo (na linha de base por sujeito)"** | É o **precedente exato** de um campo clínico-adjacente já obrigatório na linha de base (§7) |
 | **P-20** | "**Problemas semelhantes recebem soluções semelhantes.**" Vale para "posterior, adutor, rotadores, coordenação braço-perna, **hiperlordose**" | O vocabulário da anamnese **já está em norma**, e a biblioteca de critérios autorais é o lugar natural da solução que viaja (§6.2) |
 | **P-08** | "Os campos do ciclo são declarados em schema… **Isso formaliza o que o paper do mestrado chama de 'formulário dinâmico'**" | A malha é **campo declarado**, não campo livre (§4.3) |
 
-E há o precedente de **forma**, medido em [`prompts/eliciar-ciclo.md`](prompts/eliciar-ciclo.md)
+E há o precedente de **forma**, medido em [`prompts/elicitar-ciclo.md`](prompts/elicitar-ciclo.md)
 **Bloco 3 — Alunas**, que já pergunta faixa etária, nível, apelidos estáveis e **restrições
 físicas** — este último com a nota explícita de que a informação "é declarada por **P-22**. Ela não
 será avaliada; será registrada".
@@ -341,7 +341,7 @@ auditar a **incorporação real** — o que sobreviveu ao tempo ou ao método.
 Cada ramo do Módulo A traz **três perguntas de triagem**; o Módulo B traz **quatro campos de
 auditoria**. As perguntas exatas são declaração da entrevista, não deste desenho — e este documento
 não as transcreve: ele fixa a **estrutura** (quantas são, a que nível pertencem e o que cada uma
-decide). A redação de cada pergunta entra em `prompts/eliciar-ciclo.md` quando a malha for
+decide). A redação de cada pergunta entra em `prompts/elicitar-ciclo.md` quando a malha for
 incorporada à entrevista, e essa incorporação é a §9 pergunta 6 deste documento.
 
 [Preencher: a redação das três perguntas de triagem de cada ramo do Módulo A — a fonte é externa a este repositório]
@@ -409,7 +409,7 @@ Duas observações sobre a tabela, e as duas são medidas:
 Musicalidade**. O mapeamento acima é uma **leitura** da malha sobre o que o dado já comporta — e é
 justamente por isso que ele precisa de confirmação (§9).
 
-**(b) A malha é pergunta de eliciação, não inferência.** P-16 é explícita: *"quem define a
+**(b) A malha é pergunta de Elicitação, não inferência.** P-16 é explícita: *"quem define a
 metodologia — o professor ou a escola?"*. Nenhum domínio abaixo se **deduz** de idade, de tempo de
 prática ou de nível declarado. Ele é **declarado** — ou fica `[Preencher]`.
 
@@ -491,7 +491,7 @@ outra coisa, é avaliação, e a avaliação "é fronteira de outro módulo, ain
 
 ### 5.3 O método de origem: RAD, Vaganova
 
-Aqui a P-16 faz todo o trabalho: **metodologia e notação são declaradas na eliciação**. O método de
+Aqui a P-16 faz todo o trabalho: **metodologia e notação são declaradas na Elicitação**. O método de
 origem (RAD, Vaganova, outro, ou "sem método formal declarado") é, portanto:
 
 - **um campo elicitado**, não um campo inferido;
@@ -779,7 +779,7 @@ implementação.
 10. **A linha de base zero fica dentro ou fora do planejamento?** A pergunta **não se fecha neste
    documento**: quem a responde é quem aplica, e a P-18 já dá o modelo do registro — o PO registra a
    **origem** da decisão, se do professor ou da escola. A §4.1(b) fixa a mesma coisa para esta malha:
-   ela é **pergunta de eliciação, não inferência**. O **padrão** é a linha de base **dentro** do
+   ela é **pergunta de Elicitação, não inferência**. O **padrão** é a linha de base **dentro** do
    planejamento: ela é a **aula 1**, e há `aula-NN.md` para o "revisitar a linha de base, aula a aula"
    do Bloco 6 da entrevista. Medido: as fontes de plano vivem em
    `professores/<professor>/relatorios/ciclo-XX/aula-NN.md`, a numeração começa em `01`, e não existe
@@ -787,7 +787,7 @@ implementação.
    **"aula 0"**, sem plano contra o qual comparar. É o caso do professor que usa **apenas a ficha,
    sem integração**; é por isso que a posição permanece aberta. Hipóteses: **(A)** fica dentro — a
    linha de base é a aula 1, e o plano dessa aula é o seu par; **(B)** fica fora — a "aula 0" é só a
-   ficha de eliciação; **(C)** a posição é **declarada** no PO, e o rótulo da aula é **derivado**
+   ficha de Elicitação; **(C)** a posição é **declarada** no PO, e o rótulo da aula é **derivado**
    dela — a mesma leitura da pergunta 4(B).
 
 ## Referências
@@ -798,7 +798,7 @@ implementação.
 - `PROTOCOLO.md` — as 22 pétreas; **P-08** (campos declarados em schema; o "formulário
   dinâmico"), **P-10** (a linha de base dos sujeitos), **P-11** (condições de contorno), **P-12**
   (apelidos estáveis), **P-13** (o PO é do professor), **P-15**/**P-16** (metodologia e notação
-  **declaradas** na eliciação), **P-20** (problemas semelhantes, soluções semelhantes),
+  **declaradas** na Elicitação), **P-20** (problemas semelhantes, soluções semelhantes),
   **P-21** (linguagem harmonizada; a proveniência acrescenta), **P-22** (as condições materiais de
   execução)
 - `ARQUITETURA-AULA.md` — **§1 e §1.1** (os quatro estados e a regra "CRUD comum enquanto
@@ -811,7 +811,7 @@ implementação.
 - `REGRAS.md` — as 17 regras e os 5 pré-requisitos obrigatórios
 - `AGENTS.md` — a identidade do projeto: **protótipo, não agnóstico**; o FIPP não é implementado
   aqui; **o projeto não avalia**; a avaliação é fronteira de outro módulo
-- `prompts/eliciar-ciclo.md` — a entrevista de dez blocos; **Bloco 3** (alunas: faixa etária,
+- `prompts/elicitar-ciclo.md` — a entrevista de dez blocos; **Bloco 3** (alunas: faixa etária,
   nível, apelidos, restrições físicas por P-22) e **Bloco 6** (sujeitos e linha de base): a
   proto-anamnese e o lugar onde a malha da §4 se apoia
 - `professores/tiago/campo/README.md` — a forma canônica da linha de base

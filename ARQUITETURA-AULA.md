@@ -9,7 +9,7 @@
 > fim da conversa que definiu as regras. O que existe hoje está descrito em cada seção como
 > "hoje", e o que se propõe como "proposto". Das peças da §10, **as oito de implementação
 > estão feitas** (1 a 8; a 8, o **`B8`**, em 27/09/2026); a **9** entregou **só a P-13** — a
-> eliciação (§6.2) segue pendente —, e a **10** (o painel da escola) é ideia nova, *"para
+> Elicitação (§6.2) segue pendente —, e a **10** (o painel da escola) é ideia nova, *"para
 > depois"* por decisão. A **`B13`** — a `linha_de_base` por aluna — **não é peça da §10**: é item
 > do validador de dados, e segue **tolerada, não implementada** (`REGISTRO.md:4721`).
 > Cada seção marca o seu estado, e onde não houver marca vale o proposto. O par de conceito
@@ -393,14 +393,14 @@ Ganhos, e cada um responde a um problema medido:
   `B8` fechou o outro lado**: o guard do `pre-commit` (§2c) aplica a distinção, lendo o
   estado do `ciclos.json` do pacote da variante.
 
-## 6. O que precisa entrar na eliciação
+## 6. O que precisa entrar na Elicitação
 
 ### 6.1 A hora da aula
 
 **Hoje o sistema não conhece hora.** Verificado: nenhum documento de ciclo tem hora, e o
 Pré-requisito 5 exige `ESCOLA FREQUENCIA DIAS DURACOES DATA_INICIO TOTAL_AULAS` — só **dia**.
 
-A hora entra na eliciação (que horas começa, que horas termina) e no manifesto, **junto do
+A hora entra na Elicitação (que horas começa, que horas termina) e no manifesto, **junto do
 dia** — decidido: a hora e o dia não podem divergir, então não podem ser listas paralelas:
 
 ```
@@ -421,9 +421,9 @@ o `DIAS` sem o `HORARIOS` desalinharia, e o erro seria silencioso.
 > número, é **recusada com mensagem** — migrar três `.conf` é barato; descobrir depois que
 > o prazo saiu errado, não.
 
-### 6.2 As perguntas novas na eliciação
+### 6.2 As perguntas novas na Elicitação
 
-`prompts/eliciar-ciclo.md` (congelado) precisa dos campos que este desenho usa: **hora de
+`prompts/elicitar-ciclo.md` (congelado) precisa dos campos que este desenho usa: **hora de
 início e de fim** de cada dia de aula, e — quando a escola exigir — a **data de
 fechamento**.
 
@@ -489,7 +489,7 @@ apagar quebraria a cadeia; **selar a preserva**.
 | `tools/check-pacote.js` | exigir o config de cada aula declarada |
 | `tools/hooks/pre-commit` | distinguir plano antes × depois da aula |
 | `PROTOCOLO.md` | **P-13 precisa de ajuste** (§9) |
-| `prompts/eliciar-ciclo.md` | hora de início e fim; data de fechamento |
+| `prompts/elicitar-ciclo.md` | hora de início e fim; data de fechamento |
 
 **A pesquisadora autorizou o descongelamento** (23/09/2026): *"vai ter que descongelar — a
 gente vai ajustar o que tiver que ajustar; afinal de contas, a gente tá num protótipo"*.
@@ -546,7 +546,7 @@ Ordenadas por dependência — cada uma destrava a seguinte:
    fonte `aula-NN.md`. **Feito em 27/09/2026** — ver a nota do §1.2. ⚠️ **Reduzido em
    28/09/2026:** a distinção dos relógios e o arquivamento do anterior ficam; **a exportação do
    elo pelo formulário saiu** (era erro de assistente). Ver a correção datada do §1.2.
-9. **P-13** (§9) e a eliciação (§6.2) — os textos.
+9. **P-13** (§9) e a Elicitação (§6.2) — os textos.
 10. **O painel da escola** (§7) — ideia nova; documento próprio, para depois.
 
 ## 11. O que NÃO está decidido

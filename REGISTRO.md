@@ -8260,3 +8260,144 @@ grafia do diretório — é pergunta separada, e não foi tomada. A anotação d
 texto, nenhum comentário do template nomeia função removida, e `:133` é o fecho de um `<div>`. Por
 fim, o `HANDOFF.md` precisa ser **regenerado depois** desta entrada — ele espelha a **última** deste
 registro, e passa a ser esta.
+
+## 01/10/2026 — A grafia de "Elicitação" se propaga, e a pendência do prompt congelado ganha dono
+
+**O que motivou.** Duas coisas se tocaram e foram fechadas na mesma rodada. A primeira é a **grafia**
+do termo que nomeia a entrevista que abre todo ciclo: o repositório estava **partido** — cinco
+lugares no `HEAD` já escreviam **"Elicitação"**, com o `t` (*"Protocolo de Elicitação"* em
+`PROTOCOLO.md:16`, os três de `ARQUITETURA-PE.md:135`/`:162`/`:176`, e o glossário de
+`professores/tiago/campo/README.md:43`). E **as cinco são o desdobramento da sigla `PE:`** — a
+tabela *"Vocabulário desta camada"* (`:15–17`) define `PE:` e, na linha seguinte, `Protocolo de
+Elicitação` —, e o repositório inteiro usa a sigla. Ou seja, o texto minúsculo contradizia a própria
+sigla que ele escrevia ao lado, e são 73 ocorrências em 17 arquivos versionados, fora `REGISTRO.md` e
+`HANDOFF.md`. Duas grafias para o mesmo termo é a deriva que a pesquisadora proibiu; e este é o único
+caso em que a forma **certa** já estava declarada, de modo que o trabalho é **propagação**, não
+invenção de termo (P-04). A segunda é a **pendência herdada**: desde 28/09/2026 este registro
+declara, em três entradas, que o `prompts/eliciar-ciclo.md` *"segue alterado no worktree e fora de
+todo commit… precisa de motivo próprio ou de reversão"* (`:6731`, `:6847`, `:7050`). Nenhuma
+entrada a reivindicou. Ela fica com dono aqui.
+
+**O que foi decidido.** Propagar a grafia com `t` (**"Elicitação"**/**"Elicitar"** onde é prosa) e
+resolver a pendência pela via do **motivo declarado** — não pela reversão.
+
+1. **A grafia se separa por natureza, e é isso que a mantém segura.** Em **prosa**, o termo passa a
+   ser **"Elicitação"** e o verbo **"elicitar"**. Em **identificador de código**, **nome de
+   diretório** e **nome de arquivo**, a grafia fica **minúscula e sem acento** — porque ali não é a
+   palavra que se lê, é um **endereço** que precisa casar byte a byte: `tools/hash-ciclo.sh`,
+   `PROFESSOR_SLUG` e os `.fipp` resolvem caminho, não texto. A varredura fecha assim: a única
+   ocorrência de `elicia*` minúsculo que **sobrevive** em arquivo versionado fora de
+   `REGISTRO.md`/`HANDOFF.md` é o **nome real** do arquivo simulado,
+   `00-eliciacao-simulada.md` (`experimentos/README.md:125`) — que **não se renomeia**: renomeá-lo
+   quebraria a referência. O erro que a rodada corrigiu foi o **contrário**: a varredura cega
+   havia geminado a consoante e escrito `00-elicitacao-simulada.md`, um arquivo **que não existe**.
+   Medição final: `git grep -E 'elicia[çc]|eliciar' -- ':!REGISTRO.md' ':!HANDOFF.md' .` devolve
+   **uma** linha — essa —, o que mostra que a regra parou onde devia e não alcançou o que **não**
+   devia ser tocado. Em particular, o `PROFESSOR_SLUG` e os diretórios ficaram **intactos**: a
+   rodada não renomeou pasta, não mexeu em `experimentos/` (a não ser no texto que o descreve) e
+   não tocou em nenhum caminho resolvido por `tools/lib-fontes.sh`.
+2. **A regra vale para o que um gerador lê.** Os **títulos** de pétrea entram no `HANDOFF.md` pela
+   `grep` de `tools/gerar-handoff.sh:168`, que casa `^\*\*P-[0-9]\{2\} —`. A linha da **P-16** mudou
+   de redação no `PROTOCOLO.md:111`, e por isso a regeneração **publica** a forma nova — sem que
+   ninguém edite o `HANDOFF.md` à mão, que é o que a skill proíbe.
+3. **A pendência do prompt congelado é reivindicada, não revertida.** O
+   `prompts/eliciar-ciclo.md` → `prompts/elicitar-ciclo.md` é um **rename** com correção de **duas
+   linhas** (`:1` e `:32`), que também diziam `elicia`. Não é reversão: é o mesmo arquivo, com o
+   termo certo e o endereço certo. As três declarações de `:6731`/`:6847`/`:7050` ficam **fechadas
+   por esta entrada** — é ela o **dono** que faltava.
+4. **O que o `HANDOFF.md` continua dizendo, e por quê — isto foi medido, não suposto.** O gerador
+   **não** copia só o bloco da última entrada: ele copia **todos** os 76 blocos *"O que ainda não
+   está feito."* do registro (`tools/gerar-handoff.sh:185`), e por isso as **quatro** menções
+   espelhadas a `prompts/eliciar-ciclo.md` que trazem a frase *"segue alterado no worktree"* —
+   `grep -c` → **4** no `HANDOFF.md` — **não desaparecem** com esta regeneração. Elas continuam lá
+   porque são **citação** das entradas de 28/09 e 29/09/2026, e citar o passado é o que o
+   `HANDOFF.md` faz. Quem **lê** o handoff precisa saber disso: as quatro linhas são **história
+   declarada**, não pendência viva — a pendência viva é esta entrada, e ela a fecha. Se o
+   `HANDOFF.md` fosse editado à mão para removê-las, a próxima regeneração as traria de volta, e é
+   exatamente por isso que **não se edita o `HANDOFF.md` à mão**. (Nota de método: por isso esta
+   entrada **não** cita número de linha do `HANDOFF.md` — o bloco da última entrada é copiado para
+   dentro dele, e todo número de linha de lá se desloca quando este texto muda.)
+
+**Onde entrou.** `PROTOCOLO.md` — quatro linhas de prosa: `:10` (*elicitar necessidades* — verbo em
+minúscula, **de propósito**: ali é o ato de perguntar, não o nome do artefato `PE`), o título
+da **P-16** (`:111`) e o corpo (`:112`), a **P-19** (`:130`) · `prompts/instalar-ciclo.md` — `:11` e
+`:157` · `prompts/eliciar-ciclo.md` **removido** e `prompts/elicitar-ciclo.md` **criado** (as duas
+linhas de `elicia`; o resto é 1:1 com o arquivo anterior) · `CONGELAMENTO.md` — o rótulo da pasta
+congelada (`:22`) · `ARQUITETURA-ANAMNESE.md` (9 linhas), `ARQUITETURA-AULA.md` (7) e
+`ARQUITETURA-PE.md` (8) — prosa · `.github/prompts/instalar-ciclo.prompt.md` (4),
+`.github/skills/identidade-do-projeto/SKILL.md` (1) e as duas `references/*.md` (1 cada) — prosa ·
+`experimentos/README.md` — cinco linhas de prosa **e** a reparação do nome de arquivo de `:125` ·
+`professores/tiago/campo/README.md` (2) e `.../2026-09-18-ritmos/respostas.md` (3) — prosa ·
+`professores/tiago/ciclos/ciclo-01-ritmos-po.md` (2) e `-referencias.md` (1) — prosa ·
+`.../ciclo-01-ritmos/referencias.html` — a peça gerada acompanha a fonte · o `.fipp` da Ritmos —
+reancorado · `HANDOFF.md` — regenerado depois desta entrada · `REGISTRO.md` — esta entrada.
+
+**Motivo declarado — os congelados.** Dois arquivos do `CONGELAMENTO.md` foram tocados:
+**`PROTOCOLO.md`** e **`prompts/`** (a raiz — que é congelada; `.github/prompts/` não é, e é outra
+pasta). A alteração de cada um é **só redação**: a mesma frase, com o `t` que o próprio
+`PROTOCOLO.md` já usava na sua tabela de vocabulário (`:16`). **O que não muda**, e foi conferido
+nesta rodada: a **fórmula de hash** da
+âncora (`SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)`, intacta no cabeçalho do
+`.fipp`), a **cobertura** do `.fipp`, os **validadores**, as **regras** e as **pétreas** — as
+**22** continuam **22**, com o mesmo número na P-16, e os títulos só ganharam a letra. O
+`prompts/elicitar-ciclo.md` **não é consumido por nenhum gerador** — é texto de entrevista, lido por
+humano e por sessão de IA (o mesmo motivo já declarado na entrada de 29/09/2026); o nome antigo
+sobrevive só em `REGISTRO.md` (elo histórico, que **não se apaga**) e no `HANDOFF.md` gerado — onde
+**continua**, porque é citação (ponto 4). Nenhuma dependência nova, nenhum contrato de arquivo
+alterado, nenhum comportamento novo. Os **dois** arquivos congelados entram no commit **da própria
+propagação de grafia**, e **não** no commit do **conteúdo** — que é o que o `CONGELAMENTO.md` separa
+(«não vai junto com conteúdo»). A regra é satisfeita: nenhum `.md` de aula, caderno, relatório ou
+acompanhamento entra junto com o que é congelado.
+
+**Com o quê.** `PROTOCOLO.md`, `prompts/instalar-ciclo.md`, `prompts/eliciar-ciclo.md` (removido),
+`prompts/elicitar-ciclo.md` (criado), `CONGELAMENTO.md`, `ARQUITETURA-ANAMNESE.md`,
+`ARQUITETURA-AULA.md`, `ARQUITETURA-PE.md`, `.github/prompts/instalar-ciclo.prompt.md`,
+`.github/skills/identidade-do-projeto/SKILL.md`, `.github/skills/identidade-do-projeto/references/
+bloco-identidade.md`, `.github/skills/identidade-do-projeto/references/congelamento-e-registro.md`,
+`experimentos/README.md`, `professores/tiago/campo/README.md`,
+`professores/tiago/campo/2026-09-18-ritmos/respostas.md`,
+`professores/tiago/ciclos/ciclo-01-ritmos-po.md`, `professores/tiago/ciclos/ciclo-01-ritmos-
+referencias.md`, `professores/tiago/ciclos/ciclo-01-ritmos/referencias.html`,
+`professores/tiago/ciclos/ciclo-01-ritmos.fipp`, `HANDOFF.md`, `REGISTRO.md`. Do lado dos congelados:
+`prompts/eliciar-ciclo.md` é a **remoção** e `prompts/elicitar-ciclo.md` a
+**adição** do mesmo rename; vão juntos para não deixar o caminho congelado sem o arquivo.
+
+**Reancoragem.** `PROTOCOLO.md` **não** é fonte de ciclo, e nenhum `.md`/`.conf` de ciclo foi
+alterado pela grafia — **exceto** dois, que são: `ciclo-01-ritmos-po.md` e
+`ciclo-01-ritmos-referencias.md` são **cobertos** pelo `.fipp`. A âncora da Ritmos foi regerada com
+`tools/hash-ciclo.sh tiago 01 ritmos`: `hash_conteudo` passa a `166f15b9…` e o `hash` a
+`18649803…6f92c`, com `ancorado_em: 2026-10-01`. O `--check` responde **verde** — *"ciclo 01-ritmos
+íntegro; cadeia intacta"*. As outras duas cadeias **não se movem** e foram conferidas verdes:
+`01-duo` (`8bba2c5e…`) e `01-diaghilev`. O `ciclo-01-ritmos-aula-01.fipp` **não** difere do `HEAD`:
+fonte coberta dele não mudou.
+
+**Referências.** Os cinco pontos que já escreviam `Elicitação` no `HEAD`: `PROTOCOLO.md:16`,
+`ARQUITETURA-PE.md:135`/`:162`/`:176`, `professores/tiago/campo/README.md:43` — a forma declarada
+que esta entrada **propaga** · as três declarações de pendência que esta entrada **fecha**:
+`REGISTRO.md:6731` (entrada `:6618`), `:6847` (entrada `:6738`) e `:7050` (entrada `:6854`), todas
+de 28/09/2026, herdadas em `:7517`/`:7628` e tocadas pela última vez em `:7967`/`:7979` (entrada de
+29/09/2026, commit `ebc62bb`) · `tools/gerar-handoff.sh:168` (a `grep` das pétreas) e `:185` (o
+bloco *"O que ainda não está feito."*) · `tools/hash-ciclo.sh` — os três `--check` verdes ·
+`.github/instructions/registro-md.instructions.md` e `.github/skills/identidade-do-projeto/SKILL.md`
+— a decisão congelado/gerado/livre · `CONGELAMENTO.md:22` · dois precedentes do **rito** (não do
+termo): a entrada de 30/09/2026, *"Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`…"* —
+que trata de **outra** grafia (`fochini` → `fokini`) e é citada só pelo **modo**: congelado ⇒ motivo
+declarado, entrada aqui e commit próprio — e a de 29/09/2026, *"Os dois congelados entram: o índice
+ganha o slug e a entrevista declara dois artefatos"*, que é a que **criou** a pendência da entrevista
+fechada por esta entrada (commit `ebc62bb`).
+
+**O que ainda não está feito.** A **publicação** do pacote da Ritmos segue **bloqueada por crédito
+da conta**, não por código — herdado e sem mudança nesta peça. A âncora da Ritmos foi regerada, mas
+o **pacote não foi regerado** para acompanhar: o `referencias.html` publicado traz a prosa nova, e
+as demais saídas (PDF, `dados.json`, `ciclos.json`) **não** foram refeitas nesta peça — a regeração
+é a próxima do fluxo, se o pacote for publicado. Os **18** `eliciação` minúsculos de `REGISTRO.md`
+ficam **como estão**, de propósito: a proveniência **acrescenta, não edita** (P-03/P-04), e reescrevê-los
+apagaria o elo do que se pensou antes. Pelo mesmo motivo, a documentação que o **`HANDOFF.md`**
+espelha continua dizendo `eliciar-ciclo.md` — é **citação** do registro, não texto do handoff. Como
+medido acima, são **quatro** as linhas espelhadas, e elas **permanecem** na regeneração: só sairiam
+reescrevendo-se as entradas de 28/09 e 29/09/2026 que as contêm, o que a proveniência proíbe.
+Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vivem as Functions**
+(§7.6), a consolidação dos
+lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
+do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
+**regenerado depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.

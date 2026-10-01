@@ -63,7 +63,7 @@ porta de leitura errada.
 | "cadeia de proveniência FIPP" | "âncora de proveniência encadeada (aproximação do FIPP)" |
 | "o projeto de mestrado" / "pesquisa de mestrado" | "o Projeto Ciclo" |
 | "…de fato se aplicou, **não o que foi planejado**" | "…cada aula é **planejada**, e o plano é a **linha de base**; o que se registra é **o que mudou** em relação a ele" |
-| "a IA gera o relatório" | "a IA conduz a eliciação; o relatório registra o que o professor respondeu" |
+| "a IA gera o relatório" | "a IA conduz a Elicitação; o relatório registra o que o professor respondeu" |
 
 ## A armadilha de leitura, declarada
 

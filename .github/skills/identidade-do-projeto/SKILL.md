@@ -84,7 +84,7 @@ Antes de escrever **um caractere**, classifique o arquivo. A decisão muda o tra
 
 Duas confusões que já custaram caro:
 
-- **`prompts/` ≠ `.github/prompts/`.** A pasta `prompts/` da raiz (`eliciar-ciclo.md`,
+- **`prompts/` ≠ `.github/prompts/`.** A pasta `prompts/` da raiz (`elicitar-ciclo.md`,
   `instalar-ciclo.md`) é **congelada**. `.github/prompts/` é onde vivem os prompts de agente e
   **não** está no congelamento.
 - **`CONGELAMENTO.md` é livre** (declara o congelamento), mas os documentos que ele **lista** não são.

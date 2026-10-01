@@ -233,7 +233,7 @@ aplicável ao campo — e isso é uma lacuna **declarada**, não um consentiment
 # O formulário de campo da aula
 
 O que está descrito acima é **outro instrumento**. Este diretório guarda o **instrumento de
-eliciação**: o questionário aplicado a **outros professores**, para entender como eles organizam suas
+Elicitação**: o questionário aplicado a **outros professores**, para entender como eles organizam suas
 aulas. Existe um terceiro artefato — o **formulário de campo da aula**, a folha que **a aula devolve**
 —, e ele **não** mora aqui.
 
@@ -275,7 +275,7 @@ lançamento é o instrumento do **depois**:
 
 | Peça | Quando | Onde vive | O que é |
 |:--|:--|:--|:--|
-| **Formulário de campo** (este diretório) | antes / fora da aula, aplicado a **outros** professores | `campo/AAAA-MM-DD-<escola>/formulario.md` | instrumento de **eliciação** — pergunta o que já existe na prática de quem responde |
+| **Formulário de campo** (este diretório) | antes / fora da aula, aplicado a **outros** professores | `campo/AAAA-MM-DD-<escola>/formulario.md` | instrumento de **Elicitação** — pergunta o que já existe na prática de quem responde |
 | **Formulário de campo da aula** (folha de captura) | **durante** a aula, na mão do professor | `ciclos/ciclo-XX-<escola>-captura-aula-NN.md` | folha de **marcação** — o que a aula devolve; é **fonte** de ciclo |
 | **Tela de lançamento** | **depois** da aula | `tools/templates/lancamento.html` (software) | o professor lança o que observou; lê o PO — a linha de base, por aluna — e a captura |
 

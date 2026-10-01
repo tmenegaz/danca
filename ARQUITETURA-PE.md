@@ -38,9 +38,9 @@ implementar a integração lê esta seção primeiro.
 | **Apelidos estáveis** | P-12 | Nome completo, contato, dado de saúde ou acompanhamento em claro cruzando a fronteira |
 | **Cada professor tem o seu próprio PO** | P-13 | Um PE compartilhado "da escola" reescrevendo o recorte de cada professor |
 | **O PO pode derivar de um PO de departamento** | P-14 | Tratar o PO de departamento como obrigatório. Ele é **opcional**, e só existe onde a escola o declara |
-| **Metodologia e notação são declaradas na eliciação** | P-16 | O PE decidir o método. A elicitação pergunta **qual** é o método (RAD, Vaganova, …), **qual** a notação e **quem** o define — e o ciclo só gera os artefatos que a resposta sustenta |
+| **Metodologia e notação são declaradas na Elicitação** | P-16 | O PE decidir o método. A elicitação pergunta **qual** é o método (RAD, Vaganova, …), **qual** a notação e **quem** o define — e o ciclo só gera os artefatos que a resposta sustenta |
 | **Mesmos tipos de artefato do ciclo piloto** | P-17 | Um ciclo novo produzir menos artefatos porque a integração está ausente |
-| **Os prompts vivem no repositório** | P-19 | O PE guardar o prompt de eliciação. O prompt é **conteúdo do PO**, versionado em `prompts/` |
+| **Os prompts vivem no repositório** | P-19 | O PE guardar o prompt de Elicitação. O prompt é **conteúdo do PO**, versionado em `prompts/` |
 | **Linguagem harmonizada no publicado** | P-21 | Publicar, pela via do PE, o material bruto em linguagem original |
 | **Restrições físicas são declaradas, registradas e comunicadas** | P-22 | O PE avaliar ou inferir restrição física. Lesão, dor e limitação médica entram **na linha de base por sujeito**, declaradas pelo professor; ele **registra**, não avalia |
 | **Terminologia RAD, fio condutor, causa e consequência** | Regras 1, 2, 7, 11 | O PE gerar prosa pedagógica. Ele não escreve aula |
@@ -110,7 +110,7 @@ atravessa a linha do outro.
 
 O conteúdo é discricionário e **pertence ao PO**. Três medições, todas verificáveis no disco:
 
-- **A palavra "bloco" tem três sentidos, e nenhum é do PE.** Em `prompts/eliciar-ciclo.md` há
+- **A palavra "bloco" tem três sentidos, e nenhum é do PE.** Em `prompts/elicitar-ciclo.md` há
   **dez blocos de entrevista**; no **plano** há **quatro blocos de volume** — solo, barra,
   centro, musicalidade (`ciclo-01-plano.md`, "Distribuição do volume pelos blocos"); na
   **folha de captura** há **blocos de registro** — técnica, funcional, musicalidade e linha de
@@ -153,8 +153,8 @@ Há uma tensão real entre as duas fontes, e este documento a declara em vez de 
 
 - **No PE de origem**, o insumo é o **Plano de Observação** — o PE vem **depois** do PO, e
   produz o Arquivo metodológico a partir dele.
-- **Aqui**, a eliciação vem **antes**: `prompts/eliciar-ciclo.md` produz, na mesma entrevista,
-  o plano (Blocos 1 a 4) **e** o PO (Blocos 5 a 9). A eliciação é o **primeiro elo da cadeia**.
+- **Aqui**, a Elicitação vem **antes**: `prompts/elicitar-ciclo.md` produz, na mesma entrevista,
+  o plano (Blocos 1 a 4) **e** o PO (Blocos 5 a 9). A Elicitação é o **primeiro elo da cadeia**.
 
 São **duas elicitações diferentes**, em pontos diferentes do processo, e confundi-las é o
 erro a evitar:
@@ -242,7 +242,7 @@ Duas observações de mecânica, para quem implementar:
 
 ```
 professor
-   │  eliciação (conteúdo do PO — os 10 blocos, prompts/eliciar-ciclo.md)
+   │  Elicitação (conteúdo do PO — os 10 blocos, prompts/elicitar-ciclo.md)
    ▼
 [Blocos 1–4] plano do ciclo e das aulas      [Blocos 5–9] PO — a NORMA      [Bloco 10] documentos auxiliares
    │                                              │                              │
@@ -422,7 +422,7 @@ mantém o formulário dinâmico sem servidor.
 | `caderno-XX-<escola>.md`, `aula-NN-<escola>.md` | registro escrito por quem viveu a aula |
 | `ciclo-XX-<escola>-harmonizacao.md` | P-21 — o professor revê e reescreve com as próprias palavras |
 | `guia-de-observacao-NN` | **prosa GERADA** (vista) — não é autoral; some quando a fonte existe |
-| `prompts/eliciar-ciclo.md`, `prompts/instalar-ciclo.md` | **prosa que É o conteúdo do PO** — os dez blocos e a instalação |
+| `prompts/elicitar-ciclo.md`, `prompts/instalar-ciclo.md` | **prosa que É o conteúdo do PO** — os dez blocos e a instalação |
 | `professores/<professor>/campo/**/*.md` | material bruto de campo (P-05/P-06) |
 | `tools/**` (`.sh`, `.js`, `.py`) e `apresentacoes/**` | **código e frente própria** — infraestrutura, congelada |
 
@@ -522,7 +522,7 @@ implementação.
 - `tools/gerar-handoff.sh` — varre `ARQUITETURA-*.md` e publica o `> **Resumo (para o
   HANDOFF):**`; o `HANDOFF.md` é regenerado por ele, nunca editado à mão
 - `tools/.senhas-locais.exemplo` — o molde da configuração local fora do Git (§3.3)
-- `prompts/eliciar-ciclo.md` — a entrevista de dez blocos: o **conteúdo** do PO (§2.3, §2.5)
+- `prompts/elicitar-ciclo.md` — a entrevista de dez blocos: o **conteúdo** do PO (§2.3, §2.5)
 - `prompts/instalar-ciclo.md` — o contrato que transforma o elicitado em fonte instalada
 - `professores/tiago/campo/README.md` — a forma canônica da linha de base (26/09/2026)
 - `departamentos/README.md` — o PO de departamento (P-14): o precedente de estrutura

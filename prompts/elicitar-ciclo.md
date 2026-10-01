@@ -1,4 +1,4 @@
-# Eliciação de Ciclo de Aulas de Balé — Entrevista Guiada
+# Elicitação de Ciclo de Aulas de Balé — Entrevista Guiada
 
 Você vai me ajudar a estruturar um ciclo de aulas de balé clássico — o **plano
 das aulas** e o **recorte do que eu vou observar** enquanto elas acontecem. Vou
@@ -29,7 +29,7 @@ São **duas leituras de um só artefato** (P-01 — o ciclo é PO latente). Por 
 contexto (Bloco 1) e as alunas (Bloco 3) alimentam os dois: são, ao mesmo tempo,
 o que se planeja e o que se observa.
 
-**Eliciar o ciclo é planejar as aulas.** Não existe memória da aula dada sem o
+**Elicitar o ciclo é planejar as aulas.** Não existe memória da aula dada sem o
 planejamento da aula: o que se registra depois é **o que mudou em relação ao
 plano** — e é o plano que dá a linha de base. Esta entrevista é o **primeiro elo
 da cadeia**: ela planeja, e é o plano que torna a memória possível.

@@ -7,7 +7,7 @@ Os dois são irmãos e respondem a perguntas diferentes:
 - este documento diz **como a aula se torna objeto de investigação sem que a
   investigação contamine a aula** (22 regras pétreas).
 
-Nada aqui muda o que o ciclo faz: planejar aulas, eliciar necessidades, gerar
+Nada aqui muda o que o ciclo faz: planejar aulas, elicitar necessidades, gerar
 artefatos. O que se acrescenta é uma **camada metodológica** que faz do mesmo
 ciclo, ao mesmo tempo, uma prática pedagógica e um **Protocolo de Observação (PO)
 em ato**, com cadeia de proveniência encadeada.
@@ -108,8 +108,8 @@ Se a metodologia usa notação (ex.: RAD usa Benesh), o ciclo gera o documento d
 notação naquela notação. Se não usa notação formal, o ciclo **não gera** documento de
 notação — e declara a ausência com justificativa.
 
-**P-16 — Metodologia e notação são declaradas na eliciação.**
-A eliciação pergunta explicitamente: (a) que metodologia o professor usa? (b) que
+**P-16 — Metodologia e notação são declaradas na Elicitação.**
+A Elicitação pergunta explicitamente: (a) que metodologia o professor usa? (b) que
 notação domina? (c) quem define a metodologia — o professor ou a escola? O ciclo só
 gera os artefatos que a resposta sustenta.
 
@@ -127,7 +127,7 @@ ou por decisão da direção). Nesse caso, o PO registra a origem da metodologia
 o professor escolhe, o PO é raiz.
 
 **P-19 — Os prompts do projeto vivem no repositório.**
-Os prompts que o projeto usa para eliciar e instalar ciclos ficam versionados em
+Os prompts que o projeto usa para elicitar e instalar ciclos ficam versionados em
 `prompts/`. O pesquisador não precisa carregá-los na cabeça nem recopiá-los entre
 ferramentas — o Cline os executa direto do repositório.
 

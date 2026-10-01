@@ -19,7 +19,7 @@ motivo declarado, com commit próprio e entrada no `REGISTRO.md`.
 - `REGRAS.md` — as 17 regras + 5 pré-requisitos
 - `tools/` — geradores, validadores, hooks, criptografia dos acompanhamentos
 - `tools/templates/` — CSS, HTML, JS da navbar
-- `prompts/` — eliciação e instalação de ciclos
+- `prompts/` — Elicitação e instalação de ciclos
 - `biblioteca/guia-do-professor.md`
 - `METODO.md` — declaração de princípio (mudar exige motivo declarado)
 

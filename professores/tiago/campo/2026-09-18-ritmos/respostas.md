@@ -1,11 +1,11 @@
-# Respostas — eliciação · Ritmos e Movimento
+# Respostas — Elicitação · Ritmos e Movimento
 
-**Evento:** entrega do professor por eliciação (resposta ao instrumento, por
+**Evento:** entrega do professor por Elicitação (resposta ao instrumento, por
 escrito).
 **Data real do evento:** 18/09/2026.
 **Escola:** Ritmos e Movimento (responsável: Gabi). **Professor da turma:**
 Tiago Menegaz.
-**Instrumento:** prompt de eliciação de ciclo + PO, respondido pelo professor.
+**Instrumento:** prompt de Elicitação de ciclo + PO, respondido pelo professor.
 **Forma de registro:** texto digitado, transcrito **na íntegra e sem alteração** —
 inclusive as marcas de oralidade e os campos que ele deixou em aberto.
 
