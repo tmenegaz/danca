@@ -182,7 +182,82 @@ variantes_de() {
   echo "## O que está pendente"
   echo
   if [ -f REGISTRO.md ]; then
-    awk '/^\*\*O que ainda não está feito\.\*\*/{flag=1; next} /^\*\*/{flag=0} flag' REGISTRO.md
+    awk -v n=5 '
+    # F1 — colheita limitada de pendências + índice das anteriores.
+    # n = blocos recentes emitidos por inteiro (default 5).
+
+    function normdata(s) {
+      if (match(s, /^[0-9][0-9]\/[0-9][0-9]\/[0-9][0-9][0-9][0-9]/))
+        return substr(s, 1, 10)
+      if (match(s, /^[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9]/))
+        return substr(s, 9, 2) "/" substr(s, 6, 2) "/" substr(s, 1, 4)
+      return ""
+    }
+
+    function encurtar(s,   c) {
+      if (length(s) <= 60) return s
+      c = substr(s, 1, 60)
+      if (match(c, /^.* /)) c = substr(c, 1, RLENGTH - 1)
+      return c "…"
+    }
+
+    BEGIN { if (n == "") n = 5 }
+
+    /^## / {
+      dentro = 0
+      nent++
+      ent_ini[nent] = NR
+      ent_tit[nent] = substr($0, 4)
+      ent_dat[nent] = normdata(ent_tit[nent])
+      next
+    }
+
+    /^\*\*O que ainda n/ {
+      dentro = 0
+      nb++
+      blk_ent[nb] = nent
+      blk_buf[nb] = ""
+      s = $0
+      sub(/^\*\*[^*]*\*\*[ \t]*/, "", s)
+      if (s != "") blk_buf[nb] = s "\n"
+      if (index($0, "~~") > 0) blk_risc[nb] = 1
+      dentro = 1
+      next
+    }
+
+    /^\*\*/ { dentro = 0; next }
+
+    dentro {
+      blk_buf[nb] = blk_buf[nb] $0 "\n"
+      if (index($0, "~~") > 0) blk_risc[nb] = 1
+    }
+
+    END {
+      ini = nb - n + 1
+      if (ini < 1) ini = 1
+
+      for (i = ini; i <= nb; i++) {
+        e = blk_ent[i]
+        t = blk_buf[i]
+        while (substr(t, length(t), 1) == "\n") t = substr(t, 1, length(t) - 1)
+        printf "## %s\n\n", ent_tit[e]
+        printf "%s\n\n", t
+      }
+
+      if (ini > 1) {
+        printf "## Pendências anteriores (índice)\n\n"
+        for (i = 1; i < ini; i++) {
+          e = blk_ent[i]
+          nome = ent_tit[e]
+          sub(/^[0-9\/-]+[ \t]+/, "", nome)
+          sub(/^[^ \t]+[ \t]+/, "", nome)
+          d = ent_dat[e]
+          if (d == "") d = substr(ent_tit[e], 1, 10)
+          printf "- **%s** — %s → `REGISTRO.md` L%d%s\n", d, encurtar(nome), ent_ini[e], (blk_risc[i] ? " *(superado)*" : "")
+        }
+      }
+    }
+    ' REGISTRO.md
   fi
   for p in $professores; do
     for c in $(ciclos_de "$p"); do
@@ -228,10 +303,14 @@ variantes_de() {
   echo "A próxima sessão deve ler, nesta ordem:"
   echo "1. este arquivo;"
   echo "2. \`PROTOCOLO.md\`;"
-  echo "3. \`REGISTRO.md\`;"
+  echo "3. as últimas 5 entradas de \`REGISTRO.md\` — não o arquivo inteiro;"
   echo "4. o PO do ciclo ativo."
   echo
   echo "Isso é suficiente para retomar o diálogo sem reconstruir contexto."
+  echo
+  echo "Acima: a última entrada do \`REGISTRO.md\` por inteiro, as pendências recentes e o"
+  echo "índice das anteriores. Consultar o índice antes de abrir o \`REGISTRO.md\` para"
+  echo "pendência antiga."
 } > "$SAIDA"
 
 echo "gerado: $SAIDA"

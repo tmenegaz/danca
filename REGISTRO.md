@@ -8401,3 +8401,124 @@ Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vive
 lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
 do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
 **regenerado depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
+
+## 01/10/2026 — A view gerada e a regra de leitura cresciam com o arquivo: a colheita passa a ter limite e o `REGISTRO.md` deixa de ser lido inteiro
+
+**O que motivou.**
+Uma varredura de custo de contexto mediu, pela primeira vez, o que uma sessão nova paga para se
+situar. O gerador prescreve a leitura de quatro arquivos nesta ordem — o `HANDOFF.md`, o
+`PROTOCOLO.md`, o `REGISTRO.md` inteiro e o PO do ciclo ativo. Medido, isso dá **754 723 B**, dos
+quais **726 830 B (96 %) são dois arquivos**: o `REGISTRO.md` (599 433 B, 79 %) e o `HANDOFF.md`
+(127 397 B, 17 %). Todo o resto da pilha documental é ruído estatístico.
+
+Duas medições localizaram o mecanismo. A primeira é a anatomia do `HANDOFF.md`: **105 618 B
+(82,9 %)** do arquivo são a *colheita de pendências* — derivada do `REGISTRO.md`. A segunda é o
+experimento de isolamento, que rodou o gerador sobre uma cópia com o insumo **dobrado**: **104 845 B
+(82,3 %)** do `HANDOFF.md` **escalam** com o `REGISTRO.md` e **22 552 B (17,7 %)** não escalam
+(identidade, estado, tabelas por professor). ⇒ O `HANDOFF.md` nunca desce abaixo de ~22,6 KB, e o
+custo cresce **duas vezes por entrada nova**: o `REGISTRO.md` cresce (e a sessão o lê inteiro) **e**,
+se a entrada trouxer bloco de pendência, o `HANDOFF.md` engorda **para sempre** — porque o awk do
+gerador **nunca corta**.
+
+O custo do crescimento foi localizado em **duas linhas de awk** do `tools/gerar-handoff.sh`
+(`:177` e `:185`), e a auditoria dessas linhas revelou **cinco defeitos**:
+
+1. **`## ` engolido.** O awk para em `/^\*\*/`, não em `/^## /`, e solta o que engoliu apenas ao
+   encontrar o primeiro `**` da entrada seguinte. Medido: **52 headings** engolidos em **52
+   transbordos · 125 linhas**, **6 262 B** — e o transbordo não é uniforme: **48** têm 2 linhas,
+   **1** tem 5 e **3** têm 8 (o resto é o preâmbulo da entrada seguinte, quando ela traz prosa
+   antes do primeiro rótulo).
+2. **Marcador exato.** A regex `\.\*\*$` não casa `**O que ainda não está feito (declarado).**`.
+   **Seis pendências reais e abertas** (`L1542, L1591, L1639, L1726, L1782, L2010` — **2 716 B / 36
+   linhas**) **nunca entraram no `HANDOFF.md`**.
+3. **Nunca corta.** Todo bloco já escrito fica para sempre.
+4. **Prefixo de marcador na mesma linha descartado.** O `{flag=1; next}` joga fora o resto da linha
+   do marcador, e **cinco blocos** (`L8002, L8074, L8163, L8248, L8389`) perdem a **primeira
+   frase**. Fecha exato: `grep -c '^\*\*O que ainda não está feito\.\*\*$'` = **71**; sem `$` =
+   **76**; `71 + 5 = 76`.
+5. **Primeiro bloco órfão.** O marcador da primeira entrada está em `L32` e a linha de data em
+   `L31`, que nunca entra em região alguma — a colheita abria com prosa sem data e sem título.
+
+**O que foi decidido.**
+Substituir a colheita irrestrita por uma **colheita limitada** e a leitura integral do `REGISTRO.md`
+por uma **regra de leitura limitada**:
+
+- **Colheita limitada.** O awk do `:185` passa a emitir os blocos de pendência das **últimas 5
+  entradas**, com **título próprio** para cada um, mais um **índice das anteriores** — para que
+  pendência antiga e ainda aberta **não desapareça** do primeiro arquivo lido. A escolha de **N=5**
+  é medida, não suposta: o corte foi otimizado sobre `colheita + índice` (o índice **cresce** quando
+  a colheita encolhe), e **N=5 minimiza a soma em 12 592 B**. Um corte por *número de blocos* ou por
+  *teto em bytes* foi **refutado pela medição**: o maior bloco tem **13 721 B e está a 12 do fim**,
+  quase igualando os últimos 10 somados (14 077 B) — qualquer regra por N ou por byte oscila, e
+  **N=12 chega a dobrar** o valor de N=10. Uma regra por idade/data também não é estável: só o dia
+  26/09/2026 responde por 38 181 B (35 % do arquivo).
+- **Os cinco defeitos são corrigidos na mesma passagem** — o `## ` volta a delimitar, as **duas**
+  formas de marcador são casadas, o corte existe, o resto da linha do marcador é preservado e o
+  primeiro bloco recebe data e título.
+- **Regra de leitura limitada.** O `:231` deixa de dizer `3. \`REGISTRO.md\`;` e passa a dizer que se
+  leem **as últimas 5 entradas** — não o arquivo inteiro —, com ponteiro explícito para o índice
+  antes de abrir o `REGISTRO.md` por causa de pendência antiga. Medido: as últimas 5 entradas são
+  **38 751 B (6,4 %)** do arquivo.
+
+**Nada foi apagado.** O `REGISTRO.md` permanece **inteiro**, com as 8 403 linhas e as 94 entradas. O
+que encolheu foi a **view gerada** (`HANDOFF.md`) e a **regra de leitura** — as duas eram as que
+pagavam o mesmo crescimento duas vezes. P-03/P-04 valem para esta varredura também: o que fosse
+superado viraria nota datada, não remoção. **O `HANDOFF.md` é saída gerada — não foi editado à mão;
+foi o gerador que mudou, e o artefato foi regenerado no mesmo commit.**
+
+**Onde entrou.**
+`tools/gerar-handoff.sh` — três pontos:
+
+- `:185` — o awk da colheita de pendências (a região que produzia 104 807 B);
+- `:231` — a linha da ordem prescrita de leitura (`REGISTRO.md` inteiro → últimas 5 entradas);
+- `:234` — quatro linhas de ponteiro acrescentadas depois da frase que fecha a ordem de leitura,
+  dizendo que acima estão a última entrada por inteiro, as pendências recentes e o índice das
+  anteriores, e que se consulta o índice **antes** de abrir o `REGISTRO.md` para pendência antiga.
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado (`CONGELAMENTO.md`), e foi tocado — de propósito, pelo rito, e não por atalho.
+O motivo é que a view gerada e a regra prescrita de leitura **cresciam com o `REGISTRO.md`**, e as
+duas pagavam o **mesmo** crescimento duas vezes: o `HANDOFF.md` já carrega 118 048 B extraídos do
+`REGISTRO.md` e, no passo seguinte da **mesma** lista, a sessão é mandada ler o `REGISTRO.md`
+**inteiro** — **5,1× maior** que a cópia (599 433 / 118 048). O gerador não é a vítima do
+crescimento; é o seu **multiplicador**: uma alteração custa o rito **uma vez**, e o ganho é pago a
+**cada** sessão. Congelar o gerador sem medir o que ele emite era congelar sem conhecer o custo — e
+o custo agora está medido.
+
+Dois outros objetos congelados foram **deliberadamente não tocados**, e a medição sustenta a recusa:
+a duplicação das **22 pétreas** e das **17 regras** dentro do `HANDOFF.md` é de **1 910 B (0,25 %)**
+— não há prêmio que justifique arriscar o piso de rigor; e a **identidade do projeto** (`L1–32`,
+1 917 B) não foi substituída por ponteiro, porque é ela que impede a deriva de leitura, e trocá-la
+por 1,9 KB seria economizar token perdendo rigor. O `prompts/elicitar-ciclo.md` (congelado) também
+não foi tocado nesta rodada: o ganho dele é real (~3,3 KB por turno de eliciação) mas é **por turno**,
+não por sessão, e o arquivo está **em produção** — fica para decisão própria, depois.
+
+**Com o quê.**
+`tools/gerar-handoff.sh` (239 → 318 linhas), `HANDOFF.md` (regenerado: **127 397 → 35 674 B**, 1 682
+→ 469 linhas), `REGISTRO.md`.
+
+**Reancoragem.**
+Nenhuma. `tools/hash-ciclo.sh` cobre **somente** `professores/<professor>/ciclos/ciclo-XX.conf`,
+`ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`. Toda esta varredura vive **fora** desse conjunto:
+nenhum `.md` nem `.conf` de ciclo foi alterado, e nenhum `.fipp` foi tocado.
+
+**Referências.**
+Os números de custo vêm da medição direta sobre o `HEAD` anterior a esta entrada: `wc -c` e `wc -l`
+sobre cada arquivo da ordem prescrita, a simulação byte-a-byte do awk do `:185` (104 904 B em 1 360
+linhas) e o experimento de isolamento com o insumo dobrado (`127 397 / 232 242 / 104 845 / 22 552`).
+O corte acumulado do fim para o começo está tabelado (últimos 5 = 4 561 B; últimos 12 = 29 272 B; os
+76 = 104 904 B). O inventário de redundância e o de duplicação estão no plano da varredura, no
+espaço de sessão — não são artefato do repositório.
+
+**O que ainda não está feito.**
+- **A Frente 3** — declarar onde acaba o *desenho* e começa o *estado* nos `ARQUITETURA-*.md`. Medido:
+  `ARQUITETURA-AULA.md` tem **31 %** de cauda de estado, `ARQUITETURA-ANAMNESE.md` **21 %** e
+  `ARQUITETURA-PE.md` **19 %**. É a única frente **livre** com ganho real — mas o ganho é de **quem
+  implementa**, não da sessão nova: nenhum `ARQUITETURA-*` está na ordem prescrita de leitura.
+- **A Frente 4** — índice no `prompts/elicitar-ciclo.md` (congelado), adiada acima.
+- **A auditoria de quais dos 76 blocos estão de fato abertos hoje.** A varredura sabe quais existem e
+  onde estão; **não** sabe quantos estão abertos. O índice mitiga, mas não substitui essa auditoria.
+- **A verificação de qualidade.** A varredura prova que o custo **caiu** (754 723 → **101 788 B**,
+  −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
+- **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
+  achado robusto; a conversão para token **não foi medida**.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-01T20:44:55-0300`
-Commit atual: `7b46e5c` — docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
+Gerado em: `2026-10-02T08:32:14-0300`
+Commit atual: `ac071db` — docs(registro): regenera o HANDOFF sobre 7b46e5c
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -51,6 +51,7 @@ tiago (2)
 ## Últimos commits
 
 ```
+ac071db docs(registro): regenera o HANDOFF sobre 7b46e5c
 7b46e5c docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
 f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do prompt congelado ganha dono
 bf0e700 docs(experimentos): o README descreve o que existe hoje, e não o que foi previsto
@@ -70,7 +71,6 @@ ee1863f docs(registro): o `B8` medido — `podeAjustarPlano()` não existe
 da2cd8b docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
 ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a entrevista declara dois artefatos
 76c3cf2 docs(registro): regenera o HANDOFF sobre 55a7c20
-55a7c20 docs(registro): a medição do Passo 0 media sintaxe — a nota do defeito do regex
 ```
 
 ## Por professor
@@ -148,1466 +148,132 @@ ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a 
 
 ## Última entrada do REGISTRO
 
-## 01/10/2026 — A grafia de "Elicitação" se propaga, e a pendência do prompt congelado ganha dono
+## 01/10/2026 — A view gerada e a regra de leitura cresciam com o arquivo: a colheita passa a ter limite e o `REGISTRO.md` deixa de ser lido inteiro
 
-**O que motivou.** Duas coisas se tocaram e foram fechadas na mesma rodada. A primeira é a **grafia**
-do termo que nomeia a entrevista que abre todo ciclo: o repositório estava **partido** — cinco
-lugares no `HEAD` já escreviam **"Elicitação"**, com o `t` (*"Protocolo de Elicitação"* em
-`PROTOCOLO.md:16`, os três de `ARQUITETURA-PE.md:135`/`:162`/`:176`, e o glossário de
-`professores/tiago/campo/README.md:43`). E **as cinco são o desdobramento da sigla `PE:`** — a
-tabela *"Vocabulário desta camada"* (`:15–17`) define `PE:` e, na linha seguinte, `Protocolo de
-Elicitação` —, e o repositório inteiro usa a sigla. Ou seja, o texto minúsculo contradizia a própria
-sigla que ele escrevia ao lado, e são 73 ocorrências em 17 arquivos versionados, fora `REGISTRO.md` e
-`HANDOFF.md`. Duas grafias para o mesmo termo é a deriva que a pesquisadora proibiu; e este é o único
-caso em que a forma **certa** já estava declarada, de modo que o trabalho é **propagação**, não
-invenção de termo (P-04). A segunda é a **pendência herdada**: desde 28/09/2026 este registro
-declara, em três entradas, que o `prompts/eliciar-ciclo.md` *"segue alterado no worktree e fora de
-todo commit… precisa de motivo próprio ou de reversão"* (`:6731`, `:6847`, `:7050`). Nenhuma
-entrada a reivindicou. Ela fica com dono aqui.
+**O que motivou.**
+Uma varredura de custo de contexto mediu, pela primeira vez, o que uma sessão nova paga para se
+situar. O gerador prescreve a leitura de quatro arquivos nesta ordem — o `HANDOFF.md`, o
+`PROTOCOLO.md`, o `REGISTRO.md` inteiro e o PO do ciclo ativo. Medido, isso dá **754 723 B**, dos
+quais **726 830 B (96 %) são dois arquivos**: o `REGISTRO.md` (599 433 B, 79 %) e o `HANDOFF.md`
+(127 397 B, 17 %). Todo o resto da pilha documental é ruído estatístico.
 
-**O que foi decidido.** Propagar a grafia com `t` (**"Elicitação"**/**"Elicitar"** onde é prosa) e
-resolver a pendência pela via do **motivo declarado** — não pela reversão.
+Duas medições localizaram o mecanismo. A primeira é a anatomia do `HANDOFF.md`: **105 618 B
+(82,9 %)** do arquivo são a *colheita de pendências* — derivada do `REGISTRO.md`. A segunda é o
+experimento de isolamento, que rodou o gerador sobre uma cópia com o insumo **dobrado**: **104 845 B
+(82,3 %)** do `HANDOFF.md` **escalam** com o `REGISTRO.md` e **22 552 B (17,7 %)** não escalam
+(identidade, estado, tabelas por professor). ⇒ O `HANDOFF.md` nunca desce abaixo de ~22,6 KB, e o
+custo cresce **duas vezes por entrada nova**: o `REGISTRO.md` cresce (e a sessão o lê inteiro) **e**,
+se a entrada trouxer bloco de pendência, o `HANDOFF.md` engorda **para sempre** — porque o awk do
+gerador **nunca corta**.
 
-1. **A grafia se separa por natureza, e é isso que a mantém segura.** Em **prosa**, o termo passa a
-   ser **"Elicitação"** e o verbo **"elicitar"**. Em **identificador de código**, **nome de
-   diretório** e **nome de arquivo**, a grafia fica **minúscula e sem acento** — porque ali não é a
-   palavra que se lê, é um **endereço** que precisa casar byte a byte: `tools/hash-ciclo.sh`,
-   `PROFESSOR_SLUG` e os `.fipp` resolvem caminho, não texto. A varredura fecha assim: a única
-   ocorrência de `elicia*` minúsculo que **sobrevive** em arquivo versionado fora de
-   `REGISTRO.md`/`HANDOFF.md` é o **nome real** do arquivo simulado,
-   `00-eliciacao-simulada.md` (`experimentos/README.md:125`) — que **não se renomeia**: renomeá-lo
-   quebraria a referência. O erro que a rodada corrigiu foi o **contrário**: a varredura cega
-   havia geminado a consoante e escrito `00-elicitacao-simulada.md`, um arquivo **que não existe**.
-   Medição final: `git grep -E 'elicia[çc]|eliciar' -- ':!REGISTRO.md' ':!HANDOFF.md' .` devolve
-   **uma** linha — essa —, o que mostra que a regra parou onde devia e não alcançou o que **não**
-   devia ser tocado. Em particular, o `PROFESSOR_SLUG` e os diretórios ficaram **intactos**: a
-   rodada não renomeou pasta, não mexeu em `experimentos/` (a não ser no texto que o descreve) e
-   não tocou em nenhum caminho resolvido por `tools/lib-fontes.sh`.
-2. **A regra vale para o que um gerador lê.** Os **títulos** de pétrea entram no `HANDOFF.md` pela
-   `grep` de `tools/gerar-handoff.sh:168`, que casa `^\*\*P-[0-9]\{2\} —`. A linha da **P-16** mudou
-   de redação no `PROTOCOLO.md:111`, e por isso a regeneração **publica** a forma nova — sem que
-   ninguém edite o `HANDOFF.md` à mão, que é o que a skill proíbe.
-3. **A pendência do prompt congelado é reivindicada, não revertida.** O
-   `prompts/eliciar-ciclo.md` → `prompts/elicitar-ciclo.md` é um **rename** com correção de **duas
-   linhas** (`:1` e `:32`), que também diziam `elicia`. Não é reversão: é o mesmo arquivo, com o
-   termo certo e o endereço certo. As três declarações de `:6731`/`:6847`/`:7050` ficam **fechadas
-   por esta entrada** — é ela o **dono** que faltava.
-4. **O que o `HANDOFF.md` continua dizendo, e por quê — isto foi medido, não suposto.** O gerador
-   **não** copia só o bloco da última entrada: ele copia **todos** os 76 blocos *"O que ainda não
-   está feito."* do registro (`tools/gerar-handoff.sh:185`), e por isso as **quatro** menções
-   espelhadas a `prompts/eliciar-ciclo.md` que trazem a frase *"segue alterado no worktree"* —
-   `grep -c` → **4** no `HANDOFF.md` — **não desaparecem** com esta regeneração. Elas continuam lá
-   porque são **citação** das entradas de 28/09 e 29/09/2026, e citar o passado é o que o
-   `HANDOFF.md` faz. Quem **lê** o handoff precisa saber disso: as quatro linhas são **história
-   declarada**, não pendência viva — a pendência viva é esta entrada, e ela a fecha. Se o
-   `HANDOFF.md` fosse editado à mão para removê-las, a próxima regeneração as traria de volta, e é
-   exatamente por isso que **não se edita o `HANDOFF.md` à mão**. (Nota de método: por isso esta
-   entrada **não** cita número de linha do `HANDOFF.md` — o bloco da última entrada é copiado para
-   dentro dele, e todo número de linha de lá se desloca quando este texto muda.)
+O custo do crescimento foi localizado em **duas linhas de awk** do `tools/gerar-handoff.sh`
+(`:177` e `:185`), e a auditoria dessas linhas revelou **cinco defeitos**:
 
-**Onde entrou.** `PROTOCOLO.md` — quatro linhas de prosa: `:10` (*elicitar necessidades* — verbo em
-minúscula, **de propósito**: ali é o ato de perguntar, não o nome do artefato `PE`), o título
-da **P-16** (`:111`) e o corpo (`:112`), a **P-19** (`:130`) · `prompts/instalar-ciclo.md` — `:11` e
-`:157` · `prompts/eliciar-ciclo.md` **removido** e `prompts/elicitar-ciclo.md` **criado** (as duas
-linhas de `elicia`; o resto é 1:1 com o arquivo anterior) · `CONGELAMENTO.md` — o rótulo da pasta
-congelada (`:22`) · `ARQUITETURA-ANAMNESE.md` (9 linhas), `ARQUITETURA-AULA.md` (7) e
-`ARQUITETURA-PE.md` (8) — prosa · `.github/prompts/instalar-ciclo.prompt.md` (4),
-`.github/skills/identidade-do-projeto/SKILL.md` (1) e as duas `references/*.md` (1 cada) — prosa ·
-`experimentos/README.md` — cinco linhas de prosa **e** a reparação do nome de arquivo de `:125` ·
-`professores/tiago/campo/README.md` (2) e `.../2026-09-18-ritmos/respostas.md` (3) — prosa ·
-`professores/tiago/ciclos/ciclo-01-ritmos-po.md` (2) e `-referencias.md` (1) — prosa ·
-`.../ciclo-01-ritmos/referencias.html` — a peça gerada acompanha a fonte · o `.fipp` da Ritmos —
-reancorado · `HANDOFF.md` — regenerado depois desta entrada · `REGISTRO.md` — esta entrada.
+1. **`## ` engolido.** O awk para em `/^\*\*/`, não em `/^## /`, e solta o que engoliu apenas ao
+   encontrar o primeiro `**` da entrada seguinte. Medido: **52 headings** engolidos em **52
+   transbordos · 125 linhas**, **6 262 B** — e o transbordo não é uniforme: **48** têm 2 linhas,
+   **1** tem 5 e **3** têm 8 (o resto é o preâmbulo da entrada seguinte, quando ela traz prosa
+   antes do primeiro rótulo).
+2. **Marcador exato.** A regex `\.\*\*$` não casa `**O que ainda não está feito (declarado).**`.
+   **Seis pendências reais e abertas** (`L1542, L1591, L1639, L1726, L1782, L2010` — **2 716 B / 36
+   linhas**) **nunca entraram no `HANDOFF.md`**.
+3. **Nunca corta.** Todo bloco já escrito fica para sempre.
+4. **Prefixo de marcador na mesma linha descartado.** O `{flag=1; next}` joga fora o resto da linha
+   do marcador, e **cinco blocos** (`L8002, L8074, L8163, L8248, L8389`) perdem a **primeira
+   frase**. Fecha exato: `grep -c '^\*\*O que ainda não está feito\.\*\*$'` = **71**; sem `$` =
+   **76**; `71 + 5 = 76`.
+5. **Primeiro bloco órfão.** O marcador da primeira entrada está em `L32` e a linha de data em
+   `L31`, que nunca entra em região alguma — a colheita abria com prosa sem data e sem título.
 
-**Motivo declarado — os congelados.** Dois arquivos do `CONGELAMENTO.md` foram tocados:
-**`PROTOCOLO.md`** e **`prompts/`** (a raiz — que é congelada; `.github/prompts/` não é, e é outra
-pasta). A alteração de cada um é **só redação**: a mesma frase, com o `t` que o próprio
-`PROTOCOLO.md` já usava na sua tabela de vocabulário (`:16`). **O que não muda**, e foi conferido
-nesta rodada: a **fórmula de hash** da
-âncora (`SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)`, intacta no cabeçalho do
-`.fipp`), a **cobertura** do `.fipp`, os **validadores**, as **regras** e as **pétreas** — as
-**22** continuam **22**, com o mesmo número na P-16, e os títulos só ganharam a letra. O
-`prompts/elicitar-ciclo.md` **não é consumido por nenhum gerador** — é texto de entrevista, lido por
-humano e por sessão de IA (o mesmo motivo já declarado na entrada de 29/09/2026); o nome antigo
-sobrevive só em `REGISTRO.md` (elo histórico, que **não se apaga**) e no `HANDOFF.md` gerado — onde
-**continua**, porque é citação (ponto 4). Nenhuma dependência nova, nenhum contrato de arquivo
-alterado, nenhum comportamento novo. Os **dois** arquivos congelados entram no commit **da própria
-propagação de grafia**, e **não** no commit do **conteúdo** — que é o que o `CONGELAMENTO.md` separa
-(«não vai junto com conteúdo»). A regra é satisfeita: nenhum `.md` de aula, caderno, relatório ou
-acompanhamento entra junto com o que é congelado.
+**O que foi decidido.**
+Substituir a colheita irrestrita por uma **colheita limitada** e a leitura integral do `REGISTRO.md`
+por uma **regra de leitura limitada**:
 
-**Com o quê.** `PROTOCOLO.md`, `prompts/instalar-ciclo.md`, `prompts/eliciar-ciclo.md` (removido),
-`prompts/elicitar-ciclo.md` (criado), `CONGELAMENTO.md`, `ARQUITETURA-ANAMNESE.md`,
-`ARQUITETURA-AULA.md`, `ARQUITETURA-PE.md`, `.github/prompts/instalar-ciclo.prompt.md`,
-`.github/skills/identidade-do-projeto/SKILL.md`, `.github/skills/identidade-do-projeto/references/
-bloco-identidade.md`, `.github/skills/identidade-do-projeto/references/congelamento-e-registro.md`,
-`experimentos/README.md`, `professores/tiago/campo/README.md`,
-`professores/tiago/campo/2026-09-18-ritmos/respostas.md`,
-`professores/tiago/ciclos/ciclo-01-ritmos-po.md`, `professores/tiago/ciclos/ciclo-01-ritmos-
-referencias.md`, `professores/tiago/ciclos/ciclo-01-ritmos/referencias.html`,
-`professores/tiago/ciclos/ciclo-01-ritmos.fipp`, `HANDOFF.md`, `REGISTRO.md`. Do lado dos congelados:
-`prompts/eliciar-ciclo.md` é a **remoção** e `prompts/elicitar-ciclo.md` a
-**adição** do mesmo rename; vão juntos para não deixar o caminho congelado sem o arquivo.
+- **Colheita limitada.** O awk do `:185` passa a emitir os blocos de pendência das **últimas 5
+  entradas**, com **título próprio** para cada um, mais um **índice das anteriores** — para que
+  pendência antiga e ainda aberta **não desapareça** do primeiro arquivo lido. A escolha de **N=5**
+  é medida, não suposta: o corte foi otimizado sobre `colheita + índice` (o índice **cresce** quando
+  a colheita encolhe), e **N=5 minimiza a soma em 12 592 B**. Um corte por *número de blocos* ou por
+  *teto em bytes* foi **refutado pela medição**: o maior bloco tem **13 721 B e está a 12 do fim**,
+  quase igualando os últimos 10 somados (14 077 B) — qualquer regra por N ou por byte oscila, e
+  **N=12 chega a dobrar** o valor de N=10. Uma regra por idade/data também não é estável: só o dia
+  26/09/2026 responde por 38 181 B (35 % do arquivo).
+- **Os cinco defeitos são corrigidos na mesma passagem** — o `## ` volta a delimitar, as **duas**
+  formas de marcador são casadas, o corte existe, o resto da linha do marcador é preservado e o
+  primeiro bloco recebe data e título.
+- **Regra de leitura limitada.** O `:231` deixa de dizer `3. \`REGISTRO.md\`;` e passa a dizer que se
+  leem **as últimas 5 entradas** — não o arquivo inteiro —, com ponteiro explícito para o índice
+  antes de abrir o `REGISTRO.md` por causa de pendência antiga. Medido: as últimas 5 entradas são
+  **38 751 B (6,4 %)** do arquivo.
 
-**Reancoragem.** `PROTOCOLO.md` **não** é fonte de ciclo, e nenhum `.md`/`.conf` de ciclo foi
-alterado pela grafia — **exceto** dois, que são: `ciclo-01-ritmos-po.md` e
-`ciclo-01-ritmos-referencias.md` são **cobertos** pelo `.fipp`. A âncora da Ritmos foi regerada com
-`tools/hash-ciclo.sh tiago 01 ritmos`: `hash_conteudo` passa a `166f15b9…` e o `hash` a
-`18649803…6f92c`, com `ancorado_em: 2026-10-01`. O `--check` responde **verde** — *"ciclo 01-ritmos
-íntegro; cadeia intacta"*. As outras duas cadeias **não se movem** e foram conferidas verdes:
-`01-duo` (`8bba2c5e…`) e `01-diaghilev`. O `ciclo-01-ritmos-aula-01.fipp` **não** difere do `HEAD`:
-fonte coberta dele não mudou.
+**Nada foi apagado.** O `REGISTRO.md` permanece **inteiro**, com as 8 403 linhas e as 94 entradas. O
+que encolheu foi a **view gerada** (`HANDOFF.md`) e a **regra de leitura** — as duas eram as que
+pagavam o mesmo crescimento duas vezes. P-03/P-04 valem para esta varredura também: o que fosse
+superado viraria nota datada, não remoção. **O `HANDOFF.md` é saída gerada — não foi editado à mão;
+foi o gerador que mudou, e o artefato foi regenerado no mesmo commit.**
 
-**Referências.** Os cinco pontos que já escreviam `Elicitação` no `HEAD`: `PROTOCOLO.md:16`,
-`ARQUITETURA-PE.md:135`/`:162`/`:176`, `professores/tiago/campo/README.md:43` — a forma declarada
-que esta entrada **propaga** · as três declarações de pendência que esta entrada **fecha**:
-`REGISTRO.md:6731` (entrada `:6618`), `:6847` (entrada `:6738`) e `:7050` (entrada `:6854`), todas
-de 28/09/2026, herdadas em `:7517`/`:7628` e tocadas pela última vez em `:7967`/`:7979` (entrada de
-29/09/2026, commit `ebc62bb`) · `tools/gerar-handoff.sh:168` (a `grep` das pétreas) e `:185` (o
-bloco *"O que ainda não está feito."*) · `tools/hash-ciclo.sh` — os três `--check` verdes ·
-`.github/instructions/registro-md.instructions.md` e `.github/skills/identidade-do-projeto/SKILL.md`
-— a decisão congelado/gerado/livre · `CONGELAMENTO.md:22` · dois precedentes do **rito** (não do
-termo): a entrada de 30/09/2026, *"Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`…"* —
-que trata de **outra** grafia (`fochini` → `fokini`) e é citada só pelo **modo**: congelado ⇒ motivo
-declarado, entrada aqui e commit próprio — e a de 29/09/2026, *"Os dois congelados entram: o índice
-ganha o slug e a entrevista declara dois artefatos"*, que é a que **criou** a pendência da entrevista
-fechada por esta entrada (commit `ebc62bb`).
+**Onde entrou.**
+`tools/gerar-handoff.sh` — três pontos:
 
-**O que ainda não está feito.** A **publicação** do pacote da Ritmos segue **bloqueada por crédito
-da conta**, não por código — herdado e sem mudança nesta peça. A âncora da Ritmos foi regerada, mas
-o **pacote não foi regerado** para acompanhar: o `referencias.html` publicado traz a prosa nova, e
-as demais saídas (PDF, `dados.json`, `ciclos.json`) **não** foram refeitas nesta peça — a regeração
-é a próxima do fluxo, se o pacote for publicado. Os **18** `eliciação` minúsculos de `REGISTRO.md`
-ficam **como estão**, de propósito: a proveniência **acrescenta, não edita** (P-03/P-04), e reescrevê-los
-apagaria o elo do que se pensou antes. Pelo mesmo motivo, a documentação que o **`HANDOFF.md`**
-espelha continua dizendo `eliciar-ciclo.md` — é **citação** do registro, não texto do handoff. Como
-medido acima, são **quatro** as linhas espelhadas, e elas **permanecem** na regeneração: só sairiam
-reescrevendo-se as entradas de 28/09 e 29/09/2026 que as contêm, o que a proveniência proíbe.
-Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vivem as Functions**
-(§7.6), a consolidação dos
-lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
-do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
-**regenerado depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
+- `:185` — o awk da colheita de pendências (a região que produzia 104 807 B);
+- `:231` — a linha da ordem prescrita de leitura (`REGISTRO.md` inteiro → últimas 5 entradas);
+- `:234` — quatro linhas de ponteiro acrescentadas depois da frase que fecha a ordem de leitura,
+  dizendo que acima estão a última entrada por inteiro, as pendências recentes e o índice das
+  anteriores, e que se consulta o índice **antes** de abrir o `REGISTRO.md` para pendência antiga.
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado (`CONGELAMENTO.md`), e foi tocado — de propósito, pelo rito, e não por atalho.
+O motivo é que a view gerada e a regra prescrita de leitura **cresciam com o `REGISTRO.md`**, e as
+duas pagavam o **mesmo** crescimento duas vezes: o `HANDOFF.md` já carrega 118 048 B extraídos do
+`REGISTRO.md` e, no passo seguinte da **mesma** lista, a sessão é mandada ler o `REGISTRO.md`
+**inteiro** — **5,1× maior** que a cópia (599 433 / 118 048). O gerador não é a vítima do
+crescimento; é o seu **multiplicador**: uma alteração custa o rito **uma vez**, e o ganho é pago a
+**cada** sessão. Congelar o gerador sem medir o que ele emite era congelar sem conhecer o custo — e
+o custo agora está medido.
+
+Dois outros objetos congelados foram **deliberadamente não tocados**, e a medição sustenta a recusa:
+a duplicação das **22 pétreas** e das **17 regras** dentro do `HANDOFF.md` é de **1 910 B (0,25 %)**
+— não há prêmio que justifique arriscar o piso de rigor; e a **identidade do projeto** (`L1–32`,
+1 917 B) não foi substituída por ponteiro, porque é ela que impede a deriva de leitura, e trocá-la
+por 1,9 KB seria economizar token perdendo rigor. O `prompts/elicitar-ciclo.md` (congelado) também
+não foi tocado nesta rodada: o ganho dele é real (~3,3 KB por turno de eliciação) mas é **por turno**,
+não por sessão, e o arquivo está **em produção** — fica para decisão própria, depois.
+
+**Com o quê.**
+`tools/gerar-handoff.sh` (239 → 318 linhas), `HANDOFF.md` (regenerado: **127 397 → 35 674 B**, 1 682
+→ 469 linhas), `REGISTRO.md`.
+
+**Reancoragem.**
+Nenhuma. `tools/hash-ciclo.sh` cobre **somente** `professores/<professor>/ciclos/ciclo-XX.conf`,
+`ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`. Toda esta varredura vive **fora** desse conjunto:
+nenhum `.md` nem `.conf` de ciclo foi alterado, e nenhum `.fipp` foi tocado.
+
+**Referências.**
+Os números de custo vêm da medição direta sobre o `HEAD` anterior a esta entrada: `wc -c` e `wc -l`
+sobre cada arquivo da ordem prescrita, a simulação byte-a-byte do awk do `:185` (104 904 B em 1 360
+linhas) e o experimento de isolamento com o insumo dobrado (`127 397 / 232 242 / 104 845 / 22 552`).
+O corte acumulado do fim para o começo está tabelado (últimos 5 = 4 561 B; últimos 12 = 29 272 B; os
+76 = 104 904 B). O inventário de redundância e o de duplicação estão no plano da varredura, no
+espaço de sessão — não são artefato do repositório.
+
+**O que ainda não está feito.**
+- **A Frente 3** — declarar onde acaba o *desenho* e começa o *estado* nos `ARQUITETURA-*.md`. Medido:
+  `ARQUITETURA-AULA.md` tem **31 %** de cauda de estado, `ARQUITETURA-ANAMNESE.md` **21 %** e
+  `ARQUITETURA-PE.md` **19 %**. É a única frente **livre** com ganho real — mas o ganho é de **quem
+  implementa**, não da sessão nova: nenhum `ARQUITETURA-*` está na ordem prescrita de leitura.
+- **A Frente 4** — índice no `prompts/elicitar-ciclo.md` (congelado), adiada acima.
+- **A auditoria de quais dos 76 blocos estão de fato abertos hoje.** A varredura sabe quais existem e
+  onde estão; **não** sabe quantos estão abertos. O índice mitiga, mas não substitui essa auditoria.
+- **A verificação de qualidade.** A varredura prova que o custo **caiu** (754 723 → **101 788 B**,
+  −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
+- **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
+  achado robusto; a conversão para token **não foi medida**.
 
 ## O que está pendente
 
-POs de Ritmos e Débora; primeiro relatório pós-aula; Ciclo 02.
-
-## 18/09/2026 — Estrutura por professor (P-13, P-14) e migração do material
-
-Primeiro relatório pós-aula do Duo; POs de Ritmos e Débora; Ciclo 02; um segundo
-professor (a estrutura está pronta, aguardando o primeiro).
-
-## 18/09/2026 — Publicação do repositório no GitHub (decisão da pesquisadora)
-
-Licença do repositório (a definir); o envio para o GitHub, que acontece fora do
-repositório, na máquina da pesquisadora.
-
-## 18/09/2026 — Pacotes de ciclo passam a ser versionados (deploy automático)
-
-Configurar o *publish directory* de cada site no Netlify; primeiro deploy de cada escola;
-licença do repositório.
-
-## 18/09/2026 — Ciclo próprio por escola: a Ritmos deixa de ser cópia da Duo
-
-- **Publicação (decisão da pesquisadora):** o PO da Ritmos cita os rótulos que o
-  professor usou ("Carol, Dafne, Anthony, Airton"), e ele mesmo observa que só "Carol"
-  é apelido. Pela **P-12**, os sujeitos entram por apelido estável — os apelidos do
-  ciclo estão `[Preencher]` no PO, e **o material não foi enviado ao GitHub** enquanto
-  essa decisão não for tomada.
-- Preparação de força e flexibilidade da Aula 01, gravação de referência da música,
-  marcos das aulas 02–20 e aplicabilidade da Regra 9, etapa 2, a este ciclo — todos
-  `[Preencher]` nas fontes, aguardando o professor.
-- O manifesto base `ciclo-01.conf` ainda se descreve como "conteúdo compartilhado pelas
-  escolas". Não foi corrigido porque alterá-lo invalidaria a âncora da Duo: a limpeza
-  fica para quando o ciclo dela for reancorado por outro motivo.
-
-## 18/09/2026 — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19
-
-- **Calendário do projeto:** `tools/calendario.py` modela "uma aula por dia de
-  aula" (`por_semana = len(DIAS)`). Com 2 dias e 3 aulas, o pacote publica **21
-  aulas em 11 semanas** (o correto são 7) e um **volume semanal de 180 tempos** (o
-  correto são 270). É mudança de código, fora do escopo das sete etapas — aguarda
-  decisão da pesquisadora. **Enquanto isso, o pacote do Ritmos está pronto para
-  publicar, mas com o calendário errado.**
-- **Pacote do ciclo da Duo:** regenerado pelo template corrigido, ele ganha o rodapé
-  derivado de `DOCS` (11 documentos, com os títulos reais). Não foi commitado — o
-  ciclo da Duo não se altera sem autorização. A âncora dela não muda em nenhum caso.
-- **Plano e Aula 01 do Ritmos:** ainda dizem "20 encontros", "60 e 120 min" e
-  "Marcos 02–20"; a Aula 01 tem `volume-total-120` e um trecho sobre "o dia de 120
-  minutos" (que deixou de existir). Não entraram no escopo das etapas.
-- **P-12 na Aula 01 do Ritmos:** o documento publica o nome "Anthony"; os apelidos
-  fixados e os quatro documentos novos usam "Tony".
-- **Publicação:** 11 commits locais à frente do `origin/main`. Não houve push: a
-  decisão dos apelidos (que era o bloqueio) está tomada, mas o push publicaria o
-  nome citado acima. O deploy automático do Netlify continua esperando.
-- Ciclo da Débora; primeiro relatório pós-aula do Duo; primeiro relatório pós-aula
-  do Ritmos.
-
-## 18/09/2026 — PO do Ritmos validado + P-22
-
-- **A notação não existe ainda.** O documento está publicado como **moldura**, com
-  `[Preencher: notação do passo]` em cada célula — quem escreve é o professor (P-15). Sem
-  ela, o glossário Benesh fica à frente do registro: o validador avisa, e é esperado.
-- **Gravações de referência** de cada pas de deux e o **cruzamento fino** entre os passos
-  da Aula 01 e cada número do repertório: `[Preencher]` — ninguém declarou ainda.
-- **Os termos entre aspas** no plano e na aula-01 ("execução ruim", "meninos travados")
-  continuam crus: citar é diferente de descrever, e a decisão é da pesquisadora.
-- **O pacote do ciclo da Duo** (rodapé derivado de `DOCS`) segue gerado e não commitado:
-  o ciclo dela não se altera sem autorização.
-- Ciclo da Débora; relatórios pós-aula do Duo e do Ritmos.
-- **Push:** os commits desta rodada estão prontos e **não foram enviados** — aguardam
-  decisão da pesquisadora.
-
-## 18/09/2026 — Publicação, primeira reancoragem da Duo e o caderno da Aula 01
-
-Ciclo da Débora; notação do Ritmos (depende do professor); gravações de referência e o
-cruzamento fino entre passos e números (Ritmos); primeiro relatório pós-aula do Ritmos
-(após 19/09); conferir os dois sites no Netlify.
-
-## 19/09/2026 — Congelamento da infraestrutura
-
-Frente de conteúdo: revisão da Aula 01 do Duo (defeito do exercício no chão);
-Aula 01 do Ritmos (19/09); caderno + relatório do Ritmos; Aula 02 do Duo.
-E uma inconsistência declarada, para decisão da pesquisadora: a harmonização do
-Verificação no navegador (a pesquisadora testa: senha certa abre, errada não);
-decisão sobre o PDF e os `.md` de acompanhamento; a linha residual do plano do
-Ritmos.
-
-## 19/09/2026 — Política de segurança dos dados sensíveis
-
-A camada 1 (repositório privado) é ação manual da pesquisadora, no GitHub. O
-push aguarda: só depois de a segurança estar fechada. A publicação do caderno no
-pacote é a etapa seguinte.
-
-## 19/09/2026 — Caderno publicado e incluído no hash
-
-Repositório privado (ação manual da pesquisadora — pendente). O caderno **não** é
-listado no índice: o índice cobre os documentos pedagógicos, e o caderno e os
-acompanhamentos por aluna aparecem no menu, no grupo "Acompanhamento".
-
-## 19/09/2026 — Método, README-ciclos e campos de duração
-
-O push (aguardando confirmação da pesquisadora). E dois pontos de defasagem no
-`README-ciclos.md` que **não** são números e ficaram fora do escopo desta rodada,
-declarados para decisão: a tabela "Escopos" lista 10 dos ~24 escopos que o hook
-`commit-msg` aceita (é a tabela que faz alguém errar o escopo do commit), e o
-bloco "Criar um ciclo novo" traz caminhos e comandos que não existem mais.
-
-## 19/09/2026 — README-ciclos: escopos e criação de ciclo
-
-O push (aguardando confirmação da pesquisadora).
-
-## 19/09/2026 — Correções cosméticas
-
-O push — agora é o único item aberto da infraestrutura.
-
-## 19/09/2026 — Varredura de marcas de indecisão
-
-O push.
-
-## 19/09/2026 — METODO no pacote e reorganização do menu
-
-O experimento `captura-json` (em andamento).
-
-* **O deploy** — o pacote regenerado **não** foi publicado; o deploy é do dono.
-* O **relatório** continua escrito à mão; a geração sob demanda é a ideia do `captura-json` (não implementada).
-* O **guia** também continua escrito à mão: ele **já é** derivado de PO + Aula no conteúdo, mas quem o
-  escreve é a pesquisadora — a geração sob demanda não está implementada.
-
-- Os dois POs **não** foram reescritos: os avisos apontam o que falta em cada um, e nenhum aviso
-  reprova commit nem validação.
-- O **extrator do plano** (o irmão) — próximo passo. Ele depende deste contrato, e o
-  `plano-01.json` escrito à mão **não é uma extração: é uma leitura** (chaves renomeadas, coluna
-  descartada, valores convertidos, e o calendário que não está no `.md`).
-- O contrato vive **dentro** de `validar-po-ciclo.js`: para o irmão compartilhar o mesmo contrato —
-  e não divergir, como os dois resolvedores de fonte que geraram o `lib-fontes.sh` — ele terá de
-  sair para uma lib.
-
-- **Não houve conferência visual** — não há navegador nesta máquina. A regra foi escrita
-  para não depender de nada além da largura, e o comportamento em tela estreita é
-  exatamente o de antes; a conferência visual é do dono.
-- O **deploy** do pacote regerado é do dono.
-
-- O **extrator do plano** (o irmão) — próximo passo.
-- O **mapa de colunas** (cabeçalho da tabela → chave do alvo) e a regra de **tabela item/valor →
-  objeto**: são as duas DECLARAÇÕES que ainda não existem.
-- O contrato da lib ainda não é exercitado por um teste próprio: hoje quem o prova são os dois POs
-  (e, de agora em diante, também o plano).
-
-- O **irmão** (o extrator do plano) e o **schema do plano** — próximo passo.
-- As **conversões de valor** (`"60 minutos (Pré-requisito 4)"` → `60`; `"01"` → `1`) e as
-  diferenças de **tipografia** (`17/09/2026` × `2026-09-17`; travessão `–` × `-`): declará-las
-  exigiria regras de leitura, e a decisão foi **não ler prosa**.
-
-- Nada no fluxo de produção consome o extrator do plano: quem gera o guia e a musicalidade hoje é
-  o experimento `captura-json`. Ligar isso é o passo seguinte.
-- As conversões (número, data ISO) e a limpeza da prosa que fica nos arrays ficam **fora, por
-  decisão**: converter é ler.
-- O schema do plano **não** está no pre-commit: o plano ainda não é validado automaticamente.
-
-- A lib **não tem teste próprio**: quem a prova são os documentos e a captura.
-- O que os documentos **não** exercitam (a frase do array vazio, `lacunas`, `extras`) foi
-  conferido por chamada direta à lib, e não por um caso da captura.
-
-- O plano do **Ciclo 02** (e o da Débora) não existe ainda: o hook simplesmente não valida.
-- O aviso das lacunas só aparece no `git commit` de verdade (dentro do hook): não há um `--check`
-  avulso que o mostre.
-
-- As **conversões** (número, data ISO) e a limpeza da prosa que fica dentro dos arrays: fora, por
-  decisão.
-- O `phenomenon` como prosa dá **um** item no guia, onde a leitura à mão dava quatro: para voltar a
-  quatro, a FONTE precisa listar os observáveis (e o schema declará-los como array).
-- Nada disso está no fluxo de produção: quem gera ainda é o experimento.
-
-- A extração é por LINHA e não preserva a indentação: a pontuação é a pista que resta. Guardá-la no
-  contrato é a alternativa estrutural — e mexeria em todo o texto extraído (é uma decisão maior).
-- As conversões (número, data ISO) continuam fora, por decisão.
-
-- A tabela "Escopos" do **`REGRAS.md`** (Regra 17 em prática) **continua listando 10** escopos,
-  enquanto o hook aceita 27. É a defasagem que o `HANDOFF.md` declarou (e que uma entrada anterior
-  deste REGISTRO deu por corrigida — o que foi corrigido foi o `README-ciclos.md`, não o
-  `REGRAS.md`). `REGRAS.md` é congelado: corrigir exige commit próprio, com motivo declarado. Fica
-  proposto, não feito.
-
-- Nada impede a defasagem de voltar: os dois espelhos são **texto**, e ninguém os compara. Um teste
-  que confrontasse o regex com a documentação seria a garantia — o `pre-commit` não olha para isso.
-
-- O JSON da **Ritmos** (Duo primeiro, por decisão) e o primeiro lançamento real.
-- As **vistas ainda não saíram da cobertura** — convivem com o JSON até a peça 4, e é o que o
-  comentário no `fontes_do_ciclo()` declara.
-- O **gerador ainda não lê o JSON** (peça 3) e os **builders ainda vivem no experimento** (peça 2).
-
-- O formulário **ainda tem as suas cópias** (a Fase 2 as remove e passa a consumir a lib): até lá há
-  duplicação **temporária e declarada**.
-- O `gerar-ciclo.sh` **não lê o JSON** ainda — é a peça 3.
-- O `comoLista` do formulário ficou **sem uso** (código morto de uma rodada anterior): sai na Fase 2.
-
-- O guia gerado **não traz** três coisas que só existiam no escrito à mão: a nota "este documento não é o
-  relatório / onde ele está", a **data da aula** e o checklist "o que preencher depois" — este último,
-  por desenho (quem preenche é o formulário). Os dois primeiros são bloco fixo + dado do calendário;
-  **não foram inventados** — é decisão de quem escreve o guia.
-- As outras vistas (caderno, relatório, acompanhamento) **não** são geradas pelo pacote: elas derivam do
-  JSON de dados, que ainda está vazio (peça 1) e é alimentado pelo formulário.
-- §7.2, §7.4, §7.5 e §7.6 seguem em aberto — nenhuma bloqueia.
-
-- A nota *"este documento não é o relatório"* **não volta** no guia gerado (decisão da
-  pesquisadora, 20/09).
-- A peça 5 — migrar o guia do Ritmos (Fase 2).
-
-- O **extrator não leva blockquotes** (`> **Nota …**`): o PO do Ritmos tem 3 e o do Duo 2, e nenhuma
-  chega ao JSON — a nota P-22 está no documento e não na extração. É pré-existente e **não** foi
-  mexido aqui (mudaria o que todos os balanços veem); fica declarado.
-- A peça 5 — o guia do Ritmos gerado — segue na Fase 2, com a tabela do PO e a estrutura do plano.
-
-Hook `PreToolUse` para o auditor. Fica declarado que o `REGISTRO.md` apareceu no worktree em
-variante divergente (15 entradas duplicadas e arquivo truncado) e foi restaurado do commit
-anterior antes desta entrada — nenhuma daquelas reescritas foi aproveitada.
-
-## 23/09/2026 — A identidade do projeto entra na documentação (e a ressalva do FIPP)
-
-O desenho das duas fronteiras — a **entrada** (como o PO chega: hoje é um `.md` copiado à mão)
-e a **saída** (o módulo de avaliação, que derivaria da cadeia de custódia em vez de aproximar
-questões do plano). A porta de entrada na tela (modo IA × modo formulário) também segue por
-fazer.
-
-## 23/09/2026 — A varredura da deriva de identidade: o que ficou fora da primeira correção
-
-Os pacotes (HTML + PDF) dos dois ciclos **não** foram regerados, e portanto as páginas publicadas
-ainda trazem "hash FIPP". Regerar exige `tools/gerar-ciclo.sh` e novo deploy — deixado para
-quando o professor pedir. Fica também por fazer o desenho das fronteiras de entrada e saída, acima.
-
-## 23/09/2026 — A seção que só tinha citação, e o ciclo simulado da Diaghilev
-
-Os **dois achados acima não foram corrigidos** — mudam comportamento em `tools/` (congelado) e a
-decisão é da pesquisadora: (a) o config da captura passar a ser **por aula**; (b) o mapa de
-apelidos sair da parte cifrada (ou a página decifrar quando a aula ainda não tem dado). Os
-pacotes dos ciclos anteriores **não** foram regerados. A porta de entrada na tela (modo IA × modo
-formulário) segue por fazer, como acima.
-
-## 23/09/2026 — O gerador não herda mais o locale de quem o chama
-
-- Os demais pontos de entrada que escrevem texto (`gerar-acompanhamento.sh`, `gerar-handoff.sh`,
-  `gerar-vista.js`, `calendario.py`, `cifrar-dados.js`) **não** foram tocados: quando chamados
-  pelo `gerar-ciclo.sh` herdam o locale corrigido, mas **invocados isoladamente** continuam
-  dependendo do ambiente. Declarado, não resolvido.
-- O ciclo da Diaghilev **ainda não foi commitado** — e é o commit seguinte a este.
-
-- O `check-pacote.js` passa a **procurar U+FFFD** nas saídas (HTML, CSS, JSON, Markdown) e
-  **reprova**. Foi a lacuna que deixou o defeito chegar ao `pdflatex`: o pacote corrompido
-  passava com **0 erro(s)**, 528 links internos e 31 páginas.
-
-> **Correção de 23/09/2026 (mesmo dia).** A primeira redação desta entrada dizia que "o pacote
-> corrompido passava com 0 erro(s), 528 links internos e 31 páginas". **Está errado**: aquela
-> medição — 0 erro(s), 528 links, 31 páginas — foi feita sobre um pacote **saudável**, gerado sob
-> o locale do terminal; não mediu o pacote corrompido. O que se mediu no estado corrompido foi o
-> contrário: o `check-pacote` **reprovou**, com 1 erro — `PDF: documentos ausentes no texto do
-> PDF`, nomeando Caderno, Guia de observação e Método. A lacuna continua a existir (o check não
-> procura U+FFFD, e se o PDF fosse regerado — impossível, o `pdflatex` morre antes — os dois lados
-> estariam corrompidos e **coincidiriam**); mas o guarda existente **não** passou em silêncio. A
-> versão anterior não é apagada: fica como o elo que registra o que se pensou antes da correção.
-
-## 25/09/2026 — O HANDOFF truncado: o glob que abortava a geração em silêncio
-
-O `HANDOFF.md` regerado passa a listar o **fochini** (que a versão anterior não via) e a trazer as
-âncoras atuais — mas continua sendo saída gerada: nunca se edita à mão, corrige-se o gerador. As
-O **planejamento da aula ainda não tem todos os campos de que precisa** — o próprio
-`experimentos/captura-json/RELATORIO.md` §4.6 declara a lacuna: **falta a estrutura executada** (que
-viria do plano da aula e o JSON não carrega), o volume em tempos, o que foi abandonado, a linha de
-base. E `ciclo-01-plano-schema.json` declara a sua própria: *"o calendário **NÃO** está no `.md`"*, e
-os tipos do schema são os que **o documento oferece**, não os que o dado ideal teria. Corrigir a
-redação **não** fecha essa lacuna — apenas deixa de negar a etapa que a tem. A ordem que o
-repositório já registrou (`RELATORIO.md` §4.5) permanece: decidir onde o JSON vive, medir o custo do
-hash-como-fonte, **escrever o validador do `dados.json`**, e só então um ciclo-piloto.
-
----
-
-## 25/09/2026 — O campo `norma`: o PO ganha o padrão de referência que era o seu próprio produto
-
-
-- **`PROTOCOLO.md:224` e `:229` estão desatualizados e não foram tocados aqui.** O `:224` lista os
-  campos do PO e omite `norma`, `linhaDeBase` e `condicoesDeContorno` — a omissão é **anterior** a
-  este campo; o `:229` diz *"os cinco itens do checklist"*, e agora são **seis**. Vão para um
-  **commit próprio**, congelado, com o seu próprio motivo declarado. No mesmo `:224`,
-  *"justificativa (4 subcampos)"* está **correto** (medido) e **não** muda.
-- **A norma continua em `[Preencher]` nos três ciclos.** O campo existe; o conteúdo não. Quem o
-  preenche é a **entrevista**, e ela ainda não foi reescrita — a próxima etapa é a versão amigável em
-  `prompts/eliciar-ciclo.md`.
-- O item `normClearlyEstablished` fica **desmarcado** até a norma ser elicitada; só então o `state`
-  volta a `Input_PO_Validado`.
-- **Pendência de forma em `ciclo-01-duo-po.md`:** o bloco `linha de base` tem **duas** tabelas; o
-  extrator descarta a segunda e ainda assim sai com `exit=0` (2 avisos). Fica como dívida declarada,
-  **não** corrigida neste commit.
----
-
-## 25/09/2026 — `PROTOCOLO.md`: a tabela do PO passa a nomear o que o schema já exigia
-
-
-- **O desenho do mapa não foi tocado.** O deck tem **três** falhas de contraste medidas —
-  `#ffffff` sobre `#b08d57` (**3,09**), `#fdf6ea` sobre `#b08d57` (**2,88**) e `#8a6a3b` sobre
-  `#e8dcc8` (**3,69**) — mas elas vivem no **desenho** (`rizoma-slide.svg`, o mapa embutido no
-  deck e os outros SVGs), **não** no CSS. O gerador casa o SVG **como texto literal**, então um
-  `var(--gold)` ali não resolveria: mudar essas cores é mudar o desenho, e por isso ficam como
-  **dívida declarada**, não como correção deste commit.
-- **O `check-identidade.js` ainda não entrou no rito.** Ele existe e passa, mas **não** é
-  chamado pelo `pre-commit`. Enquanto não for, a checagem depende de alguém lembrar de rodá-la.
-- **Nada foi commitado.** A frente espera o commit próprio do rito; o `prompts/eliciar-ciclo.md`
-  tem modificação **pré-existente** e **não** pertence a esta mudança.
-- **A Frente B segue intocada:** os dois defeitos do formulário (o `gerar-ciclo.sh` extrai só a
-  `captura-aula-01`, e o `DOCS` é escrito à mão) e as decisões em aberto da captura (§7.2, §7.4,
-  §7.5).
-
-## 25/09/2026 — A hora da aula entra no `DIAS`, e o calendário passa a ter de onde contar o prazo
-
-
-- **Nada foi commitado.** Esta entrada e as alterações esperam o commit próprio do rito, que
-  precisa ser **separado** do commit da identidade visual (Frente A) — são duas mudanças
-  distintas. O `prompts/eliciar-ciclo.md` tem modificação **pré-existente** que não pertence a
-  nenhuma das duas e deve ficar de fora.
-- **O consumidor do `--aulas-arquivo` ainda não existe.** O TSV está escrito e o formato está
-  fechado, mas quem o lê é o índice por aula (§4.2, peça 4) e o prazo (§3, peça 7) — nenhum dos
-  dois implementado. Hoje **não há teste de ponta a ponta** dessa ponte: só a geração do arquivo
-  foi verificada.
-- **As 48 h continuam valendo no `lancamento.html`.** O `HORAS_DO_PRAZO = 48` **não** foi
-  trocado pela fórmula do §3: trocá-lo é a peça 7, e depende do índice por aula. Até lá o
-  formulário segue como estava — agora com o dado que a fórmula vai precisar já disponível.
-- **As outras nove peças do §10 seguem intocadas.** Os dois defeitos do formulário (o
-  `gerar-ciclo.sh` extrai só a `captura-aula-01`; o `DOCS` é escrito à mão), a âncora por aula, a
-  declaração "aula dada", o ajuste no plano, a P-13 e a eliciação.
-- **O roteiro do §8 não previa o `calendario.py`.** A lista do `ARQUITETURA-AULA.md` §8 nomeia
-  `gerar-ciclo.sh`, `lib-fontes.sh`, `hash-ciclo.sh`, `lancamento.html`,
-  `validar-captura-ciclo.js`, `check-pacote.js`, `pre-commit`, `PROTOCOLO.md` e
-  `eliciar-ciclo.md`. O `calendario.py` entrou sem estar nela. **Não é lacuna do §8** — o §8 é o
-  roteiro daquela frente, e a lista que define o congelamento é o `CONGELAMENTO.md`, que congela
-  `tools/` **em bloco**: o arquivo já era congelado antes de o roteiro mencioná-lo. Fica
-  registrado como **arquivo tocado fora do roteiro**, e o rito foi cumprido por isso.
-- **A Frente A continua sem commit.** `check-identidade.js` ainda não entrou no `pre-commit`, e
-  as três falhas de contraste do **desenho** do mapa seguem como dívida declarada.
-
-> **Correção de 26/09/2026 (nota de `B7`).** Esta entrada cita o §3.1 como *"o menor entre 24h
-> antes da próxima data de aula e o fim do bloco + 18h"*. **O `menor` do §3.1 é erro de
-> digitação**: medido contra os três cronogramas reais, o operador correto é **`maior`** — `max`
-> reproduz os números da tabela do §3.2 (Duo **143 h**, Diaghilev **23 h** e **95 h**) e os
-> literais de `prazo` do §4.2 **ao minuto**, enquanto `min` devolveria o piso de 18 h em **100%**
-> das datas. A citação acima **não é apagada**: fica como o elo que registra o que se leu antes da
-> correção (P-03/P-04). O §3.1 foi corrigido em `ARQUITETURA-AULA.md` — arquivo **livre**, fora da
-> cobertura da âncora, logo **sem reancoragem**. **O que não muda nesta peça:** a hora no `DIAS`,
-> o `calendario.py`, o schema, os três `.conf`, os três pacotes e as três âncoras — nada do que
-> aqui se fez dependia do operador.
->
-> Cai também, pelo mesmo motivo, a afirmação *"as outras nove peças do §10 seguem intocadas"*: a
-> **peça 2** (o `DOCS` derivado) foi entregue em 26/09/2026 — é a entrada seguinte. **São oito.**
-> E o `HORAS_DO_PRAZO = 48` do `lancamento.html` segue como estava: substituí-lo pela fórmula do
-> §3 é a **peça 7**, com rito próprio.
-
-## 26/09/2026 — O `DOCS` deixa de ser lista à mão: as famílias por aula entram na âncora
-
-
-- **O Defeito 1 segue aberto.** O gerador continua extraindo **só** a `captura-aula-01`, e a página
-  de qualquer aula monta esse mesmo painel: os quatro formulários ainda saem idênticos. Entregar a
-  config da aula certa é a peça `B3` — a prova de que saem quatro diferentes já existe em
-  `experimentos/provar-por-aula.js`.
-- **O `tools/check-pacote.js` continua conservador**, como decidido acima. Se a peça `B11` não o
-  revisar, ele seguirá sem saber expandir família — o que é suficiente, porque deriva os
-  obrigatórios e confere as páginas pelo `<h1>`.
-- **Nada foi commitado.** O commit desta peça é próprio e ainda não foi feito, como o de `B1` e o
-  da Frente A — os três seguem pendentes e separados.
-- **O `HANDOFF.md` não foi regenerado.** Ele ainda descreve o `DOCS` como escrito à mão; a
-  regeneração acompanha o commit, não esta peça.
-
-## 26/09/2026 — A P-13 deixa de sugerir que o dado é privado do professor: a escola entra no escopo
-
-
-- **A eliciação segue pendente.** A §10 item 9 é um **par** — a P-13 **e** a eliciação (§6.2). Só a
-  P-13 foi fechada aqui. O `prompts/eliciar-ciclo.md` estava fora de escopo por decisão do plano (e
-  tem modificação pré-existente de outra sessão no worktree, preservada).
-- **As cinco ocorrências residuais da oposição, deixadas de propósito:**
-
-  | Onde | Por que fica |
-  |---|---|
-  | `PROTOCOLO.md:88` | É a **pétrea**. A §9 manda **não** reescrevê-la; o parágrafo novo é que passa a delimitar a leitura. |
-  | `ARQUITETURA-AULA.md:372` | **Cita** "o texto de hoje" — é a transcrição que o próprio ajuste compara. |
-  | `ARQUITETURA-AULA.md:381` | É o **diagnóstico** — chama a oposição de falsa na mesma frase. |
-  | `REGISTRO.md:45` | Entrada **histórica** de 18/09/2026. P-03/P-04: a proveniência acrescenta, não edita. |
-  | `tools/gerar-handoff.sh:16-17` | Comentário de **arquivo congelado**, que justifica por que o `HANDOFF` separa professores. Exigiria motivo próprio e commit próprio em `tools/`, e **não é onde alguém aprende a regra**. Fica registrado; corrigi-lo, se for o caso, é **peça própria**. |
-
-- **`professores/README.md:12`, `departamentos/README.md:24`,
-  `biblioteca/guia-do-professor.md:74` e `ciclo-01-ritmos-po.md:15`** citam a P-13 e **não** contêm
-  a oposição falsa — dizem apenas que o PO é/continua sendo do professor, o que **segue correto**.
-  **Não foram tocadas.** A última é **fonte sob a âncora** e transcreve a resposta do professor sem
-  alteração; tocá-la exigiria reancorar o Ritmos.
-- **A §10 do `ARQUITETURA-AULA.md` está desatualizada como quadro de progresso.** Ela ainda diz que
-  a peça 1 foi *"a única peça desta lista já executada; as nove seguintes seguem intocadas"* — o que
-  já não era verdade depois de `B2` (§10 item 2) e não é depois desta (§10 item 9). **Não foi
-  corrigida aqui de propósito**: a §10 é um **quadro único** que cada peça da fila vai precisar
-  atualizar, e N agentes escrevendo no mesmo parágrafo é colisão garantida. A harmonização da §10
-  fica para **uma passada única**, quando a fila drenar.
-
-> **Correção de 26/09/2026 (nota de `B7`).** Esta afirmação ficou ela mesma desatualizada,
-> por duas vias. **Primeira**: o `b7` corrigiu a contabilidade das peças já entregues — o item 1
-> perdeu a oração *"as nove seguintes seguem intocadas"*, que a entrega do **item 2** pelo `B2`
-> já havia tornado **falsa**, e o item 2 passou a **Feito em 26/09/2026**. Deixar a oração de pé
-> não era adiar: era publicar um erro. **Segunda**: aquela oração pressupunha **nove** peças
-> seguintes; são **oito** (itens 3 a 10). A redação acima **não é apagada** (P-03/P-04).
-> Isto **não contradiz** o "passada única": o que o `b7` tocou foi a **contabilidade factual** do
-> quadro — que **não podia esperar** sem virar afirmação falsa —, e o "**mesmo parágrafo**" que a
-> passada única reserva é o **texto de fundo do quadro de progresso**, território de outro
-> tamanho. Restam **oito peças por fazer** (3 a 10); o **item 7 (o prazo)** segue **aberto** — o
-> `b7` corrigiu a **fórmula** do §3, não entregou a peça que a aplica no índice e no fechamento.
-> E o **item 9 está parcialmente entregue**: o `b12` escreveu o parágrafo da **P-13** sobre o
-> sufixo da escola, mas a **elicitação do §6.2** segue aberta — por isso o item **não** foi
-> marcado, e a contagem acima o mantém entre os pendentes.
-
-- **Nada foi commitado.** O commit desta peça é **próprio** — ela é congelado — e ainda não foi
-  feito, como os da Frente A, de `B1` e de `B2`, que seguem pendentes e **separados**.
-- **O `HANDOFF.md` não foi regenerado**, e desta vez **não ficou desatualizado por esta edição**: ele
-  lista apenas os **títulos** das pétreas, não os corpos — o `gerar-handoff.sh:167` extrai as linhas
-  `^\*\*P-[0-9]\{2\} —` e emite só o título. A regeneração dele acompanha o commit das entradas do
-  `REGISTRO.md`, não esta peça.
-
-> **Fecho de 27/09/2026.** O *"commit próprio — ainda pendente"* do bullet acima **deixou de ser
-> pendência neste dia**: `PROTOCOLO.md` e `professores/README.md` entraram no commit
-> `docs(protocolo): … a P-13 deixa de sugerir que o dado é privado do professor`, **com o motivo
-> declarado no corpo** — o rito do `CONGELAMENTO.md` cumprido. As duas frases acima **não são
-> apagadas** (P-03/P-04): eram verdadeiras até 27/09/2026; esta nota é o elo novo.
-> O `HANDOFF.md` **foi regenerado no mesmo dia**, no commit das entradas do `REGISTRO.md` — como o
-> bullet acima previa, a regeneração acompanha aquelas entradas, não esta peça.
-
-## 26/09/2026 — O prazo do §3 dizia "menor entre" — e dois números do Ritmos estavam errados
-
-- **O `HORAS_DO_PRAZO = 48` do formulário continua como estava** (`tools/templates/lancamento.html:745`).
-  Esta entrada corrigiu a **coerência textual** do documento; **substituir o 48 fixo pela fórmula
-  do §3 é a peça 7** da ordem do §10, que **toca `tools/templates/`** (congelado) e por isso
-  **exige rito próprio** — motivo declarado, entrada no `REGISTRO.md` e commit próprio. **Nada
-  disso foi feito aqui.**
-- **O §10 tem oito peças por fazer** (3 a 10). A contabilidade da §10 está correta agora, mas o
-  trabalho que ela conta **não começou**.
-- **O §10 `:403-404` continua factualmente falso.** A frase sobre o TSV *"não existe hoje"* ficou
-  desatualizada quando o `B1` entregou o `--aulas-arquivo`. **Não foi corrigida nesta passada**
-  (é a passada única de fechamento da §10) — e fica registrado para que a próxima sessão não a
-  tome por verdadeira.
-- **A última linha da §3.3 mede "o maior prazo já praticado" com um exemplo do Duo**, e essa é
-  exatamente a classe de exemplo que esconde o defeito de relógio (um só relógio no `DIAS`).
-  **Não foi trocada** — a regra está certa; o exemplo é que não exercita o ramo.
-- **O `FECHAMENTO` (§3.4) segue não implementado** — é campo opcional do `.conf`, e nenhum dos
-  três o declara. Não entrou nesta rodada.
-
-## 26/09/2026 — O config da captura deixa de ser um por ciclo: um `captura-aula-NN.json` por folha em disco
-
-
-- **O formulário ainda não lê o config da aula.** Esta peça **publica** os arquivos; quem os
-  consome é o `B3b`, e ele **não** foi feito. Até lá, a página do formulário continua montando o
-  painel da aula 01 em todas as aulas — os quatro formulários da Diaghilev seguem **idênticos no
-  navegador**. O que mudou é que os dados para torná-los diferentes já estão no pacote.
-- **O índice por aula (§4.2) não existe.** É a peça **4**, de que o `B3b` depende: sem
-  `aulas[].config`, a página não tem como saber **qual** dos quatro arquivos pedir.
-- **O `tools/check-pacote.js` não exige o config de cada aula** — ele não conhece config de
-  captura. Enquanto isso, um pacote publicado com a folha da aula 03 fora do disco **passa** no
-  `check-pacote.js` (o gerador é que derruba, na geração). Rever o validador é a peça `B11`.
-- **Nada foi commitado.** O commit desta peça é próprio (o `tools/` congelado exige commit
-  separado) e ainda não foi feito — como o do `B1`, o do `B2` e o da Frente A, que seguem
-  pendentes. **Este arquivo é a entrada do `REGISTRO.md`, ainda fora dele.**
-- **O `HANDOFF.md` não foi regenerado** e a §4.1 do `ARQUITETURA-AULA.md` continua marcando o
-  Defeito 1 como aberto: a nota de fechamento e a regeneração acompanham o commit.
-
-## 26/09/2026 — O `check-identidade.js` entra no `pre-commit`: a identidade deixa de depender de alguém lembrar
-
-
-- **A frente A continua SEM COMMIT.** Este trabalho está no worktree e **não** foi commitado:
-  a tarefa proíbe, e o rito dos congelados exige **commit próprio** para `tools/hooks/pre-commit`.
-  Enquanto o commit não existir, a seção 5 roda **de fato** (o `.git/hooks/pre-commit` é link
-  simbólico para o arquivo do repositório, e a alteração já está viva), mas **não está no
-  histórico** — é o único ponto que falta para fechar a frente A.
-- **A prova ponta-a-ponta fica devida.** Foi testado o trecho **isolado** e o hook com o stage
-  vazio; **não** houve uma execução real do `git commit` com `tools/` no stage, porque isso
-  exigiria um `git add` que a tarefa proíbe. **Quem commitar deve ver a seção 5 disparar** e
-  conferir a linha `pre-commit: identidade visual ok (4 verificações passaram)`.
-- **`tools/check-identidade.js` segue UNTRACKED (`??`).** Ele nasceu nesta frente e **precisa
-  entrar no mesmo commit** que o hook — se só o hook for commitado, o `pre-commit` passa a
-  chamar um arquivo que não existe no repositório, e **todo commit com `tools/` no stage
-  falha** com "No such file or directory". É a armadilha desta frente: **os dois arquivos vão
-  juntos**, e o commit é do rito (motivo declarado + commit próprio).
-- **E o resto da frente de identidade ainda não foi commitado.** O validador não basta a si
-  mesmo: lê `tools/templates/ciclo.css` (**modificado**, sem commit) e `tools/templates/nav.js`
-  (**untracked**), compara com o deck e com os `assets/` dos pacotes — e a **seção 3** do hook,
-  que roda antes dele, chama o `tools/gerar-ciclo.sh`, que por sua vez invoca o
-  `tools/lib-tokens.js` (`--latex`) e é `require`'d por `gerar-animacao.js` e
-  `sincronizar-slide.js`. Num clone limpo, **o commit do rito não pode levar só o hook e o
-  validador**: tem de levar as **fontes da identidade** (`tools/templates/ciclo.css`,
-  `tools/templates/nav.js`, `tools/lib-tokens.js`) e o `IDENTIDADE-VISUAL.md` — que o validador
-  **não abre** (ele só o cita no comentário e na mensagem de erro), mas para onde ele **manda
-  quem lê a recusa**, e que não existe no `HEAD`. Sem as fontes, o `pre-commit` passa a recusar
-  a si próprio. Medido com `git status --short` sobre cada arquivo que o script abre.
-- **A entrada NÃO foi inserida no `REGISTRO.md`.** Ela existe neste arquivo de sessão; quem
-  commitar **acrescenta no FIM** do `REGISTRO.md` (cronológico crescente) — o
-  `tools/gerar-handoff.sh` extrai a **última** entrada como "última entrada do REGISTRO",
-  e inserir no topo publicaria o marco errado no `HANDOFF.md`.
-- **Uma borda real e declarada, que o teste da tabela toca.** O 20º caminho da minha primeira
-  medição foi `identidade nao existe` — e ele **casou** o guard: `^tools/` casa `tools/hooks/…`,
-  e qualquer caminho que **comece** com uma das famílias entra, **mesmo que o arquivo não exista**
-  (o `grep` só olha texto). É o comportamento correto — o hook trabalha sobre **nomes no stage**,
-  não sobre o disco — e note que isso **não** cria caminho de falha falsa: `git diff --cached
-  --name-only` só lista caminhos que existem no índice. A tabela publicada tem **19** caminhos
-  reais (**9 RODA / 10 pula**); o caminho inventado foi retirado da contagem por não ser um
-  arquivo do repositório.
-- **A borda do regex.** `assets/style.css.bak` **casa** o guard (a família termina em `/assets/`,
-  sem exigir extensão) e `apresentacoes/apresentacao-01-rizoma/README.md`
-  **não** casa. A primeira borda é inofensiva — o pior caso é rodar o validador uma vez a mais
-  num commit que já mexe em assets — e ficou **medida**, não suposta. Fechar a família com
-  `/assets/(style\.css|nav\.js)$` seria mais preciso; não foi feito para manter o regex legível.
-  Note-se que a seção 1 **não** cobre esse caso (medi: o regex dela não casa `.bak`), então a
-  borda é real, ainda que inócua. **Não é dívida**; é uma borda conhecida, e está declarada.
-- **Segue em aberto, da entrada de 25/09:** o **desenho do mapa** tem três falhas de contraste
-  (`#ffffff`/`#b08d57` = 3,09; `#fdf6ea`/`#b08d57` = 2,88; `#8a6a3b`/`#e8dcc8` = 3,69) que
-  vivem nos SVGs, **fora** do alcance do `check-identidade.js` — o validador não as vê e este
-  hook **não** as barra. E a **Frente B** (os dois defeitos do formulário e as decisões de
-  captura §7.2/§7.4/§7.5) permanece intocada.
-
-## 26/09/2026 — O campo ganha a forma canônica da linha de base, a estrutura do consentimento e o formulário da aula
-
-
-- **NADA FOI COMMITADO.** O trabalho está inteiro no worktree. A tarefa proíbe commit, `add`,
-  branch, `reset` e `checkout`; a disciplina do projeto exige commit próprio com motivo declarado, e
-  aqui nem há congelado para justificar.
-- **Esta entrada NÃO está no `REGISTRO.md`.** Ela existe neste arquivo de sessão; quem mesclar
-  **acrescenta no FIM** do `REGISTRO.md` (ordem cronológica crescente, a mais recente no fim)
-  porque `tools/gerar-handoff.sh` extrai a **última** entrada como "última entrada do REGISTRO"
-  e inserir no topo publicaria o marco errado no `HANDOFF.md`.
-- **O consentimento continua NÃO FECHADO, e agora isso está declarado em dois lugares** (a seção do
-  `README.md` e o cabeçalho do `consentimento.md`). Ele é **estrutura com lacunas**: enquanto houver
-  `[Preencher: …]`, **não existe termo aplicável ao campo** — e a decisão de parar aí é deliberada,
-  porque a redação jurídica não é do protótipo. **Nenhum dos professores tem consentimento
-  assinado**; nem há onde arquivá-lo sem que se decida se as vias entram no Git (a decisão está entre
-  as lacunas).
-- **`linhadebase-duo-forma-canonica` NÃO EXISTE no banco de todos.** A tarefa dizia que esta peça o
-  destravaria; medido, `SELECT … WHERE id='linhadebase-duo-forma-canonica'` devolve **0 linhas**. A
-  forma canônica **está** fixada no `README.md` (26/09/2026, linhas 52–151), mas não há todo a marcar
-  como `done` — o destravamento é declarado aqui, não registrado no banco.
-- **A divergência do schema não foi corrigida.** `ciclo-01-po-schema.json:33–36` continua descrevendo
-  `linhaDeBase` como tabela de dimensões, e a regra do extrator (`lib-extracao-md.js:94–96`) continua
-  descartando a segunda tabela de um bloco — de modo que as linhas por aluna do PO do Duo **seguem
-  fora** do `po-01.json` (medido: 3 objetos de dimensão, 0 por aluna). Ficou `[Preencher: dar à tabela
-  por aluna do PO do Duo um bloco próprio …]` no `README.md`. Os dois arquivos são **congelados**, e
-  corrigi-los é outra frente.
-- **Fica pendente, e é medido, o `Fora do Git?` de `ARQUITETURA-CAPTURA.md` §5.** A tabela de
-  comportamento do `consentimento.md` afirma o que o código **faz hoje** — apelido, nome e contato
-  fora do Git, PDF sem acompanhamentos, HTML cifrado, JSON cifrado por inteiro, acesso só do
-  professor — e **não** o que foi decidido. A pendência continua pendente.
-- **Um elo morto e pré-existente, que NÃO foi corrigido para não misturar frentes:** a linha 48 do
-  `README.md` aponta para `../REGISTRO.md` — e não existe `professores/tiago/REGISTRO.md`. É anterior a
-  esta mudança e ficou como estava.
-- **Nota datada de correção — 26/09/2026, mesma sessão.** Duas afirmações escritas **acima**, nesta
-  entrada, saíram erradas e **não foram apagadas** (a regra do projeto — o passado se incorpora, não se
-  reescreve — vale também para os artefatos de sessão). A correção segue aqui, datada:
-  1. Onde está escrito *"**Dez** lacunas jurídicas no artefato, mais as duas de aplicação"*: **medido**,
-     o `professores/tiago/campo/consentimento.md` tem **12** marcadores `[Preencher:` no corpo
-     (linhas 71, 73, 75, 80, 83, 89, 90, 91, 92, 97, 100 e 102 — mais 2 ocorrências que são remissão
-     ao próprio marcador no cabeçalho, linhas 16 e 18, que **não** são lacunas). A repartição é:
-     Partes e assinatura **3**, Base legal e finalidade **2**, Guarda e ciclo de vida **4**, Aplicação
-     **3** = **12**. A seção de lacunas do `README.md` (linhas 203–226) tem **11** marcadores, mais
-     **1** no aviso de fronteira (linha 181) = **12**. O total correto é **12**, não dez.
-  2. Onde está escrito *"`toolstools/../ciclo-01-po-schema.json`"* na lista **Com o quê.**: é erro de
-     digitação. O caminho correto é **`professores/tiago/ciclos/ciclo-01-po-schema.json`** (linhas
-     33–36 e 115, medido). Os demais caminhos daquela lista foram conferidos e estão certos.
-
-## 26/09/2026 — A data da aula deixa de ser adivinhada: o `ciclos.json` passa a declarar `aulas[]`
-
-> **Nota de mesclagem (para quem mescla).** Esta entrada existe no arquivo de sessão
-> `/home/mti/.copilot/session-state/f4d16739-cbc4-4204-a8c4-a98e7eb73fdd/files/registro-b4.md`.
-> **Acrescente-a no FIM do `REGISTRO.md`** — a ordem é cronológica crescente e
-> `tools/gerar-handoff.sh` extrai a **última** entrada como "última entrada do REGISTRO";
-> inserir no topo publicaria o marco errado no `HANDOFF.md`. Nada foi commitado.
-
-
-- **NADA FOI COMMITADO.** O trabalho está inteiro no worktree. A tarefa proíbe `commit`, `add`,
-  branch, `reset` e `checkout`. O congelamento exige **commit próprio** para `tools/` e para
-  `tools/templates/` — o motivo está declarado nesta entrada, o commit fica para quem mescla.
-- **Esta entrada NÃO está no `REGISTRO.md`.** Ela existe no arquivo de sessão; quem mesclar
-  **acrescenta no FIM**.
-- **`prazo` e `ancora` não têm produtor.** Saem `null` em **37/37** aulas. `prazo` é o `B7` (§3);
-  `ancora` é o `B5` (§5, o `.fipp` por aula). **Nenhum valor foi fabricado** — quando os dois
-  existirem, o índice passa a preenchê-los sem mudar de forma.
-- **O "ato declarado" continua sem código.** O §1 descreve planejada → dada → lançada, mas nada lê
-  ou escreve `estado`/`lancada`. Por isso os dois são **derivados** da existência de
-  `dados.aulas[NN]`. **Isso não distingue "aula dada" de "aula lançada"** e não conhece a aula
-  pulada (que o §2 trata como ausência legítima). Enquanto não houver o ato, `estado`/`lancada` do
-  índice são aproximação, e é isto que a próxima sessão precisa saber.
-- **O `B3b` continua pendente, e é o Defeito 1.** O formulário ainda lê `peca(c.id, 'captura')` —
-  o config do **ciclo** — em vez de `peca(c.id, 'captura-aula-' + aula)`. Os arquivos por aula já
-  existem em disco (o `b3a` os publica) e o índice agora dá a **chave** (`config`); falta a página
-  consumir. **Este índice é pré-requisito do `B3b`, não o desfecho dele.**
-- **`experimentos/provar-por-aula.js` segue provando o Defeito 1, com código 0** — é a prova que o
-  `B3b` vai ter de virar verde de comportamento, não de arquivo presente.
-- **O `check-pacote.js` não lê `ciclos.json`** e portanto **não pode** detectar regressão de
-  índice. Foi por isso que a verificação desta peça é por fora dele (medição do `aulas[]`,
-  conferência aula a aula do defeito e a execução das funções reais do template). Um validador de
-  índice é trabalho aberto.
-- **`experimentos/captura-json/formulario.html` continua divergente** — comentário em `:669`,
-  `|| 7` em `:715`, remissão em `:1175`. Declarado, **não** espelhado. Se a decisão for convergir as
-  duas cópias, é outra peça.
-- **`primeiraSemDado` e `opcoes()` ainda têm o caminho de contagem** como fallback para índice sem
-  `aulas[]` (os fixtures de `experimentos/`, que declaram `intervalo_dias` e não têm índice). A
-  remoção desse caminho só é segura quando todos os ciclos publicados tiverem `aulas[]`.
-- **A linha de corte não foi acoplada.** Ela continua vivendo só em `tools/lib-vistas.js` e só
-  alimenta o acompanhamento por aluna; **o formulário da aula seguinte ainda não a recebe**. Essa é
-  a fronteira declarada no §2 e **fica aberta**.
-- **O caso 10 do harness quebra antes e depois.** `mk(id)` não tem `querySelectorAll`, e
-  `limparCamposCaptura` precisa dele; a quebra **aborta o resumo final** e mascara os casos 11–20.
-  É pré-existente, **não foi tocado** (consertar o harness é outra frente) e é o motivo de a
-  verificação desses casos ter sido feita por fora.
-
-## 26/09/2026 — O JSON de dados ganha validador: o `-dados.json` deixa de ser conferido a olho (§4.6)
-
-> **Nota de mesclagem (para quem mescla).** Esta entrada existe no arquivo de sessão
-> `/home/mti/.copilot/session-state/f4d16739-cbc4-4204-a8c4-a98e7eb73fdd/files/registro-b10.md`.
-> **Acrescente-a no FIM do `REGISTRO.md`** — a ordem é cronológica crescente e
-> `tools/gerar-handoff.sh` extrai a **última** entrada como "última entrada do REGISTRO";
-> inserir no topo publicaria o marco errado no `HANDOFF.md`. Nada foi commitado.
-
-
-- **NADA FOI COMMITADO.** O trabalho está inteiro no worktree. O `CONGELAMENTO.md` exige **commit
-  próprio** para `tools/` — o motivo está declarado nesta entrada; o commit fica para quem mescla.
-- **`ultimo_lancamento` por aula continua sem produtor.** O validador o **exige quando existe**
-  (formato de data) e **avisa quando falta** — nos três ciclos, avisa. A §4.1 decide que ele é
-  **dentro** da aula; hoje só a raiz o carrega (herança do formulário antigo). Enquanto o produtor não
-  mudar, o aviso é o registro honesto disso — **nenhum valor foi fabricado** para calar o aviso.
-- **`dada_em` (`B6`) e a `linha_de_base` por aluna (`B13`) são tolerados, não implementados.** Passam
-  pelo validador sem regra de tipo própria; quando os produtores existirem, é onde a regra entra.
-- **As lacunas da §4.6 são declaradas, não fechadas.** Nove das dez continuam sem campo; a décima
-  (`pergunta_emergente`) é do caderno e não deste validador. Em particular, **P-22** continua indo à
-  mão no documento — o validador **diz isso** em vez de o esconder.
-- **O validador não é chamado por `tools/check-pacote.js`.** Ele entra pelo `pre-commit`; a validação
-  de pacote por aula é o **`B11`**, frente separada e arquivo de outra peça.
-- **A âncora `.fipp` não precisou ser reancorada** por esta peça: `tools/` **não** entra na cobertura
-  de `fontes_do_ciclo()` (`tools/lib-fontes.sh:137`), e a conferência `tools/hash-ciclo.sh tiago 01
-  duo --check` continua **exit 0** (*"ciclo 01-duo íntegro; cadeia intacta"*).
-
-## 26/09/2026 — O prazo por aula deixa de ser 48 h fixas: `aulas[].prazo` sai calculado do calendário (§3)
-
-> **Nota de mesclagem (para quem mescla).** Esta entrada existe no arquivo de sessão
-> `/home/mti/.copilot/session-state/f4d16739-cbc4-4204-a8c4-a98e7eb73fdd/files/registro-b7-impl-prazo.md`.
-> **Acrescente-a no FIM do `REGISTRO.md`** — a ordem é cronológica crescente e
-> `tools/gerar-handoff.sh` extrai a **última** entrada como "última entrada do REGISTRO";
-> inserir no topo publicaria o marco errado no `HANDOFF.md`. Nada foi commitado.
-
-
-- **NADA FOI COMMITADO.** O trabalho está inteiro no worktree. O `CONGELAMENTO.md` exige **commit
-  próprio** para `tools/` **e** para `tools/templates/` — **dois** commits, ou um para cada item, e
-  **separados** do trabalho das outras frentes que hoje dividem o worktree. Os motivos estão declarados
-  nesta entrada; os commits ficam para quem mescla.
-- **Dois débitos do `REGISTRO.md` ficam resolvidos por esta peça** — e ficam registrados aqui para não
-  serem relidos como verdade: `:3315` (*"O consumidor do `--aulas-arquivo` ainda não existe"*) —
-  **agora existe**, é o `aulas[]` do `B4` mais o `prazo` desta peça, e o prazo tem teste de ponta a
-  ponta contra o `ciclos.json` de verdade; `:3319` e `:3749` (*"As 48 h continuam valendo no
-  `lancamento.html`"* / *"O `HORAS_DO_PRAZO = 48` … continua como estava"*) — **o 48 fixo saiu**; o
-  prazo passou a ser lido do índice e as 48 h sobrevivem só como `HORAS_DE_RESSALVA`, o fallback.
-  As redações antigas **não** foram apagadas (P-03/P-04): esta é a nota datada de que envelheceram.
-- **O `FECHAMENTO` (§3.4) segue não declarado em `.conf` nenhum.** O código **honra** o campo (teto,
-  validado, com data inválida recusada), mas **nenhum dos três ciclos o usa** — e **não foi inventado**,
-  porque inventar data é proibido. Quem o elicia é `prompts/eliciar-ciclo.md` (campo *"data de
-  fechamento"*), que é **congelado de `prompts/`** e **não foi tocado** aqui. Enquanto ele não
-  perguntar, o campo nasce vazio — que é o normal declarado na §3.4.
-- **`ARQUITETURA-CAPTURA.md:313` ainda diz "48 horas".** O §5.1 descreve a regra antiga — renovada a
-  cada gravação — e agora ela é só ressalva. **Não foi corrigido aqui**: é documento de outro escopo
-  (captura, não aula) e a redação precisa da mesma passada de coerência que a §3.1 teve. Fica o aviso
-  para a próxima sessão não o tomar por verdade.
-  > **Nota datada — 27/09/2026. Este aviso foi cumprido; a pendência está FECHADA.** O §5.1 foi
-  > corrigido na entrada *"A §5.1 para de dizer 48 h"* (mesmo dia, no fim deste arquivo): ele agora
-  > dá a fórmula da §3.1, as medições das janelas e a ressalva das 48 h **nomeada como ressalva**. As
-  > duas redações antigas — as 48 h renovadas e a Nota do `ultimo_lancamento` — **não** foram
-  > apagadas (P-03/P-04): viraram notas datadas. A linha citada (`:313`) **não vale mais**: o arquivo
-  > cresceu, e o bloco hoje está em `§5.1`. **O que continua aberto é só outra coisa:** o motivo
-  > obrigatório do formulário, que a `§5.1` passou a declarar como **divergência** (a resolver no
-  > `B8` ou na revisão do formulário). A frase do aviso **não** foi reescrita: fica como o elo que
-  > registra o que se pensou antes da correção.
-- **`experimentos/captura-json/formulario.html` continua com a regra das 48 h.** É demonstrativo e
-  está fora de pacotes, hashes e publicação; alinhá-lo ao `prazo` declarado é decisão de outra peça.
-- **`lancamento.html` mudou de comportamento, não só de redação.** O prazo era **dinâmico** (reabria a
-  cada gravação) e passou a ser **fixo por aula**, lido do índice. É a consequência direta da §3.1, mas
-  é mudança de comportamento visível para quem lança — e está aqui declarada como tal.
-- **`ancora` por aula (§5) continua SEM produtor** e sai `null` nos três ciclos. Esta peça deu produtor
-  a **uma** chave (`prazo`), não a duas — e o comentário do gerador agora diz isso com precisão.
-- **O `launch.json` do pacote não traz `intervalo_dias`**, então `dataPlanejada()` no formulário segue
-  **caminho morto** — outro item do §10, fora desta peça.
-- **As demais peças do §10 seguem intocadas:** a âncora por aula, a declaração "aula dada", o ajuste no
-  plano, o painel por escola e a eliciação. A contabilidade do §10 está correta; o trabalho que ela
-  conta **não** começou.
-
----
-
-## 26/09/2026 — A âncora deixa de existir só por ciclo: um `.fipp` por aula (§5.2)
-
-> **Nota de mesclagem (para quem mescla).** Esta entrada foi preparada e medida na sessão de
-> 26/09/2026; os números vêm de execução real, não de previsão. **Nada foi commitado.**
-
-
-- **A metade do gerador.** O campo `ancora` do índice continua gravado como `None`
-  (`gerar-ciclo.sh:383`); **ninguém aponta** do `ciclos.json` para o `-aula-NN.fipp`. A âncora
-  existe no disco; o índice ainda não sabe dela.
-- **O `pre-commit` não valida `-aula-NN.fipp`.** A linha `:63` do hook monta o caminho
-  **literalmente** como `ciclo-$numero-$v.fipp` — logo as 6 âncoras de aula passam **fora** da
-  checagem automática de commit. Hoje só `--check` manual as confere.
-- **O `gerar-handoff.sh` não as lista.** A tabela de âncoras (`:152-163`) tem 5 colunas fixas
-  (`Variante | .fipp | hash | parentHash | po_state`): um campo novo **não a quebra**, mas o
-  `ancorado_em` **não aparece** ali e as âncoras de aula **não são relacionadas**.
-- **A tolerância e as órfãs ficam como contrato declarado, sem teste.** A âncora de aula ausente
-  é `aviso:` e a órfã também — mas não há caso de teste que force os dois caminhos.
-- **O critério de inclusão do relatório na âncora da aula** é o que faz duo/ritmos terem **3**
-  fontes e o diaghilev **2**. Está implementado e medido; **não** está justificado por escrito.
-- **A correção do slug — defeito PRÉ-EXISTENTE, corrigido de passagem.** A variável `PROFESSOR`
-  tem **dois papéis**: é o **slug do diretório** (de `$1`) e o **nome de exibição** (do `.conf`,
-  via `source`) — e o `source` acontece **no meio** do script. As dicas de comando impressas nos
-  `aviso:`/`erro:` usavam `$PROFESSOR`, que naquele ponto **já é o nome de exibição**; a
-  instrução que o professor lia mandava rodar `tools/hash-ciclo.sh Fochini 01 diaghilev`, que
-  **falha**. Provado pré-existente: `git show HEAD:tools/hash-ciclo.sh` traz as **3** linhas
-  antigas (`HEAD:181`, `HEAD:191`, `HEAD:204`) com `$PROFESSOR`. Corrigido com `PROFESSOR_DIR`
-  (linha `:70`, antes do `BASE` e dos `source`) e as **5** dicas — **3 das 5 eram o defeito
-  antigo**, e são elas as **3 deleções** do `159 3`. **Não tocado de propósito:** o
-  `echo "professor: $PROFESSOR"` **dentro** dos `.fipp`, que grava o nome de exibição
-  **intencionalmente**.
-- **Nota datada — redação que envelheceu.** Os últimos bullets da entrada do `B7`
-  (`b7-impl-prazo`) afirmam que *"`ancora` por aula (§5) continua SEM produtor"* e listam *"a
-  âncora por aula"* entre as peças do §10 **intocadas**. A segunda frase **deixou de valer em
-  26/09/2026**: a âncora por aula agora existe, materializada, com `--check` verde nos 3 ciclos.
-  A primeira **continua valendo para o índice** — o `ancora` do `ciclos.json` segue `None`. A
-  redação antiga **não** foi apagada (P-03/P-04); esta nota é o elo novo.
-
-
-- **O produtor continua declarando `config` sem folha — achado desta peça, NÃO corrigido.** O
-  `gerar-ciclo.sh:382` segue emitindo `'config': 'captura-aula-%s.json' % nn` **incondicionalmente**.
-  Resultado medido: **duo** leva **11** avisos (`aulas 02..12`), **ritmos** leva **20**
-  (`aulas 02..21`) — todos dizendo que o produtor promete um config que não tem folha na fonte. A
-  correção é **condicionar a declaração à existência da folha** (§4.2 já omite `config` nesse
-  caso). **Não foi feita aqui**: o `tools/gerar-ciclo.sh` está fora da fronteira de escrita desta
-  peça — está sendo alterado **em paralelo** por outra frente (`b7-impl-prazo`) — e editá-lo
-  causaria conflito. **Follow-up declarado.**
-- **Os 3 pacotes NÃO foram regerados — por decisão.** Esta peça valida contra os pacotes **como
-  estão no disco**. O `b7-impl-prazo` vai regerá-los; **é esperado**. Se o produtor passar a
-  omitir o `config` sem folha, os avisos de duo/ritmos (11 e 20) **desaparecem** na próxima
-  geração, sem que o `check-pacote.js` mude uma linha.
-- **Não há teste automatizado da checagem nova.** A prova foi um **teste destrutivo controlado**,
-  manual, feito fora do pacote real: com uma cópia do pacote da diaghilev, (a) removido o
-  `captura-aula-02.json` (folha existe na fonte) ⇒ **FALHOU: 1 erro**; (b) criado um
-  `captura-aula-99.json` órfão ⇒ **FALHOU: 1 erro**; (c) removido o `aulas[]` do índice ⇒
-  **OK: 0 erro, 1 aviso** (formato antigo não falha); (d) declarado o mesmo config por 4 aulas ⇒
-  **FALHOU: 6 erros** (duplicidade + os 3 órfãos decorrentes). O diretório de teste foi **removido**
-  ao fim. **Nenhum caso de teste ficou no repositório** — a cobertura do caminho de erro é manual.
-- **A procedência do teste destrutivo foi adaptada.** O escopo pedia a cópia "para `/tmp`"; a
-  política de segurança desta sessão **proíbe** escrita em `/tmp`, `/var/tmp` e `mktemp`. A cópia
-  foi feita em `.b11-tmp/` **dentro do repositório** (para que o `dirFontes` — o diretório das
-  fontes, irmão do pacote — continuasse resolvendo o `.conf` e as folhas), e o diretório foi
-  **removido ao fim**. `git status --porcelain` não tem vestígio dele. O **intento** do escopo
-  (verificar que a checagem pega) foi cumprido; só o **caminho** do diretório temporário mudou.
-- **A checagem só confere vínculo, não conteúdo.** Ela olha **existência** e **não-vazio** do
-  arquivo do config, e o **alinhamento** com `aulas[]`. A validade do **conteúdo** do config por
-  aula (schema, campos, coerência com o PO) é da fronteira do `tools/validar-dados-ciclo.js` —
-  **não** desta.
-- **`config` apontando para fora do pacote** (caminho absoluto ou com `..`) não é conferido; o
-  `path.join` aceita e resolve. Não há caso desses nos 3 pacotes hoje.
-- **Nada commitado.** As alterações ficam no worktree, junto das dezenas de outras frentes. O
-  `REGISTRO.md` **não** foi tocado por esta peça: esta entrada é o artefato de sessão que o agente
-  principal mescla, preservando a ordem cronológica do arquivo.
-
----
-
-## 26/09/2026 — Os apelidos saem em claro: um ciclo sem lançamento passa a listar as alunas
-
-
-- ⚠️ **A caixa do `escola` está FECHADA na decisão, mas continua sendo uma caixa**: o índice
-  declara **exibição** e o nome de arquivo exige **slug**, e as duas coisas convivem no mesmo
-  campo do índice. A decisão tomada aqui — derivar do `c.arquivo` com regex ancorada — **contorna**
-  a ambiguidade sem resolvê-la **na origem**. A origem é o `gerar-ciclo.sh`, que grava
-  `'escola'` (exibição) e `'arquivo'` (o nome) lado a lado; unificar isso é outra peça, e não foi
-  feita.
-- **`dados.ciclo` é dado morto** e **continua morto**. Não foi tocado nem removido — removê-lo
-  mudaria a forma do JSON de produção, e não há consumidor que justifique.
-- **`carregarCiclo` não mudou de forma, só de dependência**: ele continua sendo quem monta o
-  objeto `cache[c.id]` com `captura`/`po`/`plano` por `peca(c.id, …)`. O que mudou é que o
-  fallback `if (!texto)` **deixou de acontecer** no ciclo sem lançamento — o
-  `lerDadosDoCiclo` já devolve a estrutura com os apelidos, e é ele que passa a ser o único ponto
-  onde `apelidos` nasce. A lista de alunas **abre preenchida**; o que a página ainda não faz, com
-  zero lançamento, é outra coisa — e não era o escopo desta peça.
-- **A regeneração não é reancoragem — e não precisou ser.** Os 3 pacotes foram regerados e os 3
-  `.fipp` **não** mudaram por causa do B9. Os `.fipp` que aparecem `M` no worktree são de outras
-  peças (B1/B5), não desta.
-- **As 3 fontes em claro não foram tocadas** ⇒ a mudança vive **só no envelope publicado**, que é
-  saída gerada. Quem roda o gerador amanhã reproduz o mesmo envelope **desde que** o
-  `cifrar-dados.js` seja o desta commit — sem ele, o envelope volta a ter 3 chaves e o defeito
-  volta.
-- **`b3b` (o formulário lê o config da aula) ainda não foi feito** — é a próxima peça, toca o
-  **mesmo** `lancamento.html`, e por isso ficou bloqueada até esta entrada existir.
-- **Nada commitado.** As alterações ficam no worktree, junto das dezenas de outras frentes. O
-  commit próprio desta peça — com `Refs:`/`Regras:`/`Auditoria:` — depende de pedido explícito.
-
----
-
-## 26/09/2026 — O formulário lê o config pela AULA: as quatro aulas deixam de renderizar o mesmo formulário
-
-
-- ⚠️ **Os avisos de duo e de ritmos são PRÉ-EXISTENTES e continuam de pé** — não foram causados por
-  esta peça e não foram resolvidos por ela. Medido no duo: **11** avisos
-  `config da aula NN: captura-aula-NN.json declarado no índice, mas a folha de captura não existe
-  na fonte — o produtor declara "config" sem folha` (aulas 02 a 12) e **6** avisos antigos de
-  glossário/menu. A assimetria é do **produtor**: o `gerar-ciclo.sh:382` declara `config` para
-  toda aula, e o `:416-440` só gera o arquivo quando a folha existe. Consertar isso é mexer no
-  gerador — **fora desta peça**, e sem isso o aviso é honesto: a folha daquelas aulas **ainda não
-  foi escrita**.
-- **O formulário não valida que o config declarado é o config da aula certa.** Ele confia no
-  índice, como confiava no id do ciclo. Uma divergência entre `aulas[].n` e o conteúdo do
-  arquivo declarado passaria silenciosa — quem garante o par é o `b3a`, não o consumidor.
-- **A página continua sem regenerar sozinha.** O `lancamento.html` publicado é cópia do template
-  feita pelo gerador. Quem roda o gerador amanhã reproduz este formulário **desde que** o template
-  seja o desta peça — sem ele, o pacote volta a ler o config **do ciclo** e o defeito volta.
-- **`HANDOFF.md` não foi regenerado** por esta peça (é saída gerada, e a frente dele é outra). Ele
-  está **desatualizado** no worktree — declarado aqui para não virar surpresa.
-- **Nada commitado.** As alterações ficam no worktree, junto das dezenas de outras frentes. O
-  commit próprio desta peça — com `Refs:`/`Regras:`/`Auditoria:` — depende de pedido explícito.
-
-## 27/09/2026 — A nav sai uma vez: o formulário deixa de ser a única página com o `id` dela duplicado
-
-
-- **A conferência de pacote segue cega a `id` duplicado.** O defeito foi achado por varredura
-  **minha**, não por gate. Enquanto o `check-pacote.js:209` usar `new Set(...)`, um `id` repetido
-  volta a passar em silêncio. Fechar isso é mexer no validador — **fora desta peça**.
-- **Um terceiro marcador nasceria sem guarda.** Os guardas cobrem `<!-- NAV -->` e
-  `<!-- CALENDARIO -->`; qualquer marcador novo que o gerador venha a trocar precisa do mesmo
-  tratamento, e nada obriga a isso.
-- **A âncora não cobre esta classe de defeito.** O `hash-ciclo.sh` hasheia **fontes**; o
-  `lancamento.html` é **saída gerada** e fica fora, de propósito. Isso significa que a âncora
-  **não** detectaria uma nav duplicada — o gate do pacote é que teria de fazer isso.
-- **`HANDOFF.md` não foi regenerado** por esta peça (é saída gerada, e a frente dele é outra). Ele
-  segue **desatualizado** no worktree — declarado aqui para não virar surpresa.
-- **Nada commitado.** As alterações ficam no worktree, junto das dezenas de outras frentes. O commit
-  próprio desta peça — com `Refs:`/`Regras:`/`Auditoria:` — depende de pedido explícito.
-
-## 27/09/2026 — O estado da aula deixa de ser declarado: quatro estados derivados do cronograma e do prazo
-
-
-- **O `B8` — o ajuste no plano (§1.2) — não foi feito.** É a última das treze peças, e é a que o
-  `podeAjustar()` espera.
-- **`podeAjustar()` continua fechado** (`tools/templates/lancamento.html:948`): o ajuste do plano
-  não é oferecido em lugar nenhum.
-- **`lib-vistas.js:148-154` — `capturarDepois()` não tem chamador.** Bug latente, **não corrigido
-  aqui**; fica para o `B8`.
-- **Efeito colateral confirmado, a rever no `B8`:** numa aula `dada` **sem** registro, o bloco
-  `#acoes-ajuste` fica **oculto** — `barraAjuste.hidden = !!captura || !temAula` e o painel de
-  captura está aberto. **Não é perda de ação** (quem a oferece é o painel de captura), mas é uma
-  assimetria que o `B8` deve olhar de frente.
-- **O ramo `prazo is None` de `derivar_estado` é código morto no caminho real:**
-  `calcular_prazos` (`tools/gerar-ciclo.sh:318`) grava prazo para **toda** aula, inclusive a última
-  data, que herda o `max(janelas)`. O `if` é **guarda defensiva** — e o comentário no código agora
-  diz isso, para que ninguém leia aquele ramo como "o `planejada` normal".
-- **O `ancora` do índice continua `null`** nos três ciclos (o `B5` pela metade). Está **registrado
-  no `§4.2` como promessa**, não como estado; o conserto é **fora desta peça**.
-- **A conferência de pacote segue sem gate para o `estado`** — nenhum validador lê o campo; o único
-  consumidor do `ciclos.json` é o `check-pacote.js`, e ele só olha `aulas[].config`.
-- **Nada commitado.** Como na entrada da nav: as alterações ficam no worktree, junto das dezenas de
-  outras frentes, e o commit próprio — com `Refs:`/`Regras:`/`Auditoria:` — depende de pedido
-  explícito.
-
-> **Correção de 27/09/2026 (mesmo dia).** Quatro afirmações dos bullets acima **não se sustentam**
-> depois do `B8`, e uma delas nunca se sustentou. Corrigem-se aqui, como elo — o texto anterior
-> não é apagado (P-03/P-04).
->
-> 1. *"O `B8` — o ajuste no plano — não foi feito"* e *"é a última das treze peças"*. **As duas
->    envelheceram.** O `B8` **foi feito** em 27/09/2026 (a entrada própria dele está adiante
->    neste arquivo), e o rótulo *"treze peças"* **não corresponde à §10**: lá são **dez itens**,
->    e a `B13` nunca foi um deles — é item do validador de dados (`linha_de_base` por aluna),
->    **tolerado, não implementado** (`REGISTRO.md:4721` e `:4851`), e continua assim. Da §10,
->    **as oito de implementação estão feitas**; a **9** entregou só a **P-13** (a eliciação segue
->    pendente, `HANDOFF.md:655`), e a **10** (o painel) é *"para depois"* por decisão.
-> 2. *"`podeAjustar()` continua fechado (`tools/templates/lancamento.html:948`)"*. **A linha está
->    errada e a afirmação é falsa.** `podeAjustar()` está em ~~**`:1194`**~~ e é **consumido** — em
->    ~~`:1761` (o `disabled` do botão *ajustar*) e `:1767` (o texto do aviso)~~. O que a peça `B6`
->    mediu em `:948` foi outra coisa. ~~Quem **governa o plano** não é `podeAjustar()`: é
->    **`podeAjustarPlano()` (`:618`)**, com o comentário de `:612` explicando que são **dois
->    relógios** — aquele é o do lançamento (depois da aula, dentro do prazo), este o do plano
->    (antes ou depois da aula, até o lançamento). O `B8` entregou o segundo; o `:1784` é quem
->    o consome.~~ **Superado em 29/09/2026.** As coordenadas deslocaram outra vez — e a função que
->    esta correção nomeia como *"quem manda"* **não existe**: `podeAjustarPlano()` saiu com a barra
->    `#acoes-plano` na peça de 28/09/2026 (`17ed444`), e a varredura do nome no template volta
->    **zero**. Do par resta **um** relógio só, o do lançamento — `podeAjustar()` em **`:970`**,
->    consumida em **`:1566`** (o `disabled` do botão) e **`:1572`** (o texto do aviso). A redação
->    antiga **não é apagada**: fica como o elo do que se mediu naquele momento.
-> 3. *"`lib-vistas.js:148-154` — `capturarDepois()` não tem chamador"*. **A função não existe** —
->    nunca existiu. `grep -c 'capturarDepois' tools/lib-vistas.js` → **0**, e
->    `git log --all -S'capturarDepois'` volta **vazio**. Não há bug latente ali; há um nome que
->    foi citado de memória. **Retirado de todas as listas de pendência.**
-> 4. *"`grep -n "function estadoDaAula"` → `:871`; `"const pulada"` → `:887`"*. **Os números
->    deslocaram** — com o `B8` o arquivo cresceu: ~~hoje são **`:1109`** e **`:1125`**~~.
->    **Superado em 29/09/2026:** hoje são **`:885`** e **`:901`**. O `B8` morava **depois** destas
->    duas funções: quando a barra do plano saiu, na peça de 28/09/2026, o arquivo perdeu 1 110
->    linhas **abaixo** delas e as coordenadas voltaram para perto das originais. As duas funções
->    estão no arquivo e fazem o que a entrada diz; só as coordenadas mudaram — duas vezes.
->
-> Uma quinta afirmação **estava certa e continua certa**: o *"Efeito colateral confirmado"* — na
-> aula `dada` **sem** registro o bloco `#acoes-ajuste` fica oculto ~~(`barraAjuste.hidden = !!
-> captura || !temAula`, `:1757`)~~ (**`barraAjuste.hidden = !!captura || !temAula`**, hoje em
-> `:1562`). O `B8` **olhou de frente**, como a entrada pedia: ~~a ação não se
-> perde, porque quem a oferece é a **barra do plano** (`#acoes-plano`, `:1780`), que vive fora do
-> painel e não depende de o painel estar aberto. Fica como assimetria **deliberada** e comentada
-> no código, não como pendência.~~ **Superado em 29/09/2026.** A **barra do plano não existe** —
-> `#acoes-plano` saiu na peça de 28/09/2026 e a varredura do id no template volta **zero**. O que
-> resta é o predicado do formulário: `const captura = …` (`:1536`), `const emFormulario = !!
-> captura || emAjuste` (`:1538`) e o `hidden` de `:1562`. A assimetria, portanto, **não está
-> resolvida por desenho**: volta a ser **pendência** — e é assim que fica registrada aqui, com o
-> comentário de `:1555–1557` no código como o único elo. A redação antiga **não é apagada**: fica
-> como o elo do que se mediu naquele momento.
-
-## 27/09/2026 — A §5.1 para de dizer 48 h: o ajuste com prazo passa a descrever o prazo que o `B7` implementou
-
-
-- **A divergência do motivo fica ABERTA por decisão, não por esquecimento.** O `§5.1` agora **diz**
-  que o formulário exige motivo e autor; ele **não** deixa de exigir. Fechar a divergência é mexer no
-  `lancamento.html` (congelado) — **a resolver quando o formulário for revisto**, e a decisão da
-  pesquisadora foi explicitamente essa: alinhar o documento e **declarar** a divergência.
-- **A varredura de deriva não foi estendida.** A autorização cobria **só a `§5.1`**. Ficam de fora,
-  e ficam como estão: a **janela de detecção no `§3.3`** do `ARQUITETURA-AULA.md`;
-  `tools/validar-dados-ciclo.js:505-516` (o comentário que segue dizendo que o `prazo` sai nulo — o
-  `B7` já o produz); o `experimentos/captura-json/formulario.html`; e o **`B8`**. Nada disso foi
-  tocado.
-- **O `B8` — o ajuste no plano — continua não feito.** É a última das treze peças do `§10`, é o que o
-  `podeAjustar()` espera, e é ele que unifica o ajuste do plano ao do lançamento. A `§5.1` agora
-  aponta para ele como a peça que resolve a divergência — **o ponteiro existe; a peça, não**.
-- **`podeAjustar()` continua fechado** (`tools/templates/lancamento.html:948`) e
-  `lib-vistas.js:148-154` (`capturarDepois()`) continua sem chamador — os dois seguem como estavam
-  na entrada do `B6`.
-- **Nada foi regenerado além do `HANDOFF.md`, e nada foi commitado.** `ARQUITETURA-CAPTURA.md` não
-  entra em pacote, âncora ou validador; as alterações ficam no worktree, junto das dezenas de outras
-  frentes, e o commit depende de pedido explícito.
-
-> **Correção de 27/09/2026 (mesmo dia).** Dois dos bullets acima **envelheceram** na mesma jornada.
-> Corrigem-se aqui, como elo — o texto anterior **não é apagado** (P-03/P-04).
->
-> 1. *"`tools/validar-dados-ciclo.js:505-516` (o comentário que segue dizendo que o `prazo` sai
->    nulo — o `B7` já o produz)"*. **Consertado.** O comentário dizia que *"o `ancora` **e o
->    `prazo`** saem nulos"*, o que era **falso desde o `B7`**. Ele hoje está em **`:516-518`** (o
->    arquivo cresceu) e diz o que é verdade: o **prazo é reportado, nunca afirmado** — quem o calcula
->    é o `ciclos.json`, a partir do calendário e do `horario` de cada aula (§3.1) — e só a `ancora`
->    sai nula enquanto não houver produtor. **Deixou de ser pendência.**
-> 2. *"O `B8` — o ajuste no plano — continua não feito. É a última das treze peças do `§10`."*
->    **As duas afirmações envelheceram.** O `B8` **foi feito** em 27/09/2026 (entrada própria,
->    adiante neste arquivo), e o rótulo *"treze peças"* **não corresponde à §10**: lá são **dez
->    itens**, e a `B13` nunca foi um deles. Da §10, **as oito de implementação estão feitas**
->    (`ARQUITETURA-AULA.md:8-13`). O ponteiro do `§5.1` **e** a peça existem, ambos.
->
-> O que **não** envelheceu nesta entrada: a *"divergência do motivo fica ABERTA por decisão"* —
-> segue aberta, declarada em `ARQUITETURA-CAPTURA.md:23-33` — e a **varredura de deriva não
-> estendida** (a janela de detecção do §3.3 e o `experimentos/captura-json/formulario.html` seguem
-> fora). O bullet *"`capturarDepois()` … continua sem chamador"* **nunca se sustentou** e já foi
-> retirado na correção da entrada do `B6`.
-
-## 27/09/2026 — O ajuste no plano deixa de ser promessa: o elo do plano da aula, do schema ao guard do `pre-commit`
-
-
-- **O `ancora` do índice continua `null` nas 38 aulas** — medido nos **três** `ciclos.json`
-  (`diaghilev` 5, `duo` 12, `ritmos` 21). O `.fipp` por aula existe (§5, `B5`), mas o gerador **não
-  o consulta**: `tools/gerar-ciclo.sh:472` escreve `'ancora': None` com o comentário *"sem produtor
-  ainda"*. **A coluna é a promessa, não o estado.**
-- **A `B13` — a `linha_de_base` por aluna — segue tolerada, não implementada.** O validador a aceita
-  e ela **não tem regra de tipo** (`REGISTRO.md:4721`, `:4851`).
-- **O `check-pacote.js` não tem portão de `estado`.** Ele valida a captura por aula, não o estado
-  derivado; um pacote com estado estranho não é recusado por ele.
-- **A divergência do *"Motivo do ajuste"* fica ABERTA por decisão.** O §1.1 e o formulário não
-  dizem a mesma coisa sobre exigir motivo; alinhar é mexer no `lancamento.html` (congelado) —
-  **a resolver quando o formulário for revisto**, e a divergência está **declarada** em
-  `ARQUITETURA-CAPTURA.md:23-33`.
-- **A varredura de deriva não foi estendida além do escopo autorizado.** Ficam de fora e ficam como
-  estão: a **janela de detecção no §3.3** do `ARQUITETURA-AULA.md` e o
-  `experimentos/captura-json/formulario.html`. **`ARQUITETURA-CAPTURA.md:23-33` e o `:50-53` foram
-  reconciliados** nesta sessão (a nota datada e a mudança de *"seria implementado"* para
-  *"contrato do que foi implementado onde há nota datada"*).
-- **`capturarDepois()` nunca existiu** — `grep -c` devolve **0** em `tools/lib-vistas.js`, e
-  `git log --all -S'capturarDepois'` volta vazio. Foi um nome citado de memória na entrada do `B6`;
-  **retirado de todas as listas de pendência.**
-- **O `B6` — o estado derivado — está pronto mas NÃO COMMITADO no mesmo worktree.** Esta entrada
-  cobre a peça 8; o `lancamento.html` carrega **as duas frentes** e o commit dele tem de dizer isso.
-- **Nada foi commitado.** As quatro peças ficam no worktree, junto das dezenas de outras frentes;
-  o commit próprio de cada congelado — com `Refs:`/`Regras:`/`Auditoria:` — depende de pedido
-  explícito.
-
-## 27/09/2026 — A Aula 05 declara o método RAD e o ciclo ganha notação (P-15)
-
-
-- **A notação do `tiago` continua sem filtro.** A correção lá foi só a do calendário; o filtro
-  existe **apenas** no `fochini`. Não há decisão tomada sobre estender — está declarado, não
-  esquecido.
-- **A `notacao.html` do `tiago` não é a mesma página do `fochini`.** Quando o filtro for estendido,
-  é outra peça.
-- **A entrada fica no worktree junto do resto.** O commit próprio desta frente — com
-  `Refs:`/`Regras:`/`Auditoria:` — depende de pedido explícito.
-- **Nada foi commitado.**
-
-## 28/09/2026 — O índice do formulário saía sem a vírgula: a gravação passa a recusar índice inválido
-
-
-- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** É congelado, a
-  alteração é anterior a esta frente, e nenhuma entrada a reivindica — precisa de motivo próprio ou
-  de reversão. Está declarado, não esquecido.
-- **A causa de raiz do carimbo não mudou de dono, e não precisa:** o `arquivo` carimbado é por
-  desenho. A consequência prática continua valendo — o índice baixado aponta para um arquivo que
-  **ainda não existe** no repositório até o commit da gravação, e até lá o ciclo responde 404.
-
-## 28/09/2026 — O formulário baixa **dois** arquivos, e o texto passa a dizer isso
-
-
-- **O lançamento da pesquisadora ainda não está no repositório.** O
-  `~/Downloads/ciclo-01-diaghilev-dados-2026-09-28T0840.json` precisa chegar a
-  `professores/fochini/ciclos/` — com o carimbo e no nome estável de `fonte_dados()` — junto do
-  `ciclos.json` corrigido, e então regerar. **Isso moverá a âncora do diaghilev, e corretamente.**
-  Não é desta peça, e não foi feito sem autorização.
-- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** É congelado, a
-  alteração é anterior a esta frente, e nenhuma entrada a reivindica — precisa de motivo próprio ou
-  de reversão. Está declarado, não esquecido.
-- **`ARQUITETURA-CAPTURA.md:260-266` afirma que o carimbo de hora *"cai na cauda ignorada"* — a
-  medição mostra que não cai** (a regex é ancorada em `$`). É arquivo livre, então a correção é
-  barata; não foi feita nesta peça.
-
-## 28/09/2026 — O botão passa a ser `Salvar`, e o arquivo vai para a pasta do ciclo
-
-
-- **As três cópias empacotadas ainda dizem `Gerar JSON atualizado`** — propagadas nesta mesma peça
-  logo adiante; a tabela acima registra o estado medido **antes** da propagação.
-- **O `HANDOFF.md` ainda não foi regenerado.** Ele carrega o rótulo antigo (`:168`) e a cauda
-  preservada (`:175`) da entrada anterior. Regerado depois do commit, como manda o método.
-- **O lançamento da pesquisadora continua fora do repositório** — o
-  `~/Downloads/ciclo-01-diaghilev-dados-2026-09-28T0840.json` precisa chegar a
-  `professores/fochini/ciclos/`. Herdado da entrada anterior; **não é desta peça**, e não foi feito
-  sem autorização.
-- **Os documentos livres que descrevem o fluxo antigo seguem desatualizados:** `ARQUITETURA-CAPTURA.md
-  :289` (*"a gravação continua sendo lançar → baixar o JSON → commitar"*), `:306`, `:327` e `:391`
-  (o download como destino, não como recuo), e `IDEIA-CAPTURA.md:138`/`:162`. São livres, a correção é
-  barata, e **não foi feita nesta peça** — a peça é o formulário.
-- **O `prompts/eliciar-ciclo.md` segue alterado no worktree e fora de todo commit.** Herdado, e ainda
-  sem dono.
-
-> **Correção de 28/09/2026 (mesmo dia).** Cinco afirmações da entrada imediatamente acima (`:6705`)
-> **não se sustentam** depois desta peça — a pesquisadora reverteu, no mesmo dia, o rótulo e o texto
-> que aquela entrada tinha decidido preservar. Corrigem-se aqui, como elo — o texto anterior **não é
-> apagado** (P-03/P-04).
->
-> 1. *"**O rótulo do botão fica como está** — `Gerar JSON atualizado`. A pesquisadora decidiu
->    manter…"* (`:6724-6726`). **Revertido no mesmo dia.** O rótulo **é** `Salvar` (`:154`). A decisão
->    de manter durou uma mensagem; a pesquisadora voltou pedindo exatamente o contrário — *"Mudar o
->    nome do botão"* — e recusou `Enviar` por coerência. O que a entrada anterior acertou foi a
->    **razão** (`Enviar` não cabe sem servidor); o que ela errou foi concluir que, por isso, **nenhum**
->    rótulo novo caberia: `Salvar` descreve gravação local, não envio.
-> 2. *"Renomear o botão para `Enviar` não cabe: não há servidor, e nada é enviado a lugar nenhum"*
->    (`:6725-6727`). **Continua verdadeiro, e foi o que a pesquisadora escolheu honrar** — ela recusou
->    `Enviar` pelo mesmo motivo. O erro não estava nesta frase; estava na §7.3 lida como veto ao
->    rótulo.
-> 3. *"E fica dito que os dois vão para o **repositório**, não para a pasta de downloads"*
->    (`:6728-6730`). **Revertido.** A pesquisadora mandou cortar o parágrafo explicativo, e ele saiu
->    do texto visível. Além disso a afirmação **descrevia o errado**: os dois **iam** para a pasta de
->    downloads — é para lá que o navegador baixa — e só chegariam ao repositório se a professora os
->    movesse à mão. É exatamente a confusão que motivou esta peça: **a frase dizia "repositório" e o
->    comportamento dizia "downloads".** Agora o comportamento **é** o repositório.
-> 4. *"O rótulo do botão (`:154`) e a mensagem de `gerarJson()` **não** foram tocados"* (`:6737`).
->    **Os dois foram tocados.** O rótulo está em `:154` com outro texto; a mensagem de `gerarJson()`
->    foi reescrita (`:1752-1759`), e agora **diz onde o arquivo foi parar** em vez de o silenciar.
-> 5. ⚠️ *"**É redação, não comportamento.** Nenhuma linha de JavaScript mudou; a alteração é de texto
->    visível."* (`:6760-6761`). **A afirmação mais séria, e é falsa em dobro — naquela peça e nesta.**
->    Nesta peça, **27 linhas de JavaScript entraram** (`:971-995`, o `gravarNaPasta()`) e o bloco de
->    escrita foi reescrito (`:1741-1759`): o comportamento **mudou** — no Chromium o arquivo **não**
->    desce mais para a pasta de downloads, ele é escrito no disco. E na própria peça anterior a frase
->    já era falsa: aquele diff **não** era só redação, ele mudava o **texto de apoio** e nada mais —
->    mas o texto de apoio **é** o contrato visível da página, e chamá-lo de "não comportamento" foi o
->    que autorizou deixar o rótulo de pé. **A regra do `CONGELAMENTO.md` pede parada e confirmação
->    quando o comportamento muda; a frase pulou a parada.** Nesta peça **não se pulou**: as opções
->    foram apresentadas, a pesquisadora escolheu a (a), e a escolha está registrada acima, em
->    "Motivo declarado".
->
-> **Nota de método, como elo.** A cauda que a entrada anterior diz ter preservado *"palavra a palavra"*
-> (`:6731-6732`) **saiu do texto visível** nesta peça, por pedido da pesquisadora. Ela não se perdeu:
-> a **regra** continua escrita em `tools/templates/lancamento.html:1605` (*"o commit — que é a
-> proveniência do JSON — viraria um diff ilegível"*), e a **frase** continua em `REGISTRO.md:6731`.
-> Quem lê a entrada anterior precisa saber que a preservação valeu para a redação da **página**, e não
-> como proibição de mexer no assunto depois.
->
-> **Segunda nota de método — a citação fantasma da entrada anterior.** O bullet de `:6817-6819`
-> afirma que *"`ARQUITETURA-CAPTURA.md:260-266` afirma que o carimbo de hora *"cai na cauda
-> ignorada"*"*. **A citação não se sustenta: a frase não existe naquele arquivo.** Medido:
-> `grep -c "cauda" ARQUITETURA-CAPTURA.md` → **0**; `:260` é uma seta `↓`, `:261` é *"Baixa o JSON
-> novo e o índice atualizado"*, `:266` é `### 3.4 Visualizar`. No repositório inteiro a frase aparece
-> em **5** lugares, todos em Markdown: `REGISTRO.md:6731` e `:6817`, `HANDOFF.md:175`, `:261` e
-> `:1261` — ou seja, **ela nasceu nesta própria entrada e foi espelhada para o `HANDOFF.md`**. A
-> origem foi rastreada: `git log --all -S"cauda ignorada"` devolve `991aa83` e `6cf847e`, que são a
-> **mesma** mudança (o `991aa83` é o checkpoint da sessão, `…/checkpoints/turn/8`; o `6cf847e` é o
-> commit na `main`). A regra **verdadeira** que a entrada queria citar está em
-> `ARQUITETURA-CAPTURA.md:190-195` — a `> **Nota datada — 27/09/2026**` sobre o `ultimo_lancamento`.
-> O próprio bullet declara *"não foi feita nesta peça"*, e é isso que **autoriza** o conserto aqui: a
-> frase **já foi publicada**, e a correção é o elo. Corrigido nesta peça, junto dos dois espelhos no
-> `HANDOFF.md`.
-
-> **Correção de 28/09/2026 (mesmo dia) — o que esta própria entrada tornou falso, e o conserto
-> que ela autorizou.** Cinco afirmações feitas acima **não se sustentam** depois que a peça
-> terminou de andar. Corrigem-se aqui, como elo — o texto anterior **não é apagado** (P-03/P-04).
->
-> 1. *"**As três cópias empacotadas ainda dizem `Gerar JSON atualizado`** — propagadas nesta mesma
->    peça logo adiante"* (`:6999-7000`). **Verdadeiro na hora em que foi escrito, falso depois do
->    commit `b1d85ab`.** A propagação aconteceu, e as três cópias foram commitadas. Medido agora:
->    `grep -c 'Gerar JSON atualizado'` → **0** em cada uma das três, e `grep -c '>Salvar<'` → **1**
->    em cada uma. O bullet descrevia o **durante**, não o **depois**.
-> 2. *"**O `HANDOFF.md` ainda não foi regenerado.** Ele carrega o rótulo antigo (`:168`) e a cauda
->    preservada (`:175`)"* (`:7001-7002`, ecoado em `HANDOFF.md:1402-1405`). **Verdadeiro na hora,
->    falso desde a regeneração.** O `HANDOFF.md` foi regerado com `:4` = `b1d85ab`, e o rótulo
->    antigo não existe mais no arquivo. A **estrutura** do bullet, porém, é o que importa para o
->    método: o gerador **colhe todo** bloco *"O que ainda não está feito"* e **não reinicia** em
->    linhas `> ` (medido: o `HANDOFF.md` carrega a nota de correção inteira, `:1417-1470`). Por
->    isso os dois primeiros bullets ficam **cumulativos** no handoff, e é **aqui** que eles são
->    contrapostos — nunca lá.
-> 3. As duas linhas da tabela *"Com o quê"* que mediam o estado das cópias (`:6938` *"**0** em cada
->    uma das três cópias — *ainda não propagadas*"*; `:6939` *"**1** em cada cópia (stale)"*).
->    **Estão invertidas hoje, e a §Referências acima (`:6972-6973`) já as qualificava como "o estado
->    medido na hora".** A qualificação é o que as salva como **instantâneo**, e é o que se mantém:
->    elas continuam verdadeiras *para o instante da geração*. O que se corrige é a leitura — quem lê
->    depois **re-deriva com o próprio relógio**, exatamente como o `_nota` do índice manda. Medido
->    agora: `:6938` → **1** em cada cópia; `:6939` → **0** em cada.
-> 4. ⭐ **A linha falsa da entrada anterior.** Ela afirma que *"O texto novo chegou nas **quatro**
->    cópias"*, com a medição *"`grep -c 'baixa <strong>dois</strong> arquivos'` → **1** em cada"*
->    (`:6767`), e dá `git diff --numstat` **`6/3`** (`:6768`). **As duas não se sustentam.** Medido
->    agora: `grep -c 'baixa <strong>dois</strong> arquivos'` → **0** nas quatro; e o `--numstat`
->    real do commit `ce69bc5` é **`63 27`** em `tools/templates/lancamento.html` — não `6/3`. Uma
->    entrada anterior que mede errado contamina a tabela de quem vem depois; o conserto é a medição
->    nova, e não a reescrita da antiga.
-> 5. ⭐ **A citação fantasma — a régua verdadeira.** O bullet de `:6817-6819` afirma que
->    *"`ARQUITETURA-CAPTURA.md:260-266` afirma que o carimbo de hora *"cai na cauda ignorada"*"*.
->    **A citação não se sustenta: a frase nunca existiu naquele arquivo** (medido:
->    `grep -c "cauda" ARQUITETURA-CAPTURA.md` → **0**). A regra verdadeira é a `> **Nota datada —
->    27/09/2026**` de `ARQUITETURA-CAPTURA.md:190-195`, sobre o `ultimo_lancamento`. A nota de método
->    acima (`:7057-7070`) conclui com *"Corrigido nesta peça, junto dos dois espelhos no
->    `HANDOFF.md`"* — e **essa conclusão estava adiantada**: o arquivo livre seguia intocado. Ela
->    passa a valer **agora**, com o conserto do item 6 abaixo, e a enumeração de `:7062-7063`
->    (`REGISTRO.md:6731` e `:6817`; `HANDOFF.md:175`, `:261` e `:1261`) troca pelos cinco lugares
->    medidos hoje: `REGISTRO.md:6817` e `:7064`, `HANDOFF.md:392`, `:1395` e `:1467`.
-> 6. ⭐ **Os documentos livres foram corrigidos nesta peça — era o que faltava, e a entrada os
->    declarava intocados.** O bullet de `:7007-7010` dizia *"a correção é barata, e **não foi feita
->    nesta peça** — a peça é o formulário"*. Correção barata que fica para depois envelhece quem a
->    lê: quem abrisse `ARQUITETURA-CAPTURA.md` aprenderia que o lançamento *"baixa o JSON"*. Feito
->    agora, com nota datada no próprio arquivo livre (P-03/P-04), nos quatro pontos do fluxo:
->    - `ARQUITETURA-CAPTURA.md:261` (*"Baixa o JSON novo e o índice atualizado"*) → *"Salva o JSON
->      novo e o índice atualizado na pasta do ciclo"*, sob **nota datada 28/09/2026** na §3.3, que
->      declara o recuo para download onde não há File System Access API;
->    - `:306` (Mermaid, `-->|"download manual"|`) → `-->|"gravação na pasta do ciclo"|`;
->    - `:327` (caixa ASCII, `│ download / commit manual`) → `│ gravação na pasta do ciclo / commit
->      manual`;
->    - `:391` (*"pode ter ido para a pasta de downloads do navegador"*) → o download como **recuo**,
->      não como destino.
->    E em `IDEIA-CAPTURA.md`, os dois pontos que descreviam a gravação como download de saída:
->    `:138` (*"Salvar = baixar o arquivo"*) e `:162` (*"Gravação (download do JSON atualizado)"*).
-> 7. ⭐ **O texto de apoio da página — pedido novo, feito nesta peça.** A pesquisadora pediu, depois
->    da decisão, que a redação do cabeçalho (`tools/templates/lancamento.html:97-103`) fosse
->    reescrita em linguagem mais legível, cobrindo os quatro verbos do que a página faz — **lê** o
->    índice e os dados do ciclo (que viajam cifrados no pacote, como os acompanhamentos), **salva**
->    o lançamento na pasta do ciclo escolhida, **ajusta** o que precisar e **gera** os relatórios.
->    A consequência **verdadeira** foi preservada palavra a palavra: as vistas são calculadas na
->    memória, a página **grava mas não commita**, e **o commit é do professor**.
-> 8. ⭐ **A alteração das 10:04 — descartada, e registrada como método.** Entre esta entrada e a
->    anterior, o VS Code reescreveu os quatro `lancamento.html` no disco (`files.autoSave:
->    "onFocusChange"` + `editor.formatOnSave`, ambos em `~/.config/Code/User/settings.json`). O delta
->    de conteúdo foi a **remoção de uma frase** — a legenda *"o ciclo com esta aula dentro, na pasta
->    do ciclo — e só entra no Git quando você commitar"* —, idêntica nos quatro arquivos, com o
->    JavaScript **inalterado** (medido: os quatro reduzem a exatamente **−97** caracteres, e o JS
->    tem os mesmos 79754 caracteres nos dois lados). Um formatador **não apaga texto**: a assinatura
->    é de **"Replace in Files"**. A pesquisadora foi consultada e escolheu **descartar** —
->    `git checkout --` nos quatro caminhos. **A remoção de uma linha de texto, se ela um dia quiser,
->    é mudança de uma linha com entrada própria**, como qualquer outra. O remédio durável, oferecido:
->    fechar as abas, ou desligar `editor.formatOnSave` para HTML.
->
-> **O que continua valendo sem correção.** O "Motivo declarado", a tabela "Onde entrou" na sua
-> parte de código (`:6940`, `:6941`, `:6942` — medidos de novo, corretos), a §"O que motivou" e
-> todo o parágrafo 5 desta nota, que registra a parada que a peça anterior não fez. A regra do
-> `CONGELAMENTO.md` segue: quando o **comportamento** muda, para-se e confirma-se; foi o que
-> aconteceu aqui, e a escolha está em "Motivo declarado".
-
-## 28/09/2026 — A legenda ao lado do botão `Salvar` sai; o botão fica sozinho
-
-
-- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **4 commits à
-  frente** de `origin/main`; o push não foi pedido.
-- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
-  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **A voz de professor no resto do formulário segue pendente.** O cabeçalho (`:98-104`) ainda diz
-  *"índice de ciclos"*, *"cifrados no pacote"*, *"não commita"*; o `<summary>` (`:151`) diz *"salva
-  no JSON"*; a ajuda do botão de relatórios e as mensagens de erro falam de `assets/`,
-  `lib-vistas.js` e `tools/gerar-ciclo.sh`. A pesquisadora deferiu a reescrita.
-
-> **Correção de 28/09/2026 (mesmo dia).** O pendente acima dizia *"A voz de professor no resto do
-> formulário segue pendente. O cabeçalho (`:98-104`) ainda diz "índice de ciclos", …"*. A **primeira**
-> cláusula — a do cabeçalho — **deixou de valer** na entrada seguinte, que a pesquisadora ditou e que
-> está logo abaixo. O pendente **não é reescrito**: ele fica como está, porque registra o estado em
-> que a peça anterior foi fechada. O que continua valendo dele, sem correção, é a **segunda** parte:
-> o `<summary>`, a ajuda do botão de relatórios e as mensagens de erro — e é essa parte que a entrada
-> seguinte retoma como lista verdadeira.
-
-## 28/09/2026 — O cabeçalho do formulário passa à voz de professor: só o que a página faz por ele
-
-
-- **Nada foi empurrado.** No momento em que esta entrada foi escrita, `main` estava **6 commits à
-  frente** de `origin/main`; o push não foi pedido.
-- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
-  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **O resto da voz de programador no formulário segue pendente**, e **esta** é agora a lista
-  verdadeira: o `<h1>` (`:97`) e o `<title>` (`:6`) dizem *"formulário eletrônico"*; o `<summary>`
-  (`:148`) diz *"salva no JSON"*; o `#captura-campos` (`:149`) e a nota do painel de captura
-  (`:1409`) falam do *"índice do ciclo"*; a ajuda do botão de relatórios (`:171`) diz *"gera o filtro
-  inteiro em arquivo"*; a mensagem *"o JSON é por ciclo"* (`:1690`) e as mensagens de erro das libs
-  (`:1980`) e do `pedirSenha` (`:1918`) nomeiam `assets/`, `lib-vistas.js` e o JSON; e o comentário
-  dos *"TRÊS entregáveis"* (`:159`) contradiz os cinco de `ORDEM_ENTREGAVEIS` (`:902`). A
-  pesquisadora limitou esta peça ao cabeçalho.
-
-## 28/09/2026 — O botão `Exportar ajuste do plano` sai do formulário: era erro de assistente
-
-
-- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
-  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **O par `plano-aula-NN.json` / `-anterior.json` fica órfão de leitor** — segue produzido (é
-  proveniência e é o que o guard lê), mas nenhuma página o consome. **Decisão em aberto**:
-  continuar produzindo ou parar.
-- ~~**A automação do `Salvar` continua em aberto.** A regra declarada pela pesquisadora é que o
-  lançamento vai **para dentro do sistema**, não para a máquina do usuário, e que o download do
-  `.json` não deve existir. Isso **reabre duas decisões registradas** — o `§7.3` do
-  `ARQUITETURA-CAPTURA.md` (*"sem backend"*, 20/09/2026) e a *"opção A"* da entrada de
-  27/09/2026 deste registro — e por isso exige motivo declarado e entrada própria, não mudança
-  silenciosa.~~ **Superado em 29/09/2026.** O motivo declarado e a entrada própria são os da entrada
-  de **29/09/2026** (o Passo 0), que dá destino ao `POST` e reancora por push. O que **continua em
-  aberto** é a metade que falta — a **consolidação agendada** —, e está declarada lá com as
-  perguntas. A redação antiga **não é apagada**: fica como o elo do que estava aberto em 27/09/2026.
-- **A revisão dos demais botões segue pendente**, e a pergunta feita pela pesquisadora — *como o
-  processo fica automático quando o sistema roda no servidor, sem assistente na jogada* — ainda
-  **não foi respondida**.
-
-## 29/09/2026 — O botão `Salvar` deixa de abrir a pasta do computador: a causa era a cópia, não o template
-
-
-- **O `HANDOFF.md` precisa ser regenerado** depois deste commit: ele extrai a **última** entrada do
-  `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- ~~**⚠️ O `POST` não tem destino.** `netlify/functions/receber.js` **não existe**, `netlify.toml`
-  **não existe** e o repositório **não tem** `.github/workflows/`. Enquanto isso, o `Enviar`
-  falha com `HTTP 404` — **honestamente** (avisa e preserva os campos), mas **falha**. O
-  transporte decidido — Netlify Function + Blobs + consolidação agendada — **não foi implementado**.
-  É o próximo bloco, e reabre formalmente o `§7.3` do `ARQUITETURA-CAPTURA.md`.~~ **Superado em
-  29/09/2026.** Os três arquivos **existem** desde aquela data — `netlify.toml`,
-  `netlify/functions/receber.js` e `.github/workflows/reancorar.yml` —, mas o transporte ficou
-  **pela metade**: a Function que recebe o `POST` e a reancoragem entraram, a **consolidação
-  agendada** não. O `HTTP 404` só continua possível onde **não há site publicado**; a falha deixou
-  de ser de destino inexistente e passou a ser de site ausente. A redação antiga **não é apagada**:
-  fica como o elo do que se mediu naquele momento.
-- **O teste de regressão diverge do contrato novo.** Os casos 10–17 ainda leem `baixados[]` pelo
-  contrato **antigo** de download, e o caso 10 espera o JSON na ordem de schema obsoleta
-  (`tecnica`/`funcional` no lugar de `eixo_peso`). A suíte **não fica verde** até esses casos
-  serem realinhados. O arquivo é `gitignored` (`experimentos/`), logo **não entra em commit nenhum**.
-- **A `simulacao-marau/simular-formulario.js`** ainda tem dublê de `fetch` só para `GET`.
-- ~~**Os passos 0 a 3 da fila da pesquisadora seguem abertos**: o nível 2 `tiago`, o `id` duplicado
-  do `plano.html`, e o `B6`→`B8` (aula dada / não dada pela LB da aula anterior).~~ **Superado em
-  29/09/2026.** Os passos **1, 2 e 3** já estavam cumpridos no repositório quando esta linha foi
-  escrita — ela não foi remedida. Só o **passo 0** segue aberto, e o motivo está na entrada de
-  29/09/2026 abaixo. A redação antiga **não é apagada**: fica como o elo do que se acreditava.
-
-## 29/09/2026 — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava cumprido, e a pendência era eco de uma nota minha
-
-
-- **⚠️ O Passo 0 segue aberto, e agora com o represamento medido.** ~~`netlify.toml` **não existe**,
-  `netlify/` **não existe** e o repositório **não tem** `.github/workflows/`.~~ **Superado em
-  29/09/2026:** os três **existem**. A CLI `netlify` está
-  **ausente** da máquina. E as **6 chaves** de `tools/.netlify-tokens` estão **vazias**
-  (`NETLIFY_TOKEN_DUO`, `NETLIFY_SITE_DUO`, `NETLIFY_TOKEN_RITMOS`, `NETLIFY_SITE_RITMOS`,
-  `NETLIFY_TOKEN_DEBORA`, `NETLIFY_SITE_DEBORA` — valor com comprimento zero, medido). ⇒ **não há
-  site ID local e nada foi publicado por este repositório**; o site do Ritmos existe **só no painel
-  do Netlify da pesquisadora**. **O Passo 0 depende de credencial que só ela tem** — e isso
-  **continua verdadeiro**: os arquivos existem, mas sem site publicado o `Enviar` ainda falha com
-  `HTTP 404`, honestamente (avisa e preserva os campos).
-- **⚠️ Uma decisão continua aberta para o Passo 0**, e não é resolvível só no código:
-  **onde vivem as Functions** — o `tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do
-  ciclo, **não a raiz**. O `netlify.toml` da raiz fica no disco como a peça que a pressupõe.
-  ~~**A outra decisão** — **quem reancora a cadeia** quando a consolidação commita pela API do
-  GitHub, que não roda hook nenhum (o `hash-ciclo.sh` é bash puro) — a saída provável é um
-  `.github/workflows/` rodando o `hash-ciclo.sh`.~~ **Superado em 29/09/2026:** está **respondida**
-  — o `.github/workflows/reancorar.yml` reancora **por push**, rodando o `hash-ciclo.sh --check`
-  antes de gerar, com o commit do próprio workflow. A redação antiga **não é apagada**: fica como
-  o elo do que se supunha antes de medir.
-- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
-  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **A entrada de 29/09/2026 acima desta** (o botão `Salvar`) mantém em `:7485` a pergunta pela
-  **revisão dos demais botões**, ainda sem resposta — e ela é do mesmo bloco do Passo 0.
-- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
-  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
-  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
-
-## 29/09/2026 — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora por push
-
-
-- **⚠️ A consolidação agendada não existe — e é a metade que falta.** Hoje a Function **grava** o
-  lançamento no Blob, mas **nada move o Blob de volta para o Git**: o `-dados.json` do pacote
-  continua o antigo, a âncora não regera sozinha e o workflow não tem o que commitar. As perguntas
-  em aberto, para quem pegar esta peça: **o que varre** (o store `lancamentos` por prefixo?) · **o
-  que commita**, e **por qual API** (o workflow tem `contents: write`, mas a consolidação não
-  conhece o caminho do arquivo no pacote) · **com que frequência** · e **se regenera o pacote**
-  depois. Enquanto isso, o lançamento **não vira fonte**. **Não implementado — decisão explícita da
-  pesquisadora nesta rodada: documentar como pendência e commitar só as três partes prontas.**
-- **⚠️ "Onde vivem as Functions" continua aberta** (`ARQUITETURA-CAPTURA.md` §7.6 = *"o formulário
-  roda onde?"*). O `tools/deploy-netlify.sh:118/120` publica `netlify deploy --prod --dir="$PACOTE"`
-  — o **pacote do ciclo**, não a raiz. Se o deploy continuar por esse caminho, o `netlify.toml` da
-  raiz **pode não ser lido**, e as Functions podem não subir. É inferência forte, **não medida**.
-- **O `HANDOFF.md` precisa ser regenerado** depois do commit desta entrada: ele extrai a **última**
-  entrada do `REGISTRO.md` (`tools/gerar-handoff.sh:177`), e passa a ser esta.
-- **A pergunta de `REGISTRO.md:7485`** pela **revisão dos demais botões** do formulário **segue sem
-  resposta**, e é do mesmo bloco do Passo 0.
-- Permanecem, sem mudança nesta peça: o **par `plano-aula-NN.json` / `-anterior.json` órfão de
-  leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); e o **dublê de
-  `fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`.
-
-## 29/09/2026 — Os dois congelados entram: o índice ganha o slug e a entrevista declara dois artefatos
-
-índices publicados (`fochini/ciclo-01-diaghilev`, `tiago/ciclo-01-duo`, `tiago/ciclo-01-ritmos`), o
-campo `professor` está **ausente nos três** — a fonte mudou, os pacotes não. Enquanto não forem
-regerados, o `slugDe` cai na segunda e na terceira regras, e é por isso que o `receber.js` as
-mantém. Regerar exige rodar `tools/gerar-ciclo.sh` nos três pacotes e reancorar os três ciclos.
-Nada disso é fonte de ciclo: nenhum dos dois arquivos entra na âncora, então nenhum `.fipp` precisa
-ser refeito por causa desta peça.
-
 ## 29/09/2026 — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que se acreditava
 
+~~A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
 sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
 não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
 `tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
@@ -1618,6 +284,9 @@ comentário do `pre-commit` deixou de nomear a função que não existe. A reda�
 apagada**: fica como o elo do que se mediu naquele momento. Quanto ao `HANDOFF.md`, ele **precisa
 ser regenerado depois** da entrada de 30/09/2026, que passa a ser a última deste registro.
 
+## 30/09/2026 — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor` e duas pendências que a medição derrubou
+
+O **Passo 0** segue aberto, e continua dependendo de **credencial
 que só a pesquisadora tem**: as **6 chaves** de `tools/.netlify-tokens` estão **vazias**, e sem site
 publicado o `Enviar` do formulário ainda falha com `HTTP 404` — honestamente: avisa e preserva os
 campos. Do mesmo bloco, **segue aberta** a decisão de **onde vivem as Functions** (o
@@ -1633,11 +302,16 @@ depois** desta entrada — ele espelha a **última** deste registro, e passa a s
 
 ## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
 
+O **agente local** continua **não implementado** — e agora se sabe
 que ele era **hipótese**, não pendência de código: a medição desta rodada **derrubou** a premissa do
 prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta ao repositório (§7.3).
 Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
 governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
 conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
+
+## 01/10/2026 — A grafia de "Elicitação" se propaga, e a pendência do prompt congelado ganha dono
+
+A **publicação** do pacote da Ritmos segue **bloqueada por crédito
 da conta**, não por código — herdado e sem mudança nesta peça. A âncora da Ritmos foi regerada, mas
 o **pacote não foi regerado** para acompanhar: o `referencias.html` publicado traz a prosa nova, e
 as demais saídas (PDF, `dados.json`, `ciclos.json`) **não** foram refeitas nesta peça — a regeração
@@ -1651,6 +325,101 @@ Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vive
 (§7.6), a consolidação dos
 lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
 do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
+
+## 01/10/2026 — A view gerada e a regra de leitura cresciam com o arquivo: a colheita passa a ter limite e o `REGISTRO.md` deixa de ser lido inteiro
+
+- **A Frente 3** — declarar onde acaba o *desenho* e começa o *estado* nos `ARQUITETURA-*.md`. Medido:
+  `ARQUITETURA-AULA.md` tem **31 %** de cauda de estado, `ARQUITETURA-ANAMNESE.md` **21 %** e
+  `ARQUITETURA-PE.md` **19 %**. É a única frente **livre** com ganho real — mas o ganho é de **quem
+  implementa**, não da sessão nova: nenhum `ARQUITETURA-*` está na ordem prescrita de leitura.
+- **A Frente 4** — índice no `prompts/elicitar-ciclo.md` (congelado), adiada acima.
+- **A auditoria de quais dos 76 blocos estão de fato abertos hoje.** A varredura sabe quais existem e
+  onde estão; **não** sabe quantos estão abertos. O índice mitiga, mas não substitui essa auditoria.
+- **A verificação de qualidade.** A varredura prova que o custo **caiu** (754 723 → **101 788 B**,
+  −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
+- **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
+  achado robusto; a conversão para token **não foi medida**.
+
+## Pendências anteriores (índice)
+
+- **18/09/2026** — PO do Ciclo 01 — Duo validado → `REGISTRO.md` L9
+- **18/09/2026** — Estrutura por professor (P-13, P-14) e migração do… → `REGISTRO.md` L35
+- **18/09/2026** — Publicação do repositório no GitHub (decisão da… → `REGISTRO.md` L72
+- **18/09/2026** — Pacotes de ciclo passam a ser versionados (deploy… → `REGISTRO.md` L101
+- **18/09/2026** — Ciclo próprio por escola: a Ritmos deixa de ser cópia da… → `REGISTRO.md` L134
+- **18/09/2026** — Ciclo do Ritmos completado (4 de 8 artefatos) + P-15 a P-19 → `REGISTRO.md` L190
+- **18/09/2026** — PO do Ritmos validado + P-22 → `REGISTRO.md` L253
+- **18/09/2026** — Publicação, primeira reancoragem da Duo e o caderno da… → `REGISTRO.md` L302
+- **19/09/2026** — Congelamento da infraestrutura → `REGISTRO.md` L347
+- **19/09/2026** — Criptografia dos acompanhamentos (exceção… → `REGISTRO.md` L396
+- **19/09/2026** — Política de segurança dos dados sensíveis → `REGISTRO.md` L470
+- **19/09/2026** — Caderno publicado e incluído no hash → `REGISTRO.md` L504
+- **19/09/2026** — Método, README-ciclos e campos de duração → `REGISTRO.md` L541
+- **19/09/2026** — README-ciclos: escopos e criação de ciclo → `REGISTRO.md` L583
+- **19/09/2026** — Correções cosméticas → `REGISTRO.md` L604
+- **19/09/2026** — Varredura de marcas de indecisão → `REGISTRO.md` L636
+- **19/09/2026** — METODO no pacote e reorganização do menu → `REGISTRO.md` L680
+- **20/09/2026** — O guia de observação passa a se chamar o que ele é → `REGISTRO.md` L737
+- **20/09/2026** — O contrato de extração passa a ler tabela → `REGISTRO.md` L779
+- **20/09/2026** — O índice da página sai do topo e vai para a direita, preso → `REGISTRO.md` L836
+- **20/09/2026** — O contrato de extração vira lib (definição única) → `REGISTRO.md` L879
+- **20/09/2026** — O contrato ganha as duas declarações (mapa de colunas e… → `REGISTRO.md` L921
+- **20/09/2026** — O extrator do plano (o irmão), e o diff classificado → `REGISTRO.md` L965
+- **20/09/2026** — O laço de validação vira lib (a segunda definição… → `REGISTRO.md` L1028
+- **20/09/2026** — O pre-commit passa a validar o PLANO (schema + tipos) → `REGISTRO.md` L1070
+- **20/09/2026** — O experimento passa a consumir o extrator (o ciclo fecha) → `REGISTRO.md` L1116
+- **20/09/2026** — O fenômeno do PO é uma LISTA (o schema declarava string) → `REGISTRO.md` L1156
+- **20/09/2026** — O escopo `experimentos` entra na lista do commit-msg → `REGISTRO.md` L1197
+- **20/09/2026** — A tabela de escopos do REGRAS.md passa a listar os 27 do… → `REGISTRO.md` L1233
+- **20/09/2026** — Peça 1: o JSON de dados do Duo entra como fonte → `REGISTRO.md` L1264
+- **20/09/2026** — Peça 2: os builders das vistas saem para uma lib → `REGISTRO.md` L1309
+- **20/09/2026** — O gerador passa a GERAR a vista (peça 3 da migração) → `REGISTRO.md` L1359
+- **20/09/2026** — O guia gerado passa a emitir a data da aula → `REGISTRO.md` L1413
+- **20/09/2026** — A linha de base renderiza o texto como veio (nada de… → `REGISTRO.md` L1460
+- **20/09/2026** — O guia do Ritmos passa a ser gerado (peça 5) — e o… → `REGISTRO.md` L1503
+- **20/09/2026** — O `pre-push` passa a existir — e a conferência do… → `REGISTRO.md` L1564
+- **20/09/2026** — O gerador grava os JSONs do formulário no pacote (Fase 2.1) → `REGISTRO.md` L1605
+- **20/09/2026** — O JSON de dados vai para o pacote cifrado (Fase 2.2) → `REGISTRO.md` L1686
+- **20/09/2026** — O formulário de lançamento vai para produção (Área do… → `REGISTRO.md` L1743
+- **20/09/2026** — A folha de captura vira config legível por máquina… → `REGISTRO.md` L1979
+- **22/09/2026** — Agentes de workspace: geração, auditoria e apresentação → `REGISTRO.md` L2292
+- **23/09/2026** — A identidade do projeto entra na documentação (e a… → `REGISTRO.md` L2339
+- **23/09/2026** — A varredura da deriva de identidade: o que ficou fora da… → `REGISTRO.md` L2420
+- **23/09/2026** — A seção que só tinha citação, e o ciclo simulado da… → `REGISTRO.md` L2501
+- **23/09/2026** — O gerador não herda mais o locale de quem o chama → `REGISTRO.md` L2592
+- **25/09/2026** — O HANDOFF truncado: o glob que abortava a geração em… → `REGISTRO.md` L2660
+- **25/09/2026** — "Não o que foi planejado": a memória da aula dada e o… → `REGISTRO.md` L2735
+- **25/09/2026** — O campo `norma`: o PO ganha o padrão de referência que… → `REGISTRO.md` L2846
+- **25/09/2026** — A identidade visual passa a existir como contrato, e a… → `REGISTRO.md` L3046
+- **25/09/2026** — A hora da aula entra no `DIAS`, e o calendário passa a ter… → `REGISTRO.md` L3177
+- **26/09/2026** — O `DOCS` deixa de ser lista à mão: as famílias por aula… → `REGISTRO.md` L3351
+- **26/09/2026** — A P-13 deixa de sugerir que o dado é privado do professor:… → `REGISTRO.md` L3472
+- **26/09/2026** — O prazo do §3 dizia "menor entre" — e dois números do… → `REGISTRO.md` L3625
+- **26/09/2026** — O config da captura deixa de ser um por ciclo: um… → `REGISTRO.md` L3774
+- **26/09/2026** — O `check-identidade.js` entra no `pre-commit`: a identidade… → `REGISTRO.md` L3974
+- **26/09/2026** — O campo ganha a forma canônica da linha de base, a… → `REGISTRO.md` L4208
+- **26/09/2026** — A data da aula deixa de ser adivinhada: o `ciclos.json`… → `REGISTRO.md` L4401
+- **26/09/2026** — O JSON de dados ganha validador: o `-dados.json` deixa de… → `REGISTRO.md` L4668
+- **26/09/2026** — O prazo por aula deixa de ser 48 h fixas: `aulas[].prazo`… → `REGISTRO.md` L4870
+- **26/09/2026** — A âncora deixa de existir só por ciclo: um `.fipp` por… → `REGISTRO.md` L5151
+- **26/09/2026** — O config da captura por aula passa a ser conferido pelo… → `REGISTRO.md` L5311
+- **26/09/2026** — Os apelidos saem em claro: um ciclo sem lançamento passa a… → `REGISTRO.md` L5465
+- **26/09/2026** — O formulário lê o config pela AULA: as quatro aulas… → `REGISTRO.md` L5654
+- **27/09/2026** — A nav sai uma vez: o formulário deixa de ser a única… → `REGISTRO.md` L5856
+- **27/09/2026** — O estado da aula deixa de ser declarado: quatro estados… → `REGISTRO.md` L5969 *(superado)*
+- **27/09/2026** — A §5.1 para de dizer 48 h: o ajuste com prazo passa a… → `REGISTRO.md` L6161
+- **27/09/2026** — O ajuste no plano deixa de ser promessa: o elo do plano da… → `REGISTRO.md` L6319
+- **27/09/2026** — A Aula 05 declara o método RAD e o ciclo ganha notação… → `REGISTRO.md` L6483
+- **28/09/2026** — O índice do formulário saía sem a vírgula: a gravação… → `REGISTRO.md` L6618
+- **28/09/2026** — O formulário baixa **dois** arquivos, e o texto passa a… → `REGISTRO.md` L6738
+- **28/09/2026** — O botão passa a ser `Salvar`, e o arquivo vai para a pasta… → `REGISTRO.md` L6854
+- **28/09/2026** — A legenda ao lado do botão `Salvar` sai; o botão fica… → `REGISTRO.md` L7192
+- **28/09/2026** — O cabeçalho do formulário passa à voz de professor: só… → `REGISTRO.md` L7293
+- **28/09/2026** — O botão `Exportar ajuste do plano` sai do formulário: era… → `REGISTRO.md` L7419 *(superado)*
+- **29/09/2026** — O botão `Salvar` deixa de abrir a pasta do computador: a… → `REGISTRO.md` L7540 *(superado)*
+- **29/09/2026** — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava… → `REGISTRO.md` L7665 *(superado)*
+- **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7813
+- **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7940
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
@@ -1675,7 +444,11 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
 A próxima sessão deve ler, nesta ordem:
 1. este arquivo;
 2. `PROTOCOLO.md`;
-3. `REGISTRO.md`;
+3. as últimas 5 entradas de `REGISTRO.md` — não o arquivo inteiro;
 4. o PO do ciclo ativo.
 
 Isso é suficiente para retomar o diálogo sem reconstruir contexto.
+
+Acima: a última entrada do `REGISTRO.md` por inteiro, as pendências recentes e o
+índice das anteriores. Consultar o índice antes de abrir o `REGISTRO.md` para
+pendência antiga.
