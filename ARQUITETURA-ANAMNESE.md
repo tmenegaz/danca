@@ -163,6 +163,28 @@ fundamento. A musicalidade é de outra natureza — ela **atravessa** todos os o
 A coluna **"Onde aprofunda"** é o encadeamento da observação inicial com a malha dos nove blocos
 (§3.2): o que a entrada verifica de passagem, o bloco correspondente investiga em detalhe.
 
+**O desmembramento.** Um elemento basilar pode ter **subitens declarados** — e, quando tem,
+**desmembra na ficha**: o professor preenche **um por subitem**, não um pelo elemento. Sem
+subitens declarados, o elemento responde **por si**, como sempre. A regra é **estrutural**, não
+uma exceção das cinco posições: vale para qualquer elemento que declare subitens.
+
+As cinco posições são o caso que já existe: **um elemento, dez subitens** — a `1ª` à `5ª` dos
+**pés** e a `1ª` à `5ª` dos **braços**. Cinco posições de cada lado, porque o balé clássico as
+exige nos dois membros, e verificar só um lado não declara o que a aluna traz.
+
+**O elemento desmembrado permanece na árvore.** Ele não desaparece: continua sendo a **linha**
+que nomeia o grupo, e os subitens ficam **sob** ele. O que muda é **quem é respondível** — o
+subitem, não o agrupador. Desmembrar é **acrescentar resolução**, não substituir o elemento.
+
+**O que se responde é o subitem.** O agrupador **não tem resposta própria**: quem verifica é o
+subitem, e é ele que carrega o verbo `verificar` e os desdobramentos. Responder pelo agrupador é
+responder por um **id que não responde** — o recipiente relata a chave e **não a conta**, pela
+regra do id desconhecido (`motor/README.md`). A contagem não infla.
+
+**Consequência para a linha de base.** O desmembramento **não cria campo novo na linha de base**
+(§3.5): ele muda **quem é respondível** dentro dos elementos basilares, não a forma do dado que
+deles sai. A `linhaDeBase` continua `{aluno, traz, precisaDesenvolver}`.
+
 **Os desdobramentos.** Cada elemento basilar admite **formas distintas de verificação**. São
 exemplos — não uma lista fechada:
 
@@ -789,6 +811,16 @@ implementação.
    linha de base é a aula 1, e o plano dessa aula é o seu par; **(B)** fica fora — a "aula 0" é só a
    ficha de Elicitação; **(C)** a posição é **declarada** no PO, e o rótulo da aula é **derivado**
    dela — a mesma leitura da pergunta 4(B).
+11. **Qual é a convenção do `id` do subitem, e a chave `agrupador` entra no nó?** Medido: o motor
+   indexa respostas por `id` **exato** — não há indexação por prefixo em lugar nenhum —, e as duas
+   convenções testadas produzem o mesmo resultado. A escolha é de **norma**, e precisa estar
+   declarada quando o `anamnese.json` declarar os subitens. Hipóteses: **(A)** o `id` do subitem
+   **compõe** com o do elemento (`cinco-posicoes/1a-pes`) — legível de imediato, e liga o subitem ao
+   seu agrupador sem metadado extra; **(B)** o `id` do subitem é **solto** (`posicao-1a-pes`) —
+   mais curto, e a ligação com o agrupador só existe na árvore. A segunda metade da pergunta: a
+   chave de conveniência `agrupador`, que hoje **não existe** no nó, entra ou não? Ela não tem
+   função de máquina — o agrupamento já está na árvore —, e serve só para a ficha agrupar sem
+   re-percorrer o conteúdo.
 
 ## Referências
 
