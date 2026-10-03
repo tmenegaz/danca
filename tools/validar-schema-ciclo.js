@@ -17,6 +17,14 @@
  * QUALQUER campo declarado com ele, obrigatório ou opcional. `required` governa
  * presença; `pattern` governa forma. Sem dependências externas.
  *
+ * Extra: quando o schema declara `if`/`then`/`else` — numa entrada de `allOf`
+ * ou na raiz —, a condição é avaliada contra o conjunto de campos do `.conf` e o
+ * ramo que casar passa a exigir os seus `required` e a conferir os seus
+ * `pattern`. É o que permite dizer "a escola desabilitada PRECISA declarar por
+ * que e desde quando" sem tornar esses campos obrigatórios para a escola que
+ * está habilitada. Sem o campo da condição, o ramo não se aplica — e o opcional
+ * continua opcional.
+ *
  * Sai com 0 se todos os campos obrigatórios estão presentes e todo campo com
  * `pattern` (quando presente) bate o padrão; com 1 se algo falta ou está torto.
  */
@@ -57,6 +65,32 @@ function lerConf(caminho) {
   return campos;
 }
 
+// Campos que a condição menciona — os discriminantes do ramo.
+function discriminantes(condicao) {
+  if (!condicao || typeof condicao !== 'object') return [];
+  const mencionados = new Set(Array.isArray(condicao.required) ? condicao.required : []);
+  for (const campo of Object.keys(condicao.properties || {})) mencionados.add(campo);
+  return [...mencionados];
+}
+
+// Avalia o `if` de um campo condicional contra os campos presentes: casa quando
+// TODO campo que ele menciona existe e bate — `const` (igualdade exata) ou
+// `pattern` (forma). `if` sem campo mencionado casa vacuamente.
+//
+// Quem decide o ramo é o chamador, em duas etapas, e a diferença importa:
+//   · discriminante AUSENTE: nenhum ramo se aplica, e o opcional segue opcional
+//     (quem não declarou o valor não entra no contrato condicional);
+//   · discriminante presente que não casa: é o caso do `else`.
+function condicaoCasa(condicao, campos) {
+  const props = (condicao && condicao.properties) || {};
+  for (const [campo, def] of Object.entries(props)) {
+    if (!(campo in campos)) return false;
+    if (def && 'const' in def && campos[campo] !== String(def.const)) return false;
+    if (def && def.pattern && !new RegExp(def.pattern).test(campos[campo])) return false;
+  }
+  return true;
+}
+
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 2) { uso(); return 2; }
@@ -93,10 +127,55 @@ function main() {
   // inclusive os opcionais. `required` responde "existe?"; `pattern` responde
   // "está no formato?". Amarrar o padrão ao `required` deixaria um campo
   // opcional passar com qualquer valor, que é o oposto de uma checagem.
+  const padroes = Object.entries(propriedades)
+    .filter(([, def]) => def && def.pattern)
+    .map(([campo, def]) => [campo, def.pattern]);
+
+  // Condicional: o ramo que casar acrescenta ao contrato — os `required` dele
+  // passam a faltar quando ausentes, e os `pattern` dele entram na conferência
+  // de forma. É o que exige "por que" e "desde quando" de quem se declara
+  // desabilitado, sem exigir isso de quem está habilitado.
+  //
+  // A condição é lida onde o JSON Schema draft-07 a declara — no nível do
+  // OBJETO, não dentro de `properties.X`: numa entrada de `allOf` (a forma que
+  // `experimentos/pe/ramificacao/ramificacao-schema.json` já usa) ou na raiz do
+  // schema. `if` sobre uma string não teria como carregar `required`/`pattern`.
+  //
+  // O ramo se escolhe em DUAS etapas: primeiro se a condição se APLICA (algum
+  // discriminante declarado?), depois qual ramo cabe. Sem a primeira etapa, o
+  // `else` seria aplicado mesmo quando o `if` casa.
+  const condicoes = (Array.isArray(schema.allOf) ? schema.allOf : [])
+    .filter((e) => e && typeof e === 'object');
+  if (schema.if) condicoes.push(schema);
+
+  const porCausa = [];
+  for (const entrada of condicoes) {
+    const condicao = entrada.if;
+    const quando = entrada.then;
+    const senao = entrada.else;
+    if (!quando && !senao) continue;
+
+    const disc = discriminantes(condicao);
+    const seAplica = disc.length === 0 || disc.some((c) => c in campos);
+    if (!seAplica) continue;
+
+    const ramo = condicaoCasa(condicao, campos) ? ['then', quando] : ['else', senao];
+    const exigencia = ramo[1];
+    if (!exigencia || typeof exigencia !== 'object') continue;
+
+    const exigidos = Array.isArray(exigencia.required) ? exigencia.required : [];
+    faltando.push(...exigidos.filter((c) => !(c in campos)));
+    for (const [alvo, sub] of Object.entries(exigencia.properties || {})) {
+      if (sub && sub.pattern) padroes.push([alvo, sub.pattern]);
+    }
+    if (exigidos.length) {
+      porCausa.push(`ramo "${ramo[0]}": exige ${exigidos.join(', ')}`);
+    }
+  }
+
   const fora = [];
-  for (const [campo, def] of Object.entries(propriedades)) {
-    const padrao = def && def.pattern;
-    if (!padrao || !(campo in campos)) continue;
+  for (const [campo, padrao] of padroes) {
+    if (!(campo in campos)) continue;
     if (!new RegExp(padrao).test(campos[campo])) {
       fora.push(`${campo}="${campos[campo]}" (esperado ${padrao})`);
     }
@@ -109,6 +188,7 @@ function main() {
     console.error(`schema ${nomeSchema} × ${nomeConfs}`);
     console.error(`faltam ${faltando.length} campo(s) obrigatório(s):`);
     for (const c of faltando) { console.error(`  - ${c}`); }
+    for (const c of porCausa) { console.error(`  (${c})`); }
     return 1;
   }
 
