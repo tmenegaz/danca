@@ -7,7 +7,7 @@
  *
  *   uso: node tools/validar-schema-ciclo.js <schema.json> <conf1> [conf2 ...]
  *        node tools/validar-schema-ciclo.js ciclos/ciclo-01-schema.json \
- *             ciclos/ciclo-01.conf ciclos/ciclo-01-duo.conf
+ *             ciclos/ciclo-01.conf ciclos/ciclo-01-diaghilev.conf
  *
  * O contrato é a PRESENÇA dos campos obrigatórios. A união dos .conf passados é
  * considerada, porque neste projeto o manifesto base (ciclo-XX.conf) e o de

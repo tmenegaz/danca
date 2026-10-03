@@ -47,7 +47,7 @@ if [ "$#" -gt 0 ]; then
   if [ "${#resto[@]}" -gt 0 ]; then set -- "${resto[@]}"; else set --; fi
 fi
 
-PROFESSOR_SLUG="tiago"
+PROFESSOR_SLUG="tiago"  # default histórico `tiago` — pendente desde 02/10/2026 (passe o professor; o único ciclo ativo é o de `fokini`)
 if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
   PROFESSOR_SLUG="$1"; shift
 fi

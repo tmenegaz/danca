@@ -6,6 +6,8 @@
 # cada um do seu jeito. O gerador lia sempre o arquivo SEM sufixo de variante
 # (ciclo-01-plano.md), então o pacote da escola Ritmos saía com o plano e a aula
 # da Duo; e o hasher cobria todos os .md do ciclo, misturando as escolas no hash.
+# (Narrativa preservada: Duo e Ritmos saíram do caminho ativo em 02/10/2026 — o
+# elo fica, e é ele que sustenta a «Regra única» abaixo.)
 #
 # Regra única: o documento `ciclo-XX-<doc>.md` pode ter uma versão PRÓPRIA da
 # variante — `ciclo-XX-<variante>-<doc>.md` — que tem precedência quando existe.
@@ -56,7 +58,7 @@ fonte_dados() {
 # Uma VISTA é um documento DERIVADO — hoje, o guia de observação, que sai das duas ENTRADAS (o PO
 # e o plano) e não da captura. Ela passa a ser GERADA pelo pacote quando a fonte escrita à mão
 # SAI: assim a migração acontece POR VARIANTE e de forma explícita — apagar o `.md` é o ato —, e
-# nenhuma escola é migrada por acidente (o Ritmos segue com o guia dele até a vez dele).
+# nenhuma escola é migrada por acidente.
 e_vista() {
   case "$1" in
     guia-de-observacao-*) [ ! -f "$(fonte_md "$1")" ] ;;
@@ -84,9 +86,8 @@ e_vista() {
 #   * a família expande UMA vez, na posição do seu PRIMEIRO membro declarado, e os membros
 #     seguintes são absorvidos: expandir cada nome declarado duplicaria (o DOCS do fokini declara
 #     `aula-01` a `aula-04` — seriam 16 entradas em vez de 4);
-#   * a expansão só ACRESCENTA documento que existe: onde nada foi declarado, nada muda — a Duo e
-#     o Ritmos ficam com o DOCS idêntico ao de antes, e o `guia-de-observacao-NN` (que é VISTA, sem
-#     `.md`) segue resolvido por `e_vista()`.
+#   * a expansão só ACRESCENTA documento que existe: onde nada foi declarado, nada muda — e o
+#     `guia-de-observacao-NN` (que é VISTA, sem `.md`) segue resolvido por `e_vista()`.
 # ============================================================================
 
 # Os NN desta família que existem em disco, crescentes, um por linha.

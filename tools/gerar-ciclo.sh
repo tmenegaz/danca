@@ -10,11 +10,9 @@
 #     ciclo-XX.pdf              PDF único consolidado (índice + bookmarks)
 #     README.md                 como navegar e usar o material
 #
-#   uso:  tools/gerar-ciclo.sh [<professor>] [XX] [escola]   (padrão: tiago 01)
-#         tools/gerar-ciclo.sh 01 duo            → pacote do Duo (assume tiago)
-#         tools/gerar-ciclo.sh tiago 01 ritmos   → pacote de Ritmos e Movimento
-#         PDF_ENGINE=lualatex tools/gerar-ciclo.sh 01 duo   (troca o engine)
-#   (o ciclo da Débora, em Marau, ainda não existe)
+#   uso:  tools/gerar-ciclo.sh [<professor>] [XX] [escola]   (padrão histórico: tiago 01 — pendente desde 02/10/2026)
+#         tools/gerar-ciclo.sh fokini 01 diaghilev   → pacote do Diaghilev
+#         PDF_ENGINE=lualatex tools/gerar-ciclo.sh fokini 01 diaghilev   (troca o engine)
 #
 # Fontes (Markdown, editáveis no VS Code):
 #   professores/<p>/ciclos/ciclo-XX.conf          manifesto do ciclo (padrões do projeto)
@@ -60,7 +58,7 @@ RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Slug do professor (a pasta em professores/). Não se chama PROFESSOR de propósito: os
 # manifestos declaram PROFESSOR com o nome de EXIBIÇÃO ("Tiago Menegaz" — vai para o rodapé
 # do pacote e para o author: do README), e a variável seria sobrescrita ao carregar o conf.
-PROFESSOR_SLUG="tiago"
+PROFESSOR_SLUG="tiago"  # default histórico `tiago` — pendente desde 02/10/2026 (passe o professor; o único ciclo ativo é o de `fokini`)
 if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
   PROFESSOR_SLUG="$1"
   shift

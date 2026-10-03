@@ -429,7 +429,7 @@ function main() {
 
   conferirOrdem(dados, ORDEM_RAIZ, 'raiz', avisos);
 
-  // A raiz contra o NOME do arquivo: `ciclo-01-duo-dados.json`. O validador não lê o .conf (a
+  // A raiz contra o NOME do arquivo: `ciclo-01-diaghilev-dados.json`. O validador não lê o .conf (a
   // variante não decide nada aqui — o JSON declara a sua escola) e por isso não recebe `--variante`.
   const doNome = /^ciclo-(\d+)(?:-([a-z0-9]+))?-dados\.json$/.exec(path.basename(caminho));
   if (doNome) {

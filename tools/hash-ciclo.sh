@@ -10,9 +10,9 @@
 #     tools/hash-ciclo.sh [<professor>] <ciclo> <variante> [--check]
 #
 #   exemplos:
-#     tools/hash-ciclo.sh 01 duo             (assume o professor tiago)
-#     tools/hash-ciclo.sh tiago 01 duo
-#     tools/hash-ciclo.sh 01 duo --check
+#     tools/hash-ciclo.sh fokini 01 diaghilev
+#     tools/hash-ciclo.sh fokini 01 diaghilev --check
+#     tools/hash-ciclo.sh 01 diaghilev             (assume o professor padrão — pendente desde 02/10/2026)
 #
 # O professor é o primeiro argumento quando há três ou mais (e o terceiro não é
 # --check): assim os comandos antigos, sem professor, continuam valendo.
@@ -22,12 +22,12 @@
 #   hash_conteudo = SHA256( fontes do ciclo, em ordem determinística LC_ALL=C )
 #   hash_fipp     = SHA256( id + ":" + type + ":" + parentHash + ":" + conteudo )
 #
-#   id .......... "ciclo-01-duo"   (identificador do artefato)
+#   id .......... "ciclo-01-diaghilev"   (identificador do artefato)
 #   type ........ "Ciclo"          (tipo fixo)
 #   parentHash .. hash da âncora do ciclo anterior, mesma variante (vazio no Ciclo 01)
 #   conteudo .... hash das fontes
 #
-# A âncora POR AULA usa a MESMA fórmula, com id "ciclo-01-duo-aula-01", type
+# A âncora POR AULA usa a MESMA fórmula, com id "ciclo-01-diaghilev-aula-01", type
 # "Aula", parentHash VAZIO (a âncora de uma aula não encadeia com a da anterior) e
 # conteudo restrito às fontes daquela aula. O campo ancorado_em fica FORA da
 # fórmula, como o po_state: se entrasse, o --check — que recalcula o hash sobre as
@@ -62,7 +62,7 @@ if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
   PROFESSOR="$1"
   shift
 fi
-PROFESSOR="${PROFESSOR:-tiago}"
+PROFESSOR="${PROFESSOR:-tiago}"  # default histórico `tiago` — pendente desde 02/10/2026 (passe o professor; o único ciclo ativo é o de `fokini`)
 
 # O .conf sobrescreve PROFESSOR com o NOME DE EXIBIÇÃO ("Tiago Menegaz"), que não
 # serve para reexecutar o script — o argumento é o diretório. Guardado aqui, antes

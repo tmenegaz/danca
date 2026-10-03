@@ -6,8 +6,14 @@
  * e o glossário que o explica (Regra 16, aplicada à documentação de apoio).
  *
  *   uso: node tools/check-glossario.js [registro.md] [glossario.md]
- *        (padrão: professores/tiago/ciclos/ciclo-01-notacao.md e
- *         professores/tiago/ciclos/ciclo-01-glossario-benesh.md)
+ *        (padrão: professores/fokini/ciclos/ciclo-01-notacao.md e
+ *         professores/fokini/ciclos/ciclo-01-glossario-benesh.md)
+ *
+ * O padrão aponta para o único ciclo ativo (Diaghilev, professor Fokini). Até
+ * 02/10/2026 apontava para professores/tiago/..., removido nesta data com os
+ * ciclos-protótipo; o ponteiro foi reapontado, não apagado (P-03/P-04). Os dois
+ * chamadores (check-pacote.js e hooks/pre-commit) sempre passam os caminhos
+ * explícitos, então o padrão só governa o uso manual sem argumentos.
  *
  * Por que existe: o registro da Aula 01 usou no corpo símbolos e categorias que
  * não estavam no glossário (e o glossário declarava símbolos que o corpo não
@@ -37,8 +43,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const PADRAO = ['professores/tiago/ciclos/ciclo-01-notacao.md',
-                'professores/tiago/ciclos/ciclo-01-glossario-benesh.md'];
+const PADRAO = ['professores/fokini/ciclos/ciclo-01-notacao.md',
+                'professores/fokini/ciclos/ciclo-01-glossario-benesh.md'];
 const rel = (p) => path.relative(process.cwd(), p) || p;
 
 const registroPath = path.resolve(process.argv[2] || PADRAO[0]);

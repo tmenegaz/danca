@@ -5,7 +5,7 @@
  * gerar-vista.js — gera UMA vista do ciclo (peça 3 da migração).
  *
  *   uso: node tools/gerar-vista.js <professor> <ciclo> <variante> <vista> [aula]
- *     ex.: node tools/gerar-vista.js tiago 01 duo guia-de-observacao 01
+ *     ex.: node tools/gerar-vista.js fokini 01 diaghilev guia-de-observacao 01
  *
  * Imprime o `.md` no STDOUT — o gerador o usa como fonte da página, no lugar do `.md` escrito à
  * mão. Ele NÃO escreve arquivo: quem decide onde o texto fica é quem chama.
@@ -35,7 +35,7 @@ const RAIZ = path.resolve(__dirname, '..');
 
 function uso() {
   console.error('uso: node tools/gerar-vista.js <professor> <ciclo> <variante> <vista> [aula]');
-  console.error('  ex.: node tools/gerar-vista.js tiago 01 duo guia-de-observacao 01');
+  console.error('  ex.: node tools/gerar-vista.js fokini 01 diaghilev guia-de-observacao 01');
 }
 
 // Os `.conf` são KEY=VAL de shell: aqui se lê o que interessa, sem executar shell.

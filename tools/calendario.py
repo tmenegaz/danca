@@ -5,13 +5,13 @@ calendario.py — calcula o calendário real de um ciclo (Pré-requisito 5 / Reg
 
     uso:
       python3 tools/calendario.py \
-        --escola "Duo" --responsavel "Fernando" \
+        --escola "Diaghilev" --responsavel "Fokini" \
         --frequencia "1x/semana" --dias "5@18:30" \
         --inicio 17/09/2026 --total 12 \
         --duracao-curta 60 --volume-curto 90 \
         [--duracao-longa 120 --volume-longo 180]
 
-      python3 tools/calendario.py --escola "Duo" --frequencia "1x/semana" --dias "5@18:30" \
+      python3 tools/calendario.py --escola "Diaghilev" --frequencia "1x/semana" --dias "5@18:30" \
         --inicio 17/09/2026 --total 12 --aula 01
       → 2026-09-18     (a data da aula 01, em ISO — para quem precisa da data, não do bloco)
 

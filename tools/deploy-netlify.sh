@@ -3,15 +3,13 @@
 # deploy-netlify.sh — publica um pacote de ciclo no Netlify.
 #
 #   uso: tools/deploy-netlify.sh <professor> <ciclo> <variante>
-#   ex.: tools/deploy-netlify.sh tiago 01 duo
+#   ex.: tools/deploy-netlify.sh fokini 01 diaghilev
 #
-# UMA CONTA POR ESCOLA. Cada escola (duo, ritmos) tem a sua conta no
-# Netlify, com o seu token e o seu site. Os dois valores ficam em
-# tools/.netlify-tokens (NÃO versionado — ver .gitignore), um par por escola:
+# UMA CONTA POR ESCOLA. Cada escola tem a sua conta no Netlify, com o seu
+# token e o seu site. Os dois valores ficam em tools/.netlify-tokens
+# (não versionado — ver .gitignore), um par por escola:
 #
-#   NETLIFY_TOKEN_DUO="..."     NETLIFY_SITE_DUO="..."
-#   NETLIFY_TOKEN_RITMOS="..."  NETLIFY_SITE_RITMOS="..."
-#   NETLIFY_TOKEN_DEBORA="..."  NETLIFY_SITE_DEBORA="..."
+#   NETLIFY_TOKEN_DIAGHILEV="..."  NETLIFY_SITE_DIAGHILEV="..."
 #
 # Na primeira execução, se o arquivo não existir, o script cria o template
 # vazio e sai — é só preencher e rodar de novo. Se o token da escola ainda
@@ -34,7 +32,7 @@ VARIANTE="${3:-}"
 
 if [ -z "$PROFESSOR" ] || [ -z "$CICLO" ] || [ -z "$VARIANTE" ]; then
   echo "uso: tools/deploy-netlify.sh <professor> <ciclo> <variante>" >&2
-  echo "ex.: tools/deploy-netlify.sh tiago 01 duo" >&2
+  echo "ex.: tools/deploy-netlify.sh fokini 01 diaghilev" >&2
   exit 2
 fi
 
@@ -72,14 +70,8 @@ if [ ! -f "$TOKENS" ]; then
 #   3. copie o site ID: `netlify sites:list` (ou o painel do site)
 #   4. cole os dois valores abaixo, na escola correspondente
 
-NETLIFY_TOKEN_DUO=""
-NETLIFY_SITE_DUO=""
-
-NETLIFY_TOKEN_RITMOS=""
-NETLIFY_SITE_RITMOS=""
-
-NETLIFY_TOKEN_DEBORA=""
-NETLIFY_SITE_DEBORA=""
+NETLIFY_TOKEN_DIAGHILEV=""
+NETLIFY_SITE_DIAGHILEV=""
 EOF
   echo "criado: $TOKENS (template vazio)"
   echo "  preencha o token e o site ID da escola $VARIANTE e rode de novo."

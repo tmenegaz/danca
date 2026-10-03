@@ -39,7 +39,7 @@ const pacote = path.resolve(process.argv[2] || 'ciclos/ciclo-01');
 const nomePacote = path.basename(pacote);
 const mCiclo = nomePacote.match(/ciclo-(\d+)/);
 const ciclo = mCiclo ? mCiclo[1] : '01';
-// O nome do PDF acompanha o nome do pacote: ciclo-01-duo/ → ciclo-01-duo.pdf
+// O nome do PDF acompanha o nome do pacote: ciclo-01-diaghilev/ → ciclo-01-diaghilev.pdf
 const pdf = path.join(pacote, `${nomePacote}.pdf`);
 
 const erros = [];
