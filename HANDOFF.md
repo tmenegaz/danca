@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-02T08:32:14-0300`
-Commit atual: `ac071db` — docs(registro): regenera o HANDOFF sobre 7b46e5c
+Gerado em: `2026-10-02T21:56:13-0300`
+Commit atual: `f04551b` — docs(registro): os ciclos-prototipo saem, e o tools/ acha o ciclo ativo
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -34,9 +34,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** fokini
-tiago (2)
-- **Ciclos com manifesto:** 3 variante(s)
+- **Professores:** fokini (1)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -51,6 +50,11 @@ tiago (2)
 ## Últimos commits
 
 ```
+f04551b docs(registro): os ciclos-prototipo saem, e o tools/ acha o ciclo ativo
+3736757 docs(tools): os exemplos e ponteiros passam a citar o ciclo ativo
+08c0be9 chore(estrutura): saem os ciclos-prototipo, e o Diaghilev fica sozinho
+be806f4 docs(estrutura): a regra de desmembramento da ficha entra na norma
+bbe8867 docs(tools): a colheita do HANDOFF passa a ter limite, e a leitura do REGISTRO deixa de ser inteira
 ac071db docs(registro): regenera o HANDOFF sobre 7b46e5c
 7b46e5c docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
 f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do prompt congelado ganha dono
@@ -66,11 +70,6 @@ b2e8a6f docs(registro): a baixa do ponto 3 e o rito dos congelados
 aa4c428 docs(estrutura): a observação inicial e os elementos basilares entram como §3
 31d97fe refactor(estrutura): fochini → fokini (o slug e o nome de exibição)
 12a5462 docs(registro): regenera o HANDOFF sobre ee1863f
-ee1863f docs(registro): o `B8` medido — `podeAjustarPlano()` não existe
-5b6b793 docs(registro): regenera o HANDOFF sobre da2cd8b
-da2cd8b docs(estrutura): as duas arquiteturas novas e o `po_ref/` fora do controle de versão
-ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a entrevista declara dois artefatos
-76c3cf2 docs(registro): regenera o HANDOFF sobre 55a7c20
 ```
 
 ## Por professor
@@ -86,20 +85,6 @@ ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | diaghilev | ciclo-01-diaghilev.fipp | `7e32e5a49c0a` | (vazio) | Input_PO_Aguardando |
-
-### tiago — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): duo, ritmos
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| Duo | ciclo-01-duo-po.md | Input_PO_Aguardando | 2 |
-| Ritmos e Movimento | ciclo-01-ritmos-po.md | Input_PO_Aguardando | 7 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| duo | ciclo-01-duo.fipp | `8bba2c5e8a27` | (vazio) | Input_PO_Aguardando |
-| ritmos | ciclo-01-ritmos.fipp | `18649803dd59` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -148,141 +133,119 @@ ebc62bb docs(prompts): os dois congelados entram — o índice ganha o slug e a 
 
 ## Última entrada do REGISTRO
 
-## 01/10/2026 — A view gerada e a regra de leitura cresciam com o arquivo: a colheita passa a ter limite e o `REGISTRO.md` deixa de ser lido inteiro
+## 02/10/2026 — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev fica sozinho
 
 **O que motivou.**
-Uma varredura de custo de contexto mediu, pela primeira vez, o que uma sessão nova paga para se
-situar. O gerador prescreve a leitura de quatro arquivos nesta ordem — o `HANDOFF.md`, o
-`PROTOCOLO.md`, o `REGISTRO.md` inteiro e o PO do ciclo ativo. Medido, isso dá **754 723 B**, dos
-quais **726 830 B (96 %) são dois arquivos**: o `REGISTRO.md` (599 433 B, 79 %) e o `HANDOFF.md`
-(127 397 B, 17 %). Todo o resto da pilha documental é ruído estatístico.
-
-Duas medições localizaram o mecanismo. A primeira é a anatomia do `HANDOFF.md`: **105 618 B
-(82,9 %)** do arquivo são a *colheita de pendências* — derivada do `REGISTRO.md`. A segunda é o
-experimento de isolamento, que rodou o gerador sobre uma cópia com o insumo **dobrado**: **104 845 B
-(82,3 %)** do `HANDOFF.md` **escalam** com o `REGISTRO.md` e **22 552 B (17,7 %)** não escalam
-(identidade, estado, tabelas por professor). ⇒ O `HANDOFF.md` nunca desce abaixo de ~22,6 KB, e o
-custo cresce **duas vezes por entrada nova**: o `REGISTRO.md` cresce (e a sessão o lê inteiro) **e**,
-se a entrada trouxer bloco de pendência, o `HANDOFF.md` engorda **para sempre** — porque o awk do
-gerador **nunca corta**.
-
-O custo do crescimento foi localizado em **duas linhas de awk** do `tools/gerar-handoff.sh`
-(`:177` e `:185`), e a auditoria dessas linhas revelou **cinco defeitos**:
-
-1. **`## ` engolido.** O awk para em `/^\*\*/`, não em `/^## /`, e solta o que engoliu apenas ao
-   encontrar o primeiro `**` da entrada seguinte. Medido: **52 headings** engolidos em **52
-   transbordos · 125 linhas**, **6 262 B** — e o transbordo não é uniforme: **48** têm 2 linhas,
-   **1** tem 5 e **3** têm 8 (o resto é o preâmbulo da entrada seguinte, quando ela traz prosa
-   antes do primeiro rótulo).
-2. **Marcador exato.** A regex `\.\*\*$` não casa `**O que ainda não está feito (declarado).**`.
-   **Seis pendências reais e abertas** (`L1542, L1591, L1639, L1726, L1782, L2010` — **2 716 B / 36
-   linhas**) **nunca entraram no `HANDOFF.md`**.
-3. **Nunca corta.** Todo bloco já escrito fica para sempre.
-4. **Prefixo de marcador na mesma linha descartado.** O `{flag=1; next}` joga fora o resto da linha
-   do marcador, e **cinco blocos** (`L8002, L8074, L8163, L8248, L8389`) perdem a **primeira
-   frase**. Fecha exato: `grep -c '^\*\*O que ainda não está feito\.\*\*$'` = **71**; sem `$` =
-   **76**; `71 + 5 = 76`.
-5. **Primeiro bloco órfão.** O marcador da primeira entrada está em `L32` e a linha de data em
-   `L31`, que nunca entra em região alguma — a colheita abria com prosa sem data e sem título.
+O `professores/tiago/` guardava dois ciclos que **nunca tiveram aula dada** — a Duo (Fundamentos do
+Balé Clássico, 12 aulas) e a Ritmos e Movimento (pas de deux, 21 encontros). Eram **protótipos do
+modelo**: nasceram para exercitar o pipeline de geração, o PO, a captura e a âncora, e cumpriram
+esse papel. O que existe hoje com **entrega real** é o Diaghilev, do professor Fokini. Cada ciclo
+morto custa manutenção a cada evolução do modelo — schema, gerador, validador, glossário —, e a
+manutenção de protótipo não é manutenção de conteúdo: **ela consome o rito sem produzir elo**.
 
 **O que foi decidido.**
-Substituir a colheita irrestrita por uma **colheita limitada** e a leitura integral do `REGISTRO.md`
-por uma **regra de leitura limitada**:
-
-- **Colheita limitada.** O awk do `:185` passa a emitir os blocos de pendência das **últimas 5
-  entradas**, com **título próprio** para cada um, mais um **índice das anteriores** — para que
-  pendência antiga e ainda aberta **não desapareça** do primeiro arquivo lido. A escolha de **N=5**
-  é medida, não suposta: o corte foi otimizado sobre `colheita + índice` (o índice **cresce** quando
-  a colheita encolhe), e **N=5 minimiza a soma em 12 592 B**. Um corte por *número de blocos* ou por
-  *teto em bytes* foi **refutado pela medição**: o maior bloco tem **13 721 B e está a 12 do fim**,
-  quase igualando os últimos 10 somados (14 077 B) — qualquer regra por N ou por byte oscila, e
-  **N=12 chega a dobrar** o valor de N=10. Uma regra por idade/data também não é estável: só o dia
-  26/09/2026 responde por 38 181 B (35 % do arquivo).
-- **Os cinco defeitos são corrigidos na mesma passagem** — o `## ` volta a delimitar, as **duas**
-  formas de marcador são casadas, o corte existe, o resto da linha do marcador é preservado e o
-  primeiro bloco recebe data e título.
-- **Regra de leitura limitada.** O `:231` deixa de dizer `3. \`REGISTRO.md\`;` e passa a dizer que se
-  leem **as últimas 5 entradas** — não o arquivo inteiro —, com ponteiro explícito para o índice
-  antes de abrir o `REGISTRO.md` por causa de pendência antiga. Medido: as últimas 5 entradas são
-  **38 751 B (6,4 %)** do arquivo.
-
-**Nada foi apagado.** O `REGISTRO.md` permanece **inteiro**, com as 8 403 linhas e as 94 entradas. O
-que encolheu foi a **view gerada** (`HANDOFF.md`) e a **regra de leitura** — as duas eram as que
-pagavam o mesmo crescimento duas vezes. P-03/P-04 valem para esta varredura também: o que fosse
-superado viraria nota datada, não remoção. **O `HANDOFF.md` é saída gerada — não foi editado à mão;
-foi o gerador que mudou, e o artefato foi regenerado no mesmo commit.**
+- **Saem 125 arquivos versionados** — 115 em `ciclos/`, 4 em `campo/`, 3 em `relatorios/` e 3 em
+  `cadernos/` (43 HTML, 38 MD, 23 JSON, 6 JS, 4 SVG, 4 `.fipp`, 3 `.conf`, 2 PDF, 2 CSS). Nada sai
+  como informação: o histórico preserva a árvore inteira em `be806f4`, e o que este movimento remove
+  é o **caminho ativo**, não o passado (P-04).
+- **O ciclo da Débora não entra na lista porque já não existia.** As cópias que traziam o nome dela
+  — manifesto, PO, âncora e pacote — saíram em `b60830b` (18/09/2026), como a entrada de `:149`
+  registrou: *"o ciclo dela ainda não existe"*. Nenhuma variante viva com o nome dela resta no HEAD.
+- **9 `acompanhamento-*.md` saíram do disco.** São **vista derivada** —
+  `tools/gerar-acompanhamento.sh`, chamado por `tools/gerar-ciclo.sh:586` —, regeneráveis das
+  fontes, e deliberadamente **fora do Git** (`.gitignore:33`, camada 4 da política de dados
+  sensíveis do `CONGELAMENTO.md`). Não aparecem no diff porque nunca estiveram no histórico.
+- **Os documentos livres foram ajustados em dois registros distintos**, e a distinção é deliberada.
+  Onde a citação é **medição** — as contagens de 12 e 21 aulas que dimensionaram o problema —, entra
+  **nota de escopo datada** e a narrativa permanece (`IDEIA-CAPTURA.md`, `ARQUITETURA-ANAMNESE.md`,
+  `ARQUITETURA-PE.md`). Onde a citação é **forma** — o corpus vivo do pipeline —, o texto é
+  **atualizado** para o Diaghilev (`README-ciclos.md`, `README.md`, `professores/README.md`,
+  `departamentos/README.md`).
+- **Os quatro schemas do ciclo ativo** ganharam a mesma `_nota_escopo_02-10-2026`, que carimba o
+  corte e diz por que as `description` antigas ficam: são o caso **medido** que justifica a
+  tolerância declarada, não exemplo de forma.
+- **`CONGELAMENTO.md`** — arquivo livre — recebeu só o alinhamento da seção *"Por que congelar"* ao
+  estado real: 1 ciclo publicado (Diaghilev), 1 PO validado, âncora e caminho de deploy prontos.
 
 **Onde entrou.**
-`tools/gerar-handoff.sh` — três pontos:
-
-- `:185` — o awk da colheita de pendências (a região que produzia 104 807 B);
-- `:231` — a linha da ordem prescrita de leitura (`REGISTRO.md` inteiro → últimas 5 entradas);
-- `:234` — quatro linhas de ponteiro acrescentadas depois da frase que fecha a ordem de leitura,
-  dizendo que acima estão a última entrada por inteiro, as pendências recentes e o índice das
-  anteriores, e que se consulta o índice **antes** de abrir o `REGISTRO.md` para pendência antiga.
+- `08c0be9` — `chore(estrutura)`: os 125 `D`, os 11 documentos livres e os 4 schemas.
+- `3736757` — `docs(tools)`: os 11 arquivos de `tools/`, em **commit próprio**, como o congelamento
+  exige.
 
 **Motivo declarado — os congelados.**
-`tools/` é congelado (`CONGELAMENTO.md`), e foi tocado — de propósito, pelo rito, e não por atalho.
-O motivo é que a view gerada e a regra prescrita de leitura **cresciam com o `REGISTRO.md`**, e as
-duas pagavam o **mesmo** crescimento duas vezes: o `HANDOFF.md` já carrega 118 048 B extraídos do
-`REGISTRO.md` e, no passo seguinte da **mesma** lista, a sessão é mandada ler o `REGISTRO.md`
-**inteiro** — **5,1× maior** que a cópia (599 433 / 118 048). O gerador não é a vítima do
-crescimento; é o seu **multiplicador**: uma alteração custa o rito **uma vez**, e o ganho é pago a
-**cada** sessão. Congelar o gerador sem medir o que ele emite era congelar sem conhecer o custo — e
-o custo agora está medido.
+`tools/` é congelado (`CONGELAMENTO.md`), e o commit `3736757` o toca em 11 arquivos. O motivo: os
+comentários, os cabeçalhos de uso e as mensagens de erro citavam os ciclos-protótipo como **exemplo**
+e como **ponteiro padrão** — quem lia o cabeçalho do script para descobrir como chamá-lo era mandado
+para uma árvore ausente desde `08c0be9`.
 
-Dois outros objetos congelados foram **deliberadamente não tocados**, e a medição sustenta a recusa:
-a duplicação das **22 pétreas** e das **17 regras** dentro do `HANDOFF.md` é de **1 910 B (0,25 %)**
-— não há prêmio que justifique arriscar o piso de rigor; e a **identidade do projeto** (`L1–32`,
-1 917 B) não foi substituída por ponteiro, porque é ela que impede a deriva de leitura, e trocá-la
-por 1,9 KB seria economizar token perdendo rigor. O `prompts/elicitar-ciclo.md` (congelado) também
-não foi tocado nesta rodada: o ganho dele é real (~3,3 KB por turno de eliciação) mas é **por turno**,
-não por sessão, e o arquivo está **em produção** — fica para decisão própria, depois.
+O que mudou, por arquivo: `calendario.py:8,14` (os exemplos do Pré-requisito 5),
+`check-glossario.js:9-16,46-47` (o `PADRAO` reapontado de `professores/tiago/...` para
+`professores/fokini/...`, com comentário novo que declara o reapontamento e a data),
+`check-pacote.js:42`, `deploy-netlify.sh:6,8-14,35,73-74` (inclusive o template de
+`.netlify-tokens`, que perde os pares `DUO`, `RITMOS` e `DEBORA`), `gerar-ciclo.sh:13-16`,
+`gerar-vista.js:8,38`, `hash-ciclo.sh:13-15,25,30`, `lib-fontes.sh:9-10,61,89-90`,
+`validar-dados-ciclo.js:432` e `validar-schema-ciclo.js:10`.
+
+**Três defaults não mudaram**: `PROFESSOR_SLUG="tiago"` em `gerar-acompanhamento.sh:50`,
+`gerar-ciclo.sh:61`, e `PROFESSOR="${PROFESSOR:-tiago}"` em `hash-ciclo.sh:65` continuam `tiago`,
+agora com comentário inline dizendo que é **default histórico, pendente desde 02/10/2026**, e que
+quem chama deve passar o professor. Trocar o default seria mudar **comportamento** — outra decisão,
+que não entra aqui.
+
+**O que NÃO muda:** a fórmula de hash da âncora, a cobertura da âncora, os validadores, as regras
+pedagógicas e as pétreas. Nenhuma linha de **código executável** foi alterada — as mudanças são
+comentários, cabeçalhos de uso, mensagens de erro e o template do arquivo de tokens. A única
+alteração com efeito verificável é o `PADRAO` de `check-glossario.js`, e ele **não é alcançado por
+nenhum chamador automático**: `check-pacote.js` e `hooks/pre-commit` sempre passam os caminhos
+explícitos, então o `PADRAO` só governa o uso manual sem argumentos.
 
 **Com o quê.**
-`tools/gerar-handoff.sh` (239 → 318 linhas), `HANDOFF.md` (regenerado: **127 397 → 35 674 B**, 1 682
-→ 469 linhas), `REGISTRO.md`.
-
-**Reancoragem.**
-Nenhuma. `tools/hash-ciclo.sh` cobre **somente** `professores/<professor>/ciclos/ciclo-XX.conf`,
-`ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`. Toda esta varredura vive **fora** desse conjunto:
-nenhum `.md` nem `.conf` de ciclo foi alterado, e nenhum `.fipp` foi tocado.
+- `git diff --cached --numstat` → **140 arquivos, 93 inserções, 28 966 deleções**; os 125 de
+  `professores/tiago/` são **todos `D`** (`git diff --cached --name-status | grep -v '^D'` vazio).
+- **Nada foi perdido:** `git ls-tree -r 08c0be9^ professores/tiago | wc -l` → **125** — a mesma
+  árvore, recuperável no commit anterior.
+- Validações: `bash -n` (5 scripts), `node --check` (5) e `python3 -m py_compile` (1) — todos ok;
+  `tools/hash-ciclo.sh fokini 01 diaghilev --check` → **ok**, hash
+  `7e32e5a49c0a5b5c0ab7a1467ba807db4f713eb957c83f2dcaa4a026b68b5738`.
+- **A âncora não precisou de reancoragem:** os schemas não entram na cobertura (só `ciclo-XX.conf`,
+  `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`), e as **fontes do Diaghilev não foram tocadas** — o
+  `--check` confirma.
+- **O churn de regeneração foi medido e revertido.** O `pre-commit` §3 regenerou o pacote do
+  Diaghilev (os 4 schemas do fokini estavam no stage), e 3 arquivos versionados sujaram com carimbo
+  puro: `ciclos.json` **só** o `gerado_em`, `dados.json` **só** o nonce do cifrado, e o PDF **só** o
+  `/ID` do `XRef` — nenhuma fonte pedagógica mudou. Os três foram **restaurados** com `git restore`:
+  o pacote do HEAD já corresponde às fontes, e carimbo de relógio não é elo (P-04). Registrar que a
+  alternativa — um commit só de carimbo — não tem precedente no histórico: os dois únicos commits que
+  tocaram esses arquivos (`bf98e68`, `31d97fe`) traziam mudança real de fonte.
 
 **Referências.**
-Os números de custo vêm da medição direta sobre o `HEAD` anterior a esta entrada: `wc -c` e `wc -l`
-sobre cada arquivo da ordem prescrita, a simulação byte-a-byte do awk do `:185` (104 904 B em 1 360
-linhas) e o experimento de isolamento com o insumo dobrado (`127 397 / 232 242 / 104 845 / 22 552`).
-O corte acumulado do fim para o começo está tabelado (últimos 5 = 4 561 B; últimos 12 = 29 272 B; os
-76 = 104 904 B). O inventário de redundância e o de duplicação estão no plano da varredura, no
-espaço de sessão — não são artefato do repositório.
+`CONGELAMENTO.md` (a política de dados sensíveis em 4 camadas; o rito do motivo declarado);
+`REGISTRO.md:149` (a saída das cópias da Débora); `b60830b` (o commit dessa saída — modelo desta
+classe); `52b44f3` (o precedente do `docs(tools)`); `31d97fe` (o precedente que declara a mudança de
+caminho sem tocar o `REGISTRO.md`, P-04); `tools/hooks/pre-commit` §3 (a origem do churn).
 
 **O que ainda não está feito.**
-- **A Frente 3** — declarar onde acaba o *desenho* e começa o *estado* nos `ARQUITETURA-*.md`. Medido:
-  `ARQUITETURA-AULA.md` tem **31 %** de cauda de estado, `ARQUITETURA-ANAMNESE.md` **21 %** e
-  `ARQUITETURA-PE.md` **19 %**. É a única frente **livre** com ganho real — mas o ganho é de **quem
-  implementa**, não da sessão nova: nenhum `ARQUITETURA-*` está na ordem prescrita de leitura.
-- **A Frente 4** — índice no `prompts/elicitar-ciclo.md` (congelado), adiada acima.
-- **A auditoria de quais dos 76 blocos estão de fato abertos hoje.** A varredura sabe quais existem e
-  onde estão; **não** sabe quantos estão abertos. O índice mitiga, mas não substitui essa auditoria.
-- **A verificação de qualidade.** A varredura prova que o custo **caiu** (754 723 → **101 788 B**,
-  −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
-- **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
-  achado robusto; a conversão para token **não foi medida**.
+- **⚠️ Um achado que a remoção expôs, e que a política de dados sensíveis precisa enfrentar.** O
+  dado de saúde individual de uma aluna **estava em claro em 7 arquivos versionados** da árvore que
+  saiu: `ciclo-01-ritmos-po.md:107`, `ciclo-01-ritmos-dados.json:40`,
+  `ciclo-01-ritmos/caderno-01.html:235`, `ciclo-01-ritmos/guia-de-observacao-01.html:188`,
+  `ciclo-01-ritmos/po-01.json:58`, `relatorios/ciclo-01/aula-01-ritmos.md:145` e
+  `cadernos/ciclo-01/caderno-01-ritmos.md:100` (*"lesão no tornozelo esquerdo"*). **A leitura que
+  dizia que o dado nunca esteve no Git estava errada**, e a correção fica aqui, como elo. O commit
+  `08c0be9` tira os 7 do caminho ativo, mas **o histórico do Git os preserva**: a camada 4 cobre os
+  acompanhamentos `.md`, e **não** cobre o dado que vazou para as fontes. O que fazer com isso — o
+  histórico é imutável por P-04, e a decisão é da pesquisadora — **não foi decidido aqui**.
+- **O ciclo vivo não repete o caso:** a §"Restrições físicas declaradas (P-22)" do PO do Diaghilev
+  diz *"Nenhuma restrição declarada até o início do ciclo"*, e nenhuma fonte de `professores/fokini/`
+  traz dado de saúde individual.
+- **A segunda frente não foi implementada** — a flag de escola habilitada/desabilitada. Ela vive no
+  `.conf` da variante, com **motivo e data**; entra em `properties` do `ciclo-01-schema.json`, nunca
+  em `required`; e exige **reancoragem**, porque toca o `.conf` (o `hash-ciclo.sh:129` valida os
+  `.conf` contra o schema antes de ancorar).
+- **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
+  `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
 
 ## O que está pendente
-
-## 29/09/2026 — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do que se acreditava
-
-~~A assimetria do item 2 **precisa de decisão**: hoje, a aula `dada`
-sem registro deixa o bloco do ajuste oculto, e não há mais o desenho que resolvia isso — o professor
-não tem por onde ajustar um lançamento vencido. Some-se a isso o resíduo de
-`tools/hooks/pre-commit:184`, que ainda nomeia `exportarAjusteDoPlano` como coisa viva: ele é
-congelado, e corrigi-lo exige motivo declarado e commit próprio.~~ **Superado em 30/09/2026.** As
-duas pendências caíram **por medição**, não por remendo: a assimetria **não se aplica** ao
-comportamento real — o predicado de `:1562` esconde a barra só no **modo lançamento** —, e o
-comentário do `pre-commit` deixou de nomear a função que não existe. A redação antiga **não é
-apagada**: fica como o elo do que se mediu naquele momento. Quanto ao `HANDOFF.md`, ele **precisa
-ser regenerado depois** da entrada de 30/09/2026, que passa a ser a última deste registro.
 
 ## 30/09/2026 — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor` e duas pendências que a medição derrubou
 
@@ -339,6 +302,28 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
   −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
 - **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
   achado robusto; a conversão para token **não foi medida**.
+
+## 02/10/2026 — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev fica sozinho
+
+- **⚠️ Um achado que a remoção expôs, e que a política de dados sensíveis precisa enfrentar.** O
+  dado de saúde individual de uma aluna **estava em claro em 7 arquivos versionados** da árvore que
+  saiu: `ciclo-01-ritmos-po.md:107`, `ciclo-01-ritmos-dados.json:40`,
+  `ciclo-01-ritmos/caderno-01.html:235`, `ciclo-01-ritmos/guia-de-observacao-01.html:188`,
+  `ciclo-01-ritmos/po-01.json:58`, `relatorios/ciclo-01/aula-01-ritmos.md:145` e
+  `cadernos/ciclo-01/caderno-01-ritmos.md:100` (*"lesão no tornozelo esquerdo"*). **A leitura que
+  dizia que o dado nunca esteve no Git estava errada**, e a correção fica aqui, como elo. O commit
+  `08c0be9` tira os 7 do caminho ativo, mas **o histórico do Git os preserva**: a camada 4 cobre os
+  acompanhamentos `.md`, e **não** cobre o dado que vazou para as fontes. O que fazer com isso — o
+  histórico é imutável por P-04, e a decisão é da pesquisadora — **não foi decidido aqui**.
+- **O ciclo vivo não repete o caso:** a §"Restrições físicas declaradas (P-22)" do PO do Diaghilev
+  diz *"Nenhuma restrição declarada até o início do ciclo"*, e nenhuma fonte de `professores/fokini/`
+  traz dado de saúde individual.
+- **A segunda frente não foi implementada** — a flag de escola habilitada/desabilitada. Ela vive no
+  `.conf` da variante, com **motivo e data**; entra em `properties` do `ciclo-01-schema.json`, nunca
+  em `required`; e exige **reancoragem**, porque toca o `.conf` (o `hash-ciclo.sh:129` valida os
+  `.conf` contra o schema antes de ancorar).
+- **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
+  `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
 
 ## Pendências anteriores (índice)
 
@@ -420,13 +405,10 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
 - **29/09/2026** — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava… → `REGISTRO.md` L7665 *(superado)*
 - **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7813
 - **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7940
+- **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8010 *(superado)*
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
-- PO de **tiago · duo** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- PO de **tiago · ritmos** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **tiago · ciclo 01:** aulas escritas em detalhe: 2 de 12 (as demais entram depois da aula anterior).
-- Material de campo de **tiago**: 2 evento(s) versionado(s) — sem respostas digitadas: 2026-10-03-ritmos.
 
 ## Documentos-chave (para leitura)
 
