@@ -8522,3 +8522,115 @@ espaço de sessão — não são artefato do repositório.
   −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
 - **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
   achado robusto; a conversão para token **não foi medida**.
+
+## 02/10/2026 — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev fica sozinho
+
+**O que motivou.**
+O `professores/tiago/` guardava dois ciclos que **nunca tiveram aula dada** — a Duo (Fundamentos do
+Balé Clássico, 12 aulas) e a Ritmos e Movimento (pas de deux, 21 encontros). Eram **protótipos do
+modelo**: nasceram para exercitar o pipeline de geração, o PO, a captura e a âncora, e cumpriram
+esse papel. O que existe hoje com **entrega real** é o Diaghilev, do professor Fokini. Cada ciclo
+morto custa manutenção a cada evolução do modelo — schema, gerador, validador, glossário —, e a
+manutenção de protótipo não é manutenção de conteúdo: **ela consome o rito sem produzir elo**.
+
+**O que foi decidido.**
+- **Saem 125 arquivos versionados** — 115 em `ciclos/`, 4 em `campo/`, 3 em `relatorios/` e 3 em
+  `cadernos/` (43 HTML, 38 MD, 23 JSON, 6 JS, 4 SVG, 4 `.fipp`, 3 `.conf`, 2 PDF, 2 CSS). Nada sai
+  como informação: o histórico preserva a árvore inteira em `be806f4`, e o que este movimento remove
+  é o **caminho ativo**, não o passado (P-04).
+- **O ciclo da Débora não entra na lista porque já não existia.** As cópias que traziam o nome dela
+  — manifesto, PO, âncora e pacote — saíram em `b60830b` (18/09/2026), como a entrada de `:149`
+  registrou: *"o ciclo dela ainda não existe"*. Nenhuma variante viva com o nome dela resta no HEAD.
+- **9 `acompanhamento-*.md` saíram do disco.** São **vista derivada** —
+  `tools/gerar-acompanhamento.sh`, chamado por `tools/gerar-ciclo.sh:586` —, regeneráveis das
+  fontes, e deliberadamente **fora do Git** (`.gitignore:33`, camada 4 da política de dados
+  sensíveis do `CONGELAMENTO.md`). Não aparecem no diff porque nunca estiveram no histórico.
+- **Os documentos livres foram ajustados em dois registros distintos**, e a distinção é deliberada.
+  Onde a citação é **medição** — as contagens de 12 e 21 aulas que dimensionaram o problema —, entra
+  **nota de escopo datada** e a narrativa permanece (`IDEIA-CAPTURA.md`, `ARQUITETURA-ANAMNESE.md`,
+  `ARQUITETURA-PE.md`). Onde a citação é **forma** — o corpus vivo do pipeline —, o texto é
+  **atualizado** para o Diaghilev (`README-ciclos.md`, `README.md`, `professores/README.md`,
+  `departamentos/README.md`).
+- **Os quatro schemas do ciclo ativo** ganharam a mesma `_nota_escopo_02-10-2026`, que carimba o
+  corte e diz por que as `description` antigas ficam: são o caso **medido** que justifica a
+  tolerância declarada, não exemplo de forma.
+- **`CONGELAMENTO.md`** — arquivo livre — recebeu só o alinhamento da seção *"Por que congelar"* ao
+  estado real: 1 ciclo publicado (Diaghilev), 1 PO validado, âncora e caminho de deploy prontos.
+
+**Onde entrou.**
+- `08c0be9` — `chore(estrutura)`: os 125 `D`, os 11 documentos livres e os 4 schemas.
+- `3736757` — `docs(tools)`: os 11 arquivos de `tools/`, em **commit próprio**, como o congelamento
+  exige.
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado (`CONGELAMENTO.md`), e o commit `3736757` o toca em 11 arquivos. O motivo: os
+comentários, os cabeçalhos de uso e as mensagens de erro citavam os ciclos-protótipo como **exemplo**
+e como **ponteiro padrão** — quem lia o cabeçalho do script para descobrir como chamá-lo era mandado
+para uma árvore ausente desde `08c0be9`.
+
+O que mudou, por arquivo: `calendario.py:8,14` (os exemplos do Pré-requisito 5),
+`check-glossario.js:9-16,46-47` (o `PADRAO` reapontado de `professores/tiago/...` para
+`professores/fokini/...`, com comentário novo que declara o reapontamento e a data),
+`check-pacote.js:42`, `deploy-netlify.sh:6,8-14,35,73-74` (inclusive o template de
+`.netlify-tokens`, que perde os pares `DUO`, `RITMOS` e `DEBORA`), `gerar-ciclo.sh:13-16`,
+`gerar-vista.js:8,38`, `hash-ciclo.sh:13-15,25,30`, `lib-fontes.sh:9-10,61,89-90`,
+`validar-dados-ciclo.js:432` e `validar-schema-ciclo.js:10`.
+
+**Três defaults não mudaram**: `PROFESSOR_SLUG="tiago"` em `gerar-acompanhamento.sh:50`,
+`gerar-ciclo.sh:61`, e `PROFESSOR="${PROFESSOR:-tiago}"` em `hash-ciclo.sh:65` continuam `tiago`,
+agora com comentário inline dizendo que é **default histórico, pendente desde 02/10/2026**, e que
+quem chama deve passar o professor. Trocar o default seria mudar **comportamento** — outra decisão,
+que não entra aqui.
+
+**O que NÃO muda:** a fórmula de hash da âncora, a cobertura da âncora, os validadores, as regras
+pedagógicas e as pétreas. Nenhuma linha de **código executável** foi alterada — as mudanças são
+comentários, cabeçalhos de uso, mensagens de erro e o template do arquivo de tokens. A única
+alteração com efeito verificável é o `PADRAO` de `check-glossario.js`, e ele **não é alcançado por
+nenhum chamador automático**: `check-pacote.js` e `hooks/pre-commit` sempre passam os caminhos
+explícitos, então o `PADRAO` só governa o uso manual sem argumentos.
+
+**Com o quê.**
+- `git diff --cached --numstat` → **140 arquivos, 93 inserções, 28 966 deleções**; os 125 de
+  `professores/tiago/` são **todos `D`** (`git diff --cached --name-status | grep -v '^D'` vazio).
+- **Nada foi perdido:** `git ls-tree -r 08c0be9^ professores/tiago | wc -l` → **125** — a mesma
+  árvore, recuperável no commit anterior.
+- Validações: `bash -n` (5 scripts), `node --check` (5) e `python3 -m py_compile` (1) — todos ok;
+  `tools/hash-ciclo.sh fokini 01 diaghilev --check` → **ok**, hash
+  `7e32e5a49c0a5b5c0ab7a1467ba807db4f713eb957c83f2dcaa4a026b68b5738`.
+- **A âncora não precisou de reancoragem:** os schemas não entram na cobertura (só `ciclo-XX.conf`,
+  `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`), e as **fontes do Diaghilev não foram tocadas** — o
+  `--check` confirma.
+- **O churn de regeneração foi medido e revertido.** O `pre-commit` §3 regenerou o pacote do
+  Diaghilev (os 4 schemas do fokini estavam no stage), e 3 arquivos versionados sujaram com carimbo
+  puro: `ciclos.json` **só** o `gerado_em`, `dados.json` **só** o nonce do cifrado, e o PDF **só** o
+  `/ID` do `XRef` — nenhuma fonte pedagógica mudou. Os três foram **restaurados** com `git restore`:
+  o pacote do HEAD já corresponde às fontes, e carimbo de relógio não é elo (P-04). Registrar que a
+  alternativa — um commit só de carimbo — não tem precedente no histórico: os dois únicos commits que
+  tocaram esses arquivos (`bf98e68`, `31d97fe`) traziam mudança real de fonte.
+
+**Referências.**
+`CONGELAMENTO.md` (a política de dados sensíveis em 4 camadas; o rito do motivo declarado);
+`REGISTRO.md:149` (a saída das cópias da Débora); `b60830b` (o commit dessa saída — modelo desta
+classe); `52b44f3` (o precedente do `docs(tools)`); `31d97fe` (o precedente que declara a mudança de
+caminho sem tocar o `REGISTRO.md`, P-04); `tools/hooks/pre-commit` §3 (a origem do churn).
+
+**O que ainda não está feito.**
+- **⚠️ Um achado que a remoção expôs, e que a política de dados sensíveis precisa enfrentar.** O
+  dado de saúde individual de uma aluna **estava em claro em 7 arquivos versionados** da árvore que
+  saiu: `ciclo-01-ritmos-po.md:107`, `ciclo-01-ritmos-dados.json:40`,
+  `ciclo-01-ritmos/caderno-01.html:235`, `ciclo-01-ritmos/guia-de-observacao-01.html:188`,
+  `ciclo-01-ritmos/po-01.json:58`, `relatorios/ciclo-01/aula-01-ritmos.md:145` e
+  `cadernos/ciclo-01/caderno-01-ritmos.md:100` (*"lesão no tornozelo esquerdo"*). **A leitura que
+  dizia que o dado nunca esteve no Git estava errada**, e a correção fica aqui, como elo. O commit
+  `08c0be9` tira os 7 do caminho ativo, mas **o histórico do Git os preserva**: a camada 4 cobre os
+  acompanhamentos `.md`, e **não** cobre o dado que vazou para as fontes. O que fazer com isso — o
+  histórico é imutável por P-04, e a decisão é da pesquisadora — **não foi decidido aqui**.
+- **O ciclo vivo não repete o caso:** a §"Restrições físicas declaradas (P-22)" do PO do Diaghilev
+  diz *"Nenhuma restrição declarada até o início do ciclo"*, e nenhuma fonte de `professores/fokini/`
+  traz dado de saúde individual.
+- **A segunda frente não foi implementada** — a flag de escola habilitada/desabilitada. Ela vive no
+  `.conf` da variante, com **motivo e data**; entra em `properties` do `ciclo-01-schema.json`, nunca
+  em `required`; e exige **reancoragem**, porque toca o `.conf` (o `hash-ciclo.sh:129` valida os
+  `.conf` contra o schema antes de ancorar).
+- **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
+  `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
