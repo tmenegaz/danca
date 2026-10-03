@@ -8634,3 +8634,120 @@ caminho sem tocar o `REGISTRO.md`, P-04); `tools/hooks/pre-commit` §3 (a origem
   `.conf` contra o schema antes de ancorar).
 - **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
   `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
+
+---
+
+## 02/10/2026 — A escola passa a poder ser desabilitada, com motivo e data
+
+**O que motivou.** A segunda frente declarada no fim da entrada anterior — *"a flag de escola
+habilitada/desabilitada"* — e o que o `IDEIA-PAINEL-ESCOLA.md` já supõe: o painel da escola precisa
+mostrar *«desabilitada»* e, ao lado, **por que** e **desde quando**. Não é um booleano: quando a
+direção lê *«desabilitada»*, ela precisa saber **a causa** (inadimplência, *churn*, queda do
+sistema) e **a data**, ou a tela não responde a pergunta que a fez olhar.
+
+No caminho, um defeito do validador apareceu — e teve de ser consertado **antes** da flag, porque a
+flag depende dele. O `validar-schema-ciclo.js` conferia o `pattern` **só** nos campos `required`: um
+campo **opcional** com padrão declarado — exatamente o que uma flag precisa ser — passava com
+qualquer valor. A causa: o laço iterava `obrigatorios` em vez das propriedades declaradas.
+
+E, para exigir motivo e data **por máquina**, o validador precisava de uma capacidade que não tinha:
+o `if`/`then` do JSON Schema. O schema de ciclo é achatado por desenho; nada nele usava condicional.
+
+**O que foi decidido.**
+
+- **`ESCOLA_HABILITADA="sim|nao"`, no `.conf` da variante** — a flag é **por escola**, não por
+  professor: desabilitar `ciclo-01-diaghilev` não toca nas outras escolas do mesmo professor. O
+  arquivo da escola já é o manifesto dela; a flag não mora em arquivo separado.
+- **A desabilitação exige motivo e data.** `ESCOLA_HABILITADA="nao"` dispara, por `allOf`+`if/then`
+  do schema, a obrigatoriedade de `ESCOLA_HABILITADA_MOTIVO` e `ESCOLA_HABILITADA_DESDE`
+  (dd/mm/aaaa). Não é booleano solto, e o validador é quem recusa.
+- **O campo é opcional de propósito.** A **ausência** vale como habilitada: nenhum ciclo já ancorado
+  precisou ser tocado, e o rito não reescreve o passado para acomodar capacidade nova (P-04).
+  Declarar `"sim"` é escolha de quem quer o estado **conferido** no arquivo em vez de herdado da
+  ausência — foi o que o Diaghilev fez.
+- **A ordem foi: consertar o validador, dar-lhe o `if/then`, e só então declarar a flag** — três
+  commits, com a flag no último. Declarar a flag sobre um validador que não confere padrão em campo
+  opcional seria declarar uma garantia que não existia.
+- **O `if/then` é lido onde o draft-07 o declara:** no nível do **objeto**, numa entrada de `allOf`
+  ou na raiz do schema — **não** dentro de `properties.X`, onde o `if` operaria sobre a string. Não
+  é dialeto próprio: `experimentos/pe/ramificacao/ramificacao-schema.json` (§222) já usa essa forma.
+- **Discriminante ausente não dispara ramo.** É o que sustenta a opcionalidade: quem não declara a
+  flag não entra no contrato condicional.
+- **O bloqueio da geração NÃO entrou** (decisão da pesquisadora, via pergunta direta): a flag é
+  **declarada e validada**, não **imposta**. Hoje um ciclo com `ESCOLA_HABILITADA="nao"` ainda é
+  gerado por `tools/gerar-ciclo.sh`. Impor é capacidade própria, e virá depois.
+
+**Onde entrou.**
+
+- `tools/validar-schema-ciclo.js` — laço de forma passou a iterar as **propriedades declaradas**, e
+  não os `required` (commit `1a65840`); `if/then/else` de `allOf` e da raiz (commit `99ae163`).
+- `professores/fokini/ciclos/ciclo-01-schema.json` — as três propriedades novas e o `allOf` que
+  torna motivo e data obrigatórios quando `ESCOLA_HABILITADA="nao"`.
+- `professores/fokini/ciclos/ciclo-01-diaghilev.conf` — `ESCOLA_HABILITADA="sim"` declarado.
+- `README-ciclos.md` — a seção «Habilitar e desabilitar uma escola», com a recusa real transcrita.
+- `professores/README.md` — o estado da escola na tabela, e a distinção escola × professor.
+
+**Motivo declarado — os congelados.** `tools/validar-schema-ciclo.js` é de `tools/`, congelado, e
+foi tocado em **dois commits próprios**, cada um com motivo no corpo.
+
+- **`1a65840` — o defeito.** O `pattern` passa a valer em qualquer campo declarado com ele,
+  obrigatório ou opcional: `required` governa presença, `pattern` governa forma.
+- **`99ae163` — a capacidade.** O validador aprende o `if/then/else` do draft-07.
+
+**O que NÃO muda:** a fórmula de hash, a cobertura da âncora (`.fipp` continua cobrindo só
+`ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`), os demais validadores, as regras e
+as pétreas. Medido antes de mexer: o **único** campo opcional com `pattern` em todo o repositório é
+`gerado_em`, de `experimentos/pe/envelope/elicitacao-schema.json`, e ele **não passa por este
+validador** — por isso o conserto não altera a validação de nenhum artefato existente. Os 4 schemas
+do ciclo ativo seguem achatados, e o único `if/then` preexistente é aninhado (dentro de itens de
+array) e tem validador próprio (`experimentos/pe/motor/validar.js`).
+
+**Com o quê.**
+
+- `tools/validar-schema-ciclo.js` — **um arquivo, dois commits** (o defeito e a capacidade).
+- `professores/fokini/ciclos/ciclo-01-schema.json` · `ciclo-01-diaghilev.conf` ·
+  `ciclo-01-diaghilev.fipp` e os **5 `.fipp` por aula** (reancoragem) · `README-ciclos.md` ·
+  `professores/README.md` · `REGISTRO.md` (esta entrada).
+
+**Provas.**
+
+- **16 casos isolados** contra 5 schemas de prova: habilitado sem motivo/data passa; desabilitado
+  sem motivo/data **falha listando os dois** e a causa (`ramo "then": exige …`); desabilitado com
+  motivo e data passa; flag ausente passa; valor fora de `^(sim|nao)$` falha; `then` e `else`
+  disparam cada um sozinho; `else` satisfeito passa; campo do `if` ausente não dispara; `pattern`
+  dentro do `then` é conferido; `if` vazio casa vacuamente.
+- **5 casos contra o schema REAL do ciclo** (`$d/a..e`): sem a flag ok; `nao` sem motivo/data
+  recusado; `nao` com motivo e data ok; data em ISO recusada pelo padrão dd/mm/aaaa; `"talvez"`
+  recusado.
+- **Não-regressão:** `node --check` ok; baseline dos **11 campos obrigatórios** intacto;
+  `tools/hash-ciclo.sh fokini 01 diaghilev --check` → **ok, cadeia intacta**, hash reancorado
+  `899d17e4343d33fc8d3ecbcf8838e7fe23ad6fe8bb14dc57f6efac5e5bd4d2af`;
+  `node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev` → **0 erro(s),
+  0 aviso(s)**, 21 páginas, 52 páginas de PDF.
+
+**O churn de regeneração foi medido e revertido, de novo.** A reancoragem tocou o `.conf`, e o
+`pre-commit` §3 regenerou o pacote: `ciclos.json` (**só** o `gerado_em`), `-dados.json` (**só** o
+nonce do cifrado) e o PDF (**só** o `/ID` do `XRef`) sujaram com carimbo puro — nenhuma fonte
+pedagógica mudou, e **nenhum dos 21 HTML divergiu**. Os três foram **restaurados** com `git restore`,
+como no precedente desta mesma rodada. O pacote do HEAD corresponde às fontes, e carimbo de relógio
+não é elo (P-04).
+
+**Referências.**
+`IDEIA-PAINEL-ESCOLA.md` (o painel que lê a flag); `CONGELAMENTO.md` (o rito do motivo declarado);
+`experimentos/pe/ramificacao/ramificacao-schema.json:222` (a forma canônica de `allOf`+`if/then` já
+usada no repositório); `tools/hash-ciclo.sh:128` (o chamador que herda a capacidade — reancorar já
+valida a flag); `1a65840` e `99ae163` (os dois commits próprios sobre o congelado);
+`REGISTRO.md` (a entrada anterior, que declarou esta frente como pendente).
+
+**O que ainda não está feito.**
+- **O bloqueio da geração não existe.** `tools/gerar-ciclo.sh` **não** consulta a flag: hoje ele
+  gera um ciclo desabilitado do mesmo jeito. É capacidade própria, decidida para depois — não foi
+  tocado nesta rodada, por decisão explícita.
+- **A flag não tem consumidor.** O painel (`IDEIA-PAINEL-ESCOLA.md`) continua **não implementado**;
+  a flag é o campo que ele vai ler, e hoje quem a lê é só o validador.
+- **`ESCOLA_HABILITADA` não entrou em nenhum `enum` nem no `DOCS`.** Ela é campo de schema, não
+  documento, e por isso não aparece no pacote gerado — verificar, quando o painel existir, se ele
+  precisa lê-la do `.conf` ou de um JSON derivado.
+- **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
+  de propósito.
+- **O push é da pesquisadora** — os commits ficam locais até ela empurrar.

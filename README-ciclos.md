@@ -120,6 +120,56 @@ Saídas: `professores/fokini/ciclos/ciclo-01-diaghilev/` (21 páginas HTML), com
 `assets/`, `README.md` e o PDF do ciclo.
 
 
+## Habilitar e desabilitar uma escola (`ESCOLA_HABILITADA`)
+
+A variante pode declarar se a escola está **habilitada** a receber o ciclo:
+
+```bash
+# no ciclo-XX-<escola>.conf
+ESCOLA_HABILITADA="sim"                 # habilitada (é também o que vale se o campo faltar)
+ESCOLA_HABILITADA="nao"                 # desabilitada — e então o schema EXIGE os dois campos abaixo
+ESCOLA_HABILITADA_MOTIVO="inadimplencia"   # POR QUE
+ESCOLA_HABILITADA_DESDE="01/10/2026"       # DESDE QUANDO (dd/mm/aaaa)
+```
+
+**A flag é por ESCOLA, não por professor.** Desabilitar `ciclo-01-diaghilev` não toca
+nas outras escolas do mesmo professor — é o que o painel da escola precisa para tratar
+inadimplência, *churn* ou queda do sistema num vínculo sem derrubar os demais
+([`IDEIA-PAINEL-ESCOLA.md`](IDEIA-PAINEL-ESCOLA.md)).
+
+**Não é um booleano solto.** Quem declara `nao` assume o contrato do `allOf` do schema:
+**por que** e **desde quando** passam a ser campos obrigatórios daquele `.conf`. Faltando
+qualquer um, a validação recusa — e a recusa diz qual ramo exigiu o quê:
+
+```
+$ node tools/validar-schema-ciclo.js professores/fokini/ciclos/ciclo-01-schema.json \
+      professores/fokini/ciclos/ciclo-01.conf professores/fokini/ciclos/ciclo-01-desabilitada.conf
+faltam 2 campo(s) obrigatório(s):
+  - ESCOLA_HABILITADA_MOTIVO
+  - ESCOLA_HABILITADA_DESDE
+  (ramo "then": exige ESCOLA_HABILITADA_MOTIVO, ESCOLA_HABILITADA_DESDE)
+```
+
+**O campo é opcional, e isso é deliberado.** A ausência vale como habilitada: nenhum ciclo
+já ancorado precisa ser tocado, e o rito não reescreve o passado para acomodar capacidade
+nova (P-04). Declarar `"sim"` é escolha de quem quer deixar o estado **conferido** no
+arquivo, em vez de herdado da ausência.
+
+**Reancorar já valida a flag.** `tools/hash-ciclo.sh` valida os `.conf` contra o schema
+antes de calcular o hash, então
+
+```bash
+tools/hash-ciclo.sh fokini 01 diaghilev --check
+```
+
+já pega um `"nao"` sem motivo ou sem data — não é preciso rodar o validador à parte.
+
+> **O que a flag ainda NÃO faz.** Ela é **declarada e validada**, não **imposta**: hoje um
+> ciclo com `ESCOLA_HABILITADA="nao"` continua sendo gerado por `tools/gerar-ciclo.sh`. O
+> **bloqueio da geração** é capacidade à parte, ainda não implementada. A flag existe para
+> que o **painel** saiba o estado e o motivo, com a data.
+
+
 ## Ambiente: por que o engine é `pdflatex` (e não `xelatex`)
 
 O comando sugerido na Regra 16 (`--pdf-engine=xelatex`) **não funciona nesta

@@ -56,7 +56,12 @@ Depois:
 
 | Professor | Ciclos | POs | Estado |
 |:--|:--|:--|:--|
-| **fokini** | Ciclo 01 — `diaghilev` (Diaghilev, Fokini) — escola **simulada** | `ciclo-01-diaghilev-po.md` com os campos do professor, checklist aguardando a primeira aula | em execução |
+| **fokini** | Ciclo 01 — `diaghilev` (Diaghilev, Fokini) — escola **simulada** | `ciclo-01-diaghilev-po.md` com os campos do professor, checklist aguardando a primeira aula | **habilitada** (`ESCOLA_HABILITADA="sim"`) — em execução |
+
+> **Habilitada ou desabilitada é por ESCOLA, não por professor.** O professor continua
+> existindo; o que se habilita ou desabilita é cada vínculo professor × escola. O estado
+> vive no `.conf` da variante, com **motivo** e **data** quando desabilitada — ver
+> [`../README-ciclos.md`](../README-ciclos.md), «Habilitar e desabilitar uma escola».
 
 > **Cada escola tem o seu ciclo.** O conteúdo (objetivo, plano, aulas) é da escola,
 > não do número do ciclo: `ciclo-01-diaghilev-*` e `ciclo-01-<outra-escola>-*` são

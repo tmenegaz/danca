@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-02T21:56:13-0300`
-Commit atual: `f04551b` — docs(registro): os ciclos-prototipo saem, e o tools/ acha o ciclo ativo
+Gerado em: `2026-10-02T23:05:28-0300`
+Commit atual: `99ae163` — feat(tools): o validador passa a entender if/then/else do schema
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -50,6 +50,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+99ae163 feat(tools): o validador passa a entender if/then/else do schema
+1a65840 fix(tools): o `pattern` do schema deixa de valer so para o campo obrigatorio
+2a368a2 docs(registro): regenera o HANDOFF sobre f04551b
 f04551b docs(registro): os ciclos-prototipo saem, e o tools/ acha o ciclo ativo
 3736757 docs(tools): os exemplos e ponteiros passam a citar o ciclo ativo
 08c0be9 chore(estrutura): saem os ciclos-prototipo, e o Diaghilev fica sozinho
@@ -67,9 +70,6 @@ bf98e68 chore(ciclo-01): regera os três ciclos para propagar o campo professor
 b2e8a6f docs(registro): a baixa do ponto 3 e o rito dos congelados
 1484527 fix(tools): o comentário do pre-commit deixa de nomear função que não existe
 52b44f3 docs(tools): as quatro linhas de prosa passam a dizer fokini
-aa4c428 docs(estrutura): a observação inicial e os elementos basilares entram como §3
-31d97fe refactor(estrutura): fochini → fokini (o slug e o nome de exibição)
-12a5462 docs(registro): regenera o HANDOFF sobre ee1863f
 ```
 
 ## Por professor
@@ -84,7 +84,7 @@ aa4c428 docs(estrutura): a observação inicial e os elementos basilares entram 
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| diaghilev | ciclo-01-diaghilev.fipp | `7e32e5a49c0a` | (vazio) | Input_PO_Aguardando |
+| diaghilev | ciclo-01-diaghilev.fipp | `899d17e4343d` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -133,135 +133,122 @@ aa4c428 docs(estrutura): a observação inicial e os elementos basilares entram 
 
 ## Última entrada do REGISTRO
 
-## 02/10/2026 — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev fica sozinho
+## 02/10/2026 — A escola passa a poder ser desabilitada, com motivo e data
 
-**O que motivou.**
-O `professores/tiago/` guardava dois ciclos que **nunca tiveram aula dada** — a Duo (Fundamentos do
-Balé Clássico, 12 aulas) e a Ritmos e Movimento (pas de deux, 21 encontros). Eram **protótipos do
-modelo**: nasceram para exercitar o pipeline de geração, o PO, a captura e a âncora, e cumpriram
-esse papel. O que existe hoje com **entrega real** é o Diaghilev, do professor Fokini. Cada ciclo
-morto custa manutenção a cada evolução do modelo — schema, gerador, validador, glossário —, e a
-manutenção de protótipo não é manutenção de conteúdo: **ela consome o rito sem produzir elo**.
+**O que motivou.** A segunda frente declarada no fim da entrada anterior — *"a flag de escola
+habilitada/desabilitada"* — e o que o `IDEIA-PAINEL-ESCOLA.md` já supõe: o painel da escola precisa
+mostrar *«desabilitada»* e, ao lado, **por que** e **desde quando**. Não é um booleano: quando a
+direção lê *«desabilitada»*, ela precisa saber **a causa** (inadimplência, *churn*, queda do
+sistema) e **a data**, ou a tela não responde a pergunta que a fez olhar.
+
+No caminho, um defeito do validador apareceu — e teve de ser consertado **antes** da flag, porque a
+flag depende dele. O `validar-schema-ciclo.js` conferia o `pattern` **só** nos campos `required`: um
+campo **opcional** com padrão declarado — exatamente o que uma flag precisa ser — passava com
+qualquer valor. A causa: o laço iterava `obrigatorios` em vez das propriedades declaradas.
+
+E, para exigir motivo e data **por máquina**, o validador precisava de uma capacidade que não tinha:
+o `if`/`then` do JSON Schema. O schema de ciclo é achatado por desenho; nada nele usava condicional.
 
 **O que foi decidido.**
-- **Saem 125 arquivos versionados** — 115 em `ciclos/`, 4 em `campo/`, 3 em `relatorios/` e 3 em
-  `cadernos/` (43 HTML, 38 MD, 23 JSON, 6 JS, 4 SVG, 4 `.fipp`, 3 `.conf`, 2 PDF, 2 CSS). Nada sai
-  como informação: o histórico preserva a árvore inteira em `be806f4`, e o que este movimento remove
-  é o **caminho ativo**, não o passado (P-04).
-- **O ciclo da Débora não entra na lista porque já não existia.** As cópias que traziam o nome dela
-  — manifesto, PO, âncora e pacote — saíram em `b60830b` (18/09/2026), como a entrada de `:149`
-  registrou: *"o ciclo dela ainda não existe"*. Nenhuma variante viva com o nome dela resta no HEAD.
-- **9 `acompanhamento-*.md` saíram do disco.** São **vista derivada** —
-  `tools/gerar-acompanhamento.sh`, chamado por `tools/gerar-ciclo.sh:586` —, regeneráveis das
-  fontes, e deliberadamente **fora do Git** (`.gitignore:33`, camada 4 da política de dados
-  sensíveis do `CONGELAMENTO.md`). Não aparecem no diff porque nunca estiveram no histórico.
-- **Os documentos livres foram ajustados em dois registros distintos**, e a distinção é deliberada.
-  Onde a citação é **medição** — as contagens de 12 e 21 aulas que dimensionaram o problema —, entra
-  **nota de escopo datada** e a narrativa permanece (`IDEIA-CAPTURA.md`, `ARQUITETURA-ANAMNESE.md`,
-  `ARQUITETURA-PE.md`). Onde a citação é **forma** — o corpus vivo do pipeline —, o texto é
-  **atualizado** para o Diaghilev (`README-ciclos.md`, `README.md`, `professores/README.md`,
-  `departamentos/README.md`).
-- **Os quatro schemas do ciclo ativo** ganharam a mesma `_nota_escopo_02-10-2026`, que carimba o
-  corte e diz por que as `description` antigas ficam: são o caso **medido** que justifica a
-  tolerância declarada, não exemplo de forma.
-- **`CONGELAMENTO.md`** — arquivo livre — recebeu só o alinhamento da seção *"Por que congelar"* ao
-  estado real: 1 ciclo publicado (Diaghilev), 1 PO validado, âncora e caminho de deploy prontos.
+
+- **`ESCOLA_HABILITADA="sim|nao"`, no `.conf` da variante** — a flag é **por escola**, não por
+  professor: desabilitar `ciclo-01-diaghilev` não toca nas outras escolas do mesmo professor. O
+  arquivo da escola já é o manifesto dela; a flag não mora em arquivo separado.
+- **A desabilitação exige motivo e data.** `ESCOLA_HABILITADA="nao"` dispara, por `allOf`+`if/then`
+  do schema, a obrigatoriedade de `ESCOLA_HABILITADA_MOTIVO` e `ESCOLA_HABILITADA_DESDE`
+  (dd/mm/aaaa). Não é booleano solto, e o validador é quem recusa.
+- **O campo é opcional de propósito.** A **ausência** vale como habilitada: nenhum ciclo já ancorado
+  precisou ser tocado, e o rito não reescreve o passado para acomodar capacidade nova (P-04).
+  Declarar `"sim"` é escolha de quem quer o estado **conferido** no arquivo em vez de herdado da
+  ausência — foi o que o Diaghilev fez.
+- **A ordem foi: consertar o validador, dar-lhe o `if/then`, e só então declarar a flag** — três
+  commits, com a flag no último. Declarar a flag sobre um validador que não confere padrão em campo
+  opcional seria declarar uma garantia que não existia.
+- **O `if/then` é lido onde o draft-07 o declara:** no nível do **objeto**, numa entrada de `allOf`
+  ou na raiz do schema — **não** dentro de `properties.X`, onde o `if` operaria sobre a string. Não
+  é dialeto próprio: `experimentos/pe/ramificacao/ramificacao-schema.json` (§222) já usa essa forma.
+- **Discriminante ausente não dispara ramo.** É o que sustenta a opcionalidade: quem não declara a
+  flag não entra no contrato condicional.
+- **O bloqueio da geração NÃO entrou** (decisão da pesquisadora, via pergunta direta): a flag é
+  **declarada e validada**, não **imposta**. Hoje um ciclo com `ESCOLA_HABILITADA="nao"` ainda é
+  gerado por `tools/gerar-ciclo.sh`. Impor é capacidade própria, e virá depois.
 
 **Onde entrou.**
-- `08c0be9` — `chore(estrutura)`: os 125 `D`, os 11 documentos livres e os 4 schemas.
-- `3736757` — `docs(tools)`: os 11 arquivos de `tools/`, em **commit próprio**, como o congelamento
-  exige.
 
-**Motivo declarado — os congelados.**
-`tools/` é congelado (`CONGELAMENTO.md`), e o commit `3736757` o toca em 11 arquivos. O motivo: os
-comentários, os cabeçalhos de uso e as mensagens de erro citavam os ciclos-protótipo como **exemplo**
-e como **ponteiro padrão** — quem lia o cabeçalho do script para descobrir como chamá-lo era mandado
-para uma árvore ausente desde `08c0be9`.
+- `tools/validar-schema-ciclo.js` — laço de forma passou a iterar as **propriedades declaradas**, e
+  não os `required` (commit `1a65840`); `if/then/else` de `allOf` e da raiz (commit `99ae163`).
+- `professores/fokini/ciclos/ciclo-01-schema.json` — as três propriedades novas e o `allOf` que
+  torna motivo e data obrigatórios quando `ESCOLA_HABILITADA="nao"`.
+- `professores/fokini/ciclos/ciclo-01-diaghilev.conf` — `ESCOLA_HABILITADA="sim"` declarado.
+- `README-ciclos.md` — a seção «Habilitar e desabilitar uma escola», com a recusa real transcrita.
+- `professores/README.md` — o estado da escola na tabela, e a distinção escola × professor.
 
-O que mudou, por arquivo: `calendario.py:8,14` (os exemplos do Pré-requisito 5),
-`check-glossario.js:9-16,46-47` (o `PADRAO` reapontado de `professores/tiago/...` para
-`professores/fokini/...`, com comentário novo que declara o reapontamento e a data),
-`check-pacote.js:42`, `deploy-netlify.sh:6,8-14,35,73-74` (inclusive o template de
-`.netlify-tokens`, que perde os pares `DUO`, `RITMOS` e `DEBORA`), `gerar-ciclo.sh:13-16`,
-`gerar-vista.js:8,38`, `hash-ciclo.sh:13-15,25,30`, `lib-fontes.sh:9-10,61,89-90`,
-`validar-dados-ciclo.js:432` e `validar-schema-ciclo.js:10`.
+**Motivo declarado — os congelados.** `tools/validar-schema-ciclo.js` é de `tools/`, congelado, e
+foi tocado em **dois commits próprios**, cada um com motivo no corpo.
 
-**Três defaults não mudaram**: `PROFESSOR_SLUG="tiago"` em `gerar-acompanhamento.sh:50`,
-`gerar-ciclo.sh:61`, e `PROFESSOR="${PROFESSOR:-tiago}"` em `hash-ciclo.sh:65` continuam `tiago`,
-agora com comentário inline dizendo que é **default histórico, pendente desde 02/10/2026**, e que
-quem chama deve passar o professor. Trocar o default seria mudar **comportamento** — outra decisão,
-que não entra aqui.
+- **`1a65840` — o defeito.** O `pattern` passa a valer em qualquer campo declarado com ele,
+  obrigatório ou opcional: `required` governa presença, `pattern` governa forma.
+- **`99ae163` — a capacidade.** O validador aprende o `if/then/else` do draft-07.
 
-**O que NÃO muda:** a fórmula de hash da âncora, a cobertura da âncora, os validadores, as regras
-pedagógicas e as pétreas. Nenhuma linha de **código executável** foi alterada — as mudanças são
-comentários, cabeçalhos de uso, mensagens de erro e o template do arquivo de tokens. A única
-alteração com efeito verificável é o `PADRAO` de `check-glossario.js`, e ele **não é alcançado por
-nenhum chamador automático**: `check-pacote.js` e `hooks/pre-commit` sempre passam os caminhos
-explícitos, então o `PADRAO` só governa o uso manual sem argumentos.
+**O que NÃO muda:** a fórmula de hash, a cobertura da âncora (`.fipp` continua cobrindo só
+`ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`), os demais validadores, as regras e
+as pétreas. Medido antes de mexer: o **único** campo opcional com `pattern` em todo o repositório é
+`gerado_em`, de `experimentos/pe/envelope/elicitacao-schema.json`, e ele **não passa por este
+validador** — por isso o conserto não altera a validação de nenhum artefato existente. Os 4 schemas
+do ciclo ativo seguem achatados, e o único `if/then` preexistente é aninhado (dentro de itens de
+array) e tem validador próprio (`experimentos/pe/motor/validar.js`).
 
 **Com o quê.**
-- `git diff --cached --numstat` → **140 arquivos, 93 inserções, 28 966 deleções**; os 125 de
-  `professores/tiago/` são **todos `D`** (`git diff --cached --name-status | grep -v '^D'` vazio).
-- **Nada foi perdido:** `git ls-tree -r 08c0be9^ professores/tiago | wc -l` → **125** — a mesma
-  árvore, recuperável no commit anterior.
-- Validações: `bash -n` (5 scripts), `node --check` (5) e `python3 -m py_compile` (1) — todos ok;
-  `tools/hash-ciclo.sh fokini 01 diaghilev --check` → **ok**, hash
-  `7e32e5a49c0a5b5c0ab7a1467ba807db4f713eb957c83f2dcaa4a026b68b5738`.
-- **A âncora não precisou de reancoragem:** os schemas não entram na cobertura (só `ciclo-XX.conf`,
-  `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`), e as **fontes do Diaghilev não foram tocadas** — o
-  `--check` confirma.
-- **O churn de regeneração foi medido e revertido.** O `pre-commit` §3 regenerou o pacote do
-  Diaghilev (os 4 schemas do fokini estavam no stage), e 3 arquivos versionados sujaram com carimbo
-  puro: `ciclos.json` **só** o `gerado_em`, `dados.json` **só** o nonce do cifrado, e o PDF **só** o
-  `/ID` do `XRef` — nenhuma fonte pedagógica mudou. Os três foram **restaurados** com `git restore`:
-  o pacote do HEAD já corresponde às fontes, e carimbo de relógio não é elo (P-04). Registrar que a
-  alternativa — um commit só de carimbo — não tem precedente no histórico: os dois únicos commits que
-  tocaram esses arquivos (`bf98e68`, `31d97fe`) traziam mudança real de fonte.
+
+- `tools/validar-schema-ciclo.js` — **um arquivo, dois commits** (o defeito e a capacidade).
+- `professores/fokini/ciclos/ciclo-01-schema.json` · `ciclo-01-diaghilev.conf` ·
+  `ciclo-01-diaghilev.fipp` e os **5 `.fipp` por aula** (reancoragem) · `README-ciclos.md` ·
+  `professores/README.md` · `REGISTRO.md` (esta entrada).
+
+**Provas.**
+
+- **16 casos isolados** contra 5 schemas de prova: habilitado sem motivo/data passa; desabilitado
+  sem motivo/data **falha listando os dois** e a causa (`ramo "then": exige …`); desabilitado com
+  motivo e data passa; flag ausente passa; valor fora de `^(sim|nao)$` falha; `then` e `else`
+  disparam cada um sozinho; `else` satisfeito passa; campo do `if` ausente não dispara; `pattern`
+  dentro do `then` é conferido; `if` vazio casa vacuamente.
+- **5 casos contra o schema REAL do ciclo** (`$d/a..e`): sem a flag ok; `nao` sem motivo/data
+  recusado; `nao` com motivo e data ok; data em ISO recusada pelo padrão dd/mm/aaaa; `"talvez"`
+  recusado.
+- **Não-regressão:** `node --check` ok; baseline dos **11 campos obrigatórios** intacto;
+  `tools/hash-ciclo.sh fokini 01 diaghilev --check` → **ok, cadeia intacta**, hash reancorado
+  `899d17e4343d33fc8d3ecbcf8838e7fe23ad6fe8bb14dc57f6efac5e5bd4d2af`;
+  `node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev` → **0 erro(s),
+  0 aviso(s)**, 21 páginas, 52 páginas de PDF.
+
+**O churn de regeneração foi medido e revertido, de novo.** A reancoragem tocou o `.conf`, e o
+`pre-commit` §3 regenerou o pacote: `ciclos.json` (**só** o `gerado_em`), `-dados.json` (**só** o
+nonce do cifrado) e o PDF (**só** o `/ID` do `XRef`) sujaram com carimbo puro — nenhuma fonte
+pedagógica mudou, e **nenhum dos 21 HTML divergiu**. Os três foram **restaurados** com `git restore`,
+como no precedente desta mesma rodada. O pacote do HEAD corresponde às fontes, e carimbo de relógio
+não é elo (P-04).
 
 **Referências.**
-`CONGELAMENTO.md` (a política de dados sensíveis em 4 camadas; o rito do motivo declarado);
-`REGISTRO.md:149` (a saída das cópias da Débora); `b60830b` (o commit dessa saída — modelo desta
-classe); `52b44f3` (o precedente do `docs(tools)`); `31d97fe` (o precedente que declara a mudança de
-caminho sem tocar o `REGISTRO.md`, P-04); `tools/hooks/pre-commit` §3 (a origem do churn).
+`IDEIA-PAINEL-ESCOLA.md` (o painel que lê a flag); `CONGELAMENTO.md` (o rito do motivo declarado);
+`experimentos/pe/ramificacao/ramificacao-schema.json:222` (a forma canônica de `allOf`+`if/then` já
+usada no repositório); `tools/hash-ciclo.sh:128` (o chamador que herda a capacidade — reancorar já
+valida a flag); `1a65840` e `99ae163` (os dois commits próprios sobre o congelado);
+`REGISTRO.md` (a entrada anterior, que declarou esta frente como pendente).
 
 **O que ainda não está feito.**
-- **⚠️ Um achado que a remoção expôs, e que a política de dados sensíveis precisa enfrentar.** O
-  dado de saúde individual de uma aluna **estava em claro em 7 arquivos versionados** da árvore que
-  saiu: `ciclo-01-ritmos-po.md:107`, `ciclo-01-ritmos-dados.json:40`,
-  `ciclo-01-ritmos/caderno-01.html:235`, `ciclo-01-ritmos/guia-de-observacao-01.html:188`,
-  `ciclo-01-ritmos/po-01.json:58`, `relatorios/ciclo-01/aula-01-ritmos.md:145` e
-  `cadernos/ciclo-01/caderno-01-ritmos.md:100` (*"lesão no tornozelo esquerdo"*). **A leitura que
-  dizia que o dado nunca esteve no Git estava errada**, e a correção fica aqui, como elo. O commit
-  `08c0be9` tira os 7 do caminho ativo, mas **o histórico do Git os preserva**: a camada 4 cobre os
-  acompanhamentos `.md`, e **não** cobre o dado que vazou para as fontes. O que fazer com isso — o
-  histórico é imutável por P-04, e a decisão é da pesquisadora — **não foi decidido aqui**.
-- **O ciclo vivo não repete o caso:** a §"Restrições físicas declaradas (P-22)" do PO do Diaghilev
-  diz *"Nenhuma restrição declarada até o início do ciclo"*, e nenhuma fonte de `professores/fokini/`
-  traz dado de saúde individual.
-- **A segunda frente não foi implementada** — a flag de escola habilitada/desabilitada. Ela vive no
-  `.conf` da variante, com **motivo e data**; entra em `properties` do `ciclo-01-schema.json`, nunca
-  em `required`; e exige **reancoragem**, porque toca o `.conf` (o `hash-ciclo.sh:129` valida os
-  `.conf` contra o schema antes de ancorar).
-- **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
-  `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
+- **O bloqueio da geração não existe.** `tools/gerar-ciclo.sh` **não** consulta a flag: hoje ele
+  gera um ciclo desabilitado do mesmo jeito. É capacidade própria, decidida para depois — não foi
+  tocado nesta rodada, por decisão explícita.
+- **A flag não tem consumidor.** O painel (`IDEIA-PAINEL-ESCOLA.md`) continua **não implementado**;
+  a flag é o campo que ele vai ler, e hoje quem a lê é só o validador.
+- **`ESCOLA_HABILITADA` não entrou em nenhum `enum` nem no `DOCS`.** Ela é campo de schema, não
+  documento, e por isso não aparece no pacote gerado — verificar, quando o painel existir, se ele
+  precisa lê-la do `.conf` ou de um JSON derivado.
+- **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
+  de propósito.
+- **O push é da pesquisadora** — os commits ficam locais até ela empurrar.
 
 ## O que está pendente
-
-## 30/09/2026 — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor` e duas pendências que a medição derrubou
-
-O **Passo 0** segue aberto, e continua dependendo de **credencial
-que só a pesquisadora tem**: as **6 chaves** de `tools/.netlify-tokens` estão **vazias**, e sem site
-publicado o `Enviar` do formulário ainda falha com `HTTP 404` — honestamente: avisa e preserva os
-campos. Do mesmo bloco, **segue aberta** a decisão de **onde vivem as Functions** (o
-`tools/deploy-netlify.sh` publica `--dir="$PACOTE"`, o pacote do ciclo, **não a raiz**, e o
-`netlify.toml` da raiz pode não ser lido), e **segue sem resposta** a pergunta pela **revisão dos
-demais botões** do formulário, feita em `REGISTRO.md:7536` e repetida em `:7808` e `:7934` — a
-medição desta rodada corrigiu a coordenada que a última delas cita: é **`:7536`**, não `:7485`.
-Permanecem, sem mudança nesta peça: o par `plano-aula-NN.json` / `-anterior.json` **órfão de
-leitor**; o **teste de regressão divergente** (caso 10 e seguintes; `gitignored`); o **dublê de
-`fetch`** da `simulacao-marau/simular-formulario.js`, que ainda só trata `GET`; e o comentário
-resíduo de `tools/templates/lancamento.html:133`. Por fim, o `HANDOFF.md` precisa ser **regenerado
-depois** desta entrada — ele espelha a **última** deste registro, e passa a ser esta.
 
 ## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
 
@@ -324,6 +311,22 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
   `.conf` contra o schema antes de ancorar).
 - **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
   `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
+
+---
+
+## 02/10/2026 — A escola passa a poder ser desabilitada, com motivo e data
+
+- **O bloqueio da geração não existe.** `tools/gerar-ciclo.sh` **não** consulta a flag: hoje ele
+  gera um ciclo desabilitado do mesmo jeito. É capacidade própria, decidida para depois — não foi
+  tocado nesta rodada, por decisão explícita.
+- **A flag não tem consumidor.** O painel (`IDEIA-PAINEL-ESCOLA.md`) continua **não implementado**;
+  a flag é o campo que ele vai ler, e hoje quem a lê é só o validador.
+- **`ESCOLA_HABILITADA` não entrou em nenhum `enum` nem no `DOCS`.** Ela é campo de schema, não
+  documento, e por isso não aparece no pacote gerado — verificar, quando o painel existir, se ele
+  precisa lê-la do `.conf` ou de um JSON derivado.
+- **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
+  de propósito.
+- **O push é da pesquisadora** — os commits ficam locais até ela empurrar.
 
 ## Pendências anteriores (índice)
 
@@ -406,6 +409,7 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
 - **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7813
 - **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7940
 - **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8010 *(superado)*
+- **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8088
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).

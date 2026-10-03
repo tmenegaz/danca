@@ -8,13 +8,13 @@ type: Ciclo
 professor: Fokini
 ciclo: 01
 variante: diaghilev
-hash_conteudo: 5e752f1f475c708fcde6bb4a3af61f737ed9712361d8d1f2c5cd652d351cd4a1
+hash_conteudo: 187539f10b372a21a94ed40b37ec492fcbcb2ff3ceaf7c03dd8ec1a128c0fb26
 parentHash: 
-hash: 7e32e5a49c0a5b5c0ab7a1467ba807db4f713eb957c83f2dcaa4a026b68b5738
+hash: 899d17e4343d33fc8d3ecbcf8838e7fe23ad6fe8bb14dc57f6efac5e5bd4d2af
 algoritmo: SHA-256
 po: professores/fokini/ciclos/ciclo-01-diaghilev-po.md
 po_state: Input_PO_Aguardando
-ancorado_em: 2026-09-30
+ancorado_em: 2026-10-02
 cobertura:
   - professores/fokini/cadernos/ciclo-01/caderno-01-diaghilev.md
   - professores/fokini/ciclos/ciclo-01-diaghilev-aula-01.md
