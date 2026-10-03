@@ -13,11 +13,12 @@
  * considerada, porque neste projeto o manifesto base (ciclo-XX.conf) e o de
  * variante (ciclo-XX-<escola>.conf) se complementam.
  *
- * Extra: quando o schema declara `pattern`, o valor também é conferido — é uma
- * checagem a mais, nunca a mais fraca. Sem dependências externas.
+ * Extra: quando o schema declara `pattern`, o valor também é conferido — em
+ * QUALQUER campo declarado com ele, obrigatório ou opcional. `required` governa
+ * presença; `pattern` governa forma. Sem dependências externas.
  *
- * Sai com 0 se todos os campos obrigatórios estão presentes (e batem o padrão);
- * com 1 se algo falta, imprimindo os campos faltantes.
+ * Sai com 0 se todos os campos obrigatórios estão presentes e todo campo com
+ * `pattern` (quando presente) bate o padrão; com 1 se algo falta ou está torto.
  */
 
 const fs = require('fs');
@@ -87,9 +88,14 @@ function main() {
   }
 
   const faltando = obrigatorios.filter((c) => !(c in campos));
+
+  // Forma: todo campo declarado com `pattern` é conferido quando PRESENTE —
+  // inclusive os opcionais. `required` responde "existe?"; `pattern` responde
+  // "está no formato?". Amarrar o padrão ao `required` deixaria um campo
+  // opcional passar com qualquer valor, que é o oposto de uma checagem.
   const fora = [];
-  for (const campo of obrigatorios) {
-    const padrao = propriedades[campo] && propriedades[campo].pattern;
+  for (const [campo, def] of Object.entries(propriedades)) {
+    const padrao = def && def.pattern;
     if (!padrao || !(campo in campos)) continue;
     if (!new RegExp(padrao).test(campos[campo])) {
       fora.push(`${campo}="${campos[campo]}" (esperado ${padrao})`);
