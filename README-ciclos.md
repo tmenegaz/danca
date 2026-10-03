@@ -22,11 +22,10 @@ Este documento descreve como o material de um ciclo é **gerado e entregue** nes
 repositório: os arquivos-fonte, os dois formatos obrigatórios (PDF único e pacote
 HTML), as regras de navegação e como validar tudo antes de entregar ao professor.
 
-> **Estado atual.** Cada escola tem o seu ciclo, gerado e validado: o **Duo**
-> (Fundamentos do Balé Clássico, 12 aulas de 60 min, com Aula 01 de 90 tempos em
-> solo/barra/centro) e a **Ritmos e Movimento** (pas de deux, **21 encontros** de
-> 60 min — três por semana: 1 na terça e 2 no sábado, 120 min no dia —, com
-> Aula 01 de 90 tempos e 180 no dia de sábado). O que ainda depende do professor
+> **Estado atual.** Cada escola tem o seu ciclo, gerado e validado: o **Diaghilev**
+> (Formação em Balé Clássico, **5 aulas** de 60 min em dois encontros semanais —
+> terças e quintas, 19:00 —, de **06/10 a 20/10/2026, 3 semanas**, com aulas de
+> **84–94 tempos** e **176 tempos/semana**). O que ainda depende do professor
 > vem marcado `[Preencher]`; o que depende de conferência de edição/ano vem
 > marcado `[conferir]`.
 
@@ -36,8 +35,8 @@ HTML), as regras de navegação e como validar tudo antes de entregar ao profess
 |:--|:--|:--|
 | **Markdown-fonte** | `professores/<professor>/ciclos/ciclo-XX-*.md` | o que o professor edita no VS Code |
 | **Manifesto do ciclo** | `professores/<professor>/ciclos/ciclo-XX.conf` | nome, objetivo geral, **duração da aula**, período, faixa de volume e ordem dos documentos |
-| **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (**49 páginas** no Duo, **38** na Ritmos) |
-| **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | **19 páginas** interligadas no Duo, **20** na Ritmos, com barra de navegação fixa |
+| **PDF único consolidado** | `professores/<professor>/ciclos/ciclo-XX/ciclo-XX.pdf` | capa, índice navegável, bookmarks, rodapé numerado (**52 páginas** no Diaghilev) |
+| **Pacote HTML** | `professores/<professor>/ciclos/ciclo-XX/*.html` | **21 páginas** interligadas no Diaghilev, com barra de navegação fixa |
 | **Folha de estilo única** | `professores/<professor>/ciclos/ciclo-XX/assets/style.css` | gerada de `tools/templates/ciclo.css` |
 | **Mapas do rizoma** | `professores/<professor>/ciclos/ciclo-XX/assets/rizoma-*.svg` | copiados do projeto para o Apanhado Histórico |
 | **README do pacote** | `professores/<professor>/ciclos/ciclo-XX/README.md` | gerado uma única vez; o professor pode editar depois |
@@ -76,9 +75,10 @@ inteiros, quem está errado é a conta — não o tempo musical.
 ## Comando único
 
 ```bash
-tools/gerar-ciclo.sh tiago 01 duo                 # gera HTML + PDF da variante "duo" e valida
-tools/gerar-ciclo.sh 01 duo                       # o mesmo: sem professor, assume tiago
-node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo  # valida avulso, se quiser
+tools/gerar-ciclo.sh fokini 01 diaghilev          # gera HTML + PDF da variante "diaghilev" e valida
+tools/gerar-ciclo.sh <professor> 01 <escola>      # sempre com o professor explícito: os scripts
+                                                  # ainda trazem `tiago` como default
+node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev  # valida avulso, se quiser
 ```
 
 O segundo argumento é a **escola** (Pré-requisito 5): sem ele o gerador recusa,
@@ -106,21 +106,17 @@ distintos. Duas escolas com o mesmo número de ciclo não são a mesma coisa:
 
 | Ciclo | Escola | Frequência e duração | Calendário | Volume semanal |
 |:--|:--|:--|:--|--:|
-| `ciclo-01-duo` | Duo (Fernando) | 1x/semana (sextas), 60 min | 18/09 → 04/12/2026 (12 semanas) | 90 tempos |
-| `ciclo-01-ritmos` | Ritmos e Movimento (Gabi) | 3 aulas/semana (terças e sábados), 3 × 60 min | 19/09 → 03/11/2026 (7 semanas) | 90 + 90 + 90 = 270 tempos |
+| `ciclo-01-diaghilev` | Diaghilev (Fokini) | 2x/semana (terças e quintas), 60 min | 06/10 → 20/10/2026 (3 semanas) | 176 tempos/semana |
 
 > **17/09/2026 é uma quinta-feira** — não é dia de aula em nenhuma das escolas. O
 > cálculo **não arredonda para a data informada**: ele avisa e usa o próximo dia de
 > aula real. As avaliações (formativa e somativa) saem dessas datas.
 
-**O ciclo da Débora (Marau) ainda não existe.** Houve cópias do ciclo da Duo nos
-nomes das outras escolas; elas foram removidas em 18/09/2026 (ver `REGISTRO.md`).
 O conteúdo de uma escola nunca é o de outra: o que a variante declara em
 `ciclo-XX-<escola>.conf` e nos arquivos `ciclo-XX-<escola>-*.md` tem precedência
 sobre os arquivos sem sufixo (`tools/lib-fontes.sh`).
 
-Saídas: `professores/tiago/ciclos/ciclo-01-duo/` (19 páginas HTML) e
-`professores/tiago/ciclos/ciclo-01-ritmos/` (20 páginas HTML), cada uma com
+Saídas: `professores/fokini/ciclos/ciclo-01-diaghilev/` (21 páginas HTML), com
 `assets/`, `README.md` e o PDF do ciclo.
 
 
@@ -167,8 +163,8 @@ Markdown escrito à mão, mas da junção dos documentos do ciclo (cada um prece
 | Índice navegável | `--toc --toc-depth=3 -V toc-title="Índice"`, em página própria | "Índice" presente nas primeiras páginas (`pdftotext`) |
 | Referências cruzadas internas | links `arquivo.html#ancora` reescritos para `#ancora` com prefixo do documento | toda âncora usada tem título correspondente (checado no gerador) |
 | Bookmarks na barra lateral | `hyperref` + `bookmark.sty` | presença de `/Outlines` nos streams inflados do PDF |
-| Numeração e identificação no rodapé | `fancyhdr`, com o estilo `plain` redefinido para valer **também na capa** | checagem página a página: `p. N` e "Ciclo" em todas as páginas (49 no Duo, 38 na Ritmos) |
-| Cada documento em página nova | `\clearpage` antes de cada título | 49 páginas para 15 documentos + capa + índice (Duo) |
+| Numeração e identificação no rodapé | `fancyhdr`, com o estilo `plain` redefinido para valer **também na capa** | checagem página a página: `p. N` e "Ciclo" em todas as páginas (52 no Diaghilev) |
+| Cada documento em página nova | `\clearpage` antes de cada título | 52 páginas para 15 documentos + capa + índice (Diaghilev) |
 
 ## Âncoras: a armadilha que custou uma rodada
 
@@ -246,17 +242,17 @@ grep -oP '[^\x00-\x7F]' professores/<professor>/ciclos/ciclo-XX-*.md | sort -u
 
 ```bash
 # 1) os manifestos: o base (compartilhado) e o da variante
-cp professores/tiago/ciclos/ciclo-01.conf     professores/tiago/ciclos/ciclo-02.conf
-cp professores/tiago/ciclos/ciclo-01-duo.conf professores/tiago/ciclos/ciclo-02-duo.conf
+cp professores/fokini/ciclos/ciclo-01.conf     professores/fokini/ciclos/ciclo-02.conf
+cp professores/fokini/ciclos/ciclo-01-diaghilev.conf professores/fokini/ciclos/ciclo-02-diaghilev.conf
 
 # 2) as fontes: com sufixo da escola quando o conteúdo é dela, sem sufixo quando é comum
-cp professores/tiago/ciclos/ciclo-01-plano.md professores/tiago/ciclos/ciclo-02-plano.md
+cp professores/fokini/ciclos/ciclo-01-plano.md professores/fokini/ciclos/ciclo-02-plano.md
 # escreva as demais com o prefixo ciclo-02- (index, aula-01, notacao, pre-requisitos,
 # musicalidade, musicalidade-aluna, apanhado-historico, referencias). `guia-do-professor`
 # não precisa de cópia: é compartilhado e vive na biblioteca (tools/lib-fontes.sh).
 
 # 3) o caderno desta escola NÃO vive na pasta do ciclo, e é fonte do hash:
-#    professores/tiago/cadernos/ciclo-02/caderno-02-duo.md
+#    professores/fokini/cadernos/ciclo-02/caderno-02-diaghilev.md
 
 # 4) declare o ciclo no DOCS dos DOIS manifestos — o da variante sobrescreve o base,
 #    então declarar só no base não chega à escola. Ex.:
@@ -268,8 +264,8 @@ cp professores/tiago/ciclos/ciclo-01-plano.md professores/tiago/ciclos/ciclo-02-
 #     `.md` escrito à mão, e é o único documento de DOCS que funciona assim.)
 
 # 5) gere e valide
-tools/gerar-ciclo.sh tiago 02 duo
-node tools/check-pacote.js professores/tiago/ciclos/ciclo-02-duo
+tools/gerar-ciclo.sh fokini 02 diaghilev
+node tools/check-pacote.js professores/fokini/ciclos/ciclo-02-diaghilev
 ```
 
 Cada documento começa com um bloco YAML que alimenta o cabeçalho e a ficha da

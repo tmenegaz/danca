@@ -12,7 +12,7 @@ Estes arquivos são **fontes**: o professor os edita e os geradores os consomem.
 
 - A fonte com **sufixo da escola** prevalece sobre a compartilhada (`tools/lib-fontes.sh`). Uma escola nunca lê o conteúdo de outra.
 - Ao criar ou editar, use o sufixo: `ciclo-XX-<escola>-plano.md`, `-po.md`, `-aula-NN.md`, `-musicalidade.md`, `-apanhado-historico.md`, `-pre-requisitos.md`, `-harmonizacao.md`, `-dados.json`, `-captura-aula-NN.md`, `-referencias.md`. O manifesto base é `ciclo-XX.conf`; a variante é `ciclo-XX-<escola>.conf`.
-- Nunca copie o conteúdo de uma escola para outra. A estrutura do piloto se replica (P-17); o texto, não. Já houve pacote da Ritmos saindo com o plano da Duo — é o defeito mais caro do repositório.
+- Nunca copie o conteúdo de uma escola para outra. A estrutura do piloto se replica (P-17); o texto, não. Já houve pacote da Ritmos saindo com o plano da Duo — é o defeito mais caro do repositório. Esses dois ciclos saíram do caminho ativo em 02/10/2026; o precedente fica como motivo da regra, não como escola existente.
 
 ## Dados de pessoas
 

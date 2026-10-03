@@ -33,6 +33,11 @@ são ~30 arquivos por ciclo.
 > Com isso, `relatorio-aula-XX` volta a significar **só o relatório** — que é o
 > que este documento propõe gerar sob demanda.
 
+> **Nota de escopo (2026-10-02).** "Duo" e "Ritmos" são os ciclos-protótipo, removidos
+> do repositório nesta data; o ciclo ativo é o Diaghilev (professor Fokini). As contagens
+> de 12 e 21 aulas são **medição** — os casos que dimensionam o problema que a ideia
+> resolve — e ficam como evidência, não como exemplo de forma.
+
 Consequências:
 
 - O menu cresce indefinidamente

@@ -64,12 +64,11 @@ REGISTRO.
 ## Por que congelar
 
 A infraestrutura está funcional há mais de duas semanas, com:
-- 2 ciclos publicados (Duo, Ritmos)
-- 2 POs validados
-- 1 relatório pós-aula
-- 1 primeiro ciclo completo (PO → aula → caderno → relatório → acompanhamento)
-- Âncora de proveniência encadeada (`hash-ciclo.sh`), deploy automático via Netlify
-- Harmonização estrutural em ambos os ciclos (P-17)
+- 1 ciclo publicado (Diaghilev)
+- 1 PO validado
+- Âncora de proveniência encadeada (`hash-ciclo.sh`) e o caminho de deploy via Netlify
+  (`deploy-netlify.sh`), pronto mas ainda sem conta da escola
+- Harmonização de linguagem no ciclo ativo (P-17)
 
 Continuar mexendo na infraestrutura sem motivo é trabalho que não gera valor
 — e arrisca quebrar o que já funciona. O que gera valor agora é **conteúdo**.

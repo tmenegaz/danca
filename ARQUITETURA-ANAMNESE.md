@@ -874,3 +874,15 @@ implementação.
 - `experimentos/` — **demonstrativo**, fora de pacotes, hashes e publicação: o único lugar onde o
   vocabulário da malha aparece hoje (`valgo`, `arco plantar`, cadeia posterior, adutor). **Não é
   fonte** — é indicação de que o terreno já foi pisado
+
+> **Nota datada — 02/10/2026. A redação acima envelheceu — em parte.** Os ciclos-protótipo
+> `duo` e `ritmos` foram removidos do repositório nesta data; o ciclo ativo é o Diaghilev
+> (professor Fokini). Os caminhos `professores/tiago/...` — o `campo/README.md`, o
+> `campo/consentimento.md`, o `campo/2026-10-03-ritmos/formulario.md`, o
+> `ciclos/ciclo-01-duo/po-01.json`, o `ciclos/ciclo-01-duo.fipp` — **não têm alvo vivo**:
+> nenhum `campo/` nem `po-01.json` é rastreado no repositório, e o schema do PO vive hoje em
+> `professores/fokini/ciclos/`. O que era **medição** continua verdadeiro como **evidência**:
+> o `po-01.json` de 10.124 B, o envelope de **4 campos** do `-dados.json` e os 18 itens de
+> `linhaDeBase` mediram o que mediram, e são eles que dimensionam a forma que a anamnese
+> consome. Ficam como registro do que se leu, não como caminho a seguir. A redação antiga
+> **não** foi apagada (P-03/P-04): esta nota é o elo novo.

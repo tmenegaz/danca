@@ -346,9 +346,9 @@ biblioteca/  ·  departamentos/  ·  experimentos/  ·  tools/  ·  apresentacoe
 
 | Camada | Exemplo | Publicada? | No hash? |
 |:--|:--|:--|:--|
-| **Fonte** | `ciclo-01-duo-po.md`, `ciclo-01-duo-dados.json` | não (o JSON fica no repositório privado) | **sim** |
+| **Fonte** | `ciclo-01-diaghilev-po.md`, `ciclo-01-diaghilev-dados.json` | não (o JSON fica no repositório privado) | **sim** |
 | **Saída do pacote** | `po-01.json`, `plano-01.json`, `captura-aula-01.json`, `ciclos.json` | sim | não — reconstruível (P-04) |
-| **Âncora** | `ciclo-01-duo.fipp` | não | é a âncora |
+| **Âncora** | `ciclo-01-diaghilev.fipp` | não | é a âncora |
 
 E a quarta camada que **não** se espelha por ser vista: `guia-de-observacao-NN` (gerado) e os
 `*-acompanhamento-*.md` (fora do Git, com dados de menores protegidos pelas quatro camadas da
@@ -527,3 +527,12 @@ implementação.
 - `professores/tiago/campo/README.md` — a forma canônica da linha de base (26/09/2026)
 - `departamentos/README.md` — o PO de departamento (P-14): o precedente de estrutura
   **prevista e vazia**, com pai opcional na cadeia — a mesma forma da descoberta opcional do PE
+
+> **Nota datada — 02/10/2026. A redação acima envelheceu — em parte.** Os ciclos-protótipo
+> `duo` e `ritmos` foram removidos do repositório nesta data; o ciclo ativo é o Diaghilev
+> (professor Fokini). O que era **medição** do Duo continua verdadeiro como **evidência**:
+> o `ciclo-01-duo-dados.json` citado na §2.3 e na §6.2 mediu o que mediu, e a variação de
+> chaves que ele demonstra é o argumento que sustenta a §2.3. Já os **ponteiros** da §4.3
+> e das Referências — `professores/tiago/campo/README.md` — **não têm alvo vivo**: nenhum
+> `campo/` é rastreado no repositório. Ficam como registro do que se leu, não como caminho
+> a seguir. A redação antiga **não** foi apagada (P-03/P-04): esta nota é o elo novo.

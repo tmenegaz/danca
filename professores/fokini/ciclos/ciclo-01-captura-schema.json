@@ -29,7 +29,7 @@
     },
     "variante": {
       "type": "string",
-      "description": "O slug da variante que declarou as chaves e os tipos (`duo`, `ritmos`) — o mesmo do `VARIANTE` do .conf. O gerador o passa por `--variante`; sem ele, o extrator deduz pela `escola:` do front-matter."
+      "description": "O slug da variante que declarou as chaves e os tipos (ex.: `diaghilev`) — o mesmo do `VARIANTE` do .conf. O gerador o passa por `--variante`; sem ele, o extrator deduz pela `escola:` do front-matter."
     },
     "blocos": {
       "type": "array",
@@ -122,7 +122,7 @@
     }
   },
   "_declaracao": {
-    "_nota": "O que a folha NÃO pode dizer sozinha: por VARIANTE (o slug do .conf VARIANTE e do nome do pacote — `duo`, `ritmos`), o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o GRÃO de cada bloco. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS. O extrator (tools/validar-captura-ciclo.js) lê isto e emite, por coluna, `rotulo`, `chave` e `tipo` — e REPORTA (não inventa) a coluna da folha que não estiver declarada aqui, e o bloco da folha que não estiver declarado. Cada BLOCO declara também a sua `chave` e o seu `rotulo`: a chave é o nome do bloco no JSON de dados (`tecnica`, `musicalidade`, `par`, `linha_de_base`…) e o rótulo é o nome curto que as vistas imprimem (`Técnica`, `Musicalidade`) — sem eles, o dado voltaria a ter os blocos fixos em código. As chaves foram escolhidas CURTAS e ESTÁVEIS, próximas das que já existiam nos lançamentos (a tabela de aliases do rename fica mínima: uma só, no Duo).",
+    "_nota": "O que a folha NÃO pode dizer sozinha: por VARIANTE (o slug do .conf VARIANTE e do nome do pacote — ex.: `diaghilev`), o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o GRÃO de cada bloco. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS. O extrator (tools/validar-captura-ciclo.js) lê isto e emite, por coluna, `rotulo`, `chave` e `tipo` — e REPORTA (não inventa) a coluna da folha que não estiver declarada aqui, e o bloco da folha que não estiver declarado. Cada BLOCO declara também a sua `chave` e o seu `rotulo`: a chave é o nome do bloco no JSON de dados (`tecnica`, `musicalidade`, `par`, `linha_de_base`…) e o rótulo é o nome curto que as vistas imprimem (`Técnica`, `Musicalidade`) — sem eles, o dado voltaria a ter os blocos fixos em código. As chaves foram escolhidas CURTAS e ESTÁVEIS, próximas das que já existiam nos lançamentos (a tabela de aliases do rename fica mínima: uma só, no Duo).",
     "tipos": {
       "marca": "Um dos cinco do conjunto da folha: `ok` (✓ aconteceu), `parcial` (~ parcial), `nao` (X não aconteceu), `nao_vi` (? não vi) — ou `''` (vazio = não observei). É o que o formulário renderiza como select (o `marcaSel`).",
       "numero": "Um número (a duração em minutos). No formulário, campo numérico.",
@@ -337,5 +337,6 @@
         }
       }
     }
-  }
+  },
+  "_nota_escopo_02-10-2026": "Nota de escopo (02/10/2026). Os ciclos-protótipo Duo, Ritmos e Tiago foram removidos do repositório nesta data; o ciclo ativo é o Diaghilev (fokini). As description que citam `duo`, `ritmos` e `tiago` são MEDIÇÃO — os casos medidos que justificam a tolerância declarada neste schema — e ficam como evidência, não como exemplo de forma. As enumerações de forma foram atualizadas para o corpus vivo (`diaghilev`)."
 }

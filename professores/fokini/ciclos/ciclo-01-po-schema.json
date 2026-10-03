@@ -120,5 +120,6 @@
     "limitations",
     "validationChecklist"
   ],
+  "_nota_escopo_02-10-2026": "Nota de escopo (02/10/2026). Os ciclos-protótipo Duo, Ritmos e Tiago foram removidos do repositório nesta data; o ciclo ativo é o Diaghilev (fokini). As description que citam `duo`, `ritmos` e `tiago` são MEDIÇÃO — os casos medidos que justificam a tolerância declarada neste schema — e ficam como evidência, não como exemplo de forma. As enumerações de forma foram atualizadas para o corpus vivo (`diaghilev`).",
   "additionalProperties": true
 }

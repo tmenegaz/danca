@@ -49,13 +49,13 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 │       └── out/                        PDF, PPTX, HTML, PNGs (não versionado)
 ├── professores/                  um professor por pasta (P-13)
 │   ├── README.md                 o que é um professor, o que tem, como adicionar
-│   └── tiago/
+│   └── fokini/
 │       ├── ciclos/
 │       │   ├── ciclo-01.conf             manifesto base (objetivo, aulas, faixas)
-│       │   ├── ciclo-01-<escola>.conf    contexto institucional + conteúdo da escola
-│       │   │                             (cada escola tem o seu ciclo: duo · ritmos)
+│       │   ├── ciclo-01-diaghilev.conf   contexto institucional + conteúdo da escola
+│       │   │                             (cada escola tem o seu ciclo: diaghilev)
 │       │   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
-│       │   └── ciclo-01-<escola>/        pacote entregue: HTML + PDF (versionado — o
+│       │   └── ciclo-01-diaghilev/       pacote entregue: HTML + PDF (versionado — o
 │       │                                 deploy automático publica daqui)
 │       ├── cadernos/             caderno descritivo por aula (P-06)
 │       ├── relatorios/           relatórios pós-aula, um por aula
@@ -70,10 +70,10 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 
 | Quero… | Comando |
 |:--|:--|
-| Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh tiago 01 duo` (ou `01 ritmos`) |
-| Validar um pacote de ciclo | `node tools/check-pacote.js professores/tiago/ciclos/ciclo-01-duo` |
-| Fazer deploy de um ciclo no Netlify | `tools/deploy-netlify.sh tiago 01 duo` |
-| Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Duo --frequencia '1x/semana' --dias 5@18:30 --inicio 17/09/2026 --total 12 --duracao-curta 60 --volume-curto 90` |
+| Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh fokini 01 diaghilev` |
+| Validar um pacote de ciclo | `node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev` |
+| Fazer deploy de um ciclo no Netlify | `tools/deploy-netlify.sh fokini 01 diaghilev` |
+| Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Diaghilev --frequencia '2x/semana' --dias '2@19:00,4@19:00' --inicio 06/10/2026 --total 5 --duracao-curta 60 --volume-curto 90` |
 | Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
 | Validar os mapas do rizoma | `node tools/check-mapa.js` · `node tools/medir-rotulos.js` |
@@ -83,7 +83,7 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 
 ```
 1. fontes em Markdown            →  professores/*/ciclos/*.md  ·  apresentacoes/**/*.md
-2. gerar                          →  tools/gerar-ciclo.sh tiago 01 duo
+2. gerar                          →  tools/gerar-ciclo.sh fokini 01 diaghilev
 3. validar                        →  check-pacote.js · check-overflow.js · check-mapa.js
 4. auditar contra as regras       →  REGRAS.md  (commit audit(escopo): ...)
 5. commitar com proveniência      →  tipo(escopo): resumo + Refs/Regras/Auditoria
@@ -92,15 +92,15 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 
 ## Deploy no Netlify — uma conta por escola
 
-Cada escola (**Duo**, **Ritmos e Movimento**, **Débora**) tem a sua **própria conta** no
-Netlify, com o seu token e o seu site. Os tokens e os site IDs ficam em
+Cada escola (**Diaghilev**, hoje a única) tem a sua **própria conta** no Netlify, com o seu
+token e o seu site. Os tokens e os site IDs ficam em
 `tools/.netlify-tokens` — **não versionado** (o `.gitignore` cobre), criado como template
 na primeira execução do script:
 
 ```bash
-tools/deploy-netlify.sh tiago 01 duo      # primeira vez: cria o template e sai
-# preencha NETLIFY_TOKEN_DUO e NETLIFY_SITE_DUO no arquivo
-tools/deploy-netlify.sh tiago 01 duo      # agora deploya
+tools/deploy-netlify.sh fokini 01 diaghilev   # primeira vez: cria o template e sai
+# preencha NETLIFY_TOKEN_DIAGHILEV e NETLIFY_SITE_DIAGHILEV no arquivo
+tools/deploy-netlify.sh fokini 01 diaghilev   # agora deploya
 ```
 
 O token vai para o `netlify-cli` como `NETLIFY_AUTH_TOKEN` **só naquela execução**, então
@@ -131,7 +131,7 @@ construir o material**, e o volume fora da faixa da duração interrompe a gera�
   versionado, então a fonte fica em `tools/hooks/`).
 
 ```bash
-git log --follow professores/tiago/ciclos/ciclo-01-aula-01.md   # histórico de um arquivo
+git log --follow professores/fokini/ciclos/ciclo-01-diaghilev-aula-01.md   # histórico de um arquivo
 git log --grep="audit"                        # auditorias
-git log --oneline -- professores/tiago/ciclos/ciclo-01-duo/    # histórico de um ciclo
+git log --oneline -- professores/fokini/ciclos/ciclo-01-diaghilev/         # histórico de um ciclo
 ```

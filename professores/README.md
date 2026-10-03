@@ -39,7 +39,7 @@ Depois:
 
 1. crie o ciclo inicial (`ciclo-01.conf` + `ciclo-01-<escola>.conf`) — ver
    [`../README-ciclos.md`](../README-ciclos.md) e, como exemplo,
-   [`tiago/ciclos/`](tiago/ciclos);
+   [`fokini/ciclos/`](fokini/ciclos);
 2. declare o PO do professor (`ciclo-01-<escola>-po.md`): o recorte é dele (P-13) — o dado,
    porém, pertence à escola;
 3. gere a âncora e o pacote:
@@ -47,17 +47,19 @@ Depois:
    tools/hash-ciclo.sh <nome> 01 <escola>
    tools/gerar-ciclo.sh <nome> 01 <escola>
    ```
-   Sem `<nome>`, as ferramentas assumem `tiago` (compatibilidade com os comandos
-   antigos: `tools/gerar-ciclo.sh 01 duo` continua funcionando).
+   Passe `<nome>` **sempre** — ex.: `tools/gerar-ciclo.sh fokini 01 diaghilev`.
+   Sem `<nome>`, as ferramentas ainda assumem o default antigo `tiago`
+   (`tools/hash-ciclo.sh:65`, `tools/gerar-ciclo.sh:63`), e esse default está
+   pendente: ele aponta para uma pasta que deixou de existir em 02/10/2026.
 
 ## Professores hoje
 
 | Professor | Ciclos | POs | Estado |
 |:--|:--|:--|:--|
-| **tiago** | Ciclo 01 — **uma por escola**: `duo` (Duo, Fernando) e `ritmos` (Ritmos e Movimento, Gabi) | `ciclo-01-duo-po.md` validado; `ciclo-01-ritmos-po.md` com os campos do professor, checklist aguardando a primeira aula | em execução |
+| **fokini** | Ciclo 01 — `diaghilev` (Diaghilev, Fokini) — escola **simulada** | `ciclo-01-diaghilev-po.md` com os campos do professor, checklist aguardando a primeira aula | em execução |
 
 > **Cada escola tem o seu ciclo.** O conteúdo (objetivo, plano, aulas) é da escola,
-> não do número do ciclo: `ciclo-01-duo-*` e `ciclo-01-ritmos-*` são ciclos
-> distintos, com planos e aulas distintos. As fontes de uma variante têm
+> não do número do ciclo: `ciclo-01-diaghilev-*` e `ciclo-01-<outra-escola>-*` são
+> ciclos distintos, com planos e aulas distintos. As fontes de uma variante têm
 > precedência sobre as sem sufixo — a regra está em `tools/lib-fontes.sh`. O ciclo
 > da **Débora (Marau)** ainda não existe: as cópias que havia foram removidas.

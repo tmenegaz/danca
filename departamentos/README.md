@@ -36,9 +36,9 @@ departamentos/
 
 ## Hoje neste projeto
 
-**Nenhuma** escola tem PO de departamento — nem a Duo, que vai adotar RAD sem estrutura
-departamental. Isso não é uma falha: é o cenário mais comum em escolas pequenas e
-médias, e o projeto foi feito para funcionar assim. Todos os POs atuais são **raiz**.
+**Nenhuma** escola tem PO de departamento. Isso não é uma falha: é o cenário mais comum
+em escolas pequenas e médias, e o projeto foi feito para funcionar assim. Todos os POs
+atuais são **raiz**.
 
 A estrutura está pronta, aguardando uma escola que a declare. Quando isso acontecer, o
 PO do professor **não muda**: ganha um `parentHash` apontando para o PO de departamento.
