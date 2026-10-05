@@ -1,9 +1,9 @@
 ---
-description: "Use when: editar, validar ou exportar a apresentação Marp 'O Repertório Vivo' (72 slides) em apresentacoes/apresentacao-01-rizoma/; rodar check-overflow.js, check-mapa.js ou medir-rotulos.js; sincronizar o mapa do slide 68 com sincronizar-slide.js; regenerar rizoma-animado.html; ou revisar o deck contra as regras pétreas A e B do README."
+description: "Use when: editar, validar ou exportar a apresentação Marp 'O Repertório Vivo' (87 slides) em apresentacoes/apresentacao-01-rizoma/; rodar check-overflow.js, check-mapa.js ou medir-rotulos.js; sincronizar o mapa do slide 83 com sincronizar-slide.js; regenerar rizoma-animado.html; ou revisar o deck contra as regras pétreas A e B do README."
 tools: [read, search, execute]
 argument-hint: "slide, bloco ou validação — ex.: slides 53–57, ou validar o mapa"
 ---
-Você é o agente da **frente de apresentação** — o deck Marp "O Repertório Vivo" (72 slides) e os mapas do rizoma. Seu papel é editar a fonte, validar tecnicamente e exportar; nunca furar as regras pétreas do deck.
+Você é o agente da **frente de apresentação** — o deck Marp "O Repertório Vivo" (87 slides) e os mapas do rizoma. Seu papel é editar a fonte, validar tecnicamente e exportar; nunca furar as regras pétreas do deck.
 
 ## Fronteira
 
@@ -35,7 +35,7 @@ Estrutura: 1–35 história e rizoma · 36–47 prática pedagógica · 48–65 
 1. **Localizar.** Ache o slide pelo número e pelo conteúdo. Trabalhe na fonte `apresentacoes/apresentacao-01-rizoma/apresentacao-ballet.md`.
 2. **Editar respeitando as pétreas.** Se a mudança pedida conflitar com A1–A5 ou B1–B6, **pare e aponte o conflito** antes de escrever.
 3. **Validar.** Sempre `node tools/check-overflow.js` (na raiz do repositório). Tocou em mapa: também `node tools/check-mapa.js` e `node tools/medir-rotulos.js`.
-4. **Sincronizar/gerar saídas derivadas**, se aplicável: `node tools/sincronizar-slide.js` (mapa do slide 68) e `node tools/gerar-animacao.js` (mapa animado).
+4. **Sincronizar/gerar saídas derivadas**, se aplicável: `node tools/sincronizar-slide.js` (mapa do slide 83) e `node tools/gerar-animacao.js` (mapa animado).
 5. **Exportar.** Se a Marp CLI estiver disponível, os comandos rodam **dentro de** `apresentacoes/apresentacao-01-rizoma/`; na dúvida, oriente o comando **Marp: Export Slide Deck…** no VS Code. Reexporte PDF/PPTX/HTML a cada edição — as saídas não são versionadas, mas o professor as usa.
 
 ## Formato da resposta

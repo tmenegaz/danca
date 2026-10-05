@@ -5,7 +5,7 @@ história da dança, pedagogia e ética na formação em balé clássico.
 
 - **Formato:** Markdown com sintaxe [Marp](https://marp.app/) (`marp: true` no frontmatter)
 - **Apresentação:** Tiago Menegaz — Studio Ritmo e Movimentos (Passo Fundo, RS) — 3 de outubro de 2026
-- **Estrutura:** 72 slides, separados por `---`
+- **Estrutura:** 87 slides, separados por `---`
   - Slides 1–35: Parte A — Uma breve história da dança: de corte à arte cênica
     (glossário conceitual, história, curiosidades Tchaikovsky/Petipa, Marquês de Cuevas,
     Hugo Delavalle, **Vaslav Veltchek, Yellê Bittencourt e Ady Addor**, Ana Botafogo,
@@ -14,18 +14,18 @@ história da dança, pedagogia e ética na formação em balé clássico.
     Bergson** e o fechamento "de aluno a professor")
   - Slides 36–47: Parte B — Desafios da prática pedagógica contemporânea
     (agenciamento, aula-playlist, progressão, exemplos de exercícios, ética e imagem)
-  - Slides 48–65: Parte C — Grandes balés de repertório e suas releituras
+  - Slides 48–80: Parte C — Grandes balés de repertório e suas releituras
     (contexto dos criadores → evolução e linha do tempo do Quebra-Nozes → **crítica da época**
     → Romeu e Julieta (contexto, semiótica, **crítica**) → destilação do conhecimento →
     o perigo de copiar a "casca" → Giselle (contexto, análise, **crítica**) → fechamento)
-  - Slides 66–67: Referências bibliográficas (1/2 e 2/2)
-  - **Slide 68: o mapa do rizoma** (mapa de projeção + botões para a versão animada e o mapa completo) —
+  - Slides 81–82: Referências bibliográficas (1/2 e 2/2)
+  - **Slide 83: o mapa do rizoma** (mapa de projeção + botões para a versão animada e o mapa completo) —
     o mapa visível no deck é `rizoma-slide.svg`; as versões completas estão em `rizoma-animado.html`
     e `rizoma-corrigido.svg`
-  - **Slides 69–71: os tipos de conhecimento e a tese** — "Os Tipos de Conhecimento no Rizoma"
+  - **Slides 84–86: os tipos de conhecimento e a tese** — "Os Tipos de Conhecimento no Rizoma"
     (arquivo / repertório / interpretação), "Por Que o Repertório é Mais Rico que o Arquivo" e
     "O Repertório é o Que Torna o Processo Rico"
-  - Slide 72: Agradecimento
+  - Slide 87: Agradecimento
 - **Notas do apresentador:** comentários `<!-- _notes: ... -->` em cada slide (não aparecem no
   slide; saem no modo apresentador e na exportação de notas).
 
@@ -53,13 +53,13 @@ Válidas para **todos os slides** e para qualquer edição futura.
 
 1. **Contexto antes de análise.** Nenhum balé é analisado antes de ser contextualizado — quem criou,
    quando, por quê, sob qual regime; depois a recepção; só então a análise coreográfica.
-   (Giselle: contexto em 49–50 → análise em 51 → crítica em 52. Nunca o inverso.)
+   (Giselle: contexto em 76–77 → análise em 78 → crítica em 79. Nunca o inverso.)
 2. **Zero redundância entre slides.** Se dois slides dizem o mesmo, um é eliminado e o conteúdo
    essencial é incorporado ao que permanece — o slide redundante é **removido**, não reescrito, e a
-   numeração posterior se ajusta. (Ex.: o antigo "Contexto Soviético" foi absorvido por 42–43.)
+   numeração posterior se ajusta. (Ex.: o antigo "Contexto Soviético" foi absorvido por 62–64.)
 3. **Crítica da época é obrigatória.** Cada balé de repertório tem ao menos um slide com a recepção
    crítica **datada** (veículo + ano); havendo várias versões, a crítica cobre as principais:
-   Quebra-Nozes (41), Romeu e Julieta (45), Giselle (52).
+   Quebra-Nozes (68), Romeu e Julieta (72), Giselle (79).
 4. **Coerência de progressão.** A ordem narrativa é fixa: história geral → contexto local →
    conceitos pedagógicos → contexto dos criadores → crítica da época → análise coreográfica →
    ética e fechamento.
@@ -69,19 +69,23 @@ Válidas para **todos os slides** e para qualquer edição futura.
    também `tools/check-mapa.js` e `tools/medir-rotulos.js`; reexportar PDF/PPTX/HTML a cada edição;
    conferir os slides novos no preview do Marp.
 
-Onde cada regra aparece no deck: **A1** → 5, 36–37, 47 · **A2** → 45–46 · **A3 e A4** → 48–64 ·
-**A5** → 58–60 · **B1** → 48–64 · **B2** → bloco de Romeu (54–57) · **B3** → 53, 57, 64 ·
-**B4** → 1–72 · **B5** → todo o deck · **B6** → scripts em `tools/` (`check-overflow.js`,
-`check-mapa.js`, `medir-rotulos.js`, `gerar-animacao.js`, `sincronizar-slide.js`).
+Onde cada regra aparece no deck: **A1** → 5, 36–37, 47 · **A2** → 45–46 · **A3 e A4** → 48–80 ·
+**A5** → 73–75 · **B1** → 48–80 · **B2** → bloco de Romeu (69–72) · **B3** → 68, 72, 79 ·
+**B4** → 1–87 · **B5** → todo o deck · **B6** → scripts em `tools/` (`check-overflow.js`,
+`check-mapa.js`, `medir-rotulos.js`, `gerar-animacao.js`, `sincronizar-slide.js`,
+`sincronizar-espiral.js`).
 
 ## Arquivos
 
 | Arquivo | Descrição |
 |---|---|
-| `apresentacao-ballet.md` | Fonte da apresentação (Markdown + Marp), 72 slides |
+| `apresentacao-ballet.md` | Fonte da apresentação (Markdown + Marp), 87 slides |
 | `rizoma-animado.html` | Mapa **animado** (autônomo e offline; desenha as três linhagens em ~8 s; teclas `P`/`R`). **Gerado** — não editar à mão: `node tools/gerar-animacao.js` |
-| `rizoma-slide.svg` | Mapa **para projeção** (fontes grandes) — é o que aparece no slide 68 e, portanto, no PDF/PPTX. **Fonte da verdade** do mapa do slide: `node tools/sincronizar-slide.js` injeta-o no deck |
+| `rizoma-slide.svg` | Mapa **para projeção** (fontes grandes) — é o que aparece no slide 83 e, portanto, no PDF/PPTX. **Fonte da verdade** do mapa do slide: `node tools/sincronizar-slide.js` injeta-o no deck |
 | `rizoma-corrigido.svg` | Mapa **completo** (todos os nós, hierarquia por tamanho de fonte) — abre em tela cheia pelo botão |
+| `quebra-nozes-espiral.svg` | **A espiral dos criadores** (6 caixas: Hoffmann 1816 → Dumas 1844 → Tchaikovsky 1891–92 → Ivanov e Petipa 1892 → Mariinsky 18/12/1892). **Fonte da verdade** do slide 61: `node tools/sincronizar-espiral.js` injeta-o no deck |
+| `quebra-nozes-48-68.md` | Recorte do bloco de O Quebra-Nozes (slides 48–68) em Marp autônomo, para ensaio e revisão de narração |
+| `quebra-nozes-guia-de-narracao.md` | **Guia de narração** do bloco de O Quebra-Nozes — o que dizer em cada slide, citado na nota do slide 64 |
 | `slides/rizoma-mapa-inline.md` | **Documentação do fluxo do mapa** (o backup manual virou nota de processo: o mapa do slide é gerado por `tools/sincronizar-slide.js`) |
 | `.vscode/settings.json` | Ajustes do workspace (HTML habilitado, preview do Marp) |
 | `README-ciclos.md` | **Formato de entrega dos Ciclos de Aprendizagem (Regra 16)**: gerador, pacote HTML interligado e PDF único consolidado |
@@ -89,7 +93,8 @@ Onde cada regra aparece no deck: **A1** → 5, 36–37, 47 · **A2** → 45–46
 | `tools/check-mapa.js` | Valida a geometria dos mapas: colisões entre caixas, arestas soltas no vazio, nós órfãos |
 | `tools/medir-rotulos.js` | Abre o SVG no Chrome e mede **de verdade** se algum rótulo passa da própria caixa |
 | `tools/gerar-animacao.js` | Gera `rizoma-animado.html` a partir de `rizoma-corrigido.svg` |
-| `tools/sincronizar-slide.js` | Injeta `rizoma-slide.svg` no slide 68 do deck (entre os marcadores `MAPA:INICIO`/`MAPA:FIM`) |
+| `tools/sincronizar-slide.js` | Injeta `rizoma-slide.svg` no slide 83 do deck (entre os marcadores `MAPA:INICIO`/`MAPA:FIM`) |
+| `tools/sincronizar-espiral.js` | Injeta `quebra-nozes-espiral.svg` no slide 61 do deck (entre os marcadores `ESPIRAL:INICIO`/`ESPIRAL:FIM`) |
 
 ## Ambiente verificado neste workspace
 
@@ -121,7 +126,7 @@ Onde cada regra aparece no deck: **A1** → 5, 36–37, 47 · **A2** → 45–46
 ```bash
 npm install -g @marp-team/marp-cli
 
-# HTML (arquivo único; o mapa aparece e o link do slide 68 funciona)
+# HTML (arquivo único; o mapa aparece e o link do slide 83 funciona)
 marp apresentacao-ballet.md --html --allow-local-files -o out/apresentacao-ballet.html
 
 # PDF (usa o Chrome do sistema; evita depender do download do Puppeteer)
@@ -141,24 +146,24 @@ CHROME_PATH=/usr/bin/google-chrome marp apresentacao-ballet.md \
 # Pré-visualização em PNG (uma por slide), renderizada pelo Chrome:
 CHROME_PATH=/usr/bin/google-chrome marp apresentacao-ballet.md \
   --images png --html --allow-local-files -o out/img/slide.png
-# (gera out/img/slide.001.png … slide.072.png; neste projeto eles estão renomeados
-#  para o padrão slide-01.png … slide-72.png)
+# (gera out/img/slide.001.png … slide.087.png; neste projeto eles estão renomeados
+#  para o padrão slide-01.png … slide-87.png)
 ```
 
 > ### ⚠️ Duas flags que não podem faltar
 >
 > **`--html`** — nesta versão do Marp CLI ela **habilita as tags HTML do Markdown** (o *formato*
 > HTML de saída é decidido pela extensão do arquivo, não pela flag). Sem ela, **PDF e PPTX escapam
-> todo o HTML do deck**: o mapa do slide 68 aparece como **código-fonte** e os botões como texto.
+> todo o HTML do deck**: o mapa do slide 83 aparece como **código-fonte** e os botões como texto.
 > Foi exatamente esse o defeito que encontramos e corrigimos — o HTML exportado sempre esteve certo,
 > só o PDF/PPTX estava errado. **Use `--html` em todas as exportações.**
 >
 > **`--allow-local-files`** — necessária quando o Markdown referencia arquivos locais
-> (é o caso do link do slide 68). Sem ela, o Marp bloqueia o arquivo por segurança.
+> (é o caso do link do slide 83). Sem ela, o Marp bloqueia o arquivo por segurança.
 >
 > **Sobre a pré-visualização em PNG:** prefira `--images png` (Chrome). O `pdftoppm` do poppler
 > **não consegue renderizar as últimas páginas** deste PDF (erros de *hex string* no subconjunto de
-> fontes do SVG) e gera imagens em branco para os slides 68 e 69.
+> fontes do SVG) e gera imagens em branco para os slides 83 e 84.
 
 > Observação: no marp-cli v4.5.1 a opção `--notes` não pode ser combinada com `--pptx`
 > (`marp --pptx` já embute as notas automaticamente). As opções `--pdf`, `--pptx` e `--images`
@@ -168,30 +173,30 @@ CHROME_PATH=/usr/bin/google-chrome marp apresentacao-ballet.md \
 
 | Arquivo | Descrição |
 |---|---|
-| `out/apresentacao-ballet.html` | Deck auto-contido (abre em qualquer navegador; os botões do slide 68 funcionam) |
-| `out/apresentacao-ballet.pdf` | PDF 16:9 com 72 páginas |
+| `out/apresentacao-ballet.html` | Deck auto-contido (abre em qualquer navegador; os botões do slide 83 funcionam) |
+| `out/apresentacao-ballet.pdf` | PDF 16:9 com 87 páginas |
 | `out/apresentacao-com-notas.pdf` | Mesmo PDF, com as notas do apresentador como anotações e marcadores |
-| `out/apresentacao-ballet.pptx` | PowerPoint com 72 slides e as notas do apresentador embutidas |
+| `out/apresentacao-ballet.pptx` | PowerPoint com 87 slides e as notas do apresentador embutidas |
 | `out/notas-do-apresentador.txt` | Notas extraídas slide a slide |
-| `out/img/slide-01.png` … `slide-72.png` | Pré-visualização de cada slide em PNG (renderizada pelo Chrome) |
-| `out/rizoma-animado.html`, `out/rizoma-slide.svg`, `out/rizoma-corrigido.svg` | Cópias dos ativos do mapa, para a imagem e os links do slide 68 resolverem a partir de `out/` |
+| `out/img/slide-01.png` … `slide-87.png` | Pré-visualização de cada slide em PNG (renderizada pelo Chrome) |
+| `out/rizoma-animado.html`, `out/rizoma-slide.svg`, `out/rizoma-corrigido.svg` | Cópias dos ativos do mapa, para a imagem e os links do slide 83 resolverem a partir de `out/` |
 
 > Nota sobre as notas: o Marp importa o comentário `<!-- _notes: ... -->` **literalmente**, então o
 > texto exportado começa com o prefixo `_notes:`. Isso funciona como marcador visual no arquivo
 > fonte; se preferir as notas limpas nos arquivos exportados, rode uma vez:
 > `sed -i 's/<!-- _notes: /<!-- /g' apresentacao-ballet.md`
 
-## Apresentar ao vivo — o mapa no slide 68
+## Apresentar ao vivo — o mapa no slide 83
 
-O slide **68** é o único a mostrar o mapa dentro do deck: ele traz `rizoma-slide.svg` (variante com
+O slide **83** é o único a mostrar o mapa dentro do deck: ele traz `rizoma-slide.svg` (variante com
 fontes grandes, feita para projeção) e dois botões para as versões completas.
 
 | Situação | O que fazer |
 |---|---|
-| Apresentando pelo **PDF/PPTX** | O mapa aparece no slide 68 ✓. Os botões não abrem arquivos — abra `out/rizoma-animado.html` **antes** de começar e alterne (Alt+Tab) quando chegar lá |
+| Apresentando pelo **PDF/PPTX** | O mapa aparece no slide 83 ✓. Os botões não abrem arquivos — abra `out/rizoma-animado.html` **antes** de começar e alterne (Alt+Tab) quando chegar lá |
 | Apresentando pelo **HTML** (`out/apresentacao-ballet.html`) | Os botões funcionam, porque os ativos estão copiados em `out/` |
 | A animação falhar ou o navegador bloquear animações | Abra `rizoma-corrigido.svg` (mapa completo) ou use o próprio mapa do slide |
-| Nada abrir | Narre o mapa — as três linhagens estão na nota do slide 68 |
+| Nada abrir | Narre o mapa — as três linhagens estão na nota do slide 83 |
 
 **Recomendação prática:** abra `out/rizoma-animado.html` em uma aba do navegador antes da
 apresentação e apenas alterne de aba no momento do mapa.
@@ -216,7 +221,7 @@ durante uma pausa** também volta a rodar (caso em que um reinício ingênuo dei
 congelada); e a rede de segurança (que revela o mapa inteiro se as animações estiverem bloqueadas)
 **não dispara** enquanto está pausado.
 
-> Os caminhos do slide 68 são relativos (`rizoma-slide.svg`, `rizoma-animado.html`,
+> Os caminhos do slide 83 são relativos (`rizoma-slide.svg`, `rizoma-animado.html`,
 > `rizoma-corrigido.svg`). Se mover o HTML exportado para outra pasta, copie os três ativos junto.
 >
 > **O mapa do slide é gerado, não copiado à mão:** `rizoma-slide.svg` é a fonte da verdade e
@@ -235,7 +240,7 @@ O mapa respeita as **três linhagens** reais que chegam até você — mais o ra
 | **Ramo de São Paulo** | **Escola Municipal de Bailados** (SP, 1940 — herdeira da tradição russa) → **Maria Pia** → **Balé da Cidade SP** (1968) → **Alphonse Poulin** (1974-77), **Yellê** e **Ady Addor** |
 | **Intérpretes / a escola continuada** (ramos que não passam por você) | Fokine → **Nureyev** (acolhido por Cuevas) e → **Baryshnikov** (ABT); Petipa → **Osipova** (Academia Bolshoi); Veltchek → **Marcia Haydée** (formada no Rio, estrela e diretora do Stuttgart Ballet) |
 
-### Os três tipos de linha do mapa (espelham os slides 69–71)
+### Os três tipos de linha do mapa (espelham os slides 84–86)
 
 | Traço | Significado | Exemplos no mapa |
 |---|---|---|
@@ -260,7 +265,7 @@ O mapa respeita as **três linhagens** reais que chegam até você — mais o ra
 > **Veltchek**, linha sólida; estrela e diretora do Stuttgart Ballet). Nenhum desses nomes caberia
 > no mapa de projeção sem virar letra miúda — por isso vivem no mapa completo, que agora traz a
 > **legenda dos três traços** na base. Também se corrigiu um defeito real de projeção: o rótulo
-> "Escola Mun. de Bailados" estava **29 px mais largo que a caixa** no slide 68 (medido no Chrome);
+> "Escola Mun. de Bailados" estava **29 px mais largo que a caixa** no slide 83 (medido no Chrome);
 > a caixa foi alargada para 200 px e o rótulo reduzido para 17 px.
 >
 > **Sobre a grafia do Marquês de Cuevas:** a formulação usada é **"herdeiro direto dos Ballets
@@ -301,12 +306,12 @@ Para corrigir, acrescente (ou troque) a classe na diretiva do slide:
 
 | Classe | Fonte | Uso atual |
 |---|---|---|
-| `mid` | 23 px | 10 slides com mais texto: Curiosidades (12), Exemplos (30–31), Contexto e Evolução do Quebra-Nozes (36–39) e os três slides da tese (69–71) |
-| `table-xl` | 1,12 em na tabela | tabelas de 3 colunas, células curtas (Progressão 1/2 e 2/2, slides 28–29) |
-| `table-lg` | 0,80 em na tabela | tabela de 4 colunas com texto longo (Linha do Tempo do Quebra-Nozes, slide 40 — 8 linhas) |
-| `lead` | — | capa (slide 1) e agradecimento (slide 72) |
-| `map` | — | slide 68 (hub do mapa): padding 10/14/12 px, sem header/footer; a paginação continua visível |
-| `dense` / `denser` / `refs` | 19,5 / 16,8 / 16,5 px | reservas na CSS — **não usadas** (todo o restante do deck está em 26 px) |
+| `mid` | 23 px | 19 slides com mais texto: Curiosidades (12), Exemplos (42–43), O Quebra-Nozes — contexto e evolução (48–49), Camadas Históricas (50–55), A Política de O Quebra-Nozes (62–64), A Evolução do Quebra-Nozes (65–66) e os três slides da tese (84–86) |
+| `table-xl` | 1,12 em na tabela | tabelas de 3 colunas, células curtas (Progressão 1/2 e 2/2, slides 40–41) |
+| `table-lg` | 0,80 em na tabela | tabela de 4 colunas com texto longo (Linha do Tempo do Quebra-Nozes, slide 67 — 8 linhas) |
+| `lead` | — | capa (slide 1) e agradecimento (slide 87) |
+| `map` | — | os dois slides de mapa: a Espiral dos Criadores (61) e o hub do rizoma (83) — padding 10/14/12 px, sem header/footer; a paginação continua visível |
+| `dense` / `denser` / `refs` | 19,5 / 16,8 / 16,5 px | `dense` em uso no Raio-X das Personagens (56–60); `denser` e `refs` seguem reservas na CSS |
 
 ```markdown
 <!-- _class: denser -->
@@ -344,7 +349,9 @@ node tools/check-pacote.js ciclos/ciclo-01    # validação avulsa
   + você + legenda, e 33 arestas).
   Se quiser mais rápido ao vivo, diminua `PASSO` em `tools/gerar-animacao.js` (hoje 0,21 s) e rode
   o gerador de novo; se quiser pausar a meio, use `P` (o `R` reinicia do zero).
-- Substituir os campos `[Nome da apresentadora]`, `[Data]` e `[Contato]` (slides 1 e 30).
+- Conferir os créditos da capa (slide 1): hoje são **Tiago Menegaz**, **3 de outubro de 2026** e
+  **Studio Ritmo e Movimentos — Passo Fundo, RS**. Não há campos a substituir; se a apresentação for
+  levada por outra pessoa ou em outra data, atualize ali.
 - Inserir imagens em uma pasta `assets/` no workspace e referenciá-las como
   `![w:600](assets/arquivo.jpg)` — use `--allow-local-files` no Marp CLI ao exportar.
 - Rodar `marp apresentacao-ballet.md --pdf` novamente após qualquer edição de conteúdo

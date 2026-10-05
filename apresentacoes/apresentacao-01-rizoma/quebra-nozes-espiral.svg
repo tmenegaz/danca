@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg" style="background:#fbf8f3;font-family:Georgia,serif;">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b08d57"/>
+    </marker>
+  </defs>
+  <!-- Braço da espiral: a cadeia que desce de 1816 até o olho de 1892 -->
+  <g stroke="#b08d57" stroke-width="2" fill="none" opacity="0.55" marker-end="url(#seta)">
+    <path d="M 589 85 C 780 150, 840 220, 800 291"/>
+    <path d="M 705 341 C 715 400, 655 435, 555 430"/>
+    <path d="M 355 425 C 265 410, 255 235, 310 210" stroke-dasharray="7 5"/>
+    <path d="M 455 175 C 500 140, 580 140, 620 183"/>
+    <path d="M 527 220 C 553 232, 583 265, 600 285"/>
+  </g>
+  <!-- A corda que fecha o triângulo: a formação, de Petipa a Ivanov, sem passar pela música -->
+  <g stroke="#b08d57" stroke-width="2" fill="none" opacity="0.55" marker-end="url(#seta)">
+    <path d="M 555 440 C 600 465, 616 400, 616 233"/>
+  </g>
+  <!-- O que permaneceu depois da estreia: a fonte de 1816 e a partitura de 1891 -->
+  <g stroke="#b08d57" stroke-width="2" fill="none" opacity="0.55" marker-end="url(#seta)">
+    <path d="M 520 103 L 520 256" stroke-dasharray="2 4"/>
+    <path d="M 450 225 C 452 238, 462 248, 470 256" stroke-dasharray="2 4"/>
+  </g>
+  <!-- 1816 — o anel externo -->
+  <g>
+    <rect x="389" y="53" width="200" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="489" y="75" fill="#ffffff" font-size="17" font-weight="bold" text-anchor="middle">E.T.A. HOFFMANN</text>
+    <text x="489" y="93" fill="#d9c7a3" font-size="12" text-anchor="middle">1816 · Alemanha</text>
+  </g>
+  <!-- 1844 -->
+  <g>
+    <rect x="632" y="291" width="200" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="732" y="313" fill="#ffffff" font-size="17" font-weight="bold" text-anchor="middle">ALEXANDRE DUMAS</text>
+    <text x="732" y="331" fill="#d9c7a3" font-size="12" text-anchor="middle">1844 · França</text>
+  </g>
+  <!-- 1892 — a coreografia -->
+  <g>
+    <rect x="355" y="405" width="200" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="455" y="427" fill="#ffffff" font-size="17" font-weight="bold" text-anchor="middle">MARIUS PETIPA</text>
+    <text x="455" y="445" fill="#d9c7a3" font-size="12" text-anchor="middle">1892 · o libreto e a encomenda</text>
+  </g>
+  <!-- 1891-92 — a partitura -->
+  <g>
+    <rect x="310" y="175" width="200" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="410" y="197" fill="#ffffff" font-size="17" font-weight="bold" text-anchor="middle">TCHAIKOVSKY</text>
+    <text x="410" y="215" fill="#d9c7a3" font-size="12" text-anchor="middle">1891–92 · a partitura</text>
+  </g>
+  <!-- 1892 — a estreia -->
+  <g>
+    <rect x="527" y="183" width="200" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="627" y="205" fill="#ffffff" font-size="17" font-weight="bold" text-anchor="middle">LEV IVANOV</text>
+    <text x="627" y="223" fill="#d9c7a3" font-size="12" text-anchor="middle">1892 · a estreia</text>
+  </g>
+  <!-- O olho da espiral -->
+  <g>
+    <rect x="400" y="256" width="200" height="50" rx="7" fill="#b08d57"/>
+    <text x="500" y="278" fill="#ffffff" font-size="17" font-weight="bold" text-anchor="middle">O QUEBRA-NOZES</text>
+    <text x="500" y="296" fill="#fdf6ea" font-size="12" text-anchor="middle">Mariinsky, 18 dez 1892</text>
+  </g>
+  <!-- Legenda -->
+  <g font-size="13" fill="#5a5348">
+    <line x1="20" y1="489" x2="56" y2="489" stroke="#b08d57" stroke-width="2"/>
+    <text x="66" y="494">transmissão direta — o texto, o libreto, a encomenda, a formação</text>
+  </g>
+  <g font-size="13" fill="#5a5348">
+    <line x1="20" y1="511" x2="56" y2="511" stroke="#b08d57" stroke-width="2" stroke-dasharray="7 5"/>
+    <text x="66" y="516">influência institucional — o Teatro Imperial, o formato, o prazo</text>
+  </g>
+  <g font-size="13" fill="#5a5348">
+    <line x1="20" y1="533" x2="56" y2="533" stroke="#b08d57" stroke-width="2" stroke-dasharray="2 4"/>
+    <text x="66" y="538">o que permaneceu depois da estreia — a fonte, a música</text>
+  </g>
+</svg>

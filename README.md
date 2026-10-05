@@ -40,9 +40,9 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 ├── README.md                     este arquivo: visão geral e atalhos
 ├── README-ciclos.md              documentação da entrega de ciclos (Regra 16)
 ├── apresentacoes/
-│   └── apresentacao-01-rizoma/   deck "O Repertório Vivo" (72 slides) + mapas
+│   └── apresentacao-01-rizoma/   deck "O Repertório Vivo" (87 slides) + mapas
 │       ├── apresentacao-ballet.md      fonte Marp
-│       ├── rizoma-slide.svg            mapa do slide 68 (fonte da verdade)
+│       ├── rizoma-slide.svg            mapa do slide 83 (fonte da verdade)
 │       ├── rizoma-corrigido.svg        mapa completo (26 caixas, 33 arestas)
 │       ├── rizoma-animado.html         mapa animado (gerado)
 │       ├── README.md                   documentação detalhada do deck

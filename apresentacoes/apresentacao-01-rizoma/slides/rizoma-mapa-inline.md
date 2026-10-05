@@ -1,5 +1,5 @@
 <!-- FLUXO DO MAPA DO RIZOMA (este arquivo não é mais um bloco para colar no deck;
-     o slide 68 vive no deck e é gerado — não edite o SVG dentro do Markdown à mão).
+     o slide 83 vive no deck e é gerado — não edite o SVG dentro do Markdown à mão).
 
      FONTE DA VERDADE DO MAPA DO SLIDE
        rizoma-slide.svg  →  fontes grandes, para projeção (é o que aparece no PDF/PPTX)
