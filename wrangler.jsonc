@@ -1,0 +1,45 @@
+// Cloudflare Worker do Ciclo 01 da escola Diaghilev (professor fokini).
+//
+// UM PROJETO POR ESCOLA. Este arquivo declara apenas a escola Diaghilev: cada
+// `professores/<professor>/ciclos/ciclo-*/` tem a sua propria rota no Cloudflare, e o Worker
+// de uma escola nao sabe dos dados das outras. Era essa a divisao do netlify.toml (um arquivo,
+// varias escolas, cada uma publicando a sua pasta), que foi apagado nesta migracao; a divisao
+// continua valendo — o que muda e o provedor. Quem cria o projeto irmão de outra escola copia
+// este arquivo trocando `name`, `assets.directory` e, se for o caso, o binding do KV.
+//
+// O MESMO WORKER SERVE AS DUAS COISAS, NA MESMA ORIGEM:
+//   - o pacote do ciclo (`assets.directory`) — o HTML, o PDF e o `assets/` publicados;
+//   - o POST do formulario de lancamento (`main`), que grava no KV.
+// Como cliente e API ficam na mesma origem, o formulario chama uma rota relativa
+// (`/api/receber`) e nao ha CORS nem URL absoluta de Worker no HTML.
+//
+// A rota publica (o dominio da escola) vive no painel do Cloudflare, nao aqui: assim a mesma
+// configuracao serve tanto o `workers.dev` quanto um dominio proprio.
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "diaghilev",
+  "compatibility_date": "2025-02-04",
+  "observability": {
+    "enabled": true
+  },
+
+  // O ponto de entrada do POST do formulario de lancamento.
+  "main": "workers/receber.js",
+
+  // O pacote publicado: a pasta do ciclo, servida estatica pelo binding ASSETS.
+  "assets": {
+    "directory": "professores/fokini/ciclos/ciclo-01-diaghilev",
+    "binding": "ASSETS"
+  },
+
+  // O cofre: o namespace `ciclos-escolas` guarda os lancamentos que o formulario envia. Ele e
+  // compartilhado pelas escolas, e por isso cada chave comeca com o prefixo da escola — ver
+  // `prefixoDaEscola()` em workers/receber.js.
+  "kv_namespaces": [
+    {
+      "binding": "PADD_KV",
+      "id": "2ee331c7a5bc446ca86c8f2cb039ec16"
+    }
+  ]
+}

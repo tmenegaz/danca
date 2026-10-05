@@ -2,20 +2,23 @@
 # Saídas geradas — reconstruíveis a partir das fontes por tools/*.sh|js.
 #
 # Os PACOTES DE CICLO são a exceção: eles são versionados, porque o deploy é
-# automático a partir do GitHub (Netlify) e o serviço precisa dos arquivos no
+# automático a partir do GitHub (Cloudflare) e o serviço precisa dos arquivos no
 # repositório — HTML, PDF e assets/ (o CSS e os mapas sem os quais a página não
 # funciona). Isso NÃO muda a P-04: o hash FIPP continua cobrindo só as fontes.
 #
-# O `out/` da apresentação segue fora do Git.
+# O `out/` da apresentação segue fora do Git. O estado local do `wrangler`
+# (`.wrangler/`) também: é cache de máquina, não artefato do projeto.
 # ============================================================================
 out/
+.wrangler/
 
 # ============================================================================
 # Credenciais — NUNCA versionar
 # ============================================================================
-# Tokens e site IDs do Netlify, uma conta por escola (lido por
-# tools/deploy-netlify.sh). O script cria o template na primeira execução.
-tools/.netlify-tokens
+# As credenciais do Cloudflare NÃO ficam em arquivo versionado nem em arquivo
+# local neste repositório: o Worker é ligado ao GitHub pelo painel, e o login do
+# `wrangler` mora no perfil da máquina. Se um dia for preciso um `.dev.vars`
+# para desenvolvimento local, ele entra aqui — ver workers/receber.js.
 
 # Senhas locais da criptografia dos acompanhamentos (lido por
 # tools/gerar-acompanhamento.sh). Senha NUNCA é versionada, em repositório

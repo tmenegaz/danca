@@ -1,8 +1,6 @@
 {
   "devDependencies": {
-    "pagecrypt": "^7.1.0"
-  },
-  "dependencies": {
-    "@netlify/blobs": "^11.1.1"
+    "pagecrypt": "^7.1.0",
+    "wrangler": "^4.147.0"
   }
 }
