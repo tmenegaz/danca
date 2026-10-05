@@ -8751,3 +8751,145 @@ valida a flag); `1a65840` e `99ae163` (os dois commits próprios sobre o congela
 - **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
   de propósito.
 - **O push é da pesquisadora** — os commits ficam locais até ela empurrar.
+
+---
+
+## 07/10/2026 — O cofre dos lançamentos sai do Netlify e entra no Cloudflare KV
+
+**O que motivou.** O pedido veio da pesquisadora, em cinco passos ordenados: medir o que existia de
+Netlify, criar o `wrangler.jsonc`, ajustar o JavaScript para usar o KV, **apagar a configuração do
+Netlify inteira** (Functions, Blobs, tokens) e relatar — pedindo a ela o que faltasse do Cloudflare.
+O motivo declarado é **custo**: *«Cada `*/ciclos/ciclo-*/` tem a sua própria rota no Cloudflare —
+para ser acessado sem saber os dados das outras escolas. **O objetivo é economizar com o servidor.**»*
+Ela já tinha criado o namespace **`ciclos-escolas`** (`2ee331c7a5bc446ca86c8f2cb039ec16`) e ligado
+um projeto **`diaghilev`** ao repositório pelo painel.
+
+**Medido antes de mexer.**
+
+- A **estrutura-alvo já existia**: `professores/fokini/ciclos/ciclo-01-diaghilev/` **é** o
+  «app/motor central da escola». Não havia ciclo interno a separar em `dados/01.json`,
+  `dados/02.json` — o modelo do pedido estava atendido, e **só a peça de rota/deploy era nova**.
+- A superfície Netlify eram **três arquivos versionados** (`netlify.toml`,
+  `netlify/functions/receber.js`, `tools/deploy-netlify.sh`) e **20 arquivos** com a palavra.
+- **Não existe leitura do store em tempo de execução** — só a escrita. O ponto de leitura do
+  pedido («onde se lê os dados JSON em tempo de execução») é, hoje, **hipotético**: quem lê o
+  lançamento é a **geração do pacote seguinte**, no disco. Registrado, não inventado.
+- **Zero rastros de Cloudflare** no histórico do Git, no disco e no scratch da sessão. O ambiente
+  **não tinha `wrangler`** — precisou ser instalado.
+- O `.github/workflows/reancorar.yml` é o **único** workflow e **não** menciona Netlify: nada a
+  editar na cadeia de CI.
+- **`REGISTRO.md:8212` provou que o token do Netlify era credencial viva** (foi usado para medir
+  crédito da conta), não arquivo inerte. Ele foi apagado — ver «O que ainda não está feito».
+
+**O que foi decidido.**
+
+- **Um Worker por escola, e o mesmo Worker serve as duas coisas, na mesma origem.** O pacote
+  publicado **é** a pasta do ciclo, então o asset estático e o `POST` do lançamento saem do mesmo
+  host. O Cloudflare **serve o asset primeiro** e só entrega ao script o que não casa com arquivo —
+  por isso `assets.run_worker_first` fica **desligado**, e o pacote continua barato. Como cliente e
+  API são a mesma origem, o formulário chama `'/api/receber'`, **caminho relativo**: acaba o CORS e
+  acaba a URL absoluta de Worker no HTML gerado.
+- **O `wrangler.jsonc` fica na raiz, com `name: "diaghilev"`** — o mesmo nome do projeto que já
+  existe no painel. A **rota pública não entra no arquivo**: mora no painel, para a mesma
+  configuração servir `workers.dev` e domínio próprio.
+- **O KV é um só para todas as escolas**, e por isso **cada chave começa com o prefixo da escola**:
+  `escola/professor/ciclo-carimbo/nome-do-arquivo`. Era a divisão do `netlify.toml` (um arquivo,
+  várias escolas, cada uma publicando a sua pasta) — ela **continua valendo**, só mudou o provedor.
+- **O corpo continua tratado como opaco.** O texto que chega **é JSON em claro** (quem cifra é o
+  cliente, com a senha da escola); o Worker **não cifra, não vê senha, não interpreta** — grava
+  verbatim. O princípio segue: **o store é o cofre, o pacote é a vitrine.**
+- **A rota antiga não fica como alias.** `/.netlify/functions/receber` **não** é mantido: nenhum
+  pacote chegou a ser publicado no Netlify, então não há cliente antigo a atender, e um caminho com
+  o nome do provedor que saiu é configuração do provedor que saiu. `ROTAS_API = ['/api/receber']`.
+
+**As duas diferenças de comportamento, anotadas no código em vez de escondidas.** O KV **não tem
+`onlyIfNew`** — a proteção contra carimbo repetido virou **get-then-put**, e a atomicidade que o
+Blob dava **não existe mais**; e **não tem consistência forte** — o `{consistency:'strong'}` do
+Blob não tem equivalente, e uma releitura pode vir defasada. As duas estão marcadas no
+`workers/receber.js` como `ONDE MUDOU (1 de 2)` (o prefixo da escola) e `(2 de 2)`.
+
+**Onde entrou.**
+
+- `wrangler.jsonc` (novo, raiz) — `name`, `compatibility_date`, `observability`, `main`, `assets`,
+  `kv_namespaces` com **`PADD_KV`**.
+- `workers/receber.js` (novo) — a função portada do Netlify.
+- `tools/templates/lancamento.html` — `const RECEBER = '/api/receber';` e o comentário do bloco.
+- `experimentos/receptor-local/servidor.js` — `ROTA_RECEBER = '/api/receber'` (fora do Git).
+- `package.json` · `package-lock.json` — sai `@netlify/blobs`, entra `wrangler` (devDependency).
+- `README.md` (a seção de deploy virou «Deploy no Cloudflare — um Worker por escola») ·
+  `AGENTS.md` · `README-ciclos.md` · `CONGELAMENTO.md` · `experimentos/README.md` ·
+  `experimentos/captura-json/RELATORIO.md` · `.github/agents/ciclo-auditor.agent.md` ·
+  `.github/agents/ciclo-entrega.agent.md` · `ARQUITETURA-CAPTURA.md` (a **Nota de 07/10/2026**) ·
+  `.gitignore` (o cabeçalho, o `.wrangler/` e o bloco de credenciais).
+
+**Apagado.**
+
+- `netlify.toml` · `netlify/functions/receber.js` · `netlify/` ·
+  `tools/deploy-netlify.sh` · `tools/.netlify-tokens`.
+- `node_modules/@netlify/` · as **46** dependências de `@netlify/blobs`.
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` (editado) e
+`tools/deploy-netlify.sh` (apagado) são de `tools/`, congelado.
+
+- **`tools/templates/lancamento.html` — uma linha de rota.** O endereço do POST passa de
+  `/.netlify/functions/receber` para `/api/receber`. Não é reescrita de forma: é o **endereço do
+  mesmo POST**, e o caminho novo é relativo de propósito — sobrevive a qualquer provedor, e é o
+  que tira o CORS. O pacote foi **regenerado**, e o `lancamento.html` gerado tem a rota na
+  **linha 790**.
+- **`tools/deploy-netlify.sh` — apagado, não substituído.** O caminho manual virou
+  **`npx wrangler deploy`**, documentado no `README.md`. Não foi criado um
+  `tools/deploy-cloudflare.sh`: o script antigo existia para preencher o token por escola do
+  arquivo de tokens, e essa peça **deixou de existir** — o Worker é ligado ao GitHub pelo painel e
+  o deploy automático sai do próprio `wrangler.jsonc`. Criar um script novo seria inventar um
+  rito que ninguém pediu. Se a pesquisadora quiser o script de volta, é capacidade própria.
+
+**Provas.** Quatro camadas independentes, todas antes e depois da remoção do alias.
+
+- **Bancada de teste com KV falso** (`harness-kv/`, no scratch da sessão, **fora do Git**):
+  **18/18** casos, com o **ritual discriminante** — quebrando a regex dos nomes de arquivo o teste
+  **falha** (`EXIT=1`), restaurada volta a passar (`EXIT=0`). Cópia do Worker **byte-idêntica**
+  (`diff -q`).
+- **`npx wrangler deploy --dry-run`** — `Read 50 files`; `Total Upload: 4.19 KiB`; bindings
+  `env.PADD_KV (2ee331c7a5bc446ca86c8f2cb039ec16) KV Namespace` e `env.ASSETS Assets`.
+- **`npx wrangler dev --local`, duas vezes** (a segunda com `.wrangler/state` apagado, depois da
+  remoção do alias): `GET /api/receber` → `{"ok":true,"receber":"pronto"}`; `GET /` → 200;
+  `GET /lancamento.html` → **307** para `/lancamento` (é o *assets-first* do Cloudflare largando o
+  `.html`) → **200**; POST válido grava **duas** chaves; repetido recusa; e
+  `POST /.netlify/functions/receber` → **404, corpo vazio, nenhuma escrita**.
+- **Não-regressão dos validadores** — `tools/gerar-ciclo.sh fokini 01 diaghilev` →
+  **0 erro(s), 0 aviso(s)**; `node tools/check-pacote.js` → **0 erro(s), 0 aviso(s)**. A rota do
+  `lancamento.html` gerado mudou de 786 para **790**, e nada mais divergiu.
+
+**O churn de regeneração foi o mesmo de sempre, e o mesmo tratamento.** O `lancamento.html` mudou
+porque a **fonte** mudou — é o artefato que carrega a rota nova, e por isso **fica**. O carimbo
+puro (`gerado_em`, nonce do cifrado, `/ID` do PDF) **não é elo** (P-04): foi restaurado com
+`git restore`, como no precedente da entrada anterior.
+
+**O que NÃO muda:** a fórmula de hash, a cobertura da âncora (`.fipp` continua cobrindo só
+`ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md` — editar `README.md`, `AGENTS.md` ou
+`.github/` **não** exige reancorar), os validadores, as regras e as pétreas.
+
+**Referências.**
+`wrangler.jsonc` · `workers/receber.js` · `tools/templates/lancamento.html` ·
+`CONGELAMENTO.md` (o rito do motivo declarado) · `ARQUITETURA-CAPTURA.md` §7.4 e a **Nota de
+29/09/2026** (o elo do Netlify, que **não é apagado**) · `REGISTRO.md:7813` (a entrada-modelo da
+migração para o Netlify) e `:8212` (o token medido) · `netlify/functions/receber.js` (a fonte
+portada, apagada) · `README.md` (o deploy no Cloudflare).
+
+**O que ainda não está feito.**
+
+- **A leitura do KV em tempo de execução não existe** — nunca existiu, nem no Netlify. O pedido
+  supunha um ponto de leitura; o que há é a escrita. A consolidação dos lançamentos **de volta para
+  o repositório continua não existindo**: é a **§7.3**, aberta na mesma metade de sempre.
+- **A pergunta 7.4 continua aberta** — o que vai ao KV é o JSON **em claro**, e o KV **não** é
+  servido por GET. Ver a **Nota de 07/10/2026** em `ARQUITETURA-CAPTURA.md`.
+- **O token do Netlify do `RITMOS` foi destruído junto com o arquivo.** Ele era **credencial
+  viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
+  Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
+  Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
+- **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
+  se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
+  ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
+  configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
+  **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
+- **Os commits ficam locais** até a pesquisadora empurrar.
