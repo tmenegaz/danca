@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-05T10:13:00-0300`
-Commit atual: `b6a406b` — docs(estrutura): a documentação aponta para o Worker do Cloudflare, não mais para o Netlify
+Gerado em: `2026-10-05T12:33:20-0300`
+Commit atual: `c64fe95` — feat(tools): a espiral dos criadores ganha injetor próprio, e o registro conta a rodada
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -50,6 +50,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registro conta a rodada
+55d332d docs(apresentacao-01-rizoma): o deck passa de 72 para 87 slides e o mapa anda para o slide 83
+f595506 docs(registro): regenera o HANDOFF sobre b6a406b
 b6a406b docs(estrutura): a documentação aponta para o Worker do Cloudflare, não mais para o Netlify
 791f3fb chore(entrega): o pacote do diaghilev recebe a rota nova do lançamento
 878d3ae refactor(template): o endereço do POST do lançamento passa a `/api/receber`
@@ -67,9 +70,6 @@ bbe8867 docs(tools): a colheita do HANDOFF passa a ter limite, e a leitura do RE
 ac071db docs(registro): regenera o HANDOFF sobre 7b46e5c
 7b46e5c docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
 f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do prompt congelado ganha dono
-bf0e700 docs(experimentos): o README descreve o que existe hoje, e não o que foi previsto
-528c824 docs(registro): regenera o HANDOFF sobre c000dcd
-c000dcd docs(registro): a medição do GET /dados e o segundo papel do agente
 ```
 
 ## Por professor
@@ -133,164 +133,135 @@ c000dcd docs(registro): a medição do GET /dados e o segundo papel do agente
 
 ## Última entrada do REGISTRO
 
-## 07/10/2026 — O cofre dos lançamentos sai do Netlify e entra no Cloudflare KV
+## 07/10/2026 — O Netlify antigo é destruído, o mapa anda para o slide 83 e a espiral vira fonte
 
-**O que motivou.** O pedido veio da pesquisadora, em cinco passos ordenados: medir o que existia de
-Netlify, criar o `wrangler.jsonc`, ajustar o JavaScript para usar o KV, **apagar a configuração do
-Netlify inteira** (Functions, Blobs, tokens) e relatar — pedindo a ela o que faltasse do Cloudflare.
-O motivo declarado é **custo**: *«Cada `*/ciclos/ciclo-*/` tem a sua própria rota no Cloudflare —
-para ser acessado sem saber os dados das outras escolas. **O objetivo é economizar com o servidor.**»*
-Ela já tinha criado o namespace **`ciclos-escolas`** (`2ee331c7a5bc446ca86c8f2cb039ec16`) e ligado
-um projeto **`diaghilev`** ao repositório pelo painel.
+**O que motivou.** Três coisas, na mesma rodada, e a pesquisadora pediu as três de uma vez:
+*"o meu time não existe mais no netlify. pode remover o token da ritmos e destroi o netlify velho.
+faz os commits dos arquivos da apresentação também"*. A primeira é limpeza: dois sites órfãos
+continuavam publicando sozinhos. A segunda é renumeração: o bloco novo de O Quebra-Nozes entrou
+**antes** do mapa, e todo número de slide posterior a ele ficou defasado. A terceira é a
+apresentação: os quatro arquivos satélites do deck carregavam os números velhos.
 
 **Medido antes de mexer.**
 
-- A **estrutura-alvo já existia**: `professores/fokini/ciclos/ciclo-01-diaghilev/` **é** o
-  «app/motor central da escola». Não havia ciclo interno a separar em `dados/01.json`,
-  `dados/02.json` — o modelo do pedido estava atendido, e **só a peça de rota/deploy era nova**.
-- A superfície Netlify eram **três arquivos versionados** (`netlify.toml`,
-  `netlify/functions/receber.js`, `tools/deploy-netlify.sh`) e **20 arquivos** com a palavra.
-- **Não existe leitura do store em tempo de execução** — só a escrita. O ponto de leitura do
-  pedido («onde se lê os dados JSON em tempo de execução») é, hoje, **hipotético**: quem lê o
-  lançamento é a **geração do pacote seguinte**, no disco. Registrado, não inventado.
-- **Zero rastros de Cloudflare** no histórico do Git, no disco e no scratch da sessão. O ambiente
-  **não tinha `wrangler`** — precisou ser instalado.
-- O `.github/workflows/reancorar.yml` é o **único** workflow e **não** menciona Netlify: nada a
-  editar na cadeia de CI.
-- **`REGISTRO.md:8212` provou que o token do Netlify era credencial viva** (foi usado para medir
-  crédito da conta), não arquivo inerte. Ele foi apagado — ver «O que ainda não está feito».
+- `/api/v1/sites?per_page=100` com o token do `RITMOS` ⇒ `200`, **14 344 B, exatamente 2 sites**.
+  Ambos com `build_settings.repo_url = github.com/tmenegaz/danca`, publicando
+  `professores/tiago/ciclos/ciclo-01-ritmos` e `…/ciclo-01-duo`, ambos `404`, **42 deploys em
+  `error`** cada um.
+- As pastas-fonte dos dois foram removidas em `08c0be9` ⇒ **órfãos**: o repositório não as tem
+  mais, os sites continuavam no ar apontando para o nada.
+- `ritmos.netlify.app`, `danca.netlify.app` e `danaca.netlify.app` devolvem `404` **com este
+  token** ⇒ pertencem a **outra conta**. O critério de posse é `build_settings.repo_url`, não o
+  título do HTML.
+- Deck **HEAD: 72 slides**; worktree: **87 slides**. Alinhamento título a título ⇒ **a primeira
+  divergência é o índice 50**; os **slides 1–49 são byte-idênticos**. **Delta = +15 uniforme a
+  partir do slide 50**, provado em 6 medições independentes.
+- `git diff --numstat` do deck ⇒ **`452 0`** — só inserções, nenhuma deleção.
+- Varredura de número de slide *hardcoded* em `tools/*.js` ⇒ **um único hit, e é falso positivo**
+  (o `70%` de um `@keyframes` em `gerar-animacao.js:130`). Nenhum script numerava slides.
 
-**O que foi decidido.**
+**O que foi decidido.** *(o "como" foi meu; o "o quê" era dela)*
 
-- **Um Worker por escola, e o mesmo Worker serve as duas coisas, na mesma origem.** O pacote
-  publicado **é** a pasta do ciclo, então o asset estático e o `POST` do lançamento saem do mesmo
-  host. O Cloudflare **serve o asset primeiro** e só entrega ao script o que não casa com arquivo —
-  por isso `assets.run_worker_first` fica **desligado**, e o pacote continua barato. Como cliente e
-  API são a mesma origem, o formulário chama `'/api/receber'`, **caminho relativo**: acaba o CORS e
-  acaba a URL absoluta de Worker no HTML gerado.
-- **O `wrangler.jsonc` fica na raiz, com `name: "diaghilev"`** — o mesmo nome do projeto que já
-  existe no painel. A **rota pública não entra no arquivo**: mora no painel, para a mesma
-  configuração servir `workers.dev` e domínio próprio.
-- **O KV é um só para todas as escolas**, e por isso **cada chave começa com o prefixo da escola**:
-  `escola/professor/ciclo-carimbo/nome-do-arquivo`. Era a divisão do `netlify.toml` (um arquivo,
-  várias escolas, cada uma publicando a sua pasta) — ela **continua valendo**, só mudou o provedor.
-- **O corpo continua tratado como opaco.** O texto que chega **é JSON em claro** (quem cifra é o
-  cliente, com a senha da escola); o Worker **não cifra, não vê senha, não interpreta** — grava
-  verbatim. O princípio segue: **o store é o cofre, o pacote é a vitrine.**
-- **A rota antiga não fica como alias.** `/.netlify/functions/receber` **não** é mantido: nenhum
-  pacote chegou a ser publicado no Netlify, então não há cliente antigo a atender, e um caminho com
-  o nome do provedor que saiu é configuração do provedor que saiu. `ROTAS_API = ['/api/receber']`.
-
-**As duas diferenças de comportamento, anotadas no código em vez de escondidas.** O KV **não tem
-`onlyIfNew`** — a proteção contra carimbo repetido virou **get-then-put**, e a atomicidade que o
-Blob dava **não existe mais**; e **não tem consistência forte** — o `{consistency:'strong'}` do
-Blob não tem equivalente, e uma releitura pode vir defasada. As duas estão marcadas no
-`workers/receber.js` como `ONDE MUDOU (1 de 2)` (o prefixo da escola) e `(2 de 2)`.
+- **Destruir os dois sites, com confirmação nominal antes.** Pedi o alvo por extenso — nome, `id`,
+  diretório e a contagem de deploys — e ela respondeu *"Sim — destruir os dois"*. Um `DELETE`
+  cego em `/api/v1/sites` teria levado junto o que não era nosso se a conta fosse outra.
+- **Não tocar nos três hosts de terceiros.** Foram reconsultados **depois** da destruição e
+  continuam `404` — a contra-prova de que o estrago foi cirúrgico.
+- **Corrigir todos os números, incluindo os que já estavam errados antes.** Medido o `HEAD`: a
+  tabela do deck `README.md` já apontava `Exemplos (30–31)` e `Progressão (28–29)` quando eles
+  sempre foram **42–43** e **40–41** — deriva **pré-existente**, não causada pelo bloco novo. Ela
+  autorizou corrigir tudo de uma vez.
+- **A espiral vira fonte, com injetor próprio.** O SVG da espiral dos criadores é **texto** ⇒
+  versionável, como o mapa. Ganha um script espelho do `sincronizar-slide.js`, com a mesma
+  convenção: marcadores `ESPIRAL:INICIO`/`ESPIRAL:FIM` no deck, SVG ao lado, idempotência.
 
 **Onde entrou.**
 
-- `wrangler.jsonc` (novo, raiz) — `name`, `compatibility_date`, `observability`, `main`, `assets`,
-  `kv_namespaces` com **`PADD_KV`**.
-- `workers/receber.js` (novo) — a função portada do Netlify.
-- `tools/templates/lancamento.html` — `const RECEBER = '/api/receber';` e o comentário do bloco.
-- `experimentos/receptor-local/servidor.js` — `ROTA_RECEBER = '/api/receber'` (fora do Git).
-- `package.json` · `package-lock.json` — sai `@netlify/blobs`, entra `wrangler` (devDependency).
-- `README.md` (a seção de deploy virou «Deploy no Cloudflare — um Worker por escola») ·
-  `AGENTS.md` · `README-ciclos.md` · `CONGELAMENTO.md` · `experimentos/README.md` ·
-  `experimentos/captura-json/RELATORIO.md` · `.github/agents/ciclo-auditor.agent.md` ·
-  `.github/agents/ciclo-entrega.agent.md` · `ARQUITETURA-CAPTURA.md` (a **Nota de 07/10/2026**) ·
-  `.gitignore` (o cabeçalho, o `.wrangler/` e o bloco de credenciais).
+- **5 arquivos modificados:** `apresentacoes/apresentacao-01-rizoma/README.md` (**32 edições**),
+  `apresentacoes/apresentacao-01-rizoma/apresentacao-ballet.md` (**+454, 0 deleções**),
+  `apresentacoes/apresentacao-01-rizoma/slides/rizoma-mapa-inline.md`,
+  `.github/agents/deck-rizoma.agent.md`, `README.md` (raiz).
+- **4 arquivos novos:** `quebra-nozes-48-68.md` (Marp standalone dos slides 48–68),
+  `quebra-nozes-guia-de-narracao.md`, `quebra-nozes-espiral.svg` (a fonte) e
+  `tools/sincronizar-espiral.js` (o injetor).
+- **Renumerados:** o mapa do rizoma **68 → 83**; o agradecimento **72 → 87**; a contagem
+  **72 → 87 slides** em todas as superfícies que a citam.
+- **`_notes` do deck, linha 1709** — dizia *"No mapa do slide 68…"* ⇒ **83**.
+- **Tabela de classes do deck `README.md`** — estava defasada em três linhas: `mid` dizia 10 slides
+  (são **19**), `table-xl` dizia 28–29 (são **40–41**), `table-lg` dizia 40 (é **67**), e
+  `dense` constava como *"reservas na CSS — não usadas"* quando está **em uso nos slides 56–60**.
+- **Créditos da capa** — a `README.md` mandava preencher `[Nome da apresentadora]`, `[Data]` e
+  `[Contato]`; varredura no repositório inteiro achou **exatamente 1 ocorrência, e era essa mesma
+  linha**. Os três campos **não existem** no slide: a capa traz `**Tiago Menegaz**`,
+  `**3 de outubro de 2026**` e `**Studio Ritmo e Movimentos — Passo Fundo, RS**`.
 
-**Apagado.**
+**Motivo declarado — o congelado.**
 
-- `netlify.toml` · `netlify/functions/receber.js` · `netlify/` ·
-  `tools/deploy-netlify.sh` · `tools/.netlify-tokens`.
-- `node_modules/@netlify/` · as **46** dependências de `@netlify/blobs`.
+`tools/sincronizar-espiral.js` entra em `tools/`, que é **congelado**. O motivo: a espiral é
+**fonte do deck**, como o mapa, e sem injetor próprio ela só existiria como SVG solto — sem
+marcador, sem verificação de sincronia e sem o `check-mapa.js` para prová-la. O script é **espelho
+fiel** do `sincronizar-slide.js`: mesma convenção de marcadores, mesmo `require('./lib-tokens')`,
+mesma leitura de `process.env.APRESENTACAO`, mesma idempotência. Nada de novo é inventado — a
+única diferença é o par de marcadores e o arquivo de SVG.
 
-**Motivo declarado — os congelados.** `tools/templates/lancamento.html` (editado) e
-`tools/deploy-netlify.sh` (apagado) são de `tools/`, congelado.
-
-- **`tools/templates/lancamento.html` — uma linha de rota.** O endereço do POST passa de
-  `/.netlify/functions/receber` para `/api/receber`. Não é reescrita de forma: é o **endereço do
-  mesmo POST**, e o caminho novo é relativo de propósito — sobrevive a qualquer provedor, e é o
-  que tira o CORS. O pacote foi **regenerado**, e o `lancamento.html` gerado tem a rota na
-  **linha 790**.
-- **`tools/deploy-netlify.sh` — apagado, não substituído.** O caminho manual virou
-  **`npx wrangler deploy`**, documentado no `README.md`. Não foi criado um
-  `tools/deploy-cloudflare.sh`: o script antigo existia para preencher o token por escola do
-  arquivo de tokens, e essa peça **deixou de existir** — o Worker é ligado ao GitHub pelo painel e
-  o deploy automático sai do próprio `wrangler.jsonc`. Criar um script novo seria inventar um
-  rito que ninguém pediu. Se a pesquisadora quiser o script de volta, é capacidade própria.
-
-**Provas.** Quatro camadas independentes, todas antes e depois da remoção do alias.
-
-- **Bancada de teste com KV falso** (`harness-kv/`, no scratch da sessão, **fora do Git**):
-  **18/18** casos, com o **ritual discriminante** — quebrando a regex dos nomes de arquivo o teste
-  **falha** (`EXIT=1`), restaurada volta a passar (`EXIT=0`). Cópia do Worker **byte-idêntica**
-  (`diff -q`).
-- **`npx wrangler deploy --dry-run`** — `Read 50 files`; `Total Upload: 4.19 KiB`; bindings
-  `env.PADD_KV (2ee331c7a5bc446ca86c8f2cb039ec16) KV Namespace` e `env.ASSETS Assets`.
-- **`npx wrangler dev --local`, duas vezes** (a segunda com `.wrangler/state` apagado, depois da
-  remoção do alias): `GET /api/receber` → `{"ok":true,"receber":"pronto"}`; `GET /` → 200;
-  `GET /lancamento.html` → **307** para `/lancamento` (é o *assets-first* do Cloudflare largando o
-  `.html`) → **200**; POST válido grava **duas** chaves; repetido recusa; e
-  `POST /.netlify/functions/receber` → **404, corpo vazio, nenhuma escrita**.
-- **Não-regressão dos validadores** — `tools/gerar-ciclo.sh fokini 01 diaghilev` →
-  **0 erro(s), 0 aviso(s)**; `node tools/check-pacote.js` → **0 erro(s), 0 aviso(s)**. A rota do
-  `lancamento.html` gerado mudou de 786 para **790**, e nada mais divergiu.
-
-**O churn de regeneração foi o mesmo de sempre, e o mesmo tratamento.** O `lancamento.html` mudou
-porque a **fonte** mudou — é o artefato que carrega a rota nova, e por isso **fica**. O carimbo
-puro (`gerado_em`, nonce do cifrado, `/ID` do PDF) **não é elo** (P-04): foi restaurado com
-`git restore`, como no precedente da entrada anterior.
-
-**O que NÃO muda:** a fórmula de hash, a cobertura da âncora (`.fipp` continua cobrindo só
-`ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md` — editar `README.md`, `AGENTS.md` ou
-`.github/` **não** exige reancorar), os validadores, as regras e as pétreas.
+**Com o quê.** `wrangler 4.147.0`, node `v24.12.0`, o CLI do Netlify por `curl` (não há `netlify`
+instalado), `python3` para o mapeador linha→slide, `sed`/`awk` para conferência byte a byte.
+O mapeador linha→slide **precisa descartar o front-matter YAML** do deck, que fecha na linha 125 —
+incluí-lo superconta os slides em **+2**.
 
 **Referências.**
-`wrangler.jsonc` · `workers/receber.js` · `tools/templates/lancamento.html` ·
-`CONGELAMENTO.md` (o rito do motivo declarado) · `ARQUITETURA-CAPTURA.md` §7.4 e a **Nota de
-29/09/2026** (o elo do Netlify, que **não é apagado**) · `REGISTRO.md:7813` (a entrada-modelo da
-migração para o Netlify) e `:8212` (o token medido) · `netlify/functions/receber.js` (a fonte
-portada, apagada) · `README.md` (o deploy no Cloudflare).
+
+- `CONGELAMENTO.md:19` — a lista dos congelados, e `tools/` entre eles.
+- `REGISTRO.md:8757` — a entrada anterior, *"O cofre dos lançamentos sai do Netlify e entra no
+  Cloudflare KV"*, onde nasceu a afirmação errada sobre o token. Corrigida ali com nota datada.
+- `08c0be9` — o commit que tirou `professores/tiago/` do repositório e deixou os dois sites órfãos.
+- `a265450` (2026-09-17) — o commit **original** do deck, com **72 slides**. `git log -S "Contexto
+  Soviético" --all` ⇒ **0 hits**: o título nunca existiu como slide; era nome informal do professor.
+- `1d01c9d` — a entrada do Cloudflare, que apagou o Netlify do repositório.
+- `apresentacoes/apresentacao-01-rizoma/README.md:348–349` — a calibração da animação do mapa,
+  consistente com o `check-mapa.js` (26 caixas + 33 arestas).
+
+**Provas.**
+
+1. **Destruição:** `DELETE /api/v1/sites/{id}` ⇒ **HTTP 204, 0 B** nos dois. Depois:
+   `/api/v1/sites` ⇒ `200`, **2 B, 0 sites**; cada `id` ⇒ **404**; os três hosts de terceiros ⇒
+   **404**, intocados.
+2. **Renumeração:** `grep` de `slide 68|slide 69|slide 72|72 páginas|72 slides|slide-72|slide.072`
+   nos **três** arquivos de documentação ⇒ **EXIT=1, zero hits**.
+3. **Validadores, todos EXIT=0:** `check-overflow.js` ⇒ **87 slides, 0 com overflow**;
+   `check-mapa.js` ⇒ **26 nós / 33 arestas / 0 colisões**; `check-identidade.js` ⇒ **21 pares AA**,
+   4 linhas `ok:`.
+4. **Idempotência dos dois injetores, por sha256:** o deck fechou em
+   `274f9e4bab218d89b75aeaf70fe6c13658893fe6b99b19a46c6b700b66833d83` **antes e depois** de
+   rodar os dois. O comportamento verbatim: *"já estava sincronizado — nada a fazer"* (160 linhas
+   de SVG, 22 caixas; e 73 linhas de SVG, 6 caixas).
+5. **Varredura de identidade:** o script da skill `identidade-do-projeto` sobre os 14 pontos de
+   entrada ⇒ **todos os achados legítimos**, com ressalva de escopo. Nenhum arquivo de
+   apresentação aparece.
+
+**O que NÃO muda.**
+
+- **A fórmula do hash** (`tools/hash-ciclo.sh`) e a **cobertura da âncora** (`.fipp`): o deck, o
+  `README.md` da apresentação, `.github/agents/` e o `README.md` da raiz **não** são fontes de
+  ciclo ⇒ **nenhum `.fipp` precisa ser reancorado**. O `.fipp` cobre só
+  `professores/<professor>/ciclos/ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`.
+- **As 17 regras**, as **22 pétreas** e o `CONGELAMENTO.md` — nenhuma regra mudou; a renumeração
+  corrige **referência**, não princípio.
+- **Os validadores** — a assinatura das quatro linhas de `check-identidade.js` é a mesma, e o
+  `pre-commit` continua rodando a seção 5 sem alteração.
 
 **O que ainda não está feito.**
 
-- **A leitura do KV em tempo de execução não existe** — nunca existiu, nem no Netlify. O pedido
-  supunha um ponto de leitura; o que há é a escrita. A consolidação dos lançamentos **de volta para
-  o repositório continua não existindo**: é a **§7.3**, aberta na mesma metade de sempre.
-- **A pergunta 7.4 continua aberta** — o que vai ao KV é o JSON **em claro**, e o KV **não** é
-  servido por GET. Ver a **Nota de 07/10/2026** em `ARQUITETURA-CAPTURA.md`.
-- **O token do Netlify do `RITMOS` foi destruído junto com o arquivo.** Ele era **credencial
-  viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
-  Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
-  Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
-- **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
-  se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
-  ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
-  configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
-  **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
-- **Os commits ficam locais** até a pesquisadora empurrar.
+- **O token do `RITMOS` continua VIVO.** Ver a **nota de correção datada** em `REGISTRO.md:8886`
+  — ele autentica como `tmenegaz77@gmail.com` e agora alcança **0 sites**, mas **não expira
+  sozinho**. A API do Netlify administra sites, **não** PATs: a revogação é no painel
+  (*User settings → Applications → Personal access tokens → Revoke*). Não há nada editável no
+  repositório.
+- **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
+  a pesquisadora pediu os **commits**, não a entrega.
+- **A temporada de commits é local** até ela empurrar.
 
 ## O que está pendente
-
-## 01/10/2026 — A grafia de "Elicitação" se propaga, e a pendência do prompt congelado ganha dono
-
-A **publicação** do pacote da Ritmos segue **bloqueada por crédito
-da conta**, não por código — herdado e sem mudança nesta peça. A âncora da Ritmos foi regerada, mas
-o **pacote não foi regerado** para acompanhar: o `referencias.html` publicado traz a prosa nova, e
-as demais saídas (PDF, `dados.json`, `ciclos.json`) **não** foram refeitas nesta peça — a regeração
-é a próxima do fluxo, se o pacote for publicado. Os **18** `eliciação` minúsculos de `REGISTRO.md`
-ficam **como estão**, de propósito: a proveniência **acrescenta, não edita** (P-03/P-04), e reescrevê-los
-apagaria o elo do que se pensou antes. Pelo mesmo motivo, a documentação que o **`HANDOFF.md`**
-espelha continua dizendo `eliciar-ciclo.md` — é **citação** do registro, não texto do handoff. Como
-medido acima, são **quatro** as linhas espelhadas, e elas **permanecem** na regeneração: só sairiam
-reescrevendo-se as entradas de 28/09 e 29/09/2026 que as contêm, o que a proveniência proíbe.
-Permanecem **abertas** e sem relação com esta peça: a decisão de **onde vivem as Functions**
-(§7.6), a consolidação dos
-lançamentos do Blob de volta ao repositório (§7.3), e a pergunta pela **revisão dos demais botões**
-do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOFF.md` precisa ser
 
 ## 01/10/2026 — A view gerada e a regra de leitura cresciam com o arquivo: a colheita passa a ter limite e o `REGISTRO.md` deixa de ser lido inteiro
 
@@ -358,12 +329,36 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
   viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
   Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
   Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
+
+  > **Correção de 07/10/2026 (mesmo dia).** A primeira redação deste bullet dizia que o token
+  > *"foi destruído junto com o arquivo"*. **Está errado.** A medição seguinte — `GET
+  > /api/v1/sites` com esse token — autenticou como `tmenegaz77@gmail.com` e devolveu `200`, ou
+  > seja: **o token está VIVO**. O que foi destruído foram os **dois sites** que ele alcançava;
+  > a credencial continua válida e não expira sozinha. Continua **não versionada** (nenhum arquivo
+  > do repositório a contém), mas "não versionada" ≠ "destruída". **A revogação no painel deixou
+  > de ser opcional:** enquanto o token existir, ele dá acesso à conta. O elo fica registrado
+  > porque a proveniência acrescenta — não reescreve.
+
 - **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
   se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
   ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
   configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
   **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
 - **Os commits ficam locais** até a pesquisadora empurrar.
+
+---
+
+## 07/10/2026 — O Netlify antigo é destruído, o mapa anda para o slide 83 e a espiral vira fonte
+
+
+- **O token do `RITMOS` continua VIVO.** Ver a **nota de correção datada** em `REGISTRO.md:8886`
+  — ele autentica como `tmenegaz77@gmail.com` e agora alcança **0 sites**, mas **não expira
+  sozinho**. A API do Netlify administra sites, **não** PATs: a revogação é no painel
+  (*User settings → Applications → Personal access tokens → Revoke*). Não há nada editável no
+  repositório.
+- **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
+  a pesquisadora pediu os **commits**, não a entrega.
+- **A temporada de commits é local** até ela empurrar.
 
 ## Pendências anteriores (índice)
 
@@ -408,46 +403,47 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
 - **20/09/2026** — O formulário de lançamento vai para produção (Área do… → `REGISTRO.md` L1743
 - **20/09/2026** — A folha de captura vira config legível por máquina… → `REGISTRO.md` L1979
 - **22/09/2026** — Agentes de workspace: geração, auditoria e apresentação → `REGISTRO.md` L2292
-- **23/09/2026** — A identidade do projeto entra na documentação (e a… → `REGISTRO.md` L2339
-- **23/09/2026** — A varredura da deriva de identidade: o que ficou fora da… → `REGISTRO.md` L2420
-- **23/09/2026** — A seção que só tinha citação, e o ciclo simulado da… → `REGISTRO.md` L2501
-- **23/09/2026** — O gerador não herda mais o locale de quem o chama → `REGISTRO.md` L2592
-- **25/09/2026** — O HANDOFF truncado: o glob que abortava a geração em… → `REGISTRO.md` L2660
-- **25/09/2026** — "Não o que foi planejado": a memória da aula dada e o… → `REGISTRO.md` L2735
-- **25/09/2026** — O campo `norma`: o PO ganha o padrão de referência que… → `REGISTRO.md` L2846
-- **25/09/2026** — A identidade visual passa a existir como contrato, e a… → `REGISTRO.md` L3046
-- **25/09/2026** — A hora da aula entra no `DIAS`, e o calendário passa a ter… → `REGISTRO.md` L3177
-- **26/09/2026** — O `DOCS` deixa de ser lista à mão: as famílias por aula… → `REGISTRO.md` L3351
-- **26/09/2026** — A P-13 deixa de sugerir que o dado é privado do professor:… → `REGISTRO.md` L3472
-- **26/09/2026** — O prazo do §3 dizia "menor entre" — e dois números do… → `REGISTRO.md` L3625
-- **26/09/2026** — O config da captura deixa de ser um por ciclo: um… → `REGISTRO.md` L3774
-- **26/09/2026** — O `check-identidade.js` entra no `pre-commit`: a identidade… → `REGISTRO.md` L3974
-- **26/09/2026** — O campo ganha a forma canônica da linha de base, a… → `REGISTRO.md` L4208
-- **26/09/2026** — A data da aula deixa de ser adivinhada: o `ciclos.json`… → `REGISTRO.md` L4401
-- **26/09/2026** — O JSON de dados ganha validador: o `-dados.json` deixa de… → `REGISTRO.md` L4668
-- **26/09/2026** — O prazo por aula deixa de ser 48 h fixas: `aulas[].prazo`… → `REGISTRO.md` L4870
-- **26/09/2026** — A âncora deixa de existir só por ciclo: um `.fipp` por… → `REGISTRO.md` L5151
-- **26/09/2026** — O config da captura por aula passa a ser conferido pelo… → `REGISTRO.md` L5311
-- **26/09/2026** — Os apelidos saem em claro: um ciclo sem lançamento passa a… → `REGISTRO.md` L5465
-- **26/09/2026** — O formulário lê o config pela AULA: as quatro aulas… → `REGISTRO.md` L5654
-- **27/09/2026** — A nav sai uma vez: o formulário deixa de ser a única… → `REGISTRO.md` L5856
-- **27/09/2026** — O estado da aula deixa de ser declarado: quatro estados… → `REGISTRO.md` L5969 *(superado)*
-- **27/09/2026** — A §5.1 para de dizer 48 h: o ajuste com prazo passa a… → `REGISTRO.md` L6161
-- **27/09/2026** — O ajuste no plano deixa de ser promessa: o elo do plano da… → `REGISTRO.md` L6319
-- **27/09/2026** — A Aula 05 declara o método RAD e o ciclo ganha notação… → `REGISTRO.md` L6483
-- **28/09/2026** — O índice do formulário saía sem a vírgula: a gravação… → `REGISTRO.md` L6618
-- **28/09/2026** — O formulário baixa **dois** arquivos, e o texto passa a… → `REGISTRO.md` L6738
-- **28/09/2026** — O botão passa a ser `Salvar`, e o arquivo vai para a pasta… → `REGISTRO.md` L6854
-- **28/09/2026** — A legenda ao lado do botão `Salvar` sai; o botão fica… → `REGISTRO.md` L7192
-- **28/09/2026** — O cabeçalho do formulário passa à voz de professor: só… → `REGISTRO.md` L7293
-- **28/09/2026** — O botão `Exportar ajuste do plano` sai do formulário: era… → `REGISTRO.md` L7419 *(superado)*
-- **29/09/2026** — O botão `Salvar` deixa de abrir a pasta do computador: a… → `REGISTRO.md` L7540 *(superado)*
-- **29/09/2026** — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava… → `REGISTRO.md` L7665 *(superado)*
-- **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7813
-- **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7940
-- **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8010 *(superado)*
-- **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8088
-- **30/09/2026** — O segundo papel do agente: o servidor local **não… → `REGISTRO.md` L8177
+- **23/09/2026** — A identidade do projeto entra na documentação (e a… → `REGISTRO.md` L2344
+- **23/09/2026** — A varredura da deriva de identidade: o que ficou fora da… → `REGISTRO.md` L2425
+- **23/09/2026** — A seção que só tinha citação, e o ciclo simulado da… → `REGISTRO.md` L2506
+- **23/09/2026** — O gerador não herda mais o locale de quem o chama → `REGISTRO.md` L2597
+- **25/09/2026** — O HANDOFF truncado: o glob que abortava a geração em… → `REGISTRO.md` L2665
+- **25/09/2026** — "Não o que foi planejado": a memória da aula dada e o… → `REGISTRO.md` L2740
+- **25/09/2026** — O campo `norma`: o PO ganha o padrão de referência que… → `REGISTRO.md` L2851
+- **25/09/2026** — A identidade visual passa a existir como contrato, e a… → `REGISTRO.md` L3051
+- **25/09/2026** — A hora da aula entra no `DIAS`, e o calendário passa a ter… → `REGISTRO.md` L3182
+- **26/09/2026** — O `DOCS` deixa de ser lista à mão: as famílias por aula… → `REGISTRO.md` L3356
+- **26/09/2026** — A P-13 deixa de sugerir que o dado é privado do professor:… → `REGISTRO.md` L3477
+- **26/09/2026** — O prazo do §3 dizia "menor entre" — e dois números do… → `REGISTRO.md` L3630
+- **26/09/2026** — O config da captura deixa de ser um por ciclo: um… → `REGISTRO.md` L3779
+- **26/09/2026** — O `check-identidade.js` entra no `pre-commit`: a identidade… → `REGISTRO.md` L3979
+- **26/09/2026** — O campo ganha a forma canônica da linha de base, a… → `REGISTRO.md` L4213
+- **26/09/2026** — A data da aula deixa de ser adivinhada: o `ciclos.json`… → `REGISTRO.md` L4406
+- **26/09/2026** — O JSON de dados ganha validador: o `-dados.json` deixa de… → `REGISTRO.md` L4673
+- **26/09/2026** — O prazo por aula deixa de ser 48 h fixas: `aulas[].prazo`… → `REGISTRO.md` L4875
+- **26/09/2026** — A âncora deixa de existir só por ciclo: um `.fipp` por… → `REGISTRO.md` L5156
+- **26/09/2026** — O config da captura por aula passa a ser conferido pelo… → `REGISTRO.md` L5316
+- **26/09/2026** — Os apelidos saem em claro: um ciclo sem lançamento passa a… → `REGISTRO.md` L5470
+- **26/09/2026** — O formulário lê o config pela AULA: as quatro aulas… → `REGISTRO.md` L5659
+- **27/09/2026** — A nav sai uma vez: o formulário deixa de ser a única… → `REGISTRO.md` L5861
+- **27/09/2026** — O estado da aula deixa de ser declarado: quatro estados… → `REGISTRO.md` L5974 *(superado)*
+- **27/09/2026** — A §5.1 para de dizer 48 h: o ajuste com prazo passa a… → `REGISTRO.md` L6166
+- **27/09/2026** — O ajuste no plano deixa de ser promessa: o elo do plano da… → `REGISTRO.md` L6324
+- **27/09/2026** — A Aula 05 declara o método RAD e o ciclo ganha notação… → `REGISTRO.md` L6488
+- **28/09/2026** — O índice do formulário saía sem a vírgula: a gravação… → `REGISTRO.md` L6623
+- **28/09/2026** — O formulário baixa **dois** arquivos, e o texto passa a… → `REGISTRO.md` L6743
+- **28/09/2026** — O botão passa a ser `Salvar`, e o arquivo vai para a pasta… → `REGISTRO.md` L6859
+- **28/09/2026** — A legenda ao lado do botão `Salvar` sai; o botão fica… → `REGISTRO.md` L7197
+- **28/09/2026** — O cabeçalho do formulário passa à voz de professor: só… → `REGISTRO.md` L7298
+- **28/09/2026** — O botão `Exportar ajuste do plano` sai do formulário: era… → `REGISTRO.md` L7424 *(superado)*
+- **29/09/2026** — O botão `Salvar` deixa de abrir a pasta do computador: a… → `REGISTRO.md` L7545 *(superado)*
+- **29/09/2026** — O fecho do Passo 1: o "Nível 2 do `tiago`" já estava… → `REGISTRO.md` L7670 *(superado)*
+- **29/09/2026** — O Passo 0 entra: o `POST` ganha destino e a cadeia reancora… → `REGISTRO.md` L7818
+- **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7945
+- **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8015 *(superado)*
+- **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8093
+- **30/09/2026** — O segundo papel do agente: o servidor local **não… → `REGISTRO.md` L8182
+- **01/10/2026** — A grafia de "Elicitação" se propaga, e a pendência do… → `REGISTRO.md` L8269
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
