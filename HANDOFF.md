@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-02T23:05:28-0300`
-Commit atual: `99ae163` — feat(tools): o validador passa a entender if/then/else do schema
+Gerado em: `2026-10-05T10:13:00-0300`
+Commit atual: `b6a406b` — docs(estrutura): a documentação aponta para o Worker do Cloudflare, não mais para o Netlify
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -50,6 +50,12 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+b6a406b docs(estrutura): a documentação aponta para o Worker do Cloudflare, não mais para o Netlify
+791f3fb chore(entrega): o pacote do diaghilev recebe a rota nova do lançamento
+878d3ae refactor(template): o endereço do POST do lançamento passa a `/api/receber`
+1d01c9d refactor(tools): o Worker do Cloudflare substitui o Netlify — Functions e Blobs saem
+a24179b docs(registro): a entrada do cofre — do Netlify para o Cloudflare KV
+00bfe2f feat(schema): a escola pode ser desabilitada -- e a desabilitacao diz por que e desde quando
 99ae163 feat(tools): o validador passa a entender if/then/else do schema
 1a65840 fix(tools): o `pattern` do schema deixa de valer so para o campo obrigatorio
 2a368a2 docs(registro): regenera o HANDOFF sobre f04551b
@@ -64,12 +70,6 @@ f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do p
 bf0e700 docs(experimentos): o README descreve o que existe hoje, e não o que foi previsto
 528c824 docs(registro): regenera o HANDOFF sobre c000dcd
 c000dcd docs(registro): a medição do GET /dados e o segundo papel do agente
-5910dfc docs(estrutura): a observação inicial e a §9 Q10 no ARQUITETURA-ANAMNESE
-5309cc3 docs(registro): regenera o HANDOFF sobre bf98e68
-bf98e68 chore(ciclo-01): regera os três ciclos para propagar o campo professor
-b2e8a6f docs(registro): a baixa do ponto 3 e o rito dos congelados
-1484527 fix(tools): o comentário do pre-commit deixa de nomear função que não existe
-52b44f3 docs(tools): as quatro linhas de prosa passam a dizer fokini
 ```
 
 ## Por professor
@@ -133,131 +133,147 @@ b2e8a6f docs(registro): a baixa do ponto 3 e o rito dos congelados
 
 ## Última entrada do REGISTRO
 
-## 02/10/2026 — A escola passa a poder ser desabilitada, com motivo e data
+## 07/10/2026 — O cofre dos lançamentos sai do Netlify e entra no Cloudflare KV
 
-**O que motivou.** A segunda frente declarada no fim da entrada anterior — *"a flag de escola
-habilitada/desabilitada"* — e o que o `IDEIA-PAINEL-ESCOLA.md` já supõe: o painel da escola precisa
-mostrar *«desabilitada»* e, ao lado, **por que** e **desde quando**. Não é um booleano: quando a
-direção lê *«desabilitada»*, ela precisa saber **a causa** (inadimplência, *churn*, queda do
-sistema) e **a data**, ou a tela não responde a pergunta que a fez olhar.
+**O que motivou.** O pedido veio da pesquisadora, em cinco passos ordenados: medir o que existia de
+Netlify, criar o `wrangler.jsonc`, ajustar o JavaScript para usar o KV, **apagar a configuração do
+Netlify inteira** (Functions, Blobs, tokens) e relatar — pedindo a ela o que faltasse do Cloudflare.
+O motivo declarado é **custo**: *«Cada `*/ciclos/ciclo-*/` tem a sua própria rota no Cloudflare —
+para ser acessado sem saber os dados das outras escolas. **O objetivo é economizar com o servidor.**»*
+Ela já tinha criado o namespace **`ciclos-escolas`** (`2ee331c7a5bc446ca86c8f2cb039ec16`) e ligado
+um projeto **`diaghilev`** ao repositório pelo painel.
 
-No caminho, um defeito do validador apareceu — e teve de ser consertado **antes** da flag, porque a
-flag depende dele. O `validar-schema-ciclo.js` conferia o `pattern` **só** nos campos `required`: um
-campo **opcional** com padrão declarado — exatamente o que uma flag precisa ser — passava com
-qualquer valor. A causa: o laço iterava `obrigatorios` em vez das propriedades declaradas.
+**Medido antes de mexer.**
 
-E, para exigir motivo e data **por máquina**, o validador precisava de uma capacidade que não tinha:
-o `if`/`then` do JSON Schema. O schema de ciclo é achatado por desenho; nada nele usava condicional.
+- A **estrutura-alvo já existia**: `professores/fokini/ciclos/ciclo-01-diaghilev/` **é** o
+  «app/motor central da escola». Não havia ciclo interno a separar em `dados/01.json`,
+  `dados/02.json` — o modelo do pedido estava atendido, e **só a peça de rota/deploy era nova**.
+- A superfície Netlify eram **três arquivos versionados** (`netlify.toml`,
+  `netlify/functions/receber.js`, `tools/deploy-netlify.sh`) e **20 arquivos** com a palavra.
+- **Não existe leitura do store em tempo de execução** — só a escrita. O ponto de leitura do
+  pedido («onde se lê os dados JSON em tempo de execução») é, hoje, **hipotético**: quem lê o
+  lançamento é a **geração do pacote seguinte**, no disco. Registrado, não inventado.
+- **Zero rastros de Cloudflare** no histórico do Git, no disco e no scratch da sessão. O ambiente
+  **não tinha `wrangler`** — precisou ser instalado.
+- O `.github/workflows/reancorar.yml` é o **único** workflow e **não** menciona Netlify: nada a
+  editar na cadeia de CI.
+- **`REGISTRO.md:8212` provou que o token do Netlify era credencial viva** (foi usado para medir
+  crédito da conta), não arquivo inerte. Ele foi apagado — ver «O que ainda não está feito».
 
 **O que foi decidido.**
 
-- **`ESCOLA_HABILITADA="sim|nao"`, no `.conf` da variante** — a flag é **por escola**, não por
-  professor: desabilitar `ciclo-01-diaghilev` não toca nas outras escolas do mesmo professor. O
-  arquivo da escola já é o manifesto dela; a flag não mora em arquivo separado.
-- **A desabilitação exige motivo e data.** `ESCOLA_HABILITADA="nao"` dispara, por `allOf`+`if/then`
-  do schema, a obrigatoriedade de `ESCOLA_HABILITADA_MOTIVO` e `ESCOLA_HABILITADA_DESDE`
-  (dd/mm/aaaa). Não é booleano solto, e o validador é quem recusa.
-- **O campo é opcional de propósito.** A **ausência** vale como habilitada: nenhum ciclo já ancorado
-  precisou ser tocado, e o rito não reescreve o passado para acomodar capacidade nova (P-04).
-  Declarar `"sim"` é escolha de quem quer o estado **conferido** no arquivo em vez de herdado da
-  ausência — foi o que o Diaghilev fez.
-- **A ordem foi: consertar o validador, dar-lhe o `if/then`, e só então declarar a flag** — três
-  commits, com a flag no último. Declarar a flag sobre um validador que não confere padrão em campo
-  opcional seria declarar uma garantia que não existia.
-- **O `if/then` é lido onde o draft-07 o declara:** no nível do **objeto**, numa entrada de `allOf`
-  ou na raiz do schema — **não** dentro de `properties.X`, onde o `if` operaria sobre a string. Não
-  é dialeto próprio: `experimentos/pe/ramificacao/ramificacao-schema.json` (§222) já usa essa forma.
-- **Discriminante ausente não dispara ramo.** É o que sustenta a opcionalidade: quem não declara a
-  flag não entra no contrato condicional.
-- **O bloqueio da geração NÃO entrou** (decisão da pesquisadora, via pergunta direta): a flag é
-  **declarada e validada**, não **imposta**. Hoje um ciclo com `ESCOLA_HABILITADA="nao"` ainda é
-  gerado por `tools/gerar-ciclo.sh`. Impor é capacidade própria, e virá depois.
+- **Um Worker por escola, e o mesmo Worker serve as duas coisas, na mesma origem.** O pacote
+  publicado **é** a pasta do ciclo, então o asset estático e o `POST` do lançamento saem do mesmo
+  host. O Cloudflare **serve o asset primeiro** e só entrega ao script o que não casa com arquivo —
+  por isso `assets.run_worker_first` fica **desligado**, e o pacote continua barato. Como cliente e
+  API são a mesma origem, o formulário chama `'/api/receber'`, **caminho relativo**: acaba o CORS e
+  acaba a URL absoluta de Worker no HTML gerado.
+- **O `wrangler.jsonc` fica na raiz, com `name: "diaghilev"`** — o mesmo nome do projeto que já
+  existe no painel. A **rota pública não entra no arquivo**: mora no painel, para a mesma
+  configuração servir `workers.dev` e domínio próprio.
+- **O KV é um só para todas as escolas**, e por isso **cada chave começa com o prefixo da escola**:
+  `escola/professor/ciclo-carimbo/nome-do-arquivo`. Era a divisão do `netlify.toml` (um arquivo,
+  várias escolas, cada uma publicando a sua pasta) — ela **continua valendo**, só mudou o provedor.
+- **O corpo continua tratado como opaco.** O texto que chega **é JSON em claro** (quem cifra é o
+  cliente, com a senha da escola); o Worker **não cifra, não vê senha, não interpreta** — grava
+  verbatim. O princípio segue: **o store é o cofre, o pacote é a vitrine.**
+- **A rota antiga não fica como alias.** `/.netlify/functions/receber` **não** é mantido: nenhum
+  pacote chegou a ser publicado no Netlify, então não há cliente antigo a atender, e um caminho com
+  o nome do provedor que saiu é configuração do provedor que saiu. `ROTAS_API = ['/api/receber']`.
+
+**As duas diferenças de comportamento, anotadas no código em vez de escondidas.** O KV **não tem
+`onlyIfNew`** — a proteção contra carimbo repetido virou **get-then-put**, e a atomicidade que o
+Blob dava **não existe mais**; e **não tem consistência forte** — o `{consistency:'strong'}` do
+Blob não tem equivalente, e uma releitura pode vir defasada. As duas estão marcadas no
+`workers/receber.js` como `ONDE MUDOU (1 de 2)` (o prefixo da escola) e `(2 de 2)`.
 
 **Onde entrou.**
 
-- `tools/validar-schema-ciclo.js` — laço de forma passou a iterar as **propriedades declaradas**, e
-  não os `required` (commit `1a65840`); `if/then/else` de `allOf` e da raiz (commit `99ae163`).
-- `professores/fokini/ciclos/ciclo-01-schema.json` — as três propriedades novas e o `allOf` que
-  torna motivo e data obrigatórios quando `ESCOLA_HABILITADA="nao"`.
-- `professores/fokini/ciclos/ciclo-01-diaghilev.conf` — `ESCOLA_HABILITADA="sim"` declarado.
-- `README-ciclos.md` — a seção «Habilitar e desabilitar uma escola», com a recusa real transcrita.
-- `professores/README.md` — o estado da escola na tabela, e a distinção escola × professor.
+- `wrangler.jsonc` (novo, raiz) — `name`, `compatibility_date`, `observability`, `main`, `assets`,
+  `kv_namespaces` com **`PADD_KV`**.
+- `workers/receber.js` (novo) — a função portada do Netlify.
+- `tools/templates/lancamento.html` — `const RECEBER = '/api/receber';` e o comentário do bloco.
+- `experimentos/receptor-local/servidor.js` — `ROTA_RECEBER = '/api/receber'` (fora do Git).
+- `package.json` · `package-lock.json` — sai `@netlify/blobs`, entra `wrangler` (devDependency).
+- `README.md` (a seção de deploy virou «Deploy no Cloudflare — um Worker por escola») ·
+  `AGENTS.md` · `README-ciclos.md` · `CONGELAMENTO.md` · `experimentos/README.md` ·
+  `experimentos/captura-json/RELATORIO.md` · `.github/agents/ciclo-auditor.agent.md` ·
+  `.github/agents/ciclo-entrega.agent.md` · `ARQUITETURA-CAPTURA.md` (a **Nota de 07/10/2026**) ·
+  `.gitignore` (o cabeçalho, o `.wrangler/` e o bloco de credenciais).
 
-**Motivo declarado — os congelados.** `tools/validar-schema-ciclo.js` é de `tools/`, congelado, e
-foi tocado em **dois commits próprios**, cada um com motivo no corpo.
+**Apagado.**
 
-- **`1a65840` — o defeito.** O `pattern` passa a valer em qualquer campo declarado com ele,
-  obrigatório ou opcional: `required` governa presença, `pattern` governa forma.
-- **`99ae163` — a capacidade.** O validador aprende o `if/then/else` do draft-07.
+- `netlify.toml` · `netlify/functions/receber.js` · `netlify/` ·
+  `tools/deploy-netlify.sh` · `tools/.netlify-tokens`.
+- `node_modules/@netlify/` · as **46** dependências de `@netlify/blobs`.
+
+**Motivo declarado — os congelados.** `tools/templates/lancamento.html` (editado) e
+`tools/deploy-netlify.sh` (apagado) são de `tools/`, congelado.
+
+- **`tools/templates/lancamento.html` — uma linha de rota.** O endereço do POST passa de
+  `/.netlify/functions/receber` para `/api/receber`. Não é reescrita de forma: é o **endereço do
+  mesmo POST**, e o caminho novo é relativo de propósito — sobrevive a qualquer provedor, e é o
+  que tira o CORS. O pacote foi **regenerado**, e o `lancamento.html` gerado tem a rota na
+  **linha 790**.
+- **`tools/deploy-netlify.sh` — apagado, não substituído.** O caminho manual virou
+  **`npx wrangler deploy`**, documentado no `README.md`. Não foi criado um
+  `tools/deploy-cloudflare.sh`: o script antigo existia para preencher o token por escola do
+  arquivo de tokens, e essa peça **deixou de existir** — o Worker é ligado ao GitHub pelo painel e
+  o deploy automático sai do próprio `wrangler.jsonc`. Criar um script novo seria inventar um
+  rito que ninguém pediu. Se a pesquisadora quiser o script de volta, é capacidade própria.
+
+**Provas.** Quatro camadas independentes, todas antes e depois da remoção do alias.
+
+- **Bancada de teste com KV falso** (`harness-kv/`, no scratch da sessão, **fora do Git**):
+  **18/18** casos, com o **ritual discriminante** — quebrando a regex dos nomes de arquivo o teste
+  **falha** (`EXIT=1`), restaurada volta a passar (`EXIT=0`). Cópia do Worker **byte-idêntica**
+  (`diff -q`).
+- **`npx wrangler deploy --dry-run`** — `Read 50 files`; `Total Upload: 4.19 KiB`; bindings
+  `env.PADD_KV (2ee331c7a5bc446ca86c8f2cb039ec16) KV Namespace` e `env.ASSETS Assets`.
+- **`npx wrangler dev --local`, duas vezes** (a segunda com `.wrangler/state` apagado, depois da
+  remoção do alias): `GET /api/receber` → `{"ok":true,"receber":"pronto"}`; `GET /` → 200;
+  `GET /lancamento.html` → **307** para `/lancamento` (é o *assets-first* do Cloudflare largando o
+  `.html`) → **200**; POST válido grava **duas** chaves; repetido recusa; e
+  `POST /.netlify/functions/receber` → **404, corpo vazio, nenhuma escrita**.
+- **Não-regressão dos validadores** — `tools/gerar-ciclo.sh fokini 01 diaghilev` →
+  **0 erro(s), 0 aviso(s)**; `node tools/check-pacote.js` → **0 erro(s), 0 aviso(s)**. A rota do
+  `lancamento.html` gerado mudou de 786 para **790**, e nada mais divergiu.
+
+**O churn de regeneração foi o mesmo de sempre, e o mesmo tratamento.** O `lancamento.html` mudou
+porque a **fonte** mudou — é o artefato que carrega a rota nova, e por isso **fica**. O carimbo
+puro (`gerado_em`, nonce do cifrado, `/ID` do PDF) **não é elo** (P-04): foi restaurado com
+`git restore`, como no precedente da entrada anterior.
 
 **O que NÃO muda:** a fórmula de hash, a cobertura da âncora (`.fipp` continua cobrindo só
-`ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`), os demais validadores, as regras e
-as pétreas. Medido antes de mexer: o **único** campo opcional com `pattern` em todo o repositório é
-`gerado_em`, de `experimentos/pe/envelope/elicitacao-schema.json`, e ele **não passa por este
-validador** — por isso o conserto não altera a validação de nenhum artefato existente. Os 4 schemas
-do ciclo ativo seguem achatados, e o único `if/then` preexistente é aninhado (dentro de itens de
-array) e tem validador próprio (`experimentos/pe/motor/validar.js`).
-
-**Com o quê.**
-
-- `tools/validar-schema-ciclo.js` — **um arquivo, dois commits** (o defeito e a capacidade).
-- `professores/fokini/ciclos/ciclo-01-schema.json` · `ciclo-01-diaghilev.conf` ·
-  `ciclo-01-diaghilev.fipp` e os **5 `.fipp` por aula** (reancoragem) · `README-ciclos.md` ·
-  `professores/README.md` · `REGISTRO.md` (esta entrada).
-
-**Provas.**
-
-- **16 casos isolados** contra 5 schemas de prova: habilitado sem motivo/data passa; desabilitado
-  sem motivo/data **falha listando os dois** e a causa (`ramo "then": exige …`); desabilitado com
-  motivo e data passa; flag ausente passa; valor fora de `^(sim|nao)$` falha; `then` e `else`
-  disparam cada um sozinho; `else` satisfeito passa; campo do `if` ausente não dispara; `pattern`
-  dentro do `then` é conferido; `if` vazio casa vacuamente.
-- **5 casos contra o schema REAL do ciclo** (`$d/a..e`): sem a flag ok; `nao` sem motivo/data
-  recusado; `nao` com motivo e data ok; data em ISO recusada pelo padrão dd/mm/aaaa; `"talvez"`
-  recusado.
-- **Não-regressão:** `node --check` ok; baseline dos **11 campos obrigatórios** intacto;
-  `tools/hash-ciclo.sh fokini 01 diaghilev --check` → **ok, cadeia intacta**, hash reancorado
-  `899d17e4343d33fc8d3ecbcf8838e7fe23ad6fe8bb14dc57f6efac5e5bd4d2af`;
-  `node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev` → **0 erro(s),
-  0 aviso(s)**, 21 páginas, 52 páginas de PDF.
-
-**O churn de regeneração foi medido e revertido, de novo.** A reancoragem tocou o `.conf`, e o
-`pre-commit` §3 regenerou o pacote: `ciclos.json` (**só** o `gerado_em`), `-dados.json` (**só** o
-nonce do cifrado) e o PDF (**só** o `/ID` do `XRef`) sujaram com carimbo puro — nenhuma fonte
-pedagógica mudou, e **nenhum dos 21 HTML divergiu**. Os três foram **restaurados** com `git restore`,
-como no precedente desta mesma rodada. O pacote do HEAD corresponde às fontes, e carimbo de relógio
-não é elo (P-04).
+`ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md` — editar `README.md`, `AGENTS.md` ou
+`.github/` **não** exige reancorar), os validadores, as regras e as pétreas.
 
 **Referências.**
-`IDEIA-PAINEL-ESCOLA.md` (o painel que lê a flag); `CONGELAMENTO.md` (o rito do motivo declarado);
-`experimentos/pe/ramificacao/ramificacao-schema.json:222` (a forma canônica de `allOf`+`if/then` já
-usada no repositório); `tools/hash-ciclo.sh:128` (o chamador que herda a capacidade — reancorar já
-valida a flag); `1a65840` e `99ae163` (os dois commits próprios sobre o congelado);
-`REGISTRO.md` (a entrada anterior, que declarou esta frente como pendente).
+`wrangler.jsonc` · `workers/receber.js` · `tools/templates/lancamento.html` ·
+`CONGELAMENTO.md` (o rito do motivo declarado) · `ARQUITETURA-CAPTURA.md` §7.4 e a **Nota de
+29/09/2026** (o elo do Netlify, que **não é apagado**) · `REGISTRO.md:7813` (a entrada-modelo da
+migração para o Netlify) e `:8212` (o token medido) · `netlify/functions/receber.js` (a fonte
+portada, apagada) · `README.md` (o deploy no Cloudflare).
 
 **O que ainda não está feito.**
-- **O bloqueio da geração não existe.** `tools/gerar-ciclo.sh` **não** consulta a flag: hoje ele
-  gera um ciclo desabilitado do mesmo jeito. É capacidade própria, decidida para depois — não foi
-  tocado nesta rodada, por decisão explícita.
-- **A flag não tem consumidor.** O painel (`IDEIA-PAINEL-ESCOLA.md`) continua **não implementado**;
-  a flag é o campo que ele vai ler, e hoje quem a lê é só o validador.
-- **`ESCOLA_HABILITADA` não entrou em nenhum `enum` nem no `DOCS`.** Ela é campo de schema, não
-  documento, e por isso não aparece no pacote gerado — verificar, quando o painel existir, se ele
-  precisa lê-la do `.conf` ou de um JSON derivado.
-- **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
-  de propósito.
-- **O push é da pesquisadora** — os commits ficam locais até ela empurrar.
+
+- **A leitura do KV em tempo de execução não existe** — nunca existiu, nem no Netlify. O pedido
+  supunha um ponto de leitura; o que há é a escrita. A consolidação dos lançamentos **de volta para
+  o repositório continua não existindo**: é a **§7.3**, aberta na mesma metade de sempre.
+- **A pergunta 7.4 continua aberta** — o que vai ao KV é o JSON **em claro**, e o KV **não** é
+  servido por GET. Ver a **Nota de 07/10/2026** em `ARQUITETURA-CAPTURA.md`.
+- **O token do Netlify do `RITMOS` foi destruído junto com o arquivo.** Ele era **credencial
+  viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
+  Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
+  Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
+- **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
+  se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
+  ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
+  configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
+  **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
+- **Os commits ficam locais** até a pesquisadora empurrar.
 
 ## O que está pendente
-
-## 30/09/2026 — O segundo papel do agente: o servidor local **não existe**; e o Ponto 1 fecha como diagnóstico
-
-O **agente local** continua **não implementado** — e agora se sabe
-que ele era **hipótese**, não pendência de código: a medição desta rodada **derrubou** a premissa do
-prompt. Segue **sem existir** a consolidação dos lançamentos do Blob de volta ao repositório (§7.3).
-Seguem **"Não decidido"** a §7.6 (onde o formulário roda), a §7.2, a §7.4 e a §7.5 — e é a §7.6 que
-governaria o agente local. A **publicação do `ciclo-ritmos`** está bloqueada por **crédito da
-conta**; reabre por **faturamento**, não por código. Permanecem sem resposta a pergunta pela
 
 ## 01/10/2026 — A grafia de "Elicitação" se propaga, e a pendência do prompt congelado ganha dono
 
@@ -327,6 +343,27 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
 - **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
   de propósito.
 - **O push é da pesquisadora** — os commits ficam locais até ela empurrar.
+
+---
+
+## 07/10/2026 — O cofre dos lançamentos sai do Netlify e entra no Cloudflare KV
+
+
+- **A leitura do KV em tempo de execução não existe** — nunca existiu, nem no Netlify. O pedido
+  supunha um ponto de leitura; o que há é a escrita. A consolidação dos lançamentos **de volta para
+  o repositório continua não existindo**: é a **§7.3**, aberta na mesma metade de sempre.
+- **A pergunta 7.4 continua aberta** — o que vai ao KV é o JSON **em claro**, e o KV **não** é
+  servido por GET. Ver a **Nota de 07/10/2026** em `ARQUITETURA-CAPTURA.md`.
+- **O token do Netlify do `RITMOS` foi destruído junto com o arquivo.** Ele era **credencial
+  viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
+  Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
+  Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
+- **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
+  se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
+  ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
+  configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
+  **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
+- **Os commits ficam locais** até a pesquisadora empurrar.
 
 ## Pendências anteriores (índice)
 
@@ -410,6 +447,7 @@ do formulário (`REGISTRO.md:7536`). Não foi feito **push**. Por fim, o `HANDOF
 - **29/09/2026** — Os dois congelados entram: o índice ganha o slug e a… → `REGISTRO.md` L7940
 - **29/09/2026** — O `B8` medido: `podeAjustarPlano()` não existe, e o elo do… → `REGISTRO.md` L8010 *(superado)*
 - **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8088
+- **30/09/2026** — O segundo papel do agente: o servidor local **não… → `REGISTRO.md` L8177
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
