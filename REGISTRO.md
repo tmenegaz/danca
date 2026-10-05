@@ -2300,7 +2300,12 @@ infraestrutura do método. Três agentes, um prompt e um arquivo de instruções
 - `.github/agents/ciclo-auditor.agent.md` — auditoria **somente leitura** contra `REGRAS.md`,
   `PROTOCOLO.md` e `CONGELAMENTO.md`, com laudo que cita a regra;
 - `.github/agents/deck-rizoma.agent.md` — frente Marp: edição do deck, `check-overflow.js`,
-  `check-mapa.js`, `medir-rotulos.js`, sincronização do slide 68;
+  `check-mapa.js`, `medir-rotulos.js`, sincronização do mapa;
+  > **Correção de 07/10/2026.** A redação original dizia *"sincronização do slide 68"*. Em
+  > 22/09/2026 o mapa **era** o slide 68 — o número estava certo quando foi escrito. O bloco novo
+  > de O Quebra-Nozes (Camadas Históricas, Raio-X das Personagens, A Política de O Quebra-Nozes)
+  > entrou **antes** dele, e o deck passou de 72 para **87 slides**: o mapa hoje é o **slide 83**.
+  > O elo fica registrado — não se reescreve o passado.
 - `.github/prompts/instalar-ciclo.prompt.md` — instalação de ciclo a partir do Markdown
   elicitado (aponta para `prompts/instalar-ciclo.md`, que segue sendo o contrato);
 - `.github/instructions/ciclo-fontes.instructions.md` — convenções das fontes de ciclo e
@@ -8887,9 +8892,149 @@ portada, apagada) · `README.md` (o deploy no Cloudflare).
   viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
   Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
   Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
+
+  > **Correção de 07/10/2026 (mesmo dia).** A primeira redação deste bullet dizia que o token
+  > *"foi destruído junto com o arquivo"*. **Está errado.** A medição seguinte — `GET
+  > /api/v1/sites` com esse token — autenticou como `tmenegaz77@gmail.com` e devolveu `200`, ou
+  > seja: **o token está VIVO**. O que foi destruído foram os **dois sites** que ele alcançava;
+  > a credencial continua válida e não expira sozinha. Continua **não versionada** (nenhum arquivo
+  > do repositório a contém), mas "não versionada" ≠ "destruída". **A revogação no painel deixou
+  > de ser opcional:** enquanto o token existir, ele dá acesso à conta. O elo fica registrado
+  > porque a proveniência acrescenta — não reescreve.
+
 - **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
   se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
   ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
   configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
   **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
 - **Os commits ficam locais** até a pesquisadora empurrar.
+
+---
+
+## 07/10/2026 — O Netlify antigo é destruído, o mapa anda para o slide 83 e a espiral vira fonte
+
+**O que motivou.** Três coisas, na mesma rodada, e a pesquisadora pediu as três de uma vez:
+*"o meu time não existe mais no netlify. pode remover o token da ritmos e destroi o netlify velho.
+faz os commits dos arquivos da apresentação também"*. A primeira é limpeza: dois sites órfãos
+continuavam publicando sozinhos. A segunda é renumeração: o bloco novo de O Quebra-Nozes entrou
+**antes** do mapa, e todo número de slide posterior a ele ficou defasado. A terceira é a
+apresentação: os quatro arquivos satélites do deck carregavam os números velhos.
+
+**Medido antes de mexer.**
+
+- `/api/v1/sites?per_page=100` com o token do `RITMOS` ⇒ `200`, **14 344 B, exatamente 2 sites**.
+  Ambos com `build_settings.repo_url = github.com/tmenegaz/danca`, publicando
+  `professores/tiago/ciclos/ciclo-01-ritmos` e `…/ciclo-01-duo`, ambos `404`, **42 deploys em
+  `error`** cada um.
+- As pastas-fonte dos dois foram removidas em `08c0be9` ⇒ **órfãos**: o repositório não as tem
+  mais, os sites continuavam no ar apontando para o nada.
+- `ritmos.netlify.app`, `danca.netlify.app` e `danaca.netlify.app` devolvem `404` **com este
+  token** ⇒ pertencem a **outra conta**. O critério de posse é `build_settings.repo_url`, não o
+  título do HTML.
+- Deck **HEAD: 72 slides**; worktree: **87 slides**. Alinhamento título a título ⇒ **a primeira
+  divergência é o índice 50**; os **slides 1–49 são byte-idênticos**. **Delta = +15 uniforme a
+  partir do slide 50**, provado em 6 medições independentes.
+- `git diff --numstat` do deck ⇒ **`452 0`** — só inserções, nenhuma deleção.
+- Varredura de número de slide *hardcoded* em `tools/*.js` ⇒ **um único hit, e é falso positivo**
+  (o `70%` de um `@keyframes` em `gerar-animacao.js:130`). Nenhum script numerava slides.
+
+**O que foi decidido.** *(o "como" foi meu; o "o quê" era dela)*
+
+- **Destruir os dois sites, com confirmação nominal antes.** Pedi o alvo por extenso — nome, `id`,
+  diretório e a contagem de deploys — e ela respondeu *"Sim — destruir os dois"*. Um `DELETE`
+  cego em `/api/v1/sites` teria levado junto o que não era nosso se a conta fosse outra.
+- **Não tocar nos três hosts de terceiros.** Foram reconsultados **depois** da destruição e
+  continuam `404` — a contra-prova de que o estrago foi cirúrgico.
+- **Corrigir todos os números, incluindo os que já estavam errados antes.** Medido o `HEAD`: a
+  tabela do deck `README.md` já apontava `Exemplos (30–31)` e `Progressão (28–29)` quando eles
+  sempre foram **42–43** e **40–41** — deriva **pré-existente**, não causada pelo bloco novo. Ela
+  autorizou corrigir tudo de uma vez.
+- **A espiral vira fonte, com injetor próprio.** O SVG da espiral dos criadores é **texto** ⇒
+  versionável, como o mapa. Ganha um script espelho do `sincronizar-slide.js`, com a mesma
+  convenção: marcadores `ESPIRAL:INICIO`/`ESPIRAL:FIM` no deck, SVG ao lado, idempotência.
+
+**Onde entrou.**
+
+- **5 arquivos modificados:** `apresentacoes/apresentacao-01-rizoma/README.md` (**32 edições**),
+  `apresentacoes/apresentacao-01-rizoma/apresentacao-ballet.md` (**+454, 0 deleções**),
+  `apresentacoes/apresentacao-01-rizoma/slides/rizoma-mapa-inline.md`,
+  `.github/agents/deck-rizoma.agent.md`, `README.md` (raiz).
+- **4 arquivos novos:** `quebra-nozes-48-68.md` (Marp standalone dos slides 48–68),
+  `quebra-nozes-guia-de-narracao.md`, `quebra-nozes-espiral.svg` (a fonte) e
+  `tools/sincronizar-espiral.js` (o injetor).
+- **Renumerados:** o mapa do rizoma **68 → 83**; o agradecimento **72 → 87**; a contagem
+  **72 → 87 slides** em todas as superfícies que a citam.
+- **`_notes` do deck, linha 1709** — dizia *"No mapa do slide 68…"* ⇒ **83**.
+- **Tabela de classes do deck `README.md`** — estava defasada em três linhas: `mid` dizia 10 slides
+  (são **19**), `table-xl` dizia 28–29 (são **40–41**), `table-lg` dizia 40 (é **67**), e
+  `dense` constava como *"reservas na CSS — não usadas"* quando está **em uso nos slides 56–60**.
+- **Créditos da capa** — a `README.md` mandava preencher `[Nome da apresentadora]`, `[Data]` e
+  `[Contato]`; varredura no repositório inteiro achou **exatamente 1 ocorrência, e era essa mesma
+  linha**. Os três campos **não existem** no slide: a capa traz `**Tiago Menegaz**`,
+  `**3 de outubro de 2026**` e `**Studio Ritmo e Movimentos — Passo Fundo, RS**`.
+
+**Motivo declarado — o congelado.**
+
+`tools/sincronizar-espiral.js` entra em `tools/`, que é **congelado**. O motivo: a espiral é
+**fonte do deck**, como o mapa, e sem injetor próprio ela só existiria como SVG solto — sem
+marcador, sem verificação de sincronia e sem o `check-mapa.js` para prová-la. O script é **espelho
+fiel** do `sincronizar-slide.js`: mesma convenção de marcadores, mesmo `require('./lib-tokens')`,
+mesma leitura de `process.env.APRESENTACAO`, mesma idempotência. Nada de novo é inventado — a
+única diferença é o par de marcadores e o arquivo de SVG.
+
+**Com o quê.** `wrangler 4.147.0`, node `v24.12.0`, o CLI do Netlify por `curl` (não há `netlify`
+instalado), `python3` para o mapeador linha→slide, `sed`/`awk` para conferência byte a byte.
+O mapeador linha→slide **precisa descartar o front-matter YAML** do deck, que fecha na linha 125 —
+incluí-lo superconta os slides em **+2**.
+
+**Referências.**
+
+- `CONGELAMENTO.md:19` — a lista dos congelados, e `tools/` entre eles.
+- `REGISTRO.md:8757` — a entrada anterior, *"O cofre dos lançamentos sai do Netlify e entra no
+  Cloudflare KV"*, onde nasceu a afirmação errada sobre o token. Corrigida ali com nota datada.
+- `08c0be9` — o commit que tirou `professores/tiago/` do repositório e deixou os dois sites órfãos.
+- `a265450` (2026-09-17) — o commit **original** do deck, com **72 slides**. `git log -S "Contexto
+  Soviético" --all` ⇒ **0 hits**: o título nunca existiu como slide; era nome informal do professor.
+- `1d01c9d` — a entrada do Cloudflare, que apagou o Netlify do repositório.
+- `apresentacoes/apresentacao-01-rizoma/README.md:348–349` — a calibração da animação do mapa,
+  consistente com o `check-mapa.js` (26 caixas + 33 arestas).
+
+**Provas.**
+
+1. **Destruição:** `DELETE /api/v1/sites/{id}` ⇒ **HTTP 204, 0 B** nos dois. Depois:
+   `/api/v1/sites` ⇒ `200`, **2 B, 0 sites**; cada `id` ⇒ **404**; os três hosts de terceiros ⇒
+   **404**, intocados.
+2. **Renumeração:** `grep` de `slide 68|slide 69|slide 72|72 páginas|72 slides|slide-72|slide.072`
+   nos **três** arquivos de documentação ⇒ **EXIT=1, zero hits**.
+3. **Validadores, todos EXIT=0:** `check-overflow.js` ⇒ **87 slides, 0 com overflow**;
+   `check-mapa.js` ⇒ **26 nós / 33 arestas / 0 colisões**; `check-identidade.js` ⇒ **21 pares AA**,
+   4 linhas `ok:`.
+4. **Idempotência dos dois injetores, por sha256:** o deck fechou em
+   `274f9e4bab218d89b75aeaf70fe6c13658893fe6b99b19a46c6b700b66833d83` **antes e depois** de
+   rodar os dois. O comportamento verbatim: *"já estava sincronizado — nada a fazer"* (160 linhas
+   de SVG, 22 caixas; e 73 linhas de SVG, 6 caixas).
+5. **Varredura de identidade:** o script da skill `identidade-do-projeto` sobre os 14 pontos de
+   entrada ⇒ **todos os achados legítimos**, com ressalva de escopo. Nenhum arquivo de
+   apresentação aparece.
+
+**O que NÃO muda.**
+
+- **A fórmula do hash** (`tools/hash-ciclo.sh`) e a **cobertura da âncora** (`.fipp`): o deck, o
+  `README.md` da apresentação, `.github/agents/` e o `README.md` da raiz **não** são fontes de
+  ciclo ⇒ **nenhum `.fipp` precisa ser reancorado**. O `.fipp` cobre só
+  `professores/<professor>/ciclos/ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`.
+- **As 17 regras**, as **22 pétreas** e o `CONGELAMENTO.md` — nenhuma regra mudou; a renumeração
+  corrige **referência**, não princípio.
+- **Os validadores** — a assinatura das quatro linhas de `check-identidade.js` é a mesma, e o
+  `pre-commit` continua rodando a seção 5 sem alteração.
+
+**O que ainda não está feito.**
+
+- **O token do `RITMOS` continua VIVO.** Ver a **nota de correção datada** em `REGISTRO.md:8886`
+  — ele autentica como `tmenegaz77@gmail.com` e agora alcança **0 sites**, mas **não expira
+  sozinho**. A API do Netlify administra sites, **não** PATs: a revogação é no painel
+  (*User settings → Applications → Personal access tokens → Revoke*). Não há nada editável no
+  repositório.
+- **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
+  a pesquisadora pediu os **commits**, não a entrega.
+- **A temporada de commits é local** até ela empurrar.
