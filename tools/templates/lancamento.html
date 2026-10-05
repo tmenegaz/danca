@@ -723,12 +723,16 @@ function nomeDoArquivo(tipo) {
 }
 
 // --------------------------------------------------------- enviar o lançamento
-// O único caminho de saída da página: o POST leva o par (dados do ciclo + índice) para a
-// função do site, e é lá que o lançamento fica guardado. Não há seletor de pasta e não há
+// O único caminho de saída da página: o POST leva o par (dados do ciclo + índice) para o
+// Worker do site, e é lá que o lançamento fica guardado. Não há seletor de pasta e não há
 // download: quem usa a página não escolhe onde o dado mora, nem fica com cópia solta no
 // computador. Se a resposta não vier `ok`, quem chamou avisa e NÃO dá o lançamento por
 // feito — os campos continuam na tela, para o professor tentar de novo.
-const RECEBER = '/.netlify/functions/receber';
+//
+// A rota é RELATIVA de propósito: o mesmo Worker serve o pacote estático e esta rota de POST,
+// na mesma origem — ver `wrangler.jsonc`. Assim a página funciona igual em `wrangler dev`, no
+// `workers.dev` e num domínio próprio, sem CORS e sem endereço absoluto no código.
+const RECEBER = '/api/receber';
 async function enviar(arquivos) {
   const r = await fetch(RECEBER, {
     method: 'POST',
