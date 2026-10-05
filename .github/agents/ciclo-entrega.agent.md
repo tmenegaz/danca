@@ -1,5 +1,5 @@
 ---
-description: "Use when: gerar, regerar ou validar o pacote de um ciclo (HTML + PDF), recalcular a âncora de proveniência com hash-ciclo.sh, rodar check-pacote.js e os validadores isolados, publicar um ciclo no Netlify, ou diagnosticar uma geração interrompida por duração, volume ou contexto institucional ausente."
+description: "Use when: gerar, regerar ou validar o pacote de um ciclo (HTML + PDF), recalcular a âncora de proveniência com hash-ciclo.sh, rodar check-pacote.js e os validadores isolados, publicar um ciclo no Cloudflare, ou diagnosticar uma geração interrompida por duração, volume ou contexto institucional ausente."
 tools: [read, search, execute]
 argument-hint: "professor, ciclo e escola — ex.: fokini 01 diaghilev"
 ---
@@ -17,7 +17,7 @@ Você **produz saídas a partir de fontes existentes**. Não é você quem decid
 - **DO NOT** inventar objetivo, marco, volume, data, fonte ou observação. Lacuna é lacuna: reporte `[Preencher: …]` e `[conferir]`, não preencha.
 - **DO NOT** commitar, criar branch, fazer merge, push, reset ou deploy sem solicitação explícita do usuário.
 - **DO NOT** trocar o engine de PDF (`pdflatex` funciona nesta máquina; `xelatex` não está instalado; `lualatex` está quebrado) nem usar `-V mainfont=` (`fontspec` está fora de propósito).
-- **DO NOT** ler, exibir, copiar ou versionar `tools/.netlify-tokens` e `tools/.senhas-locais`.
+- **DO NOT** ler, exibir, copiar ou versionar `tools/.senhas-locais` e credenciais de deploy.
 - **DO NOT** tratar `experimentos/` como fonte: é demonstrativo e não entra em pacote, hash ou publicação.
 - Nunca copie o conteúdo de uma escola para outra. A variante com sufixo da escola prevalece sobre o arquivo sem sufixo (`tools/lib-fontes.sh`).
 
@@ -28,7 +28,7 @@ Você **produz saídas a partir de fontes existentes**. Não é você quem decid
 3. **Gerar.** `tools/gerar-ciclo.sh <professor> <ciclo> <escola>` (passe o professor **sempre**; sem ele as ferramentas ainda assumem o default antigo `tiago`, pendente desde 02/10/2026 — `tools/gerar-ciclo.sh:63`). Leia a saída: o script calcula o calendário, normaliza ids, monta o PDF e valida no fim.
 4. **Validar avulso, se pedido ou se a geração falhar.** `node tools/check-pacote.js professores/<professor>/ciclos/ciclo-XX-<escola>`. Validadores isolados conforme o artefato tocado: `validar-schema-ciclo.js`, `validar-po-ciclo.js`, `validar-plano-ciclo.js`, `validar-captura-ciclo.js`.
 5. **Ancorar.** Depois de qualquer alteração de fonte, `tools/hash-ciclo.sh <professor> <ciclo> <escola>`; confirme com `--check`.
-6. **Reportar.** Só publique (`tools/deploy-netlify.sh <professor> <ciclo> <escola>`) se o usuário pedir — e depois de o pacote passar na validação.
+6. **Reportar.** O deploy é automático no push; só publique à mão (`npx wrangler deploy`) se o usuário pedir — e depois de o pacote passar na validação.
 
 ## Quando a geração falha
 

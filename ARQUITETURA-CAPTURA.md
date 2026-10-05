@@ -562,6 +562,8 @@ em 10 anos, nem em 20.
 - **7.4 — como o Netlify serve um JSON criptografado?** (A) o JSON é servido cifrado e o
   formulário o descriptografa no navegador (como o PageCrypt faz com os HTML hoje); (B) o JSON
   não é servido publicamente — só existe no computador do professor. **Não decidido.**
+  *(A pergunta ficou no nome do Netlify porque foi ali que ela foi escrita. Em 07/10/2026 o
+  transporte passou a ser Cloudflare — ver a nota de 07/10/2026 no fim desta seção.)*
 - **7.5 — durante a transição (JSON e `.md` coexistem), qual é a fonte?** (A) o `.md` continua
   sendo a fonte até o JSON estar completo; (B) a partir de uma data, o JSON passa a ser a fonte;
   (C) os dois coexistem — o JSON para as aulas novas, os `.md` para as antigas. **Não decidido.**
@@ -632,6 +634,22 @@ ciclo, e o formulário continua sendo HTML + JavaScript, sem backend.
 > parcialmente aberta** apenas na metade que falta — a consolidação dos lançamentos do Blob de volta
 > para o repositório **não existe**. A redação acima **não é apagada**: fica como o elo do que se
 > decidiu em 20/09/2026.
+
+> **Nota de 07/10/2026.** O backend **mudou de casa**: saiu o Netlify (Functions e Blobs) e entrou o
+> **Cloudflare** — um Worker por escola, ligado a este repositório pelo painel, com o KV
+> `ciclos-escolas` no lugar do store `lancamentos`. O `netlify.toml`, as funções e o
+> `tools/deploy-netlify.sh` foram apagados; o lançamento agora é um POST em `/api/receber`, atendido
+> por `workers/receber.js`, na **mesma origem** que serve o pacote — o Cloudflare serve o asset
+> estático primeiro e só entrega ao script o que não casa com arquivo, então o pacote continua
+> barato e o formulário chama um caminho relativo, sem CORS. (O nome `netlify/functions/receber.js`
+> na nota acima fica como estava: é o elo do que havia.)
+>
+> O que **permanece** das duas notas: o JSON continua sendo mais um arquivo do ciclo, a página
+> continua sendo HTML + JavaScript puro, e a **consolidação dos lançamentos de volta para o
+> repositório continua não existindo** — a §7.3 segue aberta na mesma metade. A pergunta **7.4
+> também segue aberta**: o que vai ao KV é o JSON **em claro** (quem cifra é a geração do pacote
+> seguinte, `tools/gerar-ciclo.sh`), e o KV **não** é servido por GET. A redação de 29/09/2026
+> **não é apagada**: fica como o elo do que se decidiu com o Netlify.
 
 ## Referências
 

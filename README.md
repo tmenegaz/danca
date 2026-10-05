@@ -72,7 +72,7 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 |:--|:--|
 | Gerar a entrega de um ciclo para uma escola | `tools/gerar-ciclo.sh fokini 01 diaghilev` |
 | Validar um pacote de ciclo | `node tools/check-pacote.js professores/fokini/ciclos/ciclo-01-diaghilev` |
-| Fazer deploy de um ciclo no Netlify | `tools/deploy-netlify.sh fokini 01 diaghilev` |
+| Fazer deploy de um ciclo no Cloudflare | `npx wrangler deploy` |
 | Recalcular só o calendário de uma escola | `python3 tools/calendario.py --escola Diaghilev --frequencia '2x/semana' --dias '2@19:00,4@19:00' --inicio 06/10/2026 --total 5 --duracao-curta 60 --volume-curto 90` |
 | Exportar o deck (PDF/PPTX/HTML/PNG) | ver `apresentacoes/apresentacao-01-rizoma/README.md` |
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
@@ -90,26 +90,45 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 6. mergear em main depois da auditoria
 ```
 
-## Deploy no Netlify — uma conta por escola
+## Deploy no Cloudflare — um Worker por escola
 
-Cada escola (**Diaghilev**, hoje a única) tem a sua **própria conta** no Netlify, com o seu
-token e o seu site. Os tokens e os site IDs ficam em
-`tools/.netlify-tokens` — **não versionado** (o `.gitignore` cobre), criado como template
-na primeira execução do script:
+Cada escola (**Diaghilev**, hoje a única) é um **Worker próprio**, ligado a este repositório
+pelo painel do Cloudflare. O deploy é **automático no push**: não há script de deploy, e o
+caminho manual é o `wrangler`.
+
+O `wrangler.jsonc` na raiz do repositório declara **um** Worker — a escola ativa:
+
+| O que o Worker serve | Como |
+|:--|:--|
+| o pacote do ciclo (HTML, PDF, `assets/`) | **assets estáticos**, apontando para `professores/fokini/ciclos/ciclo-01-diaghilev` |
+| o POST do lançamento | a rota `/api/receber`, atendida pelo script `workers/receber.js` |
+| a gravação | `env.PADD_KV`, o namespace KV `ciclos-escolas` |
+
+O Cloudflare serve **primeiro o asset estático**; só o que não casa com um arquivo chega ao
+script. Por isso a rota `/api/receber` funciona e o resto do pacote é servido direto, sem
+custo de Worker — a mesma origem atende a página e a API, e o formulário chama um caminho
+**relativo** (sem CORS e sem URL de Worker no código).
 
 ```bash
-tools/deploy-netlify.sh fokini 01 diaghilev   # primeira vez: cria o template e sai
-# preencha NETLIFY_TOKEN_DIAGHILEV e NETLIFY_SITE_DIAGHILEV no arquivo
-tools/deploy-netlify.sh fokini 01 diaghilev   # agora deploya
+npx wrangler deploy              # deploy manual (o normal é o push)
+npx wrangler dev                 # roda local, com KV local em .wrangler/state
+npx wrangler deploy --dry-run    # confere o pacote e os bindings sem publicar
 ```
 
-O token vai para o `netlify-cli` como `NETLIFY_AUTH_TOKEN` **só naquela execução**, então
-não é preciso `netlify login` nem trocar de conta à mão entre escolas. Para gerar o token:
-`app.netlify.com/user/applications#personal-access-tokens`; o site ID aparece em
-`netlify sites:list` ou no painel do site.
+Para uma **escola nova**: copie o `wrangler.jsonc` mudando `name` e `assets.directory` (e, se
+for o caso, o binding do KV), e crie o projeto no painel ligado a este repositório. A
+**rota pública mora no painel**, não no `wrangler.jsonc` — é ela que dá a cada escola um
+endereço sem que uma saiba dos dados das outras.
 
-> `tools/.netlify-tokens` é lido como shell. Trate como credencial: não versione, não
-> copie de terceiros, não deixe em pasta compartilhada.
+> **Credenciais.** Nada de credencial do Cloudflare fica versionado nem em arquivo local
+> deste repositório: o vínculo com o GitHub é do painel, e o `wrangler login` mora no perfil
+> da máquina. Para uma variável de ambiente em dev, o lugar é um `.dev.vars` (coberto pelo
+> `.gitignore`).
+
+> **O KV é o cofre, o pacote é a vitrine.** O que o formulário envia — e o Worker grava — é o
+> JSON do ciclo **em claro**: quem cifra é a geração do pacote seguinte
+> (`tools/gerar-ciclo.sh`). O KV **não** é servido por GET; leia pelo painel ou com
+> `npx wrangler kv key get --binding PADD_KV <chave>`.
 
 ## Regras do projeto
 

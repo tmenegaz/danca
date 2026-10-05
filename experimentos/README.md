@@ -12,7 +12,7 @@ Não depende de disciplina — depende de como o projeto é montado:
 |:--|:--|
 | **Hash da âncora** | cobre as fontes do ciclo, resolvidas por `tools/lib-fontes.sh` (`index` + `DOCS` + PO + manifestos + relatórios). Nada daqui é fonte |
 | **Pacote** | é montado de `DOCS` + acompanhamentos. Nada daqui está nessas listas |
-| **Site publicado** | o Netlify serve os pacotes versionados. Nada daqui é publicado |
+| **Site publicado** | o Cloudflare serve os pacotes versionados. Nada daqui é publicado |
 | **`check-pacote`** | valida o pacote, não a raiz do repositório |
 
 Ou seja: **experimentar aqui não pode quebrar produção.**
@@ -49,9 +49,9 @@ O formulário passou a dizer isso por si (o painel nomeia a lib que faltou, em v
 `ciclos.json`), mas o conserto é o servidor, não a página: a mensagem existe para o sintoma
 apontar para a causa sem passar por três tentativas.
 
-> **Atenção:** `tools/deploy-netlify.sh` **publica em produção** (uma conta por
-> escola). Ele **não** é o caminho de preview — não use para experimentos. Para
-> ver um experimento no ar, `git push` não serve: nada de `experimentos/` é
+> **Atenção:** o deploy é do **Worker ligado ao repositório**, disparado pelo push — e ele
+> publica em produção (uma escola por Worker, hoje só a Diaghilev). Não use para experimentos.
+> Para ver um experimento no ar, `git push` não serve: nada de `experimentos/` é
 > publicado. Se um experimento precisar de site, ele deixa de ser experimento.
 
 ## O que é versionado
@@ -145,13 +145,19 @@ ramificacao/plano.json          nunca escrito à mão
    ↓ validar.js --contrato plano    mede a instância contra o contrato registrado
    ↓ elicitar.js --respostas r.json  conduz a Elicitação, com validar.js como porteiro
 envelope/anamnese-*.json       o envelope, validado contra envelope/elicitacao-schema.json
+
+conteudo/anamnese.json          o mesmo conteúdo, noutra saída
+   ↓ ficha/renderizar.js        RENDERIZA — não elicita, não decide
+ficha/ficha-anamnese.md         a ficha imprimível que o professor leva ao campo
 ```
 
 Medido em 01/10/2026: `derivar-plano` dá **1 gatilho · 2 destinos · 3 paradas · 2 divergências ·
 1 não-ramifica · 3 lacunas**; `validar --autoteste` passa **22 de 22**; `elicitar --autoteste`
-passa **34 de 34**; uma Elicitação real sai com `estado: em_curso`, a ramificação executada e uma
-**parada declarada** — o motor se recusa a inferir o gatilho do Módulo B e diz por quê, em vez de
-supor. As três lacunas do plano são exatamente essas paradas declaradas.
+passa **34 de 34**; `renderizar --autoteste` passa **50 de 50** e imprime os **43 nós** com
+cobertura integral, deixando as **3 lacunas** como lacuna — uma por ramo do Módulo A. Uma
+Elicitação real sai com `estado: em_curso`, a ramificação executada e uma **parada declarada** — o
+motor se recusa a inferir o gatilho do Módulo B e diz por quê, em vez de supor. As três lacunas do
+plano são exatamente essas paradas declaradas.
 
 **Isto não está integrado, e o experimento não afirma que está.** O contrato de degradação graciosa
 (`ARQUITETURA-PE.md` §7.1) tem três casos, e só o **primeiro** está medido: sem `PE_RAIZ`, o fluxo

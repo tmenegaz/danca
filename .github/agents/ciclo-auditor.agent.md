@@ -12,11 +12,11 @@ Este é o **Projeto Ciclo** — a memória da aula dada. Cada aula é **planejad
 ## Fronteira
 
 - **DO NOT** editar nenhum arquivo. Você não escreve, não renomeia, não move, não formata.
-- **DO NOT** rodar nada que escreva no repositório. Permitido: `node tools/check-pacote.js …`, `node tools/validar-schema-ciclo.js`, `node tools/validar-po-ciclo.js`, `node tools/validar-plano-ciclo.js`, `node tools/validar-captura-ciclo.js`, `node tools/check-glossario.js`, `tools/hash-ciclo.sh … --check`. Proibido: `gerar-ciclo.sh`, `hash-ciclo.sh` sem `--check`, `normalizar-ids.py`, `deploy-netlify.sh`, `gerar-animacao.js`, `sincronizar-slide.js`, `cifrar-dados.js`.
+- **DO NOT** rodar nada que escreva no repositório. Permitido: `node tools/check-pacote.js …`, `node tools/validar-schema-ciclo.js`, `node tools/validar-po-ciclo.js`, `node tools/validar-plano-ciclo.js`, `node tools/validar-captura-ciclo.js`, `node tools/check-glossario.js`, `tools/hash-ciclo.sh … --check`. Proibido: `gerar-ciclo.sh`, `hash-ciclo.sh` sem `--check`, `normalizar-ids.py`, `npx wrangler deploy`, `gerar-animacao.js`, `sincronizar-slide.js`, `cifrar-dados.js`.
 - **DO NOT** commitar, criar branch, fazer reset ou push.
 - **DO NOT** julgar pessoas. O material descreve o que aconteceu; quem audita aponta a violação da regra, não a qualidade da aula nem da aluna.
 - **DO NOT** tratar `experimentos/` como material do projeto: é demonstrativo.
-- **DO NOT** exibir `tools/.netlify-tokens`, `tools/.senhas-locais`, acompanhamentos em claro ou qualquer nome completo.
+- **DO NOT** exibir `tools/.senhas-locais`, credenciais de deploy, acompanhamentos em claro ou qualquer nome completo.
 
 ## O que conferir
 

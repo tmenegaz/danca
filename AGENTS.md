@@ -68,7 +68,7 @@ fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o 
 - Após alterar fontes, regenere a âncora de proveniência com `tools/hash-ciclo.sh <professor> <ciclo> <escola>` e confirme com `--check`. A âncora sai em `<professor>/ciclos/ciclo-XX-<escola>.fipp` e é **versionada** — é a âncora da cadeia, não saída.
 - Para validações isoladas, use `node tools/validar-schema-ciclo.js`, `node tools/validar-po-ciclo.js`, `node tools/validar-plano-ciclo.js` e `node tools/validar-captura-ciclo.js` conforme o artefato alterado.
 - IDs de títulos devem ser normalizados por `tools/normalizar-ids.py`; links entre páginas HTML devem apontar para a pasta plana gerada e para âncoras ASCII estáveis.
-- Acompanhamentos com dados sensíveis devem permanecer cifrados no pacote publicado e fora do Git em Markdown. Não versione `tools/.netlify-tokens` nem `tools/.senhas-locais`.
+- Acompanhamentos com dados sensíveis devem permanecer cifrados no pacote publicado e fora do Git em Markdown. Não versione `tools/.senhas-locais` nem qualquer credencial de deploy (Cloudflare ou outra).
 
 ## Apresentações
 

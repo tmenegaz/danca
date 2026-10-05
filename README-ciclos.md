@@ -343,7 +343,7 @@ REGRAS.md · README.md · README-ciclos.md
 | **Escopos** | `ciclo-NN` · `aula-NN` · `apresentacao-NN` · `apresentacao-01-rizoma` · `caderno` · `caderno-NN` · `relatorio` · `relatorio-NN` · `notacao` · `pre-requisitos` · `musicalidade` · `apanhado` · `biblioteca` · `po` · `campo` · `schema` · `registro` · `protocolo` · `metodo` · `ideia` · `experimentos` · `entrega` · `estrutura` · `template` · `tools` · `regras` · `prompts` — a lista é a do hook (`tools/hooks/commit-msg`); escopo fora dela **recusa o commit** |
 | **Branches** | `main` só recebe conteúdo auditado; `ciclo-XX` e `apresentacao-XX` são linhas de trabalho, mergeadas após auditoria |
 | **Hooks** | `tools/instalar-hooks.sh` instala `pre-commit` e `commit-msg` (a fonte versionada fica em `tools/hooks/`, porque o Git não versiona `.git/hooks`) |
-| **Ignorado** | `out/`, `.pptx`, PNGs de slide da apresentação, `tools/.netlify-tokens`, `.vscode/settings.json`. Os **pacotes de ciclo são versionados** (HTML, PDF e `assets/`), porque o deploy automático lê o repositório |
+| **Ignorado** | `out/`, `.pptx`, PNGs de slide da apresentação, `.vscode/settings.json`. Os **pacotes de ciclo são versionados** (HTML, PDF e `assets/`), porque o deploy automático lê o repositório |
 
 O que o `pre-commit` faz, na prática:
 

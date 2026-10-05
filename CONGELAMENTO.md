@@ -66,8 +66,10 @@ REGISTRO.
 A infraestrutura está funcional há mais de duas semanas, com:
 - 1 ciclo publicado (Diaghilev)
 - 1 PO validado
-- Âncora de proveniência encadeada (`hash-ciclo.sh`) e o caminho de deploy via Netlify
-  (`deploy-netlify.sh`), pronto mas ainda sem conta da escola
+- Âncora de proveniência encadeada (`hash-ciclo.sh`) e o caminho de deploy: **Worker por
+  escola no Cloudflare**, ligado a este repositório pelo painel, com o KV `ciclos-escolas`
+  fazendo o papel de cofre dos lançamentos (era Netlify Blobs até a migração de 07/10/2026 —
+  ver a entrada do `REGISTRO.md`). O caminho manual é `npx wrangler deploy`;
 - Harmonização de linguagem no ciclo ativo (P-17)
 
 Continuar mexendo na infraestrutura sem motivo é trabalho que não gera valor
