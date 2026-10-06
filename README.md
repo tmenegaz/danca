@@ -102,6 +102,7 @@ O `wrangler.jsonc` na raiz do repositório declara **um** Worker — a escola at
 |:--|:--|
 | o pacote do ciclo (HTML, PDF, `assets/`) | **assets estáticos**, apontando para `professores/fokini/ciclos/ciclo-01-diaghilev` |
 | o POST do lançamento | a rota `/api/receber`, atendida pelo script `workers/receber.js` |
+| o cofre da anamnese | as rotas `/api/anamnese` — `POST` grava, `GET` lista e `GET /<carimbo>` lê — no mesmo script |
 | a gravação | `env.PADD_KV`, o namespace KV `ciclos-escolas` |
 
 O Cloudflare serve **primeiro o asset estático**; só o que não casa com um arquivo chega ao
@@ -125,10 +126,15 @@ endereço sem que uma saiba dos dados das outras.
 > da máquina. Para uma variável de ambiente em dev, o lugar é um `.dev.vars` (coberto pelo
 > `.gitignore`).
 
-> **O KV é o cofre, o pacote é a vitrine.** O que o formulário envia — e o Worker grava — é o
-> JSON do ciclo **em claro**: quem cifra é a geração do pacote seguinte
-> (`tools/gerar-ciclo.sh`). O KV **não** é servido por GET; leia pelo painel ou com
+> **O KV é o cofre, o pacote é a vitrine.** O que o formulário de lançamento envia — e o
+> Worker grava — é o JSON do ciclo **em claro**: quem cifra é a geração do pacote seguinte
+> (`tools/gerar-ciclo.sh`). Leia pelo painel ou com
 > `npx wrangler kv key get --binding PADD_KV <chave>`.
+>
+> **A anamnese é a exceção, e de propósito.** Ali quem cifra é **o cliente**, antes de subir
+> (`tools/lib-cifra.js` no navegador): o cofre guarda o invólucro `_cifrado` **verbatim** e
+> nunca vê o texto em claro. Por isso `/api/anamnese` **é** servido por GET — e o que ele
+> devolve é o texto ainda cifrado; quem decifra é quem lê.
 
 ## Regras do projeto
 
