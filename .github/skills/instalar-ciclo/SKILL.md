@@ -1,8 +1,8 @@
 ---
-description: "Instalar um ciclo novo a partir do Markdown elicitado: cria .conf, PO, plano, aulas, captura e demais artefatos em professores/<professor>/ciclos/, sem inferir nada."
-name: "Instalar ciclo"
+name: instalar-ciclo
+description: Instalar um ciclo novo a partir do Markdown elicitado: cria .conf, PO, plano, aulas, captura e demais artefatos em professores/<professor>/ciclos/, sem inferir nada.
+disable-model-invocation: true
 argument-hint: "Cole o Markdown da Elicitação e diga professor, ciclo e escola"
-tools: [read, edit, search]
 ---
 Transforme o Markdown da Elicitação em estrutura instalada em `professores/<professor>/ciclos/`.
 
