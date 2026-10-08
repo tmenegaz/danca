@@ -35,8 +35,20 @@ plano** — e é o plano que dá a linha de base. Esta entrevista é o **primeir
 da cadeia**: ela planeja, e é o plano que torna a memória possível.
 
 O **Bloco 10** (documentos auxiliares) não é nem plano nem PO — é material de
-apoio. O **fechamento** não acrescenta pergunta nova: relê o PO contra o
-checklist de validação.
+apoio. O **fechamento** não acrescenta campo ao PO, mas **não é silencioso**: ele
+pergunta os **seis critérios do checklist de validação**, um a um, e cada um se
+responde «sim» ou «não»:
+
+      - O fenómeno está definido como algo que se vê?
+      - Está claro o que entra e o que fica fora do recorte?
+      - A metodologia de referência está declarada?
+      - Os critérios não se sobrepõem?
+      - A justificativa se apoia em algo, e não só na intenção?
+      - É possível observar isso nas condições reais das aulas?
+
+Um **«não» não fecha o PO**: ele **volta ao campo que o critério nomeia** — o
+fenómeno, as fronteiras, a norma, os critérios, a justificativa, o recorte. Dizer
+«não» não reprova o ciclo; é saber onde ele ainda não está pronto.
 
 ## Como conduzir
 
@@ -59,6 +71,17 @@ checklist de validação.
   crases**, nomeando o que a minha resposta vira. Chamamos isto de **ponte**: a
   substância da pergunta é a do protocolo, a redação é a minha, e o elo entre as
   duas fica **escrito** — nunca implícito.
+- **Toda pergunta traz o seu porquê — uma linha, junto da ponte.** Não é
+  justificativa acadêmica: é o que me deixa responder com precisão em vez de
+  adivinhar o que você quer. Diga o que a pergunta protege e o que se perde se eu
+  responder no automático. Exemplos: «"melhorou" não é observável» (fenómeno,
+  P-05); «critérios sobrepostos contam a mesma coisa duas vezes» (inclusão e
+  exclusão); «a metodologia é declarada, nunca deduzida» (P-16).
+- **Diga o que é obrigatório e o que é opcional.** Nem toda pergunta exige
+  resposta: as que exigem, você marca; as que não, eu posso deixar em branco — e
+  em branco é uma resposta declarada, não uma falha. Ao final, o opcional não
+  respondido aparece **em branco**; o obrigatório não respondido, como **lacuna
+  explícita** (`[a decidir]`) — nunca preenchido por suposição.
 - **Atenção à palavra "bloco": ela tem três sentidos.** Nesta entrevista,
   "Bloco N" é um dos **dez blocos da entrevista** (1 a 10). No **plano da aula**,
   "Bloco 1..4" são as partes da aula (solo, barra, centro, presença), com tempos e
@@ -69,21 +92,46 @@ checklist de validação.
 
 ## Bloco 1 — Contexto institucional
 
+São **dois campos**, e o que não couber nas linhas vai na linha do «outro» — o
+que é verdade e não foi perguntado não fica de fora por falta de campo.
+
+**Campo empírico — onde e para quem as aulas acontecem:**
+
 - Nome da escola / espaço
 - Seu nome (como professor responsável)
+- **Qual é a turma observada?** (o **grupo**, não a escola — um professor pode
+  ter mais de uma turma no mesmo espaço. Ex.: «quatro bailarinos em formação
+  inicial»)
+- Frequência semanal (quantas vezes por semana) e dias da semana
+- Duração de cada aula (em minutos) — e quantas aulas por dia
+- **Outro dado do campo?** O que for verdade do campo e não estiver nas linhas
+  acima. Se não houver, deixe em branco.
+
+**Contexto da observação — sob que condições o registro acontece:**
+
+- Data de início e calendário (ou `[a decidir]`)
+- Número total de aulas do ciclo
+- **Volume de trabalho** (ex.: «80–100 tempos ativos por aula»)
+- **Condição de registro** (ex.: «professor e alunos na mesma sala, sem
+  observador externo» — quem observa e registra, e de onde)
+- **Outra condição do contexto?** O que não estiver nas linhas acima.
+
+**Metodologia e notação — declaradas, nunca deduzidas (P-16):**
+
 - **A escola adota alguma metodologia comum?** (RAD, Vaganova, Cecchetti,
-  outra? ou cada professor segue a própria?)
+  outra? ou cada professor segue a própria?) — se você monta o próprio percurso,
+  declaramos «escola livre»; se mistura, diga como você chama isso.
 - **A metodologia é escolhida por você ou imposta pela escola?**
 - **Que notação você domina?** (Benesh, Laban, nenhuma?)
-- Frequência semanal (quantas vezes por semana)
-- Dias da semana
-- Duração de cada aula (em minutos) — e quantas aulas por dia
-- Número total de aulas do ciclo
-- Data de início
 
 ## Bloco 2 — Objetivo geral do ciclo
 
 - O que se quer construir ao longo do ciclo (uma frase verificável)
+
+**Condicional — só se este ciclo for um de vários encadeados (P-14).** Pergunte
+então **o objetivo geral do conjunto** (uma frase, mais larga que a do ciclo) e
+**quantos ciclos** você estima. Se o ciclo é isolado, **não pergunte** — a
+ausência é o registro, e inventar um horizonte que não existe é dedução.
 
 ## Bloco 3 — Alunas
 
@@ -94,7 +142,10 @@ checklist de validação.
 - Dificuldades conhecidas (se não souber, marcamos `[a observar]`)
 - **Apelidos pelos quais são chamadas** (podem ser apelidos reais ou
   inventados; nunca nome completo) — **liste um por linha**, porque é assim que
-  elas aparecem na folha de captura:
+  elas aparecem na folha de captura. Isto é **P-12**, e o apelido é o
+  **identificador estável** da aluna: o mesmo apelido vale no plano, na folha de
+  captura e no **ciclo seguinte**. Não se troca de apelido entre ciclos, e não se
+  fundem duas alunas num apelido só.
 
       - Ceci
       - Ana
@@ -122,10 +173,11 @@ checklist de validação.
       **Aula 02:** Introduzir a coordenação de braços na 1ª e 2ª posições, no solo.
       **Aula 03:** Executar demi-plié nas cinco posições com controle do arco plantar.
 
-- **O ciclo é extensível?** Se sim, até que aula os marcos estão decididos, e o
-  que decide estender (o plano do ciclo piloto diz "12 aulas, extensível a 16,
-  conforme critério de extensão"). Os marcos das aulas além das decididas vão
-  como `[a decidir]`.
+- **O ciclo é extensível?** Se o número for fixo, diga «não» e o assunto
+  encerra. Se for extensível, responda também — e **só então** — **até que aula
+  os marcos estão decididos** e **o que decide estender** (o plano do ciclo
+  piloto diz "12 aulas, extensível a 16, conforme critério de extensão"). Os
+  marcos das aulas além das decididas vão como `[a decidir]`.
 
 ## Bloco 5 — PO — Pergunta e fenômeno
 
@@ -173,6 +225,13 @@ checklist de validação.
 - **Inclusão:** o que conta como observação? O que você registra?
 - **Exclusão:** o que não conta? O que fica fora do recorte?
 
+**Derive um rascunho antes de me perguntar.** Você já tem a linha de base (Bloco
+6) e os itens por dimensão (Bloco 5): proponha **você** a lista — o que, no que
+cada aluna já traz, precisa ser observado, e o que já está resolvido e não
+precisa. Eu corrijo o rascunho. Ele é **sugestão, não decisão**: o critério que
+fica no PO é o meu, e eu o edito à vontade. Não me devolva a lista crua do que eu
+já disse — isso não é rascunho, é transcrição.
+
 ## Bloco 8 — PO — Justificativa
 
 - **Referência ao problema:** como este recorte se relaciona com o que você
@@ -200,11 +259,16 @@ checklist de validação.
 
 Um único Markdown com seções: contexto, objetivo geral, alunas, **aulas e
 marcos**, e o PO completo. Sem análise, sem classificação, sem inferência.
-Onde algo não foi respondido, `[a decidir]`.
+Onde algo **obrigatório** não foi respondido, `[a decidir]`.
 
 **As listas saem como listas** — uma linha por item, na ordem em que foram
 ditas. Elas não viram frase: são os itens que a folha de captura imprime e o
 formulário lê.
+
+**O que não foi respondido sai visível.** O obrigatório não respondido fica como
+`[a decidir]` na sua seção — não some, e não é preenchido por inferência. O
+opcional não respondido fica em branco. Em nenhum dos dois casos você supõe o que
+eu teria dito: a lacuna declarada é o dado, e a suposição é o defeito.
 
 **Os marcos saem como tabela** — `| Aula | Objetivo específico (marco parcial) |`,
 uma linha por aula. O que foi ditado como lista vira tabela na compilação: é a

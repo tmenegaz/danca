@@ -9038,3 +9038,91 @@ incluí-lo superconta os slides em **+2**.
 - **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
   a pesquisadora pediu os **commits**, não a entrega.
 - **A temporada de commits é local** até ela empurrar.
+
+## 07/10/2026 — O prompt de elicitação herda oito decisões do formulário do experimento
+
+**O que motivou.** O formulário do PO do experimento (`experimentos/po/conteudo/po.json`, 36 nós)
+foi construído *a partir* do prompt congelado — e evoluiu além dele. O plano de 06/10/2026 já
+registrava a coexistência: *"é o elo textual; o PO continua a poder nascer por prosa"*. A
+pesquisadora pediu que a diferença fosse **medida** e que as melhorias **voltassem ao prompt**,
+*"para que o prompt continue sendo o caminho de entrada — com a mesma qualidade do formulário"*.
+Medi as duas peças, nó a nó e bloco a bloco.
+
+**O que foi decidido.** Oito decisões do formulário entram no prompt; o resto **não** entra, e o
+porquê fica escrito na mesma entrada. Entram:
+
+1. **O porquê de cada pergunta.** O formulário traz `explicacao.porQue` em **todos** os 36 nós; o
+   prompt tinha a *ponte* (o termo do protocolo entre crases) e **nunca** o motivo. Regra nova em
+   «Como conduzir»: uma linha de porquê junto da ponte.
+2. **Obrigatório × opcional.** 28 dos 36 nós declaram `obrigatorio: true`; o prompt não tinha a
+   distinção. A compilação passa a separar a **lacuna explícita** (`[a decidir]`) do **branco
+   declarado** — e a suposição continua sendo o defeito.
+3. **O checklist perguntado.** Os seis critérios de validação são, no formulário, seis nós
+   **obrigatórios** (`blocos[7]`); no prompt eram uma menção — *"relê o PO contra o checklist de
+   validação"* — **sem os seis nomes em lugar nenhum**. Agora o fechamento pergunta os seis, um a
+   um, e um «não» volta ao campo que o critério nomeia.
+4. **Campo e contexto como dois grupos nomeados, com «outro».** O formulário organiza a observação
+   inicial em `Campo empírico` e `Contexto da observação`, cada um com campo aberto. O Bloco 1 era
+   lista plana **sem catch-all** — e daí saíram **quatro lacunas de conteúdo**, não de estilo:
+   `campo-turma` (**qual turma**), `contexto-volume`, `contexto-registro` e os dois «outro».
+5. **A derivação da linha de base.** O formulário deriva inclusão/exclusão do que a anamnese já
+   declara; o prompt perguntava a frio. O Bloco 7 passa a pedir um **rascunho** do agente, sujeito
+   a edição — *sugestão, não decisão*.
+6. **P-12 e a estabilidade do apelido.** O formulário declara `apelidoObrigatorio: "P-12"`; o
+   prompt pedia apelidos, citava P-01, P-11 e P-22 — e **não** P-12. O Bloco 3 passa a citá-la, com
+   a estabilidade entre ciclos.
+7. **Perguntas condicionais declaradas.** O formulário declara `condicaoDeEntrada` em dois módulos;
+   o prompt perguntava tudo sempre. Os Blocos 2 e 4 passam a declarar as duas condições (P-14 e a
+   extensão).
+8. **P-16 — declarado, nunca deduzido.** Regra que o formulário repete (`listaAberta.regra`) e o
+   prompt não tinha.
+
+**O que NÃO entrou, e por quê.** A proveniência de três estados, o KV, a leitura lazy, os selos de
+estado, o `repetirPor` auto-preenchido, `exclusiva`/`multipla` e o versionamento do envelope são
+decisões de **sistema** — o prompt não tem estado, não tem leitor e não tem tela. As 22 regras de
+corte também não: o prompt ganhou a **capacidade** de derivar, não as regras. E o
+`explicacao.oQueE`/`preencher` já estavam lá — o `oQueE` *é* a pergunta, o `preencher` *é* a forma
+(a regra das listas e a dos marcos).
+
+**Onde entrou.** `prompts/elicitar-ciclo.md` — 213 → **277 linhas** (9 928 → **14 087 B**):
+**+78 linhas, 14 removidas — todas reescritas**, em quatro pontos (o fechamento, as linhas
+dispersas do Bloco 1, a linha dos apelidos e o bullet da extensão), conferidas uma a uma. Os
+**dez blocos** continuam — e é o que o `derivar-plano.js` declara
+(`espacosDeNomes.entrevista.blocos: 10`).
+
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `prompts/`. O motivo: o prompt é o
+**elo textual** do PO (P-19), e o formulário — construído a partir dele — resolveu oito problemas
+que o texto ainda não resolvia. Deixá-lo como estava criaria **duas qualidades** de elicitação: a
+do formulário e a da prosa. A alteração é de **redação e de conteúdo de entrevista**; não é de
+comportamento de sistema. **O que não muda:**
+
+- **A fórmula do hash e a cobertura da âncora.** `prompts/` **não** está em `tools/lib-fontes.sh`, e
+  o `.fipp` cobre só `professores/<professor>/ciclos/ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os
+  `ciclo-XX-*.md` ⇒ **nenhum `.fipp` precisa ser reancorado**. Provado: `tools/hash-ciclo.sh fokini
+  01 diaghilev --check` ⇒ *"ciclo 01-diaghilev íntegro; cadeia intacta"* — rodado **depois** da
+  alteração.
+- **Os validadores, os extratores e os geradores.** Nenhum lê o prompt: as duas referências no
+  repositório são **citações** — `derivar-plano.js:246` (uma string `fonte:`) e
+  `prompts/instalar-ciclo.md:11` (uma remissão em prosa).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou. As pétreas novas citadas
+  (P-12, P-14, P-16) **já existiam** — o prompt é que não as citava.
+
+**Com o quê.** `prompts/elicitar-ciclo.md` — oito acréscimos, um por decisão, mais a escopagem de
+uma linha do «Formato de saída» (`Onde algo **obrigatório** não foi respondido, [a decidir]`), que
+senão contradiria a regra nova do opcional em branco. `REGISTRO.md` — esta entrada.
+
+**Referências.** `experimentos/po/conteudo/po.json` (o formulário: 36 nós, 28 obrigatórios) ·
+`experimentos/po/README.md` §4 e §8 · `.github/instructions/registro-md.instructions.md` ·
+`CONGELAMENTO.md` · `PROTOCOLO.md` (P-12, P-14, P-16) · precedente de prompt congelado editado:
+`ebc62bb`. A via anterior do arquivo está no workspace da sessão (md5
+`b7e455a75f27a670f96df2425f350a3a`).
+
+**O que ainda não está feito.**
+
+- **As Frentes 2 e 3 do pedido não começaram:** o botão «Usar IA para fazer o PO» (que deve acionar
+  **este** prompt, agora atualizado) e a lista de sujeitos e anamneses para o agente inteligente.
+- **A alteração não foi vista por um agente em uso.** O que se mediu foi o **texto** — oito
+  acréscimos presentes e verificados. Se a entrevista conduzida pelo prompt atualizado produz PO
+  melhor, isso só se sabe **rodando-o**.
+- **A via anterior não está no repositório.** Ficou em `files/elicitar-ciclo.ANTES.md`, no workspace
+  da sessão, **fora do Git**.
