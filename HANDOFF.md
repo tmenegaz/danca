@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-05T12:33:20-0300`
-Commit atual: `c64fe95` — feat(tools): a espiral dos criadores ganha injetor próprio, e o registro conta a rodada
+Gerado em: `2026-10-07T23:42:02-0300`
+Commit atual: `9f8a96e` — feat(prompts): a elicitação herda oito decisões do formulário do experimento
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -50,6 +50,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+9f8a96e feat(prompts): a elicitação herda oito decisões do formulário do experimento
+d94b991 feat(experimentos): o Worker ganha o cofre da anamnese — com leitura por GET
+0b81ab1 docs(registro): regenera o HANDOFF sobre c64fe95
 c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registro conta a rodada
 55d332d docs(apresentacao-01-rizoma): o deck passa de 72 para 87 slides e o mapa anda para o slide 83
 f595506 docs(registro): regenera o HANDOFF sobre b6a406b
@@ -67,9 +70,6 @@ f04551b docs(registro): os ciclos-prototipo saem, e o tools/ acha o ciclo ativo
 08c0be9 chore(estrutura): saem os ciclos-prototipo, e o Diaghilev fica sozinho
 be806f4 docs(estrutura): a regra de desmembramento da ficha entra na norma
 bbe8867 docs(tools): a colheita do HANDOFF passa a ter limite, e a leitura do REGISTRO deixa de ser inteira
-ac071db docs(registro): regenera o HANDOFF sobre 7b46e5c
-7b46e5c docs(ciclo-01): a grafia nova alcanca as fontes da Ritmos, e a ancora reancora
-f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do prompt congelado ganha dono
 ```
 
 ## Por professor
@@ -133,149 +133,95 @@ f000b10 docs(prompts): "Elicitação" se propaga pela prosa, e a pendência do p
 
 ## Última entrada do REGISTRO
 
-## 07/10/2026 — O Netlify antigo é destruído, o mapa anda para o slide 83 e a espiral vira fonte
+## 07/10/2026 — O prompt de elicitação herda oito decisões do formulário do experimento
 
-**O que motivou.** Três coisas, na mesma rodada, e a pesquisadora pediu as três de uma vez:
-*"o meu time não existe mais no netlify. pode remover o token da ritmos e destroi o netlify velho.
-faz os commits dos arquivos da apresentação também"*. A primeira é limpeza: dois sites órfãos
-continuavam publicando sozinhos. A segunda é renumeração: o bloco novo de O Quebra-Nozes entrou
-**antes** do mapa, e todo número de slide posterior a ele ficou defasado. A terceira é a
-apresentação: os quatro arquivos satélites do deck carregavam os números velhos.
+**O que motivou.** O formulário do PO do experimento (`experimentos/po/conteudo/po.json`, 36 nós)
+foi construído *a partir* do prompt congelado — e evoluiu além dele. O plano de 06/10/2026 já
+registrava a coexistência: *"é o elo textual; o PO continua a poder nascer por prosa"*. A
+pesquisadora pediu que a diferença fosse **medida** e que as melhorias **voltassem ao prompt**,
+*"para que o prompt continue sendo o caminho de entrada — com a mesma qualidade do formulário"*.
+Medi as duas peças, nó a nó e bloco a bloco.
 
-**Medido antes de mexer.**
+**O que foi decidido.** Oito decisões do formulário entram no prompt; o resto **não** entra, e o
+porquê fica escrito na mesma entrada. Entram:
 
-- `/api/v1/sites?per_page=100` com o token do `RITMOS` ⇒ `200`, **14 344 B, exatamente 2 sites**.
-  Ambos com `build_settings.repo_url = github.com/tmenegaz/danca`, publicando
-  `professores/tiago/ciclos/ciclo-01-ritmos` e `…/ciclo-01-duo`, ambos `404`, **42 deploys em
-  `error`** cada um.
-- As pastas-fonte dos dois foram removidas em `08c0be9` ⇒ **órfãos**: o repositório não as tem
-  mais, os sites continuavam no ar apontando para o nada.
-- `ritmos.netlify.app`, `danca.netlify.app` e `danaca.netlify.app` devolvem `404` **com este
-  token** ⇒ pertencem a **outra conta**. O critério de posse é `build_settings.repo_url`, não o
-  título do HTML.
-- Deck **HEAD: 72 slides**; worktree: **87 slides**. Alinhamento título a título ⇒ **a primeira
-  divergência é o índice 50**; os **slides 1–49 são byte-idênticos**. **Delta = +15 uniforme a
-  partir do slide 50**, provado em 6 medições independentes.
-- `git diff --numstat` do deck ⇒ **`452 0`** — só inserções, nenhuma deleção.
-- Varredura de número de slide *hardcoded* em `tools/*.js` ⇒ **um único hit, e é falso positivo**
-  (o `70%` de um `@keyframes` em `gerar-animacao.js:130`). Nenhum script numerava slides.
+1. **O porquê de cada pergunta.** O formulário traz `explicacao.porQue` em **todos** os 36 nós; o
+   prompt tinha a *ponte* (o termo do protocolo entre crases) e **nunca** o motivo. Regra nova em
+   «Como conduzir»: uma linha de porquê junto da ponte.
+2. **Obrigatório × opcional.** 28 dos 36 nós declaram `obrigatorio: true`; o prompt não tinha a
+   distinção. A compilação passa a separar a **lacuna explícita** (`[a decidir]`) do **branco
+   declarado** — e a suposição continua sendo o defeito.
+3. **O checklist perguntado.** Os seis critérios de validação são, no formulário, seis nós
+   **obrigatórios** (`blocos[7]`); no prompt eram uma menção — *"relê o PO contra o checklist de
+   validação"* — **sem os seis nomes em lugar nenhum**. Agora o fechamento pergunta os seis, um a
+   um, e um «não» volta ao campo que o critério nomeia.
+4. **Campo e contexto como dois grupos nomeados, com «outro».** O formulário organiza a observação
+   inicial em `Campo empírico` e `Contexto da observação`, cada um com campo aberto. O Bloco 1 era
+   lista plana **sem catch-all** — e daí saíram **quatro lacunas de conteúdo**, não de estilo:
+   `campo-turma` (**qual turma**), `contexto-volume`, `contexto-registro` e os dois «outro».
+5. **A derivação da linha de base.** O formulário deriva inclusão/exclusão do que a anamnese já
+   declara; o prompt perguntava a frio. O Bloco 7 passa a pedir um **rascunho** do agente, sujeito
+   a edição — *sugestão, não decisão*.
+6. **P-12 e a estabilidade do apelido.** O formulário declara `apelidoObrigatorio: "P-12"`; o
+   prompt pedia apelidos, citava P-01, P-11 e P-22 — e **não** P-12. O Bloco 3 passa a citá-la, com
+   a estabilidade entre ciclos.
+7. **Perguntas condicionais declaradas.** O formulário declara `condicaoDeEntrada` em dois módulos;
+   o prompt perguntava tudo sempre. Os Blocos 2 e 4 passam a declarar as duas condições (P-14 e a
+   extensão).
+8. **P-16 — declarado, nunca deduzido.** Regra que o formulário repete (`listaAberta.regra`) e o
+   prompt não tinha.
 
-**O que foi decidido.** *(o "como" foi meu; o "o quê" era dela)*
+**O que NÃO entrou, e por quê.** A proveniência de três estados, o KV, a leitura lazy, os selos de
+estado, o `repetirPor` auto-preenchido, `exclusiva`/`multipla` e o versionamento do envelope são
+decisões de **sistema** — o prompt não tem estado, não tem leitor e não tem tela. As 22 regras de
+corte também não: o prompt ganhou a **capacidade** de derivar, não as regras. E o
+`explicacao.oQueE`/`preencher` já estavam lá — o `oQueE` *é* a pergunta, o `preencher` *é* a forma
+(a regra das listas e a dos marcos).
 
-- **Destruir os dois sites, com confirmação nominal antes.** Pedi o alvo por extenso — nome, `id`,
-  diretório e a contagem de deploys — e ela respondeu *"Sim — destruir os dois"*. Um `DELETE`
-  cego em `/api/v1/sites` teria levado junto o que não era nosso se a conta fosse outra.
-- **Não tocar nos três hosts de terceiros.** Foram reconsultados **depois** da destruição e
-  continuam `404` — a contra-prova de que o estrago foi cirúrgico.
-- **Corrigir todos os números, incluindo os que já estavam errados antes.** Medido o `HEAD`: a
-  tabela do deck `README.md` já apontava `Exemplos (30–31)` e `Progressão (28–29)` quando eles
-  sempre foram **42–43** e **40–41** — deriva **pré-existente**, não causada pelo bloco novo. Ela
-  autorizou corrigir tudo de uma vez.
-- **A espiral vira fonte, com injetor próprio.** O SVG da espiral dos criadores é **texto** ⇒
-  versionável, como o mapa. Ganha um script espelho do `sincronizar-slide.js`, com a mesma
-  convenção: marcadores `ESPIRAL:INICIO`/`ESPIRAL:FIM` no deck, SVG ao lado, idempotência.
+**Onde entrou.** `prompts/elicitar-ciclo.md` — 213 → **277 linhas** (9 928 → **14 087 B**):
+**+78 linhas, 14 removidas — todas reescritas**, em quatro pontos (o fechamento, as linhas
+dispersas do Bloco 1, a linha dos apelidos e o bullet da extensão), conferidas uma a uma. Os
+**dez blocos** continuam — e é o que o `derivar-plano.js` declara
+(`espacosDeNomes.entrevista.blocos: 10`).
 
-**Onde entrou.**
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `prompts/`. O motivo: o prompt é o
+**elo textual** do PO (P-19), e o formulário — construído a partir dele — resolveu oito problemas
+que o texto ainda não resolvia. Deixá-lo como estava criaria **duas qualidades** de elicitação: a
+do formulário e a da prosa. A alteração é de **redação e de conteúdo de entrevista**; não é de
+comportamento de sistema. **O que não muda:**
 
-- **5 arquivos modificados:** `apresentacoes/apresentacao-01-rizoma/README.md` (**32 edições**),
-  `apresentacoes/apresentacao-01-rizoma/apresentacao-ballet.md` (**+454, 0 deleções**),
-  `apresentacoes/apresentacao-01-rizoma/slides/rizoma-mapa-inline.md`,
-  `.github/agents/deck-rizoma.agent.md`, `README.md` (raiz).
-- **4 arquivos novos:** `quebra-nozes-48-68.md` (Marp standalone dos slides 48–68),
-  `quebra-nozes-guia-de-narracao.md`, `quebra-nozes-espiral.svg` (a fonte) e
-  `tools/sincronizar-espiral.js` (o injetor).
-- **Renumerados:** o mapa do rizoma **68 → 83**; o agradecimento **72 → 87**; a contagem
-  **72 → 87 slides** em todas as superfícies que a citam.
-- **`_notes` do deck, linha 1709** — dizia *"No mapa do slide 68…"* ⇒ **83**.
-- **Tabela de classes do deck `README.md`** — estava defasada em três linhas: `mid` dizia 10 slides
-  (são **19**), `table-xl` dizia 28–29 (são **40–41**), `table-lg` dizia 40 (é **67**), e
-  `dense` constava como *"reservas na CSS — não usadas"* quando está **em uso nos slides 56–60**.
-- **Créditos da capa** — a `README.md` mandava preencher `[Nome da apresentadora]`, `[Data]` e
-  `[Contato]`; varredura no repositório inteiro achou **exatamente 1 ocorrência, e era essa mesma
-  linha**. Os três campos **não existem** no slide: a capa traz `**Tiago Menegaz**`,
-  `**3 de outubro de 2026**` e `**Studio Ritmo e Movimentos — Passo Fundo, RS**`.
+- **A fórmula do hash e a cobertura da âncora.** `prompts/` **não** está em `tools/lib-fontes.sh`, e
+  o `.fipp` cobre só `professores/<professor>/ciclos/ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os
+  `ciclo-XX-*.md` ⇒ **nenhum `.fipp` precisa ser reancorado**. Provado: `tools/hash-ciclo.sh fokini
+  01 diaghilev --check` ⇒ *"ciclo 01-diaghilev íntegro; cadeia intacta"* — rodado **depois** da
+  alteração.
+- **Os validadores, os extratores e os geradores.** Nenhum lê o prompt: as duas referências no
+  repositório são **citações** — `derivar-plano.js:246` (uma string `fonte:`) e
+  `prompts/instalar-ciclo.md:11` (uma remissão em prosa).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou. As pétreas novas citadas
+  (P-12, P-14, P-16) **já existiam** — o prompt é que não as citava.
 
-**Motivo declarado — o congelado.**
+**Com o quê.** `prompts/elicitar-ciclo.md` — oito acréscimos, um por decisão, mais a escopagem de
+uma linha do «Formato de saída» (`Onde algo **obrigatório** não foi respondido, [a decidir]`), que
+senão contradiria a regra nova do opcional em branco. `REGISTRO.md` — esta entrada.
 
-`tools/sincronizar-espiral.js` entra em `tools/`, que é **congelado**. O motivo: a espiral é
-**fonte do deck**, como o mapa, e sem injetor próprio ela só existiria como SVG solto — sem
-marcador, sem verificação de sincronia e sem o `check-mapa.js` para prová-la. O script é **espelho
-fiel** do `sincronizar-slide.js`: mesma convenção de marcadores, mesmo `require('./lib-tokens')`,
-mesma leitura de `process.env.APRESENTACAO`, mesma idempotência. Nada de novo é inventado — a
-única diferença é o par de marcadores e o arquivo de SVG.
-
-**Com o quê.** `wrangler 4.147.0`, node `v24.12.0`, o CLI do Netlify por `curl` (não há `netlify`
-instalado), `python3` para o mapeador linha→slide, `sed`/`awk` para conferência byte a byte.
-O mapeador linha→slide **precisa descartar o front-matter YAML** do deck, que fecha na linha 125 —
-incluí-lo superconta os slides em **+2**.
-
-**Referências.**
-
-- `CONGELAMENTO.md:19` — a lista dos congelados, e `tools/` entre eles.
-- `REGISTRO.md:8757` — a entrada anterior, *"O cofre dos lançamentos sai do Netlify e entra no
-  Cloudflare KV"*, onde nasceu a afirmação errada sobre o token. Corrigida ali com nota datada.
-- `08c0be9` — o commit que tirou `professores/tiago/` do repositório e deixou os dois sites órfãos.
-- `a265450` (2026-09-17) — o commit **original** do deck, com **72 slides**. `git log -S "Contexto
-  Soviético" --all` ⇒ **0 hits**: o título nunca existiu como slide; era nome informal do professor.
-- `1d01c9d` — a entrada do Cloudflare, que apagou o Netlify do repositório.
-- `apresentacoes/apresentacao-01-rizoma/README.md:348–349` — a calibração da animação do mapa,
-  consistente com o `check-mapa.js` (26 caixas + 33 arestas).
-
-**Provas.**
-
-1. **Destruição:** `DELETE /api/v1/sites/{id}` ⇒ **HTTP 204, 0 B** nos dois. Depois:
-   `/api/v1/sites` ⇒ `200`, **2 B, 0 sites**; cada `id` ⇒ **404**; os três hosts de terceiros ⇒
-   **404**, intocados.
-2. **Renumeração:** `grep` de `slide 68|slide 69|slide 72|72 páginas|72 slides|slide-72|slide.072`
-   nos **três** arquivos de documentação ⇒ **EXIT=1, zero hits**.
-3. **Validadores, todos EXIT=0:** `check-overflow.js` ⇒ **87 slides, 0 com overflow**;
-   `check-mapa.js` ⇒ **26 nós / 33 arestas / 0 colisões**; `check-identidade.js` ⇒ **21 pares AA**,
-   4 linhas `ok:`.
-4. **Idempotência dos dois injetores, por sha256:** o deck fechou em
-   `274f9e4bab218d89b75aeaf70fe6c13658893fe6b99b19a46c6b700b66833d83` **antes e depois** de
-   rodar os dois. O comportamento verbatim: *"já estava sincronizado — nada a fazer"* (160 linhas
-   de SVG, 22 caixas; e 73 linhas de SVG, 6 caixas).
-5. **Varredura de identidade:** o script da skill `identidade-do-projeto` sobre os 14 pontos de
-   entrada ⇒ **todos os achados legítimos**, com ressalva de escopo. Nenhum arquivo de
-   apresentação aparece.
-
-**O que NÃO muda.**
-
-- **A fórmula do hash** (`tools/hash-ciclo.sh`) e a **cobertura da âncora** (`.fipp`): o deck, o
-  `README.md` da apresentação, `.github/agents/` e o `README.md` da raiz **não** são fontes de
-  ciclo ⇒ **nenhum `.fipp` precisa ser reancorado**. O `.fipp` cobre só
-  `professores/<professor>/ciclos/ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os `ciclo-XX-*.md`.
-- **As 17 regras**, as **22 pétreas** e o `CONGELAMENTO.md` — nenhuma regra mudou; a renumeração
-  corrige **referência**, não princípio.
-- **Os validadores** — a assinatura das quatro linhas de `check-identidade.js` é a mesma, e o
-  `pre-commit` continua rodando a seção 5 sem alteração.
+**Referências.** `experimentos/po/conteudo/po.json` (o formulário: 36 nós, 28 obrigatórios) ·
+`experimentos/po/README.md` §4 e §8 · `.github/instructions/registro-md.instructions.md` ·
+`CONGELAMENTO.md` · `PROTOCOLO.md` (P-12, P-14, P-16) · precedente de prompt congelado editado:
+`ebc62bb`. A via anterior do arquivo está no workspace da sessão (md5
+`b7e455a75f27a670f96df2425f350a3a`).
 
 **O que ainda não está feito.**
 
-- **O token do `RITMOS` continua VIVO.** Ver a **nota de correção datada** em `REGISTRO.md:8886`
-  — ele autentica como `tmenegaz77@gmail.com` e agora alcança **0 sites**, mas **não expira
-  sozinho**. A API do Netlify administra sites, **não** PATs: a revogação é no painel
-  (*User settings → Applications → Personal access tokens → Revoke*). Não há nada editável no
-  repositório.
-- **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
-  a pesquisadora pediu os **commits**, não a entrega.
-- **A temporada de commits é local** até ela empurrar.
+- **As Frentes 2 e 3 do pedido não começaram:** o botão «Usar IA para fazer o PO» (que deve acionar
+  **este** prompt, agora atualizado) e a lista de sujeitos e anamneses para o agente inteligente.
+- **A alteração não foi vista por um agente em uso.** O que se mediu foi o **texto** — oito
+  acréscimos presentes e verificados. Se a entrevista conduzida pelo prompt atualizado produz PO
+  melhor, isso só se sabe **rodando-o**.
+- **A via anterior não está no repositório.** Ficou em `files/elicitar-ciclo.ANTES.md`, no workspace
+  da sessão, **fora do Git**.
 
 ## O que está pendente
-
-## 01/10/2026 — A view gerada e a regra de leitura cresciam com o arquivo: a colheita passa a ter limite e o `REGISTRO.md` deixa de ser lido inteiro
-
-- **A Frente 3** — declarar onde acaba o *desenho* e começa o *estado* nos `ARQUITETURA-*.md`. Medido:
-  `ARQUITETURA-AULA.md` tem **31 %** de cauda de estado, `ARQUITETURA-ANAMNESE.md` **21 %** e
-  `ARQUITETURA-PE.md` **19 %**. É a única frente **livre** com ganho real — mas o ganho é de **quem
-  implementa**, não da sessão nova: nenhum `ARQUITETURA-*` está na ordem prescrita de leitura.
-- **A Frente 4** — índice no `prompts/elicitar-ciclo.md` (congelado), adiada acima.
-- **A auditoria de quais dos 76 blocos estão de fato abertos hoje.** A varredura sabe quais existem e
-  onde estão; **não** sabe quantos estão abertos. O índice mitiga, mas não substitui essa auditoria.
-- **A verificação de qualidade.** A varredura prova que o custo **caiu** (754 723 → **101 788 B**,
-  −86,5 %); não prova que a resposta **não piora**. Isso só se verifica rodando uma sessão nova.
-- **Bytes não são tokens.** Toda a medição é em bytes. A proporção (~96 % em dois arquivos) é o
-  achado robusto; a conversão para token **não foi medida**.
 
 ## 02/10/2026 — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev fica sozinho
 
@@ -359,6 +305,17 @@ incluí-lo superconta os slides em **+2**.
 - **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
   a pesquisadora pediu os **commits**, não a entrega.
 - **A temporada de commits é local** até ela empurrar.
+
+## 07/10/2026 — O prompt de elicitação herda oito decisões do formulário do experimento
+
+
+- **As Frentes 2 e 3 do pedido não começaram:** o botão «Usar IA para fazer o PO» (que deve acionar
+  **este** prompt, agora atualizado) e a lista de sujeitos e anamneses para o agente inteligente.
+- **A alteração não foi vista por um agente em uso.** O que se mediu foi o **texto** — oito
+  acréscimos presentes e verificados. Se a entrevista conduzida pelo prompt atualizado produz PO
+  melhor, isso só se sabe **rodando-o**.
+- **A via anterior não está no repositório.** Ficou em `files/elicitar-ciclo.ANTES.md`, no workspace
+  da sessão, **fora do Git**.
 
 ## Pendências anteriores (índice)
 
@@ -444,6 +401,7 @@ incluí-lo superconta os slides em **+2**.
 - **30/09/2026** — Os pontos 2, 3 e 4 fechados: a grafia, o campo `professor`… → `REGISTRO.md` L8093
 - **30/09/2026** — O segundo papel do agente: o servidor local **não… → `REGISTRO.md` L8182
 - **01/10/2026** — A grafia de "Elicitação" se propaga, e a pendência do… → `REGISTRO.md` L8269
+- **01/10/2026** — A view gerada e a regra de leitura cresciam com o arquivo:… → `REGISTRO.md` L8410
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
