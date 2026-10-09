@@ -9228,3 +9228,53 @@ entrada `tools/.escolas-teste` (local, como as senhas). `tools/.escolas-teste` �
 **Referências.** `tools/hooks/pre-push` (a conferência de senha) · `tools/.senhas-locais.exemplo`
 (a convenção `SENHA_<ESCOLA>`) · `CONGELAMENTO.md` ("alterar a lógica de hash, validação ou
 geração") · `tools/gerar-acompanhamento.sh` (quem consome as senhas).
+
+## 09/10/2026 — A porta do Plano de Observação ganha a navegação do site e o comportamento de saída
+
+**O que motivou.** Com a porta publicada sob `/plano-observacao/` (mesma origem do pacote), dois
+fenômenos apareceram no uso: (1) ao abrir a porta, a barra de navegação do site **desaparecia** —
+o professor não tinha o menu e não percebia estar no mesmo sistema; e (2) o botão **voltar** do
+navegador saltava para o início do ciclo, em vez de devolver à tela anterior. O pedido da
+pesquisadora (09/10/2026) detalha o comportamento esperado: voltar do navegador devolve à página
+anterior; «começar de novo» limpa a memória e volta ao portal do Plano de Observação; dentro do
+formulário há um botão **Sair** que preserva na memória e volta ao portal; e, no PO, o botão de
+troca diz **«Voltar para a anamnese»**.
+
+**O que foi decidido.**
+
+- A porta recebe a **MESMA navegação do site** (a `gerar_nav`), com o item «Plano de Observação»
+  marcado como ativo. Os links saem de **raiz** (`/index.html`, `/aula-01.html`, …) porque a porta
+  vive um nível abaixo do pacote (`/plano-observacao/`); as chamadas de API continuam relativas,
+  ancoradas pelo `<base href="./">`.
+- O `body` volta a reservar `var(--header-height)` (a navbar fixa não cobre o conteúdo), e a
+  `.barra` de contexto gruda **abaixo** da navbar (`top: var(--header-height)`). A altura da `.barra`
+  passa a viver em `--barra-height` (o `--header-height` é da navbar, publicado pelo `nav.js`).
+- **Navegação por histórico:** abrir a condução marca uma entrada (`pushState`); o **Sair** a
+  desempilha (`history.back()`). O `popstate` reabre o portal. Assim o voltar do navegador: dentro
+  do formulário → portal; no portal → página anterior do ciclo (uma pressão só).
+- **«Começar de novo»** limpa a memória (depósito + respostas/notas/sugeridas) e volta ao portal.
+  **«Sair»** preserva na memória (padrão) e volta ao portal, que então mostra «continuar / começar
+  de novo». O botão de troca de fonte, no modo PO, diz **«Voltar para a anamnese»**.
+
+**Onde entrou.** `tools/gerar-ciclo.sh` (a `gerar_nav` ganha o prefixo de link e a cópia da porta
+com a navegação injetada no marcador `<!-- NAV -->`) · `porta/index.html` (a navegação, o
+`body id="top"`, o `--barra-height`, o botão Sair e a máquina de histórico) ·
+`professores/fokini/ciclos/ciclo-01-diaghilev/plano-observacao/index.html` (regenerado).
+
+**Motivo declarado — os congelados.** `tools/gerar-ciclo.sh` é infraestrutura congelada, e a
+mudança toca a **geração** (o `CONGELAMENTO.md` lista "alterar a lógica de hash, validação ou
+geração" e "alterar a estrutura de menu ou navegação"). O motivo: a porta promovida precisa da
+navegação do site para o professor perceber continuidade — e a navegação tem de ser **gerada**,
+não copiada à mão. **O que não muda:** a fórmula do hash e a cobertura da âncora (o gerador não é
+fonte de `.fipp`); as 17 regras, as 22 pétreas e o `CONGELAMENTO.md`; o comportamento das páginas
+do pacote (a `gerar_nav` com prefixo vazio gera exatamente os mesmos links relativos de antes).
+
+**Com o quê.** `tools/gerar-ciclo.sh` — `link_href()` (prefixo de link), a cópia da porta em
+`1b` com a injeção do marcador, e o item «Plano de Observação» ativo na porta. `porta/index.html` —
+o `<!-- NAV -->`, o `body id="top"`, o `--barra-height`, o `scroll-padding-top`, o botão `#sair` e
+a máquina de histórico (`abrirFormulario`/`voltarAoPortal`/`popstate`). `REGISTRO.md` — esta entrada.
+
+**Referências.** `tools/gerar-ciclo.sh` (`gerar_nav`, o bloco `1b` da porta) · `porta/index.html`
+(a navegação e a máquina de histórico) · `tools/templates/nav.js` (a barra compartilhada) ·
+`CONGELAMENTO.md` ("alterar a lógica de hash, validação ou geração" / "alterar a estrutura de menu
+ou navegação").

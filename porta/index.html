@@ -28,11 +28,13 @@
     --acento: var(--burgundy);
     --erro: var(--falha);
   }
-  /* O site reserva `padding-top` para a navbar FIXA (`--header-height`). O experimento não
-     tem navbar: a `.barra` dele é `sticky` e flui com a página. Então o `padding` sai, e o
-     `--header-height` passa a medir a própria `.barra` — publicado pelo JavaScript, como o
-     `assets/nav.js` do site faz —, para as âncoras e o `.rail` pararem abaixo dela. */
-  body { padding: 0 0 40px; }
+  /* A porta TEM a navbar do site (injetada pelo gerador no marcador de navegação): o
+     `--header-height` volta a ser da NAVBAR (o assets/nav.js publica a altura dela), e o
+     `body` reserva o espaço para a barra fixa — como em qualquer página do pacote. A `.barra`
+     (o contexto do ato) é `sticky` e para ABAIXO da navbar; a altura DELA é publicada em
+     `--barra-height`, para as âncoras e o `.rail` pararem abaixo das duas. */
+  body { padding: var(--header-height) 0 40px; }
+  html { scroll-padding-top: calc(var(--header-height) + var(--barra-height, 0px) + 8px); }
   .sub { color: var(--suave); font-size: .9rem; margin: 0 0 1.5rem; }
   /* Os links que embrulham um botão e as linhas da lista já se anunciam por si: o filete
      pontilhado do site (que marca link de prosa) vira ruído embaixo de um controle. */
@@ -49,7 +51,7 @@
      serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
      onde se digita. Prega-se ao topo porque é controle: não sai de vista. */
   .barra {
-    position: sticky; top: 0; z-index: 5;
+    position: sticky; top: var(--header-height); z-index: 5;
     max-width: 900px; margin: 0 auto 1.5rem;
     background: var(--cream);
     border-bottom: 1px solid var(--gold-escuro);
@@ -242,11 +244,19 @@
   @media print { .toc-local { position: static; max-height: none; } }
 </style>
 </head>
-<body>
+<body id="top">
+
+<!-- NAV (o marcador) — a MESMA barra de navegação do site, injetada por tools/gerar-ciclo.sh
+     (como no lancamento.html). Ela mantém o menu do ciclo visível: o professor está no
+     Plano de Observação DENTRO do mesmo sistema, e pode ir para qualquer página. Os links
+     são ABSOLUTOS de raiz (`/index.html`, `/aula-01.html`, …) porque a porta vive em
+     `/plano-observacao/`, um nível abaixo do pacote — e o `<base href="./">` não os afeta.
+     O marcador é substituído na geração; sem ele (porta aberta avulsa), a página fica
+     sem a barra, mas inteira. -->
+<!-- NAV -->
 
 <!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de
-     ouro e o subtítulo em itálico. Não há navbar: o experimento é uma página só, e a
-     faixa de contexto do ato (`.barra`, abaixo) faz o papel de barra que acompanha. -->
+     ouro e o subtítulo em itálico. A barra de cima é a do site (o marcador acima). -->
 <header class="doc">
   <h1>Plano de Observação</h1>
   <p class="subtitulo">O recorte escrito antes de olhar — com a anamnese que o sustenta.</p>
@@ -343,6 +353,7 @@
     <button id="proxima" class="principal">Próxima →</button>
     <button id="pular">Pular</button>
     <button id="fechar" disabled>Fechar a elicitação</button>
+    <button id="sair">Sair</button>
   </div>
 </section>
 
@@ -548,6 +559,55 @@ function restaurar(guardado) {
 }
 
 /*
+ * Abrir a CONDUÇÃO marca um estado de histórico (`pushState`): assim o VOLTAR do
+ * navegador, dentro do formulário, devolve ao PORTAL — e não salta para a página
+ * anterior do ciclo, como se o formulário nunca tivesse existido. Todo caminho que
+ * abre a condução passa por aqui (Começar, Continuar, Editar), para o «Sair» poder
+ * desempilhar essa mesma entrada com `history.back()`.
+ */
+function abrirFormulario(indice) {
+  history.pushState({ portal: true }, '');
+  document.getElementById('abertura').classList.add('oculto');
+  const retomada = document.getElementById('retomada');
+  if (retomada) retomada.classList.add('oculto');
+  for (const id of ['fecho', 'ia']) {
+    const s = document.getElementById(id);
+    if (s) s.classList.add('oculto');
+  }
+  document.getElementById('conducao').classList.remove('oculto');
+  document.getElementById('rail').classList.remove('oculto');
+  irPara(indice, false);
+}
+
+/*
+ * Voltar ao PORTAL (a abertura): esconde a condução/fecho/IA, mantém a barra de
+ * contexto, e reflete a memória — com depósito, os botões «continuar / começar de
+ * novo»; sem, o «Começar» volta a valer. É o destino do «Sair» (via `popstate`),
+ * do «Começar de novo» e do voltar do navegador dentro da condução.
+ */
+function voltarAoPortal() {
+  document.getElementById('abertura').classList.remove('oculto');
+  for (const id of ['conducao', 'fecho', 'ia']) {
+    const s = document.getElementById(id);
+    if (s) s.classList.add('oculto');
+  }
+  const rail = document.getElementById('rail');
+  if (rail) rail.classList.add('oculto');
+  IA_ATIVA = false;
+  pararVoz();
+
+  const guardado = lerMemoria();
+  if (guardado) {
+    mostrarRetomada(restaurar(guardado));
+  } else {
+    const retomada = document.getElementById('retomada');
+    if (retomada) { retomada.classList.add('oculto'); retomada.innerHTML = ''; }
+    const comecar = document.getElementById('comecar');
+    if (comecar) comecar.disabled = false;
+  }
+}
+
+/*
  * Retomar não pode ser silencioso: quem volta precisa saber que voltou, quando
  * foi o último lançamento, e quanto já estava respondido. E precisa poder
  * recusar — daí o «começar de novo» ao lado do «continuar». Enquanto o depósito
@@ -573,26 +633,19 @@ function mostrarRetomada(t) {
   $('retomada').classList.remove('oculto');
   $('comecar').disabled = true;
 
-  const abrirConducao = () => {
-    $('retomada').classList.add('oculto');
-    $('abertura').classList.add('oculto');
-    $('conducao').classList.remove('oculto');
-    $('rail').classList.remove('oculto');
-  };
-
-  $('continuar').addEventListener('click', () => {
-    abrirConducao();
-    irPara(INDICE, false);
+    $('continuar').addEventListener('click', () => {
+    abrirFormulario(INDICE);
   });
   $('recomecar').addEventListener('click', () => {
+    // «Começar de novo» limpa TUDO e volta ao PORTAL (o destino do menu) — não entra
+    // na condução: quem decide o que fazer é o professor, do zero.
     limparMemoria();
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
     INDICE = 0;
     atualizarBarra();
-    abrirConducao();
-    irPara(0, false);
+    voltarAoPortal();
   });
 }
 
@@ -1097,18 +1150,18 @@ function citacao(termo) {
 }
 
 /*
- * A `.barra` é `sticky`, não fixa: ela ocupa lugar no fluxo. Mas as âncoras (`#id`) e a
- * coluna do índice do site usam `--header-height` para parar ABAIXO da barra — e esse
- * valor só é conhecido depois do layout, porque a faixa embrulha em duas linhas quando a
- * janela estreita. Então mede-se, e republica-se quando a medida mudar — o mesmo que o
- * `assets/nav.js` do site faz com a navbar.
+ * A `.barra` é `sticky`, não fixa: ela ocupa lugar no fluxo. As âncoras (`#id`) e o `.rail`
+ * param ABAIXO da navbar E da `.barra` — e a altura da `.barra` só é conhecida depois do
+ * layout, porque a faixa embrulha em duas linhas quando a janela estreita. Então mede-se, e
+ * republica-se quando a medida mudar — o mesmo que o `assets/nav.js` do site faz com a
+ * navbar. A variável é `--barra-height` (a navbar é dona do `--header-height`, lá no nav.js).
  */
 function publicarAlturaDaBarra() {
   const barra = $('barra');
   if (!barra) return;
   const publicar = () => {
     const altura = barra.classList.contains('oculto') ? 0 : barra.offsetHeight;
-    document.documentElement.style.setProperty('--header-height', altura + 'px');
+    document.documentElement.style.setProperty('--barra-height', altura + 'px');
   };
   publicar();
   if (typeof ResizeObserver === 'function') new ResizeObserver(publicar).observe(barra);
@@ -1426,8 +1479,18 @@ function blocoDaRepeticao(no) {
  * para criar — sem sair do PO: abre na outra aba, e o professor volta.
  */
 function referenciaDaAnamnese(opcao, sujeito) {
-  const criar = '<a href="?fonte=anamnese&aluna=' + encodeURIComponent(sujeito) +
-    '" target="_blank" rel="noopener">criar a anamnese de ' + md(sujeito) + '</a>';
+  // O atalho leva o CONTEXTO do ato junto (a barra da nova aba nasce identificada) e só
+  // troca a fonte para anamnese, com o apelido do sujeito — sem perder escola/professor/ciclo.
+  const params = new URLSearchParams(location.search);
+  const contexto = {};
+  for (const campo of ['escola', 'professor', 'ciclo']) {
+    const v = params.get(campo);
+    if (v) contexto[campo] = v;
+  }
+  const nova = new URLSearchParams(contexto);
+  nova.set('fonte', 'anamnese');
+  nova.set('aluna', sujeito);
+  const criar = '<a href="?' + nova.toString() + '" target="_blank" rel="noopener">criar a anamnese de ' + md(sujeito) + '</a>';
   if (!opcao) {
     return '<div class="referencia"><p class="sumiu"><b>Sem anamnese</b> para ' + citacao(sujeito) +
       ' neste sistema.</p><p>' + criar + ' — e depois volte e recarregue esta página.</p></div>';
@@ -2321,11 +2384,7 @@ function editarAnamnese(id) {
       atualizarBarra();
       pintarRoteiro();
       salvar();
-      $('abertura').classList.add('oculto');
-      $('conducao').classList.remove('oculto');
-      $('rail').classList.remove('oculto');
-      $('fecho').classList.add('oculto');
-      irPara(0, false);
+      abrirFormulario(0);
     })
     .catch((erro) => avisarNaFicha(id, erro.message, 'erro'));
 }
@@ -2781,17 +2840,28 @@ async function iniciar() {
   const comecar = document.getElementById('comecar');
   if (comecar) comecar.textContent = FONTE === 'po' ? 'Começar pelo PO' : 'Começar pela anamnese';
 
-  // O botão que troca de fonte aponta para a OUTRA, e diz para onde vai.
+  // O botão que troca de fonte aponta para a OUTRA, e diz para onde vai. O contexto do ato
+  // (escola, professor, ciclo, aluna) VAI JUNTO na URL: trocar de fonte sem ele faria a barra
+  // voltar aos padrões — e o voltar do navegador passaria a apontar para uma URL que já não é
+  // a que o professor preencheu.
   const outro = document.getElementById('link-fonte');
   if (outro) {
     const rotulo = outro.querySelector('button');
+    const params = new URLSearchParams(location.search);
+    const contexto = {};
+    for (const campo of ['escola', 'professor', 'ciclo', 'aluna']) {
+      const v = params.get(campo);
+      if (v) contexto[campo] = v;
+    }
+    const nova = new URLSearchParams(contexto);
     if (FONTE === 'po') {
-      outro.href = '?fonte=anamnese';
-      if (rotulo) rotulo.textContent = 'Fazer a anamnese';
+      nova.set('fonte', 'anamnese');
+      if (rotulo) rotulo.textContent = 'Voltar para a anamnese';
     } else {
-      outro.href = '?fonte=po';
+      nova.set('fonte', 'po');
       if (rotulo) rotulo.textContent = 'Capturar o PO';
     }
+    outro.href = '?' + nova.toString();
   }
 
   // O contexto do ato pode vir da URL: um atalho que abre a anamnese já com o
@@ -2847,12 +2917,14 @@ async function iniciar() {
   $('barra').classList.remove('oculto');
   publicarAlturaDaBarra();
 
-  $('comecar').addEventListener('click', () => {
-    $('abertura').classList.add('oculto');
-    $('conducao').classList.remove('oculto');
-    $('rail').classList.remove('oculto');
-    irPara(0, false);
-  });
+  $('comecar').addEventListener('click', () => abrirFormulario(0));
+
+  // O voltar do navegador, dentro da condução, devolve ao PORTAL. O «Sair» usa o MESMO
+  // caminho: `history.back()` desempilha a entrada que `abrirFormulario` criou, e este
+  // handler reabre a abertura. Sem a entrada de histórico, o voltar saltava a abertura
+  // e ia para a página do ciclo; com ela, a abertura é a parada natural — e um voltar
+  // DEPOIS dela vai para a página anterior do ciclo, como se espera.
+  window.addEventListener('popstate', () => voltarAoPortal());
 
   // O caminho por prosa: compõe o prompt com o contexto e copia para colar.
   if ($('usar-ia')) $('usar-ia').addEventListener('click', abrirIA);
@@ -2899,6 +2971,14 @@ async function iniciar() {
   $('voltar').addEventListener('click', () => {
     $('fecho').classList.add('oculto');
     $('conducao').classList.remove('oculto');
+  });
+  $('sair').addEventListener('click', () => {
+    // Sair preserva na memória (padrão) e volta ao PORTAL. O `history.back()`
+    // desempilha a entrada que «Começar» criou; o `popstate` reabre a abertura.
+    // Assim o voltar do navegador, DEPOIS de sair, vai para a página do ciclo —
+    // sem a segunda pressão que «pulava» a abertura.
+    salvar();
+    history.back();
   });
 
   $('roteiro').addEventListener('click', (evento) => {
@@ -3054,5 +3134,12 @@ async function iniciar() {
 
 iniciar();
 </script>
+
+<!-- A barra do site (o mesmo assets/nav.js do pacote, servido na raiz): a porta está no
+     mesmo sistema, e a barra fixa + o menu mobile precisam do comportamento que o pacote
+     já tem. Caminho ABSOLUTO de raiz (`/assets/nav.js`), fora do `<base>`, porque o arquivo
+     vive no pacote, um nível acima da porta. -->
+<script src="/assets/nav.js"></script>
+
 </body>
 </html>

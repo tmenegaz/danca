@@ -727,10 +727,21 @@ rodape_docs() {
 # Barra de navegação fixa (uma por página, com a atual marcada)
 # ---------------------------------------------------------------------------
 gerar_nav() {
-  local atual="$1" destino="$2" doc r
+  # $1 = doc atual (ou "plano-observacao" para a porta); $2 = arquivo de saída;
+  # $3 = prefixo de link OPCIONAL (vazio nas páginas do pacote, "/" na porta).
+  local atual="$1" destino="$2" prefixo="${3:-}" doc r
+  # O href de um link interno: prefixa com $prefixo — menos quando o caminho já é
+  # absoluto (começa com `/`, ex. o PO_URL) ou externo. Assim a MESMA nav serve o
+  # pacote (links relativos) e a porta (links de raiz, um nível abaixo).
+  link_href() { # $1 = caminho (index.html, /plano-observacao/?, …)
+    case "$1" in
+      /*|https:*|http:*|mailto:*|data:*) printf '%s' "$1" ;;
+      *) printf '%s%s' "$prefixo" "$1" ;;
+    esac
+  }
   {
     echo '<nav class="topnav" aria-label="Navegação do ciclo">'
-    echo "  <a class=\"marca\" href=\"index.html\">Ciclo $CICLO${ESCOLA_SLUG:+ · $ESCOLA_SLUG}</a>"
+    echo "  <a class=\"marca\" href=\"$(link_href index.html)\">Ciclo $CICLO${ESCOLA_SLUG:+ · $ESCOLA_SLUG}</a>"
     # botão do menu mobile: só aparece em tela pequena (ver ciclo.css); o estado
     # aberto/fechado é anunciado por aria-expanded, e o painel é .nav-links
     echo '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">'
@@ -750,9 +761,9 @@ gerar_nav() {
       rot="$(rotulo_no_menu "$d")"
       [ "$d" = index ] && rot="Início"
       if [ "$d" = "$atual" ]; then
-        echo "  <a class=\"ativo\" href=\"$d.html\">$rot</a>"
+        echo "  <a class=\"ativo\" href=\"$(link_href "$d.html")\">$rot</a>"
       else
-        echo "  <a href=\"$d.html\">$rot</a>"
+        echo "  <a href=\"$(link_href "$d.html")\">$rot</a>"
       fi
     }
     item_menu() {   # $1 = doc (item de submenu)
@@ -763,9 +774,9 @@ gerar_nav() {
       esac
       [ -n "$rot" ] || rot="$(rotulo_no_menu "$d")"
       if [ "$d" = "$atual" ]; then
-        echo "      <a class=\"ativo\" href=\"$d.html\">$rot</a>"
+        echo "      <a class=\"ativo\" href=\"$(link_href "$d.html")\">$rot</a>"
       else
-        echo "      <a href=\"$d.html\">$rot</a>"
+        echo "      <a href=\"$(link_href "$d.html")\">$rot</a>"
       fi
     }
 
@@ -816,8 +827,13 @@ gerar_nav() {
       for doc in $membros; do item_menu "$doc"; done
       # O Plano de Observação é um item EXTERNO (rota do Worker), não um doc do pacote: entra
       # aqui, no fim do grupo, com o seu próprio link — e não passa pelo `item_menu` (`$doc.html`).
+      # Na PORTA (`atual=plano-observacao`) este item é o ATIVO; nas demais páginas não.
       if [ "$nome" = "Área do Professor" ]; then
-        echo "      <a href=\"$PO_URL\">Plano de Observação</a>"
+        if [ "$atual" = "plano-observacao" ]; then
+          echo "      <a class=\"ativo\" href=\"$PO_URL\">Plano de Observação</a>"
+        else
+          echo "      <a href=\"$PO_URL\">Plano de Observação</a>"
+        fi
       fi
       echo '    </div>'
       echo '  </details>'
@@ -843,7 +859,7 @@ gerar_nav() {
       echo '    </div>'
       echo '  </details>'
     fi
-    echo "  <a class=\"pdf\" href=\"$ID.pdf\">PDF do ciclo</a>"
+    echo "  <a class=\"pdf\" href=\"$(link_href "$ID.pdf")\">PDF do ciclo</a>"
     echo '  </div>'
     echo '</nav>'
   } > "$destino"
@@ -931,6 +947,30 @@ APRESENTACAO="${APRESENTACAO:-$RAIZ/apresentacoes/apresentacao-01-rizoma}"
 for img in "$APRESENTACAO"/rizoma-*.svg; do
   [ -f "$img" ] && cp "$img" "$PACOTE/assets/"
 done
+
+# ---------------------------------------------------------------------------
+# 1b) A PORTA de elicitação (o Plano de Observação) — cópia + a navegação do site
+# ---------------------------------------------------------------------------
+# A porta é um SUBDIRETÓRIO do pacote (`plano-observacao/`), servida pelo Worker de produção
+# sob `/plano-observacao/`. Ela recebe a MESMA navegação das demais páginas (a `gerar_nav`),
+# com links de RAIZ (`/index.html`, …) porque vive um nível abaixo do pacote — e o item
+# "Plano de Observação" sai marcado como ATIVO. O marcador `<!-- NAV -->` do template é
+# substituído, como no `lancamento.html`; sem ele, a porta fica sem a barra, mas inteira.
+if [ -d "$RAIZ/porta" ]; then
+  mkdir -p "$PACOTE/plano-observacao"
+  cp -R "$RAIZ/porta/." "$PACOTE/plano-observacao/"
+  gerar_nav plano-observacao "$TMP/nav-po.html" "/"
+  python3 - "$PACOTE/plano-observacao/index.html" "$TMP/nav-po.html" <<'PY'
+import sys, pathlib
+pagina, nav = sys.argv[1], pathlib.Path(sys.argv[2]).read_text(encoding='utf-8')
+texto = pathlib.Path(pagina).read_text(encoding='utf-8')
+marca = texto.count('<!-- NAV -->')
+if marca != 1:
+    sys.exit('porta: marcador <!-- NAV --> nao encontrado (ou repetido) — esperado 1, veio %d' % marca)
+pathlib.Path(pagina).write_text(texto.replace('<!-- NAV -->', nav, 1), encoding='utf-8')
+PY
+  echo "porta: plano-observacao/ (com a navegacao do site)"
+fi
 
 # ---------------------------------------------------------------------------
 # 1b) Acompanhamentos: criptografia (PageCrypt) — depois do HTML, antes de validar
