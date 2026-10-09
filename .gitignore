@@ -19,6 +19,9 @@ out/
 # local neste repositório: o Worker é ligado ao GitHub pelo painel, e o login do
 # `wrangler` mora no perfil da máquina. Se um dia for preciso um `.dev.vars`
 # para desenvolvimento local, ele entra aqui — ver workers/receber.js.
+# O `.env` local (CLOUDFLARE_API_TOKEN, por ex.) também fica fora do Git.
+.env
+.dev.vars
 
 # Senhas locais da criptografia dos acompanhamentos (lido por
 # tools/gerar-acompanhamento.sh). Senha NUNCA é versionada, em repositório
