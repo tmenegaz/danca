@@ -599,6 +599,13 @@ ACOMP_DOCS="${ACOMP_DOCS# }"
 # uma só: o formulário de lançamento (Fase 2.3).
 FERRAMENTAS="lancamento"
 
+# O LINK do Plano de Observação — a porta de elicitação, promovida ao Worker de produção. É um
+# item EXTERNO (uma rota do Worker), não um `$doc.html` do pacote — por isso não entra em DOCS
+# nem em FERRAMENTAS e é tratado à parte, dentro do grupo "Área do Professor". O caminho leva o
+# contexto do ciclo, para a porta abrir já identificada. A rota `/plano-observacao/` é servida
+# pelo Worker de produção (`workers/principal.js`, `motor/servidor/producao.js`).
+PO_URL="/plano-observacao/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO"
+
 for doc in index $DOCS $ACOMP_DOCS; do
   if e_vista "$doc"; then
     # A VISTA é GERADA (peça 3 da migração): o PO e o plano passam pelos extratores e pela lib das
@@ -807,6 +814,11 @@ gerar_nav() {
       echo "    <summary>$nome</summary>"
       echo '    <div class="submenu">'
       for doc in $membros; do item_menu "$doc"; done
+      # O Plano de Observação é um item EXTERNO (rota do Worker), não um doc do pacote: entra
+      # aqui, no fim do grupo, com o seu próprio link — e não passa pelo `item_menu` (`$doc.html`).
+      if [ "$nome" = "Área do Professor" ]; then
+        echo "      <a href=\"$PO_URL\">Plano de Observação</a>"
+      fi
       echo '    </div>'
       echo '  </details>'
     done

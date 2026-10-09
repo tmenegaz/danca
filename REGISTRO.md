@@ -9126,3 +9126,66 @@ senão contradiria a regra nova do opcional em branco. `REGISTRO.md` — esta en
   melhor, isso só se sabe **rodando-o**.
 - **A via anterior não está no repositório.** Ficou em `files/elicitar-ciclo.ANTES.md`, no workspace
   da sessão, **fora do Git**.
+
+## 09/10/2026 — O menu «Área do Professor» ganha o acesso ao Plano de Observação
+
+**O que motivou.** A migração do experimento para produção (o PO completo deve gerar o ciclo) tem
+um requisito de entrada: o professor precisa **chegar** à porta de elicitação a partir do site. Sem
+um item de menu, a porta existe mas é inalcançável pela navegação do pacote. O pedido da
+pesquisadora (09/10/2026) é exatamente esse: «vai para o menu área do professor … o acesso ao que
+é plano de observação».
+
+**O que foi decidido.**
+
+- O grupo **«Área do Professor»** do menu ganha um item **«Plano de Observação»**, ao fim da lista
+  de ferramentas (depois do `lancamento`), apontando para a porta de elicitação.
+- O item é um **link externo** — uma rota do Worker, não um `$doc.html` do pacote — e por isso é
+  tratado à parte em `gerar_nav()`, não por `item_menu()`. Ele leva o **contexto do ciclo**
+  (`professor`, `escola`, `ciclo`), para a porta abrir já identificada.
+- A porta abre na **abertura** (a explicação + os dois botões «anamnese» / «PO»), não direto no
+  formulário do PO — é o fluxo decidido na mesma data.
+
+**Onde entrou.** `tools/gerar-ciclo.sh` — `PO_URL` (o link, com o contexto) e o bloco que o emite
+no fim do grupo «Área do Professor».
+
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `tools/` e «a estrutura de menu ou
+navegação». O motivo: a porta de elicitação (o experimento promovido) só é alcançável pelo menu, e
+sem ele o professor não tem caminho de entrada — a migração ficaria com o elo da navegação em
+aberto. **O que não muda:**
+
+- **A fórmula do hash e a cobertura da âncora.** `fontes_do_ciclo()` (a lista que o
+  `hash-ciclo.sh` ancora) cobre os manifestos, o PO, os documentos e o `-dados.json` — **não** o
+  gerador nem os templates. `tools/gerar-ciclo.sh` **não** é fonte de `.fipp` ⇒ **nenhuma âncora
+  precisa ser reancorada**.
+- **A fórmula do hash, a cobertura da âncora e os demais validadores.** Nenhum muda. A única
+  mudança de comportamento é **no `check-pacote.js`**, e é declarada: o link interno passa a
+  **pular** `href`/`src` que começam com `/` (rota do Worker, mesma origem), em vez de reprová-los
+  como arquivo local. Foi a decisão da pesquisadora (09/10/2026, escolha entre URL absoluto ×
+  ensinar o validador). Os links **relativos** do pacote continuam a ser conferidos um a um — a
+  regra de checagem não afrouxou para o conteúdo publicado.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou; a mudança é de navegação
+  (o próprio `CONGELAMENTO.md` a lista como «o que exige motivo declarado», e é isto aqui).
+
+**Com o quê.** `tools/gerar-ciclo.sh` — `PO_URL` + o item externo no grupo «Área do Professor».
+`tools/check-pacote.js` — o link interno passa a **pular** `href`/`src` que começam com `/`
+(rota do Worker, mesma origem), distinguindo-os dos links relativos do pacote. `REGISTRO.md` —
+esta entrada.
+
+**Referências.** `CONGELAMENTO.md` («Alterar a estrutura de menu ou navegação») · a sequência do
+menu em `tools/gerar-ciclo.sh` (decisões da pesquisadora, 19/09/2026) ·
+`porta/index.html` (a abertura com os dois botões) ·
+`motor/servidor/escrever-po.js` e `motor/nucleo/derivar-po.js` (a ponte que a
+porta serve) · `tools/lib-fontes.sh` (`fontes_do_ciclo`, para o que entra na âncora).
+
+**Como foi fechado (09/10/2026, à tarde).**
+
+- **O `[conferir]` saiu.** A rota definitiva é `/plano-observacao/` — o prefixo que o Worker de
+  produção passou a servir.
+- **A promoção foi feita.** O motor agnóstico e a porta saíram de `experimentos/pe/` para
+  `motor/` e `porta/` (versionados), e o Worker de produção (`workers/principal.js` →
+  `motor/servidor/producao.js`) passou a servir, na mesma origem, o pacote, o lançamento e a
+  porta sob `/plano-observacao/`. Verificado no ar em `diaghilev` (landing, APIs e assets 200).
+- **A regeneração foi feita.** `tools/gerar-ciclo.sh fokini 01 diaghilev` — o item novo aparece
+  nos 21 HTML do pacote, e o `check-pacote.js` (agora pulando a rota) aceita o link.
+- **O commit do menu é este** (o anterior, do congelado); a **promoção** entra no commit próprio
+  de estrutura, na sequência.

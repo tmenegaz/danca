@@ -219,7 +219,11 @@ paginas.forEach((f) => {
   ].map((m) => m[1]);
 
   alvos.forEach((alvo) => {
-    if (/^(https?:|mailto:|data:)/.test(alvo)) return;
+    // `https?`/`mailto:`/`data:` são externos; um `alvo` que começa com `/` é uma ROTA do
+    // Worker (mesma origem, servida pelo `fetch` do Worker — ex. `/api/…`, `/plano-observacao/…`),
+    // não um arquivo do pacote. Os links internos do pacote são RELATIVOS (`plano.html`,
+    // `assets/style.css`), sem a barra inicial — por isso a barra distingue as duas coisas.
+    if (/^(\/|https?:|mailto:|data:)/.test(alvo)) return;
     linksChecados++;
     const [arq, ancora] = alvo.split('#');
     if (arq === '') {
