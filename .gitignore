@@ -29,6 +29,11 @@ out/
 # Só o tools/.senhas-locais.exemplo é versionado, com senhas fictícias.
 tools/.senhas-locais
 
+# Escolas de TESTE (dados 100% falsos), lidas pelo pre-push: a senha delas é um
+# placeholder, não um segredo, e fica fora da conferência de vazamento. Local,
+# como as senhas — uma escola real nunca entra nesta lista.
+tools/.escolas-teste
+
 # Acompanhamentos por aluna — NÃO versionar.
 # São vista derivada (do PO + dos relatórios), reconstruíveis a qualquer momento
 # pelo tools/gerar-acompanhamento.sh, e contêm dados de menores. A política de

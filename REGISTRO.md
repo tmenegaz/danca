@@ -9189,3 +9189,42 @@ porta serve) · `tools/lib-fontes.sh` (`fontes_do_ciclo`, para o que entra na â
   nos 21 HTML do pacote, e o `check-pacote.js` (agora pulando a rota) aceita o link.
 - **O commit do menu é este** (o anterior, do congelado); a **promoção** entra no commit próprio
   de estrutura, na sequência.
+
+## 09/10/2026 — A escola Diaghilev é declarada escola de TESTE, fora da conferência de senha
+
+**O que motivou.** O `pre-push` (conferência de vazamento de senha) barrou o envio porque a senha
+de `SENHA_DIAGHILEV` é o próprio slug da escola (`diaghilev`), que aparece em texto puro em
+dezenas de arquivos versionados. A conferência estava correta para uma escola real — mas a
+Diaghilev **é uma escola de TESTE: todos os dados são falsos, nenhuma aluna real**. Não há
+segredo a proteger ali; a "senha" é um placeholder conhecido, não uma credencial.
+
+**O que foi decidido.** A Diaghilev passa a ser **declarada escola de teste**, com uma exceção
+**explícita e estreita** — não um silenciamento da conferência:
+
+- A conferência de senha do `pre-push` ganha uma lista de **escolas de teste** (`tools/.escolas-teste`,
+  local, no `.gitignore`), uma slug por linha. Uma escola listada ali **pula a conferência 1** —
+  e o hook **declara o porquê** a cada vez, em vez de passar em silêncio.
+- A exceção vale **só para a conferência de senha** (a senha de uma escola de teste não é segredo).
+  A conferência 2 (acompanhamento em texto puro versionado) e todas as demais continuam valendo
+  para qualquer escola, inclusive as de teste.
+
+**A fronteira da exceção.** Uma escola **real** nunca pode entrar em `tools/.escolas-teste` — seria
+abrir a porta que a conferência fechou. O arquivo é local e o seu propósito está documentado no
+próprio hook e no `.gitignore`.
+
+**Motivo declarado — os congelados.** `tools/hooks/pre-push` faz parte de `tools/` (congelado) e é
+lógica de validação (o `CONGELAMENTO.md` lista "alterar a lógica de hash, validação ou geração"
+como algo que exige motivo declarado). O motivo: a conferência de senha, aplicada sem exceção,
+bloqueia o envio de uma escola de teste cuja "senha" não é um segredo — um alarme que acende sem
+proteger nada. **O que não muda:** a conferência 1 continua aplicada a todas as escolas reais; a
+conferência 2 e o resto do hook continuam idênticos; as 17 regras, as 22 pétreas e o
+`CONGELAMENTO.md` não mudam.
+
+**Com o quê.** `tools/hooks/pre-push` — a conferência 1 passa a pular as escolas listadas em
+`tools/.escolas-teste` (lidas do `SENHA_<ESCOLA>`, com a slug em minúsculas). `.gitignore` — a nova
+entrada `tools/.escolas-teste` (local, como as senhas). `tools/.escolas-teste` — local, com
+`diaghilev`. `REGISTRO.md` — esta entrada.
+
+**Referências.** `tools/hooks/pre-push` (a conferência de senha) · `tools/.senhas-locais.exemplo`
+(a convenção `SENHA_<ESCOLA>`) · `CONGELAMENTO.md` ("alterar a lógica de hash, validação ou
+geração") · `tools/gerar-acompanhamento.sh` (quem consome as senhas).

@@ -8,6 +8,10 @@
 # identificador da variante do ciclo: duo → SENHA_DUO, ritmos → SENHA_RITMOS,
 # debora → SENHA_DEBORA (ver tools/gerar-acompanhamento.sh).
 #
+# ESCOLAS DE TESTE (dados 100% falsos) não têm segredo a proteger: a "senha"
+# delas é o próprio slug e fica fora da conferência do pre-push. Elas entram
+# em tools/.escolas-teste (local, uma slug por linha) — NUNCA uma escola real.
+#
 # Se o arquivo não existir, ou a variável da escola estiver vazia, o script
 # pede a senha no terminal — e a criptografia é pulada quando não há terminal
 # (um pacote gerado sem senha sai com os acompanhamentos em claro, e o

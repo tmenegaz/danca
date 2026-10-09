@@ -7,7 +7,7 @@
 #
 # Instalado por tools/instalar-hooks.sh, por link simbólico em .git/hooks/pre-push.
 #
-# Duas conferências, as duas MEDIDAS (20/09/2026):
+# Duas conferências, as duas MEDIDAS (20/09/2026) — e uma exceção declarada (09/10/2026):
 #
 #   1) AS SENHAS DOS ACOMPANHAMENTOS não podem estar em arquivo versionado. Elas vivem em
 #      `tools/.senhas-locais` — local, no .gitignore, **nunca commitado** —, e o hook as lê DE LÁ:
@@ -21,6 +21,13 @@
 #      conferência é o `.md` VERSIONADO. Procurar a palavra `acompanhamento` solta casava também
 #      com `tools/gerar-acompanhamento.sh` (a ferramenta) e com as próprias páginas cifradas, que
 #      SÃO parte do pacote: o alarme acendia SEMPRE — e alarme que sempre acende não avisa nada.
+#
+#   EXCEÇÃO — ESCOLAS DE TESTE. Uma escola de TESTE (dados 100% falsos — nenhuma aluna real)
+#   não tem segredo a proteger: a "senha" dela é um placeholder conhecido (o próprio slug da
+#   escola), e por isso a conferência 1 não se aplica. Essas escolas ficam listadas, uma por
+#   linha, em `tools/.escolas-teste` (local, como as senhas); o hook as pula na conferência 1 e
+#   declara o porquê. Uma escola REAL nunca pode entrar nessa lista — seria abrir a porta que a
+#   conferência fechou.
 # ============================================================================
 set -uo pipefail
 
@@ -29,6 +36,9 @@ cd "$RAIZ" || exit 1
 
 # O arquivo das senhas é local; o caminho é trocável para o TESTE do próprio hook.
 SENHAS="${SENHAS_LOCAIS:-$RAIZ/tools/.senhas-locais}"
+# As escolas de TESTE (dados falsos) ficam fora da conferência 1. Local, como as
+# senhas: uma slug por linha (`SENHA_DIAGHILEV` → `diaghilev`), `#` para comentário.
+ESCOLAS_TESTE="${ESCOLAS_TESTE:-$RAIZ/tools/.escolas-teste}"
 erros=0
 alerta() { printf 'pre-push: ALERTA — %s\n' "$1" >&2; erros=$((erros + 1)); }
 
@@ -41,6 +51,13 @@ if [ -f "$SENHAS" ]; then
     valor="${valor%\'}"; valor="${valor#\'}"
     [ -n "$valor" ] || continue
     n=$((n + 1))
+    # A escola desta senha é o que vem depois de `SENHA_`, em minúsculas. Se for
+    # uma escola de TESTE, a senha não é segredo — a conferência não se aplica.
+    escola="$(printf '%s' "$nome" | sed 's/^SENHA_//' | tr '[:upper:]' '[:lower:]')"
+    if [ -n "$escola" ] && [ -f "$ESCOLAS_TESTE" ] && grep -qxF "$escola" "$ESCOLAS_TESTE"; then
+      echo "pre-push: $nome — escola de TESTE ($escola): dados falsos, senha é placeholder; fora da conferência" >&2
+      continue
+    fi
     if git grep -qF -- "$valor" -- . 2>/dev/null; then
       alerta "a senha de $nome aparece em arquivo VERSIONADO:"
       git grep -nF -- "$valor" -- . | head -5 >&2
