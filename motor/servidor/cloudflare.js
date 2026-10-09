@@ -83,14 +83,17 @@ function passosDeGeracao(env) {
 async function fetch(request, env, opcoes) {
   const prefixo = (opcoes && opcoes.prefixo) || '';
 
-  // O bootstrap: o conteúdo, o esquema, o PO, o prompt e a identidade vêm do
-  // ASSETS (estático). Se faltarem, o roteador devolve erro de forma declarada.
+  // O bootstrap: o conteúdo, o esquema, o PO e o prompt vêm do ASSETS (estático)
+  // sob o PREFIXO da porta; a identidade (o CSS) é a MESMA do pacote, na RAIZ —
+  // `assets/style.css` — para a porta nunca envelhecer uma cópia própria quando a
+  // fonte `tools/templates/ciclo.css` muda. Se faltarem, o roteador devolve erro
+  // de forma declarada.
   const [conteudoTexto, esquemaTexto, poTexto, prompt, identidade] = await Promise.all([
     carregarEstatico(env, 'conteudo/anamnese.json', prefixo),
     carregarEstatico(env, 'envelope/elicitacao-schema.json', prefixo),
     carregarEstatico(env, 'po/conteudo/po.json', prefixo),
     carregarEstatico(env, 'prompts/elicitar-ciclo.md', prefixo),
-    carregarEstatico(env, 'tools/templates/ciclo.css', prefixo),
+    carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
   const { disparar, escreverPO } = passosDeGeracao(env);

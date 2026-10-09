@@ -10,13 +10,14 @@
      relativa justamente para isso. -->
 <base href="./">
 <title>Plano de Observação — Projeto Ciclo</title>
-<!-- A identidade visual da PRODUÇÃO. Mesma URL (`/assets/style.css`) e mesmo
-     arquivo — `tools/templates/ciclo.css`, a fonte de verdade declarada do Projeto
-     Ciclo —, servido pela porta direto do original, sem cópia que envelheça.
-     Daqui vêm os tokens, a tipografia (serifa na prosa, sans nos controles) e o
-     layout: `header.doc`, `main` em duas colunas (`.conteudo` + `.rail`), `.toc-local`
-     preso à direita a partir de 1200px, `footer.rodape`. -->
-<link rel="stylesheet" href="assets/style.css">
+<!-- A identidade visual da PRODUÇÃO, carregada da RAIZ do pacote (`/assets/style.css`)
+     — o MESMO arquivo que as demais páginas do site usam, gerado de
+     `tools/templates/ciclo.css` (a fonte de verdade declarada do Projeto Ciclo). A
+     porta não tem cópia própria: nenhum CSS que envelheça. Daqui vêm os tokens, a
+     tipografia (serifa na prosa, sans nos controles) e o layout: `header.doc`, `main`
+     em duas colunas (`.conteudo` + `.rail`), `.toc-local` preso à direita a partir de
+     1200px, `footer.rodape`. -->
+<link rel="stylesheet" href="/assets/style.css">
 <style>
   /* Sem `:root` de identidade. Como no formulário de lançamento do site, nenhuma cor se
      inventa aqui: os nomes que a tela já usava viram ALIASES dos tokens do site, e quem
@@ -395,9 +396,10 @@
      (<code>tools/templates/ciclo.css</code>), servida do original.</p>
 </footer>
 
-<!-- O mesmo esquema de cifra das páginas do repositório (`tools/lib-cifra.js`, copiado para
-     `assets/`): aqui quem cifra é o cliente, e a senha nunca sobe ao servidor. -->
-<script src="assets/lib-cifra.js"></script>
+<!-- O mesmo esquema de cifra das páginas do repositório (`tools/lib-cifra.js`), carregado da
+     RAIZ do pacote (`/assets/lib-cifra.js`) — sem cópia própria. Aqui quem cifra é o cliente,
+     e a senha nunca sobe ao servidor. -->
+<script src="/assets/lib-cifra.js"></script>
 <!-- O renderizador de markdown do experimento: é INFRAESTRUTURA, não conteúdo de PO nem
      de PE — o mesmo arquivo que a ficha usa no servidor, aqui no navegador. -->
 <script src="assets/markdown.js"></script>
