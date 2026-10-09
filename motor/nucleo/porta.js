@@ -1,0 +1,535 @@
+'use strict';
+
+/**
+ * porta.js — a lógica da porta, SEM infraestrutura.
+ *
+ * O que a porta (a tela + as rotas) decide está aqui, e não num `fs` nem num
+ * `http`: como uma resposta crua vira registro, como o mapa dos nós é montado,
+ * como a proveniência deriva o vínculo e os três estados da anamnese, como um
+ * envelope é identificado e gravado. Nada aqui importa `fs`, `path`, `http`,
+ * `process` — o armazenamento chega por parâmetro (o contrato de
+ * `./armazenamento.js`) e o conteúdo também.
+ *
+ * As funções são ASSÍNCRONAS quando tocam o armazenamento (o KV é assíncrono);
+ * as puras (registro, linhas, carimbo, mapa) são síncronas.
+ */
+
+const motor = require('./elicitar.js');
+const ficha = require('./ficha.js');
+
+// As chaves do armazenamento. O envelope vive sob `envelope/<id>.json` — a
+// MESMA notação que o disco sempre usou, para o adaptador Node ser o motor de
+// sempre e o adaptador Cloudflare só trocar o meio, nunca o formato.
+const PREFIXO_ENVELOPES = 'envelope/';
+const ARQUIVO_DE = (id) => PREFIXO_ENVELOPES + id + '.json';
+
+// O endereço do conteúdo que viaja no envelope — a referência ao artefato lido.
+// São rótulos ESTÁVEIS, não caminhos resolvidos no runtime: o núcleo não sabe
+// onde os ficheiros vivem; sabe o endereço que o envelope declara.
+const ENDERECOS = {
+  anamnese: 'conteudo/anamnese.json',
+  po: '../po/conteudo/po.json',
+};
+
+// ---------------------------------------------------------------- puras
+
+/**
+ * A resposta crua que chega do navegador vira registro de quatro chaves:
+ * {valor, origem, respondente, nota}. Um objeto SEM chave de registro é um
+ * VALOR ESTRUTURADO (medida/periodicidade/data) e viaja cru.
+ */
+function registro(cru) {
+  if (cru === null || cru === undefined || cru === '') return null;
+  if (typeof cru === 'object' && !Array.isArray(cru)) {
+    if (!('valor' in cru)) {
+      if ('origem' in cru || 'respondente' in cru || 'nota' in cru) {
+        throw new Error(
+          'resposta em forma de objeto sem a chave `valor` — o motor leria isso como valor cru',
+        );
+      }
+      return cru;
+    }
+    const nota = cru.nota == null || cru.nota === '' ? null : String(cru.nota);
+    if (cru.origem === 'perguntado' && nota === null) return cru.valor;
+    return {
+      valor: cru.valor,
+      origem: cru.origem || 'perguntado',
+      respondente: cru.respondente || 'professor',
+      nota,
+    };
+  }
+  return cru;
+}
+
+/** O relatório do motor, em linhas legíveis — o `alvo` é o rótulo da gravação. */
+function linhasDoRelatorio(relatorio, alvo) {
+  const linhas = [];
+  const c = relatorio.contagem;
+  linhas.push(
+    `${relatorio.id} · ${relatorio.estado} · ${c.respondidos}/${c.obrigatorios}`,
+  );
+  for (const elo of relatorio.elos) {
+    linhas.push(`elo ${elo.no} = ${elo.valor} → ${elo.ramo}`);
+  }
+  for (const parada of relatorio.paradas) {
+    linhas.push(`PARADA [${parada.tipo}] ${parada.motivo}`);
+  }
+  if (relatorio.idsDesconhecidos.length) {
+    linhas.push(`⚠ ignorados: ${relatorio.idsDesconhecidos.join(', ')}`);
+  }
+  linhas.push(
+    `validação: ${relatorio.validacao.resultado} (${relatorio.validacao.contrato})`,
+  );
+  for (const erro of relatorio.errosDoDocumento) {
+    linhas.push(`ERRO ${erro.caminho}: ${erro.mensagem}`);
+  }
+  if (alvo) linhas.push(`escrito: ${alvo}`);
+  return linhas;
+}
+
+/** O carimbo `AAAAMMDD-HHMM` em português — com sufixo de colisão tolerado. */
+function carimboEmPortugues(id) {
+  const casou = String(id || '').match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})(?:-\d+)?$/);
+  if (!casou) return null;
+  return casou[3] + '/' + casou[2] + '/' + casou[1] + ' às ' + casou[4] + ':' + casou[5];
+}
+
+/**
+ * O mapa dos nós respondíveis, enriquecido com o contexto do conteúdo. A MESMA
+ * função da porta original — sem o `fs` de ler o conteúdo: ele chega pronto.
+ */
+function mapa(conteudo) {
+  const nos = motor.nosRespondiveis(conteudo);
+
+  const desdobramentoPorId = new Map(
+    conteudo.observacaoInicial.desdobramentos.map((d) => [d.id, d]),
+  );
+  const elementoPorId = new Map(
+    conteudo.observacaoInicial.elementos.map((e) => [e.id, e]),
+  );
+  const blocoPorNumero = new Map(conteudo.blocos.map((b) => [b.bloco, b]));
+  const moduloPorId = new Map(conteudo.modulosCondicionais.map((m) => [m.id, m]));
+
+  const enriquecidos = nos.map((no) => {
+    const base = {
+      id: no.id,
+      campo: no.campo,
+      obrigatorio: no.obrigatorio,
+      familia: no.familia,
+      endereco: no.endereco,
+      explicacao: no.explicacao || null,
+      opcoesDe: no.opcoesDe || null,
+      criarEm: no.criarEm || null,
+      derivarDe: no.derivarDe || null,
+      repetirPor: no.repetirPor || null,
+      camposDoItem: no.camposDoItem || null,
+      medida: no.medida || null,
+      periodicidade: no.periodicidade || null,
+      data: no.data || null,
+      deContexto: no.deContexto || null,
+      multipla: no.multipla === true,
+      colunas: no.colunas || null,
+      exclusiva: no.exclusiva || null,
+      aberto: no.aberto === true,
+    };
+
+    if (no.familia === 'basilar' || no.familia === 'subitem') {
+      const desmembra = no.familia === 'subitem';
+      const elemento = elementoPorId.get(desmembra ? no.grupo : no.id);
+      const agrupador = desmembra ? elementoPorId.get(no.grupo) : null;
+      return {
+        ...base,
+        natureza: no.natureza,
+        elemento: desmembra ? no.campo : elemento ? elemento.elemento : no.campo,
+        grupo: no.grupo || null,
+        agrupador: agrupador ? agrupador.elemento : null,
+        oQueE: desmembra ? null : elemento ? elemento.oQueE : null,
+        nota: desmembra ? null : elemento ? elemento.nota : null,
+        orientacao: elemento ? elemento.orientacao || null : null,
+        forma: no.forma || null,
+        valores: no.valores || [],
+        aprofunda: (
+          desmembra
+            ? agrupador
+              ? agrupador.ondeAprofunda
+              : []
+            : elemento
+              ? elemento.ondeAprofunda
+              : []
+        ).map((n) => {
+            const b = blocoPorNumero.get(n);
+            return { bloco: n, titulo: b ? b.titulo : null };
+          }),
+        desdobramentos: (no.desdobramentos || []).map(
+          (id) => desdobramentoPorId.get(id) || { id, forma: id, exemplo: null },
+        ),
+      };
+    }
+
+    if (no.familia === 'bloco') {
+      const bloco = blocoPorNumero.get(no.bloco);
+      return {
+        ...base,
+        bloco: no.bloco,
+        blocoTitulo: bloco ? bloco.titulo : null,
+        blocoObjetivo: bloco ? bloco.objetivo : null,
+        blocoNota: bloco ? bloco.nota || null : null,
+        dimensaoDoBloco: bloco ? bloco.dimensao : null,
+        dimensaoPorItem: bloco ? Boolean(bloco.dimensaoPorItem) : false,
+        dimensao: no.dimensao,
+        opcoes: no.opcoes || [],
+      };
+    }
+
+    if (no.familia === 'modulo') {
+      const modulo = moduloPorId.get(no.modulo);
+      return {
+        ...base,
+        modulo: no.modulo,
+        moduloTitulo: modulo ? modulo.titulo : null,
+        moduloFuncao: modulo ? modulo.funcao : null,
+        moduloCondicao: modulo ? modulo.condicaoDeEntrada : null,
+        opcoes: no.opcoes || [],
+      };
+    }
+
+    return {
+      ...base,
+      forma: no.forma || null,
+      valores: no.valores || [],
+      ramifica: no.ramifica || null,
+      nota: no.nota || null,
+      multipla: no.multipla === true,
+      colunas: no.colunas || null,
+      exclusiva: no.exclusiva || null,
+      aberto: no.aberto === true,
+    };
+  });
+
+  const noGatilho = enriquecidos.find((no) => no.familia === 'gatilho') || null;
+
+  return {
+    documento: conteudo.documento,
+    norma: conteudo.norma,
+    explicacao: conteudo.explicacao || null,
+    tituloCabecalho: conteudo.cabecalho.titulo || null,
+    apelidoObrigatorio: conteudo.apelidoObrigatorio,
+    oQueFicaFora: conteudo.oQueFicaFora,
+    ondeODadoVive: conteudo.ondeODadoVive,
+    listaAberta: conteudo.listaAberta,
+    metodos: ficha.metodosDeOrigem(conteudo),
+    dimensoes: conteudo.dimensoes,
+    perfisDeEntrada: conteudo.observacaoInicial.perfisDeEntrada,
+    notaDesdobramentos: conteudo.observacaoInicial.notaDesdobramentos,
+    gatilho: noGatilho ? noGatilho.endereco : null,
+    total: enriquecidos.length,
+    obrigatorios: enriquecidos.filter((no) => no.obrigatorio).length,
+    nos: enriquecidos,
+  };
+}
+
+// ------------------------------------------------------------ armazenamento
+
+/** Os NOMES (sem o prefixo) dos envelopes que casam com o padrão, ordenados. */
+async function nomesDeEnvelopes(armazenamento, padrao) {
+  const chaves = await armazenamento.listar(PREFIXO_ENVELOPES);
+  return chaves
+    .map((chave) => chave.slice(PREFIXO_ENVELOPES.length))
+    .filter((nome) => padrao.test(nome))
+    .sort();
+}
+
+/** Lê um envelope pelo NOME do arquivo (ex.: `anamnese-….json`); null se ilegível. */
+async function lerArquivo(armazenamento, nome) {
+  const texto = await armazenamento.ler(PREFIXO_ENVELOPES + nome);
+  if (texto === null) return null;
+  try {
+    return JSON.parse(texto);
+  } catch (erro) {
+    return null;
+  }
+}
+
+/** O envelope pelo ID (o carimbo), com a trava de forma do id; null se ausente. */
+async function lerEnvelope(armazenamento, id) {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) return null;
+  return lerArquivo(armazenamento, id + '.json');
+}
+
+/** O texto cru de um envelope (para a rota que o devolve byte a byte). */
+async function lerEnvelopeCru(armazenamento, id) {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) return null;
+  return armazenamento.ler(PREFIXO_ENVELOPES + id + '.json');
+}
+
+/** O id do envelope mais recente (a ordenação lexicográfica é a cronológica). */
+async function ultimoEnvelope(armazenamento) {
+  const nomes = await nomesDeEnvelopes(armazenamento, /\.json$/);
+  return nomes.length ? nomes[nomes.length - 1].replace(/\.json$/, '') : '';
+}
+
+/**
+ * O id de um envelope novo — o documento se auto-identifica (M1): a anamnese é
+ * `anamnese-…`, o PO é `po-…`. A colisão é resolvida por sufixo, como sempre.
+ */
+async function identificarComCarimbo(armazenamento, documento, carimbo) {
+  const compacto = carimbo.replace(/[-:]/g, '').replace('T', '-');
+  const nome = (documento || 'anamnese') + '-' + compacto;
+  let id = nome;
+  let n = 2;
+  while (await armazenamento.existe(ARQUIVO_DE(id))) {
+    id = nome + '-' + n;
+    n += 1;
+  }
+  return { id, geradoEm: carimbo };
+}
+
+async function identificar(armazenamento, documento, agora) {
+  const carimbo = (agora || motor.carimbarAgora)();
+  return identificarComCarimbo(armazenamento, documento, carimbo);
+}
+
+/** Grava o envelope — só quando o documento passou na validação. */
+async function gravarEnvelope(armazenamento, documento, relatorio) {
+  if (relatorio.errosDoDocumento.length) {
+    return { ok: false, erro: 'o documento não passou na validação', linhas: linhasDoRelatorio(relatorio) };
+  }
+  const chave = ARQUIVO_DE(relatorio.id);
+  await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
+  return { ok: true, linhas: linhasDoRelatorio(relatorio, chave) };
+}
+
+/** Apaga um envelope; `false` se não existia. */
+async function apagarEnvelope(armazenamento, id) {
+  if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) return false;
+  return armazenamento.apagar(ARQUIVO_DE(id));
+}
+
+/*
+ * O VÍNCULO (a regra de proveniência): uma anamnese é VINCULADA quando um PO
+ * selecionou o sujeito no nó `sujeitos`. É DERIVADO — varre-se os envelopes de
+ * PO e vê-se quem declara o apelido; não se grava nada na anamnese.
+ */
+async function vinculos(armazenamento) {
+  const por = new Map();
+  const nomes = await nomesDeEnvelopes(armazenamento, /^po-.*\.json$/);
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (!envelope) continue;
+    const reg = envelope.respostas && envelope.respostas.sujeitos;
+    const valor = reg && reg.valor !== undefined ? reg.valor : reg;
+    const lista = Array.isArray(valor) ? valor : valor === undefined || valor === null ? [] : [valor];
+    for (const apelido of lista) {
+      if (!por.has(apelido)) por.set(apelido, []);
+      por.get(apelido).push(envelope.id || nome.replace(/\.json$/, ''));
+    }
+  }
+  return por;
+}
+
+/**
+ * A LISTA de anamneses já lançadas — um SUJEITO (apelido) por vez, o vigente.
+ * Devolve só METADADO, nunca as respostas (Frente 5 do plano).
+ */
+async function anamneses(armazenamento) {
+  const nomes = await nomesDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
+  const ligacoes = await vinculos(armazenamento);
+  const opcoes = [];
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (!envelope) continue;
+    const contexto = envelope.contexto || {};
+    const aluna = contexto.aluna || null;
+    if (!aluna) continue;
+    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+    const quando = carimboEmPortugues(carimbo);
+    const por = ligacoes.get(aluna) || [];
+    opcoes.push({
+      valor: aluna,
+      rotulo: aluna + (quando ? ' · ' + quando : ''),
+      carimbo,
+      detalhe: '/api/envelope/' + encodeURIComponent(carimbo),
+      escola: contexto.escola || null,
+      professor: contexto.professor || null,
+      ciclo: contexto.ciclo || null,
+      vinculada: por.length > 0,
+      por,
+      ajuste_de: envelope.ajuste_de || null,
+    });
+  }
+  opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
+  const vistos = new Set();
+  const vigentes = [];
+  for (const o of opcoes) {
+    if (vistos.has(o.valor)) continue;
+    vistos.add(o.valor);
+    o.vigente = true;
+    vigentes.push(o);
+  }
+  return vigentes;
+}
+
+/** O registro VIGENTE de um sujeito — `{carimbo, vinculada}` ou null. */
+async function vigenteDoSujeito(armazenamento, aluna) {
+  const o = (await anamneses(armazenamento)).find((x) => x.valor === aluna);
+  return o ? { carimbo: o.carimbo, vinculada: o.vinculada } : null;
+}
+
+/**
+ * O ESTADO de TODAS as anamneses — inclusive as SEM SUJEITO. Uma fonte só para
+ * os três estados (solta / legado / vinculada) e o `sem-sujeito`.
+ */
+async function estadosDasAnamneses(armazenamento) {
+  const ligacoes = await vinculos(armazenamento);
+  const lista = await anamneses(armazenamento);
+  const vigenteDe = new Map();
+  for (const o of lista) if (!vigenteDe.has(o.valor)) vigenteDe.set(o.valor, o.carimbo);
+  const nomes = await nomesDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
+
+  const envelopes = [];
+  const contagem = new Map();
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (!envelope) continue;
+    const apelido = (envelope.contexto && envelope.contexto.aluna) || null;
+    envelopes.push({ nome, envelope, apelido });
+    if (apelido) contagem.set(apelido, (contagem.get(apelido) || 0) + 1);
+  }
+
+  const estados = {};
+  for (const { nome, envelope, apelido } of envelopes) {
+    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+    const por = apelido ? ligacoes.get(apelido) || [] : [];
+    let estado;
+    if (apelido === null) estado = 'sem-sujeito';
+    else if (por.length > 0) estado = 'vinculada';
+    else if ((contagem.get(apelido) || 0) >= 2) estado = 'legado';
+    else estado = 'solta';
+    estados[carimbo] = {
+      estado,
+      carimbo,
+      apelido,
+      semSujeito: apelido === null,
+      vinculada: por.length > 0,
+      por,
+      vigente: apelido !== null && vigenteDe.get(apelido) === carimbo,
+      ajuste_de: envelope.ajuste_de || null,
+    };
+  }
+  return estados;
+}
+
+/** O ESTADO de uma anamnese, derivado — reusa a derivação da lista de gestão. */
+async function estadoDaAnamnese(armazenamento, envelope) {
+  const carimbo = envelope.id || null;
+  const todos = await estadosDasAnamneses(armazenamento);
+  return todos[carimbo] || {
+    estado: 'sem-sujeito',
+    carimbo,
+    apelido: null,
+    semSujeito: true,
+    vinculada: false,
+    por: [],
+    vigente: false,
+    ajuste_de: envelope.ajuste_de || null,
+  };
+}
+
+/**
+ * A ELICITAÇÃO inteira — o que a rota `POST /api/elicitar` decide. Recebe o
+ * conteúdo e o esquema prontos (o runtime os carregou); o armazenamento é o
+ * adaptador. A política de persistência da anamnese (substituir vs. empilhar)
+ * está aqui — o cliente não decide, e a tela não sabe o estado para gravar.
+ */
+async function elicitar(armazenamento, corpo, dados) {
+  const cruas = corpo && typeof corpo.respostas === 'object' && corpo.respostas ? corpo.respostas : {};
+  const fonte = corpo && corpo.fonte;
+  const conteudoAtual = fonte === 'po' ? dados.conteudoPO : dados.conteudo;
+
+  const respostas = {};
+  const recusadas = [];
+  for (const [id, valor] of Object.entries(cruas)) {
+    try {
+      const reg = registro(valor);
+      if (reg !== null) respostas[id] = reg;
+    } catch (erro) {
+      recusadas.push({ id, motivo: erro.message });
+    }
+  }
+
+  const opcoes = { esquema: dados.esquema };
+  if (corpo && corpo.id) opcoes.id = String(corpo.id);
+  if (corpo && corpo.geradoEm) opcoes.geradoEm = String(corpo.geradoEm);
+
+  if (!opcoes.id && fonte !== 'po') {
+    const aluna = corpo && corpo.contexto && corpo.contexto.aluna;
+    const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna) : null;
+    if (vigente && vigente.vinculada) {
+      opcoes.ajuste = { de: vigente.carimbo, motivo: (corpo && corpo.motivo) || null };
+    } else if (vigente) {
+      opcoes.id = vigente.carimbo;
+    }
+  }
+
+  opcoes.endereco = fonte === 'po' ? ENDERECOS.po : ENDERECOS.anamnese;
+  if (!opcoes.id) {
+    const { id, geradoEm } = await identificar(
+      armazenamento,
+      (conteudoAtual && conteudoAtual.documento) || 'anamnese',
+      dados.agora,
+    );
+    opcoes.id = id;
+    if (!opcoes.geradoEm) opcoes.geradoEm = geradoEm;
+  }
+
+  if (corpo && corpo.contexto) opcoes.contexto = corpo.contexto;
+
+  const { documento, estado, relatorio } = motor.elicitar(conteudoAtual, respostas, opcoes);
+  const simular = Boolean(corpo && corpo.simular);
+  const gravacao = simular
+    ? { ok: true, linhas: linhasDoRelatorio(relatorio) }
+    : await gravarEnvelope(armazenamento, documento, relatorio);
+
+  return {
+    ok: relatorio.errosDoDocumento.length === 0,
+    simular,
+    gravado: !simular && gravacao.ok,
+    estado,
+    id: relatorio.id,
+    contagem: relatorio.contagem,
+    gatilho: relatorio.gatilho,
+    elos: relatorio.elos,
+    paradas: relatorio.paradas,
+    idsDesconhecidos: relatorio.idsDesconhecidos,
+    validacao: relatorio.validacao,
+    errosDoDocumento: relatorio.errosDoDocumento,
+    recusadas,
+    linhas: gravacao.linhas,
+    documento,
+  };
+}
+
+module.exports = {
+  PREFIXO_ENVELOPES,
+  ARQUIVO_DE,
+  ENDERECOS,
+  registro,
+  linhasDoRelatorio,
+  carimboEmPortugues,
+  mapa,
+  nomesDeEnvelopes,
+  lerArquivo,
+  lerEnvelope,
+  lerEnvelopeCru,
+  ultimoEnvelope,
+  identificar,
+  identificarComCarimbo,
+  gravarEnvelope,
+  apagarEnvelope,
+  vinculos,
+  anamneses,
+  vigenteDoSujeito,
+  estadosDasAnamneses,
+  estadoDaAnamnese,
+  elicitar,
+};

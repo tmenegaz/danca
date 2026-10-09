@@ -24,8 +24,9 @@
     "enabled": true
   },
 
-  // O ponto de entrada do POST do formulario de lancamento.
-  "main": "workers/receber.js",
+  // O ponto de entrada: a ponte de producao serve o pacote (ASSETS), o
+  // lancamento (/api/receber) e a porta de elicitacao (/plano-observacao/).
+  "main": "workers/principal.js",
 
   // O pacote publicado: a pasta do ciclo, servida estatica pelo binding ASSETS.
   "assets": {

@@ -1,0 +1,282 @@
+/* ============================================================================
+   Ciclos de Aprendizagem — folha de estilo única do pacote HTML (Regra 16).
+   Copiada para ciclos/ciclo-XX/assets/style.css pelo gerador. Não editar a
+   cópia: edite este arquivo e rode `tools/gerar-ciclo.sh` de novo.
+
+   Este arquivo é a FONTE DE VERDADE da identidade visual do Projeto Ciclo.
+   A regra, o papel de cada cor e as razões de contraste estão em
+   `IDENTIDADE-VISUAL.md` (raiz). Nenhum outro arquivo redeclara estes valores:
+   quem precisa deles consome o token daqui.
+   ========================================================================== */
+
+:root {
+  --burgundy: #6b1f2e;
+  --burgundy-claro: #8a2a3d;
+  --soft: #5a5348;
+  --cream: #fbf8f3;
+  --tinta: #1f1c1a;
+
+  /* --- O ouro, em quatro papéis -------------------------------------------------
+     O ouro é ORNAMENTO: a partir de um fundo claro ele não serve para texto. Medido,
+     não estimado (WCAG 2.1 — 4,5:1 para texto, 3,0:1 para traço com função):
+     `--gold` dá 3,65:1 sobre o burgundy (passa como ornamento) e apenas 2,92:1 sobre
+     o creme (não passa como nada). Por isso o ouro se divide, e cada papel recebe o
+     tom que foi medido para ele. */
+  --gold: #b08d57;        /* ornamento SOBRE BURGUNDY (3,65:1) e fundo do item ativo */
+  --gold-claro: #c9a878;  /* texto sobre burgundy (5,03:1) */
+  --gold-escuro: #8a6a3b; /* traço, filete e borda sobre fundo claro (>=4,26:1) */
+  --gold-texto: #7a5c31;  /* texto sobre fundo claro (>=5,26:1) */
+  --sobre-ouro: #2b1b10;  /* texto SOBRE o ouro (5,36:1) */
+  /* Borda de CAMPO DE FORMULÁRIO. É um traço de 1px, então o alvo é 3,0:1 — e o
+     `--gold-escuro` (4,26:1) é escuro demais para o desenho do campo: vira caixa
+     pesada. Este tom é o mais claro que ainda passa nos três papéis do formulário
+     (branco 3,35 · cream 3,16 · `--creme-1` 3,22). Para filete de texto, `--gold-escuro`. */
+  --gold-borda: #a08a58;
+
+  /* Tons de creme derivados. São sombras do `--cream`, usadas só neste arquivo —
+     não são identidade, são papel: por isso não sobem para o documento. */
+  --branco: #ffffff;
+  --creme-1: #fdfaf5;   /* linha ímpar de tabela */
+  --creme-2: #f3ece1;   /* fundo de `th`, de `.ficha` e de citação destacada */
+  --creme-3: #f5ecdf;   /* fundo do link sob o ponteiro */
+  --creme-4: #fff8ec;   /* fundo da citação */
+  --creme-5: #f1eae0;   /* fundo de `code` */
+  --creme-6: #f7f1e7;   /* fundo de `pre` */
+
+  /* --- Estados do formulário -----------------------------------------------------
+     São o quarto uso de cor da identidade: dizer o que aconteceu, sem julgamento.
+     O tom do ALERTA não pode ser o `#a06000` corrente: ele dá 4,29:1 sobre o
+     `--creme-2` e o rótulo de parcial aparece em cabeçalho de tabela. Escurecido
+     para `#8f5a12` (4,92:1 no pior fundo), os três passam em todos os papéis. */
+  --ok: #1d6b2f;      /* aconteceu (>=5,60:1) */
+  --alerta: #8f5a12;  /* parcial (>=4,92:1) */
+  --falha: #9b1c1c;   /* erro / não aconteceu (>=6,95:1) */
+
+  /* --- Tipografia -----------------------------------------------------------------
+     Duas pilhas, e só duas: o texto é serifado (a voz do projeto) e os CONTROLES —
+     campo, botão, menu — são sans, porque é onde se digita e se clica, e a serifa
+     atrapalha em corpo pequeno de interface. Nenhum arquivo redeclara estas listas. */
+  --serif: Georgia, 'Times New Roman', serif;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Altura da barra fixa. O valor aqui é o FALLBACK (sem JavaScript): cobre a
+     navbar de duas linhas, que é o pior caso. Com JS ligado, o script do
+     template mede a altura real e sobrescreve esta variável. */
+  --header-height: 120px;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  /* âncoras (#id) param abaixo da barra fixa, em vez de ficarem escondidas sob ela */
+  scroll-padding-top: calc(var(--header-height) + 8px);
+}
+
+body {
+  margin: 0;
+  padding: var(--header-height) 0 40px;
+  background: var(--cream);
+  color: var(--tinta);
+  font: 17px/1.65 var(--serif);
+}
+
+/* ---------- barra de navegação fixa (Regra 16, item 1) ---------- */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  background: var(--burgundy); border-bottom: 3px solid var(--gold-claro);
+  padding: 6px 14px; font-size: 15px;
+}
+/* Os ornamentos do nav são --gold-claro, e não --gold, porque o FUNDO do nav tem dois
+   tons: o burgundy (3,65:1 com --gold) e o burgundy-claro dos estados :hover e do menu
+   aberto (onde --gold cai para 2,74:1). --gold-claro passa nos dois — 5,03:1 e 3,77:1 —
+   então nenhum estado de interação pode ficar abaixo de AA. */
+.topnav .marca {
+  /* --gold-claro, não --gold: é TEXTO sobre o burgundy. O --gold dá 3,65:1 aqui. */
+  font-weight: bold; color: var(--gold-claro); margin-right: 10px; letter-spacing: .3px;
+  text-decoration: none; padding: 6px 4px;
+}
+/* No :hover o fundo passa a --burgundy-claro, onde o ouro não alcança 4,5:1 em nenhum tom:
+   a marca volta ao creme (8,00:1), como todos os outros links do nav. */
+.topnav a.marca:hover { color: var(--cream); }
+.topnav a { color: var(--cream); text-decoration: none; padding: 6px 10px; border-radius: 4px; }
+.topnav a:hover { background: var(--burgundy-claro); }
+.topnav a.ativo { background: var(--gold); color: var(--sobre-ouro); font-weight: bold; }
+.topnav details { position: relative; }
+.topnav details.menu[open] > summary { background: var(--burgundy-claro); }
+.topnav summary {
+  cursor: pointer; color: var(--cream); padding: 6px 10px; border-radius: 4px;
+  list-style: none; display: inline-block;
+}
+.topnav summary::-webkit-details-marker { display: none; }
+.topnav summary::after { content: ' ▾'; }
+.topnav details[open] summary, .topnav summary:hover { background: var(--burgundy-claro); }
+.topnav .submenu {
+  position: absolute; top: 100%; left: 0; z-index: 21;
+  display: flex; flex-direction: column; gap: 2px; min-width: 300px;
+  background: var(--burgundy); border: 2px solid var(--gold-claro); border-radius: 6px;
+  padding: 6px; box-shadow: 0 6px 18px rgba(0, 0, 0, .18);
+}
+.topnav .submenu a { padding: 7px 10px; }
+.topnav .pdf { margin-left: auto; border: 2px solid var(--gold-claro); }
+
+/* Os links ficam num contêiner para o menu mobile poder colapsá-los de uma vez.
+   O contêiner não muda o layout de desktop — é a mesma linha de antes. */
+.topnav .nav-links {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  flex: 1 1 auto; min-width: 0;
+}
+
+/* Botão hamburger: invisível no desktop; aparece só na media query de celular.
+ * `position: relative` + `z-index` EXPLÍCITOS: sem eles o botão herda a pilha do
+ * .topnav (20) e fica ABAIXO do painel do submenu (21) — é o que fazia o botão
+ * sumir depois de navegar, quando algum resíduo de estado mantinha o painel no
+ * caminho. `pointer-events: auto` é defesa contra regra herdada que desabilite
+ * o clique. */
+.topnav .hamburger {
+  display: none; margin-left: auto; cursor: pointer;
+  position: relative; z-index: 22; pointer-events: auto;
+  background: none; border: 2px solid var(--gold-claro); border-radius: 4px;
+  padding: 6px 8px;
+}
+.topnav .hamburger span {
+  display: block; width: 18px; height: 2px; margin: 3px 0; background: var(--cream);
+}
+.topnav .hamburger[aria-expanded="true"] { background: var(--burgundy-claro); }
+
+/* ---------- cabeçalho, conteúdo e títulos ---------- */
+header.doc, main, footer.rodape, .rodape { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+
+header.doc { margin-top: 10px; }
+header.doc h1 {
+  color: var(--burgundy); font-size: 31px; line-height: 1.2; margin: 0 0 6px;
+  border-bottom: 2px solid var(--gold-escuro); padding-bottom: 10px;
+}
+header.doc .subtitulo { color: var(--soft); font-style: italic; margin: 0 0 8px; }
+.ficha { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.ficha span {
+  background: var(--creme-2); border: 1px solid var(--gold-escuro); border-radius: 999px;
+  padding: 2px 10px; font-size: 13px; color: var(--gold-texto);
+}
+
+main h2 { color: var(--burgundy); font-size: 23px; margin: 30px 0 8px; }
+main h3 { color: var(--burgundy); font-size: 19px; margin: 22px 0 6px; }
+main h4 { color: var(--gold-texto); font-size: 17px; margin: 18px 0 4px; }
+main a { color: var(--burgundy); text-decoration: none; border-bottom: 1px dotted var(--gold-escuro); }
+main a:hover { background: var(--creme-3); }
+
+p, ul, ol { margin: 10px 0; }
+li { margin: 4px 0; }
+
+/* ---------- índice da própria página (Regra 16, item 2) ---------- */
+.toc-local {
+  background: var(--branco); border: 1px solid var(--gold-escuro); border-radius: 8px;
+  padding: 12px 20px 14px; margin: 20px 0 26px;
+}
+.toc-local .toc-titulo {
+  margin: 0 0 4px; color: var(--gold-texto); font-size: 14px;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.toc-local ul { list-style: none; padding-left: 14px; margin: 4px 0; }
+.toc-local > ul { padding-left: 0; }
+.toc-local a { color: var(--soft); text-decoration: none; border-bottom: 1px dotted var(--gold-escuro); }
+
+/* ---------- o índice da página: coluna à DIREITA, que acompanha a rolagem ----------
+   Até 1199px o índice continua sendo o bloco do topo, como sempre foi. A partir de 1200px
+   há largura para duas colunas: o contêiner da página alarga, o texto mantém a medida de
+   leitura (900px) e o índice vira uma coluna à direita, presa abaixo da navbar
+   (`position: sticky`) — quem rola a página não perde a navegação.
+
+   Quem decide é a LARGURA, não o dispositivo: tablet largo, tela cheia e janela estreita
+   se comportam pelo mesmo critério. O `.rail` existe porque o elemento preso precisa de um
+   pai mais alto que ele para ter para onde subir — a coluna da grade estica, o índice não. */
+@media (min-width: 1200px) {
+  header.doc, main, footer.rodape, .rodape { max-width: 1180px; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 2rem; }
+  .conteudo { grid-column: 1; grid-row: 1; min-width: 0; max-width: 900px; }
+  .rail { grid-column: 2; grid-row: 1; }
+  .toc-local {
+    position: sticky;
+    top: calc(var(--header-height) + 8px);
+    /* para antes do botão "voltar ao topo" (fixo no canto), e rola por dentro se for longo */
+    max-height: calc(100vh - var(--header-height) - 96px);
+    overflow-y: auto;
+  }
+}
+
+/* ---------- tabelas, citações, código ---------- */
+table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 15px; }
+th, td { border: 1px solid var(--gold-escuro); padding: 6px 9px; text-align: left; vertical-align: top; }
+th { background: var(--creme-2); color: var(--gold-texto); }
+/* o pandoc marca as linhas com .odd / .even e o cabeçalho com .header */
+tr.header { background: var(--creme-2); }
+tr.header th { color: var(--gold-texto); }
+tbody tr.odd { background: var(--creme-1); }
+tbody tr.even { background: var(--branco); }
+
+blockquote {
+  margin: 14px 0; padding: 10px 18px; background: var(--creme-4);
+  border-left: 4px solid var(--gold-escuro); color: var(--soft);
+}
+blockquote p { margin: 6px 0; }
+
+code { background: var(--creme-5); padding: 1px 4px; border-radius: 3px; font-size: 15px; }
+pre { background: var(--creme-6); border: 1px solid var(--gold-escuro); border-radius: 6px; padding: 12px 14px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+
+hr { border: none; border-top: 1px solid var(--gold-escuro); margin: 28px 0; }
+
+/* ---------- botão "voltar ao topo" (Regra 16, item 5) ---------- */
+.topo {
+  position: fixed; right: 18px; bottom: 18px; z-index: 20;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  background: var(--burgundy); color: var(--cream); border: 2px solid var(--gold-claro);
+  border-radius: 50%; text-decoration: none; font-size: 21px; line-height: 1;
+}
+.topo:hover { background: var(--burgundy-claro); }
+
+/* ---------- rodapé (Regra 16, item 6) ---------- */
+.rodape {
+  max-width: 900px; margin: 40px auto 0; padding: 14px 22px 0;
+  border-top: 1px solid var(--gold-escuro); color: var(--soft); font-size: 14px;
+}
+.rodape p { margin: 4px 0; }
+.rodape a { color: var(--burgundy); text-decoration: none; border-bottom: 1px dotted var(--gold-escuro); }
+
+/* ---------- responsividade (Regra 16) ---------- */
+
+/* tablet: navbar horizontal, com fonte e espaçamento menores */
+@media (max-width: 1024px) {
+  .topnav { font-size: 13.5px; padding: 6px 10px; }
+  .topnav a { padding: 5px 7px; }
+  .topnav .marca { margin-right: 6px; }
+}
+
+/* celular: menu colapsado atrás do hamburger */
+@media (max-width: 768px) {
+  .topnav { flex-wrap: wrap; }
+  .topnav .hamburger { display: block; }
+  .topnav .nav-links { display: none; }
+  .topnav.aberto .nav-links {
+    display: flex; flex-direction: column; align-items: stretch;
+    flex-basis: 100%; gap: 2px; padding: 8px 0 4px;
+  }
+  .topnav.aberto .nav-links a { padding: 9px 10px; }
+  /* o submenu de "Aulas" deixa de flutuar e passa a empilhar dentro do painel */
+  .topnav.aberto details { position: static; }
+  .topnav.aberto .submenu {
+    position: static; min-width: 0; box-shadow: none; border: none;
+    border-left: 2px solid var(--gold-claro); border-radius: 0; padding: 2px 0 2px 10px;
+  }
+  .topnav.aberto .pdf { margin-left: 0; }
+}
+
+/* ---------- impressão: sem barra fixa nem botão ---------- */
+@media print {
+  .topnav, .topo { display: none; }
+  body { padding: 0; background: var(--branco); }
+  a { color: var(--tinta); border: none; }
+  /* no papel não há rolagem: o índice volta a ser um bloco do fluxo */
+  .toc-local { position: static; max-height: none; overflow: visible; }
+}

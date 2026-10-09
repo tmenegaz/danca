@@ -1,0 +1,3058 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<!-- A porta é SERVÍVEL em qualquer subcaminho: `<base href="./">` ancora TODOS os
+     caminhos relativos (assets, fetch de `/api/*` sem a barra inicial) ao DIRETÓRIO da
+     página. Na prova ela vive na raiz (`/`), em produção em `/plano-observacao/` — o
+     mesmo HTML, zero caminho hardcoded. A raiz absoluta (`/api/…`) foi trocada por
+     relativa justamente para isso. -->
+<base href="./">
+<title>Plano de Observação — Projeto Ciclo</title>
+<!-- A identidade visual da PRODUÇÃO. Mesma URL (`/assets/style.css`) e mesmo
+     arquivo — `tools/templates/ciclo.css`, a fonte de verdade declarada do Projeto
+     Ciclo —, servido pela porta direto do original, sem cópia que envelheça.
+     Daqui vêm os tokens, a tipografia (serifa na prosa, sans nos controles) e o
+     layout: `header.doc`, `main` em duas colunas (`.conteudo` + `.rail`), `.toc-local`
+     preso à direita a partir de 1200px, `footer.rodape`. -->
+<link rel="stylesheet" href="assets/style.css">
+<style>
+  /* Sem `:root` de identidade. Como no formulário de lançamento do site, nenhuma cor se
+     inventa aqui: os nomes que a tela já usava viram ALIASES dos tokens do site, e quem
+     precisar de um valor novo declara-o em `tools/templates/ciclo.css`. */
+  :root {
+    --papel: var(--cream);
+    --borda: var(--gold-borda); /* o filete medido para 3:1 — traço de campo, não de texto */
+    --suave: var(--soft);
+    --acento: var(--burgundy);
+    --erro: var(--falha);
+  }
+  /* O site reserva `padding-top` para a navbar FIXA (`--header-height`). O experimento não
+     tem navbar: a `.barra` dele é `sticky` e flui com a página. Então o `padding` sai, e o
+     `--header-height` passa a medir a própria `.barra` — publicado pelo JavaScript, como o
+     `assets/nav.js` do site faz —, para as âncoras e o `.rail` pararem abaixo dela. */
+  body { padding: 0 0 40px; }
+  .sub { color: var(--suave); font-size: .9rem; margin: 0 0 1.5rem; }
+  /* Os links que embrulham um botão e as linhas da lista já se anunciam por si: o filete
+     pontilhado do site (que marca link de prosa) vira ruído embaixo de um controle. */
+  .acoes a, .lista a { border-bottom: none; }
+  .caixa {
+    border: 1px solid var(--borda);
+    background: var(--branco);
+    border-radius: 4px;
+    padding: 1rem 1.15rem;
+    margin: 1rem 0;
+  }
+  .caixa.nota { background: var(--creme-1); }
+  /* A faixa de contexto do ATO: as mesmas medidas do conteúdo (`main`), a mesma
+     serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
+     onde se digita. Prega-se ao topo porque é controle: não sai de vista. */
+  .barra {
+    position: sticky; top: 0; z-index: 5;
+    max-width: 900px; margin: 0 auto 1.5rem;
+    background: var(--cream);
+    border-bottom: 1px solid var(--gold-escuro);
+    padding: .55rem 22px;
+    display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
+    font-size: .85rem; color: var(--suave);
+  }
+  .barra b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+  .barra .campo { display: flex; align-items: baseline; gap: .35rem; }
+  .barra .campo label { white-space: nowrap; }
+  /* Dentro da barra os campos são miúdos: a medida de toque do site (15px) vence
+     aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
+  .barra .campo input {
+    width: auto; font: 13px/1.5 var(--ui); padding: .15rem .4rem;
+    border: 1px solid var(--gold-borda); border-radius: 4px;
+    background: var(--branco); color: var(--tinta);
+  }
+  .barra .campo input[type=password] { width: 8rem; }
+  .barra .contadores { display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
+  .opcao {
+    display: flex; gap: .6rem; align-items: flex-start;
+    padding: .45rem .5rem; border-radius: 3px; cursor: pointer;
+  }
+  .opcao:hover { background: var(--creme-2); }
+  .opcao input { margin-top: .35rem; }
+  .opcao span { flex: 1; }
+  .opcao em { display: block; color: var(--suave); font-size: .85rem; font-style: normal; }
+  /* Os CONTROLES são a única coisa sans do projeto (`--ui`): é onde se digita e se
+     clica, e a serifa atrapalha em corpo pequeno de interface. As medidas são as do
+     formulário de lançamento do site, termo a termo (`font: 15px/1.5 var(--ui)`,
+     `padding: 5px 8px` / `5px 10px`, filete `--gold-borda` / `--burgundy`, raio 4px) —
+     não há medida inventada aqui. O `box-sizing` é o que o formulário usa para o campo
+     não estourar a coluna. */
+  input[type=text], input[type=password], textarea, select {
+    width: 100%; font: 15px/1.5 var(--ui); padding: 5px 8px;
+    border: 1px solid var(--gold-borda); border-radius: 4px;
+    background: var(--branco); color: var(--tinta); box-sizing: border-box;
+  }
+  textarea { min-height: 4.5rem; resize: vertical; }
+  button {
+    font: 15px/1.5 var(--ui); padding: 5px 10px; cursor: pointer;
+    border: 1px solid var(--burgundy); border-radius: 4px;
+    background: var(--branco); color: var(--burgundy);
+  }
+  button:hover:not(:disabled) { background: var(--burgundy); color: var(--cream); }
+  button:disabled {
+    border-color: var(--gold-borda); color: var(--soft);
+    background: var(--creme-1); cursor: default;
+  }
+  button.principal { background: var(--burgundy); border-color: var(--burgundy); color: var(--cream); }
+  button.principal:hover:not(:disabled) { background: var(--burgundy-claro); border-color: var(--burgundy-claro); }
+  .acoes { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  /* O selo é o MESMO objeto do site: a pastilha `.ficha span` que marca um atributo no
+     cabeçalho do ciclo — creme, filete de ouro, raio de pílula. Aqui ele também diz
+     ESTADO (obrigatório, opcional, vigente, vinculada), e os estados usam os três
+     vereditos da identidade: `--ok`, `--alerta`, `--falha`. */
+  .selo {
+    display: inline-block; font-size: .72rem; letter-spacing: .04em;
+    text-transform: uppercase; padding: .1rem .5rem; border-radius: 999px;
+    border: 1px solid var(--gold-escuro); color: var(--gold-texto); background: var(--creme-2);
+  }
+  .selo.obrig { border-color: var(--burgundy); color: var(--burgundy); }
+  .selo.opt { border-style: dashed; }
+  .selo.dim { background: var(--creme-1); color: var(--suave); }
+  /* O «limpar» mora dentro do <li>, que navega ao clique. Discreto o bastante
+     para não competir com o rótulo, e claramente um botão. */
+  .lista li .limpar {
+    font-size: .68rem; letter-spacing: .04em; text-transform: uppercase;
+    padding: .05rem .4rem; margin-left: .35rem; border-style: dashed;
+    color: var(--suave); background: transparent;
+  }
+  .lista li .limpar:hover { background: var(--creme-4); color: var(--erro); border-color: var(--erro); }
+  /* A li inteira é clicável e anuncia o cursor da navegação; o botão não
+     navega — apaga. O cursor tem de dizer isso. */
+  .lista li button.limpar { cursor: pointer; }
+  /* A `.moldura` do cabeçalho é conteúdo, não interface: preserva as colunas do
+     desenho ASCII. O `pre` genérico do site já é creme com filete de ouro. */
+  .moldura { font-size: .78rem; line-height: 1.35; white-space: pre; }
+  .lista { list-style: none; padding: 0; margin: .5rem 0 0; }
+  .lista li { padding: .3rem .5rem; border-radius: 4px; cursor: pointer; font-size: .9rem; }
+  .lista li:hover { background: var(--creme-2); }
+  .lista li.aqui { background: var(--creme-2); font-weight: 600; }
+  .lista li.feito::after { content: " ✓"; color: var(--ok); }
+  .lista li .n { display: inline-block; min-width: 1.9rem; color: var(--suave); font-variant-numeric: tabular-nums; }
+  /* A `li` das fichas é uma linha de link, não de navegação: o cursor e o
+     sublinhado vivem no `<a>`, e o alvo é outra página. */
+  .lista a { color: inherit; text-decoration: none; display: block; }
+  .lista a:hover { text-decoration: underline; }
+  .lista .quando { font-variant-numeric: tabular-nums; }
+  .lista .caminho { color: var(--suave); font-size: .78rem; }
+  #filtro-fichas { margin: 0 0 .5rem; }
+  .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
+  .erro { color: var(--erro); }
+  /* A explicação do nó: curta, ao lado da pergunta, em linguagem de professor.
+     É conteúdo do PO (o dado), não rótulo — a tela só a desenha. O tratamento é o
+     que o site dá à anotação (`blockquote`): papel de citação e filete de ouro. */
+  .explica {
+    background: var(--creme-4);
+    border-left: 4px solid var(--gold-escuro);
+    padding: .5rem .9rem;
+    margin: .6rem 0 1rem;
+    font-size: .92rem;
+    color: var(--soft);
+  }
+  .explica p { margin: .35rem 0; }
+  .explica b { color: var(--burgundy); }
+  /* O item da repetição (um por sujeito): a linha de base acoplada ao nó dos
+     sujeitos. Cada bloco traz a referência da anamnese e os campos do item. */
+  .item-repeticao {
+    border: 1px solid var(--borda);
+    border-radius: 4px;
+    padding: .7rem .9rem;
+    margin: .7rem 0;
+    background: var(--creme-1);
+  }
+  .item-repeticao h4 { margin: 0 0 .4rem; font-size: 1rem; }
+  .referencia {
+    background: var(--creme-2);
+    border-left: 4px solid var(--gold-escuro);
+    padding: .4rem .7rem;
+    margin: .4rem 0 .6rem;
+    font-size: .88rem;
+    color: var(--soft);
+  }
+  .referencia p { margin: .2rem 0; }
+  /* O registo da anamnese é prosa do professor, e a quebra de linha dele é dele:
+     o `pre-wrap` a preserva — a mesma regra que a ficha já aplica ao conteúdo. */
+  .detalhe p { margin: .35rem 0; white-space: pre-wrap; }
+  .sumiu { color: var(--erro); }
+  /* AS FORMAS DE VALOR. Os campos medem o que precisam e não esticam: a medida
+     não é um campo de prosa (`width:100%`), é um valor e o que ele conta. O
+     `<select>` segue o arquivo do formulário — campo, não botão. */
+  .medida { display: inline-flex; align-items: center; gap: .4rem; flex-wrap: wrap;
+            margin: .2rem .8rem .2rem 0; }
+  .medida input[type=number] { width: 5.5rem; }
+  .medida select { width: auto; }
+  .medida .ate { color: var(--suave); }
+  .medida .unidade { color: var(--suave); }
+  .dias { display: flex; gap: .2rem .8rem; flex-wrap: wrap; margin: .3rem 0 .1rem; }
+  .dia { display: inline-flex; align-items: center; gap: .3rem; font-size: .9rem; }
+  .data { display: inline-flex; margin: .2rem .8rem .2rem 0; }
+  .data label { display: flex; flex-direction: column; gap: .15rem; }
+  .data .rotulo { font-size: .78rem; letter-spacing: .04em; text-transform: uppercase;
+                  color: var(--suave); }
+  .data input[type=date] { font: 15px/1.5 var(--ui); padding: 5px 8px;
+                           border: 1px solid var(--gold-borda); border-radius: 4px;
+                           background: var(--branco); color: var(--tinta); box-sizing: border-box; }
+  /* A proveniência da anamnese: o selo do estado e os gestos que a regra permite. */
+  .selo.vigente { border-color: var(--ok); color: var(--ok); }
+  .selo.vinculada { border-color: var(--burgundy); color: var(--burgundy); }
+  .selo.legado { border-style: dotted; color: var(--suave); }
+  .selo.solta { border-style: dashed; color: var(--suave); }
+  .acoes-ficha { display: inline-flex; gap: .4rem; margin: .35rem 0 0; }
+  .acoes-ficha button { padding: .15rem .5rem; font-size: .82rem; }
+  .aviso-ficha { font-size: .84rem; margin-top: .25rem; }
+  .aviso-ficha.ok { color: var(--ok); }
+  .aviso-ficha.erro { color: var(--erro); }
+  .ok { color: var(--ok); }
+  details summary { cursor: pointer; color: var(--suave); font-size: .9rem; }
+  /* O markdown do conteúdo usa a tabela do site (`--gold-escuro`, cabeçalho creme-2);
+     aqui só se ajusta a medida, que no formulário é menor que na prosa. */
+  table { font-size: .9rem; }
+  p.linha { color: var(--suave); margin: .35rem 0; white-space: pre-wrap; }
+  /* As aspas do projeto («») destacam um termo no meio da prosa. */
+  .citacao { font-style: italic; color: var(--soft); }
+  .oculto { display: none; }
+  .grade { display: grid; gap: .1rem .8rem; }
+  .opcao.travada { opacity: .45; cursor: default; }
+  .opcao.travada:hover { background: transparent; }
+
+  /* O roteiro acompanha a condução. O DOM mantém o índice ANTES do corpo; em
+     tela larga o CSS o move para a coluna 2 e o prega ao topo — em tela
+     estreita ele volta a ser bloco do topo, que é onde a leitura começa.
+     A caixa, a pílula e o `sticky` são os do site (`.toc-local`); aqui só se
+     limites o próprio rolo, que o site não tem. */
+  .toc-local .lista { max-height: 22rem; overflow-y: auto; margin: 0; }
+  .lista .grupo { margin: 1rem 0 .35rem; padding: 0; font-size: .78rem;
+                  letter-spacing: .04em; text-transform: uppercase; color: var(--suave);
+                  border-bottom: 1px solid var(--borda); list-style: none; cursor: default; }
+  .lista .grupo:first-child { margin-top: 0; }
+  .lista .grupo:hover { background: transparent; }
+  @media (min-width: 1200px) {
+    /* O contêiner alarga, o texto mantém a medida de leitura (900px) e o índice vira
+       coluna à direita, preso abaixo da `.barra` — tudo isso vem do site (`main` em
+       grade, `.conteudo`, `.rail`, `.toc-local`). Aqui só se solta o rolo interno: a
+       altura máxima passou a ser a do próprio `.toc-local`. */
+    .barra { max-width: 1180px; }
+    .toc-local .lista { max-height: none; }
+  }
+  @media print { .toc-local { position: static; max-height: none; } }
+</style>
+</head>
+<body>
+
+<!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de
+     ouro e o subtítulo em itálico. Não há navbar: o experimento é uma página só, e a
+     faixa de contexto do ato (`.barra`, abaixo) faz o papel de barra que acompanha. -->
+<header class="doc">
+  <h1>Plano de Observação</h1>
+  <p class="subtitulo">O recorte escrito antes de olhar — com a anamnese que o sustenta.</p>
+</header>
+
+<div id="barra" class="barra oculto">
+  <span class="contadores">
+    <span>respondidos <b id="n-resp">0</b>/<b id="n-total">53</b></span>
+    <span>obrigatórios <b id="n-obrig">0</b>/<b id="n-obrig-total">49</b></span>
+    <span>estado <b id="n-estado">construida</b></span>
+  </span>
+  <!-- O contexto do ATO. Ele não é o contexto pedagógico da tela (`contexto(m)`,
+       mais abaixo): é a identificação que entra no envelope e o prefixo da chave
+       do cofre. Nasce preenchido e o professor corrige o que não servir. -->
+  <span class="campo"><label for="ctx-escola">escola</label>
+    <input type="text" id="ctx-escola" value="Diaghilev"></span>
+  <span class="campo"><label for="ctx-professor">professor</label>
+    <input type="text" id="ctx-professor" value="fokini"></span>
+  <span class="campo"><label for="ctx-ciclo">ciclo</label>
+    <input type="text" id="ctx-ciclo" value="01"></span>
+  <span class="campo"><label for="ctx-aluna">aluna</label>
+    <input type="text" id="ctx-aluna" value="P-12"></span>
+  <span class="campo"><label for="senha">senha da escola</label>
+    <input type="password" id="senha" autocomplete="off"></span>
+</div>
+
+<main>
+
+<!-- O índice vive antes do corpo no DOM e as colunas da grade o põem na SEGUNDA:
+     em tela larga ele acompanha a rolagem; em tela estreita — sem grade — volta a
+     ser bloco do topo, que é onde a leitura começa. Ele nasce oculto: só passa a
+     valer quando a condução começa — antes disso não há percurso a acompanhar. -->
+<aside class="rail oculto" id="rail">
+  <nav class="toc-local" aria-label="Roteiro da elicitação">
+    <p class="toc-titulo">Roteiro</p>
+    <ol id="roteiro" class="lista"></ol>
+  </nav>
+</aside>
+
+<div class="conteudo">
+
+<!-- ------------------------------------------------------------ abertura -->
+<section id="abertura">
+  <!-- A ABERTURA do Plano de Observação: o que é, as duas partes, e que se pode
+       começar por onde quiser. É texto de PORTAL (a porta da área), não de
+       formulário — a explicação de cada formulário (o que cada campo pede)
+       continua em `#contexto`, vinda do conteúdo. -->
+  <div class="caixa nota" id="portal-po">
+    <p><b>O Plano de Observação é o recorte.</b> É o que você vai olhar durante o
+       ciclo, escrito <b>antes</b> de olhar. Não é relatório nem avaliação: é a
+       promessa do que conta como observação, para o depois poder ser comparado
+       com o antes.</p>
+    <p>Duas partes — você pode começar por qualquer uma:</p>
+    <ul>
+      <li><b>Anamnese</b> — a linha de base de cada sujeito observado, identificado
+          por apelido (nunca pelo nome completo). É o primeiro passo de quem ainda
+          não lançou os sujeitos.</li>
+      <li><b>O PO</b> — o recorte: o que será observado e como. O PO escolhe os
+          sujeitos <b>entre as anamneses já feitas</b> — sem anamnese, ele não
+          conclui.</li>
+    </ul>
+    <p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no
+       navegador até gravar o envelope. Nada se perde no caminho.</p>
+  </div>
+  <div id="contexto" class="caixa nota">carregando o mapa…</div>
+  <div id="retomada" class="caixa nota oculto"></div>
+  <div class="acoes">
+    <button class="principal" id="comecar" disabled>Começar pela anamnese</button>
+    <a id="link-ficha-branco" href="api/ficha?formato=html" target="_blank" rel="noopener"><button>Ver a ficha em branco</button></a>
+    <a id="link-fonte" href="?fonte=po"><button>Capturar o PO</button></a>
+    <button id="usar-ia">Usar IA para fazer o PO</button>
+  </div>
+  <p id="aviso-ia" class="sub oculto"></p>
+
+  <!-- O filtro fica FORA da `.acoes`: aquela barra é `display: flex`, e a
+       lista de fichas precisa de linha própria para respirar. -->
+  <div class="caixa nota" id="fichas">
+    <p class="toc-titulo" id="titulo-fichas">Fichas gravadas</p>
+    <input type="text" id="filtro-fichas" placeholder="filtrar por data, hora ou id" autocomplete="off">
+    <ul id="lista-fichas" class="lista"></ul>
+    <p class="sub oculto" id="fichas-vazio">Nenhuma ficha gravada ainda.</p>
+  </div>
+</section>
+
+<!-- ------------------------------------------------------------ condução -->
+<section id="conducao" class="oculto">
+  <h2>Condução</h2>
+  <p class="sub">Uma pergunta por vez. O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
+
+  <div id="pergunta"></div>
+
+  <div class="acoes">
+    <button id="anterior">← Anterior</button>
+    <button id="proxima" class="principal">Próxima →</button>
+    <button id="pular">Pular</button>
+    <button id="fechar" disabled>Fechar a elicitação</button>
+  </div>
+</section>
+
+<!-- -------------------------------------------------------------- fecho -->
+<section id="fecho" class="oculto">
+  <h2>Fecho</h2>
+  <div id="resultado"></div>
+  <div class="acoes">
+    <button class="principal" id="gravar">Gravar o envelope</button>
+    <button id="voltar">Voltar à condução</button>
+    <a id="link-envelope" class="oculto" target="_blank"><button>Ver o envelope gravado</button></a>
+    <a id="link-ficha" class="oculto" href="api/ficha.md" target="_blank"><button>Ver a ficha preenchida</button></a>
+  </div>
+  <div id="gravacao"></div>
+</section>
+
+<!-- ------------------------------------------------------------------ ia -->
+<section id="ia" class="oculto">
+  <h2>Conversa com a IA (stub)</h2>
+  <p class="sub">O motor de IA ainda é um stub: lê o PO e pergunta um campo por vez. O freio é real — no máximo 30 turnos, depois compila.</p>
+  <div id="ia-mensagens" class="caixa nota"></div>
+  <div class="acoes">
+    <input type="text" id="ia-entrada" placeholder="sua resposta (ou «compilar»)" autocomplete="off">
+    <button class="principal" id="ia-enviar">Enviar</button>
+    <button id="ia-voz">🎤 Falar</button>
+    <button id="ia-fechar">Fechar</button>
+    <a id="ia-copiar" href="#"><button>Copiar o prompt (sem IA)</button></a>
+  </div>
+  <p id="ia-voz-estado" class="sub oculto"></p>
+  <div id="ia-resultado" class="caixa nota oculto"></div>
+</section>
+
+</div><!-- /.conteudo -->
+
+</main>
+
+<footer class="rodape">
+  <p>Experimento do Protocolo de Observação — a mesma identidade visual do site
+     (<code>tools/templates/ciclo.css</code>), servida do original.</p>
+</footer>
+
+<!-- O mesmo esquema de cifra das páginas do repositório (`tools/lib-cifra.js`, copiado para
+     `assets/`): aqui quem cifra é o cliente, e a senha nunca sobe ao servidor. -->
+<script src="assets/lib-cifra.js"></script>
+<!-- O renderizador de markdown do experimento: é INFRAESTRUTURA, não conteúdo de PO nem
+     de PE — o mesmo arquivo que a ficha usa no servidor, aqui no navegador. -->
+<script src="assets/markdown.js"></script>
+<script>
+'use strict';
+
+// A fonte que esta página conduz. `?fonte=po` entrega o PO (o conteúdo do
+// Protocolo de Observação, irmão do PE); sem `fonte`, a anamnese — byte a byte
+// o de sempre. É o MESMO motor, a MESMA tela e o MESMO servidor: a fonte só
+// escolhe qual conteúdo o `mapa()` devolve.
+const FONTE = new URLSearchParams(location.search).get('fonte') === 'po' ? 'po' : 'anamnese';
+
+let MAPA = null;
+let INDICE = 0;
+let FICHAS = [];               // ids de envelope já gravados, o mais novo primeiro
+const RESPOSTAS = new Map();   // id -> {valor, nota}
+const NOTAS = new Map();       // id -> string
+const SUGERIDAS = new Set();   // ids que a pré-inscrição semeou, não a professora
+
+const $ = (id) => document.getElementById(id);
+
+// ------------------------------------------------- a memória do navegador
+
+/*
+ * Preencher a anamnese é longo, e o navegador fecha sem avisar. Cada resposta
+ * vai para o `localStorage` no mesmo instante em que entra no mapa, e o depósito
+ * só é limpo quando o envelope é gravado — daí em diante o dado vive no disco.
+ * `memoriaLigada` desligado significa que o navegador recusou guardar (aba
+ * privada, cota cheia): a tela avisa, e nada mais quebra por causa disso.
+ */
+const CHAVE = 'porta-' + FONTE + '-1';
+let memoriaLigada = true;
+
+function salvar() {
+  if (!MAPA || !memoriaLigada) return;
+  try {
+    localStorage.setItem(CHAVE, JSON.stringify({
+      total: MAPA.total,
+      quando: new Date().toISOString(),
+      indice: INDICE,
+      respostas: Array.from(RESPOSTAS),
+      notas: Array.from(NOTAS),
+      sugeridas: Array.from(SUGERIDAS),
+    }));
+  } catch (erro) {
+    memoriaLigada = false;
+  }
+}
+
+function lerMemoria() {
+  let bruto;
+  try {
+    bruto = localStorage.getItem(CHAVE);
+  } catch (erro) {
+    memoriaLigada = false;
+    return null;
+  }
+  if (!bruto) return null;
+  try {
+    return JSON.parse(bruto);
+  } catch (erro) {
+    return null;
+  }
+}
+
+function limparMemoria() {
+  try {
+    localStorage.removeItem(CHAVE);
+  } catch (erro) {
+    // sem depósito a limpar
+  }
+}
+
+/*
+ * A senha da escola é UMA só: a mesma dos acompanhamentos e a mesma que o
+ * formulário de lançamento guarda. A chave abaixo é literalmente a dele — uma
+ * senha nova aqui seria uma segunda senha para a mesma escola.
+ * O campo tem precedência sobre o que já ficou na sessão, para o professor
+ * poder corrigi-la sem recarregar a página.
+ */
+const CHAVE_SENHA = 'lancamento:senha';
+
+function senhaDaEscola() {
+  const campo = $('senha');
+  if (campo && campo.value) return campo.value;
+  try { return sessionStorage.getItem(CHAVE_SENHA) || ''; } catch (erro) { return ''; }
+}
+
+function guardarSenha() {
+  const campo = $('senha');
+  if (!campo || !campo.value) return;
+  try { sessionStorage.setItem(CHAVE_SENHA, campo.value); } catch (erro) { /* sem sessão */ }
+}
+
+/*
+ * O contexto do ATO — escola, professor, ciclo e aluna. É a única identificação
+ * que o envelope carrega, e o motor DESCARTA em silêncio o campo vazio: sem
+ * esta trava um contexto incompleto sairia como envelope sem identidade, e nada
+ * avisaria. O que falta é dito antes de o envelope nascer.
+ */
+const CAMPOS_DO_CONTEXTO = FONTE === 'po'
+  ? ['escola', 'professor', 'ciclo']   // o PO é de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
+  : ['escola', 'professor', 'ciclo', 'aluna'];
+
+function contextoDaBarra() {
+  const contexto = {};
+  const faltando = [];
+  for (const campo of CAMPOS_DO_CONTEXTO) {
+    const valor = (($('ctx-' + campo) || {}).value || '').trim();
+    if (valor === '') faltando.push(campo);
+    else contexto[campo] = valor;
+  }
+  if (faltando.length) {
+    throw new Error('preencha o contexto na barra antes de fechar: ' + faltando.join(', '));
+  }
+  return contexto;
+}
+
+/*
+ * As fichas gravadas sobrevivem ao envelope que as gerou: `limparMemoria` apaga
+ * o rascunho para o professor não recomeçar do zero, mas o que já foi gravado
+ * é o que ele vem consultar. Por isso a lista de ids é guardada à parte.
+ */
+function anotarFicha(id) {
+  const ids = fichasDaMemoria().filter((outro) => outro !== id);
+  ids.unshift(id);
+  guardarFichas(ids);
+}
+
+/*
+ * O questionário muda entre uma sessão e outra: uma pergunta sai, outra entra.
+ * Id que não existe mais no mapa é descartado — e o descarte é CONTADO, porque
+ * ele é parte do que se perdeu. O que volta é a resposta, não o silêncio.
+ */
+function restaurar(guardado) {
+  const vivos = new Set(MAPA.nos.map((n) => n.id));
+  const descartados = [];
+  const pares = Array.isArray(guardado.respostas) ? guardado.respostas : [];
+  const notas = Array.isArray(guardado.notas) ? guardado.notas : [];
+  const sugeridas = Array.isArray(guardado.sugeridas) ? guardado.sugeridas : [];
+
+  for (const par of pares) {
+    if (!Array.isArray(par) || par.length !== 2) continue;
+    if (!vivos.has(par[0])) { descartados.push(par[0]); continue; }
+    RESPOSTAS.set(par[0], par[1]);
+  }
+  for (const par of notas) {
+    if (!Array.isArray(par) || par.length !== 2) continue;
+    if (vivos.has(par[0])) NOTAS.set(par[0], par[1]);
+  }
+  for (const id of sugeridas) {
+    if (vivos.has(id)) SUGERIDAS.add(id);
+  }
+
+  const onde = Number.isInteger(guardado.indice) ? guardado.indice : 0;
+  INDICE = Math.max(0, Math.min(onde, MAPA.nos.length - 1));
+
+  return { respondidos: RESPOSTAS.size, descartados: descartados, quando: guardado.quando };
+}
+
+/*
+ * Retomar não pode ser silencioso: quem volta precisa saber que voltou, quando
+ * foi o último lançamento, e quanto já estava respondido. E precisa poder
+ * recusar — daí o «começar de novo» ao lado do «continuar». Enquanto o depósito
+ * estiver em mãos, «Começar» fica travado: começar do zero só pelo botão que
+ * diz que vai começar do zero.
+ */
+function mostrarRetomada(t) {
+  const linhas = [];
+  linhas.push('<p><b>Há um preenchimento interrompido.</b> Último lançamento em ' +
+    (dataEmPortugues(t.quando) || 'data não registrada') + ' — ' + t.respondidos +
+    ' de ' + MAPA.total + ' respondidas, ' + contar().obrig + ' obrigatórias.</p>');
+  if (t.descartados.length) {
+    linhas.push('<p class="sub">' + t.descartados.length + ' pergunta' +
+      (t.descartados.length > 1 ? 's' : '') + ' do depósito não existe' +
+      (t.descartados.length > 1 ? 'm' : '') + ' mais no questionário e ' +
+      (t.descartados.length > 1 ? 'foram descartadas' : 'foi descartada') + '.</p>');
+  }
+  linhas.push('<div class="acoes">' +
+    '<button class="principal" id="continuar">Continuar de onde parei</button>' +
+    '<button id="recomecar">Começar de novo</button>' +
+    '</div>');
+  $('retomada').innerHTML = linhas.join('');
+  $('retomada').classList.remove('oculto');
+  $('comecar').disabled = true;
+
+  const abrirConducao = () => {
+    $('retomada').classList.add('oculto');
+    $('abertura').classList.add('oculto');
+    $('conducao').classList.remove('oculto');
+    $('rail').classList.remove('oculto');
+  };
+
+  $('continuar').addEventListener('click', () => {
+    abrirConducao();
+    irPara(INDICE, false);
+  });
+  $('recomecar').addEventListener('click', () => {
+    limparMemoria();
+    RESPOSTAS.clear();
+    NOTAS.clear();
+    SUGERIDAS.clear();
+    INDICE = 0;
+    atualizarBarra();
+    abrirConducao();
+    irPara(0, false);
+  });
+}
+
+/*
+ * Sem memória, o preenchimento é volátil. Dizer isso na abertura é mais honesto
+ * do que deixar a professora descobrir quando a página fechar.
+ */
+function mostrarSemMemoria() {
+  $('retomada').innerHTML = '<p class="sub">Este navegador não está guardando o ' +
+    'preenchimento (aba privada ou memória cheia). Se a página fechar, o que foi ' +
+    'respondido se perde — grave o envelope antes de sair.</p>';
+  $('retomada').classList.remove('oculto');
+}
+
+// -------------------------------------------------------------- utilidades
+
+function familiaRotulo(f) {
+  return {
+    cabecalho: 'cabeçalho',
+    gatilho: 'gatilho',
+    basilar: 'elemento basilar',
+    subitem: 'subitem do elemento',
+    bloco: 'bloco',
+    modulo: 'módulo condicional',
+  }[f] || f;
+}
+
+function perguntaRespondida(no) {
+  return RESPOSTAS.has(no.id);
+}
+
+function contar() {
+  let resp = 0, obrig = 0;
+  for (const no of MAPA.nos) {
+    if (perguntaRespondida(no)) {
+      resp += 1;
+      if (no.obrigatorio) obrig += 1;
+    }
+  }
+  return { resp, obrig };
+}
+
+/*
+ * O que falta para o fecho abrir. Um obrigatório PULADO volta a esta lista —
+ * `#pular` apaga a resposta, e a lacuna reaberta precisa reabrir a trava.
+ */
+function obrigatoriosFaltando() {
+  if (!MAPA || !MAPA.nos) return [];
+  return MAPA.nos.filter((no) => no.obrigatorio && !perguntaRespondida(no));
+}
+
+function atualizarBarra() {
+  const { resp, obrig } = contar();
+  $('n-resp').textContent = resp;
+  $('n-obrig').textContent = obrig;
+  const faltam = obrigatoriosFaltando().length;
+  // A trava é do botão, não do fluxo: o fecho só existe quando a elicitação
+  // está inteira. O `disabled` nasce no HTML e é mantido aqui.
+  $('fechar').disabled = faltam > 0;
+  $('fechar').title = faltam
+    ? 'Faltam ' + faltam + (faltam === 1 ? ' obrigatório' : ' obrigatórios')
+    : 'Fechar a elicitação';
+}
+
+// ------------------------------------------------------------------- mapa
+
+async function carregarMapa() {
+  const resposta = await fetch('api/mapa' + (FONTE === 'po' ? '?fonte=po' : ''));
+  if (!resposta.ok) throw new Error('GET /api/mapa devolveu ' + resposta.status);
+  return resposta.json();
+}
+
+/*
+ * As opções que o CONTEÚDO manda buscar. Um nó pode declarar `opcoesDe`: um
+ * caminho de API de onde vêm as opções marcáveis. A tela não sabe o que há
+ * atrás dele — busca, e mostra. É o que faz os sujeitos virem da anamnese sem
+ * o PE saber o que é uma anamnese.
+ *
+ * O carregamento é LAZY (Frente 5): a lista só é buscada quando o nó que a pede
+ * é aberto. Abrir o PO não toca na fonte — a fonte é tocada quando o professor
+ * abre a lista. `OPCOES` guarda o resultado; `CARREGANDO` evita buscas repetidas.
+ */
+const OPCOES = new Map();        // endpoint → [{valor, rotulo, detalhe, ...}]
+const OPCOES_ERRO = new Map();   // endpoint → mensagem, quando falha
+const CARREGANDO = new Set();    // endpoints com pedido em curso
+
+async function carregarOpcoesDe(ep) {
+  if (CARREGANDO.has(ep)) return;
+  CARREGANDO.add(ep);
+  try {
+    const resposta = await fetch(ep);
+    const dados = await resposta.json();
+    if (!resposta.ok || !dados || !Array.isArray(dados.opcoes)) {
+      throw new Error(dados && dados.erro ? dados.erro : 'HTTP ' + resposta.status);
+    }
+    OPCOES.set(ep, dados.opcoes);
+  } catch (erro) {
+    OPCOES.set(ep, []);
+    OPCOES_ERRO.set(ep, erro.message);
+  } finally {
+    CARREGANDO.delete(ep);
+  }
+}
+
+/*
+ * O detalhe de uma opção — buscado SÓ quando o professor o pede (Frente 5). O
+ * caminho vem do próprio dado (`opcao.detalhe`); a tela não o compõe, para não
+ * precisar saber o que ele devolve. `DETALHES` guarda o que já veio.
+ */
+const DETALHES = new Map();      // carimbo → envelope completo
+
+async function carregarDetalhe(opcao) {
+  const chave = opcao.carimbo || opcao.detalhe;
+  if (DETALHES.has(chave)) return DETALHES.get(chave);
+  const resposta = await fetch(opcao.detalhe);
+  if (!resposta.ok) throw new Error('o detalhe devolveu ' + resposta.status);
+  const envelope = await resposta.json();
+  DETALHES.set(chave, envelope);
+  return envelope;
+}
+
+/* O rótulo humano de um carimbo `anamnese-AAAAMMDD-HHMM` (o mesmo do servidor). */
+function rotuloDoCarimbo(id) {
+  const casou = String(id || '').match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})$/);
+  if (!casou) return String(id || '');
+  return casou[3] + '/' + casou[2] + '/' + casou[1] + ' às ' + casou[4] + ':' + casou[5];
+}
+
+function contexto(m) {
+  const linhas = [];
+  // A explicação do DOCUMENTO — o que é um PO, por que existe, sobre que regras.
+  // Vem do conteúdo; a tela só a mostra antes de tudo, para o professor não
+  // precisar ler a arquitetura.
+  if (m.explicacao) {
+    const e = m.explicacao;
+    const bloco = [];
+    if (e.oQueE) bloco.push('<p><b>O que é.</b> ' + md(e.oQueE) + '</p>');
+    if (e.porQue) bloco.push('<p><b>Por que existe.</b> ' + md(e.porQue) + '</p>');
+    if (e.regras) bloco.push('<p><b>As regras.</b> ' + md(e.regras) + '</p>');
+    if (bloco.length) linhas.push('<details open><summary>Sobre este formulário</summary>' +
+      bloco.join('') + '</details>');
+  }
+  linhas.push('<p><b>' + escapar(m.documento) + '</b> — norma <code>' + escapar(m.norma) + '</code>. ' +
+    'Apelido obrigatório: <code>' + escapar(m.apelidoObrigatorio) + '</code>.</p>');
+  linhas.push('<p>' + md(m.oQueFicaFora) + '</p>');
+  linhas.push('<p><b>Lista aberta.</b> Mínimo obrigatório: ' + md(m.listaAberta.minimoObrigatorio) +
+    '. Discricionário: ' + md(m.listaAberta.discricionario) + '. Regra: ' + md(m.listaAberta.regra) + '.</p>');
+  if (m.metodos && m.metodos.length) {
+    linhas.push('<p>Métodos de origem declarados (P-16): ' +
+      m.metodos.map((x) => '<span class="selo">' + md(x) + '</span>').join(' ') + '</p>');
+  }
+  linhas.push('<p>' + m.total + ' nós respondíveis, ' + m.obrigatorios + ' obrigatórios. ' +
+    'Gatilho: <code>' + escapar(m.gatilho) + '</code>.</p>');
+  return linhas.join('');
+}
+
+// ------------------------------------------------------ a resposta do nó
+
+/*
+ * A leitura é escopada em `#pergunta`: a tela tem mais de um campo com o mesmo
+ * atributo (o aberto da escala e o aberto do texto livre), e um
+ * `document.querySelector` pega o primeiro que aparecer — que pode ser de outro
+ * grupo. A observação inicial tem duas dimensões na mesma tela; o valor dela é
+ * o par `[escala, auxiliar]`, e só se grava quando a escala existe.
+ */
+function lerResposta(no) {
+  const raiz = $('pergunta');
+  const marcado = (grupo) => {
+    const campo = raiz.querySelector('input[name="' + grupo + '"]:checked');
+    return campo ? campo.value : null;
+  };
+  const aberto = raiz.querySelector('[data-campo-aberto]');
+  const texto = aberto && aberto.value.trim() ? aberto.value.trim() : null;
+  const notaEl = raiz.querySelector('[data-campo-nota]');
+  const nota = notaEl && notaEl.value.trim() ? notaEl.value.trim() : null;
+
+  // A FORMA DO VALOR vem antes das famílias: um nó que declara `medida`,
+  // `periodicidade` ou `data` é lido pelo widget, não pelo campo de texto.
+  // `undefined` = não é forma especial; `null` = é, e está vazia.
+  const especial = lerFormaEspecial(no, raiz);
+  if (especial !== undefined) return { valor: especial, nota: nota };
+
+  // O nó repetido: um bloco por sujeito. Cada bloco tem os campos de
+  // `camposDoItem`, marcados com `data-repeticao` (o sujeito) e `data-campo`.
+  // O valor é uma lista de objetos — a forma canónica da linha de base.
+  if (no.repetirPor) {
+    const porSujeito = new Map();
+    for (const el of raiz.querySelectorAll('input[data-repeticao], textarea[data-repeticao]')) {
+      const sujeito = el.dataset.repeticao;
+      if (!porSujeito.has(sujeito)) porSujeito.set(sujeito, { sujeito });
+      porSujeito.get(sujeito)[el.dataset.campo] = el.value.trim() ? el.value.trim() : null;
+    }
+    const itens = [...porSujeito.values()];
+    const preenchido = itens.some((i) =>
+      Object.keys(i).some((k) => k !== 'sujeito' && i[k] !== null));
+    return { valor: preenchido ? itens : null, nota: nota };
+  }
+
+  if (no.multipla) {
+    // Escolha múltipla: `querySelector` pegaria só a primeira caixa marcada.
+    // A opção declarada em `exclusiva` anula as demais — sozinha, é o valor.
+    const marcadas = Array.prototype.slice
+      .call(raiz.querySelectorAll('input[name="pratica"]:checked'))
+      .map((caixa) => caixa.value);
+    if (no.exclusiva && marcadas.indexOf(no.exclusiva) !== -1) {
+      return { valor: [no.exclusiva], nota: nota };
+    }
+    if (texto) marcadas.push(texto);
+    return { valor: marcadas.length ? marcadas : null, nota: nota };
+  }
+
+  if (no.familia === 'basilar' || no.familia === 'subitem') {
+    // A observação inicial tem duas dimensões na mesma tela: a escala do
+    // elemento e o desdobramento como auxiliar. Grava-se o par; sem escala,
+    // não há resposta.
+    const escala = marcado('escala') || texto;
+    if (!escala) return { valor: null, nota: nota };
+    const auxiliar = marcado('auxiliar');
+    return { valor: auxiliar ? [escala, auxiliar] : [escala], nota: nota };
+  }
+
+  return { valor: marcado('valor') || texto, nota: nota };
+}
+
+function gravarRespostaDoNo(no) {
+  const { valor, nota } = lerResposta(no);
+  if (valor === null || valor === '') {
+    RESPOSTAS.delete(no.id);
+    NOTAS.delete(no.id);
+  } else {
+    RESPOSTAS.set(no.id, valor);
+    if (nota) NOTAS.set(no.id, nota);
+    else NOTAS.delete(no.id);
+  }
+  // O valor veio da tela: é da professora. A partir daqui a pré-inscrição não
+  // o recalcula mais, mesmo que ela volte e mude a idade.
+  if (no.id === 'categoria-etaria') SUGERIDAS.delete('categoria-etaria');
+  // Único ponto por onde toda resposta passa — é aqui que a idade alcança a
+  // categoria. Antes da barra e do roteiro, para os dois já contarem o nó que
+  // a pré-inscrição preencheu.
+  preencherCategoria(no);
+  atualizarBarra();
+  pintarRoteiro();
+  salvar();
+}
+
+// -------------------------------------------------------------- a pergunta
+
+function cabecalhoDoNo(no) {
+  const partes = [];
+  partes.push('<span class="selo' + (no.obrigatorio ? ' obrig' : ' opt') + '">' +
+    (no.obrigatorio ? 'obrigatório' : 'opcional') + '</span>');
+  partes.push('<span class="selo">' + familiaRotulo(no.familia) + '</span>');
+  if (no.bloco) partes.push('<span class="selo">bloco ' + no.bloco + '</span>');
+  if (no.dimensao) {
+    const d = Array.isArray(no.dimensao) ? no.dimensao.join(' · ') : no.dimensao;
+    partes.push('<span class="selo dim">' + md(d) + '</span>');
+  }
+  if (no.modulo) partes.push('<span class="selo">' + md(no.modulo) + '</span>');
+  return '<p>' + partes.join(' ') + ' <span class="sub"><code>' + escapar(no.endereco) + '</code></span></p>';
+}
+
+/*
+ * Todo item tem UM valor comparável. Um desdobramento do conteúdo é
+ * `{id, forma, exemplo}` e não traz `valor` — ler `item.valor` devolvia
+ * `undefined`, e `undefined === undefined` marcava o primeiro item de todo nó
+ * sem resposta. O valor do desdobramento é o `id` dele, e é ele que se grava.
+ */
+function valorDoItem(item, chave) {
+  if (typeof item === 'string') return item;
+  if (chave && item[chave] !== undefined) return item[chave];
+  return item.valor !== undefined ? item.valor : item.id;
+}
+
+// Um grupo de rádio isolado, para quando a pergunta tem mais de uma dimensão
+// (a escala e o auxiliar da observação inicial). O grupo só marca o que já foi
+// respondido — nunca um `undefined` que casa com a ausência de resposta.
+function grupoEmLinhas(itens, escolhido, nomeDoGrupo, chave) {
+  return (itens || []).map((item) => {
+    const valor = valorDoItem(item, chave);
+    const forma = typeof item === 'string' ? item : (item.forma || item.id);
+    const exemplo = typeof item === 'string' ? null : item.exemplo;
+    const marcado =
+      escolhido !== undefined && escolhido !== null && String(escolhido) === String(valor)
+        ? ' checked'
+        : '';
+    return '<label class="opcao"><input type="radio" name="' + nomeDoGrupo + '" value="' +
+      escapar(valor) + '"' + marcado + '><span>' + md(forma) +
+      (exemplo ? '<em>' + md(exemplo) + '</em>' : '') + '</span></label>';
+  }).join('');
+}
+
+function opcoesEmLinhas(no, valores, nomeDoCampo, chave) {
+  const atual = RESPOSTAS.get(no.id);
+  const linhas = [grupoEmLinhas(valores, atual, 'valor', chave)];
+  linhas.push('<p style="margin:.6rem 0 0"><label>…ou declare outra coisa: ' +
+    '<input type="text" data-campo-aberto value="' + escapar(abertoAtual(no, valores, chave)) +
+    '" placeholder="' + escapar(nomeDoCampo) + '"></label></p>');
+  return linhas.join('');
+}
+
+function abertoAtual(no, valores, chave) {
+  const atual = RESPOSTAS.get(no.id);
+  if (atual === undefined || atual === null || Array.isArray(atual)) return '';
+  const conhecidos = (valores || []).map((v) => valorDoItem(v, chave));
+  return conhecidos.includes(atual) ? '' : atual;
+}
+
+/*
+ * A escolha múltipla do histórico, em `colunas` colunas. A lista é desenhada na
+ * ordem declarada no conteúdo — a opção `exclusiva` já vem por último. O que
+ * estiver gravado fora da lista declarada volta para o campo aberto.
+ */
+function gradeDePraticas(no) {
+  const atual = RESPOSTAS.get(no.id);
+  const lista = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
+  const valores = (no.valores || []).map((valor) => valorDoItem(valor, null));
+  const travando = no.exclusiva ? lista.indexOf(no.exclusiva) !== -1 : false;
+  const colunas = no.colunas > 1 ? no.colunas : 1;
+
+  const caixas = valores.map((valor) => {
+    const travada = travando && valor !== no.exclusiva;
+    return '<label class="opcao' + (travada ? ' travada' : '') + '">' +
+      '<input type="checkbox" name="pratica" value="' + escapar(valor) + '"' +
+      (lista.indexOf(valor) !== -1 ? ' checked' : '') + (travada ? ' disabled' : '') + '>' +
+      '<span>' + md(valor) + '</span></label>';
+  });
+
+  const blocos = ['<div class="grade" style="grid-template-columns: repeat(' + colunas +
+    ', 1fr)">' + caixas.join('') + '</div>'];
+
+  if (no.aberto) {
+    const fora = lista.filter((v) => valores.indexOf(v) === -1).join(', ');
+    blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare outra prática: ' +
+      '<input type="text" data-campo-aberto value="' + escapar(fora) + '"' +
+      (travando ? ' disabled' : '') + ' placeholder="outra prática"></label></p>');
+  }
+  return blocos.join('');
+}
+
+/*
+ * «Nenhuma» anula as demais: marca só ela, desabilita o resto e o campo aberto,
+ * e limpa o que estava escrito — o valor gravado é `["Nenhuma"]`. Desmarcá-la
+ * devolve as opções. A trava é de tela; quem grava é `lerResposta`.
+ */
+function aplicarExclusiva(no) {
+  const raiz = $('pergunta');
+  if (!no.exclusiva) return;
+  const caixas = Array.prototype.slice.call(raiz.querySelectorAll('input[name="pratica"]'));
+  const dona = caixas.find((caixa) => caixa.value === no.exclusiva);
+  if (!dona) return;
+  const travando = dona.checked;
+  caixas.forEach((caixa) => {
+    if (caixa === dona) return;
+    if (travando) caixa.checked = false;
+    caixa.disabled = travando;
+    const rotulo = caixa.closest('.opcao');
+    if (rotulo) rotulo.classList.toggle('travada', travando);
+  });
+  const aberto = raiz.querySelector('[data-campo-aberto]');
+  if (aberto) {
+    if (travando) aberto.value = '';
+    aberto.disabled = travando;
+  }
+}
+
+/*
+ * A `categoria-etaria` é auxiliar e o conteúdo manda que ela venha pré-preenchida
+ * pela `idade` — «a professora confirma ou corrige». A derivação é regra do
+ * conteúdo, não vocabulário do motor, por isso vive na tela. A idade agora é
+ * elicitada como DATA DE NASCIMENTO e o sistema calcula os anos; a categoria
+ * decide pelo número de anos, que é o que separa as três faixas.
+ * Sem data e sem palavra reconhecível a lacuna fica aberta — não se inventa.
+ */
+function categoriaPorIdade(idade) {
+  const bruto = String(idade == null ? '' : idade).toLowerCase();
+  if (!bruto.trim()) return null;
+  const numeros = (bruto.match(/\d+/g) || []).map(Number);
+  if (numeros.length === 1) {
+    const anos = numeros[0];
+    if (anos >= 18) return 'Adulto';
+    return anos >= 10 ? 'Juvenil' : 'Infantil';
+  }
+  if (bruto.indexOf('adult') !== -1) return 'Adulto';
+  if (bruto.indexOf('juven') !== -1) return 'Juvenil';
+  if (bruto.indexOf('infant') !== -1) return 'Infantil';
+  return null;
+}
+
+/*
+ * A data de nascimento é digitada como `dd/mm/aaaa` e a idade em anos é
+ * calculada contra a data da elicitação — decisão do método. `(hoje − nasc)/365.25`
+ * é impreciso: o ano só é completado quando (mês, dia) de hoje alcança o do
+ * nascimento, e é por isso que o ano se subtrai quando o aniversário não chegou.
+ * Devolve `null` quando a data não é uma data — a lacuna fica aberta, não se inventa.
+ */
+function idadeEmAnos(entrada, referencia) {
+  const texto = String(entrada == null ? '' : entrada).trim();
+  const casa = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (!casa) return null;
+  const dia = Number(casa[1]);
+  const mes = Number(casa[2]);
+  const ano = Number(casa[3]);
+  if (mes < 1 || mes > 12 || dia < 1 || dia > 31) return null;
+  const nasceu = new Date(ano, mes - 1, dia);
+  if (nasceu.getFullYear() !== ano || nasceu.getMonth() !== mes - 1 || nasceu.getDate() !== dia) {
+    return null;
+  }
+  const hoje = referencia ? new Date(referencia) : new Date();
+  if (Number.isNaN(hoje.getTime()) || nasceu > hoje) return null;
+  let anos = hoje.getFullYear() - ano;
+  const antesDoAniversario =
+    hoje.getMonth() < mes - 1 || (hoje.getMonth() === mes - 1 && hoje.getDate() < dia);
+  if (antesDoAniversario) anos -= 1;
+  return anos;
+}
+
+/* A idade calculada que a tela mostra quando a data é data. */
+function idadeDaResposta(no) {
+  if (no.id !== 'idade') return null;
+  return idadeEmAnos(RESPOSTAS.get('idade'));
+}
+
+/*
+ * Grava a categoria assim que a idade é respondida. A resposta da própria
+ * professora nunca é sobrescrita — só o valor que ESTE preenchimento semeou é
+ * recalculado quando ela corrige a idade depois. Sem essa distinção, ou a
+ * correção dela seria perdida, ou uma idade corrigida não alcançaria a
+ * categoria.
+ */
+function preencherCategoria(no) {
+  if (no.id !== 'idade') return;
+  if (RESPOSTAS.has('categoria-etaria') && !SUGERIDAS.has('categoria-etaria')) return;
+  const sugerida = categoriaPorIdade(idadeDaResposta(no));
+  if (sugerida) {
+    RESPOSTAS.set('categoria-etaria', sugerida);
+    SUGERIDAS.add('categoria-etaria');
+  } else {
+    RESPOSTAS.delete('categoria-etaria');
+    SUGERIDAS.delete('categoria-etaria');
+  }
+}
+
+/* O aviso da idade: anos calculados quando a data é data, e o que falta quando não é. */
+function caixaDaIdade(atual) {
+  if (!String(atual).trim()) {
+    return '<p class="aviso" id="aviso-idade">Informe a data de nascimento no formato dd/mm/aaaa. ' +
+      'A idade em anos é calculada pelo sistema e semeia a categoria etária.</p>';
+  }
+  const anos = idadeEmAnos(atual);
+  if (anos === null) {
+    return '<p class="erro" id="aviso-idade">Data não reconhecida. Use dd/mm/aaaa — dia, mês e ano. ' +
+      'A categoria etária fica sem sugestão até a data ser corrigida.</p>';
+  }
+  return '<p class="aviso" id="aviso-idade">Idade calculada hoje: <b>' + anos +
+    (anos === 1 ? ' ano' : ' anos') + '</b>.</p>';
+}
+
+/* O aviso acompanha a digitação — a data só é completa no fim do campo. */
+function atualizarAvisoIdade(valor) {
+  const alvo = document.getElementById('aviso-idade');
+  if (alvo) alvo.outerHTML = caixaDaIdade(valor);
+}
+
+function escapar(x) {
+  return String(x == null ? '' : x)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+/*
+ * O CONTEÚDO — do PO e do PE — é MARKDOWN. Tudo o que a tela desenha dele passa por
+ * aqui, e nunca pelo `escapar()`: era o `escapar()` que deixava os marcadores crus na
+ * página (o ` «texto» ` e o `` `texto` `` apareciam como caracteres, não como o que
+ * significam). O renderizador é o mesmo que a ficha usa no servidor — uma definição só,
+ * em `/assets/markdown.js` —, e ele ESCAPA o HTML antes de interpretar a marcação: nada
+ * que venha do conteúdo pode virar tag.
+ *
+ * A FRONTEIRA entre o que se renderiza e o que não se renderiza é esta: o que o CONTEÚDO
+ * declara é markdown; o que a PESSOA escreve (resposta, nota do professor) é dado — e
+ * dado não se formata, senão a resposta reescreveria a página. Por isso as respostas
+ * continuam no `escapar()` e nos atributos (`value`, `placeholder`, `data-*`), onde
+ * marcação não vale.
+ *
+ * `md` é o caso de UMA linha — entra dentro do parágrafo que quem chamou já abriu.
+ * `mdBloco` é o caso de um trecho inteiro (o registo da anamnese, a linha de base), que
+ * pode ter listas e quebras: devolve os blocos prontos, e por isso não se embrulha em `<p>`.
+ */
+function md(texto) {
+  return Markdown.paraLinha(texto);
+}
+function mdBloco(texto, nivel) {
+  return Markdown.paraHtml(texto, nivel || 6);
+}
+/*
+ * As aspas do projeto na prosa DA TELA — não no conteúdo. O rótulo do PE que diz
+ * `Item de «Campo empírico»` cita um nome do PO, e a citação que o conteúdo
+ * escreve já ganha `.citacao`: sem passar por aqui, a mesma marca sairia com
+ * duas caras na mesma caixa. Delega ao renderizador, que escapa o termo primeiro.
+ */
+function citacao(termo) {
+  return Markdown.paraLinha('«' + termo + '»');
+}
+
+/*
+ * A `.barra` é `sticky`, não fixa: ela ocupa lugar no fluxo. Mas as âncoras (`#id`) e a
+ * coluna do índice do site usam `--header-height` para parar ABAIXO da barra — e esse
+ * valor só é conhecido depois do layout, porque a faixa embrulha em duas linhas quando a
+ * janela estreita. Então mede-se, e republica-se quando a medida mudar — o mesmo que o
+ * `assets/nav.js` do site faz com a navbar.
+ */
+function publicarAlturaDaBarra() {
+  const barra = $('barra');
+  if (!barra) return;
+  const publicar = () => {
+    const altura = barra.classList.contains('oculto') ? 0 : barra.offsetHeight;
+    document.documentElement.style.setProperty('--header-height', altura + 'px');
+  };
+  publicar();
+  if (typeof ResizeObserver === 'function') new ResizeObserver(publicar).observe(barra);
+  window.addEventListener('resize', publicar);
+}
+
+/*
+ * O botão do fecho não explica por que está travado — um `disabled` não fala.
+ * O porquê vive junto do que falta preencher, e some sozinho quando a
+ * elicitação fecha.
+ */
+function avisoDoFecho() {
+  const faltam = obrigatoriosFaltando();
+  if (!faltam.length) return '';
+  const nomes = faltam.slice(0, 3)
+    .map((n) => md(n.campo || n.elemento || n.id)).join(' · ');
+  return '<p class="aviso" id="aviso-fecho">' +
+    'O fecho abre quando os <b>' + (MAPA ? MAPA.obrigatorios : 0) + '</b> obrigatórios ' +
+    'estiverem preenchidos. Faltam <b>' + faltam.length + '</b>' +
+    (faltam.length <= 3 ? ' — ' + nomes : '') + '.</p>';
+}
+
+/*
+ * A EXPLICAÇÃO do nó — o texto curto que o conteúdo declara para o professor.
+ * A tela não sabe o que é um «tendú» nem um PO: só desenha as três perguntas
+ * que o conteúdo respondeu (o que é, o que preencher, por que existe).
+ */
+function caixaDaExplicacao(no) {
+  const e = no.explicacao;
+  if (!e) return '';
+  const linhas = [];
+  if (e.oQueE) linhas.push('<p><b>O que é.</b> ' + md(e.oQueE) + '</p>');
+  if (e.preencher) linhas.push('<p><b>O que preencher.</b> ' + md(e.preencher) + '</p>');
+  if (e.porQue) linhas.push('<p><b>Por que existe.</b> ' + md(e.porQue) + '</p>');
+  if (!linhas.length) return '';
+  return '<div class="explica">' + linhas.join('') + '</div>';
+}
+
+/* As opções de um nó que declara `opcoesDe` — marcáveis, com o campo livre. */
+function gradeDeOpcoesDinamicas(no) {
+  const lista = OPCOES.get(no.opcoesDe) || [];
+  const erro = OPCOES_ERRO.get(no.opcoesDe);
+  // O caminho para CRIAR o que ainda não existe — declarado pelo conteúdo, o PE
+  // só o segue. É o «o PO oferece o caminho para criar a anamnese, sem sair do
+  // PO»: abre na outra aba, e o professor volta e recarrega.
+  const atalho = no.criarEm
+    ? '<p class="sub">Ainda não existe? <a href="' + escapar(no.criarEm) +
+      '" target="_blank" rel="noopener">criar agora</a> — e depois volte e recarregue esta página.</p>'
+    : '';
+  if (erro) {
+    return '<p class="erro">Não foi possível carregar a lista (' +
+      escapar(no.opcoesDe) + '): ' + escapar(erro) + '</p>' + atalho;
+  }
+  if (!lista.length) {
+    return '<p class="aviso">A lista está vazia — não há registo de onde escolher. ' +
+      'Escreva o apelido no campo abaixo e crie a fonte pelo atalho.</p>' + atalho;
+  }
+  const atual = RESPOSTAS.get(no.id);
+  const marcados = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
+  const caixas = lista.map((o) =>
+    '<label class="opcao"><input type="checkbox" name="pratica" value="' + escapar(o.valor) + '"' +
+    (marcados.indexOf(o.valor) !== -1 ? ' checked' : '') + '><span>' + md(o.rotulo || o.valor) +
+    '</span></label>').join('');
+  const blocos = ['<div class="grade">' + caixas + '</div>'];
+  if (no.aberto) {
+    const fora = marcados.filter((v) => !lista.some((o) => o.valor === v)).join(', ');
+    blocos.push('<p style="margin:.6rem 0 0"><label>…ou acrescente um apelido que não está na lista: ' +
+      '<input type="text" data-campo-aberto value="' + escapar(fora) +
+      '" placeholder="apelido (P-12)"></label></p>');
+  }
+  blocos.push(atalho);
+  return blocos.join('');
+}
+
+/*
+ * O nó REPETIDO — um bloco por valor selecionado no nó-fonte (o acoplamento
+ * sujeitos × linha de base). Cada bloco traz, quando a fonte o oferece, a
+ * REFERÊNCIA da fonte (a anamnese do sujeito), e os campos que o conteúdo
+ * declara em `camposDoItem`. Sem sujeito selecionado, a tela pede o sujeito —
+ * nunca inventa uma linha.
+ */
+/*
+ * AS FORMAS DE VALOR — número + unidade, periodicidade, data, par de datas.
+ *
+ * O PE não sabe o que é «frequência semanal» nem «volume de trabalho»: sabe
+ * compor NÚMERO + UNIDADE. Quem diz quais unidades existem, quantos pares e se
+ * é uma faixa é o CONTEÚDO — é a mesma lei do `opcoesDe`, aplicada ao valor em
+ * vez das opções. É o que tira o campo da prosa: o professor não escreve
+ * «60 minutos», escolhe 60 e minuto.
+ *
+ * O valor gravado é a ESTRUTURA (`{numero, unidade}`), não a frase — a mesma
+ * escolha do `linha-de-base`, que já grava uma lista de objetos. Quem lê o
+ * envelope compõe o texto; a tela não o compõe no ato de gravar.
+ */
+const DIAS_DA_SEMANA = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+
+function numeroOuNulo(valor) {
+  const texto = String(valor == null ? '' : valor).trim();
+  if (texto === '') return null;
+  const n = Number(texto);
+  return Number.isFinite(n) ? n : null;
+}
+
+/* As unidades vêm do conteúdo; o `select` só as lista. Rótulo é conteúdo, e
+   dentro de `<option>` o markdown não renderiza — por isso `escapar`. */
+function seletorDeUnidades(unidades, escolhida, atributos) {
+  const lista = unidades.map((u) => (typeof u === 'string' ? u : u.rotulo || u.valor));
+  return '<select ' + atributos + '>' + lista.map((u) =>
+    '<option value="' + escapar(u) + '"' + (u === escolhida ? ' selected' : '') + '>' +
+    escapar(u) + '</option>').join('') + '</select>';
+}
+
+function campoDeMedida(no, atual) {
+  const m = no.medida;
+  const unidades = m.unidades || [];
+  const v = atual && typeof atual === 'object' ? atual : {};
+  const partes = [];
+  if (m.faixa) {
+    // A FAIXA: um mínimo e um máximo que compartilham a MESMA unidade — é o
+    // caso do «80–100 tempos ativos», em que a unidade responde «80 o quê?».
+    partes.push('<span class="medida">' +
+      '<input type="number" min="0" step="1" data-medida="min" value="' +
+      escapar(v.min === undefined || v.min === null ? '' : v.min) + '" placeholder="de">' +
+      '<span class="ate">a</span>' +
+      '<input type="number" min="0" step="1" data-medida="max" value="' +
+      escapar(v.max === undefined || v.max === null ? '' : v.max) + '" placeholder="até">' +
+      seletorDeUnidades(unidades, v.unidade, 'data-medida="unidade"') + '</span>');
+  } else {
+    // OS PARES: medidas distintas lado a lado, cada uma com a sua unidade — é o
+    // caso do «1 hora 30 minutos», em que as duas somam. Quando o conteúdo fixa
+    // a unidade de cada par (`fixas`), o professor só escreve o número: a
+    // unidade vira rótulo, não escolha.
+    const quantos = m.pares > 1 ? m.pares : 1;
+    const lista = Array.isArray(atual) ? atual : atual && typeof atual === 'object' ? [atual] : [];
+    const fixas = Array.isArray(m.fixas) ? m.fixas : null;
+    for (let i = 0; i < quantos; i++) {
+      const p = lista[i] || {};
+      partes.push('<span class="medida">' +
+        '<input type="number" min="0" step="1" data-medida="numero" data-par="' + i + '" value="' +
+        escapar(p.numero === undefined || p.numero === null ? '' : p.numero) + '" placeholder="' +
+        (fixas ? '0' : (i === 0 ? 'quantidade' : 'e mais')) + '">' +
+        (fixas
+          ? '<span class="unidade">' + escapar(fixas[i] || '') + '</span>'
+          : seletorDeUnidades(unidades, p.unidade, 'data-medida="unidade" data-par="' + i + '"')) +
+        '</span>');
+    }
+  }
+  return partes.join('');
+}
+
+function campoDePeriodicidade(no, atual) {
+  const p = no.periodicidade;
+  const v = atual && typeof atual === 'object' ? atual : {};
+  const marcados = Array.isArray(v.dias) ? v.dias : [];
+  const dias = p.dias === true ? DIAS_DA_SEMANA : Array.isArray(p.dias) ? p.dias : null;
+  const partes = [];
+  partes.push('<span class="medida">' +
+    '<input type="number" min="0" step="1" data-periodicidade="vezes" value="' +
+    escapar(v.vezes === undefined || v.vezes === null ? '' : v.vezes) +
+    '" placeholder="quantas vezes">' +
+    seletorDeUnidades(p.unidades || [], v.por, 'data-periodicidade="por"') + '</span>');
+  if (dias) {
+    partes.push('<span class="dias">' + dias.map((d) =>
+      '<label class="dia"><input type="checkbox" data-periodicidade="dia" value="' + escapar(d) + '"' +
+      (marcados.indexOf(d) !== -1 ? ' checked' : '') + '> ' + escapar(d) + '</label>').join('') + '</span>');
+  }
+  return partes.join('');
+}
+
+function campoDeData(no, atual) {
+  const d = no.data;
+  const v = atual && typeof atual === 'object' ? atual : {};
+  const quantas = d.partes > 1 ? d.partes : 1;
+  const rotulos = d.rotulos || [];
+  const nomes = quantas === 1 ? ['data'] : ['inicio', 'fim'];
+  const partes = [];
+  for (let i = 0; i < quantas; i++) {
+    const nome = nomes[i];
+    partes.push('<span class="data"><label><span class="rotulo">' + escapar(rotulos[i] || nome) +
+      '</span><input type="date" data-data="' + nome + '" value="' + escapar(v[nome] || '') +
+      '"></label></span>');
+  }
+  // A lacuna é declarada, não inventada: sem data, o campo fica em branco e o
+  // branco É o «[a decidir]» — o mesmo que a explicação do conteúdo promete.
+  partes.push('<p class="sub">Deixe em branco o que ainda está a decidir — o branco fica declarado.</p>');
+  return partes.join('');
+}
+
+function campoEspecial(no, atual) {
+  if (no.medida) return campoDeMedida(no, atual);
+  if (no.periodicidade) return campoDePeriodicidade(no, atual);
+  if (no.data) return campoDeData(no, atual);
+  return null;
+}
+
+/*
+ * A LEITURA do widget. Devolve `undefined` quando o nó não é uma forma especial
+ * (para não confundir com `null`, que é «forma especial e vazia»).
+ */
+function lerFormaEspecial(no, raiz) {
+  if (no.medida) {
+    if (no.medida.faixa) {
+      const min = numeroOuNulo((raiz.querySelector('[data-medida="min"]') || {}).value);
+      const max = numeroOuNulo((raiz.querySelector('[data-medida="max"]') || {}).value);
+      if (min === null && max === null) return null;
+      const un = raiz.querySelector('[data-medida="unidade"]');
+      return { min: min, max: max, unidade: un ? un.value : null };
+    }
+    const pares = [];
+    const fixas = Array.isArray(no.medida.fixas) ? no.medida.fixas : null;
+    for (const el of raiz.querySelectorAll('[data-medida="numero"]')) {
+      const n = numeroOuNulo(el.value);
+      if (n === null) continue;
+      const un = raiz.querySelector('[data-medida="unidade"][data-par="' + el.dataset.par + '"]');
+      const unidade = un ? un.value : (fixas ? fixas[Number(el.dataset.par)] : null);
+      pares.push({ numero: n, unidade: unidade });
+    }
+    if (!pares.length) return null;
+    return no.medida.pares > 1 ? pares : pares[0];
+  }
+  if (no.periodicidade) {
+    const vezes = numeroOuNulo((raiz.querySelector('[data-periodicidade="vezes"]') || {}).value);
+    const por = (raiz.querySelector('[data-periodicidade="por"]') || {}).value || null;
+    const dias = Array.prototype.slice
+      .call(raiz.querySelectorAll('[data-periodicidade="dia"]:checked'))
+      .map((caixa) => caixa.value);
+    if (vezes === null && !dias.length) return null;
+    return { vezes: vezes, por: por, dias: dias };
+  }
+  if (no.data) {
+    const valores = {};
+    let algum = false;
+    for (const el of raiz.querySelectorAll('[data-data]')) {
+      const valor = String(el.value || '').trim();
+      valores[el.dataset.data] = valor || null;
+      if (valor) algum = true;
+    }
+    return algum ? valores : null;
+  }
+  return undefined;
+}
+
+/*
+ * A SEMEADURA PELO CONTEXTO DO ATO. O conteúdo declara `deContexto: 'escola'` e
+ * o campo recebe o que já está na barra — escola, professor, ciclo. Quem diz de
+ * ONDE vem é o dado; o PE só copia.
+ *
+ * É SUGESTÃO, não resposta: entra como a categoria etária entra, marcada em
+ * `SUGERIDAS`. A primeira edição do professor a aposenta — e o que ele escreveu
+ * nunca é reescrito pela barra. Sem valor na barra, o campo fica como estava.
+ */
+function semearDoContexto() {
+  if (!MAPA) return;
+  for (const no of MAPA.nos) {
+    if (!no.deContexto) continue;
+    if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) continue;
+    const campo = $('ctx-' + no.deContexto);
+    const valor = campo ? String(campo.value || '').trim() : '';
+    if (valor) {
+      RESPOSTAS.set(no.id, valor);
+      SUGERIDAS.add(no.id);
+    } else {
+      RESPOSTAS.delete(no.id);
+      SUGERIDAS.delete(no.id);
+    }
+  }
+  atualizarBarra();
+  pintarRoteiro();
+  salvar();
+}
+
+function blocoDaRepeticao(no) {
+  const fonte = MAPA.nos.find((n) => n.id === no.repetirPor);
+  const cru = RESPOSTAS.get(no.repetirPor);
+  const selecionados = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
+  if (!selecionados.length) {
+    return '<p class="aviso">Este campo repete por ' +
+      citacao(fonte ? fonte.campo : no.repetirPor) + '. Escolha os sujeitos no campo anterior — ' +
+      'uma linha de base aparece para cada um.</p>';
+  }
+
+  const opcoes = fonte && fonte.opcoesDe ? (OPCOES.get(fonte.opcoesDe) || []) : [];
+  // O MAIS RECENTE vence: a lista vem ordenada do mais novo para o mais velho, e
+  // o primeiro a aparecer para um apelido é o estado atual do sujeito.
+  const porValor = new Map();
+  for (const o of opcoes) if (!porValor.has(o.valor)) porValor.set(o.valor, o);
+  const registrado = RESPOSTAS.get(no.id);
+  const porSujeito = new Map(
+    (Array.isArray(registrado) ? registrado : []).map((i) => [i && i.sujeito, i]),
+  );
+
+  const blocos = selecionados.map((sujeito) => {
+    const daAnamnese = porValor.get(sujeito);
+    const anterior = porSujeito.get(sujeito) || {};
+    const partes = ['<div class="item-repeticao">'];
+    partes.push('<h4>' + md(sujeito) + '</h4>');
+    partes.push(referenciaDaAnamnese(daAnamnese, sujeito));
+    for (const campo of no.camposDoItem || []) {
+      const valor = anterior[campo.id] != null ? anterior[campo.id] : '';
+      partes.push('<p><label>' + md(campo.campo) + '<br>' +
+        '<textarea data-repeticao="' + escapar(sujeito) + '" data-campo="' + escapar(campo.id) +
+        '" rows="2" placeholder="nas suas palavras">' + escapar(valor) + '</textarea></label></p>');
+    }
+    partes.push('</div>');
+    return partes.join('');
+  });
+  return blocos.join('');
+}
+
+/*
+ * A referência da anamnese de um sujeito — o CABEÇALHO e um gatilho de leitura.
+ * O registo em si NÃO vem com a lista (Frente 5): é buscado quando o professor
+ * o pede, e é aí que os campos do item se pré-preenchem com a linha de base da
+ * anamnese, se ela a declarar. Sem anamnese, diz que não há e oferece o caminho
+ * para criar — sem sair do PO: abre na outra aba, e o professor volta.
+ */
+function referenciaDaAnamnese(opcao, sujeito) {
+  const criar = '<a href="?fonte=anamnese&aluna=' + encodeURIComponent(sujeito) +
+    '" target="_blank" rel="noopener">criar a anamnese de ' + md(sujeito) + '</a>';
+  if (!opcao) {
+    return '<div class="referencia"><p class="sumiu"><b>Sem anamnese</b> para ' + citacao(sujeito) +
+      ' neste sistema.</p><p>' + criar + ' — e depois volte e recarregue esta página.</p></div>';
+  }
+  const carimbo = opcao.carimbo || '';
+  return '<div class="referencia">' +
+    '<p><b>Anamnese</b> ' + md(opcao.rotulo || carimbo) + ' — ' +
+    '<button class="ver-anamnese" data-detalhe="' + escapar(opcao.detalhe || '') +
+    '" data-carimbo="' + escapar(carimbo) + '" data-sujeito="' + escapar(sujeito) +
+    '">ver o registo</button></p>' +
+    '<div class="detalhe oculto" data-detalhe-de="' + escapar(carimbo) + '"></div>' +
+    '</div>';
+}
+
+/*
+ * O que o detalhe da anamnese mostra quando chega: a linha de base, se ela a
+ * declarar; senão, o registo cru, campo a campo. O PE não interpreta nada —
+ * mostra o que o envelope traz.
+ *
+ * O TEXTO do registo é renderizado como markdown: é a prosa que o professor
+ * escreveu e que o PO vai ler — a «caixa de detalhe» que o pedido nomeia. O
+ * `id` do campo NÃO é: é identificador, não prosa, e marcação nele seria ruído.
+ * O renderizador escapa o HTML antes de interpretar, então nada do que a pessoa
+ * escreveu pode virar tag.
+ *
+ * A FORMA do valor decide o renderizador. Um valor de uma linha vai inline, no
+ * formato compacto `campo: valor` — a caixa mostra até 14 campos, e cada um
+ * gastar duas linhas só a faria rolar mais. Um valor que traz marcação de BLOCO
+ * (lista, título, tabela, citação) é desenhado por `mdBloco`: o `<b>` que
+ * destaca o valor do campo não pode embrulhar um bloco, e era por aí que uma
+ * resposta em lista saía com os `-` crus.
+ */
+const TEM_BLOCO = /(?:^|\n)\s*(?:[-*+] |\d+\. |#{1,6} |\||>)/;
+
+function detalheDoEnvelope(envelope) {
+  const respostas = envelope.respostas || {};
+  const bruto = respostas['linha-de-base'];
+  const lb = bruto && (bruto.valor !== undefined ? bruto.valor : bruto);
+  const partes = [];
+  if (lb && typeof lb === 'object' && (lb.traz || lb.precisaDesenvolver)) {
+    // A linha de base declarada é o único caso em que o bloco é estrutural: o
+    // rótulo fica na própria linha dele para o valor poder ser bloco em HTML válido.
+    if (lb.traz) partes.push('<p><b>Traz:</b></p>' + mdBloco(lb.traz));
+    if (lb.precisaDesenvolver) {
+      partes.push('<p><b>Precisa desenvolver:</b></p>' + mdBloco(lb.precisaDesenvolver));
+    }
+  } else {
+    const chaves = Object.keys(respostas);
+    if (!chaves.length) {
+      partes.push('<p class="sub">A anamnese ainda não tem respostas.</p>');
+    } else {
+      const linhas = chaves.slice(0, 14).map((id) => {
+        const v = respostas[id] && respostas[id].valor !== undefined ? respostas[id].valor : respostas[id];
+        const texto = Array.isArray(v) ? v.join('\n') : v;
+        if (typeof texto === 'string' && TEM_BLOCO.test(texto)) {
+          return '<li><b>' + escapar(id) + '</b>' + mdBloco(texto) + '</li>';
+        }
+        return '<li>' + escapar(id) + ': <b>' + md(texto) + '</b></li>';
+      });
+      partes.push('<ul>' + linhas.join('') + '</ul>');
+    }
+  }
+  return partes.join('');
+}
+
+/*
+ * Abre (ou fecha) o detalhe de uma anamnese. A busca é SOB DEMANDA (Frente 5);
+ * uma vez carregada, fica em `DETALHES`. É aqui que a linha de base da anamnese
+ * pré-preenche os campos vazios do item — o texto do professor nunca é apagado.
+ */
+async function abrirDetalhe(botao, no) {
+  const carimbo = botao.dataset.carimbo;
+  const sujeito = botao.dataset.sujeito;
+  const alvo = document.querySelector('[data-detalhe-de="' + CSS.escape(carimbo) + '"]');
+  if (!alvo) return;
+  if (alvo.dataset.carregado === '1') {
+    alvo.classList.toggle('oculto');
+    return;
+  }
+  alvo.classList.remove('oculto');
+  alvo.innerHTML = '<p class="sub">carregando o registo…</p>';
+  try {
+    const envelope = await carregarDetalhe({ carimbo, detalhe: botao.dataset.detalhe });
+    alvo.innerHTML = detalheDoEnvelope(envelope);
+    alvo.dataset.carregado = '1';
+    if (no && no.repetirPor) prefillDoDetalhe(no, sujeito, envelope);
+  } catch (erro) {
+    alvo.innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+  }
+}
+
+/* Pré-preenche os campos VAZIOS do item com a linha de base que a anamnese declara. */
+function prefillDoDetalhe(no, sujeito, envelope) {
+  const respostas = envelope.respostas || {};
+  const bruto = respostas['linha-de-base'];
+  const lb = bruto && (bruto.valor !== undefined ? bruto.valor : bruto);
+  if (!lb || typeof lb !== 'object') return;
+  let mudou = false;
+  for (const el of document.querySelectorAll('[data-repeticao]')) {
+    if (el.dataset.repeticao !== sujeito) continue;
+    const valor = lb[el.dataset.campo];
+    if (el.value.trim() === '' && valor) {
+      el.value = valor;
+      el.dispatchEvent(new Event('input', { bubbles: true }));
+      mudou = true;
+    }
+  }
+  return mudou;
+}
+
+// ------------------------------------------------- derivar do conjunto (Frente 4)
+
+/*
+ * O botão da DERIVAÇÃO: o conteúdo declara o corte (o que é ótimo, o que é
+ * observável), o PE fornece os valores, e a tela cruza os dois. O PE NÃO decide
+ * o que é observável — só lê as respostas e aplica a regra que o PO declarou.
+ * A leitura das anamneses é SOB DEMANDA: só quando o professor carrega o botão.
+ */
+function botaoDaDerivacao(no) {
+  const fonte = MAPA.nos.find((n) => n.id === no.derivarDe.dosSujeitos);
+  const rot = fonte ? fonte.campo : no.derivarDe.dosSujeitos;
+  const dica = no.derivarDe.lado === 'otimo'
+    ? 'sugere o que os sujeitos já dominam (não precisa observar)'
+    : 'sugere o que precisa ser observado';
+  return '<p style="margin:.8rem 0 0"><button class="derivar" data-derivar="' + escapar(no.id) + '">' +
+    'Sugerir a partir da anamnese</button> ' +
+    '<span class="sub">— lê as anamneses de ' + citacao(rot) + ' e ' + dica + '; você edita.</span></p>' +
+    '<div class="detalhe oculto" data-derivacao-de="' + escapar(no.id) + '"></div>';
+}
+
+/* O `valor` de uma resposta, seja ela registo `{valor:…}` ou valor cru. */
+function valorDaResposta(registro) {
+  if (registro === undefined || registro === null) return null;
+  if (typeof registro === 'object' && !Array.isArray(registro) && 'valor' in registro) {
+    return registro.valor;
+  }
+  return registro;
+}
+
+/* O valor declarado casa com a lista observável? (sem acento de caixa, por trim). */
+function casaObservavel(registro, observavel) {
+  const valor = valorDaResposta(registro);
+  const lista = Array.isArray(valor) ? valor : valor === null ? [] : [valor];
+  const alvo = (observavel || []).map((v) => String(v).trim().toLowerCase());
+  return lista.some((v) => alvo.indexOf(String(v).trim().toLowerCase()) !== -1);
+}
+
+async function derivarDoConjunto(botao, no) {
+  const d = no.derivarDe;
+  const alvo = document.querySelector('[data-derivacao-de="' + CSS.escape(no.id) + '"]');
+  const dica = (texto, tipo) => {
+    if (alvo) alvo.innerHTML = '<p class="' + (tipo || 'sub') + '">' + escapar(texto) + '</p>';
+  };
+
+  const cru = RESPOSTAS.get(d.dosSujeitos);
+  const sujeitos = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
+  if (!sujeitos.length) {
+    return dica('Escolha os sujeitos no Bloco 2 primeiro — a sugestão vem das anamneses deles.', 'aviso');
+  }
+  const fonte = MAPA.nos.find((n) => n.id === d.dosSujeitos);
+  let opcoes = fonte && fonte.opcoesDe ? OPCOES.get(fonte.opcoesDe) : null;
+  if (fonte && fonte.opcoesDe && !opcoes) {
+    await carregarOpcoesDe(fonte.opcoesDe);
+    opcoes = OPCOES.get(fonte.opcoesDe) || [];
+  }
+  opcoes = opcoes || [];
+
+  if (alvo) alvo.classList.remove('oculto');
+  dica('lendo as anamneses…');
+  const porSujeito = [];
+  for (const s of sujeitos) {
+    const opcao = opcoes.find((o) => o.valor === s);
+    if (!opcao) { porSujeito.push({ sujeito: s, respostas: null }); continue; }
+    try {
+      const envelope = await carregarDetalhe(opcao);
+      porSujeito.push({ sujeito: s, respostas: envelope.respostas || {} });
+    } catch (erro) {
+      porSujeito.push({ sujeito: s, respostas: null });
+    }
+  }
+
+  const total = sujeitos.length;
+  const comAnamnese = porSujeito.filter((p) => p.respostas);
+  const semAnamnese = porSujeito.filter((p) => !p.respostas).map((p) => p.sujeito);
+
+  // Qual dos nós do corte tem observação lançada em pelo menos uma anamnese?
+  // Distingue "a anamnese existe mas está vazia de observação" de "a observação
+  // existe e não bateu com o corte" — sem isto, os dois casos caíam na mesma
+  // frase e o botão parecia não funcionar.
+  const nosDoCorte = new Set((d.corte || []).map((r) => r.no));
+  const comObservacao = new Set();
+  for (const p of comAnamnese) {
+    for (const noId of nosDoCorte) {
+      const v = valorDaResposta(p.respostas[noId]);
+      const vazio = v === null || v === undefined || v === '' || (Array.isArray(v) && v.length === 0);
+      if (!vazio) comObservacao.add(noId);
+    }
+  }
+
+  const linhas = [];
+  for (const regra of d.corte || []) {
+    const observaveis = porSujeito
+      .filter((p) => p.respostas && casaObservavel(p.respostas[regra.no], regra.observavel))
+      .map((p) => p.sujeito);
+    if (d.lado === 'observavel') {
+      if (observaveis.length) {
+        linhas.push(regra.item + ' — ' + observaveis.length + ' de ' + total + ': ' +
+          observaveis.join(', '));
+      }
+    } else if (observaveis.length === 0) {
+      // Nenhum sujeito precisa deste item: já dominam todos — fica fora.
+      linhas.push(regra.item + ' — todos já dominam; não precisa observar');
+    }
+  }
+
+  const campo = document.querySelector('#pergunta [data-campo-aberto]');
+  if (campo) {
+    const texto = linhas.join('\n');
+    campo.value = campo.value.trim() ? campo.value.trim() + '\n' + texto : texto;
+    campo.dispatchEvent(new Event('input', { bubbles: true }));
+  }
+  let resumo;
+  if (linhas.length) {
+    resumo = linhas.length + ' item(ns) sugerido(s) — edite o que quiser.';
+  } else if (!comAnamnese.length) {
+    resumo = 'Nenhuma anamnese encontrada para os sujeitos escolhidos.';
+  } else if (comObservacao.size === 0) {
+    resumo = 'A anamnese existe, mas a observação inicial ainda não foi lançada — sem ela o corte não tem o que ler. Lance a observação e tente de novo.';
+  } else {
+    resumo = 'Nenhum item bateu com o corte declarado.';
+  }
+  const falta = comAnamnese.length && semAnamnese.length
+    ? ' Sem anamnese: ' + semAnamnese.join(', ') + '.'
+    : '';
+  dica(resumo + falta, 'aviso');
+}
+
+/* O nó enquanto a fonte que ele precisa ainda não chegou — o mesmo desenho, sem
+   a lista. A página redesenha sozinha quando a busca termina (Frente 5). */
+function renderCarregando(no) {
+  const blocos = ['<div class="caixa">'];
+  blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
+  blocos.push(cabecalhoDoNo(no));
+  blocos.push(caixaDaExplicacao(no));
+  blocos.push('<p class="sub">carregando a lista…</p>');
+  blocos.push('</div>');
+  $('pergunta').innerHTML = blocos.join('');
+  $('anterior').disabled = INDICE === 0;
+  $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
+  $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';
+}
+
+function renderPergunta() {
+  const no = MAPA.nos[INDICE];
+  if (!no) return;
+
+  // As fontes de opções que ESTE nó precisa: a própria (`opcoesDe`) e a do nó
+  // que ele repete (`repetirPor` → fonte.opcoesDe). Só se busca aqui (Frente 5):
+  // abrir o PO não toca na fonte; abrir a lista sim.
+  const fontes = [];
+  if (no.opcoesDe) fontes.push(no.opcoesDe);
+  if (no.repetirPor) {
+    const fonte = MAPA.nos.find((n) => n.id === no.repetirPor);
+    if (fonte && fonte.opcoesDe) fontes.push(fonte.opcoesDe);
+  }
+  const faltando = fontes.filter((ep) => !OPCOES.has(ep));
+  if (faltando.length) {
+    for (const ep of faltando) {
+      if (!CARREGANDO.has(ep)) {
+        carregarOpcoesDe(ep).then(() => {
+          if (MAPA.nos[INDICE] === no) renderPergunta();
+        });
+      }
+    }
+    return renderCarregando(no);
+  }
+
+  const blocos = [];
+
+  blocos.push('<div class="caixa">');
+  blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
+  blocos.push(cabecalhoDoNo(no));
+  blocos.push(avisoDoFecho());
+  blocos.push(caixaDaExplicacao(no));
+
+  // O nó repetido e o nó com opções dinâmicas são GENÉRICOS: a forma deles vem
+  // do conteúdo (o `repetirPor` e o `opcoesDe`), não da família. Por isso são
+  // tratados antes dos ramos por família. A FORMA DO VALOR entra na mesma fila:
+  // um subitem que declara `medida`, `periodicidade` ou `data` é desenhado pelo
+  // widget, e o widget substitui o CAMPO — não o que o nomeia.
+  const especial = campoEspecial(no, RESPOSTAS.get(no.id));
+  if (no.repetirPor) {
+    blocos.push(blocoDaRepeticao(no));
+  } else if (no.opcoesDe) {
+    blocos.push(gradeDeOpcoesDinamicas(no));
+  } else if (especial) {
+    if (no.familia === 'basilar' || no.familia === 'subitem') {
+      blocos.push('<p><b>' + md(no.elemento) + '</b></p>');
+      if (no.agrupador) blocos.push('<p class="sub">Item de ' + citacao(no.agrupador) + '.</p>');
+    }
+    blocos.push(especial);
+  } else if (no.familia === 'basilar' || no.familia === 'subitem') {
+    // O elemento responde por si quando não desmembra. Quando desmembra, quem
+    // responde é o subitem e o agrupador só nomeia o grupo — o servidor já manda
+    // o nome dele em `agrupador` e a orientação herdada em `orientacao`.
+    blocos.push('<p><b>' + md(no.elemento) + '</b>' +
+      (no.natureza ? ' — <i>' + md(no.natureza) + '</i>' : '') + '</p>');
+    if (no.agrupador) {
+      blocos.push('<p class="sub">Item de ' + citacao(no.agrupador) + '.</p>');
+    }
+    if (no.orientacao) blocos.push('<p class="sub">' + md(no.orientacao) + '</p>');
+    if (no.oQueE) blocos.push('<p>' + md(no.oQueE) + '</p>');
+    if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
+    if (no.aprofunda && no.aprofunda.length) {
+      blocos.push('<p>Onde aprofunda: ' + no.aprofunda.map((b) =>
+        'bloco ' + b.bloco + (b.titulo ? ' — ' + md(b.titulo) : '')).join(' · ') + '</p>');
+    }
+
+    const atual = RESPOSTAS.get(no.id);
+    const lista = Array.isArray(atual)
+      ? atual
+      : atual === undefined || atual === null ? [] : [atual];
+    const escalaAtual = lista[0] || null;
+
+    if (no.valores && no.valores.length) {
+      blocos.push('<p><b>' + md(no.forma || 'a avaliação') + '</b></p>');
+      blocos.push(grupoEmLinhas(no.valores, escalaAtual, 'escala'));
+      blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare outra coisa: ' +
+        '<input type="text" data-campo-aberto value="' +
+        escapar(no.valores.includes(escalaAtual) ? '' : escalaAtual || '') +
+        '" placeholder="a avaliação"></label></p>');
+    } else {
+      // Sem `forma` (um subitem de conjunto, como «escola» ou «frequência»), o
+      // campo é de escrita livre. O `no.forma` nulo não se imprime.
+      if (no.forma) blocos.push('<p class="sub">' + md(no.forma) + '</p>');
+      blocos.push('<input type="text" data-campo-aberto value="' + escapar(escalaAtual || '') +
+        '" placeholder="' + escapar(no.forma || no.campo || '') + '">');
+    }
+
+    if (no.desdobramentos && no.desdobramentos.length) {
+      blocos.push('<p class="sub">' + md(MAPA.notaDesdobramentos) + '</p>');
+      blocos.push(grupoEmLinhas(no.desdobramentos, lista[1] || null, 'auxiliar'));
+    }
+  } else if (no.familia === 'bloco') {
+    if (INDICE === 0 || MAPA.nos[INDICE - 1].bloco !== no.bloco) {
+      blocos.push('<p><b>Bloco ' + no.bloco + ' — ' + md(no.blocoTitulo) + '</b></p>');
+      if (no.blocoObjetivo) blocos.push('<p class="sub">' + md(no.blocoObjetivo) + '</p>');
+      if (no.blocoNota) blocos.push('<p class="aviso">' + md(no.blocoNota) + '</p>');
+    }
+    if (no.dimensaoPorItem && no.dimensao) {
+      blocos.push('<p><span class="selo dim">dimensão deste item: ' + md(no.dimensao) + '</span></p>');
+    }
+    // Um campo de bloco sem `opcoes` é texto livre — não uma escala de um item.
+    if (no.opcoes && no.opcoes.length) {
+      blocos.push(opcoesEmLinhas(no, no.opcoes, 'o que se observou'));
+    } else {
+      const atual = RESPOSTAS.get(no.id) || '';
+      blocos.push('<textarea data-campo-aberto rows="4" placeholder="um item por linha">' +
+        escapar(atual) + '</textarea>');
+    }
+    if (no.derivarDe) blocos.push(botaoDaDerivacao(no));
+  } else if (no.familia === 'modulo') {
+    blocos.push('<p><b>' + md(no.moduloTitulo) + '</b></p>');
+    if (no.moduloFuncao) blocos.push('<p class="sub">' + md(no.moduloFuncao) + '</p>');
+    if (no.moduloCondicao) blocos.push('<p class="sub">Entra quando: ' + md(no.moduloCondicao) + '</p>');
+    blocos.push('<p class="aviso">Opção declarada. O módulo <b>não</b> declara gatilho de ramificação — ' +
+      'a parada é registrada como fato.</p>');
+    blocos.push(opcoesEmLinhas(no, no.opcoes, 'o que se observou'));
+  } else if (no.multipla && no.valores && no.valores.length) {
+    blocos.push('<p><b>' + md(no.forma) + '</b></p>');
+    if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
+    blocos.push(gradeDePraticas(no));
+  } else if (no.valores && no.valores.length > 1) {
+    blocos.push('<p><b>' + md(no.forma) + '</b></p>');
+    if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
+    blocos.push(opcoesEmLinhas(no, no.valores, 'outro valor'));
+  } else {
+    const eData = no.id === 'idade';
+    const atual = RESPOSTAS.get(no.id) || '';
+    blocos.push('<p class="sub">' + md(no.forma) + '</p>');
+    blocos.push('<input type="text" data-campo-aberto value="' + escapar(atual) +
+      '" placeholder="' + (eData ? 'dd/mm/aaaa' : escapar(no.forma)) + '">');
+    if (eData) {
+      blocos.push(caixaDaIdade(atual));
+    } else if (/^\[Preencher/.test(String(no.forma || ''))) {
+      blocos.push('<p class="aviso">Este campo é uma lacuna declarada. Se não se observou, deixe vazio.</p>');
+    }
+    if (no.derivarDe) blocos.push(botaoDaDerivacao(no));
+  }
+
+  const notaAtual = NOTAS.get(no.id) || '';
+  blocos.push('<details' + (notaAtual ? ' open' : '') + '><summary>nota (opcional)</summary>' +
+    '<textarea data-campo-nota placeholder="o que a resposta não alcança">' +
+    escapar(notaAtual) + '</textarea></details>');
+  blocos.push('</div>');
+
+  $('pergunta').innerHTML = blocos.join('');
+  $('anterior').disabled = INDICE === 0;
+  $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
+  $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';
+}
+
+/*
+ * O roteiro agrupa para orientar a condução — o professor precisa saber onde
+ * está no percurso, não só qual é a pergunta. Os rótulos vêm do próprio
+ * CONTEÚDO onde ele os declara (`agrupador`, `blocoTitulo`, `moduloTitulo`,
+ * `tituloCabecalho` do payload); só quando o conteúdo não rotula é que a tela
+ * usa um rótulo genérico. Os basilares são DESCONTÍNUOS no roteiro (o primeiro
+ * abre a série, os outros fecham), por isso o agrupamento é decidido nó a nó,
+ * e não por faixa de índice.
+ */
+function grupoDoNo(no) {
+  if (no.familia === 'cabecalho' || no.familia === 'gatilho') {
+    return (MAPA && MAPA.tituloCabecalho) || 'Identificação';
+  }
+  if (no.familia === 'basilar' && !no.grupo) return 'Os elementos basilares';
+  if (no.grupo) return no.agrupador || no.grupo;
+  if (no.familia === 'bloco') return 'Bloco ' + no.bloco + ' — ' + no.blocoTitulo;
+  if (no.familia === 'modulo') return no.moduloTitulo || 'módulo condicional';
+  return null;
+}
+
+function pintarRoteiro() {
+  const partes = [];
+  let grupoAtual = null;
+  MAPA.nos.forEach((no, i) => {
+    const grupo = grupoDoNo(no);
+    if (grupo && grupo !== grupoAtual) {
+      partes.push('<li class="grupo">' + md(grupo) + '</li>');
+      grupoAtual = grupo;
+    }
+    const feito = perguntaRespondida(no) ? ' feito' : '';
+    const aqui = i === INDICE ? ' aqui' : '';
+    partes.push('<li class="' + (feito + aqui).trim() + '" data-i="' + i + '">' +
+      '<span class="n">' + (i + 1) + '</span>' +
+      md(no.campo) +
+      (no.obrigatorio ? '' : ' <span class="selo opt">opcional</span>') +
+      (no.obrigatorio
+        ? ''
+        : ' <button class="limpar" data-limpar="' + i + '"' +
+          (perguntaRespondida(no) ? '' : ' disabled') +
+          ' title="' + (perguntaRespondida(no)
+            ? 'Apagar a resposta deste nó'
+            : 'Este nó ainda não tem resposta para apagar') + '">limpar</button>') +
+      '</li>');
+  });
+  $('roteiro').innerHTML = partes.join('');
+}
+
+function irPara(i, guardar) {
+  if (guardar && MAPA) gravarRespostaDoNo(MAPA.nos[INDICE]);
+  INDICE = Math.max(0, Math.min(i, MAPA.nos.length - 1));
+  renderPergunta();
+  pintarRoteiro();
+}
+
+/*
+ * Apaga a resposta de um nó já respondido. É o gesto inverso do `#pular`, com
+ * duas diferenças: não avança o roteiro (é limpeza, não condução) e o nó fica
+ * onde está, vazio. A idade desfaz a categoria que semeou — some a fonte,
+ * some a sugestão —, como no `#pular`.
+ */
+function limparNo(i) {
+  const no = MAPA.nos[i];
+  if (!no) return;
+  RESPOSTAS.delete(no.id);
+  NOTAS.delete(no.id);
+  if (no.id === 'categoria-etaria') SUGERIDAS.delete('categoria-etaria');
+  preencherCategoria(no);
+  atualizarBarra();
+  pintarRoteiro();
+  salvar();
+  if (i === INDICE) renderPergunta();
+}
+
+// ------------------------------------------------------------------ envio
+
+function pacoteParaEnviar() {
+  const respostas = {};
+  for (const [id, valor] of RESPOSTAS) {
+    const nota = NOTAS.get(id);
+    respostas[id] = nota
+      ? { valor: valor, origem: 'perguntado', respondente: 'professor', nota: nota }
+      : valor;
+  }
+  return respostas;
+}
+
+async function enviar(simular, carimbo) {
+  const resposta = await fetch('api/elicitar', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      respostas: pacoteParaEnviar(),
+      contexto: contextoDaBarra(),
+      // Numa repetição o carimbo volta: é o MESMO envelope que se grava de novo,
+      // e não um segundo envelope no disco.
+      id: carimbo || undefined,
+      simular: Boolean(simular),
+      fonte: FONTE,
+    }),
+  });
+  const dados = await resposta.json();
+  if (!resposta.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+  return dados;
+}
+
+// ---------------------------------------------------------- o relatório
+
+// `gerado_em` chega como `YYYY-MM-DDTHH:MM` — hora local, sem segundos e sem
+// `Z`. Fatiar no `T` evita o deslocamento que `new Date` introduziria.
+function dataEmPortugues(iso) {
+  if (!iso) return null;
+  const partes = String(iso).split('T');
+  const dia = (partes[0] || '').split('-');
+  if (dia.length !== 3) return String(iso);
+  const hora = (partes[1] || '').slice(0, 5);
+  return dia[2] + '/' + dia[1] + '/' + dia[0] + (hora ? ' às ' + hora : '');
+}
+
+// Os estados são um CAMINHO — `construida → em_curso → completa → validada |
+// recusada` —, não quatro categorias independentes. O rótulo diz em que ponto
+// do caminho a elicitação está, e não o nome do estado no contrato.
+const CAMINHO_DO_ESTADO = {
+  construida: 'ainda sem respostas',
+  em_curso: 'em andamento',
+  completa: 'completa — o contrato foi alcançado, falta a validação',
+  validada: 'pronta — passou na validação',
+  recusada: 'recusada pela validação',
+};
+
+const ROTULO_DA_PARADA = {
+  'valor-sem-ramo': 'o valor respondido não corresponde a nenhum ramo declarado',
+  'gatilho-nao-respondido': 'a pergunta que ramifica ainda não foi respondida',
+  'mecanica-nao-aplicavel': 'o conteúdo declara um número de gatilhos que esta mecânica não aplica',
+  'condicao-nao-avaliavel': 'o destino é declarado, mas a condição de entrada não é avaliável',
+};
+// Duas paradas não apontam para pergunta nenhuma: são o motor dizendo que o
+// PRÓPRIO CONTEÚDO está fora do que ele sabe aplicar. O endereço do nó é `null`
+// nelas, e imprimir `null` não informa quem conduz — o `id` da parada, sim.
+function caixaDaParada(p) {
+  const onde = p.no
+    ? md(rotuloDoNo(p.no)) + ' — <code>' + escapar(p.no) + '</code>'
+    : 'declarado em <code>' + escapar(p.id) + '</code>';
+  return '<div class="caixa nota"><p class="aviso">' +
+    escapar(ROTULO_DA_PARADA[p.tipo] || p.tipo) + '</p>' +
+    '<p class="sub">' + onde + '</p>' +
+    '<p>' + md(p.motivo) + '</p></div>';
+}
+
+// O rótulo do nó para quem conduz: o `elemento` quando existe (basilares e
+// subitens), e o `campo` nos demais.
+//
+// Duas chaves nomeiam o mesmo nó: o `id`, que é o que as respostas usam, e o
+// `endereco`, que é o que o motor põe nas paradas. São 53 de cada, sem nenhuma
+// colisão entre as duas listas, então procurar por ambas é seguro — e sem isso
+// a parada imprime o endereço cru no lugar do nome que quem conduz reconhece.
+function rotuloDoNo(chave) {
+  if (!MAPA) return chave;
+  const no = MAPA.nos.find((x) => x.id === chave || x.endereco === chave);
+  if (!no) return chave;
+  return no.elemento || no.campo || chave;
+}
+
+function observacoesRegistradas() {
+  const lista = [];
+  for (const [id, texto] of NOTAS) {
+    const limpo = texto ? String(texto).trim() : '';
+    if (limpo) lista.push({ id: id, texto: limpo });
+  }
+  return lista;
+}
+
+/*
+ * O detalhe técnico continua existindo, mas recolhido e no fim: quem conduz
+ * decide a partir da data, do código, das contagens, das observações e das
+ * paradas — o resto é conferência. `linhas` é a saída do motor e tem aqui o
+ * seu único consumidor.
+ */
+function detalheTecnico(dados) {
+  const linhas = (dados.linhas || []).slice();
+  for (const erro of (dados.errosDoDocumento || [])) {
+    const marca = 'ERRO ' + erro.caminho + ': ' + erro.mensagem;
+    if (linhas.indexOf(marca) === -1) linhas.push(marca);
+  }
+  if (!linhas.length) linhas.push('sem saída técnica nesta consulta');
+  return '<details><summary>Detalhe técnico</summary><pre>' +
+    escapar(linhas.join('\n')) + '</pre></details>';
+}
+
+function mostrarResultado(dados, titulo) {
+  const c = dados.contagem || {};
+  const partes = [];
+
+  partes.push('<h3>' + escapar(titulo) + '</h3>');
+
+  const identidade = [];
+  const gerado = dataEmPortugues(dados.documento && dados.documento.gerado_em);
+  if (gerado) identidade.push('feita em <b>' + escapar(gerado) + '</b>');
+  if (dados.id) identidade.push('código <b>' + escapar(dados.id) + '</b>');
+  if (identidade.length) partes.push('<p>' + identidade.join(' · ') + '</p>');
+
+  const estado = CAMINHO_DO_ESTADO[dados.estado] || dados.estado || '—';
+  partes.push('<p>Situação: <b>' + escapar(estado) + '</b>. ' +
+    (dados.validacao
+      ? 'A validação do contrato rodou e o resultado foi ' +
+        citacao(dados.validacao.resultado) + '.'
+      : 'A validação do contrato ainda não rodou.') + '</p>');
+
+  if (c.obrigatorios !== undefined) {
+    const contagens = [];
+    contagens.push('respostas registradas: <b>' + (c.respondidos || 0) + '</b>');
+    contagens.push('obrigatórias: <b>' + c.obrigatorios + '</b>');
+    if (c.pendentes !== undefined) contagens.push('ainda faltam <b>' + c.pendentes + '</b>');
+    if (c.nos !== undefined) contagens.push('nós respondíveis ao todo: ' + c.nos);
+    partes.push('<p>' + contagens.join(' · ') + '</p>');
+  }
+
+  partes.push('<p><b>Observações</b></p>');
+  const observacoes = observacoesRegistradas();
+  if (!observacoes.length) {
+    partes.push('<p class="sub">Nenhuma observação foi registrada nesta elicitação.</p>');
+  } else {
+    partes.push('<table><thead><tr><th>pergunta</th><th>observação</th></tr></thead><tbody>' +
+      observacoes.map((o) => '<tr><td>' + md(rotuloDoNo(o.id)) + '</td><td>' +
+        escapar(o.texto) + '</td></tr>').join('') + '</tbody></table>');
+  }
+  if (dados.recusadas && dados.recusadas.length) {
+    partes.push('<p class="erro">Não foram aceitas: ' +
+      dados.recusadas.map((r) => escapar(rotuloDoNo(r.id)) + ' (id ' + escapar(r.id) + ' — ' +
+        escapar(r.motivo) + ')').join('; ') + '</p>');
+  }
+
+  const paradas = dados.paradas || [];
+  const pedemDecisao = paradas.filter((p) => p.no);
+  const doConteudo = paradas.filter((p) => !p.no);
+  if (pedemDecisao.length) {
+    partes.push('<p><b>Paradas que pedem decisão</b></p>');
+    partes.push(pedemDecisao.map(caixaDaParada).join(''));
+  }
+  if (doConteudo.length) {
+    partes.push('<details><summary>Avisos do conteúdo — não impedem a gravação (' +
+      doConteudo.length + ')</summary>' + doConteudo.map(caixaDaParada).join('') + '</details>');
+  }
+
+  partes.push(detalheTecnico(dados));
+  return partes.join('');
+}
+
+async function fechar() {
+  // Defesa em profundidade: o botão já nasce travado, mas o fecho também é
+  // alcançável por handler. A validação abaixo permanece a mesma.
+  if (obrigatoriosFaltando().length) {
+    atualizarBarra();
+    return;
+  }
+  gravarRespostaDoNo(MAPA.nos[INDICE]);
+  $('conducao').classList.add('oculto');
+  $('fecho').classList.remove('oculto');
+  $('resultado').innerHTML = '<p>consultando o motor…</p>';
+  try {
+    const dados = await enviar(true);
+    window.PREVIA = dados;
+    $('resultado').innerHTML = mostrarResultado(dados, 'Pré-visualização — nada foi gravado');
+    $('gravar').disabled = false;
+  } catch (erro) {
+    $('resultado').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+  }
+}
+
+// ------------------------------------------------- as fichas já gravadas
+
+/*
+ * `dataEmPortugues` espera ISO (`YYYY-MM-DDTHH:MM`), e o id do envelope não é
+ * ISO: é `anamnese-AAAAMMDD-HHMM`. Traduzir aqui, no ponto em que o rótulo
+ * nasce, evita mexer na função que o resto da tela já usa.
+ */
+function rotuloDoEnvelope(id) {
+  const casou = String(id || '').match(/(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/);
+  if (!casou) return String(id || '');
+  return casou[3] + '/' + casou[2] + '/' + casou[1] + ' às ' + casou[4] + ':' + casou[5];
+}
+
+function fichasDaMemoria() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAVE + '-fichas') || '[]');
+  } catch (erro) {
+    return [];
+  }
+}
+
+function guardarFichas(ids) {
+  if (!memoriaLigada) return;
+  try {
+    localStorage.setItem(CHAVE + '-fichas', JSON.stringify(ids));
+  } catch (erro) {
+    memoriaLigada = false;
+  }
+}
+
+/*
+ * O disco é a fonte; a memória só cobre o caso de o servidor estar fora do ar
+ * quando a página abre. O id gravado na sessão entra no topo mesmo que a
+ * varredura da pasta não o encontre — o dado é do professor, e some-lo seria
+ * pior do que mostrá-lo.
+ */
+async function carregarFichas() {
+  let doServidor = [];
+  try {
+    const resposta = await fetch('api/envelopes');
+    const dados = await resposta.json();
+    doServidor = (dados.envelopes || []).map((n) => String(n).replace(/\.json$/, '')).reverse();
+  } catch (erro) {
+    doServidor = [];
+  }
+  const locais = fichasDaMemoria().filter((id) => doServidor.indexOf(id) === -1);
+  const todos = locais.concat(doServidor);
+  guardarFichas(todos);
+  return todos;
+}
+
+/*
+ * As duas famílias de envelope convivem na MESMA pasta (`anamnese-…` e `po-…`),
+ * e cada uma tem o seu destino de leitura: a anamnese tem ficha renderizada; o
+ * PO, não — o que se relê dele é o próprio envelope. Filtrar pelo prefixo evita
+ * oferecer a ficha da anamnese para um envelope do PO, que mostraria o conteúdo
+ * errado. O prefixo é o mesmo `documento` que o envelope carrega.
+ */
+const PREFIXO = FONTE === 'po' ? 'po-' : 'anamnese-';
+
+/*
+ * A LISTA de gravados, com a regra de proveniência quando a fonte é a anamnese.
+ * O estado de cada anamnese vem do servidor (`/api/anamneses`): SOLTA (edita e
+ * apaga) ou VINCULADA (só ajusta — elo novo). A lista não decide a regra; ela a
+ * mostra, e oferece os gestos que a regra permite.
+ */
+const ESTADOS = new Map(); // carimbo → {vinculada, por, vigente, anterior}
+
+async function carregarEstados() {
+  if (FONTE !== 'anamnese') return;
+  try {
+    // A rota de GESTÃO (todas as anamneses, inclusive as sem sujeito). A de
+    // seleção (`/api/anamneses`) devolve só sujeitos — e serve o nó do PO.
+    const resposta = await fetch('api/anamnese-estados');
+    const dados = await resposta.json();
+    for (const [carimbo, estado] of Object.entries(dados.estados || {})) {
+      ESTADOS.set(carimbo, Object.assign({ valor: estado.apelido }, estado));
+    }
+  } catch (erro) {
+    /* sem estados: a lista sai sem os selos, e nada mais quebra */
+  }
+}
+
+const ROTULO_ESTADO = {
+  vinculada: 'vinculada',
+  legado: 'legado',
+  solta: 'solta',
+  'sem-sujeito': 'sem sujeito',
+};
+
+const AJUDA_ESTADO = {
+  vinculada: 'um PO a referencia — só se ajusta (elo novo)',
+  legado: 'empilhada antes da regra — o PO lê a mais recente',
+  solta: 'não referenciada — pode ser editada e apagada',
+  'sem-sujeito': 'sem apelido — nunca vinculável',
+};
+
+function seloDoEstado(o) {
+  if (!o) return '';
+  const estado = o.estado || (o.vinculada ? 'vinculada' : o.semSujeito ? 'sem-sujeito' : 'solta');
+  const classe = estado === 'vinculada' ? 'vinculada' : estado === 'legado' ? 'legado' : 'solta';
+  const titulo = AJUDA_ESTADO[estado] + (o.por && o.por.length ? ' (PO: ' + o.por.join(', ') + ')' : '');
+  const partes = ['<span class="selo ' + classe + '" title="' + escapar(titulo) + '">' +
+    escapar(ROTULO_ESTADO[estado] || estado) + '</span>'];
+  if (o.vigente) partes.push('<span class="selo vigente">vigente</span>');
+  if (o.ajuste_de) partes.push('<span class="selo" title="ajusta ' + escapar(o.ajuste_de) + '">elo</span>');
+  return partes.join(' ');
+}
+
+function acoesDaAnamnese(id, o) {
+  if (!o) return '';
+  const q = ' data-carimbo="' + escapar(id) + '"';
+  if (o.vinculada) {
+    return '<button class="acao-ajustar"' + q + ' title="a proveniência não apaga: o ajuste acrescenta um elo">' +
+      'ajustar</button>';
+  }
+  return '<button class="acao-editar"' + q + '>editar</button>' +
+    '<button class="acao-apagar"' + q + '>apagar</button>';
+}
+
+function pintarFichas() {
+  const lista = $('lista-fichas');
+  const procurado = String($('filtro-fichas').value || '').trim().toLowerCase();
+  const daFonte = FICHAS.filter((id) => id.indexOf(PREFIXO) === 0);
+  const visiveis = procurado
+    ? daFonte.filter((id) => (id + ' ' + rotuloDoEnvelope(id)).toLowerCase().indexOf(procurado) !== -1)
+    : daFonte;
+
+  const ePo = FONTE === 'po';
+  lista.innerHTML = visiveis.map((id) => {
+    const o = ESTADOS.get(id);
+    const alvo = ePo
+      ? 'api/envelope/' + encodeURIComponent(id)
+      : 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html';
+    return '<li><a href="' + alvo + '" target="_blank" rel="noopener" title="' + escapar(id) + '">' +
+      '<span class="quando">' + escapar(rotuloDoEnvelope(id)) + '</span>' +
+      (ePo ? '' : ' ' + seloDoEstado(o)) + '<br>' +
+      '<span class="caminho">' + (ePo ? 'Ver o envelope' : 'Ver a ficha preenchida') + '</span></a>' +
+      (ePo ? '' : '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>') +
+      '<div class="aviso-ficha oculto" data-aviso="' + escapar(id) + '"></div></li>';
+  }).join('');
+
+  const vazio = $('fichas-vazio');
+  vazio.classList.toggle('oculto', visiveis.length !== 0);
+  vazio.textContent = daFonte.length === 0
+    ? (ePo ? 'Nenhum PO gravado ainda.' : 'Nenhuma ficha gravada ainda.')
+    : 'Nenhum registro casa com o filtro.';
+}
+
+/* O aviso por anamnese, na própria linha (a lista é o lugar do gesto). */
+function avisarNaFicha(id, texto, tipo) {
+  const alvo = document.querySelector('[data-aviso="' + CSS.escape(id) + '"]');
+  if (!alvo) return;
+  alvo.className = 'aviso-ficha ' + (tipo || '');
+  alvo.innerHTML = escapar(texto);
+}
+
+/*
+ * APAGAR — só a solta. O servidor é quem decide (409 na vinculada); a tela
+ * confirma antes, porque apagar não se desfaz.
+ */
+async function apagarAnamnese(id) {
+  if (!window.confirm('Apagar a anamnese ' + id + '?\n\nÉ definitivo — e só é possível porque ela não está vinculada a nenhum PO.')) return;
+  try {
+    const resposta = await fetch('api/anamnese-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
+    const dados = await resposta.json().catch(() => ({}));
+    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    avisarNaFicha(id, 'apagada.', 'ok');
+    await atualizarFichas();
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+/*
+ * AJUSTAR — o elo novo. Vale para a solta e para a vinculada. Pede o motivo
+ * (opcional aqui, ao contrário do lançamento) e cria um envelope NOVO que
+ * aponta para este; o anterior fica.
+ */
+async function ajustarAnamnese(id) {
+  const motivo = window.prompt('Motivo do ajuste (opcional):', '');
+  if (motivo === null) return;
+  try {
+    const resposta = await fetch('api/anamnese-ajuste/' + encodeURIComponent(id), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ motivo: motivo }),
+    });
+    const dados = await resposta.json().catch(() => ({}));
+    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    avisarNaFicha(id, 'ajuste gravado como elo novo: ' + dados.ajuste + '.', 'ok');
+    await atualizarFichas();
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+/*
+ * EDITAR — só a solta, e em sítio (o mesmo carimbo). A edição reusa o motor: as
+ * respostas vão pela mesma validação; o que muda é o conteúdo do mesmo registro.
+ * Para não duplicar a tela de condução, a edição abre a CONDUÇÃO neste registro:
+ * o professor responde de novo, e o envelope é regravado por baixo.
+ */
+function editarAnamnese(id) {
+  // A edição em sítio carrega as respostas do envelope para a condução e marca o
+  // carimbo a regravar — o `#gravar` usa `PUT` em vez de `POST`. É lícito só
+  // porque a anamnese está SOLTA; o servidor recusa (409) se entretanto foi
+  // vinculada.
+  fetch('api/envelope/' + encodeURIComponent(id))
+    .then((r) => r.json())
+    .then((envelope) => {
+      RESPOSTAS.clear();
+      NOTAS.clear();
+      SUGERIDAS.clear();
+      for (const [k, v] of Object.entries(envelope.respostas || {})) {
+        const valor = v && v.valor !== undefined ? v.valor : v;
+        RESPOSTAS.set(k, valor);
+        if (v && v.nota) NOTAS.set(k, v.nota);
+      }
+      EDITANDO = id;
+      atualizarBarra();
+      pintarRoteiro();
+      salvar();
+      $('abertura').classList.add('oculto');
+      $('conducao').classList.remove('oculto');
+      $('rail').classList.remove('oculto');
+      $('fecho').classList.add('oculto');
+      irPara(0, false);
+    })
+    .catch((erro) => avisarNaFicha(id, erro.message, 'erro'));
+}
+
+// O carimbo que está a ser editado em sítio (null quando é uma anamnese nova).
+let EDITANDO = null;
+
+async function atualizarFichas() {
+  FICHAS = await carregarFichas();
+  await carregarEstados();
+  pintarFichas();
+}
+
+// ------------------------------------------------------- IA por prosa (Frente 2)
+
+/*
+ * O botão «Usar IA para fazer o PO»: o caminho de entrada por prosa, acionado
+ * de dentro da tela. Compõe o prompt congelado com o contexto do PO em
+ * andamento — o que já está decidido e o que falta — e deixa o texto pronto
+ * para colar num agente. O agente NÃO escreve no formulário: quem preenche
+ * volta com o resultado. O prompt é conteúdo; a tela só o lê e o transporta.
+ */
+function formatoDoValor(valor) {
+  if (valor === null || valor === undefined || valor === '') return '(em branco)';
+  if (typeof valor === 'string') return valor;
+  if (Array.isArray(valor)) {
+    return valor.map((v) => formatoDoValor(v)).join(' · ');
+  }
+  if (typeof valor === 'object') {
+    // A linha de base repetida: {sujeito, campo…}.
+    if ('sujeito' in valor) {
+      const restantes = Object.keys(valor)
+        .filter((k) => k !== 'sujeito' && valor[k])
+        .map((k) => k + ': ' + valor[k]);
+      return valor.sujeito + (restantes.length ? ' (' + restantes.join('; ') + ')' : '');
+    }
+    // A faixa: {min, max, unidade}.
+    if ('min' in valor || 'max' in valor) {
+      const min = valor.min === null || valor.min === undefined ? '?' : valor.min;
+      const max = valor.max === null || valor.max === undefined ? '?' : valor.max;
+      return min + '–' + max + (valor.unidade ? ' ' + valor.unidade : '');
+    }
+    // O par número + unidade.
+    if ('numero' in valor) {
+      return valor.numero + (valor.unidade ? ' ' + valor.unidade : '');
+    }
+    // A periodicidade: {vezes, por, dias}.
+    if ('vezes' in valor || 'por' in valor || 'dias' in valor) {
+      const partes = [];
+      if (valor.vezes !== null && valor.vezes !== undefined) partes.push(valor.vezes);
+      if (valor.por) partes.push(valor.por);
+      if (Array.isArray(valor.dias) && valor.dias.length) partes.push('(' + valor.dias.join(', ') + ')');
+      return partes.join(' ');
+    }
+    // A data: {inicio, fim} ou {data}.
+    const datas = [valor.inicio, valor.fim, valor.data].filter((d) => d);
+    if (datas.length) return datas.join(' → ');
+    return JSON.stringify(valor);
+  }
+  return String(valor);
+}
+
+function contextoParaAgente() {
+  const linhas = [];
+  linhas.push('Contexto do PO em andamento');
+  for (const c of ['escola', 'professor', 'ciclo']) {
+    const el = document.getElementById('ctx-' + c);
+    linhas.push('- ' + c + ': ' + (el ? String(el.value || '').trim() || '(vazio)' : '(vazio)'));
+  }
+  // O rótulo de um nó: quando é SUBITEM, leva o agrupador na frente — senão
+  // «Escola / espaço» (cabeçalho) e «Escola / espaço» (Campo empírico) saem
+  // iguais, e a lista não diz qual é qual.
+  const rotuloDoNo = (no) => (no.agrupador ? no.agrupador + ' → ' + no.campo : no.campo);
+  const respondidos = [];
+  const faltam = [];
+  if (MAPA && MAPA.nos) {
+    for (const no of MAPA.nos) {
+      if (perguntaRespondida(no)) {
+        respondidos.push('- ' + rotuloDoNo(no) + ': ' + formatoDoValor(RESPOSTAS.get(no.id)));
+      } else if (no.obrigatorio) {
+        faltam.push('- ' + rotuloDoNo(no));
+      }
+    }
+  }
+  if (respondidos.length) {
+    linhas.push('');
+    linhas.push('Já respondido:');
+    linhas.push.apply(linhas, respondidos);
+  }
+  if (faltam.length) {
+    linhas.push('');
+    linhas.push('Ainda falta (obrigatório):');
+    linhas.push.apply(linhas, faltam);
+  }
+  linhas.push('');
+  linhas.push('Parta do que já está decidido; o que faltar, pergunte. O opcional pode ficar em branco.');
+  return linhas.join('\n');
+}
+
+async function copiarTexto(texto) {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    await navigator.clipboard.writeText(texto);
+    return true;
+  }
+  const area = document.createElement('textarea');
+  area.value = texto;
+  area.style.position = 'fixed';
+  area.style.opacity = '0';
+  document.body.appendChild(area);
+  area.select();
+  const ok = document.execCommand('copy');
+  document.body.removeChild(area);
+  return ok;
+}
+
+/*
+ * FRENTE 3 — a lista de sujeitos e as anamneses para o agente.
+ * O botão «Usar IA» precisa dar ao agente NÃO SÓ o prompt: precisa da lista de
+ * sujeitos observados (P-12) e das anamneses deles — o dado do sistema que o PO
+ * não carrega. A porta fornece; o agente lê (não cria, não modifica).
+ *
+ * O sujeito vem de `/api/anamneses` (a seleção — um por apelido, o vigente); a
+ * anamnese de cada um vem do `detalhe` da própria opção (leitura sob demanda,
+ * uma por sujeito — o mesmo custo N que o «Sugerir a partir da anamnese» já
+ * mede). Os rótulos vêm do mapa da anamnese, para o agente ler «campo: valor»
+ * em vez de id cru.
+ */
+async function rotulosDaAnamnese() {
+  try {
+    const resposta = await fetch('api/mapa');
+    if (!resposta.ok) return new Map();
+    const dados = await resposta.json();
+    const mapa = new Map();
+    for (const no of (dados.nos || [])) mapa.set(no.id, no.campo || no.id);
+    return mapa;
+  } catch (erro) {
+    return new Map();
+  }
+}
+
+function resumoDaAnamnese(envelope, rotulos) {
+  const linhas = [];
+  for (const [id, registro] of Object.entries(envelope.respostas || {})) {
+    const valor = registro && registro.valor;
+    if (valor === null || valor === undefined || valor === '') continue;
+    const rotulo = rotulos.get(id) || id;
+    const nota = registro && registro.nota ? '  [' + registro.nota + ']' : '';
+    linhas.push('    - ' + rotulo + ': ' + formatoDoValor(valor) + nota);
+  }
+  return linhas;
+}
+
+async function secaoDeSujeitos(rotulos) {
+  let opcoes = [];
+  try {
+    const resposta = await fetch('api/anamneses');
+    if (resposta.ok) {
+      const dados = await resposta.json();
+      opcoes = Array.isArray(dados.opcoes) ? dados.opcoes : [];
+    }
+  } catch (erro) {
+    opcoes = [];
+  }
+
+  if (!opcoes.length) {
+    return ['(nenhum sujeito com anamnese no sistema ainda — pergunte os apelidos (P-12) e peça a anamnese de cada um)'];
+  }
+
+  const linhas = [];
+  for (const opcao of opcoes) {
+    const apelido = opcao.valor || opcao.rotulo;
+    linhas.push('- ' + apelido);
+    try {
+      const det = await fetch(opcao.detalhe);
+      if (det.ok) {
+        const envelope = await det.json();
+        const resumo = resumoDaAnamnese(envelope, rotulos);
+        if (resumo.length) linhas.push.apply(linhas, resumo);
+        else linhas.push('    (anamnese sem respostas)');
+      } else {
+        linhas.push('    (anamnese não encontrada: ' + det.status + ')');
+      }
+    } catch (erro) {
+      linhas.push('    (falha ao ler a anamnese)');
+    }
+  }
+  return linhas;
+}
+
+/*
+ * A conversa de IA — o stub que prova o fluxo (plano, ATUALIZAÇÃO 08/10/2026).
+ * O botão «Usar IA» abre esta conversa, que fala com `POST /api/ia`. O freio de
+ * custo (limite de turnos + registro) vive no servidor; aqui só se transporta o
+ * histórico. O stub pergunta um campo do PO por vez e compila quando o
+ * professor pede ou o teto é atingido.
+ */
+let HISTORICO_IA = [];
+let IA_ATIVA = false;
+
+function contextoDoAto() {
+  const c = {};
+  for (const k of ['escola', 'professor', 'ciclo']) {
+    const el = document.getElementById('ctx-' + k);
+    c[k] = el ? String(el.value || '').trim() : '';
+  }
+  return c;
+}
+
+function mostrarMensagem(papel, texto) {
+  const caixa = document.getElementById('ia-mensagens');
+  if (!caixa) return;
+  const linha = document.createElement('p');
+  linha.style.whiteSpace = 'pre-wrap'; // as listas numeradas chegam com quebra de linha
+  linha.textContent = (papel === 'professor' ? 'Você: ' : 'IA: ') + texto;
+  caixa.appendChild(linha);
+  caixa.scrollTop = caixa.scrollHeight;
+}
+
+async function perguntarIA(mensagens) {
+  const resposta = await fetch('api/ia', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ contexto: contextoDoAto(), mensagens }),
+  });
+  if (!resposta.ok) throw new Error('POST /api/ia devolveu ' + resposta.status);
+  return resposta.json();
+}
+
+async function abrirIA() {
+  for (const id of ['abertura', 'conducao', 'fecho']) {
+    const s = document.getElementById(id);
+    if (s) s.classList.add('oculto');
+  }
+  const sec = document.getElementById('ia');
+  if (sec) sec.classList.remove('oculto');
+  HISTORICO_IA = [];
+  IA_ATIVA = true;
+  const caixa = document.getElementById('ia-mensagens');
+  if (caixa) caixa.innerHTML = '';
+  const res = document.getElementById('ia-resultado');
+  if (res) { res.classList.add('oculto'); res.innerHTML = ''; }
+  mostrarMensagem('ia',
+    'Como funciona: responda campo a campo (o que é marcável vira número). ' +
+    'Diga «voltar» para refazer o último, «ajustar N» para refazer o campo N, ' +
+    '«compilar» para terminar — e pergunte (terminando em «?») para eu explicar o campo.');
+  try {
+    const dados = await perguntarIA([]);
+    if (dados.pergunta) {
+      mostrarMensagem('ia', dados.pergunta + (dados.ajuda ? ' — ' + dados.ajuda : ''));
+    }
+  } catch (erro) {
+    mostrarMensagem('ia', 'Falha: ' + erro.message);
+  }
+  const entrada = document.getElementById('ia-entrada');
+  if (entrada) entrada.focus();
+}
+
+async function enviarIA(textoArgumento) {
+  if (!IA_ATIVA) return;
+  pararVoz(); // a voz não deve continuar a reescrever o campo depois do envio
+  const entrada = document.getElementById('ia-entrada');
+  const texto = (typeof textoArgumento === 'string' && textoArgumento.trim())
+    ? textoArgumento.trim()
+    : (entrada ? entrada.value.trim() : '');
+  if (!texto) return;
+  if (entrada) entrada.value = '';
+  mostrarMensagem('professor', texto);
+  // A classificação (pergunta / resposta / comando) é decidida no servidor, pelo
+  // TEXTO — voz e teclado valem o mesmo.
+  HISTORICO_IA.push({ papel: 'professor', texto });
+  try {
+    const dados = await perguntarIA(HISTORICO_IA);
+    if (dados.compilado) {
+      IA_ATIVA = false;
+      mostrarMensagem('ia', 'Pronto — compilei o PO (' + dados.turnos +
+        ' campo' + (dados.turnos === 1 ? '' : 's') + '). Revise abaixo e grave no formulário.');
+      const res = document.getElementById('ia-resultado');
+      if (res) {
+        res.classList.remove('oculto');
+        res.innerHTML = '<p><b>O que a IA (stub) devolveu:</b></p><pre>' +
+          escapar(JSON.stringify(dados.respostas, null, 2)) + '</pre>';
+      }
+    } else if (dados.resposta) {
+      // O professor perguntou: a IA explica o nó e espera a resposta.
+      mostrarMensagem('ia', dados.pergunta + '\n' + (dados.texto || 'sem explicação.'));
+    } else {
+      mostrarMensagem('ia', dados.pergunta + (dados.ajuda ? ' — ' + dados.ajuda : ''));
+    }
+  } catch (erro) {
+    mostrarMensagem('ia', 'Falha: ' + erro.message);
+  }
+}
+
+function fecharIA() {
+  pararVoz();
+  IA_ATIVA = false;
+  const sec = document.getElementById('ia');
+  if (sec) sec.classList.add('oculto');
+  const ab = document.getElementById('abertura');
+  if (ab) ab.classList.remove('oculto');
+}
+
+/*
+ * A VOZ — transcrição pela Web Speech API, no navegador (o áudio NÃO sobe ao
+ * servidor: só o texto transcrito). A IA opcional ganha a entrada por fala sem
+ * tocar no Worker: o Worker continua a receber texto, como antes.
+ *
+ * A Web Speech API é do navegador (Chrome/Edge a suportam nativamente; Firefox
+ * e Safari não têm `webkitSpeechRecognition`). Quando não existe, o botão some
+ * — a conversa continua por texto, e nada quebra (degradação graciosa).
+ */
+let RECONHECIMENTO = null;
+let FALANDO = false;
+let TEMPO_DE_SILENCIO = null;   // o cronómetro que encerra quando o professor para de falar
+
+function reconhecimentoDeVoz() {
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (!Rec) return null;
+  const rec = new Rec();
+  rec.lang = 'pt-BR';
+  // contínuo + interim: a fala não é cortada ao primeiro silêncio — o texto vai
+  // sendo transcrito em tempo real, e quem decide a hora de parar é o professor
+  // (botão) ou o SILÊNCIO PROLONGADO, não o motor.
+  rec.interimResults = true;
+  rec.continuous = true;
+  rec.maxAlternatives = 1;
+  return rec;
+}
+
+function estadoDaVoz(msg, erro) {
+  const el = document.getElementById('ia-voz-estado');
+  if (!el) return;
+  if (!msg) { el.classList.add('oculto'); el.textContent = ''; return; }
+  el.textContent = msg;
+  el.className = erro ? 'erro' : 'sub';
+}
+
+function alternarVoz() {
+  const botao = document.getElementById('ia-voz');
+  if (!botao) return;
+  const rec = RECONHECIMENTO || (RECONHECIMENTO = reconhecimentoDeVoz());
+  if (!rec) {
+    estadoDaVoz('Este navegador não suporta voz (use Chrome/Edge).', true);
+    botao.disabled = true;
+    return;
+  }
+  if (FALANDO) { pararVoz(); return; }
+
+  FALANDO = true;
+  botao.textContent = '⏹ Parar';
+  estadoDaVoz('Ouvindo… fale. Ao terminar, revise no campo e envie (Enter).');
+
+  rec.onresult = (evento) => {
+    // O texto AO VIVO vai para o campo de entrada: o professor VÊ o que foi
+    // ouvido e pode corrigir com o teclado antes de enviar — nada é enviado
+    // automaticamente (a transcrição erra, o professor não deve ser refém dela).
+    const trecho = Array.prototype.slice.call(evento.results)
+      .map((r) => r[0].transcript).join(' ').trim();
+    const entrada = document.getElementById('ia-entrada');
+    if (entrada && trecho) {
+      entrada.value = trecho;
+      entrada.focus();
+    }
+    // SILÊNCIO PROLONGADO encerra: renova o cronómetro a cada trecho, e se o
+    // professor ficar calado, o reconhecimento para (mas o texto FICA no campo).
+    if (TEMPO_DE_SILENCIO) clearTimeout(TEMPO_DE_SILENCIO);
+    TEMPO_DE_SILENCIO = setTimeout(() => {
+      estadoDaVoz('Silêncio detectado — revise e envie (Enter), ou fale de novo.');
+      pararVoz();
+    }, 3000);
+  };
+  rec.onerror = (evento) => {
+    // `no-speech` é silêncio inicial, não erro real: o texto já transcrito fica
+    // no campo, e o professor pode enviar ou falar de novo.
+    if (evento.error === 'no-speech') {
+      estadoDaVoz('Não ouvi — tente falar de novo, ou digite.');
+    } else {
+      estadoDaVoz('Erro de voz: ' + (evento.error || 'desconhecido'), true);
+    }
+    pararVoz();
+  };
+  rec.onend = () => { pararVoz(); };
+  try { rec.start(); } catch (erro) {
+    estadoDaVoz('Não consegui ligar o microfone: ' + erro.message, true);
+    pararVoz();
+  }
+}
+
+function pararVoz() {
+  if (RECONHECIMENTO) {
+    try { RECONHECIMENTO.stop(); } catch (erro) { /* já parado */ }
+  }
+  if (TEMPO_DE_SILENCIO) { clearTimeout(TEMPO_DE_SILENCIO); TEMPO_DE_SILENCIO = null; }
+  FALANDO = false;
+  const botao = document.getElementById('ia-voz');
+  if (botao) botao.textContent = '🎤 Falar';
+  const el = document.getElementById('ia-voz-estado');
+  if (el && !el.textContent) { el.classList.add('oculto'); }
+}
+
+// O caminho por prosa continua disponível: copia o prompt + sujeitos + anamneses
+// (Frente 3) para colar num agente externo — sem a conversa da porta.
+async function copiarPromptParaAgente() {
+  try {
+    const [respostaPrompt, rotulos] = await Promise.all([
+      fetch('api/prompt'),
+      rotulosDaAnamnese(),
+    ]);
+    if (!respostaPrompt.ok) throw new Error('GET /api/prompt devolveu ' + respostaPrompt.status);
+    const prompt = await respostaPrompt.text();
+    const sujeitos = await secaoDeSujeitos(rotulos);
+    const texto = [
+      contextoParaAgente(),
+      '',
+      'Sujeitos observados e anamneses (lidos do sistema):',
+      ...sujeitos,
+      '',
+      prompt,
+    ].join('\n');
+    const ok = await copiarTexto(texto);
+    mostrarMensagem('ia', ok
+      ? 'Prompt copiado — com os sujeitos e as anamneses. Cole no seu agente.'
+      : 'Não consegui copiar — recarregue e tente de novo.');
+  } catch (erro) {
+    mostrarMensagem('ia', 'Falha ao carregar o prompt: ' + erro.message);
+  }
+}
+
+// ------------------------------------------------------------------ start
+
+async function iniciar() {
+  // A fonte ajusta o nome e esconde o que é da anamnese: o campo `aluna` (o PO
+  // é de todas), a senha do cofre, a ficha em branco e a ficha preenchida —
+  // o PO não tem ficha renderizada nem cofre cifrado.
+  if (FONTE === 'po') {
+    document.title = 'Plano de Observação — o PO · Projeto Ciclo';
+    const titulo = document.querySelector('h1');
+    if (titulo) titulo.textContent = 'Plano de Observação — o PO';
+    for (const id of ['ctx-aluna', 'senha']) {
+      const campo = document.getElementById(id);
+      if (campo && campo.parentElement) campo.parentElement.style.display = 'none';
+    }
+    const branco = document.getElementById('link-ficha-branco');
+    if (branco) branco.style.display = 'none';
+    const tituloFichas = document.getElementById('titulo-fichas');
+    if (tituloFichas) tituloFichas.textContent = 'Envelopes gravados';
+  }
+
+  // O botão «Usar IA para fazer o PO» é só do PO: na anamnese ele some.
+  if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
+
+  // O botão «Começar» diz por onde se começa: pela anamnese (padrão) ou pelo PO.
+  const comecar = document.getElementById('comecar');
+  if (comecar) comecar.textContent = FONTE === 'po' ? 'Começar pelo PO' : 'Começar pela anamnese';
+
+  // O botão que troca de fonte aponta para a OUTRA, e diz para onde vai.
+  const outro = document.getElementById('link-fonte');
+  if (outro) {
+    const rotulo = outro.querySelector('button');
+    if (FONTE === 'po') {
+      outro.href = '?fonte=anamnese';
+      if (rotulo) rotulo.textContent = 'Fazer a anamnese';
+    } else {
+      outro.href = '?fonte=po';
+      if (rotulo) rotulo.textContent = 'Capturar o PO';
+    }
+  }
+
+  // O contexto do ato pode vir da URL: um atalho que abre a anamnese já com o
+  // apelido do sujeito (o PO aponta para onde a anamnese se cria, sem a criar).
+  // É conveniência de transporte, não decisão: o campo continua editável.
+  {
+    const params = new URLSearchParams(location.search);
+    for (const campo of ['escola', 'professor', 'ciclo', 'aluna']) {
+      const valor = params.get(campo);
+      const el = document.getElementById('ctx-' + campo);
+      if (valor && el) el.value = valor;
+    }
+  }
+
+  try {
+    MAPA = await carregarMapa();
+  } catch (erro) {
+    $('contexto').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+    return;
+  }
+  // A lista de sujeitos NÃO é buscada aqui (Frente 5): só quando o nó que a
+  // pede for aberto.
+  $('contexto').innerHTML = contexto(MAPA);
+  atualizarFichas();
+
+  const guardado = lerMemoria();
+  if (guardado) {
+    mostrarRetomada(restaurar(guardado));
+    pintarRoteiro();
+    salvar(); // reancora o depósito já saneado — id órfão não volta a ser contado
+  } else {
+    $('comecar').disabled = false;
+    if (!memoriaLigada) mostrarSemMemoria();
+  }
+
+  // A semeadura pelo contexto do ato vem DEPOIS do depósito: o que o professor
+  // já respondeu por si vence a barra; o resto é sugerido. Semear antes faria a
+  // sugestão passar por resposta dele.
+  semearDoContexto();
+
+  // E a barra volta a semear quando muda: é ela que carrega a identidade do ato.
+  // Não se re-renderiza a pergunta — a edição do professor não pode perder o foco.
+  $('barra').addEventListener('input', (evento) => {
+    if (evento.target && /^ctx-/.test(evento.target.id || '')) semearDoContexto();
+  });
+
+  // A barra e a trava do fecho valem nos dois caminhos — com depósito e sem
+  // ele. Fora dos ramos, para que o boot sem memória não deixe o `#fechar`
+  // sem `title` nem o contador parado em zero.
+  atualizarBarra();
+  $('n-total').textContent = MAPA.total;
+  $('n-obrig-total').textContent = MAPA.obrigatorios;
+  $('barra').classList.remove('oculto');
+  publicarAlturaDaBarra();
+
+  $('comecar').addEventListener('click', () => {
+    $('abertura').classList.add('oculto');
+    $('conducao').classList.remove('oculto');
+    $('rail').classList.remove('oculto');
+    irPara(0, false);
+  });
+
+  // O caminho por prosa: compõe o prompt com o contexto e copia para colar.
+  if ($('usar-ia')) $('usar-ia').addEventListener('click', abrirIA);
+  if ($('ia-enviar')) $('ia-enviar').addEventListener('click', () => enviarIA());
+  if ($('ia-voz')) $('ia-voz').addEventListener('click', alternarVoz);
+  if ($('ia-fechar')) $('ia-fechar').addEventListener('click', fecharIA);
+  if ($('ia-copiar')) $('ia-copiar').addEventListener('click', (e) => { e.preventDefault(); copiarPromptParaAgente(); });
+  if ($('ia-entrada')) $('ia-entrada').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') enviarIA();
+  });
+
+  $('filtro-fichas').addEventListener('input', pintarFichas);
+
+  // Os gestos da proveniência, na própria lista. A regra é do servidor; a tela
+  // só oferece o que ele permite.
+  $('lista-fichas').addEventListener('click', (evento) => {
+    const b = evento.target.closest('button');
+    if (!b) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    const id = b.dataset.carimbo;
+    if (!id) return;
+    if (b.classList.contains('acao-apagar')) apagarAnamnese(id);
+    else if (b.classList.contains('acao-ajustar')) ajustarAnamnese(id);
+    else if (b.classList.contains('acao-editar')) editarAnamnese(id);
+  });
+
+  $('anterior').addEventListener('click', () => irPara(INDICE - 1, true));
+  $('proxima').addEventListener('click', () => irPara(INDICE + 1, true));
+  $('pular').addEventListener('click', () => {
+    const no = MAPA.nos[INDICE];
+    RESPOSTAS.delete(no.id);
+    NOTAS.delete(no.id);
+    // Pular a categoria é decisão da professora: a pré-inscrição não a reescreve.
+    // Pular a idade desfaz a categoria que ela havia semeado — some a fonte,
+    // some a sugestão.
+    if (no.id === 'categoria-etaria') SUGERIDAS.delete('categoria-etaria');
+    preencherCategoria(no);
+    atualizarBarra();
+    salvar();
+    irPara(INDICE + 1, false);
+  });
+  $('fechar').addEventListener('click', fechar);
+  $('voltar').addEventListener('click', () => {
+    $('fecho').classList.add('oculto');
+    $('conducao').classList.remove('oculto');
+  });
+
+  $('roteiro').addEventListener('click', (evento) => {
+    // O «limpar» mora dentro do <li>, que navega ao clique. Sem esta guarda o
+    // botão seria lido como navegação — a resposta sumiria e a tela trocaria.
+    const botao = evento.target.closest('button[data-limpar]');
+    if (botao) {
+      limparNo(Number(botao.dataset.limpar));
+      return;
+    }
+    const item = evento.target.closest('li[data-i]');
+    if (item) irPara(Number(item.dataset.i), true);
+  });
+
+  $('pergunta').addEventListener('change', (evento) => {
+    if (evento.target.matches('input[name="pratica"]')) aplicarExclusiva(MAPA.nos[INDICE]);
+    gravarRespostaDoNo(MAPA.nos[INDICE]);
+  });
+  $('pergunta').addEventListener('input', (evento) => {
+    if (evento.target.matches('[data-campo-aberto], [data-campo-nota], [data-repeticao]')) {
+      const no = MAPA.nos[INDICE];
+      if (no && no.id === 'idade' && evento.target.matches('[data-campo-aberto]')) {
+        atualizarAvisoIdade(evento.target.value);
+      }
+      gravarRespostaDoNo(no);
+    }
+  });
+  // O clique que LÊ algo sob demanda: o registo de uma anamnese (Frente 5) e a
+  // derivação do critério a partir da anamnese (Frente 4). Nenhum dos dois
+  // acontece sozinho — os dois são pedidos explícitos do professor.
+  $('pergunta').addEventListener('click', (evento) => {
+    const ver = evento.target.closest('.ver-anamnese');
+    if (ver) {
+      abrirDetalhe(ver, MAPA.nos[INDICE]);
+      return;
+    }
+    const derivar = evento.target.closest('.derivar');
+    if (derivar) {
+      derivarDoConjunto(derivar, MAPA.nos[INDICE]);
+    }
+  });
+
+  // O carimbo do envelope que o cofre ainda não confirmou. Numa re-tentativa ele
+  // volta ao motor — sem ele o motor criaria um SEGUNDO envelope no disco.
+  let carimboPendente = null;
+
+  $('gravar').disabled = true;
+  $('gravar').addEventListener('click', async () => {
+    $('gravar').disabled = true;
+
+    // A EDIÇÃO em sítio (só a anamnese solta): grava pelo mesmo id, com `PUT`.
+    // É o único caminho que reescreve um registro — e o servidor recusa se a
+    // anamnese estiver vinculada.
+    if (EDITANDO) {
+      $('gravacao').innerHTML = '<p>gravando a edição…</p>';
+      try {
+        gravarRespostaDoNo(MAPA.nos[INDICE]);
+        const resposta = await fetch('api/anamnese-editar/' + encodeURIComponent(EDITANDO), {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            respostas: pacoteParaEnviar(),
+            contexto: contextoDaBarra(),
+          }),
+        });
+        const dados = await resposta.json().catch(() => ({}));
+        if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+        $('gravacao').innerHTML = '<p class="ok">editada em sítio: <code>' + escapar(EDITANDO) + '</code></p>';
+        EDITANDO = null;
+        limparMemoria();
+        await atualizarFichas();
+        $('fecho').classList.add('oculto');
+        $('abertura').classList.remove('oculto');
+      } catch (erro) {
+        $('gravacao').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+      }
+      $('gravar').disabled = false;
+      return;
+    }
+
+    $('gravacao').innerHTML = '<p>gravando…</p>';
+    try {
+      const dados = await enviar(false, carimboPendente || undefined);
+      $('gravacao').innerHTML = mostrarResultado(dados, 'Gravado') +
+        (dados.gravado
+          ? '<p class="ok">envelope em <code>saida/envelope/' + escapar(dados.id) + '.json</code></p>'
+          : '<p class="erro">o envelope não foi gravado.</p>');
+      if (dados.gravado) {
+        carimboPendente = dados.id;
+        $('link-envelope').href = 'api/envelope/' + encodeURIComponent(dados.id);
+        $('link-envelope').classList.remove('oculto');
+        // A ficha preenchida é da anamnese — o PO não tem ficha renderizada.
+        if (FONTE === 'anamnese') {
+          $('link-ficha').href = 'api/ficha-preenchida.' + encodeURIComponent(dados.id) + '?formato=html';
+          $('link-ficha').classList.remove('oculto');
+        }
+        // O filtro da abertura já mostra o que acabou de entrar no disco.
+        anotarFicha(dados.id);
+        await atualizarFichas();
+
+        // O cofre é um SEGUNDO destino da anamnese. O PO não vai ao cofre: o
+        // disco é o destino único, e a memória se apaga assim que o envelope
+        // é confirmado.
+        if (FONTE === 'po') {
+          carimboPendente = null;
+          limparMemoria();
+          $('retomada').classList.add('oculto');
+          $('gravacao').innerHTML += '<p class="ok">PO gravado no disco.</p>';
+        } else {
+          // O cofre: o envelope já está no disco, e uma falha aqui não o
+          // desfaz. Por isso o aviso sai AO LADO do sucesso e dos links — e
+          // por isso a memória do navegador só se apaga no fim, confirmada.
+          try {
+            const senha = senhaDaEscola();
+            if (!senha) throw new Error('informe a senha da escola na barra para guardar a anamnese cifrada.');
+            // Cifra-se o envelope inteiro, no mesmo formato em que foi para o
+            // disco: o cofre devolve-o byte a byte, e é assim que se confere que
+            // o que subiu é o que ficou.
+            const _cifrado = await Cifra.cifrar(JSON.stringify(dados.documento, null, 2) + '\n', senha);
+            const resposta = await fetch('api/anamnese', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contexto: Object.assign(contextoDaBarra(), { carimbo: dados.id }),
+                _cifrado: _cifrado,
+              }),
+            });
+            const retorno = await resposta.json();
+            if (!resposta.ok || !retorno.ok) throw new Error(retorno.erro || ('HTTP ' + resposta.status));
+            // O dado passou a viver no disco e no cofre: o depósito do navegador
+            // cumpriu o papel.
+            carimboPendente = null;
+            limparMemoria();
+            guardarSenha();
+            $('retomada').classList.add('oculto');
+            $('gravacao').innerHTML += '<p class="ok">anamnese cifrada em <code>' +
+              escapar(retorno.chave || dados.id) + '</code></p>';
+          } catch (erro) {
+            // O carimbo fica: a próxima tentativa regrava ESTE envelope, e não um
+            // segundo ao lado dele.
+            $('gravacao').innerHTML += '<p class="erro">a anamnese não foi para o cofre: ' +
+              escapar(erro.message) + ' — o envelope acima já está no disco; tente de novo ' +
+              'sem recarregar a página.</p>';
+          }
+        }
+      }
+    } catch (erro) {
+      $('gravacao').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+      $('gravar').disabled = false;
+    }
+  });
+}
+
+iniciar();
+</script>
+</body>
+</html>
