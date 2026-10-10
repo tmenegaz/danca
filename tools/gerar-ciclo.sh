@@ -604,7 +604,10 @@ FERRAMENTAS="lancamento"
 # nem em FERRAMENTAS e é tratado à parte, dentro do grupo "Área do Professor". O caminho leva o
 # contexto do ciclo, para a porta abrir já identificada. A rota `/plano-observacao/` é servida
 # pelo Worker de produção (`workers/principal.js`, `motor/servidor/producao.js`).
-PO_URL="/plano-observacao/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO"
+# A porta serve TRÊS fontes por `?fonte=` (anamnese, plano, po). O menu da Área do
+# Professor expõe DUAS delas: a anamnese (default) e o PO. O plano entra pelo PO.
+ANAMNESE_URL="/plano-observacao/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO"
+PO_URL="${ANAMNESE_URL}&fonte=po"
 
 for doc in index $DOCS $ACOMP_DOCS; do
   if e_vista "$doc"; then
@@ -825,15 +828,17 @@ gerar_nav() {
       echo "    <summary>$nome</summary>"
       echo '    <div class="submenu">'
       for doc in $membros; do item_menu "$doc"; done
-      # O Plano de Observação é um item EXTERNO (rota do Worker), não um doc do pacote: entra
-      # aqui, no fim do grupo, com o seu próprio link — e não passa pelo `item_menu` (`$doc.html`).
-      # Na PORTA (`atual=plano-observacao`) este item é o ATIVO; nas demais páginas não.
+      # A anamnese e o Plano de Observação são itens EXTERNOS (rota do Worker), não docs do
+      # pacote: entram aqui, no fim do grupo, com os seus próprios links — e não passam pelo
+      # `item_menu` (`$doc.html`). Na PORTA (`atual=plano-observacao`) o PO é o ATIVO; a anamnese
+      # é um item irmão (a porta distingue as duas por `?fonte=`, mas a nav é estática).
       if [ "$nome" = "Área do Professor" ]; then
         if [ "$atual" = "plano-observacao" ]; then
           echo "      <a class=\"ativo\" href=\"$PO_URL\">Plano de Observação</a>"
         else
           echo "      <a href=\"$PO_URL\">Plano de Observação</a>"
         fi
+        echo "      <a href=\"$ANAMNESE_URL\">Anamnese do aluno</a>"
       fi
       echo '    </div>'
       echo '  </details>'

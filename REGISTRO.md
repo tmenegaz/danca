@@ -9383,3 +9383,56 @@ estado "zero" que o gerador ainda não reconhece. Decidir, na próxima etapa: (a
 ciclos com `DOCS` vazio (o estado legítimo de uma escola recém-criada), ou (b) a geração aceita
 `DOCS=""`. O teste de ponta a ponta (elicitar plano → `-plano.md` + `DOCS="plano"` → elicitar PO →
 geração) ainda não foi exercido contra o GitHub real.
+
+## 10/10/2026 — O menu separa a Anamnese do Plano de Observação, e a navegação da porta muda de modelo
+
+**O que motivou.** Testando a porta, a pesquisadora viu que o item «Plano de Observação» caía na
+anamnese (o `?fonte=` ausente entrega a anamnese), com os três botões «Começar pela anamnese» /
+«Ver a ficha em branco» / «Fazer o plano» — e que «Sair», dentro do plano, devolvia à anamnese em
+vez do portal do plano. O pedido (10/10/2026): separar os formulários por item de menu, fazer o
+plano entrar pelo PO, e corrigir a saída e os rótulos dos botões («Começar…» → «Fazer…»).
+
+**O que foi decidido.**
+
+- A **anamnese** e o **PO** passam a ser **dois itens de menu** na «Área do Professor»:
+  «Anamnese do aluno» (a porta sem `fonte`, a anamnese) e «Plano de Observação» (a porta com
+  `?fonte=po`). O **plano** deixa de ter item próprio: entra pelo PO («Fazer o plano»).
+- A **anamnese** perde o botão «Fazer o plano» (não há navegação cruzada a partir dela); ganha, no
+  fecho (ao gravar), o atalho «Criar o Plano de Observação».
+- O **PO** passa a ter o botão «Fazer o plano» (→ plano) em vez de «Voltar para a anamnese».
+- O **plano** volta ao PO («Voltar ao Plano de Observação») e, no passo de definir a aluna, o
+  atalho de criar a anamnese passa a voz de professor («Ainda não fez a anamnese desta aluna?»).
+- Os rótulos de início trocam o verbo: «Fazer a anamnese», «Fazer o plano», «Fazer o plano de
+  observação» (em vez de «Começar…»).
+- **«Sair»** passa a voltar ao **portal da fonte atual** (plano → portal do plano), não à página
+  anterior.
+
+**Onde entrou.** `porta/index.html` — rótulos, o `link-fonte` por fonte, o flag `EM_AUTOABERTURA`
+(para o «Sair»), o atalho `link-criar-po` no fecho e o texto do `criarEm`. `tools/gerar-ciclo.sh` —
+`ANAMNESE_URL` + `PO_URL` (com `&fonte=po`) e o item novo «Anamnese do aluno».
+
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `tools/` e «a estrutura de menu ou
+navegação». O motivo: o menu passou a expor **um** item («Plano de Observação») que caía na
+anamnese, deixando o PO sem porta própria e confundindo a entrada; a separação por item de menu é
+a única forma de o professor chegar a cada formulário pelo caminho certo. **O que não muda:**
+
+- **A fórmula do hash e a cobertura da âncora.** `tools/gerar-ciclo.sh` não é fonte de `.fipp`
+  (a cobertura cobre manifestos, PO, documentos e `-dados.json`) ⇒ **nenhuma âncora precisa ser
+  reancorada**.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou; a mudança é só de
+  navegação (o próprio `CONGELAMENTO.md` a lista como «o que exige motivo declarado»).
+- **Os validadores.** Nenhum mudou; a mudança é de rótulo e de estrutura de menu, não de conteúdo.
+
+**Com o quê.** `tools/gerar-ciclo.sh` — `ANAMNESE_URL`/`PO_URL` e o item «Anamnese do aluno».
+`porta/index.html` — rótulos, `link-fonte`, `EM_AUTOABERTURA`, `link-criar-po` e o texto do
+`criarEm`. `REGISTRO.md` — esta entrada.
+
+**Referências.** `CONGELAMENTO.md` («Alterar a estrutura de menu ou navegação») · a entrada
+anterior do menu (09/10/2026) · `porta/index.html` (o fluxo `?fonte=`) ·
+`motor/servidor/README.md` (as rotas e a ponte) · `tools/gerar-ciclo.sh` (`gerar_nav`).
+
+**O que ainda não está feito.** O **pacote ainda não foi regerado** — a mudança do menu só aparece
+nos HTML após `tools/gerar-ciclo.sh <professor> <ciclo> <escola>`. O estado ativo do item
+(«Plano de Observação» ativo vs «Anamnese do aluno» ativo) continua **único** na porta: a nav é
+gerada uma vez (`atual=plano-observacao`) e não distingue `?fonte=` — a marcação de «ativo» por
+fonte fica em aberto.
