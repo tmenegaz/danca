@@ -271,15 +271,17 @@
   </span>
   <!-- O contexto do ATO. Ele não é o contexto pedagógico da tela (`contexto(m)`,
        mais abaixo): é a identificação que entra no envelope e o prefixo da chave
-       do cofre. Nasce preenchido e o professor corrige o que não servir. -->
+       do cofre. Nasce VAZIO (a porta é agnóstica — cada escola/professor/ciclo
+       chega pela URL do menu, `?escola=…&professor=…&ciclo=…`), e o professor
+       corrige o que não servir. -->
   <span class="campo"><label for="ctx-escola">escola</label>
-    <input type="text" id="ctx-escola" value="Diaghilev"></span>
+    <input type="text" id="ctx-escola" value=""></span>
   <span class="campo"><label for="ctx-professor">professor</label>
-    <input type="text" id="ctx-professor" value="fokini"></span>
+    <input type="text" id="ctx-professor" value=""></span>
   <span class="campo"><label for="ctx-ciclo">ciclo</label>
-    <input type="text" id="ctx-ciclo" value="01"></span>
+    <input type="text" id="ctx-ciclo" value=""></span>
   <span class="campo"><label for="ctx-aluna">aluna</label>
-    <input type="text" id="ctx-aluna" value="P-12"></span>
+    <input type="text" id="ctx-aluna" value=""></span>
   <span class="campo"><label for="senha">senha da escola</label>
     <input type="password" id="senha" autocomplete="off"></span>
 </div>

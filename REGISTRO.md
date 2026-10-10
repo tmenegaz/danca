@@ -9278,3 +9278,55 @@ a máquina de histórico (`abrirFormulario`/`voltarAoPortal`/`popstate`). `REGIS
 (a navegação e a máquina de histórico) · `tools/templates/nav.js` (a barra compartilhada) ·
 `CONGELAMENTO.md` ("alterar a lógica de hash, validação ou geração" / "alterar a estrutura de menu
 ou navegação").
+
+## 09/10/2026 — A criação de escola vira um comando: o CLI de scaffolding, e a porta deixa de nascer com escola fixa
+
+**O que motivou.** A migração da porta para produção foi feita "à mão" três vezes (Diaghilev no
+pacote, e a escola de teste do zero): criar a pasta do professor, copiar os schemas, escrever os
+manifestos, montar o pacote, gerar o `wrangler` e fazer o deploy. A pesquisadora pediu que esse
+processo fosse **empacotado** — "quando eu tiver um cliente novo, uma escola nova, eu tenho que
+poder fazer tudo isso" por **linha de comando** (nomes iniciais de entrada + `--deploy`). Ao mesmo
+tempo, a inspeção da porta revelou que os campos de contexto (`escola`, `professor`, `ciclo`,
+`aluna`) nasciam **pré-preenchidos** com `Diaghilev`/`fokini`/`01`/`P-12` — o que contradiz o
+princípio agnóstico e faria uma escola nova abrir com a escola errada.
+
+**O que foi decidido.**
+
+- Nasce `tools/criar-escola.sh`: o CLI que cria do zero o ambiente de uma escola — a pasta do
+  professor (se nova), os `ciclo-NN-*.json` de schema (copiados de um ciclo-modelo, padrão
+  `fokini/01`), os manifestos `ciclo-NN.conf` + `ciclo-NN-<escola>.conf` (objetivo geral como
+  lacuna `[Preencher: …]` e `DOCS=""`), o pacote zero (índice mínimo + a porta + os assets
+  compartilhados) e o `wrangler.<worker>.jsonc`. Com `--deploy`, sobe o Worker e grava o segredo
+  `GITHUB_TOKEN`. Sem argumentos, pergunta interativamente o que faltar; recusa **sobrescrever**
+  o que já existe (a proveniência acrescenta, não edita).
+- A porta **deixa de nascer com escola fixa**: os quatro campos de contexto vêm vazios, e a URL do
+  menu (`?escola=…&professor=…&ciclo=…`) os preenche. É a pré-condição do "do zero".
+- Nasce a escola de teste **diaghilev2** (professor `fokini2`, ciclo `02`, Worker `diaghilev2`),
+  no KV compartilhado — para exercitar a elicitação a partir de nada: anamnese → PO → geração.
+
+**Onde entrou.** `tools/criar-escola.sh` (novo) · `porta/index.html` (os defaults de contexto
+vazios) · `professores/fokini2/` (a escola de teste) · `wrangler.diaghilev2.jsonc` (o Worker
+irmão) · `REGISTRO.md` (esta entrada).
+
+**Motivo declarado — os congelados.** `tools/criar-escola.sh` é **adição** a `tools/` (a pasta
+congelada): o motivo é que a criação de escola é um caminho repetitivo e o empacotamento evita
+divergência e reescrever à mão — e **adiciona** um gerador novo, sem alterar nenhum congelado
+existente. **O que não muda:** a fórmula do hash e a cobertura da âncora (o script não toca
+`.fipp`); os validadores e as 17 regras / 22 pétreas; `tools/gerar-ciclo.sh`, `tools/hash-ciclo.sh`
+e os templates existentes (o script os **consome**, não os edita).
+
+**Com o quê.** `tools/criar-escola.sh` — o CLI completo (argumentos nomeados + prompts +
+`--deploy` + recusa de sobrescrever). `porta/index.html` — `ctx-escola`/`ctx-professor`/`ctx-ciclo`/
+`ctx-aluna` com `value=""`. `professores/fokini2/` — `ciclo-02.conf`, `ciclo-02-diaghilev2.conf`,
+os `ciclo-02-*.json` de schema e o pacote `ciclo-02-diaghilev2/`. `wrangler.diaghilev2.jsonc` — o
+Worker irmão do `diaghilev`.
+
+**Referências.** `professores/README.md` ("Como adicionar um professor" — o processo manual que o
+CLI agora automatiza) · `CONGELAMENTO.md` ("tools/ — geradores, validadores, hooks") ·
+`tools/gerar-ciclo.sh` / `tools/hash-ciclo.sh` (consumidos, não editados).
+
+**O que ainda não está feito.** A lacuna do ciclo vazio: `tools/gerar-ciclo.sh` exige `DOCS`
+não-vazio (`: "${DOCS:?}"`), então a geração disparada pela conclusão do PO vai parar pedindo um
+documento. Decidir, na etapa seguinte: (a) o PO elicitado gera um esboço de plano como primeiro
+`DOCS`, ou (b) o gerador passa a aceitar `DOCS=""`. A escola `diaghilev2` ainda não foi **ancorada**
+(`tools/hash-ciclo.sh fokini2 02 diaghilev2`) — é o primeiro ciclo do professor, sem `parentHash`.
