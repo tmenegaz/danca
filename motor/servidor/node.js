@@ -20,14 +20,16 @@ const { criarRotas } = require('./rotas.js');
 const { criarNode } = require('../adaptadores/node.js');
 const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
+const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
-const RAIZ = path.resolve(__dirname, '..');
+// A raiz do REPOSITÓRIO (a porta vive em `porta/`, irmã de `motor/` e `tools/`).
+const RAIZ = path.resolve(__dirname, '..', '..', '..');
 const PORTA_DIR = path.join(RAIZ, 'porta');
 const SAIDA_DIR = path.join(PORTA_DIR, 'saida');
-const PROMPT = path.join(RAIZ, '..', '..', 'prompts', 'elicitar-ciclo.md');
-const IDENTIDADE = path.join(RAIZ, '..', '..', 'tools', 'templates', 'ciclo.css');
+const PROMPT = path.join(PORTA_DIR, 'prompts', 'elicitar-ciclo.md');
+const IDENTIDADE = path.join(RAIZ, 'tools', 'templates', 'ciclo.css');
 
 const MIME_ESTATICO = {
   '.html': 'text/html; charset=utf-8',
@@ -58,13 +60,14 @@ async function servirEstatico(caminho) {
   }
 }
 
-// O bootstrap Node: lê o conteúdo, o esquema, o PO, o prompt e a identidade do
-// disco, e monta o armazenamento (fs) sob `porta/saida`.
+// O bootstrap Node: lê o conteúdo, o esquema, o PO, o plano, o prompt e a
+// identidade do disco, e monta o armazenamento (fs) sob `porta/saida`.
 function montar() {
   const armazenamento = criarNode(SAIDA_DIR);
-  const conteudo = JSON.parse(lerTexto(path.join(RAIZ, 'conteudo', 'anamnese.json')));
-  const esquema = JSON.parse(lerTexto(path.join(RAIZ, 'envelope', 'elicitacao-schema.json')));
-  const conteudoPO = JSON.parse(lerTexto(path.join(RAIZ, '..', 'po', 'conteudo', 'po.json')));
+  const conteudo = JSON.parse(lerTexto(path.join(PORTA_DIR, 'conteudo', 'anamnese.json')));
+  const esquema = JSON.parse(lerTexto(path.join(PORTA_DIR, 'envelope', 'elicitacao-schema.json')));
+  const conteudoPO = JSON.parse(lerTexto(path.join(PORTA_DIR, 'po', 'conteudo', 'po.json')));
+  const conteudoPlano = JSON.parse(lerTexto(path.join(PORTA_DIR, 'plano', 'conteudo', 'plano.json')));
   const prompt = lerTexto(PROMPT);
   const identidade = lerTexto(IDENTIDADE);
   // O gatilho da geração: sem `GITHUB_TOKEN` no ambiente, é `null` (a elicitação
@@ -82,7 +85,13 @@ function montar() {
     ref: 'main',
     derivarPO,
   });
-  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO });
+  const escreverPlano = criarEscritorDePlano({
+    token: process.env.GITHUB_TOKEN || null,
+    dono: 'tmenegaz',
+    repo: 'danca',
+    ref: 'main',
+  });
+  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano });
 }
 
 async function pedidoParaRequest(req) {

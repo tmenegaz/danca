@@ -212,14 +212,14 @@ cat > "$CONF_BASE" <<EOF
 #
 # ESCOLA SIMULADA — criada do zero por tools/criar-escola.sh. Nada pedagógico
 # foi inventado: o objetivo geral fica como lacuna e o DOCS começa vazio. O
-# primeiro artefato real é o PO, elicitado pela porta.
+# primeiros artefatos reais são o plano e o PO, elicitados pela porta.
 # ============================================================================
 
 CICLO="$CICLO"
 NOME="Ciclo $CICLO — $ESCOLA_NOME"
 
-# Objetivo geral: provisório declarado — o PO elicitado é quem o estabelece.
-OBJETIVO_GERAL="[Preencher: objetivo geral do ciclo — o PO elicitado o estabelece]"
+# Objetivo geral: provisório declarado — o plano elicitado é quem o estabelece.
+OBJETIVO_GERAL="[Preencher: objetivo geral do ciclo — o plano elicitado o estabelece]"
 
 PROFESSOR="$PROFESSOR_NOME"
 
@@ -233,7 +233,7 @@ VOLUME_MIN_120="150"     # faixa de 120 min
 VOLUME_MAX_120="200"
 
 # Documentos, na ordem em que aparecem no PDF e no menu. COMEÇA VAZIO: nenhum
-# documento foi escrito. O PO elicitado será a primeira fonte
+# documento foi escrito. O plano elicitado será a primeira fonte
 # (ciclo-$CICLO-$ESCOLA-po.md); plano e aulas entram quando forem escritos.
 DOCS=""
 EOF
@@ -265,8 +265,8 @@ DATA_INICIO="$DATA_INICIO"
 # --- conteúdo do ciclo (próprio desta escola) -------------------------------
 NOME="Ciclo $CICLO — $ESCOLA_NOME"
 
-# Objetivo geral: provisório declarado (o PO elicitado o estabelece).
-OBJETIVO_GERAL="[Preencher: objetivo geral do ciclo — o PO elicitado o estabelece]"
+# Objetivo geral: provisório declarado (o plano elicitado o estabelece).
+OBJETIVO_GERAL="[Preencher: objetivo geral do ciclo — o plano elicitado o estabelece]"
 
 TOTAL_AULAS="$TOTAL_AULAS"
 
@@ -457,5 +457,6 @@ Próximos passos (manuais, na ordem):
        git push
   2. ancore a proveniência (o ciclo é o primeiro do professor; sem parentHash):
        tools/hash-ciclo.sh $PROFESSOR $CICLO $ESCOLA
-  3. abra $URL/plano-observacao/ e faça a anamnese + o PO do zero.
+  3. abra $URL/plano-observacao/ e faça, na ordem, a anamnese, o plano e o PO
+     do zero (a porta conduz anamnese → plano → PO).
 EOF

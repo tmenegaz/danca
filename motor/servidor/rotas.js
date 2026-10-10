@@ -44,7 +44,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano }) {
   const roteador = criarRoteador();
   // O relógio é injetável: as provas fixam-no para serem repetíveis; em
   // produção cai no carimbo real do núcleo.
@@ -61,10 +61,10 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, fichaHtml, p
     return resposta(200, MIME['.css'], identidade);
   });
 
-  // 2. /api/mapa — o mapa dos nós; `?fonte=po` entrega o do PO.
+  // 2. /api/mapa — o mapa dos nós; `?fonte=po` entrega o do PO, `?fonte=plano` o do plano.
   roteador.rota('GET', '/api/mapa', ({ url }) => {
     const fonte = url.searchParams.get('fonte');
-    return porta.mapa(fonte === 'po' ? conteudoPO : conteudo);
+    return porta.mapa(fonte === 'po' ? conteudoPO : fonte === 'plano' ? conteudoPlano : conteudo);
   });
 
   // 3. /api/prompt — a entrada por prosa (o conteúdo `prompts/elicitar-ciclo.md`).
@@ -316,17 +316,24 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, fichaHtml, p
       return recusar('o corpo precisa ser um objeto com a chave `respostas`');
     }
     try {
-      const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, esquema, agora: carimbar });
+      const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
 
-      // A PONTE envelope → fonte (F4) + o DISPARO da geração (F3): quando o PO é
-      // concluído E GRAVADO, o Worker escreve a fonte no repositório e depois
-      // pede ao GitHub Actions que gere. É best-effort — o envelope já está
-      // persistido, e uma falha aqui não o desfaz. Só o PO: a anamnese é o
-      // sujeito do PO, não o recorte que manda gerar.
-      if (corpo.fonte === 'po' && resultado.gravado) {
+      // A PONTE envelope → fonte: quando o PLANO é concluído E GRAVADO, o Worker
+      // escreve o `ciclo-XX-<escola>-plano.md`; quando o PO é concluído E
+      // GRAVADO, escreve o `-po.md` E dispara a geração. É best-effort — o
+      // envelope já está persistido, e uma falha aqui não o desfaz.
+      if (resultado.gravado && (corpo.fonte === 'plano' || corpo.fonte === 'po')) {
         const envelope = resultado.documento;
 
-        if (escreverPO) {
+        if (corpo.fonte === 'plano' && escreverPlano) {
+          try {
+            resultado.fonte = await escreverPlano(envelope, 'feat(plano): o plano elicitado vira a fonte do ciclo');
+          } catch (erro) {
+            resultado.fonte = { ok: false, erro: erro.message };
+          }
+        }
+
+        if (corpo.fonte === 'po' && escreverPO) {
           try {
             resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo');
           } catch (erro) {
@@ -334,7 +341,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, fichaHtml, p
           }
         }
 
-        if (disparar) {
+        if (corpo.fonte === 'po' && disparar) {
           const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
           try {
             resultado.disparo = await disparar(contexto);

@@ -29,6 +29,7 @@ const ARQUIVO_DE = (id) => PREFIXO_ENVELOPES + id + '.json';
 const ENDERECOS = {
   anamnese: 'conteudo/anamnese.json',
   po: '../po/conteudo/po.json',
+  plano: '../plano/conteudo/plano.json',
 };
 
 // ---------------------------------------------------------------- puras
@@ -444,7 +445,8 @@ async function estadoDaAnamnese(armazenamento, envelope) {
 async function elicitar(armazenamento, corpo, dados) {
   const cruas = corpo && typeof corpo.respostas === 'object' && corpo.respostas ? corpo.respostas : {};
   const fonte = corpo && corpo.fonte;
-  const conteudoAtual = fonte === 'po' ? dados.conteudoPO : dados.conteudo;
+  const conteudoAtual =
+    fonte === 'po' ? dados.conteudoPO : fonte === 'plano' ? dados.conteudoPlano : dados.conteudo;
 
   const respostas = {};
   const recusadas = [];
@@ -461,7 +463,7 @@ async function elicitar(armazenamento, corpo, dados) {
   if (corpo && corpo.id) opcoes.id = String(corpo.id);
   if (corpo && corpo.geradoEm) opcoes.geradoEm = String(corpo.geradoEm);
 
-  if (!opcoes.id && fonte !== 'po') {
+  if (!opcoes.id && fonte !== 'po' && fonte !== 'plano') {
     const aluna = corpo && corpo.contexto && corpo.contexto.aluna;
     const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna) : null;
     if (vigente && vigente.vinculada) {
@@ -471,7 +473,8 @@ async function elicitar(armazenamento, corpo, dados) {
     }
   }
 
-  opcoes.endereco = fonte === 'po' ? ENDERECOS.po : ENDERECOS.anamnese;
+  opcoes.endereco =
+    fonte === 'po' ? ENDERECOS.po : fonte === 'plano' ? ENDERECOS.plano : ENDERECOS.anamnese;
   if (!opcoes.id) {
     const { id, geradoEm } = await identificar(
       armazenamento,

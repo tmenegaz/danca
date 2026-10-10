@@ -329,7 +329,7 @@
   <div class="acoes">
     <button class="principal" id="comecar" disabled>Começar pela anamnese</button>
     <a id="link-ficha-branco" href="api/ficha?formato=html" target="_blank" rel="noopener"><button>Ver a ficha em branco</button></a>
-    <a id="link-fonte" href="?fonte=po"><button>Capturar o PO</button></a>
+    <a id="link-fonte" href="?fonte=plano"><button>Fazer o plano</button></a>
     <button id="usar-ia">Usar IA para fazer o PO</button>
   </div>
   <p id="aviso-ia" class="sub oculto"></p>
@@ -408,11 +408,15 @@
 <script>
 'use strict';
 
-// A fonte que esta página conduz. `?fonte=po` entrega o PO (o conteúdo do
-// Protocolo de Observação, irmão do PE); sem `fonte`, a anamnese — byte a byte
-// o de sempre. É o MESMO motor, a MESMA tela e o MESMO servidor: a fonte só
-// escolhe qual conteúdo o `mapa()` devolve.
-const FONTE = new URLSearchParams(location.search).get('fonte') === 'po' ? 'po' : 'anamnese';
+// A fonte que esta página conduz. `?fonte=plano` entrega o PLANO (objetivo,
+// marcos e rubrica), `?fonte=po` o PO (o recorte); sem `fonte`, a anamnese —
+// byte a byte a de sempre. É o MESMO motor, a MESMA tela e o MESMO servidor: a
+// fonte só escolhe qual conteúdo o `mapa()` devolve. A sequência natural (a do
+// prompt congelado) é anamnese → plano → PO.
+const FONTE = (() => {
+  const f = new URLSearchParams(location.search).get('fonte');
+  return f === 'po' || f === 'plano' ? f : 'anamnese';
+})();
 
 let MAPA = null;
 let INDICE = 0;
@@ -502,9 +506,9 @@ function guardarSenha() {
  * esta trava um contexto incompleto sairia como envelope sem identidade, e nada
  * avisaria. O que falta é dito antes de o envelope nascer.
  */
-const CAMPOS_DO_CONTEXTO = FONTE === 'po'
-  ? ['escola', 'professor', 'ciclo']   // o PO é de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
-  : ['escola', 'professor', 'ciclo', 'aluna'];
+const CAMPOS_DO_CONTEXTO = FONTE === 'anamnese'
+  ? ['escola', 'professor', 'ciclo', 'aluna']
+  : ['escola', 'professor', 'ciclo'];   // PO e plano são de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
 
 function contextoDaBarra() {
   const contexto = {};
@@ -717,7 +721,7 @@ function atualizarBarra() {
 // ------------------------------------------------------------------- mapa
 
 async function carregarMapa() {
-  const resposta = await fetch('api/mapa' + (FONTE === 'po' ? '?fonte=po' : ''));
+  const resposta = await fetch('api/mapa' + (FONTE === 'anamnese' ? '' : '?fonte=' + FONTE));
   if (!resposta.ok) throw new Error('GET /api/mapa devolveu ' + resposta.status);
   return resposta.json();
 }
@@ -2223,7 +2227,7 @@ async function carregarFichas() {
  * oferecer a ficha da anamnese para um envelope do PO, que mostraria o conteúdo
  * errado. O prefixo é o mesmo `documento` que o envelope carrega.
  */
-const PREFIXO = FONTE === 'po' ? 'po-' : 'anamnese-';
+const PREFIXO = FONTE + '-';
 
 /*
  * A LISTA de gravados, com a regra de proveniência quando a fonte é a anamnese.
@@ -2293,7 +2297,7 @@ function pintarFichas() {
     ? daFonte.filter((id) => (id + ' ' + rotuloDoEnvelope(id)).toLowerCase().indexOf(procurado) !== -1)
     : daFonte;
 
-  const ePo = FONTE === 'po';
+  const ePo = FONTE !== 'anamnese';   // PO e plano não têm ficha renderizada
   lista.innerHTML = visiveis.map((id) => {
     const o = ESTADOS.get(id);
     const alvo = ePo
@@ -2821,12 +2825,13 @@ async function copiarPromptParaAgente() {
 
 async function iniciar() {
   // A fonte ajusta o nome e esconde o que é da anamnese: o campo `aluna` (o PO
-  // é de todas), a senha do cofre, a ficha em branco e a ficha preenchida —
-  // o PO não tem ficha renderizada nem cofre cifrado.
-  if (FONTE === 'po') {
-    document.title = 'Plano de Observação — o PO · Projeto Ciclo';
+  // e o plano são de todas), a senha do cofre, a ficha em branco e a ficha
+  // preenchida — nem o PO nem o plano têm ficha renderizada nem cofre cifrado.
+  if (FONTE !== 'anamnese') {
+    const rotulo = FONTE === 'po' ? 'o PO' : 'o plano';
+    document.title = 'Plano de Observação — ' + rotulo + ' · Projeto Ciclo';
     const titulo = document.querySelector('h1');
-    if (titulo) titulo.textContent = 'Plano de Observação — o PO';
+    if (titulo) titulo.textContent = 'Plano de Observação — ' + rotulo;
     for (const id of ['ctx-aluna', 'senha']) {
       const campo = document.getElementById(id);
       if (campo && campo.parentElement) campo.parentElement.style.display = 'none';
@@ -2837,12 +2842,13 @@ async function iniciar() {
     if (tituloFichas) tituloFichas.textContent = 'Envelopes gravados';
   }
 
-  // O botão «Usar IA para fazer o PO» é só do PO: na anamnese ele some.
+  // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
   if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
 
-  // O botão «Começar» diz por onde se começa: pela anamnese (padrão) ou pelo PO.
+  // O botão «Começar» diz por onde se começa: pela anamnese (padrão), pelo
+  // plano ou pelo PO.
   const comecar = document.getElementById('comecar');
-  if (comecar) comecar.textContent = FONTE === 'po' ? 'Começar pelo PO' : 'Começar pela anamnese';
+  if (comecar) comecar.textContent = FONTE === 'po' ? 'Começar pelo PO' : FONTE === 'plano' ? 'Começar pelo plano' : 'Começar pela anamnese';
 
   // O botão que troca de fonte aponta para a OUTRA, e diz para onde vai. O contexto do ato
   // (escola, professor, ciclo, aluna) VAI JUNTO na URL: trocar de fonte sem ele faria a barra
@@ -2858,12 +2864,15 @@ async function iniciar() {
       if (v) contexto[campo] = v;
     }
     const nova = new URLSearchParams(contexto);
-    if (FONTE === 'po') {
-      nova.set('fonte', 'anamnese');
-      if (rotulo) rotulo.textContent = 'Voltar para a anamnese';
-    } else {
+    if (FONTE === 'anamnese') {
+      nova.set('fonte', 'plano');
+      if (rotulo) rotulo.textContent = 'Fazer o plano';
+    } else if (FONTE === 'plano') {
       nova.set('fonte', 'po');
       if (rotulo) rotulo.textContent = 'Capturar o PO';
+    } else {
+      nova.set('fonte', 'anamnese');
+      if (rotulo) rotulo.textContent = 'Voltar para a anamnese';
     }
     outro.href = '?' + nova.toString();
   }
@@ -3083,14 +3092,14 @@ async function iniciar() {
         anotarFicha(dados.id);
         await atualizarFichas();
 
-        // O cofre é um SEGUNDO destino da anamnese. O PO não vai ao cofre: o
-        // disco é o destino único, e a memória se apaga assim que o envelope
-        // é confirmado.
-        if (FONTE === 'po') {
+        // O cofre é um SEGUNDO destino da anamnese. O PO e o plano não vão ao
+        // cofre: o disco é o destino único, e a memória se apaga assim que o
+        // envelope é confirmado.
+        if (FONTE !== 'anamnese') {
           carimboPendente = null;
           limparMemoria();
           $('retomada').classList.add('oculto');
-          $('gravacao').innerHTML += '<p class="ok">PO gravado no disco.</p>';
+          $('gravacao').innerHTML += '<p class="ok">' + (FONTE === 'po' ? 'PO' : 'Plano') + ' gravado no disco.</p>';
         } else {
           // O cofre: o envelope já está no disco, e uma falha aqui não o
           // desfaz. Por isso o aviso sai AO LADO do sucesso e dos links — e

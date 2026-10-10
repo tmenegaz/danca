@@ -9330,3 +9330,56 @@ não-vazio (`: "${DOCS:?}"`), então a geração disparada pela conclusão do PO
 documento. Decidir, na etapa seguinte: (a) o PO elicitado gera um esboço de plano como primeiro
 `DOCS`, ou (b) o gerador passa a aceitar `DOCS=""`. A escola `diaghilev2` ainda não foi **ancorada**
 (`tools/hash-ciclo.sh fokini2 02 diaghilev2`) — é o primeiro ciclo do professor, sem `parentHash`.
+
+## 09/10/2026 — A porta passa a elicitar o PLANO, e o ciclo do zero passa a nascer com plano + PO
+
+**O que motivou.** A porta de elicitação foi promovida elicitando só o PO (a metade observacional);
+o PLANO — objetivo geral, marcos por aula e rubrica (Regra 10) — ficou no caminho por prosa
+(`prompts/elicitar-ciclo.md`, Blocos 1 a 4). A consequência apareceu ao criar a escola de teste
+`diaghilev2` do zero: o ciclo nasce com `DOCS=""`, e o `gerar-ciclo.sh` exige `DOCS` não-vazio — a
+geração disparada pela conclusão do PO parava sem documento. A análise do fluxo antigo confirmou a
+raiz: **plano e PO nasciam JUNTOS na mesma entrevista**, e o `instalar-ciclo` os separava em
+arquivos; a tela havia herdado só a metade PO.
+
+**O que foi decidido.**
+
+- A porta ganha a fonte **`plano`** (terceira, ao lado de `anamnese` e `po`): a tela conduz
+  **anamnese → plano → PO**, na mesma ordem dos blocos do prompt congelado.
+- O plano é elicitado campo a campo (`porta/plano/conteudo/plano.json`): objetivo geral, marcos por
+  aula, estrutura, distribuição de volume, condições, rubrica, extensão, referências e proveniência
+  — os `required` do `plano-schema` (objetivo geral, marcos, rubrica, proveniência). As tabelas
+  nascem de listas (uma linha por item), como manda o prompt.
+- Nasce `motor/nucleo/derivar-plano-ciclo.js` (irmão do `derivar-po.js`): o envelope do plano vira o
+  `ciclo-XX-<escola>-plano.md`. A tabela de identificação do ciclo (duração, datas, volume) vem do
+  `.conf` — sai como lacuna `[Preencher: …]`, nunca inventada.
+- Nasce `motor/servidor/escrever-plano.js`: escreve o `-plano.md` E liga o plano à geração — quando
+  o `DOCS` do `.conf` está vazio, vira `DOCS="plano"` (a primeira fonte do ciclo).
+
+**Onde entrou.** `porta/plano/conteudo/plano.json` (novo) · `motor/nucleo/derivar-plano-ciclo.js`
+(novo) · `motor/servidor/escrever-plano.js` (novo) · `motor/nucleo/porta.js` (a fonte `plano` no
+`elicitar`) · `motor/servidor/rotas.js` (o mapa e a conclusão do plano) ·
+`motor/servidor/cloudflare.js` e `node.js` (carregam o conteúdo do plano; o node.js também tem os
+caminhos da migração corrigidos) · `porta/index.html` (a terceira fonte e o ciclo de troca) ·
+`tools/criar-escola.sh` (a documentação do fluxo) · `REGISTRO.md` (esta entrada).
+
+**Motivo declarado — os congelados.** `tools/criar-escola.sh` é adição a `tools/` (congelado), e
+esta mudança só **ajusta a redação do fluxo** no script que a própria sessão criou — não toca a
+fórmula do hash, os validadores, as 17 regras nem as 22 pétreas. Os validadores congelados
+(`validar-plano-ciclo.js`, etc.) são **consumidos**, não editados: o `-plano.md` emitido passa por
+eles.
+
+**Com o quê.** `porta/plano/conteudo/plano.json` · `motor/nucleo/derivar-plano-ciclo.js` ·
+`motor/servidor/escrever-plano.js` · `motor/nucleo/porta.js` · `motor/servidor/rotas.js` ·
+`motor/servidor/cloudflare.js` · `motor/servidor/node.js` · `porta/index.html` ·
+`tools/criar-escola.sh` · `REGISTRO.md`.
+
+**Referências.** `prompts/elicitar-ciclo.md` (Blocos 1 a 4 — o plano) · `prompts/instalar-ciclo.md`
+(o separador do Markdown único) · `tools/validar-plano-ciclo.js` (o contrato de extração) ·
+`tools/validar-po-ciclo.js` · `motor/nucleo/derivar-po.js` (o irmão) · `CONGELAMENTO.md`.
+
+**O que ainda não está feito.** O commit da escola `diaghilev2` **vazia** (antes de qualquer
+elicitação) segue bloqueado pelo `pre-commit`, que tenta gerar o pacote de um ciclo sem `DOCS` — o
+estado "zero" que o gerador ainda não reconhece. Decidir, na próxima etapa: (a) o `pre-commit` pula
+ciclos com `DOCS` vazio (o estado legítimo de uma escola recém-criada), ou (b) a geração aceita
+`DOCS=""`. O teste de ponta a ponta (elicitar plano → `-plano.md` + `DOCS="plano"` → elicitar PO →
+geração) ainda não foi exercido contra o GitHub real.

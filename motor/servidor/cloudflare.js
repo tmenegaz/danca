@@ -22,6 +22,7 @@ const { criarRotas } = require('./rotas.js');
 const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
+const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
@@ -50,7 +51,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, prompt, identidade, servirEstatico, disparar, escreverPO }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -62,12 +63,14 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, prom
     conteudo: JSON.parse(conteudoTexto),
     esquema: JSON.parse(esquemaTexto),
     conteudoPO: poTexto ? JSON.parse(poTexto) : undefined,
+    conteudoPlano: planoTexto ? JSON.parse(planoTexto) : undefined,
     fichaHtml,
     prompt,
     identidade,
     servirEstatico,
     disparar,
     escreverPO,
+    escreverPlano,
   });
   return (request) => roteador.responder(request);
 }
@@ -77,7 +80,8 @@ function passosDeGeracao(env) {
   const token = (env && env.GITHUB_TOKEN) || null;
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
   const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO });
-  return { disparar, escreverPO };
+  const escreverPlano = criarEscritorDePlano({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main' });
+  return { disparar, escreverPO, escreverPlano };
 }
 
 async function fetch(request, env, opcoes) {
@@ -88,25 +92,28 @@ async function fetch(request, env, opcoes) {
   // `assets/style.css` — para a porta nunca envelhecer uma cópia própria quando a
   // fonte `tools/templates/ciclo.css` muda. Se faltarem, o roteador devolve erro
   // de forma declarada.
-  const [conteudoTexto, esquemaTexto, poTexto, prompt, identidade] = await Promise.all([
+  const [conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade] = await Promise.all([
     carregarEstatico(env, 'conteudo/anamnese.json', prefixo),
     carregarEstatico(env, 'envelope/elicitacao-schema.json', prefixo),
     carregarEstatico(env, 'po/conteudo/po.json', prefixo),
+    carregarEstatico(env, 'plano/conteudo/plano.json', prefixo),
     carregarEstatico(env, 'prompts/elicitar-ciclo.md', prefixo),
     carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
-  const { disparar, escreverPO } = passosDeGeracao(env);
+  const { disparar, escreverPO, escreverPlano } = passosDeGeracao(env);
   const responder = montarPorta({
     armazenamento: criarCloudflare(env),
     conteudoTexto,
     esquemaTexto,
     poTexto,
+    planoTexto,
     prompt,
     identidade,
     servirEstatico: (caminho) => servirEstatico(env, caminho, prefixo),
     disparar,
     escreverPO,
+    escreverPlano,
   });
 
   return responder(request);
