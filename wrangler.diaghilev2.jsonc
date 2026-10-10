@@ -1,0 +1,38 @@
+// Cloudflare Worker da escola Diaghilev II (professor fokini2) — ciclo 02.
+//
+// UM PROJETO POR ESCOLA. Este é o irmão do `wrangler.jsonc` (Diaghilev/fokini): mesmo
+// código (`workers/principal.js`), mesmo KV compartilhado (as chaves são prefixadas por
+// escola, então não colidem) — muda só o `name`, o `assets.directory` e o `routes`.
+// É a escola do teste "do zero" (09/10/2026): o pacote nasce só com o Plano de
+// Observação, sem plano nem aulas.
+//
+// A rota pública (o domínio da escola) vive no painel do Cloudflare, não aqui: a mesma
+// config serve o `workers.dev` e um domínio próprio.
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "diaghilev2",
+  "compatibility_date": "2025-02-04",
+  "observability": {
+    "enabled": true
+  },
+
+  // O ponto de entrada: a ponte de produção serve o pacote (ASSETS), o
+  // lançamento (/api/receber) e a porta de elicitação (/plano-observacao/).
+  "main": "workers/principal.js",
+
+  // O pacote publicado: a pasta do ciclo, servida estática pelo binding ASSETS.
+  "assets": {
+    "directory": "professores/fokini2/ciclos/ciclo-02-diaghilev2",
+    "binding": "ASSETS"
+  },
+
+  // O cofre: o MESMO namespace `ciclos-escolas` do Diaghilev, compartilhado pelas
+  // escolas — cada chave começa com o prefixo da escola (`diaghilev2/fokini2/02/...`).
+  "kv_namespaces": [
+    {
+      "binding": "PADD_KV",
+      "id": "2ee331c7a5bc446ca86c8f2cb039ec16"
+    }
+  ]
+}
