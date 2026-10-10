@@ -362,13 +362,12 @@ function renderizar(conteudo, opcoes) {
   saida.push('---', '');
 
   // --- A observação inicial: os basilares, e o que desmembra -------------
-  saida.push('### A observação inicial — os elementos basilares');
+  saida.push('### A observação inicial — os elementos');
   saida.push('');
   saida.push('*' + observacao.nota + '*');
   saida.push('');
   saida.push(
-    '**Natureza:** ' + observacao.natureza + ' — a versão rápida do que os nove ' +
-      'blocos investigam em detalhe.'
+    'É a versão rápida do que os nove blocos investigam em detalhe.'
   );
   saida.push('');
   saida.push('| Elemento | Natureza | Onde aprofunda |');
@@ -528,8 +527,8 @@ function renderizar(conteudo, opcoes) {
   }
   saida.push('---', '');
 
-  // --- A linha de base ---------------------------------------------------
-  saida.push('### A linha de base');
+  // --- O ponto de partida ------------------------------------------------
+  saida.push('### O ponto de partida');
   saida.push('');
   saida.push(
     'O que se registra é o que a aluna **traz** e o que ela **precisa desenvolver** ' +
@@ -555,13 +554,6 @@ function renderizar(conteudo, opcoes) {
   );
   saida.push('**' + conteudo.listaAberta.regra.charAt(0).toUpperCase() + conteudo.listaAberta.regra.slice(1) + '.**');
   saida.push('');
-  saida.push(conteudo.ondeODadoVive);
-  saida.push('');
-  saida.push(
-    '*Ficha gerada de `' + (opcoes.conteudo || 'conteudo') +
-      '` por `ficha/renderizar.js`. A norma é `' + conteudo.norma +
-      '`; se os dois divergirem, a norma prevalece e a divergência é o achado.*'
-  );
 
   const markdown = saida.join('\n') + '\n';
   const porFamilia = {};

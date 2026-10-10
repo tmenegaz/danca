@@ -5,10 +5,10 @@
   "apelidoObrigatorio": "P-12",
 
   "explicacao": {
-    "oQueE": "O PO é o RECORTE: ele diz o que você vai olhar durante o ciclo — escrito ANTES de olhar. Não é um relatório e não é uma avaliação: é a promessa do que conta como observação.",
-    "preencher": "Você preenche campo a campo. Tudo tem uma explicação curta ao lado; nada exige ler a arquitetura.",
-    "porQue": "Sem a pergunta escrita antes, «melhorou» não tem referência — e o depois não pode ser comparado com o antes. O PO existe para você poder comparar consigo mesma ao longo do ciclo. Quem interpreta o resultado é você, nunca o sistema.",
-    "regras": "As regras que valem aqui: cada professor tem o seu PO (P-13); os alunos aparecem por apelidos (P-12); a metodologia é declarada, nunca deduzida (P-16); as observações são escritas antes, e o que se registra não se reescreve (P-03)."
+    "oQueE": "Aqui você escreve o que vai olhar durante o ciclo — antes de olhar. Não é um relatório nem uma avaliação: é o compromisso do que conta como observação.",
+    "preencher": "Você preenche campo a campo. Cada campo tem uma explicação curta ao lado; você não precisa ler mais nada.",
+    "porQue": "Sem a pergunta escrita antes, «melhorou» não tem referência — e o depois não pode ser comparado com o antes. O Plano de Observação existe para você poder comparar ao longo do ciclo. Quem interpreta o resultado é você, nunca o sistema.",
+    "regras": "As regras que valem aqui: cada professor tem o seu próprio Plano de Observação; os alunos aparecem por apelidos; o método é declarado, nunca adivinhado; as observações são escritas antes, e o que fica registrado não se apaga nem se reescreve."
   },
 
   "obrigatoriedade": {
@@ -20,7 +20,7 @@
 
   "observacaoInicial": {
     "natureza": "porta de entrada",
-    "nota": "A observação inicial é o PO em uma frase: a pergunta (P-01), o fenómeno (P-05), o campo (P-06) e o contexto (P-06). Ela delimita o que se observa — não descreve o resultado.",
+    "nota": "A observação inicial é o Plano de Observação em uma frase: a pergunta, o fenómeno, o campo e o contexto. Ela delimita o que se observa — não descreve o resultado.",
     "desdobramentos": [],
     "perfisDeEntrada": [],
     "notaDesdobramentos": "",
@@ -29,42 +29,42 @@
         "id": "question",
         "elemento": "Pergunta de observação",
         "obrigatorio": true,
-        "natureza": "P-01",
+        "natureza": "",
         "oQueE": "O objetivo geral do ciclo lido como pergunta",
         "ondeAprofunda": [],
         "forma": null,
         "explicacao": {
           "oQueE": "O objetivo do ciclo, escrito como PERGUNTA. É a pergunta que você vai tentar responder olhando as aulas — não o que você quer que aconteça, mas o que você quer entender.",
           "preencher": "Uma frase interrogativa. Ex.: «Como as quatro alunas constroem o eixo vertical e a transferência de peso ao longo de quatro encontros?»",
-          "porQue": "Uma pergunta é observável; uma intenção vaga («melhorar o eixo») não é. É ela que dá o norte a tudo o que vem depois (P-01)."
+          "porQue": "Uma pergunta é observável; uma intenção vaga («melhorar o eixo») não é. É ela que dá o norte a tudo o que vem depois."
         }
       },
       {
         "id": "fenomeno",
         "elemento": "Fenómeno observável",
         "obrigatorio": true,
-        "natureza": "P-05",
+        "natureza": "",
         "oQueE": "Comportamentos observáveis, não impressões — um item por linha",
         "ondeAprofunda": [],
         "forma": null,
         "explicacao": {
           "oQueE": "O que exatamente você vai OLHAR — coisas que se veem, não impressões sobre as alunas.",
           "preencher": "Um item por linha. Ex.: «alinhamento da pelve sobre os apoios», «resposta ao pulso sem contagem em voz alta», «olhar sustentado até o fim da frase».",
-          "porQue": "«Ficou melhor» não é observável — ninguém sabe o que foi visto. «A pelve parou sobre os apoios» é. Observável é o que outra pessoa, olhando a mesma aula, também veria (P-05)."
+          "porQue": "«Ficou melhor» não é observável — ninguém sabe o que foi visto. «A pelve parou sobre os apoios» é. Observável é o que outra pessoa, olhando a mesma aula, também veria."
         }
       },
       {
         "id": "where",
-        "elemento": "Campo empírico",
+        "elemento": "Onde se observa",
         "obrigatorio": true,
-        "natureza": "P-06",
+        "natureza": "",
         "oQueE": "Onde o fenómeno é observado",
         "ondeAprofunda": [],
         "forma": null,
         "explicacao": {
-          "oQueE": "ONDE o que você observa acontece: em que escola, com que turma, com que frequência e por quanto tempo por aula. É o retrato material do recorte.",
+          "oQueE": "ONDE o que você observa acontece: em que escola, com que turma, com que frequência e por quanto tempo por aula. É o retrato material do âmbito.",
           "preencher": "Um item por bloco abaixo. Cada linha tem o seu campo; o que não estava previsto vai em «outro».",
-          "porQue": "O mesmo exercício em 60 e em 90 minutos não é o mesmo dado. Sem o campo declarado, ninguém sabe a que condições o recorte se refere (P-06)."
+          "porQue": "O mesmo exercício em 60 e em 90 minutos não é o mesmo dado. Sem o campo declarado, ninguém sabe a que condições o âmbito se refere."
         },
         "subitens": [
           {
@@ -75,7 +75,7 @@
             "explicacao": {
               "oQueE": "Em que escola ou espaço as aulas acontecem.",
               "preencher": "O nome do lugar. Vem sugerido da barra — corrija se for outro.",
-              "porQue": "É o mesmo lugar que a identificação do recorte declara: um ciclo acontece num espaço só, e separar os dois faria o dado contar duas histórias."
+              "porQue": "É o mesmo lugar que a identificação do âmbito declara: um ciclo acontece num espaço só, e separar os dois faria o dado contar duas histórias."
             }
           },
           {
@@ -95,7 +95,7 @@
             "explicacao": {
               "oQueE": "Quantas vezes a turma tem aula, em que ritmo e em que dias.",
               "preencher": "Escreva a QUANTIDADE, escolha a unidade (semanal ou diária) e marque os dias. Ex.: 2 · semanal · seg e qua.",
-              "porQue": "A frequência é a dose: o mesmo conteúdo distribuído em duas ou em três aulas por semana produz corpos diferentes. Sem ela declarada, o «melhorou» não sabe a que dose se refere (P-06)."
+              "porQue": "A frequência é a dose: o mesmo conteúdo distribuído em duas ou em três aulas por semana produz corpos diferentes. Sem ela declarada, o «melhorou» não sabe a que dose se refere."
             }
           },
           {
@@ -106,7 +106,7 @@
             "explicacao": {
               "oQueE": "Quanto tempo dura cada encontro, em horas e minutos.",
               "preencher": "Dois números fixos: o primeiro é HORAS, o segundo é MINUTOS — sempre os dois. Uma hora e meia é 1 e 30; uma hora é 1 e 0; quarenta e cinco minutos é 0 e 45.",
-              "porQue": "A duração é a segunda metade da dose: mesma frequência em 45 e em 90 minutos não é o mesmo esforço. É ela que torna comparável o que se observa numa aula e noutra (P-06)."
+              "porQue": "A duração é a segunda metade da dose: mesma frequência em 45 e em 90 minutos não é o mesmo esforço. É ela que torna comparável o que se observa numa aula e noutra."
             }
           },
           {
@@ -124,14 +124,14 @@
         "id": "contexto",
         "elemento": "Contexto da observação",
         "obrigatorio": true,
-        "natureza": "P-06",
-        "oQueE": "As condições que enquadram o recorte",
+        "natureza": "",
+        "oQueE": "As condições que enquadram o âmbito",
         "ondeAprofunda": [],
         "forma": null,
         "explicacao": {
           "oQueE": "AS CONDIÇÕES da observação: quando ela começa, com que volume de trabalho e sob que condição de registro.",
           "preencher": "Um item por bloco abaixo; o que não estava previsto vai em «outro».",
-          "porQue": "O contexto muda o que é visível: uma aula com observador externo não é a mesma sem ele. Sem declarar, o dado não se lê (P-06)."
+          "porQue": "O contexto muda o que é visível: uma aula com observador externo não é a mesma sem ele. Sem declarar, o dado não se lê."
         },
         "subitens": [
           {
@@ -142,7 +142,7 @@
             "explicacao": {
               "oQueE": "Quando o ciclo começa e quando termina.",
               "preencher": "A data de início e a de fim. Deixe em branco o que ainda está por decidir — a lacuna fica declarada, não inventada.",
-              "porQue": "O calendário delimita a janela em que as aulas contam: fora dele há férias, feriados e trocas de turma. Sem o fim declarado, não se sabe se o ciclo fechou ou se apenas parou de ser registrado (P-11)."
+              "porQue": "O calendário delimita a janela em que as aulas contam: fora dele há férias, feriados e trocas de turma. Sem o fim declarado, não se sabe se o ciclo fechou ou se apenas parou de ser registrado."
             }
           },
           {
@@ -156,7 +156,7 @@
             "explicacao": {
               "oQueE": "QUANTO trabalho a aula pede, em números — a dose de esforço que o ciclo aplica a cada encontro. É o que a aula exige, não o que a aluna aguenta.",
               "preencher": "Escreva o MÍNIMO e o MÁXIMO e escolha a unidade — é a unidade que responde «80 o quê?»: 80 tempos ativos, 80 minutos ativos, 80 séries. Use a que você já usa para planejar, e seja a mesma no ciclo inteiro. Ex.: de 80 a 100 · tempos ativos. Se for um valor só, repita-o nos dois campos.",
-              "porQue": "«80» sem unidade não é dado: 80 tempos ativos e 80 minutos ativos descrevem aulas de tamanhos diferentes. E o volume é a dose — é ele que explica por que a mesma aluna progride num ciclo e estaciona noutro. Sem ele, a diferença de resultado parece diferença de capacidade, quando pode ser diferença de dose (P-06/P-11)."
+              "porQue": "«80» sem unidade não é dado: 80 tempos ativos e 80 minutos ativos descrevem aulas de tamanhos diferentes. E o volume é a dose — é ele que explica por que a mesma aluna progride num ciclo e estaciona noutro. Sem ele, a diferença de resultado parece diferença de capacidade, quando pode ser diferença de dose."
             }
           },
           {
@@ -184,9 +184,9 @@
 
   "cabecalho": {
     "bloco": 1,
-    "nota": "O cabeçalho não é observação: identifica o recorte — quem observa, onde, sob que metodologia e qual horizonte. Posiciona o PO; não o mede.",
-    "titulo": "Identificação do Recorte",
-    "objetivo": "fixar o professor, a escola, a metodologia de referência, a notação e o horizonte do PO",
+    "nota": "O cabeçalho não é observação: identifica o âmbito — quem observa, onde, sob que metodologia e qual horizonte. Posiciona o Plano de Observação; não o mede.",
+    "titulo": "Identificação do Âmbito",
+    "objetivo": "fixar o professor, a escola, a metodologia de referência, a notação e o horizonte do Plano de Observação",
     "campos": [
       {
         "id": "professor",
@@ -194,9 +194,9 @@
         "obrigatorio": true,
         "deContexto": "professor",
         "explicacao": {
-          "oQueE": "QUEM está observando. É o seu nome — o PO é seu, não da escola.",
+          "oQueE": "QUEM está observando. É o seu nome — o Plano de Observação é seu, não da escola.",
           "preencher": "Seu nome, como você assina. Vem sugerido da barra — corrija se necessário.",
-          "porQue": "Cada professor tem o seu próprio PO (P-13): dois professores da mesma turma não olham as mesmas coisas. O recorte é de quem dá a aula."
+          "porQue": "Cada professor tem o seu próprio Plano de Observação: dois professores da mesma turma não olham as mesmas coisas. O âmbito é de quem dá a aula."
         }
       },
       {
@@ -207,19 +207,19 @@
         "explicacao": {
           "oQueE": "ONDE o ciclo acontece.",
           "preencher": "O nome da escola ou do espaço. Vem sugerido da barra.",
-          "porQue": "A escola pode impor uma metodologia (P-18) — e isso muda o que se observa. Sem o lugar declarado, não se sabe se o recorte é seu ou da instituição."
+          "porQue": "A escola pode impor uma metodologia — e isso muda o que se observa. Sem o lugar declarado, não se sabe se o âmbito é seu ou da instituição."
         }
       },
       {
         "id": "norma",
-        "campo": "Metodologia de referência (norma)",
+        "campo": "Metodologia de referência",
         "obrigatorio": true,
         "forma": "RAD · Vaganova · Francesa/Cecchetti · Escola livre · Cada professor segue a própria",
         "aberto": true,
         "explicacao": {
-          "oQueE": "O PADRÃO com que você ensina — o «jeito» de referência: RAD, Vaganova, escola francesa/Cecchetti. É a norma contra a qual a execução do ciclo vai ser comparada.",
+          "oQueE": "O PADRÃO com que você ensina — o «jeito» de referência: RAD, Vaganova, escola francesa/Cecchetti. É o padrão contra o qual a execução do ciclo vai ser comparada.",
           "preencher": "Escolha a que corresponde ao seu ensino. «Escola livre» é para quem monta o próprio percurso; «cada professor segue a própria» é para quando a escola não impõe uma. Se você mistura, escreva no campo aberto como você chama isso.",
-          "porQue": "Sem uma norma declarada, «certo» e «errado» viram opinião de quem olha. A norma dá o vocabulário e a progressão — é ela que torna o julgamento comparável (P-13, P-15)."
+          "porQue": "Sem um padrão declarado, «certo» e «errado» viram opinião de quem olha. O padrão dá o vocabulário e a progressão — é ele que torna o julgamento comparável."
         }
       },
       {
@@ -231,7 +231,7 @@
         "explicacao": {
           "oQueE": "O sistema com que você ESCREVE movimento (Benesh, Laban) — se usa algum.",
           "preencher": "Benesh, Laban ou «Nenhuma». Se usa outro, escreva no campo aberto.",
-          "porQue": "A notação segue a metodologia (P-15): o que se escreve também diz o que se observa. Usar «nenhuma» é uma resposta válida, e declará-la evita supor."
+          "porQue": "A notação segue a metodologia: o que se escreve também diz o que se observa. Usar «nenhuma» é uma resposta válida, e declará-la evita supor."
         }
       },
       {
@@ -250,10 +250,10 @@
   "blocos": [
     {
       "bloco": 2,
-      "titulo": "Sujeitos e linha de base",
+      "titulo": "Sujeitos e ponto de partida",
       "dimensao": null,
       "objetivo": "declarar quem é observado e o ponto de partida de cada um",
-      "nota": "P-10: sem a linha de base, 'evolução' não tem referencial. P-12: apelidos estáveis, nunca nome completo.",
+      "nota": "Sem o ponto de partida, 'evolução' não tem referência. Apelidos estáveis, nunca o nome completo.",
       "campos": [
         {
           "id": "sujeitos",
@@ -264,14 +264,14 @@
           "opcoesDe": "/api/anamneses",
           "criarEm": "?fonte=anamnese",
           "explicacao": {
-            "oQueE": "QUEM você observa — os alunos, referidos por apelidos estáveis (P-12). Nunca o nome completo.",
+            "oQueE": "QUEM você observa — os alunos, referidos por apelidos estáveis. Nunca o nome completo.",
             "preencher": "Marque, na lista, quem já tem anamnese lançada no sistema. Se o aluno ainda não está na lista, escreva o apelido no campo aberto e crie a anamnese dele pelo atalho que aparece ao lado.",
-            "porQue": "A lista vem das anamneses que já existem: a anamnese é soberana e o PO a consome, não a cria. Só com o sujeito declarado aqui é que a linha de base dele pode aparecer no campo seguinte."
+            "porQue": "A lista vem das anamneses que já existem: a anamnese é soberana e o Plano de Observação a consome, não a cria. Só com a aluna declarada aqui é que o ponto de partida dela pode aparecer no campo seguinte."
           }
         },
         {
           "id": "linha-de-base",
-          "campo": "Linha de base",
+          "campo": "Ponto de partida",
           "obrigatorio": true,
           "repetirPor": "sujeitos",
           "camposDoItem": [
@@ -280,8 +280,8 @@
           ],
           "explicacao": {
             "oQueE": "O PONTO DE PARTIDA de cada aluno — o que ele já traz e o que precisa desenvolver, nas SUAS palavras. É o que torna «evolução» comparável.",
-            "preencher": "Escolha os sujeitos no campo anterior e uma linha aparece para cada um. Ao lado de cada linha vem o registro da anamnese dele, como referência; escreva o que traz e o que precisa desenvolver.",
-            "porQue": "Sem a linha de base, «melhorou» não significa nada (P-10): dois alunos partem de lugares diferentes, e a mesma aula não produz o mesmo efeito nos dois. A anamnese informa; a formulação é sua."
+            "preencher": "Escolha as alunas no campo anterior e uma linha aparece para cada uma. Ao lado de cada linha vem o registro da anamnese dela, como referência; escreva o que traz e o que precisa desenvolver.",
+            "porQue": "Sem a ponto de partida, «melhorou» não significa nada: dois alunos partem de lugares diferentes, e a mesma aula não produz o mesmo efeito nos dois. A anamnese informa; a formulação é sua."
           }
         }
       ]
@@ -326,8 +326,8 @@
             ]
           },
           "explicacao": {
-            "oQueE": "O que CONTA como observação — o que você vai registrar como parte do recorte.",
-            "preencher": "Um item por linha. Os sujeitos que você marcou no Bloco 2 têm anamnese; o botão abaixo sugere a lista a partir dela — e você edita o que quiser.",
+            "oQueE": "O que CONTA como observação — o que você vai registrar como parte do âmbito.",
+            "preencher": "Um item por linha. As alunas que você marcou no Bloco 2 têm anamnese; o botão abaixo sugere a lista a partir dela — e você edita o que quiser.",
             "porQue": "Sem dizer o que conta, tudo conta — e o registro deixa de ser comparável de uma aula para a outra."
           }
         },
@@ -365,9 +365,9 @@
             ]
           },
           "explicacao": {
-            "oQueE": "O que NÃO conta — o que fica deliberadamente fora do recorte.",
-            "preencher": "Um item por linha. O botão abaixo sugere o que os sujeitos JÁ dominam (não precisa observar) — as exclusões éticas (saúde, comparação) você escreve à mão.",
-            "porQue": "Excluir é escolher: o recorte é uma inclusão E uma exclusão. Dizer o que fica fora protege quem é observado e limita o que se pode concluir."
+            "oQueE": "O que NÃO conta — o que fica deliberadamente fora do âmbito.",
+            "preencher": "Um item por linha. O botão abaixo sugere o que as alunas JÁ dominam (não precisa observar) — as exclusões éticas (saúde, comparação) você escreve à mão.",
+            "porQue": "Excluir é escolher: o âmbito é uma inclusão E uma exclusão. Dizer o que fica fora protege quem é observado e limita o que se pode concluir."
           }
         }
       ]
@@ -386,7 +386,7 @@
           "explicacao": {
             "oQueE": "O que MEXE na aula e você não controla: o ânimo, o interesse e a harmonia da turma no dia — e o que o encontro pede enquanto acontece.",
             "preencher": "Declare as variáveis que você vai marcar a cada aula (ex.: ânimo, interesse e harmonia, de 1 a 5) e o que mais influenciar.",
-            "porQue": "Uma aula não é só o plano: o dia da turma entra no resultado. Declarar essas condições — em vez de fingir que não existem — é o que separa o observado do suposto (P-11)."
+            "porQue": "Uma aula não é só o plano: o dia da turma entra no resultado. Declarar essas condições — em vez de fingir que não existem — é o que separa o observado do suposto."
           }
         }
       ]
@@ -395,7 +395,7 @@
       "bloco": 5,
       "titulo": "Justificativa",
       "dimensao": null,
-      "objetivo": "ancorar o recorte ao problema e à base teórica",
+      "objetivo": "ancorar o âmbito ao problema e à base teórica",
       "campos": [
         {
           "id": "referencia-ao-problema",
@@ -403,20 +403,20 @@
           "obrigatorio": true,
           "opcoes": null,
           "explicacao": {
-            "oQueE": "COMO este recorte se liga ao que você quer entender.",
+            "oQueE": "COMO este âmbito se liga ao que você quer entender.",
             "preencher": "Uma ou duas frases: por que olhar isto responde à sua pergunta.",
-            "porQue": "Se o recorte não se liga à pergunta, ele mede outra coisa. A referência é o que costura os dois."
+            "porQue": "Se o âmbito não se liga à pergunta, ele mede outra coisa. A referência é o que costura os dois."
           }
         },
         {
           "id": "explicacao-do-recorte",
-          "campo": "Explicação do recorte",
+          "campo": "Explicação do âmbito",
           "obrigatorio": true,
           "opcoes": null,
           "explicacao": {
-            "oQueE": "POR QUE este recorte, e não outro.",
+            "oQueE": "POR QUE este âmbito, e não outro.",
             "preencher": "O que você escolheu olhar e por que essas dimensões (e não outras).",
-            "porQue": "Todo recorte deixa coisas de fora; explicar a escolha mostra que ela foi deliberada, não descuido."
+            "porQue": "Todo âmbito deixa coisas de fora; explicar a escolha mostra que ela foi deliberada, não descuido."
           }
         },
         {
@@ -425,9 +425,9 @@
           "obrigatorio": true,
           "opcoes": null,
           "explicacao": {
-            "oQueE": "O que o recorte EXCLUI — dito com todas as letras.",
+            "oQueE": "O que o âmbito EXCLUI — dito com todas as letras.",
             "preencher": "O que não será observado e por que.",
-            "porQue": "Declarar o que fica fora limita o que se pode concluir depois — e evita prometer mais do que o recorte entrega."
+            "porQue": "Declarar o que fica fora limita o que se pode concluir depois — e evita prometer mais do que o âmbito entrega."
           }
         },
         {
@@ -436,9 +436,9 @@
           "obrigatorio": true,
           "opcoes": null,
           "explicacao": {
-            "oQueE": "QUAIS referências sustentam este recorte — livros, métodos, autores.",
+            "oQueE": "QUAIS referências sustentam este âmbito — livros, métodos, autores.",
             "preencher": "Ex.: «RAD (2015) — progressão e terminologia; Clippinger (2024) — mecânica do pé e do eixo».",
-            "porQue": "A base teórica mostra de onde vêm o vocabulário e o critério. Sem ela, o recorte parece opinião pessoal em vez de método."
+            "porQue": "A base teórica mostra de onde vêm o vocabulário e o critério. Sem ela, o âmbito parece opinião pessoal em vez de método."
           }
         }
       ]
@@ -451,13 +451,13 @@
       "campos": [
         {
           "id": "limitacoes",
-          "campo": "Limitações do recorte",
+          "campo": "Limitações do âmbito",
           "obrigatorio": true,
           "opcoes": null,
           "explicacao": {
-            "oQueE": "O que este ciclo NÃO consegue mostrar — os limites honestos do recorte.",
+            "oQueE": "O que este ciclo NÃO consegue mostrar — os limites honestos do âmbito.",
             "preencher": "Um item por linha. Ex.: «quem observa é quem dá aula», «poucos encontros para inferir progressão».",
-            "porQue": "Todo recorte tem limites. Declará-los é o que impede que o resultado seja lido como prova de mais do que ele é."
+            "porQue": "Todo âmbito tem limites. Declará-los é o que impede que o resultado seja lido como prova de mais do que ele é."
           }
         }
       ]
@@ -466,12 +466,12 @@
       "bloco": 7,
       "titulo": "Checklist de validação",
       "dimensao": null,
-      "objetivo": "relê o PO contra os seis critérios antes de fechar",
-      "nota": "O fechamento não acrescenta pergunta nova: relê o PO contra o checklist.",
+      "objetivo": "relê o Plano de Observação contra os seis critérios antes de fechar",
+      "nota": "O fechamento não acrescenta pergunta nova: relê o Plano de Observação contra o checklist.",
       "campos": [
         {
           "id": "checklist-fenomeno-definido",
-          "campo": "Fenómeno definido operacionalmente",
+          "campo": "Fenómeno definido de forma observável",
           "obrigatorio": true,
           "opcoes": ["sim", "não"],
           "explicacao": {
@@ -486,9 +486,9 @@
           "obrigatorio": true,
           "opcoes": ["sim", "não"],
           "explicacao": {
-            "oQueE": "Está claro o que entra e o que fica fora do recorte?",
+            "oQueE": "Está claro o que entra e o que fica fora do âmbito?",
             "preencher": "Sim ou não.",
-            "porQue": "Fronteira vaga faz o recorte crescer sozinho durante o ciclo."
+            "porQue": "Fronteira vaga faz o âmbito crescer sozinho durante o ciclo."
           }
         },
         {
@@ -498,8 +498,8 @@
           "opcoes": ["sim", "não"],
           "explicacao": {
             "oQueE": "A metodologia de referência está declarada?",
-            "preencher": "Sim ou não. «Não» é um achado — volte ao campo da norma.",
-            "porQue": "Sem norma, o julgamento não tem padrão (P-13)."
+            "preencher": "Sim ou não. «Não» é um achado — volte ao campo do padrão.",
+            "porQue": "Sem um padrão declarado, o julgamento não tem referência."
           }
         },
         {
@@ -526,13 +526,13 @@
         },
         {
           "id": "checklist-recorte-viavel",
-          "campo": "Recorte viável",
+          "campo": "Âmbito viável",
           "obrigatorio": true,
           "opcoes": ["sim", "não"],
           "explicacao": {
             "oQueE": "É possível observar isso nas condições reais das aulas?",
             "preencher": "Sim ou não.",
-            "porQue": "Um recorte que não cabe na aula vira promessa não cumprida — e o silêncio do registro não é dado."
+            "porQue": "Um âmbito que não cabe na aula vira promessa não cumprida — e o silêncio do registro não é dado."
           }
         }
       ]
@@ -544,8 +544,8 @@
       "id": "modulo-horizonte",
       "titulo": "Horizonte do conjunto",
       "ramifica": false,
-      "condicaoDeEntrada": "há um objetivo de conjunto — vários ciclos encadeados (P-14)",
-      "funcao": "declarar o objetivo geral de conjunto e o encadeamento, sem ramificar",
+      "condicaoDeEntrada": "há um objetivo de conjunto — vários ciclos encadeados",
+      "funcao": "declarar o objetivo geral de conjunto e o encadeamento",
       "campos": [
         {
           "id": "objetivo-geral-de-conjunto",
@@ -554,7 +554,7 @@
           "explicacao": {
             "oQueE": "O que se quer alcançar ao longo de VÁRIOS ciclos, lidos juntos.",
             "preencher": "Uma frase. Se há um só ciclo, deixe em branco.",
-            "porQue": "É a P-14: um PO pai que dá sentido aos ciclos filhos."
+            "porQue": "É o objetivo maior que dá sentido aos vários ciclos, lidos juntos."
           }
         },
         {
@@ -604,11 +604,11 @@
 
   "listaAberta": {
     "minimoObrigatorio": "o cabeçalho, os quatro elementos da observação inicial e os Blocos 2 a 7",
-    "discricionario": "as dimensões próprias do ciclo (Bloco 5: o par/pas de deux, o repertório do dia, a musicalidade…) — declaradas, nunca deduzidas (P-16)",
+    "discricionario": "as dimensões próprias do ciclo (Bloco 5: o par/pas de deux, o repertório do dia, a musicalidade…) — declaradas, nunca deduzidas",
     "regra": "metodologia e notação são declaradas, nunca deduzidas"
   },
 
-  "oQueFicaFora": "O PO não observa, não interpreta, não classifica, não mede e não produz evidências. Ele delimita o recorte — quem interpreta o resultado do ciclo é o humano.",
+  "oQueFicaFora": "O Plano de Observação não observa, não interpreta, não classifica, não mede e não produz provas. Ele delimita o que se observa — quem interpreta o resultado do ciclo é o professor.",
 
   "ondeODadoVive": "Tudo cai dentro do po-01.json que já existe. Nenhum campo novo é criado: a P-08 permanece satisfeita sem tocar no ciclo-01-po-schema.json."
 }

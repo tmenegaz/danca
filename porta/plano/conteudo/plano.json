@@ -4,10 +4,10 @@
   "norma": "REGRAS.md (Regra 10) + PROTOCOLO.md (P-01)",
 
   "explicacao": {
-    "oQueE": "O plano é o QUE você vai dar — o objetivo do ciclo, os marcos aula a aula e a rubrica. Ele é a LINHA DE BASE da aula dada: o que se registra depois é o que mudou em relação a ele. Não é relatório nem avaliação.",
+    "oQueE": "O plano é o que você vai dar — o objetivo do ciclo, os marcos aula a aula e a rubrica. Ele é o ponto de partida da aula dada: o que se registra depois é o que mudou em relação a ele. Não é relatório nem avaliação.",
     "preencher": "Você preenche campo a campo. As tabelas (marcos, volume, rubrica) são escritas como listas — uma linha por item — e a compilação as transforma na tabela que o plano carrega.",
-    "porQue": "Sem o plano, não há memória da aula: o registro compara o que aconteceu com o que foi planejado. O PO (que você faz em seguida) lê o objetivo geral como pergunta (P-01): o ciclo é PO latente, e o plano é o que o torna observável.",
-    "regras": "Objetivo geral em uma frase verificável (Regra 10); uma linha por aula nos marcos; o volume respeita a faixa da duração (Regra 9); a proveniência declara a base pedagógica."
+    "porQue": "Sem o plano, não há memória da aula: o que se registra compara o que aconteceu com o que foi planejado. O Plano de Observação (que você faz em seguida) lê o objetivo geral como pergunta: o ciclo nasce dessa pergunta, e o plano é o que o torna observável.",
+    "regras": "Objetivo geral em uma frase verificável; uma linha por aula nos marcos; o volume respeita a faixa da duração; a origem declara a base pedagógica."
   },
 
   "obrigatoriedade": {
@@ -27,7 +27,7 @@
   "cabecalho": {
     "bloco": 1,
     "titulo": "Objetivo geral",
-    "objetivo": "fixar o objetivo do ciclo em uma frase verificável ao final (Regra 10, camada 1)",
+    "objetivo": "fixar o objetivo do ciclo em uma frase verificável ao final",
     "campos": [
       {
         "id": "objetivo-geral",
@@ -36,7 +36,7 @@
         "explicacao": {
           "oQueE": "O objetivo do ciclo, em uma frase — o que as alunas vão construir ao longo dos encontros.",
           "preencher": "Uma frase verificável ao final. Ex.: «Construir o eixo vertical e a transferência de peso em movimento, com resposta ao pulso e presença cênica, em cinco encontros.»",
-          "porQue": "É ele que o PO lê como pergunta (P-01): o objetivo é o que torna o ciclo observável, e a pergunta é o objetivo lido de trás para a frente."
+          "porQue": "É ele que o Plano de Observação lê como pergunta: o objetivo é o que torna o ciclo observável, e a pergunta é o objetivo lido de trás para a frente."
         }
       }
     ]
@@ -63,7 +63,7 @@
     {
       "bloco": 3,
       "titulo": "Estrutura de cada aula",
-      "objetivo": "declarar os blocos de cada aula, na ordem (Regra 3)",
+      "objetivo": "declarar os blocos de cada aula, na ordem",
       "campos": [
         {
           "id": "estrutura-de-cada-aula",
@@ -72,7 +72,7 @@
           "explicacao": {
             "oQueE": "Os blocos de cada aula, na ordem em que aparecem (solo, barra, centro, presença…).",
             "preencher": "Um bloco por linha. Ex.: «Solo — eixo e distribuição do peso».",
-            "porQue": "A ordem dos blocos é a forma da aula (Regra 3): ela organiza o volume e a captura."
+            "porQue": "A ordem dos blocos é a forma da aula: ela organiza o volume e a captura."
           }
         }
       ]
@@ -80,7 +80,7 @@
     {
       "bloco": 4,
       "titulo": "Distribuição do volume pelos blocos",
-      "objetivo": "calibrar o volume de trabalho ativo por bloco (Regra 9, etapa 2)",
+      "objetivo": "calibrar o volume de trabalho ativo por bloco",
       "campos": [
         {
           "id": "distribuicao-de-volume",
@@ -89,7 +89,7 @@
           "explicacao": {
             "oQueE": "Quanto do tempo de cada aula vai para cada bloco, e por quê.",
             "preencher": "Uma linha por bloco: «Bloco | proporção alvo | justificativa». Ex.: «Solo | 30–40% | isolamento do eixo».",
-            "porQue": "A distribuição é a Regra 9, etapa 2: o volume total vem da duração, e esta tabela diz como ele se reparte."
+            "porQue": "A distribuição segue o volume: o total vem da duração, e esta tabela diz como ele se reparte."
           }
         }
       ]
@@ -114,7 +114,7 @@
     {
       "bloco": 6,
       "titulo": "Rubrica de avaliação final",
-      "objetivo": "declarar os critérios e os quatro níveis de desempenho (Regra 10, camada 1)",
+      "objetivo": "declarar os critérios e os quatro níveis de desempenho",
       "campos": [
         {
           "id": "rubrica",
@@ -150,24 +150,24 @@
           "explicacao": {
             "oQueE": "O material que sustenta o método — livros, vídeos, repertório.",
             "preencher": "Uma referência por linha. Ex.: «RAD (2015); Clippinger (2024)».",
-            "porQue": "A proveniência do método é declarada (Regra 8): a referência é a origem, não um enfeite."
+            "porQue": "A origem do método é declarada: a referência mostra de onde vem, não é um enfeite."
           }
         }
       ]
     },
     {
       "bloco": 8,
-      "titulo": "Proveniência",
+      "titulo": "Origem",
       "objetivo": "declarar a base pedagógica do plano",
       "campos": [
         {
           "id": "proveniencia",
-          "campo": "Registro de proveniência",
+          "campo": "Registro de origem",
           "obrigatorio": true,
           "explicacao": {
             "oQueE": "A base pedagógica declarada do plano — de onde vem o que está aqui.",
-            "preencher": "Uma frase. Ex.: «Plano derivado da metodologia RAD, adaptada ao recorte da turma».",
-            "porQue": "Toda afirmação tem origem declarada (Regra 8). Sem proveniência, o plano não diz de onde veio."
+            "preencher": "Uma frase. Ex.: «Plano derivado da metodologia RAD, adaptada ao âmbito da turma».",
+            "porQue": "Toda afirmação tem origem declarada. Sem origem, o plano não diz de onde veio."
           }
         }
       ]
@@ -178,6 +178,6 @@
 
   "dimensoes": null,
   "listaAberta": null,
-  "oQueFicaFora": "O calendário — quem o preenche é o gerador, a partir do .conf da variante (Regra 10, camada 2).",
+  "oQueFicaFora": "O calendário — quem o preenche é o sistema, a partir das datas do ciclo.",
   "ondeODadoVive": "Tudo cai dentro do ciclo-XX-<escola>-plano.md que já existe. Nenhum campo novo é criado: a P-08 permanece satisfeita sem tocar no ciclo-XX-plano-schema.json."
 }

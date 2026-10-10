@@ -81,7 +81,7 @@
         "natureza": "Qualidade",
         "oQueE": "A relação do corpo com o tempo, o compasso e a frase musical",
         "ondeAprofunda": [6],
-        "nota": "É de outra natureza: atravessa todos os outros. Aparece em três momentos — aqui (estado), no Bloco 6 (trabalho) e na malha de domínios (percurso).",
+        "nota": "É de outra natureza: atravessa todos os outros. Aparece em três momentos — aqui (o estado), no Bloco 6 (o trabalho) e no fim do percurso.",
         "forma": "Domina · Domínio parcial · Precisa desenvolver",
         "semDesdobramentos": true,
         "justificativaSemDesdobramentos": "A pergunta «por qual forma se observou» não se aplica aqui: a musicalidade não se verifica por toque, por barra ou por consciência própria — ela se ouve. O estado é declarado direto na escala."
@@ -133,7 +133,7 @@
     "bloco": 1,
     "nota": "O Bloco 1 não é dimensão — é o cabeçalho da ficha. Posiciona a aluna; não a mede.",
     "titulo": "Identificação e Histórico Prévio",
-    "objetivo": "mapear a maturidade biológica, o tempo de exposição à modalidade e a proveniência da aluna",
+    "objetivo": "mapear a maturidade biológica, o tempo de exposição à modalidade e a origem da aluna",
     "campos": [
       { "id": "idade", "campo": "Data de nascimento", "obrigatorio": true, "forma": "Data de nascimento, no formato dd/mm/aaaa" },
       {
@@ -297,8 +297,8 @@
   ],
 
   "listaAberta": {
-    "minimoObrigatorio": "os cinco elementos basilares respondíveis, os dez subitens em que «as cinco posições» desmembra, e os nove blocos",
-    "discricionario": "o que o professor acrescenta, conforme o método declarado (P-16)",
+    "minimoObrigatorio": "os cinco elementos da observação inicial, as dez variações em que «as cinco posições» se desdobra, e os nove blocos",
+    "discricionario": "o que o professor acrescenta, conforme o método declarado",
     "regra": "metodologia e notação são declaradas, nunca deduzidas"
   },
 

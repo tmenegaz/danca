@@ -25,7 +25,8 @@ const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
 // A raiz do REPOSITÓRIO (a porta vive em `porta/`, irmã de `motor/` e `tools/`).
-const RAIZ = path.resolve(__dirname, '..', '..', '..');
+// `__dirname` é `motor/servidor`: sobe-se DOIS níveis (`servidor` → `motor` → raiz).
+const RAIZ = path.resolve(__dirname, '..', '..');
 const PORTA_DIR = path.join(RAIZ, 'porta');
 const SAIDA_DIR = path.join(PORTA_DIR, 'saida');
 const PROMPT = path.join(PORTA_DIR, 'prompts', 'elicitar-ciclo.md');

@@ -48,13 +48,13 @@ function emLista(valor) {
 
 // Uma lacuna declarada — o formulário não perguntou, e não se inventa a resposta.
 const LACUNA_NORMA =
-  '[Preencher: norma — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]';
+  '[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]';
 
 // O título do documento, no mesmo formato da fonte atual.
 function tituloDoPO(contexto) {
   const escola = (contexto && contexto.escola) || 'Escola';
   const ciclo = (contexto && contexto.ciclo) || 'NN';
-  return 'PO do Ciclo ' + ciclo + ' — ' + escola;
+  return 'Plano de Observação do Ciclo ' + ciclo + ' — ' + escola;
 }
 
 // O ESTADO vem do checklist: todos marcados ⇒ validado; senão, aguardando (a norma segue
@@ -92,6 +92,16 @@ const CHECKLIST = [
 function booleanoDoChecklist(valor) {
   return String(valor || '').trim().toLowerCase() === 'sim';
 }
+
+// O nome humano de cada folha do checklist — o professor lê o nome, não a chave.
+const ROTULO_DO_CHECKLIST = {
+  phenomenonOperationallyDefined: 'Fenómeno definido de forma observável',
+  scopeBoundariesClear: 'Fronteiras claras',
+  normClearlyEstablished: 'Padrão estabelecido',
+  criteriaMutuallyExclusive: 'Critérios que não se sobrepõem',
+  justificationGrounded: 'Justificação com base',
+  cutFeasible: 'Âmbito viável',
+};
 
 /**
  * A derivação: o envelope elicitado vira o Markdown da fonte do PO.
@@ -145,19 +155,19 @@ function derivarPO(envelope) {
   };
 
   prosa('Pergunta', respostaDo(envelope, 'question'));
-  lista('Fenômeno', respostaDo(envelope, 'fenomeno'));
-  prosa('Campo empírico', respostaDo(envelope, 'where'));
+  lista('Fenómeno', respostaDo(envelope, 'fenomeno'));
+  prosa('Onde se observa', respostaDo(envelope, 'where'));
   prosa('Contexto', respostaDo(envelope, 'contexto'));
-  lista('Sujeitos', respostaDo(envelope, 'sujeitos'));
+  lista('Alunas', respostaDo(envelope, 'sujeitos'));
 
   // A «Norma estabelecida» NÃO é perguntada pelo formulário: a norma que o cabecalho pede é a
   // METODOLOGIA (RAD/Vaganova/…), um conceito distinto do padrão de referência do PO. A lacuna
   // sai declarada — nunca preenchida por inferência da metodologia.
-  secao('Norma estabelecida', ['- ' + LACUNA_NORMA]);
+  secao('Padrão estabelecido', ['- ' + LACUNA_NORMA]);
 
-  // A linha de base sai como tabela; sem sujeito, a tabela sai vazia (o validador acusa o
+  // O ponto de partida sai como tabela; sem aluna, a tabela sai vazia (o validador acusa o
   // provisório, não o silêncio).
-  secao('Linha de base', tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')));
+  secao('Ponto de partida', tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')));
 
   lista('Critérios de inclusão', respostaDo(envelope, 'inclusao'));
   lista('Critérios de exclusão', respostaDo(envelope, 'exclusao'));
@@ -170,21 +180,22 @@ function derivarPO(envelope) {
     saida.push(valor === null || valor === '' ? '[a decidir]' : String(valor));
     saida.push('');
   };
-  subcampo('referenceToProblem', justificativa.referenceToProblem);
-  subcampo('explanationOfCut', justificativa.explanationOfCut);
-  subcampo('whatIsLeftOut', justificativa.whatIsLeftOut);
-  subcampo('theoreticalBasis', justificativa.theoreticalBasis);
+  subcampo('Ligação à pergunta', justificativa.referenceToProblem);
+  subcampo('Explicação da escolha', justificativa.explanationOfCut);
+  subcampo('O que fica de fora', justificativa.whatIsLeftOut);
+  subcampo('Base do método', justificativa.theoreticalBasis);
 
-  prosa('Condições de contorno da execução', respostaDo(envelope, 'condicoes-de-contorno'));
+  prosa('Condições em que a aula acontece', respostaDo(envelope, 'condicoes-de-contorno'));
   lista('Limitações', respostaDo(envelope, 'limitacoes'));
 
-  saida.push('## Checklist de validação');
+  saida.push('## Conferência antes de fechar');
   saida.push('');
   for (const [id, chave] of CHECKLIST) {
     const marcado = checklist[chave];
-    saida.push('### ' + chave);
+    const rotulo = ROTULO_DO_CHECKLIST[chave] || chave;
+    saida.push('### ' + rotulo);
     saida.push('');
-    saida.push('- [' + (marcado ? 'x' : ' ') + '] ' + chave);
+    saida.push('- [' + (marcado ? 'x' : ' ') + '] ' + rotulo);
     saida.push('');
   }
 

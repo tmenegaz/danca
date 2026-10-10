@@ -33,7 +33,7 @@ function tituloDoPlano(contexto) {
 const LACUNA_DURACAO = '[Preencher: N encontros — o .conf da variante declara]';
 const LACUNA_DURACAO_MINUTOS = '[Preencher: duração em minutos — o .conf declara (Pré-requisito 4)]';
 const LACUNA_INICIO = '[Preencher: dd/mm/aaaa — o .conf declara]';
-const LACUNA_VOLUME = '[Preencher: faixa de tempos — o .conf declara (Regra 9, etapa 1)]';
+const LACUNA_VOLUME = '[Preencher: faixa de tempos — o sistema declara a partir da duração do ciclo]';
 
 // A tabela de identificação do ciclo (o bloco `| Item | Valor |` que o validador
 // manda para `ciclo`). Professor vem do contexto; o resto é lacuna do .conf.
@@ -135,7 +135,7 @@ function derivarPlano(envelope) {
 
   // Distribuição do volume pelos blocos (tabela) — Regra 9, etapa 2.
   secao(
-    'Distribuição do volume pelos blocos (Regra 9, etapa 2)',
+    'Distribuição do volume pelos blocos',
     tabelaDeLista(
       respostaDo(envelope, 'distribuicao-de-volume'),
       '| Bloco | Proporção alvo (60 min) | Justificativa |',
@@ -160,7 +160,7 @@ function derivarPlano(envelope) {
   prosa('Critério de extensão', respostaDo(envelope, 'criterio-de-extensao'));
 
   // Registro de proveniência (prosa) — required.
-  prosa('Registro de proveniência', respostaDo(envelope, 'proveniencia'));
+  prosa('Registro de origem', respostaDo(envelope, 'proveniencia'));
 
   return {
     markdown: saida.join('\n') + '\n',
