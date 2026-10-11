@@ -3,7 +3,7 @@ projeto: Formação em Balé Clássico
 frente: Aula
 ciclo: "02"
 aula: "01"
-title: "Aula 01 — Isolar o eixo vertical e a distribuição do…"
+title: "Aula 01 — Isolar o eixo vertical e a distribuição do peso, no solo e sem deslocamento"
 subtitle: "Sem deslocamento, sem giro, sem mudança de direção"
 objetivo-especifico: "Isolar o eixo vertical e a distribuição do peso, no solo e sem deslocamento"
 duracao: "60 minutos"
