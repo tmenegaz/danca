@@ -14,7 +14,7 @@ hash_conteudo: d0f29f98e1220f40c5caa2a7977602f4df7f83d4ce179a65100cf2a1bd4f0e3e
 parentHash: 
 hash: 5260a9c7451a2665416a52be7a607c8dfcc63392a56afb8d04d6848c445f9bd1
 algoritmo: SHA-256
-ancorado_em: 2026-10-02
+ancorado_em: 2026-10-11
 cobertura:
   - professores/fokini/ciclos/ciclo-01-diaghilev-aula-05.md
   - professores/fokini/ciclos/ciclo-01-diaghilev-captura-aula-05.md

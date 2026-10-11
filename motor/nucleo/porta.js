@@ -95,6 +95,18 @@ function carimboEmPortugues(id) {
   return casou[3] + '/' + casou[2] + '/' + casou[1] + ' às ' + casou[4] + ':' + casou[5];
 }
 
+// A correção socrática é INFRAESTRUTURA, não conteúdo (Frente 5). O conteúdo
+// declara só o SEMA do campo (`socratico: "objetivo"`); quem sabe o que um
+// «objetivo» exige — e a pergunta que ensina — é o SISTEMA. Os marcadores são
+// verbos de AÇÃO (o que a professora faz em aula): uma resposta que começa por
+// eles descreve o fazer, não o resultado que a aluna vai alcançar.
+const SOCRATICA = {
+  objetivo: {
+    quando: ['dar', 'ensinar', 'passar', 'mostrar', 'corrigir', 'treinar', 'aplicar', 'apresentar', 'trabalhar', 'montar'],
+    pergunta: 'Isso é o que você vai fazer. Mas o objetivo é o que a aluna vai conseguir fazer depois. Quer reformular?',
+  },
+};
+
 /**
  * O mapa dos nós respondíveis, enriquecido com o contexto do conteúdo. A MESMA
  * função da porta original — sem o `fs` de ler o conteúdo: ele chega pronto.
@@ -132,6 +144,9 @@ function mapa(conteudo) {
       colunas: no.colunas || null,
       exclusiva: no.exclusiva || null,
       aberto: no.aberto === true,
+      // O SEMA vira a regra resolvida: o conteúdo declarou «objetivo», o sistema
+      // entrega `{ quando, pergunta }` — ou null, se o sema for desconhecido.
+      socratico: no.socratico ? (SOCRATICA[no.socratico] || null) : null,
     };
 
     if (no.familia === 'basilar' || no.familia === 'subitem') {

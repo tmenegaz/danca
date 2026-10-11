@@ -9,7 +9,7 @@
      mesmo HTML, zero caminho hardcoded. A raiz absoluta (`/api/…`) foi trocada por
      relativa justamente para isso. -->
 <base href="./">
-<title>Plano de Observação — Projeto Ciclo</title>
+<title>Projeto Ciclo</title>
 <!-- A identidade visual da PRODUÇÃO, carregada da RAIZ do pacote (`/assets/style.css`)
      — o MESMO arquivo que as demais páginas do site usam, gerado de
      `tools/templates/ciclo.css` (a fonte de verdade declarada do Projeto Ciclo). A
@@ -145,6 +145,19 @@
   .lista .caminho { color: var(--suave); font-size: .78rem; }
   #filtro-fichas { margin: 0 0 .5rem; }
   .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
+  /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
+     Tom de conversa — a professora é convidada a reler, não repreendida. */
+  .socratica {
+    border: 1px solid var(--gold-borda);
+    background: var(--creme-1);
+    border-left: 4px solid var(--alerta);
+    border-radius: 4px;
+    padding: .9rem 1rem;
+    margin: 1rem 0;
+    color: var(--burgundy);
+  }
+  .socratica .pergunta { font-weight: bold; margin: 0 0 .35rem; }
+  .socratica .dica { font-size: .9rem; color: var(--soft); margin: 0; }
   .erro { color: var(--erro); }
   /* A explicação do nó: curta, ao lado da pergunta, em linguagem de professor.
      É conteúdo do PO (o dado), não rótulo — a tela só a desenha. O tratamento é o
@@ -255,12 +268,12 @@
      O marcador é substituído na geração; sem ele (porta aberta avulsa), a página fica
      sem a barra, mas inteira. -->
 <nav class="topnav" aria-label="Navegação do ciclo">
-  <a class="marca" href="/index.html">Ciclo 01 · diaghilev</a>
+  <span class="marca" aria-hidden="true"></span>
   <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
     <span></span><span></span><span></span>
   </button>
   <div class="nav-links" id="nav-links">
-  <a href="/index.html">Início</a>
+  <a href="/index.html">Nós, Por Exemplo</a>
   <details class="menu">
     <summary>Ciclos</summary>
     <div class="submenu">
@@ -304,7 +317,8 @@
       <a href="/captura-aula-04.html">Captura em aula — Aula 04 — para impressão</a>
       <a href="/captura-aula-05.html">Captura em aula — Aula 05 — para impressão</a>
       <a href="/lancamento.html">Lançamento de aula — formulário eletrônico</a>
-      <a class="ativo" href="/plano-observacao/?professor=fokini&escola=diaghilev&ciclo=01">Plano de Observação</a>
+      <a class="ativo" href="/plano-observacao/?professor=fokini&escola=diaghilev&ciclo=01&fonte=po">Plano de Observação</a>
+      <a href="/plano-observacao/?professor=fokini&escola=diaghilev&ciclo=01">Anamnese do aluno</a>
     </div>
   </details>
   <a class="pdf" href="/ciclo-01-diaghilev.pdf">PDF do ciclo</a>
@@ -315,27 +329,28 @@
 <!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de
      ouro e o subtítulo em itálico. A barra de cima é a do site (o marcador acima). -->
 <header class="doc">
-  <h1>Plano de Observação</h1>
-  <p class="subtitulo">O recorte escrito antes de olhar — com a anamnese que o sustenta.</p>
+  <h1 id="titulo-pagina">Anamnese do aluno</h1>
+  <p class="subtitulo" id="subtitulo-pagina">O ponto de partida de cada aluna — escrito antes de começar o ciclo.</p>
 </header>
 
 <div id="barra" class="barra oculto">
   <span class="contadores">
     <span>respondidos <b id="n-resp">0</b>/<b id="n-total">53</b></span>
     <span>obrigatórios <b id="n-obrig">0</b>/<b id="n-obrig-total">49</b></span>
-    <span>estado <b id="n-estado">construida</b></span>
   </span>
   <!-- O contexto do ATO. Ele não é o contexto pedagógico da tela (`contexto(m)`,
        mais abaixo): é a identificação que entra no envelope e o prefixo da chave
-       do cofre. Nasce preenchido e o professor corrige o que não servir. -->
+       do cofre. Nasce VAZIO (a porta é agnóstica — cada escola/professor/ciclo
+       chega pela URL do menu, `?escola=…&professor=…&ciclo=…`), e o professor
+       corrige o que não servir. -->
   <span class="campo"><label for="ctx-escola">escola</label>
-    <input type="text" id="ctx-escola" value="Diaghilev"></span>
+    <input type="text" id="ctx-escola" value=""></span>
   <span class="campo"><label for="ctx-professor">professor</label>
-    <input type="text" id="ctx-professor" value="fokini"></span>
+    <input type="text" id="ctx-professor" value=""></span>
   <span class="campo"><label for="ctx-ciclo">ciclo</label>
-    <input type="text" id="ctx-ciclo" value="01"></span>
+    <input type="text" id="ctx-ciclo" value=""></span>
   <span class="campo"><label for="ctx-aluna">aluna</label>
-    <input type="text" id="ctx-aluna" value="P-12"></span>
+    <input type="text" id="ctx-aluna" value=""></span>
   <span class="campo"><label for="senha">senha da escola</label>
     <input type="password" id="senha" autocomplete="off"></span>
 </div>
@@ -362,29 +377,19 @@
        formulário — a explicação de cada formulário (o que cada campo pede)
        continua em `#contexto`, vinda do conteúdo. -->
   <div class="caixa nota" id="portal-po">
-    <p><b>O Plano de Observação é o recorte.</b> É o que você vai olhar durante o
-       ciclo, escrito <b>antes</b> de olhar. Não é relatório nem avaliação: é a
-       promessa do que conta como observação, para o depois poder ser comparado
-       com o antes.</p>
-    <p>Duas partes — você pode começar por qualquer uma:</p>
-    <ul>
-      <li><b>Anamnese</b> — a linha de base de cada sujeito observado, identificado
-          por apelido (nunca pelo nome completo). É o primeiro passo de quem ainda
-          não lançou os sujeitos.</li>
-      <li><b>O PO</b> — o recorte: o que será observado e como. O PO escolhe os
-          sujeitos <b>entre as anamneses já feitas</b> — sem anamnese, ele não
-          conclui.</li>
-    </ul>
+    <p><b>Aqui você descreve o ponto de partida de cada aluna</b> — o que ela já sabe
+       e o que precisa desenvolver. É assim que, daqui a alguns meses, você vai poder
+       comparar o antes e o depois.</p>
     <p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no
-       navegador até gravar o envelope. Nada se perde no caminho.</p>
+       navegador até gravar. Nada se perde no caminho.</p>
   </div>
-  <div id="contexto" class="caixa nota">carregando o mapa…</div>
+  <div id="contexto" class="caixa nota oculto"></div>
   <div id="retomada" class="caixa nota oculto"></div>
   <div class="acoes">
     <button class="principal" id="comecar" disabled>Começar pela anamnese</button>
     <a id="link-ficha-branco" href="api/ficha?formato=html" target="_blank" rel="noopener"><button>Ver a ficha em branco</button></a>
-    <a id="link-fonte" href="?fonte=po"><button>Capturar o PO</button></a>
-    <button id="usar-ia">Usar IA para fazer o PO</button>
+    <a id="link-fonte" href="?fonte=plano"><button>Fazer o plano</button></a>
+    <button id="usar-ia">Usar IA para fazer o Plano de Observação</button>
   </div>
   <p id="aviso-ia" class="sub oculto"></p>
 
@@ -403,6 +408,7 @@
   <h2>Condução</h2>
   <p class="sub">Uma pergunta por vez. O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
 
+  <div id="socratica" class="socratica oculto"></div>
   <div id="pergunta"></div>
 
   <div class="acoes">
@@ -419,9 +425,9 @@
   <h2>Fecho</h2>
   <div id="resultado"></div>
   <div class="acoes">
-    <button class="principal" id="gravar">Gravar o envelope</button>
+    <button class="principal" id="gravar">Guardar</button>
     <button id="voltar">Voltar à condução</button>
-    <a id="link-envelope" class="oculto" target="_blank"><button>Ver o envelope gravado</button></a>
+    <a id="link-criar-po" class="oculto" href="?fonte=po"><button>Criar o Plano de Observação</button></a>
     <a id="link-ficha" class="oculto" href="api/ficha.md" target="_blank"><button>Ver a ficha preenchida</button></a>
   </div>
   <div id="gravacao"></div>
@@ -430,7 +436,7 @@
 <!-- ------------------------------------------------------------------ ia -->
 <section id="ia" class="oculto">
   <h2>Conversa com a IA (stub)</h2>
-  <p class="sub">O motor de IA ainda é um stub: lê o PO e pergunta um campo por vez. O freio é real — no máximo 30 turnos, depois compila.</p>
+  <p class="sub">A IA ainda é um protótipo: lê o Plano de Observação e pergunta um campo por vez. O freio é real — no máximo 30 turnos, depois gera o Plano de Observação.</p>
   <div id="ia-mensagens" class="caixa nota"></div>
   <div class="acoes">
     <input type="text" id="ia-entrada" placeholder="sua resposta (ou «compilar»)" autocomplete="off">
@@ -462,11 +468,15 @@
 <script>
 'use strict';
 
-// A fonte que esta página conduz. `?fonte=po` entrega o PO (o conteúdo do
-// Protocolo de Observação, irmão do PE); sem `fonte`, a anamnese — byte a byte
-// o de sempre. É o MESMO motor, a MESMA tela e o MESMO servidor: a fonte só
-// escolhe qual conteúdo o `mapa()` devolve.
-const FONTE = new URLSearchParams(location.search).get('fonte') === 'po' ? 'po' : 'anamnese';
+// A fonte que esta página conduz. `?fonte=plano` entrega o PLANO (objetivo,
+// marcos e rubrica), `?fonte=po` o PO (o recorte); sem `fonte`, a anamnese —
+// byte a byte a de sempre. É o MESMO motor, a MESMA tela e o MESMO servidor: a
+// fonte só escolhe qual conteúdo o `mapa()` devolve. A sequência natural (a do
+// prompt congelado) é anamnese → plano → PO.
+const FONTE = (() => {
+  const f = new URLSearchParams(location.search).get('fonte');
+  return f === 'po' || f === 'plano' ? f : 'anamnese';
+})();
 
 let MAPA = null;
 let INDICE = 0;
@@ -474,8 +484,17 @@ let FICHAS = [];               // ids de envelope já gravados, o mais novo prim
 const RESPOSTAS = new Map();   // id -> {valor, nota}
 const NOTAS = new Map();       // id -> string
 const SUGERIDAS = new Set();   // ids que a pré-inscrição semeou, não a professora
+// A correção socrática (Frente 5): id -> o VALOR já apontado. Pergunta-se UMA vez
+// por resposta — se a professora insiste no mesmo texto, o sistema respeita e
+// deixa seguir; se reformula, a checagem roda de novo.
+const SOCRATICA_VISTA = new Map();
 
 const $ = (id) => document.getElementById(id);
+
+// O formulário foi aberto por salto direto («Fazer o plano»/«Fazer o PO»), sem
+// empilhar histórico? Então «Sair» volta ao portal da fonte atual — não à página
+// anterior (que seria a anamnese).
+let EM_AUTOABERTURA = false;
 
 // ------------------------------------------------- a memória do navegador
 
@@ -556,9 +575,9 @@ function guardarSenha() {
  * esta trava um contexto incompleto sairia como envelope sem identidade, e nada
  * avisaria. O que falta é dito antes de o envelope nascer.
  */
-const CAMPOS_DO_CONTEXTO = FONTE === 'po'
-  ? ['escola', 'professor', 'ciclo']   // o PO é de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
-  : ['escola', 'professor', 'ciclo', 'aluna'];
+const CAMPOS_DO_CONTEXTO = FONTE === 'anamnese'
+  ? ['escola', 'professor', 'ciclo', 'aluna']
+  : ['escola', 'professor', 'ciclo'];   // PO e plano são de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
 
 function contextoDaBarra() {
   const contexto = {};
@@ -623,8 +642,13 @@ function restaurar(guardado) {
  * abre a condução passa por aqui (Começar, Continuar, Editar), para o «Sair» poder
  * desempilhar essa mesma entrada com `history.back()`.
  */
-function abrirFormulario(indice) {
-  history.pushState({ portal: true }, '');
+function abrirFormulario(indice, empilhar) {
+  // Sem `empilhar: false`, «Começar» marca o portal no histórico, para o «Sair»
+  // e o voltar do navegador devolverem à abertura sem saltar a página. O salto
+  // direto de «Fazer o plano»/«Fazer o PO» NÃO empilha: não há portal mostrado
+  // para onde voltar — «Sair» volta ao portal da fonte atual.
+  EM_AUTOABERTURA = (empilhar === false);
+  if (empilhar !== false) history.pushState({ portal: true }, '');
   document.getElementById('abertura').classList.add('oculto');
   const retomada = document.getElementById('retomada');
   if (retomada) retomada.classList.add('oculto');
@@ -644,6 +668,7 @@ function abrirFormulario(indice) {
  * do «Começar de novo» e do voltar do navegador dentro da condução.
  */
 function voltarAoPortal() {
+  EM_AUTOABERTURA = false;
   document.getElementById('abertura').classList.remove('oculto');
   for (const id of ['conducao', 'fecho', 'ia']) {
     const s = document.getElementById(id);
@@ -661,7 +686,7 @@ function voltarAoPortal() {
     const retomada = document.getElementById('retomada');
     if (retomada) { retomada.classList.add('oculto'); retomada.innerHTML = ''; }
     const comecar = document.getElementById('comecar');
-    if (comecar) comecar.disabled = false;
+    if (comecar) { comecar.disabled = false; comecar.style.display = FONTE === 'anamnese' ? '' : 'none'; }
   }
 }
 
@@ -689,7 +714,10 @@ function mostrarRetomada(t) {
     '</div>');
   $('retomada').innerHTML = linhas.join('');
   $('retomada').classList.remove('oculto');
-  $('comecar').disabled = true;
+  // «Começar» é para começar do zero. Com um preenchimento em curso, o
+  // professor continua ou recomeça — nunca «começa» outra vez. Escondido, não
+  // desabilitado: um botão desabilitado é ruído, um escondido não é nada.
+  $('comecar').style.display = 'none';
 
     $('continuar').addEventListener('click', () => {
     abrirFormulario(INDICE);
@@ -701,6 +729,7 @@ function mostrarRetomada(t) {
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
+    SOCRATICA_VISTA.clear();
     INDICE = 0;
     atualizarBarra();
     voltarAoPortal();
@@ -714,22 +743,11 @@ function mostrarRetomada(t) {
 function mostrarSemMemoria() {
   $('retomada').innerHTML = '<p class="sub">Este navegador não está guardando o ' +
     'preenchimento (aba privada ou memória cheia). Se a página fechar, o que foi ' +
-    'respondido se perde — grave o envelope antes de sair.</p>';
+    'respondido se perde — guarde antes de sair.</p>';
   $('retomada').classList.remove('oculto');
 }
 
 // -------------------------------------------------------------- utilidades
-
-function familiaRotulo(f) {
-  return {
-    cabecalho: 'cabeçalho',
-    gatilho: 'gatilho',
-    basilar: 'elemento basilar',
-    subitem: 'subitem do elemento',
-    bloco: 'bloco',
-    modulo: 'módulo condicional',
-  }[f] || f;
-}
 
 function perguntaRespondida(no) {
   return RESPOSTAS.has(no.id);
@@ -771,7 +789,7 @@ function atualizarBarra() {
 // ------------------------------------------------------------------- mapa
 
 async function carregarMapa() {
-  const resposta = await fetch('api/mapa' + (FONTE === 'po' ? '?fonte=po' : ''));
+  const resposta = await fetch('api/mapa' + (FONTE === 'anamnese' ? '' : '?fonte=' + FONTE));
   if (!resposta.ok) throw new Error('GET /api/mapa devolveu ' + resposta.status);
   return resposta.json();
 }
@@ -834,9 +852,9 @@ function rotuloDoCarimbo(id) {
 
 function contexto(m) {
   const linhas = [];
-  // A explicação do DOCUMENTO — o que é um PO, por que existe, sobre que regras.
-  // Vem do conteúdo; a tela só a mostra antes de tudo, para o professor não
-  // precisar ler a arquitetura.
+  // A explicação do FORMULÁRIO — o que é, por que existe, sobre que regras.
+  // Vem do conteúdo; a tela só a mostra antes de tudo, para o professor
+  // perceber o que vai preencher.
   if (m.explicacao) {
     const e = m.explicacao;
     const bloco = [];
@@ -846,17 +864,15 @@ function contexto(m) {
     if (bloco.length) linhas.push('<details open><summary>Sobre este formulário</summary>' +
       bloco.join('') + '</details>');
   }
-  linhas.push('<p><b>' + escapar(m.documento) + '</b> — norma <code>' + escapar(m.norma) + '</code>. ' +
-    'Apelido obrigatório: <code>' + escapar(m.apelidoObrigatorio) + '</code>.</p>');
-  linhas.push('<p>' + md(m.oQueFicaFora) + '</p>');
-  linhas.push('<p><b>Lista aberta.</b> Mínimo obrigatório: ' + md(m.listaAberta.minimoObrigatorio) +
-    '. Discricionário: ' + md(m.listaAberta.discricionario) + '. Regra: ' + md(m.listaAberta.regra) + '.</p>');
-  if (m.metodos && m.metodos.length) {
-    linhas.push('<p>Métodos de origem declarados (P-16): ' +
-      m.metodos.map((x) => '<span class="selo">' + md(x) + '</span>').join(' ') + '</p>');
+  if (m.oQueFicaFora) linhas.push('<p>' + md(m.oQueFicaFora) + '</p>');
+  if (m.listaAberta) {
+    const la = m.listaAberta;
+    const partes = [];
+    if (la.minimoObrigatorio) partes.push('Mínimo: ' + md(la.minimoObrigatorio));
+    if (la.discricionario) partes.push('Opcional: ' + md(la.discricionario));
+    if (la.regra) partes.push('Regra: ' + md(la.regra));
+    if (partes.length) linhas.push('<p><b>Lista aberta.</b> ' + partes.join('. ') + '.</p>');
   }
-  linhas.push('<p>' + m.total + ' nós respondíveis, ' + m.obrigatorios + ' obrigatórios. ' +
-    'Gatilho: <code>' + escapar(m.gatilho) + '</code>.</p>');
   return linhas.join('');
 }
 
@@ -956,14 +972,12 @@ function cabecalhoDoNo(no) {
   const partes = [];
   partes.push('<span class="selo' + (no.obrigatorio ? ' obrig' : ' opt') + '">' +
     (no.obrigatorio ? 'obrigatório' : 'opcional') + '</span>');
-  partes.push('<span class="selo">' + familiaRotulo(no.familia) + '</span>');
   if (no.bloco) partes.push('<span class="selo">bloco ' + no.bloco + '</span>');
   if (no.dimensao) {
     const d = Array.isArray(no.dimensao) ? no.dimensao.join(' · ') : no.dimensao;
     partes.push('<span class="selo dim">' + md(d) + '</span>');
   }
-  if (no.modulo) partes.push('<span class="selo">' + md(no.modulo) + '</span>');
-  return '<p>' + partes.join(' ') + ' <span class="sub"><code>' + escapar(no.endereco) + '</code></span></p>';
+  return '<p>' + partes.join(' ') + '</p>';
 }
 
 /*
@@ -1266,15 +1280,15 @@ function gradeDeOpcoesDinamicas(no) {
   // só o segue. É o «o PO oferece o caminho para criar a anamnese, sem sair do
   // PO»: abre na outra aba, e o professor volta e recarrega.
   const atalho = no.criarEm
-    ? '<p class="sub">Ainda não existe? <a href="' + escapar(no.criarEm) +
-      '" target="_blank" rel="noopener">criar agora</a> — e depois volte e recarregue esta página.</p>'
+    ? '<p class="sub">Ainda não fez a anamnese desta aluna? <a href="' + escapar(no.criarEm) +
+      '" target="_blank" rel="noopener">Criar a anamnese</a> — depois volte aqui e recarregue.</p>'
     : '';
   if (erro) {
     return '<p class="erro">Não foi possível carregar a lista (' +
       escapar(no.opcoesDe) + '): ' + escapar(erro) + '</p>' + atalho;
   }
   if (!lista.length) {
-    return '<p class="aviso">A lista está vazia — não há registo de onde escolher. ' +
+    return '<p class="aviso">A lista está vazia — não há registro de onde escolher. ' +
       'Escreva o apelido no campo abaixo e crie a fonte pelo atalho.</p>' + atalho;
   }
   const atual = RESPOSTAS.get(no.id);
@@ -1288,7 +1302,7 @@ function gradeDeOpcoesDinamicas(no) {
     const fora = marcados.filter((v) => !lista.some((o) => o.valor === v)).join(', ');
     blocos.push('<p style="margin:.6rem 0 0"><label>…ou acrescente um apelido que não está na lista: ' +
       '<input type="text" data-campo-aberto value="' + escapar(fora) +
-      '" placeholder="apelido (P-12)"></label></p>');
+      '" placeholder="apelido"></label></p>');
   }
   blocos.push(atalho);
   return blocos.join('');
@@ -1497,8 +1511,8 @@ function blocoDaRepeticao(no) {
   const selecionados = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
   if (!selecionados.length) {
     return '<p class="aviso">Este campo repete por ' +
-      citacao(fonte ? fonte.campo : no.repetirPor) + '. Escolha os sujeitos no campo anterior — ' +
-      'uma linha de base aparece para cada um.</p>';
+      citacao(fonte ? fonte.campo : no.repetirPor) + '. Escolha as alunas no campo anterior — ' +
+      'um registro aparece para cada uma.</p>';
   }
 
   const opcoes = fonte && fonte.opcoesDe ? (OPCOES.get(fonte.opcoesDe) || []) : [];
@@ -1558,7 +1572,7 @@ function referenciaDaAnamnese(opcao, sujeito) {
     '<p><b>Anamnese</b> ' + md(opcao.rotulo || carimbo) + ' — ' +
     '<button class="ver-anamnese" data-detalhe="' + escapar(opcao.detalhe || '') +
     '" data-carimbo="' + escapar(carimbo) + '" data-sujeito="' + escapar(sujeito) +
-    '">ver o registo</button></p>' +
+    '">ver o registro</button></p>' +
     '<div class="detalhe oculto" data-detalhe-de="' + escapar(carimbo) + '"></div>' +
     '</div>';
 }
@@ -1629,7 +1643,7 @@ async function abrirDetalhe(botao, no) {
     return;
   }
   alvo.classList.remove('oculto');
-  alvo.innerHTML = '<p class="sub">carregando o registo…</p>';
+  alvo.innerHTML = '<p class="sub">carregando o registro…</p>';
   try {
     const envelope = await carregarDetalhe({ carimbo, detalhe: botao.dataset.detalhe });
     alvo.innerHTML = detalheDoEnvelope(envelope);
@@ -1671,7 +1685,7 @@ function botaoDaDerivacao(no) {
   const fonte = MAPA.nos.find((n) => n.id === no.derivarDe.dosSujeitos);
   const rot = fonte ? fonte.campo : no.derivarDe.dosSujeitos;
   const dica = no.derivarDe.lado === 'otimo'
-    ? 'sugere o que os sujeitos já dominam (não precisa observar)'
+    ? 'sugere o que as alunas já dominam (não precisa observar)'
     : 'sugere o que precisa ser observado';
   return '<p style="margin:.8rem 0 0"><button class="derivar" data-derivar="' + escapar(no.id) + '">' +
     'Sugerir a partir da anamnese</button> ' +
@@ -1706,7 +1720,7 @@ async function derivarDoConjunto(botao, no) {
   const cru = RESPOSTAS.get(d.dosSujeitos);
   const sujeitos = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
   if (!sujeitos.length) {
-    return dica('Escolha os sujeitos no Bloco 2 primeiro — a sugestão vem das anamneses deles.', 'aviso');
+    return dica('Escolha as alunas no Bloco 2 primeiro — a sugestão vem das anamneses delas.', 'aviso');
   }
   const fonte = MAPA.nos.find((n) => n.id === d.dosSujeitos);
   let opcoes = fonte && fonte.opcoesDe ? OPCOES.get(fonte.opcoesDe) : null;
@@ -1774,11 +1788,11 @@ async function derivarDoConjunto(botao, no) {
   if (linhas.length) {
     resumo = linhas.length + ' item(ns) sugerido(s) — edite o que quiser.';
   } else if (!comAnamnese.length) {
-    resumo = 'Nenhuma anamnese encontrada para os sujeitos escolhidos.';
+    resumo = 'Nenhuma anamnese encontrada para as alunas escolhidas.';
   } else if (comObservacao.size === 0) {
-    resumo = 'A anamnese existe, mas a observação inicial ainda não foi lançada — sem ela o corte não tem o que ler. Lance a observação e tente de novo.';
+    resumo = 'A anamnese existe, mas a observação inicial ainda não foi lançada — sem ela o âmbito não tem o que ler. Lance a observação e tente de novo.';
   } else {
-    resumo = 'Nenhum item bateu com o corte declarado.';
+    resumo = 'Nenhum item bateu com o âmbito declarado.';
   }
   const falta = comAnamnese.length && semAnamnese.length
     ? ' Sem anamnese: ' + semAnamnese.join(', ') + '.'
@@ -1914,8 +1928,7 @@ function renderPergunta() {
     blocos.push('<p><b>' + md(no.moduloTitulo) + '</b></p>');
     if (no.moduloFuncao) blocos.push('<p class="sub">' + md(no.moduloFuncao) + '</p>');
     if (no.moduloCondicao) blocos.push('<p class="sub">Entra quando: ' + md(no.moduloCondicao) + '</p>');
-    blocos.push('<p class="aviso">Opção declarada. O módulo <b>não</b> declara gatilho de ramificação — ' +
-      'a parada é registrada como fato.</p>');
+    blocos.push('<p class="aviso">Escolha o que se aplica. O que escolher aqui fica registrado tal como está.</p>');
     blocos.push(opcoesEmLinhas(no, no.opcoes, 'o que se observou'));
   } else if (no.multipla && no.valores && no.valores.length) {
     blocos.push('<p><b>' + md(no.forma) + '</b></p>');
@@ -1998,8 +2011,47 @@ function pintarRoteiro() {
   $('roteiro').innerHTML = partes.join('');
 }
 
+// A checagem socrática do nó atual: a resposta (já digitada na tela) começa por
+// um verbo de AÇÃO? Se sim, o conceito foi capturado de trás para a frente — e o
+// sistema PERGUNTA, em vez de aceitar calado. A regra chega resolvida no mapa
+// (`no.socratico = { quando, pergunta }`), vinda do motor.
+function socraticaDisparada(no) {
+  if (!no || !no.socratico || !Array.isArray(no.socratico.quando)) return false;
+  const { valor } = lerResposta(no);
+  if (valor === null || valor === '' || Array.isArray(valor)) return false;
+  const primeira = String(valor).trim().split(/\s+/)[0] || '';
+  const semAcento = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const alvo = semAcento(primeira);
+  return no.socratico.quando.some((v) => semAcento(v) === alvo);
+}
+
+function mostrarSocratica(no) {
+  const caixa = $('socratica');
+  if (!caixa) return;
+  caixa.innerHTML = '<p class="pergunta">' + md(no.socratico.pergunta) + '</p>' +
+    '<p class="dica">Você pode reformular a resposta e avançar de novo — ou, se estiver certo do que escreveu, avançar assim mesmo.</p>';
+  caixa.classList.remove('oculto');
+}
+
+function ocultarSocratica() {
+  const caixa = $('socratica');
+  if (caixa) { caixa.classList.add('oculto'); caixa.innerHTML = ''; }
+}
+
 function irPara(i, guardar) {
-  if (guardar && MAPA) gravarRespostaDoNo(MAPA.nos[INDICE]);
+  if (guardar && MAPA) {
+    const atual = MAPA.nos[INDICE];
+    // Só na ida (não ao voltar). Pergunta UMA vez por resposta: se a professora
+    // insiste no mesmo texto, o sistema respeita e deixa seguir.
+    if (i > INDICE && socraticaDisparada(atual) && SOCRATICA_VISTA.get(atual.id) !== lerResposta(atual).valor) {
+      SOCRATICA_VISTA.set(atual.id, lerResposta(atual).valor);
+      gravarRespostaDoNo(atual); // preserva o que foi escrito, sem avançar
+      mostrarSocratica(atual);
+      return;
+    }
+    gravarRespostaDoNo(atual);
+  }
+  ocultarSocratica();
   INDICE = Math.max(0, Math.min(i, MAPA.nos.length - 1));
   renderPergunta();
   pintarRoteiro();
@@ -2075,24 +2127,24 @@ function dataEmPortugues(iso) {
 const CAMINHO_DO_ESTADO = {
   construida: 'ainda sem respostas',
   em_curso: 'em andamento',
-  completa: 'completa — o contrato foi alcançado, falta a validação',
-  validada: 'pronta — passou na validação',
-  recusada: 'recusada pela validação',
+  completa: 'completa — tudo preenchido, falta confirmar',
+  validada: 'pronta — foi conferida e aceite',
+  recusada: 'recusada — algo não passou na conferência',
 };
 
 const ROTULO_DA_PARADA = {
-  'valor-sem-ramo': 'o valor respondido não corresponde a nenhum ramo declarado',
-  'gatilho-nao-respondido': 'a pergunta que ramifica ainda não foi respondida',
-  'mecanica-nao-aplicavel': 'o conteúdo declara um número de gatilhos que esta mecânica não aplica',
-  'condicao-nao-avaliavel': 'o destino é declarado, mas a condição de entrada não é avaliável',
+  'valor-sem-ramo': 'a resposta não corresponde a nenhuma das opções previstas',
+  'gatilho-nao-respondido': 'falta responder à pergunta que decide este caminho',
+  'mecanica-nao-aplicavel': 'esta parte do formulário não se aplica aqui',
+  'condicao-nao-avaliavel': 'a condição para esta parte não pode ser avaliada',
 };
 // Duas paradas não apontam para pergunta nenhuma: são o motor dizendo que o
 // PRÓPRIO CONTEÚDO está fora do que ele sabe aplicar. O endereço do nó é `null`
 // nelas, e imprimir `null` não informa quem conduz — o `id` da parada, sim.
 function caixaDaParada(p) {
   const onde = p.no
-    ? md(rotuloDoNo(p.no)) + ' — <code>' + escapar(p.no) + '</code>'
-    : 'declarado em <code>' + escapar(p.id) + '</code>';
+    ? md(rotuloDoNo(p.no))
+    : 'declarado no formulário';
   return '<div class="caixa nota"><p class="aviso">' +
     escapar(ROTULO_DA_PARADA[p.tipo] || p.tipo) + '</p>' +
     '<p class="sub">' + onde + '</p>' +
@@ -2128,42 +2180,23 @@ function observacoesRegistradas() {
  * paradas — o resto é conferência. `linhas` é a saída do motor e tem aqui o
  * seu único consumidor.
  */
-function detalheTecnico(dados) {
-  const linhas = (dados.linhas || []).slice();
-  for (const erro of (dados.errosDoDocumento || [])) {
-    const marca = 'ERRO ' + erro.caminho + ': ' + erro.mensagem;
-    if (linhas.indexOf(marca) === -1) linhas.push(marca);
-  }
-  if (!linhas.length) linhas.push('sem saída técnica nesta consulta');
-  return '<details><summary>Detalhe técnico</summary><pre>' +
-    escapar(linhas.join('\n')) + '</pre></details>';
-}
-
 function mostrarResultado(dados, titulo) {
   const c = dados.contagem || {};
   const partes = [];
 
   partes.push('<h3>' + escapar(titulo) + '</h3>');
 
-  const identidade = [];
   const gerado = dataEmPortugues(dados.documento && dados.documento.gerado_em);
-  if (gerado) identidade.push('feita em <b>' + escapar(gerado) + '</b>');
-  if (dados.id) identidade.push('código <b>' + escapar(dados.id) + '</b>');
-  if (identidade.length) partes.push('<p>' + identidade.join(' · ') + '</p>');
+  if (gerado) partes.push('<p>feita em <b>' + escapar(gerado) + '</b></p>');
 
   const estado = CAMINHO_DO_ESTADO[dados.estado] || dados.estado || '—';
-  partes.push('<p>Situação: <b>' + escapar(estado) + '</b>. ' +
-    (dados.validacao
-      ? 'A validação do contrato rodou e o resultado foi ' +
-        citacao(dados.validacao.resultado) + '.'
-      : 'A validação do contrato ainda não rodou.') + '</p>');
+  partes.push('<p>Situação: <b>' + escapar(estado) + '</b></p>');
 
   if (c.obrigatorios !== undefined) {
     const contagens = [];
     contagens.push('respostas registradas: <b>' + (c.respondidos || 0) + '</b>');
-    contagens.push('obrigatórias: <b>' + c.obrigatorios + '</b>');
+    contagens.push('campos obrigatórios: <b>' + c.obrigatorios + '</b>');
     if (c.pendentes !== undefined) contagens.push('ainda faltam <b>' + c.pendentes + '</b>');
-    if (c.nos !== undefined) contagens.push('nós respondíveis ao todo: ' + c.nos);
     partes.push('<p>' + contagens.join(' · ') + '</p>');
   }
 
@@ -2178,7 +2211,7 @@ function mostrarResultado(dados, titulo) {
   }
   if (dados.recusadas && dados.recusadas.length) {
     partes.push('<p class="erro">Não foram aceitas: ' +
-      dados.recusadas.map((r) => escapar(rotuloDoNo(r.id)) + ' (id ' + escapar(r.id) + ' — ' +
+      dados.recusadas.map((r) => escapar(rotuloDoNo(r.id)) + ' — ' +
         escapar(r.motivo) + ')').join('; ') + '</p>');
   }
 
@@ -2186,15 +2219,14 @@ function mostrarResultado(dados, titulo) {
   const pedemDecisao = paradas.filter((p) => p.no);
   const doConteudo = paradas.filter((p) => !p.no);
   if (pedemDecisao.length) {
-    partes.push('<p><b>Paradas que pedem decisão</b></p>');
+    partes.push('<p><b>O que precisa da tua atenção</b></p>');
     partes.push(pedemDecisao.map(caixaDaParada).join(''));
   }
   if (doConteudo.length) {
-    partes.push('<details><summary>Avisos do conteúdo — não impedem a gravação (' +
+    partes.push('<details><summary>Avisos — não impedem de gravar (' +
       doConteudo.length + ')</summary>' + doConteudo.map(caixaDaParada).join('') + '</details>');
   }
 
-  partes.push(detalheTecnico(dados));
   return partes.join('');
 }
 
@@ -2277,7 +2309,7 @@ async function carregarFichas() {
  * oferecer a ficha da anamnese para um envelope do PO, que mostraria o conteúdo
  * errado. O prefixo é o mesmo `documento` que o envelope carrega.
  */
-const PREFIXO = FONTE === 'po' ? 'po-' : 'anamnese-';
+const PREFIXO = FONTE + '-';
 
 /*
  * A LISTA de gravados, com a regra de proveniência quando a fonte é a anamnese.
@@ -2303,28 +2335,28 @@ async function carregarEstados() {
 }
 
 const ROTULO_ESTADO = {
-  vinculada: 'vinculada',
-  legado: 'legado',
-  solta: 'solta',
-  'sem-sujeito': 'sem sujeito',
+  vinculada: 'ligada',
+  legado: 'substituída',
+  solta: 'livre',
+  'sem-sujeito': 'sem aluna',
 };
 
 const AJUDA_ESTADO = {
-  vinculada: 'um PO a referencia — só se ajusta (elo novo)',
-  legado: 'empilhada antes da regra — o PO lê a mais recente',
-  solta: 'não referenciada — pode ser editada e apagada',
-  'sem-sujeito': 'sem apelido — nunca vinculável',
+  vinculada: 'ligada a um Plano de Observação — só se ajusta, sem apagar',
+  legado: 'substituída — o Plano de Observação lê a mais recente',
+  solta: 'livre — pode ser editada e apagada',
+  'sem-sujeito': 'sem apelido',
 };
 
 function seloDoEstado(o) {
   if (!o) return '';
   const estado = o.estado || (o.vinculada ? 'vinculada' : o.semSujeito ? 'sem-sujeito' : 'solta');
   const classe = estado === 'vinculada' ? 'vinculada' : estado === 'legado' ? 'legado' : 'solta';
-  const titulo = AJUDA_ESTADO[estado] + (o.por && o.por.length ? ' (PO: ' + o.por.join(', ') + ')' : '');
+  const titulo = AJUDA_ESTADO[estado] + (o.por && o.por.length ? ' (Plano de Observação: ' + o.por.join(', ') + ')' : '');
   const partes = ['<span class="selo ' + classe + '" title="' + escapar(titulo) + '">' +
     escapar(ROTULO_ESTADO[estado] || estado) + '</span>'];
   if (o.vigente) partes.push('<span class="selo vigente">vigente</span>');
-  if (o.ajuste_de) partes.push('<span class="selo" title="ajusta ' + escapar(o.ajuste_de) + '">elo</span>');
+  if (o.ajuste_de) partes.push('<span class="selo" title="ajusta ' + escapar(o.ajuste_de) + '">ajuste</span>');
   return partes.join(' ');
 }
 
@@ -2332,7 +2364,7 @@ function acoesDaAnamnese(id, o) {
   if (!o) return '';
   const q = ' data-carimbo="' + escapar(id) + '"';
   if (o.vinculada) {
-    return '<button class="acao-ajustar"' + q + ' title="a proveniência não apaga: o ajuste acrescenta um elo">' +
+    return '<button class="acao-ajustar"' + q + ' title="ajustar acrescenta sem apagar o que já estava">' +
       'ajustar</button>';
   }
   return '<button class="acao-editar"' + q + '>editar</button>' +
@@ -2347,7 +2379,7 @@ function pintarFichas() {
     ? daFonte.filter((id) => (id + ' ' + rotuloDoEnvelope(id)).toLowerCase().indexOf(procurado) !== -1)
     : daFonte;
 
-  const ePo = FONTE === 'po';
+  const ePo = FONTE !== 'anamnese';   // PO e plano não têm ficha renderizada
   lista.innerHTML = visiveis.map((id) => {
     const o = ESTADOS.get(id);
     const alvo = ePo
@@ -2356,7 +2388,7 @@ function pintarFichas() {
     return '<li><a href="' + alvo + '" target="_blank" rel="noopener" title="' + escapar(id) + '">' +
       '<span class="quando">' + escapar(rotuloDoEnvelope(id)) + '</span>' +
       (ePo ? '' : ' ' + seloDoEstado(o)) + '<br>' +
-      '<span class="caminho">' + (ePo ? 'Ver o envelope' : 'Ver a ficha preenchida') + '</span></a>' +
+      '<span class="caminho">' + (ePo ? 'Ver o que ficou gravado' : 'Ver a ficha preenchida') + '</span></a>' +
       (ePo ? '' : '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>') +
       '<div class="aviso-ficha oculto" data-aviso="' + escapar(id) + '"></div></li>';
   }).join('');
@@ -2364,7 +2396,7 @@ function pintarFichas() {
   const vazio = $('fichas-vazio');
   vazio.classList.toggle('oculto', visiveis.length !== 0);
   vazio.textContent = daFonte.length === 0
-    ? (ePo ? 'Nenhum PO gravado ainda.' : 'Nenhuma ficha gravada ainda.')
+    ? (ePo ? 'Nenhum Plano de Observação gravado ainda.' : 'Nenhuma ficha gravada ainda.')
     : 'Nenhum registro casa com o filtro.';
 }
 
@@ -2381,7 +2413,7 @@ function avisarNaFicha(id, texto, tipo) {
  * confirma antes, porque apagar não se desfaz.
  */
 async function apagarAnamnese(id) {
-  if (!window.confirm('Apagar a anamnese ' + id + '?\n\nÉ definitivo — e só é possível porque ela não está vinculada a nenhum PO.')) return;
+  if (!window.confirm('Apagar a anamnese ' + id + '?\n\nÉ definitivo — e só é possível porque ela não está ligada a nenhum Plano de Observação.')) return;
   try {
     const resposta = await fetch('api/anamnese-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
     const dados = await resposta.json().catch(() => ({}));
@@ -2409,7 +2441,7 @@ async function ajustarAnamnese(id) {
     });
     const dados = await resposta.json().catch(() => ({}));
     if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
-    avisarNaFicha(id, 'ajuste gravado como elo novo: ' + dados.ajuste + '.', 'ok');
+    avisarNaFicha(id, 'ajuste gravado: ' + dados.ajuste + '.', 'ok');
     await atualizarFichas();
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
@@ -2433,6 +2465,7 @@ function editarAnamnese(id) {
       RESPOSTAS.clear();
       NOTAS.clear();
       SUGERIDAS.clear();
+      SOCRATICA_VISTA.clear();
       for (const [k, v] of Object.entries(envelope.respostas || {})) {
         const valor = v && v.valor !== undefined ? v.valor : v;
         RESPOSTAS.set(k, valor);
@@ -2507,7 +2540,7 @@ function formatoDoValor(valor) {
 
 function contextoParaAgente() {
   const linhas = [];
-  linhas.push('Contexto do PO em andamento');
+  linhas.push('Contexto do Plano de Observação em andamento');
   for (const c of ['escola', 'professor', 'ciclo']) {
     const el = document.getElementById('ctx-' + c);
     linhas.push('- ' + c + ': ' + (el ? String(el.value || '').trim() || '(vazio)' : '(vazio)'));
@@ -2608,7 +2641,7 @@ async function secaoDeSujeitos(rotulos) {
   }
 
   if (!opcoes.length) {
-    return ['(nenhum sujeito com anamnese no sistema ainda — pergunte os apelidos (P-12) e peça a anamnese de cada um)'];
+    return ['(nenhuma aluna com anamnese no sistema ainda — pergunte os apelidos e peça a anamnese de cada uma)'];
   }
 
   const linhas = [];
@@ -2717,7 +2750,7 @@ async function enviarIA(textoArgumento) {
     const dados = await perguntarIA(HISTORICO_IA);
     if (dados.compilado) {
       IA_ATIVA = false;
-      mostrarMensagem('ia', 'Pronto — compilei o PO (' + dados.turnos +
+      mostrarMensagem('ia', 'Pronto — preparei o Plano de Observação (' + dados.turnos +
         ' campo' + (dados.turnos === 1 ? '' : 's') + '). Revise abaixo e grave no formulário.');
       const res = document.getElementById('ia-resultado');
       if (res) {
@@ -2873,14 +2906,99 @@ async function copiarPromptParaAgente() {
 
 // ------------------------------------------------------------------ start
 
+// A URL para abrir OUTRA fonte, levando o contexto do ato (escola, professor,
+// ciclo — e aluna, só na anamnese). É o mesmo transporte do menu: a porta abre
+// já identificada.
+function urlParaFonte(fonte) {
+  const campos = fonte === 'anamnese'
+    ? ['escola', 'professor', 'ciclo', 'aluna']
+    : ['escola', 'professor', 'ciclo'];
+  const ctx = {};
+  for (const campo of campos) {
+    const v = (($('ctx-' + campo) || {}).value || '').trim();
+    if (v) ctx[campo] = v;
+  }
+  ctx.fonte = fonte;
+  return '?' + new URLSearchParams(ctx).toString();
+}
+
+// Na casa (o PO), a ENTRADA DO PLANO é condicional: sem plano em curso, o botão
+// «Fazer o plano»; com plano em curso, «Continuar de onde parei» + «Começar de
+// novo». O estado vem da memória do PLANO (`porta-plano-1`), não da do PO.
+function configurarEntradaDoPlano() {
+  const linkFonte = document.getElementById('link-fonte');
+  let plano = null;
+  try {
+    plano = JSON.parse(localStorage.getItem('porta-plano-1') || 'null');
+  } catch (e) { plano = null; }
+  const respondidas = plano && Array.isArray(plano.respostas) ? plano.respostas.length : 0;
+  if (plano && respondidas > 0) {
+    if (linkFonte) linkFonte.style.display = 'none';
+    const linhas = [];
+    linhas.push('<p><b>Há um plano em andamento.</b> Última alteração em ' +
+      (dataEmPortugues(plano.quando) || 'data não registrada') + ' — ' + respondidas +
+      ' resposta' + (respondidas > 1 ? 's' : '') + '.</p>');
+    linhas.push('<div class="acoes">' +
+      '<button class="principal" id="continuar-plano">Continuar de onde parei</button>' +
+      '<button id="recomecar-plano">Começar de novo</button>' +
+      '</div>');
+    $('retomada').innerHTML = linhas.join('');
+    $('retomada').classList.remove('oculto');
+    $('continuar-plano').addEventListener('click', () => {
+      window.location.href = urlParaFonte('plano');
+    });
+    $('recomecar-plano').addEventListener('click', () => {
+      try { localStorage.removeItem('porta-plano-1'); } catch (e) { /* sem depósito */ }
+      $('retomada').classList.add('oculto');
+      $('retomada').innerHTML = '';
+      if (linkFonte) linkFonte.style.display = '';
+    });
+  } else if (linkFonte) {
+    linkFonte.style.display = '';
+  }
+}
+
 async function iniciar() {
-  // A fonte ajusta o nome e esconde o que é da anamnese: o campo `aluna` (o PO
-  // é de todas), a senha do cofre, a ficha em branco e a ficha preenchida —
-  // o PO não tem ficha renderizada nem cofre cifrado.
-  if (FONTE === 'po') {
-    document.title = 'Plano de Observação — o PO · Projeto Ciclo';
-    const titulo = document.querySelector('h1');
-    if (titulo) titulo.textContent = 'Plano de Observação — o PO';
+  // O cabeçalho e a abertura refletem a fonte: cada formulário tem o seu título,
+  // subtítulo e explicação de porta — em português do Brasil, do dia a dia.
+  const PORTAL = {
+    anamnese: {
+      h1: 'Anamnese do aluno',
+      subtitulo: 'O ponto de partida de cada aluna — escrito antes de começar o ciclo.',
+      titulo: 'Anamnese do aluno · Projeto Ciclo',
+      abertura: '<p><b>Aqui você descreve o ponto de partida de cada aluna</b> — o que ela já sabe e o que precisa desenvolver. É assim que, daqui a alguns meses, você vai poder comparar o antes e o depois.</p>' +
+        '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
+    },
+    plano: {
+      h1: 'Plano do ciclo',
+      subtitulo: 'O objetivo, os marcos de cada aula e a rubrica — escrito antes de dar a aula.',
+      titulo: 'Plano do ciclo · Projeto Ciclo',
+      abertura: '<p><b>Aqui você define o plano do ciclo</b> — o objetivo, os marcos de cada aula e a rubrica. É escrito <b>antes</b> de dar a primeira aula, para o depois poder ser comparado com o que aconteceu.</p>' +
+        '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
+    },
+    po: {
+      h1: 'Plano de Observação',
+      subtitulo: 'O que você vai observar durante o ciclo — escrito antes de olhar.',
+      titulo: 'Plano de Observação · Projeto Ciclo',
+      abertura: '<p><b>Aqui você escreve o que vai olhar durante o ciclo</b> — escrito <b>antes</b> de olhar. Não é relatório nem avaliação: é o compromisso do que conta como observação, para o depois poder ser comparado com o antes.</p>' +
+        '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
+    },
+  }[FONTE];
+
+  if (PORTAL) {
+    document.title = PORTAL.titulo;
+    const h1 = document.getElementById('titulo-pagina');
+    if (h1) h1.textContent = PORTAL.h1;
+    const sub = document.getElementById('subtitulo-pagina');
+    if (sub) sub.textContent = PORTAL.subtitulo;
+    const portal = document.getElementById('portal-po');
+    if (portal) portal.innerHTML = PORTAL.abertura;
+  }
+
+  // A fonte ajusta o que é só da anamnese: o campo `aluna` (o PO e o plano são
+  // de todas), a senha do cofre, a ficha em branco e a ficha preenchida — nem o
+  // PO nem o plano têm ficha renderizada nem cofre cifrado.
+  if (FONTE !== 'anamnese') {
     for (const id of ['ctx-aluna', 'senha']) {
       const campo = document.getElementById(id);
       if (campo && campo.parentElement) campo.parentElement.style.display = 'none';
@@ -2888,15 +3006,24 @@ async function iniciar() {
     const branco = document.getElementById('link-ficha-branco');
     if (branco) branco.style.display = 'none';
     const tituloFichas = document.getElementById('titulo-fichas');
-    if (tituloFichas) tituloFichas.textContent = 'Envelopes gravados';
+    if (tituloFichas) tituloFichas.textContent = 'O que ficou gravado';
   }
 
-  // O botão «Usar IA para fazer o PO» é só do PO: na anamnese ele some.
+  // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
   if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
 
-  // O botão «Começar» diz por onde se começa: pela anamnese (padrão) ou pelo PO.
+  // O botão principal é só da anamnese: «Fazer a anamnese». O PO nasce pela IA,
+  // e o plano entra direto pelo formulário — nenhum dos dois tem botão de início
+  // próprio no portal.
   const comecar = document.getElementById('comecar');
-  if (comecar) comecar.textContent = FONTE === 'po' ? 'Começar pelo PO' : 'Começar pela anamnese';
+  if (comecar) {
+    if (FONTE === 'anamnese') {
+      comecar.textContent = 'Fazer a anamnese';
+      comecar.style.display = '';
+    } else {
+      comecar.style.display = 'none';
+    }
+  }
 
   // O botão que troca de fonte aponta para a OUTRA, e diz para onde vai. O contexto do ato
   // (escola, professor, ciclo, aluna) VAI JUNTO na URL: trocar de fonte sem ele faria a barra
@@ -2912,14 +3039,42 @@ async function iniciar() {
       if (v) contexto[campo] = v;
     }
     const nova = new URLSearchParams(contexto);
-    if (FONTE === 'po') {
-      nova.set('fonte', 'anamnese');
-      if (rotulo) rotulo.textContent = 'Voltar para a anamnese';
+    if (FONTE === 'anamnese') {
+      // A anamnese é item de menu próprio: não há navegação cruzada a partir
+      // dela. O caminho para o PO fica no fecho (ao gravar).
+      outro.style.display = 'none';
+    } else if (FONTE === 'plano') {
+      // O plano entra direto no formulário: não há portal nem botão de volta — a
+      // casa é o PO, e «Sair» volta para lá.
+      outro.style.display = 'none';
     } else {
-      nova.set('fonte', 'po');
-      if (rotulo) rotulo.textContent = 'Capturar o PO';
+      // A casa (PO) tem UMA saída: «Fazer o plano». O rótulo fica fixo; a entrada
+      // muda para «Continuar»/«Começar de novo» quando há plano em curso (ver
+      // configurarEntradaDoPlano).
+      nova.set('fonte', 'plano');
+      if (rotulo) rotulo.textContent = 'Fazer o plano';
+      outro.href = '?' + nova.toString();
     }
-    outro.href = '?' + nova.toString();
+  }
+
+  // O atalho «Criar o Plano de Observação» — só na anamnese, e só no fecho (ao
+  // gravar). Leva o contexto da barra para o PO.
+  {
+    const criarPo = document.getElementById('link-criar-po');
+    if (criarPo) {
+      criarPo.style.display = FONTE === 'anamnese' ? '' : 'none';
+      if (FONTE === 'anamnese') {
+        criarPo.addEventListener('click', () => {
+          const ctx = {};
+          for (const campo of ['escola', 'professor', 'ciclo']) {
+            const v = (($('ctx-' + campo) || {}).value || '').trim();
+            if (v) ctx[campo] = v;
+          }
+          ctx.fonte = 'po';
+          criarPo.href = '?' + new URLSearchParams(ctx).toString();
+        });
+      }
+    }
   }
 
   // O contexto do ato pode vir da URL: um atalho que abre a anamnese já com o
@@ -2938,22 +3093,41 @@ async function iniciar() {
     MAPA = await carregarMapa();
   } catch (erro) {
     $('contexto').innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+    $('contexto').classList.remove('oculto');
     return;
   }
   // A lista de sujeitos NÃO é buscada aqui (Frente 5): só quando o nó que a
   // pede for aberto.
   $('contexto').innerHTML = contexto(MAPA);
+  $('contexto').classList.remove('oculto');
   atualizarFichas();
 
+  let autoAbrir = false;
   const guardado = lerMemoria();
-  if (guardado) {
-    mostrarRetomada(restaurar(guardado));
+  if (guardado && FONTE !== 'po') {
+    // A anamnese e o plano retomam a própria memória; o PO não tem formulário
+    // próprio (nasce pela IA) — a sua «retomada» é a do plano, tratada à parte.
+    const t = restaurar(guardado);
     pintarRoteiro();
     salvar(); // reancora o depósito já saneado — id órfão não volta a ser contado
+    if (FONTE === 'plano') {
+      // O plano entra DIRETO no formulário, já retomado de onde parou.
+      autoAbrir = true;
+    } else {
+      mostrarRetomada(t);
+    }
   } else {
-    $('comecar').disabled = false;
-    if (!memoriaLigada) mostrarSemMemoria();
+    if (FONTE === 'anamnese') {
+      $('comecar').disabled = false;
+      $('comecar').style.display = '';
+    }
+    // Só o PLANO entra direto; a anamnese e o PO ficam no portal (a casa).
+    if (FONTE === 'plano') autoAbrir = true;
+    if (!memoriaLigada && FONTE === 'anamnese') mostrarSemMemoria();
   }
+
+  // Na casa (o PO), a entrada do plano é condicional (plano em curso ou não).
+  if (FONTE === 'po') configurarEntradaDoPlano();
 
   // A semeadura pelo contexto do ato vem DEPOIS do depósito: o que o professor
   // já respondeu por si vence a barra; o resto é sugerido. Semear antes faria a
@@ -2974,6 +3148,12 @@ async function iniciar() {
   $('n-obrig-total').textContent = MAPA.obrigatorios;
   $('barra').classList.remove('oculto');
   publicarAlturaDaBarra();
+
+  // O salto direto vem DEPOIS da semeadura do contexto: a primeira pergunta abre
+  // já com escola/professor/ciclo semeados, quando a fonte os declara. Sem
+  // `pushState` — voltar/sair deve ir à página anterior, não a um portal que
+  // nunca foi mostrado.
+  if (autoAbrir) abrirFormulario(INDICE, false);
 
   $('comecar').addEventListener('click', () => abrirFormulario(0));
 
@@ -3031,12 +3211,13 @@ async function iniciar() {
     $('conducao').classList.remove('oculto');
   });
   $('sair').addEventListener('click', () => {
-    // Sair preserva na memória (padrão) e volta ao PORTAL. O `history.back()`
-    // desempilha a entrada que «Começar» criou; o `popstate` reabre a abertura.
-    // Assim o voltar do navegador, DEPOIS de sair, vai para a página do ciclo —
-    // sem a segunda pressão que «pulava» a abertura.
+    // Sair preserva na memória (padrão) e volta. Com histórico (anamnese),
+    // `history.back()` desempilha a entrada e o `popstate` reabre a abertura. No
+    // salto direto (plano), volta à CASA — o PO — que passa a mostrar
+    // «Continuar»/«Começar de novo» do plano.
     salvar();
-    history.back();
+    if (EM_AUTOABERTURA) window.location.href = urlParaFonte('po');
+    else history.back();
   });
 
   $('roteiro').addEventListener('click', (evento) => {
@@ -3122,12 +3303,10 @@ async function iniciar() {
       const dados = await enviar(false, carimboPendente || undefined);
       $('gravacao').innerHTML = mostrarResultado(dados, 'Gravado') +
         (dados.gravado
-          ? '<p class="ok">envelope em <code>saida/envelope/' + escapar(dados.id) + '.json</code></p>'
-          : '<p class="erro">o envelope não foi gravado.</p>');
+          ? '<p class="ok">Ficou gravado.</p>'
+          : '<p class="erro">Não foi possível gravar.</p>');
       if (dados.gravado) {
         carimboPendente = dados.id;
-        $('link-envelope').href = 'api/envelope/' + encodeURIComponent(dados.id);
-        $('link-envelope').classList.remove('oculto');
         // A ficha preenchida é da anamnese — o PO não tem ficha renderizada.
         if (FONTE === 'anamnese') {
           $('link-ficha').href = 'api/ficha-preenchida.' + encodeURIComponent(dados.id) + '?formato=html';
@@ -3137,14 +3316,14 @@ async function iniciar() {
         anotarFicha(dados.id);
         await atualizarFichas();
 
-        // O cofre é um SEGUNDO destino da anamnese. O PO não vai ao cofre: o
-        // disco é o destino único, e a memória se apaga assim que o envelope
-        // é confirmado.
-        if (FONTE === 'po') {
+        // O cofre é um SEGUNDO destino da anamnese. O PO e o plano não vão ao
+        // cofre: o disco é o destino único, e a memória se apaga assim que o
+        // envelope é confirmado.
+        if (FONTE !== 'anamnese') {
           carimboPendente = null;
           limparMemoria();
           $('retomada').classList.add('oculto');
-          $('gravacao').innerHTML += '<p class="ok">PO gravado no disco.</p>';
+          $('gravacao').innerHTML += '<p class="ok">' + (FONTE === 'po' ? 'Plano de Observação' : 'Plano') + ' gravado.</p>';
         } else {
           // O cofre: o envelope já está no disco, e uma falha aqui não o
           // desfaz. Por isso o aviso sai AO LADO do sucesso e dos links — e
@@ -3178,7 +3357,7 @@ async function iniciar() {
             // O carimbo fica: a próxima tentativa regrava ESTE envelope, e não um
             // segundo ao lado dele.
             $('gravacao').innerHTML += '<p class="erro">a anamnese não foi para o cofre: ' +
-              escapar(erro.message) + ' — o envelope acima já está no disco; tente de novo ' +
+              escapar(erro.message) + ' — o que gravou acima já está guardado; tente de novo ' +
               'sem recarregar a página.</p>';
           }
         }

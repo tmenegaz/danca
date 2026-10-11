@@ -33,6 +33,7 @@
         "id": "objetivo-geral",
         "campo": "Objetivo geral do ciclo",
         "obrigatorio": true,
+        "socratico": "objetivo",
         "explicacao": {
           "oQueE": "O objetivo do ciclo, em uma frase — o que as alunas vão construir ao longo dos encontros.",
           "preencher": "Uma frase verificável ao final. Ex.: «Construir o eixo vertical e a transferência de peso em movimento, com resposta ao pulso e presença cênica, em cinco encontros.»",

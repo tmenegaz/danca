@@ -145,6 +145,19 @@
   .lista .caminho { color: var(--suave); font-size: .78rem; }
   #filtro-fichas { margin: 0 0 .5rem; }
   .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
+  /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
+     Tom de conversa — a professora é convidada a reler, não repreendida. */
+  .socratica {
+    border: 1px solid var(--gold-borda);
+    background: var(--creme-1);
+    border-left: 4px solid var(--alerta);
+    border-radius: 4px;
+    padding: .9rem 1rem;
+    margin: 1rem 0;
+    color: var(--burgundy);
+  }
+  .socratica .pergunta { font-weight: bold; margin: 0 0 .35rem; }
+  .socratica .dica { font-size: .9rem; color: var(--soft); margin: 0; }
   .erro { color: var(--erro); }
   /* A explicação do nó: curta, ao lado da pergunta, em linguagem de professor.
      É conteúdo do PO (o dado), não rótulo — a tela só a desenha. O tratamento é o
@@ -338,6 +351,7 @@
   <h2>Condução</h2>
   <p class="sub">Uma pergunta por vez. O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
 
+  <div id="socratica" class="socratica oculto"></div>
   <div id="pergunta"></div>
 
   <div class="acoes">
@@ -413,6 +427,10 @@ let FICHAS = [];               // ids de envelope já gravados, o mais novo prim
 const RESPOSTAS = new Map();   // id -> {valor, nota}
 const NOTAS = new Map();       // id -> string
 const SUGERIDAS = new Set();   // ids que a pré-inscrição semeou, não a professora
+// A correção socrática (Frente 5): id -> o VALOR já apontado. Pergunta-se UMA vez
+// por resposta — se a professora insiste no mesmo texto, o sistema respeita e
+// deixa seguir; se reformula, a checagem roda de novo.
+const SOCRATICA_VISTA = new Map();
 
 const $ = (id) => document.getElementById(id);
 
@@ -654,6 +672,7 @@ function mostrarRetomada(t) {
     RESPOSTAS.clear();
     NOTAS.clear();
     SUGERIDAS.clear();
+    SOCRATICA_VISTA.clear();
     INDICE = 0;
     atualizarBarra();
     voltarAoPortal();
@@ -1935,8 +1954,47 @@ function pintarRoteiro() {
   $('roteiro').innerHTML = partes.join('');
 }
 
+// A checagem socrática do nó atual: a resposta (já digitada na tela) começa por
+// um verbo de AÇÃO? Se sim, o conceito foi capturado de trás para a frente — e o
+// sistema PERGUNTA, em vez de aceitar calado. A regra chega resolvida no mapa
+// (`no.socratico = { quando, pergunta }`), vinda do motor.
+function socraticaDisparada(no) {
+  if (!no || !no.socratico || !Array.isArray(no.socratico.quando)) return false;
+  const { valor } = lerResposta(no);
+  if (valor === null || valor === '' || Array.isArray(valor)) return false;
+  const primeira = String(valor).trim().split(/\s+/)[0] || '';
+  const semAcento = (s) => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const alvo = semAcento(primeira);
+  return no.socratico.quando.some((v) => semAcento(v) === alvo);
+}
+
+function mostrarSocratica(no) {
+  const caixa = $('socratica');
+  if (!caixa) return;
+  caixa.innerHTML = '<p class="pergunta">' + md(no.socratico.pergunta) + '</p>' +
+    '<p class="dica">Você pode reformular a resposta e avançar de novo — ou, se estiver certo do que escreveu, avançar assim mesmo.</p>';
+  caixa.classList.remove('oculto');
+}
+
+function ocultarSocratica() {
+  const caixa = $('socratica');
+  if (caixa) { caixa.classList.add('oculto'); caixa.innerHTML = ''; }
+}
+
 function irPara(i, guardar) {
-  if (guardar && MAPA) gravarRespostaDoNo(MAPA.nos[INDICE]);
+  if (guardar && MAPA) {
+    const atual = MAPA.nos[INDICE];
+    // Só na ida (não ao voltar). Pergunta UMA vez por resposta: se a professora
+    // insiste no mesmo texto, o sistema respeita e deixa seguir.
+    if (i > INDICE && socraticaDisparada(atual) && SOCRATICA_VISTA.get(atual.id) !== lerResposta(atual).valor) {
+      SOCRATICA_VISTA.set(atual.id, lerResposta(atual).valor);
+      gravarRespostaDoNo(atual); // preserva o que foi escrito, sem avançar
+      mostrarSocratica(atual);
+      return;
+    }
+    gravarRespostaDoNo(atual);
+  }
+  ocultarSocratica();
   INDICE = Math.max(0, Math.min(i, MAPA.nos.length - 1));
   renderPergunta();
   pintarRoteiro();
@@ -2350,6 +2408,7 @@ function editarAnamnese(id) {
       RESPOSTAS.clear();
       NOTAS.clear();
       SUGERIDAS.clear();
+      SOCRATICA_VISTA.clear();
       for (const [k, v] of Object.entries(envelope.respostas || {})) {
         const valor = v && v.valor !== undefined ? v.valor : v;
         RESPOSTAS.set(k, valor);

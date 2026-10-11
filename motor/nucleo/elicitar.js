@@ -176,6 +176,10 @@ function descritores(campo) {
     // escola, professor, ciclo). O conteúdo declara a origem; o PE só copia, e
     // copia como SUGESTÃO — a primeira edição do professor a aposenta.
     deContexto: campo.deContexto || null,
+    // O SEMA do campo para a correção socrática (Frente 5): o conteúdo declara
+    // SÓ o nome do conceito (ex.: «objetivo»), e o SISTEMA resolve o que esse
+    // conceito exige — a regra e a pergunta são infraestrutura, não conteúdo.
+    socratico: campo.socratico || null,
   };
 }
 

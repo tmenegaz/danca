@@ -1,0 +1,184 @@
+{
+  "$comentario": "Conteúdo do PLANO do ciclo. Este arquivo é DADO, não norma: a norma do plano é REGRAS.md (Regra 10 — objetivo geral + marcos por aula + rubrica; Regra 9 — volume) e o elo textual congelado é prompts/elicitar-ciclo.md (Blocos 1 a 4). Se divergirem, a norma prevalece. O que o professor decide é elicitado aqui; a tabela de identificação do ciclo (duração, datas, volume) vem do .conf da variante — o derivador a preenche do contexto e deixa lacuna explícita no que não está no contexto.",
+  "documento": "plano",
+  "norma": "REGRAS.md (Regra 10) + PROTOCOLO.md (P-01)",
+
+  "explicacao": {
+    "oQueE": "O plano é o que você vai dar — o objetivo do ciclo, os marcos aula a aula e a rubrica. Ele é o ponto de partida da aula dada: o que se registra depois é o que mudou em relação a ele. Não é relatório nem avaliação.",
+    "preencher": "Você preenche campo a campo. As tabelas (marcos, volume, rubrica) são escritas como listas — uma linha por item — e a compilação as transforma na tabela que o plano carrega.",
+    "porQue": "Sem o plano, não há memória da aula: o que se registra compara o que aconteceu com o que foi planejado. O Plano de Observação (que você faz em seguida) lê o objetivo geral como pergunta: o ciclo nasce dessa pergunta, e o plano é o que o torna observável.",
+    "regras": "Objetivo geral em uma frase verificável; uma linha por aula nos marcos; o volume respeita a faixa da duração; a origem declara a base pedagógica."
+  },
+
+  "obrigatoriedade": {
+    "declaracao": "Um nó é obrigatório quando traz obrigatorio:true — é contra eles que o envelope casa a contagem de respostas. São obrigatórios: o objetivo geral, os marcos por aula, a rubrica e a proveniência (os campos required do plano-schema).",
+    "ids": "Os id são kebab-case, derivados do nome do campo sem acento."
+  },
+
+  "observacaoInicial": {
+    "natureza": "porta de entrada",
+    "nota": "O plano não tem observação inicial: ele começa pelo objetivo geral, direto. Esta chave existe para a tela genérica não divergir do contrato das demais fontes.",
+    "desdobramentos": [],
+    "perfisDeEntrada": [],
+    "notaDesdobramentos": "",
+    "elementos": []
+  },
+
+  "cabecalho": {
+    "bloco": 1,
+    "titulo": "Objetivo geral",
+    "objetivo": "fixar o objetivo do ciclo em uma frase verificável ao final",
+    "campos": [
+      {
+        "id": "objetivo-geral",
+        "campo": "Objetivo geral do ciclo",
+        "obrigatorio": true,
+        "socratico": "objetivo",
+        "explicacao": {
+          "oQueE": "O objetivo do ciclo, em uma frase — o que as alunas vão construir ao longo dos encontros.",
+          "preencher": "Uma frase verificável ao final. Ex.: «Construir o eixo vertical e a transferência de peso em movimento, com resposta ao pulso e presença cênica, em cinco encontros.»",
+          "porQue": "É ele que o Plano de Observação lê como pergunta: o objetivo é o que torna o ciclo observável, e a pergunta é o objetivo lido de trás para a frente."
+        }
+      }
+    ]
+  },
+
+  "blocos": [
+    {
+      "bloco": 2,
+      "titulo": "Marcos parciais por aula",
+      "objetivo": "declarar o que fica pronto em cada aula, na ordem em que as aulas acontecem",
+      "campos": [
+        {
+          "id": "marcos-por-aula",
+          "campo": "Marcos parciais",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "O que fica pronto em cada aula, na ordem em que acontecem — o marco parcial de cada encontro.",
+            "preencher": "Uma linha por aula, com o número na frente. Ex.: «01: Isolar o eixo vertical e a distribuição do peso, no solo».",
+            "porQue": "É a tabela que o plano carrega e o que se consulta aula a aula. Uma linha por aula — escrito como prosa, cada marco vira trabalho manual depois."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 3,
+      "titulo": "Estrutura de cada aula",
+      "objetivo": "declarar os blocos de cada aula, na ordem",
+      "campos": [
+        {
+          "id": "estrutura-de-cada-aula",
+          "campo": "Blocos da aula",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Os blocos de cada aula, na ordem em que aparecem (solo, barra, centro, presença…).",
+            "preencher": "Um bloco por linha. Ex.: «Solo — eixo e distribuição do peso».",
+            "porQue": "A ordem dos blocos é a forma da aula: ela organiza o volume e a captura."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 4,
+      "titulo": "Distribuição do volume pelos blocos",
+      "objetivo": "calibrar o volume de trabalho ativo por bloco",
+      "campos": [
+        {
+          "id": "distribuicao-de-volume",
+          "campo": "Distribuição do volume",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Quanto do tempo de cada aula vai para cada bloco, e por quê.",
+            "preencher": "Uma linha por bloco: «Bloco | proporção alvo | justificativa». Ex.: «Solo | 30–40% | isolamento do eixo».",
+            "porQue": "A distribuição segue o volume: o total vem da duração, e esta tabela diz como ele se reparte."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 5,
+      "titulo": "Condições preliminares",
+      "objetivo": "declarar o que o espaço e o material precisam ter",
+      "campos": [
+        {
+          "id": "condicoes-preliminares",
+          "campo": "Condições do espaço",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "O que a sala e o material precisam ter para o ciclo acontecer.",
+            "preencher": "Uma condição por linha. Ex.: «Sala com piso adequado e sem obstáculos».",
+            "porQue": "Sem as condições declaradas, o que impede a aula não tem como ser distinguido do que é do processo."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 6,
+      "titulo": "Rubrica de avaliação final",
+      "objetivo": "declarar os critérios e os quatro níveis de desempenho",
+      "campos": [
+        {
+          "id": "rubrica",
+          "campo": "Rubrica",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "Os critérios do que se observa ao final, cada um com os quatro níveis (insatisfatório → excelente).",
+            "preencher": "Uma linha por critério: «Critério | Insatisfatório | Em desenvolvimento | Satisfatório | Excelente». Ex.: «Eixo vertical | Pelve desalinhada | Alinha com esforço | Alinha e mantém | Alinha com economia».",
+            "porQue": "A rubrica é o que torna o objetivo verificável: sem ela, «melhorou» não tem níveis, e o final do ciclo não pode ser confrontado com o início."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 7,
+      "titulo": "Extensão e referências",
+      "objetivo": "declarar se o ciclo estende e com que material",
+      "campos": [
+        {
+          "id": "criterio-de-extensao",
+          "campo": "Critério de extensão",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Se o ciclo é extensível, até que aula os marcos estão decididos e o que decide estender.",
+            "preencher": "Uma frase. Ex.: «Módulo fechado de quatro encontros; o quinto é suplementar».",
+            "porQue": "O plano declara o horizonte: sem ele, os marcos além das aulas decididas ficam a decidir."
+          }
+        },
+        {
+          "id": "referencias",
+          "campo": "Referências de método",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "O material que sustenta o método — livros, vídeos, repertório.",
+            "preencher": "Uma referência por linha. Ex.: «RAD (2015); Clippinger (2024)».",
+            "porQue": "A origem do método é declarada: a referência mostra de onde vem, não é um enfeite."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 8,
+      "titulo": "Origem",
+      "objetivo": "declarar a base pedagógica do plano",
+      "campos": [
+        {
+          "id": "proveniencia",
+          "campo": "Registro de origem",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "A base pedagógica declarada do plano — de onde vem o que está aqui.",
+            "preencher": "Uma frase. Ex.: «Plano derivado da metodologia RAD, adaptada ao âmbito da turma».",
+            "porQue": "Toda afirmação tem origem declarada. Sem origem, o plano não diz de onde veio."
+          }
+        }
+      ]
+    }
+  ],
+
+  "modulosCondicionais": [],
+
+  "dimensoes": null,
+  "listaAberta": null,
+  "oQueFicaFora": "O calendário — quem o preenche é o sistema, a partir das datas do ciclo.",
+  "ondeODadoVive": "Tudo cai dentro do ciclo-XX-<escola>-plano.md que já existe. Nenhum campo novo é criado: a P-08 permanece satisfeita sem tocar no ciclo-XX-plano-schema.json."
+}
