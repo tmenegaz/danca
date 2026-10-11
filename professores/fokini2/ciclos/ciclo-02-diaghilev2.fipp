@@ -8,9 +8,9 @@ type: Ciclo
 professor: Fokini II
 ciclo: 02
 variante: diaghilev2
-hash_conteudo: 3f3867ff86fa07a8e0cdb0464716d3ab6fb296ad1e150df866bc0e66ca688111
+hash_conteudo: 7ec17ed9003c026897825a3c4ff3f9083c73c085e7540eee73d8d6e90aed7c54
 parentHash: 
-hash: d9fde7690699b59ac2e5cc51a03dfc475bfa5ea635f8fa63d800df483128371f
+hash: a2ac04a592ae5ec5627b0e17cc1a8e64bd9dc2f817d58836d7136f98debdf8a7
 algoritmo: SHA-256
 po: professores/fokini2/ciclos/ciclo-02-diaghilev2-po.md
 po_state: Input_PO_Validado
@@ -18,6 +18,7 @@ ancorado_em: 2026-10-11
 cobertura:
   - professores/fokini2/ciclos/ciclo-02-diaghilev2-aula-01.md
   - professores/fokini2/ciclos/ciclo-02-diaghilev2-captura-aula-01.md
+  - professores/fokini2/ciclos/ciclo-02-diaghilev2-dados.json
   - professores/fokini2/ciclos/ciclo-02-diaghilev2-glossario-benesh.md
   - professores/fokini2/ciclos/ciclo-02-diaghilev2-harmonizacao.md
   - professores/fokini2/ciclos/ciclo-02-diaghilev2-notacao.md

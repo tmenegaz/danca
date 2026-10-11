@@ -10,9 +10,9 @@ professor: Fokini II
 ciclo: 02
 variante: diaghilev2
 aula: 01
-hash_conteudo: f5e27d7d8f02d910a8f6607fef5df96e37a98f935f10bc190adfade2733a79ff
+hash_conteudo: c6561dcec7f924c54cf7ba75ce2a159d5e9cb96d8b26790d28c96b3ac8ba9c7b
 parentHash: 
-hash: 844b61c5871e70d91e16213661b2bec7d72eea9f57134d30fb10807437375e93
+hash: 341f13e30bcfee91fa3958a5cbf23c962140f46d13e7960d39ed4897a0030b77
 algoritmo: SHA-256
 ancorado_em: 2026-10-11
 cobertura:
