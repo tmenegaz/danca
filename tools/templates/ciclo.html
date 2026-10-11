@@ -22,6 +22,7 @@ $endfor$
   $if(subtitle)$
   <p class="subtitulo">$subtitle$</p>
   $endif$
+  $if(ficha)$
   <p class="ficha">
     $if(escola)$<span>Escola: $escola$$if(escola-responsavel)$ — $escola-responsavel$$endif$</span>$endif$
     $if(frequencia)$<span>$frequencia$</span>$endif$
@@ -35,6 +36,7 @@ $endfor$
     $if(volume-total)$<span>Volume ativo: $volume-total$</span>$endif$
     $if(objetivo-especifico)$<span>Objetivo: $objetivo-especifico$</span>$endif$
   </p>
+  $endif$
 </header>
 
 <main>

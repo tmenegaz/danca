@@ -716,7 +716,9 @@ rotulo_no_menu() {
 # que o validador reprovava. Agora o rodapé mostra o que o ciclo realmente tem.
 # ---------------------------------------------------------------------------
 rodape_docs() {
-  local doc r saida='<a href="index.html">Índice do ciclo</a> &middot; <a href="plano.html">Plano</a>'
+  # O «Índice do ciclo» (index.html) saiu do rodapé junto com o «Início» do menu: repetia
+  # o Plano. O rodapé começa no Plano, que é a porta de entrada do conteúdo do ciclo.
+  local doc r saida='<a href="plano.html">Plano</a>'
   for doc in $DOCS; do
     case "$doc" in aula-*|plano) continue ;; esac
     [ -f "$(src_do_doc "$doc")" ] || continue
@@ -744,7 +746,10 @@ gerar_nav() {
   }
   {
     echo '<nav class="topnav" aria-label="Navegação do ciclo">'
-    echo "  <a class=\"marca\" href=\"$(link_href index.html)\">Ciclo $CICLO${ESCOLA_SLUG:+ · $ESCOLA_SLUG}</a>"
+    # A marca («Ciclo NN · escola») saiu do menu: duplicava o «Início» do grupo
+    # «Ciclos» (o mesmo destino). Fica um espaço reservado, sem conteúdo, para o
+    # menu não colar na borda esquerda — a largura mora no `ciclo.css` (`.marca`).
+    echo '  <span class="marca" aria-hidden="true"></span>'
     # botão do menu mobile: só aparece em tela pequena (ver ciclo.css); o estado
     # aberto/fechado é anunciado por aria-expanded, e o painel é .nav-links
     echo '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">'
@@ -762,7 +767,6 @@ gerar_nav() {
     link_menu() {   # $1 = doc (link de topo)
       local d="$1" rot
       rot="$(rotulo_no_menu "$d")"
-      [ "$d" = index ] && rot="Início"
       if [ "$d" = "$atual" ]; then
         echo "  <a class=\"ativo\" href=\"$(link_href "$d.html")\">$rot</a>"
       else
@@ -796,7 +800,7 @@ gerar_nav() {
     #   Acompanhamento e entraram aqui, junto do guia-do-professor e do METODO.
     # ------------------------------------------------------------------
     for item in \
-      "Início|index" \
+      "Nós, Por Exemplo|index" \
       "Ciclos|plano referencias" \
       "Aulas|aula-*" \
       "Acompanhamento|acompanhamento-* caderno-*" \
@@ -823,6 +827,9 @@ gerar_nav() {
           esac
         done
       done
+      # O «Início» (o índice do ciclo) foi removido: repetia o «Plano» (mesmo conteúdo) e
+      # o menu não o lista mais. O grupo «Ciclos» é um grupo normal — aparece só quando tem
+      # membros (plano, referências, …), e some num ciclo "do zero" que ainda não os tem.
       [ -n "$membros" ] || continue
       echo '  <details class="menu">'
       echo "    <summary>$nome</summary>"
@@ -919,6 +926,12 @@ for doc in $TODOS; do
     guia-de-observacao-*)
       METADADOS=(--metadata "title=Guia de observação — Aula ${doc#guia-de-observacao-}") ;;
   esac
+  # A ficha (Escola · frequência · duração · Ciclo · data · volume) NÃO aparece na
+  # página de entrada («Nós, Por Exemplo», o `index`): ela é material do sistema, não
+  # do ciclo. As demais páginas mantêm a ficha. O template `ciclo.html` mostra a ficha
+  # só quando `ficha` está declarado.
+  FICHA_VAR=()
+  [ "$doc" = index ] || FICHA_VAR=(-V "ficha=1")
   pandoc "$src" \
     -o "$PACOTE/$doc.html" \
     --standalone --toc --toc-depth=3 \
@@ -941,7 +954,28 @@ for doc in $TODOS; do
     -V "frequencia=$FREQUENCIA" \
     -V "duracao-por-dia=$DURACAO_POR_DIA" \
     -V "volume-semanal=$VOLUME_SEMANAL tempos/semana" \
-    -V "ciclo-semanas=$SEMANAS"
+    -V "ciclo-semanas=$SEMANAS" \
+    "${FICHA_VAR[@]}"
+  # A página de entrada («Nós, Por Exemplo», o `index`) traz dois atalhos para a porta —
+  # a anamnese e o PO — cujas URLs carregam os slugs do ciclo (professor, escola, ciclo).
+  # O pandoc não interpola variáveis no CORPO do documento; os marcadores `@ANAMNESE_URL@`
+  # e `@PO_URL@` são trocados aqui, só no `index`, pelo mesmo padrão de injeção do cabeçalho
+  # LaTeX (`@NOME@`). O `&` da query é escapado para o `sed` não lê-lo como "a linha toda".
+  #
+  # O Passo 3 (Lançamento de aula) tem um FALLBACK: só vira link se o `lancamento.html`
+  # existir no pacote. Num ciclo "do zero" (ainda sem PO completo) ele não existe — e um
+  # `<a href="lancamento.html">` apontaria para um 404. Sem o arquivo, o nome sai em texto
+  # simples (sem link), para não quebrar a página.
+  if [ "$doc" = index ]; then
+    LANCAMENTO_LINK='Lançamento de aula — formulário eletrônico'
+    [ -f "$PACOTE/lancamento.html" ] && \
+      LANCAMENTO_LINK='<a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>'
+    sed -e "s|@ANAMNESE_URL@|$(printf '%s' "$ANAMNESE_URL" | sed -e 's/[&%#_]/\\&/g')|g" \
+        -e "s|@PO_URL@|$(printf '%s' "$PO_URL" | sed -e 's/[&%#_]/\\&/g')|g" \
+        -e "s|{{LANCAMENTO_LINK}}|$(printf '%s' "$LANCAMENTO_LINK" | sed -e 's/[&%#_]/\\&/g')|g" \
+        "$PACOTE/index.html" > "$TMP/index-p.html"
+    mv "$TMP/index-p.html" "$PACOTE/index.html"
+  fi
   gerados=$((gerados + 1))
   echo "html: $doc.html"
 done

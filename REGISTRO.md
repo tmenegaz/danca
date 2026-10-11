@@ -9436,3 +9436,126 @@ nos HTML após `tools/gerar-ciclo.sh <professor> <ciclo> <escola>`. O estado ati
 («Plano de Observação» ativo vs «Anamnese do aluno» ativo) continua **único** na porta: a nav é
 gerada uma vez (`atual=plano-observacao`) e não distingue `?fonte=` — a marcação de «ativo» por
 fonte fica em aberto.
+
+## 11/10/2026 — «Nós, Por Exemplo» vira a página de entrada; o «Início» e a marca saem do menu
+
+**O que motivou.** Testando o menu, a pesquisadora viu três redundâncias: (1) a **marca**
+«Ciclo NN · escola» no canto esquerdo era idêntica ao «Início» (o mesmo destino); (2) o
+**«Início»** (índice geral do ciclo) repetia, em forma de sumário, quase todo o conteúdo do
+«Plano» — só sobrava o «Como usar este pacote», que é informação técnica e **não precisa
+existir**; (3) a página de entrada do sistema, «Nós, Por Exemplo», ainda não era a página que
+abre o pacote. Decisão (11/10/2026): remover a marca, remover o «Início» por completo, e fazer
+**«Nós, Por Exemplo» ser o `index.html`** — a página de entrada de todo pacote, igual para todos.
+
+**O que foi decidido.**
+
+- A **marca** sai do menu. Fica um **espaço reservado sem texto** (`.marca` vazio), para o menu
+  não colar à esquerda; a largura mora no CSS e **some no celular** (para o hamburger não ser
+  empurrado).
+- O **«Início»** (o índice geral do ciclo) é **removido por completo** — do menu e do rodapé. O
+  grupo «Ciclos» fica com «Plano» + «Referências»; num ciclo "do zero" (DOCS vazio), o grupo
+  simplesmente **não aparece** (não fica um dropdown vazio).
+- **«Nós, Por Exemplo» passa a ser o `index.html`.** O `index` deixa de resolver para
+  `ciclo-XX-index.md` (per-ciclo) e passa a resolver para a página compartilhada
+  `biblioteca/nos-por-exemplo.md` — como `guia-do-professor` e `metodo`. A fonte
+  `ciclo-01-index.md` foi **apagada**.
+- A página «Nós, Por Exemplo» foi **reescrita** com a estrutura planeada (6 blocos): por que
+  surgiu → o que resolve → o que ganha → como se usa (anamnese → PO → coleta → origem da coleta)
+  → o que a escola guarda ao longo do tempo (o fecho, sem a palavra «proveniência») → onde pedir
+  ajuda. Em **português do Brasil**, vendendo a consequência, sem jargão.
+
+**Onde entrou.** `tools/gerar-ciclo.sh` — `gerar_nav` (marca vazia, `"Nós, Por Exemplo|index"`,
+fim do rótulo «Início»), `rodape_docs` (começa no Plano). `tools/lib-fontes.sh` — `fonte_md
+"index"` → `biblioteca/nos-por-exemplo.md`. `tools/templates/ciclo.css` — `.marca` vira espaçador
+(`min-width: 9em`, anulado no tablet). `biblioteca/nos-por-exemplo.md` — a página reescrita.
+`professores/fokini/ciclos/ciclo-01-index.md` — **apagada**.
+
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `tools/`, `tools/templates/` e
+«estrutura de menu ou navegação». O motivo: o menu carregava duas duplicatas da mesma página (a
+marca e o «Início», ambas apontando para o índice do ciclo), e o índice repetia o «Plano»; a
+página de entrada do sistema («Nós, Por Exemplo») merecia ocupar o `index.html` — uma só entrada,
+sem duplicata. **O que não muda:**
+
+- **A fórmula do hash.** Não mudou. **A cobertura, sim**: `ciclo-01-index.md` **sai** da cobertura
+  (era fonte de ciclo) e o `index` passa a resolver para `biblioteca/`, que o hasher **já exclui**
+  por viver fora de `professores/<professor>/`. A âncora foi **regerada** (ver abaixo).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou; a mudança é de navegação e
+  de onde a página de entrada vive.
+- **Os validadores.** Nenhum mudou; o `check-pacote` já excluía `index.html` da comparação de
+  títulos do PDF.
+
+**Reancoragem.** A remoção de `ciclo-01-index.md` (fonte de ciclo) mudou o hash. Regereada com
+`tools/hash-ciclo.sh fokini 01 diaghilev` e confirmada com `--check` (cadeia íntegra).
+
+**Com o quê.** `tools/gerar-ciclo.sh`, `tools/lib-fontes.sh`, `tools/templates/ciclo.css`,
+`biblioteca/nos-por-exemplo.md` (nova), `professores/fokini/ciclos/ciclo-01-index.md` (apagada),
+`professores/fokini/ciclos/ciclo-01.conf`, `professores/fokini/ciclos/ciclo-01-diaghilev.conf`
+(`nos-por-exemplo` sai do DOCS), e o pacote regenerado (`.fipp` reancoradas + HTML/PDF).
+
+**Referências.** `CONGELAMENTO.md` («estrutura de menu ou navegação») · a entrada de 10/10/2026
+(o menu separa a Anamnese do PO) · o pedido consolidado «Nós, Por Exemplo» (10 frentes) ·
+`tools/lib-fontes.sh` (a regra do hasher: só caminhos sob `professores/`).
+
+**O que ainda não está feito.**
+
+- **`tools/criar-escola.sh` ainda não foi alinhado.** O nav do pacote "do zero" (`gerar_nav_zero`)
+  continua com a marca «Ciclo NN · escola» e o item «Início», e o `index.html` zero ainda é o
+  «cartão de visita» (e não a página «Nós, Por Exemplo»). Falta decidir: o pacote zero abre em
+  «Nós, Por Exemplo» (como o pacote cheio) ou mantém o cartão de visita de ciclo em construção?
+- **Frentes do pedido ainda em aberto:** vídeos embutidos (F2), documento de fundamentação (F4),
+  correção socrática (F5 — infraestrutura, prudência), item de menu «Bastidores» (F10).
+- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
+
+## 11/10/2026 — Atalhos da porta na página de entrada e aprofundamento do «Como se usa»
+
+**O que motivou.** A página de entrada «Nós, Por Exemplo» tinha dois problemas de leitura: o
+bloco «Como se usa, passo a passo» era abstrato (o professor não sabia **onde clicar** nem o que
+ia encontrar), e os blocos de abertura traziam redação ainda não finalizada («coisa», a régua
+das alunas, menção a protocolos ainda por construir).
+
+**O que foi decidido.**
+
+- **«O que é este sistema» reescrito** em três parágrafos (o que faz → o que permite → o que faz
+  com o conhecimento), com a distinção repertório × arquivo, sem «coisa», sem jargão.
+- **A passagem da «régua alta» corrigida:** a régua é do **serviço prestado** (dedicação, cuidado,
+  o que a escola oferece), não das alunas. «A dança é para todas» ficou explícito. Saíram
+  «régua», «qualidade» e «métrica».
+- **«Como se usa, passo a passo» aprofundado:** passos numerados (Passo 1 a 4), contexto do que é
+  um **ciclo** (nasce do Plano de Observação; dentro dele há aulas; cada aula tem seu registro), a
+  lista do que mais existe na Área do Professor (caderno, captura, critérios, método, guia) e a
+  nota de que a página é o mapa e o detalhe está dentro de cada formulário.
+- **Dois atalhos com link** para a porta — «Anamnese do aluno» e «Plano de Observação» — com as
+  URLs carregando os slugs do ciclo. Como o pandoc **não interpola variáveis no corpo** do
+  documento, a página usa os marcadores `@ANAMNESE_URL@` e `@PO_URL@`, trocados pelo gerador
+  **só no `index`**.
+
+**Onde entrou.** `biblioteca/nos-por-exemplo.md` — os três blocos reescritos/aprofundados e os
+dois marcadores de link. `tools/gerar-ciclo.sh` — a substituição `@ANAMNESE_URL@`/`@PO_URL@`
+após o pandoc do `index`. `tools/criar-escola.sh` — a mesma substituição no índice do pacote
+"zero" (que também renderiza `nos-por-exemplo.md`), com URL relativa à pasta do pacote.
+
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `tools/`. O motivo: os dois
+atalhos da página de entrada precisam levar o contexto do ciclo (`professor`, `escola`, `ciclo`)
+na URL da porta, e esse contexto só existe no gerador — não dá para gravar slugs fixos na página
+compartilhada (cada pacote tem o seu). **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Não mudou; a página de entrada vive em `biblioteca/`, que
+  o hasher já exclui, e nenhuma fonte de ciclo foi alterada. A âncora **não** foi regerada (o
+  `--check` confirma a cadeia íntegra com o mesmo hash de antes).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou.
+- **Os validadores.** Nenhum mudou; o `check-pacote` continua passando com 0 erros.
+
+**Com o quê.** `biblioteca/nos-por-exemplo.md`, `tools/gerar-ciclo.sh`,
+`tools/criar-escola.sh`, e o pacote `professores/fokini/ciclos/ciclo-01-diaghilev/` regenerado.
+
+**Referências.** `CONGELAMENTO.md` (`tools/`) · a entrada de 11/10/2026 (o `index` →
+«Nós, Por Exemplo») · o pedido «Ajustes finais na página» e o pedido «Aprofundar o bloco
+«Como se usa, passo a passo»».
+
+**O que ainda não está feito.**
+
+- **O pacote `fokini2/02/diaghilev2` está com o `index.html` defasado** (ainda mostra o «cartão de
+  visita» antigo, não a página «Nós, Por Exemplo»). É anterior a este marco — o `criar-escola.sh`
+  já renderiza `nos-por-exemplo.md`, mas o pacote não foi regerado. Regerar exige rodar o
+  `criar-escola.sh` (que cria uma escola nova), e não o `gerar-ciclo.sh` (que falha com `DOCS=""`).
+- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).

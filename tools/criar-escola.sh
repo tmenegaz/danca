@@ -298,7 +298,8 @@ cp "$RAIZ/tools/templates/ciclo.css" "$PACOTE_DIR/assets/style.css"
 cp "$RAIZ/tools/lib-cifra.js" "$PACOTE_DIR/assets/lib-cifra.js"
 cp "$RAIZ/tools/templates/nav.js" "$PACOTE_DIR/assets/nav.js"
 
-# O nav mínimo do ciclo "zero": marca + Início + Área do Professor → PO.
+# O nav mínimo do ciclo "zero": a página de entrada + Área do Professor → PO e
+# anamnese. Sem a marca (removida do menu — duplicava o «Início»), sem «Início».
 # (As páginas do pacote usam o gerar_nav do gerar-ciclo.sh; aqui, sem DOCS,
 #  o nav nasce só com o que existe.)
 gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
@@ -307,16 +308,17 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
   if [ "$onde" = "porta" ]; then class_po=' class="ativo"'; fi
   cat <<EOF
 <nav class="topnav" aria-label="Navegação do ciclo">
-  <a class="marca" href="${p}index.html">Ciclo $CICLO · $ESCOLA</a>
+  <span class="marca" aria-hidden="true"></span>
   <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
     <span></span><span></span><span></span>
   </button>
   <div class="nav-links" id="nav-links">
-  <a${class_ini} href="${p}index.html">Início</a>
+  <a${class_ini} href="${p}index.html">Nós, Por Exemplo</a>
   <details class="menu">
     <summary>Área do Professor</summary>
     <div class="submenu">
-      <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Plano de Observação</a>
+      <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po">Plano de Observação</a>
+      <a href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
     </div>
   </details>
   </div>
@@ -324,44 +326,49 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
 EOF
 }
 
-# Índice mínimo — o cartão de visita do ciclo ainda vazio.
-cat > "$PACOTE_DIR/index.html" <<EOF
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Ciclo $CICLO — $ESCOLA_NOME</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body id="top">
+# O índice do pacote zero é a MESMA página de entrada do sistema («Nós, Por Exemplo»)
+# que o pacote cheio usa: renderiza `biblioteca/nos-por-exemplo.md` com o template do
+# ciclo, em vez de um cartão de visita próprio. A entrada é única e compartilhada.
+NAV_ZERO="$(mktemp)"
+gerar_nav_zero '' 'index' > "$NAV_ZERO"
+RODAPE_ZERO="<a href=\"plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po\">Plano de Observação</a>"
+pandoc "$RAIZ/biblioteca/nos-por-exemplo.md" \
+  -o "$PACOTE_DIR/index.html" \
+  --standalone --toc --toc-depth=3 \
+  --from=markdown+raw_tex+header_attributes \
+  --to=html5 \
+  --template="$RAIZ/tools/templates/ciclo.html" \
+  --css=assets/style.css \
+  --include-before-body="$NAV_ZERO" \
+  -V "lang=pt-BR" \
+  -V "ciclo=$CICLO" \
+  -V "ciclo-nome=Ciclo $CICLO — $ESCOLA_NOME" \
+  -V "escola=$ESCOLA_NOME" \
+  -V "escola-responsavel=$RESPONSAVEL" \
+  -V "frequencia=$FREQUENCIA" \
+  -V "duracao-por-dia=$DURACAO_TEXTO" \
+  -V "ciclo-periodo=$DATA_INICIO" \
+  -V "ciclo-professor=$PROFESSOR_NOME" \
+  -V "rodape-docs=$RODAPE_ZERO"
+rm -f "$NAV_ZERO"
 
-$(gerar_nav_zero '' 'index')
-
-<main>
-  <header class="doc">
-    <h1>Ciclo $CICLO — $ESCOLA_NOME</h1>
-    <p class="sub">Escola simulada · professor $PROFESSOR_NOME · ciclo em construção</p>
-  </header>
-
-  <section>
-    <p>Este ciclo começa do zero. Ainda não há plano, aulas nem caderno — nada
-    foi feito até aqui.</p>
-    <p>O primeiro passo é o <strong>Plano de Observação</strong>: é ele que
-    estabelece o recorte observacional e dispara a geração do ciclo.</p>
-    <p><a class="botao" href="/plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Abrir o Plano de Observação</a></p>
-  </section>
-</main>
-
-<footer class="rodape">
-  <p>Ciclo $CICLO — $ESCOLA_NOME &middot; <strong>$ESCOLA_NOME</strong> &middot; professor $PROFESSOR_NOME &middot; escola simulada</p>
-</footer>
-
-<script src="assets/nav.js"></script>
-
-</body>
-</html>
-EOF
+# A página de entrada traz dois atalhos para a porta (anamnese e PO) cujas URLs
+# carregam os slugs da escola; o pandoc não interpola variáveis no corpo, então os
+# marcadores `@ANAMNESE_URL@`/`@PO_URL@` são trocados aqui — no índice, relativo à
+# pasta do pacote, como o nav mínimo do ciclo zero (que usa `plano-observacao/...`).
+ANAMNESE_URL_ZERO="plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO"
+PO_URL_ZERO="${ANAMNESE_URL_ZERO}&fonte=po"
+# O Passo 3 (Lançamento de aula) tem FALLBACK: no pacote "zero" o `lancamento.html`
+# ainda não existe (só nasce quando o PO completo dispara a geração). Sem ele, o nome
+# sai em texto simples — nunca como link para um 404.
+LANCAMENTO_LINK_ZERO='Lançamento de aula — formulário eletrônico'
+[ -f "$PACOTE_DIR/lancamento.html" ] && \
+  LANCAMENTO_LINK_ZERO='<a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>'
+sed -e "s|@ANAMNESE_URL@|$(printf '%s' "$ANAMNESE_URL_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
+    -e "s|@PO_URL@|$(printf '%s' "$PO_URL_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
+    -e "s|{{LANCAMENTO_LINK}}|$(printf '%s' "$LANCAMENTO_LINK_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
+    "$PACOTE_DIR/index.html" > "$PACOTE_DIR/index.html.tmp"
+mv "$PACOTE_DIR/index.html.tmp" "$PACOTE_DIR/index.html"
 
 # Injeta o nav (com links de raiz) na porta, no marcador <!-- NAV -->.
 NAV_PORTA="$(gerar_nav_zero '/' 'porta')"
