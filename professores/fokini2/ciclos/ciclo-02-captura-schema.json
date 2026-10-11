@@ -335,6 +335,44 @@
             }
           }
         }
+      },
+      "diaghilev2": {
+        "escola": "Diaghilev II",
+        "blocos": {
+          "Bloco 1 — Eixo": {
+            "chave": "eixo",
+            "rotulo": "Eixo",
+            "grao": "aluna",
+            "colunas": {
+              "alinhamento da pelve": {
+                "chave": "alinhamento_da_pelve",
+                "tipo": "marca"
+              }
+            }
+          },
+          "Bloco 2 — Peso": {
+            "chave": "peso",
+            "rotulo": "Peso",
+            "grao": "aluna",
+            "colunas": {
+              "transferência": {
+                "chave": "transferencia",
+                "tipo": "marca"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
       }
     }
   },
