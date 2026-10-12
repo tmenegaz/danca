@@ -333,7 +333,7 @@ EOF
 # ciclo, em vez de um cartão de visita próprio. A entrada é única e compartilhada.
 NAV_ZERO="$(mktemp)"
 gerar_nav_zero '' 'index' > "$NAV_ZERO"
-RODAPE_ZERO="<a href=\"plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po\">Plano de Observação</a>"
+RODAPE_ZERO="<a href=\"anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO\">Anamnese do aluno</a> &middot; <a href=\"plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano\">Plano de ensino</a> &middot; <a href=\"plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po\">Plano de Observação</a>"
 pandoc "$RAIZ/biblioteca/nos-por-exemplo.md" \
   -o "$PACOTE_DIR/index.html" \
   --standalone --toc --toc-depth=3 \
