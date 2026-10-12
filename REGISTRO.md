@@ -9885,3 +9885,30 @@ A regra da anamnese (`vinculos`, `estadosDasAnamneses`, `ajuste_de` em `porta.js
 - O rótulo da estante usa o `objetivo-geral` inteiro (pode ser longo); truncar ou dar um
   «nome curto» é decisão posterior.
 - O `gerar-ciclo.sh` ainda não regenera uma escola «zero»; a propagação do `maria` foi manual.
+
+## 12/10/2026 — A arquitetura geral ganha documento próprio (arquivo, não banco)
+
+**O que motivou.** A pesquisadora quis um material de apresentação técnica que explique, para um
+programador, por que a fonte de verdade do Projeto Ciclo é o sistema de arquivos (Git) e não um
+backend com banco de dados — e por que isso é mais barato e mais rápido.
+
+**O que foi decidido.**
+- Criar o `ARQUITETURA-GERAL.md`, raiz, como a visão de conjunto: o mapa de componentes, o
+  desenho de fluxo (elicitação → Git → geração → CDN), e a argumentação «arquivo, não banco»
+  (proveniência é história; imutabilidade é estrutural; build no lugar de runtime; KV só como
+  cofre de runtime que volta a ser arquivo).
+- O documento reforça a identidade: é do protótipo testado na dança (não agnóstico), e a
+  «proveniência» é a âncora encadeada `.fipp`, não o FIPP do mestrado.
+
+**Onde entrou.**
+`ARQUITETURA-GERAL.md` — novo documento raiz, irmão dos `ARQUITETURA-*.md` existentes.
+
+**Com o quê.**
+`ARQUITETURA-GERAL.md`, `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` («novos documentos» são livres) · os demais `ARQUITETURA-*.md` (captura, aula,
+anamnese) · `IDEIA-PAINEL-ESCOLA.md`.
+
+**O que ainda não está feito.**
+- Nada pendente — é documentação; o conteúdo técnico cita o desenho já vigente.
