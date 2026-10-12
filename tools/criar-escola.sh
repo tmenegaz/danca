@@ -354,19 +354,21 @@ pandoc "$RAIZ/biblioteca/nos-por-exemplo.md" \
   -V "rodape-docs=$RODAPE_ZERO"
 rm -f "$NAV_ZERO"
 
-# A página de entrada traz dois atalhos para a porta (anamnese e PO) cujas URLs
-# carregam os slugs da escola; o pandoc não interpola variáveis no corpo, então os
-# marcadores `@ANAMNESE_URL@`/`@PO_URL@` são trocados aqui — no índice, relativo à
-# pasta do pacote, como o nav mínimo do ciclo zero (que usa `plano-observacao/...`).
+# A página de entrada traz três atalhos para a porta (anamnese, plano de ensino e PO) cujas
+# URLs carregam os slugs da escola; o pandoc não interpola variáveis no corpo, então os
+# marcadores `@ANAMNESE_URL@`/`@PLANO_URL@`/`@PO_URL@` são trocados aqui — no índice, relativo
+# à pasta do pacote, como o nav mínimo do ciclo zero (que usa `plano-observacao/...`).
 ANAMNESE_URL_ZERO="plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO"
+PLANO_URL_ZERO="${ANAMNESE_URL_ZERO}&fonte=plano"
 PO_URL_ZERO="${ANAMNESE_URL_ZERO}&fonte=po"
-# O Passo 3 (Lançamento de aula) tem FALLBACK: no pacote "zero" o `lancamento.html`
+# O Passo 4 (Lançamento de aula) tem FALLBACK: no pacote "zero" o `lancamento.html`
 # ainda não existe (só nasce quando o PO completo dispara a geração). Sem ele, o nome
 # sai em texto simples — nunca como link para um 404.
 LANCAMENTO_LINK_ZERO='Lançamento de aula — formulário eletrônico'
 [ -f "$PACOTE_DIR/lancamento.html" ] && \
   LANCAMENTO_LINK_ZERO='<a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>'
 sed -e "s|@ANAMNESE_URL@|$(printf '%s' "$ANAMNESE_URL_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
+    -e "s|@PLANO_URL@|$(printf '%s' "$PLANO_URL_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
     -e "s|@PO_URL@|$(printf '%s' "$PO_URL_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
     -e "s|{{LANCAMENTO_LINK}}|$(printf '%s' "$LANCAMENTO_LINK_ZERO" | sed -e 's/[&%#_]/\\&/g')|g" \
     "$PACOTE_DIR/index.html" > "$PACOTE_DIR/index.html.tmp"

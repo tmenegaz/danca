@@ -42,6 +42,7 @@ function normalizar(texto) {
     .toLowerCase()
     .replace(/\s+/g, ' ')                          // normaliza o espaço PRIMEIRO
     .replace(/acessar a anamnese do aluno/g, ' ')  // atalho do ciclo
+    .replace(/acessar o plano de ensino/g, ' ')
     .replace(/acessar o plano de observação/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();

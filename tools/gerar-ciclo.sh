@@ -998,13 +998,14 @@ for doc in $TODOS; do
     -V "volume-semanal=$VOLUME_SEMANAL tempos/semana" \
     -V "ciclo-semanas=$SEMANAS" \
     "${FICHA_VAR[@]}"
-  # A página de entrada («Nós, Por Exemplo», o `index`) traz dois atalhos para a porta —
-  # a anamnese e o PO — cujas URLs carregam os slugs do ciclo (professor, escola, ciclo).
-  # O pandoc não interpola variáveis no CORPO do documento; os marcadores `@ANAMNESE_URL@`
-  # e `@PO_URL@` são trocados aqui, só no `index`, pelo mesmo padrão de injeção do cabeçalho
-  # LaTeX (`@NOME@`). O `&` da query é escapado para o `sed` não lê-lo como "a linha toda".
+  # A página de entrada («Nós, Por Exemplo», o `index`) traz três atalhos para a porta —
+  # a anamnese, o plano de ensino e o PO — cujas URLs carregam os slugs do ciclo (professor,
+  # escola, ciclo). O pandoc não interpola variáveis no CORPO do documento; os marcadores
+  # `@ANAMNESE_URL@`, `@PLANO_URL@` e `@PO_URL@` são trocados aqui, só no `index`, pelo mesmo
+  # padrão de injeção do cabeçalho LaTeX (`@NOME@`). O `&` da query é escapado para o `sed` não
+  # lê-lo como "a linha toda".
   #
-  # O Passo 3 (Lançamento de aula) tem um FALLBACK: só vira link se o `lancamento.html`
+  # O Passo 4 (Lançamento de aula) tem um FALLBACK: só vira link se o `lancamento.html`
   # existir no pacote. Num ciclo "do zero" (ainda sem PO completo) ele não existe — e um
   # `<a href="lancamento.html">` apontaria para um 404. Sem o arquivo, o nome sai em texto
   # simples (sem link), para não quebrar a página.
@@ -1013,6 +1014,7 @@ for doc in $TODOS; do
     [ -f "$PACOTE/lancamento.html" ] && \
       LANCAMENTO_LINK='<a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>'
     sed -e "s|@ANAMNESE_URL@|$(printf '%s' "$ANAMNESE_URL" | sed -e 's/[&%#_]/\\&/g')|g" \
+        -e "s|@PLANO_URL@|$(printf '%s' "$PLANO_URL" | sed -e 's/[&%#_]/\\&/g')|g" \
         -e "s|@PO_URL@|$(printf '%s' "$PO_URL" | sed -e 's/[&%#_]/\\&/g')|g" \
         -e "s|{{LANCAMENTO_LINK}}|$(printf '%s' "$LANCAMENTO_LINK" | sed -e 's/[&%#_]/\\&/g')|g" \
         "$PACOTE/index.html" > "$TMP/index-p.html"

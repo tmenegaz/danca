@@ -9989,3 +9989,57 @@ deriva em relação ao menu do site — o «Plano de ensino» virou rota/item pr
   (`@ANAMNESE_URL@`/`@PO_URL@`) não têm o par do plano. É arquivo livre, mas muda a prosa do
   «Nós, Por Exemplo» (e a `raiz/index.html` derivada) — decisão da pesquisadora.
 - O `RODAPE_ZERO` do índice zero continua apontando só para o PO (um link de rodapé, não o menu).
+
+## 12/10/2026 — A página de entrada ganha o «Plano de ensino»
+
+**O que motivou.** O «Plano de ensino» virou artefato próprio (rota, menu, estante e seletor no
+PO), mas a página de entrada «Nós, Por Exemplo» continuava com o fluxo em quatro passos sem ele —
+«Passo 1 — Anamnese» → «Passo 2 — Plano de Observação» → «Passo 3 — Lançamento» → «Passo 4 —
+Consulte». A deriva era a mesma que já tinha sido corrigida no menu do site, no botão «Criar nova
+escola» e no CLI `criar-escola.sh`: a página contava uma história em que o plano não existia.
+
+**O que foi decidido.**
+- A página passa a ter CINCO passos, com o «Passo 2 — Plano de ensino» entre a anamnese e o PO,
+  e o lançamento/consulta renumerados para 4 e 5.
+- O novo passo fixa a posição do plano na cadeia: a anamnese dá o ponto de partida; o plano de
+  ensino fixa a intenção; o PO lê essa intenção como pergunta. Reforça que o plano é reaproveitável
+  e ajustável sem apagar o anterior.
+- Entra o atalho `@PLANO_URL@` ao lado de `@ANAMNESE_URL@`/`@PO_URL@` — e a prosa do Passo 3 (PO)
+  passa a citar o plano de ensino (não só a anamnese) como referência de partida.
+- A lista da «Área do Professor» no Passo 5 cita o Plano de ensino (antes só PO + anamnese).
+
+**Onde entrou.**
+`biblioteca/nos-por-exemplo.md` — Passo 2 novo, renumeração, atalho `@PLANO_URL@`, prosa do PO,
+lista da Área do Professor. É a fonte única; `raiz/index.html` e os `index.html` dos pacotes são
+regerados dela.
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo. O motivo: o marcador `@PLANO_URL@` não existia — o gerador
+(`gerar-ciclo.sh`), o CLI do ciclo zero (`criar-escola.sh`) e o validador de deriva
+(`check-nos-por-exemplo.js`) precisavam saber que a página agora tem TRÊS atalhos e um passo novo.
+**O que não muda:**
+
+- **A fórmula do hash e a cobertura.** `biblioteca/nos-por-exemplo.md` não é fonte de `.fipp`;
+  nenhum `.md`/`.conf` de ciclo muda; nenhuma reancoragem é necessária.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **Os demais validadores.** Só o `check-nos-por-exemplo.js` ganha a normalização do atalho novo
+  (que é a ÚNICA trava da deriva da página de entrada, como já fazia com anamnese e PO).
+
+**Com o quê.**
+`biblioteca/nos-por-exemplo.md`, `raiz/index.html`, `tools/gerar-ciclo.sh`,
+`tools/criar-escola.sh`, `tools/check-nos-por-exemplo.js`, `REGISTRO.md`, e os pacotes regerados
+`professores/fokini/ciclos/ciclo-01-diaghilev/`, `professores/fokini2/ciclos/ciclo-02-diaghilev2/`
+e `professores/tiago/ciclos/ciclo-01-maria/index.html`.
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · a entrada anterior «o plano de ensino vira rota própria» · a entrada
+«O CLI «criar-escola» alinha o menu zero ao plano de ensino» (que deixou a página de entrada como
+pendência).
+
+**O que ainda não está feito.**
+- O pacote «zero» da Maria não regenera por `gerar-ciclo.sh` (DOCS="plano", sem `aula-*`) — o
+  `index.html` foi propagado manualmente (precedente `95db237`); a rota `/plano-ensino/` é servida
+  pelo Worker, não por arquivo estático.
+- O `RODAPE_ZERO` do índice zero continua apontando só para o PO (link de rodapé, não o menu).
+- `semearDoPlano()` ainda semeia pelo plano «mais recente», não pelo que o professor SELECIONOU no
+  nó `plano-de-ensino` (camada D).
