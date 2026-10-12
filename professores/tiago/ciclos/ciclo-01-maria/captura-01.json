@@ -1,0 +1,169 @@
+{
+  "escola": "Maria",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-maria-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia da turma",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — técnica",
+      "tipo": "tabela",
+      "chave": "tecnica",
+      "rotulo": "técnica",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Alinhamento e estabilização da pelve",
+          "chave": "alinhamento_e_estabilizacao_da_pelve",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Sustentação e estrutura dos cotovelos",
+          "chave": "sustentacao_e_estrutura_dos_cotovelos",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Mecânica do en dehors no tendu (saída e retorno)",
+          "chave": "mecanica_do_en_dehors_no_tendu_saida_e_retorno",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Mecânica do en dehors no glissade e jeté",
+          "chave": "mecanica_do_en_dehors_no_glissade_e_jete",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Distribuição e transferência de peso",
+          "chave": "distribuicao_e_transferencia_de_peso",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Organização postural no eixo da perna de base",
+          "chave": "organizacao_postural_no_eixo_da_perna_de_base",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Precisão de ponto e apoio nos coupés",
+          "chave": "precisao_de_ponto_e_apoio_nos_coupes",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Articulação e estabilidade no passé",
+          "chave": "articulacao_e_estabilidade_no_passe",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Alinhamento do plié",
+          "chave": "alinhamento_do_plie",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Sustentação postural no arabesque",
+          "chave": "sustentacao_postural_no_arabesque",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Correspondência dos braços no arabesque",
+          "chave": "correspondencia_dos_bracos_no_arabesque",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Direcionamento espacial",
+          "chave": "direcionamento_espacial",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Qualidade de transição nos movimentos contínuos",
+          "chave": "qualidade_de_transicao_nos_movimentos_continuos",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Vavá"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — musicalidade",
+      "tipo": "tabela",
+      "chave": "musicalidade",
+      "rotulo": "musicalidade",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Precisão de ataque e início do movimento",
+          "chave": "precisao_de_ataque_e_inicio_do_movimento",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Acompanhamento do pulso constante",
+          "chave": "acompanhamento_do_pulso_constante",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Sincronia do ponto de término (fechamento)",
+          "chave": "sincronia_do_ponto_de_termino_fechamento",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Autonomia de escuta sem contagem em voz alta",
+          "chave": "autonomia_de_escuta_sem_contagem_em_voz_alta",
+          "tipo": "marca"
+        },
+        {
+          "rotulo": "Diferenciação de dinâmicas e qualidades sonoras",
+          "chave": "diferenciacao_de_dinamicas_e_qualidades_sonoras",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "Vavá"
+      ]
+    },
+    {
+      "titulo": "Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Observado na aula",
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "cinco-posicoes-3a-pes: Não medido",
+        "cinco-posicoes-4a-pes: Não medido",
+        "cinco-posicoes-5a-pes: Não medido",
+        "cinco-posicoes-4a-bracos: Não medido"
+      ],
+      "secoes": [
+        "Vavá"
+      ]
+    }
+  ],
+  "variante": "maria"
+}

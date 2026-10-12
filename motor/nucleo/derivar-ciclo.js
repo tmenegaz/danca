@@ -48,6 +48,17 @@ function slugDe(texto) {
     .replace(/_+/g, '_');
 }
 
+/**
+ * O RÓTULO CURTO de um item de dimensão: "Título: Descrição" → "Título". É o que a folha de
+ * captura usa como cabeçalho de coluna — a DESCRIÇÃO não é título de coluna (ela já vive no PO
+ * e na guia de observação). Um item sem `:` é o rótulo inteiro.
+ */
+function rotuloDoItem(item) {
+  const s = String(item || '').trim();
+  const i = s.indexOf(':');
+  return (i === -1 ? s : s.slice(0, i)).trim();
+}
+
 /** A resposta de um id no envelope (alias curto do `respostaDo` do irmão). */
 function resp(envelope, id) {
   return respostaDo(envelope, id);
@@ -427,7 +438,10 @@ function declaracaoDeCaptura({ po, escola }) {
   dims.forEach((d, i) => {
     const titulo = 'Bloco ' + (i + 1) + ' — ' + d.dimensao;
     const colunas = {};
-    for (const item of d.itens) colunas[item] = { chave: slugDe(item), tipo: 'marca' };
+    for (const item of d.itens) {
+      const rotulo = rotuloDoItem(item);
+      colunas[rotulo] = { chave: slugDe(rotulo), tipo: 'marca' };
+    }
     blocos[titulo] = { chave: slugDe(d.dimensao), rotulo: d.dimensao, grao: 'aluna', colunas };
   });
   blocos['Linha de base revisitada (P-10)'] = {
@@ -476,14 +490,24 @@ function derivarCaptura({ po, contexto }) {
   saida.push('**O que mudou em relação ao plano:** `______________________________________________________`');
   saida.push('');
 
-  // A tabela de um bloco de dimensão: `| Aluna(o) | item… |` + separador + uma linha por aluna.
+  // A tabela de um bloco de dimensão. DUAS orientações, decididas pela proporção:
+  //   · critérios ≤ alunas → critérios nas COLUNAS (uma linha por aluna), como o Diaghilev;
+  //   · critérios > alunas → TRANSPÕE: critérios nas LINHAS (quebram na página), alunas nas colunas.
+  // O cabeçalho usa o RÓTULO CURTO (o título do critério, sem a descrição) — a descrição inteira
+  // como cabeçalho de coluna estoura a margem do PDF.
   const tabelaDeDimensao = (itens) => {
-    const celulas = itens.length ? itens : ['[Preencher: item]'];
-    const linhas = [];
-    linhas.push('| Aluna(o) | ' + celulas.join(' | ') + ' |');
-    linhas.push('|:--|' + celulas.map(() => ':--:|').join('') + '');
+    const celulas = (itens.length ? itens : ['[Preencher: item]']).map(rotuloDoItem);
     const linhasDeAluna = sujeitos.length ? sujeitos : ['[Preencher: aluna]'];
-    for (const s of linhasDeAluna) linhas.push('| ' + s + ' | ' + celulas.map(() => ' ').join(' | ') + ' |');
+    const linhas = [];
+    if (celulas.length > linhasDeAluna.length) {
+      linhas.push('| Critério | ' + linhasDeAluna.join(' | ') + ' |');
+      linhas.push('|:--|' + linhasDeAluna.map(() => ':--:|').join('') + '');
+      for (const c of celulas) linhas.push('| ' + c + ' | ' + linhasDeAluna.map(() => ' ').join(' | ') + ' |');
+    } else {
+      linhas.push('| Aluna(o) | ' + celulas.join(' | ') + ' |');
+      linhas.push('|:--|' + celulas.map(() => ':--:|').join('') + '');
+      for (const s of linhasDeAluna) linhas.push('| ' + s + ' | ' + celulas.map(() => ' ').join(' | ') + ' |');
+    }
     return linhas;
   };
 

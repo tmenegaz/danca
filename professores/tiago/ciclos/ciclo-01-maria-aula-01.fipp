@@ -10,9 +10,9 @@ professor: Tiago
 ciclo: 01
 variante: maria
 aula: 01
-hash_conteudo: 62f5d4cc49e8b865abe63eb3939280fc0ddfced5fa4f362b2079bd8b10ddbcd2
+hash_conteudo: 146d2562636a368cf2b82bc621e09a57c12c39aced9b4b81d62ac62a1e29856d
 parentHash: 
-hash: 91cb3c91e501f289fc755600dad6ffbb25b91fd3187c7f883281821ff957ffdf
+hash: f9ab83c9440a39d3975980037b056ffc508ace62cf463bb252d030b54f5ce52b
 algoritmo: SHA-256
 ancorado_em: 2026-10-12
 cobertura:

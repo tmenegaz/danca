@@ -1,0 +1,45 @@
+{
+  "validacaoDaAula": "Quando transfere o peso de uma perna para outra passando pela segunda posição o peso é completamente distribuído para a perna de apoio? Se sim está OK. |",
+  "identificacao": {
+    "objetivoEspecifico": "Trabalhar a distribuição de peso de uma perna para outra e também a distribuição de peso em posições amplas por exemplo passando pela segunda posição",
+    "parametroDeMedicao": "Quando faz o tandu o peso é completamente deslocado para a perna de base? se sim está ok.",
+    "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
+  },
+  "condicoesPreliminares": "Sala com colchonete e barra",
+  "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Solo - exercícios de tonificação para tandi e passei e também coordenação de braços e postura tanto de barriga para cima quanto de barriga para baixo · [Preencher] · [Preencher] Barra - coordenação motora para execução dos tandues por de brás e postura · [Preencher] · [Preencher] Centro e diagonal - reforçar a ideia de postura e transferência de peso com exercícios de deslocamento de uma perna para a outra perna · [Preencher] · [Preencher] **Total** · **90** · **100%** ### Sequência declarada Tandu - duas vezes 16 tempos 2 por 4 Plie - 24 tempos 3 por 4 Tanlie - 32 tempos 3 por 4 Movimentos dos braços 24 tempos 2 por 4",
+  "guiaDeObservacao": [
+    {
+      "dimensao": "técnica",
+      "oQueSeObserva": "[Preencher]",
+      "comoSeRegistra": "marca por aluno"
+    },
+    {
+      "dimensao": "musicalidade",
+      "oQueSeObserva": "[Preencher]",
+      "comoSeRegistra": "marca por aluno"
+    }
+  ],
+  "distribuicaoDoVolume": [
+    {
+      "bloco": "Total",
+      "tempos": "90",
+      "fatia": "100%"
+    }
+  ],
+  "proveniencia": "Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 60 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 90 tempos em 80–100"
+    }
+  ],
+  "proximoPasso": "[Preencher: o próximo passo da progressão do ciclo]"
+}

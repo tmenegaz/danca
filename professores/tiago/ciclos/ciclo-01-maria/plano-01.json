@@ -1,0 +1,53 @@
+{
+  "objetivoGeral": "Objetivo geral desse ciclo é verificar a capacidade de se equilibrar com os movimentos do balé clássico mediante a transferência de peso e a coordenação dos braços",
+  "ciclo": {
+    "duracaoAulas": "[Preencher: N encontros — o .conf da variante declara]",
+    "duracaoMinutos": "[Preencher: duração em minutos — o .conf declara (Pré-requisito 4)]",
+    "inicio": "[Preencher: dd/mm/aaaa — o .conf declara]",
+    "encerramento": "ver o [Calendário do ciclo](#calendario-do-ciclo)",
+    "volumeAtivoPorAula": "[Preencher: faixa de tempos — o sistema declara a partir da duração do ciclo]",
+    "professor": "tiago"
+  },
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "marco": "01 trabalhar a transferência de peso com tandu ela second e tansu a frente e passei em dehors e transferência de peso da primeira para segunda posição, e da primeira com o tanlie passando pela quarta posição indo para frente e voltando para trás. Trabalhar os movimentos dos braços na primeira para a segunda posição e terceira posição também dos braços. Trabalhar deslocamento pela sala com terrários sincronizando braços em primeira, segunda e terceira posição"
+    }
+  ],
+  "estruturaDeCadaAula": [
+    "Solo - exercícios de tonificação para tandi e passei e também coordenação de braços e postura tanto de barriga para cima quanto de barriga para baixo",
+    "Barra - coordenação motora para execução dos tandues por de brás e postura",
+    "Centro e diagonal - reforçar a ideia de postura e transferência de peso com exercícios de deslocamento de uma perna para a outra perna"
+  ],
+  "rubrica": [
+    {
+      "criterio": "Tandu - bom, razoável, precisa melhorar",
+      "insatisfatorio": "",
+      "emDesenvolvimento": "",
+      "satisfatorio": "",
+      "excelente": ""
+    },
+    {
+      "criterio": "Transferência de peso - bom, razoável, precisa melhorar",
+      "insatisfatorio": "",
+      "emDesenvolvimento": "",
+      "satisfatorio": "",
+      "excelente": ""
+    },
+    {
+      "criterio": "Coordenação dos braços - bom, razoável, precisa melhorar",
+      "insatisfatorio": "",
+      "emDesenvolvimento": "",
+      "satisfatorio": "",
+      "excelente": ""
+    }
+  ],
+  "proveniencia": "Plano derivado da metodologia rad",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
+  "_lacunas": [
+    {
+      "campo": "rubrica.aplicadaEm",
+      "declara": "[Preencher: leitura de prosa não implementada — o documento diz \"Aplicada na Aula 11 (formativa) e na Aula 12 (somativa)\"]"
+    }
+  ]
+}
