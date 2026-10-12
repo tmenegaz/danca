@@ -10321,10 +10321,17 @@ infraestrutura da mesma operação de saneamento).
 **O que ainda não está feito.**
 - O hook de expurgo (`scheduled` no Worker + `escolas-habilitadas.json`) ainda NÃO existe —
   é o que o Diaghilev II vai testar quando nascer.
-- O Worker e o subdomínio `diaghilev.tmenegaz77.workers.dev` no Cloudflare ainda NÃO foram
-  removidos (o expurgo DIRETO aqui removeu o repositório, não o recurso vivo) — pendente de
-  confirmação da pesquisadora, para não apagar o KV compartilhado que o Diaghilev II usa.
 - O secret GitHub `SENHAS_LOCAIS` precisa ser reescrito SEM `SENHA_DIAGHILEV` (e sem a senha
   da raiz, do expurgo anterior).
+
+> **Nota de correção (12/10/2026).** As duas pendências acima fecharam ainda na mesma data.
+> A pesquisadora confirmou o expurgo do recurso vivo: o Worker e o subdomínio
+> `diaghilev.tmenegaz77.workers.dev` foram **apagados** via Cloudflare API (o subdomínio
+> primeiro, depois o script do Worker), preservando o namespace KV compartilhado
+> (`2ee331…`) que o Diaghilev II usa — o Diaghilev voltou `404`, e `maria`/`diaghilev2`/`danca`
+> permaneceram `200`/`200`/`401`. E o secret GitHub `SENHAS_LOCAIS` foi **reescrito** com só
+> `SENHA_DIAGHILEV2` e `SENHA_MARIA` — sem `SENHA_DIAGHILEV` nem `SENHA_RAIZ`. No KV
+> compartilhado sobraram 2 chaves residuais do Diaghilev (`diaghilev/fokini/01-…`), deixadas
+> de propósito para o hook de expurgo limpar.
 - Os pacotes das escolas restantes carregam o `lancamento.html` com o comentário antigo até a
   próxima regeneração (a mudança é só de comentário; não exige reancorar).
