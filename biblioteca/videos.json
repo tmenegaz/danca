@@ -1,0 +1,31 @@
+{
+  "_nota": "Ficheiro chave-valor dos vídeos do «Nós, Por Exemplo». Cada chave identifica UM bloco de UM protocolo, sem ambiguidade. O valor é o link do YouTube. Enquanto o vídeo não existir, o valor fica vazio (''), e a página mostra o espaço reservado «vídeo a inserir». Para trocar um vídeo: abra este ficheiro, mude o valor da chave, grave e commite — a página mostra o novo vídeo sem tocar em mais nada. As chaves não se apagam: um vídeo removido fica com valor vazio, e a chave permanece para o histórico.",
+  "_formato": {
+    "anamnese": "anamnese.bloco-N — N é o número do campo `bloco` em porta/conteudo/anamnese.json (bloco 1 = Identificação e Histórico Prévio; blocos 2 a 9).",
+    "po": "po.bloco-N — N é o número do campo `bloco` em porta/po/conteudo/po.json (bloco 1 = Identificação do Recorte; blocos 2 a 7).",
+    "coleta": "coleta.<slug> — o slug deriva do título da secção em professores/<professor>/ciclos/ciclo-XX-<escola>/captura-01.json, que não é numerada.",
+    "regra": "As chaves nascem da estrutura dos blocos, nunca de suposição. Um bloco que não exista não ganha chave. Um bloco novo que precise de vídeo acrescenta a sua chave aqui."
+  },
+  "anamnese.bloco-1": "",
+  "anamnese.bloco-2": "",
+  "anamnese.bloco-3": "",
+  "anamnese.bloco-4": "",
+  "anamnese.bloco-5": "",
+  "anamnese.bloco-6": "",
+  "anamnese.bloco-7": "",
+  "anamnese.bloco-8": "",
+  "anamnese.bloco-9": "",
+  "po.bloco-1": "",
+  "po.bloco-2": "",
+  "po.bloco-3": "",
+  "po.bloco-4": "",
+  "po.bloco-5": "",
+  "po.bloco-6": "",
+  "po.bloco-7": "",
+  "coleta.cabecalho": "",
+  "coleta.condicoes-de-contorno": "",
+  "coleta.eixo-e-peso": "",
+  "coleta.presenca-no-lugar": "",
+  "coleta.funcional": "",
+  "coleta.linha-de-base": ""
+}
