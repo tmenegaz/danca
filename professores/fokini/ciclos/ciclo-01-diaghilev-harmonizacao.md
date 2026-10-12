@@ -1,3 +1,6 @@
+title: "Harmonização de linguagem"
+subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"
+
 # Harmonização de linguagem — Ciclo 01 — Diaghilev
 
 > Esta tabela é **visível ao professor**. Se ele discordar de alguma harmonização, ele reescreve

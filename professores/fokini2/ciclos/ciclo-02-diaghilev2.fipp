@@ -8,9 +8,9 @@ type: Ciclo
 professor: Fokini II
 ciclo: 02
 variante: diaghilev2
-hash_conteudo: 7ec17ed9003c026897825a3c4ff3f9083c73c085e7540eee73d8d6e90aed7c54
+hash_conteudo: 6196fdce1c621de85fb5b63fdc3be92d3bc985ca291d25c21cc2d78ebbeaee4c
 parentHash: 
-hash: a2ac04a592ae5ec5627b0e17cc1a8e64bd9dc2f817d58836d7136f98debdf8a7
+hash: 56c72a3e5b608b1418a9ff32241b2baffd22e7f906887a418564ee358dc1d141
 algoritmo: SHA-256
 po: professores/fokini2/ciclos/ciclo-02-diaghilev2-po.md
 po_state: Input_PO_Validado
