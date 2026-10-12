@@ -1,0 +1,46 @@
+{
+  "identificacao": {
+    "objetivoEspecifico": "Isolar o eixo vertical e a distribuição do peso, no solo e sem deslocamento",
+    "parametroDeMedicao": "Mantém a pelve nivelada sobre os apoios durante 8 tempos, sem compensar com o tronco",
+    "duracao": "60 minutos (Pré-requisito 4)",
+    "volumeAtivo": "90 tempos (faixa 80–100 da duração de 60 min — Regra 9, etapa 1)",
+    "dataEHorarioDestaAula": "[Preencher: a data desta aula não está na fonte — os dialetos B/C remetem a `plano.html#calendario-do-ciclo`, e quem a sabe é o .conf da variante (Regra 10, camada 2: frequência, dias, duração, datas reais)]"
+  },
+  "condicoesPreliminares": "Sala com piso adequado e sem obstáculos",
+  "sequenciaDaAula": "### Distribuição do tempo da aula Bloco · Tempos · Fatia Solo · [Preencher] · [Preencher] Barra · [Preencher] · [Preencher] Centro · [Preencher] · [Preencher] **Total** · **90** · **100%** ### Sequência declarada Tendu (32 tempos, 2/4)",
+  "guiaDeObservacao": [
+    {
+      "dimensao": "Eixo",
+      "oQueSeObserva": "[Preencher]",
+      "comoSeRegistra": "marca por aluno"
+    },
+    {
+      "dimensao": "Peso",
+      "oQueSeObserva": "[Preencher]",
+      "comoSeRegistra": "marca por aluno"
+    }
+  ],
+  "distribuicaoDoVolume": [
+    {
+      "bloco": "Total",
+      "tempos": "90",
+      "fatia": "100%"
+    }
+  ],
+  "proveniencia": "Documento derivado do plano do ciclo e das fontes do PO. Ciclo **simulado** — a cadeia foi gerada pelo «Guardar» do PO (proveniência acrescenta, não edita).",
+  "auditoria": [
+    {
+      "verificacao": "Objetivo específico declarado",
+      "resultado": "ok"
+    },
+    {
+      "verificacao": "Duração declarada (Pré-requisito 4)",
+      "resultado": "ok — 60 minutos"
+    },
+    {
+      "verificacao": "Volume dentro da faixa (Regra 9)",
+      "resultado": "ok — 90 tempos em 80–100"
+    }
+  ],
+  "proximoPasso": "[Preencher: o próximo passo da progressão do ciclo]"
+}
