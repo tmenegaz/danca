@@ -550,6 +550,274 @@ sistema. Registrada para não se perder.
 - **Os três componentes nomeados.** O botão binário, o acordeão de agrupamento e o acordeão de
   tempo são variações do radio e do `<details>` que já existem (§8.1/§8.4); o desenho os
   declara, mas **nada foi implementado** — criar os componentes próprios ainda não foi feito.
+- **A convenção de senha por professor.** §17.3 propõe `SENHA_<ESCOLA>_<PROFESSOR>`, mas o formato
+  exato — e como a Produção cria/deleta sem nunca ler — não foi fechado. Hoje a senha é só por
+  escola (`SENHA_<ESCOLA>`).
+- **O local e o formato dos dois andaimes** (§17.1 e §17.5). A proposta é
+  `escola/<escola>/fixtures/alunas.json` e `escola/fixtures/escolas-habilitadas.json`, mas o
+  caminho final — e quem serve esses JSON ao formulário/ao Cron Trigger — não foi implementado.
+- **O `desde` da desabilitação.** Onde a data de desabilitação é gravada (no mesmo JSON do andaime?
+  num registo à parte que o Cron consulta?) — §17.5 propõe o terceiro campo, mas é decisão em aberto.
+- **A senha do domínio raiz.** Que convenção usar (`SENHA_RAIZ`? `SENHA_DANCA`?) e se é um `secret`
+  do wrangler ou um valor no KV — §17.6 declara a necessidade, não o mecanismo final.
+- **O prazo de expurgo em produção.** O teste usa 3 minutos; o valor de produção (3 meses) e se é
+  fixo ou política por escola — não foi fechado.
+- **Quais congelados descongelam para implementar** — `tools/lib-senhas.sh` e
+  `tools/criar-escola.sh` estão sob `tools/` (congelado) e exigem motivo declarado + commit
+  próprio. `workers/` **não está congelado** (`CONGELAMENTO.md` não o lista) — o Cron Trigger e a
+  senha do domínio raiz entram sem o rito dos congelados, mas com a mesma disciplina de commit.
+  Nada foi descongelado nesta rodada — é plano.
+
+## 17. As sete mudanças de comportamento (precisões pós-Bastidores)
+
+*(Seção de plano — **nada se implementa.** Sete precisões de comportamento, uma nota de norma
+em `PROTOCOLO.md`, e dois andaimes temporários declarados.)*
+
+Cada mudança declara: **o que muda**, **onde muda**, **o que já existe que serve**, e **o que
+falta criar**. O que foi verificado no repositório está marcado como «lido»; nada é inventado.
+
+### 17.1 O campo `aluna` vira lista (deixa de ser texto)
+
+- **O que muda.** Na anamnese, o campo `aluna` deixa de ser digitado e passa a ser uma
+  **seleção** a partir da lista de alunas declarada nos Bastidores. O professor **seleciona** o
+  nome correto; não digita.
+- **O que já existe (lido).** Hoje o campo é `<input type="text" id="ctx-aluna">` na faixa de
+  contexto da porta (`porta/index.html`), digitado à mão e visível **só na anamnese** (a fonte
+  `po`/`plano` oculta o campo). **Não existe lista de alunas em lugar nenhum** do sistema:
+  nenhum `.conf` tem `ALUNOS`, e o `ESCOLA.conf` — a casa planeada (§10) — ainda não existe.
+- **O que falta.** A lista `ALUNOS` no `ESCOLA.conf` (por apelidos estáveis, P-12) e o `select`
+  que a lê na anamnese. O destino final já está desenhado; o formulário só troca o `input` por um
+  `select` alimentado pela mesma origem de dados.
+
+> **Enquanto a Produção não existe:** o campo `aluna` da anamnese lê de um **arquivo JSON
+> temporário** de chave-valor, com o **nome** e a **data de nascimento** de cada aluna. É de onde o
+> formulário tira a **idade** e a **categoria etária** (infantil, juvenil, adulto). Este arquivo é
+> **andaime**, não solução. É a pesquisadora que o edita à mão para testar. Quando a Produção
+> existir, ele **sai** e a anamnese passa a ler da fonte que a Produção declarar.
+
+**Onde o andaime vive (proposta).** `escola/<escola>/fixtures/alunas.json` — ao lado de onde o
+`ESCOLA.conf` vai nascer, marcado como temporário. Formato:
+
+```json
+{
+  "aluna-1": { "nome": "Cecília Almeida", "nascimento": "12/04/2018" },
+  "aluna-2": { "nome": "Ana Costa",       "nascimento": "03/09/2017" }
+}
+```
+
+**Como o formulário o lê.** A porta expõe uma rota de leitura (`api/alunas`), que serve o JSON; o
+campo `aluna` vira um `select` alimentado por ela. O cálculo da **idade** e da **categoria
+etária** **já existe** (`idadeEmAnos` e `categoriaPorIdade` em `porta/index.html`): hoje ele
+consome o campo `idade` digitado como `dd/mm/aaaa`; com o mock, consome o `nascimento` do mesmo
+formato — **o cálculo não muda, só a origem do dado.**
+
+**O que não muda.** O destino final (a lista no `ESCOLA.conf`, nome + nascimento), o cálculo de
+idade/categoria, e a forma do dado (`nascimento` em `dd/mm/aaaa`). O mock é removido quando a
+Produção nascer.
+
+### 17.2 O campo `senha da escola` — botão «criar senha»
+
+- **O que muda.** Se a pessoa **ainda não tem senha**, aparece um **botão «criar senha»**. Ao
+  clicar: aparece a **lista de professores** (do `ESCOLA.conf` planeado — campo `PROFESSORES`);
+  a pessoa **escolhe o nome dela**; e **cria a senha** a partir dessa escolha. É o caminho de
+  primeira vez do professor novo.
+- **O que já existe (lido).** Hoje o campo `senha` da porta é um `<input type="password">` na
+  faixa de contexto, **digitado à mão** — não há botão «criar senha» nem lista de professores.
+  `tools/criar-escola.sh` **não gera senha nenhuma**: a senha é criada **à mão** pela pesquisadora
+  em `tools/.senhas-locais` (variável `SENHA_<ESCOLA>`, fora do Git). A lista `PROFESSORES`
+  **não existe** em lugar nenhum hoje.
+- **O que falta.** O botão + a lista `PROFESSORES` do `ESCOLA.conf` + o ato de criar a senha a
+  partir da escolha. A convenção `SENHA_<ESCOLA>` é por escola, não por professor — a mudança
+  exige a convenção **por professor** (§17.3).
+
+### 17.3 A senha do professor na Produção
+
+- **O que muda.** A Produção passa a ter uma secção de gestão das senhas dos professores. O que
+  fica visível é **o nome do professor** (a entrada da senha) — **nunca a senha em si**. A direção
+  pode **deletar** e **criar** uma senha nova; **nunca editar**, **nunca ler** a antiga.
+- **O que já existe (lido).** A Produção **não existe** (§9/§11). A convenção
+  `tools/lib-senhas.sh` é o único precedente: o nome é visível (a variável `SENHA_<ESCOLA>`) e o
+  valor vive fora do Git (`tools/.senhas-locais`) — mas é **por escola**, e o valor é legível por
+  quem abre o arquivo local. Serve como **semente do modelo** (nome visível, valor protegido), não
+  como o modelo final.
+- **O que falta.** Uma convenção **por professor** (ex.: `SENHA_<ESCOLA>_<PROFESSOR>`), e uma
+  secção na Produção que guarda a senha num sítio em que a direção **cria/deleta sem ler** — o
+  valor nunca volta a quem administra.
+
+### 17.4 A senha do administrador
+
+- **O que muda.** A «criar senha» da anamnese é **só para professor**. A senha do
+  **administrador** (dono da escola) é criada **noutro sítio**: no `criar-escola.sh`, quando a
+  escola nova nasce. Essa senha dá acesso a **tudo** — Produção e Estúdio.
+- **O que já existe (lido).** `tools/criar-escola.sh` **não cria senha de administrador** — nem
+  senha nenhuma. A distinção **professor × administrador não existe** no sistema (uma só senha por
+  escola, no `tools/.senhas-locais`).
+- **O que falta.** A senha do administrador no `criar-escola.sh` (onde é guardada e o que permite)
+  e a separação explícita professor × administrador — hoje não há nenhum papel, é plano.
+
+### 17.5 O hook de expurgo das escolas desabilitadas (Cron Trigger)
+
+- **O que muda.** Entra uma regra nova, registrada em norma (ver `PROTOCOLO.md`, ressalva de
+  escopo após a P-04): **quando a escola está desabilitada e o prazo passa, um hook no servidor
+  apaga completamente a escola** — deixa de existir e libera espaço. Para teste o prazo é **3
+  minutos** (em vez de 3 meses). O hook é um **Cron Trigger**: apaga sem ninguém clicar. O fluxo:
+  desabilitou → o servidor **calcula e regista o prazo**; o prazo chegou → o Cron **apaga**;
+  reabilitou dentro do prazo → o servidor **cancela** o prazo.
+- **O que já existe (lido).** **Não há nenhum Cron Trigger** nem `scheduled` handler no Worker
+  (`workers/principal.js`, `workers/receber.js`, `motor/servidor/*` — nenhum). A flag
+  `ESCOLA_HABILITADA` hoje vive em **dois níveis**: a `vars` do wrangler (interruptor-mestre,
+  adicionado nesta sessão) e a `ESCOLA_HABILITADA` da variante do ciclo (vínculo escola × ciclo —
+  §10). O schema do ciclo **já declara** `ESCOLA_HABILITADA_MOTIVO` e `ESCOLA_HABILITADA_DESDE`
+  (data `dd/mm/aaaa`) para a desabilitação — mas são campos **do ciclo**, não do servidor; o
+  Worker **não lê a data** nem calcula prazo de expurgo.
+- **O que falta.** O handler `scheduled` no Worker (lê a flag + a data, calcula o prazo, expurga),
+  o registo da **data de desabilitação no nível do servidor** (o `desde` do andaime — §17.5), e a
+  regra da proveniência condicional — já registrada em `PROTOCOLO.md`.
+
+> **Enquanto a Produção não existe:** a flag `HABILITADA` (e a data de desabilitação, quando
+> aplicável) lê de um **arquivo JSON temporário** de chave-valor — `{escola: {habilitada: sim|nao}}`.
+> É deste ficheiro que o hook de expurgo (o `Cron Trigger`) sabe que escolas estão desabilitadas e
+> quando as apagar. Este arquivo é **andaime**, não solução. É a pesquisadora que o edita à mão para
+> testar. Quando a Produção existir, ele **sai** e a flag passa a viver no `ESCOLA.conf`, com o
+> mesmo dado — mais o `motivo` e o `desde` que a §10 já planeia.
+
+**Onde o andaime vive (proposta).** `escola/fixtures/escolas-habilitadas.json` (uma pasta
+`escola/fixtures/` na raiz, ao lado de `escola/<escola>/`). Formato — o `desde` só existe quando
+`habilitada` é `false`, e é o servidor que o grava no instante da desabilitação:
+
+```json
+{
+  "diaghilev":  { "habilitada": true },
+  "diaghilev2": { "habilitada": false, "desde": "2026-10-11T10:30:00-03:00" }
+}
+```
+
+> **Norma — limpeza no ambiente de desenvolvimento.** Quando uma escola é expurgada no servidor,
+> **tudo o que diz respeito àquela escola é limpo no ambiente de desenvolvimento** — na próxima
+> sincronização com o GitHub. O critério de identificação é o **slug da escola**. Isto inclui
+> **a senha** (no `tools/.senhas-locais`), os ficheiros locais, e qualquer resíduo que carregue o
+> slug. **Antes de apagar, verificar que a escola não está a pagar** — uma escola que pagou, mas
+> cujo estado está desalinhado, **não deve ser apagada**. A norma está registada em
+> `PROTOCOLO.md` (ressalva após a P-04), para o sistema ficar limpo.
+
+**O que a limpeza cobre (lido no repositório, ambiente local):**
+
+| Resíduo | Onde vive hoje | Versionado? |
+|:--|:--|:--|
+| a senha da escola (`SENHA_<ESCOLA>`) | `tools/.senhas-locais` | **não** (no `.gitignore`) |
+| o slug na lista de escolas de teste | `tools/.escolas-teste` | **não** (no `.gitignore`) |
+| a config do Worker da escola | `wrangler.<escola>.jsonc` | **sim** |
+| o pacote do ciclo | `professores/<p>/ciclos/ciclo-NN-<escola>/` | **sim** |
+| as fontes da variante (`-*.md`, `-*.conf`, `-schema.json`) | `professores/<p>/ciclos/ciclo-NN-<escola>*` | **sim** |
+| o cache do wrangler | `.wrangler/` | **não** (no `.gitignore`) |
+
+**Onde a limpeza se encaixa.** Não há hoje nenhum script de sincronização (`git pull`) nem
+`post-merge` — os hooks ativos são só `commit-msg`, `pre-commit` e `pre-push` (`tools/instalar-hooks.sh`).
+O ponto natural é o hook **`post-merge`** (dispara depois de um `git pull` que produz merge; o Git
+não tem `pre-pull`/`post-pull` nativos) — ou um script próprio rodado manualmente após a
+sincronização. A busca é **pelo slug** (não pelo nome de exibição nem pelo número), e a verificação
+«não está a pagar?» acontece **antes** de qualquer apagar.
+
+> **Índice por escola.** O `criar-escola.sh` gera um **índice da escola** — um arquivo que lista
+> tudo o que diz respeito àquela escola: o slug, a data de criação, os ficheiros criados, a
+> **referência** à senha (nunca o valor), e o estado inicial. O **hook de expurgo** lê este índice
+> e faz a limpeza por **checklist** — verifica cada entrada, apaga o que existe, regista o que foi
+> apagado e o que não foi. **Verifica sempre que a escola não está a pagar** — se estiver, não
+> apaga e regista o motivo.
+
+**Onde o índice vive — decisão, com o que o sistema oferece.** Em **`escola/<escola>/indice.json`**
+— a pasta própria da escola na raiz, que o §6 já reservou para o `ESCOLA.conf`/`ESCOLA.fipp`. Fica
+**fora** de `professores/<p>/ciclos/` (onde vive o ciclo e onde a limpeza apaga); é a casa neutra
+que não é tocada pelo expurgo do ciclo. É **versionado** (ao contrário da senha, que vive no
+`.gitignore`).
+
+**O que o índice regista (o que o `criar-escola.sh` já cria — lido, não inventado).** Hoje o script
+cria: a pasta do professor (`professores/<p>/` com `ciclos/`, `cadernos/`, `relatorios/`, `campo/`),
+os 5 schemas copiados do modelo, os 2 manifestos (`ciclo-NN.conf` + `ciclo-NN-<escola>.conf`), o
+pacote zero (`ciclo-NN-<escola>/` com `assets/`, `plano-observacao/`, `index.html`) e o
+`wrangler.<worker>.jsonc`. **Não cria senha** (é manual em `tools/.senhas-locais`) e **não cria
+inventário nenhum** — é a lacuna que o índice preenche. Formato proposto:
+
+```json
+{
+  "escola": "diaghilev3",
+  "criado_em": "2026-10-11T22:00:00-03:00",
+  "professor": { "slug": "fokini3", "nome": "Fokini III" },
+  "responsavel": "Fokini III",
+  "senha": { "chave": "SENHA_DIAGHILEV3", "arquivo": "tools/.senhas-locais" },
+  "estado": { "habilitada": true },
+  "arquivos": [
+    { "caminho": "professores/fokini3/ciclos/ciclo-03.conf", "tipo": "manifesto base" },
+    { "caminho": "professores/fokini3/ciclos/ciclo-03-diaghilev3.conf", "tipo": "manifesto variante" },
+    { "caminho": "professores/fokini3/ciclos/ciclo-03-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json", "tipo": "schemas" },
+    { "caminho": "professores/fokini3/ciclos/ciclo-03-diaghilev3/", "tipo": "pacote zero" },
+    { "caminho": "wrangler.diaghilev3.jsonc", "tipo": "config do Worker" }
+  ]
+}
+```
+
+**A senha no índice é a chave, nunca o valor.** `senha.chave` aponta para `SENHA_DIAGHILEV3` — é o
+que a limpeza usa para remover a linha certa de `tools/.senhas-locais`; o valor nunca entra no
+índice (o índice é versionado, a senha não pode ser).
+
+**Como o hook lê e limpa por checklist.** O hook (na sincronização, o `post-merge` local) lê o
+índice e, para cada entrada: o ficheiro existe? a chave da senha existe? Verifica **primeiro** que
+a escola não está a pagar — se estiver, **não apaga** e regista o motivo. Depois apaga o que existe
+e regista o que foi apagado e o que não foi — **no próprio índice**, como um elo novo, não numa
+reescrita.
+
+**O índice sobrevive ao expurgo — e por quê.** **Sim, sobrevive.** É a **única exceção** à norma
+da limpeza, e a razão é o princípio central do sistema: **a proveniência acrescenta, não edita**
+(P-03/P-04). Se o índice saísse com a escola, o expurgo ficava **amnésico** — o sistema perderia
+toda a prova de que a escola existiu, o que contradiz a razão de ser do projeto (o rastro). O índice
+fica como a **lápide** da escola: um único ficheiro pequeno que prova *o que foi criado*, *quando*,
+*o que foi apagado* e *por quê* — o **elo do expurgo**. É o mesmo papel da âncora `.fipp`, que
+sobrevive como a cadeia. Ao expurgar, o índice **não é reescrito** — recebe um **elo novo** com a
+data, o motivo e a lista do que foi apagado/não apagado:
+
+```json
+{
+  "escola": "diaghilev3",
+  "criado_em": "2026-10-11T22:00:00-03:00",
+  "expurgado": {
+    "em": "2027-01-11T22:00:00-03:00",
+    "motivo": "desabilitada + prazo de expurgo vencido",
+    "pagava": false,
+    "apagados": ["professores/fokini3/ciclos/ciclo-03.conf", "…"],
+    "nao_apagados": []
+  }
+}
+```
+
+**O que já existe de inventário (lido).** O único índice por ciclo é o `ciclos.json` do pacote
+(gerado pelo `gerar-ciclo.sh`, **por ciclo**, não por escola) e as âncoras `.fipp` (por ciclo/aula).
+**Não existe inventário por escola** — o índice é o primeiro, e é **andaime**: quando a Produção
+existir, ele continua a servir, mas **gerado pela Produção** e não pelo `criar-escola.sh`.
+
+### 17.6 O domínio raiz pede senha de imediato
+
+- **O que muda.** O domínio raiz (`danca.tmenegaz77.workers.dev`) **pede senha de imediato** — só a
+  pesquisadora tem acesso. Sem isso, qualquer pessoa cria um domínio novo, uma escola nova, ou uma
+  senha de administrador.
+- **O que já existe (lido).** **Não há domínio raiz hoje** — os únicos Workers são `diaghilev` e
+  `diaghilev2`, cada um servindo a sua escola. **Não há rota com senha no Worker**: a única
+  «senha» que existe é a da **criptografia no navegador** (`tools/lib-cifra.js`), que **nunca sobe
+  ao servidor** — não é autenticação. A convenção `tools/.senhas-locais` **não está preparada** para
+  uma senha de domínio raiz (é `SENHA_<ESCOLA>`, não uma senha de serviço).
+- **O que falta.** Uma senha de serviço no domínio raiz, seguindo a mesma convenção de
+  `.senhas-locais` (fora do Git, nunca exposta), e uma **verificação antes de servir qualquer
+  coisa** — a senha fica no Worker (um `secret` do wrangler ou um valor no KV), não no navegador.
+
+### 17.7 O administrador cria uma nova senha na Produção
+
+- **O que muda.** Na Produção, quem tem acesso **pode criar uma nova senha para si mesmo**:
+  digita a **senha antiga** e cria a **nova**.
+- **O que já existe (lido).** A Produção **não existe**; não há secção para isto. A convenção das
+  senhas (`tools/lib-senhas.sh`) é **compatível** no espírito (nome visível, valor protegido) mas
+  é um arquivo local, não um fluxo de «antiga → nova» servido pelo Worker.
+- **O que falta.** A secção na Produção e um armazenamento de senha que **verifique a antiga**
+  (comparando contra um valor protegido, nunca em claro) e **substitua** pela nova — mantendo a
+  regra de nunca expor o valor.
 
 ## Referências
 

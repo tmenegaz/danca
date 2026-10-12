@@ -44,6 +44,35 @@ O hash cobre apenas os arquivos-fonte do ciclo (`.conf` + `.md`), em ordem
 determinística (LC_ALL=C). As saídas (HTML, PDF) não entram. O `.fipp` é âncora
 da cadeia, não saída reconstruível — é versionado.
 
+> **Ressalva de escopo (2026-10-11) — a proveniência é condicional.** A garantia
+> de proveniência (P-03/P-04) vale **para escolas habilitadas**. Uma escola
+> **desabilitada** perde a garantia e, passado o prazo de expurgo, pode ser
+> **apagada** — deixa de existir e libera espaço no servidor. A desabilitação é
+> registrada com data; a reabilitação dentro do prazo **cancela** o expurgo e a
+> escola volta a funcionar normalmente. É uma inversão explícita: a regra deixa de
+> ser absoluta e passa a ser **condicional ao estado da escola** — não é um
+> detalhe de implementação, é decisão de norma, e é por isso que fica escrita aqui.
+
+> **Norma (2026-10-11) — a limpeza da escola expurgada no ambiente de
+> desenvolvimento.** Quando uma escola é expurgada no servidor, **tudo o que diz
+> respeito àquela escola é limpo no ambiente de desenvolvimento** — na próxima
+> sincronização com o GitHub. O critério de identificação é o **slug da escola**
+> (`diaghilev`, `diaghilev2`, `duo`, `ritmos`). O que se limpa: **a senha** (em
+> `tools/.senhas-locais`, nunca versionado), os ficheiros locais fora do Git, e
+> **qualquer resíduo** que carregue o slug — referências, chaves, ficheiros de
+> teste. **Antes de apagar, verificar que a escola não está a pagar**: uma escola
+> que pagou, mas cujo estado está desalinhado, **não deve ser apagada** — a
+> verificação é obrigatória. **A limpeza é por checklist, não busca cega**: lê o
+> índice da escola (gerado no nascimento pelo `criar-escola.sh`), verifica cada
+> entrada e regista o que foi apagado e o que não foi. **A única exceção a «tudo»
+> é o próprio índice**: ele **sobrevive** como a lápide — o elo que prova que a
+> escola existiu, o que foi criado e por que foi apagada. A proveniência
+> acrescenta, não edita (P-03/P-04); o índice é o que torna o expurgo um elo, não
+> uma amnésia. O servidor apaga a escola; o desenvolvimento limpa os resíduos —
+> são dois momentos, e a sincronização é o ponto de alinhamento entre eles. Vale
+> para qualquer escola expurgada, a qualquer momento — é norma do sistema, não de
+> um caso.
+
 **P-05 — O ciclo produz material, não evidência.**
 Evidência é produzida pelo PPQ, e o PPQ exige condições metodológicas que não
 estão disponíveis durante a prática. Chamar material de evidência antes do tempo
