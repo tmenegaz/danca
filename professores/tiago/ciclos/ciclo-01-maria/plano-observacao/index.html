@@ -626,7 +626,9 @@ async function validarSenha() {
     });
     const dados = await resposta.json();
     SENHA_VALIDA = !!dados.ok;
-    sinalDeSenha(!!dados.ok, dados.ok ? '✓ ' + (dados.professor || 'ok') : '✗ senha não reconhecida');
+    // Só o resultado, nunca o nome do professor: a senha é do professor, e o
+    // nome dele não é o que a validação revela.
+    sinalDeSenha(!!dados.ok, dados.ok ? 'OK' : '✗ senha não reconhecida');
   } catch (erro) {
     SENHA_VALIDA = false;
     sinalDeSenha(false, '');
@@ -2409,16 +2411,18 @@ function guardarFichas(ids) {
  * pior do que mostrá-lo.
  */
 async function carregarFichas() {
-  let doServidor = [];
+  let doServidor = null; // null = o servidor não respondeu
   try {
     const resposta = await fetch('api/envelopes');
     const dados = await resposta.json();
     doServidor = (dados.envelopes || []).map((n) => String(n).replace(/\.json$/, '')).reverse();
   } catch (erro) {
-    doServidor = [];
+    doServidor = null;
   }
-  const locais = fichasDaMemoria().filter((id) => doServidor.indexOf(id) === -1);
-  const todos = locais.concat(doServidor);
+  // O servidor é a fonte. Só quando ele está FORA DO AR é que a memória local
+  // segura a lista (o dado é do professor). Quando ele responde, a lista dele é
+  // a verdade — um id que saiu do servidor não fica órfão no navegador.
+  const todos = doServidor === null ? fichasDaMemoria() : doServidor;
   guardarFichas(todos);
   return todos;
 }
