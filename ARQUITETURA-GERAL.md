@@ -45,7 +45,7 @@ arquivo estático no CDN**, não uma query.
 | **Adaptadores de armazenamento** | `motor/adaptadores/*` | `fs` (Node) ↔ `cloudflare` (KV/ASSETS) |
 | **Servidor (rotas)** | `motor/servidor/*` | Web Standards (`Request`/`Response`), roteador único |
 | **Worker da raiz** | `workers/raiz.js` | Cloudflare Worker (porta de entrada) |
-| **Worker por escola** | `workers/receber.js` / `motor/servidor/cloudflare.js` | Cloudflare Worker (assets + API) |
+| **Worker por escola** | `workers/principal.js` / `motor/servidor/producao.js` | Cloudflare Worker (assets + API) |
 | **Cofre de escrita em runtime** | KV `ciclos-escolas` (binding `PADD_KV`) | Cloudflare KV (key-value) |
 | **Cifra de dados sensíveis** | `tools/lib-cifra.js` (uma definição só: Node + navegador) | PBKDF2 + AES-GCM 256 (mesmo esquema do PageCrypt dos acompanhamentos) |
 | **Deploy e geração** | `.github/workflows/` (`gerar-ciclo.yml`, `reancorar.yml`) | GitHub Actions, disparado no push |

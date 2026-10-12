@@ -9912,3 +9912,10 @@ anamnese) · `IDEIA-PAINEL-ESCOLA.md`.
 
 **O que ainda não está feito.**
 - Nada pendente — é documentação; o conteúdo técnico cita o desenho já vigente.
+
+> **Correção de 12/10/2026 (mesmo dia).** A primeira redação citava, na tabela de
+> componentes, o Worker por escola como `workers/receber.js` / `motor/servidor/cloudflare.js`.
+> **Está errado**: o entry do Worker por escola é `workers/principal.js` (o shim ESM) e a ponte é
+> `motor/servidor/producao.js` — é o que os `wrangler.jsonc` de `diaghilev`, `diaghilev2` e
+> `maria` declaram em `main`. A linha foi corrigida em 12/10/2026. A versão anterior não é
+> apagada: fica como o elo que registra o que se pensou antes da correção.
