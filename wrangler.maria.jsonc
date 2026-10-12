@@ -22,13 +22,14 @@
   },
 
   "vars": {
-    "ESCOLA_HABILITADA": "sim"
+    "ESCOLA_HABILITADA": "sim",
+    "ESCOLA_SLUG": "maria"
   },
 
   "kv_namespaces": [
     {
       "binding": "PADD_KV",
-      "id": "2ee331c7a5bc446ca86c8f2cb039ec16"
+      "id": "f1d475e179954f17accb7bedb59de53f"
     }
   ]
 }

@@ -20,6 +20,7 @@
  */
 
 const { fetch: portaFetch } = require('./cloudflare.js');
+const bastidores = require('./bastidores.js');
 
 // A PORTA vive num SÓ subdiretório do ASSETS (`plano-observacao/`), mas é servida
 // sob DOIS caminhos de URL — cada fonte da elicitação tem a sua própria URL:
@@ -59,6 +60,12 @@ async function fetch(request, env) {
       { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
     );
   }
+
+  // 0.1 O MOCK dos Bastidores (andaime): `/bastidores` e `/api/bastidores/*`
+  //     vivem FORA da porta — a lista de alunas e a senha do professor que a
+  //     anamnese consulta. Sem Produção real, este andaime as entrega.
+  const bast = await bastidores.fetch(request, env);
+  if (bast) return bast;
 
   // 1. A porta de elicitação, sob os dois prefixos. Retira-se o prefixo do caminho
   //    (a rota vê `/`, `/api/…`, `/assets/…`) e a ponte lê o conteúdo do

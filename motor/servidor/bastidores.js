@@ -1,0 +1,215 @@
+'use strict';
+
+/**
+ * bastidores.js — o MOCK dos Bastidores (andaime até a Produção real existir).
+ *
+ * A «Área do Professor» precisa de duas coisas que a Produção real ainda não
+ * fornece: a lista de ALUNAS registradas (os apelidos estáveis, P-12) e a SENHA
+ * do professor (que valida a anamnese). Este módulo é o andaime que as entrega
+ * agora, guardando o dado no KV da própria escola (isolado por namespace) sob
+ * chaves prefixadas pelo slug da escola — a MESMA política do cofre, para uma
+ * escola nunca ler o dado da outra.
+ *
+ * É MOCK: a senha do professor fica em claro no KV de teste, e o cadastro não
+ * tem autenticação. Quando a Produção nascer, este módulo sai e os Bastidores
+ * reais (o ESCOLA.conf) assumem — a fronteira é a mesma.
+ *
+ * Chaves:
+ *   bastidores/<escola>/professores  → [ { nome, senha } ]
+ *   bastidores/<escola>/alunas       → [ "apelido", ... ]
+ */
+
+const RAIZ = 'bastidores';
+
+function json(status, corpo) {
+  return new Response(JSON.stringify(corpo, null, 2) + '\n', {
+    status,
+    headers: { 'Content-Type': 'application/json;charset=utf-8' },
+  });
+}
+
+function html(corpo) {
+  return new Response(corpo, { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+}
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+/** O slug da escola, vindo do Worker (uma escola por Worker). */
+function escolaDe(env, url) {
+  const doEnv = env && String(env.ESCOLA_SLUG || '').trim();
+  if (doEnv) return doEnv;
+  return String((url && url.searchParams.get('escola')) || '').trim();
+}
+
+async function lerLista(kv, chave) {
+  try {
+    const t = await kv.get(chave);
+    const v = t ? JSON.parse(t) : [];
+    return Array.isArray(v) ? v : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+async function professores(kv, escola) {
+  return lerLista(kv, RAIZ + '/' + escola + '/professores');
+}
+async function alunas(kv, escola) {
+  return lerLista(kv, RAIZ + '/' + escola + '/alunas');
+}
+
+function pagina(escola, profs, aluns, res) {
+  const itensProfs = profs.length
+    ? profs.map((p) => '<li>' + esc(p.nome) + '</li>').join('')
+    : '<li>(nenhum professor cadastrado)</li>';
+  const itensAlunas = aluns.length
+    ? aluns.map((a) => '<li>' + esc(a) + '</li>').join('')
+    : '<li>(nenhuma aluna cadastrada)</li>';
+
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Bastidores · Produção · ' + esc(escola) + '</title>' +
+    '<style>' +
+    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
+    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
+    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
+    '.corpo{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
+    '.corpo h1{color:#6b2f2f;}' +
+    '.corpo h2{color:#6b2f2f;margin-top:1.6rem;}' +
+    '.corpo p{color:#6b5b4a;}' +
+    'form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
+    'form label{display:block;margin:.5rem 0 .2rem;font-size:.9rem;color:#6b2f2f;}' +
+    'form input{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
+    'button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:#6b2f2f;color:#fff;border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}' +
+    '.res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}' +
+    '.res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}' +
+    '.res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}' +
+    'ul{list-style:none;padding:0;}' +
+    'ul li{padding:.3rem 0;border-bottom:1px dotted #c9a24b;color:#3a2b1f;}' +
+    '</style></head><body>' +
+    '<div class="topo"><a href="/">← Nós, Por Exemplo</a><span>Bastidores · Produção</span></div>' +
+    '<div class="corpo">' +
+    '<h1>Produção — mock (andaime)</h1>' +
+    '<p>Cadastre um professor e as alunas para a «Área do Professor» funcionar. Este é um <b>mock</b>: a Produção real ainda não existe.</p>' +
+    '<h2>Cadastrar professor</h2>' +
+    '<form id="form-prof">' +
+    '<label for="pnome">Nome do professor</label>' +
+    '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
+    '<label for="psenha">Senha do professor</label>' +
+    '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
+    '<button type="submit">Cadastrar professor</button>' +
+    '</form>' +
+    '<h2>Cadastrar aluna</h2>' +
+    '<form id="form-aluna">' +
+    '<label for="anome">Apelido da aluna (estável, P-12)</label>' +
+    '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
+    '<button type="submit">Cadastrar aluna</button>' +
+    '</form>' +
+    '<div class="res" id="res"></div>' +
+    '<h2>Professores cadastrados</h2><ul>' + itensProfs + '</ul>' +
+    '<h2>Alunas cadastradas</h2><ul>' + itensAlunas + '</ul>' +
+    '</div>' +
+    '<script>' +
+    'function postar(id, corpo) {' +
+    '  var res = document.getElementById("res");' +
+    '  res.className = "res"; res.textContent = "cadastrando...";' +
+    '  return fetch(id === "form-prof" ? "api/bastidores/professor" : "api/bastidores/aluna", {' +
+    '    method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify(corpo)' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (d.ok) { location.reload(); }' +
+    '    else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
+    '  }).catch(function(err){ res.className = "res erro"; res.textContent = "Erro: " + err.message; });' +
+    '}' +
+    'document.getElementById("form-prof").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  postar("form-prof", {nome: document.getElementById("pnome").value, senha: document.getElementById("psenha").value});' +
+    '});' +
+    'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
+    '});' +
+    '</script>' +
+    '</body></html>';
+}
+
+/**
+ * O handler dos Bastidores. Devolve `null` quando o caminho não é dos
+ * Bastidores (a ponte de produção segue para o resto).
+ */
+async function fetch(request, env) {
+  const url = new URL(request.url);
+  const path = url.pathname;
+  if (path !== '/bastidores' && !path.startsWith('/api/bastidores')) return null;
+
+  const escola = escolaDe(env, url);
+  if (!escola) return json(400, { ok: false, erro: 'escola ausente (ESCOLA_SLUG ou ?escola=)' });
+
+  const kv = env && env.PADD_KV;
+  if (!kv) return json(500, { ok: false, erro: 'PADD_KV ausente nos Bastidores' });
+
+  if (path === '/bastidores') {
+    const [profs, aluns] = await Promise.all([professores(kv, escola), alunas(kv, escola)]);
+    return html(pagina(escola, profs, aluns));
+  }
+
+  // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
+  if (path === '/api/bastidores/alunas') {
+    return json(200, { ok: true, escola, alunas: await alunas(kv, escola) });
+  }
+
+  // GET /api/bastidores/professores — só os NOMES (a senha nunca sai).
+  if (path === '/api/bastidores/professores') {
+    const profs = await professores(kv, escola);
+    return json(200, { ok: true, escola, professores: profs.map((p) => p.nome) });
+  }
+
+  // POST /api/bastidores/professor — cadastrar professor (nome + senha).
+  if (path === '/api/bastidores/professor' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const nome = String(corpo.nome || '').trim();
+    const senha = String(corpo.senha || '');
+    if (!nome || !senha) return json(400, { ok: false, erro: 'informe o nome e a senha do professor' });
+    const lista = await professores(kv, escola);
+    if (lista.some((p) => p.nome === nome)) return json(409, { ok: false, erro: 'já existe um professor com este nome' });
+    lista.push({ nome, senha });
+    await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
+    return json(201, { ok: true, professor: nome });
+  }
+
+  // POST /api/bastidores/aluna — cadastrar aluna (apelido estável).
+  if (path === '/api/bastidores/aluna' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const apelido = String(corpo.apelido || '').trim();
+    if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
+    const lista = await alunas(kv, escola);
+    if (lista.indexOf(apelido) !== -1) return json(409, { ok: false, erro: 'já existe uma aluna com este apelido' });
+    lista.push(apelido);
+    await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
+    return json(201, { ok: true, aluna: apelido });
+  }
+
+  // POST /api/bastidores/validar-senha — a anamnese valida a senha do professor.
+  if (path === '/api/bastidores/validar-senha' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const senha = String(corpo.senha || '');
+    if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
+    const profs = await professores(kv, escola);
+    const achou = profs.find((p) => p.senha === senha);
+    return json(200, achou ? { ok: true, professor: achou.nome } : { ok: false, erro: 'senha não reconhecida' });
+  }
+
+  return json(404, { ok: false, erro: 'não encontrado' });
+}
+
+module.exports = { fetch };
