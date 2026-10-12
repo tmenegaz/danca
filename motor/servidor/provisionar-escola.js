@@ -190,7 +190,7 @@ function placeholderMotor(rota) {
 
 export default {
   async fetch(request, env) {
-    if (env.ESCOLA_HABILITADA !== 'sim') return desabilitada();
+    if (env.ESCOLA_HABILITADA === 'nao') return desabilitada();
     const url = new URL(request.url);
     const kv = env.PADD_KV;
     const profs = await professores(kv);

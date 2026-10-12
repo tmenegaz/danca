@@ -44,12 +44,14 @@ async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // 0. O FREIO da escola: a flag de habilitação. Quando `ESCOLA_HABILITADA` não
-  //    é "sim", a escola está DESLIGADA — nenhuma rota serve conteúdo, qualquer
-  //    caminho devolve esta página. É o "desliga" para resolver problemas
-  //    diversos sem derrubar o Worker: o domínio continua no ar, mas não abre
-  //    nada. A flag é uma `vars` do wrangler (não segredo): visível e auditável.
-  if (env.ESCOLA_HABILITADA !== 'sim') {
+  // 0. O FREIO da escola: a flag de habilitação. Só `"nao"` DESLIGA a escola —
+  //    nenhuma rota serve conteúdo, qualquer caminho devolve esta página. É o
+  //    "desliga" para resolver problemas diversos sem derrubar o Worker: o
+  //    domínio continua no ar, mas não abre nada. A ausência da flag (o Worker
+  //    raiz `danca`, que não é escola) NÃO desliga — a raiz fica sempre ligada,
+  //    mesmo que esta ponte de produção seja implantada nela por engano. A flag
+  //    é uma `vars` do wrangler (não segredo): visível e auditável.
+  if (env.ESCOLA_HABILITADA === 'nao') {
     return new Response(
       '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
       '<meta name="viewport" content="width=device-width, initial-scale=1">' +

@@ -88,13 +88,14 @@ function passosDeGeracao(env) {
 }
 
 /**
- * O freio da escola: quando `ESCOLA_HABILITADA` não é "sim", nada serve — qualquer
- * caminho devolve a página «Escola desabilitada». É o mesmo freio de `producao.js`,
- * vivido aqui na ponte AGNÓSTICA (o `diaghilev-ia-stub` serve `cloudflare.js` direto,
- * sem passar pela ponte de produção). A flag é uma `vars` do wrangler (não segredo).
+ * O freio da escola: só `"nao"` DESLIGA a escola — qualquer caminho devolve a
+ * página «Escola desabilitada». A ausência da flag (o Worker raiz `danca`, que
+ * não é escola) NÃO desliga. É o mesmo freio de `producao.js`, vivido aqui na
+ * ponte AGNÓSTICA (o `diaghilev-ia-stub` serve `cloudflare.js` direto, sem passar
+ * pela ponte de produção). A flag é uma `vars` do wrangler (não segredo).
  */
 function freioDaEscola(env) {
-  if (env && env.ESCOLA_HABILITADA === 'sim') return null;
+  if (env && env.ESCOLA_HABILITADA !== 'nao') return null;
   return new Response(
     '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +

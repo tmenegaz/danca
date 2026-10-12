@@ -10043,3 +10043,78 @@ pendência).
 - O `RODAPE_ZERO` do índice zero continua apontando só para o PO (link de rodapé, não o menu).
 - `semearDoPlano()` ainda semeia pelo plano «mais recente», não pelo que o professor SELECIONOU no
   nó `plano-de-ensino` (camada D).
+
+## 12/10/2026 — A raiz nunca é desabilitada pelo freio de escola
+
+**O que motivou.** O domínio raiz (`danca.tmenegaz77.workers.dev`) voltou a aparecer como
+«Escola desabilitada» depois de alguns minutos. A causa já era conhecida: o freio de escola
+(`ESCOLA_HABILITADA`) vive em `producao.js` (e em `cloudflare.js`), e o código da raiz
+(`raiz.js`) não tem freio — mas quando a ponte de produção era implantada no Worker `danca` por
+engano, a flag ausente (a raiz não é escola) casava com `!== 'sim'` e desligava tudo. O incidente
+era de deploy, mas a leitura de «ausente = desligada» deixava a raiz vulnerável a reincidir a
+cada deploy errado.
+
+**O que foi decidido.**
+- O freio passa a ser **explícito**: só `ESCOLA_HABILITADA === 'nao'` desliga. A ausência da
+  flag (a raiz, que não é escola) **não** desliga — a raiz fica sempre ligada, mesmo que a ponte
+  de produção seja implantada nela por engano.
+- Todas as escolas já declaram a flag explicitamente (`diaghilev` = "nao"; `diaghilev2`, `maria`
+  = "sim"; `diaghilev-ia-stub` = "nao"), então nenhuma escola muda de comportamento: o freio
+  continua desligando só o que foi explicitamente desligado.
+
+**Onde entrou.**
+`motor/servidor/producao.js` — o freio passa de `!== 'sim'` para `=== 'nao'` (e o comentário).
+`motor/servidor/cloudflare.js` — `freioDaEscola()` passa de «só 'sim' libera» para «só 'nao'
+desliga».
+`motor/servidor/provisionar-escola.js` — o mesmo freio no script inline das escolas novas.
+
+**Com o quê.**
+`motor/servidor/producao.js`, `motor/servidor/cloudflare.js`,
+`motor/servidor/provisionar-escola.js`, `REGISTRO.md`.
+
+**Referências.**
+A entrada anterior «O «Nós, Por Exemplo» passa a ter fonte única e a raiz fica sempre habilitada»
+(que já decidia «a raiz fica sempre habilitada», mas só no `raiz.js`) · `CONGELAMENTO.md`
+(`motor/` é livre).
+
+**O que ainda não está feito.**
+- O deploy das escolas (`diaghilev`, `diaghilev2`, `maria`, `diaghilev-ia-stub`) precisa subir o
+  `producao.js`/`cloudflare.js` novo para o freio explícito ficar de fato no ar — o comportamento
+  delas não muda (todas declaram a flag), mas o bundle fica defasado até o próximo deploy.
+
+## 12/10/2026 — O rodapé do ciclo zero lista os três itens da Área do Professor
+
+**O que motivou.** O rodapé do índice do ciclo «zero» (`RODAPE_ZERO`, no `criar-escola.sh`)
+continuava apontando só para o «Plano de Observação» — a mesma deriva do nav, que já listava
+anamnese, plano de ensino e PO. Com o plano de ensino como rota/item próprios, o rodapé ficou
+defasado: citava um único caminho da porta onde agora há três.
+
+**O que foi decidido.**
+- O `RODAPE_ZERO` passa a listar os TRÊS itens da Área do Professor, na ordem alfabética (a
+  mesma do `gerar_nav_zero`): Anamnese do aluno · Plano de ensino · Plano de Observação.
+
+**Onde entrou.**
+`tools/criar-escola.sh` — `RODAPE_ZERO` (a linha do `rodape-docs` do índice zero).
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo. O motivo: o rodapé do ciclo «zero» ficou com uma deriva em
+relação ao nav — o plano de ensino virou rota/item próprio, mas o `RODAPE_ZERO` (que não passa
+pelo `rodape_docs` do `gerar-ciclo.sh`) continuou com um único link. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nenhuma fonte de ciclo muda; o `RODAPE_ZERO` escreve só o
+  rodapé do pacote «zero» (que não é fonte do `.fipp`).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **Os validadores existentes.** Nenhum mudou.
+
+**Com o quê.**
+`tools/criar-escola.sh`, `REGISTRO.md`, e o pacote `professores/tiago/ciclos/ciclo-01-maria/`
+(rodapé propagado manualmente — o `criar-escola.sh` só gera no nascimento da escola, não numa
+atualização).
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · a entrada «O CLI «criar-escola» alinha o menu zero ao plano de
+ensino» (que deixou o rodapé como pendência).
+
+**O que ainda não está feito.**
+- O `check-pacote.js` continua reprovando os links da porta no pacote zero (rotas do Worker, não
+  arquivos estáticos) — a limitação do zero-state já documentada no precedente `95db237`.
