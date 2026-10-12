@@ -1,12 +1,11 @@
 // Cloudflare Worker da RAIZ do sistema — o `danca`.
 //
 // NÃO é uma escola: é a porta de entrada do sistema. Serve a página «Nós, Por Exemplo»
-// + o botão «Criar nova escola», atrás de senha (o secret `SENHA_RAIZ`). Não tem
-// ASSETS nem pacote: a página e o formulário vivem dentro do código (motor/servidor/raiz.js).
+// (a MESMA do ciclo, renderizada de biblioteca/nos-por-exemplo.md) + o botão «Criar nova
+// escola», atrás de senha (o secret `SENHA_RAIZ`). O conteúdo vive em `raiz/` (ASSETS).
 //
 // O «Criar nova escola» usa o `CLOUDFLARE_API_TOKEN` (secret) para criar o Worker e o
 // subdomínio da escola nova no Cloudflare, por dentro do próprio Worker — e devolve o URL.
-
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "danca",
@@ -14,6 +13,10 @@
   "observability": {
     "enabled": true
   },
-
-  "main": "workers/raiz.js"
+  "main": "workers/raiz.js",
+  "assets": {
+    "directory": "raiz",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  }
 }
