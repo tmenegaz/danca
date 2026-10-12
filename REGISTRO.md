@@ -9783,3 +9783,62 @@ replicada + validador) · o pedido «texto do Nós, Por Exemplo num lugar só, r
   índice no nascimento da escola, não numa atualização.
 - O deploy da raiz continua manual (`npx wrangler deploy -c wrangler.danca.jsonc`); não há
   automação de deploy para o Worker `danca`.
+
+## 12/10/2026 — O plano de ensino vira rota própria e o PO passa a puxar os dois
+
+**O que motivou.** A porta servia três fontes, mas o menu da Área do Professor expunha só duas
+(anamnese e PO); o plano entrava pelo PO, e a pesquisadora leu isso como «dois botões que fazem
+a mesma coisa». Na verificação, confirmou-se que plano (Blocos 1–4) e PO (Blocos 5–9) são dois
+artefatos distintos, mas que a nomenclatura («Fazer o plano» × «Fazer o Plano de Observação»)
+era ambígua — e que os campos das alunas estavam **duplicados** entre os dois (o `alunas` do
+plano e o `sujeitos` do PO puxavam a mesma lista da anamnese).
+
+**O que foi decidido.**
+- O plano de ensino vira uma fonte **agnóstica à turma**: perde `alunas`, `alunas-o-que-sabem` e
+  `alunas-dificuldades` (a lista de alunas e a linha de base individuais vivem na anamnese e
+  entram pelo PO).
+- O PO é o **ponto de encontro**: puxa os dois — a anamnese (nos `sujeitos`) e o plano de ensino
+  (na semeadura de contexto). A anamnese deixa de ser puxada pelo plano.
+- O plano de ensino ganha rota própria (`/plano-ensino/`) e item de menu, no mesmo nível da
+  anamnese e do PO.
+- A semeadura plano→PO passa a ler o **envelope salvo** (não o rascunho do navegador, que some
+  quando o plano é gravado).
+- A seção de alunas sai do `-plano.md`; o grupo continua em `contexto-turma`, que se prepara para
+  virar entidade estruturada (lista de turmas no Bastidores) quando o reaproveitamento de plano
+  entre turmas for construído.
+
+**Onde entrou.**
+`porta/plano/conteudo/plano.json` — o bloco «Alunas» saiu.
+`porta/index.html` — rota `/plano-ensino/`, portal do plano, sem o botão «Fazer o plano» no PO, e
+semeadura assíncrona do envelope salvo.
+`motor/nucleo/derivar-plano-ciclo.js` — a seção «Alunas» saiu do `-plano.md`.
+`motor/servidor/producao.js` — a rota `/plano-ensino/` (terceiro prefixo da porta).
+`tools/gerar-ciclo.sh` — o item «Plano de ensino» no menu (congelado).
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado. O motivo para tocar `tools/gerar-ciclo.sh`: o menu da Área do Professor é
+gerado por `gerar_nav`, e o plano de ensino deixou de ser interno ao PO para virar item próprio —
+sem este ajuste a rota `/plano-ensino/` existiria no Worker mas não apareceria no menu.
+**O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nenhuma fonte de ciclo mudou por este ajuste de menu.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **Os validadores existentes.** Nenhum mudou.
+
+**Com o quê.**
+`porta/plano/conteudo/plano.json`, `porta/index.html`, `motor/nucleo/derivar-plano-ciclo.js`,
+`motor/servidor/producao.js`, `tools/gerar-ciclo.sh`, e o pacote de `tiago/01/maria` (propagado
+manualmente: o `gerar-ciclo.sh` ainda não regenera escola sem `aula-*` no DOCS).
+
+**Referências.**
+`prompts/elicitar-ciclo.md` (Blocos 1–4 = plano; 5–9 = PO; «o contexto e as alunas alimentam os
+dois») · `REGRAS.md` (Regra 10) · `CONGELAMENTO.md` (`tools/`).
+
+**O que ainda não está feito.**
+- As sugestões cruzadas objetivo→marcos→rubrica→dimensões ficaram para a leva seguinte (camada D).
+- `restrições` (P-22) e `flutuantes` ainda não derivam da anamnese — a anamnese não tem esses
+  campos; exige esquema novo.
+- A lista de turmas no Bastidores (reaproveitar o plano entre turmas) é preparação, não
+  implementação.
+- O `gerar-ciclo.sh` ainda não regenera uma escola «zero» (sem `aula-*` no DOCS); a propagação do
+  `maria` foi manual.

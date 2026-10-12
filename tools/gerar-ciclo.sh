@@ -599,16 +599,18 @@ ACOMP_DOCS="${ACOMP_DOCS# }"
 # uma só: o formulário de lançamento (Fase 2.3).
 FERRAMENTAS="lancamento"
 
-# O LINK do Plano de Observação — a porta de elicitação, promovida ao Worker de produção. É um
+# O LINK dos formulários da porta — a porta de elicitação, promovida ao Worker de produção. É um
 # item EXTERNO (uma rota do Worker), não um `$doc.html` do pacote — por isso não entra em DOCS
 # nem em FERRAMENTAS e é tratado à parte, dentro do grupo "Área do Professor". O caminho leva o
-# contexto do ciclo, para a porta abrir já identificada. As rotas `/plano-observacao/` e
-# `/anamnese/` são servidas pelo Worker de produção (`workers/principal.js`,
+# contexto do ciclo, para a porta abrir já identificada. As rotas `/plano-observacao/`,
+# `/plano-ensino/` e `/anamnese/` são servidas pelo Worker de produção (`workers/principal.js`,
 # `motor/servidor/producao.js`).
-# A porta serve TRÊS fontes (anamnese, plano, po). O menu da Área do Professor expõe DUAS delas,
-# cada uma com a SUA URL: a anamnese em `/anamnese/` (fonte padrão) e o PO em
-# `/plano-observacao/` (`?fonte=po`). O plano entra pelo PO, sem URL própria no menu.
+# A porta serve TRÊS fontes (anamnese, plano, po). O menu da Área do Professor expõe AS TRÊS,
+# cada uma com a SUA URL: a anamnese em `/anamnese/` (fonte padrão), o plano de ensino em
+# `/plano-ensino/` (`?fonte=plano`) e o PO em `/plano-observacao/` (`?fonte=po`). O plano de
+# ensino deixou de entrar pelo PO: virou rota própria, no mesmo nível das outras duas.
 ANAMNESE_URL="/anamnese/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO"
+PLANO_URL="/plano-ensino/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO&fonte=plano"
 PO_URL="/plano-observacao/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO&fonte=po"
 
 for doc in index $DOCS $ACOMP_DOCS; do
@@ -814,6 +816,7 @@ gerar_nav() {
       done
       if [ "$nome" = "Área do Professor" ]; then
         printf '%s\t%s\t%s\n' "$(chave_de_rotulo 'Plano de Observação')" "po" "Plano de Observação"
+        printf '%s\t%s\t%s\n' "$(chave_de_rotulo 'Plano de ensino')" "plano" "Plano de ensino"
         printf '%s\t%s\t%s\n' "$(chave_de_rotulo 'Anamnese do aluno')" "anamnese" "Anamnese do aluno"
       fi
     }
@@ -827,6 +830,7 @@ gerar_nav() {
             echo "      <a href=\"$PO_URL\">$2</a>"
           fi
           ;;
+        plano) echo "      <a href=\"$PLANO_URL\">$2</a>" ;;
         anamnese) echo "      <a href=\"$ANAMNESE_URL\">$2</a>" ;;
       esac
     }
