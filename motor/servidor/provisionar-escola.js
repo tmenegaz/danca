@@ -21,7 +21,10 @@
  * (`wrangler deploy` sobre o wrangler.<escola>.jsonc), não este módulo.
  */
 
-const KV_NAMESPACE_ID = '2ee331c7a5bc446ca86c8f2cb039ec16';
+// O KV de TESTE (`ciclos-escolas-plano-b`) — não o `ciclos-escolas` de produção. O
+// mock da Produção (cadastro de professor) grava aqui, isolado dos dados reais. Quando
+// a Produção real nascer, este módulo passa a usar o namespace de produção, com prefixo.
+const KV_NAMESPACE_ID = '159c74e195544ef2998d41b7b620220b';
 const SUBDOMINIO = 'tmenegaz77';
 
 /** O slug da escola, derivado do nome que o professor digitou (o subdomínio). */
@@ -35,80 +38,186 @@ function slugificar(nome) {
     .replace(/-{2,}/g, '-');
 }
 
-/** O módulo ESM da escola «zero». A identidade entra como literal (JSON, para não vazar). */
+/** O módulo ESM da escola «zero» — agora com o MOCK da Produção (Bastidores). */
 function scriptDaEscola(escola, nome) {
-  const escolaLit = JSON.stringify(escola);
-  const nomeLit = JSON.stringify(nome);
-  return (
-    '// escola ' + escola + ' — Worker «zero» (gerado por provisionar-escola.js)\n' +
-    'const ESCOLA = ' + escolaLit + ';\n' +
-    'const NOME = ' + nomeLit + ';\n' +
-    'const PAGINA = `' + paginaDaEscola() + '`;\n' +
-    '\n' +
-    'function desabilitada() {\n' +
-    '  return new Response(' +
-    "    '<!doctype html><html lang=\"pt-BR\"><head><meta charset=\"utf-8\">' +\n" +
-    "    '<title>Escola desabilitada</title>' +\n" +
-    "    '<style>body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;' +\n" +
-    "    'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +\n" +
-    "    'p{color:#6b5b4a;}</style></head><body>' +\n" +
-    "    '<h1>Escola desabilitada</h1>' +\n" +
-    "    '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +\n" +
-    "    '</body></html>',\n" +
-    "    { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }\n" +
-    '  );\n' +
-    '}\n' +
-    '\n' +
-    'export default {\n' +
-    '  async fetch(request, env) {\n' +
-    "    if (env.ESCOLA_HABILITADA !== 'sim') return desabilitada();\n" +
-    '    const url = new URL(request.url);\n' +
-    "    if (url.pathname === '/' || url.pathname === '/index.html') {\n" +
-    "      return new Response(PAGINA, { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });\n" +
-    '    }\n' +
-    "    return new Response('nao encontrado', { status: 404 });\n" +
-    '  },\n' +
-    '};\n'
+  // O worker fonte usa SÓ aspas simples (sem backticks, sem `${`, sem `\u`, sem `\n`),
+  // para este template literal de fora não interpretar nada além de NOME.
+  return `// escola ${escola} — Worker «zero» (mock da Produção, gerado por provisionar-escola.js)
+const NOME = ${JSON.stringify(nome)};
+const ESCOLA = ${JSON.stringify(escola)};
+
+function desabilitada() {
+  return new Response(
+    '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Escola desabilitada</title>' +
+    '<style>body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}p{color:#6b5b4a;}</style></head><body>' +
+    '<h1>Escola desabilitada</h1>' +
+    '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
+    '</body></html>',
+    { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
   );
 }
 
-/** A página «Nós, Por Exemplo» do estado zero — compacta, com o menu e o aviso de habilitação. */
-function paginaDaEscola() {
-  return (
-    '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
+async function professores(kv) {
+  try {
+    const t = await kv.get('professores:' + ESCOLA);
+    return t ? JSON.parse(t) : [];
+  } catch (e) { return []; }
+}
+
+function pagina(nome, profs) {
+  const habilitado = profs.length > 0;
+  const po = habilitado
+    ? '<a class="item" href="/plano-observacao/">Plano de Observação</a>'
+    : '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Plano de Observação</span>';
+  const anam = habilitado
+    ? '<a class="item" href="/anamnese/">Anamnese do aluno</a>'
+    : '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Anamnese do aluno</span>';
+  const aviso = habilitado
+    ? '<p class="aviso ok">A Área do Professor está <b>habilitada</b> (' + profs.length + ' professor(es) cadastrado(s)).</p>'
+    : '<p class="aviso">A Área do Professor está <b>desabilitada</b> — cadastre um professor nos Bastidores (Produção) para liberar o Plano de Observação e a Anamnese.</p>';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Nós, Por Exemplo · ${NOME}</title>' +
+    '<title>Nós, Por Exemplo · ' + esc(nome) + '</title>' +
     '<style>' +
     'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
     '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
-    '.topo h1{margin:0;font-size:1.4rem;color:#6b2f2f;}' +
     '.nav{max-width:60rem;margin:0 auto;padding:.6rem 1.25rem;display:flex;gap:1.4rem;flex-wrap:wrap;font-size:.95rem;}' +
-    '.nav .grupo{position:relative;}' +
-    '.nav summary{font-weight:700;color:#6b2f2f;cursor:pointer;}' +
+    '.nav a{color:#6b2f2f;font-weight:700;text-decoration:none;}' +
+    '.nav details summary{font-weight:700;color:#6b2f2f;cursor:pointer;}' +
     '.nav .sub{display:flex;flex-direction:column;padding-left:.8rem;margin-top:.2rem;}' +
-    '.nav .sub .item{color:#a08a5c;text-decoration:line-through;cursor:not-allowed;}' +
+    '.nav .sub .item{color:#6b2f2f;text-decoration:none;padding:.1rem 0;}' +
+    '.nav .sub .item[title]{color:#a08a5c;text-decoration:line-through;cursor:not-allowed;}' +
     '.corpo{max-width:60rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
     '.corpo p{color:#6b5b4a;max-width:40rem;}' +
     '.aviso{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:.8rem 1rem;max-width:40rem;color:#6b2f2f;}' +
+    '.aviso.ok{background:#eef7ee;border-color:#4f8a4f;color:#2f5d2f;}' +
     '</style></head><body>' +
     '<div class="topo"><div class="nav">' +
-    '<a href="/" style="color:#6b2f2f;font-weight:700;">Nós, Por Exemplo</a>' +
-    '<details class="grupo" open><summary>Área do Professor</summary><div class="sub">' +
-    '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Plano de Observação</span>' +
-    '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Anamnese do aluno</span>' +
-    '</div></details>' +
+    '<a href="/">Nós, Por Exemplo</a>' +
+    '<details class="grupo" open><summary>Área do Professor</summary><div class="sub">' + po + anam + '</div></details>' +
     '<details class="grupo"><summary>Bastidores</summary><div class="sub">' +
-    '<span class="item" title="a Produção ainda não existe — é plano">Produção</span>' +
+    '<a class="item" href="/bastidores">Produção</a>' +
     '</div></details>' +
     '</div></div>' +
     '<div class="corpo">' +
     '<h1>Nós, Por Exemplo</h1>' +
-    '<p>Esta escola (<b>${NOME}</b>) nasceu agora, no estado «zero»: a <b>Área do Professor</b> ainda está ' +
-    'desabilitada. Cadastre um professor nos <b>Bastidores</b> para liberar o Plano de Observação e a Anamnese.</p>' +
-    '<p class="aviso">A <b>Área do Professor</b> habilita quando o administrador cadastrar pelo menos um professor ' +
-    'e criar a senha dele — nos Bastidores, na Produção.</p>' +
-    '</div></body></html>'
-  );
+    '<p>Esta é a escola <b>' + esc(nome) + '</b>. Cadastre um professor nos Bastidores para liberar o Plano de Observação e a Anamnese.</p>' +
+    aviso +
+    '</div></body></html>';
+}
+
+function paginaBastidores(nome, profs) {
+  const itens = profs.length
+    ? profs.map(function(p){ return '<li>' + esc(p.nome) + '</li>'; }).join('')
+    : '<li>(nenhum professor cadastrado)</li>';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Bastidores · Produção · ' + esc(nome) + '</title>' +
+    '<style>' +
+    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
+    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
+    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
+    '.corpo{max-width:40rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
+    '.corpo h1{color:#6b2f2f;}' +
+    '.corpo p{color:#6b5b4a;}' +
+    'form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
+    'form label{display:block;margin:.5rem 0 .2rem;font-size:.9rem;color:#6b2f2f;}' +
+    'form input{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
+    'button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:#6b2f2f;color:#fff;border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}' +
+    '.res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}' +
+    '.res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}' +
+    '.res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}' +
+    'ul{list-style:none;padding:0;}' +
+    'ul li{padding:.3rem 0;border-bottom:1px dotted #c9a24b;color:#3a2b1f;}' +
+    '</style></head><body>' +
+    '<div class="topo"><a href="/">← Nós, Por Exemplo</a><span>Bastidores · Produção</span></div>' +
+    '<div class="corpo">' +
+    '<h1>Produção — mock (andaime)</h1>' +
+    '<p>Cadastre um professor para habilitar a Área do Professor. Este é um <b>mock</b>: a Produção real ainda não existe.</p>' +
+    '<form id="form-prof">' +
+    '<label for="pnome">Nome do professor</label>' +
+    '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
+    '<label for="psenha">Senha do professor</label>' +
+    '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
+    '<button type="submit">Cadastrar professor</button>' +
+    '</form>' +
+    '<div class="res" id="res"></div>' +
+    '<h2>Professores cadastrados</h2>' +
+    '<ul>' + itens + '</ul>' +
+    '</div>' +
+    '<script>' +
+    'document.getElementById("form-prof").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var res = document.getElementById("res");' +
+    '  res.className = "res"; res.textContent = "cadastrando...";' +
+    '  fetch("bastidores/api/professor", {' +
+    '    method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({nome: document.getElementById("pnome").value, senha: document.getElementById("psenha").value})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (d.ok) { location.reload(); }' +
+    '    else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
+    '  }).catch(function(err){ res.className = "res erro"; res.textContent = "Erro: " + err.message; });' +
+    '});' +
+    '</script>' +
+    '</body></html>';
+}
+
+function placeholderMotor(rota) {
+  const titulo = rota === '/anamnese/' ? 'Anamnese do aluno' : 'Plano de Observação';
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>' + titulo + '</title>' +
+    '<style>body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{color:#6b2f2f;}a{color:#6b2f2f;}</style></head><body>' +
+    '<h1>' + titulo + '</h1>' +
+    '<p>A Área do Professor foi <b>liberada</b> — mas o motor completo (porta + geração) ainda não foi migrado para esta escola. É o próximo passo, fora deste mock.</p>' +
+    '<p><a href="/bastidores">← Voltar aos Bastidores</a></p>' +
+    '</body></html>';
+}
+
+export default {
+  async fetch(request, env) {
+    if (env.ESCOLA_HABILITADA !== 'sim') return desabilitada();
+    const url = new URL(request.url);
+    const kv = env.PADD_KV;
+    const profs = await professores(kv);
+    const path = url.pathname;
+
+    if (path === '/' || path === '/index.html') {
+      return new Response(pagina(NOME, profs), { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+    }
+    if (path === '/bastidores') {
+      return new Response(paginaBastidores(NOME, profs), { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+    }
+    if (path === '/bastidores/api/professor' && request.method === 'POST') {
+      let corpo;
+      try { corpo = await request.json(); } catch (e) { corpo = {}; }
+      const pn = String(corpo.nome || '').trim();
+      const ps = String(corpo.senha || '');
+      if (!pn || !ps) {
+        return new Response(JSON.stringify({ ok: false, erro: 'informe o nome e a senha do professor' }), { status: 400, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+      }
+      const lista = await professores(kv);
+      lista.push({ nome: pn, senha: ps });
+      await kv.put('professores:' + ESCOLA, JSON.stringify(lista));
+      return new Response(JSON.stringify({ ok: true }), { status: 201, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
+    }
+    if (path === '/plano-observacao/' || path === '/anamnese/') {
+      if (profs.length === 0) return desabilitada();
+      return new Response(placeholderMotor(path), { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+    }
+    return new Response('não encontrado', { status: 404 });
+  }
+};
+`;
 }
 
 /** Um erro de Cloudflare, com o texto curto para o log e para a resposta. */
@@ -199,4 +308,10 @@ async function subirModulo(token, accountId, escola, codigo) {
   return dados;
 }
 
-module.exports = { criarEscola, slugificar };
+/** Reenvia o módulo da escola JÁ existente (o mock atualizado), sem tocar senha nem subdomínio. */
+async function atualizarEscola({ escola, nome, token, accountId }) {
+  await subirModulo(token, accountId, escola, scriptDaEscola(escola, nome));
+  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev' };
+}
+
+module.exports = { criarEscola, atualizarEscola, slugificar, scriptDaEscola, subirModulo };
