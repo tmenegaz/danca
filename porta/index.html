@@ -370,7 +370,6 @@
   <div class="acoes">
     <button class="principal" id="comecar" disabled>Começar pela anamnese</button>
     <a id="link-ficha-branco" href="api/ficha?formato=html" target="_blank" rel="noopener"><button>Ver a ficha em branco</button></a>
-    <a id="link-fonte" href="?fonte=plano"><button>Fazer o plano</button></a>
     <button id="usar-ia">Usar IA para fazer o Plano de Observação</button>
   </div>
   <p id="aviso-ia" class="sub oculto"></p>
@@ -473,9 +472,9 @@ const SOCRATICA_VISTA = new Map();
 
 const $ = (id) => document.getElementById(id);
 
-// O formulário foi aberto por salto direto («Fazer o plano»/«Fazer o PO»), sem
-// empilhar histórico? Então «Sair» volta ao portal da fonte atual — não à página
-// anterior (que seria a anamnese).
+// Todas as fontes (anamnese, plano, PO) abrem pelo PORTAL e empilham histórico:
+// «Sair» volta à abertura da fonte atual. A flag fica por compatibilidade do
+// fluxo antigo em que o plano saltava direto para o formulário.
 let EM_AUTOABERTURA = false;
 
 // ------------------------------------------------- a memória do navegador
@@ -695,10 +694,8 @@ function restaurar(guardado) {
  * desempilhar essa mesma entrada com `history.back()`.
  */
 function abrirFormulario(indice, empilhar) {
-  // Sem `empilhar: false`, «Começar» marca o portal no histórico, para o «Sair»
-  // e o voltar do navegador devolverem à abertura sem saltar a página. O salto
-  // direto de «Fazer o plano»/«Fazer o PO» NÃO empilha: não há portal mostrado
-  // para onde voltar — «Sair» volta ao portal da fonte atual.
+  // «Começar» marca o portal no histórico, para o «Sair» e o voltar do navegador
+  // devolverem à abertura sem saltar a página.
   EM_AUTOABERTURA = (empilhar === false);
   if (empilhar !== false) history.pushState({ portal: true }, '');
   document.getElementById('abertura').classList.add('oculto');
@@ -741,6 +738,7 @@ function voltarAoPortal() {
     if (comecar) {
       if (FONTE === 'anamnese') { comecar.style.display = ''; atualizarComecar(); }
       else if (FONTE === 'po') { comecar.style.display = ''; comecar.disabled = false; }
+      else if (FONTE === 'plano') { comecar.style.display = ''; comecar.disabled = false; }
       else { comecar.style.display = 'none'; }
     }
   }
@@ -1574,21 +1572,41 @@ const SEMEADURA_DO_PLANO = {
   'contexto-metodologia': ['norma'],
   'contexto-metodologia-origem': ['norma-origem'],
   'contexto-notacao': ['notacao'],
-  // As alunas vinculadas no plano são, no PO, os sujeitos observados — o mesmo
-  // conjunto, lido de dois jeitos. O plano seleciona as anamneses; o PO as
-  // recebe semeadas (e o professor confirma ou ajusta).
-  'alunas': ['sujeitos'],
+  // As alunas NÃO vêm mais do plano: o plano de ensino é agnóstico à turma, e
+  // os sujeitos do PO vêm direto da anamnese (`opcoesDe: api/anamneses`).
 };
 
-function semearDoPlano() {
+async function semearDoPlano() {
   if (FONTE !== 'po' || !MAPA) return;
+
+  // O PO consome o PLANO SALVO (não o rascunho do navegador, que some quando o
+  // plano é gravado). Lê o `plano-*` mais recente persistido no servidor e
+  // semeia os campos do PO que vêm dele — sugestão, nunca reescrita de resposta.
   let plano = null;
   try {
-    plano = JSON.parse(localStorage.getItem('porta-plano-1') || 'null');
-  } catch (erro) { plano = null; }
-  if (!plano || !Array.isArray(plano.respostas)) return;
+    const r = await fetch('api/envelopes');
+    if (!r.ok) return;
+    const nomes = ((await r.json()).envelopes) || [];
+    const planos = nomes
+      .filter((n) => typeof n === 'string' && n.indexOf('plano-') === 0)
+      .sort()
+      .reverse();
+    if (!planos.length) return;
+    const rr = await fetch('api/envelope/' + encodeURIComponent(planos[0]));
+    if (!rr.ok) return;
+    plano = await rr.json();
+  } catch (erro) {
+    return;
+  }
+  if (!plano || typeof plano.respostas !== 'object' || plano.respostas === null) return;
 
-  const doPlano = new Map(plano.respostas.filter((p) => Array.isArray(p) && p.length === 2));
+  // O envelope gravado guarda `respostas` como {id: {valor, origem, …}} — a
+  // semeadura precisa do valor cru, como a do contexto do ato.
+  const doPlano = new Map();
+  for (const [id, reg] of Object.entries(plano.respostas)) {
+    const v = reg && typeof reg === 'object' && 'valor' in reg ? reg.valor : reg;
+    doPlano.set(id, v);
+  }
   const vivos = new Set(MAPA.nos.map((n) => n.id));
   const vazio = (v) => v === undefined || v === null || v === '';
 
@@ -3066,10 +3084,11 @@ async function copiarPromptParaAgente() {
 // ------------------------------------------------------------------ start
 
 // A URL para abrir OUTRA fonte, levando o contexto do ato (escola, professor,
-// ciclo — e aluna, só na anamnese). Cada fonte tem a SUA URL: a anamnese vive em
-// `/anamnese/`; o PO e o plano em `/plano-observacao/` (o plano é interno, sem
-// item de menu — entra pelo botão «Fazer o plano»).
-const CAMINHO_DA_FONTE = { anamnese: '/anamnese/', plano: '/plano-observacao/', po: '/plano-observacao/' };
+// ciclo — e aluna, só na anamnese). Cada fonte tem a SUA URL:
+//   · anamnese  → `/anamnese/`;
+//   · plano     → `/plano-ensino/` (`?fonte=plano`);
+//   · PO        → `/plano-observacao/` (`?fonte=po`).
+const CAMINHO_DA_FONTE = { anamnese: '/anamnese/', plano: '/plano-ensino/', po: '/plano-observacao/' };
 function urlParaFonte(fonte) {
   const campos = fonte === 'anamnese'
     ? ['escola', 'professor', 'ciclo', 'aluna']
@@ -3084,42 +3103,6 @@ function urlParaFonte(fonte) {
   return (CAMINHO_DA_FONTE[fonte] || '/plano-observacao/') + '?' + new URLSearchParams(ctx).toString();
 }
 
-// Na casa (o PO), a ENTRADA DO PLANO é condicional: sem plano em curso, o botão
-// «Fazer o plano»; com plano em curso, «Continuar de onde parei» + «Começar de
-// novo». O estado vem da memória do PLANO (`porta-plano-1`), não da do PO.
-function configurarEntradaDoPlano() {
-  const linkFonte = document.getElementById('link-fonte');
-  let plano = null;
-  try {
-    plano = JSON.parse(localStorage.getItem('porta-plano-1') || 'null');
-  } catch (e) { plano = null; }
-  const respondidas = plano && Array.isArray(plano.respostas) ? plano.respostas.length : 0;
-  if (plano && respondidas > 0) {
-    if (linkFonte) linkFonte.style.display = 'none';
-    const linhas = [];
-    linhas.push('<p><b>Há um plano em andamento.</b> Última alteração em ' +
-      (dataEmPortugues(plano.quando) || 'data não registrada') + ' — ' + respondidas +
-      ' resposta' + (respondidas > 1 ? 's' : '') + '.</p>');
-    linhas.push('<div class="acoes">' +
-      '<button class="principal" id="continuar-plano">Continuar de onde parei</button>' +
-      '<button id="recomecar-plano">Começar de novo</button>' +
-      '</div>');
-    $('retomada').innerHTML = linhas.join('');
-    $('retomada').classList.remove('oculto');
-    $('continuar-plano').addEventListener('click', () => {
-      window.location.href = urlParaFonte('plano');
-    });
-    $('recomecar-plano').addEventListener('click', () => {
-      try { localStorage.removeItem('porta-plano-1'); } catch (e) { /* sem depósito */ }
-      $('retomada').classList.add('oculto');
-      $('retomada').innerHTML = '';
-      if (linkFonte) linkFonte.style.display = '';
-    });
-  } else if (linkFonte) {
-    linkFonte.style.display = '';
-  }
-}
-
 /*
  * A barra de navegação é gerada ESTÁTICA — a porta é UMA página servida sob dois
  * caminhos. O gerador marca «Plano de Observação» como ativo por padrão; aqui se
@@ -3130,10 +3113,15 @@ function configurarEntradaDoPlano() {
  */
 function marcarAtivoDaPorta() {
   const caminho = location.pathname;
-  const alvo = caminho.indexOf('/anamnese/') === 0 ? '/anamnese/' : '/plano-observacao/';
+  const alvo =
+    caminho.indexOf('/anamnese/') === 0 ? '/anamnese/'
+    : caminho.indexOf('/plano-ensino/') === 0 ? '/plano-ensino/'
+    : '/plano-observacao/';
   document.querySelectorAll('.topnav a').forEach((a) => {
     const href = a.getAttribute('href') || '';
-    const ehPorta = href.indexOf('/anamnese/') === 0 || href.indexOf('/plano-observacao/') === 0;
+    const ehPorta = href.indexOf('/anamnese/') === 0 ||
+      href.indexOf('/plano-observacao/') === 0 ||
+      href.indexOf('/plano-ensino/') === 0;
     if (!ehPorta) return;
     if (href.indexOf(alvo) === 0) a.classList.add('ativo');
     else a.classList.remove('ativo');
@@ -3152,9 +3140,9 @@ async function iniciar() {
         '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
     },
     plano: {
-      h1: 'Plano do ciclo',
+      h1: 'Plano de ensino',
       subtitulo: 'O objetivo, os marcos de cada aula e a rubrica — escrito antes de dar a aula.',
-      titulo: 'Plano do ciclo · Projeto Ciclo',
+      titulo: 'Plano de ensino · Projeto Ciclo',
       abertura: '<p><b>Aqui você define o plano do ciclo</b> — o objetivo, os marcos de cada aula e a rubrica. É escrito <b>antes</b> de dar a primeira aula, para o depois poder ser comparado com o que aconteceu.</p>' +
         '<p>Você pode <b>parar e continuar depois</b>: o que respondeu fica guardado no navegador até gravar. Nada se perde no caminho.</p>',
     },
@@ -3195,8 +3183,8 @@ async function iniciar() {
   if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
 
   // O botão principal abre o formulário de cada fonte: «Fazer a anamnese» na
-  // anamnese, «Fazer o Plano de Observação» no PO. O plano entra direto no
-  // formulário (sem botão próprio); a IA continua sendo um caminho OPCIONAL do PO.
+  // anamnese, «Fazer o plano de ensino» no plano e «Fazer o Plano de Observação»
+  // no PO. Cada fonte tem o seu portal — o plano deixou de entrar direto.
   const comecar = document.getElementById('comecar');
   if (comecar) {
     if (FONTE === 'anamnese') {
@@ -3206,42 +3194,18 @@ async function iniciar() {
       comecar.textContent = 'Fazer o Plano de Observação';
       comecar.style.display = '';
       comecar.disabled = false;
+    } else if (FONTE === 'plano') {
+      comecar.textContent = 'Fazer o plano de ensino';
+      comecar.style.display = '';
+      comecar.disabled = false;
     } else {
       comecar.style.display = 'none';
     }
   }
 
-  // O botão que troca de fonte aponta para a OUTRA, e diz para onde vai. O contexto do ato
-  // (escola, professor, ciclo, aluna) VAI JUNTO na URL: trocar de fonte sem ele faria a barra
-  // voltar aos padrões — e o voltar do navegador passaria a apontar para uma URL que já não é
-  // a que o professor preencheu.
-  const outro = document.getElementById('link-fonte');
-  if (outro) {
-    const rotulo = outro.querySelector('button');
-    const params = new URLSearchParams(location.search);
-    const contexto = {};
-    for (const campo of ['escola', 'professor', 'ciclo', 'aluna']) {
-      const v = params.get(campo);
-      if (v) contexto[campo] = v;
-    }
-    const nova = new URLSearchParams(contexto);
-    if (FONTE === 'anamnese') {
-      // A anamnese é item de menu próprio: não há navegação cruzada a partir
-      // dela. O caminho para o PO fica no fecho (ao gravar).
-      outro.style.display = 'none';
-    } else if (FONTE === 'plano') {
-      // O plano entra direto no formulário: não há portal nem botão de volta — a
-      // casa é o PO, e «Sair» volta para lá.
-      outro.style.display = 'none';
-    } else {
-      // A casa (PO) tem UMA saída: «Fazer o plano». O rótulo fica fixo; a entrada
-      // muda para «Continuar»/«Começar de novo» quando há plano em curso (ver
-      // configurarEntradaDoPlano).
-      nova.set('fonte', 'plano');
-      if (rotulo) rotulo.textContent = 'Fazer o plano';
-      outro.href = '?' + nova.toString();
-    }
-  }
+  // O plano de ensino deixou de ser uma saída do PO: virou item de menu próprio
+  // (`/plano-ensino/`). Não há mais o botão «Fazer o plano» cruzando as fontes —
+  // cada fonte se alcança pelo menu da Área do Professor.
 
   // O atalho «Criar o Plano de Observação» — só na anamnese, e só no fecho (ao
   // gravar). Leva o contexto da barra para o PO.
@@ -3291,16 +3255,12 @@ async function iniciar() {
   let autoAbrir = false;
   const guardado = lerMemoria();
   if (guardado) {
-    // A anamnese, o PO e o plano retomam a própria memória.
+    // A anamnese, o PO e o plano retomam a própria memória — cada um no seu
+    // portal, com «Continuar de onde parei» e «Começar de novo».
     const t = restaurar(guardado);
     pintarRoteiro();
     salvar(); // reancora o depósito já saneado — id órfão não volta a ser contado
-    if (FONTE === 'plano') {
-      // O plano entra DIRETO no formulário, já retomado de onde parou.
-      autoAbrir = true;
-    } else {
-      mostrarRetomada(t);
-    }
+    mostrarRetomada(t);
   } else {
     if (FONTE === 'anamnese') {
       $('comecar').style.display = '';
@@ -3310,14 +3270,13 @@ async function iniciar() {
     } else if (FONTE === 'po') {
       $('comecar').style.display = '';
       $('comecar').disabled = false;
+    } else if (FONTE === 'plano') {
+      $('comecar').style.display = '';
+      $('comecar').disabled = false;
     }
-    // Só o PLANO entra direto; a anamnese e o PO ficam no portal (a casa).
-    if (FONTE === 'plano') autoAbrir = true;
+    // A anamnese, o plano e o PO ficam no portal (a casa de cada fonte).
     if (!memoriaLigada && FONTE === 'anamnese') mostrarSemMemoria();
   }
-
-  // Na casa (o PO), a entrada do plano é condicional (plano em curso ou não).
-  if (FONTE === 'po') configurarEntradaDoPlano();
 
   // A semeadura pelo contexto do ato vem DEPOIS do depósito: o que o professor
   // já respondeu por si vence a barra; o resto é sugerido. Semear antes faria a
@@ -3325,7 +3284,8 @@ async function iniciar() {
   semearDoContexto();
   // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
-  semearDoPlano();
+  // É assíncrona: lê o plano salvo no servidor, não o rascunho local.
+  await semearDoPlano();
 
   // E a barra volta a semear quando muda: é ela que carrega a identidade do ato.
   // Não se re-renderiza a pergunta — a edição do professor não pode perder o foco.

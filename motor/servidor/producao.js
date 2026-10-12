@@ -23,14 +23,17 @@ const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
 
 // A PORTA vive num SÓ subdiretório do ASSETS (`plano-observacao/`), mas é servida
-// sob DOIS caminhos de URL — cada fonte da elicitação tem a sua própria URL:
+// sob TRÊS caminhos de URL — cada fonte da elicitação tem a sua própria URL:
 //   · `/anamnese/`         → a anamnese (fonte padrão);
-//   · `/plano-observacao/` → o PO (com `?fonte=po`), e o plano (`?fonte=plano`)
-//                            continua interno, sem URL própria no menu.
-// O prefixo do ASSETS é o mesmo nos dois: a porta lê o conteúdo de
+//   · `/plano-ensino/`     → o plano de ensino (`?fonte=plano`);
+//   · `/plano-observacao/` → o PO (`?fonte=po`).
+// O plano de ensino deixou de entrar pelo PO: virou rota própria, no mesmo nível
+// da anamnese e do PO no menu da Área do Professor.
+// O prefixo do ASSETS é o mesmo nos três: a porta lê o conteúdo de
 // `plano-observacao/` — o que muda é só o caminho que o professor digita.
 const PREFIXO_PO = '/plano-observacao';
 const PREFIXO_ANAMNESE = '/anamnese';
+const PREFIXO_PLANO = '/plano-ensino';
 const PREFIXO_ASSETS = 'plano-observacao/';
 
 function caminhoDaPorta(path, prefixo) {
@@ -73,6 +76,7 @@ async function fetch(request, env) {
   const prefixo =
     path === PREFIXO_PO || path.startsWith(PREFIXO_PO + '/') ? PREFIXO_PO
     : path === PREFIXO_ANAMNESE || path.startsWith(PREFIXO_ANAMNESE + '/') ? PREFIXO_ANAMNESE
+    : path === PREFIXO_PLANO || path.startsWith(PREFIXO_PLANO + '/') ? PREFIXO_PLANO
     : null;
   if (prefixo) {
     const rel = caminhoDaPorta(path, prefixo);

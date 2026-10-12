@@ -141,26 +141,6 @@ function tabelaDeContexto(envelope) {
   return linhas;
 }
 
-// As alunas do plano (Bloco 3 do prompt): o VÍNCULO às anamneses — os apelidos
-// estáveis, um por linha. O detalhe de cada aluna (idade, nível, o que traz, o
-// que precisa desenvolver, restrições) vive na anamnese e no PO; o plano declara
-// quem está no ciclo e o ponto de partida coletivo (o que sabem / dificuldades),
-// importado da anamnese.
-function corpoDeAlunas(envelope) {
-  const linhas = [];
-  const lista = (rotulo, valor) => {
-    const itens = emLista(valor);
-    linhas.push('**' + rotulo + ':**');
-    if (itens.length) itens.forEach((v) => linhas.push('- ' + v));
-    else linhas.push('- [a decidir]');
-    linhas.push('');
-  };
-  lista('Apelidos (P-12 — um por linha)', respostaDo(envelope, 'alunas'));
-  lista('O que já sabem', respostaDo(envelope, 'alunas-o-que-sabem'));
-  lista('Dificuldades conhecidas', respostaDo(envelope, 'alunas-dificuldades'));
-  return linhas;
-}
-
 /**
  * A derivação: o envelope elicitado do plano vira o Markdown da fonte.
  * Devolve `{ markdown, meta }` — `meta` é o cabeçalho YAML.
@@ -210,9 +190,9 @@ function derivarPlano(envelope) {
     ...tabelaDeIdentificacao(contexto),
   ]);
 
-  // Alunas (Bloco 3 do prompt): o vínculo às anamneses — os apelidos, um por
-  // linha. O detalhe de cada aluna vive na anamnese e no PO.
-  secao('Alunas', corpoDeAlunas(envelope));
+  // As alunas (Bloco 3 do prompt) não vivem mais no plano: o plano de ensino é
+  // agnóstico à turma — o grupo fica em `contexto-turma`, e os apelidos e a
+  // linha de base individuais vivem na anamnese e entram pelo PO (`sujeitos`).
 
   // Marcos parciais: tabela, uma linha por aula.
   secao('Marcos parciais por aula', tabelaDeMarcos(respostaDo(envelope, 'marcos-por-aula')));
