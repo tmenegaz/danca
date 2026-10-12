@@ -39,38 +39,6 @@ Objetivo geral desse ciclo é verificar a capacidade de se equilibrar com os mov
 | **Volume ativo por aula** | [Preencher: faixa de tempos — o sistema declara a partir da duração do ciclo] |
 | **Professor** | tiago |
 
-## Alunas
-
-**Apelidos (P-12 — um por linha):**
-- Vavá
-
-**O que já sabem:**
-- en dehors (rotação externa) — todos já dominam; não precisa observar
-- a meia ponta — todos já dominam; não precisa observar
-- a musicalidade — todos já dominam; não precisa observar
-- 1ª posição — pés — todos já dominam; não precisa observar
-- 2ª posição — pés — todos já dominam; não precisa observar
-- 3ª posição — pés — todos já dominam; não precisa observar
-- 4ª posição — pés — todos já dominam; não precisa observar
-- 5ª posição — pés — todos já dominam; não precisa observar
-- 4ª posição — braços — todos já dominam; não precisa observar
-- 5ª posição — braços — todos já dominam; não precisa observar
-- formato anatómico dos joelhos — todos já dominam; não precisa observar
-- flexibilidade dos isquiotibiais — todos já dominam; não precisa observar
-- flexibilidade dos adutores — todos já dominam; não precisa observar
-- mobilidade das costas e tronco (cambré) — todos já dominam; não precisa observar
-- arquitetura do arco plantar — todos já dominam; não precisa observar
-- coordenação motora e dissociação — todos já dominam; não precisa observar
-
-**Dificuldades conhecidas:**
-- o tendu — 1 de 1: Vavá
-- o passé — 1 de 1: Vavá
-- 1ª posição — braços — 1 de 1: Vavá
-- 2ª posição — braços — 1 de 1: Vavá
-- 3ª posição — braços — 1 de 1: Vavá
-- equilíbrio unipodal — 1 de 1: Vavá
-
-
 ## Marcos parciais por aula
 
 | Aula | Objetivo específico (marco parcial) |
@@ -107,7 +75,7 @@ Objetivo geral desse ciclo é verificar a capacidade de se equilibrar com os mov
 
 ## Critério de extensão
 
-[a decidir]
+Módulo fechado de 10 encontros; o quinto é suplementa
 
 ## Registro de proveniência
 
