@@ -15,18 +15,30 @@
     </div>
     <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
   </div>
-  <div class="form-container" id="form-container">
+</header>
+
+<div class="modal" id="modal-criar" hidden>
+  <div class="modal-fundo" data-fechar></div>
+  <div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="modal-titulo">
+    <div class="modal-cab">
+      <h2 id="modal-titulo">Criar nova escola</h2>
+      <button class="modal-x" id="btn-fechar" type="button" aria-label="Fechar">&times;</button>
+    </div>
     <form class="form" id="form-criar">
       <p class="nota">Crie uma escola nova a partir daqui. Ela nasce no estado «zero» — a «Área do Professor» desabilitada até o administrador cadastrar um professor nos Bastidores.</p>
       <label for="nome">Nome da escola</label>
       <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
       <label for="senha">Senha do administrador</label>
       <input id="senha" name="senha" type="password" autocomplete="new-password">
-      <button class="acao" type="submit">Criar</button>
+      <div class="modal-acoes">
+        <button class="acao secundario" id="btn-cancelar" type="button">Cancelar</button>
+        <button class="acao" type="submit">Criar</button>
+      </div>
     </form>
     <div class="res" id="res"></div>
   </div>
-</header>
+</div>
+
 <main>
 <div class="conteudo">
 <h2 id="o-que-é-este-sistema">O que é este sistema</h2>
@@ -244,16 +256,31 @@ projeto a você — a equipe que acompanha a sua escola.</li>
   .topo-linha { max-width: 900px; width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
   .topo-titulos { flex: 1 1 auto; min-width: 0; }
   .topo-titulos .subtitulo { margin-bottom: 0; }
-  .form-container { max-width: 900px; width: 100%; margin: 0 auto; display: none; padding-top: 12px; }
-  .form-container.aberto { display: block; }
-  .acao{display:inline-block;padding:.6rem 1.1rem;background:#6b2f2f;color:#fff;border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;white-space:nowrap;}
-  .form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin-top:.4rem;}
-  .form .nota{font-size:.92rem;color:#6b5b4a;margin:0 0 .4rem;}
-  .form label{display:block;margin:.5rem 0 .2rem;font-size:.9rem;color:#6b2f2f;}
-  .form input{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}
-  .res{margin-top:.6rem;padding:.7rem .9rem;border-radius:6px;display:none;}
-  .res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}
-  .res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}
+
+  /* --- Modal «Criar nova escola» --- */
+  .modal { position: fixed; inset: 0; z-index: 100; display: flex; align-items: center; justify-content: center; padding: 20px; }
+  .modal[hidden] { display: none; }
+  .modal-fundo { position: absolute; inset: 0; background: rgba(31, 28, 26, 0.55); }
+  .modal-caixa { position: relative; width: 100%; max-width: 440px; background: var(--branco); border: 1px solid var(--gold-borda); border-radius: 10px; box-shadow: 0 18px 50px rgba(31, 28, 26, 0.35); padding: 0 22px 22px; }
+  .modal-cab { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--gold-escuro); margin: 0 -22px 18px; padding: 16px 22px 12px; }
+  .modal-cab h2 { margin: 0; font-size: 1.25rem; color: var(--burgundy); }
+  .modal-x { background: none; border: none; font: 400 1.6rem/1 var(--ui); color: var(--soft); cursor: pointer; padding: 0 4px; }
+  .modal-x:hover { color: var(--burgundy); }
+
+  .acao { display: inline-block; padding: .6rem 1.2rem; background: var(--burgundy); color: var(--gold-claro); border: 1px solid var(--burgundy); border-radius: 6px; font: 600 .95rem/1.2 var(--ui); cursor: pointer; white-space: nowrap; }
+  .acao:hover { background: var(--burgundy-claro); border-color: var(--burgundy-claro); }
+  .acao.secundario { background: transparent; color: var(--gold-texto); border: 1px solid var(--gold-escuro); }
+  .acao.secundario:hover { background: var(--creme-3); }
+
+  .form .nota { font-size: .92rem; color: var(--soft); margin: 0 0 .2rem; line-height: 1.45; }
+  .form label { display: block; margin: 1rem 0 .35rem; font-size: .9rem; color: var(--gold-texto); font-weight: 600; }
+  .form input { width: 100%; box-sizing: border-box; padding: .55rem .65rem; font: 1rem/1.4 var(--ui); color: var(--tinta); background: var(--cream); border: 1px solid var(--gold-borda); border-radius: 5px; }
+  .form input:focus { outline: 2px solid var(--gold); outline-offset: 1px; border-color: var(--gold-escuro); }
+  .modal-acoes { display: flex; justify-content: flex-end; gap: .6rem; margin-top: 1.4rem; }
+  .res { margin-top: 1rem; padding: .7rem .9rem; border-radius: 6px; display: none; font: .95rem/1.45 var(--ui); }
+  .res.ok { display: block; background: #eef7ee; border: 1px solid var(--ok); color: var(--ok); }
+  .res.ok a { color: inherit; }
+  .res.erro { display: block; background: #fdeaea; border: 1px solid var(--falha); color: var(--falha); }
 </style>
 <script>
   // Mede a altura real da barra fixa e ajusta --header-height (o mesmo que o
@@ -266,20 +293,38 @@ projeto a você — a equipe que acompanha a sua escola.</li>
   medirTopo();
   window.addEventListener("resize", medirTopo);
 
-  var btn=document.getElementById("btn-criar"), form=document.getElementById("form-criar");
-  btn.addEventListener("click",function(){document.getElementById("form-container").classList.toggle("aberto");medirTopo();});
-  form.addEventListener("submit",function(e){
+  var modal = document.getElementById("modal-criar");
+  var btn = document.getElementById("btn-criar");
+  var form = document.getElementById("form-criar");
+  var res = document.getElementById("res");
+
+  function abrir() {
+    modal.hidden = false;
+    document.getElementById("nome").focus();
+  }
+  function fechar() {
+    modal.hidden = true;
+    res.className = "res";
+    res.textContent = "";
+  }
+
+  btn.addEventListener("click", abrir);
+  document.getElementById("btn-fechar").addEventListener("click", fechar);
+  document.getElementById("btn-cancelar").addEventListener("click", fechar);
+  modal.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fechar(); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) fechar(); });
+
+  form.addEventListener("submit", function (e) {
     e.preventDefault();
-    var res=document.getElementById("res");
-    res.className="res"; res.textContent="criando...";
-    fetch("api/criar-escola",{
-      method:"POST",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({nome:document.getElementById("nome").value, senhaAdmin:document.getElementById("senha").value})
-    }).then(function(r){return r.json();}).then(function(d){
-      if(d.ok){res.className="res ok";res.innerHTML="Escola criada: <a href=\""+d.url+"\">"+d.url+"</a>";}
-      else{res.className="res erro";res.textContent="Erro: "+(d.erro||"desconhecido");}
-    }).catch(function(err){res.className="res erro";res.textContent="Erro: "+err.message;});
+    res.className = "res"; res.textContent = "criando...";
+    fetch("api/criar-escola", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nome: document.getElementById("nome").value, senhaAdmin: document.getElementById("senha").value })
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.ok) { res.className = "res ok"; res.innerHTML = "Escola criada: <a href=\"" + d.url + "\">" + d.url + "</a>"; }
+      else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }
+    }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; });
   });
 </script>
 </div>
