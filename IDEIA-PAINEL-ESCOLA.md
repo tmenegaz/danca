@@ -799,6 +799,10 @@ existir, ele continua a servir, mas **gerado pela Produção** e não pelo `cria
 - **O que muda.** O domínio raiz (`danca.tmenegaz77.workers.dev`) **pede senha de imediato** — só a
   pesquisadora tem acesso. Sem isso, qualquer pessoa cria um domínio novo, uma escola nova, ou uma
   senha de administrador.
+- **A raiz fica sempre habilitada.** O domínio raiz (`danca`) **não é uma escola** e **não entra**
+  no ciclo habilitar/desabilitar: não tem `ESCOLA_HABILITADA`, não aparece no
+  `escolas-habilitadas.json` (§17.5) e o hook de expurgo **nunca** a toca. É a porta de entrada do
+  sistema — desabilitá-la fecharia a criação de escolas novas.
 - **Implementado (primeiro corte, 11/10/2026).** O Worker raiz existe: `wrangler.danca.jsonc` +
   `workers/raiz.js` + `motor/servidor/raiz.js`. Pede **Basic Auth** com o secret `SENHA_RAIZ`
   (vindo de `tools/.senhas-locais` na hora do deploy, como `SENHA_<ESCOLA>`), e serve a página
