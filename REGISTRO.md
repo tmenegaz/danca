@@ -9842,3 +9842,46 @@ dois») · `REGRAS.md` (Regra 10) · `CONGELAMENTO.md` (`tools/`).
   implementação.
 - O `gerar-ciclo.sh` ainda não regenera uma escola «zero» (sem `aula-*` no DOCS); a propagação do
   `maria` foi manual.
+
+## 12/10/2026 — O plano de ensino ganha estante, edição em sítio e derivação (a regra da anamnese)
+
+**O que motivou.** Com o plano de ensino dissociado do PO e da anamnese, a pesquisadora quis
+reaproveitar planos já elaborados — «aninhar» um plano noutro, fazendo ajustes, sem nunca
+editar o que já foi usado. A regra de proveniência da anamnese (solta edita em sítio; vinculada
+vira elo novo) tinha de valer para o plano, e o PO tinha de saber qual plano ele observa.
+
+**O que foi decidido.**
+- **Estante de planos** (`/api/planos`): cada plano é listado com o **objetivo-geral como
+  resumo** e o estado (solta / legado / vinculada).
+- **A regra espelha a anamnese.** Solta → edita em sítio (o mesmo id, sem elo). Vinculada a um
+  PO → não se reescreve: vira elo novo (`ajuste_de` + `motivo`). Derivar de um plano qualquer →
+  elo novo. O estado «legado» é o plano que um sucessor ajustou (`ajuste_de` aponta para ele).
+- **O PO referencia o plano** no nó `plano-de-ensino` (o id do envelope), com seletor na
+  estante (Opção 1) — o vínculo plano→PO passa a ser derivável, e o gerador usa o plano
+  referenciado (não mais «o mais recente do contexto»).
+- Sem `derivado_de` novo: reusa-se o `ajuste_de` já existente no envelope para o «aninhar».
+
+**Onde entrou.**
+`motor/nucleo/porta.js` — `planos`, `vinculosDePlano`, `estadosDosPlanos`, `estadoDoPlano`,
+`valorDe`, e o ramo `fonte === 'plano'` do `elicitar` (editar/derivar).
+`motor/servidor/rotas.js` — `/api/planos`, `/api/plano-estados`, e a resolução do plano no
+`/api/elicitar` (pelo id referenciado, com fallback por contexto).
+`porta/po/conteudo/po.json` — o nó `plano-de-ensino` no cabeçalho (seletor, obrigatório).
+`porta/index.html` — estante do plano (selo + editar/derivar), seleção única (`opcoesDe` vira
+rádio quando não é `multipla`), e o envio de `ajuste_de`/`motivo`.
+
+**Com o quê.**
+`motor/nucleo/porta.js`, `motor/servidor/rotas.js`, `porta/po/conteudo/po.json`,
+`porta/index.html`, e o pacote de `tiago/01/maria` (propagado manualmente).
+
+**Referências.**
+A regra da anamnese (`vinculos`, `estadosDasAnamneses`, `ajuste_de` em `porta.js`) ·
+`prompts/elicitar-ciclo.md` (o plano e o PO são dois artefatos; o PO observa o plano).
+
+**O que ainda não está feito.**
+- A semeadura de contexto do PO lê o plano **mais recente**, não o plano que o professor
+  **seleciona** no `plano-de-ensino` — a coerência (semear do plano escolhido) fica para a
+  camada D.
+- O rótulo da estante usa o `objetivo-geral` inteiro (pode ser longo); truncar ou dar um
+  «nome curto» é decisão posterior.
+- O `gerar-ciclo.sh` ainda não regenera uma escola «zero»; a propagação do `maria` foi manual.
