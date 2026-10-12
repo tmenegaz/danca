@@ -8,14 +8,22 @@ type: Ciclo
 professor: Tiago
 ciclo: 01
 variante: maria
-hash_conteudo: 75a6d0284d112aad162b7ce9faa6fe826d1804a6f2341990397c5296b59d887b
+hash_conteudo: 52f2c6cc09c0c6902b328c789a8943f517832acbe57bde863b9f543d53a0b9a9
 parentHash: 
-hash: 5309df735619b70ee00b0332b9bf86717c1db3777ed2c6284e8e41c0ae943f21
+hash: 69ee0669ee47f5b6ca466e6a397f5268960e6e934973e1d953727863d9866c79
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/tiago/ciclos/ciclo-01-maria-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-12
 cobertura:
+  - professores/tiago/ciclos/ciclo-01-maria-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-maria-captura-aula-01.md
+  - professores/tiago/ciclos/ciclo-01-maria-dados.json
+  - professores/tiago/ciclos/ciclo-01-maria-glossario-benesh.md
+  - professores/tiago/ciclos/ciclo-01-maria-harmonizacao.md
+  - professores/tiago/ciclos/ciclo-01-maria-notacao.md
   - professores/tiago/ciclos/ciclo-01-maria-plano.md
+  - professores/tiago/ciclos/ciclo-01-maria-po.md
+  - professores/tiago/ciclos/ciclo-01-maria-referencias.md
   - professores/tiago/ciclos/ciclo-01-maria.conf
   - professores/tiago/ciclos/ciclo-01.conf
