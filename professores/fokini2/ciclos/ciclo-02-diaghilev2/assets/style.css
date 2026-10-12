@@ -93,7 +93,10 @@ body {
    aberto (onde --gold cai para 2,74:1). --gold-claro passa nos dois — 5,03:1 e 3,77:1 —
    então nenhum estado de interação pode ficar abaixo de AA. */
 .topnav .marca {
-  /* --gold-claro, não --gold: é TEXTO sobre o burgundy. O --gold dá 3,65:1 aqui. */
+  /* Espaço reservado onde ficava a marca («Ciclo NN · escola»). O texto saiu do
+     menu (duplicava o «Início»), mas o espaço fica — para o menu não colar à
+     esquerda. A largura é declarada aqui, não no HTML. */
+  display: inline-block; min-width: 9em;
   font-weight: bold; color: var(--gold-claro); margin-right: 10px; letter-spacing: .3px;
   text-decoration: none; padding: 6px 4px;
 }
@@ -250,7 +253,7 @@ hr { border: none; border-top: 1px solid var(--gold-escuro); margin: 28px 0; }
 @media (max-width: 1024px) {
   .topnav { font-size: 13.5px; padding: 6px 10px; }
   .topnav a { padding: 5px 7px; }
-  .topnav .marca { margin-right: 6px; }
+  .topnav .marca { min-width: 0; margin-right: 6px; }
 }
 
 /* celular: menu colapsado atrás do hamburger */

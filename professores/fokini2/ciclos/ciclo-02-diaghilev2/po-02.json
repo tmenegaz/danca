@@ -1,0 +1,47 @@
+{
+  "question": "Como a bailarina constrói o eixo vertical e a transferência de peso em movimento?",
+  "phenomenon": [
+    "alinhamento do eixo vertical",
+    "transferência de peso em movimento"
+  ],
+  "field": "[a decidir]",
+  "context": "[a decidir]",
+  "subjects": [
+    "Vavá",
+    "**Flutuantes:** Não tem"
+  ],
+  "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
+  "linhaDeBase": [
+    {
+      "aluno": "Vavá",
+      "traz": "postura firme",
+      "precisaDesenvolver": "eixo na meia ponta"
+    },
+    "### Restrições físicas declaradas (P-22)",
+    "nenhuma"
+  ],
+  "inclusionCriteria": [
+    "a aula como aconteceu"
+  ],
+  "exclusionCriteria": [
+    "questões de saúde"
+  ],
+  "justification": {
+    "referenceToProblem": "sem linha de base, evolução não tem referencial",
+    "explanationOfCut": "observa eixo e peso",
+    "whatIsLeftOut": "fora da aula",
+    "theoreticalBasis": "RAD (2015)"
+  },
+  "condicoesDeContorno": "professor e aluna na mesma sala",
+  "limitations": [
+    "não avalia estética"
+  ],
+  "validationChecklist": {
+    "phenomenonOperationallyDefined": true,
+    "scopeBoundariesClear": true,
+    "normClearlyEstablished": true,
+    "criteriaMutuallyExclusive": true,
+    "justificationGrounded": true,
+    "cutFeasible": true
+  }
+}

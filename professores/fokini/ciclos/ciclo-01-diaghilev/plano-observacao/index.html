@@ -1505,6 +1505,60 @@ function semearDoContexto() {
   salvar();
 }
 
+/*
+ * A SEMEADURA PELO PLANO — «o PO referencia o plano, não duplica». O plano
+ * coleta o contexto (Bloco 1) e o PO o consome: quando o professor abre o PO
+ * depois de preencher o plano, os campos que vêm do plano nascem SEMEADOS —
+ * marcados em `SUGERIDAS`, como a semeadura do contexto do ato. A primeira
+ * edição do professor aposenta a sugestão; o que ele já respondeu nunca é
+ * reescrito. O apelido → sujeito fica de fora (a lista do PO vem da anamnese,
+ * `opcoesDe`), para não colapsar vários apelidos no campo aberto.
+ */
+const SEMEADURA_DO_PLANO = {
+  'contexto-escola': ['escola', 'campo-escola'],
+  'contexto-professor': ['professor'],
+  'contexto-turma': ['campo-turma'],
+  'contexto-frequencia': ['campo-frequencia'],
+  'contexto-duracao': ['campo-duracao'],
+  'contexto-calendario': ['contexto-calendario'],
+  'contexto-volume': ['contexto-volume'],
+  'contexto-registro': ['contexto-registro'],
+  'contexto-metodologia': ['norma'],
+  'contexto-metodologia-origem': ['norma-origem'],
+  'contexto-notacao': ['notacao'],
+  // As alunas vinculadas no plano são, no PO, os sujeitos observados — o mesmo
+  // conjunto, lido de dois jeitos. O plano seleciona as anamneses; o PO as
+  // recebe semeadas (e o professor confirma ou ajusta).
+  'alunas': ['sujeitos'],
+};
+
+function semearDoPlano() {
+  if (FONTE !== 'po' || !MAPA) return;
+  let plano = null;
+  try {
+    plano = JSON.parse(localStorage.getItem('porta-plano-1') || 'null');
+  } catch (erro) { plano = null; }
+  if (!plano || !Array.isArray(plano.respostas)) return;
+
+  const doPlano = new Map(plano.respostas.filter((p) => Array.isArray(p) && p.length === 2));
+  const vivos = new Set(MAPA.nos.map((n) => n.id));
+  const vazio = (v) => v === undefined || v === null || v === '';
+
+  for (const [de, paraLista] of Object.entries(SEMEADURA_DO_PLANO)) {
+    const valor = doPlano.get(de);
+    if (vazio(valor)) continue;
+    for (const para of paraLista) {
+      if (!vivos.has(para)) continue;
+      if (RESPOSTAS.has(para) && !SUGERIDAS.has(para)) continue; // a professora já respondeu
+      RESPOSTAS.set(para, valor);
+      SUGERIDAS.add(para);
+    }
+  }
+  atualizarBarra();
+  pintarRoteiro();
+  salvar();
+}
+
 function blocoDaRepeticao(no) {
   const fonte = MAPA.nos.find((n) => n.id === no.repetirPor);
   const cru = RESPOSTAS.get(no.repetirPor);
@@ -1915,9 +1969,20 @@ function renderPergunta() {
     if (no.dimensaoPorItem && no.dimensao) {
       blocos.push('<p><span class="selo dim">dimensão deste item: ' + md(no.dimensao) + '</span></p>');
     }
-    // Um campo de bloco sem `opcoes` é texto livre — não uma escala de um item.
+    // Um campo de bloco é, por padrão, texto livre — mas pode declarar `forma`
+    // (metodologia, notação…) e aí vira opções marcáveis, como no cabeçalho.
     if (no.opcoes && no.opcoes.length) {
       blocos.push(opcoesEmLinhas(no, no.opcoes, 'o que se observou'));
+    } else if (no.valores && no.valores.length) {
+      if (no.multipla) {
+        blocos.push('<p><b>' + md(no.forma) + '</b></p>');
+        if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
+        blocos.push(gradeDePraticas(no));
+      } else {
+        blocos.push('<p><b>' + md(no.forma) + '</b></p>');
+        if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
+        blocos.push(opcoesEmLinhas(no, no.valores, 'outro valor'));
+      }
     } else {
       const atual = RESPOSTAS.get(no.id) || '';
       blocos.push('<textarea data-campo-aberto rows="4" placeholder="um item por linha">' +
@@ -3133,6 +3198,9 @@ async function iniciar() {
   // já respondeu por si vence a barra; o resto é sugerido. Semear antes faria a
   // sugestão passar por resposta dele.
   semearDoContexto();
+  // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
+  // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
+  semearDoPlano();
 
   // E a barra volta a semear quando muda: é ela que carrega a identidade do ato.
   // Não se re-renderiza a pergunta — a edição do professor não pode perder o foco.
