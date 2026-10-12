@@ -62,6 +62,14 @@ function registro(cru) {
   return cru;
 }
 
+/** O valor de uma resposta do envelope, desembrulhado (o plano guarda o objetivo). */
+function valorDe(envelope, id) {
+  const reg = envelope && envelope.respostas ? envelope.respostas[id] : null;
+  const valor = reg && reg !== null && typeof reg === 'object' && 'valor' in reg ? reg.valor : reg;
+  if (valor === undefined || valor === null) return null;
+  return Array.isArray(valor) ? valor.join(' ') : String(valor);
+}
+
 /** O relatório do motor, em linhas legíveis — o `alvo` é o rótulo da gravação. */
 function linhasDoRelatorio(relatorio, alvo) {
   const linhas = [];
@@ -345,6 +353,117 @@ async function vinculos(armazenamento) {
   return por;
 }
 
+/*
+ * O VÍNCULO do PLANO — o PO referencia o plano no nó `plano-de-ensino` (o id do
+ * envelope). É DERIVADO, como o da anamnese: varre-se os envelopes de PO e vê-se
+ * quem declara qual plano; não se grava nada no plano.
+ */
+async function vinculosDePlano(armazenamento) {
+  const por = new Map();
+  const nomes = await nomesDeEnvelopes(armazenamento, /^po-.*\.json$/);
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (!envelope) continue;
+    const reg = envelope.respostas && envelope.respostas['plano-de-ensino'];
+    const valor = reg && reg.valor !== undefined ? reg.valor : reg;
+    const lista = Array.isArray(valor) ? valor : valor === undefined || valor === null ? [] : [valor];
+    for (const planoId of lista) {
+      if (!planoId) continue;
+      if (!por.has(planoId)) por.set(planoId, []);
+      por.get(planoId).push(envelope.id || nome.replace(/\.json$/, ''));
+    }
+  }
+  return por;
+}
+
+/**
+ * A ESTANTE de planos de ensino já lançados — um por carimbo, com o OBJETIVO
+ * como resumo (o rótulo humano) e o estado de vínculo. Devolve só METADADO,
+ * nunca as respostas (a mesma fronteira da `anamneses`).
+ */
+async function planos(armazenamento) {
+  const nomes = await nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+  const ligacoes = await vinculosDePlano(armazenamento);
+  const opcoes = [];
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (!envelope) continue;
+    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+    const objetivo = valorDe(envelope, 'objetivo-geral');
+    const por = ligacoes.get(carimbo) || [];
+    opcoes.push({
+      valor: carimbo,
+      rotulo: objetivo || carimbo,
+      carimbo,
+      detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
+      escola: (envelope.contexto || {}).escola || null,
+      professor: (envelope.contexto || {}).professor || null,
+      ciclo: (envelope.contexto || {}).ciclo || null,
+      vinculada: por.length > 0,
+      por,
+      ajuste_de: envelope.ajuste_de || null,
+    });
+  }
+  opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
+  return opcoes;
+}
+
+/**
+ * O ESTADO de TODOS os planos — os três estados (solta / legado / vinculada).
+ * Sem o apelido (o plano é um por objetivo, não um por aluna), o «legado» é o
+ * plano que um sucessor ajustou: quem tem `ajuste_de` apontando para ele.
+ */
+async function estadosDosPlanos(armazenamento) {
+  const ligacoes = await vinculosDePlano(armazenamento);
+  const nomes = await nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+  const envelopes = [];
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (envelope) envelopes.push({ nome, envelope });
+  }
+  const sucessores = new Map();
+  for (const { envelope } of envelopes) {
+    if (!envelope.ajuste_de) continue;
+    if (!sucessores.has(envelope.ajuste_de)) sucessores.set(envelope.ajuste_de, []);
+    sucessores.get(envelope.ajuste_de).push(envelope.id);
+  }
+  const estados = {};
+  for (const { nome, envelope } of envelopes) {
+    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+    const por = ligacoes.get(carimbo) || [];
+    const substituido_por = sucessores.get(carimbo) || [];
+    let estado;
+    if (por.length > 0) estado = 'vinculada';
+    else if (substituido_por.length > 0) estado = 'legado';
+    else estado = 'solta';
+    estados[carimbo] = {
+      estado,
+      carimbo,
+      objetivo: valorDe(envelope, 'objetivo-geral'),
+      vinculada: por.length > 0,
+      por,
+      ajuste_de: envelope.ajuste_de || null,
+      substituido_por,
+    };
+  }
+  return estados;
+}
+
+/** O ESTADO de um plano, derivado — reusa a derivação da lista de gestão. */
+async function estadoDoPlano(armazenamento, envelope) {
+  const carimbo = envelope.id || null;
+  const todos = await estadosDosPlanos(armazenamento);
+  return todos[carimbo] || {
+    estado: 'solta',
+    carimbo,
+    objetivo: valorDe(envelope, 'objetivo-geral'),
+    vinculada: false,
+    por: [],
+    ajuste_de: envelope.ajuste_de || null,
+    substituido_por: [],
+  };
+}
+
 /**
  * A LISTA de anamneses já lançadas — um SUJEITO (apelido) por vez, o vigente.
  * Devolve só METADADO, nunca as respostas (Frente 5 do plano).
@@ -480,6 +599,26 @@ async function elicitar(armazenamento, corpo, dados) {
   if (corpo && corpo.id) opcoes.id = String(corpo.id);
   if (corpo && corpo.geradoEm) opcoes.geradoEm = String(corpo.geradoEm);
 
+  // O PLANO espelha a regra da anamnese, mas sem sujeito único: a edição e a
+  // derivação são EXPLÍCITAS (o professor escolhe o plano na estante).
+  //   · `ajuste_de` → DERIVA (elo novo, sempre);
+  //   · `id` solta → edita em sítio (o mesmo id);
+  //   · `id` vinculada → vira elo novo (nunca se reescreve o que um PO usa).
+  if (fonte === 'plano') {
+    const ligacoes = await vinculosDePlano(armazenamento);
+    if (corpo && corpo.ajuste_de) {
+      opcoes.ajuste = { de: String(corpo.ajuste_de), motivo: (corpo && corpo.motivo) || null };
+      delete opcoes.id;
+    } else if (corpo && corpo.id) {
+      const por = ligacoes.get(String(corpo.id)) || [];
+      if (por.length > 0) {
+        opcoes.ajuste = { de: String(corpo.id), motivo: (corpo && corpo.motivo) || null };
+        delete opcoes.id;
+      }
+      // solta: `opcoes.id` já é o corpo.id — edita em sítio.
+    }
+  }
+
   if (!opcoes.id && fonte !== 'po' && fonte !== 'plano') {
     const aluna = corpo && corpo.contexto && corpo.contexto.aluna;
     const vigente = aluna ? await vigenteDoSujeito(armazenamento, aluna) : null;
@@ -547,6 +686,11 @@ module.exports = {
   gravarEnvelope,
   apagarEnvelope,
   vinculos,
+  valorDe,
+  vinculosDePlano,
+  planos,
+  estadosDosPlanos,
+  estadoDoPlano,
   anamneses,
   vigenteDoSujeito,
   estadosDasAnamneses,

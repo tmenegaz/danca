@@ -126,10 +126,23 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     opcoes: await porta.anamneses(armazenamento),
   }));
 
+  // 6.1 /api/planos — a estante de planos de ensino (um por carimbo, com o
+  //     objetivo como resumo). Serve o nó `plano-de-ensino` do PO.
+  roteador.rota('GET', '/api/planos', async () => ({
+    ok: true,
+    opcoes: await porta.planos(armazenamento),
+  }));
+
   // 7. /api/anamnese-estados — a lista de gestão (todas, inclusive sem sujeito).
   roteador.rota('GET', '/api/anamnese-estados', async () => ({
     ok: true,
     estados: await porta.estadosDasAnamneses(armazenamento),
+  }));
+
+  // 7.1 /api/plano-estados — a gestão dos planos (solta / legado / vinculada).
+  roteador.rota('GET', '/api/plano-estados', async () => ({
+    ok: true,
+    estados: await porta.estadosDosPlanos(armazenamento),
   }));
 
   // 8. /api/anamnese-estado/:id — o estado de UMA anamnese.
@@ -344,15 +357,20 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         if (corpo.fonte === 'po' && escreverCiclo) {
           const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
           try {
-            // O ciclo inteiro deriva do PO + do PLANO já gravado. O plano é o
-            // envelope mais recente com o mesmo contexto (escola/professor/ciclo).
-            const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
-            let plano = null;
-            for (let i = nomes.length - 1; i >= 0 && !plano; i--) {
-              const env = await porta.lerArquivo(armazenamento, nomes[i]);
-              const c = env && env.contexto;
-              if (c && c.escola === contexto.escola && c.professor === contexto.professor &&
-                  String(c.ciclo) === String(contexto.ciclo)) plano = env;
+            // O ciclo inteiro deriva do PO + do PLANO que o PO referenciou no nó
+            // `plano-de-ensino` (o id do envelope). Sem referência, cai no plano
+            // mais recente do mesmo contexto — retrocompatibilidade.
+            const ref = envelope && envelope.respostas && envelope.respostas['plano-de-ensino'];
+            const planoId = ref && ref.valor !== undefined ? ref.valor : ref;
+            let plano = planoId ? await porta.lerEnvelope(armazenamento, String(planoId)) : null;
+            if (!plano) {
+              const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+              for (let i = nomes.length - 1; i >= 0 && !plano; i--) {
+                const env = await porta.lerArquivo(armazenamento, nomes[i]);
+                const c = env && env.contexto;
+                if (c && c.escola === contexto.escola && c.professor === contexto.professor &&
+                    String(c.ciclo) === String(contexto.ciclo)) plano = env;
+              }
             }
             resultado.ciclo = await escreverCiclo({ plano, po: envelope, contexto });
           } catch (erro) {

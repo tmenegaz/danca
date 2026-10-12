@@ -784,6 +784,9 @@ function mostrarRetomada(t) {
     NOTAS.clear();
     SUGERIDAS.clear();
     SOCRATICA_VISTA.clear();
+    EDITANDO = null;
+    DERIVANDO = null;
+    MOTIVO_DERIVACAO = null;
     INDICE = 0;
     atualizarBarra();
     voltarAoPortal();
@@ -1339,8 +1342,12 @@ function gradeDeOpcoesDinamicas(no) {
   }
   const atual = RESPOSTAS.get(no.id);
   const marcados = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
+  // A escolha múltipla marca caixas (`name="pratica"`); a única marca rádios
+  // (`name="valor"`) — o `lerResposta` lê cada grupo pela família do nó.
+  const tipo = no.multipla ? 'checkbox' : 'radio';
+  const nome = no.multipla ? 'pratica' : 'valor';
   const caixas = lista.map((o) =>
-    '<label class="opcao"><input type="checkbox" name="pratica" value="' + escapar(o.valor) + '"' +
+    '<label class="opcao"><input type="' + tipo + '" name="' + nome + '" value="' + escapar(o.valor) + '"' +
     (marcados.indexOf(o.valor) !== -1 ? ' checked' : '') + '><span>' + md(o.rotulo || o.valor) +
     '</span></label>').join('');
   const blocos = ['<div class="grade">' + caixas + '</div>'];
@@ -2229,6 +2236,9 @@ async function enviar(simular, carimbo) {
       // Numa repetição o carimbo volta: é o MESMO envelope que se grava de novo,
       // e não um segundo envelope no disco.
       id: carimbo || undefined,
+      // A derivação do plano: o elo novo aponta para o plano-origem.
+      ajuste_de: DERIVANDO || undefined,
+      motivo: MOTIVO_DERIVACAO || undefined,
       simular: Boolean(simular),
       fonte: FONTE,
     }),
@@ -2452,14 +2462,17 @@ const PREFIXO = FONTE + '-';
 const ESTADOS = new Map(); // carimbo → {vinculada, por, vigente, anterior}
 
 async function carregarEstados() {
-  if (FONTE !== 'anamnese') return;
+  if (FONTE !== 'anamnese' && FONTE !== 'plano') return;
   try {
-    // A rota de GESTÃO (todas as anamneses, inclusive as sem sujeito). A de
-    // seleção (`/api/anamneses`) devolve só sujeitos — e serve o nó do PO.
-    const resposta = await fetch('api/anamnese-estados');
+    // A rota de GESTÃO. A anamnese traz o apelido (o sujeito); o plano traz o
+    // OBJETIVO (o resumo da estante). Cada fonte tem o seu estado.
+    const resposta = await fetch(FONTE === 'anamnese' ? 'api/anamnese-estados' : 'api/plano-estados');
     const dados = await resposta.json();
     for (const [carimbo, estado] of Object.entries(dados.estados || {})) {
-      ESTADOS.set(carimbo, Object.assign({ valor: estado.apelido }, estado));
+      ESTADOS.set(carimbo, Object.assign(
+        { valor: FONTE === 'anamnese' ? estado.apelido : estado.objetivo },
+        estado,
+      ));
     }
   } catch (erro) {
     /* sem estados: a lista sai sem os selos, e nada mais quebra */
@@ -2503,6 +2516,43 @@ function acoesDaAnamnese(id, o) {
     '<button class="acao-apagar"' + q + '>apagar</button>';
 }
 
+/*
+ * A ESTANTE do plano de ensino: o selo usa o OBJETIVO como resumo e o estado
+ * espelha a regra da anamnese — solta (edita/deriva), vinculada (só deriva) e
+ * legado (foi derivada — um sucessor a ajusta).
+ */
+const ROTULO_ESTADO_PLANO = {
+  vinculada: 'ligada',
+  legado: 'derivada',
+  solta: 'livre',
+};
+
+const AJUDA_ESTADO_PLANO = {
+  vinculada: 'ligada a um Plano de Observação — só se deriva, sem apagar',
+  legado: 'derivada — um plano novo a ajusta',
+  solta: 'livre — pode ser editada e derivada',
+};
+
+function seloDoPlano(o) {
+  if (!o) return '';
+  const estado = o.estado || (o.vinculada ? 'vinculada' : 'solta');
+  const classe = estado === 'vinculada' ? 'vinculada' : estado === 'legado' ? 'legado' : 'solta';
+  const titulo = AJUDA_ESTADO_PLANO[estado] + (o.por && o.por.length ? ' (Plano de Observação: ' + o.por.join(', ') + ')' : '');
+  const partes = ['<span class="selo ' + classe + '" title="' + escapar(titulo) + '">' +
+    escapar(ROTULO_ESTADO_PLANO[estado] || estado) + '</span>'];
+  if (o.ajuste_de) partes.push('<span class="selo" title="deriva de ' + escapar(o.ajuste_de) + '">derivado</span>');
+  return partes.join(' ');
+}
+
+function acoesDoPlano(id, o) {
+  const q = ' data-carimbo="' + escapar(id) + '"';
+  if (o && o.vinculada) {
+    return '<button class="acao-derivar"' + q + ' title="derivar acrescenta um plano novo, sem apagar o que já está">derivar</button>';
+  }
+  return '<button class="acao-editar"' + q + '>editar</button>' +
+    '<button class="acao-derivar"' + q + ' title="criar um plano novo a partir deste">derivar</button>';
+}
+
 function pintarFichas() {
   const lista = $('lista-fichas');
   const procurado = String($('filtro-fichas').value || '').trim().toLowerCase();
@@ -2511,24 +2561,31 @@ function pintarFichas() {
     ? daFonte.filter((id) => (id + ' ' + rotuloDoEnvelope(id)).toLowerCase().indexOf(procurado) !== -1)
     : daFonte;
 
-  const ePo = FONTE !== 'anamnese';   // PO e plano não têm ficha renderizada
+  const eAnam = FONTE === 'anamnese';
+  const ePlano = FONTE === 'plano';
   lista.innerHTML = visiveis.map((id) => {
     const o = ESTADOS.get(id);
-    const alvo = ePo
-      ? 'api/envelope/' + encodeURIComponent(id)
-      : 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html';
+    const alvo = eAnam
+      ? 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html'
+      : 'api/envelope/' + encodeURIComponent(id);
+    // O plano mostra o OBJETIVO (o resumo da estante) no lugar da data; a
+    // anamnese mostra a data, e o PO só o carimbo.
+    const quando = ePlano && o && o.objetivo ? o.objetivo : rotuloDoEnvelope(id);
+    const caminho = eAnam ? 'Ver a ficha preenchida' : 'Ver o que ficou gravado';
+    const selo = eAnam ? ' ' + seloDoEstado(o) : (ePlano ? ' ' + seloDoPlano(o) : '');
+    const acoes = eAnam
+      ? '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>'
+      : (ePlano ? '<span class="acoes-ficha">' + acoesDoPlano(id, o) + '</span>' : '');
     return '<li><a href="' + alvo + '" target="_blank" rel="noopener" title="' + escapar(id) + '">' +
-      '<span class="quando">' + escapar(rotuloDoEnvelope(id)) + '</span>' +
-      (ePo ? '' : ' ' + seloDoEstado(o)) + '<br>' +
-      '<span class="caminho">' + (ePo ? 'Ver o que ficou gravado' : 'Ver a ficha preenchida') + '</span></a>' +
-      (ePo ? '' : '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>') +
+      '<span class="quando">' + escapar(quando) + '</span>' + selo + '<br>' +
+      '<span class="caminho">' + caminho + '</span></a>' + acoes +
       '<div class="aviso-ficha oculto" data-aviso="' + escapar(id) + '"></div></li>';
   }).join('');
 
   const vazio = $('fichas-vazio');
   vazio.classList.toggle('oculto', visiveis.length !== 0);
   vazio.textContent = daFonte.length === 0
-    ? (ePo ? 'Nenhum Plano de Observação gravado ainda.' : 'Nenhuma ficha gravada ainda.')
+    ? (eAnam ? 'Nenhuma ficha gravada ainda.' : (ePlano ? 'Nenhum plano de ensino gravado ainda.' : 'Nenhum Plano de Observação gravado ainda.'))
     : 'Nenhum registro casa com o filtro.';
 }
 
@@ -2614,6 +2671,65 @@ function editarAnamnese(id) {
 
 // O carimbo que está a ser editado em sítio (null quando é uma anamnese nova).
 let EDITANDO = null;
+
+/*
+ * O PLANO reusa o mesmo depósito de respostas: a edição em sítio e a derivação
+ * carregam o envelope para a condução e marcam o gesto a gravar. `DERIVANDO`
+ * guarda o plano-origem (o `ajuste_de` do elo novo); `MOTIVO_DERIVACAO`, a razão
+ * declarada pelo professor. A regra (editar vs. derivar) é do SERVIDOR — a tela
+ * só passa o que o professor escolheu na estante.
+ */
+let DERIVANDO = null;
+let MOTIVO_DERIVACAO = null;
+
+function carregarPlanoNaConducao(envelope) {
+  RESPOSTAS.clear();
+  NOTAS.clear();
+  SUGERIDAS.clear();
+  SOCRATICA_VISTA.clear();
+  for (const [k, v] of Object.entries(envelope.respostas || {})) {
+    const valor = v && v.valor !== undefined ? v.valor : v;
+    RESPOSTAS.set(k, valor);
+    if (v && v.nota) NOTAS.set(k, v.nota);
+  }
+  atualizarBarra();
+  pintarRoteiro();
+  salvar();
+  abrirFormulario(0);
+}
+
+async function editarPlano(id) {
+  // Edição em sítio: o motor reusa o MESMO id (o servidor recusa/deriva se o
+  // plano entretanto foi vinculado a um PO).
+  try {
+    const r = await fetch('api/envelope/' + encodeURIComponent(id));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const envelope = await r.json();
+    EDITANDO = id;
+    DERIVANDO = null;
+    MOTIVO_DERIVACAO = null;
+    carregarPlanoNaConducao(envelope);
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+async function derivarPlano(id) {
+  // Derivação: um plano NOVO nasce semeado deste e aponta `ajuste_de` para ele.
+  const motivo = window.prompt('O que este plano novo ajusta em relação ao anterior (opcional):', '');
+  if (motivo === null) return;
+  try {
+    const r = await fetch('api/envelope/' + encodeURIComponent(id));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const envelope = await r.json();
+    EDITANDO = null;
+    DERIVANDO = id;
+    MOTIVO_DERIVACAO = motivo;
+    carregarPlanoNaConducao(envelope);
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
 
 async function atualizarFichas() {
   FICHAS = await carregarFichas();
@@ -3358,6 +3474,11 @@ async function iniciar() {
     evento.stopPropagation();
     const id = b.dataset.carimbo;
     if (!id) return;
+    if (FONTE === 'plano') {
+      if (b.classList.contains('acao-derivar')) derivarPlano(id);
+      else if (b.classList.contains('acao-editar')) editarPlano(id);
+      return;
+    }
     if (b.classList.contains('acao-apagar')) apagarAnamnese(id);
     else if (b.classList.contains('acao-ajustar')) ajustarAnamnese(id);
     else if (b.classList.contains('acao-editar')) editarAnamnese(id);
@@ -3444,7 +3565,7 @@ async function iniciar() {
     // A EDIÇÃO em sítio (só a anamnese solta): grava pelo mesmo id, com `PUT`.
     // É o único caminho que reescreve um registro — e o servidor recusa se a
     // anamnese estiver vinculada.
-    if (EDITANDO) {
+    if (EDITANDO && FONTE === 'anamnese') {
       $('gravacao').innerHTML = '<p>gravando a edição…</p>';
       try {
         gravarRespostaDoNo(MAPA.nos[INDICE]);
@@ -3472,6 +3593,9 @@ async function iniciar() {
     }
 
     $('gravacao').innerHTML = '<p>gravando…</p>';
+    // O plano EDITA pelo MESMO id (o motor recusa/deriva se vinculado); a
+    // derivação já vai no `ajuste_de` que o `enviar` lê de `DERIVANDO`.
+    if (FONTE === 'plano' && EDITANDO) carimboPendente = EDITANDO;
     try {
       const dados = await enviar(false, carimboPendente || undefined);
       $('gravacao').innerHTML = mostrarResultado(dados, 'Gravado') +
@@ -3494,6 +3618,9 @@ async function iniciar() {
         // envelope é confirmado.
         if (FONTE !== 'anamnese') {
           carimboPendente = null;
+          EDITANDO = null;
+          DERIVANDO = null;
+          MOTIVO_DERIVACAO = null;
           limparMemoria();
           $('retomada').classList.add('oculto');
           $('gravacao').innerHTML += '<p class="ok">' + (FONTE === 'po' ? 'Plano de Observação' : 'Plano') + ' gravado.</p>';
