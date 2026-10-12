@@ -683,6 +683,10 @@ rotulo() {
   case "$1" in
     caderno-*) printf 'Caderno'; return ;;
     metodo) printf 'Método'; return ;;
+    # A harmonização é DERIVADA (não é fonte congelada) e passou a nascer com
+    # `title:`; o caso fica como esteio do rótulo — a mesma razão do `metodo`:
+    # se a fonte derivada ainda não tiver o front-matter, o menu não sai vazio.
+    harmonizacao) printf 'Harmonização de linguagem'; return ;;
     # A página do formulário não tem fonte `.md` — o rótulo é declarado aqui (decisão de 20/09:
     # "Lançamento de aula — formulário eletrônico", ao lado da captura, na Área do Professor).
     lancamento) printf 'Lançamento de aula — formulário eletrônico'; return ;;
@@ -789,6 +793,44 @@ gerar_nav() {
       fi
     }
 
+    # ------------------------------------------------------------------
+    # ORDEM ALFABÉTICA do menu (decisão da pesquisadora): os itens de cada
+    # grupo são ordenados pelo RÓTULO, com acento e caixa normalizados antes
+    # da comparação — «Método» vem antes de «Musicalidade», «Anamnese do
+    # aluno» abre a Área do Professor, e assim em todos os grupos. Os itens
+    # EXTERNOS (o PO e a anamnese, rotas do Worker) entram na MESMA
+    # ordenação que os documentos do pacote — não mais fixos no fim.
+    # ------------------------------------------------------------------
+    chave_de_rotulo() { # $1 = rótulo → chave (minúscula, sem acento)
+      printf '%s' "$1" | iconv -f UTF-8 -t ASCII//TRANSLIT 2>/dev/null | tr '[:upper:]' '[:lower:]'
+    }
+    TAB="$(printf '\t')"
+    # emite "chave<TAB>tipo<TAB>valor" para cada entrada do grupo atual ($membros/$nome)
+    entradas_do_grupo() {
+      local d chave
+      for d in $membros; do
+        chave="$(chave_de_rotulo "$(rotulo_no_menu "$d")")"
+        printf '%s\t%s\t%s\n' "$chave" "doc" "$d"
+      done
+      if [ "$nome" = "Área do Professor" ]; then
+        printf '%s\t%s\t%s\n' "$(chave_de_rotulo 'Plano de Observação')" "po" "Plano de Observação"
+        printf '%s\t%s\t%s\n' "$(chave_de_rotulo 'Anamnese do aluno')" "anamnese" "Anamnese do aluno"
+      fi
+    }
+    emitir_entrada() { # $1 = tipo, $2 = valor
+      case "$1" in
+        doc) item_menu "$2" ;;
+        po)
+          if [ "$atual" = "plano-observacao" ]; then
+            echo "      <a class=\"ativo\" href=\"$PO_URL\">$2</a>"
+          else
+            echo "      <a href=\"$PO_URL\">$2</a>"
+          fi
+          ;;
+        anamnese) echo "      <a href=\"$ANAMNESE_URL\">$2</a>" ;;
+      esac
+    }
+
     membros=""
     # ------------------------------------------------------------------
     # Sequência do menu (decisões da pesquisadora, 19/09/2026):
@@ -836,19 +878,9 @@ gerar_nav() {
       echo '  <details class="menu">'
       echo "    <summary>$nome</summary>"
       echo '    <div class="submenu">'
-      for doc in $membros; do item_menu "$doc"; done
-      # A anamnese e o Plano de Observação são itens EXTERNOS (rota do Worker), não docs do
-      # pacote: entram aqui, no fim do grupo, com os seus próprios links — e não passam pelo
-      # `item_menu` (`$doc.html`). Na PORTA (`atual=plano-observacao`) o PO é o ATIVO; a anamnese
-      # é um item irmão (a porta distingue as duas por `?fonte=`, mas a nav é estática).
-      if [ "$nome" = "Área do Professor" ]; then
-        if [ "$atual" = "plano-observacao" ]; then
-          echo "      <a class=\"ativo\" href=\"$PO_URL\">Plano de Observação</a>"
-        else
-          echo "      <a href=\"$PO_URL\">Plano de Observação</a>"
-        fi
-        echo "      <a href=\"$ANAMNESE_URL\">Anamnese do aluno</a>"
-      fi
+      entradas_do_grupo | LC_ALL=C sort -t "$TAB" -k1,1 | while IFS="$TAB" read -r chave tipo valor; do
+        emitir_entrada "$tipo" "$valor"
+      done
       echo '    </div>'
       echo '  </details>'
     done
@@ -869,7 +901,11 @@ gerar_nav() {
       echo '  <details class="menu">'
       echo '    <summary>Outros</summary>'
       echo '    <div class="submenu">'
-      for doc in $sobra; do item_menu "$doc"; done
+      for doc in $sobra; do
+        printf '%s\t%s\t%s\n' "$(chave_de_rotulo "$(rotulo_no_menu "$doc")")" "doc" "$doc"
+      done | LC_ALL=C sort -t "$TAB" -k1,1 | while IFS="$TAB" read -r chave tipo valor; do
+        emitir_entrada "$tipo" "$valor"
+      done
       echo '    </div>'
       echo '  </details>'
     fi

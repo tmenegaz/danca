@@ -317,8 +317,8 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
   <details class="menu">
     <summary>Área do Professor</summary>
     <div class="submenu">
+      <a href="${p}anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
       <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po">Plano de Observação</a>
-      <a href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
     </div>
   </details>
   </div>

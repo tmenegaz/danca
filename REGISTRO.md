@@ -9601,3 +9601,128 @@ regenerados com as novas URLs.
 - A marcação de «ativo» na barra de navegação da porta é estática (gerada com
   `atual=plano-observacao`): ao abrir `/anamnese/`, a barra ainda destaca «Plano de Observação».
   O título da página (H1) já distingue as duas — só a marcação do item de menu é que fica a dever.
+
+## 11/10/2026 — As sete mudanças de comportamento e a proveniência condicional
+
+**O que motivou.**
+A pesquisadora definiu, depois de ver o fluxo dos Bastidores, sete precisões de comportamento
+(o campo `aluna` como lista; o botão «criar senha»; a gestão de senhas na Produção; a senha do
+administrador no `criar-escola.sh`; o hook de expurgo das escolas desabilitadas; o domínio raiz
+com senha; e a criação de nova senha na Produção) — mais dois andaimes temporários (o mock de
+alunas com nascimento e o mock de escola habilitada/desabilitada).
+
+**O que foi decidido.**
+- As sete mudanças são **plano** — incorporadas ao `IDEIA-PAINEL-ESCOLA.md` §17, **nada
+  implementado** nesta rodada.
+- A **proveniência passa de absoluta a condicional**: a garantia de P-03/P-04 vale **para escolas
+  habilitadas**; uma escola desabilitada pode ser **apagada** depois do prazo de expurgo. É uma
+  inversão de norma, registrada como **ressalva de escopo** no `PROTOCOLO.md` (após a P-04).
+- Os dois andaimes (mock de alunas e mock de habilitação) são **temporários, declarados como tal**,
+  com prazo e data para sair quando a Produção nascer.
+- **Norma da limpeza no ambiente de desenvolvimento.** Quando uma escola é expurgada no servidor,
+  **tudo o que diz respeito àquela escola é limpo no ambiente de desenvolvimento** — na próxima
+  sincronização com o GitHub. O critério é o **slug da escola**; limpa-se **a senha**
+  (`tools/.senhas-locais`), os ficheiros locais e qualquer resíduo que carregue o slug. **Antes de
+  apagar, verificar que a escola não está a pagar.** Registrada em `PROTOCOLO.md`.
+- **Índice por escola (andaime).** O `criar-escola.sh` passa a gerar `escola/<escola>/indice.json`
+  — slug, data de criação, ficheiros criados, **referência** à senha (a chave, nunca o valor) e
+  estado inicial. O hook de expurgo lê o índice e limpa **por checklist** (verifica cada entrada,
+  apaga o que existe, regista o que não foi), verificando primeiro o pagamento. **O índice
+  sobrevive ao expurgo** — é a lápide, o elo que prova o que foi criado e por que foi apagado, e é
+  o que mantém o expurgo coerente com «a proveniência acrescenta, não edita» (P-03/P-04). É
+  andaime até a Produção o gerar.
+
+**Onde entrou.**
+`IDEIA-PAINEL-ESCOLA.md` — §17 (as sete mudanças + os dois andaimes + a norma da limpeza + o
+índice por escola) e §16 (novos itens em aberto). `PROTOCOLO.md` — a ressalva de escopo da
+proveniência condicional + a norma da limpeza (agora por checklist, com o índice como exceção que
+sobrevive).
+
+**Motivo declarado — os congelados.**
+`CONGELAMENTO.md` congela `PROTOCOLO.md` e `tools/`. O motivo: a regra da proveniência condicional
+(e a norma da limpeza por checklist que a completa, com o índice como elo que sobrevive) é uma
+**inversão de norma** que precisa ficar explícita no documento que guarda as pétreas; e o índice
+nasce no `tools/criar-escola.sh` (congelado). Nada foi implementado — os dois são **declaração**,
+com o descongelamento a exigir o seu próprio rito. **O que não muda:**
+
+- **As 22 pétreas.** Nenhuma foi alterada nem renumerada; a ressalva é uma **nota de escopo**
+  anexada à P-04, não uma pétrea nova.
+- **A fórmula do hash e a cobertura.** Nada muda; nenhuma fonte de ciclo é alterada, e a âncora
+  **não** é regerada.
+- **Os validadores e o `check-pacote`.** Nenhum mudou.
+- **As regras e os demais congelados.** `tools/`, `prompts/`, `REGRAS.md`, `METODO.md` intocados.
+
+**Com o quê.**
+`PROTOCOLO.md`, `IDEIA-PAINEL-ESCOLA.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (congela `PROTOCOLO.md` e `tools/`) · o pedido «Senhas, hook de expurgo e o
+domínio raiz» + as quatro extensões (mock de alunas com nascimento, mock de escola
+habilitada/desabilitada, a norma da limpeza no ambiente de desenvolvimento, e o índice por
+escola) · `IDEIA-PAINEL-ESCOLA.md` §10/§11.
+
+**O que ainda não está feito.**
+- **Nada foi implementado** — as sete mudanças são plano; os dois andaimes, a norma da limpeza e o
+  índice por escola são declaração, não arquivos/scripts criados.
+- **Nada foi commitado** — este marco (e o descongelamento de `PROTOCOLO.md` + `tools/criar-escola.sh`)
+  exige commit próprio com o motivo declarado, aguardando validação da pesquisadora.
+- **A limpeza não tem script nem hook.** O ponto natural é o `post-merge` (não existe hoje) ou um
+  script próprio rodado após a sincronização — nada foi criado; a norma só declara o dever e o
+  critério (slug + verificação «não está a pagar»).
+- **O índice não é gerado.** O `tools/criar-escola.sh` ainda não escreve `escola/<escola>/indice.json`
+  — a geração é declaração; o formato (slug, `criado_em`, professor, senha como chave, estado
+  inicial, `arquivos[]`) está proposto no `IDEIA-PAINEL-ESCOLA.md` §17.5, mas o script é congelado
+  e não foi tocado.
+- **Quais congelados descongelam na implementação** — `tools/lib-senhas.sh` (senha por professor +
+  administrador) e `tools/criar-escola.sh` (senha do administrador no nascimento) estão sob
+  `tools/` (congelado). `workers/` **não está congelado** — o Cron Trigger e a senha do domínio
+  raiz entram sem o rito dos congelados. Cada um entra com o seu próprio motivo/commit.
+
+## 11/10/2026 — Ordem alfabética nos menus e rótulo da harmonização
+
+**O que motivou.**
+No menu «Área do Professor», a «Anamnese do aluno» (que começa com A) era o último item, e a
+«Harmonização» saía com o rótulo vazio — a fonte derivada não tinha `title:` no front-matter. A
+pesquisadora pediu ordem alfabética em **todos** os menus, e que o rótulo da harmonização
+deixasse de sair vazio.
+
+**O que foi decidido.**
+- Os itens de cada grupo do menu passam a ser **ordenados pelo rótulo**, com acento e caixa
+  normalizados antes da comparação (o `iconv` + `LC_ALL=C`); os itens externos (o PO e a
+  anamnese) entram na **mesma** ordenação, não mais fixos no fim do grupo.
+- A harmonização passa a nascer com `title:` (e `subtitle:`) no derivador, e o `rotulo()` ganha
+  um caso de esteio para o documento — como o `metodo` já tinha.
+- A barra de contexto da porta deixa de ser `sticky` e os campos ficam num acordeão
+  (`<details>`); a marcação de «ativo» na nav passa a ser corrigida pelo caminho da URL
+  (`/anamnese/` vs `/plano-observacao/`).
+
+**Onde entrou.**
+`tools/gerar-ciclo.sh` — `gerar_nav` ordena por rótulo; `rotulo()` com o caso `harmonizacao`.
+`tools/criar-escola.sh` — `gerar_nav_zero` em ordem alfabética (anamnese antes do PO).
+`motor/nucleo/derivar-ciclo.js` — o `derivarHarmonizacao` emite `title:`/`subtitle:`.
+`porta/index.html` — `.barra` recolhível e não-grudada; `marcarAtivoDaPorta()`.
+
+**Motivo declarado — os congelados.**
+`CONGELAMENTO.md` congela `tools/` e exige motivo para «alterar a estrutura de menu ou
+navegação». O motivo: a ordem alfabética é uma decisão de navegação que só o gerador conhece
+(`gerar_nav`/`gerar_nav_zero`), e a correção do rótulo vazio exige o caso em `rotulo()` — ambos
+vivem em `tools/`. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nada muda; nenhuma fonte de ciclo é alterada por ESTA
+  mudança (a âncora só foi regerada porque os títulos da harmonização — que são fonte — mudaram
+  no mesmo pacote).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou.
+- **Os validadores.** Nenhum mudou; o `check-pacote` continua passando.
+
+**Com o quê.**
+`tools/gerar-ciclo.sh`, `tools/criar-escola.sh`, `motor/nucleo/derivar-ciclo.js`,
+`porta/index.html`, e os pacotes regenerados de `fokini/01/diaghilev` e
+`fokini2/02/diaghilev2` (com a reancoragem correspondente).
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`, «alterar a estrutura de menu ou navegação») · o pedido «ordem
+alfabética nos menus, barra recolhível e destaque correto no menu».
+
+**O que ainda não está feito.**
+- O `criar-escola.sh` continua sendo o único lugar com o nav «zero» duplicado; a ordenação foi
+  alinhada, mas o nav mínimo ainda não é gerado pelo `gerar_nav` (sem DOCS ele não roda).
