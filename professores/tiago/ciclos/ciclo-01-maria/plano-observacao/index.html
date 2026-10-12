@@ -753,7 +753,11 @@ function voltarAoPortal() {
     const retomada = document.getElementById('retomada');
     if (retomada) { retomada.classList.add('oculto'); retomada.innerHTML = ''; }
     const comecar = document.getElementById('comecar');
-    if (comecar) { comecar.style.display = FONTE === 'anamnese' ? '' : 'none'; atualizarComecar(); }
+    if (comecar) {
+      if (FONTE === 'anamnese') { comecar.style.display = ''; atualizarComecar(); }
+      else if (FONTE === 'po') { comecar.style.display = ''; comecar.disabled = false; }
+      else { comecar.style.display = 'none'; }
+    }
   }
 }
 
@@ -3205,14 +3209,18 @@ async function iniciar() {
   // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
   if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
 
-  // O botão principal é só da anamnese: «Fazer a anamnese». O PO nasce pela IA,
-  // e o plano entra direto pelo formulário — nenhum dos dois tem botão de início
-  // próprio no portal.
+  // O botão principal abre o formulário de cada fonte: «Fazer a anamnese» na
+  // anamnese, «Fazer o Plano de Observação» no PO. O plano entra direto no
+  // formulário (sem botão próprio); a IA continua sendo um caminho OPCIONAL do PO.
   const comecar = document.getElementById('comecar');
   if (comecar) {
     if (FONTE === 'anamnese') {
       comecar.textContent = 'Fazer a anamnese';
       comecar.style.display = '';
+    } else if (FONTE === 'po') {
+      comecar.textContent = 'Fazer o Plano de Observação';
+      comecar.style.display = '';
+      comecar.disabled = false;
     } else {
       comecar.style.display = 'none';
     }
@@ -3297,9 +3305,8 @@ async function iniciar() {
 
   let autoAbrir = false;
   const guardado = lerMemoria();
-  if (guardado && FONTE !== 'po') {
-    // A anamnese e o plano retomam a própria memória; o PO não tem formulário
-    // próprio (nasce pela IA) — a sua «retomada» é a do plano, tratada à parte.
+  if (guardado) {
+    // A anamnese, o PO e o plano retomam a própria memória.
     const t = restaurar(guardado);
     pintarRoteiro();
     salvar(); // reancora o depósito já saneado — id órfão não volta a ser contado
@@ -3315,6 +3322,9 @@ async function iniciar() {
       // A habilitação não é mais automática: depende da aluna + senha validada
       // (o MOC dos Bastidores). O estado inicial fica travado até os dois virem.
       atualizarComecar();
+    } else if (FONTE === 'po') {
+      $('comecar').style.display = '';
+      $('comecar').disabled = false;
     }
     // Só o PLANO entra direto; a anamnese e o PO ficam no portal (a casa).
     if (FONTE === 'plano') autoAbrir = true;
