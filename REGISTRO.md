@@ -9951,3 +9951,41 @@ menu do site) · `CONGELAMENTO.md` (`motor/` é livre).
 **O que ainda não está feito.**
 - O CLI `tools/criar-escola.sh` tem a MESMA deriva: o seu `gerar_nav_zero` lista só anamnese e PO
   (sem plano de ensino). É congelado (`tools/`) e exige motivo declarado + commit próprio.
+
+## 12/10/2026 — O CLI «criar-escola» alinha o menu zero ao plano de ensino
+
+**O que motivou.** O menu do ciclo «zero» gerado pelo CLI `tools/criar-escola.sh` (`gerar_nav_zero`)
+listava só anamnese e PO — a mesma deriva do botão «Criar nova escola» (já corrigido em
+`provisionar-escola.js`). Faltava o «Plano de ensino», que passou a ser rota e item próprios.
+
+**O que foi decidido.**
+- O `gerar_nav_zero` passa a listar os TRÊS itens da Área do Professor, na ordem alfabética:
+  Anamnese do aluno · Plano de ensino · Plano de Observação (a mesma ordem do `gerar_nav` do
+  `gerar-ciclo.sh`).
+
+**Onde entrou.**
+`tools/criar-escola.sh` — `gerar_nav_zero()` (o item «Plano de ensino» entrou no submenu).
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo para alteração. O motivo: o menu do ciclo «zero» ficou com uma
+deriva em relação ao menu do site — o «Plano de ensino» virou rota/item próprio, mas o
+`gerar_nav_zero` (que não passa pelo `gerar_nav` do `gerar-ciclo.sh`) continuou com dois itens.
+**O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nenhuma fonte de ciclo muda; o `gerar_nav_zero` escreve só
+  o nav do pacote «zero» (que não é fonte do `.fipp`).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **Os validadores existentes.** Nenhum mudou.
+
+**Com o quê.**
+`tools/criar-escola.sh`, `REGISTRO.md`.
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · a entrada anterior «o plano de ensino vira rota própria».
+
+**O que ainda não está feito.**
+- A página de entrada (`biblioteca/nos-por-exemplo.md`) descreve o fluxo como «Passo 1 —
+  Anamnese» → «Passo 2 — Plano de Observação», **sem o Plano de ensino** — e os dois atalhos
+  (`@ANAMNESE_URL@`/`@PO_URL@`) não têm o par do plano. É arquivo livre, mas muda a prosa do
+  «Nós, Por Exemplo» (e a `raiz/index.html` derivada) — decisão da pesquisadora.
+- O `RODAPE_ZERO` do índice zero continua apontando só para o PO (um link de rodapé, não o menu).

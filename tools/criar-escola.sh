@@ -298,8 +298,9 @@ cp "$RAIZ/tools/templates/ciclo.css" "$PACOTE_DIR/assets/style.css"
 cp "$RAIZ/tools/lib-cifra.js" "$PACOTE_DIR/assets/lib-cifra.js"
 cp "$RAIZ/tools/templates/nav.js" "$PACOTE_DIR/assets/nav.js"
 
-# O nav mínimo do ciclo "zero": a página de entrada + Área do Professor → PO e
-# anamnese. Sem a marca (removida do menu — duplicava o «Início»), sem «Início».
+# O nav mínimo do ciclo "zero": a página de entrada + Área do Professor → anamnese,
+# plano de ensino e PO (ordem alfabética, como o gerar_nav do gerar-ciclo.sh). Sem
+# a marca (removida do menu — duplicava o «Início»), sem «Início».
 # (As páginas do pacote usam o gerar_nav do gerar-ciclo.sh; aqui, sem DOCS,
 #  o nav nasce só com o que existe.)
 gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
@@ -318,6 +319,7 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
     <summary>Área do Professor</summary>
     <div class="submenu">
       <a href="${p}anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
+      <a href="${p}plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano">Plano de ensino</a>
       <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po">Plano de Observação</a>
     </div>
   </details>
