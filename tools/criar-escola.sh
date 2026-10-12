@@ -39,7 +39,7 @@ CICLO="";          WORKER=""
 FREQUENCIA="";     DIAS=""
 DURACAO="60";      DURACAO_TEXTO=""
 DATA_INICIO="";    TOTAL_AULAS="5"
-MODELO="fokini/01"
+MODELO="tiago/01"
 DEPLOY=0;          NAO_INTERATIVO=0
 
 # ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ OPÇÕES COM PADRÃO:
   --duracao <min>           duração em minutos (DURACOES)  (padrão: 60)
   --duracao-texto <texto>   DURACAO_POR_DIA                 (padrão: derivado de --duracao)
   --total-aulas <N>         número de aulas                (padrão: 5)
-  --modelo <prof/ciclo>     ciclo de onde copiar schemas   (padrão: fokini/01)
+  --modelo <prof/ciclo>     ciclo de onde copiar schemas   (padrão: tiago/01)
 
 FLAGS:
   --deploy                  sobe o Worker e grava GITHUB_TOKEN no Cloudflare
@@ -394,10 +394,10 @@ echo "  pacote zero: $PACOTE_DIR (índice + plano-observacao/ + assets)"
 cat > "$WRANGLER" <<EOF
 // Cloudflare Worker da escola $ESCOLA_NOME (professor $PROFESSOR) — ciclo $CICLO.
 //
-// UM PROJETO POR ESCOLA — irmão do wrangler.jsonc (Diaghilev/fokini): mesmo código
+// UM PROJETO POR ESCOLA — irmão dos wrangler.<escola>.jsonc: mesmo código
 // (workers/principal.js), mesmo KV compartilhado (as chaves são prefixadas por
-// escola) — muda só o name, o assets.directory e o routes. Gerado por
-// tools/criar-escola.sh.
+// escola) — muda só o name, o assets.directory, o ESCOLA_SLUG e o routes.
+// Gerado por tools/criar-escola.sh.
 
 {
   "\$schema": "node_modules/wrangler/config-schema.json",
@@ -411,7 +411,13 @@ cat > "$WRANGLER" <<EOF
 
   "assets": {
     "directory": "professores/$PROFESSOR/ciclos/ciclo-$CICLO-$ESCOLA",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  "vars": {
+    "ESCOLA_HABILITADA": "sim",
+    "ESCOLA_SLUG": "$ESCOLA"
   },
 
   "kv_namespaces": [

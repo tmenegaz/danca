@@ -58,7 +58,7 @@ RAIZ="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 # Slug do professor (a pasta em professores/). Não se chama PROFESSOR de propósito: os
 # manifestos declaram PROFESSOR com o nome de EXIBIÇÃO ("Tiago Menegaz" — vai para o rodapé
 # do pacote e para o author: do README), e a variável seria sobrescrita ao carregar o conf.
-PROFESSOR_SLUG="tiago"  # default histórico `tiago` — pendente desde 02/10/2026 (passe o professor; o único ciclo ativo é o de `fokini`)
+PROFESSOR_SLUG="tiago"  # default histórico `tiago` — o professor do teste ativo (maria); passe o professor sempre
 if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
   PROFESSOR_SLUG="$1"
   shift

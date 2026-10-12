@@ -62,7 +62,7 @@ if [ "$#" -ge 3 ] && ! printf '%s' "${3:-}" | grep -q '^--'; then
   PROFESSOR="$1"
   shift
 fi
-PROFESSOR="${PROFESSOR:-tiago}"  # default histórico `tiago` — pendente desde 02/10/2026 (passe o professor; o único ciclo ativo é o de `fokini`)
+PROFESSOR="${PROFESSOR:-tiago}"  # default histórico `tiago` — o professor do teste ativo (maria); passe o professor sempre
 
 # O .conf sobrescreve PROFESSOR com o NOME DE EXIBIÇÃO ("Tiago Menegaz"), que não
 # serve para reexecutar o script — o argumento é o diretório. Guardado aqui, antes

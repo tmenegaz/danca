@@ -10247,3 +10247,84 @@ de proveniência P-03/P-04 (acrescenta, não edita — e o PO referencia, não d
   da metodologia do plano) e a entrevista ainda não o elicitou.
 - Os pacotes das outras escolas (Diaghilev e demais) ainda trazem o formulário antigo até serem
   regenerados — a fonte `porta/` já está corrigida, falta regerar cada variante.
+
+## 12/10/2026 — O Diaghilev sai por expurgo DIRETO, e a trava de identidade torna o deploy trocado visível
+
+**O que motivou.** O `danca.tmenegaz77.workers.dev` voltava a ficar «desabilitado» alguns
+minutos depois do deploy: a config de ESCOLA (o `wrangler.jsonc`, que era o Diaghilev, com
+`ESCOLA_HABILITADA:"nao"` e o KV do Diaghilev) caía no Worker da RAIZ por um `wrangler deploy`
+sem `-c`. O erro era **silencioso** — a página «Escola desabilitada» não distinguia «escola
+desligada de propósito» de «config no Worker errado». A pesquisadora decidiu: **apagar o
+Diaghilev de vez**, sem passar pelo expurgo (o teste do expurgo será o Diaghilev II).
+
+**O que foi decidido.**
+- O Diaghilev (escola simulada, `fokini/01`) é REMOVIDO do repositório **diretamente** — a
+  pasta `professores/fokini/` inteira e o `wrangler.jsonc` (a config dele). O Diaghilev II
+  (`fokini2/02`) permanece e passa a ser o **teste do expurgo**; a Maria (`tiago/01`) é o
+  teste ativo do fluxo.
+- **Trava de identidade em `producao.js`** (a ponte de escola): o `ESCOLA_SLUG` tem de estar
+  declarado **e** bater com o subdomínio do pedido. Sem isso, a ponte devolve **erro visível**
+  (500), não o freio. Ganha também o endpoint **`/api/saude`** (sem auth), que responde `ok`,
+  `tipo`, `slug` e `erro` — o deploy passa a ser verificado por `curl`, não por visita à
+  página. O freio `ESCOLA_HABILITADA:"nao"` continua sendo o jeito de desligar uma escola
+  REAL; a trava é o que separa «desligada» de «config trocada».
+- **`/api/saude` também na raiz** (`raiz.js`), respondendo `{ok:true, tipo:"raiz"}` — para
+  conferir que a ponte certa está no `danca`.
+- Sem um `wrangler.jsonc` «padrão», o `wrangler deploy` **sem `-c` passa a falhar** — de
+  propósito: cada Worker (raiz + escolas) só sobe com a sua config explícita.
+- O `MODELO` do scaffolding (`criar-escola.sh`) e os defaults do `gerar-ciclo.yml` deixam de
+  apontar para `fokini/01`/`diaghilev` e passam a `tiago/01`/`maria`.
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo. O motivo: o expurgo do Diaghilev deixou órfãos os
+ponteiros que viviam em `tools/` — o `MODELO` do `criar-escola.sh`, o `PADRAO` do
+`check-glossario.js`, os comentários de default «o único ciclo ativo é o de fokini» e a
+referência a `wrangler.jsonc` no template de lançamento. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nenhuma fonte de ciclo é adicionada/removida pela
+  ferramenta; o hash continua o mesmo (as mudanças são de ponteiro/redação, não de cobertura).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **O comportamento dos validadores.** `check-glossario.js` só muda o caminho padrão do uso
+  manual sem argumentos; os chamadores (`check-pacote.js`, `hooks/pre-commit`) já passavam os
+  caminhos explícitos.
+- O template de lançamento ganha `ESCOLA_SLUG` e `run_worker_first` na config gerada — é a
+  pré-condição da trava, não uma mudança de motor.
+
+**Onde entrou.**
+`motor/servidor/producao.js` — trava de identidade + `/api/saude` + freio com o slug.
+`motor/servidor/raiz.js` — `/api/saude`.
+`tools/criar-escola.sh` — `MODELO="tiago/01"`, `vars` (ESCOLA_HABILITADA + ESCOLA_SLUG) e
+`run_worker_first` no `wrangler.<escola>.jsonc` gerado.
+`tools/check-glossario.js` — `PADRAO` para `tiago/01-maria`.
+`tools/hash-ciclo.sh`, `tools/gerar-ciclo.sh`, `tools/gerar-acompanhamento.sh` — comentário do
+default atualizado.
+`tools/templates/lancamento.html` — referência a `wrangler.<escola>.jsonc`.
+`.github/workflows/gerar-ciclo.yml` — defaults `tiago`/`maria`.
+`wrangler.maria.jsonc`, `wrangler.diaghilev2.jsonc` — `ESCOLA_SLUG` + comentários.
+`README.md`, `professores/README.md` — a seção de deploy e a tabela de professores.
+
+**Com o quê.**
+A remoção de `professores/fokini/` e de `wrangler.jsonc`; `motor/servidor/producao.js`,
+`motor/servidor/raiz.js`, `motor/servidor/disparar.js`, `motor/servidor/escrever-po.js`,
+`motor/adaptadores/cloudflare.js`, `workers/principal.js`; `tools/criar-escola.sh`,
+`tools/check-glossario.js`, `tools/hash-ciclo.sh`, `tools/gerar-ciclo.sh`,
+`tools/gerar-acompanhamento.sh`, `tools/templates/lancamento.html`;
+`.github/workflows/gerar-ciclo.yml`; `wrangler.maria.jsonc`, `wrangler.diaghilev2.jsonc`;
+`README.md`, `professores/README.md`, `REGISTRO.md`; e (locais, fora do Git)
+`tools/.senhas-locais` sem `SENHA_DIAGHILEV` e `tools/.escolas-teste` sem `diaghilev`.
+
+**Referências.**
+`IDEIA-PAINEL-ESCOLA.md` §17.5 (o hook de expurgo, ainda por construir) · `CONGELAMENTO.md`
+(`tools/`) · a entrada anterior «O PO referencia o plano por id» (a trava é a irmã de
+infraestrutura da mesma operação de saneamento).
+
+**O que ainda não está feito.**
+- O hook de expurgo (`scheduled` no Worker + `escolas-habilitadas.json`) ainda NÃO existe —
+  é o que o Diaghilev II vai testar quando nascer.
+- O Worker e o subdomínio `diaghilev.tmenegaz77.workers.dev` no Cloudflare ainda NÃO foram
+  removidos (o expurgo DIRETO aqui removeu o repositório, não o recurso vivo) — pendente de
+  confirmação da pesquisadora, para não apagar o KV compartilhado que o Diaghilev II usa.
+- O secret GitHub `SENHAS_LOCAIS` precisa ser reescrito SEM `SENHA_DIAGHILEV` (e sem a senha
+  da raiz, do expurgo anterior).
+- Os pacotes das escolas restantes carregam o `lancamento.html` com o comentário antigo até a
+  próxima regeneração (a mudança é só de comentário; não exige reancorar).
