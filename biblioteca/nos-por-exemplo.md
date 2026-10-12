@@ -192,22 +192,36 @@ Ela oferece uma referência inicial para o planejamento e para a observação ao
 
 **[Acessar a Anamnese do aluno](@ANAMNESE_URL@)**
 
-### Passo 2 — Plano de Observação
+### Passo 2 — Plano de ensino
+
+Na **Área do Professor**, abra **Plano de ensino** — ou acesse a opção pelo menu.
+
+Aqui você define o que pretende ensinar no ciclo: o objetivo geral, os marcos de cada aula e a
+rubrica — o que as aulas vão construir, na ordem em que acontecem.
+
+O plano de ensino é a base do ciclo: ele fixa a intenção, e é essa intenção que o Plano de
+Observação lê como pergunta. Um plano já elaborado pode ser reaproveitado e ajustado, sem
+apagar o anterior.
+
+**[Acessar o Plano de ensino](@PLANO_URL@)**
+
+### Passo 3 — Plano de Observação
 
 Na **Área do Professor**, abra **Plano de Observação** — ou acesse a opção pelo menu.
 
 Nesse formulário, você define o que pretende observar durante o ciclo, com quais objetivos e
 para quais alunos.
 
-O plano considera o ponto de partida registrado na anamnese. Por isso, a sequência importa:
-primeiro você reúne as referências iniciais; depois, decide quais aspectos acompanhar.
+O Plano de Observação considera o ponto de partida registrado na anamnese e o plano de ensino
+que a aula vai seguir. Por isso, a sequência importa: primeiro você reúne as referências
+iniciais e define o ensino; depois, decide quais aspectos acompanhar.
 
 O Plano de Observação transforma suas intenções pedagógicas em critérios explícitos para
 orientar os registros das aulas.
 
 **[Acessar o Plano de Observação](@PO_URL@)**
 
-### Passo 3 — Lançamento de aula
+### Passo 4 — Lançamento de aula
 
 Ao final de cada aula, acesse **Lançamento de aula** na Área do Professor para registrar o que
 aconteceu.
@@ -221,7 +235,7 @@ O lançamento registra as observações daquele momento e ajuda a construir a me
 **O plano define o foco. A aula oferece a situação concreta. O lançamento preserva o
 registro.**
 
-### Passo 4 — Consulte os materiais do ciclo
+### Passo 5 — Consulte os materiais do ciclo
 
 À medida que o planejamento e as aulas avançam, os materiais correspondentes ficam organizados
 no menu.
@@ -234,7 +248,8 @@ no menu.
 - **Planejamento:** pode incluir a Notação em Benesh e o Glossário do código Benesh do ciclo.
   Esses materiais aparecem quando o trabalho inclui notação e o plano prevê sua utilização.
 - **Área do Professor:** reúne o Guia do Professor, o Método, o Guia de Observação, o
-  formulário de Lançamento de Aula, o Plano de Observação e a Anamnese do aluno.
+  formulário de Lançamento de Aula, o Plano de ensino, o Plano de Observação e a Anamnese do
+  aluno.
 
 Esta página apresenta o caminho geral. Dentro de cada formulário, você encontra as orientações
 específicas sobre seu preenchimento, os campos obrigatórios e opcionais e a função de cada
