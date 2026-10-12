@@ -7,9 +7,25 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body id="top">
-<header class="doc">
-  <h1>Nós, Por Exemplo</h1>
-  <p class="subtitulo">A porta de entrada do Projeto Ciclo — e o lugar de criar uma escola nova.</p>
+<header class="doc" id="topo-fixo">
+  <div class="topo-linha">
+    <div class="topo-titulos">
+      <h1>Nós, Por Exemplo</h1>
+      <p class="subtitulo">A porta de entrada do Projeto Ciclo — e o lugar de criar uma escola nova.</p>
+    </div>
+    <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
+  </div>
+  <div class="form-container" id="form-container">
+    <form class="form" id="form-criar">
+      <p class="nota">Crie uma escola nova a partir daqui. Ela nasce no estado «zero» — a «Área do Professor» desabilitada até o administrador cadastrar um professor nos Bastidores.</p>
+      <label for="nome">Nome da escola</label>
+      <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
+      <label for="senha">Senha do administrador</label>
+      <input id="senha" name="senha" type="password" autocomplete="new-password">
+      <button class="acao" type="submit">Criar</button>
+    </form>
+    <div class="res" id="res"></div>
+  </div>
 </header>
 <main>
 <div class="conteudo">
@@ -216,32 +232,42 @@ href="#passo-1-a-anamnese">Passo 1 — A anamnese</a>.</li>
 projeto a você — a equipe que acompanha a sua escola.</li>
 </ul>
 
-<section class="caixa" id="criar-escola">
-  <h2 id="criar-nova-escola">Criar nova escola</h2>
-  <p>Crie uma escola nova a partir daqui. A escola nasce no estado «zero» — a página «Nós, Por Exemplo» e a «Área do Professor» desabilitada até o administrador cadastrar um professor nos Bastidores.</p>
-  <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
-  <form class="form" id="form-criar">
-    <label for="nome">Nome da escola</label>
-    <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
-    <label for="senha">Senha do administrador</label>
-    <input id="senha" name="senha" type="password" autocomplete="new-password">
-    <button class="acao" type="submit">Criar</button>
-  </form>
-  <div class="res" id="res"></div>
-</section>
 <style>
-  .acao{display:inline-block;margin-top:.5rem;padding:.6rem 1.1rem;background:#6b2f2f;color:#fff;border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}
-  .form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin-top:1rem;display:none;}
-  .form.aberto{display:block;}
+  header.doc#topo-fixo {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+    max-width: none; width: 100%; margin: 0;
+    background: var(--cream);
+    border-bottom: 2px solid var(--gold-escuro);
+    padding: 12px 22px 10px;
+  }
+  header.doc#topo-fixo h1 { border-bottom: none; padding-bottom: 0; }
+  .topo-linha { max-width: 900px; width: 100%; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .topo-titulos { flex: 1 1 auto; min-width: 0; }
+  .topo-titulos .subtitulo { margin-bottom: 0; }
+  .form-container { max-width: 900px; width: 100%; margin: 0 auto; display: none; padding-top: 12px; }
+  .form-container.aberto { display: block; }
+  .acao{display:inline-block;padding:.6rem 1.1rem;background:#6b2f2f;color:#fff;border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;white-space:nowrap;}
+  .form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin-top:.4rem;}
+  .form .nota{font-size:.92rem;color:#6b5b4a;margin:0 0 .4rem;}
   .form label{display:block;margin:.5rem 0 .2rem;font-size:.9rem;color:#6b2f2f;}
   .form input{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}
-  .res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}
+  .res{margin-top:.6rem;padding:.7rem .9rem;border-radius:6px;display:none;}
   .res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}
   .res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}
 </style>
 <script>
+  // Mede a altura real da barra fixa e ajusta --header-height (o mesmo que o
+  // assets/nav.js do site faz com a navbar) — assim o `body` reserva exatamente o
+  // espaço do cabeçalho, sem folga nem sobreposição ao rolar.
+  function medirTopo() {
+    var topo = document.getElementById("topo-fixo");
+    if (topo) document.documentElement.style.setProperty("--header-height", topo.offsetHeight + "px");
+  }
+  medirTopo();
+  window.addEventListener("resize", medirTopo);
+
   var btn=document.getElementById("btn-criar"), form=document.getElementById("form-criar");
-  btn.addEventListener("click",function(){form.classList.toggle("aberto");});
+  btn.addEventListener("click",function(){document.getElementById("form-container").classList.toggle("aberto");medirTopo();});
   form.addEventListener("submit",function(e){
     e.preventDefault();
     var res=document.getElementById("res");
