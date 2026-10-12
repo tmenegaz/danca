@@ -8,7 +8,6 @@
 //
 // A rota pública (o domínio da escola) vive no painel do Cloudflare, não aqui: a mesma
 // config serve o `workers.dev` e um domínio próprio.
-
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "diaghilev2",
@@ -16,17 +15,22 @@
   "observability": {
     "enabled": true
   },
-
   // O ponto de entrada: a ponte de produção serve o pacote (ASSETS), o
   // lançamento (/api/receber) e a porta de elicitação (/plano-observacao/).
   "main": "workers/principal.js",
-
   // O pacote publicado: a pasta do ciclo, servida estática pelo binding ASSETS.
+  // `run_worker_first` deixa o Worker decidir ANTES do estático — é o que
+  // permite o freio `ESCOLA_HABILITADA` fechar o domínio inteiro.
   "assets": {
     "directory": "professores/fokini2/ciclos/ciclo-02-diaghilev2",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
   },
-
+  // A flag de habilitação da escola (lida por producao.js): "sim" abre o
+  // domínio; qualquer outro valor devolve a página "Escola desabilitada".
+  "vars": {
+    "ESCOLA_HABILITADA": "sim"
+  },
   // O cofre: o MESMO namespace `ciclos-escolas` do Diaghilev, compartilhado pelas
   // escolas — cada chave começa com o prefixo da escola (`diaghilev2/fokini2/02/...`).
   "kv_namespaces": [

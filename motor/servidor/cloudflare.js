@@ -87,8 +87,36 @@ function passosDeGeracao(env) {
   return { disparar, escreverPO, escreverPlano, escreverCiclo };
 }
 
+/**
+ * O freio da escola: quando `ESCOLA_HABILITADA` não é "sim", nada serve — qualquer
+ * caminho devolve a página «Escola desabilitada». É o mesmo freio de `producao.js`,
+ * vivido aqui na ponte AGNÓSTICA (o `diaghilev-ia-stub` serve `cloudflare.js` direto,
+ * sem passar pela ponte de produção). A flag é uma `vars` do wrangler (não segredo).
+ */
+function freioDaEscola(env) {
+  if (env && env.ESCOLA_HABILITADA === 'sim') return null;
+  return new Response(
+    '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Escola desabilitada</title>' +
+    '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
+    'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
+    'p{color:#6b5b4a;}</style></head><body>' +
+    '<h1>Escola desabilitada</h1>' +
+    '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
+    '</body></html>',
+    { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
+  );
+}
+
 async function fetch(request, env, opcoes) {
   const prefixo = (opcoes && opcoes.prefixo) || '';
+
+  // 0. O freio da escola, ANTES do bootstrap — não há conteúdo, esquema nem rota
+  //    quando a escola está desligada. Vale para o diaghilev-ia-stub (que usa esta
+  //    ponte diretamente); a produção já freia em producao.js antes de chegar aqui.
+  const freio = freioDaEscola(env);
+  if (freio) return freio;
 
   // O bootstrap: o conteúdo, o esquema, o PO e o prompt vêm do ASSETS (estático)
   // sob o PREFIXO da porta; a identidade (o CSS) é a MESMA do pacote, na RAIZ —

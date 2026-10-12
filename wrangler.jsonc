@@ -29,9 +29,18 @@
   "main": "workers/principal.js",
 
   // O pacote publicado: a pasta do ciclo, servida estatica pelo binding ASSETS.
+  // `run_worker_first` deixa o Worker decidir ANTES do estatico — e o que
+  // permite o freio `ESCOLA_HABILITADA` fechar o dominio inteiro.
   "assets": {
     "directory": "professores/fokini/ciclos/ciclo-01-diaghilev",
-    "binding": "ASSETS"
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  // A flag de habilitacao da escola (lida por producao.js): "sim" abre o
+  // dominio; qualquer outro valor devolve a pagina "Escola desabilitada".
+  "vars": {
+    "ESCOLA_HABILITADA": "nao"
   },
 
   // O cofre: o namespace `ciclos-escolas` guarda os lancamentos que o formulario envia. Ele e

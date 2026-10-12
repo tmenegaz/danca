@@ -578,6 +578,12 @@ function derivarHarmonizacao({ plano, po, contexto }) {
   const achados = varrerJuizo(plano, po);
 
   const saida = [];
+  // O `title:` é o RÓTULO do menu (a `rotulo()` do gerador lê o front-matter);
+  // sem ele o item sairia vazio na navegação. O H1 abaixo continua a linha
+  // comprida com ciclo/escola — o título do menu é o rótulo curto.
+  saida.push('title: "Harmonização de linguagem"');
+  saida.push('subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"');
+  saida.push('');
   saida.push('# Harmonização de linguagem — Ciclo ' + ciclo + ' — ' + escola);
   saida.push('');
   saida.push('> Esta tabela é **visível ao professor**. Se ele discordar de alguma harmonização, ele');

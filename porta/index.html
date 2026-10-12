@@ -32,10 +32,10 @@
   /* A porta TEM a navbar do site (injetada pelo gerador no marcador de navegação): o
      `--header-height` volta a ser da NAVBAR (o assets/nav.js publica a altura dela), e o
      `body` reserva o espaço para a barra fixa — como em qualquer página do pacote. A `.barra`
-     (o contexto do ato) é `sticky` e para ABAIXO da navbar; a altura DELA é publicada em
-     `--barra-height`, para as âncoras e o `.rail` pararem abaixo das duas. */
+     (o contexto do ato) NÃO é mais `sticky`: rola com a página, como o resto do conteúdo, e
+     os campos dela são recolhíveis num acordeão (`<details>`). */
   body { padding: var(--header-height) 0 40px; }
-  html { scroll-padding-top: calc(var(--header-height) + var(--barra-height, 0px) + 8px); }
+  html { scroll-padding-top: calc(var(--header-height) + 8px); }
   .sub { color: var(--suave); font-size: .9rem; margin: 0 0 1.5rem; }
   /* Os links que embrulham um botão e as linhas da lista já se anunciam por si: o filete
      pontilhado do site (que marca link de prosa) vira ruído embaixo de um controle. */
@@ -50,9 +50,9 @@
   .caixa.nota { background: var(--creme-1); }
   /* A faixa de contexto do ATO: as mesmas medidas do conteúdo (`main`), a mesma
      serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
-     onde se digita. Prega-se ao topo porque é controle: não sai de vista. */
+     onde se digita. Rola com a página (não é `sticky`) e os campos vivem num
+     acordeão (`<details>`) — o professor recolhe ou expande. */
   .barra {
-    position: sticky; top: var(--header-height); z-index: 5;
     max-width: 900px; margin: 0 auto 1.5rem;
     background: var(--cream);
     border-bottom: 1px solid var(--gold-escuro);
@@ -63,6 +63,22 @@
   .barra b { color: var(--tinta); font-variant-numeric: tabular-nums; }
   .barra .campo { display: flex; align-items: baseline; gap: .35rem; }
   .barra .campo label { white-space: nowrap; }
+  /* O acordeão do contexto do ato: a linha de fora fica sempre visível (o resumo),
+     e os campos abrem por baixo. O `summary` é o cursor do recolher/expandir. */
+  .barra details.ctx-ato { flex: 1 1 100%; }
+  .barra details.ctx-ato > summary {
+    cursor: pointer; list-style: none;
+    font-weight: 600; color: var(--tinta);
+    user-select: none;
+  }
+  .barra details.ctx-ato > summary::-webkit-details-marker { display: none; }
+  .barra details.ctx-ato .ctx-seta { display: inline-block; transition: transform .15s ease; margin-right: .2rem; }
+  .barra details.ctx-ato[open] .ctx-seta { transform: rotate(90deg); }
+  .barra details.ctx-ato .ctx-resumo { color: var(--suave); font-weight: 400; }
+  .barra details.ctx-ato .ctx-campos {
+    display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
+    margin-top: .45rem;
+  }
   /* Dentro da barra os campos são miúdos: a medida de toque do site (15px) vence
      aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
   .barra .campo input {
@@ -285,17 +301,25 @@
        mais abaixo): é a identificação que entra no envelope e o prefixo da chave
        do cofre. Nasce VAZIO (a porta é agnóstica — cada escola/professor/ciclo
        chega pela URL do menu, `?escola=…&professor=…&ciclo=…`), e o professor
-       corrige o que não servir. -->
-  <span class="campo"><label for="ctx-escola">escola</label>
-    <input type="text" id="ctx-escola" value=""></span>
-  <span class="campo"><label for="ctx-professor">professor</label>
-    <input type="text" id="ctx-professor" value=""></span>
-  <span class="campo"><label for="ctx-ciclo">ciclo</label>
-    <input type="text" id="ctx-ciclo" value=""></span>
-  <span class="campo"><label for="ctx-aluna">aluna</label>
-    <input type="text" id="ctx-aluna" value=""></span>
-  <span class="campo"><label for="senha">senha da escola</label>
-    <input type="password" id="senha" autocomplete="off"></span>
+       corrige o que não servir. Os campos ficam recolhidos num acordeão: o
+       professor expande quando precisa ver/editar, e recolhe para rolar a tela
+       sem a faixa ocupar espaço. -->
+  <details class="ctx-ato" open>
+    <summary><span class="ctx-seta">▸</span>Contexto do ato
+      <span class="ctx-resumo">escola · professor · ciclo</span></summary>
+    <div class="ctx-campos">
+      <span class="campo"><label for="ctx-escola">escola</label>
+        <input type="text" id="ctx-escola" value=""></span>
+      <span class="campo"><label for="ctx-professor">professor</label>
+        <input type="text" id="ctx-professor" value=""></span>
+      <span class="campo"><label for="ctx-ciclo">ciclo</label>
+        <input type="text" id="ctx-ciclo" value=""></span>
+      <span class="campo"><label for="ctx-aluna">aluna</label>
+        <input type="text" id="ctx-aluna" value=""></span>
+      <span class="campo"><label for="senha">senha da escola</label>
+        <input type="password" id="senha" autocomplete="off"></span>
+    </div>
+  </details>
 </div>
 
 <main>
@@ -1165,22 +1189,14 @@ function citacao(termo) {
 }
 
 /*
- * A `.barra` é `sticky`, não fixa: ela ocupa lugar no fluxo. As âncoras (`#id`) e o `.rail`
- * param ABAIXO da navbar E da `.barra` — e a altura da `.barra` só é conhecida depois do
- * layout, porque a faixa embrulha em duas linhas quando a janela estreita. Então mede-se, e
- * republica-se quando a medida mudar — o mesmo que o `assets/nav.js` do site faz com a
- * navbar. A variável é `--barra-height` (a navbar é dona do `--header-height`, lá no nav.js).
+ * A `.barra` já não é `sticky`: rola com a página e não precisa de altura publicada para as
+ * âncoras pararem abaixo dela (o `html { scroll-padding-top }` cobre só a navbar). O que se
+ * mantém aqui é a revelação da faixa depois da abertura — e o recolher/expandir dos campos,
+ * que é nativo do `<details>`.
  */
-function publicarAlturaDaBarra() {
+function revelarBarra() {
   const barra = $('barra');
-  if (!barra) return;
-  const publicar = () => {
-    const altura = barra.classList.contains('oculto') ? 0 : barra.offsetHeight;
-    document.documentElement.style.setProperty('--barra-height', altura + 'px');
-  };
-  publicar();
-  if (typeof ResizeObserver === 'function') new ResizeObserver(publicar).observe(barra);
-  window.addEventListener('resize', publicar);
+  if (barra) barra.classList.remove('oculto');
 }
 
 /*
@@ -2968,6 +2984,26 @@ function configurarEntradaDoPlano() {
   }
 }
 
+/*
+ * A barra de navegação é gerada ESTÁTICA — a porta é UMA página servida sob dois
+ * caminhos. O gerador marca «Plano de Observação» como ativo por padrão; aqui se
+ * corrige o ativo conforme a URL: em `/anamnese/`, quem fica em destaque é
+ * «Anamnese do aluno», e o PO volta a ser item comum. Os dois itens têm href
+ * distintos (`/anamnese/…` e `/plano-observacao/…`), então o casamento é pelo
+ * prefixo do caminho — sem depender de ordem nem de rótulo.
+ */
+function marcarAtivoDaPorta() {
+  const caminho = location.pathname;
+  const alvo = caminho.indexOf('/anamnese/') === 0 ? '/anamnese/' : '/plano-observacao/';
+  document.querySelectorAll('.topnav a').forEach((a) => {
+    const href = a.getAttribute('href') || '';
+    const ehPorta = href.indexOf('/anamnese/') === 0 || href.indexOf('/plano-observacao/') === 0;
+    if (!ehPorta) return;
+    if (href.indexOf(alvo) === 0) a.classList.add('ativo');
+    else a.classList.remove('ativo');
+  });
+}
+
 async function iniciar() {
   // O cabeçalho e a abertura refletem a fonte: cada formulário tem o seu título,
   // subtítulo e explicação de porta — em português do Brasil, do dia a dia.
@@ -3160,7 +3196,7 @@ async function iniciar() {
   $('n-total').textContent = MAPA.total;
   $('n-obrig-total').textContent = MAPA.obrigatorios;
   $('barra').classList.remove('oculto');
-  publicarAlturaDaBarra();
+  revelarBarra();
 
   // O salto direto vem DEPOIS da semeadura do contexto: a primeira pergunta abre
   // já com escola/professor/ciclo semeados, quando a fonte os declara. Sem
@@ -3382,6 +3418,7 @@ async function iniciar() {
   });
 }
 
+marcarAtivoDaPorta();
 iniciar();
 </script>
 

@@ -40,6 +40,26 @@ async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
+  // 0. O FREIO da escola: a flag de habilitação. Quando `ESCOLA_HABILITADA` não
+  //    é "sim", a escola está DESLIGADA — nenhuma rota serve conteúdo, qualquer
+  //    caminho devolve esta página. É o "desliga" para resolver problemas
+  //    diversos sem derrubar o Worker: o domínio continua no ar, mas não abre
+  //    nada. A flag é uma `vars` do wrangler (não segredo): visível e auditável.
+  if (env.ESCOLA_HABILITADA !== 'sim') {
+    return new Response(
+      '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>Escola desabilitada</title>' +
+      '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
+      'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
+      'p{color:#6b5b4a;}</style></head><body>' +
+      '<h1>Escola desabilitada</h1>' +
+      '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
+      '</body></html>',
+      { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
+    );
+  }
+
   // 1. A porta de elicitação, sob os dois prefixos. Retira-se o prefixo do caminho
   //    (a rota vê `/`, `/api/…`, `/assets/…`) e a ponte lê o conteúdo do
   //    subdiretório do ASSETS.
