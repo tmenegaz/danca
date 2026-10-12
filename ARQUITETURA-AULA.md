@@ -440,6 +440,10 @@ desenho.
 **por escola** (`SENHA_DUO`, `SENHA_RITMOS`…) — verificado em `tools/lib-senhas.sh` —, então
 o modelo de acesso para o painel já está pronto.
 
+> **Correção de 11/10/2026.** A senha da Produção é **própria** (`SENHA_<ESCOLA>_PRODUCAO`,
+> Modelo 2) — a mesma solução da senha da escola, com variável separada. O **Estúdio de
+> Dança** continua a usar a senha da escola. Ver o `IDEIA-PAINEL-ESCOLA.md` §4.
+
 **O que ele faz (esboço):** acompanha as aulas dadas por professor, turma, modalidade ou
 disciplina; calcula horas trabalhadas × valor-hora; verifica a cadeia de custódia (o que
 mudou e o que não mudou); e gera os relatórios que a escola quiser.
@@ -458,8 +462,8 @@ quis dizer*, e preserva a primeira.
 <!-- ...existing code... -->
 ### 7.1 A retenção — selar, não apagar
 
-> **Remissão.** O painel da escola detalha o mesmo assunto em `IDEIA-PAINEL-ESCOLA.md` §7;
-> aqui está o que toca **a aula**.
+> **Remissão.** O painel da escola (agora o «Bastidores») detalha o mesmo assunto em
+> `IDEIA-PAINEL-ESCOLA.md` §13; aqui está o que toca **a aula**.
 
 **Decidido (23/09/2026):** ao fim da retenção, o conteúdo é **selado**, não apagado. Isto
 fecha a tensão com a regra do §1 — *"apagar é proibido, senão não há proveniência"*:

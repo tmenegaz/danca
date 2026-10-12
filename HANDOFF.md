@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-07T23:42:02-0300`
-Commit atual: `9f8a96e` — feat(prompts): a elicitação herda oito decisões do formulário do experimento
+Gerado em: `2026-10-11T20:18:45-0300`
+Commit atual: `11697f3` — feat(entrega): a página de entrada «Nós, Por Exemplo» e a correção socrática (F5) entram no pacote
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -34,42 +34,43 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** fokini (1)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Professores:** fokini
+fokini2 (2)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
 
-- **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha, os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor — o **recipiente** é do PE, o **conteúdo** é do PO.
+- **`ARQUITETURA-ANAMNESE.md`** — Desenho da malha de anamnese de balé clássico como **conteúdo do PO** — a **observação inicial** dos seis elementos basilares, os **nove blocos fixos** da ficha, os **dois módulos condicionais** (validação de nível prévio e contexto de origem) e as **três dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor, fechando na **conclusão** — o campo **«Resultado da avaliação»** (apta/não apta + nível, sem turma/horário/frequência) — o **recipiente** é do PE, o **conteúdo** é do PO.
 - **`ARQUITETURA-AULA.md`** — o ciclo de vida da aula (planejada → dada → lançada, mais a **não dada**), a regra CRUD × ajuste, o prazo dinâmico por turma, o índice e a âncora por aula. O **estado derivado** (`B6`) e o **ajuste no plano** (`B8`) estão implementados; o resto, não.
 - **`ARQUITETURA-CAPTURA.md`** — arquitetura técnica do formulário dinâmico com JSON por ciclo — modelo de dados, schema, fluxo, segurança e perguntas em aberto.
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
-- **`IDEIA-PAINEL-ESCOLA.md`** — painel de gestão para a direção da escola (aulas dadas, horas trabalhadas, valor-hora, cadeia de custódia, retenção) e a página pública da cadeia para pais e alunos. Não implementado.
+- **`IDEIA-PAINEL-ESCOLA.md`** — o Bastidores é o ambiente da direção da escola: um grupo de menu com duas vistas — o Estúdio de Dança (que a direção partilha com o professor) e a Produção (só da direção) —, regido pelo princípio cena × bastidores, pela regra da reverberação (o que a escola declara desce para os documentos da cena) e pela proveniência própria da escola. Não implementado.
 
 ## Últimos commits
 
 ```
+11697f3 feat(entrega): a página de entrada «Nós, Por Exemplo» e a correção socrática (F5) entram no pacote
+7eca71a feat(tools): a página de entrada vira «Nós, Por Exemplo», e o menu perde a marca e o «Início»
+7f074ec feat(tools): o menu separa a Anamnese do Plano de Observação
+9057c1a feat(po): a porta fala a língua do professor e a navegação vira PO → plano
+95db237 feat(estrutura): a escola diaghilev2 nasce do zero (teste de elicitação)
+f36358c feat(po): a porta passa a elicitar o plano — o ciclo do zero nasce com plano + PO
+73ce703 feat(tools): criar-escola.sh — a criação de uma escola nova vira um comando
+3bfc203 refactor(estrutura): a porta passa a usar os assets compartilhados da raiz do pacote
+bb6bf31 feat(tools): a porta do Plano de Observação ganha a navegação do site e o comportamento de saída
+0f91c6a chore(tools): as escolas de teste ficam fora da conferência de senha do pre-push
+4161963 feat(estrutura): o motor agnóstico e a porta saem do experimento para produção
+c714b48 feat(tools): o menu da Área do Professor ganha o acesso ao Plano de Observação
+ede14d7 chore(estrutura): o .env e o .dev.vars ficam fora do Git
+8d3da1e refactor(estrutura): o prompt instalar-ciclo vira skill em .github/skills/
+ba7379b docs(registro): regenera o HANDOFF sobre 9f8a96e
 9f8a96e feat(prompts): a elicitação herda oito decisões do formulário do experimento
 d94b991 feat(experimentos): o Worker ganha o cofre da anamnese — com leitura por GET
 0b81ab1 docs(registro): regenera o HANDOFF sobre c64fe95
 c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registro conta a rodada
 55d332d docs(apresentacao-01-rizoma): o deck passa de 72 para 87 slides e o mapa anda para o slide 83
-f595506 docs(registro): regenera o HANDOFF sobre b6a406b
-b6a406b docs(estrutura): a documentação aponta para o Worker do Cloudflare, não mais para o Netlify
-791f3fb chore(entrega): o pacote do diaghilev recebe a rota nova do lançamento
-878d3ae refactor(template): o endereço do POST do lançamento passa a `/api/receber`
-1d01c9d refactor(tools): o Worker do Cloudflare substitui o Netlify — Functions e Blobs saem
-a24179b docs(registro): a entrada do cofre — do Netlify para o Cloudflare KV
-00bfe2f feat(schema): a escola pode ser desabilitada -- e a desabilitacao diz por que e desde quando
-99ae163 feat(tools): o validador passa a entender if/then/else do schema
-1a65840 fix(tools): o `pattern` do schema deixa de valer so para o campo obrigatorio
-2a368a2 docs(registro): regenera o HANDOFF sobre f04551b
-f04551b docs(registro): os ciclos-prototipo saem, e o tools/ acha o ciclo ativo
-3736757 docs(tools): os exemplos e ponteiros passam a citar o ciclo ativo
-08c0be9 chore(estrutura): saem os ciclos-prototipo, e o Diaghilev fica sozinho
-be806f4 docs(estrutura): a regra de desmembramento da ficha entra na norma
-bbe8867 docs(tools): a colheita do HANDOFF passa a ter limite, e a leitura do REGISTRO deixa de ser inteira
 ```
 
 ## Por professor
@@ -84,7 +85,19 @@ bbe8867 docs(tools): a colheita do HANDOFF passa a ter limite, e a leitura do RE
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| diaghilev | ciclo-01-diaghilev.fipp | `899d17e4343d` | (vazio) | Input_PO_Aguardando |
+| diaghilev | ciclo-01-diaghilev.fipp | `37193a381dc5` | (vazio) | Input_PO_Aguardando |
+
+### fokini2 — 1 ciclo(s)
+
+**Ciclo 02** — variante(s): diaghilev2
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| diaghilev2 | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| diaghilev2 | ciclo-02-diaghilev2.fipp | `af1ec11e18a2` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -133,189 +146,106 @@ bbe8867 docs(tools): a colheita do HANDOFF passa a ter limite, e a leitura do RE
 
 ## Última entrada do REGISTRO
 
-## 07/10/2026 — O prompt de elicitação herda oito decisões do formulário do experimento
+## 11/10/2026 — Atalhos da porta na página de entrada e aprofundamento do «Como se usa»
 
-**O que motivou.** O formulário do PO do experimento (`experimentos/po/conteudo/po.json`, 36 nós)
-foi construído *a partir* do prompt congelado — e evoluiu além dele. O plano de 06/10/2026 já
-registrava a coexistência: *"é o elo textual; o PO continua a poder nascer por prosa"*. A
-pesquisadora pediu que a diferença fosse **medida** e que as melhorias **voltassem ao prompt**,
-*"para que o prompt continue sendo o caminho de entrada — com a mesma qualidade do formulário"*.
-Medi as duas peças, nó a nó e bloco a bloco.
+**O que motivou.** A página de entrada «Nós, Por Exemplo» tinha dois problemas de leitura: o
+bloco «Como se usa, passo a passo» era abstrato (o professor não sabia **onde clicar** nem o que
+ia encontrar), e os blocos de abertura traziam redação ainda não finalizada («coisa», a régua
+das alunas, menção a protocolos ainda por construir).
 
-**O que foi decidido.** Oito decisões do formulário entram no prompt; o resto **não** entra, e o
-porquê fica escrito na mesma entrada. Entram:
+**O que foi decidido.**
 
-1. **O porquê de cada pergunta.** O formulário traz `explicacao.porQue` em **todos** os 36 nós; o
-   prompt tinha a *ponte* (o termo do protocolo entre crases) e **nunca** o motivo. Regra nova em
-   «Como conduzir»: uma linha de porquê junto da ponte.
-2. **Obrigatório × opcional.** 28 dos 36 nós declaram `obrigatorio: true`; o prompt não tinha a
-   distinção. A compilação passa a separar a **lacuna explícita** (`[a decidir]`) do **branco
-   declarado** — e a suposição continua sendo o defeito.
-3. **O checklist perguntado.** Os seis critérios de validação são, no formulário, seis nós
-   **obrigatórios** (`blocos[7]`); no prompt eram uma menção — *"relê o PO contra o checklist de
-   validação"* — **sem os seis nomes em lugar nenhum**. Agora o fechamento pergunta os seis, um a
-   um, e um «não» volta ao campo que o critério nomeia.
-4. **Campo e contexto como dois grupos nomeados, com «outro».** O formulário organiza a observação
-   inicial em `Campo empírico` e `Contexto da observação`, cada um com campo aberto. O Bloco 1 era
-   lista plana **sem catch-all** — e daí saíram **quatro lacunas de conteúdo**, não de estilo:
-   `campo-turma` (**qual turma**), `contexto-volume`, `contexto-registro` e os dois «outro».
-5. **A derivação da linha de base.** O formulário deriva inclusão/exclusão do que a anamnese já
-   declara; o prompt perguntava a frio. O Bloco 7 passa a pedir um **rascunho** do agente, sujeito
-   a edição — *sugestão, não decisão*.
-6. **P-12 e a estabilidade do apelido.** O formulário declara `apelidoObrigatorio: "P-12"`; o
-   prompt pedia apelidos, citava P-01, P-11 e P-22 — e **não** P-12. O Bloco 3 passa a citá-la, com
-   a estabilidade entre ciclos.
-7. **Perguntas condicionais declaradas.** O formulário declara `condicaoDeEntrada` em dois módulos;
-   o prompt perguntava tudo sempre. Os Blocos 2 e 4 passam a declarar as duas condições (P-14 e a
-   extensão).
-8. **P-16 — declarado, nunca deduzido.** Regra que o formulário repete (`listaAberta.regra`) e o
-   prompt não tinha.
+- **«O que é este sistema» reescrito** em três parágrafos (o que faz → o que permite → o que faz
+  com o conhecimento), com a distinção repertório × arquivo, sem «coisa», sem jargão.
+- **A passagem da «régua alta» corrigida:** a régua é do **serviço prestado** (dedicação, cuidado,
+  o que a escola oferece), não das alunas. «A dança é para todas» ficou explícito. Saíram
+  «régua», «qualidade» e «métrica».
+- **«Como se usa, passo a passo» aprofundado:** passos numerados (Passo 1 a 4), contexto do que é
+  um **ciclo** (nasce do Plano de Observação; dentro dele há aulas; cada aula tem seu registro), a
+  lista do que mais existe na Área do Professor (caderno, captura, critérios, método, guia) e a
+  nota de que a página é o mapa e o detalhe está dentro de cada formulário.
+- **Dois atalhos com link** para a porta — «Anamnese do aluno» e «Plano de Observação» — com as
+  URLs carregando os slugs do ciclo. Como o pandoc **não interpola variáveis no corpo** do
+  documento, a página usa os marcadores `@ANAMNESE_URL@` e `@PO_URL@`, trocados pelo gerador
+  **só no `index`**.
 
-**O que NÃO entrou, e por quê.** A proveniência de três estados, o KV, a leitura lazy, os selos de
-estado, o `repetirPor` auto-preenchido, `exclusiva`/`multipla` e o versionamento do envelope são
-decisões de **sistema** — o prompt não tem estado, não tem leitor e não tem tela. As 22 regras de
-corte também não: o prompt ganhou a **capacidade** de derivar, não as regras. E o
-`explicacao.oQueE`/`preencher` já estavam lá — o `oQueE` *é* a pergunta, o `preencher` *é* a forma
-(a regra das listas e a dos marcos).
+**Onde entrou.** `biblioteca/nos-por-exemplo.md` — os três blocos reescritos/aprofundados e os
+dois marcadores de link. `tools/gerar-ciclo.sh` — a substituição `@ANAMNESE_URL@`/`@PO_URL@`
+após o pandoc do `index`. `tools/criar-escola.sh` — a mesma substituição no índice do pacote
+"zero" (que também renderiza `nos-por-exemplo.md`), com URL relativa à pasta do pacote.
 
-**Onde entrou.** `prompts/elicitar-ciclo.md` — 213 → **277 linhas** (9 928 → **14 087 B**):
-**+78 linhas, 14 removidas — todas reescritas**, em quatro pontos (o fechamento, as linhas
-dispersas do Bloco 1, a linha dos apelidos e o bullet da extensão), conferidas uma a uma. Os
-**dez blocos** continuam — e é o que o `derivar-plano.js` declara
-(`espacosDeNomes.entrevista.blocos: 10`).
+**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `tools/`. O motivo: os dois
+atalhos da página de entrada precisam levar o contexto do ciclo (`professor`, `escola`, `ciclo`)
+na URL da porta, e esse contexto só existe no gerador — não dá para gravar slugs fixos na página
+compartilhada (cada pacote tem o seu). **O que não muda:**
 
-**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `prompts/`. O motivo: o prompt é o
-**elo textual** do PO (P-19), e o formulário — construído a partir dele — resolveu oito problemas
-que o texto ainda não resolvia. Deixá-lo como estava criaria **duas qualidades** de elicitação: a
-do formulário e a da prosa. A alteração é de **redação e de conteúdo de entrevista**; não é de
-comportamento de sistema. **O que não muda:**
+- **A fórmula do hash e a cobertura.** Não mudou; a página de entrada vive em `biblioteca/`, que
+  o hasher já exclui, e nenhuma fonte de ciclo foi alterada. A âncora **não** foi regerada (o
+  `--check` confirma a cadeia íntegra com o mesmo hash de antes).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou.
+- **Os validadores.** Nenhum mudou; o `check-pacote` continua passando com 0 erros.
 
-- **A fórmula do hash e a cobertura da âncora.** `prompts/` **não** está em `tools/lib-fontes.sh`, e
-  o `.fipp` cobre só `professores/<professor>/ciclos/ciclo-XX.conf`, `ciclo-XX-<escola>.conf` e os
-  `ciclo-XX-*.md` ⇒ **nenhum `.fipp` precisa ser reancorado**. Provado: `tools/hash-ciclo.sh fokini
-  01 diaghilev --check` ⇒ *"ciclo 01-diaghilev íntegro; cadeia intacta"* — rodado **depois** da
-  alteração.
-- **Os validadores, os extratores e os geradores.** Nenhum lê o prompt: as duas referências no
-  repositório são **citações** — `derivar-plano.js:246` (uma string `fonte:`) e
-  `prompts/instalar-ciclo.md:11` (uma remissão em prosa).
-- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou. As pétreas novas citadas
-  (P-12, P-14, P-16) **já existiam** — o prompt é que não as citava.
+**Com o quê.** `biblioteca/nos-por-exemplo.md`, `tools/gerar-ciclo.sh`,
+`tools/criar-escola.sh`, e o pacote `professores/fokini/ciclos/ciclo-01-diaghilev/` regenerado.
 
-**Com o quê.** `prompts/elicitar-ciclo.md` — oito acréscimos, um por decisão, mais a escopagem de
-uma linha do «Formato de saída» (`Onde algo **obrigatório** não foi respondido, [a decidir]`), que
-senão contradiria a regra nova do opcional em branco. `REGISTRO.md` — esta entrada.
-
-**Referências.** `experimentos/po/conteudo/po.json` (o formulário: 36 nós, 28 obrigatórios) ·
-`experimentos/po/README.md` §4 e §8 · `.github/instructions/registro-md.instructions.md` ·
-`CONGELAMENTO.md` · `PROTOCOLO.md` (P-12, P-14, P-16) · precedente de prompt congelado editado:
-`ebc62bb`. A via anterior do arquivo está no workspace da sessão (md5
-`b7e455a75f27a670f96df2425f350a3a`).
+**Referências.** `CONGELAMENTO.md` (`tools/`) · a entrada de 11/10/2026 (o `index` →
+«Nós, Por Exemplo») · o pedido «Ajustes finais na página» e o pedido «Aprofundar o bloco
+«Como se usa, passo a passo»».
 
 **O que ainda não está feito.**
 
-- **As Frentes 2 e 3 do pedido não começaram:** o botão «Usar IA para fazer o PO» (que deve acionar
-  **este** prompt, agora atualizado) e a lista de sujeitos e anamneses para o agente inteligente.
-- **A alteração não foi vista por um agente em uso.** O que se mediu foi o **texto** — oito
-  acréscimos presentes e verificados. Se a entrevista conduzida pelo prompt atualizado produz PO
-  melhor, isso só se sabe **rodando-o**.
-- **A via anterior não está no repositório.** Ficou em `files/elicitar-ciclo.ANTES.md`, no workspace
-  da sessão, **fora do Git**.
+- **O pacote `fokini2/02/diaghilev2` está com o `index.html` defasado** (ainda mostra o «cartão de
+  visita» antigo, não a página «Nós, Por Exemplo»). É anterior a este marco — o `criar-escola.sh`
+  já renderiza `nos-por-exemplo.md`, mas o pacote não foi regerado. Regerar exige rodar o
+  `criar-escola.sh` (que cria uma escola nova), e não o `gerar-ciclo.sh` (que falha com `DOCS=""`).
+- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
 
 ## O que está pendente
 
-## 02/10/2026 — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev fica sozinho
+## 09/10/2026 — A criação de escola vira um comando: o CLI de scaffolding, e a porta deixa de nascer com escola fixa
 
-- **⚠️ Um achado que a remoção expôs, e que a política de dados sensíveis precisa enfrentar.** O
-  dado de saúde individual de uma aluna **estava em claro em 7 arquivos versionados** da árvore que
-  saiu: `ciclo-01-ritmos-po.md:107`, `ciclo-01-ritmos-dados.json:40`,
-  `ciclo-01-ritmos/caderno-01.html:235`, `ciclo-01-ritmos/guia-de-observacao-01.html:188`,
-  `ciclo-01-ritmos/po-01.json:58`, `relatorios/ciclo-01/aula-01-ritmos.md:145` e
-  `cadernos/ciclo-01/caderno-01-ritmos.md:100` (*"lesão no tornozelo esquerdo"*). **A leitura que
-  dizia que o dado nunca esteve no Git estava errada**, e a correção fica aqui, como elo. O commit
-  `08c0be9` tira os 7 do caminho ativo, mas **o histórico do Git os preserva**: a camada 4 cobre os
-  acompanhamentos `.md`, e **não** cobre o dado que vazou para as fontes. O que fazer com isso — o
-  histórico é imutável por P-04, e a decisão é da pesquisadora — **não foi decidido aqui**.
-- **O ciclo vivo não repete o caso:** a §"Restrições físicas declaradas (P-22)" do PO do Diaghilev
-  diz *"Nenhuma restrição declarada até o início do ciclo"*, e nenhuma fonte de `professores/fokini/`
-  traz dado de saúde individual.
-- **A segunda frente não foi implementada** — a flag de escola habilitada/desabilitada. Ela vive no
-  `.conf` da variante, com **motivo e data**; entra em `properties` do `ciclo-01-schema.json`, nunca
-  em `required`; e exige **reancoragem**, porque toca o `.conf` (o `hash-ciclo.sh:129` valida os
-  `.conf` contra o schema antes de ancorar).
-- **O push fecha a rodada:** estes commits vão para o `origin/main` como a última ação. O
-  `experimentos/README.md` mudou no worktree e **fica fora** deles, de propósito.
+A lacuna do ciclo vazio: `tools/gerar-ciclo.sh` exige `DOCS`
+não-vazio (`: "${DOCS:?}"`), então a geração disparada pela conclusão do PO vai parar pedindo um
+documento. Decidir, na etapa seguinte: (a) o PO elicitado gera um esboço de plano como primeiro
+`DOCS`, ou (b) o gerador passa a aceitar `DOCS=""`. A escola `diaghilev2` ainda não foi **ancorada**
+(`tools/hash-ciclo.sh fokini2 02 diaghilev2`) — é o primeiro ciclo do professor, sem `parentHash`.
 
----
+## 09/10/2026 — A porta passa a elicitar o PLANO, e o ciclo do zero passa a nascer com plano + PO
 
-## 02/10/2026 — A escola passa a poder ser desabilitada, com motivo e data
+O commit da escola `diaghilev2` **vazia** (antes de qualquer
+elicitação) segue bloqueado pelo `pre-commit`, que tenta gerar o pacote de um ciclo sem `DOCS` — o
+estado "zero" que o gerador ainda não reconhece. Decidir, na próxima etapa: (a) o `pre-commit` pula
+ciclos com `DOCS` vazio (o estado legítimo de uma escola recém-criada), ou (b) a geração aceita
+`DOCS=""`. O teste de ponta a ponta (elicitar plano → `-plano.md` + `DOCS="plano"` → elicitar PO →
+geração) ainda não foi exercido contra o GitHub real.
 
-- **O bloqueio da geração não existe.** `tools/gerar-ciclo.sh` **não** consulta a flag: hoje ele
-  gera um ciclo desabilitado do mesmo jeito. É capacidade própria, decidida para depois — não foi
-  tocado nesta rodada, por decisão explícita.
-- **A flag não tem consumidor.** O painel (`IDEIA-PAINEL-ESCOLA.md`) continua **não implementado**;
-  a flag é o campo que ele vai ler, e hoje quem a lê é só o validador.
-- **`ESCOLA_HABILITADA` não entrou em nenhum `enum` nem no `DOCS`.** Ela é campo de schema, não
-  documento, e por isso não aparece no pacote gerado — verificar, quando o painel existir, se ele
-  precisa lê-la do `.conf` ou de um JSON derivado.
-- **`experimentos/README.md` mudou no worktree** (frente anterior) e **fica fora** destes commits,
-  de propósito.
-- **O push é da pesquisadora** — os commits ficam locais até ela empurrar.
+## 10/10/2026 — O menu separa a Anamnese do Plano de Observação, e a navegação da porta muda de modelo
 
----
+O **pacote ainda não foi regerado** — a mudança do menu só aparece
+nos HTML após `tools/gerar-ciclo.sh <professor> <ciclo> <escola>`. O estado ativo do item
+(«Plano de Observação» ativo vs «Anamnese do aluno» ativo) continua **único** na porta: a nav é
+gerada uma vez (`atual=plano-observacao`) e não distingue `?fonte=` — a marcação de «ativo» por
+fonte fica em aberto.
 
-## 07/10/2026 — O cofre dos lançamentos sai do Netlify e entra no Cloudflare KV
+## 11/10/2026 — «Nós, Por Exemplo» vira a página de entrada; o «Início» e a marca saem do menu
 
 
-- **A leitura do KV em tempo de execução não existe** — nunca existiu, nem no Netlify. O pedido
-  supunha um ponto de leitura; o que há é a escrita. A consolidação dos lançamentos **de volta para
-  o repositório continua não existindo**: é a **§7.3**, aberta na mesma metade de sempre.
-- **A pergunta 7.4 continua aberta** — o que vai ao KV é o JSON **em claro**, e o KV **não** é
-  servido por GET. Ver a **Nota de 07/10/2026** em `ARQUITETURA-CAPTURA.md`.
-- **O token do Netlify do `RITMOS` foi destruído junto com o arquivo.** Ele era **credencial
-  viva** (`REGISTRO.md:8212`), e a escola `RITMOS` já tinha saído do repositório em `08c0be9`.
-  Nada no Git o versionou, então **nenhuma rotação é forçada** — mas **revogá-lo no painel do
-  Netlify** é decisão da pesquisadora, e o pedido fica registrado aqui.
+- **`tools/criar-escola.sh` ainda não foi alinhado.** O nav do pacote "do zero" (`gerar_nav_zero`)
+  continua com a marca «Ciclo NN · escola» e o item «Início», e o `index.html` zero ainda é o
+  «cartão de visita» (e não a página «Nós, Por Exemplo»). Falta decidir: o pacote zero abre em
+  «Nós, Por Exemplo» (como o pacote cheio) ou mantém o cartão de visita de ciclo em construção?
+- **Frentes do pedido ainda em aberto:** vídeos embutidos (F2), documento de fundamentação (F4),
+  correção socrática (F5 — infraestrutura, prudência), item de menu «Bastidores» (F10).
+- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
 
-  > **Correção de 07/10/2026 (mesmo dia).** A primeira redação deste bullet dizia que o token
-  > *"foi destruído junto com o arquivo"*. **Está errado.** A medição seguinte — `GET
-  > /api/v1/sites` com esse token — autenticou como `tmenegaz77@gmail.com` e devolveu `200`, ou
-  > seja: **o token está VIVO**. O que foi destruído foram os **dois sites** que ele alcançava;
-  > a credencial continua válida e não expira sozinha. Continua **não versionada** (nenhum arquivo
-  > do repositório a contém), mas "não versionada" ≠ "destruída". **A revogação no painel deixou
-  > de ser opcional:** enquanto o token existir, ele dá acesso à conta. O elo fica registrado
-  > porque a proveniência acrescenta — não reescreve.
-
-- **A verificação do painel do Cloudflare não foi feita** — não é alcançável daqui. Fica para ela:
-  se o projeto é **Worker** ou **Pages** (o `wrangler.jsonc` é assinatura de Worker), o **account
-  ID**, se o `PADD_KV` está **ligado** ou só **criado**, quais **rotas ou domínios** estão
-  configurados, como o `PADD_KV` é provido no **desenvolvimento local**, e se o build do painel
-  **honra** o `assets.directory` do `wrangler.jsonc` ou usa um diretório próprio.
-- **Os commits ficam locais** até a pesquisadora empurrar.
-
----
-
-## 07/10/2026 — O Netlify antigo é destruído, o mapa anda para o slide 83 e a espiral vira fonte
+## 11/10/2026 — Atalhos da porta na página de entrada e aprofundamento do «Como se usa»
 
 
-- **O token do `RITMOS` continua VIVO.** Ver a **nota de correção datada** em `REGISTRO.md:8886`
-  — ele autentica como `tmenegaz77@gmail.com` e agora alcança **0 sites**, mas **não expira
-  sozinho**. A API do Netlify administra sites, **não** PATs: a revogação é no painel
-  (*User settings → Applications → Personal access tokens → Revoke*). Não há nada editável no
-  repositório.
-- **O export não foi rodado.** Nenhum PDF, PPTX ou HTML da apresentação foi gerado nesta rodada —
-  a pesquisadora pediu os **commits**, não a entrega.
-- **A temporada de commits é local** até ela empurrar.
-
-## 07/10/2026 — O prompt de elicitação herda oito decisões do formulário do experimento
-
-
-- **As Frentes 2 e 3 do pedido não começaram:** o botão «Usar IA para fazer o PO» (que deve acionar
-  **este** prompt, agora atualizado) e a lista de sujeitos e anamneses para o agente inteligente.
-- **A alteração não foi vista por um agente em uso.** O que se mediu foi o **texto** — oito
-  acréscimos presentes e verificados. Se a entrevista conduzida pelo prompt atualizado produz PO
-  melhor, isso só se sabe **rodando-o**.
-- **A via anterior não está no repositório.** Ficou em `files/elicitar-ciclo.ANTES.md`, no workspace
-  da sessão, **fora do Git**.
+- **O pacote `fokini2/02/diaghilev2` está com o `index.html` defasado** (ainda mostra o «cartão de
+  visita» antigo, não a página «Nós, Por Exemplo»). É anterior a este marco — o `criar-escola.sh`
+  já renderiza `nos-por-exemplo.md`, mas o pacote não foi regerado. Regerar exige rodar o
+  `criar-escola.sh` (que cria uma escola nova), e não o `gerar-ciclo.sh` (que falha com `DOCS=""`).
+- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
 
 ## Pendências anteriores (índice)
 
@@ -402,9 +332,16 @@ senão contradiria a regra nova do opcional em branco. `REGISTRO.md` — esta en
 - **30/09/2026** — O segundo papel do agente: o servidor local **não… → `REGISTRO.md` L8182
 - **01/10/2026** — A grafia de "Elicitação" se propaga, e a pendência do… → `REGISTRO.md` L8269
 - **01/10/2026** — A view gerada e a regra de leitura cresciam com o arquivo:… → `REGISTRO.md` L8410
+- **02/10/2026** — Os ciclos-prototipo saem do caminho ativo, e o Diaghilev… → `REGISTRO.md` L8531
+- **02/10/2026** — A escola passa a poder ser desabilitada, com motivo e data → `REGISTRO.md` L8645
+- **07/10/2026** — O cofre dos lançamentos sai do Netlify e entra no… → `REGISTRO.md` L8762
+- **07/10/2026** — O Netlify antigo é destruído, o mapa anda para o slide 83… → `REGISTRO.md` L8914
+- **07/10/2026** — O prompt de elicitação herda oito decisões do… → `REGISTRO.md` L9042
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **fokini**: 0 evento(s) versionado(s).
+- **fokini2 · ciclo 02:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- Material de campo de **fokini2**: 0 evento(s) versionado(s).
 
 ## Documentos-chave (para leitura)
 

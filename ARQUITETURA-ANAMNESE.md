@@ -6,8 +6,9 @@
 > dimensões** da linha de base (Técnica, Funcional, Musicalidade) —, seguida da **malha de
 > domínios declarados** (alinhamento ósseo, flexibilidade passiva, força ativa e potência, sistema
 > vestibular, orientação espacial e lateralidade), com **ramificação condicional** pelo nível
-> declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor — o
-> **recipiente** é do PE, o **conteúdo** é do PO.
+> declarado (Básico, Intermediário, Avançado) e **soberania de CRUD autoral** do professor,
+> fechando na **conclusão** — o campo **«Resultado da avaliação»** (apta/não apta + nível, sem
+> turma/horário/frequência) — o **recipiente** é do PE, o **conteúdo** é do PO.
 
 > **Estado:** Especificação de arquitetura (sem alteração de código ou arquivos congelados).
 
@@ -403,6 +404,30 @@ dimensão) e os itens do Bloco 9 marcados individualmente.
 A observação inicial, os nove blocos e os módulos condicionais **não decidem** para que turma a
 aluna vai, nem o que se trabalha com ela. Eles **registram** o que se observou. A decisão é do
 professor, e a anamnese é o **insumo** dessa decisão — não o seu substituto.
+
+### 3.7 A conclusão — o campo «Resultado da avaliação»
+
+A anamnese ganha **um** campo novo, no fim do formulário: a **conclusão**. Depois de observar, o
+professor devolve o que concluiu. São **dois sub-campos**:
+
+| Sub-campo | Forma | O que é |
+|:--|:--|:--|
+| **Apta / não apta** | **Botão binário** | Se a aluna está apta a fazer a aula — sim ou não |
+| **Nível** | **Select** | Iniciante, básico, intermediário, avançado — **o vocabulário é o que a escola adotar** |
+
+O **nível** da conclusão é o que o professor **atribui depois de observar** — distinto do nível
+prévio **declarado** no Bloco 3 (a §5.1 trata do gatilho da ramificação).
+
+**O que o campo não tem** — e por quê:
+
+- **Não tem turma** — é a direção que decide (a anamnese não distribui a aluna).
+- **Não tem horário** — é a direção que decide.
+- **Não tem frequência semanal** — vem do contrato, não da anamnese.
+
+**A conclusão da anamnese é o nível + apta/não apta.** É o que o professor devolve; o resto
+(turma, horário, frequência) é decisão da direção, não observação da cena. É a mesma fronteira da
+§3.6: a anamnese **registra e conclui** — não distribui. O componente de interface está desenhado
+em `IDEIA-PAINEL-ESCOLA.md` §8.3.
 
 ## 4. A malha de domínios declarados
 
