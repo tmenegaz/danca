@@ -59,9 +59,9 @@
         "ondeAprofunda": [],
         "forma": null,
         "explicacao": {
-          "oQueE": "ONDE o que você observa acontece: em que escola, com que turma, com que frequência e por quanto tempo por aula. É o retrato material do âmbito.",
-          "preencher": "Um item por bloco abaixo. Cada linha tem o seu campo; o que não estava previsto vai em «outro».",
-          "porQue": "O mesmo exercício em 60 e em 90 minutos não é o mesmo dado. Sem o campo declarado, ninguém sabe a que condições o âmbito se refere."
+          "oQueE": "ONDE o que você observa acontece: em que escola ou espaço. A turma, a frequência e a duração não são coletadas aqui — vêm do plano de ensino referenciado.",
+          "preencher": "O nome do lugar; o que não estava previsto vai em «outro».",
+          "porQue": "A turma, a frequência e a duração já foram declaradas no plano de ensino. Repetir aqui abriria dois registros do mesmo dado — e o PO referencia o plano, não duplica."
         },
         "subitens": [
           {
@@ -73,53 +73,6 @@
               "oQueE": "Em que escola ou espaço as aulas acontecem.",
               "preencher": "O nome do lugar. Vem sugerido da barra — corrija se for outro.",
               "porQue": "É o mesmo lugar que a identificação do âmbito declara: um ciclo acontece num espaço só, e separar os dois faria o dado contar duas histórias."
-            }
-          },
-          {
-            "id": "campo-turma",
-            "elemento": "Turma observada",
-            "obrigatorio": true,
-            "explicacao": {
-              "oQueE": "Qual turma exatamente — quantos alunos e em que nível.",
-              "preencher": "Ex.: «quatro bailarinos em formação inicial»."
-            }
-          },
-          {
-            "id": "campo-frequencia",
-            "elemento": "Frequência semanal",
-            "obrigatorio": true,
-            "periodicidade": {
-              "unidades": [
-                "semanal",
-                "diária"
-              ],
-              "dias": true
-            },
-            "explicacao": {
-              "oQueE": "Quantas vezes a turma tem aula, em que ritmo e em que dias.",
-              "preencher": "Escreva a QUANTIDADE, escolha a unidade (semanal ou diária) e marque os dias. Ex.: 2 · semanal · seg e qua.",
-              "porQue": "A frequência é a dose: o mesmo conteúdo distribuído em duas ou em três aulas por semana produz corpos diferentes. Sem ela declarada, o «melhorou» não sabe a que dose se refere."
-            }
-          },
-          {
-            "id": "campo-duracao",
-            "elemento": "Duração por aula",
-            "obrigatorio": true,
-            "medida": {
-              "unidades": [
-                "hora",
-                "minuto"
-              ],
-              "pares": 2,
-              "fixas": [
-                "hora",
-                "minuto"
-              ]
-            },
-            "explicacao": {
-              "oQueE": "Quanto tempo dura cada encontro, em horas e minutos.",
-              "preencher": "Dois números fixos: o primeiro é HORAS, o segundo é MINUTOS — sempre os dois. Uma hora e meia é 1 e 30; uma hora é 1 e 0; quarenta e cinco minutos é 0 e 45.",
-              "porQue": "A duração é a segunda metade da dose: mesma frequência em 45 e em 90 minutos não é o mesmo esforço. É ela que torna comparável o que se observa numa aula e noutra."
             }
           },
           {
@@ -142,57 +95,11 @@
         "ondeAprofunda": [],
         "forma": null,
         "explicacao": {
-          "oQueE": "AS CONDIÇÕES da observação: quando ela começa, com que volume de trabalho e sob que condição de registro.",
-          "preencher": "Um item por bloco abaixo; o que não estava previsto vai em «outro».",
-          "porQue": "O contexto muda o que é visível: uma aula com observador externo não é a mesma sem ele. Sem declarar, o dado não se lê."
+          "oQueE": "AS CONDIÇÕES da observação: quando ela começa, com que volume de trabalho e sob que condição de registro. Essas três vêm do plano de ensino referenciado.",
+          "preencher": "O que não estava previsto no plano vai em «outro».",
+          "porQue": "O calendário, o volume e a condição de registro já foram declaradas no plano de ensino. O PO as lê de lá — repetir aqui criaria duas fontes para o mesmo fato."
         },
         "subitens": [
-          {
-            "id": "contexto-calendario",
-            "elemento": "Calendário",
-            "obrigatorio": true,
-            "data": {
-              "partes": 2,
-              "rotulos": [
-                "Início",
-                "Fim"
-              ]
-            },
-            "explicacao": {
-              "oQueE": "Quando o ciclo começa e quando termina.",
-              "preencher": "A data de início e a de fim. Deixe em branco o que ainda está por decidir — a lacuna fica declarada, não inventada.",
-              "porQue": "O calendário delimita a janela em que as aulas contam: fora dele há férias, feriados e trocas de turma. Sem o fim declarado, não se sabe se o ciclo fechou ou se apenas parou de ser registrado."
-            }
-          },
-          {
-            "id": "contexto-volume",
-            "elemento": "Volume de trabalho",
-            "obrigatorio": true,
-            "medida": {
-              "unidades": [
-                "tempos ativos",
-                "minutos ativos",
-                "exercícios",
-                "séries",
-                "repetições"
-              ],
-              "faixa": true
-            },
-            "explicacao": {
-              "oQueE": "QUANTO trabalho a aula pede, em números — a dose de esforço que o ciclo aplica a cada encontro. É o que a aula exige, não o que a aluna aguenta.",
-              "preencher": "Escreva o MÍNIMO e o MÁXIMO e escolha a unidade — é a unidade que responde «80 o quê?»: 80 tempos ativos, 80 minutos ativos, 80 séries. Use a que você já usa para planejar, e seja a mesma no ciclo inteiro. Ex.: de 80 a 100 · tempos ativos. Se for um valor só, repita-o nos dois campos.",
-              "porQue": "«80» sem unidade não é dado: 80 tempos ativos e 80 minutos ativos descrevem aulas de tamanhos diferentes. E o volume é a dose — é ele que explica por que a mesma aluna progride num ciclo e estaciona noutro. Sem ele, a diferença de resultado parece diferença de capacidade, quando pode ser diferença de dose."
-            }
-          },
-          {
-            "id": "contexto-registro",
-            "elemento": "Condição de registro",
-            "obrigatorio": true,
-            "explicacao": {
-              "oQueE": "COMO a aula é registrada: quem está na sala, se há observador, se há vídeo.",
-              "preencher": "Ex.: «professor e alunos na mesma sala, sem observador externo»."
-            }
-          },
           {
             "id": "contexto-outro",
             "elemento": "Outra condição do contexto",
@@ -208,9 +115,9 @@
   },
   "cabecalho": {
     "bloco": 1,
-    "nota": "O cabeçalho não é observação: identifica o âmbito — quem observa, onde, sob que metodologia e qual horizonte. Posiciona o Plano de Observação; não o mede.",
+    "nota": "O cabeçalho não é observação: identifica o âmbito — quem observa, onde e qual horizonte. A metodologia de referência e a notação não são coletadas aqui: vêm do plano de ensino referenciado.",
     "titulo": "Identificação do Âmbito",
-    "objetivo": "fixar o professor, a escola, a metodologia de referência, a notação e o horizonte do Plano de Observação",
+    "objetivo": "fixar o professor, a escola, o horizonte e o plano de ensino referenciado do Plano de Observação",
     "campos": [
       {
         "id": "professor",
@@ -232,41 +139,6 @@
           "oQueE": "ONDE o ciclo acontece.",
           "preencher": "O nome da escola ou do espaço. Vem sugerido da barra.",
           "porQue": "A escola pode impor uma metodologia — e isso muda o que se observa. Sem o lugar declarado, não se sabe se o âmbito é seu ou da instituição."
-        }
-      },
-      {
-        "id": "norma",
-        "campo": "Metodologia de referência",
-        "obrigatorio": true,
-        "forma": "RAD · Vaganova · Francesa/Cecchetti · Escola livre · Cada professor segue a própria",
-        "aberto": true,
-        "explicacao": {
-          "oQueE": "O PADRÃO com que você ensina — o «jeito» de referência: RAD, Vaganova, escola francesa/Cecchetti. É o padrão contra o qual a execução do ciclo vai ser comparada.",
-          "preencher": "Escolha a que corresponde ao seu ensino. «Escola livre» é para quem monta o próprio percurso; «cada professor segue a própria» é para quando a escola não impõe uma. Se você mistura, escreva no campo aberto como você chama isso.",
-          "porQue": "Sem um padrão declarado, «certo» e «errado» viram opinião de quem olha. O padrão dá o vocabulário e a progressão — é ele que torna o julgamento comparável."
-        }
-      },
-      {
-        "id": "norma-origem",
-        "campo": "Quem escolhe a metodologia",
-        "obrigatorio": true,
-        "forma": "Eu escolho · A escola impõe",
-        "explicacao": {
-          "oQueE": "Se a metodologia de referência é uma decisão sua ou uma imposição da escola.",
-          "preencher": "«Eu escolho» quando o percurso é seu; «a escola impõe» quando você segue uma norma da instituição.",
-          "porQue": "Uma metodologia escolhida é parte do seu recorte; uma imposta é contexto institucional. Declarar a origem evita confundir os dois."
-        }
-      },
-      {
-        "id": "notacao",
-        "campo": "Notação dominada",
-        "obrigatorio": false,
-        "forma": "Benesh · Laban · Nenhuma",
-        "aberto": true,
-        "explicacao": {
-          "oQueE": "O sistema com que você ESCREVE movimento (Benesh, Laban) — se usa algum.",
-          "preencher": "Benesh, Laban ou «Nenhuma». Se usa outro, escreva no campo aberto.",
-          "porQue": "A notação segue a metodologia: o que se escreve também diz o que se observa. Usar «nenhuma» é uma resposta válida, e declará-la evita supor."
         }
       },
       {

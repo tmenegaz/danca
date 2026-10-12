@@ -10198,3 +10198,52 @@ escola») · `IDEIA-PAINEL-ESCOLA.md` §17.2–17.4 (o «criar senha» planejado
   conteúdo de `tools/.senhas-locais` — o meu token não grava segredos; a pesquisadora o cria.
 - Quando a senha deixar de ser mock, «maria» sai de `.escolas-teste` e a senha vira segredo real
   (fora do Git, nunca no repositório).
+
+## 12/10/2026 — O PO referencia o plano por id e para de duplicar o contexto (fonte única)
+
+**O que motivou.** O `-po.md` da Maria saía com «Campo empírico» e «Contexto» em `[a decidir]`: o
+derivador lia `where`/`contexto` como campos do envelope, mas eles são GRUPOS — o dado real estava
+nos 9 subcampos duplicados. Pior: o PO coletava turma, frequência, duração, calendário, volume,
+registro, metodologia, metodologia-origem e notação — os MESMOS dados já declarados no plano de
+ensino. Duas fontes para o mesmo fato, e o custo de gravar/relê-los em dobro (KV e formulário).
+
+**O que foi decidido.**
+- O PO para de coletar os 9 campos duplicados: ele referencia o plano por id (`plano-de-ensino`) e
+  os LÊ na geração. Fonte única, zero duplicação, zero KV novo (o envelope do PO fica menor).
+- O `horizonte` FICA no PO: é o objetivo geral de CONJUNTO (vários ciclos), distinto do objetivo do
+  plano (um ciclo) — não é duplicação.
+- O campo empírico e o contexto do `-po.md` passam a ser compostos a partir do envelope do plano
+  referenciado (dose, calendário, volume, condição de registro). Sem plano, degradam para lacuna
+  declarada — nunca se inventa dado.
+
+**Onde entrou.**
+`porta/po/conteudo/po.json` — remove os 9 subcampos; o cabeçalho mantém professor, escola,
+horizonte e plano-de-ensino.
+`motor/nucleo/derivar-po.js` — `comporCampoEmpirico`/`comporContexto` compõem as duas seções a
+partir do plano; os formatters `comporPeriodicidade`/`comporMedida`/`comporData` mudam para cá (base
+sem dependência) e são reexportados.
+`motor/nucleo/derivar-plano-ciclo.js` — importa os formatters (antes definidos localmente).
+`motor/servidor/rotas.js` — resolve o plano referenciado UMA vez, antes de escrever o PO e o ciclo.
+`motor/servidor/escrever-po.js` — o escritor do PO recebe o plano e o passa ao derivador.
+`porta/index.html` — `SEMEADURA_DO_PLANO` sem os campos que saíram.
+
+**Reancoragem.** A fonte `ciclo-01-maria-po.md` mudou (as duas seções saíram do `[a decidir]` para
+o valor lido do plano): a âncora `ciclo-01-maria.fipp` foi regerada e o pacote rederivado.
+
+**Com o quê.**
+`porta/po/conteudo/po.json`, `porta/index.html`, `motor/nucleo/derivar-po.js`,
+`motor/nucleo/derivar-plano-ciclo.js`, `motor/servidor/rotas.js`, `motor/servidor/escrever-po.js`,
+`professores/tiago/ciclos/ciclo-01-maria-po.md`, `professores/tiago/ciclos/ciclo-01-maria.fipp`,
+`professores/tiago/ciclos/ciclo-01-maria/` (pacote regerado), `REGISTRO.md`.
+
+**Referências.**
+`ARQUITETURA-AULA.md` §1 (o ato de gerar institui o fato; antes, o rascunho é intenção) · a regra
+de proveniência P-03/P-04 (acrescenta, não edita — e o PO referencia, não duplica).
+
+**O que ainda não está feito.**
+- O `IDEIA-PAINEL-ESCOLA.md` ainda cita `norma`, `norma-origem`, `notacao` como dados coletados do
+  PO — precisa ser realinhado à fonte única (o painel lê do plano, não do PO).
+- O «Norma estabelecida» do PO continua em `[Preencher]`: é o padrão de referência do PO (distinto
+  da metodologia do plano) e a entrevista ainda não o elicitou.
+- Os pacotes das outras escolas (Diaghilev e demais) ainda trazem o formulário antigo até serem
+  regenerados — a fonte `porta/` já está corrigida, falta regerar cada variante.

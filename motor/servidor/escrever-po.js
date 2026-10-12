@@ -96,15 +96,16 @@ async function escreverPO({ token, dono, repo, caminho, conteudo, mensagem, ref,
 
 /**
  * Monta o escritor pronto para a ponte. Sem token devolve `null` (a elicitação continua
- * intacta). Devolve `(envelope, mensagem) => Promise` — a rota passa o documento elicitado e
- * o escritor deriva o Markdown e o caminho, e grava.
+ * intacta). Devolve `(envelope, mensagem, plano) => Promise` — a rota passa o documento
+ * elicitado, o plano de ensino referenciado (opcional, para o campo empírico/contexto) e o
+ * escritor deriva o Markdown e o caminho, e grava.
  */
 function criarEscritorDePO({ token, dono, repo, ref, derivarPO }) {
   if (!token || !derivarPO) return null;
-  return async (envelope, mensagem) => {
+  return async (envelope, mensagem, plano) => {
     const contexto = (envelope && envelope.contexto) || {};
     const caminho = caminhoDoPO(contexto);
-    const { markdown } = derivarPO(envelope);
+    const { markdown } = derivarPO(envelope, plano);
     return escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem });
   };
 }

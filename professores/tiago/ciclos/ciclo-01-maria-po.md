@@ -19,11 +19,11 @@ Como consolidar a execução técnica fundamental do ballet clássico em nível 
 
 ## Campo empírico
 
-[a decidir]
+Escola: maria · Turma: Aula particular · Frequência: 1x semanal — qui · Duração por aula: 1 hora 0 minuto
 
 ## Contexto
 
-[a decidir]
+Calendário: 2026-10-08 → 2026-12-10 · Volume de trabalho: 3–6 séries · Condição de registro: Professor e aluno na sala de aula sem observadores externo registro feito por meio de papel e caneta
 
 ## Sujeitos
 

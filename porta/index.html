@@ -1570,17 +1570,12 @@ function semearDoContexto() {
 const SEMEADURA_DO_PLANO = {
   'contexto-escola': ['escola', 'campo-escola'],
   'contexto-professor': ['professor'],
-  'contexto-turma': ['campo-turma'],
-  'contexto-frequencia': ['campo-frequencia'],
-  'contexto-duracao': ['campo-duracao'],
-  'contexto-calendario': ['contexto-calendario'],
-  'contexto-volume': ['contexto-volume'],
-  'contexto-registro': ['contexto-registro'],
-  'contexto-metodologia': ['norma'],
-  'contexto-metodologia-origem': ['norma-origem'],
-  'contexto-notacao': ['notacao'],
-  // As alunas NÃO vêm mais do plano: o plano de ensino é agnóstico à turma, e
-  // os sujeitos do PO vêm direto da anamnese (`opcoesDe: api/anamneses`).
+  // Turma, frequência, duração, calendário, volume, registro, metodologia e
+  // notação NÃO são mais semeadas no PO: saíram do formulário (o PO referencia o
+  // plano por id e os lê na geração — fonte única, zero duplicação). A escola e o
+  // professor continuam semeados porque identificam o âmbito do próprio PO.
+  // As alunas NÃO vêm do plano: o plano de ensino é agnóstico à turma, e os
+  // sujeitos do PO vêm direto da anamnese (`opcoesDe: api/anamneses`).
 };
 
 async function semearDoPlano() {

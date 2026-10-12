@@ -346,23 +346,19 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
           }
         }
 
-        if (corpo.fonte === 'po' && escreverPO) {
+        // O PLANO DE ENSINO referenciado (nó `plano-de-ensino` do PO) é resolvido UMA vez,
+        // antes de escrever o PO e o ciclo: o PO o lê para compor o campo empírico e o
+        // contexto (não duplica a dose/calendário/volume/registro), e o ciclo o lê para
+        // derivar aula/captura/harmonização. Sem referência, cai no plano mais recente do
+        // mesmo contexto — retrocompatibilidade. Falha na resolução degrada (o PO sai com
+        // lacuna declarada), nunca 500: o envelope já foi gravado.
+        let plano = null;
+        const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
+        if (corpo.fonte === 'po') {
           try {
-            resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo');
-          } catch (erro) {
-            resultado.fonte = { ok: false, erro: erro.message };
-          }
-        }
-
-        if (corpo.fonte === 'po' && escreverCiclo) {
-          const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
-          try {
-            // O ciclo inteiro deriva do PO + do PLANO que o PO referenciou no nó
-            // `plano-de-ensino` (o id do envelope). Sem referência, cai no plano
-            // mais recente do mesmo contexto — retrocompatibilidade.
             const ref = envelope && envelope.respostas && envelope.respostas['plano-de-ensino'];
             const planoId = ref && ref.valor !== undefined ? ref.valor : ref;
-            let plano = planoId ? await porta.lerEnvelope(armazenamento, String(planoId)) : null;
+            plano = planoId ? await porta.lerEnvelope(armazenamento, String(planoId)) : null;
             if (!plano) {
               const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
               for (let i = nomes.length - 1; i >= 0 && !plano; i--) {
@@ -372,6 +368,21 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
                     String(c.ciclo) === String(contexto.ciclo)) plano = env;
               }
             }
+          } catch (erro) {
+            resultado.plano = { ok: false, erro: erro.message };
+          }
+        }
+
+        if (corpo.fonte === 'po' && escreverPO) {
+          try {
+            resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo', plano);
+          } catch (erro) {
+            resultado.fonte = { ok: false, erro: erro.message };
+          }
+        }
+
+        if (corpo.fonte === 'po' && escreverCiclo) {
+          try {
             resultado.ciclo = await escreverCiclo({ plano, po: envelope, contexto });
           } catch (erro) {
             resultado.ciclo = { ok: false, erro: erro.message };
@@ -379,7 +390,6 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         }
 
         if (corpo.fonte === 'po' && disparar) {
-          const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
           try {
             resultado.disparo = await disparar(contexto);
           } catch (erro) {

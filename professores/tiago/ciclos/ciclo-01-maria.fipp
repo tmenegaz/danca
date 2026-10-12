@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago
 ciclo: 01
 variante: maria
-hash_conteudo: bff1dcd67988b8b53634cfdf108d6b0681f1ee0118e5769ef7b25154aaa0054d
+hash_conteudo: 2ae2b6b81b3cec93716fdc8037397a5e8b3af7446218dccb3ed151cc2c74ed00
 parentHash: 
-hash: 6a9e76412d1d0aac5976cbf4b546bfb478dfea5f836f70c325682812c087df8c
+hash: c6f3ebdd013425222cb35f5bb4b030d834136b14ba354e3fe3c45b10c53085d7
 algoritmo: SHA-256
 po: professores/tiago/ciclos/ciclo-01-maria-po.md
 po_state: Input_PO_Aguardando

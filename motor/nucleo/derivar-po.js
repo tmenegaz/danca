@@ -46,6 +46,48 @@ function emLista(valor) {
     .filter((v) => v !== '');
 }
 
+// A COMPOSIÇÃO DOS VALORES ESTRUTURADOS — o formulário grava o NÚMERO + a UNIDADE como
+// objeto (`{vezes, por, dias}`, `{min, max, unidade}`, `{numero, unidade}` ou `{inicio, fim}`),
+// e quem lê o envelope compõe o texto. Nada aqui inventa: o que veio vazio sai como `null`.
+// Ficam AQUI (e não no derivar-plano) porque o PO também precisa compor os valores que lê do
+// plano referenciado — e este módulo é a base sem dependências.
+function comporPeriodicidade(v) {
+  if (!v || typeof v !== 'object') return null;
+  const partes = [];
+  if (v.vezes !== null && v.vezes !== undefined) partes.push(String(v.vezes) + 'x');
+  if (v.por) partes.push(v.por);
+  if (Array.isArray(v.dias) && v.dias.length) partes.push('— ' + v.dias.join(' e '));
+  return partes.length ? partes.join(' ') : null;
+}
+
+function comporMedida(v) {
+  if (!v) return null;
+  if (Array.isArray(v)) {
+    const partes = v.map((p) => {
+      const n = p && p.numero !== null && p.numero !== undefined ? String(p.numero) : '';
+      return n + (p && p.unidade ? ' ' + p.unidade : '');
+    });
+    return partes.length ? partes.join(' ') : null;
+  }
+  if (typeof v !== 'object') return String(v) || null;
+  if (v.min !== null && v.min !== undefined && v.max !== null && v.max !== undefined) {
+    return String(v.min) + '–' + String(v.max) + (v.unidade ? ' ' + v.unidade : '');
+  }
+  if (v.min !== null && v.min !== undefined) {
+    return String(v.min) + (v.unidade ? ' ' + v.unidade : '');
+  }
+  if (v.numero !== null && v.numero !== undefined) {
+    return String(v.numero) + (v.unidade ? ' ' + v.unidade : '');
+  }
+  return null;
+}
+
+function comporData(v) {
+  if (!v || typeof v !== 'object') return null;
+  const partes = [v.inicio, v.fim].filter((p) => p);
+  return partes.length ? partes.join(' → ') : null;
+}
+
 // Uma lacuna declarada — o formulário não perguntou, e não se inventa a resposta.
 const LACUNA_NORMA =
   '[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]';
@@ -109,8 +151,49 @@ const ROTULO_DO_CHECKLIST = {
  * `envelope` — o documento que o motor gravou (`{respostas, contexto, id, …}`).
  * Devolve `{ markdown, meta, checklist, estado }`, onde `meta` é o cabeçalho YAML e
  * `checklist` é o objeto das seis folhas (para o relatório e o `state`).
+ *
+ * `plano` (opcional) — o envelope do PLANO DE ENSINO referenciado. O PO não duplica o
+ * contexto (escola/turma/frequência/duração/calendário/volume/registro): ele o LÊ do plano
+ * na geração. Sem `plano`, essas partes saem como lacuna declarada — nunca se inventa dado.
  */
-function derivarPO(envelope) {
+
+// Uma linha `Rótulo: valor` composta, pulando o que não veio; `[a decidir]` quando nada veio.
+function comporLinhasDePlano(plano, pares) {
+  const linhas = [];
+  for (const [rotulo, valor] of pares) {
+    const composto = valor === null || valor === undefined || valor === '' ? null : String(valor);
+    linhas.push(rotulo + ': ' + (composto || '[a decidir]'));
+  }
+  return linhas.join(' · ');
+}
+
+// O CAMPO EMPÍRICO do PO (escola, turma, frequência, duração por aula). A escola é do PO
+// (a declaração própria do âmbito); turma, frequência e duração vêm do plano referenciado.
+function comporCampoEmpirico(envelope, plano) {
+  const escola = respostaDo(envelope, 'campo-escola') || respostaDo(plano, 'contexto-escola');
+  const base = comporLinhasDePlano(plano, [
+    ['Escola', escola],
+    ['Turma', respostaDo(plano, 'contexto-turma')],
+    ['Frequência', comporPeriodicidade(respostaDo(plano, 'contexto-frequencia'))],
+    ['Duração por aula', comporMedida(respostaDo(plano, 'contexto-duracao'))],
+  ]);
+  const outro = respostaDo(envelope, 'campo-outro');
+  return outro ? base + ' · ' + String(outro) : base;
+}
+
+// O CONTEXTO do PO (calendário, volume de trabalho, condição de registro) — tudo lido do
+// plano referenciado; o que não estava previsto no plano vai no `contexto-outro` do PO.
+function comporContexto(envelope, plano) {
+  const base = comporLinhasDePlano(plano, [
+    ['Calendário', comporData(respostaDo(plano, 'contexto-calendario'))],
+    ['Volume de trabalho', comporMedida(respostaDo(plano, 'contexto-volume'))],
+    ['Condição de registro', respostaDo(plano, 'contexto-registro')],
+  ]);
+  const outro = respostaDo(envelope, 'contexto-outro');
+  return outro ? base + ' · ' + String(outro) : base;
+}
+
+function derivarPO(envelope, plano) {
   const contexto = (envelope && envelope.contexto) || {};
   const saida = [];
 
@@ -156,8 +239,10 @@ function derivarPO(envelope) {
 
   prosa('Pergunta', respostaDo(envelope, 'question'));
   lista('Fenômeno', respostaDo(envelope, 'fenomeno'));
-  prosa('Campo empírico', respostaDo(envelope, 'where'));
-  prosa('Contexto', respostaDo(envelope, 'contexto'));
+  // Campo empírico e Contexto agora vêm do PLANO referenciado (não do PO): o PO não duplica
+  // a dose, o calendário, o volume nem a condição de registro — ele os lê na geração.
+  prosa('Campo empírico', comporCampoEmpirico(envelope, plano));
+  prosa('Contexto', comporContexto(envelope, plano));
   // Sujeitos: os apelidos (um por linha) + a declaração das flutuantes — o único
   // dado de alunas que a anamnese não cobre, e que por isso vive no PO.
   {
@@ -236,6 +321,11 @@ module.exports = {
   valorDe,
   respostaDo,
   emLista,
+  comporPeriodicidade,
+  comporMedida,
+  comporData,
+  comporCampoEmpirico,
+  comporContexto,
   derivarPO,
   LACUNA_NORMA,
   CHECKLIST,

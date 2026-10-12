@@ -19,7 +19,13 @@
  * Fronteira: puro (sem `fs`/`path`/`http`/`process`).
  */
 
-const { valorDe, respostaDo, emLista } = require('./derivar-po.js');
+const {
+  respostaDo,
+  emLista,
+  comporPeriodicidade,
+  comporMedida,
+  comporData,
+} = require('./derivar-po.js');
 
 // O título do documento, no mesmo formato da fonte atual.
 function tituloDoPlano(contexto) {
@@ -76,47 +82,6 @@ function tabelaDeLista(valor, cabecalho, alinhamento) {
     linhas.push('| ' + cols.map((c) => (c ? '**' + c + '**' : '[a decidir]')).join(' | ') + ' |');
   }
   return linhas.length > 2 ? linhas : [cabecalho, alinhamento];
-}
-
-// A COMPOSIÇÃO DOS VALORES ESTRUTURADOS — o formulário grava o NÚMERO + a
-// UNIDADE como objeto (`{vezes, por, dias}`, `{min, max, unidade}`,
-// `{numero, unidade}` ou `{inicio, fim}`), e quem lê o envelope compõe o texto.
-// Nada aqui inventa: o que veio vazio sai como lacuna declarada.
-function comporPeriodicidade(v) {
-  if (!v || typeof v !== 'object') return null;
-  const partes = [];
-  if (v.vezes !== null && v.vezes !== undefined) partes.push(String(v.vezes) + 'x');
-  if (v.por) partes.push(v.por);
-  if (Array.isArray(v.dias) && v.dias.length) partes.push('— ' + v.dias.join(' e '));
-  return partes.length ? partes.join(' ') : null;
-}
-
-function comporMedida(v) {
-  if (!v) return null;
-  if (Array.isArray(v)) {
-    const partes = v.map((p) => {
-      const n = p && p.numero !== null && p.numero !== undefined ? String(p.numero) : '';
-      return n + (p && p.unidade ? ' ' + p.unidade : '');
-    });
-    return partes.length ? partes.join(' ') : null;
-  }
-  if (typeof v !== 'object') return String(v) || null;
-  if (v.min !== null && v.min !== undefined && v.max !== null && v.max !== undefined) {
-    return String(v.min) + '–' + String(v.max) + (v.unidade ? ' ' + v.unidade : '');
-  }
-  if (v.min !== null && v.min !== undefined) {
-    return String(v.min) + (v.unidade ? ' ' + v.unidade : '');
-  }
-  if (v.numero !== null && v.numero !== undefined) {
-    return String(v.numero) + (v.unidade ? ' ' + v.unidade : '');
-  }
-  return null;
-}
-
-function comporData(v) {
-  if (!v || typeof v !== 'object') return null;
-  const partes = [v.inicio, v.fim].filter((p) => p);
-  return partes.length ? partes.join(' → ') : null;
 }
 
 // O contexto do plano (Bloco 1 do prompt): o campo empírico, o contexto da
