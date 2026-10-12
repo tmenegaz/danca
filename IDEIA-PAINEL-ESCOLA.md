@@ -799,14 +799,17 @@ existir, ele continua a servir, mas **gerado pela Produção** e não pelo `cria
 - **O que muda.** O domínio raiz (`danca.tmenegaz77.workers.dev`) **pede senha de imediato** — só a
   pesquisadora tem acesso. Sem isso, qualquer pessoa cria um domínio novo, uma escola nova, ou uma
   senha de administrador.
-- **O que já existe (lido).** **Não há domínio raiz hoje** — os únicos Workers são `diaghilev` e
-  `diaghilev2`, cada um servindo a sua escola. **Não há rota com senha no Worker**: a única
-  «senha» que existe é a da **criptografia no navegador** (`tools/lib-cifra.js`), que **nunca sobe
-  ao servidor** — não é autenticação. A convenção `tools/.senhas-locais` **não está preparada** para
-  uma senha de domínio raiz (é `SENHA_<ESCOLA>`, não uma senha de serviço).
-- **O que falta.** Uma senha de serviço no domínio raiz, seguindo a mesma convenção de
-  `.senhas-locais` (fora do Git, nunca exposta), e uma **verificação antes de servir qualquer
-  coisa** — a senha fica no Worker (um `secret` do wrangler ou um valor no KV), não no navegador.
+- **Implementado (primeiro corte, 11/10/2026).** O Worker raiz existe: `wrangler.danca.jsonc` +
+  `workers/raiz.js` + `motor/servidor/raiz.js`. Pede **Basic Auth** com o secret `SENHA_RAIZ`
+  (vindo de `tools/.senhas-locais` na hora do deploy, como `SENHA_<ESCOLA>`), e serve a página
+  «Nós, Por Exemplo» + o botão/formulário «Criar nova escola». O POST `/api/criar-escola` chama
+  `motor/servidor/provisionar-escola.js`, que cria o Worker e o subdomínio
+  `<escola>.tmenegaz77.workers.dev` no Cloudflare por API, grava a `SENHA_ADMIN` como secret e
+  devolve o URL. A escola nasce no estado «zero» — a «Área do Professor» (PO + anamnese) sai
+  desabilitada até o administrador cadastrar um professor nos Bastidores.
+- **O que falta.** A **habilitação da Área do Professor** (Bastidores → Produção → cadastrar
+  professor + criar a senha dele) e o painel **Bastidores** — a raiz cria a escola no estado
+  zero, mas a passagem para o motor completo (porta + geração) ainda não existe.
 
 ### 17.7 O administrador cria uma nova senha na Produção
 
