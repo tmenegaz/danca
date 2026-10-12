@@ -20,6 +20,7 @@
 
 const { escreverPO, ACEITE, API_VERSAO } = require('./escrever-po.js');
 const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escrever-plano.js');
+const { respostaDo } = require('../nucleo/derivar-po.js');
 const {
   slugDe,
   derivarAula01,
@@ -118,6 +119,104 @@ function calibracaoDoConf(texto) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// O contexto institucional elicitado (o ATO preenche o manifesto, não o mock)
+// ---------------------------------------------------------------------------
+// O formulário do plano coleta o contexto institucional como VALOR ESTRUTURADO
+// (`contexto-frequencia` = periodicidade, `contexto-duracao` = medida, etc.). O
+// `.conf`, porém, é o que o gerador lê — e nasce com valores MOCK (escolas
+// simuladas). Aqui o «Guardar» do PO traduz o elicitado de volta para as linhas
+// do `.conf`, substituindo o mock pelo que o professor de fato preencheu.
+
+const DIA_ISO = { seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6, 'sáb': 6, dom: 7 };
+const UNIDADE_FREQUENCIA = { semanal: 'semana', 'diária': 'dia' };
+
+/** A duração elicitada (pares hora+minuto) em minutos, ou `null`. */
+function minutosDaDuracao(duracao) {
+  if (!Array.isArray(duracao)) return null;
+  let total = 0;
+  for (const p of duracao) {
+    const n = Number(p && p.numero) || 0;
+    const u = String((p && p.unidade) || '').toLowerCase();
+    if (u === 'hora' || u === 'horas') total += n * 60;
+    else if (u === 'minuto' || u === 'minutos') total += n;
+  }
+  return total > 0 ? total : null;
+}
+
+/** `2026-10-20` → `20/10/2026` (o `.conf` usa dd/mm/aaaa). */
+function dataBrasil(valor) {
+  const t = String(valor || '').trim();
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(t);
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : (t || null);
+}
+
+/** A frequência descritiva do `.conf`: `2x/semana`. */
+function frequenciaDoContexto(periodicidade) {
+  if (!periodicidade || typeof periodicidade !== 'object') return null;
+  const vezes = periodicidade.vezes;
+  const por = UNIDADE_FREQUENCIA[periodicidade.por] || periodicidade.por;
+  if (vezes === null || vezes === undefined || !por) return null;
+  return String(vezes) + 'x/' + por;
+}
+
+/** A hora do `DIAS` atual (a institucional, preservada) — `null` se não houver. */
+function horaDosDias(confTexto) {
+  const m = /^DIAS="([^"]*)"$/m.exec(confTexto || '');
+  if (!m) return null;
+  const h = /@(\d{2}:\d{2})/.exec(m[1]);
+  return h ? h[1] : null;
+}
+
+/**
+ * As linhas do `.conf` que o ATO preenche. Devolve `[{chave, valor}]` — só os
+ * campos elicitados; o que não foi preenchido fica como está (o mock vira a
+ * exceção, não a regra, e a lacuna continua declarada pelo `.conf`).
+ */
+function linhasDeContexto(plano, confTexto) {
+  const saida = [];
+
+  const periodicidade = respostaDo(plano, 'contexto-frequencia');
+  const freq = frequenciaDoContexto(periodicidade);
+  if (freq) saida.push({ chave: 'FREQUENCIA', valor: freq });
+
+  const duracao = minutosDaDuracao(respostaDo(plano, 'contexto-duracao'));
+  if (duracao) {
+    saida.push({ chave: 'DURACOES', valor: String(duracao) });
+    saida.push({ chave: 'DURACAO_POR_DIA', valor: duracao + ' min por encontro' });
+  }
+
+  const total = respostaDo(plano, 'contexto-total-aulas');
+  if (total !== null && total !== undefined && String(total).trim() !== '') {
+    saida.push({ chave: 'TOTAL_AULAS', valor: String(total).trim() });
+  }
+
+  const calendario = respostaDo(plano, 'contexto-calendario');
+  const inicio = dataBrasil(calendario && calendario.inicio);
+  if (inicio) saida.push({ chave: 'DATA_INICIO', valor: inicio });
+
+  // O dia da semana vem do ato; a HORA é institucional (o horário da escola) e
+  // não é elicitada — preserva-se a do `.conf` atual, quando existe.
+  const dias = (periodicidade && Array.isArray(periodicidade.dias) && periodicidade.dias) || [];
+  const numeros = dias.map((d) => DIA_ISO[String(d).toLowerCase()]).filter((n) => n);
+  const hora = horaDosDias(confTexto);
+  if (numeros.length && hora) {
+    saida.push({ chave: 'DIAS', valor: numeros.map((n) => n + '@' + hora).join(',') });
+  }
+
+  return saida;
+}
+
+/** Aplica as linhas no texto do `.conf` (`CHAVE="..."` → `CHAVE="novo"`). */
+function aplicarLinhas(texto, linhas) {
+  let saida = texto;
+  for (const l of linhas) {
+    const re = new RegExp('^' + l.chave + '="[^"]*"', 'm');
+    if (re.test(saida)) saida = saida.replace(re, l.chave + '="' + l.valor + '"');
+  }
+  return saida;
+}
+
 /** O `DOCS` atual do manifesto, como lista (vazia quando `DOCS=""`). */
 function docsAtuais(texto) {
   const m = /^DOCS="([^"]*)"$/m.exec(texto || '');
@@ -195,22 +294,38 @@ function criarEscritorDeCiclo({ token, dono, repo, ref }) {
       relatorio.escritas.push(resultado);
     }
 
-    // 4. Liga o `DOCS` quando o ciclo ainda não tem aulas (não reescreve um ciclo completo).
-    const atuais = docsAtuais(conf.texto);
+    // 4. O manifesto da variante: o contexto institucional elicitado no plano
+    //    substitui o mock, e o `DOCS` é ligado ao ciclo «do zero». Um ÚNICO
+    //    write (o `sha` é o do conf lido no passo 1 — duas escritas seguidas
+    //    falhariam porque a primeira já mudaria o `sha`).
+    let confTexto = conf.texto;
+    const linhasCtx = linhasDeContexto(plano, confTexto);
+    if (linhasCtx.length) {
+      const comContexto = aplicarLinhas(confTexto, linhasCtx);
+      if (comContexto !== confTexto) {
+        confTexto = comContexto;
+        relatorio.contexto = { ok: true, campos: linhasCtx.map((l) => l.chave) };
+      }
+    }
+
+    const atuais = docsAtuais(confTexto);
     if (!atuais.includes('aula-01')) {
       const novoDocs = docsGerados({ plano });
-      const texto = conf.texto.replace(/^DOCS="[^"]*"$/m, 'DOCS="' + novoDocs.join(' ') + '"');
-      if (texto !== conf.texto) {
-        const resultado = await gravarArquivoRemoto({
-          token, dono, repo, ref, caminho: confPath,
-          conteudo: texto,
-          mensagem: 'feat(ciclo): o ciclo «do zero» ganha os DOCS derivados',
-          sha: conf.sha,
-        });
-        relatorio.docs = { ok: resultado.ok, docs: novoDocs };
-      }
+      confTexto = confTexto.replace(/^DOCS="[^"]*"$/m, 'DOCS="' + novoDocs.join(' ') + '"');
+      relatorio.docs = { ok: true, docs: novoDocs };
     } else {
       relatorio.docs = { ok: true, nota: 'DOCS já completo (aula-01 presente)' };
+    }
+
+    if (confTexto !== conf.texto) {
+      const resultado = await gravarArquivoRemoto({
+        token, dono, repo, ref, caminho: confPath,
+        conteudo: confTexto,
+        mensagem: 'feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS',
+        sha: conf.sha,
+      });
+      relatorio.docs.ok = resultado.ok;
+      if (relatorio.contexto) relatorio.contexto.gravado = resultado.ok;
     }
 
     // 5. Declara a variante no schema de captura, se ainda não declarada.
@@ -252,6 +367,11 @@ module.exports = {
   calibracaoDoConf,
   docsGerados,
   docsAtuais,
+  linhasDeContexto,
+  aplicarLinhas,
+  minutosDaDuracao,
+  dataBrasil,
+  frequenciaDoContexto,
   lerArquivoRemoto,
   gravarArquivoRemoto,
 };
