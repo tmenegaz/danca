@@ -10118,3 +10118,83 @@ ensino» (que deixou o rodapé como pendência).
 **O que ainda não está feito.**
 - O `check-pacote.js` continua reprovando os links da porta no pacote zero (rotas do Worker, não
   arquivos estáticos) — a limitação do zero-state já documentada no precedente `95db237`.
+
+## 12/10/2026 — A folha de captura ganha rótulo curto e transposição
+
+**O que motivou.** A geração do pacote da Maria (a primeira escola a percorrer o fluxo completo:
+anamnese → plano → PO → Guardar) falhou no `check-pacote.js` com «PDF: 10 palavra(s) fora da
+margem». A causa era a folha de captura derivada: cada critério de observação virava uma COLUNA, e
+o cabeçalho era o texto COMPLETO do critério («Título: descrição toda», 146–217 caracteres). Com 13
+critérios no bloco «técnica», a tabela estourava a largura do papel (a descrição não é título de
+coluna — ela já vive no PO e na guia de observação).
+
+**O que foi decidido.**
+- O cabeçalho de coluna passa a ser o RÓTULO CURTO (o «Título» antes do `:`), nunca a descrição.
+- A folha TRANSPÕE quando há mais critérios que alunas: critérios viram LINHAS (quebram na página),
+  alunas viram COLUNAS. É o caso típico de turma pequena (1 aluna, 13 critérios). O schema e o JSON
+  de captura NÃO mudam de orientação (colunas = critérios, linhas = alunas) — só a folha impressa
+  gira; o validador troca a LEITURA, não o modelo.
+
+**Onde entrou.**
+`motor/nucleo/derivar-ciclo.js` — `rotuloDoItem()` (o rótulo curto), `derivarCaptura()` (transposição
+por proporção) e `declaracaoDeCaptura()` (chaves/colunas com o rótulo curto).
+`tools/validar-captura-ciclo.js` — a leitura da folha TRANSPOSTA (o marcador é o primeiro cabeçalho
+«Critério»): troca a leitura de `colunasBrutas`/`linhas` sem mudar o JSON de saída.
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo. O motivo: a folha transposta é uma ORIENTAÇÃO nova que o
+validador não conhecia — sem a troca de leitura, o `validar-captura-ciclo.js` leria as alunas como
+critérios (e vice-versa) e reprovaria a folha correta. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nenhuma fonte de ciclo é adicionada/removida; o hash continua
+  o mesmo (a mudança é de leitura, não de cobertura).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **O JSON de captura de saída.** Continua `colunas` = critérios e `linhas` = alunas — o lançamento
+  não muda.
+
+**Com o quê.**
+`motor/nucleo/derivar-ciclo.js`, `tools/validar-captura-ciclo.js`, `REGISTRO.md`, as fontes
+re-derivadas `professores/tiago/ciclos/ciclo-01-maria-captura-aula-01.md` e
+`professores/tiago/ciclos/ciclo-01-captura-schema.json`, as âncoras regeradas e o pacote
+`professores/tiago/ciclos/ciclo-01-maria/`.
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · o precedente da captura do Diaghilev (rótulos curtos, poucas colunas).
+
+**O que ainda não está feito.**
+- Rótulos curtos iguais (duas dimensões com o mesmo «Título») colidem na chave do schema — não
+  tratado; é um caso-limite de dado, não de apresentação.
+
+## 12/10/2026 — A senha de criptografia da Maria nasce mockada e chega ao CI
+
+**O que motivou.** A geração da Maria também falhava com «JSON de dados ausente no pacote»: a
+senha de criptografia `SENHA_MARIA` não existia. Ela é a senha do `-dados.json`/acompanhamentos
+(`SENHA_<ESCOLA>`), que nenhum fluxo cria — nem `criar-escola.sh`, nem o botão «Criar nova escola»
+(cria só a `SENHA_ADMIN`). A pesquisadora definiu a senha PROVISÓRIA «maria» (mockada).
+
+**O que foi decidido.**
+- `SENHA_MARIA="maria"` entra em `tools/.senhas-locais` (fora do Git), e «maria» entra em
+  `tools/.escolas-teste` (a senha é o próprio slug, como Diaghilev — a conferência do pre-push não
+  se aplica enquanto for mock).
+- O `gerar-ciclo.yml` passa a montar `tools/.senhas-locais` no runner a partir do secret
+  `SENHAS_LOCAIS` (o conteúdo inteiro do arquivo, uma definição só). Sem o secret, avisa e o
+  `check-pacote` reprova — declarado, não silencioso.
+
+**Onde entrou.**
+`tools/.senhas-locais` — `SENHA_MARIA="maria"` (local, fora do Git).
+`tools/.escolas-teste` — «maria» (local, fora do Git).
+`.github/workflows/gerar-ciclo.yml` — o passo «Montar as senhas locais» antes da geração.
+
+**Com o quê.**
+`tools/.senhas-locais` (local), `tools/.escolas-teste` (local), `.github/workflows/gerar-ciclo.yml`,
+`REGISTRO.md`.
+
+**Referências.**
+A entrada «O JSON de dados vai para o pacote cifrado» (20/09) · `PROTOCOLO.md` P-13 («a senha é da
+escola») · `IDEIA-PAINEL-ESCOLA.md` §17.2–17.4 (o «criar senha» planejado, não construído).
+
+**O que ainda não está feito.**
+- O secret `SENHAS_LOCAIS` precisa ser criado no GitHub (Settings → Secrets → Actions) com o
+  conteúdo de `tools/.senhas-locais` — o meu token não grava segredos; a pesquisadora o cria.
+- Quando a senha deixar de ser mock, «maria» sai de `.escolas-teste` e a senha vira segredo real
+  (fora do Git, nunca no repositório).

@@ -113,6 +113,10 @@ function lerBlocos(linhas) {
         atual.graoDaFolha = graoDe(texto[0] || '');
         atual.colunasBrutas = texto.slice(1);
         atual.linhas = [];
+        // A folha TRANSPOSTA (mais critérios que alunas) troca a orientação: o primeiro
+        // cabeçalho é «Critério» (não «Aluna(o)»), as COLUNAS são as alunas e as LINHAS são os
+        // critérios. O marcador é este primeiro cabeçalho — nenhuma folha por aluna usa «Critério».
+        atual.transposta = /^crit[ée]rio$/i.test(texto[0] || '');
         return;
       }
       // Cabeçalho de uma tabela SEGUINTE (as seções `###`): não é dado.
@@ -147,7 +151,14 @@ function enriquecer(blocos, declaracao) {
     const d = declarados[b.titulo];
     if (!d) erros.push(`bloco da folha não declarado no schema: '${b.titulo}'`);
 
-    const colunas = (b.colunasBrutas || []).map((rotulo) => {
+    // A orientação TRANSPOSTA troca o que cada eixo guarda: os CRITÉRIOS (as colunas lógicas)
+    // são as LINHAS da folha, e as ALUNAS (o grão) são as COLUNAS. O schema e o JSON de captura
+    // permanecem na orientação lógica (colunas = critérios, linhas = alunas) — só a folha impressa
+    // gira. Aqui se troca a LEITURA, não o modelo.
+    const rotulosDeColuna = b.transposta ? (b.linhas || []) : (b.colunasBrutas || []);
+    const linhasDeDado = b.transposta ? (b.colunasBrutas || []) : (b.linhas || []);
+
+    const colunas = rotulosDeColuna.map((rotulo) => {
       const c = d && d.colunas && d.colunas[rotulo];
       if (!c) {
         erros.push(`coluna da folha não declarada no schema: '${b.titulo}' → '${rotulo}'`);
@@ -156,7 +167,7 @@ function enriquecer(blocos, declaracao) {
       return { rotulo, chave: c.chave, tipo: c.tipo };
     });
 
-    if (d && d.grao && b.graoDaFolha !== d.grao) {
+    if (d && d.grao && !b.transposta && b.graoDaFolha !== d.grao) {
       const generico = b.graoDaFolha !== 'aluna' && b.graoDaFolha !== 'dupla';
       avisos.push(`bloco '${b.titulo}': ` + (generico
         ? `o primeiro cabeçalho da folha ('${b.graoDaFolha}') não é um grão —`
@@ -181,7 +192,7 @@ function enriquecer(blocos, declaracao) {
       rotulo: (d && d.rotulo) || null,
       grao: (d && d.grao) || b.graoDaFolha,
       colunas,
-      linhas: b.linhas || [],
+      linhas: linhasDeDado,
     };
     if (b.secoes && b.secoes.length) bloco.secoes = b.secoes;
     return bloco;
