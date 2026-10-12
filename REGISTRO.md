@@ -9726,3 +9726,60 @@ alfabética nos menus, barra recolhível e destaque correto no menu».
 **O que ainda não está feito.**
 - O `criar-escola.sh` continua sendo o único lugar com o nav «zero» duplicado; a ordenação foi
   alinhada, mas o nav mínimo ainda não é gerado pelo `gerar_nav` (sem DOCS ele não roda).
+
+## 12/10/2026 — O «Nós, Por Exemplo» passa a ter fonte única e a raiz fica sempre habilitada
+
+**O que motivou.**
+O texto «Nós, Por Exemplo» estava escrito em mais de um lugar: a fonte
+`biblioteca/nos-por-exemplo.md` (que os ciclos já renderizavam via pandoc) e a página raiz
+`raiz/index.html` (HTML à mão, sem os atalhos de link). Além disso, o Worker raiz (`danca`) foi
+encontrado no ar servindo «Escola desabilitada» — porque o script implantado era o
+`workers/principal.js` (a ponte das escolas, com o freio `ESCOLA_HABILITADA`), não o
+`workers/raiz.js` (a ponte da raiz, que não tem freio).
+
+**O que foi decidido.**
+- O texto «Nós, Por Exemplo» passa a ter **fonte única** em `biblioteca/nos-por-exemplo.md`; a
+  raiz e os `index.html` dos ciclos são **cópias** dela, replicadas por gerador. O texto não tem
+  lastro nem vínculo com dados — é material de apresentação, **sem proveniência** (não entra em
+  `.fipp`, não reancora).
+- A única diferença entre a raiz e os ciclos é o link: a raiz **não tem links** (as linhas
+  «Acessar …» saem), os ciclos têm (os marcadores `@ANAMNESE_URL@`/`@PO_URL@` viram link).
+- A raiz (`danca`) **fica sempre habilitada**: não é escola, não tem `ESCOLA_HABILITADA`, e o
+  freio de desabilitação nunca a toca. O código já funcionava assim; o incidente foi de deploy
+  (script errado), não de lógica.
+
+**Onde entrou.**
+`tools/gerar-raiz.sh` — regera o corpo de `raiz/index.html` a partir da fonte, sem links.
+`tools/check-nos-por-exemplo.js` — valida que toda página «Nós» (raiz + ciclos) é fiel à fonte.
+`biblioteca/nos-por-exemplo.md` — fonte única; o link interno do «Onde pedir ajuda» saiu (a prosa
+não tem mais links; só os atalhos «Acessar …» que os ciclos convertem).
+
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo para novo gerador/validador. O motivo: a deriva do texto
+«Nós, Por Exemplo» era silenciosa (o ciclo `maria` ficou com a redação antiga sem aviso), e o
+padrão do projeto para divergência silenciosa é **fonte única + cópia replicada + validador**
+(o precedente é `tools/check-identidade.js` para o CSS). **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nada muda; nenhuma fonte de ciclo é alterada por esta
+  mudança (a fonte da entrada é `biblioteca/nos-por-exemplo.md`, que **não** é fonte de ciclo —
+  o `fonte_md index` a lê como material do sistema, fora do `.fipp`).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou.
+- **Os validadores existentes.** Nenhum mudou; o `check-pacote` continua passando.
+
+**Com o quê.**
+`tools/gerar-raiz.sh`, `tools/check-nos-por-exemplo.js`, `biblioteca/nos-por-exemplo.md`,
+`raiz/index.html` (regenerado), e os pacotes de `fokini/01/diaghilev`, `fokini2/02/diaghilev2`
+e `tiago/01/maria` (regenerados; o `maria` saiu da redação antiga).
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · `tools/check-identidade.js` (o precedente de fonte única + cópia
+replicada + validador) · o pedido «texto do Nós, Por Exemplo num lugar só, replicado em todos».
+
+**O que ainda não está feito.**
+- O `tools/check-nos-por-exemplo.js` **não está ligado a nenhum hook** (não entrou no
+  `pre-commit`, que é congelado). Ele roda manualmente; a deriva só é pega quando alguém o roda.
+- A regeneração do `maria` (escola «zero», sem `DOCS`) continua manual — não há um caminho
+  reproduzível equivalente ao `gerar-ciclo.sh` para o pacote zero; o `criar-escola.sh` só gera o
+  índice no nascimento da escola, não numa atualização.
+- O deploy da raiz continua manual (`npx wrangler deploy -c wrangler.danca.jsonc`); não há
+  automação de deploy para o Worker `danca`.

@@ -87,6 +87,19 @@
     background: var(--branco); color: var(--tinta);
   }
   .barra .campo input[type=password] { width: 8rem; }
+  .barra .campo select {
+    width: auto; font: 13px/1.5 var(--ui); padding: .15rem .3rem;
+    border: 1px solid var(--gold-borda); border-radius: 4px;
+    background: var(--branco); color: var(--tinta); max-width: 12rem;
+  }
+  .barra .campo .limpar-aluna {
+    border: none; background: none; cursor: pointer; padding: 0 .2rem;
+    font: 600 .95rem/1 var(--ui); color: var(--suave);
+  }
+  .barra .campo .limpar-aluna:hover { color: var(--falha); }
+  .barra .campo .senha-status { font-size: .78rem; white-space: nowrap; }
+  .barra .campo .senha-status.ok { color: var(--ok); }
+  .barra .campo .senha-status.erro { color: var(--falha); }
   .barra .contadores { display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
   .opcao {
     display: flex; gap: .6rem; align-items: flex-start;
@@ -372,9 +385,11 @@
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
         <input type="text" id="ctx-ciclo" value=""></span>
       <span class="campo"><label for="ctx-aluna">aluna</label>
-        <input type="text" id="ctx-aluna" value=""></span>
+        <select id="ctx-aluna"><option value="">— nenhuma —</option></select>
+        <button type="button" class="limpar-aluna" id="limpar-aluna" title="desmarcar a aluna" aria-label="desmarcar a aluna">×</button></span>
       <span class="campo"><label for="senha">senha da escola</label>
-        <input type="password" id="senha" autocomplete="off"></span>
+        <input type="password" id="senha" autocomplete="off">
+        <span class="senha-status" id="senha-status"></span></span>
     </div>
   </details>
 </div>
@@ -594,6 +609,76 @@ function guardarSenha() {
 }
 
 /*
+ * A habilitação do «Fazer a anamnese» (MOC dos Bastidores, andaime até a
+ * Produção real): a aluna vem do seletor (a lista de alunas CADASTRADAS nos
+ * Bastidores, `api/bastidores/alunas`) e a senha é a DO PROFESSOR — validada no
+ * servidor (`api/bastidores/validar-senha`). O botão só abre com os DOIS: aluna
+ * selecionada E senha validada. Ter aluna selecionada não é obrigatório — a
+ * senha e o interesse em começar é que são.
+ */
+let SENHA_VALIDA = false;
+
+function alunaSelecionada() {
+  return (($('ctx-aluna') || {}).value || '').trim() !== '';
+}
+
+function atualizarComecar() {
+  const comecar = document.getElementById('comecar');
+  if (!comecar || FONTE !== 'anamnese') return;
+  comecar.disabled = !(alunaSelecionada() && SENHA_VALIDA);
+}
+
+async function carregarAlunas() {
+  const sel = $('ctx-aluna');
+  if (!sel || FONTE !== 'anamnese') return;
+  try {
+    const resposta = await fetch('/api/bastidores/alunas');
+    const dados = await resposta.json();
+    const lista = Array.isArray(dados.alunas) ? dados.alunas : [];
+    const atual = sel.value;
+    sel.innerHTML = '<option value="">— nenhuma —</option>' +
+      lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
+    if (atual && lista.indexOf(atual) !== -1) sel.value = atual;
+  } catch (erro) {
+    // sem a lista, o seletor fica só com «nenhuma» — o botão não habilita.
+  }
+  atualizarComecar();
+}
+
+function sinalDeSenha(ok, texto) {
+  const status = $('senha-status');
+  if (!status) return;
+  if (texto) { status.textContent = texto; status.className = 'senha-status ' + (ok ? 'ok' : 'erro'); }
+  else { status.textContent = ''; status.className = 'senha-status'; }
+}
+
+async function validarSenha() {
+  const senha = (($('senha') || {}).value || '');
+  if (!senha) {
+    SENHA_VALIDA = false;
+    sinalDeSenha(false, '');
+    atualizarComecar();
+    return;
+  }
+  try {
+    const resposta = await fetch('/api/bastidores/validar-senha', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ senha }),
+    });
+    const dados = await resposta.json();
+    SENHA_VALIDA = !!dados.ok;
+    // Só o resultado, nunca o nome do professor: a senha é do professor, e o
+    // nome dele não é o que a validação revela.
+    sinalDeSenha(!!dados.ok, dados.ok ? 'OK' : '✗ senha não reconhecida');
+  } catch (erro) {
+    SENHA_VALIDA = false;
+    sinalDeSenha(false, '');
+  }
+  atualizarComecar();
+}
+
+/*
  * O contexto do ATO — escola, professor, ciclo e aluna. É a única identificação
  * que o envelope carrega, e o motor DESCARTA em silêncio o campo vazio: sem
  * esta trava um contexto incompleto sairia como envelope sem identidade, e nada
@@ -710,7 +795,7 @@ function voltarAoPortal() {
     const retomada = document.getElementById('retomada');
     if (retomada) { retomada.classList.add('oculto'); retomada.innerHTML = ''; }
     const comecar = document.getElementById('comecar');
-    if (comecar) { comecar.disabled = false; comecar.style.display = FONTE === 'anamnese' ? '' : 'none'; }
+    if (comecar) { comecar.style.display = FONTE === 'anamnese' ? '' : 'none'; atualizarComecar(); }
   }
 }
 
@@ -2368,16 +2453,18 @@ function guardarFichas(ids) {
  * pior do que mostrá-lo.
  */
 async function carregarFichas() {
-  let doServidor = [];
+  let doServidor = null; // null = o servidor não respondeu
   try {
     const resposta = await fetch('api/envelopes');
     const dados = await resposta.json();
     doServidor = (dados.envelopes || []).map((n) => String(n).replace(/\.json$/, '')).reverse();
   } catch (erro) {
-    doServidor = [];
+    doServidor = null;
   }
-  const locais = fichasDaMemoria().filter((id) => doServidor.indexOf(id) === -1);
-  const todos = locais.concat(doServidor);
+  // O servidor é a fonte. Só quando ele está FORA DO AR é que a memória local
+  // segura a lista (o dado é do professor). Quando ele responde, a lista dele é
+  // a verdade — um id que saiu do servidor não fica órfão no navegador.
+  const todos = doServidor === null ? fichasDaMemoria() : doServidor;
   guardarFichas(todos);
   return todos;
 }
@@ -3221,8 +3308,10 @@ async function iniciar() {
     }
   } else {
     if (FONTE === 'anamnese') {
-      $('comecar').disabled = false;
       $('comecar').style.display = '';
+      // A habilitação não é mais automática: depende da aluna + senha validada
+      // (o MOC dos Bastidores). O estado inicial fica travado até os dois virem.
+      atualizarComecar();
     }
     // Só o PLANO entra direto; a anamnese e o PO ficam no portal (a casa).
     if (FONTE === 'plano') autoAbrir = true;
@@ -3254,6 +3343,26 @@ async function iniciar() {
   $('n-obrig-total').textContent = MAPA.obrigatorios;
   $('barra').classList.remove('oculto');
   revelarBarra();
+
+  // O MOC dos Bastidores: carrega as alunas cadastradas no seletor e liga a
+  // senha do professor (validada no servidor) à habilitação do «Fazer a
+  // anamnese». Só a anamnese usa este andaime.
+  if (FONTE === 'anamnese') {
+    carregarAlunas();
+    // A senha valida com um pequeno atraso (digitação); o seletor de aluna e o
+    // «×» de desmarcar reavaliam a habilitação na hora.
+    let tempoDeSenha = null;
+    $('senha').addEventListener('input', () => {
+      clearTimeout(tempoDeSenha);
+      tempoDeSenha = setTimeout(validarSenha, 450);
+    });
+    $('ctx-aluna').addEventListener('change', () => { atualizarComecar(); semearDoContexto(); });
+    $('limpar-aluna').addEventListener('click', () => {
+      $('ctx-aluna').value = '';
+      atualizarComecar();
+      semearDoContexto();
+    });
+  }
 
   // O salto direto vem DEPOIS da semeadura do contexto: a primeira pergunta abre
   // já com escola/professor/ciclo semeados, quando a fonte os declara. Sem

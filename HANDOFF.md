@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-11T20:18:45-0300`
-Commit atual: `11697f3` — feat(entrega): a página de entrada «Nós, Por Exemplo» e a correção socrática (F5) entram no pacote
+Gerado em: `2026-10-12T02:06:58-0300`
+Commit atual: `836ffcb` — feat(estrutura): o contexto institucional elicitado no PO preenche o .conf
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -35,8 +35,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** fokini
-fokini2 (2)
-- **Ciclos com manifesto:** 2 variante(s)
+fokini2
+tiago (3)
+- **Ciclos com manifesto:** 3 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -51,26 +52,26 @@ fokini2 (2)
 ## Últimos commits
 
 ```
-11697f3 feat(entrega): a página de entrada «Nós, Por Exemplo» e a correção socrática (F5) entram no pacote
-7eca71a feat(tools): a página de entrada vira «Nós, Por Exemplo», e o menu perde a marca e o «Início»
-7f074ec feat(tools): o menu separa a Anamnese do Plano de Observação
-9057c1a feat(po): a porta fala a língua do professor e a navegação vira PO → plano
-95db237 feat(estrutura): a escola diaghilev2 nasce do zero (teste de elicitação)
-f36358c feat(po): a porta passa a elicitar o plano — o ciclo do zero nasce com plano + PO
-73ce703 feat(tools): criar-escola.sh — a criação de uma escola nova vira um comando
-3bfc203 refactor(estrutura): a porta passa a usar os assets compartilhados da raiz do pacote
-bb6bf31 feat(tools): a porta do Plano de Observação ganha a navegação do site e o comportamento de saída
-0f91c6a chore(tools): as escolas de teste ficam fora da conferência de senha do pre-push
-4161963 feat(estrutura): o motor agnóstico e a porta saem do experimento para produção
-c714b48 feat(tools): o menu da Área do Professor ganha o acesso ao Plano de Observação
-ede14d7 chore(estrutura): o .env e o .dev.vars ficam fora do Git
-8d3da1e refactor(estrutura): o prompt instalar-ciclo vira skill em .github/skills/
-ba7379b docs(registro): regenera o HANDOFF sobre 9f8a96e
-9f8a96e feat(prompts): a elicitação herda oito decisões do formulário do experimento
-d94b991 feat(experimentos): o Worker ganha o cofre da anamnese — com leitura por GET
-0b81ab1 docs(registro): regenera o HANDOFF sobre c64fe95
-c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registro conta a rodada
-55d332d docs(apresentacao-01-rizoma): o deck passa de 72 para 87 slides e o mapa anda para o slide 83
+836ffcb feat(estrutura): o contexto institucional elicitado no PO preenche o .conf
+7dfd38c fix(porta): o seletor de aluna valida a senha sem exibir o nome, e a lista de gravados segue o servidor
+326067d feat(estrutura): alinhar o título da raiz com o conteúdo e o botão no flex-end
+d28e1ef feat(estrutura): isolar o KV da escola e restaurar o MOC dos Bastidores na anamnese
+874f919 feat(estrutura): migrar o motor da escola maria para a ponte de produção
+34bae17 feat(estrutura): o formulário «Criar nova escola» vira um modal
+73a2a6e feat(estrutura): cabeçalho fixo da raiz com o botão «Criar nova escola» na linha do título
+97a7377 feat(estrutura): a raiz serve o «Nós, Por Exemplo» real e o login passa a ser tmenegaz
+6abcd10 feat(estrutura): o mock da Produção no Worker «zero» (cadastro de professor)
+ec35321 feat(estrutura): o domínio raiz danca com «Criar nova escola» ponta a ponta
+8a198dc chore(entrega): regerar pacotes e reancorar (títulos da harmonização + menu)
+60cdc81 feat(estrutura): freio de habilitação da escola + barra recolhível + rótulo da harmonização
+bb3311d docs(protocolo): proveniência condicional e limpeza por índice da escola
+d6761a2 refactor(tools): ordem alfabética nos menus e rótulo da harmonização
+1788abc chore(entrega): regerar os pacotes com as novas URLs da anamnese e do PO
+146d030 fix(estrutura): a anamnese e o PO ganham URLs próprias (/anamnese/ e /plano-observacao/)
+423c9e3 chore(entrega): gerar o pacote do ciclo 02-diaghilev2 (o ciclo «do zero» fechado)
+7d81c68 docs(ideia): a camada de componentes de front-end e o resultado da avaliação
+d2da8a6 feat(estrutura): o Guardar do PO deriva o ciclo inteiro e gera o pacote
+355c5e7 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -85,7 +86,7 @@ c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registr
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| diaghilev | ciclo-01-diaghilev.fipp | `37193a381dc5` | (vazio) | Input_PO_Aguardando |
+| diaghilev | ciclo-01-diaghilev.fipp | `41338470edba` | (vazio) | Input_PO_Aguardando |
 
 ### fokini2 — 1 ciclo(s)
 
@@ -93,11 +94,23 @@ c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registr
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| diaghilev2 | (sem PO) | — | — |
+| diaghilev2 | ciclo-02-diaghilev2-po.md | Input_PO_Validado | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| diaghilev2 | ciclo-02-diaghilev2.fipp | `af1ec11e18a2` | (vazio) | — |
+| diaghilev2 | ciclo-02-diaghilev2.fipp | `56c72a3e5b60` | (vazio) | Input_PO_Validado |
+
+### tiago — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): maria
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| maria | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| maria | ciclo-01-maria.fipp | `9d8fb3a6e877` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -146,98 +159,65 @@ c64fe95 feat(tools): a espiral dos criadores ganha injetor próprio, e o registr
 
 ## Última entrada do REGISTRO
 
-## 11/10/2026 — Atalhos da porta na página de entrada e aprofundamento do «Como se usa»
+## 12/10/2026 — O «Nós, Por Exemplo» passa a ter fonte única e a raiz fica sempre habilitada
 
-**O que motivou.** A página de entrada «Nós, Por Exemplo» tinha dois problemas de leitura: o
-bloco «Como se usa, passo a passo» era abstrato (o professor não sabia **onde clicar** nem o que
-ia encontrar), e os blocos de abertura traziam redação ainda não finalizada («coisa», a régua
-das alunas, menção a protocolos ainda por construir).
+**O que motivou.**
+O texto «Nós, Por Exemplo» estava escrito em mais de um lugar: a fonte
+`biblioteca/nos-por-exemplo.md` (que os ciclos já renderizavam via pandoc) e a página raiz
+`raiz/index.html` (HTML à mão, sem os atalhos de link). Além disso, o Worker raiz (`danca`) foi
+encontrado no ar servindo «Escola desabilitada» — porque o script implantado era o
+`workers/principal.js` (a ponte das escolas, com o freio `ESCOLA_HABILITADA`), não o
+`workers/raiz.js` (a ponte da raiz, que não tem freio).
 
 **O que foi decidido.**
+- O texto «Nós, Por Exemplo» passa a ter **fonte única** em `biblioteca/nos-por-exemplo.md`; a
+  raiz e os `index.html` dos ciclos são **cópias** dela, replicadas por gerador. O texto não tem
+  lastro nem vínculo com dados — é material de apresentação, **sem proveniência** (não entra em
+  `.fipp`, não reancora).
+- A única diferença entre a raiz e os ciclos é o link: a raiz **não tem links** (as linhas
+  «Acessar …» saem), os ciclos têm (os marcadores `@ANAMNESE_URL@`/`@PO_URL@` viram link).
+- A raiz (`danca`) **fica sempre habilitada**: não é escola, não tem `ESCOLA_HABILITADA`, e o
+  freio de desabilitação nunca a toca. O código já funcionava assim; o incidente foi de deploy
+  (script errado), não de lógica.
 
-- **«O que é este sistema» reescrito** em três parágrafos (o que faz → o que permite → o que faz
-  com o conhecimento), com a distinção repertório × arquivo, sem «coisa», sem jargão.
-- **A passagem da «régua alta» corrigida:** a régua é do **serviço prestado** (dedicação, cuidado,
-  o que a escola oferece), não das alunas. «A dança é para todas» ficou explícito. Saíram
-  «régua», «qualidade» e «métrica».
-- **«Como se usa, passo a passo» aprofundado:** passos numerados (Passo 1 a 4), contexto do que é
-  um **ciclo** (nasce do Plano de Observação; dentro dele há aulas; cada aula tem seu registro), a
-  lista do que mais existe na Área do Professor (caderno, captura, critérios, método, guia) e a
-  nota de que a página é o mapa e o detalhe está dentro de cada formulário.
-- **Dois atalhos com link** para a porta — «Anamnese do aluno» e «Plano de Observação» — com as
-  URLs carregando os slugs do ciclo. Como o pandoc **não interpola variáveis no corpo** do
-  documento, a página usa os marcadores `@ANAMNESE_URL@` e `@PO_URL@`, trocados pelo gerador
-  **só no `index`**.
+**Onde entrou.**
+`tools/gerar-raiz.sh` — regera o corpo de `raiz/index.html` a partir da fonte, sem links.
+`tools/check-nos-por-exemplo.js` — valida que toda página «Nós» (raiz + ciclos) é fiel à fonte.
+`biblioteca/nos-por-exemplo.md` — fonte única; o link interno do «Onde pedir ajuda» saiu (a prosa
+não tem mais links; só os atalhos «Acessar …» que os ciclos convertem).
 
-**Onde entrou.** `biblioteca/nos-por-exemplo.md` — os três blocos reescritos/aprofundados e os
-dois marcadores de link. `tools/gerar-ciclo.sh` — a substituição `@ANAMNESE_URL@`/`@PO_URL@`
-após o pandoc do `index`. `tools/criar-escola.sh` — a mesma substituição no índice do pacote
-"zero" (que também renderiza `nos-por-exemplo.md`), com URL relativa à pasta do pacote.
+**Motivo declarado — os congelados.**
+`tools/` é congelado e exige motivo para novo gerador/validador. O motivo: a deriva do texto
+«Nós, Por Exemplo» era silenciosa (o ciclo `maria` ficou com a redação antiga sem aviso), e o
+padrão do projeto para divergência silenciosa é **fonte única + cópia replicada + validador**
+(o precedente é `tools/check-identidade.js` para o CSS). **O que não muda:**
 
-**Motivo declarado — os congelados.** `CONGELAMENTO.md` congela `tools/`. O motivo: os dois
-atalhos da página de entrada precisam levar o contexto do ciclo (`professor`, `escola`, `ciclo`)
-na URL da porta, e esse contexto só existe no gerador — não dá para gravar slugs fixos na página
-compartilhada (cada pacote tem o seu). **O que não muda:**
-
-- **A fórmula do hash e a cobertura.** Não mudou; a página de entrada vive em `biblioteca/`, que
-  o hasher já exclui, e nenhuma fonte de ciclo foi alterada. A âncora **não** foi regerada (o
-  `--check` confirma a cadeia íntegra com o mesmo hash de antes).
+- **A fórmula do hash e a cobertura.** Nada muda; nenhuma fonte de ciclo é alterada por esta
+  mudança (a fonte da entrada é `biblioteca/nos-por-exemplo.md`, que **não** é fonte de ciclo —
+  o `fonte_md index` a lê como material do sistema, fora do `.fipp`).
 - **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou.
-- **Os validadores.** Nenhum mudou; o `check-pacote` continua passando com 0 erros.
+- **Os validadores existentes.** Nenhum mudou; o `check-pacote` continua passando.
 
-**Com o quê.** `biblioteca/nos-por-exemplo.md`, `tools/gerar-ciclo.sh`,
-`tools/criar-escola.sh`, e o pacote `professores/fokini/ciclos/ciclo-01-diaghilev/` regenerado.
+**Com o quê.**
+`tools/gerar-raiz.sh`, `tools/check-nos-por-exemplo.js`, `biblioteca/nos-por-exemplo.md`,
+`raiz/index.html` (regenerado), e os pacotes de `fokini/01/diaghilev`, `fokini2/02/diaghilev2`
+e `tiago/01/maria` (regenerados; o `maria` saiu da redação antiga).
 
-**Referências.** `CONGELAMENTO.md` (`tools/`) · a entrada de 11/10/2026 (o `index` →
-«Nós, Por Exemplo») · o pedido «Ajustes finais na página» e o pedido «Aprofundar o bloco
-«Como se usa, passo a passo»».
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · `tools/check-identidade.js` (o precedente de fonte única + cópia
+replicada + validador) · o pedido «texto do Nós, Por Exemplo num lugar só, replicado em todos».
 
 **O que ainda não está feito.**
-
-- **O pacote `fokini2/02/diaghilev2` está com o `index.html` defasado** (ainda mostra o «cartão de
-  visita» antigo, não a página «Nós, Por Exemplo»). É anterior a este marco — o `criar-escola.sh`
-  já renderiza `nos-por-exemplo.md`, mas o pacote não foi regerado. Regerar exige rodar o
-  `criar-escola.sh` (que cria uma escola nova), e não o `gerar-ciclo.sh` (que falha com `DOCS=""`).
-- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
+- O `tools/check-nos-por-exemplo.js` **não está ligado a nenhum hook** (não entrou no
+  `pre-commit`, que é congelado). Ele roda manualmente; a deriva só é pega quando alguém o roda.
+- A regeneração do `maria` (escola «zero», sem `DOCS`) continua manual — não há um caminho
+  reproduzível equivalente ao `gerar-ciclo.sh` para o pacote zero; o `criar-escola.sh` só gera o
+  índice no nascimento da escola, não numa atualização.
+- O deploy da raiz continua manual (`npx wrangler deploy -c wrangler.danca.jsonc`); não há
+  automação de deploy para o Worker `danca`.
 
 ## O que está pendente
 
-## 09/10/2026 — A criação de escola vira um comando: o CLI de scaffolding, e a porta deixa de nascer com escola fixa
-
-A lacuna do ciclo vazio: `tools/gerar-ciclo.sh` exige `DOCS`
-não-vazio (`: "${DOCS:?}"`), então a geração disparada pela conclusão do PO vai parar pedindo um
-documento. Decidir, na etapa seguinte: (a) o PO elicitado gera um esboço de plano como primeiro
-`DOCS`, ou (b) o gerador passa a aceitar `DOCS=""`. A escola `diaghilev2` ainda não foi **ancorada**
-(`tools/hash-ciclo.sh fokini2 02 diaghilev2`) — é o primeiro ciclo do professor, sem `parentHash`.
-
-## 09/10/2026 — A porta passa a elicitar o PLANO, e o ciclo do zero passa a nascer com plano + PO
-
-O commit da escola `diaghilev2` **vazia** (antes de qualquer
-elicitação) segue bloqueado pelo `pre-commit`, que tenta gerar o pacote de um ciclo sem `DOCS` — o
-estado "zero" que o gerador ainda não reconhece. Decidir, na próxima etapa: (a) o `pre-commit` pula
-ciclos com `DOCS` vazio (o estado legítimo de uma escola recém-criada), ou (b) a geração aceita
-`DOCS=""`. O teste de ponta a ponta (elicitar plano → `-plano.md` + `DOCS="plano"` → elicitar PO →
-geração) ainda não foi exercido contra o GitHub real.
-
-## 10/10/2026 — O menu separa a Anamnese do Plano de Observação, e a navegação da porta muda de modelo
-
-O **pacote ainda não foi regerado** — a mudança do menu só aparece
-nos HTML após `tools/gerar-ciclo.sh <professor> <ciclo> <escola>`. O estado ativo do item
-(«Plano de Observação» ativo vs «Anamnese do aluno» ativo) continua **único** na porta: a nav é
-gerada uma vez (`atual=plano-observacao`) e não distingue `?fonte=` — a marcação de «ativo» por
-fonte fica em aberto.
-
-## 11/10/2026 — «Nós, Por Exemplo» vira a página de entrada; o «Início» e a marca saem do menu
-
-
-- **`tools/criar-escola.sh` ainda não foi alinhado.** O nav do pacote "do zero" (`gerar_nav_zero`)
-  continua com a marca «Ciclo NN · escola» e o item «Início», e o `index.html` zero ainda é o
-  «cartão de visita» (e não a página «Nós, Por Exemplo»). Falta decidir: o pacote zero abre em
-  «Nós, Por Exemplo» (como o pacote cheio) ou mantém o cartão de visita de ciclo em construção?
-- **Frentes do pedido ainda em aberto:** vídeos embutidos (F2), documento de fundamentação (F4),
-  correção socrática (F5 — infraestrutura, prudência), item de menu «Bastidores» (F10).
-- **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
-
 ## 11/10/2026 — Atalhos da porta na página de entrada e aprofundamento do «Como se usa»
 
 
@@ -246,6 +226,45 @@ fonte fica em aberto.
   já renderiza `nos-por-exemplo.md`, mas o pacote não foi regerado. Regerar exige rodar o
   `criar-escola.sh` (que cria uma escola nova), e não o `gerar-ciclo.sh` (que falha com `DOCS=""`).
 - **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
+
+## 11/10/2026 — URLs próprias para a Anamnese e o Plano de Observação
+
+- A marcação de «ativo» na barra de navegação da porta é estática (gerada com
+  `atual=plano-observacao`): ao abrir `/anamnese/`, a barra ainda destaca «Plano de Observação».
+  O título da página (H1) já distingue as duas — só a marcação do item de menu é que fica a dever.
+
+## 11/10/2026 — As sete mudanças de comportamento e a proveniência condicional
+
+- **Nada foi implementado** — as sete mudanças são plano; os dois andaimes, a norma da limpeza e o
+  índice por escola são declaração, não arquivos/scripts criados.
+- **Nada foi commitado** — este marco (e o descongelamento de `PROTOCOLO.md` + `tools/criar-escola.sh`)
+  exige commit próprio com o motivo declarado, aguardando validação da pesquisadora.
+- **A limpeza não tem script nem hook.** O ponto natural é o `post-merge` (não existe hoje) ou um
+  script próprio rodado após a sincronização — nada foi criado; a norma só declara o dever e o
+  critério (slug + verificação «não está a pagar»).
+- **O índice não é gerado.** O `tools/criar-escola.sh` ainda não escreve `escola/<escola>/indice.json`
+  — a geração é declaração; o formato (slug, `criado_em`, professor, senha como chave, estado
+  inicial, `arquivos[]`) está proposto no `IDEIA-PAINEL-ESCOLA.md` §17.5, mas o script é congelado
+  e não foi tocado.
+- **Quais congelados descongelam na implementação** — `tools/lib-senhas.sh` (senha por professor +
+  administrador) e `tools/criar-escola.sh` (senha do administrador no nascimento) estão sob
+  `tools/` (congelado). `workers/` **não está congelado** — o Cron Trigger e a senha do domínio
+  raiz entram sem o rito dos congelados. Cada um entra com o seu próprio motivo/commit.
+
+## 11/10/2026 — Ordem alfabética nos menus e rótulo da harmonização
+
+- O `criar-escola.sh` continua sendo o único lugar com o nav «zero» duplicado; a ordenação foi
+  alinhada, mas o nav mínimo ainda não é gerado pelo `gerar_nav` (sem DOCS ele não roda).
+
+## 12/10/2026 — O «Nós, Por Exemplo» passa a ter fonte única e a raiz fica sempre habilitada
+
+- O `tools/check-nos-por-exemplo.js` **não está ligado a nenhum hook** (não entrou no
+  `pre-commit`, que é congelado). Ele roda manualmente; a deriva só é pega quando alguém o roda.
+- A regeneração do `maria` (escola «zero», sem `DOCS`) continua manual — não há um caminho
+  reproduzível equivalente ao `gerar-ciclo.sh` para o pacote zero; o `criar-escola.sh` só gera o
+  índice no nascimento da escola, não numa atualização.
+- O deploy da raiz continua manual (`npx wrangler deploy -c wrangler.danca.jsonc`); não há
+  automação de deploy para o Worker `danca`.
 
 ## Pendências anteriores (índice)
 
@@ -337,11 +356,15 @@ fonte fica em aberto.
 - **07/10/2026** — O cofre dos lançamentos sai do Netlify e entra no… → `REGISTRO.md` L8762
 - **07/10/2026** — O Netlify antigo é destruído, o mapa anda para o slide 83… → `REGISTRO.md` L8914
 - **07/10/2026** — O prompt de elicitação herda oito decisões do… → `REGISTRO.md` L9042
+- **09/10/2026** — A criação de escola vira um comando: o CLI de… → `REGISTRO.md` L9282
+- **09/10/2026** — A porta passa a elicitar o PLANO, e o ciclo do zero passa a… → `REGISTRO.md` L9334
+- **10/10/2026** — O menu separa a Anamnese do Plano de Observação, e a… → `REGISTRO.md` L9387
+- **11/10/2026** — «Nós, Por Exemplo» vira a página de entrada; o… → `REGISTRO.md` L9440
 - PO de **fokini · diaghilev** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **fokini · ciclo 01:** aulas escritas em detalhe: 5 de 5 (as demais entram depois da aula anterior).
-- Material de campo de **fokini**: 0 evento(s) versionado(s).
-- **fokini2 · ciclo 02:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
-- Material de campo de **fokini2**: 0 evento(s) versionado(s).
+- **fokini2 · ciclo 02:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **tiago · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- Material de campo de **tiago**: 0 evento(s) versionado(s).
 
 ## Documentos-chave (para leitura)
 
