@@ -79,12 +79,15 @@ function pagina(nome, profs) {
   const po = habilitado
     ? '<a class="item" href="/plano-observacao/">Plano de Observação</a>'
     : '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Plano de Observação</span>';
+  const plano = habilitado
+    ? '<a class="item" href="/plano-ensino/">Plano de ensino</a>'
+    : '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Plano de ensino</span>';
   const anam = habilitado
     ? '<a class="item" href="/anamnese/">Anamnese do aluno</a>'
     : '<span class="item" title="cadastre um professor nos Bastidores para habilitar">Anamnese do aluno</span>';
   const aviso = habilitado
     ? '<p class="aviso ok">A Área do Professor está <b>habilitada</b> (' + profs.length + ' professor(es) cadastrado(s)).</p>'
-    : '<p class="aviso">A Área do Professor está <b>desabilitada</b> — cadastre um professor nos Bastidores (Produção) para liberar o Plano de Observação e a Anamnese.</p>';
+    : '<p class="aviso">A Área do Professor está <b>desabilitada</b> — cadastre um professor nos Bastidores (Produção) para liberar o Plano de Observação, o Plano de ensino e a Anamnese.</p>';
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>Nós, Por Exemplo · ' + esc(nome) + '</title>' +
@@ -104,14 +107,14 @@ function pagina(nome, profs) {
     '</style></head><body>' +
     '<div class="topo"><div class="nav">' +
     '<a href="/">Nós, Por Exemplo</a>' +
-    '<details class="grupo" open><summary>Área do Professor</summary><div class="sub">' + po + anam + '</div></details>' +
+    '<details class="grupo" open><summary>Área do Professor</summary><div class="sub">' + anam + plano + po + '</div></details>' +
     '<details class="grupo"><summary>Bastidores</summary><div class="sub">' +
     '<a class="item" href="/bastidores">Produção</a>' +
     '</div></details>' +
     '</div></div>' +
     '<div class="corpo">' +
     '<h1>Nós, Por Exemplo</h1>' +
-    '<p>Esta é a escola <b>' + esc(nome) + '</b>. Cadastre um professor nos Bastidores para liberar o Plano de Observação e a Anamnese.</p>' +
+    '<p>Esta é a escola <b>' + esc(nome) + '</b>. Cadastre um professor nos Bastidores para liberar o Plano de Observação, o Plano de ensino e a Anamnese.</p>' +
     aviso +
     '</div></body></html>';
 }
@@ -174,7 +177,9 @@ function paginaBastidores(nome, profs) {
 }
 
 function placeholderMotor(rota) {
-  const titulo = rota === '/anamnese/' ? 'Anamnese do aluno' : 'Plano de Observação';
+  const titulo = rota === '/anamnese/' ? 'Anamnese do aluno'
+    : rota === '/plano-ensino/' ? 'Plano de ensino'
+    : 'Plano de Observação';
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>' + titulo + '</title>' +
     '<style>body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{color:#6b2f2f;}a{color:#6b2f2f;}</style></head><body>' +
     '<h1>' + titulo + '</h1>' +
@@ -210,7 +215,7 @@ export default {
       await kv.put('professores:' + ESCOLA, JSON.stringify(lista));
       return new Response(JSON.stringify({ ok: true }), { status: 201, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
     }
-    if (path === '/plano-observacao/' || path === '/anamnese/') {
+    if (path === '/plano-observacao/' || path === '/plano-ensino/' || path === '/anamnese/') {
       if (profs.length === 0) return desabilitada();
       return new Response(placeholderMotor(path), { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
     }

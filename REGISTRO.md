@@ -9919,3 +9919,35 @@ anamnese) · `IDEIA-PAINEL-ESCOLA.md`.
 > `motor/servidor/producao.js` — é o que os `wrangler.jsonc` de `diaghilev`, `diaghilev2` e
 > `maria` declaram em `main`. A linha foi corrigida em 12/10/2026. A versão anterior não é
 > apagada: fica como o elo que registra o que se pensou antes da correção.
+
+## 12/10/2026 — O botão «Criar nova escola» alinha o menu da Área do Professor ao plano de ensino
+
+**O que motivou.** O menu da Área do Professor passou a ter três itens (anamnese, plano de ensino,
+PO) — mas o botão «Criar nova escola» (a raiz) gera a escola nova por `provisionar-escola.js`
+(`scriptDaEscola`), um caminho DIFERENTE do `gerar-ciclo.sh`. Ele ficou com só dois itens
+(anamnese e PO) e sem a rota `/plano-ensino/`.
+
+**O que foi decidido.**
+- O `scriptDaEscola` (o mock que a escola nova roda ao nascer) passa a listar os TRÊS itens na
+  Área do Professor, na ordem alfabética: Anamnese do aluno · Plano de ensino · Plano de
+  Observação.
+- O dispatch do mock passa a servir `/plano-ensino/` (como já servia `/plano-observacao/` e
+  `/anamnese/`).
+- O `placeholderMotor` passa a rotular «Plano de ensino» (antes caía no padrão «Plano de
+  Observação»).
+- O aviso da área desabilitada cita os três, não só PO + anamnese.
+
+**Onde entrou.**
+`motor/servidor/provisionar-escola.js` — `pagina()` (menu), `placeholderMotor()` (rótulo) e o
+dispatch (`/plano-ensino/`).
+
+**Com o quê.**
+`motor/servidor/provisionar-escola.js`, `REGISTRO.md`.
+
+**Referências.**
+A entrada anterior «o plano de ensino vira rota própria» (que mudou `tools/gerar-ciclo.sh` e o
+menu do site) · `CONGELAMENTO.md` (`motor/` é livre).
+
+**O que ainda não está feito.**
+- O CLI `tools/criar-escola.sh` tem a MESMA deriva: o seu `gerar_nav_zero` lista só anamnese e PO
+  (sem plano de ensino). É congelado (`tools/`) e exige motivo declarado + commit próprio.
