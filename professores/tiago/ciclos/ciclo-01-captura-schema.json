@@ -335,6 +335,108 @@
             }
           }
         }
+      },
+      "maria": {
+        "escola": "Maria",
+        "blocos": {
+          "Bloco 1 — técnica": {
+            "chave": "tecnica",
+            "rotulo": "técnica",
+            "grao": "aluna",
+            "colunas": {
+              "Alinhamento e estabilização da pelve: Observação da manutenção da pelve neutra (sem anteversão ou retroversão) durante demi-pliés, grands pliés e transferências de peso.": {
+                "chave": "alinhamento_e_estabilizacao_da_pelve_observacao_da_manutencao_da_pelve_neutra_sem_anteversao_ou_retroversao_durante_demi_plies_grands_plies_e_transferencias_de_peso",
+                "tipo": "marca"
+              },
+              "Sustentação e estrutura dos cotovelos: Observação da sustentação das posições dos braços (1ª, 2ª, 3ª, 4ª e 5ª) mantendo os cotovelos elevados e ombros relaxados.": {
+                "chave": "sustentacao_e_estrutura_dos_cotovelos_observacao_da_sustentacao_das_posicoes_dos_bracos_1_2_3_4_e_5_mantendo_os_cotovelos_elevados_e_ombros_relaxados",
+                "tipo": "marca"
+              },
+              "Mecânica do en dehors no tendu (saída e retorno): Observação do calcanhar liderando a saída à frente/lado e do alinhamento ao fechar, mantendo a rotação externa desde a articulação do quadril.": {
+                "chave": "mecanica_do_en_dehors_no_tendu_saida_e_retorno_observacao_do_calcanhar_liderando_a_saida_a_frente_lado_e_do_alinhamento_ao_fechar_mantendo_a_rotacao_externa_desde_a_articulacao_do_quadril",
+                "tipo": "marca"
+              },
+              "Mecânica do en dehors no glissade e jeté: Observação da raspagem/pincelada do pé no chão com a manutenção da rotação externa no ar e no fechamento.": {
+                "chave": "mecanica_do_en_dehors_no_glissade_e_jete_observacao_da_raspagem_pincelada_do_pe_no_chao_com_a_manutencao_da_rotacao_externa_no_ar_e_no_fechamento",
+                "tipo": "marca"
+              },
+              "Distribuição e transferência de peso: Observação da passagem clara do peso do corpo do apoio sobre duas pernas para o eixo de uma única perna de base (e vice-versa) nos temps liés, tendus e glissades.": {
+                "chave": "distribuicao_e_transferencia_de_peso_observacao_da_passagem_clara_do_peso_do_corpo_do_apoio_sobre_duas_pernas_para_o_eixo_de_uma_unica_perna_de_base_e_vice_versa_nos_temps_lies_tendus_e_glissades",
+                "tipo": "marca"
+              },
+              "Organização postural no eixo da perna de base: Observação do prumo corporal (alinhamento joelho-tornozelo-pelve) na perna de sustentação enquanto a perna de trabalho se movimenta.": {
+                "chave": "organizacao_postural_no_eixo_da_perna_de_base_observacao_do_prumo_corporal_alinhamento_joelho_tornozelo_pelve_na_perna_de_sustentacao_enquanto_a_perna_de_trabalho_se_movimenta",
+                "tipo": "marca"
+              },
+              "Precisão de ponto e apoio nos coupés: Observação do encaixe exato do pé de trabalho no tornozelo da perna de base (frente, lado e atrás), mantendo o joelho en dehors e sem descarregar peso sobre a articulação.": {
+                "chave": "precisao_de_ponto_e_apoio_nos_coupes_observacao_do_encaixe_exato_do_pe_de_trabalho_no_tornozelo_da_perna_de_base_frente_lado_e_atras_mantendo_o_joelho_en_dehors_e_sem_descarregar_peso_sobre_a_articulacao",
+                "tipo": "marca"
+              },
+              "Articulação e estabilidade no passé: Observação da trajetória do pé subindo desenhado até o joelho de base, mantendo a coxa en dehors sem elevar o quadril do mesmo lado.": {
+                "chave": "articulacao_e_estabilidade_no_passe_observacao_da_trajetoria_do_pe_subindo_desenhado_ate_o_joelho_de_base_mantendo_a_coxa_en_dehors_sem_elevar_o_quadril_do_mesmo_lado",
+                "tipo": "marca"
+              },
+              "Alinhamento do plié: Observação do direcionamento contínuo dos joelhos sobre as pontas dos pés no demi-plié e grand plié, mantendo a aderência dos calcanhares até o momento exato do descolamento.": {
+                "chave": "alinhamento_do_plie_observacao_do_direcionamento_continuo_dos_joelhos_sobre_as_pontas_dos_pes_no_demi_plie_e_grand_plie_mantendo_a_aderencia_dos_calcanhares_ate_o_momento_exato_do_descolamento",
+                "tipo": "marca"
+              },
+              "Sustentação postural no arabesque: Observação da oposição entre a perna estendida atrás e a sustentação do tronco, sem colapsar a região lombar.": {
+                "chave": "sustentacao_postural_no_arabesque_observacao_da_oposicao_entre_a_perna_estendida_atras_e_a_sustentacao_do_tronco_sem_colapsar_a_regiao_lombar",
+                "tipo": "marca"
+              },
+              "Correspondência dos braços no arabesque: Observação do correto enquadramento dos braços em relação à posição de arabesque, com ombros e quadril alinhados.": {
+                "chave": "correspondencia_dos_bracos_no_arabesque_observacao_do_correto_enquadramento_dos_bracos_em_relacao_a_posicao_de_arabesque_com_ombros_e_quadril_alinhados",
+                "tipo": "marca"
+              },
+              "Direcionamento espacial: Observação da clareza das linhas e direções fundamentais dos movimentos no espaço (en croix: frente, lado e atrás).": {
+                "chave": "direcionamento_espacial_observacao_da_clareza_das_linhas_e_direcoes_fundamentais_dos_movimentos_no_espaco_en_croix_frente_lado_e_atras",
+                "tipo": "marca"
+              },
+              "Qualidade de transição nos movimentos contínuos: Observação do controle de força, flexibilidade e fluidez na sustentação de posições e passagens de peso na base de adagio.": {
+                "chave": "qualidade_de_transicao_nos_movimentos_continuos_observacao_do_controle_de_forca_flexibilidade_e_fluidez_na_sustentacao_de_posicoes_e_passagens_de_peso_na_base_de_adagio",
+                "tipo": "marca"
+              }
+            }
+          },
+          "Bloco 2 — musicalidade": {
+            "chave": "musicalidade",
+            "rotulo": "musicalidade",
+            "grao": "aluna",
+            "colunas": {
+              "Precisão de ataque e início do movimento: Observação da capacidade de iniciar o primeiro movimento exatamente na anacrusa ou no primeiro tempo (downbeat) da frase musical.": {
+                "chave": "precisao_de_ataque_e_inicio_do_movimento_observacao_da_capacidade_de_iniciar_o_primeiro_movimento_exatamente_na_anacrusa_ou_no_primeiro_tempo_downbeat_da_frase_musical",
+                "tipo": "marca"
+              },
+              "Acompanhamento do pulso constante: Observação da manutenção do andamento da combinação sem acelerar (correr) ou atrasar em relação ao pulso da música.": {
+                "chave": "acompanhamento_do_pulso_constante_observacao_da_manutencao_do_andamento_da_combinacao_sem_acelerar_correr_ou_atrasar_em_relacao_ao_pulso_da_musica",
+                "tipo": "marca"
+              },
+              "Sincronia do ponto de término (fechamento): Observação do fechamento da perna ou braço exatamente no tempo determinado pela contagem/música (ex.: fechar no tempo 2 ou 4).": {
+                "chave": "sincronia_do_ponto_de_termino_fechamento_observacao_do_fechamento_da_perna_ou_braco_exatamente_no_tempo_determinado_pela_contagem_musica_ex_fechar_no_tempo_2_ou_4",
+                "tipo": "marca"
+              },
+              "Autonomia de escuta sem contagem em voz alta: Observação da execução do exercício guiada diretamente pelo ritmo e melodia do piano/música, sem a dependência da voz do professor indicando os tempos.": {
+                "chave": "autonomia_de_escuta_sem_contagem_em_voz_alta_observacao_da_execucao_do_exercicio_guiada_diretamente_pelo_ritmo_e_melodia_do_piano_musica_sem_a_dependencia_da_voz_do_professor_indicando_os_tempos",
+                "tipo": "marca"
+              },
+              "Diferenciação de dinâmicas e qualidades sonoras: Observação da adaptação da velocidade do movimento conforme a proposta musical (ex.: o contraste entre a sustentação gradual do plié ou adagio e a rapidez/estaccato do jeté).": {
+                "chave": "diferenciacao_de_dinamicas_e_qualidades_sonoras_observacao_da_adaptacao_da_velocidade_do_movimento_conforme_a_proposta_musical_ex_o_contraste_entre_a_sustentacao_gradual_do_plie_ou_adagio_e_a_rapidez_estaccato_do_jete",
+                "tipo": "marca"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
       }
     }
   },
