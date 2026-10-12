@@ -20,7 +20,7 @@ on:
         description: 'Slug do professor (pasta em professores/)'
         required: true
         type: string
-        default: 'fokini'
+        default: 'tiago'
       ciclo:
         description: 'Número do ciclo, dois dígitos'
         required: true
@@ -30,7 +30,7 @@ on:
         description: 'Slug da escola (a variante)'
         required: true
         type: string
-        default: 'diaghilev'
+        default: 'maria'
 
 # O push do commit de geração precisa de escrita. O GITHUB_TOKEN não redispara
 # workflows, então o commit daqui não volta a chamar esta workflow em laço.

@@ -17,7 +17,7 @@
  * Uso (dentro de um Worker, ou num teste com `env` falso):
  *   const { criarCloudflare } = require('./adaptadores/cloudflare.js');
  *   const armazem = criarCloudflare(env);
- *   await armazem.guardar('diaghilev/fokini/01/anamnese/x', texto);
+ *   await armazem.guardar('maria/tiago/01/anamnese/x', texto);
  */
 
 function criarCloudflare(env) {

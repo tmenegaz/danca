@@ -39,7 +39,7 @@ Depois:
 
 1. crie o ciclo inicial (`ciclo-01.conf` + `ciclo-01-<escola>.conf`) — ver
    [`../README-ciclos.md`](../README-ciclos.md) e, como exemplo,
-   [`fokini/ciclos/`](fokini/ciclos);
+   [`tiago/ciclos/`](tiago/ciclos);
 2. declare o PO do professor (`ciclo-01-<escola>-po.md`): o recorte é dele (P-13) — o dado,
    porém, pertence à escola;
 3. gere a âncora e o pacote:
@@ -47,16 +47,17 @@ Depois:
    tools/hash-ciclo.sh <nome> 01 <escola>
    tools/gerar-ciclo.sh <nome> 01 <escola>
    ```
-   Passe `<nome>` **sempre** — ex.: `tools/gerar-ciclo.sh fokini 01 diaghilev`.
-   Sem `<nome>`, as ferramentas ainda assumem o default antigo `tiago`
-   (`tools/hash-ciclo.sh:65`, `tools/gerar-ciclo.sh:63`), e esse default está
-   pendente: ele aponta para uma pasta que deixou de existir em 02/10/2026.
+   Passe `<nome>` **sempre** — ex.: `tools/gerar-ciclo.sh tiago 01 maria`.
+   Sem `<nome>`, as ferramentas assumem o default histórico `tiago`
+   (`tools/hash-ciclo.sh:65`, `tools/gerar-ciclo.sh:63`) — que voltou a ser o
+   professor do teste ativo (maria) em 12/10/2026.
 
 ## Professores hoje
 
 | Professor | Ciclos | POs | Estado |
 |:--|:--|:--|:--|
-| **fokini** | Ciclo 01 — `diaghilev` (Diaghilev, Fokini) — escola **simulada** | `ciclo-01-diaghilev-po.md` com os campos do professor, checklist aguardando a primeira aula | **habilitada** (`ESCOLA_HABILITADA="sim"`) — em execução |
+| **tiago** | Ciclo 01 — `maria` (Maria) — escola **de teste** | `ciclo-01-maria-po.md` — PO elicitado e fonte derivada do plano referenciado | **habilitada** (`ESCOLA_HABILITADA="sim"`, `ESCOLA_SLUG="maria"`) |
+| **fokini2** | Ciclo 02 — `diaghilev2` (Diaghilev II) — escola **de teste** "do zero" | `ciclo-02-diaghilev2-po.md` — PO só, sem plano nem aulas | **habilitada** (`ESCOLA_HABILITADA="sim"`, `ESCOLA_SLUG="diaghilev2"`) |
 
 > **Habilitada ou desabilitada é por ESCOLA, não por professor.** O professor continua
 > existindo; o que se habilita ou desabilita é cada vínculo professor × escola. O estado
@@ -64,7 +65,6 @@ Depois:
 > [`../README-ciclos.md`](../README-ciclos.md), «Habilitar e desabilitar uma escola».
 
 > **Cada escola tem o seu ciclo.** O conteúdo (objetivo, plano, aulas) é da escola,
-> não do número do ciclo: `ciclo-01-diaghilev-*` e `ciclo-01-<outra-escola>-*` são
+> não do número do ciclo: `ciclo-01-maria-*` e `ciclo-01-<outra-escola>-*` são
 > ciclos distintos, com planos e aulas distintos. As fontes de uma variante têm
-> precedência sobre as sem sufixo — a regra está em `tools/lib-fontes.sh`. O ciclo
-> da **Débora (Marau)** ainda não existe: as cópias que havia foram removidas.
+> precedência sobre as sem sufixo — a regra está em `tools/lib-fontes.sh`.

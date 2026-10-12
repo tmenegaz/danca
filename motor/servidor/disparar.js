@@ -19,7 +19,7 @@
  *
  *   const r = await dispararGeracao({
  *     token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml',
- *     professor: 'fokini', ciclo: '01', escola: 'diaghilev',
+ *     professor: 'tiago', ciclo: '01', escola: 'maria',
  *   });
  */
 

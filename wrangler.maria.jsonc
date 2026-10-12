@@ -1,9 +1,9 @@
 // Cloudflare Worker da escola Maria (professor tiago) — ciclo 01.
 //
-// UM PROJETO POR ESCOLA — irmão do wrangler.jsonc (Diaghilev/fokini): mesmo código
+// UM PROJETO POR ESCOLA — irmão dos wrangler.<escola>.jsonc: mesmo código
 // (workers/principal.js), mesmo KV compartilhado (as chaves são prefixadas por
-// escola) — muda só o name, o assets.directory e o routes. Gerado por
-// tools/criar-escola.sh.
+// escola) — muda só o name, o assets.directory, o ESCOLA_SLUG e o routes.
+// Gerado por tools/criar-escola.sh.
 
 {
   "$schema": "node_modules/wrangler/config-schema.json",

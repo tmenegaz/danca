@@ -26,6 +26,20 @@ function autorizado(request, env) {
 }
 
 async function fetch(request, env) {
+  const url = new URL(request.url);
+
+  // A SAÚDE da raiz: identifica o Worker sem autenticação — o que revela é
+  // público (o subdomínio já diz que é a raiz). Serve para conferir, com um
+  // `curl`, que a ponte certa está no Worker `danca` depois de um deploy. Se a
+  // ponte de escola (producao.js) tiver sido implantada na raiz por engano, é
+  // o `/api/saude` DELA que responde — e a divergência aparece na hora.
+  if (url.pathname === '/api/saude') {
+    return new Response(JSON.stringify({ ok: true, tipo: 'raiz' }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
+
   if (!autorizado(request, env)) {
     return new Response('autenticação necessária', {
       status: 401,
@@ -35,8 +49,6 @@ async function fetch(request, env) {
       },
     });
   }
-
-  const url = new URL(request.url);
 
   if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
     const token = env && env.CLOUDFLARE_API_TOKEN;

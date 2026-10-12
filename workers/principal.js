@@ -1,4 +1,4 @@
-// principal.js — o ENTRY ESM do Worker de PRODUÇÃO (o `diaghilev`).
+// principal.js — o ENTRY ESM do Worker de PRODUÇÃO (o Worker de cada ESCOLA).
 //
 // O repositório é CommonJS (sem `"type": "module"`), então a ponte de produção
 // (`motor/servidor/producao.js`) exporta `fetch` por `module.exports`. Este shim

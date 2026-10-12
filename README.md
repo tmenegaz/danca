@@ -90,36 +90,48 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 6. mergear em main depois da auditoria
 ```
 
-## Deploy no Cloudflare — um Worker por escola
+## Deploy no Cloudflare — um Worker por escola, e a raiz
 
-Cada escola (**Diaghilev**, hoje a única) é um **Worker próprio**, ligado a este repositório
-pelo painel do Cloudflare. O deploy é **automático no push**: não há script de deploy, e o
-caminho manual é o `wrangler`.
+Cada escola é um **Worker próprio**; a raiz (`danca.tmenegaz77.workers.dev`) é **outro**
+Worker, que serve só a página «Nós, Por Exemplo» + o botão «Criar nova escola». Cada um tem
+a sua config **explícita** — não existe mais um `wrangler.jsonc` "padrão" (o de Diaghilev
+foi apagado com a escola em 12/10/2026, justamente porque ser o default era o que fazia o
+deploy errado cair na raiz):
 
-O `wrangler.jsonc` na raiz do repositório declara **um** Worker — a escola ativa:
+| Worker | Config | `name` | `main` | serve |
+|:--|:--|:--|:--|:--|
+| **raiz** | `wrangler.danca.jsonc` | `danca` | `workers/raiz.js` | `raiz/` (página + botão), atrás de `SENHA_RAIZ` |
+| **Maria** | `wrangler.maria.jsonc` | `maria` | `workers/principal.js` | `professores/tiago/ciclos/ciclo-01-maria` |
+| **Diaghilev II** | `wrangler.diaghilev2.jsonc` | `diaghilev2` | `workers/principal.js` | `professores/fokini2/ciclos/ciclo-02-diaghilev2` |
 
-| O que o Worker serve | Como |
-|:--|:--|
-| o pacote do ciclo (HTML, PDF, `assets/`) | **assets estáticos**, apontando para `professores/fokini/ciclos/ciclo-01-diaghilev` |
-| o POST do lançamento | a rota `/api/receber`, atendida pelo script `workers/receber.js` |
-| o cofre da anamnese | as rotas `/api/anamnese` — `POST` grava, `GET` lista e `GET /<carimbo>` lê — no mesmo script |
-| a gravação | `env.PADD_KV`, o namespace KV `ciclos-escolas` |
-
-O Cloudflare serve **primeiro o asset estático**; só o que não casa com um arquivo chega ao
-script. Por isso a rota `/api/receber` funciona e o resto do pacote é servido direto, sem
-custo de Worker — a mesma origem atende a página e a API, e o formulário chama um caminho
-**relativo** (sem CORS e sem URL de Worker no código).
+**Sempre passe `-c`.** O comando sem `-c` não tem mais config padrão e falha — de propósito:
+é a trava contra publicar a config de uma escola no Worker de outra (o que, antes, desligava
+a raiz em silêncio).
 
 ```bash
-npx wrangler deploy              # deploy manual (o normal é o push)
-npx wrangler dev                 # roda local, com KV local em .wrangler/state
-npx wrangler deploy --dry-run    # confere o pacote e os bindings sem publicar
+npx wrangler deploy -c wrangler.danca.jsonc        # a RAIZ
+npx wrangler deploy -c wrangler.maria.jsonc        # a escola Maria
+npx wrangler deploy -c wrangler.diaghilev2.jsonc   # a escola Diaghilev II
+npx wrangler dev -c wrangler.maria.jsonc           # roda local (KV local em .wrangler/state)
 ```
 
-Para uma **escola nova**: copie o `wrangler.jsonc` mudando `name` e `assets.directory` (e, se
-for o caso, o binding do KV), e crie o projeto no painel ligado a este repositório. A
-**rota pública mora no painel**, não no `wrangler.jsonc` — é ela que dá a cada escola um
-endereço sem que uma saiba dos dados das outras.
+**Verifique depois do deploy** com o endpoint de saúde, que diz QUEM o Worker pensa que é
+(sem autenticação — o que revela é público):
+
+```bash
+curl https://danca.tmenegaz77.workers.dev/api/saude       # → {"ok":true,"tipo":"raiz"}
+curl https://maria.tmenegaz77.workers.dev/api/saude       # → {"ok":true,"tipo":"escola","slug":"maria",...}
+```
+
+Se o `/api/saude` devolver `tipo:"escola"` com `erro` (ou `slug` divergente do subdomínio),
+a config está no Worker errado — é a **trava de identidade** de `producao.js` agindo, com
+erro **visível** em vez da página «desabilitada» silenciosa. O freio de escola
+(`ESCOLA_HABILITADA: "nao"`) continua sendo o jeito de desligar uma escola de verdade; a
+trava é o que separa «desligada de propósito» de «config trocada».
+
+Para uma **escola nova**: o botão «Criar nova escola» da raiz sobe o Worker «zero» no
+Cloudflare; o resto (pasta do professor, ciclo, pacote e `wrangler.<escola>.jsonc` com
+`ESCOLA_SLUG`) nasce pelo `tools/criar-escola.sh`.
 
 > **Credenciais.** Nada de credencial do Cloudflare fica versionado nem em arquivo local
 > deste repositório: o vínculo com o GitHub é do painel, e o `wrangler login` mora no perfil

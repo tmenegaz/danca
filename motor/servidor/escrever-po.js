@@ -13,7 +13,7 @@
  * por parâmetro (injeção), nunca é lido daqui de dentro.
  *
  *   const escritor = criarEscritorDePO({ token, dono, repo });
- *   await escritor({ caminho: 'professores/fokini/ciclos/ciclo-01-diaghilev-po.md', conteudo, mensagem });
+ *   await escritor({ caminho: 'professores/tiago/ciclos/ciclo-01-maria-po.md', conteudo, mensagem });
  */
 
 const ACEITE = 'application/vnd.github+json';

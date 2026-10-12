@@ -1,7 +1,7 @@
 'use strict';
 
 /**
- * producao.js — a PONTE de PRODUÇÃO (o Worker `diaghilev`).
+ * producao.js — a PONTE de PRODUÇÃO (o Worker de cada ESCOLA).
  *
  * O Worker de produção serve, na MESMA origem, três coisas:
  *   1. o pacote do ciclo (o ASSETS, asset-first);
@@ -44,13 +44,65 @@ async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
+  // O subdomínio do pedido — a identidade de rede do Worker. Numa escola é
+  // `<escola>.tmenegaz77.workers.dev`; na raiz é `danca.tmenegaz77.workers.dev`.
+  const subdominio = (url.hostname || '').split('.')[0];
+
+  // A TRAVA DE IDENTIDADE (não é o freio): esta ponte é de ESCOLA, e o
+  // `ESCOLA_SLUG` (vars do wrangler) tem de estar declarado E bater com o
+  // subdomínio. Antes, um deploy trocado — a config de uma escola num Worker de
+  // outra, ou a ponte de escola na raiz `danca` — era SILENCIOSO: a página
+  // «Escola desabilitada» aparecia sem dizer o que houve. Agora o erro é
+  // visível e aponta a causa: config × Worker trocados.
+  const identidadeOk = Boolean(env.ESCOLA_SLUG) && subdominio === env.ESCOLA_SLUG;
+
+  // A SAÚDE (o «OK»): responde QUEM é este Worker e se a identidade bate — para
+  // verificar um deploy com `curl`, não por visita à página. Responde também
+  // quando a identidade está quebrada (status 500 + o campo `erro`), para que o
+  // diagnóstico não dependa de adivinhar.
+  if (path === '/api/saude') {
+    const corpo = {
+      ok: identidadeOk && env.ESCOLA_HABILITADA !== 'nao',
+      tipo: 'escola',
+      slug: env.ESCOLA_SLUG || null,
+      subdominio,
+      habilitada: env.ESCOLA_HABILITADA !== 'nao',
+      erro: identidadeOk
+        ? null
+        : 'ESCOLA_SLUG ausente ou divergente do subdomínio — config × Worker trocados',
+    };
+    return new Response(JSON.stringify(corpo), {
+      status: identidadeOk ? 200 : 500,
+      headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    });
+  }
+
+  // A trava, de fato: sem identidade, NADA serve — erro visível, não freio.
+  if (!identidadeOk) {
+    return new Response(
+      '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+      '<title>Configuração incorreta do Worker</title>' +
+      '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
+      'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
+      'p{color:#6b5b4a;}code{font:0.95em/1.4 Menlo, monospace;}</style></head><body>' +
+      '<h1>Configuração incorreta do Worker</h1>' +
+      '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o <code>ESCOLA_SLUG</code>.</p>' +
+      '<p>Subdomínio: <code>' + subdominio + '</code> · ESCOLA_SLUG: <code>' + (env.ESCOLA_SLUG || '(ausente)') + '</code></p>' +
+      '<p>Provável causa: <code>wrangler deploy</code> com a config de outra escola (ou da raiz) neste Worker. Reimplante com <code>wrangler deploy -c wrangler.&lt;escola&gt;.jsonc</code>.</p>' +
+      '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>' +
+      '</body></html>',
+      { status: 500, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
+    );
+  }
+
   // 0. O FREIO da escola: a flag de habilitação. Só `"nao"` DESLIGA a escola —
   //    nenhuma rota serve conteúdo, qualquer caminho devolve esta página. É o
   //    "desliga" para resolver problemas diversos sem derrubar o Worker: o
-  //    domínio continua no ar, mas não abre nada. A ausência da flag (o Worker
-  //    raiz `danca`, que não é escola) NÃO desliga — a raiz fica sempre ligada,
-  //    mesmo que esta ponte de produção seja implantada nela por engano. A flag
-  //    é uma `vars` do wrangler (não segredo): visível e auditável.
+  //    domínio continua no ar, mas não abre nada. A ausência da flag não
+  //    desliga (defesa em profundidade contra a raiz). A flag é uma `vars` do
+  //    wrangler (não segredo): visível e auditável. A identidade já foi
+  //    conferida acima — aqui é uma escola REAL, deliberadamente desligada.
   if (env.ESCOLA_HABILITADA === 'nao') {
     return new Response(
       '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
@@ -58,9 +110,10 @@ async function fetch(request, env) {
       '<title>Escola desabilitada</title>' +
       '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
       'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
-      'p{color:#6b5b4a;}</style></head><body>' +
+      'p{color:#6b5b4a;}code{font:0.95em/1.4 Menlo, monospace;}</style></head><body>' +
       '<h1>Escola desabilitada</h1>' +
       '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
+      '<p>Escola: <code>' + env.ESCOLA_SLUG + '</code></p>' +
       '</body></html>',
       { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
     );

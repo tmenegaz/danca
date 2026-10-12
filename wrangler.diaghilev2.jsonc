@@ -1,10 +1,10 @@
 // Cloudflare Worker da escola Diaghilev II (professor fokini2) — ciclo 02.
 //
-// UM PROJETO POR ESCOLA. Este é o irmão do `wrangler.jsonc` (Diaghilev/fokini): mesmo
+// UM PROJETO POR ESCOLA. Este é o irmão dos `wrangler.<escola>.jsonc`: mesmo
 // código (`workers/principal.js`), mesmo KV compartilhado (as chaves são prefixadas por
-// escola, então não colidem) — muda só o `name`, o `assets.directory` e o `routes`.
-// É a escola do teste "do zero" (09/10/2026): o pacote nasce só com o Plano de
-// Observação, sem plano nem aulas.
+// escola, então não colidem) — muda só o `name`, o `assets.directory`, o `ESCOLA_SLUG`
+// e o `routes`. É a escola do teste "do zero" (09/10/2026): o pacote nasce só com o
+// Plano de Observação, sem plano nem aulas.
 //
 // A rota pública (o domínio da escola) vive no painel do Cloudflare, não aqui: a mesma
 // config serve o `workers.dev` e um domínio próprio.
@@ -28,8 +28,11 @@
   },
   // A flag de habilitação da escola (lida por producao.js): "sim" abre o
   // domínio; qualquer outro valor devolve a página "Escola desabilitada".
+  // O ESCOLA_SLUG é a identidade da escola conferida pela trava de producao.js
+  // contra o subdomínio — sem ela (ou divergente), o Worker devolve erro visível.
   "vars": {
-    "ESCOLA_HABILITADA": "sim"
+    "ESCOLA_HABILITADA": "sim",
+    "ESCOLA_SLUG": "diaghilev2"
   },
   // O cofre: o MESMO namespace `ciclos-escolas` do Diaghilev, compartilhado pelas
   // escolas — cada chave começa com o prefixo da escola (`diaghilev2/fokini2/02/...`).
