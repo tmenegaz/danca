@@ -21,18 +21,34 @@
 
 const { fetch: portaFetch } = require('./cloudflare.js');
 
-const PREFIXO = '/plano-observacao';
+// A PORTA vive num SÓ subdiretório do ASSETS (`plano-observacao/`), mas é servida
+// sob DOIS caminhos de URL — cada fonte da elicitação tem a sua própria URL:
+//   · `/anamnese/`         → a anamnese (fonte padrão);
+//   · `/plano-observacao/` → o PO (com `?fonte=po`), e o plano (`?fonte=plano`)
+//                            continua interno, sem URL própria no menu.
+// O prefixo do ASSETS é o mesmo nos dois: a porta lê o conteúdo de
+// `plano-observacao/` — o que muda é só o caminho que o professor digita.
+const PREFIXO_PO = '/plano-observacao';
+const PREFIXO_ANAMNESE = '/anamnese';
 const PREFIXO_ASSETS = 'plano-observacao/';
+
+function caminhoDaPorta(path, prefixo) {
+  return path === prefixo ? '/' : path.slice(prefixo.length);
+}
 
 async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
 
-  // 1. A porta de elicitação, sob o prefixo. Retira-se o prefixo do caminho (a
-  //    rota vê `/`, `/api/…`, `/assets/…`) e a ponte lê o conteúdo do
+  // 1. A porta de elicitação, sob os dois prefixos. Retira-se o prefixo do caminho
+  //    (a rota vê `/`, `/api/…`, `/assets/…`) e a ponte lê o conteúdo do
   //    subdiretório do ASSETS.
-  if (path === PREFIXO || path.startsWith(PREFIXO + '/')) {
-    const rel = path === PREFIXO ? '/' : path.slice(PREFIXO.length);
+  const prefixo =
+    path === PREFIXO_PO || path.startsWith(PREFIXO_PO + '/') ? PREFIXO_PO
+    : path === PREFIXO_ANAMNESE || path.startsWith(PREFIXO_ANAMNESE + '/') ? PREFIXO_ANAMNESE
+    : null;
+  if (prefixo) {
+    const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
     return portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS });
   }

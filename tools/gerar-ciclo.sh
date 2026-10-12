@@ -602,12 +602,14 @@ FERRAMENTAS="lancamento"
 # O LINK do Plano de Observação — a porta de elicitação, promovida ao Worker de produção. É um
 # item EXTERNO (uma rota do Worker), não um `$doc.html` do pacote — por isso não entra em DOCS
 # nem em FERRAMENTAS e é tratado à parte, dentro do grupo "Área do Professor". O caminho leva o
-# contexto do ciclo, para a porta abrir já identificada. A rota `/plano-observacao/` é servida
-# pelo Worker de produção (`workers/principal.js`, `motor/servidor/producao.js`).
-# A porta serve TRÊS fontes por `?fonte=` (anamnese, plano, po). O menu da Área do
-# Professor expõe DUAS delas: a anamnese (default) e o PO. O plano entra pelo PO.
-ANAMNESE_URL="/plano-observacao/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO"
-PO_URL="${ANAMNESE_URL}&fonte=po"
+# contexto do ciclo, para a porta abrir já identificada. As rotas `/plano-observacao/` e
+# `/anamnese/` são servidas pelo Worker de produção (`workers/principal.js`,
+# `motor/servidor/producao.js`).
+# A porta serve TRÊS fontes (anamnese, plano, po). O menu da Área do Professor expõe DUAS delas,
+# cada uma com a SUA URL: a anamnese em `/anamnese/` (fonte padrão) e o PO em
+# `/plano-observacao/` (`?fonte=po`). O plano entra pelo PO, sem URL própria no menu.
+ANAMNESE_URL="/anamnese/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO"
+PO_URL="/plano-observacao/?professor=$PROFESSOR_SLUG&escola=${VARIANTE:-$ESCOLA_SLUG}&ciclo=$CICLO&fonte=po"
 
 for doc in index $DOCS $ACOMP_DOCS; do
   if e_vista "$doc"; then

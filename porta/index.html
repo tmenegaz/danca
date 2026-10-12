@@ -1557,9 +1557,8 @@ function referenciaDaAnamnese(opcao, sujeito) {
     if (v) contexto[campo] = v;
   }
   const nova = new URLSearchParams(contexto);
-  nova.set('fonte', 'anamnese');
   nova.set('aluna', sujeito);
-  const criar = '<a href="?' + nova.toString() + '" target="_blank" rel="noopener">criar a anamnese de ' + md(sujeito) + '</a>';
+  const criar = '<a href="/anamnese/?' + nova.toString() + '" target="_blank" rel="noopener">criar a anamnese de ' + md(sujeito) + '</a>';
   if (!opcao) {
     return '<div class="referencia"><p class="sumiu"><b>Sem anamnese</b> para ' + citacao(sujeito) +
       ' neste sistema.</p><p>' + criar + ' — e depois volte e recarregue esta página.</p></div>';
@@ -2915,8 +2914,10 @@ async function copiarPromptParaAgente() {
 // ------------------------------------------------------------------ start
 
 // A URL para abrir OUTRA fonte, levando o contexto do ato (escola, professor,
-// ciclo — e aluna, só na anamnese). É o mesmo transporte do menu: a porta abre
-// já identificada.
+// ciclo — e aluna, só na anamnese). Cada fonte tem a SUA URL: a anamnese vive em
+// `/anamnese/`; o PO e o plano em `/plano-observacao/` (o plano é interno, sem
+// item de menu — entra pelo botão «Fazer o plano»).
+const CAMINHO_DA_FONTE = { anamnese: '/anamnese/', plano: '/plano-observacao/', po: '/plano-observacao/' };
 function urlParaFonte(fonte) {
   const campos = fonte === 'anamnese'
     ? ['escola', 'professor', 'ciclo', 'aluna']
@@ -2926,8 +2927,9 @@ function urlParaFonte(fonte) {
     const v = (($('ctx-' + campo) || {}).value || '').trim();
     if (v) ctx[campo] = v;
   }
-  ctx.fonte = fonte;
-  return '?' + new URLSearchParams(ctx).toString();
+  // Na anamnese o caminho já diz a fonte; no PO/plano o `fonte` distingue os dois.
+  if (fonte !== 'anamnese') ctx.fonte = fonte;
+  return (CAMINHO_DA_FONTE[fonte] || '/plano-observacao/') + '?' + new URLSearchParams(ctx).toString();
 }
 
 // Na casa (o PO), a ENTRADA DO PLANO é condicional: sem plano em curso, o botão

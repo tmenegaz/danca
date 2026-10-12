@@ -9559,3 +9559,45 @@ compartilhada (cada pacote tem o seu). **O que não muda:**
   já renderiza `nos-por-exemplo.md`, mas o pacote não foi regerado. Regerar exige rodar o
   `criar-escola.sh` (que cria uma escola nova), e não o `gerar-ciclo.sh` (que falha com `DOCS=""`).
 - **Nada foi commitado** deste marco (aguardando validação da pesquisadora).
+
+## 11/10/2026 — URLs próprias para a Anamnese e o Plano de Observação
+
+**O que motivou.**
+Os dois itens do menu «Área do Professor» — «Anamnese do aluno» e «Plano de Observação» —
+apontavam para a mesma base `/plano-observacao/`, distinguidos só pelo `&fonte=po`. Para quem
+lê a barra de endereço, os dois pareciam a mesma URL — e cada fonte precisa da sua.
+
+**O que foi decidido.**
+- «Anamnese do aluno» → `/anamnese/` (a anamnese é a fonte padrão da porta).
+- «Plano de Observação» → `/plano-observacao/?fonte=po`.
+- O «Plano do ciclo» continua interno — entra pelo botão «Fazer o plano», sem URL própria no menu.
+- A PORTA continua sendo UM subdiretório do ASSETS (`plano-observacao/`); o que muda é o caminho
+  que o professor digita — o Worker de produção reconhece os dois prefixos e serve a mesma porta.
+
+**Onde entrou.**
+`motor/servidor/producao.js` — o segundo prefixo `/anamnese`. `porta/index.html` — `urlParaFonte`
+e o atalho «criar a anamnese» passam a produzir a URL da própria fonte. `tools/gerar-ciclo.sh` —
+`ANAMNESE_URL` e `PO_URL`.
+
+**Motivo declarado — os congelados.**
+`CONGELAMENTO.md` congela `tools/`. O motivo: os dois atalhos do menu e da página de entrada
+usam variáveis que só o gerador conhece (`ANAMNESE_URL`, `PO_URL`), e dar uma URL própria a cada
+fonte exige trocá-las. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** Nada muda; nenhuma fonte de ciclo é alterada, e a âncora
+  **não** é regerada.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhuma mudou.
+- **Os validadores.** Nenhum mudou; o `check-pacote` continua passando.
+
+**Com o quê.**
+`tools/gerar-ciclo.sh`, `motor/servidor/producao.js`, `porta/index.html`, e os pacotes
+`professores/fokini2/ciclos/ciclo-02-diaghilev2/` e `professores/fokini/ciclos/ciclo-01-diaghilev/`
+regenerados com as novas URLs.
+
+**Referências.**
+`CONGELAMENTO.md` (`tools/`) · o pedido «a URL da anamnese é a mesma do PO».
+
+**O que ainda não está feito.**
+- A marcação de «ativo» na barra de navegação da porta é estática (gerada com
+  `atual=plano-observacao`): ao abrir `/anamnese/`, a barra ainda destaca «Plano de Observação».
+  O título da página (H1) já distingue as duas — só a marcação do item de menu é que fica a dever.
