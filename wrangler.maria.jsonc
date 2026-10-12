@@ -1,0 +1,34 @@
+// Cloudflare Worker da escola Maria (professor tiago) — ciclo 01.
+//
+// UM PROJETO POR ESCOLA — irmão do wrangler.jsonc (Diaghilev/fokini): mesmo código
+// (workers/principal.js), mesmo KV compartilhado (as chaves são prefixadas por
+// escola) — muda só o name, o assets.directory e o routes. Gerado por
+// tools/criar-escola.sh.
+
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "maria",
+  "compatibility_date": "2025-02-04",
+  "observability": {
+    "enabled": true
+  },
+
+  "main": "workers/principal.js",
+
+  "assets": {
+    "directory": "professores/tiago/ciclos/ciclo-01-maria",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+
+  "vars": {
+    "ESCOLA_HABILITADA": "sim"
+  },
+
+  "kv_namespaces": [
+    {
+      "binding": "PADD_KV",
+      "id": "2ee331c7a5bc446ca86c8f2cb039ec16"
+    }
+  ]
+}

@@ -1,0 +1,813 @@
+{
+  "$comentario": "Conteúdo do PLANO do ciclo. Este arquivo é DADO, não norma: a norma do plano é REGRAS.md (Regra 10 — objetivo geral + marcos por aula + rubrica; Regra 9 — volume) e o elo textual congelado é prompts/elicitar-ciclo.md (Blocos 1 a 4). Se divergirem, a norma prevalece. O que o professor decide é elicitado aqui; a tabela de identificação do ciclo (duração, datas, volume) vem do .conf da variante — o derivador a preenche do contexto e deixa lacuna explícita no que não está no contexto.",
+  "documento": "plano",
+  "norma": "REGRAS.md (Regra 10) + PROTOCOLO.md (P-01)",
+  "explicacao": {
+    "oQueE": "O plano é o que você vai dar — o objetivo do ciclo, os marcos aula a aula e a rubrica. Ele é o ponto de partida da aula dada: o que se registra depois é o que mudou em relação a ele. Não é relatório nem avaliação.",
+    "preencher": "Você preenche campo a campo. As tabelas (marcos, volume, rubrica) são escritas como listas — uma linha por item — e a compilação as transforma na tabela que o plano carrega.",
+    "porQue": "Sem o plano, não há memória da aula: o que se registra compara o que aconteceu com o que foi planejado. O Plano de Observação (que você faz em seguida) lê o objetivo geral como pergunta: o ciclo nasce dessa pergunta, e o plano é o que o torna observável.",
+    "regras": "Objetivo geral em uma frase verificável; uma linha por aula nos marcos; o volume respeita a faixa da duração; a origem declara a base pedagógica."
+  },
+  "obrigatoriedade": {
+    "declaracao": "Um nó é obrigatório quando traz obrigatorio:true — é contra eles que o envelope casa a contagem de respostas. São obrigatórios: o objetivo geral, os marcos por aula, a rubrica e a proveniência (os campos required do plano-schema).",
+    "ids": "Os id são kebab-case, derivados do nome do campo sem acento."
+  },
+  "observacaoInicial": {
+    "natureza": "porta de entrada",
+    "nota": "O plano não tem observação inicial: ele começa pelo objetivo geral, direto. Esta chave existe para a tela genérica não divergir do contrato das demais fontes.",
+    "desdobramentos": [],
+    "perfisDeEntrada": [],
+    "notaDesdobramentos": "",
+    "elementos": []
+  },
+  "cabecalho": {
+    "bloco": 1,
+    "titulo": "Objetivo geral",
+    "objetivo": "fixar o objetivo do ciclo em uma frase verificável ao final",
+    "campos": [
+      {
+        "id": "objetivo-geral",
+        "campo": "Objetivo geral do ciclo",
+        "obrigatorio": true,
+        "socratico": "objetivo",
+        "explicacao": {
+          "oQueE": "O objetivo do ciclo, em uma frase — o que as alunas vão construir ao longo dos encontros.",
+          "preencher": "Uma frase verificável ao final. Ex.: «Construir o eixo vertical e a transferência de peso em movimento, com resposta ao pulso e presença cênica, em cinco encontros.»",
+          "porQue": "É ele que o Plano de Observação lê como pergunta: o objetivo é o que torna o ciclo observável, e a pergunta é o objetivo lido de trás para a frente."
+        }
+      }
+    ]
+  },
+  "blocos": [
+    {
+      "bloco": 1,
+      "titulo": "Contexto",
+      "objetivo": "declarar onde, para quem e sob que condições o ciclo acontece",
+      "campos": [
+        {
+          "id": "contexto-escola",
+          "campo": "Escola / espaço",
+          "obrigatorio": true,
+          "deContexto": "escola",
+          "explicacao": {
+            "oQueE": "Em que escola ou espaço o ciclo acontece.",
+            "preencher": "O nome do lugar. Vem sugerido da barra — corrija se for outro.",
+            "porQue": "Um ciclo acontece num espaço só, e o lugar pode impor uma metodologia. Sem ele declarado, não se sabe se o âmbito é seu ou da instituição."
+          }
+        },
+        {
+          "id": "contexto-professor",
+          "campo": "Professor responsável",
+          "obrigatorio": true,
+          "deContexto": "professor",
+          "explicacao": {
+            "oQueE": "Quem dá as aulas deste ciclo.",
+            "preencher": "Seu nome, como você assina. Vem sugerido da barra.",
+            "porQue": "O plano é seu, não da escola: dois professores da mesma turma planejam aulas diferentes."
+          }
+        },
+        {
+          "id": "contexto-turma",
+          "campo": "Turma observada",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "Qual turma exatamente — o grupo, não a escola.",
+            "preencher": "Ex.: «quatro bailarinos em formação inicial».",
+            "porQue": "Um professor pode ter mais de uma turma no mesmo espaço. Declarar o grupo evita confundir quem é observado."
+          }
+        },
+        {
+          "id": "contexto-frequencia",
+          "campo": "Frequência semanal",
+          "obrigatorio": true,
+          "periodicidade": {
+            "unidades": [
+              "semanal",
+              "diária"
+            ],
+            "dias": true
+          },
+          "explicacao": {
+            "oQueE": "Quantas vezes a turma tem aula, em que ritmo e em que dias.",
+            "preencher": "Escreva a QUANTIDADE, escolha a unidade (semanal ou diária) e marque os dias. Ex.: 2 · semanal · seg e qua.",
+            "porQue": "A frequência é a dose: o mesmo conteúdo em duas ou em três aulas por semana produz corpos diferentes."
+          }
+        },
+        {
+          "id": "contexto-duracao",
+          "campo": "Duração por aula",
+          "obrigatorio": true,
+          "medida": {
+            "unidades": [
+              "hora",
+              "minuto"
+            ],
+            "pares": 2,
+            "fixas": [
+              "hora",
+              "minuto"
+            ]
+          },
+          "explicacao": {
+            "oQueE": "Quanto tempo dura cada encontro, em horas e minutos.",
+            "preencher": "Dois números fixos: o primeiro é HORAS, o segundo é MINUTOS — sempre os dois. Uma hora e meia é 1 e 30; quarenta e cinco minutos é 0 e 45.",
+            "porQue": "A duração é a segunda metade da dose: mesma frequência em 45 e em 90 minutos não é o mesmo esforço."
+          }
+        },
+        {
+          "id": "contexto-calendario",
+          "campo": "Calendário",
+          "obrigatorio": true,
+          "data": {
+            "partes": 2,
+            "rotulos": [
+              "Início",
+              "Fim"
+            ]
+          },
+          "explicacao": {
+            "oQueE": "Quando o ciclo começa e quando termina.",
+            "preencher": "A data de início e a de fim. Deixe em branco o que ainda está por decidir — a lacuna fica declarada.",
+            "porQue": "O calendário delimita a janela em que as aulas contam: fora dela há férias e feriados."
+          }
+        },
+        {
+          "id": "contexto-total-aulas",
+          "campo": "Número total de aulas",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Quantas aulas o ciclo tem, do início ao fim.",
+            "preencher": "Um número. Ex.: «12». Se ainda não está decidido, deixe em branco.",
+            "porQue": "É ele que separa um ciclo curto de um longo — e que o calendário e os marcos usam para se alinhar."
+          }
+        },
+        {
+          "id": "contexto-volume",
+          "campo": "Volume de trabalho",
+          "obrigatorio": true,
+          "medida": {
+            "unidades": [
+              "tempos ativos",
+              "minutos ativos",
+              "exercícios",
+              "séries",
+              "repetições"
+            ],
+            "faixa": true
+          },
+          "explicacao": {
+            "oQueE": "QUANTO trabalho a aula pede, em números — a dose de esforço de cada encontro.",
+            "preencher": "Escreva o MÍNIMO e o MÁXIMO e escolha a unidade. Ex.: de 80 a 100 · tempos ativos. Se for um valor só, repita-o nos dois campos.",
+            "porQue": "O volume é a dose — é ele que explica por que a mesma aluna progride num ciclo e estaciona noutro."
+          }
+        },
+        {
+          "id": "contexto-registro",
+          "campo": "Condição de registro",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "COMO a aula é registrada: quem está na sala, se há observador, se há vídeo.",
+            "preencher": "Ex.: «professor e alunos na mesma sala, sem observador externo».",
+            "porQue": "Sem a condição declarada, não se sabe de onde veio o que ficou registrado."
+          }
+        },
+        {
+          "id": "contexto-metodologia",
+          "campo": "Metodologia de referência",
+          "obrigatorio": true,
+          "forma": "RAD · Vaganova · Francesa/Cecchetti · Escola livre · Cada professor segue a própria",
+          "aberto": true,
+          "explicacao": {
+            "oQueE": "O PADRÃO com que você ensina — o «jeito» de referência: RAD, Vaganova, escola francesa/Cecchetti.",
+            "preencher": "Escolha a que corresponde ao seu ensino. «Escola livre» é para quem monta o próprio percurso. Se você mistura, escreva no campo aberto como você chama isso.",
+            "porQue": "A metodologia é declarada, nunca deduzida (P-16). Sem o padrão, «certo» e «errado» viram opinião de quem olha."
+          }
+        },
+        {
+          "id": "contexto-metodologia-origem",
+          "campo": "Quem escolhe a metodologia",
+          "obrigatorio": true,
+          "forma": "Eu escolho · A escola impõe",
+          "explicacao": {
+            "oQueE": "Se a metodologia de referência é uma decisão sua ou uma imposição da escola.",
+            "preencher": "«Eu escolho» quando o percurso é seu; «a escola impõe» quando você segue uma norma da instituição.",
+            "porQue": "Uma metodologia escolhida é parte do seu recorte; uma imposta é contexto institucional."
+          }
+        },
+        {
+          "id": "contexto-notacao",
+          "campo": "Notação dominada",
+          "obrigatorio": false,
+          "forma": "Benesh · Laban · Nenhuma",
+          "aberto": true,
+          "explicacao": {
+            "oQueE": "O sistema com que você ESCREVE movimento (Benesh, Laban) — se usa algum.",
+            "preencher": "Benesh, Laban ou «Nenhuma». Se usa outro, escreva no campo aberto.",
+            "porQue": "A notação segue a metodologia: o que se escreve também diz o que se observa. Declarar «nenhuma» evita supor."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 2,
+      "titulo": "Alunas",
+      "objetivo": "vincular as alunas do ciclo às anamneses e importar o ponto de partida de cada uma",
+      "campos": [
+        {
+          "id": "alunas",
+          "campo": "Alunas do ciclo",
+          "obrigatorio": true,
+          "multipla": true,
+          "aberto": true,
+          "opcoesDe": "api/anamneses",
+          "criarEm": "?fonte=anamnese",
+          "explicacao": {
+            "oQueE": "QUEM participa deste ciclo — as alunas, por apelidos estáveis. Nunca o nome completo.",
+            "preencher": "Marque, na lista, quem já tem anamnese lançada no sistema. Se a aluna ainda não está na lista, escreva o apelido no campo aberto e crie a anamnese pelo atalho que aparece ao lado.",
+            "porQue": "A lista vem das anamneses que já existem: a anamnese é soberana, e o plano a vincula — não a cria. O apelido é o identificador estável (P-12): o mesmo vale no plano, no PO e na folha de captura."
+          }
+        },
+        {
+          "id": "alunas-o-que-sabem",
+          "campo": "O que já sabem",
+          "obrigatorio": false,
+          "derivarDe": {
+            "dosSujeitos": "alunas",
+            "lado": "otimo",
+            "corte": [
+              {
+                "no": "en-dehors",
+                "item": "en dehors (rotação externa)",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "tendu",
+                "item": "o tendu",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "passe",
+                "item": "o passé",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "meia-ponta",
+                "item": "a meia ponta",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "musicalidade",
+                "item": "a musicalidade",
+                "observavel": [
+                  "domínio parcial",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-1a-pes",
+                "item": "1ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-2a-pes",
+                "item": "2ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-3a-pes",
+                "item": "3ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-4a-pes",
+                "item": "4ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-5a-pes",
+                "item": "5ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-1a-bracos",
+                "item": "1ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-2a-bracos",
+                "item": "2ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-3a-bracos",
+                "item": "3ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-4a-bracos",
+                "item": "4ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-5a-bracos",
+                "item": "5ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "formato-anatomico-dos-joelhos",
+                "item": "formato anatómico dos joelhos",
+                "observavel": [
+                  "valgo (\"X\")",
+                  "varo (\"arqueado\")",
+                  "recurvato (hiperflexão)"
+                ]
+              },
+              {
+                "no": "flexibilidade-dos-isquiotibiais",
+                "item": "flexibilidade dos isquiotibiais",
+                "observavel": [
+                  "média",
+                  "baixa (\"dura\")"
+                ]
+              },
+              {
+                "no": "flexibilidade-dos-adutores",
+                "item": "flexibilidade dos adutores",
+                "observavel": [
+                  "abertura parcial",
+                  "rigidez acentuada"
+                ]
+              },
+              {
+                "no": "mobilidade-das-costas-e-tronco-cambre",
+                "item": "mobilidade das costas e tronco (cambré)",
+                "observavel": [
+                  "limitada",
+                  "dor/desconforto"
+                ]
+              },
+              {
+                "no": "arquitetura-do-arco-plantar",
+                "item": "arquitetura do arco plantar",
+                "observavel": [
+                  "cavo (arco alto, rigidez)",
+                  "chato/plano (desabamento)"
+                ]
+              },
+              {
+                "no": "equilibrio-unipodal",
+                "item": "equilíbrio unipodal",
+                "observavel": [
+                  "perda rápida"
+                ]
+              },
+              {
+                "no": "coordenacao-motora-e-dissociacao",
+                "item": "coordenação motora e dissociação",
+                "observavel": [
+                  "confusão motora severa"
+                ]
+              }
+            ]
+          },
+          "explicacao": {
+            "oQueE": "O que as alunas já dominam antes do ciclo começar — importado da anamnese.",
+            "preencher": "Use o botão para importar das anamneses o que cada aluna já faz bem. Depois edite à vontade.",
+            "porQue": "É o ponto de partida coletivo: sem ele, não se sabe o que o ciclo acrescentou. A anamnese informa; a formulação é sua."
+          }
+        },
+        {
+          "id": "alunas-dificuldades",
+          "campo": "Dificuldades conhecidas",
+          "obrigatorio": false,
+          "derivarDe": {
+            "dosSujeitos": "alunas",
+            "lado": "observavel",
+            "corte": [
+              {
+                "no": "en-dehors",
+                "item": "en dehors (rotação externa)",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "tendu",
+                "item": "o tendu",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "passe",
+                "item": "o passé",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "meia-ponta",
+                "item": "a meia ponta",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "musicalidade",
+                "item": "a musicalidade",
+                "observavel": [
+                  "domínio parcial",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-1a-pes",
+                "item": "1ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-2a-pes",
+                "item": "2ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-3a-pes",
+                "item": "3ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-4a-pes",
+                "item": "4ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-5a-pes",
+                "item": "5ª posição — pés",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-1a-bracos",
+                "item": "1ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-2a-bracos",
+                "item": "2ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-3a-bracos",
+                "item": "3ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-4a-bracos",
+                "item": "4ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "cinco-posicoes-5a-bracos",
+                "item": "5ª posição — braços",
+                "observavel": [
+                  "razoável",
+                  "precisa desenvolver"
+                ]
+              },
+              {
+                "no": "formato-anatomico-dos-joelhos",
+                "item": "formato anatómico dos joelhos",
+                "observavel": [
+                  "valgo (\"X\")",
+                  "varo (\"arqueado\")",
+                  "recurvato (hiperflexão)"
+                ]
+              },
+              {
+                "no": "flexibilidade-dos-isquiotibiais",
+                "item": "flexibilidade dos isquiotibiais",
+                "observavel": [
+                  "média",
+                  "baixa (\"dura\")"
+                ]
+              },
+              {
+                "no": "flexibilidade-dos-adutores",
+                "item": "flexibilidade dos adutores",
+                "observavel": [
+                  "abertura parcial",
+                  "rigidez acentuada"
+                ]
+              },
+              {
+                "no": "mobilidade-das-costas-e-tronco-cambre",
+                "item": "mobilidade das costas e tronco (cambré)",
+                "observavel": [
+                  "limitada",
+                  "dor/desconforto"
+                ]
+              },
+              {
+                "no": "arquitetura-do-arco-plantar",
+                "item": "arquitetura do arco plantar",
+                "observavel": [
+                  "cavo (arco alto, rigidez)",
+                  "chato/plano (desabamento)"
+                ]
+              },
+              {
+                "no": "equilibrio-unipodal",
+                "item": "equilíbrio unipodal",
+                "observavel": [
+                  "perda rápida"
+                ]
+              },
+              {
+                "no": "coordenacao-motora-e-dissociacao",
+                "item": "coordenação motora e dissociação",
+                "observavel": [
+                  "confusão motora severa"
+                ]
+              }
+            ]
+          },
+          "explicacao": {
+            "oQueE": "As dificuldades que você já sabe que as alunas têm — importadas da anamnese.",
+            "preencher": "Use o botão para importar das anamneses o que precisa ser trabalhado. Depois edite à vontade.",
+            "porQue": "O que é difícil para elas é o que a aula precisa trabalhar — e o que o PO vai observar. A anamnese informa; a formulação é sua."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 3,
+      "titulo": "Marcos parciais por aula",
+      "objetivo": "declarar o que fica pronto em cada aula, na ordem em que as aulas acontecem",
+      "campos": [
+        {
+          "id": "marcos-por-aula",
+          "campo": "Marcos parciais",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "O que fica pronto em cada aula, na ordem em que acontecem — o marco parcial de cada encontro.",
+            "preencher": "Uma linha por aula, com o número na frente. Ex.: «01: Isolar o eixo vertical e a distribuição do peso, no solo».",
+            "porQue": "É a tabela que o plano carrega e o que se consulta aula a aula. Uma linha por aula — escrito como prosa, cada marco vira trabalho manual depois."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 4,
+      "titulo": "Estrutura de cada aula",
+      "objetivo": "declarar os blocos de cada aula, na ordem",
+      "campos": [
+        {
+          "id": "estrutura-de-cada-aula",
+          "campo": "Blocos da aula",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Os blocos de cada aula, na ordem em que aparecem (solo, barra, centro, presença…).",
+            "preencher": "Um bloco por linha. Ex.: «Solo — eixo e distribuição do peso».",
+            "porQue": "A ordem dos blocos é a forma da aula: ela organiza o volume e a captura."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 5,
+      "titulo": "Distribuição do volume pelos blocos",
+      "objetivo": "calibrar o volume de trabalho ativo por bloco",
+      "campos": [
+        {
+          "id": "distribuicao-de-volume",
+          "campo": "Distribuição do volume",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Quanto do tempo de cada aula vai para cada bloco, e por quê.",
+            "preencher": "Uma linha por bloco: «Bloco | proporção alvo | justificativa». Ex.: «Solo | 30–40% | isolamento do eixo».",
+            "porQue": "A distribuição segue o volume: o total vem da duração, e esta tabela diz como ele se reparte."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 6,
+      "titulo": "A Aula 1",
+      "objetivo": "detalhar o objetivo específico, o parâmetro de medição e a sequência da primeira aula",
+      "campos": [
+        {
+          "id": "aula-1-objetivo",
+          "campo": "Objetivo específico da Aula 1",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "O que se trabalha nesta aula, em uma frase verificável.",
+            "preencher": "Ex.: «Isolar o eixo vertical e a distribuição do peso, no solo e sem deslocamento».",
+            "porQue": "É o objetivo que a aula persegue — o marco da aula 1, detalhado."
+          }
+        },
+        {
+          "id": "aula-1-parametro",
+          "campo": "Parâmetro de medição",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "O que você observa para saber se o objetivo foi alcançado.",
+            "preencher": "Ex.: «Mantém a pelve nivelada sobre os apoios durante 8 tempos, sem compensar com o tronco».",
+            "porQue": "Sem o parâmetro, o objetivo vira intenção vaga. Ele torna o alcance verificável."
+          }
+        },
+        {
+          "id": "aula-1-sequencia",
+          "campo": "Sequência de exercícios por bloco",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Os exercícios de cada bloco da Aula 1, na ordem em que acontecem.",
+            "preencher": "Um exercício por linha, na ordem: «Nome (X tempos, Y/Y)». Se quiser marcar o bloco, escreva na frente: «Solo — Pressão dos metatarsos (8 tempos, 4/4)».",
+            "porQue": "É a sequência que a aula segue — o fio condutor que liga os blocos."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 7,
+      "titulo": "Condições preliminares",
+      "objetivo": "declarar o que o espaço e o material precisam ter",
+      "campos": [
+        {
+          "id": "condicoes-preliminares",
+          "campo": "Condições do espaço",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "O que a sala e o material precisam ter para o ciclo acontecer.",
+            "preencher": "Uma condição por linha. Ex.: «Sala com piso adequado e sem obstáculos».",
+            "porQue": "Sem as condições declaradas, o que impede a aula não tem como ser distinguido do que é do processo."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 8,
+      "titulo": "Rubrica de avaliação final",
+      "objetivo": "declarar os critérios e os quatro níveis de desempenho",
+      "campos": [
+        {
+          "id": "rubrica",
+          "campo": "Rubrica",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "Os critérios do que se observa ao final, cada um com os quatro níveis (insatisfatório → excelente).",
+            "preencher": "Uma linha por critério: «Critério | Insatisfatório | Em desenvolvimento | Satisfatório | Excelente». Ex.: «Eixo vertical | Pelve desalinhada | Alinha com esforço | Alinha e mantém | Alinha com economia».",
+            "porQue": "A rubrica é o que torna o objetivo verificável: sem ela, «melhorou» não tem níveis, e o final do ciclo não pode ser confrontado com o início."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 9,
+      "titulo": "Extensão e referências",
+      "objetivo": "declarar se o ciclo estende e com que material",
+      "campos": [
+        {
+          "id": "criterio-de-extensao",
+          "campo": "Critério de extensão",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "Se o ciclo é extensível, até que aula os marcos estão decididos e o que decide estender.",
+            "preencher": "Uma frase. Ex.: «Módulo fechado de quatro encontros; o quinto é suplementar».",
+            "porQue": "O plano declara o horizonte: sem ele, os marcos além das aulas decididas ficam a decidir."
+          }
+        },
+        {
+          "id": "referencias",
+          "campo": "Referências de método",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "O material que sustenta o método — livros, vídeos, repertório.",
+            "preencher": "Uma referência por linha. Ex.: «RAD (2015); Clippinger (2024)».",
+            "porQue": "A origem do método é declarada: a referência mostra de onde vem, não é um enfeite."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 10,
+      "titulo": "Música e repertório",
+      "objetivo": "declarar as músicas, os vídeos e o repertório usados no ciclo",
+      "campos": [
+        {
+          "id": "musicas-videos",
+          "campo": "Músicas e vídeos",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "As músicas ou vídeos que você usa na aula.",
+            "preencher": "Um por linha: título e, se quiser, a faixa ou o compasso.",
+            "porQue": "A música é parte da aula: o mesmo exercício em 3/4 e em 4/4 não é o mesmo dado."
+          }
+        },
+        {
+          "id": "repertorio",
+          "campo": "Repertório (se usar)",
+          "obrigatorio": false,
+          "explicacao": {
+            "oQueE": "O espetáculo ou a obra do repertório, se a aula trabalhar repertório.",
+            "preencher": "Um por linha: obra, versão/produção, compasso e o que você exclui, se excluir algo.",
+            "porQue": "O repertório declara a origem do movimento — a obra de onde ele vem."
+          }
+        }
+      ]
+    },
+    {
+      "bloco": 11,
+      "titulo": "Origem",
+      "objetivo": "declarar a base pedagógica do plano",
+      "campos": [
+        {
+          "id": "proveniencia",
+          "campo": "Registro de origem",
+          "obrigatorio": true,
+          "explicacao": {
+            "oQueE": "A base pedagógica declarada do plano — de onde vem o que está aqui.",
+            "preencher": "Uma frase. Ex.: «Plano derivado da metodologia RAD, adaptada ao âmbito da turma».",
+            "porQue": "Toda afirmação tem origem declarada. Sem origem, o plano não diz de onde veio."
+          }
+        }
+      ]
+    }
+  ],
+  "modulosCondicionais": [],
+  "dimensoes": null,
+  "listaAberta": null,
+  "oQueFicaFora": "O calendário — quem o preenche é o sistema, a partir das datas do ciclo.",
+  "ondeODadoVive": "Tudo cai dentro do ciclo-XX-<escola>-plano.md que já existe. Nenhum campo novo é criado: a P-08 permanece satisfeita sem tocar no ciclo-XX-plano-schema.json."
+}

@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/tiago/ciclos/ciclo-01.conf, professores/tiago/ciclos/ciclo-01-maria.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-maria
+type: Ciclo
+professor: Tiago
+ciclo: 01
+variante: maria
+hash_conteudo: 40fbec33a31c5c4680d8fd357ce344b0c55c42631f49a357a50eb5bfbbb854e3
+parentHash: 
+hash: 9d8fb3a6e8770ae186f19c3181caa76673e8241e69a0e1c0aed3f27ae2126d6b
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-12
+cobertura:
+  - professores/tiago/ciclos/ciclo-01-maria.conf
+  - professores/tiago/ciclos/ciclo-01.conf
