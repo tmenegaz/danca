@@ -55,6 +55,8 @@ async function dispararGeracao({
       'Authorization': 'Bearer ' + token,
       'X-GitHub-Api-Version': API_VERSAO,
       'Content-Type': 'application/json',
+      // O GitHub exige um User-Agent; o `fetch` do Worker não o envia por padrão.
+      'User-Agent': 'danca-worker',
     },
     body: JSON.stringify({
       ref: ref || 'main',

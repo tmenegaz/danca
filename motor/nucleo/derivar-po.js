@@ -155,19 +155,34 @@ function derivarPO(envelope) {
   };
 
   prosa('Pergunta', respostaDo(envelope, 'question'));
-  lista('Fenómeno', respostaDo(envelope, 'fenomeno'));
-  prosa('Onde se observa', respostaDo(envelope, 'where'));
+  lista('Fenômeno', respostaDo(envelope, 'fenomeno'));
+  prosa('Campo empírico', respostaDo(envelope, 'where'));
   prosa('Contexto', respostaDo(envelope, 'contexto'));
-  lista('Alunas', respostaDo(envelope, 'sujeitos'));
+  // Sujeitos: os apelidos (um por linha) + a declaração das flutuantes — o único
+  // dado de alunas que a anamnese não cobre, e que por isso vive no PO.
+  {
+    const sujeitos = emLista(respostaDo(envelope, 'sujeitos'));
+    const flutuantes = emLista(respostaDo(envelope, 'flutuantes'));
+    const corpo = sujeitos.length ? sujeitos.map((v) => '- ' + v) : ['- [a decidir]'];
+    corpo.push('- **Flutuantes:** ' + (flutuantes.length ? flutuantes.join(', ') : '[a decidir]'));
+    secao('Sujeitos', corpo);
+  }
 
   // A «Norma estabelecida» NÃO é perguntada pelo formulário: a norma que o cabecalho pede é a
   // METODOLOGIA (RAD/Vaganova/…), um conceito distinto do padrão de referência do PO. A lacuna
   // sai declarada — nunca preenchida por inferência da metodologia.
-  secao('Padrão estabelecido', ['- ' + LACUNA_NORMA]);
+  secao('Norma estabelecida', ['- ' + LACUNA_NORMA]);
 
   // O ponto de partida sai como tabela; sem aluna, a tabela sai vazia (o validador acusa o
-  // provisório, não o silêncio).
-  secao('Ponto de partida', tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')));
+  // provisório, não o silêncio). Depois, as restrições físicas (P-22): declaradas, nunca
+  // avaliadas — «nenhuma» é informação, e a ausência de resposta é lacuna.
+  secao('Linha de base', [
+    ...tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')),
+    '',
+    '### Restrições físicas declaradas (P-22)',
+    '',
+    emLista(respostaDo(envelope, 'restricoes')).join('\n') || '[a decidir]',
+  ]);
 
   lista('Critérios de inclusão', respostaDo(envelope, 'inclusao'));
   lista('Critérios de exclusão', respostaDo(envelope, 'exclusao'));
@@ -180,20 +195,22 @@ function derivarPO(envelope) {
     saida.push(valor === null || valor === '' ? '[a decidir]' : String(valor));
     saida.push('');
   };
-  subcampo('Ligação à pergunta', justificativa.referenceToProblem);
-  subcampo('Explicação da escolha', justificativa.explanationOfCut);
-  subcampo('O que fica de fora', justificativa.whatIsLeftOut);
-  subcampo('Base do método', justificativa.theoreticalBasis);
+  subcampo('referenceToProblem', justificativa.referenceToProblem);
+  subcampo('explanationOfCut', justificativa.explanationOfCut);
+  subcampo('whatIsLeftOut', justificativa.whatIsLeftOut);
+  subcampo('theoreticalBasis', justificativa.theoreticalBasis);
 
-  prosa('Condições em que a aula acontece', respostaDo(envelope, 'condicoes-de-contorno'));
+  prosa('Condições de contorno da execução', respostaDo(envelope, 'condicoes-de-contorno'));
   lista('Limitações', respostaDo(envelope, 'limitacoes'));
 
-  saida.push('## Conferência antes de fechar');
+  saida.push('## Checklist de validação');
   saida.push('');
   for (const [id, chave] of CHECKLIST) {
     const marcado = checklist[chave];
     const rotulo = ROTULO_DO_CHECKLIST[chave] || chave;
-    saida.push('### ' + rotulo);
+    // O título do `###` é a CHAVE do schema (é ela que o validador casa); o texto do
+    // item é o rótulo humano — o professor lê o nome, o extrator lê a chave.
+    saida.push('### ' + chave);
     saida.push('');
     saida.push('- [' + (marcado ? 'x' : ' ') + '] ' + rotulo);
     saida.push('');

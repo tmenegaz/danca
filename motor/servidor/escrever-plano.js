@@ -71,11 +71,15 @@ async function atualizarDocsDoConf({ token, dono, repo, ref, contexto, fetchImpl
     'Authorization': 'Bearer ' + token,
     'X-GitHub-Api-Version': API_VERSAO,
     'Content-Type': 'application/json',
+    // O GitHub exige um User-Agent; o `fetch` do Worker não o envia por padrão.
+    'User-Agent': 'danca-worker',
   };
 
   const atual = await f(url, { method: 'GET', headers: cabecalhos });
   if (atual.status !== 200) {
-    return { ok: false, erro: 'leitura do .conf: HTTP ' + atual.status };
+    let corpo = '';
+    try { corpo = await atual.text(); } catch { corpo = ''; }
+    return { ok: false, erro: 'leitura do .conf: HTTP ' + atual.status + ' — ' + corpo.slice(0, 300) };
   }
   const dados = await atual.json();
   const sha = dados.sha || null;

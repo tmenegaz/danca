@@ -194,6 +194,8 @@ function mapa(conteudo) {
         dimensaoPorItem: bloco ? Boolean(bloco.dimensaoPorItem) : false,
         dimensao: no.dimensao,
         opcoes: no.opcoes || [],
+        forma: no.forma || null,
+        valores: no.valores || [],
       };
     }
 
@@ -364,7 +366,7 @@ async function anamneses(armazenamento) {
       valor: aluna,
       rotulo: aluna + (quando ? ' · ' + quando : ''),
       carimbo,
-      detalhe: '/api/envelope/' + encodeURIComponent(carimbo),
+      detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
       escola: contexto.escola || null,
       professor: contexto.professor || null,
       ciclo: contexto.ciclo || null,

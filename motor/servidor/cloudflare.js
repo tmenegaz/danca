@@ -23,6 +23,7 @@ const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
+const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
@@ -51,7 +52,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -71,6 +72,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     disparar,
     escreverPO,
     escreverPlano,
+    escreverCiclo,
   });
   return (request) => roteador.responder(request);
 }
@@ -81,7 +83,8 @@ function passosDeGeracao(env) {
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
   const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO });
   const escreverPlano = criarEscritorDePlano({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main' });
-  return { disparar, escreverPO, escreverPlano };
+  const escreverCiclo = criarEscritorDeCiclo({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main' });
+  return { disparar, escreverPO, escreverPlano, escreverCiclo };
 }
 
 async function fetch(request, env, opcoes) {
@@ -101,7 +104,7 @@ async function fetch(request, env, opcoes) {
     carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
-  const { disparar, escreverPO, escreverPlano } = passosDeGeracao(env);
+  const { disparar, escreverPO, escreverPlano, escreverCiclo } = passosDeGeracao(env);
   const responder = montarPorta({
     armazenamento: criarCloudflare(env),
     conteudoTexto,
@@ -114,6 +117,7 @@ async function fetch(request, env, opcoes) {
     disparar,
     escreverPO,
     escreverPlano,
+    escreverCiclo,
   });
 
   return responder(request);

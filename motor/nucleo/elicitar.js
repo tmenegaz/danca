@@ -284,6 +284,10 @@ function nosRespondiveis(conteudo) {
         bloco: bloco.bloco,
         dimensao: campo.dimensao || bloco.dimensao,
         opcoes: campo.opcoes || null,
+        // A mesma FORMA do cabeçalho vale num bloco: um campo que declara
+        // `forma` (RAD · Vaganova · …) vira opções marcáveis, não texto livre.
+        forma: campo.forma || null,
+        valores: campo.forma ? valoresDaForma(campo.forma) : null,
       });
     }
   }

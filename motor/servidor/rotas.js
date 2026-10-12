@@ -44,7 +44,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano, escreverCiclo }) {
   const roteador = criarRoteador();
   // O relógio é injetável: as provas fixam-no para serem repetíveis; em
   // produção cai no carimbo real do núcleo.
@@ -338,6 +338,25 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
             resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo');
           } catch (erro) {
             resultado.fonte = { ok: false, erro: erro.message };
+          }
+        }
+
+        if (corpo.fonte === 'po' && escreverCiclo) {
+          const contexto = (envelope && envelope.contexto) || corpo.contexto || {};
+          try {
+            // O ciclo inteiro deriva do PO + do PLANO já gravado. O plano é o
+            // envelope mais recente com o mesmo contexto (escola/professor/ciclo).
+            const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+            let plano = null;
+            for (let i = nomes.length - 1; i >= 0 && !plano; i--) {
+              const env = await porta.lerArquivo(armazenamento, nomes[i]);
+              const c = env && env.contexto;
+              if (c && c.escola === contexto.escola && c.professor === contexto.professor &&
+                  String(c.ciclo) === String(contexto.ciclo)) plano = env;
+            }
+            resultado.ciclo = await escreverCiclo({ plano, po: envelope, contexto });
+          } catch (erro) {
+            resultado.ciclo = { ok: false, erro: erro.message };
           }
         }
 

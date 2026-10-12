@@ -78,6 +78,89 @@ function tabelaDeLista(valor, cabecalho, alinhamento) {
   return linhas.length > 2 ? linhas : [cabecalho, alinhamento];
 }
 
+// A COMPOSIÇÃO DOS VALORES ESTRUTURADOS — o formulário grava o NÚMERO + a
+// UNIDADE como objeto (`{vezes, por, dias}`, `{min, max, unidade}`,
+// `{numero, unidade}` ou `{inicio, fim}`), e quem lê o envelope compõe o texto.
+// Nada aqui inventa: o que veio vazio sai como lacuna declarada.
+function comporPeriodicidade(v) {
+  if (!v || typeof v !== 'object') return null;
+  const partes = [];
+  if (v.vezes !== null && v.vezes !== undefined) partes.push(String(v.vezes) + 'x');
+  if (v.por) partes.push(v.por);
+  if (Array.isArray(v.dias) && v.dias.length) partes.push('— ' + v.dias.join(' e '));
+  return partes.length ? partes.join(' ') : null;
+}
+
+function comporMedida(v) {
+  if (!v) return null;
+  if (Array.isArray(v)) {
+    const partes = v.map((p) => {
+      const n = p && p.numero !== null && p.numero !== undefined ? String(p.numero) : '';
+      return n + (p && p.unidade ? ' ' + p.unidade : '');
+    });
+    return partes.length ? partes.join(' ') : null;
+  }
+  if (typeof v !== 'object') return String(v) || null;
+  if (v.min !== null && v.min !== undefined && v.max !== null && v.max !== undefined) {
+    return String(v.min) + '–' + String(v.max) + (v.unidade ? ' ' + v.unidade : '');
+  }
+  if (v.min !== null && v.min !== undefined) {
+    return String(v.min) + (v.unidade ? ' ' + v.unidade : '');
+  }
+  if (v.numero !== null && v.numero !== undefined) {
+    return String(v.numero) + (v.unidade ? ' ' + v.unidade : '');
+  }
+  return null;
+}
+
+function comporData(v) {
+  if (!v || typeof v !== 'object') return null;
+  const partes = [v.inicio, v.fim].filter((p) => p);
+  return partes.length ? partes.join(' → ') : null;
+}
+
+// O contexto do plano (Bloco 1 do prompt): o campo empírico, o contexto da
+// observação e a metodologia/notação — declaradas, nunca deduzidas.
+function tabelaDeContexto(envelope) {
+  const linhas = ['| Item | Valor |', '|:--|:--|'];
+  const par = (rotulo, valor) => {
+    linhas.push('| **' + rotulo + '** | ' + (valor || '[a decidir]') + ' |');
+  };
+  par('Escola', respostaDo(envelope, 'contexto-escola'));
+  par('Professor', respostaDo(envelope, 'contexto-professor'));
+  par('Turma', respostaDo(envelope, 'contexto-turma'));
+  par('Frequência', comporPeriodicidade(respostaDo(envelope, 'contexto-frequencia')));
+  par('Duração por aula', comporMedida(respostaDo(envelope, 'contexto-duracao')));
+  par('Calendário', comporData(respostaDo(envelope, 'contexto-calendario')));
+  par('Número total de aulas', respostaDo(envelope, 'contexto-total-aulas'));
+  par('Volume de trabalho', comporMedida(respostaDo(envelope, 'contexto-volume')));
+  par('Condição de registro', respostaDo(envelope, 'contexto-registro'));
+  par('Metodologia de referência', respostaDo(envelope, 'contexto-metodologia'));
+  par('Quem escolhe a metodologia', respostaDo(envelope, 'contexto-metodologia-origem'));
+  par('Notação dominada', respostaDo(envelope, 'contexto-notacao'));
+  return linhas;
+}
+
+// As alunas do plano (Bloco 3 do prompt): o VÍNCULO às anamneses — os apelidos
+// estáveis, um por linha. O detalhe de cada aluna (idade, nível, o que traz, o
+// que precisa desenvolver, restrições) vive na anamnese e no PO; o plano declara
+// quem está no ciclo e o ponto de partida coletivo (o que sabem / dificuldades),
+// importado da anamnese.
+function corpoDeAlunas(envelope) {
+  const linhas = [];
+  const lista = (rotulo, valor) => {
+    const itens = emLista(valor);
+    linhas.push('**' + rotulo + ':**');
+    if (itens.length) itens.forEach((v) => linhas.push('- ' + v));
+    else linhas.push('- [a decidir]');
+    linhas.push('');
+  };
+  lista('Apelidos (P-12 — um por linha)', respostaDo(envelope, 'alunas'));
+  lista('O que já sabem', respostaDo(envelope, 'alunas-o-que-sabem'));
+  lista('Dificuldades conhecidas', respostaDo(envelope, 'alunas-dificuldades'));
+  return linhas;
+}
+
 /**
  * A derivação: o envelope elicitado do plano vira o Markdown da fonte.
  * Devolve `{ markdown, meta }` — `meta` é o cabeçalho YAML.
@@ -114,6 +197,10 @@ function derivarPlano(envelope) {
     secao(titulo, itens.length ? itens.map((v) => '- ' + v) : ['- [a decidir]']);
   };
 
+  // Contexto (Bloco 1 do prompt): onde, para quem, sob que condições — e a
+  // metodologia/notação declaradas (P-16).
+  secao('Contexto', tabelaDeContexto(envelope));
+
   // Objetivo geral (prosa) + a tabela de identificação do ciclo (item/valor).
   secao('Objetivo geral', [
     respostaDo(envelope, 'objetivo-geral') === null
@@ -122,6 +209,10 @@ function derivarPlano(envelope) {
     '',
     ...tabelaDeIdentificacao(contexto),
   ]);
+
+  // Alunas (Bloco 3 do prompt): o vínculo às anamneses — os apelidos, um por
+  // linha. O detalhe de cada aluna vive na anamnese e no PO.
+  secao('Alunas', corpoDeAlunas(envelope));
 
   // Marcos parciais: tabela, uma linha por aula.
   secao('Marcos parciais por aula', tabelaDeMarcos(respostaDo(envelope, 'marcos-por-aula')));
@@ -160,7 +251,7 @@ function derivarPlano(envelope) {
   prosa('Critério de extensão', respostaDo(envelope, 'criterio-de-extensao'));
 
   // Registro de proveniência (prosa) — required.
-  prosa('Registro de origem', respostaDo(envelope, 'proveniencia'));
+  prosa('Registro de proveniência', respostaDo(envelope, 'proveniencia'));
 
   return {
     markdown: saida.join('\n') + '\n',

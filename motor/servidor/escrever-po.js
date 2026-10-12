@@ -60,6 +60,9 @@ async function escreverPO({ token, dono, repo, caminho, conteudo, mensagem, ref,
     'Authorization': 'Bearer ' + token,
     'X-GitHub-Api-Version': API_VERSAO,
     'Content-Type': 'application/json',
+    // O GitHub exige um User-Agent; o `fetch` do Worker não o envia por padrão,
+    // e sem ele a API responde 403 («Request forbidden by administrative rules»).
+    'User-Agent': 'danca-worker',
   };
 
   // O `sha` atual, para atualizar sem apagar o histórico (a proveniência acrescenta, não edita).
@@ -69,7 +72,9 @@ async function escreverPO({ token, dono, repo, caminho, conteudo, mensagem, ref,
     const dados = await atual.json();
     sha = dados.sha || null;
   } else if (atual.status !== 404) {
-    return { status: atual.status, ok: false, criado: false, atualizado: false, erro: 'leitura do sha: HTTP ' + atual.status };
+    let corpo = '';
+    try { corpo = await atual.text(); } catch { corpo = ''; }
+    return { status: atual.status, ok: false, criado: false, atualizado: false, erro: 'leitura do sha: HTTP ' + atual.status + ' — ' + corpo.slice(0, 300) };
   }
 
   const corpo = {

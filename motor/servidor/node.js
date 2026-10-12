@@ -21,6 +21,7 @@ const { criarNode } = require('../adaptadores/node.js');
 const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
+const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
@@ -92,7 +93,13 @@ function montar() {
     repo: 'danca',
     ref: 'main',
   });
-  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano });
+  const escreverCiclo = criarEscritorDeCiclo({
+    token: process.env.GITHUB_TOKEN || null,
+    dono: 'tmenegaz',
+    repo: 'danca',
+    ref: 'main',
+  });
+  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo });
 }
 
 async function pedidoParaRequest(req) {
