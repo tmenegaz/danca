@@ -2799,6 +2799,9 @@ async function secaoDeSujeitos(rotulos) {
  */
 let HISTORICO_IA = [];
 let IA_ATIVA = false;
+// As respostas que a IA compilou (o PO) — ficam guardadas para o «Guardar»
+// persistir o envelope com `fonte=po`, disparando a geração do ciclo.
+let RESPOSTAS_DA_IA = null;
 
 function contextoDoAto() {
   const c = {};
@@ -2875,13 +2878,17 @@ async function enviarIA(textoArgumento) {
     const dados = await perguntarIA(HISTORICO_IA);
     if (dados.compilado) {
       IA_ATIVA = false;
+      RESPOSTAS_DA_IA = dados.respostas || {};
       mostrarMensagem('ia', 'Pronto — preparei o Plano de Observação (' + dados.turnos +
-        ' campo' + (dados.turnos === 1 ? '' : 's') + '). Revise abaixo e grave no formulário.');
+        ' campo' + (dados.turnos === 1 ? '' : 's') + '). Revise abaixo e clique em Guardar.');
       const res = document.getElementById('ia-resultado');
       if (res) {
         res.classList.remove('oculto');
         res.innerHTML = '<p><b>O que a IA (stub) devolveu:</b></p><pre>' +
-          escapar(JSON.stringify(dados.respostas, null, 2)) + '</pre>';
+          escapar(JSON.stringify(dados.respostas, null, 2)) + '</pre>' +
+          '<div class="acoes"><button class="principal" id="ia-gravar">Guardar Plano de Observação</button></div>' +
+          '<div id="ia-gravacao"></div>';
+        document.getElementById('ia-gravar').addEventListener('click', guardarPODaIA);
       }
     } else if (dados.resposta) {
       // O professor perguntou: a IA explica o nó e espera a resposta.
@@ -2901,6 +2908,44 @@ function fecharIA() {
   if (sec) sec.classList.add('oculto');
   const ab = document.getElementById('abertura');
   if (ab) ab.classList.remove('oculto');
+}
+
+/*
+ * Guardar o PO compilado pela IA. A IA devolveu as respostas como `{id: valor}`
+ * — a MESMA forma que o formulário envia. Aqui o «Guardar» persiste o envelope
+ * com `fonte=po`, o que dispara no servidor a escrita do `-po.md`, a geração do
+ * ciclo inteiro (aula, harmonização, referências…) e o workflow de geração.
+ */
+async function guardarPODaIA() {
+  const gravarBtn = document.getElementById('ia-gravar');
+  const status = document.getElementById('ia-gravacao');
+  if (!RESPOSTAS_DA_IA) return;
+  if (gravarBtn) gravarBtn.disabled = true;
+  if (status) status.innerHTML = '<p>gravando…</p>';
+  try {
+    const resposta = await fetch('api/elicitar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        respostas: RESPOSTAS_DA_IA,
+        contexto: contextoDaBarra(),
+        fonte: 'po',
+      }),
+    });
+    const dados = await resposta.json();
+    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    if (!dados.gravado) throw new Error('o PO não foi gravado');
+    RESPOSTAS_DA_IA = null;
+    if (status) status.innerHTML = '<p class="ok">Plano de Observação gravado: <code>' +
+      escapar(dados.id || '') + '</code></p>';
+    // O PO entra na lista «o que ficou gravado» e o disparo da geração está no
+    // servidor (o campo `disparo` da resposta descreve o que aconteceu).
+    anotarFicha(dados.id);
+    await atualizarFichas();
+  } catch (erro) {
+    if (status) status.innerHTML = '<p class="erro">' + escapar(erro.message) + '</p>';
+    if (gravarBtn) gravarBtn.disabled = false;
+  }
 }
 
 /*
