@@ -578,8 +578,9 @@
                     + "completo NÃO foi disparado (" + ((d.disparo && d.disparo.erro) || "GITHUB_TOKEN ausente") + ").";
                 }
                 if (d.senhaCripto) {
-                  html += "<br><br><strong>Senha de criptografia</strong> (guarde agora — aparece uma única vez;"
-                    + " é ela que decifra os dados no formulário):<br><code>" + d.senhaCripto + "</code>";
+                  html += "<br><br><strong>Senha de criptografia</strong> — <em>não é</em> a senha da escola"
+                    + " nem a senha do professor. É a chave que decifra os dados dos acompanhamentos."
+                    + " Aparece uma única vez; guarde agora:<br><code>" + d.senhaCripto + "</code>";
                 }
                 res.innerHTML = html;
               }
