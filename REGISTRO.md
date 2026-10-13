@@ -11110,3 +11110,41 @@ turma↔conteúdo será usada depois, quando o professor escolher o que observar
 pedido). (3) A UI da associação embute um `<select>` de termos por turma (pesado com muitas
 turmas) — dá para virar um seletor compartilhado quando incomodar. (4) Não há edição de turma/termo
 (deliberado, §7): corrigir um nome exige excluir e recriar.
+
+## 13/10/2026 — Norma revisada: o Bastidores cria e declara (caso a caso); o catálogo é biblioteca, não CRUD
+
+**O que motivou.** A implementação do cadastro de turmas/vocabulário (commit `38d8bc7`) foi lida
+pela pesquisadora como um **CRUD clássico** — e ela argumentou contra ele, relendo o
+`IDEIA-PAINEL-ESCOLA.md`: a norma §12 dizia *«o Bastidores não cria dado nenhum — relê o que o
+lançamento produz»*. A correção nasceu dessa releitura.
+
+**O que foi decidido.**
+- **A norma §12 foi revogada.** O Bastidores **trata cada caso**: **relê** o que o lançamento
+  produz (aulas, presença, ajustes, cadeia de custódia) **e cria/declara** o que é **próprio da
+  escola** — porque escolas e tradições variam e não há como exaurir todas as possibilidades numa
+  biblioteca compartilhada. Regra de operação: **incluir e excluir, não editar**.
+- **O catálogo não é CRUD por escola.** A **base canónica** (RAD · Vaganova · francesa · Graham ·
+  Limón · Horton · Humphrey–Weidman) é **conteúdo da `biblioteca/modalidades/`**, versionado e
+  compartilhado — como o `guia-do-professor`. A **escola declara** no `ESCOLA.conf` (§10) o que usa
+  e como organiza; o **ciclo herda** modalidade/turma/tradição e o repertório vem da
+  `progressao.json` da biblioteca, filtrado pela declaração. O professor pode acrescentar passo fora
+  do repertório, **com aviso** (P-16).
+- **Consequência:** o KV de hoje (`catalogo-seed.js` + rotas turma/termo/relação, commit `38d8bc7`)
+  é **andaime temporário** — será reconstruído como biblioteca + `ESCOLA.conf` em peça própria. O
+  botão «Carregar catálogo inicial» desaparece quando a base for para a biblioteca.
+
+**Onde entrou.** `IDEIA-PAINEL-ESCOLA.md` §12 (nota de correção datada — a redação antiga fica como
+o elo anterior) · `REGISTRO.md` (esta entrada) · o panorama das frentes em aberto no `plan.md` da
+sessão (ATUALIZAÇÃO 13/10).
+
+**Com o quê.** `IDEIA-PAINEL-ESCOLA.md`, `REGISTRO.md`.
+
+**Referências.** P-03/P-04 (proveniência acrescenta, não edita — a correção é uma nota, não uma
+reescrita) · P-16 (declarado, nunca deduzido — não se inventa equivalência entre escolas) · o
+pedido da pesquisadora («Produção, curadoria e integração dos formulários», Bloco 7) · a releitura
+do `IDEIA-PAINEL-ESCOLA.md` §12.
+
+**O que ainda não está feito.** A **curadoria** (Bloco 2 do pedido — a atribuição por professor que
+pré-carrega os três formulários) é a peça central e ainda não foi construída. A migração da base
+para `biblioteca/modalidades/` e o nascimento do `ESCOLA.conf` ficam para peça própria, depois de
+registrar a norma (esta entrada).
