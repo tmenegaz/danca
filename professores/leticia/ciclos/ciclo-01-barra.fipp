@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/leticia/ciclos/ciclo-01.conf, professores/leticia/ciclos/ciclo-01-barra.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-barra
+type: Ciclo
+professor: Letícia
+ciclo: 01
+variante: barra
+hash_conteudo: 232a219da6aca3aed5aa1f7c34049b01590d197370980025b46af1daeee0edd1
+parentHash: 
+hash: 70f3f0635164edbc0b4b38f49183e31c5348a063c62967e40aecc4f3829e9cc0
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-13
+cobertura:
+  - professores/leticia/ciclos/ciclo-01-barra.conf
+  - professores/leticia/ciclos/ciclo-01.conf

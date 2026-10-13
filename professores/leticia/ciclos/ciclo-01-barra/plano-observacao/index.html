@@ -1179,7 +1179,7 @@ function categoriaPorIdade(idade) {
   if (numeros.length === 1) {
     const anos = numeros[0];
     if (anos >= 18) return 'Adulto';
-    return anos >= 10 ? 'Juvenil' : 'Infantil';
+    return anos >= 14 ? 'Juvenil' : 'Infantil';
   }
   if (bruto.indexOf('adult') !== -1) return 'Adulto';
   if (bruto.indexOf('juven') !== -1) return 'Juvenil';
