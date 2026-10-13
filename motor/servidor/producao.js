@@ -21,6 +21,7 @@
 
 const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
+const { temProfessor } = bastidores;
 
 // A PORTA vive num SÓ subdiretório do ASSETS (`plano-observacao/`), mas é servida
 // sob TRÊS caminhos de URL — cada fonte da elicitação tem a sua própria URL:
@@ -134,6 +135,27 @@ async function fetch(request, env) {
     : path === PREFIXO_PLANO || path.startsWith(PREFIXO_PLANO + '/') ? PREFIXO_PLANO
     : null;
   if (prefixo) {
+    // O FREIO da Área do Professor (a regra do «Produção»): enquanto não houver
+    // PROFESSOR cadastrado nos Bastidores, a anamnese, o plano de ensino e o PO
+    // NÃO abrem — o cadastro do professor é o que habilita a Área do Professor.
+    // Os Bastidores (`/bastidores` e `/api/bastidores/*`) ficam FORA deste freio:
+    // é por eles que o professor é cadastrado.
+    if (env.PADD_KV && !(await temProfessor(env.PADD_KV, env.ESCOLA_SLUG))) {
+      return new Response(
+        '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+        '<title>Área do Professor desabilitada</title>' +
+        '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
+        'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
+        'p{color:#6b5b4a;}a{color:#6b2f2f;font-weight:700;}</style></head><body>' +
+        '<h1>Área do Professor desabilitada</h1>' +
+        '<p>Esta escola ainda não tem um professor cadastrado — a Área do Professor ' +
+        '(anamnese, plano de ensino e plano de observação) abre depois do cadastro.</p>' +
+        '<p><a href="/bastidores">Ir aos Bastidores → cadastrar o professor</a></p>' +
+        '</body></html>',
+        { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
+      );
+    }
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
     return portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS });

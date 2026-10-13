@@ -1,21 +1,23 @@
 'use strict';
 
 /**
- * bastidores.js — o MOCK dos Bastidores (andaime até a Produção real existir).
+ * bastidores.js — os Bastidores REAIS (mínimo) da escola.
  *
- * A «Área do Professor» precisa de duas coisas que a Produção real ainda não
- * fornece: a lista de ALUNAS registradas (os apelidos estáveis, P-12) e a SENHA
- * do professor (que valida a anamnese). Este módulo é o andaime que as entrega
- * agora, guardando o dado no KV da própria escola (isolado por namespace) sob
- * chaves prefixadas pelo slug da escola — a MESMA política do cofre, para uma
- * escola nunca ler o dado da outra.
+ * A «Área do Professor» (anamnese, plano de ensino e PO) só abre depois que um
+ * PROFESSOR é cadastrado aqui, nos Bastidores: o professor ganha um nome e uma
+ * SENHA, e só então a Área do Professor é habilitada (a regra do «Produção»).
+ * A senha é validada pela anamnese; as ALUNAS (os apelidos estáveis, P-12)
+ * alimentam o seletor da anamnese.
  *
- * É MOCK: a senha do professor fica em claro no KV de teste, e o cadastro não
- * tem autenticação. Quando a Produção nascer, este módulo sai e os Bastidores
- * reais (o ESCOLA.conf) assumem — a fronteira é a mesma.
+ * O dado vive no KV da própria escola, isolado por namespace sob chaves
+ * prefixadas pelo slug da escola — a MESMA política do cofre, para uma escola
+ * nunca ler o dado da outra. A senha do professor NUNCA fica em claro:
+ * guarda-se só o sal e o HASH (SHA-256 com sal). O cadastro é o mínimo da
+ * Produção — a autenticação completa (token/sessão) é fronteira da Produção
+ * real, ainda não desenhada.
  *
  * Chaves:
- *   bastidores/<escola>/professores  → [ { nome, senha } ]
+ *   bastidores/<escola>/professores  → [ { nome, sal, hash } ]
  *   bastidores/<escola>/alunas       → [ "apelido", ... ]
  */
 
@@ -45,6 +47,30 @@ function escolaDe(env, url) {
   const doEnv = env && String(env.ESCOLA_SLUG || '').trim();
   if (doEnv) return doEnv;
   return String((url && url.searchParams.get('escola')) || '').trim();
+}
+
+/** Um sal aleatório (16 bytes) em hex — para nunca guardar a senha em claro. */
+function gerarSal() {
+  const bytes = new Uint8Array(16);
+  globalThis.crypto.getRandomValues(bytes);
+  let s = '';
+  for (const b of bytes) s += b.toString(16).padStart(2, '0');
+  return s;
+}
+
+/** HASH da senha com o sal — SHA-256(sal + senha), em hex. */
+async function hashSenha(senha, sal) {
+  const bytes = new TextEncoder().encode(String(sal || '') + senha);
+  const digesto = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+  let s = '';
+  for (const b of new Uint8Array(digesto)) s += b.toString(16).padStart(2, '0');
+  return s;
+}
+
+/** Existe ao menos um professor cadastrado? É o que habilita a Área do Professor. */
+async function temProfessor(kv, escola) {
+  const profs = await professores(kv, escola);
+  return profs.length > 0;
 }
 
 async function lerLista(kv, chave) {
@@ -95,8 +121,8 @@ function pagina(escola, profs, aluns, res) {
     '</style></head><body>' +
     '<div class="topo"><a href="/">← Nós, Por Exemplo</a><span>Bastidores · Produção</span></div>' +
     '<div class="corpo">' +
-    '<h1>Produção — mock (andaime)</h1>' +
-    '<p>Cadastre um professor e as alunas para a «Área do Professor» funcionar. Este é um <b>mock</b>: a Produção real ainda não existe.</p>' +
+    '<h1>Produção</h1>' +
+    '<p>Cadastre um professor (nome + senha) para habilitar a «Área do Professor». As alunas (apelidos estáveis, P-12) alimentam a anamnese.</p>' +
     '<h2>Cadastrar professor</h2>' +
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
@@ -180,7 +206,9 @@ async function fetch(request, env) {
     if (!nome || !senha) return json(400, { ok: false, erro: 'informe o nome e a senha do professor' });
     const lista = await professores(kv, escola);
     if (lista.some((p) => p.nome === nome)) return json(409, { ok: false, erro: 'já existe um professor com este nome' });
-    lista.push({ nome, senha });
+    const sal = gerarSal();
+    const hash = await hashSenha(senha, sal);
+    lista.push({ nome, sal, hash });
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
     return json(201, { ok: true, professor: nome });
   }
@@ -205,11 +233,19 @@ async function fetch(request, env) {
     const senha = String(corpo.senha || '');
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
     const profs = await professores(kv, escola);
-    const achou = profs.find((p) => p.senha === senha);
+    let achou = null;
+    for (const p of profs) {
+      if (p.hash) {
+        if ((await hashSenha(senha, p.sal)) === p.hash) { achou = p; break; }
+      } else if (p.senha === senha) {
+        // legado (pré-hash): aceita uma vez, para não quebrar escolas antigas.
+        achou = p; break;
+      }
+    }
     return json(200, achou ? { ok: true, professor: achou.nome } : { ok: false, erro: 'senha não reconhecida' });
   }
 
   return json(404, { ok: false, erro: 'não encontrado' });
 }
 
-module.exports = { fetch };
+module.exports = { fetch, temProfessor };
