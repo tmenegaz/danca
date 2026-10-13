@@ -11023,3 +11023,42 @@ re-derivação no `iniciar`, logo após `restaurar`.
 **O que ainda não está feito.** A chave do depósito ainda NÃO isola por ALUNA (dentro da mesma
 escola): é a limitação da aluna não estar na URL. Isolar por aluna exigiria persistir a aluna na
 URL ou limpar o depósito quando a aluna muda — anotado, não implementado.
+
+## 13/10/2026 — A senha é por professor, e a categoria etária re-deriva ao editar a data
+
+**O que motivou.** Dois defeitos de estado, descobertos no teste real da Barra. **(1) A senha do
+cabeçalho era tratada como "senha da escola":** a validação (`validar-senha`) tinha fonte dupla — o
+secret `SENHA_PROFESSOR` (o dono) OU qualquer professor do KV — e aceitava a senha de UM professor
+para QUALQUER professor selecionado. A senha da Letícia habilitava a Maria e vice-versa. **(2) A
+categoria etária deixava de ser regida pela idade quando a professora PASSAVA pela categoria sem
+mexer:** o rádio já veio pré-marcado pela idade, mas o `gravarRespostaDoNo` o lia como RESPOSTA
+MANUAL e aposentava a pré-inscrição (`SUGERIDAS.delete`). Editando a data de `11/11/2010` para
+`11/11/2017`, a categoria ficava presa em «Juvenil» (devia cair para «Infantil»).
+
+**O que foi decidido.**
+- A senha é **do professor selecionado**, não da escola. `validar-senha` passa a receber o
+  `professor` (slug) e só aceita a senha DAQUELE professor: o dono casa pelo slug do secret; os
+  adicionais casam por `slugificar(nome)` na lista do KV. Uma senha de um professor nunca vale
+  para outro. Trocar de professor no seletor **limpa** o campo e trava o «Fazer a anamnese» até
+  revalidar. O rótulo virou **"senha do professor"** (no cabeçalho e na mensagem de erro do guardar).
+- A categoria etária continua **regida pela idade enquanto a professora CONFIRMAR** (passar pelo
+  rádio sem escolher valor diferente). Só deixa de reger quando ela escolhe um valor DIFERENTE da
+  sugestão — aí sim é resposta dela. `gravarRespostaDoNo` compara o valor atual com a sugestão da
+  idade e re-adiciona a `SUGERIDAS` quando bate, em vez de aposentar incondicionalmente.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (a rota `validar-senha` passa a exigir e casar o
+`professor`) · `porta/index.html` (o rótulo, o `professor` no corpo da validação, a limpeza da
+senha no `change` do seletor e a lógica de confirmação×correção da categoria).
+
+**Com o quê.** `motor/servidor/bastidores.js`, `porta/index.html` e as cópias geradas da porta nos
+pacotes da barra e da maria.
+
+**Referências.** P-16 (declarado, não deduzido) · P-17 (harmonização) · a entrada «A categoria
+etária é re-derivada da idade; a memória é por escola/professor/ciclo» (13/10) — esta corrige a
+implementação daquela: o princípio (a idade rege) estava certo, mas "passar sem mexer" estava sendo
+lido como correção manual.
+
+**O que ainda não está feito.** O `sessionStorage` (`lancamento:senha`) continua guardando a ÚLTIMA
+senha digitada, e não a senha do professor atual — trocar de professor e recarregar pode reapresentar
+a senha do professor anterior no campo (a validação por professor já a rejeita, mas o campo não
+nasce vazio). Anotado, não corrigido.
