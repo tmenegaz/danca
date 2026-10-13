@@ -518,13 +518,25 @@ let EM_AUTOABERTURA = false;
  * `memoriaLigada` desligado significa que o navegador recusou guardar (aba
  * privada, cota cheia): a tela avisa, e nada mais quebra por causa disso.
  */
-const CHAVE = 'porta-' + FONTE + '-1';
+// A chave do depósito é POR ESCOLA · PROFESSOR · CICLO (as três vêm da URL, estáveis),
+// não global. Sem isto, o rascunho de uma escola/professor vazava para outro. A aluna
+// NÃO entra na chave: ela é escolhida no seletor DEPOIS da carga (não está na URL), então
+// uma chave com aluna seria instável — o load leria um nome e o save gravaria outro.
+// A categoria etária, que era o sintoma do vazamento, é re-derivada da idade no load.
+function chaveDaMemoria() {
+  const partes = ['porta', FONTE];
+  for (const c of ['ctx-escola', 'ctx-professor', 'ctx-ciclo']) {
+    const v = (($(c) || {}).value || '').trim();
+    if (v) partes.push(v);
+  }
+  return partes.join('-') + '-1';
+}
 let memoriaLigada = true;
 
 function salvar() {
   if (!MAPA || !memoriaLigada) return;
   try {
-    localStorage.setItem(CHAVE, JSON.stringify({
+    localStorage.setItem(chaveDaMemoria(), JSON.stringify({
       total: MAPA.total,
       quando: new Date().toISOString(),
       indice: INDICE,
@@ -540,7 +552,7 @@ function salvar() {
 function lerMemoria() {
   let bruto;
   try {
-    bruto = localStorage.getItem(CHAVE);
+    bruto = localStorage.getItem(chaveDaMemoria());
   } catch (erro) {
     memoriaLigada = false;
     return null;
@@ -555,7 +567,7 @@ function lerMemoria() {
 
 function limparMemoria() {
   try {
-    localStorage.removeItem(CHAVE);
+    localStorage.removeItem(chaveDaMemoria());
   } catch (erro) {
     // sem depósito a limpar
   }
@@ -2504,7 +2516,7 @@ function rotuloDoEnvelope(id) {
 
 function fichasDaMemoria() {
   try {
-    return JSON.parse(localStorage.getItem(CHAVE + '-fichas') || '[]');
+    return JSON.parse(localStorage.getItem(chaveDaMemoria() + '-fichas') || '[]');
   } catch (erro) {
     return [];
   }
@@ -2513,7 +2525,7 @@ function fichasDaMemoria() {
 function guardarFichas(ids) {
   if (!memoriaLigada) return;
   try {
-    localStorage.setItem(CHAVE + '-fichas', JSON.stringify(ids));
+    localStorage.setItem(chaveDaMemoria() + '-fichas', JSON.stringify(ids));
   } catch (erro) {
     memoriaLigada = false;
   }
@@ -3472,6 +3484,12 @@ async function iniciar() {
     // A anamnese, o PO e o plano retomam a própria memória — cada um no seu
     // portal, com «Continuar de onde parei» e «Começar de novo».
     const t = restaurar(guardado);
+    // A categoria etária é DERIVADA da idade. Restaurar traz de volta uma categoria
+    // que pode estar defasada da idade (a idade foi corrigida e a categoria ficou
+    // para trás) — re-deriva aqui, para o que a idade diz valer sempre, salvo se a
+    // professora corrigiu a categoria à mão (aí a correção dela é a resposta).
+    const noIdade = MAPA.nos.find((n) => n.id === 'idade');
+    if (noIdade) preencherCategoria(noIdade);
     pintarRoteiro();
     salvar(); // reancora o depósito já saneado — id órfão não volta a ser contado
     mostrarRetomada(t);
