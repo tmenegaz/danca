@@ -1,0 +1,43 @@
+{
+  "nota": "Orientação inicial, NÃO tabela de equivalência normativa. A escola registra a fonte de cada diferença; quando não há confirmação, marca pendente de validação.",
+  "tradicoes": [
+    "compartilhada",
+    "RAD",
+    "francesa",
+    "Vaganova"
+  ],
+  "categorias": {
+    "passo": "Passos e ações fundamentais",
+    "posicao": "Posições (pés, perna, corpo, braços)",
+    "direcao": "Direções e orientações",
+    "ligacao": "Passos de ligação e deslocamento",
+    "salto": "Saltos e allegro",
+    "giro": "Giros e finalizações"
+  },
+  "diferencasDeNomenclatura": [
+    {
+      "conceito": "Ação de escovar e elevar o pé a pequena altura",
+      "RAD": "Dégagé ou battement jeté, conforme o vocabulário",
+      "francesa": "Battement glissé",
+      "Vaganova": "Battement tendu jeté"
+    },
+    {
+      "conceito": "Pé colocado na região do tornozelo",
+      "RAD": "Cou-de-pied ou sur le cou-de-pied, conforme a ação",
+      "francesa": "Sur le cou-de-pied",
+      "Vaganova": "Sur le cou-de-pied, com distinções específicas de colocação"
+    },
+    {
+      "conceito": "Ação chamada coupé",
+      "RAD": "Coupé é usado em exercícios e passos de ligação",
+      "francesa": "Coupé é utilizado no vocabulário francês",
+      "Vaganova": "O uso pode diferir; em certos contextos outras descrições são preferidas"
+    },
+    {
+      "conceito": "Flexão e extensão coordenadas das pernas",
+      "RAD": "Battement fondu",
+      "francesa": "Battement fondu",
+      "Vaganova": "Battement fondu"
+    }
+  ]
+}

@@ -1,0 +1,161 @@
+{
+  "referencia": "RAD (Royal Academy of Dance) — referência SUGERIDA, não equivalência oficial",
+  "turmas": [
+    {
+      "id": "bale-nivel-1",
+      "nome": "Balé Nível 1",
+      "ordem": 1,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 1",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-2",
+      "nome": "Balé Nível 2",
+      "ordem": 2,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 2",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-3",
+      "nome": "Balé Nível 3",
+      "ordem": 3,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 3",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-4",
+      "nome": "Balé Nível 4",
+      "ordem": 4,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 4",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-5",
+      "nome": "Balé Nível 5",
+      "ordem": 5,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 5",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-6",
+      "nome": "Balé Nível 6",
+      "ordem": 6,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 6",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-7",
+      "nome": "Balé Nível 7",
+      "ordem": 7,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 7",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-nivel-8",
+      "nome": "Balé Nível 8",
+      "ordem": 8,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Grade 8",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-vocacional-foundation",
+      "nome": "Balé Vocacional — Foundation",
+      "ordem": 9,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Vocational Foundation",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-vocacional-intermediate",
+      "nome": "Balé Vocacional — Intermediate",
+      "ordem": 10,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Vocational Intermediate",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-vocacional-advanced-foundation",
+      "nome": "Balé Vocacional — Advanced Foundation",
+      "ordem": 11,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Vocational Advanced Foundation",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-vocacional-advanced-1",
+      "nome": "Balé Vocacional — Advanced 1",
+      "ordem": 12,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Vocational Advanced 1",
+      "descricao": "",
+      "ativo": true
+    },
+    {
+      "id": "bale-vocacional-advanced-2",
+      "nome": "Balé Vocacional — Advanced 2",
+      "ordem": 13,
+      "programaReferencia": "RAD (referência sugerida)",
+      "nivelReferencia": "Vocational Advanced 2",
+      "descricao": "",
+      "ativo": true
+    }
+  ],
+  "relacoes": [
+    {
+      "turma": "bale-nivel-1",
+      "termo": "plie"
+    },
+    {
+      "turma": "bale-nivel-1",
+      "termo": "battement-tendu"
+    },
+    {
+      "turma": "bale-nivel-1",
+      "termo": "grand-battement"
+    },
+    {
+      "turma": "bale-nivel-1",
+      "termo": "battement-fondu"
+    },
+    {
+      "turma": "bale-nivel-2",
+      "termo": "plie"
+    },
+    {
+      "turma": "bale-nivel-2",
+      "termo": "battement-tendu"
+    },
+    {
+      "turma": "bale-nivel-2",
+      "termo": "grand-battement"
+    },
+    {
+      "turma": "bale-nivel-2",
+      "termo": "battement-fondu"
+    },
+    {
+      "turma": "bale-nivel-2",
+      "termo": "rond-de-jambe-a-terre"
+    }
+  ],
+  "nota": "As associações são EXEMPLOS do cadastro — não representam uma progressão oficial certificada pela RAD."
+}

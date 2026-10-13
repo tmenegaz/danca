@@ -1,0 +1,951 @@
+[
+  {
+    "id": "plie",
+    "termo": "Plié",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Demi-plié",
+      "Grand plié"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "releve",
+    "termo": "Relevé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Elevação para meia-ponta ou ponta, conforme o contexto.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "eleve",
+    "termo": "Élevé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Elevação sem a preparação em plié característica do relevé.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-tendu",
+    "termo": "Battement tendu",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Tendu"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-degage",
+    "termo": "Battement dégagé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Dégagé"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Dégagé, battement glissé e battement tendu jeté nomeiam ações semelhantes em tradições distintas; não tratar como sinônimos perfeitos.",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-glisse",
+    "termo": "Battement glissé",
+    "categoria": "passo",
+    "tradicao": "francesa",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Termo frequente na terminologia francesa.",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-tendu-jete",
+    "termo": "Battement tendu jeté",
+    "categoria": "passo",
+    "tradicao": "Vaganova",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Termo frequente na tradição russa/Vaganova.",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-jete",
+    "termo": "Battement jeté",
+    "categoria": "passo",
+    "tradicao": "RAD",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Termo utilizado em vocabulários RAD.",
+    "estado": "documentado"
+  },
+  {
+    "id": "rond-de-jambe-a-terre",
+    "termo": "Rond de jambe à terre",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Rond de jambe no chão"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "rond-de-jambe-en-l-air",
+    "termo": "Rond de jambe en l’air",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Círculo da perna no ar.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-fondu",
+    "termo": "Battement fondu",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Fondu"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "O nome mais comum é «battement fondu» (ou «fondu»), não «fondue».",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-frappe",
+    "termo": "Battement frappé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Frappé"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "petit-battement",
+    "termo": "Petit battement",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Pequeno batimento da perna de trabalho.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "grand-battement",
+    "termo": "Grand battement",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Grande batimento da perna de trabalho.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "developpe",
+    "termo": "Développé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Développé devant",
+      "Développé à la seconde",
+      "Développé derrière"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "enveloppe",
+    "termo": "Enveloppé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Movimento de recolher a perna, em contexto específico.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "retire",
+    "termo": "Retiré",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Posição da perna recolhida.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "passe",
+    "termo": "Passé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Ação de passagem; o uso e a distinção em relação a retiré variam entre tradições.",
+    "estado": "documentado"
+  },
+  {
+    "id": "attitude",
+    "termo": "Attitude",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Attitude devant",
+      "Attitude derrière"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "arabesque",
+    "termo": "Arabesque",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Diferentes posições de arabesque.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "port-de-bras",
+    "termo": "Port de bras",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Organização e passagem dos braços.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "temps-lie",
+    "termo": "Temps lié",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Transferência de peso ligada.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "battement-soutenu",
+    "termo": "Battement soutenu",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Sustentação e fechamento ou passagem coordenada.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "pas-de-cheval",
+    "termo": "Pas de cheval",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Movimento de recolher e estender a perna.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "fouette",
+    "termo": "Fouetté",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Família de ações de chicoteamento ou mudança de orientação.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "developpe-releve",
+    "termo": "Développé relevé",
+    "categoria": "passo",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Desenvolvimento da perna combinado com elevação.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "premiere-position",
+    "termo": "Première position",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "deuxieme-position",
+    "termo": "Deuxième position",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "troisieme-position",
+    "termo": "Troisième position",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "quatrieme-position",
+    "termo": "Quatrième position",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Os nomes e a execução das posições dos braços variam entre métodos; não supor que «quarta posição» significa a mesma configuração em todos os vocabulários.",
+    "estado": "documentado"
+  },
+  {
+    "id": "cinquieme-position",
+    "termo": "Cinquième position",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "sur-le-cou-de-pied",
+    "termo": "Sur le cou-de-pied",
+    "categoria": "posicao",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Cou-de-pied devant",
+      "Cou-de-pied derrière"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "Distinguir as formas devant e derrière e registrar a descrição usada pela escola.",
+    "estado": "documentado"
+  },
+  {
+    "id": "ecarte",
+    "termo": "Écarté",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Também é uma posição/direção do corpo, não apenas um passo.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "croise",
+    "termo": "Croisé",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "efface",
+    "termo": "Effacé",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-face",
+    "termo": "En face",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Corpo voltado de frente.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "epaulement",
+    "termo": "Épaulement",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Orientação da cabeça e do olhar associada às posições do corpo.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "a-la-seconde",
+    "termo": "À la seconde",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Direção lateral.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-dehors",
+    "termo": "En dehors",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Para fora.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-dedans",
+    "termo": "En dedans",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Para dentro.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "devant",
+    "termo": "Devant",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "À frente.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "derriere",
+    "termo": "Derrière",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Atrás.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-avant",
+    "termo": "En avant",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Para a frente.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-arriere",
+    "termo": "En arrière",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Para trás.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-croix",
+    "termo": "En croix",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Em cruz: frente, lado, atrás e lado.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "dessus",
+    "termo": "Dessus",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Relação entre pernas.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "dessous",
+    "termo": "Dessous",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Relação entre pernas.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-tournant",
+    "termo": "En tournant",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Em rotação.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "a-terre",
+    "termo": "À terre",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "No chão.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "en-l-air",
+    "termo": "En l’air",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "No ar.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "demi-pointe",
+    "termo": "Demi-pointe",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Altura ou condição de meia-ponta.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "sur-les-pointes",
+    "termo": "Sur les pointes",
+    "categoria": "direcao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "Altura ou condição de ponta.",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "saute",
+    "termo": "Sauté",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "changement",
+    "termo": "Changement",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "echappe-saute",
+    "termo": "Échappé sauté",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "temps-leve",
+    "termo": "Temps levé",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "assemble",
+    "termo": "Assemblé",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "jete",
+    "termo": "Jeté",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "sissonne",
+    "termo": "Sissonne",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "soubresaut",
+    "termo": "Soubresaut",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "entrechat",
+    "termo": "Entrechat",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "brise",
+    "termo": "Brisé",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "cabriole",
+    "termo": "Cabriole",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "ballonne",
+    "termo": "Ballonné",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "ballotte",
+    "termo": "Ballotté",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "emboite",
+    "termo": "Emboîté",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "grand-jete",
+    "termo": "Grand jeté",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "grand-assemble",
+    "termo": "Grand assemblé",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "saut-de-chat",
+    "termo": "Saut de chat",
+    "categoria": "salto",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "coupe",
+    "termo": "Coupé",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "O uso de coupé varia entre tradições; em certos contextos prefere-se outra descrição da passagem.",
+    "estado": "documentado"
+  },
+  {
+    "id": "tombe",
+    "termo": "Tombé",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "glissade",
+    "termo": "Glissade",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "chasse",
+    "termo": "Chassé",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "pas-de-bourree",
+    "termo": "Pas de bourrée",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "couru",
+    "termo": "Couru",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "pas-de-basque",
+    "termo": "Pas de basque",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "failli",
+    "termo": "Failli",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "balance",
+    "termo": "Balancé",
+    "categoria": "ligacao",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "chaine",
+    "termo": "Chaîné",
+    "categoria": "giro",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "deboule",
+    "termo": "Déboulé",
+    "categoria": "giro",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "pique-turn",
+    "termo": "Piqué turn",
+    "categoria": "giro",
+    "tradicao": "compartilhada",
+    "alternativos": [
+      "Piqué"
+    ],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "pirouette-en-dehors",
+    "termo": "Pirouette en dehors",
+    "categoria": "giro",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "pirouette-en-dedans",
+    "termo": "Pirouette en dedans",
+    "categoria": "giro",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  },
+  {
+    "id": "fouette-en-tournant",
+    "termo": "Fouetté en tournant",
+    "categoria": "giro",
+    "tradicao": "compartilhada",
+    "alternativos": [],
+    "descricao": "",
+    "fonte": "",
+    "observacoes": "",
+    "estado": "documentado"
+  }
+]
