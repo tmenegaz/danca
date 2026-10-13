@@ -193,6 +193,20 @@ function comporContexto(envelope, plano) {
   return outro ? base + ' · ' + String(outro) : base;
 }
 
+// A METODOLOGIA E A NOTAÇÃO — declaradas, nunca deduzidas (P-16). Vivem no PLANO referenciado
+// (o PO não as re-coleta: ele as lê na geração, como o campo empírico e o contexto). É o
+// «ligar» do laudo L5: hoje ficavam presas no plano e não chegavam ao PO. Sem plano (ou sem
+// valor), a lacuna sai declarada — nunca se preenche por inferência.
+function comporMetodologiaENotacao(plano) {
+  const pares = [
+    ['Metodologia de referência', respostaDo(plano, 'contexto-metodologia')],
+    ['Quem escolhe a metodologia', respostaDo(plano, 'contexto-metodologia-origem')],
+    ['Notação dominada', respostaDo(plano, 'contexto-notacao')],
+  ];
+  const linhas = comporLinhasDePlano(plano, pares);
+  return linhas;
+}
+
 function derivarPO(envelope, plano) {
   const contexto = (envelope && envelope.contexto) || {};
   const saida = [];
@@ -243,6 +257,9 @@ function derivarPO(envelope, plano) {
   // a dose, o calendário, o volume nem a condição de registro — ele os lê na geração.
   prosa('Campo empírico', comporCampoEmpirico(envelope, plano));
   prosa('Contexto', comporContexto(envelope, plano));
+  // A metodologia e a notação vêm do PLANO referenciado (declaradas, nunca deduzidas —
+  // P-16). Sem plano, a lacuna sai declarada; o PO não as re-coleta.
+  prosa('Metodologia e notação', comporMetodologiaENotacao(plano));
   // Sujeitos: os apelidos (um por linha) + a declaração das flutuantes — o único
   // dado de alunas que a anamnese não cobre, e que por isso vive no PO.
   {
