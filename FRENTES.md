@@ -89,13 +89,15 @@ referenciado:
 | duração por aula | plano `contexto-duracao` | não | nada |
 | condição de registro | plano `contexto-registro` | não | nada |
 | turma observada | plano `contexto-turma` | não | nada |
-| metodologia de referência | plano `contexto-metodologia` | **não duplica, mas NÃO chega ao PO** | **ligar** (Bloco 8.2) |
-| quem escolhe | plano `contexto-metodologia-origem` | idem | **ligar** |
-| notação | plano `contexto-notacao` | idem | **ligar** |
+| metodologia de referência | plano `contexto-metodologia` | **não duplica, mas NÃO chega ao PO** | ✅ **ligado** (Bloco 8.2 · commit `3410db9`) |
+| quem escolhe | plano `contexto-metodologia-origem` | idem | ✅ **ligado** |
+| notação | plano `contexto-notacao` | idem | ✅ **ligado** |
 
-**→ Tarefa:** não é remover duplicação — é **ligar** `metodologia`/`quem-escolhe`/`notação` do
-plano para o PO (hoje presas no plano). Além disso, o PO tem `escola` (cabeçalho) **e**
-`campo-escola` (observação inicial) — quase sempre o mesmo valor, candidato a **confirmar**.
+**→ Tarefa:** ~~ligar~~ — **feito**: o PO agora lê `metodologia`/`quem-escolhe`/`notação` do
+plano referenciado numa seção própria `## Metodologia e notação` (nunca deduzidas, P-16; a
+«Norma estabelecida» continua elicitada). Fica em aberto: o PO tem `escola` (cabeçalho) **e**
+`campo-escola` (observação inicial) — quase sempre o mesmo valor, candidato a **confirmar** com
+a pesquisadora.
 
 ### L6 — O bug do `[Preencher]` na `distribuicao-de-volume` (medido, não fechado)
 
@@ -145,7 +147,7 @@ plano para o PO (hoje presas no plano). Além disso, o PO tem `escola` (cabeçal
 | # | Frente | Estado | Bloqueio |
 |:--|:--|:--|:--|
 | B1 | **Curadoria** — a peça central (atribuição por professor que pré-carrega os 3 formulários) | ✅ mecanismo pronto | `motor/servidor/bastidores.js` + `biblioteca/modalidades/modalidades.json` (commit `f8d367e`) |
-| B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | 🔨 em andamento | depende de B1 (mecanismo pronto) |
+| B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | 🔨 em andamento · metodologia/notação ✅ (commit `3410db9`) · consumo da curadoria ⬜ | depende de B1 (mecanismo pronto) |
 | B3 | **Catálogo: base → biblioteca** — o CRUD de hoje vira `biblioteca/modalidades/` + `ESCOLA.conf`; a escola **declara** o que usa | ✅ base migrada | `biblioteca/modalidades/` (commit `14bfb2e`); falta o `ESCOLA.conf` |
 | B4 | **Norma revisada** — Produção **pode criar/excluir** (caso a caso) | ✅ registrada | `REGISTRO.md` + `IDEIA-PAINEL-ESCOLA.md` §12 |
 | B5 | **Bug do `[Preencher]`** na `distribuicao-de-volume` | 🔒 bloqueado | precisa do JSON do envelope vivo (Maria/KV) |
@@ -212,7 +214,7 @@ escola.
 1. B4 — registrar a norma revisada (REGISTRO + IDEIA-PAINEL-ESCOLA)   ✅ feita
 2. B3 — mover a base para biblioteca/modalidades (peça própria)       ✅ base migrada (falta ESCOLA.conf)
 3. B1 — curadoria (a peça central)                                    ✅ mecanismo pronto (f8d367e)
-4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       🔨 em andamento
+4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       🔨 metodologia/notação ✅ (3410db9) · consumo da curadoria ⬜
 5. B7 — Bloco 4 do PO (rubrica, turmas plural, checklist)             ← depende de B2
 6. A1 → A3 → A2 → A4 — experimento: tokens, freio, binding KV, migração
 7. B5 — bug do [Preencher] (quando houver envelope vivo)              ← desbloqueável a qualquer hora
