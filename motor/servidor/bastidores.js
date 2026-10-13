@@ -333,10 +333,18 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
     '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
     '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
-    '.corpo{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
-    '.corpo h1{color:#6b2f2f;}' +
+    '.corpo{max-width:64rem;margin:0 auto;padding:1.5rem 1.25rem;display:grid;grid-template-columns:13rem 1fr;gap:1.5rem;align-items:start;}' +
+    '.corpo h1{color:#6b2f2f;margin-top:0;}' +
     '.corpo h2{color:#6b2f2f;margin-top:1.6rem;}' +
     '.corpo p{color:#6b5b4a;}' +
+    '.lateral{position:sticky;top:1rem;border-right:1px solid #c9a24b;padding-right:1rem;}' +
+    '.lateral h2{font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:#8a7a5a;margin:1rem 0 .2rem;}' +
+    '.lateral h2:first-child{margin-top:0;}' +
+    '.lateral a{display:block;color:#6b2f2f;text-decoration:none;padding:.25rem .4rem;border-radius:4px;font-size:.95rem;}' +
+    '.lateral a:hover{background:#fdf6e3;}' +
+    '.lateral a.ativo{background:#efe4c8;font-weight:700;}' +
+    '.principal{min-width:0;}' +
+    '@media (max-width:760px){.corpo{grid-template-columns:1fr;}.lateral{position:static;border-right:none;padding-right:0;}}' +
     'form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
     'form label{display:block;margin:.5rem 0 .2rem;font-size:.9rem;color:#6b2f2f;}' +
     'form input{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
@@ -363,8 +371,19 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '</style></head><body>' +
     '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Bastidores · Produção</span></div>' +
     '<div class="corpo">' +
+    '<nav class="lateral" aria-label="Seções da Produção">' +
+    '<h2>Produção</h2>' +
+    '<a href="#painel" data-secao="painel">Painel inicial</a>' +
+    '<h2>Pessoas</h2>' +
+    '<a href="#professores" data-secao="professores">Professores</a>' +
+    '<a href="#alunas" data-secao="alunas">Alunas</a>' +
+    '<h2>Pedagogia</h2>' +
+    '<a href="#turmas" data-secao="turmas">Turmas</a>' +
+    '<a href="#vocabulario" data-secao="vocabulario">Vocabulário técnico</a>' +
+    '</nav>' +
+    '<div class="principal">' +
     '<h1>Produção</h1>' +
-    '<p>O gabinete da direção — só a direção entra. Cadastre professores e alunas, e ajuste o nome do dono.</p>' +
+    '<p>O gabinete da direção — só a direção entra.</p>' +
     '<div id="gate">' +
     '<form id="form-senha">' +
     '<label for="dsenha">Senha da direção</label>' +
@@ -374,7 +393,13 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '<div class="res" id="res-gate"></div>' +
     '</div>' +
     '<div id="conteudo" hidden>' +
-    '<h2>Cadastrar professor</h2>' +
+    '<div class="res" id="res"></div>' +
+    '<section class="secao" id="sec-painel">' +
+    '<h2>Painel inicial</h2>' +
+    '<p>Aqui aparece o que mudou desde a última vez. Use o menu ao lado para gerir pessoas e pedagogia.</p>' +
+    '</section>' +
+    '<section class="secao" id="sec-professores">' +
+    '<h2>Professores</h2>' +
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
@@ -382,15 +407,18 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
     '<button type="submit">Cadastrar professor</button>' +
     '</form>' +
-    '<h2>Cadastrar aluna</h2>' +
+    '<h3>Professores cadastrados</h3><ul>' + itensProfs + '</ul>' +
+    '</section>' +
+    '<section class="secao" id="sec-alunas">' +
+    '<h2>Alunas</h2>' +
     '<form id="form-aluna">' +
     '<label for="anome">Apelido da aluna (estável, P-12)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
     '<button type="submit">Cadastrar aluna</button>' +
     '</form>' +
-    '<div class="res" id="res"></div>' +
-    '<h2>Professores cadastrados</h2><ul>' + itensProfs + '</ul>' +
-    '<h2>Alunas cadastradas</h2><ul>' + itensAlunas + '</ul>' +
+    '<h3>Alunas cadastradas</h3><ul>' + itensAlunas + '</ul>' +
+    '</section>' +
+    '<section class="secao" id="sec-turmas">' +
     '<h2>Turmas</h2>' +
     '<form id="form-turma">' +
     '<label for="tnome">Nome da turma</label>' +
@@ -406,6 +434,8 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '<button type="submit">Cadastrar turma</button>' +
     '</form>' +
     '<ul>' + itensTurmas + '</ul>' +
+    '</section>' +
+    '<section class="secao" id="sec-vocabulario">' +
     '<h2>Vocabulário Técnico do Balé</h2>' +
     '<form id="form-termo">' +
     '<label for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
@@ -418,6 +448,8 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '</form>' +
     '<ul>' + itensTermos + '</ul>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
+    '</section>' +
+    '</div>' +
     '</div>' +
     '</div>' +
     '<script>' +
@@ -449,6 +481,24 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '  try { guardada = sessionStorage.getItem("producao:senha"); } catch (err) {}' +
     '  if (guardada) entrar(guardada);' +
     '})();' +
+    '// O menu lateral: cada secção é uma <section class="secao">; o hash da URL escolhe qual fica' +
+    '// visível. As secções continuam no DOM (os formulários existem todos), só muda o que se mostra.' +
+    'function mostrarSecao() {' +
+    '  var alvo = (location.hash || "#painel").replace("#", "");' +
+    '  var secoes = document.querySelectorAll(".secao");' +
+    '  var visivel = "painel";' +
+    '  for (var i = 0; i < secoes.length; i++) {' +
+    '    var s = secoes[i];' +
+    '    var id = s.id.replace("sec-", "");' +
+    '    if (id === alvo) { s.hidden = false; visivel = id; } else { s.hidden = true; }' +
+    '  }' +
+    '  var links = document.querySelectorAll(".lateral a");' +
+    '  for (var j = 0; j < links.length; j++) {' +
+    '    links[j].className = (links[j].getAttribute("data-secao") === visivel) ? "ativo" : "";' +
+    '  }' +
+    '}' +
+    'window.addEventListener("hashchange", mostrarSecao);' +
+    'mostrarSecao();' +
     'function postar(id, corpo) {' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
