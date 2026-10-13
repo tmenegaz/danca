@@ -11,4 +11,7 @@ export default {
   async fetch(request, env) {
     return mod.fetch(request, env);
   },
+  async scheduled(event, env, ctx) {
+    return mod.scheduled(event, env, ctx);
+  },
 };

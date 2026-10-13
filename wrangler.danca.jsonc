@@ -18,5 +18,13 @@
     "directory": "raiz",
     "binding": "ASSETS",
     "run_worker_first": true
+  },
+
+  // O Cron do expurgo (§17.5): a cada 5 minutos a raiz roda `scheduled`, lê o andaime
+  // `raiz/escolas-habilitadas.json` e apaga as escolas desabilitadas com o prazo vencido.
+  "triggers": {
+    "crons": [
+      "*/5 * * * *"
+    ]
   }
 }

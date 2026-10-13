@@ -1,0 +1,37 @@
+{
+  "escola": "diaghilev2",
+  "professor": {
+    "slug": "fokini2"
+  },
+  "ciclo": "02",
+  "senha": {
+    "chave": "SENHA_DIAGHILEV2",
+    "arquivo": "tools/.senhas-locais"
+  },
+  "arquivos": [],
+  "expurgo": [
+    {
+      "em": "2026-10-13T00:07:04.191Z",
+      "motivo": "desabilitada + prazo de expurgo vencido",
+      "apagado": [
+        "senha SENHA_DIAGHILEV2 em tools/.senhas-locais",
+        "slug diaghilev2 em tools/.escolas-teste",
+        "wrangler.diaghilev2.jsonc",
+        "pacote ciclo-02-diaghilev2/",
+        "fonte ciclo-02-diaghilev2-aula-01.fipp",
+        "fonte ciclo-02-diaghilev2-aula-01.md",
+        "fonte ciclo-02-diaghilev2-captura-aula-01.md",
+        "fonte ciclo-02-diaghilev2-dados.json",
+        "fonte ciclo-02-diaghilev2-glossario-benesh.md",
+        "fonte ciclo-02-diaghilev2-harmonizacao.md",
+        "fonte ciclo-02-diaghilev2-notacao.md",
+        "fonte ciclo-02-diaghilev2-plano.md",
+        "fonte ciclo-02-diaghilev2-po.md",
+        "fonte ciclo-02-diaghilev2-referencias.md",
+        "fonte ciclo-02-diaghilev2.conf",
+        "fonte ciclo-02-diaghilev2.fipp"
+      ],
+      "naoApagado": []
+    }
+  ]
+}

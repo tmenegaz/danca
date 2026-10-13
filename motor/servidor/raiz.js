@@ -14,8 +14,15 @@
  */
 
 const { criarEscola } = require('./provisionar-escola.js');
+const { excluirEscola } = require('./expurgar-escola.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
+
+// O prazo de expurgo: quanto tempo uma escola desabilitada tem antes de ser apagada.
+// TESTE = 3 minutos (o §17.5); a produção vai a 3 meses — esta constante é o único
+// ponto a trocar. Enquanto for andaime, a data de desabilitação (`desde`) é escrita à
+// mão pela pesquisadora no fixture; na Produção, o próprio servidor a grava ao desligar.
+const PRAZO_EXPURGO_MS = 3 * 60 * 1000;
 
 /** O freio da raiz: sem a senha, nada se vê (nem a página, nem a rota de criar). */
 function autorizado(request, env) {
@@ -23,6 +30,68 @@ function autorizado(request, env) {
   if (!senha) return false;
   const esperado = 'Basic ' + btoa('tmenegaz:' + senha);
   return request.headers.get('Authorization') === esperado;
+}
+
+/**
+ * Lê o ANDAIME `escolas-habilitadas.json` do ASSETS da raiz (`raiz/`). É o que o §17.5
+ * chama de fixture: `{ escola: { habilitada, desde?, pagante?, kv? } }`. A pesquisadora o
+ * edita à mão e reimplanta a raiz para testar. Sem ASSETS (ou arquivo ilegível), devolve
+ * `{}` — o hook não inventa escola a expurgar.
+ */
+async function lerEscolasHabilitadas(env) {
+  if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return {};
+  try {
+    const req = new Request(new URL('/escolas-habilitadas.json', 'https://danca.internal'));
+    const res = await env.ASSETS.fetch(req);
+    if (!res.ok) return {};
+    return await res.json();
+  } catch {
+    return {};
+  }
+}
+
+/**
+ * O EXPURGO (§17.5): percorre o andaime e apaga cada escola que esteja desabilitada com o
+ * prazo vencido. A ordem de verificação é a norma: (1) desabilitada? (2) não está a pagar?
+ * (3) o `desde` existe? (4) o prazo venceu? — só então apaga. Devolve o relatório completo
+ * (`expurgadas`/`puladas`/`semToken`), para o Cron logar e a rota manual responder.
+ */
+async function expurgar(env) {
+  const token = env && env.CLOUDFLARE_API_TOKEN;
+  const escolas = await lerEscolasHabilitadas(env);
+  const agora = Date.now();
+  const relatorio = {
+    agora: new Date(agora).toISOString(),
+    expurgadas: [],
+    puladas: [],
+    semToken: !token,
+  };
+  if (!token) return relatorio;
+
+  for (const [slug, reg] of Object.entries(escolas || {})) {
+    if (!reg || reg.habilitada !== false) continue;
+    if (reg.pagante === true) {
+      relatorio.puladas.push({ slug, motivo: 'escola pagante — não se apaga' });
+      continue;
+    }
+    const desde = reg.desde ? new Date(reg.desde).getTime() : NaN;
+    if (!Number.isFinite(desde)) {
+      relatorio.puladas.push({ slug, motivo: 'desde ausente ou inválido' });
+      continue;
+    }
+    if (agora - desde < PRAZO_EXPURGO_MS) {
+      relatorio.puladas.push({ slug, motivo: 'prazo ainda não vencido', restanteMs: PRAZO_EXPURGO_MS - (agora - desde) });
+      continue;
+    }
+    relatorio.expurgadas.push(await excluirEscola({ token, accountId: ACCOUNT_ID, slug, kv: reg.kv }));
+  }
+  return relatorio;
+}
+
+/** O handler do Cron Trigger: apaga sem ninguém clicar, e loga o relatório. */
+async function scheduled(event, env, ctx) {
+  const relatorio = await expurgar(env);
+  console.log('[expurgo] ' + JSON.stringify(relatorio));
 }
 
 async function fetch(request, env) {
@@ -48,6 +117,30 @@ async function fetch(request, env) {
         'Content-Type': 'text/plain;charset=utf-8',
       },
     });
+  }
+
+  // O gatilho MANUAL do expurgo — a mesma função do Cron, mas chamável agora, atrás da
+  // senha. Serve para testar sem esperar o Cron e para auditar: o que o Cron apagaria é
+  // exatamente o que esta rota devolve.
+  if (url.pathname === '/api/expurgar' && request.method === 'POST') {
+    if (!env || !env.CLOUDFLARE_API_TOKEN) {
+      return new Response(JSON.stringify({ ok: false, erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      });
+    }
+    try {
+      const relatorio = await expurgar(env);
+      return new Response(JSON.stringify({ ok: true, ...relatorio }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      });
+    } catch (err) {
+      return new Response(JSON.stringify({ ok: false, erro: (err && err.message) || String(err) }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json;charset=utf-8' },
+      });
+    }
   }
 
   if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
@@ -92,4 +185,4 @@ async function fetch(request, env) {
   return new Response('não encontrado', { status: 404 });
 }
 
-module.exports = { fetch };
+module.exports = { fetch, scheduled, expurgar };

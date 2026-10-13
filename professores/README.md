@@ -57,7 +57,6 @@ Depois:
 | Professor | Ciclos | POs | Estado |
 |:--|:--|:--|:--|
 | **tiago** | Ciclo 01 — `maria` (Maria) — escola **de teste** | `ciclo-01-maria-po.md` — PO elicitado e fonte derivada do plano referenciado | **habilitada** (`ESCOLA_HABILITADA="sim"`, `ESCOLA_SLUG="maria"`) |
-| **fokini2** | Ciclo 02 — `diaghilev2` (Diaghilev II) — escola **de teste** "do zero" | `ciclo-02-diaghilev2-po.md` — PO só, sem plano nem aulas | **habilitada** (`ESCOLA_HABILITADA="sim"`, `ESCOLA_SLUG="diaghilev2"`) |
 
 > **Habilitada ou desabilitada é por ESCOLA, não por professor.** O professor continua
 > existindo; o que se habilita ou desabilita é cada vínculo professor × escola. O estado

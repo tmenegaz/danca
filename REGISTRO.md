@@ -10335,3 +10335,68 @@ infraestrutura da mesma operação de saneamento).
 > de propósito para o hook de expurgo limpar.
 - Os pacotes das escolas restantes carregam o `lancamento.html` com o comentário antigo até a
   próxima regeneração (a mudança é só de comentário; não exige reancorar).
+
+## 12/10/2026 — O hook de expurgo nasce e passa o teste no Diaghilev II
+
+**O que motivou.** O expurgo era especificação (§17.5) sem código: não havia `scheduled`
+handler, nem o andaime `escolas-habilitadas.json`, nem a limpeza local por slug. A
+pesquisadora pediu para CONSTRUIR o hook e testá-lo — o Diaghilev II (escola "do zero") é o
+sujeito do teste.
+
+**O que foi decidido.**
+- **O Cron da raiz é quem expurga.** A raiz (`danca`) ganha o `scheduled` handler e o Cron
+  `*/5 * * * *`: lê o andaime `raiz/escolas-habilitadas.json` e, para cada escola
+  `habilitada:false` com o prazo vencido (3 min no teste), apaga do Cloudflare o subdomínio,
+  o script do Worker e as chaves do KV com o prefixo da escola. A verificação segue a norma:
+  desabilitada? → não está a pagar? → `desde` existe? → prazo venceu? — só então apaga.
+- **`POST /api/expurgar`** (atrás da `SENHA_RAIZ`) roda o MESMO expurgo à mão — para testar
+  sem esperar o Cron e para auditar o que ele apagaria.
+- **O andaime** é `raiz/escolas-habilitadas.json` (não `escola/fixtures/…`: a raiz o serve
+  pelo ASSETS e o `scheduled` o lê de lá). `pagante:true` impede o expurgo; `kv` (namespaceId
+  + prefixo) limpa as chaves da escola sem tocar o namespace compartilhado.
+- **A limpeza local por slug** é `escola/expurgar.js` (a "Norma — limpeza" do §17.5): apaga a
+  senha em `tools/.senhas-locais`, o slug em `tools/.escolas-teste`, o
+  `wrangler.<escola>.jsonc`, o pacote e as fontes da variante — e regista o ELO do expurgo em
+  `escola/<escola>/indice.json`, que **sobrevive** (a proveniência acrescenta, não edita).
+
+**O teste (Diaghilev II).**
+O `expurgar()` real (o mesmo código do Cron) foi executado contra o Cloudflare real: apagou o
+subdomínio, o script do Worker e a chave do KV `diaghilev2/…`. O domínio voltou `404`, com
+`maria` (`200`) e a raiz (`401`) intactos. Depois, `escola/expurgar.js diaghilev2` limpou o
+repositório e deixou o elo em `escola/diaghilev2/indice.json`. O Cron está registrado
+(`*/5 * * * *`, criado via deploy).
+
+**Onde entrou.**
+`motor/servidor/expurgar-escola.js` — `excluirEscola` (subdomínio + script) e
+`apagarChavesDeEscola` (KV por prefixo), o inverso do `provisionar-escola.js`.
+`motor/servidor/raiz.js` — `expurgar` + `scheduled` + `POST /api/expurgar` + a leitura do
+andaime via ASSETS.
+`workers/raiz.js` — o shim `scheduled`.
+`raiz/escolas-habilitadas.json` — o andaime (agora só `maria` habilitada).
+`wrangler.danca.jsonc` — o `triggers.crons` `*/5 * * * *`.
+`escola/expurgar.js` — a limpeza local por slug.
+`escola/diaghilev2/indice.json` — o índice que sobrevive, com o elo do expurgo.
+`README.md`, `professores/README.md` — a seção de expurgo e a remoção do Diaghilev II.
+
+**Com o quê.**
+`motor/servidor/expurgar-escola.js`, `motor/servidor/raiz.js`, `workers/raiz.js`,
+`raiz/escolas-habilitadas.json`, `wrangler.danca.jsonc`, `escola/expurgar.js`,
+`escola/diaghilev2/indice.json`, `README.md`, `professores/README.md`, `REGISTRO.md`; e a
+remoção de `professores/fokini2/` (o Diaghilev II expurgado, com o professor órfão) e de
+`wrangler.diaghilev2.jsonc`. Locais, fora do Git: `tools/.senhas-locais` sem
+`SENHA_DIAGHILEV2` e `tools/.escolas-teste` sem `diaghilev2`.
+
+**Referências.**
+`IDEIA-PAINEL-ESCOLA.md` §17.5 (o hook de expurgo) e §17.6 (o índice por escola) ·
+`PROTOCOLO.md` (a ressalva após a P-04 — a limpeza no desenvolvimento).
+
+**O que ainda não está feito.**
+- O `criar-escola.sh` ainda NÃO gera o `escola/<escola>/indice.json` (o índice da escola
+  nova) — o teste criou o índice à mão; é a lacuna que liga a criação à limpeza.
+- O `desde` continua sendo escrito à mão no andaime; na Produção, o próprio servidor grava a
+  data no instante de desabilitar (e o andaime sai).
+- As chaves `envelope/*.json` do KV compartilhado não têm prefixo de escola — a limpeza por
+  prefixo não as alcança (só as `<escola>/…`). Fica aberto o modelo de envelope por escola.
+- O gatilho do Cron foi registrado e o expurgo provado por `POST /api/expurgar`/pelo
+  `expurgar()` real; o disparo AUTOMÁTICO pelo relógio ainda não foi observado (o Cron roda a
+  cada 5 min — confirmável pelo dashboard, "Trigger Event", ou aguardando o próximo tick).

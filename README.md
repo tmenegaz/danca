@@ -102,7 +102,6 @@ deploy errado cair na raiz):
 |:--|:--|:--|:--|:--|
 | **raiz** | `wrangler.danca.jsonc` | `danca` | `workers/raiz.js` | `raiz/` (página + botão), atrás de `SENHA_RAIZ` |
 | **Maria** | `wrangler.maria.jsonc` | `maria` | `workers/principal.js` | `professores/tiago/ciclos/ciclo-01-maria` |
-| **Diaghilev II** | `wrangler.diaghilev2.jsonc` | `diaghilev2` | `workers/principal.js` | `professores/fokini2/ciclos/ciclo-02-diaghilev2` |
 
 **Sempre passe `-c`.** O comando sem `-c` não tem mais config padrão e falha — de propósito:
 é a trava contra publicar a config de uma escola no Worker de outra (o que, antes, desligava
@@ -111,7 +110,6 @@ a raiz em silêncio).
 ```bash
 npx wrangler deploy -c wrangler.danca.jsonc        # a RAIZ
 npx wrangler deploy -c wrangler.maria.jsonc        # a escola Maria
-npx wrangler deploy -c wrangler.diaghilev2.jsonc   # a escola Diaghilev II
 npx wrangler dev -c wrangler.maria.jsonc           # roda local (KV local em .wrangler/state)
 ```
 
@@ -132,6 +130,22 @@ trava é o que separa «desligada de propósito» de «config trocada».
 Para uma **escola nova**: o botão «Criar nova escola» da raiz sobe o Worker «zero» no
 Cloudflare; o resto (pasta do professor, ciclo, pacote e `wrangler.<escola>.jsonc` com
 `ESCOLA_SLUG`) nasce pelo `tools/criar-escola.sh`.
+
+## O expurgo das escolas desabilitadas (§17.5)
+
+A raiz também é quem **apaga** escola: quando uma escola está desabilitada e o prazo passa
+(3 minutos no teste; 3 meses na produção), o Cron Trigger (`*/5 * * * *`) da raiz a apaga do
+Cloudflare — subdomínio, Worker e as chaves do KV com o prefixo da escola. O que decide é o
+andaime [`raiz/escolas-habilitadas.json`](raiz/escolas-habilitadas.json), editado à mão pela
+pesquisadora e reimplantado junto com a raiz. O mesmo expurgo roda à mão, atrás da senha da
+raiz, por `POST /api/expurgar` — para testar sem esperar o Cron e para auditar o que ele
+apagaria.
+
+A **outra metade** é local: depois do expurgo no servidor, `node escola/expurgar.js <slug>
+--professor <p> --ciclo <NN>` limpa o repositório por slug (a senha em
+`tools/.senhas-locais`, o slug em `tools/.escolas-teste`, o `wrangler.<escola>.jsonc`, o
+pacote e as fontes da variante) e registra o **elo do expurgo** em `escola/<slug>/indice.json`
+— o índice sobrevive ao expurgo (a proveniência acrescenta, não edita).
 
 > **Credenciais.** Nada de credencial do Cloudflare fica versionado nem em arquivo local
 > deste repositório: o vínculo com o GitHub é do painel, e o `wrangler login` mora no perfil
