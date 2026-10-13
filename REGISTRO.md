@@ -11279,3 +11279,25 @@ curadoria é a declaração da escola).
 B6, reescrita de conteúdo por modalidade). O `ESCOLA.conf` (que aposenta o «Carregar catálogo
 inicial» e declara modalidades/tradições/turmas da escola) segue como peça própria. B7 (Bloco 4
 do PO) é a frente seguinte, agora desbloqueada.
+
+## 13/10/2026 — Bastidores quebrou: a página da Produção referia `env` fora do escopo (correção)
+
+**O que motivou.** A Produção devolveu `Error 1101` («Worker threw exception»). O
+`ReferenceError: env is not defined` saiu de `paginaProducao` — a função usa o `env` para
+derivar o slug do dono, mas não o recebia como parâmetro. A falha entrou com a UI da curadoria
+(B1, `f8d367e`) e só apareceu quando a página da Produção foi aberta de novo.
+
+**O que foi decidido.** O slug do dono passa a ser **calculado no ponto de chamada** (onde `env`
+existe) e **entregue como parâmetro** a `paginaProducao` — o mesmo padrão já usado em
+`/api/bastidores/professores` e em `/api/bastidores/curadoria-meta`. A função não toca mais em
+`env`. Nenhuma regra muda; é só o escopo da variável.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — assinatura de `paginaProducao` (+`donoSlug`) e
+o cálculo movido para o handler de `/bastidores/producao`.
+
+**Com o quê.** `motor/servidor/bastidores.js`.
+
+**Referências.** O `Error 1101` reportado pela pesquisadora · B1 (`f8d367e`) · P-17 (o slug é
+derivado do `PROFESSOR_NOME`, nunca do nome de exibição).
+
+**O que ainda não está feito.** B7 (Bloco 4 do PO) — a frente seguinte, já desbloqueada por B2.
