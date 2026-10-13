@@ -11241,3 +11241,41 @@ o primeiro «ligar» do Bloco 8.2.
 **O que ainda não está feito.** O resto da integração (B2): fazer a anamnese, o plano e o PO
 **lerem a curadoria** do professor (turma/repertório/alunas) — a frente seguinte. O
 `campo-escola` × `escola` (cabeçalho) do PO segue como candidato a confirmar com a pesquisadora.
+
+## 13/10/2026 — A tela consome a curadoria: plano/PO travam sem curadoria e a anamnese filtra as alunas (B2b)
+
+**O que motivou.** A frente B2b do `FRENTES.md` — o **consumo** do mecanismo que B1 entregou.
+Faltava decidir e ligar **o que a curadoria faz com os formulários**. A pesquisadora fechou a
+regra: **a memória da aula dada pertence à escola, não ao professor** — logo o plano e o PO não
+podem ser preenchidos por um professor que a direção ainda não curou (modalidade, tradição,
+turma, repertório, alunas). A anamnese é a porta de entrada: continua travada por aluna + senha,
+mas a lista de alunas passa a **filtrar** pelas alunas que a curadoria atribuiu.
+
+**O que foi decidido.**
+- Nova rota **GET** `/api/bastidores/curadoria-professor?professor=<slug>`: devolve as curadorias
+  do professor (uma por modalidade) ou `curadorias: []` quando não há; sem `?professor=` → 400.
+- No portal, `atualizarCuradoria()` busca a curadoria **ao abrir** e **ao trocar de professor**
+  (a troca já invalidava a senha; agora também re-dispara a curadoria).
+- `aplicarCuradoria()` trava o «Começar» do **plano** e do **PO** com um aviso quando o professor
+  não tem curadoria; com curadoria, destrava. A **anamnese** não trava por curadoria — ela
+  **filtra** o seletor de alunas (`alunasDaCuradoria()`) quando há curadoria, e mostra a lista
+  inteira quando não há (é a porta de entrada).
+- A porta é servida como **estático do pacote** (não como bundle do Worker) — por isso a mudança
+  entra **também** no `plano-observacao/index.html` das duas escolas (barra e maria).
+
+**Onde entrou.** `motor/servidor/bastidores.js` (rota `curadoria-professor`) · `porta/index.html`
+(`CURADORIAS`/`CURADORIA_CARREGADA`, `alunasDaCuradoria()`, `atualizarCuradoria()`,
+`aplicarCuradoria()`, filtro em `carregarAlunas()`, ligação no boot e no `change` do professor) ·
+o pacote da porta em `professores/leticia/…/ciclo-01-barra` e `professores/tiago/…/ciclo-01-maria`.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `porta/index.html`, os dois
+`plano-observacao/index.html` dos pacotes.
+
+**Referências.** A decisão da pesquisadora («a memória da aula dada pertence à escola, não ao
+professor») · a frente B1 (mecanismo) · `FRENTES.md` (B2) · P-16 (declarado, nunca deduzido — a
+curadoria é a declaração da escola).
+
+**O que ainda não está feito.** A curadoria ainda não **filtra os blocos** da anamnese (isso é
+B6, reescrita de conteúdo por modalidade). O `ESCOLA.conf` (que aposenta o «Carregar catálogo
+inicial» e declara modalidades/tradições/turmas da escola) segue como peça própria. B7 (Bloco 4
+do PO) é a frente seguinte, agora desbloqueada.
