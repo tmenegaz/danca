@@ -150,16 +150,18 @@ distintas:
 
 | # | Elemento | Natureza | O que é | Onde aprofunda |
 |:--|:--|:--|:--|:--|
-| 1 | **`en dehors` (rotação externa)** | Fundamento | A rotação externa da perna — o *turnout*. É a base de todos os outros elementos | Bloco 2 |
-| 2 | **As cinco posições** (pés e braços) | Vocabulário | 1ª, 2ª, 3ª, 4ª e 5ª — dos pés e dos braços | Blocos 2 e 4 |
+| 1 | **As cinco posições** (pés e braços) | Vocabulário | 1ª, 2ª, 3ª, 4ª e 5ª — dos pés e dos braços | Blocos 2 e 4 |
+| 2 | **`en dehors` (rotação externa)** | Fundamento | A rotação externa da perna — o *turnout*. É a base de todos os outros elementos | Bloco 2 |
 | 3 | **O `tendu`** | Vocabulário | À frente, ao lado e atrás | Bloco 5 |
 | 4 | **O `passé`** | Vocabulário | O pé que sobe pela perna de apoio até a altura do joelho | Bloco 7 |
 | 5 | **A meia ponta** | Vocabulário | A subida sobre os metatarsos | Bloco 5 |
 | 6 | **A musicalidade** | Qualidade | A relação do corpo com o tempo, o compasso e a frase musical | Bloco 6 |
 
-O `en dehors` é o primeiro porque é **fundamento**: sem rotação externa, não há quinta posição,
-não há `tendu` nem `passé` na acepção clássica. Os elementos de vocabulário **pressupõem** o
-fundamento. A musicalidade é de outra natureza — ela **atravessa** todos os outros.
+O `en dehors` é **fundamento**: sem rotação externa, não há quinta posição, não há `tendu` nem
+`passé` na acepção clássica. Os elementos de vocabulário **pressupõem** o fundamento. A
+musicalidade é de outra natureza — ela **atravessa** todos os outros. Na malha da ficha, os cinco
+elementos que **respondem por si** pela escala (as cinco posições desmembram em dez subitens)
+ficam agrupados, para a terceira via «não foi medido» valer para todos eles de uma vez.
 
 A coluna **"Onde aprofunda"** é o encadeamento da observação inicial com a malha dos nove blocos
 (§3.2): o que a entrada verifica de passagem, o bloco correspondente investiga em detalhe.

@@ -150,6 +150,16 @@ function linhaDeDesdobramento(desdobramento, marcado) {
 }
 
 /**
+ * A escala do elemento basilar, com o bloqueio do «não foi medido»: quando o envelope
+ * traz o sentinel, a escala sai em itálico (o derivado não marca nenhuma caixa), e os
+ * desdobramentos ficam sem apoio — o apoio não foi medido junto.
+ */
+function caixasOuNaoMedido(resposta, valores, preenchida) {
+  if (resposta && resposta.escala === NAO_MEDIDO) return '*' + NAO_MEDIDO + '*';
+  return caixas(valores, resposta ? resposta.respondido : null, preenchida);
+}
+
+/**
  * `Bloco 2` · `Blocos 2 e 4` · `Blocos 2, 4 e 5` — a lista de blocos onde um
  * basilar aprofunda. A enumeração é a da casa: vírgula entre os itens, `e`
  * antes do último (cf. `REGRAS.md` 8, 16 e 17). O `e` repetido que saía em
@@ -411,7 +421,11 @@ function renderizar(conteudo, opcoes) {
     // traz marcada é cada subitem, na reimpressão abaixo. Um elemento sem
     // filhos responde sozinho, e aí a escala leva a marca dele.
     const escala = valores.length
-      ? caixas(valores, filhos.length ? null : respostaDoElemento(elemento.id).respondido, preenchida)
+      ? caixasOuNaoMedido(
+          filhos.length ? null : respostaDoElemento(elemento.id),
+          valores,
+          preenchida,
+        )
       : null;
 
     saida.push('**' + elemento.elemento + '** — *' + elemento.natureza + '*');
@@ -425,7 +439,7 @@ function renderizar(conteudo, opcoes) {
       for (const filho of filhos) {
         const respostaDoFilho = respostaDoElemento(filho.id);
         saida.push('**' + filho.campo + '**');
-        if (valores.length) saida.push(caixas(valores, respostaDoFilho.respondido, preenchida), '');
+        if (valores.length) saida.push(caixasOuNaoMedido(respostaDoFilho, valores, preenchida), '');
         for (const id of filho.desdobramentos || []) {
           const desdobramento = desdobramentoPorId[id] || {};
           saida.push(linhaDeDesdobramento(desdobramento, apoio(respostaDoFilho, id)));
@@ -615,6 +629,7 @@ module.exports = {
   valoresRespondidos,
   caixas,
   linhaDeDesdobramento,
+  caixasOuNaoMedido,
   listaDeBlocos,
   metodosDeOrigem,
   noDoGatilho,

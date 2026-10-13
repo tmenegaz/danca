@@ -16,16 +16,6 @@
     "nota": "Não é um bloco à parte: é a versão rápida do que os nove blocos investigam em detalhe. Não é ensino — verifica o que já existe. Dá o Norte.",
     "elementos": [
       {
-        "id": "en-dehors",
-        "elemento": "en dehors (rotação externa)",
-        "obrigatorio": true,
-        "natureza": "Fundamento",
-        "oQueE": "A rotação externa da perna — o turnout",
-        "ondeAprofunda": [2],
-        "nota": "É o primeiro porque é fundamento: sem rotação externa não há quinta posição, não há tendu nem passé na acepção clássica. Os elementos de vocabulário pressupõem este.",
-        "forma": "Bom · razoável · precisa desenvolver"
-      },
-      {
         "id": "cinco-posicoes",
         "elemento": "as cinco posições: uma visão geral",
         "obrigatorio": true,
@@ -46,6 +36,16 @@
           { "id": "cinco-posicoes-4a-bracos", "elemento": "4ª posição — braços" },
           { "id": "cinco-posicoes-5a-bracos", "elemento": "5ª posição — braços" }
         ]
+      },
+      {
+        "id": "en-dehors",
+        "elemento": "en dehors (rotação externa)",
+        "obrigatorio": true,
+        "natureza": "Fundamento",
+        "oQueE": "A rotação externa da perna — o turnout",
+        "ondeAprofunda": [2],
+        "nota": "É o primeiro porque é fundamento: sem rotação externa não há quinta posição, não há tendu nem passé na acepção clássica. Os elementos de vocabulário pressupõem este.",
+        "forma": "Bom · razoável · precisa desenvolver"
       },
       {
         "id": "tendu",

@@ -110,6 +110,8 @@
   .opcao span { flex: 1; }
   .opcao em { display: block; color: var(--suave); font-size: .85rem; font-style: normal; }
   .opcao.nao-medido { border-top: 1px dashed var(--suave); margin-top: .3rem; font-style: italic; color: var(--suave); }
+  .opcao.desabilitada { opacity: .45; cursor: not-allowed; }
+  .opcao.desabilitada:hover { background: transparent; }
   /* Os CONTROLES são a única coisa sans do projeto (`--ui`): é onde se digita e se
      clica, e a serifa atrapalha em corpo pequeno de interface. As medidas são as do
      formulário de lançamento do site, termo a termo (`font: 15px/1.5 var(--ui)`,
@@ -1030,9 +1032,11 @@ function lerResposta(no) {
   if (no.familia === 'basilar' || no.familia === 'subitem') {
     // A observação inicial tem duas dimensões na mesma tela: a escala do
     // elemento e o desdobramento como auxiliar. Grava-se o par; sem escala,
-    // não há resposta.
+    // não há resposta. «Não foi medido» é a terceira via da escala: grava-se
+    // SÓ o sentinel — o desdobramento (auxiliar) não entra, porque ficou travado.
     const escala = marcado('escala') || texto;
     if (!escala) return { valor: null, nota: nota };
+    if (escala === NAO_MEDIDO) return { valor: [NAO_MEDIDO], nota: nota };
     const auxiliar = marcado('auxiliar');
     return { valor: auxiliar ? [escala, auxiliar] : [escala], nota: nota };
   }
@@ -1091,7 +1095,7 @@ function valorDoItem(item, chave) {
 // Um grupo de rádio isolado, para quando a pergunta tem mais de uma dimensão
 // (a escala e o auxiliar da observação inicial). O grupo só marca o que já foi
 // respondido — nunca um `undefined` que casa com a ausência de resposta.
-function grupoEmLinhas(itens, escolhido, nomeDoGrupo, chave) {
+function grupoEmLinhas(itens, escolhido, nomeDoGrupo, chave, desabilitado) {
   return (itens || []).map((item) => {
     const valor = valorDoItem(item, chave);
     const forma = typeof item === 'string' ? item : (item.forma || item.id);
@@ -1100,8 +1104,8 @@ function grupoEmLinhas(itens, escolhido, nomeDoGrupo, chave) {
       escolhido !== undefined && escolhido !== null && String(escolhido) === String(valor)
         ? ' checked'
         : '';
-    return '<label class="opcao"><input type="radio" name="' + nomeDoGrupo + '" value="' +
-      escapar(valor) + '"' + marcado + '><span>' + md(forma) +
+    return '<label class="opcao' + (desabilitado ? ' desabilitada' : '') + '"><input type="radio" name="' + nomeDoGrupo + '" value="' +
+      escapar(valor) + '"' + marcado + (desabilitado ? ' disabled' : '') + '><span>' + md(forma) +
       (exemplo ? '<em>' + md(exemplo) + '</em>' : '') + '</span></label>';
   }).join('');
 }
@@ -1180,6 +1184,30 @@ function aplicarExclusiva(no) {
     caixa.disabled = travando;
     const rotulo = caixa.closest('.opcao');
     if (rotulo) rotulo.classList.toggle('travada', travando);
+  });
+  const aberto = raiz.querySelector('[data-campo-aberto]');
+  if (aberto) {
+    if (travando) aberto.value = '';
+    aberto.disabled = travando;
+  }
+}
+
+/*
+ * «Não foi medido» na escala dos BASILARES e das cinco posições: ao marcar, os
+ * desdobramentos (com toque, com a barra, por consciência própria) e o campo
+ * aberto travam — o professor declara que não mediu, então não há como dizer o
+ * apoio. É a MESMA lei do «Nenhuma» (aplicarExclusiva), aplicada à escala.
+ */
+function aplicarNaoMedido(no) {
+  const raiz = $('pergunta');
+  if (!(no.familia === 'basilar' || no.familia === 'subitem')) return;
+  const escala = raiz.querySelector('input[name="escala"]:checked');
+  const travando = escala && escala.value === NAO_MEDIDO;
+  raiz.querySelectorAll('input[name="auxiliar"]').forEach((caixa) => {
+    if (travando) caixa.checked = false;
+    caixa.disabled = travando;
+    const rotulo = caixa.closest('.opcao');
+    if (rotulo) rotulo.classList.toggle('desabilitada', travando);
   });
   const aberto = raiz.querySelector('[data-campo-aberto]');
   if (aberto) {
@@ -2054,14 +2082,19 @@ function renderPergunta() {
       ? atual
       : atual === undefined || atual === null ? [] : [atual];
     const escalaAtual = lista[0] || null;
+    const naoMedido = escalaAtual === NAO_MEDIDO;
 
     if (no.valores && no.valores.length) {
       blocos.push('<p><b>' + md(no.forma || 'a avaliação') + '</b></p>');
-      blocos.push(grupoEmLinhas(no.valores, escalaAtual, 'escala'));
+      blocos.push(grupoEmLinhas(no.valores, naoMedido ? null : escalaAtual, 'escala'));
+      // «Não foi medido» — a MESMA regra dos campos de bloco, aplicada à escala dos
+      // basilares e das cinco posições. Ao marcar, os desdobramentos abaixo travam.
+      blocos.push('<label class="opcao nao-medido"><input type="radio" name="escala" value="' +
+        escapar(NAO_MEDIDO) + '"' + (naoMedido ? ' checked' : '') + '><span>' + md(NAO_MEDIDO) + '</span></label>');
       blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare outra coisa: ' +
         '<input type="text" data-campo-aberto value="' +
-        escapar(no.valores.includes(escalaAtual) ? '' : escalaAtual || '') +
-        '" placeholder="a avaliação"></label></p>');
+        escapar(naoMedido || no.valores.includes(escalaAtual) ? '' : escalaAtual || '') +
+        '" placeholder="a avaliação"' + (naoMedido ? ' disabled' : '') + '></label></p>');
     } else {
       // Sem `forma` (um subitem de conjunto, como «escola» ou «frequência»), o
       // campo é de escrita livre. O `no.forma` nulo não se imprime.
@@ -2072,7 +2105,7 @@ function renderPergunta() {
 
     if (no.desdobramentos && no.desdobramentos.length) {
       blocos.push('<p class="sub">' + md(MAPA.notaDesdobramentos) + '</p>');
-      blocos.push(grupoEmLinhas(no.desdobramentos, lista[1] || null, 'auxiliar'));
+      blocos.push(grupoEmLinhas(no.desdobramentos, naoMedido ? null : lista[1] || null, 'auxiliar', null, naoMedido));
     }
   } else if (no.familia === 'bloco') {
     if (INDICE === 0 || MAPA.nos[INDICE - 1].bloco !== no.bloco) {
@@ -3576,6 +3609,7 @@ async function iniciar() {
 
   $('pergunta').addEventListener('change', (evento) => {
     if (evento.target.matches('input[name="pratica"]')) aplicarExclusiva(MAPA.nos[INDICE]);
+    if (evento.target.matches('input[name="escala"]')) aplicarNaoMedido(MAPA.nos[INDICE]);
     gravarRespostaDoNo(MAPA.nos[INDICE]);
   });
   $('pergunta').addEventListener('input', (evento) => {
