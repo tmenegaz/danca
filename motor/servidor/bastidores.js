@@ -213,7 +213,7 @@ function paginaProducao(escola, profs, aluns, env) {
     'function postar(id, corpo) {' +
     '  var res = document.getElementById("res");' +
     '  res.className = "res"; res.textContent = "cadastrando...";' +
-    '  return fetch(id === "form-prof" ? "api/bastidores/professor" : "api/bastidores/aluna", {' +
+    '  return fetch(id === "form-prof" ? "/api/bastidores/professor" : "/api/bastidores/aluna", {' +
     '    method: "POST",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify(corpo)' +
