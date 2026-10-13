@@ -149,9 +149,18 @@ function paginaEstudio(escola) {
     '</div></body></html>';
 }
 
-function paginaProducao(escola, profs, aluns) {
-  const itensProfs = profs.length
-    ? profs.map((p) => '<li>' + esc(p.nome) + '</li>').join('')
+function paginaProducao(escola, profs, aluns, env) {
+  // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME) e é o
+  // «dono» da escola; os professores ADICIONAIS cadastrados aqui vivem no KV. A vista
+  // lista os dois — o segredo primeiro, sem duplicar.
+  const secretNome = String((env && env.PROFESSOR_NOME) || '').trim();
+  const nomes = [];
+  if (secretNome) nomes.push(secretNome);
+  for (const p of profs) {
+    if (p && p.nome && nomes.indexOf(p.nome) === -1) nomes.push(p.nome);
+  }
+  const itensProfs = nomes.length
+    ? nomes.map((n) => '<li>' + esc(n) + '</li>').join('')
     : '<li>(nenhum professor cadastrado)</li>';
   const itensAlunas = aluns.length
     ? aluns.map((a) => '<li>' + esc(a) + '</li>').join('')
@@ -253,7 +262,7 @@ async function fetch(request, env) {
   }
   if (path === '/bastidores/producao') {
     const [profs, aluns] = await Promise.all([professores(kv, escola), alunas(kv, escola)]);
-    return html(paginaProducao(escola, profs, aluns));
+    return html(paginaProducao(escola, profs, aluns, env));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.

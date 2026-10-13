@@ -10752,3 +10752,56 @@ A entrada «A página cria o motor completo (unificação)» (12/10) · `CONGELA
   real (o §4/§12 do documento) ainda não foi desenhada.
 - A validação do «Estúdio» (a vista partilhada) é mínima — o Estúdio real (última aula, aluna,
   ciclo, §7) ainda não tem dados sendo lidos.
+
+## 13/10/2026 — A contaminação entre escolas (o envelope sem escola) é fechada no adaptador do KV
+
+**O que motivou.** A escola «Barra» (nova) abriu a anamnese, o plano de ensino e o PO e viu
+dados que NÃO eram dela: uma anamnese preenchida e três planos de observação. Medido na raiz:
+o KV de produção (`ciclos-escolas`, `2ee331c7`) guardava envelopes de 11/10 —
+`envelope/anamnese-20261011-*.json`, `envelope/plano-*.json`, `envelope/po-*.json` — dos testes
+da Maria, feitos ANTES de a Maria ganhar namespace próprio. A chave do envelope
+(`envelope/<id>.json`) NÃO carrega a escola, e o KV é COMPARTILHADO: a Barra lia o envelope da
+Maria. É a violação direta da política «uma escola nunca lê o dado da outra».
+
+**O que foi decidido.**
+- O adaptador do KV (`motor/adaptadores/cloudflare.js`) passa a NAMESPACEAR por escola as duas
+  famílias de chave que NÃO carregam a escola na própria chave: o **envelope**
+  (`envelope/<id>.json`) e o **registro de custo** (`ia-registro/...`). A chave FÍSICA no KV
+  ganha o `ESCOLA_SLUG` na frente (`barra/envelope/...`); a chave LÓGICA (a que o núcleo vê)
+  continua a mesma. O cofre (`<escola>/<professor>/...`), o lançamento e os Bastidores já
+  prefixam a escola — não mudam (o `provar-cofre.js` continua 23/23).
+- A vista **Produção** passa a listar o professor criado pela página `danca` (o segredo
+  `PROFESSOR_NOME`) além dos professores adicionais do KV — era «nenhum professor cadastrado»
+  mesmo com o professor existindo, porque o segredo não era lido.
+- A **faixa etária** passa a seguir o texto do pedido: infantil < 14, juvenil 14–17, adulto ≥ 18
+  (antes o corte era 10). É o que já está documentado em `ARQUITETURA-ANAMNESE.md` e no texto
+  do Bloco 2.1 — o código divergia.
+
+**Motivo declarado — os congelados.**
+Nenhum congelado foi tocado: `motor/`, `porta/` e `REGISTRO.md` são livres. O que **não muda**:
+
+- **A fórmula do hash e a âncora.** O envelope não é fonte de ciclo; o `.fipp` não muda.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **O contrato do cofre/lançamento.** As chaves continuam `<escola>/<professor>/...` — o
+  namespacing novo só cobre as famílias que já eram agnósticas.
+
+**Onde entrou.**
+- `motor/adaptadores/cloudflare.js` — `escolar()`/`desescolar()` no ler/guardar/anexar/listar/existe/apagar.
+- `motor/servidor/bastidores.js` — `paginaProducao(…, env)` lista o `PROFESSOR_NOME`.
+- `porta/index.html` — `categoriaPorIdade` com corte 14 (não 10).
+
+**Com o quê.**
+`motor/adaptadores/cloudflare.js`, `motor/servidor/bastidores.js`, `porta/index.html`, `REGISTRO.md`.
+
+**Referências.**
+A entrada «A página cria o motor completo (unificação)» (12/10) · `ARQUITETURA-ANAMNESE.md`
+(faixa etária) · `motor/adaptadores/README.md` (o contrato do armazenamento).
+
+**O que ainda não está feito.**
+- Os envelopes órfãos de 11/10 (`envelope/*` sem escola) continuam no KV de produção; são
+  invisíveis depois do namespacing, mas merecem uma limpeza (delete por prefixo `envelope/`).
+- O `provar-derivar-po.js` tem 3 falhas PRÉ-EXISTENTES (o título da fonte mudou de «PO do Ciclo»
+  para «Plano de Observação do Ciclo» numa sessão anterior e o teste não acompanhou) — não são
+  deste ajuste.
+- O gerador do pacote da Maria ainda tem a cópia antiga da porta (corte 10); a regeneração
+  propaga o corte novo.
