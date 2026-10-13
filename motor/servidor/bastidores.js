@@ -154,16 +154,22 @@ function paginaProducao(escola, profs, aluns, env) {
   // «dono» da escola; os professores ADICIONAIS cadastrados aqui vivem no KV. A vista
   // lista os dois — o segredo primeiro, sem duplicar.
   const secretNome = String((env && env.PROFESSOR_NOME) || '').trim();
-  const nomes = [];
-  if (secretNome) nomes.push(secretNome);
-  for (const p of profs) {
-    if (p && p.nome && nomes.indexOf(p.nome) === -1) nomes.push(p.nome);
+  const linhasProfs = [];
+  if (secretNome) {
+    linhasProfs.push('<li>' + esc(secretNome) + ' <span class="dono">(dono — criado na página)</span></li>');
   }
-  const itensProfs = nomes.length
-    ? nomes.map((n) => '<li>' + esc(n) + '</li>').join('')
+  for (const p of profs) {
+    if (!p || !p.nome) continue;
+    if (p.nome === secretNome) continue; // o dono já entrou, sem duplicar
+    linhasProfs.push('<li>' + esc(p.nome)
+      + ' <button class="apagar" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></li>');
+  }
+  const itensProfs = linhasProfs.length
+    ? linhasProfs.join('')
     : '<li>(nenhum professor cadastrado)</li>';
   const itensAlunas = aluns.length
-    ? aluns.map((a) => '<li>' + esc(a) + '</li>').join('')
+    ? aluns.map((a) => '<li>' + esc(a)
+        + ' <button class="apagar" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></li>').join('')
     : '<li>(nenhuma aluna cadastrada)</li>';
 
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
@@ -186,6 +192,10 @@ function paginaProducao(escola, profs, aluns, env) {
     '.res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}' +
     'ul{list-style:none;padding:0;}' +
     'ul li{padding:.3rem 0;border-bottom:1px dotted #c9a24b;color:#3a2b1f;}' +
+    'ul li .dono{color:#8a7a5a;font-size:.85rem;}' +
+    'button.apagar{margin-left:.7rem;padding:.15rem .55rem;background:#b25555;color:#fff;' +
+    'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    'button.apagar:hover{background:#8f3f3f;}' +
     '</style></head><body>' +
     '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Bastidores · Produção</span></div>' +
     '<div class="corpo">' +
@@ -229,6 +239,20 @@ function paginaProducao(escola, profs, aluns, env) {
     'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
     '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
+    '});' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest("button.apagar"); if (!b) return;' +
+    '  var alvo = b.getAttribute("data-alvo");' +
+    '  var tipo = b.getAttribute("data-tipo");' +
+    '  if (!confirm("Excluir " + alvo + "?")) return;' +
+    '  fetch("/api/bastidores/" + tipo, {' +
+    '    method: "DELETE",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify(tipo === "aluna" ? {apelido: alvo} : {nome: alvo})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (d.ok) { location.reload(); }' +
+    '    else { alert("Erro: " + (d.erro || "desconhecido")); }' +
+    '  }).catch(function(err){ alert("Erro: " + err.message); });' +
     '});' +
     '</script>' +
     '</body></html>';
@@ -303,6 +327,44 @@ async function fetch(request, env) {
     lista.push(apelido);
     await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
     return json(201, { ok: true, aluna: apelido });
+  }
+
+  // DELETE /api/bastidores/aluna — excluir aluna (apelido estável).
+  if (path === '/api/bastidores/aluna' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const apelido = String(corpo.apelido || '').trim();
+    if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
+    const lista = await alunas(kv, escola);
+    const idx = lista.indexOf(apelido);
+    if (idx === -1) return json(404, { ok: false, erro: 'aluna não encontrada' });
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/alunas', JSON.stringify(lista));
+    return json(200, { ok: true, aluna: apelido, removida: true });
+  }
+
+  // DELETE /api/bastidores/professor — excluir professor cadastrado no KV.
+  // O professor DONO (criado pela página `danca`) vive no SECRET PROFESSOR_NOME, não no
+  // KV — este endpoint só remove os professores ADICIONAIS do KV. O dono não é tocado por
+  // aqui (o segredo do Worker é outra fronteira, gerida pela página/Cloudflare).
+  if (path === '/api/bastidores/professor' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const nome = String(corpo.nome || '').trim();
+    if (!nome) return json(400, { ok: false, erro: 'informe o nome do professor' });
+    const secretNome = String((env && env.PROFESSOR_NOME) || '').trim();
+    if (secretNome && nome === secretNome) {
+      return json(409, {
+        ok: false,
+        erro: 'este é o professor dono da escola (criado na página) — exclua pela página, não pelos Bastidores',
+      });
+    }
+    const lista = await professores(kv, escola);
+    const idx = lista.findIndex((p) => p && p.nome === nome);
+    if (idx === -1) return json(404, { ok: false, erro: 'professor não encontrado' });
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
+    return json(200, { ok: true, professor: nome, removido: true });
   }
 
   // POST /api/bastidores/validar-senha — a anamnese valida a senha do professor.
