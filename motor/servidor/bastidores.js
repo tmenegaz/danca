@@ -43,6 +43,19 @@ function esc(s) {
     .replace(/"/g, '&quot;');
 }
 
+/** O slug de um nome (a MESMA derivação de provisionar-escola.js): minúsculo, sem acento,
+ *  espaços/símbolos viram hífen. É o identificador que entra na chave do cofre e no caminho
+ *  `professores/<slug>/…` — o NOME de exibição nunca vira chave (P-17). */
+function slugificar(nome) {
+  return String(nome || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-{2,}/g, '-');
+}
+
 /** O slug da escola, vindo do Worker (uma escola por Worker). */
 function escolaDe(env, url) {
   const doEnv = env && String(env.ESCOLA_SLUG || '').trim();
@@ -369,17 +382,23 @@ async function fetch(request, env) {
     return json(200, { ok: true, escola, alunas: await alunas(kv, escola) });
   }
 
-  // GET /api/bastidores/professores — só os NOMES (a senha nunca sai). O dono vem
-  // primeiro (o nome editável no KV vence o secret), sem duplicar com os adicionais.
+  // GET /api/bastidores/professores — o seletor dos formulários. Devolve `{nome, slug}`:
+  // o NOME de exibição (o rótulo) e o SLUG (o valor que entra no cofre/path). O dono vem
+  // primeiro; o slug dele é derivado do SECRET (não da sobreposição editável), para o
+  // caminho `professores/<slug>/…` continuar apontando para a pasta — ajustar o nome do
+  // dono não muda a pasta. A senha nunca sai.
   if (path === '/api/bastidores/professores') {
     const profs = await professores(kv, escola);
     const dono = await nomeDoDono(env, kv, escola);
-    const nomes = [];
-    if (dono) nomes.push(dono);
+    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const lista = [];
+    if (dono) lista.push({ nome: dono, slug: donoSlug });
     for (const p of profs) {
-      if (p && p.nome && nomes.indexOf(p.nome) === -1) nomes.push(p.nome);
+      if (!p || !p.nome) continue;
+      if (p.nome === dono) continue;
+      lista.push({ nome: p.nome, slug: slugificar(p.nome) });
     }
-    return json(200, { ok: true, escola, professores: nomes });
+    return json(200, { ok: true, escola, professores: lista });
   }
 
   // POST /api/bastidores/professor — cadastrar professor (nome + senha).

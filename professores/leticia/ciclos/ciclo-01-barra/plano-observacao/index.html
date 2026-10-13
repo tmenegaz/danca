@@ -625,11 +625,17 @@ async function carregarProfessores() {
     const lista = Array.isArray(dados.professores) ? dados.professores : [];
     const daUrl = new URLSearchParams(location.search).get('professor') || '';
     const atual = sel.value || daUrl;
+    // Cada professor tem `{nome, slug}`: o rótulo é o nome, o VALOR é o slug (o que
+    // entra no cofre/path). O `?professor=` da URL é um slug — casa pelo slug.
     const vistas = [];
-    for (const n of lista) { if (n && vistas.indexOf(n) === -1) vistas.push(n); }
-    if (atual && vistas.indexOf(atual) === -1) vistas.push(atual);
+    for (const item of lista) {
+      const nome = item && item.nome ? String(item.nome) : String(item);
+      const slug = item && item.slug ? String(item.slug) : nome;
+      if (!vistas.some((v) => v.slug === slug)) vistas.push({ slug, nome });
+    }
+    if (atual && !vistas.some((v) => v.slug === atual)) vistas.push({ slug: atual, nome: atual });
     sel.innerHTML = '<option value="">— escolher —</option>' +
-      vistas.map((n) => '<option value="' + escapar(n) + '">' + escapar(n) + '</option>').join('');
+      vistas.map((v) => '<option value="' + escapar(v.slug) + '">' + escapar(v.nome) + '</option>').join('');
     if (atual) sel.value = atual;
   } catch (erro) {
     // sem a lista, o seletor fica só com «escolher».
