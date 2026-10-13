@@ -11062,3 +11062,51 @@ lido como correção manual.
 senha digitada, e não a senha do professor atual — trocar de professor e recarregar pode reapresentar
 a senha do professor anterior no campo (a validação por professor já a rejeita, mas o campo não
 nasce vazio). Anotado, não corrigido.
+
+## 13/10/2026 — Cadastro de turmas e vocabulário técnico do balé (com relação turma↔conteúdo)
+
+**O que motivou.** O Bloco 3 do plano de ensino pedia que a «Turma observada» deixasse de ser
+texto livre e virasse uma entidade estruturada — a mesma solução que já havia virado o professor e
+a aluna em listas. A pesquisadora especificou o cadastro completo: turmas (nome, ordem,
+programa/nível de referência, descrição, ativo), o vocabulário técnico (passos, posições, direções,
+saltos, ligações, giros — com a grafia francesa e a tradição de referência) e a relação
+muitos-para-muitos entre turma e termo, sem inventar equivalências entre RAD, escola francesa e
+Vaganova (P-16).
+
+**O que foi decidido.**
+- O cadastro vive nos Bastidores, na **Produção** (só a direção entra), no MESMO KV da escola —
+  chaves `bastidores/<escola>/turmas`, `…/vocabulario` e `…/turma-conteudos`. Nenhum banco nem
+  autenticação paralela: reusa o KV e a senha da direção já existentes.
+- **Turma** (`{id, nome, ordem, programaReferencia, nivelReferencia, descricao, ativo}`) e **termo**
+  (`{id, termo, categoria, tradicao, alternativos, descricao, fonte, observacoes}`) têm só
+  inclusão/listagem/exclusão — sem edição (§7 do pedido). O `id` é o slug do nome (estável: não há
+  edição que o mude).
+- A **relação** é um mapa `turmaId → [termoId]`. Associar/desassociar não duplica nem exclui o
+  termo do catálogo; excluir uma turma/termo limpa a relação.
+- O catálogo **inicial** é versionado em `motor/servidor/catalogo-seed.js` (13 turmas RAD/Vocacional
+  + 84 termos), carregado por «Carregar catálogo inicial» na Produção — **idempotente**: só entra o
+  que ainda não existe. As associações iniciais (ex.: Nível 1 ↔ Plié, tendu, grand battement,
+  fondu) são exemplos, não progressão oficial.
+- O campo `contexto-turma` do plano passa a usar `opcoesDe: /api/bastidores/turmas` — a mesma
+  mecânica lazy do PO (`api/planos`). O valor gravado é o **nome de exibição** (não o slug), porque
+  o derivador imprime a turma direto na ficha; o slug fica no cadastro e nas relações.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (rotas turma/termo/turma-conteudo/semear-catalogo +
+  a UI da Produção) · `motor/servidor/catalogo-seed.js` (o catálogo inicial) ·
+  `porta/plano/conteudo/plano.json` (`opcoesDe` no `contexto-turma`).
+
+**Com o quê.** `motor/servidor/bastidores.js`, `motor/servidor/catalogo-seed.js`,
+`porta/plano/conteudo/plano.json` e as cópias geradas do plano nos pacotes da barra e da maria.
+
+**Referências.** P-16 (declarado, nunca deduzido — as diferenças de nomenclatura entram em
+`observacoes`, sem afirmar equivalência) · P-17 (harmonização) · o pedido da pesquisadora
+(«Cadastro de Turmas, Passos de Balé e Conteúdos por Turma») · RAD e a terminologia das tradições
+RAD/britânica, francesa e Vaganova/russa (não exaustivo, não oficial).
+
+**O que ainda não está feito.** (1) O catálogo é um PONTO DE PARTIDA — não cobre a progressão
+integral de cada metodologia nem todos os termos; cresce como conteúdo administrativo. (2) O
+`plano-de-ensino` do PO ainda referencia o plano pelo carimbo, não pela turma; a relação
+turma↔conteúdo será usada depois, quando o professor escolher o que observar no ciclo (§10 do
+pedido). (3) A UI da associação embute um `<select>` de termos por turma (pesado com muitas
+turmas) — dá para virar um seletor compartilhado quando incomodar. (4) Não há edição de turma/termo
+(deliberado, §7): corrigir um nome exige excluir e recriar.
