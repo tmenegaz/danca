@@ -11148,3 +11148,36 @@ do `IDEIA-PAINEL-ESCOLA.md` §12.
 pré-carrega os três formulários) é a peça central e ainda não foi construída. A migração da base
 para `biblioteca/modalidades/` e o nascimento do `ESCOLA.conf` ficam para peça própria, depois de
 registrar a norma (esta entrada).
+
+## 13/10/2026 — A base canónica do catálogo migra para `biblioteca/modalidades/` (frente B3)
+
+**O que motivou.** O cadastro de turmas/vocabulário nasceu com o conteúdo embutido em código
+(`motor/servidor/catalogo-seed.js`). A decisão anterior (norma revisada) estabeleceu que a base
+canónica é **conteúdo da biblioteca**, versionado e compartilhado — não código, nem CRUD por
+escola. Faltava executar a migração.
+
+**O que foi decidido.**
+- A base canónica (84 termos + 13 turmas + 9 relações + as diferenças de nomenclatura
+  RAD/francesa/Vaganova) migra para `biblioteca/modalidades/bale-classico/`:
+  `vocabulario.json`, `progressao.json` e `tradicoes.json`. Cada termo ganha `id` (slug do nome),
+  `categoria`, `tradicao`, `alternativos`, `descricao`, `fonte`, `observacoes` e `estado`
+  (`documentado`; o que não tem confirmação fica `aguardando validação`).
+- `catalogo-seed.js` deixa de embutir o conteúdo e passa a **ler os JSON da biblioteca** (via
+  `require` de `.json` — o esbuild do Worker embute, sem `fs`/`path`, que não existem no Worker).
+  É a fonte única: editar a biblioteca é editar o catálogo, sem tocar em código.
+- `biblioteca/modalidades/danca-moderna/` fica como **esqueleto** (`[Preencher]`) — Graham, Limón,
+  Horton e Humphrey–Weidman entram quando a pesquisadora fornecer o conteúdo validado (P-16).
+
+**Onde entrou.** `biblioteca/modalidades/` (a base) · `motor/servidor/catalogo-seed.js` (a ponte
+que lê os JSON, em vez de embutir).
+
+**Com o quê.** `biblioteca/modalidades/bale-classico/{vocabulario,progressao,tradicoes}.json`,
+`biblioteca/modalidades/{README.md,danca-moderna/README.md}` e `motor/servidor/catalogo-seed.js`.
+
+**Referências.** P-16 (declarado, nunca deduzido — o estado de validação e a fonte de cada termo) ·
+P-17 (o nome de exibição nunca vira chave — o `id` é o slug) · a frente B3 do `FRENTES.md`.
+
+**O que ainda não está feito.** O `ESCOLA.conf` (a declaração da escola) ainda não existe: até lá,
+o botão «Carregar catálogo inicial» e o KV por escola continuam como **andaime temporário**.
+Quando o `ESCOLA.conf` nascer, a escola passa a **escolher** da biblioteca e o botão desaparece.
+A base `danca-moderna/` está por preencher.
