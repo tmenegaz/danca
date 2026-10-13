@@ -428,6 +428,18 @@ se lê e se estende sem aprender uma sintaxe nova.
 O Bastidores **não cria dado nenhum**. Ele **relê** o que o lançamento do professor já
 produz, com outro recorte e outra permissão:
 
+> **Correção de 13/10/2026.** A norma acima — *«O Bastidores não cria dado nenhum. Ele relê o
+> que o lançamento do professor já produz»* — **foi revogada pela pesquisadora**. A redação
+> anterior fica como o elo que registra o que se pensou antes da correção (P-03/P-04: a
+> proveniência acrescenta, não edita). **A norma em vigor:** o Bastidores **trata cada caso**.
+> Ele **relê** o que o lançamento produz (aulas, presença, ajustes, cadeia de custódia) **e
+> cria/declara** o que é **próprio da escola** — porque escolas e tradições variam e não há como
+> exaurir todas as possibilidades numa biblioteca compartilhada. Por entidade: alunas (P-12),
+> professores e turmas vivem **na escola** (KV); o vocabulário e as tradições têm **base na
+> biblioteca** (compartilhada, versionada) **e** a escola **acrescenta** o que a base não cobre.
+> Regra de operação: **incluir e excluir, não editar** (a edição fica para peça própria, se for
+> preciso).
+
 | O que ele mostra | De onde já vem |
 |:--|:--|
 | aulas dadas, por data e duração | `aulas` do JSON de dados + o calendário |
