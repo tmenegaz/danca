@@ -136,9 +136,9 @@ a pesquisadora.
 
 | # | Frente | Estado | Bloqueio |
 |:--|:--|:--|:--|
-| A1 | **Levantamento de tokens PO+PE** (empírico) | ⬜ aberto | nenhum — medir e atualizar `experimentos/pe/freio-custo.md` + plan |
-| A2 | **Plano B — binding KV real** (provas B1–B4) | ⬜ aberto | precisa Cloudflare (Worker real, namespace de teste) |
-| A3 | **Freio de custo** (instrução de escopo · limite 30 turnos · registro) | ⬜ aberto | texto — destrava o resto |
+| A1 | **Levantamento de tokens PO+PE** (empírico) | ✅ medido — `experimentos/pe/freio-custo.md` §4 (≈20 500 tokens/PO, teto 33 000, orçamento por plano) | nenhum — já medido |
+| A2 | **Plano B — binding KV real** (provas B1–B4) | ✅ resolvido — B1 ✅ B3 ✅ (binding real); B2 ✅ (o motor Node saiu do caminho: a porta agnóstica `cloudflare.js`+`rotas.js` serve as 14 rotas no Worker, com conteúdo de `ASSETS`/`plano-observacao/` e KV); B4 ⚪ raciocinado | A4 depende dos secrets de write-back (`GITHUB_TOKEN`/`SENHA_CRIPTO`), não do motor Node |
+| A3 | **Freio de custo** (instrução de escopo · limite 30 turnos · registro) | ✅ feito — spec `freio-custo.md` + teto de 30 turnos em `motor/nucleo/ia.js` | nenhum |
 | A4 | **Migração experimento → produção** | ⬜ aberto | só depois de A2/A3 + teste de botões |
 | A5 | **Negócio** (franquia/excedente, gamificação, parceiros) | ⏸ deferido | **depois** de A4 |
 
@@ -147,7 +147,7 @@ a pesquisadora.
 | # | Frente | Estado | Bloqueio |
 |:--|:--|:--|:--|
 | B1 | **Curadoria** — a peça central (atribuição por professor que pré-carrega os 3 formulários) | ✅ mecanismo pronto | `motor/servidor/bastidores.js` + `biblioteca/modalidades/modalidades.json` (commit `f8d367e`) |
-| B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | 🔨 em andamento · metodologia/notação ✅ (commit `3410db9`) · consumo da curadoria ⬜ | depende de B1 (mecanismo pronto) |
+| B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | ✅ fechada · metodologia/notação (`3410db9`) + consumo da curadoria (plano/PO travam sem curadoria, anamnese filtra alunas) | — |
 | B3 | **Catálogo: base → biblioteca** — o CRUD de hoje vira `biblioteca/modalidades/` + `ESCOLA.conf`; a escola **declara** o que usa | ✅ base migrada | `biblioteca/modalidades/` (commit `14bfb2e`); falta o `ESCOLA.conf` |
 | B4 | **Norma revisada** — Produção **pode criar/excluir** (caso a caso) | ✅ registrada | `REGISTRO.md` + `IDEIA-PAINEL-ESCOLA.md` §12 |
 | B5 | **Bug do `[Preencher]`** na `distribuicao-de-volume` | 🔒 bloqueado | precisa do JSON do envelope vivo (Maria/KV) |
@@ -158,9 +158,9 @@ a pesquisadora.
 
 | # | Frente | Estado |
 |:--|:--|:--|
-| C1 | Página `biblioteca/nos-por-exemplo.md` + `fundamentacao.md` + `videos.json` | ⬜ aberto |
-| C2 | Migrar o menu (`gerar-ciclo.sh`): Início→Ciclos, nasce «Nós, Por Exemplo» | ⬜ aberto |
-| C3 | Correção socrática (Frente 5) + modo desenvolvedor (Frente 6) | ⏸ fase 2 |
+| C1 | Página `biblioteca/nos-por-exemplo.md` + `fundamentacao.md` + `videos.json` | 🔨 parcial — página ✅ (fonte única) · `videos.json` ✅ (não embutido) · `fundamentacao.md` ❌ |
+| C2 | Migrar o menu (`gerar-ciclo.sh`): Início→Ciclos, nasce «Nós, Por Exemplo» | ✅ feito — «Nós, Por Exemplo» é a entrada + grupo «Ciclos»; `criar-escola.sh` (nav_zero) sem «Início», com «Bastidores» |
+| C3 | Correção socrática (Frente 5) + modo desenvolvedor (Frente 6) | 🔨 parcial — F5 (correção socrática) ✅ no pacote; F6 (modo desenvolvedor) ⏸ fase 2 |
 
 ---
 
@@ -214,9 +214,9 @@ escola.
 1. B4 — registrar a norma revisada (REGISTRO + IDEIA-PAINEL-ESCOLA)   ✅ feita
 2. B3 — mover a base para biblioteca/modalidades (peça própria)       ✅ base migrada (falta ESCOLA.conf)
 3. B1 — curadoria (a peça central)                                    ✅ mecanismo pronto (f8d367e)
-4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       🔨 metodologia/notação ✅ (3410db9) · consumo da curadoria ⬜
+4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       ✅ metodologia/notação (3410db9) · consumo da curadoria ✅
 5. B7 — Bloco 4 do PO (rubrica, turmas plural, checklist)             ← depende de B2
-6. A1 → A3 → A2 → A4 — experimento: tokens, freio, binding KV, migração
+6. A4 — experimento: migrar para produção (A1/A2/A3 já feitos; falta só os secrets de write-back)
 7. B5 — bug do [Preencher] (quando houver envelope vivo)              ← desbloqueável a qualquer hora
-8. C1 → C2 — «Nós, Por Exemplo»                                       ← paralelo, independente
+8. C1 — «Nós, Por Exemplo»: `fundamentacao.md` + embutir `videos.json`  (C2 já feito) ← paralelo, independente
 ```
