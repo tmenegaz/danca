@@ -11181,3 +11181,36 @@ P-17 (o nome de exibição nunca vira chave — o `id` é o slug) · a frente B3
 o botão «Carregar catálogo inicial» e o KV por escola continuam como **andaime temporário**.
 Quando o `ESCOLA.conf` nascer, a escola passa a **escolher** da biblioteca e o botão desaparece.
 A base `danca-moderna/` está por preencher.
+
+## 13/10/2026 — A curadoria nasce: a escola atribui a cada professor o que pré-carrega os formulários (B1)
+
+**O que motivou.** A frente B1 do `FRENTES.md` — a peça central da integração: o que a escola
+**atribui** a cada professor (modalidade, tradição, turma, repertório, alunas) e que passa a
+**pré-carregar** a anamnese, o plano e o PO. Sem ela, os formulários não sabem o que oferecer.
+
+**O que foi decidido.**
+- A curadoria é uma **lista** no KV da escola (`bastidores/<escola>/curadorias`), um registro por
+  (professor + modalidade) — o professor pode ter mais de uma curadoria (a regra é da escola, não
+  do sistema). Registro: `{id, professor, modalidade, tradicao, turmas[], repertorio[], alunas[]}`.
+- O `id` é o slug de `professor + modalidade` (estável — não há edição que o mude). Gravar é
+  **upsert**; remover é excluir.
+- A UI vive na **Produção** (seção «Curadorias», sob PEDAGOGIA), com seleção de professor,
+  modalidade, tradição e listas de turmas/repertório/alunas. A modalidade vem de
+  `biblioteca/modalidades/modalidades.json` (5 modalidades declaradas; as sem conteúdo marcadas
+  «sem conteúdo ainda»); a tradição vem de `tradicoes.json` (RAD/francesa/Vaganova, sem
+  «compartilhada»).
+- O **consumo nos formulários** (o que a curadoria pré-carrega) é a frente **B2** — ainda não
+  implementado aqui. B1 entrega o mecanismo: atribuir, listar, remover.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (rotas `curadoria-meta`/`curadorias`/`curadoria`
+GET·POST·DELETE + a seção «Curadorias» da Produção) · `biblioteca/modalidades/modalidades.json`.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `biblioteca/modalidades/modalidades.json`.
+
+**Referências.** P-16 (declarado, nunca deduzido — a modalidade/tradição são escolhas, não dedução) ·
+P-17 (o nome de exibição nunca vira chave — o `id` é o slug) · o Bloco 2 do pedido («Produção,
+curadoria e integração») · a frente B1 do `FRENTES.md`.
+
+**O que ainda não está feito.** O **consumo** (B2): fazer a anamnese, o plano e o PO **lerem** a
+curadoria do professor e pré-carregarem turma/repertório/alunas. É a frente seguinte. A
+modalidade/tradição ainda não **filtram** os blocos da anamnese (isso é B6, reescrita de conteúdo).
