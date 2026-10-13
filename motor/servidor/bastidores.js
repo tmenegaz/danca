@@ -285,7 +285,7 @@ function paginaEstudio(escola) {
     '</div></body></html>';
 }
 
-function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel, curs) {
+function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, curs) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -354,7 +354,6 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel, curs) {
 
   // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
   const listaCuradorias = (curs || []).slice();
-  const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
   const profsParaCuradoria = [];
   if (donoNome) profsParaCuradoria.push({ valor: donoSlug, rotulo: donoNome });
   for (const p of profs) {
@@ -747,9 +746,10 @@ async function fetch(request, env) {
       professores(kv, escola), alunas(kv, escola), turmas(kv, escola), termos(kv, escola),
     ]);
     const dono = await nomeDoDono(env, kv, escola);
+    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
-    return html(paginaProducao(escola, profs, aluns, dono, trms, trmos, rel, curs));
+    return html(paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, curs));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
