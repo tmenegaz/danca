@@ -83,7 +83,7 @@ async function expurgar(env) {
       relatorio.puladas.push({ slug, motivo: 'prazo ainda não vencido', restanteMs: PRAZO_EXPURGO_MS - (agora - desde) });
       continue;
     }
-    relatorio.expurgadas.push(await excluirEscola({ token, accountId: ACCOUNT_ID, slug, kv: reg.kv }));
+    relatorio.expurgadas.push(await excluirEscola({ token, accountId: ACCOUNT_ID, slug, worker: reg.worker, kv: reg.kv }));
   }
   return relatorio;
 }

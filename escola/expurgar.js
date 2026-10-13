@@ -9,7 +9,11 @@
  * no AMBIENTE DE DESENVOLVIMENTO, na próxima sincronização — a "Norma — limpeza" do
  * §17.5. Roda à mão ou por um hook `post-merge`.
  *
- *   uso: node escola/expurgar.js <slug> --professor <p> --ciclo <NN>
+ *   uso: node escola/expurgar.js <slug> [--professor <p>] [--ciclo <NN>]
+ *
+ * O `--professor` e o `--ciclo` podem ser omitidos: o índice da escola
+ * (`escola/<slug>/indice.json`, gerado pelo criar-escola.sh) já os carrega. Os
+ * argumentos só vencem quando o índice não existe (criação antiga).
  *
  * Checklist (a norma da limpeza):
  *   1. verifica «não está a pagar» — o índice carrega a flag; se `pagante:true`, NÃO apaga;
@@ -91,16 +95,25 @@ function registrarElo(slug, professor, ciclo, relatorio) {
 function main() {
   const args = process.argv.slice(2);
   if (args.length < 1) {
-    console.error('uso: node escola/expurgar.js <slug> --professor <p> --ciclo <NN>');
+    console.error('uso: node escola/expurgar.js <slug> [--professor <p>] [--ciclo <NN>]');
     process.exit(2);
   }
-  const { slug, professor, ciclo } = lerArgs(args);
-  if (!slug || !professor || !ciclo) {
-    console.error('erro: informe --professor e --ciclo (o slug vem primeiro).');
+  const { slug, professor: profArg, ciclo: cicloArg } = lerArgs(args);
+  if (!slug) {
+    console.error('erro: informe o slug da escola.');
     process.exit(2);
   }
 
   const indice = lerIndice(slug);
+  // O índice (gerado pelo criar-escola.sh) carrega professor e ciclo — os argumentos
+  // só vencem quando o índice não existe (criação antiga, sem índice).
+  const professor = profArg || (indice && indice.professor && indice.professor.slug) || null;
+  const ciclo = cicloArg || (indice && indice.ciclo) || null;
+  if (!professor || !ciclo) {
+    console.error('erro: informe --professor e --ciclo (ou um índice com esses dados).');
+    process.exit(2);
+  }
+
   if (indice && indice.pagante === true) {
     console.error('recusado: a escola "' + slug + '" está a pagar — não se apaga (§17.5).');
     process.exit(1);

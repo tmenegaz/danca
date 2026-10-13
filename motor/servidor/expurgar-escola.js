@@ -56,10 +56,16 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo }) 
  * Apaga a escola do Cloudflare: o subdomínio, o script do Worker e (se `kv` vier
  * declarado) as chaves do KV com o prefixo da escola. Devolve um relatório por etapa —
  * o hook usa para registrar o que foi apagado.
+ *
+ * `slug` é o identificador da escola (a chave do andaime e o prefixo do KV); `worker` é
+ * o NOME do script/subdomínio no Cloudflare. Quando o `--worker` do criar-escola.sh
+ * diverge do slug, é `worker` que manda no Cloudflare — o slug continua sendo quem
+ * nomeia o KV e o relatório. Sem `worker`, cai no slug (o caso comum).
  */
-async function excluirEscola({ token, accountId, slug, kv }) {
-  const base = '/accounts/' + accountId + '/workers/scripts/' + slug;
-  const resultado = { slug, subdominio: null, script: null, kv: null };
+async function excluirEscola({ token, accountId, slug, worker, kv }) {
+  const alvo = worker || slug;
+  const base = '/accounts/' + accountId + '/workers/scripts/' + alvo;
+  const resultado = { slug, worker: alvo, subdominio: null, script: null, kv: null };
 
   resultado.subdominio = await api(token, 'DELETE', base + '/subdomain');
   resultado.script = await api(token, 'DELETE', base);

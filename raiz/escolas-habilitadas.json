@@ -1,5 +1,5 @@
 {
-  "_nota": "ANDAIME do expurgo (IDEIA-PAINEL-ESCOLA.md §17.5). A pesquisadora edita à mão e reimplanta a raiz. `habilitada:false` + `desde` (ISO) = escola aguardando o prazo de expurgo (3 min no teste). `pagante:true` impede o expurgo. `kv` (namespaceId + prefixo) é opcional e limpa só as chaves da escola no KV compartilhado. Quando a Produção nascer, este arquivo SAI e a flag passa a viver no ESCOLA.conf.",
+  "_nota": "ANDAIME do expurgo (IDEIA-PAINEL-ESCOLA.md §17.5). A pesquisadora edita à mão e reimplanta a raiz. `habilitada:false` + `desde` (ISO) = escola aguardando o prazo de expurgo (3 min no teste). `pagante:true` impede o expurgo. `worker` (opcional) é o nome do script/subdomínio no Cloudflare quando difere do slug. `kv` (namespaceId + prefixo) é opcional e limpa só as chaves da escola no KV compartilhado. Quando a Produção nascer, este arquivo SAI e a flag passa a viver no ESCOLA.conf.",
   "maria": {
     "habilitada": true
   }
