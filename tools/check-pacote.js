@@ -409,7 +409,26 @@ if (!fs.existsSync(copiaDados)) {
       const senhas = fs.existsSync(arqSenhas) ? fs.readFileSync(arqSenhas, 'utf8') : '';
       const achou = senhas.match(new RegExp(`^${chaveSenha}="?([^"\\n]+)"?`, 'm'));
       if (!achou) {
-        avisos.push(`JSON de dados: ${chaveSenha} não está em tools/.senhas-locais — cópia × fonte não conferida`);
+        // Caminho (a): a senha vive no Worker (SENHA_CRIPTO), não no GitHub nem em .senhas-locais.
+        // Sem ela não se decifra a cópia; confere-se a ESTRUTURA — `lancamentos` e `apelidos` do
+        // envelope contra a fonte. A garantia criptográfica (byte a byte) fica para a máquina da
+        // pesquisadora (que tem .senhas-locais); no repositório, o `.fipp` protege a fonte.
+        try {
+          const fonte = JSON.parse(fs.readFileSync(fonteDados, 'utf8'));
+          const lanctFonte = Object.keys((fonte && fonte.aulas) || {}).length;
+          const apelidosFonte = (fonte && fonte.apelidos) || {};
+          const apelidosEnv = envelopeDados.apelidos || {};
+          const iguais = JSON.stringify(apelidosFonte) === JSON.stringify(apelidosEnv);
+          if (envelopeDados.lancamentos === lanctFonte && iguais) {
+            ok.push('JSON de dados: a estrutura da cópia confere com a fonte '
+              + `(${envelopeDados.lancamentos} lançamento(s); sem senha — byte a byte fica para a máquina local)`);
+          } else {
+            erros.push('JSON de dados: a cópia do pacote DIVERGE da fonte na estrutura (lancamentos/apelidos)');
+          }
+        } catch (e) {
+          erros.push('JSON de dados: não consegui conferir a estrutura da cópia '
+            + `(${String(e.message).split('\n')[0].slice(0, 80)})`);
+        }
       } else {
         try {
           const Cifra = require('./lib-cifra.js');

@@ -432,33 +432,21 @@ EOF
 echo "  worker: $WRANGLER"
 
 # ---------------------------------------------------------------------------
-# 7) Senha de criptografia (SENHA_<ESCOLA>) — a REAL, para produção e teste.
-#    Protege o -dados.json e os acompanhamentos. É DIFERENTE da SENHA_ADMIN (a do
-#    professor, que vive só no Worker, nunca no Git) e da SENHA_RAIZ. Antes era
-#    manual e a escola nascia SEM ela — foi exatamente o que quebrou a geração da
-#    Maria («JSON de dados ausente»). Agora ela NASCE aqui: uma senha aleatória
-#    forte, gravada em tools/.senhas-locais (fora do Git). NUNCA se sobrescreve
-#    (a proveniência acrescenta, não edita): se já existe, fica como está.
+# 7) Senha de criptografia — a REAL, mas que NÃO vive mais no computador local.
+#    Ela é a SENHA_CRIPTO, um secret do Worker, GERADA PELA PÁGINA `danca` quando a
+#    escola é criada (motor/servidor/provisionar-escola.js). Protege o -dados.json e
+#    os acompanhamentos. É DIFERENTE da SENHA_ADMIN (a do professor) e da SENHA_RAIZ.
+#    Este CLI NÃO gera senha — se a escola foi criada só por aqui, crie-a também pela
+#    página `danca`: o Worker é quem guarda a SENHA_CRIPTO (caminho (a), 100% Cloudflare).
 # ---------------------------------------------------------------------------
-# A chave segue a convenção SENHA_<ESCOLA> em maiúsculas, com hífen/símbolo virado
-# em sublinhado — a MESMA que escola/expurgar.js usa para remover a linha certa.
-SENHA_CHAVE="SENHA_$(printf '%s' "$ESCOLA" | tr '[:lower:]' '[:upper:]' | tr -c 'A-Z0-9' '_')"
-SENHAS_LOCAIS="$RAIZ/tools/.senhas-locais"
-if [ -f "$SENHAS_LOCAIS" ] && grep -qE "^${SENHA_CHAVE}=" "$SENHAS_LOCAIS"; then
-  echo "  senha: $SENHA_CHAVE já existe em tools/.senhas-locais — não sobrescrevo."
-else
-  nova="$(openssl rand -hex 24 2>/dev/null || od -vAn -N24 -tx1 /dev/urandom | tr -d ' \n')"
-  printf '\n# %s (%s, %s) — senha de criptografia dos dados/acompanhamentos.\n%s="%s"\n' \
-    "$ESCOLA_NOME" "$PROFESSOR_NOME" "$(date +%d/%m/%Y)" "$SENHA_CHAVE" "$nova" >> "$SENHAS_LOCAIS"
-  chmod 600 "$SENHAS_LOCAIS"
-  echo "  senha: $SENHA_CHAVE gerada e gravada em tools/.senhas-locais (fora do Git)."
-fi
+SENHA_CHAVE="SENHA_CRIPTO"
+SENHA_ARQUIVO="Worker (secret)"
 
 # ---------------------------------------------------------------------------
 # 8) Índice da escola (escola/<escola>/indice.json) — o que o expurgo lê para a
 #    limpeza por checklist (§17.6), e o que SOBREVIVE ao expurgo (a proveniência
-#    acrescenta, não edita). NÃO guarda o valor da senha: só a CHAVE (a senha vive
-#    em tools/.senhas-locais, fora do Git).
+#    acrescenta, não edita). NÃO guarda o valor da senha: só a CHAVE (SENHA_CRIPTO,
+#    que vive no Worker, fora do Git).
 # ---------------------------------------------------------------------------
 INDICE_DIR="$RAIZ/escola/$ESCOLA"
 INDICE_ARQ="$INDICE_DIR/indice.json"
@@ -467,9 +455,9 @@ mkdir -p "$INDICE_DIR"
 if [ -e "$INDICE_ARQ" ]; then
   echo "  aviso: $INDICE_ARQ já existe (o índice sobrevive ao expurgo) — não sobrescrevo."
 else
-  python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" <<'PY'
+  python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" "$SENHA_ARQUIVO" <<'PY'
 import sys, json, datetime
-arq, escola, worker, professor, professor_nome, responsavel, ciclo, senha_chave = sys.argv[1:9]
+arq, escola, worker, professor, professor_nome, responsavel, ciclo, senha_chave, senha_arquivo = sys.argv[1:10]
 indice = {
     "escola": escola,
     "worker": worker,
@@ -477,7 +465,7 @@ indice = {
     "professor": {"slug": professor, "nome": professor_nome},
     "responsavel": responsavel,
     "ciclo": ciclo,
-    "senha": {"chave": senha_chave, "arquivo": "tools/.senhas-locais"},
+    "senha": {"chave": senha_chave, "arquivo": senha_arquivo},
     "estado": {"habilitada": True},
     "arquivos": [
         {"caminho": "professores/%s/ciclos/ciclo-%s.conf" % (professor, ciclo), "tipo": "manifesto base"},
@@ -528,13 +516,13 @@ Pronto. Ambiente criado do zero:
   worker    : $WORKER
   pacote    : professores/$PROFESSOR/ciclos/ciclo-$CICLO-$ESCOLA/
   config    : wrangler.$WORKER.jsonc
-  senha     : $SENHA_CHAVE (gravada em tools/.senhas-locais, fora do Git)
+  senha     : $SENHA_CHAVE (secret do Worker — criada pela página \`danca\`, não por aqui)
   URL       : $URL  (após o deploy)
 
 Próximos passos (manuais, na ordem):
-  1. SINCRONIZE A SENHA NO GITHUB (senão a geração falha como na Maria):
-     copie o conteúdo de tools/.senhas-locais para o secret Actions `SENHAS_LOCAIS`
-     (Settings → Secrets and variables → Actions → SENHAS_LOCAIS).
+  1. SE A ESCOLA AINDA NÃO FOI CRIADA PELA PÁGINA \`danca\`, crie-a lá primeiro:
+     a página gera a SENHA_CRIPTO (o segredo que cifra o -dados.json) e a guarda no
+     Worker — sem ela o «Guardar» do PO não cifra e a geração falha como na Maria.
   2. commit + push (o deploy de produção e a geração lêem o main):
        git add -A
        git commit -m 'feat(estrutura): criar a escola $ESCOLA do zero'

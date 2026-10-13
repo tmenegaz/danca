@@ -10557,3 +10557,71 @@ manual que agora vira automático · `IDEIA-PAINEL-ESCOLA.md` §17.2–17.4 (a s
 - As escolas legadas (`maria`) ainda carregam a senha-placeholder (slug) e a entrada em
   `tools/.escolas-teste` — até serem regeneradas/expurgadas. As NOVAS nascem com senha real e
   FORA do `.escolas-teste` (a conferência do pre-push passa a protegê-las).
+
+## 12/10/2026 — A senha de criptografia nasce no Cloudflare (caminho a): o Worker cifra, o gerador copia
+
+**O que motivou.** A pesquisadora quer a escola criada **inteiramente no Cloudflare**, sem o
+computador local e sem um secret do GitHub para a senha. O modelo anterior (entrada de 12/10)
+fazia a `SENHA_<ESCOLA>` nascer no `criar-escola.sh` e viajar até o CI pelo secret `SENHAS_LOCAIS`
+— dois pontos que dependem do computador da pesquisadora e de um segredo no GitHub. Isso é
+incompatível com «tudo no Cloudflare».
+
+**O que foi decidido — o caminho (a).**
+- A senha de criptografia agora é **`SENHA_CRIPTO`**, um secret do Worker, **gerado na criação da
+  escola** pela página `danca` (`motor/servidor/provisionar-escola.js`), com CSPRNG — e exibido
+  **uma única vez** na resposta. Nunca toca o Git, o GitHub nem o disco local.
+- No «Guardar» do PO, o Worker cifra o `-dados.json` (novo `motor/servidor/cifrar-envelope.js`,
+  mesmo esquema de `tools/lib-cifra.js` → `PBKDF2-SHA256+AES-GCM`, 2e6 iterações) e grava a cópia
+  `-dados.cifrado.json` **ao lado da fonte**. O envelope é idêntico ao do `tools/cifrar-dados.js`.
+- O gerador (`gerar-ciclo.sh`) **copia** o `.cifrado.json` já pronto para o pacote; só cai no
+  cifrador legado (senha de `tools/.senhas-locais`) quando a cópia não existe (escolas antigas).
+- O CI deixa de montar o `SENHAS_LOCAIS`: sem a senha, o `check-pacote.js` **confere a estrutura**
+  (`lancamentos` + `apelidos` da cópia contra a fonte). A garantia byte a byte fica para a máquina
+  da pesquisadora (que tem `.senhas-locais`); no repositório, o `.fipp` protege a fonte.
+
+**Motivo declarado — os congelados.**
+`tools/gerar-ciclo.sh`, `tools/check-pacote.js` e `tools/criar-escola.sh` são congelados e exigem
+motivo. O motivo: a senha de criptografia deixa de ser um artefato LOCAL para ser um **secret do
+Worker**, porque a criação da escola passou a ser 100% Cloudflare. O que **não muda**:
+
+- **A fórmula da cifra.** O esquema continua `PBKDF2-SHA256+AES-GCM` (2e6) — só muda QUEM cifra
+  (o Worker, com `lib-cifra.js` assíncrono) e QUEM copia (o gerador).
+- **O contrato do `check-pacote.js`.** A cópia do pacote continua obrigatória; a conferência
+  byte a byte continua na máquina da pesquisadora — o CI só deixa de tê-la porque a senha saiu
+  do GitHub (a conferência ESTRUTURAL cobre o que o CI pode ver).
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **A proveniência.** A cópia cifrada nasce no «Guardar» (como as outras fontes derivadas) e só
+  é escrita se não existe — acrescenta, não edita.
+
+**Onde entrou.**
+- `motor/servidor/provisionar-escola.js` — gera e grava a `SENHA_CRIPTO` (passo 4 da criação) e a
+  devolve uma vez.
+- `motor/servidor/cifrar-envelope.js` (novo) — o envelope cifrado, mesmo contrato do
+  `tools/cifrar-dados.js`.
+- `motor/servidor/escrever-ciclo.js` — grava o `-dados.cifrado.json` ao lado da fonte.
+- `motor/servidor/cloudflare.js` — passa `env.SENHA_CRIPTO` ao escritor.
+- `raiz/index.html` — exibe a senha uma única vez ao criar a escola.
+- `tools/gerar-ciclo.sh` — copia o `.cifrado.json` pronto (fallback legado).
+- `tools/check-pacote.js` — sem senha local, confere a estrutura da cópia.
+- `tools/criar-escola.sh` — deixa de gerar senha; o índice aponta `SENHA_CRIPTO` (Worker).
+- `.github/workflows/gerar-ciclo.yml` — remove a montagem do `SENHAS_LOCAIS`.
+
+**Com o quê.**
+`motor/servidor/{provisionar-escola,cifrar-envelope,escrever-ciclo,cloudflare}.js`,
+`raiz/index.html`, `tools/{gerar-ciclo.sh,check-pacote.js,criar-escola.sh}`,
+`.github/workflows/gerar-ciclo.yml`, `REGISTRO.md`.
+
+**Referências.**
+A entrada «A senha de criptografia deixa de ser manual» (12/10) — o antecessor local que agora
+muda de lugar · `CONGELAMENTO.md` (`tools/`) · `tools/lib-cifra.js` (o esquema único da cifra).
+
+**O que ainda não está feito.**
+- `tools/gerar-acompanhamento.sh` ainda lê a senha de `tools/.senhas-locais` (o caminho local dos
+  acompanhamentos sensíveis). Com a `SENHA_CRIPTO` no Worker, quem for gerar acompanhamentos
+  precisa registrar a senha (exibida uma vez na criação) em `.senhas-locais` — ou o acompanhamento
+  migra para o Worker, o que ainda não foi desenhado.
+- As escolas legadas (`maria`, `diaghilev`) ainda têm a senha-placeholder em `.senhas-locais` e
+  não têm `SENHA_CRIPTO` no Worker — a regeneração/expurgo delas é que completa o caminho (a).
+- O caminho (a) foi provado na BANCADA (roundtrip `cifrarEnvelopeDeDados` ↔ `lib-cifra.js`) e no
+  bundle do Worker (dry-run). A prova fim-a-fim (criar escola pela página → preencher → Guardar →
+  gerar) ainda é a próxima etapa, com uma escola de teste nova.

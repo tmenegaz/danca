@@ -550,11 +550,18 @@ fi
 # shellcheck source=tools/lib-senhas.sh
 . "$RAIZ/tools/lib-senhas.sh"
 DADOS="$(fonte_dados)"
+DESTINO="$PACOTE/ciclo-$CICLO${VARIANTE:+-$VARIANTE}-dados.json"
+CIFRADO_PELO_WORKER="${DADOS%.json}.cifrado.json"
 if [ ! -f "$DADOS" ]; then
   echo "aviso: sem $DADOS — o pacote sai sem o JSON de dados, e o formulário não abre este ciclo" >&2
+elif [ -f "$CIFRADO_PELO_WORKER" ]; then
+  # Caminho (a): o Worker cifrou o `-dados.json` no «Guardar» do PO — a senha vive em SENHA_CRIPTO,
+  # dentro do Cloudflare. O gerador só COPIA o resultado; nunca vê a senha.
+  cp "$CIFRADO_PELO_WORKER" "$DESTINO" \
+    || { echo "erro: não consegui copiar o JSON de dados cifrado para o pacote." >&2; exit 1; }
 elif senha="$(senha_da_escola)"; then
-  SENHA="$senha" node "$RAIZ/tools/cifrar-dados.js" "$DADOS" \
-    "$PACOTE/ciclo-$CICLO${VARIANTE:+-$VARIANTE}-dados.json" \
+  # Fallback (escolas legadas, que ainda cifram aqui com a senha de tools/.senhas-locais).
+  SENHA="$senha" node "$RAIZ/tools/cifrar-dados.js" "$DADOS" "$DESTINO" \
     || { echo "erro: não consegui cifrar o JSON de dados para o pacote." >&2; exit 1; }
 else
   echo "aviso: o JSON de dados NÃO foi para o pacote (sem senha) — o check-pacote.js vai reprovar" >&2
