@@ -10930,3 +10930,33 @@ professor» (13/10).
 a senha validar; as mutações exigem a senha no corpo), não de sessão: os nomes de professores e
 apelidos de alunas ainda chegam no HTML da página. É apelido estável (P-12), não dado sensível —
 mas uma sessão por cookie ficaria mais rigorosa. Anotada, não implementada.
+
+## 13/10/2026 — Bloco 2: o nó 50 não semeia, e «não foi medido» entra transversal
+
+**O que motivou.** O Bloco 2 da integração dos formulários tinha duas partes. A primeira (o nó 50
+da anamnese alimentar o `contexto-metodologia` do plano) esbarrava num desencontro que o laudo do
+Bloco 1 não tinha visto; a segunda (a terceira via «não foi medido») era pedido novo e não existia.
+
+**O que foi decidido.**
+- **Nó 50 → plano: NÃO semear (decisão da pesquisadora, opção 3).** A matriz de origem da aluna
+  (`matriz-metodologica-de-origem`) e a metodologia de referência do professor
+  (`contexto-metodologia`) são **coisas diferentes** — sujeito aluna × sujeito professor, mesmo com
+  vocabulário idêntico (RAD·Vaganova·Francesa/Cecchetti·Escola livre). Ficam separadas; nada a
+  implementar. A «duplicação» apontada no laudo era leitura errada.
+- **«Não foi medido» transversal.** Os 34 campos de MEDIÇÃO da anamnese (os que declaram `opcoes`)
+  ganham a terceira via «não foi medido» — o professor declara que não mediu em vez de inventar
+  valor. O sentinel bloqueia o derivado: a ficha imprime «*não foi medido*» em itálico, sem marcar
+  caixa. O plano e o PO não têm o corte; o PO não lê medições da anamnese, só os sujeitos.
+
+**Onde entrou.** `porta/index.html` (a opção `NAO_MEDIDO` no `opcoesEmLinhas`, com CSS
+`.opcao.nao-medido`) · `motor/nucleo/ficha.js` (o bloqueio em `campoEmLinhas`).
+
+**Com o quê.** `porta/index.html`, `motor/nucleo/ficha.js` e as cópias geradas da porta nos
+pacotes da barra e da maria.
+
+**Referências.** `ARQUITETURA-ANAMNESE.md` (a anamnese não avalia, declara) · P-16 (declarado, não
+deduzido) · P-17 (harmonização) · o laudo do Bloco 1 (sessão).
+
+**O que ainda não está feito.** O cabeçalho «Método declarado (P-16)» da ficha, quando
+`matriz-metodologica-de-origem` sai como «não foi medido», mostra as caixas vazias (não imprime o
+sentinel) — borda menor, só do módulo-b. MMSS/MMII segue para o Bloco 8.
