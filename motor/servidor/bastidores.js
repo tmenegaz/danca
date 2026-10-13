@@ -395,13 +395,13 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '<form id="form-turma">' +
     '<label for="tnome">Nome da turma</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
-    '<label for="tordem">Ordem de exibição (número)</label>' +
+    '<label for="tordem">Posição na lista (1 = primeiro; vazio vai para o fim)</label>' +
     '<input id="tordem" name="ordem" autocomplete="off" placeholder="ex.: 1">' +
     '<label for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
     '<input id="tprograma" name="programaReferencia" autocomplete="off" placeholder="ex.: RAD (referência sugerida)">' +
-    '<label for="tnivel">Nível/grade de referência</label>' +
+    '<label for="tnivel">Equivalência pedagógica (referência)</label>' +
     '<input id="tnivel" name="nivelReferencia" autocomplete="off" placeholder="ex.: Grade 1">' +
-    '<label for="tdescricao">Descrição (opcional)</label>' +
+    '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
     '<button type="submit">Cadastrar turma</button>' +
     '</form>' +
@@ -431,6 +431,7 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) {' +
     '      SENHA_DIRECAO = senha;' +
+    '      try { sessionStorage.setItem("producao:senha", senha); } catch (err) { /* sem sessão */ }' +
     '      document.getElementById("gate").hidden = true;' +
     '      document.getElementById("conteudo").hidden = false;' +
     '    } else { g.className = "res erro"; g.textContent = "Senha não reconhecida."; }' +
@@ -440,6 +441,14 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '  e.preventDefault();' +
     '  entrar(document.getElementById("dsenha").value);' +
     '});' +
+    '// A sessão persiste enquanto a ABA fica aberta (sessionStorage): depois do primeiro login,' +
+    '// o recarregar da página (após cadastrar/excluir) re-entra SOZINHO, sem pedir a senha de novo.' +
+    '// Fechar a aba esquece; manter aberta não volta a pedir.' +
+    '(function(){' +
+    '  var guardada = null;' +
+    '  try { guardada = sessionStorage.getItem("producao:senha"); } catch (err) {}' +
+    '  if (guardada) entrar(guardada);' +
+    '})();' +
     'function postar(id, corpo) {' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
