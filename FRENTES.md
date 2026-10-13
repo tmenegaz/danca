@@ -144,9 +144,9 @@ plano para o PO (hoje presas no plano). Além disso, o PO tem `escola` (cabeçal
 
 | # | Frente | Estado | Bloqueio |
 |:--|:--|:--|:--|
-| B1 | **Curadoria** — a peça central (atribuição por professor que pré-carrega os 3 formulários) | ⬜ aberto | decidir a estrutura (carrinho = atribuição) |
-| B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | ⬜ aberto | depende de B1 |
-| B3 | **Catálogo: base → biblioteca** — o CRUD de hoje vira `biblioteca/modalidades/` + `ESCOLA.conf`; a escola **declara** o que usa | ⬜ aberto | decisão de arquitetura (ver §4) |
+| B1 | **Curadoria** — a peça central (atribuição por professor que pré-carrega os 3 formulários) | ✅ mecanismo pronto | `motor/servidor/bastidores.js` + `biblioteca/modalidades/modalidades.json` (commit `f8d367e`) |
+| B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | 🔨 em andamento | depende de B1 (mecanismo pronto) |
+| B3 | **Catálogo: base → biblioteca** — o CRUD de hoje vira `biblioteca/modalidades/` + `ESCOLA.conf`; a escola **declara** o que usa | ✅ base migrada | `biblioteca/modalidades/` (commit `14bfb2e`); falta o `ESCOLA.conf` |
 | B4 | **Norma revisada** — Produção **pode criar/excluir** (caso a caso) | ✅ registrada | `REGISTRO.md` + `IDEIA-PAINEL-ESCOLA.md` §12 |
 | B5 | **Bug do `[Preencher]`** na `distribuicao-de-volume` | 🔒 bloqueado | precisa do JSON do envelope vivo (Maria/KV) |
 | B6 | **Modalidade comum × específico** (anamnese 100% balé) | ⏸ deferido | reescrita de conteúdo (P-16) |
@@ -210,9 +210,9 @@ escola.
 
 ```
 1. B4 — registrar a norma revisada (REGISTRO + IDEIA-PAINEL-ESCOLA)   ✅ feita
-2. B3 — mover a base para biblioteca/modalidades (peça própria)       ← conteúdo, não código
-3. B1 — curadoria (a peça central)                                    ← o elo que liga tudo
-4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       ← depende de B1
+2. B3 — mover a base para biblioteca/modalidades (peça própria)       ✅ base migrada (falta ESCOLA.conf)
+3. B1 — curadoria (a peça central)                                    ✅ mecanismo pronto (f8d367e)
+4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       🔨 em andamento
 5. B7 — Bloco 4 do PO (rubrica, turmas plural, checklist)             ← depende de B2
 6. A1 → A3 → A2 → A4 — experimento: tokens, freio, binding KV, migração
 7. B5 — bug do [Preencher] (quando houver envelope vivo)              ← desbloqueável a qualquer hora
