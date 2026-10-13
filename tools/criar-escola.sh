@@ -432,14 +432,34 @@ EOF
 echo "  worker: $WRANGLER"
 
 # ---------------------------------------------------------------------------
-# 7) Índice da escola (escola/<escola>/indice.json) — o que o expurgo lê para a
+# 7) Senha de criptografia (SENHA_<ESCOLA>) — a REAL, para produção e teste.
+#    Protege o -dados.json e os acompanhamentos. É DIFERENTE da SENHA_ADMIN (a do
+#    professor, que vive só no Worker, nunca no Git) e da SENHA_RAIZ. Antes era
+#    manual e a escola nascia SEM ela — foi exatamente o que quebrou a geração da
+#    Maria («JSON de dados ausente»). Agora ela NASCE aqui: uma senha aleatória
+#    forte, gravada em tools/.senhas-locais (fora do Git). NUNCA se sobrescreve
+#    (a proveniência acrescenta, não edita): se já existe, fica como está.
+# ---------------------------------------------------------------------------
+# A chave segue a convenção SENHA_<ESCOLA> em maiúsculas, com hífen/símbolo virado
+# em sublinhado — a MESMA que escola/expurgar.js usa para remover a linha certa.
+SENHA_CHAVE="SENHA_$(printf '%s' "$ESCOLA" | tr '[:lower:]' '[:upper:]' | tr -c 'A-Z0-9' '_')"
+SENHAS_LOCAIS="$RAIZ/tools/.senhas-locais"
+if [ -f "$SENHAS_LOCAIS" ] && grep -qE "^${SENHA_CHAVE}=" "$SENHAS_LOCAIS"; then
+  echo "  senha: $SENHA_CHAVE já existe em tools/.senhas-locais — não sobrescrevo."
+else
+  nova="$(openssl rand -hex 24 2>/dev/null || od -vAn -N24 -tx1 /dev/urandom | tr -d ' \n')"
+  printf '\n# %s (%s, %s) — senha de criptografia dos dados/acompanhamentos.\n%s="%s"\n' \
+    "$ESCOLA_NOME" "$PROFESSOR_NOME" "$(date +%d/%m/%Y)" "$SENHA_CHAVE" "$nova" >> "$SENHAS_LOCAIS"
+  chmod 600 "$SENHAS_LOCAIS"
+  echo "  senha: $SENHA_CHAVE gerada e gravada em tools/.senhas-locais (fora do Git)."
+fi
+
+# ---------------------------------------------------------------------------
+# 8) Índice da escola (escola/<escola>/indice.json) — o que o expurgo lê para a
 #    limpeza por checklist (§17.6), e o que SOBREVIVE ao expurgo (a proveniência
 #    acrescenta, não edita). NÃO guarda o valor da senha: só a CHAVE (a senha vive
 #    em tools/.senhas-locais, fora do Git).
 # ---------------------------------------------------------------------------
-# A chave da senha segue a convenção SENHA_<ESCOLA> em maiúsculas, com hífen/símbolo
-# virado em sublinhado — a MESMA que escola/expurgar.js usa para remover a linha certa.
-SENHA_CHAVE="SENHA_$(printf '%s' "$ESCOLA" | tr '[:lower:]' '[:upper:]' | tr -c 'A-Z0-9' '_')"
 INDICE_DIR="$RAIZ/escola/$ESCOLA"
 INDICE_ARQ="$INDICE_DIR/indice.json"
 mkdir -p "$INDICE_DIR"
@@ -475,7 +495,7 @@ PY
 fi
 
 # ---------------------------------------------------------------------------
-# 8) Deploy (opcional)
+# 9) Deploy (opcional)
 # ---------------------------------------------------------------------------
 if [ "$DEPLOY" = 1 ]; then
   echo "  deploy: subindo o Worker '$WORKER' ..."
@@ -508,15 +528,19 @@ Pronto. Ambiente criado do zero:
   worker    : $WORKER
   pacote    : professores/$PROFESSOR/ciclos/ciclo-$CICLO-$ESCOLA/
   config    : wrangler.$WORKER.jsonc
+  senha     : $SENHA_CHAVE (gravada em tools/.senhas-locais, fora do Git)
   URL       : $URL  (após o deploy)
 
 Próximos passos (manuais, na ordem):
-  1. commit + push (o deploy de produção e a geração lêem o main):
+  1. SINCRONIZE A SENHA NO GITHUB (senão a geração falha como na Maria):
+     copie o conteúdo de tools/.senhas-locais para o secret Actions `SENHAS_LOCAIS`
+     (Settings → Secrets and variables → Actions → SENHAS_LOCAIS).
+  2. commit + push (o deploy de produção e a geração lêem o main):
        git add -A
        git commit -m 'feat(estrutura): criar a escola $ESCOLA do zero'
        git push
-  2. ancore a proveniência (o ciclo é o primeiro do professor; sem parentHash):
+  3. ancore a proveniência (o ciclo é o primeiro do professor; sem parentHash):
        tools/hash-ciclo.sh $PROFESSOR $CICLO $ESCOLA
-  3. abra $URL/plano-observacao/ e faça, na ordem, a anamnese, o plano e o PO
+  4. abra $URL/plano-observacao/ e faça, na ordem, a anamnese, o plano e o PO
      do zero (a porta conduz anamnese → plano → PO).
 EOF

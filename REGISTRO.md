@@ -10504,3 +10504,56 @@ declarada) · `CONGELAMENTO.md` (`tools/`).
   `post-merge` cobre as OUTRAS máquinas — quando o elo chega pelo `main`, mas os artefatos
   ainda não. Fechar isso exige dar escrita ao Cron ou um fluxo explícito de "expurgou no
   servidor → commit do elo".
+
+## 12/10/2026 — A senha de criptografia deixa de ser manual: nasce REAL no criar-escola.sh
+
+**O que motivou.** A geração da Maria falhou com «JSON de dados ausente» porque `SENHA_MARIA`
+(a senha de criptografia do `-dados.json`/acompanhamentos) não existia — nenhum fluxo a criava.
+Ela era feita à mão, e para a Maria/Daghilev usou-se o placeholder «senha = slug». A
+pesquisadora pediu a SOLUÇÃO REAL, que funcione para escolas de produção — não mais um atalho
+de teste (senha = slug), que escondia o problema em vez de resolvê-lo.
+
+**O que foi decidido.**
+- O `criar-escola.sh` passa a **gerar a `SENHA_<ESCOLA>`** — uma senha aleatória forte
+  (`openssl rand -hex 24`, 48 hex), gravada em `tools/.senhas-locais` (fora do Git, `chmod 600`).
+  NUNCA sobrescreve: se a chave já existe, fica como está (a proveniência acrescenta, não edita).
+- A senha de criptografia é DIFERENTE da `SENHA_ADMIN` (a do professor, que a página `danca`
+  grava só no Worker, nunca no Git) e da `SENHA_RAIZ`. Só a `SENHA_<ESCOLA>` toca o GitHub —
+  e apenas pelo secret `SENHAS_LOCAIS`, que o CI monta em `tools/.senhas-locais` para cifrar o
+  `-dados.json`.
+- O resumo do script passa a declarar, como PRIMEIRO passo manual, a sincronização de
+  `tools/.senhas-locais` → secret Actions `SENHAS_LOCAIS` (o único passo que o meu token não
+  pode fazer — a pesquisadora o faz). Sem isso, a geração reprova como na Maria.
+
+**Motivo declarado — os congelados.**
+`tools/criar-escola.sh` é congelado e exige motivo. O motivo: o problema da Maria não era de
+conteúdo, era de INFRAESTRUTURA — faltava o produtor da senha de criptografia, e a escola
+nascia incompleta. Gerar a senha na criação fecha o ciclo de vida (criar → cifrar → gerar →
+expurgar) na primeira etapa. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** A senha nova não é fonte de ciclo; o `.fipp` não muda.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **O que o script já criava.** Manifestos, schemas, pacote zero, `wrangler.<escola>.jsonc` e o
+  índice continuam os mesmos — a senha é um arquivo local NOVO (fora do Git), ao lado deles.
+- **A convenção de leitura.** `lib-senhas.sh` continua lendo `SENHA_<ESCOLA>` de
+  `tools/.senhas-locais`; só muda quem a ESCREVE (antes ninguém, agora o criar-escola.sh).
+
+**Onde entrou.**
+`tools/criar-escola.sh` — o passo 7 «Senha de criptografia» (gera `SENHA_<ESCOLA>` real; passo
+idempotente) e o resumo com a sincronização do `SENHAS_LOCAIS` como passo 1.
+
+**Com o quê.**
+`tools/criar-escola.sh`, `REGISTRO.md`.
+
+**Referências.**
+A entrada «A senha de criptografia da Maria nasce mockada e chega ao CI» (12/10) — o antecessor
+manual que agora vira automático · `IDEIA-PAINEL-ESCOLA.md` §17.2–17.4 (a senha por escola) ·
+`CONGELAMENTO.md` (`tools/`).
+
+**O que ainda não está feito.**
+- A sincronização `tools/.senhas-locais` → secret `SENHAS_LOCAIS` continua manual (o meu token
+  não grava segredos no GitHub; a pesquisadora o faz). Enquanto for manual, é o único ponto de
+  falha do «gerar PO completo».
+- As escolas legadas (`maria`) ainda carregam a senha-placeholder (slug) e a entrada em
+  `tools/.escolas-teste` — até serem regeneradas/expurgadas. As NOVAS nascem com senha real e
+  FORA do `.escolas-teste` (a conferência do pre-push passa a protegê-las).
