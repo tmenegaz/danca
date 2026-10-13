@@ -170,10 +170,12 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, pr
       text: senhaProfessor,
       type: 'secret_text',
     });
-    // «O professor é o dono da escola» — quando sim, o professor também entra na Produção.
+    // «O professor é o dono da escola» — agora SEMPRE sim: quem cria a escola pela página é a
+    // pesquisadora, e o professor inicial é a pessoa de contato (a direção). A marcação saiu
+    // do formulário; este secret só fica para o que ainda o lê por compatibilidade.
     await api('professor-eh-dono', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
       name: 'PROFESSOR_EH_DONO',
-      text: professorEhDono ? 'sim' : 'nao',
+      text: 'sim',
       type: 'secret_text',
     });
   }

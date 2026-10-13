@@ -157,7 +157,10 @@ async function fetch(request, env) {
       const senhaAdmin = String(corpo.senhaAdmin || '');
       const professorNome = String(corpo.professorNome || corpo['professor-nome'] || '').trim();
       const senhaProfessor = String(corpo.senhaProfessor || corpo['senha-professor'] || '');
-      const professorEhDono = Boolean(corpo.professorEhDono || corpo['professor-eh-dono']);
+      // O professor criado na página é SEMPRE o dono da escola (a direção). A marcação
+      // «é o dono?» saiu do formulário: quem cria é a pesquisadora, e o professor inicial
+      // é a pessoa de contato da escola — o nome pode ser ajustado nos Bastidores.
+      const professorEhDono = true;
       if (!nome || !senhaAdmin || !professorNome || !senhaProfessor) {
         return new Response(JSON.stringify({ ok: false, erro: 'informe o nome da escola, a senha do administrador, o nome e a senha do professor' }), {
           status: 400,

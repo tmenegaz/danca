@@ -100,6 +100,29 @@ async function alunas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/alunas');
 }
 
+/** O nome do professor DONO, com a sobreposição editável no KV. O dono vive como SECRET
+ *  (PROFESSOR_NOME) e o nome ajustado nos Bastidores fica no KV — o KV vence, para o nome
+ *  poder ser corrigido sem tocar no segredo do Worker (a senha continua a do segredo). */
+async function nomeDoDono(env, kv, escola) {
+  try {
+    const t = await kv.get(RAIZ + '/' + escola + '/dono');
+    if (t) {
+      const o = JSON.parse(t);
+      const n = String((o && o.nome) || '').trim();
+      if (n) return n;
+    }
+  } catch (e) { /* sem sobreposição — usa o secret */ }
+  return String((env && env.PROFESSOR_NOME) || '').trim();
+}
+
+/** A senha da DIREÇÃO (Produção) é a senha do administrador OU a do professor dono. */
+function senhaDaDirecaoOk(env, senha) {
+  if (!senha) return false;
+  if (env && env.SENHA_ADMIN && senha === env.SENHA_ADMIN) return true;
+  if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) return true;
+  return false;
+}
+
 function paginaHub(escola) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
@@ -149,18 +172,20 @@ function paginaEstudio(escola) {
     '</div></body></html>';
 }
 
-function paginaProducao(escola, profs, aluns, env) {
-  // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME) e é o
-  // «dono» da escola; os professores ADICIONAIS cadastrados aqui vivem no KV. A vista
-  // lista os dois — o segredo primeiro, sem duplicar.
-  const secretNome = String((env && env.PROFESSOR_NOME) || '').trim();
+function paginaProducao(escola, profs, aluns, dono) {
+  // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
+  // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
+  // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
+  // da escola, e o segredo do Worker é outra fronteira. A lista não duplica.
+  const donoNome = String(dono || '').trim();
   const linhasProfs = [];
-  if (secretNome) {
-    linhasProfs.push('<li>' + esc(secretNome) + ' <span class="dono">(dono — criado na página)</span></li>');
+  if (donoNome) {
+    linhasProfs.push('<li>' + esc(donoNome) + ' <span class="dono">(dono — criado na página)</span>'
+      + ' <button class="editar" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do dono">Editar</button></li>');
   }
   for (const p of profs) {
     if (!p || !p.nome) continue;
-    if (p.nome === secretNome) continue; // o dono já entrou, sem duplicar
+    if (p.nome === donoNome) continue; // o dono já entrou, sem duplicar
     linhasProfs.push('<li>' + esc(p.nome)
       + ' <button class="apagar" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></li>');
   }
@@ -196,11 +221,24 @@ function paginaProducao(escola, profs, aluns, env) {
     'button.apagar{margin-left:.7rem;padding:.15rem .55rem;background:#b25555;color:#fff;' +
     'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     'button.apagar:hover{background:#8f3f3f;}' +
+    'button.editar{margin-left:.7rem;padding:.15rem .55rem;background:#6b2f2f;color:#fff;' +
+    'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    '[hidden]{display:none!important;}' +
+    '#gate{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
     '</style></head><body>' +
     '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Bastidores · Produção</span></div>' +
     '<div class="corpo">' +
     '<h1>Produção</h1>' +
-    '<p>O gabinete da direção — só a direção entra (senha própria). Cadastre professores e alunas.</p>' +
+    '<p>O gabinete da direção — só a direção entra. Cadastre professores e alunas, e ajuste o nome do dono.</p>' +
+    '<div id="gate">' +
+    '<form id="form-senha">' +
+    '<label for="dsenha">Senha da direção</label>' +
+    '<input id="dsenha" type="password" autocomplete="current-password" autofocus>' +
+    '<button type="submit">Entrar</button>' +
+    '</form>' +
+    '<div class="res" id="res-gate"></div>' +
+    '</div>' +
+    '<div id="conteudo" hidden>' +
     '<h2>Cadastrar professor</h2>' +
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
@@ -219,8 +257,29 @@ function paginaProducao(escola, profs, aluns, env) {
     '<h2>Professores cadastrados</h2><ul>' + itensProfs + '</ul>' +
     '<h2>Alunas cadastradas</h2><ul>' + itensAlunas + '</ul>' +
     '</div>' +
+    '</div>' +
     '<script>' +
+    'var SENHA_DIRECAO = "";' +
+    'function entrar(senha) {' +
+    '  var g = document.getElementById("res-gate");' +
+    '  g.className = "res"; g.textContent = "verificando...";' +
+    '  fetch("/api/bastidores/validar-producao", {' +
+    '    method: "POST", headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify({senha: senha})' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (d.ok) {' +
+    '      SENHA_DIRECAO = senha;' +
+    '      document.getElementById("gate").hidden = true;' +
+    '      document.getElementById("conteudo").hidden = false;' +
+    '    } else { g.className = "res erro"; g.textContent = "Senha não reconhecida."; }' +
+    '  }).catch(function(err){ g.className = "res erro"; g.textContent = "Erro: " + err.message; });' +
+    '}' +
+    'document.getElementById("form-senha").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  entrar(document.getElementById("dsenha").value);' +
+    '});' +
     'function postar(id, corpo) {' +
+    '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
     '  res.className = "res"; res.textContent = "cadastrando...";' +
     '  return fetch(id === "form-prof" ? "/api/bastidores/professor" : "/api/bastidores/aluna", {' +
@@ -241,14 +300,29 @@ function paginaProducao(escola, profs, aluns, env) {
     '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
     '});' +
     'document.addEventListener("click", function(e){' +
+    '  var ed = e.target.closest("button.editar");' +
+    '  if (ed) {' +
+    '    var atual = ed.getAttribute("data-alvo");' +
+    '    var nome = prompt("Novo nome do dono da escola:", atual);' +
+    '    if (!nome || !nome.trim() || nome.trim() === atual) return;' +
+    '    fetch("/api/bastidores/dono", {' +
+    '      method: "POST", headers: {"Content-Type": "application/json"},' +
+    '      body: JSON.stringify({nome: nome.trim(), senhaDirecao: SENHA_DIRECAO})' +
+    '    }).then(function(r){ return r.json(); }).then(function(d){' +
+    '      if (d.ok) { location.reload(); } else { alert("Erro: " + (d.erro || "desconhecido")); }' +
+    '    }).catch(function(err){ alert("Erro: " + err.message); });' +
+    '    return;' +
+    '  }' +
     '  var b = e.target.closest("button.apagar"); if (!b) return;' +
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
     '  if (!confirm("Excluir " + alvo + "?")) return;' +
+    '  var corpo = tipo === "aluna" ? {apelido: alvo} : {nome: alvo};' +
+    '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  fetch("/api/bastidores/" + tipo, {' +
     '    method: "DELETE",' +
     '    headers: {"Content-Type": "application/json"},' +
-    '    body: JSON.stringify(tipo === "aluna" ? {apelido: alvo} : {nome: alvo})' +
+    '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) { location.reload(); }' +
     '    else { alert("Erro: " + (d.erro || "desconhecido")); }' +
@@ -286,7 +360,8 @@ async function fetch(request, env) {
   }
   if (path === '/bastidores/producao') {
     const [profs, aluns] = await Promise.all([professores(kv, escola), alunas(kv, escola)]);
-    return html(paginaProducao(escola, profs, aluns, env));
+    const dono = await nomeDoDono(env, kv, escola);
+    return html(paginaProducao(escola, profs, aluns, dono));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -294,16 +369,26 @@ async function fetch(request, env) {
     return json(200, { ok: true, escola, alunas: await alunas(kv, escola) });
   }
 
-  // GET /api/bastidores/professores — só os NOMES (a senha nunca sai).
+  // GET /api/bastidores/professores — só os NOMES (a senha nunca sai). O dono vem
+  // primeiro (o nome editável no KV vence o secret), sem duplicar com os adicionais.
   if (path === '/api/bastidores/professores') {
     const profs = await professores(kv, escola);
-    return json(200, { ok: true, escola, professores: profs.map((p) => p.nome) });
+    const dono = await nomeDoDono(env, kv, escola);
+    const nomes = [];
+    if (dono) nomes.push(dono);
+    for (const p of profs) {
+      if (p && p.nome && nomes.indexOf(p.nome) === -1) nomes.push(p.nome);
+    }
+    return json(200, { ok: true, escola, professores: nomes });
   }
 
   // POST /api/bastidores/professor — cadastrar professor (nome + senha).
   if (path === '/api/bastidores/professor' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
     const nome = String(corpo.nome || '').trim();
     const senha = String(corpo.senha || '');
     if (!nome || !senha) return json(400, { ok: false, erro: 'informe o nome e a senha do professor' });
@@ -320,6 +405,9 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/aluna' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
     const apelido = String(corpo.apelido || '').trim();
     if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
     const lista = await alunas(kv, escola);
@@ -333,6 +421,9 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/aluna' && request.method === 'DELETE') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
     const apelido = String(corpo.apelido || '').trim();
     if (!apelido) return json(400, { ok: false, erro: 'informe o apelido da aluna' });
     const lista = await alunas(kv, escola);
@@ -350,13 +441,17 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/professor' && request.method === 'DELETE') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
     const nome = String(corpo.nome || '').trim();
     if (!nome) return json(400, { ok: false, erro: 'informe o nome do professor' });
-    const secretNome = String((env && env.PROFESSOR_NOME) || '').trim();
-    if (secretNome && nome === secretNome) {
+    // O dono pode ter o nome ajustado no KV — protege-se pelo nome RESOLVIDO, não só o secret.
+    const donoNome = await nomeDoDono(env, kv, escola);
+    if (donoNome && nome === donoNome) {
       return json(409, {
         ok: false,
-        erro: 'este é o professor dono da escola (criado na página) — exclua pela página, não pelos Bastidores',
+        erro: 'este é o professor dono da escola (criado na página) — ajuste o nome, não o exclua',
       });
     }
     const lista = await professores(kv, escola);
@@ -367,6 +462,25 @@ async function fetch(request, env) {
     return json(200, { ok: true, professor: nome, removido: true });
   }
 
+  // POST /api/bastidores/dono — ajustar o NOME do professor dono (o criado na página).
+  // O dono vive como SECRET (PROFESSOR_NOME/SENHA_PROFESSOR); o nome ajustado fica no KV
+  // como SOBREPOSIÇÃO de exibição (`bastidores/<escola>/dono`). A SENHA do dono NÃO muda
+  // por aqui (continua a do secret) — só o nome, que pode ter sido provisório.
+  if (path === '/api/bastidores/dono' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const nome = String(corpo.nome || '').trim();
+    if (!nome) return json(400, { ok: false, erro: 'informe o nome do dono da escola' });
+    if (!String((env && env.PROFESSOR_NOME) || '').trim()) {
+      return json(409, { ok: false, erro: 'não há professor dono (criado na página) para ajustar' });
+    }
+    await kv.put(RAIZ + '/' + escola + '/dono', JSON.stringify({ nome }));
+    return json(200, { ok: true, dono: nome });
+  }
+
   // POST /api/bastidores/validar-senha — a anamnese valida a senha do professor.
   // Fonte dupla: o secret `SENHA_PROFESSOR` (o professor criado pela página) OU a lista no KV.
   if (path === '/api/bastidores/validar-senha' && request.method === 'POST') {
@@ -375,9 +489,11 @@ async function fetch(request, env) {
     const senha = String(corpo.senha || '');
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
 
-    // O professor criado pela página vive no secret SENHA_PROFESSOR.
+    // O professor criado pela página vive no secret SENHA_PROFESSOR. O nome devolvido é o
+    // RESOLVIDO (o KV vence o secret), para bater com a lista do seletor.
     if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
-      return json(200, { ok: true, professor: (env.PROFESSOR_NOME || 'professor') });
+      const nome = await nomeDoDono(env, kv, escola);
+      return json(200, { ok: true, professor: (nome || 'professor') });
     }
 
     const profs = await professores(kv, escola);
@@ -399,9 +515,10 @@ async function fetch(request, env) {
     try { corpo = await request.json(); } catch { corpo = {}; }
     const senha = String(corpo.senha || '');
     if (!senha) return json(400, { ok: false, erro: 'informe a senha da direção' });
-    const ehAdmin = env && env.SENHA_ADMIN && senha === env.SENHA_ADMIN;
-    const ehDono = env && env.PROFESSOR_EH_DONO === 'sim' && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR;
-    return json(200, (ehAdmin || ehDono)
+    // O professor criado na página é SEMPRE o dono (a marcação saiu): a senha da direção é
+    // a do administrador OU a do professor dono.
+    const okDirecao = senhaDaDirecaoOk(env, senha);
+    return json(200, okDirecao
       ? { ok: true, direcao: true }
       : { ok: false, erro: 'senha da direção não reconhecida' });
   }

@@ -38,10 +38,8 @@
           <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Tiago">
           <label for="senha-professor">Senha do professor</label>
           <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
-          <label class="form-check" for="professor-eh-dono">
-            <input id="professor-eh-dono" name="professor-eh-dono" type="checkbox">
-            <span>O professor é o dono da escola (a mesma pessoa)</span>
-          </label>
+          <p class="nota">O professor criado aqui é o <b>dono da escola</b> (a direção) — pode ajustar o
+            nome dele depois, nos Bastidores · Produção.</p>
           <div class="modal-acoes">
             <button class="acao secundario" id="btn-cancelar" type="button">Cancelar</button>
             <button class="acao" type="submit">Criar</button>
@@ -563,8 +561,7 @@
                 nome: v("nome"),
                 senhaAdmin: v("senha"),
                 professorNome: v("professor-nome"),
-                senhaProfessor: v("senha-professor"),
-                professorEhDono: (document.getElementById("professor-eh-dono") || {}).checked === true
+                senhaProfessor: v("senha-professor")
               })
             }).then(function (r) { return r.json(); }).then(function (d) {
               if (d.ok) {
