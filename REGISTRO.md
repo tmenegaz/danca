@@ -11214,3 +11214,30 @@ curadoria e integração») · a frente B1 do `FRENTES.md`.
 **O que ainda não está feito.** O **consumo** (B2): fazer a anamnese, o plano e o PO **lerem** a
 curadoria do professor e pré-carregarem turma/repertório/alunas. É a frente seguinte. A
 modalidade/tradição ainda não **filtram** os blocos da anamnese (isso é B6, reescrita de conteúdo).
+
+## 13/10/2026 — Metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2)
+
+**O que motivou.** A frente B2 (integração dos formulários). O laudo L5 do Bloco 1 mediu que
+`metodologia` / `quem-escolhe` / `notação` ficavam **presas no plano** e não chegavam ao PO —
+o primeiro «ligar» do Bloco 8.2.
+
+**O que foi decidido.**
+- O PO **lê** a metodologia, o quem-escolhe e a notação do PLANO referenciado (como já faz com o
+  campo empírico e o contexto) — **não as re-coleta**. Declaradas, nunca deduzidas (P-16).
+- Nova seção `## Metodologia e notação` no PO derivado, composta por
+  `comporMetodologiaENotacao(plano)`: «Metodologia de referência», «Quem escolhe a metodologia»
+  e «Notação dominada». Sem plano (ou sem valor), sai `[a decidir]` — nunca inferência.
+- A «Norma estabelecida» do PO **continua** separada e elicitada (é a entrevista, nunca a
+  dedução) — a metodologia do plano não a preenche.
+
+**Onde entrou.** `motor/nucleo/derivar-po.js` — `comporMetodologiaENotacao()` + a chamada
+`prosa('Metodologia e notação', …)` na ordem das seções (após o Contexto, antes de Sujeitos).
+
+**Com o quê.** `motor/nucleo/derivar-po.js`.
+
+**Referências.** P-16 (declarado, nunca deduzido) · o laudo L5 do `FRENTES.md` (Bloco 8.2) · o
+`schema` do PO (o campo `norma` continua elicitado, não derivado).
+
+**O que ainda não está feito.** O resto da integração (B2): fazer a anamnese, o plano e o PO
+**lerem a curadoria** do professor (turma/repertório/alunas) — a frente seguinte. O
+`campo-escola` × `escola` (cabeçalho) do PO segue como candidato a confirmar com a pesquisadora.
