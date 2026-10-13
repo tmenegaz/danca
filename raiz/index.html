@@ -27,12 +27,32 @@
           <button class="modal-x" id="btn-fechar" type="button" aria-label="Fechar">&times;</button>
         </div>
         <form class="form" id="form-criar">
-          <p class="nota">Crie uma escola nova a partir daqui. Ela nasce no estado «zero» — a «Área do Professor»
-            desabilitada até o administrador cadastrar um professor nos Bastidores.</p>
+          <p class="nota">Crie uma escola nova a partir daqui. A página sobe o Worker «zero» e
+            dispara o deploy do motor completo — depois, é nos <b>Bastidores → Produção</b>
+            que o professor é cadastrado e a «Área do Professor» é habilitada.</p>
           <label for="nome">Nome da escola</label>
           <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
           <label for="senha">Senha do administrador</label>
           <input id="senha" name="senha" type="password" autocomplete="new-password">
+          <label for="professor">Professor (slug — a pasta em professores/)</label>
+          <input id="professor" name="professor" autocomplete="off" placeholder="ex.: tiago">
+          <label for="professor-nome">Nome de exibição do professor</label>
+          <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Tiago">
+          <label for="ciclo">Ciclo (dois dígitos)</label>
+          <input id="ciclo" name="ciclo" value="01" autocomplete="off">
+          <details class="form-avancado">
+            <summary>Contexto institucional (opcional — o plano o substitui)</summary>
+            <label for="data-inicio">Data de início (dd/mm/aaaa)</label>
+            <input id="data-inicio" name="data-inicio" autocomplete="off" placeholder="ex.: 20/10/2026">
+            <label for="frequencia">Frequência semanal</label>
+            <input id="frequencia" name="frequencia" value="2x/semana" autocomplete="off">
+            <label for="dias">Dias + horas (ISO)</label>
+            <input id="dias" name="dias" value="2@19:00,4@19:00" autocomplete="off">
+            <label for="duracao">Duração por aula (minutos)</label>
+            <input id="duracao" name="duracao" value="60" autocomplete="off">
+            <label for="responsavel">Responsável</label>
+            <input id="responsavel" name="responsavel" autocomplete="off" placeholder="ex.: Tiago">
+          </details>
           <div class="modal-acoes">
             <button class="acao secundario" id="btn-cancelar" type="button">Cancelar</button>
             <button class="acao" type="submit">Criar</button>
@@ -463,6 +483,17 @@
             border-color: var(--gold-escuro);
           }
 
+          .form-avancado {
+            margin-top: 1rem;
+          }
+
+          .form-avancado summary {
+            cursor: pointer;
+            font-size: .9rem;
+            color: var(--gold-texto);
+            font-weight: 600;
+          }
+
           .modal-acoes {
             display: flex;
             justify-content: flex-end;
@@ -531,16 +562,38 @@
           form.addEventListener("submit", function (e) {
             e.preventDefault();
             res.className = "res"; res.textContent = "criando...";
+            function v(id) { return (document.getElementById(id) || {}).value || ""; }
             fetch("api/criar-escola", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ nome: document.getElementById("nome").value, senhaAdmin: document.getElementById("senha").value })
+              body: JSON.stringify({
+                nome: v("nome"),
+                senhaAdmin: v("senha"),
+                professor: v("professor"),
+                professorNome: v("professor-nome"),
+                responsavel: v("responsavel"),
+                ciclo: v("ciclo"),
+                frequencia: v("frequencia"),
+                dias: v("dias"),
+                duracao: v("duracao"),
+                dataInicio: v("data-inicio")
+              })
             }).then(function (r) { return r.json(); }).then(function (d) {
               if (d.ok) {
                 res.className = "res ok";
-                res.innerHTML = "Escola criada: <a href=\"" + d.url + "\">" + d.url + "</a>"
-                  + "<br><br><strong>Senha de criptografia</strong> (guarde agora — aparece uma única vez;"
-                  + " é ela que decifra os dados no formulário):<br><code>" + d.senhaCripto + "</code>";
+                var html = "Escola criada: <a href=\"" + d.url + "\">" + d.url + "</a>";
+                if (d.disparo && d.disparo.ok) {
+                  html += "<br><br>O deploy do motor completo foi disparado — em instantes a Área do Professor "
+                    + "e os Bastidores reais ficam no ar (acompanhe no link acima).";
+                } else {
+                  html += "<br><br><strong>Atenção:</strong> o Worker «zero» subiu, mas o deploy do motor "
+                    + "completo NÃO foi disparado (" + ((d.disparo && d.disparo.erro) || "GITHUB_TOKEN ausente") + ").";
+                }
+                if (d.senhaCripto) {
+                  html += "<br><br><strong>Senha de criptografia</strong> (guarde agora — aparece uma única vez;"
+                    + " é ela que decifra os dados no formulário):<br><code>" + d.senhaCripto + "</code>";
+                }
+                res.innerHTML = html;
               }
               else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }
             }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; });

@@ -13,7 +13,7 @@
  * da escola no Cloudflare e devolve o URL. A raiz só decide; não cria conteúdo pedagógico.
  */
 
-const { criarEscola } = require('./provisionar-escola.js');
+const { criarEscola, dispararCriacao } = require('./provisionar-escola.js');
 const { excluirEscola } = require('./expurgar-escola.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
@@ -155,14 +155,51 @@ async function fetch(request, env) {
       const corpo = await request.json();
       const nome = String(corpo.nome || '').trim();
       const senhaAdmin = String(corpo.senhaAdmin || '');
-      if (!nome || !senhaAdmin) {
-        return new Response(JSON.stringify({ ok: false, erro: 'informe o nome da escola e a senha do administrador' }), {
+      const professor = String(corpo.professor || '').trim();
+      const professorNome = String(corpo.professorNome || corpo['professor-nome'] || '').trim();
+      const responsavel = String(corpo.responsavel || professorNome).trim();
+      const ciclo = String(corpo.ciclo || '01').trim();
+      const frequencia = String(corpo.frequencia || '2x/semana').trim();
+      const dias = String(corpo.dias || '2@19:00,4@19:00').trim();
+      const duracao = String(corpo.duracao || '60').trim();
+      const dataInicio = String(corpo.dataInicio || corpo['data-inicio'] || '').trim();
+      if (!nome || !senhaAdmin || !professor || !professorNome || !dataInicio) {
+        return new Response(JSON.stringify({ ok: false, erro: 'informe o nome, a senha, o professor e a data de início' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json;charset=utf-8' },
         });
       }
-      const escola = await criarEscola({ nome, senhaAdmin, token, accountId: ACCOUNT_ID });
-      return new Response(JSON.stringify({ ok: true, ...escola }), {
+      const escola = await criarEscola({
+        nome,
+        senhaAdmin,
+        token,
+        accountId: ACCOUNT_ID,
+        githubToken: env && env.GITHUB_TOKEN,
+      });
+      // O motor completo nasce no workflow `criar-escola.yml` — a página só cria a escola
+      // «zero» + segredos; o scaffold + o deploy do motor vêm do Actions. Sem GITHUB_TOKEN
+      // na raiz, a escola nasce «zero» (sem o motor), e o campo `disparo` declara isso.
+      const disparo = env && env.GITHUB_TOKEN
+        ? await dispararCriacao({
+            token: env.GITHUB_TOKEN,
+            dono: 'tmenegaz',
+            repo: 'danca',
+            ref: 'main',
+            inputs: {
+              professor,
+              'professor-nome': professorNome,
+              escola: escola.escola,
+              'escola-nome': nome,
+              responsavel,
+              ciclo,
+              frequencia,
+              dias,
+              duracao,
+              'data-inicio': dataInicio,
+            },
+          })
+        : { ok: false, erro: 'GITHUB_TOKEN ausente na raiz' };
+      return new Response(JSON.stringify({ ok: true, ...escola, disparo }), {
         status: 201,
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
       });

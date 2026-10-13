@@ -127,9 +127,12 @@ erro **visível** em vez da página «desabilitada» silenciosa. O freio de esco
 (`ESCOLA_HABILITADA: "nao"`) continua sendo o jeito de desligar uma escola de verdade; a
 trava é o que separa «desligada de propósito» de «config trocada».
 
-Para uma **escola nova**: o botão «Criar nova escola» da raiz sobe o Worker «zero» no
-Cloudflare; o resto (pasta do professor, ciclo, pacote e `wrangler.<escola>.jsonc` com
-`ESCOLA_SLUG`) nasce pelo `tools/criar-escola.sh`.
+Para uma **escola nova**: o botão «Criar nova escola» da raiz sobe o Worker «zero» + os
+segredos (`SENHA_ADMIN`, `SENHA_CRIPTO`, `GITHUB_TOKEN`) no Cloudflare e **dispara** o
+workflow `criar-escola.yml`, que monta o scaffold (professor, ciclo, pacote e o
+`wrangler.<escola>.jsonc`) e sobe o **motor completo**. Depois é nos **Bastidores →
+Produção** que o professor é cadastrado — e é esse cadastro que habilita a «Área do
+Professor» (anamnese, plano de ensino e PO).
 
 ## O expurgo das escolas desabilitadas (§17.5)
 

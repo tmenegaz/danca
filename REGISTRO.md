@@ -10625,3 +10625,66 @@ muda de lugar · `CONGELAMENTO.md` (`tools/`) · `tools/lib-cifra.js` (o esquema
 - O caminho (a) foi provado na BANCADA (roundtrip `cifrarEnvelopeDeDados` ↔ `lib-cifra.js`) e no
   bundle do Worker (dry-run). A prova fim-a-fim (criar escola pela página → preencher → Guardar →
   gerar) ainda é a próxima etapa, com uma escola de teste nova.
+
+## 12/10/2026 — A página «Criar nova escola» passa a subir o motor completo (unificação) e o Bastidores vira real
+
+**O que motivou.** A pesquisadora criou a escola «Tuto» pela página `danca` e caiu na página de
+TESTE (o Bastidores mock + páginas-placeholder do Worker «zero»). Ela quer o teste REAL: criar a
+escola → ir aos **Bastidores → Produção** → cadastrar o professor (nome + senha) → e só então a
+«Área do Professor» (anamnese, plano de ensino e PO) abre. O motor completo já existia — mas só
+nascia pelo `tools/criar-escola.sh` + `wrangler deploy` (CLI), nunca pela página.
+
+**O que foi decidido.**
+- **Bastidores real (mínimo).** `motor/servidor/bastidores.js` deixa de ser mock: a senha do
+  professor passa a ser guardada como **sal + hash (SHA-256 com sal)**, nunca em claro; e o
+  cadastro do professor é o que **HABILITA a Área do Professor** — sem professor, `/anamnese/`,
+  `/plano-ensino/` e `/plano-observacao/` respondem «Área do Professor desabilitada» com link para
+  `/bastidores` (a trava fica em `producao.js`; os Bastidores ficam FORA dela, senão ninguém
+  cadastra o primeiro professor).
+- **A página cria o motor completo.** O «Criar nova escola» agora, além de subir o Worker «zero» +
+  subdomínio + segredos (`SENHA_ADMIN`, `SENHA_CRIPTO`, `GITHUB_TOKEN`), **dispara** o workflow
+  `criar-escola.yml` — que roda o `tools/criar-escola.sh` (scaffold) e sobe o motor com
+  `wrangler deploy`. Os segredos persistem: o `wrangler deploy` troca o CÓDIGO, não os segredos.
+  A página passa a coletar professor, ciclo e o contexto institucional (com o contexto marcado
+  como opcional — o plano elicita e substitui).
+- O Worker «zero» deixa de ter o mock de Bastidores e as páginas-placeholder: vira só a página
+  «implantação em andamento», para não induzir ninguém a cadastrar professor no lugar errado.
+
+**Motivo declarado — os congelados.**
+Nenhum congelado foi tocado: `motor/servidor/`, `raiz/`, `.github/workflows/` e `README.md` são
+livres. O `tools/criar-escola.sh` já havia sido ajustado na entrada anterior (SENHA_CRIPTO no
+Worker); aqui ele é apenas o alvo do workflow. O que **não muda**:
+
+- **A fórmula do hash e a âncora.** O `.fipp` continua cobrindo as mesmas fontes.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **A proveniência.** O scaffold é gerado pelo workflow com `criar-escola.sh` (que não sobrescreve
+  o que já existe), e o cadastro do professor acrescenta — não edita.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — hash da senha (sal + SHA-256) e `temProfessor`.
+- `motor/servidor/producao.js` — a trava da Área do Professor (sem professor, as três rotas não abrem).
+- `motor/servidor/provisionar-escola.js` — `GITHUB_TOKEN` como secret da escola, `dispararCriacao`,
+  e o Worker «zero» reduzido a «implantação em andamento».
+- `motor/servidor/raiz.js` — `/api/criar-escola` lê os campos do ciclo e dispara o workflow.
+- `.github/workflows/criar-escola.yml` (novo) — scaffold + `wrangler deploy`.
+- `raiz/index.html` — formulário com professor/ciclo/contexto + resposta com a SENHA_CRIPTO e o
+  estado do disparo.
+- `README.md` — o fluxo da escola nova.
+
+**Com o quê.**
+`motor/servidor/{bastidores,producao,provisionar-escola,raiz}.js`,
+`.github/workflows/criar-escola.yml`, `raiz/index.html`, `README.md`, `REGISTRO.md`.
+
+**Referências.**
+A entrada «A senha de criptografia nasce no Cloudflare (caminho a)» (12/10) — o Worker cifra ·
+`CONGELAMENTO.md` (`tools/`, e o que fica fora dele) · `motor/servidor/README.md` (a ponte F3/F4).
+
+**O que ainda não está feito.**
+- O workflow `criar-escola.yml` precisa do secret `CLOUDFLARE_API_TOKEN` no GitHub Actions (hoje
+  só existe local, no `.env`), e a RAIZ precisa do secret `GITHUB_TOKEN` (o PAT) para disparar o
+  workflow e copiá-lo para a escola — dois segredos que a pesquisadora grava (o meu token não
+  grava segredos no GitHub).
+- A prova fim-a-fim (criar pela página → deploy → Bastidores → professor → anamnese/plano/PO →
+  Guardar → gerar) ainda é o próximo passo, com uma escola de teste nova.
+- O `tools/gerar-acompanhamento.sh` ainda lê a senha de `tools/.senhas-locais` (o caminho local dos
+  acompanhamentos sensíveis); com a `SENHA_CRIPTO` no Worker, esse fluxo ainda não foi desenhado.

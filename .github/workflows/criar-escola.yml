@@ -1,0 +1,138 @@
+name: Criar a escola (motor completo)
+
+# A página `danca` cria a ESCOLA «zero» (o Worker + subdomínio + segredos) no
+# Cloudflare, por dentro do Worker raiz — mas o MOTOR completo (porta + Bastidores +
+# geração) nasce aqui: este workflow roda o `tools/criar-escola.sh` (que monta
+# professor + ciclo + pacote-zero + `wrangler.<escola>.jsonc`) e sobe o motor com
+# `wrangler deploy`. Os segredos (SENHA_ADMIN, SENHA_CRIPTO, GITHUB_TOKEN) foram
+# gravados pela página no Worker — o `wrangler deploy` troca o CÓDIGO, mas os
+# segredos persistem.
+#
+# É o «caminho (a)»: criar a escola inteiramente no Cloudflare, sem o terminal.
+# O único segredo que este workflow precisa é o CLOUDFLARE_API_TOKEN (para o
+# wrangler falar com o Cloudflare) — nada de senha de professor/escola passa por aqui.
+
+on:
+  workflow_dispatch:
+    inputs:
+      professor:
+        description: 'Slug do professor (pasta em professores/)'
+        required: true
+        type: string
+      professor-nome:
+        description: 'Nome de exibição do professor'
+        required: true
+        type: string
+      escola:
+        description: 'Slug da escola (o subdomínio)'
+        required: true
+        type: string
+      escola-nome:
+        description: 'Nome de exibição da escola'
+        required: true
+        type: string
+      responsavel:
+        description: 'Responsável pelo espaço'
+        required: true
+        type: string
+      ciclo:
+        description: 'Número do ciclo, dois dígitos'
+        required: true
+        type: string
+        default: '01'
+      frequencia:
+        description: 'Frequência semanal (ex.: 2x/semana)'
+        required: true
+        type: string
+        default: '2x/semana'
+      dias:
+        description: 'Dias+horas ISO (ex.: 2@19:00,4@19:00)'
+        required: true
+        type: string
+        default: '2@19:00,4@19:00'
+      duracao:
+        description: 'Duração em minutos'
+        required: true
+        type: string
+        default: '60'
+      data-inicio:
+        description: 'Data de início (dd/mm/aaaa)'
+        required: true
+        type: string
+
+# O push do scaffold precisa de escrita. O GITHUB_TOKEN não redispara workflows,
+# então o commit daqui não volta a chamar este workflow em laço.
+permissions:
+  contents: write
+
+concurrency:
+  group: criar-escola-${{ inputs.escola }}
+  cancel-in-progress: false
+
+jobs:
+  criar:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Instalar pandoc
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends pandoc
+
+      - name: Montar o scaffold (professor + ciclo + pacote-zero + wrangler)
+        shell: bash
+        run: |
+          set -euo pipefail
+          tools/criar-escola.sh \
+            --professor "${{ inputs.professor }}" \
+            --professor-nome "${{ inputs.professor-nome }}" \
+            --escola "${{ inputs.escola }}" \
+            --escola-nome "${{ inputs.escola-nome }}" \
+            --responsavel "${{ inputs.responsavel }}" \
+            --ciclo "${{ inputs.ciclo }}" \
+            --frequencia "${{ inputs.frequencia }}" \
+            --dias "${{ inputs.dias }}" \
+            --duracao "${{ inputs.duracao }}" \
+            --data-inicio "${{ inputs.data-inicio }}" \
+            --nao-interativo
+
+      - name: Subir o motor completo no Cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
+      - name: Commitar o scaffold
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add -A -- \
+            "professores/${{ inputs.professor }}" \
+            "escola/${{ inputs.escola }}" \
+            "wrangler.${{ inputs.escola }}.jsonc"
+
+          if git diff --cached --quiet; then
+            echo "nada a commitar"
+            exit 0
+          fi
+
+          git commit -m "feat(estrutura): criar a escola ${{ inputs.escola }} (motor completo)" \
+            -m "Scaffold gerado pelo workflow quando a página danca criou a escola — professor/ciclo/pacote-zero e o wrangler.<escola>.jsonc. Os segredos (SENHA_ADMIN, SENHA_CRIPTO, GITHUB_TOKEN) ficaram no Worker, nunca aqui." \
+            -m "Refs: tools/criar-escola.sh, .github/workflows/criar-escola.yml
+          Regras: P-03, P-04, P-17
+          Auditoria: sim"
+
+          git push
