@@ -376,6 +376,7 @@
     <button id="usar-ia">Usar IA para fazer o Plano de Observação</button>
   </div>
   <p id="aviso-ia" class="sub oculto"></p>
+  <p id="aviso-curadoria" class="sub oculto"></p>
 
   <!-- O filtro fica FORA da `.acoes`: aquela barra é `display: flex`, e a
        lista de fichas precisa de linha própria para respirar. -->
@@ -595,7 +596,14 @@ async function carregarAlunas() {
   try {
     const resposta = await fetch('/api/bastidores/alunas');
     const dados = await resposta.json();
-    const lista = Array.isArray(dados.alunas) ? dados.alunas : [];
+    let lista = Array.isArray(dados.alunas) ? dados.alunas : [];
+    // Com curadoria, o seletor de alunas FILTRA para as alunas curadas pela direção
+    // (B2b): o professor só observa quem a escola lhe atribuiu. Sem curadoria, a
+    // lista inteira continua visível (a anamnese é a porta de entrada).
+    if (CURADORIA_CARREGADA && CURADORIAS.length > 0) {
+      const curadas = new Set(alunasDaCuradoria());
+      lista = lista.filter((a) => curadas.has(String(a)));
+    }
     const atual = sel.value;
     sel.innerHTML = '<option value="">— nenhuma —</option>' +
       lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
@@ -636,6 +644,72 @@ async function carregarProfessores() {
   } catch (erro) {
     // sem a lista, o seletor fica só com «escolher».
   }
+}
+
+/*
+ * A CURADORIA do professor — o que a direção atribuiu a ele (modalidade, tradição,
+ * turma, repertório, alunas). É o que a tela consome (B2b): sem curadoria, o plano
+ * e o PO ficam TRAVADOS (a memória da aula dada pertence à escola, não ao
+ * professor); com curadoria, a lista de alunas da anamnese filtra para as alunas
+ * curadas. A busca é por professor (slug) — e refaz quando o professor muda.
+ */
+let CURADORIAS = [];            // as curadorias do professor selecionado ([] = nenhuma)
+let CURADORIA_CARREGADA = false; // a busca terminou (evita travar antes de carregar)
+
+function alunasDaCuradoria() {
+  const vistas = new Set();
+  for (const c of CURADORIAS) {
+    for (const a of (c && c.alunas) || []) if (a) vistas.add(String(a));
+  }
+  return [...vistas];
+}
+
+async function atualizarCuradoria() {
+  const sel = $('ctx-professor');
+  const slug = sel ? String(sel.value || '').trim() : '';
+  if (!slug) {
+    CURADORIAS = [];
+    CURADORIA_CARREGADA = false;
+    aplicarCuradoria();
+    return;
+  }
+  try {
+    const resposta = await fetch('/api/bastidores/curadoria-professor?professor=' + encodeURIComponent(slug));
+    const dados = await resposta.json();
+    CURADORIAS = (resposta.ok && Array.isArray(dados.curadorias)) ? dados.curadorias : [];
+  } catch (erro) {
+    CURADORIAS = [];
+  }
+  CURADORIA_CARREGADA = true;
+  aplicarCuradoria();
+}
+
+/* Aplica o estado da curadoria: trava o «Começar» do plano/PO e filtra as alunas. */
+function aplicarCuradoria() {
+  const semCuradoria = CURADORIA_CARREGADA && CURADORIAS.length === 0;
+  const comecar = document.getElementById('comecar');
+  const aviso = document.getElementById('aviso-curadoria');
+
+  // A trava vale para plano e PO (que derivam do plano e da observação — memória da
+  // escola). A anamnese já é travada pela aluna + senha; a curadoria a filtra.
+  if (FONTE === 'plano' || FONTE === 'po') {
+    if (semCuradoria) {
+      if (comecar) comecar.disabled = true;
+      if (aviso) {
+        aviso.textContent = 'Este professor ainda não tem curadoria atribuída pela direção — ' +
+          'a direção precisa curar (modalidade, tradição, turma, repertório, alunas) antes de ' +
+          (FONTE === 'plano' ? 'preencher o plano de ensino.' : 'preencher o plano de observação.');
+        aviso.classList.remove('oculto');
+      }
+    } else {
+      if (aviso) { aviso.textContent = ''; aviso.classList.add('oculto'); }
+    }
+  } else {
+    if (aviso) { aviso.textContent = ''; aviso.classList.add('oculto'); }
+  }
+
+  // A anamnese filtra o seletor de alunas pela curadoria (quando há curadoria).
+  if (FONTE === 'anamnese') carregarAlunas();
 }
 
 function sinalDeSenha(ok, texto) {
@@ -3501,6 +3575,7 @@ async function iniciar() {
   // alunas) — carrega-a ANTES de semear, para o `?professor=` da URL já estar no
   // seletor quando a semeadura rodar.
   await carregarProfessores();
+  await atualizarCuradoria();
   semearDoContexto();
   // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
@@ -3523,6 +3598,7 @@ async function iniciar() {
     sinalDeSenha(false, '');
     atualizarComecar();
     semearDoContexto();
+    atualizarCuradoria();
   });
 
   // A barra e a trava do fecho valem nos dois caminhos — com depósito e sem

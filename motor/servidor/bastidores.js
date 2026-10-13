@@ -1157,6 +1157,18 @@ async function fetch(request, env) {
     });
   }
 
+  // GET /api/bastidores/curadoria-professor — a curadoria do professor (o que a tela
+  // consome para travar/filtrar os formulários). Sem `?professor=` → 400; sem curadoria
+  // → `curadorias: []` (a tela trava até a direção curar — a memória da aula dada pertence
+  // à escola, não ao professor). Um professor pode ter mais de uma (uma por modalidade).
+  if (path === '/api/bastidores/curadoria-professor') {
+    const slug = String(url.searchParams.get('professor') || '').trim();
+    if (!slug) return json(400, { ok: false, erro: 'informe o professor' });
+    const todas = await curadorias(kv, escola);
+    const dele = todas.filter((c) => c && c.professor === slug);
+    return json(200, { ok: true, escola, professor: slug, curadorias: dele });
+  }
+
   // POST /api/bastidores/curadoria — gravar (upsert) a curadoria de um professor.
   if (path === '/api/bastidores/curadoria' && request.method === 'POST') {
     let corpo = {};
