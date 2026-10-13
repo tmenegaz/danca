@@ -261,10 +261,10 @@ async function escolaExiste(token, accountId, escola) {
   return res.ok;
 }
 
-/** Gera uma senha forte (48 hex = 24 bytes) com o CSPRNG do runtime — não o `Math.random`. */
+/** Gera uma senha forte (48 hex = 24 bytes) com o CSPRNG do Worker — não o `Math.random`. */
 function senhaAleatoria() {
   const bytes = new Uint8Array(24);
-  (globalThis.crypto || require('node:crypto').webcrypto).getRandomValues(bytes);
+  globalThis.crypto.getRandomValues(bytes);
   let s = '';
   for (const b of bytes) s += b.toString(16).padStart(2, '0');
   return s;
