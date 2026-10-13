@@ -63,8 +63,8 @@
     },
     "DATA_INICIO": {
       "type": "string",
-      "pattern": "^[0-9]{2}/[0-9]{2}/[0-9]{4}$",
-      "description": "Data informada de início (dd/mm/aaaa). Se não cair em dia de aula, o calendário ajusta e registra o ajuste."
+      "pattern": "^(?:[0-9]{2}/[0-9]{2}/[0-9]{4}|\\[Preencher[^\\]]*\\])$",
+      "description": "Data informada de início (dd/mm/aaaa). Se não cair em dia de aula, o calendário ajusta e registra o ajuste. No scaffold de uma escola nova pode ser a lacuna [Preencher: ...] — o plano elicitado a estabelece; o gerador recusa a lacuna (Pré-requisito 5) até que o plano a preencha."
     }
   },
   "required": [

@@ -10688,3 +10688,67 @@ A entrada «A senha de criptografia nasce no Cloudflare (caminho a)» (12/10) �
   Guardar → gerar) ainda é o próximo passo, com uma escola de teste nova.
 - O `tools/gerar-acompanhamento.sh` ainda lê a senha de `tools/.senhas-locais` (o caminho local dos
   acompanhamentos sensíveis); com a `SENHA_CRIPTO` no Worker, esse fluxo ainda não foi desenhado.
+
+## 12/10/2026 — O formulário vira mínimo e o Bastidores vira grupo (Estúdio + Produção)
+
+**O que motivou.** A pesquisadora criou a escola «Barra» pela página e bateu em dois problemas:
+(1) o formulário pedia slug, ciclo e o bloco «contexto institucional» — com a `data de início`
+OBRIGATÓRIA — e não pedia a senha do professor; (2) o Bastidores nasceu como UM item («Produção»
+só), não como o GRUPO de dois itens que o `IDEIA-PAINEL-ESCOLA.md §2` desenha («Estúdio de
+Dança» + «Produção»). Além disso, o motor não subiu porque o secret `CLOUDFLARE_API_TOKEN` não
+existe no GitHub Actions (o deploy do workflow falhou nesse passo).
+
+**O que foi decidido.**
+- **Formulário mínimo.** Só cinco campos: nome da escola, senha do administrador (a direção),
+  nome do professor, senha do professor e um checkbox «o professor é o dono da escola». O SLUG
+  (da escola e do professor) é criado INTERNAMENTE pelo sistema — não é mostrado nem ao
+  professor. O ciclo é fixo `01`; frequência/dias/duração usam o padrão do scaffold; a
+  `data de início` vira a lacuna `[Preencher: ...]` (o plano a estabelece).
+- **O professor nasce na página.** O professor (nome + senha + a flag «é dono») vira SEGREDO do
+  Worker (`PROFESSOR_NOME`, `SENHA_PROFESSOR`, `PROFESSOR_EH_DONO`), que persiste no deploy do
+  motor — e é o que HABILITA a «Área do Professor» (sem professor, anamnese/plano/PO não abrem).
+  A senha do professor é comparada direto (é segredo), e o cadastro ADICIONAL na Produção continua
+  com sal+hash no KV.
+- **Bastidores como grupo.** `/bastidores` vira a porta do grupo; `/bastidores/estudio` é o
+  «Estúdio de Dança» (a cena, partilhada) e `/bastidores/producao` é a «Produção» (o gabinete,
+  só da direção — senha própria via `SENHA_ADMIN`, ou a senha do professor quando «é dono»).
+  O menu do pacote ganha o grupo «Bastidores» (Estúdio + Produção), depois da «Área do Professor».
+
+**Motivo declarado — os congelados.**
+`tools/criar-escola.sh` é congelado e exige motivo. O motivo: a `data de início` deixa de ser
+pedida no scaffold (vira lacuna `[Preencher: ...]`, o plano a estabelece) e o nav do pacote zero
+ganha o grupo «Bastidores». O que **não muda**:
+
+- **A fórmula do hash e a âncora.** O schema (`DATA_INICIO`) só TOLERA a lacuna; o gerador
+  continua recusando a lacuna (Pré-requisito 5) até o plano preenchê-la. A âncora não muda.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **A proveniência.** O scaffold não sobrescreve o que existe; o professor é um elo novo, nunca
+  uma reescrita.
+
+**Onde entrou.**
+- `raiz/index.html` — o formulário mínimo (5 campos + checkbox) e a resposta com a SENHA_CRIPTO.
+- `motor/servidor/raiz.js` — deriva os slugs internamente e grava o professor; sem `data-inicio`.
+- `motor/servidor/provisionar-escola.js` — grava `PROFESSOR_NOME`/`SENHA_PROFESSOR`/`PROFESSOR_EH_DONO`.
+- `motor/servidor/bastidores.js` — o grupo (hub + Estúdio + Produção) e `temProfessor(env)` com o secret.
+- `motor/servidor/producao.js` — a trava da Área do Professor lê `temProfessor(env)`.
+- `tools/criar-escola.sh` — `--data-inicio` opcional (lacuna) + o grupo «Bastidores» no nav.
+- `professores/tiago/ciclos/ciclo-01-schema.json` — `DATA_INICIO` tolera a lacuna `[Preencher: ...]`.
+- `.github/workflows/criar-escola.yml` — `data-inicio` opcional.
+
+**Com o quê.**
+`motor/servidor/{bastidores,producao,provisionar-escola,raiz}.js`, `raiz/index.html`,
+`tools/criar-escola.sh`, `professores/tiago/ciclos/ciclo-01-schema.json`,
+`.github/workflows/criar-escola.yml`, `REGISTRO.md`.
+
+**Referências.**
+`IDEIA-PAINEL-ESCOLA.md §2` (o grupo de dois itens) e `§4` (as duas senhas) ·
+A entrada «A página cria o motor completo (unificação)» (12/10) · `CONGELAMENTO.md` (`tools/`).
+
+**O que ainda não está feito (e bloqueia o teste).**
+- O secret `CLOUDFLARE_API_TOKEN` precisa ser gravado no GitHub Actions (Settings → Secrets →
+  Actions). O meu token não grava segredos (403) — só a pesquisadora. Sem ele, o workflow
+  `criar-escola.yml` falha no deploy e a escola fica no «implantação em andamento».
+- A senha da Produção é comparada em claro (é um secret do Worker); a sessão/token da Produção
+  real (o §4/§12 do documento) ainda não foi desenhada.
+- A validação do «Estúdio» (a vista partilhada) é mínima — o Estúdio real (última aula, aluna,
+  ciclo, §7) ainda não tem dados sendo lidos.

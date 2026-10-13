@@ -141,9 +141,11 @@ pedir "responsável"              RESPONSAVEL
 pedir "ciclo (dois dígitos)"     CICLO
 pedir "frequência semanal"       FREQUENCIA
 pedir "dias+horas (ISO)"         DIAS
-pedir "data de início"           DATA_INICIO
+# A data de início NÃO é pedida aqui: é material do PLANO (o plano elicitado a
+# estabelece). O scaffold nasce com a lacuna [Preencher: ...], e o plano a substitui.
 [ -z "$WORKER" ] && WORKER="$ESCOLA"
 [ -z "$DURACAO_TEXTO" ] && DURACAO_TEXTO="$DURACAO min por encontro"
+[ -z "$DATA_INICIO" ] && DATA_INICIO="[Preencher: data de início — o plano elicitado a estabelece]"
 
 # ---------------------------------------------------------------------------
 # Validação
@@ -156,7 +158,9 @@ slug_ok "$PROFESSOR" || { echo "erro: --professor inválido (esperado [a-z0-9-])
 slug_ok "$ESCOLA"    || { echo "erro: --escola inválido (esperado [a-z0-9-]): $ESCOLA" >&2; exit 1; }
 slug_ok "$WORKER"    || { echo "erro: --worker inválido (esperado [a-z0-9-]): $WORKER" >&2; exit 1; }
 printf '%s' "$CICLO" | grep -qE '^[0-9]{2}$' || { echo "erro: --ciclo deve ter dois dígitos: $CICLO" >&2; exit 1; }
-data_ok "$DATA_INICIO" || { echo "erro: --data-inicio deve ser dd/mm/aaaa: $DATA_INICIO" >&2; exit 1; }
+# A data de início aceita a lacuna [Preencher: ...] (o plano a estabelece) ou uma data real.
+{ data_ok "$DATA_INICIO" || printf '%s' "$DATA_INICIO" | grep -q '\['; } \
+  || { echo "erro: --data-inicio deve ser dd/mm/aaaa ou a lacuna [Preencher: ...]: $DATA_INICIO" >&2; exit 1; }
 dias_ok "$DIAS"       || { echo "erro: --dias fora do padrão ISO (ex.: 2@19:00,4@19:00): $DIAS" >&2; exit 1; }
 
 # Modelo: <prof>/<ciclo> de onde copiar os schemas.
@@ -321,6 +325,13 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
       <a href="${p}anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
       <a href="${p}plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano">Plano de ensino</a>
       <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po">Plano de Observação</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Bastidores</summary>
+    <div class="submenu">
+      <a href="${p}bastidores/estudio">Estúdio de Dança</a>
+      <a href="${p}bastidores/producao">Produção</a>
     </div>
   </details>
   </div>
