@@ -10835,3 +10835,34 @@ entrar com o rito do congelado (motivo + commit próprio).
 
 **Referências.** A entrada «A contaminação entre escolas» (13/10) — o antecessor imediato ·
 `ARQUITETURA-ANAMNESE.md` (faixa etária) · `CONGELAMENTO.md` (`tools/`).
+
+## 13/10/2026 — O hook deixa o ciclo-zero (scaffold de escola) passar
+
+**O que motivou.** O `pre-commit` (seção 3) roda `gerar-ciclo.sh` para todo ciclo tocado e
+FALHA em ciclo-zero — o scaffold de uma escola recém-criada pela página, que nasce com
+`DOCS=""`. O gerador recusa com `defina DOCS` (gerar-ciclo.sh §102). Na criação da Barra isso
+obrigou o scaffold a entrar por `--no-verify`, e no CI ele entrava porque o workflow não instala
+o hook — uma defesa a menos exatamente no caminho automático que cria escolas.
+
+**O que foi decidido.** O hook PULA o gerador quando o `DOCS` do ciclo está vazio, em vez de
+falhar. O ciclo-zero é legítimo: o Pré-requisito 5 (escola + frequência + contexto
+institucional) está atendido, mas nenhum documento foi escrito ainda — o primeiro artefato real
+é o plano elicitado pela porta. A derivação do `DOCS` é a mesma do gerador: a base é
+sobrescrita pela variante (tools/lib-fontes.sh).
+
+**Motivo declarado — os congelados.** `tools/hooks/pre-commit` está em `tools/` (congelado).
+O que NÃO muda: a fórmula de hash, a cobertura dos validadores, as regras e pétreas, a validação
+de âncora/PO/plano/dados, o guard do plano de aula lançado, o glossário Benesh e a identidade
+visual. Muda só a seção 3: um guard estreito que detecta `DOCS=""` e pula a geração — o
+comportamento dos ciclos reais (DOCS não-vazio) é idêntico.
+
+**Onde entrou.** `tools/hooks/pre-commit` — a seção 3 ganha o guard de ciclo-zero (e o
+cabeçalho documenta o pulo).
+
+**Com o quê.** `tools/hooks/pre-commit`.
+
+**Referências.** `CONGELAMENTO.md` (`tools/` congelado) · a entrada «A Barra é descontaminada…»
+(13/10), que declarou esta pendência · `gerar-ciclo.sh` §102 · `tools/lib-fontes.sh`.
+
+**O que ainda não está feito.** Nada — a lacuna foi fechada. (Os scaffolds da Barra e da Maria
+já estão no histórico; a partir de agora, escola nova entra por commit normal, sem `--no-verify`.)

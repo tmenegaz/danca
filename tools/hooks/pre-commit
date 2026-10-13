@@ -15,7 +15,8 @@
 #      schema da aula e, com a aula já LANÇADA, exige que a edição seja só
 #      ACRÉSCIMO — o elo novo (`## Ajuste do plano da aula NN`) no fim, o
 #      passado intacto (§1.1/§1.2: o anterior permanece, o novo é um elo);
-#   5) para cada ciclo tocado, roda o gerador + validador do pacote;
+#   5) para cada ciclo tocado, roda o gerador + validador do pacote (ciclo-zero — DOCS
+#      vazio, o scaffold de escola — é pulado SEM erro);
 #   6) se a apresentação foi tocada, roda os validadores do deck;
 #   7) se entraram no stage tools/, os assets de um pacote de ciclo ou o deck,
 #      valida a identidade visual (paleta com cópia única e cópias em dia).
@@ -334,6 +335,19 @@ for c in $ciclos; do
   fi
 
   for v in $variantes; do
+    # CICLO-ZERO (DOCS vazio) não tem o que gerar: é o scaffold de uma escola recém-criada
+    # pela página — o Pré-requisito 5 está atendido (escola + frequência + contexto), mas
+    # nenhum documento ainda foi escrito. O gerador RECUSA com `defina DOCS` (gerar-ciclo.sh
+    # §102), o que obrigava o scaffold a entrar por `--no-verify` ou pelo CI (que não instala
+    # o hook). Aqui pulamos SEM erro, para o scaffold entrar por commit normal. A derivação é
+    # a MESMA do gerador: base sobrescrita pela variante (tools/lib-fontes.sh).
+    conf_base="$base/ciclo-$numero.conf"
+    conf_variante="$base/ciclo-$numero-$v.conf"
+    docs_do_ciclo="$( ( [ -f "$conf_base" ] && source "$conf_base"; [ -f "$conf_variante" ] && source "$conf_variante"; printf '%s' "${DOCS:-}" ) )"
+    if [ -z "$docs_do_ciclo" ]; then
+      echo "pre-commit: $prof/ciclo-$numero-$v é ciclo-zero (DOCS vazio) — nada a gerar (scaffold de escola)."
+      continue
+    fi
     echo "pre-commit: gerando e validando $prof/ciclo-$numero-$v ..."
     if ! tools/gerar-ciclo.sh "$prof" "$numero" "$v" > /tmp/pre-commit-ciclo-"$prof-$numero-$v".log 2>&1; then
       echo "pre-commit: FALHOU ao gerar $prof/ciclo-$numero-$v — nada foi commitado." >&2
