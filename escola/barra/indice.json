@@ -1,0 +1,40 @@
+{
+  "escola": "barra",
+  "worker": "barra",
+  "criado_em": "2026-10-13T11:19:19.854587+00:00",
+  "professor": {
+    "slug": "leticia",
+    "nome": "Letícia"
+  },
+  "responsavel": "Letícia",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "estado": {
+    "habilitada": true
+  },
+  "arquivos": [
+    {
+      "caminho": "professores/leticia/ciclos/ciclo-01.conf",
+      "tipo": "manifesto base"
+    },
+    {
+      "caminho": "professores/leticia/ciclos/ciclo-01-barra.conf",
+      "tipo": "manifesto variante"
+    },
+    {
+      "caminho": "professores/leticia/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
+      "tipo": "schemas"
+    },
+    {
+      "caminho": "professores/leticia/ciclos/ciclo-01-barra/",
+      "tipo": "pacote zero"
+    },
+    {
+      "caminho": "wrangler.barra.jsonc",
+      "tipo": "config do Worker"
+    }
+  ]
+}
