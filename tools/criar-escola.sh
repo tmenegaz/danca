@@ -432,7 +432,50 @@ EOF
 echo "  worker: $WRANGLER"
 
 # ---------------------------------------------------------------------------
-# 7) Deploy (opcional)
+# 7) Índice da escola (escola/<escola>/indice.json) — o que o expurgo lê para a
+#    limpeza por checklist (§17.6), e o que SOBREVIVE ao expurgo (a proveniência
+#    acrescenta, não edita). NÃO guarda o valor da senha: só a CHAVE (a senha vive
+#    em tools/.senhas-locais, fora do Git).
+# ---------------------------------------------------------------------------
+# A chave da senha segue a convenção SENHA_<ESCOLA> em maiúsculas, com hífen/símbolo
+# virado em sublinhado — a MESMA que escola/expurgar.js usa para remover a linha certa.
+SENHA_CHAVE="SENHA_$(printf '%s' "$ESCOLA" | tr '[:lower:]' '[:upper:]' | tr -c 'A-Z0-9' '_')"
+INDICE_DIR="$RAIZ/escola/$ESCOLA"
+INDICE_ARQ="$INDICE_DIR/indice.json"
+mkdir -p "$INDICE_DIR"
+
+if [ -e "$INDICE_ARQ" ]; then
+  echo "  aviso: $INDICE_ARQ já existe (o índice sobrevive ao expurgo) — não sobrescrevo."
+else
+  python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" <<'PY'
+import sys, json, datetime
+arq, escola, worker, professor, professor_nome, responsavel, ciclo, senha_chave = sys.argv[1:9]
+indice = {
+    "escola": escola,
+    "worker": worker,
+    "criado_em": datetime.datetime.now().astimezone().isoformat(),
+    "professor": {"slug": professor, "nome": professor_nome},
+    "responsavel": responsavel,
+    "ciclo": ciclo,
+    "senha": {"chave": senha_chave, "arquivo": "tools/.senhas-locais"},
+    "estado": {"habilitada": True},
+    "arquivos": [
+        {"caminho": "professores/%s/ciclos/ciclo-%s.conf" % (professor, ciclo), "tipo": "manifesto base"},
+        {"caminho": "professores/%s/ciclos/ciclo-%s-%s.conf" % (professor, ciclo, escola), "tipo": "manifesto variante"},
+        {"caminho": "professores/%s/ciclos/ciclo-%s-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json" % (professor, ciclo), "tipo": "schemas"},
+        {"caminho": "professores/%s/ciclos/ciclo-%s-%s/" % (professor, ciclo, escola), "tipo": "pacote zero"},
+        {"caminho": "wrangler.%s.jsonc" % worker, "tipo": "config do Worker"},
+    ],
+}
+with open(arq, "w", encoding="utf-8") as f:
+    json.dump(indice, f, ensure_ascii=False, indent=2)
+    f.write("\n")
+PY
+  echo "  índice: $INDICE_ARQ"
+fi
+
+# ---------------------------------------------------------------------------
+# 8) Deploy (opcional)
 # ---------------------------------------------------------------------------
 if [ "$DEPLOY" = 1 ]; then
   echo "  deploy: subindo o Worker '$WORKER' ..."

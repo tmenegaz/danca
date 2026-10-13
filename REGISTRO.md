@@ -10400,3 +10400,52 @@ remoção de `professores/fokini2/` (o Diaghilev II expurgado, com o professor �
 - O gatilho do Cron foi registrado e o expurgo provado por `POST /api/expurgar`/pelo
   `expurgar()` real; o disparo AUTOMÁTICO pelo relógio ainda não foi observado (o Cron roda a
   cada 5 min — confirmável pelo dashboard, "Trigger Event", ou aguardando o próximo tick).
+
+## 12/10/2026 — O criar-escola.sh passa a gerar o índice da escola (fecha a lacuna 1 do expurgo)
+
+**O que motivou.** O teste do expurgo no Diaghilev II criou o `escola/<escola>/indice.json`
+**à mão** — era a lacuna que deixava a criação e a limpeza sem vínculo. Sem o índice gerado
+na criação, o `escola/expurgar.js` não sabia a chave da senha nem o nome do Worker de uma
+escola criada depois do teste (caía no padrão derivado do slug).
+
+**O que foi decidido.**
+- O `criar-escola.sh` passa a gerar `escola/<escola>/indice.json` junto com o resto do
+  ambiente: `escola`, `worker`, `criado_em`, `professor` (slug + nome), `responsavel`,
+  `ciclo`, `senha.chave` (a CHAVE, nunca o valor — a senha vive em `tools/.senhas-locais`,
+  fora do Git), `estado.habilitada` e a lista de `arquivos` criados. Se o índice já existe
+  (sobreviveu a um expurgo anterior), NÃO sobrescreve — a proveniência acrescenta, não edita.
+- O `escola/expurgar.js` passa a LER do índice a chave da senha e o nome do Worker (com
+  fallback no slug, para criações antigas sem índice) — é o índice que liga a criação à
+  limpeza, como o §17.6 desenhou.
+
+**Motivo declarado — os congelados.**
+`tools/criar-escola.sh` é congelado e exige motivo. O motivo: a criação de uma escola nova
+precisa deixar o índice que o expurgo lê — sem ele, o ciclo de vida (criar → desabilitar →
+expurgar) fica partido na primeira etapa. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** O índice novo fica em `escola/<escola>/` (fora de
+  `professores/*/ciclos/`), logo NÃO é fonte de ciclo e não muda o `.fipp`.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **O que o `criar-escola.sh` já cria.** Os manifestos, os schemas, o pacote zero e o
+  `wrangler.<escola>.jsonc` continuam os mesmos — o índice é um arquivo NOVO, ao lado deles.
+
+**Onde entrou.**
+`tools/criar-escola.sh` — o passo 7 «Índice da escola» (gera `escola/<escola>/indice.json`;
+não sobrescreve se existir).
+`escola/expurgar.js` — lê `senha.chave` e `worker` do índice (fallback no slug).
+`escola/diaghilev2/indice.json` — fica como exemplo do formato (criado no teste anterior).
+
+**Com o quê.**
+`tools/criar-escola.sh`, `escola/expurgar.js`, `REGISTRO.md`.
+
+**Referências.**
+`IDEIA-PAINEL-ESCOLA.md` §17.6 (o índice por escola) · a entrada anterior «O hook de expurgo
+nasce» (a lacuna 1 ali declarada) · `CONGELAMENTO.md` (`tools/`).
+
+**O que ainda não está feito.**
+- O `worker` pode divergir do `slug` da escola (o `--worker` do CLI). O expurgo no Cloudflare
+  (`excluirEscola`) apaga `scripts/<slug>`, e o local apaga `wrangler.<worker>.jsonc` — se
+  divergirem, a metade Cloudflare e a metade local precisam de um campo de reconciliação a
+  mais (hoje o caso é raro: o worker nasce com o slug por padrão).
+- O índice não é consumido por mais nada além do `escola/expurgar.js` — o `post-merge`/hook
+  de sincronização que o §17.5 prevê (para rodar a limpeza sozinho) continua por construir.
