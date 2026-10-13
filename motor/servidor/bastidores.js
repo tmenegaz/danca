@@ -187,6 +187,32 @@ function opcoesDeTurmas(lista) {
     .map((t) => ({ valor: t.nome, rotulo: t.nome }));
 }
 
+/** As modalidades declaradas (biblioteca/modalidades/modalidades.json), como opções. */
+const MODALIDADES = require('../../biblioteca/modalidades/modalidades.json');
+
+/** A lista de tradições adotáveis na curadoria — as de `tradicoes.json`, SEM «compartilhada»
+ *  (que descreve um termo, não a tradição que a escola adota). */
+function tradicoesAdotaveis() {
+  return (CATALOGO.TRADICOES || []).filter((t) => t !== 'compartilhada');
+}
+
+/** As curadorias da escola: uma LISTA de `{id, professor, modalidade, tradicao, turmas,
+ *  repertorio, alunas}` — um professor pode ter mais de uma (a regra é da escola). */
+async function curadorias(kv, escola) {
+  try {
+    const t = await kv.get(RAIZ + '/' + escola + '/curadorias');
+    const v = t ? JSON.parse(t) : [];
+    return Array.isArray(v) ? v : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+/** O id estável de uma curadoria: o slug de `professor + modalidade` (sem edição — estável). */
+function idCuradoria(professor, modalidade) {
+  return slugificar(String(professor || '') + ' ' + String(modalidade || ''));
+}
+
 /** O nome do professor DONO, com a sobreposição editável no KV. O dono vive como SECRET
  *  (PROFESSOR_NOME) e o nome ajustado nos Bastidores fica no KV — o KV vence, para o nome
  *  poder ser corrigido sem tocar no segredo do Worker (a senha continua a do segredo). */
@@ -259,7 +285,7 @@ function paginaEstudio(escola) {
     '</div></body></html>';
 }
 
-function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
+function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel, curs) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -326,6 +352,46 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
         ' <button class="apagar" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></li>').join('')
     : '<li>(nenhum termo cadastrado)</li>';
 
+  // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
+  const listaCuradorias = (curs || []).slice();
+  const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+  const profsParaCuradoria = [];
+  if (donoNome) profsParaCuradoria.push({ valor: donoSlug, rotulo: donoNome });
+  for (const p of profs) {
+    if (!p || !p.nome || p.nome === donoNome) continue;
+    profsParaCuradoria.push({ valor: slugificar(p.nome), rotulo: p.nome });
+  }
+  const opcoesProfessorCuradoria = profsParaCuradoria.length
+    ? profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
+    : '<option value="">— nenhum professor —</option>';
+  const opcoesModalidadeCuradoria = (MODALIDADES.modalidades || []).map((m) =>
+    '<option value="' + esc(m.nome) + '">' + esc(m.nome) +
+    (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
+  const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
+    '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
+  const caixasTurmasCuradoria = listaTurmas.map((t) =>
+    '<label class="cb"><input type="checkbox" name="curadoria-turma" value="' + esc(t.nome) + '"> ' + esc(t.nome) + '</label>').join('');
+  const caixasAlunasCuradoria = aluns.map((a) =>
+    '<label class="cb"><input type="checkbox" name="curadoria-aluna" value="' + esc(a) + '"> ' + esc(a) + '</label>').join('');
+  const caixasRepertorioCuradoria = listaTermos.map((t) =>
+    '<label class="cb"><input type="checkbox" name="curadoria-repertorio" value="' + esc(t.termo) + '"> ' + esc(t.termo) +
+    ' <span class="dono">' + esc(t.categoria || '') + '</span></label>').join('');
+
+  const itensCuradorias = listaCuradorias.length
+    ? listaCuradorias.map((c) => {
+        const rotuloProfessor = (profsParaCuradoria.find((p) => p.valor === c.professor) || {}).rotulo || c.professor;
+        const resumo = [
+          c.tradicao,
+          (c.turmas || []).length ? (c.turmas.length + ' turma(s)') : '',
+          (c.repertorio || []).length ? (c.repertorio.length + ' passo(s)') : '',
+          (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
+        ].filter(Boolean).join(' · ');
+        return '<li><b>' + esc(rotuloProfessor) + '</b> <span class="dono">· ' + esc(c.modalidade) + '</span>' +
+          (resumo ? ' <span class="dono">— ' + esc(resumo) + '</span>' : '') +
+          ' <button class="apagar" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></li>';
+      }).join('')
+    : '<li>(nenhuma curadoria atribuída)</li>';
+
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>Bastidores · Produção · ' + esc(escola) + '</title>' +
@@ -366,6 +432,10 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
     'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
     'button.associar{margin-left:.4rem;padding:.2rem .55rem;background:#6b2f2f;color:#fff;border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    '.cb-grupo{max-height:14rem;overflow:auto;border:1px solid #c9a24b;border-radius:4px;padding:.5rem .6rem;margin:.3rem 0 .6rem;background:#fff;}' +
+    '.cb{display:block;font-size:.9rem;color:#3a2b1f;padding:.1rem 0;}' +
+    '.cb input{margin-right:.4rem;}' +
+    'form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;background:#fff;}' +
     '[hidden]{display:none!important;}' +
     '#gate{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
     '</style></head><body>' +
@@ -380,6 +450,7 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '<h2>Pedagogia</h2>' +
     '<a href="#turmas" data-secao="turmas">Turmas</a>' +
     '<a href="#vocabulario" data-secao="vocabulario">Vocabulário técnico</a>' +
+    '<a href="#curadorias" data-secao="curadorias">Curadorias</a>' +
     '</nav>' +
     '<div class="principal">' +
     '<h1>Produção</h1>' +
@@ -448,6 +519,26 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '</form>' +
     '<ul>' + itensTermos + '</ul>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
+    '</section>' +
+    '<section class="secao" id="sec-curadorias">' +
+    '<h2>Curadorias</h2>' +
+    '<p class="sub">O que a escola atribui a cada professor — a modalidade, a tradição, a turma, o repertório e as alunas. É isto que pré-carrega a anamnese, o plano e o PO.</p>' +
+    '<form id="form-curadoria">' +
+    '<label for="cuprofessor">Professor</label>' +
+    '<select id="cuprofessor">' + opcoesProfessorCuradoria + '</select>' +
+    '<label for="cumodalidade">Modalidade</label>' +
+    '<select id="cumodalidade">' + opcoesModalidadeCuradoria + '</select>' +
+    '<label for="cutradicao">Tradição</label>' +
+    '<select id="cutradicao"><option value="">— nenhuma —</option>' + opcoesTradicaoCuradoria + '</select>' +
+    '<label>Turmas</label>' +
+    '<div class="cb-grupo">' + (caixasTurmasCuradoria || '<span class="dono">(nenhuma turma)</span>') + '</div>' +
+    '<label>Alunas</label>' +
+    '<div class="cb-grupo">' + (caixasAlunasCuradoria || '<span class="dono">(nenhuma aluna)</span>') + '</div>' +
+    '<label>Repertório (passos da turma)</label>' +
+    '<div class="cb-grupo">' + (caixasRepertorioCuradoria || '<span class="dono">(nenhum termo)</span>') + '</div>' +
+    '<button type="submit">Atribuir curadoria</button>' +
+    '</form>' +
+    '<h3>Curadorias atribuídas</h3><ul>' + itensCuradorias + '</ul>' +
     '</section>' +
     '</div>' +
     '</div>' +
@@ -555,6 +646,20 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '  if (!confirm("Carregar o catálogo inicial (turmas + vocabulário)? Registros já existentes não são duplicados.")) return;' +
     '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
     '});' +
+    'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  function marcados(nome) {' +
+    '    return Array.prototype.slice.call(document.querySelectorAll("input[name=\\"" + nome + "\\"]:checked")).map(function(x){ return x.value; });' +
+    '  }' +
+    '  enviar("/api/bastidores/curadoria", {' +
+    '    professor: document.getElementById("cuprofessor").value,' +
+    '    modalidade: document.getElementById("cumodalidade").value,' +
+    '    tradicao: document.getElementById("cutradicao").value,' +
+    '    turmas: marcados("curadoria-turma"),' +
+    '    repertorio: marcados("curadoria-repertorio"),' +
+    '    alunas: marcados("curadoria-aluna")' +
+    '  }, "atribuindo curadoria...", true);' +
+    '});' +
     'document.addEventListener("click", function(e){' +
     '  var as = e.target.closest("button.associar");' +
     '  if (as) {' +
@@ -596,7 +701,7 @@ function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
     '  if (!confirm("Excluir " + alvo + "?")) return;' +
-    '  var corpo = tipo === "aluna" ? {apelido: alvo} : {nome: alvo};' +
+    '  var corpo = tipo === "aluna" ? {apelido: alvo} : (tipo === "curadoria" ? {id: alvo} : {nome: alvo});' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  fetch("/api/bastidores/" + tipo, {' +
     '    method: "DELETE",' +
@@ -643,7 +748,8 @@ async function fetch(request, env) {
     ]);
     const dono = await nomeDoDono(env, kv, escola);
     const rel = await relacoes(kv, escola);
-    return html(paginaProducao(escola, profs, aluns, dono, trms, trmos, rel));
+    const curs = await curadorias(kv, escola);
+    return html(paginaProducao(escola, profs, aluns, dono, trms, trmos, rel, curs));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -1014,6 +1120,86 @@ async function fetch(request, env) {
     await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
 
     return json(200, { ok: true, turmasNovas, termosNovos, associacoes });
+  }
+
+  // ---------------------------------------------------------------------------
+  // CURADORIA — a peça central: o que a escola ATRIBUI a cada professor, e que
+  // pré-carrega os três formulários (Bloco 2 do pedido). Uma curadoria por
+  // (professor + modalidade); o professor pode ter mais de uma (a regra é da escola).
+  // ---------------------------------------------------------------------------
+
+  // GET /api/bastidores/curadorias — a lista completa.
+  if (path === '/api/bastidores/curadorias') {
+    return json(200, { ok: true, escola, curadorias: await curadorias(kv, escola) });
+  }
+
+  // GET /api/bastidores/curadoria-meta — tudo o que o formulário precisa de uma vez
+  // (lazy, Frente 5): modalidades, tradições, professores, turmas, termos, alunas.
+  if (path === '/api/bastidores/curadoria-meta') {
+    const profs = await professores(kv, escola);
+    const dono = await nomeDoDono(env, kv, escola);
+    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const professoresOpcoes = [];
+    if (dono) professoresOpcoes.push({ valor: donoSlug, rotulo: dono });
+    for (const p of profs) {
+      if (!p || !p.nome || p.nome === dono) continue;
+      professoresOpcoes.push({ valor: slugificar(p.nome), rotulo: p.nome });
+    }
+    return json(200, {
+      ok: true,
+      escola,
+      modalidades: MODALIDADES.modalidades || [],
+      tradicoes: tradicoesAdotaveis(),
+      professores: professoresOpcoes,
+      turmas: opcoesDeTurmas(await turmas(kv, escola)),
+      termos: (await termos(kv, escola)).map((t) => ({ valor: t.id, rotulo: t.termo, categoria: t.categoria })),
+      alunas: (await alunas(kv, escola)).map((a) => ({ valor: a, rotulo: a })),
+    });
+  }
+
+  // POST /api/bastidores/curadoria — gravar (upsert) a curadoria de um professor.
+  if (path === '/api/bastidores/curadoria' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const professor = String(corpo.professor || '').trim();
+    const modalidade = String(corpo.modalidade || '').trim();
+    if (!professor || !modalidade) return json(400, { ok: false, erro: 'escolha o professor e a modalidade' });
+    const id = idCuradoria(professor, modalidade);
+    const nova = {
+      id,
+      professor: slugificar(professor),
+      modalidade,
+      tradicao: String(corpo.tradicao || '').trim(),
+      turmas: Array.isArray(corpo.turmas) ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean) : [],
+      repertorio: Array.isArray(corpo.repertorio) ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean) : [],
+      alunas: Array.isArray(corpo.alunas) ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [],
+    };
+    const lista = await curadorias(kv, escola);
+    const idx = lista.findIndex((c) => c && c.id === id);
+    if (idx === -1) lista.push(nova);
+    else lista[idx] = nova;
+    await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
+    return json(201, { ok: true, curadoria: nova });
+  }
+
+  // DELETE /api/bastidores/curadoria — remover a curadoria de um professor.
+  if (path === '/api/bastidores/curadoria' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = String(corpo.id || '').trim();
+    if (!id) return json(400, { ok: false, erro: 'informe a curadoria' });
+    const lista = await curadorias(kv, escola);
+    const idx = lista.findIndex((c) => c && c.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'curadoria não encontrada' });
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
+    return json(200, { ok: true, curadoria: id, removida: true });
   }
 
   return json(404, { ok: false, erro: 'não encontrado' });

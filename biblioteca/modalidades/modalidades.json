@@ -1,0 +1,10 @@
+{
+  "nota": "A lista de modalidades que o sistema oferece. As que ainda não têm conteúdo na biblioteca/modalidades/ ficam marcadas como 'sem conteúdo ainda' — o professor pode escolhê-las, mas o repertório só existe para as preenchidas. A pesquisadora confirma a lista.",
+  "modalidades": [
+    { "id": "bale-classico", "nome": "Balé clássico", "temConteudo": true },
+    { "id": "danca-moderna", "nome": "Dança moderna", "temConteudo": false },
+    { "id": "jazz", "nome": "Jazz", "temConteudo": false },
+    { "id": "contemporaneo", "nome": "Contemporâneo", "temConteudo": false },
+    { "id": "circo", "nome": "Circo", "temConteudo": false }
+  ]
+}
