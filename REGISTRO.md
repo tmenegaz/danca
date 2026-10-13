@@ -10960,3 +10960,38 @@ deduzido) · P-17 (harmonização) · o laudo do Bloco 1 (sessão).
 **O que ainda não está feito.** O cabeçalho «Método declarado (P-16)» da ficha, quando
 `matriz-metodologica-de-origem` sai como «não foi medido», mostra as caixas vazias (não imprime o
 sentinel) — borda menor, só do módulo-b. MMSS/MMII segue para o Bloco 8.
+
+## 13/10/2026 — «Não foi medido» chega aos basilares e às cinco posições; en-dehors se agrupa
+
+**O que motivou.** A primeira entrega do «não foi medido» cobria só os campos de BLOCO (os que
+declaram `opcoes`). Faltava a MESMA terceira via na **observação inicial**: os elementos basilares
+(`en-dehors`, `tendu`, `passé`, `meia ponta`, `musicalidade`) e os dez subitens das **cinco
+posições** — que usam ESCALA (`valores`), não `opcoes`. E o `en-dehors` estava sozinho na posição
+5, separado dos demais basilares que respondem por si (nós 16–19), o que rachava a regra em dois.
+
+**O que foi decidido.**
+- A terceira via «não foi medido» vale também para a ESCALA dos basilares e das cinco posições.
+  Ao marcar, os desdobramentos (com toque, com a barra, por consciência própria) e o campo aberto
+  TRAVAM — a mesma lei do «Nenhuma» (`aplicarExclusiva`), aplicada à escala (`aplicarNaoMedido`).
+  `lerResposta` grava SÓ o sentinel (`["não foi medido"]`) — o apoio não entra.
+- O `en-dehors` deixa a posição 5 e entra no GRUPO dos basilares que respondem por si (nó 15:
+  `en-dehors`, `tendu`, `passé`, `meia ponta`, `musicalidade`), para a regra valer para todos de
+  uma vez. A numeração dos nós é DERIVADA do conteúdo (`nosRespondiveis`) — atualiza sozinha.
+- A ficha (derivado) imprime «*não foi medido*» em itálico na escala e nos campos, sem marcar
+  caixa, e os desdobramentos saem sem apoio.
+
+**Onde entrou.** `porta/index.html` (a opção na escala dos basilares + `aplicarNaoMedido` + o
+`grupoEmLinhas` com `desabilitado`) · `porta/conteudo/anamnese.json` (a reordem dos `elementos`) ·
+`motor/nucleo/ficha.js` (`caixasOuNaoMedido`) · `ARQUITETURA-ANAMNESE.md` (a tabela e a prosa do
+«fundamento» refletem a nova ordem).
+
+**Com o quê.** `porta/index.html`, `porta/conteudo/anamnese.json`, `motor/nucleo/ficha.js`,
+`ARQUITETURA-ANAMNESE.md` e as cópias geradas da porta nos pacotes da barra e da maria.
+
+**Referências.** P-16 (declarado, não deduzido) · P-17 (harmonização) · `ARQUITETURA-ANAMNESE.md`
+§3.1 (os seis elementos) · a entrada «O nó 50 não semeia e «não foi medido» entra transversal»
+(13/10) — o antecessor imediato.
+
+**O que ainda não está feito.** O cabeçalho «Método declarado (P-16)» da ficha, quando o
+`matriz-metodologica-de-origem` sai como «não foi medido», mostra as caixas vazias (borda menor,
+só do módulo-b). MMSS/MMII segue para o Bloco 8.
