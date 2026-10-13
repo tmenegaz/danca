@@ -10890,3 +10890,43 @@ professor aponta para a rota certa» (13/10) — o antecessor imediato desta cor
 **O que ainda não está feito.** A página `/bastidores/producao` (o gabinete) ainda não pede senha
 para ABRIR — a senha da direção só existe no endpoint `validar-producao`, que a página ainda não
 chama. É o freio de acesso dos Bastidores, pendente.
+
+## 13/10/2026 — O professor é o dono, a Produção pede senha e o professor vira lista
+
+**O que motivou.** Quatro lacunas na mesma fronteira (a identidade do professor e o gabinete da
+direção): (1) a marcação «o professor é o dono?» do cadastro era uma decisão que quem cria a
+escola não devia tomar — a pesquisadora cria e o professor inicial é SEMPRE a pessoa de contato;
+(2) a página da Produção abria SEM senha (o endpoint `validar-producao` existia, mas nada o
+chamava); (3) o professor dono não podia ter o nome ajustado (nome provisório era definitivo);
+(4) o campo professor dos três formulários era texto livre, enquanto a aluna já era lista.
+
+**O que foi decidido.**
+- O professor criado na página é SEMPRE o dono: a marcação sai do formulário e
+  `PROFESSOR_EH_DONO` passa a `sim`; `validar-producao` deixa de depender dela (a senha da
+  direção é a do administrador OU a do professor dono).
+- A Produção pede a senha da direção para abrir, e TODAS as mutações (criar/excluir professor e
+  aluna, ajustar o dono) exigem essa senha no corpo (`senhaDirecao`).
+- O dono ganha «Editar» (não «Excluir»): o nome ajustado fica no KV
+  (`bastidores/<escola>/dono`) como SOBREPOSIÇÃO de exibição — a senha continua a do secret.
+- O professor vira LISTA nas três fontes (anamnese, plano, PO), como as alunas. O seletor guarda
+  o SLUG (valor) e mostra o NOME (rótulo): o slug do dono é derivado do secret, então ajustar o
+  nome não muda a pasta `professores/<slug>/…`.
+
+**Onde entrou.** `motor/servidor/bastidores.js` (nome-do-dono com sobreposição, `senhaDaDirecaoOk`,
+rotas `POST /api/bastidores/dono` + `DELETE` com senha, endpoint `professores` devolve
+`{nome,slug}`), `motor/servidor/raiz.js` e `motor/servidor/provisionar-escola.js` (dono sempre
+`sim`), `raiz/index.html` (sem a marcação), `porta/index.html` (seletor de professor +
+`carregarProfessores`).
+
+**Com o quê.** `motor/servidor/bastidores.js`, `motor/servidor/raiz.js`,
+`motor/servidor/provisionar-escola.js`, `raiz/index.html`, `porta/index.html` e as cópias
+geradas da porta nos pacotes da barra e da maria.
+
+**Referências.** P-12 (apelidos estáveis) · P-17 (harmonização de linguagem) ·
+`IDEIA-PAINEL-ESCOLA.md` (o gabinete da direção) · a entrada «A Produção exclui aluna e
+professor» (13/10).
+
+**O que ainda não está feito.** A proteção da Produção é de porta (o HTML esconde o conteúdo até
+a senha validar; as mutações exigem a senha no corpo), não de sessão: os nomes de professores e
+apelidos de alunas ainda chegam no HTML da página. É apelido estável (P-12), não dado sensível —
+mas uma sessão por cookie ficaria mais rigorosa. Anotada, não implementada.
