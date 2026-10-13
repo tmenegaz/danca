@@ -109,6 +109,7 @@
   .opcao input { margin-top: .35rem; }
   .opcao span { flex: 1; }
   .opcao em { display: block; color: var(--suave); font-size: .85rem; font-style: normal; }
+  .opcao.nao-medido { border-top: 1px dashed var(--suave); margin-top: .3rem; font-style: italic; color: var(--suave); }
   /* Os CONTROLES são a única coisa sans do projeto (`--ui`): é onde se digita e se
      clica, e a serifa atrapalha em corpo pequeno de interface. As medidas são as do
      formulário de lançamento do site, termo a termo (`font: 15px/1.5 var(--ui)`,
@@ -458,6 +459,12 @@ const FONTE = (() => {
   const f = new URLSearchParams(location.search).get('fonte');
   return f === 'po' || f === 'plano' ? f : 'anamnese';
 })();
+
+// «Não foi medido» — o professor declara que NÃO mediu o item, em vez de inventar um
+// valor. É a terceira via dos campos de medição da anamnese (as opções), transversal:
+// vale para TODO campo com `opcoes`, e bloqueia os derivados (a ficha mostra «não medido»
+// em vez de marcar uma caixa). Só a anamnese tem esse corte; o plano e o PO não.
+const NAO_MEDIDO = 'não foi medido';
 
 let MAPA = null;
 let INDICE = 0;
@@ -1102,6 +1109,13 @@ function grupoEmLinhas(itens, escolhido, nomeDoGrupo, chave) {
 function opcoesEmLinhas(no, valores, nomeDoCampo, chave) {
   const atual = RESPOSTAS.get(no.id);
   const linhas = [grupoEmLinhas(valores, atual, 'valor', chave)];
+  // «Não foi medido» — transversal aos campos de MEDIÇÃO da anamnese (os que declaram
+  // `opcoes`, não os de escala do cabeçalho). O professor marca em vez de inventar valor.
+  if (FONTE === 'anamnese' && no.opcoes && no.opcoes.length) {
+    const marcado = atual === NAO_MEDIDO ? ' checked' : '';
+    linhas.push('<label class="opcao nao-medido"><input type="radio" name="valor" value="' +
+      escapar(NAO_MEDIDO) + '"' + marcado + '><span>' + md(NAO_MEDIDO) + '</span></label>');
+  }
   linhas.push('<p style="margin:.6rem 0 0"><label>…ou declare outra coisa: ' +
     '<input type="text" data-campo-aberto value="' + escapar(abertoAtual(no, valores, chave)) +
     '" placeholder="' + escapar(nomeDoCampo) + '"></label></p>');
@@ -1111,6 +1125,7 @@ function opcoesEmLinhas(no, valores, nomeDoCampo, chave) {
 function abertoAtual(no, valores, chave) {
   const atual = RESPOSTAS.get(no.id);
   if (atual === undefined || atual === null || Array.isArray(atual)) return '';
+  if (atual === NAO_MEDIDO) return '';
   const conhecidos = (valores || []).map((v) => valorDoItem(v, chave));
   return conhecidos.includes(atual) ? '' : atual;
 }

@@ -60,6 +60,10 @@ const {
 
 const TRACO = '_'.repeat(30);
 const ID_DO_METODO = 'matriz-metodologica-de-origem';
+// «Não foi medido» — o sentinel que a porta grava quando o professor declara que NÃO
+// mediu o item (a terceira via das opções da anamnese). Na ficha, ele BLOQUEIA a marcação
+// de caixa: sai «*não foi medido*» em vez de uma escolha — o derivado não inventa valor.
+const NAO_MEDIDO = 'não foi medido';
 function valoresDaForma(forma) {
   return String(forma)
     .split('·')
@@ -236,7 +240,11 @@ function campoEmLinhas(campo, registro, resposta, preenchida) {
   const valores = campo.opcoes || campo.valores ||
     (campo.forma ? valoresDaForma(campo.forma) : []);
   const dito = resposta && resposta.respondido.length ? resposta.respondido[0] : null;
-  if (valores.length > 1) {
+  if (dito === NAO_MEDIDO) {
+    // O bloqueio do derivado: medir não é obrigatório, e «não foi medido» não é uma
+    // escolha da escala — sai em itálico, fora das caixas, para não marcar nenhuma.
+    linhas.push('*' + NAO_MEDIDO + '*');
+  } else if (valores.length > 1) {
     linhas.push(caixas(valores, resposta ? resposta.respondido : null, preenchida));
   } else if (valores.length === 1) {
     linhas.push(dito == null ? TRACO + '  — ' + valores[0] : '**' + dito + '**');
