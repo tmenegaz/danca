@@ -10995,3 +10995,31 @@ posições** — que usam ESCALA (`valores`), não `opcoes`. E o `en-dehors` est
 **O que ainda não está feito.** O cabeçalho «Método declarado (P-16)» da ficha, quando o
 `matriz-metodologica-de-origem` sai como «não foi medido», mostra as caixas vazias (borda menor,
 só do módulo-b). MMSS/MMII segue para o Bloco 8.
+
+## 13/10/2026 — A categoria etária é re-derivada da idade; a memória é por escola/professor/ciclo
+
+**O que motivou.** A categoria etária saiu «Infantil» numa anamnese cuja idade era «21/11/2010»
+(15 anos — devia sair «Juvenil»). A derivação em si estava correta (`idadeEmAnos` → 15 →
+`categoriaPorIdade` → «Juvenil»); o defeito era de ESTADO: o depósito do navegador era GLOBAL
+(`porta-anamnese-1`), então um «Infantil» semeado para outra escola/professor vazava para a
+anamnese nova, e a idade RESTAURADA (não redigitada) não disparava o recálculo — `preencherCategoria`
+só roda quando a idade é RESPONDIDA.
+
+**O que foi decidido.**
+- A chave do depósito passa a incluir **escola · professor · ciclo** (as três vêm da URL, estáveis).
+  A aluna NÃO entra na chave: é escolhida no seletor DEPOIS da carga (não está na URL), então uma
+  chave com aluna seria instável (o load leria um nome e o save gravaria outro).
+- A categoria etária é **re-derivada da idade depois de restaurar a memória** — o que a idade diz
+  vale, salvo se a professora corrigiu a categoria à mão (a correção dela continua sendo a resposta).
+
+**Onde entrou.** `porta/index.html` — `chaveDaMemoria()` (substitui o `CHAVE` fixo) e o bloco de
+re-derivação no `iniciar`, logo após `restaurar`.
+
+**Com o quê.** `porta/index.html` e as cópias geradas da porta nos pacotes da barra e da maria.
+
+**Referências.** P-16 (declarado, não deduzido) · P-17 (harmonização) · o campo
+`categoria-etaria` do conteúdo («vem pré-preenchida pela idade e a professora confirma ou corrige»).
+
+**O que ainda não está feito.** A chave do depósito ainda NÃO isola por ALUNA (dentro da mesma
+escola): é a limitação da aluna não estar na URL. Isolar por aluna exigiria persistir a aluna na
+URL ou limpar o depósito quando a aluna muda — anotado, não implementado.
