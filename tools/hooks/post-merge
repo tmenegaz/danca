@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# ============================================================================
+# post-merge — a limpeza LOCAL do expurgo, na sincronização (§17.5, «Norma — limpeza»).
+#
+# Instalado por tools/instalar-hooks.sh. Dispara depois de um `git pull`/`git merge`.
+#
+# O que faz: varre `escola/*/indice.json` (o índice que SOBREVIVE ao expurgo). Para cada
+# escola cujo índice já registra o elo do expurgo (`expurgo[]` não vazio) MAS cujos
+# artefatos ainda existem no ambiente local (o commit de limpeza ainda não chegou, ou
+# esta máquina ficou para trás), roda `node escola/expurgar.js <slug>` — que lê o resto
+# (professor, ciclo, chave da senha, worker) do próprio índice.
+#
+# É uma REDE DE SEGURANÇA: nunca bloqueia o merge (sai 0 sempre). A verificação
+# «não está a pagar» e o caráter idempotente vivem em escola/expurgar.js.
+# ============================================================================
+set -uo pipefail
+
+RAIZ="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+[ -n "$RAIZ" ] && [ -d "$RAIZ/escola" ] || exit 0
+cd "$RAIZ" || exit 0
+
+# Devolve, um por linha, o slug de cada escola expurgada no índice cujos artefatos
+# ainda existem no repositório. O resto (a decisão de apagar) fica no expurgar.js.
+alvos="$(node -e '
+const fs = require("fs");
+const path = require("path");
+const raiz = process.cwd();
+function existe(p) { try { return fs.existsSync(p); } catch { return false; } }
+for (const arq of fs.readdirSync(path.join(raiz, "escola"))) {
+  if (!arq) continue;
+  const caminho = path.join(raiz, "escola", arq, "indice.json");
+  if (!existe(caminho)) continue;
+  let d;
+  try { d = JSON.parse(fs.readFileSync(caminho, "utf8")); } catch { continue; }
+  const slug = d && d.escola;
+  const expurgado = d && Array.isArray(d.expurgo) && d.expurgo.length > 0;
+  if (!slug || !expurgado) continue;
+  const prof = (d.professor && d.professor.slug) || "";
+  const ciclo = d.ciclo || "";
+  const worker = d.worker || slug;
+  const restos = [
+    prof && ciclo ? "professores/" + prof + "/ciclos/ciclo-" + ciclo + "-" + slug : null,
+    prof && ciclo ? "professores/" + prof + "/ciclos/ciclo-" + ciclo + "-" + slug + ".conf" : null,
+    "wrangler." + worker + ".jsonc",
+  ].filter(Boolean);
+  if (restos.some(existe)) process.stdout.write(slug + "\n");
+}
+')"
+
+for slug in $alvos; do
+  echo "post-merge: $slug está expurgada no índice mas ainda presente no repo — limpando..."
+  node escola/expurgar.js "$slug" \
+    || echo "post-merge: aviso — a limpeza de $slug falhou; rode `node escola/expurgar.js $slug` à mão" >&2
+done
+
+exit 0

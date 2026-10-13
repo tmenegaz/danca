@@ -10449,3 +10449,58 @@ nasce» (a lacuna 1 ali declarada) · `CONGELAMENTO.md` (`tools/`).
   mais (hoje o caso é raro: o worker nasce com o slug por padrão).
 - O índice não é consumido por mais nada além do `escola/expurgar.js` — o `post-merge`/hook
   de sincronização que o §17.5 prevê (para rodar a limpeza sozinho) continua por construir.
+
+## 12/10/2026 — O expurgo ganha a reconciliação worker×slug e o hook post-merge (fecha as lacunas 2 e 3)
+
+**O que motivou.** Duas lacunas ficaram do expurgo: (1) o `--worker` do `criar-escola.sh`
+podia divergir do slug da escola — e aí a metade Cloudflare apagava `scripts/<slug>` enquanto
+a local apagava `wrangler.<worker>.jsonc`; (2) a limpeza local só rodava à mão, sem o hook de
+sincronização que o §17.5 previa.
+
+**O que foi decidido.**
+- **Reconciliação `worker` × `slug`.** O índice da escola já guarda `worker`; agora o
+  `excluirEscola` recebe `worker` e apaga o **subdomínio** e o **script** pelo nome do Worker
+  (`scripts/<worker>`), enquanto o **KV** continua pelo prefixo do **slug** (é o slug quem
+  nomeia as chaves). O andaime `escolas-habilitadas.json` ganha o campo opcional `worker`; sem
+  ele, cai no slug. A raiz passa `reg.worker` ao `excluirEscola`.
+- **O hook `post-merge`.** Depois de `git pull`/`git merge`, varre `escola/*/indice.json`; para
+  cada escola cujo índice já tem o elo do expurgo (`expurgo[]` não vazio) MAS cujos artefatos
+  ainda existem no repositório, roda `node escola/expurgar.js <slug>` — que agora lê
+  professor/ciclo/chave/worker do próprio índice (os argumentos só vencem sem índice). É uma
+  rede de segurança: nunca bloqueia o merge.
+
+**Motivo declarado — os congelados.**
+`tools/hooks/post-merge` entra em `tools/` (congelado) e exige motivo. O motivo: a "Norma —
+limpeza" do §17.5 fala literalmente em `post-merge` como o ponto da limpeza na sincronização —
+sem ele, a outra metade do expurgo (a local) depende de memória. **O que não muda:**
+
+- **A fórmula do hash e a cobertura.** O hook não lê nem escreve fonte de ciclo; não toca o
+  `.fipp`.
+- **As 17 regras, as 22 pétreas e o `CONGELAMENTO.md`.** Nenhum mudou.
+- **Os hooks existentes.** `commit-msg`, `pre-commit` e `pre-push` continuam os mesmos; o
+  `instalar-hooks.sh` já instala tudo o que vive em `tools/hooks/` (o glob), então o hook novo
+  entra sem alterar o instalador.
+
+**Onde entrou.**
+`motor/servidor/expurgar-escola.js` — `excluirEscola` ganha `worker` (subdomínio/script por
+worker, KV por slug).
+`motor/servidor/raiz.js` — passa `reg.worker` ao `excluirEscola`.
+`raiz/escolas-habilitadas.json` — o campo opcional `worker` no `_nota`.
+`escola/expurgar.js` — lê `professor`/`ciclo` do índice (fallback nos argumentos).
+`tools/hooks/post-merge` — o hook da limpeza na sincronização.
+
+**Com o quê.**
+`motor/servidor/expurgar-escola.js`, `motor/servidor/raiz.js`, `raiz/escolas-habilitadas.json`,
+`escola/expurgar.js`, `tools/hooks/post-merge`, `REGISTRO.md`.
+
+**Referências.**
+`IDEIA-PAINEL-ESCOLA.md` §17.5 (o `post-merge` e a limpeza por slug) · §17.6 (o índice com o
+`worker`) · a entrada anterior «O criar-escola.sh passa a gerar o índice» (a lacuna 1 ali
+declarada) · `CONGELAMENTO.md` (`tools/`).
+
+**O que ainda não está feito.**
+- O servidor (Cron) ainda NÃO escreve o elo do expurgo no repositório (a raiz não tem
+  `GITHUB_TOKEN`): o caminho primário continua sendo `node escola/expurgar.js` + commit. O
+  `post-merge` cobre as OUTRAS máquinas — quando o elo chega pelo `main`, mas os artefatos
+  ainda não. Fechar isso exige dar escrita ao Cron ou um fluxo explícito de "expurgou no
+  servidor → commit do elo".
