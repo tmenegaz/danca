@@ -338,7 +338,6 @@
   </div>
 </nav>
 
-
 <!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de
      ouro e o subtítulo em itálico. A barra de cima é a do site (o marcador acima). -->
 <header class="doc">
@@ -365,7 +364,7 @@
       <span class="campo"><label for="ctx-escola">escola</label>
         <input type="text" id="ctx-escola" value=""></span>
       <span class="campo"><label for="ctx-professor">professor</label>
-        <input type="text" id="ctx-professor" value=""></span>
+        <select id="ctx-professor"><option value="">— escolher —</option></select></span>
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
         <input type="text" id="ctx-ciclo" value=""></span>
       <span class="campo"><label for="ctx-aluna">aluna</label>
@@ -626,6 +625,32 @@ async function carregarAlunas() {
     // sem a lista, o seletor fica só com «nenhuma» — o botão não habilita.
   }
   atualizarComecar();
+}
+
+/*
+ * Os PROFESSORES também viram lista — a MESMA solução das alunas: o seletor vem dos
+ * Bastidores (`api/bastidores/professores`, o dono primeiro + os adicionais), e vale nas
+ * TRÊS fontes (anamnese, plano e PO), porque o professor identifica o ato em todas. O nome
+ * vindo da URL é preservado mesmo se a lista ainda não o contiver (ex.: nome ajustado).
+ */
+async function carregarProfessores() {
+  const sel = $('ctx-professor');
+  if (!sel) return;
+  try {
+    const resposta = await fetch('/api/bastidores/professores');
+    const dados = await resposta.json();
+    const lista = Array.isArray(dados.professores) ? dados.professores : [];
+    const daUrl = new URLSearchParams(location.search).get('professor') || '';
+    const atual = sel.value || daUrl;
+    const vistas = [];
+    for (const n of lista) { if (n && vistas.indexOf(n) === -1) vistas.push(n); }
+    if (atual && vistas.indexOf(atual) === -1) vistas.push(atual);
+    sel.innerHTML = '<option value="">— escolher —</option>' +
+      vistas.map((n) => '<option value="' + escapar(n) + '">' + escapar(n) + '</option>').join('');
+    if (atual) sel.value = atual;
+  } catch (erro) {
+    // sem a lista, o seletor fica só com «escolher».
+  }
 }
 
 function sinalDeSenha(ok, texto) {
@@ -3432,7 +3457,10 @@ async function iniciar() {
 
   // A semeadura pelo contexto do ato vem DEPOIS do depósito: o que o professor
   // já respondeu por si vence a barra; o resto é sugerido. Semear antes faria a
-  // sugestão passar por resposta dele.
+  // sugestão passar por resposta dele. Os PROFESSORES viraram lista (como as
+  // alunas) — carrega-a ANTES de semear, para o `?professor=` da URL já estar no
+  // seletor quando a semeadura rodar.
+  await carregarProfessores();
   semearDoContexto();
   // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
@@ -3444,6 +3472,9 @@ async function iniciar() {
   $('barra').addEventListener('input', (evento) => {
     if (evento.target && /^ctx-/.test(evento.target.id || '')) semearDoContexto();
   });
+  // O seletor de PROFESSOR dispara `change`, não `input` — liga a semeadura também
+  // (as três fontes têm o campo professor; a aluna é só da anamnese e já é tratada lá).
+  $('ctx-professor').addEventListener('change', () => semearDoContexto());
 
   // A barra e a trava do fecho valem nos dois caminhos — com depósito e sem
   // ele. Fora dos ramos, para que o boot sem memória não deixe o `#fechar`
