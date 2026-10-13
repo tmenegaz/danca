@@ -10866,3 +10866,27 @@ cabeçalho documenta o pulo).
 
 **O que ainda não está feito.** Nada — a lacuna foi fechada. (Os scaffolds da Barra e da Maria
 já estão no histórico; a partir de agora, escola nova entra por commit normal, sem `--no-verify`.)
+
+## 13/10/2026 — A Produção exclui aluna e professor (o gabinete se mantém limpo)
+
+**O que motivou.** A Produção só criava: aluna e professor entravam na lista, mas não havia como
+tirar. Um cadastro de teste (ou um erro de digitação) ficava para sempre no KV da escola — e o
+professor a mais mudava quem habilita a Área do Professor.
+
+**O que foi decidido.** As listas ganham um botão «Excluir», com rotas `DELETE
+/api/bastidores/aluna` e `DELETE /api/bastidores/professor`. O professor DONO (criado pela página
+`danca`, que vive no secret `PROFESSOR_NOME`) é PROTEGIDO: não se exclui pelos Bastidores — o
+endpoint devolve 409 apontando que a exclusão é pela página, porque o segredo do Worker é outra
+fronteira (o KV só guarda os professores ADICIONAIS).
+
+**Onde entrou.** `motor/servidor/bastidores.js` — as duas rotas DELETE, o botão por item da lista
+e o rótulo «dono — criado na página» no professor da página.
+
+**Com o quê.** `motor/servidor/bastidores.js`.
+
+**Referências.** P-12 (apelidos estáveis) · P-17 (harmonização) · a entrada «O cadastro de aluna e
+professor aponta para a rota certa» (13/10) — o antecessor imediato desta correção.
+
+**O que ainda não está feito.** A página `/bastidores/producao` (o gabinete) ainda não pede senha
+para ABRIR — a senha da direção só existe no endpoint `validar-producao`, que a página ainda não
+chama. É o freio de acesso dos Bastidores, pendente.
