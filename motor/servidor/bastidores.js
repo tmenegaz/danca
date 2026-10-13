@@ -500,32 +500,40 @@ async function fetch(request, env) {
     return json(200, { ok: true, dono: nome });
   }
 
-  // POST /api/bastidores/validar-senha — a anamnese valida a senha do professor.
-  // Fonte dupla: o secret `SENHA_PROFESSOR` (o professor criado pela página) OU a lista no KV.
+  // POST /api/bastidores/validar-senha — a anamnese valida a senha DO PROFESSOR.
+  // A senha é PER-PROFESSOR: o `professor` (slug) selecionado no formulário diz a QUEM a
+  // senha pertence. O dono vive no secret `SENHA_PROFESSOR`; os adicionais, no KV (hash).
+  // Uma senha de um professor NUNCA vale para outro — era esse o vazamento: a fonte dupla
+  // aceitava a senha do dono (ou de qualquer professor do KV) para qualquer professor.
   if (path === '/api/bastidores/validar-senha' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
     const senha = String(corpo.senha || '');
+    const professor = String(corpo.professor || '').trim();
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
+    if (!professor) return json(400, { ok: false, erro: 'escolha o professor' });
 
-    // O professor criado pela página vive no secret SENHA_PROFESSOR. O nome devolvido é o
-    // RESOLVIDO (o KV vence o secret), para bater com a lista do seletor.
-    if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
-      const nome = await nomeDoDono(env, kv, escola);
-      return json(200, { ok: true, professor: (nome || 'professor') });
+    // O professor criado pela página vive no secret SENHA_PROFESSOR. O SLUG dele é derivado
+    // do SECRET (não da sobreposição editável do nome), para a pasta ficar estável — e o
+    // seletor envia exatamente esse slug.
+    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    if (professor === donoSlug) {
+      if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
+        const nome = await nomeDoDono(env, kv, escola);
+        return json(200, { ok: true, professor: (nome || 'professor') });
+      }
+      return json(200, { ok: false, erro: 'senha do professor não reconhecida' });
     }
 
     const profs = await professores(kv, escola);
-    let achou = null;
-    for (const p of profs) {
-      if (p.hash) {
-        if ((await hashSenha(senha, p.sal)) === p.hash) { achou = p; break; }
-      } else if (p.senha === senha) {
-        // legado (pré-hash): aceita uma vez, para não quebrar escolas antigas.
-        achou = p; break;
-      }
-    }
-    return json(200, achou ? { ok: true, professor: achou.nome } : { ok: false, erro: 'senha não reconhecida' });
+    const alvo = profs.find((p) => p && slugificar(p.nome) === professor);
+    if (!alvo) return json(200, { ok: false, erro: 'professor não reconhecido' });
+    const confere = alvo.hash
+      ? ((await hashSenha(senha, alvo.sal)) === alvo.hash)
+      : (alvo.senha === senha); // legado (pré-hash): aceita, sem quebrar escolas antigas.
+    return json(200, confere
+      ? { ok: true, professor: alvo.nome }
+      : { ok: false, erro: 'senha do professor não reconhecida' });
   }
 
   // POST /api/bastidores/validar-producao — a porta da Produção (só a direção).

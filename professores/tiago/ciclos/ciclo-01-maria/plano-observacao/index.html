@@ -373,7 +373,7 @@
       <span class="campo"><label for="ctx-aluna">aluna</label>
         <select id="ctx-aluna"><option value="">— nenhuma —</option></select>
         <button type="button" class="limpar-aluna" id="limpar-aluna" title="desmarcar a aluna" aria-label="desmarcar a aluna">×</button></span>
-      <span class="campo"><label for="senha">senha da escola</label>
+      <span class="campo"><label for="senha">senha do professor</label>
         <input type="password" id="senha" autocomplete="off">
         <span class="senha-status" id="senha-status"></span></span>
     </div>
@@ -591,11 +591,9 @@ function limparMemoria() {
 }
 
 /*
- * A senha da escola é UMA só: a mesma dos acompanhamentos e a mesma que o
- * formulário de lançamento guarda. A chave abaixo é literalmente a dele — uma
- * senha nova aqui seria uma segunda senha para a mesma escola.
- * O campo tem precedência sobre o que já ficou na sessão, para o professor
- * poder corrigi-la sem recarregar a página.
+ * A senha do PROFESSOR selecionado — a que valida o «Fazer a anamnese» e a que
+ * cifra o envelope da anamnese no navegador. O campo tem precedência sobre o que
+ * já ficou na sessão, para o professor poder corrigi-la sem recarregar a página.
  */
 const CHAVE_SENHA = 'lancamento:senha';
 
@@ -699,7 +697,7 @@ async function validarSenha() {
     const resposta = await fetch('/api/bastidores/validar-senha', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ senha }),
+      body: JSON.stringify({ senha, professor: (($('ctx-professor') || {}).value || '') }),
     });
     const dados = await resposta.json();
     SENHA_VALIDA = !!dados.ok;
@@ -1106,9 +1104,19 @@ function gravarRespostaDoNo(no) {
     if (nota) NOTAS.set(no.id, nota);
     else NOTAS.delete(no.id);
   }
-  // O valor veio da tela: é da professora. A partir daqui a pré-inscrição não
-  // o recalcula mais, mesmo que ela volte e mude a idade.
-  if (no.id === 'categoria-etaria') SUGERIDAS.delete('categoria-etaria');
+  // A categoria etária é DERIVADA da idade. Ela só deixa de ser regida pela
+  // idade quando a professora escolhe um valor DIFERENTE da sugestão. Passar
+  // pela categoria sem mexer (o rádio já veio pré-marcado) é CONFIRMAR — e a
+  // idade continua a semeá-la, re-derivando quando a data é corrigida depois.
+  if (no.id === 'categoria-etaria') {
+    const noIdade = MAPA.nos.find((n) => n.id === 'idade');
+    const sugerida = noIdade ? categoriaPorIdade(idadeDaResposta(noIdade)) : null;
+    if (sugerida && RESPOSTAS.get('categoria-etaria') === sugerida) {
+      SUGERIDAS.add('categoria-etaria');
+    } else {
+      SUGERIDAS.delete('categoria-etaria');
+    }
+  }
   // Único ponto por onde toda resposta passa — é aqui que a idade alcança a
   // categoria. Antes da barra e do roteiro, para os dois já contarem o nó que
   // a pré-inscrição preencheu.
@@ -3546,7 +3554,16 @@ async function iniciar() {
   });
   // O seletor de PROFESSOR dispara `change`, não `input` — liga a semeadura também
   // (as três fontes têm o campo professor; a aluna é só da anamnese e já é tratada lá).
-  $('ctx-professor').addEventListener('change', () => semearDoContexto());
+  // Trocar de professor INVALIDA a senha: ela é DO professor selecionado, não da
+  // escola — o campo limpa e o «Fazer a anamnese» volta a travar até revalidar.
+  $('ctx-professor').addEventListener('change', () => {
+    const campo = $('senha');
+    if (campo) campo.value = '';
+    SENHA_VALIDA = false;
+    sinalDeSenha(false, '');
+    atualizarComecar();
+    semearDoContexto();
+  });
 
   // A barra e a trava do fecho valem nos dois caminhos — com depósito e sem
   // ele. Fora dos ramos, para que o boot sem memória não deixe o `#fechar`
@@ -3770,7 +3787,7 @@ async function iniciar() {
           // por isso a memória do navegador só se apaga no fim, confirmada.
           try {
             const senha = senhaDaEscola();
-            if (!senha) throw new Error('informe a senha da escola na barra para guardar a anamnese cifrada.');
+            if (!senha) throw new Error('informe a senha do professor na barra para guardar a anamnese cifrada.');
             // Cifra-se o envelope inteiro, no mesmo formato em que foi para o
             // disco: o cofre devolve-o byte a byte, e é assim que se confere que
             // o que subiu é o que ficou.
