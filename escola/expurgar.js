@@ -15,7 +15,7 @@
  *   1. verifica «não está a pagar» — o índice carrega a flag; se `pagante:true`, NÃO apaga;
  *   2. `SENHA_<SLUG>` em tools/.senhas-locais;
  *   3. `<slug>` em tools/.escolas-teste;
- *   4. `wrangler.<slug>.jsonc`;
+ *   4. `wrangler.<worker>.jsonc` (o `worker` vem do índice; cai no slug sem índice);
  *   5. `professores/<p>/ciclos/ciclo-<NN>-<slug>/` (pacote) e `ciclo-<NN>-<slug>*` (fontes);
  *   6. regista o ELO do expurgo em `escola/<slug>/indice.json` — que SOBREVIVE (o índice
  *      não se apaga; recebe um elo novo, nunca é reescrito — proveniência acrescenta).
@@ -109,13 +109,18 @@ function main() {
   const relatorio = { apagado: [], naoApagado: [] };
   const confere = (rotulo, feito) => (feito ? relatorio.apagado : relatorio.naoApagado).push(rotulo);
 
-  const chaveSenha = 'SENHA_' + slug.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+  // O índice (gerado pelo criar-escola.sh) é a fonte da chave da senha e do nome do Worker.
+  // Sem índice (criação antiga), cai no padrão derivado do slug — retrocompatibilidade.
+  const chaveSenha = (indice && indice.senha && indice.senha.chave)
+    || 'SENHA_' + slug.toUpperCase().replace(/[^A-Z0-9]/g, '_');
+  const worker = (indice && indice.worker) || slug;
+
   confere('senha ' + chaveSenha + ' em tools/.senhas-locais',
     removerLinhas(path.join(RAIZ, 'tools', '.senhas-locais'), (l) => l.trim().startsWith(chaveSenha + '=')));
   confere('slug ' + slug + ' em tools/.escolas-teste',
     removerLinhas(path.join(RAIZ, 'tools', '.escolas-teste'), (l) => l.trim() === slug));
-  confere('wrangler.' + slug + '.jsonc',
-    apagar(path.join(RAIZ, 'wrangler.' + slug + '.jsonc')));
+  confere('wrangler.' + worker + '.jsonc',
+    apagar(path.join(RAIZ, 'wrangler.' + worker + '.jsonc')));
 
   const base = path.join(RAIZ, 'professores', professor, 'ciclos');
   const prefixo = 'ciclo-' + String(ciclo).padStart(2, '0') + '-' + slug;
