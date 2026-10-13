@@ -24,6 +24,10 @@
 
 const RAIZ = 'bastidores';
 
+// O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
+// sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
+const CATALOGO = require('./catalogo-seed.js');
+
 function json(status, corpo) {
   return new Response(JSON.stringify(corpo, null, 2) + '\n', {
     status,
@@ -112,6 +116,76 @@ async function professores(kv, escola) {
 async function alunas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/alunas');
 }
+async function turmas(kv, escola) {
+  return lerLista(kv, RAIZ + '/' + escola + '/turmas');
+}
+async function termos(kv, escola) {
+  return lerLista(kv, RAIZ + '/' + escola + '/vocabulario');
+}
+
+/** A relação turma↔termo: um MAPA `{ turmaId: [termoId, ...] }`. Um termo pode estar em
+ *  várias turmas; uma turma tem vários termos. `lerLista` não serve aqui (não é array). */
+async function relacoes(kv, escola) {
+  try {
+    const t = await kv.get(RAIZ + '/' + escola + '/turma-conteudos');
+    const v = t ? JSON.parse(t) : {};
+    return v && typeof v === 'object' && !Array.isArray(v) ? v : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+/** O id estável de uma turma/termo: o slug do nome (não há edição — o nome não muda). */
+function idDe(nome) {
+  return slugificar(nome);
+}
+
+/** Monta o objeto-turma canónico a partir do que a Produção envia. */
+function normalizarTurma(corpo) {
+  const nome = String(corpo.nome || '').trim();
+  const ordem = Number.isFinite(Number(corpo.ordem)) ? Number(corpo.ordem) : null;
+  return {
+    id: idDe(nome),
+    nome: nome,
+    ordem: ordem,
+    programaReferencia: String(corpo.programaReferencia || '').trim(),
+    nivelReferencia: String(corpo.nivelReferencia || '').trim(),
+    descricao: String(corpo.descricao || '').trim(),
+    ativo: corpo.ativo !== false,
+  };
+}
+
+/** Monta o objeto-termo canónico a partir do que a Produção envia. */
+function normalizarTermo(corpo) {
+  const termo = String(corpo.termo || '').trim();
+  const altos = Array.isArray(corpo.alternativos)
+    ? corpo.alternativos.map((a) => String(a).trim()).filter(Boolean)
+    : [];
+  return {
+    id: idDe(termo),
+    termo: termo,
+    categoria: String(corpo.categoria || '').trim(),
+    tradicao: String(corpo.tradicao || 'compartilhada').trim(),
+    alternativos: altos,
+    descricao: String(corpo.descricao || '').trim(),
+    fonte: String(corpo.fonte || '').trim(),
+    observacoes: String(corpo.observacoes || '').trim(),
+  };
+}
+
+/**
+ * A lista de opções do formulário do plano: `{valor, rotulo}` (o contrato de `opcoesDe`).
+ * O `valor` é o NOME de exibição (não o `id`): o derivador do plano/PO imprime o valor
+ * direto como «Turma», e o nome é o que a ficha deve mostrar. O `id` (slug) continua a
+ * viver no cadastro e nas relações — mas a referência do plano é de LEITURA humana.
+ */
+function opcoesDeTurmas(lista) {
+  return lista
+    .filter((t) => t && t.ativo !== false)
+    .slice()
+    .sort((a, b) => (a.ordem ?? 0) - (b.ordem ?? 0))
+    .map((t) => ({ valor: t.nome, rotulo: t.nome }));
+}
 
 /** O nome do professor DONO, com a sobreposição editável no KV. O dono vive como SECRET
  *  (PROFESSOR_NOME) e o nome ajustado nos Bastidores fica no KV — o KV vence, para o nome
@@ -185,7 +259,7 @@ function paginaEstudio(escola) {
     '</div></body></html>';
 }
 
-function paginaProducao(escola, profs, aluns, dono) {
+function paginaProducao(escola, profs, aluns, dono, trms, trmos, rel) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -209,6 +283,48 @@ function paginaProducao(escola, profs, aluns, dono) {
     ? aluns.map((a) => '<li>' + esc(a)
         + ' <button class="apagar" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></li>').join('')
     : '<li>(nenhuma aluna cadastrada)</li>';
+
+  // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
+  const listaTurmas = (trms || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  const listaTermos = (trmos || []).slice().sort((a, b) => String(a.termo).localeCompare(String(b.termo)));
+  const termoPorId = new Map(listaTermos.map((t) => [t.id, t]));
+  const relObj = rel || {};
+
+  // As opções do <select> de associação (uma por termo).
+  const opcoesTermo = listaTermos.map((t) =>
+    '<option value="' + esc(t.termo) + '">' + esc(t.termo) +
+    (t.categoria ? ' — ' + esc(t.categoria) : '') + '</option>').join('');
+
+  const itensTurmas = listaTurmas.length
+    ? listaTurmas.map((t) => {
+        const associados = Array.isArray(relObj[t.id]) ? relObj[t.id] : [];
+        const chips = associados.map((tid) => {
+          const o = termoPorId.get(tid);
+          const nome = o ? o.termo : tid;
+          return '<span class="chip">' + esc(nome) +
+            ' <button class="desassociar" data-turma="' + esc(t.id) + '" data-termo="' + esc(nome) +
+            '" title="Remover associação">×</button></span>';
+        }).join(' ');
+        const detalhe = (t.nivelReferencia ? t.nivelReferencia : '') +
+          (t.programaReferencia ? (t.nivelReferencia ? ' · ' : '') + t.programaReferencia : '');
+        return '<li class="turma" data-turma="' + esc(t.id) + '">' +
+          '<div><b>' + esc(t.nome) + '</b>' +
+          (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
+          ' <button class="apagar" data-tipo="turma" data-alvo="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></div>' +
+          '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
+          (chips || '<span class="dono">(nenhum)</span>') +
+          ' <select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
+          ' <button class="associar" data-turma="' + esc(t.id) + '">Associar</button></div>' +
+          '</li>';
+      }).join('')
+    : '<li>(nenhuma turma cadastrada)</li>';
+
+  const itensTermos = listaTermos.length
+    ? listaTermos.map((t) => '<li><b>' + esc(t.termo) + '</b>' +
+        (t.categoria ? ' <span class="dono">' + esc(t.categoria) + '</span>' : '') +
+        (t.tradicao ? ' <span class="dono">' + esc(t.tradicao) + '</span>' : '') +
+        ' <button class="apagar" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></li>').join('')
+    : '<li>(nenhum termo cadastrado)</li>';
 
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
@@ -236,6 +352,12 @@ function paginaProducao(escola, profs, aluns, dono) {
     'button.apagar:hover{background:#8f3f3f;}' +
     'button.editar{margin-left:.7rem;padding:.15rem .55rem;background:#6b2f2f;color:#fff;' +
     'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    'li.turma{margin-bottom:.6rem;}' +
+    '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:#6b5b4a;}' +
+    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:#efe4c8;border-radius:4px;font-size:.82rem;color:#3a2b1f;}' +
+    '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
+    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
+    'button.associar{margin-left:.4rem;padding:.2rem .55rem;background:#6b2f2f;color:#fff;border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     '[hidden]{display:none!important;}' +
     '#gate{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
     '</style></head><body>' +
@@ -269,6 +391,33 @@ function paginaProducao(escola, profs, aluns, dono) {
     '<div class="res" id="res"></div>' +
     '<h2>Professores cadastrados</h2><ul>' + itensProfs + '</ul>' +
     '<h2>Alunas cadastradas</h2><ul>' + itensAlunas + '</ul>' +
+    '<h2>Turmas</h2>' +
+    '<form id="form-turma">' +
+    '<label for="tnome">Nome da turma</label>' +
+    '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
+    '<label for="tordem">Ordem de exibição (número)</label>' +
+    '<input id="tordem" name="ordem" autocomplete="off" placeholder="ex.: 1">' +
+    '<label for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
+    '<input id="tprograma" name="programaReferencia" autocomplete="off" placeholder="ex.: RAD (referência sugerida)">' +
+    '<label for="tnivel">Nível/grade de referência</label>' +
+    '<input id="tnivel" name="nivelReferencia" autocomplete="off" placeholder="ex.: Grade 1">' +
+    '<label for="tdescricao">Descrição (opcional)</label>' +
+    '<input id="tdescricao" name="descricao" autocomplete="off">' +
+    '<button type="submit">Cadastrar turma</button>' +
+    '</form>' +
+    '<ul>' + itensTurmas + '</ul>' +
+    '<h2>Vocabulário Técnico do Balé</h2>' +
+    '<form id="form-termo">' +
+    '<label for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
+    '<input id="vtermo" name="termo" autocomplete="off" placeholder="ex.: Plié">' +
+    '<label for="vcategoria">Categoria</label>' +
+    '<input id="vcategoria" name="categoria" autocomplete="off" placeholder="passo · posicao · direcao · ligacao · salto · giro">' +
+    '<label for="vtradicao">Tradição de referência</label>' +
+    '<input id="vtradicao" name="tradicao" autocomplete="off" placeholder="compartilhada · RAD · francesa · Vaganova">' +
+    '<button type="submit">Cadastrar termo</button>' +
+    '</form>' +
+    '<ul>' + itensTermos + '</ul>' +
+    '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
     '</div>' +
     '</div>' +
     '<script>' +
@@ -311,6 +460,64 @@ function paginaProducao(escola, profs, aluns, dono) {
     'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
     '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
+    '});' +
+    'function enviar(ep, corpo, mensagem, recarregar) {' +
+    '  corpo.senhaDirecao = SENHA_DIRECAO;' +
+    '  var res = document.getElementById("res");' +
+    '  res.className = "res"; res.textContent = mensagem;' +
+    '  return fetch(ep, {' +
+    '    method: "POST",' +
+    '    headers: {"Content-Type": "application/json"},' +
+    '    body: JSON.stringify(corpo)' +
+    '  }).then(function(r){ return r.json(); }).then(function(d){' +
+    '    if (d.ok) { if (recarregar) { location.reload(); } else { res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")"; } }' +
+    '    else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
+    '  }).catch(function(err){ res.className = "res erro"; res.textContent = "Erro: " + err.message; });' +
+    '}' +
+    'document.getElementById("form-turma").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  enviar("/api/bastidores/turma", {' +
+    '    nome: document.getElementById("tnome").value,' +
+    '    ordem: document.getElementById("tordem").value,' +
+    '    programaReferencia: document.getElementById("tprograma").value,' +
+    '    nivelReferencia: document.getElementById("tnivel").value,' +
+    '    descricao: document.getElementById("tdescricao").value' +
+    '  }, "cadastrando turma...", true);' +
+    '});' +
+    'document.getElementById("form-termo").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  enviar("/api/bastidores/termo", {' +
+    '    termo: document.getElementById("vtermo").value,' +
+    '    categoria: document.getElementById("vcategoria").value,' +
+    '    tradicao: document.getElementById("vtradicao").value' +
+    '  }, "cadastrando termo...", true);' +
+    '});' +
+    'document.getElementById("semear").addEventListener("click", function(e){' +
+    '  if (!confirm("Carregar o catálogo inicial (turmas + vocabulário)? Registros já existentes não são duplicados.")) return;' +
+    '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
+    '});' +
+    'document.addEventListener("click", function(e){' +
+    '  var as = e.target.closest("button.associar");' +
+    '  if (as) {' +
+    '    var turmaId = as.getAttribute("data-turma");' +
+    '    var sel = as.parentElement.querySelector("select.sel-termo");' +
+    '    var termo = sel ? sel.value : "";' +
+    '    if (!termo) { alert("Escolha um termo para associar."); return; }' +
+    '    enviar("/api/bastidores/turma-conteudo", {turma: turmaId, termo: termo}, "associando...", true);' +
+    '    return;' +
+    '  }' +
+    '  var ds = e.target.closest("button.desassociar");' +
+    '  if (ds) {' +
+    '    var tId = ds.getAttribute("data-turma");' +
+    '    var tTermo = ds.getAttribute("data-termo");' +
+    '    if (!confirm("Remover a associação com " + tTermo + "?")) return;' +
+    '    var corpo = {turma: tId, termo: tTermo, senhaDirecao: SENHA_DIRECAO};' +
+    '    fetch("/api/bastidores/turma-conteudo", {method: "DELETE", headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '      .then(function(r){ return r.json(); }).then(function(d){' +
+    '        if (d.ok) { location.reload(); } else { alert("Erro: " + (d.erro || "desconhecido")); }' +
+    '      }).catch(function(err){ alert("Erro: " + err.message); });' +
+    '    return;' +
+    '  }' +
     '});' +
     'document.addEventListener("click", function(e){' +
     '  var ed = e.target.closest("button.editar");' +
@@ -372,9 +579,12 @@ async function fetch(request, env) {
     return html(paginaEstudio(escola));
   }
   if (path === '/bastidores/producao') {
-    const [profs, aluns] = await Promise.all([professores(kv, escola), alunas(kv, escola)]);
+    const [profs, aluns, trms, trmos] = await Promise.all([
+      professores(kv, escola), alunas(kv, escola), turmas(kv, escola), termos(kv, escola),
+    ]);
     const dono = await nomeDoDono(env, kv, escola);
-    return html(paginaProducao(escola, profs, aluns, dono));
+    const rel = await relacoes(kv, escola);
+    return html(paginaProducao(escola, profs, aluns, dono, trms, trmos, rel));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -548,6 +758,203 @@ async function fetch(request, env) {
     return json(200, okDirecao
       ? { ok: true, direcao: true }
       : { ok: false, erro: 'senha da direção não reconhecida' });
+  }
+
+  // ---------------------------------------------------------------------------
+  // TURMAS e VOCABULÁRIO TÉCNICO — o cadastro administrativo (Bloco 3 do plano).
+  // Mesma política dos professores/alunas: dado no KV da própria escola, operações
+  // atrás da senha da direção. Inclusão/exclusão apenas (sem edição, §7 do pedido).
+  // ---------------------------------------------------------------------------
+
+  // GET /api/bastidores/turmas — a lista (Produção) e as opções do plano (`opcoesDe`).
+  if (path === '/api/bastidores/turmas') {
+    const lista = await turmas(kv, escola);
+    return json(200, { ok: true, escola, turmas: lista, opcoes: opcoesDeTurmas(lista) });
+  }
+
+  // GET /api/bastidores/termos — o vocabulário técnico (Produção).
+  if (path === '/api/bastidores/termos') {
+    const lista = await termos(kv, escola);
+    const opcoes = lista.map((t) => ({ valor: t.id, rotulo: t.termo }));
+    return json(200, { ok: true, escola, termos: lista, opcoes: opcoes });
+  }
+
+  // GET /api/bastidores/turma-conteudos — a relação turma↔termo (mapa inteiro).
+  if (path === '/api/bastidores/turma-conteudos') {
+    const rel = await relacoes(kv, escola);
+    return json(200, { ok: true, escola, relacoes: rel });
+  }
+
+  // POST /api/bastidores/turma — incluir turma.
+  if (path === '/api/bastidores/turma' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const nova = normalizarTurma(corpo);
+    if (!nova.nome) return json(400, { ok: false, erro: 'informe o nome da turma' });
+    const lista = await turmas(kv, escola);
+    if (lista.some((t) => t && t.id === nova.id)) return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
+    lista.push(nova);
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+    return json(201, { ok: true, turma: nova.nome });
+  }
+
+  // DELETE /api/bastidores/turma — excluir turma (e limpar a relação).
+  if (path === '/api/bastidores/turma' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = idDe(String(corpo.nome || corpo.id || '').trim());
+    if (!id) return json(400, { ok: false, erro: 'informe a turma' });
+    const lista = await turmas(kv, escola);
+    const idx = lista.findIndex((t) => t && t.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'turma não encontrada' });
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+    const rel = await relacoes(kv, escola);
+    if (rel[id]) { delete rel[id]; await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel)); }
+    return json(200, { ok: true, turma: id, removida: true });
+  }
+
+  // POST /api/bastidores/termo — incluir termo do vocabulário.
+  if (path === '/api/bastidores/termo' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const novo = normalizarTermo(corpo);
+    if (!novo.termo) return json(400, { ok: false, erro: 'informe o termo' });
+    const lista = await termos(kv, escola);
+    if (lista.some((t) => t && t.id === novo.id)) return json(409, { ok: false, erro: 'este termo já existe — selecione o registro existente' });
+    lista.push(novo);
+    await kv.put(RAIZ + '/' + escola + '/vocabulario', JSON.stringify(lista));
+    return json(201, { ok: true, termo: novo.termo });
+  }
+
+  // DELETE /api/bastidores/termo — excluir termo (e limpar a relação).
+  if (path === '/api/bastidores/termo' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = idDe(String(corpo.termo || corpo.nome || corpo.id || '').trim());
+    if (!id) return json(400, { ok: false, erro: 'informe o termo' });
+    const lista = await termos(kv, escola);
+    const idx = lista.findIndex((t) => t && t.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'termo não encontrado' });
+    lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/vocabulario', JSON.stringify(lista));
+    const rel = await relacoes(kv, escola);
+    let mudou = false;
+    for (const k of Object.keys(rel)) {
+      if (Array.isArray(rel[k]) && rel[k].indexOf(id) !== -1) {
+        rel[k] = rel[k].filter((x) => x !== id);
+        mudou = true;
+      }
+    }
+    if (mudou) await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+    return json(200, { ok: true, termo: id, removido: true });
+  }
+
+  // POST /api/bastidores/turma-conteudo — associar um termo a uma turma (sem duplicar).
+  if (path === '/api/bastidores/turma-conteudo' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const turmaId = idDe(String(corpo.turma || '').trim());
+    const termoId = idDe(String(corpo.termo || '').trim());
+    if (!turmaId || !termoId) return json(400, { ok: false, erro: 'informe a turma e o termo' });
+    const listaTurmas = await turmas(kv, escola);
+    const listaTermos = await termos(kv, escola);
+    if (!listaTurmas.some((t) => t && t.id === turmaId)) return json(404, { ok: false, erro: 'turma não encontrada' });
+    if (!listaTermos.some((t) => t && t.id === termoId)) return json(404, { ok: false, erro: 'termo não encontrado' });
+    const rel = await relacoes(kv, escola);
+    const atuais = Array.isArray(rel[turmaId]) ? rel[turmaId] : [];
+    if (atuais.indexOf(termoId) !== -1) return json(409, { ok: false, erro: 'associação já existe' });
+    atuais.push(termoId);
+    rel[turmaId] = atuais;
+    await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+    return json(201, { ok: true, turma: turmaId, termo: termoId, associado: true });
+  }
+
+  // DELETE /api/bastidores/turma-conteudo — remover a associação (não exclui o termo).
+  if (path === '/api/bastidores/turma-conteudo' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const turmaId = idDe(String(corpo.turma || '').trim());
+    const termoId = idDe(String(corpo.termo || '').trim());
+    if (!turmaId || !termoId) return json(400, { ok: false, erro: 'informe a turma e o termo' });
+    const rel = await relacoes(kv, escola);
+    const atuais = Array.isArray(rel[turmaId]) ? rel[turmaId] : [];
+    const idx = atuais.indexOf(termoId);
+    if (idx === -1) return json(404, { ok: false, erro: 'associação não encontrada' });
+    atuais.splice(idx, 1);
+    rel[turmaId] = atuais;
+    await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+    return json(200, { ok: true, turma: turmaId, termo: termoId, removido: true });
+  }
+
+  // POST /api/bastidores/semear-catalogo — carrega o catálogo INICIAL (idempotente: só
+  // entram registros cujo id ainda não existe; a relação só acrescenta pares novos).
+  if (path === '/api/bastidores/semear-catalogo' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const listaTurmas = await turmas(kv, escola);
+    const listaTermos = await termos(kv, escola);
+    const temTurma = (id) => listaTurmas.some((t) => t && t.id === id);
+    const temTermo = (id) => listaTermos.some((t) => t && t.id === id);
+
+    let turmasNovas = 0;
+    for (const s of CATALOGO.TURMAS) {
+      const nova = normalizarTurma(s);
+      if (!nova.nome || temTurma(nova.id)) continue;
+      listaTurmas.push(nova);
+      turmasNovas += 1;
+    }
+
+    let termosNovos = 0;
+    for (const s of CATALOGO.TERMOS) {
+      const novo = normalizarTermo(s);
+      if (!novo.termo || temTermo(novo.id)) continue;
+      listaTermos.push(novo);
+      termosNovos += 1;
+    }
+
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(listaTurmas));
+    await kv.put(RAIZ + '/' + escola + '/vocabulario', JSON.stringify(listaTermos));
+
+    // A relação inicial: só pares em que a turma e o termo existem (após a carga).
+    const rel = await relacoes(kv, escola);
+    let associacoes = 0;
+    for (const r of CATALOGO.RELACOES) {
+      const turmaId = idDe(String(r.turma || ''));
+      const termoId = idDe(String(r.termo || ''));
+      if (!turmaId || !termoId) continue;
+      if (!temTurma(turmaId) && !listaTurmas.some((t) => t && t.id === turmaId)) continue;
+      if (!temTermo(termoId) && !listaTermos.some((t) => t && t.id === termoId)) continue;
+      const atuais = Array.isArray(rel[turmaId]) ? rel[turmaId] : [];
+      if (atuais.indexOf(termoId) !== -1) continue;
+      atuais.push(termoId);
+      rel[turmaId] = atuais;
+      associacoes += 1;
+    }
+    await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+
+    return json(200, { ok: true, turmasNovas, termosNovos, associacoes });
   }
 
   return json(404, { ok: false, erro: 'não encontrado' });

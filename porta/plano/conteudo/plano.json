@@ -70,10 +70,11 @@
           "id": "contexto-turma",
           "campo": "Turma observada",
           "obrigatorio": true,
+          "opcoesDe": "/api/bastidores/turmas",
           "explicacao": {
             "oQueE": "Qual turma exatamente — o grupo, não a escola.",
-            "preencher": "Ex.: «quatro bailarinos em formação inicial».",
-            "porQue": "Um professor pode ter mais de uma turma no mesmo espaço. Declarar o grupo evita confundir quem é observado. Hoje é texto livre; o plano de ensino é agnóstico à turma, e este campo vira a entidade estruturada (lista de turmas do Bastidores) quando o reaproveitamento de plano entre turmas for construído."
+            "preencher": "Escolha a turma cadastrada nos Bastidores (ou escreva o grupo, se ainda não houver turma).",
+            "porQue": "Um professor pode ter mais de uma turma no mesmo espaço. Declarar o grupo evita confundir quem é observado. A lista vem do cadastro de turmas dos Bastidores — o nome de exibição entra no plano; o identificador estável fica no cadastro e nas relações turma↔conteúdo."
           }
         },
         {
