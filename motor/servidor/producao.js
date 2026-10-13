@@ -140,7 +140,7 @@ async function fetch(request, env) {
     // NÃO abrem — o cadastro do professor é o que habilita a Área do Professor.
     // Os Bastidores (`/bastidores` e `/api/bastidores/*`) ficam FORA deste freio:
     // é por eles que o professor é cadastrado.
-    if (env.PADD_KV && !(await temProfessor(env.PADD_KV, env.ESCOLA_SLUG))) {
+    if (!(await temProfessor(env))) {
       return new Response(
         '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
         '<meta name="viewport" content="width=device-width, initial-scale=1">' +

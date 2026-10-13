@@ -114,7 +114,7 @@ function senhaAleatoria() {
 }
 
 /** Cria a escola no Cloudflare. Devolve `{ escola, nome, url, senhaCripto }`. */
-async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken }) {
+async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, professorNome, senhaProfessor, professorEhDono }) {
   const escola = slugificar(nome);
   if (!escola) throw new ErroDeProvisionamento('slug', 'o nome da escola não produz um slug válido');
 
@@ -124,13 +124,13 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken }) 
 
   const base = '/accounts/' + accountId + '/workers';
 
-  // 1. o script da escola (módulo ESM) + o freio ESCOLA_HABILITADA e o KV.
+  // 1. o script da escola (módulo ESM) + o freio ESCOLA_HABILITADA.
   await subirModulo(token, accountId, escola, scriptDaEscola(escola, nome));
 
   // 2. liga o subdomínio workers.dev.
   await api('subdominio', token, 'POST', base + '/scripts/' + escola + '/subdomain', { enabled: true });
 
-  // 3. a senha do administrador da escola (nunca em claro no repo; só no Worker).
+  // 3. a senha do administrador da escola (a direção — nunca em claro no repo; só no Worker).
   await api('senha', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
     name: 'SENHA_ADMIN',
     text: senhaAdmin,
@@ -153,6 +153,27 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken }) 
     await api('github-token', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
       name: 'GITHUB_TOKEN',
       text: githubToken,
+      type: 'secret_text',
+    });
+  }
+
+  // 6. o professor (nome + senha) que a página coleta: vira secret do Worker (persiste no
+  //    deploy do motor) e é o que HABILITA a «Área do Professor». Nunca em claro no repo.
+  if (professorNome && senhaProfessor) {
+    await api('professor-nome', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
+      name: 'PROFESSOR_NOME',
+      text: professorNome,
+      type: 'secret_text',
+    });
+    await api('professor-senha', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
+      name: 'SENHA_PROFESSOR',
+      text: senhaProfessor,
+      type: 'secret_text',
+    });
+    // «O professor é o dono da escola» — quando sim, o professor também entra na Produção.
+    await api('professor-eh-dono', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
+      name: 'PROFESSOR_EH_DONO',
+      text: professorEhDono ? 'sim' : 'nao',
       type: 'secret_text',
     });
   }

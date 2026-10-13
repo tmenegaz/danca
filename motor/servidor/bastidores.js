@@ -1,20 +1,21 @@
 'use strict';
 
 /**
- * bastidores.js — os Bastidores REAIS (mínimo) da escola.
+ * bastidores.js — os Bastidores da escola, como GRUPO de menu com DOIS itens
+ * (IDEIA-PAINEL-ESCOLA.md §2): o «Estúdio de Dança» (a cena, partilhada entre a direção e o
+ * professor) e a «Produção» (o gabinete, SÓ da direção — senha própria). O Estúdio primeiro,
+ * a Produção depois.
  *
- * A «Área do Professor» (anamnese, plano de ensino e PO) só abre depois que um
- * PROFESSOR é cadastrado aqui, nos Bastidores: o professor ganha um nome e uma
- * SENHA, e só então a Área do Professor é habilitada (a regra do «Produção»).
- * A senha é validada pela anamnese; as ALUNAS (os apelidos estáveis, P-12)
+ * A «Área do Professor» (anamnese, plano de ensino e PO) abre depois que um PROFESSOR existe —
+ * criado pela página `danca` (secret `PROFESSOR_NOME`/`SENHA_PROFESSOR`) ou cadastrado na
+ * Produção. A senha do professor é validada pela anamnese; as ALUNAS (apelidos estáveis, P-12)
  * alimentam o seletor da anamnese.
  *
- * O dado vive no KV da própria escola, isolado por namespace sob chaves
- * prefixadas pelo slug da escola — a MESMA política do cofre, para uma escola
- * nunca ler o dado da outra. A senha do professor NUNCA fica em claro:
- * guarda-se só o sal e o HASH (SHA-256 com sal). O cadastro é o mínimo da
- * Produção — a autenticação completa (token/sessão) é fronteira da Produção
- * real, ainda não desenhada.
+ * O dado vive no KV da própria escola, isolado por namespace sob chaves prefixadas pelo slug
+ * da escola — a MESMA política do cofre, para uma escola nunca ler o dado da outra. A senha do
+ * professor NUNCA fica em claro no KV: guarda-se só o sal e o HASH (SHA-256 com sal). O secret
+ * `SENHA_PROFESSOR` (o professor criado pela página) é comparado direto, como os demais segredos
+ * do Worker.
  *
  * Chaves:
  *   bastidores/<escola>/professores  → [ { nome, sal, hash } ]
@@ -67,8 +68,17 @@ async function hashSenha(senha, sal) {
   return s;
 }
 
-/** Existe ao menos um professor cadastrado? É o que habilita a Área do Professor. */
-async function temProfessor(kv, escola) {
+/**
+ * Existe ao menos um professor? É o que habilita a Área do Professor. A fonte é dupla:
+ * o secret `PROFESSOR_NOME` (o professor criado pela página `danca`, que persiste no deploy
+ * do motor) OU a lista no KV (professores adicionais cadastrados nos Bastidores).
+ */
+async function temProfessor(env) {
+  if (env && String(env.PROFESSOR_NOME || '').trim()) return true;
+  const kv = env && env.PADD_KV;
+  if (!kv) return false;
+  const escola = escolaDe(env, null);
+  if (!escola) return false;
   const profs = await professores(kv, escola);
   return profs.length > 0;
 }
@@ -90,7 +100,56 @@ async function alunas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/alunas');
 }
 
-function pagina(escola, profs, aluns, res) {
+function paginaHub(escola) {
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Bastidores · ' + esc(escola) + '</title>' +
+    '<style>' +
+    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
+    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
+    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
+    '.corpo{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
+    '.corpo h1{color:#6b2f2f;}' +
+    '.corpo p{color:#6b5b4a;}' +
+    '.itens{display:flex;flex-direction:column;gap:1rem;margin-top:1.4rem;}' +
+    '.item{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem 1.1rem;text-decoration:none;}' +
+    '.item h2{margin:0 0 .3rem;color:#6b2f2f;font-size:1.15rem;}' +
+    '.item p{margin:0;color:#6b5b4a;}' +
+    '</style></head><body>' +
+    '<div class="topo"><a href="/">← Nós, Por Exemplo</a><span>Bastidores</span></div>' +
+    '<div class="corpo">' +
+    '<h1>Bastidores</h1>' +
+    '<p>O ambiente da direção da escola: a cena e o gabinete, separados.</p>' +
+    '<div class="itens">' +
+    '<a class="item" href="/bastidores/estudio"><h2>Estúdio de Dança</h2>' +
+    '<p>A cena — o que o professor e a direção partilham.</p></a>' +
+    '<a class="item" href="/bastidores/producao"><h2>Produção</h2>' +
+    '<p>O gabinete — só da direção, com senha própria.</p></a>' +
+    '</div></div></body></html>';
+}
+
+function paginaEstudio(escola) {
+  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>Bastidores · Estúdio de Dança · ' + esc(escola) + '</title>' +
+    '<style>' +
+    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
+    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
+    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
+    '.corpo{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
+    '.corpo h1{color:#6b2f2f;}' +
+    '.corpo p{color:#6b5b4a;}' +
+    '.corpo a{color:#6b2f2f;font-weight:700;}' +
+    '</style></head><body>' +
+    '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Estúdio de Dança</span></div>' +
+    '<div class="corpo">' +
+    '<h1>Estúdio de Dança</h1>' +
+    '<p>Esta é a cena — a vista que a direção e o professor partilham. O que a cena produz sobe para cá.</p>' +
+    '<p><a href="/anamnese/">Abrir a Área do Professor</a> (anamnese, plano de ensino e plano de observação).</p>' +
+    '</div></body></html>';
+}
+
+function paginaProducao(escola, profs, aluns) {
   const itensProfs = profs.length
     ? profs.map((p) => '<li>' + esc(p.nome) + '</li>').join('')
     : '<li>(nenhum professor cadastrado)</li>';
@@ -119,10 +178,10 @@ function pagina(escola, profs, aluns, res) {
     'ul{list-style:none;padding:0;}' +
     'ul li{padding:.3rem 0;border-bottom:1px dotted #c9a24b;color:#3a2b1f;}' +
     '</style></head><body>' +
-    '<div class="topo"><a href="/">← Nós, Por Exemplo</a><span>Bastidores · Produção</span></div>' +
+    '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Bastidores · Produção</span></div>' +
     '<div class="corpo">' +
     '<h1>Produção</h1>' +
-    '<p>Cadastre um professor (nome + senha) para habilitar a «Área do Professor». As alunas (apelidos estáveis, P-12) alimentam a anamnese.</p>' +
+    '<p>O gabinete da direção — só a direção entra (senha própria). Cadastre professores e alunas.</p>' +
     '<h2>Cadastrar professor</h2>' +
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
@@ -173,7 +232,11 @@ function pagina(escola, profs, aluns, res) {
 async function fetch(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
-  if (path !== '/bastidores' && !path.startsWith('/api/bastidores')) return null;
+  const ehBastidores = path === '/bastidores'
+    || path === '/bastidores/estudio'
+    || path === '/bastidores/producao'
+    || path.startsWith('/api/bastidores');
+  if (!ehBastidores) return null;
 
   const escola = escolaDe(env, url);
   if (!escola) return json(400, { ok: false, erro: 'escola ausente (ESCOLA_SLUG ou ?escola=)' });
@@ -181,9 +244,16 @@ async function fetch(request, env) {
   const kv = env && env.PADD_KV;
   if (!kv) return json(500, { ok: false, erro: 'PADD_KV ausente nos Bastidores' });
 
+  // O grupo «Bastidores» — os DOIS itens: Estúdio (a cena) e Produção (o gabinete).
   if (path === '/bastidores') {
+    return html(paginaHub(escola));
+  }
+  if (path === '/bastidores/estudio') {
+    return html(paginaEstudio(escola));
+  }
+  if (path === '/bastidores/producao') {
     const [profs, aluns] = await Promise.all([professores(kv, escola), alunas(kv, escola)]);
-    return html(pagina(escola, profs, aluns));
+    return html(paginaProducao(escola, profs, aluns));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -227,11 +297,18 @@ async function fetch(request, env) {
   }
 
   // POST /api/bastidores/validar-senha — a anamnese valida a senha do professor.
+  // Fonte dupla: o secret `SENHA_PROFESSOR` (o professor criado pela página) OU a lista no KV.
   if (path === '/api/bastidores/validar-senha' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
     const senha = String(corpo.senha || '');
     if (!senha) return json(400, { ok: false, erro: 'informe a senha' });
+
+    // O professor criado pela página vive no secret SENHA_PROFESSOR.
+    if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
+      return json(200, { ok: true, professor: (env.PROFESSOR_NOME || 'professor') });
+    }
+
     const profs = await professores(kv, escola);
     let achou = null;
     for (const p of profs) {
@@ -243,6 +320,19 @@ async function fetch(request, env) {
       }
     }
     return json(200, achou ? { ok: true, professor: achou.nome } : { ok: false, erro: 'senha não reconhecida' });
+  }
+
+  // POST /api/bastidores/validar-producao — a porta da Produção (só a direção).
+  if (path === '/api/bastidores/validar-producao' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    const senha = String(corpo.senha || '');
+    if (!senha) return json(400, { ok: false, erro: 'informe a senha da direção' });
+    const ehAdmin = env && env.SENHA_ADMIN && senha === env.SENHA_ADMIN;
+    const ehDono = env && env.PROFESSOR_EH_DONO === 'sim' && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR;
+    return json(200, (ehAdmin || ehDono)
+      ? { ok: true, direcao: true }
+      : { ok: false, erro: 'senha da direção não reconhecida' });
   }
 
   return json(404, { ok: false, erro: 'não encontrado' });

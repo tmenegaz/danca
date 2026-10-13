@@ -13,7 +13,7 @@
  * da escola no Cloudflare e devolve o URL. A raiz só decide; não cria conteúdo pedagógico.
  */
 
-const { criarEscola, dispararCriacao } = require('./provisionar-escola.js');
+const { criarEscola, dispararCriacao, slugificar } = require('./provisionar-escola.js');
 const { excluirEscola } = require('./expurgar-escola.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
@@ -155,16 +155,19 @@ async function fetch(request, env) {
       const corpo = await request.json();
       const nome = String(corpo.nome || '').trim();
       const senhaAdmin = String(corpo.senhaAdmin || '');
-      const professor = String(corpo.professor || '').trim();
       const professorNome = String(corpo.professorNome || corpo['professor-nome'] || '').trim();
-      const responsavel = String(corpo.responsavel || professorNome).trim();
-      const ciclo = String(corpo.ciclo || '01').trim();
-      const frequencia = String(corpo.frequencia || '2x/semana').trim();
-      const dias = String(corpo.dias || '2@19:00,4@19:00').trim();
-      const duracao = String(corpo.duracao || '60').trim();
-      const dataInicio = String(corpo.dataInicio || corpo['data-inicio'] || '').trim();
-      if (!nome || !senhaAdmin || !professor || !professorNome || !dataInicio) {
-        return new Response(JSON.stringify({ ok: false, erro: 'informe o nome, a senha, o professor e a data de início' }), {
+      const senhaProfessor = String(corpo.senhaProfessor || corpo['senha-professor'] || '');
+      const professorEhDono = Boolean(corpo.professorEhDono || corpo['professor-eh-dono']);
+      if (!nome || !senhaAdmin || !professorNome || !senhaProfessor) {
+        return new Response(JSON.stringify({ ok: false, erro: 'informe o nome da escola, a senha do administrador, o nome e a senha do professor' }), {
+          status: 400,
+          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+        });
+      }
+      // O slug do professor (a pasta) é derivado do nome — o professor não digita e não vê.
+      const professor = slugificar(professorNome);
+      if (!professor) {
+        return new Response(JSON.stringify({ ok: false, erro: 'o nome do professor não produz um slug válido' }), {
           status: 400,
           headers: { 'Content-Type': 'application/json;charset=utf-8' },
         });
@@ -175,6 +178,9 @@ async function fetch(request, env) {
         token,
         accountId: ACCOUNT_ID,
         githubToken: env && env.GITHUB_TOKEN,
+        professorNome,
+        senhaProfessor,
+        professorEhDono,
       });
       // O motor completo nasce no workflow `criar-escola.yml` — a página só cria a escola
       // «zero» + segredos; o scaffold + o deploy do motor vêm do Actions. Sem GITHUB_TOKEN
@@ -190,12 +196,12 @@ async function fetch(request, env) {
               'professor-nome': professorNome,
               escola: escola.escola,
               'escola-nome': nome,
-              responsavel,
-              ciclo,
-              frequencia,
-              dias,
-              duracao,
-              'data-inicio': dataInicio,
+              responsavel: professorNome,
+              ciclo: '01',
+              frequencia: '2x/semana',
+              dias: '2@19:00,4@19:00',
+              duracao: '60',
+              'data-inicio': '',
             },
           })
         : { ok: false, erro: 'GITHUB_TOKEN ausente na raiz' };

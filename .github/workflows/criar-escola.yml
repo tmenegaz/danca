@@ -56,9 +56,10 @@ on:
         type: string
         default: '60'
       data-inicio:
-        description: 'Data de início (dd/mm/aaaa)'
-        required: true
+        description: 'Data de início (dd/mm/aaaa) — vazia deixa a lacuna [Preencher: ...], o plano a estabelece'
+        required: false
         type: string
+        default: ''
 
 # O push do scaffold precisa de escrita. O GITHUB_TOKEN não redispara workflows,
 # então o commit daqui não volta a chamar este workflow em laço.
