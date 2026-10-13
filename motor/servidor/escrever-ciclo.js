@@ -20,6 +20,7 @@
 
 const { escreverPO, ACEITE, API_VERSAO } = require('./escrever-po.js');
 const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escrever-plano.js');
+const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 const { respostaDo } = require('../nucleo/derivar-po.js');
 const {
   slugDe,
@@ -241,7 +242,7 @@ function docsGerados({ plano }) {
  * `({ plano, po, contexto }) => Promise` — deriva as seis fontes, escreve só as que faltam,
  * liga o `DOCS` e declara a variante no schema de captura.
  */
-function criarEscritorDeCiclo({ token, dono, repo, ref }) {
+function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
   if (!token) return null;
   return async ({ plano, po, contexto }) => {
     const ctx = contexto || {};
@@ -292,6 +293,30 @@ function criarEscritorDeCiclo({ token, dono, repo, ref }) {
         mensagem: 'feat(ciclo): o «Guardar» do PO deriva ' + caminho.split('/').pop(),
       });
       relatorio.escritas.push(resultado);
+    }
+
+    // 3b. A CÓPIA cifrada do `-dados.json`, ao lado da fonte. Com a senha de criptografia no
+    //     Worker (SENHA_CRIPTO), o Worker é quem cifra — o gerador só copia o resultado para o
+    //     pacote (caminho (a): a senha nunca sai do Cloudflare). Sem senha, este passo é um
+    //     aviso no relatório, não um erro: a fonte segue escrita, e a cópia nasce no gerador.
+    if (senhaCripto) {
+      const caminhoCifrado = caminhoDaFonte(ctx, '-dados.cifrado.json');
+      const atualCifrado = await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado });
+      if (atualCifrado.existe) {
+        relatorio.puladas.push(caminhoCifrado);
+      } else if (!atualCifrado.erro) {
+        try {
+          const envelope = await cifrarEnvelopeDeDados(derivarDados({ po, contexto: ctx }), senhaCripto);
+          const resultado = await gravarArquivoRemoto({
+            token, dono, repo, ref, caminho: caminhoCifrado,
+            conteudo: JSON.stringify(envelope, null, 2) + '\n',
+            mensagem: 'feat(ciclo): o «Guardar» do PO cifra ' + caminhoCifrado.split('/').pop(),
+          });
+          relatorio.escritas.push(resultado);
+        } catch (e) {
+          relatorio.cifrado = { ok: false, erro: (e && e.message) || String(e) };
+        }
+      }
     }
 
     // 4. O manifesto da variante: o contexto institucional elicitado no plano

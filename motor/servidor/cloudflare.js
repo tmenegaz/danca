@@ -83,7 +83,13 @@ function passosDeGeracao(env) {
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
   const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO });
   const escreverPlano = criarEscritorDePlano({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main' });
-  const escreverCiclo = criarEscritorDeCiclo({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main' });
+  const escreverCiclo = criarEscritorDeCiclo({
+    token,
+    dono: 'tmenegaz',
+    repo: 'danca',
+    ref: 'main',
+    senhaCripto: (env && env.SENHA_CRIPTO) || null,
+  });
   return { disparar, escreverPO, escreverPlano, escreverCiclo };
 }
 

@@ -536,7 +536,12 @@
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ nome: document.getElementById("nome").value, senhaAdmin: document.getElementById("senha").value })
             }).then(function (r) { return r.json(); }).then(function (d) {
-              if (d.ok) { res.className = "res ok"; res.innerHTML = "Escola criada: <a href=\"" + d.url + "\">" + d.url + "</a>"; }
+              if (d.ok) {
+                res.className = "res ok";
+                res.innerHTML = "Escola criada: <a href=\"" + d.url + "\">" + d.url + "</a>"
+                  + "<br><br><strong>Senha de criptografia</strong> (guarde agora — aparece uma única vez;"
+                  + " é ela que decifra os dados no formulário):<br><code>" + d.senhaCripto + "</code>";
+              }
               else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }
             }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; });
           });

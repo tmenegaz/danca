@@ -13,7 +13,9 @@
  * Tudo aqui é Cloudflare REST API:
  *   1. PUT /accounts/{acct}/workers/scripts/{escola}  — o script (módulo ESM);
  *   2. POST …/scripts/{escola}/subdomain              — liga <escola>.tmenegaz77.workers.dev;
- *   3. PUT …/scripts/{escola}/secrets                 — a SENHA_ADMIN (nunca em claro no repo).
+ *   3. PUT …/scripts/{escola}/secrets                 — a SENHA_ADMIN (nunca em claro no repo);
+ *   4. PUT …/scripts/{escola}/secrets                 — a SENHA_CRIPTO, gerada AQUI (nunca em
+ *      claro no repo nem no computador da pesquisadora: é o segredo que cifra o `-dados.json`).
  *
  * O script da escola é um módulo ESM MINÚSCULO e autossuficiente (sem bundle, sem ASSETS):
  * a página «Nós, Por Exemplo» e o menu vivem como uma string HTML dentro dele. Quando a
@@ -259,7 +261,16 @@ async function escolaExiste(token, accountId, escola) {
   return res.ok;
 }
 
-/** Cria a escola no Cloudflare. Devolve `{ escola, nome, url }`. */
+/** Gera uma senha forte (48 hex = 24 bytes) com o CSPRNG do runtime — não o `Math.random`. */
+function senhaAleatoria() {
+  const bytes = new Uint8Array(24);
+  (globalThis.crypto || require('node:crypto').webcrypto).getRandomValues(bytes);
+  let s = '';
+  for (const b of bytes) s += b.toString(16).padStart(2, '0');
+  return s;
+}
+
+/** Cria a escola no Cloudflare. Devolve `{ escola, nome, url, senhaCripto }`. */
 async function criarEscola({ nome, senhaAdmin, token, accountId }) {
   const escola = slugificar(nome);
   if (!escola) throw new ErroDeProvisionamento('slug', 'o nome da escola não produz um slug válido');
@@ -283,7 +294,16 @@ async function criarEscola({ nome, senhaAdmin, token, accountId }) {
     type: 'secret_text',
   });
 
-  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev' };
+  // 4. a senha de CRIPTOGRAFIA (a que cifra o `-dados.json` e os acompanhamentos), gerada aqui e
+  //    devolvida UMA vez — só o Worker a guarda. O caminho (a): a senha nasce no Cloudflare.
+  const senhaCripto = senhaAleatoria();
+  await api('senha-cripto', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
+    name: 'SENHA_CRIPTO',
+    text: senhaCripto,
+    type: 'secret_text',
+  });
+
+  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev', senhaCripto };
 }
 
 /** Upload do MÓDULO (multipart) — o PUT JSON anterior cria o script; este sobe o código. */

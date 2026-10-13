@@ -67,22 +67,10 @@ jobs:
             lmodern \
             poppler-utils
 
-      - name: Montar as senhas locais (fora do Git)
-        shell: bash
-        run: |
-          set -euo pipefail
-          # As senhas de criptografia (SENHA_<ESCOLA>) vivem fora do Git (tools/.senhas-locais).
-          # No runner limpo, elas chegam pelo secret SENHAS_LOCAIS — o CONTEÚDO INTEIRO do arquivo
-          # (uma definição só, como o pre-push lê). Sem o secret, a criptografia é pulada e o
-          # check-pacote reprova — melhor declarar aqui do que falhar no fim.
-          if [ -n "${SENHAS_LOCAIS:-}" ]; then
-            printf '%s\n' "$SENHAS_LOCAIS" > tools/.senhas-locais
-            chmod 600 tools/.senhas-locais
-          else
-            echo "aviso: SENHAS_LOCAIS ausente — o JSON de dados sairá sem criptografia e o check-pacote vai reprovar" >&2
-          fi
-        env:
-          SENHAS_LOCAIS: ${{ secrets.SENHAS_LOCAIS }}
+      # Sem o passo das senhas locais: a senha de criptografia vive no Worker (SENHA_CRIPTO), e a
+      # cópia cifrada do `-dados.json` nasce no «Guardar» do PO (caminho (a)). O gerador só COPIA
+      # o `.cifrado.json`; o `check-pacote.js` confere a estrutura da cópia contra a fonte (a
+      # garantia byte a byte fica para a máquina da pesquisadora, que tem tools/.senhas-locais).
 
       - name: Gerar e validar o pacote
         shell: bash
