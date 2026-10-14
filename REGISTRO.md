@@ -11301,3 +11301,81 @@ o cálculo movido para o handler de `/bastidores/producao`.
 derivado do `PROFESSOR_NOME`, nunca do nome de exibição).
 
 **O que ainda não está feito.** B7 (Bloco 4 do PO) — a frente seguinte, já desbloqueada por B2.
+
+
+## 13/10/2026 — A grelha das tabelas: a rubrica, as turmas em plural, o checklist pré-preenchido (B7) e o `[Preencher]` do volume (B5)
+
+**O que motivou.** Duas frentes do `FRENTES.md` estavam presas na mesma peça — a porta do plano:
+
+1. **B7** (Bloco 4 do pedido, aberto desde que B2 o desbloqueou): três defeitos do PO/plano medidos
+   no uso — (a) o plano só aceitava **uma** turma observada, embora um professor possa observar
+   mais de uma no mesmo ciclo; (b) o **checklist** de validação obrigava o professor a marcar à mão
+   os **seis** critérios, mesmo quando cinco já estavam respondidos pelo que ele declarara antes;
+   (c) a **rubrica** (critério × quatro níveis) era digitada com barras, e saía **partida**: a
+   Maria escreveu «Tandu - bom, razoável, precisa melhorar» e a tabela de cinco colunas publicou
+   **uma célula só** por linha.
+2. **B5**: o mesmo defeito de forma na «Distribuição do volume» do plano — e, na Aula 01, a tabela
+   `| Bloco | Tempos | Fatia |` saía com `[Preencher]` em **todas** as linhas.
+
+**O que foi decidido.** Uma peça nova — a **grelha** — resolve os dois, e uma medição desfaz o
+bloqueio do B5:
+
+- **A GRELHA.** O conteúdo de um nó declara `tabela: {colunas, minimo}`; a porta desenha a tabela
+  com um campo por célula, «Adicionar linha» e «✕» para remover — e o que se grava é um **array de
+  objetos**, um por linha, com a chave de cada coluna. É a forma que o **schema já exigia**
+  (`{type:'array', items:{type:'object'}}`) e que a porta nunca produzia: ela produzia texto com
+  barras. Sem barras, uma linha **não se pode partir**.
+- **A rubrica** e a **distribuição do volume** passam a declarar as suas colunas. O caminho legado
+  (a linha única com `|`) continua a valer na derivação — não se quebra o que já está gravado.
+- **A derivação ligada (B5).** A Aula 01 deixa de escrever `[Preencher]` à mão: a **Fatia** é a
+  proporção **declarada** no plano (verbatim) e os **Tempos** são a sua aritmética com o
+  volume-alvo (proporção × total ÷ 100), casando o bloco pelo **nome curto** (antes do separador).
+  O produto é **exacto** para as partes fecharem no total: 15 %·90 + 35 %·90 + 50 %·90 = 13,5 + 31,5
+  + 45 = **90**.
+- **Nada se inventa (P-16).** Sem percentagem numérica («um terço»), a Fatia sai como declarada e os
+  Tempos ficam **lacuna**; sem bloco correspondente, ambas as células ficam lacuna. Ler prosa não é
+  derivar — a mesma regra que o schema já declara para esta tabela.
+- **O bloqueio do B5 era fantasma.** A frente esperava «o JSON do envelope vivo (Maria/KV)». Os
+  envelopes **não existem**: `/api/envelopes`, `/api/planos`, `/api/anamnese-estados` e
+  `/api/plano-estados` devolvem vazio nas duas escolas — a KV não tem um único envelope. E não
+  fariam falta: o `[Preencher]` era **literal** em `derivar-ciclo.js`, não um defeito de
+  mapeamento. A derivação é que nunca tinha sido ligada.
+- **B7 fecha.** Os três itens estão feitos: turmas em plural, checklist pré-preenchido e a rubrica
+  em grelha clicável. A «rubrica clicável» do pedido é a rubrica **do plano** — o checklist do PO
+  já era clicável (rádios `sim`/`não`), e não havia nada a fazer aí.
+
+**Onde entrou.** `motor/nucleo/derivar-po.js` — a inferência do checklist (`inferirFolha` /
+`folhaDoChecklist`), a composição plural (`comporTurmas`) e a remoção do `booleanoDoChecklist`,
+que ficou sem uso · `motor/nucleo/derivar-plano-ciclo.js` — a tabela de contexto escreve «Turmas»
+(o plano aceita mais de uma), e `tabelaDeLista` passa a ler o **array de objetos** da grelha, com
+as colunas vindas do próprio dado · `motor/nucleo/derivar-ciclo.js` — `nomeDoBloco`,
+`percentagemDaProporcao`, `numeroEmPortugues` e `distribuicaoDoTempo` (a Fatia e os Tempos da
+Aula 01) · `porta/index.html` — `grelhaDaTabela`, `lerGrelha`, `mudarLinhasDaGrelha`, o ramo de
+render e o de leitura, o CSS da grelha e a delegação dos botões · `porta/po/conteudo/po.json` e
+`porta/plano/conteudo/plano.json` — o conteúdo (as folhas derivadas do checklist; a rubrica e o
+volume com as suas colunas). No `po.json` a alteração substantiva são **12 linhas**; o arquivo
+vinha com **1 espaço por nível** de indentação e voltou aos **2 espaços por nível** da convenção
+(o `json.dumps(…, indent=2)` reproduz o `HEAD` byte a byte). Sem isso, o commit carregaria ~1 750
+linhas de ruído por arquivo, em três arquivos.
+
+**Com o quê.** `motor/nucleo/derivar-po.js`, `motor/nucleo/derivar-plano-ciclo.js`,
+`motor/nucleo/derivar-ciclo.js`, `porta/index.html`, `porta/po/conteudo/po.json`,
+`porta/plano/conteudo/plano.json` e os **espelhos** de cada escola (porta → pacote, a convenção do
+repositório, que preserva a navegação própria de cada variante):
+`professores/leticia/ciclos/ciclo-01-barra/plano-observacao/` e
+`professores/tiago/ciclos/ciclo-01-maria/plano-observacao/`.
+
+**Referências.** B5 e B7 de `FRENTES.md` · `IDEIA-PAINEL-ESCOLA.md` (Bloco 8 · checklist —
+«derivado do próprio preenchimento, não vem de fora») · Regra 9 (volume) e Regra 10 (rubrica) ·
+P-16 (declarado, nunca deduzido) · o elo textual congelado `prompts/elicitar-ciclo.md` · o schema
+do plano, que já declarava estas duas tabelas como array de objetos.
+
+**O que ainda não está feito.** Os artefatos **derivados** só se reescrevem no próximo «Guardar»
+(é o Worker que os escreve): o `ciclo-01-maria-po.md` ainda diz «Turma:», singular, e o
+`ciclo-01-maria-aula-01.md` ainda mostra `[Preencher]` na tabela do tempo. Não se editam à mão —
+são saídas. As proporções **legadas** (gravadas como texto com barras) continuam sem derivar: o
+caminho legado não se converte, para não ler prosa. A âncora de proveniência **não** mudou — o
+`.fipp` cobre os `.conf` e os `.md`, não a porta: `barra 70f3f063…` e `maria c6f3ebdd…`,
+reconferidas com `--check`. Fica por decidir, com a pesquisadora, a lista dos **níveis da rubrica**:
+o conteúdo declara `Insatisfatório · Em desenvolvimento · Satisfatório · Excelente`, e a prática
+escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloco 10 já tinha levantado.
