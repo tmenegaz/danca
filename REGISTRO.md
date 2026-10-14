@@ -11379,3 +11379,30 @@ caminho legado não se converte, para não ler prosa. A âncora de proveniência
 reconferidas com `--check`. Fica por decidir, com a pesquisadora, a lista dos **níveis da rubrica**:
 o conteúdo declara `Insatisfatório · Em desenvolvimento · Satisfatório · Excelente`, e a prática
 escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloco 10 já tinha levantado.
+
+**Correção de 13/10/2026 (mesmo dia).** O parágrafo acima diz que «os artefatos derivados só se
+reescrevem no próximo «Guardar»». **Está pela metade**, e a metade que falta é a que importa: nem
+todos se reescrevem.
+
+- O **`-po.md`** (e o `-plano.md`) **reescrevem-se**: `escreverPO` lê o `sha` e faz `PUT`
+  (`motor/servidor/escrever-po.js`), de modo que o próximo «Guardar» publica a versão nova.
+- As **fontes derivadas do ciclo** (`-aula-01.md`, `-referencias.md`, `-captura-aula-01.md`,
+  `-harmonizacao.md`, `-dados.json`) **NÃO se reescrevem**: o passo 3 de
+  `motor/servidor/escrever-ciclo.js` escreve **só o que ainda não existe** — se o arquivo está lá,
+  entra em `puladas` e o `continue` salta-o. É o «a proveniência acrescenta, não edita» (P-03/P-04)
+  aplicado à letra.
+
+**Consequência, para quem retomar.** O `[Preencher]` do `ciclo-01-maria-aula-01.md` **não se
+corrige sozinho**: a aula já existe, logo nunca será regenerada. A derivação da Fatia/Tempos
+(`distribuicaoDoTempo`) vale para as aulas **novas** — e, para rever a da Maria, seria preciso
+apagar a fonte primeiro, o que é reescrever o passado. O `-po.md` da Maria, esse, corrige-se no
+próximo «Guardar».
+
+**E o que falta para tudo isto chegar à produção.** O Worker empacota o `motor/` inteiro
+(`workers/principal.js` → esbuild sobre os `require`) e lê o conteúdo (`po.json`, `plano.json`) do
+`env.ASSETS` — **ambos fotografados no deploy**. Não há workflow que faça deploy das escolas
+existentes (os três de `.github/workflows/` são `workflow_dispatch` para criar escola, gerar ciclo
+e reancorar), pelo que o caminho é o manual: `npx wrangler deploy -c wrangler.<escola>.jsonc`, uma
+vez por escola. Os segredos persistem no Worker — o deploy troca só o código. **Enquanto não houver
+redeploy, a produção continua a escrever o PO à moda antiga**: sem inferência, com
+`obrigatorio:true` nas seis folhas e «Turma:», singular.
