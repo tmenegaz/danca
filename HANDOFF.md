@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-13T21:24:01-0300`
-Commit atual: `08f42a0` — docs(registro): correção — nem todos os derivados se reescrevem, e o deploy é manual
+Gerado em: `2026-10-13T21:30:35-0300`
+Commit atual: `e5e4723` — docs(estrutura): FRENTES.md — a rubrica decidida e alinhada; HANDOFF em dia
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -52,6 +52,10 @@ tiago (2)
 ## Últimos commits
 
 ```
+e5e4723 docs(estrutura): FRENTES.md — a rubrica decidida e alinhada; HANDOFF em dia
+41a5e54 docs(registro): a rubrica alinha-se à decisão — e os níveis errados vinham do experimento
+ea561e2 chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
+3012d0e fix(campo): a rubrica passa a declarar a lista decidida — satisfatório · razoável · em desenvolvimento · não se aplica
 08f42a0 docs(registro): correção — nem todos os derivados se reescrevem, e o deploy é manual
 388e73c chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
 60662dd docs(estrutura): FRENTES.md — B7 fechado e B5 resolvido (o bloqueio era fantasma); HANDOFF em dia
@@ -68,10 +72,6 @@ b25fda9 docs(estrutura): FRENTES.md — B2 fechado (consumo da curadoria) e pano
 3410db9 feat(po): ligar metodologia e notação do plano ao PO
 474c884 docs(estrutura): FRENTES.md — B1 pronto, B3 base migrada, B2 em andamento
 9fb1dfb docs(registro): a curadoria nasce (B1) — atribuição por professor que pré-carrega os formulários
-f8d367e feat(estrutura): a curadoria nasce — a escola atribui a cada professor o que pré-carrega os formulários
-b2dccb3 docs(registro): a base canónica do catálogo migra para biblioteca/modalidades (B3)
-14bfb2e feat(biblioteca): a base canónica do catálogo migra para biblioteca/modalidades
-f275bca docs(estrutura): versiona o panorama das frentes e o laudo do Bloco 1 em FRENTES.md
 ```
 
 ## Por professor
@@ -147,50 +147,45 @@ f275bca docs(estrutura): versiona o panorama das frentes e o laudo do Bloco 1 em
 
 ## Última entrada do REGISTRO
 
-## 13/10/2026 — A rubrica: o conteúdo alinha-se à decisão (Bloco 10, confirmação 1)
+## 13/10/2026 — A grelha não chegava à porta: duas listas brancas engoliam o `tabela` (correcção)
 
-**O que motivou.** A rubrica do plano declarava, no código e no conteúdo, os níveis
-`Insatisfatório · Em desenvolvimento · Satisfatório · Excelente` — uma escala **ordinal**.
-A pesquisadora decidiu que o certo é a lista do `FRENTES.md`:
-**`satisfatório · razoável · em desenvolvimento · não se aplica`**. Não é uma escala ordinal (um
-dos valores é de não-aplicabilidade), e nada no repositório a declarava assim.
+**O que motivou.** A verificação **do deploy** — já com os Workers no ar — mostrou o conteúdo novo a
+chegar (`po.json` com as colunas certas) mas a grelha a **não renderizar**: o mapa servido vinha com
+`rubrica.tabela = null`. A tela caía então no ramo do texto livre, e a rubrica continuava a ser
+digitada e a sair partida. O defeito não estava no conteúdo nem na tela: estava no **caminho**.
 
-**Onde os níveis errados nasceram.** No **experimento**: a simulação Marau traz a tabela com essa
-escala, e ela entrou no código de produção em `f36358c` (09/10/2026, «a porta passa a elicitar o
-plano») — primeiro como cabeçalho legado em `derivar-plano-ciclo.js`, depois também nas colunas do
-conteúdo. Nunca foi uma decisão da pesquisadora: foi o exemplo do experimento a passar por dado.
+**O que foi medido.** Entre o conteúdo e a tela há **duas listas brancas** — cada uma copia à mão os
+campos que deixa passar, e nenhuma conhecia o `tabela`:
 
-**O que foi decidido.** As três listas em circulação (a do experimento, a que o relatório colado
-citava, e a decisão) resolvem-se numa só: **vale a do `FRENTES.md`**. O conteúdo passa a declará-la
-nas colunas da grelha, e o cabeçalho legado da derivação acompanha — sem tocar em nada congelado:
-o prompt congelado **não** nomeia os níveis, a Regra 10 também não, e o exemplo de derivação de
-chave em `tools/lib-extracao-md.js` continua válido (`Em desenvolvimento` permanece na lista).
+1. `motor/nucleo/elicitar.js` — `descritores()`, as «chaves de FORMA» que valem em qualquer família;
+2. `motor/nucleo/porta.js` — o `base` de `mapa()`, que volta a escolher o que chega ao cliente.
 
-**Onde entrou.** `porta/plano/conteudo/plano.json` — a rubrica passa a
-`tabela.colunas = [Critério, Satisfatório, Razoável, Em desenvolvimento, Não se aplica]`, e a
-explicação do campo deixa de dizer «insatisfatório → excelente» · `motor/nucleo/derivar-plano-ciclo.js`
-— o cabeçalho legado da rubrica (o caminho das linhas escritas com `|`).
+Um campo que exista em `plano.json` e falte nas duas nunca chega a `no.tabela`, em silêncio: não há
+erro, só um `undefined` que faz a tela escolher outro caminho. Por isso o mesmo ajuste foi feito nas
+duas. O `derivado` do checklist estava na mesma situação — declarado no conteúdo e invisível na tela,
+o que fazia as cinco folhas inferidas aparecerem como «opcional», dizendo o contrário do que são.
 
-**Com o quê.** `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` e os
-**espelhos** `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/plano/conteudo/plano.json`
-e `professores/tiago/ciclos/ciclo-01-maria/plano-observacao/plano/conteudo/plano.json`.
+**O que foi decidido.** O `tabela` e o `derivado` entram nas duas listas, como chaves de forma. E a
+tela ganha o selo que faltava: a folha derivada passa a mostrar **«pré-preenchido»** (no cabeçalho da
+pergunta e no roteiro), com o botão de limpar intacto — o professor pode recusar a inferência.
 
-**Referências.** `FRENTES.md` §«As 3 confirmações bloqueantes», item 1 · Regra 10 (camada 1:
-objetivo geral + marcos + rubrica) · o crédito de origem: `experimentos/simulacao-marau/`
-(Plano B4 do experimento) e a entrada `f36358c`.
+**Onde entrou.** `motor/nucleo/elicitar.js` — `descritores()` · `motor/nucleo/porta.js` — o `base` de
+`mapa()` · `porta/index.html` — `cabecalhoDoNo` e o roteiro (o selo `preenchido`), e o CSS dele.
 
-**O que ainda não está feito.** O `ciclo-01-maria-plano.md` ainda mostra o cabeçalho antigo — é
-**saída derivada**, e reescreve-se no próximo «Guardar» do plano (o `escrever-plano.js` passa pelo
-mesmo `escreverPO`, que faz `PUT` com o `sha`). A árvore do **experimento** mantém a escala antiga
-de propósito: é demonstrativa e não entra em pacotes nem em âncoras. O análogo no **PO** — a
-contagem de obrigatórios e o corte para «completa» — segue como está: esta decisão é da rubrica,
-e não mexe no checklist.
+**Com o quê.** `motor/nucleo/elicitar.js`, `motor/nucleo/porta.js`, `porta/index.html` e os espelhos
+`professores/leticia/ciclos/ciclo-01-barra/plano-observacao/index.html` e
+`professores/tiago/ciclos/ciclo-01-maria/plano-observacao/index.html`.
+
+**Referências.** O deploy de 13/10/2026 (barra `704d8077`, maria `9f47c7db`) · `REGISTRO.md` (a
+grelha das tabelas, mesmo dia) · `IDEIA-PAINEL-ESCOLA.md` (Bloco 8, o checklist derivado do próprio
+preenchimento).
+
+**O que ainda não está feito.** Este elo precisa de **novo deploy** para chegar à produção — o
+bundle do Worker e o `env.ASSETS` são fotografados no deploy. Não há teste que cubra o caminho
+conteúdo → `descritores()` → `mapa()` → tela: o campo faltoso só se vê abrindo a página. Fica como
+suspeita declarada para a próxima vez que um campo do conteúdo «não fizer nada».
 
 ## O que está pendente
-
-## 13/10/2026 — Metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2)
-
-O resto da integração (B2): fazer a anamnese, o plano e o PO
 
 ## 13/10/2026 — A tela consome a curadoria: plano/PO travam sem curadoria e a anamnese filtra as alunas (B2b)
 
@@ -218,6 +213,13 @@ escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloc
 ## 13/10/2026 — A rubrica: o conteúdo alinha-se à decisão (Bloco 10, confirmação 1)
 
 O `ciclo-01-maria-plano.md` ainda mostra o cabeçalho antigo — é
+
+## 13/10/2026 — A grelha não chegava à porta: duas listas brancas engoliam o `tabela` (correcção)
+
+Este elo precisa de **novo deploy** para chegar à produção — o
+bundle do Worker e o `env.ASSETS` são fotografados no deploy. Não há teste que cubra o caminho
+conteúdo → `descritores()` → `mapa()` → tela: o campo faltoso só se vê abrindo a página. Fica como
+suspeita declarada para a próxima vez que um campo do conteúdo «não fizer nada».
 
 ## Pendências anteriores (índice)
 
@@ -349,6 +351,7 @@ O `ciclo-01-maria-plano.md` ainda mostra o cabeçalho antigo — é
 - **13/10/2026** — Norma revisada: o Bastidores cria e declara (caso a caso);… → `REGISTRO.md` L11114
 - **13/10/2026** — A base canónica do catálogo migra para… → `REGISTRO.md` L11152
 - **13/10/2026** — A curadoria nasce: a escola atribui a cada professor o que… → `REGISTRO.md` L11185
+- **13/10/2026** — Metodologia e notação chegam ao PO (ligar L5 — Bloco… → `REGISTRO.md` L11218
 - **leticia · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).

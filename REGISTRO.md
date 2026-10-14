@@ -11445,3 +11445,41 @@ mesmo `escreverPO`, que faz `PUT` com o `sha`). A árvore do **experimento** man
 de propósito: é demonstrativa e não entra em pacotes nem em âncoras. O análogo no **PO** — a
 contagem de obrigatórios e o corte para «completa» — segue como está: esta decisão é da rubrica,
 e não mexe no checklist.
+
+## 13/10/2026 — A grelha não chegava à porta: duas listas brancas engoliam o `tabela` (correcção)
+
+**O que motivou.** A verificação **do deploy** — já com os Workers no ar — mostrou o conteúdo novo a
+chegar (`po.json` com as colunas certas) mas a grelha a **não renderizar**: o mapa servido vinha com
+`rubrica.tabela = null`. A tela caía então no ramo do texto livre, e a rubrica continuava a ser
+digitada e a sair partida. O defeito não estava no conteúdo nem na tela: estava no **caminho**.
+
+**O que foi medido.** Entre o conteúdo e a tela há **duas listas brancas** — cada uma copia à mão os
+campos que deixa passar, e nenhuma conhecia o `tabela`:
+
+1. `motor/nucleo/elicitar.js` — `descritores()`, as «chaves de FORMA» que valem em qualquer família;
+2. `motor/nucleo/porta.js` — o `base` de `mapa()`, que volta a escolher o que chega ao cliente.
+
+Um campo que exista em `plano.json` e falte nas duas nunca chega a `no.tabela`, em silêncio: não há
+erro, só um `undefined` que faz a tela escolher outro caminho. Por isso o mesmo ajuste foi feito nas
+duas. O `derivado` do checklist estava na mesma situação — declarado no conteúdo e invisível na tela,
+o que fazia as cinco folhas inferidas aparecerem como «opcional», dizendo o contrário do que são.
+
+**O que foi decidido.** O `tabela` e o `derivado` entram nas duas listas, como chaves de forma. E a
+tela ganha o selo que faltava: a folha derivada passa a mostrar **«pré-preenchido»** (no cabeçalho da
+pergunta e no roteiro), com o botão de limpar intacto — o professor pode recusar a inferência.
+
+**Onde entrou.** `motor/nucleo/elicitar.js` — `descritores()` · `motor/nucleo/porta.js` — o `base` de
+`mapa()` · `porta/index.html` — `cabecalhoDoNo` e o roteiro (o selo `preenchido`), e o CSS dele.
+
+**Com o quê.** `motor/nucleo/elicitar.js`, `motor/nucleo/porta.js`, `porta/index.html` e os espelhos
+`professores/leticia/ciclos/ciclo-01-barra/plano-observacao/index.html` e
+`professores/tiago/ciclos/ciclo-01-maria/plano-observacao/index.html`.
+
+**Referências.** O deploy de 13/10/2026 (barra `704d8077`, maria `9f47c7db`) · `REGISTRO.md` (a
+grelha das tabelas, mesmo dia) · `IDEIA-PAINEL-ESCOLA.md` (Bloco 8, o checklist derivado do próprio
+preenchimento).
+
+**O que ainda não está feito.** Este elo precisa de **novo deploy** para chegar à produção — o
+bundle do Worker e o `env.ASSETS` são fotografados no deploy. Não há teste que cubra o caminho
+conteúdo → `descritores()` → `mapa()` → tela: o campo faltoso só se vê abrindo a página. Fica como
+suspeita declarada para a próxima vez que um campo do conteúdo «não fizer nada».
