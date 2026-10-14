@@ -217,7 +217,7 @@ function derivarPlano(envelope) {
     'Rubrica de avaliação final',
     tabelaDeLista(
       respostaDo(envelope, 'rubrica'),
-      '| Critério | Insatisfatório | Em desenvolvimento | Satisfatório | Excelente |',
+      '| Critério | Satisfatório | Razoável | Em desenvolvimento | Não se aplica |',
       '|:--|:--|:--|:--|:--|',
     ),
   );

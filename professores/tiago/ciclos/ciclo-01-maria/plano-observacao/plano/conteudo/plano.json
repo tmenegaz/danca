@@ -330,11 +330,11 @@
           "campo": "Rubrica",
           "obrigatorio": true,
           "tabela": {
-            "colunas": ["Critério", "Insatisfatório", "Em desenvolvimento", "Satisfatório", "Excelente"],
+            "colunas": ["Critério", "Satisfatório", "Razoável", "Em desenvolvimento", "Não se aplica"],
             "minimo": 1
           },
           "explicacao": {
-            "oQueE": "Os critérios do que se observa ao final, cada um com os quatro níveis (insatisfatório → excelente).",
+            "oQueE": "Os critérios do que se observa ao final, cada um com os quatro níveis (satisfatório · razoável · em desenvolvimento · não se aplica).",
             "preencher": "Uma linha por critério: escreva o critério na primeira coluna e o que cada nível significa nas seguintes. A grelha monta a tabela — não precisa escrever barras.",
             "porQue": "A rubrica é o que torna o objetivo verificável: sem ela, «melhorou» não tem níveis, e o final do ciclo não pode ser confrontado com o início."
           }
