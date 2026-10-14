@@ -150,6 +150,15 @@ function mapa(conteudo) {
       deContexto: no.deContexto || null,
       multipla: no.multipla === true,
       colunas: no.colunas || null,
+      /* A GRELHA da tabela (a rubrica, a distribuição do volume): `{colunas, minimo}`, com as
+         colunas NOMEADAS. Sem esta linha a porta não a recebe, e o campo cai no texto livre —
+         foi o que aconteceu à rubrica, que saiu partida (uma célula sob um cabeçalho de cinco).
+         Não confundir com `colunas` (o NÚMERO de colunas da escolha múltipla do histórico):
+         são coisas diferentes, e por isso esta viaja aninhada. */
+      tabela: no.tabela || null,
+      /* A folha DERIVADA do checklist: o sistema pré-preenche-a, e o selo da tela diz
+         «pré-preenchido» em vez de «opcional». */
+      derivado: no.derivado === true,
       exclusiva: no.exclusiva || null,
       aberto: no.aberto === true,
       // O SEMA vira a regra resolvida: o conteúdo declarou «objetivo», o sistema

@@ -162,6 +162,16 @@ function descritores(campo) {
     colunas: campo.colunas || null,
     exclusiva: campo.exclusiva || null,
     aberto: campo.aberto === true,
+    // A GRELHA: o conteúdo declara `tabela: {colunas, minimo}` e a tela desenha a
+    // tabela com um campo por célula, gravando um OBJETO por linha. As colunas vão
+    // NOMEADAS — é delas que saem as chaves do objeto e o cabeçalho do Markdown.
+    // Sem esta chave a rubrica cai no texto livre e sai partida (uma célula sob um
+    // cabeçalho de cinco). Não confundir com `colunas` acima, que é o NÚMERO de
+    // colunas da escolha múltipla do histórico.
+    tabela: campo.tabela || null,
+    // A folha DERIVADA (o checklist pré-preenchido): o obrigatoriamente sai, e este
+    // selo fica — a tela mostra «pré-preenchido» em vez de «opcional».
+    derivado: campo.derivado === true,
     // AS FORMAS DE VALOR. O PE não sabe o que é «frequência semanal» nem «volume
     // de trabalho» — sabe compor NÚMERO + UNIDADE. Quem diz quais unidades
     // existem, quantos pares e se é uma faixa é o CONTEÚDO; o recipiente fornece

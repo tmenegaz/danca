@@ -148,6 +148,9 @@
   }
   .selo.obrig { border-color: var(--burgundy); color: var(--burgundy); }
   .selo.opt { border-style: dashed; }
+  /* A folha DERIVADA (o checklist pré-preenchido): não é obrigatória nem opcional —
+     é o sistema que a preenche do que o professor já respondeu. O selo diz isso. */
+  .selo.preenchido { border-color: var(--ok); color: var(--ok); }
   .selo.dim { background: var(--creme-1); color: var(--suave); }
   /* O «limpar» mora dentro do <li>, que navega ao clique. Discreto o bastante
      para não competir com o rótulo, e claramente um botão. */
@@ -1172,8 +1175,13 @@ function gravarRespostaDoNo(no) {
 
 function cabecalhoDoNo(no) {
   const partes = [];
-  partes.push('<span class="selo' + (no.obrigatorio ? ' obrig' : ' opt') + '">' +
-    (no.obrigatorio ? 'obrigatório' : 'opcional') + '</span>');
+  // A folha DERIVADA não é «obrigatória» nem «opcional»: o sistema pré-preenche-a do que o
+  // professor já respondeu (e do plano), e ele corrige se discordar. Sem o selo próprio, ela
+  // apareceria como «opcional» — que diz o contrário do que ela é.
+  partes.push(no.derivado
+    ? '<span class="selo preenchido">pré-preenchido</span>'
+    : '<span class="selo' + (no.obrigatorio ? ' obrig' : ' opt') + '">' +
+      (no.obrigatorio ? 'obrigatório' : 'opcional') + '</span>');
   if (no.bloco) partes.push('<span class="selo">bloco ' + no.bloco + '</span>');
   if (no.dimensao) {
     const d = Array.isArray(no.dimensao) ? no.dimensao.join(' · ') : no.dimensao;
@@ -2390,7 +2398,9 @@ function pintarRoteiro() {
     partes.push('<li class="' + (feito + aqui).trim() + '" data-i="' + i + '">' +
       '<span class="n">' + (i + 1) + '</span>' +
       md(no.campo) +
-      (no.obrigatorio ? '' : ' <span class="selo opt">opcional</span>') +
+      (no.derivado
+        ? ' <span class="selo preenchido">pré-preenchido</span>'
+        : (no.obrigatorio ? '' : ' <span class="selo opt">opcional</span>')) +
       (no.obrigatorio
         ? ''
         : ' <button class="limpar" data-limpar="' + i + '"' +
