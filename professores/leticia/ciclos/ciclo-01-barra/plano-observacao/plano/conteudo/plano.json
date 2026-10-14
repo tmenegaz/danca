@@ -68,13 +68,15 @@
         },
         {
           "id": "contexto-turma",
-          "campo": "Turma observada",
+          "campo": "Turmas observadas",
           "obrigatorio": true,
+          "multipla": true,
+          "aberto": true,
           "opcoesDe": "/api/bastidores/turmas",
           "explicacao": {
-            "oQueE": "Qual turma exatamente — o grupo, não a escola.",
-            "preencher": "Escolha a turma cadastrada nos Bastidores (ou escreva o grupo, se ainda não houver turma).",
-            "porQue": "Um professor pode ter mais de uma turma no mesmo espaço. Declarar o grupo evita confundir quem é observado. A lista vem do cadastro de turmas dos Bastidores — o nome de exibição entra no plano; o identificador estável fica no cadastro e nas relações turma↔conteúdo."
+            "oQueE": "Qual turma (ou turmas) exatamente — o grupo, não a escola.",
+            "preencher": "Marque as turmas cadastradas nos Bastidores (ou escreva o grupo, se ainda não houver turma). Um professor pode observar mais de uma turma no mesmo ciclo.",
+            "porQue": "Um professor pode ter mais de uma turma no mesmo espaço. Declarar os grupos evita confundir quem é observado. A lista vem do cadastro de turmas dos Bastidores — o nome de exibição entra no plano; o identificador estável fica no cadastro e nas relações turma↔conteúdo."
           }
         },
         {
@@ -252,10 +254,14 @@
           "id": "distribuicao-de-volume",
           "campo": "Distribuição do volume",
           "obrigatorio": false,
+          "tabela": {
+            "colunas": ["Bloco", "Proporção alvo (60 min)", "Justificativa"],
+            "minimo": 1
+          },
           "explicacao": {
             "oQueE": "Quanto do tempo de cada aula vai para cada bloco, e por quê.",
-            "preencher": "Uma linha por bloco: «Bloco | proporção alvo | justificativa». Ex.: «Solo | 30–40% | isolamento do eixo».",
-            "porQue": "A distribuição segue o volume: o total vem da duração, e esta tabela diz como ele se reparte."
+            "preencher": "Uma linha por bloco: o bloco, a proporção alvo e a justificativa. A grelha monta a tabela — não precisa escrever barras.",
+            "porQue": "A distribuição segue o volume: o total vem da duração, e esta tabela diz como ele se reparte. É dela que a Aula 1 tira a fatia e os tempos de cada bloco."
           }
         }
       ]
@@ -323,9 +329,13 @@
           "id": "rubrica",
           "campo": "Rubrica",
           "obrigatorio": true,
+          "tabela": {
+            "colunas": ["Critério", "Insatisfatório", "Em desenvolvimento", "Satisfatório", "Excelente"],
+            "minimo": 1
+          },
           "explicacao": {
             "oQueE": "Os critérios do que se observa ao final, cada um com os quatro níveis (insatisfatório → excelente).",
-            "preencher": "Uma linha por critério: «Critério | Insatisfatório | Em desenvolvimento | Satisfatório | Excelente». Ex.: «Eixo vertical | Pelve desalinhada | Alinha com esforço | Alinha e mantém | Alinha com economia».",
+            "preencher": "Uma linha por critério: escreva o critério na primeira coluna e o que cada nível significa nas seguintes. A grelha monta a tabela — não precisa escrever barras.",
             "porQue": "A rubrica é o que torna o objetivo verificável: sem ela, «melhorou» não tem níveis, e o final do ciclo não pode ser confrontado com o início."
           }
         }

@@ -13,7 +13,8 @@
     "declaracao": "O PO declara; o PE verifica. Um nó é obrigatório quando traz obrigatorio:true, e SÓ nós respondíveis o trazem — é contra eles que o envelope casa a contagem de respostas que decide o corte para completa.",
     "obrigatorios": "Os cinco campos do cabeçalho, os quatro elementos da observação inicial e os seus subitens, e os campos dos Blocos 2 a 7.",
     "condicionais": "Os campos dos módulos condicionais NÃO trazem obrigatorio: a obrigatoriedade deles é condicional à entrada no módulo, e a condição está declarada em condicaoDeEntrada. Eles declaram horizonte e compromisso de reavaliação — não ramificam.",
-    "ids": "Os id são kebab-case, derivados do nome do campo sem acento."
+    "ids": "Os id são kebab-case, derivados do nome do campo sem acento.",
+    "derivados": "As cinco folhas inferíveis do checklist (fenómeno, fronteiras, norma, justificativa, âmbito) NÃO trazem obrigatorio: são pré-preenchidas pelo sistema a partir das respostas e do plano referenciado (derivar-po.js). A sexta (critérios mutuamente exclusivos) continua obrigatória — não tem campo direto e fica com o professor."
   },
   "observacaoInicial": {
     "natureza": "porta de entrada",
@@ -758,42 +759,42 @@
         {
           "id": "checklist-fenomeno-definido",
           "campo": "Fenómeno definido de forma observável",
-          "obrigatorio": true,
+          "derivado": true,
           "opcoes": [
             "sim",
             "não"
           ],
           "explicacao": {
             "oQueE": "O fenómeno está definido como algo que se vê?",
-            "preencher": "Sim ou não.",
+            "preencher": "Pré-preenchido pelo sistema do fenómeno declarado — não precisa marcar; pode corrigir se discordar.",
             "porQue": "Se não, volte ao fenómeno: «ficou melhor» não é observável."
           }
         },
         {
           "id": "checklist-fronteiras-claras",
           "campo": "Fronteiras do escopo claras",
-          "obrigatorio": true,
+          "derivado": true,
           "opcoes": [
             "sim",
             "não"
           ],
           "explicacao": {
             "oQueE": "Está claro o que entra e o que fica fora do âmbito?",
-            "preencher": "Sim ou não.",
+            "preencher": "Pré-preenchido pelo sistema do contexto e do recorte — não precisa marcar; pode corrigir se discordar.",
             "porQue": "Fronteira vaga faz o âmbito crescer sozinho durante o ciclo."
           }
         },
         {
           "id": "checklist-norma-estabelecida",
           "campo": "Norma claramente estabelecida",
-          "obrigatorio": true,
+          "derivado": true,
           "opcoes": [
             "sim",
             "não"
           ],
           "explicacao": {
             "oQueE": "A metodologia de referência está declarada?",
-            "preencher": "Sim ou não. «Não» é um achado — volte ao campo do padrão.",
+            "preencher": "Pré-preenchido pelo sistema da metodologia declarada no plano — não precisa marcar; pode corrigir se discordar.",
             "porQue": "Sem um padrão declarado, o julgamento não tem referência."
           }
         },
@@ -814,28 +815,28 @@
         {
           "id": "checklist-justificativa-fundada",
           "campo": "Justificativa fundamentada",
-          "obrigatorio": true,
+          "derivado": true,
           "opcoes": [
             "sim",
             "não"
           ],
           "explicacao": {
             "oQueE": "A justificativa se apoia em algo, e não só na intenção?",
-            "preencher": "Sim ou não.",
+            "preencher": "Pré-preenchido pelo sistema da justificativa e da base teórica — não precisa marcar; pode corrigir se discordar.",
             "porQue": "Uma justificativa sem base não se sustenta quando alguém perguntar por quê."
           }
         },
         {
           "id": "checklist-recorte-viavel",
           "campo": "Âmbito viável",
-          "obrigatorio": true,
+          "derivado": true,
           "opcoes": [
             "sim",
             "não"
           ],
           "explicacao": {
             "oQueE": "É possível observar isso nas condições reais das aulas?",
-            "preencher": "Sim ou não.",
+            "preencher": "Pré-preenchido pelo sistema do que fica de fora e do recorte — não precisa marcar; pode corrigir se discordar.",
             "porQue": "Um âmbito que não cabe na aula vira promessa não cumprida — e o silêncio do registro não é dado."
           }
         }

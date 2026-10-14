@@ -260,6 +260,11 @@
   /* O markdown do conteúdo usa a tabela do site (`--gold-escuro`, cabeçalho creme-2);
      aqui só se ajusta a medida, que no formulário é menor que na prosa. */
   table { font-size: .9rem; }
+  /* A GRELHA (a rubrica): cada célula é um campo, e a linha acrescenta-se a clicar.
+     Sem barras — uma linha não se parte, como acontecia na rubrica escrita em prosa. */
+  table.grelha td, table.grelha th { vertical-align: top; padding: .2rem .3rem; }
+  table.grelha td input { width: 100%; box-sizing: border-box; }
+  table.grelha button { font: .8rem/1 var(--ui); padding: .25rem .45rem; cursor: pointer; }
   p.linha { color: var(--suave); margin: .35rem 0; white-space: pre-wrap; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
   .citacao { font-style: italic; color: var(--soft); }
@@ -1107,6 +1112,9 @@ function lerResposta(no) {
   const especial = lerFormaEspecial(no, raiz);
   if (especial !== undefined) return { valor: especial, nota: nota };
 
+  // A GRELHA: um objeto por linha, com a chave de cada coluna (a forma do schema).
+  if (no.tabela) return { valor: lerGrelha(no, raiz), nota: nota };
+
   // O nó repetido: um bloco por sujeito. Cada bloco tem os campos de
   // `camposDoItem`, marcados com `data-repeticao` (o sujeito) e `data-campo`.
   // O valor é uma lista de objetos — a forma canónica da linha de base.
@@ -1551,6 +1559,82 @@ function gradeDeOpcoesDinamicas(no) {
   }
   blocos.push(atalho);
   return blocos.join('');
+}
+
+/*
+ * A GRELHA — a tabela que se preenche a CLICAR, não a escrever barras. O conteúdo
+ * declara `tabela: {colunas, minimo}`; cada linha é um conjunto de campos, e o que se
+ * grava é um ARRAY DE OBJETOS — um por linha, com a chave de cada coluna —, que é a
+ * forma do schema (`{type:'array', items:{type:'object'}}`).
+ *
+ * Por que existe: sem barras não há como a linha sair partida. A rubrica escrita em
+ * prosa («Tandu - bom, razoável, precisa melhorar») produzia uma tabela de cinco
+ * colunas com UMA célula por linha — o cabeçalho dizia cinco, o corpo mostrava uma.
+ */
+function grelhaDaTabela(no) {
+  const colunas = (no.tabela && no.tabela.colunas) || [];
+  const minimo = Math.max(1, Number((no.tabela && no.tabela.minimo) || 1));
+  const registado = RESPOSTAS.get(no.id);
+  const linhas = [];
+  for (const l of Array.isArray(registado) ? registado : []) {
+    if (!l || typeof l !== 'object' || Array.isArray(l)) continue;
+    const copia = {};
+    for (const c of colunas) copia[c] = l[c] == null ? '' : String(l[c]);
+    linhas.push(copia);
+  }
+  while (linhas.length < minimo) linhas.push({});
+
+  const corpo = linhas.map((linha, i) =>
+    '<tr>' + colunas.map((c) =>
+      '<td><input data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' +
+      escapar(linha[c] == null ? '' : linha[c]) + '" placeholder="' + escapar(c) + '"></td>').join('') +
+    '<td><button type="button" data-grelha-del="' + i + '"' +
+    (linhas.length <= minimo ? ' disabled' : '') + ' title="Remover esta linha">✕</button></td></tr>').join('');
+
+  return '<table class="grelha"><thead><tr>' +
+    colunas.map((c) => '<th>' + md(c) + '</th>').join('') + '<th></th></tr></thead>' +
+    '<tbody>' + corpo + '</tbody></table>' +
+    '<p style="margin:.6rem 0 0"><button type="button" data-grelha-add="1">' +
+    'Adicionar linha</button></p>';
+}
+
+/*
+ * A leitura da grelha: um objeto por linha, com a chave de cada coluna. Linha sem
+ * nenhum valor escrito NÃO entra — não se grava linha vazia. Sem nada escrito, a
+ * resposta é nula (o mesmo corte dos outros leitores).
+ */
+function lerGrelha(no, raiz) {
+  const colunas = (no.tabela && no.tabela.colunas) || [];
+  const porLinha = new Map();
+  for (const el of raiz.querySelectorAll('[data-grelha]')) {
+    const i = Number(el.dataset.grelha);
+    if (!porLinha.has(i)) porLinha.set(i, {});
+    const v = el.value.trim();
+    if (v) porLinha.get(i)[el.dataset.coluna] = v;
+  }
+  const linhas = Array.from(porLinha.keys()).sort((a, b) => a - b)
+    .map((i) => porLinha.get(i))
+    .filter((linha) => colunas.some((c) => linha[c]));
+  return linhas.length ? linhas : null;
+}
+
+/*
+ * Acrescentar/remover linha da grelha. O que já está escrito é LIDO do formulário antes
+ * de mexer (nada se perde), a linha muda, e a pergunta é redesenhada — o mesmo caminho
+ * de qualquer troca de nó. A última linha não se remove: a grelha nunca fica vazia.
+ */
+function mudarLinhasDaGrelha(acao, indice) {
+  const no = MAPA.nos[INDICE];
+  if (!no || !no.tabela) return;
+  const minimo = Math.max(1, Number(no.tabela.minimo || 1));
+  const lido = lerGrelha(no, $('pergunta'));
+  const linhas = lido ? lido.slice() : [];
+  while (linhas.length < minimo) linhas.push({});
+  if (acao === 'add') linhas.push({});
+  else if (linhas.length > minimo) linhas.splice(indice, 1);
+  RESPOSTAS.set(no.id, linhas.length ? linhas : null);
+  salvar();
+  irPara(INDICE, false);
 }
 
 /*
@@ -2171,6 +2255,8 @@ function renderPergunta() {
     blocos.push(blocoDaRepeticao(no));
   } else if (no.opcoesDe) {
     blocos.push(gradeDeOpcoesDinamicas(no));
+  } else if (no.tabela) {
+    blocos.push(grelhaDaTabela(no));
   } else if (especial) {
     if (no.familia === 'basilar' || no.familia === 'subitem') {
       blocos.push('<p><b>' + md(no.elemento) + '</b></p>');
@@ -3767,6 +3853,16 @@ async function iniciar() {
     const derivar = evento.target.closest('.derivar');
     if (derivar) {
       derivarDoConjunto(derivar, MAPA.nos[INDICE]);
+      return;
+    }
+    const addLinha = evento.target.closest('[data-grelha-add]');
+    if (addLinha) {
+      mudarLinhasDaGrelha('add');
+      return;
+    }
+    const delLinha = evento.target.closest('[data-grelha-del]');
+    if (delLinha) {
+      mudarLinhasDaGrelha('del', Number(delLinha.dataset.grelhaDel));
     }
   });
 

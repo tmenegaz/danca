@@ -81,6 +81,64 @@ function lista(valor, motivo) {
   return itens.length ? itens : ['[Preencher: ' + (motivo || 'ainda não declarado') + ']'];
 }
 
+/** O nome CURTO de um bloco: o rótulo antes do separador («Solo — eixo…» → «Solo»). É a
+ *  chave que casa o bloco da aula com a linha da «Distribuição do volume» do plano. */
+function nomeDoBloco(bloco) {
+  return String(bloco || '').split(/\s+[—–-]\s+/)[0].trim();
+}
+
+/** A proporção declarada como percentagem simples («35%» → 35). O que não for uma
+ *  percentagem numérica («um terço», «conforme a turma») NÃO se converte: ler prosa não
+ *  é derivar. Devolve `null`, e a célula fica lacuna. */
+function percentagemDaProporcao(valor) {
+  const m = /^\s*(\d+(?:[.,]\d+)?)\s*%/.exec(String(valor == null ? '' : valor));
+  return m ? Number(m[1].replace(',', '.')) : null;
+}
+
+/** Um número em português, sem zeros à direita: 13.5 → «13,5»; 45 → «45». */
+function numeroEmPortugues(n) {
+  return String(Math.round(n * 100) / 100).replace('.', ',');
+}
+
+/**
+ * As linhas da «Distribuição do tempo da aula» (§3 da Aula 01). O BLOCO vem da estrutura
+ * declarada no plano; a FATIA e os TEMPOS vêm das proporções da «Distribuição do volume»,
+ * casadas pelo nome curto do bloco.
+ *
+ * Nada se inventa: a Fatia é a proporção declarada, verbatim, e os Tempos são a aritmética
+ * dela com o volume-alvo (proporção × total ÷ 100) — o produto exacto, para as partes
+ * fecharem no total. Sem bloco correspondente, ou sem percentagem declarada, a célula sai
+ * como lacuna, e não como um número adivinhado.
+ */
+function distribuicaoDoTempo(estrutura, volume, volumeTotal) {
+  // A distribuição declarada chega na forma da grelha — array de objetos, um por linha.
+  // As duas primeiras colunas são o bloco e a proporção, na ordem em que foram gravadas.
+  const porBloco = new Map();
+  if (Array.isArray(volume)) {
+    for (const linha of volume) {
+      if (!linha || typeof linha !== 'object' || Array.isArray(linha)) continue;
+      const valores = Object.values(linha);
+      const nome = String(valores[0] == null ? '' : valores[0]).trim();
+      if (!nome) continue;
+      porBloco.set(nome.toLowerCase(), valores[1]);
+    }
+  }
+  const linhas = [];
+  for (const bloco of estrutura) {
+    const proporcao = porBloco.get(nomeDoBloco(bloco).toLowerCase());
+    const percentagem = percentagemDaProporcao(proporcao);
+    const tempos = percentagem !== null && volumeTotal
+      ? numeroEmPortugues((percentagem / 100) * volumeTotal)
+      : null;
+    const fatia = proporcao === null || proporcao === undefined || String(proporcao).trim() === ''
+      ? null
+      : String(proporcao).trim();
+    linhas.push('| ' + bloco.replace(/—.*$/, '').trim() + ' | ' +
+      (tempos || '[Preencher]') + ' | ' + (fatia || '[Preencher]') + ' |');
+  }
+  return linhas;
+}
+
 
 /**
  * A notação escolhida (P-15): o front-matter do plano declara `contexto-notacao` como
@@ -172,7 +230,9 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
       corpo.push('');
       corpo.push('| Bloco | Tempos | Fatia |');
       corpo.push('|:--|--:|--:|');
-      for (const b of estrutura) corpo.push('| ' + b.replace(/—.*$/, '').trim() + ' | [Preencher] | [Preencher] |');
+      for (const linha of distribuicaoDoTempo(estrutura, resp(plano, 'distribuicao-de-volume'), volumeTotal)) {
+        corpo.push(linha);
+      }
       corpo.push('| **Total** | **' + (volumeTotal || '[Preencher]') + '** | **100%** |');
       corpo.push('');
     }

@@ -74,7 +74,35 @@ function tabelaDeMarcos(valor) {
 
 // Uma tabela "aberta" escrita como lista de linhas separadas por `|`
 // (bloco | proporção | justificativa; critério | n1 | n2 | n3 | n4).
+//
+// Dois caminhos, e o primeiro é o novo: a GRELHA da porta grava um ARRAY DE OBJETOS —
+// um por linha, com a chave de cada coluna —, e aí as colunas vêm do próprio dado, na
+// ordem gravada. Sem barras, uma linha não se pode partir: era o que acontecia à
+// rubrica escrita em prosa, que saía com uma célula sob um cabeçalho de cinco.
+// O segundo é o caminho LEGADO (a linha única com `|`), que segue valendo.
 function tabelaDeLista(valor, cabecalho, alinhamento) {
+  const objetos = Array.isArray(valor)
+    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
+    : [];
+  if (objetos.length) {
+    let colunas = [];
+    for (const objeto of objetos) {
+      const chaves = Object.keys(objeto);
+      if (chaves.length) { colunas = chaves; break; }
+    }
+    if (!colunas.length) return [cabecalho, alinhamento];
+    const linhas = [
+      '| ' + colunas.join(' | ') + ' |',
+      '|' + colunas.map(() => ':--').join('|') + '|',
+    ];
+    for (const objeto of objetos) {
+      linhas.push('| ' + colunas.map((c) => {
+        const v = objeto[c] == null ? '' : String(objeto[c]).trim();
+        return v ? '**' + v + '**' : '[a decidir]';
+      }).join(' | ') + ' |');
+    }
+    return linhas;
+  }
   const itens = emLista(valor);
   const linhas = [cabecalho, alinhamento];
   for (const linha of itens) {
@@ -93,7 +121,9 @@ function tabelaDeContexto(envelope) {
   };
   par('Escola', respostaDo(envelope, 'contexto-escola'));
   par('Professor', respostaDo(envelope, 'contexto-professor'));
-  par('Turma', respostaDo(envelope, 'contexto-turma'));
+  // A turma passou a aceitar MAIS de uma (multipla): o valor é uma lista, e o
+  // plano a escreve como «A · B», nunca como array colado por vírgula.
+  par('Turmas', emLista(respostaDo(envelope, 'contexto-turma')).join(' · ') || null);
   par('Frequência', comporPeriodicidade(respostaDo(envelope, 'contexto-frequencia')));
   par('Duração por aula', comporMedida(respostaDo(envelope, 'contexto-duracao')));
   par('Calendário', comporData(respostaDo(envelope, 'contexto-calendario')));

@@ -131,8 +131,53 @@ const CHECKLIST = [
   ['checklist-recorte-viavel', 'cutFeasible'],
 ];
 
-function booleanoDoChecklist(valor) {
-  return String(valor || '').trim().toLowerCase() === 'sim';
+// A resposta EXPLÍCITA de uma folha do checklist: `sim` | `não` | `null` (não marcada).
+// O professor declara «não» de propósito (é um achado); a ausência é outra coisa.
+function respostaExplicitaDaFolha(valor) {
+  const cru = String(valor || '').trim().toLowerCase();
+  if (cru === 'sim') return 'sim';
+  if (cru === 'não' || cru === 'nao') return 'não';
+  return null;
+}
+
+// Um valor está «presente» quando traz conteúdo legível (lista não vazia ou texto).
+function presente(valor) {
+  if (valor === null || valor === undefined) return false;
+  if (Array.isArray(valor)) return valor.some((v) => String(v || '').trim() !== '');
+  return String(valor).trim() !== '';
+}
+
+// A INFERÊNCIA de uma folha — o «pré-preenchido» do checklist (Bloco 4 do pedido): quando o
+// professor não marcou, o que ele JÁ respondeu decide. Cinco folhas têm campo direto; a sexta
+// (critérios mutuamente exclusivos) NÃO tem — fica com o professor, nunca inferida.
+function inferirFolha(chave, envelope, plano) {
+  const noEnvelope = (id) => presente(respostaDo(envelope, id));
+  const noPlano = (id) => presente(respostaDo(plano, id));
+  switch (chave) {
+    case 'phenomenonOperationallyDefined':
+      return noEnvelope('fenomeno');
+    case 'scopeBoundariesClear':
+      return noEnvelope('contexto') || noEnvelope('explicacao-do-recorte');
+    case 'normClearlyEstablished':
+      // A «norma» que esta folha pergunta é a METODOLOGIA declarada — que vive no plano.
+      return noPlano('contexto-metodologia');
+    case 'criteriaMutuallyExclusive':
+      return false; // sem campo direto — o professor decide
+    case 'justificationGrounded':
+      return noEnvelope('referencia-ao-problema') || noEnvelope('base-teorica');
+    case 'cutFeasible':
+      return noEnvelope('o-que-fica-de-fora') || noEnvelope('explicacao-do-recorte');
+    default:
+      return false;
+  }
+}
+
+// A folha resolvida: a resposta explícita vence; sem ela, a inferência preenche.
+function folhaDoChecklist(chave, valor, envelope, plano) {
+  const explicita = respostaExplicitaDaFolha(valor);
+  if (explicita === 'sim') return true;
+  if (explicita === 'não') return false;
+  return inferirFolha(chave, envelope, plano);
 }
 
 // O nome humano de cada folha do checklist — o professor lê o nome, não a chave.
@@ -167,13 +212,20 @@ function comporLinhasDePlano(plano, pares) {
   return linhas.join(' · ');
 }
 
+// As turmas observadas — o plano passou a aceitar MAIS de uma (multipla), e o PO as lê
+// como lista. Nada inventa: o que veio vazio sai como lacuna.
+function comporTurmas(valor) {
+  const turmas = emLista(valor);
+  return turmas.length ? turmas.join(' · ') : null;
+}
+
 // O CAMPO EMPÍRICO do PO (escola, turma, frequência, duração por aula). A escola é do PO
 // (a declaração própria do âmbito); turma, frequência e duração vêm do plano referenciado.
 function comporCampoEmpirico(envelope, plano) {
   const escola = respostaDo(envelope, 'campo-escola') || respostaDo(plano, 'contexto-escola');
   const base = comporLinhasDePlano(plano, [
     ['Escola', escola],
-    ['Turma', respostaDo(plano, 'contexto-turma')],
+    ['Turmas', comporTurmas(respostaDo(plano, 'contexto-turma'))],
     ['Frequência', comporPeriodicidade(respostaDo(plano, 'contexto-frequencia'))],
     ['Duração por aula', comporMedida(respostaDo(plano, 'contexto-duracao'))],
   ]);
@@ -220,7 +272,7 @@ function derivarPO(envelope, plano) {
 
   const checklist = {};
   for (const [id, chave] of CHECKLIST) {
-    checklist[chave] = booleanoDoChecklist(respostaDo(envelope, id));
+    checklist[chave] = folhaDoChecklist(chave, respostaDo(envelope, id), envelope, plano);
   }
 
   const estado = estadoDoPO(checklist);
