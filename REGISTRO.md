@@ -11406,3 +11406,42 @@ e reancorar), pelo que o caminho é o manual: `npx wrangler deploy -c wrangler.<
 vez por escola. Os segredos persistem no Worker — o deploy troca só o código. **Enquanto não houver
 redeploy, a produção continua a escrever o PO à moda antiga**: sem inferência, com
 `obrigatorio:true` nas seis folhas e «Turma:», singular.
+
+## 13/10/2026 — A rubrica: o conteúdo alinha-se à decisão (Bloco 10, confirmação 1)
+
+**O que motivou.** A rubrica do plano declarava, no código e no conteúdo, os níveis
+`Insatisfatório · Em desenvolvimento · Satisfatório · Excelente` — uma escala **ordinal**.
+A pesquisadora decidiu que o certo é a lista do `FRENTES.md`:
+**`satisfatório · razoável · em desenvolvimento · não se aplica`**. Não é uma escala ordinal (um
+dos valores é de não-aplicabilidade), e nada no repositório a declarava assim.
+
+**Onde os níveis errados nasceram.** No **experimento**: a simulação Marau traz a tabela com essa
+escala, e ela entrou no código de produção em `f36358c` (09/10/2026, «a porta passa a elicitar o
+plano») — primeiro como cabeçalho legado em `derivar-plano-ciclo.js`, depois também nas colunas do
+conteúdo. Nunca foi uma decisão da pesquisadora: foi o exemplo do experimento a passar por dado.
+
+**O que foi decidido.** As três listas em circulação (a do experimento, a que o relatório colado
+citava, e a decisão) resolvem-se numa só: **vale a do `FRENTES.md`**. O conteúdo passa a declará-la
+nas colunas da grelha, e o cabeçalho legado da derivação acompanha — sem tocar em nada congelado:
+o prompt congelado **não** nomeia os níveis, a Regra 10 também não, e o exemplo de derivação de
+chave em `tools/lib-extracao-md.js` continua válido (`Em desenvolvimento` permanece na lista).
+
+**Onde entrou.** `porta/plano/conteudo/plano.json` — a rubrica passa a
+`tabela.colunas = [Critério, Satisfatório, Razoável, Em desenvolvimento, Não se aplica]`, e a
+explicação do campo deixa de dizer «insatisfatório → excelente» · `motor/nucleo/derivar-plano-ciclo.js`
+— o cabeçalho legado da rubrica (o caminho das linhas escritas com `|`).
+
+**Com o quê.** `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` e os
+**espelhos** `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/plano/conteudo/plano.json`
+e `professores/tiago/ciclos/ciclo-01-maria/plano-observacao/plano/conteudo/plano.json`.
+
+**Referências.** `FRENTES.md` §«As 3 confirmações bloqueantes», item 1 · Regra 10 (camada 1:
+objetivo geral + marcos + rubrica) · o crédito de origem: `experimentos/simulacao-marau/`
+(Plano B4 do experimento) e a entrada `f36358c`.
+
+**O que ainda não está feito.** O `ciclo-01-maria-plano.md` ainda mostra o cabeçalho antigo — é
+**saída derivada**, e reescreve-se no próximo «Guardar» do plano (o `escrever-plano.js` passa pelo
+mesmo `escreverPO`, que faz `PUT` com o `sha`). A árvore do **experimento** mantém a escala antiga
+de propósito: é demonstrativa e não entra em pacotes nem em âncoras. O análogo no **PO** — a
+contagem de obrigatórios e o corte para «completa» — segue como está: esta decisão é da rubrica,
+e não mexe no checklist.
