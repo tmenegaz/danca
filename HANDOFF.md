@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-13T14:41:49-0300`
-Commit atual: `8a6e8d6` — feat(estrutura): menu lateral e secções na Produção (fim da linguiça)
+Gerado em: `2026-10-13T21:16:00-0300`
+Commit atual: `643edc4` — docs(registro): a Produção quebrou pelo `env` fora de escopo — correção do Error 1101
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -52,26 +52,26 @@ tiago (2)
 ## Últimos commits
 
 ```
+643edc4 docs(registro): a Produção quebrou pelo `env` fora de escopo — correção do Error 1101
+1a2b9c7 fix(estrutura): a Produção não quebra mais — o slug do dono entra como parâmetro, não via env
+b25fda9 docs(estrutura): FRENTES.md — B2 fechado (consumo da curadoria) e panorama das frentes em dia
+2b29e9f docs(registro): o consumo da curadoria trava plano/PO e filtra as alunas (B2b)
+4b01050 feat(estrutura): a tela consome a curadoria — plano/PO travam sem curadoria e a anamnese filtra as alunas
+87308c8 docs(estrutura): FRENTES.md — L5 ligado (metodologia/notação → PO)
+520bc20 docs(registro): metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2)
+3410db9 feat(po): ligar metodologia e notação do plano ao PO
+474c884 docs(estrutura): FRENTES.md — B1 pronto, B3 base migrada, B2 em andamento
+9fb1dfb docs(registro): a curadoria nasce (B1) — atribuição por professor que pré-carrega os formulários
+f8d367e feat(estrutura): a curadoria nasce — a escola atribui a cada professor o que pré-carrega os formulários
+b2dccb3 docs(registro): a base canónica do catálogo migra para biblioteca/modalidades (B3)
+14bfb2e feat(biblioteca): a base canónica do catálogo migra para biblioteca/modalidades
+f275bca docs(estrutura): versiona o panorama das frentes e o laudo do Bloco 1 em FRENTES.md
+41df2a2 docs(estrutura): corrige a norma §12 do painel e regenera o HANDOFF
+a85bca9 docs(registro): norma revisada — o Bastidores cria e declara (caso a caso), e o catálogo é biblioteca
 8a6e8d6 feat(estrutura): menu lateral e secções na Produção (fim da linguiça)
 a2f6a1d fix(estrutura): sessão persistente e labels claros na Produção
 aeef69a docs(registro): cadastro de turmas e vocabulário técnico do balé (Bloco 3 do plano)
 38d8bc7 feat(estrutura): cadastro de turmas e vocabulário técnico do balé, com relação turma↔conteúdo
-f1eae4d docs(registro): a senha é por professor e a categoria re-deriva ao editar a data
-78ae338 fix(campo): a senha é por professor e a categoria re-deriva ao editar a data
-051c929 docs(registro): a categoria etária re-derivada da idade e a memória por escola/professor/ciclo
-bc77668 fix(campo): a categoria etária é re-derivada da idade e a memória é por escola/professor/ciclo
-609bd2e docs(registro): «não foi medido» nos basilares e nas cinco posições, en-dehors agrupado
-cbe3d77 feat(campo): «não foi medido» nos basilares e nas cinco posições + en-dehors no grupo dos basilares
-783f998 docs(registro): o nó 50 não semeia e «não foi medido» entra transversal
-5e5f3cf feat(campo): «não foi medido» transversal na anamnese, com bloqueio na ficha
-6d4a39f docs(registro): o professor é o dono, a Produção pede senha e o professor vira lista
-4cb601c fix(estrutura): o seletor de professor guarda o slug, não o nome de exibição
-7eb3273 feat(entrega): propaga a porta (professor vira lista) para os pacotes da barra e da maria
-1b15b24 feat(estrutura): professor é o dono, Produção com senha e professor vira lista
-1e8ece1 docs(registro): a Produção exclui aluna e professor
-81196db feat(estrutura): a Produção exclui aluna e professor (mantém o gabinete limpo)
-a145cfe fix(estrutura): o cadastro de aluna e professor nos Bastidores aponta para a rota certa
-d9f61e6 fix(campo): a senha de criptografia é rotulada como distinta da senha da escola e do professor
 ```
 
 ## Por professor
@@ -147,81 +147,117 @@ d9f61e6 fix(campo): a senha de criptografia é rotulada como distinta da senha d
 
 ## Última entrada do REGISTRO
 
-## 13/10/2026 — Norma revisada: o Bastidores cria e declara (caso a caso); o catálogo é biblioteca, não CRUD
+## 13/10/2026 — A grelha das tabelas: a rubrica, as turmas em plural, o checklist pré-preenchido (B7) e o `[Preencher]` do volume (B5)
 
-**O que motivou.** A implementação do cadastro de turmas/vocabulário (commit `38d8bc7`) foi lida
-pela pesquisadora como um **CRUD clássico** — e ela argumentou contra ele, relendo o
-`IDEIA-PAINEL-ESCOLA.md`: a norma §12 dizia *«o Bastidores não cria dado nenhum — relê o que o
-lançamento produz»*. A correção nasceu dessa releitura.
+**O que motivou.** Duas frentes do `FRENTES.md` estavam presas na mesma peça — a porta do plano:
 
-**O que foi decidido.**
-- **A norma §12 foi revogada.** O Bastidores **trata cada caso**: **relê** o que o lançamento
-  produz (aulas, presença, ajustes, cadeia de custódia) **e cria/declara** o que é **próprio da
-  escola** — porque escolas e tradições variam e não há como exaurir todas as possibilidades numa
-  biblioteca compartilhada. Regra de operação: **incluir e excluir, não editar**.
-- **O catálogo não é CRUD por escola.** A **base canónica** (RAD · Vaganova · francesa · Graham ·
-  Limón · Horton · Humphrey–Weidman) é **conteúdo da `biblioteca/modalidades/`**, versionado e
-  compartilhado — como o `guia-do-professor`. A **escola declara** no `ESCOLA.conf` (§10) o que usa
-  e como organiza; o **ciclo herda** modalidade/turma/tradição e o repertório vem da
-  `progressao.json` da biblioteca, filtrado pela declaração. O professor pode acrescentar passo fora
-  do repertório, **com aviso** (P-16).
-- **Consequência:** o KV de hoje (`catalogo-seed.js` + rotas turma/termo/relação, commit `38d8bc7`)
-  é **andaime temporário** — será reconstruído como biblioteca + `ESCOLA.conf` em peça própria. O
-  botão «Carregar catálogo inicial» desaparece quando a base for para a biblioteca.
+1. **B7** (Bloco 4 do pedido, aberto desde que B2 o desbloqueou): três defeitos do PO/plano medidos
+   no uso — (a) o plano só aceitava **uma** turma observada, embora um professor possa observar
+   mais de uma no mesmo ciclo; (b) o **checklist** de validação obrigava o professor a marcar à mão
+   os **seis** critérios, mesmo quando cinco já estavam respondidos pelo que ele declarara antes;
+   (c) a **rubrica** (critério × quatro níveis) era digitada com barras, e saía **partida**: a
+   Maria escreveu «Tandu - bom, razoável, precisa melhorar» e a tabela de cinco colunas publicou
+   **uma célula só** por linha.
+2. **B5**: o mesmo defeito de forma na «Distribuição do volume» do plano — e, na Aula 01, a tabela
+   `| Bloco | Tempos | Fatia |` saía com `[Preencher]` em **todas** as linhas.
 
-**Onde entrou.** `IDEIA-PAINEL-ESCOLA.md` §12 (nota de correção datada — a redação antiga fica como
-o elo anterior) · `REGISTRO.md` (esta entrada) · o panorama das frentes em aberto no `plan.md` da
-sessão (ATUALIZAÇÃO 13/10).
+**O que foi decidido.** Uma peça nova — a **grelha** — resolve os dois, e uma medição desfaz o
+bloqueio do B5:
 
-**Com o quê.** `IDEIA-PAINEL-ESCOLA.md`, `REGISTRO.md`.
+- **A GRELHA.** O conteúdo de um nó declara `tabela: {colunas, minimo}`; a porta desenha a tabela
+  com um campo por célula, «Adicionar linha» e «✕» para remover — e o que se grava é um **array de
+  objetos**, um por linha, com a chave de cada coluna. É a forma que o **schema já exigia**
+  (`{type:'array', items:{type:'object'}}`) e que a porta nunca produzia: ela produzia texto com
+  barras. Sem barras, uma linha **não se pode partir**.
+- **A rubrica** e a **distribuição do volume** passam a declarar as suas colunas. O caminho legado
+  (a linha única com `|`) continua a valer na derivação — não se quebra o que já está gravado.
+- **A derivação ligada (B5).** A Aula 01 deixa de escrever `[Preencher]` à mão: a **Fatia** é a
+  proporção **declarada** no plano (verbatim) e os **Tempos** são a sua aritmética com o
+  volume-alvo (proporção × total ÷ 100), casando o bloco pelo **nome curto** (antes do separador).
+  O produto é **exacto** para as partes fecharem no total: 15 %·90 + 35 %·90 + 50 %·90 = 13,5 + 31,5
+  + 45 = **90**.
+- **Nada se inventa (P-16).** Sem percentagem numérica («um terço»), a Fatia sai como declarada e os
+  Tempos ficam **lacuna**; sem bloco correspondente, ambas as células ficam lacuna. Ler prosa não é
+  derivar — a mesma regra que o schema já declara para esta tabela.
+- **O bloqueio do B5 era fantasma.** A frente esperava «o JSON do envelope vivo (Maria/KV)». Os
+  envelopes **não existem**: `/api/envelopes`, `/api/planos`, `/api/anamnese-estados` e
+  `/api/plano-estados` devolvem vazio nas duas escolas — a KV não tem um único envelope. E não
+  fariam falta: o `[Preencher]` era **literal** em `derivar-ciclo.js`, não um defeito de
+  mapeamento. A derivação é que nunca tinha sido ligada.
+- **B7 fecha.** Os três itens estão feitos: turmas em plural, checklist pré-preenchido e a rubrica
+  em grelha clicável. A «rubrica clicável» do pedido é a rubrica **do plano** — o checklist do PO
+  já era clicável (rádios `sim`/`não`), e não havia nada a fazer aí.
 
-**Referências.** P-03/P-04 (proveniência acrescenta, não edita — a correção é uma nota, não uma
-reescrita) · P-16 (declarado, nunca deduzido — não se inventa equivalência entre escolas) · o
-pedido da pesquisadora («Produção, curadoria e integração dos formulários», Bloco 7) · a releitura
-do `IDEIA-PAINEL-ESCOLA.md` §12.
+**Onde entrou.** `motor/nucleo/derivar-po.js` — a inferência do checklist (`inferirFolha` /
+`folhaDoChecklist`), a composição plural (`comporTurmas`) e a remoção do `booleanoDoChecklist`,
+que ficou sem uso · `motor/nucleo/derivar-plano-ciclo.js` — a tabela de contexto escreve «Turmas»
+(o plano aceita mais de uma), e `tabelaDeLista` passa a ler o **array de objetos** da grelha, com
+as colunas vindas do próprio dado · `motor/nucleo/derivar-ciclo.js` — `nomeDoBloco`,
+`percentagemDaProporcao`, `numeroEmPortugues` e `distribuicaoDoTempo` (a Fatia e os Tempos da
+Aula 01) · `porta/index.html` — `grelhaDaTabela`, `lerGrelha`, `mudarLinhasDaGrelha`, o ramo de
+render e o de leitura, o CSS da grelha e a delegação dos botões · `porta/po/conteudo/po.json` e
+`porta/plano/conteudo/plano.json` — o conteúdo (as folhas derivadas do checklist; a rubrica e o
+volume com as suas colunas). No `po.json` a alteração substantiva são **12 linhas**; o arquivo
+vinha com **1 espaço por nível** de indentação e voltou aos **2 espaços por nível** da convenção
+(o `json.dumps(…, indent=2)` reproduz o `HEAD` byte a byte). Sem isso, o commit carregaria ~1 750
+linhas de ruído por arquivo, em três arquivos.
 
-**O que ainda não está feito.** A **curadoria** (Bloco 2 do pedido — a atribuição por professor que
-pré-carrega os três formulários) é a peça central e ainda não foi construída. A migração da base
-para `biblioteca/modalidades/` e o nascimento do `ESCOLA.conf` ficam para peça própria, depois de
-registrar a norma (esta entrada).
+**Com o quê.** `motor/nucleo/derivar-po.js`, `motor/nucleo/derivar-plano-ciclo.js`,
+`motor/nucleo/derivar-ciclo.js`, `porta/index.html`, `porta/po/conteudo/po.json`,
+`porta/plano/conteudo/plano.json` e os **espelhos** de cada escola (porta → pacote, a convenção do
+repositório, que preserva a navegação própria de cada variante):
+`professores/leticia/ciclos/ciclo-01-barra/plano-observacao/` e
+`professores/tiago/ciclos/ciclo-01-maria/plano-observacao/`.
+
+**Referências.** B5 e B7 de `FRENTES.md` · `IDEIA-PAINEL-ESCOLA.md` (Bloco 8 · checklist —
+«derivado do próprio preenchimento, não vem de fora») · Regra 9 (volume) e Regra 10 (rubrica) ·
+P-16 (declarado, nunca deduzido) · o elo textual congelado `prompts/elicitar-ciclo.md` · o schema
+do plano, que já declarava estas duas tabelas como array de objetos.
+
+**O que ainda não está feito.** Os artefatos **derivados** só se reescrevem no próximo «Guardar»
+(é o Worker que os escreve): o `ciclo-01-maria-po.md` ainda diz «Turma:», singular, e o
+`ciclo-01-maria-aula-01.md` ainda mostra `[Preencher]` na tabela do tempo. Não se editam à mão —
+são saídas. As proporções **legadas** (gravadas como texto com barras) continuam sem derivar: o
+caminho legado não se converte, para não ler prosa. A âncora de proveniência **não** mudou — o
+`.fipp` cobre os `.conf` e os `.md`, não a porta: `barra 70f3f063…` e `maria c6f3ebdd…`,
+reconferidas com `--check`. Fica por decidir, com a pesquisadora, a lista dos **níveis da rubrica**:
+o conteúdo declara `Insatisfatório · Em desenvolvimento · Satisfatório · Excelente`, e a prática
+escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloco 10 já tinha levantado.
 
 ## O que está pendente
 
-## 13/10/2026 — «Não foi medido» chega aos basilares e às cinco posições; en-dehors se agrupa
+## 13/10/2026 — A curadoria nasce: a escola atribui a cada professor o que pré-carrega os formulários (B1)
 
-O cabeçalho «Método declarado (P-16)» da ficha, quando o
-`matriz-metodologica-de-origem` sai como «não foi medido», mostra as caixas vazias (borda menor,
-só do módulo-b). MMSS/MMII segue para o Bloco 8.
+O **consumo** (B2): fazer a anamnese, o plano e o PO **lerem** a
+curadoria do professor e pré-carregarem turma/repertório/alunas. É a frente seguinte. A
+modalidade/tradição ainda não **filtram** os blocos da anamnese (isso é B6, reescrita de conteúdo).
 
-## 13/10/2026 — A categoria etária é re-derivada da idade; a memória é por escola/professor/ciclo
+## 13/10/2026 — Metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2)
 
-A chave do depósito ainda NÃO isola por ALUNA (dentro da mesma
-escola): é a limitação da aluna não estar na URL. Isolar por aluna exigiria persistir a aluna na
-URL ou limpar o depósito quando a aluna muda — anotado, não implementado.
+O resto da integração (B2): fazer a anamnese, o plano e o PO
 
-## 13/10/2026 — A senha é por professor, e a categoria etária re-deriva ao editar a data
+## 13/10/2026 — A tela consome a curadoria: plano/PO travam sem curadoria e a anamnese filtra as alunas (B2b)
 
-O `sessionStorage` (`lancamento:senha`) continua guardando a ÚLTIMA
-senha digitada, e não a senha do professor atual — trocar de professor e recarregar pode reapresentar
-a senha do professor anterior no campo (a validação por professor já a rejeita, mas o campo não
-nasce vazio). Anotado, não corrigido.
+A curadoria ainda não **filtra os blocos** da anamnese (isso é
+B6, reescrita de conteúdo por modalidade). O `ESCOLA.conf` (que aposenta o «Carregar catálogo
+inicial» e declara modalidades/tradições/turmas da escola) segue como peça própria. B7 (Bloco 4
+do PO) é a frente seguinte, agora desbloqueada.
 
-## 13/10/2026 — Cadastro de turmas e vocabulário técnico do balé (com relação turma↔conteúdo)
+## 13/10/2026 — Bastidores quebrou: a página da Produção referia `env` fora do escopo (correção)
 
-(1) O catálogo é um PONTO DE PARTIDA — não cobre a progressão
-integral de cada metodologia nem todos os termos; cresce como conteúdo administrativo. (2) O
-`plano-de-ensino` do PO ainda referencia o plano pelo carimbo, não pela turma; a relação
-turma↔conteúdo será usada depois, quando o professor escolher o que observar no ciclo (§10 do
-pedido). (3) A UI da associação embute um `<select>` de termos por turma (pesado com muitas
-turmas) — dá para virar um seletor compartilhado quando incomodar. (4) Não há edição de turma/termo
-(deliberado, §7): corrigir um nome exige excluir e recriar.
+B7 (Bloco 4 do PO) — a frente seguinte, já desbloqueada por B2.
 
-## 13/10/2026 — Norma revisada: o Bastidores cria e declara (caso a caso); o catálogo é biblioteca, não CRUD
+## 13/10/2026 — A grelha das tabelas: a rubrica, as turmas em plural, o checklist pré-preenchido (B7) e o `[Preencher]` do volume (B5)
 
-A **curadoria** (Bloco 2 do pedido — a atribuição por professor que
-pré-carrega os três formulários) é a peça central e ainda não foi construída. A migração da base
-para `biblioteca/modalidades/` e o nascimento do `ESCOLA.conf` ficam para peça própria, depois de
-registrar a norma (esta entrada).
+Os artefatos **derivados** só se reescrevem no próximo «Guardar»
+(é o Worker que os escreve): o `ciclo-01-maria-po.md` ainda diz «Turma:», singular, e o
+`ciclo-01-maria-aula-01.md` ainda mostra `[Preencher]` na tabela do tempo. Não se editam à mão —
+são saídas. As proporções **legadas** (gravadas como texto com barras) continuam sem derivar: o
+caminho legado não se converte, para não ler prosa. A âncora de proveniência **não** mudou — o
+`.fipp` cobre os `.conf` e os `.md`, não a porta: `barra 70f3f063…` e `maria c6f3ebdd…`,
+reconferidas com `--check`. Fica por decidir, com a pesquisadora, a lista dos **níveis da rubrica**:
+o conteúdo declara `Insatisfatório · Em desenvolvimento · Satisfatório · Excelente`, e a prática
+escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloco 10 já tinha levantado.
 
 ## Pendências anteriores (índice)
 
@@ -346,6 +382,12 @@ registrar a norma (esta entrada).
 - **13/10/2026** — A Produção exclui aluna e professor (o gabinete se… → `REGISTRO.md` L10870
 - **13/10/2026** — O professor é o dono, a Produção pede senha e o… → `REGISTRO.md` L10894
 - **13/10/2026** — Bloco 2: o nó 50 não semeia, e «não foi medido» entra… → `REGISTRO.md` L10934
+- **13/10/2026** — «Não foi medido» chega aos basilares e às cinco… → `REGISTRO.md` L10964
+- **13/10/2026** — A categoria etária é re-derivada da idade; a memória é… → `REGISTRO.md` L10999
+- **13/10/2026** — A senha é por professor, e a categoria etária re-deriva… → `REGISTRO.md` L11027
+- **13/10/2026** — Cadastro de turmas e vocabulário técnico do balé (com… → `REGISTRO.md` L11066
+- **13/10/2026** — Norma revisada: o Bastidores cria e declara (caso a caso);… → `REGISTRO.md` L11114
+- **13/10/2026** — A base canónica do catálogo migra para… → `REGISTRO.md` L11152
 - **leticia · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).

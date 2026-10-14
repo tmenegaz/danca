@@ -150,9 +150,9 @@ a pesquisadora.
 | B2 | **Integração (Bloco 8)** — derivados, fluxo, campos que saem/vêm | ✅ fechada · metodologia/notação (`3410db9`) + consumo da curadoria (plano/PO travam sem curadoria, anamnese filtra alunas) | — |
 | B3 | **Catálogo: base → biblioteca** — o CRUD de hoje vira `biblioteca/modalidades/` + `ESCOLA.conf`; a escola **declara** o que usa | ✅ base migrada | `biblioteca/modalidades/` (commit `14bfb2e`); falta o `ESCOLA.conf` |
 | B4 | **Norma revisada** — Produção **pode criar/excluir** (caso a caso) | ✅ registrada | `REGISTRO.md` + `IDEIA-PAINEL-ESCOLA.md` §12 |
-| B5 | **Bug do `[Preencher]`** na `distribuicao-de-volume` | 🔒 bloqueado | precisa do JSON do envelope vivo (Maria/KV) |
+| B5 | **Bug do `[Preencher]`** na `distribuicao-de-volume` | ✅ resolvido — remedido: o `[Preencher]` era **literal** em `derivar-ciclo.js`, não um defeito de mapeamento. A grelha estrutura a proporção e a Aula 01 deriva Fatia/Tempos | o «envelope vivo» era **fantasma** — a KV não tem um único envelope |
 | B6 | **Modalidade comum × específico** (anamnese 100% balé) | ⏸ deferido | reescrita de conteúdo (P-16) |
-| B7 | **Bloco 4 (PO)** — rubrica clicável, turmas plural, checklist pré-preenchido | ⬜ aberto | depois de B2 |
+| B7 | **Bloco 4 (PO)** — rubrica clicável, turmas plural, checklist pré-preenchido | ✅ fechado — as turmas em plural, **5 das 6** folhas do checklist inferidas, e a **rubrica do plano** em grelha clicável (`grelhaDaTabela` na porta; o checklist do PO já era clicável) | — |
 
 ### Trilho C — «Nós, Por Exemplo» (a página de entrada do sistema)
 
@@ -215,8 +215,8 @@ escola.
 2. B3 — mover a base para biblioteca/modalidades (peça própria)       ✅ base migrada (falta ESCOLA.conf)
 3. B1 — curadoria (a peça central)                                    ✅ mecanismo pronto (f8d367e)
 4. B2 — integração dos 3 formulários (derivados, fluxo, saídas)       ✅ metodologia/notação (3410db9) · consumo da curadoria ✅
-5. B7 — Bloco 4 do PO (rubrica, turmas plural, checklist)             ← depende de B2
+5. B7 — Bloco 4 do PO (rubrica clicável ✅ · turmas plural ✅ · checklist pré-preenchido ✅)   ✅ fechado
 6. A4 — experimento: migrar para produção (A1/A2/A3 já feitos; falta só os secrets de write-back)
-7. B5 — bug do [Preencher] (quando houver envelope vivo)              ← desbloqueável a qualquer hora
+7. B5 — bug do [Preencher] na distribuição do volume                   ✅ resolvido (o bloqueio era fantasma)
 8. C1 — «Nós, Por Exemplo»: `fundamentacao.md` + embutir `videos.json`  (C2 já feito) ← paralelo, independente
 ```
