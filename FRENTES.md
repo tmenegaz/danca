@@ -122,7 +122,11 @@ a pesquisadora.
 
 ### As 3 confirmações bloqueantes (Bloco 10) — estado
 
-1. **Rubrica** — ✅ `satisfatório · razoável · em desenvolvimento · não se aplica`.
+1. **Rubrica** — ✅ `satisfatório · razoável · em desenvolvimento · não se aplica`. **Decidida e
+   alinhada** no conteúdo e na derivação (`porta/plano/conteudo/plano.json` +
+   `derivar-plano-ciclo.js`, espelhados nas duas escolas). Os níveis que o código declarava antes
+   (`Insatisfatório · … · Excelente`) tinham vindo do **experimento** (simulação Marau), não de uma
+   decisão — ver `REGISTRO.md` (13/10/2026).
 2. **Faixa etária** — ✅ **corte em 14** (infantil ≤13, juvenil 14–17, adulto ≥18) — o código já
    faz exatamente isso (`>=18 ? Adulto : >=14 ? Juvenil : Infantil`); **nada a mudar**.
 3. **«não se aplica» da metodologia** — ✅ redundante com «Escola livre» do nó 50; **não criar**

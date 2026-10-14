@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo
 
-Gerado em: `2026-10-13T21:20:40-0300`
-Commit atual: `388e73c` — chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
+Gerado em: `2026-10-13T21:24:01-0300`
+Commit atual: `08f42a0` — docs(registro): correção — nem todos os derivados se reescrevem, e o deploy é manual
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -52,6 +52,7 @@ tiago (2)
 ## Últimos commits
 
 ```
+08f42a0 docs(registro): correção — nem todos os derivados se reescrevem, e o deploy é manual
 388e73c chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
 60662dd docs(estrutura): FRENTES.md — B7 fechado e B5 resolvido (o bloqueio era fantasma); HANDOFF em dia
 f732000 docs(registro): a grelha das tabelas fecha o B7 e remede o B5 — o bloqueio era fantasma
@@ -71,7 +72,6 @@ f8d367e feat(estrutura): a curadoria nasce — a escola atribui a cada professor
 b2dccb3 docs(registro): a base canónica do catálogo migra para biblioteca/modalidades (B3)
 14bfb2e feat(biblioteca): a base canónica do catálogo migra para biblioteca/modalidades
 f275bca docs(estrutura): versiona o panorama das frentes e o laudo do Bloco 1 em FRENTES.md
-41df2a2 docs(estrutura): corrige a norma §12 do painel e regenera o HANDOFF
 ```
 
 ## Por professor
@@ -147,117 +147,46 @@ f275bca docs(estrutura): versiona o panorama das frentes e o laudo do Bloco 1 em
 
 ## Última entrada do REGISTRO
 
-## 13/10/2026 — A grelha das tabelas: a rubrica, as turmas em plural, o checklist pré-preenchido (B7) e o `[Preencher]` do volume (B5)
+## 13/10/2026 — A rubrica: o conteúdo alinha-se à decisão (Bloco 10, confirmação 1)
 
-**O que motivou.** Duas frentes do `FRENTES.md` estavam presas na mesma peça — a porta do plano:
+**O que motivou.** A rubrica do plano declarava, no código e no conteúdo, os níveis
+`Insatisfatório · Em desenvolvimento · Satisfatório · Excelente` — uma escala **ordinal**.
+A pesquisadora decidiu que o certo é a lista do `FRENTES.md`:
+**`satisfatório · razoável · em desenvolvimento · não se aplica`**. Não é uma escala ordinal (um
+dos valores é de não-aplicabilidade), e nada no repositório a declarava assim.
 
-1. **B7** (Bloco 4 do pedido, aberto desde que B2 o desbloqueou): três defeitos do PO/plano medidos
-   no uso — (a) o plano só aceitava **uma** turma observada, embora um professor possa observar
-   mais de uma no mesmo ciclo; (b) o **checklist** de validação obrigava o professor a marcar à mão
-   os **seis** critérios, mesmo quando cinco já estavam respondidos pelo que ele declarara antes;
-   (c) a **rubrica** (critério × quatro níveis) era digitada com barras, e saía **partida**: a
-   Maria escreveu «Tandu - bom, razoável, precisa melhorar» e a tabela de cinco colunas publicou
-   **uma célula só** por linha.
-2. **B5**: o mesmo defeito de forma na «Distribuição do volume» do plano — e, na Aula 01, a tabela
-   `| Bloco | Tempos | Fatia |` saía com `[Preencher]` em **todas** as linhas.
+**Onde os níveis errados nasceram.** No **experimento**: a simulação Marau traz a tabela com essa
+escala, e ela entrou no código de produção em `f36358c` (09/10/2026, «a porta passa a elicitar o
+plano») — primeiro como cabeçalho legado em `derivar-plano-ciclo.js`, depois também nas colunas do
+conteúdo. Nunca foi uma decisão da pesquisadora: foi o exemplo do experimento a passar por dado.
 
-**O que foi decidido.** Uma peça nova — a **grelha** — resolve os dois, e uma medição desfaz o
-bloqueio do B5:
+**O que foi decidido.** As três listas em circulação (a do experimento, a que o relatório colado
+citava, e a decisão) resolvem-se numa só: **vale a do `FRENTES.md`**. O conteúdo passa a declará-la
+nas colunas da grelha, e o cabeçalho legado da derivação acompanha — sem tocar em nada congelado:
+o prompt congelado **não** nomeia os níveis, a Regra 10 também não, e o exemplo de derivação de
+chave em `tools/lib-extracao-md.js` continua válido (`Em desenvolvimento` permanece na lista).
 
-- **A GRELHA.** O conteúdo de um nó declara `tabela: {colunas, minimo}`; a porta desenha a tabela
-  com um campo por célula, «Adicionar linha» e «✕» para remover — e o que se grava é um **array de
-  objetos**, um por linha, com a chave de cada coluna. É a forma que o **schema já exigia**
-  (`{type:'array', items:{type:'object'}}`) e que a porta nunca produzia: ela produzia texto com
-  barras. Sem barras, uma linha **não se pode partir**.
-- **A rubrica** e a **distribuição do volume** passam a declarar as suas colunas. O caminho legado
-  (a linha única com `|`) continua a valer na derivação — não se quebra o que já está gravado.
-- **A derivação ligada (B5).** A Aula 01 deixa de escrever `[Preencher]` à mão: a **Fatia** é a
-  proporção **declarada** no plano (verbatim) e os **Tempos** são a sua aritmética com o
-  volume-alvo (proporção × total ÷ 100), casando o bloco pelo **nome curto** (antes do separador).
-  O produto é **exacto** para as partes fecharem no total: 15 %·90 + 35 %·90 + 50 %·90 = 13,5 + 31,5
-  + 45 = **90**.
-- **Nada se inventa (P-16).** Sem percentagem numérica («um terço»), a Fatia sai como declarada e os
-  Tempos ficam **lacuna**; sem bloco correspondente, ambas as células ficam lacuna. Ler prosa não é
-  derivar — a mesma regra que o schema já declara para esta tabela.
-- **O bloqueio do B5 era fantasma.** A frente esperava «o JSON do envelope vivo (Maria/KV)». Os
-  envelopes **não existem**: `/api/envelopes`, `/api/planos`, `/api/anamnese-estados` e
-  `/api/plano-estados` devolvem vazio nas duas escolas — a KV não tem um único envelope. E não
-  fariam falta: o `[Preencher]` era **literal** em `derivar-ciclo.js`, não um defeito de
-  mapeamento. A derivação é que nunca tinha sido ligada.
-- **B7 fecha.** Os três itens estão feitos: turmas em plural, checklist pré-preenchido e a rubrica
-  em grelha clicável. A «rubrica clicável» do pedido é a rubrica **do plano** — o checklist do PO
-  já era clicável (rádios `sim`/`não`), e não havia nada a fazer aí.
+**Onde entrou.** `porta/plano/conteudo/plano.json` — a rubrica passa a
+`tabela.colunas = [Critério, Satisfatório, Razoável, Em desenvolvimento, Não se aplica]`, e a
+explicação do campo deixa de dizer «insatisfatório → excelente» · `motor/nucleo/derivar-plano-ciclo.js`
+— o cabeçalho legado da rubrica (o caminho das linhas escritas com `|`).
 
-**Onde entrou.** `motor/nucleo/derivar-po.js` — a inferência do checklist (`inferirFolha` /
-`folhaDoChecklist`), a composição plural (`comporTurmas`) e a remoção do `booleanoDoChecklist`,
-que ficou sem uso · `motor/nucleo/derivar-plano-ciclo.js` — a tabela de contexto escreve «Turmas»
-(o plano aceita mais de uma), e `tabelaDeLista` passa a ler o **array de objetos** da grelha, com
-as colunas vindas do próprio dado · `motor/nucleo/derivar-ciclo.js` — `nomeDoBloco`,
-`percentagemDaProporcao`, `numeroEmPortugues` e `distribuicaoDoTempo` (a Fatia e os Tempos da
-Aula 01) · `porta/index.html` — `grelhaDaTabela`, `lerGrelha`, `mudarLinhasDaGrelha`, o ramo de
-render e o de leitura, o CSS da grelha e a delegação dos botões · `porta/po/conteudo/po.json` e
-`porta/plano/conteudo/plano.json` — o conteúdo (as folhas derivadas do checklist; a rubrica e o
-volume com as suas colunas). No `po.json` a alteração substantiva são **12 linhas**; o arquivo
-vinha com **1 espaço por nível** de indentação e voltou aos **2 espaços por nível** da convenção
-(o `json.dumps(…, indent=2)` reproduz o `HEAD` byte a byte). Sem isso, o commit carregaria ~1 750
-linhas de ruído por arquivo, em três arquivos.
+**Com o quê.** `porta/plano/conteudo/plano.json`, `motor/nucleo/derivar-plano-ciclo.js` e os
+**espelhos** `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/plano/conteudo/plano.json`
+e `professores/tiago/ciclos/ciclo-01-maria/plano-observacao/plano/conteudo/plano.json`.
 
-**Com o quê.** `motor/nucleo/derivar-po.js`, `motor/nucleo/derivar-plano-ciclo.js`,
-`motor/nucleo/derivar-ciclo.js`, `porta/index.html`, `porta/po/conteudo/po.json`,
-`porta/plano/conteudo/plano.json` e os **espelhos** de cada escola (porta → pacote, a convenção do
-repositório, que preserva a navegação própria de cada variante):
-`professores/leticia/ciclos/ciclo-01-barra/plano-observacao/` e
-`professores/tiago/ciclos/ciclo-01-maria/plano-observacao/`.
+**Referências.** `FRENTES.md` §«As 3 confirmações bloqueantes», item 1 · Regra 10 (camada 1:
+objetivo geral + marcos + rubrica) · o crédito de origem: `experimentos/simulacao-marau/`
+(Plano B4 do experimento) e a entrada `f36358c`.
 
-**Referências.** B5 e B7 de `FRENTES.md` · `IDEIA-PAINEL-ESCOLA.md` (Bloco 8 · checklist —
-«derivado do próprio preenchimento, não vem de fora») · Regra 9 (volume) e Regra 10 (rubrica) ·
-P-16 (declarado, nunca deduzido) · o elo textual congelado `prompts/elicitar-ciclo.md` · o schema
-do plano, que já declarava estas duas tabelas como array de objetos.
-
-**O que ainda não está feito.** Os artefatos **derivados** só se reescrevem no próximo «Guardar»
-(é o Worker que os escreve): o `ciclo-01-maria-po.md` ainda diz «Turma:», singular, e o
-`ciclo-01-maria-aula-01.md` ainda mostra `[Preencher]` na tabela do tempo. Não se editam à mão —
-são saídas. As proporções **legadas** (gravadas como texto com barras) continuam sem derivar: o
-caminho legado não se converte, para não ler prosa. A âncora de proveniência **não** mudou — o
-`.fipp` cobre os `.conf` e os `.md`, não a porta: `barra 70f3f063…` e `maria c6f3ebdd…`,
-reconferidas com `--check`. Fica por decidir, com a pesquisadora, a lista dos **níveis da rubrica**:
-o conteúdo declara `Insatisfatório · Em desenvolvimento · Satisfatório · Excelente`, e a prática
-escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloco 10 já tinha levantado.
-
-**Correção de 13/10/2026 (mesmo dia).** O parágrafo acima diz que «os artefatos derivados só se
-reescrevem no próximo «Guardar»». **Está pela metade**, e a metade que falta é a que importa: nem
-todos se reescrevem.
-
-- O **`-po.md`** (e o `-plano.md`) **reescrevem-se**: `escreverPO` lê o `sha` e faz `PUT`
-  (`motor/servidor/escrever-po.js`), de modo que o próximo «Guardar» publica a versão nova.
-- As **fontes derivadas do ciclo** (`-aula-01.md`, `-referencias.md`, `-captura-aula-01.md`,
-  `-harmonizacao.md`, `-dados.json`) **NÃO se reescrevem**: o passo 3 de
-  `motor/servidor/escrever-ciclo.js` escreve **só o que ainda não existe** — se o arquivo está lá,
-  entra em `puladas` e o `continue` salta-o. É o «a proveniência acrescenta, não edita» (P-03/P-04)
-  aplicado à letra.
-
-**Consequência, para quem retomar.** O `[Preencher]` do `ciclo-01-maria-aula-01.md` **não se
-corrige sozinho**: a aula já existe, logo nunca será regenerada. A derivação da Fatia/Tempos
-(`distribuicaoDoTempo`) vale para as aulas **novas** — e, para rever a da Maria, seria preciso
-apagar a fonte primeiro, o que é reescrever o passado. O `-po.md` da Maria, esse, corrige-se no
-próximo «Guardar».
-
-**E o que falta para tudo isto chegar à produção.** O Worker empacota o `motor/` inteiro
-(`workers/principal.js` → esbuild sobre os `require`) e lê o conteúdo (`po.json`, `plano.json`) do
-`env.ASSETS` — **ambos fotografados no deploy**. Não há workflow que faça deploy das escolas
-existentes (os três de `.github/workflows/` são `workflow_dispatch` para criar escola, gerar ciclo
-e reancorar), pelo que o caminho é o manual: `npx wrangler deploy -c wrangler.<escola>.jsonc`, uma
-vez por escola. Os segredos persistem no Worker — o deploy troca só o código. **Enquanto não houver
-redeploy, a produção continua a escrever o PO à moda antiga**: sem inferência, com
-`obrigatorio:true` nas seis folhas e «Turma:», singular.
+**O que ainda não está feito.** O `ciclo-01-maria-plano.md` ainda mostra o cabeçalho antigo — é
+**saída derivada**, e reescreve-se no próximo «Guardar» do plano (o `escrever-plano.js` passa pelo
+mesmo `escreverPO`, que faz `PUT` com o `sha`). A árvore do **experimento** mantém a escala antiga
+de propósito: é demonstrativa e não entra em pacotes nem em âncoras. O análogo no **PO** — a
+contagem de obrigatórios e o corte para «completa» — segue como está: esta decisão é da rubrica,
+e não mexe no checklist.
 
 ## O que está pendente
-
-## 13/10/2026 — A curadoria nasce: a escola atribui a cada professor o que pré-carrega os formulários (B1)
-
-O **consumo** (B2): fazer a anamnese, o plano e o PO **lerem** a
-curadoria do professor e pré-carregarem turma/repertório/alunas. É a frente seguinte. A
-modalidade/tradição ainda não **filtram** os blocos da anamnese (isso é B6, reescrita de conteúdo).
 
 ## 13/10/2026 — Metodologia e notação chegam ao PO (ligar L5 — Bloco 8.2)
 
@@ -285,6 +214,10 @@ caminho legado não se converte, para não ler prosa. A âncora de proveniência
 reconferidas com `--check`. Fica por decidir, com a pesquisadora, a lista dos **níveis da rubrica**:
 o conteúdo declara `Insatisfatório · Em desenvolvimento · Satisfatório · Excelente`, e a prática
 escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloco 10 já tinha levantado.
+
+## 13/10/2026 — A rubrica: o conteúdo alinha-se à decisão (Bloco 10, confirmação 1)
+
+O `ciclo-01-maria-plano.md` ainda mostra o cabeçalho antigo — é
 
 ## Pendências anteriores (índice)
 
@@ -415,6 +348,7 @@ escreveu «bom, razoável, precisa melhorar» — a mesma ambiguidade que o Bloc
 - **13/10/2026** — Cadastro de turmas e vocabulário técnico do balé (com… → `REGISTRO.md` L11066
 - **13/10/2026** — Norma revisada: o Bastidores cria e declara (caso a caso);… → `REGISTRO.md` L11114
 - **13/10/2026** — A base canónica do catálogo migra para… → `REGISTRO.md` L11152
+- **13/10/2026** — A curadoria nasce: a escola atribui a cada professor o que… → `REGISTRO.md` L11185
 - **leticia · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
