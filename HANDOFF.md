@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T13:36:57-0300`
-Commit atual: `b510383` — chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
+Gerado em: `2026-10-15T14:24:54-0300`
+Commit atual: `4bee5dc` — fix(tools): o gerador do HANDOFF quebrava com o repositório sem escola
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -44,9 +44,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** leticia
-tiago (2)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Professores:** tiago (1)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,6 +63,10 @@ tiago (2)
 ## Últimos commits
 
 ```
+4bee5dc fix(tools): o gerador do HANDOFF quebrava com o repositório sem escola
+67ddfa0 chore(estrutura): expurgar a escola barra
+21d8dcf chore(estrutura): expurgar a escola maria
+bb0da30 feat(estrutura): o expurgo da escola vira botão, na raiz
 b510383 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 0d009e6 chore(entrega): os pacotes da Barra e da Maria absorvem o lançamento autenticado
 a88b9ae fix(template): o lançamento exige a senha e avisa quando grava sem cifra
@@ -79,37 +83,11 @@ b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
 83560fc fix(estrutura): a criação da escola diz onde guardar a senha de criptografia
 e3fc795 fix(tools): o guarda do pre-push confere a última linha do arquivo de senhas
 8c56058 docs(registro): o passo de deploy foi exercitado — a cadeia publica
-3bcddc1 chore(entrega): gerar o pacote de leticia/01/barra
-19a23de feat(estrutura): a geração publica — o deploy entra na cadeia
-90af3f6 docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
-a7a99e5 chore(entrega): a geração da Barra absorve a página dos bastidores e a proveniência do plano
 ```
 
 ## Por professor
 
-### leticia — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): barra
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| barra | ciclo-01-barra-po.md | Input_PO_Aguardando | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| barra | ciclo-01-barra.fipp | `db6233ad4475` | (vazio) | Input_PO_Aguardando |
-
-### tiago — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): maria
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| maria | ciclo-01-maria-po.md | Input_PO_Aguardando | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| maria | ciclo-01-maria.fipp | `03fb63d2af3a` | (vazio) | Input_PO_Aguardando |
+### tiago — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -158,167 +136,43 @@ a7a99e5 chore(entrega): a geração da Barra absorve a página dos bastidores e 
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O expurgo da escola sai do comando e vira botão, na raiz
+## 15/10/2026 — O gerador do HANDOFF quebrava com o repositório sem escola
 
-**O que motivou.** O dono do produto decidiu **expurgar completamente a Barra e a Maria** e começar
-um processo novo, do zero, com uma escola que ele mesmo vai criar. O expurgo existia — mas como
-comando (`node escola/expurgar.js <slug>`) e como varredura agendada (§17.5, atrás de
-`escolas-habilitadas.json` + prazo de carência). Ele pediu o que faltava: **um botão na raiz**. E
-corrigiu a primeira leitura da conversa — «o expurgo fica na dança… onde tem o botão de criar. Tem
-um botão de apagar escola». Não é nos Bastidores da escola: quem apaga uma escola não está dentro
-dela.
+**O que motivou.** Ao expurgar a barra e a maria, o repositório ficou **sem nenhum professor** — o
+estado de um repositório recém-nascido. E aí `tools/gerar-handoff.sh` passou a cuspir, no fim da
+execução:
 
-**O que foi decidido.**
-- **A lista de escolas sai do REPOSITÓRIO** — os `wrangler.<slug>.jsonc`, menos a raiz `danca` —, e
-  não da API do Cloudflare. É o mesmo registro que o expurgo edita, e é o que sobrevive como elo no
-  índice da escola. Duas definições de «escola» divergiriam com o tempo.
-- **O professor e o ciclo saem dos próprios caminhos do ciclo** (`professores/<p>/ciclos/
-  ciclo-NN-<slug>*`), não do índice: a Maria **não tem** `escola/maria/indice.json`, e o expurgo não
-  pode depender de um arquivo que pode não existir.
-- **O expurgo do repositório é UM commit**, montado pela API de árvore do Git (`base_tree` +
-  `sha: null` para as remoções + o índice como conteúdo novo). Apagar arquivo a arquivo seriam
-  cinquenta commits — cinquenta estados intermediários de uma coisa só.
-- **O índice da escola SOBREVIVE**, com o elo do expurgo. É a regra do projeto: a proveniência
-  acrescenta, não apaga a memória de que a escola existiu. Quem apaga o passado apaga o princípio.
-- **O arcabouço do ciclo sai junto** — `ciclos/ciclo-NN.conf` e `ciclos/ciclo-NN-*-schema.json` —,
-  mas **só quando o professor ficou sem nenhuma outra escola**. Ele não é da escola, é do ciclo; só
-  que o manifesto BASE carrega `NOME="Ciclo 01 — Barra"` dentro, e um órfão desses batiza a próxima
-  escola com o nome da anterior. Foi medido: `professores/leticia/ciclos/ciclo-01.conf` diz
-  `NOME="Ciclo 01 — Barra"`.
-- **`cadernos/`, `relatorios/` e `campo/` NÃO se apagam por tabela.** O nome de um arquivo de ciclo
-  diz a que ele pertence; o de um caderno não diz — e pode ser memória de campo. Isso se **relata**.
-  (Na prática a pergunta ficou vazia: `professores/tiago/cadernos/ciclo-01` e `relatorios/ciclo-01`
-  são pastas **vazias**, que o Git não versiona.)
-- **A ORDEM é Cloudflare primeiro, repositório depois.** Ao contrário, a escola ficaria no ar
-  servindo um pacote que o repositório já não tem. As duas metades são independentes: falha de uma
-  vai no relatório da sua etapa e não impede a outra.
-- **A trava é o nome escrito à mão.** O corpo exige `confirmacao === escola`; sem isso a rota
-  responde 400 e **não toca em nada**. Apagar não tem desfazer, então um clique sozinho não basta.
-- **O que a rota NÃO ALCANÇA é declarado, não fingido.** `tools/.senhas-locais` e
-  `tools/.escolas-teste` são arquivos do computador, fora do Git: a resposta devolve as **linhas
-  exatas** a tirar (`SENHA_<SLUG>`, `LOGIN_<SLUG>`, o `<slug>`), em vez de dizer que limpou.
-- **As duas metades passam a classificar o mesmo arquivo do mesmo jeito.** O espelho local tirava
-  só `SENHA_<SLUG>` — não tirava `LOGIN_<SLUG>` (a senha de ACESSO da direção, que é outra coisa que
-  a chave de cifra) e não tirava o arcabouço. Agora as listas são as mesmas.
+```
+tools/gerar-handoff.sh: linha 330: variantes: variável não associada
+```
 
-**Onde entrou.**
-- `motor/servidor/repo-escola.js` — **novo**: `listarEscolas`, `apagarEscolaDoRepo`, `comElo`,
-  `arcaboucoDoCiclo`, `materialPreservado`, `ehArquivoDaEscola`. A metade do repositório.
-- `motor/servidor/raiz.js` — `GET /api/escolas` (a lista) e `POST /api/apagar-escola` (o expurgo à
-  mão, que **não** passa pelo andaime — ali há prazo de carência; aqui a pessoa escolheu e
-  confirmou); `lerJsonc` (os configs são jsonc), `moradaDaEscola` (worker + namespace do KV lidos do
-  próprio `wrangler.<slug>.jsonc`) e `linhasLocais`.
-- `raiz/index.html` — o botão «Apagar escola» ao lado do «Criar nova escola», o modal com a lista, a
-  confirmação escrita e o relatório por etapa (Cloudflare, repositório, o que fazer no computador).
-- `escola/expurgar.js` — o checklist local passa a tirar `LOGIN_<SLUG>` e o arcabouço do ciclo; e a
-  chave é tirada pelos **dois** nomes (o do índice e o derivado do slug).
+A variável `variantes` é atribuída **dentro do laço de professores** e usada no resumo final. Com zero
+professores o laço não roda, e sob `set -euo pipefail` o resumo quebra. O `HANDOFF.md` em si saía
+correto — o erro era na linha de resumo, que passava a informar `variantes: 0` por acidente
+(`printf '' | wc -w`), e não por medição.
 
-**O defeito de nome, de novo.** O índice da Barra declara `senha.chave = "SENHA_CRIPTO"` — o nome
-**antigo**, de antes da renomeação de 15/10/2026. O índice **não é reescrito** (proveniência
-acrescenta), então ele guarda o nome de quando a escola nasceu. O expurgo local confiava só nele:
-respondia «já não existia» e **deixava a `SENHA_BARRA` no arquivo**. É o mesmo defeito do `pre-push`
-(um nome que mudou e quem o aponta não voltou) — e a correção é a mesma de espírito: tirar os dois
-nomes em vez de escolher um.
+**O que foi decidido.** Inicializar `variantes=""` junto das outras variáveis, com a nota do porquê.
+Uma linha. O resumo passa a medir de verdade o caso «nenhuma escola», em vez de tropeçar nele.
 
-**Como foi provado.**
-- A lista, contra a API real: `barra` (46 arquivos, professor `leticia`, ciclo `01`) e `maria` (45,
-  `tiago`); a raiz `danca` **não** entra.
-- A árvore do expurgo, contra a API real, **interceptando só o avanço da referência**: depois do
-  expurgo, **zero** arquivos com `-barra`/`-maria` na árvore nova, o índice presente, e a `main`
-  intocada. Os objetos criados ficam soltos e o Git os recolhe.
-- As rotas, no banco de provas (`experimentos/provar-expurgo-raiz.js`, 12 provas): lista; recusa sem
-  `GITHUB_TOKEN`; recusa sem confirmação; recusa com confirmação **errada**; recusa sem escola;
-  confirmação certa **sem os dois tokens** → não apaga nada e declara as duas ausências; as linhas
-  locais voltam certas; `ok:false`; e o `/api/expurgar` do andaime recusando sem token.
-- A metade local, numa árvore de teste em `/tmp`: caso A (a Barra é a única escola da Letícia) →
-  `SENHA_BARRA` sai, `LOGIN_BARRA` sai, `LOGIN_LETICIA` **fica**, a pasta do professor fica vazia;
-  caso B (a Letícia ainda tem a escola «outra») → o arcabouço **fica**, com a razão dita em voz alta.
-- O portão, ao vivo: `/`, `/api/escolas` e o resto respondem **401** sem senha e com senha errada.
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`). O motivo: o
+`HANDOFF.md` é o **primeiro artefato que uma sessão nova lê**, e o gerador dele é quem o emite; um
+gerador que falha no estado em que o projeto **está agora** (zero escolas, a caminho de uma escola
+nova) precisa funcionar nesse estado. O que **não muda**: a fórmula de hash, a cobertura do `.fipp`,
+os validadores, as 17 regras, as 22 pétreas e o próprio conteúdo do `HANDOFF.md` — só a
+inicialização de uma variável de contagem. Sem reancoragem: `tools/` não é coberto pelo `.fipp`.
 
-**Referências.** `IDEIA-PAINEL-ESCOLA.md` §17.5 (o expurgo e o prazo de carência) · P-03/P-04 (a
-proveniência acrescenta) · P-17 · `CONGELAMENTO.md` · os quatro elos de 15/10/2026 anteriores (a
-renomeação `SENHA_CRIPTO` → `SENHA_BARRA`, o prefixo `LOGIN_`, e o `pre-push` lendo a última linha).
+**Onde entrou.** `tools/gerar-handoff.sh` — a inicialização de `variantes`, com a nota.
 
-**O que ainda não está feito.**
-- **O expurgo da Barra e da Maria não foi executado.** O botão está no ar e provado nas duas
-  metades; quem clica é o dono do produto — é o que ele pediu. Nada foi apagado até aqui.
-- **A metade do Cloudflare não foi provada ao vivo.** `excluirEscola` é código que já existia (a
-  varredura agendada), mas o `SENHA_RAIZ` é **write-only**: não há como testar a rota autenticada sem
-  trocar a senha do dono, e trocar não se faz. O que se provou foi o portão (401) e a presença dos
-  três secrets no Worker (`CLOUDFLARE_API_TOKEN`, `GITHUB_TOKEN`, `SENHA_RAIZ`).
-- **A limpeza do KV depende de o `wrangler.<slug>.jsonc` ser legível.** Sem ele, ou ilegível, o
-  expurgo cai no slug e **não toca no KV** — de propósito: o namespace é compartilhado, e apagar o
-  errado apaga o dado de outra escola.
-- **A varredura agendada (§17.5) continua no andaime** — `escolas-habilitadas.json` + prazo — e
-  lista só a `maria`. Ela e o botão são dois caminhos para a mesma coisa; unificá-los (ou aposentar o
-  andaime) é decisão do dono do produto, e não foi tomada.
-- **`escola/expurgar.js` não apaga o `LOGIN_<PESSOA>` do professor** — nem ele nem a rota. Se o
-  professor ficar sem escola, aquele login não abre mais nada, mas a linha fica: a pessoa pode entrar
-  em outra escola, e é a mesma linha que a serviria.
-- **Criar a escola nova — do começo ao fim — ainda não aconteceu.** É o próximo passo, e é do dono do
-  produto.
+**Com o quê.** `tools/gerar-handoff.sh` (commit próprio, só ele), mais as entradas de `REGISTRO.md` e o
+`HANDOFF.md` regenerado, que vão com o elo do `Buffer` logo acima.
+
+**Referências.** `CONGELAMENTO.md` · o elo de 15/10/2026 anterior (o expurgo da barra e da maria, que
+esvaziou o repositório de professores).
+
+**O que ainda não está feito.** Nada pendente nesta correção. O resumo do gerador não é lido por
+nenhum outro script: é a última linha da saída do comando.
 
 ## O que está pendente
-
-## 15/10/2026 — O prefixo do nome separa a chave da cifra da senha de acesso
-
-- **Nada foi provado contra a escola no ar depois da renomeação**, porque nada no Worker a lê: a
-  renomeação é do arquivo **local**. O que foi provado em bancada: o sujeito do `LOGIN_LETICIA` é
-  isentado **porque está declarado** na lista de teste — com um `LOGIN_PROFESSORES` (não declarado,
-  valor que existe em centenas de arquivos versionados) o guarda **alerta e barra o push**, e um
-  prefixo desconhecido (`PREFIXO_QUALQUER`) **também** é conferido. A isenção é o que salva, e não
-  um descuido de leitura.
-- **A senha da direção não está no arquivo local.** `SENHA_ADMIN` = «barra» no Worker da Barra
-  (medido), e ela **não** tem linha aqui. Se for guardada, o nome natural — `SENHA_BARRA` — está
-  **tomado** pela chave de cifra da mesma escola. O prefixo novo resolve: `LOGIN_<SLUG DE QUEM
-  ENTRA>`.
-- As senhas de acesso da Barra são as strings óbvias (`leticia`, `barra`) e estão neste transcript.
-  Para **escola de teste com dados 100% falsos** a política declarada cobre isso; **se a Barra
-  deixar de ser só teste, as duas precisam mudar** — e trocar `SENHA_PROFESSOR`/`SENHA_ADMIN` é
-  operação no Worker, não neste repositório.
-
-## 15/10/2026 — O arquivo de senhas vira um espelho por escola
-
-- **A chave de cifra ainda passa pela mão da pesquisadora — e isso é uma falha de produto, não de
-  configuração.** Quem cria a escola recebe a chave uma vez e tem de copiá-la para um arquivo local;
-  o dono do produto disse o óbvio: *«pra mim, como usuário, isso já deveria ser automático»*. O
-  Worker que a gera é o mesmo que a usa para cifrar (caminho (a)) — **o CI não precisa dela**, e
-  quem a usa para ABRIR é o navegador (o formulário de lançamento pede a senha) e o
-  `gerar-acompanhamento.sh` (local). Automatizar exige decidir **onde** a chave fica disponível sem
-  passar pela mão de ninguém — frente não desenhada.
-- **A `SENHA_ADMIN` da Maria não está registrada** (o Worker no ar recusa «maria» e «tiago», o que
-  prova que ela é outra coisa). O bloco da Maria saiu com os logins em `[Preencher]`, comentados.
-- O nome `LOGIN_BARRA` para o login da direção foi **escolha desta sessão**, ditada pela isenção por
-  sujeito. Se o dono do produto preferir `LOGIN_DIRECAO_BARRA`, o `pre-push` (congelado) precisa
-  mudar — exige motivo declarado e commit próprio.
-
-## 15/10/2026 — A chave de cifra vira interna do Worker: ninguém a vê, ninguém a arquiva
-
-- **`/api/receber` continua SEM AUTENTICAÇÃO**, e o lançamento continua gravado em **texto puro** no
-  KV. Era a quarta opção da lista apresentada («quero ver o `/api/receber` autenticado e o dado
-  cifrado também no KV»), e **não** foi a escolhida. Fica registrado como o descompasso que sobra: o
-  formulário autentica para LER e não autentica para GRAVAR. Enquanto isso, quem souber o endereço da
-  escola pode gravar um lançamento no KV dela.
-- **Os acompanhamentos não têm mais como obter a chave localmente** (a consequência acima). A frente
-  que fecha isso é a cifra dos acompanhamentos **migrar para o Worker** — ou um caminho gated para
-  revelá-la, que contradiria «ninguém a vê» e por isso não foi feito sem decisão do dono do produto.
-- **A `lib-cifra.js` continua sendo copiada para o pacote** pelo `gerar-ciclo.sh`, agora sem uso no
-  formulário. Limpeza pequena, não feita, para não aumentar a superfície congelada deste commit.
-- O caminho novo **não foi exercitado com dado real**: o pacote nunca tem `lancamentos > 0`, então o
-  formulário nunca chama a rota. O que foi provado é a ROTA (cinco casos, no ar) e o formulário
-  publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
-- **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
-  falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
-- **A árvore NUNCA fica limpa depois de um commit que toque fonte de ciclo — e não foi este trabalho
-  que a fez assim.** O hook de `pre-commit` regenera o ciclo, e a regeração reescreve, a cada passo,
-  coisas que não são conteúdo: o `gerado_em` do `ciclos.json` (resolução de minuto), o carimbo
-  embutido nos PDFs, e o **envelope cifrado da Maria** — que o gerador re-cifra porque o pacote dela
-  não traz a cópia pronta do Worker, e cada cifra sorteia sal e IV novos. Medido três vezes seguidas:
-  gerar → sujar a árvore → commitar → sujar de novo, sem convergir. **Não é defeito do espelho das
-  senhas nem desta entrada**: é a combinação `gerador × hook`, e persegui-la é infinito. O que se
-  fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
-  são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
-  gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.
 
 ## 15/10/2026 — O lançamento da aula confere a senha e grava cifrado no cofre
 
@@ -353,6 +207,63 @@ renomeação `SENHA_CRIPTO` → `SENHA_BARRA`, o prefixo `LOGIN_`, e o `pre-push
   em outra escola, e é a mesma linha que a serviria.
 - **Criar a escola nova — do começo ao fim — ainda não aconteceu.** É o próximo passo, e é do dono do
   produto.
+- **A tabela de escolas do `README.md` (linhas 112 e seguintes) cita a Maria e a Barra**, e os
+  exemplos de deploy citam `wrangler.maria.jsonc`. Depois do expurgo aquilo fica **mentindo**. Não
+  entrou no automatismo de propósito: é prosa de gente numa tabela editada à mão, e um regex que
+  reescreve tabela erra mais do que acerta. Fica como passo declarado, a fazer junto com o expurgo.
+- **`raiz/escolas-habilitadas.json` lista a `maria`** — é o andaime da varredura agendada, e ele
+  **não** é tocado pelo botão. Expurgada a Maria por ali, o Cron seguinte procuraria uma escola que
+  já não existe (a chamada falha e o relatório do Cron diz).
+
+## 15/10/2026 — O expurgo apagava a escola e deixava o cadastro das alunas no KV
+
+- **O expurgo da barra não foi executado** — quem executa é o dono do produto, e é o teste de
+  aceitação: as 11 chaves estão lá, medidas, esperando. O relatório dele responde a pergunta aberta do
+  token (se disser `11 de 11`, o token tem permissão e a causa do caso da Maria é outra; se disser
+  que não limpou, é o token).
+- **A chave `maria/tiago/01/anamnese/anamnese-20261012-1149` continua no KV** (namespace
+  `ciclos-escolas-maria`), junto com as 3 `envelope/*` e as 2 `bastidores/maria/*`. Destino pendente.
+- **Dois namespaces órfãos seguem com dado**: `ciclos-escolas-plano-b` (4 chaves, do experimento) e
+  `ciclos-escolas-maria` (6). Nada em uso aponta para eles. Limpar ou apagar os namespaces é decisão
+  do dono do produto.
+- **O caminho do Cron (§17.5) continua limpando o KV só se o andaime declarar `kv`** — e, se declarar
+  um `prefixo` único, perde `bastidores/<slug>/`. O andaime sai quando a Produção nascer; até lá, o
+  botão é o caminho completo.
+- **`raiz/escolas-habilitadas.json` ainda lista a `maria`** com `habilitada: true` — escola que já não
+  existe. É andaime editado à mão; fica para a decisão do dono do produto.
+- **Os órfãos não aparecem na lista**, e é a definição dela: só o repositório. Somar a lista do
+  Cloudflare (`GET /accounts/{id}/workers/scripts`) e marcar os que só vivem lá deixaria o botão
+  completo — não foi feito.
+- **`tutu` e `diaghilev-ia-stub` foram apagados por fora do botão** (por comando, nesta sessão),
+  porque não havia como alcançá-los pela página. O expurgo que não passa pelo botão é justamente o que
+  deixa rastro nenhum — este elo é o rastro.
+
+## 15/10/2026 — `Buffer` não existe no runtime dos Workers: o expurgo não achava o KV e reescrevia o índice
+
+- **O passo do KV da rota não foi provado AO VIVO ponta a ponta.** Ele é provado por partes: a
+  limpeza contra a API real, a leitura da morada no runtime real, e o contrato da rota no banco de
+  provas. O caminho completo (`/api/apagar-escola` achando a morada, limpando o KV e apagando)
+  depende de haver uma escola no registro — e **não há nenhuma**. Ele será executado, de fato, na
+  primeira escola que nascer e for expurgada.
+- **`raiz/escolas-habilitadas.json` continua listando a `maria`** (`habilitada: true`) — escola que já
+  não existe, e um segundo registro de escolas que agora está vazio de verdade. Andaime editado à mão:
+  decisão do dono do produto.
+- **`escola/diaghilev2/`** é elo de um expurgo antigo (13/10) — e é assim que deve ser: o índice
+  sobrevive. Não é sobra, é registro.
+- **`ciclos-escolas-plano-b` segue com 4 chaves** (3 `envelope/*` do experimento antigo e
+  `professores:maria`). Não é de escola alguma viva. Limpar ou apagar o namespace é decisão do dono
+  do produto — ficou fora desta correção.
+- **Os dois namespaces das escolas existem e estão vazios** (`ciclos-escolas-maria`,
+  `ciclos-escolas-plano-b`). O expurgo apaga CHAVES, nunca namespaces — e é assim que tem de ser,
+  porque o compartilhado serve as escolas vivas. Apagar namespace é operação de fora do botão.
+- **Os órfãos continuam invisíveis na lista**: ela sai só do repositório. `tutu` não tinha rastro
+  nenhum, e foi preciso ir à API da Cloudflare para saber que existia.
+- **O caminho do Cron (§17.5) continua limpando o KV só se o andaime declarar `kv`.**
+
+## 15/10/2026 — O gerador do HANDOFF quebrava com o repositório sem escola
+
+Nada pendente nesta correção. O resumo do gerador não é lido por
+nenhum outro script: é a última linha da saída do comando.
 
 ## Pendências anteriores (índice)
 
@@ -499,10 +410,9 @@ renomeação `SENHA_CRIPTO` → `SENHA_BARRA`, o prefixo `LOGIN_`, e o `pre-push
 - **15/10/2026** — A geração publica: o deploy entra na cadeia → `REGISTRO.md` L12367
 - **15/10/2026** — O guarda do pre-push passa a conferir a última linha do… → `REGISTRO.md` L12431
 - **15/10/2026** — A criação da escola diz onde guardar a senha de… → `REGISTRO.md` L12491
-- PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
-- PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **15/10/2026** — O prefixo do nome separa a chave da cifra da senha de acesso → `REGISTRO.md` L12560
+- **15/10/2026** — O arquivo de senhas vira um espelho por escola → `REGISTRO.md` L12633
+- **15/10/2026** — A chave de cifra vira interna do Worker: ninguém a vê,… → `REGISTRO.md` L12713
 - Material de campo de **tiago**: 0 evento(s) versionado(s).
 
 ## Documentos-chave (para leitura)

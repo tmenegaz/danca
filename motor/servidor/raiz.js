@@ -14,7 +14,7 @@
  */
 
 const { criarEscola, dispararCriacao, slugificar } = require('./provisionar-escola.js');
-const { excluirEscola } = require('./expurgar-escola.js');
+const { excluirEscola, prefixosDaEscola } = require('./expurgar-escola.js');
 const { listarEscolas, apagarEscolaDoRepo, lerArquivo } = require('./repo-escola.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
@@ -275,45 +275,94 @@ async function fetch(request, env) {
     const ghToken = env && env.GITHUB_TOKEN;
     const relatorio = { escola: slug, motivo, cloudflare: null, repositorio: null, local: linhasLocais(slug) };
 
-    if (!cfToken) {
-      relatorio.cloudflare = { erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' };
-    } else {
-      try {
-        const morada = await moradaDaEscola({ token: ghToken, slug });
-        relatorio.cloudflare = await excluirEscola({
-          token: cfToken,
-          accountId: ACCOUNT_ID,
-          slug,
-          worker: morada && morada.worker ? morada.worker : slug,
-          kv: morada && morada.kvNamespaceId
-            ? { namespaceId: morada.kvNamespaceId, prefixo: slug + '/' }
-            : null,
-        });
-        relatorio.cloudflare.morada = morada;
-      } catch (err) {
-        relatorio.cloudflare = { erro: (err && err.message) || String(err) };
-      }
+    // 1. SEM OS DOIS TOKENS NÃO SE COMEÇA. Meio expurgo é pior que nenhum: é a escola fora do
+    // ar com o dado dela no sistema.
+    const faltando = [];
+    if (!cfToken) faltando.push('CLOUDFLARE_API_TOKEN');
+    if (!ghToken) faltando.push('GITHUB_TOKEN');
+    if (faltando.length) {
+      relatorio.cloudflare = cfToken ? null : { erro: 'CLOUDFLARE_API_TOKEN ausente no Worker' };
+      relatorio.repositorio = ghToken ? null : { erro: 'GITHUB_TOKEN ausente no Worker' };
+      return responderJson(Object.assign(relatorio, { ok: false, faltando, noRepositorio: false, noCloudflare: false }), 500);
     }
 
-    if (!ghToken) {
-      relatorio.repositorio = { erro: 'GITHUB_TOKEN ausente no Worker' };
-    } else {
-      try {
-        relatorio.repositorio = await apagarEscolaDoRepo({
-          token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, confirmacao, motivo,
-        });
-      } catch (err) {
-        relatorio.repositorio = { erro: (err && err.message) || String(err) };
-      }
+    // 2. ONDE A ESCOLA VIVE, antes de apagar qualquer coisa. O `wrangler.<slug>.jsonc` diz o
+    // nome do script e o namespace do KV; sem ele não se limpa o KV — e apagar o Worker
+    // deixando o dado é o pior dos mundos. Não se começa o que não se termina. (Se o config
+    // não existir mesmo, a escola não está no registro e não há o que expurgar.)
+    let morada = null;
+    try {
+      morada = await moradaDaEscola({ token: ghToken, slug });
+    } catch (err) {
+      return responderJson(Object.assign(relatorio, {
+        ok: false,
+        erro: 'não consegui ler wrangler.' + slug + '.jsonc: ' + ((err && err.message) || String(err)) + ' — nada foi apagado',
+        noRepositorio: false,
+        noCloudflare: false,
+      }), 500);
+    }
+    if (!morada) {
+      return responderJson(Object.assign(relatorio, {
+        ok: false,
+        erro: 'não há wrangler.' + slug + '.jsonc no repositório — não sei onde esta escola vive: nada foi apagado',
+        noRepositorio: false,
+        noCloudflare: false,
+      }), 500);
+    }
+    if (!morada.legivel) {
+      return responderJson(Object.assign(relatorio, {
+        ok: false,
+        erro: 'não consegui entender wrangler.' + slug + '.jsonc — não sei onde esta escola vive: nada foi apagado',
+        morada,
+        noRepositorio: false,
+        noCloudflare: false,
+      }), 500);
+    }
+
+    // 3. O CLOUDFLARE PRIMEIRO. Ao contrário, a escola ficaria no ar servindo um pacote que o
+    // repositório já não tem. O KV é limpo pelos prefixos da ESCOLA (`<slug>/` e
+    // `bastidores/<slug>/`) — a regra mora em `prefixosDaEscola`, para o Cron do andaime e
+    // esta rota limparem a mesma coisa. `namespaceId: null` (config lido, sem bloco de KV) é
+    // «não havia o que limpar»; ausência de namespace seria «não sei onde vive», e aí já não
+    // se teria chegado aqui.
+    try {
+      relatorio.cloudflare = await excluirEscola({
+        token: cfToken,
+        accountId: ACCOUNT_ID,
+        slug,
+        worker: morada.worker || slug,
+        kv: {
+          namespaceId: morada.kvNamespaceId || null,
+          prefixos: prefixosDaEscola(slug),
+        },
+      });
+      relatorio.cloudflare.morada = morada;
+    } catch (err) {
+      relatorio.cloudflare = { erro: (err && err.message) || String(err), morada };
+    }
+
+    // 4. O REPOSITÓRIO.
+    try {
+      relatorio.repositorio = await apagarEscolaDoRepo({
+        token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, confirmacao, motivo,
+      });
+    } catch (err) {
+      relatorio.repositorio = { erro: (err && err.message) || String(err) };
     }
 
     const noRepositorio = Boolean(relatorio.repositorio && relatorio.repositorio.ok);
     const noCloudflare = Boolean(
       relatorio.cloudflare && relatorio.cloudflare.script && relatorio.cloudflare.script.ok
     );
+    // O KV entra na CONTA: uma escola que sai do ar e do registro, mas deixa o dado dela no
+    // sistema, NÃO foi expurgada — e a manchete da página não pode dizer que foi. Sem isto,
+    // o relatório dava verde e a linha do KV, em vermelho, logo abaixo: a contradição que o
+    // dono do produto acabou de encontrar.
+    const kvFalhou = Boolean(relatorio.cloudflare && relatorio.cloudflare.kv && relatorio.cloudflare.kv.ok === false);
+    const ok = noRepositorio && !kvFalhou;
     return responderJson(
-      Object.assign(relatorio, { ok: noRepositorio, noRepositorio, noCloudflare }),
-      noRepositorio ? 200 : 500
+      Object.assign(relatorio, { ok, noRepositorio, noCloudflare, kvFalhou }),
+      ok ? 200 : 500
     );
   }
 
@@ -405,4 +454,8 @@ async function fetch(request, env) {
   return new Response('não encontrado', { status: 404 });
 }
 
-module.exports = { fetch, scheduled, expurgar };
+// `moradaDaEscola` sai para fora porque é a pergunta «onde esta escola vive?» — a que o
+// expurgo faz ANTES de apagar qualquer coisa, e a única que pode ser respondida sem apagar
+// nada. Exportada, ela é provável no runtime real (o defeito que ela sofreu — `Buffer` num
+// runtime que não o tem — passou por todos os testes em Node sem ser visto).
+module.exports = { fetch, scheduled, expurgar, moradaDaEscola };

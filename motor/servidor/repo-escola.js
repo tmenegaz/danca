@@ -29,6 +29,10 @@
 const ACEITE = 'application/vnd.github+json';
 const API_VERSAO = '2022-11-28';
 
+// O decodificador do projeto — TextDecoder/atob, que EXISTEM no runtime dos Workers.
+// `Buffer` não: ver a nota de `lerArquivo`.
+const { decodificarBase64 } = require('./escrever-plano.js');
+
 /** A raiz NÃO é escola: ela tem `wrangler.danca.jsonc` e serve a porta de entrada. */
 const NAO_ESCOLAS = new Set(['danca']);
 
@@ -166,20 +170,34 @@ async function baseDoGit({ token, dono, repo, ref, fetchImpl }) {
   return { commitSha, treeSha };
 }
 
-/** Lê um arquivo do repositório (texto) — `null` em 404. */
+/**
+ * Lê um arquivo do repositório (texto). **404 devolve `null`** — ausente é ausente. Qualquer
+ * outro fracasso LANÇA, e é o ponto desta função.
+ *
+ * A primeira versão decodificava com `Buffer`, que **não existe no runtime dos Workers** (é
+ * global do Node). O `try/catch` em volta transformava o `ReferenceError` em `null` — e
+ * «não consegui ler» ficou idêntico a «não existe»: o expurgo não achava o namespace do KV
+ * (a escola saía do ar e o dado das alunas ficava) e reescrevia o índice da escola a partir
+ * do zero, perdendo `worker`, `criado_em` e `responsavel`. Medido na barra. É o mesmo defeito
+ * que `escrever-plano.js` documenta em letras grandes: «Base64 em UTF-8 SEM `Buffer` (ausente
+ * no Workers runtime)». Ele está certo; eu é que reescrevi o que já estava resolvido.
+ *
+ * Agora a decodificação usa o `decodificarBase64` do projeto (TextDecoder/atob), e uma falha
+ * sobe em vez de virar silêncio.
+ */
 async function lerArquivo({ token, dono, repo, ref, caminho, fetchImpl }) {
   const f = fetchImpl || fetch;
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho +
     '?ref=' + encodeURIComponent(ref);
   const r = await pedir(f, url, token);
-  if (!r.ok) return null;
-  const base64 = (r.corpo && r.corpo.content) || '';
-  const limpo = base64.replace(/\s/g, '');
-  try {
-    return Buffer.from(limpo, 'base64').toString('utf8');
-  } catch {
-    return null;
+  if (r.status === 404) return null;
+  if (!r.ok) {
+    const recado = (r.corpo && r.corpo.message) || ('HTTP ' + r.status);
+    throw new Error('não li ' + caminho + ': ' + recado);
   }
+  const base64 = (r.corpo && r.corpo.content) || '';
+  if (!base64) return '';
+  return decodificarBase64(base64);
 }
 
 /**

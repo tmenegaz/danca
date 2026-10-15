@@ -13011,3 +13011,255 @@ renomeação `SENHA_CRIPTO` → `SENHA_BARRA`, o prefixo `LOGIN_`, e o `pre-push
 - **`raiz/escolas-habilitadas.json` lista a `maria`** — é o andaime da varredura agendada, e ele
   **não** é tocado pelo botão. Expurgada a Maria por ali, o Cron seguinte procuraria uma escola que
   já não existe (a chamada falha e o relatório do Cron diz).
+
+## 15/10/2026 — O expurgo apagava a escola e deixava o cadastro das alunas no KV
+
+**O que motivou.** O dono do produto apagou a Maria pelo botão novo, para testar. E pediu o expurgo de
+`diaghilev-ia-stub` e `tutu` — dois Workers que **não apareciam** na lista. Ao fazer isso, medi o KV da
+conta e o resultado foi pior do que a lista incompleta: **o expurgo apagava a escola e deixava o
+cadastro das alunas no KV**.
+
+**Os dois nomes foram apagados primeiro.** `diaghilev-ia-stub` e `tutu` saíram pelo próprio
+`excluirEscola` — subdomínio (200) e script (200) —, mais as 4 chaves `diaghilev/*` (2 em
+`ciclos-escolas`, 2 em `ciclos-escolas-plano-b`). A conta ficou com **2 Workers** (`barra`, `danca`);
+`diaghilev-ia-stub`, `tutu` e `maria` respondem **404**, e `barra` responde 200.
+
+**Por que eles não apareciam.** A lista sai do REPOSITÓRIO (os `wrangler.<slug>.jsonc`) — e é isso que
+a torna o mesmo registro que o expurgo edita. `tutu` **não tem rastro nenhum**: nem no repositório,
+nem no histórico. `diaghilev-ia-stub` vem de `experimentos/pe/wrangler-agnostico.jsonc`. Não é defeito
+da lista; é a definição dela — e a definição é estreita demais para dizer a verdade sobre a conta.
+
+**O ACHADO GRAVE — o KV de uma escola vive sob DOIS prefixos, e o expurgo limpava um.** Medido no
+namespace que a barra usa (`ciclos-escolas`, `2ee331c7…`):
+
+| prefixo | chaves | o expurgo |
+|:--|--:|:--|
+| `barra/` (envelope + anamnese) | 5 | apagava |
+| `bastidores/barra/` (`alunas`, `curadorias`, `professores`, `turma-conteudos`, `turmas`, `vocabulario`) | 6 | **deixava** |
+
+São 11 chaves e o expurgo pegava 5. As 6 que ficavam são as **piores** para ficar: `alunas` é o
+cadastro das alunas. Expurgar a barra apagaria a escola do ar e do repositório, e guardaria as alunas
+no KV.
+
+**E o relatório não sabia a diferença.** `listarChaves` devolvia `[]` tanto para «não há nada» quanto
+para «a API recusou» — e o expurgo, sem poder distinguir, relatava `KV: 0 de 0 chave(s)`, que se lê
+como sucesso. A chave `maria/tiago/01/anamnese/anamnese-20261012-1149` continua no namespace da Maria
+até agora, embora o prefixo casasse e o namespace estivesse certo (medido: `listarChaves({prefixo:
+'maria/'})` **acha** a chave). Das duas causas possíveis — o token do Worker sem permissão de KV, ou a
+limpeza não tentada — não consigo distinguir daqui, e não vou escolher uma. O que é meu e está
+provado: **o relatório não podia dizer a diferença**.
+
+**O que foi decidido.**
+- **Dois prefixos, numa definição só**: `prefixosDaEscola(slug)` = `[<slug>/`, `bastidores/<slug>/`]`,
+  exportada de `expurgar-escola.js` para o Cron do andaime e a rota da página limparem a MESMA coisa.
+  Duas listas divergiriam, e a que ficasse para trás seria a que apaga menos.
+- **Reconferir depois de apagar**: a limpeza lista de novo e devolve `restantes`. É o que impede
+  `0 de 0` de voltar a se disfarçar de sucesso.
+- **«Não consegui» vira estado declarado**: `listarChavesSeguro` devolve `{ok, status, chaves, erro}`;
+  `apagarChavesDeEscola` devolve `{ok, porPrefixo[], apagadas, total, restantes, falhasDeListagem}`.
+  Sem namespace, `ok:false` e a razão escrita — antes era `kv: null`, indistinguível de «não havia».
+- **Listagem paginada**: a API devolve no máximo 1 000 chaves por chamada e a versão anterior fazia
+  uma só. O que não fosse listado não seria apagado — o mesmo silêncio, por outro caminho.
+- **A rota sempre passa o passo do KV** (com os dois prefixos), mesmo quando o namespace não foi lido:
+  é a diferença entre «não limpei e estou dizendo» e «não limpei e não apareceu».
+- **A página relata o KV em parágrafo próprio**, por prefixo, e grita quando sobra chave: *«ATENÇÃO:
+  sobraram N chave(s) no sistema — este expurgo NÃO está completo»*.
+- **A manchete não dá verde com o dado para trás.** `ok` da rota passa a exigir a limpeza completa do
+  KV (`kvFalhou` publicado à parte); a página, quando o repositório e o Cloudflare foram limpos mas o
+  KV não, diz *«saiu do ar e do registro — mas NÃO foi tudo»*. Sem isto o relatório dava a manchete
+  verde e a linha do KV em vermelho logo abaixo — a contradição que o dono do produto encontrou.
+
+**Onde entrou.**
+- `motor/servidor/expurgar-escola.js` — `prefixosDaEscola`, `listarChavesSeguro` (paginada, com `ok`),
+  `apagarChavesDeEscola` (vários prefixos + reconferência), `excluirEscola` (o `kv` agora é obrigatório
+  em espírito: sem `namespaceId` o relatório diz que NÃO limpou), e as notas do cabeçalho e da função.
+- `motor/servidor/raiz.js` — a rota passa `kv: { namespaceId, prefixos: prefixosDaEscola(slug) }`.
+- `raiz/index.html` — o relatório do KV (por prefixo, sobras, recusas).
+- `raiz/escolas-habilitadas.json` — a `_nota` do andaime passa a documentar `prefixos` (era `prefixo`).
+- `experimentos/provar-expurgo-kv.js` — **novo**: 18 provas contra a API real.
+- `experimentos/provar-expurgo-raiz.js` — as provas da rota (17 casos).
+
+**Como foi provado.**
+- **KV, contra a API real** (`experimentos/provar-expurgo-kv.js`, num namespace descartável, com
+  chaves sintéticas): 4 chaves de teste sob os dois prefixos → apagadas 4 de 4, `restantes: 0`,
+  `ok:true`, e o relatório mostra os DOIS prefixos; **as duas chaves alheias (`envelope/…`,
+  `professores:maria`) intactas** — a limpeza é cirúrgica, não varre o namespace; namespace
+  inexistente → `ok:false` com o recado da API; `namespaceId: null` → `ok:false` com a razão e
+  `restantes: null` (não finge zero).
+- **As provas da rota ganharam 5 casos**: `prefixosDaEscola` devolve os dois; a rota **leva** o KV ao
+  expurgo; sem namespace → `ok:false`, razão escrita, `restantes: null`.
+- **A prova da lista deixou de fixar quais escolas existem** — ela esperava `barra,maria` e passou a
+  falhar quando a Maria foi expurgada. Agora mede o CONTRATO: a raiz não entra, e toda escola listada
+  traz professor e ciclo. Uma prova que depende do estado do mundo apodrece.
+- **Ao vivo**: a raiz publicada mantém o portão (401 em `/` e `/api/escolas`; `/api/saude` ok).
+- **E o lado Cloudflare do expurgo, que eu não pudera provar**: a `maria` **não está** entre os
+  Workers da conta e a URL dela responde 404 — o `excluirEscola` que eu escrevi funcionou de verdade.
+
+**Referências.** `IDEIA-PAINEL-ESCOLA.md` §17.5 · P-03/P-04 (proveniência acrescenta) · o elo de
+15/10/2026 do expurgo na raiz (o botão) · `REGISTRO.md` 15/10/2026 (o `pre-push` e a última linha: o
+mesmo tipo de defeito, um silêncio que se disfarça de sucesso).
+
+**O que ainda não está feito.**
+- **O expurgo da barra não foi executado** — quem executa é o dono do produto, e é o teste de
+  aceitação: as 11 chaves estão lá, medidas, esperando. O relatório dele responde a pergunta aberta do
+  token (se disser `11 de 11`, o token tem permissão e a causa do caso da Maria é outra; se disser
+  que não limpou, é o token).
+- **A chave `maria/tiago/01/anamnese/anamnese-20261012-1149` continua no KV** (namespace
+  `ciclos-escolas-maria`), junto com as 3 `envelope/*` e as 2 `bastidores/maria/*`. Destino pendente.
+- **Dois namespaces órfãos seguem com dado**: `ciclos-escolas-plano-b` (4 chaves, do experimento) e
+  `ciclos-escolas-maria` (6). Nada em uso aponta para eles. Limpar ou apagar os namespaces é decisão
+  do dono do produto.
+- **O caminho do Cron (§17.5) continua limpando o KV só se o andaime declarar `kv`** — e, se declarar
+  um `prefixo` único, perde `bastidores/<slug>/`. O andaime sai quando a Produção nascer; até lá, o
+  botão é o caminho completo.
+- **`raiz/escolas-habilitadas.json` ainda lista a `maria`** com `habilitada: true` — escola que já não
+  existe. É andaime editado à mão; fica para a decisão do dono do produto.
+- **Os órfãos não aparecem na lista**, e é a definição dela: só o repositório. Somar a lista do
+  Cloudflare (`GET /accounts/{id}/workers/scripts`) e marcar os que só vivem lá deixaria o botão
+  completo — não foi feito.
+- **`tutu` e `diaghilev-ia-stub` foram apagados por fora do botão** (por comando, nesta sessão),
+  porque não havia como alcançá-los pela página. O expurgo que não passa pelo botão é justamente o que
+  deixa rastro nenhum — este elo é o rastro.
+
+## 15/10/2026 — `Buffer` não existe no runtime dos Workers: o expurgo não achava o KV e reescrevia o índice
+
+**O que motivou.** O dono do produto expurgou a **barra** para testar a correção do elo anterior. O
+relatório voltou honesto — e disse o que precisava dizer: «KV: NÃO LIMPO — a escola não declara
+namespace de KV». A escola saiu do ar e do registro, e as **11 chaves do KV dela ficaram**. A causa
+não era o token, e não era o prefixo — era eu.
+
+**A causa, com a prova no runtime.** O `lerArquivo` que escrevi decodificava base64 com **`Buffer`**,
+que é global do **Node** e **não existe no runtime dos Workers**. O `try/catch` em volta transformava
+o `ReferenceError` em `null` — e «não consegui ler» ficou idêntico a «não existe». Duas consequências,
+as duas medidas:
+
+1. **O KV não era limpo.** `moradaDaEscola` → `null` → sem namespace → nenhuma chave apagada. Foi o
+   que aconteceu com a barra (11 chaves) e com a maria (6).
+2. **O índice da escola era sobrescrito.** Sem ler o índice, `apagarEscolaDoRepo` o recriou do zero —
+   e o registro da barra **perdeu `worker`, `criado_em`, `responsavel` e os 5 `arquivos` do
+   `criar-escola.sh`**. O elo do expurgo foi preservado e o arquivo sobreviveu; o **conteúdo** foi
+   substituído. A proveniência acrescenta, não edita: o defeito editou.
+
+E o projeto **já tinha a resposta escrita**, em letra grande, em `motor/servidor/escrever-plano.js`:
+*«Base64 em UTF-8 SEM `Buffer` (ausente no Workers runtime)»*. Eu reescrevi o que já estava resolvido
+— e o `catch` que devolve `null` foi o que escondeu.
+
+**A prova que faltava — e a lição.** Todos os meus testes em Node passaram, e o Worker falhou assim
+mesmo: **Node tem `Buffer`, o runtime do Worker não**. A correção foi provada onde o defeito vive: um
+Worker descartável rodado com `wrangler dev`, **mesma `compatibility_date` da produção e sem
+`nodejs_compat`**, medindo o próprio runtime:
+
+| no runtime do Worker | |
+|:--|:--|
+| `Buffer` | **`undefined`** ← a causa |
+| `atob`, `btoa`, `TextDecoder` | `function` |
+| `process` | `undefined` |
+
+E, com a correção: arquivo que existe → lido (1 036 caracteres); caminho que não existe → `null`;
+token que não autoriza → **lança** (`não li wrangler.danca.jsonc: Bad credentials`). A lição fica
+como regra: **código que roda no Worker tem de ser provado NO Worker** — o harness de Node não
+substitui o runtime.
+
+**O que foi decidido.**
+- **Decodificar com o `decodificarBase64` do projeto** (TextDecoder/atob), nos dois arquivos.
+- **`lerArquivo`: 404 → `null`; qualquer outro fracasso LANÇA.** «Não consegui» e «não existe» nunca
+  mais são a mesma palavra.
+- **A rota lê onde a escola vive ANTES de apagar qualquer coisa**, e **não começa** quando não
+  consegue saber (nem quando falta um dos dois tokens). Meio expurgo é pior que nenhum: é a escola
+  fora do ar com o dado dela no sistema. Com isto, uma execução como a que estragou a barra **não
+  apaga nada** — e o defeito que criou um índice fantasma para escola inexistente também não passa.
+- **`namespaceId: null` (o config diz que a escola não tem KV) é «não havia o que limpar» = sucesso;
+  ausente é «não sei onde vive» = fracasso.** Duas coisas diferentes, duas palavras diferentes.
+- **Prefixo vazio é RECUSADO.** Ele casaria com o namespace inteiro — e o namespace dos ciclos é
+  compartilhado: apagar assim apaga o dado das outras escolas. Descoberto na hora: um `prefixo: ''`
+  não combinado caiu no prefixo padrão (a string vazia é falsy) e o relatório não deixava isso
+  visível. Recusar é melhor do que escolher por quem chamou.
+- **O relatório diz o total do NAMESPACE, antes e depois.** `restantes` conta só o que sobrou **sob os
+  prefixos olhados** — chave da escola com prefixo fora da lista, ou sem prefixo nenhum (os antigos
+  `envelope/*`), não apareceria e o relatório diria «nada sobrou» com o dado no lugar. Medido: o
+  namespace da maria tinha 6 chaves, o relatório dizia `3 de 3` e `restantes: 0`, e as 3
+  `envelope/*` continuavam lá. O total não trava (`ok`), mas aparece.
+- **A manchete não dá verde com o dado para trás** (elo anterior): `ok` exige a limpeza completa, e a
+  página diz «saiu do ar e do registro — mas NÃO foi tudo» quando o KV falha.
+
+**A conclusão do expurgo, e os dois reparos.**
+- **KV da barra**: `11 de 11` (`barra/` 5 de 5, `bastidores/barra/` 6 de 6), `restantes: 0`.
+- **KV da maria**: o namespace dedicado ficou com **0 chave** (as 3 últimas, `envelope/*`, saíram com
+  os prefixos explícitos).
+- **A conta hoje**: **1 Worker** (`danca`) e **0 chave** em `ciclos-escolas` e em
+  `ciclos-escolas-maria`. Barra e maria não existem mais — nem no ar, nem no registro, nem no dado.
+- **O índice da barra foi REPARADO**: campos originais restaurados do Git
+  (`21d8dcf:escola/barra/indice.json` = o estado imediatamente antes do expurgo) **e o elo do
+  expurgo mantido**. Nada foi inventado: o que entrou veio do próprio histórico do repositório. É
+  declarado aqui porque reparo de artefato também é elo.
+
+**Como foi provado.** 28 provas da rota (`experimentos/provar-expurgo-raiz.js`) e 24 do KV
+(`experimentos/provar-expurgo-kv.js`), todas passando, mais a prova de runtime acima. Entre elas: a
+derivação de escola a partir de **caminhos fabricados** (`escolasDosCaminhos` sem a raiz, professor e
+ciclo tirados dos próprios caminhos, dois ciclos da mesma escola, `ciclo-01-barrados*` recusado pela
+âncora, arcabouço achado à parte, caderno preservado); a limpeza cirúrgica contra a **API real**
+(4 chaves de teste apagadas, as 2 alheias intactas); o ponto cego do `restantes` visível no relato; e
+as recusas todas (prefixo vazio, lista vazia, namespace ausente, namespace inexistente). A prova da
+lista deixou de fixar QUAIS escolas existem — a versão anterior esperava `barra,maria` e passou a
+falhar quando as duas foram expurgadas. **Prova que depende do estado do mundo apodrece.**
+
+**Referências.** `motor/servidor/escrever-plano.js` (a nota sobre o `Buffer`, que eu não segui) ·
+`motor/nucleo/ficha.js` (idem) · P-03/P-04 (proveniência acrescenta) · P-17 · o elo de 15/10/2026
+anterior (o botão e a limpeza por dois prefixos) · `CONGELAMENTO.md`.
+
+**O que ainda não está feito.**
+- **O passo do KV da rota não foi provado AO VIVO ponta a ponta.** Ele é provado por partes: a
+  limpeza contra a API real, a leitura da morada no runtime real, e o contrato da rota no banco de
+  provas. O caminho completo (`/api/apagar-escola` achando a morada, limpando o KV e apagando)
+  depende de haver uma escola no registro — e **não há nenhuma**. Ele será executado, de fato, na
+  primeira escola que nascer e for expurgada.
+- **`raiz/escolas-habilitadas.json` continua listando a `maria`** (`habilitada: true`) — escola que já
+  não existe, e um segundo registro de escolas que agora está vazio de verdade. Andaime editado à mão:
+  decisão do dono do produto.
+- **`escola/diaghilev2/`** é elo de um expurgo antigo (13/10) — e é assim que deve ser: o índice
+  sobrevive. Não é sobra, é registro.
+- **`ciclos-escolas-plano-b` segue com 4 chaves** (3 `envelope/*` do experimento antigo e
+  `professores:maria`). Não é de escola alguma viva. Limpar ou apagar o namespace é decisão do dono
+  do produto — ficou fora desta correção.
+- **Os dois namespaces das escolas existem e estão vazios** (`ciclos-escolas-maria`,
+  `ciclos-escolas-plano-b`). O expurgo apaga CHAVES, nunca namespaces — e é assim que tem de ser,
+  porque o compartilhado serve as escolas vivas. Apagar namespace é operação de fora do botão.
+- **Os órfãos continuam invisíveis na lista**: ela sai só do repositório. `tutu` não tinha rastro
+  nenhum, e foi preciso ir à API da Cloudflare para saber que existia.
+- **O caminho do Cron (§17.5) continua limpando o KV só se o andaime declarar `kv`.**
+
+## 15/10/2026 — O gerador do HANDOFF quebrava com o repositório sem escola
+
+**O que motivou.** Ao expurgar a barra e a maria, o repositório ficou **sem nenhum professor** — o
+estado de um repositório recém-nascido. E aí `tools/gerar-handoff.sh` passou a cuspir, no fim da
+execução:
+
+```
+tools/gerar-handoff.sh: linha 330: variantes: variável não associada
+```
+
+A variável `variantes` é atribuída **dentro do laço de professores** e usada no resumo final. Com zero
+professores o laço não roda, e sob `set -euo pipefail` o resumo quebra. O `HANDOFF.md` em si saía
+correto — o erro era na linha de resumo, que passava a informar `variantes: 0` por acidente
+(`printf '' | wc -w`), e não por medição.
+
+**O que foi decidido.** Inicializar `variantes=""` junto das outras variáveis, com a nota do porquê.
+Uma linha. O resumo passa a medir de verdade o caso «nenhuma escola», em vez de tropeçar nele.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`). O motivo: o
+`HANDOFF.md` é o **primeiro artefato que uma sessão nova lê**, e o gerador dele é quem o emite; um
+gerador que falha no estado em que o projeto **está agora** (zero escolas, a caminho de uma escola
+nova) precisa funcionar nesse estado. O que **não muda**: a fórmula de hash, a cobertura do `.fipp`,
+os validadores, as 17 regras, as 22 pétreas e o próprio conteúdo do `HANDOFF.md` — só a
+inicialização de uma variável de contagem. Sem reancoragem: `tools/` não é coberto pelo `.fipp`.
+
+**Onde entrou.** `tools/gerar-handoff.sh` — a inicialização de `variantes`, com a nota.
+
+**Com o quê.** `tools/gerar-handoff.sh` (commit próprio, só ele), mais as entradas de `REGISTRO.md` e o
+`HANDOFF.md` regenerado, que vão com o elo do `Buffer` logo acima.
+
+**Referências.** `CONGELAMENTO.md` · o elo de 15/10/2026 anterior (o expurgo da barra e da maria, que
+esvaziou o repositório de professores).
+
+**O que ainda não está feito.** Nada pendente nesta correção. O resumo do gerador não é lido por
+nenhum outro script: é a última linha da saída do comando.

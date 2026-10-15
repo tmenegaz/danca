@@ -817,7 +817,9 @@
             var cx = el("div", "relato");
             cx.appendChild(par(d.ok
               ? "A escola «" + slug + "» foi expurgada."
-              : "O expurgo de «" + slug + "» NÃO se completou — o que falhou está abaixo."));
+              : (d.noRepositorio
+                ? "A escola «" + slug + "» saiu do ar e do registro — mas NÃO foi tudo: veja o que sobrou abaixo."
+                : "O expurgo de «" + slug + "» NÃO se completou — o que falhou está abaixo.")));
 
             var cf = d.cloudflare || {};
             if (cf.erro) {
@@ -826,10 +828,37 @@
               var estados = [];
               estados.push("subdomínio " + ((cf.subdominio && cf.subdominio.ok) ? "removido" : "não removido"));
               estados.push("Worker " + ((cf.script && cf.script.ok) ? "apagado" : "não apagado"));
-              estados.push(cf.kv
-                ? "KV: " + cf.kv.apagadas + " de " + cf.kv.total + " chave(s)"
-                : "KV não tocado (a escola não declara namespace)");
               cx.appendChild(par("Cloudflare: " + estados.join(" · ")));
+
+              // O KV merece parágrafo próprio: é onde a escola pode sumir do ar e o dado
+              // dela ficar. «Não consegui» e «não havia» NÃO podem parecer a mesma coisa.
+              var kv = cf.kv;
+              if (!kv) {
+                cx.appendChild(par("KV: não foi tentado."));
+              } else if (kv.erro) {
+                cx.appendChild(par("KV: NÃO LIMPO — " + kv.erro));
+              } else {
+                cx.appendChild(par("KV: " + kv.apagadas + " de " + kv.total
+                  + " chave(s) apagada(s), em " + ((kv.porPrefixo || []).length) + " prefixo(s)."));
+                (kv.porPrefixo || []).forEach(function (p) {
+                  if (!p.listou) {
+                    cx.appendChild(par("   " + p.prefixo + " → NÃO CONSEGUI LISTAR (" + (p.erro || "?") + ")"));
+                  } else {
+                    cx.appendChild(par("   " + p.prefixo + " → " + p.apagadas + " de " + p.total
+                      + (p.restantes === null ? " · não reconferido" : " · sobraram " + p.restantes)));
+                  }
+                });
+                if (kv.restantes) {
+                  cx.appendChild(par("ATENÇÃO: sobraram " + kv.restantes
+                    + " chave(s) no sistema — este expurgo NÃO está completo."));
+                }
+                // O que sobrou no NAMESPACE inteiro, e não só sob os prefixos da escola: é o
+                // que revela a chave que não tem prefixo (ou tem outro) e que passaria batido.
+                if (kv.namespace && kv.namespace.listou) {
+                  cx.appendChild(par("   o namespace ainda tem " + kv.namespace.depois
+                    + " chave(s) (tinha " + kv.namespace.antes + ") — se alguma não for de outra escola, ela ficou."));
+                }
+              }
             }
 
             var rp = d.repositorio || {};
