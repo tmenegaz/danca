@@ -58,11 +58,24 @@ if [ -f "$SENHAS" ]; then
     valor="${valor%\'}"; valor="${valor#\'}"
     [ -n "$valor" ] || continue
     n=$((n + 1))
-    # A escola desta senha é o que vem depois de `SENHA_`, em minúsculas. Se for
-    # uma escola de TESTE, a senha não é segredo — a conferência não se aplica.
-    escola="$(printf '%s' "$nome" | sed 's/^SENHA_//' | tr '[:upper:]' '[:lower:]')"
-    if [ -n "$escola" ] && [ -f "$ESCOLAS_TESTE" ] && grep -qxF "$escola" "$ESCOLAS_TESTE"; then
-      echo "pre-push: $nome — escola de TESTE ($escola): dados falsos, senha é placeholder; fora da conferência" >&2
+    # O NOME diz O QUE a linha é, e dele sai o SUJEITO da conferência (e da isenção):
+    #   SENHA_<ESCOLA>  — chave de CIFRA (é o que os scripts leem); sujeito = a ESCOLA;
+    #   LOGIN_<SLUG>    — senha de ACESSO (Bastidores/Produção); NÃO é chave, e nenhum
+    #                     script a lê; sujeito = QUEM ENTRA (a pessoa).
+    # As duas são conferidas contra os arquivos versionados — o que se protege é o mesmo.
+    # Qualquer outro nome cai no `*)`, e o sujeito é o próprio nome: a conferência não
+    # pode depender de a linha ter sido batizada certo.
+    case "$nome" in
+      SENHA_*) sufixo="${nome#SENHA_}"; classe='chave de cifra' ;;
+      LOGIN_*) sufixo="${nome#LOGIN_}"; classe='senha de acesso' ;;
+      *)       sufixo="$nome";          classe='valor' ;;
+    esac
+    sujeito="$(printf '%s' "$sufixo" | tr '[:upper:]' '[:lower:]')"
+    # Se o SUJEITO é um declarado de TESTE, a senha não é segredo — a conferência não se
+    # aplica. A declaração é por sujeito: vale para a escola (a chave) e para quem entra
+    # (o acesso), porque nas duas o que existe é dado 100% falso.
+    if [ -n "$sujeito" ] && [ -f "$ESCOLAS_TESTE" ] && grep -qxF "$sujeito" "$ESCOLAS_TESTE"; then
+      echo "pre-push: $nome — $classe de TESTE ($sujeito): dados falsos, senha é placeholder; fora da conferência" >&2
       continue
     fi
     if git grep -qF -- "$valor" -- . 2>/dev/null; then

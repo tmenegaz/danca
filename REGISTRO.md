@@ -12556,3 +12556,76 @@ linha» (o defeito irmão, no guarda) · `tools/.senhas-locais.exemplo` (a conve
 > registra o que se pensou antes da correção.
 - `tools/.senhas-locais.exemplo` (congelado) já documenta a convenção `SENHA_<ESCOLA>` — não
   precisou mudar. O que faltava não era a regra: era **dizê-la no momento em que a senha nasce**.
+
+## 15/10/2026 — O prefixo do nome separa a chave da cifra da senha de acesso
+
+**O que motivou.** No mesmo dia, duas variáveis de `tools/.senhas-locais` foram confundidas com
+chaves de cifra: `SENHA_CRIPTO` (a chave real da Barra, sob um nome global que nenhum script lê — o
+CI respondeu `erro: sem senha para ciclo-01-barra`) e `SENHA_LETICIA` (o **login** da professora
+dona da Barra, que parece a chave de uma escola «leticia» inexistente). O arquivo cujo cabeçalho
+dizia «senhas de criptografia» guardava, também, **credencial de acesso** — e o nome não distinguia
+as duas. Foi o dono do produto quem apontou a segunda: *«Letícia é a professora da escola Barra que
+está como dona da escola; é por meio dessa senha que acesso os Bastidores/Produção»*.
+
+O erro não era só de redação: a sessão declarou a variável **inerte** — e «nenhum script lê» não é
+«não vale nada». A correção está na nota datada da entrada anterior.
+
+**O que foi decidido.**
+- **O prefixo do nome diz o que a linha é**, e é dele que sai o sujeito da conferência e da isenção:
+  - `SENHA_<ESCOLA>` — **chave de cifra**; é o que os scripts leem (`lib-senhas.sh`); sujeito = a
+    **escola**;
+  - `LOGIN_<SLUG>` — **senha de acesso** (Bastidores/Produção); **não** é chave, nenhum script a lê;
+    sujeito = **quem entra** (a pessoa).
+- A linha da professora foi renomeada `SENHA_LETICIA` → **`LOGIN_LETICIA`**.
+- O `pre-push` passa a **derivar o sujeito do prefixo** em vez de só cortar `SENHA_`. Qualquer outro
+  prefixo cai no caso geral e **é conferido com o sujeito igual ao próprio nome** — a conferência
+  não pode depender de a linha ter sido batizada certo.
+- A isenção continua **por sujeito** e continua lida de `tools/.escolas-teste`: vale para a chave
+  (a escola) e para o acesso (a pessoa), porque nas duas o que existe é **dado 100% falso**.
+
+**Por que renomear, e não apagar a linha.** Apagar resolveria a confusão pela metade: o arquivo
+continuaria sem lugar declarado para uma credencial de acesso, e a próxima pessoa a guardá-la
+inventaria outro nome — o mesmo caminho que produziu `SENHA_CRIPTO`. O prefixo torna a distinção
+**estrutural**, e não um comentário que se pode não ler.
+
+**Motivo declarado — os congelados.** `tools/` está congelado. O motivo: **dois dias, dois nomes
+errados na mesma classe** — e a classe de erro só é evitável se o nome carregar a distinção. O que
+**não muda**: a conferência 1 continua sendo «o valor de cada linha não pode aparecer em arquivo
+versionado»; a conferência 2 (acompanhamento em texto puro) não foi tocada; a isenção continua lida
+de `tools/.escolas-teste` e continua exigindo **sujeito declarado** — uma escola ou pessoa real
+segue proibida de entrar lá; o formato do arquivo de senhas segue `NOME="valor"`; o contrato de
+saída (código 1 com os alertas no `stderr`) é o mesmo; e nenhum arquivo de ciclo foi tocado (a
+âncora `.fipp` não cobre `tools/`, então **não há reancoragem**).
+
+**Onde entrou.**
+- `tools/hooks/pre-push` — o sujeito derivado do prefixo (`case`), a mensagem por classe, e o
+  comentário que diz por que o caso geral existe.
+- `tools/.senhas-locais.exemplo` — as duas classes documentadas no modelo, e uma linha de exemplo
+  de cada (o modelo é o que a próxima pessoa copia).
+- `tools/.senhas-locais` (local, fora do Git) — a linha renomeada e o cabeçalho que separa as
+  classes.
+- `tools/.escolas-teste` (local, fora do Git) — o comentário passa a dizer que a lista isenta os
+  dois tipos de sujeito.
+
+**Com o quê.** `tools/hooks/pre-push`, `tools/.senhas-locais.exemplo`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** `CONGELAMENTO.md` (`tools/`) · `tools/lib-senhas.sh` (a convenção
+`SENHA_$(ESCOLA_SLUG)`) · `motor/servidor/bastidores.js` (`senhaDaDirecaoOk`, `validar-senha` — onde
+`SENHA_PROFESSOR` e `SENHA_ADMIN` provam que a segunda classe é **acesso**, não cifra) · os dois
+elos de 15/10/2026 anteriores.
+
+**O que ainda não está feito.**
+- **Nada foi provado contra a escola no ar depois da renomeação**, porque nada no Worker a lê: a
+  renomeação é do arquivo **local**. O que foi provado em bancada: o sujeito do `LOGIN_LETICIA` é
+  isentado **porque está declarado** na lista de teste — com um `LOGIN_PROFESSORES` (não declarado,
+  valor que existe em centenas de arquivos versionados) o guarda **alerta e barra o push**, e um
+  prefixo desconhecido (`PREFIXO_QUALQUER`) **também** é conferido. A isenção é o que salva, e não
+  um descuido de leitura.
+- **A senha da direção não está no arquivo local.** `SENHA_ADMIN` = «barra» no Worker da Barra
+  (medido), e ela **não** tem linha aqui. Se for guardada, o nome natural — `SENHA_BARRA` — está
+  **tomado** pela chave de cifra da mesma escola. O prefixo novo resolve: `LOGIN_<SLUG DE QUEM
+  ENTRA>`.
+- As senhas de acesso da Barra são as strings óbvias (`leticia`, `barra`) e estão neste transcript.
+  Para **escola de teste com dados 100% falsos** a política declarada cobre isso; **se a Barra
+  deixar de ser só teste, as duas precisam mudar** — e trocar `SENHA_PROFESSOR`/`SENHA_ADMIN` é
+  operação no Worker, não neste repositório.
