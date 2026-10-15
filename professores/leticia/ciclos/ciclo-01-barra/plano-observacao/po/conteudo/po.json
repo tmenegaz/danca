@@ -176,13 +176,22 @@
           "campo": "Dimensões observadas",
           "obrigatorio": true,
           "explicacao": {
-            "oQueE": "As dimensões em que você observa cada aluno — técnica, musicalidade, o par/pas de deux, o repertório do dia.",
-            "preencher": "Marque as dimensões que você observa e acrescente as próprias no campo aberto. Ex.: «técnica», «musicalidade», «par/pas de deux».",
-            "porQue": "A dimensão organiza a folha de captura: cada dimensão vira um bloco, e os itens dela viram as colunas."
+            "oQueE": "As dimensões em que você observa cada aluno. Elas NÃO se escolhem aqui: nascem do plano de ensino — uma por bloco da aula que o plano marca (solo, barra, centro, musicalidade, expressão), e todas sob o eixo TÉCNICA, porque é a técnica que se trabalha através de cada bloco.",
+            "preencher": "Nada a marcar: a lista vem do plano. Se um bloco não aparece e você o trabalha, marque-o primeiro no plano de ensino, no campo «Blocos da aula», e volte aqui.",
+            "porQue": "A dimensão organiza a folha de captura: cada dimensão vira um bloco, e os itens dela viram as colunas. Ela é DERIVADA do plano porque o PO observa a aula que o plano fixou — o eixo (técnica) é o mesmo para todos os blocos, e o que muda entre eles é o que se olha."
           },
-          "multipla": true,
-          "aberto": true,
-          "forma": "técnica · musicalidade · par/pas de deux · repertório do dia"
+          "doPlano": {
+            "no": "estrutura-de-cada-aula",
+            "eixo": "Técnica",
+            "blocos": [
+              "Solo",
+              "Barra",
+              "Centro",
+              "Musicalidade",
+              "Expressão"
+            ],
+            "separador": " — "
+          }
         },
         {
           "id": "itens-por-dimensao",
@@ -197,7 +206,7 @@
           ],
           "explicacao": {
             "oQueE": "O que exatamente você marca, por aluno, em cada dimensão — um item por linha.",
-            "preencher": "Uma repetição aparece para cada dimensão escolhida acima; escreva os itens dela. Ex. (técnica): «alinhamento dos metatarsos», «saída do calcanhar».",
+            "preencher": "Uma repetição aparece para cada dimensão que veio do plano; escreva os itens dela. Ex. (Técnica — Solo): «alinhamento dos metatarsos», «saída do calcanhar».",
             "porQue": "É o que vira a coluna da folha de captura. Observável é o que outra pessoa também veria."
           }
         }
@@ -906,7 +915,7 @@
   "dimensoes": [],
   "listaAberta": {
     "minimoObrigatorio": "o cabeçalho, os quatro elementos da observação inicial e os Blocos 2 a 7",
-    "discricionario": "as dimensões próprias do ciclo (Bloco 5: o par/pas de deux, o repertório do dia, a musicalidade…) — declaradas, nunca deduzidas",
+    "discricionario": "os ITENS de cada dimensão (Bloco 2) — escritos pelo professor, um por linha, e nunca deduzidos. As dimensões em si NÃO entram aqui: elas derivam do plano (o eixo «Técnica» × os blocos da aula que ele marca)",
     "regra": "metodologia e notação são declaradas, nunca deduzidas"
   },
   "oQueFicaFora": "O Plano de Observação não observa, não interpreta, não classifica, não mede e não produz provas. Ele delimita o que se observa — quem interpreta o resultado do ciclo é o professor.",

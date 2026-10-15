@@ -1,0 +1,117 @@
+{
+  "planoDeEnsino": "plano-20261015-1014",
+  "horizonte": "teste de PO",
+  "question": "Como fazer o teste de PO?",
+  "phenomenon": [
+    "equilibrio"
+  ],
+  "field": "Escola / espaço: barra · Turmas observadas: Balé Nível 1 · Frequência semanal: 1x semanal — sexta · Duração por aula: 1 hora",
+  "context": "Calendário: 2026-10-02 → 2026-12-18 · Volume de trabalho: 3–6 séries · Condição de registro: Na sala: professor, alunas da turma · observa: o próprio professor.",
+  "dimensoesObservadas": [
+    "Técnica — Solo",
+    "Técnica — Barra",
+    "Técnica — Centro",
+    "Técnica — Musicalidade",
+    "Técnica — Expressão"
+  ],
+  "itensPorDimensao": [
+    {
+      "dimensao": "Técnica — Solo",
+      "itens": "core"
+    },
+    {
+      "dimensao": "Técnica — Barra",
+      "itens": "plié"
+    },
+    {
+      "dimensao": "Técnica — Centro",
+      "itens": "tandu"
+    },
+    {
+      "dimensao": "Técnica — Musicalidade",
+      "itens": "valsa"
+    },
+    {
+      "dimensao": "Técnica — Expressão",
+      "itens": "braços"
+    }
+  ],
+  "metodologiaENotacao": "Metodologia de referência: Escola livre · Quem escolhe a metodologia: Eu escolho · Notação dominada: Benesh",
+  "subjects": [
+    "Vavá"
+  ],
+  "flutuantes": [
+    "[a decidir]"
+  ],
+  "norma": "[Preencher: padrão — descreva o padrão de referência contra o qual a execução deste ciclo será confrontada]",
+  "linhaDeBase": [
+    {
+      "aluno": "Vavá",
+      "traz": "cinco-posicoes-1a-pes: Bom consciencia-propria",
+      "precisaDesenvolver": ""
+    },
+    "cinco-posicoes-2a-pes: Bom | cinco-posicoes-3a-pes: não foi medido",
+    "cinco-posicoes-4a-pes: não foi medido",
+    "cinco-posicoes-5a-pes: não foi medido",
+    "cinco-posicoes-1a-bracos: razoável consciencia-propria",
+    "cinco-posicoes-2a-bracos: razoável consciencia-propria",
+    "cinco-posicoes-3a-bracos: razoável consciencia-propria",
+    "cinco-posicoes-4a-bracos: não foi medido",
+    "cinco-posicoes-5a-bracos: não foi medido |"
+  ],
+  "restricoes": [
+    "[a decidir]"
+  ],
+  "inclusionCriteria": [
+    "en dehors (rotação externa) — 1 de 1: Vavá",
+    "o tendu — 1 de 1: Vavá",
+    "o passé — 1 de 1: Vavá",
+    "1ª posição — braços — 1 de 1: Vavá",
+    "2ª posição — braços — 1 de 1: Vavá",
+    "3ª posição — braços — 1 de 1: Vavá",
+    "equilíbrio unipodal — 1 de 1: Vavá"
+  ],
+  "exclusionCriteria": [
+    "a meia ponta — todos já dominam; não precisa observar",
+    "a musicalidade — todos já dominam; não precisa observar",
+    "1ª posição — pés — todos já dominam; não precisa observar",
+    "2ª posição — pés — todos já dominam; não precisa observar",
+    "3ª posição — pés — todos já dominam; não precisa observar",
+    "4ª posição — pés — todos já dominam; não precisa observar",
+    "5ª posição — pés — todos já dominam; não precisa observar",
+    "4ª posição — braços — todos já dominam; não precisa observar",
+    "5ª posição — braços — todos já dominam; não precisa observar",
+    "formato anatómico dos joelhos — todos já dominam; não precisa observar",
+    "flexibilidade dos isquiotibiais — todos já dominam; não precisa observar",
+    "flexibilidade dos adutores — todos já dominam; não precisa observar",
+    "mobilidade das costas e tronco (cambré) — todos já dominam; não precisa observar",
+    "arquitetura do arco plantar — todos já dominam; não precisa observar",
+    "coordenação motora e dissociação — todos já dominam; não precisa observar"
+  ],
+  "justification": {
+    "referenceToProblem": "teste",
+    "explanationOfCut": "teste",
+    "whatIsLeftOut": "teste",
+    "theoreticalBasis": "teste"
+  },
+  "condicoesDeContorno": "Ãnimo",
+  "limitations": [
+    "teste"
+  ],
+  "horizonteDoConjunto": {
+    "objetivoGeralDeConjunto": "[a decidir]",
+    "numeroEstimadoDeCiclos": "[a decidir]"
+  },
+  "compromissoDeReavaliacao": {
+    "marcosDecididosAte": "[a decidir]",
+    "criterioDeExtensao": "[a decidir]"
+  },
+  "validationChecklist": {
+    "phenomenonOperationallyDefined": true,
+    "scopeBoundariesClear": true,
+    "normClearlyEstablished": true,
+    "criteriaMutuallyExclusive": false,
+    "justificationGrounded": true,
+    "cutFeasible": true
+  }
+}
