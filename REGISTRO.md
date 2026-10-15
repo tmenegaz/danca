@@ -12411,3 +12411,19 @@ cadeia termina** — no site, e não no repositório.
   nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
 - As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
   para todo ciclo gerado por este workflow, qualquer escola.
+
+**Elo do mesmo dia (15/10/2026) — o passo de deploy foi exercitado, e passou.** O primeiro item de
+«O que ainda não está feito» fica como o elo do que se pensava ao escrever a entrada; o que se
+seguiu o completa.
+
+O workflow foi disparado à mão (`workflow_dispatch`, run #10, `38752389164`) contra a Barra e fechou
+**VERDE**: o gerador revalidou o pacote, o bot commitou `3bcddc1` (`chore(entrega): gerar o pacote
+de leticia/01/barra`) e o passo novo **publicou** — há uma implantação do `barra` às **14:35:51Z**,
+no instante do passo. Depois dela o site serve o ciclo inteiro: `/`, `/aula-01`,
+`/captura-aula-01`, `/lancamento.html`, `/ciclo-01-barra-dados.json` e `/plano-observacao/`
+respondem 200.
+
+**O que isso muda para quem usa.** O «Gerar» do PO passa a ser **um clique de ponta a ponta**:
+escrever as fontes → cifrar → gerar → validar → commitar → **publicar**. Deixou de haver passo
+manual entre o PO concluído e o menu do ciclo no ar. O que continua sendo decisão humana é **o quê**
+se gera — não **como** chega ao site.

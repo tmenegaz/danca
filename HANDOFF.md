@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T11:32:43-0300`
-Commit atual: `90af3f6` — docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
+Gerado em: `2026-10-15T11:38:41-0300`
+Commit atual: `3bcddc1` — chore(entrega): gerar o pacote de leticia/01/barra
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+3bcddc1 chore(entrega): gerar o pacote de leticia/01/barra
+19a23de feat(estrutura): a geração publica — o deploy entra na cadeia
 90af3f6 docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
 a7a99e5 chore(entrega): a geração da Barra absorve a página dos bastidores e a proveniência do plano
 fff06ae Merge origin/main — o pacote da Barra gerado pela Action entra ao lado da correção da cifra
@@ -81,8 +83,6 @@ f8dd1d5 feat(captura): declara a variante barra no schema de captura
 053d768 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-captura-aula-01.md
 10a4598 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-referencias.md
 cfffe53 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-aula-01.md
-e4cc290 feat(po): o PO elicitado vira a fonte do ciclo
-e16b0b5 docs(registro): a decisão sobre os quatro arquivos presos da Barra
 ```
 
 ## Por professor
@@ -205,6 +205,22 @@ cadeia termina** — no site, e não no repositório.
   nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
 - As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
   para todo ciclo gerado por este workflow, qualquer escola.
+
+**Elo do mesmo dia (15/10/2026) — o passo de deploy foi exercitado, e passou.** O primeiro item de
+«O que ainda não está feito» fica como o elo do que se pensava ao escrever a entrada; o que se
+seguiu o completa.
+
+O workflow foi disparado à mão (`workflow_dispatch`, run #10, `38752389164`) contra a Barra e fechou
+**VERDE**: o gerador revalidou o pacote, o bot commitou `3bcddc1` (`chore(entrega): gerar o pacote
+de leticia/01/barra`) e o passo novo **publicou** — há uma implantação do `barra` às **14:35:51Z**,
+no instante do passo. Depois dela o site serve o ciclo inteiro: `/`, `/aula-01`,
+`/captura-aula-01`, `/lancamento.html`, `/ciclo-01-barra-dados.json` e `/plano-observacao/`
+respondem 200.
+
+**O que isso muda para quem usa.** O «Gerar» do PO passa a ser **um clique de ponta a ponta**:
+escrever as fontes → cifrar → gerar → validar → commitar → **publicar**. Deixou de haver passo
+manual entre o PO concluído e o menu do ciclo no ar. O que continua sendo decisão humana é **o quê**
+se gera — não **como** chega ao site.
 
 ## O que está pendente
 
