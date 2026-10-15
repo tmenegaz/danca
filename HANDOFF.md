@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T10:37:30-0300`
-Commit atual: `eee8b2c` — chore(entrega): absorver o volteio do gerador (cifra e instante)
+Gerado em: `2026-10-15T11:13:45-0300`
+Commit atual: `4bd2afb` — chore(estrutura): reancorar a cadeia das fontes alteradas
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,18 @@ tiago (2)
 ## Últimos commits
 
 ```
+4bd2afb chore(estrutura): reancorar a cadeia das fontes alteradas
+f8dd1d5 feat(captura): declara a variante barra no schema de captura
+225569d feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
+6f2967e feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-glossario-benesh.md
+9ae6620 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-notacao.md
+4f82465 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-dados.json
+0795a8b feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-harmonizacao.md
+053d768 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-captura-aula-01.md
+10a4598 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-referencias.md
+cfffe53 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-aula-01.md
+e4cc290 feat(po): o PO elicitado vira a fonte do ciclo
+e16b0b5 docs(registro): a decisão sobre os quatro arquivos presos da Barra
 eee8b2c chore(entrega): absorver o volteio do gerador (cifra e instante)
 ff365d1 docs(prompts): a elicitação deixa de perguntar as dimensões — elas derivam do plano
 31e5bea feat(po): a dimensão observada deriva do PLANO — o eixo é Técnica, os blocos da aula são as dimensões
@@ -71,18 +83,6 @@ ff365d1 docs(prompts): a elicitação deixa de perguntar as dimensões — elas 
 62cd865 fix(tools): o HANDOFF emite o nome comercial do produto
 9f88505 chore(entrega): absorver o volteio do gerador (cifra e instante)
 82407eb feat(campo): cada nó respondível tem destino — o PO, o plano e o lançamento chegam inteiros
-28e6fde fix(tools): a régua da turma, o mapa das seções e as vistas — o contrato que deixava o dado cair
-f5912fa docs(registro): o Sistema Lastro — o mapa do produto e a versão explícita do plano publicado
-9f2dded chore(estrutura): reancorar a cadeia das fontes alteradas
-019c985 feat(plano): o plano elicitado passa a ser o primeiro DOCS do ciclo
-db70507 feat(plano): o plano elicitado vira a fonte do ciclo
-36a627d chore(entrega): o artefacto da injecção da navegação no pacote maria
-5b407cd docs(registro): a grelha não chegava à porta — as duas listas brancas do caminho
-7829b9c chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
-19c9533 fix(campo): o `tabela` e o `derivado` chegam à porta — duas listas brancas engoliam-nos
-e5e4723 docs(estrutura): FRENTES.md — a rubrica decidida e alinhada; HANDOFF em dia
-41a5e54 docs(registro): a rubrica alinha-se à decisão — e os níveis errados vinham do experimento
-ea561e2 chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
 ```
 
 ## Por professor
@@ -93,11 +93,11 @@ ea561e2 chore(entrega): absorver o volteio do gerador (cifra e instante), sem re
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| barra | (sem PO) | — | — |
+| barra | ciclo-01-barra-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| barra | ciclo-01-barra.fipp | `dbff824c4e17` | (vazio) | — |
+| barra | ciclo-01-barra.fipp | `db6233ad4475` | (vazio) | Input_PO_Aguardando |
 
 ### tiago — 1 ciclo(s)
 
@@ -158,141 +158,79 @@ ea561e2 chore(entrega): absorver o volteio do gerador (cifra e instante), sem re
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — A dimensão observada deriva do PLANO (e o vocabulário do PO separa-se do da anamnese)
+## 15/10/2026 — A cifra do Worker respeita o teto do runtime, e a falha deixa de ser muda
 
-**O que motivou.** O descompasso relatado enquanto se preenchia o Plano de Observação da Barra: o
-sujeito observado, as **dimensões observadas** e os **itens de cada dimensão** não conversavam. A
-dimensão era um campo **marcável** com uma lista fixa em prosa — «técnica · musicalidade · par/pas
-de deux · repertório do dia» —, e essa lista não é o vocabulário de ninguém: não é o da **anamnese**
-(`tecnica`, `funcional`, `musicalidade` — os eixos da linha de base) nem o do **plano** (solo, barra,
-centro, musicalidade, expressão — os blocos da aula). E havia um **erro de nível**: `musicalidade`
-aparecia no PO *em paralelo* a «técnica», quando no plano ela é um **lugar** onde a aula acontece,
-como o solo e a barra. Foi o que o dono do produto formulou: «quando eu vou trabalhar a técnica, eu
-posso trabalhar ela através do solo, da barra, do centro, da musicalidade e da expressão».
+**O que motivou.** A pesquisadora concluiu o PO da Barra e clicou «Gerar». O Worker escreveu as
+fontes do ciclo (10 commits, `cfffe53`…`4bd2afb`) e disparou o workflow `gerar-ciclo.yml` (run #7,
+`38745057624`), e a geração do pacote **terminou reprovada** no último passo:
 
-**O que foi decidido** (pelo dono do produto, nesta sessão, em três perguntas fechadas): o eixo do PO
-é **um só — Técnica** — e cada **bloco da aula que o plano marca** vira uma dimensão dele:
-«Técnica — Solo», «Técnica — Barra». É a técnica que se trabalha *através* de cada bloco; o que muda
-de um para o outro é o que se olha. Saem do vocabulário do PO: `musicalidade`, `par/pas de deux` e
-`repertório do dia`. E, **sem bloco marcado no plano** (o campo é opcional), valem os **cinco blocos
-canónicos** da aula — a lista nunca fica vazia por falta de dado. O professor continua a escrever
-**só os itens** de cada dimensão, e são eles que viram as colunas da folha de captura.
+```
+erro: sem senha para ciclo-01-barra — defina SENHA_BARRA em tools/.senhas-locais
+aviso: o JSON de dados NÃO foi para o pacote (sem senha) — o check-pacote.js vai reprovar
+  ERRO  JSON de dados ausente no pacote: ciclo-01-barra-dados.json
+FALHOU: 1 erro(s), 0 aviso(s).
+```
 
-**O que mudou.** A dimensão **deixa de ser perguntada**: ela é **derivada na leitura do formulário**,
-do plano referenciado no nó `plano-de-ensino`. O conteúdo declara a derivação (`doPlano`: de que nó
-ler, o eixo, os blocos canónicos, o separador) — o mesmo mecanismo dos nós que já vêm de outro sítio
-(`daTurma`, `daCuradoria`): o PE não sabe o que é uma dimensão, sabe ler de onde o conteúdo manda. A
-união dos blocos marcados **entre os marcos** é o que entra (um bloco marcado em qualquer objetivo da
-aula é um bloco da aula), na **ordem canónica** dos blocos — o plano decide *quais*, o conteúdo decide
-*em que ordem*. Entrou um campo novo no contrato (`doPlano`, nos dois portões de montagem:
-`elicitar.js` e `porta.js`), a página passa a resolvê-lo (buscando o envelope do plano escolhido por
-`api/envelope/<carimbo>`), e a lista sai **só de leitura**, dizendo de onde veio.
+Sem o commit do pacote, o site nunca passou a servir o ciclo, e o menu continuou sem os documentos
+derivados. A causa raiz **não** estava no gerador nem no CI: estava no passo 3b do
+`motor/servidor/escrever-ciclo.js` — a cópia `-dados.cifrado.json` que o gerador COPIA (caminho (a))
+nunca nascia. O motivo só apareceu quando a elicitação foi repetida com o `relatorio` à vista:
 
-**O envelope não mente sobre a origem.** A dimensão derivada vai gravada com
-**`origem: "importado"`** — «o valor entrou pronto de outro artefato», a descrição que o
-`elicitacao-schema.json` **já dava** para este caso (o enum é `perguntado | observado | importado`), e
-que evita declarar «perguntado» para um valor que o sistema deduziu. Nenhuma versão de envelope
-subiu por causa disto.
+```
+"cifrado": { "ok": false, "erro": "Pbkdf2 failed: iteration counts above 100000 are not supported
+(requested 2000000)." }
+```
 
-**Um defeito antigo, encontrado no caminho e corrigido.** A **referência da anamnese** era impressa
-em *qualquer* repetição (`blocoDaRepeticao`), e não só na repetição **por sujeito**: a dimensão
-«Técnica — Solo» aparecia como «**Sem anamnese** para «Técnica — Solo» neste sistema», com um atalho
-para criar a anamnese de uma dimensão. Passou a depender de a fonte da repetição declarar uma lista
-de sujeitos (`opcoesDe`), e a mensagem de repetição vazia deixou de dizer «escolha as alunas» quando
-o que se repete não são alunas.
+O WebCrypto do workerd **recusa PBKDF2 acima de 100.000 iterações**. Como o envelope tem 2e6 desde
+o PageCrypt, o Worker podia *tentar* cifrar para sempre: o caminho (a) nunca produzia arquivo.
 
-**O que foi provado.** `experimentos/provar-dimensoes-plano.js` (novo, **10 verificações**, jsdom
-sobre a PÁGINA servida por HTTP de verdade — não sobre o contrato): o conteúdo declara o eixo e os
-blocos canónicos e não tem mais `forma`/`multipla`; «par/pas de deux» e «repertório do dia» saíram do
-conteúdo; a lista na tela é a **união** dos blocos marcados (provado com um plano que marca só *Solo*
-e *Expressão* — se a tela lesse a lista canónica, falharia); a ordem é a canónica e não a do plano; a
-dimensão não se marca (o único campo da caixa é a nota); a repetição dos itens abre um registro por
-dimensão e **não** pede anamnese delas; o valor derivado é enviado com `origem: "importado"`; o
-plano sem bloco marcado cai nos canónicos; a lista é **refeita quando o plano muda**; e a **folha de
-captura** ganha um bloco por dimensão derivada, com os itens como colunas. Regressão: 17+17+16+49+28
-+18+44 verificações existentes continuam verdes (a única falha, 1 de 34 em `pe/provar-derivar-po.js`,
-é a **pré-existente** do `professores/fokini/` apagado em 12/10).
+**O que foi decidido.**
+- O envelope do Worker passa a declarar **100.000 iterações** — o teto do runtime. Não é outro
+  esquema: o envelope é **autodescritivo** (`_cifrado.iteracoes`), e `tools/lib-cifra.js` — no
+  navegador e no `check-pacote.js` — lê a contagem **de volta** ao abrir. Quem cifra com 2e6
+  (CLI local, escolas legadas) e quem cifra com 1e5 (Worker) produzem o **mesmo formato**, e os
+  dois arquivos abrem com a senha da escola.
+- O teto mora em **`motor/servidor/cifrar-envelope.js`**, o lado do runtime — **não** na
+  `tools/lib-cifra.js`: a cifra não mudou, quem mudou foi o teto do ambiente que a executa.
+- `relatorio.cifrado` passa a ser preenchido em **todos** os caminhos do passo 3b (inclusive
+  «sem `SENHA_CRIPTO`» e «a leitura remota falhou»), e a **página da porta** mostra o resultado
+  dos bastidores no lugar onde antes só havia «Ficou gravado».
+- **A falha deixa de ser muda.** Era o defeito de verdade: por dois dias o «Gerar» disse que
+  gravou, o `relatorio` sabia o motivo, e nada disso chegava à tela.
 
-**Motivo declarado — os congelados.** Dois: `prompts/elicitar-ciclo.md` (e a sua cópia viva em
-`porta/prompts/`). O prompt **perguntava exactamente o que deixou de se perguntar** — «Este ciclo tem
-alguma dimensão própria? (o par/pas de deux, o repertório do dia…)» e «A musicalidade entra como
-dimensão observada?» — e declarava, no glossário de «bloco», que as seções da folha de captura eram
-«técnica, funcional, musicalidade, linha de base revisitada». As três afirmações ficaram falsas com
-esta decisão: o prompt passa a declarar que as dimensões **derivam do plano** e que o que se pergunta
-são só os **itens**. O que **não muda**: a fórmula de hash, a cobertura da âncora (o prompt e o
-conteúdo da porta nunca foram fonte de ciclo), as 22 pétreas e as 17 regras.
+**Onde entrou.**
+- `motor/servidor/cifrar-envelope.js` — `ITERACOES_DO_WORKER = 100000`, passado a `Cifra.cifrar`;
+  o comentário diz por que o teto é do runtime, e não da cifra.
+- `motor/servidor/escrever-ciclo.js` — passo 3b: `relatorio.cifrado` em todos os caminhos.
+- `porta/index.html` — `bastidoresDaGeracao()`, exibido por `mostrarResultado()` quando houve
+  gravação: fontes derivadas, cópia cifrada e disparo da geração.
 
-**Com o quê.** `porta/po/conteudo/po.json` (o nó `dimensoes-de-observacao` e a `listaAberta`),
-`motor/nucleo/elicitar.js` e `motor/nucleo/porta.js` (o campo `doPlano` nos dois portões),
-`porta/index.html` (o resolvedor, a lista só de leitura, o `origem: "importado"`, o guard da
-referência da anamnese), `prompts/elicitar-ciclo.md` e `porta/prompts/elicitar-ciclo.md`,
-`professores/tiago/ciclos/ciclo-01-po-schema.json` e `professores/leticia/ciclos/ciclo-01-po-schema.json`
-(a descrição de `dimensoesObservadas`), `ARQUITETURA-PE.md` (nota datada) e `ARQUITETURA-ANAMNESE.md`
-(nota datada na §3.5 — as duas listas de dimensões **deixaram de ser a mesma lista**),
-`experimentos/provar-dimensoes-plano.js` (nova prova), o pacote de Maria regerado, e a cópia da porta
-no pacote da Barra.
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A
+`tools/lib-cifra.js` (congelada) **não** mudou: ela já aceitava `opcoes.iteracoes`, e o teto é
+parâmetro de quem a chama. As 17 regras, as 22 pétreas, a fórmula do hash e o contrato do
+`check-pacote.js` seguem iguais. O `-dados.json` do pacote continua obrigatório e continua cifrado.
 
-**O que ainda não está feito — e é do próximo elo.** (a) O pacote da **Barra** recebeu a mudança
-(sincronizado à mão, porque o gerador recusa aquele ciclo — ver abaixo) e foi **deployado**, mas **não
-pôde ser commitado**: o hook roda `gerar-ciclo.sh leticia 01 barra` e o gerador falha. (b) O **motivo
-dessa falha** é estado herdado de outra frente, não desta: o ciclo da Barra passou a ter `DOCS="plano"`
-(o plano elicitado como primeiro documento) mas **não tem documento de aula**, e o bloco do
-calendário **exige** o volume de uma aula (`calendario.py`: «--duracao-curta e --volume-curto são
-obrigatórios para o bloco do calendário»); além disso o `DATA_INICIO` continua lacuna. Pela ordem
-natural, a aula nasce quando o **PO** for concluído (é `escrever-ciclo.js` que deriva as demais
-fontes); até lá, qualquer commit que toque o pacote da Barra é recusado pelo hook. (c) O
-`linhaDeBase` do PO da Maria continua com **10 de 11 linhas que não são objeto** — o `traz` multilinha
-da anamnese rompe a tabela markdown (o validador já o avisa); é defeito **pré-existente**, medido
-nesta sessão e **não** corrigido aqui.
+**Com o quê.** `motor/servidor/cifrar-envelope.js`, `motor/servidor/escrever-ciclo.js`,
+`porta/index.html`, `REGISTRO.md`, `HANDOFF.md`.
 
-**Elo do mesmo dia (15/10/2026, à tarde) — a decisão sobre os quatro arquivos presos.** O dono do
-produto decidiu **esperar**: os quatro arquivos que o hook recusa ficam **fora do repositório** até o
-ciclo da Barra ter a sua aula (que o PO deriva), e então se commitam pelo caminho normal. **Não** se
-usa `--no-verify`, e **não** se completa o ciclo por fora — completá-lo é a frente alheia.
+**Referências.** A entrada «A senha de criptografia nasce no Cloudflare (caminho a)» (12/10/2026) —
+o desenho que este defeito impedia de funcionar · `tools/lib-cifra.js` (o esquema) ·
+`motor/servidor/cifrar-envelope.js` (o teto do runtime) · o log do run `38745057624`.
 
-Os quatro, e o que cada um é:
-
-| Arquivo | O que é | Estado |
-|:--|:--|:--|
-| `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/index.html` | a página da porta no pacote da Barra | **deployado** (`80a407a9`), fora do repo |
-| `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/po/conteudo/po.json` | o conteúdo do PO no pacote da Barra | **deployado**, fora do repo |
-| `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/prompts/elicitar-ciclo.md` | a cópia viva do prompt no pacote | **deployado**, fora do repo |
-| `professores/leticia/ciclos/ciclo-01-po-schema.json` | a descrição de `dimensoesObservadas` no schema da Letícia | **não** deployado (o schema não é servido) |
-
-**Para quem vem depois — três coisas que NÃO se devem fazer sem decidir:** (a) **não** reverter estes
-arquivos «para limpar a árvore» — o pacote da Barra está **no ar** com eles, e revertê-los poria o
-site a servir um estado que o repositório já não tem; (b) **não** commitá-los com `--no-verify` por
-iniciativa própria — foi considerado e recusado, e a razão técnica fica dita: o pacote da Barra **não
-é reproduzível pelo gerador** enquanto o ciclo não tiver aula, e commitar uma saída que o gerador não
-reconstrói contraria o princípio de que as saídas são reconstruíveis (P-04); (c) **não** completar o
-ciclo da Barra por fora do fluxo (preencher `DATA_INICIO` e derivar a aula à mão) — isso é a frente
-«o plano elicitado vira a fonte do ciclo», que tem dono, e a completude dela é o que destrava a
-geração.
-
-**Como se destrava, sem intervenção especial:** quando o **PO** da Barra for concluído, o
-`escrever-ciclo.js` deriva as demais fontes — entre elas a aula — e o `DOCS` passa a conhecê-las. A
-partir daí `tools/gerar-ciclo.sh leticia 01 barra` gera, o pacote fica reconstruível, e o commit
-destes quatro passa pelo hook como qualquer outro. A sincronização à mão que os pôs **no ar** (cópia
-da porta com a `gerar_nav` do pacote preservada) é um **paliativo declarado**: a primeira geração
-verdadeira do ciclo sobrescreve-a inteira, e é isso que se espera dela.
+**O que ainda não está feito.**
+- **O deploy do pacote continua MANUAL — e é o maior buraco da cadeia.** O `gerar-ciclo.yml` gera,
+  reancora e **commita** o pacote; o comentário dele diz «o deploy lê o repositório», mas **nenhum
+  workflow faz deploy** e **nenhum Worker está ligado ao Git**: todas as implantações do `barra`
+  têm `source: "wrangler"` (conferido em 15/10/2026). Mesmo com a geração verde, o site só passa a
+  servir o ciclo depois de um `wrangler deploy` à mão. Enquanto isso não for decidido —
+  `wrangler-action` no workflow, Workers Builds ligado ao repositório, ou o deploy manual assumido
+  como parte do fluxo — «um clique e faz tudo» **não** se cumpre.
+- A prova fim-a-fim (PO concluído → pacote publicado no site) **não** foi repetida depois desta
+  correção; é a próxima etapa.
+- `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
+  entrada de 12/10).
 
 ## O que está pendente
-
-## 14/10/2026 — A régua da turma mede o critério no LANÇAMENTO (frente B9)
-
-(a) A folha de captura ainda traz os seus **critérios fixos** (13 de
-técnica e 5 de musicalidade, na Maria) — o critério **por aula**, derivado dos marcos e da sequência
-do plano, é o passo seguinte, e é ele que fecha o «o critério de cada aula se declara no lançamento»;
-(b) o **marco** chega ao lançamento só como leitura (o nome do marco da aula), e a sequência, os
-blocos e o parâmetro de medição do plano ainda **não descem** para a folha; (c) existe **folha por
-aula só na Aula 01** (`captura-aula-01.json`): da Aula 02 em diante o formulário usa a folha do
-ciclo; (d) na **Barra** o pacote não tem lançamento (`DOCS=""`), então a régua produzida pela
-Produção não tem, hoje, onde aparecer — o ciclo da Maria (simulado) é o que exercita o caminho;
-(e) a régua da Maria vem da **fonte escrita à mão** (`ciclo-01-maria-plano.md`), e não do envelope:
-o caminho envelope → fonte (a derivação) está provado em teste, mas não há ciclo real que o tenha
-percorrido ponta a ponta com a régua.
-
----
 
 ## 14/10/2026 — O PO completo chega inteiro aos derivados (frente B10)
 
@@ -344,6 +282,20 @@ fontes); até lá, qualquer commit que toque o pacote da Barra é recusado pelo 
 `linhaDeBase` do PO da Maria continua com **10 de 11 linhas que não são objeto** — o `traz` multilinha
 da anamnese rompe a tabela markdown (o validador já o avisa); é defeito **pré-existente**, medido
 nesta sessão e **não** corrigido aqui.
+
+## 15/10/2026 — A cifra do Worker respeita o teto do runtime, e a falha deixa de ser muda
+
+- **O deploy do pacote continua MANUAL — e é o maior buraco da cadeia.** O `gerar-ciclo.yml` gera,
+  reancora e **commita** o pacote; o comentário dele diz «o deploy lê o repositório», mas **nenhum
+  workflow faz deploy** e **nenhum Worker está ligado ao Git**: todas as implantações do `barra`
+  têm `source: "wrangler"` (conferido em 15/10/2026). Mesmo com a geração verde, o site só passa a
+  servir o ciclo depois de um `wrangler deploy` à mão. Enquanto isso não for decidido —
+  `wrangler-action` no workflow, Workers Builds ligado ao repositório, ou o deploy manual assumido
+  como parte do fluxo — «um clique e faz tudo» **não** se cumpre.
+- A prova fim-a-fim (PO concluído → pacote publicado no site) **não** foi repetida depois desta
+  correção; é a próxima etapa.
+- `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
+  entrada de 12/10).
 
 ## Pendências anteriores (índice)
 
@@ -481,7 +433,9 @@ nesta sessão e **não** corrigido aqui.
 - **13/10/2026** — A grelha das tabelas: a rubrica, as turmas em plural, o… → `REGISTRO.md` L11306
 - **13/10/2026** — A rubrica: o conteúdo alinha-se à decisão (Bloco 10,… → `REGISTRO.md` L11410
 - **13/10/2026** — A grelha não chegava à porta: duas listas brancas… → `REGISTRO.md` L11449
-- **leticia · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **14/10/2026** — A régua da turma mede o critério no LANÇAMENTO (frente… → `REGISTRO.md` L11489
+- PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - Material de campo de **tiago**: 0 evento(s) versionado(s).

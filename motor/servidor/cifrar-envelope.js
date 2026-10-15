@@ -18,10 +18,28 @@
  *   · `_nota`       — para quem abrir o arquivo sem saber o que ele é.
  *
  * A única diferença de implementação é o motor da cifra: o Worker usa o WebCrypto (`Cifra.cifrar`,
- * assíncrono), enquanto o CLI usa o Node (`Cifra.cifrarSync`). O resultado é idêntico.
+ * assíncrono), enquanto o CLI usa o Node (`Cifra.cifrarSync`). O resultado é idêntico — EXCETO o
+ * número de iterações, que o runtime impõe (ver `ITERACOES_DO_WORKER`).
  */
 
 const Cifra = require('../../tools/lib-cifra.js');
+
+/**
+ * O TETO DO RUNTIME — e a razão de ele existir aqui e não na lib.
+ *
+ * O WebCrypto do workerd RECUSA PBKDF2 acima de 100.000 iterações. Medido na escola Barra
+ * (15/10/2026), no «Guardar» do PO: o passo 3b do `escrever-ciclo.js` falhava com
+ * «Pbkdf2 failed: iteration counts above 100000 are not supported (requested 2000000).» — e,
+ * como o envelope tem 2e6 desde o PageCrypt, a cópia cifrada NUNCA nascia no Worker: o
+ * `check-pacote` reprovava o pacote por falta do JSON de dados e o ciclo nunca era publicado.
+ *
+ * Por que 100.000 é uma cifra VÁLIDA, e não um envelope diferente: o esquema é AUTODESCRITIVO —
+ * `_cifrado.iteracoes` viaja no arquivo, e `lib-cifra.js` (no navegador e no `check-pacote.js`)
+ * lê a contagem DE VOLTA para derivar a chave. Quem abre não precisa saber com quantas iterações
+ * o arquivo foi fechado. O teto é do runtime, não da cifra: por isso mora aqui, e não na
+ * `tools/lib-cifra.js` (congelada) — o CLI local segue com as 2e6 do PageCrypt.
+ */
+const ITERACOES_DO_WORKER = 100000;
 
 /** A nota que identifica o envelope — a MESMA do `tools/cifrar-dados.js`, para não divergir. */
 const NOTA = 'O JSON de dados do ciclo, CIFRADO com a senha da escola (a mesma dos acompanhamentos): '
@@ -43,7 +61,7 @@ async function cifrarEnvelopeDeDados(texto, senha) {
     throw new Error('cifrar-envelope: o -dados.json não é JSON válido (' + e.message + ')');
   }
   const lancamentos = Object.keys((dados && dados.aulas) || {}).length;
-  const _cifrado = await Cifra.cifrar(texto, senha);
+  const _cifrado = await Cifra.cifrar(texto, senha, { iteracoes: ITERACOES_DO_WORKER });
   return {
     _cifrado,
     lancamentos,

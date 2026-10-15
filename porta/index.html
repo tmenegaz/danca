@@ -3781,6 +3781,58 @@ function mostrarResultado(dados, titulo) {
       doConteudo.length + ')</summary>' + doConteudo.map(caixaDaParada).join('') + '</details>');
   }
 
+  if (dados.gravado) partes.push(bastidoresDaGeracao(dados));
+
+  return partes.join('');
+}
+
+/*
+ * O «Gerar» faz três coisas ATRÁS do envelope gravado: escreve as fontes derivadas no
+ * repositório, escreve a cópia CIFRADA do JSON de dados e dispara a geração do pacote. Nada
+ * disso aparecia na tela — e uma falha silenciosa na cópia cifrada deixou o ciclo da Barra sem
+ * pacote por dois dias (15/10/2026): o `check-pacote.js` reprovava o pacote no CI, e o «Gerar»
+ * dizia «Ficou gravado». Este bloco é o que faltava: ele DIZ o que aconteceu nos bastidores.
+ */
+function bastidoresDaGeracao(dados) {
+  const ciclo = dados.ciclo;
+  const disparo = dados.disparo;
+  const fonte = dados.fonte;
+  if (!ciclo && !disparo && !fonte) return '';
+
+  const partes = ['<p><b>Nos bastidores, o «Gerar»</b></p>'];
+
+  if (fonte) {
+    partes.push(fonte.ok
+      ? '<p class="sub">a fonte do PO entrou no repositório.</p>'
+      : '<p class="erro">a fonte do PO NÃO entrou: ' + escapar(fonte.erro || 'erro') + '</p>');
+  }
+
+  if (ciclo) {
+    const escritas = ciclo.escritas || [];
+    const falhas = escritas.filter((e) => !e.ok);
+    partes.push('<p class="sub">fontes derivadas do ciclo: <b>' + (escritas.length - falhas.length) +
+      '</b> escrita(s), <b>' + ((ciclo.puladas || []).length) + '</b> já existia(m).</p>');
+    for (const f of falhas) {
+      partes.push('<p class="erro">não escrevi <code>' + escapar(f.caminho) + '</code>' +
+        (f.erro ? ' — ' + escapar(f.erro) : ' — HTTP ' + f.status) + '</p>');
+    }
+    const cifrado = ciclo.cifrado;
+    if (cifrado && cifrado.ok) {
+      partes.push('<p class="sub">cópia cifrada do JSON de dados: presente' +
+        (cifrado.nota ? ' (' + escapar(cifrado.nota) + ')' : '') + '.</p>');
+    } else if (cifrado) {
+      partes.push('<p class="erro">cópia cifrada do JSON de dados: NÃO nasceu — ' +
+        escapar(cifrado.erro || 'erro') + '.<br>Sem ela o <code>check-pacote.js</code> reprova o ' +
+        'pacote, e o ciclo não chega ao site.</p>');
+    }
+  }
+
+  if (disparo) {
+    partes.push(disparo.ok
+      ? '<p class="sub">a geração do pacote foi disparada (GitHub Actions).</p>'
+      : '<p class="erro">a geração do pacote NÃO foi disparada: ' + escapar(disparo.erro || 'erro') + '</p>');
+  }
+
   return partes.join('');
 }
 

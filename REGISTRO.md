@@ -12263,3 +12263,75 @@ partir daí `tools/gerar-ciclo.sh leticia 01 barra` gera, o pacote fica reconstr
 destes quatro passa pelo hook como qualquer outro. A sincronização à mão que os pôs **no ar** (cópia
 da porta com a `gerar_nav` do pacote preservada) é um **paliativo declarado**: a primeira geração
 verdadeira do ciclo sobrescreve-a inteira, e é isso que se espera dela.
+
+## 15/10/2026 — A cifra do Worker respeita o teto do runtime, e a falha deixa de ser muda
+
+**O que motivou.** A pesquisadora concluiu o PO da Barra e clicou «Gerar». O Worker escreveu as
+fontes do ciclo (10 commits, `cfffe53`…`4bd2afb`) e disparou o workflow `gerar-ciclo.yml` (run #7,
+`38745057624`), e a geração do pacote **terminou reprovada** no último passo:
+
+```
+erro: sem senha para ciclo-01-barra — defina SENHA_BARRA em tools/.senhas-locais
+aviso: o JSON de dados NÃO foi para o pacote (sem senha) — o check-pacote.js vai reprovar
+  ERRO  JSON de dados ausente no pacote: ciclo-01-barra-dados.json
+FALHOU: 1 erro(s), 0 aviso(s).
+```
+
+Sem o commit do pacote, o site nunca passou a servir o ciclo, e o menu continuou sem os documentos
+derivados. A causa raiz **não** estava no gerador nem no CI: estava no passo 3b do
+`motor/servidor/escrever-ciclo.js` — a cópia `-dados.cifrado.json` que o gerador COPIA (caminho (a))
+nunca nascia. O motivo só apareceu quando a elicitação foi repetida com o `relatorio` à vista:
+
+```
+"cifrado": { "ok": false, "erro": "Pbkdf2 failed: iteration counts above 100000 are not supported
+(requested 2000000)." }
+```
+
+O WebCrypto do workerd **recusa PBKDF2 acima de 100.000 iterações**. Como o envelope tem 2e6 desde
+o PageCrypt, o Worker podia *tentar* cifrar para sempre: o caminho (a) nunca produzia arquivo.
+
+**O que foi decidido.**
+- O envelope do Worker passa a declarar **100.000 iterações** — o teto do runtime. Não é outro
+  esquema: o envelope é **autodescritivo** (`_cifrado.iteracoes`), e `tools/lib-cifra.js` — no
+  navegador e no `check-pacote.js` — lê a contagem **de volta** ao abrir. Quem cifra com 2e6
+  (CLI local, escolas legadas) e quem cifra com 1e5 (Worker) produzem o **mesmo formato**, e os
+  dois arquivos abrem com a senha da escola.
+- O teto mora em **`motor/servidor/cifrar-envelope.js`**, o lado do runtime — **não** na
+  `tools/lib-cifra.js`: a cifra não mudou, quem mudou foi o teto do ambiente que a executa.
+- `relatorio.cifrado` passa a ser preenchido em **todos** os caminhos do passo 3b (inclusive
+  «sem `SENHA_CRIPTO`» e «a leitura remota falhou»), e a **página da porta** mostra o resultado
+  dos bastidores no lugar onde antes só havia «Ficou gravado».
+- **A falha deixa de ser muda.** Era o defeito de verdade: por dois dias o «Gerar» disse que
+  gravou, o `relatorio` sabia o motivo, e nada disso chegava à tela.
+
+**Onde entrou.**
+- `motor/servidor/cifrar-envelope.js` — `ITERACOES_DO_WORKER = 100000`, passado a `Cifra.cifrar`;
+  o comentário diz por que o teto é do runtime, e não da cifra.
+- `motor/servidor/escrever-ciclo.js` — passo 3b: `relatorio.cifrado` em todos os caminhos.
+- `porta/index.html` — `bastidoresDaGeracao()`, exibido por `mostrarResultado()` quando houve
+  gravação: fontes derivadas, cópia cifrada e disparo da geração.
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A
+`tools/lib-cifra.js` (congelada) **não** mudou: ela já aceitava `opcoes.iteracoes`, e o teto é
+parâmetro de quem a chama. As 17 regras, as 22 pétreas, a fórmula do hash e o contrato do
+`check-pacote.js` seguem iguais. O `-dados.json` do pacote continua obrigatório e continua cifrado.
+
+**Com o quê.** `motor/servidor/cifrar-envelope.js`, `motor/servidor/escrever-ciclo.js`,
+`porta/index.html`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** A entrada «A senha de criptografia nasce no Cloudflare (caminho a)» (12/10/2026) —
+o desenho que este defeito impedia de funcionar · `tools/lib-cifra.js` (o esquema) ·
+`motor/servidor/cifrar-envelope.js` (o teto do runtime) · o log do run `38745057624`.
+
+**O que ainda não está feito.**
+- **O deploy do pacote continua MANUAL — e é o maior buraco da cadeia.** O `gerar-ciclo.yml` gera,
+  reancora e **commita** o pacote; o comentário dele diz «o deploy lê o repositório», mas **nenhum
+  workflow faz deploy** e **nenhum Worker está ligado ao Git**: todas as implantações do `barra`
+  têm `source: "wrangler"` (conferido em 15/10/2026). Mesmo com a geração verde, o site só passa a
+  servir o ciclo depois de um `wrangler deploy` à mão. Enquanto isso não for decidido —
+  `wrangler-action` no workflow, Workers Builds ligado ao repositório, ou o deploy manual assumido
+  como parte do fluxo — «um clique e faz tudo» **não** se cumpre.
+- A prova fim-a-fim (PO concluído → pacote publicado no site) **não** foi repetida depois desta
+  correção; é a próxima etapa.
+- `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
+  entrada de 12/10).

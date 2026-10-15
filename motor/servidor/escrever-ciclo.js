@@ -299,12 +299,23 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
     //     Worker (SENHA_CRIPTO), o Worker é quem cifra — o gerador só copia o resultado para o
     //     pacote (caminho (a): a senha nunca sai do Cloudflare). Sem senha, este passo é um
     //     aviso no relatório, não um erro: a fonte segue escrita, e a cópia nasce no gerador.
-    if (senhaCripto) {
-      const caminhoCifrado = caminhoDaFonte(ctx, '-dados.cifrado.json');
+    //
+    //     `relatorio.cifrado` é preenchido em TODOS os caminhos, inclusive nos que não escrevem
+    //     nada. Não é zelo: por dois dias esta cópia não nasceu e NADA o disse — o `check-pacote`
+    //     reprovava o pacote por falta do JSON de dados e o «Gerar» terminava em silêncio, com o
+    //     motivo só no `relatorio` que ninguém lia (Barra, 15/10/2026). Falha aqui REPROVA o
+    //     pacote; ela tem de ser dita.
+    const caminhoCifrado = caminhoDaFonte(ctx, '-dados.cifrado.json');
+    if (!senhaCripto) {
+      relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: 'sem SENHA_CRIPTO no Worker' };
+    } else {
       const atualCifrado = await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado });
-      if (atualCifrado.existe) {
+      if (atualCifrado.erro) {
+        relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: atualCifrado.erro };
+      } else if (atualCifrado.existe) {
         relatorio.puladas.push(caminhoCifrado);
-      } else if (!atualCifrado.erro) {
+        relatorio.cifrado = { ok: true, caminho: caminhoCifrado, nota: 'a cópia já existia' };
+      } else {
         try {
           const envelope = await cifrarEnvelopeDeDados(derivarDados({ po, contexto: ctx }), senhaCripto);
           const resultado = await gravarArquivoRemoto({
@@ -313,8 +324,11 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
             mensagem: 'feat(ciclo): o «Guardar» do PO cifra ' + caminhoCifrado.split('/').pop(),
           });
           relatorio.escritas.push(resultado);
+          relatorio.cifrado = resultado.ok
+            ? { ok: true, caminho: caminhoCifrado }
+            : { ok: false, caminho: caminhoCifrado, erro: 'HTTP ' + resultado.status };
         } catch (e) {
-          relatorio.cifrado = { ok: false, erro: (e && e.message) || String(e) };
+          relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: (e && e.message) || String(e) };
         }
       }
     }
