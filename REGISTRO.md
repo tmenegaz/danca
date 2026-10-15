@@ -12904,3 +12904,110 @@ dos dados sensíveis).
   produto.
 - O pacote **não** foi regenerado com aviso nenhum no PDF sobre o KV; e a `lib-cifra.js` continua
   copiada para o pacote sem uso no formulário (limpeza pequena, ainda não feita).
+
+## 15/10/2026 — O expurgo da escola sai do comando e vira botão, na raiz
+
+**O que motivou.** O dono do produto decidiu **expurgar completamente a Barra e a Maria** e começar
+um processo novo, do zero, com uma escola que ele mesmo vai criar. O expurgo existia — mas como
+comando (`node escola/expurgar.js <slug>`) e como varredura agendada (§17.5, atrás de
+`escolas-habilitadas.json` + prazo de carência). Ele pediu o que faltava: **um botão na raiz**. E
+corrigiu a primeira leitura da conversa — «o expurgo fica na dança… onde tem o botão de criar. Tem
+um botão de apagar escola». Não é nos Bastidores da escola: quem apaga uma escola não está dentro
+dela.
+
+**O que foi decidido.**
+- **A lista de escolas sai do REPOSITÓRIO** — os `wrangler.<slug>.jsonc`, menos a raiz `danca` —, e
+  não da API do Cloudflare. É o mesmo registro que o expurgo edita, e é o que sobrevive como elo no
+  índice da escola. Duas definições de «escola» divergiriam com o tempo.
+- **O professor e o ciclo saem dos próprios caminhos do ciclo** (`professores/<p>/ciclos/
+  ciclo-NN-<slug>*`), não do índice: a Maria **não tem** `escola/maria/indice.json`, e o expurgo não
+  pode depender de um arquivo que pode não existir.
+- **O expurgo do repositório é UM commit**, montado pela API de árvore do Git (`base_tree` +
+  `sha: null` para as remoções + o índice como conteúdo novo). Apagar arquivo a arquivo seriam
+  cinquenta commits — cinquenta estados intermediários de uma coisa só.
+- **O índice da escola SOBREVIVE**, com o elo do expurgo. É a regra do projeto: a proveniência
+  acrescenta, não apaga a memória de que a escola existiu. Quem apaga o passado apaga o princípio.
+- **O arcabouço do ciclo sai junto** — `ciclos/ciclo-NN.conf` e `ciclos/ciclo-NN-*-schema.json` —,
+  mas **só quando o professor ficou sem nenhuma outra escola**. Ele não é da escola, é do ciclo; só
+  que o manifesto BASE carrega `NOME="Ciclo 01 — Barra"` dentro, e um órfão desses batiza a próxima
+  escola com o nome da anterior. Foi medido: `professores/leticia/ciclos/ciclo-01.conf` diz
+  `NOME="Ciclo 01 — Barra"`.
+- **`cadernos/`, `relatorios/` e `campo/` NÃO se apagam por tabela.** O nome de um arquivo de ciclo
+  diz a que ele pertence; o de um caderno não diz — e pode ser memória de campo. Isso se **relata**.
+  (Na prática a pergunta ficou vazia: `professores/tiago/cadernos/ciclo-01` e `relatorios/ciclo-01`
+  são pastas **vazias**, que o Git não versiona.)
+- **A ORDEM é Cloudflare primeiro, repositório depois.** Ao contrário, a escola ficaria no ar
+  servindo um pacote que o repositório já não tem. As duas metades são independentes: falha de uma
+  vai no relatório da sua etapa e não impede a outra.
+- **A trava é o nome escrito à mão.** O corpo exige `confirmacao === escola`; sem isso a rota
+  responde 400 e **não toca em nada**. Apagar não tem desfazer, então um clique sozinho não basta.
+- **O que a rota NÃO ALCANÇA é declarado, não fingido.** `tools/.senhas-locais` e
+  `tools/.escolas-teste` são arquivos do computador, fora do Git: a resposta devolve as **linhas
+  exatas** a tirar (`SENHA_<SLUG>`, `LOGIN_<SLUG>`, o `<slug>`), em vez de dizer que limpou.
+- **As duas metades passam a classificar o mesmo arquivo do mesmo jeito.** O espelho local tirava
+  só `SENHA_<SLUG>` — não tirava `LOGIN_<SLUG>` (a senha de ACESSO da direção, que é outra coisa que
+  a chave de cifra) e não tirava o arcabouço. Agora as listas são as mesmas.
+
+**Onde entrou.**
+- `motor/servidor/repo-escola.js` — **novo**: `listarEscolas`, `apagarEscolaDoRepo`, `comElo`,
+  `arcaboucoDoCiclo`, `materialPreservado`, `ehArquivoDaEscola`. A metade do repositório.
+- `motor/servidor/raiz.js` — `GET /api/escolas` (a lista) e `POST /api/apagar-escola` (o expurgo à
+  mão, que **não** passa pelo andaime — ali há prazo de carência; aqui a pessoa escolheu e
+  confirmou); `lerJsonc` (os configs são jsonc), `moradaDaEscola` (worker + namespace do KV lidos do
+  próprio `wrangler.<slug>.jsonc`) e `linhasLocais`.
+- `raiz/index.html` — o botão «Apagar escola» ao lado do «Criar nova escola», o modal com a lista, a
+  confirmação escrita e o relatório por etapa (Cloudflare, repositório, o que fazer no computador).
+- `escola/expurgar.js` — o checklist local passa a tirar `LOGIN_<SLUG>` e o arcabouço do ciclo; e a
+  chave é tirada pelos **dois** nomes (o do índice e o derivado do slug).
+
+**O defeito de nome, de novo.** O índice da Barra declara `senha.chave = "SENHA_CRIPTO"` — o nome
+**antigo**, de antes da renomeação de 15/10/2026. O índice **não é reescrito** (proveniência
+acrescenta), então ele guarda o nome de quando a escola nasceu. O expurgo local confiava só nele:
+respondia «já não existia» e **deixava a `SENHA_BARRA` no arquivo**. É o mesmo defeito do `pre-push`
+(um nome que mudou e quem o aponta não voltou) — e a correção é a mesma de espírito: tirar os dois
+nomes em vez de escolher um.
+
+**Como foi provado.**
+- A lista, contra a API real: `barra` (46 arquivos, professor `leticia`, ciclo `01`) e `maria` (45,
+  `tiago`); a raiz `danca` **não** entra.
+- A árvore do expurgo, contra a API real, **interceptando só o avanço da referência**: depois do
+  expurgo, **zero** arquivos com `-barra`/`-maria` na árvore nova, o índice presente, e a `main`
+  intocada. Os objetos criados ficam soltos e o Git os recolhe.
+- As rotas, no banco de provas (`experimentos/provar-expurgo-raiz.js`, 12 provas): lista; recusa sem
+  `GITHUB_TOKEN`; recusa sem confirmação; recusa com confirmação **errada**; recusa sem escola;
+  confirmação certa **sem os dois tokens** → não apaga nada e declara as duas ausências; as linhas
+  locais voltam certas; `ok:false`; e o `/api/expurgar` do andaime recusando sem token.
+- A metade local, numa árvore de teste em `/tmp`: caso A (a Barra é a única escola da Letícia) →
+  `SENHA_BARRA` sai, `LOGIN_BARRA` sai, `LOGIN_LETICIA` **fica**, a pasta do professor fica vazia;
+  caso B (a Letícia ainda tem a escola «outra») → o arcabouço **fica**, com a razão dita em voz alta.
+- O portão, ao vivo: `/`, `/api/escolas` e o resto respondem **401** sem senha e com senha errada.
+
+**Referências.** `IDEIA-PAINEL-ESCOLA.md` §17.5 (o expurgo e o prazo de carência) · P-03/P-04 (a
+proveniência acrescenta) · P-17 · `CONGELAMENTO.md` · os quatro elos de 15/10/2026 anteriores (a
+renomeação `SENHA_CRIPTO` → `SENHA_BARRA`, o prefixo `LOGIN_`, e o `pre-push` lendo a última linha).
+
+**O que ainda não está feito.**
+- **O expurgo da Barra e da Maria não foi executado.** O botão está no ar e provado nas duas
+  metades; quem clica é o dono do produto — é o que ele pediu. Nada foi apagado até aqui.
+- **A metade do Cloudflare não foi provada ao vivo.** `excluirEscola` é código que já existia (a
+  varredura agendada), mas o `SENHA_RAIZ` é **write-only**: não há como testar a rota autenticada sem
+  trocar a senha do dono, e trocar não se faz. O que se provou foi o portão (401) e a presença dos
+  três secrets no Worker (`CLOUDFLARE_API_TOKEN`, `GITHUB_TOKEN`, `SENHA_RAIZ`).
+- **A limpeza do KV depende de o `wrangler.<slug>.jsonc` ser legível.** Sem ele, ou ilegível, o
+  expurgo cai no slug e **não toca no KV** — de propósito: o namespace é compartilhado, e apagar o
+  errado apaga o dado de outra escola.
+- **A varredura agendada (§17.5) continua no andaime** — `escolas-habilitadas.json` + prazo — e
+  lista só a `maria`. Ela e o botão são dois caminhos para a mesma coisa; unificá-los (ou aposentar o
+  andaime) é decisão do dono do produto, e não foi tomada.
+- **`escola/expurgar.js` não apaga o `LOGIN_<PESSOA>` do professor** — nem ele nem a rota. Se o
+  professor ficar sem escola, aquele login não abre mais nada, mas a linha fica: a pessoa pode entrar
+  em outra escola, e é a mesma linha que a serviria.
+- **Criar a escola nova — do começo ao fim — ainda não aconteceu.** É o próximo passo, e é do dono do
+  produto.
+- **A tabela de escolas do `README.md` (linhas 112 e seguintes) cita a Maria e a Barra**, e os
+  exemplos de deploy citam `wrangler.maria.jsonc`. Depois do expurgo aquilo fica **mentindo**. Não
+  entrou no automatismo de propósito: é prosa de gente numa tabela editada à mão, e um regex que
+  reescreve tabela erra mais do que acerta. Fica como passo declarado, a fazer junto com o expurgo.
+- **`raiz/escolas-habilitadas.json` lista a `maria`** — é o andaime da varredura agendada, e ele
+  **não** é tocado pelo botão. Expurgada a Maria por ali, o Cron seguinte procuraria uma escola que
+  já não existe (a chamada falha e o relatório do Cron diz).

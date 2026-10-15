@@ -15,7 +15,10 @@
           <h1>Nós, Por Exemplo</h1>
           <p class="subtitulo">A porta de entrada do Projeto Ciclo — e o lugar de criar uma escola nova.</p>
         </div>
-        <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
+        <div class="topo-botoes">
+          <button class="acao secundario" id="btn-apagar" type="button">Apagar escola</button>
+          <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
+        </div>
       </div>
     </header>
 
@@ -46,6 +49,30 @@
           </div>
         </form>
         <div class="res" id="res"></div>
+      </div>
+    </div>
+
+    <div class="modal" id="modal-apagar" hidden>
+      <div class="modal-fundo" data-fechar></div>
+      <div class="modal-caixa" role="dialog" aria-modal="true" aria-labelledby="apagar-titulo">
+        <div class="modal-cab">
+          <h2 id="apagar-titulo">Apagar escola</h2>
+          <button class="modal-x" id="btn-fechar-apagar" type="button" aria-label="Fechar">&times;</button>
+        </div>
+        <div class="form">
+          <p class="nota">Apagar é <b>irreversível</b>. O expurgo tira a escola do ar (o Worker e o
+            subdomínio), apaga os dados das alunas guardados no sistema e tira do repositório o
+            pacote e as fontes dela. O <b>índice da escola fica</b> — é ele que registra que a
+            escola existiu: a proveniência acrescenta, não apaga a memória.</p>
+          <div class="cartoes" id="apagar-lista"></div>
+          <label for="apagar-confirmacao">Para confirmar, escreva o nome da escola escolhida</label>
+          <input id="apagar-confirmacao" autocomplete="off" spellcheck="false" placeholder="o nome exato, ex.: maria">
+          <div class="modal-acoes">
+            <button class="acao secundario" id="btn-cancelar-apagar" type="button">Cancelar</button>
+            <button class="acao perigo" id="btn-confirmar-apagar" type="button" disabled>Apagar</button>
+          </div>
+        </div>
+        <div class="res" id="res-apagar"></div>
       </div>
     </div>
 
@@ -517,6 +544,84 @@
             border: 1px solid var(--falha);
             color: var(--falha);
           }
+
+          .topo-botoes {
+            display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
+            align-items: center;
+          }
+
+          .acao.perigo {
+            background: transparent;
+            color: var(--falha);
+            border: 1px solid var(--falha);
+          }
+
+          .acao.perigo:hover {
+            background: #fdeaea;
+          }
+
+          .acao[disabled],
+          .acao[disabled]:hover {
+            opacity: .4;
+            cursor: not-allowed;
+            background: transparent;
+          }
+
+          .cartoes {
+            display: grid;
+            gap: .45rem;
+            margin: .1rem 0 .7rem;
+          }
+
+          .cartao {
+            display: block;
+            width: 100%;
+            text-align: left;
+            padding: .6rem .8rem;
+            background: var(--creme-3);
+            color: var(--gold-texto);
+            border: 1px solid var(--gold-escuro);
+            border-radius: 6px;
+            font: .93rem/1.45 var(--ui);
+            cursor: pointer;
+          }
+
+          .cartao:hover {
+            background: var(--creme-2);
+          }
+
+          .cartao[aria-pressed="true"] {
+            border-color: var(--burgundy);
+            box-shadow: inset 0 0 0 1px var(--burgundy);
+          }
+
+          .cartao b {
+            display: block;
+            font-size: 1rem;
+            color: var(--burgundy);
+          }
+
+          .cartao small {
+            color: var(--soft);
+            font-size: .86rem;
+          }
+
+          .relato {
+            font: .9rem/1.5 var(--ui);
+          }
+
+          .relato p {
+            margin: .35rem 0;
+          }
+
+          .relato code {
+            font-size: .88em;
+            background: rgba(0, 0, 0, .05);
+            padding: 0 .2em;
+            border-radius: 3px;
+          }
         </style>
         <script>
           // Mede a altura real da barra fixa e ajusta --header-height (o mesmo que o
@@ -589,6 +694,179 @@
               else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }
             }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; });
           });
+
+          // ---- Apagar escola ------------------------------------------------
+          // A lista sai do REPOSITÓRIO — os `wrangler.<escola>.jsonc` —, que é o mesmo
+          // registro que o expurgo edita: não há duas definições de «escola». E a
+          // confirmação é o nome escrito à mão: apagar não tem desfazer, então um clique
+          // sozinho não basta.
+          var modalApagar = document.getElementById("modal-apagar");
+          var listaApagar = document.getElementById("apagar-lista");
+          var campoConf = document.getElementById("apagar-confirmacao");
+          var btnConfirmar = document.getElementById("btn-confirmar-apagar");
+          var resApagar = document.getElementById("res-apagar");
+          var escolaEscolhida = null;
+
+          function el(tag, classe, conteudo) {
+            var n = document.createElement(tag);
+            if (classe) n.className = classe;
+            if (conteudo != null) n.textContent = conteudo;
+            return n;
+          }
+          function par(conteudo) { return el("p", null, conteudo); }
+
+          function carregarLista() {
+            escolaEscolhida = null;
+            campoConf.value = "";
+            btnConfirmar.disabled = true;
+            listaApagar.textContent = "";
+            listaApagar.appendChild(el("p", "nota", "carregando a lista de escolas…"));
+            fetch("api/escolas").then(function (r) { return r.json(); }).then(function (d) {
+              listaApagar.textContent = "";
+              if (!d.ok) {
+                resApagar.className = "res erro";
+                resApagar.textContent = "Não consegui listar as escolas: " + (d.erro || "erro desconhecido");
+                return;
+              }
+              if (!d.escolas || !d.escolas.length) {
+                listaApagar.appendChild(el("p", "nota", "Não há nenhuma escola para apagar."));
+                return;
+              }
+              d.escolas.forEach(function (e) { listaApagar.appendChild(cartao(e)); });
+            }).catch(function (err) {
+              listaApagar.textContent = "";
+              resApagar.className = "res erro";
+              resApagar.textContent = "Não consegui listar as escolas: " + err.message;
+            });
+          }
+
+          function cartao(e) {
+            var b = el("button", "cartao");
+            b.type = "button";
+            b.setAttribute("aria-pressed", "false");
+            b.appendChild(el("b", null, e.slug));
+            var mi = el("small");
+            mi.appendChild(document.createTextNode("professor " + (e.professor || "?")
+              + " · ciclo " + (e.ciclo || "?") + " · " + e.total + " arquivo(s)"));
+            mi.appendChild(document.createElement("br"));
+            mi.appendChild(document.createTextNode(e.url));
+            b.appendChild(mi);
+            b.addEventListener("click", function () {
+              var irmaos = listaApagar.querySelectorAll(".cartao");
+              for (var i = 0; i < irmaos.length; i += 1) irmaos[i].setAttribute("aria-pressed", "false");
+              b.setAttribute("aria-pressed", "true");
+              escolaEscolhida = e;
+              campoConf.value = "";
+              campoConf.placeholder = e.slug;
+              btnConfirmar.disabled = true;
+              resApagar.className = "res";
+              resApagar.textContent = "";
+              campoConf.focus();
+            });
+            return b;
+          }
+
+          campoConf.addEventListener("input", function () {
+            btnConfirmar.disabled = !escolaEscolhida || campoConf.value.trim() !== escolaEscolhida.slug;
+          });
+
+          function abrirApagar() {
+            modalApagar.hidden = false;
+            resApagar.className = "res";
+            resApagar.textContent = "";
+            carregarLista();
+          }
+          function fecharApagar() { modalApagar.hidden = true; }
+
+          document.getElementById("btn-apagar").addEventListener("click", abrirApagar);
+          document.getElementById("btn-fechar-apagar").addEventListener("click", fecharApagar);
+          document.getElementById("btn-cancelar-apagar").addEventListener("click", fecharApagar);
+          modalApagar.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fecharApagar(); });
+          document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modalApagar.hidden) fecharApagar(); });
+
+          btnConfirmar.addEventListener("click", function () {
+            if (!escolaEscolhida) return;
+            var slug = escolaEscolhida.slug;
+            btnConfirmar.disabled = true;
+            resApagar.className = "res";
+            resApagar.textContent = "apagando " + slug + "… não feche esta janela.";
+            fetch("api/apagar-escola", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                escola: slug,
+                confirmacao: campoConf.value.trim(),
+                motivo: "expurgada pela página «Nós, Por Exemplo»"
+              })
+            }).then(function (r) { return r.json(); }).then(function (d) {
+              relatar(d, slug);
+              carregarLista();
+            }).catch(function (err) {
+              resApagar.className = "res erro";
+              resApagar.textContent = "Erro: " + err.message;
+              btnConfirmar.disabled = false;
+            });
+          });
+
+          // O relatório diz o que foi apagado em CADA metade e o que ficou. As metades são
+          // independentes de propósito: «tirei do ar» e «tirei do registro» podem falhar
+          // separadas, e a pessoa precisa saber qual das duas falhou.
+          function relatar(d, slug) {
+            resApagar.className = "res " + (d.ok ? "ok" : "erro");
+            resApagar.textContent = "";
+            var cx = el("div", "relato");
+            cx.appendChild(par(d.ok
+              ? "A escola «" + slug + "» foi expurgada."
+              : "O expurgo de «" + slug + "» NÃO se completou — o que falhou está abaixo."));
+
+            var cf = d.cloudflare || {};
+            if (cf.erro) {
+              cx.appendChild(par("Cloudflare: " + cf.erro));
+            } else {
+              var estados = [];
+              estados.push("subdomínio " + ((cf.subdominio && cf.subdominio.ok) ? "removido" : "não removido"));
+              estados.push("Worker " + ((cf.script && cf.script.ok) ? "apagado" : "não apagado"));
+              estados.push(cf.kv
+                ? "KV: " + cf.kv.apagadas + " de " + cf.kv.total + " chave(s)"
+                : "KV não tocado (a escola não declara namespace)");
+              cx.appendChild(par("Cloudflare: " + estados.join(" · ")));
+            }
+
+            var rp = d.repositorio || {};
+            if (rp.erro) {
+              cx.appendChild(par("Repositório: " + rp.erro));
+            } else {
+              cx.appendChild(par("Repositório: " + rp.totalApagado + " arquivo(s) apagado(s), num commit só."));
+              if (rp.arcaboucoDoCiclo && rp.arcaboucoDoCiclo.length) {
+                cx.appendChild(par("Inclui o arcabouço do ciclo do professor " + rp.professor
+                  + ": ele ficou sem outra escola e o manifesto BASE carregava o nome desta dentro."));
+              }
+              if (rp.preservados && rp.preservados.length) {
+                cx.appendChild(par("Preservado(s): " + rp.preservados.length
+                  + " arquivo(s) — caderno, relatório de campo e acompanhamento não se apagam por tabela."));
+              }
+              cx.appendChild(par("O índice " + rp.elo + " ficou, com o elo do expurgo: a memória de que a escola existiu."));
+              if (rp.url) {
+                var a = el("a", null, "ver o commit");
+                a.href = rp.url;
+                a.target = "_blank";
+                a.rel = "noopener";
+                cx.appendChild(a);
+              }
+            }
+
+            var em = (d.local && d.local.em) || [];
+            if (em.length) {
+              cx.appendChild(par("No seu computador, tire estas linhas — o sistema não alcança esses arquivos:"));
+              em.forEach(function (item) {
+                var l = el("p");
+                l.appendChild(el("code", null, item.arquivo));
+                l.appendChild(document.createTextNode(" → tirar " + item.tirar.join(", ")));
+                cx.appendChild(l);
+              });
+            }
+            resApagar.appendChild(cx);
+          }
         </script>
       </div>
     </main>

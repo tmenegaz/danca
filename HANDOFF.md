@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T13:12:21-0300`
-Commit atual: `f40f29c` — feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO no cofre
+Gerado em: `2026-10-15T13:36:57-0300`
+Commit atual: `b510383` — chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ tiago (2)
 ## Últimos commits
 
 ```
+b510383 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
+0d009e6 chore(entrega): os pacotes da Barra e da Maria absorvem o lançamento autenticado
+a88b9ae fix(template): o lançamento exige a senha e avisa quando grava sem cifra
 f40f29c feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO no cofre
 4e4adf5 docs(registro): a árvore nunca fica limpa depois de um commit que toca fonte de ciclo
 a45ec58 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
@@ -80,9 +83,6 @@ e3fc795 fix(tools): o guarda do pre-push confere a última linha do arquivo de s
 19a23de feat(estrutura): a geração publica — o deploy entra na cadeia
 90af3f6 docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
 a7a99e5 chore(entrega): a geração da Barra absorve a página dos bastidores e a proveniência do plano
-fff06ae Merge origin/main — o pacote da Barra gerado pela Action entra ao lado da correção da cifra
-52da76e chore(entrega): gerar o pacote de leticia/01/barra
-bf3b08f feat(ciclo): o «Guardar» do PO cifra ciclo-01-barra-dados.cifrado.json
 ```
 
 ## Por professor
@@ -158,122 +158,107 @@ bf3b08f feat(ciclo): o «Guardar» do PO cifra ciclo-01-barra-dados.cifrado.json
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O lançamento da aula confere a senha e grava cifrado no cofre
+## 15/10/2026 — O expurgo da escola sai do comando e vira botão, na raiz
 
-**O que motivou.** O elo anterior deixou o formulário **autenticando para LER e não autenticando para
-GRAVAR** — incoerência que o dono do produto mandou fechar. O que se mediu antes de mexer:
-
-| O que | Estado anterior |
-|:--|:--|
-| `POST /api/receber` com corpo vazio | `HTTP 200 {"ok":false,"erro":"nenhum arquivo no pedido"}` — **recusa de negócio, não 401**: a rota não tinha conferência nenhuma |
-| Quem podia gravar | **qualquer um** que soubesse o endereço da escola |
-| O que se gravava no KV | o JSON do lançamento em **TEXTO PURO** — nome, presença e observação de aluna, o mesmo dado que o pacote cifra com cuidado |
-| O que já existe no KV | lançamentos **em claro** das escolas do experimento (a listagem do namespace mostra `diaghilev/fokini/…`) |
-
-Era a quarta opção da lista apresentada no elo anterior — *«quero ver o `/api/receber` autenticado e o
-dado cifrado também no KV»* — e a escolhida pelo dono do produto agora.
+**O que motivou.** O dono do produto decidiu **expurgar completamente a Barra e a Maria** e começar
+um processo novo, do zero, com uma escola que ele mesmo vai criar. O expurgo existia — mas como
+comando (`node escola/expurgar.js <slug>`) e como varredura agendada (§17.5, atrás de
+`escolas-habilitadas.json` + prazo de carência). Ele pediu o que faltava: **um botão na raiz**. E
+corrigiu a primeira leitura da conversa — «o expurgo fica na dança… onde tem o botão de criar. Tem
+um botão de apagar escola». Não é nos Bastidores da escola: quem apaga uma escola não está dentro
+dela.
 
 **O que foi decidido.**
-- **As duas coisas vêm INJETADAS da ponte**, porque o núcleo é PURO (sem `env`, sem chave, sem rede):
-  `opcoes.autorizar` e `opcoes.cifrar` chegam a `lancar()` de quem tem o segredo.
-- **`autorizar` é a MESMA conferência da leitura** — a senha da ESCOLA (a direção ou qualquer
-  professor cadastrado), e não a por-professor do `validar-senha`. Ler e gravar passam a exigir o
-  mesmo, que era o ponto.
-- **Sem `autorizar` injetado, o lançamento é RECUSADO.** A alternativa — aceitar quando ninguém
-  injetou nada — faria de um esquecimento da ponte uma porta de escrita aberta. *(O elo anterior já
-  pagou por um esquecimento de injeção: o `lerDados` que não chegou à chamada virou «não está
-  disponível» em vez de funcionar — falha declarada, mas falha.)*
-- **Cifra no repouso, os DOIS arquivos.** O de dados traz aluna; o índice traz a data de cada aula.
-  O envelope é cifrado com a `SENHA_CRIPTO` (100.000 iterações, o teto do runtime) e traz a sua
-  própria nota — quem topar com o valor no KV sabe o que é.
-- **Sem chave (escola legada), grava em claro e a RESPOSTA DIZ** (`cifrado: false`), com o formulário
-  avisando em vermelho. Guardar dado de aluna sem cifra não pode ser silencioso.
-
-**Um contrato que o teste de bancada pegou — e que teria corrompido dado em silêncio.** A injeção de
-`cifrar` devolvia o **envelope montado (objeto)**, e o KV **coage objeto para a string
-`[object Object]` sem erro nenhum**: o lançamento sumiria e a gravação diria «ok». Duas correções:
-a injeção **serializa** (o texto que vai ao KV é texto), e `lancar` **confere o tipo** do que a cifra
-devolveu e **recusa** se não for texto — um contrato violado tem de doer agora, não virar registro
-perdido.
-
-**Um risco operacional medido, e que vale para toda implantação.** A propagação do Cloudflare **não é
-instantânea**: durante ~20 segundos depois do deploy, a mesma URL respondeu ora a versão nova, ora a
-antiga. No teste, isso fez a Maria **aceitar e gravar em claro** com a senha errada (a versão antiga
-não conferia nada) — e o artefato foi **apagado do KV** depois. Barra e Maria passaram pelas duas
-janelas. **Não se mede um deploy antigo com uma requisição só.**
+- **A lista de escolas sai do REPOSITÓRIO** — os `wrangler.<slug>.jsonc`, menos a raiz `danca` —, e
+  não da API do Cloudflare. É o mesmo registro que o expurgo edita, e é o que sobrevive como elo no
+  índice da escola. Duas definições de «escola» divergiriam com o tempo.
+- **O professor e o ciclo saem dos próprios caminhos do ciclo** (`professores/<p>/ciclos/
+  ciclo-NN-<slug>*`), não do índice: a Maria **não tem** `escola/maria/indice.json`, e o expurgo não
+  pode depender de um arquivo que pode não existir.
+- **O expurgo do repositório é UM commit**, montado pela API de árvore do Git (`base_tree` +
+  `sha: null` para as remoções + o índice como conteúdo novo). Apagar arquivo a arquivo seriam
+  cinquenta commits — cinquenta estados intermediários de uma coisa só.
+- **O índice da escola SOBREVIVE**, com o elo do expurgo. É a regra do projeto: a proveniência
+  acrescenta, não apaga a memória de que a escola existiu. Quem apaga o passado apaga o princípio.
+- **O arcabouço do ciclo sai junto** — `ciclos/ciclo-NN.conf` e `ciclos/ciclo-NN-*-schema.json` —,
+  mas **só quando o professor ficou sem nenhuma outra escola**. Ele não é da escola, é do ciclo; só
+  que o manifesto BASE carrega `NOME="Ciclo 01 — Barra"` dentro, e um órfão desses batiza a próxima
+  escola com o nome da anterior. Foi medido: `professores/leticia/ciclos/ciclo-01.conf` diz
+  `NOME="Ciclo 01 — Barra"`.
+- **`cadernos/`, `relatorios/` e `campo/` NÃO se apagam por tabela.** O nome de um arquivo de ciclo
+  diz a que ele pertence; o de um caderno não diz — e pode ser memória de campo. Isso se **relata**.
+  (Na prática a pergunta ficou vazia: `professores/tiago/cadernos/ciclo-01` e `relatorios/ciclo-01`
+  são pastas **vazias**, que o Git não versiona.)
+- **A ORDEM é Cloudflare primeiro, repositório depois.** Ao contrário, a escola ficaria no ar
+  servindo um pacote que o repositório já não tem. As duas metades são independentes: falha de uma
+  vai no relatório da sua etapa e não impede a outra.
+- **A trava é o nome escrito à mão.** O corpo exige `confirmacao === escola`; sem isso a rota
+  responde 400 e **não toca em nada**. Apagar não tem desfazer, então um clique sozinho não basta.
+- **O que a rota NÃO ALCANÇA é declarado, não fingido.** `tools/.senhas-locais` e
+  `tools/.escolas-teste` são arquivos do computador, fora do Git: a resposta devolve as **linhas
+  exatas** a tirar (`SENHA_<SLUG>`, `LOGIN_<SLUG>`, o `<slug>`), em vez de dizer que limpou.
+- **As duas metades passam a classificar o mesmo arquivo do mesmo jeito.** O espelho local tirava
+  só `SENHA_<SLUG>` — não tirava `LOGIN_<SLUG>` (a senha de ACESSO da direção, que é outra coisa que
+  a chave de cifra) e não tirava o arcabouço. Agora as listas são as mesmas.
 
 **Onde entrou.**
-- `motor/nucleo/lancamento.js` — `lancar(armazenamento, corpo, { autorizar, cifrar })`: a recusa por
-  falta de conferência, a conferência da senha, a cifra dos dois arquivos, a guarda de tipo e o
-  `cifrado` na resposta.
-- `motor/servidor/cifrar-envelope.js` — `cifrarTexto` (o envelope de um texto qualquer) e
-  `ITERACOES_DO_WORKER` exportado: **uma definição só** do teto do runtime.
-- `motor/servidor/cloudflare.js` — `senhaDaEscola(env)` (uma definição para ler e gravar) e
-  `criarLancamento(env)`; a serialização do envelope.
-- `motor/servidor/rotas.js` — o repasse de `lancamentoSeguro`.
-- `tools/templates/lancamento.html` — a senha passa a ser exigida para gravar (`enviar`), o aviso de
-  gravação sem cifra, e o campo que agora diz que **autoriza a gravar**.
+- `motor/servidor/repo-escola.js` — **novo**: `listarEscolas`, `apagarEscolaDoRepo`, `comElo`,
+  `arcaboucoDoCiclo`, `materialPreservado`, `ehArquivoDaEscola`. A metade do repositório.
+- `motor/servidor/raiz.js` — `GET /api/escolas` (a lista) e `POST /api/apagar-escola` (o expurgo à
+  mão, que **não** passa pelo andaime — ali há prazo de carência; aqui a pessoa escolheu e
+  confirmou); `lerJsonc` (os configs são jsonc), `moradaDaEscola` (worker + namespace do KV lidos do
+  próprio `wrangler.<slug>.jsonc`) e `linhasLocais`.
+- `raiz/index.html` — o botão «Apagar escola» ao lado do «Criar nova escola», o modal com a lista, a
+  confirmação escrita e o relatório por etapa (Cloudflare, repositório, o que fazer no computador).
+- `escola/expurgar.js` — o checklist local passa a tirar `LOGIN_<SLUG>` e o arcabouço do ciclo; e a
+  chave é tirada pelos **dois** nomes (o do índice e o derivado do slug).
 
-**Motivo declarado — os congelados.** `tools/templates/` está congelado. O motivo: o formulário é
-quem **envia** — sem ele mandar a senha, a rota nova recusaria todo lançamento e a proteção viraria
-um bloqueio. O que **não muda**: a fórmula da cifra, o esquema do envelope, o contrato do
-`check-pacote.js`, o formato do corpo do lançamento (só ganhou o campo `senha`), as 17 regras e as 22
-pétreas. Sem reancoragem (nem `tools/` nem as saídas são cobertas pelo `.fipp`).
+**O defeito de nome, de novo.** O índice da Barra declara `senha.chave = "SENHA_CRIPTO"` — o nome
+**antigo**, de antes da renomeação de 15/10/2026. O índice **não é reescrito** (proveniência
+acrescenta), então ele guarda o nome de quando a escola nasceu. O expurgo local confiava só nele:
+respondia «já não existia» e **deixava a `SENHA_BARRA` no arquivo**. É o mesmo defeito do `pre-push`
+(um nome que mudou e quem o aponta não voltou) — e a correção é a mesma de espírito: tirar os dois
+nomes em vez de escolher um.
 
-**Com o quê.** Os arquivos acima, mais os pacotes regenerados da Barra e da Maria, `REGISTRO.md` e
-`HANDOFF.md`.
+**Como foi provado.**
+- A lista, contra a API real: `barra` (46 arquivos, professor `leticia`, ciclo `01`) e `maria` (45,
+  `tiago`); a raiz `danca` **não** entra.
+- A árvore do expurgo, contra a API real, **interceptando só o avanço da referência**: depois do
+  expurgo, **zero** arquivos com `-barra`/`-maria` na árvore nova, o índice presente, e a `main`
+  intocada. Os objetos criados ficam soltos e o Git os recolhe.
+- As rotas, no banco de provas (`experimentos/provar-expurgo-raiz.js`, 12 provas): lista; recusa sem
+  `GITHUB_TOKEN`; recusa sem confirmação; recusa com confirmação **errada**; recusa sem escola;
+  confirmação certa **sem os dois tokens** → não apaga nada e declara as duas ausências; as linhas
+  locais voltam certas; `ok:false`; e o `/api/expurgar` do andaime recusando sem token.
+- A metade local, numa árvore de teste em `/tmp`: caso A (a Barra é a única escola da Letícia) →
+  `SENHA_BARRA` sai, `LOGIN_BARRA` sai, `LOGIN_LETICIA` **fica**, a pasta do professor fica vazia;
+  caso B (a Letícia ainda tem a escola «outra») → o arcabouço **fica**, com a razão dita em voz alta.
+- O portão, ao vivo: `/`, `/api/escolas` e o resto respondem **401** sem senha e com senha errada.
 
-**Referências.** Os cinco elos de 15/10/2026 anteriores · `motor/nucleo/cofre.js` (a família de chaves
-do cofre, que o lançamento já usava) · `CONGELAMENTO.md` (`tools/templates/` e a política de segurança
-dos dados sensíveis).
+**Referências.** `IDEIA-PAINEL-ESCOLA.md` §17.5 (o expurgo e o prazo de carência) · P-03/P-04 (a
+proveniência acrescenta) · P-17 · `CONGELAMENTO.md` · os quatro elos de 15/10/2026 anteriores (a
+renomeação `SENHA_CRIPTO` → `SENHA_BARRA`, o prefixo `LOGIN_`, e o `pre-push` lendo a última linha).
 
 **O que ainda não está feito.**
-- **Os lançamentos JÁ GRAVADOS em claro continuam em claro** — inclusive os do experimento
-  (`diaghilev/fokini/…`). A cifra vale daqui para frente; migrar o que existe é outra operação, e
-  ninguém a pediu.
-- **Não há LEITOR do lançamento no KV.** O caminho é de mão única: o formulário grava, e nada lê de
-  volta (o pacote é sempre a semente vazia). Quem for ler vai precisar decifrar com a mesma chave — e
-  é isso que o envelope diz.
-- **A Maria continua sem `SENHA_CRIPTO`**: ela aceita o lançamento e grava **em claro**, com a
-  resposta dizendo `cifrado: false` e o formulário avisando. Criar o secret nela é decisão do dono do
+- **O expurgo da Barra e da Maria não foi executado.** O botão está no ar e provado nas duas
+  metades; quem clica é o dono do produto — é o que ele pediu. Nada foi apagado até aqui.
+- **A metade do Cloudflare não foi provada ao vivo.** `excluirEscola` é código que já existia (a
+  varredura agendada), mas o `SENHA_RAIZ` é **write-only**: não há como testar a rota autenticada sem
+  trocar a senha do dono, e trocar não se faz. O que se provou foi o portão (401) e a presença dos
+  três secrets no Worker (`CLOUDFLARE_API_TOKEN`, `GITHUB_TOKEN`, `SENHA_RAIZ`).
+- **A limpeza do KV depende de o `wrangler.<slug>.jsonc` ser legível.** Sem ele, ou ilegível, o
+  expurgo cai no slug e **não toca no KV** — de propósito: o namespace é compartilhado, e apagar o
+  errado apaga o dado de outra escola.
+- **A varredura agendada (§17.5) continua no andaime** — `escolas-habilitadas.json` + prazo — e
+  lista só a `maria`. Ela e o botão são dois caminhos para a mesma coisa; unificá-los (ou aposentar o
+  andaime) é decisão do dono do produto, e não foi tomada.
+- **`escola/expurgar.js` não apaga o `LOGIN_<PESSOA>` do professor** — nem ele nem a rota. Se o
+  professor ficar sem escola, aquele login não abre mais nada, mas a linha fica: a pessoa pode entrar
+  em outra escola, e é a mesma linha que a serviria.
+- **Criar a escola nova — do começo ao fim — ainda não aconteceu.** É o próximo passo, e é do dono do
   produto.
-- O pacote **não** foi regenerado com aviso nenhum no PDF sobre o KV; e a `lib-cifra.js` continua
-  copiada para o pacote sem uso no formulário (limpeza pequena, ainda não feita).
 
 ## O que está pendente
-
-## 15/10/2026 — A criação da escola diz onde guardar a senha de criptografia
-
-- **A mensagem não foi vista renderizada.** Não dá para exercitá-la sem **criar uma escola de
-  verdade** — e criar é ato do dono do produto, não de uma sessão de manutenção. O que foi provado:
-  a sintaxe do script inline, e a montagem do nome (`d.escola` = `barra` → `SENHA_BARRA`). A prova
-  visual fica para a próxima escola criada.
-- A `SENHA_LETICIA` em `tools/.senhas-locais` **não é lida por script nenhum** (nenhuma escola tem
-  slug `leticia`; a escola é `barra`) e continua isenta no `tools/.escolas-teste`, onde a isenção
-  existe pelo valor **placeholder** «leticia», que aparece nos caminhos `professores/leticia/…`.
-  Não foi removida: mexer nela é decisão da pesquisadora, não efeito colateral deste conserto.
-  **O que ela É** — ver a nota de correção no fim desta entrada: não é uma chave, é a senha de
-  acesso da professora.
-
-> **Correção de 15/10/2026 (mesmo dia).** A primeira redação deste item dizia que a `SENHA_LETICIA`
-> «segue **inerte**». **Está errado**, e o erro é do mesmo tipo do que esta entrada combate — um
-> nome que parece uma coisa e é outra. «Inerte» descrevia só o que os *scripts* fazem: `lib-senhas.sh`
-> monta `SENHA_<ESCOLA_SLUG>` e nunca lê `SENHA_LETICIA`. Mas o **valor** daquela linha é a senha
-> **viva** da professora Letícia — dona da escola Barra —, e é por ela que se entra nos
-> **Bastidores** e na **Produção**. Medido na escola no ar, em 15/10/2026:
->
-> | Segredo no Worker `barra` | Valor medido | Para que serve |
-> |:--|:--|:--|
-> | `SENHA_PROFESSOR` | «leticia» | login da professora dona — abre Bastidores **e** Produção |
-> | `SENHA_ADMIN` | «barra» | login da direção — abre Produção |
-> | `SENHA_CRIPTO` | 48 hex | chave da cifra — abre o `-dados.cifrado.json` |
->
-> A linha `SENHA_LETICIA="leticia"` em `tools/.senhas-locais` guarda o **primeiro** destes — um
-> **login**, não uma chave. O arquivo cujo cabeçalho diz «senhas de criptografia» passou a conter,
-> também, credencial de acesso. A versão anterior desta redação não é apagada: fica como o elo que
-> registra o que se pensou antes da correção.
-- `tools/.senhas-locais.exemplo` (congelado) já documenta a convenção `SENHA_<ESCOLA>` — não
-  precisou mudar. O que faltava não era a regra: era **dizê-la no momento em que a senha nasce**.
 
 ## 15/10/2026 — O prefixo do nome separa a chave da cifra da senha de acesso
 
@@ -348,6 +333,26 @@ dos dados sensíveis).
   produto.
 - O pacote **não** foi regenerado com aviso nenhum no PDF sobre o KV; e a `lib-cifra.js` continua
   copiada para o pacote sem uso no formulário (limpeza pequena, ainda não feita).
+
+## 15/10/2026 — O expurgo da escola sai do comando e vira botão, na raiz
+
+- **O expurgo da Barra e da Maria não foi executado.** O botão está no ar e provado nas duas
+  metades; quem clica é o dono do produto — é o que ele pediu. Nada foi apagado até aqui.
+- **A metade do Cloudflare não foi provada ao vivo.** `excluirEscola` é código que já existia (a
+  varredura agendada), mas o `SENHA_RAIZ` é **write-only**: não há como testar a rota autenticada sem
+  trocar a senha do dono, e trocar não se faz. O que se provou foi o portão (401) e a presença dos
+  três secrets no Worker (`CLOUDFLARE_API_TOKEN`, `GITHUB_TOKEN`, `SENHA_RAIZ`).
+- **A limpeza do KV depende de o `wrangler.<slug>.jsonc` ser legível.** Sem ele, ou ilegível, o
+  expurgo cai no slug e **não toca no KV** — de propósito: o namespace é compartilhado, e apagar o
+  errado apaga o dado de outra escola.
+- **A varredura agendada (§17.5) continua no andaime** — `escolas-habilitadas.json` + prazo — e
+  lista só a `maria`. Ela e o botão são dois caminhos para a mesma coisa; unificá-los (ou aposentar o
+  andaime) é decisão do dono do produto, e não foi tomada.
+- **`escola/expurgar.js` não apaga o `LOGIN_<PESSOA>` do professor** — nem ele nem a rota. Se o
+  professor ficar sem escola, aquele login não abre mais nada, mas a linha fica: a pessoa pode entrar
+  em outra escola, e é a mesma linha que a serviria.
+- **Criar a escola nova — do começo ao fim — ainda não aconteceu.** É o próximo passo, e é do dono do
+  produto.
 
 ## Pendências anteriores (índice)
 
@@ -493,6 +498,7 @@ dos dados sensíveis).
 - **15/10/2026** — A cifra do Worker respeita o teto do runtime, e a falha… → `REGISTRO.md` L12267
 - **15/10/2026** — A geração publica: o deploy entra na cadeia → `REGISTRO.md` L12367
 - **15/10/2026** — O guarda do pre-push passa a conferir a última linha do… → `REGISTRO.md` L12431
+- **15/10/2026** — A criação da escola diz onde guardar a senha de… → `REGISTRO.md` L12491
 - PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
