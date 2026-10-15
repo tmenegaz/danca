@@ -1,0 +1,140 @@
+{
+  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\". O `aulas[]` e o INDICE POR AULA: a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o instante-limite de lancamento da aula, calculado do calendario. `estado` (§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois re-deriva com o proprio relogio.",
+  "gerado_em": "2026-10-15T14:17",
+  "ciclos": [
+    {
+      "id": "01",
+      "professor": "leticia",
+      "escola": "Barra",
+      "inicio": "2026-10-06",
+      "fim": "2026-11-10",
+      "total_aulas": 11,
+      "duracao_min": 60,
+      "arquivo": "ciclo-01-barra-dados.json",
+      "aulas": [
+        {
+          "n": "01",
+          "data": "2026-10-06",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": "Estabilidade do core",
+          "estado": "nao_dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-07T19:00",
+          "config": "captura-aula-01.json"
+        },
+        {
+          "n": "02",
+          "data": "2026-10-08",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": "Transferência de peso",
+          "estado": "nao_dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-12T19:00"
+        },
+        {
+          "n": "03",
+          "data": "2026-10-13",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": "Coordenação dos braoços",
+          "estado": "nao_dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-14T19:00"
+        },
+        {
+          "n": "04",
+          "data": "2026-10-15",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": "Deslocamento no espaço",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-19T19:00"
+        },
+        {
+          "n": "05",
+          "data": "2026-10-20",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-21T19:00"
+        },
+        {
+          "n": "06",
+          "data": "2026-10-22",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-26T19:00"
+        },
+        {
+          "n": "07",
+          "data": "2026-10-27",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-28T19:00"
+        },
+        {
+          "n": "08",
+          "data": "2026-10-29",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-02T19:00"
+        },
+        {
+          "n": "09",
+          "data": "2026-11-03",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-04T19:00"
+        },
+        {
+          "n": "10",
+          "data": "2026-11-05",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-09T19:00"
+        },
+        {
+          "n": "11",
+          "data": "2026-11-10",
+          "inicio": "19:00",
+          "fim": "20:00",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-14T19:00"
+        }
+      ]
+    }
+  ]
+}
