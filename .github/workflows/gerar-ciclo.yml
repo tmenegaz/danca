@@ -6,8 +6,15 @@ name: Gerar o ciclo
 # PO concluído declarou no contexto do ato.
 #
 # O que ele faz: gera o pacote (HTML + PDF + menu, por `tools/gerar-ciclo.sh`),
-# reancora a cadeia (`tools/hash-ciclo.sh`, porque o PO elicitado vira fonte) e
-# commita o que mudou. O deploy lê o repositório — o pacote gerado é versionado.
+# reancora a cadeia (`tools/hash-ciclo.sh`, porque o PO elicitado vira fonte),
+# commita o que mudou e PUBLICA o pacote no Cloudflare (`wrangler deploy`).
+#
+# O deploy entrou na cadeia em 15/10/2026. Antes, este workflow terminava no commit:
+# o pacote gerado ficava no repositório e o site só mudava com um `wrangler deploy`
+# à mão — «um clique e faz tudo» não se cumpria. O pacote gerado É o
+# `assets.directory` do Worker da escola: publicar é subir o pacote. Mesmo padrão
+# do `criar-escola.yml` — um `CLOUDFLARE_API_TOKEN` e o id da conta; nenhuma senha
+# de professor ou de escola passa por aqui.
 #
 # `tools/gerar-ciclo.sh` já VALIDA o pacote no fim (`node tools/check-pacote.js`):
 # não há passo de validação separado. A reancoragem usa o `--check` antes de gerar,
@@ -113,3 +120,20 @@ jobs:
           Auditoria: tools/check-pacote.js (dentro do gerador) + hash-ciclo.sh --check"
 
           git push
+
+      # O DEPLOY FECHA A CADEIA. O commit acima põe o pacote no repositório; o site,
+      # porém, serve os ASSETS do Worker — que só mudam num `wrangler deploy`. Sem este
+      # passo o ciclo era gerado, versionado e invisível: o menu continuava sem os
+      # documentos derivados (Barra, 15/10/2026). O `assets.directory` de cada escola é
+      # o seu pacote (`wrangler.<escola>.jsonc`), então deployar é publicar o que acabou
+      # de ser gerado. `if: always()` NÃO se aplica: um pacote reprovado no
+      # `check-pacote.js` (dentro do gerador) já barrou o job antes daqui, e publicar um
+      # pacote pela metade seria pior que não publicar.
+      - name: Publicar o pacote no Cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

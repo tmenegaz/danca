@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T11:21:28-0300`
-Commit atual: `a7a99e5` — chore(entrega): a geração da Barra absorve a página dos bastidores e a proveniência do plano
+Gerado em: `2026-10-15T11:32:43-0300`
+Commit atual: `90af3f6` — docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,7 @@ tiago (2)
 ## Últimos commits
 
 ```
+90af3f6 docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
 a7a99e5 chore(entrega): a geração da Barra absorve a página dos bastidores e a proveniência do plano
 fff06ae Merge origin/main — o pacote da Barra gerado pela Action entra ao lado da correção da cifra
 52da76e chore(entrega): gerar o pacote de leticia/01/barra
@@ -82,7 +83,6 @@ f8dd1d5 feat(captura): declara a variante barra no schema de captura
 cfffe53 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-aula-01.md
 e4cc290 feat(po): o PO elicitado vira a fonte do ciclo
 e16b0b5 docs(registro): a decisão sobre os quatro arquivos presos da Barra
-eee8b2c chore(entrega): absorver o volteio do gerador (cifra e instante)
 ```
 
 ## Por professor
@@ -158,116 +158,55 @@ eee8b2c chore(entrega): absorver o volteio do gerador (cifra e instante)
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — A cifra do Worker respeita o teto do runtime, e a falha deixa de ser muda
+## 15/10/2026 — A geração publica: o deploy entra na cadeia
 
-**O que motivou.** A pesquisadora concluiu o PO da Barra e clicou «Gerar». O Worker escreveu as
-fontes do ciclo (10 commits, `cfffe53`…`4bd2afb`) e disparou o workflow `gerar-ciclo.yml` (run #7,
-`38745057624`), e a geração do pacote **terminou reprovada** no último passo:
-
-```
-erro: sem senha para ciclo-01-barra — defina SENHA_BARRA em tools/.senhas-locais
-aviso: o JSON de dados NÃO foi para o pacote (sem senha) — o check-pacote.js vai reprovar
-  ERRO  JSON de dados ausente no pacote: ciclo-01-barra-dados.json
-FALHOU: 1 erro(s), 0 aviso(s).
-```
-
-Sem o commit do pacote, o site nunca passou a servir o ciclo, e o menu continuou sem os documentos
-derivados. A causa raiz **não** estava no gerador nem no CI: estava no passo 3b do
-`motor/servidor/escrever-ciclo.js` — a cópia `-dados.cifrado.json` que o gerador COPIA (caminho (a))
-nunca nascia. O motivo só apareceu quando a elicitação foi repetida com o `relatorio` à vista:
-
-```
-"cifrado": { "ok": false, "erro": "Pbkdf2 failed: iteration counts above 100000 are not supported
-(requested 2000000)." }
-```
-
-O WebCrypto do workerd **recusa PBKDF2 acima de 100.000 iterações**. Como o envelope tem 2e6 desde
-o PageCrypt, o Worker podia *tentar* cifrar para sempre: o caminho (a) nunca produzia arquivo.
+**O que motivou.** A prova fim-a-fim do mesmo dia mostrou o buraco, e ele é o último: o
+`gerar-ciclo.yml` gerava, reancorava e **commitava** o pacote — e parava ali. O site serve os
+**assets do Worker**, que só mudam num `wrangler deploy`. O comentário do workflow dizia «o deploy
+lê o repositório», mas **nenhum** workflow fazia deploy e **nenhum** Worker estava ligado ao Git
+(todas as dez implantações do `barra` são `source: "wrangler"`). O ciclo ficava gerado, versionado
+e **invisível**: o menu seguia sem os documentos derivados, que é exatamente o que a pesquisadora
+relatou («mandei gerar e nada disso foi feito»).
 
 **O que foi decidido.**
-- O envelope do Worker passa a declarar **100.000 iterações** — o teto do runtime. Não é outro
-  esquema: o envelope é **autodescritivo** (`_cifrado.iteracoes`), e `tools/lib-cifra.js` — no
-  navegador e no `check-pacote.js` — lê a contagem **de volta** ao abrir. Quem cifra com 2e6
-  (CLI local, escolas legadas) e quem cifra com 1e5 (Worker) produzem o **mesmo formato**, e os
-  dois arquivos abrem com a senha da escola.
-- O teto mora em **`motor/servidor/cifrar-envelope.js`**, o lado do runtime — **não** na
-  `tools/lib-cifra.js`: a cifra não mudou, quem mudou foi o teto do ambiente que a executa.
-- `relatorio.cifrado` passa a ser preenchido em **todos** os caminhos do passo 3b (inclusive
-  «sem `SENHA_CRIPTO`» e «a leitura remota falhou»), e a **página da porta** mostra o resultado
-  dos bastidores no lugar onde antes só havia «Ficou gravado».
-- **A falha deixa de ser muda.** Era o defeito de verdade: por dois dias o «Gerar» disse que
-  gravou, o `relatorio` sabia o motivo, e nada disso chegava à tela.
+- O **deploy é o último passo do próprio `gerar-ciclo.yml`**, depois do commit do pacote. O pacote
+  gerado **é** o `assets.directory` do Worker da escola (`wrangler.<escola>.jsonc`): publicar é
+  subir o pacote — não há artefato intermediário.
+- **Mesmo padrão do `criar-escola.yml`**, que já subia o motor: `npx wrangler deploy -c
+  wrangler.<escola>.jsonc` com `CLOUDFLARE_API_TOKEN` (secret do GitHub, já existente) e
+  `CLOUDFLARE_ACCOUNT_ID`. **Nenhuma senha de professor ou de escola passa pelo CI** — a decisão de
+  12/10 («a senha nasce no Cloudflare») fica intacta.
+- **Publicar depois de commitar, e nunca depois de uma geração reprovada.** O `check-pacote.js`
+  roda dentro do gerador: um pacote incompleto barra o job antes do commit e do deploy. Publicar um
+  pacote pela metade seria pior que não publicar.
+- A alternativa considerada e **não** escolhida: ligar o repositório à Cloudflare (Workers Builds),
+  que dispensaria o secret mas poria a publicação **fora do repositório** — onde ela não é
+  auditável nem reconstruível por quem lê o projeto.
 
 **Onde entrou.**
-- `motor/servidor/cifrar-envelope.js` — `ITERACOES_DO_WORKER = 100000`, passado a `Cifra.cifrar`;
-  o comentário diz por que o teto é do runtime, e não da cifra.
-- `motor/servidor/escrever-ciclo.js` — passo 3b: `relatorio.cifrado` em todos os caminhos.
-- `porta/index.html` — `bastidoresDaGeracao()`, exibido por `mostrarResultado()` quando houve
-  gravação: fontes derivadas, cópia cifrada e disparo da geração.
+- `.github/workflows/gerar-ciclo.yml` — o passo «Publicar o pacote no Cloudflare» e o comentário de
+  cabeçalho corrigido (ele afirmava um deploy que não existia).
 
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A
-`tools/lib-cifra.js` (congelada) **não** mudou: ela já aceitava `opcoes.iteracoes`, e o teto é
-parâmetro de quem a chama. As 17 regras, as 22 pétreas, a fórmula do hash e o contrato do
-`check-pacote.js` seguem iguais. O `-dados.json` do pacote continua obrigatório e continua cifrado.
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A geração, o
+`check-pacote.js`, a âncora, as 17 regras e as 22 pétreas seguem iguais: o que muda é **onde a
+cadeia termina** — no site, e não no repositório.
 
-**Com o quê.** `motor/servidor/cifrar-envelope.js`, `motor/servidor/escrever-ciclo.js`,
-`porta/index.html`, `REGISTRO.md`, `HANDOFF.md`.
+**Com o quê.** `.github/workflows/gerar-ciclo.yml`, `REGISTRO.md`, `HANDOFF.md`.
 
-**Referências.** A entrada «A senha de criptografia nasce no Cloudflare (caminho a)» (12/10/2026) —
-o desenho que este defeito impedia de funcionar · `tools/lib-cifra.js` (o esquema) ·
-`motor/servidor/cifrar-envelope.js` (o teto do runtime) · o log do run `38745057624`.
+**Referências.** O elo anterior (15/10/2026) — a prova que expôs o buraco ·
+`.github/workflows/criar-escola.yml` (o padrão de deploy já provado) · `wrangler.barra.jsonc`
+(`assets.directory` = o pacote).
 
 **O que ainda não está feito.**
-- **O deploy do pacote continua MANUAL — e é o maior buraco da cadeia.** O `gerar-ciclo.yml` gera,
-  reancora e **commita** o pacote; o comentário dele diz «o deploy lê o repositório», mas **nenhum
-  workflow faz deploy** e **nenhum Worker está ligado ao Git**: todas as implantações do `barra`
-  têm `source: "wrangler"` (conferido em 15/10/2026). Mesmo com a geração verde, o site só passa a
-  servir o ciclo depois de um `wrangler deploy` à mão. Enquanto isso não for decidido —
-  `wrangler-action` no workflow, Workers Builds ligado ao repositório, ou o deploy manual assumido
-  como parte do fluxo — «um clique e faz tudo» **não** se cumpre.
-- A prova fim-a-fim (PO concluído → pacote publicado no site) **não** foi repetida depois desta
-  correção; é a próxima etapa.
-- `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
-  entrada de 12/10).
-
-**Elo do mesmo dia (15/10/2026) — a prova fim-a-fim foi feita, e passou.** O parágrafo acima («a
-prova fim-a-fim não foi repetida») fica como o elo do que se pensava no momento da correção; o que
-se seguiu o completa.
-
-1. A elicitação do PO foi **repetida** contra o Worker já corrigido. O relatório veio inteiro:
-   `"cifrado": {"ok": true, "caminho": "professores/leticia/ciclos/ciclo-01-barra-dados.cifrado.json"}`
-   e `"escritas": [{"status": 201}]`. O arquivo entrou no repositório (`bf3b08f`), com
-   `_cifrado.iteracoes = 100000` e `apelidos` em claro — o contrato do envelope, intacto.
-2. O workflow disparado pelo mesmo ato desta vez fechou **VERDE** (run #9, `38749662686`,
-   concluído 14:17Z): o `check-pacote.js` **aprovou** o pacote e o bot commitou
-   `chore(entrega): gerar o pacote de leticia/01/barra` (`52da76e`). É a primeira vez que a cadeia
-   «PO concluído → pacote gerado e versionado» se completa sem intervenção.
-3. `tools/gerar-ciclo.sh leticia 01 barra` passou a rodar **na máquina local** (0 erros, 0 avisos,
-   24 verificações) — a condição para o hook pre-commit aceitar o ciclo. Com isso, os **três
-   arquivos da porta** que estavam sincronizados à mão (paliativo declarado no elo anterior)
-   cederam à primeira geração verdadeira, e o `ciclo-01-po-schema.json` entrou com a descrição nova
-   de `dimensoesObservadas`. A árvore ficou limpa: **nenhum** arquivo preso restou.
-4. O pacote foi implantado (`barra`, versão `b3aa4537`) e o site serve o ciclo inteiro: `index`,
-   `plano`, `aula-01`, `captura-aula-01`, `harmonizacao`, `notacao`, `glossario-benesh`,
-   `referencias`, o PDF, o `lancamento.html` e o `ciclo-01-barra-dados.json` cifrado — com as
-   dimensões derivadas do plano («Técnica — Solo · Barra · Centro · Musicalidade · Expressão») na
-   folha de captura.
-
-**O que o passo 4 prova, e o que ele NÃO prova.** O passo 4 exigiu **`wrangler deploy` à mão**: o
-commit do pacote, sozinho, **não** põe o ciclo no ar. Enquanto não houver decisão sobre o deploy
-(ver o primeiro item de «O que ainda não está feito»), o «Gerar» leva o repositório até o pacote
-gerado e **para ali** — e o site continua servindo o estado da última implantação manual.
+- O passo de deploy **não** foi exercitado numa geração disparada pelo Worker depois desta mudança;
+  é a próxima verificação.
+- `SENHAS_LOCAIS` continua como secret do GitHub sem uso (a montagem foi removida em 12/10). Ela
+  **não** cobre a `SENHA_CRIPTO` da Barra: com o caminho (a) funcionando, o CI não precisa de senha
+  nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
+- As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
+  para todo ciclo gerado por este workflow, qualquer escola.
 
 ## O que está pendente
-
-## 14/10/2026 — O PO completo chega inteiro aos derivados (frente B10)
-
-(a) As chaves novas só aparecem num PO **gerado de novo**: as
-fontes já escritas (`ciclo-01-maria-po.md`) não as têm, e não há envelope no repositório para as
-re-derivar — o caminho fica provado em teste, não em dado real. (b) `norma` continua saindo como
-lacuna declarada mesmo com a metodologia preenchida: é a decisão de 25/09/2026 (a norma que o
-cabeçalho pede é a METODOLOGIA, um conceito distinto do padrão de referência) — revisitável, mas
-não se muda sem a pesquisadora. (c) `projeto: 'Formação em Balé Clássico'` está escrito à mão em
 
 ## 14/10/2026 — O plano completo chega inteiro aos derivados (frente B11)
 
@@ -324,6 +263,16 @@ nesta sessão e **não** corrigido aqui.
   correção; é a próxima etapa.
 - `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
   entrada de 12/10).
+
+## 15/10/2026 — A geração publica: o deploy entra na cadeia
+
+- O passo de deploy **não** foi exercitado numa geração disparada pelo Worker depois desta mudança;
+  é a próxima verificação.
+- `SENHAS_LOCAIS` continua como secret do GitHub sem uso (a montagem foi removida em 12/10). Ela
+  **não** cobre a `SENHA_CRIPTO` da Barra: com o caminho (a) funcionando, o CI não precisa de senha
+  nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
+- As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
+  para todo ciclo gerado por este workflow, qualquer escola.
 
 ## Pendências anteriores (índice)
 
@@ -462,6 +411,7 @@ nesta sessão e **não** corrigido aqui.
 - **13/10/2026** — A rubrica: o conteúdo alinha-se à decisão (Bloco 10,… → `REGISTRO.md` L11410
 - **13/10/2026** — A grelha não chegava à porta: duas listas brancas… → `REGISTRO.md` L11449
 - **14/10/2026** — A régua da turma mede o critério no LANÇAMENTO (frente… → `REGISTRO.md` L11489
+- **14/10/2026** — O PO completo chega inteiro aos derivados (frente B10) → `REGISTRO.md` L11578
 - PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

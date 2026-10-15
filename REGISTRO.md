@@ -12363,3 +12363,51 @@ se seguiu o completa.
 commit do pacote, sozinho, **não** põe o ciclo no ar. Enquanto não houver decisão sobre o deploy
 (ver o primeiro item de «O que ainda não está feito»), o «Gerar» leva o repositório até o pacote
 gerado e **para ali** — e o site continua servindo o estado da última implantação manual.
+
+## 15/10/2026 — A geração publica: o deploy entra na cadeia
+
+**O que motivou.** A prova fim-a-fim do mesmo dia mostrou o buraco, e ele é o último: o
+`gerar-ciclo.yml` gerava, reancorava e **commitava** o pacote — e parava ali. O site serve os
+**assets do Worker**, que só mudam num `wrangler deploy`. O comentário do workflow dizia «o deploy
+lê o repositório», mas **nenhum** workflow fazia deploy e **nenhum** Worker estava ligado ao Git
+(todas as dez implantações do `barra` são `source: "wrangler"`). O ciclo ficava gerado, versionado
+e **invisível**: o menu seguia sem os documentos derivados, que é exatamente o que a pesquisadora
+relatou («mandei gerar e nada disso foi feito»).
+
+**O que foi decidido.**
+- O **deploy é o último passo do próprio `gerar-ciclo.yml`**, depois do commit do pacote. O pacote
+  gerado **é** o `assets.directory` do Worker da escola (`wrangler.<escola>.jsonc`): publicar é
+  subir o pacote — não há artefato intermediário.
+- **Mesmo padrão do `criar-escola.yml`**, que já subia o motor: `npx wrangler deploy -c
+  wrangler.<escola>.jsonc` com `CLOUDFLARE_API_TOKEN` (secret do GitHub, já existente) e
+  `CLOUDFLARE_ACCOUNT_ID`. **Nenhuma senha de professor ou de escola passa pelo CI** — a decisão de
+  12/10 («a senha nasce no Cloudflare») fica intacta.
+- **Publicar depois de commitar, e nunca depois de uma geração reprovada.** O `check-pacote.js`
+  roda dentro do gerador: um pacote incompleto barra o job antes do commit e do deploy. Publicar um
+  pacote pela metade seria pior que não publicar.
+- A alternativa considerada e **não** escolhida: ligar o repositório à Cloudflare (Workers Builds),
+  que dispensaria o secret mas poria a publicação **fora do repositório** — onde ela não é
+  auditável nem reconstruível por quem lê o projeto.
+
+**Onde entrou.**
+- `.github/workflows/gerar-ciclo.yml` — o passo «Publicar o pacote no Cloudflare» e o comentário de
+  cabeçalho corrigido (ele afirmava um deploy que não existia).
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A geração, o
+`check-pacote.js`, a âncora, as 17 regras e as 22 pétreas seguem iguais: o que muda é **onde a
+cadeia termina** — no site, e não no repositório.
+
+**Com o quê.** `.github/workflows/gerar-ciclo.yml`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** O elo anterior (15/10/2026) — a prova que expôs o buraco ·
+`.github/workflows/criar-escola.yml` (o padrão de deploy já provado) · `wrangler.barra.jsonc`
+(`assets.directory` = o pacote).
+
+**O que ainda não está feito.**
+- O passo de deploy **não** foi exercitado numa geração disparada pelo Worker depois desta mudança;
+  é a próxima verificação.
+- `SENHAS_LOCAIS` continua como secret do GitHub sem uso (a montagem foi removida em 12/10). Ela
+  **não** cobre a `SENHA_CRIPTO` da Barra: com o caminho (a) funcionando, o CI não precisa de senha
+  nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
+- As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
+  para todo ciclo gerado por este workflow, qualquer escola.
