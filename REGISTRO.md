@@ -12232,3 +12232,34 @@ fontes); até lá, qualquer commit que toque o pacote da Barra é recusado pelo 
 `linhaDeBase` do PO da Maria continua com **10 de 11 linhas que não são objeto** — o `traz` multilinha
 da anamnese rompe a tabela markdown (o validador já o avisa); é defeito **pré-existente**, medido
 nesta sessão e **não** corrigido aqui.
+
+**Elo do mesmo dia (15/10/2026, à tarde) — a decisão sobre os quatro arquivos presos.** O dono do
+produto decidiu **esperar**: os quatro arquivos que o hook recusa ficam **fora do repositório** até o
+ciclo da Barra ter a sua aula (que o PO deriva), e então se commitam pelo caminho normal. **Não** se
+usa `--no-verify`, e **não** se completa o ciclo por fora — completá-lo é a frente alheia.
+
+Os quatro, e o que cada um é:
+
+| Arquivo | O que é | Estado |
+|:--|:--|:--|
+| `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/index.html` | a página da porta no pacote da Barra | **deployado** (`80a407a9`), fora do repo |
+| `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/po/conteudo/po.json` | o conteúdo do PO no pacote da Barra | **deployado**, fora do repo |
+| `professores/leticia/ciclos/ciclo-01-barra/plano-observacao/prompts/elicitar-ciclo.md` | a cópia viva do prompt no pacote | **deployado**, fora do repo |
+| `professores/leticia/ciclos/ciclo-01-po-schema.json` | a descrição de `dimensoesObservadas` no schema da Letícia | **não** deployado (o schema não é servido) |
+
+**Para quem vem depois — três coisas que NÃO se devem fazer sem decidir:** (a) **não** reverter estes
+arquivos «para limpar a árvore» — o pacote da Barra está **no ar** com eles, e revertê-los poria o
+site a servir um estado que o repositório já não tem; (b) **não** commitá-los com `--no-verify` por
+iniciativa própria — foi considerado e recusado, e a razão técnica fica dita: o pacote da Barra **não
+é reproduzível pelo gerador** enquanto o ciclo não tiver aula, e commitar uma saída que o gerador não
+reconstrói contraria o princípio de que as saídas são reconstruíveis (P-04); (c) **não** completar o
+ciclo da Barra por fora do fluxo (preencher `DATA_INICIO` e derivar a aula à mão) — isso é a frente
+«o plano elicitado vira a fonte do ciclo», que tem dono, e a completude dela é o que destrava a
+geração.
+
+**Como se destrava, sem intervenção especial:** quando o **PO** da Barra for concluído, o
+`escrever-ciclo.js` deriva as demais fontes — entre elas a aula — e o `DOCS` passa a conhecê-las. A
+partir daí `tools/gerar-ciclo.sh leticia 01 barra` gera, o pacote fica reconstruível, e o commit
+destes quatro passa pelo hook como qualquer outro. A sincronização à mão que os pôs **no ar** (cópia
+da porta com a `gerar_nav` do pacote preservada) é um **paliativo declarado**: a primeira geração
+verdadeira do ciclo sobrescreve-a inteira, e é isso que se espera dela.
