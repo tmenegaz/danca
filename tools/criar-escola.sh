@@ -199,7 +199,15 @@ mkdir -p "$CICLOS_DIR" "$PROF_DIR/cadernos/ciclo-$CICLO" "$PROF_DIR/relatorios/c
 # 2) Schemas do domínio (copiados do modelo — genéricos, sem número de ciclo)
 # ---------------------------------------------------------------------------
 for s in schema po-schema plano-schema aula-schema captura-schema; do
-  cp "$MODELO_DIR/ciclo-$MODELO_CICLO-$s.json" "$CICLOS_DIR/ciclo-$CICLO-$s.json"
+  origem="$MODELO_DIR/ciclo-$MODELO_CICLO-$s.json"
+  destino="$CICLOS_DIR/ciclo-$CICLO-$s.json"
+  # QUANDO O PROFESSOR NOVO **É** O DO MODELO — `MODELO="tiago/01"`, professor=tiago, ciclo=01 —
+  # origem e destino são o MESMO arquivo, e o `cp` recusa («are the same file») com erro; sob
+  # `set -e` o script morre no passo 2. A cópia, aqui, é um no-op legítimo: os schemas já estão
+  # onde a escola precisa deles. Aconteceu em 15/10/2026 — o dono do produto criou a escola
+  # `ponta` (professor `tiago`) e o `criar-escola.yml` morreu duas vezes aqui, com os passos do
+  # deploy e do commit pulados.
+  [ "$origem" = "$destino" ] || cp "$origem" "$destino"
 done
 echo "  schemas: copiados de $MODELO (ciclo-$MODELO_CICLO-*)"
 

@@ -13324,3 +13324,56 @@ ficam. E a conferência dos hashes acima.
 - **A lição de desenho:** o expurgo apaga por PADRÃO DE NOME, e um padrão largo demais apaga o molde.
   Vale a regra que este dia ensinou duas vezes — **o que o sistema precisa para criar coisa nova não
   pode ser apagado pelo que ele usa para apagar coisa velha**.
+
+## 15/10/2026 — Criar escola para o professor do MODELO: o `cp` recusava o próprio arquivo
+
+**O que motivou.** Depois de restaurar os schemas, o `criar-escola.yml` (run #4) **morreu de novo** no
+passo 5 — agora por outra razão, e a mensagem dizia exatamente o quê:
+
+```
+cp: '…/professores/tiago/ciclos/ciclo-01-schema.json' e
+    '…/professores/tiago/ciclos/ciclo-01-schema.json' are the same file
+```
+
+O `MODELO="tiago/01"` (fixo em `tools/criar-escola.sh:42`) e a escola sendo criada para o **próprio
+`tiago`**: a origem e o destino da cópia dos schemas são o **mesmo arquivo**. O `cp` recusa copiar
+sobre si mesmo, devolve erro e, sob `set -e`, o script morre no passo 2 — antes de criar o pacote, o
+config e o índice.
+
+**Por que só apareceu agora.** O modelo era `fokini/01` até o commit `b6c589e` («o expurgo do
+Diaghilev reponta os padrões de tools/»), que o trocou por `tiago/01`. No run #2 (13/10), a escola
+criada foi a **barra** para a **leticia** — origem `tiago/01`, destino `leticia/01`: professores
+diferentes, sem colisão. A colisão só acontece quando **quem cria é o professor do modelo** — que é
+exatamente o caso do dono do produto.
+
+**O que foi decidido.** A cópia passa a ser condicional: quando origem e destino são o mesmo
+caminho, ela é um **no-op legítimo** (os schemas já estão onde a escola precisa deles) e não se
+executa. Uma linha, sem mudar nada do comportamento nos demais casos.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`). O motivo: sem
+esta correção **nenhuma escola nova pode ser criada pelo dono do produto**, porque o professor dele é
+o do modelo — e criar escola é a operação que o botão da raiz existe para fazer. O que **não muda**:
+a fórmula de hash, a cobertura do `.fipp`, os validadores, as 17 regras, as 22 pétreas, os nomes e o
+conteúdo dos schemas, e a estrutura do pacote-zero. Sem reancoragem: `tools/` não é coberto pelo
+`.fipp`.
+
+**Onde entrou.** `tools/criar-escola.sh` — o laço dos schemas passa a comparar origem e destino antes
+de copiar, com a nota do porquê.
+
+**Como foi provado.** O scaffolder foi rodado **localmente** com os inputs exatos do run que falhou
+(`--professor tiago --escola ponta --ciclo 01`): criou o pacote-zero, os dois manifestos, o
+`wrangler.ponta.jsonc` e o `escola/ponta/indice.json`, e **validou** o conf («11 campos obrigatórios
+ok»). Os artefatos da validação foram **descartados** — quem os cria de verdade é o workflow, e o
+guard do scaffolder recusa sobrescrever («a escola/ciclo já existe»).
+
+**Referências.** `tools/criar-escola.sh:42` (o `MODELO`) e `b6c589e` (a troca do modelo) · os elos de
+15/10/2026 anteriores (o expurgo, o `Buffer`, os schemas apagados) · P-03/P-04 · P-17.
+
+**O que ainda não está feito.**
+- **A `ponta` continua sem motor.** O Worker «zero» está no ar com os segredos e responde 200 com
+  «implantação em andamento»; faltam o deploy do motor e o commit do scaffold, que são os passos 6 e
+  7 do workflow. Rodar o workflow de novo é o que se faz em seguida.
+- **O `tools/criar-escola.sh` é o TERCEIRO defeito desta série no mesmo caminho** — e os três têm a
+  mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
+  O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
+  destino.

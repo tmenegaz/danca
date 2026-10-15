@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T14:34:19-0300`
-Commit atual: `30657e5` — fix(estrutura): o expurgo não achava o KV nem preservava o índice da escola
+Gerado em: `2026-10-15T14:39:03-0300`
+Commit atual: `ed76e16` — fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôde nascer
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+ed76e16 fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôde nascer
 30657e5 fix(estrutura): o expurgo não achava o KV nem preservava o índice da escola
 4bee5dc fix(tools): o gerador do HANDOFF quebrava com o repositório sem escola
 67ddfa0 chore(estrutura): expurgar a escola barra
@@ -82,7 +83,6 @@ a45ec58 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
 281c7e1 docs(registro): a SENHA_LETICIA não é inerte — é o login da professora
 83560fc fix(estrutura): a criação da escola diz onde guardar a senha de criptografia
-e3fc795 fix(tools): o guarda do pre-push confere a última linha do arquivo de senhas
 ```
 
 ## Por professor
@@ -136,95 +136,60 @@ e3fc795 fix(tools): o guarda do pre-push confere a última linha do arquivo de s
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O expurgo apagou o MODELO: a escola `ponta` não pôde nascer
+## 15/10/2026 — Criar escola para o professor do MODELO: o `cp` recusava o próprio arquivo
 
-**O que motivou.** O dono do produto criou a escola **ponta** pelo botão. O Worker «zero» subiu e
-respondeu, e o workflow `criar-escola.yml` disparou — e **morreu no passo 5**, o do scaffold:
+**O que motivou.** Depois de restaurar os schemas, o `criar-escola.yml` (run #4) **morreu de novo** no
+passo 5 — agora por outra razão, e a mensagem dizia exatamente o quê:
 
 ```
-erro: ciclo-modelo sem schema: /home/runner/work/danca/danca/professores/tiago/ciclos/ciclo-01-schema.json
-##[error]Process completed with exit code 1
+cp: '…/professores/tiago/ciclos/ciclo-01-schema.json' e
+    '…/professores/tiago/ciclos/ciclo-01-schema.json' are the same file
 ```
 
-Os passos seguintes («Subir o motor completo no Cloudflare», «Commitar o scaffold») ficaram
-**skipped**. O `ponta` ficou servindo o Worker «zero» — que responde `200` com «implantação em
-andamento» e **não tem motor**: nem Bastidores, nem Área do Professor. E o repositório não recebeu
-nada dele (`professores/tiago/` vazio, sem `wrangler.ponta.jsonc`).
+O `MODELO="tiago/01"` (fixo em `tools/criar-escola.sh:42`) e a escola sendo criada para o **próprio
+`tiago`**: a origem e o destino da cópia dos schemas são o **mesmo arquivo**. O `cp` recusa copiar
+sobre si mesmo, devolve erro e, sob `set -e`, o script morre no passo 2 — antes de criar o pacote, o
+config e o índice.
 
-**A causa — e é minha.** `tools/criar-escola.sh` tem `MODELO="tiago/01"` fixo no script (linha 42):
-o **modelo de que nasce toda escola nova** são os schemas de `professores/tiago/ciclos/`. E o expurgo
-da maria — no elo de 15/10/2026 anterior — **apagou esses schemas**, porque a minha regra de
-«arcabouço do ciclo» os incluía, com a justificativa de que «o manifesto BASE carrega o nome da
-escola dentro». **O nome está no `ciclo-NN.conf`, não nos schemas.** Eu estendi a razão de um
-arquivo para cinco, e o resultado foi apagar o molde do sistema.
+**Por que só apareceu agora.** O modelo era `fokini/01` até o commit `b6c589e` («o expurgo do
+Diaghilev reponta os padrões de tools/»), que o trocou por `tiago/01`. No run #2 (13/10), a escola
+criada foi a **barra** para a **leticia** — origem `tiago/01`, destino `leticia/01`: professores
+diferentes, sem colisão. A colisão só acontece quando **quem cria é o professor do modelo** — que é
+exatamente o caso do dono do produto.
 
-E não parou aí: o mesmo expurgo apagou o `ciclo-01.conf` do `tiago`, que era o **manifesto de
-modelo** — esse ao menos era gerado pelo scaffolder, e não se perde.
+**O que foi decidido.** A cópia passa a ser condicional: quando origem e destino são o mesmo
+caminho, ela é um **no-op legítimo** (os schemas já estão onde a escola precisa deles) e não se
+executa. Uma linha, sem mudar nada do comportamento nos demais casos.
 
-**O que foi decidido.**
-- **Os schemas do ciclo NUNCA entram na limpeza.** Em nenhuma das duas metades. Eles são o modelo:
-  o scaffolder os copia e **recusa criar** quando não existem. A regra passa a olhar só o
-  **manifesto base** (`ciclos/ciclo-NN.conf`), que é a única peça que carrega o nome da escola
-  dentro — e que, além disso, **bloqueia** a criação de uma nova escola no mesmo ciclo («a
-  escola/ciclo já existe»), porque o scaffolder recusa sobrescrever.
-- **As duas metades continuam classificando o mesmo arquivo do mesmo jeito**: no Worker,
-  `manifestoBaseDoCiclo`; no espelho local, `ehManifestoBaseDoCiclo`. A condição do manifesto é a
-  mesma das duas: sai só quando **não sobra outra escola** daquele professor **naquele ciclo**.
-- **A invariante ganhou prova**: «os schemas do ciclo NUNCA entram no que o expurgo apaga» e «o
-  MODELO do sistema está preservado depois do expurgo» — as duas no banco de provas da rota.
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`). O motivo: sem
+esta correção **nenhuma escola nova pode ser criada pelo dono do produto**, porque o professor dele é
+o do modelo — e criar escola é a operação que o botão da raiz existe para fazer. O que **não muda**:
+a fórmula de hash, a cobertura do `.fipp`, os validadores, as 17 regras, as 22 pétreas, os nomes e o
+conteúdo dos schemas, e a estrutura do pacote-zero. Sem reancoragem: `tools/` não é coberto pelo
+`.fipp`.
 
-**Os reparos.**
-- Os 5 schemas foram **restaurados do próprio histórico do Git** (`21d8dcf^`, o estado imediatamente
-  antes do expurgo da maria) e conferidos por hash contra o original: `992edabb…`, `121c1fe9…`,
-  `44a398c5…`, `69ef266e…`, `48892eb0…`. Nada foi inventado.
-- O `ciclo-01.conf` **não** foi restaurado — ele é gerado pelo scaffolder, com o nome da escola: é o
-  próprio `criar-escola.sh` que o escreve ao criar a `ponta`.
+**Onde entrou.** `tools/criar-escola.sh` — o laço dos schemas passa a comparar origem e destino antes
+de copiar, com a nota do porquê.
 
-**Como foi provado.** O banco de provas da rota (31 provas) com a invariante nova; os dois casos do
-expurgo local numa árvore de teste — caso A (a maria era a única escola do tiago): os **5 schemas
-ficam**, o manifesto sai; caso B (o tiago ainda tem a «outra»): o **manifesto fica**, os 5 schemas
-ficam. E a conferência dos hashes acima.
+**Como foi provado.** O scaffolder foi rodado **localmente** com os inputs exatos do run que falhou
+(`--professor tiago --escola ponta --ciclo 01`): criou o pacote-zero, os dois manifestos, o
+`wrangler.ponta.jsonc` e o `escola/ponta/indice.json`, e **validou** o conf («11 campos obrigatórios
+ok»). Os artefatos da validação foram **descartados** — quem os cria de verdade é o workflow, e o
+guard do scaffolder recusa sobrescrever («a escola/ciclo já existe»).
 
-**Referências.** `tools/criar-escola.sh:42` (o `MODELO="tiago/01"`) e `:169` (a recusa) · os elos de
-15/10/2026 anteriores (o expurgo, o botão, o `Buffer`) · P-03/P-04 · P-17.
+**Referências.** `tools/criar-escola.sh:42` (o `MODELO`) e `b6c589e` (a troca do modelo) · os elos de
+15/10/2026 anteriores (o expurgo, o `Buffer`, os schemas apagados) · P-03/P-04 · P-17.
 
 **O que ainda não está feito.**
-- **A escola `ponta` NÃO existe de verdade.** O Worker «zero» está no ar e responde, mas sem motor e
-  sem nada no repositório. Falta rodar o `criar-escola.yml` de novo — e é o que se faz em seguida.
-- **O `ciclo-01.conf` do `tiago` não existe** no repositório: o scaffolder vai gerá-lo ao criar a
-  `ponta`.
-- **A lição de desenho:** o expurgo apaga por PADRÃO DE NOME, e um padrão largo demais apaga o molde.
-  Vale a regra que este dia ensinou duas vezes — **o que o sistema precisa para criar coisa nova não
-  pode ser apagado pelo que ele usa para apagar coisa velha**.
+- **A `ponta` continua sem motor.** O Worker «zero» está no ar com os segredos e responde 200 com
+  «implantação em andamento»; faltam o deploy do motor e o commit do scaffold, que são os passos 6 e
+  7 do workflow. Rodar o workflow de novo é o que se faz em seguida.
+- **O `tools/criar-escola.sh` é o TERCEIRO defeito desta série no mesmo caminho** — e os três têm a
+  mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
+  O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
+  destino.
 
 ## O que está pendente
-
-## 15/10/2026 — O expurgo da escola sai do comando e vira botão, na raiz
-
-- **O expurgo da Barra e da Maria não foi executado.** O botão está no ar e provado nas duas
-  metades; quem clica é o dono do produto — é o que ele pediu. Nada foi apagado até aqui.
-- **A metade do Cloudflare não foi provada ao vivo.** `excluirEscola` é código que já existia (a
-  varredura agendada), mas o `SENHA_RAIZ` é **write-only**: não há como testar a rota autenticada sem
-  trocar a senha do dono, e trocar não se faz. O que se provou foi o portão (401) e a presença dos
-  três secrets no Worker (`CLOUDFLARE_API_TOKEN`, `GITHUB_TOKEN`, `SENHA_RAIZ`).
-- **A limpeza do KV depende de o `wrangler.<slug>.jsonc` ser legível.** Sem ele, ou ilegível, o
-  expurgo cai no slug e **não toca no KV** — de propósito: o namespace é compartilhado, e apagar o
-  errado apaga o dado de outra escola.
-- **A varredura agendada (§17.5) continua no andaime** — `escolas-habilitadas.json` + prazo — e
-  lista só a `maria`. Ela e o botão são dois caminhos para a mesma coisa; unificá-los (ou aposentar o
-  andaime) é decisão do dono do produto, e não foi tomada.
-- **`escola/expurgar.js` não apaga o `LOGIN_<PESSOA>` do professor** — nem ele nem a rota. Se o
-  professor ficar sem escola, aquele login não abre mais nada, mas a linha fica: a pessoa pode entrar
-  em outra escola, e é a mesma linha que a serviria.
-- **Criar a escola nova — do começo ao fim — ainda não aconteceu.** É o próximo passo, e é do dono do
-  produto.
-- **A tabela de escolas do `README.md` (linhas 112 e seguintes) cita a Maria e a Barra**, e os
-  exemplos de deploy citam `wrangler.maria.jsonc`. Depois do expurgo aquilo fica **mentindo**. Não
-  entrou no automatismo de propósito: é prosa de gente numa tabela editada à mão, e um regex que
-  reescreve tabela erra mais do que acerta. Fica como passo declarado, a fazer junto com o expurgo.
-- **`raiz/escolas-habilitadas.json` lista a `maria`** — é o andaime da varredura agendada, e ele
-  **não** é tocado pelo botão. Expurgada a Maria por ali, o Cron seguinte procuraria uma escola que
-  já não existe (a chamada falha e o relatório do Cron diz).
 
 ## 15/10/2026 — O expurgo apagava a escola e deixava o cadastro das alunas no KV
 
@@ -285,6 +250,16 @@ nenhum outro script: é a última linha da saída do comando.
 - **A lição de desenho:** o expurgo apaga por PADRÃO DE NOME, e um padrão largo demais apaga o molde.
   Vale a regra que este dia ensinou duas vezes — **o que o sistema precisa para criar coisa nova não
   pode ser apagado pelo que ele usa para apagar coisa velha**.
+
+## 15/10/2026 — Criar escola para o professor do MODELO: o `cp` recusava o próprio arquivo
+
+- **A `ponta` continua sem motor.** O Worker «zero» está no ar com os segredos e responde 200 com
+  «implantação em andamento»; faltam o deploy do motor e o commit do scaffold, que são os passos 6 e
+  7 do workflow. Rodar o workflow de novo é o que se faz em seguida.
+- **O `tools/criar-escola.sh` é o TERCEIRO defeito desta série no mesmo caminho** — e os três têm a
+  mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
+  O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
+  destino.
 
 ## Pendências anteriores (índice)
 
@@ -435,7 +410,7 @@ nenhum outro script: é a última linha da saída do comando.
 - **15/10/2026** — O arquivo de senhas vira um espelho por escola → `REGISTRO.md` L12633
 - **15/10/2026** — A chave de cifra vira interna do Worker: ninguém a vê,… → `REGISTRO.md` L12713
 - **15/10/2026** — O lançamento da aula confere a senha e grava cifrado no… → `REGISTRO.md` L12826
-- Material de campo de **tiago**: 0 evento(s) versionado(s).
+- **15/10/2026** — O expurgo da escola sai do comando e vira botão, na raiz → `REGISTRO.md` L12908
 
 ## Documentos-chave (para leitura)
 
