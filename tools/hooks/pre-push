@@ -45,7 +45,14 @@ alerta() { printf 'pre-push: ALERTA — %s\n' "$1" >&2; erros=$((erros + 1)); }
 # --- 1) as senhas não podem estar no que está versionado ---------------------
 if [ -f "$SENHAS" ]; then
   n=0
-  while IFS='=' read -r nome valor; do
+  # O `|| [ -n "$nome" ]` NÃO é enfeite: `read` devolve falso ao chegar ao fim do arquivo
+  # sem quebra de linha, e o laço terminaria SEM processar a última linha — justamente a que
+  # acabou de ser escrita. Medido em 15/10/2026: um `.senhas-locais` cuja última linha era a
+  # chave REAL da escola (`SENHA_BARRA`, sem `\n` no fim) era lido como «as 2 senha(s) ok»,
+  # com a chave de verdade fora da conferência. Reprodução: um valor igual a «professores»
+  # — que existe em centenas de arquivos versionados — passava como ok, sem alerta e sem
+  # ruído. Guarda que pisca os olhos na última linha não guarda nada.
+  while IFS='=' read -r nome valor || [ -n "$nome" ]; do
     case "$nome" in ''|'#'*) continue ;; esac
     valor="${valor%\"}"; valor="${valor#\"}"
     valor="${valor%\'}"; valor="${valor#\'}"

@@ -12427,3 +12427,63 @@ respondem 200.
 escrever as fontes → cifrar → gerar → validar → commitar → **publicar**. Deixou de haver passo
 manual entre o PO concluído e o menu do ciclo no ar. O que continua sendo decisão humana é **o quê**
 se gera — não **como** chega ao site.
+
+## 15/10/2026 — O guarda do pre-push passa a conferir a última linha do arquivo de senhas
+
+**O que motivou.** A pesquisadora perguntou o que fazer quando criar a próxima escola, já que cada
+escola nasce com a **sua** `SENHA_CRIPTO`. A resposta expôs duas coisas — esta entrada é a primeira
+delas, e é um defeito **medido**, não uma suspeita:
+
+O `tools/hooks/pre-push` lê o arquivo das senhas com `while IFS='=' read -r nome valor`. O `read`
+devolve **falso** ao chegar ao fim do arquivo **sem quebra de linha**, e o corpo do laço não roda
+para essa linha — **sem erro, sem aviso e sem ruído**. Um `.senhas-locais` que termine sem `\n`
+tem a sua última linha **silenciosamente fora da conferência**. E a última linha é, por construção,
+a **mais nova** — a senha da escola recém-criada.
+
+A reprodução, com o guarda como estava (arquivo de teste terminando em `"`, sem `\n`, cuja última
+senha tem por valor a palavra `professores`, que existe em centenas de arquivos versionados):
+
+```
+pre-push: ok — as 1 senha(s) de senhas-teste não estão em arquivo versionado
+```
+
+Uma senha que **deveria** ser acusada passava como «ok». E o caso não era hipotético: o arquivo
+real da pesquisadora tinha `SENHA_CRIPTO` — renomeada a `SENHA_BARRA` no mesmo dia, porque é esse o
+nome que a `lib-senhas.sh` procura — como **última linha, sem `\n`**. O guarda dizia «as 2 senha(s)
+ok» conferindo as duas que **não** são chave de verdade (são placeholders de escola de teste), com a
+única chave real fora.
+
+**O que foi decidido.**
+- O laço passa a usar o idioma que processa a última linha sem quebra:
+  `while IFS='=' read -r nome valor || [ -n "$nome" ]`.
+- **Nada mais muda** no guarda: continuam as **duas** conferências (a senha em arquivo versionado; o
+  acompanhamento em texto puro versionado), continua a **exceção das escolas de teste** lida de
+  `tools/.escolas-teste`, continua a leitura da senha de `tools/.senhas-locais` (uma definição só) e
+  continua o contrato de saída (código 1 quando há alerta, com a lista no `stderr`).
+- A lição fica escrita **no próprio hook**, junto do idioma — quem mexer ali depois vai ler por que
+  o `|| [ -n "$nome" ]` não é enfeite.
+
+**Motivo declarado — os congelados.** `tools/` está congelado. O motivo: **o guarda não cumpria o
+que declara**. Ele existe para impedir que uma senha de escola saia de casa em arquivo versionado, e
+deixava de conferir exatamente a linha mais recente — com um «ok» na tela, que é pior que um silêncio
+honesto. Este commit **muda comportamento** (uma linha que antes passava sem exame passa a ser
+conferida), e por isso foi levado à pesquisadora **antes** de ser feito, como o `CONGELAMENTO.md`
+exige — não contornado. O que **não** muda: as conferências, a lista de exceções, o formato do
+`.senhas-locais`, o significado do código de saída, e nenhum arquivo de ciclo (a âncora `.fipp` não
+cobre `tools/`, então **não há reancoragem**).
+
+**Onde entrou.**
+- `tools/hooks/pre-push` — o laço da conferência 1 e o comentário que explica o idioma.
+
+**Com o quê.** `tools/hooks/pre-push`, `REGISTRO.md`.
+
+**Referências.** `CONGELAMENTO.md` (`tools/`) · `tools/lib-senhas.sh` (a convenção
+`SENHA_<ESCOLA>`, que está na origem do sintoma que levou ao defeito) · o elo de 15/10/2026 «a cifra
+do Worker respeita o teto do runtime» (o erro de CI que expôs o arquivo com o nome errado).
+
+**O que ainda não está feito.**
+- Não há **teste automatizado** para o hook: a prova foi a reprodução manual acima. O hook aceita
+  `SENHAS_LOCAIS=<arquivo>` (caminho trocável), então um teste é possível — mas não existe.
+- O defeito irmão, agora que a última linha é lida: uma senha com `=` no valor. O `read` com
+  `IFS='='` devolve o resto ao último campo, o que preserva `a=b`; **não foi medido**, e fica dito
+  como não verificado em vez de suposto.
