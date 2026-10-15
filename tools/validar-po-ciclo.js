@@ -26,12 +26,28 @@ const path = require('path');
 
 // Títulos em português do documento → propriedades do schema
 const MAPA_SECOES = {
+  // O ÂMBITO que o cabeçalho fixa (Bloco 1 do formulário): qual plano se observa e o horizonte.
+  'plano de ensino': 'planoDeEnsino',
+  'horizonte': 'horizonte',
   'pergunta': 'question',
   'fenômeno': 'phenomenon',
   'fenomeno': 'phenomenon',
   'campo empírico': 'field',
   'contexto': 'context',
+  // O ESCOPO OBSERVADO (Bloco 2): as dimensões e os itens de cada uma. Sem estas duas, o escopo
+  // existia só na folha de captura — o documento que o professor assina não dizia o que observa.
+  'dimensões observadas': 'dimensoesObservadas',
+  'itens de cada dimensão': 'itensPorDimensao',
+  // A metodologia e a notação vêm do PLANO (P-16). A seção era EMITIDA pela derivação e não
+  // estava neste mapa: o `po-XX.json` do pacote não a recebia, e a ligação L5 (`metodologia e
+  // notação chegam ao PO`) morria no caminho, em silêncio.
+  'metodologia e notação': 'metodologiaENotacao',
   'sujeitos': 'subjects',
+  // As FLUTUANTES e as RESTRIÇÕES FÍSICAS (P-22) são nós próprios. Viajavam como um bullet
+  // dentro de `Sujeitos` e como um `###` dentro de `Linha de base` — e o extrator, que lê linha
+  // a linha, as recebia como itens daqueles campos (`subjects: ["Vavá", "**Flutuantes:** …"]`).
+  'flutuantes': 'flutuantes',
+  'restrições físicas declaradas (p-22)': 'restricoes',
   'norma estabelecida': 'norma',
   'linha de base': 'linhaDeBase',
   'critérios de inclusão': 'inclusionCriteria',
@@ -40,6 +56,10 @@ const MAPA_SECOES = {
   'justificativa': 'justification',
   'condições de contorno da execução': 'condicoesDeContorno',
   'limitações': 'limitations',
+  // OS MÓDULOS CONDICIONAIS (dois `##` com dois `###` cada): quatro nós respondíveis que não
+  // chegavam a documento nenhum.
+  'horizonte do conjunto': 'horizonteDoConjunto',
+  'compromisso de reavaliação': 'compromissoDeReavaliacao',
   'checklist de validação': 'validationChecklist',
 };
 
@@ -61,7 +81,7 @@ const DECLARACAO = { secoes: MAPA_SECOES, colunas: MAPA_COLUNAS };
 // O CONTRATO DE EXTRACAO vive em tools/lib-extracao-md.js -- definicao UNICA: o PO e o
 // plano leem pelo MESMO contrato. Aqui fica o que e DESTE documento: o mapa das secoes
 // (titulo em portugues -> campo do schema) e a validacao contra o schema.
-const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao } = require('./lib-extracao-md.js');
+const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao, avisosDeSecaoNaoMapeada } = require('./lib-extracao-md.js');
 const { validar } = require('./lib-validacao-md.js');
 
 function main() {
@@ -97,13 +117,14 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos: avisosDaExtracao, secoesSoCitacao } = extrair(linhas, schema, DECLARACAO);
+  const { campos, avisos: avisosDaExtracao, secoesSoCitacao, secoesNaoMapeadas } = extrair(linhas, schema, DECLARACAO);
   // A VALIDAÇÃO É DA LIB (lib-validacao-md.js): obrigatórios, tipos, avisos da regra de
   // tabela e provisórios. As lacunas declaradas saem em `lacunas`, para o tool decidir.
   const { erros, avisos: avisosDaValidacao, provisorios } = validar(campos, schema,
     { arrayVazio: 'o recorte precisa de ao menos um item' });
   const avisos = [...avisosDaExtracao, ...avisosDaValidacao,
-    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas)];
+    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas),
+    ...avisosDeSecaoNaoMapeada(secoesNaoMapeadas, linhas)];
 
   const pendentes = Object.entries(campos.validationChecklist || {})
     .filter(([, marcado]) => marcado !== true).map(([k]) => k);

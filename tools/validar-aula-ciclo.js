@@ -42,7 +42,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao } = require('./lib-extracao-md.js');
+const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao, avisosDeSecaoNaoMapeada } = require('./lib-extracao-md.js');
 const { validar } = require('./lib-validacao-md.js');
 
 // Títulos em português do documento → propriedades do schema. As CHAVES do mapa são o título
@@ -145,7 +145,7 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos: avisosDaExtracao, secoesSoCitacao } = extrair(linhas, schema, DECLARACAO);
+  const { campos, avisos: avisosDaExtracao, secoesSoCitacao, secoesNaoMapeadas } = extrair(linhas, schema, DECLARACAO);
   const lacunasSemLugar = aplicarLacunas(campos);
   if (lacunasSemLugar.length) campos._lacunas = lacunasSemLugar;
 
@@ -153,7 +153,8 @@ function main() {
   // tabela e provisórios. As lacunas declaradas saem em `lacunas`, para o tool decidir.
   const { erros, avisos: avisosDaValidacao, provisorios } = validar(campos, schema, {});
   const avisos = [...avisosDaExtracao, ...avisosDaValidacao,
-    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas)];
+    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas),
+    ...avisosDeSecaoNaoMapeada(secoesNaoMapeadas, linhas)];
 
   if (json) {
     process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);

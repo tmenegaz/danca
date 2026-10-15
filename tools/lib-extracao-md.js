@@ -165,9 +165,24 @@ function extrair(linhas, schema, declaracao) {
   let secaoTeveConteudo = false;
   let secaoTeveCitacao = false;
   let subcampoDaSecao = null;
+
+  // A SEÇÃO QUE O MAPA NÃO CONHECE — o defeito irmão do de cima, e mais caro: o `## Título`
+  // que não está no mapa é DESCARTADO em silêncio (o extrator não abre seção nenhuma), e o
+  // conteúdo sai do documento sem que nada o diga. Foi assim que a `## Distribuição do volume
+  // pelos blocos` do plano ficou três ciclos fora do `plano-XX.json` — o mapa esperava
+  // «… (regra 9, etapa 2)», um sufixo que documento nenhum escreve —, e que o `## Contexto`
+  // do plano (doze fatos declarados) nunca chegou à máquina. Só ENTRA aqui a seção que TINHA
+  // conteúdo: uma seção vazia não perdeu dado nenhum, e uma seção só com citação já sai no
+  // aviso próprio (sem conteúdo, não há o que dizer duas vezes).
+  const secoesNaoMapeadas = [];
+  let tituloNaoMapeado = null;
+
   const fecharSecao = () => {
     if (tituloDaSecao && secaoTeveCitacao && !secaoTeveConteudo) {
       secoesSoCitacao.push({ titulo: tituloDaSecao, campo: secao, subcampo: subcampoDaSecao });
+    }
+    if (tituloNaoMapeado && secaoTeveConteudo && !secoesNaoMapeadas.includes(tituloNaoMapeado)) {
+      secoesNaoMapeadas.push(tituloNaoMapeado);
     }
   };
 
@@ -251,6 +266,7 @@ function extrair(linhas, schema, declaracao) {
       secao = secoes[normalizar(h2[1])] || null;
       subcampo = null;
       tituloDaSecao = h2[1];
+      tituloNaoMapeado = secao ? null : h2[1];
       subcampoDaSecao = null;
       secaoTeveConteudo = false;
       secaoTeveCitacao = false;
@@ -332,7 +348,7 @@ function extrair(linhas, schema, declaracao) {
   }
   despejarTabela();          // a última tabela do documento
   fecharSecao();             // e a última seção
-  return { campos, avisos, secoesSoCitacao };
+  return { campos, avisos, secoesSoCitacao, secoesNaoMapeadas };
 }
 
 function tipoDe(v) {
@@ -368,6 +384,36 @@ function avisosDeSecaoSoCitacao(secoes, linhas) {
   });
 }
 
+/**
+ * O AVISO NOMEADO para cada seção cujo título não está no mapa das seções — ver
+ * `secoesNaoMapeadas`, acima.
+ *
+ * Existe pelo mesmo motivo do irmão de citação, com o ônus invertido: ali o conteúdo era
+ * citação e o campo não nascia; aqui o conteúdo é bom e o documento não tem onde guardá-lo.
+ * O sintoma dos dois é o MESMO — um campo ausente — e a causa é oposta. Sem este aviso, a
+ * falha é invisível: o validador imprime `ok`, o pacote sai sem o campo e ninguém sabe que o
+ * mapa e o documento divergiram num caractere. É o que aconteceu com a distribuição do
+ * volume do plano (o mapa esperava um sufixo «(regra 9, etapa 2)» que documento nenhum
+ * escreve) e com o `## Contexto` — doze fatos declarados e nenhum extraído.
+ *
+ * A localização sai do TÍTULO, achado nas linhas do documento: é o endereço que quem edita
+ * o `.md` usa.
+ *
+ * @param {string[]} titulos  os títulos (sem o `##`) que o mapa não conhece e que TINHAM conteúdo
+ * @param {string[]} linhas   as mesmas linhas passadas a `extrair`, para localizar o título
+ * @returns {string[]} um aviso por título
+ */
+function avisosDeSecaoNaoMapeada(titulos, linhas) {
+  return (titulos || []).map((titulo) => {
+    const i = (linhas || []).findIndex((l) => l.trim() === `## ${titulo}`);
+    const onde = i >= 0 ? ` (linha ${i + 1})` : '';
+    return `seção '## ${titulo}'${onde}: o título não está no mapa das seções —`
+      + ' o conteúdo NÃO chega a campo nenhum do documento derivado.'
+      + ' Dê-lhe destino (o título no `MAPA_SECOES` do validador e a propriedade no schema)'
+      + ' ou tire o `##` do que é prosa de leitura.';
+  });
+}
+
 module.exports = {
   // o contrato
   extrair,
@@ -376,4 +422,6 @@ module.exports = {
   lerYamlCabecalho, normalizar, tipoDe,
   // o aviso nomeado da seção só com citação (comum ao PO e ao plano — definição única)
   avisosDeSecaoSoCitacao,
+  // e o da seção que o mapa das seções não conhece (o conteúdo que sairia calado)
+  avisosDeSecaoNaoMapeada,
 };

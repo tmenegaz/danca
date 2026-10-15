@@ -24,17 +24,44 @@
 
 const fs = require('fs');
 const path = require('path');
-const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao } = require('./lib-extracao-md.js');
+const { extrair, lerYamlCabecalho, avisosDeSecaoSoCitacao, avisosDeSecaoNaoMapeada } = require('./lib-extracao-md.js');
 const { validar } = require('./lib-validacao-md.js');
 
 // Títulos em português do documento → propriedades do schema. As CHAVES do mapa são o título
 // em minúsculas: é assim que o contrato normaliza o `## Seção` para procurar.
 const MAPA_SECOES = {
+  // O CONTEXTO (Bloco 1) — doze fatos que o professor declara e que NÃO chegavam ao derivado:
+  // o título estava fora do mapa, e uma seção fora do mapa é descartada em silêncio. O
+  // `plano-XX.json` do pacote saía sem escola, turma, frequência, duração, calendário, número
+  // de aulas, volume, registro, metodologia nem notação — e o `ciclo` logo abaixo (a ficha do
+  // ciclo) saía inteiro em `[Preencher]`, com os valores escritos doze linhas acima. Quem lê o
+  // plano pela máquina (as vistas e o guia) não os via. É a tabela item/valor do bloco, e é
+  // `PARES` que a manda para o objeto `contexto`.
+  'contexto': 'contexto',
   'objetivo geral': 'objetivoGeral',
   'marcos parciais por aula': 'marcosPorAula',
   'estrutura de cada aula': 'estruturaDeCadaAula',
+  // O TÍTULO DO DOCUMENTO, e o ALIAS do título antigo. O mapa pedia só «… pelos blocos (regra 9,
+  // etapa 2)» — um sufixo com o número da regra que a derivação NÃO escreve: a distribuição do
+  // volume ficou fora do `plano-XX.json` de todo plano gerado pelo sistema, e o guia imprimia
+  // «Lacunas — distribuição do volume» sobre uma tabela preenchida. O alias fica porque há
+  // documento no repositório que escreve o título longo (`experimentos/simulacao-marau`), e ele
+  // extraía antes desta correção: preservar o que já funcionava é parte do contrato.
+  'distribuição do volume pelos blocos': 'distribuicaoDeVolume',
   'distribuição do volume pelos blocos (regra 9, etapa 2)': 'distribuicaoDeVolume',
+  // A RÉGUA virou seção própria (14/10/2026): é uma LISTA de níveis — o que o lançamento da
+  // aula lê para marcar. O cabeçalho da tabela da rubrica perde o rótulo no extrator (vira
+  // chave), e é por isso que a régua viaja em lista.
+  'régua da rubrica': 'reguaDaRubrica',
   'rubrica de avaliação final': 'rubrica',
+  // As duas condições e o critério de extensão: seções que o documento sempre teve e o mapa
+  // não conhecia — e o mesmo silêncio.
+  'condições preliminares': 'condicoesPreliminares',
+  'critério de extensão': 'criterioDeExtensao',
+  // A MÚSICA e o REPERTÓRIO: dois nós respondíveis que não tinham SEÇÃO (falha da derivação,
+  // não do mapa) e que por isso não chegavam a documento nenhum.
+  'músicas e vídeos': 'musicasVideos',
+  'repertório': 'repertorio',
   'registro de proveniência': 'proveniencia',
   'calendário do ciclo': 'calendario',
 };
@@ -53,8 +80,9 @@ const MAPA_COLUNAS = {
 };
 
 // Os blocos cuja tabela é ITEM/VALOR. No plano, a identificação do ciclo está sob "Objetivo
-// geral" — o mesmo bloco tem a prosa (objetivoGeral) e a tabela (ciclo).
-const PARES = { objetivoGeral: 'ciclo' };
+// geral" — o mesmo bloco tem a prosa (objetivoGeral) e a tabela (ciclo). O `## Contexto` é a
+// outra tabela item/valor do documento, e vai para o objeto próprio (`contexto`).
+const PARES = { objetivoGeral: 'ciclo', contexto: 'contexto' };
 
 const DECLARACAO = { secoes: MAPA_SECOES, colunas: MAPA_COLUNAS, pares: PARES };
 
@@ -119,7 +147,8 @@ function main() {
   }
 
   const meta = lerYamlCabecalho(linhas);
-  const { campos, avisos: avisosDaExtracao, secoesSoCitacao } = extrair(linhas, schema, DECLARACAO);
+  const { campos, avisos: avisosDaExtracao, secoesSoCitacao, secoesNaoMapeadas } =
+    extrair(linhas, schema, DECLARACAO);
   const lacunasSemLugar = aplicarLacunas(campos);
   if (lacunasSemLugar.length) campos._lacunas = lacunasSemLugar;
 
@@ -127,7 +156,8 @@ function main() {
   // tabela e provisórios. As lacunas declaradas saem em `lacunas`, para o tool decidir.
   const { erros, avisos: avisosDaValidacao, provisorios } = validar(campos, schema, {});
   const avisos = [...avisosDaExtracao, ...avisosDaValidacao,
-    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas)];
+    ...avisosDeSecaoSoCitacao(secoesSoCitacao, linhas),
+    ...avisosDeSecaoNaoMapeada(secoesNaoMapeadas, linhas)];
 
   if (json) {
     process.stdout.write(`${JSON.stringify(campos, null, 2)}\n`);
