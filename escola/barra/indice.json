@@ -1,40 +1,72 @@
 {
   "escola": "barra",
-  "worker": "barra",
-  "criado_em": "2026-10-13T11:19:19.854587+00:00",
   "professor": {
-    "slug": "leticia",
-    "nome": "Letícia"
+    "slug": "leticia"
   },
-  "responsavel": "Letícia",
   "ciclo": "01",
   "senha": {
-    "chave": "SENHA_CRIPTO",
-    "arquivo": "Worker (secret)"
+    "chave": "SENHA_BARRA",
+    "arquivo": "tools/.senhas-locais"
   },
-  "estado": {
-    "habilitada": true
-  },
-  "arquivos": [
+  "arquivos": [],
+  "expurgo": [
     {
-      "caminho": "professores/leticia/ciclos/ciclo-01.conf",
-      "tipo": "manifesto base"
-    },
-    {
-      "caminho": "professores/leticia/ciclos/ciclo-01-barra.conf",
-      "tipo": "manifesto variante"
-    },
-    {
-      "caminho": "professores/leticia/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
-      "tipo": "schemas"
-    },
-    {
-      "caminho": "professores/leticia/ciclos/ciclo-01-barra/",
-      "tipo": "pacote zero"
-    },
-    {
-      "caminho": "wrangler.barra.jsonc",
-      "tipo": "config do Worker"
+      "em": "2026-10-15T17:15:02.992Z",
+      "motivo": "expurgada pela página «Nós, Por Exemplo»",
+      "apagado": [
+        "professores/leticia/ciclos/ciclo-01-barra-aula-01.fipp",
+        "professores/leticia/ciclos/ciclo-01-barra-aula-01.md",
+        "professores/leticia/ciclos/ciclo-01-barra-captura-aula-01.md",
+        "professores/leticia/ciclos/ciclo-01-barra-dados.cifrado.json",
+        "professores/leticia/ciclos/ciclo-01-barra-dados.json",
+        "professores/leticia/ciclos/ciclo-01-barra-glossario-benesh.md",
+        "professores/leticia/ciclos/ciclo-01-barra-harmonizacao.md",
+        "professores/leticia/ciclos/ciclo-01-barra-notacao.md",
+        "professores/leticia/ciclos/ciclo-01-barra-plano.md",
+        "professores/leticia/ciclos/ciclo-01-barra-po.md",
+        "professores/leticia/ciclos/ciclo-01-barra-referencias.md",
+        "professores/leticia/ciclos/ciclo-01-barra.conf",
+        "professores/leticia/ciclos/ciclo-01-barra.fipp",
+        "professores/leticia/ciclos/ciclo-01-barra/README.md",
+        "professores/leticia/ciclos/ciclo-01-barra/assets/lib-cifra.js",
+        "professores/leticia/ciclos/ciclo-01-barra/assets/lib-vistas.js",
+        "professores/leticia/ciclos/ciclo-01-barra/assets/nav.js",
+        "professores/leticia/ciclos/ciclo-01-barra/assets/rizoma-corrigido.svg",
+        "professores/leticia/ciclos/ciclo-01-barra/assets/rizoma-slide.svg",
+        "professores/leticia/ciclos/ciclo-01-barra/assets/style.css",
+        "professores/leticia/ciclos/ciclo-01-barra/aula-01.html",
+        "professores/leticia/ciclos/ciclo-01-barra/captura-01.json",
+        "professores/leticia/ciclos/ciclo-01-barra/captura-aula-01.html",
+        "professores/leticia/ciclos/ciclo-01-barra/captura-aula-01.json",
+        "professores/leticia/ciclos/ciclo-01-barra/ciclo-01-barra-dados.json",
+        "professores/leticia/ciclos/ciclo-01-barra/ciclo-01-barra.pdf",
+        "professores/leticia/ciclos/ciclo-01-barra/ciclos.json",
+        "professores/leticia/ciclos/ciclo-01-barra/glossario-benesh.html",
+        "professores/leticia/ciclos/ciclo-01-barra/harmonizacao.html",
+        "professores/leticia/ciclos/ciclo-01-barra/index.html",
+        "professores/leticia/ciclos/ciclo-01-barra/lancamento.html",
+        "professores/leticia/ciclos/ciclo-01-barra/notacao.html",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-01.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-aula-01-anterior.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-aula-01.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/assets/markdown.js",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/conteudo/anamnese.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/index.html",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/plano/conteudo/plano.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/po/conteudo/po.json",
+        "professores/leticia/ciclos/ciclo-01-barra/plano-observacao/prompts/elicitar-ciclo.md",
+        "professores/leticia/ciclos/ciclo-01-barra/plano.html",
+        "professores/leticia/ciclos/ciclo-01-barra/po-01.json",
+        "professores/leticia/ciclos/ciclo-01-barra/referencias.html",
+        "wrangler.barra.jsonc",
+        "professores/leticia/ciclos/ciclo-01-aula-schema.json",
+        "professores/leticia/ciclos/ciclo-01-captura-schema.json",
+        "professores/leticia/ciclos/ciclo-01-plano-schema.json",
+        "professores/leticia/ciclos/ciclo-01-po-schema.json",
+        "professores/leticia/ciclos/ciclo-01-schema.json",
+        "professores/leticia/ciclos/ciclo-01.conf"
+      ]
     }
   ]
 }
