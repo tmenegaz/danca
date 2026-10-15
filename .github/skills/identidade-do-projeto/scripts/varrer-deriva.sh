@@ -17,6 +17,12 @@
 #   FIPP          — quando o FIPP é descrito como implementado AQUI
 #
 # Os três aparecem legitimamente em vários documentos; leia o contexto da linha.
+#
+# A FRONTEIRA DE PALAVRA em `agnóstic` não é enfeite (15/10/2026): sem ela o padrão
+# casa DENTRO de «Diagnóstico» — e o documento de planejamento do produto, que diz
+# «Diagnóstico» a cada parágrafo, passava a ser acusado inteiro pela varredura. Um
+# aviso que soa em todo lugar é ruído, e o ruído é o que faz a deriva de verdade
+# passar despercebida: `\b` exclui o «Di» e mantém o achado legítimo.
 # ============================================================================
 set -uo pipefail
 
@@ -49,7 +55,7 @@ if [ "${#existentes[@]}" -eq 0 ]; then
 fi
 
 printf '== deriva de identidade (mestrado | agnóstico | agostico) ==\n'
-grep -nE 'mestrado|agnóstic|agnostico' "${existentes[@]}" 2>/dev/null || echo '  (nenhum)'
+grep -nE 'mestrado|\bagnóstic|\bagnostico' "${existentes[@]}" 2>/dev/null || echo '  (nenhum)'
 
 printf '\n== FIPP — confira a ressalva de escopo em cada contexto ==\n'
 grep -nE 'FIPP' "${existentes[@]}" 2>/dev/null || echo '  (nenhum)'
@@ -57,7 +63,7 @@ grep -nE 'FIPP' "${existentes[@]}" 2>/dev/null || echo '  (nenhum)'
 printf '\n== .github/ (agentes, instructions, prompts) ==\n'
 if [ -d .github ]; then
   # Exclui a própria skill: ela cita os termos de deriva por definição.
-  grep -rnE 'mestrado|agnóstic|agnostico|FIPP' .github \
+  grep -rnE 'mestrado|\bagnóstic|\bagnostico|FIPP' .github \
     --exclude-dir=skills 2>/dev/null || echo '  (nenhum)'
 else
   echo '  (.github/ ausente nesta raiz)'

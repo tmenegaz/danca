@@ -1,5 +1,14 @@
 # Projeto Ciclo — visão geral
 
+> **Nome comercial.** O produto é o **Sistema Lastro**; este repositório é o **Projeto Ciclo** — o
+> protótipo a partir do qual ele se constrói. Os dois nomes convivem e a convivência é declarada
+> (não é renomeação): **Lastro** (marca curta) · **Sistema Lastro** (o sistema) ·
+> **Plataforma Lastro** (a solução tecnológica) · `Lastro — Sistema de Memória e Observabilidade
+> Pedagógica em Dança` (**proposta** de denominação descritiva). O conceito central é o mesmo:
+> o Lastro registra e organiza evidências para apoiar a reflexão pedagógica; **não substitui o
+> professor nem toma decisões sobre o aluno.** O mapa de evolução do produto —
+> [PLANEJAMENTO-LASTRO.md](PLANEJAMENTO-LASTRO.md).
+
 > **O que este projeto é e por quê → [`METODO.md`](METODO.md)**
 >
 > **Ideias futuras → [`IDEIA-CAPTURA.md`](IDEIA-CAPTURA.md) ·

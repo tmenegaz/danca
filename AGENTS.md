@@ -2,6 +2,15 @@
 
 ## O que é este projeto (leia antes de qualquer coisa)
 
+**Nome comercial:** o produto é o **Sistema Lastro** — e este repositório é o **Projeto Ciclo**, o
+protótipo a partir do qual ele se constrói. Os dois nomes convivem, e a convivência é declarada
+(não é renomeação): **Lastro** (a marca curta) · **Sistema Lastro** (o sistema como um todo) ·
+**Plataforma Lastro** (quando se destaca a solução tecnológica) · `Lastro — Sistema de Memória e
+Observabilidade Pedagógica em Dança` (**proposta** de denominação descritiva, não subtítulo
+confirmado). O conceito central da marca é o mesmo do projeto: o Lastro **registra e organiza
+evidências para apoiar a reflexão pedagógica; não substitui o professor nem toma decisões sobre o
+aluno.** O mapa de evolução do produto é [PLANEJAMENTO-LASTRO.md](PLANEJAMENTO-LASTRO.md).
+
 **Projeto Ciclo** — a **memória da aula dada**. Cada aula é **planejada** antes de ser dada: o
 plano (`aula-NN.md`, que entra na âncora de proveniência) fixa objetivo, marcos e volume, e é ele
 que dá a **linha de base**. O que a memória registra é o processo de ensino-aprendizagem que de

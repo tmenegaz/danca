@@ -19,6 +19,7 @@ o passo 7 ("verificar") confere. **Ordem = ordem de leitura real.**
 | 12 | `.github/agents/ciclo-auditor.agent.md` | livre | seção `## Escopo do projeto` | após a frase de papel — **o plano é artefato a conferir, não a dispensar** |
 | 13 | `.github/instructions/ciclo-fontes.instructions.md` | livre | 1º parágrafo do corpo | após o `#` título |
 | 14 | `.github/skills/instalar-ciclo/SKILL.md` | livre | item nas "Travas" | `## Travas` |
+| 15 | `PLANEJAMENTO-LASTRO.md` | livre | nota de escopo no topo, **e o nome comercial** | `> **Escopo.**` (§ o nome e o que ele designa) |
 
 ## Fora do escopo de identidade
 

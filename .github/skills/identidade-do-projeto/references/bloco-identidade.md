@@ -65,7 +65,31 @@ porta de leitura errada.
 | "…de fato se aplicou, **não o que foi planejado**" | "…cada aula é **planejada**, e o plano é a **linha de base**; o que se registra é **o que mudou** em relação a ele" |
 | "a IA gera o relatório" | "a IA conduz a Elicitação; o relatório registra o que o professor respondeu" |
 
-## A armadilha de leitura, declarada
+## O nome comercial — a camada do produto
+
+O **produto** tem nome comercial próprio; o **repositório** continua a ser o Projeto Ciclo. Os
+dois convivem, e a convivência é **declarada** — não é renomeação, e não é deriva:
+
+| Nível | Forma | Quando usar |
+|:--|:--|:--|
+| Marca curta | **Lastro** | onde o contexto já é o produto (interface, assinatura, ícone) |
+| Sistema | **Sistema Lastro** | o sistema como um todo (documentação, contrato, apresentação) |
+| Solução | **Plataforma Lastro** | quando se destaca a solução tecnológica (infraestrutura, integração) |
+| Descrição | **Lastro — Sistema de Memória e Observabilidade Pedagógica em Dança** | documentos técnicos e apresentações — **proposta** de denominação descritiva, **não** subtítulo confirmado |
+
+> **O conceito central da marca é o mesmo do projeto:** o Lastro **registra e organiza evidências
+> para apoiar a reflexão pedagógica; não substitui o professor nem toma decisões sobre o aluno.**
+
+Onde ele é **documentado** (14/10/2026): `HANDOFF.md` (emitido por `tools/gerar-handoff.sh`, no
+topo de `## O que é este projeto`), `AGENTS.md`, `README.md` e `PLANEJAMENTO-LASTRO.md` (o mapa de
+evolução do produto).
+
+**Não é deriva** — ao contrário das frases da tabela acima, **«Lastro» e «Sistema Lastro» são a
+identidade CERTA** do produto. A deriva seria: descrever o repositório como se ele **fosse** o
+produto acabado (não é — é o protótipo), ou trocar «Projeto Ciclo» por «Sistema Lastro» como se o
+projeto tivesse sido renomeado (não foi). A divergência é de **camada**, não de identidade.
+
+
 
 Três trechos são **verdadeiros** e mesmo assim induzem ao erro:
 
