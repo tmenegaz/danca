@@ -35,6 +35,12 @@ total_regras="$(awk '/^## As 17 regras/{f=1;next} /^## /{f=0} f' REGRAS.md 2>/de
 
 # --- professores, ciclos e variantes ---------------------------------------
 professores="$(ls -1d professores/*/ 2>/dev/null | sed 's|professores/||; s|/$||' | LC_ALL=C sort || true)"
+# `variantes` nasce VAZIA. Ela é preenchida dentro do laço de professores (abaixo) e usada no
+# resumo final — mas com ZERO professores o laço não roda e, sob `set -u`, o resumo quebrava
+# («variantes: variável não associada»). Descoberto em 15/10/2026, quando as duas escolas de
+# teste foram expurgadas: é o estado de um repositório recém-nascido, e o HANDOFF é o primeiro
+# artefato que uma sessão nova lê.
+variantes=""
 
 # --- ideias documentadas (IDEIA-*.md e ARQUITETURA-*.md na raiz) -------------
 # Uma ideia é documento de INTENÇÃO, não de estado: fica fora do CONGELAMENTO, e
