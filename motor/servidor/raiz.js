@@ -63,6 +63,78 @@ function responderJson(objeto, status) {
 }
 
 /**
+ * O QUE UM PEDIDO DE «CRIAR ESCOLA» PRECISA TER — e por que isto é uma FUNÇÃO.
+ *
+ * Aqui havia uma linha só:
+ *
+ *     if (!nome || !senhaAdmin || !professorNome || !senhaProfessor) → 400
+ *
+ * Ela estava ERRADA, e a dona do produto levou o erro em 15/10/2026. O formulário oferece DOIS
+ * caminhos para o professor — criar um NOVO (nome + sobrenome) ou REUTILIZAR um que já tem
+ * pasta —, e a linha exigia o nome nos DOIS. Escolher o professor que já existe e deixar o nome
+ * em branco (como o próprio formulário manda, e como ele desabilita o campo) devolvia:
+ *
+ *     informe o nome da escola, a senha do administrador, o nome e a senha do professor
+ *
+ * …uma mensagem que **contradizia o formulário** e não dizia QUAL campo faltava: ela recitava os
+ * quatro, e quem tinha preenchido três não sabia qual era o quarto. Agora a validação é POR
+ * CAMINHO e nomeia o campo que falta, um por vez.
+ *
+ * A UNICIDADE DO SLUG NÃO MORA AQUI: ela precisa do repositório (`listarProfessores`) para saber
+ * o que já existe. Esta função é só a FORMA do pedido — sem I/O, e por isso provável sozinha.
+ */
+function validarCriacaoEscola(corpo) {
+  const p = corpo || {};
+  const campos = {
+    nome: String(p.nome || '').trim(),
+    senhaAdmin: String(p.senhaAdmin || p['senha-admin'] || ''),
+    professorNome: String(p.professorNome || p['professor-nome'] || '').trim(),
+    professorSobrenome: String(p.professorSobrenome || p['professor-sobrenome'] || '').trim(),
+    professorExistente: String(p.professorExistente || p['professor-existente'] || '').trim(),
+    senhaProfessor: String(p.senhaProfessor || p['senha-professor'] || ''),
+  };
+
+  // O que vale nos DOIS caminhos.
+  if (!campos.nome) return { ok: false, status: 400, erro: 'informe o nome da escola' };
+  if (!campos.senhaAdmin) {
+    return { ok: false, status: 400, erro: 'informe a senha do administrador (a direção da escola)' };
+  }
+  if (!campos.senhaProfessor) return { ok: false, status: 400, erro: 'informe a senha do professor' };
+
+  // O REÚSO TEM PRECEDÊNCIA: se veio um professor escolhido da lista, é ele. O nome em branco
+  // é o certo aqui, não um campo esquecido — e exigir o nome deste lado era o defeito.
+  if (campos.professorExistente) return { ok: true, modo: 'existente', campos };
+  if (!campos.professorNome) {
+    return { ok: false, status: 400, erro: 'informe o nome do professor — ou escolha um professor que já existe' };
+  }
+  return { ok: true, modo: 'novo', campos };
+}
+
+/**
+ * `tiago-menegaz` → `Tiago Menegaz`. O nome de exibição quando o sistema NÃO tem o nome dele.
+ *
+ * `listarProfessores` colhe o nome do `indice.json` das escolas do professor — e um professor
+ * que ainda não tem escola nenhuma (o diretório-modelo `tiago`) não tem índice: vem `nome: null`.
+ * No reúso, cair para `''` era GRAVE, por dois motivos que só aparecem quando acontecem:
+ *
+ *   1. `criarEscola` só grava o secret `PROFESSOR_NOME` **quando o nome vem preenchido**. Sem
+ *      esse secret, o slug do dono é `slugificar('')` = `''` — a escola nasce **sem dono capaz
+ *      de entrar**, e o portão da Produção não reconhece ninguém;
+ *   2. o workflow `criar-escola.yml` declara `professor-nome` e `responsavel` como
+ *      `required: true` — vazios, o disparo volta 422 e o motor completo não sobe.
+ *
+ * O nome que volta do slug é o mesmo que o gerou (o slug SAI do nome), e para `tiago` dá
+ * exatamente `Tiago`. Não é invenção: é a volta de uma ida.
+ */
+function tituloDoSlug(slug) {
+  return String(slug || '')
+    .split('-')
+    .filter(Boolean)
+    .map((p) => p.charAt(0).toUpperCase() + p.slice(1))
+    .join(' ');
+}
+
+/**
  * Lê JSON COM COMENTÁRIOS — os `wrangler.<escola>.jsonc` são jsonc, e `JSON.parse` recusa
  * `//`. O corte respeita as strings: `"https://…"` continua inteiro. Devolve `null` se,
  * mesmo limpo, o texto não for JSON — quem chama trata como «não sei ler» e não inventa.
@@ -392,22 +464,13 @@ async function fetch(request, env) {
     }
     try {
       const corpo = await request.json();
-      const nome = String(corpo.nome || '').trim();
-      const senhaAdmin = String(corpo.senhaAdmin || '');
-      const professorNome = String(corpo.professorNome || corpo['professor-nome'] || '').trim();
-      const professorSobrenome = String(corpo.professorSobrenome || corpo['professor-sobrenome'] || '').trim();
-      const professorExistente = String(corpo.professorExistente || corpo['professor-existente'] || '').trim();
-      const senhaProfessor = String(corpo.senhaProfessor || corpo['senha-professor'] || '');
       // O professor criado na página é SEMPRE o dono da escola (a direção). A marcação
       // «é o dono?» saiu do formulário: quem cria é a pesquisadora, e o professor inicial
       // é a pessoa de contato da escola — o nome pode ser ajustado nos Bastidores.
       const professorEhDono = true;
-      if (!nome || !senhaAdmin || !professorNome || !senhaProfessor) {
-        return new Response(JSON.stringify({ ok: false, erro: 'informe o nome da escola, a senha do administrador, o nome e a senha do professor' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json;charset=utf-8' },
-        });
-      }
+      const valido = validarCriacaoEscola(corpo);
+      if (!valido.ok) return responderJson({ ok: false, erro: valido.erro }, valido.status);
+      const { nome, senhaAdmin, professorNome, professorSobrenome, professorExistente, senhaProfessor } = valido.campos;
 
       // O SLUG DO PROFESSOR É A PASTA `professores/<slug>/` — e essa pasta é do SISTEMA, não
       // da escola: guarda o pacote, os cadernos, os relatórios e as âncoras. Duas pessoas com
@@ -429,7 +492,10 @@ async function fetch(request, env) {
           });
         }
         professor = achado.slug;
-        nomeDeExibicao = achado.nome || professorNome;
+        // O nome de um professor que JÁ EXISTE vem do sistema — e quando ele ainda não tem
+        // escola nenhuma (o diretório-modelo `tiago`), o índice não existe e sobra o slug.
+        // NUNCA vazio: é este nome que vira o secret `PROFESSOR_NOME` e o `responsavel`.
+        nomeDeExibicao = achado.nome || tituloDoSlug(achado.slug);
       } else {
         // O sobrenome (ou apelido) é exigido: sem ele, dois homônimos produzem o mesmo slug.
         if (!professorSobrenome) {
@@ -484,10 +550,14 @@ async function fetch(request, env) {
             ref: 'main',
             inputs: {
               professor,
-              'professor-nome': professorNome,
+              // O NOME DE EXIBIÇÃO, não o primeiro nome. É ele que o scaffolder grava no
+              // `indice.json` (`professor.nome`), e é DO ÍNDICE que a lista de professores da
+              // página tira o nome que mostra. Com o primeiro nome só, dois homônimos
+              // apareceriam os dois como «Tiago» — exatamente o que o sobrenome veio separar.
+              'professor-nome': nomeDeExibicao,
               escola: escola.escola,
               'escola-nome': nome,
-              responsavel: professorNome,
+              responsavel: nomeDeExibicao,
               ciclo: '01',
               frequencia: '2x/semana',
               dias: '2@19:00,4@19:00',
@@ -523,4 +593,4 @@ async function fetch(request, env) {
 // expurgo faz ANTES de apagar qualquer coisa, e a única que pode ser respondida sem apagar
 // nada. Exportada, ela é provável no runtime real (o defeito que ela sofreu — `Buffer` num
 // runtime que não o tem — passou por todos os testes em Node sem ser visto).
-module.exports = { fetch, scheduled, expurgar, moradaDaEscola };
+module.exports = { fetch, scheduled, expurgar, moradaDaEscola, validarCriacaoEscola, tituloDoSlug };
