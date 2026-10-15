@@ -1,0 +1,40 @@
+{
+  "escola": "ponta",
+  "worker": "ponta",
+  "criado_em": "2026-10-15T17:39:44.721678+00:00",
+  "professor": {
+    "slug": "tiago",
+    "nome": "Tiago"
+  },
+  "responsavel": "Tiago",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "estado": {
+    "habilitada": true
+  },
+  "arquivos": [
+    {
+      "caminho": "professores/tiago/ciclos/ciclo-01.conf",
+      "tipo": "manifesto base"
+    },
+    {
+      "caminho": "professores/tiago/ciclos/ciclo-01-ponta.conf",
+      "tipo": "manifesto variante"
+    },
+    {
+      "caminho": "professores/tiago/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
+      "tipo": "schemas"
+    },
+    {
+      "caminho": "professores/tiago/ciclos/ciclo-01-ponta/",
+      "tipo": "pacote zero"
+    },
+    {
+      "caminho": "wrangler.ponta.jsonc",
+      "tipo": "config do Worker"
+    }
+  ]
+}
