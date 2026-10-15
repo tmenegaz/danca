@@ -8,13 +8,14 @@ type: Ciclo
 professor: Letícia
 ciclo: 01
 variante: barra
-hash_conteudo: 232a219da6aca3aed5aa1f7c34049b01590d197370980025b46af1daeee0edd1
+hash_conteudo: 73709159b46a1979856c1c41f1bbc3d26297cc873df8fe18e58a144c4ad6b928
 parentHash: 
-hash: 70f3f0635164edbc0b4b38f49183e31c5348a063c62967e40aecc4f3829e9cc0
+hash: dbff824c4e17f66784bc5eb833aa42d34864d066a5ffae1f1fe3fb904172c49f
 algoritmo: SHA-256
 po: ausente — este ciclo ainda não tem PO declarado
 po_state: 
-ancorado_em: 2026-10-13
+ancorado_em: 2026-10-15
 cobertura:
+  - professores/leticia/ciclos/ciclo-01-barra-plano.md
   - professores/leticia/ciclos/ciclo-01-barra.conf
   - professores/leticia/ciclos/ciclo-01.conf
