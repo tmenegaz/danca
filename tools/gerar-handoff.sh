@@ -42,8 +42,10 @@ professores="$(ls -1d professores/*/ 2>/dev/null | sed 's|professores/||; s|/$||
 # reconstruir a conversa que a gerou. O resumo vem da linha que o próprio
 # documento declara (`> **Resumo (para o HANDOFF):**`); sem ela, vale o título.
 # Dois padrões de propósito: `IDEIA-*` (o porquê) e `ARQUITETURA-*` (o como) —
-# pares de documentos sobre a mesma ideia.
-ideias="$(ls -1 IDEIA-*.md IDEIAS-*.md ARQUITETURA-*.md 2>/dev/null || true)"
+# pares de documentos sobre a mesma ideia. `PLANEJAMENTO-*` (14/10/2026) é o
+# terceiro: o MAPA DE EVOLUÇÃO do produto (as frentes de trabalho, com escopo e
+# critérios) — nem intenção solta nem arquitetura, o plano do que vem.
+ideias="$(ls -1 IDEIA-*.md IDEIAS-*.md ARQUITETURA-*.md PLANEJAMENTO-*.md 2>/dev/null || true)"
 
 # ciclos de um professor: números dos manifestos base (ciclo-XX.conf)
 ciclos_de() {
@@ -57,13 +59,23 @@ variantes_de() {
 }
 
 {
-  echo "# Handoff — Projeto Ciclo"
+  echo "# Handoff — Projeto Ciclo (o produto é o Sistema Lastro)"
   echo
   echo "Gerado em: \`$data_iso\`"
   echo "Commit atual: \`$commit_curto\` — $commit_msg"
   echo "Para: sessão nova (retomar o diálogo)"
   echo
   echo "## O que é este projeto"
+  echo
+  echo "**Nome comercial:** o produto é o **Sistema Lastro** — e este repositório é o **Projeto"
+  echo "Ciclo**, o protótipo a partir do qual ele se constrói. Os dois nomes convivem, e a"
+  echo "convivência é declarada (não é renomeação): **Lastro** é a marca curta; **Sistema Lastro**"
+  echo "é o sistema como um todo; **Plataforma Lastro** destaca a solução tecnológica; e"
+  echo "\`Lastro — Sistema de Memória e Observabilidade Pedagógica em Dança\` é a **proposta** de"
+  echo "denominação descritiva (proposta, não subtítulo confirmado). O conceito central não muda:"
+  echo "o Lastro **registra e organiza evidências para apoiar a reflexão pedagógica; não substitui"
+  echo "o professor nem toma decisões sobre o aluno.** O mapa de evolução do produto está em"
+  echo "\`PLANEJAMENTO-LASTRO.md\`."
   echo
   echo "**A memória da aula dada** — cada aula é **planejada** antes de ser dada: o plano"
   echo "(\`aula-NN.md\`, fonte da âncora) fixa objetivo, marcos e volume, e é ele que dá a"
