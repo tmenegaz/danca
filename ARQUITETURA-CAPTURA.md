@@ -253,6 +253,19 @@ Se não → campos em branco
 Professor marca os valores no formulário
 ```
 
+> **Nota datada — 14/10/2026. O critério ganhou régua, e a régua é da turma.** As cinco marcas
+> (`✓ ok · ~ parcial · X não aconteceu · ? não vi`, com o vazio = *não observei*) continuam sendo o
+> registro de **o que se observa** — a linha de base revisitada, por exemplo. Mas o **critério** de
+> cada aula (as linhas que a folha rotula «Critério») passou a se medir pela **régua da turma**: os
+> níveis que a escola declara nos bastidores (Turmas) e que o professor **adota no plano do ciclo**.
+> A régua viaja no plano (`## Régua da rubrica`, extraída para `plano-XX.json` como
+> `reguaDaRubrica`) e o formulário a **lê** para montar o campo de cada critério — sem ela no
+> pacote (ciclo antigo), valem os quatro níveis padrão do motor. O **tipo** da coluna é que decide
+> o registro: `rubrica` (o critério) ou `marca` (o que só se observa). Consequência para a leitura:
+> o nível sai pelo **rótulo da régua** (e o tom segue a **posição** do nível, não o nome — a escola
+> renomeia os níveis), e um valor lançado sob uma régua anterior continua visível e selecionável.
+> Ver `REGISTRO.md` (14/10/2026) e `experimentos/provar-lancamento.js`.
+
 ### 3.3 Depois da aula
 
 ```

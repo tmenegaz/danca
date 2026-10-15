@@ -156,6 +156,29 @@ function mapa(conteudo) {
          Não confundir com `colunas` (o NÚMERO de colunas da escolha múltipla do histórico):
          são coisas diferentes, e por isso esta viaja aninhada. */
       tabela: no.tabela || null,
+      /* A LISTA NUMERADA (o marco parcial): `{minimo}`. Caminha como a `tabela` — sem
+         esta linha o nó cai no texto livre, e o professor volta a escrever tudo numa
+         caixa só em vez de um marco por linha. */
+      lista: no.lista || null,
+      /* A ESCALA FIXA (a régua da rubrica): os níveis decididos, só de leitura. */
+      escala: no.escala || null,
+      /* O RITMO DA TURMA (frequência, duração, calendário, nº de aulas): o nó lê o
+         cadastro da turma em vez de perguntar. */
+      daTurma: no.daTurma || null,
+      /* O que a direção ATRIBUIU no plano (a turma curada): o nó filtra e pré-marca. */
+      daCuradoria: no.daCuradoria || null,
+      /* A MATRIZ POR MARCO (blocos da aula, parâmetro de medição): uma linha por marco. */
+      porMarco: no.porMarco || null,
+      /* A CONDIÇÃO DE REGISTRO: os dois grupos de marcação (presentes × quem observa). */
+      registro: no.registro || null,
+      /* OS VALORES de uma ESCOLHA (a origem declarada do plano): a lista marcável do
+         conteúdo. No caminho da anamnese/PO eles vêm da `forma` (quebrada por «·»); aqui
+         vêm DECLARADOS, porque no plano a forma é a frase da pergunta e a lista é própria.
+         Sem esta linha o nó cai no texto livre — e uma escolha de cinco opções vira prosa. */
+      valores: Array.isArray(no.valores) ? no.valores : [],
+      /* O RÓTULO DA LINHA LIVRE («…ou declare outra origem») — o conteúdo declara o que a
+         linha do fim é, para um nó de escolha não dizer sempre «outra prática». */
+      abertoRotulo: no.abertoRotulo || null,
       /* A folha DERIVADA do checklist: o sistema pré-preenche-a, e o selo da tela diz
          «pré-preenchido» em vez de «opcional». */
       derivado: no.derivado === true,

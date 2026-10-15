@@ -180,15 +180,36 @@ function folhaDoChecklist(chave, valor, envelope, plano) {
   return inferirFolha(chave, envelope, plano);
 }
 
-// O nome humano de cada folha do checklist — o professor lê o nome, não a chave.
+// O nome humano de cada folha do checklist — o professor lê o nome, o extrator lê a chave.
+//
+// ESTES RÓTULOS SÃO OS DO CONTEÚDO, e aqui são só a RESERVA: quem gera o PO passa os rótulos do
+// conteúdo (`opcoes.rotulos`, vindo de `porta/po/conteudo/po.json`). Quatro deles já tinham
+// derivado do campo que o formulário mostra («Fronteiras do escopo claras» → «Fronteiras claras»,
+// «Norma claramente estabelecida» → «Padrão estabelecido», «Critérios mutuamente exclusivos» →
+// «Critérios que não se sobrepõem», «Justificativa fundamentada» → «Justificação com base»): o
+// professor marcava um item e o documento assinava outro. A prova
+// (`experimentos/provar-po-completo.js`) confere este mapa contra o conteúdo, para a reserva não
+// voltar a derivar em silêncio.
 const ROTULO_DO_CHECKLIST = {
   phenomenonOperationallyDefined: 'Fenómeno definido de forma observável',
-  scopeBoundariesClear: 'Fronteiras claras',
-  normClearlyEstablished: 'Padrão estabelecido',
-  criteriaMutuallyExclusive: 'Critérios que não se sobrepõem',
-  justificationGrounded: 'Justificação com base',
+  scopeBoundariesClear: 'Fronteiras do escopo claras',
+  normClearlyEstablished: 'Norma claramente estabelecida',
+  criteriaMutuallyExclusive: 'Critérios mutuamente exclusivos',
+  justificationGrounded: 'Justificativa fundamentada',
   cutFeasible: 'Âmbito viável',
 };
+
+/** Os rótulos do checklist, por id do nó — o que o conteúdo declara (para quem os tem à mão). */
+function rotulosDoChecklist(conteudoPO) {
+  const mapa = {};
+  const blocos = (conteudoPO && conteudoPO.blocos) || [];
+  for (const bloco of blocos) {
+    for (const campo of bloco.campos || []) {
+      if (campo && campo.id && campo.campo) mapa[campo.id] = campo.campo;
+    }
+  }
+  return mapa;
+}
 
 /**
  * A derivação: o envelope elicitado vira o Markdown da fonte do PO.
@@ -202,33 +223,96 @@ const ROTULO_DO_CHECKLIST = {
  * na geração. Sem `plano`, essas partes saem como lacuna declarada — nunca se inventa dado.
  */
 
-// Uma linha `Rótulo: valor` composta, pulando o que não veio; `[a decidir]` quando nada veio.
-function comporLinhasDePlano(plano, pares) {
-  const linhas = [];
-  for (const [rotulo, valor] of pares) {
-    const composto = valor === null || valor === undefined || valor === '' ? null : String(valor);
-    linhas.push(rotulo + ': ' + (composto || '[a decidir]'));
+// A CONDIÇÃO DE REGISTRO em texto — quem está na sala e quem observa. Ela deixou de ser prosa:
+// o professor MARCA (o professor e as alunas já vêm marcados; o observador, ele escolhe). Aqui
+// ela volta a ser a frase que o documento lê — a mesma no PO e no plano. Um valor em texto
+// (plano antigo) passa como veio: proveniência não reescreve.
+function condicaoDeRegistroEmTexto(valor) {
+  if (valor === null || valor === undefined) return null;
+  if (typeof valor !== 'object' || Array.isArray(valor)) {
+    const texto = String(valor).trim();
+    return texto || null;
   }
-  return linhas.join(' · ');
+  const lista = (v) => (Array.isArray(v)
+    ? v.map((x) => String(x == null ? '' : x).trim()).filter(Boolean)
+    : []);
+  const presentes = lista(valor.presentes);
+  const observa = lista(valor.observa);
+  const partes = [];
+  if (presentes.length) partes.push('na sala: ' + presentes.join(', '));
+  if (observa.length) partes.push('observa: ' + observa.join(', '));
+  const outro = String(valor.outro == null ? '' : valor.outro).trim();
+  if (outro) partes.push('outra condição: ' + outro);
+  if (!partes.length) return null;
+  const frase = partes.join(' · ');
+  return frase.charAt(0).toUpperCase() + frase.slice(1) + '.';
 }
 
-// As turmas observadas — o plano passou a aceitar MAIS de uma (multipla), e o PO as lê
-// como lista. Nada inventa: o que veio vazio sai como lacuna.
-function comporTurmas(valor) {
-  const turmas = emLista(valor);
-  return turmas.length ? turmas.join(' · ') : null;
+// ---------------------------------------------------------------------------
+// OS RÓTULOS DO CONTEXTO — a FONTE ÚNICA dos pares que o PO compõe lendo o PLANO.
+//
+// Eles estavam escritos à mão em DOIS derivadores (`derivar-po.js` e `derivar-plano-ciclo.js`,
+// que derivam o PO e o plano), e três já tinham derivado do rótulo que o formulário mostra
+// (`Turmas` onde o campo é «Turmas observadas», `Escola` onde é «Escola / espaço»): o professor
+// lia um nome no formulário e outro no documento. Aqui eles são declarados UMA vez, e a prova
+// (`experimentos/provar-po-completo.js`) confere cada um contra o `campo` declarado no conteúdo
+// do plano (`porta/plano/conteudo/plano.json`) — que é onde o formulário os lê.
+const ROTULOS_DO_CONTEXTO = {
+  'contexto-escola': 'Escola / espaço',
+  'contexto-professor': 'Professor responsável',
+  'contexto-turma': 'Turmas observadas',
+  'contexto-frequencia': 'Frequência semanal',
+  'contexto-duracao': 'Duração por aula',
+  'contexto-calendario': 'Calendário',
+  'contexto-total-aulas': 'Número total de aulas',
+  'contexto-volume': 'Volume de trabalho',
+  'contexto-registro': 'Condição de registro',
+  'contexto-metodologia': 'Metodologia de referência',
+  'contexto-metodologia-origem': 'Quem escolhe a metodologia',
+  'contexto-notacao': 'Notação dominada',
+};
+
+// Os COMPOSITORES: o valor CRU do envelope do plano vira o texto que o documento lê. O plano
+// guarda o número e a unidade como OBJETO (`{vezes, por, dias}`, `{min, unidade}`), a turma como
+// LISTA e o registro como marcação — e cada um tem a sua composição. Sem esta tabela, o
+// `comporLinhasDePlano` genérico escreveria `[object Object]` no documento.
+const COMPOR_DO_CONTEXTO = {
+  'contexto-turma': (v) => {
+    const turmas = emLista(v);
+    return turmas.length ? turmas.join(' · ') : null;
+  },
+  'contexto-frequencia': comporPeriodicidade,
+  'contexto-duracao': comporMedida,
+  'contexto-calendario': comporData,
+  'contexto-volume': comporMedida,
+  'contexto-registro': condicaoDeRegistroEmTexto,
+};
+
+// Uma linha `Rótulo: valor` composta, pulando o que não veio; `[a decidir]` quando nada veio.
+// Os pares chegam por ID do plano (`contexto-*`) e o rótulo vem do mapa acima: quem chama não
+// repete o nome do campo, e não há como o documento divergir do formulário em silêncio.
+// `substituicoes` troca o valor de um id (o PO lê a ESCOLA dele, não a do plano).
+function comporLinhasDePlano(plano, ids, substituicoes) {
+  const troca = substituicoes || {};
+  const linhas = [];
+  for (const id of ids) {
+    const cru = Object.prototype.hasOwnProperty.call(troca, id)
+      ? troca[id] : respostaDo(plano, id);
+    const compor = COMPOR_DO_CONTEXTO[id];
+    const composto = (compor ? compor(cru) : cru);
+    const rotulo = ROTULOS_DO_CONTEXTO[id] || id;
+    const vazio = composto === null || composto === undefined || composto === '';
+    linhas.push(rotulo + ': ' + (vazio ? '[a decidir]' : String(composto)));
+  }
+  return linhas.join(' · ');
 }
 
 // O CAMPO EMPÍRICO do PO (escola, turma, frequência, duração por aula). A escola é do PO
 // (a declaração própria do âmbito); turma, frequência e duração vêm do plano referenciado.
 function comporCampoEmpirico(envelope, plano) {
   const escola = respostaDo(envelope, 'campo-escola') || respostaDo(plano, 'contexto-escola');
-  const base = comporLinhasDePlano(plano, [
-    ['Escola', escola],
-    ['Turmas', comporTurmas(respostaDo(plano, 'contexto-turma'))],
-    ['Frequência', comporPeriodicidade(respostaDo(plano, 'contexto-frequencia'))],
-    ['Duração por aula', comporMedida(respostaDo(plano, 'contexto-duracao'))],
-  ]);
+  const base = comporLinhasDePlano(plano, ['contexto-escola', 'contexto-turma',
+    'contexto-frequencia', 'contexto-duracao'], { 'contexto-escola': escola });
   const outro = respostaDo(envelope, 'campo-outro');
   return outro ? base + ' · ' + String(outro) : base;
 }
@@ -236,11 +320,8 @@ function comporCampoEmpirico(envelope, plano) {
 // O CONTEXTO do PO (calendário, volume de trabalho, condição de registro) — tudo lido do
 // plano referenciado; o que não estava previsto no plano vai no `contexto-outro` do PO.
 function comporContexto(envelope, plano) {
-  const base = comporLinhasDePlano(plano, [
-    ['Calendário', comporData(respostaDo(plano, 'contexto-calendario'))],
-    ['Volume de trabalho', comporMedida(respostaDo(plano, 'contexto-volume'))],
-    ['Condição de registro', respostaDo(plano, 'contexto-registro')],
-  ]);
+  const base = comporLinhasDePlano(plano,
+    ['contexto-calendario', 'contexto-volume', 'contexto-registro']);
   const outro = respostaDo(envelope, 'contexto-outro');
   return outro ? base + ' · ' + String(outro) : base;
 }
@@ -250,18 +331,46 @@ function comporContexto(envelope, plano) {
 // «ligar» do laudo L5: hoje ficavam presas no plano e não chegavam ao PO. Sem plano (ou sem
 // valor), a lacuna sai declarada — nunca se preenche por inferência.
 function comporMetodologiaENotacao(plano) {
-  const pares = [
-    ['Metodologia de referência', respostaDo(plano, 'contexto-metodologia')],
-    ['Quem escolhe a metodologia', respostaDo(plano, 'contexto-metodologia-origem')],
-    ['Notação dominada', respostaDo(plano, 'contexto-notacao')],
-  ];
-  const linhas = comporLinhasDePlano(plano, pares);
-  return linhas;
+  return comporLinhasDePlano(plano,
+    ['contexto-metodologia', 'contexto-metodologia-origem', 'contexto-notacao']);
 }
 
-function derivarPO(envelope, plano) {
+// O VALOR de um campo de PROSA, ou a lacuna declarada. O `null` do envelope é «não
+// respondeu» — e a lacuna é declarada, nunca escrita como `null` no documento.
+function textoOuLacuna(valor) {
+  return valor === null || valor === undefined || valor === '' ? '[a decidir]' : String(valor);
+}
+
+// OS ITENS DE CADA DIMENSÃO, na forma do documento (`| Dimensão | Itens |`). O formulário grava
+// `{ sujeito: <dimensão>, itens: "item\nitem" }` (é o `repetirPor` da dimensão); a forma antiga
+// (texto corrido, `Dimensão — item`) também é aceita. As dimensões SEM itens entram com o vazio:
+// a dimensão marcada e não preenchida é uma lacuna declarada, não um silêncio.
+function itensPorDimensao(valor, dimensoes) {
+  const porDimensao = new Map();
+  for (const r of (Array.isArray(valor) ? valor : [])) {
+    if (!r || typeof r !== 'object') continue;
+    const dim = String(r.sujeito || r.dimensao || '').trim();
+    if (dim) porDimensao.set(dim, emLista(r.itens));
+  }
+  if (!porDimensao.size && typeof valor === 'string') {
+    for (const linha of String(valor).split(/\n+/)) {
+      const m = /^(.+?)\s*[—–:|]\s*(.+)$/.exec(linha.trim());
+      if (m && !porDimensao.has(m[1].trim())) porDimensao.set(m[1].trim(), [m[2].trim()]);
+    }
+  }
+  const nomes = dimensoes.length ? dimensoes : [...porDimensao.keys()];
+  return nomes.map((d) => ({ dimensao: d, itens: porDimensao.get(d) || [] }));
+}
+
+function derivarPO(envelope, plano, opcoes) {
   const contexto = (envelope && envelope.contexto) || {};
   const saida = [];
+  // OS RÓTULOS do checklist: os do CONTEÚDO, quando quem chama os traz (é o que a rota faz —
+  // `conteudoPO` está em escopo lá). O mapa declarado aqui é a RESERVA, e a prova o confere
+  // contra o conteúdo: sem esta porta, o documento chamava «Fronteiras claras» o item que o
+  // professor marcou como «Fronteiras do escopo claras», e nada denunciava.
+  const rotulos = (opcoes && opcoes.rotulos) || {};
+  const rotuloDaFolha = (id, chave) => rotulos[id] || ROTULO_DO_CHECKLIST[chave] || chave;
 
   const justificativa = {
     referenceToProblem: respostaDo(envelope, 'referencia-ao-problema'),
@@ -277,13 +386,25 @@ function derivarPO(envelope, plano) {
 
   const estado = estadoDoPO(checklist);
 
+  // A IDENTIDADE do documento: a RESPOSTA manda, e o contexto é a reserva. O formulário semeia
+  // `professor`/`escola` do contexto e diz «corrija se necessário» — quem corrige o próprio nome
+  // não pode ver o slug (`leticia`) reproduzido no documento.
+  const doCabecalho = (id, doContexto) => respostaDo(envelope, id) || contexto[doContexto] || null;
+  // A identidade sai UMA vez: o YAML e o `meta` são a mesma coisa, e escrevê-la em dois lugares
+  // era como se deixava um deles para trás.
+  const identidade = {
+    escola: doCabecalho('escola', 'escolaNome') || doCabecalho('escola', 'escola') || 'Escola',
+    professor: doCabecalho('professor', 'professorNome')
+      || doCabecalho('professor', 'professor') || 'Professor',
+  };
+
   saida.push('---');
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: PO');
   saida.push('ciclo: "' + (contexto.ciclo || 'NN') + '"');
-  saida.push('escola: ' + (contexto.escola || 'Escola'));
-  saida.push('responsavel: ' + (contexto.professor || 'Professor'));
-  saida.push('professor: ' + (contexto.professor || 'Professor'));
+  saida.push('escola: ' + identidade.escola);
+  saida.push('responsavel: ' + identidade.professor);
+  saida.push('professor: ' + identidade.professor);
   saida.push('title: "' + tituloDoPO(contexto) + '"');
   saida.push('state: ' + estado);
   saida.push('---');
@@ -303,24 +424,40 @@ function derivarPO(envelope, plano) {
     secao(titulo, [valor === null || valor === '' ? '[a decidir]' : String(valor)]);
   };
 
+  // O ÂMBITO que o cabeçalho fixa: QUAL plano esta observação observa, e o horizonte de fundo.
+  // Os dois são nós respondíveis e não tinham destino nenhum — o documento lia o plano e não
+  // dizia qual era, e o horizonte declarado sumia.
+  prosa('Plano de ensino', respostaDo(envelope, 'plano-de-ensino'));
+  prosa('Horizonte', respostaDo(envelope, 'horizonte'));
+
   prosa('Pergunta', respostaDo(envelope, 'question'));
   lista('Fenômeno', respostaDo(envelope, 'fenomeno'));
   // Campo empírico e Contexto agora vêm do PLANO referenciado (não do PO): o PO não duplica
   // a dose, o calendário, o volume nem a condição de registro — ele os lê na geração.
   prosa('Campo empírico', comporCampoEmpirico(envelope, plano));
   prosa('Contexto', comporContexto(envelope, plano));
-  // A metodologia e a notação vêm do PLANO referenciado (declaradas, nunca deduzidas —
-  // P-16). Sem plano, a lacuna sai declarada; o PO não as re-coleta.
-  prosa('Metodologia e notação', comporMetodologiaENotacao(plano));
-  // Sujeitos: os apelidos (um por linha) + a declaração das flutuantes — o único
-  // dado de alunas que a anamnese não cobre, e que por isso vive no PO.
+  // O ESCOPO OBSERVADO (Bloco 2): as dimensões e os itens de cada uma. O conteúdo declara que a
+  // dimensão «organiza a folha de captura: cada dimensão vira um bloco, e os itens dela viram as
+  // colunas» — e o PO é a NORMA do que se observa: sem esta seção, o escopo existia só na folha
+  // derivada e o documento que o professor assina não dizia o que observa. Os ITENS saem em
+  // TABELA (dimensão ↔ itens), que é a forma chave-valor do par.
+  lista('Dimensões observadas', respostaDo(envelope, 'dimensoes-de-observacao'));
   {
-    const sujeitos = emLista(respostaDo(envelope, 'sujeitos'));
-    const flutuantes = emLista(respostaDo(envelope, 'flutuantes'));
-    const corpo = sujeitos.length ? sujeitos.map((v) => '- ' + v) : ['- [a decidir]'];
-    corpo.push('- **Flutuantes:** ' + (flutuantes.length ? flutuantes.join(', ') : '[a decidir]'));
-    secao('Sujeitos', corpo);
+    const itens = itensPorDimensao(respostaDo(envelope, 'itens-por-dimensao'),
+      emLista(respostaDo(envelope, 'dimensoes-de-observacao')));
+    secao('Itens de cada dimensão', itens.length
+      ? ['| Dimensão | Itens |', '|:--|:--|',
+        ...itens.map((i) => '| **' + i.dimensao + '** | ' + (i.itens.join('; ') || '[a decidir]') + ' |')]
+      : ['| Dimensão | Itens |', '|:--|:--|']);
   }
+  // A metodologia e a notação vêm do PLANO referenciado (declaradas, nunca deduzidas — P-16).
+  // Sem plano, a lacuna sai declarada; o PO não as re-coleta.
+  prosa('Metodologia e notação', comporMetodologiaENotacao(plano));
+  // Sujeitos: os apelidos (um por linha) — e as FLUTUANTES na sua própria seção. Elas viajavam
+  // como um bullet dentro desta (`- **Flutuantes:** …`), e o extrator o lia como mais um sujeito:
+  // `subjects: ["Vavá", "**Flutuantes:** …"]`. Dois nós, duas chaves.
+  lista('Sujeitos', respostaDo(envelope, 'sujeitos'));
+  lista('Flutuantes', respostaDo(envelope, 'flutuantes'));
 
   // A «Norma estabelecida» NÃO é perguntada pelo formulário: a norma que o cabecalho pede é a
   // METODOLOGIA (RAD/Vaganova/…), um conceito distinto do padrão de referência do PO. A lacuna
@@ -328,15 +465,12 @@ function derivarPO(envelope, plano) {
   secao('Norma estabelecida', ['- ' + LACUNA_NORMA]);
 
   // O ponto de partida sai como tabela; sem aluna, a tabela sai vazia (o validador acusa o
-  // provisório, não o silêncio). Depois, as restrições físicas (P-22): declaradas, nunca
-  // avaliadas — «nenhuma» é informação, e a ausência de resposta é lacuna.
-  secao('Linha de base', [
-    ...tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')),
-    '',
-    '### Restrições físicas declaradas (P-22)',
-    '',
-    emLista(respostaDo(envelope, 'restricoes')).join('\n') || '[a decidir]',
-  ]);
+  // provisório, não o silêncio). As RESTRIÇÕES FÍSICAS (P-22) são o nó seguinte e saem na sua
+  // própria seção: quando vinham aqui, o título `###` e o valor entravam como LINHAS da tabela
+  // (`linhaDeBase: [ {…}, "### Restrições físicas declaradas (P-22)", "Nenhuma" ]`), e a leitura
+  // as imprimia como se fossem dimensões da linha de base.
+  secao('Linha de base', tabelaDeLinhaDeBase(respostaDo(envelope, 'linha-de-base')));
+  lista('Restrições físicas declaradas (P-22)', respostaDo(envelope, 'restricoes'));
 
   lista('Critérios de inclusão', respostaDo(envelope, 'inclusao'));
   lista('Critérios de exclusão', respostaDo(envelope, 'exclusao'));
@@ -357,11 +491,28 @@ function derivarPO(envelope, plano) {
   prosa('Condições de contorno da execução', respostaDo(envelope, 'condicoes-de-contorno'));
   lista('Limitações', respostaDo(envelope, 'limitacoes'));
 
+  // OS MÓDULOS CONDICIONAIS (o horizonte de conjunto e o compromisso de reavaliação): quatro nós
+  // respondíveis que não chegavam a documento nenhum. Cada módulo é UMA seção com dois
+  // SUBCAMPOS, na forma do `###` (a mesma da Justificativa) — e o título do `###` é a chave do
+  // schema, que é o que o validador casa.
+  secao('Horizonte do conjunto', [
+    '### objetivoGeralDeConjunto', '',
+    textoOuLacuna(respostaDo(envelope, 'objetivo-geral-de-conjunto')), '',
+    '### numeroEstimadoDeCiclos', '',
+    textoOuLacuna(respostaDo(envelope, 'numero-estimado-de-ciclos')),
+  ]);
+  secao('Compromisso de reavaliação', [
+    '### marcosDecididosAte', '',
+    textoOuLacuna(respostaDo(envelope, 'marcos-decididos-ate')), '',
+    '### criterioDeExtensao', '',
+    textoOuLacuna(respostaDo(envelope, 'criterio-de-extensao')),
+  ]);
+
   saida.push('## Checklist de validação');
   saida.push('');
   for (const [id, chave] of CHECKLIST) {
     const marcado = checklist[chave];
-    const rotulo = ROTULO_DO_CHECKLIST[chave] || chave;
+    const rotulo = rotuloDaFolha(id, chave);
     // O título do `###` é a CHAVE do schema (é ela que o validador casa); o texto do
     // item é o rótulo humano — o professor lê o nome, o extrator lê a chave.
     saida.push('### ' + chave);
@@ -375,9 +526,9 @@ function derivarPO(envelope, plano) {
     meta: {
       frente: 'PO',
       ciclo: contexto.ciclo || 'NN',
-      escola: contexto.escola || 'Escola',
-      responsavel: contexto.professor || 'Professor',
-      professor: contexto.professor || 'Professor',
+      escola: identidade.escola,
+      responsavel: identidade.professor,
+      professor: identidade.professor,
       title: tituloDoPO(contexto),
       state: estado,
     },
@@ -388,8 +539,15 @@ function derivarPO(envelope, plano) {
 
 module.exports = {
   valorDe,
+  condicaoDeRegistroEmTexto,
   respostaDo,
   emLista,
+  itensPorDimensao,
+  textoOuLacuna,
+  rotulosDoChecklist,
+  ROTULOS_DO_CONTEXTO,
+  COMPOR_DO_CONTEXTO,
+  ROTULO_DO_CHECKLIST,
   comporPeriodicidade,
   comporMedida,
   comporData,

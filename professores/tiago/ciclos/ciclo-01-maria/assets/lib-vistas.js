@@ -389,6 +389,10 @@ function balancoDaEntrada(reg) {
  *     separado (o contrato lê linha a linha);
  *   · `linhaDeBase` é um ARRAY de objetos `{dimensao, trazem, falta, dominam}`;
  *   · `distribuicaoDeVolume` é um ARRAY de objetos `{bloco, proporcaoAlvo60Min, justificativa}`;
+ *     a coluna da proporção tem DUAS chaves, e as duas são lidas: `proporcaoAlvo60Min` é o que o
+ *     cabeçalho antigo («Proporção alvo (60 min)») produz, e `proporcaoAlvo` o que produz o
+ *     cabeçalho atual («Proporção alvo», desde que o professor escolhe a unidade — minutos ou
+ *     percentual — e o «60 min» fixo deixou de ser verdade);
  *   · `ciclo.duracaoMinutos` é o TEXTO do documento ("60 minutos (Pré-requisito 4)") — a
  *     conversão para número ficou declaradamente FORA do extrator.
  *
@@ -473,15 +477,28 @@ const juntarComSeparador = (itens) => {
   });
   return saida;
 };
-// a estrutura da aula: os itens NUMERADOS da lista (sem o número), com as quebras já juntadas
+// a estrutura da aula: os BLOCOS, na ordem. A MESMA lista sai em três formas — a numerada
+// (`1. Solo — …`), a que a derivação escreve hoje (`- **Solo** — objetivos específicos: …`) e a
+// prosa antiga (`- Solo - exercícios…`) —, e o guia quer o BLOCO (o resumo do que a aula usa); o
+// resto da linha é a relação objetivo × bloco, que vive no plano. Sem esta leitura o guia
+// imprimia «[Preencher: a estrutura — vem do plano]» sobre um plano que a declarava.
 const estruturaDaAula = (plano) => juntarQuebras(plano && plano.estruturaDeCadaAula)
-  .filter((s) => /^\d+[.)]\s/.test(s)).map((s) => s.replace(/^\d+[.)]\s*/, ''));
+  .map((s) => String(s)
+    .replace(/^\d+[.)]\s*/, '')            // o número do item
+    .replace(/^[-*]\s+/, '')               // o marcador da lista
+    .replace(/\*\*/g, '')                  // a ênfase
+    .split(/\s+[—–-]\s+|:\s*/)[0]          // o que vem antes do primeiro separador
+    .trim())
+  .filter(Boolean);
 // a distribuição do volume, nas DUAS formas: mapa bloco → proporção, ou lista de objetos
 const volumeDosBlocos = (plano) => {
   const d = plano && plano.distribuicaoDeVolume;
   if (!d) return [];
   if (Array.isArray(d)) {
-    return objetosDe(d).map((o) => ({ bloco: o.bloco || '', proporcao: o.proporcaoAlvo60Min || '' }));
+    return objetosDe(d).map((o) => ({
+      bloco: o.bloco || '',
+      proporcao: o.proporcaoAlvo || o.proporcaoAlvo60Min || '',
+    }));
   }
   return Object.entries(d).map(([bloco, proporcao]) => ({ bloco, proporcao: String(proporcao) }));
 };
@@ -489,10 +506,19 @@ const volumeDoBloco = (plano, nome) => {
   const achado = volumeDosBlocos(plano).find((x) => new RegExp(nome, 'i').test(x.bloco));
   return achado ? achado.proporcao : null;
 };
-// a duração da aula: o documento escreve o TEXTO; a leitura à mão tinha o NÚMERO
+// a duração da aula: o documento escreve o TEXTO; a leitura à mão tinha o NÚMERO.
+//
+// A tabela de identificação do `ciclo` é COMPOSTA DO CONTEXTO desde 14/10/2026 — e nos planos
+// escritos à mão ela traz a LACUNA («[Preencher: duração em minutos — o .conf declara]») enquanto
+// o `## Contexto`, doze linhas acima, declara a duração. Ler só o `ciclo` fazia o guia imprimir a
+// lacuna sobre um plano que declarava o dado: por isso a reserva, e por isso a lacuna não é
+// valor (um `[Preencher]` não é duração).
+const semLacuna = (v) => (v === undefined || v === null || /^\s*\[Preencher/.test(String(v))
+  ? null : v);
 const duracaoDaAula = (plano) => {
-  const v = plano && plano.ciclo ? plano.ciclo.duracaoMinutos : null;
-  if (v === undefined || v === null) return null;
+  const v = semLacuna(plano && plano.ciclo ? plano.ciclo.duracaoMinutos : null)
+    || semLacuna(plano && plano.contexto ? plano.contexto.duracaoPorAula : null);
+  if (v === null || v === undefined) return null;
   return typeof v === 'number' ? `${v} min` : String(v);
 };
 /** O GUIA DE OBSERVAÇÃO — por AULA: o que o PO manda observar + o marco desta aula. */
@@ -575,12 +601,33 @@ function mdGuia(m, po, plano, aula, data, prov) {
   } else {
     l.push(`- ${b.falta('linha de base', 'a linha de base — vem do PO')}`);
   }
+  // AS RESTRIÇÕES FÍSICAS (P-22) — o que LIMITA a execução de alguém, e que quem observa tem de
+  // saber: sem elas a linha de base parece dizer que todo o corpo está disponível. Elas vivem na
+  // chave própria do nó (`po.restricoes`) desde 14/10/2026; nos POs escritos antes, vinham DENTRO
+  // de `linhaDeBase` e são impressas acima, no lugar em que estavam (o item que começa por `#`).
+  // Os dois formatos não coexistem no mesmo arquivo: nenhum PO perde a linha, e nenhum a imprime
+  // duas vezes.
+  const restricoes = juntarQuebras(po && po.restricoes);
+  if (restricoes.length) {
+    l.push('', '### Restrições físicas declaradas (P-22)', '');
+    restricoes.forEach((r) => l.push(`- ${r}`));
+    b.de('PO', 'restrições físicas (P-22)', `${restricoes.length} linha(s)`);
+  }
   l.push('', '### Quem é observado', '');
   const sujeitos = juntarQuebras(po && po.subjects);
+  const flutuantes = juntarQuebras(po && po.flutuantes);
   if (sujeitos.length) {
     l.push(`- ${b.de('PO', 'quem é observado', juntarComSeparador(sujeitos))} (apelidos do PO, P-12)`);
   } else {
     l.push(`- ${b.falta('quem é observado', 'os sujeitos — vêm do PO')}`);
+  }
+  // OS FLUTUANTES — quem entra e sai do grupo ao longo do ciclo. Eles têm chave própria no
+  // `po-XX.json` (`flutuantes`) e um bullet próprio aqui: até 14/10/2026 vinham DENTRO de
+  // `subjects` (a derivação os escrevia como bullet da seção `## Sujeitos`), e esta lista os
+  // mostrava como se fossem alunos observados — que é o que eles não são.
+  if (flutuantes.length) {
+    l.push(`- **Flutuantes:** ${juntarComSeparador(flutuantes)} — entram e saem do grupo ao`
+      + ' longo do ciclo (não são observados item a item)');
   }
   l.push('', ...balancoDaEntrada(b.reg()));
   return l.join('\n');

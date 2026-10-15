@@ -36,7 +36,16 @@ async function carregarEstatico(env, chave, prefixo) {
   return null;
 }
 
-/** O serviço de estáticos: o ASSETS do Worker (index.html e os assets). */
+/** O serviço de estáticos: o ASSETS do Worker (index.html e os assets).
+ *
+ *  Sai `no-store`: o formulário da porta é servido do ASSETS, mas o seu CONTEÚDO
+ *  (o `plano.json`/`anamnese.json`/esquema) muda com o deploy e o professor não
+ *  pode continuar a ver a página de ontem. Sem cabeçalho de cache, o navegador
+ *  aplica cache "heurístico" e reusa o documento velho em silêncio — foi o que
+ *  fez uma correção publicada não aparecer para quem estava com a aba aberta.
+ */
+const SEM_CACHE = { 'Cache-Control': 'no-store, max-age=0' };
+
 async function servirEstatico(env, caminho, prefixo) {
   if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
   const rel = caminho === '/' ? 'index.html' : caminho.replace(/^\/+/, '');
@@ -44,7 +53,7 @@ async function servirEstatico(env, caminho, prefixo) {
   if (!res.ok) return null;
   const tipo = res.headers.get('Content-Type') || 'application/octet-stream';
   const corpo = await res.arrayBuffer();
-  return { status: res.status, tipo, corpo };
+  return { status: res.status, tipo, corpo, cabecalhos: SEM_CACHE };
 }
 
 /**

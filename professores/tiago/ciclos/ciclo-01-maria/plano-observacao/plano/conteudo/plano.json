@@ -73,6 +73,7 @@
           "multipla": true,
           "aberto": true,
           "opcoesDe": "/api/bastidores/turmas",
+          "daCuradoria": "turmas",
           "explicacao": {
             "oQueE": "Qual turma (ou turmas) exatamente — o grupo, não a escola.",
             "preencher": "Marque as turmas cadastradas nos Bastidores (ou escreva o grupo, se ainda não houver turma). Um professor pode observar mais de uma turma no mesmo ciclo.",
@@ -83,6 +84,7 @@
           "id": "contexto-frequencia",
           "campo": "Frequência semanal",
           "obrigatorio": true,
+          "daTurma": "frequencia",
           "periodicidade": {
             "unidades": [
               "semanal",
@@ -92,14 +94,15 @@
           },
           "explicacao": {
             "oQueE": "Quantas vezes a turma tem aula, em que ritmo e em que dias.",
-            "preencher": "Escreva a QUANTIDADE, escolha a unidade (semanal ou diária) e marque os dias. Ex.: 2 · semanal · seg e qua.",
-            "porQue": "A frequência é a dose: o mesmo conteúdo em duas ou em três aulas por semana produz corpos diferentes."
+            "preencher": "Vem da turma, declarada pela direção na Produção — aqui é leitura. Para mudar, ajuste o cadastro da turma.",
+            "porQue": "A frequência é a dose: o mesmo conteúdo em duas ou em três aulas por semana produz corpos diferentes. E é decisão da escola, não da cena."
           }
         },
         {
           "id": "contexto-duracao",
           "campo": "Duração por aula",
           "obrigatorio": true,
+          "daTurma": "duracao",
           "medida": {
             "unidades": [
               "hora",
@@ -112,15 +115,16 @@
             ]
           },
           "explicacao": {
-            "oQueE": "Quanto tempo dura cada encontro, em horas e minutos.",
-            "preencher": "Dois números fixos: o primeiro é HORAS, o segundo é MINUTOS — sempre os dois. Uma hora e meia é 1 e 30; quarenta e cinco minutos é 0 e 45.",
-            "porQue": "A duração é a segunda metade da dose: mesma frequência em 45 e em 90 minutos não é o mesmo esforço."
+            "oQueE": "Quanto tempo dura cada encontro.",
+            "preencher": "Vem da turma, declarada pela direção na Produção — aqui é leitura. Para mudar, ajuste o cadastro da turma.",
+            "porQue": "A duração é a segunda metade da dose: mesma frequência em 45 e em 90 minutos não é o mesmo esforço. E é decisão da escola."
           }
         },
         {
           "id": "contexto-calendario",
           "campo": "Calendário",
           "obrigatorio": true,
+          "daTurma": "calendario",
           "data": {
             "partes": 2,
             "rotulos": [
@@ -130,7 +134,7 @@
           },
           "explicacao": {
             "oQueE": "Quando o ciclo começa e quando termina.",
-            "preencher": "A data de início e a de fim. Deixe em branco o que ainda está por decidir — a lacuna fica declarada.",
+            "preencher": "Vem do período do termo declarado na turma — aqui é leitura. Para mudar, ajuste o cadastro da turma.",
             "porQue": "O calendário delimita a janela em que as aulas contam: fora dela há férias e feriados."
           }
         },
@@ -138,9 +142,10 @@
           "id": "contexto-total-aulas",
           "campo": "Número total de aulas",
           "obrigatorio": false,
+          "daTurma": "totalAulas",
           "explicacao": {
             "oQueE": "Quantas aulas o ciclo tem, do início ao fim.",
-            "preencher": "Um número. Ex.: «12». Se ainda não está decidido, deixe em branco.",
+            "preencher": "Vem da conta do período com a frequência semanal, declaradas na turma — aqui é leitura. Sem o período completo, o campo volta a ser seu.",
             "porQue": "É ele que separa um ciclo curto de um longo — e que o calendário e os marcos usam para se alinhar."
           }
         },
@@ -169,9 +174,44 @@
           "campo": "Condição de registro",
           "obrigatorio": true,
           "explicacao": {
-            "oQueE": "COMO a aula é registrada: quem está na sala, se há observador, se há vídeo.",
-            "preencher": "Ex.: «professor e alunos na mesma sala, sem observador externo».",
-            "porQue": "Sem a condição declarada, não se sabe de onde veio o que ficou registrado."
+            "oQueE": "COMO a aula é registrada: quem está na sala e quem observa. O professor e as alunas já vêm marcados — o professor só diz quem observa.",
+            "preencher": "Confirme quem está na sala (as alunas são todas as da turma: não há controle de frequência aqui) e marque quem observa — um observador externo ou o próprio professor. Se houver outra condição (vídeo, alguém que passou na sala), escreva na linha do fim.",
+            "porQue": "Sem a condição declarada, não se sabe de onde veio o que ficou registrado. Marcada por campo, ela diz a mesma coisa em toda aula — e a prosa livre não deixava comparar duas aulas nem somar observadores."
+          },
+          "registro": {
+            "presentes": {
+              "rotulo": "Quem está na sala",
+              "nota": "As alunas são todas as da turma — não há controle de frequência aqui.",
+              "opcoes": [
+                {
+                  "valor": "professor",
+                  "rotulo": "Professor",
+                  "marcado": true
+                },
+                {
+                  "valor": "alunas da turma",
+                  "rotulo": "Alunas da turma (todas)",
+                  "marcado": true
+                }
+              ]
+            },
+            "observa": {
+              "rotulo": "Quem observa",
+              "opcoes": [
+                {
+                  "valor": "observador externo",
+                  "rotulo": "Observador externo"
+                },
+                {
+                  "valor": "o próprio professor",
+                  "rotulo": "O próprio professor"
+                }
+              ]
+            },
+            "outro": {
+              "rotulo": "Outra condição do registro (opcional)",
+              "exemplo": "ex.: gravado em vídeo pela coordenação"
+            }
           }
         },
         {
@@ -220,10 +260,13 @@
           "id": "marcos-por-aula",
           "campo": "Marcos parciais",
           "obrigatorio": true,
+          "lista": {
+            "minimo": 1
+          },
           "explicacao": {
             "oQueE": "O que fica pronto em cada aula, na ordem em que acontecem — o marco parcial de cada encontro.",
-            "preencher": "Uma linha por aula, com o número na frente. Ex.: «01: Isolar o eixo vertical e a distribuição do peso, no solo».",
-            "porQue": "É a tabela que o plano carrega e o que se consulta aula a aula. Uma linha por aula — escrito como prosa, cada marco vira trabalho manual depois."
+            "preencher": "Um marco por linha: escreva o objetivo específico, e o sistema numera (1, 2, 3…). Use «Acrescentar marco parcial» para abrir a linha seguinte; o primeiro marco não se remove.",
+            "porQue": "É a tabela que o plano carrega e o que se consulta aula a aula. O marco parcial é o objetivo específico daquela aula — o marco 1 é o objetivo específico da Aula 1 (Regra 2), e é por isso que o plano não tem um campo próprio para ele: aqui é a fonte única. A lista numerada guarda a fronteira de cada marco, que a prosa não guardava."
           }
         }
       ]
@@ -231,16 +274,27 @@
     {
       "bloco": 4,
       "titulo": "Estrutura de cada aula",
-      "objetivo": "declarar os blocos de cada aula, na ordem",
+      "objetivo": "dizer em que bloco cada objetivo específico é trabalhado",
       "campos": [
         {
           "id": "estrutura-de-cada-aula",
           "campo": "Blocos da aula",
           "obrigatorio": false,
+          "porMarco": {
+            "de": "marcos-por-aula",
+            "opcoes": [
+              "Solo",
+              "Barra",
+              "Centro",
+              "Musicalidade",
+              "Expressão"
+            ],
+            "instrucao": "Marque em que bloco cada objetivo é trabalhado. O objetivo que não se trabalha em bloco nenhum fica sem marcação — e não entra."
+          },
           "explicacao": {
-            "oQueE": "Os blocos de cada aula, na ordem em que aparecem (solo, barra, centro, presença…).",
-            "preencher": "Um bloco por linha. Ex.: «Solo — eixo e distribuição do peso».",
-            "porQue": "A ordem dos blocos é a forma da aula: ela organiza o volume e a captura."
+            "oQueE": "Os blocos de cada aula (a estrutura espacial: solo, barra, centro, musicalidade) mais a expressão, e ONDE cada objetivo específico é trabalhado.",
+            "preencher": "Uma linha por objetivo específico — os mesmos marcos parciais do bloco anterior. Marque os blocos em que aquele objetivo é trabalhado. Não precisa escrever nem numerar: o número vem do marco, e a ordem é a deles. A expressão é a parte artística — o professor marca quando ela é trabalhada naquele objetivo, se quiser.",
+            "porQue": "A ordem dos blocos é a forma da aula (Regra 3: solo → barra → centro), e é ela que organiza o volume e a captura. Escrever o bloco à mão perdia a relação com o objetivo — marcando, cada bloco guarda a que objetivo ele serve."
           }
         }
       ]
@@ -255,13 +309,49 @@
           "campo": "Distribuição do volume",
           "obrigatorio": false,
           "tabela": {
-            "colunas": ["Bloco", "Proporção alvo (60 min)", "Justificativa"],
-            "minimo": 1
+            "colunas": [
+              "Bloco",
+              "Proporção alvo",
+              "Justificativa"
+            ],
+            "minimo": 1,
+            "somenteLeitura": [
+              "Bloco"
+            ],
+            "textoLargo": [
+              "Justificativa"
+            ],
+            "linhasDe": {
+              "no": "estrutura-de-cada-aula",
+              "ordem": [
+                "Solo",
+                "Barra",
+                "Centro",
+                "Musicalidade",
+                "Expressão"
+              ]
+            },
+            "removivel": false,
+            "unidade": {
+              "opcoes": [
+                "minutos",
+                "percentual"
+              ],
+              "padrao": "minutos",
+              "alvo": {
+                "minutos": {
+                  "daTurma": "duracaoMin"
+                },
+                "percentual": 100
+              },
+              "nota": "A soma precisa fechar com a duração da aula. Passar do total não deixa avançar; faltar avisa.",
+              "coluna": "Proporção alvo"
+            }
           },
           "explicacao": {
             "oQueE": "Quanto do tempo de cada aula vai para cada bloco, e por quê.",
-            "preencher": "Uma linha por bloco: o bloco, a proporção alvo e a justificativa. A grelha monta a tabela — não precisa escrever barras.",
-            "porQue": "A distribuição segue o volume: o total vem da duração, e esta tabela diz como ele se reparte. É dela que a Aula 1 tira a fatia e os tempos de cada bloco."
+            "preencher": "Escolha a unidade — minutos ou percentual: os dois valem, e o total tem de fechar com a duração da aula. O bloco já vem listado — é o que você marcou em «Blocos da aula» — e você escreve a proporção alvo de cada um e a justificativa. Nenhuma linha se remove: os blocos são os que a aula tem.",
+            "porQue": "É dela que a Aula 1 tira a fatia e os tempos de cada bloco. O bloco não se escreve de novo: vem da estrutura da aula, para o plano não ter duas listas de blocos que podem divergir. A soma é a duração da aula — passar dela é impossível, e faltar aparece como aviso: a aula inteira é o laço do tempo, e o que sobra nele não foi declarado."
           }
         }
       ]
@@ -269,36 +359,81 @@
     {
       "bloco": 6,
       "titulo": "A Aula 1",
-      "objetivo": "detalhar o objetivo específico, o parâmetro de medição e a sequência da primeira aula",
+      "objetivo": "fechar a primeira aula: o parâmetro de medição e a sequência (o objetivo específico é o marco parcial 1, que o plano lê do bloco dos marcos)",
       "campos": [
-        {
-          "id": "aula-1-objetivo",
-          "campo": "Objetivo específico da Aula 1",
-          "obrigatorio": true,
-          "explicacao": {
-            "oQueE": "O que se trabalha nesta aula, em uma frase verificável.",
-            "preencher": "Ex.: «Isolar o eixo vertical e a distribuição do peso, no solo e sem deslocamento».",
-            "porQue": "É o objetivo que a aula persegue — o marco da aula 1, detalhado."
-          }
-        },
         {
           "id": "aula-1-parametro",
           "campo": "Parâmetro de medição",
           "obrigatorio": true,
+          "porMarco": {
+            "de": "marcos-por-aula",
+            "opcoesDaTurma": true,
+            "instrucao": "Marque, em cada objetivo, o que você vai observar para dizer «alcançado». Os parâmetros são o conteúdo do nível da sua turma."
+          },
           "explicacao": {
-            "oQueE": "O que você observa para saber se o objetivo foi alcançado.",
-            "preencher": "Ex.: «Mantém a pelve nivelada sobre os apoios durante 8 tempos, sem compensar com o tronco».",
-            "porQue": "Sem o parâmetro, o objetivo vira intenção vaga. Ele torna o alcance verificável."
+            "oQueE": "O que você observa para saber se cada objetivo foi alcançado — escolhido do conteúdo do nível da turma, não escrito por cima.",
+            "preencher": "Uma linha por objetivo específico, com os passos e elementos do nível da sua turma para marcar. Marque o que serve de medida naquele objetivo. Se a sua turma ainda não tem conteúdo declarado, escreva no campo aberto.",
+            "porQue": "Sem o parâmetro, o objetivo vira intenção vaga — ele é o que torna o alcance verificável. E a lista ser a do nível da turma é o que faz a medição falar a mesma língua do que se ensina."
           }
         },
         {
           "id": "aula-1-sequencia",
           "campo": "Sequência de exercícios por bloco",
           "obrigatorio": false,
+          "tabela": {
+            "colunas": [
+              "Bloco",
+              "Objetivo específico",
+              "Conteúdo do nível",
+              "Tempos",
+              "Compasso"
+            ],
+            "minimo": 1,
+            "acrescentavel": true,
+            "linhasDe": {
+              "no": "estrutura-de-cada-aula",
+              "ordem": [
+                "Solo",
+                "Barra",
+                "Centro",
+                "Expressão"
+              ],
+              "sem": [
+                "Musicalidade"
+              ],
+              "de": "marcos-por-aula",
+              "porMarco": "Objetivo específico"
+            },
+            "selecoes": {
+              "Bloco": {
+                "fonte": "blocos"
+              },
+              "Objetivo específico": {
+                "fonte": "objetivos"
+              },
+              "Conteúdo do nível": {
+                "fonte": "termosDaTurma",
+                "livre": true
+              },
+              "Compasso": {
+                "opcoes": [
+                  "2/4",
+                  "3/4",
+                  "4/4",
+                  "6/8",
+                  "2/2",
+                  "3/8",
+                  "9/8",
+                  "12/8"
+                ],
+                "livre": true
+              }
+            }
+          },
           "explicacao": {
-            "oQueE": "Os exercícios de cada bloco da Aula 1, na ordem em que acontecem.",
-            "preencher": "Um exercício por linha, na ordem: «Nome (X tempos, Y/Y)». Se quiser marcar o bloco, escreva na frente: «Solo — Pressão dos metatarsos (8 tempos, 4/4)».",
-            "porQue": "É a sequência que a aula segue — o fio condutor que liga os blocos."
+            "oQueE": "Os exercícios de cada bloco da aula, na ordem em que acontecem — o objetivo específico que cada um trabalha, o conteúdo do nível da turma (plié, battement tendu…), os tempos e o compasso.",
+            "preencher": "O bloco e o objetivo já vêm listados — um por objetivo, em cada bloco onde ele é trabalhado (as mesmas marcações de «Blocos da aula»). Escolha o conteúdo do nível da sua turma e escreva só os tempos e o compasso (ex.: 8 tempos, 4/4). Se fizer mais de um exercício no mesmo objetivo, use «Adicionar linha». A musicalidade não entra aqui: ela tem o bloco dela.",
+            "porQue": "É a sequência que a aula segue — o fio condutor que liga os blocos. Montada a partir do objetivo e do conteúdo do nível, ela diz o que se faz e para quê, e não só uma lista de passos: o mesmo objetivo atravessa blocos diferentes, e é isso que a sequência registra."
           }
         }
       ]
@@ -328,15 +463,14 @@
         {
           "id": "rubrica",
           "campo": "Rubrica",
-          "obrigatorio": true,
-          "tabela": {
-            "colunas": ["Critério", "Satisfatório", "Razoável", "Em desenvolvimento", "Não se aplica"],
-            "minimo": 1
+          "obrigatorio": false,
+          "escala": {
+            "daTurma": "rubrica"
           },
           "explicacao": {
-            "oQueE": "Os critérios do que se observa ao final, cada um com os quatro níveis (satisfatório · razoável · em desenvolvimento · não se aplica).",
-            "preencher": "Uma linha por critério: escreva o critério na primeira coluna e o que cada nível significa nas seguintes. A grelha monta a tabela — não precisa escrever barras.",
-            "porQue": "A rubrica é o que torna o objetivo verificável: sem ela, «melhorou» não tem níveis, e o final do ciclo não pode ser confrontado com o início."
+            "oQueE": "A RÉGUA com que o resultado é medido ao final — os NÍVEIS que a escola declarou para esta turma (por padrão: satisfatório · razoável · em desenvolvimento · não se aplica).",
+            "preencher": "Não há o que escrever aqui: a régua é a da turma, e você a adota. O CRITÉRIO de cada aula você declara no lançamento da aula dada, junto com o nível que ele alcançou.",
+            "porQue": "A régua é da TURMA — a coordenação e os professores podem mudá-la em comitê (renomear, acrescentar ou remover um nível), e quem a declara é a Produção. Lida da turma, ela chega ao plano do professor sem uma segunda lista que possa divergir; e a prova de que a régua adotada foi ESTA fica registrada no plano. Sem régua, «melhorou» não tem nível e o final do ciclo não pode ser confrontado com o início. O critério, esse sim, é de quem dá a aula."
           }
         }
       ]
@@ -405,10 +539,23 @@
           "campo": "Registro de origem",
           "obrigatorio": true,
           "explicacao": {
-            "oQueE": "A base pedagógica declarada do plano — de onde vem o que está aqui.",
-            "preencher": "Uma frase. Ex.: «Plano derivado da metodologia RAD, adaptada ao âmbito da turma».",
-            "porQue": "Toda afirmação tem origem declarada. Sem origem, o plano não diz de onde veio."
-          }
+            "oQueE": "A base pedagógica declarada do plano — de onde vem o que está aqui. Marque a origem (mais de uma, se for o caso).",
+            "preencher": "Marque a origem do plano — a metodologia e o que foi adaptado —, ou escreva a sua na linha do fim. Mais de uma origem pode ser marcada quando o plano mistura tradições.",
+            "porQue": "Toda afirmação tem origem declarada. Marcada, a origem diz a mesma coisa em todo plano — «derivado da metodologia RAD, adaptado ao âmbito da turma» é comparável entre ciclos, e a prosa livre não era. A origem declarada com as próprias palavras do professor (o repertório, os livros de onde ele lê) vive no Estúdio de Aula, na Área do Professor — aqui se marca a que este plano usa."
+          },
+          "forma": "De onde vem o que está neste plano",
+          "valores": [
+            "Plano derivado da metodologia RAD",
+            "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
+            "Plano derivado da metodologia Vaganova",
+            "Plano derivado da metodologia Vaganova, adaptado ao âmbito da turma",
+            "Plano derivado da tradição francesa",
+            "Plano derivado da tradição francesa, adaptado ao âmbito da turma",
+            "Plano derivado de literatura de apoio sobre corpo e aula"
+          ],
+          "multipla": true,
+          "aberto": true,
+          "abertoRotulo": "outra origem"
         }
       ]
     }

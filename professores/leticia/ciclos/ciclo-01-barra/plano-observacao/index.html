@@ -267,7 +267,48 @@
      Sem barras — uma linha não se parte, como acontecia na rubrica escrita em prosa. */
   table.grelha td, table.grelha th { vertical-align: top; padding: .2rem .3rem; }
   table.grelha td input { width: 100%; box-sizing: border-box; }
+  table.grelha td textarea { width: 100%; box-sizing: border-box; font: .95rem/1.4 var(--ui);
+    border: 1px solid #c9a24b; border-radius: 4px; padding: .35rem .45rem; resize: vertical; }
+  table.grelha td.travada { color: var(--tinta, #3a2b1f); font-weight: 600; }
+  /* A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
+     objetivo específico, com as opções para marcar. O número é o do marco. */
+  .matriz-marco { display: grid; gap: .7rem; }
+  .marco-linha { border: 1px solid #e0d3ae; border-radius: 6px; padding: .55rem .7rem; background: #fffdf7; }
+  .marco-texto { color: var(--tinta, #3a2b1f); margin-bottom: .35rem; }
+  .marco-texto .numero { display: inline-block; min-width: 1.4rem; text-align: right;
+    color: var(--suave); font: 600 .95rem/1 var(--ui); margin-right: .35rem; }
+  .marco-opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+    gap: .1rem .7rem; }
+  .marco-aberto { margin: .35rem 0 0; font-size: .85rem; color: var(--suave); }
+  .marco-aberto input { width: 100%; box-sizing: border-box; margin-top: .2rem; }
   table.grelha button { font: .8rem/1 var(--ui); padding: .25rem .45rem; cursor: pointer; }
+  /* A LISTA NUMERADA (o marco parcial): o número é do sistema, o texto é do
+     professor. Cada item é uma linha — a fronteira do dado, não da prosa. */
+  ul.lista-numerada { list-style: none; padding: 0; margin: .4rem 0 0; }
+  li.item-numerado { display: flex; align-items: center; gap: .5rem; margin: .35rem 0; }
+  li.item-numerado .numero { flex: 0 0 1.6rem; text-align: right; color: var(--suave);
+    font: 600 .95rem/1 var(--ui); }
+  li.item-numerado input { flex: 1 1 auto; min-width: 0; }
+  li.item-numerado button { flex: 0 0 auto; font: .9rem/1 var(--ui); padding: .3rem .5rem; cursor: pointer; }
+  li.item-numerado button[disabled] { opacity: .35; cursor: default; }
+  /* A ESCALA FIXA (a régua da rubrica): não é campo — é o que se lê. */
+  ul.escala { list-style: none; padding: 0; margin: .4rem 0 .2rem; display: flex;
+    flex-wrap: wrap; gap: .4rem; }
+  ul.escala li { border: 1px solid var(--gold-escuro, #c9a24b); border-radius: 4px;
+    padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: #fff; }
+  /* A UNIDADE DA PROPORÇÃO ALVO (minutos ↔ percentual) e a linha do TOTAL da soma. */
+  p.unidade { margin: .5rem 0 .3rem; }
+  p.unidade select { font: .95rem/1.3 var(--ui); padding: .25rem .4rem; margin-left: .3rem; }
+  p.total { margin: .5rem 0 .1rem; font: .95rem/1.5 var(--ui); color: var(--tinta, #3a2b1f); }
+  p.total.ok { color: #2f6b3a; }
+  p.total.falta { color: #8a5a12; }
+  p.total.excede { color: #8f3f3f; font-weight: 600; }
+  .grelha-livre { margin-top: .25rem; font-size: .8rem; color: var(--suave); }
+  .grelha-livre input { width: 100%; box-sizing: border-box; }
+  .grupo-registro { margin: .5rem 0 .8rem; }
+  .grupo-registro > p { margin: 0 0 .25rem; }
+  /* O que VEM DA TURMA (frequência, duração, período, nº de aulas): leitura, não campo. */
+  p.da-turma { margin: .4rem 0 .1rem; font-size: 1rem; color: var(--tinta, #3a2b1f); }
   p.linha { color: var(--suave); margin: .35rem 0; white-space: pre-wrap; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
   .citacao { font-style: italic; color: var(--soft); }
@@ -484,12 +525,20 @@
 <script>
 'use strict';
 
-// A fonte que esta página conduz. `?fonte=plano` entrega o PLANO (objetivo,
-// marcos e rubrica), `?fonte=po` o PO (o recorte); sem `fonte`, a anamnese —
-// byte a byte a de sempre. É o MESMO motor, a MESMA tela e o MESMO servidor: a
-// fonte só escolhe qual conteúdo o `mapa()` devolve. A sequência natural (a do
-// prompt congelado) é anamnese → plano → PO.
+// A fonte que esta página conduz. O CAMINHO diz a fonte (`/plano-ensino/` entrega o
+// PLANO — objetivo, marcos e rubrica; `/plano-observacao/` entrega o PO, o recorte), e
+// `?fonte=plano`/`?fonte=po` fazem o mesmo na página servida na raiz; sem nenhum dos
+// dois, a anamnese — byte a byte a de sempre. É o MESMO motor, a MESMA tela e o MESMO
+// servidor: a fonte só escolhe qual conteúdo o `mapa()` devolve. A sequência natural (a
+// do prompt congelado) é anamnese → plano → PO.
 const FONTE = (() => {
+  // O CAMINHO é a primeira via: `/plano-ensino/` é o plano e `/plano-observacao/` é o
+  // PO — quem digita o endereço (ou chega por um link antigo, sem a query) não cai no
+  // formulário errado. O `?fonte=` continua valendo como a outra via, na página servida
+  // na raiz (o motor Node e os testes).
+  const caminho = location.pathname;
+  if (caminho.indexOf('/plano-ensino/') === 0) return 'plano';
+  if (caminho.indexOf('/plano-observacao/') === 0) return 'po';
   const f = new URLSearchParams(location.search).get('fonte');
   return f === 'po' || f === 'plano' ? f : 'anamnese';
 })();
@@ -687,12 +736,176 @@ async function carregarProfessores() {
 let CURADORIAS = [];            // as curadorias do professor selecionado ([] = nenhuma)
 let CURADORIA_CARREGADA = false; // a busca terminou (evita travar antes de carregar)
 
-function alunasDaCuradoria() {
+/* O que a direção atribuiu ao professor, num campo da curadoria (turmas, repertório,
+ *  alunas) — a MESMA leitura para os três, para a tela não ter três regras. */
+function daCuradoria(campo) {
   const vistas = new Set();
   for (const c of CURADORIAS) {
-    for (const a of (c && c.alunas) || []) if (a) vistas.add(String(a));
+    for (const v of (c && c[campo]) || []) if (v) vistas.add(String(v));
   }
   return [...vistas];
+}
+
+/*
+ * A SEMEADURA PELA CURADORIA — o que a direção atribuiu entra no formulário como
+ * SUGESTÃO, marcada em `SUGERIDAS` (a mesma lei da semeadura do contexto do ato: a
+ * primeira edição do professor a aposenta, e o que ele respondeu nunca é reescrito).
+ *
+ * Por que semear, e não só marcar a caixa: o nó declara `daCuradoria` e os nós a
+ * JUSANTE (frequência, duração, calendário, nº de aulas) leem a turma escolhida. Se a
+ * marcação for só visual, o plano não sabe qual é a turma — e o ritmo não desce.
+ */
+function semearDaCuradoria() {
+  if (!MAPA) return;
+  let mudou = false;
+  for (const no of MAPA.nos) {
+    if (!no.daCuradoria) continue;
+    const atribuido = daCuradoria(no.daCuradoria);
+    if (!atribuido.length) continue;
+    if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) continue; // o professor já respondeu
+    RESPOSTAS.set(no.id, no.multipla ? atribuido : atribuido[0]);
+    SUGERIDAS.add(no.id);
+    mudou = true;
+  }
+  if (mudou) {
+    atualizarBarra();
+    pintarRoteiro();
+    salvar();
+  }
+}
+
+function alunasDaCuradoria() {
+  return daCuradoria('alunas');
+}
+
+/* O CADASTRO DAS TURMAS — o que a direção declarou na Produção. O plano de ensino LÊ
+ * daqui a frequência, os dias, a duração e o período do termo: são decisão da ESCOLA,
+ * não da cena (IDEIA-PAINEL-ESCOLA §8.3). A «turma observada» escolhe QUAIS; estes
+ * campos dizem COMO o ciclo acontece — e por isso não se reescrevem no plano. */
+let TURMAS_DA_ESCOLA = null;   // null = ainda não buscado
+let TURMAS_CARREGANDO = false;
+// O CONTEÚDO DO NÍVEL de cada turma: a relação turma↔conteúdo e os termos. É de onde
+// saem os parâmetros de medição do plano (o conteúdo do nível da turma escolhida).
+let TURMA_CONTEUDOS = null;
+let TERMOS_DA_ESCOLA = null;
+
+async function carregarTurmasDaEscola() {
+  if (TURMAS_DA_ESCOLA !== null || TURMAS_CARREGANDO) return;
+  TURMAS_CARREGANDO = true;
+  try {
+    const [resposta, rel, termos] = await Promise.all([
+      fetch('/api/bastidores/turmas'),
+      fetch('/api/bastidores/turma-conteudos').catch(() => null),
+      fetch('/api/bastidores/termos').catch(() => null),
+    ]);
+    const dados = await resposta.json();
+    TURMAS_DA_ESCOLA = resposta.ok && Array.isArray(dados.turmas) ? dados.turmas : [];
+    if (rel && rel.ok) {
+      const r = await rel.json();
+      TURMA_CONTEUDOS = r && r.relacoes && typeof r.relacoes === 'object' ? r.relacoes : {};
+    } else {
+      TURMA_CONTEUDOS = {};
+    }
+    if (termos && termos.ok) {
+      const t = await termos.json();
+      TERMOS_DA_ESCOLA = t && Array.isArray(t.termos) ? t.termos : [];
+    } else {
+      TERMOS_DA_ESCOLA = [];
+    }
+  } catch (erro) {
+    TURMAS_DA_ESCOLA = [];
+    TURMA_CONTEUDOS = {};
+    TERMOS_DA_ESCOLA = [];
+  }
+  TURMAS_CARREGANDO = false;
+}
+
+/* A turma escolhida no plano. Um professor pode observar mais de uma turma, mas o
+ * ritmo vem da PRIMEIRA que o declara: o ciclo é um só. */
+function turmaDoPlano() {
+  const cru = RESPOSTAS.get('contexto-turma');
+  const escolhidas = Array.isArray(cru) ? cru : cru ? [cru] : [];
+  if (!escolhidas.length || !Array.isArray(TURMAS_DA_ESCOLA)) return null;
+  const porNome = new Map(TURMAS_DA_ESCOLA.map((t) => [String(t.nome), t]));
+  for (const nome of escolhidas) {
+    const t = porNome.get(String(nome));
+    if (t) return t;
+  }
+  return null;
+}
+
+/* O NÚMERO DE AULAS — a conta do período com a frequência semanal. Sem as duas pontas
+ * do período (ou sem a frequência), não há conta: devolve nulo, e o campo segue
+ * editável — a tela nunca inventa um número. */
+function numeroDeAulasDaTurma(t) {
+  if (!t || !t.periodoInicio || !t.periodoFim || !t.frequencia) return null;
+  const inicio = new Date(t.periodoInicio + 'T00:00:00');
+  const fim = new Date(t.periodoFim + 'T00:00:00');
+  if (isNaN(inicio.getTime()) || isNaN(fim.getTime()) || fim < inicio) return null;
+  const dias = Math.floor((fim - inicio) / 86400000) + 1;
+  return Math.max(1, Math.round((dias / 7) * t.frequencia));
+}
+
+/* O valor que a TURMA entrega para um nó do contexto, quando o conteúdo declara
+ * `daTurma`. A forma tem de casar com a do widget — é o mesmo contrato do envelope
+ * (`periodicidade`, `medida`, `data`). Sem dado da turma, `undefined`: o campo volta a
+ * ser do professor, e nada se perde. */
+function valorDaTurma(no) {
+  const t = turmaDoPlano();
+  if (!t) return undefined;
+  if (no.daTurma === 'frequencia') {
+    if (!t.frequencia) return undefined;
+    return { vezes: t.frequencia, por: 'semanal', dias: Array.isArray(t.dias) ? t.dias : [] };
+  }
+  if (no.daTurma === 'duracao') {
+    if (!t.duracaoMin) return undefined;
+    // A turma declara MINUTOS; o nó declara dois pares fixos (hora · minuto) — o valor
+    // entra na forma do widget, para o documento e a derivação lerem igual.
+    const horas = Math.floor(t.duracaoMin / 60);
+    const minutos = t.duracaoMin % 60;
+    const partes = [];
+    if (horas) partes.push({ numero: horas, unidade: 'hora' });
+    if (minutos || !horas) partes.push({ numero: minutos, unidade: 'minuto' });
+    return partes;
+  }
+  if (no.daTurma === 'calendario') {
+    if (!t.periodoInicio && !t.periodoFim) return undefined;
+    return { inicio: t.periodoInicio || null, fim: t.periodoFim || null };
+  }
+  if (no.daTurma === 'totalAulas') {
+    const n = numeroDeAulasDaTurma(t);
+    return n === null ? undefined : n;
+  }
+  return undefined;
+}
+
+/* A data em dd/mm/aaaa — o formato do documento. */
+function dataCurta(iso) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(String(iso || ''));
+  return m ? m[3] + '/' + m[2] + '/' + m[1] : (iso || '');
+}
+
+/* O que vem da turma mostra-se em TEXTO: o professor lê o que a escola declarou, sem
+ * campo nenhum para mexer. */
+function textoDaTurma(no, valor) {
+  if (no.daTurma === 'frequencia') {
+    const dias = (valor.dias || []).join(', ');
+    return escapar(valor.vezes + 'x ' + (valor.por || 'semanal') + (dias ? ' (' + dias + ')' : ''));
+  }
+  if (no.daTurma === 'duracao') {
+    return escapar((Array.isArray(valor) ? valor : [valor])
+      .map((p) => p.numero + (p.unidade ? ' ' + p.unidade : '')).join(' '));
+  }
+  if (no.daTurma === 'calendario') {
+    return escapar(dataCurta(valor.inicio) + ' a ' + dataCurta(valor.fim));
+  }
+  return escapar(String(valor));
+}
+
+function mostrarDaTurma(no, valor) {
+  return '<p class="da-turma"><b>' + textoDaTurma(no, valor) + '</b></p>' +
+    '<p class="sub">Vem da turma, declarada pela direção na Produção — aqui é leitura. ' +
+    'Para mudar, ajuste o cadastro da turma.</p>';
 }
 
 async function atualizarCuradoria() {
@@ -720,6 +933,12 @@ function aplicarCuradoria() {
   const semCuradoria = CURADORIA_CARREGADA && CURADORIAS.length === 0;
   const comecar = document.getElementById('comecar');
   const aviso = document.getElementById('aviso-curadoria');
+
+  // A turma que a direção ATRIBUIU entra como sugestão (não só como caixa marcada):
+  // é ela que o plano lê para o ritmo (frequência, duração, calendário, nº de aulas).
+  // Sem isto, a turma aparecia marcada mas o plano não sabia QUAL era — e os campos
+  // a jusante ficavam para o professor escrever. A primeira edição dele aposenta.
+  if (FONTE === 'plano' && CURADORIA_CARREGADA) semearDaCuradoria();
 
   // A trava vale para plano e PO (que derivam do plano e da observação — memória da
   // escola). A anamnese já é travada pela aluna + senha; a curadoria a filtra.
@@ -1109,6 +1328,19 @@ function lerResposta(no) {
   const notaEl = raiz.querySelector('[data-campo-nota]');
   const nota = notaEl && notaEl.value.trim() ? notaEl.value.trim() : null;
 
+  // O que vem da TURMA não se edita: a resposta é o que a direção declarou na Produção
+  // (frequência, duração, período, nº de aulas). Sem dado da turma, cai no caminho normal.
+  if (no.daTurma) {
+    const daTurma = valorDaTurma(no);
+    if (daTurma !== undefined) return { valor: daTurma, nota: nota };
+  }
+
+  // A CONDIÇÃO DE REGISTRO: os grupos marcados (quem está na sala, quem observa).
+  if (no.registro) return { valor: lerRegistro(no, raiz), nota: nota };
+
+  // A MATRIZ POR MARCO: um objeto por marco que tem marcação.
+  if (no.porMarco) return { valor: lerPorMarco(no, raiz), nota: nota };
+
   // A FORMA DO VALOR vem antes das famílias: um nó que declara `medida`,
   // `periodicidade` ou `data` é lido pelo widget, não pelo campo de texto.
   // `undefined` = não é forma especial; `null` = é, e está vazia.
@@ -1117,6 +1349,14 @@ function lerResposta(no) {
 
   // A GRELHA: um objeto por linha, com a chave de cada coluna (a forma do schema).
   if (no.tabela) return { valor: lerGrelha(no, raiz), nota: nota };
+
+  // A LISTA NUMERADA (o marco parcial): um texto por item, em ordem.
+  if (no.lista) return { valor: lerListaNumerada(no, raiz), nota: nota };
+
+  // A ESCALA (a régua da rubrica) não é resposta que se escreve: o professor ADOTA a
+  // régua da turma, e ela entra gravada no plano — é a prova de contra que régua o
+  // resultado foi medido. O CRITÉRIO da aula é que vive no lançamento.
+  if (no.escala) return { valor: niveisDaEscala(no).length ? niveisDaEscala(no) : null, nota: nota };
 
   // O nó repetido: um bloco por sujeito. Cada bloco tem os campos de
   // `camposDoItem`, marcados com `data-repeticao` (o sujeito) e `data-campo`.
@@ -1292,9 +1532,12 @@ function gradeDePraticas(no) {
 
   if (no.aberto) {
     const fora = lista.filter((v) => valores.indexOf(v) === -1).join(', ');
-    blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare outra prática: ' +
+    // O rótulo da linha livre vem do CONTEÚDO quando ele o declara: um nó de escolha não
+    // é sempre uma «prática» (a origem do plano é uma origem). Sem declaração, o de sempre.
+    const dica = no.abertoRotulo || 'outra prática';
+    blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare ' + escapar(dica) + ': ' +
       '<input type="text" data-campo-aberto value="' + escapar(fora) + '"' +
-      (travando ? ' disabled' : '') + ' placeholder="outra prática"></label></p>');
+      (travando ? ' disabled' : '') + ' placeholder="' + escapar(dica) + '"></label></p>');
   }
   return blocos.join('');
 }
@@ -1531,8 +1774,20 @@ function caixaDaExplicacao(no) {
 
 /* As opções de um nó que declara `opcoesDe` — marcáveis, com o campo livre. */
 function gradeDeOpcoesDinamicas(no) {
-  const lista = OPCOES.get(no.opcoesDe) || [];
+  let lista = OPCOES.get(no.opcoesDe) || [];
   const erro = OPCOES_ERRO.get(no.opcoesDe);
+
+  // O QUE A ESCOLA DECLARA DESCE PARA O CAMPO. Um nó que declara `daCuradoria` lê a
+  // atribuição da direção: a lista FILTRA para o que é do professor — ele não escolhe
+  // entre as turmas da escola, só confirma a dele. E nasce MARCADO: o que já foi
+  // designado não se marca de novo. Sem curadoria (ou sem atribuição no campo), a
+  // lista segue inteira — a tela nunca inventa nem esvazia.
+  const atribuido = no.daCuradoria ? daCuradoria(no.daCuradoria) : [];
+  if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) {
+    const vistas = new Set(atribuido);
+    lista = lista.filter((o) => vistas.has(String(o.valor)));
+  }
+
   // O caminho para CRIAR o que ainda não existe — declarado pelo conteúdo, o PE
   // só o segue. É o «o PO oferece o caminho para criar a anamnese, sem sair do
   // PO»: abre na outra aba, e o professor volta e recarrega.
@@ -1549,7 +1804,8 @@ function gradeDeOpcoesDinamicas(no) {
       'Escreva o apelido no campo abaixo e crie a fonte pelo atalho.</p>' + atalho;
   }
   const atual = RESPOSTAS.get(no.id);
-  const marcados = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
+  let marcados = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
+  if (!marcados.length && atribuido.length) marcados = atribuido;
   // A escolha múltipla marca caixas (`name="pratica"`); a única marca rádios
   // (`name="valor"`) — o `lerResposta` lê cada grupo pela família do nó.
   const tipo = no.multipla ? 'checkbox' : 'radio';
@@ -1569,6 +1825,225 @@ function gradeDeOpcoesDinamicas(no) {
   return blocos.join('');
 }
 
+/* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
+ * unidade, que é da tabela e não de cada linha), a antiga é o ARRAY de linhas. Quem lê uma
+ * tabela passa por aqui e não precisa saber qual das duas formas está gravada. */
+function linhasDaTabela(valor) {
+  if (Array.isArray(valor)) return valor;
+  if (valor && typeof valor === 'object' && Array.isArray(valor.linhas)) return valor.linhas;
+  return [];
+}
+
+/* O ALVO DA SOMA de uma coluna, na unidade escolhida: em minutos é a DURAÇÃO DA AULA (o
+ * laço do tempo, que vem da turma); em percentual é 100. Sem alvo (a turma ainda não
+ * declara duração), não há como medir — e a tela diz isso em vez de inventar um total. */
+function alvoDaUnidade(no, unidade) {
+  const cfg = (no.tabela && no.tabela.unidade) || null;
+  if (!cfg || !unidade) return null;
+  const alvo = (cfg.alvo || {})[unidade];
+  if (alvo && typeof alvo === 'object' && alvo.daTurma) {
+    const t = turmaDoPlano();
+    const v = t ? Number(t[alvo.daTurma]) : NaN;
+    return Number.isFinite(v) && v > 0 ? v : null;
+  }
+  const n = Number(alvo);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/* O número de uma célula da proporção: aceita «40%», «30 min», «2,5». Sem número, não
+ * conta — e o que não conta é declarado como não lido, nunca somado por suposição. */
+function numeroDaProporcao(texto) {
+  const limpo = String(texto == null ? '' : texto).replace(/[^\d,.-]/g, '').replace(',', '.');
+  if (!limpo) return null;
+  const n = Number(limpo);
+  return Number.isFinite(n) ? n : null;
+}
+
+/* A SOMA DA PROPORÇÃO contra o alvo: o total lido, o alvo, e as duas faltas — passar
+ * (bloqueia) e faltar (avisa). O que não foi lido entra na conta do que falta: a aula é
+ * o laço inteiro, e o que não se declarou não se soma sozinho. */
+function somaDaProporcao(no, linhas, unidade) {
+  const coluna = (no.tabela && no.tabela.unidade && no.tabela.unidade.coluna) || null;
+  if (!coluna) return null;
+  const alvo = alvoDaUnidade(no, unidade);
+  let total = 0;
+  let lidas = 0;
+  let semNumero = 0;
+  for (const linha of linhas) {
+    const n = numeroDaProporcao(linha && linha[coluna]);
+    if (n === null) { semNumero += 1; continue; }
+    total += n;
+    lidas += 1;
+  }
+  const arredondado = Math.round(total * 100) / 100;
+  return {
+    coluna: coluna,
+    unidade: unidade,
+    alvo: alvo,
+    total: arredondado,
+    lidas: lidas,
+    semNumero: semNumero,
+    excede: alvo !== null && arredondado > alvo,
+    falta: alvo !== null && arredondado < alvo,
+    fechado: alvo !== null && arredondado === alvo,
+  };
+}
+
+/* A UNIDADE escolhida num nó com tabela de proporção (minutos ou percentual) — do que está
+ * gravado, ou do padrão declarado no conteúdo. */
+function unidadeDoNo(no) {
+  const cfg = (no.tabela && no.tabela.unidade) || null;
+  if (!cfg) return null;
+  const v = RESPOSTAS.get(no.id);
+  return (v && !Array.isArray(v) && v.unidade) || cfg.padrao || cfg.opcoes[0];
+}
+
+/* A LINHA DO TOTAL — o que o professor vê enquanto digita: o quanto já declarou, contra o
+ * quanto a aula tem. Passar do total é o que trava a saída da tela; faltar é aviso. */
+function linhaDoTotal(no, linhas) {
+  const soma = somaDaProporcao(no, linhas, unidadeDoNo(no));
+  if (!soma) return '';
+  const medida = soma.unidade === 'percentual' ? '%' : (soma.unidade || '');
+  const numero = (n) => (Number.isInteger(n) ? String(n) : String(n).replace('.', ','));
+  const base = 'Total: <b>' + numero(soma.total) + '</b> ' + medida;
+  if (soma.alvo === null) {
+    return '<p class="total" data-total>' + base + ' — e a aula ainda não declara a duração, ' +
+      'então não há contra o que fechar. Vem da turma, na Produção.</p>';
+  }
+  const alvo = numero(soma.alvo) + ' ' + medida;
+  if (soma.excede) {
+    const sobra = numero(Math.round((soma.total - soma.alvo) * 100) / 100) + ' ' + medida;
+    return '<p class="total excede" data-total>' + base + ' de <b>' + alvo + '</b> — passa do que a ' +
+      'aula tem (' + sobra + ' a mais). Corrija aqui: não se avança com a soma acima da duração.</p>';
+  }
+  if (soma.falta) {
+    const falta = numero(Math.round((soma.alvo - soma.total) * 100) / 100) + ' ' + medida;
+    return '<p class="total falta" data-total>' + base + ' de <b>' + alvo + '</b> — a aula tem uma ' +
+      'duração maior do que o que você declarou (faltam ' + falta + '). Pode seguir, mas fica o aviso.' +
+      (soma.semNumero ? ' E há ' + soma.semNumero + ' linha(s) sem número.' : '') + '</p>';
+  }
+  return '<p class="total ok" data-total>' + base + ' de <b>' + alvo + '</b> — fecha com a duração da aula.</p>';
+}
+
+/*
+ * A CONDIÇÃO DE REGISTRO — quem está na sala e quem observa. Deixou de ser prosa: o
+ * professor MARCA. O grupo dos presentes é de caixas (o professor e as alunas da turma já
+ * vêm marcados: as alunas são TODAS as da turma, sem controle de frequência); o de quem
+ * observa é de escolha única — observador externo ou o próprio professor. Uma linha de
+ * texto livre fecha o que não couber (vídeo, alguém que passou na sala).
+ */
+function registroDoNo(no) {
+  const cfg = no.registro || {};
+  const atual = RESPOSTAS.get(no.id);
+  const proprio = atual && !Array.isArray(atual) && typeof atual === 'object' ? atual : null;
+  const marcados = (campo, grupo) => {
+    if (proprio && Array.isArray(proprio[campo])) return proprio[campo].map(String);
+    if (proprio) return [];
+    // Sem resposta ainda: o que o conteúdo declara como MARCADO já vem marcado.
+    return (grupo.opcoes || []).filter((o) => o.marcado).map((o) => o.valor);
+  };
+
+  const grupoDeCaixas = (campo, grupo) => {
+    const escolhidos = marcados(campo, grupo);
+    const caixas = (grupo.opcoes || []).map((o) =>
+      '<label class="opcao"><input type="checkbox" name="registro-' + escapar(campo) + '" value="' +
+      escapar(o.valor) + '"' + (escolhidos.indexOf(o.valor) !== -1 ? ' checked' : '') + '><span>' +
+      md(o.rotulo || o.valor) + '</span></label>').join('');
+    return '<div class="grupo-registro"><p><b>' + md(grupo.rotulo || campo) + '</b></p>' +
+      (grupo.nota ? '<p class="sub">' + md(grupo.nota) + '</p>' : '') +
+      '<div class="grade">' + caixas + '</div></div>';
+  };
+
+  const grupoDeEscolha = (campo, grupo) => {
+    const escolhidos = marcados(campo, grupo);
+    const radios = (grupo.opcoes || []).map((o) =>
+      '<label class="opcao"><input type="radio" name="registro-' + escapar(campo) + '" value="' +
+      escapar(o.valor) + '"' + (escolhidos.indexOf(o.valor) !== -1 ? ' checked' : '') + '><span>' +
+      md(o.rotulo || o.valor) + '</span></label>').join('');
+    return '<div class="grupo-registro"><p><b>' + md(grupo.rotulo || campo) + '</b></p>' +
+      '<div class="grade">' + radios + '</div></div>';
+  };
+
+  const blocos = [];
+  if (cfg.presentes) blocos.push(grupoDeCaixas('presentes', cfg.presentes));
+  if (cfg.observa) blocos.push(grupoDeEscolha('observa', cfg.observa));
+  if (cfg.outro) {
+    const outro = proprio && proprio.outro != null ? String(proprio.outro) : '';
+    blocos.push('<p style="margin:.8rem 0 0"><label>' + md(cfg.outro.rotulo || 'Outra condição') +
+      '<br><input type="text" data-registro-outro value="' + escapar(outro) + '" placeholder="' +
+      escapar(cfg.outro.exemplo || '') + '"></label></p>');
+  }
+  return blocos.join('');
+}
+
+/* A LEITURA da condição de registro: um objeto com os grupos marcados e a linha livre.
+ * Grupo sem marcação não entra — e sem nenhuma marcação a resposta é nula (o mesmo corte
+ * dos outros leitores). */
+function lerRegistro(no, raiz) {
+  const campos = Object.keys(no.registro || {});
+  const saida = {};
+  for (const campo of campos) {
+    const marcados = Array.prototype.slice
+      .call(raiz.querySelectorAll('input[name="registro-' + campo + '"]:checked'))
+      .map((el) => el.value);
+    if (marcados.length) saida[campo] = marcados;
+  }
+  const outro = raiz.querySelector('[data-registro-outro]');
+  if (outro && outro.value.trim()) saida.outro = outro.value.trim();
+  return Object.keys(saida).length ? saida : null;
+}
+
+/* A etiqueta de um objetivo específico (marco parcial) quando ele entra numa linha ou numa
+ * lista de escolha: o número do sistema e o texto — o mesmo rótulo nas duas pontas, para a
+ * linha pré-preenchida e a opção do seletor dizerem a mesma coisa. */
+function rotuloDoMarco(n, texto) {
+  const t = String(texto || '').trim();
+  return t ? n + ' — ' + t : String(n);
+}
+
+/* O nome (o `campo`) de um nó pelo id — para a tela citar a fonte pelo nome que o professor
+ * vê, nunca pelo id. */
+function campoDoNo(id) {
+  const no = (MAPA && Array.isArray(MAPA.nos) ? MAPA.nos : []).find((n) => n.id === id);
+  return no ? no.campo : id;
+}
+
+/* AS OPÇÕES DE UMA COLUNA DE ESCOLHA. A fonte é declarada no conteúdo (`fonte`: os blocos
+ * que a estrutura marcou, os objetivos específicos, o conteúdo do nível da turma) ou é uma
+ * lista fixa (`opcoes`). Nada é inventado: sem a fonte carregada, a lista sai vazia e a
+ * tela diz de onde ela viria. */
+function opcoesDaColuna(cfg, coluna) {
+  if (Array.isArray(cfg.opcoes)) return cfg.opcoes.map(String);
+  if (cfg.fonte === 'blocos' || cfg.fonte === 'objetivos') {
+    const tabela = (MAPA.nos[INDICE] && MAPA.nos[INDICE].tabela) || {};
+    const linhasDe = tabela.linhasDe || {};
+    if (cfg.fonte === 'blocos') {
+      const ordem = Array.isArray(linhasDe.ordem) ? linhasDe.ordem : [];
+      const sem = Array.isArray(linhasDe.sem) ? linhasDe.sem : [];
+      const vistos = [];
+      for (const linha of Array.isArray(RESPOSTAS.get(linhasDe.no)) ? RESPOSTAS.get(linhasDe.no) : []) {
+        for (const v of (linha && linha.marcados) || []) {
+          const t = String(v).trim();
+          if (t && sem.indexOf(t) === -1 && vistos.indexOf(t) === -1) vistos.push(t);
+        }
+      }
+      vistos.sort((a, b) => {
+        const ia = ordem.indexOf(a) === -1 ? ordem.length : ordem.indexOf(a);
+        const ib = ordem.indexOf(b) === -1 ? ordem.length : ordem.indexOf(b);
+        return ia === ib ? vistos.indexOf(a) - vistos.indexOf(b) : ia - ib;
+      });
+      return vistos;
+    }
+    return marcosDoNo(RESPOSTAS.get(linhasDe.de || 'marcos-por-aula'))
+      .map((t, i) => rotuloDoMarco(i + 1, t));
+  }
+  if (cfg.fonte === 'termosDaTurma') {
+    const t = turmaDoPlano();
+    return t ? termosDaTurma(t.id) : [];
+  }
+  return [];
+}
+
 /*
  * A GRELHA — a tabela que se preenche a CLICAR, não a escrever barras. O conteúdo
  * declara `tabela: {colunas, minimo}`; cada linha é um conjunto de campos, e o que se
@@ -1582,28 +2057,214 @@ function gradeDeOpcoesDinamicas(no) {
 function grelhaDaTabela(no) {
   const colunas = (no.tabela && no.tabela.colunas) || [];
   const minimo = Math.max(1, Number((no.tabela && no.tabela.minimo) || 1));
+  const travadas = Array.isArray(no.tabela && no.tabela.somenteLeitura) ? no.tabela.somenteLeitura : [];
+  const largas = Array.isArray(no.tabela && no.tabela.textoLargo) ? no.tabela.textoLargo : [];
+  const selecoes = (no.tabela && no.tabela.selecoes) || {};
+  const podeAcrescentar = !(no.tabela && no.tabela.linhasDe) || (no.tabela && no.tabela.acrescentavel === true);
   const registado = RESPOSTAS.get(no.id);
   const linhas = [];
-  for (const l of Array.isArray(registado) ? registado : []) {
+  for (const l of linhasDaTabela(registado)) {
     if (!l || typeof l !== 'object' || Array.isArray(l)) continue;
     const copia = {};
     for (const c of colunas) copia[c] = l[c] == null ? '' : String(l[c]);
     linhas.push(copia);
   }
+  // A UNIDADE DA PROPORÇÃO (minutos ou percentual): é da TABELA, não de cada linha — e
+  // é ela que diz contra que total a soma é medida (a duração da aula, ou 100%).
+  const cfgUnidade = (no.tabela && no.tabela.unidade) || null;
+  const unidade = cfgUnidade
+    ? (registado && !Array.isArray(registado) && registado.unidade) || cfgUnidade.padrao || cfgUnidade.opcoes[0]
+    : null;
+  const colunaDoAlvo = cfgUnidade && cfgUnidade.coluna ? cfgUnidade.coluna : null;
+  // AS LINHAS SÃO AS QUE SÃO: a distribuição do volume não remove nenhuma (os blocos são os
+  // que a aula tem) e as derivadas da marcação também não — o que o professor acrescentou
+  // por cima dos blocos, esse sim. `quantasDerivadas` conta as que vieram da marcação.
+  let quantasDerivadas = 0;
+  const removivel = !!(no.tabela && (no.tabela.removivel === true || podeAcrescentar || no.tabela.removivel === undefined));
+
+  // OS BLOCOS E OS MARCOS DE UM NÓ DE MATRIZ — as duas fontes das colunas de escolha da
+  // grelha (o bloco da linha, o objetivo específico). A ordem é a canónica, e `sem`
+  // exclui o que não entra (a sequência de exercícios não tem musicalidade: ela é
+  // esmiuçada no próprio bloco).
+  function blocosDaMatriz(cfg) {
+    const origem = RESPOSTAS.get(cfg.no);
+    const sem = Array.isArray(cfg.sem) ? cfg.sem : [];
+    const vistos = [];
+    for (const linha of Array.isArray(origem) ? origem : []) {
+      for (const v of (linha && linha.marcados) || []) {
+        const t = String(v).trim();
+        if (t && sem.indexOf(t) === -1 && vistos.indexOf(t) === -1) vistos.push(t);
+      }
+    }
+    const ordem = Array.isArray(cfg.ordem) ? cfg.ordem : [];
+    vistos.sort((a, b) => {
+      const ia = ordem.indexOf(a) === -1 ? ordem.length : ordem.indexOf(a);
+      const ib = ordem.indexOf(b) === -1 ? ordem.length : ordem.indexOf(b);
+      return ia === ib ? vistos.indexOf(a) - vistos.indexOf(b) : ia - ib;
+    });
+    return vistos;
+  }
+
+  // AS LINHAS VÊM DE OUTRO NÓ (a distribuição do volume usa os blocos da aula; a
+  // sequência de exercícios usa o par OBJETIVO × BLOCO): o professor não escreve o bloco
+  // de novo — a linha já traz o valor, e o que ele preenche é o resto. Sem valor no nó
+  // de origem, vale o que já está registado.
+  if (no.tabela && no.tabela.linhasDe) {
+    const cfg = no.tabela.linhasDe;
+    const blocos = blocosDaMatriz(cfg);
+    // O par (objetivo, bloco): uma linha por objetivo EM CADA bloco onde ele é trabalhado,
+    // porque o exercício é disso que se trata — o objetivo aplicado naquele bloco.
+    const chave = cfg.porMarco && colunas.indexOf(cfg.porMarco) !== -1 ? cfg.porMarco : null;
+    const pares = [];
+    if (chave) {
+      const marcos = marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula'));
+      for (const bloco of blocos) {
+        for (const linha of Array.isArray(RESPOSTAS.get(cfg.no)) ? RESPOSTAS.get(cfg.no) : []) {
+          if (!linha || !Array.isArray(linha.marcados) || linha.marcados.indexOf(bloco) === -1) continue;
+          const n = Number(linha.marco);
+          const texto = marcos[n - 1] || '';
+          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, texto) });
+        }
+      }
+    }
+    if (blocos.length) {
+      // A chave de uma linha: o bloco, e o objetivo quando a linha é de um objetivo.
+      const chaveDe = (l) => String((l && l[colunas[0]]) || '') + '␟' +
+        String((chave && l && l[chave]) || '');
+      // UMA FILA POR CHAVE: se duas linhas têm o mesmo par (dois exercícios no mesmo
+      // objetivo), cada semente consome UMA — a linha não se perde por repetição.
+      const fila = new Map();
+      for (const l of linhas) {
+        const k = chaveDe(l);
+        if (!fila.has(k)) fila.set(k, []);
+        fila.get(k).push(l);
+      }
+      const semente = pares.length ? pares : blocos.map((b) => ({ bloco: b, marco: null }));
+      const derivadas = [];
+      quantasDerivadas = 0;
+      for (const s of semente) {
+        const k = chaveDe(Object.assign({}, { [colunas[0]]: s.bloco }, chave && s.marco ? { [chave]: s.marco } : {}));
+        const anterior = (fila.get(k) || []).shift();
+        const nova = {};
+        nova[colunas[0]] = s.bloco;
+        if (chave && s.marco) nova[chave] = s.marco;
+        for (const c of colunas.slice(1)) {
+          if (nova[c] !== undefined) { nova[c] = anterior && anterior[c] != null ? anterior[c] : nova[c]; continue; }
+          nova[c] = anterior && anterior[c] != null ? anterior[c] : '';
+        }
+        derivadas.push(nova);
+      }
+      // E O QUE FICOU — a linha NÃO SE PERDE, mas o bloco que não é mais trabalhado SAI:
+      //   · bloco ainda marcado (uma 2ª linha do mesmo par: dois exercícios no mesmo
+      //     objetivo) — fica;
+      //   · linha sem bloco (a que o professor acrescentou por cima dos blocos) — fica,
+      //     e é ela que ele preenche escolhendo o bloco;
+      //   · bloco que deixou de ser marcado — sai (a distribuição não tem musicalidade se
+      //     a musicalidade não é trabalhada).
+      const marcados = new Set(blocos);
+      const extras = [];
+      for (const lista of fila.values()) {
+        for (const l of lista) {
+          const b = String((l && l[colunas[0]]) || '');
+          if (b && !marcados.has(b)) continue;
+          extras.push(l);
+        }
+      }
+      linhas.length = 0;
+      for (const l of derivadas.concat(extras)) linhas.push(l);
+      quantasDerivadas = derivadas.length;
+    } else if (!Array.isArray(registado) || !registado.length) {
+      // Sem bloco marcado não há linha a preencher — e a tela DIZ isso, em vez de
+      // mostrar uma linha travada e vazia. O que já está registado fica (não se
+      // apaga o que o professor escreveu por ter desmarcado um bloco).
+      return '<p class="aviso">Sem linhas ainda: marque primeiro, em ' +
+        citacao(campoDoNo(cfg.no)) + ', em que bloco cada objetivo é trabalhado — ' +
+        (chave ? 'cada objetivo, em cada bloco onde ele é trabalhado, vira uma linha aqui.'
+          : 'cada bloco marcado vira uma linha aqui.') +
+        (chave && !marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula')).length
+          ? ' Os objetivos são os ' + citacao('Marcos parciais') + ', que ainda estão vazios.' : '') +
+        '</p>';
+    }
+  }
+
+  // A LINHA MÍNIMA — uma grelha nunca fica sem linha (o `minimo` do conteúdo manda). A
+  // reserva vem DEPOIS das linhas derivadas: o vazio de reserva não é «linha a mais» da
+  // marcação, e por isso não pode entrar na fila do que o professor acrescentou.
   while (linhas.length < minimo) linhas.push({});
 
   const corpo = linhas.map((linha, i) =>
-    '<tr>' + colunas.map((c) =>
-      '<td><input data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' +
-      escapar(linha[c] == null ? '' : linha[c]) + '" placeholder="' + escapar(c) + '"></td>').join('') +
-    '<td><button type="button" data-grelha-del="' + i + '"' +
-    (linhas.length <= minimo ? ' disabled' : '') + ' title="Remover esta linha">✕</button></td></tr>').join('');
+    '<tr>' + colunas.map((c) => {
+      const valor = escapar(linha[c] == null ? '' : linha[c]);
+      if (travadas.indexOf(c) !== -1) {
+        return '<td class="travada">' + (valor || '<span class="dono">—</span>') +
+          '<input type="hidden" data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' + valor + '"></td>';
+      }
+      // A COLUNA DE ESCOLHA: o professor marca, não escreve. As opções vêm do conteúdo
+      // (uma lista fixa) ou do sistema (os blocos marcados, os objetivos, o conteúdo do
+      // nível da turma). Com `livre`, o que não estiver na lista se escreve ao lado — a
+      // lista é do que já existe, e o que existe não esgota o que se faz em sala.
+      const escolha = selecoes[c];
+      if (escolha) {
+        const opcoes = opcoesDaColuna(escolha, c);
+        const atual = linha[c] == null ? '' : String(linha[c]);
+        const itens = opcoes.slice();
+        if (atual && itens.indexOf(atual) === -1) itens.push(atual);
+        const combo = '<select data-grelha="' + i + '" data-coluna="' + escapar(c) + '">' +
+          '<option value="">— escolher —</option>' +
+          itens.map((o) => '<option value="' + escapar(o) + '"' +
+            (o === atual ? ' selected' : '') + '>' + md(o) + '</option>').join('') +
+          '</select>';
+        if (!escolha.livre) return '<td>' + combo + '</td>';
+        const fora = atual && opcoes.indexOf(atual) === -1 ? atual : '';
+        return '<td>' + combo + '<div class="grelha-livre">…ou: ' +
+          '<input type="text" data-grelha-livre="' + i + '" data-coluna="' + escapar(c) + '" value="' +
+          escapar(fora) + '" placeholder="outro"></div></td>';
+      }
+      if (largas.indexOf(c) !== -1) {
+        return '<td><textarea data-grelha="' + i + '" data-coluna="' + escapar(c) + '" rows="3" ' +
+          'placeholder="' + escapar(c) + '">' + valor + '</textarea></td>';
+      }
+      return '<td><input type="text" data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' +
+        valor + '" placeholder="' + escapar(c) + '"></td>';
+    }).join('') +
+    (removivel
+      ? '<td><button type="button" data-grelha-del="' + i + '"' +
+        (podeAcrescentar && linhas.length > minimo && i >= quantasDerivadas ? '' : ' disabled') +
+        ' title="' +
+        (i < quantasDerivadas
+          ? 'Esta linha vem dos blocos da aula — não se remove aqui'
+          : 'Remover esta linha') + '">✕</button></td>'
+      : '') +
+    '</tr>').join('');
 
-  return '<table class="grelha"><thead><tr>' +
-    colunas.map((c) => '<th>' + md(c) + '</th>').join('') + '<th></th></tr></thead>' +
+  const rodape = podeAcrescentar
+    ? '<p style="margin:.6rem 0 0"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
+      (no.tabela && no.tabela.linhasDe
+        ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo objetivo.</span>'
+        : '') + '</p>'
+    : '<p class="sub">As linhas vêm do campo anterior — aqui você preenche o valor de cada bloco.</p>';
+
+  const rotuloDaColuna = (c) =>
+    c === colunaDoAlvo && unidade ? md(c) + ' <span class="dono">(' + escapar(unidade) + ')</span>' : md(c);
+
+  // A UNIDADE DA PROPORÇÃO — o toggle: o professor escolhe se conta em MINUTOS (o total é a
+  // duração da aula) ou em PERCENTUAL (o total é 100). A soma é a mesma medida dos dois
+  // jeitos: o total da aula é o laço do tempo.
+  const seletorDeUnidade = cfgUnidade
+    ? '<p class="unidade"><label>Unidade da proporção alvo: ' +
+      '<select data-unidade="1">' +
+      cfgUnidade.opcoes.map((o) => '<option value="' + escapar(o) + '"' +
+        (o === unidade ? ' selected' : '') + '>' + escapar(o) + '</option>').join('') +
+      '</select></label>' +
+      (cfgUnidade.nota ? ' <span class="dono">' + md(cfgUnidade.nota) + '</span>' : '') +
+      '</p>'
+    : '';
+
+  return seletorDeUnidade + '<table class="grelha"><thead><tr>' +
+    colunas.map((c) => '<th>' + rotuloDaColuna(c) + '</th>').join('') +
+    (removivel ? '<th></th>' : '') + '</tr></thead>' +
     '<tbody>' + corpo + '</tbody></table>' +
-    '<p style="margin:.6rem 0 0"><button type="button" data-grelha-add="1">' +
-    'Adicionar linha</button></p>';
+    linhaDoTotal(no, linhas) + rodape;
 }
 
 /*
@@ -1614,16 +2275,83 @@ function grelhaDaTabela(no) {
 function lerGrelha(no, raiz) {
   const colunas = (no.tabela && no.tabela.colunas) || [];
   const porLinha = new Map();
+  // O QUE SE ESCREVE AO LADO DA ESCOLHA vence a escolha: se o professor declarou outro
+  // valor, é ele que fica — o seletor é a lista do que existe, não o teto do que se faz.
+  const livres = new Map();
+  for (const el of raiz.querySelectorAll('[data-grelha-livre]')) {
+    const v = el.value.trim();
+    if (v) livres.set(Number(el.dataset.grelhaLivre) + '␟' + el.dataset.coluna, v);
+  }
   for (const el of raiz.querySelectorAll('[data-grelha]')) {
     const i = Number(el.dataset.grelha);
     if (!porLinha.has(i)) porLinha.set(i, {});
-    const v = el.value.trim();
+    const livre = livres.get(i + '␟' + el.dataset.coluna);
+    const v = livre !== undefined ? livre : el.value.trim();
     if (v) porLinha.get(i)[el.dataset.coluna] = v;
   }
   const linhas = Array.from(porLinha.keys()).sort((a, b) => a - b)
     .map((i) => porLinha.get(i))
     .filter((linha) => colunas.some((c) => linha[c]));
+  // A UNIDADE vive na TABELA, não em cada linha: quando ela é declarada, o valor é o
+  // objeto `{unidade, linhas}` — e a unidade é gravada mesmo sem linha nenhuma (o professor
+  // pode escolher a unidade antes de preencher). Sem unidade, o array de sempre.
+  const cfgUnidade = no.tabela && no.tabela.unidade;
+  if (cfgUnidade) {
+    const unidade = unidadeDoNo(no) || (cfgUnidade.padrao || cfgUnidade.opcoes[0]);
+    return { unidade: unidade, linhas: linhas };
+  }
   return linhas.length ? linhas : null;
+}
+
+/*
+ * O TOTAL, AO VIVO: a cada tecla, o que o professor já declarou é somado contra o alvo da
+ * unidade — a linha do total é repintada, e a mensagem muda de tom (fecha · falta · passa).
+ * É o mesmo cálculo que trava a saída da tela, e por isso ele mora num lugar só.
+ */
+function atualizarTotalDaGrelha() {
+  const no = MAPA.nos[INDICE];
+  if (!no || !no.tabela || !no.tabela.unidade) return;
+  const alvoEl = $('pergunta').querySelector('[data-total]');
+  if (!alvoEl) return;
+  const lido = lerGrelha(no, $('pergunta'));
+  const novo = linhaDoTotal(no, linhasDaTabela(lido));
+  const caixa = document.createElement('div');
+  caixa.innerHTML = novo;
+  const primeiro = caixa.firstElementChild;
+  if (primeiro) alvoEl.replaceWith(primeiro);
+}
+
+/* O IMPEDIMENTO DE UM NÓ — o que trava a SAÍDA da tela de um nó obrigatório que já está
+ * respondido. Hoje é a soma da proporção alvo: passar da duração da aula é impossível (a
+ * aula inteira é o laço do tempo), e o professor corrige ali mesmo, sem sair. Faltar NÃO
+ * trava: fica o aviso, que é o que o professor precisa ver para decidir. */
+function impedimentoDoNo(no) {
+  if (!no || !no.tabela || !no.tabela.unidade) return null;
+  const lido = lerGrelha(no, $('pergunta'));
+  const soma = somaDaProporcao(no, linhasDaTabela(lido), unidadeDoNo(no));
+  if (!soma || !soma.excede) return null;
+  const medida = soma.unidade === 'percentual' ? '%' : ' ' + (soma.unidade || '');
+  const numero = (n) => (Number.isInteger(n) ? String(n) : String(n).replace('.', ','));
+  return 'A proporção alvo soma <b>' + numero(soma.total) + medida + '</b> e a aula tem <b>' +
+    numero(soma.alvo) + medida + '</b>. Não dá para passar: a aula é o laço inteiro do tempo. ' +
+    'Corrija a proporção aqui — você só sai desta tela com a soma dentro da duração da aula.';
+}
+
+/*
+ * A TROCA DA UNIDADE da proporção alvo (minutos ↔ percentual): o que já está escrito é LIDO
+ * do formulário antes de mexer (nada se perde), a unidade é gravada, e a tela redesenha —
+ * é o mesmo caminho de qualquer troca de nó. O professor não digita a unidade em duas
+ * pontas: a tabela tem uma só, e as linhas seguem.
+ */
+function mudarUnidadeDaGrelha(valor) {
+  const no = MAPA.nos[INDICE];
+  if (!no || !no.tabela || !no.tabela.unidade) return;
+  const lido = lerGrelha(no, $('pergunta'));
+  const linhas = linhasDaTabela(lido);
+  RESPOSTAS.set(no.id, { unidade: valor, linhas: linhas });
+  gravarRespostaDoNo(no);
+  renderPergunta();
+  pintarRoteiro();
 }
 
 /*
@@ -1636,13 +2364,244 @@ function mudarLinhasDaGrelha(acao, indice) {
   if (!no || !no.tabela) return;
   const minimo = Math.max(1, Number(no.tabela.minimo || 1));
   const lido = lerGrelha(no, $('pergunta'));
-  const linhas = lido ? lido.slice() : [];
+  const comUnidade = !!(no.tabela.unidade);
+  const linhas = linhasDaTabela(lido).slice();
   while (linhas.length < minimo) linhas.push({});
   if (acao === 'add') linhas.push({});
   else if (linhas.length > minimo) linhas.splice(indice, 1);
-  RESPOSTAS.set(no.id, linhas.length ? linhas : null);
+  // Com unidade, o valor continua a ser o objeto — a unidade não se perde ao mexer nas linhas.
+  RESPOSTAS.set(no.id, comUnidade
+    ? { unidade: (lido && lido.unidade) || unidadeDoNo(no), linhas: linhas }
+    : (linhas.length ? linhas : null));
   salvar();
   irPara(INDICE, false);
+}
+
+/*
+ * A LISTA NUMERADA — o marco parcial: uma lista chave-valor, não prosa. O conteúdo
+ * declara `lista: {minimo}`; cada item é UMA linha com o NÚMERO automático (o
+ * professor escreve só o texto — o «1» é do sistema) e um botão de remover; o
+ * botão de acrescentar abre a linha seguinte. O primeiro item não se remove: a
+ * lista nunca fica vazia (o `minimo` do conteúdo manda).
+ *
+ * Por que existe: escrita como prosa, cada marco vira trabalho manual depois — a
+ * derivação teria de adivinhar onde acaba um marco e começa o outro. Em lista, a
+ * fronteira é do dado, e o número sai sozinho na tabela do plano.
+ */
+/* Os itens da lista numerada de um nó — o texto de cada marco, na ordem. Lê de outro
+ * nó (a matriz por marco e o campo derivado precisam dos marcos já respondidos). */
+function marcosDoNo(marcos) {
+  const itens = [];
+  for (const v of Array.isArray(marcos) ? marcos : []) {
+    const t = v == null ? '' : String(v).trim();
+    if (t) itens.push(t);
+  }
+  return itens;
+}
+
+/*
+ * A MATRIZ POR MARCO — uma linha por OBJETIVO ESPECÍFICO (marco parcial), com as
+ * opções para marcar. É o que faz o dado guardar a RELAÇÃO: «este objetivo é
+ * trabalhado no solo e na barra», «este mede-se por este passo do nível».
+ *
+ * As linhas vêm do nó dos marcos (o professor não as escreve — o número é o do
+ * marco); as colunas vêm do conteúdo (`opcoes`) ou do NÍVEL DA TURMA
+ * (`opcoesDaTurma`, a relação turma↔conteúdo). O objetivo sem nenhuma marcação
+ * NÃO entra — não se guarda linha vazia.
+ */
+function porMarcoDoNo(no) {
+  const cfg = no.porMarco || {};
+  const marcos = marcosDoNo(RESPOSTAS.get(cfg.de));
+  if (!marcos.length) {
+    return { html: '<p class="aviso">Preencha primeiro os ' + citacao('Marcos parciais') +
+      ' — os objetivos específicos são as linhas desta matriz.</p>', opcoes: [] };
+  }
+  let opcoes = [];
+  if (cfg.opcoesDaTurma) {
+    const t = turmaDoPlano();
+    if (!t) {
+      return { html: '<p class="aviso">Escolha a turma em ' + citacao('Turmas observadas') +
+        ' — os parâmetros são o conteúdo do nível dela.</p>', opcoes: [] };
+    }
+    opcoes = termosDaTurma(t.id);
+    if (!opcoes.length) {
+      return { html: '<p class="aviso">A turma ' + citacao(t.nome) +
+        ' ainda não tem conteúdo declarado na Produção — os parâmetros de medição vêm do nível dela. ' +
+        'Escreva no campo aberto, abaixo.</p>', opcoes: [] };
+    }
+  } else {
+    opcoes = Array.isArray(cfg.opcoes) ? cfg.opcoes : [];
+  }
+
+  const atual = RESPOSTAS.get(no.id);
+  const porMarco = new Map();
+  for (const linha of Array.isArray(atual) ? atual : []) {
+    if (!linha || typeof linha !== 'object') continue;
+    const n = Number(linha.marco);
+    if (Number.isFinite(n) && Array.isArray(linha.marcados)) porMarco.set(n, linha.marcados.map(String));
+  }
+  const aberto = new Map();
+  for (const [n, v] of porMarco) {
+    const fora = v.filter((x) => !opcoes.includes(x));
+    if (fora.length) aberto.set(n, fora.join(', '));
+  }
+
+  const linhas = marcos.map((texto, i) => {
+    const n = i + 1;
+    const marcados = porMarco.get(n) || [];
+    const caixas = opcoes.map((o) =>
+      '<label class="opcao"><input type="checkbox" data-marco="' + n + '" value="' + escapar(o) + '"' +
+      (marcados.indexOf(o) !== -1 ? ' checked' : '') + '><span>' + md(o) + '</span></label>').join('');
+    return '<div class="marco-linha" data-marco-linha="' + n + '">' +
+      '<div class="marco-texto"><span class="numero">' + n + '</span> ' + md(texto) + '</div>' +
+      '<div class="marco-opcoes">' + caixas + '</div>' +
+      '<p class="marco-aberto"><label>…ou declare outra coisa: ' +
+      '<input type="text" data-marco-aberto="' + n + '" value="' +
+      escapar(aberto.get(n) || '') + '" placeholder="outra medida"></label></p>' +
+      '</div>';
+  });
+  const instrucao = cfg.instrucao
+    ? '<p class="sub">' + md(cfg.instrucao) + '</p>'
+    : '';
+  return { html: instrucao + '<div class="matriz-marco">' + linhas.join('') + '</div>', opcoes };
+}
+
+/* A leitura da matriz: um objeto por marco COM marcação — `{marco, marcados}`. */
+function lerPorMarco(no, raiz) {
+  const porMarco = new Map();
+  const abre = new Map();
+  for (const el of raiz.querySelectorAll('[data-marco-aberto]')) {
+    const v = el.value.trim();
+    if (v) abre.set(Number(el.dataset.marcoAberto), v);
+  }
+  for (const el of raiz.querySelectorAll('input[data-marco]:checked')) {
+    const n = Number(el.dataset.marco);
+    if (!porMarco.has(n)) porMarco.set(n, []);
+    porMarco.get(n).push(el.value);
+  }
+  for (const [n, texto] of abre) {
+    if (!porMarco.has(n)) porMarco.set(n, []);
+    for (const parte of texto.split(',').map((x) => x.trim()).filter(Boolean)) {
+      if (porMarco.get(n).indexOf(parte) === -1) porMarco.get(n).push(parte);
+    }
+  }
+  const numeros = [...porMarco.keys()].sort((a, b) => a - b);
+  return numeros.length ? numeros.map((n) => ({ marco: n, marcados: porMarco.get(n) })) : null;
+}
+
+/* Os termos do nível de uma turma (a relação turma↔conteúdo já carregada). */
+function termosDaTurma(turmaId) {
+  if (!TURMA_CONTEUDOS || typeof TURMA_CONTEUDOS !== 'object' || !Array.isArray(TERMOS_DA_ESCOLA)) return [];
+  const ids = Array.isArray(TURMA_CONTEUDOS[turmaId]) ? TURMA_CONTEUDOS[turmaId] : [];
+  const porId = new Map(TERMOS_DA_ESCOLA.map((t) => [t.id, t]));
+  return ids.map((id) => (porId.get(id) || {}).termo).filter(Boolean);
+}
+
+/* O CAMPO LIDO DE UM MARCO (o objetivo específico da Aula 1 = marco 1) saiu com o
+ * nó: o plano não tem mais esse campo — o objetivo da Aula 1 É o marco parcial 1
+ * (Regra 2), e a derivação o lê de lá. O widget `doMarco` não tem mais usuário. */
+
+function listaNumerada(no) {
+  const minimo = Math.max(1, Number((no.lista && no.lista.minimo) || 1));
+  const registado = RESPOSTAS.get(no.id);
+  // A CONTAGEM das linhas é preservada (inclusive a linha ainda vazia que o «+» abriu):
+  // filtrar as vazias aqui faria a linha nova desaparecer no redesenho.
+  const itens = (Array.isArray(registado) ? registado : [])
+    .map((v) => (v == null ? '' : String(v).trim()));
+  while (itens.length < minimo) itens.push('');
+  const corpo = itens.map((texto, i) =>
+    '<li class="item-numerado">' +
+      '<span class="numero">' + (i + 1) + '</span>' +
+      '<input type="text" data-lista="' + i + '" value="' + escapar(texto) +
+      '" placeholder="o que fica pronto nesta aula">' +
+      '<button type="button" data-lista-del="' + i + '"' + (itens.length <= minimo ? ' disabled' : '') +
+      ' title="Remover este marco">−</button>' +
+    '</li>').join('');
+  return '<ul class="lista-numerada">' + corpo + '</ul>' +
+    '<p style="margin:.6rem 0 0"><button type="button" data-lista-add="1">' +
+    '+ Acrescentar marco parcial</button></p>';
+}
+
+/* A leitura da lista: um texto por item, em ordem. Item vazio não entra — não se
+ * grava linha em branco. Sem nada escrito, a resposta é nula. */
+function lerListaNumerada(no, raiz) {
+  const porIndice = [];
+  for (const el of raiz.querySelectorAll('[data-lista]')) {
+    const i = Number(el.dataset.lista);
+    const v = el.value.trim();
+    if (v) porIndice[i] = v;
+  }
+  const itens = porIndice.filter((v) => v);
+  return itens.length ? itens : null;
+}
+
+/* As linhas COMO ESTÃO na tela, na contagem exata (inclusive vazias) — é o que a
+ * manipulação precisa para não perder uma linha que o professor acabou de abrir. */
+function linhasDaListaNaTela(raiz) {
+  const porIndice = [];
+  let quantas = 0;
+  for (const el of raiz.querySelectorAll('[data-lista]')) {
+    const i = Number(el.dataset.lista);
+    porIndice[i] = el.value.trim();
+    quantas = Math.max(quantas, i + 1);
+  }
+  const itens = [];
+  for (let i = 0; i < quantas; i++) itens.push(porIndice[i] || '');
+  return itens;
+}
+
+/* Acrescentar/remover item da lista. O que está escrito é LIDO antes de mexer (nada
+ * se perde), a lista muda, e a pergunta é redesenhada — o mesmo caminho da grelha. */
+function mudarItensDaLista(acao, indice) {
+  const no = MAPA.nos[INDICE];
+  if (!no || !no.lista) return;
+  const minimo = Math.max(1, Number(no.lista.minimo || 1));
+  const itens = linhasDaListaNaTela($('pergunta'));
+  while (itens.length < minimo) itens.push('');
+  if (acao === 'add') itens.push('');
+  else if (itens.length > minimo) itens.splice(indice, 1);
+  RESPOSTAS.set(no.id, itens);
+  salvar();
+  irPara(INDICE, false);
+}
+
+/*
+ * A ESCALA FIXA — a régua da rubrica, já decidida pela escola. Não é campo: o
+ * professor LÊ os quatro níveis com que o resultado será medido. O CRITÉRIO de cada
+ * aula é declarado no lançamento da aula dada, junto com o nível alcançado. Como não
+ * há o que escrever, não se grava resposta — e o nó não é obrigatório.
+ */
+/* A RÉGUA DA RUBRICA — os níveis com que o resultado é medido no fim. Ela é da TURMA: a
+ * Produção declara, o plano adota. Aceita as duas formas do conteúdo: a lista FIXA (o nó
+ * declara os níveis) e a lista DA TURMA (`{daTurma: "rubrica"}` — a decisão da escola). */
+function niveisDaEscala(no) {
+  if (!no) return [];
+  const escala = no.escala;
+  if (escala && !Array.isArray(escala) && escala.daTurma) {
+    const t = turmaDoPlano();
+    const niveis = (t && Array.isArray(t[escala.daTurma]) ? t[escala.daTurma] : [])
+      .map((n) => String(n || '').trim()).filter(Boolean);
+    return niveis.filter((n, i, arr) => arr.indexOf(n) === i);
+  }
+  return Array.isArray(escala) ? escala : [];
+}
+
+/* A régua em leitura: o professor ADOTA a da turma — não há o que escrever (o critério de
+ * cada aula é que é dele, e esse vive no lançamento da aula dada). */
+function escalaFixa(no) {
+  const niveis = niveisDaEscala(no);
+  const daTurma = !!(no.escala && !Array.isArray(no.escala) && no.escala.daTurma);
+  const nota = daTurma
+    ? '<p class="sub">A régua é a da sua turma, declarada pela direção na Produção (' +
+      citacao('Produção → Turmas → Régua da rubrica') + ') — aqui é leitura. ' +
+      'O critério de cada aula você declara no lançamento da aula dada.</p>'
+    : '<p class="sub">A régua é esta — o critério de cada aula você declara no lançamento da aula dada.</p>';
+  if (!niveis.length) {
+    return '<p class="aviso">A régua vem da turma: escolha a turma em ' +
+      citacao('Turmas observadas') + ' — e, se ela ainda não declara uma régua, a direção a ' +
+      'declara em ' + citacao('Produção → Turmas') + '.</p>';
+  }
+  return '<ul class="escala">' + niveis.map((n) => '<li>' + md(n) + '</li>').join('') + '</ul>' + nota;
 }
 
 /*
@@ -1828,7 +2787,7 @@ function semearDoContexto() {
     if (!no.deContexto) continue;
     if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) continue;
     const campo = $('ctx-' + no.deContexto);
-    const valor = campo ? String(campo.value || '').trim() : '';
+    const valor = campo ? valorDoContexto(campo) : '';
     if (valor) {
       RESPOSTAS.set(no.id, valor);
       SUGERIDAS.add(no.id);
@@ -1840,6 +2799,21 @@ function semearDoContexto() {
   atualizarBarra();
   pintarRoteiro();
   salvar();
+}
+
+/*
+ * O VALOR que a barra entrega. O controle da barra diz o IDENTIFICADOR (o professor
+ * é o slug — «leticia»), e o documento diz o NOME: o que entra no plano é o rótulo
+ * escolhido no seletor, nunca o slug em minúscula e sem acento. Um campo de texto
+ * entrega o que está escrito; um seletor entrega o rótulo da opção escolhida.
+ */
+function valorDoContexto(campo) {
+  if (campo.tagName === 'SELECT') {
+    const opcao = campo.options[campo.selectedIndex];
+    const rotulo = opcao ? String(opcao.textContent || '').trim() : '';
+    if (opcao && opcao.value && rotulo) return rotulo;
+  }
+  return String(campo.value || '').trim();
 }
 
 /*
@@ -2247,6 +3221,19 @@ function renderPergunta() {
 
   const blocos = [];
 
+  // O RITMO DA TURMA (frequência, duração, período e nº de aulas) e a RÉGUA DA RUBRICA
+  // também são da turma: é decisão da direção, e o plano LÊ da Produção. O cadastro
+  // precisa estar carregado antes de pintar — sem ele, a primeira pintura ficaria sem o
+  // dado (e a régua, sem os níveis).
+  const precisaDaTurma = !!(no.daTurma || no.porMarco || (no.escala && !Array.isArray(no.escala)));
+  if (precisaDaTurma && TURMAS_DA_ESCOLA === null) {
+    carregarTurmasDaEscola().then(() => {
+      if (MAPA.nos[INDICE] === no) renderPergunta();
+    });
+    return renderCarregando(no);
+  }
+  const daTurma = no.daTurma ? valorDaTurma(no) : undefined;
+
   blocos.push('<div class="caixa">');
   blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
   blocos.push(cabecalhoDoNo(no));
@@ -2259,12 +3246,22 @@ function renderPergunta() {
   // um subitem que declara `medida`, `periodicidade` ou `data` é desenhado pelo
   // widget, e o widget substitui o CAMPO — não o que o nomeia.
   const especial = campoEspecial(no, RESPOSTAS.get(no.id));
-  if (no.repetirPor) {
+  if (no.registro) {
+    blocos.push(registroDoNo(no));
+  } else if (no.porMarco) {
+    blocos.push(porMarcoDoNo(no).html);
+  } else if (no.daTurma && daTurma !== undefined) {
+    blocos.push(mostrarDaTurma(no, daTurma));
+  } else if (no.repetirPor) {
     blocos.push(blocoDaRepeticao(no));
   } else if (no.opcoesDe) {
     blocos.push(gradeDeOpcoesDinamicas(no));
   } else if (no.tabela) {
     blocos.push(grelhaDaTabela(no));
+  } else if (no.lista) {
+    blocos.push(listaNumerada(no));
+  } else if (no.escala) {
+    blocos.push(escalaFixa(no));
   } else if (especial) {
     if (no.familia === 'basilar' || no.familia === 'subitem') {
       blocos.push('<p><b>' + md(no.elemento) + '</b></p>');
@@ -2463,11 +3460,31 @@ function ocultarSocratica() {
   if (caixa) { caixa.classList.add('oculto'); caixa.innerHTML = ''; }
 }
 
+/* O IMPEDIMENTO em tela: a mesma caixa da socrática, com o texto da trava e o caminho de
+ * volta (a saída não existe até a soma fechar com a duração da aula). */
+function mostrarImpedimento(texto) {
+  const caixa = $('socratica');
+  if (!caixa) return;
+  caixa.innerHTML = '<p class="pergunta">' + texto + '</p>' +
+    '<p class="dica">A duração da aula vem da turma, na Produção — é ela que diz quanto a aula tem.</p>';
+  caixa.classList.remove('oculto');
+}
+
 function irPara(i, guardar) {
   if (guardar && MAPA) {
     const atual = MAPA.nos[INDICE];
     // Só na ida (não ao voltar). Pergunta UMA vez por resposta: se a professora
     // insiste no mesmo texto, o sistema respeita e deixa seguir.
+    // A TRAVA DA SOMA: passar da duração da aula impede a ida — o professor corrige na
+    // tela, como a socrática manda voltar à pergunta.
+    if (i > INDICE) {
+      const impedimento = impedimentoDoNo(atual);
+      if (impedimento) {
+        gravarRespostaDoNo(atual);
+        mostrarImpedimento(impedimento);
+        return;
+      }
+    }
     if (i > INDICE && socraticaDisparada(atual) && SOCRATICA_VISTA.get(atual.id) !== lerResposta(atual).valor) {
       SOCRATICA_VISTA.set(atual.id, lerResposta(atual).valor);
       gravarRespostaDoNo(atual); // preserva o que foi escrito, sem avançar
@@ -3839,10 +4856,19 @@ async function iniciar() {
 
   $('pergunta').addEventListener('change', (evento) => {
     if (evento.target.matches('input[name="pratica"]')) aplicarExclusiva(MAPA.nos[INDICE]);
+    // A condição de registro: os grupos marcados gravam como qualquer resposta.
+    if (evento.target.matches('input[name^="registro-"]')) gravarRespostaDoNo(MAPA.nos[INDICE]);
     if (evento.target.matches('input[name="escala"]')) aplicarNaoMedido(MAPA.nos[INDICE]);
+    if (evento.target.matches('[data-unidade]')) {
+      mudarUnidadeDaGrelha(evento.target.value);
+      return;
+    }
     gravarRespostaDoNo(MAPA.nos[INDICE]);
+    atualizarTotalDaGrelha();
   });
   $('pergunta').addEventListener('input', (evento) => {
+    if (evento.target.matches('[data-grelha], [data-grelha-livre]')) atualizarTotalDaGrelha();
+    if (evento.target.matches('[data-registro-outro]')) gravarRespostaDoNo(MAPA.nos[INDICE]);
     if (evento.target.matches('[data-campo-aberto], [data-campo-nota], [data-repeticao]')) {
       const no = MAPA.nos[INDICE];
       if (no && no.id === 'idade' && evento.target.matches('[data-campo-aberto]')) {
@@ -3873,6 +4899,16 @@ async function iniciar() {
     const delLinha = evento.target.closest('[data-grelha-del]');
     if (delLinha) {
       mudarLinhasDaGrelha('del', Number(delLinha.dataset.grelhaDel));
+      return;
+    }
+    const addItem = evento.target.closest('[data-lista-add]');
+    if (addItem) {
+      mudarItensDaLista('add');
+      return;
+    }
+    const delItem = evento.target.closest('[data-lista-del]');
+    if (delItem) {
+      mudarItensDaLista('del', Number(delItem.dataset.listaDel));
     }
   });
 

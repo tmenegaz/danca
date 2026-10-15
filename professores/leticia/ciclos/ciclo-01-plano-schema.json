@@ -49,9 +49,37 @@
       "items": { "type": "object" },
       "description": "A tabela da rubrica de avaliação final (Regra 10, camada 1): os critérios, cada um com os seus quatro níveis. Onde a rubrica é aplicada, o documento diz em PROSA (`Aplicada na Aula 11 (formativa) e na Aula 12 (somativa)`) — o extrator declara a lacuna em vez de ler."
     },
+    "reguaDaRubrica": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "A RÉGUA da rubrica (14/10/2026): os níveis, como a escola os escreve, na ordem da escala — a lista que o LANÇAMENTO da aula lê para medir cada critério. Ela viaja em LISTA, e não no cabeçalho da tabela da rubrica, porque o extrator normaliza cabeçalho em chave (e «Não se aplica» voltaria como «naoSeAplica»): numa lista o rótulo atravessa verbatim. Quem a adota é o professor, a partir da régua da TURMA declarada nos bastidores; sem esta seção (plano antigo), o lançamento usa os quatro níveis padrão. NÃO é obrigatória."
+    },
     "proveniencia": {
       "type": "string",
       "description": "O registro de proveniência do plano: a base pedagógica declarada."
+    },
+    "contexto": {
+      "type": "object",
+      "description": "O CONTEXTO declarado no `## Contexto` do documento (a tabela item/valor do Bloco 1): escola, professor, turmas, frequência, duração por aula, calendário, número total de aulas, volume, condição de registro e a metodologia/notação (P-16). As CHAVES são o rótulo do campo no formulário, camelCaseado pelo extrator (`Escola / espaço` -> `escolaEspaco`) — e é por isso que a tabela escreve o rótulo do formulário, verbatim. É a FONTE ÚNICA do que o professor declarou: a ficha do ciclo (`ciclo`, abaixo) é COMPOSTA daqui pela derivação, e o `[Preencher]` fica só no que o `.conf` da variante decide (Regra 10, camada 2)."
+    },
+    "condicoesPreliminares": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "As condições do espaço e da cena, uma por linha (a seção `## Condições preliminares`, em lista). Seção que o documento sempre teve e que o mapa não conhecia: o conteúdo saía do derivado em silêncio."
+    },
+    "criterioDeExtensao": {
+      "type": "string",
+      "description": "O critério de extensão declarado em prosa (a seção `## Critério de extensão`) — o módulo condicional do plano, comum ao PO. Mesmo caso das condições preliminares: estava no documento e fora do mapa."
+    },
+    "musicasVideos": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "As músicas e os vídeos usados nas aulas, um por linha (a seção `## Músicas e vídeos`). Nó respondível que não tinha SEÇÃO na derivação — e que por isso não chegava a documento nenhum."
+    },
+    "repertorio": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "O repertório trabalhado, um por linha (a seção `## Repertório`) — obra, versão/produção, compasso e o que se exclui. Mesmo caso de `musicasVideos`."
     },
     "calendario": {
       "type": "string",

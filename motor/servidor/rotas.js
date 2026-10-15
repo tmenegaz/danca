@@ -21,6 +21,8 @@ const ficha = require('../nucleo/ficha.js');
 const porta = require('../nucleo/porta.js');
 const cofre = require('../nucleo/cofre.js');
 const lancamento = require('../nucleo/lancamento.js');
+// Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
+const { rotulosDoChecklist } = require('../nucleo/derivar-po.js');
 
 const REGISTRO_DE_CUSTO = 'ia-registro/registro.jsonl';
 
@@ -33,8 +35,18 @@ const MIME = {
   '.svg': 'image/svg+xml',
 };
 
-function resposta(status, tipo, texto) {
-  return new Response(texto, { status, headers: { 'Content-Type': tipo } });
+/**
+ * A resposta da PORTA. Tudo aqui é do ato presente — o mapa do formulário, o conteúdo,
+ * a ficha, os estados — e o que o professor vê tem de ser o de hoje: `no-store` em toda
+ * resposta. Sem ele, o `/api/mapa` (que entrega o CONTEÚDO do formulário) era cacheado
+ * pelo navegador, e uma correção publicada não aparecia — o servidor mandava o conteúdo
+ * novo e a página desenhava o velho.
+ */
+function resposta(status, tipo, texto, cabecalhos) {
+  return new Response(texto, {
+    status,
+    headers: Object.assign({ 'Content-Type': tipo, 'Cache-Control': 'no-store, max-age=0' }, cabecalhos || {}),
+  });
 }
 
 function recusar(mensagem, status) {
@@ -375,7 +387,12 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
 
         if (corpo.fonte === 'po' && escreverPO) {
           try {
-            resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo', plano);
+            // OS RÓTULOS vêm do CONTEÚDO (o mesmo `conteudoPO` que a rota serve ao formulário):
+            // o nome de cada folha do checklist é dado, não código — e é o nome que o professor
+            // leu ao marcar. Sem esta passagem, o documento já assinou «Fronteiras claras» onde
+            // o formulário diz «Fronteiras do escopo claras».
+            resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo',
+              plano, { rotulos: rotulosDoChecklist(conteudoPO) });
           } catch (erro) {
             resultado.fonte = { ok: false, erro: erro.message };
           }
@@ -448,7 +465,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     const caminho = url.pathname;
     if (servirEstatico) {
       const estatico = await servirEstatico(caminho);
-      if (estatico) return resposta(estatico.status, estatico.tipo, estatico.corpo);
+      if (estatico) return resposta(estatico.status, estatico.tipo, estatico.corpo, estatico.cabecalhos);
     }
     return recusar('não encontrado: ' + caminho, 404);
   });
@@ -456,7 +473,12 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     const caminho = url.pathname;
     if (servirEstatico) {
       const estatico = await servirEstatico(caminho);
-      if (estatico) return new Response('', { status: estatico.status, headers: { 'Content-Type': estatico.tipo } });
+      if (estatico) {
+        return new Response('', {
+          status: estatico.status,
+          headers: Object.assign({ 'Content-Type': estatico.tipo }, estatico.cabecalhos || {}),
+        });
+      }
     }
     return new Response('', { status: 404, headers: { 'Content-Type': 'application/json;charset=utf-8' } });
   });

@@ -1,4 +1,18 @@
 {
+  "contexto": {
+    "escola": "maria",
+    "professor": "tiago",
+    "turma": "Aula particular",
+    "frequencia": "1x semanal — qui",
+    "duracaoPorAula": "1 hora 0 minuto",
+    "calendario": "2026-10-08 → 2026-12-10",
+    "numeroTotalDeAulas": "10",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Professor e aluno na sala de aula sem observadores externo registro feito por meio de papel e caneta",
+    "metodologiaDeReferencia": "RAD",
+    "quemEscolheAMetodologia": "Eu escolho",
+    "notacaoDominada": "Benesh"
+  },
   "objetivoGeral": "Objetivo geral desse ciclo é verificar a capacidade de se equilibrar com os movimentos do balé clássico mediante a transferência de peso e a coordenação dos braços",
   "ciclo": {
     "duracaoAulas": "[Preencher: N encontros — o .conf da variante declara]",
@@ -18,6 +32,32 @@
     "Solo - exercícios de tonificação para tandi e passei e também coordenação de braços e postura tanto de barriga para cima quanto de barriga para baixo",
     "Barra - coordenação motora para execução dos tandues por de brás e postura",
     "Centro e diagonal - reforçar a ideia de postura e transferência de peso com exercícios de deslocamento de uma perna para a outra perna"
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "15% no solo",
+      "proporcaoAlvo60Min": "",
+      "justificativa": ""
+    },
+    {
+      "bloco": "35% de barra",
+      "proporcaoAlvo60Min": "",
+      "justificativa": ""
+    },
+    {
+      "bloco": "50% de centro e diagonal",
+      "proporcaoAlvo60Min": "",
+      "justificativa": ""
+    }
+  ],
+  "condicoesPreliminares": [
+    "Sala com colchonete e barra"
+  ],
+  "reguaDaRubrica": [
+    "Insatisfatório",
+    "Em desenvolvimento",
+    "Satisfatório",
+    "Excelente"
   ],
   "rubrica": [
     {
@@ -42,6 +82,7 @@
       "excelente": ""
     }
   ],
+  "criterioDeExtensao": "Módulo fechado de 10 encontros; o quinto é suplementa",
   "proveniencia": "Plano derivado da metodologia rad",
   "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
   "_lacunas": [

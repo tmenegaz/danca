@@ -37,67 +37,67 @@
         {
           "rotulo": "Alinhamento e estabilização da pelve",
           "chave": "alinhamento_e_estabilizacao_da_pelve",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Sustentação e estrutura dos cotovelos",
           "chave": "sustentacao_e_estrutura_dos_cotovelos",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Mecânica do en dehors no tendu (saída e retorno)",
           "chave": "mecanica_do_en_dehors_no_tendu_saida_e_retorno",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Mecânica do en dehors no glissade e jeté",
           "chave": "mecanica_do_en_dehors_no_glissade_e_jete",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Distribuição e transferência de peso",
           "chave": "distribuicao_e_transferencia_de_peso",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Organização postural no eixo da perna de base",
           "chave": "organizacao_postural_no_eixo_da_perna_de_base",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Precisão de ponto e apoio nos coupés",
           "chave": "precisao_de_ponto_e_apoio_nos_coupes",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Articulação e estabilidade no passé",
           "chave": "articulacao_e_estabilidade_no_passe",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Alinhamento do plié",
           "chave": "alinhamento_do_plie",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Sustentação postural no arabesque",
           "chave": "sustentacao_postural_no_arabesque",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Correspondência dos braços no arabesque",
           "chave": "correspondencia_dos_bracos_no_arabesque",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Direcionamento espacial",
           "chave": "direcionamento_espacial",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Qualidade de transição nos movimentos contínuos",
           "chave": "qualidade_de_transicao_nos_movimentos_continuos",
-          "tipo": "marca"
+          "tipo": "rubrica"
         }
       ],
       "linhas": [
@@ -114,27 +114,27 @@
         {
           "rotulo": "Precisão de ataque e início do movimento",
           "chave": "precisao_de_ataque_e_inicio_do_movimento",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Acompanhamento do pulso constante",
           "chave": "acompanhamento_do_pulso_constante",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Sincronia do ponto de término (fechamento)",
           "chave": "sincronia_do_ponto_de_termino_fechamento",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Autonomia de escuta sem contagem em voz alta",
           "chave": "autonomia_de_escuta_sem_contagem_em_voz_alta",
-          "tipo": "marca"
+          "tipo": "rubrica"
         },
         {
           "rotulo": "Diferenciação de dinâmicas e qualidades sonoras",
           "chave": "diferenciacao_de_dinamicas_e_qualidades_sonoras",
-          "tipo": "marca"
+          "tipo": "rubrica"
         }
       ],
       "linhas": [

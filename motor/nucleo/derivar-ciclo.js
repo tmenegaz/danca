@@ -23,6 +23,7 @@
  */
 
 const { respostaDo, emLista } = require('./derivar-po.js');
+const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
 
 // ---------------------------------------------------------------------------
 // Ajudantes
@@ -170,10 +171,25 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   // O volume-alvo declarado é o ponto médio da faixa; a §8 audita contra a faixa.
   const volumeTotal = volMin && volMax ? Math.round((volMin + volMax) / 2) : 0;
 
-  const objetivo = prosa(resp(plano, 'aula-1-objetivo'), 'objetivo específico da Aula 01');
-  const parametro = prosa(resp(plano, 'aula-1-parametro'), 'parâmetro de medição da Aula 01');
-  const sequencia = emLista(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
-  const estrutura = emLista(resp(plano, 'estrutura-de-cada-aula')).filter((v) => !GABARITO_VAZADO.test(v));
+  const objetivo = prosa(objetivoDaAula1(plano), 'objetivo específico da Aula 01');
+  // O PARÂMETRO DE MEDIÇÃO vem da matriz objetivo × o que se observa (a forma que o formulário
+  // grava: `{marco, marcados}`), e a prosa antiga segue valendo. Sem a composição, a matriz
+  // chegava ao documento como `[object Object]`.
+  const parametroLinhas = parametroEmLinhas(resp(plano, 'aula-1-parametro'),
+    marcosEmTexto(resp(plano, 'marcos-por-aula')));
+  const parametro = parametroLinhas.length
+    ? parametroLinhas.join('\n')
+    : '[Preencher: parâmetro de medição da Aula 01]';
+  const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
+  const estrutura = (() => {
+    const cru = resp(plano, 'estrutura-de-cada-aula');
+    // A forma NOVA (a matriz objetivo × bloco) guarda a relação: a estrutura da aula
+    // são os blocos usados, na ordem canónica. A forma LEGADA (lista em prosa) segue.
+    if (Array.isArray(cru) && cru.some((l) => l && typeof l === 'object')) {
+      return blocosDaEstrutura(cru, BLOCOS_DA_AULA);
+    }
+    return emLista(cru).filter((v) => !GABARITO_VAZADO.test(v));
+  })();
   const condicoes = emLista(resp(plano, 'condicoes-preliminares')).filter((v) => !GABARITO_VAZADO.test(v));
   const referencias = String(resp(plano, 'referencias') || '').trim();
 
@@ -191,7 +207,7 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   const tituloDaAula = objetivo && !objetivo.startsWith('[Preencher') ? objetivo : 'Aula 01';
   saida.push('title: "Aula 01 — ' + tituloDaAula + '"');
   saida.push('subtitle: "Sem deslocamento, sem giro, sem mudança de direção"');
-  saida.push('objetivo-especifico: "' + (String(resp(plano, 'aula-1-objetivo') || '').trim() || '[Preencher]') + '"');
+  saida.push('objetivo-especifico: "' + (objetivoDaAula1(plano) || '[Preencher]') + '"');
   saida.push('duracao: "' + duracaoMin + ' minutos"');
   if (volumeTotal) saida.push('volume-total: "' + volumeTotal + ' tempos"');
   if (referencias) saida.push('referencias: "' + referencias + '"');
@@ -230,7 +246,7 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
       corpo.push('');
       corpo.push('| Bloco | Tempos | Fatia |');
       corpo.push('|:--|--:|--:|');
-      for (const linha of distribuicaoDoTempo(estrutura, resp(plano, 'distribuicao-de-volume'), volumeTotal)) {
+      for (const linha of distribuicaoDoTempo(estrutura, linhasDaTabela(resp(plano, 'distribuicao-de-volume')), volumeTotal)) {
         corpo.push(linha);
       }
       corpo.push('| **Total** | **' + (volumeTotal || '[Preencher]') + '** | **100%** |');
@@ -358,7 +374,7 @@ function derivarNotacao({ plano, contexto }) {
   const notacao = notacaoEscolhida(plano);
   if (!notacao) return null;
 
-  const sequencia = emLista(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
+  const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
   const saida = [];
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
 
@@ -488,9 +504,23 @@ function dimensoesEItens(po) {
 }
 
 /**
+ * O TIPO da coluna de um CRITÉRIO na folha de captura. Um só lugar, para o tipo não voltar a ser
+ * presumido em dois: o critério mede-se pela RÉGUA DA TURMA (`rubrica` — os níveis que a escola
+ * declara nos bastidores e o professor adota no plano). O valor da folha é o RÓTULO do nível; a
+ * régua chega ao formulário pelo `plano-XX.json` do pacote (`reguaDaRubrica`), com a queda nos
+ * quatro níveis padrão quando o plano não a declara.
+ */
+const TIPO_DO_CRITERIO = 'rubrica';
+
+/**
  * A declaração `porVariante` da captura: um bloco por dimensão (as colunas são os itens) e,
  * por fim, o bloco fixo da linha de base revisitada (P-10). Os TÍTULOS e os RÓTULOS de coluna
  * são os MESMOS que o Markdown da folha emite — é o que o `validar-captura-ciclo.js` confere.
+ *
+ * O TIPO de cada coluna é declarado, e não presumido: o ITEM DE UMA DIMENSÃO é um CRITÉRIO — a
+ * folha rotula essas linhas «Critério» — e o critério se mede pela RÉGUA DA TURMA (14/10/2026:
+ * `rubrica`), não pelas cinco marcas. A LINHA DE BASE é a exceção, e por isso tem o `tipo`
+ * escrito à mão: «observado na aula» responde «aconteceu?», e não «em que nível ficou?».
  */
 function declaracaoDeCaptura({ po, escola }) {
   const dims = dimensoesEItens(po);
@@ -500,7 +530,7 @@ function declaracaoDeCaptura({ po, escola }) {
     const colunas = {};
     for (const item of d.itens) {
       const rotulo = rotuloDoItem(item);
-      colunas[rotulo] = { chave: slugDe(rotulo), tipo: 'marca' };
+      colunas[rotulo] = { chave: slugDe(rotulo), tipo: TIPO_DO_CRITERIO };
     }
     blocos[titulo] = { chave: slugDe(d.dimensao), rotulo: d.dimensao, grao: 'aluna', colunas };
   });
@@ -534,7 +564,9 @@ function derivarCaptura({ po, contexto }) {
   saida.push('---');
   saida.push('');
   saida.push('> **Durante a aula, marque; depois, escreva** — as marcas são âncoras de memória, não');
-  saida.push('> classificação (P-06). Marcação: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.');
+  saida.push('> classificação (P-06). Os CRITÉRIOS medem-se pela **régua da turma** (anote o nível —');
+  saida.push('> ex.: satisfatório · razoável · em desenvolvimento · não se aplica); o que só se OBSERVA');
+  saida.push('> (a linha de base) marca-se com: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi · vazio = não observei.');
   saida.push('');
 
   const presentes = sujeitos.length ? sujeitos.join(' ☐ ') : '☐ [Preencher: alunas]';
@@ -608,7 +640,9 @@ function derivarCaptura({ po, contexto }) {
   saida.push('______________________________________________________');
   saida.push('```');
   saida.push('');
-  saida.push('**Fecho da aula (preencher no fim):** **Estrutura** ☐ solo ☐ barra ☐ centro ☐ presença · **Duração executada** `_____` min');
+  saida.push('**Fecho da aula (preencher no fim):** **Estrutura** ' +
+    BLOCOS_DA_AULA.map((b) => '☐ ' + b.toLowerCase()).join(' ') +
+    ' · **Duração executada** `_____` min');
   saida.push('');
   saida.push('**Abandonado?** `__________________` · **Materiais** ☐ fotos ☐ vídeo ☐ áudio ☐ comentário: `______________`');
   return saida.join('\n') + '\n';
@@ -625,6 +659,15 @@ const TERMOS_DE_JUIZO = [
   'não sabe', 'não consegue', 'não sente', 'não controla', 'exagera', 'travada', 'travado',
   'insuficiente', 'incapaz', 'sem jeito', 'jeito nenhum', 'postura ruim',
 ];
+
+/** Um valor do envelope como TEXTO para o varrimento: achata o que for estruturado
+ *  (a matriz por marco, a grelha) — sem isso o varrimento leria «[object Object]». */
+function textoDeValor(valor) {
+  if (valor === null || valor === undefined) return '';
+  if (Array.isArray(valor)) return valor.map(textoDeValor).join(' ');
+  if (typeof valor === 'object') return Object.values(valor).map(textoDeValor).join(' ');
+  return String(valor);
+}
 
 /** O varrimento: acha termos de juízo na prosa do plano e do PO. Devolve [{termo, onde, trecho}]. */
 function varrerJuizo(plano, po) {
@@ -645,7 +688,7 @@ function varrerJuizo(plano, po) {
       [item.traz, item.precisaDesenvolver].filter(Boolean).join(' ')]);
   }
   for (const [onde, valor] of campos) {
-    const texto = String(valor || '');
+    const texto = textoDeValor(valor);
     for (const termo of TERMOS_DE_JUIZO) {
       const idx = texto.toLowerCase().indexOf(termo);
       if (idx === -1) continue;

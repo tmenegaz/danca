@@ -56,7 +56,7 @@ async function servirEstatico(caminho) {
     if (!stat.isFile()) return null;
     const tipo = MIME_ESTATICO[path.extname(alvo).toLowerCase()] || 'application/octet-stream';
     const corpo = await fs.promises.readFile(alvo);
-    return { status: 200, tipo, corpo };
+    return { status: 200, tipo, corpo, cabecalhos: { 'Cache-Control': 'no-store, max-age=0' } };
   } catch (erro) {
     return null;
   }

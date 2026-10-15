@@ -307,6 +307,31 @@ vocabulário que a integração **não pode** desfazer:
   `fontes_do_ciclo()` do `tools/lib-fontes.sh` deliberadamente **não** os inclui: eles são
   vista de PO + relatórios, e o `.gitignore` os mantém fora do Git.
 
+> **Nota datada — 14/10/2026. Uma chave por nó respondível.** O `po-01.json` ganhou as chaves dos
+> nós que não tinham destino (`planoDeEnsino`, `horizonte`, `dimensoesObservadas`,
+> `itensPorDimensao`, `metodologiaENotacao`, `flutuantes`, `restricoes`, `horizonteDoConjunto`,
+> `compromissoDeReavaliacao`), todas **opcionais**. Antes disso, dez dos trinta e três nós
+> respondíveis não chegavam ao documento — o horizonte, o plano referenciado, as dimensões e os
+> itens observados e os campos dos módulos condicionais; e dois escreviam dentro do campo de
+> outro (as flutuantes como item de `subjects`, as restrições físicas como «linha» de
+> `linhaDeBase`). A regra que fica: **cada nó respondível tem a sua chave**, e o `## Metodologia e
+> notação` — emitido desde a ligação L5 — passa a ser extraído. Ver `REGISTRO.md` (14/10/2026) e
+> `experimentos/provar-po-completo.js`.
+
+
+> **Nota datada — 14/10/2026. A seção fora do mapa deixa de ser descartada em silêncio — e o
+> `## Contexto` vira a fonte única.** A mesma regra da nota acima, cobrada do outro lado: o
+> `plano-XX.json` ganhou as chaves dos nós que não tinham destino (`contexto`,
+> `condicoesPreliminares`, `criterioDeExtensao`, `musicasVideos`, `repertorio`), todas
+> **opcionais**. Vinte e um dos vinte e quatro nós respondíveis do plano não chegavam ao JSON, e
+> dois não chegavam a documento nenhum; a causa comum era a seção cujo título não está no
+> `MAPA_SECOES` — descartada **sem aviso**, com o validador imprimindo `ok`. Agora o contrato
+> registra essas seções **quando tinham conteúdo** e o aviso nomeado diz a linha e o que se
+> perde: uma seção nova sem destino passa a aparecer no dia em que nasce, e não três ciclos
+> depois. E o que o professor declara passa a ser declarado **uma vez**: o `## Contexto` é a
+> fonte, e a ficha do ciclo (`ciclo`) é composta dele. Ver `REGISTRO.md` (14/10/2026, frente B11)
+> e `experimentos/provar-plano-completo.js`.
+
 ### 4.4 O que o PE nunca faz no fluxo
 
 Não modifica o PO; não redefine o fenômeno; não amplia nem reduz o escopo; não altera a norma;

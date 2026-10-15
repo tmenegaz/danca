@@ -128,7 +128,8 @@
       "numero": "Um número (a duração em minutos). No formulário, campo numérico.",
       "booleano": "Sim/não (a fadiga antes do previsto). No formulário, caixa de marcação.",
       "texto": "Texto livre. Nenhuma COLUNA de tabela dos dois ciclos é deste tipo: os textos da folha são hoje os rótulos de linha (o cabeçalho, o P-11, o fecho), que não são tabela.",
-      "checkbox": "Múltipla escolha (a estrutura executada, no fecho da aula). Como `texto`, não é coluna de tabela hoje — existe no vocabulário porque o fecho da folha é uma lista de caixas."
+      "checkbox": "Múltipla escolha (a estrutura executada, no fecho da aula). Como `texto`, não é coluna de tabela hoje — existe no vocabulário porque o fecho da folha é uma lista de caixas.",
+      "rubrica": "Um NÍVEL da régua da turma (14/10/2026): os níveis que a escola declara nos bastidores (Turmas → régua) e o professor adota no plano do ciclo. É o tipo dos CRITÉRIOS — as linhas que a folha rotula «Critério» —, porque o critério de cada aula se mede pela régua, e não pelas cinco marcas: `marca` responde «aconteceu?» (âncora de memória, P-06), `rubrica` responde «em que nível o resultado ficou?». O valor gravado é o RÓTULO do nível, como a escola o escreveu — a régua é da escola, então quem a lê depois lê as palavras dela. Vazio = não medido nesta aula. O formulário renderiza um select com os níveis da régua vinda do `plano-XX.json` do pacote (`reguaDaRubrica`); sem ela, os quatro níveis padrão do motor."
     },
     "porVariante": {
       "diaghilev": {
@@ -346,55 +347,55 @@
             "colunas": {
               "Alinhamento e estabilização da pelve": {
                 "chave": "alinhamento_e_estabilizacao_da_pelve",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Sustentação e estrutura dos cotovelos": {
                 "chave": "sustentacao_e_estrutura_dos_cotovelos",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Mecânica do en dehors no tendu (saída e retorno)": {
                 "chave": "mecanica_do_en_dehors_no_tendu_saida_e_retorno",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Mecânica do en dehors no glissade e jeté": {
                 "chave": "mecanica_do_en_dehors_no_glissade_e_jete",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Distribuição e transferência de peso": {
                 "chave": "distribuicao_e_transferencia_de_peso",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Organização postural no eixo da perna de base": {
                 "chave": "organizacao_postural_no_eixo_da_perna_de_base",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Precisão de ponto e apoio nos coupés": {
                 "chave": "precisao_de_ponto_e_apoio_nos_coupes",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Articulação e estabilidade no passé": {
                 "chave": "articulacao_e_estabilidade_no_passe",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Alinhamento do plié": {
                 "chave": "alinhamento_do_plie",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Sustentação postural no arabesque": {
                 "chave": "sustentacao_postural_no_arabesque",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Correspondência dos braços no arabesque": {
                 "chave": "correspondencia_dos_bracos_no_arabesque",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Direcionamento espacial": {
                 "chave": "direcionamento_espacial",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Qualidade de transição nos movimentos contínuos": {
                 "chave": "qualidade_de_transicao_nos_movimentos_continuos",
-                "tipo": "marca"
+                "tipo": "rubrica"
               }
             }
           },
@@ -405,23 +406,23 @@
             "colunas": {
               "Precisão de ataque e início do movimento": {
                 "chave": "precisao_de_ataque_e_inicio_do_movimento",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Acompanhamento do pulso constante": {
                 "chave": "acompanhamento_do_pulso_constante",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Sincronia do ponto de término (fechamento)": {
                 "chave": "sincronia_do_ponto_de_termino_fechamento",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Autonomia de escuta sem contagem em voz alta": {
                 "chave": "autonomia_de_escuta_sem_contagem_em_voz_alta",
-                "tipo": "marca"
+                "tipo": "rubrica"
               },
               "Diferenciação de dinâmicas e qualidades sonoras": {
                 "chave": "diferenciacao_de_dinamicas_e_qualidades_sonoras",
-                "tipo": "marca"
+                "tipo": "rubrica"
               }
             }
           },

@@ -52,9 +52,14 @@ function criarRoteador() {
         if (params === null) continue;
         const resultado = await r.handler({ request, url, params });
         if (resultado instanceof Response) return resultado;
+        // O objeto devolvido por um handler é JSON do ATO presente (o mapa, as listas,
+        // os estados): sai `no-store` para o navegador nunca desenhar o conteúdo de ontem.
         return new Response(JSON.stringify(resultado, null, 2) + '\n', {
           status: 200,
-          headers: { 'Content-Type': 'application/json;charset=utf-8' },
+          headers: {
+            'Content-Type': 'application/json;charset=utf-8',
+            'Cache-Control': 'no-store, max-age=0',
+          },
         });
       }
       return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {

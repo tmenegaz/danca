@@ -44,6 +44,15 @@
   /* Os três vereditos da observação. O `--alerta` não é o `#a06000` que estava aqui:
      aquele tom dá 4,29:1 sobre o `--creme-2` do cabeçalho, abaixo de AA. */
   .ok{color:var(--ok)} .parcial{color:var(--alerta)} .nao{color:var(--falha)}
+  /* A RÉGUA da turma (14/10/2026): o tom segue a POSIÇÃO do nível, não o nome — a escola
+     renomeia os níveis e a leitura não perde a escala. Do quarto em diante o tom é NEUTRO:
+     o quarto nível canônico é «Não se aplica», que não é grau nenhum, e um nível que a
+     escola acrescente herda o neutro em vez de virar um juízo que ninguém declarou. */
+  .nivel-1{color:var(--ok)} .nivel-2{color:var(--alerta)} .nivel-3{color:var(--falha)}
+  .nivel-neutro{color:var(--soft)}
+  /* Um nível que a régua desta turma NÃO declara (o registro é de outro ciclo): ele fica
+     visível e marcado, em vez de se disfarçar de nível desta régua. */
+  .nivel-fora{color:var(--falha)}
   h2 { color: var(--burgundy); font-size:1.05rem; margin:22px 0 4px;
        border-bottom:2px solid var(--gold-escuro); padding-bottom:3px; }
   h3 { color: var(--burgundy); font-size:.98rem; margin:14px 0 4px; }
@@ -464,6 +473,7 @@ const mdCelula = (c, v) => {
   if (c.tipo === 'booleano') return esc(sim(v));
   if (c.tipo === 'numero') return v === undefined || v === null || v === '' ? '—' : esc(v);
   if (c.tipo === 'texto') return v ? esc(v) : '<span class="fraco">—</span>';
+  if (c.tipo === 'rubrica') return nivelDaRegua(v);
   return marca(v);                         // marca — e o que não declarar tipo sai como marca
 };
 
@@ -833,6 +843,47 @@ async function gerarMd() {
 const MARCAS = [['', 'não observei'], ['ok', '✓ ok'], ['parcial', '~ parcial'],
   ['nao', 'X não aconteceu'], ['nao_vi', '? não vi']];
 
+// ------------------------------------------------------------------ A RÉGUA DA TURMA
+// O CRITÉRIO de cada aula se mede pela RÉGUA da turma (§ «o resultado medido ao final»): os
+// níveis que a escola declara nos bastidores (Turmas) e o professor adota no plano do ciclo.
+// Ela chega por `plano.reguaDaRubrica` — a seção `## Régua da rubrica` do plano do ciclo, que
+// o extrator entrega em LISTA justamente para o rótulo atravessar verbatim (no cabeçalho da
+// tabela da rubrica ele viraria chave: «Não se aplica» → «naoSeAplica»).
+//
+// Sem a seção — ciclo antigo, plano que não a tem — valem os quatro níveis PADRÃO do motor
+// (`NIVEIS_DA_RUBRICA`, em `motor/nucleo/derivar-plano-ciclo.js`). A lista se repete aqui
+// porque esta página é servida sozinha: ela não carrega o motor, e um ciclo sem régua
+// declarada não pode ficar sem medida.
+const REGUA_PADRAO = ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'];
+let reguaAtual = REGUA_PADRAO.slice();
+
+// A régua do ciclo em cena. O vazio NÃO é uma régua: sem níveis, volta o padrão.
+function usarRegua(plano) {
+  const declarada = ((plano && plano.reguaDaRubrica) || [])
+    .filter((x) => typeof x === 'string' && x.trim()).map((x) => x.trim());
+  reguaAtual = declarada.length ? declarada : REGUA_PADRAO.slice();
+}
+
+// O campo de um critério: um nível da régua, ou o vazio (não medido nesta aula). Um valor JÁ
+// LANÇADO que não está na régua entra como opção extra — a régua pode mudar entre ciclos, e
+// nenhuma marca antiga some da tela por causa disso.
+function opcoesDaRegua(valor) {
+  const niveis = reguaAtual.slice();
+  if (valor && !niveis.includes(valor)) niveis.push(valor);
+  return '<option value="">não medido</option>'
+    + niveis.map((n) => `<option value="${esc(n)}"${n === (valor || '') ? ' selected' : ''}>`
+      + `${esc(n)}</option>`).join('');
+}
+
+// O nível lido: o rótulo da régua, com o tom da posição. Um valor fora da régua sai com o
+// tom da falha — ele é um nível que a régua desta turma não declara, e isso se vê.
+function nivelDaRegua(v) {
+  if (v === undefined || v === null || v === '') return '<span class="fraco">—</span>';
+  const i = reguaAtual.indexOf(v);
+  const classe = i < 0 ? 'nivel-fora' : (i < 3 ? `nivel-${i + 1}` : 'nivel-neutro');
+  return `<span class="${classe}">${esc(v)}</span>`;
+}
+
 const opcoesDe = (pares, valor) => pares.map(([v, t]) =>
   `<option value="${esc(v)}"${v === (valor || '') ? ' selected' : ''}>${esc(t)}</option>`).join('');
 
@@ -1094,6 +1145,9 @@ function dataDaCaptura(m, id) {
 function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   const a = dados.aulas[id] || null;
   const ajuste = !!estadoAjuste();     // reabrindo o que já estava lançado
+  // A RÉGUA do ciclo em cena ANTES de qualquer render: é ela que monta os campos de critério
+  // (abaixo) e a leitura das tabelas (`mdCelula`, na vista de resultados).
+  usarRegua(planoDoCiclo);
   const cc = (a && a.condicoes_contorno) || {};
   // O plano seguido já vem escolhido — "sim" é o caso comum — e é ele que governa o campo
   // "o que mudou" JÁ NA PRIMEIRA RENDERIZAÇÃO, quando nada foi mudado ainda. Sem isto, a
@@ -1110,8 +1164,18 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   // alcançava o Par).
   const blocos = captura ? Vistas.helpers.blocosDaCaptura(captura) : [];
   const doBloco = (b, quem) => (a && a[b.chave] && a[b.chave][quem]) || {};
-  // Um campo por TIPO declarado: marca (os cinco da folha), número, booleano. `texto` e `checkbox`
-  // não são coluna de tabela nestes ciclos (ver a declaração no schema da captura).
+  // O que a folha USA governa o que a tela explica: uma folha cujos critérios se medem pela
+  // régua não se explica pelas cinco marcas, e vice-versa.
+  const usaTipo = (t) => blocos.some((b) => (b.colunas || []).some((c) => c.tipo === t));
+  const comRegua = usaTipo('rubrica');
+  // A legenda das marcas aparece quando alguma coluna RENDERIZA como marca — e `marca` é o ramo
+  // padrão de `campo()`: uma coluna cujo tipo ninguém declarou cai nele, e a legenda tem de
+  // explicá-la. Só o que é de outro registro declarado (número, booleano, texto, régua) fica fora.
+  const comMarcas = blocos.some((b) => (b.colunas || [])
+    .some((c) => !['numero', 'booleano', 'texto', 'rubrica'].includes(c.tipo)));
+  // Um campo por TIPO declarado: marca (os cinco da folha), rubrica (os níveis da turma),
+  // número, booleano. `texto` e `checkbox` não são coluna de tabela nestes ciclos (ver a
+  // declaração no schema da captura).
   const campo = (idCampo, tipo, valor, sugestao) => {
     if (tipo === 'numero') {
       return `<input type="number" id="${esc(idCampo)}" min="0" step="5"`
@@ -1120,6 +1184,7 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     if (tipo === 'booleano') {
       return `<input type="checkbox" id="${esc(idCampo)}"${valor ? ' checked' : ''}>`;
     }
+    if (tipo === 'rubrica') return `<select id="${esc(idCampo)}">${opcoesDaRegua(valor)}</select>`;
     return `<select id="${esc(idCampo)}">${opcoesDe(MARCAS, valor)}</select>`;
   };
   const opcoesDeApelido = (sel) => '<option value=""></option>' + apelidosDoCiclo(dados)
@@ -1183,6 +1248,8 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
          Os resultados da leitura voltam quando você filtrar uma aula que já tem dado.`}</p>
   ${marco ? `<p class="marco"><strong>Marco da aula ${esc(id)}</strong> (do plano do ciclo):
     ${esc(marco.marco)}</p>` : ''}
+  ${comRegua ? `<p class="linha"><strong>Régua desta turma:</strong>
+    ${reguaAtual.map(esc).join(' · ')}</p>` : ''}
   ${captura ? '' : `<p class="fraco">[Preencher: o config desta aula
     (<code>${esc(configDaAula(m, id) || 'captura-' + m.id + '.json')}</code>) não está no pacote —
     sem ele o painel não sabe o que esta aula observa.]</p>`}
@@ -1234,9 +1301,13 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     <textarea id="captura-surpresas" rows="2">${esc(a ? a.relatorio.surpresas : '')}</textarea></p>
   <p class="linha"><label for="captura-ajustes">O que foi ajustado:</label>
     <textarea id="captura-ajustes" rows="2">${esc(a ? a.relatorio.ajustes : '')}</textarea></p>
-  <p class="fraco">Marcas: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
-    vazio = não observei — as mesmas da folha de captura. Marca é âncora de memória,
-    não classificação (P-06).</p>`;
+  <p class="fraco">${[
+    comMarcas ? `Marcas: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
+      vazio = não observei — as mesmas da folha de captura.` : '',
+    comRegua ? `Critério: um nível da RÉGUA desta turma — vazio = não medido nesta aula.` : '',
+    comMarcas || comRegua ? `A marca é âncora de memória; a régua é a medida do resultado ao
+      final (§ «o resultado medido»), e é ela que o relatório de coleta usa (P-06).` : '',
+  ].filter(Boolean).join(' ')}</p>`;
 }
 
 // O painel existe SÓ no modo captura (o filtro numa aula sem dado). Fora disso ele sai
@@ -1632,6 +1703,10 @@ async function render() {
     const blocos = [];
     for (const meta of metas) {
       const { meta: m, dados, captura } = await carregarCiclo(meta);
+      // A régua do ciclo em cena ANTES de desenhar: é ela que a leitura usa para nomear o
+      // nível de cada critério (`mdCelula`). Sem isto a leitura mostraria o nível pelo padrão
+      // do motor, e não pela régua que a turma declarou.
+      usarRegua((cache[m.id] || {}).plano);
       let aulas = Object.keys(dados.aulas).sort();
       if (aula) aulas = aulas.filter((k) => k === aula);
       if (aluna && !(aluna in dados.apelidos)) continue;

@@ -84,7 +84,8 @@ fenómeno, as fronteiras, a norma, os critérios, a justificativa, o recorte. Di
   explícita** (`[a decidir]`) — nunca preenchido por suposição.
 - **Atenção à palavra "bloco": ela tem três sentidos.** Nesta entrevista,
   "Bloco N" é um dos **dez blocos da entrevista** (1 a 10). No **plano da aula**,
-  "Bloco 1..4" são as partes da aula (solo, barra, centro, presença), com tempos e
+  "Bloco 1..4" são as partes da aula (**solo, barra, centro, musicalidade**) mais a
+  **expressão** (a parte artística, que costuma fechar os últimos minutos), com tempos e
   porcentagem. Na **folha de captura**, "Bloco 1..5" são as seções de registro
   (técnica, funcional, musicalidade, linha de base revisitada). São **três listas
   independentes** — quando eu disser "o Bloco 6", é ao da entrevista que me
@@ -112,8 +113,9 @@ que é verdade e não foi perguntado não fica de fora por falta de campo.
 - Data de início e calendário (ou `[a decidir]`)
 - Número total de aulas do ciclo
 - **Volume de trabalho** (ex.: «80–100 tempos ativos por aula»)
-- **Condição de registro** (ex.: «professor e alunos na mesma sala, sem
-  observador externo» — quem observa e registra, e de onde)
+- **Condição de registro** — marcada, não escrita: quem está na sala (o professor e as
+  alunas da turma já vêm marcados) e **quem observa** (um observador externo ou o próprio
+  professor). O que não couber (vídeo, alguém que passou na sala) vai na linha livre.
 - **Outra condição do contexto?** O que não estiver nas linhas acima.
 
 **Metodologia e notação — declaradas, nunca deduzidas (P-16):**
@@ -163,8 +165,14 @@ ausência é o registro, e inventar um horizonte que não existe é dedução.
 
 ## Bloco 4 — Aulas: a primeira e os marcos
 
-- **Aula 1:** objetivo específico (o que se trabalha nesta aula) e parâmetro de
-  medição (o que você observa para saber se foi alcançado)
+- **Aula 1:** o **objetivo específico** e o parâmetro de medição (o que você observa
+  para saber se foi alcançado). O objetivo da Aula 1 **não é perguntado à parte**: pela
+  Regra 2, o objetivo específico da aula **é o marco parcial** daquela aula — então ele
+  é o **marco 1** da lista abaixo, e o plano o lê de lá (uma fonte só).
+- **A sequência de exercícios, por bloco:** em que bloco cada objetivo é trabalhado, com
+  que conteúdo do nível da turma («plié», «battement tendu»…) e com quantos tempos e que
+  compasso. O bloco e o objetivo **vêm da marcação** — não se escrevem de novo; a
+  **musicalidade não entra aqui** (ela é esmiuçada no bloco dela, no registro da aula).
 - **Os marcos parciais, aula a aula** — o que fica pronto em cada aula, na ordem
   em que as aulas acontecem, **uma linha por aula, com o número na frente**. É o
   marco que o plano carrega e o que se consulta aula a aula:
@@ -178,6 +186,12 @@ ausência é o registro, e inventar um horizonte que não existe é dedução.
   os marcos estão decididos** e **o que decide estender** (o plano do ciclo
   piloto diz "12 aulas, extensível a 16, conforme critério de extensão"). Os
   marcos das aulas além das decididas vão como `[a decidir]`.
+
+- **A origem do plano** — de onde vem o que está nele: **marque** (RAD · Vaganova ·
+  tradição francesa, com ou sem a adaptação ao âmbito da turma, e a literatura de apoio),
+  mais de uma se o plano misturar tradições. A origem declarada **com as suas palavras**
+  (as metodologias que seguiu, os livros de onde lê, o repertório da sua formação) mora no
+  **Estúdio de Aula**, na Área do Professor — aqui você marca a que este plano usa.
 
 ## Bloco 5 — PO — Pergunta e fenômeno
 

@@ -169,6 +169,33 @@ function descritores(campo) {
     // cabeçalho de cinco). Não confundir com `colunas` acima, que é o NÚMERO de
     // colunas da escolha múltipla do histórico.
     tabela: campo.tabela || null,
+    // A LISTA NUMERADA (o marco parcial): `{minimo}`. O conteúdo diz quantos itens no
+    // mínimo; a tela desenha um campo por item, com o número do sistema e os botões de
+    // acrescentar e remover. Sem esta chave o marco cai no texto livre — o professor
+    // escreve tudo numa caixa só, e a fronteira de cada marco deixa de ser do dado.
+    lista: campo.lista || null,
+    // A ESCALA FIXA (a régua da rubrica): os níveis já decididos, só de leitura. O
+    // critério de cada aula é declarado no lançamento — aqui só se mostra a régua.
+    escala: campo.escala || null,
+    // O RITMO DA TURMA: o nó LÊ o cadastro da turma (`frequencia`, `duracao`,
+    // `calendario`, `totalAulas`) em vez de perguntar — é decisão da escola, não da cena.
+    daTurma: campo.daTurma || null,
+    // O que a direção ATRIBUIU (a turma curada): o nó FILTRA a lista para o que é do
+    // professor e pré-marca o que já foi designado.
+    daCuradoria: campo.daCuradoria || null,
+    // A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
+    // marco parcial, com as opções para marcar. `{de, opcoes: [...]}` ou
+    // `{de, opcoesDaTurma: true}` — as colunas vêm do conteúdo ou do nível da turma.
+    porMarco: campo.porMarco || null,
+    // A CONDIÇÃO DE REGISTRO (quem está na sala, quem observa): dois grupos de marcação
+    // — um de caixas (o professor e as alunas já vêm marcados) e um de escolha única (o
+    // observador). Sem esta chave o nó cai no texto livre, e a condição volta a ser prosa
+    // que não se compara entre aulas.
+    registro: campo.registro || null,
+    // OS VALORES de uma escolha declarada no conteúdo (o plano declara a lista; a
+    // anamnese/PO a derivam da `forma`). Sem esta chave o campo cai no texto livre.
+    valores: Array.isArray(campo.valores) ? campo.valores : null,
+    abertoRotulo: campo.abertoRotulo || null,
     // A folha DERIVADA (o checklist pré-preenchido): o obrigatoriamente sai, e este
     // selo fica — a tela mostra «pré-preenchido» em vez de «opcional».
     derivado: campo.derivado === true,
@@ -212,7 +239,9 @@ function nosRespondiveis(conteudo) {
       familia: campo.ramifica ? 'gatilho' : 'cabecalho',
       endereco: 'cabecalho.' + campo.id,
       forma: campo.forma || null,
-      valores: campo.forma ? valoresDaForma(campo.forma) : null,
+      valores: Array.isArray(campo.valores)
+        ? campo.valores
+        : (campo.forma ? valoresDaForma(campo.forma) : null),
       ramifica: campo.ramifica || null,
       nota: campo.nota || null,
       multipla: campo.multipla === true,
@@ -297,7 +326,12 @@ function nosRespondiveis(conteudo) {
         // A mesma FORMA do cabeçalho vale num bloco: um campo que declara
         // `forma` (RAD · Vaganova · …) vira opções marcáveis, não texto livre.
         forma: campo.forma || null,
-        valores: campo.forma ? valoresDaForma(campo.forma) : null,
+        // A LISTA própria vence a forma: quando o conteúdo declara `valores` (a origem do
+        // plano), a `forma` é a FRASE da pergunta e a lista é o que se marca. Sem lista
+        // declarada, vale a forma quebrada por «·» (o caminho de sempre).
+        valores: Array.isArray(campo.valores)
+          ? campo.valores
+          : (campo.forma ? valoresDaForma(campo.forma) : null),
       });
     }
   }

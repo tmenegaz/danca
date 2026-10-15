@@ -14,7 +14,7 @@ hash_conteudo: 146d2562636a368cf2b82bc621e09a57c12c39aced9b4b81d62ac62a1e29856d
 parentHash: 
 hash: f9ab83c9440a39d3975980037b056ffc508ace62cf463bb252d030b54f5ce52b
 algoritmo: SHA-256
-ancorado_em: 2026-10-12
+ancorado_em: 2026-10-14
 cobertura:
   - professores/tiago/ciclos/ciclo-01-maria-aula-01.md
   - professores/tiago/ciclos/ciclo-01-maria-captura-aula-01.md

@@ -1,5 +1,5 @@
 {
-  "$comentario": "Conteúdo PO (Protocolo de Observação). Este arquivo é DADO, não norma: a norma do conteúdo é PROTOCOLO.md (as pétreas P-01/P-05/P-06/P-10/P-11/P-12/P-13/P-14/P-15/P-18/P-22), e o elo textual congelado é prompts/elicitar-ciclo.md (Blocos 1, 5, 6, 7, 8 e 9). Se divergirem, a norma prevalece e a divergência é o achado. Nenhum campo novo é criado: tudo cai dentro do po-01.json que já existe.",
+  "$comentario": "Conteúdo PO (Protocolo de Observação). Este arquivo é DADO, não norma: a norma do conteúdo é PROTOCOLO.md (as pétreas P-01/P-05/P-06/P-10/P-11/P-12/P-13/P-14/P-15/P-18/P-22), e o elo textual congelado é prompts/elicitar-ciclo.md (Blocos 1, 5, 6, 7, 8 e 9). Se divergirem, a norma prevalece e a divergência é o achado. NENHUM CAMPO NOVO É PERGUNTADO — todo nó respondível deste conteúdo tem chave própria no `po-01.json` (14/10/2026: o schema ganhou as chaves dos nós que não tinham destino — dimensões observadas, itens de cada dimensão, horizonte, plano de ensino, flutuantes, restrições físicas e os dois módulos condicionais).",
   "documento": "po",
   "norma": "PROTOCOLO.md",
   "apelidoObrigatorio": "P-12",
@@ -910,5 +910,5 @@
     "regra": "metodologia e notação são declaradas, nunca deduzidas"
   },
   "oQueFicaFora": "O Plano de Observação não observa, não interpreta, não classifica, não mede e não produz provas. Ele delimita o que se observa — quem interpreta o resultado do ciclo é o professor.",
-  "ondeODadoVive": "Tudo cai dentro do po-01.json que já existe. Nenhum campo novo é criado: a P-08 permanece satisfeita sem tocar no ciclo-01-po-schema.json."
+  "ondeODadoVive": "Tudo cai dentro do `po-01.json`, e cada nó respondível tem a SUA chave — nada se escreve como prosa dentro do campo de outro nó (era o caso das flutuantes dentro de `Sujeitos` e das restrições físicas dentro de `Linha de base`, que o extrator lia como itens daqueles campos). O `ciclo-01-po-schema.json` ganhou as PROPRIEDADES dessas chaves em 14/10/2026 — nenhuma delas obrigatória, para os POs já escritos continuarem válidos; a obrigatoriedade declarada em `obrigatoriedade` é do FORMULÁRIO, e a do schema é a da fonte publicada."
 }

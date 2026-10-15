@@ -27,16 +27,31 @@ const RAIZ = 'bastidores';
 // O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
 // sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
 const CATALOGO = require('./catalogo-seed.js');
+// A RÉGUA DA RUBRICA — o padrão DECLARADO (Regra 10, camada 1: «plano do ciclo piloto»), e
+// a MESMA constante que a derivação do plano usa como reserva. A régua é da TURMA (a escola
+// a edita aqui); esta é a lista que nasce com uma turma nova e o que vale quando nenhuma foi
+// declarada. Uma fonte só — a decisão é declarada, não inventada.
+const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
+
+/** O dado destas rotas é DINÂMICO (vem do KV) e o documento é gerado a cada pedido:
+ *  `no-store` impede o navegador de reusar uma página ou uma listagem velha — sem
+ *  ele, uma Produção de antes do deploy continua aparecendo (e o menu só mexe no hash). */
+function semCache(headers) {
+  return Object.assign({ 'Cache-Control': 'no-store, max-age=0' }, headers);
+}
 
 function json(status, corpo) {
   return new Response(JSON.stringify(corpo, null, 2) + '\n', {
     status,
-    headers: { 'Content-Type': 'application/json;charset=utf-8' },
+    headers: semCache({ 'Content-Type': 'application/json;charset=utf-8' }),
   });
 }
 
 function html(corpo) {
-  return new Response(corpo, { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+  return new Response(corpo, {
+    status: 200,
+    headers: semCache({ 'Content-Type': 'text/html;charset=utf-8' }),
+  });
 }
 
 function esc(s) {
@@ -119,6 +134,20 @@ async function alunas(kv, escola) {
 async function turmas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/turmas');
 }
+
+/** A RÉGUA DA RUBRICA de uma turma: os níveis com que o resultado é medido no fim do ciclo.
+ *  É decisão da ESCOLA (a coordenação e os professores podem mudar os nomes, acrescentar ou
+ *  remover um nível), e por isso vive no cadastro da turma — o plano a LÊ. Sem lista
+ *  declarada, vale a régua padrão: uma turma nunca fica sem régua (o vazio seria uma lacuna
+ *  silenciosa, e o plano mediria contra nada). */
+function rubricaDaTurma(turma) {
+  const cru = turma && turma.rubrica;
+  const niveis = (Array.isArray(cru) ? cru : [])
+    .map((n) => String(n || '').trim())
+    .filter(Boolean)
+    .filter((n, i, arr) => arr.indexOf(n) === i);
+  return niveis.length ? niveis : NIVEIS_DA_RUBRICA.slice();
+}
 async function termos(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/vocabulario');
 }
@@ -140,10 +169,52 @@ function idDe(nome) {
   return slugificar(nome);
 }
 
+/** Os dias da semana, PADRONIZADOS — a Produção só deixa marcar, nunca escrever.
+ *  É o que evita «sexta», «seis» e «sexta-feira» conviverem como se fossem o mesmo dia. */
+const DIAS_DA_SEMANA = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
+
+/** Aceita o que já existe (texto livre, de antes do seletor) e devolve o canónico.
+ *  O que não é reconhecido é descartado — melhor um dia a menos do que um dia errado. */
+const APELIDOS_DE_DIA = {
+  seg: 'seg', segunda: 'seg', 'segunda-feira': 'seg', '2': 'seg',
+  ter: 'ter', terca: 'ter', 'terça': 'ter', 'terca-feira': 'ter', 'terça-feira': 'ter', '3': 'ter',
+  qua: 'qua', quarta: 'qua', 'quarta-feira': 'qua', '4': 'qua',
+  qui: 'qui', quinta: 'qui', 'quinta-feira': 'qui', '5': 'qui',
+  sex: 'sex', sexta: 'sex', 'sexta-feira': 'sex', seis: 'sex', '6': 'sex',
+  sab: 'sáb', 'sáb': 'sáb', sabado: 'sáb', 'sábado': 'sáb', 'sabado': 'sáb', 'sábado ': 'sáb', '7': 'sáb',
+  dom: 'dom', domingo: 'dom', '1': 'dom',
+};
+
+function normalizarDia(valor) {
+  const chave = String(valor || '').trim().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  if (!chave) return null;
+  const semAcento = chave.replace(/^sab/, 'sab');
+  return APELIDOS_DE_DIA[chave] || APELIDOS_DE_DIA[semAcento] || null;
+}
+
+/**
+ * UMA LINHA DO EDITOR DA RÉGUA (o cadastro da turma e o formulário da régua): um nome de
+ * nível e o botão de tirar. A régua é uma LISTA EDITÁVEL — em comitê a escola pode
+ * renomear, acrescentar ou remover um nível, e é isto que a deixa mudar sem tocar no código.
+ */
+function linhaDaRegua(valor) {
+  return '<span class="linha-regua"><input name="rubrica" autocomplete="off" value="' +
+    esc(valor == null ? '' : String(valor)) + '" placeholder="ex.: Satisfatório">' +
+    '<button type="button" class="tirar-regua" title="Remover este nível">✕</button></span>';
+}
+
 /** Monta o objeto-turma canónico a partir do que a Produção envia. */
 function normalizarTurma(corpo) {
   const nome = String(corpo.nome || '').trim();
   const ordem = Number.isFinite(Number(corpo.ordem)) ? Number(corpo.ordem) : null;
+  const inteiro = (v) =>
+    v === undefined || v === null || String(v).trim() === '' || !Number.isFinite(Number(v))
+      ? null
+      : Number(v);
+  const dias = (Array.isArray(corpo.dias) ? corpo.dias : String(corpo.dias || '').split(','))
+    .map(normalizarDia)
+    .filter(Boolean)
+    .filter((d, i, arr) => arr.indexOf(d) === i);
   return {
     id: idDe(nome),
     nome: nome,
@@ -151,6 +222,17 @@ function normalizarTurma(corpo) {
     programaReferencia: String(corpo.programaReferencia || '').trim(),
     nivelReferencia: String(corpo.nivelReferencia || '').trim(),
     descricao: String(corpo.descricao || '').trim(),
+    // O RITMO DA TURMA — decisão da DIREÇÃO, não da cena (IDEIA-PAINEL-ESCOLA §8.3: «não
+    // tem frequência semanal — vem do contrato»). É o que desce para o plano de ensino:
+    // frequência, dias, duração e o período do termo. O plano LÊ; não reescreve.
+    frequencia: inteiro(corpo.frequencia),
+    dias: dias,
+    duracaoMin: inteiro(corpo.duracaoMin),
+    periodoInicio: String(corpo.periodoInicio || '').trim(),
+    periodoFim: String(corpo.periodoFim || '').trim(),
+    // A RÉGUA DA RUBRICA — da TURMA, não do plano: a escola decide com que níveis o
+    // resultado é medido, e o professor adota a régua da turma dele (o plano a lê).
+    rubrica: rubricaDaTurma(corpo),
     ativo: corpo.ativo !== false,
   };
 }
@@ -321,6 +403,11 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<option value="' + esc(t.termo) + '">' + esc(t.termo) +
     (t.categoria ? ' — ' + esc(t.categoria) : '') + '</option>').join('');
 
+  // A régua de cada turma, para o editor da régua pré-carregar a que está declarada
+  // (o JS da página recebe o mapa; o `JSON.stringify` é do `id` → níveis).
+  const reguaPorTurma = {};
+  for (const t of listaTurmas) if (t && t.id) reguaPorTurma[t.id] = rubricaDaTurma(t);
+
   const itensTurmas = listaTurmas.length
     ? listaTurmas.map((t) => {
         const associados = Array.isArray(relObj[t.id]) ? relObj[t.id] : [];
@@ -331,12 +418,23 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
             ' <button class="desassociar" data-turma="' + esc(t.id) + '" data-termo="' + esc(nome) +
             '" title="Remover associação">×</button></span>';
         }).join(' ');
-        const detalhe = (t.nivelReferencia ? t.nivelReferencia : '') +
-          (t.programaReferencia ? (t.nivelReferencia ? ' · ' : '') + t.programaReferencia : '');
+        // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
+        // é o que desce para o plano de ensino — por isso aparece no cadastro.
+        const ritmo = [
+          t.frequencia ? t.frequencia + 'x/semana' : '',
+          (t.dias && t.dias.length) ? t.dias.join(', ') : '',
+          t.duracaoMin ? t.duracaoMin + ' min' : '',
+          (t.periodoInicio || t.periodoFim)
+            ? 'termo ' + (t.periodoInicio || '?') + '–' + (t.periodoFim || '?')
+            : '',
+        ].filter(Boolean).join(' · ');
+        const detalhe = [t.nivelReferencia, t.programaReferencia, ritmo].filter(Boolean).join(' · ');
+        const regua = rubricaDaTurma(t);
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
           '<div><b>' + esc(t.nome) + '</b>' +
           (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
           ' <button class="apagar" data-tipo="turma" data-alvo="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></div>' +
+          '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
           (chips || '<span class="dono">(nenhum)</span>') +
           ' <select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
@@ -432,6 +530,9 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
     'button.associar{margin-left:.4rem;padding:.2rem .55rem;background:#6b2f2f;color:#fff;border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     '.cb-grupo{max-height:14rem;overflow:auto;border:1px solid #c9a24b;border-radius:4px;padding:.5rem .6rem;margin:.3rem 0 .6rem;background:#fff;}' +
+    '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
+    '.linha-regua input{flex:1 1 auto;min-width:0;}' +
+    '.linha-regua button{flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:#8f3f3f;border:1px solid #c9a24b;border-radius:4px;cursor:pointer;}' +
     '.cb{display:block;font-size:.9rem;color:#3a2b1f;padding:.1rem 0;}' +
     '.cb input{margin-right:.4rem;}' +
     'form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;background:#fff;}' +
@@ -464,11 +565,14 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '</div>' +
     '<div id="conteudo" hidden>' +
     '<div class="res" id="res"></div>' +
+    // Só o Painel inicial nasce visível: as demais secções já vêm com `hidden` do
+    // servidor — mesmo que o script da página falhe, a Produção nunca volta a ser
+    // uma página só com tudo empilhado (o sintoma quando o script morria).
     '<section class="secao" id="sec-painel">' +
     '<h2>Painel inicial</h2>' +
     '<p>Aqui aparece o que mudou desde a última vez. Use o menu ao lado para gerir pessoas e pedagogia.</p>' +
     '</section>' +
-    '<section class="secao" id="sec-professores">' +
+    '<section class="secao" id="sec-professores" hidden>' +
     '<h2>Professores</h2>' +
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
@@ -479,7 +583,7 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '</form>' +
     '<h3>Professores cadastrados</h3><ul>' + itensProfs + '</ul>' +
     '</section>' +
-    '<section class="secao" id="sec-alunas">' +
+    '<section class="secao" id="sec-alunas" hidden>' +
     '<h2>Alunas</h2>' +
     '<form id="form-aluna">' +
     '<label for="anome">Apelido da aluna (estável, P-12)</label>' +
@@ -488,7 +592,7 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '</form>' +
     '<h3>Alunas cadastradas</h3><ul>' + itensAlunas + '</ul>' +
     '</section>' +
-    '<section class="secao" id="sec-turmas">' +
+    '<section class="secao" id="sec-turmas" hidden>' +
     '<h2>Turmas</h2>' +
     '<form id="form-turma">' +
     '<label for="tnome">Nome da turma</label>' +
@@ -501,11 +605,39 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<input id="tnivel" name="nivelReferencia" autocomplete="off" placeholder="ex.: Grade 1">' +
     '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
+    '<label for="tfrequencia">Frequência semanal (aulas por semana)</label>' +
+    '<input id="tfrequencia" name="frequencia" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 2">' +
+    '<label for="tdias">Dias da semana</label>' +
+    '<div class="cb-grupo" id="tdias">' + DIAS_DA_SEMANA.map((d) =>
+      '<label class="cb"><input type="checkbox" name="dia" value="' + d + '"> ' + d + '</label>').join('') + '</div>' +
+    '<label for="tduracao">Duração de cada aula (minutos)</label>' +
+    '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
+    '<label for="tinicio">Início do período (termo)</label>' +
+    '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
+    '<label for="tfim">Fim do período (termo)</label>' +
+    '<input id="tfim" name="periodoFim" type="date" autocomplete="off">' +
+    '<label>Régua da rubrica (os níveis com que o resultado é medido no fim)</label>' +
+    '<p class="sub">A régua é da turma: a escola pode mudar os nomes, acrescentar ou remover um nível. Já vem com a régua padrão — ajuste se a turma pedir outra.</p>' +
+    '<div id="trubrica">' + NIVEIS_DA_RUBRICA.map((n) => linhaDaRegua(n)).join('') + '</div>' +
+    '<p><button type="button" id="trubrica-add">Acrescentar nível</button></p>' +
     '<button type="submit">Cadastrar turma</button>' +
     '</form>' +
     '<ul>' + itensTurmas + '</ul>' +
+    (listaTurmas.length
+      ? '<h3>Régua da rubrica de uma turma</h3>' +
+        '<p class="sub">A régua vale por TURMA — o plano de ensino do professor lê a régua da turma dele.</p>' +
+        '<form id="form-regua">' +
+        '<label for="rturma">Turma</label>' +
+        '<select id="rturma">' +
+        listaTurmas.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>').join('') +
+        '</select>' +
+        '<div id="rrubrica"></div>' +
+        '<p><button type="button" id="rrubrica-add">Acrescentar nível</button></p>' +
+        '<button type="submit">Salvar a régua desta turma</button>' +
+        '</form>'
+      : '') +
     '</section>' +
-    '<section class="secao" id="sec-vocabulario">' +
+    '<section class="secao" id="sec-vocabulario" hidden>' +
     '<h2>Vocabulário Técnico do Balé</h2>' +
     '<form id="form-termo">' +
     '<label for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
@@ -519,7 +651,7 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<ul>' + itensTermos + '</ul>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
     '</section>' +
-    '<section class="secao" id="sec-curadorias">' +
+    '<section class="secao" id="sec-curadorias" hidden>' +
     '<h2>Curadorias</h2>' +
     '<p class="sub">O que a escola atribui a cada professor — a modalidade, a tradição, a turma, o repertório e as alunas. É isto que pré-carrega a anamnese, o plano e o PO.</p>' +
     '<form id="form-curadoria">' +
@@ -563,16 +695,17 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '  e.preventDefault();' +
     '  entrar(document.getElementById("dsenha").value);' +
     '});' +
-    '// A sessão persiste enquanto a ABA fica aberta (sessionStorage): depois do primeiro login,' +
-    '// o recarregar da página (após cadastrar/excluir) re-entra SOZINHO, sem pedir a senha de novo.' +
-    '// Fechar a aba esquece; manter aberta não volta a pedir.' +
+    // A sessão persiste enquanto a ABA fica aberta (sessionStorage): depois do primeiro
+    // login, o recarregar da página (após cadastrar/excluir) re-entra SOZINHO, sem pedir
+    // a senha de novo. Fechar a aba esquece; manter aberta não volta a pedir.
     '(function(){' +
     '  var guardada = null;' +
     '  try { guardada = sessionStorage.getItem("producao:senha"); } catch (err) {}' +
     '  if (guardada) entrar(guardada);' +
     '})();' +
-    '// O menu lateral: cada secção é uma <section class="secao">; o hash da URL escolhe qual fica' +
-    '// visível. As secções continuam no DOM (os formulários existem todos), só muda o que se mostra.' +
+    // O menu lateral: cada secção é uma <section class="secao">; o hash da URL escolhe
+    // qual fica visível — clicar no item do menu só muda o hash. As secções continuam
+    // no DOM (os formulários existem todos) e o que muda é só o que se mostra.
     'function mostrarSecao() {' +
     '  var alvo = (location.hash || "#painel").replace("#", "");' +
     '  var secoes = document.querySelectorAll(".secao");' +
@@ -610,6 +743,10 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '  e.preventDefault();' +
     '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
     '});' +
+    // As caixas marcadas de um grupo — usado pelos dias da semana e pela curadoria.
+    'function marcados(nome) {' +
+    '  return Array.prototype.slice.call(document.querySelectorAll("input[name=\\"" + nome + "\\"]:checked")).map(function(x){ return x.value; });' +
+    '}' +
     'function enviar(ep, corpo, mensagem, recarregar) {' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
@@ -630,7 +767,13 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '    ordem: document.getElementById("tordem").value,' +
     '    programaReferencia: document.getElementById("tprograma").value,' +
     '    nivelReferencia: document.getElementById("tnivel").value,' +
-    '    descricao: document.getElementById("tdescricao").value' +
+    '    descricao: document.getElementById("tdescricao").value,' +
+    '    frequencia: document.getElementById("tfrequencia").value,' +
+    '    dias: marcados("dia"),' +
+    '    duracaoMin: document.getElementById("tduracao").value,' +
+    '    periodoInicio: document.getElementById("tinicio").value,' +
+    '    periodoFim: document.getElementById("tfim").value,' +
+    '    rubrica: reguaDoEditor("trubrica")' +
     '  }, "cadastrando turma...", true);' +
     '});' +
     'document.getElementById("form-termo").addEventListener("submit", function(e){' +
@@ -641,15 +784,66 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '    tradicao: document.getElementById("vtradicao").value' +
     '  }, "cadastrando termo...", true);' +
     '});' +
+    // A RÉGUA DA RUBRICA — a lista editável de níveis (uma por turma).
+    'var REGUA_POR_TURMA = ' + JSON.stringify(reguaPorTurma) + ';' +
+    'function linhaDaReguaNoDom(valor) {' +
+    '  var s = document.createElement("span");' +
+    '  s.className = "linha-regua";' +
+    '  var i = document.createElement("input");' +
+    '  i.name = "rubrica"; i.autocomplete = "off"; i.placeholder = "ex.: Satisfatório";' +
+    '  i.value = valor == null ? "" : String(valor);' +
+    '  var b = document.createElement("button");' +
+    '  b.type = "button"; b.className = "tirar-regua"; b.title = "Remover este nível";' +
+    '  b.textContent = "✕";' +
+    '  s.appendChild(i); s.appendChild(b);' +
+    '  return s;' +
+    '}' +
+    'function reguaDoEditor(id) {' +
+    '  var dono = document.getElementById(id);' +
+    '  if (!dono) return [];' +
+    '  return Array.prototype.slice.call(dono.querySelectorAll("input[name=\\"" + "rubrica" + "\\"]"))' +
+    '    .map(function(x){ return x.value.trim(); })' +
+    '    .filter(function(v){ return v; });' +
+    '}' +
+    'function pintarRegua() {' +
+    '  var sel = document.getElementById("rturma");' +
+    '  if (!sel) return;' +
+    '  var niveis = REGUA_POR_TURMA[sel.value] || [];' +
+    '  var dono = document.getElementById("rrubrica");' +
+    '  while (dono.firstChild) dono.removeChild(dono.firstChild);' +
+    '  for (var i = 0; i < niveis.length; i++) dono.appendChild(linhaDaReguaNoDom(niveis[i]));' +
+    '}' +
+    'document.getElementById("trubrica-add").addEventListener("click", function(){' +
+    '  document.getElementById("trubrica").appendChild(linhaDaReguaNoDom(""));' +
+    '});' +
+    'var addRegua = document.getElementById("rrubrica-add");' +
+    'if (addRegua) addRegua.addEventListener("click", function(){' +
+    '  document.getElementById("rrubrica").appendChild(linhaDaReguaNoDom(""));' +
+    '});' +
+    'var selRegua = document.getElementById("rturma");' +
+    'if (selRegua) { selRegua.addEventListener("change", pintarRegua); pintarRegua(); }' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("button.tirar-regua") : null;' +
+    '  if (!b) return;' +
+    '  var linha = b.parentElement;' +
+    '  if (linha && linha.className === "linha-regua") linha.parentElement.removeChild(linha);' +
+    '});' +
+    'var formRegua = document.getElementById("form-regua");' +
+    'if (formRegua) formRegua.addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var niveis = reguaDoEditor("rrubrica");' +
+    '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return; }' +
+    '  enviar("/api/bastidores/turma-rubrica", {' +
+    '    turma: document.getElementById("rturma").value,' +
+    '    rubrica: niveis' +
+    '  }, "salvando a régua...", true);' +
+    '});' +
     'document.getElementById("semear").addEventListener("click", function(e){' +
     '  if (!confirm("Carregar o catálogo inicial (turmas + vocabulário)? Registros já existentes não são duplicados.")) return;' +
     '  enviar("/api/bastidores/semear-catalogo", {}, "carregando catálogo inicial...", false);' +
     '});' +
     'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  function marcados(nome) {' +
-    '    return Array.prototype.slice.call(document.querySelectorAll("input[name=\\"" + nome + "\\"]:checked")).map(function(x){ return x.value; });' +
-    '  }' +
     '  enviar("/api/bastidores/curadoria", {' +
     '    professor: document.getElementById("cuprofessor").value,' +
     '    modalidade: document.getElementById("cumodalidade").value,' +
@@ -934,7 +1128,10 @@ async function fetch(request, env) {
   // GET /api/bastidores/turmas — a lista (Produção) e as opções do plano (`opcoesDe`).
   if (path === '/api/bastidores/turmas') {
     const lista = await turmas(kv, escola);
-    return json(200, { ok: true, escola, turmas: lista, opcoes: opcoesDeTurmas(lista) });
+    // A régua sai SEMPRE preenchida (o cadastro antigo não a tinha): sem isto o plano
+    // receberia uma régua vazia e mediria contra nada.
+    const comRegua = lista.map((t) => (t ? Object.assign({}, t, { rubrica: rubricaDaTurma(t) }) : t));
+    return json(200, { ok: true, escola, turmas: comRegua, opcoes: opcoesDeTurmas(lista) });
   }
 
   // GET /api/bastidores/termos — o vocabulário técnico (Produção).
@@ -983,6 +1180,30 @@ async function fetch(request, env) {
     const rel = await relacoes(kv, escola);
     if (rel[id]) { delete rel[id]; await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel)); }
     return json(200, { ok: true, turma: id, removida: true });
+  }
+
+  // POST /api/bastidores/turma-rubrica — declarar (ou mudar) a RÉGUA da rubrica de uma
+  // turma que já existe. É o ato da coordenação: os níveis com que o resultado é medido no
+  // fim do ciclo podem mudar em comitê — acrescentar, remover ou renomear —, e o plano de
+  // ensino lê a régua da turma daquele professor. Não é edição de turma (o cadastro só
+  // inclui e exclui): é a régua, e só ela.
+  if (path === '/api/bastidores/turma-rubrica' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = idDe(String(corpo.turma || corpo.id || '').trim());
+    if (!id) return json(400, { ok: false, erro: 'informe a turma' });
+    const lista = await turmas(kv, escola);
+    const turma = lista.find((t) => t && t.id === id);
+    if (!turma) return json(404, { ok: false, erro: 'turma não encontrada' });
+    if (!Array.isArray(corpo.rubrica) || !corpo.rubrica.some((n) => String(n || '').trim())) {
+      return json(400, { ok: false, erro: 'declarar a régua: pelo menos um nível' });
+    }
+    turma.rubrica = rubricaDaTurma(corpo);
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+    return json(200, { ok: true, turma: turma.nome, rubrica: turma.rubrica });
   }
 
   // POST /api/bastidores/termo — incluir termo do vocabulário.

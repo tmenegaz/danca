@@ -65,6 +65,18 @@ Objetivo geral desse ciclo é verificar a capacidade de se equilibrar com os mov
 
 - Sala com colchonete e barra
 
+## Régua da rubrica
+
+- Insatisfatório
+- Em desenvolvimento
+- Satisfatório
+- Excelente
+
+> **A régua da turma.** Os níveis, como a escola os escreve, na ordem da escala — o primeiro é o
+> mais baixo. É a régua com que o LANÇAMENTO da aula mede cada critério: o professor diz o
+> critério da aula e o nível alcançado. Quem declara a régua são os bastidores (Turmas) e quem a
+> adota é o professor, no plano do ciclo.
+
 ## Rubrica de avaliação final
 
 | Critério | Insatisfatório | Em desenvolvimento | Satisfatório | Excelente |
