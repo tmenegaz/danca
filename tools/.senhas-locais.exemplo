@@ -33,9 +33,44 @@
 # (um pacote gerado sem senha sai com os acompanhamentos em claro, e o
 # check-pacote.js reprova).
 
+# O ARQUIVO É UM ESPELHO POR ESCOLA (15/10/2026). Cada escola é um bloco, na forma que
+# ele terá quando a escola deixar de ser ambiente de teste: a chave de cifra da escola e
+# os logins de quem entra por ela. Escreva-o assim, e não como uma lista solta de linhas.
+
+# ---------------------------------------------------------------------------
+# ESCOLA <nome da escola> · professor(a): <quem dá a aula> · Worker: <slug>
+# ---------------------------------------------------------------------------
+#
+# Chave de cifra. GERADA pelo sistema na criação da escola (a página `danca` a mostra UMA
+# vez), a partir do slug da ESCOLA. Ninguém a digita, e ela NÃO muda ao trocar um login:
+# trocá-la inutiliza tudo o que já foi cifrado (o -dados.json do pacote e os
+# acompanhamentos). É o único valor daqui que os SCRIPTS leem.
 SENHA_DUO="senha-do-duo"
+
+# Login da professora/professor. É o que se digita para entrar nos Bastidores (e na
+# Produção, quando é a pessoa que criou a escola — a dona). Vive como secret do Worker
+# (`SENHA_PROFESSOR`); aqui fica só como lembrete local, e NENHUM script o lê.
+# LOGIN_<SLUG DA PESSOA>="..."   ← descomente e preencha
+
+# Login da direção. Abre a Produção. Vive como secret do Worker (`SENHA_ADMIN`). O sujeito
+# é o slug da ESCOLA — e não `DIRECAO_<ESCOLA>`, que faria o pre-push procurar o slug nos
+# arquivos versionados, onde ele aparece nos caminhos, e barrar o push.
+# LOGIN_DUO="..."                ← descomente e preencha
+
+# ---------------------------------------------------------------------------
+# ESCOLA <outra escola> · professor(a): <quem dá a aula> · Worker: <slug>
+# ---------------------------------------------------------------------------
 SENHA_RITMOS="senha-do-ritmos"
 SENHA_DEBORA="senha-do-debora"
 
-# Senha de ACESSO (exemplo) — o login da professora dona, para lembrete local.
-# LOGIN_<SLUG DA PESSOA>="..."
+# QUANDO UMA ESCOLA DEIXAR DE SER TESTE — a troca é no WORKER, não neste repositório:
+#   · a chave de cifra NÃO muda (e não deve: ela abre tudo o que já foi cifrado);
+#   · os logins MUDAM, porque em teste eles são o próprio slug — e o slug aparece por
+#     necessidade nos caminhos do repositório. Trocar é PUT de secret no Worker
+#     (`SENHA_PROFESSOR` / `SENHA_ADMIN`); o valor novo, então, se copia para cá;
+#   · o -dados.json e os acompanhamentos continuam abrindo pela chave: eles não dependem
+#     de login nenhum.
+
+# ATENÇÃO — linhas com `<...>` NÃO são shell: `LOGIN_<X>="y"` o bash lê como o comando
+# `LOGIN_` com redireção de entrada do arquivo `<X>`. Sourciado, o arquivo aborta — e com
+# `set -e`, mata o gerador. Por isso os modelos saem COMENTADOS: descomente os que usar.

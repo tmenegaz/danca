@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T12:15:11-0300`
-Commit atual: `281c7e1` — docs(registro): a SENHA_LETICIA não é inerte — é o login da professora
+Gerado em: `2026-10-15T12:35:14-0300`
+Commit atual: `b39b5b6` — fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,7 @@ tiago (2)
 ## Últimos commits
 
 ```
+b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
 281c7e1 docs(registro): a SENHA_LETICIA não é inerte — é o login da professora
 83560fc fix(estrutura): a criação da escola diz onde guardar a senha de criptografia
 e3fc795 fix(tools): o guarda do pre-push confere a última linha do arquivo de senhas
@@ -82,7 +83,6 @@ f8dd1d5 feat(captura): declara a variante barra no schema de captura
 225569d feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 6f2967e feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-glossario-benesh.md
 9ae6620 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-notacao.md
-4f82465 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-dados.json
 ```
 
 ## Por professor
@@ -158,94 +158,87 @@ f8dd1d5 feat(captura): declara a variante barra no schema de captura
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O prefixo do nome separa a chave da cifra da senha de acesso
+## 15/10/2026 — O arquivo de senhas vira um espelho por escola
 
-**O que motivou.** No mesmo dia, duas variáveis de `tools/.senhas-locais` foram confundidas com
-chaves de cifra: `SENHA_CRIPTO` (a chave real da Barra, sob um nome global que nenhum script lê — o
-CI respondeu `erro: sem senha para ciclo-01-barra`) e `SENHA_LETICIA` (o **login** da professora
-dona da Barra, que parece a chave de uma escola «leticia» inexistente). O arquivo cujo cabeçalho
-dizia «senhas de criptografia» guardava, também, **credencial de acesso** — e o nome não distinguia
-as duas. Foi o dono do produto quem apontou a segunda: *«Letícia é a professora da escola Barra que
-está como dona da escola; é por meio dessa senha que acesso os Bastidores/Produção»*.
+**O que motivou.** O dono do produto pediu que o ambiente de teste seja **espelho do que tem de
+ser** quando uma escola deixar de ser teste — *«ele precisa ser um espelho da realidade e não uma
+fantasia pra gente poder testar»* — e observou que os nomes de `tools/.senhas-locais`
+(«senha Maria», «login Letícia») não pareciam bater com o sistema. A investigação mostrou que
+**os nomes estavam certos pela convenção** (`SENHA_<ESCOLA>` e `LOGIN_<QUEM ENTRA>` são o que a
+`lib-senhas.sh` e o hook procuram), mas o arquivo **não era um espelho**: era uma lista solta, com
+os blocos na ordem em que as coisas foram aparecendo, misturando as duas classes no mesmo nível e
+descrevendo valores como «mockada/provisória».
 
-O erro não era só de redação: a sessão declarou a variável **inerte** — e «nenhum script lê» não é
-«não vale nada». A correção está na nota datada da entrada anterior.
+Duas medidas fecharam o diagnóstico:
+
+| Sujeito | Chave de cifra (o que os scripts leem) | Login (o que se digita) |
+|:--|:--|:--|
+| Escola **Maria** (prof. Tiago) | `SENHA_MARIA` = «maria» — **abre o `-dados.json` da Maria** | **não estava no arquivo** — o Worker recusa «maria» e «tiago» |
+| Escola **Barra** (prof. Letícia) | `SENHA_BARRA` = chave gerada — abre o `-dados.json` da Barra | `LOGIN_LETICIA` (Bastidores e Produção) · a direção = «barra» |
+
+`SENHA_MARIA` **parece** «a senha da Maria», e é a **chave de cifra da escola**. Em teste as duas
+coincidem em valor — o que esconde a diferença de natureza —, mas na Maria o **login** não está no
+arquivo, e o Worker no ar o recusa. É essa coincidência, e só ela, que fazia o arquivo parecer certo.
 
 **O que foi decidido.**
-- **O prefixo do nome diz o que a linha é**, e é dele que sai o sujeito da conferência e da isenção:
-  - `SENHA_<ESCOLA>` — **chave de cifra**; é o que os scripts leem (`lib-senhas.sh`); sujeito = a
-    **escola**;
-  - `LOGIN_<SLUG>` — **senha de acesso** (Bastidores/Produção); **não** é chave, nenhum script a lê;
-    sujeito = **quem entra** (a pessoa).
-- A linha da professora foi renomeada `SENHA_LETICIA` → **`LOGIN_LETICIA`**.
-- O `pre-push` passa a **derivar o sujeito do prefixo** em vez de só cortar `SENHA_`. Qualquer outro
-  prefixo cai no caso geral e **é conferido com o sujeito igual ao próprio nome** — a conferência
-  não pode depender de a linha ter sido batizada certo.
-- A isenção continua **por sujeito** e continua lida de `tools/.escolas-teste`: vale para a chave
-  (a escola) e para o acesso (a pessoa), porque nas duas o que existe é **dado 100% falso**.
+- O arquivo passa a ser **um bloco por escola**, com **três credenciais nomeadas**: a **chave de
+  cifra** (`SENHA_<ESCOLA>`), o **login de quem entra** (`LOGIN_<PESSOA>`) e o **login da direção**
+  (`LOGIN_<ESCOLA>`). O bloco traz, em comentário, o que cada uma é, quem a lê e onde ela vive.
+- O **login da direção** ganhou nome e lugar: `LOGIN_BARRA`. O sujeito é o **slug da ESCOLA**, e não
+  `DIRECAO_<ESCOLA>` — porque a isenção do pre-push é **por sujeito**: um nome composto faria o
+  valor «barra» ser procurado nos arquivos versionados, onde ele aparece nos caminhos, e o push
+  seria barrado. O nome foi escolhido **pela restrição real**, e o arquivo diz isso.
+- **`tools/.escolas-teste` estava incompleto**: tinha a **pessoa** `leticia` e a **escola** `maria`,
+  mas não a **escola** `barra` — nem a pessoa `tiago`. Com o espelho, a falta apareceu na hora (o
+  guarda acusou `LOGIN_BARRA`). Os quatro sujeitos passam a estar declarados, com a razão de cada um.
+- **A transição para produção ficou escrita no arquivo e no modelo**: a **chave de cifra NÃO muda**
+  (trocá-la inutiliza tudo o que já foi cifrado) e os **logins MUDAM** (em teste são o próprio slug,
+  que aparece nos caminhos do repositório). Trocar login é **PUT de secret no Worker** — não é
+  operação deste repositório.
+- O **modelo** (`tools/.senhas-locais.exemplo`) passa a mostrar a **forma** do espelho — sem ele, o
+  espelho vive só nesta máquina e a próxima pessoa escreve uma lista solta outra vez.
 
-**Por que renomear, e não apagar a linha.** Apagar resolveria a confusão pela metade: o arquivo
-continuaria sem lugar declarado para uma credencial de acesso, e a próxima pessoa a guardá-la
-inventaria outro nome — o mesmo caminho que produziu `SENHA_CRIPTO`. O prefixo torna a distinção
-**estrutural**, e não um comentário que se pode não ler.
-
-**Motivo declarado — os congelados.** `tools/` está congelado. O motivo: **dois dias, dois nomes
-errados na mesma classe** — e a classe de erro só é evitável se o nome carregar a distinção. O que
-**não muda**: a conferência 1 continua sendo «o valor de cada linha não pode aparecer em arquivo
-versionado»; a conferência 2 (acompanhamento em texto puro) não foi tocada; a isenção continua lida
-de `tools/.escolas-teste` e continua exigindo **sujeito declarado** — uma escola ou pessoa real
-segue proibida de entrar lá; o formato do arquivo de senhas segue `NOME="valor"`; o contrato de
-saída (código 1 com os alertas no `stderr`) é o mesmo; e nenhum arquivo de ciclo foi tocado (a
-âncora `.fipp` não cobre `tools/`, então **não há reancoragem**).
+**Motivo declarado — os congelados.** `tools/` está congelado. O motivo: **o modelo é o que a
+próxima pessoa copia**, e ele ensinava a forma errada (lista solta). O que **não muda**: nenhuma
+convenção de nome (as duas classes já entravam em 15/10), o comportamento do `pre-push` (a mudança
+do hook foi na entrada anterior), a fórmula da cifra, o contrato do `check-pacote.js`, e nenhum
+arquivo de ciclo — a âncora `.fipp` não cobre `tools/`, então **não há reancoragem**.
 
 **Onde entrou.**
-- `tools/hooks/pre-push` — o sujeito derivado do prefixo (`case`), a mensagem por classe, e o
-  comentário que diz por que o caso geral existe.
-- `tools/.senhas-locais.exemplo` — as duas classes documentadas no modelo, e uma linha de exemplo
-  de cada (o modelo é o que a próxima pessoa copia).
-- `tools/.senhas-locais` (local, fora do Git) — a linha renomeada e o cabeçalho que separa as
-  classes.
-- `tools/.escolas-teste` (local, fora do Git) — o comentário passa a dizer que a lista isenta os
-  dois tipos de sujeito.
+- `tools/.senhas-locais.exemplo` — a forma do espelho por escola, o login da direção e a transição
+  para produção; e as linhas de modelo passam a sair **comentadas** (ver abaixo).
+- `tools/.senhas-locais` (local, fora do Git) — o espelho montado, valores preservados.
+- `tools/.escolas-teste` (local, fora do Git) — os quatro sujeitos declarados.
 
-**Com o quê.** `tools/hooks/pre-push`, `tools/.senhas-locais.exemplo`, `REGISTRO.md`, `HANDOFF.md`.
+**Um risco introduzido e corrigido no mesmo passo.** Uncomentar as linhas de modelo
+(`LOGIN_<SLUG DA PESSOA>="…"`) **quebrou o arquivo como shell**: o bash lê `LOGIN_<X>="y"` como o
+comando `LOGIN_` com redireção de entrada do arquivo `<X>`. Sourciado, o exemplo **abortava**
+(`SLUG: Arquivo ou diretório inexistente`) — e com `set -e`, o gerador morreria com essa mensagem.
+Medido, e corrigido: os modelos saem comentados, com o porquê escrito ao lado, e o arquivo
+sourcia limpo sob `set -eu`.
+
+**Com o quê.** `tools/.senhas-locais.exemplo`, `REGISTRO.md`, `HANDOFF.md`.
 
 **Referências.** `CONGELAMENTO.md` (`tools/`) · `tools/lib-senhas.sh` (a convenção
-`SENHA_$(ESCOLA_SLUG)`) · `motor/servidor/bastidores.js` (`senhaDaDirecaoOk`, `validar-senha` — onde
-`SENHA_PROFESSOR` e `SENHA_ADMIN` provam que a segunda classe é **acesso**, não cifra) · os dois
-elos de 15/10/2026 anteriores.
+`SENHA_$(ESCOLA_SLUG)`) · `tools/hooks/pre-push` (a isenção por sujeito, que dita o nome do login da
+direção) · `motor/servidor/bastidores.js` (`senhaDaDirecaoOk`, `validar-senha` — a prova de que a
+segunda classe é ACESSO e não cifra) · os três elos anteriores de 15/10/2026.
 
 **O que ainda não está feito.**
-- **Nada foi provado contra a escola no ar depois da renomeação**, porque nada no Worker a lê: a
-  renomeação é do arquivo **local**. O que foi provado em bancada: o sujeito do `LOGIN_LETICIA` é
-  isentado **porque está declarado** na lista de teste — com um `LOGIN_PROFESSORES` (não declarado,
-  valor que existe em centenas de arquivos versionados) o guarda **alerta e barra o push**, e um
-  prefixo desconhecido (`PREFIXO_QUALQUER`) **também** é conferido. A isenção é o que salva, e não
-  um descuido de leitura.
-- **A senha da direção não está no arquivo local.** `SENHA_ADMIN` = «barra» no Worker da Barra
-  (medido), e ela **não** tem linha aqui. Se for guardada, o nome natural — `SENHA_BARRA` — está
-  **tomado** pela chave de cifra da mesma escola. O prefixo novo resolve: `LOGIN_<SLUG DE QUEM
-  ENTRA>`.
-- As senhas de acesso da Barra são as strings óbvias (`leticia`, `barra`) e estão neste transcript.
-  Para **escola de teste com dados 100% falsos** a política declarada cobre isso; **se a Barra
-  deixar de ser só teste, as duas precisam mudar** — e trocar `SENHA_PROFESSOR`/`SENHA_ADMIN` é
-  operação no Worker, não neste repositório.
+- **A chave de cifra ainda passa pela mão da pesquisadora — e isso é uma falha de produto, não de
+  configuração.** Quem cria a escola recebe a chave uma vez e tem de copiá-la para um arquivo local;
+  o dono do produto disse o óbvio: *«pra mim, como usuário, isso já deveria ser automático»*. O
+  Worker que a gera é o mesmo que a usa para cifrar (caminho (a)) — **o CI não precisa dela**, e
+  quem a usa para ABRIR é o navegador (o formulário de lançamento pede a senha) e o
+  `gerar-acompanhamento.sh` (local). Automatizar exige decidir **onde** a chave fica disponível sem
+  passar pela mão de ninguém — frente não desenhada.
+- **A `SENHA_ADMIN` da Maria não está registrada** (o Worker no ar recusa «maria» e «tiago», o que
+  prova que ela é outra coisa). O bloco da Maria saiu com os logins em `[Preencher]`, comentados.
+- O nome `LOGIN_BARRA` para o login da direção foi **escolha desta sessão**, ditada pela isenção por
+  sujeito. Se o dono do produto preferir `LOGIN_DIRECAO_BARRA`, o `pre-push` (congelado) precisa
+  mudar — exige motivo declarado e commit próprio.
 
 ## O que está pendente
-
-## 15/10/2026 — A cifra do Worker respeita o teto do runtime, e a falha deixa de ser muda
-
-- **O deploy do pacote continua MANUAL — e é o maior buraco da cadeia.** O `gerar-ciclo.yml` gera,
-  reancora e **commita** o pacote; o comentário dele diz «o deploy lê o repositório», mas **nenhum
-  workflow faz deploy** e **nenhum Worker está ligado ao Git**: todas as implantações do `barra`
-  têm `source: "wrangler"` (conferido em 15/10/2026). Mesmo com a geração verde, o site só passa a
-  servir o ciclo depois de um `wrangler deploy` à mão. Enquanto isso não for decidido —
-  `wrangler-action` no workflow, Workers Builds ligado ao repositório, ou o deploy manual assumido
-  como parte do fluxo — «um clique e faz tudo» **não** se cumpre.
-- A prova fim-a-fim (PO concluído → pacote publicado no site) **não** foi repetida depois desta
-  correção; é a próxima etapa.
-- `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
-  entrada de 12/10).
 
 ## 15/10/2026 — A geração publica: o deploy entra na cadeia
 
@@ -314,6 +307,21 @@ elos de 15/10/2026 anteriores.
   Para **escola de teste com dados 100% falsos** a política declarada cobre isso; **se a Barra
   deixar de ser só teste, as duas precisam mudar** — e trocar `SENHA_PROFESSOR`/`SENHA_ADMIN` é
   operação no Worker, não neste repositório.
+
+## 15/10/2026 — O arquivo de senhas vira um espelho por escola
+
+- **A chave de cifra ainda passa pela mão da pesquisadora — e isso é uma falha de produto, não de
+  configuração.** Quem cria a escola recebe a chave uma vez e tem de copiá-la para um arquivo local;
+  o dono do produto disse o óbvio: *«pra mim, como usuário, isso já deveria ser automático»*. O
+  Worker que a gera é o mesmo que a usa para cifrar (caminho (a)) — **o CI não precisa dela**, e
+  quem a usa para ABRIR é o navegador (o formulário de lançamento pede a senha) e o
+  `gerar-acompanhamento.sh` (local). Automatizar exige decidir **onde** a chave fica disponível sem
+  passar pela mão de ninguém — frente não desenhada.
+- **A `SENHA_ADMIN` da Maria não está registrada** (o Worker no ar recusa «maria» e «tiago», o que
+  prova que ela é outra coisa). O bloco da Maria saiu com os logins em `[Preencher]`, comentados.
+- O nome `LOGIN_BARRA` para o login da direção foi **escolha desta sessão**, ditada pela isenção por
+  sujeito. Se o dono do produto preferir `LOGIN_DIRECAO_BARRA`, o `pre-push` (congelado) precisa
+  mudar — exige motivo declarado e commit próprio.
 
 ## Pendências anteriores (índice)
 
@@ -456,6 +464,7 @@ elos de 15/10/2026 anteriores.
 - **14/10/2026** — O plano completo chega inteiro aos derivados (frente B11) → `REGISTRO.md` L11679
 - **15/10/2026** — O Sistema Lastro: o nome comercial, e o mapa de evolução… → `REGISTRO.md` L11818
 - **15/10/2026** — A dimensão observada deriva do PLANO (e o vocabulário do… → `REGISTRO.md` L12149
+- **15/10/2026** — A cifra do Worker respeita o teto do runtime, e a falha… → `REGISTRO.md` L12267
 - PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

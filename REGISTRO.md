@@ -12629,3 +12629,83 @@ elos de 15/10/2026 anteriores.
   Para **escola de teste com dados 100% falsos** a política declarada cobre isso; **se a Barra
   deixar de ser só teste, as duas precisam mudar** — e trocar `SENHA_PROFESSOR`/`SENHA_ADMIN` é
   operação no Worker, não neste repositório.
+
+## 15/10/2026 — O arquivo de senhas vira um espelho por escola
+
+**O que motivou.** O dono do produto pediu que o ambiente de teste seja **espelho do que tem de
+ser** quando uma escola deixar de ser teste — *«ele precisa ser um espelho da realidade e não uma
+fantasia pra gente poder testar»* — e observou que os nomes de `tools/.senhas-locais`
+(«senha Maria», «login Letícia») não pareciam bater com o sistema. A investigação mostrou que
+**os nomes estavam certos pela convenção** (`SENHA_<ESCOLA>` e `LOGIN_<QUEM ENTRA>` são o que a
+`lib-senhas.sh` e o hook procuram), mas o arquivo **não era um espelho**: era uma lista solta, com
+os blocos na ordem em que as coisas foram aparecendo, misturando as duas classes no mesmo nível e
+descrevendo valores como «mockada/provisória».
+
+Duas medidas fecharam o diagnóstico:
+
+| Sujeito | Chave de cifra (o que os scripts leem) | Login (o que se digita) |
+|:--|:--|:--|
+| Escola **Maria** (prof. Tiago) | `SENHA_MARIA` = «maria» — **abre o `-dados.json` da Maria** | **não estava no arquivo** — o Worker recusa «maria» e «tiago» |
+| Escola **Barra** (prof. Letícia) | `SENHA_BARRA` = chave gerada — abre o `-dados.json` da Barra | `LOGIN_LETICIA` (Bastidores e Produção) · a direção = «barra» |
+
+`SENHA_MARIA` **parece** «a senha da Maria», e é a **chave de cifra da escola**. Em teste as duas
+coincidem em valor — o que esconde a diferença de natureza —, mas na Maria o **login** não está no
+arquivo, e o Worker no ar o recusa. É essa coincidência, e só ela, que fazia o arquivo parecer certo.
+
+**O que foi decidido.**
+- O arquivo passa a ser **um bloco por escola**, com **três credenciais nomeadas**: a **chave de
+  cifra** (`SENHA_<ESCOLA>`), o **login de quem entra** (`LOGIN_<PESSOA>`) e o **login da direção**
+  (`LOGIN_<ESCOLA>`). O bloco traz, em comentário, o que cada uma é, quem a lê e onde ela vive.
+- O **login da direção** ganhou nome e lugar: `LOGIN_BARRA`. O sujeito é o **slug da ESCOLA**, e não
+  `DIRECAO_<ESCOLA>` — porque a isenção do pre-push é **por sujeito**: um nome composto faria o
+  valor «barra» ser procurado nos arquivos versionados, onde ele aparece nos caminhos, e o push
+  seria barrado. O nome foi escolhido **pela restrição real**, e o arquivo diz isso.
+- **`tools/.escolas-teste` estava incompleto**: tinha a **pessoa** `leticia` e a **escola** `maria`,
+  mas não a **escola** `barra` — nem a pessoa `tiago`. Com o espelho, a falta apareceu na hora (o
+  guarda acusou `LOGIN_BARRA`). Os quatro sujeitos passam a estar declarados, com a razão de cada um.
+- **A transição para produção ficou escrita no arquivo e no modelo**: a **chave de cifra NÃO muda**
+  (trocá-la inutiliza tudo o que já foi cifrado) e os **logins MUDAM** (em teste são o próprio slug,
+  que aparece nos caminhos do repositório). Trocar login é **PUT de secret no Worker** — não é
+  operação deste repositório.
+- O **modelo** (`tools/.senhas-locais.exemplo`) passa a mostrar a **forma** do espelho — sem ele, o
+  espelho vive só nesta máquina e a próxima pessoa escreve uma lista solta outra vez.
+
+**Motivo declarado — os congelados.** `tools/` está congelado. O motivo: **o modelo é o que a
+próxima pessoa copia**, e ele ensinava a forma errada (lista solta). O que **não muda**: nenhuma
+convenção de nome (as duas classes já entravam em 15/10), o comportamento do `pre-push` (a mudança
+do hook foi na entrada anterior), a fórmula da cifra, o contrato do `check-pacote.js`, e nenhum
+arquivo de ciclo — a âncora `.fipp` não cobre `tools/`, então **não há reancoragem**.
+
+**Onde entrou.**
+- `tools/.senhas-locais.exemplo` — a forma do espelho por escola, o login da direção e a transição
+  para produção; e as linhas de modelo passam a sair **comentadas** (ver abaixo).
+- `tools/.senhas-locais` (local, fora do Git) — o espelho montado, valores preservados.
+- `tools/.escolas-teste` (local, fora do Git) — os quatro sujeitos declarados.
+
+**Um risco introduzido e corrigido no mesmo passo.** Uncomentar as linhas de modelo
+(`LOGIN_<SLUG DA PESSOA>="…"`) **quebrou o arquivo como shell**: o bash lê `LOGIN_<X>="y"` como o
+comando `LOGIN_` com redireção de entrada do arquivo `<X>`. Sourciado, o exemplo **abortava**
+(`SLUG: Arquivo ou diretório inexistente`) — e com `set -e`, o gerador morreria com essa mensagem.
+Medido, e corrigido: os modelos saem comentados, com o porquê escrito ao lado, e o arquivo
+sourcia limpo sob `set -eu`.
+
+**Com o quê.** `tools/.senhas-locais.exemplo`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** `CONGELAMENTO.md` (`tools/`) · `tools/lib-senhas.sh` (a convenção
+`SENHA_$(ESCOLA_SLUG)`) · `tools/hooks/pre-push` (a isenção por sujeito, que dita o nome do login da
+direção) · `motor/servidor/bastidores.js` (`senhaDaDirecaoOk`, `validar-senha` — a prova de que a
+segunda classe é ACESSO e não cifra) · os três elos anteriores de 15/10/2026.
+
+**O que ainda não está feito.**
+- **A chave de cifra ainda passa pela mão da pesquisadora — e isso é uma falha de produto, não de
+  configuração.** Quem cria a escola recebe a chave uma vez e tem de copiá-la para um arquivo local;
+  o dono do produto disse o óbvio: *«pra mim, como usuário, isso já deveria ser automático»*. O
+  Worker que a gera é o mesmo que a usa para cifrar (caminho (a)) — **o CI não precisa dela**, e
+  quem a usa para ABRIR é o navegador (o formulário de lançamento pede a senha) e o
+  `gerar-acompanhamento.sh` (local). Automatizar exige decidir **onde** a chave fica disponível sem
+  passar pela mão de ninguém — frente não desenhada.
+- **A `SENHA_ADMIN` da Maria não está registrada** (o Worker no ar recusa «maria» e «tiago», o que
+  prova que ela é outra coisa). O bloco da Maria saiu com os logins em `[Preencher]`, comentados.
+- O nome `LOGIN_BARRA` para o login da direção foi **escolha desta sessão**, ditada pela isenção por
+  sujeito. Se o dono do produto preferir `LOGIN_DIRECAO_BARRA`, o `pre-push` (congelado) precisa
+  mudar — exige motivo declarado e commit próprio.
