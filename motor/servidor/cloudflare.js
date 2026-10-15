@@ -25,6 +25,7 @@ const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
 const { criarLeitorDeDados } = require('./ler-dados.js');
+const { cifrarTexto } = require('./cifrar-envelope.js');
 const { senhaDaEscolaOk } = require('./bastidores.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
@@ -63,7 +64,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -85,6 +86,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escreverPlano,
     escreverCiclo,
     lerDados,
+    lancamentoSeguro,
   });
   return (request) => roteador.responder(request);
 }
@@ -94,12 +96,34 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
  * declara a indisponibilidade em vez de falhar de um jeito obscuro. A chave NUNCA sai daqui:
  * quem pede recebe o TEXTO EM CLARO, sob autenticação.
  */
+function senhaDaEscola(env) {
+  return (senha) => senhaDaEscolaOk(env, criarCloudflare(env), (env && env.ESCOLA_SLUG) || '', senha);
+}
+
 function criarLeitor(env, prefixo) {
   return criarLeitorDeDados({
     senhaCripto: (env && env.SENHA_CRIPTO) || null,
     lerAsset: (caminho) => servirEstatico(env, caminho, prefixo),
-    senhaOk: (senha) => senhaDaEscolaOk(env, criarCloudflare(env), (env && env.ESCOLA_SLUG) || '', senha),
+    senhaOk: senhaDaEscola(env),
   });
+}
+
+/**
+ * O LANÇAMENTO DA AULA (`/api/receber`): a MESMA conferência de senha da leitura — a da escola,
+ * não a por-professor — e a cifra no repouso, com a chave do Worker. `cifrar: null` quando a
+ * escola não tem `SENHA_CRIPTO` (as legadas): a rota então grava em claro, e a RESPOSTA diz isso
+ * (`cifrado: false`), em vez de deixar o dado desprotegido em silêncio.
+ */
+function criarLancamento(env) {
+  const senhaCripto = (env && env.SENHA_CRIPTO) || null;
+  return {
+    autorizar: senhaDaEscola(env),
+    // O TEXTO QUE VAI AO KV É STRING: `cifrarTexto` devolve o envelope montado (objeto), e o KV
+    // coage objeto para `[object Object]`. Serializar aqui é o contrato de `cifrar`.
+    cifrar: senhaCripto
+      ? (texto) => cifrarTexto(texto, senhaCripto).then((e) => JSON.stringify(e, null, 2) + '\n')
+      : null,
+  };
 }
 
 /** Os passos de geração, a partir do token (null = não existe). */
@@ -170,6 +194,7 @@ async function fetch(request, env, opcoes) {
   // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
   // procurar `plano-observacao/ciclo-01-barra-dados.json` e responder «o pacote não tem …».
   const lerDados = criarLeitor(env, '');
+  const lancamentoSeguro = criarLancamento(env);
   const responder = montarPorta({
     armazenamento: criarCloudflare(env),
     conteudoTexto,
@@ -184,6 +209,7 @@ async function fetch(request, env, opcoes) {
     escreverPlano,
     escreverCiclo,
     lerDados,
+    lancamentoSeguro,
   });
 
   return responder(request);

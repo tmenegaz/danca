@@ -56,7 +56,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
   const roteador = criarRoteador();
   // O relógio é injetável: as provas fixam-no para serem repetíveis; em
   // produção cai no carimbo real do núcleo.
@@ -312,7 +312,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     let corpo;
     try { corpo = await request.json(); } catch { return { ok: false, erro: 'corpo nao e JSON' }; }
     try {
-      return await lancamento.lancar(armazenamento, corpo);
+      return await lancamento.lancar(armazenamento, corpo, lancamentoSeguro);
     } catch (erro) {
       // HTTP 200 de propósito — o contrato do lançamento não aceita 5xx.
       return { ok: false, erro: erro.message };

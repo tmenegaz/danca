@@ -70,4 +70,23 @@ async function cifrarEnvelopeDeDados(texto, senha) {
   };
 }
 
-module.exports = { cifrarEnvelopeDeDados };
+/**
+ * O envelope de um texto QUALQUER, para guardar cifrado. Não é o do pacote: aquele traz
+ * `lancamentos` e `apelidos` em claro porque o formulário precisa abri-lo sem senha — aqui não há
+ * formulário nenhum lendo, e o que está em claro é informação a menos.
+ *
+ * Usado pelo LANÇAMENTO DA AULA (`motor/nucleo/lancamento.js` via `POST /api/receber`), que até
+ * 15/10/2026 gravava o JSON em TEXTO PURO no KV — o mesmo dado de aluna que o pacote cifrava, sem
+ * cifra nenhuma do outro lado. A nota diz o que é, para quem topar com o valor no KV.
+ */
+const NOTA_COFRE = 'O lancamento da aula, CIFRADO com a senha da escola (a mesma do JSON de dados '
+  + 'do pacote e dos acompanhamentos). Quem decifra e o Worker, com o segredo SENHA_CRIPTO, pelo '
+  + 'mesmo tools/lib-cifra.js. Nao editar a mao.';
+
+async function cifrarTexto(texto, senha) {
+  if (!senha) throw new Error('cifrar-envelope: falta a senha (SENHA_CRIPTO)');
+  const _cifrado = await Cifra.cifrar(texto, senha, { iteracoes: ITERACOES_DO_WORKER });
+  return { _cifrado, _nota: NOTA_COFRE };
+}
+
+module.exports = { cifrarEnvelopeDeDados, cifrarTexto, ITERACOES_DO_WORKER };
