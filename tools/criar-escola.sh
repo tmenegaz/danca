@@ -39,7 +39,9 @@ CICLO="";          WORKER=""
 FREQUENCIA="";     DIAS=""
 DURACAO="60";      DURACAO_TEXTO=""
 DATA_INICIO="";    TOTAL_AULAS="5"
-MODELO="tiago/01"
+# O MOLDE DE QUE NASCE TODA ESCOLA — e ele NÃO mora em `professores/`: molde não é professor
+# (ver `modelo/README.md` e a nota longa em `MODELO_BASE`, mais abaixo).
+MODELO="modelo/01"
 DEPLOY=0;          NAO_INTERATIVO=0
 
 # ---------------------------------------------------------------------------
@@ -67,7 +69,7 @@ OPÇÕES COM PADRÃO:
   --duracao <min>           duração em minutos (DURACOES)  (padrão: 60)
   --duracao-texto <texto>   DURACAO_POR_DIA                 (padrão: derivado de --duracao)
   --total-aulas <N>         número de aulas                (padrão: 5)
-  --modelo <prof/ciclo>     ciclo de onde copiar schemas   (padrão: tiago/01)
+  --modelo <base/ciclo>     ciclo de onde copiar schemas   (padrão: modelo/01)
 
 FLAGS:
   --deploy                  sobe o Worker e grava GITHUB_TOKEN no Cloudflare
@@ -163,9 +165,18 @@ printf '%s' "$CICLO" | grep -qE '^[0-9]{2}$' || { echo "erro: --ciclo deve ter d
   || { echo "erro: --data-inicio deve ser dd/mm/aaaa ou a lacuna [Preencher: ...]: $DATA_INICIO" >&2; exit 1; }
 dias_ok "$DIAS"       || { echo "erro: --dias fora do padrão ISO (ex.: 2@19:00,4@19:00): $DIAS" >&2; exit 1; }
 
-# Modelo: <prof>/<ciclo> de onde copiar os schemas.
-MODELO_PROF="${MODELO%%/*}"; MODELO_CICLO="${MODELO##*/}"
-MODELO_DIR="$RAIZ/professores/$MODELO_PROF/ciclos"
+# Modelo: <base>/<ciclo> de onde copiar os schemas.
+#
+# O MOLDE NÃO É PROFESSOR, e por isso não mora em `professores/` (15/10/2026). Ele morava em
+# `professores/tiago/ciclos/` — e um molde com nome de pessoa aparece em toda lista de
+# professores (`/api/professores`, o `HANDOFF.md`), podendo ser escolhido como responsável por
+# uma escola; e quem o tomasse por pasta de um professor morto o apagaria, e NENHUMA escola
+# nova poderia nascer (foi o que aconteceu com a `ponta`: o run #3 do `criar-escola.yml`
+# morreu aqui, com `erro: ciclo-modelo sem schema`). A `base` agora é um caminho a partir da
+# raiz — `modelo` por padrão —, e `--modelo professores/<slug>/<ciclo>` continua funcionando
+# para quem quiser semear a partir do ciclo de um professor.
+MODELO_BASE="${MODELO%%/*}"; MODELO_CICLO="${MODELO##*/}"
+MODELO_DIR="$RAIZ/$MODELO_BASE/ciclos"
 [ -f "$MODELO_DIR/ciclo-$MODELO_CICLO-schema.json" ] \
   || { echo "erro: ciclo-modelo sem schema: $MODELO_DIR/ciclo-$MODELO_CICLO-schema.json" >&2; exit 1; }
 
@@ -201,12 +212,13 @@ mkdir -p "$CICLOS_DIR" "$PROF_DIR/cadernos/ciclo-$CICLO" "$PROF_DIR/relatorios/c
 for s in schema po-schema plano-schema aula-schema captura-schema; do
   origem="$MODELO_DIR/ciclo-$MODELO_CICLO-$s.json"
   destino="$CICLOS_DIR/ciclo-$CICLO-$s.json"
-  # QUANDO O PROFESSOR NOVO **É** O DO MODELO — `MODELO="tiago/01"`, professor=tiago, ciclo=01 —
-  # origem e destino são o MESMO arquivo, e o `cp` recusa («are the same file») com erro; sob
-  # `set -e` o script morre no passo 2. A cópia, aqui, é um no-op legítimo: os schemas já estão
-  # onde a escola precisa deles. Aconteceu em 15/10/2026 — o dono do produto criou a escola
-  # `ponta` (professor `tiago`) e o `criar-escola.yml` morreu duas vezes aqui, com os passos do
-  # deploy e do commit pulados.
+  # QUANDO O PROFESSOR NOVO **É** O DO MODELO — origem e destino são o MESMO arquivo e o `cp`
+  # recusa («are the same file») com erro; sob `set -e` o script morre no passo 2. A cópia,
+  # aqui, é um no-op legítimo: os schemas já estão onde a escola precisa deles. Aconteceu em
+  # 15/10/2026 — o dono do produto criou a escola `ponta` (professor `tiago`, que era o molde
+  # na época) e o `criar-escola.yml` morreu duas vezes aqui, com os passos do deploy e do commit
+  # pulados. Com o molde fora de `professores/` o caso deixou de acontecer por padrão, mas
+  # continua alcançável por `--modelo professores/<slug>/<ciclo>` — a guarda fica.
   [ "$origem" = "$destino" ] || cp "$origem" "$destino"
 done
 echo "  schemas: copiados de $MODELO (ciclo-$MODELO_CICLO-*)"
