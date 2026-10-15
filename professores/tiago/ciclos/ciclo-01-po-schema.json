@@ -36,7 +36,7 @@
       "items": {
         "type": "string"
       },
-      "description": "AS DIMENSÕES OBSERVADAS (Bloco 2): as dimensões em que se observa cada aluno. É a LISTA que o conteúdo declara (técnica, musicalidade, par/pas de deux, repertório do dia) mais as próprias do ciclo. A dimensão organiza a folha de captura — cada dimensão vira um bloco e os itens dela viram as colunas."
+      "description": "AS DIMENSÕES OBSERVADAS (Bloco 2): as dimensões em que se observa cada aluno. Elas NÃO se escolhem no formulário — nascem do PLANO DE ENSINO referenciado, uma por bloco da aula que ele marca em `estrutura-de-cada-aula` (solo, barra, centro, musicalidade, expressão), todas sob um eixo único (Técnica): é a técnica que se trabalha através de cada bloco. Sem bloco marcado no plano, valem os blocos canónicos da aula. A dimensão organiza a folha de captura — cada dimensão vira um bloco e os itens dela viram as colunas."
     },
     "itensPorDimensao": {
       "type": "array",

@@ -332,6 +332,23 @@ vocabulário que a integração **não pode** desfazer:
 > fonte, e a ficha do ciclo (`ciclo`) é composta dele. Ver `REGISTRO.md` (14/10/2026, frente B11)
 > e `experimentos/provar-plano-completo.js`.
 
+> **Nota datada — 15/10/2026. O nó `dimensoes-de-observacao` deixa de ser perguntado: ele DERIVA
+> do plano.** A chave do PO continua a mesma, mas o valor não vem mais de uma `forma` fixa em
+> prosa («técnica · musicalidade · par/pas de deux · repertório do dia» — vocabulário que não era
+> nem o do plano nem o da anamnese). Ele passa a ser **derivado** na leitura do formulário, a
+> partir do plano referenciado no nó `plano-de-ensino`: o eixo **Técnica** cruzado com os **blocos
+> da aula que o plano marca** em `estrutura-de-cada-aula` (a união dos marcos), na ordem canónica
+> dos blocos — «Técnica — Solo», «Técnica — Barra». Sem bloco marcado (o campo é opcional no
+> plano), valem os cinco blocos canónicos da aula. O que o professor escreve continua a ser só os
+> **itens** de cada dimensão, e é isso que vira a coluna da folha de captura.
+>
+> A derivação mora no **contrato**: o conteúdo declara `doPlano` (o nó de onde ler, o eixo, os
+> blocos canónicos), e é o mesmo `forma`-de-ler dos nós que já vêm de outro sítio (`daTurma`,
+> `daCuradoria`) — o PE não sabe o que é uma dimensão; ele sabe ler de onde o conteúdo manda. O
+> valor derivado entra no envelope com `origem: "importado"` («o valor entrou pronto de outro
+> artefato» — a descrição que o schema já dava para este caso), e **não** como `perguntado`, que
+> seria falso. Ver `REGISTRO.md` (15/10/2026) e `experimentos/provar-dimensoes-plano.js`.
+
 ### 4.4 O que o PE nunca faz no fluxo
 
 Não modifica o PO; não redefine o fenômeno; não amplia nem reduz o escopo; não altera a norma;

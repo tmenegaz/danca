@@ -165,6 +165,10 @@ function mapa(conteudo) {
       /* O RITMO DA TURMA (frequência, duração, calendário, nº de aulas): o nó lê o
          cadastro da turma em vez de perguntar. */
       daTurma: no.daTurma || null,
+      /* O QUE VEM DO PLANO: a lista do nó é DERIVADA do plano referenciado (os blocos
+         da aula que ele marca, sob um eixo) em vez de perguntada. Sem bloco marcado,
+         cai nos blocos canónicos que o próprio nó declara. */
+      doPlano: no.doPlano || null,
       /* O que a direção ATRIBUIU no plano (a turma curada): o nó filtra e pré-marca. */
       daCuradoria: no.daCuradoria || null,
       /* A MATRIZ POR MARCO (blocos da aula, parâmetro de medição): uma linha por marco. */

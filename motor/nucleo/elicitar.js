@@ -180,6 +180,11 @@ function descritores(campo) {
     // O RITMO DA TURMA: o nó LÊ o cadastro da turma (`frequencia`, `duracao`,
     // `calendario`, `totalAulas`) em vez de perguntar — é decisão da escola, não da cena.
     daTurma: campo.daTurma || null,
+    // O QUE VEM DO PLANO: o nó DERIVA a sua lista do plano de ensino referenciado em
+    // vez de perguntar — a dimensão observada nasce dos blocos da aula que o plano
+    // marca (`estrutura-de-cada-aula`), sob um eixo declarado («Técnica»). Sem bloco
+    // marcado no plano, cai nos blocos canónicos declarados aqui.
+    doPlano: campo.doPlano || null,
     // O que a direção ATRIBUIU (a turma curada): o nó FILTRA a lista para o que é do
     // professor e pré-marca o que já foi designado.
     daCuradoria: campo.daCuradoria || null,

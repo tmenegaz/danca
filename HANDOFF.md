@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T08:08:06-0300`
-Commit atual: `36a627d` — chore(entrega): o artefacto da injecção da navegação no pacote maria
+Gerado em: `2026-10-15T10:22:20-0300`
+Commit atual: `5d513b3` — Merge origin/main — o plano elicitado da Barra entra ao lado do mapa do produto e das frentes B9–B11
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,16 @@ tiago (2)
 ## Últimos commits
 
 ```
+5d513b3 Merge origin/main — o plano elicitado da Barra entra ao lado do mapa do produto e das frentes B9–B11
+09a8229 docs(estrutura): o Sistema Lastro entra nos pontos de entrada da documentação
+62cd865 fix(tools): o HANDOFF emite o nome comercial do produto
+9f88505 chore(entrega): absorver o volteio do gerador (cifra e instante)
+82407eb feat(campo): cada nó respondível tem destino — o PO, o plano e o lançamento chegam inteiros
+28e6fde fix(tools): a régua da turma, o mapa das seções e as vistas — o contrato que deixava o dado cair
+f5912fa docs(registro): o Sistema Lastro — o mapa do produto e a versão explícita do plano publicado
+9f2dded chore(estrutura): reancorar a cadeia das fontes alteradas
+019c985 feat(plano): o plano elicitado passa a ser o primeiro DOCS do ciclo
+db70507 feat(plano): o plano elicitado vira a fonte do ciclo
 36a627d chore(entrega): o artefacto da injecção da navegação no pacote maria
 5b407cd docs(registro): a grelha não chegava à porta — as duas listas brancas do caminho
 7829b9c chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
@@ -73,16 +83,6 @@ ea561e2 chore(entrega): absorver o volteio do gerador (cifra e instante), sem re
 3012d0e fix(campo): a rubrica passa a declarar a lista decidida — satisfatório · razoável · em desenvolvimento · não se aplica
 08f42a0 docs(registro): correção — nem todos os derivados se reescrevem, e o deploy é manual
 388e73c chore(entrega): absorver o volteio do gerador (cifra e instante), sem re-rodar o hook
-60662dd docs(estrutura): FRENTES.md — B7 fechado e B5 resolvido (o bloqueio era fantasma); HANDOFF em dia
-f732000 docs(registro): a grelha das tabelas fecha o B7 e remede o B5 — o bloqueio era fantasma
-ed21f97 chore(entrega): regenerar o pacote maria — o pre-commit rodou o gerador
-b1076d5 feat(campo): a grelha das tabelas — a rubrica em clicável, turmas plural e checklist pré-preenchido (B7), e a derivação do volume (B5)
-643edc4 docs(registro): a Produção quebrou pelo `env` fora de escopo — correção do Error 1101
-1a2b9c7 fix(estrutura): a Produção não quebra mais — o slug do dono entra como parâmetro, não via env
-b25fda9 docs(estrutura): FRENTES.md — B2 fechado (consumo da curadoria) e panorama das frentes em dia
-2b29e9f docs(registro): o consumo da curadoria trava plano/PO e filtra as alunas (B2b)
-4b01050 feat(estrutura): a tela consome a curadoria — plano/PO travam sem curadoria e a anamnese filtra as alunas
-87308c8 docs(estrutura): FRENTES.md — L5 ligado (metodologia/notação → PO)
 ```
 
 ## Por professor
@@ -97,7 +97,7 @@ b25fda9 docs(estrutura): FRENTES.md — B2 fechado (consumo da curadoria) e pano
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| barra | ciclo-01-barra.fipp | `70f3f0635164` | (vazio) | — |
+| barra | ciclo-01-barra.fipp | `dbff824c4e17` | (vazio) | — |
 
 ### tiago — 1 ciclo(s)
 
@@ -158,347 +158,94 @@ b25fda9 docs(estrutura): FRENTES.md — B2 fechado (consumo da curadoria) e pano
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O Sistema Lastro: o nome comercial, e o mapa de evolução do produto
+## 15/10/2026 — A dimensão observada deriva do PLANO (e o vocabulário do PO separa-se do da anamnese)
 
-**O que motivou.** Duas descrições de frente de produto foram entregues — a **integridade dos
-dados, indexação semântica e proveniência documental** e as **consultas pedagógicas, cruzamento
-de dados e organização comercial dos planos** — com o pedido explícito: **examinar** o repositório
-e o comportamento atual, **não implementar**, e produzir um **mapa de frentes** com escopo e
-critérios de conclusão verificáveis. E documentar o **nome comercial** do projeto no handoff.
+**O que motivou.** O descompasso relatado enquanto se preenchia o Plano de Observação da Barra: o
+sujeito observado, as **dimensões observadas** e os **itens de cada dimensão** não conversavam. A
+dimensão era um campo **marcável** com uma lista fixa em prosa — «técnica · musicalidade · par/pas
+de deux · repertório do dia» —, e essa lista não é o vocabulário de ninguém: não é o da **anamnese**
+(`tecnica`, `funcional`, `musicalidade` — os eixos da linha de base) nem o do **plano** (solo, barra,
+centro, musicalidade, expressão — os blocos da aula). E havia um **erro de nível**: `musicalidade`
+aparecia no PO *em paralelo* a «técnica», quando no plano ela é um **lugar** onde a aula acontece,
+como o solo e a barra. Foi o que o dono do produto formulou: «quando eu vou trabalhar a técnica, eu
+posso trabalhar ela através do solo, da barra, do centro, da musicalidade e da expressão».
 
-**O que foi medido** (leitura do repositório e **do KV em produção**, este somente leitura;
-**nenhum arquivo de produto foi alterado**):
+**O que foi decidido** (pelo dono do produto, nesta sessão, em três perguntas fechadas): o eixo do PO
+é **um só — Técnica** — e cada **bloco da aula que o plano marca** vira uma dimensão dele:
+«Técnica — Solo», «Técnica — Barra». É a técnica que se trabalha *através* de cada bloco; o que muda
+de um para o outro é o que se olha. Saem do vocabulário do PO: `musicalidade`, `par/pas de deux` e
+`repertório do dia`. E, **sem bloco marcado no plano** (o campo é opcional), valem os **cinco blocos
+canónicos** da aula — a lista nunca fica vazia por falta de dado. O professor continua a escrever
+**só os itens** de cada dimensão, e são eles que viram as colunas da folha de captura.
 
-- **111 nós respondíveis** nos três formulários — anamnese 53 (49 obrigatórios), plano **25** (14),
-  PO **33** (19). 101 deles são campo de texto; o resto são tabela (2), matriz `porMarco` (2),
-  medida (1), data (1), periodicidade (1), registro (1), escala (1) e lista (1).
-- **As cinco famílias de chave do KV**, lidas: `envelope/<id>.json` (namespaçada pelo adaptador),
-  `<escola>/<professor>/<ciclo>/anamnese/<carimbo>` (o cofre), `<escola>/<professor>/<ciclo>-<carimbo>/`
-  (**o lançamento**), `bastidores/<escola>/*` (a Produção) e `ia-registro/registro.jsonl`.
-- **O lançamento é gravado e não tem leitor.** `motor/nucleo/lancamento.js:81-95` grava em
-  `<escola>/<professor>/<ciclo>-<carimbo>/`; não há **nenhuma** rota que o leia (a única família sem
-  `listar`). E o texto do próprio projecto (`ARQUITETURA-GERAL.md` §7) diz que o KV é rascunho e que
-  «assim que esses dados viram conteúdo de verdade, eles voltam a ser arquivo» — o que **não tem
-  caminho** hoje. É o dado central do produto (a aula dada) fora do alcance da máquina.
-- **Os identificadores, um por um.** Estáveis: escola, ciclo, turma (`bale-nivel-1`), termo
-  (`plie`) e a relação turma↔termo (chaveada por id — o bom exemplo do repositório). **Instáveis**:
-  a aluna é **o apelido e nada mais** (`alunas: ["Vavá"]`); o professor não tem slug persistido (o
-  `slugificar(p.nome)` o deriva do nome de exibição na leitura, `bastidores.js:964-970`); a curadoria
-  aponta a turma **pelo nome** (`turmas: ["Balé Nível 1"]`); e a aula liga-se ao marco do plano
-  **pelo texto** (`ciclos.json → aulas[].marco`). Renomear quebra vínculo em silêncio.
-- **O precedente que resolve metade do problema existe numa só camada.**
-  `ciclo-XX-captura-schema.json` → `_declaracao.porVariante.<v>.blocos.<t>.colunas.<rótulo>`
-  declara o par **rótulo ↔ chave ↔ tipo** de cada coluna da folha de lançamento, com a razão escrita
-  («a folha é a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS»,
-  chaves «curtas e estáveis»). Para os 111 nós dos formulários, a chave do documento derivado é
-  **derivada do rótulo visível** (`chaveDaColuna`, `tools/lib-extracao-md.js`).
-- **Proveniência com buraco declarado:** `ancora: null` em todos os envelopes lidos e em
-  `ciclos.json → aulas[].ancora` (o campo existe e **não tem produtor** — o próprio `_nota` o diz);
-  `conteudo.digest: null` (não se sabe contra que versão do conteúdo se respondeu). O que funciona:
-  a âncora por ciclo **e por aula**, o **elo do ajuste** (`ajuste_de`/`ajustado_em`/`motivo`,
-  `rotas.js:182-215`, com a recusa de apagar o vinculado), o envelope versionado (`1.2.0`) e a
-  proveniência **por campo** (`{valor, origem, respondente, nota}`).
-- **Duas políticas de escrita convivem:** `escrever-po.js` e `escrever-plano.js` **sobrescrevem**
-  (com `sha`; o histórico fica no Git) e `escrever-ciclo.js` **nunca** sobrescreve.
-- **Consultas: nada além de leitura de chave e listagem por prefixo**, com filtro em memória —
-  `vinculos()`/`vinculosDePlano()` (`porta.js:371-414`) varrem **todos** os envelopes de PO *«não se
-  grava nada»*. Não há cruzamento, filtro, agregação, busca textual nem exportação.
-- **Comercial: não existe.** Nenhum plano, preço, assinatura, cobrança, cota ou limite por plano em
-  `motor/`, `tools/`, `porta/`, `workers/`. A única pegada é `pagante: true` no andaime de expurgo
-  (`raiz/escolas-habilitadas.json`, lido por `motor/servidor/raiz.js:73`). O medidor de uso
-  (`ia-registro/registro.jsonl`) é **anexado e nunca lido**, com `tokens_in/out = 0` (stub).
-- **Duas medições que contradizem documentos** (registadas, **não** decididas): o KV da Maria
-  (`wrangler.maria.jsonc:32`) é um namespace **separado** do partilhado que o adaptador afirma
-  (`motor/adaptadores/cloudflare.js:28-47`) e que o `criar-escola.sh:434-437` grava para toda escola
-  nova — e nele os 3 envelopes de 12/10 estão **sem** o prefixo da escola; e `FRENTES.md:294`
-  (frente B5) afirma que «a KV não tem um único envelope», quando há 3 na Maria e 1 anamnese no
-  cofre.
+**O que mudou.** A dimensão **deixa de ser perguntada**: ela é **derivada na leitura do formulário**,
+do plano referenciado no nó `plano-de-ensino`. O conteúdo declara a derivação (`doPlano`: de que nó
+ler, o eixo, os blocos canónicos, o separador) — o mesmo mecanismo dos nós que já vêm de outro sítio
+(`daTurma`, `daCuradoria`): o PE não sabe o que é uma dimensão, sabe ler de onde o conteúdo manda. A
+união dos blocos marcados **entre os marcos** é o que entra (um bloco marcado em qualquer objetivo da
+aula é um bloco da aula), na **ordem canónica** dos blocos — o plano decide *quais*, o conteúdo decide
+*em que ordem*. Entrou um campo novo no contrato (`doPlano`, nos dois portões de montagem:
+`elicitar.js` e `porta.js`), a página passa a resolvê-lo (buscando o envelope do plano escolhido por
+`api/envelope/<carimbo>`), e a lista sai **só de leitura**, dizendo de onde veio.
 
-**O que foi entregue.** `PLANEJAMENTO-LASTRO.md` — o mapa de evolução do produto: o nome comercial,
-o inventário medido (§2), **nove contradições registadas para decisão** (C1–C9) e **nove frentes**
-(L1 dicionário de campos · L2 identidade estável das entidades · L3 lançamento e envelope deixam de
-ser rascunho · L4 mapa de relações e índice · L5 imutabilidade e versionamento do plano publicado ·
-L6 catálogo de consultas determinísticas · L7 fronteira da IA e medição de uso · L8 composição
-comercial e fonte única dos valores · L9 cotas, habilitação e limites por plano), cada uma com
-objetivo, situação atual, lacunas, dependências, entregas, **critérios verificáveis**, riscos e
-prioridade — mais a sequência sugerida (L1/L2 → L5 → L3 → L4 → L6 → L7 → L8 → L9) e as sete regras
-de desenho que valem para todas (a IA **não** faz o que é determinístico — critério verificável, não
-recomendação; a ausência de registro é uma **ausência**, nunca «não domina»; o produto não avalia).
+**O envelope não mente sobre a origem.** A dimensão derivada vai gravada com
+**`origem: "importado"`** — «o valor entrou pronto de outro artefato», a descrição que o
+`elicitacao-schema.json` **já dava** para este caso (o enum é `perguntado | observado | importado`), e
+que evita declarar «perguntado» para um valor que o sistema deduziu. Nenhuma versão de envelope
+subiu por causa disto.
 
-**O nome comercial — e a decisão de como ele entra.** O produto é o **Sistema Lastro**; este
-repositório é o **Projeto Ciclo**, o protótipo a partir do qual ele se constrói. Decisão da
-pesquisadora (15/10/2026): **declarar ao lado** — não renomear. Os quatro níveis ficam escritos
-(**Lastro** · **Sistema Lastro** · **Plataforma Lastro** · `Lastro — Sistema de Memória e
-Observabilidade Pedagógica em Dança`, este último **proposta** de denominação descritiva, **não**
-subtítulo confirmado), com o conceito central preservado: o Lastro registra e organiza evidências
-para apoiar a reflexão pedagógica; **não substitui o professor nem toma decisões sobre o aluno**.
+**Um defeito antigo, encontrado no caminho e corrigido.** A **referência da anamnese** era impressa
+em *qualquer* repetição (`blocoDaRepeticao`), e não só na repetição **por sujeito**: a dimensão
+«Técnica — Solo» aparecia como «**Sem anamnese** para «Técnica — Solo» neste sistema», com um atalho
+para criar a anamnese de uma dimensão. Passou a depender de a fonte da repetição declarar uma lista
+de sujeitos (`opcoesDe`), e a mensagem de repetição vazia deixou de dizer «escolha as alunas» quando
+o que se repete não são alunas.
 
-**Motivo declarado — o congelado.** `tools/` é congelado (`CONGELAMENTO.md`) e **um** arquivo muda:
-`tools/gerar-handoff.sh`, em duas coisas — (a) a emissão do nome comercial no topo de
-`## O que é este projeto` (e no título), porque o `HANDOFF.md` é o **primeiro** artefato que uma
-sessão nova lê, e o nome do produto não podia continuar ausente dele; (b) a lista dos documentos de
-intenção passa a incluir o padrão `PLANEJAMENTO-*.md`, para o mapa de evolução aparecer na seção
-«Ideias documentadas» como os `IDEIA-*`/`ARQUITETURA-*` aparecem — uma linha de `ls`, sem lógica
-nova. O que **não muda**: a fórmula de hash e a cobertura da âncora, o conteúdo dos documentos
-listados, as pétreas, as regras e os validadores. **Nada a reancorar**: `hash-ciclo.sh --check`
-fica íntegro nas duas escolas (leticia `70f3f06…`, tiago `03fb63d…`) — nenhuma fonte de ciclo foi
-tocada, e este trabalho **não alterou uma linha de código de produto**.
+**O que foi provado.** `experimentos/provar-dimensoes-plano.js` (novo, **10 verificações**, jsdom
+sobre a PÁGINA servida por HTTP de verdade — não sobre o contrato): o conteúdo declara o eixo e os
+blocos canónicos e não tem mais `forma`/`multipla`; «par/pas de deux» e «repertório do dia» saíram do
+conteúdo; a lista na tela é a **união** dos blocos marcados (provado com um plano que marca só *Solo*
+e *Expressão* — se a tela lesse a lista canónica, falharia); a ordem é a canónica e não a do plano; a
+dimensão não se marca (o único campo da caixa é a nota); a repetição dos itens abre um registro por
+dimensão e **não** pede anamnese delas; o valor derivado é enviado com `origem: "importado"`; o
+plano sem bloco marcado cai nos canónicos; a lista é **refeita quando o plano muda**; e a **folha de
+captura** ganha um bloco por dimensão derivada, com os itens como colunas. Regressão: 17+17+16+49+28
++18+44 verificações existentes continuam verdes (a única falha, 1 de 34 em `pe/provar-derivar-po.js`,
+é a **pré-existente** do `professores/fokini/` apagado em 12/10).
 
-**Um falso positivo da varredura de deriva — corrigido no caminho.** A varredura do skill
-(`varrer-deriva.sh`) acusava o documento novo **inteiro**, porque o padrão `agnóstic` casa
-**dentro** de «Di**agnóstic**o» — e este documento, que é um diagnóstico, diz «Diagnóstico» a cada
-parágrafo. Um aviso que soa em todo lugar é ruído, e ruído é o que faz a deriva de verdade passar
-despercebida: as duas ocorrências passaram a `\bagnóstic|\bagnostico` (fronteira de palavra — o
-`Di` deixa de casar). Verificado: o falso positivo sai (0 linhas do documento novo) e a varredura
-**continua** encontrando todos os achados legítimos (`METODO.md:5`, `ARQUITETURA-GERAL.md:8`,
-`ARQUITETURA-PE.md:106`…, cada um com a sua ressalva de escopo).
+**Motivo declarado — os congelados.** Dois: `prompts/elicitar-ciclo.md` (e a sua cópia viva em
+`porta/prompts/`). O prompt **perguntava exactamente o que deixou de se perguntar** — «Este ciclo tem
+alguma dimensão própria? (o par/pas de deux, o repertório do dia…)» e «A musicalidade entra como
+dimensão observada?» — e declarava, no glossário de «bloco», que as seções da folha de captura eram
+«técnica, funcional, musicalidade, linha de base revisitada». As três afirmações ficaram falsas com
+esta decisão: o prompt passa a declarar que as dimensões **derivam do plano** e que o que se pergunta
+são só os **itens**. O que **não muda**: a fórmula de hash, a cobertura da âncora (o prompt e o
+conteúdo da porta nunca foram fonte de ciclo), as 22 pétreas e as 17 regras.
 
-**Com o quê.** `PLANEJAMENTO-LASTRO.md` (novo) · `tools/gerar-handoff.sh` (congelado: motivo
-declarado) · `HANDOFF.md` (regenerado) · `AGENTS.md`, `README.md` e `FRENTES.md` (livres) ·
-`.github/skills/identidade-do-projeto/references/bloco-identidade.md` (a camada do produto, com a
-nota de que «Lastro» **não** é deriva — a deriva seria tratar o protótipo como produto acabado ou
-trocar os nomes como se houvesse renomeação) · `.github/skills/identidade-do-projeto/references/
-pontos-de-entrada.md` (o documento novo entra na lista, com a sua nota de escopo) ·
-`.github/skills/identidade-do-projeto/scripts/varrer-deriva.sh` (a fronteira de palavra).
+**Com o quê.** `porta/po/conteudo/po.json` (o nó `dimensoes-de-observacao` e a `listaAberta`),
+`motor/nucleo/elicitar.js` e `motor/nucleo/porta.js` (o campo `doPlano` nos dois portões),
+`porta/index.html` (o resolvedor, a lista só de leitura, o `origem: "importado"`, o guard da
+referência da anamnese), `prompts/elicitar-ciclo.md` e `porta/prompts/elicitar-ciclo.md`,
+`professores/tiago/ciclos/ciclo-01-po-schema.json` e `professores/leticia/ciclos/ciclo-01-po-schema.json`
+(a descrição de `dimensoesObservadas`), `ARQUITETURA-PE.md` (nota datada) e `ARQUITETURA-ANAMNESE.md`
+(nota datada na §3.5 — as duas listas de dimensões **deixaram de ser a mesma lista**),
+`experimentos/provar-dimensoes-plano.js` (nova prova), o pacote de Maria regerado, e a cópia da porta
+no pacote da Barra.
 
-**Referências.** `CONGELAMENTO.md` · `ARQUITETURA-GERAL.md` (§4 proveniência × estado, §7 a parte
-honesta do runtime) · `ARQUITETURA-AULA.md` (o ciclo de vida e a âncora por aula) ·
-`porta/envelope/elicitacao-schema.json` (o recipiente, `1.2.0`) · `po_ref/rastreabilidade.md`
-(as regras R1–R10 e as interfaces de consulta de proveniência — **do FIPP, que não é implementado
-aqui**) · `tools/lib-fontes.sh` → `fontes_do_ciclo` (o que a âncora cobre) · a listagem e a leitura
-do KV em produção (namespaces `2ee331c7…` e `f1d475e1…`).
-
-**Revisão do mesmo dia (15/10/2026, segundo elo) — contra os textos autoritativos.** Os dois
-textos chegaram como **arquivo** e foram conferidos: **byte a byte idênticos** (MD5 igual) ao
-conteúdo que já servira de base. Aí cada requisito foi **reconferido um a um** contra o mapa — e a
-conferência encontrou **quatro lacunas**, todas fechadas:
-
-1. **§2.10 — as quatro categorias.** Os **dois** textos exigem, no seu último parágrafo, «separar
-   claramente o que já existe, o que existe parcialmente, o que não existe e o que ainda precisa
-   de ser decidido» (texto 1 §9) e «o que depende de decisão comercial ou arquitetural» (texto 2
-   §10). O mapa tinha as lacunas **por frente** e não tinha a classificação do estado **numa
-   leitura só**. Entrou a tabela com as quatro categorias.
-2. **§2.11 — as seis operações do «Gerar PO».** O texto 1 §2 pede literalmente que se identifique
-   «quais operações já acontecem, quais são executadas parcialmente e quais ainda não existem», e
-   enumera seis. Entrou a tabela: **duas acontecem por inteiro** (publicação do PO; derivação dos
-   documentos), **uma por regeneração** (menus), **duas parcialmente** (folha de lançamento;
-   vínculos — e só dois elos) e **uma não existe** (estruturas de consulta). E a leitura honesta:
-   o «Gerar PO» produz **documento**, não **relação** — a relação continua a ser recalculada por
-   varredura a cada leitura (`porta.js:371-414`).
-3. **§7 — as oito perguntas do catálogo, uma a uma.** O texto 2 §4 pede que se verifique «se os
-   dados necessários estão efectivamente disponíveis» e o §10 pede o «mapa das perguntas que já
-   podem ser respondidas». Entrou o quadro: **nenhuma** das oito é respondível hoje; **três** são
-   de **[CRUZAMENTO]** (T01, T03, P01 — viáveis depois de L2+L3+L4); **quatro** exigem
-   **[VOCABULÁRIO]** (T02, T04, T05, P02); **uma** (P03) exige além disso **dados curriculares que
-   não existem** (os objetivos do próximo nível e a versão da referência).
-4. **§8 — a matriz de cobertura**, requisito por requisito dos dois textos, com o lugar onde cada
-   um é respondido; e a lista declarada do que **ainda não tem resposta** (4 itens).
-
-**E o achado que a conferência produziu — C10, com a frente L10.** Quatro conceitos com que o
-texto 2 **formula** as perguntas não existem no modelo de dados: medido nos três conteúdos,
-`componente` = **0**, `combina` = **0**, `interven` = **0**, `resposta observada` = **0**
-ocorrências; e `modalidade` aparece **duas vezes em prosa** («tempo de exposição à modalidade»)
-e **nunca como campo** — a modalidade vive hoje só na **curadoria** do KV. O mais próximo que
-existe é `itens-por-dimensao` (PO) para «componente» e `aula-1-sequencia`/`estrutura-de-cada-aula`
-(plano) para a ideia de sequência — **mas o «contexto» (isolado × combinação) não é modelado como
-relação**, é prosa dentro de um item. A consequência é de **escopo**: quatro das oito perguntas
-não são «implementar um filtro», pedem **vocabulário novo no domínio** — e decidir esse vocabulário
-é decisão de **conteúdo (P-16)**, não de infraestrutura. **Não foi decidido** se ele se acrescenta
-antes ou depois do catálogo; foi registado (**C10**) e proposto como frente **L10** (P1, antes de
-L6). Entrou também o **quadro-resumo das dez frentes** (prioridade × destranca × depende de) e a
-trilha curta: L1+L2 → L3 → L4 → **T01 ou P01**, as duas únicas perguntas viáveis sem decisão de
-conteúdo.
-
-**O que ainda não está feito.** (a) **Nenhuma das dez frentes foi iniciada** — por pedido: este
-elo é diagnóstico e plano. (b) As dez contradições (C1–C10) **esperam decisão** — em especial C3
-(o Git basta como versão de domínio?), que é a que decide o tamanho de L5, e C1 (o lançamento vira
-fonte versionada ou passa a ser lido do KV?), que decide L3 inteira. (c) Os **valores comerciais**
-do §9 continuam **apenas no texto** que originou o mapa — não foram copiados para o repositório,
-porque não há onde pô-los sem a frente L8. (d) O subtítulo descritivo segue como **proposta**.
-(e) `FRENTES.md` **não** foi corrigido nas duas medições que envelheceram (as contagens de nós do
-laudo L4 — 26/35 contra 25/33 medidos — e a frase de B5 sobre os envelopes): ficam registadas no
-mapa e nesta entrada, para o próximo elo decidir se a correção datada vale.
-
-**Terceiro elo (mesmo dia) — a decisão C3 e o que ela destranca.** Veio a decisão que faltava, pelas
-palavras do dono do produto: «**o PO/plano publicado passa a ter versão explícita que o lançamento
-referencia**». Ela **fecha a alínea (b) do elo anterior** no que toca a C3 — as outras nove
-contradições continuam a esperar — e resolve-a pelo lado que **aumenta** o escopo, não pelo que o
-diminui: o **Git não basta** como versão de domínio, e a versão passa a ser **artefacto do
-sistema**, endereçável por quem lê o dado, e não um detalhe de quem versiona o repositório.
-
-**O que se mediu antes de escrever, e como.** As três medidas que delimitam a implementação foram
-feitas em **cópia de bancada** (`/tmp`, `tar` sem `node_modules`/`.git`/`.wrangler`), **descartada
-no fim**; o repositório **não** foi tocado — a única operação sobre o ciclo real foi `--check`, que
-é leitura. Resultado:
-
-1. **A deteção já existe; falta a preservação.** Editar o `ciclo-01-maria-po.md` na bancada muda o
-   `hash_conteudo` (`c1448825342a…` → `4f5d04223be8…`) e o `tools/hash-ciclo.sh … --check` **acusa**
-   — «os fontes do ciclo mudaram desde a última ancoragem». Mas o `.fipp` é **reescrito no lugar**:
-   reancorar troca `hash_conteudo` e `ancorado_em` e **não deixa rasto do valor anterior**, e o
-   `.fipp` não tem **nenhum** campo de versão ou elo (`parentHash` encadeia **o ciclo anterior** na
-   mesma variante — `hash-ciclo.sh:195-210` —, não o estado anterior do mesmo documento). O estado
-   anterior do PO publicado existe, hoje, **só no histórico do Git**. Conclusão: a mudança não é
-   silenciosa para o **repositório**; é silenciosa para o **produto**.
-2. **O padrão da casa para introduzir uma versão já existe — só não foi aplicado ao plano.**
-   `VERSAO_DO_ENVELOPE = '1.2.0'` (`motor/nucleo/elicitar.js:86`), com o motivo da subida escrito
-   (1.1.0 → 1.2.0, pelo elo do ajuste). O que o envelope versiona é o **formato do envelope**, não
-   o **plano de que ele fala**.
-3. **O lançamento já é imutável e já tem identidade própria.** `lancamento.js:88-92` grava
-   **verbatim** e **recusa** carimbo já existente — o carimbo (`2026-10-05T1453`) **é** um id
-   imutável de lançamento. O que falta nele não é imutabilidade: é **uma linha** — a referência à
-   versão do plano observado.
-
-Dois achados de desenho que a medição acrescentou: o **único** elo do plano que existe
-(`plano-aula-NN.json` → `plano-aula-NN-anterior.json`, `gerar-ciclo.sh:254-257`, com o `cp` **antes**
-do `mv`) está num artefacto **derivado** e — diz a nota de correção de 28/09/2026 — **sem
-consumidor**: a decisão **dá-lhe o consumidor que faltava**, mas no lugar certo (a **fonte** e o
-**lançamento**), e não no derivado. E a cobertura da âncora é **lista declarada**, não curinga
-(`DOCS` do `.conf` expandido por `docs_derivado` + um **único** `ARQUIVO_PO`): uma versão guardada em
-**arquivo separado** não entra na âncora sozinha, o que pesa na escolha de S1.
-
-**O que ficou registado em aberto — as quatro sub-decisões de desenho (S1–S4).** A decisão diz que
-**há** versão e que o lançamento **a referencia**; não diz **como**. Em vez de escolher em silêncio,
-o mapa registou-as: **S1** onde mora o ordinal (front-matter do `.md` — entra no `hash_conteudo` e
-fica **inforjável**; arquivo por versão — esbarra na cobertura declarada; campo do `.fipp` — fica
-fora da fórmula, como `po_state`); **S2** onde mora o elo para a versão anterior (a disciplina do
-`cp`, um campo do `.fipp`, ou o commit do Git — e, nesse caso, qual fica declarado); **S3** a
-granularidade (a versão do plano **do ciclo**, a do **plano da aula**, ou ambas — o PO/plano é por
-ciclo, o lançamento é por aula); **S4** a **retroatividade** — os PO/plano **já publicados** (Maria)
-não têm versão, e declará-los v1 é uma **decisão**, não uma inferência.
-
-**O que mudou no mapa.** §2.7 ganhou o medido (a âncora deteta sem preservar; o elo derivado e sem
-consumidor; o lançamento já imutável; a cobertura declarada). §2.10 tirou C3 da coluna «precisa de
-decisão». §3 manteve o parágrafo original de C3 **intacto** — a proveniência acrescenta, não edita —
-e recebeu o elo datado com a decisão, os três factos e S1–S4. §4 reescreveu **L5**, que deixa de ser
-«imutabilidade e versionamento» em espera e passa a **«versão explícita do plano publicado, que o
-lançamento referencia»**, com entregas e critérios verificáveis próprios (a versão anterior
-**recuperável sem `git`**; subir a versão **não** reescreve lançamento já gravado). §5 passou a
-camada 1 a «a versão e a ponte», com a ordem L5 → L3 justificada. §8 e §9 acompanharam. E a
-referência solta a «C3» que havia em L1 (que ali significava **versão da definição do campo**, coisa
-**distinta**) foi desfeita para a lacuna (4) da própria frente, que é o que ela realmente era.
-
-**Motivo declarado.** **Nenhum** arquivo congelado foi tocado neste elo: o mapa nasceu nesta sessão
-(`PLANEJAMENTO-LASTRO.md`, livre), e `REGISTRO.md`, `FRENTES.md` e o `HANDOFF.md` (regenerado pelo
-gerador) são livres ou gerados. Não há, por isso, motivo declarado a registar — e **nada** foi
-implementado em código de produto: a decisão ficou **decidida, medida e desenhada**, não executada.
-
-**Quarto elo (mesmo dia) — o desenho da versão: S1–S4 propostas e aprovadas.** A decisão do elo
-anterior dizia **o quê** («versão explícita que o lançamento referencia»); faltava **como**. O que se
-segue foi **medido, proposto e aprovado** — e **nada** foi implementado.
-
-**O que a medição mostrou, e que mudou o tom da proposta: o encaixe já existe, falta ligá-lo.**
-
-1. **As fontes publicadas já têm frente YAML.** `ciclo-01-maria-po.md` e `-plano.md` começam por
-   `--- projeto: … frente: … ---`. Uma chave `versao: N` não é mecanismo novo — é uma chave nova
-   numa estrutura viva.
-2. **O leitor dessa frente existe e está em uso.** `lerYamlCabecalho`
-   (`tools/lib-extracao-md.js:56`) é chamado pelos **quatro** validadores (plano, PO, aula,
-   captura) — não é código morto.
-3. **O `plano-NN.json` que o formulário lê é a saída `--json` desse mesmo validador**
-   (`tools/gerar-ciclo.sh:215-216` → `validar-plano-ciclo.js --json`, que chama `lerYamlCabecalho`
-   na linha 149). O artefacto do formulário passa **exatamente** pelo código que já lê a frente:
-   expor a versão ali é **uma linha**, não encanamento novo.
-4. **O formulário de lançamento já busca `po-XX.json` e `plano-XX.json`** no pacote, por convenção
-   de nome (`tools/templates/lancamento.html:283-300`) — logo o lançamento **pode declarar a versão
-   que observou** sem rota nova.
-5. **Os derivados já emitem frente** (`motor/nucleo/derivar-plano-ciclo.js:524`: `frente`, `ciclo`,
-   `escola`, `professor`, `title`): uma frente que nomeia versão segue a convenção da casa.
-
-**A proposta (escrita em §L5 do mapa), e o que a sustenta.** **S1** — o ordinal mora na **frente
-YAML** da fonte: a frente inteira é hasheada (o `hash_conteudo` é calculado sobre o **arquivo**,
-`hash-ciclo.sh:191-193`), logo a versão fica **dentro da âncora e inforjável** — mudar o conteúdo
-sem subir a versão **também** muda o hash, e a edição não declarada fica **detetável**. **S2** — o
-elo é o **par no `.fipp`** (`versao_anterior` + `hash_conteudo_anterior`, com a disciplina do `cp`
-**antes** do `mv` de `gerar-ciclo.sh:254`) **mais o lançamento como testemunho** de domínio: dá o
-**consumidor que `plano-aula-NN-anterior` nunca teve**, e a passagem de v1 para v2 fica
-testemunhada pelo **dado** — «o ajuste não se declara, ele se vê» (P-03/P-04). **S3** — a referência
-é às **fontes**, por documento (**PO** e **plano** separados, porque mudam independentemente), e o
-derivado **não** ganha ordinal próprio: seria uma **segunda autoridade** para o mesmo facto.
-**S4** — **não retroagir**: ausência de `versao` significa «legado», declarado; o **escritor**
-carimba ao salvar, porque é ele — o caminho que **sobrescreve** — que sabe que está a produzir
-versão nova. E a regra que decorre de S1–S2: **a versão sobe quando o conteúdo muda** (igual →
-mesma versão, sem elo), e a distinção «correção antes de publicar» × «mudança depois de observado»
-**resolve-se pelo lançamento**, não pelo versionamento.
-
-**Dois caminhos rejeitados, com medida.** Versão em **arquivo separado** (`po-v2.md`): a cobertura
-da âncora é **lista declarada** com um **único** `ARQUIVO_PO` (`lib-fontes.sh` → `fontes_do_ciclo`,
-com `DOCS` expandido por `docs_derivado`), logo o irmão **não** seria testemunhado; e apontar
-`ARQUIVO_PO` para o novo tornaria a versão **antiga permanentemente não verificável** — o
-`hash_conteudo` dela nunca mais poderia ser recalculado, que é o **oposto** do objetivo. E o ordinal
-no `.fipp` como **autoridade**: o `.fipp` é **regenerado** e os seus campos ficam **fora** da
-fórmula (por desenho, `hash-ciclo.sh:32-34`) — aceito apenas como **espelho**, para quem lê a cadeia
-à mão.
-
-**A aprovação, e o que ela NÃO fechou.** O dono do produto aprovou **S1–S4 como propostos** — a
-aprovação é do **desenho**, não da implementação. Três questões **de produto** ficaram fora do
-escopo da proposta e continuam abertas, agora com nome: **S5** o **formato** do ordinal (número
-sequencial × data + sequência); **S6** **quando** reancorar (na hora da subida × no fecho do ciclo);
-**S7** **como** o formulário mostra a versão ao professor — e **se** mostra. Nenhuma das três
-bloqueia o começo da implementação, mas as três mudam o que se escreve, e por isso **não** foram
-decididas por omissão.
-
-**O que mudou no mapa.** §3 C3 mantém o enunciado de S1–S4 como **elo** (é o que se perguntou) com a
-nota de que foram propostas e aprovadas no mesmo dia; §L5 ganhou a **proposta** (agora marcada como
-tal) e o **fecho aprovado** — a proposta **não** foi reescrita. §2.10, §4, §5 e §8 acompanharam
-C3 → **C3 + S1–S4**, deixando em aberto apenas **S5–S7**.
-
-**Motivo declarado.** **Nenhum** arquivo congelado foi tocado neste elo. Os arquivos alterados são o
-mapa (`PLANEJAMENTO-LASTRO.md`, nascido nesta sessão), o `REGISTRO.md`, o `FRENTES.md` e o
-`HANDOFF.md` (regenerado pelo gerador) — livres ou gerados. E **nenhuma linha de código de produto
-foi escrita** em nenhum dos quatro elos de hoje: a versão está **decidida, medida, proposta e
-aprovada** — não executada.
-
-**Quinto elo (mesmo dia) — as três questões de produto: S5–S7 decididas, o desenho de L5 fechado.**
-A aprovação do elo anterior fechou o **desenho técnico** (S1–S4) e deixou de fora, declaradamente,
-**três questões de produto**. Foram decididas em seguida — e com isto **o desenho de L5 está
-completo**: a decisão (C3), o desenho (S1–S4) e as três de produto (S5–S7). **Nada foi
-implementado.**
-
-**S5 — número sequencial inteiro** (`versao: 2`). O argumento não é gosto: é a **regra 6** do §6 do
-mapa — *determinismo: rodar duas vezes produz o mesmo arquivo*. Uma **data** dentro da versão faz o
-artefacto **depender do relógio** e deixar de ser reconstruível. E o «quando» **já existe em três
-lugares**: o `ancorado_em` do `.fipp`, o **carimbo** do lançamento (`lancamento.js`) e o Git — pôr a
-data na versão **duplicaria** o que já existe, e informação duplicada diverge. A função da versão é
-**ordenar e endereçar**, não datar. Nota técnica registada: o leitor da frente devolve **strings**
-(`tools/lib-extracao-md.js:67`), logo o número precisa de coerção — o formato data precisaria de um
-parser.
-
-**S6 — reancorar na hora**, a cada publicação. **A medida sustenta a decisão:** qualquer edição numa
-fonte coberta **já** faz o `hash-ciclo.sh --check` falhar hoje (provado na bancada, elo anterior).
-Adiar a reancoragem para o fecho do ciclo **institucionalizaria um estado que a ferramenta reporta
-como erro** — a janela de divergência passaria a ser o normal, e o `--check` deixaria de servir como
-cadeia de custódia. E a versão e o `hash_conteudo` têm de **andar juntos**, senão podem
-contradizer-se; o elo de **S2** só é inequívoco **no instante em que a versão sobe**. Custo da
-decisão: **nenhum** — a exigência já existe hoje.
-
-**S7 — mostrar discreto e somente-leitura.** O argumento é de produto, e é o mais importante dos
-três: **o professor não pode escolher a versão**. A referência é **observada e registada**, não
-**selecionada** — se fosse selecionável, a **evidência seria falsificável**, e o produto perderia
-exactamente o que esta decisão veio proteger. Em troca, ele **deve** ver contra que versão lançou: é
-isso que faz uma alteração posterior **não parecer** que observou o que não estava previsto. O
-**alerta** (a versão mudou desde o último lançamento) fica para quando **L3** der leitor ao
-lançamento — sem leitor, não há com o que comparar.
-
-**O que mudou no mapa.** §L5 recebeu o **fecho datado** de S5–S7 (o enunciado das três perguntas fica
-**intacto** — é o que se perguntou). §2.10, §4, §5, §8 e §9 acompanharam: as três saíram de «precisa
-de decisão» e o desenho de L5 passou a **completo**. A frente **L5 fica pronta a implementar** — o
-que falta é a **obra**, não a decisão.
-
-**Motivo declarado.** **Nenhum** arquivo congelado foi tocado neste elo. Alterados: o mapa
-(`PLANEJAMENTO-LASTRO.md`, nascido nesta sessão), o `REGISTRO.md`, o `FRENTES.md` e o `HANDOFF.md`
-(regenerado pelo gerador). E, como nos quatro elos anteriores, **nenhuma linha de código de produto
-foi escrita**.
+**O que ainda não está feito — e é do próximo elo.** (a) O pacote da **Barra** recebeu a mudança
+(sincronizado à mão, porque o gerador recusa aquele ciclo — ver abaixo) e foi **deployado**, mas **não
+pôde ser commitado**: o hook roda `gerar-ciclo.sh leticia 01 barra` e o gerador falha. (b) O **motivo
+dessa falha** é estado herdado de outra frente, não desta: o ciclo da Barra passou a ter `DOCS="plano"`
+(o plano elicitado como primeiro documento) mas **não tem documento de aula**, e o bloco do
+calendário **exige** o volume de uma aula (`calendario.py`: «--duracao-curta e --volume-curto são
+obrigatórios para o bloco do calendário»); além disso o `DATA_INICIO` continua lacuna. Pela ordem
+natural, a aula nasce quando o **PO** for concluído (é `escrever-ciclo.js` que deriva as demais
+fontes); até lá, qualquer commit que toque o pacote da Barra é recusado pelo hook. (c) O
+`linhaDeBase` do PO da Maria continua com **10 de 11 linhas que não são objeto** — o `traz` multilinha
+da anamnese rompe a tabela markdown (o validador já o avisa); é defeito **pré-existente**, medido
+nesta sessão e **não** corrigido aqui.
 
 ## O que está pendente
-
-## 13/10/2026 — A grelha não chegava à porta: duas listas brancas engoliam o `tabela` (correcção)
-
-Este elo precisa de **novo deploy** para chegar à produção — o
-bundle do Worker e o `env.ASSETS` são fotografados no deploy. Não há teste que cubra o caminho
-conteúdo → `descritores()` → `mapa()` → tela: o campo faltoso só se vê abrindo a página. Fica como
-suspeita declarada para a próxima vez que um campo do conteúdo «não fizer nada».
-
----
 
 ## 14/10/2026 — A régua da turma mede o critério no LANÇAMENTO (frente B9)
 
@@ -551,6 +298,21 @@ porque não há onde pô-los sem a frente L8. (d) O subtítulo descritivo segue 
 (e) `FRENTES.md` **não** foi corrigido nas duas medições que envelheceram (as contagens de nós do
 laudo L4 — 26/35 contra 25/33 medidos — e a frase de B5 sobre os envelopes): ficam registadas no
 mapa e nesta entrada, para o próximo elo decidir se a correção datada vale.
+
+## 15/10/2026 — A dimensão observada deriva do PLANO (e o vocabulário do PO separa-se do da anamnese)
+
+(a) O pacote da **Barra** recebeu a mudança
+(sincronizado à mão, porque o gerador recusa aquele ciclo — ver abaixo) e foi **deployado**, mas **não
+pôde ser commitado**: o hook roda `gerar-ciclo.sh leticia 01 barra` e o gerador falha. (b) O **motivo
+dessa falha** é estado herdado de outra frente, não desta: o ciclo da Barra passou a ter `DOCS="plano"`
+(o plano elicitado como primeiro documento) mas **não tem documento de aula**, e o bloco do
+calendário **exige** o volume de uma aula (`calendario.py`: «--duracao-curta e --volume-curto são
+obrigatórios para o bloco do calendário»); além disso o `DATA_INICIO` continua lacuna. Pela ordem
+natural, a aula nasce quando o **PO** for concluído (é `escrever-ciclo.js` que deriva as demais
+fontes); até lá, qualquer commit que toque o pacote da Barra é recusado pelo hook. (c) O
+`linhaDeBase` do PO da Maria continua com **10 de 11 linhas que não são objeto** — o `traz` multilinha
+da anamnese rompe a tabela markdown (o validador já o avisa); é defeito **pré-existente**, medido
+nesta sessão e **não** corrigido aqui.
 
 ## Pendências anteriores (índice)
 
@@ -687,6 +449,7 @@ mapa e nesta entrada, para o próximo elo decidir se a correção datada vale.
 - **13/10/2026** — Bastidores quebrou: a página da Produção referia `env`… → `REGISTRO.md` L11283
 - **13/10/2026** — A grelha das tabelas: a rubrica, as turmas em plural, o… → `REGISTRO.md` L11306
 - **13/10/2026** — A rubrica: o conteúdo alinha-se à decisão (Bloco 10,… → `REGISTRO.md` L11410
+- **13/10/2026** — A grelha não chegava à porta: duas listas brancas… → `REGISTRO.md` L11449
 - **leticia · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).

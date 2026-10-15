@@ -2,7 +2,7 @@
   "_cifrado": {
     "algoritmo": "PBKDF2-SHA256+AES-GCM",
     "iteracoes": 2000000,
-    "endereco": "93SqU1Olk2dC1JidJOPxj86/A18Ve4sVFtM7qyu3GQAx7Y10S9ZonJlYDagB7hQ8oum89vL4UTVI7hQABBLbL+WwyhEEB9tfku35T+3E+YpIUtQ77xdCZrPXFtEPKDzzKVPZlphxCesLHg21GwzKVEQQ/HAwCjOzMRQFyAsOjfjl9CVBr/QiBWR0zUuzn+FhVH2M/S7Otpz+jnypJAV7xSRSZUODjjdqCTD5i1EDB82XNNP3fV4b68oZzEbL0H8SQBi8h9lDgOLnYbCrC58jOjdkpYy8nXEG1ZkoTZTiUdyx5Xq/A7Z57MUBuGwAvXJvu9dFYEbrpZ8g370j4Lrp9C+9tZLdezXJaVbqkJ9XSnDYBRNj/b4Gtbs4jfPzn2ps3u0labGRKgVIdctbYpjoKHt4lqWuQkz9qYowfSqZBS6A6qLUECGWttpat7q4s+Klr8iWOo5rGpgmXD0MDVeGhbHaURz+FoCTv/p1BOXFVdDMnN6KJdWWEK4Ko92mj02t7BJhtuOTULATJzMlg8kuv9cUxQ=="
+    "endereco": "bzvSmTVqqovSf3Xmsb4vcfE5RrrnTgfZQSQhT6YiyrI5RFg1chtZagU3OGsjeOpHoBjB1IMUFqaI5RynmRxCHatDngOKzFDd+x9/EjZodqMHgu2LsNzxrMIxVJ6CMipZ/uperA/jX1KUZI42C7q/pj3cW9HCexHjDl4kLkYcZMIHe+qoydfFaoiCAjMTF/Zv/0ufyk4voEkVlS4yceXPYNQ3zrC2gQcJFbdWqavwABhMb1710Zgvmm5UgAYBr6/tfpiOqJLjNPNmJrvqvFuhRCupRi3yuSoYrSK4EskBqaQwkae0QTgpqVVCjlZfgzemc1azcmgNvoAkQJM6+VKNEqY5ac2u9TDemcVBqsVgxHfzk3tonZo/vvheufxyFWyFW3HFxeCPeL9ktkbCdiePMqyD6pXSw+uOMKMB89k5SZ/3xol/fIomt5dRSiW5F8Ct2eJoBUhkvgkZBUMvZHPkhNKpvnAd2J45Q0JO/NkJ3O0TZdvrs1pAcK8jRMKng9qWXa6Rytbk31gBsbsU1ibFVkM78Q=="
   },
   "lancamentos": 0,
   "apelidos": {

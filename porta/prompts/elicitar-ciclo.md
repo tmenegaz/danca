@@ -86,8 +86,9 @@ fenómeno, as fronteiras, a norma, os critérios, a justificativa, o recorte. Di
   "Bloco N" é um dos **dez blocos da entrevista** (1 a 10). No **plano da aula**,
   "Bloco 1..4" são as partes da aula (**solo, barra, centro, musicalidade**) mais a
   **expressão** (a parte artística, que costuma fechar os últimos minutos), com tempos e
-  porcentagem. Na **folha de captura**, "Bloco 1..5" são as seções de registro
-  (técnica, funcional, musicalidade, linha de base revisitada). São **três listas
+  porcentagem. Na **folha de captura**, os blocos são **derivados**: um por bloco da aula
+  que o plano marca, todos sob o eixo «Técnica» — e o último é sempre a *linha de base
+  revisitada*. São **três listas
   independentes** — quando eu disser "o Bloco 6", é ao da entrevista que me
   refiro.
 
@@ -202,17 +203,21 @@ ausência é o registro, e inventar um horizonte que não existe é dedução.
   por linha, na ordem em que a aula acontece**. É o que a folha de captura
   imprime como colunas e o formulário lê como campo. Exemplo:
 
-      **Dimensão "técnica":**
+      **Dimensão "Técnica — Solo":**
       - Alinhamento dos metatarsos
       - Tempo (saída do calcanhar)
       - Transferência de peso "por cima"
       - Coordenação braço-perna
 
-- **Este ciclo tem alguma dimensão própria?** (o par/pas de deux, o repertório
-  do dia, outra que só este ciclo tem) Quais são — e, para cada uma, **quais os
-  itens, um por linha.**
-- **A musicalidade entra como dimensão observada?** Se sim, **com quais itens**
-  (ex.: pulso · acento · resposta ao repertório do dia), um por linha.
+- **As dimensões observadas NÃO se perguntam: elas derivam do plano.** O eixo é
+  um só — **Técnica** —, e cada **bloco da aula que o plano marca** (solo, barra,
+  centro, musicalidade, expressão) vira uma dimensão dele: «Técnica — Solo»,
+  «Técnica — Barra», e assim por diante. É a técnica que se trabalha *através* de
+  cada bloco; o que muda de um para o outro é o que se olha. Sem bloco marcado no
+  plano, valem os cinco blocos canónicos da aula.
+- **O que eu pergunto, então, é só isto:** para cada uma dessas dimensões,
+  **quais os itens, um por linha** — o observável, aquilo que outra pessoa
+  também veria.
 - **As condições de contorno da aula (P-11):** a cada aula você marca **ânimo**,
   **interesse** e **harmonia** de 1 a 5, e declara o que mudou em relação ao
   plano. Essas três são as suas? (Se forem outras, diga quais.)

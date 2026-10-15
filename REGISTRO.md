@@ -12145,3 +12145,90 @@ que falta é a **obra**, não a decisão.
 (`PLANEJAMENTO-LASTRO.md`, nascido nesta sessão), o `REGISTRO.md`, o `FRENTES.md` e o `HANDOFF.md`
 (regenerado pelo gerador). E, como nos quatro elos anteriores, **nenhuma linha de código de produto
 foi escrita**.
+
+## 15/10/2026 — A dimensão observada deriva do PLANO (e o vocabulário do PO separa-se do da anamnese)
+
+**O que motivou.** O descompasso relatado enquanto se preenchia o Plano de Observação da Barra: o
+sujeito observado, as **dimensões observadas** e os **itens de cada dimensão** não conversavam. A
+dimensão era um campo **marcável** com uma lista fixa em prosa — «técnica · musicalidade · par/pas
+de deux · repertório do dia» —, e essa lista não é o vocabulário de ninguém: não é o da **anamnese**
+(`tecnica`, `funcional`, `musicalidade` — os eixos da linha de base) nem o do **plano** (solo, barra,
+centro, musicalidade, expressão — os blocos da aula). E havia um **erro de nível**: `musicalidade`
+aparecia no PO *em paralelo* a «técnica», quando no plano ela é um **lugar** onde a aula acontece,
+como o solo e a barra. Foi o que o dono do produto formulou: «quando eu vou trabalhar a técnica, eu
+posso trabalhar ela através do solo, da barra, do centro, da musicalidade e da expressão».
+
+**O que foi decidido** (pelo dono do produto, nesta sessão, em três perguntas fechadas): o eixo do PO
+é **um só — Técnica** — e cada **bloco da aula que o plano marca** vira uma dimensão dele:
+«Técnica — Solo», «Técnica — Barra». É a técnica que se trabalha *através* de cada bloco; o que muda
+de um para o outro é o que se olha. Saem do vocabulário do PO: `musicalidade`, `par/pas de deux` e
+`repertório do dia`. E, **sem bloco marcado no plano** (o campo é opcional), valem os **cinco blocos
+canónicos** da aula — a lista nunca fica vazia por falta de dado. O professor continua a escrever
+**só os itens** de cada dimensão, e são eles que viram as colunas da folha de captura.
+
+**O que mudou.** A dimensão **deixa de ser perguntada**: ela é **derivada na leitura do formulário**,
+do plano referenciado no nó `plano-de-ensino`. O conteúdo declara a derivação (`doPlano`: de que nó
+ler, o eixo, os blocos canónicos, o separador) — o mesmo mecanismo dos nós que já vêm de outro sítio
+(`daTurma`, `daCuradoria`): o PE não sabe o que é uma dimensão, sabe ler de onde o conteúdo manda. A
+união dos blocos marcados **entre os marcos** é o que entra (um bloco marcado em qualquer objetivo da
+aula é um bloco da aula), na **ordem canónica** dos blocos — o plano decide *quais*, o conteúdo decide
+*em que ordem*. Entrou um campo novo no contrato (`doPlano`, nos dois portões de montagem:
+`elicitar.js` e `porta.js`), a página passa a resolvê-lo (buscando o envelope do plano escolhido por
+`api/envelope/<carimbo>`), e a lista sai **só de leitura**, dizendo de onde veio.
+
+**O envelope não mente sobre a origem.** A dimensão derivada vai gravada com
+**`origem: "importado"`** — «o valor entrou pronto de outro artefato», a descrição que o
+`elicitacao-schema.json` **já dava** para este caso (o enum é `perguntado | observado | importado`), e
+que evita declarar «perguntado» para um valor que o sistema deduziu. Nenhuma versão de envelope
+subiu por causa disto.
+
+**Um defeito antigo, encontrado no caminho e corrigido.** A **referência da anamnese** era impressa
+em *qualquer* repetição (`blocoDaRepeticao`), e não só na repetição **por sujeito**: a dimensão
+«Técnica — Solo» aparecia como «**Sem anamnese** para «Técnica — Solo» neste sistema», com um atalho
+para criar a anamnese de uma dimensão. Passou a depender de a fonte da repetição declarar uma lista
+de sujeitos (`opcoesDe`), e a mensagem de repetição vazia deixou de dizer «escolha as alunas» quando
+o que se repete não são alunas.
+
+**O que foi provado.** `experimentos/provar-dimensoes-plano.js` (novo, **10 verificações**, jsdom
+sobre a PÁGINA servida por HTTP de verdade — não sobre o contrato): o conteúdo declara o eixo e os
+blocos canónicos e não tem mais `forma`/`multipla`; «par/pas de deux» e «repertório do dia» saíram do
+conteúdo; a lista na tela é a **união** dos blocos marcados (provado com um plano que marca só *Solo*
+e *Expressão* — se a tela lesse a lista canónica, falharia); a ordem é a canónica e não a do plano; a
+dimensão não se marca (o único campo da caixa é a nota); a repetição dos itens abre um registro por
+dimensão e **não** pede anamnese delas; o valor derivado é enviado com `origem: "importado"`; o
+plano sem bloco marcado cai nos canónicos; a lista é **refeita quando o plano muda**; e a **folha de
+captura** ganha um bloco por dimensão derivada, com os itens como colunas. Regressão: 17+17+16+49+28
++18+44 verificações existentes continuam verdes (a única falha, 1 de 34 em `pe/provar-derivar-po.js`,
+é a **pré-existente** do `professores/fokini/` apagado em 12/10).
+
+**Motivo declarado — os congelados.** Dois: `prompts/elicitar-ciclo.md` (e a sua cópia viva em
+`porta/prompts/`). O prompt **perguntava exactamente o que deixou de se perguntar** — «Este ciclo tem
+alguma dimensão própria? (o par/pas de deux, o repertório do dia…)» e «A musicalidade entra como
+dimensão observada?» — e declarava, no glossário de «bloco», que as seções da folha de captura eram
+«técnica, funcional, musicalidade, linha de base revisitada». As três afirmações ficaram falsas com
+esta decisão: o prompt passa a declarar que as dimensões **derivam do plano** e que o que se pergunta
+são só os **itens**. O que **não muda**: a fórmula de hash, a cobertura da âncora (o prompt e o
+conteúdo da porta nunca foram fonte de ciclo), as 22 pétreas e as 17 regras.
+
+**Com o quê.** `porta/po/conteudo/po.json` (o nó `dimensoes-de-observacao` e a `listaAberta`),
+`motor/nucleo/elicitar.js` e `motor/nucleo/porta.js` (o campo `doPlano` nos dois portões),
+`porta/index.html` (o resolvedor, a lista só de leitura, o `origem: "importado"`, o guard da
+referência da anamnese), `prompts/elicitar-ciclo.md` e `porta/prompts/elicitar-ciclo.md`,
+`professores/tiago/ciclos/ciclo-01-po-schema.json` e `professores/leticia/ciclos/ciclo-01-po-schema.json`
+(a descrição de `dimensoesObservadas`), `ARQUITETURA-PE.md` (nota datada) e `ARQUITETURA-ANAMNESE.md`
+(nota datada na §3.5 — as duas listas de dimensões **deixaram de ser a mesma lista**),
+`experimentos/provar-dimensoes-plano.js` (nova prova), o pacote de Maria regerado, e a cópia da porta
+no pacote da Barra.
+
+**O que ainda não está feito — e é do próximo elo.** (a) O pacote da **Barra** recebeu a mudança
+(sincronizado à mão, porque o gerador recusa aquele ciclo — ver abaixo) e foi **deployado**, mas **não
+pôde ser commitado**: o hook roda `gerar-ciclo.sh leticia 01 barra` e o gerador falha. (b) O **motivo
+dessa falha** é estado herdado de outra frente, não desta: o ciclo da Barra passou a ter `DOCS="plano"`
+(o plano elicitado como primeiro documento) mas **não tem documento de aula**, e o bloco do
+calendário **exige** o volume de uma aula (`calendario.py`: «--duracao-curta e --volume-curto são
+obrigatórios para o bloco do calendário»); além disso o `DATA_INICIO` continua lacuna. Pela ordem
+natural, a aula nasce quando o **PO** for concluído (é `escrever-ciclo.js` que deriva as demais
+fontes); até lá, qualquer commit que toque o pacote da Barra é recusado pelo hook. (c) O
+`linhaDeBase` do PO da Maria continua com **10 de 11 linhas que não são objeto** — o `traz` multilinha
+da anamnese rompe a tabela markdown (o validador já o avisa); é defeito **pré-existente**, medido
+nesta sessão e **não** corrigido aqui.

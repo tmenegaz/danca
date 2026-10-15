@@ -401,6 +401,21 @@ tocar no `po-schema.json`. A forma canônica da linha de base (`{aluno, traz, pr
 dela. O dado organiza-se pelas três dimensões da §3.4, com o Bloco 1 no cabeçalho (não como
 dimensão) e os itens do Bloco 9 marcados individualmente.
 
+> **Nota datada — 15/10/2026. As duas listas de dimensões deixaram de ser a MESMA lista.** Até
+> esta data, as três dimensões da §3.4 eram descritas como «as que o `po-01.json` já usa». Deixou
+> de ser verdade, e a §3.4 continua válida para a **anamnese**: as três (`técnica`, `funcional`,
+> `musicalidade`) organizam a **linha de base** — é o que se observa na aluna, e por isso o Bloco 6
+> e os itens do Bloco 9. O **Plano de Observação**, esse, passou a usar **outra lista**: o eixo
+> **Técnica** cruzado com os **blocos da aula que o plano marca** (solo, barra, centro,
+> musicalidade, expressão) — «Técnica — Solo», «Técnica — Barra». O motivo é de coerência de
+> vocabulário: `musicalidade` estava em duas listas que não são a mesma coisa — na anamnese é o
+> eixo cognitivo-musical da linha de base; no plano é um **lugar** onde a aula acontece, como o
+> solo e a barra. Manter a palavra nas duas fazia parecer que a dimensão do PO era paralela à
+> técnica, quando ela é um dos *através de* pelos quais a técnica se trabalha. O que sai do PO:
+> `musicalidade`, `par/pas de deux` e `repertório do dia` como dimensões; o que entra: uma
+> dimensão por bloco marcado, todas sob o eixo Técnica. Ver `REGISTRO.md` (15/10/2026) e
+> `experimentos/provar-dimensoes-plano.js`.
+
 ### 3.6 O que fica fora
 
 A observação inicial, os nove blocos e os módulos condicionais **não decidem** para que turma a

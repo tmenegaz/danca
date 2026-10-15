@@ -797,6 +797,97 @@ async function carregarTurmasDaEscola() {
   TURMAS_CARREGANDO = false;
 }
 
+/*
+ * AS DIMENSÕES QUE VÊM DO PLANO (15/10/2026). O eixo é declarado no CONTEÚDO
+ * (`doPlano.eixo` — hoje «Técnica»), e os blocos vêm dos que o PLANO de ensino
+ * marca em `estrutura-de-cada-aula`. A união dos marcos é o que entra: um bloco
+ * marcado em qualquer objetivo da aula é um bloco da aula.
+ *
+ * Por que a dimensão se DERIVA em vez de se perguntar: o PO observa a aula que o
+ * plano fixou, e o eixo («técnica») é o mesmo em todos os blocos — o que muda
+ * entre eles é o que se olha. Perguntar de novo seria pedir ao professor que
+ * redigitasse o que ele já declarou no plano.
+ *
+ * Sem plano escolhido, ou sem bloco nenhum marcado, cai nos blocos CANÓNICOS que
+ * o próprio conteúdo declara: a lista nunca fica vazia por falta de dado (os
+ * blocos da aula são opcionais no plano).
+ */
+let DIMENSOES_DO_PLANO = null;      // { carimbo, lista } | null = ainda não resolvido
+let DIMENSOES_CARREGANDO = false;
+// Os nós cujo valor o SISTEMA derivou (não o professor). Serve ao envio: o envelope
+// registra `origem: "importado"` («o valor entrou pronto de outro artefato» — é a
+// descrição do schema para este caso), e não «perguntado», que seria falso.
+const DERIVADOS = new Set();
+
+/* O nó que declara a derivação (um só por mapa: as dimensões do PO). */
+function noDasDimensoes() {
+  return (MAPA && MAPA.nos ? MAPA.nos : []).find((n) => n.doPlano) || null;
+}
+
+async function carregarDimensoesDoPlano() {
+  if (DIMENSOES_CARREGANDO) return;
+  const no = noDasDimensoes();
+  if (!no) { DIMENSOES_DO_PLANO = null; return; }
+  const carimbo = RESPOSTAS.get('plano-de-ensino') || null;
+  if (DIMENSOES_DO_PLANO && DIMENSOES_DO_PLANO.carimbo === carimbo) return;
+  DIMENSOES_CARREGANDO = true;
+  const decl = no.doPlano;
+  const canonico = Array.isArray(decl.blocos) ? decl.blocos.slice() : [];
+  const eixo = decl.eixo || '';
+  const sep = decl.separador == null ? ' — ' : decl.separador;
+  let marcados = [];
+  try {
+    if (carimbo) {
+      const r = await fetch('api/envelope/' + encodeURIComponent(carimbo));
+      if (r.ok) {
+        const env = await r.json();
+        const cru = env && env.respostas && env.respostas[decl.no];
+        const valor = cru && cru.valor;
+        if (Array.isArray(valor)) {
+          for (const linha of valor) {
+            for (const m of (linha && linha.marcados) || []) {
+              if (!marcados.includes(m)) marcados.push(m);
+            }
+          }
+        }
+      }
+    }
+  } catch (erro) {
+    // Sem o plano legível, os canónicos valem — a lista não fica vazia.
+    marcados = [];
+  }
+  // A ORDEM é a canónica (a do conteúdo); o plano decide QUAIS entram.
+  const escolhidos = canonico.filter((b) => marcados.includes(b));
+  const base = escolhidos.length ? escolhidos : canonico;
+  const lista = base.map((b) => (eixo ? eixo + sep + b : b));
+  DIMENSOES_DO_PLANO = { carimbo, lista, deOnde: escolhidos.length ? 'plano' : 'canonico' };
+  // O `RESPOSTAS` guarda o valor CRU (como qualquer resposta): é ele que a repetição dos
+  // itens lê (`repetirPor`) e que a derivação do documento encontra.
+  RESPOSTAS.set(no.id, lista);
+  DERIVADOS.add(no.id);
+  DIMENSOES_CARREGANDO = false;
+}
+
+/* A leitura das dimensões derivadas — o mesmo `{valor, nota}` das respostas. */
+function valorDoPlano(no) {
+  if (!no.doPlano) return undefined;
+  return DIMENSOES_DO_PLANO ? DIMENSOES_DO_PLANO.lista.slice() : undefined;
+}
+
+/* A lista derivada, só mostrada: o professor não a marca — ele a LÊ e escreve os
+ * itens dela no campo seguinte. Diz de onde veio, para não parecer invenção. */
+function mostrarDoPlano(no) {
+  const derivadas = no.doPlano ? DIMENSOES_DO_PLANO : null;
+  const lista = (derivadas && derivadas.lista) || [];
+  const deOnde = derivadas && derivadas.deOnde === 'plano'
+    ? 'Vêm do plano de ensino escolhido: um bloco da aula que ele marca, sob o eixo «' +
+      md(no.doPlano.eixo || '') + '».'
+    : 'O plano escolhido não marca bloco nenhum — valem os blocos da aula declarados no sistema.';
+  const itens = lista.map((d) => '<li>' + md(d) + '</li>').join('');
+  return '<p class="sub">' + deOnde + '</p><ul class="derivadas">' + itens + '</ul>' +
+    '<p class="sub">Escreva, no campo abaixo, os itens que você observa em cada uma.</p>';
+}
+
 /* A turma escolhida no plano. Um professor pode observar mais de uma turma, mas o
  * ritmo vem da PRIMEIRA que o declara: o ciclo é um só. */
 function turmaDoPlano() {
@@ -1310,6 +1401,13 @@ function lerResposta(no) {
   if (no.daTurma) {
     const daTurma = valorDaTurma(no);
     if (daTurma !== undefined) return { valor: daTurma, nota: nota };
+  }
+
+  // O que vem do PLANO também não se edita: a dimensão nasce dos blocos da aula que
+  // o plano marca, sob o eixo declarado. Sem resolução, cai no caminho normal.
+  if (no.doPlano) {
+    const doPlano = valorDoPlano(no);
+    if (doPlano !== undefined) return { valor: doPlano, nota: nota };
   }
 
   // A CONDIÇÃO DE REGISTRO: os grupos marcados (quem está na sala, quem observa).
@@ -2864,12 +2962,21 @@ async function semearDoPlano() {
 
 function blocoDaRepeticao(no) {
   const fonte = MAPA.nos.find((n) => n.id === no.repetirPor);
+  // A REFERÊNCIA DA ANAMNESE SÓ FAZ SENTIDO NA REPETIÇÃO POR SUJEITO (15/10/2026).
+  // Ela é o cabeçalho do sujeito e o gatilho para LER a anamnese dele — logo depende
+  // de a fonte declarar uma lista de onde os sujeitos vêm (`opcoesDe`). Sem isso (a
+  // repetição dos ITENS de cada dimensão, por exemplo) o valor repetido é uma
+  // dimensão, não uma aluna: procurá-la entre as anamneses dava «Sem anamnese para
+  // «Técnica — Solo»» e oferecia criar a anamnese de uma dimensão.
+  const refereSujeitos = !!(fonte && fonte.opcoesDe);
   const cru = RESPOSTAS.get(no.repetirPor);
   const selecionados = Array.isArray(cru) ? cru : cru === undefined || cru === null ? [] : [cru];
   if (!selecionados.length) {
     return '<p class="aviso">Este campo repete por ' +
-      citacao(fonte ? fonte.campo : no.repetirPor) + '. Escolha as alunas no campo anterior — ' +
-      'um registro aparece para cada uma.</p>';
+      citacao(fonte ? fonte.campo : no.repetirPor) + '. ' +
+      (refereSujeitos
+        ? 'Escolha as alunas no campo anterior — um registro aparece para cada uma.'
+        : 'Preencha o campo anterior — um registro aparece para cada item dele.') + '</p>';
   }
 
   const opcoes = fonte && fonte.opcoesDe ? (OPCOES.get(fonte.opcoesDe) || []) : [];
@@ -2883,11 +2990,11 @@ function blocoDaRepeticao(no) {
   );
 
   const blocos = selecionados.map((sujeito) => {
-    const daAnamnese = porValor.get(sujeito);
+    const daAnamnese = refereSujeitos ? porValor.get(sujeito) : null;
     const anterior = porSujeito.get(sujeito) || {};
     const partes = ['<div class="item-repeticao">'];
     partes.push('<h4>' + md(sujeito) + '</h4>');
-    partes.push(referenciaDaAnamnese(daAnamnese, sujeito));
+    if (refereSujeitos) partes.push(referenciaDaAnamnese(daAnamnese, sujeito));
     for (const campo of no.camposDoItem || []) {
       const valor = anterior[campo.id] != null ? anterior[campo.id] : '';
       partes.push('<p><label>' + md(campo.campo) + '<br>' +
@@ -3211,6 +3318,22 @@ function renderPergunta() {
   }
   const daTurma = no.daTurma ? valorDaTurma(no) : undefined;
 
+  // AS DIMENSÕES DERIVADAS DO PLANO: o nó que as declara E o que repete por elas
+  // precisam da lista antes de pintar — sem ela a repetição não teria sobre o que
+  // repetir. A resolução depende do plano escolhido no cabeçalho, e é refeita
+  // quando ele muda (o `carimbo` guardado é a chave da invalidação).
+  const fonteDoPlano = no.doPlano
+    ? no
+    : (MAPA.nos.find((n) => n.id === no.repetirPor) || null);
+  const precisaDoPlano = !!(fonteDoPlano && fonteDoPlano.doPlano);
+  if (precisaDoPlano && (!DIMENSOES_DO_PLANO
+      || DIMENSOES_DO_PLANO.carimbo !== (RESPOSTAS.get('plano-de-ensino') || null))) {
+    carregarDimensoesDoPlano().then(() => {
+      if (MAPA.nos[INDICE] === no) renderPergunta();
+    });
+    return renderCarregando(no);
+  }
+
   blocos.push('<div class="caixa">');
   blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
   blocos.push(cabecalhoDoNo(no));
@@ -3229,6 +3352,8 @@ function renderPergunta() {
     blocos.push(porMarcoDoNo(no).html);
   } else if (no.daTurma && daTurma !== undefined) {
     blocos.push(mostrarDaTurma(no, daTurma));
+  } else if (no.doPlano) {
+    blocos.push(mostrarDoPlano(no));
   } else if (no.repetirPor) {
     blocos.push(blocoDaRepeticao(no));
   } else if (no.opcoesDe) {
@@ -3501,6 +3626,13 @@ function pacoteParaEnviar() {
   const respostas = {};
   for (const [id, valor] of RESPOSTAS) {
     const nota = NOTAS.get(id);
+    // O valor DERIVADO pelo sistema (a dimensão que vem do plano) não se declara
+    // «perguntado»: o envelope registra `importado` — «o valor entrou pronto de
+    // outro artefato», a descrição que o schema dá para este caso.
+    if (DERIVADOS.has(id)) {
+      respostas[id] = { valor: valor, origem: 'importado', respondente: 'professor', nota: nota || null };
+      continue;
+    }
     respostas[id] = nota
       ? { valor: valor, origem: 'perguntado', respondente: 'professor', nota: nota }
       : valor;
