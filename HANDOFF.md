@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T12:35:14-0300`
-Commit atual: `b39b5b6` — fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
+Gerado em: `2026-10-15T12:52:54-0300`
+Commit atual: `4c57a8c` — feat(estrutura): a chave de cifra vira interna do Worker — e a criação para de entregá-la
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+4c57a8c feat(estrutura): a chave de cifra vira interna do Worker — e a criação para de entregá-la
+789e309 fix(tools): o arquivo de senhas vira um espelho por escola — e o modelo ensina a forma
 b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
 281c7e1 docs(registro): a SENHA_LETICIA não é inerte — é o login da professora
 83560fc fix(estrutura): a criação da escola diz onde guardar a senha de criptografia
@@ -81,8 +83,6 @@ bf3b08f feat(ciclo): o «Guardar» do PO cifra ciclo-01-barra-dados.cifrado.json
 4bd2afb chore(estrutura): reancorar a cadeia das fontes alteradas
 f8dd1d5 feat(captura): declara a variante barra no schema de captura
 225569d feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
-6f2967e feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-glossario-benesh.md
-9ae6620 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-notacao.md
 ```
 
 ## Por professor
@@ -158,97 +158,110 @@ f8dd1d5 feat(captura): declara a variante barra no schema de captura
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O arquivo de senhas vira um espelho por escola
+## 15/10/2026 — A chave de cifra vira interna do Worker: ninguém a vê, ninguém a arquiva
 
-**O que motivou.** O dono do produto pediu que o ambiente de teste seja **espelho do que tem de
-ser** quando uma escola deixar de ser teste — *«ele precisa ser um espelho da realidade e não uma
-fantasia pra gente poder testar»* — e observou que os nomes de `tools/.senhas-locais`
-(«senha Maria», «login Letícia») não pareciam bater com o sistema. A investigação mostrou que
-**os nomes estavam certos pela convenção** (`SENHA_<ESCOLA>` e `LOGIN_<QUEM ENTRA>` são o que a
-`lib-senhas.sh` e o hook procuram), mas o arquivo **não era um espelho**: era uma lista solta, com
-os blocos na ordem em que as coisas foram aparecendo, misturando as duas classes no mesmo nível e
-descrevendo valores como «mockada/provisória».
+**O que motivou.** O dono do produto, olhando o arquivo de senhas depois do espelho por escola:
 
-Duas medidas fecharam o diagnóstico:
+> *«Quando eu criar uma escola nova, eu vou receber então a senha barra, ou a senha da escola… Ou não
+> sou eu que guardo isso? Porque é meio estranho eu ter que pegar essas senhas e colocar num arquivo.
+> Pra mim, como usuário, isso já deveria ser automático. E, na verdade, a senha da escola pode até ser
+> uma senha gigante como essa aqui você tá me passando. Mas o que o professor espera, o que a pessoa
+> que tá criando espera, é que a senha seja a senha que ela colocou ali. E não uma senha gigante
+> modificada da que ela colocou. Então é meio estranho isso.»*
 
-| Sujeito | Chave de cifra (o que os scripts leem) | Login (o que se digita) |
-|:--|:--|:--|
-| Escola **Maria** (prof. Tiago) | `SENHA_MARIA` = «maria» — **abre o `-dados.json` da Maria** | **não estava no arquivo** — o Worker recusa «maria» e «tiago» |
-| Escola **Barra** (prof. Letícia) | `SENHA_BARRA` = chave gerada — abre o `-dados.json` da Barra | `LOGIN_LETICIA` (Bastidores e Produção) · a direção = «barra» |
+Ele está certo, e o **diagnóstico do estado anterior** mostrou o tamanho do absurdo:
 
-`SENHA_MARIA` **parece** «a senha da Maria», e é a **chave de cifra da escola**. Em teste as duas
-coincidem em valor — o que esconde a diferença de natureza —, mas na Maria o **login** não está no
-arquivo, e o Worker no ar o recusa. É essa coincidência, e só ela, que fazia o arquivo parecer certo.
+| O que a chave protegia | Medido |
+|:--|:--|
+| O `-dados.json` do pacote | **A semente vazia** — `aulas: []` nos DOIS pacotes; o lançamento vai para o KV, em texto puro, e nada o traz de volta |
+| O `-dados.json` como coisa sensível | O que ele traz é `apelidos`, que saem **em claro no envelope**, por decisão registrada |
+| O uso da chave no formulário | **Nunca acontecia**: o caminho é `if (!bruto.lancamentos) return …`, e `lancamentos` é sempre 0 |
+
+Ou seja: uma chave gerada, exibida uma única vez, arquivada à mão — **para cifrar um arquivo vazio, e
+sem que ninguém a digite no caminho real**. E, ao lado dela, `/api/receber` grava lançamento em texto
+puro **sem autenticação nenhuma** (medido: `HTTP 200 {"ok":false,"erro":"nenhum arquivo no pedido"}` —
+recusa de negócio, não 401).
+
+**Por que a chave não pode ser simplesmente «a senha que ela digitou».** Se a chave **for** a senha,
+trocar a senha inutiliza tudo o que já foi cifrado (o `-dados.json` do pacote e os acompanhamentos das
+alunas): um aluno muda de senha e o arquivo histórico deixa de abrir. A pergunta certa não é «qual
+senha usar» — é **«quem precisa ver a chave?»**. E a resposta é: **ninguém**.
 
 **O que foi decidido.**
-- O arquivo passa a ser **um bloco por escola**, com **três credenciais nomeadas**: a **chave de
-  cifra** (`SENHA_<ESCOLA>`), o **login de quem entra** (`LOGIN_<PESSOA>`) e o **login da direção**
-  (`LOGIN_<ESCOLA>`). O bloco traz, em comentário, o que cada uma é, quem a lê e onde ela vive.
-- O **login da direção** ganhou nome e lugar: `LOGIN_BARRA`. O sujeito é o **slug da ESCOLA**, e não
-  `DIRECAO_<ESCOLA>` — porque a isenção do pre-push é **por sujeito**: um nome composto faria o
-  valor «barra» ser procurado nos arquivos versionados, onde ele aparece nos caminhos, e o push
-  seria barrado. O nome foi escolhido **pela restrição real**, e o arquivo diz isso.
-- **`tools/.escolas-teste` estava incompleto**: tinha a **pessoa** `leticia` e a **escola** `maria`,
-  mas não a **escola** `barra` — nem a pessoa `tiago`. Com o espelho, a falta apareceu na hora (o
-  guarda acusou `LOGIN_BARRA`). Os quatro sujeitos passam a estar declarados, com a razão de cada um.
-- **A transição para produção ficou escrita no arquivo e no modelo**: a **chave de cifra NÃO muda**
-  (trocá-la inutiliza tudo o que já foi cifrado) e os **logins MUDAM** (em teste são o próprio slug,
-  que aparece nos caminhos do repositório). Trocar login é **PUT de secret no Worker** — não é
-  operação deste repositório.
-- O **modelo** (`tools/.senhas-locais.exemplo`) passa a mostrar a **forma** do espelho — sem ele, o
-  espelho vive só nesta máquina e a próxima pessoa escreve uma lista solta outra vez.
+- **A criação para de entregar a chave.** `provisionar-escola.js` continua gerando e gravando a
+  `SENHA_CRIPTO` como secret do Worker, mas **não a devolve** na resposta; a página `danca` para de
+  exibi-la e diz que ela ficou no Worker. Não há nada a anotar, nada a copiar.
+- **O Worker decifra** (`motor/servidor/ler-dados.js`, novo). O navegador **deixa de conhecer a
+  chave**: manda a senha da PESSOA — a que ela já sabe, e que o Worker já confere nos Bastidores — e
+  recebe o **texto em claro**. A senha passa a ser só **autenticação**; trocá-la **não invalida nada**.
+- **A conferência é a da ESCOLA** (a direção ou qualquer professor cadastrado), e **não** a
+  por-professor do `validar-senha`: aquela existe para o login DE UMA PESSOA («a senha de um professor
+  nunca vale para outro — era esse o vazamento»); esta abre o DADO DA ESCOLA, que não pertence a um
+  professor. A política nova está escrita em `senhaDaEscolaOk`.
+- **O nome do arquivo é conferido, não confiado.** Ele vem do cliente: sem o filtro, uma travessia de
+  caminho (`../../tools/.senhas-locais`) leria outro arquivo do ASSETS e o devolveria **em claro** a
+  quem tem a senha de um professor. O filtro aceita só `ciclo-NN[-escola]-dados[-carimbo].json`.
 
-**Motivo declarado — os congelados.** `tools/` está congelado. O motivo: **o modelo é o que a
-próxima pessoa copia**, e ele ensinava a forma errada (lista solta). O que **não muda**: nenhuma
-convenção de nome (as duas classes já entravam em 15/10), o comportamento do `pre-push` (a mudança
-do hook foi na entrada anterior), a fórmula da cifra, o contrato do `check-pacote.js`, e nenhum
-arquivo de ciclo — a âncora `.fipp` não cobre `tools/`, então **não há reancoragem**.
+**Consequências declaradas — as duas, sem eufemismo.**
+- **O segredo do Cloudflare é WRITE-ONLY.** Não há como lê-lo de volta, nem pelo painel nem pela API.
+  Sem a exibição, a chave torna-se **irrecuperável por qualquer pessoa** — é exatamente isso que a
+  torna interna, e é o preço. O que ela custa: a ferramenta **local** que precisa dela, o
+  `gerar-acompanhamento.sh` (que cifra a página de cada aluna com o `pagecrypt`), passa a depender de
+  a cifra **migrar para o Worker**. Hoje **não há acompanhamento nenhum** (o ciclo da Barra registra
+  «0 aluna(s) · 0 relatório(s)»), então nada ficou inacessível — e as chaves das duas escolas de teste
+  seguem em `tools/.senhas-locais`, para quem precisar delas agora.
+- **O teto do runtime reaparece do outro lado.** O WebCrypto do workerd recusa PBKDF2 acima de
+  100.000 iterações; o envelope do CLI local tem 2e6. Abrir um pacote legado pelo Worker **falha**, e
+  a falha é **declarada** com a instrução («regenere o pacote — o gerador usa a contagem do Worker»).
+  Medido: a **Maria**, escola legada **sem `SENHA_CRIPTO`**, responde «a leitura dos dados cifrados não
+  está disponível» em vez de estourar — caminho degradado declarado, não erro obscuro.
+
+**Motivo declarado — os congelados.** `tools/templates/` está congelado. O motivo: **o formulário
+público era o último lugar onde a chave aparecia**, e mantê-la lá contradiria a decisão — ele decifrava
+com a chave digitada, e agora **pede a senha da pessoa ao Worker**. O que **não muda**: a fórmula da
+cifra (`PBKDF2-SHA256+AES-GCM`), o esquema do envelope (autodescritivo), o contrato do
+`check-pacote.js`, a obrigatoriedade do `-dados.json` cifrado no pacote, as 17 regras e as 22 pétreas.
+Nenhum arquivo de ciclo foi tocado como fonte — a âncora `.fipp` não cobre `tools/` **nem** as saídas
+geradas, então **não há reancoragem**.
 
 **Onde entrou.**
-- `tools/.senhas-locais.exemplo` — a forma do espelho por escola, o login da direção e a transição
-  para produção; e as linhas de modelo passam a sair **comentadas** (ver abaixo).
-- `tools/.senhas-locais` (local, fora do Git) — o espelho montado, valores preservados.
-- `tools/.escolas-teste` (local, fora do Git) — os quatro sujeitos declarados.
+- `motor/servidor/ler-dados.js` (novo) — o leitor: filtro do nome, conferência da senha, decifra.
+- `motor/servidor/bastidores.js` — `senhaDaEscolaOk` (a política da escola), exportada.
+- `motor/servidor/cloudflare.js` — a injeção do leitor (`passosDeGeracao` + `montarPorta`), no mesmo
+  padrão de `escreverCiclo`; o prefixo do leitor é **vazio** (o `-dados.json` mora na raiz do pacote,
+  e a porta sob `plano-observacao/`).
+- `motor/servidor/rotas.js` — a rota `POST /api/dados`.
+- `motor/servidor/producao.js` — o despacho de `/api/dados` na raiz.
+- `motor/servidor/provisionar-escola.js` — para de devolver `senhaCripto`.
+- `raiz/index.html` — para de exibir a chave; diz que ela ficou no Worker.
+- `tools/templates/lancamento.html` — a decifra passa pelo Worker; o rótulo vira «Sua senha»; a
+  `lib-cifra.js` sai do formulário (o navegador não decifra mais nada).
 
-**Um risco introduzido e corrigido no mesmo passo.** Uncomentar as linhas de modelo
-(`LOGIN_<SLUG DA PESSOA>="…"`) **quebrou o arquivo como shell**: o bash lê `LOGIN_<X>="y"` como o
-comando `LOGIN_` com redireção de entrada do arquivo `<X>`. Sourciado, o exemplo **abortava**
-(`SLUG: Arquivo ou diretório inexistente`) — e com `set -e`, o gerador morreria com essa mensagem.
-Medido, e corrigido: os modelos saem comentados, com o porquê escrito ao lado, e o arquivo
-sourcia limpo sob `set -eu`.
+**Com o quê.** Os arquivos acima, mais os pacotes regenerados da Barra e da Maria (o formulário é
+gerado a partir do template), `REGISTRO.md` e `HANDOFF.md`.
 
-**Com o quê.** `tools/.senhas-locais.exemplo`, `REGISTRO.md`, `HANDOFF.md`.
-
-**Referências.** `CONGELAMENTO.md` (`tools/`) · `tools/lib-senhas.sh` (a convenção
-`SENHA_$(ESCOLA_SLUG)`) · `tools/hooks/pre-push` (a isenção por sujeito, que dita o nome do login da
-direção) · `motor/servidor/bastidores.js` (`senhaDaDirecaoOk`, `validar-senha` — a prova de que a
-segunda classe é ACESSO e não cifra) · os três elos anteriores de 15/10/2026.
+**Referências.** Os quatro elos de 15/10/2026 anteriores · `motor/servidor/cifrar-envelope.js` (o
+teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3b) ·
+`CONGELAMENTO.md` (`tools/templates/`).
 
 **O que ainda não está feito.**
-- **A chave de cifra ainda passa pela mão da pesquisadora — e isso é uma falha de produto, não de
-  configuração.** Quem cria a escola recebe a chave uma vez e tem de copiá-la para um arquivo local;
-  o dono do produto disse o óbvio: *«pra mim, como usuário, isso já deveria ser automático»*. O
-  Worker que a gera é o mesmo que a usa para cifrar (caminho (a)) — **o CI não precisa dela**, e
-  quem a usa para ABRIR é o navegador (o formulário de lançamento pede a senha) e o
-  `gerar-acompanhamento.sh` (local). Automatizar exige decidir **onde** a chave fica disponível sem
-  passar pela mão de ninguém — frente não desenhada.
-- **A `SENHA_ADMIN` da Maria não está registrada** (o Worker no ar recusa «maria» e «tiago», o que
-  prova que ela é outra coisa). O bloco da Maria saiu com os logins em `[Preencher]`, comentados.
-- O nome `LOGIN_BARRA` para o login da direção foi **escolha desta sessão**, ditada pela isenção por
-  sujeito. Se o dono do produto preferir `LOGIN_DIRECAO_BARRA`, o `pre-push` (congelado) precisa
-  mudar — exige motivo declarado e commit próprio.
+- **`/api/receber` continua SEM AUTENTICAÇÃO**, e o lançamento continua gravado em **texto puro** no
+  KV. Era a quarta opção da lista apresentada («quero ver o `/api/receber` autenticado e o dado
+  cifrado também no KV»), e **não** foi a escolhida. Fica registrado como o descompasso que sobra: o
+  formulário autentica para LER e não autentica para GRAVAR. Enquanto isso, quem souber o endereço da
+  escola pode gravar um lançamento no KV dela.
+- **Os acompanhamentos não têm mais como obter a chave localmente** (a consequência acima). A frente
+  que fecha isso é a cifra dos acompanhamentos **migrar para o Worker** — ou um caminho gated para
+  revelá-la, que contradiria «ninguém a vê» e por isso não foi feito sem decisão do dono do produto.
+- **A `lib-cifra.js` continua sendo copiada para o pacote** pelo `gerar-ciclo.sh`, agora sem uso no
+  formulário. Limpeza pequena, não feita, para não aumentar a superfície congelada deste commit.
+- O caminho novo **não foi exercitado com dado real**: o pacote nunca tem `lancamentos > 0`, então o
+  formulário nunca chama a rota. O que foi provado é a ROTA (cinco casos, no ar) e o formulário
+  publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
+- **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
+  falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
 
 ## O que está pendente
-
-## 15/10/2026 — A geração publica: o deploy entra na cadeia
-
-- O passo de deploy **não** foi exercitado numa geração disparada pelo Worker depois desta mudança;
-  é a próxima verificação.
-- `SENHAS_LOCAIS` continua como secret do GitHub sem uso (a montagem foi removida em 12/10). Ela
-  **não** cobre a `SENHA_CRIPTO` da Barra: com o caminho (a) funcionando, o CI não precisa de senha
-  nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
-- As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
-  para todo ciclo gerado por este workflow, qualquer escola.
 
 ## 15/10/2026 — O guarda do pre-push passa a conferir a última linha do arquivo de senhas
 
@@ -322,6 +335,24 @@ segunda classe é ACESSO e não cifra) · os três elos anteriores de 15/10/2026
 - O nome `LOGIN_BARRA` para o login da direção foi **escolha desta sessão**, ditada pela isenção por
   sujeito. Se o dono do produto preferir `LOGIN_DIRECAO_BARRA`, o `pre-push` (congelado) precisa
   mudar — exige motivo declarado e commit próprio.
+
+## 15/10/2026 — A chave de cifra vira interna do Worker: ninguém a vê, ninguém a arquiva
+
+- **`/api/receber` continua SEM AUTENTICAÇÃO**, e o lançamento continua gravado em **texto puro** no
+  KV. Era a quarta opção da lista apresentada («quero ver o `/api/receber` autenticado e o dado
+  cifrado também no KV»), e **não** foi a escolhida. Fica registrado como o descompasso que sobra: o
+  formulário autentica para LER e não autentica para GRAVAR. Enquanto isso, quem souber o endereço da
+  escola pode gravar um lançamento no KV dela.
+- **Os acompanhamentos não têm mais como obter a chave localmente** (a consequência acima). A frente
+  que fecha isso é a cifra dos acompanhamentos **migrar para o Worker** — ou um caminho gated para
+  revelá-la, que contradiria «ninguém a vê» e por isso não foi feito sem decisão do dono do produto.
+- **A `lib-cifra.js` continua sendo copiada para o pacote** pelo `gerar-ciclo.sh`, agora sem uso no
+  formulário. Limpeza pequena, não feita, para não aumentar a superfície congelada deste commit.
+- O caminho novo **não foi exercitado com dado real**: o pacote nunca tem `lancamentos > 0`, então o
+  formulário nunca chama a rota. O que foi provado é a ROTA (cinco casos, no ar) e o formulário
+  publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
+- **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
+  falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
 
 ## Pendências anteriores (índice)
 
@@ -465,6 +496,7 @@ segunda classe é ACESSO e não cifra) · os três elos anteriores de 15/10/2026
 - **15/10/2026** — O Sistema Lastro: o nome comercial, e o mapa de evolução… → `REGISTRO.md` L11818
 - **15/10/2026** — A dimensão observada deriva do PLANO (e o vocabulário do… → `REGISTRO.md` L12149
 - **15/10/2026** — A cifra do Worker respeita o teto do runtime, e a falha… → `REGISTRO.md` L12267
+- **15/10/2026** — A geração publica: o deploy entra na cadeia → `REGISTRO.md` L12367
 - PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

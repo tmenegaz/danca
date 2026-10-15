@@ -154,8 +154,8 @@
     <select id="entregavel"></select></span>
   <span><label for="autor">Gerado por:</label>
     <input id="autor" type="text" size="16" placeholder="quem gerou (obrigatório)"></span>
-  <span><label for="senha">Senha da escola:</label>
-    <input id="senha" type="password" size="14" placeholder="para abrir o que já foi lançado"></span>
+  <span><label for="senha">Sua senha:</label>
+    <input id="senha" type="password" size="14" placeholder="a mesma dos Bastidores — abre o que já foi lançado"></span>
   <span class="fraco" id="ajuda-md">gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
   <span id="aviso-gerado"></span>
 </div>
@@ -180,7 +180,6 @@
      entrada (po-XX.json, plano-XX.json) e o JSON de dados do ciclo (cifrado). O lançamento ela
      ENVIA para o site: nada aqui é gravado no computador de quem usa. -->
 <script src="assets/lib-vistas.js"></script>
-<script src="assets/lib-cifra.js"></script>
 <!-- O comportamento da barra fixa e do menu mobile é o MESMO do resto do site, e vive num
      único arquivo (`nav.js`). Antes era um bloco inline do `ciclo.html`, que esta página não
      carrega: a barra ficava por cima do título e o hamburger não abria no celular. A guarda
@@ -270,11 +269,25 @@ async function lerDadosDoCiclo(texto, arquivo, c) {
   }
   const senha = senhaDaEscola();
   if (!senha) throw new Error(`sem senha para ${arquivo}`);
+  // QUEM DECIFRA É O WORKER (15/10/2026), não este navegador. A chave de cifra é um segredo do
+  // Worker — não é digitada por ninguém e não existe do lado de cá. O que a pessoa digita é a SUA
+  // senha (a mesma dos Bastidores), e ela serve para AUTENTICAR: o Worker confere, decifra com a
+  // chave dele e devolve o texto. Por isso trocar a senha não invalida nada do que já está cifrado.
+  // O nome do campo continua sendo o id `senha` e a leitura, a mesma: só o DESTINO mudou.
   let claro;
   try {
-    claro = await Cifra.decifrar(bruto._cifrado, senha);
+    const resposta = await fetch('/api/dados', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ arquivo, senha }),
+    });
+    const d = await resposta.json().catch(() => null);
+    if (!resposta.ok || !d || d.ok === false) {
+      throw new Error((d && d.erro) || ('HTTP ' + resposta.status));
+    }
+    claro = d.texto;
   } catch (e) {
-    throw new Error(`a senha da escola foi recusada em ${arquivo}`);
+    throw new Error(`não abri ${arquivo}: ${e.message}`);
   }
   try { sessionStorage.setItem(CHAVE_SENHA, senha); } catch (e) { /* sem armazenamento */ }
   return claro;
