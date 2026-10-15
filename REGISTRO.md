@@ -12812,3 +12812,13 @@ teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3
   publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
 - **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
   falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
+- **A árvore NUNCA fica limpa depois de um commit que toque fonte de ciclo — e não foi este trabalho
+  que a fez assim.** O hook de `pre-commit` regenera o ciclo, e a regeração reescreve, a cada passo,
+  coisas que não são conteúdo: o `gerado_em` do `ciclos.json` (resolução de minuto), o carimbo
+  embutido nos PDFs, e o **envelope cifrado da Maria** — que o gerador re-cifra porque o pacote dela
+  não traz a cópia pronta do Worker, e cada cifra sorteia sal e IV novos. Medido três vezes seguidas:
+  gerar → sujar a árvore → commitar → sujar de novo, sem convergir. **Não é defeito do espelho das
+  senhas nem desta entrada**: é a combinação `gerador × hook`, e persegui-la é infinito. O que se
+  fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
+  são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
+  gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.

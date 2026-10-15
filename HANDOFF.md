@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T12:52:54-0300`
-Commit atual: `4c57a8c` — feat(estrutura): a chave de cifra vira interna do Worker — e a criação para de entregá-la
+Gerado em: `2026-10-15T12:55:03-0300`
+Commit atual: `a45ec58` — chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,10 @@ tiago (2)
 ## Últimos commits
 
 ```
+a45ec58 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
+4f61a8b chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
+9a4e792 chore(entrega): os pacotes da Barra e da Maria absorvem o formulário que decifra pelo Worker
+33e2299 fix(template): o formulário decifra pelo Worker — a chave sai do navegador
 4c57a8c feat(estrutura): a chave de cifra vira interna do Worker — e a criação para de entregá-la
 789e309 fix(tools): o arquivo de senhas vira um espelho por escola — e o modelo ensina a forma
 b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
@@ -79,10 +83,6 @@ fff06ae Merge origin/main — o pacote da Barra gerado pela Action entra ao lado
 bf3b08f feat(ciclo): o «Guardar» do PO cifra ciclo-01-barra-dados.cifrado.json
 1f11443 feat(po): o PO elicitado vira a fonte do ciclo
 65f9d1b fix(estrutura): a cifra do Worker respeita o teto do runtime — e a falha deixa de ser muda
-79aa8c3 feat(po): o PO elicitado vira a fonte do ciclo
-4bd2afb chore(estrutura): reancorar a cadeia das fontes alteradas
-f8dd1d5 feat(captura): declara a variante barra no schema de captura
-225569d feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 ```
 
 ## Por professor
@@ -260,6 +260,16 @@ teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3
   publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
 - **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
   falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
+- **A árvore NUNCA fica limpa depois de um commit que toque fonte de ciclo — e não foi este trabalho
+  que a fez assim.** O hook de `pre-commit` regenera o ciclo, e a regeração reescreve, a cada passo,
+  coisas que não são conteúdo: o `gerado_em` do `ciclos.json` (resolução de minuto), o carimbo
+  embutido nos PDFs, e o **envelope cifrado da Maria** — que o gerador re-cifra porque o pacote dela
+  não traz a cópia pronta do Worker, e cada cifra sorteia sal e IV novos. Medido três vezes seguidas:
+  gerar → sujar a árvore → commitar → sujar de novo, sem convergir. **Não é defeito do espelho das
+  senhas nem desta entrada**: é a combinação `gerador × hook`, e persegui-la é infinito. O que se
+  fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
+  são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
+  gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.
 
 ## O que está pendente
 
@@ -353,6 +363,16 @@ teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3
   publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
 - **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
   falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
+- **A árvore NUNCA fica limpa depois de um commit que toque fonte de ciclo — e não foi este trabalho
+  que a fez assim.** O hook de `pre-commit` regenera o ciclo, e a regeração reescreve, a cada passo,
+  coisas que não são conteúdo: o `gerado_em` do `ciclos.json` (resolução de minuto), o carimbo
+  embutido nos PDFs, e o **envelope cifrado da Maria** — que o gerador re-cifra porque o pacote dela
+  não traz a cópia pronta do Worker, e cada cifra sorteia sal e IV novos. Medido três vezes seguidas:
+  gerar → sujar a árvore → commitar → sujar de novo, sem convergir. **Não é defeito do espelho das
+  senhas nem desta entrada**: é a combinação `gerador × hook`, e persegui-la é infinito. O que se
+  fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
+  são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
+  gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.
 
 ## Pendências anteriores (índice)
 
