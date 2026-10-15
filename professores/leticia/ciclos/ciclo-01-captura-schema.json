@@ -437,6 +437,77 @@
             }
           }
         }
+      },
+      "barra": {
+        "escola": "Barra",
+        "blocos": {
+          "Bloco 1 — Técnica — Solo": {
+            "chave": "tecnica_solo",
+            "rotulo": "Técnica — Solo",
+            "grao": "aluna",
+            "colunas": {
+              "core": {
+                "chave": "core",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 2 — Técnica — Barra": {
+            "chave": "tecnica_barra",
+            "rotulo": "Técnica — Barra",
+            "grao": "aluna",
+            "colunas": {
+              "plié": {
+                "chave": "plie",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 3 — Técnica — Centro": {
+            "chave": "tecnica_centro",
+            "rotulo": "Técnica — Centro",
+            "grao": "aluna",
+            "colunas": {
+              "tandu": {
+                "chave": "tandu",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 4 — Técnica — Musicalidade": {
+            "chave": "tecnica_musicalidade",
+            "rotulo": "Técnica — Musicalidade",
+            "grao": "aluna",
+            "colunas": {
+              "valsa": {
+                "chave": "valsa",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 5 — Técnica — Expressão": {
+            "chave": "tecnica_expressao",
+            "rotulo": "Técnica — Expressão",
+            "grao": "aluna",
+            "colunas": {
+              "braços": {
+                "chave": "bracos",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
       }
     }
   },
