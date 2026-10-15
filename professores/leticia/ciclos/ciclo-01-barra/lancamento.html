@@ -196,7 +196,7 @@
   <span><label for="autor">Gerado por:</label>
     <input id="autor" type="text" size="16" placeholder="quem gerou (obrigatório)"></span>
   <span><label for="senha">Sua senha:</label>
-    <input id="senha" type="password" size="14" placeholder="a mesma dos Bastidores — abre o que já foi lançado"></span>
+    <input id="senha" type="password" size="14" placeholder="a mesma dos Bastidores — abre o ciclo e autoriza a gravar"></span>
   <span class="fraco" id="ajuda-md">gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
   <span id="aviso-gerado"></span>
 </div>
@@ -798,10 +798,17 @@ function nomeDoArquivo(tipo) {
 // no `workers.dev` e num domínio próprio, sem CORS e sem endereço absoluto no código.
 const RECEBER = '/api/receber';
 async function enviar(arquivos) {
+  // A SENHA É OBRIGATÓRIA PARA GRAVAR (15/10/2026). O Worker confere antes de aceitar — a mesma
+  // senha da escola que abre o ciclo — e o lançamento vai CIFRADO para o cofre. Antes disto,
+  // gravar não pedia senha nenhuma: quem soubesse o endereço da escola podia gravar nela.
+  const senha = senhaDaEscola();
+  if (!senha) {
+    throw new Error('informe a sua senha no campo acima — ela abre o ciclo e autoriza a gravação');
+  }
   const r = await fetch(RECEBER, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ciclo: sel.ciclo.value, arquivos }),
+    body: JSON.stringify({ ciclo: sel.ciclo.value, senha, arquivos }),
   });
   // A resposta pode não ser JSON (endpoint ausente, erro do servidor): nesse caso o que
   // resta dizer é o código, e o lançamento continua na tela.
@@ -1621,8 +1628,9 @@ async function gerarJson() {
     { nome: novoNome, texto, tipo: 'application/json;charset=utf-8' },
     { nome: 'ciclos.json', texto: indiceNovo, tipo: 'application/json;charset=utf-8' },
   ];
+  let resposta;
   try {
-    await enviar(arquivos);
+    resposta = await enviar(arquivos);
   } catch (e) {
     // O envio falhou: os campos ficam como estão, o ajuste continua aberto e a página
     // DIZ que não foi — a alternativa (limpar a tela como se tivesse dado certo) faria
@@ -1638,6 +1646,12 @@ async function gerarJson() {
     `${ajuste ? ` — ajuste de <code>${esc(deOnde)}</code>, motivo: ${esc(motivo)}` : ''}` +
     ` · aula ${esc(id)} ${jaTinha ? 'atualizada' : 'acrescentada'} · ` +
     `${aula.presentes.length} presente(s), ${aula.ausentes.length} ausente(s)</span>`);
+  // Escola SEM chave no Worker (as legadas): o lançamento foi gravado EM CLARO, e quem gravou
+  // precisa saber — guardar dado de aluna sem cifra não pode ser silencioso.
+  if (resposta && resposta.cifrado === false) {
+    dizer('<span class="erro">atenção: este lançamento foi gravado <strong>sem cifra</strong> —'
+      + ' esta escola ainda não tem a chave de criptografia no Worker.</span>');
+  }
   ajustando = false;             // enviado: ou entrou no registro, ou corrigiu o que havia
   pagina = 1;
   // A aula lançada passa a existir para a leitura — e o painel sai de cena, porque o
