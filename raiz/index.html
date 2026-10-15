@@ -866,13 +866,16 @@
               cx.appendChild(par("Repositório: " + rp.erro));
             } else {
               cx.appendChild(par("Repositório: " + rp.totalApagado + " arquivo(s) apagado(s), num commit só."));
-              if (rp.arcaboucoDoCiclo && rp.arcaboucoDoCiclo.length) {
-                cx.appendChild(par("Inclui o arcabouço do ciclo do professor " + rp.professor
-                  + ": ele ficou sem outra escola e o manifesto BASE carregava o nome desta dentro."));
+              if (rp.manifestoBaseDoCiclo && rp.manifestoBaseDoCiclo.length) {
+                cx.appendChild(par("Inclui o manifesto base do ciclo do professor " + rp.professor
+                  + ": ele ficou sem outra escola naquele ciclo e o manifesto carregava o nome desta dentro."));
               }
+              cx.appendChild(par("Os schemas do ciclo NÃO são apagados: eles são o modelo de que nasce"
+                + " toda escola nova."));
               if (rp.preservados && rp.preservados.length) {
                 cx.appendChild(par("Preservado(s): " + rp.preservados.length
-                  + " arquivo(s) — caderno, relatório de campo e acompanhamento não se apagam por tabela."));
+                  + " arquivo(s) — os schemas do modelo, caderno, relatório de campo e acompanhamento"
+                  + " não se apagam por tabela."));
               }
               cx.appendChild(par("O índice " + rp.elo + " ficou, com o elo do expurgo: a memória de que a escola existiu."));
               if (rp.url) {

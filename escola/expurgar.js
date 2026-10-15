@@ -80,15 +80,24 @@ function apagar(caminho) {
 }
 
 /**
- * É arcabouço do ciclo — `ciclo-NN.conf` ou `ciclo-NN-<palavra>-schema.json` —, e não
- * arquivo de uma escola? É o que distingue «o professor ainda tem escola» de «só sobrou o
- * arcabouço». A MESMA regra está em `motor/servidor/repo-escola.js`: as duas metades têm de
- * classificar o mesmo arquivo do mesmo jeito, senão uma apaga o que a outra preserva.
+ * É o MANIFESTO BASE do ciclo — `ciclo-NN.conf` —, e não outra coisa? É o que distingue «o
+ * professor ainda tem escola» de «só sobrou o manifesto» na hora de limpar.
+ *
+ * **OS SCHEMAS NÃO SÃO ARCABOUÇO PARA O EXPURGO — nunca.** Eles são o MODELO de que nasce
+ * toda escola nova: `tools/criar-escola.sh` copia `professores/tiago/ciclos/ciclo-01-*-schema.json`
+ * (o `MODELO="tiago/01"`, fixo no script) e RECUSA criar quando não existem:
+ *
+ *     erro: ciclo-modelo sem schema: …/professores/tiago/ciclos/ciclo-01-schema.json
+ *
+ * A primeira versão desta função os incluía, «porque o arquivo carrega o nome da escola
+ * dentro». O nome está no `ciclo-NN.conf`, não nos schemas — e o preço foi real: em
+ * 15/10/2026 o expurgo da barra e da maria apagou os schemas do professor `tiago`, que é
+ * justamente o modelo, e **a escola `ponta` não pôde nascer**. A MESMA regra está em
+ * `motor/servidor/repo-escola.js`: as duas metades têm de classificar o mesmo arquivo do
+ * mesmo jeito, senão uma apaga o que a outra preserva.
  */
-function ehArcaboucoDoCiclo(nome, ciclo) {
-  const nn = String(ciclo).padStart(2, '0');
-  if (nome === 'ciclo-' + nn + '.conf') return true;
-  return new RegExp('^ciclo-' + nn + '(?:-[a-z0-9]+)*-schema\\.json$').test(nome);
+function ehManifestoBaseDoCiclo(nome, ciclo) {
+  return nome === 'ciclo-' + String(ciclo).padStart(2, '0') + '.conf';
 }
 
 // O elo do expurgo — o índice NÃO é reescrito: ganha uma entrada nova no fim.
@@ -182,16 +191,22 @@ function main() {
     const fontes = fs.readdirSync(base).filter((n) => n.startsWith(prefixo) && n !== prefixo);
     fontes.forEach((n) => confere('fonte ' + n, apagar(path.join(base, n))));
 
-    // O ARCABOUÇO do ciclo sai junto SÓ quando o professor ficou sem nenhuma escola: ele não
-    // é da escola, é do ciclo — mas o manifesto BASE carrega o nome dela dentro
-    // (`NOME="Ciclo 01 — Barra"`) e um órfão desses batiza a próxima escola com o nome da
-    // anterior. Se ainda há variante de outra escola aqui, o arcabouço é dela também.
-    const restam = fs.readdirSync(base);
+    // O MANIFESTO BASE do ciclo sai junto quando NÃO sobra outra escola daquele professor
+    // NAQUELE ciclo: ele não é da escola, é do ciclo — mas carrega o nome dela dentro
+    // (`NOME="Ciclo 01 — Maria"`) e ainda BLOQUEIA a criação de uma escola nova, porque o
+    // scaffolder recusa sobrescrever («a escola/ciclo já existe»).
+    //
+    // Os SCHEMAS não entram na conta nem na limpeza: são o modelo de que a escola nova nasce
+    // (ver `ehManifestoBaseDoCiclo`). Eles ficam mesmo que o professor fique sem escola.
     const nn = String(ciclo).padStart(2, '0');
-    if (restam.length && restam.every((n) => ehArcaboucoDoCiclo(n, ciclo))) {
-      restam.forEach((n) => confere('arcabouço ' + n, apagar(path.join(base, n))));
-    } else if (restam.length) {
-      console.log('  (o arcabouço do ciclo ' + nn + ' fica: o professor ainda tem outra escola)');
+    const ehSchema = (n) => new RegExp('^ciclo-' + nn + '(?:-[a-z0-9]+)*-schema\\.json$').test(n);
+    const restam = fs.readdirSync(base).filter((n) => !ehSchema(n));
+    const outraEscola = restam.filter((n) => !ehManifestoBaseDoCiclo(n, ciclo));
+    if (outraEscola.length === 0) {
+      const manifesto = restam.find((n) => ehManifestoBaseDoCiclo(n, ciclo));
+      if (manifesto) confere('manifesto base ' + manifesto, apagar(path.join(base, manifesto)));
+    } else if (restam.some((n) => ehManifestoBaseDoCiclo(n, ciclo))) {
+      console.log('  (o manifesto base do ciclo ' + nn + ' fica: o professor ainda tem outra escola nele)');
     }
   }
 

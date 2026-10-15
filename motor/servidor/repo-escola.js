@@ -112,31 +112,42 @@ function escolasDosCaminhos(caminhos) {
 }
 
 /**
- * O ARCABOUÇO do ciclo do professor: `ciclos/ciclo-NN.conf` e `ciclos/ciclo-NN-*-schema.json`.
- * Ele NÃO é da escola — é do ciclo —, mas carrega o nome dela dentro (`NOME="Ciclo 01 — Barra"`
- * no manifesto BASE), e um órfão desses contamina a próxima escola do mesmo professor com o
- * nome da anterior. Por isso sai junto — e só nestas duas condições: é do ciclo expurgado, e o
- * professor ficou SEM OUTRA ESCOLA. Com outra escola viva, o arcabouço é dela também.
+ * O MANIFESTO BASE do ciclo do professor — `ciclos/ciclo-NN.conf`. É a única coisa do
+ * arcabouço do ciclo que o expurgo toca.
  *
- * O que NÃO entra: `cadernos/`, `relatorios/`, `campo/`. O nome de um arquivo de ciclo diz a
- * que ele pertence; o de um caderno não diz, e pode ser memória de campo. Isso se RELATA, não
- * se apaga por tabela.
+ * **OS SCHEMAS NÃO ENTRAM AQUI — nunca.** Eles são o MODELO de que nasce toda escola nova:
+ * `tools/criar-escola.sh` copia `professores/tiago/ciclos/ciclo-01-*-schema.json` (o
+ * `MODELO="tiago/01"`, fixo no script) e RECUSA criar escola quando eles não existem:
+ *
+ *     erro: ciclo-modelo sem schema: …/professores/tiago/ciclos/ciclo-01-schema.json
+ *
+ * A primeira versão desta função apagava os schemas junto com o manifesto, «porque o
+ * arquivo carrega o nome da escola dentro». O nome está no `ciclo-NN.conf`, não nos
+ * schemas — e o preço foi real: em 15/10/2026 o dono do produto expurgou a barra e a
+ * maria, o repositório ficou sem professor nenhum, e **a escola `ponta` não pôde nascer**
+ * (o run #3 do `criar-escola.yml` morreu no passo do scaffold). Medido, não suposto.
+ *
+ * O manifesto base SAI, e é certo que saia: ele é GERADO pelo scaffolder (um `heredoc`) e
+ * carrega o nome da escola morta (`NOME="Ciclo 01 — Maria"`). Deixá-lo faria a próxima
+ * escola do mesmo professor no mesmo ciclo ser recusada — «a escola/ciclo já existe» —, e o
+ * dono do produto quer justamente poder começar de novo.
  */
-const SO_ARCABOUCO = /^professores\/([^/]+)\/ciclos\/ciclo-([0-9]{2})(?:\.conf|(?:-[a-z0-9]+)*-schema\.json)$/;
+const SO_MANIFESTO_BASE = /^professores\/([^/]+)\/ciclos\/ciclo-([0-9]{2})\.conf$/;
 
-function arcaboucoDoCiclo(caminhos, professor, ciclo) {
+function manifestoBaseDoCiclo(caminhos, professor, ciclo) {
   if (!professor || !ciclo) return [];
   return caminhos.filter((c) => {
-    const m = SO_ARCABOUCO.exec(c);
+    const m = SO_MANIFESTO_BASE.exec(c);
     return Boolean(m) && m[1] === professor && m[2] === ciclo;
   }).sort();
 }
 
-/** O material do professor que o expurgo NÃO toca — para o relatório dizer o que ficou. */
+/** O material do professor que o expurgo NÃO toca — para o relatório dizer o que ficou.
+ * Aqui entram os SCHEMAS do ciclo (o modelo) e `cadernos/`, `relatorios/`, `campo/`. */
 function materialPreservado(caminhos, professor) {
   if (!professor) return [];
   const prefixo = 'professores/' + professor + '/';
-  return caminhos.filter((c) => c.startsWith(prefixo) && !SO_ARCABOUCO.test(c)).sort();
+  return caminhos.filter((c) => c.startsWith(prefixo) && !SO_MANIFESTO_BASE.test(c)).sort();
 }
 
 /** A árvore do repositório, recursiva — numa chamada. Só os `blob` interessam. */
@@ -245,11 +256,16 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
   const escola = escolaDosCaminhos(slug, caminhos);
   const { commitSha, treeSha } = await baseDoGit({ token, dono, repo, ref, fetchImpl });
 
-  // O arcabouço do ciclo sai junto SÓ quando o professor ficou sem outra escola: com outra
-  // viva, ele é dela também. `arquivos` é o que o commit apaga; os demais campos são relato.
-  const outras = escolasDosCaminhos(caminhos).filter((e) => e.slug !== slug && e.professor === escola.professor);
-  const arcabouco = outras.length === 0 ? arcaboucoDoCiclo(caminhos, escola.professor, escola.ciclo) : [];
-  const apagados = escola.arquivos.concat(arcabouco);
+  // O manifesto base do ciclo sai junto SÓ quando o professor ficou sem outra escola NAQUELE
+  // ciclo: com outra viva, o manifesto é dela também. OS SCHEMAS NÃO SAEM — são o modelo de
+  // que nasce toda escola nova (ver `SO_MANIFESTO_BASE`). `apagados` é o que o commit apaga;
+  // os demais campos são relato.
+  const outras = escolasDosCaminhos(caminhos)
+    .filter((e) => e.slug !== slug && e.professor === escola.professor && e.ciclo === escola.ciclo);
+  const manifesto = outras.length === 0
+    ? manifestoBaseDoCiclo(caminhos, escola.professor, escola.ciclo)
+    : [];
+  const apagados = escola.arquivos.concat(manifesto);
   const preservados = materialPreservado(caminhos, escola.professor)
     .filter((c) => !apagados.includes(c) && !c.startsWith('professores/' + escola.professor + '/ciclos/ciclo-' + escola.ciclo + '-' + slug));
 
@@ -290,12 +306,17 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     '',
     'Apaga o que o repositório guardava dela: o `wrangler.' + slug + '.jsonc`, o pacote e as fontes',
     'de `professores/' + (escola.professor || '<professor>') + '/ciclos/ciclo-' + (escola.ciclo || 'NN') + '-' + slug + '*` —',
-    apagados.length + ' arquivo(s) ao todo' + (arcabouco.length
-      ? ', incluindo o arcabouço do ciclo do professor: ele ficou sem'
-      : '. O arcabouço do ciclo do professor fica, porque ele ainda tem outra escola.'),
-    ...(arcabouco.length
-      ? ['nenhuma outra escola e o manifesto BASE carregava o nome desta dentro.']
-      : []),
+    apagados.length + ' arquivo(s) ao todo' + (manifesto.length
+      ? ', incluindo o manifesto base do ciclo: o professor'
+      : '. O manifesto base do ciclo fica, porque o professor ainda tem'),
+    ...(manifesto.length
+      ? ['ficou sem outra escola naquele ciclo e o manifesto carregava o nome desta dentro.']
+      : ['outra escola nele.']),
+    '',
+    'OS SCHEMAS DO CICLO NÃO SÃO APAGADOS: eles são o modelo de que nasce toda escola nova',
+    '(`tools/criar-escola.sh` copia `professores/tiago/ciclos/ciclo-01-*-schema.json` e recusa',
+    'criar sem eles). Em 15/10/2026 uma versão anterior os apagou, e a escola `ponta` não pôde',
+    'nascer.',
     '',
     'O índice da escola sobrevive de propósito: a proveniência acrescenta, não apaga a memória de',
     'que a escola existiu.',
@@ -330,8 +351,8 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     ciclo: escola.ciclo,
     apagados,
     totalApagado: apagados.length,
-    arcaboucoDoCiclo: arcabouco,
-    professorTemOutraEscola: outras.map((e) => e.slug),
+    manifestoBaseDoCiclo: manifesto,
+    professorTemOutraEscolaNoCiclo: outras.map((e) => e.slug),
     preservados,
     elo: caminhoIndice,
     commit: novoCommit.corpo.sha,
@@ -346,7 +367,7 @@ module.exports = {
   escolaDosCaminhos,
   escolasDosCaminhos,
   ehArquivoDaEscola,
-  arcaboucoDoCiclo,
+  manifestoBaseDoCiclo,
   materialPreservado,
   comElo,
   arvoreDeCaminhos,

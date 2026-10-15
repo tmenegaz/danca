@@ -13263,3 +13263,64 @@ esvaziou o repositório de professores).
 
 **O que ainda não está feito.** Nada pendente nesta correção. O resumo do gerador não é lido por
 nenhum outro script: é a última linha da saída do comando.
+
+## 15/10/2026 — O expurgo apagou o MODELO: a escola `ponta` não pôde nascer
+
+**O que motivou.** O dono do produto criou a escola **ponta** pelo botão. O Worker «zero» subiu e
+respondeu, e o workflow `criar-escola.yml` disparou — e **morreu no passo 5**, o do scaffold:
+
+```
+erro: ciclo-modelo sem schema: /home/runner/work/danca/danca/professores/tiago/ciclos/ciclo-01-schema.json
+##[error]Process completed with exit code 1
+```
+
+Os passos seguintes («Subir o motor completo no Cloudflare», «Commitar o scaffold») ficaram
+**skipped**. O `ponta` ficou servindo o Worker «zero» — que responde `200` com «implantação em
+andamento» e **não tem motor**: nem Bastidores, nem Área do Professor. E o repositório não recebeu
+nada dele (`professores/tiago/` vazio, sem `wrangler.ponta.jsonc`).
+
+**A causa — e é minha.** `tools/criar-escola.sh` tem `MODELO="tiago/01"` fixo no script (linha 42):
+o **modelo de que nasce toda escola nova** são os schemas de `professores/tiago/ciclos/`. E o expurgo
+da maria — no elo de 15/10/2026 anterior — **apagou esses schemas**, porque a minha regra de
+«arcabouço do ciclo» os incluía, com a justificativa de que «o manifesto BASE carrega o nome da
+escola dentro». **O nome está no `ciclo-NN.conf`, não nos schemas.** Eu estendi a razão de um
+arquivo para cinco, e o resultado foi apagar o molde do sistema.
+
+E não parou aí: o mesmo expurgo apagou o `ciclo-01.conf` do `tiago`, que era o **manifesto de
+modelo** — esse ao menos era gerado pelo scaffolder, e não se perde.
+
+**O que foi decidido.**
+- **Os schemas do ciclo NUNCA entram na limpeza.** Em nenhuma das duas metades. Eles são o modelo:
+  o scaffolder os copia e **recusa criar** quando não existem. A regra passa a olhar só o
+  **manifesto base** (`ciclos/ciclo-NN.conf`), que é a única peça que carrega o nome da escola
+  dentro — e que, além disso, **bloqueia** a criação de uma nova escola no mesmo ciclo («a
+  escola/ciclo já existe»), porque o scaffolder recusa sobrescrever.
+- **As duas metades continuam classificando o mesmo arquivo do mesmo jeito**: no Worker,
+  `manifestoBaseDoCiclo`; no espelho local, `ehManifestoBaseDoCiclo`. A condição do manifesto é a
+  mesma das duas: sai só quando **não sobra outra escola** daquele professor **naquele ciclo**.
+- **A invariante ganhou prova**: «os schemas do ciclo NUNCA entram no que o expurgo apaga» e «o
+  MODELO do sistema está preservado depois do expurgo» — as duas no banco de provas da rota.
+
+**Os reparos.**
+- Os 5 schemas foram **restaurados do próprio histórico do Git** (`21d8dcf^`, o estado imediatamente
+  antes do expurgo da maria) e conferidos por hash contra o original: `992edabb…`, `121c1fe9…`,
+  `44a398c5…`, `69ef266e…`, `48892eb0…`. Nada foi inventado.
+- O `ciclo-01.conf` **não** foi restaurado — ele é gerado pelo scaffolder, com o nome da escola: é o
+  próprio `criar-escola.sh` que o escreve ao criar a `ponta`.
+
+**Como foi provado.** O banco de provas da rota (31 provas) com a invariante nova; os dois casos do
+expurgo local numa árvore de teste — caso A (a maria era a única escola do tiago): os **5 schemas
+ficam**, o manifesto sai; caso B (o tiago ainda tem a «outra»): o **manifesto fica**, os 5 schemas
+ficam. E a conferência dos hashes acima.
+
+**Referências.** `tools/criar-escola.sh:42` (o `MODELO="tiago/01"`) e `:169` (a recusa) · os elos de
+15/10/2026 anteriores (o expurgo, o botão, o `Buffer`) · P-03/P-04 · P-17.
+
+**O que ainda não está feito.**
+- **A escola `ponta` NÃO existe de verdade.** O Worker «zero» está no ar e responde, mas sem motor e
+  sem nada no repositório. Falta rodar o `criar-escola.yml` de novo — e é o que se faz em seguida.
+- **O `ciclo-01.conf` do `tiago` não existe** no repositório: o scaffolder vai gerá-lo ao criar a
+  `ponta`.
+- **A lição de desenho:** o expurgo apaga por PADRÃO DE NOME, e um padrão largo demais apaga o molde.
+  Vale a regra que este dia ensinou duas vezes — **o que o sistema precisa para criar coisa nova não
+  pode ser apagado pelo que ele usa para apagar coisa velha**.
