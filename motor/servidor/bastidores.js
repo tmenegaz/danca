@@ -318,6 +318,29 @@ function senhaDaDirecaoOk(env, senha) {
   return false;
 }
 
+/**
+ * A senha da ESCOLA, para ABRIR os dados cifrados do ciclo: a da direção (o administrador ou o
+ * professor dono) OU a de qualquer professor cadastrado na escola.
+ *
+ * É a política mais LARGA que a do `validar-senha`, e de propósito: aquele valida o login DE UMA
+ * PESSOA (e por isso é estrito — a senha de um professor nunca vale para outro). Este abre o DADO
+ * DA ESCOLA, que não pertence a um professor: quem lança aula pode ser qualquer um da casa, e a
+ * coordenação também precisa ler. O dono vem do SECRET; os demais, do KV (hash + sal).
+ */
+async function senhaDaEscolaOk(env, kv, escola, senha) {
+  if (!senha) return false;
+  if (senhaDaDirecaoOk(env, senha)) return true;
+  const lista = await professores(kv, escola);
+  for (const p of lista) {
+    if (!p) continue;
+    const confere = p.hash
+      ? ((await hashSenha(senha, p.sal)) === p.hash)
+      : (p.senha === senha); // legado (pré-hash), como no `validar-senha`.
+    if (confere) return true;
+  }
+  return false;
+}
+
 function paginaHub(escola) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
@@ -1438,4 +1461,4 @@ async function fetch(request, env) {
   return json(404, { ok: false, erro: 'não encontrado' });
 }
 
-module.exports = { fetch, temProfessor };
+module.exports = { fetch, temProfessor, senhaDaEscolaOk };

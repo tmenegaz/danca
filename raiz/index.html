@@ -574,19 +574,15 @@
                   html += "<br><br><strong>Atenção:</strong> o Worker «zero» subiu, mas o deploy do motor "
                     + "completo NÃO foi disparado (" + ((d.disparo && d.disparo.erro) || "GITHUB_TOKEN ausente") + ").";
                 }
-                if (d.senhaCripto) {
-                  var variavel = "SENHA_" + String(d.escola || "").toUpperCase();
-                  html += "<br><br><strong>Senha de criptografia</strong> — <em>não é</em> a senha da escola"
-                    + " nem a senha do professor. É a chave que decifra os dados dos acompanhamentos."
-                    + " Aparece uma única vez; guarde agora:<br><code>" + d.senhaCripto + "</code>"
-                    + "<br><br>E guarde <strong>onde</strong>: em <code>tools/.senhas-locais</code>"
-                    + " (local, fora do Git), acrescente a linha<br><code>"
-                    + variavel + "=&quot;" + d.senhaCripto + "&quot;</code>"
-                    + "<br><br>A chave é <strong>por escola</strong> — cada escola nova tem a sua —, e o"
-                    + " nome da variável é <code>SENHA_</code> + o slug da escola em maiúsculas. É esse"
-                    + " nome que as ferramentas procuram: <code>" + variavel + "</code>. Sem ele a senha"
-                    + " está guardada, mas não é encontrada (foi o que aconteceu com a Barra, 15/10/2026)."
-                    + " A mesma chave serve para o formulário de lançamento e para os acompanhamentos.";
+                // A CHAVE DE CRIPTOGRAFIA NÃO APARECE MAIS (15/10/2026). Ela nasce, é guardada e é
+                // USADA pelo Worker — não há por que passar pela mão de alguém. Antes, esta tela
+                // exibia a chave e mandava arquivá-la; o dono do produto apontou o absurdo
+                // («isso já deveria ser automático») e o certo é isto: nada a anotar.
+                if (d.escola) {
+                  html += "<br><br><strong>Criptografia.</strong> A chave que protege os dados das"
+                    + " alunas foi criada e ficou <strong>guardada no Worker</strong> de <code>"
+                    + d.escola + "</code> — não há nada para anotar nem para copiar: quem cifra e"
+                    + " quem decifra é o próprio sistema.";
                 }
                 res.innerHTML = html;
               }

@@ -24,6 +24,8 @@ const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
+const { criarLeitorDeDados } = require('./ler-dados.js');
+const { senhaDaEscolaOk } = require('./bastidores.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
@@ -61,7 +63,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -82,8 +84,22 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escreverPO,
     escreverPlano,
     escreverCiclo,
+    lerDados,
   });
   return (request) => roteador.responder(request);
+}
+
+/**
+ * O leitor dos dados cifrados do pacote. `null` sem a chave (`SENHA_CRIPTO`) — e aí a rota
+ * declara a indisponibilidade em vez de falhar de um jeito obscuro. A chave NUNCA sai daqui:
+ * quem pede recebe o TEXTO EM CLARO, sob autenticação.
+ */
+function criarLeitor(env, prefixo) {
+  return criarLeitorDeDados({
+    senhaCripto: (env && env.SENHA_CRIPTO) || null,
+    lerAsset: (caminho) => servirEstatico(env, caminho, prefixo),
+    senhaOk: (senha) => senhaDaEscolaOk(env, criarCloudflare(env), (env && env.ESCOLA_SLUG) || '', senha),
+  });
 }
 
 /** Os passos de geração, a partir do token (null = não existe). */
@@ -149,6 +165,11 @@ async function fetch(request, env, opcoes) {
   ]);
 
   const { disparar, escreverPO, escreverPlano, escreverCiclo } = passosDeGeracao(env);
+  // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
+  // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
+  // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
+  // procurar `plano-observacao/ciclo-01-barra-dados.json` e responder «o pacote não tem …».
+  const lerDados = criarLeitor(env, '');
   const responder = montarPorta({
     armazenamento: criarCloudflare(env),
     conteudoTexto,
@@ -162,6 +183,7 @@ async function fetch(request, env, opcoes) {
     escreverPO,
     escreverPlano,
     escreverCiclo,
+    lerDados,
   });
 
   return responder(request);

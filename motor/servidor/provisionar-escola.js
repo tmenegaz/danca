@@ -113,7 +113,7 @@ function senhaAleatoria() {
   return s;
 }
 
-/** Cria a escola no Cloudflare. Devolve `{ escola, nome, url, senhaCripto }`. */
+/** Cria a escola no Cloudflare. Devolve `{ escola, nome, url }` — e NÃO a chave. */
 async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, professorNome, senhaProfessor, professorEhDono }) {
   const escola = slugificar(nome);
   if (!escola) throw new ErroDeProvisionamento('slug', 'o nome da escola não produz um slug válido');
@@ -138,7 +138,23 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, pr
   });
 
   // 4. a senha de CRIPTOGRAFIA (a que cifra o `-dados.json` e os acompanhamentos), gerada aqui e
-  //    devolvida UMA vez — só o Worker a guarda. O caminho (a): a senha nasce no Cloudflare.
+  //    que NUNCA sai daqui. O caminho (a): a senha nasce no Cloudflare e morre no Cloudflare —
+  //    não vai ao repositório, não vai ao GitHub e (desde 15/10/2026) NÃO é exibida a ninguém.
+  //
+  //    O QUE MUDOU, E POR QUÊ. Até 15/10 ela era devolvida na resposta e a página mandava
+  //    guardá-la num arquivo local. O dono do produto apontou o absurdo: *«pra mim, como usuário,
+  //    isso já deveria ser automático»*. Ele está certo — quem gera a chave também a USA (é este
+  //    mesmo Worker que cifra o `-dados.json` do pacote, no «Guardar» do PO), então não há por que
+  //    ela passar pela mão de alguém. Quem precisa ABRIR é o navegador, e para isso o Worker
+  //    decifra sob autenticação (`ler-dados.js`), sem nunca revelar a chave.
+  //
+  //    CONSEQUÊNCIA DECLARADA: o segredo do Cloudflare é WRITE-ONLY — não há como lê-lo de volta,
+  //    nem pelo painel nem pela API. Sem a exibição, a chave torna-se IRRECUPERÁVEL por qualquer
+  //    pessoa. Isso é deliberado (é o que a torna interna), e o seu custo está registrado no
+  //    REGISTRO.md: as ferramentas LOCAIS que precisam da chave (o `gerar-acompanhamento.sh`, que
+  //    cifra a página de cada aluna com o pagecrypt) passam a depender de a cifra migrar para o
+  //    Worker. Quando o dono do produto precisar da chave para uma dessas, ela se REGENERA (o que
+  //    invalida o que estava cifrado com a antiga) ou a operação migra para cá.
   const senhaCripto = senhaAleatoria();
   await api('senha-cripto', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
     name: 'SENHA_CRIPTO',
@@ -180,7 +196,7 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, pr
     });
   }
 
-  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev', senhaCripto };
+  return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev' };
 }
 
 /**

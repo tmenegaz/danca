@@ -56,7 +56,7 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano, escreverCiclo }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados }) {
   const roteador = criarRoteador();
   // O relógio é injetável: as provas fixam-no para serem repetíveis; em
   // produção cai no carimbo real do núcleo.
@@ -315,6 +315,22 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       return await lancamento.lancar(armazenamento, corpo);
     } catch (erro) {
       // HTTP 200 de propósito — o contrato do lançamento não aceita 5xx.
+      return { ok: false, erro: erro.message };
+    }
+  });
+
+  // 11.5 /api/dados — o `-dados.json` do pacote, EM CLARO, para quem se autentica.
+  //      O navegador NÃO conhece a chave de cifra: ele manda a senha da pessoa (a que ela já
+  //      sabe) e recebe o texto. É o que tira a chave da mão de gente — ver `ler-dados.js`.
+  //      Sem cifra no arquivo, devolve o próprio texto, como o navegador já fazia.
+  roteador.rota('POST', '/api/dados', async ({ request }) => {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!lerDados) return { ok: false, erro: 'a leitura dos dados cifrados não está disponível' };
+    try {
+      return await lerDados({ arquivo: corpo.arquivo, senha: String(corpo.senha || '') });
+    } catch (erro) {
+      // 200 de propósito, como nos outros contratos: o cliente troca o erro por "HTTP 500".
       return { ok: false, erro: erro.message };
     }
   });

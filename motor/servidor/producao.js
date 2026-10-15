@@ -167,6 +167,13 @@ async function fetch(request, env) {
     return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
   }
 
+  // 2.1 A LEITURA do `-dados.json` em claro (`/api/dados`), também na raiz. O navegador não
+  //     conhece a chave de cifra: ele manda a senha da pessoa e o Worker decifra com o segredo
+  //     `SENHA_CRIPTO`, que fica só aqui. Ver `motor/servidor/ler-dados.js`.
+  if (path === '/api/dados') {
+    return portaFetch(request, env, { prefixo: PREFIXO_ASSETS });
+  }
+
   // 3. O resto → o pacote. O asset-first do Cloudflare já serviu o estático que
   //    existe; este ramo cobre o `run_worker_first` (default) devolvendo o
   //    mesmo 404 que o Worker antigo devolvia.
