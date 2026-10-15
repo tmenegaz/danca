@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T11:38:41-0300`
-Commit atual: `3bcddc1` — chore(entrega): gerar o pacote de leticia/01/barra
+Gerado em: `2026-10-15T11:53:21-0300`
+Commit atual: `e3fc795` — fix(tools): o guarda do pre-push confere a última linha do arquivo de senhas
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+e3fc795 fix(tools): o guarda do pre-push confere a última linha do arquivo de senhas
+8c56058 docs(registro): o passo de deploy foi exercitado — a cadeia publica
 3bcddc1 chore(entrega): gerar o pacote de leticia/01/barra
 19a23de feat(estrutura): a geração publica — o deploy entra na cadeia
 90af3f6 docs(registro): a prova fim-a-fim da cifra passa, e o que falta é o deploy
@@ -81,8 +83,6 @@ f8dd1d5 feat(captura): declara a variante barra no schema de captura
 4f82465 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-dados.json
 0795a8b feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-harmonizacao.md
 053d768 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-captura-aula-01.md
-10a4598 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-referencias.md
-cfffe53 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-aula-01.md
 ```
 
 ## Por professor
@@ -158,98 +158,56 @@ cfffe53 feat(ciclo): o «Guardar» do PO deriva ciclo-01-barra-aula-01.md
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — A geração publica: o deploy entra na cadeia
+## 15/10/2026 — A criação da escola diz onde guardar a senha de criptografia
 
-**O que motivou.** A prova fim-a-fim do mesmo dia mostrou o buraco, e ele é o último: o
-`gerar-ciclo.yml` gerava, reancorava e **commitava** o pacote — e parava ali. O site serve os
-**assets do Worker**, que só mudam num `wrangler deploy`. O comentário do workflow dizia «o deploy
-lê o repositório», mas **nenhum** workflow fazia deploy e **nenhum** Worker estava ligado ao Git
-(todas as dez implantações do `barra` são `source: "wrangler"`). O ciclo ficava gerado, versionado
-e **invisível**: o menu seguia sem os documentos derivados, que é exatamente o que a pesquisadora
-relatou («mandei gerar e nada disso foi feito»).
+**O que motivou.** A segunda metade da pergunta da pesquisadora («quando eu criar outra escola, terá
+outra senha cripto — o que fazer?»). A página `danca` mostrava a senha de criptografia **uma única
+vez** e dizia apenas *«Aparece uma única vez; guarde agora:»* — **sem dizer onde, nem sob que
+nome**. Quem cria a escola amanhã não tinha como saber que a `lib-senhas.sh` procura
+`SENHA_<SLUG DA ESCOLA em maiúsculas>`, e é essa ignorância que produziu o defeito do mesmo dia: a
+chave da Barra ficou guardada sob `SENHA_CRIPTO`, nome que **nenhuma ferramenta lê**, e o CI
+respondeu `erro: sem senha para ciclo-01-barra — defina SENHA_BARRA`.
+
+A senha estava guardada; o **nome** é que estava errado. Guardar não basta — é preciso guardar onde
+se procura.
 
 **O que foi decidido.**
-- O **deploy é o último passo do próprio `gerar-ciclo.yml`**, depois do commit do pacote. O pacote
-  gerado **é** o `assets.directory` do Worker da escola (`wrangler.<escola>.jsonc`): publicar é
-  subir o pacote — não há artefato intermediário.
-- **Mesmo padrão do `criar-escola.yml`**, que já subia o motor: `npx wrangler deploy -c
-  wrangler.<escola>.jsonc` com `CLOUDFLARE_API_TOKEN` (secret do GitHub, já existente) e
-  `CLOUDFLARE_ACCOUNT_ID`. **Nenhuma senha de professor ou de escola passa pelo CI** — a decisão de
-  12/10 («a senha nasce no Cloudflare») fica intacta.
-- **Publicar depois de commitar, e nunca depois de uma geração reprovada.** O `check-pacote.js`
-  roda dentro do gerador: um pacote incompleto barra o job antes do commit e do deploy. Publicar um
-  pacote pela metade seria pior que não publicar.
-- A alternativa considerada e **não** escolhida: ligar o repositório à Cloudflare (Workers Builds),
-  que dispensaria o secret mas poria a publicação **fora do repositório** — onde ela não é
-  auditável nem reconstruível por quem lê o projeto.
+- A mensagem de sucesso passa a trazer a **linha exata** a acrescentar ao arquivo local, já com o
+  slug da escola montado a partir da resposta (`SENHA_BARRA=…`, `SENHA_TUTO=…`).
+- A mensagem diz **por que** o nome importa: a chave é **por escola**, e o nome é
+  `SENHA_` + o slug em maiúsculas — *é esse nome que as ferramentas procuram*. Diz também que a
+  mesma chave serve para o **formulário de lançamento** e para os **acompanhamentos** (a dúvida
+  original: «terá outra senha cripto»).
+- A mensagem registra o caso real como advertência («foi o que aconteceu com a Barra, 15/10/2026»):
+  quem ler amanhã entende o custo de guardar no lugar errado.
 
 **Onde entrou.**
-- `.github/workflows/gerar-ciclo.yml` — o passo «Publicar o pacote no Cloudflare» e o comentário de
-  cabeçalho corrigido (ele afirmava um deploy que não existia).
+- `raiz/index.html` — o bloco da resposta de criação, ao lado do `senhaCripto`.
 
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A geração, o
-`check-pacote.js`, a âncora, as 17 regras e as 22 pétreas seguem iguais: o que muda é **onde a
-cadeia termina** — no site, e não no repositório.
+**Motivo declarado — os congelados.** **Não** toca arquivo congelado: `raiz/` não está em
+`CONGELAMENTO.md` (a lista é `PROTOCOLO.md`, `REGRAS.md`, `tools/`, `tools/templates/`, `prompts/`,
+`biblioteca/guia-do-professor.md` e `METODO.md`). Não houve reancoragem.
 
-**Com o quê.** `.github/workflows/gerar-ciclo.yml`, `REGISTRO.md`, `HANDOFF.md`.
+**Com o quê.** `raiz/index.html`, `REGISTRO.md`, `HANDOFF.md`.
 
-**Referências.** O elo anterior (15/10/2026) — a prova que expôs o buraco ·
-`.github/workflows/criar-escola.yml` (o padrão de deploy já provado) · `wrangler.barra.jsonc`
-(`assets.directory` = o pacote).
+**Referências.** O elo de 15/10/2026 «A cifra do Worker respeita o teto do runtime» (o erro de CI
+que revelou o nome errado) · o elo do mesmo dia «O guarda do pre-push passa a conferir a última
+linha» (o defeito irmão, no guarda) · `tools/.senhas-locais.exemplo` (a convenção já estava escrita
+**lá** — faltava dizê-la onde a senha aparece).
 
 **O que ainda não está feito.**
-- O passo de deploy **não** foi exercitado numa geração disparada pelo Worker depois desta mudança;
-  é a próxima verificação.
-- `SENHAS_LOCAIS` continua como secret do GitHub sem uso (a montagem foi removida em 12/10). Ela
-  **não** cobre a `SENHA_CRIPTO` da Barra: com o caminho (a) funcionando, o CI não precisa de senha
-  nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
-- As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
-  para todo ciclo gerado por este workflow, qualquer escola.
-
-**Elo do mesmo dia (15/10/2026) — o passo de deploy foi exercitado, e passou.** O primeiro item de
-«O que ainda não está feito» fica como o elo do que se pensava ao escrever a entrada; o que se
-seguiu o completa.
-
-O workflow foi disparado à mão (`workflow_dispatch`, run #10, `38752389164`) contra a Barra e fechou
-**VERDE**: o gerador revalidou o pacote, o bot commitou `3bcddc1` (`chore(entrega): gerar o pacote
-de leticia/01/barra`) e o passo novo **publicou** — há uma implantação do `barra` às **14:35:51Z**,
-no instante do passo. Depois dela o site serve o ciclo inteiro: `/`, `/aula-01`,
-`/captura-aula-01`, `/lancamento.html`, `/ciclo-01-barra-dados.json` e `/plano-observacao/`
-respondem 200.
-
-**O que isso muda para quem usa.** O «Gerar» do PO passa a ser **um clique de ponta a ponta**:
-escrever as fontes → cifrar → gerar → validar → commitar → **publicar**. Deixou de haver passo
-manual entre o PO concluído e o menu do ciclo no ar. O que continua sendo decisão humana é **o quê**
-se gera — não **como** chega ao site.
+- **A mensagem não foi vista renderizada.** Não dá para exercitá-la sem **criar uma escola de
+  verdade** — e criar é ato do dono do produto, não de uma sessão de manutenção. O que foi provado:
+  a sintaxe do script inline, e a montagem do nome (`d.escola` = `barra` → `SENHA_BARRA`). A prova
+  visual fica para a próxima escola criada.
+- A `SENHA_LETICIA` em `tools/.senhas-locais` segue **inerte** (nenhuma escola tem slug `leticia`; a
+  escola é `barra`) e continua isenta no `tools/.escolas-teste`, onde a isenção existe pelo valor
+  **placeholder** «leticia», que aparece nos caminhos `professores/leticia/…`. Não foi removida:
+  mexer nela é decisão da pesquisadora, não efeito colateral deste conserto.
+- `tools/.senhas-locais.exemplo` (congelado) já documenta a convenção `SENHA_<ESCOLA>` — não
+  precisou mudar. O que faltava não era a regra: era **dizê-la no momento em que a senha nasce**.
 
 ## O que está pendente
-
-## 14/10/2026 — O plano completo chega inteiro aos derivados (frente B11)
-
-(a) Como em B10, as chaves novas só aparecem num plano **gerado de
-novo**: as fontes já escritas à mão (`ciclo-01-maria-plano.md`) não têm as seções `## Músicas e
-vídeos` e `## Repertório`, e a ficha delas continua com as lacunas que o AUTOR escreveu — o
-`contexto` agora carrega os valores reais, e é a vista que os lê; re-derivar do envelope não é
-possível porque não há envelope no repositório. (b) A tabela do volume das fontes antigas tem
-linhas de UMA célula (`| **15% no solo** |`), com proporção e justificativa vazias: a chave chega,
-o valor não existe no documento — não se inventa. (c) No PO, `contexto-outro` e `campo-outro` continuam sem chave
-própria: eles viajam dentro das linhas compostas do campo empírico e do contexto, como o próprio
-conteúdo do PO declara — não é perda, é a forma declarada. (d) `projeto: 'Formação em Balé
-Clássico'` segue escrito à mão e lido por ninguém — a frente B10 o declarou com a contagem de oito
-derivadores; medida agora, são **onze** sítios em `motor/` e `tools/`. Fica declarado, não
-alterado: mudá-lo mexeria em todas as fontes.
-
-## 15/10/2026 — O Sistema Lastro: o nome comercial, e o mapa de evolução do produto
-
-(a) **Nenhuma das dez frentes foi iniciada** — por pedido: este
-elo é diagnóstico e plano. (b) As dez contradições (C1–C10) **esperam decisão** — em especial C3
-(o Git basta como versão de domínio?), que é a que decide o tamanho de L5, e C1 (o lançamento vira
-fonte versionada ou passa a ser lido do KV?), que decide L3 inteira. (c) Os **valores comerciais**
-do §9 continuam **apenas no texto** que originou o mapa — não foram copiados para o repositório,
-porque não há onde pô-los sem a frente L8. (d) O subtítulo descritivo segue como **proposta**.
-(e) `FRENTES.md` **não** foi corrigido nas duas medições que envelheceram (as contagens de nós do
-laudo L4 — 26/35 contra 25/33 medidos — e a frase de B5 sobre os envelopes): ficam registadas no
-mapa e nesta entrada, para o próximo elo decidir se a correção datada vale.
 
 ## 15/10/2026 — A dimensão observada deriva do PLANO (e o vocabulário do PO separa-se do da anamnese)
 
@@ -289,6 +247,27 @@ nesta sessão e **não** corrigido aqui.
   nenhuma para gerar — a cópia cifrada chega pronta pelo repositório. Decidir se o secret sai.
 - As escolas `maria` e `danca` continuam sendo implantadas à mão quando preciso; o passo novo vale
   para todo ciclo gerado por este workflow, qualquer escola.
+
+## 15/10/2026 — O guarda do pre-push passa a conferir a última linha do arquivo de senhas
+
+- Não há **teste automatizado** para o hook: a prova foi a reprodução manual acima. O hook aceita
+  `SENHAS_LOCAIS=<arquivo>` (caminho trocável), então um teste é possível — mas não existe.
+- O defeito irmão, agora que a última linha é lida: uma senha com `=` no valor. O `read` com
+  `IFS='='` devolve o resto ao último campo, o que preserva `a=b`; **não foi medido**, e fica dito
+  como não verificado em vez de suposto.
+
+## 15/10/2026 — A criação da escola diz onde guardar a senha de criptografia
+
+- **A mensagem não foi vista renderizada.** Não dá para exercitá-la sem **criar uma escola de
+  verdade** — e criar é ato do dono do produto, não de uma sessão de manutenção. O que foi provado:
+  a sintaxe do script inline, e a montagem do nome (`d.escola` = `barra` → `SENHA_BARRA`). A prova
+  visual fica para a próxima escola criada.
+- A `SENHA_LETICIA` em `tools/.senhas-locais` segue **inerte** (nenhuma escola tem slug `leticia`; a
+  escola é `barra`) e continua isenta no `tools/.escolas-teste`, onde a isenção existe pelo valor
+  **placeholder** «leticia», que aparece nos caminhos `professores/leticia/…`. Não foi removida:
+  mexer nela é decisão da pesquisadora, não efeito colateral deste conserto.
+- `tools/.senhas-locais.exemplo` (congelado) já documenta a convenção `SENHA_<ESCOLA>` — não
+  precisou mudar. O que faltava não era a regra: era **dizê-la no momento em que a senha nasce**.
 
 ## Pendências anteriores (índice)
 
@@ -428,6 +407,8 @@ nesta sessão e **não** corrigido aqui.
 - **13/10/2026** — A grelha não chegava à porta: duas listas brancas… → `REGISTRO.md` L11449
 - **14/10/2026** — A régua da turma mede o critério no LANÇAMENTO (frente… → `REGISTRO.md` L11489
 - **14/10/2026** — O PO completo chega inteiro aos derivados (frente B10) → `REGISTRO.md` L11578
+- **14/10/2026** — O plano completo chega inteiro aos derivados (frente B11) → `REGISTRO.md` L11679
+- **15/10/2026** — O Sistema Lastro: o nome comercial, e o mapa de evolução… → `REGISTRO.md` L11818
 - PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

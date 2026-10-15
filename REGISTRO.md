@@ -12487,3 +12487,52 @@ do Worker respeita o teto do runtime» (o erro de CI que expôs o arquivo com o 
 - O defeito irmão, agora que a última linha é lida: uma senha com `=` no valor. O `read` com
   `IFS='='` devolve o resto ao último campo, o que preserva `a=b`; **não foi medido**, e fica dito
   como não verificado em vez de suposto.
+
+## 15/10/2026 — A criação da escola diz onde guardar a senha de criptografia
+
+**O que motivou.** A segunda metade da pergunta da pesquisadora («quando eu criar outra escola, terá
+outra senha cripto — o que fazer?»). A página `danca` mostrava a senha de criptografia **uma única
+vez** e dizia apenas *«Aparece uma única vez; guarde agora:»* — **sem dizer onde, nem sob que
+nome**. Quem cria a escola amanhã não tinha como saber que a `lib-senhas.sh` procura
+`SENHA_<SLUG DA ESCOLA em maiúsculas>`, e é essa ignorância que produziu o defeito do mesmo dia: a
+chave da Barra ficou guardada sob `SENHA_CRIPTO`, nome que **nenhuma ferramenta lê**, e o CI
+respondeu `erro: sem senha para ciclo-01-barra — defina SENHA_BARRA`.
+
+A senha estava guardada; o **nome** é que estava errado. Guardar não basta — é preciso guardar onde
+se procura.
+
+**O que foi decidido.**
+- A mensagem de sucesso passa a trazer a **linha exata** a acrescentar ao arquivo local, já com o
+  slug da escola montado a partir da resposta (`SENHA_BARRA=…`, `SENHA_TUTO=…`).
+- A mensagem diz **por que** o nome importa: a chave é **por escola**, e o nome é
+  `SENHA_` + o slug em maiúsculas — *é esse nome que as ferramentas procuram*. Diz também que a
+  mesma chave serve para o **formulário de lançamento** e para os **acompanhamentos** (a dúvida
+  original: «terá outra senha cripto»).
+- A mensagem registra o caso real como advertência («foi o que aconteceu com a Barra, 15/10/2026»):
+  quem ler amanhã entende o custo de guardar no lugar errado.
+
+**Onde entrou.**
+- `raiz/index.html` — o bloco da resposta de criação, ao lado do `senhaCripto`.
+
+**Motivo declarado — os congelados.** **Não** toca arquivo congelado: `raiz/` não está em
+`CONGELAMENTO.md` (a lista é `PROTOCOLO.md`, `REGRAS.md`, `tools/`, `tools/templates/`, `prompts/`,
+`biblioteca/guia-do-professor.md` e `METODO.md`). Não houve reancoragem.
+
+**Com o quê.** `raiz/index.html`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** O elo de 15/10/2026 «A cifra do Worker respeita o teto do runtime» (o erro de CI
+que revelou o nome errado) · o elo do mesmo dia «O guarda do pre-push passa a conferir a última
+linha» (o defeito irmão, no guarda) · `tools/.senhas-locais.exemplo` (a convenção já estava escrita
+**lá** — faltava dizê-la onde a senha aparece).
+
+**O que ainda não está feito.**
+- **A mensagem não foi vista renderizada.** Não dá para exercitá-la sem **criar uma escola de
+  verdade** — e criar é ato do dono do produto, não de uma sessão de manutenção. O que foi provado:
+  a sintaxe do script inline, e a montagem do nome (`d.escola` = `barra` → `SENHA_BARRA`). A prova
+  visual fica para a próxima escola criada.
+- A `SENHA_LETICIA` em `tools/.senhas-locais` segue **inerte** (nenhuma escola tem slug `leticia`; a
+  escola é `barra`) e continua isenta no `tools/.escolas-teste`, onde a isenção existe pelo valor
+  **placeholder** «leticia», que aparece nos caminhos `professores/leticia/…`. Não foi removida:
+  mexer nela é decisão da pesquisadora, não efeito colateral deste conserto.
+- `tools/.senhas-locais.exemplo` (congelado) já documenta a convenção `SENHA_<ESCOLA>` — não
+  precisou mudar. O que faltava não era a regra: era **dizê-la no momento em que a senha nasce**.

@@ -575,9 +575,18 @@
                     + "completo NÃO foi disparado (" + ((d.disparo && d.disparo.erro) || "GITHUB_TOKEN ausente") + ").";
                 }
                 if (d.senhaCripto) {
+                  var variavel = "SENHA_" + String(d.escola || "").toUpperCase();
                   html += "<br><br><strong>Senha de criptografia</strong> — <em>não é</em> a senha da escola"
                     + " nem a senha do professor. É a chave que decifra os dados dos acompanhamentos."
-                    + " Aparece uma única vez; guarde agora:<br><code>" + d.senhaCripto + "</code>";
+                    + " Aparece uma única vez; guarde agora:<br><code>" + d.senhaCripto + "</code>"
+                    + "<br><br>E guarde <strong>onde</strong>: em <code>tools/.senhas-locais</code>"
+                    + " (local, fora do Git), acrescente a linha<br><code>"
+                    + variavel + "=&quot;" + d.senhaCripto + "&quot;</code>"
+                    + "<br><br>A chave é <strong>por escola</strong> — cada escola nova tem a sua —, e o"
+                    + " nome da variável é <code>SENHA_</code> + o slug da escola em maiúsculas. É esse"
+                    + " nome que as ferramentas procuram: <code>" + variavel + "</code>. Sem ele a senha"
+                    + " está guardada, mas não é encontrada (foi o que aconteceu com a Barra, 15/10/2026)."
+                    + " A mesma chave serve para o formulário de lançamento e para os acompanhamentos.";
                 }
                 res.innerHTML = html;
               }
