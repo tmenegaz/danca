@@ -13502,3 +13502,81 @@ renomeação) · `motor/servidor/bastidores.js` (o comentário do slug do dono, 
 - **O cadastro do Bastidores não pergunta o sobrenome em campo separado obrigatório**: ele é exigido
   **pela colisão** (o 409 explica). O dono do produto escolheu exigir o sobrenome sempre na **criação
   de escola**; no cadastro, a trava é o que reage.
+
+## 15/10/2026 — O molde sai de `professores/`: molde não é professor
+
+**O que motivou.** O dono do produto abriu o repositório e estranhou: *«eu criei outros professores
+nos bastidores; eu imaginava que ao criar um professor ali já tivesse os diretórios deles dentro de
+`professores/` no GitHub. E não tem. Pra onde é que eles foram?»* — e, na mesma leitura: *«o `Tiago`
+ciclos que tá aqui já foi excluído, pertence a outro teste, já não serve mais; pode apagar.»*
+
+**A resposta à pergunta.** O `Luiz` e a `Mara` estão no **cofre da escola** (`bastidores/fita/professores`
+— medido), e nunca estiveram no repositório. A pasta `professores/<slug>/` nasce quando o professor
+**escreve a primeira fonte do ciclo dele** (o PO ou o plano). Isso é o desenho: o repositório registra o
+que foi produzido, não quem foi cadastrado. Que o GitHub cria o diretório-pai sozinho foi **medido**
+num ramo descartável (gravação em caminho inexistente → HTTP 201, depois apagado).
+
+**A resposta à segunda parte era «não apague» — e a razão importa.** `professores/tiago/` **não** era
+resto de um teste: continha **exatamente os 5 schemas** que o scaffolder copia para gerar toda escola
+nova (`MODELO="tiago/01"`; o guarda recusa criar sem eles: `erro: ciclo-modelo sem schema`). Apagá-lo
+impediria a criação de qualquer escola — e não é hipótese: foi o que aconteceu neste mesmo dia, **duas
+vezes**, e a `ponta` não pôde nascer por isso.
+
+**Mas o instinto do dono do produto estava certo.** Ele concluiu sozinho: *«ele não é um professor
+dentro de professores»*. Era — e o custo estava medido: `professores/tiago` aparecia como **professor**
+em `/api/professores` (a lista que o formulário de criar escola oferece, com ele escolhível como
+responsável) e no `HANDOFF.md` («Professores: tiago (1)»). Um molde com nome de pessoa é um molde que
+alguém pode apagar pensando que é a pasta de um professor que não existe mais.
+
+**O que foi decidido.** O molde **sai de `professores/`** e vai para `modelo/ciclos/` — a raiz, como as
+outras fontes compartilhadas. A regra que resolve não é uma exceção, é a **ausência da ambiguidade**:
+`professores/` contém pessoas, e nada mais. Não há lista que precise excluir o molde, porque ele não
+está lá para ser excluído.
+
+**O que mudou, arquivo por arquivo.**
+- `modelo/ciclos/ciclo-01-*.json` — os 5 schemas, **movidos com `git mv`** (o Git registra renomeação,
+  não apagar-e-criar; a proveniência acrescenta). Os hashes foram conferidos antes e depois:
+  idênticos (`992edabb`, `121c1fe9`, `44a398c5`, `69ef266e`, `48892eb0`).
+- `modelo/README.md` — **novo**: o que é o molde, por que ele não fica em `professores/`, quem o usa.
+- `tools/criar-escola.sh` (**congelado**) — `MODELO="modelo/01"` e a resolução do caminho passa a ser
+  `$RAIZ/$MODELO_BASE/ciclos` (era `$RAIZ/professores/$MODELO_PROF/ciclos`). `--modelo
+  professores/<slug>/<ciclo>` **continua funcionando**: quem quiser semear a partir do ciclo de um
+  professor pode. A guarda do `cp` sobre o próprio arquivo fica.
+- `professores/README.md` — reescrito como **convenção**: o inventário («Professores hoje»: a tabela
+  que declarava o `tiago` e a escola `maria`, expurgada) **saiu**, e com ele a menção a
+  `tiago/ciclos` como exemplo. O documento passou a dizer o que **não** sabe — a lista de professores é
+  o que está nos diretórios, e não uma tabela escrita à mão que envelhece a cada escola criada.
+- `motor/servidor/repo-escola.js` — a documentação que protege os schemas do expurgo passou a citar o
+  caminho novo, e a registrar **de onde veio** a decisão de tirar o molde de `professores/`.
+
+**Como foi provado.** O scaffolder rodado **de verdade**, do molde novo, com uma escola descartável
+(`zzteste`/`zzescola`, sem `--deploy`): os 5 schemas saíram **byte a byte idênticos** ao molde
+(`cmp`), a `conf` da variante validou os 11 campos, e o índice da escola nasceu. O artefato foi
+apagado em seguida, e o Cloudflare conferido: os Workers continuam `danca, fita` — nada subiu.
+`professores/` ficou com o `README.md` e o `tiago-menegaz/`; as pastas vazias que o meu teste local do
+scaffolder havia deixado (`professores/tiago/{cadernos,relatorios,campo}`) foram removidas.
+
+Provado também do lado da leitura: o `HANDOFF.md` **regenerado** passou a listar `tiago-menegaz` — e
+não mais o molde —, e `experimentos/provar-criar-escola-form.js` ganhou a asserção de que **nenhum
+diretório-modelo aparece como professor** na lista.
+
+**Motivo declarado** (`tools/` está congelado): o molde precisa sair de `professores/` porque ali ele
+é lido como pessoa por todo consumidor da pasta — a lista de professores, o HANDOFF e quem for apagar
+«a pasta de um professor que não existe mais». O script é o único ponto do repositório que conhece o
+caminho do molde, e por isso a mudança é de duas linhas mais a nota. O comportamento observável do
+script (`--modelo`, `--deploy`, os passos todos) **não** muda para quem cria escola pela página.
+
+**Referências.** A conversa do dono do produto (15/10/2026) · os elos do mesmo dia: o expurgo que
+apagou o MODELO (`ed76e16`), o `cp` sobre o próprio arquivo (`412dbe4`), a âncora que faltava na
+`fita` (`9eade85`) · `tools/criar-escola.sh` (`MODELO`, o guarda do schema, a cópia) ·
+`motor/servidor/repo-escola.js` (`manifestoBaseDoCiclo`).
+
+**O que ainda não está feito.**
+- **A pasta de um professor cadastrado nos Bastidores continua nascendo só na primeira fonte.** O dono
+  do produto pode querer o contrário — a pasta já na criação. Não foi decidido: é a mesma questão de
+  antes (o repositório registra o que foi produzido, ou quem foi cadastrado?), e agora está declarada.
+- **O `ciclo-01.conf` e a âncora do `tiago-menegaz` seguem sem PO e sem plano** — o dono do produto faz
+  a anamnese → plano → PO em seguida. A âncora vai ser regerada quando as fontes entrarem.
+- **O `HANDOFF.md` contava o molde como professor** e agora não conta; mas o mesmo defeito pode existir
+  em qualquer outro consumidor de `professores/*/` que apareça. O que se corrigiu foi o molde — a
+  varredura de consumidores não foi exaustiva.

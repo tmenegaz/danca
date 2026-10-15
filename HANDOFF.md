@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T15:04:44-0300`
-Commit atual: `bb12041` — fix(estrutura): restaurar o MODELO e publicar o conserto que estava só commitado
+Gerado em: `2026-10-15T17:02:10-0300`
+Commit atual: `ec7ffb2` — fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -44,9 +44,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
-- **Professores:** tiago (1)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+- **Professores:** tiago-menegaz (1)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,6 +62,11 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
+9eade85 Merge origin/main (a escola fita) em main (a validação por caminho)
+2e4607c fix(estrutura): a validação de criar escola é por caminho — o formulário tinha razão
+1362156 feat(estrutura): criar a escola fita (motor completo)
+e0b869c feat(estrutura): a identidade do professor é o slug — e o sobrenome separa homônimos
 bb12041 fix(estrutura): restaurar o MODELO e publicar o conserto que estava só commitado
 03bda14 chore(estrutura): expurgar a escola ponta
 34508f5 feat(estrutura): criar a escola ponta (motor completo)
@@ -78,16 +82,21 @@ b510383 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 a88b9ae fix(template): o lançamento exige a senha e avisa quando grava sem cifra
 f40f29c feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO no cofre
 4e4adf5 docs(registro): a árvore nunca fica limpa depois de um commit que toca fonte de ciclo
-a45ec58 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
-4f61a8b chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
-9a4e792 chore(entrega): os pacotes da Barra e da Maria absorvem o formulário que decifra pelo Worker
-33e2299 fix(template): o formulário decifra pelo Worker — a chave sai do navegador
-4c57a8c feat(estrutura): a chave de cifra vira interna do Worker — e a criação para de entregá-la
 ```
 
 ## Por professor
 
-### tiago — 0 ciclo(s)
+### tiago-menegaz — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): fita
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| fita | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| fita | ciclo-01-fita.fipp | `4f73ff5149d6` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -423,7 +432,7 @@ nenhum outro script: é a última linha da saída do comando.
 - **15/10/2026** — O expurgo da escola sai do comando e vira botão, na raiz → `REGISTRO.md` L12908
 - **15/10/2026** — O expurgo apagava a escola e deixava o cadastro das alunas… → `REGISTRO.md` L13015
 - **15/10/2026** — `Buffer` não existe no runtime dos Workers: o expurgo não… → `REGISTRO.md` L13124
-- Material de campo de **tiago**: 0 evento(s) versionado(s).
+- **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

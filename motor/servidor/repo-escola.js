@@ -165,17 +165,23 @@ async function listarProfessores({ token, dono, repo, ref, fetchImpl }) {
  * O MANIFESTO BASE do ciclo do professor — `ciclos/ciclo-NN.conf`. É a única coisa do
  * arcabouço do ciclo que o expurgo toca.
  *
- * **OS SCHEMAS NÃO ENTRAM AQUI — nunca.** Eles são o MODELO de que nasce toda escola nova:
- * `tools/criar-escola.sh` copia `professores/tiago/ciclos/ciclo-01-*-schema.json` (o
- * `MODELO="tiago/01"`, fixo no script) e RECUSA criar escola quando eles não existem:
+ * **OS SCHEMAS NÃO ENTRAM AQUI — nunca.** Eles são o MOLDE de que nasce toda escola nova:
+ * `tools/criar-escola.sh` copia `modelo/ciclos/ciclo-01-*-schema.json` (o `MODELO="modelo/01"`)
+ * e RECUSA criar escola quando eles não existem:
  *
- *     erro: ciclo-modelo sem schema: …/professores/tiago/ciclos/ciclo-01-schema.json
+ *     erro: ciclo-modelo sem schema: modelo/ciclos/ciclo-01-schema.json
  *
  * A primeira versão desta função apagava os schemas junto com o manifesto, «porque o
  * arquivo carrega o nome da escola dentro». O nome está no `ciclo-NN.conf`, não nos
  * schemas — e o preço foi real: em 15/10/2026 o dono do produto expurgou a barra e a
  * maria, o repositório ficou sem professor nenhum, e **a escola `ponta` não pôde nascer**
  * (o run #3 do `criar-escola.yml` morreu no passo do scaffold). Medido, não suposto.
+ *
+ * FOI ESSE EPISÓDIO QUE TIROU O MOLDE DE `professores/` (mesmo dia): ele vivia em
+ * `professores/tiago/ciclos/`, com nome de pessoa, e por isso aparecia como professor em
+ * toda lista — e podia ser apagado como «pasta de um professor que não existe mais». Hoje
+ * ele mora em `modelo/`, onde nada o confunde com gente, e `professores/` tem só pessoas.
+ * A proteção abaixo continua valendo: os schemas de um PROFESSOR também não se apagam.
  *
  * O manifesto base SAI, e é certo que saia: ele é GERADO pelo scaffolder (um `heredoc`) e
  * carrega o nome da escola morta (`NOME="Ciclo 01 — Maria"`). Deixá-lo faria a próxima
@@ -363,10 +369,9 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
       ? ['ficou sem outra escola naquele ciclo e o manifesto carregava o nome desta dentro.']
       : ['outra escola nele.']),
     '',
-    'OS SCHEMAS DO CICLO NÃO SÃO APAGADOS: eles são o modelo de que nasce toda escola nova',
-    '(`tools/criar-escola.sh` copia `professores/tiago/ciclos/ciclo-01-*-schema.json` e recusa',
-    'criar sem eles). Em 15/10/2026 uma versão anterior os apagou, e a escola `ponta` não pôde',
-    'nascer.',
+    'OS SCHEMAS DO CICLO NÃO SÃO APAGADOS: eles são o molde de que nasce toda escola nova',
+    '(`tools/criar-escola.sh` copia `modelo/ciclos/ciclo-01-*-schema.json` e recusa criar sem',
+    'eles). Em 15/10/2026 uma versão anterior os apagou, e a escola `ponta` não pôde nascer.',
     '',
     'O índice da escola sobrevive de propósito: a proveniência acrescenta, não apaga a memória de',
     'que a escola existiu.',

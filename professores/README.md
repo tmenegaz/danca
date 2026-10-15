@@ -1,7 +1,14 @@
 # Professores
 
-Cada professor do projeto tem a sua pasta aqui, com os **seus** ciclos, cadernos,
-relatórios e material de campo. Nada de um professor fica na pasta de outro.
+Cada professor tem a sua pasta aqui, com os **seus** ciclos, cadernos, relatórios e
+material de campo. Nada de um professor fica na pasta de outro.
+
+> **Este documento não declara quem existe.** Ele descreve a **convenção** — o que é a pasta
+> de um professor, o que vai dentro dela e como ela nasce —, e vale para qualquer professor,
+> de qualquer escola, hoje ou depois. **A lista de professores é o que está nos diretórios**;
+> uma tabela escrita à mão aqui envelhece a cada escola criada e a cada expurgo, e passa a
+> mentir sem que ninguém perceba. Quem cria as pastas é a página `danca` (a escola nova) e os
+> **Bastidores · Produção** (os professores adicionais da escola).
 
 ## O que é um "professor" no projeto
 
@@ -14,6 +21,19 @@ e as mesmas alunas têm POs distintos, porque o recorte observacional é decisã
 um. Pela **P-14**, quando a escola tem metodologia comum, o PO do professor pode derivar
 de um **PO de departamento** (ver [`../departamentos/README.md`](../departamentos/README.md)).
 
+## O nome da pasta é o slug — e é ele que identifica
+
+O diretório é `professores/<slug>/`, e o slug sai do nome: minúsculas, sem acento, espaços e
+símbolos viram hífen (`Ana Maria` → `ana-maria`). O **nome de exibição** — o que se lê nas
+telas — nunca vira chave: ele pode ser ajustado depois, e a pasta não se move.
+
+Essa pasta é do **sistema**, não da escola: guarda o pacote, as âncoras de proveniência e o
+material de todos os ciclos daquele professor, em todas as escolas em que ele dá aula. Por
+isso ela **não pode repetir**. Duas pessoas com o mesmo nome — ou dois nomes que produzem o
+mesmo slug — seriam **uma só** no registro: o PO de uma cairia na pasta da outra. É o que o
+**sobrenome (ou apelido)** separa: `tiago-menegaz` e `tiago-silva` são dois professores, na
+mesma escola ou em escolas diferentes.
+
 ## O que cada professor tem
 
 | Pasta | O que é |
@@ -23,40 +43,71 @@ de um **PO de departamento** (ver [`../departamentos/README.md`](../departamento
 | `relatorios/` | os relatórios pós-aula, um por aula |
 | `campo/` | o material bruto de campo (formulários, respostas, registros) |
 
-## O que é compartilhado (fica na raiz)
+Só `ciclos/` chega a existir no repositório na criação do professor — o scaffold também
+cria `cadernos/ciclo-NN/`, `relatorios/ciclo-NN/` e `campo/`, mas **o Git não versiona
+diretório vazio**, e eles só aparecem aqui quando o material existe. Uma pasta criada «para
+depois» seria uma promessa que o repositório não registra.
 
-`biblioteca/` · `apresentacoes/` · `protocolo/` · `tools/` · `PROTOCOLO.md` ·
-`REGRAS.md` · `REGISTRO.md` · `README.md` · `README-ciclos.md` · `HANDOFF.md` ·
-`departamentos/`
+## O que vive dentro do diretório — e não confunda os dois papéis
+
+O diretório de um professor guarda duas coisas de naturezas diferentes:
+
+- **o arcabouço do ciclo** — `ciclo-XX.conf` e os **schemas** (`ciclo-XX-*-schema.json`), que
+  são os contratos que as fontes daquele ciclo satisfazem. O `tools/criar-escola.sh` **copia
+  os schemas de um ciclo-modelo** ao criar uma escola nova e **recusa** criar quando eles não
+  existem (`erro: ciclo-modelo sem schema`) — é o que já aconteceu neste repositório, e o
+  preço foi uma escola que não pôde nascer. Os schemas de quem serve de modelo **não se
+  apagam**; o expurgo de uma escola é proibido de tocar neles;
+- **o material do professor** — o PO, o plano, as aulas, o pacote, os cadernos, os relatórios.
+
+O ciclo-modelo é o **molde** de que nascem as escolas, e vive num diretório de professor como
+qualquer outro. Os modelos disponíveis estão declarados em `tools/criar-escola.sh`
+(`MODELO`, selecionável por `--modelo <professor>/<ciclo>`).
+
+## Onde a pasta nasce
+
+Criar um professor **nos Bastidores · Produção** registra-o na **escola** — nome, slug e
+senha —, no cofre daquela escola. A pasta `professores/<slug>/` **não** nasce aí: ela nasce
+no repositório **quando o professor escreve a primeira fonte do ciclo dele** (o PO ou o
+plano). Um professor pode ser cadastrado, receber curadoria e entrar na Área do Professor sem
+que exista um único arquivo dele no repositório — e isso é o desenho, não uma falha: o
+repositório registra o que foi produzido, não quem foi cadastrado.
+
+Quem cria **escola** (a página `danca`) já nasce com a pasta e o pacote-zero, porque o
+scaffold roda no `tools/criar-escola.sh`.
 
 ## Como adicionar um professor
 
+O caminho normal é a página: **`danca` → «Criar nova escola»** (o professor inicial, dono da
+escola) ou **Bastidores · Produção → cadastrar professor** (os adicionais). O slug é derivado
+do nome, e o sobrenome separa homônimos.
+
+Para criar a pasta à mão, o mínimo é `ciclos/`:
+
 ```bash
-mkdir -p professores/<nome>/{ciclos,cadernos,relatorios,campo}
+mkdir -p professores/<slug>/ciclos
 ```
 
 Depois:
 
 1. crie o ciclo inicial (`ciclo-01.conf` + `ciclo-01-<escola>.conf`) — ver
-   [`../README-ciclos.md`](../README-ciclos.md) e, como exemplo,
-   [`tiago/ciclos/`](tiago/ciclos);
+   [`../README-ciclos.md`](../README-ciclos.md);
 2. declare o PO do professor (`ciclo-01-<escola>-po.md`): o recorte é dele (P-13) — o dado,
    porém, pertence à escola;
 3. gere a âncora e o pacote:
    ```bash
-   tools/hash-ciclo.sh <nome> 01 <escola>
-   tools/gerar-ciclo.sh <nome> 01 <escola>
+   tools/hash-ciclo.sh <slug> 01 <escola>
+   tools/gerar-ciclo.sh <slug> 01 <escola>
    ```
-   Passe `<nome>` **sempre** — ex.: `tools/gerar-ciclo.sh tiago 01 maria`.
-   Sem `<nome>`, as ferramentas assumem o default histórico `tiago`
-   (`tools/hash-ciclo.sh:65`, `tools/gerar-ciclo.sh:63`) — que voltou a ser o
-   professor do teste ativo (maria) em 12/10/2026.
+   Passe o `<slug>` **sempre**. Sem ele, as ferramentas assumem um default histórico
+   (`tools/hash-ciclo.sh`, `tools/gerar-ciclo.sh`) que aponta para o professor dos primeiros
+   testes — e a pasta errada.
 
-## Professores hoje
+## O que é compartilhado (fica na raiz)
 
-| Professor | Ciclos | POs | Estado |
-|:--|:--|:--|:--|
-| **tiago** | Ciclo 01 — `maria` (Maria) — escola **de teste** | `ciclo-01-maria-po.md` — PO elicitado e fonte derivada do plano referenciado | **habilitada** (`ESCOLA_HABILITADA="sim"`, `ESCOLA_SLUG="maria"`) |
+`biblioteca/` · `apresentacoes/` · `protocolo/` · `tools/` · `PROTOCOLO.md` ·
+`REGRAS.md` · `REGISTRO.md` · `README.md` · `README-ciclos.md` · `HANDOFF.md` ·
+`departamentos/`
 
 > **Habilitada ou desabilitada é por ESCOLA, não por professor.** O professor continua
 > existindo; o que se habilita ou desabilita é cada vínculo professor × escola. O estado
@@ -64,6 +115,6 @@ Depois:
 > [`../README-ciclos.md`](../README-ciclos.md), «Habilitar e desabilitar uma escola».
 
 > **Cada escola tem o seu ciclo.** O conteúdo (objetivo, plano, aulas) é da escola,
-> não do número do ciclo: `ciclo-01-maria-*` e `ciclo-01-<outra-escola>-*` são
+> não do número do ciclo: `ciclo-01-<escola-a>-*` e `ciclo-01-<escola-b>-*` são
 > ciclos distintos, com planos e aulas distintos. As fontes de uma variante têm
 > precedência sobre as sem sufixo — a regra está em `tools/lib-fontes.sh`.
