@@ -421,7 +421,13 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
   for (const p of profs) {
     if (!p || !p.nome) continue;
     const slug = slugDoProfessor(p);
-    if (!slug || slug === slugificar(String((env && env.PROFESSOR_NOME) || ''))) continue; // o dono já entrou
+    // O DONO VEM DO PARÂMETRO, não de `env`. Esta linha já calculou o slug do dono em `env`
+    // — e `env` NÃO É PARÂMETRO desta função: o laço só roda quando a lista de professores
+    // tem itens, e era aí que a página da Produção quebrava com `ReferenceError: env is
+    // not defined` (Error 1101 do Cloudflare, em 15/10/2026). O efeito era o pior possível:
+    // o cadastro GRAVAVA o professor (201) e a página morria ao recarregar — «não cadastrou»,
+    // para quem estava olhando. O valor já estava aqui, como o 5º parâmetro `donoSlug`.
+    if (!slug || slug === donoSlug) continue; // o dono já entrou
     // O slug aparece ao lado do nome: é ele que identifica o professor no PO, no plano e nos
     // cadernos — e é a pasta. Sem mostrá-lo, dois homônimos na tela seriam indistinguíveis.
     linhasProfs.push('<li>' + esc(p.nome)
