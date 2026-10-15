@@ -3,7 +3,7 @@
 > **Resumo (para o HANDOFF):** o mapa de evolução do **Sistema Lastro** (o nome comercial do
 > produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do
 > que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os
-> relacionamentos, os índices, o versionamento e o comercial — e **dez frentes** com objetivo,
+> relacionamentos, os índices, o versionamento e o comercial — e **onze frentes** com objetivo,
 > lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi
 > implementado: este documento é o mapa, não a obra.
 >
@@ -34,6 +34,17 @@
 > existente e a classe) e **§8** (a matriz de cobertura: cada requisito dos dois textos e onde é
 > respondido). Da conferência saiu também o achado **C10** e a frente **L10** (§3, §4): quatro
 > dos conceitos com que o texto 2 formula as perguntas **não existem** no modelo de dados.
+>
+> **Incorporação de 15/10/2026 — a frente L11.** O dono do produto entregou um **rascunho** da
+> frente «A porta paga» (cobrança, verificação e liberação de escolas) e pediu que ele fosse
+> auditado contra o repositório e incorporado como **L11**. O rascunho foi reconferido item por
+> item: o que ele afirma sobre o código foi **medido** (§L11, «Situação atual»), o que ele supõe
+> sobre o provedor foi **conferido na documentação pública** (§L11, matriz do provedor) e o que
+> não se confirmou ficou declarado como pendente. **Uma afirmação do rascunho não se confirmou no
+> código** — ele descreve um «acesso público sem autenticação administrativa» que **não existe**
+> (§C11): hoje a raiz inteira está atrás de senha. Isso muda o ponto de partida da frente, e está
+> registado como contradição, não corrigido em silêncio. Nasceu também **C11** (§3). Nenhuma linha
+> de código de produto foi alterada.
 
 ---
 
@@ -271,6 +282,20 @@ plano. O que há:
   compromissos trimestral/semestral/anual; adicionais R$ 49,90 + 20%; hora técnica R$ 120,00)
   existem **apenas no texto que originou este documento** — **em nenhum lugar do repositório**.
 
+**Os componentes que a porta paga toca** — medidos em 15/10/2026 para a frente **L11** (§4), com
+o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corrige duas leituras:
+
+- **A raiz não tem KV.** O `wrangler.danca.jsonc` tem **só** `ASSETS` e o Cron (`*/5 * * * *`);
+  não há `kv_namespaces`. A rota de pagamento **não tem onde gravar** hoje — e é a razão do item
+  **C11** (§3).
+- **A porta tem um lado só, e é o autenticado.** `autorizado()` (`motor/servidor/raiz.js:32`) é
+  conferido **uma vez** (`:268`) e cobre a página e todas as rotas de produto; a única rota sem
+  senha é `/api/saude` (`:261`). Medido no ar: `/` sem credencial → **401**. O «fluxo público» que
+  o rascunho de L11 supõe **não existe** — não é um defeito de configuração, é obra por fazer.
+- **A habilitação não é dinâmica.** `ESCOLA_HABILITADA` é **var do Worker** (mudar = `deploy`), e
+  `raiz/escolas-habilitadas.json` é **asset da raiz** (mudar = deploy da raiz). São **duas**
+  fontes para a mesma ideia, e nenhuma delas serve para um webhook de pagamento.
+
 ### 2.10 As quatro categorias — o que existe, o que existe parcialmente, o que não existe, o que precisa de decisão
 
 > **Por que esta secção existe.** Os **dois** textos exigem-no por palavras próprias: «o
@@ -285,7 +310,7 @@ plano. O que há:
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.2.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -439,11 +464,51 @@ decisão de **conteúdo** (P-16), não de infraestrutura. **Não escolho** se el
 ou depois do catálogo: registo a contradição e proponho a frente **L10** (§4) como o lugar da
 decisão. *(Afeta L6 — e é a razão pela qual L6 não pode ser a primeira.)*
 
+**C11 — A porta não tem lado público, e a habilitação tem duas fontes — nenhuma delas do
+pagamento.** Três medições, e as três afetam o ponto de partida de L11.
+
+1. **O rascunho da frente L11 afirma** que existem «dois fluxos de acesso»: um administrativo
+   autenticado e um «**acesso público sem autenticação administrativa**», que «permite iniciar a
+   criação de uma nova escola». **O código não tem o segundo.** Há **um** portão — `autorizado()`
+   em `motor/servidor/raiz.js:32`, conferido uma única vez em `raiz.js:268` — e ele cobre **tudo**
+   menos uma rota: a página inteira (o ASSETS), `/api/criar-escola` (`raiz.js:457`),
+   `/api/apagar-escola` (`:351`), `/api/escolas` (`:321`), `/api/professores` (`:307`) e
+   `/api/expurgar` (`:281`). O **único** caminho sem senha é `/api/saude` (`:261`), que é sonda de
+   saúde. Medido no ar: `/` sem credencial → **401**. **A consequência para L11 é de escopo:**
+   «ampliar o fluxo público» não é ampliar — é **construir** o lado público e **separá-lo** do
+   lado administrativo, que hoje é o mesmo. E o risco é o oposto do que o rascunho supõe: não é o
+   público ver o administrativo, é **não haver público nenhum** para onde levar o pagamento.
+2. **A habilitação de uma escola tem duas fontes, em dois Workers.** `ESCOLA_HABILITADA` é uma
+   **variável do Worker da escola** (`wrangler.fita.jsonc`: `"ESCOLA_HABILITADA": "sim"`) — muda
+   por `wrangler deploy` da escola; `raiz/escolas-habilitadas.json` é um **asset da raiz** — muda
+   por deploy da raiz. O **expurgo** decide por esta segunda (`raiz.js:229`, `reg.pagante === true`
+   → «escola pagante — não se apaga»), e o **Worker da escola** decide pela primeira. As duas
+   concordam hoje por disciplina, não por **uma** regra — e nenhuma das duas **existe** para o
+   pagamento.
+3. **Nenhuma das duas é dinâmica, e nenhuma sabe de pagamento.** O andaime declara a própria
+   morte — «Quando a Produção nascer, este arquivo SAI e a flag passa a viver no `ESCOLA.conf`» —
+   e `pagante` é a **única** pegada comercial do código, com um significado só: **não apagar**
+   (§2.9). Não há campo que diga *desde quando* a escola paga, *até quando*, *quanto*, nem *qual
+   plano* — e as duas mudanças exigem **deploy**, que não é o que um webhook de pagamento pode
+   fazer.
+
+**A decisão que fica por tomar** — e que **precede** qualquer implementação de L11: **onde vive o
+estado comercial** (plano, período, pagamento confirmado, provisionamento). Três candidatas, com o
+que cada uma custa: **KV** (existe o `PADD_KV` compartilhado; o rascunho propõe um namespace novo
+e exclusivo — mas o KV não oferece garantia transacional nem de unicidade, e é o lugar errado para
+uma decisão de dinheiro); **Git** (já é o mecanismo com que o expurgo escreve estado — §L11, «o
+commit do expurgo» —, é versionado e auditável, mas põe estado financeiro no histórico do produto
+e depende do `GITHUB_TOKEN`); e uma terceira que este documento **não tinha considerado antes
+desta frente**: o **Cloudflare D1** (banco com transação, no mesmo runtime, sem servidor nem VPS).
+Escolher entre as três é decisão de **arquitetura**, e vem **antes** do modelo de estados —
+registo-a aqui em vez de a presumir. *(Afeta L11 e L9: é a mesma pergunta que C2 e o «onde a
+habilitação do plano vive» — §8, declarado — já faziam, agora com as mãos no dinheiro.)*
+
 ---
 
 ## 4. As frentes
 
-Dez frentes. Cada uma traz os oito itens pedidos. A **prioridade** é sugerida — a decisão é sua.
+Onze frentes. Cada uma traz os oito itens pedidos. A **prioridade** é sugerida — a decisão é sua.
 A classificação do que existe hoje está em **§2.10**; o catálogo pergunta por pergunta, em **§7**;
 e a cobertura de cada requisito dos dois textos, em **§8**.
 
@@ -461,6 +526,7 @@ e a cobertura de cada requisito dos dois textos, em **§8**.
 | **L7** | A fronteira da IA e a medição de uso | **P2** | L9 | (independente do dado) |
 | **L8** | Composição comercial e a fonte única dos valores | **P3** | L9 | confirmação dos valores (**C8**) |
 | **L9** | Cotas, habilitação e limites por plano | **P3** | — | L6 + L7 + L8 · decisão **C2** |
+| **L11** | A porta paga: cobrança, verificação e liberação de escolas | **P2** | o lado público da porta | L8 (o valor) · **decisão C11** (onde vive o estado) · **dependências externas** (provedor) |
 
 > **A trilha mais curta até valor entregue:** L1 + L2 → L3 → L4 → **T01 ou P01** (as duas únicas
 > perguntas do catálogo que ficam viáveis sem decisão de conteúdo — §7). O resto do catálogo
@@ -978,6 +1044,185 @@ decisão.
 - **Prioridade.** **P1** — tem de correr **antes** de L6 (é o que a destranca parcialmente) e em
   paralelo com L1/L2; não bloqueia L3.
 
+### L11 — A porta paga: cobrança, verificação e liberação de escolas
+
+- **Objetivo e justificativa.** Fazer a porta de entrada do Lastro ser **paga e automática**: a
+  pessoa entra na página pública, escolhe o plano, paga por **Pix**, e — **só depois de o
+  pagamento estar confirmado pelo servidor** — a criação da escola é autorizada, sem ninguém
+  conferir extrato à mão. A justificativa é do dono do produto e é comercial: hoje **não existe
+  nada** de plano, preço, cobrança ou assinatura (§2.9), e a porta pública que a cobrança exige
+  **também não existe** (C11). A frente existe para que a decisão de «abrir o sistema ao público»
+  seja **um desenho**, não um improviso — e para que o dinheiro nunca seja o que autoriza uma
+  escola sem verificação.
+
+- **Origem — e o que este documento fez com ela.** A frente nasce de um **rascunho do dono do
+  produto** (entregue em 15/10/2026, sobre «a porta paga»). O rascunho foi tratado como **texto a
+  auditar**, não como especificação pronta: cada afirmação dele sobre o **código** foi medida
+  (§«Situação atual»), cada capacidade que ele supõe do **provedor** foi conferida na
+  documentação pública (§«O provedor em avaliação») e o que não se confirmou ficou **declarado
+  como pendente**, não preenchido por dedução. **Uma afirmação sua não resistiu à medição** — a de
+  que já existe um fluxo público (C11) —, e o efeito dela é de escopo, não de detalhe.
+
+- **Situação atual — inventário medido.** Os sete componentes que a frente toca, um a um, com o
+  que a medição mostrou. **Nada disto foi alterado**; é leitura.
+
+  | # | Componente | O que existe hoje (medido) | Serve para L11? |
+  |:--|:--|:--|:--|
+  | 1 | **A página e o portão** — `raiz/index.html`, `motor/servidor/raiz.js:32` e `:268` | **Um** portão para tudo: Basic auth (`tmenegaz` + secret `SENHA_RAIZ`), conferido uma vez, cobrindo a página e todas as rotas de produto. Pública só `/api/saude` (`:261`). `/` sem credencial → **401** | **Não** — não há lado público. É a **obra** de C11-1 |
+  | 2 | **O endpoint de criação** — `POST /api/criar-escola` (`raiz.js:457`) | Ativo atrás da senha; exige `CLOUDFLARE_API_TOKEN` + `GITHUB_TOKEN` (secrets); valida identidade do professor (homônimo/slug, `validarCriacaoEscola`); provisiona no Cloudflare e **dispara o Action** | **Sim** — é onde a autorização entra (E6) |
+  | 3 | **O Action** — `.github/workflows/criar-escola.yml` | `workflow_dispatch`; 9 inputs, **8 obrigatórios**; monta professor + ciclo + pacote-zero + `wrangler.<escola>.jsonc`, sobe o motor e commita | **Sim** — é a consequência pesada (6.5 do rascunho) |
+  | 4 | **O Cron** — `wrangler.danca.jsonc` → `triggers.crons: ["*/5 * * * *"]` → `scheduled()` (`raiz.js:176`) | A cada 5 min chama `expurgar(env)`: lê o andaime e apaga a escola **desabilitada** cujo prazo venceu | **Sim, como precedente** — é o único relógio que existe, e é o que pode retomar provisionamento (E7) |
+  | 5 | **O andaime** — `raiz/escolas-habilitadas.json` | Fixture **editada à mão e reimplantada**; hoje lista só `maria` (escola já expurgada). Declara a própria morte: «este arquivo SAI e a flag passa a viver no `ESCOLA.conf`» | **Não** — e é a **evidência** de C11-3 |
+  | 6 | **A flag** — `ESCOLA_HABILITADA` (`wrangler.fita.jsonc`) | Var do Worker da escola (`"sim"`); mudá-la é **deploy**. Lida pelo motor da escola, **não** pelo expurgo | **Não**, por agora — mas é onde a habilitação **deveria** viver (§8, declarado) |
+  | 7 | **O commit do expurgo** — `motor/servidor/repo-escola.js:226-398` | Git Data API: lê `refs` → `commits` → `trees`, `POST /git/trees` com `base_tree`, `POST /git/commits` com `parents:[commitSha]`, `PATCH /git/refs/heads/main` | **Como precedente** — é o **único** mecanismo do repositório que escreve estado sem interação humana, e é **versionado** |
+
+  **O que não existe, medido:** nenhum plano, preço, período, cobrança, gateway, assinatura, cota
+  ou limite por plano (§2.9); **nenhum namespace KV na raiz** — o `wrangler.danca.jsonc` não tem
+  `kv_namespaces` (só ASSETS e o Cron), logo a rota de pagamento **não tem onde gravar** hoje;
+  nenhum webhook; nenhuma autorização de uso único; nenhum campo de dinheiro.
+
+- **O provedor em avaliação — o que está documentado, o que não está, o que falta confirmar.**
+  Provedor: **InfinitePay** (a brasileira — domínio `infinitepay.io`; API em
+  `api.checkout.infinitepay.io`; a conta é identificada pela **InfiniteTag**, o `handle`, sem o
+  `$`). **Confirmar que o domínio e o produto correspondem à conta efetivamente contratada** — a
+  documentação conferida é esta e nenhuma outra, e nome parecido não é o mesmo serviço.
+
+  | Capacidade | O que diz a documentação oficial | Estado |
+  |:--|:--|:--|
+  | Criar link de checkout | `POST https://api.checkout.infinitepay.io/links` | **documentado** |
+  | Consultar pagamento | `POST https://api.checkout.infinitepay.io/payment_check` — corpo `{handle, order_nsu, transaction_nsu, slug}`; resposta `{success, paid, amount, paid_amount, installments, capture_method}` | **documentado** |
+  | `order_nsu` (pedido no *seu* sistema) | opcional; se ausente, a InfinitePay gera | **documentado** |
+  | `redirect_url` (volta ao site) | devolve `receipt_url`, `order_nsu`, `slug`, `capture_method`, `transaction_nsu` | **documentado** |
+  | `webhook_url` (notificação) | responder **200 em menos de 1 s**; responder **400 faz a InfinitePay retentar** | **documentado** |
+  | `capture_method` | `"credit_card"` ou `"pix"` | **documentado** |
+  | **Verificação de autenticidade do webhook** (assinatura/segredo) | — | **NÃO documentado** |
+  | **Sandbox / ambiente de teste** | varredura na página de Checkout: **zero** ocorrências de «sandbox», «homologação» ou «ambiente de teste» | **NÃO documentado** |
+  | **API de planos e assinaturas** | a documentação de API cobre **links de Checkout**; a página de recorrência descreve a gestão **pelo App** | **NÃO documentado** |
+  | **Recorrência por Pix** | a página de recorrência diz «Pix taxa zero **ou** cartão em até 12x», e que «**se o cliente usar cartão**, a cobrança acontece **automaticamente** todo mês» — para Pix, o que se promete é **enviar a cobrança** e **lembrar por WhatsApp** | **parcial** — cobrança repetida, sim; **débito automático por Pix, não** |
+  | **Pix automático / recorrente por autorização** | nada | **NÃO confirmado** |
+  | **Taxa zero no produto de API** | «Pix com taxa zero» aparece como **argumento de venda**; as condições do produto de API não estão na página | **NÃO confirmado** |
+  | **Unidade de `amount`** | os exemplos (`amount: 1000`, total «R$ 10,00») **sugerem centavos** | **aparente — confirmar** |
+
+  **A leitura honesta desta matriz:** o que a InfinitePay documenta cobre **cobrança avulsa com
+  confirmação** — que é exactamente o que L11 precisa para **cada período** — e **não** documenta
+  **gestão de assinatura por API**. Isto não invalida o provedor: sustenta a decisão de modelar a
+  assinatura como **uma cobrança por período** (o que o rascunho já pede) em vez de confiar numa
+  assinatura administrada pelo provedor. **O que a matriz NÃO autoriza** é presumir sandbox,
+  assinatura por API ou débito automático por Pix — nenhum dos três está documentado.
+
+- **Sandbox: não confirmado → a simulação local.** Como **não há sandbox documentado**, a primeira
+  etapa técnica **não pode** depender do provedor. Entrega-se um **adaptador de pagamento** com
+  duas implementações atrás da **mesma interface**: a **simulada** (local, sem rede, sem dinheiro)
+  e a **real** (só depois da confirmação). A simulação produz os três desfechos que interessam —
+  **aprovado**, **pendente** e **recusado** —, entrega webhook de teste e permite rodar o ciclo
+  inteiro do Lastro sem tocar em conta de ninguém. **Duas travas de desenho**, e são critérios de
+  aceite, não recomendações: a simulação **não pode** ser confundível com confirmação real (o modo
+  é explícito na configuração e no log), e **nenhum pagamento simulado libera escola em
+  produção**. Sem sandbox, o que se perde é a confiança nos **detalhes** do provedor (formato de
+  erro, latência, repetição de webhook); é isso que a E8 fecha, quando a conta responder.
+
+- **Lacunas.** (1) **Não há lado público** na porta (C11-1) — a frente começa por construí-lo;
+  (2) **não há onde gravar** o pedido: a raiz não tem KV (medido) e a decisão de arquitetura está
+  aberta (C11); (3) **não há fonte de valor** para o backend calcular (é L8 — §2.9, C8);
+  (4) **não há assinatura nem período** modelados, nem regra de renovação, tolerância, suspensão
+  ou reativação; (5) **não há webhook nem verificação** — e o provedor **não documenta** como
+  autenticar a notificação, o que torna a verificação ativa (`payment_check`) **obrigatória**, não
+  opcional; (6) **não há autorização de uso único** ligando o pagamento à criação; (7) **não há
+  idempotência** em lugar nenhum do fluxo (a repetição de webhook é documentada como
+  comportamento do provedor — «400 faz retentar» —, logo repetição é o caso **normal**);
+  (8) **não há política** de inadimplência, cancelamento ou devolução; (9) **não há sandbox** e,
+  portanto, **não há como ensaiar** contra o provedor.
+
+- **Dependências técnicas e de domínio.**
+  - **L8** (a fonte única dos valores) — o valor **calculado no backend** sai dela; sem ela, o
+    preço voltaria a existir em dois lugares, que é o que L8 existe para impedir. Pode-se
+    construir tudo o resto com um valor de teste **declarado como teste**.
+  - **C11** (onde vive o estado comercial) — **precede** o modelo de estados. É decisão de
+    arquitetura, não de implementação.
+  - **Dependências externas** (não são minhas de decidir e **não** estão confirmadas): sandbox;
+    gestão de assinaturas por API; recorrência por Pix e o que ela significa (cobrança enviada ×
+    débito automático); condições de taxa **do produto de API**; unidade de `amount`; verificação
+    de autenticidade do webhook.
+  - **Decisões comerciais** que não são minhas: valores (C8), política de tolerância e de
+    suspensão, e o que acontece com a escola na inadimplência.
+  - **L9** — se L11 criar o estado de plano/período, é ele que L9 vai ler; a ordem entre as duas
+    precisa de decisão (ver «Ordem de implementação», E7).
+
+- **Entregas.** (a) O **lado público** da porta, separado do administrativo, sem enfraquecer o
+  portão atual; (b) a **interface do adaptador de pagamento** + a **implementação simulada**; (c) a
+  **fonte do valor** no backend (de L8) e o **pedido** registrado antes de falar com o provedor;
+  (d) o **webhook** que responde rápido e **não confia em si mesmo** + a **verificação ativa**;
+  (e) a **autorização de uso única**, ligada ao pedido, validada no servidor e consumida no
+  provisionamento; (f) o **modelo de estados** do pedido e do período; (g) a **recuperação** pelo
+  Cron dos pagamentos confirmados sem provisionamento; (h) a **matriz do provedor** com o que
+  falta confirmar, para ir à conta com perguntas fechadas.
+
+- **Ordem de implementação — por etapas, e por que nesta ordem.**
+
+  | Etapa | O que é | Depende de | Critério de aceite da etapa |
+  |:--|:--|:--|:--|
+  | **E0** | **Decidir onde vive o estado comercial** (C11). Não é código | — | A decisão está escrita, datada e com o motivo; as três candidatas foram comparadas |
+  | **E1** | **O adaptador + a simulação local.** Interface única; três desfechos; webhook de teste | E0 (para saber onde gravar) | O ciclo inteiro corre **sem rede**: aprovado → autoriza; pendente → não autoriza; recusado → não autoriza; **nenhuma** transação real |
+  | **E2** | **O lado público da porta.** Separar público × administrativo em `raiz.js` e na página | C11-1 | `/` abre **sem senha**; as cinco rotas administrativas continuam **401** sem credencial; nenhum dado administrativo vaza para o público |
+  | **E3** | **O pedido e a fonte do valor.** Cria, registra e calcula no backend | **L8** + E0 | O navegador **não** envia preço; o valor calculado vem da fonte única; o pedido existe **antes** de o provedor ser chamado; alterar a fonte muda o valor cobrado |
+  | **E4** | **O checkout.** Criar o link e devolver à página | E3 · (provedor, se confirmado) | O pedido gera um checkout; a página mostra o QR/link; `order_nsu` volta identificável |
+  | **E5** | **O webhook + a verificação.** O coração da segurança | E4 | Responde **<1 s**; **não** libera nada por si; verifica no provedor e confere pedido, valor, moeda e método; **notificação repetida não duplica efeito** (provado); notificação inválida **não** libera |
+  | **E6** | **A autorização de uso único + o encaixe em `/api/criar-escola`** | E5 | Token aleatório, com validade, **consumido uma vez**, que **não** permite trocar plano nem dados; sem token válido o endpoint recusa; a página **não** emite token |
+  | **E7** | **A recuperação (Cron) e a habilitação sem deploy** | E6 | Pagamento confirmado sem provisionamento é **retomado** pelo Cron, **idempotente**, sem duplicar escola; habilitar/desabilitar deixa de exigir `deploy` (desfecho de C11-3); a ordem com **L9** fica decidida |
+  | **E8** | **A integração real** — só com o provedor confirmado | as respostas do provedor | Credenciais em **secrets**; o modo real **não** pode ser ativado por engano pelo ambiente de teste; cada item pendente da matriz do provedor tem resposta registada |
+
+  **O que não se deve fazer.** Ligar a **E8** antes da **E1** (não há sandbox: ensaiar em produção
+  é a única alternativa, e é a que não existe); e implementar a **E5** antes da **E0** (o webhook
+  grava estado — sem saber onde, grava no lugar errado, e é dinheiro).
+
+- **Critérios verificáveis.** Para além dos critérios por etapa acima, a frente só está pronta
+  quando se demonstrar: **(i)** o valor vem do backend, e o navegador não o pode alterar;
+  **(ii)** pedido não confirmado **não** libera criação; **(iii)** pagamento confirmado é
+  **verificado no servidor**, não aceite da notificação; **(iv)** webhooks repetidos **não**
+  duplicam escola nem período; **(v)** falha no Action **não** perde o pagamento confirmado;
+  **(vi)** a recuperação retoma o provisionamento **sem** escola duplicada; **(vii)** a autorização
+  é de **uso único** — o segundo uso é recusado; **(viii)** cada período da assinatura tem
+  confirmação **própria** (o primeiro pagamento não autoriza o mês seguinte); **(ix)** o ambiente
+  de teste **não** movimenta dinheiro e **não** alcança produção; **(x)** o acesso administrativo e
+  o expurgo **continuam** funcionando — teste que os exerce depois da mudança; **(xi)** custos,
+  limites e dependências externas estão **documentados**; **(xii)** nenhum segredo do provedor
+  chega ao navegador.
+
+- **Riscos e decisões por confirmar.**
+  - **O risco maior não é técnico:** é o **preço**. Sem a confirmação de C8, o valor cobrado seria
+    inventado — e cobrar é irreversível de outra forma. A E3 pode ser construída com valor de
+    teste; a **E8 não**.
+  - **Verificar sem mecanismo documentado.** Como a autenticidade do webhook **não** está
+    documentada, a notificação é tratada como **sinal**, e a **prova** é a consulta ao provedor.
+    Se o provedor documentar assinatura mais tarde, ela **soma** — não substitui a consulta.
+  - **Estado de dinheiro em armazenamento sem transação.** Se a decisão de C11 cair no **KV**, a
+    consequência tem de estar declarada: sem transação nem unicidade, a **idempotência passa a ser
+    responsabilidade do código** (chave derivada do `order_nsu`/`transaction_nsu`, leitura antes de
+    escrever, e a verificação ativa como árbitro). É aceitável para o volume previsto e **não** é
+    aceitável se o volume crescer.
+  - **Assinatura sem API de assinatura.** Modelar cada período como **uma cobrança** é o que a
+    documentação sustenta. O que fica por decidir é **quem** dispara a cobrança do mês seguinte —
+    o Cron do Lastro (o que exige gerar um link novo por período) ou a recorrência do App (o que
+    devolve a gestão para a mão de alguém, exactamente o que a frente quer evitar). **Decisão de
+    arquitetura e de operação**, e por isso registada, não escolhida.
+  - **Política de inadimplência** — quanto tempo, o que suspende, o que acontece aos dados. **Não
+    a invento:** decisão comercial (o rascunho também a pede e não a fixa).
+  - **Exposição de dado pessoal.** A página pública passa a colectar dados de comprador
+    (`customer`: nome, e-mail, telefone, opcionalmente). É o primeiro ponto do sistema que recebe
+    dado de pessoa **de fora** do ciclo pedagógico: a regra 7 do §6 continua a valer, e a
+    separação entre dado de pagamento e dado de aluna é critério de aceite, não estilo.
+  - **Custo.** «Pix taxa zero» é **publicidade**, e as condições do produto de API não estão na
+    página. Não presumir que a integração inteira seja gratuita; registar as taxas **da conta**,
+    quando houver conta.
+  - **Parcelamento ≠ assinatura.** Preservado do rascunho e sublinhado: `installments` aparece nas
+    respostas do provedor e é **parcelamento de compra**. Se o cartão entrar algum dia, entra como
+    **assinatura recorrente**, nunca como compra parcelada apresentada ao cliente como mensalidade.
+
+- **Prioridade.** **P2** — **independente das frentes de dado** (L1–L7) e por isso pode começar
+  desde já **em simulação**: E1 e E2 não dependem de nada externo nem do provedor. O que a segura
+  é **E3** (o valor, que é L8/C8) e **E0** (a decisão de arquitetura). A **E8** espera o provedor —
+  e é a única parte que espera.
+
 ---
 
 ## 5. Sequência sugerida
@@ -991,6 +1236,7 @@ decisão.
 | **2 — o encontro** | **L4** (mapa de relações e índice) | é a consequência de L1+L2+L10 aplicada ao dado de L3; sem ela, cada consulta varre tudo |
 | **3 — o valor** | **L6** (catálogo de consultas) | depende de L1–L4 **e de L10** (sem o vocabulário, quatro das oito perguntas não têm como ser respondidas — §7); é onde o produto passa a valer |
 | **4 — o comercial** | **L7** (IA e uso) → **L9** (cotas por plano) · **L8** (composição e valores) | L9 depende de L6+L7+L8. **L8 é independente do dado** e pode começar a qualquer momento, depois da confirmação dos valores |
+| **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3**, o valor — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. É a única camada cujo começo **não** espera por outra camada |
 
 **O que não se deve fazer.** Implementar L6 antes de L1/L2/L3 **e de L10** — produziria consultas
 sobre chaves instáveis, sobre um dado sem leitor e sobre conceitos que o modelo não tem, e cada
@@ -1144,7 +1390,7 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 
 ## 9. O que este documento **não** decidiu
 
-- **Não escolheu** as interpretações das contradições C1–C10 (§3); registou-as. **Exceção: C3**,
+- **Não escolheu** as interpretações das contradições C1–C11 (§3); registou-as. **Exceção: C3**,
   resolvida em **15/10/2026** por decisão do dono do produto («o PO/plano publicado passa a ter
   versão explícita que o lançamento referencia») — e o **desenho** que a realiza (**S1–S4**) foi
   proposto por este documento e **aprovado no mesmo dia** (§3 C3, §L5). Propô-lo e aprová-lo não o
@@ -1171,3 +1417,24 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 - **Não decidiu a ordem** entre L10 e L6 (§3 C10): acrescentar o vocabulário do domínio antes de
   construir o catálogo, ou construir as três consultas de **[CRUZAMENTO]** primeiro e deixar as
   quatro de **[VOCABULÁRIO]** para depois.
+- **Não confirmou** — e **não presumiu** — nenhuma capacidade da porta paga além do que a
+  documentação do provedor efectivamente diz. Sandbox, gestão de assinaturas por API, recorrência
+  por Pix, taxa do produto de API, unidade de `amount` e verificação de autenticidade do webhook
+  ficam **declarados como pendentes**, item por item, na matriz de **L11** (§4) — com a distinção
+  explícita entre o que está **documentado**, o que está **parcialmente** documentado e o que
+  **não** está. A frente **não escolheu** provedor: registou a **InfinitePay como a em avaliação**.
+- **Não decidiu onde vive o estado comercial** de L11 (§3 **C11**): KV, Git ou D1. A decisão é de
+  **arquitetura** e **precede** o modelo de estados — e é a razão pela qual a primeira etapa de
+  L11 (**E0**) não tem código.
+- **Não construiu o lado público da porta** — registou que ele **não existe** (§3 C11-1): a raiz
+  inteira está atrás de um só portão, e por isso L11 começa por **separar** o público do
+  administrativo, em vez de «ampliar» um fluxo que não há.
+- **Não escolheu** quem dispara a cobrança do mês seguinte (o Cron do Lastro, com um link novo por
+  período, ou a recorrência do App — que devolveria a gestão à mão de alguém) nem a política de
+  inadimplência, tolerância, suspensão, cancelamento ou devolução. São decisões **comerciais e de
+  operação**.
+- **Não tratou** parcelamento de cartão como assinatura — a regra veio do rascunho do dono do
+  produto e fica preservada: se o cartão entrar, entra como **assinatura recorrente**, nunca como
+  compra parcelada apresentada ao cliente como mensalidade.
+- **Não implementou nada de L11.** A frente é plano — **E0 a E8** —, e nenhum arquivo de produto
+  foi alterado para escrevê-la; o que se mediu foi lido, não mudado.
