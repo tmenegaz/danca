@@ -12335,3 +12335,31 @@ o desenho que este defeito impedia de funcionar · `tools/lib-cifra.js` (o esque
   correção; é a próxima etapa.
 - `tools/gerar-acompanhamento.sh` continua lendo a senha de `tools/.senhas-locais` (pendência da
   entrada de 12/10).
+
+**Elo do mesmo dia (15/10/2026) — a prova fim-a-fim foi feita, e passou.** O parágrafo acima («a
+prova fim-a-fim não foi repetida») fica como o elo do que se pensava no momento da correção; o que
+se seguiu o completa.
+
+1. A elicitação do PO foi **repetida** contra o Worker já corrigido. O relatório veio inteiro:
+   `"cifrado": {"ok": true, "caminho": "professores/leticia/ciclos/ciclo-01-barra-dados.cifrado.json"}`
+   e `"escritas": [{"status": 201}]`. O arquivo entrou no repositório (`bf3b08f`), com
+   `_cifrado.iteracoes = 100000` e `apelidos` em claro — o contrato do envelope, intacto.
+2. O workflow disparado pelo mesmo ato desta vez fechou **VERDE** (run #9, `38749662686`,
+   concluído 14:17Z): o `check-pacote.js` **aprovou** o pacote e o bot commitou
+   `chore(entrega): gerar o pacote de leticia/01/barra` (`52da76e`). É a primeira vez que a cadeia
+   «PO concluído → pacote gerado e versionado» se completa sem intervenção.
+3. `tools/gerar-ciclo.sh leticia 01 barra` passou a rodar **na máquina local** (0 erros, 0 avisos,
+   24 verificações) — a condição para o hook pre-commit aceitar o ciclo. Com isso, os **três
+   arquivos da porta** que estavam sincronizados à mão (paliativo declarado no elo anterior)
+   cederam à primeira geração verdadeira, e o `ciclo-01-po-schema.json` entrou com a descrição nova
+   de `dimensoesObservadas`. A árvore ficou limpa: **nenhum** arquivo preso restou.
+4. O pacote foi implantado (`barra`, versão `b3aa4537`) e o site serve o ciclo inteiro: `index`,
+   `plano`, `aula-01`, `captura-aula-01`, `harmonizacao`, `notacao`, `glossario-benesh`,
+   `referencias`, o PDF, o `lancamento.html` e o `ciclo-01-barra-dados.json` cifrado — com as
+   dimensões derivadas do plano («Técnica — Solo · Barra · Centro · Musicalidade · Expressão») na
+   folha de captura.
+
+**O que o passo 4 prova, e o que ele NÃO prova.** O passo 4 exigiu **`wrangler deploy` à mão**: o
+commit do pacote, sozinho, **não** põe o ciclo no ar. Enquanto não houver decisão sobre o deploy
+(ver o primeiro item de «O que ainda não está feito»), o «Gerar» leva o repositório até o pacote
+gerado e **para ali** — e o site continua servindo o estado da última implantação manual.
