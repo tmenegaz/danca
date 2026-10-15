@@ -12530,9 +12530,29 @@ linha» (o defeito irmão, no guarda) · `tools/.senhas-locais.exemplo` (a conve
   verdade** — e criar é ato do dono do produto, não de uma sessão de manutenção. O que foi provado:
   a sintaxe do script inline, e a montagem do nome (`d.escola` = `barra` → `SENHA_BARRA`). A prova
   visual fica para a próxima escola criada.
-- A `SENHA_LETICIA` em `tools/.senhas-locais` segue **inerte** (nenhuma escola tem slug `leticia`; a
-  escola é `barra`) e continua isenta no `tools/.escolas-teste`, onde a isenção existe pelo valor
-  **placeholder** «leticia», que aparece nos caminhos `professores/leticia/…`. Não foi removida:
-  mexer nela é decisão da pesquisadora, não efeito colateral deste conserto.
+- A `SENHA_LETICIA` em `tools/.senhas-locais` **não é lida por script nenhum** (nenhuma escola tem
+  slug `leticia`; a escola é `barra`) e continua isenta no `tools/.escolas-teste`, onde a isenção
+  existe pelo valor **placeholder** «leticia», que aparece nos caminhos `professores/leticia/…`.
+  Não foi removida: mexer nela é decisão da pesquisadora, não efeito colateral deste conserto.
+  **O que ela É** — ver a nota de correção no fim desta entrada: não é uma chave, é a senha de
+  acesso da professora.
+
+> **Correção de 15/10/2026 (mesmo dia).** A primeira redação deste item dizia que a `SENHA_LETICIA`
+> «segue **inerte**». **Está errado**, e o erro é do mesmo tipo do que esta entrada combate — um
+> nome que parece uma coisa e é outra. «Inerte» descrevia só o que os *scripts* fazem: `lib-senhas.sh`
+> monta `SENHA_<ESCOLA_SLUG>` e nunca lê `SENHA_LETICIA`. Mas o **valor** daquela linha é a senha
+> **viva** da professora Letícia — dona da escola Barra —, e é por ela que se entra nos
+> **Bastidores** e na **Produção**. Medido na escola no ar, em 15/10/2026:
+>
+> | Segredo no Worker `barra` | Valor medido | Para que serve |
+> |:--|:--|:--|
+> | `SENHA_PROFESSOR` | «leticia» | login da professora dona — abre Bastidores **e** Produção |
+> | `SENHA_ADMIN` | «barra» | login da direção — abre Produção |
+> | `SENHA_CRIPTO` | 48 hex | chave da cifra — abre o `-dados.cifrado.json` |
+>
+> A linha `SENHA_LETICIA="leticia"` em `tools/.senhas-locais` guarda o **primeiro** destes — um
+> **login**, não uma chave. O arquivo cujo cabeçalho diz «senhas de criptografia» passou a conter,
+> também, credencial de acesso. A versão anterior desta redação não é apagada: fica como o elo que
+> registra o que se pensou antes da correção.
 - `tools/.senhas-locais.exemplo` (congelado) já documenta a convenção `SENHA_<ESCOLA>` — não
   precisou mudar. O que faltava não era a regra: era **dizê-la no momento em que a senha nasce**.
