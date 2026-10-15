@@ -36,5 +36,32 @@
       "caminho": "wrangler.ponta.jsonc",
       "tipo": "config do Worker"
     }
+  ],
+  "expurgo": [
+    {
+      "em": "2026-10-15T17:53:18.035Z",
+      "motivo": "expurgada pela página «Nós, Por Exemplo»",
+      "apagado": [
+        "professores/tiago/ciclos/ciclo-01-ponta.conf",
+        "professores/tiago/ciclos/ciclo-01-ponta/assets/lib-cifra.js",
+        "professores/tiago/ciclos/ciclo-01-ponta/assets/nav.js",
+        "professores/tiago/ciclos/ciclo-01-ponta/assets/style.css",
+        "professores/tiago/ciclos/ciclo-01-ponta/index.html",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/assets/markdown.js",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/conteudo/anamnese.json",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/index.html",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/plano/conteudo/plano.json",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/po/conteudo/po.json",
+        "professores/tiago/ciclos/ciclo-01-ponta/plano-observacao/prompts/elicitar-ciclo.md",
+        "wrangler.ponta.jsonc",
+        "professores/tiago/ciclos/ciclo-01-aula-schema.json",
+        "professores/tiago/ciclos/ciclo-01-captura-schema.json",
+        "professores/tiago/ciclos/ciclo-01-plano-schema.json",
+        "professores/tiago/ciclos/ciclo-01-po-schema.json",
+        "professores/tiago/ciclos/ciclo-01-schema.json",
+        "professores/tiago/ciclos/ciclo-01.conf"
+      ]
+    }
   ]
 }
