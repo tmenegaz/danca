@@ -8,14 +8,22 @@ type: Ciclo
 professor: Letícia
 ciclo: 01
 variante: barra
-hash_conteudo: 73709159b46a1979856c1c41f1bbc3d26297cc873df8fe18e58a144c4ad6b928
+hash_conteudo: 8da83b9b7a2d99363c161bd4f8238906fa618317e1f76a40106672552872673b
 parentHash: 
-hash: dbff824c4e17f66784bc5eb833aa42d34864d066a5ffae1f1fe3fb904172c49f
+hash: db6233ad4475d28217c56f49460ce550f94b3c6f7744fc0c20d89414457d0775
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/leticia/ciclos/ciclo-01-barra-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-15
 cobertura:
+  - professores/leticia/ciclos/ciclo-01-barra-aula-01.md
+  - professores/leticia/ciclos/ciclo-01-barra-captura-aula-01.md
+  - professores/leticia/ciclos/ciclo-01-barra-dados.json
+  - professores/leticia/ciclos/ciclo-01-barra-glossario-benesh.md
+  - professores/leticia/ciclos/ciclo-01-barra-harmonizacao.md
+  - professores/leticia/ciclos/ciclo-01-barra-notacao.md
   - professores/leticia/ciclos/ciclo-01-barra-plano.md
+  - professores/leticia/ciclos/ciclo-01-barra-po.md
+  - professores/leticia/ciclos/ciclo-01-barra-referencias.md
   - professores/leticia/ciclos/ciclo-01-barra.conf
   - professores/leticia/ciclos/ciclo-01.conf
