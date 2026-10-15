@@ -11483,3 +11483,665 @@ preenchimento).
 bundle do Worker e o `env.ASSETS` são fotografados no deploy. Não há teste que cubra o caminho
 conteúdo → `descritores()` → `mapa()` → tela: o campo faltoso só se vê abrindo a página. Fica como
 suspeita declarada para a próxima vez que um campo do conteúdo «não fizer nada».
+
+---
+
+## 14/10/2026 — A régua da turma mede o critério no LANÇAMENTO (frente B9)
+
+**O que motivou.** O lançamento da aula dada media **todos** os critérios com as cinco marcas fixas
+da folha — `✓ ok · ~ parcial · X não aconteceu · ? não vi`, com o vazio = *não observei*. Essas
+marcas não são a régua de ninguém: a Produção já deixa a escola **declarar a sua régua por turma**
+(`rubrica` no cadastro da turma, com formulário próprio para mudar em comitê — renomear,
+acrescentar, remover) e o plano já a **adota e registra**, mas o lançamento continuava medindo o
+critério por uma escala que não era a da turma. Duas escalas para a mesma medida, e a do registro
+não era a declarada.
+
+**O que foi decidido.** As marcas da captura passam a ser a **régua da turma**, e o **tipo** da
+coluna decide o registro:
+
+- `rubrica` — o **critério**: um nível da régua, vazio = «não medido nesta aula»;
+- `marca` — o que **só se observa** (a linha de base revisitada), que segue com as cinco marcas:
+  «observado na aula» não é nota.
+
+A régua **atravessa o pacote** pelo caminho que já existia: a derivação do plano emite a seção
+`## Régua da rubrica` (os níveis **verbatim**, em **lista**) → o extrator a entrega em
+`plano-XX.json` como `reguaDaRubrica` → o lançamento a lê para montar o campo de cada critério. Ela
+sai em **lista** de propósito: no **cabeçalho** da tabela da rubrica o extrator normaliza o rótulo em
+chave, e «Não se aplica» voltaria como `naoSeAplica` — a lista preserva o rótulo como a escola o
+escreveu.
+
+Três travas declaradas na mesma decisão: **sem a seção** (ciclo antigo, plano que não a tem) valem
+os quatro **níveis padrão** do motor (`NIVEIS_DA_RUBRICA`) — a régua vazia nunca vira um formulário
+sem medida; um valor **já lançado** que a régua atual não declara **continua selecionável** (a régua
+muda entre ciclos, e o registro antigo não desaparece por causa disso); e um valor fora da régua
+**lê-se marcado como fora**, em vez de se disfarçar de nível desta.
+
+O tom da leitura segue a **posição** do nível na régua (o primeiro é o mais baixo), e não o nome: a
+escola pode renomear os níveis, e a leitura não pode perder a escala. Do quarto nível em diante o tom
+é **neutro** — o quarto nível canônico é «Não se aplica», que não é grau, e um nível que a escola
+acrescente herda o neutro em vez de virar um juízo que ninguém declarou.
+
+**Onde entrou.** `tools/validar-plano-ciclo.js` — a seção `## Régua da rubrica` no `MAPA_SECOES`
+(chave `reguaDaRubrica`, não obrigatória) · `motor/nucleo/derivar-plano-ciclo.js` — a seção emitida
+com a nota que a explica · `tools/templates/lancamento.html` — `REGUA_PADRAO`/`reguaAtual`/
+`usarRegua`/`opcoesDaRegua`/`nivelDaRegua`, o tipo `rubrica` em `campo()` e em `mdCelula`, a régua em
+cena no painel, a legenda por tipo usado e o CSS dos tons · os dois `*-plano-schema.json` — a
+propriedade `reguaDaRubrica` · `professores/tiago/ciclos/ciclo-01-captura-schema.json` — `rubrica` no
+vocabulário e nos critérios das duas folhas da Maria · `professores/tiago/ciclos/ciclo-01-maria-plano.md`
+— a seção na fonte.
+
+**Motivo declarado — os congelados.** `tools/` e `tools/templates/` são congelados
+(`CONGELAMENTO.md`), e a mudança **altera comportamento** — não é redação —, com a decisão da
+pesquisadora tomada antes da implementação («As marcas da captura passam a ser a régua da turma»).
+O que **não muda**: a fórmula de hash e a cobertura da âncora (`.fipp`), a cobertura do
+`check-pacote.js`, as 22 pétreas, as 17 regras e os validadores existentes. O que muda, e só: o
+**vocabulário de tipos** da captura ganha `rubrica` (os cinco tipos anteriores ficam intactos), o
+extrator do plano ganha **uma** chave nova (`reguaDaRubrica`, opcional: plano sem a seção continua
+válido) e o formulário de lançamento ganha o ramo do tipo novo — o contrato de `marca`, `numero`,
+`booleano` e `texto` não é tocado. **Reancoragem declarada**: a fonte do plano da Maria mudou
+(`ciclo-01-maria-plano.md`), e a âncora foi regerada
+(`tools/hash-ciclo.sh tiago 01 maria` → `hash_conteudo c1448…5901`, cadeia íntegra; a anterior era
+`2ae2b6b…`), com o pacote regerado na mesma passagem (`gerar-ciclo.sh tiago 01 maria`).
+
+**Com o quê.** `tools/validar-plano-ciclo.js`, `motor/nucleo/derivar-plano-ciclo.js`,
+`tools/templates/lancamento.html`, `professores/leticia/ciclos/ciclo-01-plano-schema.json`,
+`professores/tiago/ciclos/ciclo-01-plano-schema.json`,
+`professores/tiago/ciclos/ciclo-01-captura-schema.json`,
+`professores/tiago/ciclos/ciclo-01-maria-plano.md`, o pacote inteiro de Maria regerado
+(`professores/tiago/ciclos/ciclo-01-maria/`, incluindo `lancamento.html`, `plano-01.json`,
+`captura-01.json`, `captura-aula-01.json`, `plano.html`, `ciclos.json`), as âncoras
+`professores/tiago/ciclos/ciclo-01-maria.fipp` e `-aula-01.fipp`, `experimentos/provar-lancamento.js`
+(nova prova, 16 verificações), `FRENTES.md` (a decisão e a frente B9), `ARQUITETURA-CAPTURA.md` (nota
+datada na §3.2).
+
+**Referências.** `CONGELAMENTO.md` (o escopo do congelado e o motivo declarado) · `REGRAS.md` (Regra
+10: camada 1 = objetivo geral + marcos + rubrica — a régua é **da rubrica**, não um elemento novo) ·
+`IDEIA-PAINEL-ESCOLA.md` (a régua é dado da turma, declarado pela escola) · `FRENTES.md` (Bloco 10,
+confirmação 1 — a rubrica decidida) · `experimentos/provar-plano-matriz.js` (o contrato da régua no
+plano) · deploy `maria` `0474242e` (e `86ff2868`, depois do acerto final da legenda por tipo
+declarado).
+
+**O que ainda não está feito.** (a) A folha de captura ainda traz os seus **critérios fixos** (13 de
+técnica e 5 de musicalidade, na Maria) — o critério **por aula**, derivado dos marcos e da sequência
+do plano, é o passo seguinte, e é ele que fecha o «o critério de cada aula se declara no lançamento»;
+(b) o **marco** chega ao lançamento só como leitura (o nome do marco da aula), e a sequência, os
+blocos e o parâmetro de medição do plano ainda **não descem** para a folha; (c) existe **folha por
+aula só na Aula 01** (`captura-aula-01.json`): da Aula 02 em diante o formulário usa a folha do
+ciclo; (d) na **Barra** o pacote não tem lançamento (`DOCS=""`), então a régua produzida pela
+Produção não tem, hoje, onde aparecer — o ciclo da Maria (simulado) é o que exercita o caminho;
+(e) a régua da Maria vem da **fonte escrita à mão** (`ciclo-01-maria-plano.md`), e não do envelope:
+o caminho envelope → fonte (a derivação) está provado em teste, mas não há ciclo real que o tenha
+percorrido ponta a ponta com a régua.
+
+---
+
+## 14/10/2026 — O PO completo chega inteiro aos derivados (frente B10)
+
+**O que motivou.** A verificação pedida — «quando eu mandar gerar o PO completo, todos os
+documentos que são derivados a partir disso estão com os campos que precisam estar mapeados com o
+PO completo alinhados» — foi feita respondendo os **33 nós** do mapa servido com um valor marcado,
+gerando o documento e extraindo-o. Três famílias de falha apareceram, e as três eram **caladas**:
+o formulário pergunta, o professor responde, e a resposta não chega a lugar nenhum.
+
+**O que foi medido.** (a) **Nó respondível sem destino**: `horizonte`, `plano-de-ensino`,
+`dimensoes-de-observacao`, `itens-por-dimensao` e os quatro campos dos módulos condicionais não
+chegavam a documento algum — 10 dos 33 não chegavam ao documento do PO, 8 desses não entravam no
+`po-XX.json`, e 6 não chegavam a documento nenhum. (b) **Seção emitida e não extraída**: o
+`## Metodologia e notação` era escrito pela derivação desde a ligação L5 e o `MAPA_SECOES` do
+extrator não conhecia o título — a metodologia, quem a escolhe e a notação nunca entravam no
+pacote. (c) **Prosa dentro de campo alheio**: as flutuantes viajavam como bullet de `## Sujeitos`
+e as restrições físicas (P-22) como `###` de `## Linha de base`; o extrator, que lê linha a linha,
+as recebia como itens daqueles campos — no dado real da Maria,
+`subjects: ["Vavá", "**Flutuantes:** [a decidir]"]` e `linhaDeBase` fechando com
+`"### Restrições físicas declaradas (P-22)", "Nenhuma"`, com o próprio validador avisando
+«2 de 3 item(ns) não são objeto». Além disso, quatro rótulos do checklist tinham derivado do
+campo que o formulário mostra (o documento assinava «Fronteiras claras», «Padrão estabelecido»,
+«Critérios que não se sobrepõem», «Justificação com base»), três dos doze rótulos do contexto
+estavam abreviados, e a folha de captura derivada do PO declarava **todas** as colunas como
+`marca` — inclusive os critérios, que a folha declarada à mão já media pela régua.
+
+**O que foi decidido.** Cada nó respondível tem a SUA chave, e nada se escreve como prosa dentro
+do campo de outro nó:
+
+- **Nove chaves novas** no `po-XX.json` — `planoDeEnsino`, `horizonte`, `dimensoesObservadas`,
+  `itensPorDimensao`, `metodologiaENotacao`, `flutuantes`, `restricoes`, `horizonteDoConjunto`,
+  `compromissoDeReavaliacao` —, todas **OPCIONAIS**: os POs já escritos continuam válidos, e a
+  obrigatoriedade do FORMULÁRIO (`obrigatorio` no conteúdo) não se confunde com a da fonte
+  publicada. Os itens por dimensão saem em **tabela** (`| Dimensão | Itens |`), que é a forma
+  chave-valor do par; os dois módulos condicionais saem como um `##` com dois `###` (a mesma forma
+  da Justificativa), com o título do `###` sendo a CHAVE do schema.
+- **Os rótulos são do CONTEÚDO**: a rota passa `rotulosDoChecklist(conteudoPO)` à derivação (a
+  porta existe; sem ela, vale o mapa de reserva, que a prova confere contra o conteúdo). Os doze
+  rótulos do contexto — os pares que o PO compõe lendo o plano — viram **fonte única**
+  (`ROTULOS_DO_CONTEXTO` + `COMPOR_DO_CONTEXTO` em `derivar-po.js`), lidos pelo PO **e** pelo plano.
+- **A identidade lê a RESPOSTA**: `professor`/`escola` do cabeçalho vêm do nó respondido e só caem
+  no contexto quando ele falta. O formulário semeia esses campos do contexto e diz «corrija se
+  necessário» — e o que a barra entrega ao envelope é o RÓTULO («Letícia»), enquanto o CONTEXTO
+  carrega o slug: enquanto o contexto vencia, o `ciclo-01-maria-po.md` publicado dizia
+  `escola: maria` e `professor: tiago`.
+- **A folha de captura derivada do PO mede o critério pela régua** (`rubrica`, o tipo novo de
+  14/10/2026), com a **linha de base** em `marca` — e o fecho dela lista os `BLOCOS_DA_AULA`
+  (a lista fixa «☐ presença», que não é bloco da aula, saiu).
+
+**Onde entrou.** `motor/nucleo/derivar-po.js` — as nove seções, `itensPorDimensao`, `textoOuLacuna`,
+`rotulosDoChecklist`, `ROTULOS_DO_CONTEXTO`, `COMPOR_DO_CONTEXTO`, a identidade pela resposta e os
+rótulos corrigidos · `motor/nucleo/derivar-plano-ciclo.js` — a tabela do contexto passa a ler a
+fonte única (o plano escrevia «Turmas» onde o campo é «Turmas observadas») ·
+`motor/nucleo/derivar-ciclo.js` — `TIPO_DO_CRITERIO` (`rubrica`) em `declaracaoDeCaptura`, a
+legenda da folha com os dois registros e o fecho pelos blocos canónicos ·
+`motor/servidor/escrever-po.js` + `rotas.js` — a rota passa os rótulos do conteúdo ·
+`tools/validar-po-ciclo.js` — `MAPA_SECOES` com as onze seções novas · `tools/lib-vistas.js` — o
+guia de observação imprime as **restrições físicas (P-22)** e os **flutuantes** pela chave própria
+de cada nó, em vez de os ler dentro de `linhaDeBase` e de `subjects` · os dois
+`ciclo-01-po-schema.json` — as nove propriedades novas, com descrição.
+
+**Motivo declarado — os congelados.** Dois arquivos de `tools/` são congelados (`CONGELAMENTO.md`)
+— `tools/validar-po-ciclo.js` e `tools/lib-vistas.js` —, e as duas mudanças **alteram
+comportamento**, não redação: a do extrator é a que faltava para o dado chegar ao pacote; a da
+vista é a que impede a PERDA que a primeira criaria (as restrições físicas e os flutuantes
+deixaram de viajar dentro de `linhaDeBase` e de `subjects`, e a vista que os lia ali passa a
+lê-los na chave própria — o formato antigo continua lido como estava, então nenhum pacote
+publicado muda). O que **não muda**: a fórmula de hash e a
+cobertura da âncora (as chaves novas não entram no `.fipp` — nem os schemas entram: `fontes_do_ciclo`
+cobre os `.conf`, o PO, o JSON de dados e os `.md` do `DOCS`), a cobertura do `check-pacote.js`, as
+22 pétreas, as 17 regras e os validadores existentes. O que muda, e só: o mapa das seções do PO
+ganha onze entradas (as treze anteriores ficam intactas), o PO ganha nove chaves, todas
+opcionais, e a vista do guia passa a imprimir dois blocos que lia dentro de outros dois campos. **Nada a reancorar**: a checagem de `hash-ciclo.sh --check` fica íntegra nas duas escolas
+(leticia `70f3f06…`, tiago `03fb63d…`), porque nenhuma fonte coberta foi tocada.
+
+**Com o quê.** `motor/nucleo/derivar-po.js`, `motor/nucleo/derivar-plano-ciclo.js`,
+`motor/nucleo/derivar-ciclo.js`, `motor/servidor/escrever-po.js`, `motor/servidor/rotas.js`,
+`tools/validar-po-ciclo.js`, `tools/lib-vistas.js`,
+`professores/leticia/ciclos/ciclo-01-po-schema.json`,
+`professores/tiago/ciclos/ciclo-01-po-schema.json`, `porta/po/conteudo/po.json` (e os dois espelhos
+`professores/*/ciclos/*/plano-observacao/po/conteudo/po.json`), `experimentos/provar-po-completo.js`
+(nova prova, 17 verificações), `experimentos/provar-plano-matriz.js` (os rótulos vêm da fonte
+única), `experimentos/pe/provar-derivar-po.js` (a identidade lê a resposta; duas expectativas
+estavam velhas), `experimentos/pe/provar-ponte-po.js` (a rota passa os rótulos), `FRENTES.md`
+(a frente B10).
+
+**Referências.** `CONGELAMENTO.md` · `PROTOCOLO.md` (P-08 — nenhum campo novo é perguntado; P-12 —
+os apelidos; P-22 — as restrições físicas) · `po_ref/po.md` §6.1 (os componentes do Plano de
+Observação) · `porta/po/conteudo/po.json` (`ondeODadoVive` — a declaração do próprio conteúdo, que
+esta mudança passa a cumprir) · deploy `barra` `ba0aee3c` e `maria` `308fe1ac`.
+
+**O que ainda não está feito.** (a) As chaves novas só aparecem num PO **gerado de novo**: as
+fontes já escritas (`ciclo-01-maria-po.md`) não as têm, e não há envelope no repositório para as
+re-derivar — o caminho fica provado em teste, não em dado real. (b) `norma` continua saindo como
+lacuna declarada mesmo com a metodologia preenchida: é a decisão de 25/09/2026 (a norma que o
+cabeçalho pede é a METODOLOGIA, um conceito distinto do padrão de referência) — revisitável, mas
+não se muda sem a pesquisadora. (c) `projeto: 'Formação em Balé Clássico'` está escrito à mão em
+**oito** derivadores e **não é lido por ninguém** (front-matter inerte): fica declarado, não
+alterado — mudá-lo mexeria em todas as fontes. (d) O `## Contexto` do PLANO continua perdendo oito
+das suas doze linhas no `plano-XX.json` (as chaves derivadas dos rótulos não estão no schema do
+plano) — achado da mesma medição, de outro documento, e não foi tocado.
+
+## 14/10/2026 — O plano completo chega inteiro aos derivados (frente B11)
+
+**O que motivou.** A verificação pedida na sequência da frente B10 — «faça a mesma análise para os
+documentos da anamnese e os do plano de ensino» — foi feita com a mesma bancada: cada nó
+respondível do plano respondido com um valor MARCADO, a derivação de verdade, o extrator de
+verdade, e a conferência nó por nó. O resultado: **dos 24 nós respondíveis do plano, 21 não
+chegavam ao `plano-XX.json`** e **2 não chegavam a documento nenhum**. É o mesmo defeito do PO,
+na fonte vizinha, e ele estava no **dado publicado**: o `plano-01.json` do pacote da Maria saía
+com o `## Contexto` (doze fatos declarados) invisível à máquina e com a ficha do ciclo (`ciclo`)
+inteira em `[Preencher]` — duração, duração de cada aula, data de início, volume ativo —, com os
+valores escritos doze linhas acima no próprio documento. O guia de observação imprimia «**Lacunas
+— 2 de 7**: estrutura da aula, distribuição do volume» sobre uma tabela de volume preenchida.
+
+**As quatro causas, medidas.** (a) **Título divergente**: a derivação escreve `## Distribuição do
+volume pelos blocos` e o mapa pedia «… pelos blocos (regra 9, etapa 2)» — sufixo que a derivação
+não escreve e que só o mapa conhecia; o campo ficou fora do JSON de **todo** plano gerado pelo
+sistema. (b) **Seção não mapeada**: `## Contexto`, `## Condições preliminares` e
+`## Critério de extensão` estavam no documento e fora do `MAPA_SECOES` — e seção fora do mapa é
+descartada **em silêncio**. (c) **Seção não emitida**: `Músicas e vídeos` e `Repertório` (Bloco 10
+do formulário) não tinham seção na derivação. (d) **O silêncio**: o extrator descartava sem
+avisar e o validador imprimia `ok` — a causa que produziu as outras três, e a que fez o defeito
+durar três ciclos. A anamnese foi medida e está **fechada**: 53 de 53 nós na ficha,
+`cobertura: integral`, nenhuma resposta no chão. O PO, medido pela mesma bancada, **0 sem
+destino**.
+
+**A decisão (da pesquisadora, 14/10/2026).** O `## Contexto` é a **fonte única** do que o
+professor declarou, e a tabela de identificação do ciclo é **alimentada por ele**: os
+`[Preencher]` saem de campo que o professor preencheu. A duplicação existia porque as duas
+tabelas do plano diziam a mesma coisa em rótulos diferentes — e a que a máquina lia era
+justamente a que ninguém preenchia. A ficha (`ciclo`) **continua existindo** (as vistas a leem) e
+passa a ser **composta** do contexto na derivação; a lacuna fica só no que o contexto não tem, com
+o motivo escrito como estava («o `.conf` da variante declara»).
+
+**O que mudou.**
+- **O contrato avisa.** `tools/lib-extracao-md.js` passa a registrar as seções cujo título não está
+  no mapa **e que tinham conteúdo**, e o aviso nomeado (`avisosDeSecaoNaoMapeada`) diz a linha, o
+  que se perde e como consertar. É o conserto da causa (d), e é o que impede a próxima seção nova
+  de cair no mesmo buraco. Só entra o que TINHA conteúdo: seção vazia não perdeu nada e seção só
+  com citação já sai no aviso próprio — o aviso fica calado nas fontes do repositório (as duas
+  escolares e o PO), o que é a prova de que mapa e documentos estão alinhados hoje.
+- **O mapa do plano ficou completo** (`tools/validar-plano-ciclo.js`): o título do volume como a
+  derivação o escreve — **com o alias do título longo preservado**, porque há documento no
+  repositório que o usa (`experimentos/simulacao-marau`) e ele extraía antes: preservar o que
+  funcionava é parte do contrato —, mais `contexto` (e `PARES: contexto → contexto`, que é o que
+  manda a tabela item/valor para o objeto), `condições preliminares`, `critério de extensão`,
+  `músicas e vídeos` e `repertório`.
+- **O contexto vira dado**: as doze linhas entram no `plano-XX.json` como objeto `contexto`, com a
+  chave de cada uma derivada do RÓTULO do formulário (`Escola / espaço` → `escolaEspaco`) — o mesmo
+  caminho do resto do contrato, e a razão pela qual a tabela do documento escreve o rótulo do
+  campo, verbatim.
+- **A ficha do ciclo é composta do contexto**: `duracaoAulas` (o número de encontros, com a
+  unidade só quando o valor é número puro), `duracaoMinutos`, `inicio`, `encerramento` (o fim do
+  calendário declarado; sem ele, a remissão ao bloco do calendário, como antes), `volumeAtivoPorAula`
+  e `professor`.
+- **Os dois órfãos ganharam seção e destino**: `## Músicas e vídeos` e `## Repertório`, em lista,
+  onde o conteúdo do formulário os pede.
+- **A distribuição do volume diz a UNIDADE.** A resposta virou `{unidade, linhas}` quando o
+  professor passou a escolher a régua da coluna (minutos × percentual), e a tabela só carregava as
+  linhas: o documento publicava «15» e «35» sem dizer 15 de quê. A unidade sai numa **citação**
+  (`>`), que o contrato lê como comentário — o documento diz a unidade e a tabela não ganha chave
+  nenhuma por isso.
+- **A vista leu o que não lia** (`tools/lib-vistas.js`): (1) a coluna da proporção alvo tem **duas
+  chaves** — `proporcaoAlvo60Min`, que o cabeçalho antigo («Proporção alvo (60 min)») produz, e
+  `proporcaoAlvo`, a atual — e as duas são lidas; sem isso um plano gerado hoje mostraria a
+  proporção VAZIA no guia, que é o mesmo defeito com outra roupa; (2) a **estrutura da aula** era
+  lida só na forma numerada (`1. Solo — …`), e a lista sai em três (numerada, `- **Solo** — …`
+  como a derivação escreve, e a prosa antiga `- Solo - …`): o guia imprimia a lacuna sobre um plano
+  que a declarava; (3) a **duração da aula** tem reserva no contexto — nos planos escritos à mão a
+  ficha traz a lacuna enquanto o contexto declara a duração, e um `[Preencher]` não é duração.
+- **O parâmetro de medição da Aula 1** chegava ao `aula-01.md` como `[object Object]`: a matriz
+  `porMarco` do formulário (`{marco, marcados}`) era passada por `prosa()`, que faz `String(valor)`.
+  Entra `parametroEmLinhas` (irmão de `linhasDaEstrutura`), com a prosa antiga passando como veio —
+  **é defeito que a matriz do formulário criou**, na mesma frente de widgets, e por isso é corrigido
+  aqui e não numa fila separada.
+
+**O que foi provado.** `experimentos/provar-plano-completo.js` (novo, 17 verificações): a tabela de
+destino dos **25 nós** do mapa (um nó novo sem destino declarado FALHA), o marcador de cada nó na
+sua chave, o contexto completo (12/12), as chaves do contexto iguais aos rótulos do conteúdo, os
+seis campos da ficha compostos e **nenhum `[Preencher]` em campo declarado**, a volta da lacuna
+com o motivo quando não há contexto, a tabela do volume com as três colunas, a nota da unidade
+fora das colunas, o guia lendo as duas chaves da proporção (plano novo e plano publicado), o aviso
+de seção não mapeada **soando** e ficando **calado** nas fontes do repositório, os dois órfãos, as
+duas seções que o mapa não conhecia, o parâmetro composto no `aula-01.md` (e não
+`[object Object]`), o compositor nos três caminhos, as cinco chaves no schema (tipo, descrição,
+nenhuma obrigatória) e as duas fontes publicadas — o plano da Maria e o do Marau — extraindo o que
+extraíam e o volume também. Regressão: `provar-plano-matriz` 49/49 · `provar-po-completo` 17/17 ·
+`provar-producao` 28/28 · `pe/provar-derivar-po` 33/34 (a 1 falha é a ausência preexistente do
+schema do `fokini`) · `pe/provar-ponte-po` 18/18 · `pe/provar-degradacao` 16/16 ·
+`pe/provar-disparo` 22/22 · `pe/provar-cofre` 23/23 · `pe/provar-agnosticismo` 44/44 ·
+`pe/provar-lancamento` 14/14 · `check-pacote` maria **0 erros, 0 avisos**.
+
+**Efeito no pacote publicado da Maria** (regenerado e no ar): o `plano-01.json` ganha `contexto`,
+`distribuicaoDeVolume`, `condicoesPreliminares` e `criterioDeExtensao`; o guia de observação passa
+de «**Lacunas — 2 de 7**» para «**Lacunas — 0 de 7**» e a sua linha de cabeçalho troca a lacuna
+por «**1 hora 0 minuto**», com «**Estrutura da aula:** Solo → Barra → Centro e diagonal» e
+«**Distribuição do volume:** 15% no solo · 35% de barra · 50% de centro e diagonal».
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`) e **cinco**
+arquivos mudam, todos com motivo: `tools/lib-extracao-md.js` (o aviso nomeado da seção fora do
+mapa — a causa-raiz), `tools/validar-plano-ciclo.js` (o mapa das seções do plano: cinco títulos
+novos e o do volume corrigido, com o alias do antigo), `tools/validar-po-ciclo.js` e
+`tools/validar-aula-ciclo.js` (os dois passam a usar o mesmo aviso: é o defeito que já tinha
+acontecido no PO em B10, e o aviso fica calado nas duas fontes), `tools/lib-vistas.js` (as três
+leituras acima). O que **não muda**: a fórmula de hash e a cobertura da âncora, a cobertura do
+`check-pacote.js`, as 22 pétreas, as 17 regras e os validadores existentes; nenhuma seção foi
+removida dos mapas e nenhuma chave existente foi renomeada ou removida — as cinco chaves novas do
+plano são **opcionais**. **Nada a reancorar**: `hash-ciclo.sh --check` fica íntegro nas duas
+escolas (leticia `70f3f06…`, tiago `03fb63d…`), porque nenhuma fonte coberta foi tocada — os
+schemas, o conteúdo do formulário e o próprio `tools/` não entram no `.fipp`.
+
+**Com o quê.** `tools/lib-extracao-md.js`, `tools/validar-plano-ciclo.js`,
+`tools/validar-po-ciclo.js`, `tools/validar-aula-ciclo.js`, `tools/lib-vistas.js`,
+`motor/nucleo/derivar-plano-ciclo.js` (a ficha composta do contexto, `parametroEmLinhas`, as duas
+seções, a nota da unidade), `motor/nucleo/derivar-ciclo.js` (o parâmetro composto no `aula-01.md`),
+`professores/leticia/ciclos/ciclo-01-plano-schema.json`,
+`professores/tiago/ciclos/ciclo-01-plano-schema.json` (as cinco propriedades novas, com descrição),
+`experimentos/provar-plano-completo.js` (nova prova), `FRENTES.md` (a frente B11),
+`motor/nucleo/README.md`, `ARQUITETURA-PE.md`.
+
+**Referências.** `CONGELAMENTO.md` · `PROTOCOLO.md` (P-08 — nenhum campo novo é perguntado; P-09 —
+o plano é do ciclo) · `REGRAS.md` (Regra 9 — a distribuição do volume; Regra 10, camadas 1 e 2) ·
+`porta/plano/conteudo/plano.json` (`ondeODadoVive`) · `tools/hash-ciclo.sh --check` · deploy
+`barra` `a29a1462` e `maria` `e3235ff7` — o `plano-01.json` servido por
+`https://maria.tmenegaz77.workers.dev/plano-01.json` já traz as quatro chaves novas, e
+`tools/gerar-vista.js tiago 01 maria guia-de-observacao 01` imprime a vista com 0 lacunas.
+
+**O que ainda não está feito.** (a) Como em B10, as chaves novas só aparecem num plano **gerado de
+novo**: as fontes já escritas à mão (`ciclo-01-maria-plano.md`) não têm as seções `## Músicas e
+vídeos` e `## Repertório`, e a ficha delas continua com as lacunas que o AUTOR escreveu — o
+`contexto` agora carrega os valores reais, e é a vista que os lê; re-derivar do envelope não é
+possível porque não há envelope no repositório. (b) A tabela do volume das fontes antigas tem
+linhas de UMA célula (`| **15% no solo** |`), com proporção e justificativa vazias: a chave chega,
+o valor não existe no documento — não se inventa. (c) No PO, `contexto-outro` e `campo-outro` continuam sem chave
+própria: eles viajam dentro das linhas compostas do campo empírico e do contexto, como o próprio
+conteúdo do PO declara — não é perda, é a forma declarada. (d) `projeto: 'Formação em Balé
+Clássico'` segue escrito à mão e lido por ninguém — a frente B10 o declarou com a contagem de oito
+derivadores; medida agora, são **onze** sítios em `motor/` e `tools/`. Fica declarado, não
+alterado: mudá-lo mexeria em todas as fontes.
+
+## 15/10/2026 — O Sistema Lastro: o nome comercial, e o mapa de evolução do produto
+
+**O que motivou.** Duas descrições de frente de produto foram entregues — a **integridade dos
+dados, indexação semântica e proveniência documental** e as **consultas pedagógicas, cruzamento
+de dados e organização comercial dos planos** — com o pedido explícito: **examinar** o repositório
+e o comportamento atual, **não implementar**, e produzir um **mapa de frentes** com escopo e
+critérios de conclusão verificáveis. E documentar o **nome comercial** do projeto no handoff.
+
+**O que foi medido** (leitura do repositório e **do KV em produção**, este somente leitura;
+**nenhum arquivo de produto foi alterado**):
+
+- **111 nós respondíveis** nos três formulários — anamnese 53 (49 obrigatórios), plano **25** (14),
+  PO **33** (19). 101 deles são campo de texto; o resto são tabela (2), matriz `porMarco` (2),
+  medida (1), data (1), periodicidade (1), registro (1), escala (1) e lista (1).
+- **As cinco famílias de chave do KV**, lidas: `envelope/<id>.json` (namespaçada pelo adaptador),
+  `<escola>/<professor>/<ciclo>/anamnese/<carimbo>` (o cofre), `<escola>/<professor>/<ciclo>-<carimbo>/`
+  (**o lançamento**), `bastidores/<escola>/*` (a Produção) e `ia-registro/registro.jsonl`.
+- **O lançamento é gravado e não tem leitor.** `motor/nucleo/lancamento.js:81-95` grava em
+  `<escola>/<professor>/<ciclo>-<carimbo>/`; não há **nenhuma** rota que o leia (a única família sem
+  `listar`). E o texto do próprio projecto (`ARQUITETURA-GERAL.md` §7) diz que o KV é rascunho e que
+  «assim que esses dados viram conteúdo de verdade, eles voltam a ser arquivo» — o que **não tem
+  caminho** hoje. É o dado central do produto (a aula dada) fora do alcance da máquina.
+- **Os identificadores, um por um.** Estáveis: escola, ciclo, turma (`bale-nivel-1`), termo
+  (`plie`) e a relação turma↔termo (chaveada por id — o bom exemplo do repositório). **Instáveis**:
+  a aluna é **o apelido e nada mais** (`alunas: ["Vavá"]`); o professor não tem slug persistido (o
+  `slugificar(p.nome)` o deriva do nome de exibição na leitura, `bastidores.js:964-970`); a curadoria
+  aponta a turma **pelo nome** (`turmas: ["Balé Nível 1"]`); e a aula liga-se ao marco do plano
+  **pelo texto** (`ciclos.json → aulas[].marco`). Renomear quebra vínculo em silêncio.
+- **O precedente que resolve metade do problema existe numa só camada.**
+  `ciclo-XX-captura-schema.json` → `_declaracao.porVariante.<v>.blocos.<t>.colunas.<rótulo>`
+  declara o par **rótulo ↔ chave ↔ tipo** de cada coluna da folha de lançamento, com a razão escrita
+  («a folha é a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS»,
+  chaves «curtas e estáveis»). Para os 111 nós dos formulários, a chave do documento derivado é
+  **derivada do rótulo visível** (`chaveDaColuna`, `tools/lib-extracao-md.js`).
+- **Proveniência com buraco declarado:** `ancora: null` em todos os envelopes lidos e em
+  `ciclos.json → aulas[].ancora` (o campo existe e **não tem produtor** — o próprio `_nota` o diz);
+  `conteudo.digest: null` (não se sabe contra que versão do conteúdo se respondeu). O que funciona:
+  a âncora por ciclo **e por aula**, o **elo do ajuste** (`ajuste_de`/`ajustado_em`/`motivo`,
+  `rotas.js:182-215`, com a recusa de apagar o vinculado), o envelope versionado (`1.2.0`) e a
+  proveniência **por campo** (`{valor, origem, respondente, nota}`).
+- **Duas políticas de escrita convivem:** `escrever-po.js` e `escrever-plano.js` **sobrescrevem**
+  (com `sha`; o histórico fica no Git) e `escrever-ciclo.js` **nunca** sobrescreve.
+- **Consultas: nada além de leitura de chave e listagem por prefixo**, com filtro em memória —
+  `vinculos()`/`vinculosDePlano()` (`porta.js:371-414`) varrem **todos** os envelopes de PO *«não se
+  grava nada»*. Não há cruzamento, filtro, agregação, busca textual nem exportação.
+- **Comercial: não existe.** Nenhum plano, preço, assinatura, cobrança, cota ou limite por plano em
+  `motor/`, `tools/`, `porta/`, `workers/`. A única pegada é `pagante: true` no andaime de expurgo
+  (`raiz/escolas-habilitadas.json`, lido por `motor/servidor/raiz.js:73`). O medidor de uso
+  (`ia-registro/registro.jsonl`) é **anexado e nunca lido**, com `tokens_in/out = 0` (stub).
+- **Duas medições que contradizem documentos** (registadas, **não** decididas): o KV da Maria
+  (`wrangler.maria.jsonc:32`) é um namespace **separado** do partilhado que o adaptador afirma
+  (`motor/adaptadores/cloudflare.js:28-47`) e que o `criar-escola.sh:434-437` grava para toda escola
+  nova — e nele os 3 envelopes de 12/10 estão **sem** o prefixo da escola; e `FRENTES.md:294`
+  (frente B5) afirma que «a KV não tem um único envelope», quando há 3 na Maria e 1 anamnese no
+  cofre.
+
+**O que foi entregue.** `PLANEJAMENTO-LASTRO.md` — o mapa de evolução do produto: o nome comercial,
+o inventário medido (§2), **nove contradições registadas para decisão** (C1–C9) e **nove frentes**
+(L1 dicionário de campos · L2 identidade estável das entidades · L3 lançamento e envelope deixam de
+ser rascunho · L4 mapa de relações e índice · L5 imutabilidade e versionamento do plano publicado ·
+L6 catálogo de consultas determinísticas · L7 fronteira da IA e medição de uso · L8 composição
+comercial e fonte única dos valores · L9 cotas, habilitação e limites por plano), cada uma com
+objetivo, situação atual, lacunas, dependências, entregas, **critérios verificáveis**, riscos e
+prioridade — mais a sequência sugerida (L1/L2 → L5 → L3 → L4 → L6 → L7 → L8 → L9) e as sete regras
+de desenho que valem para todas (a IA **não** faz o que é determinístico — critério verificável, não
+recomendação; a ausência de registro é uma **ausência**, nunca «não domina»; o produto não avalia).
+
+**O nome comercial — e a decisão de como ele entra.** O produto é o **Sistema Lastro**; este
+repositório é o **Projeto Ciclo**, o protótipo a partir do qual ele se constrói. Decisão da
+pesquisadora (15/10/2026): **declarar ao lado** — não renomear. Os quatro níveis ficam escritos
+(**Lastro** · **Sistema Lastro** · **Plataforma Lastro** · `Lastro — Sistema de Memória e
+Observabilidade Pedagógica em Dança`, este último **proposta** de denominação descritiva, **não**
+subtítulo confirmado), com o conceito central preservado: o Lastro registra e organiza evidências
+para apoiar a reflexão pedagógica; **não substitui o professor nem toma decisões sobre o aluno**.
+
+**Motivo declarado — o congelado.** `tools/` é congelado (`CONGELAMENTO.md`) e **um** arquivo muda:
+`tools/gerar-handoff.sh`, em duas coisas — (a) a emissão do nome comercial no topo de
+`## O que é este projeto` (e no título), porque o `HANDOFF.md` é o **primeiro** artefato que uma
+sessão nova lê, e o nome do produto não podia continuar ausente dele; (b) a lista dos documentos de
+intenção passa a incluir o padrão `PLANEJAMENTO-*.md`, para o mapa de evolução aparecer na seção
+«Ideias documentadas» como os `IDEIA-*`/`ARQUITETURA-*` aparecem — uma linha de `ls`, sem lógica
+nova. O que **não muda**: a fórmula de hash e a cobertura da âncora, o conteúdo dos documentos
+listados, as pétreas, as regras e os validadores. **Nada a reancorar**: `hash-ciclo.sh --check`
+fica íntegro nas duas escolas (leticia `70f3f06…`, tiago `03fb63d…`) — nenhuma fonte de ciclo foi
+tocada, e este trabalho **não alterou uma linha de código de produto**.
+
+**Um falso positivo da varredura de deriva — corrigido no caminho.** A varredura do skill
+(`varrer-deriva.sh`) acusava o documento novo **inteiro**, porque o padrão `agnóstic` casa
+**dentro** de «Di**agnóstic**o» — e este documento, que é um diagnóstico, diz «Diagnóstico» a cada
+parágrafo. Um aviso que soa em todo lugar é ruído, e ruído é o que faz a deriva de verdade passar
+despercebida: as duas ocorrências passaram a `\bagnóstic|\bagnostico` (fronteira de palavra — o
+`Di` deixa de casar). Verificado: o falso positivo sai (0 linhas do documento novo) e a varredura
+**continua** encontrando todos os achados legítimos (`METODO.md:5`, `ARQUITETURA-GERAL.md:8`,
+`ARQUITETURA-PE.md:106`…, cada um com a sua ressalva de escopo).
+
+**Com o quê.** `PLANEJAMENTO-LASTRO.md` (novo) · `tools/gerar-handoff.sh` (congelado: motivo
+declarado) · `HANDOFF.md` (regenerado) · `AGENTS.md`, `README.md` e `FRENTES.md` (livres) ·
+`.github/skills/identidade-do-projeto/references/bloco-identidade.md` (a camada do produto, com a
+nota de que «Lastro» **não** é deriva — a deriva seria tratar o protótipo como produto acabado ou
+trocar os nomes como se houvesse renomeação) · `.github/skills/identidade-do-projeto/references/
+pontos-de-entrada.md` (o documento novo entra na lista, com a sua nota de escopo) ·
+`.github/skills/identidade-do-projeto/scripts/varrer-deriva.sh` (a fronteira de palavra).
+
+**Referências.** `CONGELAMENTO.md` · `ARQUITETURA-GERAL.md` (§4 proveniência × estado, §7 a parte
+honesta do runtime) · `ARQUITETURA-AULA.md` (o ciclo de vida e a âncora por aula) ·
+`porta/envelope/elicitacao-schema.json` (o recipiente, `1.2.0`) · `po_ref/rastreabilidade.md`
+(as regras R1–R10 e as interfaces de consulta de proveniência — **do FIPP, que não é implementado
+aqui**) · `tools/lib-fontes.sh` → `fontes_do_ciclo` (o que a âncora cobre) · a listagem e a leitura
+do KV em produção (namespaces `2ee331c7…` e `f1d475e1…`).
+
+**Revisão do mesmo dia (15/10/2026, segundo elo) — contra os textos autoritativos.** Os dois
+textos chegaram como **arquivo** e foram conferidos: **byte a byte idênticos** (MD5 igual) ao
+conteúdo que já servira de base. Aí cada requisito foi **reconferido um a um** contra o mapa — e a
+conferência encontrou **quatro lacunas**, todas fechadas:
+
+1. **§2.10 — as quatro categorias.** Os **dois** textos exigem, no seu último parágrafo, «separar
+   claramente o que já existe, o que existe parcialmente, o que não existe e o que ainda precisa
+   de ser decidido» (texto 1 §9) e «o que depende de decisão comercial ou arquitetural» (texto 2
+   §10). O mapa tinha as lacunas **por frente** e não tinha a classificação do estado **numa
+   leitura só**. Entrou a tabela com as quatro categorias.
+2. **§2.11 — as seis operações do «Gerar PO».** O texto 1 §2 pede literalmente que se identifique
+   «quais operações já acontecem, quais são executadas parcialmente e quais ainda não existem», e
+   enumera seis. Entrou a tabela: **duas acontecem por inteiro** (publicação do PO; derivação dos
+   documentos), **uma por regeneração** (menus), **duas parcialmente** (folha de lançamento;
+   vínculos — e só dois elos) e **uma não existe** (estruturas de consulta). E a leitura honesta:
+   o «Gerar PO» produz **documento**, não **relação** — a relação continua a ser recalculada por
+   varredura a cada leitura (`porta.js:371-414`).
+3. **§7 — as oito perguntas do catálogo, uma a uma.** O texto 2 §4 pede que se verifique «se os
+   dados necessários estão efectivamente disponíveis» e o §10 pede o «mapa das perguntas que já
+   podem ser respondidas». Entrou o quadro: **nenhuma** das oito é respondível hoje; **três** são
+   de **[CRUZAMENTO]** (T01, T03, P01 — viáveis depois de L2+L3+L4); **quatro** exigem
+   **[VOCABULÁRIO]** (T02, T04, T05, P02); **uma** (P03) exige além disso **dados curriculares que
+   não existem** (os objetivos do próximo nível e a versão da referência).
+4. **§8 — a matriz de cobertura**, requisito por requisito dos dois textos, com o lugar onde cada
+   um é respondido; e a lista declarada do que **ainda não tem resposta** (4 itens).
+
+**E o achado que a conferência produziu — C10, com a frente L10.** Quatro conceitos com que o
+texto 2 **formula** as perguntas não existem no modelo de dados: medido nos três conteúdos,
+`componente` = **0**, `combina` = **0**, `interven` = **0**, `resposta observada` = **0**
+ocorrências; e `modalidade` aparece **duas vezes em prosa** («tempo de exposição à modalidade»)
+e **nunca como campo** — a modalidade vive hoje só na **curadoria** do KV. O mais próximo que
+existe é `itens-por-dimensao` (PO) para «componente» e `aula-1-sequencia`/`estrutura-de-cada-aula`
+(plano) para a ideia de sequência — **mas o «contexto» (isolado × combinação) não é modelado como
+relação**, é prosa dentro de um item. A consequência é de **escopo**: quatro das oito perguntas
+não são «implementar um filtro», pedem **vocabulário novo no domínio** — e decidir esse vocabulário
+é decisão de **conteúdo (P-16)**, não de infraestrutura. **Não foi decidido** se ele se acrescenta
+antes ou depois do catálogo; foi registado (**C10**) e proposto como frente **L10** (P1, antes de
+L6). Entrou também o **quadro-resumo das dez frentes** (prioridade × destranca × depende de) e a
+trilha curta: L1+L2 → L3 → L4 → **T01 ou P01**, as duas únicas perguntas viáveis sem decisão de
+conteúdo.
+
+**O que ainda não está feito.** (a) **Nenhuma das dez frentes foi iniciada** — por pedido: este
+elo é diagnóstico e plano. (b) As dez contradições (C1–C10) **esperam decisão** — em especial C3
+(o Git basta como versão de domínio?), que é a que decide o tamanho de L5, e C1 (o lançamento vira
+fonte versionada ou passa a ser lido do KV?), que decide L3 inteira. (c) Os **valores comerciais**
+do §9 continuam **apenas no texto** que originou o mapa — não foram copiados para o repositório,
+porque não há onde pô-los sem a frente L8. (d) O subtítulo descritivo segue como **proposta**.
+(e) `FRENTES.md` **não** foi corrigido nas duas medições que envelheceram (as contagens de nós do
+laudo L4 — 26/35 contra 25/33 medidos — e a frase de B5 sobre os envelopes): ficam registadas no
+mapa e nesta entrada, para o próximo elo decidir se a correção datada vale.
+
+**Terceiro elo (mesmo dia) — a decisão C3 e o que ela destranca.** Veio a decisão que faltava, pelas
+palavras do dono do produto: «**o PO/plano publicado passa a ter versão explícita que o lançamento
+referencia**». Ela **fecha a alínea (b) do elo anterior** no que toca a C3 — as outras nove
+contradições continuam a esperar — e resolve-a pelo lado que **aumenta** o escopo, não pelo que o
+diminui: o **Git não basta** como versão de domínio, e a versão passa a ser **artefacto do
+sistema**, endereçável por quem lê o dado, e não um detalhe de quem versiona o repositório.
+
+**O que se mediu antes de escrever, e como.** As três medidas que delimitam a implementação foram
+feitas em **cópia de bancada** (`/tmp`, `tar` sem `node_modules`/`.git`/`.wrangler`), **descartada
+no fim**; o repositório **não** foi tocado — a única operação sobre o ciclo real foi `--check`, que
+é leitura. Resultado:
+
+1. **A deteção já existe; falta a preservação.** Editar o `ciclo-01-maria-po.md` na bancada muda o
+   `hash_conteudo` (`c1448825342a…` → `4f5d04223be8…`) e o `tools/hash-ciclo.sh … --check` **acusa**
+   — «os fontes do ciclo mudaram desde a última ancoragem». Mas o `.fipp` é **reescrito no lugar**:
+   reancorar troca `hash_conteudo` e `ancorado_em` e **não deixa rasto do valor anterior**, e o
+   `.fipp` não tem **nenhum** campo de versão ou elo (`parentHash` encadeia **o ciclo anterior** na
+   mesma variante — `hash-ciclo.sh:195-210` —, não o estado anterior do mesmo documento). O estado
+   anterior do PO publicado existe, hoje, **só no histórico do Git**. Conclusão: a mudança não é
+   silenciosa para o **repositório**; é silenciosa para o **produto**.
+2. **O padrão da casa para introduzir uma versão já existe — só não foi aplicado ao plano.**
+   `VERSAO_DO_ENVELOPE = '1.2.0'` (`motor/nucleo/elicitar.js:86`), com o motivo da subida escrito
+   (1.1.0 → 1.2.0, pelo elo do ajuste). O que o envelope versiona é o **formato do envelope**, não
+   o **plano de que ele fala**.
+3. **O lançamento já é imutável e já tem identidade própria.** `lancamento.js:88-92` grava
+   **verbatim** e **recusa** carimbo já existente — o carimbo (`2026-10-05T1453`) **é** um id
+   imutável de lançamento. O que falta nele não é imutabilidade: é **uma linha** — a referência à
+   versão do plano observado.
+
+Dois achados de desenho que a medição acrescentou: o **único** elo do plano que existe
+(`plano-aula-NN.json` → `plano-aula-NN-anterior.json`, `gerar-ciclo.sh:254-257`, com o `cp` **antes**
+do `mv`) está num artefacto **derivado** e — diz a nota de correção de 28/09/2026 — **sem
+consumidor**: a decisão **dá-lhe o consumidor que faltava**, mas no lugar certo (a **fonte** e o
+**lançamento**), e não no derivado. E a cobertura da âncora é **lista declarada**, não curinga
+(`DOCS` do `.conf` expandido por `docs_derivado` + um **único** `ARQUIVO_PO`): uma versão guardada em
+**arquivo separado** não entra na âncora sozinha, o que pesa na escolha de S1.
+
+**O que ficou registado em aberto — as quatro sub-decisões de desenho (S1–S4).** A decisão diz que
+**há** versão e que o lançamento **a referencia**; não diz **como**. Em vez de escolher em silêncio,
+o mapa registou-as: **S1** onde mora o ordinal (front-matter do `.md` — entra no `hash_conteudo` e
+fica **inforjável**; arquivo por versão — esbarra na cobertura declarada; campo do `.fipp` — fica
+fora da fórmula, como `po_state`); **S2** onde mora o elo para a versão anterior (a disciplina do
+`cp`, um campo do `.fipp`, ou o commit do Git — e, nesse caso, qual fica declarado); **S3** a
+granularidade (a versão do plano **do ciclo**, a do **plano da aula**, ou ambas — o PO/plano é por
+ciclo, o lançamento é por aula); **S4** a **retroatividade** — os PO/plano **já publicados** (Maria)
+não têm versão, e declará-los v1 é uma **decisão**, não uma inferência.
+
+**O que mudou no mapa.** §2.7 ganhou o medido (a âncora deteta sem preservar; o elo derivado e sem
+consumidor; o lançamento já imutável; a cobertura declarada). §2.10 tirou C3 da coluna «precisa de
+decisão». §3 manteve o parágrafo original de C3 **intacto** — a proveniência acrescenta, não edita —
+e recebeu o elo datado com a decisão, os três factos e S1–S4. §4 reescreveu **L5**, que deixa de ser
+«imutabilidade e versionamento» em espera e passa a **«versão explícita do plano publicado, que o
+lançamento referencia»**, com entregas e critérios verificáveis próprios (a versão anterior
+**recuperável sem `git`**; subir a versão **não** reescreve lançamento já gravado). §5 passou a
+camada 1 a «a versão e a ponte», com a ordem L5 → L3 justificada. §8 e §9 acompanharam. E a
+referência solta a «C3» que havia em L1 (que ali significava **versão da definição do campo**, coisa
+**distinta**) foi desfeita para a lacuna (4) da própria frente, que é o que ela realmente era.
+
+**Motivo declarado.** **Nenhum** arquivo congelado foi tocado neste elo: o mapa nasceu nesta sessão
+(`PLANEJAMENTO-LASTRO.md`, livre), e `REGISTRO.md`, `FRENTES.md` e o `HANDOFF.md` (regenerado pelo
+gerador) são livres ou gerados. Não há, por isso, motivo declarado a registar — e **nada** foi
+implementado em código de produto: a decisão ficou **decidida, medida e desenhada**, não executada.
+
+**Quarto elo (mesmo dia) — o desenho da versão: S1–S4 propostas e aprovadas.** A decisão do elo
+anterior dizia **o quê** («versão explícita que o lançamento referencia»); faltava **como**. O que se
+segue foi **medido, proposto e aprovado** — e **nada** foi implementado.
+
+**O que a medição mostrou, e que mudou o tom da proposta: o encaixe já existe, falta ligá-lo.**
+
+1. **As fontes publicadas já têm frente YAML.** `ciclo-01-maria-po.md` e `-plano.md` começam por
+   `--- projeto: … frente: … ---`. Uma chave `versao: N` não é mecanismo novo — é uma chave nova
+   numa estrutura viva.
+2. **O leitor dessa frente existe e está em uso.** `lerYamlCabecalho`
+   (`tools/lib-extracao-md.js:56`) é chamado pelos **quatro** validadores (plano, PO, aula,
+   captura) — não é código morto.
+3. **O `plano-NN.json` que o formulário lê é a saída `--json` desse mesmo validador**
+   (`tools/gerar-ciclo.sh:215-216` → `validar-plano-ciclo.js --json`, que chama `lerYamlCabecalho`
+   na linha 149). O artefacto do formulário passa **exatamente** pelo código que já lê a frente:
+   expor a versão ali é **uma linha**, não encanamento novo.
+4. **O formulário de lançamento já busca `po-XX.json` e `plano-XX.json`** no pacote, por convenção
+   de nome (`tools/templates/lancamento.html:283-300`) — logo o lançamento **pode declarar a versão
+   que observou** sem rota nova.
+5. **Os derivados já emitem frente** (`motor/nucleo/derivar-plano-ciclo.js:524`: `frente`, `ciclo`,
+   `escola`, `professor`, `title`): uma frente que nomeia versão segue a convenção da casa.
+
+**A proposta (escrita em §L5 do mapa), e o que a sustenta.** **S1** — o ordinal mora na **frente
+YAML** da fonte: a frente inteira é hasheada (o `hash_conteudo` é calculado sobre o **arquivo**,
+`hash-ciclo.sh:191-193`), logo a versão fica **dentro da âncora e inforjável** — mudar o conteúdo
+sem subir a versão **também** muda o hash, e a edição não declarada fica **detetável**. **S2** — o
+elo é o **par no `.fipp`** (`versao_anterior` + `hash_conteudo_anterior`, com a disciplina do `cp`
+**antes** do `mv` de `gerar-ciclo.sh:254`) **mais o lançamento como testemunho** de domínio: dá o
+**consumidor que `plano-aula-NN-anterior` nunca teve**, e a passagem de v1 para v2 fica
+testemunhada pelo **dado** — «o ajuste não se declara, ele se vê» (P-03/P-04). **S3** — a referência
+é às **fontes**, por documento (**PO** e **plano** separados, porque mudam independentemente), e o
+derivado **não** ganha ordinal próprio: seria uma **segunda autoridade** para o mesmo facto.
+**S4** — **não retroagir**: ausência de `versao` significa «legado», declarado; o **escritor**
+carimba ao salvar, porque é ele — o caminho que **sobrescreve** — que sabe que está a produzir
+versão nova. E a regra que decorre de S1–S2: **a versão sobe quando o conteúdo muda** (igual →
+mesma versão, sem elo), e a distinção «correção antes de publicar» × «mudança depois de observado»
+**resolve-se pelo lançamento**, não pelo versionamento.
+
+**Dois caminhos rejeitados, com medida.** Versão em **arquivo separado** (`po-v2.md`): a cobertura
+da âncora é **lista declarada** com um **único** `ARQUIVO_PO` (`lib-fontes.sh` → `fontes_do_ciclo`,
+com `DOCS` expandido por `docs_derivado`), logo o irmão **não** seria testemunhado; e apontar
+`ARQUIVO_PO` para o novo tornaria a versão **antiga permanentemente não verificável** — o
+`hash_conteudo` dela nunca mais poderia ser recalculado, que é o **oposto** do objetivo. E o ordinal
+no `.fipp` como **autoridade**: o `.fipp` é **regenerado** e os seus campos ficam **fora** da
+fórmula (por desenho, `hash-ciclo.sh:32-34`) — aceito apenas como **espelho**, para quem lê a cadeia
+à mão.
+
+**A aprovação, e o que ela NÃO fechou.** O dono do produto aprovou **S1–S4 como propostos** — a
+aprovação é do **desenho**, não da implementação. Três questões **de produto** ficaram fora do
+escopo da proposta e continuam abertas, agora com nome: **S5** o **formato** do ordinal (número
+sequencial × data + sequência); **S6** **quando** reancorar (na hora da subida × no fecho do ciclo);
+**S7** **como** o formulário mostra a versão ao professor — e **se** mostra. Nenhuma das três
+bloqueia o começo da implementação, mas as três mudam o que se escreve, e por isso **não** foram
+decididas por omissão.
+
+**O que mudou no mapa.** §3 C3 mantém o enunciado de S1–S4 como **elo** (é o que se perguntou) com a
+nota de que foram propostas e aprovadas no mesmo dia; §L5 ganhou a **proposta** (agora marcada como
+tal) e o **fecho aprovado** — a proposta **não** foi reescrita. §2.10, §4, §5 e §8 acompanharam
+C3 → **C3 + S1–S4**, deixando em aberto apenas **S5–S7**.
+
+**Motivo declarado.** **Nenhum** arquivo congelado foi tocado neste elo. Os arquivos alterados são o
+mapa (`PLANEJAMENTO-LASTRO.md`, nascido nesta sessão), o `REGISTRO.md`, o `FRENTES.md` e o
+`HANDOFF.md` (regenerado pelo gerador) — livres ou gerados. E **nenhuma linha de código de produto
+foi escrita** em nenhum dos quatro elos de hoje: a versão está **decidida, medida, proposta e
+aprovada** — não executada.
+
+**Quinto elo (mesmo dia) — as três questões de produto: S5–S7 decididas, o desenho de L5 fechado.**
+A aprovação do elo anterior fechou o **desenho técnico** (S1–S4) e deixou de fora, declaradamente,
+**três questões de produto**. Foram decididas em seguida — e com isto **o desenho de L5 está
+completo**: a decisão (C3), o desenho (S1–S4) e as três de produto (S5–S7). **Nada foi
+implementado.**
+
+**S5 — número sequencial inteiro** (`versao: 2`). O argumento não é gosto: é a **regra 6** do §6 do
+mapa — *determinismo: rodar duas vezes produz o mesmo arquivo*. Uma **data** dentro da versão faz o
+artefacto **depender do relógio** e deixar de ser reconstruível. E o «quando» **já existe em três
+lugares**: o `ancorado_em` do `.fipp`, o **carimbo** do lançamento (`lancamento.js`) e o Git — pôr a
+data na versão **duplicaria** o que já existe, e informação duplicada diverge. A função da versão é
+**ordenar e endereçar**, não datar. Nota técnica registada: o leitor da frente devolve **strings**
+(`tools/lib-extracao-md.js:67`), logo o número precisa de coerção — o formato data precisaria de um
+parser.
+
+**S6 — reancorar na hora**, a cada publicação. **A medida sustenta a decisão:** qualquer edição numa
+fonte coberta **já** faz o `hash-ciclo.sh --check` falhar hoje (provado na bancada, elo anterior).
+Adiar a reancoragem para o fecho do ciclo **institucionalizaria um estado que a ferramenta reporta
+como erro** — a janela de divergência passaria a ser o normal, e o `--check` deixaria de servir como
+cadeia de custódia. E a versão e o `hash_conteudo` têm de **andar juntos**, senão podem
+contradizer-se; o elo de **S2** só é inequívoco **no instante em que a versão sobe**. Custo da
+decisão: **nenhum** — a exigência já existe hoje.
+
+**S7 — mostrar discreto e somente-leitura.** O argumento é de produto, e é o mais importante dos
+três: **o professor não pode escolher a versão**. A referência é **observada e registada**, não
+**selecionada** — se fosse selecionável, a **evidência seria falsificável**, e o produto perderia
+exactamente o que esta decisão veio proteger. Em troca, ele **deve** ver contra que versão lançou: é
+isso que faz uma alteração posterior **não parecer** que observou o que não estava previsto. O
+**alerta** (a versão mudou desde o último lançamento) fica para quando **L3** der leitor ao
+lançamento — sem leitor, não há com o que comparar.
+
+**O que mudou no mapa.** §L5 recebeu o **fecho datado** de S5–S7 (o enunciado das três perguntas fica
+**intacto** — é o que se perguntou). §2.10, §4, §5, §8 e §9 acompanharam: as três saíram de «precisa
+de decisão» e o desenho de L5 passou a **completo**. A frente **L5 fica pronta a implementar** — o
+que falta é a **obra**, não a decisão.
+
+**Motivo declarado.** **Nenhum** arquivo congelado foi tocado neste elo. Alterados: o mapa
+(`PLANEJAMENTO-LASTRO.md`, nascido nesta sessão), o `REGISTRO.md`, o `FRENTES.md` e o `HANDOFF.md`
+(regenerado pelo gerador). E, como nos quatro elos anteriores, **nenhuma linha de código de produto
+foi escrita**.
