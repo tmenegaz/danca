@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T12:55:03-0300`
-Commit atual: `a45ec58` — chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
+Gerado em: `2026-10-15T13:12:21-0300`
+Commit atual: `f40f29c` — feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO no cofre
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago (2)
 ## Últimos commits
 
 ```
+f40f29c feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO no cofre
+4e4adf5 docs(registro): a árvore nunca fica limpa depois de um commit que toca fonte de ciclo
 a45ec58 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 4f61a8b chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 9a4e792 chore(entrega): os pacotes da Barra e da Maria absorvem o formulário que decifra pelo Worker
@@ -81,8 +83,6 @@ a7a99e5 chore(entrega): a geração da Barra absorve a página dos bastidores e 
 fff06ae Merge origin/main — o pacote da Barra gerado pela Action entra ao lado da correção da cifra
 52da76e chore(entrega): gerar o pacote de leticia/01/barra
 bf3b08f feat(ciclo): o «Guardar» do PO cifra ciclo-01-barra-dados.cifrado.json
-1f11443 feat(po): o PO elicitado vira a fonte do ciclo
-65f9d1b fix(estrutura): a cifra do Worker respeita o teto do runtime — e a falha deixa de ser muda
 ```
 
 ## Por professor
@@ -158,128 +158,89 @@ bf3b08f feat(ciclo): o «Guardar» do PO cifra ciclo-01-barra-dados.cifrado.json
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — A chave de cifra vira interna do Worker: ninguém a vê, ninguém a arquiva
+## 15/10/2026 — O lançamento da aula confere a senha e grava cifrado no cofre
 
-**O que motivou.** O dono do produto, olhando o arquivo de senhas depois do espelho por escola:
+**O que motivou.** O elo anterior deixou o formulário **autenticando para LER e não autenticando para
+GRAVAR** — incoerência que o dono do produto mandou fechar. O que se mediu antes de mexer:
 
-> *«Quando eu criar uma escola nova, eu vou receber então a senha barra, ou a senha da escola… Ou não
-> sou eu que guardo isso? Porque é meio estranho eu ter que pegar essas senhas e colocar num arquivo.
-> Pra mim, como usuário, isso já deveria ser automático. E, na verdade, a senha da escola pode até ser
-> uma senha gigante como essa aqui você tá me passando. Mas o que o professor espera, o que a pessoa
-> que tá criando espera, é que a senha seja a senha que ela colocou ali. E não uma senha gigante
-> modificada da que ela colocou. Então é meio estranho isso.»*
-
-Ele está certo, e o **diagnóstico do estado anterior** mostrou o tamanho do absurdo:
-
-| O que a chave protegia | Medido |
+| O que | Estado anterior |
 |:--|:--|
-| O `-dados.json` do pacote | **A semente vazia** — `aulas: []` nos DOIS pacotes; o lançamento vai para o KV, em texto puro, e nada o traz de volta |
-| O `-dados.json` como coisa sensível | O que ele traz é `apelidos`, que saem **em claro no envelope**, por decisão registrada |
-| O uso da chave no formulário | **Nunca acontecia**: o caminho é `if (!bruto.lancamentos) return …`, e `lancamentos` é sempre 0 |
+| `POST /api/receber` com corpo vazio | `HTTP 200 {"ok":false,"erro":"nenhum arquivo no pedido"}` — **recusa de negócio, não 401**: a rota não tinha conferência nenhuma |
+| Quem podia gravar | **qualquer um** que soubesse o endereço da escola |
+| O que se gravava no KV | o JSON do lançamento em **TEXTO PURO** — nome, presença e observação de aluna, o mesmo dado que o pacote cifra com cuidado |
+| O que já existe no KV | lançamentos **em claro** das escolas do experimento (a listagem do namespace mostra `diaghilev/fokini/…`) |
 
-Ou seja: uma chave gerada, exibida uma única vez, arquivada à mão — **para cifrar um arquivo vazio, e
-sem que ninguém a digite no caminho real**. E, ao lado dela, `/api/receber` grava lançamento em texto
-puro **sem autenticação nenhuma** (medido: `HTTP 200 {"ok":false,"erro":"nenhum arquivo no pedido"}` —
-recusa de negócio, não 401).
-
-**Por que a chave não pode ser simplesmente «a senha que ela digitou».** Se a chave **for** a senha,
-trocar a senha inutiliza tudo o que já foi cifrado (o `-dados.json` do pacote e os acompanhamentos das
-alunas): um aluno muda de senha e o arquivo histórico deixa de abrir. A pergunta certa não é «qual
-senha usar» — é **«quem precisa ver a chave?»**. E a resposta é: **ninguém**.
+Era a quarta opção da lista apresentada no elo anterior — *«quero ver o `/api/receber` autenticado e o
+dado cifrado também no KV»* — e a escolhida pelo dono do produto agora.
 
 **O que foi decidido.**
-- **A criação para de entregar a chave.** `provisionar-escola.js` continua gerando e gravando a
-  `SENHA_CRIPTO` como secret do Worker, mas **não a devolve** na resposta; a página `danca` para de
-  exibi-la e diz que ela ficou no Worker. Não há nada a anotar, nada a copiar.
-- **O Worker decifra** (`motor/servidor/ler-dados.js`, novo). O navegador **deixa de conhecer a
-  chave**: manda a senha da PESSOA — a que ela já sabe, e que o Worker já confere nos Bastidores — e
-  recebe o **texto em claro**. A senha passa a ser só **autenticação**; trocá-la **não invalida nada**.
-- **A conferência é a da ESCOLA** (a direção ou qualquer professor cadastrado), e **não** a
-  por-professor do `validar-senha`: aquela existe para o login DE UMA PESSOA («a senha de um professor
-  nunca vale para outro — era esse o vazamento»); esta abre o DADO DA ESCOLA, que não pertence a um
-  professor. A política nova está escrita em `senhaDaEscolaOk`.
-- **O nome do arquivo é conferido, não confiado.** Ele vem do cliente: sem o filtro, uma travessia de
-  caminho (`../../tools/.senhas-locais`) leria outro arquivo do ASSETS e o devolveria **em claro** a
-  quem tem a senha de um professor. O filtro aceita só `ciclo-NN[-escola]-dados[-carimbo].json`.
+- **As duas coisas vêm INJETADAS da ponte**, porque o núcleo é PURO (sem `env`, sem chave, sem rede):
+  `opcoes.autorizar` e `opcoes.cifrar` chegam a `lancar()` de quem tem o segredo.
+- **`autorizar` é a MESMA conferência da leitura** — a senha da ESCOLA (a direção ou qualquer
+  professor cadastrado), e não a por-professor do `validar-senha`. Ler e gravar passam a exigir o
+  mesmo, que era o ponto.
+- **Sem `autorizar` injetado, o lançamento é RECUSADO.** A alternativa — aceitar quando ninguém
+  injetou nada — faria de um esquecimento da ponte uma porta de escrita aberta. *(O elo anterior já
+  pagou por um esquecimento de injeção: o `lerDados` que não chegou à chamada virou «não está
+  disponível» em vez de funcionar — falha declarada, mas falha.)*
+- **Cifra no repouso, os DOIS arquivos.** O de dados traz aluna; o índice traz a data de cada aula.
+  O envelope é cifrado com a `SENHA_CRIPTO` (100.000 iterações, o teto do runtime) e traz a sua
+  própria nota — quem topar com o valor no KV sabe o que é.
+- **Sem chave (escola legada), grava em claro e a RESPOSTA DIZ** (`cifrado: false`), com o formulário
+  avisando em vermelho. Guardar dado de aluna sem cifra não pode ser silencioso.
 
-**Consequências declaradas — as duas, sem eufemismo.**
-- **O segredo do Cloudflare é WRITE-ONLY.** Não há como lê-lo de volta, nem pelo painel nem pela API.
-  Sem a exibição, a chave torna-se **irrecuperável por qualquer pessoa** — é exatamente isso que a
-  torna interna, e é o preço. O que ela custa: a ferramenta **local** que precisa dela, o
-  `gerar-acompanhamento.sh` (que cifra a página de cada aluna com o `pagecrypt`), passa a depender de
-  a cifra **migrar para o Worker**. Hoje **não há acompanhamento nenhum** (o ciclo da Barra registra
-  «0 aluna(s) · 0 relatório(s)»), então nada ficou inacessível — e as chaves das duas escolas de teste
-  seguem em `tools/.senhas-locais`, para quem precisar delas agora.
-- **O teto do runtime reaparece do outro lado.** O WebCrypto do workerd recusa PBKDF2 acima de
-  100.000 iterações; o envelope do CLI local tem 2e6. Abrir um pacote legado pelo Worker **falha**, e
-  a falha é **declarada** com a instrução («regenere o pacote — o gerador usa a contagem do Worker»).
-  Medido: a **Maria**, escola legada **sem `SENHA_CRIPTO`**, responde «a leitura dos dados cifrados não
-  está disponível» em vez de estourar — caminho degradado declarado, não erro obscuro.
+**Um contrato que o teste de bancada pegou — e que teria corrompido dado em silêncio.** A injeção de
+`cifrar` devolvia o **envelope montado (objeto)**, e o KV **coage objeto para a string
+`[object Object]` sem erro nenhum**: o lançamento sumiria e a gravação diria «ok». Duas correções:
+a injeção **serializa** (o texto que vai ao KV é texto), e `lancar` **confere o tipo** do que a cifra
+devolveu e **recusa** se não for texto — um contrato violado tem de doer agora, não virar registro
+perdido.
 
-**Motivo declarado — os congelados.** `tools/templates/` está congelado. O motivo: **o formulário
-público era o último lugar onde a chave aparecia**, e mantê-la lá contradiria a decisão — ele decifrava
-com a chave digitada, e agora **pede a senha da pessoa ao Worker**. O que **não muda**: a fórmula da
-cifra (`PBKDF2-SHA256+AES-GCM`), o esquema do envelope (autodescritivo), o contrato do
-`check-pacote.js`, a obrigatoriedade do `-dados.json` cifrado no pacote, as 17 regras e as 22 pétreas.
-Nenhum arquivo de ciclo foi tocado como fonte — a âncora `.fipp` não cobre `tools/` **nem** as saídas
-geradas, então **não há reancoragem**.
+**Um risco operacional medido, e que vale para toda implantação.** A propagação do Cloudflare **não é
+instantânea**: durante ~20 segundos depois do deploy, a mesma URL respondeu ora a versão nova, ora a
+antiga. No teste, isso fez a Maria **aceitar e gravar em claro** com a senha errada (a versão antiga
+não conferia nada) — e o artefato foi **apagado do KV** depois. Barra e Maria passaram pelas duas
+janelas. **Não se mede um deploy antigo com uma requisição só.**
 
 **Onde entrou.**
-- `motor/servidor/ler-dados.js` (novo) — o leitor: filtro do nome, conferência da senha, decifra.
-- `motor/servidor/bastidores.js` — `senhaDaEscolaOk` (a política da escola), exportada.
-- `motor/servidor/cloudflare.js` — a injeção do leitor (`passosDeGeracao` + `montarPorta`), no mesmo
-  padrão de `escreverCiclo`; o prefixo do leitor é **vazio** (o `-dados.json` mora na raiz do pacote,
-  e a porta sob `plano-observacao/`).
-- `motor/servidor/rotas.js` — a rota `POST /api/dados`.
-- `motor/servidor/producao.js` — o despacho de `/api/dados` na raiz.
-- `motor/servidor/provisionar-escola.js` — para de devolver `senhaCripto`.
-- `raiz/index.html` — para de exibir a chave; diz que ela ficou no Worker.
-- `tools/templates/lancamento.html` — a decifra passa pelo Worker; o rótulo vira «Sua senha»; a
-  `lib-cifra.js` sai do formulário (o navegador não decifra mais nada).
+- `motor/nucleo/lancamento.js` — `lancar(armazenamento, corpo, { autorizar, cifrar })`: a recusa por
+  falta de conferência, a conferência da senha, a cifra dos dois arquivos, a guarda de tipo e o
+  `cifrado` na resposta.
+- `motor/servidor/cifrar-envelope.js` — `cifrarTexto` (o envelope de um texto qualquer) e
+  `ITERACOES_DO_WORKER` exportado: **uma definição só** do teto do runtime.
+- `motor/servidor/cloudflare.js` — `senhaDaEscola(env)` (uma definição para ler e gravar) e
+  `criarLancamento(env)`; a serialização do envelope.
+- `motor/servidor/rotas.js` — o repasse de `lancamentoSeguro`.
+- `tools/templates/lancamento.html` — a senha passa a ser exigida para gravar (`enviar`), o aviso de
+  gravação sem cifra, e o campo que agora diz que **autoriza a gravar**.
 
-**Com o quê.** Os arquivos acima, mais os pacotes regenerados da Barra e da Maria (o formulário é
-gerado a partir do template), `REGISTRO.md` e `HANDOFF.md`.
+**Motivo declarado — os congelados.** `tools/templates/` está congelado. O motivo: o formulário é
+quem **envia** — sem ele mandar a senha, a rota nova recusaria todo lançamento e a proteção viraria
+um bloqueio. O que **não muda**: a fórmula da cifra, o esquema do envelope, o contrato do
+`check-pacote.js`, o formato do corpo do lançamento (só ganhou o campo `senha`), as 17 regras e as 22
+pétreas. Sem reancoragem (nem `tools/` nem as saídas são cobertas pelo `.fipp`).
 
-**Referências.** Os quatro elos de 15/10/2026 anteriores · `motor/servidor/cifrar-envelope.js` (o
-teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3b) ·
-`CONGELAMENTO.md` (`tools/templates/`).
+**Com o quê.** Os arquivos acima, mais os pacotes regenerados da Barra e da Maria, `REGISTRO.md` e
+`HANDOFF.md`.
+
+**Referências.** Os cinco elos de 15/10/2026 anteriores · `motor/nucleo/cofre.js` (a família de chaves
+do cofre, que o lançamento já usava) · `CONGELAMENTO.md` (`tools/templates/` e a política de segurança
+dos dados sensíveis).
 
 **O que ainda não está feito.**
-- **`/api/receber` continua SEM AUTENTICAÇÃO**, e o lançamento continua gravado em **texto puro** no
-  KV. Era a quarta opção da lista apresentada («quero ver o `/api/receber` autenticado e o dado
-  cifrado também no KV»), e **não** foi a escolhida. Fica registrado como o descompasso que sobra: o
-  formulário autentica para LER e não autentica para GRAVAR. Enquanto isso, quem souber o endereço da
-  escola pode gravar um lançamento no KV dela.
-- **Os acompanhamentos não têm mais como obter a chave localmente** (a consequência acima). A frente
-  que fecha isso é a cifra dos acompanhamentos **migrar para o Worker** — ou um caminho gated para
-  revelá-la, que contradiria «ninguém a vê» e por isso não foi feito sem decisão do dono do produto.
-- **A `lib-cifra.js` continua sendo copiada para o pacote** pelo `gerar-ciclo.sh`, agora sem uso no
-  formulário. Limpeza pequena, não feita, para não aumentar a superfície congelada deste commit.
-- O caminho novo **não foi exercitado com dado real**: o pacote nunca tem `lancamentos > 0`, então o
-  formulário nunca chama a rota. O que foi provado é a ROTA (cinco casos, no ar) e o formulário
-  publicado (chama `/api/dados`, não carrega `Cifra`, rótulo novo).
-- **A Maria é escola legada**: sem `SENHA_CRIPTO` e com envelope de 2e6 na semente. Ela responde a
-  falha declarada; migrá-la (criar o secret e regenerar o envelope) não foi feito.
-- **A árvore NUNCA fica limpa depois de um commit que toque fonte de ciclo — e não foi este trabalho
-  que a fez assim.** O hook de `pre-commit` regenera o ciclo, e a regeração reescreve, a cada passo,
-  coisas que não são conteúdo: o `gerado_em` do `ciclos.json` (resolução de minuto), o carimbo
-  embutido nos PDFs, e o **envelope cifrado da Maria** — que o gerador re-cifra porque o pacote dela
-  não traz a cópia pronta do Worker, e cada cifra sorteia sal e IV novos. Medido três vezes seguidas:
-  gerar → sujar a árvore → commitar → sujar de novo, sem convergir. **Não é defeito do espelho das
-  senhas nem desta entrada**: é a combinação `gerador × hook`, e persegui-la é infinito. O que se
-  fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
-  são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
-  gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.
+- **Os lançamentos JÁ GRAVADOS em claro continuam em claro** — inclusive os do experimento
+  (`diaghilev/fokini/…`). A cifra vale daqui para frente; migrar o que existe é outra operação, e
+  ninguém a pediu.
+- **Não há LEITOR do lançamento no KV.** O caminho é de mão única: o formulário grava, e nada lê de
+  volta (o pacote é sempre a semente vazia). Quem for ler vai precisar decifrar com a mesma chave — e
+  é isso que o envelope diz.
+- **A Maria continua sem `SENHA_CRIPTO`**: ela aceita o lançamento e grava **em claro**, com a
+  resposta dizendo `cifrado: false` e o formulário avisando. Criar o secret nela é decisão do dono do
+  produto.
+- O pacote **não** foi regenerado com aviso nenhum no PDF sobre o KV; e a `lib-cifra.js` continua
+  copiada para o pacote sem uso no formulário (limpeza pequena, ainda não feita).
 
 ## O que está pendente
-
-## 15/10/2026 — O guarda do pre-push passa a conferir a última linha do arquivo de senhas
-
-- Não há **teste automatizado** para o hook: a prova foi a reprodução manual acima. O hook aceita
-  `SENHAS_LOCAIS=<arquivo>` (caminho trocável), então um teste é possível — mas não existe.
-- O defeito irmão, agora que a última linha é lida: uma senha com `=` no valor. O `read` com
-  `IFS='='` devolve o resto ao último campo, o que preserva `a=b`; **não foi medido**, e fica dito
-  como não verificado em vez de suposto.
 
 ## 15/10/2026 — A criação da escola diz onde guardar a senha de criptografia
 
@@ -373,6 +334,20 @@ teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3
   fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
   são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
   gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.
+
+## 15/10/2026 — O lançamento da aula confere a senha e grava cifrado no cofre
+
+- **Os lançamentos JÁ GRAVADOS em claro continuam em claro** — inclusive os do experimento
+  (`diaghilev/fokini/…`). A cifra vale daqui para frente; migrar o que existe é outra operação, e
+  ninguém a pediu.
+- **Não há LEITOR do lançamento no KV.** O caminho é de mão única: o formulário grava, e nada lê de
+  volta (o pacote é sempre a semente vazia). Quem for ler vai precisar decifrar com a mesma chave — e
+  é isso que o envelope diz.
+- **A Maria continua sem `SENHA_CRIPTO`**: ela aceita o lançamento e grava **em claro**, com a
+  resposta dizendo `cifrado: false` e o formulário avisando. Criar o secret nela é decisão do dono do
+  produto.
+- O pacote **não** foi regenerado com aviso nenhum no PDF sobre o KV; e a `lib-cifra.js` continua
+  copiada para o pacote sem uso no formulário (limpeza pequena, ainda não feita).
 
 ## Pendências anteriores (índice)
 
@@ -517,6 +492,7 @@ teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3
 - **15/10/2026** — A dimensão observada deriva do PLANO (e o vocabulário do… → `REGISTRO.md` L12149
 - **15/10/2026** — A cifra do Worker respeita o teto do runtime, e a falha… → `REGISTRO.md` L12267
 - **15/10/2026** — A geração publica: o deploy entra na cadeia → `REGISTRO.md` L12367
+- **15/10/2026** — O guarda do pre-push passa a conferir a última linha do… → `REGISTRO.md` L12431
 - PO de **leticia · barra** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **leticia · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - PO de **tiago · maria** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).

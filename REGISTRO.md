@@ -12822,3 +12822,85 @@ teto do runtime, do outro lado) · `motor/servidor/escrever-ciclo.js` (o passo 3
   fez: absorver o volteio no commit próprio (como em 15/10) e **descartar o resíduo final**, porque
   são SAÍDAS reconstruíveis e o conteúdo é idêntico a menos de carimbo. A frente que fecha isso — o
   gerador só reescrever o que muda de verdade, ou carimbar a partir do commit — não foi aberta.
+
+## 15/10/2026 — O lançamento da aula confere a senha e grava cifrado no cofre
+
+**O que motivou.** O elo anterior deixou o formulário **autenticando para LER e não autenticando para
+GRAVAR** — incoerência que o dono do produto mandou fechar. O que se mediu antes de mexer:
+
+| O que | Estado anterior |
+|:--|:--|
+| `POST /api/receber` com corpo vazio | `HTTP 200 {"ok":false,"erro":"nenhum arquivo no pedido"}` — **recusa de negócio, não 401**: a rota não tinha conferência nenhuma |
+| Quem podia gravar | **qualquer um** que soubesse o endereço da escola |
+| O que se gravava no KV | o JSON do lançamento em **TEXTO PURO** — nome, presença e observação de aluna, o mesmo dado que o pacote cifra com cuidado |
+| O que já existe no KV | lançamentos **em claro** das escolas do experimento (a listagem do namespace mostra `diaghilev/fokini/…`) |
+
+Era a quarta opção da lista apresentada no elo anterior — *«quero ver o `/api/receber` autenticado e o
+dado cifrado também no KV»* — e a escolhida pelo dono do produto agora.
+
+**O que foi decidido.**
+- **As duas coisas vêm INJETADAS da ponte**, porque o núcleo é PURO (sem `env`, sem chave, sem rede):
+  `opcoes.autorizar` e `opcoes.cifrar` chegam a `lancar()` de quem tem o segredo.
+- **`autorizar` é a MESMA conferência da leitura** — a senha da ESCOLA (a direção ou qualquer
+  professor cadastrado), e não a por-professor do `validar-senha`. Ler e gravar passam a exigir o
+  mesmo, que era o ponto.
+- **Sem `autorizar` injetado, o lançamento é RECUSADO.** A alternativa — aceitar quando ninguém
+  injetou nada — faria de um esquecimento da ponte uma porta de escrita aberta. *(O elo anterior já
+  pagou por um esquecimento de injeção: o `lerDados` que não chegou à chamada virou «não está
+  disponível» em vez de funcionar — falha declarada, mas falha.)*
+- **Cifra no repouso, os DOIS arquivos.** O de dados traz aluna; o índice traz a data de cada aula.
+  O envelope é cifrado com a `SENHA_CRIPTO` (100.000 iterações, o teto do runtime) e traz a sua
+  própria nota — quem topar com o valor no KV sabe o que é.
+- **Sem chave (escola legada), grava em claro e a RESPOSTA DIZ** (`cifrado: false`), com o formulário
+  avisando em vermelho. Guardar dado de aluna sem cifra não pode ser silencioso.
+
+**Um contrato que o teste de bancada pegou — e que teria corrompido dado em silêncio.** A injeção de
+`cifrar` devolvia o **envelope montado (objeto)**, e o KV **coage objeto para a string
+`[object Object]` sem erro nenhum**: o lançamento sumiria e a gravação diria «ok». Duas correções:
+a injeção **serializa** (o texto que vai ao KV é texto), e `lancar` **confere o tipo** do que a cifra
+devolveu e **recusa** se não for texto — um contrato violado tem de doer agora, não virar registro
+perdido.
+
+**Um risco operacional medido, e que vale para toda implantação.** A propagação do Cloudflare **não é
+instantânea**: durante ~20 segundos depois do deploy, a mesma URL respondeu ora a versão nova, ora a
+antiga. No teste, isso fez a Maria **aceitar e gravar em claro** com a senha errada (a versão antiga
+não conferia nada) — e o artefato foi **apagado do KV** depois. Barra e Maria passaram pelas duas
+janelas. **Não se mede um deploy antigo com uma requisição só.**
+
+**Onde entrou.**
+- `motor/nucleo/lancamento.js` — `lancar(armazenamento, corpo, { autorizar, cifrar })`: a recusa por
+  falta de conferência, a conferência da senha, a cifra dos dois arquivos, a guarda de tipo e o
+  `cifrado` na resposta.
+- `motor/servidor/cifrar-envelope.js` — `cifrarTexto` (o envelope de um texto qualquer) e
+  `ITERACOES_DO_WORKER` exportado: **uma definição só** do teto do runtime.
+- `motor/servidor/cloudflare.js` — `senhaDaEscola(env)` (uma definição para ler e gravar) e
+  `criarLancamento(env)`; a serialização do envelope.
+- `motor/servidor/rotas.js` — o repasse de `lancamentoSeguro`.
+- `tools/templates/lancamento.html` — a senha passa a ser exigida para gravar (`enviar`), o aviso de
+  gravação sem cifra, e o campo que agora diz que **autoriza a gravar**.
+
+**Motivo declarado — os congelados.** `tools/templates/` está congelado. O motivo: o formulário é
+quem **envia** — sem ele mandar a senha, a rota nova recusaria todo lançamento e a proteção viraria
+um bloqueio. O que **não muda**: a fórmula da cifra, o esquema do envelope, o contrato do
+`check-pacote.js`, o formato do corpo do lançamento (só ganhou o campo `senha`), as 17 regras e as 22
+pétreas. Sem reancoragem (nem `tools/` nem as saídas são cobertas pelo `.fipp`).
+
+**Com o quê.** Os arquivos acima, mais os pacotes regenerados da Barra e da Maria, `REGISTRO.md` e
+`HANDOFF.md`.
+
+**Referências.** Os cinco elos de 15/10/2026 anteriores · `motor/nucleo/cofre.js` (a família de chaves
+do cofre, que o lançamento já usava) · `CONGELAMENTO.md` (`tools/templates/` e a política de segurança
+dos dados sensíveis).
+
+**O que ainda não está feito.**
+- **Os lançamentos JÁ GRAVADOS em claro continuam em claro** — inclusive os do experimento
+  (`diaghilev/fokini/…`). A cifra vale daqui para frente; migrar o que existe é outra operação, e
+  ninguém a pediu.
+- **Não há LEITOR do lançamento no KV.** O caminho é de mão única: o formulário grava, e nada lê de
+  volta (o pacote é sempre a semente vazia). Quem for ler vai precisar decifrar com a mesma chave — e
+  é isso que o envelope diz.
+- **A Maria continua sem `SENHA_CRIPTO`**: ela aceita o lançamento e grava **em claro**, com a
+  resposta dizendo `cifrado: false` e o formulário avisando. Criar o secret nela é decisão do dono do
+  produto.
+- O pacote **não** foi regenerado com aviso nenhum no PDF sobre o KV; e a `lib-cifra.js` continua
+  copiada para o pacote sem uso no formulário (limpeza pequena, ainda não feita).
