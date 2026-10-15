@@ -75,6 +75,23 @@ function slugificar(nome) {
     .replace(/-{2,}/g, '-');
 }
 
+/**
+ * O SLUG de um professor CADASTRADO — a identidade dele, e a pasta.
+ *
+ * A partir de 15/10/2026 o slug é **gravado** na entrada (`{nome, slug, sal, hash}`), em vez
+ * de derivado do nome a cada uso. O motivo é o mesmo que fez o dono da escola ter o slug vindo
+ * do SECRET: derivar do nome significa que **ajustar o nome de exibição move a pasta** — e a
+ * pasta é onde o PO, o plano e os cadernos das aulas ficam. O nome exibido passa a poder mudar
+ * sem que o material mude de lugar.
+ *
+ * Entradas antigas (sem `slug`) continuam funcionando: o slug é derivado do nome, como antes.
+ * A leitura aceita as duas formas; a escrita grava sempre a nova.
+ */
+function slugDoProfessor(p) {
+  if (!p) return '';
+  return String(p.slug || '').trim() || slugificar(String(p.nome || ''));
+}
+
 /** O slug da escola, vindo do Worker (uma escola por Worker). */
 function escolaDe(env, url) {
   const doEnv = env && String(env.ESCOLA_SLUG || '').trim();
@@ -403,8 +420,12 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
   }
   for (const p of profs) {
     if (!p || !p.nome) continue;
-    if (p.nome === donoNome) continue; // o dono já entrou, sem duplicar
+    const slug = slugDoProfessor(p);
+    if (!slug || slug === slugificar(String((env && env.PROFESSOR_NOME) || ''))) continue; // o dono já entrou
+    // O slug aparece ao lado do nome: é ele que identifica o professor no PO, no plano e nos
+    // cadernos — e é a pasta. Sem mostrá-lo, dois homônimos na tela seriam indistinguíveis.
     linhasProfs.push('<li>' + esc(p.nome)
+      + ' <code class="slug">' + esc(slug) + '</code>'
       + ' <button class="apagar" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></li>');
   }
   const itensProfs = linhasProfs.length
@@ -478,8 +499,10 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
   const profsParaCuradoria = [];
   if (donoNome) profsParaCuradoria.push({ valor: donoSlug, rotulo: donoNome });
   for (const p of profs) {
-    if (!p || !p.nome || p.nome === donoNome) continue;
-    profsParaCuradoria.push({ valor: slugificar(p.nome), rotulo: p.nome });
+    if (!p || !p.nome) continue;
+    const slug = slugDoProfessor(p);
+    if (!slug || slug === donoSlug) continue;
+    profsParaCuradoria.push({ valor: slug, rotulo: p.nome });
   }
   const opcoesProfessorCuradoria = profsParaCuradoria.length
     ? profsParaCuradoria.map((p) => '<option value="' + esc(p.valor) + '">' + esc(p.rotulo) + '</option>').join('')
@@ -541,6 +564,10 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     'ul{list-style:none;padding:0;}' +
     'ul li{padding:.3rem 0;border-bottom:1px dotted #c9a24b;color:#3a2b1f;}' +
     'ul li .dono{color:#8a7a5a;font-size:.85rem;}' +
+    // O slug ao lado do nome (o identificador do professor) e as dicas dos rótulos.
+    'ul li .slug{color:#8a7a5a;font-size:.8rem;background:#f3ece1;border-radius:4px;padding:0 .3em;}' +
+    'label .dica{color:#8a7a5a;font-weight:400;font-size:.85rem;}' +
+    'form .nota{color:#8a7a5a;font-size:.88rem;line-height:1.45;margin:0 0 .6rem;}' +
     'button.apagar{margin-left:.7rem;padding:.15rem .55rem;background:#b25555;color:#fff;' +
     'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     'button.apagar:hover{background:#8f3f3f;}' +
@@ -600,8 +627,13 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
+    '<label for="psobrenome">Sobrenome ou apelido <span class="dica">(só quando o nome já existe)</span></label>' +
+    '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
     '<label for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
+    '<p class="nota">O nome do professor vira a <b>pasta</b> dele no sistema — é ela que identifica' +
+    ' o PO, o plano e os cadernos das aulas. Se já existe um professor com este nome, informe o' +
+    ' sobrenome ou um apelido: duas pessoas não podem dividir a mesma pasta.</p>' +
     '<button type="submit">Cadastrar professor</button>' +
     '</form>' +
     '<h3>Professores cadastrados</h3><ul>' + itensProfs + '</ul>' +
@@ -760,7 +792,9 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '}' +
     'document.getElementById("form-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  postar("form-prof", {nome: document.getElementById("pnome").value, senha: document.getElementById("psenha").value});' +
+    '  postar("form-prof", {nome: document.getElementById("pnome").value,' +
+    '    sobrenome: document.getElementById("psobrenome").value,' +
+    '    senha: document.getElementById("psenha").value});' +
     '});' +
     'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -987,13 +1021,27 @@ async function fetch(request, env) {
     if (dono) lista.push({ nome: dono, slug: donoSlug });
     for (const p of profs) {
       if (!p || !p.nome) continue;
-      if (p.nome === dono) continue;
-      lista.push({ nome: p.nome, slug: slugificar(p.nome) });
+      const slug = slugDoProfessor(p);
+      // O pulo é pelo SLUG, não pelo nome: dois professores com o mesmo slug seriam duas
+      // opções idênticas no seletor, e o formulário não saberia qual escolheu.
+      if (!slug || slug === donoSlug) continue;
+      lista.push({ nome: p.nome, slug });
     }
     return json(200, { ok: true, escola, professores: lista });
   }
 
   // POST /api/bastidores/professor — cadastrar professor (nome + senha).
+  //
+  // A TRAVA É PELO **SLUG**, e não pelo nome. O slug é o que vira pasta (`professores/<slug>/`)
+  // e o que identifica o professor no PO, no plano e no cofre — o nome é só o rótulo. Conferir
+  // pelo nome deixava passar exatamente os pares que colidem: «José» e «Jose», «Ana Maria» e
+  // «Ana-Maria», «Tiago» e «tiago» — nomes diferentes, MESMO slug, e as duas pessoas na mesma
+  // pasta (a segunda nunca conseguiria entrar: a busca da senha acha a primeira).
+  //
+  // E confere também contra o DONO, que não está nesta lista: ele vive no secret
+  // `PROFESSOR_NOME`. Sem isso, cadastrar um professor com o nome do dono era aceito (201) e
+  // ficava invisível no seletor, inutilizável na senha e impossível de excluir — o DELETE
+  // protege o dono pelo nome.
   if (path === '/api/bastidores/professor' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
@@ -1001,15 +1049,39 @@ async function fetch(request, env) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
     const nome = String(corpo.nome || '').trim();
+    const sobrenome = String(corpo.sobrenome || '').trim();
     const senha = String(corpo.senha || '');
     if (!nome || !senha) return json(400, { ok: false, erro: 'informe o nome e a senha do professor' });
+
+    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const lista = await professores(kv, escola);
-    if (lista.some((p) => p.nome === nome)) return json(409, { ok: false, erro: 'já existe um professor com este nome' });
+    const slug = slugificar(nome + (sobrenome ? ' ' + sobrenome : ''));
+    // O NOME EXIBIDO leva o sobrenome junto: no seletor, dois «Tiago» com pastas diferentes
+    // seriam duas opções idênticas — e a pessoa não saberia qual escolheu. O exibido é o nome
+    // completo; o que identifica é o slug.
+    const nomeExibido = sobrenome ? nome + ' ' + sobrenome : nome;
+
+    if (!slug) return json(400, { ok: false, erro: 'o nome do professor não produz um identificador válido' });
+    if (slug === donoSlug) {
+      return json(409, {
+        ok: false,
+        erro: 'o professor dono desta escola já usa este identificador (`' + slug + '`). Se esta pessoa é OUTRA, cadastre com sobrenome ou apelido — o identificador é a pasta do professor e não pode repetir.',
+      });
+    }
+    const colisao = lista.find((p) => slugDoProfessor(p) === slug);
+    if (colisao) {
+      return json(409, {
+        ok: false,
+        erro: 'já existe o professor «' + colisao.nome + '» com o identificador `' + slug + '`. Se for OUTRA pessoa, cadastre com sobrenome ou apelido.',
+      });
+    }
+
     const sal = gerarSal();
     const hash = await hashSenha(senha, sal);
-    lista.push({ nome, sal, hash });
+    // O `slug` é GRAVADO: é ele que fica, mesmo que o nome de exibição mude depois.
+    lista.push({ nome: nomeExibido, slug, sal, hash });
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
-    return json(201, { ok: true, professor: nome });
+    return json(201, { ok: true, professor: nomeExibido, slug });
   }
 
   // POST /api/bastidores/aluna — cadastrar aluna (apelido estável).
@@ -1057,20 +1129,31 @@ async function fetch(request, env) {
     }
     const nome = String(corpo.nome || '').trim();
     if (!nome) return json(400, { ok: false, erro: 'informe o nome do professor' });
-    // O dono pode ter o nome ajustado no KV — protege-se pelo nome RESOLVIDO, não só o secret.
+    // O dono pode ter o nome ajustado no KV — protege-se pelo NOME RESOLVIDO, não só o secret.
     const donoNome = await nomeDoDono(env, kv, escola);
-    if (donoNome && nome === donoNome) {
+    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    if (nome === donoNome) {
       return json(409, {
         ok: false,
         erro: 'este é o professor dono da escola (criado na página) — ajuste o nome, não o exclua',
       });
     }
     const lista = await professores(kv, escola);
-    const idx = lista.findIndex((p) => p && p.nome === nome);
+    // Acha pelo NOME ou pelo SLUG: a tela manda o nome, mas o identificador é o slug — e
+    // aceitar os dois evita que um professor fique impossível de excluir depois de um ajuste
+    // de nome.
+    const idx = lista.findIndex((p) => p && (p.nome === nome || slugDoProfessor(p) === nome));
     if (idx === -1) return json(404, { ok: false, erro: 'professor não encontrado' });
+    if (slugDoProfessor(lista[idx]) === donoSlug) {
+      return json(409, {
+        ok: false,
+        erro: 'este é o professor dono da escola (criado na página) — ajuste o nome, não o exclua',
+      });
+    }
+    const removido = lista[idx];
     lista.splice(idx, 1);
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
-    return json(200, { ok: true, professor: nome, removido: true });
+    return json(200, { ok: true, professor: removido.nome, removido: true });
   }
 
   // POST /api/bastidores/dono — ajustar o NOME do professor dono (o criado na página).
@@ -1118,7 +1201,7 @@ async function fetch(request, env) {
     }
 
     const profs = await professores(kv, escola);
-    const alvo = profs.find((p) => p && slugificar(p.nome) === professor);
+    const alvo = profs.find((p) => slugDoProfessor(p) === professor);
     if (!alvo) return json(200, { ok: false, erro: 'professor não reconhecido' });
     const confere = alvo.hash
       ? ((await hashSenha(senha, alvo.sal)) === alvo.hash)

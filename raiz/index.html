@@ -39,6 +39,18 @@
           <input id="senha" name="senha" type="password" autocomplete="new-password">
           <label for="professor-nome">Nome do professor</label>
           <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Tiago">
+          <label for="professor-sobrenome">Sobrenome (ou apelido) do professor</label>
+          <input id="professor-sobrenome" name="professor-sobrenome" autocomplete="off" placeholder="ex.: Menegaz">
+          <p class="nota">O nome vira a <b>pasta</b> do professor — <code>professores/nome-sobrenome/</code> —
+            e é ela que guarda o pacote, os cadernos e os relatórios. Duas pessoas com o mesmo nome
+            não podem dividir a pasta: o sobrenome é o que as separa. O nome <b>exibido</b> é o que
+            você vê nas telas, e pode ser ajustado depois, nos Bastidores.</p>
+          <label for="professor-existente">Ou usar um professor que já existe</label>
+          <select id="professor-existente" name="professor-existente">
+            <option value="">— criar um professor novo —</option>
+          </select>
+          <p class="nota">Se este professor já tem pasta (por já dar aula em outra escola), escolha-o
+            aqui: a pasta é a mesma, e o material continua junto.</p>
           <label for="senha-professor">Senha do professor</label>
           <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
           <p class="nota">O professor criado aqui é o <b>dono da escola</b> (a direção) — pode ajustar o
@@ -642,12 +654,40 @@
           function abrir() {
             modal.hidden = false;
             document.getElementById("nome").focus();
+            carregarProfessores();
           }
           function fechar() {
             modal.hidden = true;
             res.className = "res";
             res.textContent = "";
           }
+
+          // A lista de professores que EXISTEM — o que impede duas pessoas de dividirem a pasta
+          // `professores/<slug>/`. É a mesma lista que o Worker confere ao criar: aqui ela serve
+          // para você VER, antes de errar.
+          function carregarProfessores() {
+            var sel = document.getElementById("professor-existente");
+            while (sel.options.length > 1) sel.remove(1);
+            fetch("api/professores").then(function (r) { return r.json(); }).then(function (d) {
+              if (!d.ok || !d.professores) return;
+              d.professores.forEach(function (p) {
+                var o = document.createElement("option");
+                o.value = p.slug;
+                o.textContent = (p.nome ? p.nome + " " : "") + "(" + p.slug + ")"
+                  + (p.escolas && p.escolas.length ? " — " + p.escolas.join(", ") : "");
+                sel.appendChild(o);
+              });
+            }).catch(function () { /* sem a lista, o Worker ainda confere ao criar */ });
+          }
+
+          // Escolher um professor que existe desliga o nome e o sobrenome: a pasta é dele, e o
+          // formulário não deve sugerir que dá para renomeá-la por aqui.
+          var selExistente = document.getElementById("professor-existente");
+          selExistente.addEventListener("change", function () {
+            var usar = Boolean(selExistente.value);
+            document.getElementById("professor-nome").disabled = usar;
+            document.getElementById("professor-sobrenome").disabled = usar;
+          });
 
           btn.addEventListener("click", abrir);
           document.getElementById("btn-fechar").addEventListener("click", fechar);
@@ -666,6 +706,8 @@
                 nome: v("nome"),
                 senhaAdmin: v("senha"),
                 professorNome: v("professor-nome"),
+                professorSobrenome: v("professor-sobrenome"),
+                professorExistente: v("professor-existente"),
                 senhaProfessor: v("senha-professor")
               })
             }).then(function (r) { return r.json(); }).then(function (d) {

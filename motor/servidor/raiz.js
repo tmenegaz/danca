@@ -15,7 +15,7 @@
 
 const { criarEscola, dispararCriacao, slugificar } = require('./provisionar-escola.js');
 const { excluirEscola, prefixosDaEscola } = require('./expurgar-escola.js');
-const { listarEscolas, apagarEscolaDoRepo, lerArquivo } = require('./repo-escola.js');
+const { listarEscolas, listarProfessores, apagarEscolaDoRepo, lerArquivo } = require('./repo-escola.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -227,6 +227,22 @@ async function fetch(request, env) {
     }
   }
 
+  // OS PROFESSORES que já existem — o que impede duas pessoas de caírem na mesma pasta.
+  // A lista sai do repositório (os diretórios `professores/<slug>/`), porque é lá que o nome
+  // vira identidade: `professores/<slug>/` guarda o pacote, os cadernos e as âncoras, e é o
+  // diretório que o PO e o plano usam. Duas pessoas com o mesmo slug — ou dois nomes que
+  // produzem o mesmo slug — passam a ser uma só no registro.
+  if (url.pathname === '/api/professores' && request.method === 'GET') {
+    const token = env && env.GITHUB_TOKEN;
+    if (!token) return responderJson({ ok: false, erro: 'GITHUB_TOKEN ausente no Worker' }, 500);
+    try {
+      const professores = await listarProfessores({ token, dono: DONO, repo: REPO, ref: REF });
+      return responderJson({ ok: true, professores });
+    } catch (err) {
+      return responderJson({ ok: false, erro: (err && err.message) || String(err) }, 500);
+    }
+  }
+
   // A LISTA de escolas — what the «Apagar escola» button shows before anything is deleted.
   // Sai do repositório (os `wrangler.<slug>.jsonc`), que é o mesmo registro que o expurgo
   // edita: uma só definição de «escola», a que sobrevive ao expurgo como elo no índice.
@@ -379,6 +395,8 @@ async function fetch(request, env) {
       const nome = String(corpo.nome || '').trim();
       const senhaAdmin = String(corpo.senhaAdmin || '');
       const professorNome = String(corpo.professorNome || corpo['professor-nome'] || '').trim();
+      const professorSobrenome = String(corpo.professorSobrenome || corpo['professor-sobrenome'] || '').trim();
+      const professorExistente = String(corpo.professorExistente || corpo['professor-existente'] || '').trim();
       const senhaProfessor = String(corpo.senhaProfessor || corpo['senha-professor'] || '');
       // O professor criado na página é SEMPRE o dono da escola (a direção). A marcação
       // «é o dono?» saiu do formulário: quem cria é a pesquisadora, e o professor inicial
@@ -390,21 +408,68 @@ async function fetch(request, env) {
           headers: { 'Content-Type': 'application/json;charset=utf-8' },
         });
       }
-      // O slug do professor (a pasta) é derivado do nome — o professor não digita e não vê.
-      const professor = slugificar(professorNome);
-      if (!professor) {
-        return new Response(JSON.stringify({ ok: false, erro: 'o nome do professor não produz um slug válido' }), {
-          status: 400,
-          headers: { 'Content-Type': 'application/json;charset=utf-8' },
-        });
+
+      // O SLUG DO PROFESSOR É A PASTA `professores/<slug>/` — e essa pasta é do SISTEMA, não
+      // da escola: guarda o pacote, os cadernos, os relatórios e as âncoras. Duas pessoas com
+      // o mesmo slug viram UMA no registro (o PO de uma cairia na pasta da outra). Por isso a
+      // unicidade é conferida contra os diretórios que existem, e o desempate é o SOBRENOME.
+      //
+      // Duas saídas, e só duas:
+      //   1. REUTILIZAR um professor que já existe (`professorExistente`) — a pasta fica;
+      //   2. CRIAR com nome + sobrenome — a pasta nasce como `nome-sobrenome`.
+      const existentes = await listarProfessores({ token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF });
+      let professor = null;
+      let nomeDeExibicao = professorNome;
+      if (professorExistente) {
+        const achado = existentes.find((p) => p.slug === professorExistente);
+        if (!achado) {
+          return new Response(JSON.stringify({ ok: false, erro: 'o professor "' + professorExistente + '" não existe — recarregue a lista' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+          });
+        }
+        professor = achado.slug;
+        nomeDeExibicao = achado.nome || professorNome;
+      } else {
+        // O sobrenome (ou apelido) é exigido: sem ele, dois homônimos produzem o mesmo slug.
+        if (!professorSobrenome) {
+          return new Response(JSON.stringify({
+            ok: false,
+            erro: 'informe o sobrenome (ou um apelido) do professor — o nome vira a pasta `professores/<nome>/` e não pode repetir. Se for a mesma pessoa de um professor que já existe, use «usar este professor».',
+            professoresExistentes: existentes.map((p) => p.slug),
+          }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+          });
+        }
+        professor = slugificar(professorNome + ' ' + professorSobrenome);
+        if (!professor) {
+          return new Response(JSON.stringify({ ok: false, erro: 'o nome do professor não produz um slug válido' }), {
+            status: 400,
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+          });
+        }
+        const colisao = existentes.find((p) => p.slug === professor);
+        if (colisao) {
+          return new Response(JSON.stringify({
+            ok: false,
+            erro: 'já existe o professor "' + (colisao.nome || colisao.slug) + '" na pasta `professores/' + professor + '/`. Se for OUTRA pessoa, informe um sobrenome ou apelido diferente; se for a mesma, use «usar este professor».',
+            colisao: colisao.slug,
+          }), {
+            status: 409,
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+          });
+        }
+        nomeDeExibicao = professorNome + ' ' + professorSobrenome;
       }
+
       const escola = await criarEscola({
         nome,
         senhaAdmin,
         token,
         accountId: ACCOUNT_ID,
         githubToken: env && env.GITHUB_TOKEN,
-        professorNome,
+        professorNome: nomeDeExibicao,
         senhaProfessor,
         professorEhDono,
       });

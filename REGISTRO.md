@@ -13420,3 +13420,85 @@ batem). O Worker da raiz publicado e conferido ao vivo (portão de pé: 401 em `
   mesmo arquivo é o MODELO do scaffolder. Criar escola para o professor do modelo deixou o modelo e a
   escola no mesmo lugar; o `cp` condicional resolve a cópia, mas a sobreposição de papéis (modelo ×
   escola real) é um desenho a revisar — fica registrado, não decidido.
+
+## 15/10/2026 — O professor homônimo: o identificador é o slug, e o sobrenome o separa
+
+**O que motivou.** O dono do produto levantou a questão, e ela veio em duas partes. A primeira ele
+mesmo respondeu: *«um professor tem como subdomínio a escola; se chegar outra pessoa, também
+professor A, ele precisa de um sobrenome — e aí vira A1, com o subdomínio dele, a mesma escola, e
+isso garante que a escola sempre saiba de qual professor se está falando»*. Está certo, e é o que o
+sistema já faz. A segunda parte foi a pergunta de verdade: **«e o professor que eu incluo na lista de
+professores, dentro dos Bastidores · Produção — esse eu também estou cuidando?»**
+
+**A resposta era não — e naquele cadastro o cuidado era mais fraco.** Medido, não suposto:
+
+1. **A trava conferia o NOME; o uso era o SLUG.** `lista.some(p => p.nome === nome)` deixa passar
+   exatamente os pares que colidem: «José» × «Jose», «Ana Maria» × «Ana-Maria», «Tiago» × «tiago» —
+   nomes diferentes, **mesmo slug**, as duas pessoas na mesma pasta. E a conferência de senha busca
+   por slug: acha a **primeira** e nunca consulta o hash da segunda. O segundo professor **nunca
+   entra**, e ninguém recebe erro.
+2. **A trava não alcançava o DONO.** Ele vive no secret `PROFESSOR_NOME`, fora da lista do KV.
+   Cadastrar um professor com o nome do dono devolvia **201** — e o resultado eram três camadas em
+   contradição: o seletor **esconde** o cadastro, a senha **nunca autentica** (o ramo do dono vem
+   antes) e o DELETE **recusa** («este é o professor dono da escola»). Um cadastro aceito, invisível,
+   inutilizável e impossível de remover.
+3. **O escopo era a ESCOLA; o do diretório é o SISTEMA.** A chave é `bastidores/<escola>/professores`,
+   mas `professores/<slug>/` é global: dois «Tiago» em escolas **diferentes** são dois cadastros que
+   nunca se enxergam e gravam no **mesmo** diretório — que é exatamente o caso A/A1 do dono, e não era
+   pego.
+4. **Ninguém conferia contra as pastas que existem** — nem o cadastro, nem a criação de escola.
+
+**O que foi decidido.**
+- **A identidade do professor é o SLUG, e o escopo é o sistema.** O `professores/<slug>/` guarda o
+  pacote, os cadernos, os relatórios e as âncoras: duas pessoas com o mesmo slug viram **uma** no
+  registro. As duas pontas passam a conferir a mesma coisa.
+- **O SLUG é GRAVADO na entrada do cadastro** (`{nome, slug, sal, hash}`), em vez de derivado do nome a
+  cada uso. É o mesmo princípio que fez o slug do dono vir do secret: **ajustar o nome de exibição não
+  move a pasta**. A leitura aceita as duas formas (entradas antigas derivam do nome); a escrita grava
+  sempre a nova.
+- **O SOBRENOME (ou apelido) é o que separa homônimos** — e o formulário passa a pedi-lo. O nome
+  **exibido** leva o sobrenome junto (senão o seletor mostraria dois «Tiago» idênticos), mas quem
+  identifica é o slug.
+- **A criação de escola ganha a mesma trava, com duas saídas e só duas:** (1) **reutilizar** um
+  professor que já existe (a pasta fica, e o material continua junto), ou (2) criar com
+  **nome + sobrenome** (a pasta nasce como `nome-sobrenome`). Sem sobrenome e sem escolher um
+  existente → **400**, com a razão escrita; slug que já existe → **409**, apontando a pasta.
+- **O cadastro do Bastidores alcança o dono**: cadastrar o mesmo slug do dono → **409**, dizendo que é
+  o dono e mandando usar sobrenome.
+- **O seletor e a tela mostram o slug** ao lado do nome: sem ele, dois homônimos na tela seriam
+  indistinguíveis — e é o slug que o PO, o plano e os cadernos usam.
+
+**Onde entrou.**
+- `motor/servidor/repo-escola.js` — `professoresDosCaminhos` e `listarProfessores` (a leitura que
+  responde «quem já existe», da mesma árvore que a lista de escolas usa).
+- `motor/servidor/raiz.js` — `GET /api/professores` e a validação de identidade no `criar-escola`
+  (`professorExistente` para reutilizar; `professorSobrenome` para desempatar).
+- `motor/servidor/bastidores.js` — `slugDoProfessor` (o slug gravado, com retrocompatibilidade);
+  a trava do cadastro pelo slug, contra o dono e contra a lista; o seletor, a conferência de senha, o
+  DELETE e a curadoria passam a usar o slug; o campo `sobrenome` na tela e o slug mostrado na lista.
+- `raiz/index.html` — o campo de sobrenome, o seletor «usar um professor que já existe» (que desliga
+  nome e sobrenome) e a lista carregada de `/api/professores`.
+- `experimentos/provar-homonimo.js` — **novo**: 24 provas.
+
+**Como foi provado.** 24 provas, todas passando: o dono alcançado (409, com a razão); o sobrenome
+separando (`tiago-menegaz` × `tiago-silva`, slugs distintos, senha de cada um valendo só no seu); os
+pares que colidiam pelo nome e colidem pelo slug (José × Jose, Ana Maria × Ana-Maria); o campo `slug`
+gravado na entrada; excluir pelo nome e pelo slug, com o dono protegido; e a criação de escola
+recusando sem sobrenome (400) e com slug ocupado (409), sem barrar um slug livre.
+
+**Referências.** A conversa do dono do produto sobre A/A1 e o cadastro do Bastidores · P-12 (apelido
+estável) e P-17 (o nome de exibição não vira chave) · os elos de 15/10/2026 (o `Buffer`, o expurgo, a
+renomeação) · `motor/servidor/bastidores.js` (o comentário do slug do dono, que é o precedente).
+
+**O que ainda não está feito.**
+- **A criação de escola e o cadastro conferem contra os diretórios do REPOSITÓRIO** (`professores/*`),
+  não contra o KV das outras escolas. É o escopo certo — a pasta é global —, mas significa que a
+  conferência depende de o repositório estar legível (a raiz já depende dele para tudo).
+- **A sobreposição modelo × escola real continua de pé**: `professores/tiago/` é o MODELO do
+  scaffolder e passa a ser também a pasta de um professor real quando a escola nasce. O `cp`
+  condicional resolve a cópia; o desenho dos dois papéis no mesmo diretório **não** foi decidido.
+- **Entradas antigas do cadastro (sem `slug`) só serão convertidas quando forem reescritas** — não há
+  migração. A leitura funciona com as duas formas, e nenhuma escola viva tem cadastro adicional hoje.
+- **O cadastro do Bastidores não pergunta o sobrenome em campo separado obrigatório**: ele é exigido
+  **pela colisão** (o 409 explica). O dono do produto escolheu exigir o sobrenome sempre na **criação
+  de escola**; no cadastro, a trava é o que reage.

@@ -112,6 +112,56 @@ function escolasDosCaminhos(caminhos) {
 }
 
 /**
+ * OS PROFESSORES que o repositório tem — os diretórios `professores/<slug>/`.
+ *
+ * POR QUE A UNICIDADE DO PROFESSOR OLHA AQUI. O nome do professor vira **diretório**
+ * (`professores/<slug>/`), e esse diretório é do SISTEMA, não da escola: é ele que guarda o
+ * pacote, os cadernos, os relatórios e as âncoras `.fipp`. Duas pessoas com o mesmo nome —
+ * ou dois nomes que produzem o mesmo slug — caem na MESMA pasta, e aí o registro não as
+ * distingue mais. Por isso a pergunta de unicidade é feita sobre os diretórios que existem,
+ * e não sobre uma lista por escola.
+ *
+ * É a mesma leitura da árvore que a lista de escolas usa: uma chamada, sem consulta extra.
+ */
+function professoresDosCaminhos(caminhos) {
+  const slugs = [];
+  for (const caminho of caminhos) {
+    const m = /^professores\/([^/]+)\//.exec(caminho);
+    if (m && !slugs.includes(m[1])) slugs.push(m[1]);
+  }
+  return slugs.sort();
+}
+
+/**
+ * A lista de professores com o NOME de exibição e as escolas de cada um. O nome sai do
+ * índice das escolas do professor (`escola/<slug>/indice.json`, `professor.nome`) — é o
+ * único lugar em que o repositório guarda o nome legível, porque o diretório guarda o slug.
+ * Sem índice (ou sem `nome`), devolve `nome: null`: a lista serve para ESCOLHER, e um nome
+ * ausente não impede escolher pelo slug.
+ */
+async function listarProfessores({ token, dono, repo, ref, fetchImpl }) {
+  const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
+  const slugs = professoresDosCaminhos(caminhos);
+  const escolas = escolasDosCaminhos(caminhos);
+  const lista = [];
+  for (const slug of slugs) {
+    const minhas = escolas.filter((e) => e.professor === slug);
+    let nome = null;
+    for (const e of minhas) {
+      const texto = await lerArquivo({ token, dono, repo, ref, caminho: 'escola/' + e.slug + '/indice.json', fetchImpl });
+      if (!texto) continue;
+      try {
+        const j = JSON.parse(texto);
+        nome = (j.professor && j.professor.nome) || j.responsavel || null;
+      } catch { nome = null; }
+      if (nome) break;
+    }
+    lista.push({ slug, nome, escolas: minhas.map((e) => e.slug) });
+  }
+  return lista;
+}
+
+/**
  * O MANIFESTO BASE do ciclo do professor — `ciclos/ciclo-NN.conf`. É a única coisa do
  * arcabouço do ciclo que o expurgo toca.
  *
@@ -363,9 +413,11 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
 
 module.exports = {
   listarEscolas,
+  listarProfessores,
   apagarEscolaDoRepo,
   escolaDosCaminhos,
   escolasDosCaminhos,
+  professoresDosCaminhos,
   ehArquivoDaEscola,
   manifestoBaseDoCiclo,
   materialPreservado,
