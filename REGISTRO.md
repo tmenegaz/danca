@@ -13377,3 +13377,46 @@ guard do scaffolder recusa sobrescrever («a escola/ciclo já existe»).
   mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
   O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
   destino.
+
+## 15/10/2026 — Um conserto commitado e não publicado não conserta nada
+
+**O que motivou.** O dono do produto expurgou a `ponta` — e o expurgo **apagou os 5 schemas do
+modelo outra vez**, exatamente o defeito que o elo anterior tinha consertado. O conserto estava
+**commitado** (`ed76e16`, 17:34) e o expurgo rodou às **17:53** — dezenove minutos depois. O que não
+estava feito era a outra metade: **o Worker da raiz continuava no ar com o código antigo**.
+
+A lição, e é a segunda vez nesta série que ela aparece com a mesma forma:
+
+> **O que protege é o que está no ar.** Commitado, testado e publicado são três estados diferentes —
+> e o único que o usuário alcança é o terceiro. Um conserto que só existe no repositório não conserta
+> nada; ele apenas adia.
+
+**O que foi decidido.**
+- **A raiz foi publicada** com o conserto (versão `3ef189bf`), imediatamente. Enquanto o código antigo
+  estava no ar, cada expurgo apagava o molde — e a `ponta` foi criada e destruída nesse intervalo.
+- **Os 5 schemas foram restaurados de novo**, do commit `34508f5` (o scaffold da `ponta`, que os
+  tinha íntegros), com os hashes conferidos contra o original: `992edabb…`, `121c1fe9…`, `44a398c5…`,
+  `69ef266e…`, `48892eb0…`.
+- **A ordem de publicação passa a ser parte do conserto.** Não é detalhe operacional: é o que
+  separa «consertado» de «consertado para quem usa».
+
+**Onde entrou.** `professores/tiago/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json`
+— restaurados. A correção de código já estava em `ed76e16`; o que faltava era publicá-la.
+
+**Como foi provado.** Os cinco arquivos conferidos por hash contra o commit de origem (os cinco
+batem). O Worker da raiz publicado e conferido ao vivo (portão de pé: 401 em `/` e `/api/escolas`;
+`/api/saude` ok).
+
+**Referências.** Os elos de 15/10/2026 (o expurgo apagou o MODELO; o `Buffer`; o `cp` sobre si mesmo)
+· `tools/criar-escola.sh:42` (o `MODELO="tiago/01"`, que depende destes arquivos) · P-03/P-04 · P-17.
+
+**O que ainda não está feito.**
+- **A `ponta` não existe mais** — foi criada (run #5, 17:40) e expurgada (17:53) pelo dono do produto.
+  Não há escola nenhuma agora, e o repositório está no estado de repositório recém-nascido.
+- **O expurgo da `ponta` deixou um rastro que vale saber**: o KV tinha **0 chave** (a escola nasceu e
+  morreu antes de qualquer anamnese ser gravada), então a limpeza não teve o que limpar — e o índice
+  `escola/ponta/indice.json` ficou com o elo, como deve.
+- **A `ponta` foi criada com o manifesto base `NOME="Ciclo 01 — Ponta"` e o professor `tiago`** — e o
+  mesmo arquivo é o MODELO do scaffolder. Criar escola para o professor do modelo deixou o modelo e a
+  escola no mesmo lugar; o `cp` condicional resolve a cópia, mas a sobreposição de papéis (modelo ×
+  escola real) é um desenho a revisar — fica registrado, não decidido.

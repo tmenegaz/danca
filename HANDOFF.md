@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T14:39:03-0300`
-Commit atual: `ed76e16` — fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôde nascer
+Gerado em: `2026-10-15T15:04:16-0300`
+Commit atual: `03bda14` — chore(estrutura): expurgar a escola ponta
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+03bda14 chore(estrutura): expurgar a escola ponta
+34508f5 feat(estrutura): criar a escola ponta (motor completo)
+412dbe4 fix(tools): criar escola para o professor do MODELO — o cp recusava o próprio arquivo
 ed76e16 fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôde nascer
 30657e5 fix(estrutura): o expurgo não achava o KV nem preservava o índice da escola
 4bee5dc fix(tools): o gerador do HANDOFF quebrava com o repositório sem escola
@@ -80,9 +83,6 @@ a45ec58 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
 33e2299 fix(template): o formulário decifra pelo Worker — a chave sai do navegador
 4c57a8c feat(estrutura): a chave de cifra vira interna do Worker — e a criação para de entregá-la
 789e309 fix(tools): o arquivo de senhas vira um espelho por escola — e o modelo ensina a forma
-b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
-281c7e1 docs(registro): a SENHA_LETICIA não é inerte — é o login da professora
-83560fc fix(estrutura): a criação da escola diz onde guardar a senha de criptografia
 ```
 
 ## Por professor
@@ -136,83 +136,50 @@ b39b5b6 fix(tools): o prefixo do nome separa a chave de cifra da senha de acesso
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — Criar escola para o professor do MODELO: o `cp` recusava o próprio arquivo
+## 15/10/2026 — Um conserto commitado e não publicado não conserta nada
 
-**O que motivou.** Depois de restaurar os schemas, o `criar-escola.yml` (run #4) **morreu de novo** no
-passo 5 — agora por outra razão, e a mensagem dizia exatamente o quê:
+**O que motivou.** O dono do produto expurgou a `ponta` — e o expurgo **apagou os 5 schemas do
+modelo outra vez**, exatamente o defeito que o elo anterior tinha consertado. O conserto estava
+**commitado** (`ed76e16`, 17:34) e o expurgo rodou às **17:53** — dezenove minutos depois. O que não
+estava feito era a outra metade: **o Worker da raiz continuava no ar com o código antigo**.
 
-```
-cp: '…/professores/tiago/ciclos/ciclo-01-schema.json' e
-    '…/professores/tiago/ciclos/ciclo-01-schema.json' are the same file
-```
+A lição, e é a segunda vez nesta série que ela aparece com a mesma forma:
 
-O `MODELO="tiago/01"` (fixo em `tools/criar-escola.sh:42`) e a escola sendo criada para o **próprio
-`tiago`**: a origem e o destino da cópia dos schemas são o **mesmo arquivo**. O `cp` recusa copiar
-sobre si mesmo, devolve erro e, sob `set -e`, o script morre no passo 2 — antes de criar o pacote, o
-config e o índice.
+> **O que protege é o que está no ar.** Commitado, testado e publicado são três estados diferentes —
+> e o único que o usuário alcança é o terceiro. Um conserto que só existe no repositório não conserta
+> nada; ele apenas adia.
 
-**Por que só apareceu agora.** O modelo era `fokini/01` até o commit `b6c589e` («o expurgo do
-Diaghilev reponta os padrões de tools/»), que o trocou por `tiago/01`. No run #2 (13/10), a escola
-criada foi a **barra** para a **leticia** — origem `tiago/01`, destino `leticia/01`: professores
-diferentes, sem colisão. A colisão só acontece quando **quem cria é o professor do modelo** — que é
-exatamente o caso do dono do produto.
+**O que foi decidido.**
+- **A raiz foi publicada** com o conserto (versão `3ef189bf`), imediatamente. Enquanto o código antigo
+  estava no ar, cada expurgo apagava o molde — e a `ponta` foi criada e destruída nesse intervalo.
+- **Os 5 schemas foram restaurados de novo**, do commit `34508f5` (o scaffold da `ponta`, que os
+  tinha íntegros), com os hashes conferidos contra o original: `992edabb…`, `121c1fe9…`, `44a398c5…`,
+  `69ef266e…`, `48892eb0…`.
+- **A ordem de publicação passa a ser parte do conserto.** Não é detalhe operacional: é o que
+  separa «consertado» de «consertado para quem usa».
 
-**O que foi decidido.** A cópia passa a ser condicional: quando origem e destino são o mesmo
-caminho, ela é um **no-op legítimo** (os schemas já estão onde a escola precisa deles) e não se
-executa. Uma linha, sem mudar nada do comportamento nos demais casos.
+**Onde entrou.** `professores/tiago/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json`
+— restaurados. A correção de código já estava em `ed76e16`; o que faltava era publicá-la.
 
-**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`). O motivo: sem
-esta correção **nenhuma escola nova pode ser criada pelo dono do produto**, porque o professor dele é
-o do modelo — e criar escola é a operação que o botão da raiz existe para fazer. O que **não muda**:
-a fórmula de hash, a cobertura do `.fipp`, os validadores, as 17 regras, as 22 pétreas, os nomes e o
-conteúdo dos schemas, e a estrutura do pacote-zero. Sem reancoragem: `tools/` não é coberto pelo
-`.fipp`.
+**Como foi provado.** Os cinco arquivos conferidos por hash contra o commit de origem (os cinco
+batem). O Worker da raiz publicado e conferido ao vivo (portão de pé: 401 em `/` e `/api/escolas`;
+`/api/saude` ok).
 
-**Onde entrou.** `tools/criar-escola.sh` — o laço dos schemas passa a comparar origem e destino antes
-de copiar, com a nota do porquê.
-
-**Como foi provado.** O scaffolder foi rodado **localmente** com os inputs exatos do run que falhou
-(`--professor tiago --escola ponta --ciclo 01`): criou o pacote-zero, os dois manifestos, o
-`wrangler.ponta.jsonc` e o `escola/ponta/indice.json`, e **validou** o conf («11 campos obrigatórios
-ok»). Os artefatos da validação foram **descartados** — quem os cria de verdade é o workflow, e o
-guard do scaffolder recusa sobrescrever («a escola/ciclo já existe»).
-
-**Referências.** `tools/criar-escola.sh:42` (o `MODELO`) e `b6c589e` (a troca do modelo) · os elos de
-15/10/2026 anteriores (o expurgo, o `Buffer`, os schemas apagados) · P-03/P-04 · P-17.
+**Referências.** Os elos de 15/10/2026 (o expurgo apagou o MODELO; o `Buffer`; o `cp` sobre si mesmo)
+· `tools/criar-escola.sh:42` (o `MODELO="tiago/01"`, que depende destes arquivos) · P-03/P-04 · P-17.
 
 **O que ainda não está feito.**
-- **A `ponta` continua sem motor.** O Worker «zero» está no ar com os segredos e responde 200 com
-  «implantação em andamento»; faltam o deploy do motor e o commit do scaffold, que são os passos 6 e
-  7 do workflow. Rodar o workflow de novo é o que se faz em seguida.
-- **O `tools/criar-escola.sh` é o TERCEIRO defeito desta série no mesmo caminho** — e os três têm a
-  mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
-  O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
-  destino.
+- **A `ponta` não existe mais** — foi criada (run #5, 17:40) e expurgada (17:53) pelo dono do produto.
+  Não há escola nenhuma agora, e o repositório está no estado de repositório recém-nascido.
+- **O expurgo da `ponta` deixou um rastro que vale saber**: o KV tinha **0 chave** (a escola nasceu e
+  morreu antes de qualquer anamnese ser gravada), então a limpeza não teve o que limpar — e o índice
+  `escola/ponta/indice.json` ficou com o elo, como deve.
+- **A `ponta` foi criada com o manifesto base `NOME="Ciclo 01 — Ponta"` e o professor `tiago`** — e o
+  mesmo arquivo é o MODELO do scaffolder. Criar escola para o professor do modelo deixou o modelo e a
+  escola no mesmo lugar; o `cp` condicional resolve a cópia, mas a sobreposição de papéis (modelo ×
+  escola real) é um desenho a revisar — fica registrado, não decidido.
 
 ## O que está pendente
-
-## 15/10/2026 — O expurgo apagava a escola e deixava o cadastro das alunas no KV
-
-- **O expurgo da barra não foi executado** — quem executa é o dono do produto, e é o teste de
-  aceitação: as 11 chaves estão lá, medidas, esperando. O relatório dele responde a pergunta aberta do
-  token (se disser `11 de 11`, o token tem permissão e a causa do caso da Maria é outra; se disser
-  que não limpou, é o token).
-- **A chave `maria/tiago/01/anamnese/anamnese-20261012-1149` continua no KV** (namespace
-  `ciclos-escolas-maria`), junto com as 3 `envelope/*` e as 2 `bastidores/maria/*`. Destino pendente.
-- **Dois namespaces órfãos seguem com dado**: `ciclos-escolas-plano-b` (4 chaves, do experimento) e
-  `ciclos-escolas-maria` (6). Nada em uso aponta para eles. Limpar ou apagar os namespaces é decisão
-  do dono do produto.
-- **O caminho do Cron (§17.5) continua limpando o KV só se o andaime declarar `kv`** — e, se declarar
-  um `prefixo` único, perde `bastidores/<slug>/`. O andaime sai quando a Produção nascer; até lá, o
-  botão é o caminho completo.
-- **`raiz/escolas-habilitadas.json` ainda lista a `maria`** com `habilitada: true` — escola que já não
-  existe. É andaime editado à mão; fica para a decisão do dono do produto.
-- **Os órfãos não aparecem na lista**, e é a definição dela: só o repositório. Somar a lista do
-  Cloudflare (`GET /accounts/{id}/workers/scripts`) e marcar os que só vivem lá deixaria o botão
-  completo — não foi feito.
-- **`tutu` e `diaghilev-ia-stub` foram apagados por fora do botão** (por comando, nesta sessão),
-  porque não havia como alcançá-los pela página. O expurgo que não passa pelo botão é justamente o que
-  deixa rastro nenhum — este elo é o rastro.
 
 ## 15/10/2026 — `Buffer` não existe no runtime dos Workers: o expurgo não achava o KV e reescrevia o índice
 
@@ -260,6 +227,18 @@ nenhum outro script: é a última linha da saída do comando.
   mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
   O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
   destino.
+
+## 15/10/2026 — Um conserto commitado e não publicado não conserta nada
+
+- **A `ponta` não existe mais** — foi criada (run #5, 17:40) e expurgada (17:53) pelo dono do produto.
+  Não há escola nenhuma agora, e o repositório está no estado de repositório recém-nascido.
+- **O expurgo da `ponta` deixou um rastro que vale saber**: o KV tinha **0 chave** (a escola nasceu e
+  morreu antes de qualquer anamnese ser gravada), então a limpeza não teve o que limpar — e o índice
+  `escola/ponta/indice.json` ficou com o elo, como deve.
+- **A `ponta` foi criada com o manifesto base `NOME="Ciclo 01 — Ponta"` e o professor `tiago`** — e o
+  mesmo arquivo é o MODELO do scaffolder. Criar escola para o professor do modelo deixou o modelo e a
+  escola no mesmo lugar; o `cp` condicional resolve a cópia, mas a sobreposição de papéis (modelo ×
+  escola real) é um desenho a revisar — fica registrado, não decidido.
 
 ## Pendências anteriores (índice)
 
@@ -411,6 +390,8 @@ nenhum outro script: é a última linha da saída do comando.
 - **15/10/2026** — A chave de cifra vira interna do Worker: ninguém a vê,… → `REGISTRO.md` L12713
 - **15/10/2026** — O lançamento da aula confere a senha e grava cifrado no… → `REGISTRO.md` L12826
 - **15/10/2026** — O expurgo da escola sai do comando e vira botão, na raiz → `REGISTRO.md` L12908
+- **15/10/2026** — O expurgo apagava a escola e deixava o cadastro das alunas… → `REGISTRO.md` L13015
+- Material de campo de **tiago**: 0 evento(s) versionado(s).
 
 ## Documentos-chave (para leitura)
 
