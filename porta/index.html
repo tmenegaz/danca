@@ -1518,9 +1518,29 @@ function travarCabecalho(travado) {
     '.ctx-campos input, .ctx-campos select, .ctx-campos textarea, .ctx-campos button');
   for (const c of controles) {
     if (c.id === 'senha') continue;
+    // A DERIVAÇÃO ESCOLHE A TURMA (16/10/2026). Derivar é criar um plano NOVO a partir de
+    // outro — e o professor precisa dizer PARA QUE TURMA ele deriva. A turma é o único campo
+    // que reabre nesse gesto; os demais (escola, professor, ciclo) continuam fixos.
+    if (DERIVANDO && c.id === 'ctx-turma') continue;
     c.disabled = CABECALHO_TRAVADO;
   }
   if (barra.classList && barra.classList.toggle) barra.classList.toggle('ctx-travado', CABECALHO_TRAVADO);
+}
+
+/*
+ * A SENHA DO PLANO SÓ APARECE QUANDO ELA DECIDE ALGO (16/10/2026). Criar o plano de ensino
+ * é autorizado pela CURADORIA — a direção libera o professor e a turma na Produção —, e
+ * NÃO há senha a digitar nessa tela. A senha existe para a ESCRITA de um plano que já
+ * existe: EDITAR e DERIVAR. Antes ela aparecia sempre, e o professor digitava uma senha sem
+ * função. Na anamnese ela continua sempre visível; no PO, nunca.
+ */
+function ajustarSenhaDoPlano() {
+  const campo = $('senha');
+  if (!campo || !campo.parentElement) return;
+  let mostra = true;
+  if (FONTE === 'po') mostra = false;
+  else if (FONTE === 'plano') mostra = !!(EDITANDO || DERIVANDO);
+  campo.parentElement.style.display = mostra ? '' : 'none';
 }
 
 function apontarContextoFaltando(faltam) {
@@ -5030,6 +5050,7 @@ async function editarPlano(id) {
     DERIVANDO = null;
     MOTIVO_DERIVACAO = null;
     carregarPlanoNaConducao(envelope);
+    ajustarSenhaDoPlano();   // editar mostra a senha (ela decide a escrita)
     // A edição de um plano EXIGE a senha: ela é escrita de quem o assina. Avisa já na
     // entrada — não no fim, depois de responder tudo.
     if (!SENHA_VALIDA) apontarSenhaFaltando();
@@ -5050,6 +5071,7 @@ async function derivarPlano(id) {
     DERIVANDO = id;
     MOTIVO_DERIVACAO = motivo;
     carregarPlanoNaConducao(envelope);
+    ajustarSenhaDoPlano();   // derivar mostra a senha (ela decide a escrita)
     if (!SENHA_VALIDA) apontarSenhaFaltando();
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
@@ -5641,6 +5663,8 @@ async function iniciar() {
     const campoSenha = document.getElementById('senha');
     if (campoSenha && campoSenha.parentElement) campoSenha.parentElement.style.display = 'none';
   }
+  // A senha do PLANO só aparece em EDIÇÃO/DERIVAÇÃO (16/10/2026): criar é pela curadoria.
+  ajustarSenhaDoPlano();
 
   // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
   if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
