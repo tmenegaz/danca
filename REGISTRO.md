@@ -13648,3 +13648,108 @@ fonte única e a raiz (`9730`), os três atalhos e o passo novo (`10019`), a `fi
   do Trilho C desde antes; a troca de nome não a resolve).
 - **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
   a última agora é esta; a regeneração é passo próprio.
+
+---
+
+## 16/10/2026 — A identidade visual tem seis famílias em estudo, e o seletor ainda não existe
+
+**O que aconteceu.**
+O dono do produto explorou **visualmente** seis direções de paleta para o Sistema Lastro, cada uma
+com uma variante **clara** e uma **noturna**, e pediu que o estudo fosse **documentado** — sem
+eleger identidade nova, sem implementar seletor e sem tocar em tela, dado ou arquivo de produção.
+A tarefa tinha uma armadilha embutida, e ela foi respeitada: as imagens de referência são **estudo
+visual**, e o que nelas aparece em texto ou código pequeno **não** é especificação. O resultado é
+**documentação**, e o registo diz isso por palavras de modo que a próxima leitura não confunda.
+
+**O que foi decidido.**
+- **A identidade vigente não muda.** Bordô e ouro continuam a ser a paleta do sistema, com os
+  valores que os tokens já declaram. As seis famílias são **estudo** — elegíveis, não eleitas —, e
+  nenhuma foi promovida a identidade padrão.
+- **O catálogo tem seis famílias e doze combinações**, com nomes **provisórios**: Bordô de Cena
+  (a vigente), Verde de Ensaio, Azul de Gala, Prata de Palco, Azul de Bastidores e Luz de Camarim.
+  Cada uma com **Clara** e **Noturna** — e a noturna **não** é a clara invertida: é concebida para
+  a família.
+- **Nenhum hex foi inventado.** O estudo chegou a nomes e carácter, **não** a valores: a tabela
+  `PARES` do validador mede contraste par a par, e um tom escolhido no olho é exactamente o que ela
+  existe para reprovar. Cada família terá os seus valores **especificados e medidos** antes de
+  qualquer implementação.
+- **Registou-se a funcionalidade futura**, e ela **não foi implementada**: uma entrada de menu
+  **«Identidade visual»** no painel administrativo, com o campo **«Paleta de cores»** e as doze
+  opções, valendo para **todas** as telas — cabeçalho, navegação, formulários, tabelas, cartões,
+  modais e mensagens.
+
+**O que a medição encontrou — e é o que trava o desenho hoje.**
+- **O caminho está aberto:** o corpo de `tools/templates/ciclo.css` **não escreve um único hex** e
+  usa `var(--…)` **66 vezes**. Trocar os valores do `:root` re-veste todos os componentes sem
+  reescrever uma regra — é o que torna o escopo global viável.
+- **Mas a paleta é resolvida na geração, não no uso:** a cópia `assets/style.css` do pacote é
+  **gerada**, e o validador exige que ela seja **idêntica** à fonte (a checagem «circuito»). Um
+  estático não muda de cor porque alguém escolheu uma opção.
+- **E não há usuário a quem pendurar a preferência.** Isto é o achado da rodada, e está medido:
+  `senhaDaEscolaOk` (`motor/servidor/bastidores.js:468`) aceita a senha da **direção** *ou a de
+  qualquer professor cadastrado*, e depois do portão a página guarda **a senha** — em
+  `sessionStorage`, estado por aba. O sistema autentica **um segredo**, não **uma pessoa**. A
+  tarefa manda **não presumir** que a escolha vale para todos os usuários de uma escola, e a
+  presunção é justamente o que o modelo de acesso **não** autoriza. Entrou como **C15**.
+- **Os leitores da fonte assumem um só `:root`:** `tools/lib-tokens.js` corta o bloco no primeiro
+  `}` depois do primeiro `:root`, e `check-identidade.js` faz o mesmo (`lerTokens`). Doze paletas
+  num arquivo exigem que os dois saibam **qual** ler — e o PDF é alimentado pelo primeiro.
+
+**O que mudou, arquivo por arquivo.**
+- `IDENTIDADE-VISUAL.md` — o **contrato da forma**, e é ele que recebeu o grosso. Ganhou: o aviso
+  datado no topo; «O catálogo planejado — seis famílias, doze variantes», com a tabela das seis, a
+  lista das doze na ordem do catálogo e o aviso de que **as imagens são estudos, não
+  especificação**; «A funcionalidade futura — configuração de aparência», com o fluxo de cinco
+  passos, o escopo global e o que a troca **não** pode tocar; «As duas metades do problema», com as
+  duas medições acima; «A pergunta sem resposta: a preferência é de quem?»; «Onde a preferência é
+  guardada»; «Requisitos registados, para quando se implementar» (os onze, mais o
+  `prefers-color-scheme`); e «Acessibilidade — o critério não muda, a superfície cresce». No fim,
+  dois itens novos no «O que este documento não faz»: **não implementa o que planeja** e **não
+  substitui a identidade vigente**.
+- `PLANEJAMENTO-LASTRO.md` — o **mapa de evolução**. Ganhou: a nota datada no cabeçalho; a **C15** na
+  §3; a **frente L13** (a identidade visual como escolha), com objetivo, o quadro «documentação
+  concluída × funcionalidade implementada», situação medida, lacunas, dependências, entregas,
+  as etapas **V0–V5**, critérios verificáveis e riscos; a **camada 6 — a forma** na §5, com o
+  parágrafo «o que não se deve fazer na forma»; a **quarta matriz de cobertura** na §8, item por
+  item da tarefa; e a secção «O que o registo da identidade visual não decidiu» na §9. O
+  quadro-resumo passou a **treze** frentes e a §2.10 passou a declarar que a identidade **existe
+  como contrato** e que o **catálogo não existe**.
+- `REGISTRO.md` — esta entrada.
+- **O que NÃO foi tocado:** `tools/templates/ciclo.css`, `tools/lib-tokens.js`,
+  `tools/check-identidade.js`, `tools/templates/*.html`, qualquer arquivo de `motor/`, `raiz/`,
+  `porta/` e os pacotes de ciclo. **Nenhuma linha de código de produto**, e **nenhuma regeração**.
+
+**Por que isto não é a mudança de um congelado.** A rodada **não** mexeu em `tools/` nem no
+`REGRAS.md`. O que ficou registado é que a **implementação** da L13 vai mexer — `ciclo.css`,
+`lib-tokens.js`, `check-identidade.js` e, conforme o mecanismo, os templates —, e que ela será
+**commit próprio com motivo declarado**, na hora. O `IDENTIDADE-VISUAL.md` é documento livre
+em `CONGELAMENTO.md`, e por isso esta atualização é um commit normal.
+
+**Como foi provado.** `node tools/check-identidade.js` — e ele é a prova de que a rodada **não**
+mexeu na identidade: **21 pares** medidos, todos em AA ou acima; **21 hex** da paleta, nenhum fora
+de `tools/templates/ciclo.css`; os **7 tokens** do deck batendo com a fonte; e o **circuito** — a
+cópia `assets/style.css` e o `assets/nav.js` de cada pacote iguais à fonte. Se qualquer valor
+tivesse mudado, ou se uma paleta nova tivesse entrado em falso, ele reprovava. As medições citadas
+acima foram lidas do código, não supostas: as 66 ocorrências de `var(--…)` e a ausência de hex no
+corpo do `ciclo.css`; o `indexOf(':root')` nos dois leitores; o `senhaDaEscolaOk`/`sessionStorage`
+no portão da Produção; `motor/servidor/bastidores.js:550` para a folha compartilhada.
+
+**Referências.** O estudo de paletas entregue pelo dono do produto (16/10/2026) ·
+`IDENTIDADE-VISUAL.md` (o contrato, e o elo de 25/09/2026 que o criou) · `CONGELAMENTO.md`
+(«alterar a estrutura de menu ou navegação») · os elos do mesmo dia: a estratégia comercial
+(`PLANEJAMENTO-LASTRO.md` §L11–L12) e a apresentação do Sistema Lastro (a entrada anterior).
+
+**O que ainda não está feito.**
+- **Nada da funcionalidade.** Não há paleta nova no `ciclo.css`, não há item de menu «Identidade
+  visual», não há campo «Paleta de cores», não há persistência e não houve regeração de pacote. O
+  contrato está documentado e em vigor desde 25/09/2026; o **catálogo** desde hoje; a
+  **funcionalidade não existe**.
+- **A `C15` está aberta:** a preferência é **por escola**, **por usuário** ou **por navegador**.
+  Sem ela não se desenha a persistência — e é ela que decide se há um campo novo no dado da escola.
+- **A decisão do mecanismo está aberta:** aplicar **no navegador** (funciona em página estática, não
+  regera pacote, não viaja entre dispositivos) ou **no servidor** (viaja, e cria um campo «de
+  alguém»). O caminho do servidor existe: `"run_worker_first": true` nos `wrangler.<escola>.jsonc`.
+- **Os hex das doze combinações não existem** — por desenho. Especificar e medir é a etapa **V1**.
+- **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
+  e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
+  paletas, «a vigente» é a resposta provável — e continua a ser decisão.

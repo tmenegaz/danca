@@ -3,7 +3,7 @@
 > **Resumo (para o HANDOFF):** o mapa de evolução do **Sistema Lastro** (o nome comercial do
 > produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do
 > que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os
-> relacionamentos, os índices, o versionamento e o comercial — e **doze frentes** com objetivo,
+> relacionamentos, os índices, o versionamento e o comercial — e **treze frentes** com objetivo,
 > lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi
 > implementado: este documento é o mapa, não a obra.
 >
@@ -68,6 +68,17 @@
 > «precisa de decisão»), o **§4** (o quadro-resumo passa a doze frentes), o **§5** (L12 na camada 5),
 > o **§8** (a terceira matriz de cobertura) e o **§9** (as perguntas que ficaram abertas).
 > Nenhuma linha de código de produto foi alterada — e nenhuma será nesta etapa.
+>
+> **Registo de 16/10/2026 — a identidade visual como escolha do usuário.** O dono do produto
+> explorou **seis direções de paleta**, cada uma com variante **clara** e **noturna**, e pediu que
+> o estudo fosse **documentado** — a identidade vigente (bordô e ouro) **não muda**, e nada de
+> código se escreve nesta rodada. Entra a frente **L13 — a identidade visual como escolha**, com o
+> catálogo das doze combinações, os requisitos da implementação futura, os critérios de
+> acessibilidade e **uma pergunta que o modelo de acesso não responde** (a preferência é de quem?).
+> O contrato da identidade é o `IDENTIDADE-VISUAL.md`, que ganhou o catálogo e a funcionalidade
+> futura; aqui registam-se a frente, as dependências e a decisão pendente. O quadro-resumo passa a
+> **treze** frentes (§4), a sequência ganha a **camada 6 — a forma** (§5), a §8 ganha a quarta
+> matriz de cobertura e a §9 acolhe **C15**. Nenhuma linha de código de produto foi alterada.
 
 ---
 
@@ -356,10 +367,10 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 
 | Categoria | O que está nela |
 |:--|:--|
-| **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.2.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro) |
+| **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.2.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
-| **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C15** **de quem é a preferência de aparência** — por escola, por usuário ou por navegador —, e, com ela, o achado medido de que **o modelo de acesso não identifica o usuário**: o portão da Produção autentica um **segredo** por escola, não uma **pessoa** (interessa a **L13**). **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -630,14 +641,47 @@ conciliação de 48 horas **não deverá resultar automaticamente em exclusão d
 disso bloqueia nem apaga sozinho** — é o que o desenho tem de garantir, qualquer que seja o marco.
 *(Afeta L11 e L12.)*
 
+**C15 — A preferência de aparência é de quem.** A tarefa de 16/10/2026 (§L13) manda **não presumir**
+que a paleta escolhida valha para todos os usuários de uma escola, e confirmá-lo contra o modelo de
+acesso. **Medido, e o modelo não responde:**
+
+- **A senha da Produção é uma por escola.** `senhaDaEscolaOk` (`motor/servidor/bastidores.js:468`)
+  aceita a senha da **direção** *ou a de qualquer professor cadastrado* — e é decisão declarada no
+  próprio código: o dado da escola «não pertence a um professor», e quem lança aula pode ser
+  qualquer um da casa.
+- **Depois do portão, o que a página guarda é a senha, não quem entrou.** O `entrar()` do gate põe
+  o valor em `sessionStorage` — **estado por aba**, que esquece ao fechar. O sistema autentica **um
+  segredo**, não **uma pessoa**.
+
+Isto é: **hoje não há a quem pendurar uma preferência por usuário.** Não é um detalhe de aparência —
+é a mesma classe de lacuna que a **C11** encontrou na porta (não há lado público) e a **C13** na
+identificação da escola (não há escola na raiz): **o modelo de acesso não tem a entidade que a
+funcionalidade supõe.** Os três caminhos, e **nenhum escolhido**:
+
+| Caminho | O que exige | O que custa |
+|:--|:--|:--|
+| **por escola** | nada de novo: é a chave que a instalação já tem | a escolha de um vale para todos — que é o que a tarefa manda **não** presumir |
+| **por usuário** | dar **identidade** a quem entra | é decisão de **acesso**, com consequência de segurança — não de forma |
+| **por navegador** | nada: a preferência vive no navegador de cada um | não viaja entre dispositivos, e não pertence nem ao usuário nem à escola |
+
+> **Nota honesta, e é uma porta que não se abre por acidente.** `senhaDaEscolaOk` **percorre** a
+> lista de professores e sabe **qual** senha bateu: a identidade **existe no dado** e **não é
+> usada**. Transformar isso em «quem entrou» é possível — e é **decisão de acesso**, não um efeito
+> colateral de um seletor de cores.
+
+*(Afeta L13. **Precede** o desenho da persistência: é ela que decide se há um campo novo no dado da
+escola.)*
+
 ---
 
 ## 4. As frentes
 
-Doze frentes. Cada uma traz os oito itens pedidos. A **prioridade** é sugerida — a decisão é sua.
-A classificação do que existe hoje está em **§2.10**; o catálogo pergunta por pergunta, em **§7**;
-e a cobertura de cada requisito dos dois textos **e da estratégia comercial de 16/10/2026**, em
-**§8**.
+Treze frentes. Cada uma traz os oito itens pedidos. A **prioridade** é sugerida — a decisão é sua.
+A **L13** (a identidade visual como escolha, 16/10/2026) **não reordena nada**: entra em **P3**, com
+o mesmo peso da L12, e o motivo está declarado na própria frente. A classificação do que existe
+hoje está em **§2.10**; o catálogo pergunta por pergunta, em **§7**; e a cobertura de cada requisito
+— dos dois textos, da **estratégia comercial de 16/10/2026** e da **atualização da identidade
+visual** —, em **§8**.
 
 **Quadro-resumo** (para priorizar — o detalhe de cada frente está na sua secção):
 
@@ -655,6 +699,7 @@ e a cobertura de cada requisito dos dois textos **e da estratégia comercial de 
 | **L9** | Cotas, habilitação e limites por plano | **P3** | — | L6 + L7 + L8 · decisão **C2** |
 | **L11** | A porta paga: cobrança, verificação e liberação de escolas | **P2** | o lado público da porta | L8 (o valor) · **decisão C11** (onde vive o estado) · **dependências externas** (provedor) |
 | **L12** | A jornada comercial: a oferta, o período gratuito e a comunicação | **P3** | a contratação | L8 (o valor) · L9 (a trava) · **C12** (as durações) · **C13** (onde a página vive) · **o canal** (externo) |
+| **L13** | A identidade visual como escolha: o catálogo das doze combinações | **P3** | — (não destranca frente nenhuma) | o contrato de forma (`IDENTIDADE-VISUAL.md`) · **C15** (a preferência é de quem) · a decisão do mecanismo (navegador × servidor) |
 
 > **A trilha mais curta até valor entregue:** L1 + L2 → L3 → L4 → **T01 ou P01** (as duas únicas
 > perguntas do catálogo que ficam viáveis sem decisão de conteúdo — §7). O resto do catálogo
@@ -1515,6 +1560,136 @@ decisão.
 
 ---
 
+### L13 — A identidade visual como escolha: o catálogo das doze combinações
+
+- **Objetivo e justificativa.** Deixar a **aparência** do sistema ser escolha de quem o usa, dentro
+  de um catálogo **fechado e medido** — seis famílias de paleta, cada uma com variante **clara** e
+  **noturna** —, em vez de uma identidade única imposta a todas as escolas. A justificativa é de
+  produto e de uso real: as escolas do universo da dança **não têm a mesma cara**, e uma paleta de
+  teatro clássico não é o que uma escola de bairro quer na tela às 21h. A frente existe para que a
+  escolha seja **uma decisão com contrato** — e não uma preferência que cada página resolve por si,
+  que é como a identidade divergiu em quatro arquivos na primeira vez (é a origem de
+  `IDENTIDADE-VISUAL.md`).
+
+- **Documentação concluída, funcionalidade NÃO implementada — dito uma vez, e sem rodeio.**
+
+  | | Estado |
+  |:--|:--|
+  | O **contrato** da identidade (tokens, papéis, piso de contraste, validador) | **documentado e em vigor** desde 25/09/2026 |
+  | O **catálogo** das seis famílias × duas variantes | **documentado** em 16/10/2026 — nomes provisórios, **sem hex** |
+  | A **funcionalidade** (menu «Identidade visual», campo «Paleta de cores», aplicação global, persistência) | **não implementada** — nem uma linha |
+  | Os **hex** de cada família | **não existem** — a especificar e medir antes de implementar |
+
+- **Situação atual — medida.** A identidade **existe e está em vigor**; o catálogo **não**. O que a
+  medição de 16/10/2026 estabeleceu, e que decide o esforço da frente:
+
+  - **O caminho está aberto.** `tools/templates/ciclo.css` é a fonte única, e o **corpo** dela
+    **não escreve um único hex**: usa `var(--…)` **66 vezes** (medido). Trocar os valores do
+    `:root` re-veste **todos** os componentes sem reescrever uma regra — é o que torna o escopo
+    global viável sem tocar em componente nenhum.
+  - **Uma folha só para a interface inteira.** Os Bastidores carregam **a mesma** folha do pacote
+    (`motor/servidor/bastidores.js:550`), e o pacote recebe `assets/style.css` como **cópia
+    gerada** da fonte.
+  - **Mas a paleta é resolvida na geração, não no uso.** A cópia do pacote é **gerada** e o
+    validador exige que ela seja **idêntica** à fonte (`check-identidade.js`, a checagem
+    «circuito»). Um estático não muda de cor porque alguém escolheu uma opção — e a escolha é de
+    **pessoa**, não de pacote.
+  - **Há uma chave de escola confiável.** `ESCOLA_SLUG` (var do Worker de cada escola) — o mesmo
+    mecanismo que a **C13** mediu. Não há lista pública, e o parâmetro `?escola=` é recurso de
+    desenvolvimento (`escolaDe`, `bastidores.js:97`).
+
+- **Lacunas.** (1) **Não há catálogo** — as doze combinações não existem em lugar nenhum do
+  código, e nenhum dos seus hex está especificado; (2) **não há item de menu** «Identidade visual»
+  no painel administrativo — e acrescentá-lo é alterar **navegação** (`CONGELAMENTO.md`, «exige
+  motivo declarado»); (3) **os leitores da fonte assumem um só `:root`** — `tools/lib-tokens.js`
+  corta o bloco no **primeiro** `}` depois do primeiro `:root`, e `check-identidade.js` faz o mesmo
+  (`lerTokens`): doze paletas num arquivo exigem que os dois saibam **qual** ler; (4) **não há
+  mecanismo de aplicação** escolhido — navegador ou servidor, e cada um arrasta consequências
+  distintas; (5) **não há onde guardar a preferência**, e a pergunta **de quem** ela é não está
+  respondida (**C15**); (6) **o validador mede uma paleta** — com o catálogo, tem de medir **cada
+  combinação contra os fundos reais**, e os semânticos (`--ok`, `--alerta`, `--falha`) não podem
+  perder o significado em nenhuma delas; (7) **não há noturna nenhuma** — a vigente não tem par
+  noturno, e a variante noturna da Bordô de Cena também é estudo.
+
+- **Dependências técnicas e de domínio.**
+  - **O contrato de forma** — `IDENTIDADE-VISUAL.md` (livre). É onde o catálogo, os requisitos e o
+    critério de acessibilidade estão declarados. **A frente implementa o que ele descreve**; se o
+    desenho precisar de outra coisa, muda-se o **contrato**, com data.
+  - **A decisão do mecanismo** — aplicar **no navegador** (um script reescreve os tokens no `:root`
+    a partir da preferência guardada; funciona em página estática e não exige regerar nada) ou
+    **no servidor** (o Worker injeta a paleta; o caminho existe — `"run_worker_first": true` nos
+    `wrangler.<escola>.jsonc`, e `env.ASSETS` em `motor/servidor/cloudflare.js:188`). **Não
+    escolhido.**
+  - **C15** — a preferência é **por escola**, **por usuário** ou **por navegador**. **Precede** o
+    desenho: é ela que decide se há um campo novo no dado da escola, e é ela que trava a
+    persistência. **Não decidida** — e a razão está medida (§3 C15).
+  - **Infraestrutura congelada** — `tools/templates/ciclo.css`, `tools/lib-tokens.js`,
+    `tools/check-identidade.js`, e `tools/templates/*.html` se o mecanismo exigir um script.
+    Alterá-los exige **motivo declarado + `REGISTRO.md` + commit próprio** — **na implementação**,
+    não agora.
+  - **C13** (onde a página de planos vive) — **não** é dependência: as duas são de instalação, e a
+    identidade visual pertence ao **painel administrativo**, que já existe.
+
+- **Entregas.** (a) Os **tokens das doze combinações** na fonte única — cada família com clara e
+  noturna, **medidos** antes de escritos; (b) a **entrada de menu «Identidade visual»** na área de
+  configuração do painel (alteração de navegação: motivo declarado); (c) o campo **«Paleta de
+  cores»** com as doze opções, na ordem do catálogo, cada família com as duas variantes juntas;
+  (d) o **mecanismo de aplicação global** — a escolha feita uma vez e valendo em cabeçalho,
+  navegação, formulários, tabelas, cartões, modais e mensagens; (e) a **persistência** da
+  preferência entre sessões, no mecanismo que a decisão de C15 indicar; (f) o **validador
+  estendido** — `PARES` contra as doze combinações e contra os fundos reais, com a **cópia única**
+  continuando a valer (as doze paletas são **acréscimo à fonte**, não cópias espalhadas); (g) a
+  **noturna concebida para cada família**, nunca uma inversão automática; (h) os **leitores da
+  fonte** capazes de dizer **qual** paleta ler — `lib-tokens.js` (o PDF) e `check-identidade.js`.
+
+- **Ordem de implementação.**
+
+  | Etapa | O que é | Depende de | Critério de aceite da etapa |
+  |:--|:--|:--|:--|
+  | **V0** | **Decidir de quem é a preferência** (C15) | — | A decisão está escrita, datada e com o motivo; os três caminhos foram comparados contra o modelo de acesso **medido** |
+  | **V1** | **Especificar e medir** os hex das doze combinações, na fonte única | V0 não; o **critério** sim (WCAG 2.1 AA) | Cada par de `PARES` passa, em cada combinação, **contra os fundos reais**; nenhum hex entra sem a medição publicada; a identidade vigente **não** muda de valor |
+  | **V2** | **O validador estendido** — mede as doze, e a cópia única continua a valer | V1 | `check-identidade.js` mede a **matriz** completa e reprova a combinação que falhar; o deck e o PDF continuam conferidos contra a paleta vigente |
+  | **V3** | **O mecanismo de aplicação global** | V0 · a decisão navegador × servidor | A escolha re-veste **todas** as telas sem regerar pacote (navegador) **ou** com o servidor injectando; nenhum componente passa a conhecer o nome de uma paleta |
+  | **V4** | **O item de menu e o campo** | V3 · **motivo declarado** (navegação + `tools/`) | O menu abre a configuração; o campo oferece as **doze**, na ordem do catálogo; o rótulo é «Paleta de cores» |
+  | **V5** | **A persistência** | V0 · V3 | A preferência sobrevive ao fechar e reabrir; a troca **não** toca em dado pedagógico, registro, versão de plano, permissão nem regra de negócio — verificado por contagem antes e depois |
+
+- **Critérios verificáveis.** **(i)** A identidade vigente **não** muda ao introduzir o catálogo —
+  os tokens de hoje mantêm os valores de hoje; **(ii)** as **doze** combinações são oferecidas, na
+  ordem do catálogo, com as duas variantes de cada família juntas; **(iii)** cada combinação passa
+  no piso medido — **4,5:1** texto, **3,0:1** traço com função — **contra os fundos reais** dos
+  componentes; **(iv)** os semânticos continuam a comunicar resultado em **toda** combinação (não
+  viram ornamento); **(v)** a escolha vale em **todas** as telas — cabeçalho, navegação,
+  formulários, tabelas, cartões, modais e mensagens —, e não por página; **(vi)** a preferência
+  **persiste** entre sessões; **(vii)** a escolha **não** depende de `prefers-color-scheme` (o
+  sistema operativo pode, no máximo, sugerir o valor inicial); **(viii)** a troca **não** altera
+  dado pedagógico, registro, versão de plano, permissão nem regra de negócio — provado por
+  contagem; **(ix)** o `.fipp` **não** é reancorado pela troca de paleta (é forma, não fonte de
+  ciclo); **(x)** zero dependência nova — o catálogo é CSS nativo.
+
+- **Riscos e decisões por confirmar.**
+  - **O risco maior é de arquitetura, e não de cor:** aplicar no **navegador** não cria campo no
+    dado e não exige regerar pacote, mas a preferência **não viaja** entre dispositivos; aplicar no
+    **servidor** viaja, e cria um campo **de alguém** — que é exatamente o que C15 não respondeu.
+  - **A noturna é trabalho, não inversão.** Doze combinações são doze desenhos: inverter a clara
+    produz contraste que reprova e uma cor que não é a da família. O critério (iii) é o que impede
+    a pressa.
+  - **Os leitores da fonte quebram se o arquivo passar a ter doze `:root`.** O `lib-tokens.js`
+    alimenta o **PDF** (`--latex`), e ele lê o **primeiro** bloco. Um `:root` a mais antes dele
+    muda a cor do PDF **em silêncio** — é a mesma classe de defeito que originou o validador.
+  - **O deck e o PDF seguem a vigente.** O deck **declara** os tokens e o validador confere se
+    batem com a fonte; o PDF recebe `\definecolor` **injetado**. Com doze paletas, **qual** delas o
+    deck e o PDF usam é pergunta a responder em V2 — e a resposta provável é «a vigente», mas isso
+    é decisão, não consequência.
+  - **Verificação de acessibilidade não se faz no olho.** Sem a medição, o catálogo é gosto.
+
+- **Prioridade.** **P3** — e **não reordena nada**: nenhuma frente depende dela, e ela não depende
+  de nenhuma frente. É a única frente do documento nessa posição, e o motivo é declarado: ela é de
+  **forma**, e a forma não bloqueia conteúdo, cobrança nem porta. **V1 é a parte independente** e
+  pode começar assim que houver o critério — o que ela **não** pode é começar sem V0, porque os hex
+  de doze combinações são caros de escolher e baratos de escolher duas vezes.
+
+---
+
 ## 5. Sequência sugerida
 
 **Por camadas** — cada camada só começa quando a de baixo está fechada:
@@ -1526,7 +1701,8 @@ decisão.
 | **2 — o encontro** | **L4** (mapa de relações e índice) | é a consequência de L1+L2+L10 aplicada ao dado de L3; sem ela, cada consulta varre tudo |
 | **3 — o valor** | **L6** (catálogo de consultas) | depende de L1–L4 **e de L10** (sem o vocabulário, quatro das oito perguntas não têm como ser respondidas — §7); é onde o produto passa a valer |
 | **4 — o comercial** | **L7** (IA e uso) → **L9** (cotas por plano) · **L8** (composição e valores) | L9 depende de L6+L7+L8. **L8 é independente do dado** e pode começar a qualquer momento, depois da confirmação dos valores |
-| **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) · **L12** (a oferta, o período gratuito e a comunicação) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3** o valor, e toda a **L12** — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. **J1 e J3 de L12 não dependem de nada externo** e podem começar desde já. É a única camada cujo começo **não** espera por outra camada |
+| **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) · **L12** (a oferta, o período gratuito e a comunicação) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3** o valor, e toda a **L12** — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. **J1 e J3 de L12 não dependem de nada externo** e podem começar desde já |
+| **6 — a forma** | **L13** (a identidade visual como escolha — o catálogo das doze combinações) | **corre em paralelo a tudo o resto**, e é a camada mais independente do documento: não depende do dado, nem do provedor, nem do valor, nem da porta. O que ela espera **não é uma frente** — é a decisão de **C15** (a preferência é de quem), que **precede** o desenho da persistência. **As duas camadas 5 e 6 são as únicas cujo começo não espera por outra camada** |
 
 **O que não se deve fazer.** Implementar L6 antes de L1/L2/L3 **e de L10** — produziria consultas
 sobre chaves instáveis, sobre um dado sem leitor e sobre conceitos que o modelo não tem, e cada
@@ -1539,6 +1715,13 @@ fáceis, e que custam caro: tratar o **fim do período gratuito** com a régua d
 estratégia nomeia **quatro** (§3 C12). A camada 5 tem **duas** frentes que se encostam: a L11
 cobra, a L12 oferece — e a fronteira é o **estado comercial**, que as duas leem e só uma escreve
 (quem escreve é decisão de **C11**).
+
+**E o que não se deve fazer na forma** — a armadilha da camada 6, que é nova e tem nome: tratar a
+**variante noturna** como a clara **invertida**. Inverter não é desenhar: produz contraste que
+reprova e uma cor que não é a da família. A noturna é **concebida para a família**, e o piso medido
+(4,5:1 texto · 3,0:1 traço) vale igual nos doze casos. A segunda armadilha é de sequência:
+**especificar os hex antes de saber de quem é a preferência** (C15) — doze combinações desenhadas
+para «o usuário» quando não há usuário a quem pendurá-las é trabalho que se faz duas vezes.
 
 ---
 
@@ -1603,13 +1786,14 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 
 ---
 
-## 8. Cobertura — cada requisito dos três textos, e onde é respondido
+## 8. Cobertura — cada requisito dos textos, e onde é respondido
 
 > **Por que esta secção existe.** Para que o mapa seja **auditável**: nenhum requisito dos textos
 > fica sem resposta, e nenhuma resposta fica sem requisito. É a tabela que se relê quando se
-> quiser saber «isto já foi pensado?». São **três** os textos: o texto 1 (integridade, indexação e
-> proveniência), o texto 2 (consultas pedagógicas e organização comercial) e a **estratégia
-> comercial de 16/10/2026**, incorporada nesta rodada.
+> quiser saber «isto já foi pensado?». São **quatro** os textos: o texto 1 (integridade, indexação
+> e proveniência), o texto 2 (consultas pedagógicas e organização comercial), a **estratégia
+> comercial de 16/10/2026** e a **atualização da identidade visual de 16/10/2026** — as duas
+> últimas incorporadas nesta rodada.
 
 ### Texto 1 — Integridade dos dados, indexação semântica e proveniência documental
 
@@ -1701,6 +1885,40 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 | §11 | Auditar as decisões existentes e **não** resolver contradições em silêncio | **§3 C12, C13, C14** (as três que a conferência encontrou) · este §8 · §9 |
 | §12 | Só o planeamento; resumo das alterações e lista das dúvidas | este documento — e **§9** (o que não se decidiu) |
 
+### A atualização da identidade visual de 16/10/2026 — onde cada item é respondido
+
+O texto desta rodada não é uma estratégia: é a **documentação de um estudo de forma** e o
+**registo de uma funcionalidade futura**. A matriz é dele.
+
+| § | O que foi pedido | Onde é respondido |
+|:--|:--|:--|
+| §1 | Inspecionar antes de editar; confirmar nomes e caminhos reais; não criar documento duplicado | **`IDENTIDADE-VISUAL.md`** — o documento **já existia** e foi **atualizado**, não duplicado. Os caminhos foram medidos: a fonte única é `tools/templates/ciclo.css`, o validador é `tools/check-identidade.js`, o leitor é `tools/lib-tokens.js` |
+| §1 | Preservar as decisões técnicas não substituídas | **`IDENTIDADE-VISUAL.md`**, os tokens · §L13 critério **(i)** (a vigente **não** muda de valor) |
+| §2 | A paleta bordô e dourado **continua** a identidade vigente; não declarar as seis como aprovadas | **`IDENTIDADE-VISUAL.md`**, o banner de 16/10/2026 e «O catálogo planejado» · **§L13**, o quadro «documentação concluída × funcionalidade implementada» |
+| §2 | Registar as seis direções, cada uma clara e noturna, para avaliação futura | **`IDENTIDADE-VISUAL.md`**, «O catálogo planejado» · §L13 entregas (a) e (g) |
+| §2 | As imagens são **estudos**, e o que nelas é ilegível não é especificação | **`IDENTIDADE-VISUAL.md`**, o aviso «As imagens são estudos, não especificação» |
+| §3 | As seis famílias **nomeadas**, com carácter, provisórias | **`IDENTIDADE-VISUAL.md`**, a tabela das seis famílias |
+| §3 | A lista das **doze** opções, na ordem do catálogo | **`IDENTIDADE-VISUAL.md`**, a lista · §L13 entrega (c) e critério (ii) |
+| §3 | **Não** inventar hex a partir das imagens | **`IDENTIDADE-VISUAL.md`** (nenhum hex foi escrito) · §L13 entrega (a) e etapa **V1** |
+| §4 | A funcionalidade futura: menu, campo, fluxo de cinco passos, aplicação global | **`IDENTIDADE-VISUAL.md`**, «A funcionalidade futura» · §L13 entregas (b)–(d) |
+| §4 | Escopo **global**, não por página ou componente | **`IDENTIDADE-VISUAL.md`** (o corpo do `ciclo.css` é 100% tokens — 66 `var(--…)`, zero hex) · §L13 critério (v) |
+| §4 | Respeitar a arquitetura de autenticação, persistência e escopo **já existente** | **§3 C15** — medido: o portão da Produção autentica **um segredo**, não uma pessoa, e por isso **não há usuário** onde pendurar a preferência |
+| §4 | **Não presumir** que a preferência vale para todos; confirmar contra o modelo de acesso e registar como pendente se não estiver definido | **§3 C15**, com os três caminhos e nenhum escolhido · **§L13 V0** |
+| §4 | A preferência persiste entre sessões, sem escolher o mecanismo antes de inspecionar | **`IDENTIDADE-VISUAL.md`**, «Onde a preferência é guardada» (KV × navegador, o `sessionStorage` não serve) · §L13 entrega (e) |
+| §4 | A troca **não** altera dado pedagógico, registro, versão de plano, permissão nem regra de negócio | **`IDENTIDADE-VISUAL.md`**, «O que a troca NÃO pode tocar» · §L13 critério (viii) |
+| §5 | Os **onze** requisitos de implementação, sem implementar | **`IDENTIDADE-VISUAL.md`**, «Requisitos registados» · §L13 entregas e critérios |
+| §5 | A escolha **não** pode depender só de `prefers-color-scheme` | **`IDENTIDADE-VISUAL.md`** (a escolha é explícita; o SO sugere, no máximo, o inicial) · §L13 critério (vii) |
+| §6 | Preservar o WCAG 2.1 AA (4,5:1 e 3,0:1) | **`IDENTIDADE-VISUAL.md`**, «O critério é medido» e «Acessibilidade» · §L13 critério (iii) |
+| §6 | Validar **cada** combinação contra os **fundos reais**; os semânticos mantêm o significado | **`IDENTIDADE-VISUAL.md`**, «Acessibilidade — o critério não muda, a superfície cresce» · §L13 critérios (iii) e (iv) |
+| §6 | O catálogo e as regras de contraste **integram** os validadores existentes, sem cópias divergentes | **`IDENTIDADE-VISUAL.md`** (a tabela `PARES` é o lugar) · §L13 entrega (f) e etapa **V2** |
+| §7 | Registar no planeamento: objetivo, escopo, dependências, critérios, pendências | **§L13** inteira · **§5** (camada 6) · **§9** |
+| §7 | Distinguir documentação concluída de funcionalidade implementada | **§L13**, o quadro do topo · **`IDENTIDADE-VISUAL.md`**, o banner e «Não implementa o que planeja» |
+| §7 | Não alterar a ordem de prioridades sem justificativa | **§4** e **§L13 «Prioridade»** — a L13 entra em **P3** e **não reordena nada**; o motivo está declarado |
+| §7 | Não marcar como concluída etapa de código não executada | **§L13** — V0 a V5 estão **todas** por fazer, e a frente diz isso por palavras |
+| §7 | Registar no handoff: a atualização, que não foi implementado, os arquivos alterados e as decisões abertas | `REGISTRO.md`, entrada de **16/10/2026**, que o `HANDOFF.md` **extrai** (é gerado) — com o bloco «O que ainda não está feito» |
+| §7 | Entrada datada no registo cronológico de decisões, no formato já usado | **`REGISTRO.md`**, `## 16/10/2026 — …` |
+| §8 | Os sete critérios de conclusão | **§9** (as pendências) e o resumo da entrega |
+
 ### O que os textos exigem e **ainda não tem resposta** — declarado
 
 1. **A definição de «contexto», «componente», «intervenção» e «resposta observada»** (§3 C10) —
@@ -1718,7 +1936,7 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 
 ## 9. O que este documento **não** decidiu
 
-- **Não escolheu** as interpretações das contradições C1–C14 (§3); registou-as. **Exceção: C3**,
+- **Não escolheu** as interpretações das contradições C1–C15 (§3); registou-as. **Exceção: C3**,
   resolvida em **15/10/2026** por decisão do dono do produto («o PO/plano publicado passa a ter
   versão explícita que o lançamento referencia») — e o **desenho** que a realiza (**S1–S4**) foi
   proposto por este documento e **aprovado no mesmo dia** (§3 C3, §L5). Propô-lo e aprová-lo não o
@@ -1815,3 +2033,36 @@ gerado por `tools/criar-escola.sh` (`gerar_nav_zero`) e descrito em `CONGELAMENT
 de navegação exige **motivo declarado + entrada no `REGISTRO.md` + commit próprio**, como qualquer
 alteração àquela lista de arquivos. **Não** foi antecipada nesta rodada: o documento é planeamento,
 e o `CONGELAMENTO.md` já cobre a hipótese sem precisar de emenda nova.
+
+### O que o registo da identidade visual *(16/10/2026)* não decidiu
+
+Esta rodada é **documental**, e o que ela **não** decidiu é o que a mantém honesta. Nada disto tem
+resposta dedutível do repositório:
+
+1. **De quem é a preferência de aparência — da escola, do usuário ou do navegador?** (**C15**) É a
+   pergunta que **precede** o desenho: é ela que decide se há um campo novo no dado da escola e
+   quem é a chave. **Medido:** o portão da Produção autentica **um segredo por escola**, não uma
+   pessoa — logo **não há usuário** onde pendurar a preferência hoje. A tarefa manda **não
+   presumir** que ela vale para todos, e a presunção é justamente o que o modelo não autoriza.
+2. **O mecanismo de aplicação — no navegador ou no servidor?** O primeiro funciona em página
+   estática e não exige regerar pacote; o segundo viaja entre dispositivos e cria um campo «de
+   alguém». A decisão arrasta os **leitores da fonte**: `lib-tokens.js` e `check-identidade.js`
+   assumem **um só** `:root`, e doze paletas exigem que os dois saibam **qual** ler.
+3. **Os hex das doze combinações não existem.** Foram registados **nomes e carácter**, e
+   deliberadamente **nenhum valor** — as imagens de referência são **estudo**, não especificação.
+   Especificar e **medir** cada combinação é a etapa **V1**, e ela não tem valor por dedução.
+4. **Qual paleta o PDF e o deck passam a usar.** O deck **declara** os tokens e o validador confere
+   se batem com a fonte; o PDF recebe o `\definecolor` **injetado** por `lib-tokens.js`. Com doze
+   paletas, «a vigente» é a resposta **provável** e continua a ser **decisão**.
+5. **Nada foi implementado.** Não há paleta nova no `ciclo.css`, não há item de menu «Identidade
+   visual», não há campo «Paleta de cores», não há persistência e **não houve regeração de pacote**.
+   O quadro de §L13 diz isto por palavras: o **contrato** está documentado e em vigor desde
+   25/09/2026, o **catálogo** está documentado em 16/10/2026, a **funcionalidade não existe**.
+6. **A identidade vigente não foi promovida nem rebaixada.** O sistema continua a ser o de **bordô
+   e ouro**; as seis famílias são **estudo**, elegíveis e não eleitas. Nenhum valor de token mudou.
+
+E uma nota de escopo, para quando a L13 for implementada: a entrada de menu **«Identidade visual»**
+acrescenta um item ao painel administrativo, e `CONGELAMENTO.md` **já** lista «alterar a estrutura
+de menu ou navegação» como exigindo motivo declarado — além de `tools/templates/ciclo.css`,
+`tools/lib-tokens.js` e `tools/check-identidade.js`, que são **infraestrutura congelada**. A
+implementação é **commit próprio com motivo escrito**, e **não** foi antecipada nesta rodada.
