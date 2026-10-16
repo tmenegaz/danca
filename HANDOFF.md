@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T12:22:34-0300`
-Commit atual: `c57598a` — fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
+Gerado em: `2026-10-16T12:48:05-0300`
+Commit atual: `b159ad9` — fix(estrutura): a condução trava com a senha — e o plano tinha o mesmo defeito de contexto
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+b159ad9 fix(estrutura): a condução trava com a senha — e o plano tinha o mesmo defeito de contexto
 c57598a fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
 66aec8b chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
 7f52720 fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
@@ -81,7 +82,6 @@ aa8ac22 docs(ideia): a frente L11 — a porta paga: cobrança, verificação e l
 d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professores/
 263e48e refactor(estrutura): o molde sai de professores/ — molde não é professor
 ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
-9eade85 Merge origin/main (a escola fita) em main (a validação por caminho)
 ```
 
 ## Por professor
@@ -145,133 +145,120 @@ ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrad
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — A senha autoriza o ATO, não a SESSÃO
+## 16/10/2026 — A data da ficha é a da última mudança — e a edição do plano também pede a senha
 
-**O que motivou.** O mesmo teste do PO na `fita`, no passo seguinte: o professor entrou na edição de
-uma anamnese e **mexeu no formulário sem digitar a senha** — a tela só avisava, não travava. E a
-senha, uma vez digitada, **ficava guardada**: `guardarSenha()` a escrevia em `sessionStorage`
-(`lancamento:senha`) depois de gravar. Numa máquina partilhada, quem entrasse depois reabria a edição
-com o direito que não era seu. Faltava ainda uma terceira: **excluir** não pedia senha nenhuma —
-bastava o clique e o `confirm`.
+**O que motivou.** O mesmo teste do PO na `fita`, dois passos adiante do elo anterior.
+
+1. **A data não se mexia.** A Mari foi criada em 16/10 às 13h51. Editada depois — com alteração de
+   fato —, a estante continuava dizendo 13h51. **O carimbo É a data**: o `id` do envelope é
+   `anamnese-AAAAMMDD-HHMM`, e é dele que `rotuloDoEnvelope(id)` extrai o que a linha mostra. E o
+   `PUT /api/anamnese-editar/:id` **herdava** o carimbo do anterior (`geradoEm: anterior.gerado_em`):
+   a edição reescrevia o conteúdo e congelava a data no dia da criação. Enquanto a ficha é **livre**,
+   o que se quer ver na estante é **quando ela foi mexida pela última vez**.
+2. **A edição do plano pediu socorro.** No elo anterior, a tabela deste REGISTRO registrou «A edição
+   exige a senha | plano: **não** — a autorização é a curadoria» e deixou a extensão *em aberto*. O
+   dono do produto respondeu: **a edição e a derivação do plano pedem a senha; a criação continua pela
+   curadoria** (a nota datada acima corrige aquela redação).
 
 **O que foi decidido.**
-- **A senha não se registra em lugar nenhum.** `guardarSenha()` saiu; `senhaDaEscola()` lê só o campo;
-  `esquecerSenha()` apaga o campo, derruba o «validado» e limpa o resíduo de sessões anteriores à
-  correção. Ela é apagada **ao SAIR** e **depois de GRAVAR** — a senha autoriza um ato, não empresta
-  uma sessão a quem venha depois no mesmo navegador.
-- **O formulário fica em SÓ-LEITURA enquanto a senha não vale** (`travarFormularioSemSenha`): sem ela
-  os controles do nó ficam `disabled`, o «Guardar» fica travado, e um aviso diz o que fazer. Vale
-  para a **anamnese nova** (onde o «Começar» já a exigia) e para a **edição** (que entra pela estante
-  e não passava por portão nenhum). No plano e no PO **não se aplica**: a autorização deles é a
-  curadoria.
-- **A EXCLUSÃO exige a senha**, como a edição. Apagar não se desfaz: recusa sem ela, e **aponta** o
-  campo em vez de só dizer que faltou.
+
+- **Só quem mudou de fato recarimba.** Compara-se o que o professor pode mexer — as **respostas**
+  (valor e nota) e o **contexto** (onde mora o apelido da aluna) — e não o carimbo nem o id, que são
+  consequência. Abrir e mandar gravar sem mexer **não é edição**: o registro não se reescreve e a data
+  não se mexe por nada. `mudouDeFato(anterior, novo)` em `motor/nucleo/porta.js`.
+- **O carimbo se refaz com a hora da mudança, e o anterior NÃO fica.** `PUT /api/anamnese-editar/:id`
+  gera um carimbo novo (`porta.identificar`) em vez de herdar o do anterior, grava o envelope novo e
+  **só então** apaga o antigo (`porta.apagarEnvelope`) — a ordem importa: se a escrita falhasse, o
+  registro velho continua de pé em vez de virar ausência. Uma linha só na estante, com a data nova.
+- **O carimbo tem resolução de MINUTO.** Editar dentro do mesmo minuto não recarimba: a identidade é a
+  mesma, e o registro se sobrescreve em sítio. Sem esta guarda, a estante ganharia um órfão `-2` por
+  nada (a colisão de `identificarComCarimbo`).
+- **A anamnese VINCULADA não entra aqui.** Ela continua recusando a edição em sítio com **409** e
+  exige o **ajuste** (elo novo). A vinculação é derivada do **apelido** (`respostas.sujeitos` do PO),
+  não do carimbo — é por isso que recarimbar a anamnese é seguro.
+- **O PLANO não recarimba.** A vinculação do plano é por **identificador de envelope**: o PO guarda o
+  `id` do plano em `respostas['plano-de-ensino']`. Recarimbar o plano **penduraria** a referência do PO
+  já gravado. E a estante do plano mostra o **OBJETIVO**, não a data — o recarimbo não teria nem o
+  efeito que se quer. Fica como está, e é uma diferença de **contrato**, não um esquecimento.
+- **A estante não deixa a linha sumir.** O recarimbo troca a **chave** do registro, e a lista do KV tem
+  atraso de consistência: por instantes ela ainda não conhece o carimbo novo. Sem tratar, o professor
+  veria a **própria edição desaparecer**. `acomodarRecarimbo(anterior, novo, apelido)` troca o carimbo
+  na tela na hora (a lista e o estado), e a próxima recarga do servidor confirma.
+- **A edição do plano exige a senha.** `exigeSenha()` generaliza a regra: **anamnese** sempre; **plano**
+  quando se **edita** (`EDITANDO`) ou **deriva** (`DERIVANDO`) — a criação não, porque a autorização
+  dela é a **curadoria**. O portão vale para o «Guardar», para a prévia (`fechar`) e para a trava do
+  formulário; a senha é esquecida ao gravar, como na anamnese. O **campo** da senha continua **oculto**
+  no plano: ela se digita na barra.
+- **A fileira da condução.** `#pular` e `#fechar` (que vivem **fora** de `#pergunta`) passam a travar
+  com a senha; `#anterior`, `#proxima` e `#sair` ficam **livres** — navegar e sair não gastam motor nem
+  escrevem.
 
 **Onde entrou.**
-- `porta/index.html` — `esquecerSenha` e `travarFormularioSemSenha` (novos); `senhaDaEscola` só lê o
-  campo e `guardarSenha` sai; a chamada da trava no fim de `renderPergunta` e em `validarSenha`; o
-  portão de `apagarAnamnese`; o `esquecerSenha()` no «Sair» e nas duas gravações (edição e cofre); o
-  aviso `#trava-senha` e o CSS do só-leitura.
 
-**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` cresceu de 26 para **39 provas**
-(todas passando): a senha nunca escrita na sessão, `esquecerSenha` limpando campo/estado/resíduo, a
-trava desabilitando e reabilitando os controles, a exclusão sem senha **não chegando ao servidor**, e
-a senha **apagada depois de a edição gravar** — tudo pelo caminho REAL do «Guardar». O
-`provar-contexto-do-ato.js` segue verde (37). **Controle negativo: 4 de 39 falham** com as correções
-revertidas — e ele **pegou uma fraqueza da própria prova**: a exclusão passava por acidente (o
-`confirm` do mock devolvia `false`, e o teste não distinguia «barrada pela senha» de «barrada pela
-confirmação»); o mock passou a devolver `true`, e a prova só passa agora porque a senha barra de
-verdade.
+- `motor/nucleo/porta.js` — `canonico`, `mesmasRespostas` e `mudouDeFato` (puros, exportados).
+- `motor/servidor/rotas.js` — a rota 11 recarimba; o relógio é o **injetável** (`carimbar`), como nas
+  demais rotas, para a prova ser determinística.
+- `porta/index.html` — `exigeSenha()`, `acomodarRecarimbo()`, e a edição usando o id que o servidor
+  devolve (a tela diz que o carimbo se refez, ou que nada mudou).
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` — o pacote publicado
+  (cópia de `porta/`, com a **nav do pacote preservada**).
+- `experimentos/provar-carimbo-da-edicao.js` — prova nova: **44 provas**.
 
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` segue
-fora da lista. A âncora `.fipp` **não** mudou (o hook o confirmou na geração anterior do pacote): ela
-cobre as fontes do ciclo, e a porta é saída gerada.
+**Como foi provado.**
 
-**Com o quê.** `porta/index.html`, `experimentos/provar-ajustes-anamnese.js`,
-`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote publicado),
-`REGISTRO.md`, `HANDOFF.md`.
-
-**Referências.** O elo imediatamente acima (a estante e a senha na edição — o defeito que abriu
-este) · `motor/servidor/README.md` (a autorização da porta) · `tools/criar-escola.sh` (que gerou o
-pacote, e cuja nav foi preservada na publicação manual).
-
-**O que ainda não está feito.**
-- **A trava da senha é de CLIENTE.** Nem `PUT /api/anamnese-editar/:id` nem
-  `DELETE /api/anamnese-vinculo/:id` recebem senha: quem monta o pedido à mão passa por fora. Vale
-  contra o engano e o acesso casual no mesmo navegador — não contra quem forja o pedido. Pôr a
-  conferência no servidor é decisão em aberto (e mexeria no contrato das rotas).
-- **A `fita` recebeu isto fora da cadeia**, como o elo anterior: geração manual do pacote + `wrangler
-  deploy`, porque o gerador só publica depois do PO (Pré-requisito 5). As demais escolas o recebem na
-  próxima geração delas.
-- **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
-  «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.
-
-**Elo do mesmo dia (16/10/2026) — a CONDUÇÃO se trava com a senha, e o plano tinha o mesmo defeito.**
-
-O primeiro item de «O que ainda não está feito» não muda, mas o teste apontou dois buracos. **Um:**
-travado o formulário, o professor **ainda clicava «Fechar a elicitação» e «Pular»** — e o `#pular`
-**apaga a resposta** do nó, enquanto o `#fechar` **roda a prévia no motor**. Mexer sem senha, e gastar
-o processo inteiro sem nada ter mudado, é exatamente o que a trava existia para impedir. **Dois:** o
-defeito (iii) do elo anterior — a edição abrir com a barra vazia — **vivia também no PLANO**:
-`carregarPlanoNaConducao` (o caminho do `editarPlano` **e** do `derivarPlano`) carregava as respostas
-e nunca o contexto. Ninguém o tinha visto porque não havia plano para editar.
-
-- `travarFormularioSemSenha` passou a alcançar os botões da CONDUÇÃO, que vivem **fora** do
-  `#pergunta`: **`#pular` e `#fechar`** travam sem senha; **`#anterior`, `#proxima` e `#sair`** ficam
-  **livres** — navegar e sair não mudam nada. Ao SOLTAR, o `#fechar` volta à **regra dele** («faltam
-  obrigatórios?»), não a um `false` cego: um `false` abriria o fecho com o roteiro por responder.
-- `fechar()` ganhou a guarda de profundidade (`FONTE === 'anamnese' && !SENHA_VALIDA` → não consulta o
-  motor). O plano e o PO **não** passam por ela.
-- `contar()` virou null-safe: a senha é validada assim que se digita, e podia chegar **antes** do
-  `api/mapa` — `MAPA.nos` estourava. (Achado ao soltar a senha, que reavalia a barra.)
-- `carregarPlanoNaConducao` passou a chamar `aplicarContextoDoEnvelope` — o mesmo remédio do elo
-  anterior, no lugar onde os dois caminhos do plano passam.
-
-**Os ajustes se estendem ao plano e ao PO? Verificado, e a resposta é: parte sim, parte não — e a
-razão é uma decisão, não um esquecimento.**
-
-| Ajuste | anamnese | plano | PO |
-|---|---|---|---|
-| A estante diz de quem é | apelido (corrigido) | mostra o OBJETIVO (já) | só a data |
-| O obrigatório se anuncia | sim | **sim — já valia** (é genérico: `tituloDoNo` + `.caixa.falta`) | **sim — já valia** |
-| A edição abre preenchida | corrigido | **corrigido neste elo** | não há edição |
-| A edição exige a senha | sim | **não** — a autorização é a **curadoria** | **não** |
-| O vigente nunca é «legado» | corrigido | não tinha o defeito (a derivação é outra: `legado` só com sucessor) | não há estado |
-| A senha não se registra | sim | não há senha (o campo é oculto) | não há senha |
-| O formulário trava sem senha | sim | não há senha | não há senha |
-| Excluir exige a senha | sim | não há exclusão | não há exclusão |
-
-Os ajustes de **SENHA** são do modelo de autorização da **anamnese** (aluna + senha). O plano e o PO
-travam por **CURADORIA** — decisão de **13/10/2026** («a memória da aula dada pertence à escola, não
-ao professor»), e o campo da senha nem é desenhado para eles. Estendê-los à senha **mudaria** aquela
-decisão: fica **em aberto**, para o dono do produto decidir.
-
-**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` passou de **47 para 54 provas**: os
-botões da condução travando e destravando (e os três que ficam livres), e — numa segunda página
-carregada com `FONTE=plano` — `carregarPlanoNaConducao` pré-preenchendo escola/professor/ciclo, o
-contexto do plano **sem** «aluna», e o plano **sem** trava de senha. **Controle negativo: 3 provas
-falham** sem a linha do contexto no plano; as 3 da trava de condução falharam no controle anterior.
-O `provar-contexto-do-ato.js` segue verde (37).
+- `experimentos/provar-carimbo-da-edicao.js` (**44**) roda o **servidor de verdade** (`criarRotas` sobre
+  a memória do núcleo, relógio injetado). Prova que o carimbo nasce com a criação; que **sem mudança**
+  nada muda (o id volta igual, o envelope fica intacto, a data não se mexe); que **com mudança** o id
+  novo é o carimbo de agora, o `gerado_em` acompanha, o envelope antigo é **apagado** e a estante fica
+  com **uma linha só**; que trocar **o apelido** também é mudança de fato; que a **vinculada** segue
+  recusada com 409; e que editar **no mesmo minuto** não cria o órfão `-2`.
+- `experimentos/provar-ajustes-anamnese.js` passou de **65 para 79**: a tela mostrando o carimbo
+  **novo** (e não o antigo), a tela dizendo que **nada mudou**, e o `acomodarRecarimbo` trocando o
+  carimbo na lista (e **preservando** o sujeito e o estado da linha, sem deixar o antigo órfão).
+- **Controle negativo, três vezes.** (a) A rota voltando a herdar o carimbo → a prova **reprova**
+  («o id novo é o carimbo de AGORA»). (b) A tela usando `EDITANDO` em vez de `dados.editada` → 2
+  falhas. (c) `acomodarRecarimbo` virando no-op → **3 falhas**. `provar-contexto-do-ato.js` segue
+  verde (**37**).
+- **No ar, e conferido no ar.** `wrangler deploy -c wrangler.fita.jsonc` → Version
+  `f3303ccc-ba43-4775-9151-99055621ce5a`; marcadores conferidos no site. Idem fim-a-fim contra a API
+  publicada, com um registro **descartável** (criado às 15:42, editado às 15:43: o carimbo virou
+  `anamnese-20261016-1543`, a chave antiga **sumiu do KV**), removido em seguida — o KV voltou às
+  **três** fichas do teste (Mari, Vavá, Dani).
+- **Achado de plataforma, medido.** A **listagem** do KV demora a enxergar uma chave recém-escrita
+  (medido: ~1 min). É a razão de o `acomodarRecarimbo` existir. E o carimbo é **UTC**: o Worker carimbou
+  `15:43` quando o relógio local do professor marcava `12:43` (`-03`) — o **horário que a estante
+  mostra é UTC**, nos registros novos e nos antigos.
 
 **Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
 `.fipp` não muda.
 
-**Com o quê.** `porta/index.html`, `experimentos/provar-ajustes-anamnese.js`,
+**Com o quê.** `motor/nucleo/porta.js`, `motor/servidor/rotas.js`, `porta/index.html`,
+`experimentos/provar-carimbo-da-edicao.js` (novo), `experimentos/provar-ajustes-anamnese.js`,
 `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
 `HANDOFF.md`.
 
+**Referências.** `ARQUITETURA-ANAMNESE.md` §6.3 («editar gera uma nova versão, a anterior permanece»)
+— **em tensão declarada** com o caso **livre**: ali a regra é de quem **não** é livre, e o dono do
+produto decidiu que, enquanto ela é livre, **o anterior não fica**. Os arquivos `*.instructions.md` de
+`.github/` e `REGISTRO.md` (nota de correção datada).
+
+**O que ainda não está feito.**
+
+- **O cofre não se atualiza na edição** (gap que já existia, e que o recarimbo torna mais visível):
+  `POST /api/anamnese` só é escrito na **criação**, e agora a sua chave é o carimbo **antigo** — o
+  registro cifrado fica **desatualizado e órfão** depois de uma edição. Fechar isso pede uma decisão
+  (o cofre re-cifra na edição? com a mesma senha?) e uma rota `DELETE /api/anamnese/:carimbo`, que
+  **não existe**. Não foi feito aqui.
+- **A trava de senha é de CLIENTE.** `PUT`/`DELETE` não recebem a senha no servidor: quem chamar a API
+  direto não é barrado. É a decisão vigente (a senha cifra e autoriza na tela); se o modelo pedir
+  autenticação de servidor, isto muda.
+- **A estante do PO** continua mostrando **só a data** e não tem estado nem ações — funcionalidade
+  nunca construída.
+- **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
+- **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
+  uma decisão que não foi tomada.
+
 ## O que está pendente
-
-## 15/10/2026 — O molde sai de `professores/`: molde não é professor
-
-- **A pasta de um professor cadastrado nos Bastidores continua nascendo só na primeira fonte.** O dono
-  do produto pode querer o contrário — a pasta já na criação. Não foi decidido: é a mesma questão de
-  antes (o repositório registra o que foi produzido, ou quem foi cadastrado?), e agora está declarada.
-- **O `ciclo-01.conf` e a âncora do `tiago-menegaz` seguem sem PO e sem plano** — o dono do produto faz
-  a anamnese → plano → PO em seguida. A âncora vai ser regerada quando as fontes entrarem.
-- **O `HANDOFF.md` contava o molde como professor** e agora não conta; mas o mesmo defeito pode existir
-  em qualquer outro consumidor de `professores/*/` que apareça. O que se corrigiu foi o molde — a
-  varredura de consumidores não foi exaustiva.
 
 ## 16/10/2026 — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome diz isso
 
@@ -324,6 +311,23 @@ O `provar-contexto-do-ato.js` segue verde (37).
   próxima geração delas.
 - **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
   «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.
+
+## 16/10/2026 — A data da ficha é a da última mudança — e a edição do plano também pede a senha
+
+
+- **O cofre não se atualiza na edição** (gap que já existia, e que o recarimbo torna mais visível):
+  `POST /api/anamnese` só é escrito na **criação**, e agora a sua chave é o carimbo **antigo** — o
+  registro cifrado fica **desatualizado e órfão** depois de uma edição. Fechar isso pede uma decisão
+  (o cofre re-cifra na edição? com a mesma senha?) e uma rota `DELETE /api/anamnese/:carimbo`, que
+  **não existe**. Não foi feito aqui.
+- **A trava de senha é de CLIENTE.** `PUT`/`DELETE` não recebem a senha no servidor: quem chamar a API
+  direto não é barrado. É a decisão vigente (a senha cifra e autoriza na tela); se o modelo pedir
+  autenticação de servidor, isto muda.
+- **A estante do PO** continua mostrando **só a data** e não tem estado nem ações — funcionalidade
+  nunca construída.
+- **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
+- **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
+  uma decisão que não foi tomada.
 
 ## Pendências anteriores (índice)
 
@@ -482,6 +486,7 @@ O `provar-contexto-do-ato.js` segue verde (37).
 - **15/10/2026** — Criar escola para o professor do MODELO: o `cp` recusava o… → `REGISTRO.md` L13328
 - **15/10/2026** — Um conserto commitado e não publicado não conserta nada → `REGISTRO.md` L13381
 - **15/10/2026** — O professor homônimo: o identificador é o slug, e o… → `REGISTRO.md` L13424
+- **15/10/2026** — O molde sai de `professores/`: molde não é professor → `REGISTRO.md` L13506
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

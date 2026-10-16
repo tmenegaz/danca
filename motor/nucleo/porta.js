@@ -103,6 +103,49 @@ function carimboEmPortugues(id) {
   return casou[3] + '/' + casou[2] + '/' + casou[1] + ' às ' + casou[4] + ':' + casou[5];
 }
 
+/** Serializa com as chaves de objeto em ordem fixa: dois documentos iguais dão a mesma string. */
+function canonico(valor) {
+  return JSON.stringify(valor, (_chave, v) =>
+    v && typeof v === 'object' && !Array.isArray(v)
+      ? Object.keys(v).sort().reduce((acc, k) => ((acc[k] = v[k]), acc), {})
+      : v,
+  );
+}
+
+/**
+ * Duas coleções de respostas são IGUAIS quando todo nó tem o mesmo VALOR (e a mesma nota).
+ * A ordem das listas conta (é ordem declarada); a das chaves, não. Compara o CONTEÚDO, e não
+ * como a resposta foi obtida (`origem`/`respondente`): isso o formulário de edição não mexe.
+ */
+function mesmasRespostas(antes, depois) {
+  const mapa = (respostas) => {
+    const saida = {};
+    for (const [id, reg] of Object.entries(respostas || {})) {
+      if (reg === null || reg === undefined) continue;
+      const caixa = typeof reg === 'object' && 'valor' in reg ? reg : { valor: reg };
+      const valor = caixa.valor === undefined ? null : caixa.valor;
+      saida[id] = canonico([valor, caixa.nota === undefined ? null : caixa.nota]);
+    }
+    return saida;
+  };
+  const a = mapa(antes);
+  const b = mapa(depois);
+  const ids = new Set(Object.keys(a).concat(Object.keys(b)));
+  for (const id of ids) if (a[id] !== b[id]) return false;
+  return true;
+}
+
+/**
+ * A edição MUDOU DE FATO? Compara o que o professor pode mexer: as respostas e o contexto
+ * (o apelido da aluna mora nele). NÃO compara o carimbo nem o id — esses são consequência,
+ * não conteúdo. Só quem mudou de fato recarimba (16/10/2026): abrir e mandar gravar sem
+ * mexer não é edição, e a data não se mexe por nada.
+ */
+function mudouDeFato(anterior, novo) {
+  if (!mesmasRespostas(anterior && anterior.respostas, novo && novo.respostas)) return true;
+  return canonico(anterior && anterior.contexto) !== canonico(novo && novo.contexto);
+}
+
 // A correção socrática é INFRAESTRUTURA, não conteúdo (Frente 5). O conteúdo
 // declara só o SEMA do campo (`socratico: "objetivo"`); quem sabe o que um
 // «objetivo» exige — e a pergunta que ensina — é o SISTEMA. Os marcadores são
@@ -716,6 +759,8 @@ module.exports = {
   registro,
   linhasDoRelatorio,
   carimboEmPortugues,
+  mesmasRespostas,
+  mudouDeFato,
   mapa,
   nomesDeEnvelopes,
   lerArquivo,

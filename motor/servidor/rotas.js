@@ -232,20 +232,42 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
 
-    const opcoes = {
-      id: params.id,
-      geradoEm: anterior.gerado_em,
+    // O CARIMBO diz quando ESTE registro foi escrito — e é a data que a estante mostra.
+    // Por isso ele não é herdado do anterior (16/10/2026): numa anamnese ainda SOLTA, editar
+    // com mudança de fato é reescrever o mesmo registro — o carimbo se refaz, e o anterior
+    // NÃO fica. Sem mudança de fato não há o que recarimbar: abrir e mandar gravar é o mesmo
+    // documento, e a data não se mexe por nada.
+    const nome = (conteudo && conteudo.documento) || 'anamnese';
+    const agora = await porta.identificar(armazenamento, nome, carimbar);
+    // O carimbo tem resolução de MINUTO. Editar dentro do mesmo minuto não é recarimbar: a
+    // identidade é a mesma, e o registro se sobrescreve em sítio (sem órfão `-2` na estante).
+    const recarimba = agora.geradoEm !== anterior.gerado_em;
+    const { documento, relatorio } = nucleo.elicitar(conteudo, corpo.respostas || {}, {
+      id: recarimba ? agora.id : params.id,
+      geradoEm: recarimba ? agora.geradoEm : anterior.gerado_em,
       endereco: porta.ENDERECOS.anamnese,
       contexto: corpo.contexto || anterior.contexto || {},
       esquema,
-    };
-    const { documento, relatorio } = nucleo.elicitar(conteudo, corpo.respostas || {}, opcoes);
+    });
     if (relatorio.errosDoDocumento.length) {
       return recusar('a edição não passou na validação: ' +
         relatorio.errosDoDocumento.map((e) => e.caminho + ' — ' + e.mensagem).join('; '), 422);
     }
+    if (!porta.mudouDeFato(anterior, documento)) {
+      return { ok: true, editada: params.id, mudou: false, linhas: porta.linhasDoRelatorio(relatorio) };
+    }
     await porta.gravarEnvelope(armazenamento, documento, relatorio);
-    return { ok: true, editada: params.id, linhas: porta.linhasDoRelatorio(relatorio) };
+    // O anterior só cai DEPOIS de o novo estar gravado: a ordem importa — se a escrita
+    // falhasse, o registro antigo continua de pé em vez de virar ausência.
+    if (documento.id !== params.id) await porta.apagarEnvelope(armazenamento, params.id);
+    return {
+      ok: true,
+      editada: documento.id,
+      mudou: true,
+      anterior: params.id,
+      recarimbada: recarimba,
+      linhas: porta.linhasDoRelatorio(relatorio),
+    };
   });
 
   // 11.1 POST /api/anamnese — o cofre: a anamnese cifrada no navegador entra no

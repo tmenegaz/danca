@@ -1276,14 +1276,24 @@ function esquecerSenha() {
 }
 
 /*
+ * QUEM EXIGE A SENHA para escrever. A **anamnese** sempre — é o ato do professor, e o
+ * envelope vai cifrado ao cofre. O **plano** quando se **edita ou deriva**: a criação dele
+ * nasce pela **curadoria** (13/10/2026, «a memória da aula dada pertence à escola»), e a
+ * edição de um plano que já existe é escrita de quem o assina. O PO não entra: não tem edição.
+ */
+function exigeSenha() {
+  if (FONTE === 'anamnese') return true;
+  if (FONTE === 'plano') return Boolean(EDITANDO || DERIVANDO);
+  return false;
+}
+
+/*
  * A TRAVA DA SENHA no formulário: enquanto ela não é validada, o que se responde fica em
  * SÓ-LEITURA. A senha é o que autoriza a ESCRITA, e ela não se herda de quem chegou pela
- * estante. Vale para a anamnese nova e para a edição; no plano e no PO não se aplica — a
- * autorização deles é a curadoria.
+ * estante.
  */
 function travarFormularioSemSenha() {
-  if (FONTE !== 'anamnese') return;
-  const trava = !SENHA_VALIDA;
+  const trava = exigeSenha() && !SENHA_VALIDA;
   const raiz = $('pergunta');
   if (raiz && raiz.querySelectorAll) {
     for (const controle of raiz.querySelectorAll('input, select, textarea, button')) {
@@ -4122,10 +4132,10 @@ function bastidoresDaGeracao(dados) {
 async function fechar() {
   // Defesa em profundidade: o botão já nasce travado, mas o fecho também é
   // alcançável por handler. A validação abaixo permanece a mesma.
-  // A ANAMNESE só fecha com a senha: sem ela a prévia gastaria o motor inteiro sem que
-  // nada pudesse ser gravado. O plano e o PO não passam por aqui (a autorização deles é a
-  // curadoria).
-  if (FONTE === 'anamnese' && !SENHA_VALIDA) return;
+  // A ANAMNESE e o PLANO editado/derivado só fecham com a senha: sem ela a prévia gastaria o
+  // motor inteiro sem que nada pudesse ser gravado. A criação do plano não passa por aqui (a
+  // autorização dela é a curadoria).
+  if (exigeSenha() && !SENHA_VALIDA) return;
   if (obrigatoriosFaltando().length) {
     atualizarBarra();
     return;
@@ -4487,6 +4497,9 @@ async function editarPlano(id) {
     DERIVANDO = null;
     MOTIVO_DERIVACAO = null;
     carregarPlanoNaConducao(envelope);
+    // A edição de um plano EXIGE a senha: ela é escrita de quem o assina. Avisa já na
+    // entrada — não no fim, depois de responder tudo.
+    if (!SENHA_VALIDA) apontarSenhaFaltando();
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -4504,6 +4517,7 @@ async function derivarPlano(id) {
     DERIVANDO = id;
     MOTIVO_DERIVACAO = motivo;
     carregarPlanoNaConducao(envelope);
+    if (!SENHA_VALIDA) apontarSenhaFaltando();
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -4512,6 +4526,24 @@ async function derivarPlano(id) {
 async function atualizarFichas() {
   FICHAS = await carregarFichas();
   await carregarEstados();
+  pintarFichas();
+}
+
+/*
+ * O RECARIMBO troca a CHAVE do registro — e a lista do servidor (o KV) tem atraso de
+ * consistência: por alguns instantes ela ainda não conhece o carimbo novo. A tela não
+ * deixa a linha da aluna desaparecer por isso: acomoda o carimbo novo no lugar do antigo,
+ * e a próxima recarga do servidor confirma (ou o conserta). Sem isto, o professor que
+ * acabou de editar veria a própria edição sumir da estante.
+ */
+function acomodarRecarimbo(anterior, novo, valor) {
+  if (!anterior || !novo || anterior === novo) return;
+  if (FICHAS.indexOf(novo) === -1) FICHAS = FICHAS.map((id) => (id === anterior ? novo : id));
+  if (FICHAS.indexOf(novo) === -1) FICHAS.unshift(novo);
+  const estado = ESTADOS.get(anterior) || {};
+  ESTADOS.delete(anterior);
+  ESTADOS.set(novo, Object.assign({}, estado, { carimbo: novo, valor: valor || estado.valor }));
+  guardarFichas(FICHAS);
   pintarFichas();
 }
 
@@ -5060,17 +5092,21 @@ async function iniciar() {
   }
 
   // A fonte ajusta o que é só da anamnese: o campo `aluna` (o PO e o plano são
-  // de todas), a senha do cofre, a ficha em branco e a ficha preenchida — nem o
-  // PO nem o plano têm ficha renderizada nem cofre cifrado.
+  // de todas), a ficha em branco e a ficha preenchida — nem o PO nem o plano têm ficha
+  // renderizada. A SENHA, porém, **não** é só da anamnese: desde 16/10/2026 ela governa a
+  // ESCRITA do PLANO quando se EDITA ou DERIVA (a criação do plano segue pela curadoria). O
+  // PO não tem edição — o campo some para ele.
   if (FONTE !== 'anamnese') {
-    for (const id of ['ctx-aluna', 'senha']) {
-      const campo = document.getElementById(id);
-      if (campo && campo.parentElement) campo.parentElement.style.display = 'none';
-    }
+    const aluna = document.getElementById('ctx-aluna');
+    if (aluna && aluna.parentElement) aluna.parentElement.style.display = 'none';
     const branco = document.getElementById('link-ficha-branco');
     if (branco) branco.style.display = 'none';
     const tituloFichas = document.getElementById('titulo-fichas');
     if (tituloFichas) tituloFichas.textContent = 'O que ficou gravado';
+  }
+  if (FONTE === 'po') {
+    const campoSenha = document.getElementById('senha');
+    if (campoSenha && campoSenha.parentElement) campoSenha.parentElement.style.display = 'none';
   }
 
   // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
@@ -5418,18 +5454,19 @@ async function iniciar() {
   $('gravar').addEventListener('click', async () => {
     $('gravar').disabled = true;
 
+    // A ESCRITA exige a senha onde ela governa — na anamnese sempre, no plano quando se edita
+    // ou deriva. Sem ela não se grava, e a tela aponta o campo.
+    if (exigeSenha() && !SENHA_VALIDA) {
+      $('gravacao').innerHTML = '<p class="erro">A escrita exige a senha do professor — digite-a na barra, no alto da página.</p>';
+      apontarSenhaFaltando();
+      $('gravar').disabled = false;
+      return;
+    }
+
     // A EDIÇÃO em sítio (só a anamnese solta): grava pelo mesmo id, com `PUT`.
     // É o único caminho que reescreve um registro — e o servidor recusa se a
     // anamnese estiver vinculada.
     if (EDITANDO && FONTE === 'anamnese') {
-      // A ESCRITA exige a senha do professor — a mesma que o «Começar» pede. Sem ela a
-      // edição não se conclui: a tela recusa antes de tocar no registro.
-      if (!SENHA_VALIDA) {
-        $('gravacao').innerHTML = '<p class="erro">A edição exige a senha do professor — digite-a na barra, no alto da página.</p>';
-        apontarSenhaFaltando();
-        $('gravar').disabled = false;
-        return;
-      }
       $('gravacao').innerHTML = '<p>gravando a edição…</p>';
       try {
         gravarRespostaDoNo(MAPA.nos[INDICE]);
@@ -5443,12 +5480,23 @@ async function iniciar() {
         });
         const dados = await resposta.json().catch(() => ({}));
         if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
-        $('gravacao').innerHTML = '<p class="ok">editada em sítio: <code>' + escapar(EDITANDO) + '</code></p>';
+        // O carimbo da edição é o de AGORA: o servidor devolve o id novo, e é ele que a
+        // estante e o link da ficha passam a usar. Sem mudança de fato, o registro é o mesmo.
+        const carimboAnterior = EDITANDO;
+        const apelido = (contextoDaBarra() || {}).aluna;
+        const carimbo = dados.editada || carimboAnterior;
+        $('gravacao').innerHTML = dados.mudou === false
+          ? '<p class="ok">nada mudou — o registro é o mesmo, e o carimbo de <code>' +
+            escapar(carimbo) + '</code> fica de pé.</p>'
+          : (dados.recarimbada
+            ? '<p class="ok">editada em sítio: o carimbo se refez — <code>' + escapar(carimbo) + '</code></p>'
+            : '<p class="ok">editada em sítio: <code>' + escapar(carimbo) + '</code></p>');
         EDITANDO = null;
         limparMemoria();
         // Gravou: a senha cumpriu o seu papel. Não fica.
         esquecerSenha();
         await atualizarFichas();
+        acomodarRecarimbo(carimboAnterior, carimbo, apelido);
         $('fecho').classList.add('oculto');
         $('abertura').classList.remove('oculto');
       } catch (erro) {
@@ -5488,6 +5536,8 @@ async function iniciar() {
           DERIVANDO = null;
           MOTIVO_DERIVACAO = null;
           limparMemoria();
+          // Gravou: a senha (do plano editado/derivado) cumpriu o seu papel. Não fica.
+          esquecerSenha();
           $('retomada').classList.add('oculto');
           $('gravacao').innerHTML += '<p class="ok">' + (FONTE === 'po' ? 'Plano de Observação' : 'Plano') + ' gravado.</p>';
         } else {

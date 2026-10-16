@@ -13960,6 +13960,14 @@ travam por **CURADORIA** — decisão de **13/10/2026** («a memória da aula da
 ao professor»), e o campo da senha nem é desenhado para eles. Estendê-los à senha **mudaria** aquela
 decisão: fica **em aberto**, para o dono do produto decidir.
 
+> **Correção de 16/10/2026 (mesmo dia).** A redação acima deixou «a edição do plano exige a senha» **em
+> aberto**, e o dono do produto respondeu: **a EDIÇÃO e a DERIVAÇÃO do plano pedem a senha; a CRIAÇÃO
+> continua pela curadoria**. Está errado ler esta tabela como a decisão final — a decisão final está na
+> entrada seguinte, «A data da ficha é a da última mudança — e a edição do plano também pede a senha».
+> A redação anterior não é apagada: fica como o elo que registra o que se pensou antes da resposta.
+> O que **não** mudou: o PO não tem edição, e o **campo** da senha continua oculto no plano (a senha se
+> digita na barra, não no formulário).
+
 **Como foi provado.** `experimentos/provar-ajustes-anamnese.js` passou de **47 para 54 provas**: os
 botões da condução travando e destravando (e os três que ficam livres), e — numa segunda página
 carregada com `FONTE=plano` — `carregarPlanoNaConducao` pré-preenchendo escola/professor/ciclo, o
@@ -13973,3 +13981,116 @@ O `provar-contexto-do-ato.js` segue verde (37).
 **Com o quê.** `porta/index.html`, `experimentos/provar-ajustes-anamnese.js`,
 `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
 `HANDOFF.md`.
+
+## 16/10/2026 — A data da ficha é a da última mudança — e a edição do plano também pede a senha
+
+**O que motivou.** O mesmo teste do PO na `fita`, dois passos adiante do elo anterior.
+
+1. **A data não se mexia.** A Mari foi criada em 16/10 às 13h51. Editada depois — com alteração de
+   fato —, a estante continuava dizendo 13h51. **O carimbo É a data**: o `id` do envelope é
+   `anamnese-AAAAMMDD-HHMM`, e é dele que `rotuloDoEnvelope(id)` extrai o que a linha mostra. E o
+   `PUT /api/anamnese-editar/:id` **herdava** o carimbo do anterior (`geradoEm: anterior.gerado_em`):
+   a edição reescrevia o conteúdo e congelava a data no dia da criação. Enquanto a ficha é **livre**,
+   o que se quer ver na estante é **quando ela foi mexida pela última vez**.
+2. **A edição do plano pediu socorro.** No elo anterior, a tabela deste REGISTRO registrou «A edição
+   exige a senha | plano: **não** — a autorização é a curadoria» e deixou a extensão *em aberto*. O
+   dono do produto respondeu: **a edição e a derivação do plano pedem a senha; a criação continua pela
+   curadoria** (a nota datada acima corrige aquela redação).
+
+**O que foi decidido.**
+
+- **Só quem mudou de fato recarimba.** Compara-se o que o professor pode mexer — as **respostas**
+  (valor e nota) e o **contexto** (onde mora o apelido da aluna) — e não o carimbo nem o id, que são
+  consequência. Abrir e mandar gravar sem mexer **não é edição**: o registro não se reescreve e a data
+  não se mexe por nada. `mudouDeFato(anterior, novo)` em `motor/nucleo/porta.js`.
+- **O carimbo se refaz com a hora da mudança, e o anterior NÃO fica.** `PUT /api/anamnese-editar/:id`
+  gera um carimbo novo (`porta.identificar`) em vez de herdar o do anterior, grava o envelope novo e
+  **só então** apaga o antigo (`porta.apagarEnvelope`) — a ordem importa: se a escrita falhasse, o
+  registro velho continua de pé em vez de virar ausência. Uma linha só na estante, com a data nova.
+- **O carimbo tem resolução de MINUTO.** Editar dentro do mesmo minuto não recarimba: a identidade é a
+  mesma, e o registro se sobrescreve em sítio. Sem esta guarda, a estante ganharia um órfão `-2` por
+  nada (a colisão de `identificarComCarimbo`).
+- **A anamnese VINCULADA não entra aqui.** Ela continua recusando a edição em sítio com **409** e
+  exige o **ajuste** (elo novo). A vinculação é derivada do **apelido** (`respostas.sujeitos` do PO),
+  não do carimbo — é por isso que recarimbar a anamnese é seguro.
+- **O PLANO não recarimba.** A vinculação do plano é por **identificador de envelope**: o PO guarda o
+  `id` do plano em `respostas['plano-de-ensino']`. Recarimbar o plano **penduraria** a referência do PO
+  já gravado. E a estante do plano mostra o **OBJETIVO**, não a data — o recarimbo não teria nem o
+  efeito que se quer. Fica como está, e é uma diferença de **contrato**, não um esquecimento.
+- **A estante não deixa a linha sumir.** O recarimbo troca a **chave** do registro, e a lista do KV tem
+  atraso de consistência: por instantes ela ainda não conhece o carimbo novo. Sem tratar, o professor
+  veria a **própria edição desaparecer**. `acomodarRecarimbo(anterior, novo, apelido)` troca o carimbo
+  na tela na hora (a lista e o estado), e a próxima recarga do servidor confirma.
+- **A edição do plano exige a senha.** `exigeSenha()` generaliza a regra: **anamnese** sempre; **plano**
+  quando se **edita** (`EDITANDO`) ou **deriva** (`DERIVANDO`) — a criação não, porque a autorização
+  dela é a **curadoria**. O portão vale para o «Guardar», para a prévia (`fechar`) e para a trava do
+  formulário; a senha é esquecida ao gravar, como na anamnese. O **campo** da senha continua **oculto**
+  no plano: ela se digita na barra.
+- **A fileira da condução.** `#pular` e `#fechar` (que vivem **fora** de `#pergunta`) passam a travar
+  com a senha; `#anterior`, `#proxima` e `#sair` ficam **livres** — navegar e sair não gastam motor nem
+  escrevem.
+
+**Onde entrou.**
+
+- `motor/nucleo/porta.js` — `canonico`, `mesmasRespostas` e `mudouDeFato` (puros, exportados).
+- `motor/servidor/rotas.js` — a rota 11 recarimba; o relógio é o **injetável** (`carimbar`), como nas
+  demais rotas, para a prova ser determinística.
+- `porta/index.html` — `exigeSenha()`, `acomodarRecarimbo()`, e a edição usando o id que o servidor
+  devolve (a tela diz que o carimbo se refez, ou que nada mudou).
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` — o pacote publicado
+  (cópia de `porta/`, com a **nav do pacote preservada**).
+- `experimentos/provar-carimbo-da-edicao.js` — prova nova: **44 provas**.
+
+**Como foi provado.**
+
+- `experimentos/provar-carimbo-da-edicao.js` (**44**) roda o **servidor de verdade** (`criarRotas` sobre
+  a memória do núcleo, relógio injetado). Prova que o carimbo nasce com a criação; que **sem mudança**
+  nada muda (o id volta igual, o envelope fica intacto, a data não se mexe); que **com mudança** o id
+  novo é o carimbo de agora, o `gerado_em` acompanha, o envelope antigo é **apagado** e a estante fica
+  com **uma linha só**; que trocar **o apelido** também é mudança de fato; que a **vinculada** segue
+  recusada com 409; e que editar **no mesmo minuto** não cria o órfão `-2`.
+- `experimentos/provar-ajustes-anamnese.js` passou de **65 para 79**: a tela mostrando o carimbo
+  **novo** (e não o antigo), a tela dizendo que **nada mudou**, e o `acomodarRecarimbo` trocando o
+  carimbo na lista (e **preservando** o sujeito e o estado da linha, sem deixar o antigo órfão).
+- **Controle negativo, três vezes.** (a) A rota voltando a herdar o carimbo → a prova **reprova**
+  («o id novo é o carimbo de AGORA»). (b) A tela usando `EDITANDO` em vez de `dados.editada` → 2
+  falhas. (c) `acomodarRecarimbo` virando no-op → **3 falhas**. `provar-contexto-do-ato.js` segue
+  verde (**37**).
+- **No ar, e conferido no ar.** `wrangler deploy -c wrangler.fita.jsonc` → Version
+  `f3303ccc-ba43-4775-9151-99055621ce5a`; marcadores conferidos no site. Idem fim-a-fim contra a API
+  publicada, com um registro **descartável** (criado às 15:42, editado às 15:43: o carimbo virou
+  `anamnese-20261016-1543`, a chave antiga **sumiu do KV**), removido em seguida — o KV voltou às
+  **três** fichas do teste (Mari, Vavá, Dani).
+- **Achado de plataforma, medido.** A **listagem** do KV demora a enxergar uma chave recém-escrita
+  (medido: ~1 min). É a razão de o `acomodarRecarimbo` existir. E o carimbo é **UTC**: o Worker carimbou
+  `15:43` quando o relógio local do professor marcava `12:43` (`-03`) — o **horário que a estante
+  mostra é UTC**, nos registros novos e nos antigos.
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
+`.fipp` não muda.
+
+**Com o quê.** `motor/nucleo/porta.js`, `motor/servidor/rotas.js`, `porta/index.html`,
+`experimentos/provar-carimbo-da-edicao.js` (novo), `experimentos/provar-ajustes-anamnese.js`,
+`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
+`HANDOFF.md`.
+
+**Referências.** `ARQUITETURA-ANAMNESE.md` §6.3 («editar gera uma nova versão, a anterior permanece»)
+— **em tensão declarada** com o caso **livre**: ali a regra é de quem **não** é livre, e o dono do
+produto decidiu que, enquanto ela é livre, **o anterior não fica**. Os arquivos `*.instructions.md` de
+`.github/` e `REGISTRO.md` (nota de correção datada).
+
+**O que ainda não está feito.**
+
+- **O cofre não se atualiza na edição** (gap que já existia, e que o recarimbo torna mais visível):
+  `POST /api/anamnese` só é escrito na **criação**, e agora a sua chave é o carimbo **antigo** — o
+  registro cifrado fica **desatualizado e órfão** depois de uma edição. Fechar isso pede uma decisão
+  (o cofre re-cifra na edição? com a mesma senha?) e uma rota `DELETE /api/anamnese/:carimbo`, que
+  **não existe**. Não foi feito aqui.
+- **A trava de senha é de CLIENTE.** `PUT`/`DELETE` não recebem a senha no servidor: quem chamar a API
+  direto não é barrado. É a decisão vigente (a senha cifra e autoriza na tela); se o modelo pedir
+  autenticação de servidor, isto muda.
+- **A estante do PO** continua mostrando **só a data** e não tem estado nem ações — funcionalidade
+  nunca construída.
+- **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
+- **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
+  uma decisão que não foi tomada.
