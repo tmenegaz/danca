@@ -16,11 +16,14 @@
  *
  * ⚠️ O MODO DE FALHA POR OMISSÃO DESTE CONTRATO. As chaves de MAPA_SECOES são casadas
  * LITERALMENTE com o título em minúsculas (tools/lib-extracao-md.js:244-249), e um título
- * fora do mapa NÃO gera aviso nenhum: a seção é ignorada em silêncio. Um typo, uma maiúscula
- * a mais ou um caractere diferente produzem zero campos e zero avisos — um falso "ok". É por
- * isso que o mapa enumera as VARIANTES medidas em vez de adivinhar por padrão: quando uma
- * aula nova não cair aqui, o certo é acrescentar a variante, e a asserção de que o corpus
- * inteiro está mapeado é o que se repete depois de mexer no mapa.
+ * fora do mapa não produz campo nenhum: um typo, uma maiúscula a mais ou um caractere
+ * diferente descartam a seção inteira — zero campos para ela. Desde 16/10/2026 esse descarte
+ * **sai em aviso** (`avisosDeSecaoNaoMapeada`, quando a seção TEM conteúdo): até então o
+ * aviso existia e NUNCA disparava — `if (!secao) continue;` vinha antes do
+ * `secaoTeveConteudo = true`, a lista saía sempre vazia, e o modo de falha era um falso "ok"
+ * de verdade. É por isso que o mapa enumera as VARIANTES medidas em vez de adivinhar por
+ * padrão: quando uma aula nova não cair aqui, o certo é acrescentar a variante — e o aviso
+ * agora o diz, em vez de calar.
  *
  * AS LACUNAS SÃO DECLARADAS. O que a aula não tem em forma de dado o extrator não adivinha:
  * declara `[Preencher: …]` no campo, quando o tipo o permite, e em `_lacunas` quando o campo

@@ -167,13 +167,18 @@ function extrair(linhas, schema, declaracao) {
   let subcampoDaSecao = null;
 
   // A SEÇÃO QUE O MAPA NÃO CONHECE — o defeito irmão do de cima, e mais caro: o `## Título`
-  // que não está no mapa é DESCARTADO em silêncio (o extrator não abre seção nenhuma), e o
-  // conteúdo sai do documento sem que nada o diga. Foi assim que a `## Distribuição do volume
-  // pelos blocos` do plano ficou três ciclos fora do `plano-XX.json` — o mapa esperava
+  // que não está no mapa não gera campo nenhum (o extrator não abre seção nenhuma), e o
+  // conteúdo saía do documento sem que nada o dissesse. Foi assim que a `## Distribuição do
+  // volume pelos blocos` do plano ficou três ciclos fora do `plano-XX.json` — o mapa esperava
   // «… (regra 9, etapa 2)», um sufixo que documento nenhum escreve —, e que o `## Contexto`
   // do plano (doze fatos declarados) nunca chegou à máquina. Só ENTRA aqui a seção que TINHA
   // conteúdo: uma seção vazia não perdeu dado nenhum, e uma seção só com citação já sai no
   // aviso próprio (sem conteúdo, não há o que dizer duas vezes).
+  //
+  // Até 16/10/2026 este aviso NUNCA DISPARAVA: o `continue` da seção sem mapa vinha antes do
+  // `secaoTeveConteudo = true`, a lista abaixo ficava sempre vazia, e o extrator dizia «ok» a
+  // um documento que tinha perdido trechos. O conserto é o bloco `if (!secao)` do laço, mais
+  // abaixo — o comentário dele conta a história inteira.
   const secoesNaoMapeadas = [];
   let tituloNaoMapeado = null;
 
@@ -277,7 +282,26 @@ function extrair(linhas, schema, declaracao) {
     const h3 = limpa.match(/^###\s+(\S+)\s*$/);
     if (h3) { subcampo = h3[1]; subcampoDaSecao = h3[1]; continue; }
 
-    if (!secao) continue;
+    // A SEÇÃO FORA DO MAPA TAMBÉM TEM CONTEÚDO — E É ISSO QUE O AVISO DO FIM PRECISA SABER
+    // (16/10/2026). Este `continue` vinha ANTES das guardas de vazio e de citação, de modo que
+    // numa seção sem mapa nenhuma linha chegava ao `secaoTeveConteudo = true` (que está lá
+    // abaixo): a lista `secoesNaoMapeadas` ficava SEMPRE vazia, e o `avisosDeSecaoNaoMapeada` —
+    // escrito no commit 28e6fde justamente para dizer «o conteúdo desta seção NÃO chega a campo
+    // nenhum» — nasceu MORTO: nunca disparou, nem uma vez. Foi por isso que a distribuição do
+    // volume (14/10/2026) e a sequência de exercícios (16/10/2026) caíram as duas em silêncio,
+    // e quem as achou foi quem olhou o documento — o `validar-aula-ciclo.js` chega a DOCUMENTAR
+    // este modo de falha («um título fora do mapa NÃO gera aviso nenhum», «zero campos e zero
+    // avisos — um falso ok») como se o aviso existisse.
+    //
+    // A CITAÇÃO não conta: ela é comentário e não vira valor de campo em seção nenhuma — uma
+    // seção só de citação não perdeu dado, e o `secaoTeveCitacao` fica de fora deste ramo para
+    // o aviso `secoesSoCitacao` continuar a ser só do que TEM destino (ele carrega o campo).
+    if (!secao) {
+      if (limpa !== '' && limpa !== '---' && !limpa.startsWith('<!--') && !limpa.startsWith('>')) {
+        secaoTeveConteudo = true;
+      }
+      continue;
+    }
 
     // comentários e vazios não entram em nenhum valor. O COMENTÁRIO HTML entra aqui porque
     // ele é marcação, não conteúdo: o `<!-- CALENDARIO -->` do plano é o marcador que o

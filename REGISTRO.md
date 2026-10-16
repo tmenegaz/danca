@@ -14322,9 +14322,9 @@ o título com um sufixo («… (regra 9, etapa 2)») que documento nenhum escrev
 publica menos do que o professor escreveu. Nas duas vezes, quem descobriu foi o dono, olhando o
 documento.
 
-O aviso que existia para pegar isso **nunca funcionou** — e o achado é desta rodada, medido: ver o
-primeiro item do «O que ainda não está feito», abaixo. Sem ele, a armadilha não era fraca: era
-**invisível por construção**.
+O aviso que existia para pegar isso **nunca funcionou** — e o achado é desta rodada, medido, e o
+conserto também: ver o primeiro item do «O que ainda não está feito», abaixo. Sem ele, a armadilha
+não era fraca: era **invisível por construção**, e duas seções caíram nela em dois dias.
 
 Aproveitou-se a mesma rodada para o que ele declarou em seguida: **o critério de extensão precisa
 ser obrigatório**. O plano declara o horizonte — até onde os marcos estão decididos e o que decide
@@ -14355,50 +14355,72 @@ estender — e sem ele nem quem lê o plano nem o professor que o retoma sabem s
 **Onde entrou.**
 
 - `tools/validar-plano-ciclo.js` — uma entrada em `MAPA_SECOES` (congelado: motivo abaixo).
+- `tools/lib-extracao-md.js` — o conserto do aviso que nasceu morto (congelado: motivo abaixo).
+- `tools/validar-aula-ciclo.js` — o docstring que descrevia o modo de falha como inexistente
+  (congelado: mesmo motivo; é redação, não comportamento).
 - `modelo/ciclos/ciclo-01-plano-schema.json` — a propriedade `sequenciaDeExercicios` (opcional).
 - `professores/tiago-menegaz/ciclos/ciclo-01-plano-schema.json` — a mesma propriedade, em sincronia.
 - `porta/plano/conteudo/plano.json` — `criterio-de-extensao` com `obrigatorio: true` e o texto do nó.
 - `REGISTRO.md` — esta entrada.
 
-**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e
-`tools/validar-plano-ciclo.js` entra no `MAPA_SECOES`. O motivo é o acima, e ele é **medido**: sem a
-entrada, o conteúdo que o professor escreve chega ao `.md` e não chega ao pacote, **sem aviso**. A
-alternativa seria deixar o defeito e registrar a lacuna — mas então o guia e as vistas continuariam a
-publicar um plano a menos do que o professor escreveu.
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e três arquivos
+dele mudam: o `validar-plano-ciclo.js` (uma entrada no `MAPA_SECOES`), o `lib-extracao-md.js` (o
+conserto do aviso morto) e o `validar-aula-ciclo.js` (só o docstring que descrevia o modo de falha
+como inexistente). O motivo é o acima, e ele é **medido**: sem a entrada do mapa, o conteúdo que o
+professor escreve chega ao `.md` e não chega ao pacote, **sem aviso**; e o aviso que devia tê-lo dito
+**nunca disparou** — nunca, em três dias e duas seções perdidas. A alternativa seria deixar o defeito
+e registrar a lacuna, mas então o guia e as vistas continuariam a publicar um plano a menos do que o
+professor escreveu — e a terceira seção cairia igual. **A mudança de comportamento é deliberada e
+autorizada** pelo dono (o `CONGELAMENTO.md` manda parar e confirmar quando a alteração muda
+comportamento; parou-se, e confirmou-se): o que passa a acontecer é que o validador **imprime avisos
+novos** onde antes calava. Aviso não reprova nada.
 
 **O que não muda.** A **fórmula de hash** (`sha256` sobre as fontes, `tools/hash-ciclo.sh`) e a
 **cobertura** da âncora: as fontes do ciclo continuam a ser os `.conf` e os `.md` do ciclo — o
-`plano-XX.json` é saída do pacote, e nem antes nem agora entra na âncora. Os **validadores não
-ganham regra nenhuma**: nenhuma validação nova, nenhum `required` novo, nenhum tipo novo — só uma
-entrada no mapa de títulos das seções. `REGRAS.md`, `PROTOCOLO.md` (as 22 pétreas) e `METODO.md`
-**não são tocados**.
+`plano-XX.json` é saída do pacote, e nem antes nem agora entra na âncora. Os **validadores não ganham
+regra nenhuma**: nenhuma validação nova, nenhum `required` novo, nenhum tipo novo — só uma entrada no
+mapa de títulos das seções e um aviso que volta a funcionar, e **avisos nunca causam exit 1**. Nenhum
+documento que saía com 0 passa a sair com 1. `REGRAS.md`, `PROTOCOLO.md` (as 22 pétreas) e
+`METODO.md` **não são tocados**.
 
-**Com o quê.** `tools/validar-plano-ciclo.js`, `modelo/ciclos/ciclo-01-plano-schema.json`,
+**Com o quê.** `tools/validar-plano-ciclo.js`, `tools/lib-extracao-md.js`,
+`tools/validar-aula-ciclo.js`, `modelo/ciclos/ciclo-01-plano-schema.json`,
 `professores/tiago-menegaz/ciclos/ciclo-01-plano-schema.json`, `porta/plano/conteudo/plano.json`,
 `REGISTRO.md`.
 
 **Referências.** `CONGELAMENTO.md` (o congelamento de `tools/` e o motivo declarado);
-`tools/lib-extracao-md.js` (`avisosDeSecaoNaoMapeada`, o aviso que só sai quando há conteúdo —
-e que não sai quando o mapa está certo); a entrada de 14/10/2026 sobre a distribuição do volume
-(a mesma armadilha, uma data antes); `REGRAS.md` Regra 9 (volume) e Regra 10 (as camadas do
-plano); `PLANEJAMENTO-LASTRO.md` (§2.9, o contrato de extração como fonte das vistas e do guia).
+`tools/lib-extracao-md.js` (`avisosDeSecaoNaoMapeada`, o aviso que só sai quando há conteúdo);
+`tools/validar-aula-ciclo.js` (o docstring que dizia que ele não existia); a entrada de 14/10/2026
+sobre a distribuição do volume (a mesma armadilha, uma data antes); `REGRAS.md` Regra 9 (volume) e
+Regra 10 (as camadas do plano); `PLANEJAMENTO-LASTRO.md` (§2.9, o contrato de extração como fonte
+das vistas e do guia).
 
 **O que ainda não está feito.**
 
-- **O AVISO QUE DEVERIA TER PEGADO ISTO NASCEU MORTO, e está medido.** O
-  `tools/lib-extracao-md.js` tem, desde o commit `28e6fde` (13/10/2026), um aviso nomeado para
+- **O AVISO QUE DEVERIA TER PEGADO ISTO NASCEU MORTO — e foi CONSERTADO nesta mesma rodada.** O
+  `tools/lib-extracao-md.js` tinha, desde o commit `28e6fde` (13/10/2026), um aviso nomeado para
   exatamente esta armadilha: `avisosDeSecaoNaoMapeada`, que devia dizer «a seção tal não está no mapa
-  — o conteúdo NÃO chega a campo nenhum». **Ele nunca disparou, nem uma vez.** A razão é de ordem, e
-  é de uma linha: no laço do extrator, `if (!secao) continue;` (linha 280) vem **antes** de
-  `secaoTeveConteudo = true;` (linha 293) — de modo que, numa seção fora do mapa, nenhuma linha chega
-  a marcar conteúdo, a lista `secoesNaoMapeadas` fica sempre vazia, e o aviso é **código
-  inalcançável**. Foi assim que a distribuição do volume (14/10) e a sequência de exercícios (hoje)
-  caíram as duas em silêncio. **A defesa não existia — e é por isso que a armadilha mordeu duas
-  vezes, não porque ela fosse fraca.** Está **ABERTO**: corrigir é mover uma linha (marcar o conteúdo
-  antes do `continue`, ou marcar sem entrar no campo), mas isso muda **o que o validador imprime** —
-  e `tools/` é congelado. A alteração ficou **parada** à espera de confirmação, como o
-  `CONGELAMENTO.md` manda quando a mudança altera comportamento. **Até lá, a entrada de hoje só
-  corrige o sintoma da segunda mordida: a terceira continua invisível.**
+  — o conteúdo NÃO chega a campo nenhum». **Ele nunca disparou, nem uma vez.** A razão era de ordem,
+  e de uma linha: no laço do extrator, `if (!secao) continue;` vinha **antes** de
+  `secaoTeveConteudo = true;` — de modo que, numa seção fora do mapa, nenhuma linha chegava a marcar
+  conteúdo, a lista `secoesNaoMapeadas` ficava sempre vazia, e o aviso era **código inalcançável**.
+  Foi assim que a distribuição do volume (14/10) e a sequência de exercícios (hoje) caíram as duas em
+  silêncio. **A defesa não existia — e é por isso que a armadilha mordeu duas vezes, não porque ela
+  fosse fraca.** O modo de falha chegou a ser **documentado como inexistente**: o
+  `validar-aula-ciclo.js` dizia «um título fora do mapa NÃO gera aviso nenhum… zero campos e zero
+  avisos — um falso *ok*». Foi corrigido, e o docstring com ele.
+  O conserto é o bloco `if (!secao)` do laço: a seção sem mapa passa a marcar conteúdo quando o tem —
+  e **não** quando só tem citação (ela é comentário, e não perdeu dado nenhum). Medido depois do
+  conserto: a seção fora do mapa com conteúdo **sai em aviso**; a que só tem `>` **continua calada**;
+  a `## Distribuição do volume pelos blocos` do `fita` — mapeada, com a nota em `>` e sem conteúdo
+  fora dela — sai **exatamente como saía** (1 aviso, o pré-existente), e o plano extrai **16 campos**
+  (eram 15). O que **não** muda: **avisos nunca causam exit 1** (`validar-aula-ciclo.js`, dito e
+  medido), e os três validadores continuam a sair com 0 nos documentos que já saíam. O único
+  documento do repositório que ganha avisos **novos** é
+  `experimentos/simulacao-marau/ciclo-01-marau-plano.md` (2) — e são **verdadeiros**: «Calibração do
+  volume pela duração (Regra 9, etapa 1)» e «Critério de extensão para 10 aulas» são duas seções com
+  conteúdo que **nunca chegaram ao `plano-XX.json`**, e ninguém o sabia. É a prova de que o aviso
+  consertado acha o que foi escrito para achar.
 - **Uma prova que compare as seções EMITIDAS pela derivação com as chaves do `MAPA_SECOES`** seria a
   defesa anterior ao sintoma — pegaria o caso em que a seção ainda está vazia (o aviso, se
   consertado, só vê o que tem conteúdo). Não existe, e não foi escrita nesta rodada.
