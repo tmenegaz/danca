@@ -79,6 +79,34 @@
 > futura; aqui registam-se a frente, as dependências e a decisão pendente. O quadro-resumo passa a
 > **treze** frentes (§4), a sequência ganha a **camada 6 — a forma** (§5), a §8 ganha a quarta
 > matriz de cobertura e a §9 acolhe **C15**. Nenhuma linha de código de produto foi alterada.
+>
+> **Incorporação de 16/10/2026 — a cobrança Pix por arquivo.** O dono do produto entregou uma
+> **proposta operacional** de cobrança que **dispensa, na primeira versão, a integração bancária**:
+> ele gera a cobrança na **área Pix do banco** da conta de pessoa jurídica — com QR Code, Pix copia
+> e cola, chave e compartilhamento —, **descreve** nela o identificador da escola ou do professor
+> (o **slug**), e o material resultante é **organizado por arquivo** e conciliado **à mão**. A
+> proposta **não substitui** a conciliação manual que a L11 já contemplava: **complementa-a**,
+> dizendo **como** o material chega, **onde** é guardado e **o que** a confirmação humana precisa
+> garantir. Entrou na **§L11**, como subsecção — o ponto de menor duplicação —, datada e marcada
+> como **proposta futura**. Nasceu **uma** contradição nova, **C16** (*onde vive o **material** de
+> cobrança, e o que dele é público*), **distinta** de **C11** (*onde vive o **estado** comercial*):
+> material não é estado, e a proposta **não** pode virar um segundo controle de pagamentos. O
+> **§2.10** acolhe C16, o **§4** nomeia-a na linha da L11 e o **§9** ganha a lista do que esta
+> rodada **não** decidiu. Nenhuma linha de código de produto foi alterada — e **nada** da proposta
+> foi implementado.
+>
+> **Registo de 16/10/2026 — as lacunas de fundação.** Uma **avaliação do dono do produto** (sobre a
+> proposta comercial e o catálogo de identidades) apontou três ausências que este documento
+> **media**, mas **não elevava a decisão**: o **papel de administrador** do Sistema Lastro —
+> invocado pela L11 (a confirmação de pagamento) e pela L12 (o e-mail) e **inexistente** (§L12,
+> situação atual); o **`pagante` que significa duas coisas** (a trava de expurgo do andaime, §2.9, e
+> o estado comercial da L12); e a **natureza da L13** — **escolha de quem já é usuário** (*A*) ou
+> **instrumento de aquisição** (*B*), e, com ela, a pergunta de **quando** a paleta se escolhe (na
+> contratação ou dentro do sistema). Nasceram **C17** e **C18**, e a **C15** ganhou uma **quarta
+> dimensão** («quando», e para quê) — sem que nenhum dos três seja decidido por dedução. O
+> **§2.10** acolhe C17 e C18, o **§4** nomeia-as nas linhas da L11 e da L12, e o **§9** ganha a
+> lista do que esta rodada **não** decidiu. Nenhuma linha de código de produto foi alterada — e
+> **nada** foi implementado.
 
 ---
 
@@ -340,7 +368,9 @@ apagar — **não existe em lugar nenhum**. As três durações que a estratégi
 3 meses de oferta) e esta quarta (o prazo de expurgo) estão em **§3 C12**, para decisão.
 
 **As duas pegadas comerciais que existem** — e são andaime declarado: `pagante` (trava do
-expurgo) e `habilitada` (interruptor). Nenhuma delas é plano, preço, cobrança ou período.
+expurgo) e `habilitada` (interruptor). Nenhuma delas é plano, preço, cobrança ou período. E a
+palavra `pagante` significa aqui **«não apagar»**, e **não** o estado comercial da L12: são **dois
+significados com a mesma palavra** (**C18**).
 
 **Os componentes que a porta paga toca** — medidos em 15/10/2026 para a frente **L11** (§4), com
 o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corrige duas leituras:
@@ -370,7 +400,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.2.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C15** **de quem é a preferência de aparência** — por escola, por usuário ou por navegador —, e, com ela, o achado medido de que **o modelo de acesso não identifica o usuário**: o portão da Produção autentica um **segredo** por escola, não uma **pessoa** (interessa a **L13**). **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C15** **de quem é a preferência de aparência** — por escola, por usuário ou por navegador —, e, com ela, o achado medido de que **o modelo de acesso não identifica o usuário**: o portão da Produção autentica um **segredo** por escola, não uma **pessoa** (interessa a **L13**) · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -664,13 +694,103 @@ funcionalidade supõe.** Os três caminhos, e **nenhum escolhido**:
 | **por usuário** | dar **identidade** a quem entra | é decisão de **acesso**, com consequência de segurança — não de forma |
 | **por navegador** | nada: a preferência vive no navegador de cada um | não viaja entre dispositivos, e não pertence nem ao usuário nem à escola |
 
+**A quarta dimensão — *quando* a preferência se escolhe, e para quê (a natureza *A × B*).** Uma
+avaliação de 16/10/2026 separou **duas coisas que a L13 pode estar a misturar**: **(A)** a
+identidade como **escolha de quem já é usuário** — doze combinações, seletor global, preferência
+persistida: conforto e pertencimento; e **(B)** a identidade como **instrumento de aquisição** — a
+escola reconhece-se numa paleta, e isso serve **quem ainda não é usuário**. A L13 está desenhada
+para **A**; servir **B** exige uma decisão de **produto** que ainda não existe: a paleta é escolhida
+**na contratação** (como se escolhe o nome — e então ela é **parte do provisionamento**) ou
+**depois, dentro do sistema** (o que está desenhado)?
+
+**O que isto faz à C15 — e o que não faz.** Se a escolha for **na contratação** (B), a preferência é
+**da escola** e mora no **estado comercial** que a L11 vai criar (território de **C11/C16**) — e a
+C15 **encolhe** para o primeiro caminho da tabela acima. Mas ela **não se elimina**: **mudar** a
+paleta depois reabre o «de quem», porque o modelo de acesso continua a autenticar **um segredo por
+escola**, não uma pessoa (a nota abaixo vale igual). Isto é: a natureza **A × B** é uma **decisão do
+dono do produto**, e **precede** a **V0** — ela decide *quando* se escolhe, e a V0 decide *de quem*
+é a escolha.
+
 > **Nota honesta, e é uma porta que não se abre por acidente.** `senhaDaEscolaOk` **percorre** a
 > lista de professores e sabe **qual** senha bateu: a identidade **existe no dado** e **não é
 > usada**. Transformar isso em «quem entrou» é possível — e é **decisão de acesso**, não um efeito
 > colateral de um seletor de cores.
 
 *(Afeta L13. **Precede** o desenho da persistência: é ela que decide se há um campo novo no dado da
-escola.)*
+escola. **Precede também a V0**, e por duas perguntas — «de **quem**» é a escolha, e «**quando**»
+ela se faz: na contratação (*B*) ou dentro do sistema (*A*).)*
+
+**C16 — Onde vive o material de cobrança, e o que dele é público.** A proposta de 16/10/2026
+(§L11, «A cobrança Pix por arquivo») **desacopla** o **material** da cobrança do **estado**
+comercial: o material é o que o banco gera (QR Code, Pix copia e cola, chave, compartilhamento — no
+formato que **ainda não se conhece**), e o estado é o que a L11 já modela. Medido, **nada disto
+existe** (§2.9); e a arquitetura vigente oferece **dois** caminhos legítimos para o material, com
+consequências diferentes:
+
+- **No GitHub** — o material vira **arquivo versionado**, fonte de verdade, com a cadeia de revisão
+  do repositório; mas versionar cobrança tem **custo de exposição** (informação privada com
+  histórico) e de **atualização** (mudar um estado exige *commit* e *deploy*).
+- **No Worker/Cloudflare (KV ou equivalente)** — o material fica como **dado operacional**,
+  atualizável sem novo *deploy* completo; mas o KV **não** dá transação nem unicidade — e já é o
+  ponto que a **C11** pesa para o **estado**.
+
+O que a decisão tem de fechar, e **nenhum** destes caminhos fecha sozinho: **o que pode ser
+público** (o material de pagamento, se a arquitetura o exigir) e **o que tem de ser privado** (o
+material bancário, o extrato, o estado); e **qual mecanismo é a fonte de verdade do estado de
+pagamento** — que é a **C11**, e **não** se duplica aqui. **Não presumir** que toda cobrança vire
+arquivo estático: QR Code, instruções e estado têm requisitos de exposição e de atualização
+diferentes. E, qualquer que seja o caminho, a proposta **não** pode criar um **segundo controle de
+pagamentos** — os campos e os estados têm de ser os que a L11 define.
+
+*(Afeta L11 (a organização dos arquivos e as etapas de publicação) e a decisão **C11** — com quem
+partilha o «onde», sem com ela se confundir. **Precede** a ferramenta local futura: é ela que decide
+onde a ferramenta grava.)*
+
+**C17 — Quem é o «administrador» do Sistema Lastro.** A estratégia invoca um **administrador** que
+confirma pagamentos (§L11) e recebe o e-mail administrativo (§L12 J4) — e a medição mostra que
+**esse papel não existe**: o que existe são **duas senhas**, e nenhuma delas é «o administrador». O
+portão da Produção autentica a **direção da escola** (`senhaDaEscolaOk`,
+`motor/servidor/bastidores.js:468`), e a raiz autentica **o dono da plataforma** (`SENHA_RAIZ`,
+`motor/servidor/raiz.js:32`). São dois segredos de **escopos diferentes**, e nenhum deles nomeia uma
+pessoa — como a **C15** já mediu, o sistema autentica um **segredo**, não um **usuário**.
+
+A pergunta é de **acesso** (e, porque confirma dinheiro, de **segurança**), e tem três respostas
+possíveis, **nenhuma escolhida**:
+
+| Candidato | O que é | O que custa |
+|:--|:--|:--|
+| **a direção da escola** | o portão que já existe por escola | o dono da plataforma **não** é administrador; quem confirma o pagamento é a própria escola que paga — e **quem paga não deveria confirmar o próprio crédito** |
+| **o dono da plataforma** | a senha da raiz, que já existe | a raiz **não é uma escola** e não tem `ESCOLA_SLUG` (**C13**); confirmar exige o contexto da escola, que falta na raiz |
+| **ambos, com fronteiras** | a escola administra o seu dado; o dono administra o comercial | exige **desenhar duas fronteiras** e o mecanismo que diz **quem está a agir** — que **não existe** hoje |
+
+**O que decide, e por que precede.** O papel **precede** o desenho da **confirmação** (§L11, a
+cobrança por arquivo) e o **destino** do e-mail administrativo (§L12 J4): os dois nomeiam uma pessoa
+que o modelo **não tem**. E é a **mesma classe** de lacuna da C11 (não há lado público), da C13 (não
+há escola na raiz) e da C15 (não há usuário): **a funcionalidade supõe uma entidade que o acesso não
+oferece.**
+
+*(Afeta L11 (a confirmação) e L12 (o e-mail). **Precede** as duas — e é decisão de **acesso**, não
+de implementação.)*
+
+**C18 — `pagante` significa duas coisas.** A palavra `pagante` existe hoje com **um** sentido e está
+a ser usada com **outro**: no andaime, `raiz/escolas-habilitadas.json` → `pagante: true` é **trava
+de expurgo** — significa «escola pagante — **não se apaga**» (`motor/servidor/raiz.js:73-74`,
+`:243`); na L12, `pagante` é **estado comercial**, um dos quatro (`gratuito` · `solicitou` ·
+`pagante` · `expirado-sem-contratar`, §L12 entrega (f)). São **dois significados**, a mesma palavra,
+e **nenhum** deles foi definido: a trava diz apenas «não apagar», e o estado diz apenas «pagou» —
+mas **o que faz uma escola ser `pagante`** (ter **plano activo**, ou **já ter pago pelo menos uma
+vez**?) não está escrito em lugar nenhum, e a diferença decide o estado `expirado-sem-contratar`.
+
+**Por que isto não é preciosismo.** Duas consequências concretas: **(1)** um campo com dois
+significados é uma fonte de defeito — quem lê `pagante` no andaime espera «não apagar», quem o lê na
+L12 espera «contratou», e o código passa a depender de **qual** dos dois se quis dizer; **(2)** a
+L12 **não pode** definir os quatro estados sem responder à primeira pergunta, porque `pagante` é um
+deles. As duas decisões que isto pede: **renomear** um dos dois (a trava do expurgo e/ou o estado
+comercial), e **definir** o que faz uma escola ser `pagante`. **Nada foi renomeado** — registar a
+colisão é o que esta entrada faz.
+
+*(Afeta §2.9 (o andaime), §L12 (os quatro estados) e a L9 (o plano que os precede). Não é decisão de
+arquitetura: é de **vocabulário** — e de vocabulário que o dinheiro vai ler.)*
 
 ---
 
@@ -697,9 +817,9 @@ visual** —, em **§8**.
 | **L7** | A fronteira da IA e a medição de uso | **P2** | L9 | (independente do dado) |
 | **L8** | Composição comercial e a fonte única dos valores | **P3** | L9 | confirmação dos valores (**C8**) |
 | **L9** | Cotas, habilitação e limites por plano | **P3** | — | L6 + L7 + L8 · decisão **C2** |
-| **L11** | A porta paga: cobrança, verificação e liberação de escolas | **P2** | o lado público da porta | L8 (o valor) · **decisão C11** (onde vive o estado) · **dependências externas** (provedor) |
-| **L12** | A jornada comercial: a oferta, o período gratuito e a comunicação | **P3** | a contratação | L8 (o valor) · L9 (a trava) · **C12** (as durações) · **C13** (onde a página vive) · **o canal** (externo) |
-| **L13** | A identidade visual como escolha: o catálogo das doze combinações | **P3** | — (não destranca frente nenhuma) | o contrato de forma (`IDENTIDADE-VISUAL.md`) · **C15** (a preferência é de quem) · a decisão do mecanismo (navegador × servidor) |
+| **L11** | A porta paga: cobrança, verificação e liberação de escolas | **P2** | o lado público da porta | L8 (o valor) · **decisão C11** (onde vive o estado) · **C16** (onde vive o material de cobrança) · **C17** (quem é o administrador que confirma) · **dependências externas** (provedor) |
+| **L12** | A jornada comercial: a oferta, o período gratuito e a comunicação | **P3** | a contratação | L8 (o valor) · L9 (a trava) · **C12** (as durações) · **C13** (onde a página vive) · **C17** (o administrador do e-mail) · **C18** (os quatro estados e o que é «pagante») · **o canal** (externo) |
+| **L13** | A identidade visual como escolha: o catálogo das doze combinações | **P3** | — (não destranca frente nenhuma) | o contrato de forma (`IDENTIDADE-VISUAL.md`) · **C15** (a preferência é de quem — e **quando**: a natureza *A × B*) · a decisão do mecanismo (navegador × servidor) |
 
 > **A trilha mais curta até valor entregue:** L1 + L2 → L3 → L4 → **T01 ou P01** (as duas únicas
 > perguntas do catálogo que ficam viáveis sem decisão de conteúdo — §7). O resto do catálogo
@@ -1448,6 +1568,97 @@ decisão.
   é **E3** (o valor, que é L8/C8) e **E0** (a decisão de arquitetura). A **E8** espera o provedor —
   e é a única parte que espera.
 
+#### A cobrança Pix por arquivo — proposta operacional *(16/10/2026, sem implementação)*
+
+> **O que esta subsecção é.** Uma **proposta do dono do produto** para a **primeira versão** da
+> cobrança, **alternativa** à integração com provedor: ele gera a cobrança na área Pix do **banco**
+> da conta de pessoa jurídica, e o material resultante é organizado por arquivo e conciliado à mão.
+> Ela **não substitui** a conciliação manual que a «Mudança de modelo» acima já declarava —
+> **complementa-a**, dizendo **como** o material chega, **onde** é guardado e **o que** a
+> confirmação humana precisa garantir. **Nada disto está implementado**, e o formato do material do
+> banco **não foi inventado**: está declarado como **a verificar** (abaixo).
+
+- **O fluxo, como proposto.** O proprietário da conta: (1) gera a cobrança na área Pix do banco,
+  preenchendo a **descrição** com um identificador inequívoco do destinatário — preferencialmente o
+  **slug** da escola ou do professor, combinado com o que for necessário; (2) copia as informações
+  ou o arquivo que o banco disponibiliza (QR Code, Pix copia e cola, chave, link de
+  compartilhamento — o que o banco oferecer); (3) entrega o conteúdo a uma **ferramenta local**
+  futura, ou o deposita num arquivo **no formato a definir**; (4) a ferramenta identifica o
+  destinatário, organiza o material e o associa ao **registro comercial** correspondente; (5) o
+  material é publicado ou disponibilizado no ambiente apropriado, conforme a arquitetura vigente;
+  (6) quando o crédito aparece no **extrato**, o proprietário **confirma o pagamento à mão**; (7) a
+  ferramenta registra a confirmação e atualiza o **estado comercial**, executando o que for
+  necessário para manter o acesso contratado habilitado.
+
+- **O que o material do banco é — e o que ele não é.** O formato **não é conhecido**: o banco pode
+  devolver HTML, PDF, imagem, o texto do Pix copia e cola, um arquivo estruturado, ou uma
+  combinação. **Antes de definir o formato de entrada é preciso inspecionar um exemplo real** — sem
+  dados bancários sensíveis — e só então decidir. **Não presumir que o QR Code isolado carregue os
+  dados comerciais necessários** para identificar o destinatário: a identidade do destinatário vem
+  da **descrição** e do **registro**, não do desenho do QR Code.
+
+- **A organização dos arquivos — conceitual, não fixada.** A proposta é organizá-los por
+  **identificador de domínio e subdomínio** e por **data**, para que cada cobrança seja localizável.
+  A estrutura conceitual pensada é: **destinatário** (escola ou professor) · **identificador** (o
+  slug) · **data de emissão** · **plano ou finalidade** · **material Pix recebido do banco** ·
+  **estado de pagamento** · **data de confirmação**, quando houver. Isto é **proposta**, e **não**
+  fixa caminho, extensão nem formato: os padrões do repositório (sufixo da escola, um arquivo por
+  artefato, saídas geradas fora do Git) têm de ser **verificados** antes, e é o que a **C16** deixa
+  em aberto.
+
+- **GitHub × Cloudflare × Worker × KV — o que a solução futura tem de respeitar.** A arquitetura
+  vigente: o **GitHub** guarda os arquivos versionados que são **fontes de verdade**; o
+  **Cloudflare** serve os estáticos implantados; o **Worker** executa as operações dinâmicas já
+  previstas; o **KV**, onde couber, guarda o dado operacional para o qual foi previsto. Duas
+  possibilidades de operação ficam **registadas como alternativas**, não escolhidas: **(A) pelo
+  GitHub** — preparar ou atualizar os arquivos localmente, revisar, versionar e implantar pelo
+  processo existente; **(B) pelo Worker/Cloudflare** — publicar ou atualizar **apenas** o dado
+  operacional apropriado, sem um *deploy* completo quando ele não for necessário. **Não decidir
+  antecipadamente que toda cobrança vira arquivo estático**: QR Code, instruções de pagamento,
+  estado comercial e informação privada têm requisitos de exposição e de atualização
+  **diferentes**. Fica registada, para decisão, a necessidade de saber **o que pode ser público, o
+  que é privado, e qual mecanismo é a fonte de verdade do estado de pagamento** — a última parte é a
+  **C11**, e **não** se duplica aqui.
+
+- **A confirmação manual — o que ela tem de garantir.** Quem confirma é o proprietário ou um
+  administrador autorizado, **depois** de ver o crédito no extrato — e as regras abaixo **reafirmam
+  e estendem** a «Mudança de modelo» desta frente, sem a contradizer: **(i)** o QR Code gerado
+  **não** comprova pagamento; **(ii)** o comprovante enviado pelo cliente **não** é confirmação
+  definitiva; **(iii)** a **descrição** Pix ajuda a conciliação, mas **não** serve, isolada, como
+  prova suficiente de identidade; **(iv)** a confirmação manual tem de deixar **registro
+  rastreável**; **(v)** o estado comercial atualizado tem de ficar associado ao **destinatário
+  correto**; **(vi)** a operação tem de ser **idempotente** — confirmar duas vezes a mesma cobrança
+  **não** pode duplicar pagamento, crédito nem mudar estado indevidamente; **(vii)** uma cobrança
+  **não** pode ser ligada a uma escola ou professor **só porque o nome coincide** com outro
+  registro; **(viii)** falha na publicação ou na atualização tem de ser **detectável e
+  recuperável**. Os campos e estados exactos têm de ser **compatibilizados com o modelo comercial
+  que a L11 já define** — e **não** pode nascer um **segundo controle de pagamentos**.
+
+- **A ferramenta local futura — possibilidade, não entrega.** Fica registada como possibilidade
+  futura uma ferramenta local que receba o conteúdo copiado do banco e automatize o repetitivo.
+  Depois de **especificação e implementação próprias**, ela poderá: (1) receber o material Pix;
+  (2) validar o formato; (3) pedir ou identificar o destinatário; (4) organizar os arquivos por
+  identificador e data; (5) preparar os arquivos para publicação; (6) permitir revisão antes de
+  publicar; (7) registrar a confirmação manual de pagamento; (8) atualizar o estado comercial pelo
+  mecanismo apropriado; (9) executar ou orientar o *deploy* necessário; (10) mostrar o resultado da
+  operação e permitir recuperação em caso de falha. **A ferramenta não pode marcar pagamento
+  sozinha** só porque um arquivo foi inserido ou publicado. A estimativa do proprietário de
+  «≈ **2 minutos por cliente**» na operação manual fica registada como **hipótese dele** —
+  **não** como desempenho medido; nada foi cronometrado.
+
+- **Segurança e privacidade — o que não pode ser publicado.** Antes de implementar, é preciso
+  definir **o que do banco se preserva e o que se descarta**. **Não** vão para o GitHub, para
+  estáticos nem para páginas públicas: **extratos** bancários; **dados pessoais** desnecessários;
+  informação privada da **conta** bancária; **credenciais, tokens ou segredos**; e informação
+  administrativa que permita **mudar o estado comercial sem autorização**. O material Pix é tratado
+  conforme a sua natureza e a finalidade de **disponibilizar a cobrança**; o **estado de pagamento**
+  tem **controle de acesso próprio** — é a regra 7 do §6 aplicada ao dinheiro.
+
+- **O que esta subsecção NÃO é.** Não é implementação: não há código, não há arquivo de cobrança
+  criado, não há cobrança real publicada, e **nada** do Worker, do KV ou do *deploy* foi tocado.
+  Não é integração bancária: **não** há webhook, gateway, API de banco nem automação. E **não**
+  substitui a conciliação manual por confirmação automática — a confirmação continua **humana**.
+
 ---
 
 ### L12 — A jornada comercial: a oferta, o período gratuito e a comunicação
@@ -1681,6 +1892,12 @@ decisão.
     deck e o PDF usam é pergunta a responder em V2 — e a resposta provável é «a vigente», mas isso
     é decisão, não consequência.
   - **Verificação de acessibilidade não se faz no olho.** Sem a medição, o catálogo é gosto.
+  - **A natureza da frente — *A × B* — é decisão de produto, e precede a V0.** Se a paleta se
+    escolhe **na contratação** (*B* — instrumento de aquisição), ela é **parte do provisionamento** e
+    a preferência é **da escola**, morando no estado comercial (território de **C11/C16**); se se
+    escolhe **dentro do sistema** (*A* — conforto de quem já é usuário, o que está desenhado), a
+    pergunta «de quem» continua aberta. **Não decidida** — e é o que **reordena** a V0: primeiro
+    *quando*, depois *de quem* (a quarta dimensão da **C15**, §3).
 
 - **Prioridade.** **P3** — e **não reordena nada**: nenhuma frente depende dela, e ela não depende
   de nenhuma frente. É a única frente do documento nessa posição, e o motivo é declarado: ela é de
@@ -1936,7 +2153,7 @@ O texto desta rodada não é uma estratégia: é a **documentação de um estudo
 
 ## 9. O que este documento **não** decidiu
 
-- **Não escolheu** as interpretações das contradições C1–C15 (§3); registou-as. **Exceção: C3**,
+- **Não escolheu** as interpretações das contradições C1–C18 (§3); registou-as. **Exceção: C3**,
   resolvida em **15/10/2026** por decisão do dono do produto («o PO/plano publicado passa a ter
   versão explícita que o lançamento referencia») — e o **desenho** que a realiza (**S1–S4**) foi
   proposto por este documento e **aprovado no mesmo dia** (§3 C3, §L5). Propô-lo e aprová-lo não o
@@ -2066,3 +2283,58 @@ acrescenta um item ao painel administrativo, e `CONGELAMENTO.md` **já** lista �
 de menu ou navegação» como exigindo motivo declarado — além de `tools/templates/ciclo.css`,
 `tools/lib-tokens.js` e `tools/check-identidade.js`, que são **infraestrutura congelada**. A
 implementação é **commit próprio com motivo escrito**, e **não** foi antecipada nesta rodada.
+
+### O que a incorporação de 16/10/2026 *(a cobrança Pix por arquivo)* não decidiu
+
+Esta rodada é **proposta operacional**, e o que ela **não** decidiu é o que a mantém honesta. Nada
+disto tem resposta dedutível do repositório:
+
+1. **Qual é o formato do material que o banco gera.** **Não inventado.** Antes de definir a
+   entrada, é preciso **inspecionar um exemplo real** — sem dados bancários sensíveis — para saber
+   se o banco devolve HTML, PDF, imagem, o texto do Pix copia e cola, um arquivo estruturado ou uma
+   combinação. E **não** se presume que o QR Code isolado carregue os dados comerciais do
+   destinatário: a identidade vem da **descrição** e do registro.
+2. **Onde vive o material de cobrança, e o que dele é público** (**C16**). O material do banco não
+   é o estado comercial — e por isso a decisão é **distinta** da **C11**. As duas alternativas (o
+   GitHub, versionado, e o Worker/Cloudflare, operacional) estão registadas e **nenhuma escolhida**.
+3. **Qual mecanismo é a fonte de verdade do estado de pagamento.** É a pergunta da **C11** — KV, Git
+   ou D1 —, e a proposta **não** a responde nem cria um **segundo** controle de pagamentos: os
+   campos e os estados têm de ser compatibilizados com o modelo que a L11 já define.
+4. **Quais campos e estados do modelo comercial bastam.** **Não se assume** que o estado de
+   pagamento que existe hoje já tenha todos os campos necessários (data de emissão, plano ou
+   finalidade, data de confirmação, rastro da confirmação). A compatibilização com a L11 é
+   **trabalho de desenho**, não um fato consumado.
+5. **O formato dos arquivos e o padrão de nomes.** A estrutura conceitual (destinatário ·
+   identificador · data · plano · material · estado · confirmação) é **proposta**, e **não** fixa
+   caminho, extensão nem formato: os padrões do repositório (sufixo da escola, um arquivo por
+   artefato, saídas geradas fora do Git) têm de ser **verificados** antes.
+6. **Se a ferramenta local será construída, e quando.** Ela é registada como **possibilidade
+   futura**, com dez passos — e **não** tem especificação nem implementação. A estimativa de
+   «≈ 2 minutos por cliente» é **hipótese do proprietário**, não desempenho medido.
+7. **O que do material se preserva e o que se descarta.** A política de retenção do material
+   bancário (o que fica, por quanto tempo, o que é descartado) **precede** a implementação — e não
+   se deduz do repositório.
+8. **Nada foi implementado.** Não há código, não há arquivo de cobrança criado, não há cobrança real
+   publicada, e o Worker, o KV e o *deploy* **não** foram tocados. A conciliação manual **não** foi
+   substituída por confirmação automática: quem confirma continua a ser uma **pessoa**, olhando o
+   extrato.
+
+### O que a avaliação de 16/10/2026 *(as lacunas de fundação)* não decidiu
+
+Três ausências que o documento **media** e **não** elevava a decisão — a avaliação do dono do produto
+nomeou-as. Nenhuma tem resposta dedutível do repositório:
+
+1. **Quem é o «administrador» do Sistema Lastro** (**C17**). A L11 (a confirmação de pagamento) e a
+   L12 (o e-mail administrativo) invocam um papel que **não existe**: o que existe são duas senhas de
+   escopos diferentes — a direção da escola (`senhaDaEscolaOk`) e o dono da plataforma (`SENHA_RAIZ`)
+   —, e nenhuma nomeia uma pessoa. É decisão de **acesso** — e **precede** as duas frentes. Os três
+   candidatos estão na **C17**, e **nenhum** escolhido.
+2. **`pagante` — dois significados** (**C18**). A trava de expurgo do andaime (§2.9) e o estado
+   comercial da L12 partilham a palavra. **Renomear** um deles e **definir** o que faz uma escola ser
+   `pagante` (**plano activo** × **já pagou**) são decisões distintas — e a segunda decide o estado
+   `expirado-sem-contratar`. **Nada foi renomeado.**
+3. **A natureza da L13 — *A × B*** (**C15**, quarta dimensão). A identidade é **escolha de quem já é
+   usuário** (*A*) ou **instrumento de aquisição** (*B*)? Se for escolhida **na contratação**, a
+   preferência é **da escola** e a C15 encolhe — mas **não** se elimina (mudar depois reabre «de
+   quem», porque o acesso não identifica pessoa). É **decisão de produto**, **precede a V0**, e
+   reordena-a: primeiro *quando*, depois *de quem*.
