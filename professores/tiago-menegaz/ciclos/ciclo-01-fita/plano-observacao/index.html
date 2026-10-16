@@ -873,7 +873,17 @@ function semearDaCuradoria() {
     const atribuido = daCuradoria(no.daCuradoria);
     if (!atribuido.length) continue;
     if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) continue; // o professor já respondeu
-    RESPOSTAS.set(no.id, no.multipla ? atribuido : atribuido[0]);
+    let valor = no.multipla ? atribuido : atribuido[0];
+    // A TURMA JÁ PLANEJADA NÃO SE SUGERE (16/10/2026). O plano seguinte abre na PRIMEIRA
+    // turma que ainda pode ser planejada — não na primeira atribuída, que pode estar
+    // bloqueada. Sem isto o segundo plano nasceria apontando a turma que já tem plano, e o
+    // bloqueio do cabeçalho seria contornado sem o professor perceber.
+    if (no.id === 'contexto-turma') {
+      const usadas = turmasJaUsadas();
+      const livre = atribuido.find((v) => !usadas.has(String(v)));
+      if (livre) valor = livre;
+    }
+    RESPOSTAS.set(no.id, valor);
     SUGERIDAS.add(no.id);
     mudou = true;
   }
@@ -4691,9 +4701,11 @@ async function carregarEstados() {
   } catch (erro) {
     /* sem estados: a lista sai sem os selos, e nada mais quebra */
   }
-  // Os ESTADOS são o que marca as turmas já planejadas como blocadas no cabeçalho (o
-  // estado do plano e o atalho): repinta depois de os ter.
-  if (FONTE === 'plano') renderTurmaDoCabecalho();
+  // Os ESTADOS são o que marca as turmas já planejadas como bloqueadas no cabeçalho (o
+  // estado do plano e o atalho). Eles chegam DEPOIS da curadoria: re-semeia a turma (agora
+  // que se sabe quais já têm plano) e repinta. Sem esta ordem, o segundo plano abriria na
+  // turma bloqueada (16/10/2026).
+  if (FONTE === 'plano') { semearDaCuradoria(); renderTurmaDoCabecalho(); }
 }
 
 const ROTULO_ESTADO = {
