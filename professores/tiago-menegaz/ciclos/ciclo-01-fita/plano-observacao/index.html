@@ -1291,6 +1291,20 @@ function travarFormularioSemSenha() {
     }
     if (raiz.classList && raiz.classList.toggle) raiz.classList.toggle('travado', trava);
   }
+  // Os botões da CONDUÇÃO vivem FORA do `#pergunta`: a trava tem de os alcançar por nome. O
+  // `#pular` APAGA a resposta do nó e o `#fechar` roda a prévia no motor — os dois MEXEM (um
+  // escreve, o outro gasta o processo inteiro). Sem senha não se mexe. Ficam LIVRES o
+  // `#anterior`, o `#proxima` e o `#sair`: navegar e sair não mudam nada.
+  const pular = $('pular');
+  if (pular) pular.disabled = trava;
+  if (trava) {
+    const fechar = $('fechar');
+    if (fechar) fechar.disabled = true;
+  } else {
+    // Ao SOLTAR, o `#fechar` volta à regra DELE — «faltam obrigatórios?» — e não a um `false`
+    // cego, que abriria o fecho com o roteiro por responder.
+    atualizarBarra();
+  }
   const aviso = $('trava-senha');
   if (aviso) {
     aviso.innerHTML = trava
@@ -1502,7 +1516,9 @@ function perguntaRespondida(no) {
 
 function contar() {
   let resp = 0, obrig = 0;
-  for (const no of MAPA.nos) {
+  // `MAPA` é nulo até o `api/mapa` chegar: contar antes disso é zero, não um erro. (A senha
+  // é validada assim que se digita, e a validação reavalia a barra.)
+  for (const no of (MAPA && MAPA.nos) || []) {
     if (perguntaRespondida(no)) {
       resp += 1;
       if (no.obrigatorio) obrig += 1;
@@ -4106,6 +4122,10 @@ function bastidoresDaGeracao(dados) {
 async function fechar() {
   // Defesa em profundidade: o botão já nasce travado, mas o fecho também é
   // alcançável por handler. A validação abaixo permanece a mesma.
+  // A ANAMNESE só fecha com a senha: sem ela a prévia gastaria o motor inteiro sem que
+  // nada pudesse ser gravado. O plano e o PO não passam por aqui (a autorização deles é a
+  // curadoria).
+  if (FONTE === 'anamnese' && !SENHA_VALIDA) return;
   if (obrigatoriosFaltando().length) {
     atualizarBarra();
     return;
@@ -4446,6 +4466,10 @@ function carregarPlanoNaConducao(envelope) {
     RESPOSTAS.set(k, valor);
     if (v && v.nota) NOTAS.set(k, v.nota);
   }
+  // O CONTEXTO vem do envelope, como na edição da anamnese: sem isto a barra abria vazia e
+  // o professor editava ou derivava o plano às cegas (o defeito que se corrigiu na anamnese
+  // em 16/10/2026 — o plano tinha o mesmo, e ninguém o tinha visto).
+  aplicarContextoDoEnvelope(envelope);
   atualizarBarra();
   pintarRoteiro();
   salvar();

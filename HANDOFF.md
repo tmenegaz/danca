@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T12:12:23-0300`
-Commit atual: `66aec8b` — chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
+Gerado em: `2026-10-16T12:22:34-0300`
+Commit atual: `c57598a` — fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+c57598a fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
 66aec8b chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
 7f52720 fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
 8b94c44 fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
@@ -81,7 +82,6 @@ d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professo
 263e48e refactor(estrutura): o molde sai de professores/ — molde não é professor
 ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
 9eade85 Merge origin/main (a escola fita) em main (a validação por caminho)
-2e4607c fix(estrutura): a validação de criar escola é por caminho — o formulário tinha razão
 ```
 
 ## Por professor
@@ -205,6 +205,60 @@ pacote, e cuja nav foi preservada na publicação manual).
   próxima geração delas.
 - **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
   «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.
+
+**Elo do mesmo dia (16/10/2026) — a CONDUÇÃO se trava com a senha, e o plano tinha o mesmo defeito.**
+
+O primeiro item de «O que ainda não está feito» não muda, mas o teste apontou dois buracos. **Um:**
+travado o formulário, o professor **ainda clicava «Fechar a elicitação» e «Pular»** — e o `#pular`
+**apaga a resposta** do nó, enquanto o `#fechar` **roda a prévia no motor**. Mexer sem senha, e gastar
+o processo inteiro sem nada ter mudado, é exatamente o que a trava existia para impedir. **Dois:** o
+defeito (iii) do elo anterior — a edição abrir com a barra vazia — **vivia também no PLANO**:
+`carregarPlanoNaConducao` (o caminho do `editarPlano` **e** do `derivarPlano`) carregava as respostas
+e nunca o contexto. Ninguém o tinha visto porque não havia plano para editar.
+
+- `travarFormularioSemSenha` passou a alcançar os botões da CONDUÇÃO, que vivem **fora** do
+  `#pergunta`: **`#pular` e `#fechar`** travam sem senha; **`#anterior`, `#proxima` e `#sair`** ficam
+  **livres** — navegar e sair não mudam nada. Ao SOLTAR, o `#fechar` volta à **regra dele** («faltam
+  obrigatórios?»), não a um `false` cego: um `false` abriria o fecho com o roteiro por responder.
+- `fechar()` ganhou a guarda de profundidade (`FONTE === 'anamnese' && !SENHA_VALIDA` → não consulta o
+  motor). O plano e o PO **não** passam por ela.
+- `contar()` virou null-safe: a senha é validada assim que se digita, e podia chegar **antes** do
+  `api/mapa` — `MAPA.nos` estourava. (Achado ao soltar a senha, que reavalia a barra.)
+- `carregarPlanoNaConducao` passou a chamar `aplicarContextoDoEnvelope` — o mesmo remédio do elo
+  anterior, no lugar onde os dois caminhos do plano passam.
+
+**Os ajustes se estendem ao plano e ao PO? Verificado, e a resposta é: parte sim, parte não — e a
+razão é uma decisão, não um esquecimento.**
+
+| Ajuste | anamnese | plano | PO |
+|---|---|---|---|
+| A estante diz de quem é | apelido (corrigido) | mostra o OBJETIVO (já) | só a data |
+| O obrigatório se anuncia | sim | **sim — já valia** (é genérico: `tituloDoNo` + `.caixa.falta`) | **sim — já valia** |
+| A edição abre preenchida | corrigido | **corrigido neste elo** | não há edição |
+| A edição exige a senha | sim | **não** — a autorização é a **curadoria** | **não** |
+| O vigente nunca é «legado» | corrigido | não tinha o defeito (a derivação é outra: `legado` só com sucessor) | não há estado |
+| A senha não se registra | sim | não há senha (o campo é oculto) | não há senha |
+| O formulário trava sem senha | sim | não há senha | não há senha |
+| Excluir exige a senha | sim | não há exclusão | não há exclusão |
+
+Os ajustes de **SENHA** são do modelo de autorização da **anamnese** (aluna + senha). O plano e o PO
+travam por **CURADORIA** — decisão de **13/10/2026** («a memória da aula dada pertence à escola, não
+ao professor»), e o campo da senha nem é desenhado para eles. Estendê-los à senha **mudaria** aquela
+decisão: fica **em aberto**, para o dono do produto decidir.
+
+**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` passou de **47 para 54 provas**: os
+botões da condução travando e destravando (e os três que ficam livres), e — numa segunda página
+carregada com `FONTE=plano` — `carregarPlanoNaConducao` pré-preenchendo escola/professor/ciclo, o
+contexto do plano **sem** «aluna», e o plano **sem** trava de senha. **Controle negativo: 3 provas
+falham** sem a linha do contexto no plano; as 3 da trava de condução falharam no controle anterior.
+O `provar-contexto-do-ato.js` segue verde (37).
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
+`.fipp` não muda.
+
+**Com o quê.** `porta/index.html`, `experimentos/provar-ajustes-anamnese.js`,
+`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
+`HANDOFF.md`.
 
 ## O que está pendente
 
