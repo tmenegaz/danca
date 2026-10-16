@@ -42,7 +42,7 @@ DATA_INICIO="";    TOTAL_AULAS="5"
 # O MOLDE DE QUE NASCE TODA ESCOLA — e ele NÃO mora em `professores/`: molde não é professor
 # (ver `modelo/README.md` e a nota longa em `MODELO_BASE`, mais abaixo).
 MODELO="modelo/01"
-DEPLOY=0;          NAO_INTERATIVO=0
+DEPLOY=0;          NAO_INTERATIVO=0; SOMENTE_INDICE=0
 
 # ---------------------------------------------------------------------------
 # Ajuda
@@ -72,6 +72,8 @@ OPÇÕES COM PADRÃO:
   --modelo <base/ciclo>     ciclo de onde copiar schemas   (padrão: modelo/01)
 
 FLAGS:
+  --somente-indice          SÓ regenera a apresentação (index.html) de um pacote que já
+                            existe — usa os manifestos como estão e não toca em mais nada
   --deploy                  sobe o Worker e grava GITHUB_TOKEN no Cloudflare
   --nao-interativo          não pergunta: erro se faltar obrigatório
   --help                    esta ajuda
@@ -112,6 +114,7 @@ while [ "$#" -gt 0 ]; do
     --data-inicio)     DATA_INICIO="$2"; shift 2 ;;
     --total-aulas)     TOTAL_AULAS="$2"; shift 2 ;;
     --modelo)          MODELO="$2"; shift 2 ;;
+    --somente-indice)  SOMENTE_INDICE=1; shift ;;
     --deploy)          DEPLOY=1; shift ;;
     --nao-interativo)  NAO_INTERATIVO=1; shift ;;
     --help|-h)         uso; exit 0 ;;
@@ -135,19 +138,127 @@ pedir() { # $1 = rótulo ; $2 = nome da variável
   fi
 }
 
-pedir "slug do professor"        PROFESSOR
-pedir "nome do professor"        PROFESSOR_NOME
-pedir "slug da escola"           ESCOLA
-pedir "nome da escola"           ESCOLA_NOME
-pedir "responsável"              RESPONSAVEL
-pedir "ciclo (dois dígitos)"     CICLO
-pedir "frequência semanal"       FREQUENCIA
-pedir "dias+horas (ISO)"         DIAS
+# Com --somente-indice nada disto é perguntado: a identidade do pacote vem dos
+# argumentos (--professor/--escola/--ciclo) e o resto, dos manifestos que já existem.
+if [ "$SOMENTE_INDICE" != 1 ]; then
+  pedir "slug do professor"        PROFESSOR
+  pedir "nome do professor"        PROFESSOR_NOME
+  pedir "slug da escola"           ESCOLA
+  pedir "nome da escola"           ESCOLA_NOME
+  pedir "responsável"              RESPONSAVEL
+  pedir "ciclo (dois dígitos)"     CICLO
+  pedir "frequência semanal"       FREQUENCIA
+  pedir "dias+horas (ISO)"         DIAS
+fi
 # A data de início NÃO é pedida aqui: é material do PLANO (o plano elicitado a
 # estabelece). O scaffold nasce com a lacuna [Preencher: ...], e o plano a substitui.
 [ -z "$WORKER" ] && WORKER="$ESCOLA"
 [ -z "$DURACAO_TEXTO" ] && DURACAO_TEXTO="$DURACAO min por encontro"
 [ -z "$DATA_INICIO" ] && DATA_INICIO="[Preencher: data de início — o plano elicitado a estabelece]"
+
+# O nav mínimo do ciclo "zero": a página de entrada + Área do Professor → anamnese,
+# plano de ensino e PO (ordem alfabética, como o gerar_nav do gerar-ciclo.sh). Sem
+# a marca (removida do menu — duplicava o «Início»), sem «Início».
+# (As páginas do pacote usam o gerar_nav do gerar-ciclo.sh; aqui, sem DOCS,
+#  o nav nasce só com o que existe.)
+gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
+  local p="$1" onde="${2:-}" class_ini="" class_po=""
+  if [ "$onde" = "index" ]; then class_ini=' class="ativo"'; fi
+  if [ "$onde" = "porta" ]; then class_po=' class="ativo"'; fi
+  cat <<EOF
+<nav class="topnav" aria-label="Navegação do ciclo">
+  <span class="marca" aria-hidden="true"></span>
+  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+  <a${class_ini} href="${p}index.html">Sistema Lastro</a>
+  <details class="menu">
+    <summary>Área do Professor</summary>
+    <div class="submenu">
+      <a href="${p}anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
+      <a href="${p}plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano">Plano de ensino</a>
+      <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po">Plano de Observação</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Bastidores</summary>
+    <div class="submenu">
+      <a href="${p}bastidores/estudio">Estúdio de Dança</a>
+      <a href="${p}bastidores/producao">Produção</a>
+    </div>
+  </details>
+  </div>
+</nav>
+EOF
+}
+
+# ---------------------------------------------------------------------------
+# --somente-indice: regenera a APRESENTAÇÃO de um pacote que já existe
+#
+# Por que existe. A apresentação (`biblioteca/apresentacao.md`) é um DOCUMENTO
+# COMPARTILHADO — o mesmo em todas as escolas e em todos os ciclos. Quando o texto dele muda,
+# TODA página de entrada fica velha de uma vez. Sem este modo, atualizá-las significaria
+# reexecutar este script para cada escola — e ele RECUSA (a proveniência acrescenta, não
+# edita), além de reescrever os manifestos, o que apagaria a mão do professor neles.
+#
+# O que ele faz: lê os manifestos que JÁ existem, regenera `index.html` do pacote e para.
+# O que ele NÃO faz: não cria pasta, não copia schema, não escreve manifesto, não gera
+# Worker, não toca na porta (`plano-observacao/`) nem em nenhum outro documento.
+# ---------------------------------------------------------------------------
+somente_indice() {
+  local conf="$CICLOS_DIR/ciclo-$CICLO.conf" var="$CICLOS_DIR/ciclo-$CICLO-$ESCOLA.conf"
+  [ -f "$conf" ] || { echo "erro: manifesto não encontrado: $conf" >&2; exit 1; }
+  [ -f "$var" ]  || { echo "erro: manifesto não encontrado: $var" >&2; exit 1; }
+  [ -d "$PACOTE_DIR" ] || { echo "erro: o pacote não existe: $PACOTE_DIR" >&2; exit 1; }
+
+  # Os manifestos são lidos pelo MESMO caminho de sempre: `source`. É o que o gerar-ciclo.sh
+  # faz, e é o que garante que a apresentação veja os mesmos valores que o resto do ciclo.
+  # O `source` sobrescreve ESCOLA (slug → nome de exibição) e PROFESSOR (slug → nome), que é
+  # exatamente o que o índice precisa: os nomes de EXIBIÇÃO.
+  source "$conf"
+  source "$var"
+  local professor_nome="${PROFESSOR:-}" escola_nome="$ESCOLA" responsavel="$RESPONSAVEL"
+  local frequencia="$FREQUENCIA" duracao_texto="$DURACAO_POR_DIA" data_inicio="$DATA_INICIO"
+  # Depois do `source`, estas são de novo as SLUGS (o resto da função as usa nos links).
+  PROFESSOR="$(basename "$PROF_DIR")"; ESCOLA="$VARIANTE"
+
+  local nav; nav="$(mktemp)"
+  trap 'rm -f "$nav"' RETURN
+  gerar_nav_zero '' 'index' > "$nav"
+  local rodape="<a href=\"anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO\">Anamnese do aluno</a> &middot; <a href=\"plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano\">Plano de ensino</a> &middot; <a href=\"plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po\">Plano de Observação</a>"
+  pandoc "$RAIZ/biblioteca/apresentacao.md" \
+    -o "$PACOTE_DIR/index.html" \
+    --standalone --toc --toc-depth=3 \
+    --from=markdown+raw_tex+header_attributes \
+    --to=html5 \
+    --template="$RAIZ/tools/templates/ciclo.html" \
+    --css=assets/style.css \
+    --include-before-body="$nav" \
+    -V "lang=pt-BR" \
+    -V "ciclo=$CICLO" \
+    -V "ciclo-nome=Ciclo $CICLO — $escola_nome" \
+    -V "escola=$escola_nome" \
+    -V "escola-responsavel=$responsavel" \
+    -V "frequencia=$frequencia" \
+    -V "duracao-por-dia=$duracao_texto" \
+    -V "ciclo-periodo=$data_inicio" \
+    -V "ciclo-professor=$professor_nome" \
+    -V "rodape-docs=$rodape"
+
+  local base="plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO"
+  local lancamento='Lançamento de aula — formulário eletrônico'
+  [ -f "$PACOTE_DIR/lancamento.html" ] && \
+    lancamento='<a href="lancamento.html">Lançamento de aula — formulário eletrônico</a>'
+  sed -e "s|@ANAMNESE_URL@|$(printf '%s' "$base" | sed -e 's/[&%#_]/\\&/g')|g" \
+      -e "s|@PLANO_URL@|$(printf '%s' "$base&fonte=plano" | sed -e 's/[&%#_]/\\&/g')|g" \
+      -e "s|@PO_URL@|$(printf '%s' "$base&fonte=po" | sed -e 's/[&%#_]/\\&/g')|g" \
+      -e "s|{{LANCAMENTO_LINK}}|$(printf '%s' "$lancamento" | sed -e 's/[&%#_]/\\&/g')|g" \
+      "$PACOTE_DIR/index.html" > "$PACOTE_DIR/index.html.tmp"
+  mv "$PACOTE_DIR/index.html.tmp" "$PACOTE_DIR/index.html"
+  echo "  apresentação regerada: $PACOTE_DIR/index.html"
+  echo "  (a porta, os documentos e os manifestos NÃO foram tocados)"
+}
 
 # ---------------------------------------------------------------------------
 # Validação
@@ -160,10 +271,13 @@ slug_ok "$PROFESSOR" || { echo "erro: --professor inválido (esperado [a-z0-9-])
 slug_ok "$ESCOLA"    || { echo "erro: --escola inválido (esperado [a-z0-9-]): $ESCOLA" >&2; exit 1; }
 slug_ok "$WORKER"    || { echo "erro: --worker inválido (esperado [a-z0-9-]): $WORKER" >&2; exit 1; }
 printf '%s' "$CICLO" | grep -qE '^[0-9]{2}$' || { echo "erro: --ciclo deve ter dois dígitos: $CICLO" >&2; exit 1; }
+# Com --somente-indice estes dois vêm dos manifestos, não dos argumentos.
+if [ "$SOMENTE_INDICE" != 1 ]; then
 # A data de início aceita a lacuna [Preencher: ...] (o plano a estabelece) ou uma data real.
 { data_ok "$DATA_INICIO" || printf '%s' "$DATA_INICIO" | grep -q '\['; } \
   || { echo "erro: --data-inicio deve ser dd/mm/aaaa ou a lacuna [Preencher: ...]: $DATA_INICIO" >&2; exit 1; }
 dias_ok "$DIAS"       || { echo "erro: --dias fora do padrão ISO (ex.: 2@19:00,4@19:00): $DIAS" >&2; exit 1; }
+fi
 
 # Modelo: <base>/<ciclo> de onde copiar os schemas.
 #
@@ -189,6 +303,8 @@ PACOTE_DIR="$CICLOS_DIR/ciclo-$CICLO-$ESCOLA"
 CONF_BASE="$CICLOS_DIR/ciclo-$CICLO.conf"
 CONF_VARIANTE="$CICLOS_DIR/ciclo-$CICLO-$ESCOLA.conf"
 WRANGLER="$RAIZ/wrangler.$WORKER.jsonc"
+
+[ "$SOMENTE_INDICE" = 1 ] && { somente_indice; exit 0; }
 
 if [ -e "$CONF_BASE" ] || [ -e "$CONF_VARIANTE" ] || [ -e "$PACOTE_DIR" ] || [ -e "$WRANGLER" ]; then
   echo "erro: a escola/ciclo já existe — não sobrescrevo (a proveniência acrescenta, não edita)." >&2
@@ -322,50 +438,14 @@ cp "$RAIZ/tools/templates/ciclo.css" "$PACOTE_DIR/assets/style.css"
 cp "$RAIZ/tools/lib-cifra.js" "$PACOTE_DIR/assets/lib-cifra.js"
 cp "$RAIZ/tools/templates/nav.js" "$PACOTE_DIR/assets/nav.js"
 
-# O nav mínimo do ciclo "zero": a página de entrada + Área do Professor → anamnese,
-# plano de ensino e PO (ordem alfabética, como o gerar_nav do gerar-ciclo.sh). Sem
-# a marca (removida do menu — duplicava o «Início»), sem «Início».
-# (As páginas do pacote usam o gerar_nav do gerar-ciclo.sh; aqui, sem DOCS,
-#  o nav nasce só com o que existe.)
-gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
-  local p="$1" onde="${2:-}" class_ini="" class_po=""
-  if [ "$onde" = "index" ]; then class_ini=' class="ativo"'; fi
-  if [ "$onde" = "porta" ]; then class_po=' class="ativo"'; fi
-  cat <<EOF
-<nav class="topnav" aria-label="Navegação do ciclo">
-  <span class="marca" aria-hidden="true"></span>
-  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="nav-links" id="nav-links">
-  <a${class_ini} href="${p}index.html">Nós, Por Exemplo</a>
-  <details class="menu">
-    <summary>Área do Professor</summary>
-    <div class="submenu">
-      <a href="${p}anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO">Anamnese do aluno</a>
-      <a href="${p}plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano">Plano de ensino</a>
-      <a${class_po} href="${p}plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po">Plano de Observação</a>
-    </div>
-  </details>
-  <details class="menu">
-    <summary>Bastidores</summary>
-    <div class="submenu">
-      <a href="${p}bastidores/estudio">Estúdio de Dança</a>
-      <a href="${p}bastidores/producao">Produção</a>
-    </div>
-  </details>
-  </div>
-</nav>
-EOF
-}
 
-# O índice do pacote zero é a MESMA página de entrada do sistema («Nós, Por Exemplo»)
-# que o pacote cheio usa: renderiza `biblioteca/nos-por-exemplo.md` com o template do
+# O índice do pacote zero é a MESMA apresentação do sistema («Sistema Lastro»)
+# que o pacote cheio usa: renderiza `biblioteca/apresentacao.md` com o template do
 # ciclo, em vez de um cartão de visita próprio. A entrada é única e compartilhada.
 NAV_ZERO="$(mktemp)"
 gerar_nav_zero '' 'index' > "$NAV_ZERO"
 RODAPE_ZERO="<a href=\"anamnese/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO\">Anamnese do aluno</a> &middot; <a href=\"plano-ensino/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=plano\">Plano de ensino</a> &middot; <a href=\"plano-observacao/?professor=$PROFESSOR&escola=$ESCOLA&ciclo=$CICLO&fonte=po\">Plano de Observação</a>"
-pandoc "$RAIZ/biblioteca/nos-por-exemplo.md" \
+pandoc "$RAIZ/biblioteca/apresentacao.md" \
   -o "$PACOTE_DIR/index.html" \
   --standalone --toc --toc-depth=3 \
   --from=markdown+raw_tex+header_attributes \

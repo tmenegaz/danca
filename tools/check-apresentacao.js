@@ -2,12 +2,12 @@
 'use strict';
 
 /*
- * check-nos-por-exemplo.js — a página «Nós, Por Exemplo» tem UMA fonte de
- * verdade: biblioteca/nos-por-exemplo.md. A raiz e os index.html dos ciclos são
+ * check-apresentacao.js — a APRESENTAÇÃO do sistema («Sistema Lastro») tem UMA fonte de
+ * verdade: biblioteca/apresentacao.md. A raiz e os index.html dos ciclos são
  * CÓPIAS dela (a raiz sem links; os ciclos com os atalhos «Acessar …» virados
  * em link). Este validador confirma que nenhuma cópia derivou.
  *
- *   uso: node tools/check-nos-por-exemplo.js
+ *   uso: node tools/check-apresentacao.js
  *
  * Sai com código 1 se alguma página divergir. O texto não tem lastro nem
  * vínculo com dados — a checagem é de consistência de redação, não de
@@ -18,7 +18,7 @@ const fs = require('fs');
 const path = require('path');
 
 const raiz = path.resolve(__dirname, '..');
-const fonte = path.join(raiz, 'biblioteca', 'nos-por-exemplo.md');
+const fonte = path.join(raiz, 'biblioteca', 'apresentacao.md');
 
 const erros = [];
 const ok = [];
@@ -89,7 +89,7 @@ function paginasNós() {
 const md = fs.readFileSync(fonte, 'utf8');
 const base = canonico(md);
 if (!base) {
-  console.error('erro: a fonte biblioteca/nos-por-exemplo.md está vazia');
+  console.error('erro: a fonte biblioteca/apresentacao.md está vazia');
   process.exit(1);
 }
 
@@ -105,13 +105,13 @@ for (const alvo of paginasNós()) {
 }
 
 for (const rel of ok) console.log('ok: ' + rel);
-for (const rel of erros) console.log('erro: ' + rel + ' — divergiu da fonte biblioteca/nos-por-exemplo.md');
+for (const rel of erros) console.log('erro: ' + rel + ' — divergiu da fonte biblioteca/apresentacao.md');
 
 if (erros.length) {
-  console.error('\n' + erros.length + ' página(s) «Nós, Por Exemplo» divergente(s). ' +
+  console.error('\n' + erros.length + ' página(s) «Sistema Lastro» divergente(s). ' +
     'Regenere com tools/gerar-raiz.sh (raiz) e tools/gerar-ciclo.sh <p> <ciclo> <escola> (ciclos).');
   process.exit(1);
 }
 
-console.log('\nOK: ' + ok.length + ' página(s) «Nós, Por Exemplo» fiéis à fonte.');
+console.log('\nOK: ' + ok.length + ' página(s) «Sistema Lastro» fiéis à fonte.');
 process.exit(0);

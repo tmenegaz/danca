@@ -855,7 +855,7 @@ gerar_nav() {
     #   Acompanhamento e entraram aqui, junto do guia-do-professor e do METODO.
     # ------------------------------------------------------------------
     for item in \
-      "Nós, Por Exemplo|index" \
+      "Sistema Lastro|index" \
       "Ciclos|plano referencias" \
       "Aulas|aula-*" \
       "Acompanhamento|acompanhamento-* caderno-*" \
@@ -976,7 +976,7 @@ for doc in $TODOS; do
       METADADOS=(--metadata "title=Guia de observação — Aula ${doc#guia-de-observacao-}") ;;
   esac
   # A ficha (Escola · frequência · duração · Ciclo · data · volume) NÃO aparece na
-  # página de entrada («Nós, Por Exemplo», o `index`): ela é material do sistema, não
+  # apresentação («Sistema Lastro», o `index`): ela é material do sistema, não
   # do ciclo. As demais páginas mantêm a ficha. O template `ciclo.html` mostra a ficha
   # só quando `ficha` está declarado.
   FICHA_VAR=()
@@ -1005,7 +1005,7 @@ for doc in $TODOS; do
     -V "volume-semanal=$VOLUME_SEMANAL tempos/semana" \
     -V "ciclo-semanas=$SEMANAS" \
     "${FICHA_VAR[@]}"
-  # A página de entrada («Nós, Por Exemplo», o `index`) traz três atalhos para a porta —
+  # A apresentação («Sistema Lastro», o `index`) traz três atalhos para a porta —
   # a anamnese, o plano de ensino e o PO — cujas URLs carregam os slugs do ciclo (professor,
   # escola, ciclo). O pandoc não interpola variáveis no CORPO do documento; os marcadores
   # `@ANAMNESE_URL@`, `@PLANO_URL@` e `@PO_URL@` são trocados aqui, só no `index`, pelo mesmo

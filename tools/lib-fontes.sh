@@ -20,7 +20,7 @@
 # Três documentos são COMPARTILHADOS por todos os professores e não vivem no ciclo:
 #   guia-do-professor  → biblioteca/   (o guia de posição)
 #   metodo             → raiz          (METODO.md, declaração de princípio)
-#   index              → biblioteca/   (a página de entrada «Nós, Por Exemplo»)
+#   index              → biblioteca/   (a APRESENTAÇÃO do sistema, exibida na entrada)
 # O `index` deixa de ser o «índice geral do ciclo» (repetia o plano) e passa a ser a
 # página de entrada do SISTEMA, igual para todos — por isso fica FORA do hash, como os
 # outros dois: o hasher só aceita caminho sob `professores/<professor>/` (ver hash-ciclo.sh).
@@ -28,7 +28,7 @@ fonte_md() {
   case "$1" in
     guia-do-professor) printf '%s' "$RAIZ/biblioteca/guia-do-professor.md"; return ;;
     metodo) printf '%s' "$RAIZ/METODO.md"; return ;;
-    index) printf '%s' "$RAIZ/biblioteca/nos-por-exemplo.md"; return ;;
+    index) printf '%s' "$RAIZ/biblioteca/apresentacao.md"; return ;;
     caderno-*)
       # O caderno é por ciclo e por escola, e vive FORA da pasta do ciclo:
       #   professores/<professor>/cadernos/ciclo-XX/caderno-XX-<escola>.md

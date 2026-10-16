@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ============================================================================
-# gerar-raiz.sh — regera o corpo da página raiz («Nós, Por Exemplo») a partir da
-# fonte ÚNICA biblioteca/nos-por-exemplo.md.
+# gerar-raiz.sh — regera o corpo da página raiz («Sistema Lastro») a partir da
+# fonte ÚNICA biblioteca/apresentacao.md.
 #
 #   uso: tools/gerar-raiz.sh
 #
@@ -18,7 +18,7 @@
 set -euo pipefail
 
 RAIZ="$(cd "$(dirname "$0")/.." && pwd)"
-FONTE="$RAIZ/biblioteca/nos-por-exemplo.md"
+FONTE="$RAIZ/biblioteca/apresentacao.md"
 ALVO="$RAIZ/raiz/index.html"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
