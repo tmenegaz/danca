@@ -2550,20 +2550,10 @@ function selectDaTurma(no) {
     const dis = usada && String(escolhida) !== String(o.valor) ? ' disabled' : '';
     opcoes.push('<option value="' + escapar(o.valor) + '"' + sel + dis + '>' + escapar(rotulo) + '</option>');
   }
-  // Os atalhos dos planos que já existem não cabem num `<option>` — vão numa nota discreta,
-  // para o professor não perder o acesso ao que ficou gravado.
-  let nota = '';
-  if (usadas.size) {
-    const partes = [];
-    for (const [nome, usada] of usadas) {
-      const livre = usada.estado === 'solta';
-      partes.push(escapar(nome) + ' <a class="atalho-do-plano" href="' +
-        escapar(urlDoPlano(usada.carimbo, livre)) + '" target="_blank" rel="noopener">' +
-        (livre ? 'ajustar o plano' : 'ver o plano') + '</a>');
-    }
-    nota = '<span class="sub">com plano: ' + partes.join(' · ') + '</span>';
-  }
-  return '<select id="ctx-turma" aria-label="turma observada">' + opcoes.join('') + '</select>' + nota;
+  // Os ATALHOS dos planos que já existem saíram do cabeçalho (16/10/2026): a estante
+  // abaixo JÁ os oferece («editar», «apagar», «derivar»), e repetir o link aqui só poluía.
+  // O select basta: o estado vai no próprio rótulo da opção.
+  return '<select id="ctx-turma" aria-label="turma observada">' + opcoes.join('') + '</select>';
 }
 
 /** A TURMA do PO — a do plano referenciado, de `api/planos` (a fonte única; não se reescreve). */
@@ -4930,7 +4920,24 @@ function avisarNaFicha(id, texto, tipo) {
   const alvo = document.querySelector('[data-aviso="' + CSS.escape(id) + '"]');
   if (!alvo) return;
   alvo.className = 'aviso-ficha ' + (tipo || '');
-  alvo.innerHTML = escapar(texto);
+  alvo.innerHTML = escap(texto);
+}
+
+/*
+ * TIRAR DA ESTANTE, na hora (16/10/2026). O KV tem atraso de consistência: depois de um
+ * DELETE, a listagem do servidor ainda devolve o registro por alguns segundos — e aí a
+ * linha apagada FICAVA na tela, e um segundo clique respondia «não encontrado». Era esse o
+ * defeito: parecia que a exclusão não funcionou. A linha sai da lista LOCAL imediatamente;
+ * a próxima carga do servidor confirma, e nessa altura já não há o que confirmar.
+ */
+async function removerDaEstante(id) {
+  FICHAS = FICHAS.filter((x) => String(x) !== String(id));
+  ESTADOS.delete(id);
+  guardarFichas(FICHAS);
+  pintarFichas();
+  // A turma do plano apagado volta a ficar LIVRE — e o cabeçalho tem de o dizer já, não só
+  // depois de recarregar a página (a releitura do servidor ainda traria a linha apagada).
+  if (FONTE === 'plano') await renderTurmaDoCabecalho();
 }
 
 /*
@@ -4950,9 +4957,10 @@ async function apagarAnamnese(id) {
   try {
     const resposta = await fetch('api/anamnese-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
     const dados = await resposta.json().catch(() => ({}));
-    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
-    avisarNaFicha(id, 'apagada.', 'ok');
-    await atualizarFichas();
+    // 404 = já não existe; era esse o objetivo. Um duplo clique (ou a lista ainda atrasada)
+    // não pode virar erro depois de a exclusão ter dado certo.
+    if (!resposta.ok && resposta.status !== 404) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    await removerDaEstante(id);
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -5107,9 +5115,10 @@ async function apagarPlano(id) {
   try {
     const resposta = await fetch('api/plano-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
     const dados = await resposta.json().catch(() => ({}));
-    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
-    avisarNaFicha(id, 'apagado.', 'ok');
-    await atualizarFichas();
+    // 404 = já não existe; era esse o objetivo. 409 (vinculada ou derivada) continua sendo
+    // recusa, e aí a linha FICA — com o motivo.
+    if (!resposta.ok && resposta.status !== 404) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    await removerDaEstante(id);
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
