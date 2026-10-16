@@ -20,9 +20,9 @@ subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
 | **Calendário** | 2026-10-16 → 2026-10-30 |
 | **Número total de aulas** | 7 |
 | **Volume de trabalho** | 3–6 séries |
-| **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
+| **Condição de registro** | Na sala: professor, alunas da turma · observa: observador externo. |
 | **Metodologia de referência** | RAD |
-| **Quem escolhe a metodologia** | Eu escolho |
+| **Quem escolhe a metodologia** | A escola impõe |
 | **Notação dominada** | Benesh |
 
 ## Objetivo geral
