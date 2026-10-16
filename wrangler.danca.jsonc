@@ -1,7 +1,7 @@
 // Cloudflare Worker da RAIZ do sistema — o `danca`.
 //
-// NÃO é uma escola: é a porta de entrada do sistema. Serve a página «Nós, Por Exemplo»
-// (a MESMA do ciclo, renderizada de biblioteca/nos-por-exemplo.md) + o botão «Criar nova
+// NÃO é uma escola: é a porta de entrada do sistema. Serve a apresentação «Sistema Lastro»
+// (a MESMA do ciclo, renderizada de biblioteca/apresentacao.md) + o botão «Criar nova
 // escola», atrás de senha (o secret `SENHA_RAIZ`). O conteúdo vive em `raiz/` (ASSETS).
 //
 // O «Criar nova escola» usa o `CLOUDFLARE_API_TOKEN` (secret) para criar o Worker e o

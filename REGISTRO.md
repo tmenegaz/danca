@@ -13580,3 +13580,71 @@ apagou o MODELO (`ed76e16`), o `cp` sobre o próprio arquivo (`412dbe4`), a ânc
 - **O `HANDOFF.md` contava o molde como professor** e agora não conta; mas o mesmo defeito pode existir
   em qualquer outro consumidor de `professores/*/` que apareça. O que se corrigiu foi o molde — a
   varredura de consumidores não foi exaustiva.
+
+## 16/10/2026 — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome diz isso
+
+**O que aconteceu.**
+O dono do produto entregou o texto novo da página de entrada — o **Sistema Lastro**, o nome
+comercial do produto — e pediu a substituição integral. Ao fazê-la, ficou à vista que o nome
+antigo não estava só no título: estava no **arquivo-fonte**, no **validador**, no **caminho** e
+nos **rótulos do menu**. A partir daí a conversa virou uma regra.
+
+**O que foi decidido.**
+- **A página de entrada é a apresentação do sistema.** O arquivo passa a se chamar
+  `biblioteca/apresentacao.md` (era `nos-por-exemplo.md`) e o validador,
+  `tools/check-apresentacao.js` (era `check-nos-por-exemplo.js`). Os dois com `git mv` — o Git
+  registra renomeação, e a proveniência acrescenta.
+- **Regra nova, no `REGRAS.md`: nomear pelo conceito.** Nome de arquivo, de pasta e de
+  ferramenta diz o que a coisa **é** — nunca o título que ela exibe. O título é texto de
+  apresentação: pode ser comercial, pode mudar sem que o conteúdo mude de natureza. O critério
+  é o mesmo que nomeia a pasta `tools/` — «ferramentas» é a função que todas ali compartilham;
+  ela não se chama «chave de fenda», nem «validar strings».
+
+**O que mudou, arquivo por arquivo.**
+- `biblioteca/apresentacao.md` — **renomeado e reescrito** com o texto do Sistema Lastro. Os
+  três atalhos continuam **dinâmicos** (`@ANAMNESE_URL@`, `@PLANO_URL@`, `@PO_URL@`): o texto
+  que o dono do produto entregou trazia três links de demonstração cravados em `tiago-menegaz` e
+  `fita`, e é exatamente o que os marcadores existem para evitar. Zero links absolutos no fonte.
+- `tools/check-apresentacao.js` (**congelado**) — renomeado, e as mensagens passam a citar o
+  caminho novo.
+- `tools/lib-fontes.sh`, `tools/criar-escola.sh`, `tools/gerar-ciclo.sh`, `tools/gerar-raiz.sh`
+  (**congelados**) — o caminho do fonte e o **rótulo do menu** (`Nós, Por Exemplo` →
+  `Sistema Lastro`).
+- `motor/servidor/bastidores.js` — o rótulo no menu do topo, o mesmo nas três vistas dos
+  Bastidores. `motor/servidor/provisionar-escola.js` — o título e o `h1` da página de espera.
+  `motor/servidor/raiz.js`, `wrangler.danca.jsonc`, `biblioteca/videos.json` — os comentários.
+- `raiz/index.html` — o `h1` e o subtítulo; o corpo foi **regerado** por `gerar-raiz.sh`.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/index.html` — **regerado**: o `h1`, o rótulo do
+  menu e o corpo.
+- `README.md`, `FRENTES.md`, `IDEIA-PAINEL-ESCOLA.md` — as descrições de estado. O `FRENTES.md`
+  ganhou a nota datada da troca de nome, em vez de reescrever as linhas que registram o que foi
+  feito com o nome antigo.
+- **O que NÃO se reescreveu:** o `REGISTRO.md` (este arquivo), o `HANDOFF.md` (que o extrai) e os
+  `escola/*/indice.json` — o `motivo` gravado no expurgo de cada escola é o que foi escrito **no
+  dia**; os elos antigos ficam legíveis, e o que muda é o que se escreve a partir de agora.
+
+**Motivo declarado** (`tools/` e `REGRAS.md` estão congelados): a página de entrada é
+**documento compartilhado** — o mesmo em toda escola e todo ciclo —, e muda quando o produto
+muda de nome. O rótulo do menu e o caminho do fonte vivem em `tools/`, e a regra que impede o
+problema de voltar vive no `REGRAS.md`. Nada de comportamento observável mudou para quem cria
+escola ou gera ciclo.
+
+**Como foi provado.** `tools/check-apresentacao.js` — **2 de 2** páginas fiéis à fonte (a raiz e
+o índice da `fita`). O scaffolder rodado **de verdade** com uma escola descartável
+(`zzteste`/`zzescola`, sem `--deploy`): 5 schemas, 2 manifestos, o Worker, o índice com o título
+novo e o nav da porta injetado — e o artefato apagado depois (`professores/zzteste`,
+`wrangler.zzescola.jsonc`, `escola/zzescola/`). No ar: a raiz (`danca`) e a `fita` servem
+`<h1>Sistema Lastro</h1>`, e a Produção mostra o mesmo rótulo no menu.
+
+**Referências.** O texto entregue pelo dono do produto (16/10/2026) · `AGENTS.md` §«O que é este
+projeto» (a convivência declarada dos dois nomes) · os elos do mesmo dia no `REGISTRO.md`: a
+fonte única e a raiz (`9730`), os três atalhos e o passo novo (`10019`), a `fita` reancorada
+(`9eade85`).
+
+**O que ainda não está feito.**
+- **A `fita` é a única escola em uso, e é a única página de ciclo regerada.** Qualquer pacote
+  antigo que apareça continua com o texto velho: a regeração é por escola.
+- **`biblioteca/fundamentacao.md` segue não existindo** (o `FRENTES.md` o declara como pendência
+  do Trilho C desde antes; a troca de nome não a resolve).
+- **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
+  a última agora é esta; a regeneração é passo próprio.

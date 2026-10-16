@@ -310,12 +310,16 @@ a pesquisadora.
 | B10 | **O ALINHAMENTO do PO completo com os derivados** — cada nó respondível do PO com a SUA chave no documento e no `po-XX.json`; nada escrito como prosa dentro do campo de outro nó; os rótulos vindos do CONTEÚDO (o documento assina o nome que o professor marcou) | ✅ feito — 9 chaves novas (`planoDeEnsino`, `horizonte`, `dimensoesObservadas`, `itensPorDimensao`, `metodologiaENotacao`, `flutuantes`, `restricoes`, `horizonteDoConjunto`, `compromissoDeReavaliacao`), todas OPCIONAIS (os POs já escritos continuam válidos); a `## Metodologia e notação` passa a ser extraída; prova `experimentos/provar-po-completo.js` (17) | ficam abertos: as chaves novas nas fontes JÁ escritas (só um PO gerado de novo as traz); `norma` segue lacuna declarada mesmo com a metodologia preenchida — decisão de 25/09/2026, revisitável; `projeto: 'Formação em Balé Clássico'` está escrito à mão em 8 derivadores e não é lido por ninguém |
 | B11 | **O ALINHAMENTO do PLANO completo com os derivados** — cada nó respondível do plano com a SUA chave no `plano-XX.json`; o `## Contexto` como FONTE ÚNICA (a ficha do ciclo composta dele, sem `[Preencher]` em campo declarado); a seção fora do mapa deixando de ser descartada em SILÊNCIO | ✅ feito — 5 chaves novas (`contexto`, `condicoesPreliminares`, `criterioDeExtensao`, `musicasVideos`, `repertorio`), todas OPCIONAIS; o título do volume que a derivação escreve passa a ser reconhecido (com o alias do antigo); `## Músicas e vídeos` e `## Repertório` ganham seção; o parâmetro de medição da Aula 1 chega composto (era `[object Object]`); prova `experimentos/provar-plano-completo.js` (17) | ficam abertos: as seções novas só existem num plano gerado de novo (as fontes à mão não as têm); a tabela do volume das fontes antigas tem linhas de uma célula (proporção vazia — não se inventa); `projeto:` em 11 sítios |
 
-### Trilho C — «Nós, Por Exemplo» (a página de entrada do sistema)
+### Trilho C — «Sistema Lastro» (a apresentação do sistema)
+
+> A página chamou-se «Nós, Por Exemplo» até 16/10/2026. O nome saiu: era um título de página
+> servindo de nome de arquivo, de pasta e de ferramenta. O registro do que foi feito com o nome
+> antigo está no `REGISTRO.md`, que não se reescreve — ver a convenção «Nomear pelo conceito».
 
 | # | Frente | Estado |
 |:--|:--|:--|
-| C1 | Página `biblioteca/nos-por-exemplo.md` + `fundamentacao.md` + `videos.json` | 🔨 parcial — página ✅ (fonte única) · `videos.json` ✅ (não embutido) · `fundamentacao.md` ❌ |
-| C2 | Migrar o menu (`gerar-ciclo.sh`): Início→Ciclos, nasce «Nós, Por Exemplo» | ✅ feito — «Nós, Por Exemplo» é a entrada + grupo «Ciclos»; `criar-escola.sh` (nav_zero) sem «Início», com «Bastidores» |
+| C1 | Página `biblioteca/apresentacao.md` + `fundamentacao.md` + `videos.json` | 🔨 parcial — página ✅ (fonte única) · `videos.json` ✅ (não embutido) · `fundamentacao.md` ❌ |
+| C2 | Migrar o menu (`gerar-ciclo.sh`): Início→Ciclos, nasce a apresentação | ✅ feito — «Sistema Lastro» é a entrada + grupo «Ciclos»; `criar-escola.sh` (nav_zero) sem «Início», com «Bastidores» |
 | C3 | Correção socrática (Frente 5) + modo desenvolvedor (Frente 6) | 🔨 parcial — F5 (correção socrática) ✅ no pacote; F6 (modo desenvolvedor) ⏸ fase 2 |
 
 ---
@@ -374,5 +378,5 @@ escola.
 5. B7 — Bloco 4 do PO (rubrica clicável ✅ · turmas plural ✅ · checklist pré-preenchido ✅)   ✅ fechado
 6. A4 — experimento: migrar para produção (A1/A2/A3 já feitos; falta só os secrets de write-back)
 7. B5 — bug do [Preencher] na distribuição do volume                   ✅ resolvido (o bloqueio era fantasma)
-8. C1 — «Nós, Por Exemplo»: `fundamentacao.md` + embutir `videos.json`  (C2 já feito) ← paralelo, independente
+8. C1 — «Sistema Lastro»: `fundamentacao.md` + embutir `videos.json`  (C2 já feito) ← paralelo, independente
 ```

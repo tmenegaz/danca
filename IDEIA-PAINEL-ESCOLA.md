@@ -24,7 +24,7 @@
 ## 1. O nome — «Bastidores»
 
 **Bastidores** é o nome do ambiente. A referência é o mundo do espetáculo — o mesmo universo
-de «Nós, Por Exemplo»:
+da apresentação «Sistema Lastro»:
 
 > **O professor está em cena. O aluno está em cena. A escola está nos bastidores.**
 
@@ -818,7 +818,7 @@ existir, ele continua a servir, mas **gerado pela Produção** e não pelo `cria
 - **Implementado (primeiro corte, 11/10/2026).** O Worker raiz existe: `wrangler.danca.jsonc` +
   `workers/raiz.js` + `motor/servidor/raiz.js`. Pede **Basic Auth** com o secret `SENHA_RAIZ`
   (vindo de `tools/.senhas-locais` na hora do deploy, como `SENHA_<ESCOLA>`), e serve a página
-  «Nós, Por Exemplo» + o botão/formulário «Criar nova escola». O POST `/api/criar-escola` chama
+  «Sistema Lastro» + o botão/formulário «Criar nova escola». O POST `/api/criar-escola` chama
   `motor/servidor/provisionar-escola.js`, que cria o Worker e o subdomínio
   `<escola>.tmenegaz77.workers.dev` no Cloudflare por API, grava a `SENHA_ADMIN` como secret e
   devolve o URL. A escola nasce no estado «zero» — a «Área do Professor» (PO + anamnese) sai

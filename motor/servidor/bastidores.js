@@ -521,7 +521,7 @@ function topnav(contexto, onde) {
     '<span></span><span></span><span></span>' +
     '</button>' +
     '<div class="nav-links" id="nav-links">' +
-    '<a href="/index.html">Nós, Por Exemplo</a>' +
+    '<a href="/index.html">Sistema Lastro</a>' +
     '<details class="menu">' +
     '<summary>Área do Professor</summary>' +
     '<div class="submenu">' +
@@ -793,7 +793,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A PÁGINA ALINHA COM A BARRA DO TOPO, E A LISTA FICA COM O RESTO.
     //
     // A barra do topo é `position:fixed` de ponta a ponta, com `padding: 6px 14px` — o
-    // «Nós, Por Exemplo» começa a 14px da borda. Era essa a referência que faltava: o painel
+    // «Sistema Lastro» começa a 14px da borda. Era essa a referência que faltava: o painel
     // tinha `max-width:1280px; margin:0 auto; padding-left:22px`, então o menu de secções
     // começava a 22px + a margem do auto, e não ficava embaixo do menu do sistema. Agora o
     // painel usa os MESMOS 14px e não tem teto de largura: o menu alinha com a barra, e a

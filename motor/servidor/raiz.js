@@ -3,7 +3,7 @@
 /**
  * raiz.js — o Worker RAIZ do sistema (`danca.tmenegaz77.workers.dev`).
  *
- * É a porta de entrada do sistema, NÃO uma escola: serve a página «Nós, Por Exemplo» + o
+ * É a porta de entrada do sistema, NÃO uma escola: serve a apresentação «Sistema Lastro» + o
  * botão «Criar nova escola», e NADA mais. Todo acesso é atrás de senha — a `SENHA_RAIZ`
  * (secret do Worker, vinda de `tools/.senhas-locais` na hora do deploy), porque criar uma
  * escola é privilégio da pesquisadora. Aqui não há «Área do Professor»: isso é do pacote
@@ -579,7 +579,7 @@ async function fetch(request, env) {
     }
   }
 
-  // O resto → o ASSETS (a página «Nós, Por Exemplo» em raiz/index.html e o assets/).
+  // O resto → o ASSETS (a apresentação «Sistema Lastro» em raiz/index.html e o assets/).
   // O `run_worker_first` fez o Worker rodar antes do estático; aqui ele devolve o
   // estático que existe — e só cai no 404 quando não há. O freio de senha já foi
   // aplicado no topo: nada do ASSETS é servido sem autorização.

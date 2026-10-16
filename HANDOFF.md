@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-15T17:02:10-0300`
-Commit atual: `ec7ffb2` — fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
+Gerado em: `2026-10-16T07:55:41-0300`
+Commit atual: `b5c2f71` — feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -57,11 +57,19 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
 - **`IDEIA-PAINEL-ESCOLA.md`** — o Bastidores é o ambiente da direção da escola: um grupo de menu com duas vistas — o Estúdio de Dança (que a direção partilha com o professor) e a Produção (só da direção) —, regido pelo princípio cena × bastidores, pela regra da reverberação (o que a escola declara desce para os documentos da cena) e pela proveniência própria da escola. Não implementado.
-- **`PLANEJAMENTO-LASTRO.md`** — o mapa de evolução do **Sistema Lastro** (o nome comercial do produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os relacionamentos, os índices, o versionamento e o comercial — e **dez frentes** com objetivo, lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi implementado: este documento é o mapa, não a obra.
+- **`PLANEJAMENTO-LASTRO.md`** — o mapa de evolução do **Sistema Lastro** (o nome comercial do produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os relacionamentos, os índices, o versionamento e o comercial — e **onze frentes** com objetivo, lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi implementado: este documento é o mapa, não a obra.
 
 ## Últimos commits
 
 ```
+b5c2f71 feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
+51479c5 fix(estrutura): o menu alinha com a barra do topo, e o repertório volta ao menu comum
+30a9f27 fix(estrutura): o painel é centrado como o sistema, e a lista longa vira escolhedor
+3b1652c fix(estrutura): os Bastidores usam o menu do sistema e a Produção vira duas colunas
+24de473 docs(ideia): a credencial do provedor — as três medições de 15/10/2026
+aa8ac22 docs(ideia): a frente L11 — a porta paga: cobrança, verificação e liberação de escolas
+d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professores/
+263e48e refactor(estrutura): o molde sai de professores/ — molde não é professor
 ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
 9eade85 Merge origin/main (a escola fita) em main (a validação por caminho)
 2e4607c fix(estrutura): a validação de criar escola é por caminho — o formulário tinha razão
@@ -74,14 +82,6 @@ bb12041 fix(estrutura): restaurar o MODELO e publicar o conserto que estava só 
 ed76e16 fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôde nascer
 30657e5 fix(estrutura): o expurgo não achava o KV nem preservava o índice da escola
 4bee5dc fix(tools): o gerador do HANDOFF quebrava com o repositório sem escola
-67ddfa0 chore(estrutura): expurgar a escola barra
-21d8dcf chore(estrutura): expurgar a escola maria
-bb0da30 feat(estrutura): o expurgo da escola vira botão, na raiz
-b510383 chore(entrega): absorver o volteio do gerador (carimbo e sais novos)
-0d009e6 chore(entrega): os pacotes da Barra e da Maria absorvem o lançamento autenticado
-a88b9ae fix(template): o lançamento exige a senha e avisa quando grava sem cifra
-f40f29c feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO no cofre
-4e4adf5 docs(registro): a árvore nunca fica limpa depois de um commit que toca fonte de ciclo
 ```
 
 ## Por professor
@@ -145,104 +145,75 @@ f40f29c feat(estrutura): o lançamento da aula confere a senha e grava CIFRADO n
 
 ## Última entrada do REGISTRO
 
-## 15/10/2026 — O professor homônimo: o identificador é o slug, e o sobrenome o separa
+## 16/10/2026 — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome diz isso
 
-**O que motivou.** O dono do produto levantou a questão, e ela veio em duas partes. A primeira ele
-mesmo respondeu: *«um professor tem como subdomínio a escola; se chegar outra pessoa, também
-professor A, ele precisa de um sobrenome — e aí vira A1, com o subdomínio dele, a mesma escola, e
-isso garante que a escola sempre saiba de qual professor se está falando»*. Está certo, e é o que o
-sistema já faz. A segunda parte foi a pergunta de verdade: **«e o professor que eu incluo na lista de
-professores, dentro dos Bastidores · Produção — esse eu também estou cuidando?»**
-
-**A resposta era não — e naquele cadastro o cuidado era mais fraco.** Medido, não suposto:
-
-1. **A trava conferia o NOME; o uso era o SLUG.** `lista.some(p => p.nome === nome)` deixa passar
-   exatamente os pares que colidem: «José» × «Jose», «Ana Maria» × «Ana-Maria», «Tiago» × «tiago» —
-   nomes diferentes, **mesmo slug**, as duas pessoas na mesma pasta. E a conferência de senha busca
-   por slug: acha a **primeira** e nunca consulta o hash da segunda. O segundo professor **nunca
-   entra**, e ninguém recebe erro.
-2. **A trava não alcançava o DONO.** Ele vive no secret `PROFESSOR_NOME`, fora da lista do KV.
-   Cadastrar um professor com o nome do dono devolvia **201** — e o resultado eram três camadas em
-   contradição: o seletor **esconde** o cadastro, a senha **nunca autentica** (o ramo do dono vem
-   antes) e o DELETE **recusa** («este é o professor dono da escola»). Um cadastro aceito, invisível,
-   inutilizável e impossível de remover.
-3. **O escopo era a ESCOLA; o do diretório é o SISTEMA.** A chave é `bastidores/<escola>/professores`,
-   mas `professores/<slug>/` é global: dois «Tiago» em escolas **diferentes** são dois cadastros que
-   nunca se enxergam e gravam no **mesmo** diretório — que é exatamente o caso A/A1 do dono, e não era
-   pego.
-4. **Ninguém conferia contra as pastas que existem** — nem o cadastro, nem a criação de escola.
+**O que aconteceu.**
+O dono do produto entregou o texto novo da página de entrada — o **Sistema Lastro**, o nome
+comercial do produto — e pediu a substituição integral. Ao fazê-la, ficou à vista que o nome
+antigo não estava só no título: estava no **arquivo-fonte**, no **validador**, no **caminho** e
+nos **rótulos do menu**. A partir daí a conversa virou uma regra.
 
 **O que foi decidido.**
-- **A identidade do professor é o SLUG, e o escopo é o sistema.** O `professores/<slug>/` guarda o
-  pacote, os cadernos, os relatórios e as âncoras: duas pessoas com o mesmo slug viram **uma** no
-  registro. As duas pontas passam a conferir a mesma coisa.
-- **O SLUG é GRAVADO na entrada do cadastro** (`{nome, slug, sal, hash}`), em vez de derivado do nome a
-  cada uso. É o mesmo princípio que fez o slug do dono vir do secret: **ajustar o nome de exibição não
-  move a pasta**. A leitura aceita as duas formas (entradas antigas derivam do nome); a escrita grava
-  sempre a nova.
-- **O SOBRENOME (ou apelido) é o que separa homônimos** — e o formulário passa a pedi-lo. O nome
-  **exibido** leva o sobrenome junto (senão o seletor mostraria dois «Tiago» idênticos), mas quem
-  identifica é o slug.
-- **A criação de escola ganha a mesma trava, com duas saídas e só duas:** (1) **reutilizar** um
-  professor que já existe (a pasta fica, e o material continua junto), ou (2) criar com
-  **nome + sobrenome** (a pasta nasce como `nome-sobrenome`). Sem sobrenome e sem escolher um
-  existente → **400**, com a razão escrita; slug que já existe → **409**, apontando a pasta.
-- **O cadastro do Bastidores alcança o dono**: cadastrar o mesmo slug do dono → **409**, dizendo que é
-  o dono e mandando usar sobrenome.
-- **O seletor e a tela mostram o slug** ao lado do nome: sem ele, dois homônimos na tela seriam
-  indistinguíveis — e é o slug que o PO, o plano e os cadernos usam.
+- **A página de entrada é a apresentação do sistema.** O arquivo passa a se chamar
+  `biblioteca/apresentacao.md` (era `nos-por-exemplo.md`) e o validador,
+  `tools/check-apresentacao.js` (era `check-nos-por-exemplo.js`). Os dois com `git mv` — o Git
+  registra renomeação, e a proveniência acrescenta.
+- **Regra nova, no `REGRAS.md`: nomear pelo conceito.** Nome de arquivo, de pasta e de
+  ferramenta diz o que a coisa **é** — nunca o título que ela exibe. O título é texto de
+  apresentação: pode ser comercial, pode mudar sem que o conteúdo mude de natureza. O critério
+  é o mesmo que nomeia a pasta `tools/` — «ferramentas» é a função que todas ali compartilham;
+  ela não se chama «chave de fenda», nem «validar strings».
 
-**Onde entrou.**
-- `motor/servidor/repo-escola.js` — `professoresDosCaminhos` e `listarProfessores` (a leitura que
-  responde «quem já existe», da mesma árvore que a lista de escolas usa).
-- `motor/servidor/raiz.js` — `GET /api/professores` e a validação de identidade no `criar-escola`
-  (`professorExistente` para reutilizar; `professorSobrenome` para desempatar).
-- `motor/servidor/bastidores.js` — `slugDoProfessor` (o slug gravado, com retrocompatibilidade);
-  a trava do cadastro pelo slug, contra o dono e contra a lista; o seletor, a conferência de senha, o
-  DELETE e a curadoria passam a usar o slug; o campo `sobrenome` na tela e o slug mostrado na lista.
-- `raiz/index.html` — o campo de sobrenome, o seletor «usar um professor que já existe» (que desliga
-  nome e sobrenome) e a lista carregada de `/api/professores`.
-- `experimentos/provar-homonimo.js` — **novo**: 24 provas.
+**O que mudou, arquivo por arquivo.**
+- `biblioteca/apresentacao.md` — **renomeado e reescrito** com o texto do Sistema Lastro. Os
+  três atalhos continuam **dinâmicos** (`@ANAMNESE_URL@`, `@PLANO_URL@`, `@PO_URL@`): o texto
+  que o dono do produto entregou trazia três links de demonstração cravados em `tiago-menegaz` e
+  `fita`, e é exatamente o que os marcadores existem para evitar. Zero links absolutos no fonte.
+- `tools/check-apresentacao.js` (**congelado**) — renomeado, e as mensagens passam a citar o
+  caminho novo.
+- `tools/lib-fontes.sh`, `tools/criar-escola.sh`, `tools/gerar-ciclo.sh`, `tools/gerar-raiz.sh`
+  (**congelados**) — o caminho do fonte e o **rótulo do menu** (`Nós, Por Exemplo` →
+  `Sistema Lastro`).
+- `motor/servidor/bastidores.js` — o rótulo no menu do topo, o mesmo nas três vistas dos
+  Bastidores. `motor/servidor/provisionar-escola.js` — o título e o `h1` da página de espera.
+  `motor/servidor/raiz.js`, `wrangler.danca.jsonc`, `biblioteca/videos.json` — os comentários.
+- `raiz/index.html` — o `h1` e o subtítulo; o corpo foi **regerado** por `gerar-raiz.sh`.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/index.html` — **regerado**: o `h1`, o rótulo do
+  menu e o corpo.
+- `README.md`, `FRENTES.md`, `IDEIA-PAINEL-ESCOLA.md` — as descrições de estado. O `FRENTES.md`
+  ganhou a nota datada da troca de nome, em vez de reescrever as linhas que registram o que foi
+  feito com o nome antigo.
+- **O que NÃO se reescreveu:** o `REGISTRO.md` (este arquivo), o `HANDOFF.md` (que o extrai) e os
+  `escola/*/indice.json` — o `motivo` gravado no expurgo de cada escola é o que foi escrito **no
+  dia**; os elos antigos ficam legíveis, e o que muda é o que se escreve a partir de agora.
 
-**Como foi provado.** 24 provas, todas passando: o dono alcançado (409, com a razão); o sobrenome
-separando (`tiago-menegaz` × `tiago-silva`, slugs distintos, senha de cada um valendo só no seu); os
-pares que colidiam pelo nome e colidem pelo slug (José × Jose, Ana Maria × Ana-Maria); o campo `slug`
-gravado na entrada; excluir pelo nome e pelo slug, com o dono protegido; e a criação de escola
-recusando sem sobrenome (400) e com slug ocupado (409), sem barrar um slug livre.
+**Motivo declarado** (`tools/` e `REGRAS.md` estão congelados): a página de entrada é
+**documento compartilhado** — o mesmo em toda escola e todo ciclo —, e muda quando o produto
+muda de nome. O rótulo do menu e o caminho do fonte vivem em `tools/`, e a regra que impede o
+problema de voltar vive no `REGRAS.md`. Nada de comportamento observável mudou para quem cria
+escola ou gera ciclo.
 
-**Referências.** A conversa do dono do produto sobre A/A1 e o cadastro do Bastidores · P-12 (apelido
-estável) e P-17 (o nome de exibição não vira chave) · os elos de 15/10/2026 (o `Buffer`, o expurgo, a
-renomeação) · `motor/servidor/bastidores.js` (o comentário do slug do dono, que é o precedente).
+**Como foi provado.** `tools/check-apresentacao.js` — **2 de 2** páginas fiéis à fonte (a raiz e
+o índice da `fita`). O scaffolder rodado **de verdade** com uma escola descartável
+(`zzteste`/`zzescola`, sem `--deploy`): 5 schemas, 2 manifestos, o Worker, o índice com o título
+novo e o nav da porta injetado — e o artefato apagado depois (`professores/zzteste`,
+`wrangler.zzescola.jsonc`, `escola/zzescola/`). No ar: a raiz (`danca`) e a `fita` servem
+`<h1>Sistema Lastro</h1>`, e a Produção mostra o mesmo rótulo no menu.
+
+**Referências.** O texto entregue pelo dono do produto (16/10/2026) · `AGENTS.md` §«O que é este
+projeto» (a convivência declarada dos dois nomes) · os elos do mesmo dia no `REGISTRO.md`: a
+fonte única e a raiz (`9730`), os três atalhos e o passo novo (`10019`), a `fita` reancorada
+(`9eade85`).
 
 **O que ainda não está feito.**
-- **A criação de escola e o cadastro conferem contra os diretórios do REPOSITÓRIO** (`professores/*`),
-  não contra o KV das outras escolas. É o escopo certo — a pasta é global —, mas significa que a
-  conferência depende de o repositório estar legível (a raiz já depende dele para tudo).
-- **A sobreposição modelo × escola real continua de pé**: `professores/tiago/` é o MODELO do
-  scaffolder e passa a ser também a pasta de um professor real quando a escola nasce. O `cp`
-  condicional resolve a cópia; o desenho dos dois papéis no mesmo diretório **não** foi decidido.
-- **Entradas antigas do cadastro (sem `slug`) só serão convertidas quando forem reescritas** — não há
-  migração. A leitura funciona com as duas formas, e nenhuma escola viva tem cadastro adicional hoje.
-- **O cadastro do Bastidores não pergunta o sobrenome em campo separado obrigatório**: ele é exigido
-  **pela colisão** (o 409 explica). O dono do produto escolheu exigir o sobrenome sempre na **criação
-  de escola**; no cadastro, a trava é o que reage.
+- **A `fita` é a única escola em uso, e é a única página de ciclo regerada.** Qualquer pacote
+  antigo que apareça continua com o texto velho: a regeração é por escola.
+- **`biblioteca/fundamentacao.md` segue não existindo** (o `FRENTES.md` o declara como pendência
+  do Trilho C desde antes; a troca de nome não a resolve).
+- **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
+  a última agora é esta; a regeneração é passo próprio.
 
 ## O que está pendente
-
-## 15/10/2026 — O gerador do HANDOFF quebrava com o repositório sem escola
-
-Nada pendente nesta correção. O resumo do gerador não é lido por
-nenhum outro script: é a última linha da saída do comando.
-
-## 15/10/2026 — O expurgo apagou o MODELO: a escola `ponta` não pôde nascer
-
-- **A escola `ponta` NÃO existe de verdade.** O Worker «zero» está no ar e responde, mas sem motor e
-  sem nada no repositório. Falta rodar o `criar-escola.yml` de novo — e é o que se faz em seguida.
-- **O `ciclo-01.conf` do `tiago` não existe** no repositório: o scaffolder vai gerá-lo ao criar a
-  `ponta`.
-- **A lição de desenho:** o expurgo apaga por PADRÃO DE NOME, e um padrão largo demais apaga o molde.
-  Vale a regra que este dia ensinou duas vezes — **o que o sistema precisa para criar coisa nova não
-  pode ser apagado pelo que ele usa para apagar coisa velha**.
 
 ## 15/10/2026 — Criar escola para o professor do MODELO: o `cp` recusava o próprio arquivo
 
@@ -279,6 +250,26 @@ nenhum outro script: é a última linha da saída do comando.
 - **O cadastro do Bastidores não pergunta o sobrenome em campo separado obrigatório**: ele é exigido
   **pela colisão** (o 409 explica). O dono do produto escolheu exigir o sobrenome sempre na **criação
   de escola**; no cadastro, a trava é o que reage.
+
+## 15/10/2026 — O molde sai de `professores/`: molde não é professor
+
+- **A pasta de um professor cadastrado nos Bastidores continua nascendo só na primeira fonte.** O dono
+  do produto pode querer o contrário — a pasta já na criação. Não foi decidido: é a mesma questão de
+  antes (o repositório registra o que foi produzido, ou quem foi cadastrado?), e agora está declarada.
+- **O `ciclo-01.conf` e a âncora do `tiago-menegaz` seguem sem PO e sem plano** — o dono do produto faz
+  a anamnese → plano → PO em seguida. A âncora vai ser regerada quando as fontes entrarem.
+- **O `HANDOFF.md` contava o molde como professor** e agora não conta; mas o mesmo defeito pode existir
+  em qualquer outro consumidor de `professores/*/` que apareça. O que se corrigiu foi o molde — a
+  varredura de consumidores não foi exaustiva.
+
+## 16/10/2026 — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome diz isso
+
+- **A `fita` é a única escola em uso, e é a única página de ciclo regerada.** Qualquer pacote
+  antigo que apareça continua com o texto velho: a regeração é por escola.
+- **`biblioteca/fundamentacao.md` segue não existindo** (o `FRENTES.md` o declara como pendência
+  do Trilho C desde antes; a troca de nome não a resolve).
+- **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
+  a última agora é esta; a regeneração é passo próprio.
 
 ## Pendências anteriores (índice)
 
@@ -432,6 +423,8 @@ nenhum outro script: é a última linha da saída do comando.
 - **15/10/2026** — O expurgo da escola sai do comando e vira botão, na raiz → `REGISTRO.md` L12908
 - **15/10/2026** — O expurgo apagava a escola e deixava o cadastro das alunas… → `REGISTRO.md` L13015
 - **15/10/2026** — `Buffer` não existe no runtime dos Workers: o expurgo não… → `REGISTRO.md` L13124
+- **15/10/2026** — O gerador do HANDOFF quebrava com o repositório sem escola → `REGISTRO.md` L13231
+- **15/10/2026** — O expurgo apagou o MODELO: a escola `ponta` não pôde… → `REGISTRO.md` L13267
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

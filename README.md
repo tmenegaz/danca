@@ -102,7 +102,7 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 ## Deploy no Cloudflare — um Worker por escola, e a raiz
 
 Cada escola é um **Worker próprio**; a raiz (`danca.tmenegaz77.workers.dev`) é **outro**
-Worker, que serve só a página «Nós, Por Exemplo» + o botão «Criar nova escola». Cada um tem
+Worker, que serve só a apresentação «Sistema Lastro» + o botão «Criar nova escola». Cada um tem
 a sua config **explícita** — não existe mais um `wrangler.jsonc` "padrão" (o de Diaghilev
 foi apagado com a escola em 12/10/2026, justamente porque ser o default era o que fazia o
 deploy errado cair na raiz):

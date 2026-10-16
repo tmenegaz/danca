@@ -50,9 +50,9 @@ const NOME = ${JSON.stringify(nome)};
 function pagina() {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Nós, Por Exemplo · ' + NOME + '</title>' +
+    '<title>Sistema Lastro · ' + NOME + '</title>' +
     '<style>body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}p{color:#6b5b4a;}a{color:#6b2f2f;font-weight:700;}</style></head><body>' +
-    '<h1>Nós, Por Exemplo</h1>' +
+    '<h1>Sistema Lastro</h1>' +
     '<p>Esta é a escola <b>' + NOME + '</b>. O motor completo (Bastidores, anamnese, plano de ensino e plano de observação) está sendo implantado — recarregue em instantes.</p>' +
     '</body></html>';
 }
