@@ -8,9 +8,9 @@ type: Ciclo
 professor: Tiago
 ciclo: 01
 variante: fita
-hash_conteudo: 2d74186169d209e2fecf33a53925080fd51fb20aa64b65ac9b513d31b00874d7
+hash_conteudo: ec66255a6d39a2a6b7e46c3a8ed870dda9f223c52ff21ec567451afbeb6e6234
 parentHash: 
-hash: 3248d4935904b06fc77aeab19d523c52af536d1f0ae25b8818101bd46839d8a9
+hash: 52335c43eabdc919bc74934f6d0a82cdd537d8e340390d1cea98aa01ec6677fe
 algoritmo: SHA-256
 po: ausente — este ciclo ainda não tem PO declarado
 po_state: 
