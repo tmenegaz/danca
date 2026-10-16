@@ -47,6 +47,41 @@ declara quais delas aplicou (rodapé `Regras:`).
 
 > **O contexto institucional e a frequência entram como Pré-requisito 5** (acima), não como regra: são dados de entrada obrigatórios, e a Regra 10 os transforma em calendário real. Uma entrega por escola.
 
+## Convenção de nome — nomear pelo conceito
+
+**Nome de arquivo, de pasta e de ferramenta diz o que a coisa É — nunca o título que ela exibe.**
+
+O título de uma página, de um relatório ou de uma seção é texto de apresentação: pode ser
+comercial, pode ser de marketing, pode mudar sem que o conteúdo mude de natureza. Se ele vira
+nome de arquivo, o nome envelhece junto com a campanha — e o próximo a ler o repositório
+procura por um conteúdo que já não se chama assim.
+
+O critério é o mesmo que nomeia a pasta `tools/`: ela não se chama «chave de fenda» nem
+«validar strings», porque **ferramentas** é a função que todas ali compartilham. A pasta
+aglutina pelo conceito, não pelo primeiro item que apareceu.
+
+| Nomeie pelo conceito | Não nomeie pelo título |
+|:--|:--|
+| `apresentacao.md` — é a apresentação do sistema | `sistema-lastro.md` — é o que a página exibe hoje |
+| `check-apresentacao.js` — valida a apresentação | `check-sistema-lastro.js` — idem |
+| `guia-do-professor.md` — é o guia de quem ensina | `bem-vindo-ao-ciclo.md` |
+
+**Onde isso morde na prática:**
+
+- **Arquivo e pasta:** um título revisado não renomeia arquivo nenhum. Se o nome do arquivo
+  só faz sentido porque é o que está escrito na tela, ele já está errado.
+- **Ferramenta:** o script se chama pelo que faz (`check-pacote`, `gerar-raiz`,
+  `hash-ciclo`), não pelo conteúdo que processa naquele dia.
+- **Escopo de commit:** o escopo é a área tocada (`tools`, `estrutura`, `biblioteca`), não o
+  título do material.
+- **Identificador:** nome de campo, chave de cofre e id de âncora seguem o conceito estável —
+  renomear o rótulo de exibição não move a chave (P-17).
+
+**A troca de nome é um elo, não um apagamento.** Quando um nome sai, a mudança é registada no
+`REGISTRO.md` com a data e o motivo — o histórico não se reescreve para parecer que sempre foi
+assim. O texto publicado com o nome antigo continua legível: o que muda é o que se escreve a
+partir de agora.
+
 ## Regra 17 em prática
 
 | Item | Convenção |
