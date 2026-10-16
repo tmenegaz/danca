@@ -20,14 +20,14 @@ subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
 | **Calendário** | 2026-10-16 → 2026-10-30 |
 | **Número total de aulas** | 7 |
 | **Volume de trabalho** | 3–6 séries |
-| **Condição de registro** | Na sala: professor, alunas da turma · observa: observador externo. |
+| **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
 | **Metodologia de referência** | RAD |
-| **Quem escolhe a metodologia** | A escola impõe |
+| **Quem escolhe a metodologia** | Eu escolho |
 | **Notação dominada** | Benesh |
 
 ## Objetivo geral
 
-plano de teste
+Objetivo geral do ciclo
 
 | Item | Valor |
 |:--|:--|
@@ -42,29 +42,29 @@ plano de teste
 
 | Aula | Objetivo específico (marco parcial) |
 |:--|:--|
-| **01** | teste 1 |
-| **02** | teste 2 |
-| **03** | teste |
+| **01** | Objetivo marco 1 do ciclo |
+| **02** | Objetivo marco 2 do ciclo |
+| **03** | Objetivo marco 3 do ciclo |
 
 <!-- CALENDARIO -->
 
 ## Estrutura de cada aula
 
-- **Solo** — objetivos específicos: **1** teste 1
-- **Barra** — objetivos específicos: **1** teste 1; **2** teste 2
-- **Centro** — objetivos específicos: **1** teste 1; **3** teste
-- **Musicalidade** — objetivos específicos: **2** teste 2
-- **Expressão** — objetivos específicos: **3** teste
+- **Solo** — objetivos específicos: **1** Objetivo marco 1 do ciclo
+- **Barra** — objetivos específicos: **1** Objetivo marco 1 do ciclo; **2** Objetivo marco 2 do ciclo
+- **Centro** — objetivos específicos: **1** Objetivo marco 1 do ciclo; **3** Objetivo marco 3 do ciclo
+- **Musicalidade** — objetivos específicos: **2** Objetivo marco 2 do ciclo
+- **Expressão** — objetivos específicos: **3** Objetivo marco 3 do ciclo
 
 ## Distribuição do volume pelos blocos
 
 | Bloco | Proporção alvo | Justificativa |
 |:--|:--|:--|
-| **Solo** | **10** | **teste** |
-| **Barra** | **15** | **teste** |
-| **Centro** | **10** | **teste** |
-| **Musicalidade** | **10** | **teste** |
-| **Expressão** | **10** | [a decidir] |
+| **Solo** | **10** | **solo justificativa** |
+| **Barra** | **15** | **barra justificativa** |
+| **Centro** | **20** | **centro justificativa** |
+| **Musicalidade** | **5** | **musicalidade justificativa** |
+| **Expressão** | **5** | **expressão justificativa** |
 
 > **Unidade: minutos.** A proporção alvo é o tempo de aula na unidade declarada — a soma fecha com a duração da aula.
 
