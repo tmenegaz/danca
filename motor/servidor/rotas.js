@@ -56,11 +56,12 @@ function recusar(mensagem, status) {
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
   const roteador = criarRoteador();
-  // O relógio é injetável: as provas fixam-no para serem repetíveis; em
-  // produção cai no carimbo real do núcleo.
-  const carimbar = agora || nucleo.carimbarAgora;
+  // O relógio é injetável: as provas fixam-no para serem repetíveis. Sem injeção, o carimbo
+  // é o do núcleo NO FUSO DECLARADO da escola — o Worker roda em UTC, e a data da ficha tem
+  // de ser a hora da parede de quem a preencheu.
+  const carimbar = agora || (() => nucleo.carimbarAgora(fuso));
   // O gatilho da GERAÇÃO e a ESCRITA DA FONTE são injetados pela ponte: quando
   // o PO é concluído, o Worker (1) escreve o `ciclo-XX-<escola>-po.md` no
   // repositório e (2) pede ao GitHub Actions que gere o pacote. Best-effort —

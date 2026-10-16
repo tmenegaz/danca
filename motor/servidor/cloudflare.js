@@ -30,6 +30,18 @@ const { senhaDaEscolaOk } = require('./bastidores.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
 
+/*
+ * O FUSO PADRÃO do carimbo. O Worker roda em **UTC**: sem isto, a data que a estante mostra
+ * vem 3 h à frente do relógio de quem preencheu a ficha (medido em 16/10/2026: 12h43 na
+ * escola, 15h43 no carimbo). O padrão é declarado AQUI, e não no núcleo, porque o núcleo é
+ * agnóstico — ele recebe o fuso; quem sabe onde a escola fica é a ponte de produção.
+ *
+ * Uma escola noutro fuso declara o seu: `"FUSO": "America/Manaus"` nas `vars` do
+ * `wrangler.<escola>.jsonc`. O `tools/criar-escola.sh` ainda NÃO emite essa var (é de
+ * `tools/`, congelado) — por isso o padrão existe: sem ele, a escola nova nasceria em UTC.
+ */
+const FUSO_PADRAO = 'America/Sao_Paulo';
+
 async function carregarEstatico(env, chave, prefixo) {
   if (env && env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     const alvo = (prefixo || '') + chave;
@@ -64,7 +76,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -87,6 +99,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escreverCiclo,
     lerDados,
     lancamentoSeguro,
+    fuso,
   });
   return (request) => roteador.responder(request);
 }
@@ -210,6 +223,7 @@ async function fetch(request, env, opcoes) {
     escreverCiclo,
     lerDados,
     lancamentoSeguro,
+    fuso: (env && env.FUSO) || FUSO_PADRAO,
   });
 
   return responder(request);

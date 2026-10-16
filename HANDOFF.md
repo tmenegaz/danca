@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T12:48:05-0300`
-Commit atual: `b159ad9` — fix(estrutura): a condução trava com a senha — e o plano tinha o mesmo defeito de contexto
+Gerado em: `2026-10-16T13:04:19-0300`
+Commit atual: `faa0895` — fix(estrutura): a data da ficha é a da última mudança — e a edição do plano pede a senha
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+faa0895 fix(estrutura): a data da ficha é a da última mudança — e a edição do plano pede a senha
 b159ad9 fix(estrutura): a condução trava com a senha — e o plano tinha o mesmo defeito de contexto
 c57598a fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
 66aec8b chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
@@ -81,7 +82,6 @@ b5c2f71 feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
 aa8ac22 docs(ideia): a frente L11 — a porta paga: cobrança, verificação e liberação de escolas
 d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professores/
 263e48e refactor(estrutura): o molde sai de professores/ — molde não é professor
-ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
 ```
 
 ## Por professor
@@ -145,131 +145,97 @@ ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrad
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — A data da ficha é a da última mudança — e a edição do plano também pede a senha
+## 16/10/2026 — O carimbo é a hora da escola, não a do servidor
 
-**O que motivou.** O mesmo teste do PO na `fita`, dois passos adiante do elo anterior.
-
-1. **A data não se mexia.** A Mari foi criada em 16/10 às 13h51. Editada depois — com alteração de
-   fato —, a estante continuava dizendo 13h51. **O carimbo É a data**: o `id` do envelope é
-   `anamnese-AAAAMMDD-HHMM`, e é dele que `rotuloDoEnvelope(id)` extrai o que a linha mostra. E o
-   `PUT /api/anamnese-editar/:id` **herdava** o carimbo do anterior (`geradoEm: anterior.gerado_em`):
-   a edição reescrevia o conteúdo e congelava a data no dia da criação. Enquanto a ficha é **livre**,
-   o que se quer ver na estante é **quando ela foi mexida pela última vez**.
-2. **A edição do plano pediu socorro.** No elo anterior, a tabela deste REGISTRO registrou «A edição
-   exige a senha | plano: **não** — a autorização é a curadoria» e deixou a extensão *em aberto*. O
-   dono do produto respondeu: **a edição e a derivação do plano pedem a senha; a criação continua pela
-   curadoria** (a nota datada acima corrige aquela redação).
+**O que motivou.** Medido no teste do PO na `fita`, ao conferir o recarimbo da entrada anterior: o
+relógio da máquina marcava **12h43** e o carimbo da ficha saiu **15h43**. O Worker da Cloudflare roda
+em **UTC**, e `carimbarAgora()` lia o relógio do **runtime** (`getHours()`): a data que a **estante
+mostra** vinha três horas à frente do professor. Isso já valia antes (a Mari nasceu 13h51 pelo
+relógio do servidor) — o recarimbo só o tornou visível a cada edição. Perguntado, o dono do produto
+decidiu: **alinhar ao fuso da escola**.
 
 **O que foi decidido.**
 
-- **Só quem mudou de fato recarimba.** Compara-se o que o professor pode mexer — as **respostas**
-  (valor e nota) e o **contexto** (onde mora o apelido da aluna) — e não o carimbo nem o id, que são
-  consequência. Abrir e mandar gravar sem mexer **não é edição**: o registro não se reescreve e a data
-  não se mexe por nada. `mudouDeFato(anterior, novo)` em `motor/nucleo/porta.js`.
-- **O carimbo se refaz com a hora da mudança, e o anterior NÃO fica.** `PUT /api/anamnese-editar/:id`
-  gera um carimbo novo (`porta.identificar`) em vez de herdar o do anterior, grava o envelope novo e
-  **só então** apaga o antigo (`porta.apagarEnvelope`) — a ordem importa: se a escrita falhasse, o
-  registro velho continua de pé em vez de virar ausência. Uma linha só na estante, com a data nova.
-- **O carimbo tem resolução de MINUTO.** Editar dentro do mesmo minuto não recarimba: a identidade é a
-  mesma, e o registro se sobrescreve em sítio. Sem esta guarda, a estante ganharia um órfão `-2` por
-  nada (a colisão de `identificarComCarimbo`).
-- **A anamnese VINCULADA não entra aqui.** Ela continua recusando a edição em sítio com **409** e
-  exige o **ajuste** (elo novo). A vinculação é derivada do **apelido** (`respostas.sujeitos` do PO),
-  não do carimbo — é por isso que recarimbar a anamnese é seguro.
-- **O PLANO não recarimba.** A vinculação do plano é por **identificador de envelope**: o PO guarda o
-  `id` do plano em `respostas['plano-de-ensino']`. Recarimbar o plano **penduraria** a referência do PO
-  já gravado. E a estante do plano mostra o **OBJETIVO**, não a data — o recarimbo não teria nem o
-  efeito que se quer. Fica como está, e é uma diferença de **contrato**, não um esquecimento.
-- **A estante não deixa a linha sumir.** O recarimbo troca a **chave** do registro, e a lista do KV tem
-  atraso de consistência: por instantes ela ainda não conhece o carimbo novo. Sem tratar, o professor
-  veria a **própria edição desaparecer**. `acomodarRecarimbo(anterior, novo, apelido)` troca o carimbo
-  na tela na hora (a lista e o estado), e a próxima recarga do servidor confirma.
-- **A edição do plano exige a senha.** `exigeSenha()` generaliza a regra: **anamnese** sempre; **plano**
-  quando se **edita** (`EDITANDO`) ou **deriva** (`DERIVANDO`) — a criação não, porque a autorização
-  dela é a **curadoria**. O portão vale para o «Guardar», para a prévia (`fechar`) e para a trava do
-  formulário; a senha é esquecida ao gravar, como na anamnese. O **campo** da senha continua **oculto**
-  no plano: ela se digita na barra.
-- **A fileira da condução.** `#pular` e `#fechar` (que vivem **fora** de `#pergunta`) passam a travar
-  com a senha; `#anterior`, `#proxima` e `#sair` ficam **livres** — navegar e sair não gastam motor nem
-  escrevem.
+- **O fuso é DECLARADO, nunca herdado do runtime.** `carimbarAgora(fuso, quando)` formata em
+  `Intl.DateTimeFormat` com o `timeZone` recebido; sem fuso, cai no relógio do runtime — o
+  comportamento de sempre, e o certo para a **CLI**, que roda na máquina do professor.
+- **O NÚCLEO continua agnóstico.** Ele recebe o fuso; quem sabe onde a escola fica é a **ponte de
+  produção**. `criarRotas({ …, fuso })` monta o relógio (`agora || (() => nucleo.carimbarAgora(fuso))`),
+  e o fuso chega por aí — **sem** threading novo: tudo já passava pelo `agora` injetável.
+- **O padrão mora na ponte, e é explícito.** `FUSO_PADRAO = 'America/Sao_Paulo'` em
+  `motor/servidor/cloudflare.js`, sobreponível por `env.FUSO`. Uma escola noutro fuso declara o seu
+  nas `vars` do `wrangler.<escola>.jsonc` (a `fita` já declara).
+- **`hourCycle: 'h23'`, de propósito.** Com `hour12: false` vários runtimes devolvem **«24»** à
+  meia-noite (o ciclo vem do locale) — e o carimbo cairia no dia seguinte, à mesma hora. A prova
+  mede esse instante.
+- **Fuso desconhecido não derruba a gravação**: cai no relógio do runtime, e a ficha é gravada.
+- **Os registros que já existem NÃO são reescritos.** Eles guardam a hora com que nasceram; a
+  proveniência acrescenta, não edita (P-03/P-04).
+- **`tools/criar-escola.sh` NÃO foi tocado, e o motivo é o congelamento.** Ele emite as `vars` da
+  escola nova e deveria emitir o `FUSO`; como `tools/` é congelado, a mudança não entra aqui — o
+  `FUSO_PADRAO` da ponte cobre a escola nova até que ela seja feita, com o ritual que o
+  congelamento exige (motivo declarado + entrada + commit próprio).
 
 **Onde entrou.**
 
-- `motor/nucleo/porta.js` — `canonico`, `mesmasRespostas` e `mudouDeFato` (puros, exportados).
-- `motor/servidor/rotas.js` — a rota 11 recarimba; o relógio é o **injetável** (`carimbar`), como nas
-  demais rotas, para a prova ser determinística.
-- `porta/index.html` — `exigeSenha()`, `acomodarRecarimbo()`, e a edição usando o id que o servidor
-  devolve (a tela diz que o carimbo se refez, ou que nada mudou).
-- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` — o pacote publicado
-  (cópia de `porta/`, com a **nav do pacote preservada**).
-- `experimentos/provar-carimbo-da-edicao.js` — prova nova: **44 provas**.
+- `motor/nucleo/elicitar.js` — `carimbarAgora(fuso, quando)`; `quando` existe para a prova fixar o
+  instante, e em produção é o agora.
+- `motor/servidor/rotas.js` — `criarRotas({ …, fuso })`; o relógio passa a ser o carimbo do núcleo
+  **no fuso declarado**.
+- `motor/servidor/cloudflare.js` — `FUSO_PADRAO` (com o porquê), `fuso` na `montarPorta` e
+  `env.FUSO || FUSO_PADRAO` no bootstrap.
+- `motor/servidor/node.js` — `fuso: process.env.FUSO` (o servidor local roda na máquina do
+  professor; lá o relógio do runtime já é o certo).
+- `wrangler.fita.jsonc` — `"FUSO": "America/Sao_Paulo"` nas `vars`.
+- `experimentos/provar-carimbo-da-edicao.js` — a seção nova do fuso; **55 provas**.
 
 **Como foi provado.**
 
-- `experimentos/provar-carimbo-da-edicao.js` (**44**) roda o **servidor de verdade** (`criarRotas` sobre
-  a memória do núcleo, relógio injetado). Prova que o carimbo nasce com a criação; que **sem mudança**
-  nada muda (o id volta igual, o envelope fica intacto, a data não se mexe); que **com mudança** o id
-  novo é o carimbo de agora, o `gerado_em` acompanha, o envelope antigo é **apagado** e a estante fica
-  com **uma linha só**; que trocar **o apelido** também é mudança de fato; que a **vinculada** segue
-  recusada com 409; e que editar **no mesmo minuto** não cria o órfão `-2`.
-- `experimentos/provar-ajustes-anamnese.js` passou de **65 para 79**: a tela mostrando o carimbo
-  **novo** (e não o antigo), a tela dizendo que **nada mudou**, e o `acomodarRecarimbo` trocando o
-  carimbo na lista (e **preservando** o sujeito e o estado da linha, sem deixar o antigo órfão).
-- **Controle negativo, três vezes.** (a) A rota voltando a herdar o carimbo → a prova **reprova**
-  («o id novo é o carimbo de AGORA»). (b) A tela usando `EDITANDO` em vez de `dados.editada` → 2
-  falhas. (c) `acomodarRecarimbo` virando no-op → **3 falhas**. `provar-contexto-do-ato.js` segue
-  verde (**37**).
-- **No ar, e conferido no ar.** `wrangler deploy -c wrangler.fita.jsonc` → Version
-  `f3303ccc-ba43-4775-9151-99055621ce5a`; marcadores conferidos no site. Idem fim-a-fim contra a API
-  publicada, com um registro **descartável** (criado às 15:42, editado às 15:43: o carimbo virou
-  `anamnese-20261016-1543`, a chave antiga **sumiu do KV**), removido em seguida — o KV voltou às
-  **três** fichas do teste (Mari, Vavá, Dani).
-- **Achado de plataforma, medido.** A **listagem** do KV demora a enxergar uma chave recém-escrita
-  (medido: ~1 min). É a razão de o `acomodarRecarimbo` existir. E o carimbo é **UTC**: o Worker carimbou
-  `15:43` quando o relógio local do professor marcava `12:43` (`-03`) — o **horário que a estante
-  mostra é UTC**, nos registros novos e nos antigos.
+- Instantes FIXOS, então a prova é determinística em qualquer máquina: 15h43Z → `12h43` em São Paulo
+  e `15h43` em UTC; o dia virando para trás (`2025-12-31T23:30`) e para a frente (`2026-10-17T00:43`);
+  a **meia-noite como «00»**; fuso inválido caindo no runtime; e o formato sempre o do carimbo.
+- **A ligação, com dentes**: a ficha criada com `fuso: 'Etc/GMT-14'` nasce com o carimbo **daquele
+  fuso** e **não** com o do relógio do runtime. **Controle negativo: 3 provas falham** quando
+  `carimbarAgora` ignora o fuso.
+- **`Intl` no runtime foi medido, não presumido.** Antes de confiar, rodei o módulo REAL dentro do
+  **workerd** (o mesmo runtime da produção, via `wrangler dev` num Worker descartável fora do
+  repositório): `carimbarAgora('America/Sao_Paulo')` devolveu a hora local. Sem isso, um `Intl` sem
+  dados de fuso teria caído no `catch` e voltado a UTC **em silêncio**.
+- **No ar e conferido no ar.** Version `973a3a0b-a6da-4fae-bd50-10d61d0151cf`, com
+  `env.FUSO ("America/Sao_Paulo")` nas bindings. A ficha criada pela API publicada saiu com o
+  carimbo **`anamnese-20261016-1303`** enquanto o UTC marcava `16:03` — a hora local. Os dois
+  registros descartáveis do teste foram removidos; o KV voltou às **três** fichas (Mari, Vavá, Dani).
+- **Nota de método — o primeiro teste no ar mentiu.** Ele devolveu `1558` (UTC) segundos depois do
+  deploy, e o código publicado **já estava certo**: baixei o módulo do Worker pela API da Cloudflare e
+  conferi o `hourCycle: "h23"` e o `const carimbar = agora || (() => nucleo.carimbarAgora(fuso))` no
+  bundle. Era **propagação** da versão nova pelo edge. Repetido, deu certo. Fica o aviso: conferir o
+  comportamento no ar segundos depois de um deploy pode acusar o código errado.
 
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
-`.fipp` não muda.
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado — e a razão está
+dita acima (`tools/criar-escola.sh` fica **pendente**, com o ritual a fazer). A âncora `.fipp` não
+muda.
 
-**Com o quê.** `motor/nucleo/porta.js`, `motor/servidor/rotas.js`, `porta/index.html`,
-`experimentos/provar-carimbo-da-edicao.js` (novo), `experimentos/provar-ajustes-anamnese.js`,
-`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
-`HANDOFF.md`.
+**Com o quê.** `motor/nucleo/elicitar.js`, `motor/servidor/rotas.js`, `motor/servidor/cloudflare.js`,
+`motor/servidor/node.js`, `wrangler.fita.jsonc`, `experimentos/provar-carimbo-da-edicao.js`,
+`REGISTRO.md`, `HANDOFF.md`.
 
-**Referências.** `ARQUITETURA-ANAMNESE.md` §6.3 («editar gera uma nova versão, a anterior permanece»)
-— **em tensão declarada** com o caso **livre**: ali a regra é de quem **não** é livre, e o dono do
-produto decidiu que, enquanto ela é livre, **o anterior não fica**. Os arquivos `*.instructions.md` de
-`.github/` e `REGISTRO.md` (nota de correção datada).
+**Referências.** `ARQUITETURA-GERAL.md` (um Worker por escola — a escola é quem sabe onde fica),
+`CONGELAMENTO.md` (o item que fica pendente), `PROTOCOLO.md` P-03/P-04.
 
 **O que ainda não está feito.**
 
-- **O cofre não se atualiza na edição** (gap que já existia, e que o recarimbo torna mais visível):
-  `POST /api/anamnese` só é escrito na **criação**, e agora a sua chave é o carimbo **antigo** — o
-  registro cifrado fica **desatualizado e órfão** depois de uma edição. Fechar isso pede uma decisão
-  (o cofre re-cifra na edição? com a mesma senha?) e uma rota `DELETE /api/anamnese/:carimbo`, que
-  **não existe**. Não foi feito aqui.
-- **A trava de senha é de CLIENTE.** `PUT`/`DELETE` não recebem a senha no servidor: quem chamar a API
-  direto não é barrado. É a decisão vigente (a senha cifra e autoriza na tela); se o modelo pedir
-  autenticação de servidor, isto muda.
-- **A estante do PO** continua mostrando **só a data** e não tem estado nem ações — funcionalidade
-  nunca construída.
-- **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
-- **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
-  uma decisão que não foi tomada.
+- **`tools/criar-escola.sh` não emite o `FUSO`** — é de `tools/`, congelado. Uma escola criada por
+  ele nasce coberta pelo `FUSO_PADRAO` (São Paulo); declarar o fuso dela exige mexer no `tools/` com
+  o ritual do congelamento. Se `criar-escola.sh -f` for rodado sobre a `fita`, o `"FUSO"` declarado
+  no `wrangler.fita.jsonc` **se perde** (volta ao padrão da ponte).
+- **`motor/servidor/provisionar-escola.js`** sobe a escola nova só com `ESCOLA_HABILITADA`; o fuso
+  dela vem do padrão da ponte, não de uma binding. Também não foi tocado.
+- **O `provisionar-escola.js` e a CLI** seguem sem fuso próprio — o que é certo para a CLI, e
+  coberto pelo padrão para a provisão.
+- E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
+  senha é de **cliente**, a estante do **PO** não tem estado nem ações.
 
 ## O que está pendente
-
-## 16/10/2026 — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome diz isso
-
-- **A `fita` é a única escola em uso, e é a única página de ciclo regerada.** Qualquer pacote
-  antigo que apareça continua com o texto velho: a regeração é por escola.
-- **`biblioteca/fundamentacao.md` segue não existindo** (o `FRENTES.md` o declara como pendência
-  do Trilho C desde antes; a troca de nome não a resolve).
-- **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
-  a última agora é esta; a regeneração é passo próprio.
-
----
 
 ## 16/10/2026 — A identidade visual tem seis famílias em estudo, e o seletor ainda não existe
 
@@ -328,6 +294,26 @@ produto decidiu que, enquanto ela é livre, **o anterior não fica**. Os arquivo
 - **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
 - **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
   uma decisão que não foi tomada.
+
+> **Correção de 16/10/2026 (mesmo dia).** O último bullet acima dizia que alinhar o carimbo ao fuso
+> «é uma decisão que não foi tomada». **Está errado**: o dono do produto a tomou logo em seguida, e
+> ela está na entrada seguinte — «O carimbo é a hora da escola, não a do servidor». O número de provas
+> desta entrada cresceu com ela: `provar-carimbo-da-edicao.js` passou de **44** para **55**. A redação
+> anterior não é apagada: fica como o elo que registra o que se pensou antes da resposta.
+
+## 16/10/2026 — O carimbo é a hora da escola, não a do servidor
+
+
+- **`tools/criar-escola.sh` não emite o `FUSO`** — é de `tools/`, congelado. Uma escola criada por
+  ele nasce coberta pelo `FUSO_PADRAO` (São Paulo); declarar o fuso dela exige mexer no `tools/` com
+  o ritual do congelamento. Se `criar-escola.sh -f` for rodado sobre a `fita`, o `"FUSO"` declarado
+  no `wrangler.fita.jsonc` **se perde** (volta ao padrão da ponte).
+- **`motor/servidor/provisionar-escola.js`** sobe a escola nova só com `ESCOLA_HABILITADA`; o fuso
+  dela vem do padrão da ponte, não de uma binding. Também não foi tocado.
+- **O `provisionar-escola.js` e a CLI** seguem sem fuso próprio — o que é certo para a CLI, e
+  coberto pelo padrão para a provisão.
+- E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
+  senha é de **cliente**, a estante do **PO** não tem estado nem ações.
 
 ## Pendências anteriores (índice)
 
@@ -487,6 +473,7 @@ produto decidiu que, enquanto ela é livre, **o anterior não fica**. Os arquivo
 - **15/10/2026** — Um conserto commitado e não publicado não conserta nada → `REGISTRO.md` L13381
 - **15/10/2026** — O professor homônimo: o identificador é o slug, e o… → `REGISTRO.md` L13424
 - **15/10/2026** — O molde sai de `professores/`: molde não é professor → `REGISTRO.md` L13506
+- **16/10/2026** — «Nós, Por Exemplo» sai: a página é a apresentação, e… → `REGISTRO.md` L13584
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

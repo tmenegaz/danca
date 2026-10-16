@@ -23,7 +23,8 @@
 
   "vars": {
     "ESCOLA_HABILITADA": "sim",
-    "ESCOLA_SLUG": "fita"
+    "ESCOLA_SLUG": "fita",
+    "FUSO": "America/Sao_Paulo"
   },
 
   "kv_namespaces": [

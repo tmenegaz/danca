@@ -14094,3 +14094,99 @@ produto decidiu que, enquanto ela é livre, **o anterior não fica**. Os arquivo
 - **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
 - **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
   uma decisão que não foi tomada.
+
+> **Correção de 16/10/2026 (mesmo dia).** O último bullet acima dizia que alinhar o carimbo ao fuso
+> «é uma decisão que não foi tomada». **Está errado**: o dono do produto a tomou logo em seguida, e
+> ela está na entrada seguinte — «O carimbo é a hora da escola, não a do servidor». O número de provas
+> desta entrada cresceu com ela: `provar-carimbo-da-edicao.js` passou de **44** para **55**. A redação
+> anterior não é apagada: fica como o elo que registra o que se pensou antes da resposta.
+
+## 16/10/2026 — O carimbo é a hora da escola, não a do servidor
+
+**O que motivou.** Medido no teste do PO na `fita`, ao conferir o recarimbo da entrada anterior: o
+relógio da máquina marcava **12h43** e o carimbo da ficha saiu **15h43**. O Worker da Cloudflare roda
+em **UTC**, e `carimbarAgora()` lia o relógio do **runtime** (`getHours()`): a data que a **estante
+mostra** vinha três horas à frente do professor. Isso já valia antes (a Mari nasceu 13h51 pelo
+relógio do servidor) — o recarimbo só o tornou visível a cada edição. Perguntado, o dono do produto
+decidiu: **alinhar ao fuso da escola**.
+
+**O que foi decidido.**
+
+- **O fuso é DECLARADO, nunca herdado do runtime.** `carimbarAgora(fuso, quando)` formata em
+  `Intl.DateTimeFormat` com o `timeZone` recebido; sem fuso, cai no relógio do runtime — o
+  comportamento de sempre, e o certo para a **CLI**, que roda na máquina do professor.
+- **O NÚCLEO continua agnóstico.** Ele recebe o fuso; quem sabe onde a escola fica é a **ponte de
+  produção**. `criarRotas({ …, fuso })` monta o relógio (`agora || (() => nucleo.carimbarAgora(fuso))`),
+  e o fuso chega por aí — **sem** threading novo: tudo já passava pelo `agora` injetável.
+- **O padrão mora na ponte, e é explícito.** `FUSO_PADRAO = 'America/Sao_Paulo'` em
+  `motor/servidor/cloudflare.js`, sobreponível por `env.FUSO`. Uma escola noutro fuso declara o seu
+  nas `vars` do `wrangler.<escola>.jsonc` (a `fita` já declara).
+- **`hourCycle: 'h23'`, de propósito.** Com `hour12: false` vários runtimes devolvem **«24»** à
+  meia-noite (o ciclo vem do locale) — e o carimbo cairia no dia seguinte, à mesma hora. A prova
+  mede esse instante.
+- **Fuso desconhecido não derruba a gravação**: cai no relógio do runtime, e a ficha é gravada.
+- **Os registros que já existem NÃO são reescritos.** Eles guardam a hora com que nasceram; a
+  proveniência acrescenta, não edita (P-03/P-04).
+- **`tools/criar-escola.sh` NÃO foi tocado, e o motivo é o congelamento.** Ele emite as `vars` da
+  escola nova e deveria emitir o `FUSO`; como `tools/` é congelado, a mudança não entra aqui — o
+  `FUSO_PADRAO` da ponte cobre a escola nova até que ela seja feita, com o ritual que o
+  congelamento exige (motivo declarado + entrada + commit próprio).
+
+**Onde entrou.**
+
+- `motor/nucleo/elicitar.js` — `carimbarAgora(fuso, quando)`; `quando` existe para a prova fixar o
+  instante, e em produção é o agora.
+- `motor/servidor/rotas.js` — `criarRotas({ …, fuso })`; o relógio passa a ser o carimbo do núcleo
+  **no fuso declarado**.
+- `motor/servidor/cloudflare.js` — `FUSO_PADRAO` (com o porquê), `fuso` na `montarPorta` e
+  `env.FUSO || FUSO_PADRAO` no bootstrap.
+- `motor/servidor/node.js` — `fuso: process.env.FUSO` (o servidor local roda na máquina do
+  professor; lá o relógio do runtime já é o certo).
+- `wrangler.fita.jsonc` — `"FUSO": "America/Sao_Paulo"` nas `vars`.
+- `experimentos/provar-carimbo-da-edicao.js` — a seção nova do fuso; **55 provas**.
+
+**Como foi provado.**
+
+- Instantes FIXOS, então a prova é determinística em qualquer máquina: 15h43Z → `12h43` em São Paulo
+  e `15h43` em UTC; o dia virando para trás (`2025-12-31T23:30`) e para a frente (`2026-10-17T00:43`);
+  a **meia-noite como «00»**; fuso inválido caindo no runtime; e o formato sempre o do carimbo.
+- **A ligação, com dentes**: a ficha criada com `fuso: 'Etc/GMT-14'` nasce com o carimbo **daquele
+  fuso** e **não** com o do relógio do runtime. **Controle negativo: 3 provas falham** quando
+  `carimbarAgora` ignora o fuso.
+- **`Intl` no runtime foi medido, não presumido.** Antes de confiar, rodei o módulo REAL dentro do
+  **workerd** (o mesmo runtime da produção, via `wrangler dev` num Worker descartável fora do
+  repositório): `carimbarAgora('America/Sao_Paulo')` devolveu a hora local. Sem isso, um `Intl` sem
+  dados de fuso teria caído no `catch` e voltado a UTC **em silêncio**.
+- **No ar e conferido no ar.** Version `973a3a0b-a6da-4fae-bd50-10d61d0151cf`, com
+  `env.FUSO ("America/Sao_Paulo")` nas bindings. A ficha criada pela API publicada saiu com o
+  carimbo **`anamnese-20261016-1303`** enquanto o UTC marcava `16:03` — a hora local. Os dois
+  registros descartáveis do teste foram removidos; o KV voltou às **três** fichas (Mari, Vavá, Dani).
+- **Nota de método — o primeiro teste no ar mentiu.** Ele devolveu `1558` (UTC) segundos depois do
+  deploy, e o código publicado **já estava certo**: baixei o módulo do Worker pela API da Cloudflare e
+  conferi o `hourCycle: "h23"` e o `const carimbar = agora || (() => nucleo.carimbarAgora(fuso))` no
+  bundle. Era **propagação** da versão nova pelo edge. Repetido, deu certo. Fica o aviso: conferir o
+  comportamento no ar segundos depois de um deploy pode acusar o código errado.
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado — e a razão está
+dita acima (`tools/criar-escola.sh` fica **pendente**, com o ritual a fazer). A âncora `.fipp` não
+muda.
+
+**Com o quê.** `motor/nucleo/elicitar.js`, `motor/servidor/rotas.js`, `motor/servidor/cloudflare.js`,
+`motor/servidor/node.js`, `wrangler.fita.jsonc`, `experimentos/provar-carimbo-da-edicao.js`,
+`REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** `ARQUITETURA-GERAL.md` (um Worker por escola — a escola é quem sabe onde fica),
+`CONGELAMENTO.md` (o item que fica pendente), `PROTOCOLO.md` P-03/P-04.
+
+**O que ainda não está feito.**
+
+- **`tools/criar-escola.sh` não emite o `FUSO`** — é de `tools/`, congelado. Uma escola criada por
+  ele nasce coberta pelo `FUSO_PADRAO` (São Paulo); declarar o fuso dela exige mexer no `tools/` com
+  o ritual do congelamento. Se `criar-escola.sh -f` for rodado sobre a `fita`, o `"FUSO"` declarado
+  no `wrangler.fita.jsonc` **se perde** (volta ao padrão da ponte).
+- **`motor/servidor/provisionar-escola.js`** sobe a escola nova só com `ESCOLA_HABILITADA`; o fuso
+  dela vem do padrão da ponte, não de uma binding. Também não foi tocado.
+- **O `provisionar-escola.js` e a CLI** seguem sem fuso próprio — o que é certo para a CLI, e
+  coberto pelo padrão para a provisão.
+- E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
+  senha é de **cliente**, a estante do **PO** não tem estado nem ações.

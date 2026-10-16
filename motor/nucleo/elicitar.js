@@ -558,16 +558,44 @@ function derivarEstado(contagem, validacao) {
 // A elicitação
 // ---------------------------------------------------------------------------
 
-function carimbarAgora() {
-  const agora = new Date();
+/**
+ * O carimbo `AAAA-MM-DDTHH:MM` — a hora da PAREDE da escola, não a do servidor.
+ *
+ * O fuso é DECLARADO, nunca herdado do runtime: o Worker da Cloudflare roda em UTC, e o
+ * carimbo **é a data que a estante mostra** — se ele vier do relógio do servidor, o
+ * professor lê uma hora que não é a dele (medido: 12h43 na escola, 15h43 na ficha). Sem
+ * fuso declarado, cai no relógio do runtime — o comportamento de sempre, e o certo para a
+ * CLI, que roda na máquina do professor.
+ *
+ * `quando` existe para a prova fixar o instante; em produção é o agora.
+ */
+function carimbarAgora(fuso, quando) {
+  const agora = quando || new Date();
   const dois = (n) => String(n).padStart(2, '0');
-  return (
+  const local = () =>
     agora.getFullYear() +
     '-' + dois(agora.getMonth() + 1) +
     '-' + dois(agora.getDate()) +
     'T' + dois(agora.getHours()) +
-    ':' + dois(agora.getMinutes())
-  );
+    ':' + dois(agora.getMinutes());
+  if (!fuso) return local();
+
+  let partes;
+  try {
+    // `hourCycle: 'h23'` de propósito: sem ele, a meia-noite sai como «24» em vários
+    // runtimes (o `hour12: false` herda o ciclo do locale) — e o carimbo viraria outro dia.
+    partes = new Intl.DateTimeFormat('en-CA', {
+      timeZone: fuso,
+      hourCycle: 'h23',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit',
+    }).formatToParts(agora);
+  } catch (erro) {
+    // Fuso desconhecido não derruba a gravação: cai no relógio do runtime.
+    return local();
+  }
+  const p = (tipo) => (partes.find((x) => x.type === tipo) || {}).value;
+  return p('year') + '-' + p('month') + '-' + p('day') + 'T' + p('hour') + ':' + p('minute');
 }
 
 /**
