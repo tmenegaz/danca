@@ -265,11 +265,17 @@ function linhasDaRubrica(valor, niveis) {
     .filter((l) => l && typeof l === 'object' && !Array.isArray(l))
     .map((l) => String(l['Critério'] == null ? '' : l['Critério']).trim())
     .filter(Boolean);
+  // A LINHA TEM DE TER AS CÉLULAS DO CABEÇALHO (16/10/2026). Antes, a linha saía com UMA
+  // célula sob um cabeçalho de cinco colunas: no documento impresso, a rubrica aparecia
+  // como uma tarja de texto solto atravessando a tabela — o professor não reconhecia ali a
+  // régua que tinha adotado. As vazias não são lacuna: o critério de cada aula é declarado
+  // no LANÇAMENTO da aula dada, e é isso que a nota fecha.
+  const vazias = regua.map(() => '').join(' | ');
   if (!criterios.length) {
-    linhas.push('| [Preencher: o critério de cada aula — declarado no lançamento da aula dada] |');
+    linhas.push('| [Preencher: o critério de cada aula — declarado no lançamento da aula dada] | ' + vazias + ' |');
     return linhas;
   }
-  for (const criterio of criterios) linhas.push('| **' + criterio + '** |');
+  for (const criterio of criterios) linhas.push('| **' + criterio + '** | ' + vazias + ' |');
   return linhas;
 }
 
@@ -308,6 +314,47 @@ function sequenciaEmLinhas(valor) {
     if (resto.length) partes.push(resto.join(' · '));
     const linha = partes.join(' — ');
     if (linha.trim()) linhas.push(linha.trim());
+  }
+  return linhas;
+}
+
+/* AS COLUNAS DA SEQUÊNCIA DE EXERCÍCIOS — fixas, na ordem que o formulário declara
+ * (`porta/plano/conteudo/plano.json`). O `tabelaDeLista` tira as colunas das CHAVES do
+ * primeiro objeto, e aqui isso não serve: uma linha cujo exercício ainda não tem tempos sai
+ * sem essa chave, e a coluna inteira desaparecia do documento. A sequência sai sempre com as
+ * cinco, mesmo que alguma venha vazia. */
+const COLUNAS_DA_SEQUENCIA = [
+  'Bloco',
+  'Objetivo específico',
+  'Conteúdo do nível',
+  'Tempos',
+  'Compasso',
+];
+
+/* A SEQUÊNCIA DE EXERCÍCIOS POR BLOCO — a linha da aula posta em tabela: o que se faz, para
+ * qual objetivo, com que conteúdo do nível, em quantos tempos e em que compasso. A forma nova
+ * é a grelha (um objeto por linha); a LEGADA é a prosa de antes, que continua a sair como
+ * lista. A célula vazia sai como `[a decidir]` — a mesma lacuna declarada do resto do
+ * documento: o exercício que não tem tempos ditos não os tem inventados. */
+function tabelaDaSequencia(valor) {
+  const objetos = Array.isArray(valor)
+    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
+    : [];
+  if (!objetos.length) {
+    const itens = emLista(valor);
+    return itens.length ? itens.map((v) => '- ' + v) : ['- [a decidir]'];
+  }
+  const celula = (v) => {
+    const t = v == null ? '' : String(v).trim();
+    // A barra é o separador da tabela: dentro da célula ela parte a linha em duas.
+    return t ? '**' + t.replace(/\|/g, '/') + '**' : '[a decidir]';
+  };
+  const linhas = [
+    '| ' + COLUNAS_DA_SEQUENCIA.join(' | ') + ' |',
+    '|' + COLUNAS_DA_SEQUENCIA.map(() => ':--').join('|') + '|',
+  ];
+  for (const objeto of objetos) {
+    linhas.push('| ' + COLUNAS_DA_SEQUENCIA.map((c) => celula(objeto[c])).join(' | ') + ' |');
   }
   return linhas;
 }
@@ -476,6 +523,13 @@ function derivarPlano(envelope) {
       '|:--|:--|:--|',
     ).concat(notarUnidade),
   );
+
+  // A SEQUÊNCIA DE EXERCÍCIOS POR BLOCO (16/10/2026) — a linha da aula, bloco a bloco: o que
+  // se faz, para qual objetivo, com que conteúdo do nível, em quantos tempos e em que
+  // compasso. Ela existia no formulário e NÃO chegava ao documento: quem imprimia o plano
+  // para levar à sala levava o objetivo e a fatia de cada bloco, mas não a sequência —
+  // justamente a parte que o professor tem na mão quando está à frente da turma.
+  secao('Sequência de exercícios por bloco', tabelaDaSequencia(respostaDo(envelope, 'aula-1-sequencia')));
 
   // Condições preliminares (lista).
   lista('Condições preliminares', respostaDo(envelope, 'condicoes-preliminares'));

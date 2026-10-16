@@ -200,6 +200,20 @@ a pesquisadora.
    do plano passou a declarar a **estrutura como uma linha por bloco** nomeando os objetivos que
    ele serve (`linhasDaEstrutura`) — é a forma do plano de referência (`- Solo - …`) e a que o
    contrato lê como lista.
+   **A sequência de exercícios virou derivada, obrigatória e impressa (16/10/2026).** A grelha
+   da sequência perdeu a coluna do ✕ (`removivel: false` no conteúdo — a linha dela é montada,
+   não digitada), passou a **obrigatória**, e a coluna **Conteúdo do nível deixou de ser escolha
+   do professor**: o sistema **expande** cada par objetivo × bloco em **um exercício por conteúdo
+   que ele marcou como medida** em «Parâmetro de medição», preenche a célula e a trava. O que
+   sobra para ele escrever são **os tempos e o compasso** (e, quando um objetivo não tem medida
+   marcada — a turma ainda sem conteúdo declarado —, a célula continua livre para ele escrever).
+   A chave da linha passou a ser bloco ␟ objetivo ␟ conteúdo, e o valor derivado **decide** sobre
+   o gravado: o que não casa com a derivação não se perde (fica no fim), mas deixa de sobrepor a
+   leitura da matriz. E a sequência **passou a sair no plano impresso** (`tabelaDaSequencia`) —
+   ela existia no formulário e não chegava ao documento: quem imprimia o plano para levar à sala
+   levava o objetivo e a fatia de cada bloco, mas não a sequência. Na mesma data, a **rubrica**
+   deixou de sair com uma célula sob um cabeçalho de cinco colunas (a tarja de texto solto que
+   atravessava a tabela): as células vazias passaram a ser emitidas, uma por nível da régua.
    **O PO COMPLETO passa a chegar inteiro aos derivados (14/10/2026).** A verificação foi feita
    respondendo os **33 nós** do mapa servido com um valor marcado e seguindo cada um até o
    `po-XX.json`. Três famílias de falha apareceram, e as três eram caladas: (a) **nó respondível

@@ -2885,7 +2885,12 @@ function grelhaDaTabela(no) {
   // que a aula tem) e as derivadas da marcação também não — o que o professor acrescentou
   // por cima dos blocos, esse sim. `quantasDerivadas` conta as que vieram da marcação.
   let quantasDerivadas = 0;
-  const removivel = !!(no.tabela && (no.tabela.removivel === true || podeAcrescentar || no.tabela.removivel === undefined));
+  // O `removivel: false` do conteúdo é ORDEM, não sugestão (16/10/2026): a sequência de
+  // exercícios não tem coluna de ✕ — a linha dela é derivada, não digitada, e o professor não
+  // remove o que o sistema montou. O `undefined` continua sendo o padrão herdado (removível).
+  const removivel = no.tabela && no.tabela.removivel === false
+    ? false
+    : !!(no.tabela && (no.tabela.removivel === true || podeAcrescentar));
 
   // OS BLOCOS E OS MARCOS DE UM NÓ DE MATRIZ — as duas fontes das colunas de escolha da
   // grelha (o bloco da linha, o objetivo específico). A ordem é a canónica, e `sem`
@@ -2910,6 +2915,21 @@ function grelhaDaTabela(no) {
     return vistos;
   }
 
+  // A COLUNA DERIVADA (16/10/2026) — a que o sistema MONTA em vez de o professor digitar.
+  // A sequência de exercícios tem uma: o CONTEÚDO DO NÍVEL vem do que ele marcou em
+  // «Parâmetro de medição», por objetivo. Sem isto, ele redigitava à mão, duas telas abaixo,
+  // o que já tinha decidido — e as duas listas podiam discordar no dia seguinte.
+  let colunaDerivada = null;
+  let noDaDerivada = null;
+  for (const c of colunas) {
+    const s = selecoes[c];
+    if (s && s.derivadaDe) { colunaDerivada = c; noDaDerivada = s.derivadaDe; }
+  }
+  // As linhas que o sistema montou — a célula derivada delas é leitura, não escrita. O Set é
+  // por IDENTIDADE de objeto: as linhas derivadas são objetos NOVOS, e são eles que se
+  // renderizam (os registados que ninguém reusou ficam de fora, e nesses o professor escreve).
+  const linhasDaDerivada = new Set();
+
   // AS LINHAS VÊM DE OUTRO NÓ (a distribuição do volume usa os blocos da aula; a
   // sequência de exercícios usa o par OBJETIVO × BLOCO): o professor não escreve o bloco
   // de novo — a linha já traz o valor, e o que ele preenche é o resto. Sem valor no nó
@@ -2920,6 +2940,19 @@ function grelhaDaTabela(no) {
     // O par (objetivo, bloco): uma linha por objetivo EM CADA bloco onde ele é trabalhado,
     // porque o exercício é disso que se trata — o objetivo aplicado naquele bloco.
     const chave = cfg.porMarco && colunas.indexOf(cfg.porMarco) !== -1 ? cfg.porMarco : null;
+    // OS TERMOS MARCADOS, por objetivo — a fonte da coluna derivada. Ela é a MESMA matriz do
+    // «Parâmetro de medição»: o que ele marcou lá como medida é o conteúdo de cada exercício.
+    const termosPorMarco = new Map();
+    if (colunaDerivada && noDaDerivada) {
+      const origem = RESPOSTAS.get(noDaDerivada);
+      for (const l of Array.isArray(origem) ? origem : []) {
+        if (!l || !Array.isArray(l.marcados)) continue;
+        const n = Number(l.marco);
+        if (!Number.isFinite(n)) continue;
+        const termos = l.marcados.map((v) => String(v).trim()).filter(Boolean);
+        if (termos.length) termosPorMarco.set(n, termos);
+      }
+    }
     const pares = [];
     if (chave) {
       const marcos = marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula'));
@@ -2928,14 +2961,16 @@ function grelhaDaTabela(no) {
           if (!linha || !Array.isArray(linha.marcados) || linha.marcados.indexOf(bloco) === -1) continue;
           const n = Number(linha.marco);
           const texto = marcos[n - 1] || '';
-          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, texto) });
+          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, texto), n: n });
         }
       }
     }
     if (blocos.length) {
-      // A chave de uma linha: o bloco, e o objetivo quando a linha é de um objetivo.
+      // A chave de uma linha: o bloco, o objetivo quando a linha é de um objetivo, e o valor
+      // derivado quando há coluna derivada — o mesmo conteúdo noutro exercício é OUTRA linha.
       const chaveDe = (l) => String((l && l[colunas[0]]) || '') + '␟' +
-        String((chave && l && l[chave]) || '');
+        String((chave && l && l[chave]) || '') + '␟' +
+        String((colunaDerivada && l && l[colunaDerivada]) || '');
       // UMA FILA POR CHAVE: se duas linhas têm o mesmo par (dois exercícios no mesmo
       // objetivo), cada semente consome UMA — a linha não se perde por repetição.
       const fila = new Map();
@@ -2944,20 +2979,39 @@ function grelhaDaTabela(no) {
         if (!fila.has(k)) fila.set(k, []);
         fila.get(k).push(l);
       }
-      const semente = pares.length ? pares : blocos.map((b) => ({ bloco: b, marco: null }));
+      const sementes = pares.length ? pares : blocos.map((b) => ({ bloco: b, marco: null, n: null }));
+      // A EXPANSÃO pela coluna derivada: um par (objetivo × bloco) com DOIS termos marcados
+      // como medida vira DOIS exercícios — porque são dois exercícios na aula. Sem termos
+      // marcados (a turma ainda não tem conteúdo declarado), a linha sai única e vazia, e o
+      // professor escreve o conteúdo: a derivação não inventa o que não foi marcado.
+      const semente = [];
+      for (const s of sementes) {
+        const termos = colunaDerivada && Number.isFinite(s.n) ? (termosPorMarco.get(s.n) || []) : [];
+        if (!termos.length) { semente.push(s); continue; }
+        for (const t of termos) semente.push(Object.assign({}, s, { [colunaDerivada]: t }));
+      }
       const derivadas = [];
       quantasDerivadas = 0;
       for (const s of semente) {
-        const k = chaveDe(Object.assign({}, { [colunas[0]]: s.bloco }, chave && s.marco ? { [chave]: s.marco } : {}));
+        const k = chaveDe(Object.assign({}, { [colunas[0]]: s.bloco },
+          chave && s.marco ? { [chave]: s.marco } : {},
+          colunaDerivada && s[colunaDerivada] ? { [colunaDerivada]: s[colunaDerivada] } : {}));
         const anterior = (fila.get(k) || []).shift();
         const nova = {};
         nova[colunas[0]] = s.bloco;
         if (chave && s.marco) nova[chave] = s.marco;
+        // O DERIVADO DECIDE: ele não é o que o professor escreveu, é o que o sistema leu da
+        // matriz — o valor anterior não o sobrepõe (ao contrário das colunas digitadas).
+        if (colunaDerivada && s[colunaDerivada]) nova[colunaDerivada] = s[colunaDerivada];
         for (const c of colunas.slice(1)) {
-          if (nova[c] !== undefined) { nova[c] = anterior && anterior[c] != null ? anterior[c] : nova[c]; continue; }
+          if (nova[c] !== undefined) {
+            nova[c] = anterior && anterior[c] != null ? anterior[c] : nova[c];
+            continue;
+          }
           nova[c] = anterior && anterior[c] != null ? anterior[c] : '';
         }
         derivadas.push(nova);
+        if (colunaDerivada && nova[colunaDerivada]) linhasDaDerivada.add(nova);
       }
       // E O QUE FICOU — a linha NÃO SE PERDE, mas o bloco que não é mais trabalhado SAI:
       //   · bloco ainda marcado (uma 2ª linha do mesmo par: dois exercícios no mesmo
@@ -3000,7 +3054,7 @@ function grelhaDaTabela(no) {
   const corpo = linhas.map((linha, i) =>
     '<tr>' + colunas.map((c) => {
       const valor = escapar(linha[c] == null ? '' : linha[c]);
-      if (travadas.indexOf(c) !== -1) {
+      if (travadas.indexOf(c) !== -1 || (c === colunaDerivada && linhasDaDerivada.has(linha))) {
         return '<td class="travada">' + (valor || '<span class="dono">—</span>') +
           '<input type="hidden" data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' + valor + '"></td>';
       }
@@ -3045,7 +3099,7 @@ function grelhaDaTabela(no) {
   const rodape = podeAcrescentar
     ? '<p style="margin:.6rem 0 0"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
       (no.tabela && no.tabela.linhasDe
-        ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo objetivo.</span>'
+        ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo conteúdo.</span>'
         : '') + '</p>'
     : '<p class="sub">As linhas vêm do campo anterior — aqui você preenche o valor de cada bloco.</p>';
 

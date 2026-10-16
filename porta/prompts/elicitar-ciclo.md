@@ -172,8 +172,12 @@ ausência é o registro, e inventar um horizonte que não existe é dedução.
   é o **marco 1** da lista abaixo, e o plano o lê de lá (uma fonte só).
 - **A sequência de exercícios, por bloco:** em que bloco cada objetivo é trabalhado, com
   que conteúdo do nível da turma («plié», «battement tendu»…) e com quantos tempos e que
-  compasso. O bloco e o objetivo **vêm da marcação** — não se escrevem de novo; a
-  **musicalidade não entra aqui** (ela é esmiuçada no bloco dela, no registro da aula).
+  compasso. O bloco, o objetivo **e o conteúdo do nível vêm da marcação** — não se escrevem
+  de novo: o conteúdo é o que foi marcado como medida em cada objetivo, e há **um exercício
+  por conteúdo marcado**; o professor escreve só os tempos e o compasso. Ela é
+  **obrigatória** e vai para o plano impresso, porque é a parte que ele tem na mão à frente
+  da turma. A **musicalidade não entra aqui** (ela é esmiuçada no bloco dela, no registro da
+  aula).
 - **Os marcos parciais, aula a aula** — o que fica pronto em cada aula, na ordem
   em que as aulas acontecem, **uma linha por aula, com o número na frente**. É o
   marco que o plano carrega e o que se consulta aula a aula:
