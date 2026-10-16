@@ -1509,6 +1509,9 @@ function travarFormularioSemSenha() {
  * chegam depois): sem ele, uma repintura recriaria os rádios soltos e a trava cairia.
  */
 let CABECALHO_TRAVADO = false;
+// A condução (o formulário) está aberta? É o que distingue «estou preenchendo» de «estou na
+// estante» — e é o que decide se a senha do plano aparece na criação (16/10/2026).
+let CONDUCAO_ABERTA = false;
 
 function travarCabecalho(travado) {
   CABECALHO_TRAVADO = !!travado;
@@ -1518,28 +1521,25 @@ function travarCabecalho(travado) {
     '.ctx-campos input, .ctx-campos select, .ctx-campos textarea, .ctx-campos button');
   for (const c of controles) {
     if (c.id === 'senha') continue;
-    // A DERIVAÇÃO ESCOLHE A TURMA (16/10/2026). Derivar é criar um plano NOVO a partir de
-    // outro — e o professor precisa dizer PARA QUE TURMA ele deriva. A turma é o único campo
-    // que reabre nesse gesto; os demais (escola, professor, ciclo) continuam fixos.
-    if (DERIVANDO && c.id === 'ctx-turma') continue;
     c.disabled = CABECALHO_TRAVADO;
   }
   if (barra.classList && barra.classList.toggle) barra.classList.toggle('ctx-travado', CABECALHO_TRAVADO);
 }
 
 /*
- * A SENHA DO PLANO SÓ APARECE QUANDO ELA DECIDE ALGO (16/10/2026). Criar o plano de ensino
+ * A SENHA DO PLANO só aparece quando ela decide algo (16/10/2026). Criar o plano de ensino
  * é autorizado pela CURADORIA — a direção libera o professor e a turma na Produção —, e
- * NÃO há senha a digitar nessa tela. A senha existe para a ESCRITA de um plano que já
- * existe: EDITAR e DERIVAR. Antes ela aparecia sempre, e o professor digitava uma senha sem
- * função. Na anamnese ela continua sempre visível; no PO, nunca.
+ * NÃO há senha a digitar nessa tela. A senha governa EDITAR, DERIVAR e APAGAR: por isso
+ * ela está à mão na ESTANTE (apagar e editar partem de lá) e durante a edição/derivação; e
+ * some enquanto se preenche um plano NOVO, onde não decide nada. Na anamnese, sempre
+ * visível; no PO, nunca.
  */
 function ajustarSenhaDoPlano() {
   const campo = $('senha');
   if (!campo || !campo.parentElement) return;
   let mostra = true;
   if (FONTE === 'po') mostra = false;
-  else if (FONTE === 'plano') mostra = !!(EDITANDO || DERIVANDO);
+  else if (FONTE === 'plano') mostra = !!(EDITANDO || DERIVANDO) || !CONDUCAO_ABERTA;
   campo.parentElement.style.display = mostra ? '' : 'none';
 }
 
@@ -1642,7 +1642,9 @@ function abrirFormulario(indice, empilhar) {
   // Enquanto o formulário está aberto, o cabeçalho é só de LEITURA: a identidade do ato
   // se confere ANTES de começar (o «Começar» só habilita com o contexto completo), e não
   // se corrige no meio do preenchimento (16/10/2026).
+  CONDUCAO_ABERTA = true;
   travarCabecalho(true);
+  ajustarSenhaDoPlano();
 }
 
 /*
@@ -1655,7 +1657,9 @@ function voltarAoPortal() {
   EM_AUTOABERTURA = false;
   // De volta ao portal, o cabeçalho volta a ser editável: o professor ainda pode conferir
   // e corrigir a identidade do ato antes de começar (16/10/2026).
+  CONDUCAO_ABERTA = false;
   travarCabecalho(false);
+  ajustarSenhaDoPlano();
   document.getElementById('abertura').classList.remove('oculto');
   for (const id of ['conducao', 'fecho', 'ia']) {
     const s = document.getElementById(id);
@@ -4754,9 +4758,9 @@ const ROTULO_ESTADO_PLANO = {
 };
 
 const AJUDA_ESTADO_PLANO = {
-  vinculada: 'ligada a um Plano de Observação — só se deriva, sem apagar',
-  legado: 'derivada — um plano novo a ajusta',
-  solta: 'livre — pode ser editada e derivada',
+  vinculada: 'ligada a um Plano de Observação — só se deriva (versão nova), sem editar nem apagar',
+  legado: 'derivada — um plano novo a substitui; só se deriva outra vez',
+  solta: 'livre — pode ser editada e apagada (as duas exigem a senha)',
 };
 
 function seloDoPlano(o) {
@@ -4772,11 +4776,20 @@ function seloDoPlano(o) {
 
 function acoesDoPlano(id, o) {
   const q = ' data-carimbo="' + escapar(id) + '"';
-  if (o && o.vinculada) {
-    return '<button class="acao-derivar"' + q + ' title="derivar acrescenta um plano novo, sem apagar o que já está">derivar</button>';
+  // A REGRA ESPELHA A DA ANAMNESE (16/10/2026), e os botões NUNCA aparecem juntos:
+  //   · o plano VINCULADO a um Plano de Observação — e o já DERIVADO (legado) — só se
+  //     DERIVA. O que está ligado é a linha de base de uma observação, e mudá-lo
+  //     reescreveria o passado: mudar o plano é criar um elo novo (`ajuste_de`), com a
+  //     MESMA turma;
+  //   · o plano LIVRE (solta) se EDITA e se APAGA — e os dois exigem a senha do professor.
+  // Antes os dois botões apareciam juntos no plano livre, e era isso que confundia: parecia
+  // que derivar era «aproveitar o plano noutra turma», o que não é.
+  if (o && (o.vinculada || o.estado === 'legado')) {
+    return '<button class="acao-derivar"' + q + ' title="derivar cria uma versão NOVA deste ' +
+      'plano (mesma turma), sem apagar a anterior">derivar</button>';
   }
   return '<button class="acao-editar"' + q + '>editar</button>' +
-    '<button class="acao-derivar"' + q + ' title="criar um plano novo a partir deste">derivar</button>';
+    '<button class="acao-apagar"' + q + '>apagar</button>';
 }
 
 /*
@@ -5060,8 +5073,9 @@ async function editarPlano(id) {
 }
 
 async function derivarPlano(id) {
-  // Derivação: um plano NOVO nasce semeado deste e aponta `ajuste_de` para ele.
-  const motivo = window.prompt('O que este plano novo ajusta em relação ao anterior (opcional):', '');
+  // Derivação: uma VERSÃO NOVA do MESMO plano nasce semeada deste e aponta `ajuste_de` para
+  // ele — a MESMA turma (mudar de turma não é derivar). Exige a senha do professor.
+  const motivo = window.prompt('O que esta versão nova ajusta em relação à anterior (opcional):', '');
   if (motivo === null) return;
   try {
     const r = await fetch('api/envelope/' + encodeURIComponent(id));
@@ -5073,6 +5087,29 @@ async function derivarPlano(id) {
     carregarPlanoNaConducao(envelope);
     ajustarSenhaDoPlano();   // derivar mostra a senha (ela decide a escrita)
     if (!SENHA_VALIDA) apontarSenhaFaltando();
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+/*
+ * APAGAR o plano — só o LIVRE, e só com a senha. Espelha `apagarAnamnese`: a exclusão é
+ * escrita, exige a senha do professor, e o servidor ainda RECUSA o que está vinculado a um
+ * PO ou já foi derivado (a tela mostra o que a regra permite; quem decide é o servidor).
+ */
+async function apagarPlano(id) {
+  if (!SENHA_VALIDA) {
+    avisarNaFicha(id, 'A exclusão exige a senha do professor — digite-a na barra, no alto da página.', 'erro');
+    apontarSenhaFaltando('✗ digite a senha do professor para excluir');
+    return;
+  }
+  if (!window.confirm('Apagar o plano de ensino ' + id + '?\n\nÉ definitivo — e só é possível porque ele não está ligado a nenhum Plano de Observação nem foi derivado.')) return;
+  try {
+    const resposta = await fetch('api/plano-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
+    const dados = await resposta.json().catch(() => ({}));
+    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    avisarNaFicha(id, 'apagado.', 'ok');
+    await atualizarFichas();
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -5921,6 +5958,7 @@ async function iniciar() {
     if (FONTE === 'plano') {
       if (b.classList.contains('acao-derivar')) derivarPlano(id);
       else if (b.classList.contains('acao-editar')) editarPlano(id);
+      else if (b.classList.contains('acao-apagar')) apagarPlano(id);
       return;
     }
     if (b.classList.contains('acao-apagar')) apagarAnamnese(id);

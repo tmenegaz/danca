@@ -158,6 +158,27 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     estados: await porta.estadosDosPlanos(armazenamento),
   }));
 
+  // 7.2 DELETE /api/plano-vinculo/:id — apagar, SÓ o plano LIVRE (solta).
+  // Espelha o 9 da anamnese: a proveniência não apaga o que está ligado nem o que já foi
+  // derivado. O plano vinculado a um Plano de Observação é a linha de base da observação, e
+  // o derivado tem um sucessor que o referencia — mudar qualquer dos dois é criar um elo
+  // novo (`derivar`), não apagar.
+  roteador.rota('DELETE', '/api/plano-vinculo/:id', async ({ params }) => {
+    const envelope = await porta.lerEnvelope(armazenamento, params.id);
+    if (!envelope) return recusar('plano não encontrado: ' + params.id, 404);
+    const estados = await porta.estadosDosPlanos(armazenamento);
+    const estado = estados[params.id] || {};
+    if (estado.vinculada || estado.estado === 'legado') {
+      return recusar(
+        'o plano ' + (estado.vinculada
+          ? 'está VINCULADO (Plano de Observação: ' + (estado.por || []).join(', ') + ')'
+          : 'já foi DERIVADO') +
+        ' e a proveniência não o apaga — derive uma versão nova.', 409);
+    }
+    await porta.apagarEnvelope(armazenamento, params.id);
+    return { ok: true, apagado: params.id };
+  });
+
   // 8. /api/anamnese-estado/:id — o estado de UMA anamnese.
   roteador.rota('GET', '/api/anamnese-estado/:id', async ({ params }) => {
     const envelope = await porta.lerEnvelope(armazenamento, params.id);
