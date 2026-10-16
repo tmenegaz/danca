@@ -4810,9 +4810,14 @@ function pintarFichas() {
   const ePlano = FONTE === 'plano';
   lista.innerHTML = daPagina.map((id) => {
     const o = ESTADOS.get(id);
+    // O PLANO abre o plano, como a anamnese abre a ficha (16/10/2026). Antes, os dois
+    // caíam no envelope cru; o JSON não é do professor — ele quer o documento na mão, para
+    // ler e imprimir. O PO ainda abre o envelope: não tem folha própria.
     const alvo = eAnam
       ? 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html'
-      : 'api/envelope/' + encodeURIComponent(id);
+      : (ePlano
+        ? 'api/plano-preenchido.' + encodeURIComponent(id) + '?formato=html'
+        : 'api/envelope/' + encodeURIComponent(id));
     // O plano mostra o OBJETIVO (o resumo da estante) no lugar da data; a
     // anamnese mostra a data, e o PO só o carimbo.
     const quando = ePlano && o && o.objetivo ? o.objetivo : rotuloDoEnvelope(id);
@@ -4823,7 +4828,9 @@ function pintarFichas() {
       ? '<span class="quem' + (o && o.semSujeito ? ' sem-sujeito' : '') + '">' +
         escapar((o && o.valor) || 'sem apelido') + '</span> '
       : '';
-    const caminho = eAnam ? 'Ver a ficha preenchida' : 'Ver o que ficou gravado';
+    const caminho = eAnam
+      ? 'Ver a ficha preenchida'
+      : (ePlano ? 'Ver o plano preenchido' : 'Ver o que ficou gravado');
     const selo = eAnam ? ' ' + seloDoEstado(o) : (ePlano ? ' ' + seloDoPlano(o) : '');
     const acoes = eAnam
       ? '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>'
@@ -6150,9 +6157,18 @@ async function iniciar() {
           : '<p class="erro">Não foi possível gravar.</p>');
       if (dados.gravado) {
         carimboPendente = dados.id;
-        // A ficha preenchida é da anamnese — o PO não tem ficha renderizada.
-        if (FONTE === 'anamnese') {
-          $('link-ficha').href = 'api/ficha-preenchida.' + encodeURIComponent(dados.id) + '?formato=html';
+        // A folha preenchida é da anamnese E do plano (16/10/2026): quem acabou de
+        // escrever quer ver o que escreveu. O PO não tem folha — segue no envelope.
+        if (FONTE === 'anamnese' || FONTE === 'plano') {
+          $('link-ficha').href = (FONTE === 'anamnese'
+            ? 'api/ficha-preenchida.'
+            : 'api/plano-preenchido.') + encodeURIComponent(dados.id) + '?formato=html';
+          const botaoDaFolha = $('link-ficha').querySelector('button');
+          if (botaoDaFolha) {
+            botaoDaFolha.textContent = FONTE === 'anamnese'
+              ? 'Ver a ficha preenchida'
+              : 'Ver o plano preenchido';
+          }
           $('link-ficha').classList.remove('oculto');
         }
         // O filtro da abertura já mostra o que acabou de entrar no disco.

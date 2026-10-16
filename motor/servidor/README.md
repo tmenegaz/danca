@@ -22,7 +22,14 @@ Aqui vivem as **15 rotas da porta completa** — não só a elicitação: `/asse
 registro de custo), `/api/ficha` + `/api/ficha.md`, `/api/anamneses`, `/api/anamnese-estados`,
 `/api/anamnese-estado/:id`, `DELETE /api/anamnese-vinculo/:id`, `POST /api/anamnese-ajuste/:id`,
 `PUT /api/anamnese-editar/:id`, `/api/envelopes`, `/api/envelope/:id`, `POST /api/elicitar`,
-`/api/ficha-preenchida[.<id>]` e o fallback estático (`GET/HEAD *`).
+`/api/ficha-preenchida[.<id>]`, `/api/plano-preenchido[.<id>]` e o fallback estático
+(`GET/HEAD *`).
+
+O `/api/plano-preenchido` é o irmão do `/api/ficha-preenchida`: a estante da anamnese abre a
+FICHA, e a do plano abre o PLANO — o mesmo gesto (ler e imprimir), e não o envelope cru. O
+texto que ele serve é o da fonte do ciclo (`nucleo/derivar-plano-ciclo.js`, a MESMA derivação
+do `servidor/escrever-plano.js`), menos as marcas que não são do professor (o frontmatter YAML
+e o `<!-- CALENDARIO -->`, onde o gerador escreve o calendário).
 
 O núcleo da porta (registro, mapa, vínculo, estados, carimbo, gravação, elicitação) vive em
 `nucleo/porta.js` — sem infraestrutura; o armazenamento chega por parâmetro. O `rotas.js`

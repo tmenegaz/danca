@@ -23,6 +23,10 @@ const cofre = require('../nucleo/cofre.js');
 const lancamento = require('../nucleo/lancamento.js');
 // Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
 const { rotulosDoChecklist } = require('../nucleo/derivar-po.js');
+// O PLANO inteiro em Markdown, para a folha que o professor lê e imprime. É a MESMA
+// derivação que escreve a fonte do ciclo (`servidor/escrever-plano.js`): uma definição só,
+// para o documento impresso e o documento publicado não poderem divergir.
+const { derivarPlano } = require('../nucleo/derivar-plano-ciclo.js');
 
 const REGISTRO_DE_CUSTO = 'ia-registro/registro.jsonl';
 
@@ -55,6 +59,23 @@ function recusar(mensagem, status) {
 
 /** O rótulo de exibição do conteúdo na ficha — o núcleo o trata como texto. */
 const ROTULO_ANAMNESE = 'conteudo/anamnese.json';
+
+/*
+ * O MARCADOR DO GERADOR NÃO É DO PROFESSOR. A fonte do plano carrega o frontmatter YAML
+ * (metadados para o repositório) e o `<!-- CALENDARIO -->` — o lugar onde o gerador escreve
+ * o calendário do ciclo. Numa folha que se lê e se imprime, os dois seriam lixo à vista: o
+ * renderizador de markdown não conhece nenhum deles e os MOSTRA como texto.
+ *
+ * Saem aqui, e só aqui: a FONTE no repositório fica intacta — quem perde as marcas é a
+ * folha, não o documento.
+ */
+function semMarcasDoGerador(markdown) {
+  return String(markdown == null ? '' : markdown)
+    .replace(/^---\n[\s\S]*?\n---\n/, '')
+    .replace(/^[ \t]*<!--[\s\S]*?-->[ \t]*\n?/gm, '')
+    .replace(/\n{3,}/g, '\n\n')
+    .trimStart();
+}
 
 function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
   const roteador = criarRoteador();
@@ -519,6 +540,42 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   };
   roteador.rota('GET', '/api/ficha-preenchida', fichaPreenchida);
   roteador.rota('GET', '/api/ficha-preenchida.*', fichaPreenchida);
+
+  // 15.1 /api/plano-preenchido[.<id>] — o PLANO inteiro, na folha que o professor lê e
+  //      imprime. A estante da anamnese abre a ficha preenchida; a do plano abria o
+  //      envelope CRU — JSON não é documento. Aqui ele abre o mesmo que a anamnese abre:
+  //      um documento, uma folha. O texto é o da fonte do ciclo (a MESMA `derivarPlano`
+  //      do `escrever-plano.js`): imprimir tem de dar o plano que a aula segue.
+  const planoPreenchido = async ({ url, params }) => {
+    const sufixo = (params && params.resto) || '';
+    const id = decodeURIComponent(sufixo.replace(/^\./, ''));
+    if (id && !/^[a-z0-9][a-z0-9-]*$/.test(id)) return recusar('id inválido: ' + id);
+    // Sem id, o plano mais recente — e SÓ entre os planos: `ultimoEnvelope` devolveria a
+    // anamnese mais nova, que não é plano nenhum.
+    let idAlvo = id;
+    if (!idAlvo) {
+      const nomes = await porta.nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+      idAlvo = nomes.length ? nomes[nomes.length - 1].replace(/\.json$/, '') : '';
+    }
+    const envelope = idAlvo ? await porta.lerEnvelope(armazenamento, idAlvo) : null;
+    if (!envelope) return recusar('plano não encontrado: ' + (idAlvo || '(nenhum gravado)'), 404);
+    // A trava de FAMÍLIA: um id de anamnese aqui derivaria um «plano» sem contexto. A
+    // família de um envelope é o NOME dele — a mesma regra de `estadosDosPlanos` e do
+    // `vinculosDePlano`, e a mesma que a estante usa para separar as duas listas.
+    if (!/^plano-/.test(idAlvo)) {
+      return recusar('não é um plano de ensino: ' + idAlvo);
+    }
+
+    const { markdown, meta } = derivarPlano(envelope);
+    const corpo = semMarcasDoGerador(markdown);
+
+    if (url.searchParams.get('formato') === 'html') {
+      return resposta(200, MIME['.html'], fichaHtml.paginaDoPlano(corpo, idAlvo, meta));
+    }
+    return resposta(200, MIME['.md'], corpo);
+  };
+  roteador.rota('GET', '/api/plano-preenchido', planoPreenchido);
+  roteador.rota('GET', '/api/plano-preenchido.*', planoPreenchido);
 
   // 16. O fallback ESTÁTICO (index.html e os assets) — GET/HEAD, em último.
   roteador.rota('GET', '*', async ({ url }) => {

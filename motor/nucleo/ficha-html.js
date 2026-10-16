@@ -173,4 +173,32 @@ function paginaDaFichaEmBranco(markdown) {
   });
 }
 
-module.exports = { markdownParaHtml, paginaDaFicha, paginaDaFichaEmBranco, corpoDaFicha };
+/*
+ * A FOLHA DO PLANO (16/10/2026). Na estante, o que ficou gravado abria o ENVELOPE CRU — o
+ * JSON — e isso não é do professor: ele quer o documento na mão, para ler e imprimir, sem
+ * navegar formulário a formulário. Este é o MESMO gesto da ficha preenchida da anamnese, e
+ * a mesma folha: um `<h1>`, a serifa, a largura de leitura.
+ *
+ * O texto que entra é o da fonte do ciclo (`derivar-plano-ciclo.js`), e é de propósito: o
+ * que o professor imprime é o plano que a aula vai seguir — não uma segunda versão dele,
+ * que poderia dizer outra coisa no dia em que o documento e a tela divergissem.
+ */
+function paginaDoPlano(markdown, id, meta) {
+  const m = meta || {};
+  return folha(markdown, {
+    aba: (m.title || 'Plano de ensino') + ' — ' + String(id),
+    titulo: m.title || 'Plano de ensino',
+    sub: '<p class="sub">O plano inteiro, como ficou gravado — registro <strong>' +
+      escapar(String(id)) + '</strong>.</p>',
+    aviso: 'O plano que você preencheu, inteiro, para ler e imprimir. ' +
+      'A lacuna que restar fica declarada — nenhum campo é preenchido por adivinhação.',
+  });
+}
+
+module.exports = {
+  markdownParaHtml,
+  paginaDaFicha,
+  paginaDaFichaEmBranco,
+  paginaDoPlano,
+  corpoDaFicha,
+};
