@@ -5836,18 +5836,24 @@ async function iniciar() {
   $('barra').classList.remove('oculto');
   revelarBarra();
 
-  // O MOC dos Bastidores: carrega as alunas cadastradas no seletor e liga a
-  // senha do professor (validada no servidor) à habilitação do «Fazer a
-  // anamnese». Só a anamnese usa este andaime.
-  if (FONTE === 'anamnese') {
-    carregarAlunas();
-    // A senha valida com um pequeno atraso (digitação); o seletor de aluna e o
-    // «×» de desmarcar reavaliam a habilitação na hora.
+  // O MOC dos Bastidores: a senha do professor (validada no servidor) governa a ESCRITA —
+  // da anamnese sempre, do plano em edição/derivação. O seletor de alunas é só da anamnese.
+  // A SENHA DO PROFESSOR vale nas DUAS fontes que a pedem: a ANAMNESE sempre, e o PLANO
+  // quando se EDITA ou DERIVA. O listener estava preso ao bloco da anamnese, e por isso no
+  // plano a senha NÃO VALIDAVA: digitá-la não disparava `validarSenha`, `SENHA_VALIDA`
+  // ficava falso, e o formulário continuava travado — «a senha não funciona» (16/10/2026).
+  // Ele vale por fonte, não por controle: no PO o campo nem aparece.
+  if (FONTE === 'anamnese' || FONTE === 'plano') {
     let tempoDeSenha = null;
     $('senha').addEventListener('input', () => {
       clearTimeout(tempoDeSenha);
       tempoDeSenha = setTimeout(validarSenha, 450);
     });
+  }
+
+  // O MOCK dos Bastidores: o seletor de aluna (só a anamnese o tem) e o «×» de desmarcar.
+  if (FONTE === 'anamnese') {
+    carregarAlunas();
     $('ctx-aluna').addEventListener('change', () => { marcarContextoFaltando(); atualizarComecar(); semearDoContexto(); });
     $('limpar-aluna').addEventListener('click', () => {
       $('ctx-aluna').value = '';
