@@ -151,7 +151,7 @@ async function fetch(request, env) {
         '<h1>Área do Professor desabilitada</h1>' +
         '<p>Esta escola ainda não tem um professor cadastrado — a Área do Professor ' +
         '(anamnese, plano de ensino e plano de observação) abre depois do cadastro.</p>' +
-        '<p><a href="/bastidores">Ir aos Bastidores → cadastrar o professor</a></p>' +
+        '<p><a href="/bastidores/producao">Ir aos Bastidores → cadastrar o professor</a></p>' +
         '</body></html>',
         { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
       );

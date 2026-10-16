@@ -295,6 +295,41 @@ function tradicoesAdotaveis() {
   return (CATALOGO.TRADICOES || []).filter((t) => t !== 'compartilhada');
 }
 
+/** OS NÍVEIS que o formulário da turma oferece: os `nivelReferencia` do catálogo. Não é uma
+ *  lista inventada — é a que o próprio catálogo usa (`progressao.json`), e é ela que a escola
+ *  pode ampliar cadastrando turmas com outros. */
+function niveisDoCatalogo() {
+  const vistos = [];
+  for (const t of (CATALOGO.TURMAS || [])) {
+    const n = String((t && t.nivelReferencia) || '').trim();
+    if (n && vistos.indexOf(n) === -1) vistos.push(n);
+  }
+  return vistos;
+}
+
+/**
+ * UMA ESCOLHA CLICÁVEL EM LINHA. O `<input>` continua a ser o MESMO (mesma `name`, mesmo
+ * `value`): o que muda é a pele — quem se vê e quem se clica é o rótulo em pílula, e não uma
+ * caixinha marcável dentro de uma caixa com rolagem dentro do formulário. O contrato do
+ * servidor não muda em nada por causa disto.
+ */
+function pilula(nome, valor, rotuloHtml) {
+  return '<label class="escolha"><input type="checkbox" name="' + esc(nome) + '" value="' + esc(valor) + '">' +
+    '<span>' + rotuloHtml + '</span></label>';
+}
+
+/** O rodapé de uma lista paginada. O servidor NÃO escolhe a página: quem pagina é o
+ *  navegador (a lista já veio inteira). Sem JavaScript, o rodapé não aparece e a lista
+ *  mostra tudo — degradar para «mostra tudo» é melhor do que esconder itens sem como
+ *  alcançá-los. */
+function rodapePaginacao() {
+  return '<div class="paginacao" hidden>' +
+    '<button type="button" class="pag-ant" aria-label="Página anterior">‹</button>' +
+    '<span class="pag-info"></span>' +
+    '<button type="button" class="pag-prox" aria-label="Página seguinte">›</button>' +
+    '</div>';
+}
+
 /** As curadorias da escola: uma LISTA de `{id, professor, modalidade, tradicao, turmas,
  *  repertorio, alunas}` — um professor pode ter mais de uma (a regra é da escola). */
 async function curadorias(kv, escola) {
@@ -358,56 +393,101 @@ async function senhaDaEscolaOk(env, kv, escola, senha) {
   return false;
 }
 
-function paginaHub(escola) {
-  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Bastidores · ' + esc(escola) + '</title>' +
-    '<style>' +
-    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
-    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
-    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
-    '.corpo{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
-    '.corpo h1{color:#6b2f2f;}' +
-    '.corpo p{color:#6b5b4a;}' +
-    '.itens{display:flex;flex-direction:column;gap:1rem;margin-top:1.4rem;}' +
-    '.item{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem 1.1rem;text-decoration:none;}' +
-    '.item h2{margin:0 0 .3rem;color:#6b2f2f;font-size:1.15rem;}' +
-    '.item p{margin:0;color:#6b5b4a;}' +
-    '</style></head><body>' +
-    '<div class="topo"><a href="/">← Nós, Por Exemplo</a><span>Bastidores</span></div>' +
-    '<div class="corpo">' +
-    '<h1>Bastidores</h1>' +
-    '<p>O ambiente da direção da escola: a cena e o gabinete, separados.</p>' +
-    '<div class="itens">' +
-    '<a class="item" href="/bastidores/estudio"><h2>Estúdio de Dança</h2>' +
-    '<p>A cena — o que o professor e a direção partilham.</p></a>' +
-    '<a class="item" href="/bastidores/producao"><h2>Produção</h2>' +
-    '<p>O gabinete — só da direção, com senha própria.</p></a>' +
-    '</div></div></body></html>';
+/**
+ * O CONTEXTO DA PORTA que os Bastidores conhecem.
+ *
+ * O que a escola SABE: o slug (var `ESCOLA_SLUG`) e o nome do dono (secret `PROFESSOR_NOME`).
+ * O que ela NÃO sabe: o CICLO. Esta escola tem um Worker por ciclo, mas o ciclo não é uma
+ * `var` do Worker (as vars são `ESCOLA_SLUG` e `ESCOLA_HABILITADA` — medido) e o KV não guarda
+ * chave nenhuma dele (as chaves são todas `bastidores/<escola>/…` — medido). Por isso o ciclo
+ * é lido da query quando ela vem, e, sem ela, o link da Área do Professor sai sem o ciclo: a
+ * página pede o campo, em vez de inventar um número.
+ */
+function contextoDaPorta(env, escola, url) {
+  const professor = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+  const ciclo = String((url && url.searchParams.get('ciclo')) || '').trim();
+  const partes = [];
+  if (professor) partes.push('professor=' + encodeURIComponent(professor));
+  if (escola) partes.push('escola=' + encodeURIComponent(escola));
+  if (ciclo) partes.push('ciclo=' + encodeURIComponent(ciclo));
+  return { professor: professor, ciclo: ciclo, query: partes.join('&') };
 }
 
-function paginaEstudio(escola) {
+/** A URL de uma página da porta com o contexto que se tem — e mais nada. */
+function urlDaPorta(base, contexto, extra) {
+  const partes = contexto && contexto.query ? [contexto.query] : [];
+  if (extra) partes.push(extra);
+  return base + (partes.length ? '?' + partes.join('&') : '');
+}
+
+/**
+ * O MESMO menu do pacote do ciclo. O markup é o do `gerar_nav` (`tools/criar-escola.sh` e
+ * `tools/gerar-ciclo.sh`): a marca, o hamburger, o grupo «Área do Professor» e o grupo
+ * «Bastidores». A identidade visual vem da MESMA folha (`/assets/style.css`) e o
+ * comportamento, do MESMO arquivo (`/assets/nav.js`) — os Bastidores deixam de ter uma
+ * segunda navegação, que era o que sumia ao entrar por aqui.
+ */
+function topnav(contexto, onde) {
+  const classe = (nome) => (nome === onde ? ' class="ativo"' : '');
+  return '<nav class="topnav" aria-label="Navegação do ciclo">' +
+    '<span class="marca" aria-hidden="true"></span>' +
+    '<button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">' +
+    '<span></span><span></span><span></span>' +
+    '</button>' +
+    '<div class="nav-links" id="nav-links">' +
+    '<a href="/index.html">Nós, Por Exemplo</a>' +
+    '<details class="menu">' +
+    '<summary>Área do Professor</summary>' +
+    '<div class="submenu">' +
+    '<a href="' + urlDaPorta('/anamnese/', contexto) + '">Anamnese do aluno</a>' +
+    '<a href="' + urlDaPorta('/plano-ensino/', contexto, 'fonte=plano') + '">Plano de ensino</a>' +
+    '<a href="' + urlDaPorta('/plano-observacao/', contexto, 'fonte=po') + '">Plano de Observação</a>' +
+    '</div>' +
+    '</details>' +
+    '<details class="menu">' +
+    '<summary>Bastidores</summary>' +
+    '<div class="submenu">' +
+    '<a' + classe('estudio') + ' href="/bastidores/estudio">Estúdio de Dança</a>' +
+    '<a' + classe('producao') + ' href="/bastidores/producao">Produção</a>' +
+    '</div>' +
+    '</details>' +
+    '</div>' +
+    '</nav>';
+}
+
+/** O cabeçalho comum das vistas dos Bastidores: a folha do ciclo (a MESMA do pacote,
+ *  servida por este Worker) e, DEPOIS dela, o `<style>` da vista — que manda. */
+function cabecalhoDaVista(titulo) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Bastidores · Estúdio de Dança · ' + esc(escola) + '</title>' +
+    '<title>' + esc(titulo) + '</title>' +
+    '<link rel="stylesheet" href="/assets/style.css">';
+}
+
+/** O fim comum: o script da navegação, que mede a barra e abre o hamburger. */
+function fimDaVista() {
+  return '<script src="/assets/nav.js"></script></body></html>';
+}
+
+function paginaEstudio(escola, contexto) {
+  return cabecalhoDaVista('Bastidores · Estúdio de Dança · ' + escola) +
     '<style>' +
-    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
-    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
-    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
-    '.corpo{max-width:44rem;margin:0 auto;padding:1.5rem 1.25rem;}' +
-    '.corpo h1{color:#6b2f2f;}' +
-    '.corpo p{color:#6b5b4a;}' +
-    '.corpo a{color:#6b2f2f;font-weight:700;}' +
+    'body{font:16px/1.6 Georgia,serif;color:var(--tinta);background:var(--cream);margin:0;}' +
+    '.vista{max-width:44rem;margin:0 auto;padding:1.6rem 1.25rem;}' +
+    '.vista h1{color:var(--burgundy);}' +
+    '.vista p{color:var(--soft);}' +
+    '.vista a{color:var(--burgundy);font-weight:700;}' +
     '</style></head><body>' +
-    '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Estúdio de Dança</span></div>' +
-    '<div class="corpo">' +
+    topnav(contexto, 'estudio') +
+    '<div class="vista">' +
     '<h1>Estúdio de Dança</h1>' +
     '<p>Esta é a cena — a vista que a direção e o professor partilham. O que a cena produz sobe para cá.</p>' +
-    '<p><a href="/anamnese/">Abrir a Área do Professor</a> (anamnese, plano de ensino e plano de observação).</p>' +
-    '</div></body></html>';
+    '<p><a href="' + urlDaPorta('/anamnese/', contexto) + '">Abrir a Área do Professor</a> (anamnese, plano de ensino e plano de observação).</p>' +
+    '</div>' +
+    fimDaVista();
 }
 
-function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, curs) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -415,8 +495,15 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
   const donoNome = String(dono || '').trim();
   const linhasProfs = [];
   if (donoNome) {
-    linhasProfs.push('<li>' + esc(donoNome) + ' <span class="dono">(dono — criado na página)</span>'
-      + ' <button class="editar" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do dono">Editar</button></li>');
+    // A linha do DONO é a única que mostra o slug: ele é o identificador que a página
+    // `danca` gravou no segredo e que o dono não pode perder de vista. Nas linhas dos
+    // outros professores o slug é ruído — quem identifica a pasta é o sistema, não a
+    // direção lendo uma lista (era o que a lista mostrava, e não precisava).
+    linhasProfs.push('<li>' +
+      '<span class="nome">' + esc(donoNome) + ' <span class="dono">(dono — criado na página)</span></span>' +
+      ' <code class="slug">' + esc(donoSlug) + '</code>' +
+      ' <span class="acoes"><button class="editar" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do dono">Editar</button></span>' +
+      '</li>');
   }
   for (const p of profs) {
     if (!p || !p.nome) continue;
@@ -428,19 +515,17 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     // o cadastro GRAVAVA o professor (201) e a página morria ao recarregar — «não cadastrou»,
     // para quem estava olhando. O valor já estava aqui, como o 5º parâmetro `donoSlug`.
     if (!slug || slug === donoSlug) continue; // o dono já entrou
-    // O slug aparece ao lado do nome: é ele que identifica o professor no PO, no plano e nos
-    // cadernos — e é a pasta. Sem mostrá-lo, dois homônimos na tela seriam indistinguíveis.
-    linhasProfs.push('<li>' + esc(p.nome)
-      + ' <code class="slug">' + esc(slug) + '</code>'
-      + ' <button class="apagar" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></li>');
+    // Só o nome e o botão (o slug saiu da lista: ver a linha do dono, acima).
+    linhasProfs.push('<li><span class="nome">' + esc(p.nome) + '</span>' +
+      ' <span class="acoes"><button class="apagar" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></span></li>');
   }
   const itensProfs = linhasProfs.length
     ? linhasProfs.join('')
-    : '<li>(nenhum professor cadastrado)</li>';
+    : '<li class="vazia">(nenhum professor cadastrado)</li>';
   const itensAlunas = aluns.length
-    ? aluns.map((a) => '<li>' + esc(a)
-        + ' <button class="apagar" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></li>').join('')
-    : '<li>(nenhuma aluna cadastrada)</li>';
+    ? aluns.map((a) => '<li><span class="nome">' + esc(a) + '</span>'
+        + ' <span class="acoes"><button class="apagar" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></span></li>').join('')
+    : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
   const listaTurmas = (trms || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
@@ -481,9 +566,9 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
         const detalhe = [t.nivelReferencia, t.programaReferencia, ritmo].filter(Boolean).join(' · ');
         const regua = rubricaDaTurma(t);
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
-          '<div><b>' + esc(t.nome) + '</b>' +
-          (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
-          ' <button class="apagar" data-tipo="turma" data-alvo="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></div>' +
+          '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
+          (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') + '</span>' +
+          '<span class="acoes"><button class="apagar" data-tipo="turma" data-alvo="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
           '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
           (chips || '<span class="dono">(nenhum)</span>') +
@@ -491,14 +576,14 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
           ' <button class="associar" data-turma="' + esc(t.id) + '">Associar</button></div>' +
           '</li>';
       }).join('')
-    : '<li>(nenhuma turma cadastrada)</li>';
+    : '<li class="vazia">(nenhuma turma cadastrada)</li>';
 
   const itensTermos = listaTermos.length
-    ? listaTermos.map((t) => '<li><b>' + esc(t.termo) + '</b>' +
+    ? listaTermos.map((t) => '<li><span class="nome"><b>' + esc(t.termo) + '</b>' +
         (t.categoria ? ' <span class="dono">' + esc(t.categoria) + '</span>' : '') +
-        (t.tradicao ? ' <span class="dono">' + esc(t.tradicao) + '</span>' : '') +
-        ' <button class="apagar" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></li>').join('')
-    : '<li>(nenhum termo cadastrado)</li>';
+        (t.tradicao ? ' <span class="dono">' + esc(t.tradicao) + '</span>' : '') + '</span>' +
+        '<span class="acoes"><button class="apagar" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></span></li>').join('')
+    : '<li class="vazia">(nenhum termo cadastrado)</li>';
 
   // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
   const listaCuradorias = (curs || []).slice();
@@ -518,13 +603,24 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
   const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
     '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
-  const caixasTurmasCuradoria = listaTurmas.map((t) =>
-    '<label class="cb"><input type="checkbox" name="curadoria-turma" value="' + esc(t.nome) + '"> ' + esc(t.nome) + '</label>').join('');
-  const caixasAlunasCuradoria = aluns.map((a) =>
-    '<label class="cb"><input type="checkbox" name="curadoria-aluna" value="' + esc(a) + '"> ' + esc(a) + '</label>').join('');
-  const caixasRepertorioCuradoria = listaTermos.map((t) =>
-    '<label class="cb"><input type="checkbox" name="curadoria-repertorio" value="' + esc(t.termo) + '"> ' + esc(t.termo) +
-    ' <span class="dono">' + esc(t.categoria || '') + '</span></label>').join('');
+  const pillsTurmasCuradoria = listaTurmas.map((t) =>
+    pilula('curadoria-turma', t.nome, esc(t.nome))).join('');
+  const pillsAlunasCuradoria = aluns.map((a) =>
+    pilula('curadoria-aluna', a, esc(a))).join('');
+  const pillsRepertorioCuradoria = listaTermos.map((t) =>
+    pilula('curadoria-repertorio', t.termo, esc(t.termo) +
+      (t.categoria ? ' <span class="dono">' + esc(t.categoria) + '</span>' : ''))).join('');
+
+  // OS NÍVEIS que o seletor da turma oferece: os do catálogo MAIS os que alguma turma já
+  // declara — um nível que a escola já usa não desaparece do formulário por não estar no
+  // catálogo (é o caso de quem já cadastrou «Vaganova 3», por exemplo).
+  const niveisOferecidos = niveisDoCatalogo();
+  for (const t of listaTurmas) {
+    for (const parte of String((t && t.nivelReferencia) || '').split(',')) {
+      const limpo = parte.trim();
+      if (limpo && niveisOferecidos.indexOf(limpo) === -1) niveisOferecidos.push(limpo);
+    }
+  }
 
   const itensCuradorias = listaCuradorias.length
     ? listaCuradorias.map((c) => {
@@ -535,67 +631,94 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
           (c.repertorio || []).length ? (c.repertorio.length + ' passo(s)') : '',
           (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
         ].filter(Boolean).join(' · ');
-        return '<li><b>' + esc(rotuloProfessor) + '</b> <span class="dono">· ' + esc(c.modalidade) + '</span>' +
-          (resumo ? ' <span class="dono">— ' + esc(resumo) + '</span>' : '') +
-          ' <button class="apagar" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></li>';
+        return '<li><span class="nome"><b>' + esc(rotuloProfessor) + '</b> <span class="dono">· ' + esc(c.modalidade) + '</span>' +
+          (resumo ? ' <span class="dono">— ' + esc(resumo) + '</span>' : '') + '</span>' +
+          '<span class="acoes"><button class="apagar" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span></li>';
       }).join('')
-    : '<li>(nenhuma curadoria atribuída)</li>';
+    : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
 
-  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Bastidores · Produção · ' + esc(escola) + '</title>' +
+  return cabecalhoDaVista('Bastidores · Produção · ' + escola) +
     '<style>' +
-    'body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;margin:0;}' +
-    '.topo{border-bottom:1px solid #c9a24b;padding:.9rem 1.25rem;background:#fdfaf2;}' +
-    '.topo a{color:#6b2f2f;font-weight:700;text-decoration:none;margin-right:1.2rem;}' +
-    '.corpo{max-width:64rem;margin:0 auto;padding:1.5rem 1.25rem;display:grid;grid-template-columns:13rem 1fr;gap:1.5rem;align-items:start;}' +
-    '.corpo h1{color:#6b2f2f;margin-top:0;}' +
-    '.corpo h2{color:#6b2f2f;margin-top:1.6rem;}' +
-    '.corpo p{color:#6b5b4a;}' +
-    '.lateral{position:sticky;top:1rem;border-right:1px solid #c9a24b;padding-right:1rem;}' +
-    '.lateral h2{font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;color:#8a7a5a;margin:1rem 0 .2rem;}' +
+    // A IDENTIDADE É A MESMA DA RAIZ («criar nova escola») e do pacote do ciclo: as
+    // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
+    // se escreve aqui só as usa. O amarelo próprio (`#fdf6e3`) que existia só neste
+    // formulário SAI: era um terceiro tom, e não o fundo dos formulários do sistema.
+    '.lateral{position:sticky;top:calc(var(--header-height) + 8px);border-right:1px solid var(--gold-borda);padding-right:.9rem;}' +
+    '.lateral h2{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:var(--gold-texto);margin:1rem 0 .2rem;}' +
     '.lateral h2:first-child{margin-top:0;}' +
-    '.lateral a{display:block;color:#6b2f2f;text-decoration:none;padding:.25rem .4rem;border-radius:4px;font-size:.95rem;}' +
-    '.lateral a:hover{background:#fdf6e3;}' +
-    '.lateral a.ativo{background:#efe4c8;font-weight:700;}' +
-    '.principal{min-width:0;}' +
-    '@media (max-width:760px){.corpo{grid-template-columns:1fr;}.lateral{position:static;border-right:none;padding-right:0;}}' +
-    'form{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
-    'form label{display:block;margin:.5rem 0 .2rem;font-size:.9rem;color:#6b2f2f;}' +
-    'form input{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
-    'button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:#6b2f2f;color:#fff;border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}' +
+    '.lateral a{display:block;color:var(--burgundy);text-decoration:none;padding:.25rem .5rem;border-radius:4px;font-size:.95rem;}' +
+    '.lateral a:hover{background:var(--creme-3);}' +
+    '.lateral a.ativo{background:var(--creme-2);font-weight:700;}' +
+    // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
+    // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
+    // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
+    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.2rem;align-items:start;max-width:120rem;margin:0 auto;padding:1.4rem .85rem 1.4rem .55rem;}' +
+    '.secao{display:grid;grid-template-columns:minmax(0,29rem) minmax(20rem,1fr);gap:1.4rem;align-items:start;}' +
+    '.secao>h2{grid-column:1/-1;margin:0;}' +
+    // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
+    // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
+    '.col-lista{display:flex;flex-direction:column;position:sticky;top:calc(var(--header-height) + 8px);' +
+    'max-height:calc(100vh - var(--header-height) - 2.2rem);border:1px solid var(--gold-borda);' +
+    'background:var(--branco);border-radius:8px;padding:.9rem 1rem .6rem;}' +
+    '.col-lista h3{margin:0 0 .5rem;}' +
+    '.col-lista .rolagem{overflow-y:auto;min-height:0;flex:1 1 auto;}' +
+    '.lista{list-style:none;margin:0;padding:0;}' +
+    '.lista li{display:flex;align-items:center;gap:.5rem;padding:.35rem .1rem;margin:0;border-bottom:1px dotted var(--gold-borda);color:var(--tinta);}' +
+    '.lista li .nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}' +
+    '.lista li .acoes{flex:0 0 auto;display:flex;align-items:center;gap:.35rem;}' +
+    '.lista li.vazia{color:var(--soft);font-size:.9rem;}' +
+    '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;padding:.5rem 0 .1rem;font-size:.85rem;color:var(--soft);}' +
+    '.paginacao button{margin:0;padding:.15rem .6rem;background:var(--branco);color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:4px;font:600 .9rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    '.paginacao button:disabled{opacity:.35;cursor:not-allowed;}' +
+    // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
+    'form{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem;}' +
+    'form label{display:block;margin:.7rem 0 .2rem;font-size:.9rem;color:var(--burgundy);}' +
+    'form input,form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;color:var(--tinta);background:var(--cream);border:1px solid var(--gold-borda);border-radius:5px;}' +
+    'form input:focus,form select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold-escuro);}' +
+    'form select[multiple]{height:auto;padding:.3rem;}' +
+    'form select[multiple] option{padding:.15rem .3rem;}' +
+    'button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}' +
     '.res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}' +
     '.res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}' +
     '.res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}' +
-    'ul{list-style:none;padding:0;}' +
-    'ul li{padding:.3rem 0;border-bottom:1px dotted #c9a24b;color:#3a2b1f;}' +
-    'ul li .dono{color:#8a7a5a;font-size:.85rem;}' +
-    // O slug ao lado do nome (o identificador do professor) e as dicas dos rótulos.
-    'ul li .slug{color:#8a7a5a;font-size:.8rem;background:#f3ece1;border-radius:4px;padding:0 .3em;}' +
-    'label .dica{color:#8a7a5a;font-weight:400;font-size:.85rem;}' +
-    'form .nota{color:#8a7a5a;font-size:.88rem;line-height:1.45;margin:0 0 .6rem;}' +
-    'button.apagar{margin-left:.7rem;padding:.15rem .55rem;background:#b25555;color:#fff;' +
+    '.dono{color:var(--soft);font-size:.85rem;}' +
+    'ul li .slug{color:var(--soft);font-size:.8rem;background:var(--creme-2);border-radius:4px;padding:0 .3em;}' +
+    'label .dica{color:var(--soft);font-weight:400;font-size:.85rem;}' +
+    '.sub{color:var(--soft);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
+    'form .nota{color:var(--soft);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
+    'button.apagar{margin:0;padding:.15rem .55rem;background:#b25555;color:var(--branco);' +
     'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     'button.apagar:hover{background:#8f3f3f;}' +
-    'button.editar{margin-left:.7rem;padding:.15rem .55rem;background:#6b2f2f;color:#fff;' +
+    'button.editar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);' +
     'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
-    'li.turma{margin-bottom:.6rem;}' +
-    '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:#6b5b4a;}' +
-    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:#efe4c8;border-radius:4px;font-size:.82rem;color:#3a2b1f;}' +
+    'li.turma{display:block;margin-bottom:.6rem;}' +
+    '.linha-turma{display:flex;align-items:center;gap:.5rem;}' +
+    '.linha-turma .nome{flex:1 1 auto;min-width:0;}' +
+    '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:var(--soft);}' +
+    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--creme-2);border-radius:4px;font-size:.82rem;color:var(--tinta);}' +
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
-    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;}' +
-    'button.associar{margin-left:.4rem;padding:.2rem .55rem;background:#6b2f2f;color:#fff;border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
-    '.cb-grupo{max-height:14rem;overflow:auto;border:1px solid #c9a24b;border-radius:4px;padding:.5rem .6rem;margin:.3rem 0 .6rem;background:#fff;}' +
+    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
+    'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    // AS ESCOLHAS EM LINHA (dias da semana, turmas, alunas, repertório): o professor clica
+    // no que quer. Nada de caixa marcável dentro de uma caixa com rolagem.
+    '.escolhas{display:flex;flex-wrap:wrap;gap:.35rem;margin:.3rem 0 .7rem;}' +
+    '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
+    '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
+    '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--gold-borda);border-radius:999px;background:var(--branco);font-size:.87rem;color:var(--gold-texto);line-height:1.35;}' +
+    '.escolha input:checked+span{background:var(--burgundy);border-color:var(--burgundy);color:var(--gold-claro);font-weight:600;}' +
+    '.escolha input:focus-visible+span{outline:2px solid var(--gold);outline-offset:1px;}' +
+    '.filtro{margin:.1rem 0 .4rem;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
-    '.linha-regua button{flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:#8f3f3f;border:1px solid #c9a24b;border-radius:4px;cursor:pointer;}' +
-    '.cb{display:block;font-size:.9rem;color:#3a2b1f;padding:.1rem 0;}' +
-    '.cb input{margin-right:.4rem;}' +
-    'form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;border:1px solid #c9a24b;border-radius:4px;background:#fff;}' +
+    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:#8f3f3f;border:1px solid var(--gold-borda);border-radius:4px;cursor:pointer;}' +
     '[hidden]{display:none!important;}' +
-    '#gate{border:1px solid #c9a24b;background:#fdf6e3;border-radius:6px;padding:1rem;margin:1rem 0;}' +
+    '#gate{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;max-width:24rem;}' +
+    // Abaixo disto, a lista desce para o segundo lugar da grade (não some, e não encolhe
+    // até ficar ilegível); abaixo do segundo corte, tudo numa coluna.
+    '@media (max-width:1080px){.secao{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
+    '@media (max-width:760px){.corpo{grid-template-columns:1fr;padding:1.2rem .9rem;}.lateral{position:static;border-right:none;padding-right:0;border-bottom:1px solid var(--gold-borda);padding-bottom:.6rem;}}' +
     '</style></head><body>' +
-    '<div class="topo"><a href="/bastidores">← Bastidores</a><span>Bastidores · Produção</span></div>' +
+    topnav(contexto, 'producao') +
     '<div class="corpo">' +
     '<nav class="lateral" aria-label="Seções da Produção">' +
     '<h2>Produção</h2>' +
@@ -630,6 +753,7 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '</section>' +
     '<section class="secao" id="sec-professores" hidden>' +
     '<h2>Professores</h2>' +
+    '<div class="col-form">' +
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
@@ -642,19 +766,31 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     ' sobrenome ou um apelido: duas pessoas não podem dividir a mesma pasta.</p>' +
     '<button type="submit">Cadastrar professor</button>' +
     '</form>' +
-    '<h3>Professores cadastrados</h3><ul>' + itensProfs + '</ul>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="8">' +
+    '<h3>Professores cadastrados</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensProfs + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</section>' +
     '<section class="secao" id="sec-alunas" hidden>' +
     '<h2>Alunas</h2>' +
+    '<div class="col-form">' +
     '<form id="form-aluna">' +
     '<label for="anome">Apelido da aluna (estável, P-12)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
     '<button type="submit">Cadastrar aluna</button>' +
     '</form>' +
-    '<h3>Alunas cadastradas</h3><ul>' + itensAlunas + '</ul>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="10">' +
+    '<h3>Alunas cadastradas</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensAlunas + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</section>' +
     '<section class="secao" id="sec-turmas" hidden>' +
     '<h2>Turmas</h2>' +
+    '<div class="col-form">' +
     '<form id="form-turma">' +
     '<label for="tnome">Nome da turma</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
@@ -662,15 +798,24 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<input id="tordem" name="ordem" autocomplete="off" placeholder="ex.: 1">' +
     '<label for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
     '<input id="tprograma" name="programaReferencia" autocomplete="off" placeholder="ex.: RAD (referência sugerida)">' +
-    '<label for="tnivel">Equivalência pedagógica (referência)</label>' +
-    '<input id="tnivel" name="nivelReferencia" autocomplete="off" placeholder="ex.: Grade 1">' +
+    // O NÍVEL virou SELECT MÚLTIPLO. Era texto livre, e uma turma mista não tinha como
+    // dizer que é de dois níveis — o campo aceitava uma string e só uma. A lista são os
+    // níveis do catálogo MAIS os que alguma turma já declara: um nível que a escola já usa
+    // não desaparece do formulário por não estar no catálogo. O que sai daqui continua a
+    // ser UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não mudam.
+    '<label for="tnivel">Equivalência pedagógica <span class="dica">(um ou mais níveis — segure Ctrl/Cmd para marcar dois)</span></label>' +
+    '<select id="tnivel" name="nivelReferencia" multiple size="' + niveisOferecidos.length + '">' +
+    niveisOferecidos.map((n) => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('') +
+    '</select>' +
     '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
     '<label for="tfrequencia">Frequência semanal (aulas por semana)</label>' +
     '<input id="tfrequencia" name="frequencia" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 2">' +
-    '<label for="tdias">Dias da semana</label>' +
-    '<div class="cb-grupo" id="tdias">' + DIAS_DA_SEMANA.map((d) =>
-      '<label class="cb"><input type="checkbox" name="dia" value="' + d + '"> ' + d + '</label>').join('') + '</div>' +
+    // OS DIAS DA SEMANA: sete pílulas numa linha. Era uma caixa com rolagem e sete
+    // caixinhas dentro; não há motivo para uma escolha de sete itens morar atrás de uma
+    // barra de rolagem dentro de um formulário.
+    '<label>Dias da semana</label>' +
+    '<div class="escolhas" id="tdias">' + DIAS_DA_SEMANA.map((d) => pilula('dia', d, esc(d))).join('') + '</div>' +
     '<label for="tduracao">Duração de cada aula (minutos)</label>' +
     '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
     '<label for="tinicio">Início do período (termo)</label>' +
@@ -683,12 +828,10 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<p><button type="button" id="trubrica-add">Acrescentar nível</button></p>' +
     '<button type="submit">Cadastrar turma</button>' +
     '</form>' +
-    '<ul>' + itensTurmas + '</ul>' +
     (listaTurmas.length
-      ? '<h3>Régua da rubrica de uma turma</h3>' +
+      ? '<form id="form-regua">' +
+        '<label for="rturma">Régua da rubrica de uma turma</label>' +
         '<p class="sub">A régua vale por TURMA — o plano de ensino do professor lê a régua da turma dele.</p>' +
-        '<form id="form-regua">' +
-        '<label for="rturma">Turma</label>' +
         '<select id="rturma">' +
         listaTurmas.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>').join('') +
         '</select>' +
@@ -697,9 +840,16 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
         '<button type="submit">Salvar a régua desta turma</button>' +
         '</form>'
       : '') +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="6">' +
+    '<h3>Turmas cadastradas</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensTurmas + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</section>' +
     '<section class="secao" id="sec-vocabulario" hidden>' +
     '<h2>Vocabulário Técnico do Balé</h2>' +
+    '<div class="col-form">' +
     '<form id="form-termo">' +
     '<label for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
     '<input id="vtermo" name="termo" autocomplete="off" placeholder="ex.: Plié">' +
@@ -709,11 +859,17 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<input id="vtradicao" name="tradicao" autocomplete="off" placeholder="compartilhada · RAD · francesa · Vaganova">' +
     '<button type="submit">Cadastrar termo</button>' +
     '</form>' +
-    '<ul>' + itensTermos + '</ul>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="12">' +
+    '<h3>Termos cadastrados</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensTermos + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</section>' +
     '<section class="secao" id="sec-curadorias" hidden>' +
     '<h2>Curadorias</h2>' +
+    '<div class="col-form">' +
     '<p class="sub">O que a escola atribui a cada professor — a modalidade, a tradição, a turma, o repertório e as alunas. É isto que pré-carrega a anamnese, o plano e o PO.</p>' +
     '<form id="form-curadoria">' +
     '<label for="cuprofessor">Professor</label>' +
@@ -723,20 +879,81 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '<label for="cutradicao">Tradição</label>' +
     '<select id="cutradicao"><option value="">— nenhuma —</option>' + opcoesTradicaoCuradoria + '</select>' +
     '<label>Turmas</label>' +
-    '<div class="cb-grupo">' + (caixasTurmasCuradoria || '<span class="dono">(nenhuma turma)</span>') + '</div>' +
+    '<div class="escolhas">' + (pillsTurmasCuradoria || '<span class="dono">(nenhuma turma)</span>') + '</div>' +
     '<label>Alunas</label>' +
-    '<div class="cb-grupo">' + (caixasAlunasCuradoria || '<span class="dono">(nenhuma aluna)</span>') + '</div>' +
-    '<label>Repertório (passos da turma)</label>' +
-    '<div class="cb-grupo">' + (caixasRepertorioCuradoria || '<span class="dono">(nenhum termo)</span>') + '</div>' +
+    '<div class="escolhas">' + (pillsAlunasCuradoria || '<span class="dono">(nenhuma aluna)</span>') + '</div>' +
+    // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos): as pílulas vêm com um
+    // filtro acima, para se achar o passo pelo nome ou pela categoria sem percorrer a lista
+    // inteira — e sem uma caixa com rolagem dentro do formulário.
+    '<label for="filtro-repertorio">Repertório (passos da turma)</label>' +
+    '<input class="filtro" id="filtro-repertorio" type="search" autocomplete="off" placeholder="filtrar por termo ou categoria">' +
+    '<div class="escolhas" id="escolhas-repertorio">' + (pillsRepertorioCuradoria || '<span class="dono">(nenhum termo)</span>') + '</div>' +
     '<button type="submit">Atribuir curadoria</button>' +
     '</form>' +
-    '<h3>Curadorias atribuídas</h3><ul>' + itensCuradorias + '</ul>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="8">' +
+    '<h3>Curadorias atribuídas</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensCuradorias + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</section>' +
     '</div>' +
     '</div>' +
     '</div>' +
     '<script>' +
     'var SENHA_DIRECAO = "";' +
+    // A PAGINAÇÃO DA LISTA. A lista já veio inteira do servidor (é curta: uma escola tem
+    // dezenas de professores, não milhares), e quem escolhe a página é o navegador — não há
+    // rota nova, nem estado no servidor. O que se ganha é a vista: o formulário à esquerda,
+    // a lista à direita, e nenhuma página comprida para rolar. Sem JavaScript, o rodapé nem
+    // aparece e a lista mostra tudo.
+    'function paginar() {' +
+    '  var paineis = document.querySelectorAll("[data-paginar]");' +
+    '  for (var p = 0; p < paineis.length; p++) {' +
+    '    var painel = paineis[p];' +
+    '    var ul = painel.querySelector("ul");' +
+    '    var rodape = painel.querySelector(".paginacao");' +
+    '    if (!ul || !rodape) continue;' +
+    '    var porPagina = parseInt(painel.getAttribute("data-por-pagina") || "10", 10);' +
+    '    var itens = Array.prototype.slice.call(ul.children);' +
+    '    var paginas = Math.max(1, Math.ceil(itens.length / porPagina));' +
+    '    var atual = Math.min(Math.max(1, parseInt(painel.getAttribute("data-pagina") || "1", 10)), paginas);' +
+    '    painel.setAttribute("data-pagina", atual);' +
+    '    for (var i = 0; i < itens.length; i++) {' +
+    '      itens[i].hidden = (Math.floor(i / porPagina) + 1) !== atual;' +
+    '    }' +
+    '    var info = rodape.querySelector(".pag-info");' +
+    '    if (info) info.textContent = atual + " / " + paginas;' +
+    '    var ant = rodape.querySelector(".pag-ant");' +
+    '    var prox = rodape.querySelector(".pag-prox");' +
+    '    if (ant) ant.disabled = atual <= 1;' +
+    '    if (prox) prox.disabled = atual >= paginas;' +
+    '    rodape.hidden = paginas <= 1;' +
+    '  }' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest(".paginacao button") : null;' +
+    '  if (!b) return;' +
+    '  var painel = b.closest("[data-paginar]");' +
+    '  if (!painel) return;' +
+    '  var passos = b.className === "pag-prox" ? 1 : -1;' +
+    '  painel.setAttribute("data-pagina", parseInt(painel.getAttribute("data-pagina") || "1", 10) + passos);' +
+    '  paginar();' +
+    '});' +
+    // O FILTRO das pílulas grandes (o repertório): some o que não casa, sem tirar nada do
+    // formulário nem criar uma caixa com rolagem. O que está marcado continua marcado.
+    'document.addEventListener("input", function(e){' +
+    '  var f = e.target && e.target.closest ? e.target.closest("input.filtro") : null;' +
+    '  if (!f) return;' +
+    '  var alvo = f.parentElement.querySelector(".escolhas");' +
+    '  if (!alvo) return;' +
+    '  var termo = (f.value || "").toLowerCase();' +
+    '  var rotulos = alvo.querySelectorAll("label.escolha");' +
+    '  for (var i = 0; i < rotulos.length; i++) {' +
+    '    rotulos[i].hidden = termo ? rotulos[i].textContent.toLowerCase().indexOf(termo) === -1 : false;' +
+    '  }' +
+    '});' +
+    'paginar();' +
     'function entrar(senha) {' +
     '  var g = document.getElementById("res-gate");' +
     '  g.className = "res"; g.textContent = "verificando...";' +
@@ -810,6 +1027,15 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     'function marcados(nome) {' +
     '  return Array.prototype.slice.call(document.querySelectorAll("input[name=\\"" + nome + "\\"]:checked")).map(function(x){ return x.value; });' +
     '}' +
+    // As opções marcadas de um <select multiple> — o nível da turma, que pode ser mais
+    // de um. O valor que sai é UM texto («Grade 3, Grade 4»): é o que o campo sempre foi.
+    'function selecionados(id) {' +
+    '  var el = document.getElementById(id);' +
+    '  if (!el || !el.options) return [];' +
+    '  var fora = [];' +
+    '  for (var i = 0; i < el.options.length; i++) { if (el.options[i].selected) fora.push(el.options[i].value); }' +
+    '  return fora;' +
+    '}' +
     'function enviar(ep, corpo, mensagem, recarregar) {' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
@@ -829,7 +1055,7 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '    nome: document.getElementById("tnome").value,' +
     '    ordem: document.getElementById("tordem").value,' +
     '    programaReferencia: document.getElementById("tprograma").value,' +
-    '    nivelReferencia: document.getElementById("tnivel").value,' +
+    '    nivelReferencia: selecionados("tnivel").join(", "),' +
     '    descricao: document.getElementById("tdescricao").value,' +
     '    frequencia: document.getElementById("tfrequencia").value,' +
     '    dias: marcados("dia"),' +
@@ -969,7 +1195,7 @@ function paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, 
     '  }).catch(function(err){ alert("Erro: " + err.message); });' +
     '});' +
     '</script>' +
-    '</body></html>';
+    fimDaVista();
 }
 
 /**
@@ -992,11 +1218,20 @@ async function fetch(request, env) {
   if (!kv) return json(500, { ok: false, erro: 'PADD_KV ausente nos Bastidores' });
 
   // O grupo «Bastidores» — os DOIS itens: Estúdio (a cena) e Produção (o gabinete).
+  //
+  // A PÁGINA INTERMEDIÁRIA SAIU (15/10/2026). Ela existia em `/bastidores` e só repetia os
+  // dois links que o próprio grupo do menu já mostra: quem clicava em «Produção» dava um
+  // passo a mais, e o passo a mais não levava a nada. O caminho continua respondendo — quem
+  // o digitar, ou seguir um link antigo, cai na Produção, e não num 404.
   if (path === '/bastidores') {
-    return html(paginaHub(escola));
+    return new Response(null, {
+      status: 302,
+      headers: semCache({ Location: '/bastidores/producao' + (url.search || '') }),
+    });
   }
+  const contexto = contextoDaPorta(env, escola, url);
   if (path === '/bastidores/estudio') {
-    return html(paginaEstudio(escola));
+    return html(paginaEstudio(escola, contexto));
   }
   if (path === '/bastidores/producao') {
     const [profs, aluns, trms, trmos] = await Promise.all([
@@ -1006,7 +1241,7 @@ async function fetch(request, env) {
     const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
-    return html(paginaProducao(escola, profs, aluns, dono, donoSlug, trms, trmos, rel, curs));
+    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
