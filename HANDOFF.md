@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T07:55:41-0300`
-Commit atual: `b5c2f71` — feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
+Gerado em: `2026-10-16T09:48:03-0300`
+Commit atual: `3d71d03` — docs(ideia): a identidade visual tem seis famílias em estudo — e o seletor não existe
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -57,11 +57,16 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **`ARQUITETURA-PE.md`** — Especificação da arquitetura de integração entre o repositório atual (implementação do PO) e o repositório separado **"dança e elicitação"** (módulo PE), utilizando descoberta por variável de ambiente (`.env`) e degradação graciosa.
 - **`IDEIA-CAPTURA.md`** — formulário dinâmico com JSON por ciclo — substitui as capturas, relatórios e acompanhamentos `.md` individuais. Não implementado.
 - **`IDEIA-PAINEL-ESCOLA.md`** — o Bastidores é o ambiente da direção da escola: um grupo de menu com duas vistas — o Estúdio de Dança (que a direção partilha com o professor) e a Produção (só da direção) —, regido pelo princípio cena × bastidores, pela regra da reverberação (o que a escola declara desce para os documentos da cena) e pela proveniência própria da escola. Não implementado.
-- **`PLANEJAMENTO-LASTRO.md`** — o mapa de evolução do **Sistema Lastro** (o nome comercial do produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os relacionamentos, os índices, o versionamento e o comercial — e **onze frentes** com objetivo, lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi implementado: este documento é o mapa, não a obra.
+- **`PLANEJAMENTO-LASTRO.md`** — o mapa de evolução do **Sistema Lastro** (o nome comercial do produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os relacionamentos, os índices, o versionamento e o comercial — e **treze frentes** com objetivo, lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi implementado: este documento é o mapa, não a obra.
 
 ## Últimos commits
 
 ```
+3d71d03 docs(ideia): a identidade visual tem seis famílias em estudo — e o seletor não existe
+ba5afc8 docs(ideia): incorpora a estratégia comercial e o modelo manual de cobrança
+c8e6efa docs(regras): a convenção de nome — nomear pelo conceito, não pelo título da página
+c95e7f7 fix(tools): o caminho e o rótulo da apresentação, e o modo que a regenera sem recriar a escola
+d919bc9 refactor(biblioteca): a página de entrada é a apresentação do sistema, e se chama Sistema Lastro
 b5c2f71 feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
 51479c5 fix(estrutura): o menu alinha com a barra do topo, e o repertório volta ao menu comum
 30a9f27 fix(estrutura): o painel é centrado como o sistema, e a lista longa vira escolhedor
@@ -77,11 +82,6 @@ ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrad
 e0b869c feat(estrutura): a identidade do professor é o slug — e o sobrenome separa homônimos
 bb12041 fix(estrutura): restaurar o MODELO e publicar o conserto que estava só commitado
 03bda14 chore(estrutura): expurgar a escola ponta
-34508f5 feat(estrutura): criar a escola ponta (motor completo)
-412dbe4 fix(tools): criar escola para o professor do MODELO — o cp recusava o próprio arquivo
-ed76e16 fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôde nascer
-30657e5 fix(estrutura): o expurgo não achava o KV nem preservava o índice da escola
-4bee5dc fix(tools): o gerador do HANDOFF quebrava com o repositório sem escola
 ```
 
 ## Por professor
@@ -145,85 +145,110 @@ ed76e16 fix(estrutura): o expurgo apagou o MODELO — a escola `ponta` não pôd
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — «Nós, Por Exemplo» sai: a página é a apresentação, e o nome diz isso
+## 16/10/2026 — A identidade visual tem seis famílias em estudo, e o seletor ainda não existe
 
 **O que aconteceu.**
-O dono do produto entregou o texto novo da página de entrada — o **Sistema Lastro**, o nome
-comercial do produto — e pediu a substituição integral. Ao fazê-la, ficou à vista que o nome
-antigo não estava só no título: estava no **arquivo-fonte**, no **validador**, no **caminho** e
-nos **rótulos do menu**. A partir daí a conversa virou uma regra.
+O dono do produto explorou **visualmente** seis direções de paleta para o Sistema Lastro, cada uma
+com uma variante **clara** e uma **noturna**, e pediu que o estudo fosse **documentado** — sem
+eleger identidade nova, sem implementar seletor e sem tocar em tela, dado ou arquivo de produção.
+A tarefa tinha uma armadilha embutida, e ela foi respeitada: as imagens de referência são **estudo
+visual**, e o que nelas aparece em texto ou código pequeno **não** é especificação. O resultado é
+**documentação**, e o registo diz isso por palavras de modo que a próxima leitura não confunda.
 
 **O que foi decidido.**
-- **A página de entrada é a apresentação do sistema.** O arquivo passa a se chamar
-  `biblioteca/apresentacao.md` (era `nos-por-exemplo.md`) e o validador,
-  `tools/check-apresentacao.js` (era `check-nos-por-exemplo.js`). Os dois com `git mv` — o Git
-  registra renomeação, e a proveniência acrescenta.
-- **Regra nova, no `REGRAS.md`: nomear pelo conceito.** Nome de arquivo, de pasta e de
-  ferramenta diz o que a coisa **é** — nunca o título que ela exibe. O título é texto de
-  apresentação: pode ser comercial, pode mudar sem que o conteúdo mude de natureza. O critério
-  é o mesmo que nomeia a pasta `tools/` — «ferramentas» é a função que todas ali compartilham;
-  ela não se chama «chave de fenda», nem «validar strings».
+- **A identidade vigente não muda.** Bordô e ouro continuam a ser a paleta do sistema, com os
+  valores que os tokens já declaram. As seis famílias são **estudo** — elegíveis, não eleitas —, e
+  nenhuma foi promovida a identidade padrão.
+- **O catálogo tem seis famílias e doze combinações**, com nomes **provisórios**: Bordô de Cena
+  (a vigente), Verde de Ensaio, Azul de Gala, Prata de Palco, Azul de Bastidores e Luz de Camarim.
+  Cada uma com **Clara** e **Noturna** — e a noturna **não** é a clara invertida: é concebida para
+  a família.
+- **Nenhum hex foi inventado.** O estudo chegou a nomes e carácter, **não** a valores: a tabela
+  `PARES` do validador mede contraste par a par, e um tom escolhido no olho é exactamente o que ela
+  existe para reprovar. Cada família terá os seus valores **especificados e medidos** antes de
+  qualquer implementação.
+- **Registou-se a funcionalidade futura**, e ela **não foi implementada**: uma entrada de menu
+  **«Identidade visual»** no painel administrativo, com o campo **«Paleta de cores»** e as doze
+  opções, valendo para **todas** as telas — cabeçalho, navegação, formulários, tabelas, cartões,
+  modais e mensagens.
+
+**O que a medição encontrou — e é o que trava o desenho hoje.**
+- **O caminho está aberto:** o corpo de `tools/templates/ciclo.css` **não escreve um único hex** e
+  usa `var(--…)` **66 vezes**. Trocar os valores do `:root` re-veste todos os componentes sem
+  reescrever uma regra — é o que torna o escopo global viável.
+- **Mas a paleta é resolvida na geração, não no uso:** a cópia `assets/style.css` do pacote é
+  **gerada**, e o validador exige que ela seja **idêntica** à fonte (a checagem «circuito»). Um
+  estático não muda de cor porque alguém escolheu uma opção.
+- **E não há usuário a quem pendurar a preferência.** Isto é o achado da rodada, e está medido:
+  `senhaDaEscolaOk` (`motor/servidor/bastidores.js:468`) aceita a senha da **direção** *ou a de
+  qualquer professor cadastrado*, e depois do portão a página guarda **a senha** — em
+  `sessionStorage`, estado por aba. O sistema autentica **um segredo**, não **uma pessoa**. A
+  tarefa manda **não presumir** que a escolha vale para todos os usuários de uma escola, e a
+  presunção é justamente o que o modelo de acesso **não** autoriza. Entrou como **C15**.
+- **Os leitores da fonte assumem um só `:root`:** `tools/lib-tokens.js` corta o bloco no primeiro
+  `}` depois do primeiro `:root`, e `check-identidade.js` faz o mesmo (`lerTokens`). Doze paletas
+  num arquivo exigem que os dois saibam **qual** ler — e o PDF é alimentado pelo primeiro.
 
 **O que mudou, arquivo por arquivo.**
-- `biblioteca/apresentacao.md` — **renomeado e reescrito** com o texto do Sistema Lastro. Os
-  três atalhos continuam **dinâmicos** (`@ANAMNESE_URL@`, `@PLANO_URL@`, `@PO_URL@`): o texto
-  que o dono do produto entregou trazia três links de demonstração cravados em `tiago-menegaz` e
-  `fita`, e é exatamente o que os marcadores existem para evitar. Zero links absolutos no fonte.
-- `tools/check-apresentacao.js` (**congelado**) — renomeado, e as mensagens passam a citar o
-  caminho novo.
-- `tools/lib-fontes.sh`, `tools/criar-escola.sh`, `tools/gerar-ciclo.sh`, `tools/gerar-raiz.sh`
-  (**congelados**) — o caminho do fonte e o **rótulo do menu** (`Nós, Por Exemplo` →
-  `Sistema Lastro`).
-- `motor/servidor/bastidores.js` — o rótulo no menu do topo, o mesmo nas três vistas dos
-  Bastidores. `motor/servidor/provisionar-escola.js` — o título e o `h1` da página de espera.
-  `motor/servidor/raiz.js`, `wrangler.danca.jsonc`, `biblioteca/videos.json` — os comentários.
-- `raiz/index.html` — o `h1` e o subtítulo; o corpo foi **regerado** por `gerar-raiz.sh`.
-- `professores/tiago-menegaz/ciclos/ciclo-01-fita/index.html` — **regerado**: o `h1`, o rótulo do
-  menu e o corpo.
-- `README.md`, `FRENTES.md`, `IDEIA-PAINEL-ESCOLA.md` — as descrições de estado. O `FRENTES.md`
-  ganhou a nota datada da troca de nome, em vez de reescrever as linhas que registram o que foi
-  feito com o nome antigo.
-- **O que NÃO se reescreveu:** o `REGISTRO.md` (este arquivo), o `HANDOFF.md` (que o extrai) e os
-  `escola/*/indice.json` — o `motivo` gravado no expurgo de cada escola é o que foi escrito **no
-  dia**; os elos antigos ficam legíveis, e o que muda é o que se escreve a partir de agora.
+- `IDENTIDADE-VISUAL.md` — o **contrato da forma**, e é ele que recebeu o grosso. Ganhou: o aviso
+  datado no topo; «O catálogo planejado — seis famílias, doze variantes», com a tabela das seis, a
+  lista das doze na ordem do catálogo e o aviso de que **as imagens são estudos, não
+  especificação**; «A funcionalidade futura — configuração de aparência», com o fluxo de cinco
+  passos, o escopo global e o que a troca **não** pode tocar; «As duas metades do problema», com as
+  duas medições acima; «A pergunta sem resposta: a preferência é de quem?»; «Onde a preferência é
+  guardada»; «Requisitos registados, para quando se implementar» (os onze, mais o
+  `prefers-color-scheme`); e «Acessibilidade — o critério não muda, a superfície cresce». No fim,
+  dois itens novos no «O que este documento não faz»: **não implementa o que planeja** e **não
+  substitui a identidade vigente**.
+- `PLANEJAMENTO-LASTRO.md` — o **mapa de evolução**. Ganhou: a nota datada no cabeçalho; a **C15** na
+  §3; a **frente L13** (a identidade visual como escolha), com objetivo, o quadro «documentação
+  concluída × funcionalidade implementada», situação medida, lacunas, dependências, entregas,
+  as etapas **V0–V5**, critérios verificáveis e riscos; a **camada 6 — a forma** na §5, com o
+  parágrafo «o que não se deve fazer na forma»; a **quarta matriz de cobertura** na §8, item por
+  item da tarefa; e a secção «O que o registo da identidade visual não decidiu» na §9. O
+  quadro-resumo passou a **treze** frentes e a §2.10 passou a declarar que a identidade **existe
+  como contrato** e que o **catálogo não existe**.
+- `REGISTRO.md` — esta entrada.
+- **O que NÃO foi tocado:** `tools/templates/ciclo.css`, `tools/lib-tokens.js`,
+  `tools/check-identidade.js`, `tools/templates/*.html`, qualquer arquivo de `motor/`, `raiz/`,
+  `porta/` e os pacotes de ciclo. **Nenhuma linha de código de produto**, e **nenhuma regeração**.
 
-**Motivo declarado** (`tools/` e `REGRAS.md` estão congelados): a página de entrada é
-**documento compartilhado** — o mesmo em toda escola e todo ciclo —, e muda quando o produto
-muda de nome. O rótulo do menu e o caminho do fonte vivem em `tools/`, e a regra que impede o
-problema de voltar vive no `REGRAS.md`. Nada de comportamento observável mudou para quem cria
-escola ou gera ciclo.
+**Por que isto não é a mudança de um congelado.** A rodada **não** mexeu em `tools/` nem no
+`REGRAS.md`. O que ficou registado é que a **implementação** da L13 vai mexer — `ciclo.css`,
+`lib-tokens.js`, `check-identidade.js` e, conforme o mecanismo, os templates —, e que ela será
+**commit próprio com motivo declarado**, na hora. O `IDENTIDADE-VISUAL.md` é documento livre
+em `CONGELAMENTO.md`, e por isso esta atualização é um commit normal.
 
-**Como foi provado.** `tools/check-apresentacao.js` — **2 de 2** páginas fiéis à fonte (a raiz e
-o índice da `fita`). O scaffolder rodado **de verdade** com uma escola descartável
-(`zzteste`/`zzescola`, sem `--deploy`): 5 schemas, 2 manifestos, o Worker, o índice com o título
-novo e o nav da porta injetado — e o artefato apagado depois (`professores/zzteste`,
-`wrangler.zzescola.jsonc`, `escola/zzescola/`). No ar: a raiz (`danca`) e a `fita` servem
-`<h1>Sistema Lastro</h1>`, e a Produção mostra o mesmo rótulo no menu.
+**Como foi provado.** `node tools/check-identidade.js` — e ele é a prova de que a rodada **não**
+mexeu na identidade: **21 pares** medidos, todos em AA ou acima; **21 hex** da paleta, nenhum fora
+de `tools/templates/ciclo.css`; os **7 tokens** do deck batendo com a fonte; e o **circuito** — a
+cópia `assets/style.css` e o `assets/nav.js` de cada pacote iguais à fonte. Se qualquer valor
+tivesse mudado, ou se uma paleta nova tivesse entrado em falso, ele reprovava. As medições citadas
+acima foram lidas do código, não supostas: as 66 ocorrências de `var(--…)` e a ausência de hex no
+corpo do `ciclo.css`; o `indexOf(':root')` nos dois leitores; o `senhaDaEscolaOk`/`sessionStorage`
+no portão da Produção; `motor/servidor/bastidores.js:550` para a folha compartilhada.
 
-**Referências.** O texto entregue pelo dono do produto (16/10/2026) · `AGENTS.md` §«O que é este
-projeto» (a convivência declarada dos dois nomes) · os elos do mesmo dia no `REGISTRO.md`: a
-fonte única e a raiz (`9730`), os três atalhos e o passo novo (`10019`), a `fita` reancorada
-(`9eade85`).
+**Referências.** O estudo de paletas entregue pelo dono do produto (16/10/2026) ·
+`IDENTIDADE-VISUAL.md` (o contrato, e o elo de 25/09/2026 que o criou) · `CONGELAMENTO.md`
+(«alterar a estrutura de menu ou navegação») · os elos do mesmo dia: a estratégia comercial
+(`PLANEJAMENTO-LASTRO.md` §L11–L12) e a apresentação do Sistema Lastro (a entrada anterior).
 
 **O que ainda não está feito.**
-- **A `fita` é a única escola em uso, e é a única página de ciclo regerada.** Qualquer pacote
-  antigo que apareça continua com o texto velho: a regeração é por escola.
-- **`biblioteca/fundamentacao.md` segue não existindo** (o `FRENTES.md` o declara como pendência
-  do Trilho C desde antes; a troca de nome não a resolve).
-- **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
-  a última agora é esta; a regeneração é passo próprio.
+- **Nada da funcionalidade.** Não há paleta nova no `ciclo.css`, não há item de menu «Identidade
+  visual», não há campo «Paleta de cores», não há persistência e não houve regeração de pacote. O
+  contrato está documentado e em vigor desde 25/09/2026; o **catálogo** desde hoje; a
+  **funcionalidade não existe**.
+- **A `C15` está aberta:** a preferência é **por escola**, **por usuário** ou **por navegador**.
+  Sem ela não se desenha a persistência — e é ela que decide se há um campo novo no dado da escola.
+- **A decisão do mecanismo está aberta:** aplicar **no navegador** (funciona em página estática, não
+  regera pacote, não viaja entre dispositivos) ou **no servidor** (viaja, e cria um campo «de
+  alguém»). O caminho do servidor existe: `"run_worker_first": true` nos `wrangler.<escola>.jsonc`.
+- **Os hex das doze combinações não existem** — por desenho. Especificar e medir é a etapa **V1**.
+- **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
+  e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
+  paletas, «a vigente» é a resposta provável — e continua a ser decisão.
 
 ## O que está pendente
-
-## 15/10/2026 — Criar escola para o professor do MODELO: o `cp` recusava o próprio arquivo
-
-- **A `ponta` continua sem motor.** O Worker «zero» está no ar com os segredos e responde 200 com
-  «implantação em andamento»; faltam o deploy do motor e o commit do scaffold, que são os passos 6 e
-  7 do workflow. Rodar o workflow de novo é o que se faz em seguida.
-- **O `tools/criar-escola.sh` é o TERCEIRO defeito desta série no mesmo caminho** — e os três têm a
-  mesma forma: um padrão ou uma premissa que valia para o caso testado e não valia para o caso real.
-  O expurgo apagava por padrão largo, o modelo era de outro professor, e a cópia supunha origem ≠
-  destino.
 
 ## 15/10/2026 — Um conserto commitado e não publicado não conserta nada
 
@@ -270,6 +295,24 @@ fonte única e a raiz (`9730`), os três atalhos e o passo novo (`10019`), a `fi
   do Trilho C desde antes; a troca de nome não a resolve).
 - **O `HANDOFF.md` não foi regenerado nesta entrada** — ele extrai a última entrada do REGISTRO, e
   a última agora é esta; a regeneração é passo próprio.
+
+---
+
+## 16/10/2026 — A identidade visual tem seis famílias em estudo, e o seletor ainda não existe
+
+- **Nada da funcionalidade.** Não há paleta nova no `ciclo.css`, não há item de menu «Identidade
+  visual», não há campo «Paleta de cores», não há persistência e não houve regeração de pacote. O
+  contrato está documentado e em vigor desde 25/09/2026; o **catálogo** desde hoje; a
+  **funcionalidade não existe**.
+- **A `C15` está aberta:** a preferência é **por escola**, **por usuário** ou **por navegador**.
+  Sem ela não se desenha a persistência — e é ela que decide se há um campo novo no dado da escola.
+- **A decisão do mecanismo está aberta:** aplicar **no navegador** (funciona em página estática, não
+  regera pacote, não viaja entre dispositivos) ou **no servidor** (viaja, e cria um campo «de
+  alguém»). O caminho do servidor existe: `"run_worker_first": true` nos `wrangler.<escola>.jsonc`.
+- **Os hex das doze combinações não existem** — por desenho. Especificar e medir é a etapa **V1**.
+- **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
+  e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
+  paletas, «a vigente» é a resposta provável — e continua a ser decisão.
 
 ## Pendências anteriores (índice)
 
@@ -425,6 +468,7 @@ fonte única e a raiz (`9730`), os três atalhos e o passo novo (`10019`), a `fi
 - **15/10/2026** — `Buffer` não existe no runtime dos Workers: o expurgo não… → `REGISTRO.md` L13124
 - **15/10/2026** — O gerador do HANDOFF quebrava com o repositório sem escola → `REGISTRO.md` L13231
 - **15/10/2026** — O expurgo apagou o MODELO: a escola `ponta` não pôde… → `REGISTRO.md` L13267
+- **15/10/2026** — Criar escola para o professor do MODELO: o `cp` recusava o… → `REGISTRO.md` L13328
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
