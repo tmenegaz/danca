@@ -312,10 +312,58 @@ function niveisDoCatalogo() {
  * `value`): o que muda é a pele — quem se vê e quem se clica é o rótulo em pílula, e não uma
  * caixinha marcável dentro de uma caixa com rolagem dentro do formulário. O contrato do
  * servidor não muda em nada por causa disto.
+ *
+ * A PÍLULA SERVE PARA POUCA COISA, E É ISSO QUE A DEFINE. Sete dias da semana, curtos e
+ * fixos, cabem todos à vista e a escolha é um clique — aí ela é a melhor forma. As 13 turmas,
+ * as alunas e os 84 termos do vocabulário NÃO cabem: viram um tapete de pílulas e o
+ * formulário fica poluído (foi o que aconteceu, e o dono do produto recusou). Para esses, o
+ * `escolhedor` abaixo.
  */
 function pilula(nome, valor, rotuloHtml) {
   return '<label class="escolha"><input type="checkbox" name="' + esc(nome) + '" value="' + esc(valor) + '">' +
     '<span>' + rotuloHtml + '</span></label>';
+}
+
+/**
+ * O ESCOLHEDOR — a lista longa, em dois tempos: procura, adiciona, e o que foi escolhido
+ * aparece em FICHA, com o botão de tirar. Nada de `<select multiple>` (que exige Ctrl+clique
+ * e não mostra o que está escolhido) e nada de um tapete de pílulas.
+ *
+ * O critério, dito uma vez: **pílula** para escolha curta, fechada e fixa; **escolhedor**
+ * para lista longa ou variável. E, dentro do escolhedor, dois modos — decididos pelo tamanho
+ * da lista, não por gosto:
+ *   - `select` — até ~20 opções: o menu suspenso nativo resolve, e é o mesmo componente que a
+ *     curadoria já usa para escolher o professor;
+ *   - `lookup` — lista longa: um campo com sugestões (`<datalist>`), porque ninguém procura a
+ *     «Arabesque» percorrendo 84 linhas de um menu.
+ *
+ * O que o formulário envia não muda: cada ficha vira um `<input type="hidden">` com o mesmo
+ * `name` de antes — o servidor não sabe que a pele mudou.
+ */
+function escolhedor(id, opcoes, modo) {
+  const lista = (opcoes || []).map((o) => ({
+    valor: String(o && o.valor != null ? o.valor : ''),
+    rotulo: String((o && (o.rotulo || o.valor)) || ''),
+  })).filter((o) => o.valor);
+  let entrada;
+  if (modo === 'lookup') {
+    entrada = '<input class="procura" list="' + esc(id) + '-lista" autocomplete="off" ' +
+      'placeholder="digite para procurar — ex.: arabesque">' +
+      '<datalist id="' + esc(id) + '-lista">' +
+      lista.map((o) => '<option value="' + esc(o.valor) + '"' +
+        (o.rotulo && o.rotulo !== o.valor ? ' label="' + esc(o.rotulo) + '"' : '') + '></option>').join('') +
+      '</datalist>';
+  } else {
+    entrada = '<select class="opcoes"><option value="">— escolher —</option>' +
+      lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
+      '</select>';
+  }
+  return '<div class="escolhedor" id="' + esc(id) + '"' +
+    (modo === 'lookup' ? ' data-exige-lista="sim"' : '') + '>' +
+    '<div class="fichas"><span class="vazio">(nada escolhido ainda)</span></div>' +
+    '<div class="entrada">' + entrada +
+    '<button type="button" class="adicionar">Adicionar</button></div>' +
+    '</div>';
 }
 
 /** O rodapé de uma lista paginada. O servidor NÃO escolhe a página: quem pagina é o
@@ -603,13 +651,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
   const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
     '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
-  const pillsTurmasCuradoria = listaTurmas.map((t) =>
-    pilula('curadoria-turma', t.nome, esc(t.nome))).join('');
-  const pillsAlunasCuradoria = aluns.map((a) =>
-    pilula('curadoria-aluna', a, esc(a))).join('');
-  const pillsRepertorioCuradoria = listaTermos.map((t) =>
-    pilula('curadoria-repertorio', t.termo, esc(t.termo) +
-      (t.categoria ? ' <span class="dono">' + esc(t.categoria) + '</span>' : ''))).join('');
+  // Os três grupos da curadoria. O critério é o tamanho da lista: as turmas e as alunas
+  // cabem num menu suspenso (é o mesmo componente que escolhe o professor); o repertório
+  // não — 84 termos se procuram pelo nome, não se percorrem.
+  const escolarTurmasCuradoria = escolhedor('esc-turmas', listaTurmas.map((t) => ({ valor: t.nome })), 'select');
+  const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })), 'select');
+  const escolarRepertorioCuradoria = escolhedor(
+    'esc-repertorio',
+    listaTermos.map((t) => ({ valor: t.termo, rotulo: t.categoria ? t.termo + ' — ' + t.categoria : t.termo })),
+    'lookup'
+  );
 
   // OS NÍVEIS que o seletor da turma oferece: os do catálogo MAIS os que alguma turma já
   // declara — um nível que a escola já usa não desaparece do formulário por não estar no
@@ -652,8 +703,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
     // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
     // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
-    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.2rem;align-items:start;max-width:120rem;margin:0 auto;padding:1.4rem .85rem 1.4rem .55rem;}' +
-    '.secao{display:grid;grid-template-columns:minmax(0,29rem) minmax(20rem,1fr);gap:1.4rem;align-items:start;}' +
+    // A PÁGINA É CENTRADA COMO O RESTO DO SISTEMA. O conteúdo do pacote do ciclo vive em
+    // `max-width:1180px; margin:0 auto; padding:0 22px` (tools/templates/ciclo.css) — é essa
+    // a distância da margem esquerda a que o dono do produto está habituado, e é ela que
+    // falta aqui. Antes o painel tinha `max-width:120rem` (1920px): em qualquer tela menor
+    // que isso não sobrava margem nenhuma, e o menu ficava colado na borda. Agora o painel
+    // tem teto, é centrado e respira — a margem cresce com a tela, em vez de ser um número
+    // escolhido ao acaso.
+    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.4rem;align-items:start;max-width:1280px;margin:0 auto;padding:1.4rem 22px 2.6rem;}' +
+    '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(22rem,1fr);gap:1.6rem;align-items:start;}' +
     '.secao>h2{grid-column:1/-1;margin:0;}' +
     // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
@@ -675,8 +733,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'form label{display:block;margin:.7rem 0 .2rem;font-size:.9rem;color:var(--burgundy);}' +
     'form input,form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;color:var(--tinta);background:var(--cream);border:1px solid var(--gold-borda);border-radius:5px;}' +
     'form input:focus,form select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold-escuro);}' +
-    'form select[multiple]{height:auto;padding:.3rem;}' +
-    'form select[multiple] option{padding:.15rem .3rem;}' +
     'button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}' +
     '.res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}' +
     '.res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}' +
@@ -699,24 +755,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
     'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
     'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
-    // AS ESCOLHAS EM LINHA (dias da semana, turmas, alunas, repertório): o professor clica
-    // no que quer. Nada de caixa marcável dentro de uma caixa com rolagem.
+    // AS ESCOLHAS EM LINHA (os dias da semana): o professor clica no que quer. Nada de caixa
+    // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
+    // longas, o escolhedor abaixo.
     '.escolhas{display:flex;flex-wrap:wrap;gap:.35rem;margin:.3rem 0 .7rem;}' +
     '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
     '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
     '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--gold-borda);border-radius:999px;background:var(--branco);font-size:.87rem;color:var(--gold-texto);line-height:1.35;}' +
     '.escolha input:checked+span{background:var(--burgundy);border-color:var(--burgundy);color:var(--gold-claro);font-weight:600;}' +
     '.escolha input:focus-visible+span{outline:2px solid var(--gold);outline-offset:1px;}' +
-    '.filtro{margin:.1rem 0 .4rem;}' +
+    // O ESCOLHEDOR: procura (ou menu), «Adicionar», e o escolhido em ficha com o «×».
+    '.escolhedor{margin:.3rem 0 .8rem;}' +
+    '.escolhedor .fichas{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
+    '.escolhedor .fichas .vazio{color:var(--soft);font-size:.85rem;line-height:1.9rem;}' +
+    '.ficha{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--burgundy);background:var(--creme-2);border-radius:999px;font-size:.86rem;color:var(--tinta);line-height:1.5;}' +
+    '.ficha button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--burgundy);font:700 .95rem/1 system-ui,sans-serif;cursor:pointer;}' +
+    '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
+    '.escolhedor .entrada select,.escolhedor .entrada input{flex:1 1 auto;width:auto;min-width:0;}' +
+    '.escolhedor .entrada button{margin:0;padding:.45rem .85rem;font-size:.86rem;white-space:nowrap;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
     '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:#8f3f3f;border:1px solid var(--gold-borda);border-radius:4px;cursor:pointer;}' +
     '[hidden]{display:none!important;}' +
     '#gate{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;max-width:24rem;}' +
     // Abaixo disto, a lista desce para o segundo lugar da grade (não some, e não encolhe
-    // até ficar ilegível); abaixo do segundo corte, tudo numa coluna.
-    '@media (max-width:1080px){.secao{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
-    '@media (max-width:760px){.corpo{grid-template-columns:1fr;padding:1.2rem .9rem;}.lateral{position:static;border-right:none;padding-right:0;border-bottom:1px solid var(--gold-borda);padding-bottom:.6rem;}}' +
+    // até ficar ilegível); abaixo do segundo corte, tudo numa coluna. O primeiro corte era
+    // 1080px, e entre 1081 e ~1140 as duas colunas ficavam apertadas demais para o
+    // formulário de 34rem — o corte subiu para onde as duas cabem de facto.
+    '@media (max-width:1140px){.secao{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
+    '@media (max-width:760px){.corpo{grid-template-columns:1fr;padding:1.2rem 16px 2rem;}.lateral{position:static;border-right:none;padding-right:0;border-bottom:1px solid var(--gold-borda);padding-bottom:.6rem;}}' +
     '</style></head><body>' +
     topnav(contexto, 'producao') +
     '<div class="corpo">' +
@@ -767,7 +834,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="submit">Cadastrar professor</button>' +
     '</form>' +
     '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="8">' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Professores cadastrados</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensProfs + '</ul></div>' +
     rodapePaginacao() +
@@ -782,7 +849,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<button type="submit">Cadastrar aluna</button>' +
     '</form>' +
     '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="10">' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Alunas cadastradas</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensAlunas + '</ul></div>' +
     rodapePaginacao() +
@@ -798,15 +865,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="tordem" name="ordem" autocomplete="off" placeholder="ex.: 1">' +
     '<label for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
     '<input id="tprograma" name="programaReferencia" autocomplete="off" placeholder="ex.: RAD (referência sugerida)">' +
-    // O NÍVEL virou SELECT MÚLTIPLO. Era texto livre, e uma turma mista não tinha como
-    // dizer que é de dois níveis — o campo aceitava uma string e só uma. A lista são os
-    // níveis do catálogo MAIS os que alguma turma já declara: um nível que a escola já usa
-    // não desaparece do formulário por não estar no catálogo. O que sai daqui continua a
-    // ser UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não mudam.
-    '<label for="tnivel">Equivalência pedagógica <span class="dica">(um ou mais níveis — segure Ctrl/Cmd para marcar dois)</span></label>' +
-    '<select id="tnivel" name="nivelReferencia" multiple size="' + niveisOferecidos.length + '">' +
-    niveisOferecidos.map((n) => '<option value="' + esc(n) + '">' + esc(n) + '</option>').join('') +
-    '</select>' +
+    // O NÍVEL virou ESCOLHEDOR. Era texto livre, e uma turma mista não tinha como dizer que
+    // é de dois níveis. Primeiro tentei um `<select multiple>` — que exige Ctrl+clique, não
+    // mostra o que está escolhido e saiu esquisito (o dono do produto recusou, com razão).
+    // Agora: escolhe no menu, «Adicionar», e o nível fica em ficha com o «×». A lista são os
+    // níveis do catálogo MAIS os que alguma turma já declara — um nível que a escola já usa
+    // não desaparece do formulário por não estar no catálogo. O que sai daqui continua a ser
+    // UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não mudam.
+    '<label>Equivalência pedagógica <span class="dica">(um ou mais níveis)</span></label>' +
+    '<p class="sub">Uma turma mista pode ter dois níveis — escolha um, clique em «Adicionar», e repita.</p>' +
+    escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n })), 'select') +
     '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
     '<label for="tfrequencia">Frequência semanal (aulas por semana)</label>' +
@@ -841,7 +909,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         '</form>'
       : '') +
     '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="6">' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Turmas cadastradas</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensTurmas + '</ul></div>' +
     rodapePaginacao() +
@@ -861,7 +929,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</form>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
     '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="12">' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Termos cadastrados</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensTermos + '</ul></div>' +
     rodapePaginacao() +
@@ -879,19 +947,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label for="cutradicao">Tradição</label>' +
     '<select id="cutradicao"><option value="">— nenhuma —</option>' + opcoesTradicaoCuradoria + '</select>' +
     '<label>Turmas</label>' +
-    '<div class="escolhas">' + (pillsTurmasCuradoria || '<span class="dono">(nenhuma turma)</span>') + '</div>' +
+    escolarTurmasCuradoria +
     '<label>Alunas</label>' +
-    '<div class="escolhas">' + (pillsAlunasCuradoria || '<span class="dono">(nenhuma aluna)</span>') + '</div>' +
-    // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos): as pílulas vêm com um
-    // filtro acima, para se achar o passo pelo nome ou pela categoria sem percorrer a lista
-    // inteira — e sem uma caixa com rolagem dentro do formulário.
-    '<label for="filtro-repertorio">Repertório (passos da turma)</label>' +
-    '<input class="filtro" id="filtro-repertorio" type="search" autocomplete="off" placeholder="filtrar por termo ou categoria">' +
-    '<div class="escolhas" id="escolhas-repertorio">' + (pillsRepertorioCuradoria || '<span class="dono">(nenhum termo)</span>') + '</div>' +
+    escolarAlunasCuradoria +
+    // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos): no escolhedor ele é um
+    // campo de procura com sugestões, e o que se escolhe fica em ficha. Era um tapete de 84
+    // pílulas — o formulário ficava poluído, e o dono do produto recusou.
+    '<label>Repertório (passos da turma)</label>' +
+    escolarRepertorioCuradoria +
     '<button type="submit">Atribuir curadoria</button>' +
     '</form>' +
     '</div>' +
-    '<div class="col-lista" data-paginar data-por-pagina="8">' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Curadorias atribuídas</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensCuradorias + '</ul></div>' +
     rodapePaginacao() +
@@ -939,19 +1006,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var passos = b.className === "pag-prox" ? 1 : -1;' +
     '  painel.setAttribute("data-pagina", parseInt(painel.getAttribute("data-pagina") || "1", 10) + passos);' +
     '  paginar();' +
-    '});' +
-    // O FILTRO das pílulas grandes (o repertório): some o que não casa, sem tirar nada do
-    // formulário nem criar uma caixa com rolagem. O que está marcado continua marcado.
-    'document.addEventListener("input", function(e){' +
-    '  var f = e.target && e.target.closest ? e.target.closest("input.filtro") : null;' +
-    '  if (!f) return;' +
-    '  var alvo = f.parentElement.querySelector(".escolhas");' +
-    '  if (!alvo) return;' +
-    '  var termo = (f.value || "").toLowerCase();' +
-    '  var rotulos = alvo.querySelectorAll("label.escolha");' +
-    '  for (var i = 0; i < rotulos.length; i++) {' +
-    '    rotulos[i].hidden = termo ? rotulos[i].textContent.toLowerCase().indexOf(termo) === -1 : false;' +
-    '  }' +
     '});' +
     'paginar();' +
     'function entrar(senha) {' +
@@ -1023,19 +1077,62 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  e.preventDefault();' +
     '  postar("form-aluna", {apelido: document.getElementById("anome").value});' +
     '});' +
-    // As caixas marcadas de um grupo — usado pelos dias da semana e pela curadoria.
+    // As caixas marcadas de um grupo — usado pelos dias da semana (as pílulas curtas).
     'function marcados(nome) {' +
     '  return Array.prototype.slice.call(document.querySelectorAll("input[name=\\"" + nome + "\\"]:checked")).map(function(x){ return x.value; });' +
     '}' +
-    // As opções marcadas de um <select multiple> — o nível da turma, que pode ser mais
-    // de um. O valor que sai é UM texto («Grade 3, Grade 4»): é o que o campo sempre foi.
-    'function selecionados(id) {' +
+    // AS FICHAS de um escolhedor — o que foi escolhido, na ordem em que se escolheu.
+    'function fichasDe(id) {' +
     '  var el = document.getElementById(id);' +
-    '  if (!el || !el.options) return [];' +
-    '  var fora = [];' +
-    '  for (var i = 0; i < el.options.length; i++) { if (el.options[i].selected) fora.push(el.options[i].value); }' +
-    '  return fora;' +
+    '  if (!el || !el.querySelectorAll) return [];' +
+    '  return Array.prototype.slice.call(el.querySelectorAll(".ficha")).map(function(f){ return f.getAttribute("data-valor"); });' +
     '}' +
+    'function mostrarVazio(el) {' +
+    '  var vazio = el.querySelector(".fichas .vazio");' +
+    '  if (!vazio) return;' +
+    '  vazio.hidden = !!el.querySelector(".ficha");' +
+    '}' +
+    'function adicionarFicha(el, valor) {' +
+    '  valor = String(valor || "").trim();' +
+    '  if (!valor) return false;' +
+    '  if (fichasDe(el.id).indexOf(valor) !== -1) return false;' +
+    '  var f = document.createElement("span");' +
+    '  f.className = "ficha";' +
+    '  f.setAttribute("data-valor", valor);' +
+    '  f.textContent = valor;' +
+    '  var b = document.createElement("button");' +
+    '  b.type = "button"; b.className = "tirar"; b.title = "Tirar " + valor; b.textContent = "×";' +
+    '  f.appendChild(b);' +
+    '  el.querySelector(".fichas").appendChild(f);' +
+    '  mostrarVazio(el);' +
+    '  return true;' +
+    '}' +
+    // O escolhedor de lista LONGA só aceita o que está na lista: aceitar texto livre criaria
+    // uma associação para um termo que não existe — e a associação é por NOME.
+    'function naListaDoEscolhedor(el, valor) {' +
+    '  if (el.getAttribute("data-exige-lista") !== "sim") return true;' +
+    '  var ops = el.querySelectorAll("datalist option");' +
+    '  for (var i = 0; i < ops.length; i++) { if (ops[i].getAttribute("value") === valor) return true; }' +
+    '  return false;' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest(".escolhedor .adicionar") : null;' +
+    '  if (b) {' +
+    '    var el = b.closest(".escolhedor");' +
+    '    var fonte = el.querySelector(".opcoes") || el.querySelector("input.procura");' +
+    '    var valor = fonte ? fonte.value : "";' +
+    '    if (!valor) { alert("Escolha um item antes de adicionar."); return; }' +
+    '    if (!naListaDoEscolhedor(el, valor)) { alert("Escolha um dos itens sugeridos."); return; }' +
+    '    if (adicionarFicha(el, valor)) fonte.value = "";' +
+    '    return;' +
+    '  }' +
+    '  var t = e.target.closest ? e.target.closest(".escolhedor .tirar") : null;' +
+    '  if (t) {' +
+    '    var ficha = t.closest(".ficha");' +
+    '    var dono = t.closest(".escolhedor");' +
+    '    if (ficha && dono) { ficha.parentElement.removeChild(ficha); mostrarVazio(dono); }' +
+    '  }' +
+    '});' +
     'function enviar(ep, corpo, mensagem, recarregar) {' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
@@ -1055,7 +1152,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    nome: document.getElementById("tnome").value,' +
     '    ordem: document.getElementById("tordem").value,' +
     '    programaReferencia: document.getElementById("tprograma").value,' +
-    '    nivelReferencia: selecionados("tnivel").join(", "),' +
+    '    nivelReferencia: fichasDe("esc-niveis").join(", "),' +
     '    descricao: document.getElementById("tdescricao").value,' +
     '    frequencia: document.getElementById("tfrequencia").value,' +
     '    dias: marcados("dia"),' +
@@ -1137,9 +1234,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    professor: document.getElementById("cuprofessor").value,' +
     '    modalidade: document.getElementById("cumodalidade").value,' +
     '    tradicao: document.getElementById("cutradicao").value,' +
-    '    turmas: marcados("curadoria-turma"),' +
-    '    repertorio: marcados("curadoria-repertorio"),' +
-    '    alunas: marcados("curadoria-aluna")' +
+    '    turmas: fichasDe("esc-turmas"),' +
+    '    repertorio: fichasDe("esc-repertorio"),' +
+    '    alunas: fichasDe("esc-alunas")' +
     '  }, "atribuindo curadoria...", true);' +
     '});' +
     'document.addEventListener("click", function(e){' +
