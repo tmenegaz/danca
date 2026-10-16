@@ -573,9 +573,14 @@ async function estadosDasAnamneses(armazenamento) {
   for (const { nome, envelope, apelido } of envelopes) {
     const carimbo = envelope.id || nome.replace(/\.json$/, '');
     const por = apelido ? ligacoes.get(apelido) || [] : [];
+    const vigente = apelido !== null && vigenteDe.get(apelido) === carimbo;
     let estado;
     if (apelido === null) estado = 'sem-sujeito';
     else if (por.length > 0) estado = 'vinculada';
+    // O VIGENTE nunca é «legado»: ele é o que a regra lê. Antes, dois registros do mesmo
+    // apelido marcavam OS DOIS como substituídos — e o atual saía no ecrã como
+    // «substituída · vigente», que se contradiz.
+    else if (vigente) estado = 'solta';
     else if ((contagem.get(apelido) || 0) >= 2) estado = 'legado';
     else estado = 'solta';
     estados[carimbo] = {
@@ -585,7 +590,7 @@ async function estadosDasAnamneses(armazenamento) {
       semSujeito: apelido === null,
       vinculada: por.length > 0,
       por,
-      vigente: apelido !== null && vigenteDe.get(apelido) === carimbo,
+      vigente,
       ajuste_de: envelope.ajuste_de || null,
     };
   }

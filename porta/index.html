@@ -48,6 +48,12 @@
     margin: 1rem 0;
   }
   .caixa.nota { background: var(--creme-1); }
+  /* O OBRIGATÓRIO SE ANUNCIA NO CONTROLE, e não só no selo em prosa: o asterisco diz
+     antes de digitar, e o realce enquanto ele está vazio — a MESMA regra do contexto do
+     ato (`.barra .campo.falta`), que já se marca desde o primeiro segundo. */
+  .caixa .req { color: var(--falha); font-weight: 700; }
+  .caixa.falta { border-color: var(--falha); border-width: 2px; }
+  .caixa.falta > h3 { color: var(--falha); }
   /* A faixa de contexto do ATO: as mesmas medidas do conteúdo (`main`), a mesma
      serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
      onde se digita. Rola com a página (não é `sticky`) e os campos vivem num
@@ -186,6 +192,10 @@
   .lista a:hover { text-decoration: underline; }
   .lista .quando { font-variant-numeric: tabular-nums; }
   .lista .caminho { color: var(--suave); font-size: .78rem; }
+  /* O SUJEITO vem na frente da data: sem ele, duas linhas do mesmo dia são
+     indistinguíveis e o professor edita a ficha errada. */
+  .lista .quem { font-weight: 700; }
+  .lista .quem.sem-sujeito { color: var(--falha); font-style: italic; }
   #filtro-fichas { margin: 0 0 .5rem; }
   .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
   /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
@@ -1098,6 +1108,11 @@ async function validarSenha() {
     // Só o resultado, nunca o nome do professor: a senha é do professor, e o
     // nome dele não é o que a validação revela.
     sinalDeSenha(!!dados.ok, dados.ok ? 'OK' : '✗ senha não reconhecida');
+    if (dados.ok) {
+      const alvo = $('senha');
+      const caixa = alvo && alvo.closest ? alvo.closest('.campo') : null;
+      if (caixa) caixa.classList.remove('falta');
+    }
   } catch (erro) {
     SENHA_VALIDA = false;
     sinalDeSenha(false, '');
@@ -1173,6 +1188,50 @@ function marcarContextoFaltando() {
  * preencheu tudo: levar o olho até a barra — abrindo o acordeão, se estiver
  * recolhido — é parte da mensagem, não enfeite.
  */
+/*
+ * O CONTEXTO DO ATO de um envelope JÁ GRAVADO → a barra. A edição em sítio precisa
+ * disto: a lista não carrega `?aluna=`, e sem esta passagem o campo «aluna» abria VAZIO —
+ * o professor editava às cegas e regravava o sujeito errado (foi assim que uma anamnese
+ * de uma aluna virou o apelido de outra). O `select` só aceita um valor que tenha opção:
+ * daí a opção nascer aqui quando falta.
+ */
+function aplicarContextoDoEnvelope(envelope) {
+  const ctx = (envelope && envelope.contexto) || {};
+  for (const campo of CAMPOS_DO_CONTEXTO) {
+    const entrada = $('ctx-' + campo);
+    if (!entrada || ctx[campo] === undefined || ctx[campo] === null) continue;
+    const valor = String(ctx[campo]);
+    if (entrada.tagName === 'SELECT') {
+      const existe = Array.prototype.some.call(entrada.options || [], (o) => o.value === valor);
+      if (!existe && typeof document.createElement === 'function') {
+        const op = document.createElement('option');
+        op.value = valor;
+        op.textContent = valor;
+        entrada.appendChild(op);
+      }
+    }
+    entrada.value = valor;
+  }
+  marcarContextoFaltando();
+  atualizarComecar();
+}
+
+/*
+ * A SENHA DO PROFESSOR autoriza a ESCRITA — a anamnese nova e a edição em sítio. Ela não
+ * se adivinha: o campo se marca e ganha o foco, como os do contexto. A edição avisa já na
+ * ENTRADA, para o professor não responder tudo para descobrir no fim que faltava a senha.
+ */
+function apontarSenhaFaltando(mensagem) {
+  const campo = $('senha');
+  if (campo) {
+    const caixa = campo.closest ? campo.closest('.campo') : null;
+    if (caixa) caixa.classList.add('falta');
+    if (campo.scrollIntoView) campo.scrollIntoView({ block: 'center' });
+    if (campo.focus) campo.focus();
+  }
+  sinalDeSenha(false, mensagem || '✗ digite a senha do professor para editar');
+}
+
 function apontarContextoFaltando(faltam) {
   const acordeao = document.querySelector('.barra details.ctx-ato');
   if (acordeao) acordeao.open = true;
@@ -1624,6 +1683,16 @@ function gravarRespostaDoNo(no) {
 }
 
 // -------------------------------------------------------------- a pergunta
+
+/* O TÍTULO DO NÓ, com o asterisco quando o conteúdo o declara obrigatório. O selo de
+   `cabecalhoDoNo` também o diz — mas em prosa, longe do controle que se digita. A folha
+   derivada fica de fora: ela não é obrigatória nem opcional, já vem pré-preenchida. */
+function tituloDoNo(no) {
+  const marca = no.obrigatorio && !no.derivado
+    ? ' <span class="req" title="campo obrigatório">*</span>'
+    : '';
+  return '<h3>' + (INDICE + 1) + '. ' + md(no.campo) + marca + '</h3>';
+}
 
 function cabecalhoDoNo(no) {
   const partes = [];
@@ -3385,7 +3454,7 @@ async function derivarDoConjunto(botao, no) {
    a lista. A página redesenha sozinha quando a busca termina (Frente 5). */
 function renderCarregando(no) {
   const blocos = ['<div class="caixa">'];
-  blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
+  blocos.push(tituloDoNo(no));
   blocos.push(cabecalhoDoNo(no));
   blocos.push(caixaDaExplicacao(no));
   blocos.push('<p class="sub">carregando a lista…</p>');
@@ -3452,8 +3521,11 @@ function renderPergunta() {
     return renderCarregando(no);
   }
 
-  blocos.push('<div class="caixa">');
-  blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
+  // O CAMPO OBRIGATÓRIO VAZIO SE REALÇA: a borda de erro acompanha o asterisco, e some
+  // quando a resposta entra (a folha derivada fica de fora — ela se pré-preenche).
+  const faltaObrig = no.obrigatorio && !no.derivado && !perguntaRespondida(no);
+  blocos.push('<div class="caixa' + (faltaObrig ? ' falta' : '') + '">');
+  blocos.push(tituloDoNo(no));
   blocos.push(cabecalhoDoNo(no));
   blocos.push(avisoDoFecho());
   blocos.push(caixaDaExplicacao(no));
@@ -4155,13 +4227,20 @@ function pintarFichas() {
     // O plano mostra o OBJETIVO (o resumo da estante) no lugar da data; a
     // anamnese mostra a data, e o PO só o carimbo.
     const quando = ePlano && o && o.objetivo ? o.objetivo : rotuloDoEnvelope(id);
+    // O SUJEITO da anamnese abre a linha: o `valor` já vinha do servidor
+    // (`/api/anamnese-estados` → `apelido`) e era descartado — com duas fichas do mesmo
+    // dia, o professor não tinha como saber de quem era cada uma.
+    const quem = eAnam
+      ? '<span class="quem' + (o && o.semSujeito ? ' sem-sujeito' : '') + '">' +
+        escapar((o && o.valor) || 'sem apelido') + '</span> '
+      : '';
     const caminho = eAnam ? 'Ver a ficha preenchida' : 'Ver o que ficou gravado';
     const selo = eAnam ? ' ' + seloDoEstado(o) : (ePlano ? ' ' + seloDoPlano(o) : '');
     const acoes = eAnam
       ? '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>'
       : (ePlano ? '<span class="acoes-ficha">' + acoesDoPlano(id, o) + '</span>' : '');
     return '<li><a href="' + alvo + '" target="_blank" rel="noopener" title="' + escapar(id) + '">' +
-      '<span class="quando">' + escapar(quando) + '</span>' + selo + '<br>' +
+      quem + '<span class="quando">' + escapar(quando) + '</span>' + selo + '<br>' +
       '<span class="caminho">' + caminho + '</span></a>' + acoes +
       '<div class="aviso-ficha oculto" data-aviso="' + escapar(id) + '"></div></li>';
   }).join('');
@@ -4245,10 +4324,16 @@ function editarAnamnese(id) {
         if (v && v.nota) NOTAS.set(k, v.nota);
       }
       EDITANDO = id;
+      // O CONTEXTO vem do envelope, não da URL: é o que faz o campo «aluna» abrir
+      // preenchido em vez de vazio.
+      aplicarContextoDoEnvelope(envelope);
       atualizarBarra();
       pintarRoteiro();
       salvar();
       abrirFormulario(0);
+      // A edição ESCREVE: sem a senha do professor ela não se conclui. Avisa agora — não
+      // no fim, depois de responder tudo.
+      if (!SENHA_VALIDA) apontarSenhaFaltando();
     })
     .catch((erro) => avisarNaFicha(id, erro.message, 'erro'));
 }
@@ -5225,6 +5310,14 @@ async function iniciar() {
     // É o único caminho que reescreve um registro — e o servidor recusa se a
     // anamnese estiver vinculada.
     if (EDITANDO && FONTE === 'anamnese') {
+      // A ESCRITA exige a senha do professor — a mesma que o «Começar» pede. Sem ela a
+      // edição não se conclui: a tela recusa antes de tocar no registro.
+      if (!SENHA_VALIDA) {
+        $('gravacao').innerHTML = '<p class="erro">A edição exige a senha do professor — digite-a na barra, no alto da página.</p>';
+        apontarSenhaFaltando();
+        $('gravar').disabled = false;
+        return;
+      }
       $('gravacao').innerHTML = '<p>gravando a edição…</p>';
       try {
         gravarRespostaDoNo(MAPA.nos[INDICE]);

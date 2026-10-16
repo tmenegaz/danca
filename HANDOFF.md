@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T09:48:03-0300`
-Commit atual: `3d71d03` — docs(ideia): a identidade visual tem seis famílias em estudo — e o seletor não existe
+Gerado em: `2026-10-16T11:39:11-0300`
+Commit atual: `8b94c44` — fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+8b94c44 fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
+c27307b docs(estrutura): o handoff regenerado passa a levar o registo da identidade visual
 3d71d03 docs(ideia): a identidade visual tem seis famílias em estudo — e o seletor não existe
 ba5afc8 docs(ideia): incorpora a estratégia comercial e o modelo manual de cobrança
 c8e6efa docs(regras): a convenção de nome — nomear pelo conceito, não pelo título da página
@@ -80,8 +82,6 @@ ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrad
 2e4607c fix(estrutura): a validação de criar escola é por caminho — o formulário tinha razão
 1362156 feat(estrutura): criar a escola fita (motor completo)
 e0b869c feat(estrutura): a identidade do professor é o slug — e o sobrenome separa homônimos
-bb12041 fix(estrutura): restaurar o MODELO e publicar o conserto que estava só commitado
-03bda14 chore(estrutura): expurgar a escola ponta
 ```
 
 ## Por professor
@@ -145,122 +145,72 @@ bb12041 fix(estrutura): restaurar o MODELO e publicar o conserto que estava só 
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — A identidade visual tem seis famílias em estudo, e o seletor ainda não existe
+## 16/10/2026 — A tela diz de quem é a ficha, e o obrigatório se anuncia
 
-**O que aconteceu.**
-O dono do produto explorou **visualmente** seis direções de paleta para o Sistema Lastro, cada uma
-com uma variante **clara** e uma **noturna**, e pediu que o estudo fosse **documentado** — sem
-eleger identidade nova, sem implementar seletor e sem tocar em tela, dado ou arquivo de produção.
-A tarefa tinha uma armadilha embutida, e ela foi respeitada: as imagens de referência são **estudo
-visual**, e o que nelas aparece em texto ou código pequeno **não** é especificação. O resultado é
-**documentação**, e o registo diz isso por palavras de modo que a próxima leitura não confunda.
+**O que motivou.** O teste do PO completo na escola `fita` (16/10) expôs quatro defeitos da porta e
+um quinto no motor, e eles se encadearam. (i) A **estante** mostrava só data e hora: o apelido
+*chegava* do servidor (`/api/anamnese-estados` → `apelido`) e era descartado na pintura — com duas
+fichas do mesmo dia, nada dizia de quem era cada uma. (ii) O «editar» abria a condução **sem pedir a
+senha**: o portão existia, mas só no «Começar». (iii) O formulário de edição abria com o campo
+**«aluna» vazio** — `editarAnamnese` carregava `respostas` e nunca o `contexto`, e a URL da lista não
+traz `?aluna=`. (iv) O **obrigatório não se anunciava no controle**: havia o selo em prosa
+(«obrigatório»), mas nem asterisco nem realce junto do campo que se digita — e a deficiência **não
+era da anamnese**, era de toda tela que desenha nós. O (i) e o (iii) cobraram o preço: a anamnese de
+uma aluna foi reaberta como se fosse a de outra — porque nada na lista dizia de quem era — e o
+apelido foi gravado por cima. Daí o (v), que apareceu no ecrã: dois registros do **mesmo apelido**, e
+as **duas** fichas marcadas «substituída» — a vigente inclusive.
 
 **O que foi decidido.**
-- **A identidade vigente não muda.** Bordô e ouro continuam a ser a paleta do sistema, com os
-  valores que os tokens já declaram. As seis famílias são **estudo** — elegíveis, não eleitas —, e
-  nenhuma foi promovida a identidade padrão.
-- **O catálogo tem seis famílias e doze combinações**, com nomes **provisórios**: Bordô de Cena
-  (a vigente), Verde de Ensaio, Azul de Gala, Prata de Palco, Azul de Bastidores e Luz de Camarim.
-  Cada uma com **Clara** e **Noturna** — e a noturna **não** é a clara invertida: é concebida para
-  a família.
-- **Nenhum hex foi inventado.** O estudo chegou a nomes e carácter, **não** a valores: a tabela
-  `PARES` do validador mede contraste par a par, e um tom escolhido no olho é exactamente o que ela
-  existe para reprovar. Cada família terá os seus valores **especificados e medidos** antes de
-  qualquer implementação.
-- **Registou-se a funcionalidade futura**, e ela **não foi implementada**: uma entrada de menu
-  **«Identidade visual»** no painel administrativo, com o campo **«Paleta de cores»** e as doze
-  opções, valendo para **todas** as telas — cabeçalho, navegação, formulários, tabelas, cartões,
-  modais e mensagens.
+- **O apelido abre a linha da estante**, com a data ao lado. É o sujeito da ficha; sem ele a lista é
+  ambígua por construção, e a ambiguidade não se resolve com cuidado do professor.
+- **A edição exige a senha do professor** — a mesma do «Começar». É ESCRITA (o `PUT` reescreve o
+  registro): a autorização não se herda de quem chegou pela lista. O aviso é **na entrada**, e não no
+  fim, depois de responder tudo.
+- **O contexto do ato vem do ENVELOPE**, não da URL: `aplicarContextoDoEnvelope` preenche
+  escola/professor/ciclo/aluna e **cria a `<option>`** que o `select` exige para aceitar o valor —
+  sem ela, a atribuição é descartada em silêncio (a mesma armadilha que o elo de 8b94c44 fechou para
+  o `?aluna=`).
+- **O obrigatório se anuncia no CONTROLE**: asterisco no título (antes de digitar) e realce enquanto
+  vazio — a **mesma** regra que o contexto do ato já usava (`.barra .campo.falta`). Vale para **todo
+  formulário que desenha nós** (anamnese, plano, PO); a folha derivada fica de fora, porque não é
+  obrigatória nem opcional — ela se pré-preenche.
+- **O vigente nunca é «legado».** `estadosDasAnamneses` marcava `legado` quando havia dois registros
+  do mesmo apelido — **inclusive o atual**, que saía no ecrã como «substituída · vigente», que se
+  contradiz. O atual é `solta`; os anteriores é que foram substituídos.
 
-**O que a medição encontrou — e é o que trava o desenho hoje.**
-- **O caminho está aberto:** o corpo de `tools/templates/ciclo.css` **não escreve um único hex** e
-  usa `var(--…)` **66 vezes**. Trocar os valores do `:root` re-veste todos os componentes sem
-  reescrever uma regra — é o que torna o escopo global viável.
-- **Mas a paleta é resolvida na geração, não no uso:** a cópia `assets/style.css` do pacote é
-  **gerada**, e o validador exige que ela seja **idêntica** à fonte (a checagem «circuito»). Um
-  estático não muda de cor porque alguém escolheu uma opção.
-- **E não há usuário a quem pendurar a preferência.** Isto é o achado da rodada, e está medido:
-  `senhaDaEscolaOk` (`motor/servidor/bastidores.js:468`) aceita a senha da **direção** *ou a de
-  qualquer professor cadastrado*, e depois do portão a página guarda **a senha** — em
-  `sessionStorage`, estado por aba. O sistema autentica **um segredo**, não **uma pessoa**. A
-  tarefa manda **não presumir** que a escolha vale para todos os usuários de uma escola, e a
-  presunção é justamente o que o modelo de acesso **não** autoriza. Entrou como **C15**.
-- **Os leitores da fonte assumem um só `:root`:** `tools/lib-tokens.js` corta o bloco no primeiro
-  `}` depois do primeiro `:root`, e `check-identidade.js` faz o mesmo (`lerTokens`). Doze paletas
-  num arquivo exigem que os dois saibam **qual** ler — e o PDF é alimentado pelo primeiro.
+**Onde entrou.**
+- `porta/index.html` — o apelido na estante (`.quem` + `pintarFichas`); `tituloDoNo` com o asterisco
+  e `.caixa.falta`; `aplicarContextoDoEnvelope` ligado em `editarAnamnese`; `apontarSenhaFaltando` e
+  a trava do «Guardar» (que recusa o `PUT` sem a senha).
+- `motor/nucleo/porta.js` — `estadosDasAnamneses`: o vigente é `solta`, nunca `legado`.
+- `experimentos/provar-ajustes-anamnese.js` — a prova (novo): roda o `<script>` real da porta num DOM
+  mínimo e dirige o caminho real do «Guardar».
 
-**O que mudou, arquivo por arquivo.**
-- `IDENTIDADE-VISUAL.md` — o **contrato da forma**, e é ele que recebeu o grosso. Ganhou: o aviso
-  datado no topo; «O catálogo planejado — seis famílias, doze variantes», com a tabela das seis, a
-  lista das doze na ordem do catálogo e o aviso de que **as imagens são estudos, não
-  especificação**; «A funcionalidade futura — configuração de aparência», com o fluxo de cinco
-  passos, o escopo global e o que a troca **não** pode tocar; «As duas metades do problema», com as
-  duas medições acima; «A pergunta sem resposta: a preferência é de quem?»; «Onde a preferência é
-  guardada»; «Requisitos registados, para quando se implementar» (os onze, mais o
-  `prefers-color-scheme`); e «Acessibilidade — o critério não muda, a superfície cresce». No fim,
-  dois itens novos no «O que este documento não faz»: **não implementa o que planeja** e **não
-  substitui a identidade vigente**.
-- `PLANEJAMENTO-LASTRO.md` — o **mapa de evolução**. Ganhou: a nota datada no cabeçalho; a **C15** na
-  §3; a **frente L13** (a identidade visual como escolha), com objetivo, o quadro «documentação
-  concluída × funcionalidade implementada», situação medida, lacunas, dependências, entregas,
-  as etapas **V0–V5**, critérios verificáveis e riscos; a **camada 6 — a forma** na §5, com o
-  parágrafo «o que não se deve fazer na forma»; a **quarta matriz de cobertura** na §8, item por
-  item da tarefa; e a secção «O que o registo da identidade visual não decidiu» na §9. O
-  quadro-resumo passou a **treze** frentes e a §2.10 passou a declarar que a identidade **existe
-  como contrato** e que o **catálogo não existe**.
-- `REGISTRO.md` — esta entrada.
-- **O que NÃO foi tocado:** `tools/templates/ciclo.css`, `tools/lib-tokens.js`,
-  `tools/check-identidade.js`, `tools/templates/*.html`, qualquer arquivo de `motor/`, `raiz/`,
-  `porta/` e os pacotes de ciclo. **Nenhuma linha de código de produto**, e **nenhuma regeração**.
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` e
+`motor/` não estão na lista. A fórmula de hash, o `check-pacote.js`, as 17 regras e as 22 pétreas
+seguem iguais — o que muda é a **tela**, e uma derivação de estado do motor.
 
-**Por que isto não é a mudança de um congelado.** A rodada **não** mexeu em `tools/` nem no
-`REGRAS.md`. O que ficou registado é que a **implementação** da L13 vai mexer — `ciclo.css`,
-`lib-tokens.js`, `check-identidade.js` e, conforme o mecanismo, os templates —, e que ela será
-**commit próprio com motivo declarado**, na hora. O `IDENTIDADE-VISUAL.md` é documento livre
-em `CONGELAMENTO.md`, e por isso esta atualização é um commit normal.
+**Com o quê.** `porta/index.html`, `motor/nucleo/porta.js`,
+`experimentos/provar-ajustes-anamnese.js`, `REGISTRO.md`, `HANDOFF.md`.
 
-**Como foi provado.** `node tools/check-identidade.js` — e ele é a prova de que a rodada **não**
-mexeu na identidade: **21 pares** medidos, todos em AA ou acima; **21 hex** da paleta, nenhum fora
-de `tools/templates/ciclo.css`; os **7 tokens** do deck batendo com a fonte; e o **circuito** — a
-cópia `assets/style.css` e o `assets/nav.js` de cada pacote iguais à fonte. Se qualquer valor
-tivesse mudado, ou se uma paleta nova tivesse entrado em falso, ele reprovava. As medições citadas
-acima foram lidas do código, não supostas: as 66 ocorrências de `var(--…)` e a ausência de hex no
-corpo do `ciclo.css`; o `indexOf(':root')` nos dois leitores; o `senhaDaEscolaOk`/`sessionStorage`
-no portão da Produção; `motor/servidor/bastidores.js:550` para a folha compartilhada.
-
-**Referências.** O estudo de paletas entregue pelo dono do produto (16/10/2026) ·
-`IDENTIDADE-VISUAL.md` (o contrato, e o elo de 25/09/2026 que o criou) · `CONGELAMENTO.md`
-(«alterar a estrutura de menu ou navegação») · os elos do mesmo dia: a estratégia comercial
-(`PLANEJAMENTO-LASTRO.md` §L11–L12) e a apresentação do Sistema Lastro (a entrada anterior).
+**Referências.** O elo `8b94c44` («a falta no contexto do ato se anuncia» — de onde vem a convenção
+do realce, e o `?aluna=`) · `motor/nucleo/porta.js` (`estadosDasAnamneses`, `legado` × `vigente`) ·
+`tools/gerar-ciclo.sh` (a cópia `porta/` → `plano-observacao/` do pacote, que leva a correção ao
+site no deploy da geração).
 
 **O que ainda não está feito.**
-- **Nada da funcionalidade.** Não há paleta nova no `ciclo.css`, não há item de menu «Identidade
-  visual», não há campo «Paleta de cores», não há persistência e não houve regeração de pacote. O
-  contrato está documentado e em vigor desde 25/09/2026; o **catálogo** desde hoje; a
-  **funcionalidade não existe**.
-- **A `C15` está aberta:** a preferência é **por escola**, **por usuário** ou **por navegador**.
-  Sem ela não se desenha a persistência — e é ela que decide se há um campo novo no dado da escola.
-- **A decisão do mecanismo está aberta:** aplicar **no navegador** (funciona em página estática, não
-  regera pacote, não viaja entre dispositivos) ou **no servidor** (viaja, e cria um campo «de
-  alguém»). O caminho do servidor existe: `"run_worker_first": true` nos `wrangler.<escola>.jsonc`.
-- **Os hex das doze combinações não existem** — por desenho. Especificar e medir é a etapa **V1**.
-- **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
-  e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
-  paletas, «a vigente» é a resposta provável — e continua a ser decisão.
+- **A correção não está no ar por si.** O deploy publica o pacote gerado, e o gerador copia `porta/`
+  para dentro dele: a correção chega ao site no **próximo deploy** de cada escola (a geração
+  disparada pelo PO, ou um `wrangler deploy`). A escola `fita` só a verá depois disso.
+- **As duas anamneses da `fita` continuam homónimas.** As duas estão com o apelido «Mari» (a de
+  14:04 era «Vavá» e foi renomeada na edição, pelo defeito (iii)). A tela corrigida mostra as duas
+  com o mesmo nome — nomeadas, mas ainda ambíguas. Corrigir o **dado** (um ajuste renomeando uma de
+  volta, ou apagando uma) é decisão de quem conhece o caso, e não foi tomada aqui.
+- **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
+  `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
+  contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
 
 ## O que está pendente
-
-## 15/10/2026 — Um conserto commitado e não publicado não conserta nada
-
-- **A `ponta` não existe mais** — foi criada (run #5, 17:40) e expurgada (17:53) pelo dono do produto.
-  Não há escola nenhuma agora, e o repositório está no estado de repositório recém-nascido.
-- **O expurgo da `ponta` deixou um rastro que vale saber**: o KV tinha **0 chave** (a escola nasceu e
-  morreu antes de qualquer anamnese ser gravada), então a limpeza não teve o que limpar — e o índice
-  `escola/ponta/indice.json` ficou com o elo, como deve.
-- **A `ponta` foi criada com o manifesto base `NOME="Ciclo 01 — Ponta"` e o professor `tiago`** — e o
-  mesmo arquivo é o MODELO do scaffolder. Criar escola para o professor do modelo deixou o modelo e a
-  escola no mesmo lugar; o `cp` condicional resolve a cópia, mas a sobreposição de papéis (modelo ×
-  escola real) é um desenho a revisar — fica registrado, não decidido.
 
 ## 15/10/2026 — O professor homônimo: o identificador é o slug, e o sobrenome o separa
 
@@ -313,6 +263,19 @@ no portão da Produção; `motor/servidor/bastidores.js:550` para a folha compar
 - **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
   e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
   paletas, «a vigente» é a resposta provável — e continua a ser decisão.
+
+## 16/10/2026 — A tela diz de quem é a ficha, e o obrigatório se anuncia
+
+- **A correção não está no ar por si.** O deploy publica o pacote gerado, e o gerador copia `porta/`
+  para dentro dele: a correção chega ao site no **próximo deploy** de cada escola (a geração
+  disparada pelo PO, ou um `wrangler deploy`). A escola `fita` só a verá depois disso.
+- **As duas anamneses da `fita` continuam homónimas.** As duas estão com o apelido «Mari» (a de
+  14:04 era «Vavá» e foi renomeada na edição, pelo defeito (iii)). A tela corrigida mostra as duas
+  com o mesmo nome — nomeadas, mas ainda ambíguas. Corrigir o **dado** (um ajuste renomeando uma de
+  volta, ou apagando uma) é decisão de quem conhece o caso, e não foi tomada aqui.
+- **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
+  `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
+  contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
 
 ## Pendências anteriores (índice)
 
@@ -469,6 +432,7 @@ no portão da Produção; `motor/servidor/bastidores.js:550` para a folha compar
 - **15/10/2026** — O gerador do HANDOFF quebrava com o repositório sem escola → `REGISTRO.md` L13231
 - **15/10/2026** — O expurgo apagou o MODELO: a escola `ponta` não pôde… → `REGISTRO.md` L13267
 - **15/10/2026** — Criar escola para o professor do MODELO: o `cp` recusava o… → `REGISTRO.md` L13328
+- **15/10/2026** — Um conserto commitado e não publicado não conserta nada → `REGISTRO.md` L13381
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

@@ -13753,3 +13753,79 @@ no portão da Produção; `motor/servidor/bastidores.js:550` para a folha compar
 - **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
   e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
   paletas, «a vigente» é a resposta provável — e continua a ser decisão.
+
+## 16/10/2026 — A tela diz de quem é a ficha, e o obrigatório se anuncia
+
+**O que motivou.** O teste do PO completo na escola `fita` (16/10) expôs quatro defeitos da porta e
+um quinto no motor, e eles se encadearam. (i) A **estante** mostrava só data e hora: o apelido
+*chegava* do servidor (`/api/anamnese-estados` → `apelido`) e era descartado na pintura — com duas
+fichas do mesmo dia, nada dizia de quem era cada uma. (ii) O «editar» abria a condução **sem pedir a
+senha**: o portão existia, mas só no «Começar». (iii) O formulário de edição abria com o campo
+**«aluna» vazio** — `editarAnamnese` carregava `respostas` e nunca o `contexto`, e a URL da lista não
+traz `?aluna=`. (iv) O **obrigatório não se anunciava no controle**: havia o selo em prosa
+(«obrigatório»), mas nem asterisco nem realce junto do campo que se digita — e a deficiência **não
+era da anamnese**, era de toda tela que desenha nós. O (i) e o (iii) cobraram o preço: a anamnese de
+uma aluna foi reaberta como se fosse a de outra — porque nada na lista dizia de quem era — e o
+apelido foi gravado por cima. Daí o (v), que apareceu no ecrã: dois registros do **mesmo apelido**, e
+as **duas** fichas marcadas «substituída» — a vigente inclusive.
+
+**O que foi decidido.**
+- **O apelido abre a linha da estante**, com a data ao lado. É o sujeito da ficha; sem ele a lista é
+  ambígua por construção, e a ambiguidade não se resolve com cuidado do professor.
+- **A edição exige a senha do professor** — a mesma do «Começar». É ESCRITA (o `PUT` reescreve o
+  registro): a autorização não se herda de quem chegou pela lista. O aviso é **na entrada**, e não no
+  fim, depois de responder tudo.
+- **O contexto do ato vem do ENVELOPE**, não da URL: `aplicarContextoDoEnvelope` preenche
+  escola/professor/ciclo/aluna e **cria a `<option>`** que o `select` exige para aceitar o valor —
+  sem ela, a atribuição é descartada em silêncio (a mesma armadilha que o elo de 8b94c44 fechou para
+  o `?aluna=`).
+- **O obrigatório se anuncia no CONTROLE**: asterisco no título (antes de digitar) e realce enquanto
+  vazio — a **mesma** regra que o contexto do ato já usava (`.barra .campo.falta`). Vale para **todo
+  formulário que desenha nós** (anamnese, plano, PO); a folha derivada fica de fora, porque não é
+  obrigatória nem opcional — ela se pré-preenche.
+- **O vigente nunca é «legado».** `estadosDasAnamneses` marcava `legado` quando havia dois registros
+  do mesmo apelido — **inclusive o atual**, que saía no ecrã como «substituída · vigente», que se
+  contradiz. O atual é `solta`; os anteriores é que foram substituídos.
+
+**Onde entrou.**
+- `porta/index.html` — o apelido na estante (`.quem` + `pintarFichas`); `tituloDoNo` com o asterisco
+  e `.caixa.falta`; `aplicarContextoDoEnvelope` ligado em `editarAnamnese`; `apontarSenhaFaltando` e
+  a trava do «Guardar» (que recusa o `PUT` sem a senha).
+- `motor/nucleo/porta.js` — `estadosDasAnamneses`: o vigente é `solta`, nunca `legado`.
+- `experimentos/provar-ajustes-anamnese.js` — a prova (novo): roda o `<script>` real da porta num DOM
+  mínimo e dirige o caminho real do «Guardar».
+
+**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` (26 provas, todas passando) roda o
+`<script>` real de `porta/index.html` num DOM mínimo — como o `provar-contexto-do-ato.js` — e dirige o
+**caminho real do «Guardar»**: sem a senha o `PUT` **não chega ao servidor**, e com a senha a trava não
+se aplica. Cobre ainda o apelido na estante (e o caso «sem apelido»), o asterisco do obrigatório (que
+**não** sai no derivado nem no opcional), o pré-preenchimento do contexto a partir do envelope, o
+realce da senha faltante e os estados (o vigente `solta`, o anterior `legado`). **Controle negativo:**
+revertendo as quatro correções de tela e a do motor, **7 provas falham** — a prova tem dentes. O
+`provar-contexto-do-ato.js` continua verde (37 provas): a convenção do realce é a mesma, e nada
+afrouxou. As provas de `experimentos/` que falham por *paths* fixos a escolas ausentes deste worktree
+(`leticia`, `maria`) falham **igual na árvore pristina** — não são regressão desta mudança.
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` e
+`motor/` não estão na lista. A fórmula de hash, o `check-pacote.js`, as 17 regras e as 22 pétreas
+seguem iguais — o que muda é a **tela**, e uma derivação de estado do motor.
+
+**Com o quê.** `porta/index.html`, `motor/nucleo/porta.js`,
+`experimentos/provar-ajustes-anamnese.js`, `REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** O elo `8b94c44` («a falta no contexto do ato se anuncia» — de onde vem a convenção
+do realce, e o `?aluna=`) · `motor/nucleo/porta.js` (`estadosDasAnamneses`, `legado` × `vigente`) ·
+`tools/gerar-ciclo.sh` (a cópia `porta/` → `plano-observacao/` do pacote, que leva a correção ao
+site no deploy da geração).
+
+**O que ainda não está feito.**
+- **A correção não está no ar por si.** O deploy publica o pacote gerado, e o gerador copia `porta/`
+  para dentro dele: a correção chega ao site no **próximo deploy** de cada escola (a geração
+  disparada pelo PO, ou um `wrangler deploy`). A escola `fita` só a verá depois disso.
+- **As duas anamneses da `fita` continuam homónimas.** As duas estão com o apelido «Mari» (a de
+  14:04 era «Vavá» e foi renomeada na edição, pelo defeito (iii)). A tela corrigida mostra as duas
+  com o mesmo nome — nomeadas, mas ainda ambíguas. Corrigir o **dado** (um ajuste renomeando uma de
+  volta, ou apagando uma) é decisão de quem conhece o caso, e não foi tomada aqui.
+- **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
+  `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
+  contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
