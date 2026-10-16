@@ -13858,3 +13858,64 @@ a de 14:04 era da Vavá e fora renomeada na edição, pelo defeito (iii). O enve
 duas voltam a ser `solta · vigente` — o «substituída» que aparecia nas duas some, porque some a
 duplicidade. É dado de **teste** (dados 100% falsos, `tools/.escolas-teste`), corrigido por operação
 direta no KV — não por código: nenhum apelido foi chumbado em programa nenhum.
+
+## 16/10/2026 — A senha autoriza o ATO, não a SESSÃO
+
+**O que motivou.** O mesmo teste do PO na `fita`, no passo seguinte: o professor entrou na edição de
+uma anamnese e **mexeu no formulário sem digitar a senha** — a tela só avisava, não travava. E a
+senha, uma vez digitada, **ficava guardada**: `guardarSenha()` a escrevia em `sessionStorage`
+(`lancamento:senha`) depois de gravar. Numa máquina partilhada, quem entrasse depois reabria a edição
+com o direito que não era seu. Faltava ainda uma terceira: **excluir** não pedia senha nenhuma —
+bastava o clique e o `confirm`.
+
+**O que foi decidido.**
+- **A senha não se registra em lugar nenhum.** `guardarSenha()` saiu; `senhaDaEscola()` lê só o campo;
+  `esquecerSenha()` apaga o campo, derruba o «validado» e limpa o resíduo de sessões anteriores à
+  correção. Ela é apagada **ao SAIR** e **depois de GRAVAR** — a senha autoriza um ato, não empresta
+  uma sessão a quem venha depois no mesmo navegador.
+- **O formulário fica em SÓ-LEITURA enquanto a senha não vale** (`travarFormularioSemSenha`): sem ela
+  os controles do nó ficam `disabled`, o «Guardar» fica travado, e um aviso diz o que fazer. Vale
+  para a **anamnese nova** (onde o «Começar» já a exigia) e para a **edição** (que entra pela estante
+  e não passava por portão nenhum). No plano e no PO **não se aplica**: a autorização deles é a
+  curadoria.
+- **A EXCLUSÃO exige a senha**, como a edição. Apagar não se desfaz: recusa sem ela, e **aponta** o
+  campo em vez de só dizer que faltou.
+
+**Onde entrou.**
+- `porta/index.html` — `esquecerSenha` e `travarFormularioSemSenha` (novos); `senhaDaEscola` só lê o
+  campo e `guardarSenha` sai; a chamada da trava no fim de `renderPergunta` e em `validarSenha`; o
+  portão de `apagarAnamnese`; o `esquecerSenha()` no «Sair» e nas duas gravações (edição e cofre); o
+  aviso `#trava-senha` e o CSS do só-leitura.
+
+**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` cresceu de 26 para **39 provas**
+(todas passando): a senha nunca escrita na sessão, `esquecerSenha` limpando campo/estado/resíduo, a
+trava desabilitando e reabilitando os controles, a exclusão sem senha **não chegando ao servidor**, e
+a senha **apagada depois de a edição gravar** — tudo pelo caminho REAL do «Guardar». O
+`provar-contexto-do-ato.js` segue verde (37). **Controle negativo: 4 de 39 falham** com as correções
+revertidas — e ele **pegou uma fraqueza da própria prova**: a exclusão passava por acidente (o
+`confirm` do mock devolvia `false`, e o teste não distinguia «barrada pela senha» de «barrada pela
+confirmação»); o mock passou a devolver `true`, e a prova só passa agora porque a senha barra de
+verdade.
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` segue
+fora da lista. A âncora `.fipp` **não** mudou (o hook o confirmou na geração anterior do pacote): ela
+cobre as fontes do ciclo, e a porta é saída gerada.
+
+**Com o quê.** `porta/index.html`, `experimentos/provar-ajustes-anamnese.js`,
+`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote publicado),
+`REGISTRO.md`, `HANDOFF.md`.
+
+**Referências.** O elo imediatamente acima (a estante e a senha na edição — o defeito que abriu
+este) · `motor/servidor/README.md` (a autorização da porta) · `tools/criar-escola.sh` (que gerou o
+pacote, e cuja nav foi preservada na publicação manual).
+
+**O que ainda não está feito.**
+- **A trava da senha é de CLIENTE.** Nem `PUT /api/anamnese-editar/:id` nem
+  `DELETE /api/anamnese-vinculo/:id` recebem senha: quem monta o pedido à mão passa por fora. Vale
+  contra o engano e o acesso casual no mesmo navegador — não contra quem forja o pedido. Pôr a
+  conferência no servidor é decisão em aberto (e mexeria no contrato das rotas).
+- **A `fita` recebeu isto fora da cadeia**, como o elo anterior: geração manual do pacote + `wrangler
+  deploy`, porque o gerador só publica depois do PO (Pré-requisito 5). As demais escolas o recebem na
+  próxima geração delas.
+- **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
+  «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.

@@ -198,6 +198,13 @@
   .lista .quem.sem-sujeito { color: var(--falha); font-style: italic; }
   #filtro-fichas { margin: 0 0 .5rem; }
   .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
+  /* A TRAVA DA SENHA: sem ela validada, o que se responde fica em só-leitura — a senha é o
+     que autoriza a ESCRITA, e ela não se empresta a quem use o mesmo navegador depois. */
+  .trava-senha { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
+  .travado input, .travado select, .travado textarea, .travado button {
+    opacity: .55;
+    cursor: not-allowed;
+  }
   /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
      Tom de conversa — a professora é convidada a reler, não repreendida. */
   .socratica {
@@ -484,6 +491,7 @@
   <p class="sub">Uma pergunta por vez. O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
 
   <div id="socratica" class="socratica oculto"></div>
+  <div id="trava-senha" class="trava-senha oculto"></div>
   <div id="pergunta"></div>
 
   <div class="acoes">
@@ -650,22 +658,18 @@ function limparMemoria() {
 }
 
 /*
- * A senha do PROFESSOR selecionado — a que valida o «Fazer a anamnese» e a que
- * cifra o envelope da anamnese no navegador. O campo tem precedência sobre o que
- * já ficou na sessão, para o professor poder corrigi-la sem recarregar a página.
+ * A senha do PROFESSOR selecionado — a que AUTORIZA a escrita (a anamnese nova, a edição, a
+ * exclusão) e a que cifra o envelope da anamnese no navegador. Ela vive SÓ no campo, no
+ * instante do uso: **não se registra em lugar nenhum** (16/10/2026). Guardá-la — em
+ * `sessionStorage`, `localStorage`, cookie — daria a quem usasse o mesmo navegador depois o
+ * direito de reabrir a edição e mudar o que é do outro. A autorização de um não se empresta
+ * ao seguinte: saiu ou gravou, a senha se apaga.
  */
 const CHAVE_SENHA = 'lancamento:senha';
 
 function senhaDaEscola() {
   const campo = $('senha');
-  if (campo && campo.value) return campo.value;
-  try { return sessionStorage.getItem(CHAVE_SENHA) || ''; } catch (erro) { return ''; }
-}
-
-function guardarSenha() {
-  const campo = $('senha');
-  if (!campo || !campo.value) return;
-  try { sessionStorage.setItem(CHAVE_SENHA, campo.value); } catch (erro) { /* sem sessão */ }
+  return (campo && campo.value) || '';
 }
 
 /*
@@ -1141,6 +1145,8 @@ async function validarSenha() {
     sinalDeSenha(false, '');
   }
   atualizarComecar();
+  // A senha mudou de estado: o formulário aberto se trava ou se solta na hora.
+  travarFormularioSemSenha();
 }
 
 /*
@@ -1253,6 +1259,51 @@ function apontarSenhaFaltando(mensagem) {
     if (campo.focus) campo.focus();
   }
   sinalDeSenha(false, mensagem || '✗ digite a senha do professor para editar');
+}
+
+/*
+ * ESQUECER A SENHA — o que se faz ao SAIR e depois de GRAVAR. Apaga o campo, o resíduo de
+ * sessões anteriores à correção de 16/10/2026, e o «validado». Sem isto, quem entrasse
+ * depois neste navegador reabriria a edição com o direito que não é seu.
+ */
+function esquecerSenha() {
+  const campo = $('senha');
+  if (campo) campo.value = '';
+  try { sessionStorage.removeItem(CHAVE_SENHA); } catch (erro) { /* sem sessão */ }
+  SENHA_VALIDA = false;
+  sinalDeSenha(false, '');
+  atualizarComecar();
+}
+
+/*
+ * A TRAVA DA SENHA no formulário: enquanto ela não é validada, o que se responde fica em
+ * SÓ-LEITURA. A senha é o que autoriza a ESCRITA, e ela não se herda de quem chegou pela
+ * estante. Vale para a anamnese nova e para a edição; no plano e no PO não se aplica — a
+ * autorização deles é a curadoria.
+ */
+function travarFormularioSemSenha() {
+  if (FONTE !== 'anamnese') return;
+  const trava = !SENHA_VALIDA;
+  const raiz = $('pergunta');
+  if (raiz && raiz.querySelectorAll) {
+    for (const controle of raiz.querySelectorAll('input, select, textarea, button')) {
+      controle.disabled = trava;
+    }
+    if (raiz.classList && raiz.classList.toggle) raiz.classList.toggle('travado', trava);
+  }
+  const aviso = $('trava-senha');
+  if (aviso) {
+    aviso.innerHTML = trava
+      ? '<p>Digite a <b>senha do professor</b> na barra, no alto da página, para ' +
+        (EDITANDO ? 'editar' : 'preencher') + '. Sem ela o formulário fica em só-leitura. ' +
+        'A senha não fica guardada: saiu ou gravou, ela se apaga.</p>'
+      : '';
+    if (aviso.classList && aviso.classList.toggle) aviso.classList.toggle('oculto', !trava);
+  }
+  // O «Guardar» também depende da senha (a escrita a exige) e tem o seu próprio ciclo (a
+  // prévia o habilita); aqui só se ACRESCENTA a trava, nunca se solta.
+  const gravar = $('gravar');
+  if (gravar && trava) gravar.disabled = true;
 }
 
 function apontarContextoFaltando(faltam) {
@@ -3697,6 +3748,9 @@ function renderPergunta() {
   $('anterior').disabled = INDICE === 0;
   $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
   $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';
+  // A última palavra é da TRAVA: o formulário recém-desenhado nasce em só-leitura se a
+  // senha ainda não foi validada.
+  travarFormularioSemSenha();
 }
 
 /*
@@ -4288,6 +4342,14 @@ function avisarNaFicha(id, texto, tipo) {
  * confirma antes, porque apagar não se desfaz.
  */
 async function apagarAnamnese(id) {
+  // A EXCLUSÃO é escrita: exige a senha do professor, como a edição. Sem ela, recusa — e
+  // aponta o campo, em vez de só dizer que faltou. Apagar não se desfaz; que não se faça
+  // por um clique de quem chegou pela estante.
+  if (!SENHA_VALIDA) {
+    avisarNaFicha(id, 'A exclusão exige a senha do professor — digite-a na barra, no alto da página.', 'erro');
+    apontarSenhaFaltando('✗ digite a senha do professor para excluir');
+    return;
+  }
   if (!window.confirm('Apagar a anamnese ' + id + '?\n\nÉ definitivo — e só é possível porque ela não está ligada a nenhum Plano de Observação.')) return;
   try {
     const resposta = await fetch('api/anamnese-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
@@ -5247,6 +5309,9 @@ async function iniciar() {
     // salto direto (plano), volta à CASA — o PO — que passa a mostrar
     // «Continuar»/«Começar de novo» do plano.
     salvar();
+    // SAIR não leva a senha: ela autoriza um ATO, não uma sessão. Quem entrar depois neste
+    // navegador digita a sua — e a edição não reabre com o direito de outro.
+    esquecerSenha();
     if (EM_AUTOABERTURA) window.location.href = urlParaFonte('po');
     else history.back();
   });
@@ -5357,6 +5422,8 @@ async function iniciar() {
         $('gravacao').innerHTML = '<p class="ok">editada em sítio: <code>' + escapar(EDITANDO) + '</code></p>';
         EDITANDO = null;
         limparMemoria();
+        // Gravou: a senha cumpriu o seu papel. Não fica.
+        esquecerSenha();
         await atualizarFichas();
         $('fecho').classList.add('oculto');
         $('abertura').classList.remove('oculto');
@@ -5424,7 +5491,8 @@ async function iniciar() {
             // cumpriu o papel.
             carimboPendente = null;
             limparMemoria();
-            guardarSenha();
+            // Gravou: a senha cumpriu o seu papel. Não fica guardada.
+            esquecerSenha();
             $('retomada').classList.add('oculto');
             $('gravacao').innerHTML += '<p class="ok">anamnese cifrada em <code>' +
               escapar(retorno.chave || dados.id) + '</code></p>';

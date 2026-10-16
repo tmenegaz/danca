@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T11:54:33-0300`
-Commit atual: `7f52720` — fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
+Gerado em: `2026-10-16T12:12:23-0300`
+Commit atual: `66aec8b` — chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+66aec8b chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
 7f52720 fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
 8b94c44 fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
 c27307b docs(estrutura): o handoff regenerado passa a levar o registo da identidade visual
@@ -81,7 +82,6 @@ d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professo
 ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrado — `env` fora de escopo
 9eade85 Merge origin/main (a escola fita) em main (a validação por caminho)
 2e4607c fix(estrutura): a validação de criar escola é por caminho — o formulário tinha razão
-1362156 feat(estrutura): criar a escola fita (motor completo)
 ```
 
 ## Por professor
@@ -145,126 +145,68 @@ ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrad
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — A tela diz de quem é a ficha, e o obrigatório se anuncia
+## 16/10/2026 — A senha autoriza o ATO, não a SESSÃO
 
-**O que motivou.** O teste do PO completo na escola `fita` (16/10) expôs quatro defeitos da porta e
-um quinto no motor, e eles se encadearam. (i) A **estante** mostrava só data e hora: o apelido
-*chegava* do servidor (`/api/anamnese-estados` → `apelido`) e era descartado na pintura — com duas
-fichas do mesmo dia, nada dizia de quem era cada uma. (ii) O «editar» abria a condução **sem pedir a
-senha**: o portão existia, mas só no «Começar». (iii) O formulário de edição abria com o campo
-**«aluna» vazio** — `editarAnamnese` carregava `respostas` e nunca o `contexto`, e a URL da lista não
-traz `?aluna=`. (iv) O **obrigatório não se anunciava no controle**: havia o selo em prosa
-(«obrigatório»), mas nem asterisco nem realce junto do campo que se digita — e a deficiência **não
-era da anamnese**, era de toda tela que desenha nós. O (i) e o (iii) cobraram o preço: a anamnese de
-uma aluna foi reaberta como se fosse a de outra — porque nada na lista dizia de quem era — e o
-apelido foi gravado por cima. Daí o (v), que apareceu no ecrã: dois registros do **mesmo apelido**, e
-as **duas** fichas marcadas «substituída» — a vigente inclusive.
+**O que motivou.** O mesmo teste do PO na `fita`, no passo seguinte: o professor entrou na edição de
+uma anamnese e **mexeu no formulário sem digitar a senha** — a tela só avisava, não travava. E a
+senha, uma vez digitada, **ficava guardada**: `guardarSenha()` a escrevia em `sessionStorage`
+(`lancamento:senha`) depois de gravar. Numa máquina partilhada, quem entrasse depois reabria a edição
+com o direito que não era seu. Faltava ainda uma terceira: **excluir** não pedia senha nenhuma —
+bastava o clique e o `confirm`.
 
 **O que foi decidido.**
-- **O apelido abre a linha da estante**, com a data ao lado. É o sujeito da ficha; sem ele a lista é
-  ambígua por construção, e a ambiguidade não se resolve com cuidado do professor.
-- **A edição exige a senha do professor** — a mesma do «Começar». É ESCRITA (o `PUT` reescreve o
-  registro): a autorização não se herda de quem chegou pela lista. O aviso é **na entrada**, e não no
-  fim, depois de responder tudo.
-- **O contexto do ato vem do ENVELOPE**, não da URL: `aplicarContextoDoEnvelope` preenche
-  escola/professor/ciclo/aluna e **cria a `<option>`** que o `select` exige para aceitar o valor —
-  sem ela, a atribuição é descartada em silêncio (a mesma armadilha que o elo de 8b94c44 fechou para
-  o `?aluna=`).
-- **O obrigatório se anuncia no CONTROLE**: asterisco no título (antes de digitar) e realce enquanto
-  vazio — a **mesma** regra que o contexto do ato já usava (`.barra .campo.falta`). Vale para **todo
-  formulário que desenha nós** (anamnese, plano, PO); a folha derivada fica de fora, porque não é
-  obrigatória nem opcional — ela se pré-preenche.
-- **O vigente nunca é «legado».** `estadosDasAnamneses` marcava `legado` quando havia dois registros
-  do mesmo apelido — **inclusive o atual**, que saía no ecrã como «substituída · vigente», que se
-  contradiz. O atual é `solta`; os anteriores é que foram substituídos.
+- **A senha não se registra em lugar nenhum.** `guardarSenha()` saiu; `senhaDaEscola()` lê só o campo;
+  `esquecerSenha()` apaga o campo, derruba o «validado» e limpa o resíduo de sessões anteriores à
+  correção. Ela é apagada **ao SAIR** e **depois de GRAVAR** — a senha autoriza um ato, não empresta
+  uma sessão a quem venha depois no mesmo navegador.
+- **O formulário fica em SÓ-LEITURA enquanto a senha não vale** (`travarFormularioSemSenha`): sem ela
+  os controles do nó ficam `disabled`, o «Guardar» fica travado, e um aviso diz o que fazer. Vale
+  para a **anamnese nova** (onde o «Começar» já a exigia) e para a **edição** (que entra pela estante
+  e não passava por portão nenhum). No plano e no PO **não se aplica**: a autorização deles é a
+  curadoria.
+- **A EXCLUSÃO exige a senha**, como a edição. Apagar não se desfaz: recusa sem ela, e **aponta** o
+  campo em vez de só dizer que faltou.
 
 **Onde entrou.**
-- `porta/index.html` — o apelido na estante (`.quem` + `pintarFichas`); `tituloDoNo` com o asterisco
-  e `.caixa.falta`; `aplicarContextoDoEnvelope` ligado em `editarAnamnese`; `apontarSenhaFaltando` e
-  a trava do «Guardar» (que recusa o `PUT` sem a senha).
-- `motor/nucleo/porta.js` — `estadosDasAnamneses`: o vigente é `solta`, nunca `legado`.
-- `experimentos/provar-ajustes-anamnese.js` — a prova (novo): roda o `<script>` real da porta num DOM
-  mínimo e dirige o caminho real do «Guardar».
+- `porta/index.html` — `esquecerSenha` e `travarFormularioSemSenha` (novos); `senhaDaEscola` só lê o
+  campo e `guardarSenha` sai; a chamada da trava no fim de `renderPergunta` e em `validarSenha`; o
+  portão de `apagarAnamnese`; o `esquecerSenha()` no «Sair» e nas duas gravações (edição e cofre); o
+  aviso `#trava-senha` e o CSS do só-leitura.
 
-**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` (26 provas, todas passando) roda o
-`<script>` real de `porta/index.html` num DOM mínimo — como o `provar-contexto-do-ato.js` — e dirige o
-**caminho real do «Guardar»**: sem a senha o `PUT` **não chega ao servidor**, e com a senha a trava não
-se aplica. Cobre ainda o apelido na estante (e o caso «sem apelido»), o asterisco do obrigatório (que
-**não** sai no derivado nem no opcional), o pré-preenchimento do contexto a partir do envelope, o
-realce da senha faltante e os estados (o vigente `solta`, o anterior `legado`). **Controle negativo:**
-revertendo as quatro correções de tela e a do motor, **7 provas falham** — a prova tem dentes. O
-`provar-contexto-do-ato.js` continua verde (37 provas): a convenção do realce é a mesma, e nada
-afrouxou. As provas de `experimentos/` que falham por *paths* fixos a escolas ausentes deste worktree
-(`leticia`, `maria`) falham **igual na árvore pristina** — não são regressão desta mudança.
+**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` cresceu de 26 para **39 provas**
+(todas passando): a senha nunca escrita na sessão, `esquecerSenha` limpando campo/estado/resíduo, a
+trava desabilitando e reabilitando os controles, a exclusão sem senha **não chegando ao servidor**, e
+a senha **apagada depois de a edição gravar** — tudo pelo caminho REAL do «Guardar». O
+`provar-contexto-do-ato.js` segue verde (37). **Controle negativo: 4 de 39 falham** com as correções
+revertidas — e ele **pegou uma fraqueza da própria prova**: a exclusão passava por acidente (o
+`confirm` do mock devolvia `false`, e o teste não distinguia «barrada pela senha» de «barrada pela
+confirmação»); o mock passou a devolver `true`, e a prova só passa agora porque a senha barra de
+verdade.
 
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` e
-`motor/` não estão na lista. A fórmula de hash, o `check-pacote.js`, as 17 regras e as 22 pétreas
-seguem iguais — o que muda é a **tela**, e uma derivação de estado do motor.
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` segue
+fora da lista. A âncora `.fipp` **não** mudou (o hook o confirmou na geração anterior do pacote): ela
+cobre as fontes do ciclo, e a porta é saída gerada.
 
-**Com o quê.** `porta/index.html`, `motor/nucleo/porta.js`,
-`experimentos/provar-ajustes-anamnese.js`, `REGISTRO.md`, `HANDOFF.md`.
+**Com o quê.** `porta/index.html`, `experimentos/provar-ajustes-anamnese.js`,
+`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote publicado),
+`REGISTRO.md`, `HANDOFF.md`.
 
-**Referências.** O elo `8b94c44` («a falta no contexto do ato se anuncia» — de onde vem a convenção
-do realce, e o `?aluna=`) · `motor/nucleo/porta.js` (`estadosDasAnamneses`, `legado` × `vigente`) ·
-`tools/gerar-ciclo.sh` (a cópia `porta/` → `plano-observacao/` do pacote, que leva a correção ao
-site no deploy da geração).
+**Referências.** O elo imediatamente acima (a estante e a senha na edição — o defeito que abriu
+este) · `motor/servidor/README.md` (a autorização da porta) · `tools/criar-escola.sh` (que gerou o
+pacote, e cuja nav foi preservada na publicação manual).
 
 **O que ainda não está feito.**
-- **A correção não está no ar por si.** O deploy publica o pacote gerado, e o gerador copia `porta/`
-  para dentro dele: a correção chega ao site no **próximo deploy** de cada escola (a geração
-  disparada pelo PO, ou um `wrangler deploy`). A escola `fita` só a verá depois disso.
-- **As duas anamneses da `fita` continuam homónimas.** As duas estão com o apelido «Mari» (a de
-  14:04 era «Vavá» e foi renomeada na edição, pelo defeito (iii)). A tela corrigida mostra as duas
-  com o mesmo nome — nomeadas, mas ainda ambíguas. Corrigir o **dado** (um ajuste renomeando uma de
-  volta, ou apagando uma) é decisão de quem conhece o caso, e não foi tomada aqui.
-- **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
-  `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
-  contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
-
-**Elo do mesmo dia (16/10/2026) — a escola `fita` recebeu a porta corrigida, fora da cadeia.**
-
-O primeiro item de «O que ainda não está feito» foi resolvido **à mão**, e o motivo é o próprio
-desenho: a geração normal **não podia** publicar a correção. `tools/gerar-ciclo.sh` recusa um ciclo
-cujo manifesto ainda tem `[Preencher: …]` e `DOCS` vazio (Pré-requisito 5) — e só o **PO completo**
-dispara o deploy. Ou seja, a porta corrigida só chegaria ao site no **fim** do fluxo que se estava a
-testar: quem quer testar a anamnese tem de a ver antes do PO.
-
-O que se fez: `porta/` → o pacote (`cp -R`, o MESMO passo 1b do gerador) + a **navegação que o pacote
-já tinha**, reinjetada no lugar do marcador `<!-- NAV -->` — e `wrangler deploy -c wrangler.fita.jsonc`.
-A nav **não** foi refeita de propósito: `criar-escola.sh` (nav_zero, com Bastidores) gerou o pacote em
-13/10 e `gerar-ciclo.sh` tem menu próprio (sem Bastidores, com «Ciclos») — os dois diferem por desenho
-(`FRENTES.md`, C2). Refazer a nav traria uma **segunda** mudança (e um link de PDF morto, num ciclo sem
-documento) junto da correção. Mudança mínima: **um** arquivo, `plano-observacao/index.html` (263+/30−),
-— o resto do pacote já era idêntico.
-
-O que isso **não** faz, e fica dito: (i) o pacote em disco passa a ser um **híbrido** — porta de hoje,
-nav de 13/10 — até a próxima geração o reescrever inteiro (ela repõe a nav própria); (ii) o link
-«PDF do ciclo» e a nav de `gerar_nav` só aparecem nessa geração; (iii) as outras páginas do pacote
-seguem na nav de 13/10 (a correção não as toca). A âncora `.fipp` **não** muda: ela cobre as fontes do
-ciclo (`.md`/`.conf`), e o pacote é saída gerada.
-
-**O que isso muda para o dado.** As duas anamneses da `fita` estavam **homónimas** («Mari» nas duas):
-a de 14:04 era da Vavá e fora renomeada na edição, pelo defeito (iii). O envelope
-`fita/envelope/anamnese-20261016-1404.json` foi corrigido no KV para `contexto.aluna = "Vavá"`. As
-duas voltam a ser `solta · vigente` — o «substituída» que aparecia nas duas some, porque some a
-duplicidade. É dado de **teste** (dados 100% falsos, `tools/.escolas-teste`), corrigido por operação
-direta no KV — não por código: nenhum apelido foi chumbado em programa nenhum.
+- **A trava da senha é de CLIENTE.** Nem `PUT /api/anamnese-editar/:id` nem
+  `DELETE /api/anamnese-vinculo/:id` recebem senha: quem monta o pedido à mão passa por fora. Vale
+  contra o engano e o acesso casual no mesmo navegador — não contra quem forja o pedido. Pôr a
+  conferência no servidor é decisão em aberto (e mexeria no contrato das rotas).
+- **A `fita` recebeu isto fora da cadeia**, como o elo anterior: geração manual do pacote + `wrangler
+  deploy`, porque o gerador só publica depois do PO (Pré-requisito 5). As demais escolas o recebem na
+  próxima geração delas.
+- **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
+  «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.
 
 ## O que está pendente
-
-## 15/10/2026 — O professor homônimo: o identificador é o slug, e o sobrenome o separa
-
-- **A criação de escola e o cadastro conferem contra os diretórios do REPOSITÓRIO** (`professores/*`),
-  não contra o KV das outras escolas. É o escopo certo — a pasta é global —, mas significa que a
-  conferência depende de o repositório estar legível (a raiz já depende dele para tudo).
-- **A sobreposição modelo × escola real continua de pé**: `professores/tiago/` é o MODELO do
-  scaffolder e passa a ser também a pasta de um professor real quando a escola nasce. O `cp`
-  condicional resolve a cópia; o desenho dos dois papéis no mesmo diretório **não** foi decidido.
-- **Entradas antigas do cadastro (sem `slug`) só serão convertidas quando forem reescritas** — não há
-  migração. A leitura funciona com as duas formas, e nenhuma escola viva tem cadastro adicional hoje.
-- **O cadastro do Bastidores não pergunta o sobrenome em campo separado obrigatório**: ele é exigido
-  **pela colisão** (o 409 explica). O dono do produto escolheu exigir o sobrenome sempre na **criação
-  de escola**; no cadastro, a trava é o que reage.
 
 ## 15/10/2026 — O molde sai de `professores/`: molde não é professor
 
@@ -316,6 +258,18 @@ direta no KV — não por código: nenhum apelido foi chumbado em programa nenhu
 - **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
   `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
   contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
+
+## 16/10/2026 — A senha autoriza o ATO, não a SESSÃO
+
+- **A trava da senha é de CLIENTE.** Nem `PUT /api/anamnese-editar/:id` nem
+  `DELETE /api/anamnese-vinculo/:id` recebem senha: quem monta o pedido à mão passa por fora. Vale
+  contra o engano e o acesso casual no mesmo navegador — não contra quem forja o pedido. Pôr a
+  conferência no servidor é decisão em aberto (e mexeria no contrato das rotas).
+- **A `fita` recebeu isto fora da cadeia**, como o elo anterior: geração manual do pacote + `wrangler
+  deploy`, porque o gerador só publica depois do PO (Pré-requisito 5). As demais escolas o recebem na
+  próxima geração delas.
+- **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
+  «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.
 
 ## Pendências anteriores (índice)
 
@@ -473,6 +427,7 @@ direta no KV — não por código: nenhum apelido foi chumbado em programa nenhu
 - **15/10/2026** — O expurgo apagou o MODELO: a escola `ponta` não pôde… → `REGISTRO.md` L13267
 - **15/10/2026** — Criar escola para o professor do MODELO: o `cp` recusava o… → `REGISTRO.md` L13328
 - **15/10/2026** — Um conserto commitado e não publicado não conserta nada → `REGISTRO.md` L13381
+- **15/10/2026** — O professor homônimo: o identificador é o slug, e o… → `REGISTRO.md` L13424
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
