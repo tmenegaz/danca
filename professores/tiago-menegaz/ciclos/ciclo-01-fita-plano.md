@@ -21,7 +21,7 @@ subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
 | **Número total de aulas** | 7 |
 | **Volume de trabalho** | 3–6 séries |
 | **Condição de registro** | Na sala: professor, alunas da turma · observa: o próprio professor. |
-| **Metodologia de referência** | RAD |
+| **Metodologia de referência** | Escola livre |
 | **Quem escolhe a metodologia** | Eu escolho |
 | **Notação dominada** | Benesh |
 
