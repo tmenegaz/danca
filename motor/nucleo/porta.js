@@ -70,6 +70,23 @@ function valorDe(envelope, id) {
   return Array.isArray(valor) ? valor.join(' ') : String(valor);
 }
 
+/**
+ * A TURMA de um plano — UM nome, ou `null`.
+ *
+ * O plano é de UMA turma (16/10/2026): uma turma por plano, e a escolhida não se repete nos
+ * planos seguintes. O campo já foi MÚLTIPLO, e há envelopes gravados assim — por isso o
+ * array é lido (a primeira turma vale) em vez de descartado: o histórico não se reescreve, e
+ * uma estante que ignorasse esses planos mostraria a turma como livre quando não está.
+ */
+function turmaDoEnvelope(envelope) {
+  const reg = envelope && envelope.respostas ? envelope.respostas['contexto-turma'] : null;
+  const valor = reg && reg !== null && typeof reg === 'object' && 'valor' in reg ? reg.valor : reg;
+  if (valor === undefined || valor === null) return null;
+  const nome = Array.isArray(valor) ? valor[0] : valor;
+  const s = String(nome == null ? '' : nome).trim();
+  return s || null;
+}
+
 /** O relatório do motor, em linhas legíveis — o `alvo` é o rótulo da gravação. */
 function linhasDoRelatorio(relatorio, alvo) {
   const linhas = [];
@@ -474,6 +491,7 @@ async function planos(armazenamento) {
       valor: carimbo,
       rotulo: objetivo || carimbo,
       carimbo,
+      turma: turmaDoEnvelope(envelope),
       detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
       escola: (envelope.contexto || {}).escola || null,
       professor: (envelope.contexto || {}).professor || null,
@@ -519,6 +537,7 @@ async function estadosDosPlanos(armazenamento) {
       estado,
       carimbo,
       objetivo: valorDe(envelope, 'objetivo-geral'),
+      turma: turmaDoEnvelope(envelope),
       vinculada: por.length > 0,
       por,
       ajuste_de: envelope.ajuste_de || null,
@@ -773,6 +792,7 @@ module.exports = {
   apagarEnvelope,
   vinculos,
   valorDe,
+  turmaDoEnvelope,
   vinculosDePlano,
   planos,
   estadosDosPlanos,

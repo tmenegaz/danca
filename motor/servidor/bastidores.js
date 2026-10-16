@@ -259,6 +259,35 @@ function linhaDaRegua(valor) {
     '<button type="button" class="tirar-regua" title="Remover este nível">✕</button></span>';
 }
 
+/** O que FALTA numa turma para ela poder receber um plano de ensino. Devolve a lista dos
+ *  campos em falta, na linguagem da tela — vazia quando a turma está completa.
+ *
+ *  O RITMO DO CICLO é decisão da ESCOLA (IDEIA-PAINEL-ESCOLA §8.3): frequência, dias,
+ *  duração e o período do termo. Sem ele não há dose, não há calendário e não há número
+ *  total de aulas — e o plano sairia com quatro campos vazios para o professor adivinhar.
+ *  Por isso a turma não nasce pela metade (16/10/2026) e não se atribui uma turma
+ *  incompleta na curadoria.
+ */
+function faltaNoRitmoDaTurma(t) {
+  const falta = [];
+  if (!t) return ['o cadastro da turma'];
+  // Cada item vem COM o seu artigo — «os dias da semana», não «dias da semana». É o que faz
+  // a frase da mensagem sair direita: quem junta não tem de adivinhar o género.
+  if (!(Number(t.frequencia) > 0)) falta.push('a frequência semanal');
+  if (!Array.isArray(t.dias) || !t.dias.length) falta.push('os dias da semana');
+  if (!(Number(t.duracaoMin) > 0)) falta.push('a duração de cada aula');
+  if (!String(t.periodoInicio || '').trim()) falta.push('o início do período');
+  if (!String(t.periodoFim || '').trim()) falta.push('o fim do período');
+  return falta;
+}
+
+/** A frase da falta — os itens já trazem o artigo, e aqui só se juntam. */
+function fraseDaFalta(falta) {
+  if (!falta.length) return '';
+  if (falta.length === 1) return falta[0];
+  return falta.slice(0, -1).join(', ') + ' e ' + falta[falta.length - 1];
+}
+
 /** Monta o objeto-turma canónico a partir do que a Produção envia. */
 function normalizarTurma(corpo) {
   const nome = String(corpo.nome || '').trim();
@@ -700,10 +729,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             : '',
         ].filter(Boolean).join(' · ');
         const detalhe = [t.nivelReferencia, t.programaReferencia, ritmo].filter(Boolean).join(' · ');
+        // A TURMA INCOMPLETA SE ANUNCIA. O ritmo é o que o plano lê — e uma turma sem ele
+        // não pode ser atribuída na curadoria. Dizer isto no cadastro é o que faz a direção
+        // saber o que falta antes de tentar atribuir (16/10/2026).
+        const falta = faltaNoRitmoDaTurma(t);
+        const avisoDeRitmo = falta.length
+          ? '<span class="selo falta-ritmo" title="sem isto a turma não pode ser atribuída na curadoria">falta ' +
+            esc(fraseDaFalta(falta)) + '</span>'
+          : '';
         const regua = rubricaDaTurma(t);
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
           '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
-          (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') + '</span>' +
+          (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
+          (avisoDeRitmo ? ' ' + avisoDeRitmo : '') + '</span>' +
           '<span class="acoes"><button class="apagar" data-tipo="turma" data-alvo="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
           '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
@@ -742,7 +780,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // Os três grupos da curadoria — os três pelo MESMO componente. O repertório tem a lista
   // longa (84 termos), mas isso é problema do menu, não do desenho: a janela de um lookup do
   // navegador não se estiliza, e saía escura e apertada ao lado destes. Um componente só.
-  const escolarTurmasCuradoria = escolhedor('esc-turmas', listaTurmas.map((t) => ({ valor: t.nome })));
+  const escolarTurmasCuradoria = escolhedor('esc-turmas', listaTurmas.map((t) => {
+    // A turma sem ritmo não se atribui: o plano dela nasceria sem dose nem calendário. Ela
+    // continua na lista — a direção precisa de a ver para saber o que corrigir —, mas
+    // ANUNCIADA, com o que falta (16/10/2026).
+    const falta = faltaNoRitmoDaTurma(t);
+    return {
+      valor: t.nome,
+      rotulo: falta.length ? t.nome + ' — falta ' + fraseDaFalta(falta) + ' (não pode ser atribuída)' : t.nome,
+    };
+  }));
   const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })));
   const escolarRepertorioCuradoria = escolhedor(
     'esc-repertorio',
@@ -849,6 +896,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.linha-turma .nome{flex:1 1 auto;min-width:0;}' +
     '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:var(--soft);}' +
     '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--creme-2);border-radius:4px;font-size:.82rem;color:var(--tinta);}' +
+    // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
+    // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
+    '.selo{display:inline-block;padding:.05rem .45rem;border-radius:999px;font-size:.78rem;border:1px solid var(--gold-borda,#d9c98f);}' +
+    '.falta-ritmo{background:#fdf3d8;color:#7a5a12;border-color:#e0c98a;}' +
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
     'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
     'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
@@ -1794,6 +1845,18 @@ async function fetch(request, env) {
     }
     const nova = normalizarTurma(corpo);
     if (!nova.nome) return json(400, { ok: false, erro: 'informe o nome da turma' });
+    // O RITMO é obrigatório: a turma completa é a que pode receber um plano. Sem isto, o
+    // plano sairia com quatro campos vazios — e o professor não tem como saber a dose que a
+    // escola decidiu (16/10/2026).
+    const falta = faltaNoRitmoDaTurma(nova);
+    if (falta.length) {
+      return json(400, {
+        ok: false,
+        erro: 'a turma precisa de ' + fraseDaFalta(falta) + ' — é o ritmo do ciclo, e é a escola ' +
+          'que o declara: é dele que saem o calendário e o número total de aulas do plano.',
+        falta,
+      });
+    }
     const lista = await turmas(kv, escola);
     if (lista.some((t) => t && t.id === nova.id)) return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
     lista.push(nova);
@@ -2109,13 +2172,37 @@ async function fetch(request, env) {
     const professor = String(corpo.professor || '').trim();
     const modalidade = String(corpo.modalidade || '').trim();
     if (!professor || !modalidade) return json(400, { ok: false, erro: 'escolha o professor e a modalidade' });
+    const turmasPedidas = Array.isArray(corpo.turmas) ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean) : [];
+    // NÃO SE LIBERA UM PLANO PARA UMA TURMA SEM RITMO (16/10/2026). A curadoria é o que
+    // autoriza o professor a fazer o plano daquela turma; se a turma não tem frequência,
+    // dias, duração e período, o plano nasceria com quatro campos vazios e ninguém saberia
+    // a dose. A recusa diz QUAL turma e o que falta — e o caminho é o cadastro da turma.
+    if (turmasPedidas.length) {
+      const todas = await turmas(kv, escola);
+      const porNome = new Map(todas.map((t) => [t.nome, t]));
+      const faltando = [];
+      for (const nome of turmasPedidas) {
+        const t = porNome.get(nome);
+        const falta = t ? faltaNoRitmoDaTurma(t) : ['o cadastro (esta turma não existe na escola)'];
+        if (falta.length) faltando.push(nome + ' — falta ' + fraseDaFalta(falta));
+      }
+      if (faltando.length) {
+        return json(400, {
+          ok: false,
+          erro: 'não se atribui uma turma sem o ritmo declarado: ' + faltando.join('; ') +
+            '. Declare a frequência, os dias, a duração e o período no cadastro da turma (aba Turmas), ' +
+            'e atribua depois.',
+          turmas: faltando,
+        });
+      }
+    }
     const id = idCuradoria(professor, modalidade);
     const nova = {
       id,
       professor: slugificar(professor),
       modalidade,
       tradicao: String(corpo.tradicao || '').trim(),
-      turmas: Array.isArray(corpo.turmas) ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean) : [],
+      turmas: turmasPedidas,
       repertorio: Array.isArray(corpo.repertorio) ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean) : [],
       alunas: Array.isArray(corpo.alunas) ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [],
     };
@@ -2147,4 +2234,12 @@ async function fetch(request, env) {
   return json(404, { ok: false, erro: 'não encontrado' });
 }
 
-module.exports = { fetch, temProfessor, senhaDaEscolaOk };
+module.exports = {
+  fetch,
+  temProfessor,
+  senhaDaEscolaOk,
+  // As duas peças do RITMO da turma, exportadas para a prova: o que falta numa turma para
+  // ela poder receber um plano, e a frase que diz isso em português (16/10/2026).
+  faltaNoRitmoDaTurma,
+  fraseDaFalta,
+};

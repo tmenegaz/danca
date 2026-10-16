@@ -85,6 +85,17 @@
     display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
     margin-top: .45rem;
   }
+  /* A TURMA OCUPA A LINHA INTEIRA do cabeçalho (16/10/2026): ela é uma lista com o
+     estado de cada plano, e não caberia ao lado dos campos de uma linha só. Fica
+     depois do ciclo e antes da senha, que é onde o professor diz de que se trata. */
+  .barra details.ctx-ato .ctx-campos .ctx-turma { flex: 1 1 100%; align-items: flex-start; }
+  .barra details.ctx-ato .ctx-campos .ctx-turma label { padding-top: .15rem; }
+  .barra details.ctx-ato .ctx-campos .ctx-turma .grade { display: flex; flex-wrap: wrap; gap: 0 .6rem; }
+  .barra details.ctx-ato .ctx-campos .ctx-turma .opcao { padding: .15rem .3rem; }
+  /* O QUE JÁ FOI CONFERIDO NÃO SE MEXE. Enquanto o professor preenche, os campos que
+     dizem de que se trata o ato ficam apagados — não é enfeite: é a trava de
+     `travarCabecalho`. A senha fica de fora (é ela que autoriza a escrita). */
+  .barra.ctx-travado .ctx-campos .campo:not(.campo-senha) { opacity: .6; }
   /* Dentro da barra os campos são miúdos: a medida de toque do site (15px) vence
      aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
   .barra .campo input {
@@ -126,6 +137,13 @@
   .opcao.nao-medido { border-top: 1px dashed var(--suave); margin-top: .3rem; font-style: italic; color: var(--suave); }
   .opcao.desabilitada { opacity: .45; cursor: not-allowed; }
   .opcao.desabilitada:hover { background: transparent; }
+  /* A TURMA JÁ PLANEJADA: bloqueada, mas LEGÍVEL — o professor precisa saber de quem é o
+     plano e alcançá-lo. O cinza é do texto, não da linha inteira: o atalho tem de parecer
+     clicável. */
+  .opcao.travada { opacity: 1; color: var(--suave); }
+  .opcao.travada:hover { background: transparent; }
+  .opcao.travada input { cursor: not-allowed; }
+  .atalho-do-plano { font-size: .82rem; white-space: nowrap; }
   /* Os CONTROLES são a única coisa sans do projeto (`--ui`): é onde se digita e se
      clica, e a serifa atrapalha em corpo pequeno de interface. As medidas são as do
      formulário de lançamento do site, termo a termo (`font: 15px/1.5 var(--ui)`,
@@ -452,10 +470,17 @@
         <select id="ctx-professor"><option value="">— escolher —</option></select></span>
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
         <input type="text" id="ctx-ciclo" value=""></span>
+      <!-- A TURMA OBSERVADA no CABEÇALHO (16/10/2026). Só o plano de ensino a tem: o
+           ciclo é de UMA turma, e a escolha dela é o que diz de que se trata o plano.
+           A lista (com as turmas já planejadas bloqueadas e o atalho para o plano) é
+           desenhada por `renderTurmaDoCabecalho`; nas outras fontes, some. -->
+      <span class="campo ctx-turma" id="ctx-turma-campo" hidden>
+        <label>turma observada</label>
+        <div id="ctx-turma-grade"></div></span>
       <span class="campo"><label for="ctx-aluna">aluna</label>
         <select id="ctx-aluna"><option value="">— nenhuma —</option></select>
         <button type="button" class="limpar-aluna" id="limpar-aluna" title="desmarcar a aluna" aria-label="desmarcar a aluna">×</button></span>
-      <span class="campo"><label for="senha">senha do professor</label>
+      <span class="campo campo-senha"><label for="senha">senha do professor</label>
         <input type="password" id="senha" autocomplete="off">
         <span class="senha-status" id="senha-status"></span></span>
     </div>
@@ -726,7 +751,7 @@ function atualizarComecar() {
   // PO/plano, `disabled = true` na curadoria, e a anamnese com a sua própria conta): o
   // contexto vazio só aparecia no fim, e trocar de professor deixava a trava da curadoria
   // presa de um professor para o outro.
-  const faltam = contextoFaltando();
+  const faltam = contextoFaltandoCompleto();
   const senhaOk = FONTE === 'anamnese' ? SENHA_VALIDA : true;
   const semCuradoria =
     (FONTE === 'plano' || FONTE === 'po') && CURADORIA_CARREGADA && CURADORIAS.length === 0;
@@ -1011,13 +1036,90 @@ function turmaDoPlano() {
 /* O NÚMERO DE AULAS — a conta do período com a frequência semanal. Sem as duas pontas
  * do período (ou sem a frequência), não há conta: devolve nulo, e o campo segue
  * editável — a tela nunca inventa um número. */
-function numeroDeAulasDaTurma(t) {
-  if (!t || !t.periodoInicio || !t.periodoFim || !t.frequencia) return null;
-  const inicio = new Date(t.periodoInicio + 'T00:00:00');
-  const fim = new Date(t.periodoFim + 'T00:00:00');
+/*
+ * O NÚMERO DE AULAS — a conta do período com a frequência. Sem as duas pontas do período
+ * (ou sem a frequência), não há conta: devolve nulo, e o campo segue editável — a tela
+ * nunca inventa um número.
+ *
+ * COM OS DIAS DECLARADOS, a conta é a das aulas que CAEM nesses dias: ter/qui/sex, de 16 a
+ * 30 de outubro, são sete encontros, e não a média de seis que a fórmula por semanas daria.
+ * Sem os dias (ou com um dia que o calendário não conhece), vale a média do período — o que
+ * sempre se fez, e melhor do que não dar número nenhum.
+ */
+const DIAS_POR_CODIGO = { seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, 'sáb': 6, sab: 6, dom: 0 };
+
+function numeroDeAulas(periodo) {
+  const p = periodo || {};
+  if (!p.inicio || !p.fim || !p.frequencia) return null;
+  const inicio = new Date(p.inicio + 'T00:00:00');
+  const fim = new Date(p.fim + 'T00:00:00');
   if (isNaN(inicio.getTime()) || isNaN(fim.getTime()) || fim < inicio) return null;
+
+  const codigos = (Array.isArray(p.dias) ? p.dias : [])
+    .map((d) => DIAS_POR_CODIGO[String(d).trim().toLowerCase()])
+    .filter((c) => c !== undefined);
+  if (codigos.length) {
+    let n = 0;
+    const dia = new Date(inicio.getTime());
+    while (dia <= fim) {
+      if (codigos.indexOf(dia.getDay()) !== -1) n += 1;
+      dia.setDate(dia.getDate() + 1);
+    }
+    return Math.max(1, n);
+  }
+
   const dias = Math.floor((fim - inicio) / 86400000) + 1;
-  return Math.max(1, Math.round((dias / 7) * t.frequencia));
+  return Math.max(1, Math.round((dias / 7) * p.frequencia));
+}
+
+/** O período do plano como o motor o grava: `{inicio, fim}`. */
+function periodoDoPlano() {
+  const v = RESPOSTAS.get('contexto-calendario');
+  if (!v || typeof v !== 'object') return {};
+  return { inicio: v.inicio || null, fim: v.fim || null };
+}
+
+/** A frequência do plano como o motor a grava: `{vezes, por, dias}`. */
+function frequenciaDoPlano() {
+  const v = RESPOSTAS.get('contexto-frequencia');
+  if (!v || typeof v !== 'object') return {};
+  return { vezes: Number(v.vezes) || null, dias: Array.isArray(v.dias) ? v.dias : [] };
+}
+
+/**
+ * O PERÍODO E A FREQUÊNCIA com que o total de aulas se calcula — DO PLANO PRIMEIRO, da
+ * turma depois.
+ *
+ * É esta ordem que faz o campo funcionar nos dois casos. Quando a turma traz o ritmo, o
+ * professor avança com os campos já preenchidos e a conta sai da turma; quando a turma NÃO
+ * traz (a direção não declarou), ele preenche à mão — e a conta tem de sair do que ele
+ * escreveu, senão o campo fica vazio como ficava (16/10/2026: o cálculo só existia para a
+ * turma). O que o plano responde vence: é a resposta dele que vai para o envelope.
+ */
+function periodoEFrequencia() {
+  const doPlano = periodoDoPlano();
+  const freqDoPlano = frequenciaDoPlano();
+  const t = turmaDoPlano() || {};
+  return {
+    inicio: doPlano.inicio || t.periodoInicio || null,
+    fim: doPlano.fim || t.periodoFim || null,
+    frequencia: freqDoPlano.vezes || (Number(t.frequencia) || null),
+    dias: freqDoPlano.dias.length ? freqDoPlano.dias : (Array.isArray(t.dias) ? t.dias : []),
+  };
+}
+
+function numeroDeAulasDoPlano() {
+  return numeroDeAulas(periodoEFrequencia());
+}
+
+function numeroDeAulasDaTurma(t) {
+  if (!t) return null;
+  return numeroDeAulas({
+    inicio: t.periodoInicio,
+    fim: t.periodoFim,
+    frequencia: t.frequencia,
+    dias: Array.isArray(t.dias) ? t.dias : [],
+  });
 }
 
 /* O valor que a TURMA entrega para um nó do contexto, quando o conteúdo declara
@@ -1047,7 +1149,10 @@ function valorDaTurma(no) {
     return { inicio: t.periodoInicio || null, fim: t.periodoFim || null };
   }
   if (no.daTurma === 'totalAulas') {
-    const n = numeroDeAulasDaTurma(t);
+    // O total é CALCULADO, e a conta é a MESMA do plano: o que ele já respondeu vence a
+    // turma. Assim o campo vem preenchido quando a escola declarou o ritmo E quando o
+    // professor o declarou à mão (16/10/2026).
+    const n = numeroDeAulasDoPlano();
     return n === null ? undefined : n;
   }
   return undefined;
@@ -1082,6 +1187,19 @@ function mostrarDaTurma(no, valor) {
     'Para mudar, ajuste o cadastro da turma.</p>';
 }
 
+/* A TURMA, VISTA DO CORPO — só leitura (16/10/2026). A escolha subiu para o cabeçalho,
+ * e aqui o professor lê o que escolheu, com o caminho de volta dito por palavras. Não
+ * há campo nenhum: escolher é no alto, e um segundo lugar para escolher seria a
+ * confusão que a mudança veio tirar. */
+function turmaNoCabecalho(no) {
+  const escolhida = RESPOSTAS.get(no.id);
+  const nome = Array.isArray(escolhida) ? escolhida.join(', ') : escolhida;
+  return '<p class="da-turma"><b>' + escapar(nome || '—') + '</b></p>' +
+    '<p class="sub">A turma observada é escolhida no <b>cabeçalho</b> do ato, logo depois do ' +
+    'ciclo — uma turma por plano de ensino. Aqui é leitura: para mudar, use o cabeçalho no ' +
+    'alto da página.</p>';
+}
+
 async function atualizarCuradoria() {
   const sel = $('ctx-professor');
   const slug = sel ? String(sel.value || '').trim() : '';
@@ -1112,6 +1230,9 @@ function aplicarCuradoria() {
   // Sem isto, a turma aparecia marcada mas o plano não sabia QUAL era — e os campos
   // a jusante ficavam para o professor escrever. A primeira edição dele aposenta.
   if (FONTE === 'plano' && CURADORIA_CARREGADA) semearDaCuradoria();
+  // A turma do cabeçalho depende da curadoria (só as turmas do professor entram na lista,
+  // e a atribuída nasce sugerida): repinta quando a curadoria chega ou muda.
+  if (FONTE === 'plano') renderTurmaDoCabecalho();
 
   // A trava vale para plano e PO (que derivam do plano e da observação — memória da
   // escola). A anamnese já é travada pela aluna + senha; a curadoria a filtra.
@@ -1211,6 +1332,29 @@ function contextoFaltando() {
 }
 
 /*
+ * A TURMA É ESCOLHIDA NO CABEÇALHO, e não é campo do envelope (16/10/2026).
+ *
+ * `CAMPOS_DO_CONTEXTO` é a identidade que o envelope carrega — escola, professor, ciclo
+ * (e a aluna, na anamnese). A turma NÃO entra ali: ela é a resposta do nó
+ * `contexto-turma`, não contexto de envelope. Mas ela vive no mesmo lugar físico (o
+ * cabeçalho), é exigida antes de começar e trava junto com os outros — daí uma lista
+ * própria, que soma a turma só para o PLANO, sem tocar no que o envelope leva.
+ */
+function camposDoCabecalho() {
+  return FONTE === 'plano' ? CAMPOS_DO_CONTEXTO.concat(['turma']) : CAMPOS_DO_CONTEXTO;
+}
+
+function turmaFaltando() {
+  return FONTE === 'plano' && !RESPOSTAS.get('contexto-turma');
+}
+
+function contextoFaltandoCompleto() {
+  const faltam = contextoFaltando();
+  if (turmaFaltando()) faltam.push('turma');
+  return faltam;
+}
+
+/*
  * A BARRA DIZ O QUE FALTA — desde o primeiro segundo, e não no fim.
  *
  * O defeito que originou isto: ao entrar pela Produção, o menu da «Área do
@@ -1222,18 +1366,24 @@ function contextoFaltando() {
  * da barra diz o que falta.
  */
 function marcarContextoFaltando() {
-  const faltam = contextoFaltando();
+  const faltam = contextoFaltandoCompleto();
   for (const campo of CAMPOS_DO_CONTEXTO) {
     const entrada = $('ctx-' + campo);
     const caixa = entrada && entrada.closest ? entrada.closest('.campo') : null;
     if (caixa) caixa.classList.toggle('falta', faltam.indexOf(campo) !== -1);
   }
+  // A TURMA se marca como os outros campos, mas por fora de `CAMPOS_DO_CONTEXTO`: ela
+  // não é campo de envelope, e por isso não é lida como eles.
+  const caixaTurma = document.getElementById('ctx-turma-campo');
+  if (caixaTurma && FONTE === 'plano') {
+    caixaTurma.classList.toggle('falta', faltam.indexOf('turma') !== -1);
+  }
   const resumo = document.querySelector('.barra details.ctx-ato .ctx-resumo');
   if (resumo) {
-    // Os nomes vêm de `CAMPOS_DO_CONTEXTO`, que é lista fixa deste arquivo — não há
+    // Os nomes vêm de `camposDoCabecalho()`, que é lista fixa deste arquivo — não há
     // dado de fora entrando no `innerHTML`; é ele que permite a parte que falta sair
     // em cor de erro, como o campo marcado.
-    const nomes = CAMPOS_DO_CONTEXTO.map((campo) =>
+    const nomes = camposDoCabecalho().map((campo) =>
       faltam.indexOf(campo) === -1 ? campo : '<span class="ctx-falta">' + campo + '</span>');
     resumo.innerHTML = nomes.join(' · ') +
       (faltam.length ? ' — <span class="ctx-falta">falta ' + faltam.join(', ') + ' para fechar</span>' : '');
@@ -1358,6 +1508,32 @@ function travarFormularioSemSenha() {
   if (gravar && trava) gravar.disabled = true;
 }
 
+/*
+ * A TRAVA DO CABEÇALHO (16/10/2026). Enquanto o professor preenche, os campos que DIZEM
+ * de que se trata o ato — escola, professor, ciclo e, no plano, a turma — ficam FIXOS.
+ * Eles são conferidos na abertura (o «Começar» só habilita com o contexto completo), e
+ * mudá-los no meio do preenchimento é o professor se atrapalhar e o registro perder o
+ * dono — o que custa tempo, dado e processamento. A SENHA fica de fora: é ela que
+ * autoriza a escrita, e sem ela nada se grava.
+ *
+ * O estado fica em memória porque a lista da turma se REPINTA (a curadoria e os estados
+ * chegam depois): sem ele, uma repintura recriaria os rádios soltos e a trava cairia.
+ */
+let CABECALHO_TRAVADO = false;
+
+function travarCabecalho(travado) {
+  CABECALHO_TRAVADO = !!travado;
+  const barra = document.getElementById('barra');
+  if (!barra || !barra.querySelectorAll) return;
+  const controles = barra.querySelectorAll(
+    '.ctx-campos input, .ctx-campos select, .ctx-campos textarea, .ctx-campos button');
+  for (const c of controles) {
+    if (c.id === 'senha') continue;
+    c.disabled = CABECALHO_TRAVADO;
+  }
+  if (barra.classList && barra.classList.toggle) barra.classList.toggle('ctx-travado', CABECALHO_TRAVADO);
+}
+
 function apontarContextoFaltando(faltam) {
   const acordeao = document.querySelector('.barra details.ctx-ato');
   if (acordeao) acordeao.open = true;
@@ -1454,6 +1630,10 @@ function abrirFormulario(indice, empilhar) {
   const principal = document.getElementById('principal');
   if (principal) principal.classList.remove('sem-roteiro');
   irPara(indice, false);
+  // Enquanto o formulário está aberto, o cabeçalho é só de LEITURA: a identidade do ato
+  // se confere ANTES de começar (o «Começar» só habilita com o contexto completo), e não
+  // se corrige no meio do preenchimento (16/10/2026).
+  travarCabecalho(true);
 }
 
 /*
@@ -1464,6 +1644,9 @@ function abrirFormulario(indice, empilhar) {
  */
 function voltarAoPortal() {
   EM_AUTOABERTURA = false;
+  // De volta ao portal, o cabeçalho volta a ser editável: o professor ainda pode conferir
+  // e corrigir a identidade do ato antes de começar (16/10/2026).
+  travarCabecalho(false);
   document.getElementById('abertura').classList.remove('oculto');
   for (const id of ['conducao', 'fecho', 'ia']) {
     const s = document.getElementById(id);
@@ -1702,6 +1885,14 @@ function lerResposta(no) {
   const texto = aberto && aberto.value.trim() ? aberto.value.trim() : null;
   const notaEl = raiz.querySelector('[data-campo-nota]');
   const nota = notaEl && notaEl.value.trim() ? notaEl.value.trim() : null;
+
+  // A TURMA É ESCOLHIDA NO CABEÇALHO (16/10/2026). O rádio dela vive FORA de `#pergunta`
+  // — o `raiz.querySelector` não o alcança — e a marcação escreve direto em `RESPOSTAS`.
+  // Sem esta guarda, passar pelo nó apagaria a turma já escolhida no alto.
+  if (no.id === 'contexto-turma') {
+    const escolhida = RESPOSTAS.get(no.id);
+    return { valor: escolhida === undefined ? null : escolhida, nota: nota };
+  }
 
   // O que vem da TURMA não se edita: a resposta é o que a direção declarou na Produção
   // (frequência, duração, período, nº de aulas). Sem dado da turma, cai no caminho normal.
@@ -2164,6 +2355,59 @@ function caixaDaExplicacao(no) {
   return '<div class="explica">' + linhas.join('') + '</div>';
 }
 
+/*
+ * AS TURMAS QUE JÁ TÊM PLANO — o bloqueio da lista de turmas do plano de ensino.
+ *
+ * O plano é de UMA turma (16/10/2026), e a mesma turma não se planeja duas vezes. Quem já
+ * tem plano aparece BLOQUEADO na lista, com o estado dele (livre / ligada / derivada) e o
+ * atalho para vê-lo ou ajustá-lo. O professor continua a ver TODAS as turmas da sua
+ * curadoria — o que muda é o que ele pode marcar.
+ *
+ * Duas exceções, e as duas são a mesma coisa: o plano que se está a EDITAR (o carimbo em
+ * `EDITANDO`) e aquele de que se está a DERIVAR (`DERIVANDO`) mantêm a turma disponível.
+ * Editar exige a turma marcada, e derivar cria o elo novo da MESMA turma — bloquear ali
+ * tornaria a edição impossível. E um plano `derivada` (substituído) não bloqueia: a turma
+ * está com o sucessor, que é quem a bloqueia.
+ */
+function turmasJaUsadas() {
+  const usadas = new Map();
+  if (FONTE !== 'plano') return usadas;
+  const emUso = [EDITANDO, DERIVANDO].filter(Boolean);
+  for (const [carimbo, o] of ESTADOS) {
+    if (!o || !o.turma) continue;
+    if (emUso.indexOf(carimbo) !== -1) continue;
+    if (o.estado === 'legado') continue;
+    usadas.set(String(o.turma), {
+      carimbo,
+      estado: o.estado || (o.vinculada ? 'vinculada' : 'solta'),
+    });
+  }
+  return usadas;
+}
+
+/** O endereço do plano para OUTRA aba: a edição (o que está livre), ou a leitura do que ficou. */
+function urlDoPlano(carimbo, ajustar) {
+  if (!ajustar) return 'api/envelope/' + encodeURIComponent(carimbo);
+  const q = new URLSearchParams(location.search);
+  q.set('fonte', 'plano');
+  q.set('editar', carimbo);
+  return '/plano-ensino/?' + q.toString();
+}
+
+/** A linha de uma turma que já tem plano: o estado dele e o atalho para ele. */
+function marcaDaTurmaUsada(usada) {
+  const estado = usada.estado;
+  const livre = estado === 'solta';
+  const titulo = AJUDA_ESTADO_PLANO[estado] || estado;
+  return '<span class="selo ' + escapar(estado) + '" title="' + escapar(titulo) + '">' +
+    escapar(ROTULO_ESTADO_PLANO[estado] || estado) + '</span> ' +
+    '<a class="atalho-do-plano" href="' + escapar(urlDoPlano(usada.carimbo, livre)) + '" ' +
+    'target="_blank" rel="noopener" title="' + escapar(livre
+      ? 'abrir a edição deste plano numa aba nova'
+      : 'ver o que ficou gravado (ligado a um Plano de Observação)') + '">' +
+    (livre ? 'ajustar o plano' : 'ver o plano') + '</a>';
+}
+
 /* As opções de um nó que declara `opcoesDe` — marcáveis, com o campo livre. */
 function gradeDeOpcoesDinamicas(no) {
   let lista = OPCOES.get(no.opcoesDe) || [];
@@ -2197,16 +2441,39 @@ function gradeDeOpcoesDinamicas(no) {
   }
   const atual = RESPOSTAS.get(no.id);
   let marcados = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
-  if (!marcados.length && atribuido.length) marcados = atribuido;
+  // As turmas que já têm plano ficam BLOQUEADAS — com o estado do plano e o atalho para
+  // ele. Só a lista da turma bloqueia; qualquer outro `opcoesDe` segue como sempre foi.
+  const usadas = no.id === 'contexto-turma' ? turmasJaUsadas() : new Map();
+  const disponiveis = lista.filter((o) => !usadas.has(String(o.valor)));
+  if (!marcados.length && atribuido.length) {
+    // A turma é de UMA por plano: semear as duas atribuições que a direção deu deixaria dois
+    // rádios marcados (o navegador guardaria o último) — e a segunda está bloqueada. Semeia
+    // a PRIMEIRA que ainda pode ser planejada: o professor abre o plano e a turma seguinte
+    // já está sugerida.
+    marcados = no.multipla
+      ? atribuido
+      : atribuido.filter((v) => disponiveis.some((o) => o.valor === v)).slice(0, 1);
+  }
   // A escolha múltipla marca caixas (`name="pratica"`); a única marca rádios
   // (`name="valor"`) — o `lerResposta` lê cada grupo pela família do nó.
   const tipo = no.multipla ? 'checkbox' : 'radio';
   const nome = no.multipla ? 'pratica' : 'valor';
-  const caixas = lista.map((o) =>
-    '<label class="opcao"><input type="' + tipo + '" name="' + nome + '" value="' + escapar(o.valor) + '"' +
-    (marcados.indexOf(o.valor) !== -1 ? ' checked' : '') + '><span>' + md(o.rotulo || o.valor) +
-    '</span></label>').join('');
+  const caixas = lista.map((o) => {
+    const usada = usadas.get(String(o.valor));
+    return '<label class="opcao' + (usada ? ' travada' : '') + '">' +
+      '<input type="' + tipo + '" name="' + nome + '" value="' + escapar(o.valor) + '"' +
+      (marcados.indexOf(o.valor) !== -1 ? ' checked' : '') +
+      (usada ? ' disabled' : '') + '><span>' + md(o.rotulo || o.valor) +
+      (usada ? ' ' + marcaDaTurmaUsada(usada) : '') + '</span></label>';
+  }).join('');
   const blocos = ['<div class="grade">' + caixas + '</div>'];
+  // A lista pode estar inteira bloqueada: todas as turmas dele já têm plano. Dizer isso é o
+  // que evita a leitura de «o sistema quebrou» — e aponta o caminho (falar com a direção).
+  if (usadas.size && !disponiveis.length) {
+    blocos.push('<p class="aviso">Todas as suas turmas já têm plano de ensino. Para planejar ' +
+      'outra turma, peça à direção que a atribua; para mudar um plano, use o atalho ao lado ' +
+      'da turma.</p>');
+  }
   if (no.aberto) {
     const fora = marcados.filter((v) => !lista.some((o) => o.valor === v)).join(', ');
     blocos.push('<p style="margin:.6rem 0 0"><label>…ou acrescente um apelido que não está na lista: ' +
@@ -2215,6 +2482,48 @@ function gradeDeOpcoesDinamicas(no) {
   }
   blocos.push(atalho);
   return blocos.join('');
+}
+
+/* A TURMA NO CABEÇALHO (16/10/2026). O plano de ensino é de UMA turma, e a escolha dela
+ * sobe para o cabeçalho — depois do ciclo, antes da senha —, onde ficam os campos que
+ * DIZEM de que se trata o ato. O corpo do formulário deixa de ter o seletor (o nó
+ * `contexto-turma` vira leitura, por `turmaNoCabecalho`), e a lista completa — com as
+ * turmas já planejadas BLOQUEADAS, o estado do plano e o atalho para vê-lo — passa a
+ * viver no alto. É uma turma por plano, e a mesma turma não se planeja duas vezes.
+ *
+ * A marcação escreve DIRETO na resposta do nó: os rádios vivem FORA de `#pergunta`, e o
+ * `lerResposta` lê `RESPOSTAS` para esta turma. Fonte única — não há duas respostas.
+ */
+function noDaTurma() {
+  if (!MAPA) return null;
+  return MAPA.nos.find((n) => n.id === 'contexto-turma') || null;
+}
+
+async function renderTurmaDoCabecalho() {
+  const caixa = document.getElementById('ctx-turma-campo');
+  const alvo = document.getElementById('ctx-turma-grade');
+  if (!caixa || !alvo) return;
+  const no = noDaTurma();
+  if (FONTE !== 'plano' || !no) { caixa.hidden = true; return; }
+  caixa.hidden = false;
+  // A lista precisa das opções do nó (as turmas) e do cadastro (o ritmo). As duas
+  // chamadas guardam o resultado: repetir não custa uma segunda busca.
+  if (no.opcoesDe && !OPCOES.has(no.opcoesDe)) await carregarOpcoesDe(no.opcoesDe);
+  if (TURMAS_DA_ESCOLA === null) await carregarTurmasDaEscola();
+  alvo.innerHTML = gradeDeOpcoesDinamicas(no);
+  for (const radio of alvo.querySelectorAll('input[name="valor"]')) {
+    radio.addEventListener('change', () => {
+      RESPOSTAS.set(no.id, radio.value);
+      SUGERIDAS.delete(no.id);   // a escolha do professor não é sugestão: não se reescreve
+      marcarContextoFaltando();
+      atualizarComecar();
+      atualizarBarra();
+      salvar();
+    });
+  }
+  // A repintura criou controles NOVOS: reaplica a trava, se o formulário está aberto.
+  if (CABECALHO_TRAVADO) travarCabecalho(true);
+  marcarContextoFaltando();
 }
 
 /* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
@@ -3678,6 +3987,11 @@ function renderPergunta() {
     blocos.push(mostrarDaTurma(no, daTurma));
   } else if (no.doPlano) {
     blocos.push(mostrarDoPlano(no));
+  } else if (no.id === 'contexto-turma') {
+    // O cabeçalho e o eco leem a MESMA resposta: repinta o alto ao chegar aqui, para os
+    // dois nunca divergirem (ex.: a turma foi apagada pelo «Pular» no próprio nó).
+    renderTurmaDoCabecalho();
+    blocos.push(turmaNoCabecalho(no));
   } else if (no.repetirPor) {
     blocos.push(blocoDaRepeticao(no));
   } else if (no.opcoesDe) {
@@ -4274,6 +4588,9 @@ async function carregarEstados() {
   } catch (erro) {
     /* sem estados: a lista sai sem os selos, e nada mais quebra */
   }
+  // Os ESTADOS são o que marca as turmas já planejadas como blocadas no cabeçalho (o
+  // estado do plano e o atalho): repinta depois de os ter.
+  if (FONTE === 'plano') renderTurmaDoCabecalho();
 }
 
 const ROTULO_ESTADO = {
@@ -5315,6 +5632,8 @@ async function iniciar() {
   $('contexto').innerHTML = contexto(MAPA);
   $('contexto').classList.remove('oculto');
   atualizarFichas();
+  // O cabeçalho do plano ganha a TURMA (16/10/2026): a lista precisa do mapa já carregado.
+  if (FONTE === 'plano') renderTurmaDoCabecalho();
 
   let autoAbrir = false;
   const guardado = lerMemoria();
@@ -5426,6 +5745,16 @@ async function iniciar() {
   // `pushState` — voltar/sair deve ir à página anterior, não a um portal que
   // nunca foi mostrado.
   if (autoAbrir) abrirFormulario(INDICE, false);
+
+  // O ATALHO DE EDIÇÃO — `?editar=<carimbo>`. É o link «ajustar o plano» da lista de
+  // turmas: abre a aba já dentro da edição daquele plano, sem o professor ter de o
+  // procurar na estante. Vem DEPOIS de tudo (a curadoria, as turmas, o rascunho): a
+  // edição é explícita e vence o depósito local, como quando se clica «editar» na
+  // estante. O plano vinculado não se edita — o servidor recusa, e a tela avisa.
+  if (FONTE === 'plano') {
+    const alvo = new URLSearchParams(location.search).get('editar');
+    if (alvo) await editarPlano(alvo);
+  }
 
   $('comecar').addEventListener('click', () => abrirFormulario(0));
 

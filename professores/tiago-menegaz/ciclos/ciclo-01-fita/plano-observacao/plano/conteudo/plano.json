@@ -68,16 +68,14 @@
         },
         {
           "id": "contexto-turma",
-          "campo": "Turmas observadas",
+          "campo": "Turma observada",
           "obrigatorio": true,
-          "multipla": true,
-          "aberto": true,
           "opcoesDe": "/api/bastidores/turmas",
           "daCuradoria": "turmas",
           "explicacao": {
-            "oQueE": "Qual turma (ou turmas) exatamente — o grupo, não a escola.",
-            "preencher": "Marque as turmas cadastradas nos Bastidores (ou escreva o grupo, se ainda não houver turma). Um professor pode observar mais de uma turma no mesmo ciclo.",
-            "porQue": "Um professor pode ter mais de uma turma no mesmo espaço. Declarar os grupos evita confundir quem é observado. A lista vem do cadastro de turmas dos Bastidores — o nome de exibição entra no plano; o identificador estável fica no cadastro e nas relações turma↔conteúdo."
+            "oQueE": "Para que turma é este plano — o grupo, não a escola. É escolhida no CABEÇALHO do ato, logo depois do ciclo, e não no corpo do formulário (16/10/2026): a turma diz de que se trata o plano, e por isso vive com a escola, o professor e o ciclo. Aqui, no corpo, ela é leitura.",
+            "preencher": "Escolha UMA turma no cabeçalho, no alto da página. As que já têm plano aparecem bloqueadas, com o estado do plano (livre ou ligado) e o atalho para vê-lo — o plano de ensino é um por turma, e a mesma turma não se planeja duas vezes. Escolhida a turma, o cabeçalho se trava enquanto você preenche: ele é a identidade do ato, não se muda no meio do caminho.",
+            "porQue": "O ritmo do ciclo — quantas aulas por semana, em que dias, quanto dura, quando começa e termina — é de UMA turma, e é dele que sai o número total de aulas. Misturar duas turmas num plano faria a dose de uma valer para a outra. A lista vem do cadastro de turmas dos Bastidores, e o professor vê só as turmas que a direção lhe atribuiu."
           }
         },
         {
@@ -145,7 +143,7 @@
           "daTurma": "totalAulas",
           "explicacao": {
             "oQueE": "Quantas aulas o ciclo tem, do início ao fim.",
-            "preencher": "Vem da conta do período com a frequência semanal, declaradas na turma — aqui é leitura. Sem o período completo, o campo volta a ser seu.",
+            "preencher": "É CALCULADO: o período (início e fim) e a frequência semanal — da turma, ou do que você declarou acima — dão o número. Com os dias da semana declarados, a conta é a das aulas que caem nesses dias; sem eles, é a média do período. Vem preenchido; corrigir é seu se a escola tiver feriado ou recesso.",
             "porQue": "É ele que separa um ciclo curto de um longo — e que o calendário e os marcos usam para se alinhar."
           }
         },
