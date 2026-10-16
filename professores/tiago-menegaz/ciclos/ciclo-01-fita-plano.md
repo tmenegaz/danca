@@ -27,7 +27,7 @@ subtitle: "Objetivo geral, marcos parciais, rubrica e calibração de volume"
 
 ## Objetivo geral
 
-Objetivo geral do ciclo
+Objetivo geral do ciclo - teste
 
 | Item | Valor |
 |:--|:--|
@@ -42,31 +42,43 @@ Objetivo geral do ciclo
 
 | Aula | Objetivo específico (marco parcial) |
 |:--|:--|
-| **01** | Objetivo marco 1 do ciclo |
-| **02** | Objetivo marco 2 do ciclo |
-| **03** | Objetivo marco 3 do ciclo |
+| **01** | marco 1 teste |
+| **02** | marco 2 teste |
+| **03** | marco 3 teste |
 
 <!-- CALENDARIO -->
 
 ## Estrutura de cada aula
 
-- **Solo** — objetivos específicos: **1** Objetivo marco 1 do ciclo
-- **Barra** — objetivos específicos: **1** Objetivo marco 1 do ciclo; **2** Objetivo marco 2 do ciclo
-- **Centro** — objetivos específicos: **1** Objetivo marco 1 do ciclo; **3** Objetivo marco 3 do ciclo
-- **Musicalidade** — objetivos específicos: **2** Objetivo marco 2 do ciclo
-- **Expressão** — objetivos específicos: **3** Objetivo marco 3 do ciclo
+- **Solo** — objetivos específicos: **1** marco 1 teste
+- **Barra** — objetivos específicos: **2** marco 2 teste
+- **Centro** — objetivos específicos: **2** marco 2 teste; **3** marco 3 teste
+- **Musicalidade** — objetivos específicos: **3** marco 3 teste
+- **Expressão** — objetivos específicos: **1** marco 1 teste
 
 ## Distribuição do volume pelos blocos
 
 | Bloco | Proporção alvo | Justificativa |
 |:--|:--|:--|
-| **Solo** | **10** | **solo justificativa** |
-| **Barra** | **15** | **barra justificativa** |
-| **Centro** | **20** | **centro justificativa** |
-| **Musicalidade** | **5** | **musicalidade justificativa** |
-| **Expressão** | **5** | **expressão justificativa** |
+| **Solo** | **10** | **hjhj** |
+| **Barra** | **10** | **jkjk** |
+| **Centro** | **20** | **jkjk** |
+| **Musicalidade** | **5** | **jkjk** |
+| **Expressão** | **10** | **ioiio** |
 
 > **Unidade: minutos.** A proporção alvo é o tempo de aula na unidade declarada — a soma fecha com a duração da aula.
+
+## Sequência de exercícios por bloco
+
+| Bloco | Objetivo específico | Conteúdo do nível | Tempos | Compasso |
+|:--|:--|:--|:--|:--|
+| **Solo** | **1 — marco 1 teste** | **À terre** | **16** | **2/4** |
+| **Solo** | **1 — marco 1 teste** | **Ballonné** | **8** | **4/4** |
+| **Barra** | **2 — marco 2 teste** | **Chaîné** | **32** | **2/4** |
+| **Centro** | **2 — marco 2 teste** | **Chaîné** | **16** | **3/4** |
+| **Centro** | **3 — marco 3 teste** | **Brisé** | **16** | **2/4** |
+| **Expressão** | **1 — marco 1 teste** | **À terre** | **24** | **6/8** |
+| **Expressão** | **1 — marco 1 teste** | **Ballonné** | **16** | **9/8** |
 
 ## Condições preliminares
 
@@ -88,11 +100,11 @@ Objetivo geral do ciclo
 
 | Critério | Satisfatório | Razoável | Em desenvolvimento | Não se aplica |
 |:--|:--|:--|:--|:--|
-| [Preencher: o critério de cada aula — declarado no lançamento da aula dada] |
+| [Preencher: o critério de cada aula — declarado no lançamento da aula dada] |  |  |  |  |
 
 ## Critério de extensão
 
-[a decidir]
+Módulo fechado de quatro encontros; o quinto é suplementar
 
 ## Músicas e vídeos
 
