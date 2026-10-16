@@ -45,6 +45,15 @@
 > (§C11): hoje a raiz inteira está atrás de senha. Isso muda o ponto de partida da frente, e está
 > registado como contradição, não corrigido em silêncio. Nasceu também **C11** (§3). Nenhuma linha
 > de código de produto foi alterada.
+>
+> **Reconferência de 15/10/2026 (mesmo dia) — a credencial do provedor.** Voltando à documentação
+> de Checkout para responder «é isto o que a cobrança precisa para informar o pagamento?», três
+> factos novos ficaram **medidos** e entram na frente: a unidade de `amount` é **centavos**
+> (documentado, com as palavras da própria página); a API **não** documenta e **não** exige
+> credencial de transporte — `POST /links` sem identificação nenhuma responde **400** de validação,
+> não 401/403; e o **cadastro** público cria a **conta** (com o `handle`), sem emitir chave. O
+> conjunto está em §L11, «A credencial» — e acrescentou ao desenho a regra de tratar o `handle`
+> como **segredo operacional**. Também aqui nenhuma linha de código de produto foi alterada.
 
 ---
 
@@ -1096,12 +1105,15 @@ decisão.
   | `webhook_url` (notificação) | responder **200 em menos de 1 s**; responder **400 faz a InfinitePay retentar** | **documentado** |
   | `capture_method` | `"credit_card"` ou `"pix"` | **documentado** |
   | **Verificação de autenticidade do webhook** (assinatura/segredo) | — | **NÃO documentado** |
+  | **Autenticação da API de cobrança** (chave, token, segredo, cabeçalho) | varredura da página inteira de Checkout por `authorization`, `bearer`, `api key`, `token`, `secret`, `hmac`, `credencial`, `autentica`: **zero** ocorrências | **NÃO documentado** — e **medido**: `POST /links` **sem** credencial nenhuma responde **400** de validação, **não** 401/403 (§«A credencial») |
+  | **Como se obtém a credencial** | o cadastro público (`buy.infinitepay.io/cadastro/onboarding/checkout-integrado`) pede CPF ou CNPJ/MEI, representante legal, celular e código no WhatsApp — e **não** emite chave, token nem segredo | **documentado** (é a **conta**, não uma credencial de API) |
+  | **`handle` (InfiniteTag)** | é como a API identifica a conta — e é o **nome público** dela no App, usado sem o `$` | **documentado** |
   | **Sandbox / ambiente de teste** | varredura na página de Checkout: **zero** ocorrências de «sandbox», «homologação» ou «ambiente de teste» | **NÃO documentado** |
   | **API de planos e assinaturas** | a documentação de API cobre **links de Checkout**; a página de recorrência descreve a gestão **pelo App** | **NÃO documentado** |
   | **Recorrência por Pix** | a página de recorrência diz «Pix taxa zero **ou** cartão em até 12x», e que «**se o cliente usar cartão**, a cobrança acontece **automaticamente** todo mês» — para Pix, o que se promete é **enviar a cobrança** e **lembrar por WhatsApp** | **parcial** — cobrança repetida, sim; **débito automático por Pix, não** |
   | **Pix automático / recorrente por autorização** | nada | **NÃO confirmado** |
   | **Taxa zero no produto de API** | «Pix com taxa zero» aparece como **argumento de venda**; as condições do produto de API não estão na página | **NÃO confirmado** |
-  | **Unidade de `amount`** | os exemplos (`amount: 1000`, total «R$ 10,00») **sugerem centavos** | **aparente — confirmar** |
+  | **Unidade de `amount`** | «O valor do produto deve ser colocado em centavos, então R$ 10,00 = 1000 centavos» | **documentado** — fecha o item que antes era «aparente — confirmar» |
 
   **A leitura honesta desta matriz:** o que a InfinitePay documenta cobre **cobrança avulsa com
   confirmação** — que é exactamente o que L11 precisa para **cada período** — e **não** documenta
@@ -1109,6 +1121,38 @@ decisão.
   assinatura como **uma cobrança por período** (o que o rascunho já pede) em vez de confiar numa
   assinatura administrada pelo provedor. **O que a matriz NÃO autoriza** é presumir sandbox,
   assinatura por API ou débito automático por Pix — nenhum dos três está documentado.
+
+- **A credencial — as três medições de 15/10/2026.** Três leituras independentes apontam para o
+  mesmo lugar, e é por isso que ficam escritas juntas:
+
+  1. **A documentação não descreve autenticação nenhuma.** Varredura da página inteira de Checkout
+     por `authorization`, `bearer`, `api key`, `token`, `secret`, `hmac`, `credencial` e
+     `autentica`: **zero** ocorrências. O **único** dado que identifica a conta é o `handle`.
+  2. **A API responde a quem não se identifica.** `POST https://api.checkout.infinitepay.io/links`
+     com corpo `{}` e **sem** credencial nenhuma devolveu **400** —
+     `{"success":false,"message":"param is missing or the value is empty or invalid: handle"}`.
+     Não devolveu **401** nem **403**: havendo camada de autenticação, a requisição morreria
+     **antes** da validação; ela atravessou e foi reprovada **por falta do parâmetro**. *(Nada foi
+     criado — sem `handle` não há link. O mesmo caminho em `GET` devolve 404: só existe o POST.)*
+  3. **O cadastro entrega uma conta, não uma credencial.** O fluxo público de cadastro
+     (`buy.infinitepay.io/cadastro/onboarding/checkout-integrado`) pede CPF ou CNPJ/MEI, dados do
+     representante legal, celular e um código no WhatsApp: é onde **a conta e o `handle` nascem**.
+     Em passo nenhum ele emite chave de API, token ou segredo.
+
+  **O que isto prova — e o que não prova.** Fica **provado** que não há credencial de API
+  documentada nem camada de autenticação no transporte. Fica **por confirmar**, e é pergunta para
+  a conta, se um `handle` válido basta para criar um link em nome dela: isso não se ensaia sem uma
+  conta real, e não se ensaia à custa de dinheiro de ninguém.
+
+  **A consequência, que passa a valer como regra de desenho.** No Lastro quem cobra é **a
+  plataforma**, e a escola é o `order_nsu` — logo há **um** `handle`, e ele cobre **toda** a
+  superfície de receita, não a de uma escola só. Duas disciplinas saem disto, e são critérios de
+  aceite: (a) o `handle` é tratado como **segredo operacional** — não entra em página pública, não
+  entra em asset do Worker, não vai ao navegador, e vive em *secret* como qualquer outro; (b) a
+  autorização que libera uma escola **não pode** depender do sigilo do `handle` — quem a concede é
+  a **verificação activa** e o **token de uso único**. A disciplina que vinha da matriz fica
+  reforçada: a notificação é **sinal**, a prova é a consulta — porque não há assinatura que a
+  autentique.
 
 - **Sandbox: não confirmado → a simulação local.** Como **não há sandbox documentado**, a primeira
   etapa técnica **não pode** depender do provedor. Entrega-se um **adaptador de pagamento** com
@@ -1140,9 +1184,10 @@ decisão.
   - **C11** (onde vive o estado comercial) — **precede** o modelo de estados. É decisão de
     arquitetura, não de implementação.
   - **Dependências externas** (não são minhas de decidir e **não** estão confirmadas): sandbox;
-    gestão de assinaturas por API; recorrência por Pix e o que ela significa (cobrança enviada ×
-    débito automático); condições de taxa **do produto de API**; unidade de `amount`; verificação
-    de autenticidade do webhook.
+    **se existe alguma credencial de API além do `handle`** (a documentação não descreve nenhuma e
+    a medição confirma que o endpoint não a exige — ver «A credencial»); gestão de assinaturas por
+    API; recorrência por Pix e o que ela significa (cobrança enviada × débito automático);
+    condições de taxa **do produto de API**; verificação de autenticidade do webhook.
   - **Decisões comerciais** que não são minhas: valores (C8), política de tolerância e de
     suspensão, e o que acontece com a escola na inadimplência.
   - **L9** — se L11 criar o estado de plano/período, é ele que L9 vai ler; a ordem entre as duas
@@ -1169,7 +1214,7 @@ decisão.
   | **E5** | **O webhook + a verificação.** O coração da segurança | E4 | Responde **<1 s**; **não** libera nada por si; verifica no provedor e confere pedido, valor, moeda e método; **notificação repetida não duplica efeito** (provado); notificação inválida **não** libera |
   | **E6** | **A autorização de uso único + o encaixe em `/api/criar-escola`** | E5 | Token aleatório, com validade, **consumido uma vez**, que **não** permite trocar plano nem dados; sem token válido o endpoint recusa; a página **não** emite token |
   | **E7** | **A recuperação (Cron) e a habilitação sem deploy** | E6 | Pagamento confirmado sem provisionamento é **retomado** pelo Cron, **idempotente**, sem duplicar escola; habilitar/desabilitar deixa de exigir `deploy` (desfecho de C11-3); a ordem com **L9** fica decidida |
-  | **E8** | **A integração real** — só com o provedor confirmado | as respostas do provedor | Credenciais em **secrets**; o modo real **não** pode ser ativado por engano pelo ambiente de teste; cada item pendente da matriz do provedor tem resposta registada |
+  | **E8** | **A integração real** — só com o provedor confirmado | as respostas do provedor | Credenciais em **secrets** — **o `handle` entre elas**; o modo real **não** pode ser ativado por engano pelo ambiente de teste; cada item pendente da matriz do provedor tem resposta registada |
 
   **O que não se deve fazer.** Ligar a **E8** antes da **E1** (não há sandbox: ensaiar em produção
   é a única alternativa, e é a que não existe); e implementar a **E5** antes da **E0** (o webhook
@@ -1186,7 +1231,7 @@ decisão.
   de teste **não** movimenta dinheiro e **não** alcança produção; **(x)** o acesso administrativo e
   o expurgo **continuam** funcionando — teste que os exerce depois da mudança; **(xi)** custos,
   limites e dependências externas estão **documentados**; **(xii)** nenhum segredo do provedor
-  chega ao navegador.
+  chega ao navegador — **incluído o `handle`**, que é a credencial que a API de facto usa.
 
 - **Riscos e decisões por confirmar.**
   - **O risco maior não é técnico:** é o **preço**. Sem a confirmação de C8, o valor cobrado seria
@@ -1195,6 +1240,11 @@ decisão.
   - **Verificar sem mecanismo documentado.** Como a autenticidade do webhook **não** está
     documentada, a notificação é tratada como **sinal**, e a **prova** é a consulta ao provedor.
     Se o provedor documentar assinatura mais tarde, ela **soma** — não substitui a consulta.
+  - **Uma credencial só, e ela é pública por natureza.** O `handle` é o nome da conta no App e é
+    também o único dado que autoriza criar cobranças (§«A credencial»). Guardá-lo como segredo
+    operacional **não** o torna secreto contra quem já o conheça — por isso o desenho **não pode**
+    depender do sigilo do `handle` para coisa nenhuma: quem libera a escola é a **verificação
+    activa** e o **token de uso único**.
   - **Estado de dinheiro em armazenamento sem transação.** Se a decisão de C11 cair no **KV**, a
     consequência tem de estar declarada: sem transação nem unicidade, a **idempotência passa a ser
     responsabilidade do código** (chave derivada do `order_nsu`/`transaction_nsu`, leitura antes de
@@ -1419,10 +1469,14 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
   quatro de **[VOCABULÁRIO]** para depois.
 - **Não confirmou** — e **não presumiu** — nenhuma capacidade da porta paga além do que a
   documentação do provedor efectivamente diz. Sandbox, gestão de assinaturas por API, recorrência
-  por Pix, taxa do produto de API, unidade de `amount` e verificação de autenticidade do webhook
-  ficam **declarados como pendentes**, item por item, na matriz de **L11** (§4) — com a distinção
-  explícita entre o que está **documentado**, o que está **parcialmente** documentado e o que
-  **não** está. A frente **não escolheu** provedor: registou a **InfinitePay como a em avaliação**.
+  por Pix, taxa do produto de API e verificação de autenticidade do webhook ficam **declarados como
+  pendentes**, item por item, na matriz de **L11** (§4) — com a distinção explícita entre o que
+  está **documentado**, o que está **parcialmente** documentado e o que **não** está. **Saiu desta
+  lista, em 15/10/2026, a unidade de `amount`**: a documentação diz, com estas palavras, que «o
+  valor do produto deve ser colocado em centavos». A frente **não escolheu** provedor: registou a
+  **InfinitePay como a em avaliação** — e registou, como **facto medido** e não como suposição, que
+  a API de cobrança **não** documenta nem exige credencial além do `handle` (§L11, «A credencial»),
+  o que passou a obrigar a tratá-lo como **segredo operacional**.
 - **Não decidiu onde vive o estado comercial** de L11 (§3 **C11**): KV, Git ou D1. A decisão é de
   **arquitetura** e **precede** o modelo de estados — e é a razão pela qual a primeira etapa de
   L11 (**E0**) não tem código.
