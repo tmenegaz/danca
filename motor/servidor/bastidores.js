@@ -152,18 +152,57 @@ async function turmas(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/turmas');
 }
 
-/** A RÉGUA DA RUBRICA de uma turma: os níveis com que o resultado é medido no fim do ciclo.
- *  É decisão da ESCOLA (a coordenação e os professores podem mudar os nomes, acrescentar ou
- *  remover um nível), e por isso vive no cadastro da turma — o plano a LÊ. Sem lista
- *  declarada, vale a régua padrão: uma turma nunca fica sem régua (o vazio seria uma lacuna
- *  silenciosa, e o plano mediria contra nada). */
-function rubricaDaTurma(turma) {
-  const cru = turma && turma.rubrica;
-  const niveis = (Array.isArray(cru) ? cru : [])
+/**
+ * A RÉGUA DA RUBRICA de uma turma: os níveis com que o resultado é medido no fim do ciclo.
+ * É decisão da ESCOLA — a coordenação e os professores podem mudar os nomes, acrescentar ou
+ * remover um nível.
+ *
+ * ATÉ 15/10/2026 ela vivia DENTRO da turma, e o formulário do cadastro da turma pedia os
+ * níveis junto com o nome e os dias — o que misturava duas coisas: a turma (quem, quando,
+ * quantas vezes) e a régua de avaliação (com que níveis se mede). Quem pedia uma turma nova
+ * tinha de decidir a régua antes de saber se a turma precisava de uma própria.
+ *
+ * Agora a régua é uma COISA COM NOME («Régua do Nível 1»), criada uma vez e LIGADA às turmas
+ * que a usam — duas, cinco ou nenhuma. A ordem de leitura, e o motivo de cada degrau:
+ *
+ *   1. O VÍNCULO — `turma.rubricaId` aponta para uma rubrica criada na Produção. Um vínculo
+ *      que aponta para uma rubrica já apagada NÃO quebra a turma: cai no degrau seguinte.
+ *   2. A RÉGUA PRÓPRIA da turma — `turma.rubrica`, o que existia antes. Nenhuma turma
+ *      precisa de migração: as que já tinham a sua continuam a valer.
+ *   3. O PADRÃO — uma turma nunca fica sem régua, porque uma régua vazia mediria contra nada.
+ */
+function niveisLimpos(cru) {
+  return (Array.isArray(cru) ? cru : [])
     .map((n) => String(n || '').trim())
     .filter(Boolean)
     .filter((n, i, arr) => arr.indexOf(n) === i);
-  return niveis.length ? niveis : NIVEIS_DA_RUBRICA.slice();
+}
+
+function rubricaDaTurma(turma, listaDeRubricas) {
+  const ligada = String((turma && turma.rubricaId) || '').trim();
+  if (ligada && Array.isArray(listaDeRubricas)) {
+    const alvo = listaDeRubricas.find((r) => r && r.id === ligada);
+    const niveis = alvo ? niveisLimpos(alvo.niveis) : [];
+    if (niveis.length) return niveis;
+  }
+  const proprios = niveisLimpos(turma && turma.rubrica);
+  if (proprios.length) return proprios;
+  return NIVEIS_DA_RUBRICA.slice();
+}
+
+/** As RUBRICAS da escola: uma LISTA de `{id, nome, niveis}`. */
+async function rubricas(kv, escola) {
+  return lerLista(kv, RAIZ + '/' + escola + '/rubricas');
+}
+
+/** Monta a rubrica canónica a partir do que a Produção envia. O `id` é o slug do NOME; se
+ *  vem um `id`, é ele que manda — é o que permite RENOMEAR uma rubrica sem perder os
+ *  vínculos (renomear com o id derivado do nome criaria outra rubrica e deixaria as turmas
+ *  órfãs, apontando para a que sumiu). */
+function normalizarRubrica(corpo) {
+  const nome = String(corpo.nome || '').trim();
+  const id = String(corpo.id || '').trim() || idDe(nome);
+  return { id: id, nome: nome, niveis: niveisLimpos(corpo.niveis) };
 }
 async function termos(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/vocabulario');
@@ -247,9 +286,13 @@ function normalizarTurma(corpo) {
     duracaoMin: inteiro(corpo.duracaoMin),
     periodoInicio: String(corpo.periodoInicio || '').trim(),
     periodoFim: String(corpo.periodoFim || '').trim(),
-    // A RÉGUA DA RUBRICA — da TURMA, não do plano: a escola decide com que níveis o
-    // resultado é medido, e o professor adota a régua da turma dele (o plano a lê).
-    rubrica: rubricaDaTurma(corpo),
+    // A RÉGUA PRÓPRIA da turma. Depois de 15/10/2026 quem manda é `rubricaId` (a rubrica
+    // criada na Produção e ligada à turma) — este campo é o que existia antes e continua a
+    // valer para quem já o tinha. O cadastro NÃO o preenche mais: nasce vazio, e o padrão é
+    // aplicado na LEITURA (`rubricaDaTurma`), para uma turma nova não carregar uma cópia do
+    // padrão que a impede de distinguir «não escolhi» de «escolhi o padrão».
+    rubrica: niveisLimpos(corpo.rubrica),
+    rubricaId: String(corpo.rubricaId || '').trim(),
     ativo: corpo.ativo !== false,
   };
 }
@@ -530,7 +573,7 @@ function paginaEstudio(escola, contexto) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -572,6 +615,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
   const listaTurmas = (trms || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  const listaRubricas = (rbs || []).slice().sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
   const listaTermos = (trmos || []).slice().sort((a, b) => String(a.termo).localeCompare(String(b.termo)));
   const termoPorId = new Map(listaTermos.map((t) => [t.id, t]));
   const relObj = rel || {};
@@ -583,8 +627,57 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
   // A régua de cada turma, para o editor da régua pré-carregar a que está declarada
   // (o JS da página recebe o mapa; o `JSON.stringify` é do `id` → níveis).
+  // A régua de cada turma, JÁ RESOLVIDA (vínculo → própria → padrão). O JS da página recebe
+  // este mapa para não ter de resolver nada: ele desenha o que o servidor decidiu.
   const reguaPorTurma = {};
-  for (const t of listaTurmas) if (t && t.id) reguaPorTurma[t.id] = rubricaDaTurma(t);
+  for (const t of listaTurmas) if (t && t.id) reguaPorTurma[t.id] = rubricaDaTurma(t, listaRubricas);
+  // AS RUBRICAS — a lista da aba «Criar rubrica» e as opções da aba «Vincular».
+  const rubricaPorId = new Map(listaRubricas.map((r) => [r.id, r]));
+  const turmasDaRubrica = {};
+  for (const t of listaTurmas) {
+    const lig = t && String(t.rubricaId || '');
+    if (lig) turmasDaRubrica[lig] = (turmasDaRubrica[lig] || 0) + 1;
+  }
+
+  // --- AS TRÊS ABAS DA SECÇÃO TURMAS -----------------------------------------
+  // A régua da rubrica estava DENTRO do cadastro da turma: quem cadastrava uma turma tinha de
+  // decidir, ali, com que níveis o resultado seria medido — e a régua não é da turma, é da
+  // escola. Pior: havia um SEGUNDO formulário, abaixo, que mudava a régua de uma turma que já
+  // existia, e os dois se sobrepunham. Agora são três atos separados, em três abas:
+  //   1. Turma            — quem, quando, quantas vezes (o cadastro).
+  //   2. Criar rubrica    — a régua, uma vez, com nome.
+  //   3. Vincular         — qual turma usa qual rubrica.
+  const itensRubricas = listaRubricas.length
+    ? listaRubricas.map((r) => {
+        const emUso = turmasDaRubrica[r.id] || 0;
+        return '<li><span class="nome"><b>' + esc(r.nome) + '</b> ' +
+          '<span class="dono">' + esc(niveisLimpos(r.niveis).join(' · ')) + '</span> ' +
+          (emUso
+            ? '<span class="dono">— ' + emUso + ' turma' + (emUso > 1 ? 's' : '') + ' usam esta rubrica</span>'
+            : '<span class="dono">— nenhuma turma usa ainda</span>') + '</span>' +
+          '<span class="acoes">' +
+          '<button class="editar-rubrica" data-rubrica="' + esc(r.id) + '" title="Abrir esta rubrica no formulário">Editar</button>' +
+          '<button class="apagar" data-tipo="rubrica" data-alvo="' + esc(r.id) + '" title="Excluir rubrica">Excluir</button>' +
+          '</span></li>';
+      }).join('')
+    : '<li class="vazia">(nenhuma rubrica criada ainda)</li>';
+
+  // A LISTA DOS VÍNCULOS: cada turma e a régua com que ela está sendo medida — o efeito do
+  // vínculo, e não o vínculo em si. É o que a direção precisa conferir.
+  const itensVinculos = listaTurmas.length
+    ? listaTurmas.map((t) => {
+        const lig = String(t.rubricaId || '');
+        const alvo = lig ? rubricaPorId.get(lig) : null;
+        const origem = alvo
+          ? '<b>' + esc(alvo.nome) + '</b>'
+          : (niveisLimpos(t.rubrica).length
+            ? '<span class="dono">régua própria desta turma</span>'
+            : '<span class="dono">régua padrão (nenhuma rubrica ligada)</span>');
+        return '<li><span class="nome">' + esc(t.nome) + '</span>' +
+          '<span class="acoes"><span class="dono">' + esc(reguaPorTurma[t.id].join(' · ')) + '</span></span>' +
+          '<span class="nome" style="flex:0 0 auto;font-size:.85rem">→ ' + origem + '</span></li>';
+      }).join('')
+    : '<li class="vazia">(nenhuma turma cadastrada)</li>';
 
   const itensTurmas = listaTurmas.length
     ? listaTurmas.map((t) => {
@@ -709,6 +802,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.4rem;align-items:start;padding:1.4rem 14px 2.6rem;}' +
     '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.secao>h2{grid-column:1/-1;margin:0;}' +
+    // AS ABAS da secção Turmas. O painel de cada aba repete a grade do formulário + lista, e
+    // por isso ocupa a linha inteira do `.secao` — a lista continua presa e paginada.
+    '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.15rem;border-bottom:1px solid var(--gold-borda);margin:.1rem 0 .2rem;}' +
+    '.aba{background:transparent;border:none;border-bottom:3px solid transparent;border-radius:0;margin:0;padding:.5rem .9rem;color:var(--gold-texto);font:600 .95rem/1.3 system-ui,sans-serif;cursor:pointer;}' +
+    '.aba:hover{background:var(--creme-3);}' +
+    '.aba.ativo{color:var(--burgundy);border-bottom-color:var(--burgundy);}' +
+    '.aba:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}' +
+    '.aba-painel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
     '.col-lista{display:flex;flex-direction:column;position:sticky;top:calc(var(--header-height) + 8px);' +
@@ -769,6 +870,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
     '.escolhedor .entrada select{flex:1 1 auto;width:auto;min-width:0;}' +
     '.escolhedor .entrada button{margin:0;padding:.45rem .85rem;font-size:.86rem;white-space:nowrap;}' +
+    'button.editar-rubrica{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);' +
+    'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    '#rubr-limpar{margin:.9rem 0 0 .4rem;background:transparent;color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:6px;}' +
+    '#vinc-desvincular{margin:.9rem 0 0 .4rem;background:transparent;color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:6px;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
     '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:#8f3f3f;border:1px solid var(--gold-borda);border-radius:4px;cursor:pointer;}' +
@@ -853,6 +958,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</section>' +
     '<section class="secao" id="sec-turmas" hidden>' +
     '<h2>Turmas</h2>' +
+    '<div class="abas" role="tablist" aria-label="Turmas, rubricas e vínculos">' +
+    '<button type="button" class="aba ativo" data-aba="turma" role="tab" aria-selected="true">Turma</button>' +
+    '<button type="button" class="aba" data-aba="rubrica" role="tab" aria-selected="false">Criar rubrica</button>' +
+    '<button type="button" class="aba" data-aba="vincular" role="tab" aria-selected="false">Vincular turma à rubrica</button>' +
+    '</div>' +
+    // ABA 1 — A TURMA. Só o que é da turma: quem, quando, com que frequência e por quanto
+    // tempo. A régua SAIU daqui: ela é da escola, e mora na aba seguinte.
+    '<div class="aba-painel" id="aba-turma">' +
     '<div class="col-form">' +
     '<form id="form-turma">' +
     '<label for="tnome">Nome da turma</label>' +
@@ -861,13 +974,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="tordem" name="ordem" autocomplete="off" placeholder="ex.: 1">' +
     '<label for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
     '<input id="tprograma" name="programaReferencia" autocomplete="off" placeholder="ex.: RAD (referência sugerida)">' +
-    // O NÍVEL virou ESCOLHEDOR. Era texto livre, e uma turma mista não tinha como dizer que
-    // é de dois níveis. Primeiro tentei um `<select multiple>` — que exige Ctrl+clique, não
-    // mostra o que está escolhido e saiu esquisito (o dono do produto recusou, com razão).
-    // Agora: escolhe no menu, «Adicionar», e o nível fica em ficha com o «×». A lista são os
-    // níveis do catálogo MAIS os que alguma turma já declara — um nível que a escola já usa
-    // não desaparece do formulário por não estar no catálogo. O que sai daqui continua a ser
-    // UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não mudam.
+    // O NÍVEL é ESCOLHEDOR: escolhe no menu, «Adicionar», e o nível fica em ficha com o «×».
+    // A lista são os níveis do catálogo MAIS os que alguma turma já declara — um nível que a
+    // escola já usa não desaparece do formulário por não estar no catálogo. O que sai daqui
+    // continua a ser UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não
+    // mudam.
     '<label>Equivalência pedagógica <span class="dica">(um ou mais níveis)</span></label>' +
     '<p class="sub">Uma turma mista pode ter dois níveis — escolha um, clique em «Adicionar», e repita.</p>' +
     escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n }))) +
@@ -886,29 +997,66 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
     '<label for="tfim">Fim do período (termo)</label>' +
     '<input id="tfim" name="periodoFim" type="date" autocomplete="off">' +
-    '<label>Régua da rubrica (os níveis com que o resultado é medido no fim)</label>' +
-    '<p class="sub">A régua é da turma: a escola pode mudar os nomes, acrescentar ou remover um nível. Já vem com a régua padrão — ajuste se a turma pedir outra.</p>' +
-    '<div id="trubrica">' + NIVEIS_DA_RUBRICA.map((n) => linhaDaRegua(n)).join('') + '</div>' +
-    '<p><button type="button" id="trubrica-add">Acrescentar nível</button></p>' +
+    '<p class="nota">A <b>régua da rubrica</b> não se declara aqui: ela é da escola, e vive nas abas <b>Criar rubrica</b> e <b>Vincular turma à rubrica</b>. Uma turma sem rubrica ligada é medida pela régua padrão.</p>' +
     '<button type="submit">Cadastrar turma</button>' +
     '</form>' +
-    (listaTurmas.length
-      ? '<form id="form-regua">' +
-        '<label for="rturma">Régua da rubrica de uma turma</label>' +
-        '<p class="sub">A régua vale por TURMA — o plano de ensino do professor lê a régua da turma dele.</p>' +
-        '<select id="rturma">' +
-        listaTurmas.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>').join('') +
-        '</select>' +
-        '<div id="rrubrica"></div>' +
-        '<p><button type="button" id="rrubrica-add">Acrescentar nível</button></p>' +
-        '<button type="submit">Salvar a régua desta turma</button>' +
-        '</form>'
-      : '') +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
     '<h3>Turmas cadastradas</h3>' +
     '<div class="rolagem"><ul class="lista">' + itensTurmas + '</ul></div>' +
     rodapePaginacao() +
+    '</div>' +
+    '</div>' +
+    // ABA 2 — CRIAR RUBRICA. A régua ganha NOME: é o que a torna vinculável a mais de uma
+    // turma, e o que impede que a mesma decisão seja redigitada em cada cadastro.
+    '<div class="aba-painel" id="aba-rubrica" hidden>' +
+    '<div class="col-form">' +
+    '<form id="form-rubrica">' +
+    '<input type="hidden" id="rubr-id">' +
+    '<label for="rubr-nome">Nome da rubrica</label>' +
+    '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Régua do Nível 1">' +
+    '<label>Níveis <span class="dica">(a ordem é a das colunas da tabela)</span></label>' +
+    '<p class="sub">Já vem com os quatro níveis padrão. Renomeie, acrescente ou remova — a régua é da escola, e vale para todas as turmas que a usarem.</p>' +
+    '<div id="rubr-niveis">' + NIVEIS_DA_RUBRICA.map((n) => linhaDaRegua(n)).join('') + '</div>' +
+    '<p><button type="button" id="rubr-add">Acrescentar nível</button></p>' +
+    '<button type="submit">Salvar rubrica</button>' +
+    '<button type="button" id="rubr-limpar">Limpar formulário</button>' +
+    '</form>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Rubricas criadas</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensRubricas + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
+    '</div>' +
+    // ABA 3 — VINCULAR. Qual turma é medida por qual rubrica. A lista mostra o EFEITO (com
+    // que níveis cada turma está sendo medida), que é o que a direção precisa conferir.
+    '<div class="aba-painel" id="aba-vincular" hidden>' +
+    '<div class="col-form">' +
+    '<form id="form-vincular">' +
+    '<label for="vinc-turma">Turma</label>' +
+    '<select id="vinc-turma">' +
+    (listaTurmas.length
+      ? listaTurmas.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>').join('')
+      : '<option value="">— nenhuma turma cadastrada —</option>') +
+    '</select>' +
+    '<label for="vinc-rubrica">Rubrica</label>' +
+    '<select id="vinc-rubrica">' +
+    (listaRubricas.length
+      ? listaRubricas.map((r) => '<option value="' + esc(r.id) + '">' + esc(r.nome) + '</option>').join('')
+      : '<option value="">— nenhuma rubrica criada —</option>') +
+    '</select>' +
+    '<p class="sub">Uma rubrica pode valer para várias turmas: mudar os níveis dela muda as ' +
+    'turmas que a usam, no mesmo ato — é uma régua só, não uma cópia por turma.</p>' +
+    '<button type="submit">Vincular</button>' +
+    '<button type="button" id="vinc-desvincular">Desvincular (volta à régua padrão)</button>' +
+    '</form>' +
+    '</div>' +
+    '<div class="col-lista" data-paginar data-por-pagina="7">' +
+    '<h3>Com que régua cada turma é medida</h3>' +
+    '<div class="rolagem"><ul class="lista">' + itensVinculos + '</ul></div>' +
+    rodapePaginacao() +
+    '</div>' +
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-vocabulario" hidden>' +
@@ -1005,6 +1153,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  paginar();' +
     '});' +
     'paginar();' +
+    // AS ABAS da secção Turmas: mostra o painel da aba clicada e marca a aba. O estado NÃO
+    // vai para a URL de propósito — a URL já é do menu lateral (`#turmas`), e um segundo
+    // nível de hash tornaria os dois difíceis de usar. Recarregar volta à primeira aba.
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("button.aba") : null;' +
+    '  if (!b) return;' +
+    '  var abas = b.closest(".abas");' +
+    '  if (!abas) return;' +
+    '  var secao = abas.parentElement;' +
+    '  var alvo = b.getAttribute("data-aba");' +
+    '  var irmas = abas.querySelectorAll("button.aba");' +
+    '  for (var i = 0; i < irmas.length; i++) {' +
+    '    var ativa = irmas[i] === b;' +
+    '    irmas[i].className = ativa ? "aba ativo" : "aba";' +
+    '    irmas[i].setAttribute("aria-selected", ativa ? "true" : "false");' +
+    '  }' +
+    '  var paineis = secao.querySelectorAll(".aba-painel");' +
+    '  for (var j = 0; j < paineis.length; j++) {' +
+    '    paineis[j].hidden = paineis[j].id !== "aba-" + alvo;' +
+    '  }' +
+    '});' +
     'function entrar(senha) {' +
     '  var g = document.getElementById("res-gate");' +
     '  g.className = "res"; g.textContent = "verificando...";' +
@@ -1148,8 +1317,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    dias: marcados("dia"),' +
     '    duracaoMin: document.getElementById("tduracao").value,' +
     '    periodoInicio: document.getElementById("tinicio").value,' +
-    '    periodoFim: document.getElementById("tfim").value,' +
-    '    rubrica: reguaDoEditor("trubrica")' +
+    '    periodoFim: document.getElementById("tfim").value' +
+    // A régua SAIU daqui: a turma nasce sem ela, e a régua entra pelo vínculo (aba
+    // «Vincular turma à rubrica»). Sem rubrica ligada, a leitura aplica a padrão.
     '  }, "cadastrando turma...", true);' +
     '});' +
     'document.getElementById("form-termo").addEventListener("submit", function(e){' +
@@ -1161,7 +1331,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }, "cadastrando termo...", true);' +
     '});' +
     // A RÉGUA DA RUBRICA — a lista editável de níveis (uma por turma).
-    'var REGUA_POR_TURMA = ' + JSON.stringify(reguaPorTurma) + ';' +
+    // AS RUBRICAS, para o botão «Editar» da lista abrir a rubrica no formulário sem pedir ao
+    // servidor: o mapa já veio com a página.
+    'var RUBRICAS = ' + JSON.stringify(listaRubricas) + ';' +
+    'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
     'function linhaDaReguaNoDom(valor) {' +
     '  var s = document.createElement("span");' +
     '  s.className = "linha-regua";' +
@@ -1181,38 +1354,63 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    .map(function(x){ return x.value.trim(); })' +
     '    .filter(function(v){ return v; });' +
     '}' +
-    'function pintarRegua() {' +
-    '  var sel = document.getElementById("rturma");' +
-    '  if (!sel) return;' +
-    '  var niveis = REGUA_POR_TURMA[sel.value] || [];' +
-    '  var dono = document.getElementById("rrubrica");' +
+    'function pintarEditorDaRubrica(niveis) {' +
+    '  var dono = document.getElementById("rubr-niveis");' +
     '  while (dono.firstChild) dono.removeChild(dono.firstChild);' +
     '  for (var i = 0; i < niveis.length; i++) dono.appendChild(linhaDaReguaNoDom(niveis[i]));' +
     '}' +
-    'document.getElementById("trubrica-add").addEventListener("click", function(){' +
-    '  document.getElementById("trubrica").appendChild(linhaDaReguaNoDom(""));' +
+    'document.getElementById("rubr-add").addEventListener("click", function(){' +
+    '  document.getElementById("rubr-niveis").appendChild(linhaDaReguaNoDom(""));' +
     '});' +
-    'var addRegua = document.getElementById("rrubrica-add");' +
-    'if (addRegua) addRegua.addEventListener("click", function(){' +
-    '  document.getElementById("rrubrica").appendChild(linhaDaReguaNoDom(""));' +
+    'document.getElementById("rubr-limpar").addEventListener("click", function(){' +
+    '  document.getElementById("rubr-id").value = "";' +
+    '  document.getElementById("rubr-nome").value = "";' +
+    '  pintarEditorDaRubrica(NIVEIS_PADRAO.slice());' +
     '});' +
-    'var selRegua = document.getElementById("rturma");' +
-    'if (selRegua) { selRegua.addEventListener("change", pintarRegua); pintarRegua(); }' +
+    // «Editar» de uma rubrica: abre-a NO FORMULÁRIO (com o id), para salvar por cima. O id vai
+    // junto de propósito — renomear com o id derivado do nome criaria outra rubrica e deixaria
+    // as turmas apontando para a que sumiu.
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("button.editar-rubrica") : null;' +
+    '  if (!b) return;' +
+    '  var id = b.getAttribute("data-rubrica");' +
+    '  var alvo = null;' +
+    '  for (var i = 0; i < RUBRICAS.length; i++) { if (RUBRICAS[i].id === id) alvo = RUBRICAS[i]; }' +
+    '  if (!alvo) return;' +
+    '  document.getElementById("rubr-id").value = alvo.id;' +
+    '  document.getElementById("rubr-nome").value = alvo.nome;' +
+    '  pintarEditorDaRubrica(alvo.niveis || []);' +
+    '  document.getElementById("rubr-nome").focus();' +
+    '});' +
+    'document.getElementById("form-rubrica").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var niveis = reguaDoEditor("rubr-niveis");' +
+    '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return; }' +
+    '  enviar("/api/bastidores/rubrica", {' +
+    '    id: document.getElementById("rubr-id").value,' +
+    '    nome: document.getElementById("rubr-nome").value,' +
+    '    niveis: niveis' +
+    '  }, "salvando a rubrica...", true);' +
+    '});' +
+    'document.getElementById("form-vincular").addEventListener("submit", function(e){' +
+    '  e.preventDefault();' +
+    '  var turma = document.getElementById("vinc-turma").value;' +
+    '  var rubricaId = document.getElementById("vinc-rubrica").value;' +
+    '  if (!turma) { alert("Cadastre uma turma primeiro."); return; }' +
+    '  if (!rubricaId) { alert("Crie uma rubrica primeiro, na aba «Criar rubrica»."); return; }' +
+    '  enviar("/api/bastidores/turma-rubrica", {turma: turma, rubricaId: rubricaId}, "vinculando...", true);' +
+    '});' +
+    'document.getElementById("vinc-desvincular").addEventListener("click", function(){' +
+    '  var turma = document.getElementById("vinc-turma").value;' +
+    '  if (!turma) { alert("Escolha a turma."); return; }' +
+    '  if (!confirm("Desvincular esta turma? Ela volta a ser medida pela régua padrão.")) return;' +
+    '  enviar("/api/bastidores/turma-rubrica", {turma: turma}, "desvinculando...", true);' +
+    '});' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("button.tirar-regua") : null;' +
     '  if (!b) return;' +
     '  var linha = b.parentElement;' +
     '  if (linha && linha.className === "linha-regua") linha.parentElement.removeChild(linha);' +
-    '});' +
-    'var formRegua = document.getElementById("form-regua");' +
-    'if (formRegua) formRegua.addEventListener("submit", function(e){' +
-    '  e.preventDefault();' +
-    '  var niveis = reguaDoEditor("rrubrica");' +
-    '  if (!niveis.length) { alert("Declare pelo menos um nível — a régua vazia mediria contra nada."); return; }' +
-    '  enviar("/api/bastidores/turma-rubrica", {' +
-    '    turma: document.getElementById("rturma").value,' +
-    '    rubrica: niveis' +
-    '  }, "salvando a régua...", true);' +
     '});' +
     'document.getElementById("semear").addEventListener("click", function(e){' +
     '  if (!confirm("Carregar o catálogo inicial (turmas + vocabulário)? Registros já existentes não são duplicados.")) return;' +
@@ -1270,7 +1468,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
     '  if (!confirm("Excluir " + alvo + "?")) return;' +
-    '  var corpo = tipo === "aluna" ? {apelido: alvo} : (tipo === "curadoria" ? {id: alvo} : {nome: alvo});' +
+    '  var corpo = tipo === "aluna" ? {apelido: alvo}' +
+    '    : ((tipo === "curadoria" || tipo === "rubrica") ? {id: alvo} : {nome: alvo});' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  fetch("/api/bastidores/" + tipo, {' +
     '    method: "DELETE",' +
@@ -1321,14 +1520,15 @@ async function fetch(request, env) {
     return html(paginaEstudio(escola, contexto));
   }
   if (path === '/bastidores/producao') {
-    const [profs, aluns, trms, trmos] = await Promise.all([
+    const [profs, aluns, trms, trmos, rbs] = await Promise.all([
       professores(kv, escola), alunas(kv, escola), turmas(kv, escola), termos(kv, escola),
+      rubricas(kv, escola),
     ]);
     const dono = await nomeDoDono(env, kv, escola);
     const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
-    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs));
+    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -1562,9 +1762,13 @@ async function fetch(request, env) {
   // GET /api/bastidores/turmas — a lista (Produção) e as opções do plano (`opcoesDe`).
   if (path === '/api/bastidores/turmas') {
     const lista = await turmas(kv, escola);
+    const todasAsRubricas = await rubricas(kv, escola);
     // A régua sai SEMPRE preenchida (o cadastro antigo não a tinha): sem isto o plano
-    // receberia uma régua vazia e mediria contra nada.
-    const comRegua = lista.map((t) => (t ? Object.assign({}, t, { rubrica: rubricaDaTurma(t) }) : t));
+    // receberia uma régua vazia e mediria contra nada. E sai RESOLVIDA — quem lê não sabe se
+    // ela veio de uma rubrica ligada, da régua própria da turma ou do padrão. É o que faz o
+    // plano (`{daTurma: "rubrica"}`) continuar a funcionar sem tocar numa linha.
+    const comRegua = lista.map((t) =>
+      (t ? Object.assign({}, t, { rubrica: rubricaDaTurma(t, todasAsRubricas) }) : t));
     return json(200, { ok: true, escola, turmas: comRegua, opcoes: opcoesDeTurmas(lista) });
   }
 
@@ -1616,11 +1820,14 @@ async function fetch(request, env) {
     return json(200, { ok: true, turma: id, removida: true });
   }
 
-  // POST /api/bastidores/turma-rubrica — declarar (ou mudar) a RÉGUA da rubrica de uma
-  // turma que já existe. É o ato da coordenação: os níveis com que o resultado é medido no
-  // fim do ciclo podem mudar em comitê — acrescentar, remover ou renomear —, e o plano de
-  // ensino lê a régua da turma daquele professor. Não é edição de turma (o cadastro só
-  // inclui e exclui): é a régua, e só ela.
+  // POST /api/bastidores/turma-rubrica — LIGAR (ou desligar) uma turma da rubrica criada na
+  // aba «Criar rubrica». É o ato da coordenação, e não edição de turma: o cadastro só inclui
+  // e exclui, e a régua é um VÍNCULO — mudá-la não mexe em mais nada da turma.
+  //
+  // Sem `rubricaId` (ou com ele vazio) a turma é DESVINCULADA: volta à régua própria, se a
+  // tinha, ou à padrão. O modo antigo (`rubrica: [...]`) continua aceito e grava a régua
+  // PRÓPRIA da turma, limpando o vínculo — é o que a prova usava, e é o caminho de quem
+  // chegou antes das rubricas com nome.
   if (path === '/api/bastidores/turma-rubrica' && request.method === 'POST') {
     let corpo = {};
     try { corpo = await request.json(); } catch { corpo = {}; }
@@ -1632,12 +1839,80 @@ async function fetch(request, env) {
     const lista = await turmas(kv, escola);
     const turma = lista.find((t) => t && t.id === id);
     if (!turma) return json(404, { ok: false, erro: 'turma não encontrada' });
-    if (!Array.isArray(corpo.rubrica) || !corpo.rubrica.some((n) => String(n || '').trim())) {
-      return json(400, { ok: false, erro: 'declarar a régua: pelo menos um nível' });
+    const existentes = await rubricas(kv, escola);
+    const rubricaId = String(corpo.rubricaId || '').trim();
+    if (Array.isArray(corpo.rubrica)) {
+      const niveis = niveisLimpos(corpo.rubrica);
+      if (!niveis.length) return json(400, { ok: false, erro: 'declarar a régua: pelo menos um nível' });
+      turma.rubrica = niveis;
+      delete turma.rubricaId;
+    } else if (rubricaId) {
+      if (!existentes.some((r) => r && r.id === rubricaId)) {
+        return json(404, { ok: false, erro: 'rubrica não encontrada: ' + rubricaId });
+      }
+      turma.rubricaId = rubricaId;
+    } else {
+      delete turma.rubricaId;
     }
-    turma.rubrica = rubricaDaTurma(corpo);
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
-    return json(200, { ok: true, turma: turma.nome, rubrica: turma.rubrica });
+    return json(200, {
+      ok: true,
+      turma: turma.nome,
+      rubricaId: turma.rubricaId || '',
+      rubrica: rubricaDaTurma(turma, existentes),
+    });
+  }
+
+  // GET /api/bastidores/rubricas — as réguas da escola (a lista da aba «Criar rubrica» e os
+  // vínculos da aba «Vincular»).
+  if (path === '/api/bastidores/rubricas') {
+    const lista = await rubricas(kv, escola);
+    return json(200, { ok: true, escola, rubricas: lista });
+  }
+
+  // POST /api/bastidores/rubrica — criar (ou salvar) uma RUBRICA. Com `id`, salva aquela
+  // (renomear não perde vínculo); sem `id`, o identificador é o slug do nome, e um nome que
+  // já existe ATUALIZA — cadastrar duas vezes «Régua do Nível 1» não cria duas.
+  if (path === '/api/bastidores/rubrica' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const nova = normalizarRubrica(corpo);
+    if (!nova.nome) return json(400, { ok: false, erro: 'informe o nome da rubrica' });
+    if (!nova.id) return json(400, { ok: false, erro: 'o nome da rubrica não produz um identificador válido' });
+    if (!nova.niveis.length) return json(400, { ok: false, erro: 'declare pelo menos um nível — a régua vazia mediria contra nada' });
+    const lista = await rubricas(kv, escola);
+    const idx = lista.findIndex((r) => r && r.id === nova.id);
+    if (idx === -1) lista.push(nova); else lista[idx] = nova;
+    await kv.put(RAIZ + '/' + escola + '/rubricas', JSON.stringify(lista));
+    return json(idx === -1 ? 201 : 200, { ok: true, rubrica: nova, criada: idx === -1 });
+  }
+
+  // DELETE /api/bastidores/rubrica — apagar uma rubrica. As turmas que a usavam são
+  // DESVINCULADAS no mesmo ato (não ficam apontando para uma rubrica que sumiu): cada uma
+  // volta à régua própria ou à padrão. O número sai na resposta, para não ser surpresa.
+  if (path === '/api/bastidores/rubrica' && request.method === 'DELETE') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const id = String(corpo.id || idDe(String(corpo.nome || '')) || '').trim();
+    if (!id) return json(400, { ok: false, erro: 'informe a rubrica' });
+    const lista = await rubricas(kv, escola);
+    const idx = lista.findIndex((r) => r && r.id === id);
+    if (idx === -1) return json(404, { ok: false, erro: 'rubrica não encontrada: ' + id });
+    const [removida] = lista.splice(idx, 1);
+    await kv.put(RAIZ + '/' + escola + '/rubricas', JSON.stringify(lista));
+    const listaTurmas = await turmas(kv, escola);
+    let desvinculadas = 0;
+    for (const t of listaTurmas) {
+      if (t && String(t.rubricaId || '') === id) { delete t.rubricaId; desvinculadas += 1; }
+    }
+    if (desvinculadas) await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(listaTurmas));
+    return json(200, { ok: true, rubrica: removida.nome, turmasDesvinculadas: desvinculadas });
   }
 
   // POST /api/bastidores/termo — incluir termo do vocabulário.

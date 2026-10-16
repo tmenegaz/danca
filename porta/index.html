@@ -2666,15 +2666,19 @@ function niveisDaEscala(no) {
 function escalaFixa(no) {
   const niveis = niveisDaEscala(no);
   const daTurma = !!(no.escala && !Array.isArray(no.escala) && no.escala.daTurma);
+  // A régua saiu do cadastro da turma em 15/10/2026: hoje ela é uma RUBRICA com nome, criada
+  // uma vez e ligada às turmas que a usam (Produção → Turmas, abas «Criar rubrica» e
+  // «Vincular turma à rubrica»). A citação aponta para onde a decisão passou a ser tomada.
   const nota = daTurma
-    ? '<p class="sub">A régua é a da sua turma, declarada pela direção na Produção (' +
-      citacao('Produção → Turmas → Régua da rubrica') + ') — aqui é leitura. ' +
+    ? '<p class="sub">A régua é a da sua turma, decidida pela direção na Produção (' +
+      citacao('Produção → Turmas → Vincular turma à rubrica') + ') — aqui é leitura. ' +
       'O critério de cada aula você declara no lançamento da aula dada.</p>'
     : '<p class="sub">A régua é esta — o critério de cada aula você declara no lançamento da aula dada.</p>';
   if (!niveis.length) {
     return '<p class="aviso">A régua vem da turma: escolha a turma em ' +
-      citacao('Turmas observadas') + ' — e, se ela ainda não declara uma régua, a direção a ' +
-      'declara em ' + citacao('Produção → Turmas') + '.</p>';
+      citacao('Turmas observadas') + ' — e, se ela ainda não tem uma régua ligada, a direção ' +
+      'cria a rubrica em ' + citacao('Produção → Turmas → Criar rubrica') + ' e a liga à turma em ' +
+      citacao('Vincular turma à rubrica') + '.</p>';
   }
   return '<ul class="escala">' + niveis.map((n) => '<li>' + md(n) + '</li>').join('') + '</ul>' + nota;
 }

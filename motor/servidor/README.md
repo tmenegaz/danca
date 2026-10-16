@@ -82,18 +82,24 @@ da escola, com o KV da própria escola (`bastidores/<escola>/…`) e a senha da 
 escondidas do servidor (só o Painel inicial vem visível) — assim a página nunca volta a ser tudo
 empilhado, mesmo se o script falhar.
 
-A **régua da rubrica** é declarada AQUI, por turma (`rubrica` no cadastro): os níveis com que o
-resultado é medido no fim do ciclo são decisão da escola — podem mudar em comitê (renomear,
-acrescentar, remover) pelo formulário «Régua da rubrica de uma turma». A turma nasce com a régua
-padrão (`NIVEIS_DA_RUBRICA`, importada da derivação — uma fonte só) e a leitura nunca devolve uma
-régua vazia: o plano de ensino LÊ a régua da turma do professor, e uma régua vazia mediria contra
-nada.
+A **régua da rubrica** é declarada AQUI, como uma **RUBRICA com nome** (`bastidores/<escola>/rubricas`):
+os níveis com que o resultado é medido no fim do ciclo são decisão da escola — podem mudar em comitê
+(renomear, acrescentar, remover) —, e cada turma é **vinculada** à rubrica que usa (`rubricaId`),
+na aba «Vincular turma à rubrica». Uma rubrica pode valer para várias turmas: mudar os níveis dela
+muda todas as que a usam, no mesmo ato. Até 15/10/2026 a régua vivia DENTRO da turma e era
+declarada no próprio cadastro; por isso a leitura aceita as TRÊS origens, nesta ordem — o
+**vínculo**, a **régua própria** da turma (`rubrica`, o formato antigo, que continua válido sem
+migração) e o **padrão** (`NIVEIS_DA_RUBRICA`, importada da derivação — uma fonte só). A leitura
+nunca devolve uma régua vazia: o plano de ensino LÊ a régua da turma do professor, e uma régua
+vazia mediria contra nada. O `GET /api/bastidores/turmas` entrega a régua **resolvida**, para o
+plano (`{daTurma: "rubrica"}`) não saber de onde ela veio.
 
-A prova é `experimentos/provar-producao.js` (28/28): roda o script servido num DOM de mentira e
-confere que o menu troca a secção, que os handlers dos formulários existem e que a página não é
-cacheável. Ela trava um defeito silencioso: o script é montado por concatenação numa linha só, e
-um comentário `//` comenta **todo o resto** do script — o login funcionava (vinha antes), mas o
-menu e os botões ficavam mortos. Por isso o script servido não pode ter comentário de linha.
+A prova é `experimentos/provar-producao.js` (104/104): roda o script servido num DOM de mentira e
+confere que o menu troca a secção, que as três abas de Turmas trocam de painel, que os handlers dos
+formulários existem e que a página não é cacheável. Ela trava um defeito silencioso: o script é
+montado por concatenação numa linha só, e um comentário `//` comenta **todo o resto** do script —
+o login funcionava (vinha antes), mas o menu e os botões ficavam mortos. Por isso o script servido
+não pode ter comentário de linha.
 
 ## Prova contra o Worker real
 
