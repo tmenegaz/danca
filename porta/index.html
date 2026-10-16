@@ -85,13 +85,15 @@
     display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
     margin-top: .45rem;
   }
-  /* A TURMA OCUPA A LINHA INTEIRA do cabeçalho (16/10/2026): ela é uma lista com o
-     estado de cada plano, e não caberia ao lado dos campos de uma linha só. Fica
-     depois do ciclo e antes da senha, que é onde o professor diz de que se trata. */
-  .barra details.ctx-ato .ctx-campos .ctx-turma { flex: 1 1 100%; align-items: flex-start; }
-  .barra details.ctx-ato .ctx-campos .ctx-turma label { padding-top: .15rem; }
-  .barra details.ctx-ato .ctx-campos .ctx-turma .grade { display: flex; flex-wrap: wrap; gap: 0 .6rem; }
-  .barra details.ctx-ato .ctx-campos .ctx-turma .opcao { padding: .15rem .3rem; }
+  /* O `hidden` NÃO vence o `display: flex` de `.campo` — sem esta regra o campo da turma
+     aparecia em TODAS as fontes (16/10/2026). Atributo perde para regra de CSS. */
+  .barra .campo[hidden] { display: none; }
+  /* A TURMA NO CABEÇALHO (16/10/2026): um SELECT, como o do professor — cabe numa linha e
+     não cresce com o número de turmas (cinquenta turmas seriam cinquenta rádios). Fica
+     depois do ciclo e antes da senha, que é onde o professor diz de que se trata o ato. */
+  .barra details.ctx-ato .ctx-campos .ctx-turma { flex: 1 1 100%; align-items: baseline; }
+  .barra details.ctx-ato .ctx-campos .ctx-turma select { max-width: 18rem; }
+  .barra details.ctx-ato .ctx-campos .ctx-turma .sub { font-size: .75rem; color: var(--suave); }
   /* O QUE JÁ FOI CONFERIDO NÃO SE MEXE. Enquanto o professor preenche, os campos que
      dizem de que se trata o ato ficam apagados — não é enfeite: é a trava de
      `travarCabecalho`. A senha fica de fora (é ela que autoriza a escrita). */
@@ -447,13 +449,13 @@
         <select id="ctx-professor"><option value="">— escolher —</option></select></span>
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
         <input type="text" id="ctx-ciclo" value=""></span>
-      <!-- A TURMA OBSERVADA no CABEÇALHO (16/10/2026). Só o plano de ensino a tem: o
-           ciclo é de UMA turma, e a escolha dela é o que diz de que se trata o plano.
-           A lista (com as turmas já planejadas bloqueadas e o atalho para o plano) é
-           desenhada por `renderTurmaDoCabecalho`; nas outras fontes, some. -->
+      <!-- A TURMA OBSERVADA no CABEÇALHO (16/10/2026). No PLANO DE ENSINO o professor a
+           ESCOLHE — um SELECT como o do professor, uma turma por plano. No PLANO DE
+           OBSERVAÇÃO ela é LEITURA, vinda do plano de ensino referenciado (não pode divergir
+           dele). Na ANAMNESE o campo não existe. Desenhado por `renderTurmaDoCabecalho`. -->
       <span class="campo ctx-turma" id="ctx-turma-campo" hidden>
         <label>turma observada</label>
-        <div id="ctx-turma-grade"></div></span>
+        <span id="ctx-turma-conteudo"></span></span>
       <span class="campo"><label for="ctx-aluna">aluna</label>
         <select id="ctx-aluna"><option value="">— nenhuma —</option></select>
         <button type="button" class="limpar-aluna" id="limpar-aluna" title="desmarcar a aluna" aria-label="desmarcar a aluna">×</button></span>
@@ -1982,6 +1984,9 @@ function gravarRespostaDoNo(no) {
   atualizarBarra();
   pintarRoteiro();
   salvar();
+  // No PO a turma do cabeçalho é a do plano REFERENCIADO: quando o professor escolhe outro
+  // plano, a leitura se atualiza (16/10/2026).
+  if (FONTE === 'po') renderTurmaDoCabecalho();
 }
 
 // -------------------------------------------------------------- a pergunta
@@ -2464,43 +2469,141 @@ function gradeDeOpcoesDinamicas(no) {
 /* A TURMA NO CABEÇALHO (16/10/2026). O plano de ensino é de UMA turma, e a escolha dela
  * sobe para o cabeçalho — depois do ciclo, antes da senha —, onde ficam os campos que
  * DIZEM de que se trata o ato. O corpo do formulário deixa de ter o seletor (o nó
- * `contexto-turma` vira leitura, por `turmaNoCabecalho`), e a lista completa — com as
- * turmas já planejadas BLOQUEADAS, o estado do plano e o atalho para vê-lo — passa a
- * viver no alto. É uma turma por plano, e a mesma turma não se planeja duas vezes.
+ * `contexto-turma` vira leitura, por `turmaNoCabecalho`). É uma turma por plano, e a
+ * mesma turma não se planeja duas vezes.
  *
- * A marcação escreve DIRETO na resposta do nó: os rádios vivem FORA de `#pergunta`, e o
+ * O CONTROLE é um SELECT, como o do professor — não rádios. Cabe numa linha e não cresce
+ * com o número de turmas. As turmas já planejadas entram DESABILITADAS, com o estado no
+ * próprio rótulo, e os atalhos para os planos ficam numa nota discreta ao lado.
+ *
+ * A marcação escreve DIRETO na resposta do nó: o select vive FORA de `#pergunta`, e o
  * `lerResposta` lê `RESPOSTAS` para esta turma. Fonte única — não há duas respostas.
+ *
+ * NO PLANO DE OBSERVAÇÃO a turma é LEITURA: ela vem do PLANO DE ENSINO referenciado e NÃO
+ * pode divergir dele. O PO não coleta turma (o conteúdo o diz por palavras próprias), e o
+ * motor DESCARTA chaves não declaradas — por isso não há ali um campo a preencher, e sim a
+ * leitura do que o plano carrega, derivada de `api/planos` (que já devolve a turma).
  */
 function noDaTurma() {
   if (!MAPA) return null;
   return MAPA.nos.find((n) => n.id === 'contexto-turma') || null;
 }
 
+/** As turmas que o professor pode planejar — a curadoria filtra; sem ela, a lista inteira. */
+function listaDeTurmasDoProfessor(no) {
+  let lista = OPCOES.get(no.opcoesDe) || [];
+  const atribuido = no.daCuradoria ? daCuradoria(no.daCuradoria) : [];
+  if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) {
+    const vistas = new Set(atribuido);
+    lista = lista.filter((o) => vistas.has(String(o.valor)));
+  }
+  return lista;
+}
+
+/** O SELECT da turma do plano: as já planejadas desabilitadas, com o estado no rótulo. */
+function selectDaTurma(no) {
+  const lista = listaDeTurmasDoProfessor(no);
+  const usadas = turmasJaUsadas();
+  const cru = RESPOSTAS.get(no.id);
+  const escolhida = Array.isArray(cru) ? cru[0] : cru;
+  const opcoes = ['<option value="">— escolher —</option>'];
+  for (const o of lista) {
+    const usada = usadas.get(String(o.valor));
+    const estado = usada ? (ROTULO_ESTADO_PLANO[usada.estado] || usada.estado) : '';
+    const rotulo = (o.rotulo || o.valor) + (usada ? ' · já tem plano (' + estado + ')' : '');
+    const sel = String(escolhida) === String(o.valor) ? ' selected' : '';
+    // A turma que se está a EDITAR/DERIVAR fica selecionável (a exceção de `turmasJaUsadas`).
+    const dis = usada && String(escolhida) !== String(o.valor) ? ' disabled' : '';
+    opcoes.push('<option value="' + escapar(o.valor) + '"' + sel + dis + '>' + escapar(rotulo) + '</option>');
+  }
+  // Os atalhos dos planos que já existem não cabem num `<option>` — vão numa nota discreta,
+  // para o professor não perder o acesso ao que ficou gravado.
+  let nota = '';
+  if (usadas.size) {
+    const partes = [];
+    for (const [nome, usada] of usadas) {
+      const livre = usada.estado === 'solta';
+      partes.push(escapar(nome) + ' <a class="atalho-do-plano" href="' +
+        escapar(urlDoPlano(usada.carimbo, livre)) + '" target="_blank" rel="noopener">' +
+        (livre ? 'ajustar o plano' : 'ver o plano') + '</a>');
+    }
+    nota = '<span class="sub">com plano: ' + partes.join(' · ') + '</span>';
+  }
+  return '<select id="ctx-turma" aria-label="turma observada">' + opcoes.join('') + '</select>' + nota;
+}
+
+/** A TURMA do PO — a do plano referenciado, de `api/planos` (a fonte única; não se reescreve). */
+function turmaDoPlanoReferenciado() {
+  const cru = RESPOSTAS.get('plano-de-ensino');
+  const carimbo = Array.isArray(cru) ? cru[0] : cru;
+  if (!carimbo) return null;
+  const lista = OPCOES.get('api/planos') || [];
+  const o = lista.find((x) => String(x.valor) === String(carimbo));
+  return o && o.turma ? String(o.turma) : null;
+}
+
+/** A LEITURA da turma no PO — o que o plano referenciado carrega, dito como leitura. */
+function leituraDaTurmaDoPo() {
+  const cru = RESPOSTAS.get('plano-de-ensino');
+  const escolhido = Array.isArray(cru) ? cru[0] : cru;
+  if (!escolhido) {
+    return '<b>—</b> <span class="sub">escolha o plano de ensino no corpo do formulário</span>';
+  }
+  const nome = turmaDoPlanoReferenciado();
+  if (!nome) {
+    return '<b>—</b> <span class="sub">o plano referenciado não declara turma</span>';
+  }
+  return '<b>' + escapar(nome) + '</b> <span class="sub">vem do plano de ensino referenciado — ' +
+    'aqui é leitura, e não pode divergir dele</span>';
+}
+
 async function renderTurmaDoCabecalho() {
   const caixa = document.getElementById('ctx-turma-campo');
-  const alvo = document.getElementById('ctx-turma-grade');
+  const alvo = document.getElementById('ctx-turma-conteudo');
   if (!caixa || !alvo) return;
   const no = noDaTurma();
-  if (FONTE !== 'plano' || !no) { caixa.hidden = true; return; }
-  caixa.hidden = false;
-  // A lista precisa das opções do nó (as turmas) e do cadastro (o ritmo). As duas
-  // chamadas guardam o resultado: repetir não custa uma segunda busca.
-  if (no.opcoesDe && !OPCOES.has(no.opcoesDe)) await carregarOpcoesDe(no.opcoesDe);
-  if (TURMAS_DA_ESCOLA === null) await carregarTurmasDaEscola();
-  alvo.innerHTML = gradeDeOpcoesDinamicas(no);
-  for (const radio of alvo.querySelectorAll('input[name="valor"]')) {
-    radio.addEventListener('change', () => {
-      RESPOSTAS.set(no.id, radio.value);
-      SUGERIDAS.delete(no.id);   // a escolha do professor não é sugestão: não se reescreve
-      marcarContextoFaltando();
-      atualizarComecar();
-      atualizarBarra();
-      salvar();
-    });
+
+  // PLANO DE ENSINO — o professor ESCOLHE a turma (o select).
+  if (FONTE === 'plano' && no) {
+    caixa.hidden = false;
+    // A lista precisa das opções do nó (as turmas) e do cadastro (o ritmo). As duas
+    // chamadas guardam o resultado: repetir não custa uma segunda busca.
+    if (no.opcoesDe && !OPCOES.has(no.opcoesDe)) await carregarOpcoesDe(no.opcoesDe);
+    if (TURMAS_DA_ESCOLA === null) await carregarTurmasDaEscola();
+    alvo.innerHTML = selectDaTurma(no);
+    const sel = alvo.querySelector('#ctx-turma');
+    if (sel) {
+      sel.addEventListener('change', () => {
+        if (sel.value) RESPOSTAS.set(no.id, sel.value);
+        else RESPOSTAS.delete(no.id);
+        SUGERIDAS.delete(no.id);   // a escolha do professor não é sugestão: não se reescreve
+        marcarContextoFaltando();
+        atualizarComecar();
+        atualizarBarra();
+        salvar();
+      });
+    }
+    // A repintura criou controles NOVOS: reaplica a trava, se o formulário está aberto.
+    if (CABECALHO_TRAVADO) travarCabecalho(true);
+    marcarContextoFaltando();
+    return;
   }
-  // A repintura criou controles NOVOS: reaplica a trava, se o formulário está aberto.
-  if (CABECALHO_TRAVADO) travarCabecalho(true);
-  marcarContextoFaltando();
+
+  // PLANO DE OBSERVAÇÃO — a turma é LEITURA, vinda do plano referenciado.
+  if (FONTE === 'po') {
+    caixa.hidden = false;
+    // A leitura depende da lista de planos (de onde sai a turma): busca-a para poder mostrar.
+    if (!OPCOES.has('api/planos') && !OPCOES_ERRO.has('api/planos')) {
+      await carregarOpcoesDe('api/planos');
+    }
+    alvo.innerHTML = leituraDaTurmaDoPo();
+    if (CABECALHO_TRAVADO) travarCabecalho(true);
+    marcarContextoFaltando();
+    return;
+  }
+
+  // ANAMNESE (e qualquer outra fonte) — a turma não existe.
+  caixa.hidden = true;
 }
 
 /* AS LINHAS DE UMA TABELA — a forma nova é o OBJETO `{unidade, linhas}` (a grelha com a
@@ -5610,7 +5713,8 @@ async function iniciar() {
   $('contexto').classList.remove('oculto');
   atualizarFichas();
   // O cabeçalho do plano ganha a TURMA (16/10/2026): a lista precisa do mapa já carregado.
-  if (FONTE === 'plano') renderTurmaDoCabecalho();
+  // No PO, a turma é a LEITURA do plano referenciado — o mesmo desenho, a mesma chamada.
+  if (FONTE === 'plano' || FONTE === 'po') renderTurmaDoCabecalho();
 
   let autoAbrir = false;
   const guardado = lerMemoria();
