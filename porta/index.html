@@ -197,6 +197,24 @@
   .lista .quem { font-weight: 700; }
   .lista .quem.sem-sujeito { color: var(--falha); font-style: italic; }
   #filtro-fichas { margin: 0 0 .5rem; }
+  /* A PAGINAÇÃO da estante: seis fichas por página (16/10/2026). Os botões são
+     pequenos e ficam alinhados na mesma linha; a contagem fecha a linha à direita. */
+  .paginacao { display: flex; flex-wrap: wrap; align-items: center; gap: .35rem; margin: 1rem 0 0; }
+  .paginacao button {
+    min-width: 2.1rem;
+    padding: .3rem .5rem;
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  .paginacao button[aria-current="page"] {
+    border-color: var(--gold-escuro);
+    background: var(--creme-2);
+    font-weight: 700;
+    cursor: default;
+  }
+  .paginacao button:disabled { opacity: .45; cursor: not-allowed; }
+  .paginacao .intervalo { color: var(--suave); padding: 0 .15rem; }
+  .paginacao .contagem { margin-left: auto; color: var(--suave); font-size: .78rem; }
   .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
   /* A TRAVA DA SENHA: sem ela validada, o que se responde fica em só-leitura — a senha é o
      que autoriza a ESCRITA, e ela não se empresta a quem use o mesmo navegador depois. */
@@ -360,6 +378,13 @@
        altura máxima passou a ser a do próprio `.toc-local`. */
     .barra { max-width: 1180px; }
     .toc-local .lista { max-height: none; }
+
+    /* SEM ROTEIRO, a coluna dele não fica vazia (16/10/2026): o roteiro só existe
+       durante a condução, e enquanto ele não está lá a grade de duas colunas reservava
+       17rem de nada à direita do texto. O portal é uma coluna só — e ela OCUPA a
+       largura, que é o que o professor pediu: o espaço do roteiro é dos blocos. */
+    main.sem-roteiro { grid-template-columns: minmax(0, 1fr); }
+    main.sem-roteiro .conteudo { max-width: none; }
   }
   @media print { .toc-local { position: static; max-height: none; } }
 </style>
@@ -414,7 +439,7 @@
   </details>
 </div>
 
-<main>
+<main id="principal" class="sem-roteiro">
 
 <!-- O índice vive antes do corpo no DOM e as colunas da grade o põem na SEGUNDA:
      em tela larga ele acompanha a rolagem; em tela estreita — sem grade — volta a
@@ -459,6 +484,9 @@
     <input type="text" id="filtro-fichas" placeholder="filtrar por data, hora ou id" autocomplete="off">
     <ul id="lista-fichas" class="lista"></ul>
     <p class="sub oculto" id="fichas-vazio">Nenhuma ficha gravada ainda.</p>
+    <!-- A PAGINAÇÃO nasce oculta: com até uma página de fichas ela não existe, e a
+         estante fica como sempre foi. -->
+    <nav id="paginacao" class="paginacao oculto" aria-label="Paginação das fichas"></nav>
   </div>
 </section>
 
@@ -1399,6 +1427,9 @@ function abrirFormulario(indice, empilhar) {
   }
   document.getElementById('conducao').classList.remove('oculto');
   document.getElementById('rail').classList.remove('oculto');
+  // Com o roteiro à vista, a grade volta às duas colunas.
+  const principal = document.getElementById('principal');
+  if (principal) principal.classList.remove('sem-roteiro');
   irPara(indice, false);
 }
 
@@ -1417,6 +1448,9 @@ function voltarAoPortal() {
   }
   const rail = document.getElementById('rail');
   if (rail) rail.classList.add('oculto');
+  // Sem roteiro não há segunda coluna: o portal ocupa a largura inteira.
+  const principal = document.getElementById('principal');
+  if (principal) principal.classList.add('sem-roteiro');
   IA_ATIVA = false;
   pararVoz();
 
@@ -4293,6 +4327,15 @@ function acoesDoPlano(id, o) {
     '<button class="acao-derivar"' + q + ' title="criar um plano novo a partir deste">derivar</button>';
 }
 
+/*
+ * A PÁGINA da estante. Seis fichas por página (16/10/2026): a sétima abre a página 2, e
+ * assim por diante. A paginação é da ESTANTE, não do armazenamento — o servidor devolve
+ * todas, e é a tela que as reparte. Vale para as três fontes (a anamnese, o plano e o PO):
+ * a lista é a mesma, e um limite só evita três comportamentos.
+ */
+const POR_PAGINA = 6;
+let PAGINA = 1;
+
 function pintarFichas() {
   const lista = $('lista-fichas');
   const procurado = String($('filtro-fichas').value || '').trim().toLowerCase();
@@ -4301,9 +4344,16 @@ function pintarFichas() {
     ? daFonte.filter((id) => (id + ' ' + rotuloDoEnvelope(id)).toLowerCase().indexOf(procurado) !== -1)
     : daFonte;
 
+  // A página corrente nunca sai da faixa: o filtro, a exclusão e o recarimbo mudam a
+  // contagem por baixo, e a tela não pode ficar numa página que deixou de existir.
+  const totalDePaginas = Math.max(1, Math.ceil(visiveis.length / POR_PAGINA));
+  PAGINA = Math.min(Math.max(1, PAGINA), totalDePaginas);
+  const inicio = (PAGINA - 1) * POR_PAGINA;
+  const daPagina = visiveis.slice(inicio, inicio + POR_PAGINA);
+
   const eAnam = FONTE === 'anamnese';
   const ePlano = FONTE === 'plano';
-  lista.innerHTML = visiveis.map((id) => {
+  lista.innerHTML = daPagina.map((id) => {
     const o = ESTADOS.get(id);
     const alvo = eAnam
       ? 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html'
@@ -4334,6 +4384,80 @@ function pintarFichas() {
   vazio.textContent = daFonte.length === 0
     ? (eAnam ? 'Nenhuma ficha gravada ainda.' : (ePlano ? 'Nenhum plano de ensino gravado ainda.' : 'Nenhum Plano de Observação gravado ainda.'))
     : 'Nenhum registro casa com o filtro.';
+
+  pintarPaginacao(visiveis.length, totalDePaginas);
+}
+
+/*
+ * O PAGINADOR. Ele só existe quando há mais de uma página — com uma só, a estante é a de
+ * sempre, e um paginador de uma página é ruído. Os números abrem uma janela em volta da
+ * página corrente, com as duas pontas sempre à vista: com trinta fichas, o professor não
+ * quer ver trinta botões.
+ */
+function numerosDePagina(atual, total) {
+  const numeros = [];
+  for (let n = 1; n <= total; n += 1) {
+    const vizinho = Math.abs(n - atual) <= 1;
+    const ponta = n === 1 || n === total;
+    if (vizinho || ponta) numeros.push(n);
+    else if (numeros[numeros.length - 1] !== '…') numeros.push('…');
+  }
+  return numeros;
+}
+
+function botaoDePagina(rotulo, destino, opcoes) {
+  const o = opcoes || {};
+  return '<button type="button" data-pagina="' + destino + '"' +
+    (o.desabilitado ? ' disabled' : '') +
+    (o.atual ? ' aria-current="page"' : '') +
+    (o.aria ? ' aria-label="' + o.aria + '"' : '') +
+    (o.titulo ? ' title="' + o.titulo + '"' : '') + '>' + rotulo + '</button>';
+}
+
+function pintarPaginacao(quantos, total) {
+  const nav = $('paginacao');
+  if (!nav) return;
+  if (total <= 1) {
+    nav.classList.add('oculto');
+    nav.innerHTML = '';
+    return;
+  }
+  nav.classList.remove('oculto');
+  const partes = [
+    botaoDePagina('‹', PAGINA - 1, {
+      desabilitado: PAGINA === 1, aria: 'página anterior', titulo: 'página anterior',
+    }),
+  ];
+  for (const n of numerosDePagina(PAGINA, total)) {
+    if (n === '…') partes.push('<span class="intervalo">…</span>');
+    else partes.push(botaoDePagina(String(n), n, {
+      atual: n === PAGINA, aria: 'página ' + n, titulo: 'página ' + n,
+    }));
+  }
+  partes.push(botaoDePagina('›', PAGINA + 1, {
+    desabilitado: PAGINA === total, aria: 'página seguinte', titulo: 'página seguinte',
+  }));
+  nav.innerHTML = partes.join('') +
+    '<span class="contagem">' + quantos + (quantos === 1 ? ' registro' : ' registros') +
+    ' · página ' + PAGINA + ' de ' + total + '</span>';
+}
+
+/** Ir para uma página: repinta e traz a lista à vista (quem clica está no fim da página). */
+function irParaPagina(n) {
+  const proxima = Math.max(1, Number(n) || 1);
+  if (proxima === PAGINA) return;
+  PAGINA = proxima;
+  pintarFichas();
+  const caixa = $('fichas');
+  if (caixa && typeof caixa.scrollIntoView === 'function') {
+    caixa.scrollIntoView({ block: 'nearest' });
+  }
+}
+
+/** O filtro é do CONJUNTO: mudou o que se procura, a leitura recomeça da primeira página. */
+function filtrarFichas() {
+  PAGINA = 1;
+  pintarFichas();
 }
 
 /* O aviso por anamnese, na própria linha (a lista é o lugar do gesto). */
@@ -5299,7 +5423,16 @@ async function iniciar() {
     if (e.key === 'Enter') enviarIA();
   });
 
-  $('filtro-fichas').addEventListener('input', pintarFichas);
+  $('filtro-fichas').addEventListener('input', filtrarFichas);
+
+  // Os botões do PAGINADOR são repintados a cada página — delegar o clique no
+  // contêiner é o que os mantém vivos sem religar um a um.
+  $('paginacao').addEventListener('click', (evento) => {
+    const botao = evento.target.closest ? evento.target.closest('button[data-pagina]') : null;
+    if (!botao || botao.disabled) return;
+    evento.preventDefault();
+    irParaPagina(botao.dataset.pagina);
+  });
 
   // Os gestos da proveniência, na própria lista. A regra é do servidor; a tela
   // só oferece o que ele permite.

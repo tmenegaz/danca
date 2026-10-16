@@ -91,6 +91,18 @@ const ESTILO = `
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   pre.moldura { font-size: .72rem; line-height: 1.3; }
+  /*
+   * A folha é de VISUALIZAÇÃO e de IMPRESSÃO (16/10/2026). Na tela, o rolo
+   * horizontal do PRE é a saída para uma moldura larga numa janela estreita;
+   * no papel não há rolo — o que passa da página é CORTADO. Como a moldura é
+   * monoespaçada, o que a faz caber é o corpo da letra: no papel ela encolhe
+   * até caber, em vez de sumir na margem.
+   */
+  @media print {
+    pre { overflow: visible; }
+    pre.moldura { font-size: .6rem; line-height: 1.25; }
+    .folha { max-width: none; }
+  }
 `;
 
 /*

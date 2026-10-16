@@ -192,17 +192,54 @@ function noDoGatilho(nos) {
 // ---------------------------------------------------------------------------
 
 /**
+ * O limite da moldura, em colunas. A moldura é monoespaçada: uma linha comprida
+ * alarga a CAIXA INTEIRA, e a ficha passa a rolar na horizontal — o que estraga a
+ * leitura e a impressão (16/10/2026). O limite mantém a moldura dentro da folha;
+ * o que não couber embrulha por palavra, e a moldura continua alinhada.
+ */
+const LARGURA_MAXIMA_DA_MOLDURA = 104;
+
+/**
+ * Embrulha uma linha em várias, sem cortar palavra e sem perder os espaços
+ * múltiplos que separam as caixas (`☐ a  ☐ b`): separa em palavras E separadores.
+ * A CAIXA não se separa do rótulo — `☐ Outro: __________` é uma unidade só, e
+ * quebrá-la deixaria um `☐` órfão no fim da linha.
+ * Uma palavra sozinha maior que o limite passa inteira — não há onde cortá-la.
+ */
+function embrulhar(linha, maximo) {
+  if (linha.length <= maximo) return [linha];
+  const partes = linha.match(/☐\s+\S+|\S+|\s+/g) || [];
+  const linhas = [];
+  let atual = '';
+  for (const parte of partes) {
+    const respiro = /^\s+$/.test(parte);
+    if (atual !== '' && atual.length + parte.length > maximo) {
+      linhas.push(atual.replace(/\s+$/, ''));
+      atual = respiro ? '' : parte;
+    } else {
+      atual += parte;
+    }
+  }
+  if (atual.replace(/\s+$/, '') !== '' || linhas.length === 0) linhas.push(atual.replace(/\s+$/, ''));
+  return linhas;
+}
+
+/**
  * A caixa do topo: a identificação da ficha e o tipo.
  *
  * Só o campo «Método declarado» recebe marca: os demais são linha de
  * identificação, e o apelido não é elicitado — é o professor que o escreve.
  * O `Data:` também fica em branco, porque a data da ficha é a da observação,
  * e não a de nascimento que o envelope guarda.
+ *
+ * A mecânica da ramificação (qual campo é o gatilho) NÃO entra aqui: é
+ * INFRAESTRUTURA do motor, não conteúdo da ficha — o professor não tem o que
+ * fazer com essa informação, e ela era a linha mais longa do bloco (16/10/2026).
  */
-function cabecalhoDaFicha(conteudo, noGatilho, respostaDoMetodo, preenchida) {
+function cabecalhoDaFicha(conteudo, respostaDoMetodo, preenchida) {
   const metodos = metodosDeOrigem(conteudo);
   const marcados = respostaDoMetodo ? respostaDoMetodo.respondido : null;
-  const linhas = [
+  const declaradas = [
     'Data: ____/____/______',
     'Ciclo: ______        Aula: ______',
     'Escola: ______________________________',
@@ -215,14 +252,7 @@ function cabecalhoDaFicha(conteudo, noGatilho, respostaDoMetodo, preenchida) {
     '☐ Revalidação (a cada aula dada)',
   ];
 
-  if (noGatilho) {
-    linhas.push('');
-    linhas.push(
-      'O campo «' + noGatilho.campo + '» é o gatilho: é o que decide se os ' +
-        'módulos condicionais do fim desta ficha entram.'
-    );
-  }
-
+  const linhas = declaradas.flatMap((l) => embrulhar(l, LARGURA_MAXIMA_DA_MOLDURA));
   const largura = Math.max(...linhas.map((l) => l.length)) + 2;
   const caixa = ['┌' + '─'.repeat(largura) + '┐'];
   for (const linha of linhas) {
@@ -354,7 +384,7 @@ function renderizar(conteudo, opcoes) {
   );
   saida.push(conteudo.oQueFicaFora, '');
   saida.push('---', '');
-  for (const linha of cabecalhoDaFicha(conteudo, noGatilho, respostaDe(ID_DO_METODO), preenchida)) {
+  for (const linha of cabecalhoDaFicha(conteudo, respostaDe(ID_DO_METODO), preenchida)) {
     saida.push(linha);
   }
   saida.push('', '---', '');
@@ -534,9 +564,6 @@ function renderizar(conteudo, opcoes) {
     saida.push('');
     saida.push('**Função:** ' + modulo.funcao);
     saida.push('');
-    if (modulo.ramificaPor) {
-      saida.push('*Ramifica a partir de:* ' + modulo.ramificaPor, '');
-    }
     for (const ramo of modulo.ramos || []) {
       for (const linha of ramoEmLinhas(ramo, lacunas)) saida.push(linha);
     }

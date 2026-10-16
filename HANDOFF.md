@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T13:04:19-0300`
-Commit atual: `faa0895` — fix(estrutura): a data da ficha é a da última mudança — e a edição do plano pede a senha
+Gerado em: `2026-10-16T13:34:35-0300`
+Commit atual: `f131362` — fix(estrutura): o carimbo é a hora da escola, não a do servidor
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+f131362 fix(estrutura): o carimbo é a hora da escola, não a do servidor
 faa0895 fix(estrutura): a data da ficha é a da última mudança — e a edição do plano pede a senha
 b159ad9 fix(estrutura): a condução trava com a senha — e o plano tinha o mesmo defeito de contexto
 c57598a fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
@@ -81,7 +82,6 @@ b5c2f71 feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
 24de473 docs(ideia): a credencial do provedor — as três medições de 15/10/2026
 aa8ac22 docs(ideia): a frente L11 — a porta paga: cobrança, verificação e liberação de escolas
 d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professores/
-263e48e refactor(estrutura): o molde sai de professores/ — molde não é professor
 ```
 
 ## Por professor
@@ -145,113 +145,123 @@ d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professo
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — O carimbo é a hora da escola, não a do servidor
+## 16/10/2026 — A estante pagina de seis em seis, o roteiro é só da condução, e a ficha não fala a língua do motor
 
-**O que motivou.** Medido no teste do PO na `fita`, ao conferir o recarimbo da entrada anterior: o
-relógio da máquina marcava **12h43** e o carimbo da ficha saiu **15h43**. O Worker da Cloudflare roda
-em **UTC**, e `carimbarAgora()` lia o relógio do **runtime** (`getHours()`): a data que a **estante
-mostra** vinha três horas à frente do professor. Isso já valia antes (a Mari nasceu 13h51 pelo
-relógio do servidor) — o recarimbo só o tornou visível a cada edição. Perguntado, o dono do produto
-decidiu: **alinhar ao fuso da escola**.
+**O que motivou.** Três achados do teste do PO na `fita`, na mesma sessão:
+
+1. **A estante não paginava.** Com as três fichas que havia, tudo bem; com trinta, a lista vira
+   um rolo. O professor pediu **seis por linha de página** — a sétima abre a página 2.
+2. **Na página da anamnese o roteiro não tem o que fazer, e o lugar dele ficava vazio.** O roteiro
+   já só aparecia na condução (`#rail` nasce `oculto`), mas a grade do site reservava a coluna dele
+   (17rem) mesmo assim: o texto do portal ficava espremido à esquerda e a direita era um buraco. O
+   pedido: **o espaço do roteiro é dos blocos de texto**.
+3. **A ficha era do motor, não do professor.** A folha de visualização dizia «O campo «Conhecimento
+   prévio de balé clássico» é o gatilho: é o que decide se os módulos condicionais do fim desta
+   ficha entram» — infraestrutura da ramificação na mão de quem só quer marcar o que viu. E tinha
+   **barra de rolagem horizontal**, o que impede a impressão.
 
 **O que foi decidido.**
 
-- **O fuso é DECLARADO, nunca herdado do runtime.** `carimbarAgora(fuso, quando)` formata em
-  `Intl.DateTimeFormat` com o `timeZone` recebido; sem fuso, cai no relógio do runtime — o
-  comportamento de sempre, e o certo para a **CLI**, que roda na máquina do professor.
-- **O NÚCLEO continua agnóstico.** Ele recebe o fuso; quem sabe onde a escola fica é a **ponte de
-  produção**. `criarRotas({ …, fuso })` monta o relógio (`agora || (() => nucleo.carimbarAgora(fuso))`),
-  e o fuso chega por aí — **sem** threading novo: tudo já passava pelo `agora` injetável.
-- **O padrão mora na ponte, e é explícito.** `FUSO_PADRAO = 'America/Sao_Paulo'` em
-  `motor/servidor/cloudflare.js`, sobreponível por `env.FUSO`. Uma escola noutro fuso declara o seu
-  nas `vars` do `wrangler.<escola>.jsonc` (a `fita` já declara).
-- **`hourCycle: 'h23'`, de propósito.** Com `hour12: false` vários runtimes devolvem **«24»** à
-  meia-noite (o ciclo vem do locale) — e o carimbo cairia no dia seguinte, à mesma hora. A prova
-  mede esse instante.
-- **Fuso desconhecido não derruba a gravação**: cai no relógio do runtime, e a ficha é gravada.
-- **Os registros que já existem NÃO são reescritos.** Eles guardam a hora com que nasceram; a
-  proveniência acrescenta, não edita (P-03/P-04).
-- **`tools/criar-escola.sh` NÃO foi tocado, e o motivo é o congelamento.** Ele emite as `vars` da
-  escola nova e deveria emitir o `FUSO`; como `tools/` é congelado, a mudança não entra aqui — o
-  `FUSO_PADRAO` da ponte cobre a escola nova até que ela seja feita, com o ritual que o
-  congelamento exige (motivo declarado + entrada + commit próprio).
+- **Seis por página, e o paginador só existe quando há mais de uma.** A paginação é da ESTANTE, não
+  do armazenamento: o servidor devolve todas, a tela as reparte. Vale para as **três fontes**
+  (anamnese, plano e PO) — a lista é a mesma, e um limite só evita três comportamentos. Um paginador
+  de uma página é ruído: com até seis fichas a estante é a de sempre.
+- **A página nunca sai da faixa.** O filtro, a exclusão e o recarimbo mudam a contagem por baixo: a
+  tela limita a página ao que existe, em vez de ficar numa página que deixou de existir (e mostrar
+  uma lista vazia).
+- **O filtro é do CONJUNTO.** Mudou o que se procura, a leitura recomeça da página 1 — procurar
+  algo e cair na página 3 de um resultado filtrado de duas linhas não faz sentido.
+- **A ordem da estante NÃO mudou.** O professor achou-a boa; ela é a do servidor (mais recente
+  primeiro, pelo carimbo). Isto é a estante, não uma classificação nova.
+- **Main de uma coluna quando não há roteiro.** A regra de `abrirFormulario`/`voltarAoPortal` agora
+  move uma classe (`sem-roteiro`) no `<main>`, junto com o `#rail` — as duas coisas são a MESMA
+  decisão, e ficam no mesmo lugar. Com o roteiro à vista, a grade volta às duas colunas.
+- **A ficha não fala a língua do motor.** Saíram DUAS linhas técnicas: a do **gatilho** (a que o
+  professor apontou) e a do `*Ramifica a partir de:* cabecalho.conhecimentoPrevio` — o caminho
+  interno do mesmo mecanismo, que é o mesmo defeito. Quem explica quando os módulos condicionais
+  entram é o parágrafo em português que já estava acima delas.
+- **A moldura tem limite de colunas (104), e o que não couber EMBRULHA.** A moldura é monoespaçada
+  e tem a largura da sua linha MAIS LONGA: uma linha comprida alarga a caixa inteira e faz a folha
+  rolar. A linha do gatilho era a mais longa — tirá-la estreitou a moldura de **132 para 105
+  colunas** (≈943px → ≈757px numa folha de 816px), e foi isso que tirou a barra de rolagem. O limite
+  fica como CINTO: a próxima linha comprida embrulha em vez de esticar a folha. A caixa (`☐`) não se
+  separa do seu rótulo — `☐ Outro: __________` é uma unidade só.
+- **A folha de visualização se imprime.** `@media print`: o rolo horizontal é desligado e a moldura
+  encolhe para caber. No papel não há rolo — o que passa da página é CORTADO, e o que faz a moldura
+  caber é o corpo da letra.
 
 **Onde entrou.**
 
-- `motor/nucleo/elicitar.js` — `carimbarAgora(fuso, quando)`; `quando` existe para a prova fixar o
-  instante, e em produção é o agora.
-- `motor/servidor/rotas.js` — `criarRotas({ …, fuso })`; o relógio passa a ser o carimbo do núcleo
-  **no fuso declarado**.
-- `motor/servidor/cloudflare.js` — `FUSO_PADRAO` (com o porquê), `fuso` na `montarPorta` e
-  `env.FUSO || FUSO_PADRAO` no bootstrap.
-- `motor/servidor/node.js` — `fuso: process.env.FUSO` (o servidor local roda na máquina do
-  professor; lá o relógio do runtime já é o certo).
-- `wrangler.fita.jsonc` — `"FUSO": "America/Sao_Paulo"` nas `vars`.
-- `experimentos/provar-carimbo-da-edicao.js` — a seção nova do fuso; **55 provas**.
+- `porta/index.html` — o paginador (`POR_PAGINA`, `pintarPaginacao`, `numerosDePagina`,
+  `irParaPagina`, `filtrarFichas`), o markup `#paginacao`, o CSS `.paginacao`, e a classe
+  `sem-roteiro` no `<main>`.
+- `motor/nucleo/ficha.js` — a linha do gatilho saiu do cabeçalho; a do `ramificaPor` saiu dos
+  módulos; `LARGURA_MAXIMA_DA_MOLDURA` + `embrulhar` limitam e embrulham a moldura;
+  `cabecalhoDaFicha` perdeu o parâmetro `noGatilho` (não o lia mais).
+- `motor/nucleo/ficha-html.js` — as regras de impressão.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` — o pacote publicado
+  (cópia de `porta/`, com a **nav do pacote preservada**).
+- `experimentos/provar-ficha-visual.js` — prova nova: **19 provas**.
+- `experimentos/provar-ajustes-anamnese.js` — **79 → 105 provas**.
 
 **Como foi provado.**
 
-- Instantes FIXOS, então a prova é determinística em qualquer máquina: 15h43Z → `12h43` em São Paulo
-  e `15h43` em UTC; o dia virando para trás (`2025-12-31T23:30`) e para a frente (`2026-10-17T00:43`);
-  a **meia-noite como «00»**; fuso inválido caindo no runtime; e o formato sempre o do carimbo.
-- **A ligação, com dentes**: a ficha criada com `fuso: 'Etc/GMT-14'` nasce com o carimbo **daquele
-  fuso** e **não** com o do relógio do runtime. **Controle negativo: 3 provas falham** quando
-  `carimbarAgora` ignora o fuso.
-- **`Intl` no runtime foi medido, não presumido.** Antes de confiar, rodei o módulo REAL dentro do
-  **workerd** (o mesmo runtime da produção, via `wrangler dev` num Worker descartável fora do
-  repositório): `carimbarAgora('America/Sao_Paulo')` devolveu a hora local. Sem isso, um `Intl` sem
-  dados de fuso teria caído no `catch` e voltado a UTC **em silêncio**.
-- **No ar e conferido no ar.** Version `973a3a0b-a6da-4fae-bd50-10d61d0151cf`, com
-  `env.FUSO ("America/Sao_Paulo")` nas bindings. A ficha criada pela API publicada saiu com o
-  carimbo **`anamnese-20261016-1303`** enquanto o UTC marcava `16:03` — a hora local. Os dois
-  registros descartáveis do teste foram removidos; o KV voltou às **três** fichas (Mari, Vavá, Dani).
-- **Nota de método — o primeiro teste no ar mentiu.** Ele devolveu `1558` (UTC) segundos depois do
-  deploy, e o código publicado **já estava certo**: baixei o módulo do Worker pela API da Cloudflare e
-  conferi o `hourCycle: "h23"` e o `const carimbar = agora || (() => nucleo.carimbarAgora(fuso))` no
-  bundle. Era **propagação** da versão nova pelo edge. Repetido, deu certo. Fica o aviso: conferir o
-  comportamento no ar segundos depois de um deploy pode acusar o código errado.
+- `experimentos/provar-ajustes-anamnese.js` (**105**): a página com **seis** linhas e a **sétima fora
+  dela**; o paginador aparecendo só com duas páginas, dizendo «página 1 de 2» e contando os
+  registros; o «anterior» desabilitado na primeira e a «seguinte» na última; a página 2 com as duas
+  restantes; **ir para além da última sem inventar página vazia**; o filtro voltando à página 1; e o
+  roteiro com o `sem-roteiro` ligando e desligando nas duas travessias portal ↔ condução.
+- `experimentos/provar-ficha-visual.js` (**19**): a ficha real não diz «gatilho», nem «módulos
+  condicionais do fim», nem «ramifica»; a moldura **cabe na folha** (105 ≤ 113 colunas, e as 113
+  saem da aritmética de 54rem/.72rem, não de um chute); as laterais fecham e todas as linhas têm a
+  mesma largura; uma opção sinteticamente longa **embrulha sem esticar** a moldura e sem perder
+  texto; e a folha HTML traz `pre.moldura`, `@media print`, o rolo desligado e o encolhimento.
+- **Controle negativo, em quatro frentes.** (a) `POR_PAGINA` gigante → **14 provas falham**. (b) a
+  classe `sem-roteiro` não voltando na condução → **1 falha**. (c) sem o limite de colunas, a linha
+  longa **passa da folha** — medido numa CÓPIA do módulo, dentro da própria prova (o repositório não
+  é tocado). (d) `provar-carimbo-da-edicao.js` (**55**), `provar-contexto-do-ato.js` (**37**) e
+  `node motor/ficha-html-cli.js --autoteste` (**41**) seguem verdes.
+- **No ar, e conferido no ar.** Version `3acee37e-b858-4026-af13-d4b23fbba344`. A página da anamnese
+  serve `id="paginacao"`, `class="sem-roteiro"` e `const POR_PAGINA = 6`; a ficha publicada
+  (`/api/ficha?formato=html`) **não** traz «gatilho» nem «Ramifica», traz `@media print` e a moldura
+  mede **105 colunas, todas iguais**; e as três fichas PREENCHIDAS do professor (Mari, Vavá, Dani)
+  abrem sem as linhas técnicas.
+- **Achado de plataforma (medido no KV).** A **listagem** do KV demora a enxergar uma chave nova E a
+  esquecer uma apagada: durante ~1 min ela mostrou `anamnese-20261016-1501` enquanto o **GET** da
+  mesma chave já dava 404. É a razão de `acomodarRecarimbo` existir (ele cobre o buraco na TELA); a
+  API continua com a janela dela, e quem consultar a API direto logo após gravar pode ver o atraso.
 
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado — e a razão está
-dita acima (`tools/criar-escola.sh` fica **pendente**, com o ritual a fazer). A âncora `.fipp` não
-muda.
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
+`.fipp` não muda.
 
-**Com o quê.** `motor/nucleo/elicitar.js`, `motor/servidor/rotas.js`, `motor/servidor/cloudflare.js`,
-`motor/servidor/node.js`, `wrangler.fita.jsonc`, `experimentos/provar-carimbo-da-edicao.js`,
-`REGISTRO.md`, `HANDOFF.md`.
+**Com o quê.** `porta/index.html`, `motor/nucleo/ficha.js`, `motor/nucleo/ficha-html.js`,
+`experimentos/provar-ficha-visual.js` (novo), `experimentos/provar-ajustes-anamnese.js`,
+`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
+`HANDOFF.md`.
 
-**Referências.** `ARQUITETURA-GERAL.md` (um Worker por escola — a escola é quem sabe onde fica),
-`CONGELAMENTO.md` (o item que fica pendente), `PROTOCOLO.md` P-03/P-04.
+**Referências.** `IDENTIDADE-VISUAL.md` (a medida de leitura e a grade do site), `ARQUITETURA-ANAMNESE.md`
+(a ficha é o documento do professor), `PROTOCOLO.md` P-06 (o caderno é descritivo — e a ficha é a folha
+dele).
 
 **O que ainda não está feito.**
 
-- **`tools/criar-escola.sh` não emite o `FUSO`** — é de `tools/`, congelado. Uma escola criada por
-  ele nasce coberta pelo `FUSO_PADRAO` (São Paulo); declarar o fuso dela exige mexer no `tools/` com
-  o ritual do congelamento. Se `criar-escola.sh -f` for rodado sobre a `fita`, o `"FUSO"` declarado
-  no `wrangler.fita.jsonc` **se perde** (volta ao padrão da ponte).
-- **`motor/servidor/provisionar-escola.js`** sobe a escola nova só com `ESCOLA_HABILITADA`; o fuso
-  dela vem do padrão da ponte, não de uma binding. Também não foi tocado.
-- **O `provisionar-escola.js` e a CLI** seguem sem fuso próprio — o que é certo para a CLI, e
-  coberto pelo padrão para a provisão.
-- E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
-  senha é de **cliente**, a estante do **PO** não tem estado nem ações.
+- **O `**negrito**` da alternativa marcada não renderiza na ficha HTML.** Na ficha PREENCHIDA, a
+  alternativa escolhida sai como `**Vaganova**` — os asteriscos LITERAIS — porque a moldura vive
+  dentro de um `<pre>`, e ali o markdown não é interpretado. É ANTERIOR a esta entrada e está
+  declarado no próprio código («a marca é o NEGRITO»): quem escreveu sabia que a marca viaja como
+  negrito, mas o `<pre>` não o desenha. Fica ABERTO: resolvê-lo pede decisão (tirar a moldura do
+  `<pre>`, ou marcar de outro jeito), e não é o que o professor pediu nesta rodada.
+- **O cofre órfão apareceu nos dados REAIS.** Com o recarimbo e o fuso de hoje, as fichas da Vavá e
+  da Dani passaram de `…-1404`/`…-1501` para `…-1314`/`…-1315` — e as chaves do cofre ficaram nas
+  antigas: `fita/tiago-menegaz/01/anamnese/anamnese-20261016-1404` e `…-1501` seguem lá (órfãs), e os
+  envelopes novos **não têm cópia cifrada**. É o gap já registrado na entrada anterior, agora
+  OBSERVADO — não é novo, e fechá-lo pede uma decisão (o cofre re-cifra na edição? com que senha?).
+- **A janela de consistência do KV** (acima) segue como está: a tela cobre o caso da estante; a API
+  não tem o que a cubra.
+- **A ordem da estante** é a do servidor (mais recente primeiro). O professor a aprovou; se quiser
+  ordem alfabética pelo apelido, é uma linha — mas não se muda o que não se pediu.
 
 ## O que está pendente
-
-## 16/10/2026 — A identidade visual tem seis famílias em estudo, e o seletor ainda não existe
-
-- **Nada da funcionalidade.** Não há paleta nova no `ciclo.css`, não há item de menu «Identidade
-  visual», não há campo «Paleta de cores», não há persistência e não houve regeração de pacote. O
-  contrato está documentado e em vigor desde 25/09/2026; o **catálogo** desde hoje; a
-  **funcionalidade não existe**.
-- **A `C15` está aberta:** a preferência é **por escola**, **por usuário** ou **por navegador**.
-  Sem ela não se desenha a persistência — e é ela que decide se há um campo novo no dado da escola.
-- **A decisão do mecanismo está aberta:** aplicar **no navegador** (funciona em página estática, não
-  regera pacote, não viaja entre dispositivos) ou **no servidor** (viaja, e cria um campo «de
-  alguém»). O caminho do servidor existe: `"run_worker_first": true` nos `wrangler.<escola>.jsonc`.
-- **Os hex das doze combinações não existem** — por desenho. Especificar e medir é a etapa **V1**.
-- **Qual paleta o PDF e o deck passam a usar** continua por responder: o deck **declara** os tokens
-  e o validador confere se batem com a fonte; o PDF recebe o `\definecolor` **injetado**. Com doze
-  paletas, «a vigente» é a resposta provável — e continua a ser decisão.
 
 ## 16/10/2026 — A tela diz de quem é a ficha, e o obrigatório se anuncia
 
@@ -314,6 +324,25 @@ muda.
   coberto pelo padrão para a provisão.
 - E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
   senha é de **cliente**, a estante do **PO** não tem estado nem ações.
+
+## 16/10/2026 — A estante pagina de seis em seis, o roteiro é só da condução, e a ficha não fala a língua do motor
+
+
+- **O `**negrito**` da alternativa marcada não renderiza na ficha HTML.** Na ficha PREENCHIDA, a
+  alternativa escolhida sai como `**Vaganova**` — os asteriscos LITERAIS — porque a moldura vive
+  dentro de um `<pre>`, e ali o markdown não é interpretado. É ANTERIOR a esta entrada e está
+  declarado no próprio código («a marca é o NEGRITO»): quem escreveu sabia que a marca viaja como
+  negrito, mas o `<pre>` não o desenha. Fica ABERTO: resolvê-lo pede decisão (tirar a moldura do
+  `<pre>`, ou marcar de outro jeito), e não é o que o professor pediu nesta rodada.
+- **O cofre órfão apareceu nos dados REAIS.** Com o recarimbo e o fuso de hoje, as fichas da Vavá e
+  da Dani passaram de `…-1404`/`…-1501` para `…-1314`/`…-1315` — e as chaves do cofre ficaram nas
+  antigas: `fita/tiago-menegaz/01/anamnese/anamnese-20261016-1404` e `…-1501` seguem lá (órfãs), e os
+  envelopes novos **não têm cópia cifrada**. É o gap já registrado na entrada anterior, agora
+  OBSERVADO — não é novo, e fechá-lo pede uma decisão (o cofre re-cifra na edição? com que senha?).
+- **A janela de consistência do KV** (acima) segue como está: a tela cobre o caso da estante; a API
+  não tem o que a cubra.
+- **A ordem da estante** é a do servidor (mais recente primeiro). O professor a aprovou; se quiser
+  ordem alfabética pelo apelido, é uma linha — mas não se muda o que não se pediu.
 
 ## Pendências anteriores (índice)
 
@@ -474,6 +503,7 @@ muda.
 - **15/10/2026** — O professor homônimo: o identificador é o slug, e o… → `REGISTRO.md` L13424
 - **15/10/2026** — O molde sai de `professores/`: molde não é professor → `REGISTRO.md` L13506
 - **16/10/2026** — «Nós, Por Exemplo» sai: a página é a apresentação, e… → `REGISTRO.md` L13584
+- **16/10/2026** — A identidade visual tem seis famílias em estudo, e o… → `REGISTRO.md` L13654
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

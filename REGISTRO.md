@@ -14190,3 +14190,119 @@ muda.
   coberto pelo padrão para a provisão.
 - E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
   senha é de **cliente**, a estante do **PO** não tem estado nem ações.
+
+## 16/10/2026 — A estante pagina de seis em seis, o roteiro é só da condução, e a ficha não fala a língua do motor
+
+**O que motivou.** Três achados do teste do PO na `fita`, na mesma sessão:
+
+1. **A estante não paginava.** Com as três fichas que havia, tudo bem; com trinta, a lista vira
+   um rolo. O professor pediu **seis por linha de página** — a sétima abre a página 2.
+2. **Na página da anamnese o roteiro não tem o que fazer, e o lugar dele ficava vazio.** O roteiro
+   já só aparecia na condução (`#rail` nasce `oculto`), mas a grade do site reservava a coluna dele
+   (17rem) mesmo assim: o texto do portal ficava espremido à esquerda e a direita era um buraco. O
+   pedido: **o espaço do roteiro é dos blocos de texto**.
+3. **A ficha era do motor, não do professor.** A folha de visualização dizia «O campo «Conhecimento
+   prévio de balé clássico» é o gatilho: é o que decide se os módulos condicionais do fim desta
+   ficha entram» — infraestrutura da ramificação na mão de quem só quer marcar o que viu. E tinha
+   **barra de rolagem horizontal**, o que impede a impressão.
+
+**O que foi decidido.**
+
+- **Seis por página, e o paginador só existe quando há mais de uma.** A paginação é da ESTANTE, não
+  do armazenamento: o servidor devolve todas, a tela as reparte. Vale para as **três fontes**
+  (anamnese, plano e PO) — a lista é a mesma, e um limite só evita três comportamentos. Um paginador
+  de uma página é ruído: com até seis fichas a estante é a de sempre.
+- **A página nunca sai da faixa.** O filtro, a exclusão e o recarimbo mudam a contagem por baixo: a
+  tela limita a página ao que existe, em vez de ficar numa página que deixou de existir (e mostrar
+  uma lista vazia).
+- **O filtro é do CONJUNTO.** Mudou o que se procura, a leitura recomeça da página 1 — procurar
+  algo e cair na página 3 de um resultado filtrado de duas linhas não faz sentido.
+- **A ordem da estante NÃO mudou.** O professor achou-a boa; ela é a do servidor (mais recente
+  primeiro, pelo carimbo). Isto é a estante, não uma classificação nova.
+- **Main de uma coluna quando não há roteiro.** A regra de `abrirFormulario`/`voltarAoPortal` agora
+  move uma classe (`sem-roteiro`) no `<main>`, junto com o `#rail` — as duas coisas são a MESMA
+  decisão, e ficam no mesmo lugar. Com o roteiro à vista, a grade volta às duas colunas.
+- **A ficha não fala a língua do motor.** Saíram DUAS linhas técnicas: a do **gatilho** (a que o
+  professor apontou) e a do `*Ramifica a partir de:* cabecalho.conhecimentoPrevio` — o caminho
+  interno do mesmo mecanismo, que é o mesmo defeito. Quem explica quando os módulos condicionais
+  entram é o parágrafo em português que já estava acima delas.
+- **A moldura tem limite de colunas (104), e o que não couber EMBRULHA.** A moldura é monoespaçada
+  e tem a largura da sua linha MAIS LONGA: uma linha comprida alarga a caixa inteira e faz a folha
+  rolar. A linha do gatilho era a mais longa — tirá-la estreitou a moldura de **132 para 105
+  colunas** (≈943px → ≈757px numa folha de 816px), e foi isso que tirou a barra de rolagem. O limite
+  fica como CINTO: a próxima linha comprida embrulha em vez de esticar a folha. A caixa (`☐`) não se
+  separa do seu rótulo — `☐ Outro: __________` é uma unidade só.
+- **A folha de visualização se imprime.** `@media print`: o rolo horizontal é desligado e a moldura
+  encolhe para caber. No papel não há rolo — o que passa da página é CORTADO, e o que faz a moldura
+  caber é o corpo da letra.
+
+**Onde entrou.**
+
+- `porta/index.html` — o paginador (`POR_PAGINA`, `pintarPaginacao`, `numerosDePagina`,
+  `irParaPagina`, `filtrarFichas`), o markup `#paginacao`, o CSS `.paginacao`, e a classe
+  `sem-roteiro` no `<main>`.
+- `motor/nucleo/ficha.js` — a linha do gatilho saiu do cabeçalho; a do `ramificaPor` saiu dos
+  módulos; `LARGURA_MAXIMA_DA_MOLDURA` + `embrulhar` limitam e embrulham a moldura;
+  `cabecalhoDaFicha` perdeu o parâmetro `noGatilho` (não o lia mais).
+- `motor/nucleo/ficha-html.js` — as regras de impressão.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` — o pacote publicado
+  (cópia de `porta/`, com a **nav do pacote preservada**).
+- `experimentos/provar-ficha-visual.js` — prova nova: **19 provas**.
+- `experimentos/provar-ajustes-anamnese.js` — **79 → 105 provas**.
+
+**Como foi provado.**
+
+- `experimentos/provar-ajustes-anamnese.js` (**105**): a página com **seis** linhas e a **sétima fora
+  dela**; o paginador aparecendo só com duas páginas, dizendo «página 1 de 2» e contando os
+  registros; o «anterior» desabilitado na primeira e a «seguinte» na última; a página 2 com as duas
+  restantes; **ir para além da última sem inventar página vazia**; o filtro voltando à página 1; e o
+  roteiro com o `sem-roteiro` ligando e desligando nas duas travessias portal ↔ condução.
+- `experimentos/provar-ficha-visual.js` (**19**): a ficha real não diz «gatilho», nem «módulos
+  condicionais do fim», nem «ramifica»; a moldura **cabe na folha** (105 ≤ 113 colunas, e as 113
+  saem da aritmética de 54rem/.72rem, não de um chute); as laterais fecham e todas as linhas têm a
+  mesma largura; uma opção sinteticamente longa **embrulha sem esticar** a moldura e sem perder
+  texto; e a folha HTML traz `pre.moldura`, `@media print`, o rolo desligado e o encolhimento.
+- **Controle negativo, em quatro frentes.** (a) `POR_PAGINA` gigante → **14 provas falham**. (b) a
+  classe `sem-roteiro` não voltando na condução → **1 falha**. (c) sem o limite de colunas, a linha
+  longa **passa da folha** — medido numa CÓPIA do módulo, dentro da própria prova (o repositório não
+  é tocado). (d) `provar-carimbo-da-edicao.js` (**55**), `provar-contexto-do-ato.js` (**37**) e
+  `node motor/ficha-html-cli.js --autoteste` (**41**) seguem verdes.
+- **No ar, e conferido no ar.** Version `3acee37e-b858-4026-af13-d4b23fbba344`. A página da anamnese
+  serve `id="paginacao"`, `class="sem-roteiro"` e `const POR_PAGINA = 6`; a ficha publicada
+  (`/api/ficha?formato=html`) **não** traz «gatilho» nem «Ramifica», traz `@media print` e a moldura
+  mede **105 colunas, todas iguais**; e as três fichas PREENCHIDAS do professor (Mari, Vavá, Dani)
+  abrem sem as linhas técnicas.
+- **Achado de plataforma (medido no KV).** A **listagem** do KV demora a enxergar uma chave nova E a
+  esquecer uma apagada: durante ~1 min ela mostrou `anamnese-20261016-1501` enquanto o **GET** da
+  mesma chave já dava 404. É a razão de `acomodarRecarimbo` existir (ele cobre o buraco na TELA); a
+  API continua com a janela dela, e quem consultar a API direto logo após gravar pode ver o atraso.
+
+**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
+`.fipp` não muda.
+
+**Com o quê.** `porta/index.html`, `motor/nucleo/ficha.js`, `motor/nucleo/ficha-html.js`,
+`experimentos/provar-ficha-visual.js` (novo), `experimentos/provar-ajustes-anamnese.js`,
+`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
+`HANDOFF.md`.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (a medida de leitura e a grade do site), `ARQUITETURA-ANAMNESE.md`
+(a ficha é o documento do professor), `PROTOCOLO.md` P-06 (o caderno é descritivo — e a ficha é a folha
+dele).
+
+**O que ainda não está feito.**
+
+- **O `**negrito**` da alternativa marcada não renderiza na ficha HTML.** Na ficha PREENCHIDA, a
+  alternativa escolhida sai como `**Vaganova**` — os asteriscos LITERAIS — porque a moldura vive
+  dentro de um `<pre>`, e ali o markdown não é interpretado. É ANTERIOR a esta entrada e está
+  declarado no próprio código («a marca é o NEGRITO»): quem escreveu sabia que a marca viaja como
+  negrito, mas o `<pre>` não o desenha. Fica ABERTO: resolvê-lo pede decisão (tirar a moldura do
+  `<pre>`, ou marcar de outro jeito), e não é o que o professor pediu nesta rodada.
+- **O cofre órfão apareceu nos dados REAIS.** Com o recarimbo e o fuso de hoje, as fichas da Vavá e
+  da Dani passaram de `…-1404`/`…-1501` para `…-1314`/`…-1315` — e as chaves do cofre ficaram nas
+  antigas: `fita/tiago-menegaz/01/anamnese/anamnese-20261016-1404` e `…-1501` seguem lá (órfãs), e os
+  envelopes novos **não têm cópia cifrada**. É o gap já registrado na entrada anterior, agora
+  OBSERVADO — não é novo, e fechá-lo pede uma decisão (o cofre re-cifra na edição? com que senha?).
+- **A janela de consistência do KV** (acima) segue como está: a tela cobre o caso da estante; a API
+  não tem o que a cubra.
+- **A ordem da estante** é a do servidor (mais recente primeiro). O professor a aprovou; se quiser
+  ordem alfabética pelo apelido, é uma linha — mas não se muda o que não se pediu.
