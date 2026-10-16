@@ -3,7 +3,7 @@
 > **Resumo (para o HANDOFF):** o mapa de evolução do **Sistema Lastro** (o nome comercial do
 > produto; `Projeto Ciclo` segue como o nome do protótipo e deste repositório). Diagnóstico do
 > que existe hoje — as três fontes, o envelope, as famílias de chave, os identificadores, os
-> relacionamentos, os índices, o versionamento e o comercial — e **onze frentes** com objetivo,
+> relacionamentos, os índices, o versionamento e o comercial — e **doze frentes** com objetivo,
 > lacunas, dependências, entregas, critérios verificáveis, riscos e prioridade. Nada foi
 > implementado: este documento é o mapa, não a obra.
 >
@@ -54,6 +54,20 @@
 > não 401/403; e o **cadastro** público cria a **conta** (com o `handle`), sem emitir chave. O
 > conjunto está em §L11, «A credencial» — e acrescentou ao desenho a regra de tratar o `handle`
 > como **segredo operacional**. Também aqui nenhuma linha de código de produto foi alterada.
+>
+> **Incorporação de 16/10/2026 — a estratégia comercial e o modelo manual.** O dono do produto
+> entregou a **estratégia comercial e de pagamento** (três meses gratuitos do plano Básico sem
+> cartão; contratação por Pix com **conciliação manual** do administrador; a InfinitePay como
+> **caminho futuro**, não como dependência da primeira versão) e pediu que ela fosse incorporada
+> ao planeamento, **sem implementar**. Ela **muda o modelo de operação da L11** — que tinha sido
+> desenhada sobre um provedor automatizado — e acrescenta uma frente nova, **L12 — a jornada
+> comercial**, para o que é oferta e comunicação em vez de cobrança. As **contradições** que a
+> conferência encontrou estão registadas em **§3 (C12, C13, C14)** e **não foram resolvidas por
+> dedução**. O que a incorporação tocou, além da L11 e da L12: o **§2.9** (a varredura que mostra
+> que a «regra dos 30 dias» **não existe** neste repositório), o **§2.10** (C12–C14 entram em
+> «precisa de decisão»), o **§4** (o quadro-resumo passa a doze frentes), o **§5** (L12 na camada 5),
+> o **§8** (a terceira matriz de cobertura) e o **§9** (as perguntas que ficaram abertas).
+> Nenhuma linha de código de produto foi alterada — e nenhuma será nesta etapa.
 
 ---
 
@@ -291,6 +305,32 @@ plano. O que há:
   compromissos trimestral/semestral/anual; adicionais R$ 49,90 + 20%; hora técnica R$ 120,00)
   existem **apenas no texto que originou este documento** — **em nenhum lugar do repositório**.
 
+**O que existe de PRAZO — e a regra dos 30 dias, procurada e não encontrada.** A estratégia de
+16/10/2026 (§L12) fala de «suspensão após 30 dias sem pagamento» como uma «regra existente».
+**Varredura feita, e o resultado é negativo:** não há «30 dias», nem «trinta dias», em
+`PLANEJAMENTO-LASTRO.md`, `motor/`, `tools/`, `porta/`, `biblioteca/`, `prompts/` nem
+`experimentos/`. O que existe é outra coisa, com outro nome e outros números:
+
+- **O expurgo, que é APAGAMENTO — não suspensão.** `motor/servidor/raiz.js:29`
+  (`PRAZO_EXPURGO_MS = 3 * 60 * 1000`) e a ordem de verificação em `raiz.js:211-213`:
+  **(1)** desabilitada? **(2)** não está a pagar? **(3)** o `desde` existe? **(4)** o prazo
+  venceu? — só então apaga. `pagante === true` **impede** o expurgo (`raiz.js:243`).
+- **O prazo é 3 minutos no teste, e «a produção vai a 3 meses»** — a intenção está declarada em
+  dois lugares: o comentário da constante (`raiz.js:26`) e `IDEIA-PAINEL-ESCOLA.md` §17.5
+  («Para teste o prazo é **3 minutos** (em vez de **3 meses**)»). É a **única** constante a
+  trocar, e ela **não foi trocada**: o que está no ar expurga em 3 minutos.
+- **Desabilitar não é o mesmo que dever.** A flag é `habilitada`, do andaime, e o expurgo a lê;
+  a dívida entra como `pagante`. São dois campos, e é a combinação deles que decide.
+
+**A consequência, dita uma vez:** «suspensão aos 30 dias» **não tem onde morar hoje** — não é uma
+regra deste repositório, e não se deve escrevê-la como se fosse. O que se pode dizer é o que se
+mediu: existe **apagamento** com carência de 3 meses (intenção), e **suspensão** — bloquear sem
+apagar — **não existe em lugar nenhum**. As três durações que a estratégia nomeia (2 h, 48 h,
+3 meses de oferta) e esta quarta (o prazo de expurgo) estão em **§3 C12**, para decisão.
+
+**As duas pegadas comerciais que existem** — e são andaime declarado: `pagante` (trava do
+expurgo) e `habilitada` (interruptor). Nenhuma delas é plano, preço, cobrança ou período.
+
 **Os componentes que a porta paga toca** — medidos em 15/10/2026 para a frente **L11** (§4), com
 o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corrige duas leituras:
 
@@ -319,7 +359,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.2.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -513,13 +553,91 @@ Escolher entre as três é decisão de **arquitetura**, e vem **antes** do model
 registo-a aqui em vez de a presumir. *(Afeta L11 e L9: é a mesma pergunta que C2 e o «onde a
 habilitação do plano vive» — §8, declarado — já faziam, agora com as mãos no dinheiro.)*
 
+**C12 — As quatro durações, e qual delas é qual.** A estratégia de 16/10/2026 (§L12) nomeia
+**três** prazos e menciona um **quarto** como «regra existente». Varridos, nenhum deles se
+relaciona hoje com o outro no repositório, e um deles **não existe** (§2.9, medido):
+
+| Duração | O que a estratégia diz | O que o repositório tem |
+|:--|:--|:--|
+| **2 h** | prazo para o usuário **pagar**, contado da criação da solicitação | **nada** — não há solicitação, nem prazo |
+| **48 h** | janela de **conciliação** pelo administrador | **nada** — e o **marco inicial é indeterminado** (C14) |
+| **3 meses** | **período gratuito** do Básico, sem cobrar ao fim | **nada** — não há plano, nem período |
+| **«30 dias»** | «a regra existente de eventual **suspensão** após 30 dias sem pagamento» | **não existe** — nem 30 dias, nem suspensão (§2.9). O que existe é **expurgo** (apagamento) com carência de **3 meses** na intenção (`raiz.js:26`, `IDEIA-PAINEL-ESCOLA.md` §17.5), **hoje em 3 minutos** no ar |
+
+**As três perguntas que isto deixa**, e são suas — não as respondo por dedução:
+
+1. **A «regra dos 30 dias» é para criar, ou veio de outro projeto?** Se ela é para valer, ela
+   **não substitui** o expurgo de 3 meses: **suspender** (bloquear sem apagar) e **expurgar**
+   (apagar) são coisas diferentes, e hoje só a segunda existe no código. Escrevê-las como uma só
+   regra faria um atraso de pagamento apagar uma escola.
+2. **3 meses de oferta e 3 meses de expurgo são o mesmo 3 meses?** Por coincidência os dois
+   números são iguais, e por isso mesmo a confusão é fácil: um é **oferta** (tempo grátis antes de
+   precisar pagar) e o outro é **carência antes de apagar**. Convergir os dois — se for essa a
+   intenção — é decisão declarada, não coincidência.
+3. **O que «suspensão» bloqueia?** A estratégia diz que ela «deverá bloquear as operações não
+   autorizadas sem apagar automaticamente os dados da escola». Isso é **mais largo** que o
+   `ESCOLA_HABILITADA = 'nao'` de hoje, que devolve 503 em **tudo** — inclusive na página de
+   pagamento, o que impediria a própria escola de pagar e se reativar.
+
+*(Afeta L12, L11 e o andaime do expurgo. A pergunta 1 precisa de resposta antes de L12 ter
+critério de aceite para «suspender».)*
+
+**C13 — Em que instalação vive a página de planos e pagamentos.** A estratégia (§3) pede que o
+sistema **identifique automaticamente a escola da instalação atual**, e proíbe que o usuário
+escolha a escola de uma lista pública. Medido, o mecanismo confiável para isso existe e é **um
+só**: a variável **`ESCOLA_SLUG`**, que vive no **Worker de cada escola** (`wrangler.fita.jsonc`,
+medida). A **raiz** (`wrangler.danca.jsonc`) **não tem `ESCOLA_SLUG`** — ela não é uma escola,
+serve **todas**. Daí a contradição, que é de arquitetura e não de detalhe:
+
+- **Se a página de pagamento vive no Worker da escola** → `ESCOLA_SLUG` identifica a escola sem
+  ambiguidade, e a regra «não pagar pela instalação de terceiros» é **estrutural** (a instalação
+  não alcança outra). É o caminho que a arquitetura de instalações isoladas sustenta.
+- **Se ela vive na raiz** — que é onde a estratégia põe a **rota pública** («criar uma escola,
+  conhecer o Sistema Lastro, consultar os planos e iniciar a contratação», §2) — então **não há
+  escola a identificar**: quem chega ali ainda **não tem** instalação. Quem acabou de criar a
+  escola é redirecionado para o subdomínio dela, e é lá que a contratação continua.
+
+**O mecanismo já existe, e já recusa em voz alta.** Medido: a ponte da escola compara o subdomínio
+com o `ESCOLA_SLUG` e **falha de propósito** quando não batem — `identidadeOk`, em
+`motor/servidor/producao.js:58`, publicado em `/api/saude` (200, ou 500 com o **erro nomeado**:
+«`ESCOLA_SLUG` ausente ou divergente do subdomínio — config × Worker trocados»). E
+`escolaDe(env, url)`, em `motor/servidor/bastidores.js:97`, **prefere a var do Worker** ao
+parâmetro `?escola=` — que só sobrevive como recurso de desenvolvimento. Isto é: a regra que a
+estratégia pede — identificar **sem** deixar o usuário escolher — **já está implementada** onde a
+escola existe, e **não tem onde ser implementada** onde ela não existe (a raiz). É a contradição,
+dita por medição e não por opinião.
+
+**A convergência que proponho, e que NÃO decido:** a raiz apresenta a oferta (é pública, não
+identifica escola nenhuma porque não há nenhuma) e **entrega** a contratação à instalação da
+escola, onde `ESCOLA_SLUG` responde. Isso satisfaz as duas exigências — a rota pública existe, e a
+escola nunca é presumida. Mas é **decisão de arquitetura**, e por isso fica aqui. *(Afeta L11
+(E2) e L12.)*
+
+**C14 — Quando começa a contagem das 48 h.** A estratégia fixa a janela de conciliação em 48 h e
+manda que o **marco temporal seja definido no documento** — «não decida sozinho». Não decidido, e
+o motivo de não ser indiferente: cada candidato produz um sistema diferente, e um deles produz um
+bloqueio indevido.
+
+| Marco candidato | O que decorre |
+|:--|:--|
+| **(a)** da **criação** da solicitação | as 2 h de pagamento e as 48 h de conciliação **começam juntas** (a janela de conciliação corre enquanto o usuário ainda pode pagar); é o mais simples de calcular e o mais generoso com quem demora a pagar |
+| **(b)** do **fim** das 2 h | as duas somam **50 h** para pagar-e-conciliar; se o pagamento chega na 49.ª hora, o sistema já sinalizou atraso — e a escola **não** foi bloqueada (a estratégia proíbe bloquear durante a conciliação) |
+| **(c)** da **confirmação do pagamento** pelo usuário | o relógio passa a depender do usuário **avisar** — e quem paga e não avisa nunca sai da janela. É o candidato que a estratégia **não** pode querer, e está aqui para ser visto e descartado por você, não por mim |
+
+**O que é fato, e vale para os três:** a estratégia diz, por palavras próprias, que «o fim do prazo
+de duas horas **não deverá ser confundido com inadimplência definitiva**» e que «o fim da janela de
+conciliação de 48 horas **não deverá resultar automaticamente em exclusão de dados**». Logo, **nada
+disso bloqueia nem apaga sozinho** — é o que o desenho tem de garantir, qualquer que seja o marco.
+*(Afeta L11 e L12.)*
+
 ---
 
 ## 4. As frentes
 
-Onze frentes. Cada uma traz os oito itens pedidos. A **prioridade** é sugerida — a decisão é sua.
+Doze frentes. Cada uma traz os oito itens pedidos. A **prioridade** é sugerida — a decisão é sua.
 A classificação do que existe hoje está em **§2.10**; o catálogo pergunta por pergunta, em **§7**;
-e a cobertura de cada requisito dos dois textos, em **§8**.
+e a cobertura de cada requisito dos dois textos **e da estratégia comercial de 16/10/2026**, em
+**§8**.
 
 **Quadro-resumo** (para priorizar — o detalhe de cada frente está na sua secção):
 
@@ -536,6 +654,7 @@ e a cobertura de cada requisito dos dois textos, em **§8**.
 | **L8** | Composição comercial e a fonte única dos valores | **P3** | L9 | confirmação dos valores (**C8**) |
 | **L9** | Cotas, habilitação e limites por plano | **P3** | — | L6 + L7 + L8 · decisão **C2** |
 | **L11** | A porta paga: cobrança, verificação e liberação de escolas | **P2** | o lado público da porta | L8 (o valor) · **decisão C11** (onde vive o estado) · **dependências externas** (provedor) |
+| **L12** | A jornada comercial: a oferta, o período gratuito e a comunicação | **P3** | a contratação | L8 (o valor) · L9 (a trava) · **C12** (as durações) · **C13** (onde a página vive) · **o canal** (externo) |
 
 > **A trilha mais curta até valor entregue:** L1 + L2 → L3 → L4 → **T01 ou P01** (as duas únicas
 > perguntas do catálogo que ficam viáveis sem decisão de conteúdo — §7). O resto do catálogo
@@ -1055,6 +1174,17 @@ decisão.
 
 ### L11 — A porta paga: cobrança, verificação e liberação de escolas
 
+> **MUDANÇA DE MODELO — 16/10/2026.** Esta frente foi desenhada sobre um **provedor
+> automatizado** (a InfinitePay, com webhook e verificação activa). A estratégia entregue em
+> 16/10/2026 (§L12) **inverte a ordem**: a primeira versão cobra por **Pix com conciliação
+> MANUAL** do administrador, e a integração com provedor passa a **caminho futuro**. O que isso
+> muda aqui: o **adaptador de pagamento** (E1) deixa de ser a peça central e passa a ser a
+> **porta** por onde a integração futura entrará; a **verificação** (E5) continua obrigatória como
+> desenho, mas na primeira versão **quem verifica é uma pessoa**, conferindo o crédito na conta —
+> e a estratégia é explícita que **comprovante enviado pelo usuário não é confirmação**. A **E8**
+> deixa de ser «a integração» e passa a ser **uma** integração possível. O resto — o lado público
+> (E2), o valor (E3), a autorização de uso único (E6), a recuperação (E7) — **não muda**.
+
 - **Objetivo e justificativa.** Fazer a porta de entrada do Lastro ser **paga e automática**: a
   pessoa entra na página pública, escolhe o plano, paga por **Pix**, e — **só depois de o
   pagamento estar confirmado pelo servidor** — a criação da escola é autorizada, sem ninguém
@@ -1275,6 +1405,116 @@ decisão.
 
 ---
 
+### L12 — A jornada comercial: a oferta, o período gratuito e a comunicação
+
+- **Objetivo e justificativa.** Fazer a escola **conhecer e contratar** o plano sem que ninguém
+  empurre: a oferta declarada num lugar só (o plano Básico com **três meses gratuitos**, sem
+  cartão, sem cadastro de meio de pagamento e **sem cobrança automática** no fim), uma secção
+  **permanente** onde os três planos são visíveis com preços, recursos e limites, e uma
+  **comunicação não intrusiva** que avisa o fim do período gratuito **antes** de ele chegar. A
+  justificativa é comercial e é do dono do produto: o período gratuito é a porta, e a contratação
+  tem de ser um ato **consciente** — não um susto na fatura nem um pop-up a cada acesso.
+
+- **Situação atual — medida.** **Nada existe** (§2.9): não há plano, preço, período, oferta,
+  aviso ou mensagem. Não há **e-mail** em lugar nenhum do motor (`motor/`, `tools/` — varredura:
+  zero ocorrências de envio, SMTP ou serviço de terceiros). Não há **menu** de planos: o menu do
+  topo tem `Sistema Lastro` e o grupo `Bastidores` (`criar-escola.sh`, `gerar_nav_zero`), e mais
+  nada. E não há **papel de administrador**: existe a senha da direção (a da escola) e a senha da
+  raiz (a do dono do produto) — nenhuma das duas é «o administrador do Sistema Lastro» que a
+  estratégia nomeia.
+
+- **Lacunas.** (1) **Não há onde declarar a oferta** — nem o período gratuito, nem o que ele
+  inclui; (2) **não há como contar o tempo** de uma escola desde a criação: a data de criação
+  existe no índice da escola (`escola/<slug>/indice.json`, medido: `criado_em`), mas **nada a
+  lê**; (3) **não há secção de planos** no menu, e criá-la é alterar a **navegação** (o que
+  `CONGELAMENTO.md` exige motivo declarado + commit próprio — para quando se implementar, não
+  agora); (4) **não há canal de mensagem** — sem e-mail, «avisar os últimos 15 dias» não tem por
+  onde sair; (5) **não há sinal de bloqueio suave**: o único interruptor é `ESCOLA_HABILITADA`, que
+  devolve **503 em tudo**; (6) **não há distinção entre «não pagou» e «não contratou»** — e no fim
+  do período gratuito a escola está na segunda situação, não na primeira.
+
+- **Dependências técnicas e de domínio.**
+  - **L8** (os valores) — os preços dos três planos **não estão no repositório** (§2.9, C8). A
+    secção de planos pode ser construída com valor declarado como **rascunho**, mas não **entra no
+    ar** sem C8.
+  - **L9** (cotas e limites por plano) — a estratégia §9 é explícita: «o motor deverá validar o
+    plano e suas permissões. A interface **não** será considerada mecanismo suficiente de controle
+    de acesso». Isso é **exactamente** o que L9 entrega, e **já está lá** (critérios (i)–(v)). L12
+    não o duplica: aponta.
+  - **C13** (onde vive a página de pagamentos) e **C14** (quando começam as 48 h) — decidem o que a
+    jornada faz no fim.
+  - **C12** (as quatro durações) — o fim do período gratuito **não** é dívida: é o **começo** da
+    possibilidade de contratar. Tratá-lo pela regra de inadimplência seria bloquear quem nunca
+    deveu nada.
+  - **Canal de mensagem** — o e-mail administrativo de L11 §4 e os avisos desta frente dependem de
+    um serviço que **não existe** no projeto. É **dependência externa** nova, e não está escolhida.
+
+- **Entregas.** (a) A **oferta declarada** — o que o período gratuito inclui, por quanto tempo, e
+  o que **não** acontece quando ele acaba (não há cobrança automática); (b) a **secção permanente
+  «Planos, Pagamentos e Condições»** no menu, com os três planos e os recursos por plano — os
+  superiores **visíveis e explicados**, e **bloqueados** quando não autorizados (a trava é de L9,
+  não da interface); (c) a **contagem do período gratuito** por escola, a partir do `criado_em`
+  que já existe, com a data de fim **visível** para a escola (não escondida); (d) a **comunicação
+  não intrusiva** — a programação de mensagens declarada como *proposta inicial ajustável*; (e) o
+  **aviso antecipado** do fim do período gratuito, com a antecedência que a decisão fixar;
+  (f) o **estado comercial explícito** de cada escola, com os quatro que hoje **não** se
+  distinguem: `gratuito` · `solicitou` · `pagante` · `expirado-sem-contratar`.
+
+- **A comunicação, como proposta e não como regra.** A estratégia sugere cinco marcos —
+  **boas-vindas no 1.º dia**, **avaliação por volta do 7.º**, **apresentação dos planos por volta
+  do 14.º** e **avisos nos últimos 15 dias** (dois, portanto: o primeiro a 15 dias do fim e outro
+  mais perto). Ela própria os marca como «proposta inicial ajustável». Registo-os aqui como o que
+  são — **cadência sugerida**, a confirmar — e não como desenho fechado, porque a cadência depende
+  de o canal existir, e o canal não existe. **Duas regras da estratégia que valem desde já**, e
+  são critérios de aceite: **não** apresentar janelas comerciais a cada acesso, e **separar** o
+  pedido de avaliação da oferta de contratação (a mesma caixa de diálogo não faz as duas coisas).
+
+- **Ordem de implementação.**
+
+  | Etapa | O que é | Depende de | Critério de aceite da etapa |
+  |:--|:--|:--|:--|
+  | **J0** | **Decidir as quatro durações** (C12) e o **marco das 48 h** (C14) | — | As quatro durações estão escritas, datadas e com o motivo; suspensão e expurgo estão **separados** por definição |
+  | **J1** | **O estado comercial da escola** — os quatro estados, e onde vivem | J0 · **C11** (o mesmo lugar do estado de L11) | Os quatro estados existem e são distinguíveis; uma escola **gratuita** nunca é lida como inadimplente |
+  | **J2** | **A oferta e a secção de planos** (sem preço no ar) | J1 · **C13** (onde a página vive) | A secção existe e explica os três planos; os recursos não autorizados aparecem **bloqueados**; o preço exibido vem da **fonte única** de L8 — e enquanto C8 não fechar, **não vai ao ar** |
+  | **J3** | **A contagem do período gratuito** | J1 | A data de fim é calculada e **visível** para a escola; uma escola de teste criada hoje mostra o fim a três meses |
+  | **J4** | **A comunicação** | J3 · **o canal** (escolha externa) | O aviso do fim sai **antes** do fim; nenhuma janela comercial aparece por acesso; avaliação e oferta são mensagens **separadas** |
+  | **J5** | **O bloqueio suave** | J1 · **C12** (pergunta 3) | Suspender bloqueia as operações não autorizadas **sem** apagar dado **e sem** impedir a página de pagamento; medido com contagens antes e depois |
+
+  **O que não se deve fazer.** Ligar o **J2** antes do **J1** (uma secção de planos sem estado
+  comercial não sabe a quem está a mostrar o quê), e tratar o **fim do período gratuito** com a
+  régua da **inadimplência** (C12, pergunta 1) — é a confusão que bloqueia quem nunca deveu.
+
+- **Critérios verificáveis.** **(i)** Uma escola recém-criada é `gratuito` e tem os recursos do
+  Básico; **(ii)** ao fim dos três meses **sem** contratação, `ESCOLA_HABILITADA` **não** é
+  desligada automaticamente e **nenhum** dado é apagado; **(iii)** o preço exibido, o calculado e o
+  cobrado são o **mesmo número** (L8, critério (ii)); **(iv)** um recurso de plano superior aparece
+  **explicado e bloqueado**, e a tentativa de o usar é recusada **pelo motor**, não pela tela;
+  **(v)** nenhuma mensagem comercial aparece no 2.º acesso do mesmo dia; **(vi)** a avaliação do
+  7.º dia e a oferta do 14.º são mensagens **distintas**; **(vii)** o aviso do fim do período
+  gratuito chega **antes** do fim, e o evento fica registado; **(viii)** descer de plano **não
+  apaga** dado (o critério (iv) de L9, exercido); **(ix)** a suspensão **não** impede a escola de
+  pagar e se reativar; **(x)** o e-mail administrativo **não** altera estado comercial por si só
+  (a mesma regra dura que L11 §4 declara).
+
+- **Riscos e decisões por confirmar.**
+  - **O risco maior é de produto, e não de código:** o período gratuito é uma **promessa**. Se ao
+    fim dos três meses o sistema bloquear de repente, a promessa vira armadilha — e o dano é de
+    reputação, não de dado. É o que a pergunta 1 de C12 protege.
+  - **Bloqueio suave sem canal.** «Avisar antes» pressupõe um canal confiável (e-mail de
+    alguém). Sem ele, o aviso mais honesto é **dentro do sistema** — e isso só alcança quem entra.
+    Não escolho o canal: é dependência externa, com custo.
+  - **Preço em página pública.** A secção de planos é pública (C13) e os preços são C8. Publicar
+    antes de C8 fechar é o modo mais rápido de o preço errado circular.
+  - **Três planos, um só disponível.** A estratégia quer os superiores **visíveis e bloqueados**.
+    Feito sem cuidado, isso é publicidade a portas fechadas — e o critério é que cada recurso
+    diga **o que é**, não que fique cinzento.
+
+- **Prioridade.** **P3** — depois de L8 (o valor) e L9 (a trava), e **depois de J0**, que é
+  decisão e não código. **J1 e J3 não dependem de nada externo** e podem começar desde já; o que
+  espera é a **J2** (C8) e a **J4** (o canal).
+
+---
+
 ## 5. Sequência sugerida
 
 **Por camadas** — cada camada só começa quando a de baixo está fechada:
@@ -1286,12 +1526,19 @@ decisão.
 | **2 — o encontro** | **L4** (mapa de relações e índice) | é a consequência de L1+L2+L10 aplicada ao dado de L3; sem ela, cada consulta varre tudo |
 | **3 — o valor** | **L6** (catálogo de consultas) | depende de L1–L4 **e de L10** (sem o vocabulário, quatro das oito perguntas não têm como ser respondidas — §7); é onde o produto passa a valer |
 | **4 — o comercial** | **L7** (IA e uso) → **L9** (cotas por plano) · **L8** (composição e valores) | L9 depende de L6+L7+L8. **L8 é independente do dado** e pode começar a qualquer momento, depois da confirmação dos valores |
-| **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3**, o valor — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. É a única camada cujo começo **não** espera por outra camada |
+| **5 — a porta** | **L11** (o lado público, o adaptador e a simulação — E1, E2) · **L12** (a oferta, o período gratuito e a comunicação) | **corre em paralelo a tudo o resto**: não depende do dado nem do provedor. O que ela tem de comercial — **E3** o valor, e toda a **L12** — só entra depois de **L8/C8**; e a integração real (**E8**) só entra quando o provedor responder. **J1 e J3 de L12 não dependem de nada externo** e podem começar desde já. É a única camada cujo começo **não** espera por outra camada |
 
 **O que não se deve fazer.** Implementar L6 antes de L1/L2/L3 **e de L10** — produziria consultas
 sobre chaves instáveis, sobre um dado sem leitor e sobre conceitos que o modelo não tem, e cada
 consulta teria de ser reescrita depois. E implementar L9 antes de L6: não haveria catálogo para
 distribuir nem medição para cortar.
+
+**E o que não se deve fazer no comercial** — duas confusões que a estratégia de 16/10/2026 torna
+fáceis, e que custam caro: tratar o **fim do período gratuito** com a régua da **inadimplência**
+(quem nunca deveu nada não é inadimplente — §3 C12, pergunta 1), e usar **uma** duração onde a
+estratégia nomeia **quatro** (§3 C12). A camada 5 tem **duas** frentes que se encostam: a L11
+cobra, a L12 oferece — e a fronteira é o **estado comercial**, que as duas leem e só uma escreve
+(quem escreve é decisão de **C11**).
 
 ---
 
@@ -1356,11 +1603,13 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 
 ---
 
-## 8. Cobertura — cada requisito dos dois textos, e onde é respondido
+## 8. Cobertura — cada requisito dos três textos, e onde é respondido
 
 > **Por que esta secção existe.** Para que o mapa seja **auditável**: nenhum requisito dos textos
 > fica sem resposta, e nenhuma resposta fica sem requisito. É a tabela que se relê quando se
-> quiser saber «isto já foi pensado?».
+> quiser saber «isto já foi pensado?». São **três** os textos: o texto 1 (integridade, indexação e
+> proveniência), o texto 2 (consultas pedagógicas e organização comercial) e a **estratégia
+> comercial de 16/10/2026**, incorporada nesta rodada.
 
 ### Texto 1 — Integridade dos dados, indexação semântica e proveniência documental
 
@@ -1423,6 +1672,35 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 | §10 | Os **treze** entregáveis desta frente | **§8 esta tabela** + §2.8, §3, §4, §5, §7 |
 | §10 | «separar o que existe / parcialmente / não existe / depende de decisão» | **§2.10** |
 
+### A estratégia comercial de 16/10/2026 — onde cada item é respondido
+
+| § | O que a estratégia pede | Onde é respondido |
+|:--|:--|:--|
+| §1 | Três meses gratuitos do Básico, **sem cartão** e **sem compromisso**; **não** há cobrança automática no fim | **§L12**, entregas (a) e (c) · critérios (i) e (ii) |
+| §1 | Modelo por **Pix com conciliação manual**; a InfinitePay como **alternativa**, não dependência | **§L11** («Mudança de modelo», 16/10/2026) + §L11 entregas (d) e (f) |
+| §2 | Separar a **rota administrativa privada** da **rota pública** | **§3 C13** (em que instalação cada uma vive) + §L11 E2 · **§3 C11-1** (a rota pública **não existe** hoje) |
+| §2 | A rota pública **não** expõe função administrativa nem dá acesso a dado comercial de outra escola | §L11 E2 (critério) + §6 regra 5 + **§3 C2** (isolamento) |
+| §3 | Identificação **automática** da escola, sem lista pública de escolas | **§3 C13** — e a evidência de que o mecanismo **já existe** (`ESCOLA_SLUG` + `identidadeOk`, `producao.js:58`; `escolaDe`, `bastidores.js:97`) + §L11 E2 |
+| §3 | Se a identidade **não** for segura, **interromper** a solicitação em vez de presumir a escola | §L11 E2 critério + §L12 J2 critério — **e** o precedente medido: a ponte já responde **500 com o erro nomeado** em vez de seguir (C13) |
+| §4 | Os **oito campos** da solicitação de contratação | §L11 entregas (e) e (f) + **§3 C11** (onde o estado vive — precede o modelo) |
+| §4 | E-mail administrativo, que **não** altera estado comercial por si só | §L12 J4 + critério (x) · **canal inexistente, medido** (§2.9) |
+| §5 | Instruções de cobrança e, quando disponível, QR e Pix copia e cola | §L11 entrega (d) — a interface, com o provedor **opcional** |
+| §5 | **Não** presumir a API do Nubank | §L12 dependências («o canal» e a API) — declarado **não verificado** |
+| §5 | Comprovante do usuário **não** é confirmação definitiva | §L11 «Mudança de modelo» + §L12 critério (x) |
+| §6 | **2 h** para pagar; **48 h** de conciliação; **não** bloquear durante a conferência | **§3 C12** e **§3 C14** (o marco das 48 h **não** é decidido por dedução) · §L12 J5 |
+| §6 | Conjunto de evidências; o nome do pagador **não** decide sozinho | §L11 entregas (d)/(f) + §L12 J1 (o estado `solicitou`) |
+| §7 | O fim dos prazos **não** é inadimplência nem exclusão automática | **§3 C12** (pergunta 1) · §L12 critério (ii) |
+| §7 | O administrador decide, e **toda** mudança fica registada | §L11 entrega (f) + §L12 J1 · **papel inexistente, medido** (§L12 situação atual) |
+| §8 | Período gratuito × assinatura paga, com tolerância e regularização | **§3 C12** (as quatro durações) + §L12 J1 e J5 |
+| §8 | **Localizar e analisar** a «regra dos 30 dias» antes de mexer | **§2.9** (varredura: **não existe**) + **§3 C12** (as três perguntas) |
+| §9 | Secção permanente **«Planos, Pagamentos e Condições»** no menu | §L12 entrega (b) — **e** é alteração de navegação: `CONGELAMENTO.md` exige motivo declarado **quando se implementar** |
+| §9 | Recursos superiores **visíveis e bloqueados** | §L12 critérios (iii) e (iv) |
+| §9 | O **motor** valida o plano, não a interface | **§L9** critérios (i)–(v) — já escrito, e L12 apenas aponta |
+| §10 | Comunicação **não intrusiva**; avaliação **separada** da oferta; aviso antecipado do fim | §L12 «A comunicação, como proposta» + critérios (v)–(vii) |
+| §10 | A cadência (1.º · 7.º · 14.º · últimos 15 dias) como **proposta ajustável** | §L12 «A comunicação, como proposta» — registada **como** proposta, não como regra |
+| §11 | Auditar as decisões existentes e **não** resolver contradições em silêncio | **§3 C12, C13, C14** (as três que a conferência encontrou) · este §8 · §9 |
+| §12 | Só o planeamento; resumo das alterações e lista das dúvidas | este documento — e **§9** (o que não se decidiu) |
+
 ### O que os textos exigem e **ainda não tem resposta** — declarado
 
 1. **A definição de «contexto», «componente», «intervenção» e «resposta observada»** (§3 C10) —
@@ -1440,7 +1718,7 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 
 ## 9. O que este documento **não** decidiu
 
-- **Não escolheu** as interpretações das contradições C1–C11 (§3); registou-as. **Exceção: C3**,
+- **Não escolheu** as interpretações das contradições C1–C14 (§3); registou-as. **Exceção: C3**,
   resolvida em **15/10/2026** por decisão do dono do produto («o PO/plano publicado passa a ter
   versão explícita que o lançamento referencia») — e o **desenho** que a realiza (**S1–S4**) foi
   proposto por este documento e **aprovado no mesmo dia** (§3 C3, §L5). Propô-lo e aprová-lo não o
@@ -1492,3 +1770,48 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
   compra parcelada apresentada ao cliente como mensalidade.
 - **Não implementou nada de L11.** A frente é plano — **E0 a E8** —, e nenhum arquivo de produto
   foi alterado para escrevê-la; o que se mediu foi lido, não mudado.
+
+### O que a incorporação de 16/10/2026 não decidiu — as perguntas que são do dono do produto
+
+A estratégia pediu, por palavras próprias, que as contradições **não** fossem resolvidas em
+silêncio e que as dúvidas fossem apresentadas **em separado**. Ficaram **cinco**, agrupadas em
+**três** contradições (C12, C13, C14), e nenhuma delas tem resposta dedutível do repositório:
+
+1. **A «regra dos 30 dias» existe em algum lugar, ou é para criar?** Não foi encontrada em
+   varredura nenhuma (§2.9) e **não é sinónimo** do expurgo de 3 meses — suspender e apagar são
+   coisas diferentes, e só a segunda tem código. **C12, pergunta 1.** Sem resposta, a L12 não tem
+   como dar critério de aceite a «suspender».
+2. **Os 3 meses de oferta e os 3 meses de carência do expurgo são o mesmo prazo?** Convergi-los é
+   decisão declarada; hoje são dois números iguais com significados distintos. **C12, pergunta 2.**
+3. **O que a suspensão bloqueia, exactamente?** A estratégia quer «as operações não autorizadas» —
+   que é **mais estreito** que o `ESCOLA_HABILITADA = 'nao'` de hoje, o qual devolve **503 em
+   tudo**, inclusive na página de pagamento, e por isso **impediria a escola de pagar**. **C12,
+   pergunta 3.**
+4. **Em que instalação vive a página de planos e pagamentos — no Worker da escola ou na raiz?** A
+   única identificação de escola que existe é `ESCOLA_SLUG`, e ela **só existe no Worker da
+   escola**; na raiz não há escola a identificar. A convergência proposta (a raiz **apresenta** a
+   oferta, a instalação da escola **contrata**) não foi decidida. **C13.**
+5. **As 48 h de conciliação começam quando?** Da criação (a), do fim das 2 h (b) ou do aviso do
+   usuário (c — o candidato que a estratégia **não** pode querer)? Os três produzem sistemas
+   diferentes. **C14.** Não decidido — por instrução expressa.
+
+E duas que são dependência **externa**, e por isso não dependem de decisão de arquitetura, mas de
+compra:
+
+6. **O canal de mensagem.** Os avisos desta frente (boas-vindas, 7.º dia, 14.º dia, últimos 15
+   dias) e o e-mail administrativo de L11 §4 não têm **onde sair**: não há envio de e-mail em
+   `motor/` nem em `tools/` (varredura: zero). É serviço novo, com custo, e não está escolhido.
+   Enquanto não houver canal, o único aviso honesto é **dentro do sistema** — e alcança só quem
+   entra.
+7. **A API do provedor de Pix.** A estratégia manda **não presumir** que a API do Nubank é
+   acessível. Nada foi presumido: a documentação da InfinitePay continua a ser a única consultada,
+   com as suas capacidades declaradas **item por item como pendentes** em §L11, e a conciliação
+   fica **manual** até haver resposta. Isto **não** é uma pergunta para responder agora — é o que
+   mantém a primeira versão livre de dependência do provedor.
+
+E uma que **não** é pergunta, é aviso de escopo, para quando a L12 for implementada: a secção
+permanente **«Planos, Pagamentos e Condições»** acrescenta um item ao **menu** do topo, que é
+gerado por `tools/criar-escola.sh` (`gerar_nav_zero`) e descrito em `CONGELAMENTO.md` — a mudança
+de navegação exige **motivo declarado + entrada no `REGISTRO.md` + commit próprio**, como qualquer
+alteração àquela lista de arquivos. **Não** foi antecipada nesta rodada: o documento é planeamento,
+e o `CONGELAMENTO.md` já cobre a hipótese sem precisar de emenda nova.
