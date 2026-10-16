@@ -13829,3 +13829,32 @@ site no deploy da geração).
 - **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
   `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
   contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
+
+**Elo do mesmo dia (16/10/2026) — a escola `fita` recebeu a porta corrigida, fora da cadeia.**
+
+O primeiro item de «O que ainda não está feito» foi resolvido **à mão**, e o motivo é o próprio
+desenho: a geração normal **não podia** publicar a correção. `tools/gerar-ciclo.sh` recusa um ciclo
+cujo manifesto ainda tem `[Preencher: …]` e `DOCS` vazio (Pré-requisito 5) — e só o **PO completo**
+dispara o deploy. Ou seja, a porta corrigida só chegaria ao site no **fim** do fluxo que se estava a
+testar: quem quer testar a anamnese tem de a ver antes do PO.
+
+O que se fez: `porta/` → o pacote (`cp -R`, o MESMO passo 1b do gerador) + a **navegação que o pacote
+já tinha**, reinjetada no lugar do marcador `<!-- NAV -->` — e `wrangler deploy -c wrangler.fita.jsonc`.
+A nav **não** foi refeita de propósito: `criar-escola.sh` (nav_zero, com Bastidores) gerou o pacote em
+13/10 e `gerar-ciclo.sh` tem menu próprio (sem Bastidores, com «Ciclos») — os dois diferem por desenho
+(`FRENTES.md`, C2). Refazer a nav traria uma **segunda** mudança (e um link de PDF morto, num ciclo sem
+documento) junto da correção. Mudança mínima: **um** arquivo, `plano-observacao/index.html` (263+/30−),
+— o resto do pacote já era idêntico.
+
+O que isso **não** faz, e fica dito: (i) o pacote em disco passa a ser um **híbrido** — porta de hoje,
+nav de 13/10 — até a próxima geração o reescrever inteiro (ela repõe a nav própria); (ii) o link
+«PDF do ciclo» e a nav de `gerar_nav` só aparecem nessa geração; (iii) as outras páginas do pacote
+seguem na nav de 13/10 (a correção não as toca). A âncora `.fipp` **não** muda: ela cobre as fontes do
+ciclo (`.md`/`.conf`), e o pacote é saída gerada.
+
+**O que isso muda para o dado.** As duas anamneses da `fita` estavam **homónimas** («Mari» nas duas):
+a de 14:04 era da Vavá e fora renomeada na edição, pelo defeito (iii). O envelope
+`fita/envelope/anamnese-20261016-1404.json` foi corrigido no KV para `contexto.aluna = "Vavá"`. As
+duas voltam a ser `solta · vigente` — o «substituída» que aparecia nas duas some, porque some a
+duplicidade. É dado de **teste** (dados 100% falsos, `tools/.escolas-teste`), corrigido por operação
+direta no KV — não por código: nenhum apelido foi chumbado em programa nenhum.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T11:39:11-0300`
-Commit atual: `8b94c44` — fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
+Gerado em: `2026-10-16T11:54:33-0300`
+Commit atual: `7f52720` — fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+7f52720 fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
 8b94c44 fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
 c27307b docs(estrutura): o handoff regenerado passa a levar o registo da identidade visual
 3d71d03 docs(ideia): a identidade visual tem seis famílias em estudo — e o seletor não existe
@@ -81,7 +82,6 @@ ec7ffb2 fix(estrutura): a página da Produção quebrava com professor cadastrad
 9eade85 Merge origin/main (a escola fita) em main (a validação por caminho)
 2e4607c fix(estrutura): a validação de criar escola é por caminho — o formulário tinha razão
 1362156 feat(estrutura): criar a escola fita (motor completo)
-e0b869c feat(estrutura): a identidade do professor é o slug — e o sobrenome separa homônimos
 ```
 
 ## Por professor
@@ -186,6 +186,17 @@ as **duas** fichas marcadas «substituída» — a vigente inclusive.
 - `experimentos/provar-ajustes-anamnese.js` — a prova (novo): roda o `<script>` real da porta num DOM
   mínimo e dirige o caminho real do «Guardar».
 
+**Como foi provado.** `experimentos/provar-ajustes-anamnese.js` (26 provas, todas passando) roda o
+`<script>` real de `porta/index.html` num DOM mínimo — como o `provar-contexto-do-ato.js` — e dirige o
+**caminho real do «Guardar»**: sem a senha o `PUT` **não chega ao servidor**, e com a senha a trava não
+se aplica. Cobre ainda o apelido na estante (e o caso «sem apelido»), o asterisco do obrigatório (que
+**não** sai no derivado nem no opcional), o pré-preenchimento do contexto a partir do envelope, o
+realce da senha faltante e os estados (o vigente `solta`, o anterior `legado`). **Controle negativo:**
+revertendo as quatro correções de tela e a do motor, **7 provas falham** — a prova tem dentes. O
+`provar-contexto-do-ato.js` continua verde (37 provas): a convenção do realce é a mesma, e nada
+afrouxou. As provas de `experimentos/` que falham por *paths* fixos a escolas ausentes deste worktree
+(`leticia`, `maria`) falham **igual na árvore pristina** — não são regressão desta mudança.
+
 **Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `porta/` e
 `motor/` não estão na lista. A fórmula de hash, o `check-pacote.js`, as 17 regras e as 22 pétreas
 seguem iguais — o que muda é a **tela**, e uma derivação de estado do motor.
@@ -209,6 +220,35 @@ site no deploy da geração).
 - **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
   `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
   contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
+
+**Elo do mesmo dia (16/10/2026) — a escola `fita` recebeu a porta corrigida, fora da cadeia.**
+
+O primeiro item de «O que ainda não está feito» foi resolvido **à mão**, e o motivo é o próprio
+desenho: a geração normal **não podia** publicar a correção. `tools/gerar-ciclo.sh` recusa um ciclo
+cujo manifesto ainda tem `[Preencher: …]` e `DOCS` vazio (Pré-requisito 5) — e só o **PO completo**
+dispara o deploy. Ou seja, a porta corrigida só chegaria ao site no **fim** do fluxo que se estava a
+testar: quem quer testar a anamnese tem de a ver antes do PO.
+
+O que se fez: `porta/` → o pacote (`cp -R`, o MESMO passo 1b do gerador) + a **navegação que o pacote
+já tinha**, reinjetada no lugar do marcador `<!-- NAV -->` — e `wrangler deploy -c wrangler.fita.jsonc`.
+A nav **não** foi refeita de propósito: `criar-escola.sh` (nav_zero, com Bastidores) gerou o pacote em
+13/10 e `gerar-ciclo.sh` tem menu próprio (sem Bastidores, com «Ciclos») — os dois diferem por desenho
+(`FRENTES.md`, C2). Refazer a nav traria uma **segunda** mudança (e um link de PDF morto, num ciclo sem
+documento) junto da correção. Mudança mínima: **um** arquivo, `plano-observacao/index.html` (263+/30−),
+— o resto do pacote já era idêntico.
+
+O que isso **não** faz, e fica dito: (i) o pacote em disco passa a ser um **híbrido** — porta de hoje,
+nav de 13/10 — até a próxima geração o reescrever inteiro (ela repõe a nav própria); (ii) o link
+«PDF do ciclo» e a nav de `gerar_nav` só aparecem nessa geração; (iii) as outras páginas do pacote
+seguem na nav de 13/10 (a correção não as toca). A âncora `.fipp` **não** muda: ela cobre as fontes do
+ciclo (`.md`/`.conf`), e o pacote é saída gerada.
+
+**O que isso muda para o dado.** As duas anamneses da `fita` estavam **homónimas** («Mari» nas duas):
+a de 14:04 era da Vavá e fora renomeada na edição, pelo defeito (iii). O envelope
+`fita/envelope/anamnese-20261016-1404.json` foi corrigido no KV para `contexto.aluna = "Vavá"`. As
+duas voltam a ser `solta · vigente` — o «substituída» que aparecia nas duas some, porque some a
+duplicidade. É dado de **teste** (dados 100% falsos, `tools/.escolas-teste`), corrigido por operação
+direta no KV — não por código: nenhum apelido foi chumbado em programa nenhum.
 
 ## O que está pendente
 

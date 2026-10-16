@@ -48,6 +48,12 @@
     margin: 1rem 0;
   }
   .caixa.nota { background: var(--creme-1); }
+  /* O OBRIGATÓRIO SE ANUNCIA NO CONTROLE, e não só no selo em prosa: o asterisco diz
+     antes de digitar, e o realce enquanto ele está vazio — a MESMA regra do contexto do
+     ato (`.barra .campo.falta`), que já se marca desde o primeiro segundo. */
+  .caixa .req { color: var(--falha); font-weight: 700; }
+  .caixa.falta { border-color: var(--falha); border-width: 2px; }
+  .caixa.falta > h3 { color: var(--falha); }
   /* A faixa de contexto do ATO: as mesmas medidas do conteúdo (`main`), a mesma
      serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
      onde se digita. Rola com a página (não é `sticky`) e os campos vivem num
@@ -100,6 +106,14 @@
   .barra .campo .senha-status { font-size: .78rem; white-space: nowrap; }
   .barra .campo .senha-status.ok { color: var(--ok); }
   .barra .campo .senha-status.erro { color: var(--falha); }
+  /* O campo do contexto que FALTA para fechar. Ele nasce marcado — a falta é dita
+     enquanto o professor preenche, e não só na recusa do fecho (`marcarContextoFaltando`).
+     O traço é o do estado de erro da identidade (`--falha`), e o rótulo acompanha:
+     um campo vazio era indistinguível de um preenchido, e foi por isso que a
+     elicitação inteira se perdia no fim. */
+  .barra .campo.falta input, .barra .campo.falta select { border-color: var(--falha); border-width: 2px; }
+  .barra .campo.falta label { color: var(--falha); font-weight: 600; }
+  .barra details.ctx-ato .ctx-resumo .ctx-falta { color: var(--falha); font-weight: 600; }
   .barra .contadores { display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
   .opcao {
     display: flex; gap: .6rem; align-items: flex-start;
@@ -178,6 +192,10 @@
   .lista a:hover { text-decoration: underline; }
   .lista .quando { font-variant-numeric: tabular-nums; }
   .lista .caminho { color: var(--suave); font-size: .78rem; }
+  /* O SUJEITO vem na frente da data: sem ele, duas linhas do mesmo dia são
+     indistinguíveis e o professor edita a ficha errada. */
+  .lista .quem { font-weight: 700; }
+  .lista .quem.sem-sujeito { color: var(--falha); font-style: italic; }
   #filtro-fichas { margin: 0 0 .5rem; }
   .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
   /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
@@ -654,20 +672,38 @@ function guardarSenha() {
  * A habilitação do «Fazer a anamnese» (MOC dos Bastidores, andaime até a
  * Produção real): a aluna vem do seletor (a lista de alunas CADASTRADAS nos
  * Bastidores, `api/bastidores/alunas`) e a senha é a DO PROFESSOR — validada no
- * servidor (`api/bastidores/validar-senha`). O botão só abre com os DOIS: aluna
- * selecionada E senha validada. Ter aluna selecionada não é obrigatório — a
- * senha e o interesse em começar é que são.
+ * servidor (`api/bastidores/validar-senha`).
+ *
+ * A `aluna` NÃO é uma trava própria: ela é um dos campos de `CAMPOS_DO_CONTEXTO`,
+ * e é `atualizarComecar` que exige o contexto inteiro — aqui e no fecho, pela
+ * mesma conta. Era assim que o professor preenchia a anamnese toda para descobrir
+ * no fim que faltava o «ciclo»: o começo pedia a senha e a aluna, e o fecho pedia
+ * também a escola, o professor e o ciclo.
  */
 let SENHA_VALIDA = false;
 
-function alunaSelecionada() {
-  return (($('ctx-aluna') || {}).value || '').trim() !== '';
-}
-
 function atualizarComecar() {
   const comecar = document.getElementById('comecar');
-  if (!comecar || FONTE !== 'anamnese') return;
-  comecar.disabled = !(alunaSelecionada() && SENHA_VALIDA);
+  if (!comecar) return;
+  // A habilitação do botão tem UM lugar, e ele responde por TODAS as travas:
+  //   · a senha do professor (anamnese);
+  //   · o contexto do ato inteiro — nas três fontes, porque as três o exigem no fecho;
+  //   · a curadoria (plano e PO) — sem curadoria atribuída, a direção ainda não curou,
+  //     e não há o que planejar.
+  // Antes eram três lugares decidindo a mesma coisa (`disabled = false` por decreto no
+  // PO/plano, `disabled = true` na curadoria, e a anamnese com a sua própria conta): o
+  // contexto vazio só aparecia no fim, e trocar de professor deixava a trava da curadoria
+  // presa de um professor para o outro.
+  const faltam = contextoFaltando();
+  const senhaOk = FONTE === 'anamnese' ? SENHA_VALIDA : true;
+  const semCuradoria =
+    (FONTE === 'plano' || FONTE === 'po') && CURADORIA_CARREGADA && CURADORIAS.length === 0;
+  comecar.disabled = semCuradoria || !(senhaOk && faltam.length === 0);
+  comecar.title = semCuradoria
+    ? 'A direção ainda não atribuiu curadoria a este professor'
+    : (faltam.length
+        ? 'Falta o contexto do ato, na barra do alto: ' + faltam.join(', ')
+        : (!senhaOk ? 'Digite a senha do professor para começar' : ''));
 }
 
 async function carregarAlunas() {
@@ -687,10 +723,25 @@ async function carregarAlunas() {
     const atual = sel.value;
     sel.innerHTML = '<option value="">— nenhuma —</option>' +
       lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
-    if (atual && lista.indexOf(atual) !== -1) sel.value = atual;
+    // A ALUNA QUE A URL TRAZ — o `?aluna=` do atalho «criar a anamnese de …», que o PO
+    // oferece. Ele chega ANTES de as opções existirem, e um `select` sem a opção
+    // correspondente DESCARTA a atribuição: o valor virava string vazia em silêncio, e
+    // o professor via o campo «nenhuma» sem entender por quê. Relê a URL aqui, como o
+    // `carregarProfessores` já fazia para o professor — era só a aluna que ficava para trás.
+    // Se o apelido não estiver na lista (aluna ainda não cadastrada na Produção), ele
+    // entra assim mesmo: foi o sistema que o mandou, e descartá-lo é o defeito.
+    const daUrl = new URLSearchParams(location.search).get('aluna') || '';
+    const escolhida = atual || daUrl;
+    if (escolhida && lista.indexOf(escolhida) === -1) {
+      lista = lista.concat([escolhida]);
+      sel.innerHTML = '<option value="">— nenhuma —</option>' +
+        lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
+    }
+    if (escolhida) sel.value = escolhida;
   } catch (erro) {
     // sem a lista, o seletor fica só com «nenhuma» — o botão não habilita.
   }
+  marcarContextoFaltando();
   atualizarComecar();
 }
 
@@ -1022,7 +1073,6 @@ async function atualizarCuradoria() {
 /* Aplica o estado da curadoria: trava o «Começar» do plano/PO e filtra as alunas. */
 function aplicarCuradoria() {
   const semCuradoria = CURADORIA_CARREGADA && CURADORIAS.length === 0;
-  const comecar = document.getElementById('comecar');
   const aviso = document.getElementById('aviso-curadoria');
 
   // A turma que a direção ATRIBUIU entra como sugestão (não só como caixa marcada):
@@ -1033,9 +1083,10 @@ function aplicarCuradoria() {
 
   // A trava vale para plano e PO (que derivam do plano e da observação — memória da
   // escola). A anamnese já é travada pela aluna + senha; a curadoria a filtra.
+  // Quem recalcula a habilitação é `atualizarComecar` — inclusive no caso de o professor
+  // TROCAR para alguém com curadoria, em que a trava precisa sair (antes ela ficava presa).
   if (FONTE === 'plano' || FONTE === 'po') {
     if (semCuradoria) {
-      if (comecar) comecar.disabled = true;
       if (aviso) {
         aviso.textContent = 'Este professor ainda não tem curadoria atribuída pela direção — ' +
           'a direção precisa curar (modalidade, tradição, turma, repertório, alunas) antes de ' +
@@ -1045,6 +1096,7 @@ function aplicarCuradoria() {
     } else {
       if (aviso) { aviso.textContent = ''; aviso.classList.add('oculto'); }
     }
+    atualizarComecar();
   } else {
     if (aviso) { aviso.textContent = ''; aviso.classList.add('oculto'); }
   }
@@ -1079,6 +1131,11 @@ async function validarSenha() {
     // Só o resultado, nunca o nome do professor: a senha é do professor, e o
     // nome dele não é o que a validação revela.
     sinalDeSenha(!!dados.ok, dados.ok ? 'OK' : '✗ senha não reconhecida');
+    if (dados.ok) {
+      const alvo = $('senha');
+      const caixa = alvo && alvo.closest ? alvo.closest('.campo') : null;
+      if (caixa) caixa.classList.remove('falta');
+    }
   } catch (erro) {
     SENHA_VALIDA = false;
     sinalDeSenha(false, '');
@@ -1096,16 +1153,133 @@ const CAMPOS_DO_CONTEXTO = FONTE === 'anamnese'
   ? ['escola', 'professor', 'ciclo', 'aluna']
   : ['escola', 'professor', 'ciclo'];   // PO e plano são de TODAS — não se copia `aluna` (ARQUITETURA-PE §5)
 
+/*
+ * POR QUE O CONTEXTO É PEDIDO — e por que ele não aparece entre as perguntas.
+ *
+ * A frase existe porque a mensagem antiga («preencha o contexto na barra antes
+ * de fechar: ciclo») cobrava um campo que o formulário NUNCA pergunta, e num
+ * veículo de linguagem que não é o do professor. Quem preenche a anamnese não
+ * escreve o ciclo em lugar nenhum: ele chega pela URL do menu, e o que o
+ * professor tem de entender é que a falta é DA IDENTIDADE DO ATO, não do
+ * conteúdo que ele acabou de responder.
+ */
+const CONTEXTO_EXPLICACAO =
+  'O contexto do ato não é conteúdo deste formulário: escola, professor e ciclo são a identidade ' +
+  'da resposta — é com eles que a chave em que ela é guardada é montada.';
+
+/*
+ * O contexto do ato QUE FALTA, na ordem em que a barra o mostra. É a MESMA conta
+ * que `contextoDaBarra` faz, e por isso ela mora aqui e não duplicada: a barra
+ * pinta com esta lista, o «Começar» se trava com ela, e o fecho recusa com ela.
+ */
+function contextoFaltando() {
+  return CAMPOS_DO_CONTEXTO.filter((campo) => (($('ctx-' + campo) || {}).value || '').trim() === '');
+}
+
+/*
+ * A BARRA DIZ O QUE FALTA — desde o primeiro segundo, e não no fim.
+ *
+ * O defeito que originou isto: ao entrar pela Produção, o menu da «Área do
+ * Professor» chega sem `?ciclo=` (o Worker da escola não conhece o ciclo — ele
+ * não é var do Worker nem chave do KV, medido). O professor preenchia as 53
+ * perguntas da anamnese para só então descobrir que o «ciclo» estava vazio — e
+ * não havia como saber disso antes, porque o campo vazio era indistinguível de
+ * um campo preenchido. Agora o campo vazio se ANUNCIA: fica marcado, e o resumo
+ * da barra diz o que falta.
+ */
+function marcarContextoFaltando() {
+  const faltam = contextoFaltando();
+  for (const campo of CAMPOS_DO_CONTEXTO) {
+    const entrada = $('ctx-' + campo);
+    const caixa = entrada && entrada.closest ? entrada.closest('.campo') : null;
+    if (caixa) caixa.classList.toggle('falta', faltam.indexOf(campo) !== -1);
+  }
+  const resumo = document.querySelector('.barra details.ctx-ato .ctx-resumo');
+  if (resumo) {
+    // Os nomes vêm de `CAMPOS_DO_CONTEXTO`, que é lista fixa deste arquivo — não há
+    // dado de fora entrando no `innerHTML`; é ele que permite a parte que falta sair
+    // em cor de erro, como o campo marcado.
+    const nomes = CAMPOS_DO_CONTEXTO.map((campo) =>
+      faltam.indexOf(campo) === -1 ? campo : '<span class="ctx-falta">' + campo + '</span>');
+    resumo.innerHTML = nomes.join(' · ') +
+      (faltam.length ? ' — <span class="ctx-falta">falta ' + faltam.join(', ') + ' para fechar</span>' : '');
+  }
+}
+
+/*
+ * O FECHO APONTA O CAMPO, em vez de só dizer que ele falta. Quem chega aqui já
+ * preencheu tudo: levar o olho até a barra — abrindo o acordeão, se estiver
+ * recolhido — é parte da mensagem, não enfeite.
+ */
+/*
+ * O CONTEXTO DO ATO de um envelope JÁ GRAVADO → a barra. A edição em sítio precisa
+ * disto: a lista não carrega `?aluna=`, e sem esta passagem o campo «aluna» abria VAZIO —
+ * o professor editava às cegas e regravava o sujeito errado (foi assim que uma anamnese
+ * de uma aluna virou o apelido de outra). O `select` só aceita um valor que tenha opção:
+ * daí a opção nascer aqui quando falta.
+ */
+function aplicarContextoDoEnvelope(envelope) {
+  const ctx = (envelope && envelope.contexto) || {};
+  for (const campo of CAMPOS_DO_CONTEXTO) {
+    const entrada = $('ctx-' + campo);
+    if (!entrada || ctx[campo] === undefined || ctx[campo] === null) continue;
+    const valor = String(ctx[campo]);
+    if (entrada.tagName === 'SELECT') {
+      const existe = Array.prototype.some.call(entrada.options || [], (o) => o.value === valor);
+      if (!existe && typeof document.createElement === 'function') {
+        const op = document.createElement('option');
+        op.value = valor;
+        op.textContent = valor;
+        entrada.appendChild(op);
+      }
+    }
+    entrada.value = valor;
+  }
+  marcarContextoFaltando();
+  atualizarComecar();
+}
+
+/*
+ * A SENHA DO PROFESSOR autoriza a ESCRITA — a anamnese nova e a edição em sítio. Ela não
+ * se adivinha: o campo se marca e ganha o foco, como os do contexto. A edição avisa já na
+ * ENTRADA, para o professor não responder tudo para descobrir no fim que faltava a senha.
+ */
+function apontarSenhaFaltando(mensagem) {
+  const campo = $('senha');
+  if (campo) {
+    const caixa = campo.closest ? campo.closest('.campo') : null;
+    if (caixa) caixa.classList.add('falta');
+    if (campo.scrollIntoView) campo.scrollIntoView({ block: 'center' });
+    if (campo.focus) campo.focus();
+  }
+  sinalDeSenha(false, mensagem || '✗ digite a senha do professor para editar');
+}
+
+function apontarContextoFaltando(faltam) {
+  const acordeao = document.querySelector('.barra details.ctx-ato');
+  if (acordeao) acordeao.open = true;
+  marcarContextoFaltando();
+  const primeiro = $('ctx-' + faltam[0]);
+  if (primeiro) {
+    if (primeiro.scrollIntoView) primeiro.scrollIntoView({ block: 'center' });
+    if (primeiro.focus) primeiro.focus();
+  }
+}
+
 function contextoDaBarra() {
   const contexto = {};
-  const faltando = [];
   for (const campo of CAMPOS_DO_CONTEXTO) {
     const valor = (($('ctx-' + campo) || {}).value || '').trim();
-    if (valor === '') faltando.push(campo);
-    else contexto[campo] = valor;
+    if (valor !== '') contexto[campo] = valor;
   }
+  const faltando = contextoFaltando();
   if (faltando.length) {
-    throw new Error('preencha o contexto na barra antes de fechar: ' + faltando.join(', '));
+    apontarContextoFaltando(faltando);
+    throw new Error(
+      'Falta o «Contexto do ato» — a barra no alto da página. Está vazio: ' +
+      faltando.join(', ') + '. ' + CONTEXTO_EXPLICACAO +
+      ' Preencha e feche outra vez — o que você respondeu está guardado.'
+    );
   }
   return contexto;
 }
@@ -1203,8 +1377,7 @@ function voltarAoPortal() {
     const comecar = document.getElementById('comecar');
     if (comecar) {
       if (FONTE === 'anamnese') { comecar.style.display = ''; atualizarComecar(); }
-      else if (FONTE === 'po') { comecar.style.display = ''; comecar.disabled = false; }
-      else if (FONTE === 'plano') { comecar.style.display = ''; comecar.disabled = false; }
+      else if (FONTE === 'po' || FONTE === 'plano') { comecar.style.display = ''; atualizarComecar(); }
       else { comecar.style.display = 'none'; }
     }
   }
@@ -1533,6 +1706,16 @@ function gravarRespostaDoNo(no) {
 }
 
 // -------------------------------------------------------------- a pergunta
+
+/* O TÍTULO DO NÓ, com o asterisco quando o conteúdo o declara obrigatório. O selo de
+   `cabecalhoDoNo` também o diz — mas em prosa, longe do controle que se digita. A folha
+   derivada fica de fora: ela não é obrigatória nem opcional, já vem pré-preenchida. */
+function tituloDoNo(no) {
+  const marca = no.obrigatorio && !no.derivado
+    ? ' <span class="req" title="campo obrigatório">*</span>'
+    : '';
+  return '<h3>' + (INDICE + 1) + '. ' + md(no.campo) + marca + '</h3>';
+}
 
 function cabecalhoDoNo(no) {
   const partes = [];
@@ -2689,15 +2872,19 @@ function niveisDaEscala(no) {
 function escalaFixa(no) {
   const niveis = niveisDaEscala(no);
   const daTurma = !!(no.escala && !Array.isArray(no.escala) && no.escala.daTurma);
+  // A régua saiu do cadastro da turma em 15/10/2026: hoje ela é uma RUBRICA com nome, criada
+  // uma vez e ligada às turmas que a usam (Produção → Turmas, abas «Criar rubrica» e
+  // «Vincular turma à rubrica»). A citação aponta para onde a decisão passou a ser tomada.
   const nota = daTurma
-    ? '<p class="sub">A régua é a da sua turma, declarada pela direção na Produção (' +
-      citacao('Produção → Turmas → Régua da rubrica') + ') — aqui é leitura. ' +
+    ? '<p class="sub">A régua é a da sua turma, decidida pela direção na Produção (' +
+      citacao('Produção → Turmas → Vincular turma à rubrica') + ') — aqui é leitura. ' +
       'O critério de cada aula você declara no lançamento da aula dada.</p>'
     : '<p class="sub">A régua é esta — o critério de cada aula você declara no lançamento da aula dada.</p>';
   if (!niveis.length) {
     return '<p class="aviso">A régua vem da turma: escolha a turma em ' +
-      citacao('Turmas observadas') + ' — e, se ela ainda não declara uma régua, a direção a ' +
-      'declara em ' + citacao('Produção → Turmas') + '.</p>';
+      citacao('Turmas observadas') + ' — e, se ela ainda não tem uma régua ligada, a direção ' +
+      'cria a rubrica em ' + citacao('Produção → Turmas → Criar rubrica') + ' e a liga à turma em ' +
+      citacao('Vincular turma à rubrica') + '.</p>';
   }
   return '<ul class="escala">' + niveis.map((n) => '<li>' + md(n) + '</li>').join('') + '</ul>' + nota;
 }
@@ -3290,7 +3477,7 @@ async function derivarDoConjunto(botao, no) {
    a lista. A página redesenha sozinha quando a busca termina (Frente 5). */
 function renderCarregando(no) {
   const blocos = ['<div class="caixa">'];
-  blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
+  blocos.push(tituloDoNo(no));
   blocos.push(cabecalhoDoNo(no));
   blocos.push(caixaDaExplicacao(no));
   blocos.push('<p class="sub">carregando a lista…</p>');
@@ -3357,8 +3544,11 @@ function renderPergunta() {
     return renderCarregando(no);
   }
 
-  blocos.push('<div class="caixa">');
-  blocos.push('<h3>' + (INDICE + 1) + '. ' + md(no.campo) + '</h3>');
+  // O CAMPO OBRIGATÓRIO VAZIO SE REALÇA: a borda de erro acompanha o asterisco, e some
+  // quando a resposta entra (a folha derivada fica de fora — ela se pré-preenche).
+  const faltaObrig = no.obrigatorio && !no.derivado && !perguntaRespondida(no);
+  blocos.push('<div class="caixa' + (faltaObrig ? ' falta' : '') + '">');
+  blocos.push(tituloDoNo(no));
   blocos.push(cabecalhoDoNo(no));
   blocos.push(avisoDoFecho());
   blocos.push(caixaDaExplicacao(no));
@@ -4060,13 +4250,20 @@ function pintarFichas() {
     // O plano mostra o OBJETIVO (o resumo da estante) no lugar da data; a
     // anamnese mostra a data, e o PO só o carimbo.
     const quando = ePlano && o && o.objetivo ? o.objetivo : rotuloDoEnvelope(id);
+    // O SUJEITO da anamnese abre a linha: o `valor` já vinha do servidor
+    // (`/api/anamnese-estados` → `apelido`) e era descartado — com duas fichas do mesmo
+    // dia, o professor não tinha como saber de quem era cada uma.
+    const quem = eAnam
+      ? '<span class="quem' + (o && o.semSujeito ? ' sem-sujeito' : '') + '">' +
+        escapar((o && o.valor) || 'sem apelido') + '</span> '
+      : '';
     const caminho = eAnam ? 'Ver a ficha preenchida' : 'Ver o que ficou gravado';
     const selo = eAnam ? ' ' + seloDoEstado(o) : (ePlano ? ' ' + seloDoPlano(o) : '');
     const acoes = eAnam
       ? '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>'
       : (ePlano ? '<span class="acoes-ficha">' + acoesDoPlano(id, o) + '</span>' : '');
     return '<li><a href="' + alvo + '" target="_blank" rel="noopener" title="' + escapar(id) + '">' +
-      '<span class="quando">' + escapar(quando) + '</span>' + selo + '<br>' +
+      quem + '<span class="quando">' + escapar(quando) + '</span>' + selo + '<br>' +
       '<span class="caminho">' + caminho + '</span></a>' + acoes +
       '<div class="aviso-ficha oculto" data-aviso="' + escapar(id) + '"></div></li>';
   }).join('');
@@ -4150,10 +4347,16 @@ function editarAnamnese(id) {
         if (v && v.nota) NOTAS.set(k, v.nota);
       }
       EDITANDO = id;
+      // O CONTEXTO vem do envelope, não da URL: é o que faz o campo «aluna» abrir
+      // preenchido em vez de vazio.
+      aplicarContextoDoEnvelope(envelope);
       atualizarBarra();
       pintarRoteiro();
       salvar();
       abrirFormulario(0);
+      // A edição ESCREVE: sem a senha do professor ela não se conclui. Avisa agora — não
+      // no fim, depois de responder tudo.
+      if (!SENHA_VALIDA) apontarSenhaFaltando();
     })
     .catch((erro) => avisarNaFicha(id, erro.message, 'erro'));
 }
@@ -4798,14 +5001,17 @@ async function iniciar() {
     } else if (FONTE === 'po') {
       comecar.textContent = 'Fazer o Plano de Observação';
       comecar.style.display = '';
-      comecar.disabled = false;
     } else if (FONTE === 'plano') {
       comecar.textContent = 'Fazer o plano de ensino';
       comecar.style.display = '';
-      comecar.disabled = false;
     } else {
       comecar.style.display = 'none';
     }
+    // A habilitação NÃO é fixada aqui: quem decide é `atualizarComecar`, com a
+    // mesma regra do fecho — o contexto do ato tem de estar inteiro. Antes o PO e
+    // o plano nasciam destravados por decreto (`disabled = false`), e o professor
+    // só descobria o contexto vazio ao fechar.
+    atualizarComecar();
   }
 
   // O plano de ensino deixou de ser uma saída do PO: virou item de menu próprio
@@ -4842,6 +5048,13 @@ async function iniciar() {
       const el = document.getElementById('ctx-' + campo);
       if (valor && el) el.value = valor;
     }
+    // Os campos de TEXTO (escola, ciclo) já valem aqui. Os dois `select`
+    // (professor, aluna) só recebem valor quando as opções chegam do servidor —
+    // por isso eles se resolvem em `carregarProfessores` e `carregarAlunas`, e a
+    // barra é repintada por elas. Marcar aqui é o que faz a falta aparecer antes
+    // de o professor escrever a primeira resposta.
+    marcarContextoFaltando();
+    atualizarComecar();
   }
 
   try {
@@ -4896,6 +5109,10 @@ async function iniciar() {
   // seletor quando a semeadura rodar.
   await carregarProfessores();
   await atualizarCuradoria();
+  // O professor acabou de entrar no seletor: a barra repinta para o contexto que a
+  // URL trouxe, e o «Começar» se reavalia com ela.
+  marcarContextoFaltando();
+  atualizarComecar();
   semearDoContexto();
   // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
@@ -4905,7 +5122,11 @@ async function iniciar() {
   // E a barra volta a semear quando muda: é ela que carrega a identidade do ato.
   // Não se re-renderiza a pergunta — a edição do professor não pode perder o foco.
   $('barra').addEventListener('input', (evento) => {
-    if (evento.target && /^ctx-/.test(evento.target.id || '')) semearDoContexto();
+    if (evento.target && /^ctx-/.test(evento.target.id || '')) {
+      semearDoContexto();
+      marcarContextoFaltando();
+      atualizarComecar();
+    }
   });
   // O seletor de PROFESSOR dispara `change`, não `input` — liga a semeadura também
   // (as três fontes têm o campo professor; a aluna é só da anamnese e já é tratada lá).
@@ -4916,6 +5137,7 @@ async function iniciar() {
     if (campo) campo.value = '';
     SENHA_VALIDA = false;
     sinalDeSenha(false, '');
+    marcarContextoFaltando();
     atualizarComecar();
     semearDoContexto();
     atualizarCuradoria();
@@ -4925,6 +5147,8 @@ async function iniciar() {
   // ele. Fora dos ramos, para que o boot sem memória não deixe o `#fechar`
   // sem `title` nem o contador parado em zero.
   atualizarBarra();
+  marcarContextoFaltando();
+  atualizarComecar();
   $('n-total').textContent = MAPA.total;
   $('n-obrig-total').textContent = MAPA.obrigatorios;
   $('barra').classList.remove('oculto');
@@ -4942,9 +5166,10 @@ async function iniciar() {
       clearTimeout(tempoDeSenha);
       tempoDeSenha = setTimeout(validarSenha, 450);
     });
-    $('ctx-aluna').addEventListener('change', () => { atualizarComecar(); semearDoContexto(); });
+    $('ctx-aluna').addEventListener('change', () => { marcarContextoFaltando(); atualizarComecar(); semearDoContexto(); });
     $('limpar-aluna').addEventListener('click', () => {
       $('ctx-aluna').value = '';
+      marcarContextoFaltando();
       atualizarComecar();
       semearDoContexto();
     });
@@ -5108,6 +5333,14 @@ async function iniciar() {
     // É o único caminho que reescreve um registro — e o servidor recusa se a
     // anamnese estiver vinculada.
     if (EDITANDO && FONTE === 'anamnese') {
+      // A ESCRITA exige a senha do professor — a mesma que o «Começar» pede. Sem ela a
+      // edição não se conclui: a tela recusa antes de tocar no registro.
+      if (!SENHA_VALIDA) {
+        $('gravacao').innerHTML = '<p class="erro">A edição exige a senha do professor — digite-a na barra, no alto da página.</p>';
+        apontarSenhaFaltando();
+        $('gravar').disabled = false;
+        return;
+      }
       $('gravacao').innerHTML = '<p>gravando a edição…</p>';
       try {
         gravarRespostaDoNo(MAPA.nos[INDICE]);
