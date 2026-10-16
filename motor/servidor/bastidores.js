@@ -325,44 +325,39 @@ function pilula(nome, valor, rotuloHtml) {
 }
 
 /**
- * O ESCOLHEDOR — a lista longa, em dois tempos: procura, adiciona, e o que foi escolhido
- * aparece em FICHA, com o botão de tirar. Nada de `<select multiple>` (que exige Ctrl+clique
- * e não mostra o que está escolhido) e nada de um tapete de pílulas.
+ * O ESCOLHEDOR — a lista longa, em dois tempos: escolhe no menu, clica em «Adicionar», e o
+ * escolhido aparece em FICHA, com o botão de tirar. Nada de `<select multiple>` (que exige
+ * Ctrl+clique e não mostra o que está escolhido) e nada de um tapete de pílulas.
  *
  * O critério, dito uma vez: **pílula** para escolha curta, fechada e fixa; **escolhedor**
- * para lista longa ou variável. E, dentro do escolhedor, dois modos — decididos pelo tamanho
- * da lista, não por gosto:
- *   - `select` — até ~20 opções: o menu suspenso nativo resolve, e é o mesmo componente que a
- *     curadoria já usa para escolher o professor;
- *   - `lookup` — lista longa: um campo com sugestões (`<datalist>`), porque ninguém procura a
- *     «Arabesque» percorrendo 84 linhas de um menu.
+ * para lista longa ou variável.
  *
- * O que o formulário envia não muda: cada ficha vira um `<input type="hidden">` com o mesmo
- * `name` de antes — o servidor não sabe que a pele mudou.
+ * JÁ TENTEI UM LOOKUP, E NÃO SERVIU. Para os 84 termos do vocabulário usei um `<datalist>`
+ * (campo de procura com sugestões) — a ideia era não percorrer 84 linhas de menu. O que
+ * aparece ao clicar NÃO é nosso: é a janela do próprio navegador, que não aceita estilo e
+ * saiu com fundo escuro, estreita e apertada, ao lado de menus claros e largos. Como o
+ * `<select>` nativo já faz busca por digitação (escrever «ara» salta para «Arabesque»), o
+ * que o lookup acrescentava era pouco e o que custava era o desenho. Ficou UM componente só
+ * — o mesmo para as turmas, as alunas, o repertório e os níveis.
+ *
+ * E isso tirou um defeito de uma vez: o `<select>` só oferece o que existe, então não há
+ * como o formulário entregar um termo inventado (a associação turma↔termo é POR NOME).
+ *
+ * O que o formulário envia não muda: cada ficha volta como um dos valores de antes.
  */
-function escolhedor(id, opcoes, modo) {
+function escolhedor(id, opcoes) {
   const lista = (opcoes || []).map((o) => ({
     valor: String(o && o.valor != null ? o.valor : ''),
     rotulo: String((o && (o.rotulo || o.valor)) || ''),
   })).filter((o) => o.valor);
-  let entrada;
-  if (modo === 'lookup') {
-    entrada = '<input class="procura" list="' + esc(id) + '-lista" autocomplete="off" ' +
-      'placeholder="digite para procurar — ex.: arabesque">' +
-      '<datalist id="' + esc(id) + '-lista">' +
-      lista.map((o) => '<option value="' + esc(o.valor) + '"' +
-        (o.rotulo && o.rotulo !== o.valor ? ' label="' + esc(o.rotulo) + '"' : '') + '></option>').join('') +
-      '</datalist>';
-  } else {
-    entrada = '<select class="opcoes"><option value="">— escolher —</option>' +
-      lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
-      '</select>';
-  }
-  return '<div class="escolhedor" id="' + esc(id) + '"' +
-    (modo === 'lookup' ? ' data-exige-lista="sim"' : '') + '>' +
+  return '<div class="escolhedor" id="' + esc(id) + '">' +
     '<div class="fichas"><span class="vazio">(nada escolhido ainda)</span></div>' +
-    '<div class="entrada">' + entrada +
-    '<button type="button" class="adicionar">Adicionar</button></div>' +
+    '<div class="entrada">' +
+    '<select class="opcoes"><option value="">— escolher —</option>' +
+    lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
+    '</select>' +
+    '<button type="button" class="adicionar">Adicionar</button>' +
+    '</div>' +
     '</div>';
 }
 
@@ -651,15 +646,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
   const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
     '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
-  // Os três grupos da curadoria. O critério é o tamanho da lista: as turmas e as alunas
-  // cabem num menu suspenso (é o mesmo componente que escolhe o professor); o repertório
-  // não — 84 termos se procuram pelo nome, não se percorrem.
-  const escolarTurmasCuradoria = escolhedor('esc-turmas', listaTurmas.map((t) => ({ valor: t.nome })), 'select');
-  const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })), 'select');
+  // Os três grupos da curadoria — os três pelo MESMO componente. O repertório tem a lista
+  // longa (84 termos), mas isso é problema do menu, não do desenho: a janela de um lookup do
+  // navegador não se estiliza, e saía escura e apertada ao lado destes. Um componente só.
+  const escolarTurmasCuradoria = escolhedor('esc-turmas', listaTurmas.map((t) => ({ valor: t.nome })));
+  const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })));
   const escolarRepertorioCuradoria = escolhedor(
     'esc-repertorio',
-    listaTermos.map((t) => ({ valor: t.termo, rotulo: t.categoria ? t.termo + ' — ' + t.categoria : t.termo })),
-    'lookup'
+    listaTermos.map((t) => ({ valor: t.termo, rotulo: t.categoria ? t.termo + ' — ' + t.categoria : t.termo }))
   );
 
   // OS NÍVEIS que o seletor da turma oferece: os do catálogo MAIS os que alguma turma já
@@ -703,15 +697,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
     // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
     // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
-    // A PÁGINA É CENTRADA COMO O RESTO DO SISTEMA. O conteúdo do pacote do ciclo vive em
-    // `max-width:1180px; margin:0 auto; padding:0 22px` (tools/templates/ciclo.css) — é essa
-    // a distância da margem esquerda a que o dono do produto está habituado, e é ela que
-    // falta aqui. Antes o painel tinha `max-width:120rem` (1920px): em qualquer tela menor
-    // que isso não sobrava margem nenhuma, e o menu ficava colado na borda. Agora o painel
-    // tem teto, é centrado e respira — a margem cresce com a tela, em vez de ser um número
-    // escolhido ao acaso.
-    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.4rem;align-items:start;max-width:1280px;margin:0 auto;padding:1.4rem 22px 2.6rem;}' +
-    '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(22rem,1fr);gap:1.6rem;align-items:start;}' +
+    // A PÁGINA ALINHA COM A BARRA DO TOPO, E A LISTA FICA COM O RESTO.
+    //
+    // A barra do topo é `position:fixed` de ponta a ponta, com `padding: 6px 14px` — o
+    // «Nós, Por Exemplo» começa a 14px da borda. Era essa a referência que faltava: o painel
+    // tinha `max-width:1280px; margin:0 auto; padding-left:22px`, então o menu de secções
+    // começava a 22px + a margem do auto, e não ficava embaixo do menu do sistema. Agora o
+    // painel usa os MESMOS 14px e não tem teto de largura: o menu alinha com a barra, e a
+    // listagem fica com toda a largura que sobra (era o pedido: «pode dobrar o tamanho»).
+    // O formulário continua com o teto dele (34rem) — quem cresce é a coluna da lista.
+    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.4rem;align-items:start;padding:1.4rem 14px 2.6rem;}' +
+    '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.secao>h2{grid-column:1/-1;margin:0;}' +
     // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
@@ -764,14 +760,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--gold-borda);border-radius:999px;background:var(--branco);font-size:.87rem;color:var(--gold-texto);line-height:1.35;}' +
     '.escolha input:checked+span{background:var(--burgundy);border-color:var(--burgundy);color:var(--gold-claro);font-weight:600;}' +
     '.escolha input:focus-visible+span{outline:2px solid var(--gold);outline-offset:1px;}' +
-    // O ESCOLHEDOR: procura (ou menu), «Adicionar», e o escolhido em ficha com o «×».
+    // O ESCOLHEDOR: escolhe no menu, «Adicionar», e o escolhido vira ficha com o «×».
     '.escolhedor{margin:.3rem 0 .8rem;}' +
     '.escolhedor .fichas{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
     '.escolhedor .fichas .vazio{color:var(--soft);font-size:.85rem;line-height:1.9rem;}' +
     '.ficha{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--burgundy);background:var(--creme-2);border-radius:999px;font-size:.86rem;color:var(--tinta);line-height:1.5;}' +
     '.ficha button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--burgundy);font:700 .95rem/1 system-ui,sans-serif;cursor:pointer;}' +
     '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
-    '.escolhedor .entrada select,.escolhedor .entrada input{flex:1 1 auto;width:auto;min-width:0;}' +
+    '.escolhedor .entrada select{flex:1 1 auto;width:auto;min-width:0;}' +
     '.escolhedor .entrada button{margin:0;padding:.45rem .85rem;font-size:.86rem;white-space:nowrap;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
@@ -874,7 +870,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não mudam.
     '<label>Equivalência pedagógica <span class="dica">(um ou mais níveis)</span></label>' +
     '<p class="sub">Uma turma mista pode ter dois níveis — escolha um, clique em «Adicionar», e repita.</p>' +
-    escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n })), 'select') +
+    escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n }))) +
     '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
     '<label for="tfrequencia">Frequência semanal (aulas por semana)</label>' +
@@ -950,9 +946,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     escolarTurmasCuradoria +
     '<label>Alunas</label>' +
     escolarAlunasCuradoria +
-    // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos): no escolhedor ele é um
-    // campo de procura com sugestões, e o que se escolhe fica em ficha. Era um tapete de 84
-    // pílulas — o formulário ficava poluído, e o dono do produto recusou.
+    // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos). Era um tapete de 84
+    // pílulas — o formulário ficava poluído. Agora é o MESMO escolhedor das turmas e das
+    // alunas: o menu tem as 84 entradas com a categoria no rótulo, e escrever salta para o
+    // termo (busca por digitação do próprio navegador).
     '<label>Repertório (passos da turma)</label>' +
     escolarRepertorioCuradoria +
     '<button type="submit">Atribuir curadoria</button>' +
@@ -1107,22 +1104,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  mostrarVazio(el);' +
     '  return true;' +
     '}' +
-    // O escolhedor de lista LONGA só aceita o que está na lista: aceitar texto livre criaria
-    // uma associação para um termo que não existe — e a associação é por NOME.
-    'function naListaDoEscolhedor(el, valor) {' +
-    '  if (el.getAttribute("data-exige-lista") !== "sim") return true;' +
-    '  var ops = el.querySelectorAll("datalist option");' +
-    '  for (var i = 0; i < ops.length; i++) { if (ops[i].getAttribute("value") === valor) return true; }' +
-    '  return false;' +
-    '}' +
+    // O «Adicionar» do escolhedor: pega o item do menu, vira ficha. A validação de valor
+    // inventado que existia aqui SAIU com o lookup — o `<select>` só oferece o que existe.
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest(".escolhedor .adicionar") : null;' +
     '  if (b) {' +
     '    var el = b.closest(".escolhedor");' +
-    '    var fonte = el.querySelector(".opcoes") || el.querySelector("input.procura");' +
+    '    var fonte = el.querySelector("select.opcoes");' +
     '    var valor = fonte ? fonte.value : "";' +
     '    if (!valor) { alert("Escolha um item antes de adicionar."); return; }' +
-    '    if (!naListaDoEscolhedor(el, valor)) { alert("Escolha um dos itens sugeridos."); return; }' +
     '    if (adicionarFicha(el, valor)) fonte.value = "";' +
     '    return;' +
     '  }' +
