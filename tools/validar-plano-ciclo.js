@@ -49,6 +49,11 @@ const MAPA_SECOES = {
   // extraía antes desta correção: preservar o que já funcionava é parte do contrato.
   'distribuição do volume pelos blocos': 'distribuicaoDeVolume',
   'distribuição do volume pelos blocos (regra 9, etapa 2)': 'distribuicaoDeVolume',
+  // A SEQUÊNCIA DE EXERCÍCIOS (16/10/2026): a seção nasceu na derivação e ficou FORA do mapa —
+  // a mesma armadilha da distribuição, uma data depois. O conteúdo chegava ao `.md` e não ao
+  // `plano-XX.json` do pacote: quem lê o plano pela máquina (as vistas e o guia) não tinha a
+  // linha da aula — os exercícios, os objetivos que cada um trabalha e os tempos.
+  'sequência de exercícios por bloco': 'sequenciaDeExercicios',
   // A RÉGUA virou seção própria (14/10/2026): é uma LISTA de níveis — o que o lançamento da
   // aula lê para marcar. O cabeçalho da tabela da rubrica perde o rótulo no extrator (vira
   // chave), e é por isso que a régua viaja em lista.

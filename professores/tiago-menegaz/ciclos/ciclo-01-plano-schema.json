@@ -44,6 +44,11 @@
       "items": { "type": "object" },
       "description": "A tabela `| Bloco | Proporção alvo (60 min) | Justificativa |` (Regra 9, etapa 2): uma linha de dados por objeto. A referência do experimento tem isto como MAPA bloco→proporção — promovê-la a chave seria leitura, e não está feita."
     },
+    "sequenciaDeExercicios": {
+      "type": "array",
+      "items": { "type": "object" },
+      "description": "A tabela `| Bloco | Objetivo específico | Conteúdo do nível | Tempos | Compasso |` da Aula 1: a sequência de exercícios por bloco, uma linha por objeto. É a linha da aula posta em documento — o que se faz, para qual objetivo, com que conteúdo do nível, em quantos tempos e em que compasso. As CHAVES de cada linha vêm do cabeçalho da tabela (`bloco`, `objetivoEspecifico`, `conteudoDoNivel`, `tempos`, `compasso`) e não são fixadas aqui: como na distribuição do volume, promovê-las a propriedades seria leitura, e não está feita."
+    },
     "rubrica": {
       "type": "array",
       "items": { "type": "object" },

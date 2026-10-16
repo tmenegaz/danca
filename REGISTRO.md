@@ -14306,3 +14306,105 @@ dele).
   não tem o que a cubra.
 - **A ordem da estante** é a do servidor (mais recente primeiro). O professor a aprovou; se quiser
   ordem alfabética pelo apelido, é uma linha — mas não se muda o que não se pediu.
+
+## 16/10/2026 — A sequência de exercícios chega ao `plano-XX.json` (e o critério de extensão vira obrigatório)
+
+**O que motivou.** Na conferência do plano impresso da `fita`, o dono achou a **distribuição do
+volume** e não achou — nem no impresso nem na máquina — a **sequência de exercícios por bloco**.
+A seção existia no formulário e não chegava ao documento (isso foi resolvido na rodada anterior,
+em `motor/nucleo/derivar-plano-ciclo.js`); mas, mesmo depois de chegar ao `.md`, ela ficaria **fora
+do `plano-XX.json`** — porque o título não estava no mapa do extrator.
+
+É a **segunda vez** que esta armadilha morde, e a primeira está escrita no próprio arquivo: em
+14/10/2026 a distribuição do volume ficou três ciclos fora do `plano-XX.json` porque o mapa esperava
+o título com um sufixo («… (regra 9, etapa 2)») que documento nenhum escreve. Uma seção fora do mapa
+**não gera erro e não gera aviso de tipo nenhum** — o conteúdo é descartado em silêncio, e o pacote
+publica menos do que o professor escreveu. Nas duas vezes, quem descobriu foi o dono, olhando o
+documento.
+
+O aviso que existia para pegar isso **nunca funcionou** — e o achado é desta rodada, medido: ver o
+primeiro item do «O que ainda não está feito», abaixo. Sem ele, a armadilha não era fraca: era
+**invisível por construção**.
+
+Aproveitou-se a mesma rodada para o que ele declarou em seguida: **o critério de extensão precisa
+ser obrigatório**. O plano declara o horizonte — até onde os marcos estão decididos e o que decide
+estender — e sem ele nem quem lê o plano nem o professor que o retoma sabem se o ciclo termina na
+última aula da lista ou pode continuar.
+
+**O que foi decidido.**
+
+- **A seção «Sequência de exercícios por bloco» ganha destino.** `MAPA_SECOES` do
+  `validar-plano-ciclo.js` passa a conhecê-la, e o `ciclo-01-plano-schema.json` ganha a propriedade
+  `sequenciaDeExercicios` — **array de objetos**, como a distribuição do volume. As chaves de cada
+  linha (`bloco`, `objetivoEspecifico`, `conteudoDoNivel`, `tempos`, `compasso`) **não** são fixadas
+  no schema: vêm do cabeçalho da tabela, e promovê-las a propriedades seria ler o documento, o que
+  o extrator não faz e não passa a fazer.
+- **A propriedade é OPCIONAL, e o `required` do plano não muda.** O que faltava era o *destino*, não
+  uma obrigação nova: um plano antigo, sem a seção, continua válido — e passa a extratar a sequência
+  quando ela existir. Quem é obrigatório é o **nó do formulário** (rodada anterior), e isso é da
+  porta, não do contrato do documento.
+- **O «Critério de extensão» vira obrigatório no formulário do plano** (`obrigatorio: true` em
+  `porta/plano/conteudo/plano.json`). O texto do nó passa a dizer que **«não estende» é uma
+  resposta**: o que se pede é o horizonte declarado, não que o ciclo estenda. Quem já gravou o plano
+  sem ele será levado a respondê-lo na próxima edição — é o preço de a lacuna deixar de ser omissão
+  e passar a ser declaração.
+- **O molde e a cópia andam juntos.** `modelo/ciclos/ciclo-01-plano-schema.json` (o molde de que
+  nasce toda escola nova) e `professores/tiago-menegaz/ciclos/ciclo-01-plano-schema.json` recebem a
+  mesma propriedade — em sincronia, como o `criar-escola.sh` os copia.
+
+**Onde entrou.**
+
+- `tools/validar-plano-ciclo.js` — uma entrada em `MAPA_SECOES` (congelado: motivo abaixo).
+- `modelo/ciclos/ciclo-01-plano-schema.json` — a propriedade `sequenciaDeExercicios` (opcional).
+- `professores/tiago-menegaz/ciclos/ciclo-01-plano-schema.json` — a mesma propriedade, em sincronia.
+- `porta/plano/conteudo/plano.json` — `criterio-de-extensao` com `obrigatorio: true` e o texto do nó.
+- `REGISTRO.md` — esta entrada.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`), e
+`tools/validar-plano-ciclo.js` entra no `MAPA_SECOES`. O motivo é o acima, e ele é **medido**: sem a
+entrada, o conteúdo que o professor escreve chega ao `.md` e não chega ao pacote, **sem aviso**. A
+alternativa seria deixar o defeito e registrar a lacuna — mas então o guia e as vistas continuariam a
+publicar um plano a menos do que o professor escreveu.
+
+**O que não muda.** A **fórmula de hash** (`sha256` sobre as fontes, `tools/hash-ciclo.sh`) e a
+**cobertura** da âncora: as fontes do ciclo continuam a ser os `.conf` e os `.md` do ciclo — o
+`plano-XX.json` é saída do pacote, e nem antes nem agora entra na âncora. Os **validadores não
+ganham regra nenhuma**: nenhuma validação nova, nenhum `required` novo, nenhum tipo novo — só uma
+entrada no mapa de títulos das seções. `REGRAS.md`, `PROTOCOLO.md` (as 22 pétreas) e `METODO.md`
+**não são tocados**.
+
+**Com o quê.** `tools/validar-plano-ciclo.js`, `modelo/ciclos/ciclo-01-plano-schema.json`,
+`professores/tiago-menegaz/ciclos/ciclo-01-plano-schema.json`, `porta/plano/conteudo/plano.json`,
+`REGISTRO.md`.
+
+**Referências.** `CONGELAMENTO.md` (o congelamento de `tools/` e o motivo declarado);
+`tools/lib-extracao-md.js` (`avisosDeSecaoNaoMapeada`, o aviso que só sai quando há conteúdo —
+e que não sai quando o mapa está certo); a entrada de 14/10/2026 sobre a distribuição do volume
+(a mesma armadilha, uma data antes); `REGRAS.md` Regra 9 (volume) e Regra 10 (as camadas do
+plano); `PLANEJAMENTO-LASTRO.md` (§2.9, o contrato de extração como fonte das vistas e do guia).
+
+**O que ainda não está feito.**
+
+- **O AVISO QUE DEVERIA TER PEGADO ISTO NASCEU MORTO, e está medido.** O
+  `tools/lib-extracao-md.js` tem, desde o commit `28e6fde` (13/10/2026), um aviso nomeado para
+  exatamente esta armadilha: `avisosDeSecaoNaoMapeada`, que devia dizer «a seção tal não está no mapa
+  — o conteúdo NÃO chega a campo nenhum». **Ele nunca disparou, nem uma vez.** A razão é de ordem, e
+  é de uma linha: no laço do extrator, `if (!secao) continue;` (linha 280) vem **antes** de
+  `secaoTeveConteudo = true;` (linha 293) — de modo que, numa seção fora do mapa, nenhuma linha chega
+  a marcar conteúdo, a lista `secoesNaoMapeadas` fica sempre vazia, e o aviso é **código
+  inalcançável**. Foi assim que a distribuição do volume (14/10) e a sequência de exercícios (hoje)
+  caíram as duas em silêncio. **A defesa não existia — e é por isso que a armadilha mordeu duas
+  vezes, não porque ela fosse fraca.** Está **ABERTO**: corrigir é mover uma linha (marcar o conteúdo
+  antes do `continue`, ou marcar sem entrar no campo), mas isso muda **o que o validador imprime** —
+  e `tools/` é congelado. A alteração ficou **parada** à espera de confirmação, como o
+  `CONGELAMENTO.md` manda quando a mudança altera comportamento. **Até lá, a entrada de hoje só
+  corrige o sintoma da segunda mordida: a terceira continua invisível.**
+- **Uma prova que compare as seções EMITIDAS pela derivação com as chaves do `MAPA_SECOES`** seria a
+  defesa anterior ao sintoma — pegaria o caso em que a seção ainda está vazia (o aviso, se
+  consertado, só vê o que tem conteúdo). Não existe, e não foi escrita nesta rodada.
+- **O `_lacunas` do `plano-XX.json`** segue declarando a distribuição do volume como lacuna (o aviso
+  «só tem citação», pré-existente, que aparece igual antes e depois desta entrada): a tabela é
+  extraída pelo cabeçalho e a nota em `>` a acompanha, e é o aviso que o diz. Não é desta rodada.
+- **Os planos JÁ GRAVADOS** (`plano-20261016-1618`) não têm o critério de extensão respondido: a
+  próxima edição os levará a respondê-lo. Não se reescreve o passado — o nó passa a exigi-lo na
+  frente.
