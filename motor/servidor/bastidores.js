@@ -579,7 +579,7 @@ function escolhedor(id, opcoes) {
     rotulo: String((o && (o.rotulo || o.valor)) || ''),
   })).filter((o) => o.valor);
   return '<div class="escolhedor" id="' + esc(id) + '">' +
-    '<div class="fichas"><span class="vazio">(nada escolhido ainda)</span></div>' +
+    '<div class="escolhidos"><span class="vazio">(nada escolhido ainda)</span></div>' +
     '<div class="entrada">' +
     '<select class="opcoes"><option value="">— escolher —</option>' +
     lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
@@ -613,10 +613,73 @@ async function curadorias(kv, escola) {
   }
 }
 
-/** O id estável de uma curadoria: o slug de `professor + modalidade` (sem edição — estável). */
-function idCuradoria(professor, modalidade) {
-  return slugificar(String(professor || '') + ' ' + String(modalidade || ''));
+/**
+ * O id estável de uma curadoria: o slug de `professor + modalidade + turma` (16/10/2026).
+ *
+ * A TURMA ENTRA NO ID. Sem ela, o id era `professor + modalidade` — e atribuir o MESMO
+ * professor na MESMA modalidade a uma segunda turma caía no mesmo id: o `upsert` substituía
+ * a curadoria anterior, e a primeira turma desaparecia da atribuição, em silêncio. Não era
+ * um erro de gravação: era a identidade a dizer que a segunda turma ERA a primeira.
+ *
+ * A turma é obrigatória aqui — uma curadoria sem turma não autoriza plano nenhum, e o id
+ * sem ela traria de volta a colisão que se está a corrigir.
+ */
+function idCuradoria(professor, modalidade, turma) {
+  const base = slugificar(String(professor || '') + ' ' + String(modalidade || ''));
+  const t = slugificar(String(turma || '').trim());
+  return t ? base + '-' + t : base;
 }
+
+/**
+ * ACHA a curadoria que corresponde a `(professor, modalidade, turma)` — para editar em vez de
+ * duplicar, e para o id antigo não ficar órfão ao lado do novo.
+ *
+ * Há dois formatos em campo, e os dois têm de resolver:
+ *
+ *   - **com turma no id** (`tiago-menegaz-bale-classico-teste`) — o formato desde 16/10/2026;
+ *   - **sem turma no id** (`tiago-menegaz-bale-classico`) — tudo o que foi gravado antes. Ele
+ *     resolve quando a turma que declara é a que se está a pedir: é a MESMA curadoria, e o
+ *     registo é editado onde está, sem migração de chave.
+ *
+ * Sem esta segunda linha, o primeiro `Salvar` depois do deploy criaria um registo novo ao lado
+ * do antigo, e a lista passaria a mostrar a mesma atribuição duas vezes.
+ */
+function acharCuradoria(lista, professor, modalidade, turma) {
+  const alvo = String(turma || '').trim();
+  const vigentes = (Array.isArray(lista) ? lista : []).filter((c) => c && !c.substituidaPor);
+  return vigentes.find((c) => c.id === idCuradoria(professor, modalidade, alvo))
+    || vigentes.find((c) => c.id === idCuradoria(professor, modalidade)
+      && String(c.modalidade || '') === String(modalidade || '')
+      && turmasDaCuradoria(c).indexOf(alvo) !== -1)
+    || null;
+}
+
+/**
+ * AS ALUNAS QUE JÁ ESTÃO COMPROMETIDAS NA MESMA MODALIDADE (16/10/2026).
+ *
+ * Uma aluna pertence a UMA turma por modalidade — é a mesma razão que fez a turma virar
+ * «uma por curadoria»: se ela aparecesse em duas, o plano de uma diria as alunas da outra.
+ * A regra vale por MODALIDADE: a mesma pessoa pode estar no balé da turma A e no jazz da
+ * turma B, porque são aulas diferentes.
+ *
+ * Devolve `{ aluna: 'Turma onde ela já está' }` — com a turma, para a recusa poder dizer
+ * ONDE a aluna está, e não só que está ocupada. A curadoria que se está a editar fica de
+ * fora (`idQueEdita`): as alunas dela não competem consigo mesmas.
+ */
+function alunasComprometidas(lista, modalidade, idQueEdita) {
+  const onde = {};
+  for (const c of (Array.isArray(lista) ? lista : [])) {
+    if (!c || c.substituidaPor) continue;
+    if (idQueEdita && c.id === idQueEdita) continue;
+    if (String(c.modalidade || '') !== String(modalidade || '')) continue;
+    const turma = turmasDaCuradoria(c)[0] || '(sem turma)';
+    for (const a of (Array.isArray(c.alunas) ? c.alunas : [])) {
+      if (a && !onde[a]) onde[a] = turma;
+    }
+  }
+  return onde;
+}
+
 
 /** O nome do professor DONO, com a sobreposição editável no KV. O dono vive como SECRET
  *  (PROFESSOR_NOME) e o nome ajustado nos Bastidores fica no KV — o KV vence, para o nome
@@ -743,7 +806,7 @@ function fimDaVista() {
 function paginaEstudio(escola, contexto) {
   return cabecalhoDaVista('Bastidores · Estúdio de Dança · ' + escola) +
     '<style>' +
-    'body{font:16px/1.6 Georgia,serif;color:var(--tinta);background:var(--cream);margin:0;}' +
+    'body{font:17px/1.65 var(--serif);color:var(--tinta);background:var(--cream);margin:0;}' +
     '.vista{max-width:44rem;margin:0 auto;padding:1.6rem 1.25rem;}' +
     '.vista h1{color:var(--burgundy);}' +
     '.vista p{color:var(--soft);}' +
@@ -865,7 +928,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             : '<span class="dono">régua padrão (nenhuma rubrica ligada)</span>');
         return '<li><span class="nome">' + esc(t.nome) + '</span>' +
           '<span class="acoes"><span class="dono">' + esc(reguaPorTurma[t.id].join(' · ')) + '</span></span>' +
-          '<span class="nome" style="flex:0 0 auto;font-size:.85rem">→ ' + origem + '</span></li>';
+          '<span class="nome fixo">→ ' + origem + '</span></li>';
       }).join('')
     : '<li class="vazia">(nenhuma turma cadastrada)</li>';
 
@@ -1101,7 +1164,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS ABAS da secção Turmas. O painel de cada aba repete a grade do formulário + lista, e
     // por isso ocupa a linha inteira do `.secao` — a lista continua presa e paginada.
     '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.15rem;border-bottom:1px solid var(--gold-borda);margin:.1rem 0 .2rem;}' +
-    '.aba{background:transparent;border:none;border-bottom:3px solid transparent;border-radius:0;margin:0;padding:.5rem .9rem;color:var(--gold-texto);font:600 .95rem/1.3 system-ui,sans-serif;cursor:pointer;}' +
+    '.aba{background:transparent;border:none;border-bottom:3px solid transparent;border-radius:0;margin:0;padding:.5rem .9rem;color:var(--gold-texto);font:600 .95rem/1.3 var(--ui);cursor:pointer;}' +
     '.aba:hover{background:var(--creme-3);}' +
     '.aba.ativo{color:var(--burgundy);border-bottom-color:var(--burgundy);}' +
     '.aba:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}' +
@@ -1116,30 +1179,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.lista{list-style:none;margin:0;padding:0;}' +
     '.lista li{display:flex;align-items:center;gap:.5rem;padding:.35rem .1rem;margin:0;border-bottom:1px dotted var(--gold-borda);color:var(--tinta);}' +
     '.lista li .nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}' +
+    // O «→ origem» da turma não encolhe: ele diz de onde a régua veio, e não é o nome
+    // que se pode truncar. A medida mora aqui, não no atributo `style` do HTML.
+    '.lista li .nome.fixo{flex:0 0 auto;font-size:.85rem;}' +
     '.lista li .acoes{flex:0 0 auto;display:flex;align-items:center;gap:.35rem;}' +
     '.lista li.vazia{color:var(--soft);font-size:.9rem;}' +
     '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;padding:.5rem 0 .1rem;font-size:.85rem;color:var(--soft);}' +
-    '.paginacao button{margin:0;padding:.15rem .6rem;background:var(--branco);color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:4px;font:600 .9rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    '.paginacao button{margin:0;padding:.15rem .6rem;background:var(--branco);color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:4px;font:600 .9rem/1.4 var(--ui);cursor:pointer;}' +
     '.paginacao button:disabled{opacity:.35;cursor:not-allowed;}' +
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
     'form{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem;}' +
     'form label{display:block;margin:.7rem 0 .2rem;font-size:.9rem;color:var(--burgundy);}' +
-    'form input,form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 system-ui,sans-serif;color:var(--tinta);background:var(--cream);border:1px solid var(--gold-borda);border-radius:5px;}' +
+    'form input,form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 var(--ui);color:var(--tinta);background:var(--cream);border:1px solid var(--gold-borda);border-radius:5px;}' +
     'form input:focus,form select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold-escuro);}' +
-    'button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:6px;font:600 .95rem/1.2 system-ui,sans-serif;cursor:pointer;}' +
+    '.corpo button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:6px;font:600 .95rem/1.2 var(--ui);cursor:pointer;}' +
     '.res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}' +
-    '.res.ok{display:block;background:#eef7ee;border:1px solid #4f8a4f;color:#2f5d2f;}' +
-    '.res.erro{display:block;background:#fdeaea;border:1px solid #b25555;color:#7a2f2f;}' +
+    '.res.ok{display:block;background:var(--ok-fundo);border:1px solid var(--ok);color:var(--ok);}' +
+    '.res.erro{display:block;background:var(--falha-fundo);border:1px solid var(--falha);color:var(--falha);}' +
     '.dono{color:var(--soft);font-size:.85rem;}' +
     'ul li .slug{color:var(--soft);font-size:.8rem;background:var(--creme-2);border-radius:4px;padding:0 .3em;}' +
     'label .dica{color:var(--soft);font-weight:400;font-size:.85rem;}' +
     '.sub{color:var(--soft);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
     'form .nota{color:var(--soft);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
-    'button.apagar{margin:0;padding:.15rem .55rem;background:#b25555;color:var(--branco);' +
-    'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
-    'button.apagar:hover{background:#8f3f3f;}' +
+    'button.apagar{margin:0;padding:.15rem .55rem;background:var(--falha);color:var(--branco);' +
+    'border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    'button.apagar:hover{filter:brightness(.9);}' +
     'button.editar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);' +
-    'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    'border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
     'li.turma{display:block;margin-bottom:.6rem;}' +
     '.linha-turma{display:flex;align-items:center;gap:.5rem;}' +
     '.linha-turma .nome{flex:1 1 auto;min-width:0;}' +
@@ -1147,28 +1213,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--creme-2);border-radius:4px;font-size:.82rem;color:var(--tinta);}' +
     // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
-    '.selo{display:inline-block;padding:.05rem .45rem;border-radius:999px;font-size:.78rem;border:1px solid var(--gold-borda,#d9c98f);}' +
-    '.falta-ritmo{background:#fdf3d8;color:#7a5a12;border-color:#e0c98a;}' +
+    '.selo{display:inline-block;padding:.05rem .45rem;border-radius:999px;font-size:.78rem;border:1px solid var(--gold-borda);}' +
+    '.falta-ritmo{background:var(--alerta-fundo);color:var(--alerta);border-color:currentColor;}' +
     // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026). O selo diz que esta
     // versão da turma nasceu de um ajuste; o histórico, fechado, diz o que valia antes — a
     // escola precisa de saber que mexeu, e não pode confundir o passado com o presente.
-    '.vigencia{background:#eef3ec;color:#3d5a3d;border-color:#b8ccb6;}' +
+    '.vigencia{background:var(--ok-fundo);color:var(--ok);border-color:var(--ok);}' +
     // LIVRE × VINCULADA (16/10/2026): a mesma pergunta do plano de ensino, feita no cadastro.
-    // Âmbar é «ainda podes mexer»; o verde-acinzentado é «isto é linha de base, deriva».
-    '.livre{background:#fdf3d8;color:#7a5a12;border-color:#e0c98a;}' +
-    '.vinculada{background:#efe9f2;color:#5a3f66;border-color:#c9b8d2;}' +
-    'button.ajustar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
-    'button.ajustar:hover{background:#7d2b2b;}' +
+    // Âmbar é «ainda podes mexer»; o lilás é «isto é linha de base, deriva».
+    '.livre{background:var(--alerta-fundo);color:var(--alerta);border-color:currentColor;}' +
+    '.vinculada{background:var(--derivada-fundo);color:var(--derivada);border-color:currentColor;}' +
+    'button.ajustar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    'button.ajustar:hover{filter:brightness(.9);}' +
     'details.historico{margin:.35rem 0 0;font-size:.85rem;color:var(--soft);}' +
     'details.historico summary{cursor:pointer;}' +
     'details.historico ul{margin:.25rem 0 0 1rem;padding:0;}' +
     'details.historico li{margin:.1rem 0;}' +
-    '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid #b8ccb6;border-left:4px solid #4b7a4b;border-radius:4px;background:#f4f8f2;}' +
+    '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid var(--ok);border-left:4px solid var(--ok);border-radius:4px;background:var(--ok-fundo);}' +
     '.aviso-derivar p{margin:0 0 .5rem;font-size:.88rem;color:var(--tinta);line-height:1.45;}' +
-    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--creme-2);color:var(--tinta);border:1px solid var(--gold-borda);border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
-    '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
-    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
-    'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--creme-2);color:var(--tinta);border:1px solid var(--gold-borda);border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:var(--falha);border:none;font-weight:700;cursor:pointer;}' +
+    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 var(--ui);border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
+    'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
     // AS ESCOLHAS EM LINHA (os dias da semana): o professor clica no que quer. Nada de caixa
     // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
     // longas, o escolhedor abaixo.
@@ -1186,20 +1252,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.escolha input:focus-visible+span{outline:2px solid var(--gold);outline-offset:1px;}' +
     // O ESCOLHEDOR: escolhe no menu, «Adicionar», e o escolhido vira ficha com o «×».
     '.escolhedor{margin:.3rem 0 .8rem;}' +
-    '.escolhedor .fichas{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
-    '.escolhedor .fichas .vazio{color:var(--soft);font-size:.85rem;line-height:1.9rem;}' +
-    '.ficha{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--burgundy);background:var(--creme-2);border-radius:999px;font-size:.86rem;color:var(--tinta);line-height:1.5;}' +
-    '.ficha button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--burgundy);font:700 .95rem/1 system-ui,sans-serif;cursor:pointer;}' +
+    '.escolhedor .escolhidos{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
+    '.escolhedor .escolhidos .vazio{color:var(--soft);font-size:.85rem;line-height:1.9rem;}' +
+    '.escolhido{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--burgundy);background:var(--creme-2);border-radius:999px;font-size:.86rem;color:var(--tinta);line-height:1.5;}' +
+    '.escolhido button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--burgundy);font:700 .95rem/1 var(--ui);cursor:pointer;}' +
     '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
     '.escolhedor .entrada select{flex:1 1 auto;width:auto;min-width:0;}' +
     '.escolhedor .entrada button{margin:0;padding:.45rem .85rem;font-size:.86rem;white-space:nowrap;}' +
     'button.editar-rubrica{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);' +
-    'border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    'border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
     '#rubr-limpar{margin:.9rem 0 0 .4rem;background:transparent;color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:6px;}' +
     '#vinc-desvincular{margin:.9rem 0 0 .4rem;background:transparent;color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:6px;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
-    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:#8f3f3f;border:1px solid var(--gold-borda);border-radius:4px;cursor:pointer;}' +
+    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:var(--falha);border:1px solid var(--gold-borda);border-radius:4px;cursor:pointer;}' +
     '[hidden]{display:none!important;}' +
     '#gate{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;max-width:24rem;}' +
     // Abaixo disto, a lista desce para o segundo lugar da grade (não some, e não encolhe
@@ -1626,25 +1692,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function fichasDe(id) {' +
     '  var el = document.getElementById(id);' +
     '  if (!el || !el.querySelectorAll) return [];' +
-    '  return Array.prototype.slice.call(el.querySelectorAll(".ficha")).map(function(f){ return f.getAttribute("data-valor"); });' +
+    '  return Array.prototype.slice.call(el.querySelectorAll(".escolhido")).map(function(f){ return f.getAttribute("data-valor"); });' +
     '}' +
     'function mostrarVazio(el) {' +
-    '  var vazio = el.querySelector(".fichas .vazio");' +
+    '  var vazio = el.querySelector(".escolhidos .vazio");' +
     '  if (!vazio) return;' +
-    '  vazio.hidden = !!el.querySelector(".ficha");' +
+    '  vazio.hidden = !!el.querySelector(".escolhido");' +
     '}' +
     'function adicionarFicha(el, valor) {' +
     '  valor = String(valor || "").trim();' +
     '  if (!valor) return false;' +
     '  if (fichasDe(el.id).indexOf(valor) !== -1) return false;' +
     '  var f = document.createElement("span");' +
-    '  f.className = "ficha";' +
+    '  f.className = "escolhido";' +
     '  f.setAttribute("data-valor", valor);' +
     '  f.textContent = valor;' +
     '  var b = document.createElement("button");' +
     '  b.type = "button"; b.className = "tirar"; b.title = "Tirar " + valor; b.textContent = "×";' +
     '  f.appendChild(b);' +
-    '  el.querySelector(".fichas").appendChild(f);' +
+    '  el.querySelector(".escolhidos").appendChild(f);' +
     '  mostrarVazio(el);' +
     '  return true;' +
     '}' +
@@ -1662,7 +1728,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var t = e.target.closest ? e.target.closest(".escolhedor .tirar") : null;' +
     '  if (t) {' +
-    '    var ficha = t.closest(".ficha");' +
+    '    var ficha = t.closest(".escolhido");' +
     '    var dono = t.closest(".escolhedor");' +
     '    if (ficha && dono) { ficha.parentElement.removeChild(ficha); mostrarVazio(dono); }' +
     '  }' +
@@ -1765,7 +1831,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // herdar o que se escolheu para outra turma.
     '  var esc = document.getElementById("esc-niveis");' +
     '  if (esc) {' +
-    '    Array.prototype.slice.call(esc.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '    Array.prototype.slice.call(esc.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
     '    mostrarVazio(esc);' +
     '    String(t.nivelReferencia || "").split(",").forEach(function(n){ n = n.trim(); if (n) adicionarFicha(esc, n); });' +
     '  }' +
@@ -1805,7 +1871,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("form-turma").reset();' +
     '    var esc = document.getElementById("esc-niveis");' +
     '    if (esc) {' +
-    '      Array.prototype.slice.call(esc.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '      Array.prototype.slice.call(esc.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
     '      mostrarVazio(esc);' +
     '    }' +
     '    Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){ x.value = ""; });' +
@@ -1815,6 +1881,70 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS CURADORIAS VIGENTES, para o «Editar»/«Derivar» as abrir no formulário sem pedir ao
     // servidor (16/10/2026): o mapa já veio com a página.
     'var CURADORIAS = ' + JSON.stringify(listaCuradorias) + ';' +
+    // AS ALUNAS DA ESCOLA, e o mapa de quem já está comprometida numa modalidade (16/10/2026).
+    // A lista de alunas do formulário é FILTRADA pela modalidade e pela turma escolhidas: uma
+    // aluna pertence a UMA turma por modalidade, e oferecê-la outra vez era deixar a escola
+    // criar o conflito que o servidor depois recusa.
+    'var ALUNAS_TODAS = ' + JSON.stringify(aluns) + ';' +
+    'function turmasDeUma(c) {' +
+    '  if (!c) return [];' +
+    '  if (c.turmas && c.turmas.length) return c.turmas;' +
+    '  return c.turma ? [c.turma] : [];' +
+    '}' +
+    // Quem já está noutra turma DESTA modalidade, e em qual. A curadoria que se está a abrir
+    // fica de fora — as alunas dela não competem consigo mesmas.
+    'function alunasOcupadas(modalidade, idQueEdita) {' +
+    '  var onde = {};' +
+    '  for (var i = 0; i < CURADORIAS.length; i++) {' +
+    '    var c = CURADORIAS[i];' +
+    '    if (!c || c.id === idQueEdita) continue;' +
+    '    if (String(c.modalidade || "") !== String(modalidade || "")) continue;' +
+    '    var turma = turmasDeUma(c)[0] || "(sem turma)";' +
+    '    var as = c.alunas || [];' +
+    '    for (var j = 0; j < as.length; j++) if (as[j] && !onde[as[j]]) onde[as[j]] = turma;' +
+    '  }' +
+    '  return onde;' +
+    '}' +
+    // O REFILTRO: reconstrói o menu das alunas com o que está livre, e TIRA as fichas que
+    // passaram a estar ocupadas (trocar a modalidade depois de escolher é o caso que as cria).
+    'function refiltrarAlunas() {' +
+    '  var el = document.getElementById("esc-alunas");' +
+    '  if (!el || !el.querySelector || !el.querySelectorAll) return;' +
+    '  var modalidade = document.getElementById("cumodalidade").value;' +
+    '  var idAtual = (document.getElementById("cuderivar") || {}).value || "";' +
+    '  var ocupadas = alunasOcupadas(modalidade, idAtual);' +
+    '  var saiu = [];' +
+    '  Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){' +
+    '    var v = f.getAttribute("data-valor");' +
+    '    if (ocupadas[v]) {' +
+    '      saiu.push(v + " (em " + ocupadas[v] + ")");' +
+    '      f.parentElement.removeChild(f);' +
+    '    }' +
+    '  });' +
+    '  mostrarVazio(el);' +
+    '  var sel = el.querySelector("select.opcoes");' +
+    '  if (sel && sel.options) {' +
+    '    while (sel.options.length > 1) sel.remove(1);' +
+    '    for (var i = 0; i < ALUNAS_TODAS.length; i++) {' +
+    '      var a = ALUNAS_TODAS[i];' +
+    '      if (!a || ocupadas[a]) continue;' +
+    '      var o = document.createElement("option");' +
+    '      o.value = a; o.textContent = a;' +
+    '      sel.appendChild(o);' +
+    '    }' +
+    '  }' +
+    '  var res = document.getElementById("res");' +
+    '  if (res && saiu.length) {' +
+    '    res.className = "res erro";' +
+    '    res.textContent = "Já estão noutra turma desta modalidade: " + saiu.join("; ") + ".";' +
+    '  }' +
+    '}' +
+    // Trocar a modalidade ou a turma refiltra — e limpar o par também repõe a lista toda.
+    'document.addEventListener("change", function(e){' +
+    '  var alvo = e.target;' +
+    '  if (alvo && (alvo.id === "cumodalidade" || alvo.id === "cuturma")) refiltrarAlunas();' +
+    '});' +
+    'refiltrarAlunas();' +
     // O BOTÃO DE UMA CURADORIA — a MESMA regra e o MESMO desenho da turma: «Editar» quando
     // ainda não nasceu o plano de ensino dela (o registo é substituído no lugar), «Derivar»
     // quando já nasceu (elo novo, com data, e a anterior no histórico).
@@ -1845,13 +1975,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("cumodalidade").value = c.modalidade;' +
     '  document.getElementById("cumodalidade").disabled = true;' +
     '  document.getElementById("cutradicao").value = c.tradicao || "";' +
-    '  var turmas = (c.turmas && c.turmas.length) ? c.turmas : (c.turma ? [c.turma] : []);' +
+    '  var turmas = turmasDeUma(c);' +
     '  document.getElementById("cuturma").value = turmas.length ? turmas[0] : "";' +
+    // PRIMEIRO o refiltro, DEPOIS as fichas: a lista de alunas oferecidas depende do par
+    // (modalidade, turma) que acabou de ser posto, e as alunas DESTA curadoria não estão
+    // ocupadas (o `cuderivar` já está preenchido, e `alunasOcupadas` exclui-a).
+    '  refiltrarAlunas();' +
     // As ALUNAS e o REPERTÓRIO são fichas: limpam e voltam a marcar.
     '  [["esc-alunas", c.alunas || []], ["esc-repertorio", c.repertorio || []]].forEach(function(par){' +
     '    var el = document.getElementById(par[0]);' +
     '    if (!el) return;' +
-    '    Array.prototype.slice.call(el.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
     '    mostrarVazio(el);' +
     '    par[1].forEach(function(v){ adicionarFicha(el, v); });' +
     '  });' +
@@ -1875,9 +2009,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    [["esc-alunas"], ["esc-repertorio"]].forEach(function(par){' +
     '      var el = document.getElementById(par[0]);' +
     '      if (!el) return;' +
-    '      Array.prototype.slice.call(el.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '      Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
     '      mostrarVazio(el);' +
     '    });' +
+    // As alunas voltam todas a poder ser escolhidas: a modalidade foi reposta.
+    '    refiltrarAlunas();' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -1984,6 +2120,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    enviar("/api/bastidores/curadoria", campos, "atribuindo curadoria...", true); return;' +
     '  }' +
     '  if (modo === "editar") {' +
+    // A origem vai declarada: com a turma editável, o trio novo pode já não casar com o
+    // registo de onde se partiu, e o servidor criaria uma curadoria ao lado da antiga.
+    '    campos.idAntigo = alvo;' +
     '    enviar("/api/bastidores/curadoria", campos, "gravando curadoria...", true); return;' +
     '  }' +
     '  var vig = document.getElementById("cuvigencia").value;' +
@@ -2904,41 +3043,81 @@ async function fetch(request, env) {
         });
       }
     }
-    const id = idCuradoria(professor, modalidade);
-    const nova = {
-      id,
-      professor: slugificar(professor),
-      modalidade,
-      tradicao: String(corpo.tradicao || '').trim(),
-      turmas: turmasPedidas,
-      repertorio: Array.isArray(corpo.repertorio) ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean) : [],
-      alunas: Array.isArray(corpo.alunas) ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [],
-    };
     const lista = await curadorias(kv, escola);
+    const turmaPedida = turmasPedidas[0] || '';
+    // A MESMA PROFESSORA, A MESMA MODALIDADE, OUTRA TURMA (16/10/2026). O id passou a levar a
+    // turma, e a procura é pelo trio — antes havia um só registo por professor × modalidade,
+    // e a segunda turma substituía a primeira. Atribuir N turmas é agora N curadorias, que é
+    // o que sempre foi: cada uma autoriza um plano.
+    // A ORIGEM vem declarada quando se está a editar (16/10/2026): com a turma editável, o
+    // trio novo pode já não casar com o registo de onde se partiu, e a procura por (professor,
+    // modalidade, turma) criaria uma curadoria ao lado da antiga em vez de a corrigir.
+    const idAntigo = String(corpo.idAntigo || '').trim();
+    const atual = (idAntigo
+      ? lista.find((c) => c && !c.substituidaPor && c.id === idAntigo)
+      : null) || acharCuradoria(lista, professor, modalidade, turmaPedida);
+    const idDoTrio = idCuradoria(professor, modalidade, turmaPedida);
+    // O ID SÓ MUDA QUANDO A TURMA MUDA. Se o trio é o mesmo, o registo mantém o id que já tem
+    // — inclusive um id antigo (sem a turma), que não se renomeia por baixo de quem já o
+    // referencia. Mudando a turma, o id acompanha o trio, e o registo muda de chave com ele:
+    // sem isso ficava um órfão no id antigo e a lista mostrava a curadoria duas vezes.
+    const turmaAntiga = atual ? (turmasDaCuradoria(atual)[0] || '') : '';
+    const turmaMudou = !!atual && turmaAntiga !== turmaPedida;
+    const id = atual ? (turmaMudou ? idDoTrio : atual.id) : idDoTrio;
 
-    // EDITAR UMA CURADORIA QUE JÁ EXISTE (16/10/2026) — a mesma regra da turma. Livre (nenhum
-    // plano de ensino nasceu dela) edita-se: o registo é substituído no lugar. Vinculada
-    // (o professor já fez o plano de uma destas turmas) NÃO se edita — deriva-se, senão o
-    // plano que está no ar passaria a falar de uma curadoria que já não é a dele.
-    const atual = lista.find((c) => c && c.id === id);
+    // EDITAR UMA CURADORIA QUE JÁ EXISTE — a mesma regra da turma. Livre (nenhum plano de
+    // ensino nasceu dela) edita-se: o registo é substituído no lugar. Vinculada (o professor
+    // já fez o plano desta turma) NÃO se edita — deriva-se, senão o plano que está no ar
+    // passaria a falar de uma curadoria que já não é a dele.
     if (atual) {
       const pares = await paresComPlano(kv, escola);
       if (curadoriaVinculadaA(pares, atual)) {
         return json(409, {
           ok: false,
           erro: 'a curadoria do professor «' + atual.professor + '» em «' + atual.modalidade +
-            '» já tem plano de ensino — ela não se edita: derive uma versão nova, que passa a ' +
-            'valer a partir de uma data e deixa a anterior como referência do passado.',
+            '» (' + turmasDaCuradoria(atual).join(', ') + ') já tem plano de ensino — ela não se ' +
+            'edita: derive uma versão nova, que passa a valer a partir de uma data e deixa a ' +
+            'anterior como referência do passado.',
           vinculada: true,
         });
       }
     }
 
-    const idx = lista.findIndex((c) => c && c.id === id);
+    const alunasPedidas = Array.isArray(corpo.alunas)
+      ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [];
+    // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE (16/10/2026). Se ela já está noutra turma desta
+    // modalidade, pô-la aqui faria os dois planos dizerem as mesmas alunas — e só uma turma é a
+    // dela. A recusa diz ONDE ela está; o caminho é tirá-la de lá (ou não a pôr aqui).
+    const ocupadas = alunasComprometidas(lista, modalidade, atual ? atual.id : null);
+    const repetidas = alunasPedidas.filter((a) => ocupadas[a]);
+    if (repetidas.length) {
+      return json(409, {
+        ok: false,
+        erro: 'estas alunas já estão noutra turma de «' + modalidade + '»: ' +
+          repetidas.map((a) => a + ' (em ' + ocupadas[a] + ')').join('; ') +
+          '. Uma aluna pertence a UMA turma por modalidade — é o que faz o plano de cada uma ' +
+          'dizer as alunas certas. Tire-a da outra curadoria, ou não a ponha nesta.',
+        alunas: repetidas.map((a) => ({ aluna: a, turma: ocupadas[a] })),
+      });
+    }
+
+    const nova = {
+      // O id é o do registo que já existe, quando existe — e quando a turma NÃO mudou: um id
+      // antigo (sem a turma) não se renomeia por baixo de quem já o referencia. Mudando a
+      // turma, o id acompanha (é o trio que identifica a curadoria).
+      id,
+      professor: slugificar(professor),
+      modalidade,
+      tradicao: String(corpo.tradicao || '').trim(),
+      turmas: turmasPedidas,
+      repertorio: Array.isArray(corpo.repertorio) ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean) : [],
+      alunas: alunasPedidas,
+    };
+    const idx = atual ? lista.findIndex((c) => c && c.id === atual.id) : -1;
     if (idx === -1) lista.push(nova);
-    else lista[idx] = nova;
+    else lista[idx] = Object.assign({}, atual, nova);
     await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
-    return json(201, { ok: true, curadoria: nova });
+    return json(201, { ok: true, curadoria: nova, criada: !atual });
   }
 
   // POST /api/bastidores/curadoria-derivar — o «EDITAR» da curadoria VINCULADA (16/10/2026).
@@ -2995,16 +3174,35 @@ async function fetch(request, env) {
         });
       }
     }
+    const turmaFinal = turmasPedidas.length ? turmasPedidas[0] : (turmasDaCuradoria(anterior)[0] || '');
+    const alunasFinais = Array.isArray(corpo.alunas)
+      ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean)
+      : (anterior.alunas || []);
+    // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE — também ao derivar. A curadoria que se está
+    // a derivar não conta (é a de origem, `anterior.id`): as alunas dela não competem consigo.
+    const ocupadasDeriv = alunasComprometidas(lista, String(anterior.modalidade || ''), anterior.id);
+    const repetidasDeriv = alunasFinais.filter((a) => ocupadasDeriv[a]);
+    if (repetidasDeriv.length) {
+      return json(409, {
+        ok: false,
+        erro: 'estas alunas já estão noutra turma de «' + String(anterior.modalidade || '') + '»: ' +
+          repetidasDeriv.map((a) => a + ' (em ' + ocupadasDeriv[a] + ')').join('; ') +
+          '. Uma aluna pertence a UMA turma por modalidade.',
+        alunas: repetidasDeriv.map((a) => ({ aluna: a, turma: ocupadasDeriv[a] })),
+      });
+    }
     const nova = Object.assign({}, anterior, {
-      id: idCuradoriaDerivado(anterior.id, vigencia, lista),
+      // O id do derivado parte do id do par (professor, modalidade, turma) — não do id antigo,
+      // que pode não ter a turma. Assim a versão nova nasce já com a identidade completa.
+      id: idCuradoriaDerivado(
+        idCuradoria(anterior.professor, String(anterior.modalidade || ''), turmaFinal) || anterior.id,
+        vigencia, lista),
       tradicao: corpo.tradicao === undefined ? anterior.tradicao : String(corpo.tradicao || '').trim(),
-      turmas: turmasPedidas.length ? turmasPedidas : turmasDaCuradoria(anterior),
+      turmas: turmaFinal ? [turmaFinal] : [],
       repertorio: Array.isArray(corpo.repertorio)
         ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
         : (anterior.repertorio || []),
-      alunas: Array.isArray(corpo.alunas)
-        ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean)
-        : (anterior.alunas || []),
+      alunas: alunasFinais,
       vigenteDe: vigencia,
       substitui: anterior.id,
     });

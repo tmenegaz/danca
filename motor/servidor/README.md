@@ -140,7 +140,7 @@ não pode ter comentário de linha. Um comentário escrito **dentro** da concate
 do que isso: sai como **texto da página** — aconteceu com `// OS DIAS DA SEMANA…`, e a prova agora
 confere que nenhum chegou ao corpo.
 
-A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (92/92),
+A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (123/123),
 sobre um KV de mentira: o nome repetido só colide contra a vigente; a derivação recusa sem data; a
 anterior fica com o elo e o ritmo **não** é reescrito; a lista viva traz uma só; a régua e a
 cadeia sobrevivem; uma turma já substituída não se deriva outra vez; e o `DELETE` remove a versão
@@ -153,20 +153,41 @@ desabilitadas, marcar um dia habilita só a dele, desmarcar limpa o valor.
 **A CURADORIA é de UMA turma** (16/10/2026), e segue a mesma regra. O formulário tem um `select`
 de turma — o mesmo formato da modalidade e da tradição —, e o servidor recusa **400** duas
 turmas: quem marcava duas estava a dizer que as alunas de uma são as da outra, e não são. Quem
-tem mais turmas faz **mais curadorias** (o id é `professor + modalidade`). O registo guarda
-`turmas` como lista **de um**, que é o formato que o plano já lê (`daCuradoria: 'turmas'`, unindo
-as curadorias do professor) — o plano não mudou uma linha. **Alunas** e **repertório** continuam
-múltiplos: neles a pluralidade é verdadeira.
+tem mais turmas faz **mais curadorias**: o id é `professor + modalidade + TURMA`
+(`tiago-menegaz-bale-classico-teste`). A turma entrou no id na mesma data — até aí era
+`professor + modalidade`, e atribuir a mesma modalidade do mesmo professor a uma segunda turma
+caía no mesmo id: o `upsert` substituía a curadoria anterior e a primeira turma desaparecia, em
+silêncio. `acharCuradoria` aceita ainda o formato **sem** turma quando a turma que ele declara é
+a que se está a pedir — o registo antigo é editado onde está, sem migração à força.
+
+**A aluna não se repete na mesma modalidade.** `alunasComprometidas` devolve
+`{ aluna: 'Turma onde está' }` e o `POST` recusa **409** dizendo **onde** ela está. A regra é
+**por modalidade** (a mesma pessoa pode estar no balé da turma A e no jazz da turma B), e a
+curadoria que se edita fica de fora. No formulário, `refiltrarAlunas` reconstrói o menu das
+alunas quando a modalidade ou a turma mudam — e **tira** as fichas que passaram a estar
+ocupadas, dizendo no `#res` quem saiu e de que turma.
+
+O registo guarda `turmas` como lista **de um**, que é o formato que o plano já lê
+(`daCuradoria: 'turmas'`, unindo as curadorias do professor) — o plano não mudou uma linha.
+**Alunas** e **repertório** continuam múltiplos: neles a pluralidade é verdadeira.
 
 A curadoria **edita-se** («Editar») enquanto nenhum plano de ensino nasceu dela, e **deriva-se**
 («Derivar», `POST /api/bastidores/curadoria-derivar`) depois — o mesmo par de bandeirinhas e
 botões, e o mesmo histórico fechado no cartão. A ligação é o **par (professor, turma)**: o
 envelope declara `contexto.professor` (slug) e `contexto-turma` (nome), e é esse par que diz de
 que curadoria o plano nasceu (`paresComPlano` — a leitura única; o cartão da turma deriva o seu
-conjunto de nomes dela). O par professor × modalidade **não se edita em nenhum dos modos**: é ele
-que identifica a curadoria, como o nome identifica a turma. `curadoriasVigentes()` é o que a
-operação lê — inclusive o `curadoria-professor` que a porta consome; a lista inteira só serve ao
-histórico.
+conjunto de nomes dela). O **trio** professor × modalidade × turma identifica a curadoria, como o
+nome identifica a turma: nenhum dos dois primeiros se edita em modo nenhum, e a turma só muda
+numa curadoria **livre** — onde o id acompanha, e o registo muda de chave com ele.
+`curadoriasVigentes()` é o que a operação lê — inclusive o `curadoria-professor` que a porta
+consome; a lista inteira só serve ao histórico.
+
+Cobre também o **bug de 16/10/2026**: duas turmas do mesmo professor e modalidade coexistem (o id
+diz qual), a curadoria de **id antigo** é editada e não duplicada, a aluna repetida na mesma
+modalidade é recusada com **409** e a mensagem diz onde ela está, e o `refiltrarAlunas` é
+exercitado no script **servido** — o menu perde quem está ocupado e a ficha ocupada sai. E
+mudar a turma de uma curadoria livre **move o id** (é o trio que a identifica) sem deixar órfão
+no antigo.
 
 ## Prova contra o Worker real
 

@@ -14755,3 +14755,162 @@ turmas e o aviso do ritmo no rótulo, e **zero `esc-turmas`**; os dois botões d
 - **Uma curadoria substituída continua guardada e não se apaga pela tela** — a `DELETE` remove
   pelo id, e o histórico segue a cadeia por `substitui`. Se a escola quiser limpar o passado, é
   uma decisão que ainda não foi tomada.
+
+## 16/10/2026 — A identidade visual fecha o circuito: raiz, porta, bastidores, ficha e páginas de estado
+
+**O que motivou.** O `IDENTIDADE-VISUAL.md` declara uma fonte de verdade
+(`tools/templates/ciclo.css`) e um validador. A leitura do sistema servido, porém, mostrou que o
+contrato valia para os documentos do ciclo e para a porta — e não para o resto. A raiz servia uma
+cópia **manual** da folha, que nenhum validador comparava; a ficha e as páginas de estado tinham
+**segunda e terceira paletas** (a castanha `#3a2b1f`/`#faf6ee`/`#6b5b4a`/`#6b2f2f`); os
+Bastidores declaravam ~20 cores soltas; a porta tinha `var(--token, #hex)` com valores antigos, em
+que o fallback escondia a renomeação. E o validador imprimia «nenhum hex fora da fonte» sem olhar
+para `raiz/`, `porta/`, `motor/` nem para a ficha. O diagnóstico completo está em
+`DIAGNOSTICO-IDENTIDADE.md`; o plano, em `IMPLEMENTACAO-IDENTIDADE.md`.
+
+**O que foi decidido.**
+
+- **Uma folha, quatro caminhos.** Como o HTML sai por Pandoc, pelo Worker, pela função pura da
+  ficha e pelo SPA da porta, a camada de forma tem de ser CSS puro + contrato de classes, sem
+  build step.
+- **Fundo de estado é token.** `--ok-fundo`, `--alerta-fundo`, `--falha-fundo` e o par
+  `--derivada`/`--derivada-fundo` sobem para a fonte: são cor de **estado**, não decoração, e
+  precisam acompanhar o tema. Todos medidos com o texto semântico por cima (6,00:1 · 5,22:1 ·
+  7,04:1 · 7,53:1).
+- **Quem não tem `<link>` DECLARA.** A ficha e as páginas de estado são servidas sozinhas e não
+  podem referenciar a folha; elas declaram os tokens, e o validador confere cada valor contra a
+  fonte — o mesmo regime já usado pelo deck Marp.
+- **A raiz não tem `.rail`.** A grade global de duas colunas, a partir de 1200px, reservava 17rem
+  vazios à direita. A raiz volta à coluna única de leitura e o topo segue a mesma medida.
+- **`.ficha` deixou de ter dois donos.** A pastilha do cabeçalho do ciclo é global; o chip do
+  escolhedor dos Bastidores passou a `.escolhido`/`.escolhedos`.
+- **O botão base dos Bastidores é escopado** (`.corpo button`): como seletor de elemento, ele
+  alcançava o `.hamburger` da navbar.
+
+**Onde entrou.**
+
+- `tools/templates/ciclo.css` — os quatro tokens novos e os comentários de papel.
+- `tools/check-identidade.js` — `PARES` com os fundos de estado; varredura de `porta/`, `raiz/`,
+  `motor/`; `DECLARANTES` (ficha e páginas de estado) com conferência de valor; `#abc` expandido
+  para `#aabbcc`; comparação da cópia da raiz; aviso quando a fonte tiver mais de um `:root`.
+- `tools/gerar-raiz.sh` — copia `ciclo.css` para `raiz/assets/style.css`.
+- `tools/hooks/pre-commit` — o guard passa a disparar em `raiz/assets/`, `porta/` e `motor/`.
+- `porta/index.html` — hex e fallbacks fora; `.opcao.travada` com uma regra só; `.linha-acao`.
+- `raiz/index.html` — grade sem `.rail`; `#eef7ee`/`#fdeaea`/`rgba()` → tokens; campos e foco
+  inalterados.
+- `motor/servidor/bastidores.js` — cores e pilhas → tokens; `.corpo button`; `.escolhido`.
+- `motor/nucleo/ficha-html.js` — a folha passa a declarar os tokens canônicos (fim da segunda
+  identidade); `motor/ficha-html-cli.js` atualizado.
+- `motor/servidor/estado-html.js` — **novo**: uma folha para as quatro páginas de estado.
+- `motor/servidor/producao.js`, `cloudflare.js`, `provisionar-escola.js` — usam a folha de
+  estado; o Worker «zero» embute o CSS e passa a escapar o nome da escola.
+
+**Motivo declarado — os congelados.** `tools/`, `tools/templates/` e `tools/hooks/` estão em
+`CONGELAMENTO.md`. A mudança é **de forma**, não de conteúdo pedagógico, e tem motivo declarado:
+
+1. a fonte de verdade precisava de tokens que o sistema **já usava** fora dela (os fundos de
+   estado), sob pena de a noturna/futura paleta pintar metade do sistema;
+2. o validador precisava **enxergar o que serve**: antes ele afirmava mais do que cobria;
+3. a cópia da raiz precisava de gerador e de comparação — o modo de falha que o contrato diz ter
+   eliminado.
+
+**O que não muda.** A fórmula e a cobertura do `hash-ciclo.sh`; a âncora `.fipp`; as 17 regras e
+as 22 pétreas; a estrutura de menu; o pipeline Pandoc/LaTeX; os IDs normalizados. Nenhum `.fipp`
+foi reancorado — a identidade é forma, e `tools/` não entra na âncora. Nenhum documento de ciclo
+foi tocado.
+
+**Conferido.** `node tools/check-identidade.js` → 6 verificações ok (25 pares medidos; 26 hex;
+2 declarantes; deck; circuito dos pacotes e da raiz). `node tools/check-apresentacao.js` → 2
+páginas. `node motor/ficha-html-cli.js --autoteste` → 42/42.
+`node experimentos/provar-producao.js` → 109/109. `node experimentos/provar-derivacao-da-turma.js`
+→ 118/118. `tools/gerar-raiz.sh` → corpo idêntico (diff vazio), folha copiada. A cópia da Fita foi
+atualizada **por cópia determinística** (`assets/style.css` e o `<style>` da porta), porque
+`gerar-ciclo.sh` recusa o ciclo: `DATA_INICIO` é `[Preencher: …]`.
+
+> **Nota de 16/10/2026 — a prova de produção já falhava antes.** Ao alinhar `.ficha` →
+> `.escolhido`, a `provar-producao.js` acusou três falhas; a verificação mostrou que o harness
+> local já estava defasado (o contêiner que ele montava era `.escolhidos`, e o código usava
+> `.fichas` — a execução anterior morria antes, no `appendChild`). O harness ganhou
+> `querySelectorAll` no elemento falso e o seletor do chip foi corrigido para `.escolhido`; a
+> mesma página servida já passava 118/118 em `provar-derivacao-da-turma.js`, o que separa o
+> defeito do harness do defeito do código.
+
+**O que ainda não está feito.**
+
+- **O pacote da Fita NÃO foi regenerado por `gerar-ciclo.sh`.** A regeneração completa continua
+  bloqueada pela lacuna declarada de `DATA_INICIO`; só as duas cópias determinísticas foram
+  propagadas. Quando a data existir, rodar o gerador e conferir o diff.
+- **`check-pacote.js` reprova a Fita** por ausência de `plano.html`, PDF, aulas e `-dados.json`.
+  É o estado de **pacote zero**, anterior a esta mudança — não é regressão.
+- **A camada de componentes (Fase 1) não começou**: botão, campo, selo, cartão, modal e `.res`
+  ainda são reescritos por página.
+- **A impressão ainda não força a paleta clara por token.** Hoje isso depende de a ficha
+  declarar sempre a paleta clara; quando houver `[data-modo]`, o `@media print` precisa fixar os
+  papéis.
+- **Nenhum commit foi feito.**
+
+## 16/10/2026 — A curadoria é de UMA turma — e o id passa a dizê-lo
+
+**O que motivou.** Medido em uso, e reproduzido no KV real: atribuir o professor Tiago ao
+«Balé clássico» na turma **Teste** e depois na **Teste 2** deixava **uma só** curadoria
+(`tiago-menegaz-bale-classico`), com `turmas: ["Teste 2"]`. A da Teste desaparecia.
+
+A causa não era a gravação: era a **identidade**. O id era o slug de `professor + modalidade`,
+**sem a turma**. Duas atribuições do mesmo professor na mesma modalidade caíam no mesmo id, e o
+`upsert` substituía. A estrutura dizia que a segunda turma **era** a primeira.
+
+**O que foi decidido.**
+
+- **A turma entra no id:** `idCuradoria(professor, modalidade, turma)` →
+  `tiago-menegaz-bale-classico-teste`. Atribuir N turmas passa a ser N curadorias — que é o que
+  sempre foi, porque cada uma autoriza **um** plano.
+- **Os ids antigos continuam a resolver.** `acharCuradoria` procura o trio; e aceita o formato
+  sem turma **quando a turma que ele declara é a que se está a pedir**. Sem isso, o primeiro
+  «Gravar» depois do deploy criaria um registo novo ao lado do antigo, e a lista mostraria a
+  mesma atribuição duas vezes. Nada é migrado à força: o registo antigo é editado **onde está**,
+  e só uma curadoria **nova** nasce já com a identidade completa.
+- **A aluna não se repete na mesma modalidade.** `alunasComprometidas` devolve
+  `{ aluna: 'Turma onde ela já está' }`, e o `POST` recusa **409** dizendo **onde** ela está —
+  não só que está ocupada. A regra é **por modalidade**: a mesma pessoa pode estar no balé da
+  turma A e no jazz da turma B, porque são aulas diferentes. A curadoria que se está a editar
+  fica de fora (as alunas dela não competem consigo mesmas), e o mesmo vale ao derivar.
+- **A lista de alunas do formulário é filtrada**, e não só validada à saída: `refiltrarAlunas`
+  reconstrói o menu quando a modalidade ou a turma mudam, e **tira** as fichas que passaram a
+  estar ocupadas — trocar a modalidade depois de escolher é o caso que as cria. O que saiu é
+  dito no `#res`, com a turma onde a aluna está.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `idCuradoria` (três argumentos), `acharCuradoria`,
+  `alunasComprometidas`, a validação no `POST /api/bastidores/curadoria`, a mesma validação e o
+  id normalizado no `POST /api/bastidores/curadoria-derivar`, e o `refiltrarAlunas` no cliente
+  (com `turmasDeUma` e `alunasOcupadas`).
+- `experimentos/provar-derivacao-da-turma.js` — 123 casos (eram 92). Os novos: as **duas**
+  turmas do mesmo professor e modalidade coexistem e nenhuma substitui a outra; o id diz qual
+  turma; a curadoria de **id antigo** é editada e não duplicada; a aluna repetida é recusada
+  com **409** e a mensagem diz onde ela está; a mesma aluna noutra modalidade é aceite; e o
+  filtro da página exercitado no **script servido** num DOM de mentira (o menu perde quem está
+  ocupado, a ficha ocupada sai, e noutra modalidade a aluna volta); e **mudar a turma** de uma
+  curadoria livre move o id e **não deixa órfão** no antigo.
+
+**Conferido.** 123 + 109 + 47 + homónimo, verdes. A lista de curadorias da Fita está **vazia**
+agora (foi apagada durante os testes), por isso não havia nada a migrar nem a verificar ao vivo.
+Deploy `97ef706f`; a página servida tem `refiltrarAlunas` e o guard do DOM incompleto.
+
+**Correcção na prova, registada porque importa.** Duas asserções do `provar-producao` usavam a
+classe `.ficha`/`.fichas`, que **não existe** no código: a real é `.escolhido`/`.escolhidos`. A
+prova passava por sorte — o caminho que as exercitava não era o que falhava. Corrigido.
+
+**O que ainda não está feito.**
+
+- **Nada impede duas curadorias do mesmo par com turmas diferentes de partilharem alunas por
+  engano na TURMA** — a regra é por modalidade, não por horário. Duas turmas da mesma modalidade
+  no mesmo horário continuam a ser um conflito que o sistema não vê.
+- **A curadoria vinculada continua a não marcar o plano a jusante**, como a turma.
+
+> **Correcção na mesma data (16/10/2026), antes do commit.** Duas coisas apanhadas ao rever:
+> (a) a frase do README dizia que «o par professor × modalidade não se edita em nenhum dos
+> modos» — passou a ser o **trio**, com a turma; (b) **mudar a turma** numa curadoria livre
+> deixava o id antigo por cima, e o registo novo nasceria ao lado: o id só muda **quando a turma
+> muda**, e o cliente passou a enviar `idAntigo` para o servidor saber de onde se partiu. A
+> prova cobre-o (`…e NÃO sobra um órfão no id antigo`).
