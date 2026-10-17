@@ -452,20 +452,28 @@ function compararPacotes() {
 }
 compararPacotes();
 
-// A RAIZ também serve uma cópia da folha, e não é um pacote de ciclo: ela é gerada por
-// `tools/gerar-raiz.sh`. Antes, a cópia era manual e nada a conferia — o modo de falha
-// que o contrato diz ter eliminado.
-{
-  const copia = path.join(raiz, 'raiz/assets/style.css');
+// A RAIZ também serve cópias da folha e do nav, e não é um pacote de ciclo: as duas são
+// geradas por `tools/gerar-raiz.sh`. Antes, a cópia era manual e nada a conferia — o modo
+// de falha que o contrato diz ter eliminado.
+//
+// O `nav.js` faltava nesta comparação (17/10/2026): só a folha era medida, e o
+// `gerar-raiz.sh` copia as DUAS. Uma raiz com o nav velho passava no contrato — e agora é
+// este contrato que autoriza o `deploy-raiz.yml` a publicar, sem passo de geração no
+// runner. Se ele não olha, a identidade velha chega à produção com aval de «ok».
+for (const [rel, origem] of [
+  ['raiz/assets/style.css', 'tools/templates/ciclo.css'],
+  ['raiz/assets/nav.js', 'tools/templates/nav.js'],
+]) {
+  const copia = path.join(raiz, rel);
   if (!fs.existsSync(copia)) {
-    erros.push('Circuito: raiz/assets/style.css não existe — rode tools/gerar-raiz.sh');
-  } else if (fs.readFileSync(fonte, 'utf8') !== fs.readFileSync(copia, 'utf8')) {
-    erros.push('Circuito: raiz/assets/style.css divergiu de tools/templates/ciclo.css — rode tools/gerar-raiz.sh');
+    erros.push(`Circuito: ${rel} não existe — rode tools/gerar-raiz.sh`);
+  } else if (fs.readFileSync(path.join(raiz, origem), 'utf8') !== fs.readFileSync(copia, 'utf8')) {
+    erros.push(`Circuito: ${rel} divergiu de ${origem} — rode tools/gerar-raiz.sh`);
   }
 }
 
 if (!erros.some((e) => e.startsWith('Circuito'))) {
-  ok.push('Circuito: assets/style.css e assets/nav.js de cada pacote batem com a fonte');
+  ok.push('Circuito: assets/style.css e assets/nav.js de cada pacote e da raiz batem com a fonte');
 }
 
 // -------------------------------------------------------------------- saída

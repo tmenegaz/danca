@@ -15500,3 +15500,73 @@ presente, o slug `tiago-menegaz`).
 **O que o expurgo fez, e está certo.** 14 ficheiros apagados num commit só (`1a6133c`), o
 `.fipp` incluído — a âncora foi com a escola. O `ciclo-01.conf` **não** foi tocado: a Fita
 continua viva no ciclo 01, e a base é dela também. O índice sobreviveu, com o elo.
+
+## 17/10/2026 — A raiz passa a ser publicada pelo push (e o contrato da identidade ganha quem o corra)
+
+**O que aconteceu.** A raiz — o Worker `danca`, que não é escola: é a porta de entrada do
+sistema, com a página «Sistema Lastro», o «Criar nova escola» e o cron do expurgo (§17.5) — era
+publicada **à mão**. Nenhum workflow a publicava. Em 17/10/2026 isso foi cobrado duas vezes, no
+mesmo dia:
+
+1. a raiz no ar era de **14:54** e o `criar-escola.sh` corrigido foi commitado às **15:04**. A
+   escola `valse` nasceu com o formulário antigo, que derivava o slug do professor do **nome de
+   exibição** («Tiago» → `tiago`) em vez da pasta (`tiago-menegaz`) — o PO ia para uma pasta
+   fantasma;
+2. o mesmo atraso manteve no ar o `post-merge` que **apagava a escola recém-criada**.
+
+Nos dois casos o commit estava certo e a produção, velha. Nem o `git log` nem o painel sabiam
+dizer o que estava no ar — só o `wrangler` de quem tinha paciência para perguntar.
+
+**O que foi decidido.**
+
+- **O push que toca no que a raiz empacota publica a raiz.** `.github/workflows/deploy-raiz.yml`,
+  com `workflow_dispatch` para o disparo manual e `concurrency: deploy-raiz` sem
+  `cancel-in-progress` — dois `wrangler deploy` simultâneos do mesmo Worker disputam a versão
+  activa.
+- **Publica-se o que está no commit: não há passo de geração no runner.** `raiz/index.html` e
+  `raiz/assets/*` são versionados e regenerados por `tools/gerar-raiz.sh` a partir de
+  `biblioteca/apresentacao.md`. Gerar no CI tornaria o deploy irreprodutível a partir do commit
+  — e um `pandoc` diferente do local travaria o deploy **para sempre**: nenhum
+  `gerar-raiz.sh` rodado na máquina reproduziria a saída do CI, e a mensagem de erro («rode
+  gerar-raiz.sh») mandaria fazer uma coisa que não resolve.
+- **As rotas são largas de propósito** (`motor/servidor/**`, não uma lista de ficheiros). O
+  bundle da raiz é um **subconjunto** de `motor/servidor/`: `workers/raiz.js` →
+  `motor/servidor/raiz.js` → `provisionar-escola`, `expurgar-escola`, `repo-escola`,
+  `estado-html`, `escrever-po`, `escrever-plano`. Uma lista nominal apodreceria no dia em que
+  alguém acrescentasse um `require` — e o modo de falha seria exactamente o que este workflow
+  existe para matar: commit novo, raiz velha. Publicar a raiz sem necessidade custa segundos;
+  publicá-la velha custou dois incidentes.
+- **O portão é o `tools/check-identidade.js`**, e ele corre **antes** do deploy. Falha ⇒ não
+  publica. É deliberado: se a folha que a raiz serve já não é a do sistema, publicar seria
+  levar a identidade anterior à produção com um «ok» no painel. O remédio está na mensagem de
+  erro e é um comando.
+
+**O buraco que isto expôs.** O contrato da identidade existia, mas **nada o corria
+automaticamente**: o `pre-commit` está barrado pelo `DATA_INICIO` em `[Preencher: …]` no
+`ciclo-01-fita.conf`, e o caminho usado neste repositório é `core.hooksPath=/dev/null`. Foi por isso que passou despercebido
+que `raiz/assets/style.css` estava **atrás** de `tools/templates/ciclo.css` desde `0a252a8` («a
+régua de 4px passa a valer»): a folha da raiz ainda escrevia espaçamentos em `px` crus onde o
+sistema passou a falar por `--esp-*`. `node tools/check-identidade.js` **falhava em `HEAD`** com
+a mensagem certa, e ninguém a leu. A cópia foi realinhada em `9a70b10` — mas o que faltava não
+era o alinhamento, era **quem corre o contrato**. É o primeiro passo deste workflow.
+
+**E um furo no próprio contrato.** O bloco da raiz comparava só a folha; o `gerar-raiz.sh` copia
+**duas** coisas (`ciclo.css` e `nav.js`). Uma raiz com o nav velho passava em «Circuito ok» — e
+agora é esse «ok» que autoriza o deploy. O bloco passou a ser um laço sobre as duas cópias.
+
+**Onde entrou.**
+
+- `.github/workflows/deploy-raiz.yml` — novo: o deploy no push (e o manual), com a identidade
+  como portão e um resumo do que ficou no ar.
+- `tools/check-identidade.js` — o laço das duas cópias da raiz (`style.css` **e** `nav.js`), e a
+  mensagem de «Circuito ok» a dizer que a raiz está incluída.
+- `README.md` — a secção de deploy diz que a raiz se publica sozinha, e porquê.
+
+**Conferido.** `deploy-raiz.yml` é YAML válido e o job tem os cinco passos (checkout, node,
+identidade, deploy, resumo); as rotas cobrem os sete ficheiros do bundle da raiz; o contrato
+passa com a raiz incluída (8 verificações, «Circuito: … e da raiz batem com a fonte»); o
+`criar-escola.yml` correu com sucesso em 17/10/2026 às 22:40Z e usa o **mesmo**
+`secrets.CLOUDFLARE_API_TOKEN` — o segredo existe e funciona.
+
+**O que continua por decidir.** As escolas **não** têm workflow de deploy: cada uma é publicada
+quando muda, à mão. O `deploy-raiz.yml` é a raiz, e só a raiz.

@@ -142,6 +142,14 @@ npx wrangler deploy -c wrangler.maria.jsonc        # a escola Maria
 npx wrangler dev -c wrangler.maria.jsonc           # roda local (KV local em .wrangler/state)
 ```
 
+**A RAIZ publica-se sozinha.** O `.github/workflows/deploy-raiz.yml` publica o Worker `danca`
+a cada push em `main` que toque no que ele empacota (`workers/raiz.js`, `motor/servidor/**`,
+`raiz/**`, `wrangler.danca.jsonc`), depois de correr o `tools/check-identidade.js`. O comando
+acima continua a servir para publicar da máquina — mas já não é o **único** caminho, e não
+deve voltar a ser: em 17/10/2026 a raiz ficou dez minutos atrás do commit e a escola `valse`
+nasceu com o formulário antigo. As escolas continuam sem workflow de deploy próprio (cada
+`wrangler.<escola>.jsonc` é publicado quando muda).
+
 **Verifique depois do deploy** com o endpoint de saúde, que diz QUEM o Worker pensa que é
 (sem autenticação — o que revela é público):
 
