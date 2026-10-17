@@ -296,6 +296,23 @@ MODELO_DIR="$RAIZ/$MODELO_BASE/ciclos"
 
 # ---------------------------------------------------------------------------
 # Proveniência: não sobrescrever o que já existe
+#
+# A COLISÃO É POR ESCOLA — e a BASE não é da escola (17/10/2026).
+#
+# `ciclo-NN.conf` é a base do par (PROFESSOR, CICLO): vale para todas as escolas do mesmo
+# professor, e a variante (`ciclo-NN-<escola>.conf`) sobrescreve-a no `source`, chave a chave
+# (gerar-ciclo.sh:85-88 e hash-ciclo.sh:100-103 fazem `source` da base e DEPOIS da variante).
+# A única chave que a variante não redefine é `PROFESSOR` — que é do professor, não da escola.
+#
+# Tratá-la como colisão IMPEDIA a segunda escola do mesmo professor. Aconteceu em 17/10/2026:
+# o dono do produto criou a escola `valsa` para o professor `tiago-menegaz`, que já tinha a
+# `fita` no ciclo 01, e o `criar-escola.yml` morreu no primeiro passo com
+# «já existe: …/ciclo-01.conf» — antes de criar o pacote, antes do deploy e antes do commit.
+# O Worker `valsa` ficou no ar a servir a página de «implantação em andamento».
+#
+# O que continua a ser colisão (e aborta): a VARIANTE da escola, o PACOTE da escola e o
+# WRANGLER da escola. O que se REAPROVEITA: a base e os schemas do ciclo — copiados do molde
+# uma vez e partilhados, sem reescrita.
 # ---------------------------------------------------------------------------
 PROF_DIR="$RAIZ/professores/$PROFESSOR"
 CICLOS_DIR="$PROF_DIR/ciclos"
@@ -306,13 +323,19 @@ WRANGLER="$RAIZ/wrangler.$WORKER.jsonc"
 
 [ "$SOMENTE_INDICE" = 1 ] && { somente_indice; exit 0; }
 
-if [ -e "$CONF_BASE" ] || [ -e "$CONF_VARIANTE" ] || [ -e "$PACOTE_DIR" ] || [ -e "$WRANGLER" ]; then
+if [ -e "$CONF_VARIANTE" ] || [ -e "$PACOTE_DIR" ] || [ -e "$WRANGLER" ]; then
   echo "erro: a escola/ciclo já existe — não sobrescrevo (a proveniência acrescenta, não edita)." >&2
-  [ -e "$CONF_BASE" ]     && echo "  já existe: $CONF_BASE" >&2
   [ -e "$CONF_VARIANTE" ] && echo "  já existe: $CONF_VARIANTE" >&2
   [ -e "$PACOTE_DIR" ]    && echo "  já existe: $PACOTE_DIR" >&2
   [ -e "$WRANGLER" ]      && echo "  já existe: $WRANGLER" >&2
   exit 1
+fi
+
+# A base é partilhada: se já existe, é a do ciclo deste professor — reusa-se e diz-se.
+BASE_NOVA=1
+if [ -e "$CONF_BASE" ]; then
+  BASE_NOVA=0
+  echo "  base: reusando $CONF_BASE (é do ciclo $CICLO do professor $PROFESSOR, não desta escola)"
 fi
 
 echo "criando escola: professor=$PROFESSOR · escola=$ESCOLA · ciclo=$CICLO · worker=$WORKER"
@@ -335,13 +358,21 @@ for s in schema po-schema plano-schema aula-schema captura-schema; do
   # na época) e o `criar-escola.yml` morreu duas vezes aqui, com os passos do deploy e do commit
   # pulados. Com o molde fora de `professores/` o caso deixou de acontecer por padrão, mas
   # continua alcançável por `--modelo professores/<slug>/<ciclo>` — a guarda fica.
-  [ "$origem" = "$destino" ] || cp "$origem" "$destino"
+  # Só o que FALTA: os schemas são do ciclo (genéricos), partilhados pelas escolas do
+  # professor. Reescrevê-los numa segunda escola seria editar o que já estava certo.
+  [ -e "$destino" ] || [ "$origem" = "$destino" ] || cp "$origem" "$destino"
 done
-echo "  schemas: copiados de $MODELO (ciclo-$MODELO_CICLO-*)"
+echo "  schemas: de $MODELO (ciclo-$MODELO_CICLO-*) — os que faltavam"
 
 # ---------------------------------------------------------------------------
 # 3) Manifestos (base + variante) — DOCS vazio: nada foi escrito ainda
+#
+# A BASE SÓ SE ESCREVE UMA VEZ (17/10/2026). Ela é do par (professor, ciclo): quando o mesmo
+# professor abre uma segunda escola, a base já existe e não se toca — a variante é que diz o
+# que muda. Sem esta guarda, a segunda escola reescreveria a base (com o `NOME` dela), e o
+# `ciclo-01.conf` deixaria de ser do ciclo para passar a ser «da última escola criada».
 # ---------------------------------------------------------------------------
+if [ "$BASE_NOVA" = 1 ]; then
 cat > "$CONF_BASE" <<EOF
 # ============================================================================
 # Ciclo $CICLO — manifesto BASE. Escola e contexto institucional ficam na
@@ -377,6 +408,9 @@ VOLUME_MAX_120="200"
 # (ciclo-$CICLO-$ESCOLA-po.md); plano e aulas entram quando forem escritos.
 DOCS=""
 EOF
+else
+  echo "  base: mantida como está (não é desta escola)"
+fi
 
 cat > "$CONF_VARIANTE" <<EOF
 # ============================================================================
@@ -391,6 +425,12 @@ cat > "$CONF_VARIANTE" <<EOF
 VARIANTE="$ESCOLA"
 ESCOLA="$ESCOLA_NOME"
 RESPONSAVEL="$RESPONSAVEL"
+
+# O NOME DE EXIBIÇÃO do professor também é daqui (17/10/2026). Antes só a base o declarava —
+# e a base é partilhada pelas escolas do mesmo professor, pelo que a SEGUNDA escola ficava com
+# o nome que a primeira tinha escrito. Cada escola declara o seu; a leitura continua
+# base → variante, e uma variante antiga (que não o tenha) segue a ler o da base.
+PROFESSOR="$PROFESSOR_NOME"
 
 # --- habilitação desta escola ------------------------------------------------
 # Por ESCOLA, não por professor. "sim" é explícito: o estado foi conferido.
@@ -419,7 +459,11 @@ VOLUME_MAX_120="200"
 DOCS=""
 EOF
 
-echo "  manifestos: $CONF_BASE + $CONF_VARIANTE"
+if [ "$BASE_NOVA" = 1 ]; then
+  echo "  manifestos: $CONF_BASE (novo) + $CONF_VARIANTE"
+else
+  echo "  manifestos: $CONF_BASE (já existia) + $CONF_VARIANTE"
+fi
 
 # ---------------------------------------------------------------------------
 # 4) Validação do conf contra o schema (o mesmo rito do hash-ciclo)

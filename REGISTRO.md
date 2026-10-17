@@ -15128,3 +15128,124 @@ documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
 > relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
 > mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
 > `provar-tema.js` 29/29 nas páginas geradas.
+
+## 17/10/2026 — A segunda escola do mesmo professor não nascia: a base do ciclo não é da escola
+
+**O que aconteceu.** O dono do produto criou a escola **Valsa** para o professor `tiago-menegaz`,
+que já tinha a **Fita** no ciclo 01. O `criar-escola.yml` morreu no primeiro passo:
+
+```
+erro: a escola/ciclo já existe — não sobrescrevo (a proveniência acrescenta, não edita).
+  já existe: …/professores/tiago-menegaz/ciclos/ciclo-01.conf
+```
+
+O Worker `valsa` foi criado pela página `danca` (com os segredos) e ficou a servir a página de
+«implantação em andamento» — **592 bytes**. O scaffold, o deploy do motor e o commit não
+aconteceram.
+
+**A causa.** A guarda de colisão tratava a **base** como se fosse da escola:
+
+```sh
+if [ -e "$CONF_BASE" ] || [ -e "$CONF_VARIANTE" ] || [ -e "$PACOTE_DIR" ] || [ -e "$WRANGLER" ]
+```
+
+Mas `ciclo-NN.conf` é a base do par **(professor, ciclo)**: vale para todas as escolas do mesmo
+professor, e a variante (`ciclo-NN-<escola>.conf`) sobrescreve-a no `source`, chave a chave
+(`gerar-ciclo.sh:85-88`, `hash-ciclo.sh:100-103`). A única chave que a variante não redefinia era
+`PROFESSOR`. A base era, de facto, **partilhada** — e a guarda impedia a segunda escola de existir.
+
+**O que foi decidido.**
+
+- **A colisão é por escola.** Continuam a abortar: a **variante**, o **pacote** e o **wrangler** —
+  que são, esses, da escola. A **base** e os **schemas** do ciclo reusam-se.
+- **A base só se escreve uma vez.** Se já existe, não se toca: sem esta guarda, a segunda escola
+  reescreveria a base com o **seu** `NOME`, e o `ciclo-01.conf` deixaria de ser do ciclo para
+  passar a ser «da última escola criada».
+- **Os schemas só se copiam se faltarem.** São genéricos e do ciclo; reescrevê-los numa segunda
+  escola seria editar o que já estava certo.
+- **O `PROFESSOR` (nome de exibição) passa a ser declarado na VARIANTE.** Era o único campo que
+  ficava preso à primeira escola — a Valsa herdaria «Tiago» da base da Fita. Cada escola declara
+  o seu; a leitura continua base → variante, e uma variante antiga (que não o tenha) segue a ler
+  o da base.
+
+**Conferido** num worktree isolado (`git worktree`, sem tocar no worktree de trabalho), com a
+mesma série de argumentos do workflow:
+
+- a **segunda** escola do mesmo professor passa, cria variante + pacote + wrangler + índice, e a
+  base fica **intacta** (`git diff` vazio em `ciclo-01.conf`);
+- `hash-ciclo.sh tiago-menegaz 01 fita --check` continua **íntegro** (`ef5ee269`) — a Valsa não
+  tocou na Fita;
+- os valores resolvidos saem certos: `NOME=Ciclo 01 — Valsa`, `ESCOLA=Valsa`,
+  `PROFESSOR=Tiago Menegaz`;
+- um professor **novo** continua a criar a base («novo»);
+- correr de novo **recusa** (variante e pacote existem) — a proveniência mantém-se.
+
+**A Valsa ficou por terminar.** O Worker existe e serve o «em andamento». Depois deste conserto,
+basta correr o `criar-escola.yml` outra vez com os mesmos dados: ele cria o scaffold, sobe o motor
+e commita.
+
+---
+
+## 17/10/2026 — Quanto pesa o que vai para o Cloudflare (medido, não estimado)
+
+**O que vai.** Dois tipos de Worker, e nenhum deles leva o repositório:
+
+- **um por escola** (`wrangler.<escola>.jsonc`) — serve **só** o pacote do ciclo
+  (`professores/<professor>/ciclos/ciclo-NN-<escola>/`). Nem `apresentacoes/`, nem
+  `experimentos/`, nem `biblioteca/` — confirmado no `--dry-run`;
+- **a raiz** (`wrangler.danca.jsonc`, o `danca`) — serve só `raiz/`: **82,5 KB em 4 ficheiros**
+  (a apresentação, o CSS, o nav e o andaime do expurgo). É a porta de entrada e o «Criar nova
+  escola», não uma escola.
+
+**A escola Fita hoje, medida:**
+
+| Componente | Tamanho |
+|:--|--:|
+| Assets do pacote (11 ficheiros) | 482,2 KB → **147,6 KB gzip** |
+| Bundle do Worker (`Total Upload`) | 412,5 KB → **90,3 KB gzip** |
+| KV (6 chaves de cadastro + 3 anamneses) | ~92 KB |
+| **Total por escola** | **~986 KB** |
+
+**O que é gordo dentro do pacote:** `plano-observacao/index.html` tem **287 KB** (60% do pacote) —
+é a porta de elicitação inteira, com o script embutido. Depois `po.json` (39 KB),
+`assets/style.css` (32 KB), `plano.json` (28 KB), `elicitacao-schema.json` (25 KB).
+
+**O achado que importa: 97% do pacote é cópia.** Comparado byte a byte, **tudo** o que vai no
+pacote é idêntico a `porta/` ou a `tools/templates/` — `plano.json`, `po.json`, `anamnese.json`,
+`elicitacao-schema.json`, `elicitar-ciclo.md`, `markdown.js`, `style.css`, `nav.js`,
+`lib-cifra.js`. Só dois ficheiros são genuinamente da escola: o `index.html` (13,6 KB, gerado pelo
+pandoc com os nomes) e o nav injectado dentro do `plano-observacao/index.html`. São **466 KB de
+482 KB** replicados por escola e, com o ciclo por turma, por turma.
+
+**Não é um risco técnico — é desperdício.** Os limites do Cloudflare são por **ficheiro**, não por
+total: 20.000 ficheiros de assets por Worker (free) e 25 MiB por ficheiro. Com 50 turmas são 550
+ficheiros — 3% do limite. O ponto de atenção é outro: **o KV**.
+
+**A conta do cenário pedido** — 10 escolas, 5 turmas de 30 alunos, 5 professores:
+
+| Componente | Cálculo | Total |
+|:--|:--|--:|
+| Assets (1 pacote por turma) | 50 × 482 KB | **24 MB** |
+| Bundle do Worker | 10 × 412 KB | **4,1 MB** |
+| KV — cadastros | 10 × ~20 KB | 0,2 MB |
+| KV — anamneses | 1.500 × 24 KB | **36 MB** |
+| KV — planos e POs | 100 × ~10 KB | 1 MB |
+| KV — aulas lançadas | ver abaixo | **o que domina** |
+
+**As aulas lançadas são o que cresce sem tecto.** Cada lançamento grava um
+`<escola>/<professor>/<ciclo>-<carimbo>/…-dados-<carimbo>.json` no KV, na ordem dos 10 KB. Com o
+horário descrito (17 h/dia × 6 dias × 5 salas = **510 aulas/semana** por escola): 26.520
+lançamentos/ano × 10 KB = **265 MB/ano por escola**, ou **2,65 GB/ano** nas 10. Mas 510 aulas por
+semana com 5 professores dá **102 aulas por professor por semana** — fisicamente impossível;
+aquele número é a *capacidade* das salas, não o que se regista. Num cenário plausível (5
+professores × 20 aulas/semana = 100 aulas/semana): 5.200/ano × 10 KB = **52 MB/ano por escola**,
+**520 MB/ano** nas 10.
+
+**O limite que morde é o do KV no plano gratuito: 1 GB por conta.** O cenário plausível chega lá
+em ~2 anos; o literal, em menos de 4 meses. Os assets (24 MB) não são problema nenhum.
+
+**Medido com:** `wrangler deploy --dry-run`, `du`/`gzip` sobre o pacote real da Fita, e leitura das
+chaves reais no KV (`wrangler kv key get`). Os limites vêm da documentação do Cloudflare
+(Workers: 64 MiB de bundle, 20.000 assets, 25 MiB por ficheiro; KV: 1 GB no free, 25 MiB por
+valor). As medições de plano e PO são **estimativas de ordem de grandeza** — a Fita não tem
+nenhum no KV neste momento.

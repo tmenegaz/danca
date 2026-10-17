@@ -60,9 +60,11 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 │   ├── README.md                 o que é um professor, o que tem, como adicionar
 │   └── fokini/
 │       ├── ciclos/
-│       │   ├── ciclo-01.conf             manifesto base (objetivo, aulas, faixas)
+│       │   ├── ciclo-01.conf             manifesto base — do PAR (professor, ciclo),
+│       │   │                             partilhado por todas as escolas dele
 │       │   ├── ciclo-01-diaghilev.conf   contexto institucional + conteúdo da escola
-│       │   │                             (cada escola tem o seu ciclo: diaghilev)
+│       │   │                             (cada escola tem o seu ciclo: diaghilev; sobrescreve
+│       │   │                             a base chave a chave, inclusive PROFESSOR)
 │       │   ├── ciclo-01-*.md             fontes: plano, aula-01, notação, musicalidade…
 │       │   └── ciclo-01-diaghilev/       pacote entregue: HTML + PDF (versionado — o
 │       │                                 deploy automático publica daqui)

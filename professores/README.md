@@ -91,7 +91,11 @@ mkdir -p professores/<slug>/ciclos
 Depois:
 
 1. crie o ciclo inicial (`ciclo-01.conf` + `ciclo-01-<escola>.conf`) — ver
-   [`../README-ciclos.md`](../README-ciclos.md);
+   [`../README-ciclos.md`](../README-ciclos.md). **A base é do par (professor, ciclo), não da
+   escola**: o mesmo professor com duas escolas tem **uma** `ciclo-01.conf` e **duas** variantes
+   (`ciclo-01-<escola>.conf`), e é a variante que diz o contexto, o ritmo e o nome de exibição.
+   `tools/criar-escola.sh` reusa a base que já existe e só recusa quando a **variante**, o
+   **pacote** ou o **wrangler** daquela escola já existem;
 2. declare o PO do professor (`ciclo-01-<escola>-po.md`): o recorte é dele (P-13) — o dado,
    porém, pertence à escola;
 3. gere a âncora e o pacote:
