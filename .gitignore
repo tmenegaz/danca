@@ -55,6 +55,22 @@ professores/*/ciclos/*-acompanhamento-*.md
 experimentos/*
 !experimentos/README.md
 
+# AS PROVAS QUE O REGISTRO CITA. Uma prova é o que separa «eu conferi» de «eu acho».
+# O rodapé `Auditoria:` dos commits e as entradas do REGISTRO citam estas por nome — e
+# citar um arquivo que não existe no clone é uma afirmação que ninguém pode conferir.
+# Por isso elas saem daqui, uma por uma, e não por glob: um `provar-*.js` novo continua
+# sendo rascunho até alguém decidir que ele é prova — que é a regra desta pasta (ver o
+# README: «o que virar produção sai daqui, com commit próprio»).
+#
+# Medido em 17/10/2026: dos 24 `provar-*.js` do disco, 10 não rodam mais (apontam para
+# `professores/tiago/`, `professores/leticia/` e dados que não existem). Versionar o glob
+# inteiro registraria como conferência o que já não confere.
+!experimentos/provar-tema.js
+!experimentos/provar-celular.js
+!experimentos/provar-producao.js
+!experimentos/provar-derivacao-da-turma.js
+!experimentos/provar-plano-da-turma.js
+
 # ============================================================================
 # Caches e ambientes
 # ============================================================================
