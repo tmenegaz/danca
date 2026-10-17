@@ -15570,3 +15570,36 @@ passa com a raiz incluída (8 verificações, «Circuito: … e da raiz batem co
 
 **O que continua por decidir.** As escolas **não** têm workflow de deploy: cada uma é publicada
 quando muda, à mão. O `deploy-raiz.yml` é a raiz, e só a raiz.
+
+## 17/10/2026 — A escola `valsa` foi eliminada: o Worker órfão de um scaffold que morreu
+
+**O que era.** Um Worker `valsa` (com «a») no Cloudflare, criado em **17/10/2026 às 09:36:04Z**
+— cinco segundos antes de o `criar-escola.yml` falhar (09:36:09Z). A ordem explica tudo: a página
+`danca` criou a escola «zero» (o Worker + o subdomínio + os segredos), e o workflow que devia
+substituí-la pelo motor completo morreu no primeiro passo, na guarda de colisão que tratava
+`ciclo-01.conf` — a base do **par** (professor, ciclo) — como se fosse da escola.
+
+O que ficou no ar foram 592 bytes de página de «implantação em andamento», a dizer «Esta é a
+escola **Valsa**. O motor completo … está sendo implantado — recarregue em instantes». Nunca
+houve motor para carregar. Recarregar não ia resolver, e a página não dizia isso.
+
+**Porque não bastava ignorá-lo.** Não é um vestígio inerte: responde **200** no subdomínio de
+uma escola que não existe, e a sua inexistência era invisível — sem pasta em `escola/`, sem
+`indice.json`, sem `wrangler.valsa.jsonc`, sem nada no Git. O expurgo da raiz não o apanhava
+porque só conhece o `escola/*/indice.json`. Um 200 sem escola é a mentira mais difícil de
+detectar: parece que funciona.
+
+**O que foi feito.** `wrangler delete --name valsa`, com o motivo declarado. Conferido:
+`valsa.tmenegaz77.workers.dev` → **404**; o KV **não tinha uma única chave** com o prefixo
+`valsa/` (o Worker «zero» não usa KV — não havia nada a limpar); não havia domínio próprio nem
+rota associada; e os vizinhos continuam de pé (`valse` 200, `danca` 401 — a raiz atrás da
+senha, como deve ser).
+
+**O que fica.** O comentário da guarda em `tools/criar-escola.sh` continua a contar o caso: é o
+**motivo** da guarda, e o motivo não se apaga. Só o tempo verbal mudou — o Worker já não está no
+ar.
+
+**O que isto ensina sobre o fluxo.** O `provisionar-escola.js` cria o Worker antes de existir
+qualquer artefacto no Git, e nada desfaz isso se o workflow seguinte falhar. Não foi corrigido
+aqui (o expurgo manual resolveu este caso, e um rollback automático é desenho, não conserto):
+fica declarado como a fronteira por onde um órfão nasce.

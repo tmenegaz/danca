@@ -309,7 +309,8 @@ MODELO_DIR="$RAIZ/$MODELO_BASE/ciclos"
 # o dono do produto criou a escola `valsa` para o professor `tiago-menegaz`, que já tinha a
 # `fita` no ciclo 01, e o `criar-escola.yml` morreu no primeiro passo com
 # «já existe: …/ciclo-01.conf» — antes de criar o pacote, antes do deploy e antes do commit.
-# O Worker `valsa` ficou no ar a servir a página de «implantação em andamento».
+# O Worker `valsa` ficou no ar a servir a página de «implantação em andamento» até ser
+# eliminado no mesmo dia, quando esta guarda foi corrigida — o que ele ensinou, fica.
 #
 # O que continua a ser colisão (e aborta): a VARIANTE da escola, o PACOTE da escola e o
 # WRANGLER da escola. O que se REAPROVEITA: a base e os schemas do ciclo — copiados do molde
