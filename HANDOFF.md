@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-17T08:32:07-0300`
-Commit atual: `0d98d28` — fix(estrutura): a pasta do professor não se deriva do nome — o slug passa a ser declarado
+Gerado em: `2026-10-17T13:02:59-0300`
+Commit atual: `e29d3ab` — docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela abriu
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+e29d3ab docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela abriu
+2a587e5 fix(ciclo-01): a Fita escurece, e a Valse ganha o botão que faltava
+59fe575 fix(tools): a escola criada do zero nascia sem o botão da aparência
 0d98d28 fix(estrutura): a pasta do professor não se deriva do nome — o slug passa a ser declarado
 00a895f feat(estrutura): criar a escola valse (motor completo)
 9c00401 fix(estrutura): a segunda escola do mesmo professor não nascia — a base do ciclo não é da escola
@@ -79,9 +82,6 @@ efa5a9c chore(estrutura): reancorar a cadeia das fontes alteradas
 37cf48d feat(plano): o plano elicitado vira a fonte do ciclo
 185484c fix(tools): o aviso de seção fora do mapa volta a funcionar — nasceu morto
 26c0d08 feat(po): o critério de extensão vira obrigatório no plano
-81712aa fix(tools): a sequência de exercícios ganha destino no plano-XX.json
-0732afb feat(po): a sequência de exercícios é derivada, obrigatória e impressa
-e937c21 feat(estrutura): o plano da estante abre o plano, não o envelope cru
 ```
 
 ## Por professor
@@ -147,90 +147,65 @@ e937c21 feat(estrutura): o plano da estante abre o plano, não o envelope cru
 
 ## Última entrada do REGISTRO
 
-## 17/10/2026 — A escola nasceu sem o botão da aparência: a barra tinha uma terceira cópia
+## 17/10/2026 — A lista de turmas deixa de ficar acavalada no celular
 
-**O que motivou.** A escola `valse` foi criada do zero em 17/10/2026, pelo `criar-escola.sh`, e
-nasceu com a folha nova, os papéis, o `data-layout` — e **nenhum jeito de escurecer**. A auditoria
-do `DIAGNOSTICO-IDENTIDADE.md` foi feita contra o código e passou em verde: o `.tema` existe no
-CSS, os 31 pares estão medidos, o `localStorage` funciona. O que faltava não era o componente: era
-o **emissor** do markup.
+**O que motivou.** Medido pelo dono do produto na vista de Produção: a listagem de turmas
+«acavalada» no telefone. A medida confirmou — numa tela de 320px o **nome da turma** ficava com
+**116px** de largura e **130px** de altura (o nome, o detalhe e dois selos empilhados em seis
+linhas), enquanto os dois botões, que não encolhem, ocupavam **126px fixos** ao lado: os botões
+eram mais largos que o texto.
 
-**O que foi medido.**
+**O que foi medido, e o que estava por baixo.**
 
-- `valse/index.html` e `valse/plano-observacao/index.html`: **0** ocorrências de `class="tema"`.
-  `fita/index.html`: 1.
-- `fita/plano-observacao/index.html`: **44 usos de primitivo, 2 de papel**. Como a variante
-  noturna remapeia **só os papéis**, aquela página ficava clara no meio do escuro. A barra dela
-  ainda dizia «Nós, Por Exemplo» — nome retirado da página de entrada em 16/10/2026.
-- `experimentos/provar-tema.js` coletava as páginas geradas com
-  `if (html.includes('class="tema"'))` — uma página **sem** o botão não era provada. A asserção
-  era vácua exatamente no caso que devia pegar.
-- `check-identidade.js` (Circuito) comparava `assets/style.css` e `assets/nav.js`; a **porta** de
-  cada pacote não era comparada nem varrida.
+- `.acoes` é `flex: 0 0 auto` e os botões são `white-space: nowrap` — nenhum dos dois cede. O
+  nome, com `flex: 1 1 auto`, absorvia toda a compressão.
+- **A primeira correção não pegou**, e só a medida mostrou: `.lista li .nome` (especificidade
+  0,0,3) vencia `.linha-turma .nome` (0,0,2), e o `flex: 1 1 14rem` era ignorado — o `flexBasis`
+  medido continuava `auto`. O seletor **descendente** vazava para dentro da turma, onde o mesmo
+  `.nome` é **outro papel**: nas linhas simples ele encolhe até o reticências; na turma ele
+  precisa de largura para não quebrar. Virou `.lista > li > .nome`.
+- **O corte de celular do painel era 760, e o do menu é 768.** Entre 761 e 768 o menu do topo já
+  estava no hamburger e o painel ainda tinha duas colunas: navegação em dobro, 535px para o
+  conteúdo.
+- O **menu de secções** tinha 248px de altura em coluna e empurrava a lista para fora da primeira
+  tela.
 
 **O que foi decidido.**
 
-- **A barra tem um dono só, e agora é verdade.** O `gerar-ciclo.sh` e o `bastidores.js` já
-  consumiam `tools/templates/nav-html.js`; o `criar-escola.sh` mantinha a sua própria cópia do
-  esqueleto (`gerar_nav_zero`). Ela passou a emitir `--abertura` e `--fechamento` do mesmo
-  arquivo, ficando com a LISTA de itens — que é construção, e é do ciclo zero.
-- **A porta entra no Circuito.** O corpo de `plano-observacao/index.html` tem de ser o de
-  `porta/index.html`, byte a byte, com a barra neutralizada — a única diferença legítima é ela,
-  injetada no marcador `<!-- NAV -->`. E a barra tem de trazer o botão.
-- **A prova do tema não pula mais página.** Coleta todas as páginas geradas e exige o botão em
-  cada uma. 29 → 30 asserções.
-- **A porta da Fita foi refeita a partir de `porta/`**, e a barra dela renomeada para «Sistema
-  Lastro». A barra da Fita continua mais velha que o gerador (o ciclo tem `DOCS="plano"`, e o
-  `gerar_nav` de hoje emitiria um grupo «Ciclos» que o pacote não tem) — isso depende da
-  regeneração completa, bloqueada pela lacuna declarada de `DATA_INICIO`.
+- **A linha da turma não divide espaço quando não há espaço.** `flex-wrap` no `.linha-turma` e
+  `flex-basis: 14rem` no nome: quem decide é a largura disponível, **não um breakpoint novo**. Os
+  botões descem inteiros, e o nome fica com a linha.
+- **O seletor e o botão que o lê são um grupo** (`par-associar`): antes o botão «Associar» caía
+  sozinho numa linha, encostado à esquerda, longe do controle que ele usa.
+- **Um número por conceito:** o celular é **768** em todas as folhas.
+- **O menu de secções vira faixa** no celular — os `<h2>` continuam no documento.
+- **A escala de tela passa a estar escrita:** quatro cortes (1200, 1140, 1024, 768), cada um com o
+  motivo declarado. Está no `IDENTIDADE-VISUAL.md`, junto da escala de espaço e de raio.
 
 **Onde entrou.**
 
-- `tools/criar-escola.sh` — `gerar_nav_zero` consome `nav-html.js`.
-- `tools/check-identidade.js` — checagem 6 (a porta de cada pacote).
-- `experimentos/provar-tema.js` — a coleta deixa de filtrar pelo que se quer provar.
-- `professores/tiago-menegaz/ciclos/ciclo-01-valse/{index.html,plano-observacao/index.html}` —
-  barra com o botão (o índice pelo `--somente-indice`, a porta por cópia de `porta/` + nav).
-- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/` — corpo de `porta/`.
-- `IDENTIDADE-VISUAL.md` — a checagem 6 descrita; «cinco» → «seis».
-- `DIAGNOSTICO-IDENTIDADE.md` e `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 4 e o que ela achou.
+- `motor/servidor/bastidores.js` — `.linha-turma`, `.assoc`, `par-associar`, `.lista > li > .nome`,
+  o corte 768 e a faixa do `.lateral`.
+- `experimentos/provar-celular.js` — **novo**: 9 provas de geometria em 320–1024px, com o `<style>`
+  extraído do próprio `bastidores.js` (sem cópia).
+- `IDENTIDADE-VISUAL.md` — «A escala — três medidas, e o estado real de cada uma» e «A escala de
+  tela».
+- `README.md` e `experimentos/README.md` — o atalho e o que é prova ali dentro.
+- `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 5.
 
-**Motivo declarado — os congelados.** `tools/criar-escola.sh` e `tools/check-identidade.js` estão
-em `CONGELAMENTO.md`. Nos dois a mudança é de **forma** e **fecha uma porta que ficou aberta** na
-Fase 2. **O que não muda**: o que o `criar-escola.sh` cria (pastas, manifestos, schemas, config do
-Worker, os itens e a ordem do menu), a fórmula e a cobertura do `hash-ciclo.sh`, a âncora `.fipp`,
-as 17 regras e as 22 pétreas. Nenhum documento de ciclo foi tocado; nenhum `.fipp` foi reancorado
-(`ef5ee269`).
-
-**Conferido.** `check-identidade.js` → 6 checagens ok, incluindo a nova.
-`provar-tema.js` → 30/30. `ficha-html-cli --autoteste` → 42/42. `provar-producao.js` → 109/109.
-`provar-derivacao-da-turma.js` → 123/123. `check-apresentacao.js` → 3 páginas.
-`hash-ciclo.sh tiago-menegaz 01 fita --check` → íntegro.
+**Conferido.** `provar-celular.js` → 9/9. **Controle negativo** (CSS antigo em stash) → **4 das 8**
+provas falham, que são exatamente os quatro defeitos. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `provar-tema.js` → 30/30. `check-identidade.js` → 8
+verificações. `ficha-html-cli --autoteste` → 42/42.
 
 **O que ainda não está feito.**
 
-- **A barra da Fita** continua a de antes do grupo «Ciclos»; a regeneração espera `DATA_INICIO`.
-- **A conferência visual no navegador** (item 3.4) continua pendente — agora com uma escola a mais
-  para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
-- **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
-- **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.
+- **A escala de espaço (F14) continua sem adoção**: `--esp-*` tem 14 usos, todos na fonte.
+- **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
+  entra e sai.
+- **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.
 
 ## O que está pendente
-
-## 16/10/2026 — A curadoria é de UMA turma — e o id passa a dizê-lo
-
-
-- **Nada impede duas curadorias do mesmo par com turmas diferentes de partilharem alunas por
-  engano na TURMA** — a regra é por modalidade, não por horário. Duas turmas da mesma modalidade
-  no mesmo horário continuam a ser um conflito que o sistema não vê.
-- **A curadoria vinculada continua a não marcar o plano a jusante**, como a turma.
-
-> **Correcção na mesma data (16/10/2026), antes do commit.** Duas coisas apanhadas ao rever:
-> (a) a frase do README dizia que «o par professor × modalidade não se edita em nenhum dos
-> modos» — passou a ser o **trio**, com a turma; (b) **mudar a turma** numa curadoria livre
-> deixava o id antigo por cima, e o registo novo nasceria ao lado: o id só muda **quando a turma
-> muda**, e o cliente passou a enviar `idAntigo` para o servidor saber de onde se partiu. A
-> prova cobre-o (`…e NÃO sobra um órfão no id antigo`).
 
 ## 16/10/2026 — A camada de componentes: o desenho deixa de ser reescrito por página
 
@@ -289,6 +264,14 @@ as 17 regras e as 22 pétreas. Nenhum documento de ciclo foi tocado; nenhum `.fi
   para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
 - **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
 - **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.
+
+## 17/10/2026 — A lista de turmas deixa de ficar acavalada no celular
+
+
+- **A escala de espaço (F14) continua sem adoção**: `--esp-*` tem 14 usos, todos na fonte.
+- **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
+  entra e sai.
+- **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.
 
 ## Pendências anteriores (índice)
 
@@ -461,6 +444,7 @@ as 17 regras e as 22 pétreas. Nenhum documento de ciclo foi tocado; nenhum `.fi
 - **16/10/2026** — A turma deriva: o «editar» passa a ser um elo novo, com… → `REGISTRO.md` L14553
 - **16/10/2026** — A curadoria é de UMA turma (e edita-se ou deriva-se como a… → `REGISTRO.md` L14690
 - **16/10/2026** — A identidade visual fecha o circuito: raiz, porta,… → `REGISTRO.md` L14759
+- **16/10/2026** — A curadoria é de UMA turma — e o id passa a dizê-lo → `REGISTRO.md` L14852
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

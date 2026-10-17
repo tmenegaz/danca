@@ -91,6 +91,7 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 | Instalar os hooks de versionamento | `tools/instalar-hooks.sh` |
 | Validar a identidade visual e o tema | `node tools/check-identidade.js` |
 | Provar o comportamento do tema (clara/noturna) | `node experimentos/provar-tema.js` |
+| Provar a tela de celular (320–1024px) | `node experimentos/provar-celular.js` |
 
 ## A identidade visual
 

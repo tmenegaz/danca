@@ -81,6 +81,26 @@ Os diretórios de experimento são **ignorados pelo Git**; o `README.md` de cada
 existe para quem lê o diretório no disco, não para o histórico. O que vale vira
 produção, com commit próprio — e é aí que entra no Git.
 
+## Provas que moram aqui e valem como prova
+
+Nem tudo nesta pasta é rascunho. Três arquivos são **provas** — rodam, medem e reprovam:
+
+| Prova | O que mede | Precisa de navegador |
+|:--|:--|:--|
+| `provar-producao.js` | o comportamento da vista de Produção (109 casos) | não |
+| `provar-derivacao-da-turma.js` | a cadeia de derivação da turma (123 casos) | não |
+| `provar-tema.js` | a aparência clara/noturna: aplicação, persistência, botão alcançável | não (DOM de mentira) |
+| `provar-celular.js` | a **geometria** em 320–1024px: nada transborda, o nome da turma não é espremido, o menu de secções vira faixa | **sim** (Chrome) |
+
+A `provar-celular.js` é de 17/10/2026 e nasceu de um defeito medido: a lista de turmas do
+Produção ficava acavalada no celular — o nome com 116px e os dois botões com 126px fixos. É
+geometria, e geometria não aparece num teste de DOM: só o navegador a vê. Ela extrai o `<style>`
+do próprio `bastidores.js` (sem cópia) e monta a página de prova com as formas de linha reais.
+
+Sem Chrome, ela **declara a conferência NÃO FEITA** e sai com código 1 — nunca um «passou»
+silencioso. Por isso **não** está no `pre-commit`: um commit não pode depender de haver navegador
+na máquina de quem commita.
+
 ## Quando um experimento vira produção
 
 1. **Documento de ciclo** (aula, caderno, relatório…): entra nos diretórios do

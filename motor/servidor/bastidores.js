@@ -1005,8 +1005,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
           (chips || '<span class="dono">(nenhum)</span>') +
-          ' <select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
-          ' <button class="associar acao pequena" data-turma="' + esc(t.id) + '">Associar</button></div>' +
+          // O seletor e o botão que o USA ficam no MESMO grupo: sozinhos, o botão caía
+          // numa linha só dele, encostado à esquerda e longe do seletor que ele lê.
+          '<span class="par-associar"><select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
+          '<button class="associar acao pequena" data-turma="' + esc(t.id) + '">Associar</button></span></div>' +
           historico +
           '</li>';
       }).join('')
@@ -1165,10 +1167,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.col-lista .rolagem{overflow-y:auto;min-height:0;flex:1 1 auto;}' +
     '.lista{list-style:none;margin:0;padding:0;}' +
     '.lista li{display:flex;align-items:center;gap:.5rem;padding:.35rem .1rem;margin:0;border-bottom:1px dotted var(--borda-campo);color:var(--texto);}' +
-    '.lista li .nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}' +
+    // O NOME DAS LINHAS SIMPLES, e só delas: `> li > .nome`. Era `.lista li .nome`, um
+    // seletor descendente que VAZAVA para dentro da turma (`li.turma > .linha-turma >
+    // .nome`) — e ali `flex:1 1 auto` vencia o `flex:1 1 14rem` da linha da turma por
+    // especificidade (0,0,3 contra 0,0,2), sem aviso. O mesmo `.nome` era, ao mesmo
+    // tempo, o nome que encolhe até o reticências e o nome que precisa de largura para
+    // não quebrar em quatro linhas. São dois papéis, e agora são duas regras.
+    '.lista > li > .nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}' +
     // O «→ origem» da turma não encolhe: ele diz de onde a régua veio, e não é o nome
     // que se pode truncar. A medida mora aqui, não no atributo `style` do HTML.
-    '.lista li .nome.fixo{flex:0 0 auto;font-size:.85rem;}' +
+    '.lista > li > .nome.fixo{flex:0 0 auto;font-size:.85rem;}' +
     '.lista li .acoes{flex:0 0 auto;display:flex;align-items:center;gap:.35rem;}' +
     '.lista li.vazia{color:var(--texto-suave);font-size:.9rem;}' +
     '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;padding:.5rem 0 .1rem;font-size:.85rem;color:var(--texto-suave);}' +
@@ -1180,9 +1188,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.sub{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
     'form .nota{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
     'li.turma{display:block;margin-bottom:.6rem;}' +
-    '.linha-turma{display:flex;align-items:center;gap:.5rem;}' +
-    '.linha-turma .nome{flex:1 1 auto;min-width:0;}' +
-    '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:var(--texto-suave);}' +
+    '.linha-turma{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}' +
+    // O NOME NUNCA DISPUTA ESPAÇO COM OS BOTÕES. Era `flex:1 1 auto`: numa tela de
+    // 360px o nome ficava com 156px e os dois botões com 126px fixos — o nome quebrava
+    // em quatro linhas ao lado deles, e a turma parecia acavalada. Com `flex-basis` de
+    // 14rem o nome pede 224px; se a linha não couber 224 + 126 + o vão, `.acoes` desce
+    // inteira para a linha de baixo (o `flex-wrap`), em vez de espremer o texto.
+    // Não é um breakpoint novo: quem decide é o espaço que existe.
+    '.linha-turma .nome{flex:1 1 14rem;min-width:0;}' +
+    '.linha-turma .acoes{margin-left:auto;}' +
+    '.assoc{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .35rem;margin:.3rem 0 .1rem;font-size:.9rem;color:var(--texto-suave);}' +
+    // «Conteúdos:» ocupa a linha inteira; os chips, o seletor e o botão se arranjam
+    // abaixo. Antes tudo isto era `inline` e o `<select>` de 16rem caía onde coubesse:
+    // numa tela estreita o botão «Associar» saía sozinho, longe do seletor que ele usa.
+    '.assoc>.dono{flex:1 1 100%;}' +
+    // O seletor e o botão que o lê são UM grupo: `min-width:0` no grupo e no seletor deixa
+    // o seletor encolher, e o botão fica sempre ao lado dele — nunca sozinho na linha.
+    '.assoc .par-associar{display:flex;flex:1 1 100%;align-items:center;gap:.35rem;min-width:0;}' +
+    '.assoc .sel-termo{flex:1 1 auto;min-width:0;}' +
+    '.assoc .associar{flex:0 0 auto;}' +
     '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--fundo-faixa);border-radius:4px;font-size:.82rem;color:var(--texto);}' +
     // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
@@ -1235,8 +1259,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // até ficar ilegível); abaixo do segundo corte, tudo numa coluna. O primeiro corte era
     // 1080px, e entre 1081 e ~1140 as duas colunas ficavam apertadas demais para o
     // formulário de 34rem — o corte subiu para onde as duas cabem de facto.
+    // O CORTE DE CELULAR É **768**, o mesmo do `ciclo.css` que colapsa a barra no
+    // hamburger. Antes era 760: entre 761 e 768 o menu do topo já estava colapsado e o
+    // painel ainda tinha DUAS colunas — navegação em dobro e 535px para o conteúdo.
+    // Um número por conceito: 768 é «celular» em toda a folha.
+    //
+    // No celular o menu de secções deixa de ser uma coluna de 248px de altura (que
+    // empurrava a lista para fora da primeira tela) e vira uma FAIXA horizontal que
+    // quebra sozinha. Os `<h2>` continuam no documento — são eles que dão os grupos.
     '@media (max-width:1140px){.secao{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
-    '@media (max-width:760px){.corpo{grid-template-columns:1fr;padding:1.2rem 16px 2rem;}.lateral{position:static;border-right:none;padding-right:0;border-bottom:1px solid var(--borda-campo);padding-bottom:.6rem;}}' +
+    '@media (max-width:768px){' +
+      '.corpo{grid-template-columns:minmax(0,1fr);padding:1.2rem 14px 2rem;}' +
+      '.lateral{position:static;border-right:none;border-bottom:1px solid var(--borda-campo);' +
+        'padding:.1rem 0 .4rem;display:flex;flex-wrap:wrap;align-items:center;gap:.1rem .15rem;}' +
+      '.lateral h2{flex:0 0 auto;margin:0;padding:.35rem 0 .35rem .55rem;font-size:.68rem;}' +
+      '.lateral h2:first-child{padding-left:0;}' +
+      '.lateral a{padding:.3rem .45rem;}' +
+    '}' +
     '</style></head><body data-layout="painel" data-tela="bastidores">' +
     topnav(contexto, 'producao') +
     '<div class="corpo">' +

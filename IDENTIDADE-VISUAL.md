@@ -186,6 +186,46 @@ O botão `◐` fica na barra e, na raiz, ao lado das ações.
 tela de trabalho, com a largura toda e sem índice lateral. É um atributo no `<body>`, não uma rota —
 o mesmo HTML serve aos dois, e quem decide é o CSS.
 
+### A escala — três medidas, e o estado real de cada uma *(17/10/2026)*
+
+Um sistema de identidade tem **três** escalas, e só a primeira está declarada em token:
+
+| Escala | Tokens | Estado |
+|---|---|---|
+| **espaço** | `--esp-1: 4px` … `--esp-6: 32px` | ✅ declarada · ⚠️ **pouco usada**: 14 usos, todos dentro do `ciclo.css`; as superfícies ainda escrevem `padding: 1rem 1.1rem` |
+| **raio** | `--raio-1: 4px`, `--raio-2: 6px`, `--raio-3: 8px`, `--raio-pilula: 999px` | ⚠️ **parcial**: os componentes usam; os `<style>` de página ainda escrevem `4px`, `6px` e `8px` à mão |
+| **tela** (breakpoints) | não há token — CSS não permite `var()` em media query | ✅ **declarada e agora com um valor por conceito** |
+
+**A escala de tela.** Quatro cortes, cada um por um motivo — e nenhum deles é «tamanho de
+aparelho»:
+
+| Corte | O que muda | Por quê |
+|---:|---|---|
+| **1200px** | o documento ganha a coluna do índice à direita | é onde o texto de 900px **mais** o índice de 17rem cabem sem apertar a medida de leitura |
+| **1140px** | a vista de trabalho (`data-layout="painel"`) passa a uma coluna | é onde o formulário de 34rem e a lista de 24rem deixam de caber lado a lado |
+| **1024px** | a barra do topo encolhe a fonte e o espaçamento | é o tablet: a barra inteira ainda cabe numa linha |
+| **768px** | a barra colapsa no hamburger **e** o painel vira uma coluna | é o celular — **um** número, usado por todas as folhas |
+
+> **A regra do 768.** `768` significa «celular» em **todas** as folhas. Antes de 17/10/2026 o
+> painel cortava em **760**: entre 761 e 768 o menu do topo já estava no hamburger e o painel
+> ainda tinha duas colunas — navegação em dobro, e 535px para o conteúdo. Dois números para o
+> mesmo conceito é a mesma classe de defeito que o `--gold-borda` em dois fundos.
+
+**Abaixo do corte de celular**, cada vista decide o que fazer com a largura que tem:
+
+- o **menu de secções** do painel deixa de ser uma coluna (248px de altura) e vira uma **faixa**
+  que quebra sozinha (~80px);
+- a **linha de uma turma** não divide espaço entre o nome e os botões: se não couber
+  `14rem + botões`, os botões **descem** e o nome fica com a linha inteira. Quem decide é o
+  espaço que existe (`flex-wrap` + `flex-basis`), **não um breakpoint novo**;
+- o **seletor e o botão que o lê** andam juntos (`par-associar`), para o botão não ficar sozinho
+  numa linha, longe do controle que ele usa.
+
+A prova disto é medida, não lida: `node experimentos/provar-celular.js` abre a vista em 320, 360,
+390, 414, 768 e 1024px, num navegador de verdade, e reprova se algo transbordar, se o nome for
+espremido ou se o menu voltar a ocupar a primeira tela. Ela também mede as outras seis superfícies
+servidas, em 320/390/768, contra transbordo horizontal.
+
 ## Tipografia — duas pilhas, e a exceção é restrita
 
 | Token | Valor | Papel |

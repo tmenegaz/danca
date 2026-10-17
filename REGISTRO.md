@@ -15380,3 +15380,61 @@ as 17 regras e as 22 pétreas. Nenhum documento de ciclo foi tocado; nenhum `.fi
   para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
 - **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
 - **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.
+
+## 17/10/2026 — A lista de turmas deixa de ficar acavalada no celular
+
+**O que motivou.** Medido pelo dono do produto na vista de Produção: a listagem de turmas
+«acavalada» no telefone. A medida confirmou — numa tela de 320px o **nome da turma** ficava com
+**116px** de largura e **130px** de altura (o nome, o detalhe e dois selos empilhados em seis
+linhas), enquanto os dois botões, que não encolhem, ocupavam **126px fixos** ao lado: os botões
+eram mais largos que o texto.
+
+**O que foi medido, e o que estava por baixo.**
+
+- `.acoes` é `flex: 0 0 auto` e os botões são `white-space: nowrap` — nenhum dos dois cede. O
+  nome, com `flex: 1 1 auto`, absorvia toda a compressão.
+- **A primeira correção não pegou**, e só a medida mostrou: `.lista li .nome` (especificidade
+  0,0,3) vencia `.linha-turma .nome` (0,0,2), e o `flex: 1 1 14rem` era ignorado — o `flexBasis`
+  medido continuava `auto`. O seletor **descendente** vazava para dentro da turma, onde o mesmo
+  `.nome` é **outro papel**: nas linhas simples ele encolhe até o reticências; na turma ele
+  precisa de largura para não quebrar. Virou `.lista > li > .nome`.
+- **O corte de celular do painel era 760, e o do menu é 768.** Entre 761 e 768 o menu do topo já
+  estava no hamburger e o painel ainda tinha duas colunas: navegação em dobro, 535px para o
+  conteúdo.
+- O **menu de secções** tinha 248px de altura em coluna e empurrava a lista para fora da primeira
+  tela.
+
+**O que foi decidido.**
+
+- **A linha da turma não divide espaço quando não há espaço.** `flex-wrap` no `.linha-turma` e
+  `flex-basis: 14rem` no nome: quem decide é a largura disponível, **não um breakpoint novo**. Os
+  botões descem inteiros, e o nome fica com a linha.
+- **O seletor e o botão que o lê são um grupo** (`par-associar`): antes o botão «Associar» caía
+  sozinho numa linha, encostado à esquerda, longe do controle que ele usa.
+- **Um número por conceito:** o celular é **768** em todas as folhas.
+- **O menu de secções vira faixa** no celular — os `<h2>` continuam no documento.
+- **A escala de tela passa a estar escrita:** quatro cortes (1200, 1140, 1024, 768), cada um com o
+  motivo declarado. Está no `IDENTIDADE-VISUAL.md`, junto da escala de espaço e de raio.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `.linha-turma`, `.assoc`, `par-associar`, `.lista > li > .nome`,
+  o corte 768 e a faixa do `.lateral`.
+- `experimentos/provar-celular.js` — **novo**: 9 provas de geometria em 320–1024px, com o `<style>`
+  extraído do próprio `bastidores.js` (sem cópia).
+- `IDENTIDADE-VISUAL.md` — «A escala — três medidas, e o estado real de cada uma» e «A escala de
+  tela».
+- `README.md` e `experimentos/README.md` — o atalho e o que é prova ali dentro.
+- `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 5.
+
+**Conferido.** `provar-celular.js` → 9/9. **Controle negativo** (CSS antigo em stash) → **4 das 8**
+provas falham, que são exatamente os quatro defeitos. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `provar-tema.js` → 30/30. `check-identidade.js` → 8
+verificações. `ficha-html-cli --autoteste` → 42/42.
+
+**O que ainda não está feito.**
+
+- **A escala de espaço (F14) continua sem adoção**: `--esp-*` tem 14 usos, todos na fonte.
+- **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
+  entra e sai.
+- **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.

@@ -287,3 +287,65 @@ provada, em vez de reprovar. Passou a coletar todas e a exigir o botão em cada 
   CSS a consome. É marcador para regras futuras — está registrado aqui para não virar
   surpresa.
 - **A escala (F14) continua sem adoção.** `--esp-1..6` aparece 14 vezes, todas na fonte.
+
+---
+
+## Fase 5 — a tela de celular (17/10/2026)
+
+Objetivo: medir a **geometria**. O `check-identidade.js` mede cor; a `provar-tema.js`, o
+comportamento; nenhuma das duas vê largura. E um sistema que se lê no telefone — a
+professora abrindo a lista de turmas no meio da aula — precisa que a largura seja
+critério, não sobra.
+
+| # | Item | Estado |
+|---|---|---|
+| 5.1 | O nome da turma deixa de disputar espaço com os botões | `[x]` 17/10 — `flex-wrap` + `flex-basis: 14rem` |
+| 5.2 | O seletor de termo e o botão «Associar» andam juntos | `[x]` 17/10 — `par-associar` |
+| 5.3 | O corte de celular do painel é o mesmo do menu (768) | `[x]` 17/10 — era 760 |
+| 5.4 | O menu de secções vira faixa no celular | `[x]` 17/10 — 248px → ~80px de altura |
+| 5.5 | A escala de tela documentada, um valor por conceito | `[x]` 17/10 — `IDENTIDADE-VISUAL.md` |
+| 5.6 | Prova de geometria em seis larguras | `[x]` 17/10 — `provar-celular.js`, 9/9 |
+
+### O que a medida encontrou
+
+| Largura | Antes | Depois |
+|---:|---|---|
+| 320px | nome **116px** × 130px de altura, botões 126px fixos na mesma linha | nome **255px** (linha inteira), botões descem |
+| 360px | nome 156px × 130px | nome 295px |
+| 390px | nome 186px × 86px | nome **325px** × 58px |
+| 560px | nome 356px × 58px, botões na mesma linha | nome 360px, uma linha de texto |
+| celular | menu de secções **248px** de altura antes do conteúdo | **80px**, em faixa |
+| 761–768px | menu colapsado **e** painel de duas colunas | uma coluna |
+
+O defeito tinha **duas** causas, e a segunda só apareceu ao medir:
+
+1. `.acoes` é `flex: 0 0 auto` com botões `white-space: nowrap` — não encolhe. O nome, com
+   `flex: 1 1 auto`, absorvia toda a compressão.
+2. **A correção não pegava.** `.lista li .nome` (0,0,3) vencia `.linha-turma .nome` (0,0,2), e o
+   `flex: 1 1 14rem` era ignorado em silêncio — o `flexBasis` medido continuava `auto`. O
+   seletor descendente vazava para dentro da turma, onde o mesmo `.nome` é outro papel: ali ele
+   precisa de largura para não quebrar em quatro linhas, e nas linhas simples encolhe até o
+   reticências. Passou a `.lista > li > .nome`.
+
+### Como foi provado — e o controle negativo
+
+`provar-celular.js` extrai o `<style>` do próprio `motor/servidor/bastidores.js` (sem cópia) e
+monta a página de prova com as formas de linha reais. Mede em 320, 360, 390, 414, 768 e 1024px.
+
+**Controle negativo, feito com o CSS antigo em stash:** **4 das 8** provas falham — a altura do
+menu, a coluna única em 768, o nome espremido e o botão separado do seletor. Com a correção,
+9/9. Uma prova que passa nos dois estados não prova nada.
+
+### O que a Fase 5 **não** fecha
+
+- **A escala de espaço (F14) continua sem adoção.** `--esp-*` tem 14 usos, todos na fonte. Migrar
+  os `padding` das quatro superfícies é trabalho mecânico e sem risco, mas ainda não foi feito —
+  está aqui para não se perder.
+- **Não há prova de geometria para as larguras intermediárias** (1025–1199px, 1150–1200px). São
+  as faixas onde o índice lateral entra e sai; hoje o `provar-celular.js` mede 1024 e para.
+- **O `provar-celular.js` não está no `pre-commit`**, de propósito: um commit não pode depender de
+  haver navegador na máquina. Ele é atalho do README, não trava.
+| 17/10/2026 | 4.5 prova do tema | 29 → 30; sem filtro vazio |
+| 17/10/2026 | 5.1–5.2 linha da turma | `flex-wrap` + `14rem`; `par-associar`; `.lista > li > .nome` |
+| 17/10/2026 | 5.3–5.4 celular | corte 760 → 768; menu de secções em faixa (248 → 80px) |
+| 17/10/2026 | 5.5–5.6 doc e prova | escala de tela no `IDENTIDADE-VISUAL.md`; `provar-celular.js` 9/9 |
