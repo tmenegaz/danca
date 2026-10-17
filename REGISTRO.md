@@ -14430,3 +14430,65 @@ das vistas e do guia).
 - **Os planos JÁ GRAVADOS** (`plano-20261016-1618`) não têm o critério de extensão respondido: a
   próxima edição os levará a respondê-lo. Não se reescreve o passado — o nó passa a exigi-lo na
   frente.
+
+## 16/10/2026 — O ciclo passa a ser DA TURMA (fase 1: a identidade da fonte)
+
+**O que motivou.** Medido na conferência do plano de ensino da `fita`, com duas turmas cadastradas
+(«Teste» e «Teste 2»): `caminhoDoPlano()` compunha o caminho com `professor`+`ciclo`+`escola` — e
+**não com a turma**. O resultado, provado chamando a função com os dois contextos:
+
+```
+plano da turma «Teste»   → professores/tiago-menegaz/ciclos/ciclo-01-fita-plano.md
+plano da turma «Teste 2» → professores/tiago-menegaz/ciclos/ciclo-01-fita-plano.md
+>>> MESMO ARQUIVO: o segundo SOBRESCREVE o primeiro <<<
+```
+
+O envelope de cada plano sobrevive no KV (a estante mostra os dois), mas a FONTE, o `plano-01.json`
+do pacote, o documento publicado e a cobertura da âncora passavam a ser de um só. A decisão do dono
+foi **o ciclo é da turma**: «o plano de ensino é o plano de ensino daquela turma… a observação
+depois pertence àquela turma também. É por turma e não pela escola.»
+
+**O que foi decidido.**
+
+- **A variante da fonte passa a ser `<escola>-<turma>`** — e a ausência da turma **não é erro**: é o
+  modelo anterior, e é o que mantém os envelopes já gravados a escrever onde sempre escreveram. Os
+  dois modelos convivem, e a migração é uma fase à parte.
+- **A definição é UMA só** (`varianteDoContexto`, em `escrever-po.js`), e os três escritores
+  (`-plano.md`, `-po.md`, as fontes do ciclo) a usam — antes cada um compunha o caminho por si, com
+  a mesma regra copiada em três sítios.
+- **O `contexto` do envelope ganha a `turma`**, e o contrato sobe de **1.2.0 para 1.3.0**: aditivo,
+  como as duas subidas anteriores — quem lê um envelope sem ela trata a ausência como o modelo
+  antigo. A chave não entra em silêncio (o padrão da casa, citado no `PLANEJAMENTO-LASTRO.md`).
+- **O cliente envia a turma** (`turmaDoAto`): no plano, do select do cabeçalho; no PO, da leitura
+  que vem do plano referenciado — as duas são a mesma escolha, e a segunda não se digita.
+
+**Onde entrou.**
+
+- `porta/envelope/elicitacao-schema.json` — a propriedade `turma` no `contexto`.
+- `motor/nucleo/elicitar.js` — `CAMPOS_DE_CONTEXTO` + `VERSAO_DO_ENVELOPE = '1.3.0'`, com o motivo.
+- `porta/index.html` — `turmaDoAto()` e a `turma` no `contextoDaBarra()`.
+- `motor/servidor/escrever-po.js` — `varianteDoContexto` (a definição única) + `caminhoDoPO`.
+- `motor/servidor/escrever-plano.js` — `caminhoDoPlano` + `caminhoDoConf`.
+- `motor/servidor/escrever-ciclo.js` — `caminhoDaFonte`.
+- `PLANEJAMENTO-LASTRO.md` — as quatro referências à versão do envelope.
+- `REGISTRO.md` — esta entrada.
+
+**Conferido.** Os caminhos, com e sem turma (`fita-teste` / `fita-teste-2` distintos; `fita`
+inalterado — a retrocompatibilidade); o envelope 1.3.0 com e sem `turma`, validando contra o
+schema nas duas formas; os seis módulos do servidor a carregar; a sintaxe dos três scripts.
+
+**O que ainda não está feito — e é o que trava a geração da variante.**
+
+- **O `.conf` da variante da turma não existe** (`ciclo-01-fita-teste.conf`). `atualizarDocsDoConf`
+  devolve 404 (best-effort: a fonte é escrita, o `DOCS` não é ligado), e a geração de
+  `fita-teste` recusa com «manifesto da variante não encontrado». Compor esse `.conf` a partir do
+  plano é a fase seguinte — e **esbarra numa lacuna de dado**: as **horas** de cada aula são
+  obrigatórias para o calendário (`calendario.py`, desde 25/09/2026: «o prazo de lançamento conta
+  do fim da aula») e **não existem no cadastro da turma** (a Produção guarda os DIAS, não os
+  horários). Enquanto essa decisão não for tomada, o `.conf` da turma não se compõe sem inventar.
+- **As fases 2 a 5** seguem por fazer: o calendário sair do plano (e não do `.conf`), o `.conf` sem
+  o ritmo (Pré-requisito 5 a encolher, com motivo declarado), o Worker a servir N pacotes, e a
+  migração dos ficheiros vivos (`ciclo-01-fita*` → `ciclo-01-fita-teste*`).
+- **A incoerência transitória, declarada:** até a migração, o ciclo `fita` conserva a fonte do
+  plano que já tinha, e os planos NOVOS passam a escrever na variante da turma. Os dois convivem
+  de propósito — nada se renomeia enquanto as fases 1–4 não estiverem verificadas.

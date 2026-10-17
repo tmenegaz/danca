@@ -1554,12 +1554,39 @@ function apontarContextoFaltando(faltam) {
   }
 }
 
+/*
+ * A TURMA DO ATO — a que nomeia a variante da fonte (16/10/2026).
+ *
+ * O ciclo passou a ser DA TURMA: o plano de ensino é de uma turma, e a observação é
+ * daquela turma. É a turma que compõe o `<escola>-<turma>` do caminho da fonte, e é por
+ * isso que ela passou a entrar no CONTEXTO do envelope — antes era só a resposta do nó
+ * `contexto-turma`, e sem ela no contexto dois planos de duas turmas da MESMA escola
+ * escreviam no mesmo arquivo (o segundo apagava o primeiro).
+ *
+ * No PLANO ela está no select do cabeçalho; no PO, na leitura que vem do plano
+ * referenciado — as duas são a mesma escolha, e a segunda não se digita.
+ */
+function turmaDoAto() {
+  if (FONTE === 'plano') {
+    const sel = $('ctx-turma');
+    const doSelect = (sel && sel.value ? String(sel.value) : '').trim();
+    if (doSelect) return doSelect;
+  }
+  return turmaDoPlanoReferenciado() || '';
+}
+
 function contextoDaBarra() {
   const contexto = {};
   for (const campo of CAMPOS_DO_CONTEXTO) {
     const valor = (($('ctx-' + campo) || {}).value || '').trim();
     if (valor !== '') contexto[campo] = valor;
   }
+  // A TURMA entra no CONTEXTO — e não só nas respostas (16/10/2026). O ciclo passou a
+  // ser DA TURMA: é ela que compõe o `<escola>-<turma>` do caminho da fonte. Sem ela
+  // aqui, dois planos de duas turmas da MESMA escola escreviam no mesmo arquivo, e o
+  // segundo apagava o primeiro.
+  const turma = turmaDoAto();
+  if (turma !== '') contexto.turma = turma;
   const faltando = contextoFaltando();
   if (faltando.length) {
     apontarContextoFaltando(faltando);

@@ -18,7 +18,7 @@
  * Standard). O token chega por parâmetro (injeção).
  */
 
-const { escreverPO, ACEITE, API_VERSAO } = require('./escrever-po.js');
+const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto } = require('./escrever-po.js');
 const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escrever-plano.js');
 const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 const { respostaDo } = require('../nucleo/derivar-po.js');
@@ -36,14 +36,16 @@ const {
 } = require('../nucleo/derivar-ciclo.js');
 
 // O caminho de uma fonte derivada, a partir do contexto — a MESMA regra dos `-po.md`/`-plano.md`.
+// A variante é o `<escola>-<turma>` desde 16/10/2026 (o ciclo passou a ser DA TURMA): a
+// definição é UMA só, em `escrever-po.js`, e é ela que os três escritores usam.
 function caminhoDaFonte(contexto, sufixo) {
   const professor = String(contexto.professor || '').trim();
   const ciclo = String(contexto.ciclo || '').trim().padStart(2, '0');
-  const escola = String(contexto.escola || '').trim();
-  if (!professor || !ciclo || !escola) {
+  const variante = varianteDoContexto(contexto);
+  if (!professor || !ciclo || !variante) {
     throw new Error('contexto incompleto para a fonte do ciclo: precisa de professor, ciclo e escola');
   }
-  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + escola + sufixo;
+  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante + sufixo;
 }
 
 /** O caminho do schema de captura — POR PROFESSOR/CICLO, com um `porVariante` por escola. */

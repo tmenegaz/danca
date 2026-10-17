@@ -13,7 +13,7 @@
  * intacta).
  */
 
-const { escreverPO, ACEITE, API_VERSAO } = require('./escrever-po.js');
+const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto } = require('./escrever-po.js');
 const { derivarPlano } = require('../nucleo/derivar-plano-ciclo.js');
 
 // Base64 em UTF-8 SEM `Buffer` (ausente no Workers runtime): o par de ponte
@@ -35,16 +35,21 @@ function decodificarBase64(b64) {
  * (`caminhoDoPO`), trocando o sufixo por `-plano.md`. O `professor` é o SLUG da
  * pasta; sem escola/professor/ciclo, o caminho não pode ser composto e o
  * escritor devolve erro — nunca grava num lugar adivinhado.
+ *
+ * A VARIANTE é o `<escola>-<turma>` desde 16/10/2026 (ver `varianteDoContexto`): o plano
+ * é de UMA turma, e sem a turma no nome dois planos de duas turmas da mesma escola
+ * escreviam no MESMO arquivo — o segundo apagava o primeiro. Sem a turma no contexto, a
+ * variante volta a ser a escola, como antes.
  */
 function caminhoDoPlano(contexto) {
   const ctx = contexto || {};
   const professor = String(ctx.professor || '').trim();
   const ciclo = String(ctx.ciclo || '').trim().padStart(2, '0');
-  const escola = String(ctx.escola || '').trim();
-  if (!professor || !ciclo || !escola) {
+  const variante = varianteDoContexto(ctx);
+  if (!professor || !ciclo || !variante) {
     throw new Error('contexto incompleto para a fonte do plano: precisa de professor, ciclo e escola');
   }
-  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + escola + '-plano.md';
+  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante + '-plano.md';
 }
 
 /** O caminho do manifesto da variante — o `.conf` que o gerador lê. */
@@ -52,8 +57,8 @@ function caminhoDoConf(contexto) {
   const ctx = contexto || {};
   const professor = String(ctx.professor || '').trim();
   const ciclo = String(ctx.ciclo || '').trim().padStart(2, '0');
-  const escola = String(ctx.escola || '').trim();
-  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + escola + '.conf';
+  const variante = varianteDoContexto(ctx);
+  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante + '.conf';
 }
 
 /**

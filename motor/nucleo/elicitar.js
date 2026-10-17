@@ -82,15 +82,25 @@ const CONTRATO_NO_ENVELOPE = 'envelope/elicitacao-schema.json';
  * `ajustado_em`) é aditivo — o envelope de uma anamnese ajustada aponta para a
  * anterior, e quem não conhece as chaves continua a ler o resto. A chave nova
  * não entra em silêncio (`envelope/README.md` §3).
+ *
+ * De 1.2.0 para 1.3.0 (16/10/2026): o `contexto` ganha `turma`. Também ADITIVO —
+ * um envelope sem ela continua a ler-se, e a ausência significa o modelo antigo
+ * (a variante da fonte é a escola). O motivo é o de baixo: o ciclo passou a ser
+ * DA TURMA, e sem a turma no contexto dois planos da mesma escola escreviam no
+ * MESMO arquivo.
  */
-const VERSAO_DO_ENVELOPE = '1.2.0';
+const VERSAO_DO_ENVELOPE = '1.3.0';
 
 /**
- * Os quatro campos do bloco `contexto` — a única parte do envelope que diz DE
- * QUEM se está a falar. As respostas continuam clínicas; o apelido (nunca o
- * nome completo) vive aqui, e é regido pelo `apelidoObrigatorio` do conteúdo.
+ * Os campos do bloco `contexto` — a única parte do envelope que diz DE QUEM se
+ * está a falar. As respostas continuam clínicas; o apelido (nunca o nome
+ * completo) vive aqui, e é regido pelo `apelidoObrigatorio` do conteúdo.
+ *
+ * `turma` (16/10/2026) é o identificador da turma do ato. Ela é a resposta do nó
+ * `contexto-turma` do plano E a identidade da variante da fonte: é daqui que
+ * sai o `<escola>-<turma>` dos caminhos de escrita.
  */
-const CAMPOS_DE_CONTEXTO = ['escola', 'professor', 'ciclo', 'aluna'];
+const CAMPOS_DE_CONTEXTO = ['escola', 'professor', 'ciclo', 'aluna', 'turma'];
 /** Declarado em claro, não adivinhado pela extensão — como na âncora `.fipp`. */
 const DIGEST_ALGORITMO = 'sha256';
 

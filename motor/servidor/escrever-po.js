@@ -34,15 +34,39 @@ function base64De(texto) {
  * pasta (é o que a barra do formulário pré-preenche); se a escola/professor vierem em branco,
  * o caminho não pode ser composto e o escritor devolve erro — nunca grava num lugar adivinhado.
  */
+/**
+ * A VARIANTE da fonte — `<escola>` (o modelo anterior) ou `<escola>-<turma>` (16/10/2026).
+ *
+ * O ciclo passou a ser DA TURMA: o plano de ensino é de uma turma, e a observação é
+ * daquela turma. A variante é a IDENTIDADE da fonte, e é ela que compõe o nome de tudo —
+ * o `.conf`, o `-plano.md`, o `-po.md`, a pasta do pacote e a âncora `.fipp`.
+ *
+ * SEM a turma, a variante é só a escola: é o modelo anterior, e é o que mantém os
+ * envelopes já gravados a escrever onde sempre escreveram. **A ausência da turma não é
+ * erro** — é o modelo antigo, e os dois convivem.
+ */
+function varianteDoContexto(contexto) {
+  const ctx = contexto || {};
+  const escola = String(ctx.escola || '').trim();
+  const turma = String(ctx.turma || '').trim();
+  if (!turma) return escola;
+  // O `id` da turma já é um slug (`teste-2`, `bale-nivel-1`); re-escagar é a defesa
+  // contra um id que chegue de fora com o que não pode entrar num nome de ficheiro.
+  const sufixo = turma.normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  if (!sufixo) return escola;
+  return escola + '-' + sufixo;
+}
+
 function caminhoDoPO(contexto) {
   const ctx = contexto || {};
   const professor = String(ctx.professor || '').trim();
   const ciclo = String(ctx.ciclo || '').trim().padStart(2, '0');
-  const escola = String(ctx.escola || '').trim();
-  if (!professor || !ciclo || !escola) {
+  const variante = varianteDoContexto(ctx);
+  if (!professor || !ciclo || !variante) {
     throw new Error('contexto incompleto para a fonte do PO: precisa de professor, ciclo e escola');
   }
-  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + escola + '-po.md';
+  return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante + '-po.md';
 }
 
 /**
@@ -112,4 +136,4 @@ function criarEscritorDePO({ token, dono, repo, ref, derivarPO }) {
   };
 }
 
-module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, ACEITE, API_VERSAO };
+module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, varianteDoContexto, ACEITE, API_VERSAO };
