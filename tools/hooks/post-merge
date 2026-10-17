@@ -35,6 +35,14 @@ for (const arq of fs.readdirSync(path.join(raiz, "escola"))) {
   const slug = d && d.escola;
   const expurgado = d && Array.isArray(d.expurgo) && d.expurgo.length > 0;
   if (!slug || !expurgado) continue;
+  // RECRIADA DEPOIS DO EXPURGO = VIVA (17/10/2026). O elo do expurgo fica no índice para
+  // sempre, e o índice é o MESMO arquivo quando a escola é recriada com o mesmo nome. Sem
+  // esta guarda, a primeira sincronização depois de uma recriação apagava a escola nova: em
+  // 17/10/2026 a `valsa` — expurgada, recriada, e limpa pelo `git pull` seguinte. A regra
+  // mora em `escola/expurgar.js` (`foiRecriada`), e é a MESMA que decide — uma cópia aqui
+  // divergiria dela, e a que apaga é a que importa.
+  const recriada = require(path.join(raiz, "escola", "expurgar.js")).foiRecriada(d);
+  if (recriada) continue;
   const prof = (d.professor && d.professor.slug) || "";
   const ciclo = d.ciclo || "";
   const worker = d.worker || slug;

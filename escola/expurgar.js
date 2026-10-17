@@ -100,6 +100,36 @@ function ehManifestoBaseDoCiclo(nome, ciclo) {
   return nome === 'ciclo-' + String(ciclo).padStart(2, '0') + '.conf';
 }
 
+/**
+ * A ESCOLA FOI RECRIADA DEPOIS DO ÚLTIMO EXPURGO? (17/10/2026)
+ *
+ * O expurgo deixa um elo (`expurgo[]`) e o índice SOBREVIVE — é ele que guarda a memória de
+ * que a escola existiu. Mas o índice também é o que o `criar-escola.sh` encontra quando a
+ * escola é RECRIADA com o mesmo nome: ele não é reescrito, ganha um elo `recriacao[]`.
+ *
+ * Sem esta distinção, o `post-merge` limpava uma escola recém-criada: via «expurgada no
+ * índice» e «artefatos presentes», que é exactamente o estado de uma recriação. Aconteceu em
+ * 17/10/2026 — a `valse` foi expurgada, recriada, e o primeiro `git pull` apagou-a do disco.
+ * A produção não foi tocada (o Worker estava no ar), mas o repositório local ficou sem ela.
+ *
+ * A regra é TEMPORAL, e é a única que distingue os dois casos: se a recriação mais recente é
+ * posterior ao expurgo mais recente, a escola está VIVA — o expurgo é passado.
+ */
+function foiRecriada(indice) {
+  if (!indice) return false;
+  const expurgos = Array.isArray(indice.expurgo) ? indice.expurgo : [];
+  const recriacoes = Array.isArray(indice.recriacao) ? indice.recriacao : [];
+  if (!expurgos.length || !recriacoes.length) return false;
+  const ultimo = (lista) => lista
+    .map((e) => Date.parse((e && e.em) || ''))
+    .filter((t) => Number.isFinite(t))
+    .sort((a, b) => b - a)[0];
+  const tExpurgo = ultimo(expurgos);
+  const tRecriacao = ultimo(recriacoes);
+  if (tExpurgo === undefined || tRecriacao === undefined) return false;
+  return tRecriacao > tExpurgo;
+}
+
 // O elo do expurgo — o índice NÃO é reescrito: ganha uma entrada nova no fim.
 function registrarElo(slug, professor, ciclo, relatorio) {
   const dir = caminhoDaEscola(slug);
@@ -147,6 +177,14 @@ function main() {
 
   if (indice && indice.pagante === true) {
     console.error('recusado: a escola "' + slug + '" está a pagar — não se apaga (§17.5).');
+    process.exit(1);
+  }
+
+  // RECRIADA DEPOIS DO EXPURGO = ESTÁ VIVA. O elo do expurgo fica no índice para sempre (é a
+  // memória), mas os artefactos de uma recriação são dela — apagá-los seria desfazer o que a
+  // escola acabou de fazer. Ver `foiRecriada`.
+  if (foiRecriada(indice)) {
+    console.error('recusado: a escola "' + slug + '" foi RECRIADA depois do último expurgo — está viva, não se apaga.');
     process.exit(1);
   }
 
@@ -218,4 +256,8 @@ function main() {
   console.log('  (revise com `git status` e commite — a senha e o .escolas-teste são locais, fora do Git)');
 }
 
-main();
+// A definição sai daqui para o `post-merge` usar a MESMA — duas cópias da regra divergiriam,
+// e a que decide apagar é a que importa.
+module.exports = { foiRecriada };
+
+if (require.main === module) main();

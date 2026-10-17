@@ -15438,3 +15438,65 @@ verificações. `ficha-html-cli --autoteste` → 42/42.
 - **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
   entra e sai.
 - **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.
+
+## 17/10/2026 — A escola expurgada e RECRIADA não se apaga (o `post-merge` confundia as duas)
+
+**O que aconteceu.** A `valse` foi expurgada, e o expurgo deixou o elo no índice
+(`escola/valse/indice.json` → `expurgo[]`), de propósito: é a memória de que a escola existiu.
+Depois a escola foi **recriada** com o mesmo nome. O índice é o **mesmo arquivo**, e não é
+reescrito — passou a dizer, ao mesmo tempo, «expurgada» e «viva».
+
+O `post-merge` (a rede de segurança que limpa o expurgo na sincronização) só sabia ler a
+primeira metade: `expurgo[]` não vazio **e** artefactos presentes = restos por limpar. É
+exactamente o estado de uma escola recém-criada. **O `git pull` seguinte apagou-a do disco** —
+`ciclo-01-valse.conf`, o pacote inteiro e o `wrangler.valse.jsonc`. A produção não foi tocada (o
+Worker estava no ar), mas o repositório local ficou sem a escola que o commit `f5a12ea` tinha
+acabado de criar.
+
+**A causa, dita uma vez.** «Expurgada e ainda por limpar» e «expurgada e recriada» são estados
+**diferentes** com a **mesma assinatura** no índice. O elo do expurgo não distingue os dois,
+porque fica lá para sempre — é o passado, e o passado não se apaga.
+
+**O que foi decidido.**
+
+- **A distinção é TEMPORAL, e é a única honesta.** Se a **recriação** mais recente é posterior ao
+  **expurgo** mais recente, a escola está VIVA. O elo do expurgo fica; o da recriação diz o
+  presente.
+- **A regra mora num lugar só** — `foiRecriada`, em `escola/expurgar.js` — e o `post-merge`
+  consome-a por `require`. Duas cópias divergiriam, e a que apaga é a que importa.
+- **O `criar-escola.sh` registra o elo de recriação** quando encontra um índice que já existe
+  com `expurgo[]`. É ele que produz a diferença de datas de que a regra depende. Num índice sem
+  expurgo (escola que nunca foi expurgada) **nada** é acrescentado — o elo não se inventa.
+- **O `expurgar.js` recusa** apagar uma escola recriada, com a mesma definição. É o CLI, e é
+  também o que o hook chama: a recusa fica no fundo, e não só na superfície.
+
+**Um detalhe que daria a resposta errada.** O `expurgar.js` grava em UTC (`…Z`) e o
+`registrar-recriacao.py` em hora local com fuso (`…-03:00`). Comparar as **strings** diria que a
+recriação é anterior ao expurgo, e a escola seria apagada outra vez. A comparação é entre
+**instantes** (`Date.parse`), e a prova tem um caso dedicado a isso.
+
+**Onde entrou.**
+
+- `escola/expurgar.js` — `foiRecriada` (com a comparação por instante) e a recusa no `main`;
+  exportada para o hook usar a MESMA definição.
+- `tools/hooks/post-merge` — salta a escola recriada, consultando `expurgar.js`.
+- `tools/criar-escola.sh` — chama o registrador quando o índice já existe.
+- `tools/registrar-recriacao.py` — o registrador (novo): acrescenta `recriacao[]` e devolve a
+  escola a `habilitada: true`; um índice sem `expurgo` não ganha nada.
+- `escola/valse/indice.json` — o elo que faltava, registado à mão (a escola já tinha sido
+  recriada quando a correção nasceu).
+- `experimentos/provar-recriacao-da-escola.js` — prova nova, 21 casos.
+
+**Conferido.** A prova cobre os quatro cantos da regra e os casos de fronteira (só expurgo, só
+recriação, expurgo posterior, índice nulo, entradas sem data, fusos diferentes); exercita o
+`expurgar.js` num sandbox nos dois sentidos — **apaga** a que não foi recriada e **recusa** a
+que foi, deixando o pacote onde está; confere que o `post-merge` consulta a definição única; e
+que o registrador não inventa o elo num índice sem expurgo. 21/21.
+
+Depois da correção: a `valse` continua no disco, o `post-merge` já não a apanha, o `expurgar.js`
+recusa, e a produção está intacta (`/` 14.055 B, `/plano-observacao/` 294.531 B, o botão `◐`
+presente, o slug `tiago-menegaz`).
+
+**O que o expurgo fez, e está certo.** 14 ficheiros apagados num commit só (`1a6133c`), o
+`.fipp` incluído — a âncora foi com a escola. O `ciclo-01.conf` **não** foi tocado: a Fita
+continua viva no ciclo 01, e a base é dela também. O índice sobreviveu, com o elo.

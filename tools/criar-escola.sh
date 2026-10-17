@@ -609,7 +609,17 @@ INDICE_ARQ="$INDICE_DIR/indice.json"
 mkdir -p "$INDICE_DIR"
 
 if [ -e "$INDICE_ARQ" ]; then
+  # O ÍNDICE EXISTE — e isso tem dois sentidos, que não podem ser confundidos (17/10/2026).
+  #
+  #   a) a escola NUNCA foi expurgada: o índice é o dela, e não se toca;
+  #   b) a escola FOI expurgada e está a ser RECRIADA com o mesmo nome: o expurgo deixou o
+  #      elo (`expurgo[]`) e o índice sobreviveu. Aqui registra-se a RECRIAÇÃO — é o que diz
+  #      ao `post-merge` e ao `expurgar.js` que os artefatos que estão a nascer são da escola
+  #      VIVA, e não restos de uma expurgação por terminar. Sem este elo, a primeira
+  #      sincronização apagava a escola recém-criada: aconteceu à `valse`, que foi expurgada,
+  #      recriada, e limpa pelo `git pull` seguinte.
   echo "  aviso: $INDICE_ARQ já existe (o índice sobrevive ao expurgo) — não sobrescrevo."
+  python3 "$RAIZ/tools/registrar-recriacao.py" "$INDICE_ARQ"
 else
   python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" "$SENHA_ARQUIVO" <<'PY'
 import sys, json, datetime

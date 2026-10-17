@@ -58,5 +58,11 @@
         "wrangler.valse.jsonc"
       ]
     }
+  ],
+  "recriacao": [
+    {
+      "em": "2026-10-17T19:45:14.655288-03:00",
+      "motivo": "recriada por tools/criar-escola.sh"
+    }
   ]
 }
