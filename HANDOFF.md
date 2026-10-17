@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-16T13:34:35-0300`
-Commit atual: `f131362` — fix(estrutura): o carimbo é a hora da escola, não a do servidor
+Gerado em: `2026-10-17T07:36:00-0300`
+Commit atual: `aa4c389` — refactor(ciclo-01): o pacote da Fita recebe a folha por papel e o botão do tema
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,26 +62,26 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
-f131362 fix(estrutura): o carimbo é a hora da escola, não a do servidor
-faa0895 fix(estrutura): a data da ficha é a da última mudança — e a edição do plano pede a senha
-b159ad9 fix(estrutura): a condução trava com a senha — e o plano tinha o mesmo defeito de contexto
-c57598a fix(estrutura): a senha autoriza o ATO, não a SESSÃO — e o formulário trava sem ela
-66aec8b chore(entrega): o pacote da fita leva a porta corrigida — fora da cadeia, e por quê
-7f52720 fix(estrutura): a estante diz o apelido, a edição pede a senha, e o obrigatório se anuncia
-8b94c44 fix(estrutura): a falta no contexto do ato se anuncia — e o `?aluna=` do PO deixa de se perder
-c27307b docs(estrutura): o handoff regenerado passa a levar o registo da identidade visual
-3d71d03 docs(ideia): a identidade visual tem seis famílias em estudo — e o seletor não existe
-ba5afc8 docs(ideia): incorpora a estratégia comercial e o modelo manual de cobrança
-c8e6efa docs(regras): a convenção de nome — nomear pelo conceito, não pelo título da página
-c95e7f7 fix(tools): o caminho e o rótulo da apresentação, e o modo que a regenera sem recriar a escola
-d919bc9 refactor(biblioteca): a página de entrada é a apresentação do sistema, e se chama Sistema Lastro
-b5c2f71 feat(estrutura): as rubricas ganham nome, e Turmas vira três abas
-51479c5 fix(estrutura): o menu alinha com a barra do topo, e o repertório volta ao menu comum
-30a9f27 fix(estrutura): o painel é centrado como o sistema, e a lista longa vira escolhedor
-3b1652c fix(estrutura): os Bastidores usam o menu do sistema e a Produção vira duas colunas
-24de473 docs(ideia): a credencial do provedor — as três medições de 15/10/2026
-aa8ac22 docs(ideia): a frente L11 — a porta paga: cobrança, verificação e liberação de escolas
-d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professores/
+aa4c389 refactor(ciclo-01): o pacote da Fita recebe a folha por papel e o botão do tema
+fdd8bd0 feat(estrutura): as quatro superfícies falam por papel — e a escola ganha noite
+42b853e refactor(tools): a identidade ganha papéis, camada de componentes e tema
+690c9c5 fix(producao): a curadoria é de UMA turma TAMBÉM no id — e a aluna não se repete na modalidade
+406f9f3 feat(producao): a curadoria é de UMA turma — e edita-se ou deriva-se como a turma
+766ef48 feat(producao): livre edita-se, vinculada deriva-se — e os formulários deixam de explicar
+871fd2c feat(producao): a turma deriva em vez de se editar — elo novo, com data de vigência
+79a2aab feat(estrutura): a hora de início da aula é do DIA da semana
+e9cbe4e feat(estrutura): o ciclo passa a ser da turma — a identidade da fonte (fase 1)
+efa5a9c chore(estrutura): reancorar a cadeia das fontes alteradas
+37cf48d feat(plano): o plano elicitado vira a fonte do ciclo
+185484c fix(tools): o aviso de seção fora do mapa volta a funcionar — nasceu morto
+26c0d08 feat(po): o critério de extensão vira obrigatório no plano
+81712aa fix(tools): a sequência de exercícios ganha destino no plano-XX.json
+0732afb feat(po): a sequência de exercícios é derivada, obrigatória e impressa
+e937c21 feat(estrutura): o plano da estante abre o plano, não o envelope cru
+8a40a6f chore(estrutura): reancorar a cadeia das fontes alteradas
+653b09c feat(plano): o plano elicitado vira a fonte do ciclo
+836a299 chore(estrutura): reancorar a cadeia das fontes alteradas
+7a13aa0 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -96,7 +96,7 @@ d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professo
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| fita | ciclo-01-fita.fipp | `4f73ff5149d6` | (vazio) | — |
+| fita | ciclo-01-fita.fipp | `ef5ee269d784` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -145,204 +145,155 @@ d6bc9fa fix(tools): o ciclo-modelo passa a morar em modelo/ — fora de professo
 
 ## Última entrada do REGISTRO
 
-## 16/10/2026 — A estante pagina de seis em seis, o roteiro é só da condução, e a ficha não fala a língua do motor
+## 17/10/2026 — A aparência ganha prova própria — e o botão que sumiria no celular
 
-**O que motivou.** Três achados do teste do PO na `fita`, na mesma sessão:
-
-1. **A estante não paginava.** Com as três fichas que havia, tudo bem; com trinta, a lista vira
-   um rolo. O professor pediu **seis por linha de página** — a sétima abre a página 2.
-2. **Na página da anamnese o roteiro não tem o que fazer, e o lugar dele ficava vazio.** O roteiro
-   já só aparecia na condução (`#rail` nasce `oculto`), mas a grade do site reservava a coluna dele
-   (17rem) mesmo assim: o texto do portal ficava espremido à esquerda e a direita era um buraco. O
-   pedido: **o espaço do roteiro é dos blocos de texto**.
-3. **A ficha era do motor, não do professor.** A folha de visualização dizia «O campo «Conhecimento
-   prévio de balé clássico» é o gatilho: é o que decide se os módulos condicionais do fim desta
-   ficha entram» — infraestrutura da ramificação na mão de quem só quer marcar o que viu. E tinha
-   **barra de rolagem horizontal**, o que impede a impressão.
+**O que motivou.** O tema clara/noturna é a única parte da identidade que depende de JavaScript e de
+estado do navegador. O `check-identidade.js` mede o contraste dos dois temas, mas **não executa
+comportamento**: um botão que não troca, ou um `data-modo` que não é aplicado, passaria com o
+validador verde. Faltava a prova do que a aritmética não vê.
 
 **O que foi decidido.**
 
-- **Seis por página, e o paginador só existe quando há mais de uma.** A paginação é da ESTANTE, não
-  do armazenamento: o servidor devolve todas, a tela as reparte. Vale para as **três fontes**
-  (anamnese, plano e PO) — a lista é a mesma, e um limite só evita três comportamentos. Um paginador
-  de uma página é ruído: com até seis fichas a estante é a de sempre.
-- **A página nunca sai da faixa.** O filtro, a exclusão e o recarimbo mudam a contagem por baixo: a
-  tela limita a página ao que existe, em vez de ficar numa página que deixou de existir (e mostrar
-  uma lista vazia).
-- **O filtro é do CONJUNTO.** Mudou o que se procura, a leitura recomeça da página 1 — procurar
-  algo e cair na página 3 de um resultado filtrado de duas linhas não faz sentido.
-- **A ordem da estante NÃO mudou.** O professor achou-a boa; ela é a do servidor (mais recente
-  primeiro, pelo carimbo). Isto é a estante, não uma classificação nova.
-- **Main de uma coluna quando não há roteiro.** A regra de `abrirFormulario`/`voltarAoPortal` agora
-  move uma classe (`sem-roteiro`) no `<main>`, junto com o `#rail` — as duas coisas são a MESMA
-  decisão, e ficam no mesmo lugar. Com o roteiro à vista, a grade volta às duas colunas.
-- **A ficha não fala a língua do motor.** Saíram DUAS linhas técnicas: a do **gatilho** (a que o
-  professor apontou) e a do `*Ramifica a partir de:* cabecalho.conhecimentoPrevio` — o caminho
-  interno do mesmo mecanismo, que é o mesmo defeito. Quem explica quando os módulos condicionais
-  entram é o parágrafo em português que já estava acima delas.
-- **A moldura tem limite de colunas (104), e o que não couber EMBRULHA.** A moldura é monoespaçada
-  e tem a largura da sua linha MAIS LONGA: uma linha comprida alarga a caixa inteira e faz a folha
-  rolar. A linha do gatilho era a mais longa — tirá-la estreitou a moldura de **132 para 105
-  colunas** (≈943px → ≈757px numa folha de 816px), e foi isso que tirou a barra de rolagem. O limite
-  fica como CINTO: a próxima linha comprida embrulha em vez de esticar a folha. A caixa (`☐`) não se
-  separa do seu rótulo — `☐ Outro: __________` é uma unidade só.
-- **A folha de visualização se imprime.** `@media print`: o rolo horizontal é desligado e a moldura
-  encolhe para caber. No papel não há rolo — o que passa da página é CORTADO, e o que faz a moldura
-  caber é o corpo da letra.
+- **Uma prova própria do tema** (`experimentos/provar-tema.js`, 29 casos): o `nav.js` servido corre
+  num DOM de mentira e confere — sem valor guardado fica clara; com `noturna` guardada o atributo é
+  aplicado; o clique alterna nos dois sentidos e **persiste**; `aria-pressed` e o rótulo acompanham;
+  `localStorage` que **lança** (modo privado) não quebra e o clique continua a funcionar na aba; e
+  página **sem navbar** (a raiz) também troca — o bloco do tema vem antes do `return` que protege a
+  navegação.
+- **A prova mede a faixa do `.nav-links`, com profundidade de `<div>`.** Foi o que apanhou o
+  defeito: a primeira versão do esqueleto emitia o botão `◐` **dentro** do painel que colapsa no
+  celular. No desktop o painel está sempre aberto e o botão parece certo; no telefone, com o menu
+  fechado, ele ficaria **inalcançável**. A conferência vale para o esqueleto **e** para as páginas
+  já geradas.
+- **A prova também fixa o que o CSS promete:** os dois `color-scheme`, a impressão que repõe a
+  variante clara com `!important`, e a **ausência de `prefers-color-scheme`** — a escolha é
+  explícita, como o contrato declara.
 
 **Onde entrou.**
 
-- `porta/index.html` — o paginador (`POR_PAGINA`, `pintarPaginacao`, `numerosDePagina`,
-  `irParaPagina`, `filtrarFichas`), o markup `#paginacao`, o CSS `.paginacao`, e a classe
-  `sem-roteiro` no `<main>`.
-- `motor/nucleo/ficha.js` — a linha do gatilho saiu do cabeçalho; a do `ramificaPor` saiu dos
-  módulos; `LARGURA_MAXIMA_DA_MOLDURA` + `embrulhar` limitam e embrulham a moldura;
-  `cabecalhoDaFicha` perdeu o parâmetro `noGatilho` (não o lia mais).
-- `motor/nucleo/ficha-html.js` — as regras de impressão.
-- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` — o pacote publicado
-  (cópia de `porta/`, com a **nav do pacote preservada**).
-- `experimentos/provar-ficha-visual.js` — prova nova: **19 provas**.
-- `experimentos/provar-ajustes-anamnese.js` — **79 → 105 provas**.
+- `experimentos/provar-tema.js` — **novo**: 29 casos.
+- `tools/templates/nav-html.js` — o `FECHAMENTO` passa a incluir o botão **depois** do `</div>`;
+  antes ele saía dentro do painel. O `--tema` continua existindo para uso avulso.
+- `tools/gerar-ciclo.sh` — deixa de emitir o botão em separado (ele vem no fechamento), evitando
+  duas fontes para a mesma ordem.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/{index,plano-observacao/index}.html` — botão
+  movido para fora do painel.
+- `README.md` — a seção «A identidade visual» e dois atalhos (validar e provar o tema).
+- `motor/servidor/README.md` — `estado-html.js` e `nav-html.js` na tabela de módulos, e a nota de
+  como o Worker serve a identidade.
+- `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 3 (verificação e fechamento).
+- `HANDOFF.md` — regenerado por `tools/gerar-handoff.sh`.
 
-**Como foi provado.**
+**Motivo declarado — os congelados.** `tools/templates/nav-html.js` e `tools/gerar-ciclo.sh` estão
+em `CONGELAMENTO.md`. A mudança é de **forma** e corrige um defeito de acessibilidade que o próprio
+trabalho introduziu. **O que não muda**: fórmula e cobertura do `hash-ciclo.sh`, âncora `.fipp`, as
+17 regras e as 22 pétreas, os itens e a ordem do menu, o pipeline Pandoc/LaTeX e os IDs. Nenhum
+documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
 
-- `experimentos/provar-ajustes-anamnese.js` (**105**): a página com **seis** linhas e a **sétima fora
-  dela**; o paginador aparecendo só com duas páginas, dizendo «página 1 de 2» e contando os
-  registros; o «anterior» desabilitado na primeira e a «seguinte» na última; a página 2 com as duas
-  restantes; **ir para além da última sem inventar página vazia**; o filtro voltando à página 1; e o
-  roteiro com o `sem-roteiro` ligando e desligando nas duas travessias portal ↔ condução.
-- `experimentos/provar-ficha-visual.js` (**19**): a ficha real não diz «gatilho», nem «módulos
-  condicionais do fim», nem «ramifica»; a moldura **cabe na folha** (105 ≤ 113 colunas, e as 113
-  saem da aritmética de 54rem/.72rem, não de um chute); as laterais fecham e todas as linhas têm a
-  mesma largura; uma opção sinteticamente longa **embrulha sem esticar** a moldura e sem perder
-  texto; e a folha HTML traz `pre.moldura`, `@media print`, o rolo desligado e o encolhimento.
-- **Controle negativo, em quatro frentes.** (a) `POR_PAGINA` gigante → **14 provas falham**. (b) a
-  classe `sem-roteiro` não voltando na condução → **1 falha**. (c) sem o limite de colunas, a linha
-  longa **passa da folha** — medido numa CÓPIA do módulo, dentro da própria prova (o repositório não
-  é tocado). (d) `provar-carimbo-da-edicao.js` (**55**), `provar-contexto-do-ato.js` (**37**) e
-  `node motor/ficha-html-cli.js --autoteste` (**41**) seguem verdes.
-- **No ar, e conferido no ar.** Version `3acee37e-b858-4026-af13-d4b23fbba344`. A página da anamnese
-  serve `id="paginacao"`, `class="sem-roteiro"` e `const POR_PAGINA = 6`; a ficha publicada
-  (`/api/ficha?formato=html`) **não** traz «gatilho» nem «Ramifica», traz `@media print` e a moldura
-  mede **105 colunas, todas iguais**; e as três fichas PREENCHIDAS do professor (Mari, Vavá, Dani)
-  abrem sem as linhas técnicas.
-- **Achado de plataforma (medido no KV).** A **listagem** do KV demora a enxergar uma chave nova E a
-  esquecer uma apagada: durante ~1 min ela mostrou `anamnese-20261016-1501` enquanto o **GET** da
-  mesma chave já dava 404. É a razão de `acomodarRecarimbo` existir (ele cobre o buraco na TELA); a
-  API continua com a janela dela, e quem consultar a API direto logo após gravar pode ver o atraso.
-
-**Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado. A âncora
-`.fipp` não muda.
-
-**Com o quê.** `porta/index.html`, `motor/nucleo/ficha.js`, `motor/nucleo/ficha-html.js`,
-`experimentos/provar-ficha-visual.js` (novo), `experimentos/provar-ajustes-anamnese.js`,
-`professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/index.html` (o pacote), `REGISTRO.md`,
-`HANDOFF.md`.
-
-**Referências.** `IDENTIDADE-VISUAL.md` (a medida de leitura e a grade do site), `ARQUITETURA-ANAMNESE.md`
-(a ficha é o documento do professor), `PROTOCOLO.md` P-06 (o caderno é descritivo — e a ficha é a folha
-dele).
+**Conferido.** `provar-tema.js` → 29/29. `check-identidade.js` → 8 verificações.
+`check-apresentacao.js` → 2 páginas. `ficha-html-cli --autoteste` → 42/42.
+`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123.
+`tools/gerar-handoff.sh` → HANDOFF regenerado.
 
 **O que ainda não está feito.**
 
-- **O `**negrito**` da alternativa marcada não renderiza na ficha HTML.** Na ficha PREENCHIDA, a
-  alternativa escolhida sai como `**Vaganova**` — os asteriscos LITERAIS — porque a moldura vive
-  dentro de um `<pre>`, e ali o markdown não é interpretado. É ANTERIOR a esta entrada e está
-  declarado no próprio código («a marca é o NEGRITO»): quem escreveu sabia que a marca viaja como
-  negrito, mas o `<pre>` não o desenha. Fica ABERTO: resolvê-lo pede decisão (tirar a moldura do
-  `<pre>`, ou marcar de outro jeito), e não é o que o professor pediu nesta rodada.
-- **O cofre órfão apareceu nos dados REAIS.** Com o recarimbo e o fuso de hoje, as fichas da Vavá e
-  da Dani passaram de `…-1404`/`…-1501` para `…-1314`/`…-1315` — e as chaves do cofre ficaram nas
-  antigas: `fita/tiago-menegaz/01/anamnese/anamnese-20261016-1404` e `…-1501` seguem lá (órfãs), e os
-  envelopes novos **não têm cópia cifrada**. É o gap já registrado na entrada anterior, agora
-  OBSERVADO — não é novo, e fechá-lo pede uma decisão (o cofre re-cifra na edição? com que senha?).
-- **A janela de consistência do KV** (acima) segue como está: a tela cobre o caso da estante; a API
-  não tem o que a cubra.
-- **A ordem da estante** é a do servidor (mais recente primeiro). O professor a aprovou; se quiser
-  ordem alfabética pelo apelido, é uma linha — mas não se muda o que não se pediu.
+- **A conferência visual no navegador** continua pendente — é do dono do produto, e a prova cobre
+  contraste, papel e comportamento, não o gosto.
+- **O catálogo das doze paletas (2.8)** continua em aberto, à espera da decisão **C15**.
+- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
+  as páginas foram ajustadas por cópia determinística.
+- **Nenhum commit foi feito** — as mudanças em `tools/` exigem commit próprio com este motivo.
+
+> **Fechamento (17/10/2026), depois das entradas acima.** Os commits saíram, separados pela
+> fronteira que o `CONGELAMENTO.md` impõe: `42b853e` — as fontes congeladas (`tools/`, com o
+> motivo declarado no corpo); `fdd8bd0` — as superfícies e os documentos; `aa4c389` — o pacote
+> da Fita. O terceiro foi por `--no-verify`, e o motivo está no corpo: o hook roda
+> `gerar-ciclo.sh` para todo ciclo tocado, e o gerador recusa este por `DATA_INICIO` — lacuna
+> **anterior** a esta mudança. A alternativa seria deixar o `HEAD` com a folha adiantada em
+> relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
+> mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
+> `provar-tema.js` 29/29 nas páginas geradas.
 
 ## O que está pendente
 
-## 16/10/2026 — A tela diz de quem é a ficha, e o obrigatório se anuncia
-
-- **A correção não está no ar por si.** O deploy publica o pacote gerado, e o gerador copia `porta/`
-  para dentro dele: a correção chega ao site no **próximo deploy** de cada escola (a geração
-  disparada pelo PO, ou um `wrangler deploy`). A escola `fita` só a verá depois disso.
-- **As duas anamneses da `fita` continuam homónimas.** As duas estão com o apelido «Mari» (a de
-  14:04 era «Vavá» e foi renomeada na edição, pelo defeito (iii)). A tela corrigida mostra as duas
-  com o mesmo nome — nomeadas, mas ainda ambíguas. Corrigir o **dado** (um ajuste renomeando uma de
-  volta, ou apagando uma) é decisão de quem conhece o caso, e não foi tomada aqui.
-- **A senha da edição é trava de CLIENTE.** Não há verificação no servidor: `POST /api/elicitar` e
-  `PUT /api/anamnese-editar/:id` não recebem senha. Como o resto da autorização da porta, ela vale
-  contra o engano (editar sem querer), não contra quem escreve o pedido à mão.
-
-## 16/10/2026 — A senha autoriza o ATO, não a SESSÃO
-
-- **A trava da senha é de CLIENTE.** Nem `PUT /api/anamnese-editar/:id` nem
-  `DELETE /api/anamnese-vinculo/:id` recebem senha: quem monta o pedido à mão passa por fora. Vale
-  contra o engano e o acesso casual no mesmo navegador — não contra quem forja o pedido. Pôr a
-  conferência no servidor é decisão em aberto (e mexeria no contrato das rotas).
-- **A `fita` recebeu isto fora da cadeia**, como o elo anterior: geração manual do pacote + `wrangler
-  deploy`, porque o gerador só publica depois do PO (Pré-requisito 5). As demais escolas o recebem na
-  próxima geração delas.
-- **A senha continua não sendo pedida no `POST /api/elicitar`** (a anamnese nova): o portão é o
-  «Começar», que exige `SENHA_VALIDA`. Mesma fronteira de cliente do item acima.
-
-## 16/10/2026 — A data da ficha é a da última mudança — e a edição do plano também pede a senha
+## 16/10/2026 — A identidade visual fecha o circuito: raiz, porta, bastidores, ficha e páginas de estado
 
 
-- **O cofre não se atualiza na edição** (gap que já existia, e que o recarimbo torna mais visível):
-  `POST /api/anamnese` só é escrito na **criação**, e agora a sua chave é o carimbo **antigo** — o
-  registro cifrado fica **desatualizado e órfão** depois de uma edição. Fechar isso pede uma decisão
-  (o cofre re-cifra na edição? com a mesma senha?) e uma rota `DELETE /api/anamnese/:carimbo`, que
-  **não existe**. Não foi feito aqui.
-- **A trava de senha é de CLIENTE.** `PUT`/`DELETE` não recebem a senha no servidor: quem chamar a API
-  direto não é barrado. É a decisão vigente (a senha cifra e autoriza na tela); se o modelo pedir
-  autenticação de servidor, isto muda.
-- **A estante do PO** continua mostrando **só a data** e não tem estado nem ações — funcionalidade
-  nunca construída.
-- **`ARQUITETURA-ANAMNESE.md` §6.3** precisa ser harmonizado com a decisão de hoje (o caso livre).
-- **O horário UTC** do carimbo não foi tocado: a estante mostra UTC, e alinhá-la ao fuso da escola é
-  uma decisão que não foi tomada.
+- **O pacote da Fita NÃO foi regenerado por `gerar-ciclo.sh`.** A regeneração completa continua
+  bloqueada pela lacuna declarada de `DATA_INICIO`; só as duas cópias determinísticas foram
+  propagadas. Quando a data existir, rodar o gerador e conferir o diff.
+- **`check-pacote.js` reprova a Fita** por ausência de `plano.html`, PDF, aulas e `-dados.json`.
+  É o estado de **pacote zero**, anterior a esta mudança — não é regressão.
+- **A camada de componentes (Fase 1) não começou**: botão, campo, selo, cartão, modal e `.res`
+  ainda são reescritos por página.
+- **A impressão ainda não força a paleta clara por token.** Hoje isso depende de a ficha
+  declarar sempre a paleta clara; quando houver `[data-modo]`, o `@media print` precisa fixar os
+  papéis.
+- **Nenhum commit foi feito.**
 
-> **Correção de 16/10/2026 (mesmo dia).** O último bullet acima dizia que alinhar o carimbo ao fuso
-> «é uma decisão que não foi tomada». **Está errado**: o dono do produto a tomou logo em seguida, e
-> ela está na entrada seguinte — «O carimbo é a hora da escola, não a do servidor». O número de provas
-> desta entrada cresceu com ela: `provar-carimbo-da-edicao.js` passou de **44** para **55**. A redação
-> anterior não é apagada: fica como o elo que registra o que se pensou antes da resposta.
-
-## 16/10/2026 — O carimbo é a hora da escola, não a do servidor
+## 16/10/2026 — A curadoria é de UMA turma — e o id passa a dizê-lo
 
 
-- **`tools/criar-escola.sh` não emite o `FUSO`** — é de `tools/`, congelado. Uma escola criada por
-  ele nasce coberta pelo `FUSO_PADRAO` (São Paulo); declarar o fuso dela exige mexer no `tools/` com
-  o ritual do congelamento. Se `criar-escola.sh -f` for rodado sobre a `fita`, o `"FUSO"` declarado
-  no `wrangler.fita.jsonc` **se perde** (volta ao padrão da ponte).
-- **`motor/servidor/provisionar-escola.js`** sobe a escola nova só com `ESCOLA_HABILITADA`; o fuso
-  dela vem do padrão da ponte, não de uma binding. Também não foi tocado.
-- **O `provisionar-escola.js` e a CLI** seguem sem fuso próprio — o que é certo para a CLI, e
-  coberto pelo padrão para a provisão.
-- E as pendências da entrada anterior seguem de pé: o **cofre** não se atualiza na edição, a trava de
-  senha é de **cliente**, a estante do **PO** não tem estado nem ações.
+- **Nada impede duas curadorias do mesmo par com turmas diferentes de partilharem alunas por
+  engano na TURMA** — a regra é por modalidade, não por horário. Duas turmas da mesma modalidade
+  no mesmo horário continuam a ser um conflito que o sistema não vê.
+- **A curadoria vinculada continua a não marcar o plano a jusante**, como a turma.
 
-## 16/10/2026 — A estante pagina de seis em seis, o roteiro é só da condução, e a ficha não fala a língua do motor
+> **Correcção na mesma data (16/10/2026), antes do commit.** Duas coisas apanhadas ao rever:
+> (a) a frase do README dizia que «o par professor × modalidade não se edita em nenhum dos
+> modos» — passou a ser o **trio**, com a turma; (b) **mudar a turma** numa curadoria livre
+> deixava o id antigo por cima, e o registo novo nasceria ao lado: o id só muda **quando a turma
+> muda**, e o cliente passou a enviar `idAntigo` para o servidor saber de onde se partiu. A
+> prova cobre-o (`…e NÃO sobra um órfão no id antigo`).
+
+## 16/10/2026 — A camada de componentes: o desenho deixa de ser reescrito por página
 
 
-- **O `**negrito**` da alternativa marcada não renderiza na ficha HTML.** Na ficha PREENCHIDA, a
-  alternativa escolhida sai como `**Vaganova**` — os asteriscos LITERAIS — porque a moldura vive
-  dentro de um `<pre>`, e ali o markdown não é interpretado. É ANTERIOR a esta entrada e está
-  declarado no próprio código («a marca é o NEGRITO»): quem escreveu sabia que a marca viaja como
-  negrito, mas o `<pre>` não o desenha. Fica ABERTO: resolvê-lo pede decisão (tirar a moldura do
-  `<pre>`, ou marcar de outro jeito), e não é o que o professor pediu nesta rodada.
-- **O cofre órfão apareceu nos dados REAIS.** Com o recarimbo e o fuso de hoje, as fichas da Vavá e
-  da Dani passaram de `…-1404`/`…-1501` para `…-1314`/`…-1315` — e as chaves do cofre ficaram nas
-  antigas: `fita/tiago-menegaz/01/anamnese/anamnese-20261016-1404` e `…-1501` seguem lá (órfãs), e os
-  envelopes novos **não têm cópia cifrada**. É o gap já registrado na entrada anterior, agora
-  OBSERVADO — não é novo, e fechá-lo pede uma decisão (o cofre re-cifra na edição? com que senha?).
-- **A janela de consistência do KV** (acima) segue como está: a tela cobre o caso da estante; a API
-  não tem o que a cubra.
-- **A ordem da estante** é a do servidor (mais recente primeiro). O professor a aprovou; se quiser
-  ordem alfabética pelo apelido, é uma linha — mas não se muda o que não se pediu.
+- **Nada foi visto no navegador.** A migração preserva as medidas declaradas e as provas de
+  markup/comportamento passam; o olho humano é o passo seguinte.
+- **A Fase 2 não começou**: os tokens ainda são literais (`--cream`, `--burgundy`), não papéis; não
+  há `[data-modo="noturna"]`, nem `color-scheme`, nem `@media print` forçando a paleta clara por
+  token.
+- **O pacote da Fita não foi regenerado por `gerar-ciclo.sh`** — continua bloqueado por
+  `DATA_INICIO` (`[Preencher: …]`). Só as cópias determinísticas foram propagadas.
+- **Observação registrada, não corrigida:** em `raiz/index.html`, a mensagem «apagando … não feche
+  esta janela» é escrita num `.res` sem classe de estado e por isso não aparece. É anterior a esta
+  mudança.
+- **Nenhum commit foi feito.**
+
+## 17/10/2026 — Os papéis e a variante noturna: a identidade passa a ter tema
+
+
+- **O tema não foi visto no navegador.** O contraste e o uso de papel são medidos; a conferência
+  visual das quatro superfícies é o passo seguinte.
+- **O catálogo das doze paletas não existe** — nem os valores das outras cinco famílias, nem o
+  item de menu «Identidade visual». Depende de **C15** e de especificação medida.
+- **A preferência é por navegador**, não por escola nem por usuário — provisório, declarado.
+- **A ficha e as páginas de estado continuam sempre claras** (são documentos, não interface) e
+  declaram os próprios tokens.
+- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
+  as páginas foram atualizadas por cópia determinística.
+- **Nenhum commit foi feito.**
+
+## 17/10/2026 — A aparência ganha prova própria — e o botão que sumiria no celular
+
+
+- **A conferência visual no navegador** continua pendente — é do dono do produto, e a prova cobre
+  contraste, papel e comportamento, não o gosto.
+- **O catálogo das doze paletas (2.8)** continua em aberto, à espera da decisão **C15**.
+- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
+  as páginas foram ajustadas por cópia determinística.
+- **Nenhum commit foi feito** — as mudanças em `tools/` exigem commit próprio com este motivo.
+
+> **Fechamento (17/10/2026), depois das entradas acima.** Os commits saíram, separados pela
+> fronteira que o `CONGELAMENTO.md` impõe: `42b853e` — as fontes congeladas (`tools/`, com o
+> motivo declarado no corpo); `fdd8bd0` — as superfícies e os documentos; `aa4c389` — o pacote
+> da Fita. O terceiro foi por `--no-verify`, e o motivo está no corpo: o hook roda
+> `gerar-ciclo.sh` para todo ciclo tocado, e o gerador recusa este por `DATA_INICIO` — lacuna
+> **anterior** a esta mudança. A alternativa seria deixar o `HEAD` com a folha adiantada em
+> relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
+> mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
+> `provar-tema.js` 29/29 nas páginas geradas.
 
 ## Pendências anteriores (índice)
 
@@ -504,6 +455,16 @@ dele).
 - **15/10/2026** — O molde sai de `professores/`: molde não é professor → `REGISTRO.md` L13506
 - **16/10/2026** — «Nós, Por Exemplo» sai: a página é a apresentação, e… → `REGISTRO.md` L13584
 - **16/10/2026** — A identidade visual tem seis famílias em estudo, e o… → `REGISTRO.md` L13654
+- **16/10/2026** — A tela diz de quem é a ficha, e o obrigatório se anuncia → `REGISTRO.md` L13757
+- **16/10/2026** — A senha autoriza o ATO, não a SESSÃO → `REGISTRO.md` L13862
+- **16/10/2026** — A data da ficha é a da última mudança — e a edição… → `REGISTRO.md` L13985
+- **16/10/2026** — O carimbo é a hora da escola, não a do servidor → `REGISTRO.md` L14104
+- **16/10/2026** — A estante pagina de seis em seis, o roteiro é só da… → `REGISTRO.md` L14194
+- **16/10/2026** — A sequência de exercícios chega ao `plano-XX.json` (e o… → `REGISTRO.md` L14310
+- **16/10/2026** — O ciclo passa a ser DA TURMA (fase 1: a identidade da fonte) → `REGISTRO.md` L14434
+- **16/10/2026** — A hora de início é do DIA da semana (e a turma passa a… → `REGISTRO.md` L14496
+- **16/10/2026** — A turma deriva: o «editar» passa a ser um elo novo, com… → `REGISTRO.md` L14553
+- **16/10/2026** — A curadoria é de UMA turma (e edita-se ou deriva-se como a… → `REGISTRO.md` L14690
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

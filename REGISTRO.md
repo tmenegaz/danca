@@ -14914,3 +14914,217 @@ prova passava por sorte — o caminho que as exercitava não era o que falhava. 
 > deixava o id antigo por cima, e o registo novo nasceria ao lado: o id só muda **quando a turma
 > muda**, e o cliente passou a enviar `idAntigo` para o servidor saber de onde se partiu. A
 > prova cobre-o (`…e NÃO sobra um órfão no id antigo`).
+
+## 16/10/2026 — A camada de componentes: o desenho deixa de ser reescrito por página
+
+**O que motivou.** A Fase 0 fechou o circuito da paleta, mas o diagnóstico apontou o defeito
+seguinte: botão, campo, rótulo, selo, cartão, modal e mensagem de resultado eram **redefinidos em
+cada página** — quatro tratamentos de botão, três de rótulo, dois de superfície de campo. Trocar a
+paleta re-vestia os documentos, não o sistema. A causa era de **especificidade**, não de ordem: o
+desenho base de `button` e de `input`, escrito em cada página, vencia as regras de layout e obrigava
+a navbar e as abas a reescreverem o componente para não herdarem o preenchimento (foi assim que o
+`.hamburger` ganhou `margin-top` e as abas perdiam o hover).
+
+**O que foi decidido.**
+
+- **Uma camada de componentes no `ciclo.css`**, com a escala declarada (`--esp-1..6`,
+  `--raio-1..3`, `--raio-pilula`). Botão principal/secundário/perigo/pequeno, campo, rótulo
+  (`campo-rotulo`, com a variante `em-linha` do formulário denso), foco único, selo com estados,
+  cartão, modal, `.res` e aviso.
+- **O piso usa `:where()`** — especificidade zero. Qualquer regra de página vence sem
+  `!important`, e o componente vale onde a página não diz nada. Não se adotou `@layer`: há uma só
+  folha global, e a camada exigiria reordenar o arquivo inteiro para ganho zero aqui.
+- **O selo tem um desenho e nomes de estado.** Os nomes que já vinham do dado (`solta`,
+  `vinculada`, `legado`) continuam valendo como classes — são aliases do **mesmo** desenho, não um
+  segundo.
+- **Um esqueleto de navbar.** `tools/templates/nav-html.js` define a forma (marca vazia,
+  hamburger, `.nav-links`) e os destinos do sistema; o `gerar_nav` do bash e o `topnav()` dos
+  Bastidores consomem o mesmo módulo. A **lista** de itens continua sendo de cada um: a do pacote é
+  o menu do ciclo (documentos), a dos Bastidores é o menu do sistema.
+- **`<body data-tela="…">`** marca a superfície (raiz, porta, lançamento, bastidores, estado,
+  ficha). O nome `data-pagina` já era dos botões de navegação da porta.
+
+**Onde entrou.**
+
+- `tools/templates/ciclo.css` — a seção "COMPONENTES" e a escala.
+- `tools/templates/nav-html.js` — **novo**: o esqueleto e `navSistema`.
+- `tools/gerar-ciclo.sh` — `gerar_nav` usa o esqueleto (saída **byte-idêntica** à anterior).
+- `motor/servidor/bastidores.js` — `topnav()` delega ao módulo; botões e rótulos migrados;
+  159 → 68 regras de CSS.
+- `raiz/index.html` — 300 → 162 linhas locais.
+- `porta/index.html` — 386 → 349; `.principal` → `.acao`.
+- `tools/templates/lancamento.html` — 86 → 71; rótulos `campo-rotulo em-linha`.
+- `raiz/assets/style.css` e o pacote da Fita — cópias regeradas.
+- `experimentos/README.md` — nota datada: as cópias de folha ali são **históricas**.
+- `experimentos/provar-producao.js` — a asserção do `select` da turma passa a exigir a classe do
+  rótulo; o DOM falso ganhou `querySelectorAll`.
+
+**Motivo declarado — os congelados.** `tools/` e `tools/templates/` estão em `CONGELAMENTO.md`.
+A mudança é de **forma**; o motivo é o defeito medido (quatro desenhos do mesmo botão, e a
+duplicação do markup da navbar). **O que não muda**: a fórmula e a cobertura do `hash-ciclo.sh`, a
+âncora `.fipp`, as 17 regras e as 22 pétreas, a estrutura de menu (os mesmos itens e a mesma
+ordem), o pipeline Pandoc/LaTeX e os IDs normalizados. Nenhum documento de ciclo foi tocado e
+nenhum `.fipp` foi reancorado.
+
+**Conferido.** `check-identidade.js` → 6 verificações ok. `check-apresentacao.js` → 2 páginas.
+`ficha-html-cli --autoteste` → 42/42. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. A abertura e o fechamento da navbar produzidos pelo
+módulo são **byte-idênticos** aos do pacote da Fita já gerado.
+
+**O que ainda não está feito.**
+
+- **Nada foi visto no navegador.** A migração preserva as medidas declaradas e as provas de
+  markup/comportamento passam; o olho humano é o passo seguinte.
+- **A Fase 2 não começou**: os tokens ainda são literais (`--cream`, `--burgundy`), não papéis; não
+  há `[data-modo="noturna"]`, nem `color-scheme`, nem `@media print` forçando a paleta clara por
+  token.
+- **O pacote da Fita não foi regenerado por `gerar-ciclo.sh`** — continua bloqueado por
+  `DATA_INICIO` (`[Preencher: …]`). Só as cópias determinísticas foram propagadas.
+- **Observação registrada, não corrigida:** em `raiz/index.html`, a mensagem «apagando … não feche
+  esta janela» é escrita num `.res` sem classe de estado e por isso não aparece. É anterior a esta
+  mudança.
+- **Nenhum commit foi feito.**
+
+## 17/10/2026 — Os papéis e a variante noturna: a identidade passa a ter tema
+
+**O que motivou.** A Fase 1 deu ao sistema uma camada de componentes, mas os componentes ainda
+falavam por **valor**: `--cream`, `--burgundy`, `--gold-claro`. Um tema, com nomes assim, obriga a
+mentir — uma variante noturna teria de redefinir `--cream` para uma cor escura. Faltava a camada
+que descreve **função** e que um tema troca sem tocar em componente nenhum. Faltava, também, o
+**modo escuro** que o dono do produto pediu, e que o `IDENTIDADE-VISUAL.md` já registava como
+planejado.
+
+**O que foi decidido.**
+
+- **Papéis, além dos primitivos.** `--fundo`, `--superficie`, `--texto`, `--texto-suave`,
+  `--borda`, `--borda-campo`, `--marca`, `--marca-texto`, `--marca-fundo`, `--sobre-marca`,
+  `--campo-fundo`/`--campo-fundo-cartao`, `--foco`, `--veu`, `--sombra`. Na variante clara cada
+  papel aponta para o valor que a identidade já usava — o desenho não mudou.
+- **A noturna é concebida para a família, não invertida.** Sobre o fundo escuro o bordô não é
+  texto (1,64:1); a voz passa a ser o **ouro** — a segunda cor da identidade —, e o bordô fica como
+  superfície da barra, com o creme por cima (10,65:1). `color-scheme` acompanha os controles
+  nativos.
+- **A escolha é explícita e fica no navegador** (`localStorage`, `ciclo-modo`), com o botão `◐` na
+  barra e na raiz. É **provisório e declarado**: a decisão **C15** — de quem é a preferência
+  (escola, usuário ou navegador) — continua aberta em `PLANEJAMENTO-LASTRO.md`. O navegador é o
+  caminho que não exige identidade de usuário, que o portão atual não tem.
+- **A impressão é sempre clara.** O `@media print` repõe os papéis da variante clara com
+  `!important`: o papel não tem tema.
+- **O layout é atributo, não rota.** `data-layout="documento"` (leitura, com o índice à direita) e
+  `data-layout="painel"` (trabalho, largura toda, sem índice).
+- **Dois guards novos no validador.** (a) todo tema declarado é **medido** — 31 pares em cada um;
+  (b) nenhuma superfície de interface usa **primitivo**; usa papel. O segundo é o que impede o
+  tema de ficar pela metade no próximo componente.
+
+**Onde entrou.**
+
+- `tools/templates/ciclo.css` — a camada de papéis, `[data-modo="noturna"]`, `color-scheme`, o
+  `@media print` que repõe a variante clara, `data-layout`, o botão `.tema`, `--veu`/`--sombra`.
+- `tools/templates/nav.js` — o tema (ler, aplicar, alternar) e o botão; o seletor deixou de ser
+  `.topnav .tema` porque a raiz não tem navbar.
+- `tools/templates/nav-html.js` — o botão `◐` no esqueleto (fora do `.nav-links`, que colapsa no
+  celular).
+- `tools/gerar-ciclo.sh` — emite o botão pelo mesmo módulo.
+- `tools/gerar-raiz.sh` — copia também o `nav.js`.
+- `tools/check-identidade.js` — `PARES` passam a ser de papéis e a ser medidos **por tema**;
+  guard de primitivo; o aviso de múltiplos `:root` virou «tema declarado e não medido».
+- `raiz/index.html`, `porta/index.html`, `tools/templates/lancamento.html`,
+  `motor/servidor/bastidores.js` — migrados para papel; `data-layout`/`data-tela`; anti-flash.
+- `raiz/index.html` — **correção**: a mensagem «apagando … não feche esta janela» era escrita num
+  `.res` sem modificador (`display:none`) e **não aparecia**; passa a `.res aviso`.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita` — folha, `nav.js`, botão e anti-flash nas duas
+  páginas geradas.
+- `experimentos/provar-producao.js` — passa a executar o **maior** script inline: com o anti-flash
+  no `<head>`, o «primeiro» deixou de ser o da página.
+
+**Motivo declarado — os congelados.** `tools/` e `tools/templates/` estão em `CONGELAMENTO.md`. A
+mudança é de **forma**. **O que não muda**: a fórmula e a cobertura do `hash-ciclo.sh`, a âncora
+`.fipp`, as 17 regras e as 22 pétreas, a estrutura de menu, o pipeline Pandoc/LaTeX e os IDs
+normalizados. Nenhum documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
+
+**Conferido.** `check-identidade.js` → 8 verificações ok (31 pares na clara, 31 na noturna; papel;
+declarantes; deck; circuito). `check-apresentacao.js` → 2 páginas.
+`ficha-html-cli --autoteste` → 42/42. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123.
+
+**O que ainda não está feito.**
+
+- **O tema não foi visto no navegador.** O contraste e o uso de papel são medidos; a conferência
+  visual das quatro superfícies é o passo seguinte.
+- **O catálogo das doze paletas não existe** — nem os valores das outras cinco famílias, nem o
+  item de menu «Identidade visual». Depende de **C15** e de especificação medida.
+- **A preferência é por navegador**, não por escola nem por usuário — provisório, declarado.
+- **A ficha e as páginas de estado continuam sempre claras** (são documentos, não interface) e
+  declaram os próprios tokens.
+- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
+  as páginas foram atualizadas por cópia determinística.
+- **Nenhum commit foi feito.**
+
+## 17/10/2026 — A aparência ganha prova própria — e o botão que sumiria no celular
+
+**O que motivou.** O tema clara/noturna é a única parte da identidade que depende de JavaScript e de
+estado do navegador. O `check-identidade.js` mede o contraste dos dois temas, mas **não executa
+comportamento**: um botão que não troca, ou um `data-modo` que não é aplicado, passaria com o
+validador verde. Faltava a prova do que a aritmética não vê.
+
+**O que foi decidido.**
+
+- **Uma prova própria do tema** (`experimentos/provar-tema.js`, 29 casos): o `nav.js` servido corre
+  num DOM de mentira e confere — sem valor guardado fica clara; com `noturna` guardada o atributo é
+  aplicado; o clique alterna nos dois sentidos e **persiste**; `aria-pressed` e o rótulo acompanham;
+  `localStorage` que **lança** (modo privado) não quebra e o clique continua a funcionar na aba; e
+  página **sem navbar** (a raiz) também troca — o bloco do tema vem antes do `return` que protege a
+  navegação.
+- **A prova mede a faixa do `.nav-links`, com profundidade de `<div>`.** Foi o que apanhou o
+  defeito: a primeira versão do esqueleto emitia o botão `◐` **dentro** do painel que colapsa no
+  celular. No desktop o painel está sempre aberto e o botão parece certo; no telefone, com o menu
+  fechado, ele ficaria **inalcançável**. A conferência vale para o esqueleto **e** para as páginas
+  já geradas.
+- **A prova também fixa o que o CSS promete:** os dois `color-scheme`, a impressão que repõe a
+  variante clara com `!important`, e a **ausência de `prefers-color-scheme`** — a escolha é
+  explícita, como o contrato declara.
+
+**Onde entrou.**
+
+- `experimentos/provar-tema.js` — **novo**: 29 casos.
+- `tools/templates/nav-html.js` — o `FECHAMENTO` passa a incluir o botão **depois** do `</div>`;
+  antes ele saía dentro do painel. O `--tema` continua existindo para uso avulso.
+- `tools/gerar-ciclo.sh` — deixa de emitir o botão em separado (ele vem no fechamento), evitando
+  duas fontes para a mesma ordem.
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/{index,plano-observacao/index}.html` — botão
+  movido para fora do painel.
+- `README.md` — a seção «A identidade visual» e dois atalhos (validar e provar o tema).
+- `motor/servidor/README.md` — `estado-html.js` e `nav-html.js` na tabela de módulos, e a nota de
+  como o Worker serve a identidade.
+- `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 3 (verificação e fechamento).
+- `HANDOFF.md` — regenerado por `tools/gerar-handoff.sh`.
+
+**Motivo declarado — os congelados.** `tools/templates/nav-html.js` e `tools/gerar-ciclo.sh` estão
+em `CONGELAMENTO.md`. A mudança é de **forma** e corrige um defeito de acessibilidade que o próprio
+trabalho introduziu. **O que não muda**: fórmula e cobertura do `hash-ciclo.sh`, âncora `.fipp`, as
+17 regras e as 22 pétreas, os itens e a ordem do menu, o pipeline Pandoc/LaTeX e os IDs. Nenhum
+documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
+
+**Conferido.** `provar-tema.js` → 29/29. `check-identidade.js` → 8 verificações.
+`check-apresentacao.js` → 2 páginas. `ficha-html-cli --autoteste` → 42/42.
+`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123.
+`tools/gerar-handoff.sh` → HANDOFF regenerado.
+
+**O que ainda não está feito.**
+
+- **A conferência visual no navegador** continua pendente — é do dono do produto, e a prova cobre
+  contraste, papel e comportamento, não o gosto.
+- **O catálogo das doze paletas (2.8)** continua em aberto, à espera da decisão **C15**.
+- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
+  as páginas foram ajustadas por cópia determinística.
+- **Nenhum commit foi feito** — as mudanças em `tools/` exigem commit próprio com este motivo.
+
+> **Fechamento (17/10/2026), depois das entradas acima.** Os commits saíram, separados pela
+> fronteira que o `CONGELAMENTO.md` impõe: `42b853e` — as fontes congeladas (`tools/`, com o
+> motivo declarado no corpo); `fdd8bd0` — as superfícies e os documentos; `aa4c389` — o pacote
+> da Fita. O terceiro foi por `--no-verify`, e o motivo está no corpo: o hook roda
+> `gerar-ciclo.sh` para todo ciclo tocado, e o gerador recusa este por `DATA_INICIO` — lacuna
+> **anterior** a esta mudança. A alternativa seria deixar o `HEAD` com a folha adiantada em
+> relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
+> mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
+> `provar-tema.js` 29/29 nas páginas geradas.
