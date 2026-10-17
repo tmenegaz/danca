@@ -15685,3 +15685,57 @@ nasce sem que ninguém o saiba. Fechar isso exigiria um vigia no Cron da raiz a 
 «Worker no ar sem `escola/<slug>/indice.json`», e um vigia desses precisa de prazo de carência:
 o intervalo legítimo entre o Worker e o commit é de minutos. Um prazo inventado apagaria
 escolas a nascer. Não foi feito, e não se faz sem desenho.
+
+## 17/10/2026 — Os commits estavam certos e a produção estava velha: as escolas passam a publicar no push
+
+**O que motivou.** O dono do produto abriu as duas escolas de teste e disse: «não identifiquei
+em nenhuma delas os ajustes». Medido, e ele tinha razão:
+
+| | No repositório | No ar |
+|---|---|---|
+| `assets/style.css` (md5) | `122e570…` | **`91509d8…`** |
+
+O commit estava no `main`, o pacote versionado tinha a folha nova, e os dois Workers serviam a
+**anterior**. Não havia nada quebrado — havia **nada publicado**.
+
+**A causa.** O único caminho que publicava uma escola era o `gerar-ciclo.yml`, e ele tem dois
+defeitos para este caso: é `workflow_dispatch` (manual) e roda o **gerador antes**. E o gerador
+recusa um ciclo cujo `DATA_INICIO` é lacuna — que é o estado normal de qualquer escola
+recém-criada. Ou seja: o único caminho automático estava fechado exactamente para as escolas
+que mais mudam, as de teste.
+
+**É a mesma falha que já tinha custado dois incidentes na raiz**, e que motivou o
+`deploy-raiz.yml`: commit certo, produção velha, e ninguém sabe dizer o que está no ar sem
+perguntar ao `wrangler`.
+
+**O que foi decidido.**
+
+- **`deploy-escolas.yml`, e o que se publica é o que está no commit.** Sem passo de geração no
+  runner, de propósito: o pacote É versionado, e gerar no CI tornaria o deploy irreprodutível a
+  partir do commit (com `pandoc` e `pdflatex` do runner podendo diferir do local e travar o
+  deploy para sempre). Quem gera é quem tem as fontes.
+- **A lista é descoberta, não escrita à mão.** Cada escola é um `wrangler.<slug>.jsonc` cujo
+  `assets.directory` começa em `professores/`; o `danca` fica de fora porque a raiz tem o seu
+  workflow. Uma escola nova passa a ser publicada no dia em que ganha o config.
+- **A identidade é conferida antes** (`check-identidade.js`). É o que impede uma folha velha de
+  chegar à produção com aval de «ok» — foi esse aval que faltou hoje.
+- **Uma escola que falha não impede as outras** (`fail-fast: false`): são Workers
+  independentes, e travar uma por causa da outra esconde o problema.
+- **O filtro do `workflow_dispatch` entra por `env`**, não por interpolação no script — valor
+  digitado nunca vira comando.
+
+**Publicado hoje, à mão, antes do workflow existir.** `wrangler deploy` nos dois configs;
+conferido depois: `assets/style.css` no ar com `122e570…`, idêntico à fonte.
+
+**Conferido.** `check-identidade.js` → 8 verificações (a checagem 6 compara o corpo da porta de
+cada pacote). `provar-celular.js` → 11/11, agora sobre HTTP. `provar-tema.js` → 30/30.
+`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123. As páginas no ar
+renderizadas num navegador: botão com raio 12 e 44px de altura, nada transborda em 390px.
+
+**O que ainda não está feito.**
+
+- **O `workflow_dispatch` do `deploy-escolas.yml` não foi exercitado** — o disparo só acontece
+  no próximo push que toque nos caminhos listados.
+- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
+  dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
+- **A conferência visual continua sua**, agora com a pele nova de fato no ar.

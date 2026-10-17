@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-17T13:02:59-0300`
-Commit atual: `e29d3ab` — docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela abriu
+Gerado em: `2026-10-17T20:30:05-0300`
+Commit atual: `2895a5d` — style(estrutura): os últimos raios crus entram na régua
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,26 +62,26 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+2895a5d style(estrutura): os últimos raios crus entram na régua
+ffa45c8 fix(estrutura): a escola que não nasce não deixa Worker no ar — o rollback do órfão
+218cfde chore(ciclo-01): as cópias da folha acompanham a pele macia
+230cbd6 chore(experimentos): a prova do celular passa a medir o DESENHO do campo, sobre HTTP
+6533ba3 style(tools): a pele macia — e os campos que não tinham CSS nenhum
+a07264d chore(estrutura): reancorar a cadeia das fontes alteradas
+38bf183 chore(estrutura): eliminar a escola `valsa` — o Worker órfão de um scaffold que morreu
+9efa5e2 ci(raiz): a raiz passa a ser publicada pelo push — e o contrato da identidade ganha quem o corra
+9a70b10 chore(ciclo-01): as duas cópias da folha acompanham a régua de 4px
+b74d2da fix(estrutura): a lista de turmas desce no celular — e a prova passa a olhar a aba
+0a252a8 style(tools): a régua de 4px passa a valer, e o botão secundário deixa de sumir
+8338752 fix(expurgo): a escola expurgada e RECRIADA não se apaga — o post-merge confundia as duas
+f5a12ea feat(estrutura): criar a escola valse (motor completo)
+7f5746b Merge remote-tracking branch 'origin/main'
+1a6133c chore(estrutura): expurgar a escola valse
+2cdc91b fix(estrutura): a lista de turmas deixa de ficar acavalada no celular
+6b27a82 chore(experimentos): as provas saem do rascunho — o que o REGISTRO cita passa a ser versionado
+d1aa5d0 chore(estrutura): reancorar a cadeia das fontes alteradas
 e29d3ab docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela abriu
 2a587e5 fix(ciclo-01): a Fita escurece, e a Valse ganha o botão que faltava
-59fe575 fix(tools): a escola criada do zero nascia sem o botão da aparência
-0d98d28 fix(estrutura): a pasta do professor não se deriva do nome — o slug passa a ser declarado
-00a895f feat(estrutura): criar a escola valse (motor completo)
-9c00401 fix(estrutura): a segunda escola do mesmo professor não nascia — a base do ciclo não é da escola
-6448067 docs(registro): o diagnóstico da identidade, o plano em fases e o fechamento
-aa4c389 refactor(ciclo-01): o pacote da Fita recebe a folha por papel e o botão do tema
-fdd8bd0 feat(estrutura): as quatro superfícies falam por papel — e a escola ganha noite
-42b853e refactor(tools): a identidade ganha papéis, camada de componentes e tema
-690c9c5 fix(producao): a curadoria é de UMA turma TAMBÉM no id — e a aluna não se repete na modalidade
-406f9f3 feat(producao): a curadoria é de UMA turma — e edita-se ou deriva-se como a turma
-766ef48 feat(producao): livre edita-se, vinculada deriva-se — e os formulários deixam de explicar
-871fd2c feat(producao): a turma deriva em vez de se editar — elo novo, com data de vigência
-79a2aab feat(estrutura): a hora de início da aula é do DIA da semana
-e9cbe4e feat(estrutura): o ciclo passa a ser da turma — a identidade da fonte (fase 1)
-efa5a9c chore(estrutura): reancorar a cadeia das fontes alteradas
-37cf48d feat(plano): o plano elicitado vira a fonte do ciclo
-185484c fix(tools): o aviso de seção fora do mapa volta a funcionar — nasceu morto
-26c0d08 feat(po): o critério de extensão vira obrigatório no plano
 ```
 
 ## Por professor
@@ -98,7 +98,7 @@ efa5a9c chore(estrutura): reancorar a cadeia das fontes alteradas
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | fita | ciclo-01-fita.fipp | `ef5ee269d784` | (vazio) | — |
-| valse | (sem âncora) | — | — | — |
+| valse | ciclo-01-valse.fipp | `5bdd2e241b25` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -147,80 +147,61 @@ efa5a9c chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 17/10/2026 — A lista de turmas deixa de ficar acavalada no celular
+## 17/10/2026 — Os commits estavam certos e a produção estava velha: as escolas passam a publicar no push
 
-**O que motivou.** Medido pelo dono do produto na vista de Produção: a listagem de turmas
-«acavalada» no telefone. A medida confirmou — numa tela de 320px o **nome da turma** ficava com
-**116px** de largura e **130px** de altura (o nome, o detalhe e dois selos empilhados em seis
-linhas), enquanto os dois botões, que não encolhem, ocupavam **126px fixos** ao lado: os botões
-eram mais largos que o texto.
+**O que motivou.** O dono do produto abriu as duas escolas de teste e disse: «não identifiquei
+em nenhuma delas os ajustes». Medido, e ele tinha razão:
 
-**O que foi medido, e o que estava por baixo.**
+| | No repositório | No ar |
+|---|---|---|
+| `assets/style.css` (md5) | `122e570…` | **`91509d8…`** |
 
-- `.acoes` é `flex: 0 0 auto` e os botões são `white-space: nowrap` — nenhum dos dois cede. O
-  nome, com `flex: 1 1 auto`, absorvia toda a compressão.
-- **A primeira correção não pegou**, e só a medida mostrou: `.lista li .nome` (especificidade
-  0,0,3) vencia `.linha-turma .nome` (0,0,2), e o `flex: 1 1 14rem` era ignorado — o `flexBasis`
-  medido continuava `auto`. O seletor **descendente** vazava para dentro da turma, onde o mesmo
-  `.nome` é **outro papel**: nas linhas simples ele encolhe até o reticências; na turma ele
-  precisa de largura para não quebrar. Virou `.lista > li > .nome`.
-- **O corte de celular do painel era 760, e o do menu é 768.** Entre 761 e 768 o menu do topo já
-  estava no hamburger e o painel ainda tinha duas colunas: navegação em dobro, 535px para o
-  conteúdo.
-- O **menu de secções** tinha 248px de altura em coluna e empurrava a lista para fora da primeira
-  tela.
+O commit estava no `main`, o pacote versionado tinha a folha nova, e os dois Workers serviam a
+**anterior**. Não havia nada quebrado — havia **nada publicado**.
+
+**A causa.** O único caminho que publicava uma escola era o `gerar-ciclo.yml`, e ele tem dois
+defeitos para este caso: é `workflow_dispatch` (manual) e roda o **gerador antes**. E o gerador
+recusa um ciclo cujo `DATA_INICIO` é lacuna — que é o estado normal de qualquer escola
+recém-criada. Ou seja: o único caminho automático estava fechado exactamente para as escolas
+que mais mudam, as de teste.
+
+**É a mesma falha que já tinha custado dois incidentes na raiz**, e que motivou o
+`deploy-raiz.yml`: commit certo, produção velha, e ninguém sabe dizer o que está no ar sem
+perguntar ao `wrangler`.
 
 **O que foi decidido.**
 
-- **A linha da turma não divide espaço quando não há espaço.** `flex-wrap` no `.linha-turma` e
-  `flex-basis: 14rem` no nome: quem decide é a largura disponível, **não um breakpoint novo**. Os
-  botões descem inteiros, e o nome fica com a linha.
-- **O seletor e o botão que o lê são um grupo** (`par-associar`): antes o botão «Associar» caía
-  sozinho numa linha, encostado à esquerda, longe do controle que ele usa.
-- **Um número por conceito:** o celular é **768** em todas as folhas.
-- **O menu de secções vira faixa** no celular — os `<h2>` continuam no documento.
-- **A escala de tela passa a estar escrita:** quatro cortes (1200, 1140, 1024, 768), cada um com o
-  motivo declarado. Está no `IDENTIDADE-VISUAL.md`, junto da escala de espaço e de raio.
+- **`deploy-escolas.yml`, e o que se publica é o que está no commit.** Sem passo de geração no
+  runner, de propósito: o pacote É versionado, e gerar no CI tornaria o deploy irreprodutível a
+  partir do commit (com `pandoc` e `pdflatex` do runner podendo diferir do local e travar o
+  deploy para sempre). Quem gera é quem tem as fontes.
+- **A lista é descoberta, não escrita à mão.** Cada escola é um `wrangler.<slug>.jsonc` cujo
+  `assets.directory` começa em `professores/`; o `danca` fica de fora porque a raiz tem o seu
+  workflow. Uma escola nova passa a ser publicada no dia em que ganha o config.
+- **A identidade é conferida antes** (`check-identidade.js`). É o que impede uma folha velha de
+  chegar à produção com aval de «ok» — foi esse aval que faltou hoje.
+- **Uma escola que falha não impede as outras** (`fail-fast: false`): são Workers
+  independentes, e travar uma por causa da outra esconde o problema.
+- **O filtro do `workflow_dispatch` entra por `env`**, não por interpolação no script — valor
+  digitado nunca vira comando.
 
-**Onde entrou.**
+**Publicado hoje, à mão, antes do workflow existir.** `wrangler deploy` nos dois configs;
+conferido depois: `assets/style.css` no ar com `122e570…`, idêntico à fonte.
 
-- `motor/servidor/bastidores.js` — `.linha-turma`, `.assoc`, `par-associar`, `.lista > li > .nome`,
-  o corte 768 e a faixa do `.lateral`.
-- `experimentos/provar-celular.js` — **novo**: 9 provas de geometria em 320–1024px, com o `<style>`
-  extraído do próprio `bastidores.js` (sem cópia).
-- `IDENTIDADE-VISUAL.md` — «A escala — três medidas, e o estado real de cada uma» e «A escala de
-  tela».
-- `README.md` e `experimentos/README.md` — o atalho e o que é prova ali dentro.
-- `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 5.
-
-**Conferido.** `provar-celular.js` → 9/9. **Controle negativo** (CSS antigo em stash) → **4 das 8**
-provas falham, que são exatamente os quatro defeitos. `provar-producao.js` → 109/109.
-`provar-derivacao-da-turma.js` → 123/123. `provar-tema.js` → 30/30. `check-identidade.js` → 8
-verificações. `ficha-html-cli --autoteste` → 42/42.
+**Conferido.** `check-identidade.js` → 8 verificações (a checagem 6 compara o corpo da porta de
+cada pacote). `provar-celular.js` → 11/11, agora sobre HTTP. `provar-tema.js` → 30/30.
+`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123. As páginas no ar
+renderizadas num navegador: botão com raio 12 e 44px de altura, nada transborda em 390px.
 
 **O que ainda não está feito.**
 
-- **A escala de espaço (F14) continua sem adoção**: `--esp-*` tem 14 usos, todos na fonte.
-- **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
-  entra e sai.
-- **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.
+- **O `workflow_dispatch` do `deploy-escolas.yml` não foi exercitado** — o disparo só acontece
+  no próximo push que toque nos caminhos listados.
+- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
+  dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
+- **A conferência visual continua sua**, agora com a pele nova de fato no ar.
 
 ## O que está pendente
-
-## 16/10/2026 — A camada de componentes: o desenho deixa de ser reescrito por página
-
-
-- **Nada foi visto no navegador.** A migração preserva as medidas declaradas e as provas de
-  markup/comportamento passam; o olho humano é o passo seguinte.
-- **A Fase 2 não começou**: os tokens ainda são literais (`--cream`, `--burgundy`), não papéis; não
-  há `[data-modo="noturna"]`, nem `color-scheme`, nem `@media print` forçando a paleta clara por
-  token.
-- **O pacote da Fita não foi regenerado por `gerar-ciclo.sh`** — continua bloqueado por
-  `DATA_INICIO` (`[Preencher: …]`). Só as cópias determinísticas foram propagadas.
-- **Observação registrada, não corrigida:** em `raiz/index.html`, a mensagem «apagando … não feche
-  esta janela» é escrita num `.res` sem classe de estado e por isso não aparece. É anterior a esta
-  mudança.
-- **Nenhum commit foi feito.**
 
 ## 17/10/2026 — Os papéis e a variante noturna: a identidade passa a ter tema
 
@@ -272,6 +253,15 @@ verificações. `ficha-html-cli --autoteste` → 42/42.
 - **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
   entra e sai.
 - **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.
+
+## 17/10/2026 — Os commits estavam certos e a produção estava velha: as escolas passam a publicar no push
+
+
+- **O `workflow_dispatch` do `deploy-escolas.yml` não foi exercitado** — o disparo só acontece
+  no próximo push que toque nos caminhos listados.
+- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
+  dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
+- **A conferência visual continua sua**, agora com a pele nova de fato no ar.
 
 ## Pendências anteriores (índice)
 
@@ -445,6 +435,7 @@ verificações. `ficha-html-cli --autoteste` → 42/42.
 - **16/10/2026** — A curadoria é de UMA turma (e edita-se ou deriva-se como a… → `REGISTRO.md` L14690
 - **16/10/2026** — A identidade visual fecha o circuito: raiz, porta,… → `REGISTRO.md` L14759
 - **16/10/2026** — A curadoria é de UMA turma — e o id passa a dizê-lo → `REGISTRO.md` L14852
+- **16/10/2026** — A camada de componentes: o desenho deixa de ser reescrito… → `REGISTRO.md` L14918
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

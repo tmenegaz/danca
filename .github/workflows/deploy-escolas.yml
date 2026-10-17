@@ -1,0 +1,133 @@
+name: Publicar as escolas
+
+# POR QUE ESTE WORKFLOW EXISTE. Em 17/10/2026 o dono do produto abriu as duas escolas de
+# teste e disse: «não identifiquei em nenhuma delas os ajustes». Os commits estavam certos
+# e no `main`; os pacotes versionados tinham a folha nova; e os dois Workers serviam a
+# folha ANTERIOR. Medido: `assets/style.css` no ar com md5 `91509d8…`, no repositório com
+# `122e570…`. Nada publicava.
+#
+# É a MESMA falha que já tinha custado dois incidentes na raiz — e é a razão pela qual o
+# `deploy-raiz.yml` existe. Até agora, o único caminho que publicava uma escola era o
+# `gerar-ciclo.yml`, que é `workflow_dispatch` (manual) e que roda o gerador ANTES. E o
+# gerador RECUSA um ciclo cujo `DATA_INICIO` ainda é lacuna — o que é o estado normal de
+# qualquer escola recém-criada. Ou seja: o único caminho automático estava fechado
+# exactamente para as escolas que mais mudam, as de teste.
+#
+# O QUE SE PUBLICA É O QUE ESTÁ NO COMMIT. Não há passo de geração aqui, e é de propósito:
+# o pacote do ciclo É versionado (é dele que o Worker serve), e gerar no runner tornaria o
+# deploy irreprodutível a partir do commit — com o agravante de que o `pandoc` e o
+# `pdflatex` do runner podem diferir do local e travar o deploy para sempre. Quem gera é
+# quem tem as fontes; quem publica é este workflow, e ele publica o que passou no commit.
+#
+# A IDENTIDADE É CONFERIDA ANTES. `check-identidade.js` é determinístico e roda aqui; é ele
+# que impede que uma folha velha chegue à produção com aval de «ok» — foi esse aval que
+# faltou hoje.
+
+on:
+  push:
+    branches: [main]
+    # O que uma escola SERVE é o conteúdo do seu pacote (a pasta do ciclo) mais o motor
+    # que o Worker empacota. Não se lista arquivo por arquivo dentro do pacote: um
+    # `assets/nav.js` novo tem de publicar, e uma lista nominal apodreceria em silêncio.
+    paths:
+      - 'professores/**'
+      - 'motor/**'
+      - 'workers/**'
+      - 'wrangler.*.jsonc'
+      - 'tools/templates/**'
+      - 'tools/check-identidade.js'
+      - '.github/workflows/deploy-escolas.yml'
+  workflow_dispatch:
+    inputs:
+      escola:
+        description: 'Slug de UMA escola (vazio publica todas)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+# Um deploy de cada vez por escola, sem cancelar o que já está a subir: dois
+# `wrangler deploy` simultâneos do mesmo Worker disputam a versão activa.
+concurrency:
+  group: deploy-escolas
+  cancel-in-progress: false
+
+jobs:
+  # A LISTA É DESCOBERTA, NÃO ESCRITA À MÃO. Cada escola é um `wrangler.<slug>.jsonc` cujo
+  # `assets.directory` começa em `professores/`. O `wrangler.danca.jsonc` fica de fora: a
+  # raiz não é escola e tem o seu próprio workflow. Uma escola nova passa a ser publicada
+  # no dia em que ganha o config — sem ninguém lembrar de editar este arquivo.
+  descobrir:
+    runs-on: ubuntu-latest
+    outputs:
+      escolas: ${{ steps.lista.outputs.escolas }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: lista
+        shell: bash
+        # O filtro entra por `env`, não por interpolação no script: um valor digitado no
+        # `workflow_dispatch` nunca pode virar comando. Vazio (push) publica todas.
+        env:
+          FILTRO: ${{ github.event.inputs.escola }}
+        run: |
+          set -euo pipefail
+          filtro="${FILTRO:-}" 
+          lista='[]'
+          for cfg in wrangler.*.jsonc; do
+            [ -f "$cfg" ] || continue
+            slug="${cfg#wrangler.}"; slug="${slug%.jsonc}"
+            [ "$slug" = danca ] && continue
+            grep -q '"directory": *"professores/' "$cfg" || continue
+            if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
+            lista=$(printf '%s' "$lista" | node -e '
+              const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
+              l.push(process.argv[1]); process.stdout.write(JSON.stringify(l));' "$slug")
+          done
+          echo "escolas=$lista" >> "$GITHUB_OUTPUT"
+          echo "descobertas: $lista"
+
+  publicar:
+    needs: descobrir
+    if: needs.descobrir.outputs.escolas != '[]'
+    runs-on: ubuntu-latest
+    strategy:
+      # Uma escola que falha não impede as outras de subir: são Workers independentes, e
+      # travar a publicação de uma por causa da outra esconde o problema em vez de o dizer.
+      fail-fast: false
+      matrix:
+        escola: ${{ fromJSON(needs.descobrir.outputs.escolas) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Conferir a identidade antes de publicar
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/check-identidade.js
+
+      - name: Subir ${{ matrix.escola }} no Cloudflare
+        shell: bash
+        run: |
+          set -euo pipefail
+          npx wrangler deploy -c "wrangler.${{ matrix.escola }}.jsonc"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12
+
+      - name: Dizer o que ficou no ar
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          {
+            echo "### escola \`${{ matrix.escola }}\` publicada"
+            echo ""
+            echo "- commit: \`${{ github.sha }}\`"
+            echo "- https://${{ matrix.escola }}.tmenegaz77.workers.dev/"
+          } >> "$GITHUB_STEP_SUMMARY"
