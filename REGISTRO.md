@@ -14492,3 +14492,60 @@ schema nas duas formas; os seis módulos do servidor a carregar; a sintaxe dos t
 - **A incoerência transitória, declarada:** até a migração, o ciclo `fita` conserva a fonte do
   plano que já tinha, e os planos NOVOS passam a escrever na variante da turma. Os dois convivem
   de propósito — nada se renomeia enquanto as fases 1–4 não estiverem verificadas.
+
+## 16/10/2026 — A hora de início é do DIA da semana (e a turma passa a derivar)
+
+**O que motivou.** O ciclo passou a ser da turma, e a fonte compõe-se do plano — mas o
+**calendário** exige a hora de início da aula, e ela **não existia no cadastro da turma**. Vivia
+no `.conf` da escola, fictícia: `DIAS="2@19:00,4@19:00"  # HORA FICTÍCIA`. O `calendario.py`
+recusa sem ela desde 25/09/2026, e o motivo está na fórmula do prazo
+(`ARQUITETURA-AULA.md` §3.1): `fim do bloco = fim da última aula daquela data`, e o prazo de
+lançamento conta **do fim da aula**.
+
+Duas descobertas mudaram a ordem do trabalho, e as duas foram medidas antes de qualquer código:
+
+1. **Não há edição de turma** — o `POST /api/bastidores/turma` devolve **409** quando a turma já
+   existe, e o cadastro só oferece «Excluir». A hora só se podia declarar na criação.
+2. **`faltaNoRitmoDaTurma` fecha a curadoria.** Se a hora entrasse já como requisito, as turmas
+   vivas («Teste», «Teste 2») passavam a *«não pode ser atribuída»* — e o plano de ensino em
+   curso **parava**. Por isso a hora **não** entra no requisito nesta rodada.
+
+**O que foi decidido.**
+
+- **A hora é do DIA da semana, não da turma.** A direção pode ter a turma às 9h na terça e às 11h
+  na quarta — e essa flexibilidade é dela. O modelo da turma ganha `horarios: {ter: "09:00",
+  qua: "11:00"}`, **aditivo**: uma turma sem ele continua a ler-se, e é o que faz os dois modelos
+  conviverem.
+- **A hora final não se declara.** Sai da hora de início mais a duração. Declarar as duas abriria
+  a porta a uma contradição (início 9h + duração 60 = fim 11h?) que o sistema teria de arbitrar.
+- **O formato casa com o do calendário sem tradução:** `ter 09:00 · qua 11:00` → `2@09:00,3@11:00`.
+  Foi para isso que o `@` nasceu colado a cada dia.
+- **O que não casar é descartado**: hora fora de `HH:MM`, ou hora de um dia que a turma não tem.
+  A mesma lei do `normalizarDia` — melhor uma hora a menos, que a validação anuncia, do que uma
+  hora errada a produzir um calendário errado.
+- **A «edição» de turma será uma DERIVAÇÃO** (decisão do dono): a escola pensa que edita; a
+  proveniência regista um elo novo — a turma derivada vale a partir de uma data, a anterior sai da
+  listagem e **fica como referência do passado**. É o mesmo invariante do plano vinculado a um PO.
+  O motivo é medido: sem edição, a escola fica engessada («deletar e fazer novo» a cada erro) e
+  com muitas turmas isso é trabalho demais; com edição a sério, o input mudaria o valor e o
+  passado seria reescrito.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `normalizarTurma` grava `horarios` (com a trava do formato), o
+  formulário ganha a hora ao lado de cada dia, e a listagem mostra `ter 09:00`.
+
+**Conferido.** A normalização exercitada em seis casos (duas horas; hora sem zero inicial, hora
+impossível e hora de dia fora da turma — todas recusadas; sem horas; `horarios` como array,
+ignorado) e o formulário servido com os sete campos, um por dia (`data-dia` de `seg` a `dom`).
+Deploy `15ba55f1`.
+
+**O que ainda não está feito.**
+
+- **A hora não é requisito do ritmo** — de propósito, e até as turmas vivas a terem. Torná-la
+  requisito agora travaria a curadoria delas.
+- **A derivação da turma** (o passo 2) não está feita: a lista, a data de vigência, a marcação da
+  anterior como substituída, e o efeito na curadoria. É a próxima peça, e é a que resolve o
+  «editar» sem reescrever o passado.
+- **O plano ainda não lê a hora**, e o `.conf` da variante continua por compor. Fecha-se depois
+  da derivação, com as turmas vivas já completas.

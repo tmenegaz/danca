@@ -300,6 +300,22 @@ function normalizarTurma(corpo) {
     .map(normalizarDia)
     .filter(Boolean)
     .filter((d, i, arr) => arr.indexOf(d) === i);
+  // A HORA DE INÍCIO DE CADA DIA (16/10/2026). É a hora que a aula COMEÇA naquele dia da
+  // semana — e é do DIA, não da turma: a direção pode ter a turma às 9h na terça e às 11h na
+  // quarta, e essa flexibilidade é dela. A hora final não se declara: sai da hora de início
+  // mais a duração, e é dela que o CALENDÁRIO conta o fim do bloco (o prazo de lançamento
+  // conta do fim da aula — ARQUITETURA-AULA §3.1).
+  //
+  // Só entra a hora de um dia que existe na turma, e só no formato HH:MM. O que não casar é
+  // DESCARTADO, como o `normalizarDia` faz com o dia: melhor uma hora a menos — que a
+  // validação do ritmo anuncia — do que uma hora errada a produzir um calendário errado.
+  const crus = (corpo.horarios && typeof corpo.horarios === 'object' && !Array.isArray(corpo.horarios))
+    ? corpo.horarios : {};
+  const horarios = {};
+  for (const d of dias) {
+    const h = String(crus[d] == null ? '' : crus[d]).trim();
+    if (/^([01][0-9]|2[0-3]):[0-5][0-9]$/.test(h)) horarios[d] = h;
+  }
   return {
     id: idDe(nome),
     nome: nome,
@@ -312,6 +328,9 @@ function normalizarTurma(corpo) {
     // frequência, dias, duração e o período do termo. O plano LÊ; não reescreve.
     frequencia: inteiro(corpo.frequencia),
     dias: dias,
+    // A hora de início de cada dia da semana — ver o bloco acima. Aditivo: uma turma sem ela
+    // continua a ler-se, e é o que permite os dois modelos conviverem.
+    horarios: horarios,
     duracaoMin: inteiro(corpo.duracaoMin),
     periodoInicio: String(corpo.periodoInicio || '').trim(),
     periodoFim: String(corpo.periodoFim || '').trim(),
@@ -722,7 +741,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // é o que desce para o plano de ensino — por isso aparece no cadastro.
         const ritmo = [
           t.frequencia ? t.frequencia + 'x/semana' : '',
-          (t.dias && t.dias.length) ? t.dias.join(', ') : '',
+          (t.dias && t.dias.length)
+            ? t.dias.map((d) => (t.horarios && t.horarios[d]) ? d + ' ' + t.horarios[d] : d).join(', ')
+            : '',
           t.duracaoMin ? t.duracaoMin + ' min' : '',
           (t.periodoInicio || t.periodoFim)
             ? 'termo ' + (t.periodoInicio || '?') + '–' + (t.periodoFim || '?')
@@ -907,6 +928,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
     // longas, o escolhedor abaixo.
     '.escolhas{display:flex;flex-wrap:wrap;gap:.35rem;margin:.3rem 0 .7rem;}' +
+    '.dia-hora{display:inline-flex;flex-direction:column;align-items:center;gap:.15rem;}' +
+    '.hora-do-dia{width:5.4rem;font-size:.8rem;padding:.12rem .25rem;}' +
     '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
     '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
     '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--gold-borda);border-radius:999px;background:var(--branco);font-size:.87rem;color:var(--gold-texto);line-height:1.35;}' +
@@ -1040,8 +1063,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // OS DIAS DA SEMANA: sete pílulas numa linha. Era uma caixa com rolagem e sete
     // caixinhas dentro; não há motivo para uma escolha de sete itens morar atrás de uma
     // barra de rolagem dentro de um formulário.
-    '<label>Dias da semana</label>' +
-    '<div class="escolhas" id="tdias">' + DIAS_DA_SEMANA.map((d) => pilula('dia', d, esc(d))).join('') + '</div>' +
+    '    // OS DIAS DA SEMANA com a HORA DE INÍCIO de cada um (16/10/2026). A hora é do DIA, não\n' +
+    '    // da turma: a direção pode ter a turma às 9h na terça e às 11h na quarta. A hora FINAL\n' +
+    '    // não se pergunta — sai daqui mais a duração, e é dela que o calendário conta o prazo.\n' +
+    '<label>Dias da semana e a hora de início de cada um</label>' +
+    '<div class="escolhas" id="tdias">' + DIAS_DA_SEMANA.map((d) =>
+      '<span class="dia-hora">' + pilula('dia', d, esc(d)) +
+      '<input type="time" class="hora-do-dia" data-dia="' + esc(d) + '" ' +
+      'aria-label="hora de início — ' + esc(d) + '" autocomplete="off"></span>').join('') + '</div>' +
     '<label for="tduracao">Duração de cada aula (minutos)</label>' +
     '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
     '<label for="tinicio">Início do período (termo)</label>' +
@@ -1298,6 +1327,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'function marcados(nome) {' +
     '  return Array.prototype.slice.call(document.querySelectorAll("input[name=\\"" + nome + "\\"]:checked")).map(function(x){ return x.value; });' +
     '}' +
+    // AS HORAS DE INÍCIO, por dia — o mapa que o servidor grava em `horarios`. Lê os campos
+    // pelo `data-dia`, e não pela lista dos dias: assim o formulário não precisa de repetir
+    // no JavaScript o rol que já declara no servidor.
+    'function horariosDoDia() {' +
+    '  var o = {};' +
+    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    '    var d = x.getAttribute("data-dia");' +
+    '    if (d && x.value) o[d] = x.value;' +
+    '  });' +
+    '  return o;' +
+    '}' +
     // AS FICHAS de um escolhedor — o que foi escolhido, na ordem em que se escolheu.
     'function fichasDe(id) {' +
     '  var el = document.getElementById(id);' +
@@ -1366,6 +1406,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    descricao: document.getElementById("tdescricao").value,' +
     '    frequencia: document.getElementById("tfrequencia").value,' +
     '    dias: marcados("dia"),' +
+    '    horarios: horariosDoDia(),' +
     '    duracaoMin: document.getElementById("tduracao").value,' +
     '    periodoInicio: document.getElementById("tinicio").value,' +
     '    periodoFim: document.getElementById("tfim").value' +
