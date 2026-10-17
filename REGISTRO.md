@@ -15249,3 +15249,66 @@ chaves reais no KV (`wrangler kv key get`). Os limites vêm da documentação do
 (Workers: 64 MiB de bundle, 20.000 assets, 25 MiB por ficheiro; KV: 1 GB no free, 25 MiB por
 valor). As medições de plano e PO são **estimativas de ordem de grandeza** — a Fita não tem
 nenhum no KV neste momento.
+
+## 17/10/2026 — A pasta do professor não se deriva do nome: o slug passa a ser declarado
+
+**O que aconteceu.** A escola `valse` foi criada com o nome de exibição do professor **«Tiago»**.
+O motor derivava o slug da pasta do nome — `slugificar('Tiago')` → `tiago` —, mas a pasta é
+`professores/tiago-menegaz/` (quem a cria é o workflow, com `--professor tiago-menegaz`). O
+seletor da porta passou a oferecer `tiago`, e a gravação do PO montou:
+
+```
+professores/tiago/ciclos/ciclo-01-valse-po.md
+```
+
+— uma **pasta fantasma**. A âncora do ciclo (`hash-ciclo.sh tiago-menegaz 01 valse`) nunca a
+veria, e o ciclo ficaria sem PO para sempre. **A escola parecia criada e não conseguia guardar.**
+
+A `fita` escapou por sorte: o nome de exibição é «Tiago Menegaz», que slugifica exactamente na
+pasta. O defeito estava latente desde 15/10/2026 — o dia em que a identidade do professor passou a
+ser o slug.
+
+**A causa.** Duas coisas distintas ligadas por uma conta: a **etiqueta** («Tiago») e a **pasta**
+(«tiago-menegaz»). Não são a mesma, e nada as obrigava a coincidir.
+
+**O que foi decidido.**
+
+- **O slug é DECLARADO por quem cria a pasta.** `criarEscola` grava o secret `PROFESSOR_SLUG`
+  (além do `PROFESSOR_NOME`), e `GET /api/bastidores/professores` prefere-o ao nome.
+- **Na falta do secret, deriva-se do nome — como antes.** É o que mantém as escolas já criadas a
+  funcionar sem migração: um Worker antigo continua igual.
+- **O nome de exibição fica livre.** Pode ser «Tiago», «Tiago Menegaz» ou o que a escola quiser:
+  é rótulo, não identidade.
+
+**Um achado no caminho, e ele é maior do que o sintoma.** A **raiz deployada era de 15/10 14:54**,
+e o `e0b869c` (a identidade do slug, com o campo do sobrenome) foi commitado às **15:04** — dez
+minutos depois. O formulário servido em `danca.tmenegaz77.workers.dev` era o **antigo**: sem o
+campo do sobrenome e sem a lista de professores existentes. Foi ele que criou a `valse`. A raiz
+foi agora redeployada (`8db46b32`) e traz o formulário consertado.
+
+**Onde entrou.**
+
+- `motor/servidor/provisionar-escola.js` — `criarEscola` aceita `professorSlug` e grava
+  `PROFESSOR_SLUG` (só quando há slug: nada de valor vazio).
+- `motor/servidor/bastidores.js` — `donoSlug` prefere `env.PROFESSOR_SLUG`; o comentário da rota
+  explica por que a identidade não se deriva.
+- `motor/servidor/raiz.js` — passa `professorSlug: professor` (o slug que o handler já calculava).
+- `experimentos/provar-slug-do-professor.js` — prova nova, 11 casos: o secret é gravado com o slug
+  da pasta e não com o do nome; sem slug declarado nada é gravado; o motor lê o secret; o Worker
+  antigo continua a derivar; «Tiago» sozinho produziria o defeito (medido); e o PO cai na pasta
+  que existe.
+
+**Conferido.** A prova nova passa 11/11; `provar-criar-escola-form` verde; `provar-form-escola`
+falha — **já falhava em HEAD**. Depois do redeploy, a `valse` devolve
+`{nome: "Tiago", slug: "tiago-menegaz"}` e a `fita` continua `tiago-menegaz`. As cinco rotas das
+duas escolas respondem 200, e as três fontes carregam.
+
+**Feito à mão nesta data, e por isso declarado:** o secret `PROFESSOR_SLUG=tiago-menegaz` foi
+gravado nas duas escolas com `wrangler secret put`, e as duas foram redeployadas (`valse`
+`cffcb5f5`, `fita` `a39d8f78`). O caminho automático — a raiz gravando o secret ao criar a escola
+— só vale para as escolas criadas **depois** deste deploy.
+
+**Fica por decidir.** O Worker `valsa` (com «a», do primeiro intento que falhou) continua no ar a
+servir 592 bytes de «implantação em andamento». Não tem escola, não tem Git: é lixo de um erro que
+já foi corrigido. Apagar exige uma decisão do dono — o expurgo da raiz exige um `indice.json` que
+ele não tem.

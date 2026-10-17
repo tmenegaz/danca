@@ -536,6 +536,10 @@ async function fetch(request, env) {
         accountId: ACCOUNT_ID,
         githubToken: env && env.GITHUB_TOKEN,
         professorNome: nomeDeExibicao,
+        // A PASTA vai declarada, não derivada do nome (17/10/2026): é ela que o motor usa em
+        // `professores/<slug>/…`. Com o nome de exibição só, um «Tiago» curto produzia o slug
+        // `tiago` e o PO ia para uma pasta fantasma.
+        professorSlug: professor,
         senhaProfessor,
         professorEhDono,
       });

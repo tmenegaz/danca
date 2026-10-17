@@ -2209,13 +2209,21 @@ async function fetch(request, env) {
 
   // GET /api/bastidores/professores — o seletor dos formulários. Devolve `{nome, slug}`:
   // o NOME de exibição (o rótulo) e o SLUG (o valor que entra no cofre/path). O dono vem
-  // primeiro; o slug dele é derivado do SECRET (não da sobreposição editável), para o
-  // caminho `professores/<slug>/…` continuar apontando para a pasta — ajustar o nome do
-  // dono não muda a pasta. A senha nunca sai.
+  // primeiro; o slug dele é o da PASTA (não da sobreposição editável), para o caminho
+  // `professores/<slug>/…` continuar apontando para a pasta — ajustar o nome do dono não
+  // muda a pasta. A senha nunca sai.
+  //
+  // O SLUG É DECLARADO, E SÓ NA FALTA É DERIVADO (17/10/2026). `PROFESSOR_SLUG` é o slug da
+  // pasta, gravado por quem a cria (o workflow, via `provisionar-escola.js`). Derivá-lo do NOME
+  // de exibição atava duas coisas distintas: a etiqueta e a pasta. Com «Tiago» no nome e a
+  // pasta `tiago-menegaz`, o slug saía `tiago` — e o PO era escrito em `professores/tiago/`,
+  // uma pasta fantasma que a âncora do ciclo nunca via. Um Worker ANTIGO, sem o secret,
+  // continua a derivar do nome: as escolas já criadas não precisam de migração.
   if (path === '/api/bastidores/professores') {
     const profs = await professores(kv, escola);
     const dono = await nomeDoDono(env, kv, escola);
-    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = String((env && env.PROFESSOR_SLUG) || '').trim()
+      || slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const lista = [];
     if (dono) lista.push({ nome: dono, slug: donoSlug });
     for (const p of profs) {

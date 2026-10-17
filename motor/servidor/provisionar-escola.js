@@ -133,7 +133,7 @@ function senhaAleatoria() {
 }
 
 /** Cria a escola no Cloudflare. Devolve `{ escola, nome, url }` — e NÃO a chave. */
-async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, professorNome, senhaProfessor, professorEhDono }) {
+async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono }) {
   const escola = slugificar(nome);
   if (!escola) throw new ErroDeProvisionamento('slug', 'o nome da escola não produz um slug válido');
 
@@ -200,6 +200,25 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, pr
       text: professorNome,
       type: 'secret_text',
     });
+    // O SLUG DA PASTA, DECLARADO — não derivado (17/10/2026).
+    //
+    // O motor monta `professores/<professor>/…` com o slug, e até aqui o slug saía do NOME DE
+    // EXIBIÇÃO (`slugificar(PROFESSOR_NOME)`). Isso ata duas coisas que não são a mesma: a
+    // etiqueta e a pasta. Quem cria a pasta é o workflow (`--professor`), e o nome de exibição é
+    // texto livre. Com «Tiago Menegaz» os dois coincidiam por sorte; com «Tiago» — o nome curto
+    // que alguém digita — o slug virava `tiago` e a pasta é `tiago-menegaz`. O PO seria escrito
+    // em `professores/tiago/`, uma pasta fantasma, e a âncora do ciclo nunca o veria.
+    //
+    // A identidade passa a ser DECLARADA aqui, e o motor prefere-a ao nome. Um Worker antigo,
+    // sem este secret, continua a derivar do nome — é o que mantém as escolas já criadas a
+    // funcionar sem migração.
+    if (professorSlug) {
+      await api('professor-slug', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
+        name: 'PROFESSOR_SLUG',
+        text: professorSlug,
+        type: 'secret_text',
+      });
+    }
     await api('professor-senha', token, 'PUT', base + '/scripts/' + escola + '/secrets', {
       name: 'SENHA_PROFESSOR',
       text: senhaProfessor,
