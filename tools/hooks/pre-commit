@@ -384,7 +384,10 @@ fi
 #      b) `professores/<p>/ciclos/ciclo-NN-<escola>/assets/` — a checagem "Circuito"
 #         compara byte a byte a cópia do pacote com a fonte; é a única parte de
 #         professores/ que ele lê;
-#      c) o deck do Rizoma — único consumidor que DECLARA os hex (Marp não referencia
+#      c) `raiz/assets/`, `porta/` e `motor/` — as superfícies que ele passou a varrer em
+#         16/10/2026 (a cópia da raiz, a porta, os bastidores, a ficha e as páginas de
+#         estado). Antes, mudar qualquer uma delas não disparava validação nenhuma;
+#      d) o deck do Rizoma — único consumidor que DECLARA os hex (Marp não referencia
 #         token), e por isso ele entra sozinho, e não todo o `apresentacoes/`.
 #    Um commit de docs, biblioteca, PO, plano ou só de fontes de ciclo NÃO pode
 #    afetá-lo — e o hook já é pesado o bastante para não rodá-lo por nada.
@@ -392,7 +395,7 @@ fi
 #    Roda DEPOIS do 3) de propósito: é o gerador que recopia tools/templates/ para
 #    dentro do pacote, então a checagem de circuito tem de ver o pacote JÁ regenerado.
 # ---------------------------------------------------------------------------
-if printf '%s\n' "$arquivos" | grep -qE '^(tools/|professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/assets/|apresentacoes/apresentacao-01-rizoma/apresentacao-ballet\.md$)'; then
+if printf '%s\n' "$arquivos" | grep -qE '^(tools/|raiz/assets/|porta/|motor/|professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/assets/|apresentacoes/apresentacao-01-rizoma/apresentacao-ballet\.md$)'; then
   echo "pre-commit: validando a identidade visual ..."
   if node tools/check-identidade.js > /tmp/pre-commit-identidade.log 2>&1; then
     echo "pre-commit: identidade visual ok ($(grep -c '^ok: ' /tmp/pre-commit-identidade.log) verificações passaram)"

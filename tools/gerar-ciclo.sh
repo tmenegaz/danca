@@ -760,17 +760,14 @@ gerar_nav() {
     esac
   }
   {
-    echo '<nav class="topnav" aria-label="Navegação do ciclo">'
+    # A FORMA da barra (marca vazia, hamburger, `.nav-links`) mora em UM lugar:
+    # `tools/templates/nav-html.js`, o mesmo que os Bastidores consomem. Aqui fica só
+    # a LISTA de itens, que é a do ciclo — e é construção, não sistema.
     # A marca («Ciclo NN · escola») saiu do menu: duplicava o «Início» do grupo
-    # «Ciclos» (o mesmo destino). Fica um espaço reservado, sem conteúdo, para o
-    # menu não colar na borda esquerda — a largura mora no `ciclo.css` (`.marca`).
-    echo '  <span class="marca" aria-hidden="true"></span>'
-    # botão do menu mobile: só aparece em tela pequena (ver ciclo.css); o estado
-    # aberto/fechado é anunciado por aria-expanded, e o painel é .nav-links
-    echo '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">'
-    echo '    <span></span><span></span><span></span>'
-    echo '  </button>'
-    echo '  <div class="nav-links" id="nav-links">'
+    # «Ciclos» (o mesmo destino). O espaço vazio fica para o menu não colar na borda.
+    # O hamburger só aparece em tela pequena (ver ciclo.css); o estado aberto/fechado
+    # é anunciado por aria-expanded, e o painel é `.nav-links`.
+    node "$TPL/nav-html.js" --abertura
     # ------------------------------------------------------------------
     # Menu: sequência DECLARATIVA. Cada item é "Nome|padrões":
     #   - um padrão só, sem glob  → link direto para esse documento
@@ -921,8 +918,7 @@ gerar_nav() {
       echo '  </details>'
     fi
     echo "  <a class=\"pdf\" href=\"$(link_href "$ID.pdf")\">PDF do ciclo</a>"
-    echo '  </div>'
-    echo '</nav>'
+    node "$TPL/nav-html.js" --fechamento
   } > "$destino"
 }
 

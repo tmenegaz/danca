@@ -20,6 +20,46 @@
   var navbar = document.querySelector('.topnav');
   var botao = document.querySelector('.hamburger');
 
+  /* ------------------------------------------------------------------
+   * O TEMA. A escolha é EXPLÍCITA e fica no NAVEGADOR (`localStorage`), entre
+   * sessões. Isto é PROVISÓRIO e declarado: a decisão C15 — de quem é a
+   * preferência (escola, usuário ou navegador) — continua em aberto em
+   * PLANEJAMENTO-LASTRO.md. O navegador é o caminho que NÃO exige identidade de
+   * usuário, que o portão atual não tem.
+   *
+   * O valor aplicado é `data-modo="noturna"` no <html>; a ausência do atributo é
+   * a variante clara. O CSS tem os dois conjuntos de papéis, então trocar o
+   * atributo re-veste a página inteira sem tocar em componente nenhum.
+   * ------------------------------------------------------------------ */
+  var CHAVE_TEMA = 'ciclo-modo';
+  var raizDoc = document.documentElement;
+  function lerModo() {
+    try { return localStorage.getItem(CHAVE_TEMA) === 'noturna' ? 'noturna' : 'clara'; }
+    catch (e) { return 'clara'; }
+  }
+  function pintarBotao(modo) {
+    var b = document.querySelector('.tema');
+    if (!b) return;
+    var noturna = modo === 'noturna';
+    b.setAttribute('aria-pressed', noturna ? 'true' : 'false');
+    b.setAttribute('aria-label', noturna ? 'Ativar a aparência clara' : 'Ativar a aparência noturna');
+    b.textContent = noturna ? '\u25D1' : '\u25D0';
+  }
+  function aplicar(modo) {
+    if (modo === 'noturna') raizDoc.setAttribute('data-modo', 'noturna');
+    else raizDoc.removeAttribute('data-modo');
+    pintarBotao(modo);
+  }
+  aplicar(lerModo());
+  var botaoTema = document.querySelector('.tema');
+  if (botaoTema) {
+    botaoTema.addEventListener('click', function () {
+      var proximo = raizDoc.getAttribute('data-modo') === 'noturna' ? 'clara' : 'noturna';
+      aplicar(proximo);
+      try { localStorage.setItem(CHAVE_TEMA, proximo); } catch (e) { /* modo privado: só nesta aba */ }
+    });
+  }
+
   /* Página sem navegação (o arquivo é carregado pelo template, não só pelo ciclo):
      sai sem tocar em nada, em vez de estourar mais abaixo. */
   if (!navbar) return;

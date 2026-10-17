@@ -49,33 +49,48 @@ function contraste(a, b) {
 }
 
 // Os pares que a identidade usa, com o piso de cada um. `texto` é o piso 4,5:1;
-// `traço` é o piso 3,0:1 (borda e filete têm função, não são decoração).
+// `texto pequeno` também (o selo é lido); `traço` é o piso 3,0:1 (borda e filete têm
+// função, não são decoração).
+//
+// Desde 16/10/2026 os pares são de PAPÉIS, e não de valores: o mesmo par é medido na
+// variante clara e na noturna. É o que impede um tema novo de nascer sem prova — e o
+// que dá sentido ao nome «papel».
 const PARES = [
-  ['corpo do texto sobre o papel', '--tinta', '--cream', 4.5],
-  ['texto secundário', '--soft', '--cream', 4.5],
-  ['título de seção', '--burgundy', '--cream', 4.5],
-  ['título de bloco (h4)', '--gold-texto', '--cream', 4.5],
-  ['cabeçalho de tabela', '--gold-texto', '--creme-2', 4.5],
-  ['legenda de ficha', '--gold-texto', '--creme-2', 4.5],
-  ['marca da barra', '--gold-claro', '--burgundy', 4.5],
-  ['marca sob o ponteiro', '--cream', '--burgundy-claro', 4.5],
-  ['item de menu', '--cream', '--burgundy', 4.5],
-  ['item de menu aberto', '--cream', '--burgundy-claro', 4.5],
-  ['botão voltar ao topo', '--cream', '--burgundy', 4.5],
-  ['item ativo (texto sobre o ouro)', '--sobre-ouro', '--gold', 4.5],
-  ['aviso de parcial', '--alerta', '--cream', 4.5],
-  ['aviso sobre fundo de tabela', '--alerta', '--creme-2', 4.5],
-  ['aconteceu', '--ok', '--cream', 4.5],
-  ['erro / não aconteceu', '--falha', '--cream', 4.5],
-  ['filete de ouro', '--gold-escuro', '--cream', 3.0],
-  ['borda de tabela', '--gold-escuro', '--branco', 3.0],
-  ['borda de campo de formulário', '--gold-borda', '--branco', 3.0],
-  ['borda de campo sobre o papel', '--gold-borda', '--cream', 3.0],
-  ['ornamento da barra', '--gold-claro', '--burgundy', 3.0],
+  ['corpo do texto sobre o fundo', '--texto', '--fundo', 4.5],
+  ['texto secundário', '--texto-suave', '--fundo', 4.5],
+  ['título de seção', '--marca', '--fundo', 4.5],
+  ['título de bloco (h4)', '--marca-texto', '--fundo', 4.5],
+  ['cabeçalho de tabela', '--marca-texto', '--fundo-faixa', 4.5],
+  ['legenda de ficha', '--marca-texto', '--fundo-faixa', 4.5],
+  ['texto sobre a superfície', '--texto', '--superficie', 4.5],
+  ['marca da barra', '--texto-destaque-marca', '--marca-fundo', 4.5],
+  ['marca sob o ponteiro', '--sobre-marca', '--marca-fundo-hover', 4.5],
+  ['item de menu', '--sobre-marca', '--marca-fundo', 4.5],
+  ['item de menu aberto', '--sobre-marca', '--marca-fundo-hover', 4.5],
+  ['botão voltar ao topo', '--sobre-marca', '--marca-fundo', 4.5],
+  ['item ativo (texto sobre o ouro)', '--ativo-texto', '--ativo-fundo', 4.5],
+  ['ação principal', '--acao-texto', '--acao-fundo', 4.5],
+  ['aviso de parcial', '--alerta', '--fundo', 4.5],
+  ['aviso sobre fundo de tabela', '--alerta', '--fundo-faixa', 4.5],
+  ['aconteceu', '--ok', '--fundo', 4.5],
+  ['erro / não aconteceu', '--falha', '--fundo', 4.5],
+  ['aconteceu sobre o fundo de estado', '--ok', '--ok-fundo', 4.5],
+  ['parcial sobre o fundo de estado', '--alerta', '--alerta-fundo', 4.5],
+  ['falha sobre o fundo de estado', '--falha', '--falha-fundo', 4.5],
+  ['derivada sobre o fundo de estado', '--derivada', '--derivada-fundo', 4.5],
+  ['texto do campo sobre o papel', '--texto', '--campo-fundo', 4.5],
+  ['texto do campo sobre o cartão', '--texto', '--campo-fundo-cartao', 4.5],
+  ['filete sobre o fundo', '--borda', '--fundo', 3.0],
+  ['borda de tabela', '--borda', '--superficie', 3.0],
+  ['borda de campo', '--borda-campo', '--campo-fundo', 3.0],
+  ['borda de campo sobre o papel', '--borda-campo', '--fundo', 3.0],
+  ['borda de campo sobre o cartão', '--borda-campo', '--campo-fundo-cartao', 3.0],
+  ['ornamento da barra', '--ornamento-forte', '--marca-fundo', 3.0],
+  ['foco', '--foco', '--fundo', 3.0],
 ];
 
-// Os tokens declarados no :root da fonte de verdade. Lê o bloco até a primeira
-// chave fechada — o :root do ciclo.css é plano, sem aninhamento.
+// Os tokens declarados no :root da fonte de verdade — os PRIMITIVOS, que o `lib-tokens`
+// leva ao LaTeX e ao deck. Lê o bloco até a primeira chave fechada.
 function lerTokens() {
   const css = fs.readFileSync(fonte, 'utf8');
   const i = css.indexOf(':root');
@@ -91,26 +106,66 @@ function lerTokens() {
   return tokens;
 }
 
+// Um TEMA é um bloco que declara papéis (hex ou `var(--primitivo)`). São dois: o
+// `:root` (clara) e `[data-modo="noturna"]`. O valor é resolvido pela cadeia de
+// `var()`, porque na clara quase todo papel aponta para um primitivo.
+function lerTema(seletor) {
+  const css = fs.readFileSync(fonte, 'utf8');
+  const i = css.indexOf(seletor);
+  if (i < 0) return null;
+  const bloco = css.slice(i, css.indexOf('}', i));
+  const mapa = {};
+  for (const m of bloco.matchAll(/(--[a-z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,6}|var\(--[a-z0-9-]+\))/g)) {
+    mapa[m[1]] = m[2].toLowerCase();
+  }
+  return mapa;
+}
+
+function resolver(mapa, nome, vistos) {
+  const v = mapa[nome];
+  if (!v) return null;
+  if (v.startsWith('#')) return v;
+  const alvo = v.match(/var\((--[a-z0-9-]+)\)/);
+  if (!alvo) return null;
+  if (vistos.has(alvo[1])) return null;
+  vistos.add(alvo[1]);
+  return resolver(mapa, alvo[1], vistos);
+}
+
 const tokens = lerTokens();
 
 // ------------------------------------------------------------------ 1) paleta
 
+const TEMAS = [
+  ['clara', lerTema(':root')],
+  ['noturna', lerTema('[data-modo="noturna"]')],
+];
+
 if (Object.keys(tokens).length) {
-  const falhas = [];
-  for (const [nome, fundoToken, frenteToken, piso] of PARES) {
-    const frente = tokens[frenteToken];
-    const fundo = tokens[fundoToken];
-    if (!frente || !fundo) {
-      erros.push(`Identidade: par "${nome}" cita token inexistente (${frenteToken} / ${fundoToken})`);
+  for (const [nomeTema, mapa] of TEMAS) {
+    if (!mapa) {
+      erros.push(`Identidade: o tema "${nomeTema}" não foi encontrado na fonte`);
       continue;
     }
-    const r = contraste(frente, fundo);
-    if (r < piso) falhas.push(`${nome} ${r.toFixed(2)}:1 (piso ${piso.toFixed(1)})`);
-  }
-  if (falhas.length) {
-    for (const f of falhas) erros.push(`Contraste: ${f}`);
-  } else {
-    ok.push(`Contraste: ${PARES.length} pares medidos, todos em AA ou acima`);
+    const falhas = [];
+    let medidos = 0;
+    for (const [nome, frenteToken, fundoToken, piso] of PARES) {
+      const frente = resolver(mapa, frenteToken, new Set([frenteToken]));
+      const fundo = resolver(mapa, fundoToken, new Set([fundoToken]));
+      if (!frente || !fundo) {
+        erros.push(`Identidade: par "${nome}" (${nomeTema}) cita papel inexistente ` +
+          `(${frenteToken} / ${fundoToken})`);
+        continue;
+      }
+      medidos++;
+      const r = contraste(frente, fundo);
+      if (r < piso) falhas.push(`${nome} (${nomeTema}) ${r.toFixed(2)}:1 (piso ${piso.toFixed(1)})`);
+    }
+    if (falhas.length) {
+      for (const f of falhas) erros.push(`Contraste: ${f}`);
+    } else {
+      ok.push(`Contraste: ${medidos} pares medidos no tema ${nomeTema}, todos em AA ou acima`);
+    }
   }
 }
 
@@ -125,9 +180,25 @@ const CONSUMIDORES = [
   'tools/gerar-animacao.js',
   'tools/sincronizar-slide.js',
   'tools/hash-ciclo.sh',
+  // As superfícies que o sistema SERVE. Entraram em 16/10/2026: a varredura dizia
+  // «nenhum hex fora da fonte» e não olhava para a raiz, a porta, os bastidores nem
+  // as páginas de estado — a maior parte do que o usuário vê.
+  'porta/index.html',
+  'raiz/index.html',
+  'motor/servidor/bastidores.js',
+  'motor/servidor/producao.js',
+  'motor/servidor/cloudflare.js',
+  'motor/servidor/provisionar-escola.js',
   // O deck é Marp, não pode referenciar os tokens: ele DECLARA os valores e a
   // correspondência fica por conta deste validador.
   'apresentacoes/apresentacao-01-rizoma/apresentacao-ballet.md',
+];
+
+// Quem DECLARA os tokens porque é servido SOZINHO — sem `<link>` para a folha. Nesses
+// arquivos o hex é legítimo; o que se confere é se ele BATE com a fonte de verdade.
+const DECLARANTES = [
+  'motor/nucleo/ficha-html.js',
+  'motor/servidor/estado-html.js',
 ];
 
 // Um comentário que CITA um valor — para explicar por que ele saiu — não é
@@ -153,6 +224,15 @@ const paleta = new Set();
   const codigo = semComentarios(fs.readFileSync(fonte, 'utf8'), 'tools/templates/ciclo.css');
   for (const m of codigo.matchAll(/#[0-9a-fA-F]{6}\b/g)) paleta.add(m[0].toLowerCase());
 }
+
+// `#abc` e `#aabbcc` são o mesmo tom: normaliza para seis dígitos antes de comparar.
+// Sem isto, um `#fff` escapa da conferência (era o caso de `porta/index.html`).
+function expandirHex(h) {
+  const x = h.toLowerCase();
+  if (x.length !== 4) return x;
+  return '#' + x[1] + x[1] + x[2] + x[2] + x[3] + x[3];
+}
+const RE_HEX = /#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b/g;
 
 // Tons que NÃO são da identidade (um cinza de rótulo do deck, por exemplo) podem
 // existir soltos — o que não pode é a paleta se duplicar.
@@ -188,8 +268,9 @@ for (const rel of CONSUMIDORES) {
       .join('');
   }
   codigo.split('\n').forEach((linha, i) => {
-    for (const m of linha.matchAll(/#[0-9a-fA-F]{6}\b/g)) {
-      if (!paleta.has(m[0].toLowerCase())) continue;
+    for (const m of linha.matchAll(RE_HEX)) {
+      const cor = expandirHex(m[0]);
+      if (!paleta.has(cor)) continue;
       if (rel === DECK && /^\s*--[a-z0-9-]+\s*:/.test(linha)) continue;  // declaração
       soltos.push(`${rel}:${i + 1} ${m[0]}`);
     }
@@ -202,6 +283,87 @@ if (soltos.length) {
   if (soltos.length > 12) erros.push(`Cópia única: +${soltos.length - 12} ocorrência(s)`);
 } else {
   ok.push(`Cópia única: nenhum dos ${paleta.size} hex da paleta fora de tools/templates/ciclo.css`);
+}
+
+// ------------------------------------------------- 2b) ninguém usa o PRIMITIVO
+//
+// Os primitivos (`--cream`, `--burgundy`, `--gold-claro`…) descrevem VALORES e só
+// existem na variante clara. Quem os usa num componente não acompanha o tema: no
+// escuro, `color: var(--burgundy)` seria bordô sobre fundo escuro (1,64:1). O guard
+// exige que os CONSUMIDORES falem por PAPEL (`--fundo`, `--marca`, `--texto`…).
+//
+// Ficam de fora: a própria fonte (é ela que declara os dois conjuntos) e os
+// DECLARANTES autônomos (ficha e páginas de estado), que são documentos sempre claros
+// e declaram os seus próprios tokens.
+const PRIMITIVOS = /var\(--(?:cream|branco|creme-[1-6]|tinta|soft|burgundy|burgundy-claro|gold|gold-claro|gold-escuro|gold-texto|gold-borda|sobre-ouro)\)/;
+{
+  // Só as superfícies de INTERFACE. Os geradores (a animação) e o deck declaram a
+  // própria paleta num `:root` local e são sempre claros — não consomem o tema.
+  const SUPERFICIES = [
+    'porta/index.html',
+    'raiz/index.html',
+    'motor/servidor/bastidores.js',
+    'tools/templates/lancamento.html',
+    'motor/servidor/producao.js',
+    'motor/servidor/cloudflare.js',
+    'motor/servidor/provisionar-escola.js',
+  ];
+  const usos = [];
+  for (const rel of SUPERFICIES) {
+    const p = path.join(raiz, rel);
+    if (!fs.existsSync(p)) continue;
+    const bruto = fs.readFileSync(p, 'utf8');
+    bruto.split('\n').forEach((linha, i) => {
+      if (PRIMITIVOS.test(linha)) usos.push(`${rel}:${i + 1}`);
+    });
+  }
+  if (usos.length) {
+    for (const u of usos.slice(0, 12)) {
+      erros.push(`Papel: primitivo usado fora da fonte — ${u} (use o papel: --fundo, --texto, --marca…)`);
+    }
+    if (usos.length > 12) erros.push(`Papel: +${usos.length - 12} ocorrência(s)`);
+  } else {
+    ok.push('Papel: nenhum consumidor usa primitivo; todos falam por papel');
+  }
+}
+
+// A correspondência dos DECLARANTES: cada `--token: #hex` tem de valer o mesmo que a
+// fonte. Aceita as duas formas do repositório: CSS (`--x: #hex;`) e objeto JS
+// (`'--x': '#hex'`). Sem esta checagem, a ficha e as páginas de estado voltariam a
+// ser uma segunda identidade — só que agora «declarada».
+for (const rel of DECLARANTES) {
+  const p = path.join(raiz, rel);
+  if (!fs.existsSync(p)) {
+    erros.push(`Identidade: declarante não existe: ${rel}`);
+    continue;
+  }
+  const codigo = semComentarios(fs.readFileSync(p, 'utf8'), rel);
+  const achados = [];
+  for (const m of codigo.matchAll(/(--[a-z0-9-]+)\s*['"]?\s*:\s*['"]?(#[0-9a-fA-F]{3,6})\b/g)) {
+    achados.push([m[1], expandirHex(m[2])]);
+  }
+  const divergentes = [];
+  for (const [nome, valor] of achados) {
+    if (!tokens[nome]) divergentes.push(`${nome} não existe na fonte de verdade`);
+    else if (tokens[nome] !== valor) divergentes.push(`${nome} declara ${valor}, a fonte diz ${tokens[nome]}`);
+  }
+  if (divergentes.length) {
+    for (const d of divergentes) erros.push(`Declarante ${rel}: ${d}`);
+  } else if (achados.length) {
+    ok.push(`Declarante: os ${achados.length} tokens de ${rel} batem com a fonte`);
+  }
+}
+
+// Um tema declarado sem ser medido é o defeito que este validador existe para evitar.
+// Todo bloco `[data-modo="…"]` da fonte tem de estar na lista TEMAS.
+const avisos = [];
+{
+  const css = fs.readFileSync(fonte, 'utf8');
+  const declarados = [...css.matchAll(/\[data-modo="([a-z-]+)"\]\s*\{/g)].map((m) => m[1]);
+  const unicos = [...new Set(declarados)];
+  if (!unicos.includes('noturna')) {
+    avisos.push('a fonte não declara [data-modo="noturna"]');
+  }
 }
 
 // A correspondência declarada pelo deck: cada `--token: #hex` do frontmatter tem
@@ -262,6 +424,19 @@ function compararPacotes() {
   }
 }
 compararPacotes();
+
+// A RAIZ também serve uma cópia da folha, e não é um pacote de ciclo: ela é gerada por
+// `tools/gerar-raiz.sh`. Antes, a cópia era manual e nada a conferia — o modo de falha
+// que o contrato diz ter eliminado.
+{
+  const copia = path.join(raiz, 'raiz/assets/style.css');
+  if (!fs.existsSync(copia)) {
+    erros.push('Circuito: raiz/assets/style.css não existe — rode tools/gerar-raiz.sh');
+  } else if (fs.readFileSync(fonte, 'utf8') !== fs.readFileSync(copia, 'utf8')) {
+    erros.push('Circuito: raiz/assets/style.css divergiu de tools/templates/ciclo.css — rode tools/gerar-raiz.sh');
+  }
+}
+
 if (!erros.some((e) => e.startsWith('Circuito'))) {
   ok.push('Circuito: assets/style.css e assets/nav.js de cada pacote batem com a fonte');
 }
@@ -269,6 +444,7 @@ if (!erros.some((e) => e.startsWith('Circuito'))) {
 // -------------------------------------------------------------------- saída
 
 for (const l of ok) console.log(`ok: ${l}`);
+for (const a of avisos) console.log(`aviso: ${a}`);
 for (const e of erros) console.error(`erro: ${e}`);
 if (erros.length) {
   console.error(`\n${erros.length} problema(s). A identidade está em IDENTIDADE-VISUAL.md.`);

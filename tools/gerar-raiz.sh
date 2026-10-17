@@ -23,6 +23,14 @@ ALVO="$RAIZ/raiz/index.html"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
+# 0. A FOLHA DE ESTILO DA RAIZ É CÓPIA da fonte de verdade — como a do pacote de cada
+#    escola. Antes ela era copiada à mão e nada avisava quando divergia: a raiz podia
+#    servir uma identidade velha enquanto o resto do sistema já usava outra. Agora a
+#    cópia acontece aqui, e o `tools/check-identidade.js` confere o resultado.
+cp "$RAIZ/tools/templates/ciclo.css" "$RAIZ/raiz/assets/style.css"
+cp "$RAIZ/tools/templates/nav.js" "$RAIZ/raiz/assets/nav.js"
+echo "folha: raiz/assets/style.css"
+
 # 1. O corpo da raiz: a fonte SEM os atalhos de link (as linhas «Acessar …»).
 sed -e '/^\*\*\[Acessar/d' "$FONTE" > "$TMP/corpo.md"
 

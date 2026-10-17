@@ -12,35 +12,25 @@
      por vir depois, os valores locais venciam — o formulário ficava de outra cor que o site.
      A regra agora é uma só, e vale para os quatro consumidores da paleta: token novo se
      declara em `tools/templates/ciclo.css`, nunca se inventa cor aqui. */
-  body { font: 15px/1.5 var(--serif); color: var(--tinta); background: var(--cream);
+  body { font: 15px/1.5 var(--serif); color: var(--texto); background: var(--fundo);
          max-width: 1000px; margin: 0 auto;
          /* O `--header-height` é publicado pelo `assets/nav.js` (medindo a barra de verdade).
          Sem ele, o `padding` rígido punha o <h1> DEBAIXO da barra fixa. */
          padding: var(--header-height) 20px 40px; }
-  h1 { color: var(--burgundy); font-size: 1.6rem; margin: 0 0 4px;
-       border-bottom: 2px solid var(--gold-escuro); padding-bottom: 10px; }
-  /* `.aviso` não existe no site; é desta página. Segue o tratamento que o site dá à
-     anotação (`blockquote`): papel de citação e filete de ouro. */
-  .aviso { background: var(--creme-4); border-left: 4px solid var(--gold-escuro);
-           padding: 10px 12px; margin: 12px 0 18px; font-size: .92rem; color: var(--soft); }
-  fieldset { border:1px solid var(--gold-borda); border-radius:6px; padding:10px 12px; margin:0 0 18px; }
-  legend { font-weight:600; color: var(--burgundy); padding:0 6px; }
-  label { font-weight:600; margin-right:6px; }
-  /* Os CONTROLES são a única coisa sans do projeto (`--ui`): é onde se digita e se clica,
-     e a serifa atrapalha em corpo pequeno de interface. O texto em volta fica serifado. */
-  select, input[type=text], input[type=number], input[type=date] { font: 15px/1.5 var(--ui);
-           padding:5px 8px; border:1px solid var(--gold-borda); border-radius:4px; background:var(--branco); }
-  .filtros { display:flex; flex-wrap:wrap; gap:12px 22px; align-items:center; }
-  .vazio, .fraco { color: var(--soft); }
+  h1 { color: var(--marca); font-size: 1.6rem; margin: 0 0 4px;
+       border-bottom: 2px solid var(--borda); padding-bottom: 10px; }
+  fieldset { border:1px solid var(--borda-campo); border-radius:6px; padding:10px 12px; margin:0 0 18px; }
+  legend { font-weight:600; color: var(--marca); padding:0 6px; }
   .fraco { font-size:.88rem; }
+  .vazio, .fraco { color: var(--texto-suave); }
   .erro { color: var(--falha); }
   /* A medida de leitura do site (900px) com o texto do formulário (15px) e sete colunas
      não cabem juntas: a necessidade do formulário prevalece AQUI, e só aqui. */
   table { border-collapse:collapse; width:100%; margin:8px 0 16px; font-size:.92rem;
           table-layout:fixed; }
-  th,td { border:1px solid var(--gold-escuro); padding:6px 8px; text-align:left;
-          vertical-align:top; overflow-wrap:break-word; }
-  th { background: var(--creme-2); color: var(--gold-texto); }
+  /* a tabela do site já traz filete, cabeçalho e alinhamento; aqui só a medida
+     apertada do formulário e a quebra de palavra nas colunas estreitas */
+  th,td { overflow-wrap:break-word; padding:6px 8px; }
   /* Os três vereditos da observação. O `--alerta` não é o `#a06000` que estava aqui:
      aquele tom dá 4,29:1 sobre o `--creme-2` do cabeçalho, abaixo de AA. */
   .ok{color:var(--ok)} .parcial{color:var(--alerta)} .nao{color:var(--falha)}
@@ -49,29 +39,24 @@
      o quarto nível canônico é «Não se aplica», que não é grau nenhum, e um nível que a
      escola acrescente herda o neutro em vez de virar um juízo que ninguém declarou. */
   .nivel-1{color:var(--ok)} .nivel-2{color:var(--alerta)} .nivel-3{color:var(--falha)}
-  .nivel-neutro{color:var(--soft)}
+  .nivel-neutro{color:var(--texto-suave)}
   /* Um nível que a régua desta turma NÃO declara (o registro é de outro ciclo): ele fica
      visível e marcado, em vez de se disfarçar de nível desta régua. */
   .nivel-fora{color:var(--falha)}
-  h2 { color: var(--burgundy); font-size:1.05rem; margin:22px 0 4px;
-       border-bottom:2px solid var(--gold-escuro); padding-bottom:3px; }
-  h3 { color: var(--burgundy); font-size:.98rem; margin:14px 0 4px; }
+  h2 { color: var(--marca); font-size:1.05rem; margin:22px 0 4px;
+       border-bottom:2px solid var(--borda); padding-bottom:3px; }
+  h3 { color: var(--marca); font-size:.98rem; margin:14px 0 4px; }
   dl{margin:0} dt{font-weight:600; margin-top:8px} dd{margin:0 0 4px}
   .acoes { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 18px; }
-  button { font: 15px/1.5 var(--ui); padding:5px 10px; border:1px solid var(--burgundy);
-           border-radius:4px; background:var(--branco); color:var(--burgundy); cursor:pointer; }
-  button:hover:not(:disabled) { background:var(--burgundy); color:var(--cream); }
-  button:disabled { border-color:var(--gold-borda); color:var(--soft); background:var(--creme-1);
-                    cursor:default; }
   /* O rodapé gruda no pé da tela: o tamanho da página e a navegação nunca saem
      de vista — e ficam fora do que se lê, como o controle que são. */
   footer.rodape { position:sticky; bottom:0; display:flex; gap:12px 18px; align-items:center;
                   flex-wrap:wrap; margin:22px 0 0; padding:10px 12px;
-                  border-top:2px solid var(--gold-escuro); background:var(--creme-1); }
+                  border-top:2px solid var(--borda); background:var(--fundo-suave); }
   .paginacao { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
   /* Captura: um painel de lançamento, fechado por padrão (a leitura vem primeiro). */
-  .captura { border:1px solid var(--gold-borda); border-radius:6px; padding:8px 12px;
-             margin:0 0 18px; background:var(--creme-1); }
+  .captura { border:1px solid var(--borda-campo); border-radius:6px; padding:8px 12px;
+             margin:0 0 18px; background:var(--fundo-suave); }
   .captura summary { cursor:pointer; font-weight:600; }
   .captura[open] summary { margin-bottom:10px; }
   /* table-layout:fixed + campos em 100%: sem isso a tabela de lançamento crescia para
@@ -82,8 +67,8 @@
   .captura td select, .captura td input[type=number] { width:100%; box-sizing:border-box; }
   .captura input[type=text] { width:min(100%, 30em); }
   .captura textarea { font: 15px/1.5 var(--ui); width:100%; padding:5px 8px;
-                      border:1px solid var(--gold-borda); border-radius:4px;
-                      background:var(--branco); box-sizing:border-box; }
+                      border:1px solid var(--borda-campo); border-radius:4px;
+                      background:var(--campo-fundo); box-sizing:border-box; }
   .captura .linha { margin:6px 0; }
   .captura .filtros input[type=text] { width:auto; }
   /* `hidden` de VERDADE. A classe .acoes tem display:flex, e CSS de autor vence o
@@ -93,8 +78,11 @@
      verificada no HTML pelo próprio teste. */
   [hidden] { display: none !important; }
 </style>
+<script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
+   completo (o botão) vive em assets/nav.js. */
+try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
-<body id="top">
+<body id="top" data-layout="documento" data-tela="lancamento">
 <!-- A barra de navegação do PACOTE entra no marcador abaixo — quem a escreve é o gerador, com a
      mesma `gerar_nav` das outras páginas: o formulário é uma página do site, não uma página fora
      dele. SEM "índice desta página" (`toc-local`): o formulário não é documento, e aquele bloco —
@@ -112,9 +100,9 @@
 <fieldset>
   <legend>Filtros — vazio quer dizer "todos"</legend>
   <div class="filtros">
-    <span><label for="ciclo">Ciclo:</label><select id="ciclo"></select></span>
-    <span><label for="aula">Aula:</label><select id="aula"></select></span>
-    <span><label for="aluna">Aluna:</label><select id="aluna"></select></span>
+    <span><label class="campo-rotulo em-linha" for="ciclo">Ciclo:</label><select id="ciclo"></select></span>
+    <span><label class="campo-rotulo em-linha" for="aula">Aula:</label><select id="aula"></select></span>
+    <span><label class="campo-rotulo em-linha" for="aluna">Aluna:</label><select id="aluna"></select></span>
   </div>
 </fieldset>
 
@@ -150,11 +138,11 @@
      cinza diz que o filtro, ali, não tem aquilo. As opções nascem no script. -->
 <div class="acoes" id="acoes-md">
   <button id="gerar" type="button" disabled>Gerar .md</button>
-  <span><label for="entregavel">Entregável:</label>
+  <span><label class="campo-rotulo em-linha" for="entregavel">Entregável:</label>
     <select id="entregavel"></select></span>
-  <span><label for="autor">Gerado por:</label>
+  <span><label class="campo-rotulo em-linha" for="autor">Gerado por:</label>
     <input id="autor" type="text" size="16" placeholder="quem gerou (obrigatório)"></span>
-  <span><label for="senha">Sua senha:</label>
+  <span><label class="campo-rotulo em-linha" for="senha">Sua senha:</label>
     <input id="senha" type="password" size="14" placeholder="a mesma dos Bastidores — abre o ciclo e autoriza a gravar"></span>
   <span class="fraco" id="ajuda-md">gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
   <span id="aviso-gerado"></span>
@@ -165,7 +153,7 @@
 <!-- Rodapé: tamanho da página e navegação. Não é conteúdo — é o controle de
      quem lê, então fica sempre no pé da tela, nunca escondido. -->
 <footer class="rodape">
-  <span><label for="porPagina">Blocos por página:</label>
+  <span><label class="campo-rotulo em-linha" for="porPagina">Blocos por página:</label>
     <select id="porPagina">
       <option value="5">5</option>
       <option value="10">10</option>
@@ -1232,21 +1220,21 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
   ${captura ? '' : `<p class="fraco">[Preencher: o config desta aula
     (<code>${esc(configDaAula(m, id) || 'captura-' + m.id + '.json')}</code>) não está no pacote —
     sem ele o painel não sabe o que esta aula observa.]</p>`}
-  ${ajuste ? `<p class="linha"><label for="captura-motivo">Motivo do ajuste
+  ${ajuste ? `<p class="linha"><label class="campo-rotulo em-linha" for="captura-motivo">Motivo do ajuste
     (obrigatório):</label>
     <input id="captura-motivo" type="text" size="60"
       placeholder="por que este lançamento está sendo corrigido"></p>
-  <p class="linha"><label for="captura-autor">Gerado por (obrigatório):</label>
+  <p class="linha"><label class="campo-rotulo em-linha" for="captura-autor">Gerado por (obrigatório):</label>
     <input id="captura-autor" type="text" size="24" value="${esc(nomeDoAutor())}"
       placeholder="quem está ajustando"></p>` : ''}
   <div class="filtros">
-    <span><label for="captura-data">Data:</label>
+    <span><label class="campo-rotulo em-linha" for="captura-data">Data:</label>
       <input id="captura-data" type="date"
         value="${esc(a ? a.data : dataDaCaptura(m, id))}"></span>
-    <span><label for="captura-duracao">Duração executada (min):</label>
+    <span><label class="campo-rotulo em-linha" for="captura-duracao">Duração executada (min):</label>
       <input id="captura-duracao" type="number" min="0" step="5"
         value="${esc(a ? a.duracao_min : (m.duracao_min ?? ''))}"></span>
-    <span><label for="captura-plano">Plano seguido:</label>
+    <span><label class="campo-rotulo em-linha" for="captura-plano">Plano seguido:</label>
       <select id="captura-plano">${opcoesDe([['sim', 'sim'], ['parcial', 'parcial'],
         ['nao', 'não']], plano)}</select></span>
   </div>
@@ -1254,15 +1242,15 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
     (a aula declarada nele) e a duração, do <strong>planejamento do ciclo</strong> — ajuste se
     a aula aconteceu em outro dia ou durou outro tempo.</span></p>
   <div class="filtros">
-    <span><label for="captura-animo">Ânimo (1-5):</label>
+    <span><label class="campo-rotulo em-linha" for="captura-animo">Ânimo (1-5):</label>
       <input id="captura-animo" type="number" min="1" max="5" value="${esc(cc.animo ?? '')}"></span>
-    <span><label for="captura-interesse">Interesse (1-5):</label>
+    <span><label class="campo-rotulo em-linha" for="captura-interesse">Interesse (1-5):</label>
       <input id="captura-interesse" type="number" min="1" max="5"
         value="${esc(cc.interesse ?? '')}"></span>
-    <span><label for="captura-harmonia">Harmonia (1-5):</label>
+    <span><label class="campo-rotulo em-linha" for="captura-harmonia">Harmonia (1-5):</label>
       <input id="captura-harmonia" type="number" min="1" max="5" value="${esc(cc.harmonia ?? '')}"></span>
   </div>
-  <p class="linha"><label for="captura-mudou">O que mudou em relação ao plano:</label>
+  <p class="linha"><label class="campo-rotulo em-linha" for="captura-mudou">O que mudou em relação ao plano:</label>
     <input id="captura-mudou" type="text"
       value="${esc(plano === 'sim' ? '' : (cc.mudou || ''))}"
       ${plano === 'sim' ? 'disabled' : ''}
@@ -1274,11 +1262,11 @@ function camposCaptura(m, dados, id, captura, po, planoDoCiclo) {
       `<label class="presenca"><input type="checkbox" id="pres-${esc(k)}"${
         (a ? a.presentes.includes(k) : true) ? ' checked' : ''}> ${esc(nome)}</label>`).join(' · ')}</p>
   ${tabelas}
-  <p class="linha"><label for="captura-texto">Relatório — o que aconteceu:</label>
+  <p class="linha"><label class="campo-rotulo em-linha" for="captura-texto">Relatório — o que aconteceu:</label>
     <textarea id="captura-texto" rows="3">${esc(a ? a.relatorio.texto : '')}</textarea></p>
-  <p class="linha"><label for="captura-surpresas">O que surpreendeu:</label>
+  <p class="linha"><label class="campo-rotulo em-linha" for="captura-surpresas">O que surpreendeu:</label>
     <textarea id="captura-surpresas" rows="2">${esc(a ? a.relatorio.surpresas : '')}</textarea></p>
-  <p class="linha"><label for="captura-ajustes">O que foi ajustado:</label>
+  <p class="linha"><label class="campo-rotulo em-linha" for="captura-ajustes">O que foi ajustado:</label>
     <textarea id="captura-ajustes" rows="2">${esc(a ? a.relatorio.ajustes : '')}</textarea></p>
   <p class="fraco">${[
     comMarcas ? `Marcas: ✓ aconteceu · ~ parcial · X não aconteceu · ? não vi ·
