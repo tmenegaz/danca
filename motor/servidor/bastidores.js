@@ -1147,7 +1147,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // painel usa os MESMOS 14px e não tem teto de largura: o menu alinha com a barra, e a
     // listagem fica com toda a largura que sobra (era o pedido: «pode dobrar o tamanho»).
     // O formulário continua com o teto dele (34rem) — quem cresce é a coluna da lista.
-    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:1.4rem;align-items:start;padding:1.4rem 14px 2.6rem;}' +
+    '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:var(--esp-5);align-items:start;padding:var(--esp-5) var(--esp-4) var(--esp-6);}' +
     '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     '.secao>h2{grid-column:1/-1;margin:0;}' +
     // AS ABAS da secção Turmas. O painel de cada aba repete a grade do formulário + lista, e
@@ -1267,9 +1267,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // No celular o menu de secções deixa de ser uma coluna de 248px de altura (que
     // empurrava a lista para fora da primeira tela) e vira uma FAIXA horizontal que
     // quebra sozinha. Os `<h2>` continuam no documento — são eles que dão os grupos.
-    '@media (max-width:1140px){.secao{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
+    // O `.aba-painel` tem grade PRÓPRIA (é ele que alinha formulário e lista dentro de uma
+    // aba), e por isso tinha de ser desfeito junto com a `.secao`. Não era: abaixo de
+    // 1140px a `.secao` virava uma coluna e o `.aba-painel` continuava com duas — a lista
+    // de turmas ficava ao lado do formulário numa tela de telefone, e as duas colunas se
+    // sobrepunham. Era o único grupo com abas, e por isso o único com o defeito.
+    '@media (max-width:1140px){.secao,.aba-painel{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
     '@media (max-width:768px){' +
-      '.corpo{grid-template-columns:minmax(0,1fr);padding:1.2rem 14px 2rem;}' +
+      '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
       '.lateral{position:static;border-right:none;border-bottom:1px solid var(--borda-campo);' +
         'padding:.1rem 0 .4rem;display:flex;flex-wrap:wrap;align-items:center;gap:.1rem .15rem;}' +
       '.lateral h2{flex:0 0 auto;margin:0;padding:.35rem 0 .35rem .55rem;font-size:.68rem;}' +

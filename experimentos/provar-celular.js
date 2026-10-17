@@ -79,6 +79,29 @@ function pagina(css) {
     <span class="acoes"><button class="acao pequena">Editar</button>
     <button class="apagar acao perigo pequena">Excluir</button></span></li>`;
 
+  // A SEÇÃO COM ABAS. É o formato que o dono do produto viu acavalado: `Turmas` tem um
+  // `.aba-painel` com grade PRÓPRIA dentro da `.secao`. Quando o `@media` desfazia só a
+  // grade da `.secao`, esta continuava com duas colunas — a lista ficava ao lado do
+  // formulário numa tela de telefone, e as duas se sobrepunham.
+  const abas = `<section class="secao" id="sec-turmas">
+    <h2>Turmas</h2>
+    <div class="abas" role="tablist">
+      <button type="button" class="aba ativo" role="tab" aria-selected="true">Turma</button>
+      <button type="button" class="aba" role="tab" aria-selected="false">Criar rubrica</button>
+    </div>
+    <div class="aba-painel" id="aba-turma">
+      <div class="col-form"><form id="form-turma">
+        <label class="campo-rotulo" for="tnome">Nome da turma</label>
+        <input id="tnome" placeholder="ex.: Balé Nível 1">
+        <button type="submit" class="acao grande">Cadastrar turma</button>
+      </form></div>
+      <div class="col-lista" data-paginar data-por-pagina="7">
+        <h3>Turmas cadastradas</h3>
+        <div class="rolagem"><ul class="lista">${turma}${turma}</ul></div>
+      </div>
+    </div>
+  </section>`;
+
   return `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>${fs.readFileSync(FOLHA, 'utf8')}</style><style>${css}</style></head>
@@ -88,12 +111,15 @@ function pagina(css) {
   <h2>Pessoas</h2><a href="#">Professores</a><a href="#">Alunas</a>
   <h2>Pedagogia</h2><a href="#">Turmas</a>
 </nav>
+<div class="principal">
 <div class="secao"><h2>Turmas</h2>
 <form><label>Nome da turma<input></label><button class="acao">Cadastrar</button></form>
 <div class="col-lista"><h3>Cadastradas</h3><div class="rolagem"><ul class="lista">
 ${turma}
 ${item}
-</ul></div></div></div></div></body></html>`;
+</ul></div></div></div>
+${abas}
+</div></div></body></html>`;
 }
 
 // ---------------------------------------------------------------------------
@@ -125,6 +151,11 @@ function medir(page, largura) {
       largura: w,
       transbordo: doc.scrollWidth - doc.clientWidth,
       colunas: getComputedStyle(corpo).gridTemplateColumns.split(' ').length,
+      colunasAba: (() => {
+        const aba = document.querySelector('.aba-painel');
+        if (!aba) return null;
+        return getComputedStyle(aba).gridTemplateColumns.split(' ').length;
+      })(),
       lateralAltura: Math.round(lateral.getBoundingClientRect().height),
       nomeLargura: Math.round(nome.getBoundingClientRect().width),
       nomeAltura: Math.round(nome.getBoundingClientRect().height),
@@ -249,7 +280,13 @@ function provar(descricao, obtido, esperado) {
   provar('o bloco de conteúdos não transborda',
     medidas.filter((m) => m.assocTransborda > 0).map((m) => m.largura), []);
 
-  // 7) As demais superfícies: em 320/390/768 nada transborda na horizontal.
+  // 7) A SEÇÃO COM ABAS TEM DE COLAPSAR TAMBÉM. Este é o defeito que o dono do produto
+  //    viu: em `Turmas` a lista continuava ao lado do formulário no telefone, porque o
+  //    `.aba-painel` tem grade própria e o `@media` só desfazia a da `.secao`.
+  provar('a seção com abas (Turmas) também fica numa coluna no celular',
+    medidas.filter((m) => m.largura <= 1140 && m.colunasAba !== 1).map((m) => [m.largura, m.colunasAba]), []);
+
+  // 8) As demais superfícies: em 320/390/768 nada transborda na horizontal.
   provar(`nenhuma das ${superficies.length} páginas servidas transborda em 320, 390 e 768`,
     transbordam, []);
 

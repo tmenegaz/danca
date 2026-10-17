@@ -666,10 +666,24 @@ async function principal() {
   const casa = (re) => (html.match(re) || [])[0];
   const corpo = casa(/\.corpo\{[^}]*\}/);
   const cssCiclo = fs.readFileSync(path.join(RAIZ, 'tools/templates/ciclo.css'), 'utf8');
+
+  // O recuo agora vem da RÉGUA (`--esp-4`), e não de um número solto: um literal `14px`
+  // podia alinhar hoje e separar amanhã. A conferência resolve o degrau contra a fonte
+  // antes de comparar — senão ela mede a grafia, não a medida.
+  const degraus = {};
+  for (const m of cssCiclo.matchAll(/--(esp-[1-6]):\s*(\d+)px/g)) degraus[`var(--${m[1]})`] = `${m[2]}px`;
+  const resolver = (v) => {
+    const s = String(v || '').trim();
+    return degraus[s] || (/^\d+px$/.test(s) ? s : null);
+  };
   const paddingDaBarra = (cssCiclo.match(/\.topnav\s*\{[^}]*?padding:\s*([^;]+);/) || [])[1];
-  const lateralDoPadding = String(paddingDaBarra || '').trim().split(/\s+/).pop();
+  const lateralDoPadding = resolver(String(paddingDaBarra || '').trim().split(/\s+/).pop());
+  // O recuo lateral é o SEGUNDO valor do `padding` (topo, laterais, base) — ou o único,
+  // quando a declaração é curta. Ler por posição evita casar o degrau errado.
+  const valoresDoPainel = String((corpo.match(/padding:\s*([^;}]+)/) || [])[1] || '').trim().split(/\s+/);
+  const lateralDoPainel = resolver(valoresDoPainel.length > 1 ? valoresDoPainel[1] : valoresDoPainel[0]);
   conferir('o painel usa o MESMO recuo lateral da barra do topo',
-    [(corpo.match(/padding:[\d.a-z]+ (\d+px)/) || [])[1], lateralDoPadding], ['14px', '14px']);
+    [lateralDoPainel, lateralDoPadding], ['16px', '16px']);
   conferir('…e NÃO tem teto de largura (em tela larga ele não encosta na borda)',
     /max-width/.test(corpo), false);
   conferir('o formulário ficou uniforme nas cinco secções (34rem, intacto)',
