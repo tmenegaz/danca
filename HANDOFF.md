@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-17T20:30:05-0300`
-Commit atual: `2895a5d` — style(estrutura): os últimos raios crus entram na régua
+Gerado em: `2026-10-17T20:58:06-0300`
+Commit atual: `849cd4b` — chore(estrutura): as escolas passam a ser publicadas no push — e o aval de «ok» deixa de ser vazio
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+849cd4b chore(estrutura): as escolas passam a ser publicadas no push — e o aval de «ok» deixa de ser vazio
 2895a5d style(estrutura): os últimos raios crus entram na régua
 ffa45c8 fix(estrutura): a escola que não nasce não deixa Worker no ar — o rollback do órfão
 218cfde chore(ciclo-01): as cópias da folha acompanham a pele macia
@@ -81,7 +82,6 @@ f5a12ea feat(estrutura): criar a escola valse (motor completo)
 6b27a82 chore(experimentos): as provas saem do rascunho — o que o REGISTRO cita passa a ser versionado
 d1aa5d0 chore(estrutura): reancorar a cadeia das fontes alteradas
 e29d3ab docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela abriu
-2a587e5 fix(ciclo-01): a Fita escurece, e a Valse ganha o botão que faltava
 ```
 
 ## Por professor
@@ -147,75 +147,84 @@ e29d3ab docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela ab
 
 ## Última entrada do REGISTRO
 
-## 17/10/2026 — Os commits estavam certos e a produção estava velha: as escolas passam a publicar no push
+## 17/10/2026 — O botão que parecia quebrado, o campo colado no botão e o modal que não dava para enviar
 
-**O que motivou.** O dono do produto abriu as duas escolas de teste e disse: «não identifiquei
-em nenhuma delas os ajustes». Medido, e ele tinha razão:
+**O que motivou.** Três relatos do dono do produto, todos visíveis na tela e nenhum deles
+cosmético:
 
-| | No repositório | No ar |
-|---|---|---|
-| `assets/style.css` (md5) | `122e570…` | **`91509d8…`** |
+1. «Os botões de excluir ou apagar não têm a borda de baixo — parece que tá quebrado.»
+2. «Entre o input do formulário e o botão que fica abaixo tinha um espaço; esses aqui estão
+   completamente colados.»
+3. «No celular não dá para clicar no botão cancelar e nem criar, e a mensagem de baixo não
+   aparece.»
 
-O commit estava no `main`, o pacote versionado tinha a folha nova, e os dois Workers serviam a
-**anterior**. Não havia nada quebrado — havia **nada publicado**.
+E um quarto, de desenho: «a setinha do `select` está muito colada na margem direita».
 
-**A causa.** O único caminho que publicava uma escola era o `gerar-ciclo.yml`, e ele tem dois
-defeitos para este caso: é `workflow_dispatch` (manual) e roda o **gerador antes**. E o gerador
-recusa um ciclo cujo `DATA_INICIO` é lacuna — que é o estado normal de qualquer escola
-recém-criada. Ou seja: o único caminho automático estava fechado exactamente para as escolas
-que mais mudam, as de teste.
+**A causa da borda — e por que ela estava assim.** O `main a` e o `.rodape a` usam
+`border-bottom: 1px dotted` como sublinhado de prosa. Um `a.acao` dentro do `main` herdava o
+pontilhado e ficava com duas linhas na base; a correção existia, mas tinha sido escrita na regra
+**compartilhada** — `button.acao, a.acao { … border-bottom: none }`. Ora: `border: 1px solid` é
+atalho que escreve os quatro lados, e o `border-bottom: none` que vinha depois **apagava a base
+do `<button>` também**. O botão de marca não denunciava (a cor de fundo separa da página), mas o
+botão claro — «Apagar escola», «Cancelar» — parecia cortado ao meio. Não era escolha de estilo:
+era a regra do link vazando para o botão. Agora o `none` é de `a.acao`, e só dele.
 
-**É a mesma falha que já tinha custado dois incidentes na raiz**, e que motivou o
-`deploy-raiz.yml`: commit certo, produção velha, e ninguém sabe dizer o que está no ar sem
-perguntar ao `wrangler`.
+**A causa do vão zero.** O `.acao` tem `margin: 0`; o que separava um botão do campo acima era o
+acaso de ele estar dentro de um `.modal-acoes` ou de uma `.linha-acao`. Numa pilha crua de
+formulário — os Bastidores — o campo e o botão ficavam encostados. A regra nova dá
+`margin-top: var(--esp-4)`, e **só** quando o botão é irmão de um controle dentro de um `form`:
+um botão **ao lado** de um campo (o «Associar» do `.par-associar`) não é um botão **abaixo** dele,
+e o CSS só sabe distinguir os dois pelo pai. A primeira tentativa não tinha o `form >` e desceu o
+«Associar» 8px.
 
-**O que foi decidido.**
+**A causa do modal que não dava para enviar.** O `.modal` era `display: flex` com
+`align-items: center` e **sem** `overflow`: uma caixa de 1112px numa tela de 420px começava em
+`top: -411px`, e o rodapé com «Cancelar» e «Criar» ficava abaixo da dobra **sem nada que rolasse
+até ele**. Trocado por `overflow-y: auto` no contêiner e `margin: auto` na caixa — que centra
+quando há espaço e vira 0 quando não há, exatamente o que `align-items: center` não faz. O
+`scroll-padding` no contêiner existe porque `scrollIntoView({block: "nearest"})` encosta o
+elemento na borda e ignora o `padding` da caixa: sem ele a mensagem de erro nasce colada no
+rodapé da tela.
 
-- **`deploy-escolas.yml`, e o que se publica é o que está no commit.** Sem passo de geração no
-  runner, de propósito: o pacote É versionado, e gerar no CI tornaria o deploy irreprodutível a
-  partir do commit (com `pandoc` e `pdflatex` do runner podendo diferir do local e travar o
-  deploy para sempre). Quem gera é quem tem as fontes.
-- **A lista é descoberta, não escrita à mão.** Cada escola é um `wrangler.<slug>.jsonc` cujo
-  `assets.directory` começa em `professores/`; o `danca` fica de fora porque a raiz tem o seu
-  workflow. Uma escola nova passa a ser publicada no dia em que ganha o config.
-- **A identidade é conferida antes** (`check-identidade.js`). É o que impede uma folha velha de
-  chegar à produção com aval de «ok» — foi esse aval que faltou hoje.
-- **Uma escola que falha não impede as outras** (`fail-fast: false`): são Workers
-  independentes, e travar uma por causa da outra esconde o problema.
-- **O filtro do `workflow_dispatch` entra por `env`**, não por interpolação no script — valor
-  digitado nunca vira comando.
+**A seta do `select`.** A nativa fica encostada na borda direita e o navegador não deixa
+afastá-la — o único caminho é desenhá-la. Sai `appearance: none`, entra um chevron em SVG no
+`background-image`, a `var(--esp-3)` da borda, com `padding-right` calculado para o texto não
+passar por baixo. Na noturna o chevron clareia. Uma armadilha no caminho: as regras que pintam o
+campo dentro do cartão usavam o `background` **abreviado**, que zera o `background-image` e
+apagaria a seta; passaram a falar de `background-color` — imagem não é cor.
 
-**Publicado hoje, à mão, antes do workflow existir.** `wrangler deploy` nos dois configs;
-conferido depois: `assets/style.css` no ar com `122e570…`, idêntico à fonte.
+**Motivo declarado (infraestrutura congelada).** `tools/templates/ciclo.css` está em
+`CONGELAMENTO.md`. A alteração entra porque os três primeiros defeitos **impedem o uso**: um
+formulário que não pode ser enviado no celular e um botão que parece quebrado não são acabamento.
+O que muda é a folha compartilhada, não a estrutura de arquivos, de pacotes ou de hashes.
 
-**Conferido.** `check-identidade.js` → 8 verificações (a checagem 6 compara o corpo da porta de
-cada pacote). `provar-celular.js` → 11/11, agora sobre HTTP. `provar-tema.js` → 30/30.
-`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123. As páginas no ar
-renderizadas num navegador: botão com raio 12 e 44px de altura, nada transborda em 390px.
+**O que saiu do formulário.** Todos os `<p class="nota">` do `#form-criar` e do `#modal-apagar`
+foram removidos a pedido do dono do produto — inclusive o aviso de que o nome vira pasta e o de
+que o professor criado é o dono da escola. Ficaram o título, o `fieldset` «Quem é o professor
+desta escola?» com suas duas opções, os rótulos e os campos. A linha de JS que escrevia em
+`#nota-sem-professores` saiu junto: o elemento não existe mais e ela lançaria.
+
+**Conferido.** `check-identidade.js` → 8 verificações. `provar-celular.js` → 15/15 (eram 11):
+ganhou guarda de borda nos botões, de vão na pilha do formulário, de raio e altura nos campos, e
+de rolagem do modal **em 390×420** — não em 700, onde a caixa cabe e a guarda não provaria nada.
+Cada guarda nova foi validada pelo controle negativo: contra a folha anterior, **4 das 15
+falham**. `provar-tema.js` → 30/30. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `provar-plano-da-turma.js` → 47/47.
+
+Medido no navegador, na raiz: os dois botões claros com `1px/1px/1px/1px`; 24px entre o último
+campo e o botão; `select` com `appearance: none`, chevron e `padding-right: 36px`; campo com raio
+12px e 42,5px de altura; os dois modais sem nenhum parágrafo de texto; em 390×420 os botões e a
+mensagem de erro alcançáveis, com o modal rolando 435px.
 
 **O que ainda não está feito.**
 
-- **O `workflow_dispatch` do `deploy-escolas.yml` não foi exercitado** — o disparo só acontece
-  no próximo push que toque nos caminhos listados.
-- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
-  dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
-- **A conferência visual continua sua**, agora com a pele nova de fato no ar.
+- **A conferência visual continua sua**, sobre `danca`, `fita` e `valse` no ar.
+- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`).
+- **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
+  as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
+  `check-identidade.js` as exige iguais à fonte.
 
 ## O que está pendente
-
-## 17/10/2026 — Os papéis e a variante noturna: a identidade passa a ter tema
-
-
-- **O tema não foi visto no navegador.** O contraste e o uso de papel são medidos; a conferência
-  visual das quatro superfícies é o passo seguinte.
-- **O catálogo das doze paletas não existe** — nem os valores das outras cinco famílias, nem o
-  item de menu «Identidade visual». Depende de **C15** e de especificação medida.
-- **A preferência é por navegador**, não por escola nem por usuário — provisório, declarado.
-- **A ficha e as páginas de estado continuam sempre claras** (são documentos, não interface) e
-  declaram os próprios tokens.
-- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
-  as páginas foram atualizadas por cópia determinística.
-- **Nenhum commit foi feito.**
 
 ## 17/10/2026 — A aparência ganha prova própria — e o botão que sumiria no celular
 
@@ -262,6 +271,15 @@ renderizadas num navegador: botão com raio 12 e 44px de altura, nada transborda
 - **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
   dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
 - **A conferência visual continua sua**, agora com a pele nova de fato no ar.
+
+## 17/10/2026 — O botão que parecia quebrado, o campo colado no botão e o modal que não dava para enviar
+
+
+- **A conferência visual continua sua**, sobre `danca`, `fita` e `valse` no ar.
+- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`).
+- **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
+  as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
+  `check-identidade.js` as exige iguais à fonte.
 
 ## Pendências anteriores (índice)
 
@@ -436,6 +454,7 @@ renderizadas num navegador: botão com raio 12 e 44px de altura, nada transborda
 - **16/10/2026** — A identidade visual fecha o circuito: raiz, porta,… → `REGISTRO.md` L14759
 - **16/10/2026** — A curadoria é de UMA turma — e o id passa a dizê-lo → `REGISTRO.md` L14852
 - **16/10/2026** — A camada de componentes: o desenho deixa de ser reescrito… → `REGISTRO.md` L14918
+- **17/10/2026** — Os papéis e a variante noturna: a identidade passa a ter… → `REGISTRO.md` L14988
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

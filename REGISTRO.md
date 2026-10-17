@@ -15739,3 +15739,80 @@ renderizadas num navegador: botão com raio 12 e 44px de altura, nada transborda
 - **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
   dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
 - **A conferência visual continua sua**, agora com a pele nova de fato no ar.
+
+## 17/10/2026 — O botão que parecia quebrado, o campo colado no botão e o modal que não dava para enviar
+
+**O que motivou.** Três relatos do dono do produto, todos visíveis na tela e nenhum deles
+cosmético:
+
+1. «Os botões de excluir ou apagar não têm a borda de baixo — parece que tá quebrado.»
+2. «Entre o input do formulário e o botão que fica abaixo tinha um espaço; esses aqui estão
+   completamente colados.»
+3. «No celular não dá para clicar no botão cancelar e nem criar, e a mensagem de baixo não
+   aparece.»
+
+E um quarto, de desenho: «a setinha do `select` está muito colada na margem direita».
+
+**A causa da borda — e por que ela estava assim.** O `main a` e o `.rodape a` usam
+`border-bottom: 1px dotted` como sublinhado de prosa. Um `a.acao` dentro do `main` herdava o
+pontilhado e ficava com duas linhas na base; a correção existia, mas tinha sido escrita na regra
+**compartilhada** — `button.acao, a.acao { … border-bottom: none }`. Ora: `border: 1px solid` é
+atalho que escreve os quatro lados, e o `border-bottom: none` que vinha depois **apagava a base
+do `<button>` também**. O botão de marca não denunciava (a cor de fundo separa da página), mas o
+botão claro — «Apagar escola», «Cancelar» — parecia cortado ao meio. Não era escolha de estilo:
+era a regra do link vazando para o botão. Agora o `none` é de `a.acao`, e só dele.
+
+**A causa do vão zero.** O `.acao` tem `margin: 0`; o que separava um botão do campo acima era o
+acaso de ele estar dentro de um `.modal-acoes` ou de uma `.linha-acao`. Numa pilha crua de
+formulário — os Bastidores — o campo e o botão ficavam encostados. A regra nova dá
+`margin-top: var(--esp-4)`, e **só** quando o botão é irmão de um controle dentro de um `form`:
+um botão **ao lado** de um campo (o «Associar» do `.par-associar`) não é um botão **abaixo** dele,
+e o CSS só sabe distinguir os dois pelo pai. A primeira tentativa não tinha o `form >` e desceu o
+«Associar» 8px.
+
+**A causa do modal que não dava para enviar.** O `.modal` era `display: flex` com
+`align-items: center` e **sem** `overflow`: uma caixa de 1112px numa tela de 420px começava em
+`top: -411px`, e o rodapé com «Cancelar» e «Criar» ficava abaixo da dobra **sem nada que rolasse
+até ele**. Trocado por `overflow-y: auto` no contêiner e `margin: auto` na caixa — que centra
+quando há espaço e vira 0 quando não há, exatamente o que `align-items: center` não faz. O
+`scroll-padding` no contêiner existe porque `scrollIntoView({block: "nearest"})` encosta o
+elemento na borda e ignora o `padding` da caixa: sem ele a mensagem de erro nasce colada no
+rodapé da tela.
+
+**A seta do `select`.** A nativa fica encostada na borda direita e o navegador não deixa
+afastá-la — o único caminho é desenhá-la. Sai `appearance: none`, entra um chevron em SVG no
+`background-image`, a `var(--esp-3)` da borda, com `padding-right` calculado para o texto não
+passar por baixo. Na noturna o chevron clareia. Uma armadilha no caminho: as regras que pintam o
+campo dentro do cartão usavam o `background` **abreviado**, que zera o `background-image` e
+apagaria a seta; passaram a falar de `background-color` — imagem não é cor.
+
+**Motivo declarado (infraestrutura congelada).** `tools/templates/ciclo.css` está em
+`CONGELAMENTO.md`. A alteração entra porque os três primeiros defeitos **impedem o uso**: um
+formulário que não pode ser enviado no celular e um botão que parece quebrado não são acabamento.
+O que muda é a folha compartilhada, não a estrutura de arquivos, de pacotes ou de hashes.
+
+**O que saiu do formulário.** Todos os `<p class="nota">` do `#form-criar` e do `#modal-apagar`
+foram removidos a pedido do dono do produto — inclusive o aviso de que o nome vira pasta e o de
+que o professor criado é o dono da escola. Ficaram o título, o `fieldset` «Quem é o professor
+desta escola?» com suas duas opções, os rótulos e os campos. A linha de JS que escrevia em
+`#nota-sem-professores` saiu junto: o elemento não existe mais e ela lançaria.
+
+**Conferido.** `check-identidade.js` → 8 verificações. `provar-celular.js` → 15/15 (eram 11):
+ganhou guarda de borda nos botões, de vão na pilha do formulário, de raio e altura nos campos, e
+de rolagem do modal **em 390×420** — não em 700, onde a caixa cabe e a guarda não provaria nada.
+Cada guarda nova foi validada pelo controle negativo: contra a folha anterior, **4 das 15
+falham**. `provar-tema.js` → 30/30. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `provar-plano-da-turma.js` → 47/47.
+
+Medido no navegador, na raiz: os dois botões claros com `1px/1px/1px/1px`; 24px entre o último
+campo e o botão; `select` com `appearance: none`, chevron e `padding-right: 36px`; campo com raio
+12px e 42,5px de altura; os dois modais sem nenhum parágrafo de texto; em 390×420 os botões e a
+mensagem de erro alcançáveis, com o modal rolando 435px.
+
+**O que ainda não está feito.**
+
+- **A conferência visual continua sua**, sobre `danca`, `fita` e `valse` no ar.
+- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`).
+- **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
+  as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
+  `check-identidade.js` as exige iguais à fonte.

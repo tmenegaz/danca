@@ -469,9 +469,37 @@ button.acao, a.acao {
   border: 1px solid var(--marca); border-radius: var(--raio-2);
   background: var(--marca-fundo); color: var(--texto-destaque-marca);
   box-shadow: var(--sombra-controle);
-  cursor: pointer; text-decoration: none; border-bottom: none;
+  cursor: pointer; text-decoration: none;
   transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
 }
+/* A BORDA DE BAIXO DO LINK, SÓ DO LINK. `main a` e `.rodape a` usam `border-bottom:
+   1px dotted` como sublinhado de prosa; um `a.acao` dentro de `main` herdava o
+   pontilhado e ficava com duas linhas na base. A correção existia, mas estava na
+   regra COMPARTILHADA — e por isso apagava a borda de baixo de todo `<button>`
+   também: `border: 1px solid` seguido de `border-bottom: none` deixa a base em
+   0px. Era isso que fazia o botão claro parecer quebrado. Agora o `none` é do
+   `a.acao`, e o botão tem os quatro lados. */
+a.acao { border-bottom: none; }
+/* O BOTÃO QUE VEM LOGO DEPOIS DE UM CONTROLE precisa do mesmo ar que separa um
+   campo do rótulo seguinte. Sem isto ele encosta no campo: o `.acao` tem
+   `margin: 0`, e a única coisa que o afastava era o acaso de estar dentro de um
+   `.modal-acoes` ou de uma `.linha-acao`. Numa pilha crua de formulário — que é o
+   caso dos Bastidores — o campo e o botão ficavam colados.
+
+   A ESPECIFICIDADE É O PONTO. `button.acao` é (0,1,1) e diz `margin: 0`; uma
+   regra `:where(…) + .acao` é (0,1,0) e PERDE — foi o que aconteceu na primeira
+   tentativa, e o vão continuou 0. Por isso o seletor repete `button.acao`, que
+   empata em peso e vence por vir depois. */
+:where(form) > :where(input, select, textarea) + button.acao,
+:where(form) > :where(input, select, textarea) + button:not(.acao) { margin-top: var(--esp-4); }
+
+/* …E SÓ NA PILHA DO FORMULÁRIO. A primeira versão não tinha o `form >`, e o botão
+   «Associar» — que divide a linha com o `<select>` que ele lê — ganhou 16px de
+   margem de topo e desceu 8px em relação ao seletor. Um botão AO LADO de um campo
+   não é um botão ABAIXO dele, e o CSS não sabe distinguir os dois pelo pai: sabe
+   pelo pai ser ou não o formulário. */
+.par-associar > button, .escolhedor .entrada > button, .fileira > button { margin-top: 0; }
+
 button.acao:hover:not(:disabled), a.acao:hover {
   background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
   box-shadow: var(--sombra-controle-alto);
@@ -528,10 +556,29 @@ button.icone:hover:not(:disabled) { background: none; color: var(--marca); }
   transition: border-color .15s ease, box-shadow .15s ease;
 }
 textarea { min-height: 4.5rem; resize: vertical; }
+
+/* A SETA DO `select`. A nativa fica encostada na borda direita e o navegador não
+   deixa afastá-la — o único jeito é desenhá-la. Sai o controle nativo
+   (`appearance: none`), entra um chevron em SVG no `background-image`, a
+   `var(--esp-3)` da borda. Sem `appearance: none` o Safari mantém a seta dele e
+   ficariam DUAS. */
+:where(select) {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%237a5c31' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--esp-3) center;
+  padding-right: calc(var(--esp-3) * 2 + 12px);
+}
+/* O `background` ABREVIADO de quem pinta o campo dentro de um cartão apagaria a
+   seta (o atalho zera `background-image`). Por isso aquelas regras falam de
+   `background-color` — a imagem não é cor, e não deve ser reescrita por ela. */
 .caixa input, .caixa select, .caixa textarea,
 .modal-caixa input, .modal-caixa select, .modal-caixa textarea,
-form input, form select, form textarea { background: var(--campo-fundo-cartao); }
-
+form input, form select, form textarea { background-color: var(--campo-fundo-cartao); }
+/* Na noturna a seta clareia: `#7a5c31` sobre o campo escuro some. */
+[data-modo="noturna"] :where(select) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23bfb2a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
 /* O rótulo do campo. `em-linha` é o do formulário denso, onde o rótulo divide a
    linha com o controle (o lançamento de aula). */
 .campo-rotulo {
@@ -628,12 +675,23 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
    noturno ele escurece junto, em vez de ficar um cinza fixo. */
 .modal {
   position: fixed; inset: 0; z-index: 100;
-  display: flex; align-items: center; justify-content: center; padding: var(--esp-5);
+  display: flex; justify-content: center; padding: var(--esp-5);
+  /* O MODAL QUE NÃO CABE ROLA. Era `align-items: center` num contêiner sem
+     `overflow`: uma caixa de 1112px numa tela de 700px começava em `top: -206px`,
+     e o botão de cancelar e o de criar ficavam ABAIXO da dobra sem nada que
+     rolasse até eles — no celular o formulário não podia ser enviado nem
+     cancelado. O `margin: auto` da caixa centra quando há espaço e vira 0 quando
+     não há, que é o comportamento que `align-items: center` não tem. */
+  overflow-y: auto;
+  /* O `scrollIntoView({block:"nearest"})` encosta o elemento na borda. O respiro do
+     `padding` da caixa não basta: o que rola é o contêiner, e ele precisa de margem
+     própria para a mensagem não nascer colada no rodapé da tela. */
+  scroll-padding: var(--esp-4);
 }
 .modal[hidden] { display: none; }
 .modal-fundo { position: absolute; inset: 0; background: var(--veu); }
 .modal-caixa {
-  position: relative; width: 100%; max-width: 440px;
+  position: relative; width: 100%; max-width: 440px; margin: auto;
   background: var(--superficie); border: 1px solid var(--borda-campo);
   border-radius: var(--raio-3); box-shadow: var(--sombra);
   padding: 0 var(--esp-5) var(--esp-5);
