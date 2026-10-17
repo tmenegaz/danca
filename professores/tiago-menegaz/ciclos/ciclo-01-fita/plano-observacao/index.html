@@ -23,10 +23,12 @@
      inventa aqui: os nomes que a tela já usava viram ALIASES dos tokens do site, e quem
      precisar de um valor novo declara-o em `tools/templates/ciclo.css`. */
   :root {
-    --papel: var(--cream);
-    --borda: var(--gold-borda); /* o filete medido para 3:1 — traço de campo, não de texto */
-    --suave: var(--soft);
-    --acento: var(--burgundy);
+    /* Os nomes que esta tela já usava, agora como ALIASES dos papéis globais — e não
+       dos valores. Assim a porta acompanha o tema sem uma linha a mais. */
+    --papel: var(--fundo);
+    --borda: var(--borda-campo);
+    --suave: var(--texto-suave);
+    --acento: var(--marca);
     --erro: var(--falha);
   }
   /* A porta TEM a navbar do site (injetada pelo gerador no marcador de navegação): o
@@ -52,13 +54,13 @@
      acordeão (`<details>`) — o professor recolhe ou expande. */
   .barra {
     max-width: 900px; margin: 0 auto 1.5rem;
-    background: var(--cream);
-    border-bottom: 1px solid var(--gold-escuro);
+    background: var(--fundo);
+    border-bottom: 1px solid var(--borda);
     padding: .55rem 22px;
     display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
     font-size: .85rem; color: var(--suave);
   }
-  .barra b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+  .barra b { color: var(--texto); font-variant-numeric: tabular-nums; }
   .barra .campo { display: flex; align-items: baseline; gap: .35rem; }
   .barra .campo label { white-space: nowrap; }
   /* O acordeão do contexto do ato: a linha de fora fica sempre visível (o resumo),
@@ -66,7 +68,7 @@
   .barra details.ctx-ato { flex: 1 1 100%; }
   .barra details.ctx-ato > summary {
     cursor: pointer; list-style: none;
-    font-weight: 600; color: var(--tinta);
+    font-weight: 600; color: var(--texto);
     user-select: none;
   }
   .barra details.ctx-ato > summary::-webkit-details-marker { display: none; }
@@ -94,14 +96,14 @@
      aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
   .barra .campo input {
     width: auto; font: 13px/1.5 var(--ui); padding: .15rem .4rem;
-    border: 1px solid var(--gold-borda); border-radius: 4px;
-    background: var(--branco); color: var(--tinta);
+    border: 1px solid var(--borda-campo); border-radius: 4px;
+    background: var(--superficie); color: var(--texto);
   }
   .barra .campo input[type=password] { width: 8rem; }
   .barra .campo select {
     width: auto; font: 13px/1.5 var(--ui); padding: .15rem .3rem;
-    border: 1px solid var(--gold-borda); border-radius: 4px;
-    background: var(--branco); color: var(--tinta); max-width: 12rem;
+    border: 1px solid var(--borda-campo); border-radius: 4px;
+    background: var(--superficie); color: var(--texto); max-width: 12rem;
   }
   .barra .campo .limpar-aluna {
     border: none; background: none; cursor: pointer; padding: 0 .2rem;
@@ -124,7 +126,7 @@
     display: flex; gap: .6rem; align-items: flex-start;
     padding: .45rem .5rem; border-radius: 3px; cursor: pointer;
   }
-  .opcao:hover { background: var(--creme-2); }
+  .opcao:hover { background: var(--fundo-faixa); }
   .opcao input { margin-top: .35rem; }
   .opcao span { flex: 1; }
   .opcao em { display: block; color: var(--suave); font-size: .85rem; font-style: normal; }
@@ -161,7 +163,7 @@
     padding: .05rem .4rem; margin-left: .35rem; border-style: dashed;
     color: var(--suave); background: transparent;
   }
-  .lista li .limpar:hover { background: var(--creme-4); color: var(--erro); border-color: var(--erro); }
+  .lista li .limpar:hover { background: var(--fundo-citacao); color: var(--erro); border-color: var(--erro); }
   /* A li inteira é clicável e anuncia o cursor da navegação; o botão não
      navega — apaga. O cursor tem de dizer isso. */
   .lista li button.limpar { cursor: pointer; }
@@ -170,8 +172,8 @@
   .moldura { font-size: .78rem; line-height: 1.35; white-space: pre; }
   .lista { list-style: none; padding: 0; margin: .5rem 0 0; }
   .lista li { padding: .3rem .5rem; border-radius: 4px; cursor: pointer; font-size: .9rem; }
-  .lista li:hover { background: var(--creme-2); }
-  .lista li.aqui { background: var(--creme-2); font-weight: 600; }
+  .lista li:hover { background: var(--fundo-faixa); }
+  .lista li.aqui { background: var(--fundo-faixa); font-weight: 600; }
   .lista li.feito::after { content: " ✓"; color: var(--ok); }
   .lista li .n { display: inline-block; min-width: 1.9rem; color: var(--suave); font-variant-numeric: tabular-nums; }
   /* A `li` das fichas é uma linha de link, não de navegação: o cursor e o
@@ -195,8 +197,8 @@
     cursor: pointer;
   }
   .paginacao button[aria-current="page"] {
-    border-color: var(--gold-escuro);
-    background: var(--creme-2);
+    border-color: var(--borda);
+    background: var(--fundo-faixa);
     font-weight: 700;
     cursor: default;
   }
@@ -214,30 +216,30 @@
   /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
      Tom de conversa — a professora é convidada a reler, não repreendida. */
   .socratica {
-    border: 1px solid var(--gold-borda);
-    background: var(--creme-1);
+    border: 1px solid var(--borda-campo);
+    background: var(--fundo-suave);
     border-left: 4px solid var(--alerta);
     border-radius: 4px;
     padding: .9rem 1rem;
     margin: 1rem 0;
-    color: var(--burgundy);
+    color: var(--marca);
   }
   .socratica .pergunta { font-weight: bold; margin: 0 0 .35rem; }
-  .socratica .dica { font-size: .9rem; color: var(--soft); margin: 0; }
+  .socratica .dica { font-size: .9rem; color: var(--texto-suave); margin: 0; }
   .erro { color: var(--erro); }
   /* A explicação do nó: curta, ao lado da pergunta, em linguagem de professor.
      É conteúdo do PO (o dado), não rótulo — a tela só a desenha. O tratamento é o
      que o site dá à anotação (`blockquote`): papel de citação e filete de ouro. */
   .explica {
-    background: var(--creme-4);
-    border-left: 4px solid var(--gold-escuro);
+    background: var(--fundo-citacao);
+    border-left: 4px solid var(--ornamento);
     padding: .5rem .9rem;
     margin: .6rem 0 1rem;
     font-size: .92rem;
-    color: var(--soft);
+    color: var(--texto-suave);
   }
   .explica p { margin: .35rem 0; }
-  .explica b { color: var(--burgundy); }
+  .explica b { color: var(--marca); }
   /* O item da repetição (um por sujeito): a linha de base acoplada ao nó dos
      sujeitos. Cada bloco traz a referência da anamnese e os campos do item. */
   .item-repeticao {
@@ -245,16 +247,16 @@
     border-radius: 4px;
     padding: .7rem .9rem;
     margin: .7rem 0;
-    background: var(--creme-1);
+    background: var(--fundo-suave);
   }
   .item-repeticao h4 { margin: 0 0 .4rem; font-size: 1rem; }
   .referencia {
-    background: var(--creme-2);
-    border-left: 4px solid var(--gold-escuro);
+    background: var(--fundo-faixa);
+    border-left: 4px solid var(--ornamento);
     padding: .4rem .7rem;
     margin: .4rem 0 .6rem;
     font-size: .88rem;
-    color: var(--soft);
+    color: var(--texto-suave);
   }
   .referencia p { margin: .2rem 0; }
   /* O registo da anamnese é prosa do professor, e a quebra de linha dele é dele:
@@ -278,7 +280,7 @@
                   color: var(--suave); }
   /* A proveniência da anamnese: o selo do estado e os gestos que a regra permite. */
   .selo.vigente { border-color: var(--ok); color: var(--ok); }
-  .selo.vinculada { border-color: var(--burgundy); color: var(--burgundy); }
+  .selo.vinculada { border-color: var(--marca); color: var(--marca); }
   .selo.legado { border-style: dotted; color: var(--suave); }
   .selo.solta { border-style: dashed; color: var(--suave); }
   .acoes-ficha { display: inline-flex; gap: .4rem; margin: .35rem 0 0; }
@@ -296,13 +298,13 @@
   table.grelha td, table.grelha th { vertical-align: top; padding: .2rem .3rem; }
   table.grelha td input { width: 100%; box-sizing: border-box; }
   table.grelha td textarea { width: 100%; box-sizing: border-box; font: .95rem/1.4 var(--ui);
-    border: 1px solid var(--gold-borda); border-radius: 4px; padding: .35rem .45rem; resize: vertical; }
-  table.grelha td.travada { color: var(--tinta); font-weight: 600; }
+    border: 1px solid var(--borda-campo); border-radius: 4px; padding: .35rem .45rem; resize: vertical; }
+  table.grelha td.travada { color: var(--texto); font-weight: 600; }
   /* A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
      objetivo específico, com as opções para marcar. O número é o do marco. */
   .matriz-marco { display: grid; gap: .7rem; }
-  .marco-linha { border: 1px solid var(--gold-borda); border-radius: 6px; padding: .55rem .7rem; background: var(--creme-1); }
-  .marco-texto { color: var(--tinta); margin-bottom: .35rem; }
+  .marco-linha { border: 1px solid var(--borda-campo); border-radius: 6px; padding: .55rem .7rem; background: var(--fundo-suave); }
+  .marco-texto { color: var(--texto); margin-bottom: .35rem; }
   .marco-texto .numero { display: inline-block; min-width: 1.4rem; text-align: right;
     color: var(--suave); font: 600 .95rem/1 var(--ui); margin-right: .35rem; }
   .marco-opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
@@ -322,12 +324,12 @@
   /* A ESCALA FIXA (a régua da rubrica): não é campo — é o que se lê. */
   ul.escala { list-style: none; padding: 0; margin: .4rem 0 .2rem; display: flex;
     flex-wrap: wrap; gap: .4rem; }
-  ul.escala li { border: 1px solid var(--gold-escuro); border-radius: 4px;
-    padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: var(--branco); }
+  ul.escala li { border: 1px solid var(--borda); border-radius: 4px;
+    padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: var(--superficie); }
   /* A UNIDADE DA PROPORÇÃO ALVO (minutos ↔ percentual) e a linha do TOTAL da soma. */
   p.unidade { margin: .5rem 0 .3rem; }
   p.unidade select { font: .95rem/1.3 var(--ui); padding: .25rem .4rem; margin-left: .3rem; }
-  p.total { margin: .5rem 0 .1rem; font: .95rem/1.5 var(--ui); color: var(--tinta); }
+  p.total { margin: .5rem 0 .1rem; font: .95rem/1.5 var(--ui); color: var(--texto); }
   p.total.ok { color: var(--ok); }
   p.total.falta { color: var(--alerta); }
   p.total.excede { color: var(--falha); font-weight: 600; }
@@ -336,10 +338,10 @@
   .grupo-registro { margin: .5rem 0 .8rem; }
   .grupo-registro > p { margin: 0 0 .25rem; }
   /* O que VEM DA TURMA (frequência, duração, período, nº de aulas): leitura, não campo. */
-  p.da-turma { margin: .4rem 0 .1rem; font-size: 1rem; color: var(--tinta); }
+  p.da-turma { margin: .4rem 0 .1rem; font-size: 1rem; color: var(--texto); }
   p.linha { color: var(--suave); margin: .35rem 0; white-space: pre-wrap; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
-  .citacao { font-style: italic; color: var(--soft); }
+  .citacao { font-style: italic; color: var(--texto-suave); }
   .oculto { display: none; }
   .grade { display: grid; gap: .1rem .8rem; }
 
@@ -371,9 +373,11 @@
   }
   @media print { .toc-local { position: static; max-height: none; } }
 </style>
-<script>try{if(localStorage.getItem("ciclo-modo")==="noturna")document.documentElement.setAttribute("data-modo","noturna");}catch(e){}</script>
+<script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
+   completo (o botão) vive em assets/nav.js. */
+try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
-<body id="top" data-tela="porta">
+<body id="top" data-layout="documento" data-tela="porta">
 
 <!-- NAV (o marcador) — a MESMA barra de navegação do site, injetada por tools/gerar-ciclo.sh
      (como no lancamento.html). Ela mantém o menu do ciclo visível: o professor está no
@@ -388,7 +392,7 @@
     <span></span><span></span><span></span>
   </button>
   <div class="nav-links" id="nav-links">
-  <a href="/index.html">Nós, Por Exemplo</a>
+  <a href="/index.html">Sistema Lastro</a>
   <details class="menu">
     <summary>Área do Professor</summary>
     <div class="submenu">
