@@ -58,7 +58,13 @@ function servir() {
     const alvo = tentativas.map((x) => path.join(raiz, x))
       .find((x) => x.startsWith(raiz) && fs.existsSync(x) && !fs.statSync(x).isDirectory());
     if (!alvo) { res.writeHead(404); res.end('nao encontrado'); return; }
-    res.writeHead(200, { 'content-type': TIPOS[path.extname(alvo)] || 'application/octet-stream' });
+    // `no-store` NÃO É DETALHE: sem cabeçalho de cache o Chrome guarda a resposta por
+    // heurística, e a segunda navegação à mesma página servia o CSS da PRIMEIRA. Foi o
+    // que fez um controle negativo passar — a folha antiga parecia já corrigida.
+    res.writeHead(200, {
+      'content-type': TIPOS[path.extname(alvo)] || 'application/octet-stream',
+      'cache-control': 'no-store',
+    });
     res.end(fs.readFileSync(alvo));
   });
   return new Promise((ok) => srv.listen(0, '127.0.0.1', () => ok({ srv, base: `http://127.0.0.1:${srv.address().port}` })));
@@ -149,6 +155,16 @@ function pagina(css) {
 ${turma}
 ${item}
 </ul></div></div></div>
+<div class="secao" id="sec-pilha"><h2>Pilha crua</h2>
+<div class="col-form"><form id="pilha">
+  <label class="campo-rotulo" for="p1">Nome</label>
+  <input id="p1">
+  <label class="campo-rotulo" for="p2">Sobrenome</label>
+  <input id="p2">
+  <label class="campo-rotulo" for="p3">Senha</label>
+  <input id="p3" type="password">
+  <button type="submit" class="acao grande">Cadastrar</button>
+</form></div></div>
 ${abas}
 </div></div></body></html>`;
 }
@@ -194,6 +210,12 @@ function medir(page, largura) {
       acoesLargura: Math.round(acoes.getBoundingClientRect().width),
       linhaLargura: Math.round(linha.getBoundingClientRect().width),
       assocTransborda: assoc.scrollWidth - assoc.clientWidth,
+      vaoPilha: (() => {
+        const c = document.getElementById('p3');
+        const bt = document.querySelector('#pilha button');
+        if (!c || !bt) return null;
+        return Math.round(bt.getBoundingClientRect().top - c.getBoundingClientRect().bottom);
+      })(),
       selectBotaoJuntos: mesmaLinha(select, botao),
       botaoDentro: Math.round(botao.getBoundingClientRect().right) <=
         Math.round(assoc.getBoundingClientRect().right) + 1,
@@ -356,6 +378,76 @@ function provar(descricao, obtido, esperado) {
     if (achados.length) crus.push([rel, achados.slice(0, 4)]);
   }
   provar('todo campo visível tem o desenho do sistema (raio >= 8, altura >= 36)', crus, []);
+
+  // 10) TODO BOTÃO TEM OS QUATRO LADOS. `border: 1px solid` seguido de `border-bottom:
+  //     none` deixa a base em 0 — e foi exactamente o que aconteceu: a regra que tirava
+  //     o sublinhado pontilhado do `a.acao` estava na regra COMPARTILHADA e apagava a
+  //     borda de baixo de todo `<button>`. O botão claro ficava sem caixa na base e
+  //     parecia quebrado. A conferência é por MEDIDA: os quatro `border-*-width` iguais
+  //     e > 0, em todo botão visível de toda superfície.
+  const semBorda = [];
+  for (const [, rel] of superficies.filter(([, r]) => !r.includes('lancamento.html'))) {
+    await page.setViewport({ width: 1024, height: 900 });
+    await page.goto(`${base}/${rel}`, { waitUntil: 'load' });
+    const achados = await page.evaluate(() => {
+      const fora = [];
+      for (const el of document.querySelectorAll('button, a.acao')) {
+        const rc = el.getBoundingClientRect();
+        if (rc.height < 1 || rc.width < 1) continue;
+        if (el.closest('[hidden]')) continue;
+        const cs = getComputedStyle(el);
+        const lados = ['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth']
+          .map((p) => parseFloat(cs[p]));
+        // O botão de hambúrguer e o `modal-x` são desenhados sem caixa de propósito.
+        if (el.classList.contains('hamburger') || el.classList.contains('modal-x')) continue;
+        if (lados.some((v) => v < 1) || new Set(lados).size !== 1) {
+          fora.push((el.id || el.className || el.tagName) + ' → ' + lados.join('/'));
+        }
+      }
+      return fora;
+    });
+    if (achados.length) semBorda.push([rel, achados.slice(0, 5)]);
+  }
+  provar('todo botão visível tem os quatro lados com a mesma espessura', semBorda, []);
+
+  // 11) O MODAL QUE NÃO CABE ROLA, e a mensagem de resultado é alcançável. Era
+  //     `align-items: center` num contêiner sem `overflow`: numa tela de 700px a caixa
+  //     de 1112px começava em `top: -206px` e Cancelar/Criar ficavam abaixo da dobra sem
+  //     nada que rolasse até eles — não dava para enviar nem cancelar no celular.
+  // A ALTURA É 420, NÃO 700. Com 700 a caixa do formulário (já sem os textos
+  // explicativos) CABE, e a conferência passaria sem exercitar o caso que interessa —
+  // foi o que aconteceu na primeira versão. Um telefone em paisagem, ou um campo com o
+  // teclado aberto, dá ~400px; é esse o cenário em que os botões sumiam.
+  await page.setViewport({ width: 390, height: 420, isMobile: true, hasTouch: true });
+  await page.goto(`${base}/raiz/index.html`, { waitUntil: 'load' });
+  await page.evaluate(() => document.getElementById('btn-criar').click());
+  await new Promise((r) => setTimeout(r, 300));
+  const modal = await page.evaluate(() => {
+    const m = document.querySelector('#modal-criar');
+    const caixa = m.querySelector('.modal-caixa').getBoundingClientRect();
+    m.scrollTop = m.scrollHeight;
+    const c = document.getElementById('btn-cancelar').getBoundingClientRect();
+    const criar = m.querySelector('[type=submit]').getBoundingClientRect();
+    const vh = window.innerHeight;
+    return {
+      topoNegativo: caixa.top < 0,
+      rola: getComputedStyle(m).overflowY === 'auto',
+      cancelarAlcancavel: c.top >= 0 && c.bottom <= vh,
+      criarAlcancavel: criar.top >= 0 && criar.bottom <= vh,
+    };
+  });
+  // 12) O VÃO ENTRE O ÚLTIMO CONTROLE E O BOTÃO. Era 0: o `.acao` tem `margin: 0`, e a
+  //     única coisa que afastava o botão era o acaso de ele estar dentro de um
+  //     `.modal-acoes`. Numa pilha crua de formulário — a dos Bastidores — ficava colado.
+  //     A primeira correção TAMBÉM deu 0, porque `:where(…) + .acao` (0,1,0) perde para
+  //     `button.acao` (0,1,1). A conferência mede o pixel, não a intenção.
+  provar('o botão depois de um campo tem 16px de ar',
+    medidas.filter((m) => m.vaoPilha !== 16).map((m) => [m.largura, m.vaoPilha]), []);
+
+  provar('no celular o modal rola em vez de cortar',
+    [modal.rola, modal.topoNegativo], [true, false]);
+  provar('…e Cancelar e Criar ficam alcançáveis depois de rolar',
+    [modal.cancelarAlcancavel, modal.criarAlcancavel], [true, true]);
 
   await browser.close();
   srv.close();
