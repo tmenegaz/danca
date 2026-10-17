@@ -29,10 +29,14 @@
 // pelo `wrangler.<escola>.jsonc` gerado no `tools/criar-escola.sh`.
 const SUBDOMINIO = 'tmenegaz77';
 
-// A folha das páginas de estado é a MESMA do sistema. O Worker «zero» é gerado como
+// A FOLHA das páginas de estado é a MESMA do sistema. O Worker «zero» é gerado como
 // texto e não pode dar `require` em produção, então o CSS entra embutido aqui — uma
 // vez, da fonte que o validador confere.
 const { CSS: CSS_ESTADO } = require('./estado-html.js');
+// O desfazer REUSA a remoção do expurgo (`subdomínio` → `script`, nessa ordem). Uma segunda
+// definição de «como se apaga um Worker» divergiria da primeira, e a que ficasse para trás
+// seria a que deixa o subdomínio ligado a um script que já não existe.
+const { excluirEscola } = require('./expurgar-escola.js');
 
 /** O slug da escola, derivado do nome que o professor digitou (o subdomínio). */
 function slugificar(nome) {
@@ -45,11 +49,49 @@ function slugificar(nome) {
     .replace(/-{2,}/g, '-');
 }
 
+/**
+ * O MARCADOR DO PLACEHOLDER — a primeira linha do módulo «zero».
+ *
+ * Existe para ser RECONHECIDO depois: é a única evidência, do lado do Cloudflare, de que um
+ * Worker é o andaime de uma escola que ainda não nasceu. Sem ele, um Worker de 592 bytes e uma
+ * escola de verdade são indistinguíveis por fora — e foi essa indistinção que deixou a `valsa`
+ * no ar durante horas a dizer «recarregue em instantes» a uma escola que nunca existiu.
+ */
+function linhaDoPlaceholder(escola) {
+  return '// escola ' + escola + ' — Worker «zero» (implantação em andamento, gerado por provisionar-escola.js)';
+}
+
+/** O prelúdio que o esbuild põe em TODO bundle do motor. O placeholder, escrito à mão, não o tem. */
+const PRELUDIO_DO_MOTOR = 'var __create = Object.create;';
+
+/**
+ * Este código é o Worker «zero» DESTA escola?
+ *
+ * A pergunta é a de um ROLLBACK, e por isso ela é assimétrica: na dúvida, a resposta é «NÃO».
+ * Um falso positivo apaga uma escola viva; um falso negativo deixa um órfão de 592 bytes, que
+ * alguém apaga à mão. Os dois erros não custam o mesmo.
+ *
+ * Três condições, e todas podem falhar para o lado seguro:
+ *   1. a linha do placeholder, COM o slug — a marca de outra escola não serve;
+ *   2. o prelúdio do motor NÃO pode estar lá. Se estiver, é um bundle: nunca se apaga, mesmo
+ *      que a marca apareça (um `require` futuro pode arrastar este ficheiro para dentro do
+ *      motor, e a marca viajaria com ele);
+ *   3. quando o nome de exibição é conhecido, ele tem de estar no módulo.
+ */
+function ehPlaceholder(codigo, { escola, nome } = {}) {
+  const texto = String(codigo || '');
+  if (!texto || !escola) return false;
+  if (!texto.includes(linhaDoPlaceholder(escola))) return false;
+  if (texto.includes(PRELUDIO_DO_MOTOR)) return false;
+  if (nome && !texto.includes('const NOME = ' + JSON.stringify(nome) + ';')) return false;
+  return true;
+}
+
 /** O módulo ESM da escola «zero» — a página de «implantação em andamento». */
 function scriptDaEscola(escola, nome) {
   // O worker fonte usa SÓ aspas simples (sem backticks, sem `${`, sem `\u`, sem `\n`),
   // para este template literal de fora não interpretar nada além de NOME e CSS.
-  return `// escola ${escola} — Worker «zero» (implantação em andamento, gerado por provisionar-escola.js)
+  return `${linhaDoPlaceholder(escola)}
 const NOME = ${JSON.stringify(nome)};
 const CSS = ${JSON.stringify(CSS_ESTADO)};
 
@@ -133,14 +175,39 @@ function senhaAleatoria() {
 }
 
 /** Cria a escola no Cloudflare. Devolve `{ escola, nome, url }` — e NÃO a chave. */
-async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono }) {
-  const escola = slugificar(nome);
+async function criarEscola(opcoes) {
+  const escola = slugificar(opcoes.nome);
   if (!escola) throw new ErroDeProvisionamento('slug', 'o nome da escola não produz um slug válido');
 
-  if (await escolaExiste(token, accountId, escola)) {
+  if (await escolaExiste(opcoes.token, opcoes.accountId, escola)) {
     throw new ErroDeProvisionamento('existe', 'a escola "' + escola + '" já existe — não se sobrescreve (a proveniência acrescenta, não edita)');
   }
 
+  // O ROLLBACK MORA AQUI, e não em quem chama — porque quem cria é quem tem de desfazer.
+  //
+  // A partir da linha seguinte existe um Worker no Cloudflare e NADA no Git. Se o
+  // provisionamento morre a meio (um segredo recusado, a rede, o tempo), sem isto o
+  // placeholder fica no ar a responder 200 no subdomínio de uma escola que não existe — foi
+  // a `valsa`, por cinco segundos de diferença entre a criação e a morte do workflow.
+  //
+  // `desfazerPlaceholder` é que decide se apaga: ele LÊ o que está no ar e só toca no
+  // placeholder DESTA escola. Aqui não se decide nada — só se garante que alguém pergunta.
+  // O resultado vai no erro (`err.desfeito`) para quem responde poder dizê-lo.
+  try {
+    return await provisionarEscolaZero(opcoes, escola);
+  } catch (err) {
+    err.desfeito = await desfazerPlaceholder({
+      token: opcoes.token,
+      accountId: opcoes.accountId,
+      escola,
+      nome: opcoes.nome,
+    });
+    throw err;
+  }
+}
+
+/** Os passos 1–6 do provisionamento. Separado para o `criarEscola` poder desfazê-los num só lugar. */
+async function provisionarEscolaZero({ nome, senhaAdmin, token, accountId, githubToken, professorNome, professorSlug, senhaProfessor, professorEhDono }, escola) {
   const base = '/accounts/' + accountId + '/workers';
 
   // 1. o script da escola (módulo ESM) + o freio ESCOLA_HABILITADA.
@@ -238,6 +305,71 @@ async function criarEscola({ nome, senhaAdmin, token, accountId, githubToken, pr
 }
 
 /**
+ * LÊ o código que está no ar num Worker. `{ existe, codigo, status }` — nunca lança.
+ *
+ * A resposta da API é multipart/form-data (o módulo vem num `Blob`), e o que interessa é o
+ * texto: o marcador do placeholder vive dentro dele. Devolve-se o corpo cru de propósito —
+ * extrair o módulo do multipart exigiria um parser que o runtime do Worker não tem, e a
+ * comparação por `includes` não precisa dele.
+ */
+async function lerCodigoDoWorker({ token, accountId, escola }) {
+  try {
+    const res = await fetch(
+      'https://api.cloudflare.com/client/v4/accounts/' + accountId + '/workers/scripts/' + escola,
+      { method: 'GET', headers: { 'Authorization': 'Bearer ' + token } }
+    );
+    if (res.status === 404) return { existe: false, codigo: '', status: 404 };
+    if (!res.ok) return { existe: true, codigo: '', status: res.status, erro: 'HTTP ' + res.status };
+    return { existe: true, codigo: await res.text(), status: res.status };
+  } catch (err) {
+    return { existe: true, codigo: '', status: 0, erro: (err && err.message) || String(err) };
+  }
+}
+
+/**
+ * DESFAZ o Worker «zero» — o rollback de uma escola que não chegou a nascer.
+ *
+ * Porque existe: `criarEscola` cria o Worker ANTES de existir qualquer artefacto no Git, e o
+ * motor completo nasce depois, no workflow. Se o workflow falha (ou se o disparo falha, ou se
+ * o próprio provisionamento morre a meio), o Worker «zero» fica no ar **para sempre** — a
+ * responder 200 no subdomínio de uma escola que não existe, com uma página que manda
+ * «recarregue em instantes». Foi o caso da `valsa` (17/10/2026): criada às 09:36:04Z, o
+ * workflow morto às 09:36:09Z, e 592 bytes de mentira no ar até alguém reparar.
+ *
+ * A REGRA É A EVIDÊNCIA, NÃO A INTENÇÃO: apaga-se apenas se o que está no ar ainda for o
+ * placeholder DESTA escola. Uma escola a sério — mesmo que o deploy tenha sido o último passo
+ * a falhar — nunca é tocada. Na dúvida (não consegui ler o código, a resposta não é
+ * conclusiva), NÃO se apaga: um órfão de 592 bytes vê-se e apaga-se à mão; uma escola apagada
+ * por engano não se recupera.
+ *
+ * Não lança: devolve `{ removido, motivo, ... }`. Quem chama está a tratar um erro — um
+ * segundo erro aqui apagaria a causa do primeiro.
+ */
+async function desfazerPlaceholder({ token, accountId, escola, nome }) {
+  if (!escola) return { removido: false, motivo: 'sem-escola' };
+  if (!token) return { removido: false, motivo: 'sem-token' };
+
+  const leitura = await lerCodigoDoWorker({ token, accountId, escola });
+  if (!leitura.existe) return { removido: false, motivo: 'nao-existe' };
+  if (leitura.erro || !leitura.codigo) {
+    return { removido: false, motivo: 'nao-confirmado', erro: leitura.erro || 'corpo vazio' };
+  }
+  if (!ehPlaceholder(leitura.codigo, { escola, nome })) {
+    return { removido: false, motivo: 'nao-e-placeholder' };
+  }
+
+  // Sem KV: o Worker «zero» não tem binding de KV nem escreve nada — o namespace só é ligado
+  // no deploy do motor. Nunca houve chave desta escola para limpar.
+  const resultado = await excluirEscola({ token, accountId, slug: escola, worker: escola });
+  const removido = Boolean(resultado && resultado.script && resultado.script.ok);
+  return {
+    removido,
+    motivo: removido ? 'removido' : 'remocao-recusada',
+    resultado,
+  };
+}
+
+/**
  * Dispara o workflow `criar-escola.yml` — o que monta o scaffold (professor + ciclo +
  * pacote-zero) e sobe o motor completo, substituindo o Worker «zero» criado acima (os
  * segredos persistem). É o mesmo padrão de `disparar.js`, mas com os inputs do ciclo.
@@ -292,4 +424,16 @@ async function atualizarEscola({ escola, nome, token, accountId }) {
   return { escola, nome, url: 'https://' + escola + '.' + SUBDOMINIO + '.workers.dev' };
 }
 
-module.exports = { criarEscola, dispararCriacao, atualizarEscola, slugificar, scriptDaEscola, subirModulo };
+module.exports = {
+  criarEscola,
+  dispararCriacao,
+  atualizarEscola,
+  slugificar,
+  scriptDaEscola,
+  subirModulo,
+  // O rollback do órfão: reconhecer o placeholder e desfazê-lo.
+  desfazerPlaceholder,
+  ehPlaceholder,
+  lerCodigoDoWorker,
+  linhaDoPlaceholder,
+};

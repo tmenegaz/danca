@@ -87,6 +87,7 @@ jobs:
           sudo apt-get install -y --no-install-recommends pandoc
 
       - name: Montar o scaffold (professor + ciclo + pacote-zero + wrangler)
+        id: scaffold
         shell: bash
         run: |
           set -euo pipefail
@@ -104,6 +105,7 @@ jobs:
             --nao-interativo
 
       - name: Subir o motor completo no Cloudflare
+        id: motor
         shell: bash
         run: |
           set -euo pipefail
@@ -137,3 +139,38 @@ jobs:
           Auditoria: sim"
 
           git push
+
+      # ---------------------------------------------------------------------
+      # O ROLLBACK DO ÓRFÃO.
+      #
+      # A página `danca` cria o Worker «zero» (Worker + subdomínio + segredos) e SÓ DEPOIS
+      # dispara este workflow. Entre uma coisa e a outra a escola existe no Cloudflare e não
+      # existe em lugar nenhum: sem pasta em `escola/`, sem `wrangler.<escola>.jsonc`, sem
+      # nada no Git. Se este workflow falha, nada desfazia o Worker — e ele ficava no ar a
+      # responder 200 no subdomínio de uma escola que nunca nasceu. Foi a `valsa` de
+      # 17/10/2026: criada às 09:36:04Z, o workflow morto às 09:36:09Z.
+      #
+      # A CONDIÇÃO TEM DUAS METADES, e as duas são necessárias:
+      #
+      #   `steps.motor.outcome != 'success'` — se o motor SUBIU, não há órfão: há uma escola a
+      #   funcionar, e o que falhou foi o commit do scaffold. Apagar o Worker seria destruir o
+      #   que está bom para corrigir o que está em falta.
+      #
+      #   `failure()` — só se corre quando algo falhou. Num sucesso não há nada a desfazer.
+      #
+      # E dentro do script há uma terceira guarda, a decisiva: `desfazer-placeholder.js` LÊ o
+      # código que está no ar e só apaga se ainda for o placeholder DESTA escola. Uma escola a
+      # sério nunca é tocada, mesmo que as duas condições acima digam «pode apagar» — a
+      # intenção não é a evidência. Na dúvida, não apaga.
+      # ---------------------------------------------------------------------
+      - name: Desfazer o Worker «zero» (a escola não chegou a nascer)
+        if: failure() && steps.motor.outcome != 'success'
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/desfazer-placeholder.js \
+            --escola "${{ inputs.escola }}" \
+            --nome "${{ inputs.escola-nome }}"
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

@@ -15603,3 +15603,85 @@ ar.
 qualquer artefacto no Git, e nada desfaz isso se o workflow seguinte falhar. Não foi corrigido
 aqui (o expurgo manual resolveu este caso, e um rollback automático é desenho, não conserto):
 fica declarado como a fronteira por onde um órfão nasce.
+
+## 17/10/2026 — A escola que não nasce não deixa Worker no ar (o rollback do órfão)
+
+**O que aconteceu.** Na mesma tarde em que a `valsa` foi eliminada à mão, ficou declarado o
+buraco por onde ela nasceu: o `provisionar-escola.js` cria o Worker **antes** de existir
+qualquer artefacto no Git, e nada desfazia o Worker quando o passo seguinte falhava.
+
+A janela é esta, e é estreita no tempo e larga no risco: a página `danca` cria o Worker «zero»
+(Worker + subdomínio + segredos) e **só depois** dispara o `criar-escola.yml`, que monta o
+scaffold e sobe o motor por cima. Entre um e outro a escola existe no Cloudflare e **não existe
+em lugar nenhum** — sem pasta em `escola/`, sem `wrangler.<escola>.jsonc`, sem nada no Git. O
+expurgo da raiz não a vê (só conhece `escola/*/indice.json`), o `escola/expurgar.js` também
+não, e a página diz «recarregue em instantes» a uma escola que nunca vai carregar. Na `valsa`
+foram **cinco segundos** entre a criação (09:36:04Z) e a morte do workflow (09:36:09Z) — e o
+órfão ficou no ar horas.
+
+**A decisão, e o que ela recusa.** O rollback apaga pela **evidência**, não pela intenção. Não
+basta «a criação falhou» para apagar: é preciso que o que está no ar **ainda seja** o
+placeholder daquela escola — reconhecido pela linha que o próprio gerador escreve
+(`linhaDoPlaceholder`, com o slug), pela ausência do prelúdio do esbuild que todo bundle do
+motor traz (`var __create = Object.create;`) e, quando o nome é conhecido, pelo nome.
+
+A assimetria dos dois erros é o que manda em tudo: **um falso positivo apaga uma escola viva;
+um falso negativo deixa 592 bytes que se vêem e se apagam à mão.** Por isso todos os casos de
+dúvida terminam em «não apaga» — leitura falhou, a rede caiu, a resposta não é conclusiva. E
+por isso o rollback **nunca lança**: quem o chama já está a tratar um erro, e um segundo erro
+apagaria a causa do primeiro.
+
+**Onde ele mora — três sítios, uma só definição.**
+
+- **`criarEscola`** desfaz o que ela própria criou. A invariante é local a quem cria: os passos
+  1–6 saíram para `provisionarEscolaZero` para o `criarEscola` os poder envolver num
+  `try/catch` sem mover uma linha do corpo, e o resultado do desfazer vai no erro
+  (`err.desfeito`).
+- **A rota `/api/criar-escola`** desfaz quando o **disparo** falha — e a resposta passa a ser
+  **502**, não 201. Antes, o Worker «zero» subia, o disparo falhava e a página dizia «escola
+  criada» com um aviso em letra pequena. Uma escola que não pode ser completada não pode
+  dizer que existe.
+- **O workflow** desfaz quando o motor não chegou a subir. A condição tem duas metades, e a
+  segunda é a que impede o pior: `failure() && steps.motor.outcome != 'success'`. Se o motor
+  **subiu**, não há órfão — há uma escola a funcionar e um commit que falhou; apagar o Worker
+  seria destruir o que está bom para corrigir o que está em falta.
+
+`desfazerPlaceholder` reusa `excluirEscola` (subdomínio → script, nessa ordem). Duas
+definições de «como se apaga um Worker» divergiriam, e a que ficasse para trás seria a que
+deixa um subdomínio ligado a um script que já não existe. Sem KV: o Worker «zero» não tem
+binding nem escreve nada — nunca houve chave daquela escola para limpar.
+
+**O que a prova mediu — e o que foi medido no Cloudflare a sério.** A prova nova
+(`experimentos/provar-rollback-do-orfao.js`, 31 casos) cobre o reconhecimento (nome diferente,
+slug de outra escola, bundle com a marca dentro, vazio, sem slug), o desfazer (404, placeholder,
+escola a sério, leitura 500, rede caída, remoção recusada, sem token), o provisionamento a
+meio, e a rota nos quatro desfechos (disparo recusado → 502, disparo aceite → 201, sem
+`GITHUB_TOKEN` → 502, escola que já existe → 409 **sem** apagar).
+
+Além da prova, o caminho foi exercitado **contra o Cloudflare de produção**, com um Worker
+descartável (`zz-rollback-teste`): criado pelo mesmo `subirModulo`, recusado com o nome de
+exibição errado, apagado com o nome certo, e a conta conferida no fim (`danca`, `fita`,
+`valse` — mais nada). O mesmo comando, corrido contra a escola `valse` a sério, **recusou**
+apagar: leu 423 KB de bundle e respondeu `nao-e-placeholder`. Um teste com duplos não teria
+apanhado nem a forma multipart da resposta da API nem a ordem real dos `DELETE`.
+
+**Onde entrou.**
+
+- `motor/servidor/provisionar-escola.js` — `linhaDoPlaceholder`, `ehPlaceholder`,
+  `lerCodigoDoWorker`, `desfazerPlaceholder`; `criarEscola` dividido em criação + envoltório.
+- `motor/servidor/raiz.js` — o 502 no disparo falhado; o `catch` deixa de duplicar o desfazer e
+  repassa `err.desfeito`.
+- `tools/desfazer-placeholder.js` — novo: o CLI do workflow (e da limpeza à mão). Sai 0 quando
+  o estado é conhecido e relatado; 1 só quando não foi possível saber — um passo de rollback não
+  pode fingir que limpou.
+- `.github/workflows/criar-escola.yml` — `id` nos passos e o passo de desfazer.
+- `raiz/index.html` — a tela diz o que o rollback fez; e o ramo «o Worker subiu mas o disparo
+  falhou» deixou de existir, porque esse estado deixou de ser possível.
+- `experimentos/provar-rollback-do-orfao.js` — a prova, 31 casos.
+
+**O que continua em aberto, declarado.** Se o processo do Worker morrer **entre** o upload do
+módulo e o `catch` (limite de CPU, cancelamento), nenhum dos três sítios corre — e um órfão
+nasce sem que ninguém o saiba. Fechar isso exigiria um vigia no Cron da raiz a reconciliar
+«Worker no ar sem `escola/<slug>/indice.json`», e um vigia desses precisa de prazo de carência:
+o intervalo legítimo entre o Worker e o commit é de minutos. Um prazo inventado apagaria
+escolas a nascer. Não foi feito, e não se faz sem desenho.

@@ -171,6 +171,16 @@ workflow `criar-escola.yml`, que monta o scaffold (professor, ciclo, pacote e o
 Produção** que o professor é cadastrado — e é esse cadastro que habilita a «Área do
 Professor» (anamnese, plano de ensino e PO).
 
+**A criação desfaz-se sozinha quando falha.** Entre o Worker «zero» e o motor há um intervalo
+em que a escola existe no Cloudflare e não existe em lugar nenhum; se o workflow morre (ou se
+o disparo nem acontece), foi essa janela que deixou a `valsa` no ar a responder 200 a uma
+escola que nunca nasceu. Hoje o rollback é automático: a raiz desfaz quando o disparo falha
+(502, não 201), `criarEscola` desfaz quando o provisionamento morre a meio, e o workflow
+desfaz quando o motor não chegou a subir. Em todos os casos a decisão é a **evidência**, não a
+intenção — `desfazer-placeholder.js` lê o código que está no ar e só apaga se ainda for o
+placeholder *daquela* escola; uma escola a sério nunca é tocada. À mão, para limpar um órfão:
+`node tools/desfazer-placeholder.js --escola <slug>`.
+
 ## O expurgo das escolas desabilitadas (§17.5)
 
 A raiz também é quem **apaga** escola: quando uma escola está desabilitada e o prazo passa

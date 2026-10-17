@@ -13,7 +13,7 @@
  * da escola no Cloudflare e devolve o URL. A raiz só decide; não cria conteúdo pedagógico.
  */
 
-const { criarEscola, dispararCriacao, slugificar } = require('./provisionar-escola.js');
+const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = require('./provisionar-escola.js');
 const { excluirEscola, prefixosDaEscola } = require('./expurgar-escola.js');
 const { listarEscolas, listarProfessores, apagarEscolaDoRepo, lerArquivo } = require('./repo-escola.js');
 
@@ -570,13 +570,44 @@ async function fetch(request, env) {
             },
           })
         : { ok: false, erro: 'GITHUB_TOKEN ausente na raiz' };
+
+      // O DISPARO FALHOU ⇒ NÃO HÁ ESCOLA. Sem o workflow não há scaffold nem motor: o que
+      // ficou no ar é o placeholder, a responder 200 no subdomínio de uma escola que não
+      // existe. Antes disto, a resposta era 201 «escola criada» com um aviso em letra
+      // pequena — e o órfão ficava. O rollback desfaz e a resposta passa a ser um ERRO,
+      // porque não se criou nada.
+      if (!disparo.ok) {
+        const desfeito = await desfazerPlaceholder({
+          token,
+          accountId: ACCOUNT_ID,
+          escola: escola.escola,
+          nome,
+        });
+        return responderJson({
+          ok: false,
+          erro: 'o deploy do motor completo não foi disparado (' + (disparo.erro || ('HTTP ' + disparo.status)) + ') — nada foi criado',
+          desfeito,
+        }, 502);
+      }
+
       return new Response(JSON.stringify({ ok: true, ...escola, disparo }), {
         status: 201,
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
       });
     } catch (err) {
       const status = (err && err.etapa === 'existe') ? 409 : (err && err.etapa === 'slug') ? 400 : 500;
-      return new Response(JSON.stringify({ ok: false, erro: (err && err.etapa ? err.etapa + ': ' : '') + (err && err.message) }), {
+
+      // O ROLLBACK NÃO SE REPETE AQUI. `criarEscola` já desfez o que ela própria criou e
+      // deixou o resultado em `err.desfeito` — chamar outra vez seria perguntar duas vezes a
+      // mesma coisa e responder «não existia» sobre um Worker que ESTE pedido acabou de apagar
+      // (a segunda leitura recebe 404). Um 409 e um 400 nunca chegam aqui com `desfeito`: no
+      // primeiro o Worker é uma escola a sério; no segundo não há slug.
+      const desfeito = (err && err.desfeito) || null;
+
+      return new Response(JSON.stringify(Object.assign(
+        { ok: false, erro: (err && err.etapa ? err.etapa + ': ' : '') + (err && err.message) },
+        desfeito ? { desfeito } : {}
+      )), {
         status,
         headers: { 'Content-Type': 'application/json;charset=utf-8' },
       });

@@ -643,13 +643,11 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
               if (d.ok) {
                 res.className = "res ok";
                 var html = "Escola criada: <a href=\"" + d.url + "\">" + d.url + "</a>";
-                if (d.disparo && d.disparo.ok) {
-                  html += "<br><br>O deploy do motor completo foi disparado — em instantes a Área do Professor "
-                    + "e os Bastidores ficam no ar (acompanhe no link acima).";
-                } else {
-                  html += "<br><br><strong>Atenção:</strong> o Worker «zero» subiu, mas o deploy do motor "
-                    + "completo NÃO foi disparado (" + ((d.disparo && d.disparo.erro) || "GITHUB_TOKEN ausente") + ").";
-                }
+                // Não há mais o caso «o Worker «zero» subiu, mas o disparo falhou»: quando o
+                // disparo falha, a raiz DESFAZ o Worker e responde em erro (502). Uma escola
+                // que não pode ser completada não fica no ar a dizer que existe.
+                html += "<br><br>O deploy do motor completo foi disparado — em instantes a Área do Professor "
+                  + "e os Bastidores ficam no ar (acompanhe no link acima).";
                 // A CHAVE DE CRIPTOGRAFIA NÃO APARECE MAIS (15/10/2026). Ela nasce, é guardada e é
                 // USADA pelo Worker — não há por que passar pela mão de alguém. Antes, esta tela
                 // exibia a chave e mandava arquivá-la; o dono do produto apontou o absurdo
@@ -662,7 +660,18 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
                 }
                 res.innerHTML = html;
               }
-              else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }
+              else {
+                res.className = "res erro";
+                var msg = "Erro: " + (d.erro || "desconhecido");
+                // O ROLLBACK DIZ O QUE FEZ. Sem isto, o erro pareceria a mesma falha de antes:
+                // alguém iria ao Cloudflare procurar um Worker que já não existe.
+                if (d.desfeito && d.desfeito.removido) {
+                  msg += " O Worker que tinha subido foi removido — nada ficou no ar.";
+                } else if (d.desfeito && d.desfeito.motivo === "nao-e-placeholder") {
+                  msg += " O Worker que está no ar NÃO foi tocado: não é o andaime de uma escola nova — é uma escola a sério, e apagá-la seria pior.";
+                }
+                res.textContent = msg;
+              }
             }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; });
           });
 
