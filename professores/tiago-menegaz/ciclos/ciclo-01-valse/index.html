@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema Lastro</title>
+<link rel="stylesheet" href="assets/style.css">
+<script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
+   completo (o botão) vive em assets/nav.js. */
+try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
+</head>
+<body id="top">
+
+<nav class="topnav" aria-label="Navegação do ciclo">
+  <span class="marca" aria-hidden="true"></span>
+  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="nav-links" id="nav-links">
+  <a class="ativo" href="index.html">Sistema Lastro</a>
+  <details class="menu">
+    <summary>Área do Professor</summary>
+    <div class="submenu">
+      <a href="anamnese/?professor=tiago-menegaz&escola=valse&ciclo=01">Anamnese do aluno</a>
+      <a href="plano-ensino/?professor=tiago-menegaz&escola=valse&ciclo=01&fonte=plano">Plano de ensino</a>
+      <a href="plano-observacao/?professor=tiago-menegaz&escola=valse&ciclo=01&fonte=po">Plano de Observação</a>
+    </div>
+  </details>
+  <details class="menu">
+    <summary>Bastidores</summary>
+    <div class="submenu">
+      <a href="bastidores/estudio">Estúdio de Dança</a>
+      <a href="bastidores/producao">Produção</a>
+    </div>
+  </details>
+  </div>
+<button class="tema" type="button" aria-pressed="false" aria-label="Ativar a aparência noturna" title="Aparência clara ou noturna">◐</button>
+</nav>
+
+<header class="doc">
+  <h1>Sistema Lastro</h1>
+    </header>
+
+<main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
+<nav class="toc-local" aria-label="Índice desta página">
+  <p class="toc-titulo">Nesta página</p>
+<ul>
+<li><a href="#o-que-é-o-sistema-lastro"
+id="toc-o-que-é-o-sistema-lastro">O que é o Sistema Lastro</a></li>
+<li><a href="#por-que-o-sistema-lastro-existe"
+id="toc-por-que-o-sistema-lastro-existe">Por que o Sistema Lastro
+existe</a></li>
+<li><a href="#planejar-para-observar"
+id="toc-planejar-para-observar">Planejar para observar</a></li>
+<li><a href="#a-técnica-permanece.-a-estratégia-pode-mudar."
+id="toc-a-técnica-permanece.-a-estratégia-pode-mudar.">A técnica
+permanece. A estratégia pode mudar.</a></li>
+<li><a href="#o-que-o-sistema-ajuda-a-resolver"
+id="toc-o-que-o-sistema-ajuda-a-resolver">O que o sistema ajuda a
+resolver</a></li>
+<li><a href="#o-que-você-ganha-com-ele"
+id="toc-o-que-você-ganha-com-ele">O que você ganha com ele</a></li>
+<li><a href="#como-se-usa-passo-a-passo"
+id="toc-como-se-usa-passo-a-passo">Como se usa, passo a passo</a>
+<ul>
+<li><a href="#passo-1-anamnese-do-aluno"
+id="toc-passo-1-anamnese-do-aluno">Passo 1 — Anamnese do aluno</a></li>
+<li><a href="#passo-2-plano-de-ensino"
+id="toc-passo-2-plano-de-ensino">Passo 2 — Plano de Ensino</a></li>
+<li><a href="#passo-3-plano-de-observação"
+id="toc-passo-3-plano-de-observação">Passo 3 — Plano de
+Observação</a></li>
+<li><a href="#passo-4-lançamento-de-aula"
+id="toc-passo-4-lançamento-de-aula">Passo 4 — Lançamento de
+aula</a></li>
+<li><a href="#passo-5-consulte-os-materiais-do-ciclo"
+id="toc-passo-5-consulte-os-materiais-do-ciclo">Passo 5 — Consulte os
+materiais do ciclo</a></li>
+</ul></li>
+<li><a href="#a-continuidade-do-trabalho-pedagógico"
+id="toc-a-continuidade-do-trabalho-pedagógico">A continuidade do
+trabalho pedagógico</a></li>
+<li><a href="#onde-pedir-ajuda" id="toc-onde-pedir-ajuda">Onde pedir
+ajuda</a></li>
+</ul>
+</nav>
+</div>
+
+<div class="conteudo">
+<h2 id="o-que-é-o-sistema-lastro">O que é o Sistema Lastro</h2>
+<p>O <strong>Sistema Lastro</strong> é uma ferramenta de apoio ao
+trabalho pedagógico na dança. Ele permite organizar o planejamento,
+definir o que será observado, registrar o que acontece nas aulas e
+acompanhar o percurso de cada aluno ao longo do tempo.</p>
+<p>O professor mantém a autonomia sobre suas escolhas. O sistema
+organiza as informações e preserva os registros para que possam ser
+consultados, comparados e utilizados na reflexão sobre o ensino.</p>
+<h2 id="por-que-o-sistema-lastro-existe">Por que o Sistema Lastro
+existe</h2>
+<p>Ensinar dança exige atenção simultânea à técnica, à organização do
+movimento, às diferenças entre os alunos e aos objetivos de cada etapa
+da formação. Em uma aula, muitas situações acontecem ao mesmo tempo, e
+nem todas podem ser acompanhadas com o mesmo grau de detalhe.</p>
+<p>O Sistema Lastro ajuda a transformar observações pontuais em
+referências organizadas. Assim, o professor pode recuperar o que havia
+observado anteriormente, relacionar os registros ao planejamento e
+compreender melhor as mudanças percebidas durante o processo de
+aprendizagem.</p>
+<h2 id="planejar-para-observar">Planejar para observar</h2>
+<p>O acompanhamento começa com referências sobre o aluno e com a
+definição dos objetivos de ensino. A anamnese registra informações
+relevantes para o trabalho pedagógico; o Plano de Ensino organiza o que
+será desenvolvido; e o Plano de Observação estabelece quais aspectos
+serão acompanhados, com quais objetivos e para quais alunos.</p>
+<p>Essa organização oferece critérios para as observações posteriores.
+Em vez de depender apenas de impressões gerais, o professor pode
+registrar aspectos concretos da prática, de acordo com a modalidade, a
+proposta pedagógica e as necessidades de cada turma.</p>
+<h2 id="a-técnica-permanece.-a-estratégia-pode-mudar.">A técnica
+permanece. A estratégia pode mudar.</h2>
+<p>O Sistema Lastro não determina como a dança deve ser ensinada nem
+substitui os métodos, as tradições ou os conhecimentos profissionais do
+professor. Ele permite organizar o acompanhamento a partir dos
+princípios técnicos e pedagógicos adotados pela escola.</p>
+<p>O professor decide o que merece atenção, interpreta o que observa e
+avalia quando suas estratégias precisam ser revistas. O sistema preserva
+essas referências para facilitar a continuidade do trabalho entre
+diferentes aulas e ciclos.</p>
+<h2 id="o-que-o-sistema-ajuda-a-resolver">O que o sistema ajuda a
+resolver</h2>
+<p>Ao longo das aulas, informações importantes podem ficar restritas à
+memória do professor. Sem registros anteriores, pode ser difícil
+recuperar com precisão como determinada habilidade se apresentava ou
+quais observações orientaram uma decisão pedagógica.</p>
+<p>O Sistema Lastro reúne o planejamento e os registros relacionados às
+aulas, permitindo consultar o que foi previsto, o que foi registrado e
+como as observações se relacionam ao longo do tempo. Ele não atribui
+notas automaticamente, não determina o desenvolvimento de um aluno e não
+substitui a avaliação profissional.</p>
+<p><strong>O sistema organiza os registros. A interpretação e as
+decisões continuam sendo do professor.</strong></p>
+<h2 id="o-que-você-ganha-com-ele">O que você ganha com ele</h2>
+<p>O Sistema Lastro ajuda a manter uma memória organizada do trabalho
+pedagógico, sem depender exclusivamente da lembrança de situações
+anteriores.</p>
+<p>Com ele, você pode:</p>
+<ul>
+<li><strong>Registrar o ponto de partida</strong> de cada aluno por meio
+da anamnese.</li>
+<li><strong>Organizar os objetivos de ensino</strong> no Plano de
+Ensino.</li>
+<li><strong>Definir o foco do acompanhamento</strong> no Plano de
+Observação.</li>
+<li><strong>Registrar as aulas realizadas</strong> e as observações
+correspondentes.</li>
+<li><strong>Consultar o histórico do trabalho</strong>, recuperando
+registros e decisões anteriores.</li>
+<li><strong>Reexaminar suas estratégias pedagógicas</strong>, utilizando
+as informações registradas como apoio à sua própria interpretação.</li>
+</ul>
+<p>O objetivo não é transformar a dança em uma lista de números ou
+indicadores. É preservar referências que ajudem o professor a acompanhar
+o trabalho e refletir sobre ele com mais continuidade.</p>
+<h2 id="como-se-usa-passo-a-passo">Como se usa, passo a passo</h2>
+<p>O trabalho pode ser organizado em <strong>ciclos</strong>, que
+correspondem a períodos definidos pela escola, como uma unidade de
+ensino, um bimestre ou um conjunto de aulas com objetivos comuns. A
+organização dos ciclos permite relacionar o planejamento às observações
+feitas durante as aulas.</p>
+<h3 id="passo-1-anamnese-do-aluno">Passo 1 — Anamnese do aluno</h3>
+<p>Na <strong>Área do Professor</strong>, abra <strong>Anamnese do
+aluno</strong>.</p>
+<p>Registre as informações relevantes para compreender o ponto de
+partida do aluno e orientar o trabalho pedagógico. Esses dados oferecem
+referências para o planejamento e para o acompanhamento posterior.</p>
+<p><strong><a href="plano-observacao/?professor=tiago-menegaz&escola=valse&ciclo=01">Acessar a Anamnese do
+aluno</a></strong></p>
+<h3 id="passo-2-plano-de-ensino">Passo 2 — Plano de Ensino</h3>
+<p>Na <strong>Área do Professor</strong>, abra <strong>Plano de
+Ensino</strong>.</p>
+<p>Defina os objetivos do ciclo, a sequência do trabalho e os marcos
+previstos para as aulas. O plano registra a intenção pedagógica que
+orientará o desenvolvimento do ciclo e poderá ser retomado em
+planejamentos posteriores.</p>
+<p><strong><a href="plano-observacao/?professor=tiago-menegaz&escola=valse&ciclo=01&fonte=plano">Acessar o Plano de
+Ensino</a></strong></p>
+<h3 id="passo-3-plano-de-observação">Passo 3 — Plano de Observação</h3>
+<p>Na <strong>Área do Professor</strong>, abra <strong>Plano de
+Observação</strong>.</p>
+<p>Defina o que será acompanhado durante o ciclo, quais objetivos
+orientam a observação e quais alunos serão considerados. O plano
+relaciona as informações iniciais dos alunos aos objetivos de ensino e
+estabelece os critérios que orientarão os registros das aulas.</p>
+<p><strong><a href="plano-observacao/?professor=tiago-menegaz&escola=valse&ciclo=01&fonte=po">Acessar o Plano de
+Observação</a></strong></p>
+<h3 id="passo-4-lançamento-de-aula">Passo 4 — Lançamento de aula</h3>
+<p>Ao final de cada aula, acesse <strong>Lançamento de aula</strong> na
+Área do Professor.</p>
+<p>Registre o que aconteceu e as observações pertinentes aos objetivos
+definidos no Plano de Observação. O formulário organiza os campos de
+acordo com o planejamento, facilitando a continuidade dos registros ao
+longo do ciclo.</p>
+<h3 id="passo-5-consulte-os-materiais-do-ciclo">Passo 5 — Consulte os
+materiais do ciclo</h3>
+<p>Os materiais são organizados no menu conforme o planejamento e os
+registros produzidos.</p>
+<ul>
+<li><strong>Ciclos:</strong> reúne o Plano do Ciclo e as Referências
+Bibliográficas correspondentes.</li>
+<li><strong>Aulas:</strong> permite consultar os registros das aulas
+realizadas.</li>
+<li><strong>Acompanhamento:</strong> reúne o Caderno e os registros
+descritivos construídos a partir dos lançamentos.</li>
+<li><strong>Planejamento:</strong> pode incluir materiais de notação e
+glossários quando essa modalidade de registro fizer parte do
+trabalho.</li>
+<li><strong>Área do Professor:</strong> reúne os formulários, guias e
+documentos de apoio ao planejamento e à observação.</li>
+</ul>
+<p>Cada formulário apresenta orientações específicas sobre seu
+preenchimento, incluindo a função das informações solicitadas e os
+campos obrigatórios ou opcionais.</p>
+<h2 id="a-continuidade-do-trabalho-pedagógico">A continuidade do
+trabalho pedagógico</h2>
+<p>Os registros de diferentes ciclos permitem recuperar decisões
+anteriores e consultar o percurso do trabalho ao longo do tempo. Quando
+um planejamento precisa ser revisto, é importante preservar a referência
+anterior e registrar a nova versão, mantendo a distinção entre o que foi
+definido em cada momento.</p>
+<p>Essa continuidade ajuda o professor e a escola a compreender o
+histórico do trabalho pedagógico sem tratar um registro isolado como uma
+conclusão definitiva sobre o aluno.</p>
+<p>O Sistema Lastro preserva as informações que ajudam a acompanhar o
+ensino. Não pretende registrar tudo o que acontece na dança, mas
+organizar os elementos que o professor considera relevantes para seu
+trabalho.</p>
+<h2 id="onde-pedir-ajuda">Onde pedir ajuda</h2>
+<ul>
+<li><strong>Não sabe por onde começar?</strong> Inicie pela Anamnese do
+aluno e siga a sequência de planejamento e observação.</li>
+<li><strong>Tem dúvidas sobre um formulário ou procedimento?</strong>
+Consulte as orientações disponíveis na própria ferramenta ou entre em
+contato com a equipe responsável pelo acompanhamento da sua escola.</li>
+</ul>
+</div>
+</main>
+
+<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
+
+<footer class="rodape">
+  <p>Ciclo 01 — Valse &middot; <strong>Valse</strong> &middot; 2x/semana &middot; 60 min por encontro &middot; [Preencher: data de início — o plano elicitado a estabelece] &middot; Tiago</p>
+  <p><a href="anamnese/?professor=tiago-menegaz&escola=valse&ciclo=01">Anamnese do aluno</a> &middot; <a href="plano-ensino/?professor=tiago-menegaz&escola=valse&ciclo=01&fonte=plano">Plano de ensino</a> &middot; <a href="plano-observacao/?professor=tiago-menegaz&escola=valse&ciclo=01&fonte=po">Plano de Observação</a></p>
+</footer>
+
+
+<!-- O comportamento da barra fixa e do menu mobile vive em `assets/nav.js`: a MESMA
+     cópia é carregada pelo `lancamento.html`, que não passa pelo pandoc. Enquanto era um
+     bloco inline daqui, o formulário ficava sem ele (barra cobrindo o título, hamburger
+     morto no celular). -->
+<script src="assets/nav.js"></script>
+
+</body>
+</html>
