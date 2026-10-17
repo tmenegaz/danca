@@ -236,3 +236,54 @@ aberto, e o botão parece certo.
 | 17/10/2026 | 3.1 prova do tema | `provar-tema.js` 29/29; botão fora do `.nav-links` (defeito encontrado) |
 | 17/10/2026 | 3.2 documentação | `README.md` (seção e atalhos) e `motor/servidor/README.md` |
 | 17/10/2026 | 3.3 handoff | `tools/gerar-handoff.sh` |
+| 17/10/2026 | 4.1 barra da escola nova | `criar-escola.sh` → `nav-html.js`; `valse` regenerada |
+| 17/10/2026 | 4.3 porta no validador | checagem 6: corpo byte a byte + botão na barra |
+| 17/10/2026 | 4.4 porta da Fita | 44 primitivos → 0; barra com o nome atual |
+| 17/10/2026 | 4.5 prova do tema | 29 → 30; sem filtro vazio |
+
+---
+
+## Fase 4 — os artefatos gerados (17/10/2026)
+
+Objetivo: a identidade que vale na **fonte** tinha de valer nos arquivos que o sistema
+**serve**. A revisão foi feita sobre a escola criada naquele dia (`valse`), e encontrou o
+padrão de falha que o diagnóstico descrevia: a fonte certa, a cópia errada, e o validador
+sem olhar para ela.
+
+| # | Item | Estado |
+|---|---|---|
+| 4.1 | `criar-escola.sh` deixa de ter cópia própria do esqueleto da barra | `[x]` 17/10 — `gerar_nav_zero` consome `nav-html.js --abertura/--fechamento` |
+| 4.2 | A escola criada do zero passa a ter o botão `◐` | `[x]` 17/10 — `valse`, índice e porta |
+| 4.3 | A porta de cada pacote é **conferida** contra `porta/` | `[x]` 17/10 — checagem 6 do validador |
+| 4.4 | A porta da Fita volta a ser a de `porta/` (papéis, tema) | `[x]` 17/10 — 44 primitivos → **0** |
+| 4.5 | A prova do tema deixa de pular página sem o botão | `[x]` 17/10 — `provar-tema.js` 29 → **30** |
+
+### O que a revisão encontrou
+
+**A barra tinha uma terceira cópia.** O `gerar-ciclo.sh` e o `bastidores.js` passaram a
+consumir `nav-html.js`; o `criar-escola.sh` não. Uma escola criada em 17/10 nascia com a
+folha nova, os papéis novos, o `data-layout` — e **nenhum jeito de escurecer**. Nenhuma
+verificação notou: o `.tema` existia no CSS, o contraste estava medido, o `localStorage`
+funcionava.
+
+**A porta da Fita não escurecia.** `plano-observacao/index.html` é cópia de `porta/`, mas a
+da Fita era de antes da Fase 2: `--papel: var(--cream)`, `--acento: var(--burgundy)`, 44
+usos de primitivo e nenhum de papel. Como a variante noturna remapeia **só os papéis**,
+aquela página ficava clara no meio do escuro. E a barra dela ainda dizia «Nós, Por Exemplo»
+— o nome retirado da página de entrada em 16/10/2026.
+
+**A prova do tema era vácua num caso.** A coleta das páginas geradas era
+`if (html.includes('class="tema"')) geradas.push(...)`: uma página **sem** o botão não era
+provada, em vez de reprovar. Passou a coletar todas e a exigir o botão em cada uma — são
+30 asserções, e são elas que agora pegam uma escola nova sem a aparência.
+
+### O que a Fase 4 **não** fecha
+
+- **A barra da Fita continua mais velha que o gerador.** O ciclo dela tem `DOCS="plano"`,
+  e o `gerar_nav` de hoje emitiria um grupo «Ciclos» que o pacote não tem. Regerar exige
+  `DATA_INICIO`, que é lacuna declarada (`[Preencher: …]`) — o valor é do plano elicitado,
+  não se inventa. O corpo da porta foi atualizado; a barra será refeita pelo gerador.
+- **A `data-tela` é escrita e não lida.** Cinco superfícies a declaram; nenhuma regra de
+  CSS a consome. É marcador para regras futuras — está registrado aqui para não virar
+  surpresa.
+- **A escala (F14) continua sem adoção.** `--esp-1..6` aparece 14 vezes, todas na fonte.

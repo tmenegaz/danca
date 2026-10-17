@@ -222,7 +222,7 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas cinco checagens
+## O validador, e as suas seis checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
@@ -246,6 +246,13 @@ falhar. Ele confere:
    `ciclo.css`, `assets/nav.js` presente, e a cópia da **raiz**
    (`raiz/assets/style.css`) igual à fonte. Sem isso a página fica sem barra e sem
    menu — ou serve uma identidade velha — e nada mais avisava.
+6. **A porta de cada pacote** — `plano-observacao/index.html` é cópia de `porta/`, e o
+   corpo dela tem de ser **o mesmo** arquivo, byte a byte: a única diferença legítima
+   é a barra, injetada no marcador `<!-- NAV -->`, que o validador neutraliza antes de
+   comparar. E a barra tem de trazer o botão da aparência. Foi a falta desta checagem
+   que deixou a porta da Fita presa na identidade **anterior** — 44 usos de primitivo,
+   nenhum de papel — sem escurecer com o tema, e ainda com o nome retirado da página
+   de entrada («Nós, Por Exemplo») na barra. As duas coisas passavam em verde.
 
 ### As duas exceções declaradas
 

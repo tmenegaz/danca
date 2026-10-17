@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-17T07:36:00-0300`
-Commit atual: `aa4c389` — refactor(ciclo-01): o pacote da Fita recebe a folha por papel e o botão do tema
+Gerado em: `2026-10-17T08:32:07-0300`
+Commit atual: `0d98d28` — fix(estrutura): a pasta do professor não se deriva do nome — o slug passa a ser declarado
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -45,7 +45,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** tiago-menegaz (1)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -62,6 +62,10 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+0d98d28 fix(estrutura): a pasta do professor não se deriva do nome — o slug passa a ser declarado
+00a895f feat(estrutura): criar a escola valse (motor completo)
+9c00401 fix(estrutura): a segunda escola do mesmo professor não nascia — a base do ciclo não é da escola
+6448067 docs(registro): o diagnóstico da identidade, o plano em fases e o fechamento
 aa4c389 refactor(ciclo-01): o pacote da Fita recebe a folha por papel e o botão do tema
 fdd8bd0 feat(estrutura): as quatro superfícies falam por papel — e a escola ganha noite
 42b853e refactor(tools): a identidade ganha papéis, camada de componentes e tema
@@ -78,25 +82,23 @@ efa5a9c chore(estrutura): reancorar a cadeia das fontes alteradas
 81712aa fix(tools): a sequência de exercícios ganha destino no plano-XX.json
 0732afb feat(po): a sequência de exercícios é derivada, obrigatória e impressa
 e937c21 feat(estrutura): o plano da estante abre o plano, não o envelope cru
-8a40a6f chore(estrutura): reancorar a cadeia das fontes alteradas
-653b09c feat(plano): o plano elicitado vira a fonte do ciclo
-836a299 chore(estrutura): reancorar a cadeia das fontes alteradas
-7a13aa0 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
 
 ### tiago-menegaz — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): fita
+**Ciclo 01** — variante(s): fita, valse
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | fita | (sem PO) | — | — |
+| valse | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | fita | ciclo-01-fita.fipp | `ef5ee269d784` | (vazio) | — |
+| valse | (sem âncora) | — | — | — |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -145,91 +147,75 @@ e937c21 feat(estrutura): o plano da estante abre o plano, não o envelope cru
 
 ## Última entrada do REGISTRO
 
-## 17/10/2026 — A aparência ganha prova própria — e o botão que sumiria no celular
+## 17/10/2026 — A escola nasceu sem o botão da aparência: a barra tinha uma terceira cópia
 
-**O que motivou.** O tema clara/noturna é a única parte da identidade que depende de JavaScript e de
-estado do navegador. O `check-identidade.js` mede o contraste dos dois temas, mas **não executa
-comportamento**: um botão que não troca, ou um `data-modo` que não é aplicado, passaria com o
-validador verde. Faltava a prova do que a aritmética não vê.
+**O que motivou.** A escola `valse` foi criada do zero em 17/10/2026, pelo `criar-escola.sh`, e
+nasceu com a folha nova, os papéis, o `data-layout` — e **nenhum jeito de escurecer**. A auditoria
+do `DIAGNOSTICO-IDENTIDADE.md` foi feita contra o código e passou em verde: o `.tema` existe no
+CSS, os 31 pares estão medidos, o `localStorage` funciona. O que faltava não era o componente: era
+o **emissor** do markup.
+
+**O que foi medido.**
+
+- `valse/index.html` e `valse/plano-observacao/index.html`: **0** ocorrências de `class="tema"`.
+  `fita/index.html`: 1.
+- `fita/plano-observacao/index.html`: **44 usos de primitivo, 2 de papel**. Como a variante
+  noturna remapeia **só os papéis**, aquela página ficava clara no meio do escuro. A barra dela
+  ainda dizia «Nós, Por Exemplo» — nome retirado da página de entrada em 16/10/2026.
+- `experimentos/provar-tema.js` coletava as páginas geradas com
+  `if (html.includes('class="tema"'))` — uma página **sem** o botão não era provada. A asserção
+  era vácua exatamente no caso que devia pegar.
+- `check-identidade.js` (Circuito) comparava `assets/style.css` e `assets/nav.js`; a **porta** de
+  cada pacote não era comparada nem varrida.
 
 **O que foi decidido.**
 
-- **Uma prova própria do tema** (`experimentos/provar-tema.js`, 29 casos): o `nav.js` servido corre
-  num DOM de mentira e confere — sem valor guardado fica clara; com `noturna` guardada o atributo é
-  aplicado; o clique alterna nos dois sentidos e **persiste**; `aria-pressed` e o rótulo acompanham;
-  `localStorage` que **lança** (modo privado) não quebra e o clique continua a funcionar na aba; e
-  página **sem navbar** (a raiz) também troca — o bloco do tema vem antes do `return` que protege a
-  navegação.
-- **A prova mede a faixa do `.nav-links`, com profundidade de `<div>`.** Foi o que apanhou o
-  defeito: a primeira versão do esqueleto emitia o botão `◐` **dentro** do painel que colapsa no
-  celular. No desktop o painel está sempre aberto e o botão parece certo; no telefone, com o menu
-  fechado, ele ficaria **inalcançável**. A conferência vale para o esqueleto **e** para as páginas
-  já geradas.
-- **A prova também fixa o que o CSS promete:** os dois `color-scheme`, a impressão que repõe a
-  variante clara com `!important`, e a **ausência de `prefers-color-scheme`** — a escolha é
-  explícita, como o contrato declara.
+- **A barra tem um dono só, e agora é verdade.** O `gerar-ciclo.sh` e o `bastidores.js` já
+  consumiam `tools/templates/nav-html.js`; o `criar-escola.sh` mantinha a sua própria cópia do
+  esqueleto (`gerar_nav_zero`). Ela passou a emitir `--abertura` e `--fechamento` do mesmo
+  arquivo, ficando com a LISTA de itens — que é construção, e é do ciclo zero.
+- **A porta entra no Circuito.** O corpo de `plano-observacao/index.html` tem de ser o de
+  `porta/index.html`, byte a byte, com a barra neutralizada — a única diferença legítima é ela,
+  injetada no marcador `<!-- NAV -->`. E a barra tem de trazer o botão.
+- **A prova do tema não pula mais página.** Coleta todas as páginas geradas e exige o botão em
+  cada uma. 29 → 30 asserções.
+- **A porta da Fita foi refeita a partir de `porta/`**, e a barra dela renomeada para «Sistema
+  Lastro». A barra da Fita continua mais velha que o gerador (o ciclo tem `DOCS="plano"`, e o
+  `gerar_nav` de hoje emitiria um grupo «Ciclos» que o pacote não tem) — isso depende da
+  regeneração completa, bloqueada pela lacuna declarada de `DATA_INICIO`.
 
 **Onde entrou.**
 
-- `experimentos/provar-tema.js` — **novo**: 29 casos.
-- `tools/templates/nav-html.js` — o `FECHAMENTO` passa a incluir o botão **depois** do `</div>`;
-  antes ele saía dentro do painel. O `--tema` continua existindo para uso avulso.
-- `tools/gerar-ciclo.sh` — deixa de emitir o botão em separado (ele vem no fechamento), evitando
-  duas fontes para a mesma ordem.
-- `professores/tiago-menegaz/ciclos/ciclo-01-fita/{index,plano-observacao/index}.html` — botão
-  movido para fora do painel.
-- `README.md` — a seção «A identidade visual» e dois atalhos (validar e provar o tema).
-- `motor/servidor/README.md` — `estado-html.js` e `nav-html.js` na tabela de módulos, e a nota de
-  como o Worker serve a identidade.
-- `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 3 (verificação e fechamento).
-- `HANDOFF.md` — regenerado por `tools/gerar-handoff.sh`.
+- `tools/criar-escola.sh` — `gerar_nav_zero` consome `nav-html.js`.
+- `tools/check-identidade.js` — checagem 6 (a porta de cada pacote).
+- `experimentos/provar-tema.js` — a coleta deixa de filtrar pelo que se quer provar.
+- `professores/tiago-menegaz/ciclos/ciclo-01-valse/{index.html,plano-observacao/index.html}` —
+  barra com o botão (o índice pelo `--somente-indice`, a porta por cópia de `porta/` + nav).
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/` — corpo de `porta/`.
+- `IDENTIDADE-VISUAL.md` — a checagem 6 descrita; «cinco» → «seis».
+- `DIAGNOSTICO-IDENTIDADE.md` e `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 4 e o que ela achou.
 
-**Motivo declarado — os congelados.** `tools/templates/nav-html.js` e `tools/gerar-ciclo.sh` estão
-em `CONGELAMENTO.md`. A mudança é de **forma** e corrige um defeito de acessibilidade que o próprio
-trabalho introduziu. **O que não muda**: fórmula e cobertura do `hash-ciclo.sh`, âncora `.fipp`, as
-17 regras e as 22 pétreas, os itens e a ordem do menu, o pipeline Pandoc/LaTeX e os IDs. Nenhum
-documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
+**Motivo declarado — os congelados.** `tools/criar-escola.sh` e `tools/check-identidade.js` estão
+em `CONGELAMENTO.md`. Nos dois a mudança é de **forma** e **fecha uma porta que ficou aberta** na
+Fase 2. **O que não muda**: o que o `criar-escola.sh` cria (pastas, manifestos, schemas, config do
+Worker, os itens e a ordem do menu), a fórmula e a cobertura do `hash-ciclo.sh`, a âncora `.fipp`,
+as 17 regras e as 22 pétreas. Nenhum documento de ciclo foi tocado; nenhum `.fipp` foi reancorado
+(`ef5ee269`).
 
-**Conferido.** `provar-tema.js` → 29/29. `check-identidade.js` → 8 verificações.
-`check-apresentacao.js` → 2 páginas. `ficha-html-cli --autoteste` → 42/42.
-`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123.
-`tools/gerar-handoff.sh` → HANDOFF regenerado.
+**Conferido.** `check-identidade.js` → 6 checagens ok, incluindo a nova.
+`provar-tema.js` → 30/30. `ficha-html-cli --autoteste` → 42/42. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `check-apresentacao.js` → 3 páginas.
+`hash-ciclo.sh tiago-menegaz 01 fita --check` → íntegro.
 
 **O que ainda não está feito.**
 
-- **A conferência visual no navegador** continua pendente — é do dono do produto, e a prova cobre
-  contraste, papel e comportamento, não o gosto.
-- **O catálogo das doze paletas (2.8)** continua em aberto, à espera da decisão **C15**.
-- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
-  as páginas foram ajustadas por cópia determinística.
-- **Nenhum commit foi feito** — as mudanças em `tools/` exigem commit próprio com este motivo.
-
-> **Fechamento (17/10/2026), depois das entradas acima.** Os commits saíram, separados pela
-> fronteira que o `CONGELAMENTO.md` impõe: `42b853e` — as fontes congeladas (`tools/`, com o
-> motivo declarado no corpo); `fdd8bd0` — as superfícies e os documentos; `aa4c389` — o pacote
-> da Fita. O terceiro foi por `--no-verify`, e o motivo está no corpo: o hook roda
-> `gerar-ciclo.sh` para todo ciclo tocado, e o gerador recusa este por `DATA_INICIO` — lacuna
-> **anterior** a esta mudança. A alternativa seria deixar o `HEAD` com a folha adiantada em
-> relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
-> mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
-> `provar-tema.js` 29/29 nas páginas geradas.
+- **A barra da Fita** continua a de antes do grupo «Ciclos»; a regeneração espera `DATA_INICIO`.
+- **A conferência visual no navegador** (item 3.4) continua pendente — agora com uma escola a mais
+  para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
+- **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
+- **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.
 
 ## O que está pendente
-
-## 16/10/2026 — A identidade visual fecha o circuito: raiz, porta, bastidores, ficha e páginas de estado
-
-
-- **O pacote da Fita NÃO foi regenerado por `gerar-ciclo.sh`.** A regeneração completa continua
-  bloqueada pela lacuna declarada de `DATA_INICIO`; só as duas cópias determinísticas foram
-  propagadas. Quando a data existir, rodar o gerador e conferir o diff.
-- **`check-pacote.js` reprova a Fita** por ausência de `plano.html`, PDF, aulas e `-dados.json`.
-  É o estado de **pacote zero**, anterior a esta mudança — não é regressão.
-- **A camada de componentes (Fase 1) não começou**: botão, campo, selo, cartão, modal e `.res`
-  ainda são reescritos por página.
-- **A impressão ainda não força a paleta clara por token.** Hoje isso depende de a ficha
-  declarar sempre a paleta clara; quando houver `[data-modo]`, o `@media print` precisa fixar os
-  papéis.
-- **Nenhum commit foi feito.**
 
 ## 16/10/2026 — A curadoria é de UMA turma — e o id passa a dizê-lo
 
@@ -294,6 +280,15 @@ documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
 > relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
 > mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
 > `provar-tema.js` 29/29 nas páginas geradas.
+
+## 17/10/2026 — A escola nasceu sem o botão da aparência: a barra tinha uma terceira cópia
+
+
+- **A barra da Fita** continua a de antes do grupo «Ciclos»; a regeneração espera `DATA_INICIO`.
+- **A conferência visual no navegador** (item 3.4) continua pendente — agora com uma escola a mais
+  para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
+- **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
+- **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.
 
 ## Pendências anteriores (índice)
 
@@ -465,6 +460,7 @@ documento de ciclo foi tocado; nenhum `.fipp` foi reancorado.
 - **16/10/2026** — A hora de início é do DIA da semana (e a turma passa a… → `REGISTRO.md` L14496
 - **16/10/2026** — A turma deriva: o «editar» passa a ser um elo novo, com… → `REGISTRO.md` L14553
 - **16/10/2026** — A curadoria é de UMA turma (e edita-se ou deriva-se como a… → `REGISTRO.md` L14690
+- **16/10/2026** — A identidade visual fecha o circuito: raiz, porta,… → `REGISTRO.md` L14759
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

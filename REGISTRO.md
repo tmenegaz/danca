@@ -15312,3 +15312,71 @@ gravado nas duas escolas com `wrangler secret put`, e as duas foram redeployadas
 servir 592 bytes de «implantação em andamento». Não tem escola, não tem Git: é lixo de um erro que
 já foi corrigido. Apagar exige uma decisão do dono — o expurgo da raiz exige um `indice.json` que
 ele não tem.
+
+## 17/10/2026 — A escola nasceu sem o botão da aparência: a barra tinha uma terceira cópia
+
+**O que motivou.** A escola `valse` foi criada do zero em 17/10/2026, pelo `criar-escola.sh`, e
+nasceu com a folha nova, os papéis, o `data-layout` — e **nenhum jeito de escurecer**. A auditoria
+do `DIAGNOSTICO-IDENTIDADE.md` foi feita contra o código e passou em verde: o `.tema` existe no
+CSS, os 31 pares estão medidos, o `localStorage` funciona. O que faltava não era o componente: era
+o **emissor** do markup.
+
+**O que foi medido.**
+
+- `valse/index.html` e `valse/plano-observacao/index.html`: **0** ocorrências de `class="tema"`.
+  `fita/index.html`: 1.
+- `fita/plano-observacao/index.html`: **44 usos de primitivo, 2 de papel**. Como a variante
+  noturna remapeia **só os papéis**, aquela página ficava clara no meio do escuro. A barra dela
+  ainda dizia «Nós, Por Exemplo» — nome retirado da página de entrada em 16/10/2026.
+- `experimentos/provar-tema.js` coletava as páginas geradas com
+  `if (html.includes('class="tema"'))` — uma página **sem** o botão não era provada. A asserção
+  era vácua exatamente no caso que devia pegar.
+- `check-identidade.js` (Circuito) comparava `assets/style.css` e `assets/nav.js`; a **porta** de
+  cada pacote não era comparada nem varrida.
+
+**O que foi decidido.**
+
+- **A barra tem um dono só, e agora é verdade.** O `gerar-ciclo.sh` e o `bastidores.js` já
+  consumiam `tools/templates/nav-html.js`; o `criar-escola.sh` mantinha a sua própria cópia do
+  esqueleto (`gerar_nav_zero`). Ela passou a emitir `--abertura` e `--fechamento` do mesmo
+  arquivo, ficando com a LISTA de itens — que é construção, e é do ciclo zero.
+- **A porta entra no Circuito.** O corpo de `plano-observacao/index.html` tem de ser o de
+  `porta/index.html`, byte a byte, com a barra neutralizada — a única diferença legítima é ela,
+  injetada no marcador `<!-- NAV -->`. E a barra tem de trazer o botão.
+- **A prova do tema não pula mais página.** Coleta todas as páginas geradas e exige o botão em
+  cada uma. 29 → 30 asserções.
+- **A porta da Fita foi refeita a partir de `porta/`**, e a barra dela renomeada para «Sistema
+  Lastro». A barra da Fita continua mais velha que o gerador (o ciclo tem `DOCS="plano"`, e o
+  `gerar_nav` de hoje emitiria um grupo «Ciclos» que o pacote não tem) — isso depende da
+  regeneração completa, bloqueada pela lacuna declarada de `DATA_INICIO`.
+
+**Onde entrou.**
+
+- `tools/criar-escola.sh` — `gerar_nav_zero` consome `nav-html.js`.
+- `tools/check-identidade.js` — checagem 6 (a porta de cada pacote).
+- `experimentos/provar-tema.js` — a coleta deixa de filtrar pelo que se quer provar.
+- `professores/tiago-menegaz/ciclos/ciclo-01-valse/{index.html,plano-observacao/index.html}` —
+  barra com o botão (o índice pelo `--somente-indice`, a porta por cópia de `porta/` + nav).
+- `professores/tiago-menegaz/ciclos/ciclo-01-fita/plano-observacao/` — corpo de `porta/`.
+- `IDENTIDADE-VISUAL.md` — a checagem 6 descrita; «cinco» → «seis».
+- `DIAGNOSTICO-IDENTIDADE.md` e `IMPLEMENTACAO-IDENTIDADE.md` — a Fase 4 e o que ela achou.
+
+**Motivo declarado — os congelados.** `tools/criar-escola.sh` e `tools/check-identidade.js` estão
+em `CONGELAMENTO.md`. Nos dois a mudança é de **forma** e **fecha uma porta que ficou aberta** na
+Fase 2. **O que não muda**: o que o `criar-escola.sh` cria (pastas, manifestos, schemas, config do
+Worker, os itens e a ordem do menu), a fórmula e a cobertura do `hash-ciclo.sh`, a âncora `.fipp`,
+as 17 regras e as 22 pétreas. Nenhum documento de ciclo foi tocado; nenhum `.fipp` foi reancorado
+(`ef5ee269`).
+
+**Conferido.** `check-identidade.js` → 8 verificações ok (6 checagens, a nova incluída).
+`provar-tema.js` → 30/30. `ficha-html-cli --autoteste` → 42/42. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `check-apresentacao.js` → 3 páginas.
+`hash-ciclo.sh tiago-menegaz 01 fita --check` → íntegro.
+
+**O que ainda não está feito.**
+
+- **A barra da Fita** continua a de antes do grupo «Ciclos»; a regeneração espera `DATA_INICIO`.
+- **A conferência visual no navegador** (item 3.4) continua pendente — agora com uma escola a mais
+  para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
+- **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
+- **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.

@@ -311,6 +311,23 @@ no `ciclo.css`.
 | páginas de estado | 3 paletas castanhas | **uma folha** (`estado-html.js`) |
 | validador | não via `porta/`, `raiz/`, `motor/`, ficha | **vê**; `#fff` normalizado; avisa múltiplos `:root` |
 
+### Correção de leitura — os artefatos servidos (17/10/2026)
+
+A tabela acima mede a **fonte**. Uma revisão sobre a escola criada naquele dia (`valse`)
+mostrou que os **arquivos gerados** ainda podiam divergir dela, e o validador não olhava
+para eles:
+
+| Artefato | Estado encontrado | Depois |
+|---|---|---|
+| `valse/index.html` e `valse/plano-observacao/` | folha e papéis novos, **sem** o botão `◐` | botão na barra |
+| `fita/plano-observacao/index.html` | **44 primitivos, 0 papéis** — não escurecia; barra com o nome retirado («Nós, Por Exemplo») | corpo de `porta/`; 0 primitivos |
+| `provar-tema.js` | `if (html.includes('class="tema"'))` — página sem botão **não era provada** | todas provadas; 29 → 30 |
+| `check-identidade.js` (Circuito) | comparava só `assets/` | compara também a **porta** de cada pacote |
+
+A causa da primeira linha: o `criar-escola.sh` tinha a **sua própria** cópia do esqueleto da
+barra, e foi a única dos três emissores que não passou a consumir `nav-html.js`. É o mesmo
+modo de falha que o F15 descreve — e ele reapareceu no script que o diagnóstico não listou.
+
 ### O que a Fase 1 mudou
 
 | Superfície | CSS local antes | depois |
