@@ -128,10 +128,11 @@ function autoteste() {
   tem('id escapado na folha', paginaDaFicha('# T\n', '<x>'), '&lt;x&gt;');
   tem('titulo da aba', paginaDaFicha('# T\n', 'id'), '<title>Ficha preenchida — id</title>');
 
-  // 14. A folha tem a identidade do formulário.
+  // 14. A folha tem a identidade do sistema.
   const folha = paginaDaFicha('# T\n', 'id');
-  tem('tokens do formulário', folha, '--papel: #faf7f2;');
-  tem('serifa do formulário', folha, '"Iowan Old Style"');
+  tem('tokens do sistema', folha, '--cream: #fbf8f3;');
+  tem('tinta do sistema', folha, '--tinta: #1f1c1a;');
+  tem('serifa do sistema', folha, "Georgia, 'Times New Roman', serif");
 
   // 15. A aba é escapada como qualquer outro dado da URL.
   tem('aba escapada', paginaDaFicha('# T\n', '<x>'), '<title>Ficha preenchida — &lt;x&gt;</title>');

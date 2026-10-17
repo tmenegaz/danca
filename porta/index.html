@@ -23,10 +23,12 @@
      inventa aqui: os nomes que a tela já usava viram ALIASES dos tokens do site, e quem
      precisar de um valor novo declara-o em `tools/templates/ciclo.css`. */
   :root {
-    --papel: var(--cream);
-    --borda: var(--gold-borda); /* o filete medido para 3:1 — traço de campo, não de texto */
-    --suave: var(--soft);
-    --acento: var(--burgundy);
+    /* Os nomes que esta tela já usava, agora como ALIASES dos papéis globais — e não
+       dos valores. Assim a porta acompanha o tema sem uma linha a mais. */
+    --papel: var(--fundo);
+    --borda: var(--borda-campo);
+    --suave: var(--texto-suave);
+    --acento: var(--marca);
     --erro: var(--falha);
   }
   /* A porta TEM a navbar do site (injetada pelo gerador no marcador de navegação): o
@@ -40,14 +42,6 @@
   /* Os links que embrulham um botão e as linhas da lista já se anunciam por si: o filete
      pontilhado do site (que marca link de prosa) vira ruído embaixo de um controle. */
   .acoes a, .lista a { border-bottom: none; }
-  .caixa {
-    border: 1px solid var(--borda);
-    background: var(--branco);
-    border-radius: 4px;
-    padding: 1rem 1.15rem;
-    margin: 1rem 0;
-  }
-  .caixa.nota { background: var(--creme-1); }
   /* O OBRIGATÓRIO SE ANUNCIA NO CONTROLE, e não só no selo em prosa: o asterisco diz
      antes de digitar, e o realce enquanto ele está vazio — a MESMA regra do contexto do
      ato (`.barra .campo.falta`), que já se marca desde o primeiro segundo. */
@@ -60,13 +54,13 @@
      acordeão (`<details>`) — o professor recolhe ou expande. */
   .barra {
     max-width: 900px; margin: 0 auto 1.5rem;
-    background: var(--cream);
-    border-bottom: 1px solid var(--gold-escuro);
+    background: var(--fundo);
+    border-bottom: 1px solid var(--borda);
     padding: .55rem 22px;
     display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
     font-size: .85rem; color: var(--suave);
   }
-  .barra b { color: var(--tinta); font-variant-numeric: tabular-nums; }
+  .barra b { color: var(--texto); font-variant-numeric: tabular-nums; }
   .barra .campo { display: flex; align-items: baseline; gap: .35rem; }
   .barra .campo label { white-space: nowrap; }
   /* O acordeão do contexto do ato: a linha de fora fica sempre visível (o resumo),
@@ -74,7 +68,7 @@
   .barra details.ctx-ato { flex: 1 1 100%; }
   .barra details.ctx-ato > summary {
     cursor: pointer; list-style: none;
-    font-weight: 600; color: var(--tinta);
+    font-weight: 600; color: var(--texto);
     user-select: none;
   }
   .barra details.ctx-ato > summary::-webkit-details-marker { display: none; }
@@ -102,14 +96,14 @@
      aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
   .barra .campo input {
     width: auto; font: 13px/1.5 var(--ui); padding: .15rem .4rem;
-    border: 1px solid var(--gold-borda); border-radius: 4px;
-    background: var(--branco); color: var(--tinta);
+    border: 1px solid var(--borda-campo); border-radius: 4px;
+    background: var(--superficie); color: var(--texto);
   }
   .barra .campo input[type=password] { width: 8rem; }
   .barra .campo select {
     width: auto; font: 13px/1.5 var(--ui); padding: .15rem .3rem;
-    border: 1px solid var(--gold-borda); border-radius: 4px;
-    background: var(--branco); color: var(--tinta); max-width: 12rem;
+    border: 1px solid var(--borda-campo); border-radius: 4px;
+    background: var(--superficie); color: var(--texto); max-width: 12rem;
   }
   .barra .campo .limpar-aluna {
     border: none; background: none; cursor: pointer; padding: 0 .2rem;
@@ -132,7 +126,7 @@
     display: flex; gap: .6rem; align-items: flex-start;
     padding: .45rem .5rem; border-radius: 3px; cursor: pointer;
   }
-  .opcao:hover { background: var(--creme-2); }
+  .opcao:hover { background: var(--fundo-faixa); }
   .opcao input { margin-top: .35rem; }
   .opcao span { flex: 1; }
   .opcao em { display: block; color: var(--suave); font-size: .85rem; font-style: normal; }
@@ -152,40 +146,16 @@
      `padding: 5px 8px` / `5px 10px`, filete `--gold-borda` / `--burgundy`, raio 4px) —
      não há medida inventada aqui. O `box-sizing` é o que o formulário usa para o campo
      não estourar a coluna. */
-  input[type=text], input[type=password], textarea, select {
-    width: 100%; font: 15px/1.5 var(--ui); padding: 5px 8px;
-    border: 1px solid var(--gold-borda); border-radius: 4px;
-    background: var(--branco); color: var(--tinta); box-sizing: border-box;
-  }
-  textarea { min-height: 4.5rem; resize: vertical; }
-  button {
-    font: 15px/1.5 var(--ui); padding: 5px 10px; cursor: pointer;
-    border: 1px solid var(--burgundy); border-radius: 4px;
-    background: var(--branco); color: var(--burgundy);
-  }
-  button:hover:not(:disabled) { background: var(--burgundy); color: var(--cream); }
-  button:disabled {
-    border-color: var(--gold-borda); color: var(--soft);
-    background: var(--creme-1); cursor: default;
-  }
-  button.principal { background: var(--burgundy); border-color: var(--burgundy); color: var(--cream); }
-  button.principal:hover:not(:disabled) { background: var(--burgundy-claro); border-color: var(--burgundy-claro); }
   .acoes { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  /* A linha que segue um grupo — «…ou declare outra coisa», «Adicionar linha»,
+     «+ Acrescentar marco parcial». É o mesmo gesto oito vezes: a medida mora aqui,
+     não no atributo `style` do HTML. `folgada` é o degrau das linhas de bloco. */
+  .linha-acao { margin: .6rem 0 0; }
+  .linha-acao.folgada { margin-top: .8rem; }
   /* O selo é o MESMO objeto do site: a pastilha `.ficha span` que marca um atributo no
      cabeçalho do ciclo — creme, filete de ouro, raio de pílula. Aqui ele também diz
      ESTADO (obrigatório, opcional, vigente, vinculada), e os estados usam os três
      vereditos da identidade: `--ok`, `--alerta`, `--falha`. */
-  .selo {
-    display: inline-block; font-size: .72rem; letter-spacing: .04em;
-    text-transform: uppercase; padding: .1rem .5rem; border-radius: 999px;
-    border: 1px solid var(--gold-escuro); color: var(--gold-texto); background: var(--creme-2);
-  }
-  .selo.obrig { border-color: var(--burgundy); color: var(--burgundy); }
-  .selo.opt { border-style: dashed; }
-  /* A folha DERIVADA (o checklist pré-preenchido): não é obrigatória nem opcional —
-     é o sistema que a preenche do que o professor já respondeu. O selo diz isso. */
-  .selo.preenchido { border-color: var(--ok); color: var(--ok); }
-  .selo.dim { background: var(--creme-1); color: var(--suave); }
   /* O «limpar» mora dentro do <li>, que navega ao clique. Discreto o bastante
      para não competir com o rótulo, e claramente um botão. */
   .lista li .limpar {
@@ -193,7 +163,7 @@
     padding: .05rem .4rem; margin-left: .35rem; border-style: dashed;
     color: var(--suave); background: transparent;
   }
-  .lista li .limpar:hover { background: var(--creme-4); color: var(--erro); border-color: var(--erro); }
+  .lista li .limpar:hover { background: var(--fundo-citacao); color: var(--erro); border-color: var(--erro); }
   /* A li inteira é clicável e anuncia o cursor da navegação; o botão não
      navega — apaga. O cursor tem de dizer isso. */
   .lista li button.limpar { cursor: pointer; }
@@ -202,8 +172,8 @@
   .moldura { font-size: .78rem; line-height: 1.35; white-space: pre; }
   .lista { list-style: none; padding: 0; margin: .5rem 0 0; }
   .lista li { padding: .3rem .5rem; border-radius: 4px; cursor: pointer; font-size: .9rem; }
-  .lista li:hover { background: var(--creme-2); }
-  .lista li.aqui { background: var(--creme-2); font-weight: 600; }
+  .lista li:hover { background: var(--fundo-faixa); }
+  .lista li.aqui { background: var(--fundo-faixa); font-weight: 600; }
   .lista li.feito::after { content: " ✓"; color: var(--ok); }
   .lista li .n { display: inline-block; min-width: 1.9rem; color: var(--suave); font-variant-numeric: tabular-nums; }
   /* A `li` das fichas é uma linha de link, não de navegação: o cursor e o
@@ -227,8 +197,8 @@
     cursor: pointer;
   }
   .paginacao button[aria-current="page"] {
-    border-color: var(--gold-escuro);
-    background: var(--creme-2);
+    border-color: var(--borda);
+    background: var(--fundo-faixa);
     font-weight: 700;
     cursor: default;
   }
@@ -246,30 +216,30 @@
   /* A correção socrática (Frente 5): o sistema devolve uma PERGUNTA, não um erro.
      Tom de conversa — a professora é convidada a reler, não repreendida. */
   .socratica {
-    border: 1px solid var(--gold-borda);
-    background: var(--creme-1);
+    border: 1px solid var(--borda-campo);
+    background: var(--fundo-suave);
     border-left: 4px solid var(--alerta);
     border-radius: 4px;
     padding: .9rem 1rem;
     margin: 1rem 0;
-    color: var(--burgundy);
+    color: var(--marca);
   }
   .socratica .pergunta { font-weight: bold; margin: 0 0 .35rem; }
-  .socratica .dica { font-size: .9rem; color: var(--soft); margin: 0; }
+  .socratica .dica { font-size: .9rem; color: var(--texto-suave); margin: 0; }
   .erro { color: var(--erro); }
   /* A explicação do nó: curta, ao lado da pergunta, em linguagem de professor.
      É conteúdo do PO (o dado), não rótulo — a tela só a desenha. O tratamento é o
      que o site dá à anotação (`blockquote`): papel de citação e filete de ouro. */
   .explica {
-    background: var(--creme-4);
-    border-left: 4px solid var(--gold-escuro);
+    background: var(--fundo-citacao);
+    border-left: 4px solid var(--ornamento);
     padding: .5rem .9rem;
     margin: .6rem 0 1rem;
     font-size: .92rem;
-    color: var(--soft);
+    color: var(--texto-suave);
   }
   .explica p { margin: .35rem 0; }
-  .explica b { color: var(--burgundy); }
+  .explica b { color: var(--marca); }
   /* O item da repetição (um por sujeito): a linha de base acoplada ao nó dos
      sujeitos. Cada bloco traz a referência da anamnese e os campos do item. */
   .item-repeticao {
@@ -277,16 +247,16 @@
     border-radius: 4px;
     padding: .7rem .9rem;
     margin: .7rem 0;
-    background: var(--creme-1);
+    background: var(--fundo-suave);
   }
   .item-repeticao h4 { margin: 0 0 .4rem; font-size: 1rem; }
   .referencia {
-    background: var(--creme-2);
-    border-left: 4px solid var(--gold-escuro);
+    background: var(--fundo-faixa);
+    border-left: 4px solid var(--ornamento);
     padding: .4rem .7rem;
     margin: .4rem 0 .6rem;
     font-size: .88rem;
-    color: var(--soft);
+    color: var(--texto-suave);
   }
   .referencia p { margin: .2rem 0; }
   /* O registo da anamnese é prosa do professor, e a quebra de linha dele é dele:
@@ -308,12 +278,9 @@
   .data label { display: flex; flex-direction: column; gap: .15rem; }
   .data .rotulo { font-size: .78rem; letter-spacing: .04em; text-transform: uppercase;
                   color: var(--suave); }
-  .data input[type=date] { font: 15px/1.5 var(--ui); padding: 5px 8px;
-                           border: 1px solid var(--gold-borda); border-radius: 4px;
-                           background: var(--branco); color: var(--tinta); box-sizing: border-box; }
   /* A proveniência da anamnese: o selo do estado e os gestos que a regra permite. */
   .selo.vigente { border-color: var(--ok); color: var(--ok); }
-  .selo.vinculada { border-color: var(--burgundy); color: var(--burgundy); }
+  .selo.vinculada { border-color: var(--marca); color: var(--marca); }
   .selo.legado { border-style: dotted; color: var(--suave); }
   .selo.solta { border-style: dashed; color: var(--suave); }
   .acoes-ficha { display: inline-flex; gap: .4rem; margin: .35rem 0 0; }
@@ -331,13 +298,13 @@
   table.grelha td, table.grelha th { vertical-align: top; padding: .2rem .3rem; }
   table.grelha td input { width: 100%; box-sizing: border-box; }
   table.grelha td textarea { width: 100%; box-sizing: border-box; font: .95rem/1.4 var(--ui);
-    border: 1px solid #c9a24b; border-radius: 4px; padding: .35rem .45rem; resize: vertical; }
-  table.grelha td.travada { color: var(--tinta, #3a2b1f); font-weight: 600; }
+    border: 1px solid var(--borda-campo); border-radius: 4px; padding: .35rem .45rem; resize: vertical; }
+  table.grelha td.travada { color: var(--texto); font-weight: 600; }
   /* A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
      objetivo específico, com as opções para marcar. O número é o do marco. */
   .matriz-marco { display: grid; gap: .7rem; }
-  .marco-linha { border: 1px solid #e0d3ae; border-radius: 6px; padding: .55rem .7rem; background: #fffdf7; }
-  .marco-texto { color: var(--tinta, #3a2b1f); margin-bottom: .35rem; }
+  .marco-linha { border: 1px solid var(--borda-campo); border-radius: 6px; padding: .55rem .7rem; background: var(--fundo-suave); }
+  .marco-texto { color: var(--texto); margin-bottom: .35rem; }
   .marco-texto .numero { display: inline-block; min-width: 1.4rem; text-align: right;
     color: var(--suave); font: 600 .95rem/1 var(--ui); margin-right: .35rem; }
   .marco-opcoes { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
@@ -357,28 +324,26 @@
   /* A ESCALA FIXA (a régua da rubrica): não é campo — é o que se lê. */
   ul.escala { list-style: none; padding: 0; margin: .4rem 0 .2rem; display: flex;
     flex-wrap: wrap; gap: .4rem; }
-  ul.escala li { border: 1px solid var(--gold-escuro, #c9a24b); border-radius: 4px;
-    padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: #fff; }
+  ul.escala li { border: 1px solid var(--borda); border-radius: 4px;
+    padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: var(--superficie); }
   /* A UNIDADE DA PROPORÇÃO ALVO (minutos ↔ percentual) e a linha do TOTAL da soma. */
   p.unidade { margin: .5rem 0 .3rem; }
   p.unidade select { font: .95rem/1.3 var(--ui); padding: .25rem .4rem; margin-left: .3rem; }
-  p.total { margin: .5rem 0 .1rem; font: .95rem/1.5 var(--ui); color: var(--tinta, #3a2b1f); }
-  p.total.ok { color: #2f6b3a; }
-  p.total.falta { color: #8a5a12; }
-  p.total.excede { color: #8f3f3f; font-weight: 600; }
+  p.total { margin: .5rem 0 .1rem; font: .95rem/1.5 var(--ui); color: var(--texto); }
+  p.total.ok { color: var(--ok); }
+  p.total.falta { color: var(--alerta); }
+  p.total.excede { color: var(--falha); font-weight: 600; }
   .grelha-livre { margin-top: .25rem; font-size: .8rem; color: var(--suave); }
   .grelha-livre input { width: 100%; box-sizing: border-box; }
   .grupo-registro { margin: .5rem 0 .8rem; }
   .grupo-registro > p { margin: 0 0 .25rem; }
   /* O que VEM DA TURMA (frequência, duração, período, nº de aulas): leitura, não campo. */
-  p.da-turma { margin: .4rem 0 .1rem; font-size: 1rem; color: var(--tinta, #3a2b1f); }
+  p.da-turma { margin: .4rem 0 .1rem; font-size: 1rem; color: var(--texto); }
   p.linha { color: var(--suave); margin: .35rem 0; white-space: pre-wrap; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
-  .citacao { font-style: italic; color: var(--soft); }
+  .citacao { font-style: italic; color: var(--texto-suave); }
   .oculto { display: none; }
   .grade { display: grid; gap: .1rem .8rem; }
-  .opcao.travada { opacity: .45; cursor: default; }
-  .opcao.travada:hover { background: transparent; }
 
   /* O roteiro acompanha a condução. O DOM mantém o índice ANTES do corpo; em
      tela larga o CSS o move para a coluna 2 e o prega ao topo — em tela
@@ -408,8 +373,11 @@
   }
   @media print { .toc-local { position: static; max-height: none; } }
 </style>
+<script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
+   completo (o botão) vive em assets/nav.js. */
+try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
-<body id="top">
+<body id="top" data-layout="documento" data-tela="porta">
 
 <!-- NAV (o marcador) — a MESMA barra de navegação do site, injetada por tools/gerar-ciclo.sh
      (como no lancamento.html). Ela mantém o menu do ciclo visível: o professor está no
@@ -497,7 +465,7 @@
   <div id="contexto" class="caixa nota oculto"></div>
   <div id="retomada" class="caixa nota oculto"></div>
   <div class="acoes">
-    <button class="principal" id="comecar" disabled>Começar pela anamnese</button>
+    <button class="acao" id="comecar" disabled>Começar pela anamnese</button>
     <a id="link-ficha-branco" href="api/ficha?formato=html" target="_blank" rel="noopener"><button>Ver a ficha em branco</button></a>
     <button id="usar-ia">Usar IA para fazer o Plano de Observação</button>
   </div>
@@ -528,7 +496,7 @@
 
   <div class="acoes">
     <button id="anterior">← Anterior</button>
-    <button id="proxima" class="principal">Próxima →</button>
+    <button id="proxima" class="acao">Próxima →</button>
     <button id="pular">Pular</button>
     <button id="fechar" disabled>Fechar a elicitação</button>
     <button id="sair">Sair</button>
@@ -540,7 +508,7 @@
   <h2>Fecho</h2>
   <div id="resultado"></div>
   <div class="acoes">
-    <button class="principal" id="gravar">Guardar</button>
+    <button class="acao" id="gravar">Guardar</button>
     <button id="voltar">Voltar à condução</button>
     <a id="link-criar-po" class="oculto" href="?fonte=po"><button>Criar o Plano de Observação</button></a>
     <a id="link-ficha" class="oculto" href="api/ficha.md" target="_blank"><button>Ver a ficha preenchida</button></a>
@@ -555,7 +523,7 @@
   <div id="ia-mensagens" class="caixa nota"></div>
   <div class="acoes">
     <input type="text" id="ia-entrada" placeholder="sua resposta (ou «compilar»)" autocomplete="off">
-    <button class="principal" id="ia-enviar">Enviar</button>
+    <button class="acao" id="ia-enviar">Enviar</button>
     <button id="ia-voz">🎤 Falar</button>
     <button id="ia-fechar">Fechar</button>
     <a id="ia-copiar" href="#"><button>Copiar o prompt (sem IA)</button></a>
@@ -1734,7 +1702,7 @@ function mostrarRetomada(t) {
       (t.descartados.length > 1 ? 'foram descartadas' : 'foi descartada') + '.</p>');
   }
   linhas.push('<div class="acoes">' +
-    '<button class="principal" id="continuar">Continuar de onde parei</button>' +
+    '<button class="acao" id="continuar">Continuar de onde parei</button>' +
     '<button id="recomecar">Começar de novo</button>' +
     '</div>');
   $('retomada').innerHTML = linhas.join('');
@@ -2119,7 +2087,7 @@ function opcoesEmLinhas(no, valores, nomeDoCampo, chave) {
     linhas.push('<label class="opcao nao-medido"><input type="radio" name="valor" value="' +
       escapar(NAO_MEDIDO) + '"' + marcado + '><span>' + md(NAO_MEDIDO) + '</span></label>');
   }
-  linhas.push('<p style="margin:.6rem 0 0"><label>…ou declare outra coisa: ' +
+  linhas.push('<p class="linha-acao"><label>…ou declare outra coisa: ' +
     '<input type="text" data-campo-aberto value="' + escapar(abertoAtual(no, valores, chave)) +
     '" placeholder="' + escapar(nomeDoCampo) + '"></label></p>');
   return linhas.join('');
@@ -2161,7 +2129,7 @@ function gradeDePraticas(no) {
     // O rótulo da linha livre vem do CONTEÚDO quando ele o declara: um nó de escolha não
     // é sempre uma «prática» (a origem do plano é uma origem). Sem declaração, o de sempre.
     const dica = no.abertoRotulo || 'outra prática';
-    blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare ' + escapar(dica) + ': ' +
+    blocos.push('<p class="linha-acao"><label>…ou declare ' + escapar(dica) + ': ' +
       '<input type="text" data-campo-aberto value="' + escapar(fora) + '"' +
       (travando ? ' disabled' : '') + ' placeholder="' + escapar(dica) + '"></label></p>');
   }
@@ -2519,7 +2487,7 @@ function gradeDeOpcoesDinamicas(no) {
   }
   if (no.aberto) {
     const fora = marcados.filter((v) => !lista.some((o) => o.valor === v)).join(', ');
-    blocos.push('<p style="margin:.6rem 0 0"><label>…ou acrescente um apelido que não está na lista: ' +
+    blocos.push('<p class="linha-acao"><label>…ou acrescente um apelido que não está na lista: ' +
       '<input type="text" data-campo-aberto value="' + escapar(fora) +
       '" placeholder="apelido"></label></p>');
   }
@@ -2801,7 +2769,7 @@ function registroDoNo(no) {
   if (cfg.observa) blocos.push(grupoDeEscolha('observa', cfg.observa));
   if (cfg.outro) {
     const outro = proprio && proprio.outro != null ? String(proprio.outro) : '';
-    blocos.push('<p style="margin:.8rem 0 0"><label>' + md(cfg.outro.rotulo || 'Outra condição') +
+    blocos.push('<p class="linha-acao folgada"><label>' + md(cfg.outro.rotulo || 'Outra condição') +
       '<br><input type="text" data-registro-outro value="' + escapar(outro) + '" placeholder="' +
       escapar(cfg.outro.exemplo || '') + '"></label></p>');
   }
@@ -3124,7 +3092,7 @@ function grelhaDaTabela(no) {
     '</tr>').join('');
 
   const rodape = podeAcrescentar
-    ? '<p style="margin:.6rem 0 0"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
+    ? '<p class="linha-acao"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
       (no.tabela && no.tabela.linhasDe
         ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo conteúdo.</span>'
         : '') + '</p>'
@@ -3404,7 +3372,7 @@ function listaNumerada(no) {
       ' title="Remover este marco">−</button>' +
     '</li>').join('');
   return '<ul class="lista-numerada">' + corpo + '</ul>' +
-    '<p style="margin:.6rem 0 0"><button type="button" data-lista-add="1">' +
+    '<p class="linha-acao"><button type="button" data-lista-add="1">' +
     '+ Acrescentar marco parcial</button></p>';
 }
 
@@ -3965,7 +3933,7 @@ function botaoDaDerivacao(no) {
   const dica = no.derivarDe.lado === 'otimo'
     ? 'sugere o que as alunas já dominam (não precisa observar)'
     : 'sugere o que precisa ser observado';
-  return '<p style="margin:.8rem 0 0"><button class="derivar" data-derivar="' + escapar(no.id) + '">' +
+  return '<p class="linha-acao folgada"><button class="derivar" data-derivar="' + escapar(no.id) + '">' +
     'Sugerir a partir da anamnese</button> ' +
     '<span class="sub">— lê as anamneses de ' + citacao(rot) + ' e ' + dica + '; você edita.</span></p>' +
     '<div class="detalhe oculto" data-derivacao-de="' + escapar(no.id) + '"></div>';
@@ -4224,7 +4192,7 @@ function renderPergunta() {
       // basilares e das cinco posições. Ao marcar, os desdobramentos abaixo travam.
       blocos.push('<label class="opcao nao-medido"><input type="radio" name="escala" value="' +
         escapar(NAO_MEDIDO) + '"' + (naoMedido ? ' checked' : '') + '><span>' + md(NAO_MEDIDO) + '</span></label>');
-      blocos.push('<p style="margin:.6rem 0 0"><label>…ou declare outra coisa: ' +
+      blocos.push('<p class="linha-acao"><label>…ou declare outra coisa: ' +
         '<input type="text" data-campo-aberto value="' +
         escapar(naoMedido || no.valores.includes(escalaAtual) ? '' : escalaAtual || '') +
         '" placeholder="a avaliação"' + (naoMedido ? ' disabled' : '') + '></label></p>');
@@ -5508,7 +5476,7 @@ async function enviarIA(textoArgumento) {
         res.classList.remove('oculto');
         res.innerHTML = '<p><b>O que a IA (stub) devolveu:</b></p><pre>' +
           escapar(JSON.stringify(dados.respostas, null, 2)) + '</pre>' +
-          '<div class="acoes"><button class="principal" id="ia-gravar">Guardar Plano de Observação</button></div>' +
+          '<div class="acoes"><button class="acao" id="ia-gravar">Guardar Plano de Observação</button></div>' +
           '<div id="ia-gravacao"></div>';
         document.getElementById('ia-gravar').addEventListener('click', guardarPODaIA);
       }

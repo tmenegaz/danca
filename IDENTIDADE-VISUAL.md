@@ -60,6 +60,24 @@ gerada** de `tools/templates/ciclo.css`. Mudar a identidade é editar a **fonte*
 quem não é CSS. O modo `--latex` é o que leva a paleta ao PDF; os geradores JS o
 usam para não escrever hex.
 
+### A mesma folha carrega os componentes *(16/10/2026)*
+
+A fonte não guarda só a paleta: guarda também **a forma dos componentes** — botão
+(principal, secundário, perigo, pequeno), campo, rótulo (`campo-rotulo`), foco,
+selo (com os estados que o dado já nomeia: `solta`, `vinculada`, `legado`…),
+cartão, modal, mensagem de resultado e aviso — e a **escala** (`--esp-1`…`--esp-6`,
+`--raio-1`…`--raio-3`, `--raio-pilula`).
+
+O piso desses componentes usa `:where()`, de **especificidade zero**: a página
+vence sem `!important`, e o componente vale onde a página não diz nada. É o que
+impede o retorno do defeito antigo — quatro botões diferentes no mesmo sistema,
+porque cada página reescrevia o seu.
+
+**Isto não muda o contrato.** Este documento continua a fixar **token e papel**;
+a camada de componentes é implementação, e o lugar de discuti-la é o
+`ciclo.css` e o `IMPLEMENTACAO-IDENTIDADE.md`. O que a seção declara é só isto:
+**forma compartilhada também se escreve uma vez**.
+
 ## Os tokens
 
 Três famílias, e a **ordem alfabética não importa** — o que importa é o **papel**.
@@ -116,6 +134,58 @@ provável.
 Estes três **não são decoração**: carregam o resultado do registro. Também passam
 AA sobre o papel e sobre o creme de tabela.
 
+### Papéis — os nomes que os componentes usam *(17/10/2026)*
+
+Os tokens acima são **primitivos**: descrevem valores (`--cream`, `--burgundy`). Sobre eles há uma
+camada de **papéis**, que descreve funções. É ela que os componentes usam — e é ela que um tema
+troca.
+
+| Papel | Claro | Noturno | Para quê |
+| --- | --- | --- | --- |
+| `--fundo` | `#fbf8f3` | `#17130f` | o papel da página |
+| `--superficie` | `#ffffff` | `#211b15` | cartão, cabeçalho de tabela |
+| `--texto` | `#1f1c1a` | `#f1eae0` | a prosa |
+| `--texto-suave` | `#5a5348` | `#bfb2a0` | legenda, nota |
+| `--borda` | `#8a6a3b` | `#7a6a55` | filete |
+| `--borda-campo` | `#a08a58` | `#8a7860` | borda de campo |
+| `--marca` | `#6b1f2e` | `#d9b98a` | título e link |
+| `--marca-texto` | `#7a5c31` | `#e0c9a6` | texto de marca sobre o fundo |
+| `--marca-fundo` | `#6b1f2e` | `#6b1f2e` | fundo da ação e da barra |
+| `--sobre-marca` | `#fbf8f3` | `#fbf8f3` | texto sobre a marca |
+| `--campo-fundo` | `#ffffff` | `#241d17` | campo sobre o papel |
+| `--campo-fundo-cartao` | `#fbf8f3` | `#1c1712` | campo dentro de cartão |
+| `--foco` | `#8a6a3b` | `#d9b98a` | anel de foco |
+| `--veu` / `--sombra` | preto translúcido | preto mais denso | modal |
+
+As faixas de creme (`--fundo-suave`, `--fundo-faixa`, `--fundo-hover`, `--fundo-citacao`,
+`--fundo-codigo`, `--fundo-pre`) e os estados (`--ok`, `--alerta`, `--falha` e os três fundos)
+também têm valor por tema.
+
+> **A regra.** Um componente **não** usa primitivo. `color: var(--burgundy)` funciona no claro e
+> reprova no escuro (1,64:1); `color: var(--marca)` vale nos dois. O validador confere isto: se um
+> consumidor voltar a falar por primitivo, ele reprova.
+
+### O tema noturno — a mesma família, não a clara invertida
+
+A variante noturna **não** é `filter: invert()`. Sobre o fundo escuro o bordô não é texto: a voz
+passa a ser o **ouro**, que é a segunda cor da identidade. A barra continua bordô, com texto creme.
+O `color-scheme` acompanha, para os controles nativos (`select`, `checkbox`, barra de rolagem) não
+ficarem claros no meio da página.
+
+O tema é um **atributo** no `<html>`: `data-modo="noturna"`. Sem o atributo, é a variante clara.
+A escolha é explícita e fica no **navegador** (`localStorage`, chave `ciclo-modo`), entre sessões —
+um caminho **provisório**, porque a decisão **C15** (de quem é a preferência) continua em aberto.
+O botão `◐` fica na barra e, na raiz, ao lado das ações.
+
+**A impressão é sempre clara.** O `@media print` repõe os papéis da variante clara com
+`!important`: o papel não tem tema, e o texto não pode sair claro sobre folha branca.
+
+### O layout também é um atributo
+
+`data-layout="documento"` é a leitura com o índice à direita (o padrão); `data-layout="painel"` é a
+tela de trabalho, com a largura toda e sem índice lateral. É um atributo no `<body>`, não uma rota —
+o mesmo HTML serve aos dois, e quem decide é o CSS.
+
 ## Tipografia — duas pilhas, e a exceção é restrita
 
 | Token | Valor | Papel |
@@ -152,19 +222,30 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas três checagens
+## O validador, e as suas cinco checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
 
-1. **Contraste** — mede cada par de `PARES` contra o seu piso. O valor sai do
-   `:root` da fonte, não de uma lista paralela.
+1. **Contraste** — mede cada par de `PARES` (de **papéis**, não de valores) contra o
+   seu piso, em **cada tema**: hoje, 31 pares na clara e 31 na noturna. Inclui os
+   fundos de estado (`--ok-fundo`, `--alerta-fundo`, `--falha-fundo`,
+   `--derivada-fundo`), onde o texto semântico é lido.
 2. **Cópia única** — nenhum dos hex da paleta pode aparecer fora de
    `tools/templates/ciclo.css`. Comentários que **citam** um valor para explicar por
-   que ele saiu não contam como redeclaração.
-3. **Circuito** — a fonte chegou **mesmo** ao pacote: `assets/style.css` idêntico ao
-   `ciclo.css` e `assets/nav.js` presente. Sem isso a página fica sem barra e sem
-   menu, e nada mais avisava.
+   que ele saiu não contam como redeclaração. A varredura cobre a raiz, a porta, os
+   bastidores, a ficha e as páginas de estado — e normaliza `#abc` para `#aabbcc`.
+3. **Papel** — nenhuma superfície de interface usa um **primitivo** (`--cream`,
+   `--burgundy`…): todos falam por papel (`--fundo`, `--marca`…). Sem isto, um
+   componente ficaria preso à variante clara e o tema ficaria pela metade.
+4. **Declarantes** — quem é servido **sem** `<link>` para a folha (a ficha e as
+   páginas de estado) declara os tokens; o validador confere cada valor contra a
+   fonte. É o mesmo regime do deck Marp, e impede que a «segunda identidade» volte
+   disfarçada de declaração.
+5. **Circuito** — a fonte chegou **mesmo** ao pacote: `assets/style.css` idêntico ao
+   `ciclo.css`, `assets/nav.js` presente, e a cópia da **raiz**
+   (`raiz/assets/style.css`) igual à fonte. Sem isso a página fica sem barra e sem
+   menu — ou serve uma identidade velha — e nada mais avisava.
 
 ### As duas exceções declaradas
 
@@ -238,7 +319,19 @@ outras cinco, e a variante noturna da própria Bordô de Cena, são **estudo**.
 > `tools/templates/ciclo.css` como fonte única. A chegada do catálogo é **acréscimo**, não
 > substituição — e enquanto não houver decisão, é o que está escrito acima desta secção que vale.
 
-## A funcionalidade futura — configuração de aparência *(registada, **não** implementada)*
+## A aparência — o que existe hoje *(17/10/2026)*
+
+**O que existe.** A **variante noturna** da identidade vigente, com os papéis medidos nos dois
+temas, e o **botão `◐`** na barra (e na raiz), com a escolha guardada no navegador. Isto é
+**forma implementada**, não o catálogo: **não** há as doze paletas, **não** há painel
+administrativo e **não** há escolha por escola ou por usuário.
+
+**O que continua planejado — e não implementado.** O **catálogo** das seis famílias, o item de
+menu **Identidade visual** e o campo **Paleta de cores** com as doze combinações. A decisão
+**C15** — de quem é a preferência — continua **em aberto**; a gravação no navegador é o caminho
+provisório, declarado como tal.
+
+## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 
 **O que é.** Uma entrada no **painel administrativo privado**, na área de configuração do sistema,
 chamada **Identidade visual**, com um campo de seleção chamado **Paleta de cores** e as **doze**

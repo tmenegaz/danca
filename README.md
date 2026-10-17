@@ -87,6 +87,23 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 | Validar o deck (nenhum slide estoura) | `node tools/check-overflow.js` |
 | Validar os mapas do rizoma | `node tools/check-mapa.js` · `node tools/medir-rotulos.js` |
 | Instalar os hooks de versionamento | `tools/instalar-hooks.sh` |
+| Validar a identidade visual e o tema | `node tools/check-identidade.js` |
+| Provar o comportamento do tema (clara/noturna) | `node experimentos/provar-tema.js` |
+
+## A identidade visual
+
+A forma do sistema tem **uma fonte de verdade** — `tools/templates/ciclo.css` — e **um
+validador** — `tools/check-identidade.js`. Três documentos a acompanham:
+
+| Documento | O que é |
+|:--|:--|
+| `IDENTIDADE-VISUAL.md` | o **contrato**: tokens, papéis, tipografia, piso de contraste, o tema e o que ainda não existe |
+| `DIAGNOSTICO-IDENTIDADE.md` | a **medição** do estado: onde a folha era contornada e o que mudou |
+| `IMPLEMENTACAO-IDENTIDADE.md` | o **plano e o estado** de cada item, com a evidência do comando |
+
+A regra que vale para quem edita: **nenhum hex fora da fonte** e **nenhum componente fala por
+valor** (`--cream`, `--burgundy`) — fala por **papel** (`--fundo`, `--marca`). É o que permite
+trocar a aparência sem tocar em página nenhuma.
 
 ## Como o trabalho flui
 

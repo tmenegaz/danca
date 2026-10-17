@@ -29,6 +29,11 @@
 // pelo `wrangler.<escola>.jsonc` gerado no `tools/criar-escola.sh`.
 const SUBDOMINIO = 'tmenegaz77';
 
+// A folha das páginas de estado é a MESMA do sistema. O Worker «zero» é gerado como
+// texto e não pode dar `require` em produção, então o CSS entra embutido aqui — uma
+// vez, da fonte que o validador confere.
+const { CSS: CSS_ESTADO } = require('./estado-html.js');
+
 /** O slug da escola, derivado do nome que o professor digitou (o subdomínio). */
 function slugificar(nome) {
   return String(nome || '')
@@ -43,28 +48,42 @@ function slugificar(nome) {
 /** O módulo ESM da escola «zero» — a página de «implantação em andamento». */
 function scriptDaEscola(escola, nome) {
   // O worker fonte usa SÓ aspas simples (sem backticks, sem `${`, sem `\u`, sem `\n`),
-  // para este template literal de fora não interpretar nada além de NOME.
+  // para este template literal de fora não interpretar nada além de NOME e CSS.
   return `// escola ${escola} — Worker «zero» (implantação em andamento, gerado por provisionar-escola.js)
 const NOME = ${JSON.stringify(nome)};
+const CSS = ${JSON.stringify(CSS_ESTADO)};
 
-function pagina() {
+function esc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function pagina(titulo, corpo) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Sistema Lastro · ' + NOME + '</title>' +
-    '<style>body{font:16px/1.6 Georgia,serif;color:#3a2b1f;background:#faf6ee;max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}p{color:#6b5b4a;}a{color:#6b2f2f;font-weight:700;}</style></head><body>' +
-    '<h1>Sistema Lastro</h1>' +
-    '<p>Esta é a escola <b>' + NOME + '</b>. O motor completo (Bastidores, anamnese, plano de ensino e plano de observação) está sendo implantado — recarregue em instantes.</p>' +
-    '</body></html>';
+    '<title>Sistema Lastro · ' + esc(titulo) + '</title>' +
+    '<style>' + CSS + '</style></head><body><main>' +
+    '<h1>' + esc(titulo) + '</h1>' + corpo + '</main></body></html>';
+}
+
+function paginaInicial() {
+  return pagina('Sistema Lastro',
+    '<p>Esta é a escola <b>' + esc(NOME) + '</b>. O motor completo (Bastidores, anamnese, ' +
+    'plano de ensino e plano de observação) está sendo implantado — recarregue em instantes.</p>');
 }
 
 export default {
   async fetch(request, env) {
     if (env.ESCOLA_HABILITADA === 'nao') {
-      return new Response('<h1>Escola desabilitada</h1>', { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+      return new Response(
+        pagina('Escola desabilitada',
+          '<p>Esta escola está desabilitada para resolver problemas diversos.</p>'),
+        { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
     }
     const url = new URL(request.url);
     if (url.pathname === '/' || url.pathname === '/index.html') {
-      return new Response(pagina(), { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
+      return new Response(paginaInicial(), { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } });
     }
     return new Response('implantação em andamento', { status: 200, headers: { 'Content-Type': 'text/plain;charset=utf-8' } });
   }

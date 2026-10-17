@@ -11,9 +11,20 @@ A camada de servidor corre em **Web Standards** (`Request`/`Response`/`URL`/`fet
 | `cloudflare.js` | a ponte Worker: `export default { fetch }` → roteador (lê conteúdo/esquema do ASSETS, grava no KV) |
 | `disparar.js` | o **gatilho da geração** (F3): o Worker pede ao GitHub Actions que gere, via `workflow_dispatch` |
 | `escrever-po.js` | a **ponte envelope → fonte** (F4): o Worker grava o `ciclo-XX-<escola>-po.md` no repositório, via Contents API |
+| `estado-html.js` | as **páginas de estado** (escola desabilitada, configuração incorreta, Área do Professor fechada): uma folha só, com os tokens da fonte de verdade — declarados e conferidos, porque a página aparece quando o CSS pode ser o que falhou |
+| `nav-html.js` | (em `tools/templates/`) o **esqueleto da barra**: marca, hamburger, `.nav-links` e o botão do tema. A **lista** de itens é de cada consumidor — o menu do ciclo e o do sistema não são o mesmo conteúdo |
 
 As rotas são as **mesmas** nos dois runtimes. O que muda é o transporte e o armazenamento —
 nunca a declaração das rotas.
+
+## A identidade visual, servida pelo Worker
+
+A folha é uma só (`/assets/style.css`, lida de `tools/templates/ciclo.css`) e a barra é uma só
+(`/assets/nav.js`). Os tokens têm **dois conjuntos**: a variante clara no `:root` e a noturna em
+`[data-modo="noturna"]` — o `nav.js` aplica o atributo e guarda a escolha no navegador. Nenhuma
+superfície do servidor escreve hex: ela fala por **papel** (`--fundo`, `--texto`, `--marca`…), e o
+`tools/check-identidade.js` reprova quem voltar a falar por valor. A regra está em
+`IDENTIDADE-VISUAL.md`.
 
 ## Escopo declarado
 

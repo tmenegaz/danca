@@ -36,6 +36,9 @@ const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
 // cadastro precisa dela para saber se uma turma já está presa a um plano de ensino, e daí
 // decidir se ela se EDITA (livre) ou se DERIVA (vinculada) — 16/10/2026.
 const { turmaDoEnvelope } = require('../nucleo/porta.js');
+// A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
+// `tools/gerar-ciclo.sh` consome. Uma definição, dois consumidores.
+const { navSistema } = require('../../tools/templates/nav-html.js');
 
 /** O dado destas rotas é DINÂMICO (vem do KV) e o documento é gerado a cada pedido:
  *  `no-store` impede o navegador de reusar uma página ou uma listagem velha — sem
@@ -393,7 +396,7 @@ function normalizarDia(valor) {
 function linhaDaRegua(valor) {
   return '<span class="linha-regua"><input name="rubrica" autocomplete="off" value="' +
     esc(valor == null ? '' : String(valor)) + '" placeholder="ex.: Satisfatório">' +
-    '<button type="button" class="tirar-regua" title="Remover este nível">✕</button></span>';
+    '<button type="button" class="tirar-regua icone" title="Remover este nível">✕</button></span>';
 }
 
 /** O que FALTA numa turma para ela poder receber um plano de ensino. Devolve a lista dos
@@ -584,7 +587,7 @@ function escolhedor(id, opcoes) {
     '<select class="opcoes"><option value="">— escolher —</option>' +
     lista.map((o) => '<option value="' + esc(o.valor) + '">' + esc(o.rotulo) + '</option>').join('') +
     '</select>' +
-    '<button type="button" class="adicionar">Adicionar</button>' +
+    '<button type="button" class="adicionar acao pequena">Adicionar</button>' +
     '</div>' +
     '</div>';
 }
@@ -595,9 +598,9 @@ function escolhedor(id, opcoes) {
  *  alcançá-los. */
 function rodapePaginacao() {
   return '<div class="paginacao" hidden>' +
-    '<button type="button" class="pag-ant" aria-label="Página anterior">‹</button>' +
+    '<button type="button" class="pag-ant acao secundario pequena" aria-label="Página anterior">‹</button>' +
     '<span class="pag-info"></span>' +
-    '<button type="button" class="pag-prox" aria-label="Página seguinte">›</button>' +
+    '<button type="button" class="pag-prox acao secundario pequena" aria-label="Página seguinte">›</button>' +
     '</div>';
 }
 
@@ -755,38 +758,21 @@ function urlDaPorta(base, contexto, extra) {
 }
 
 /**
- * O MESMO menu do pacote do ciclo. O markup é o do `gerar_nav` (`tools/criar-escola.sh` e
- * `tools/gerar-ciclo.sh`): a marca, o hamburger, o grupo «Área do Professor» e o grupo
- * «Bastidores». A identidade visual vem da MESMA folha (`/assets/style.css`) e o
- * comportamento, do MESMO arquivo (`/assets/nav.js`) — os Bastidores deixam de ter uma
- * segunda navegação, que era o que sumia ao entrar por aqui.
+ * O MESMO menu do pacote do ciclo — e o MESMO markup. A forma da barra (marca vazia,
+ * hamburger, `.nav-links`) e os destinos do SISTEMA vivem em `tools/templates/nav-html.js`,
+ * que o `gerar_ciclo.sh` também usa. Antes, este bloco era uma segunda cópia do HTML:
+ * um `<span>` novo no hamburger tinha de ser lembrado nos dois arquivos.
+ *
+ * O que muda aqui é só o que é desta página: o contexto (escola/professor/ciclo) entra
+ * na query de cada destino, e a página atual ganha `ativo`.
  */
 function topnav(contexto, onde) {
-  const classe = (nome) => (nome === onde ? ' class="ativo"' : '');
-  return '<nav class="topnav" aria-label="Navegação do ciclo">' +
-    '<span class="marca" aria-hidden="true"></span>' +
-    '<button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">' +
-    '<span></span><span></span><span></span>' +
-    '</button>' +
-    '<div class="nav-links" id="nav-links">' +
-    '<a href="/index.html">Sistema Lastro</a>' +
-    '<details class="menu">' +
-    '<summary>Área do Professor</summary>' +
-    '<div class="submenu">' +
-    '<a href="' + urlDaPorta('/anamnese/', contexto) + '">Anamnese do aluno</a>' +
-    '<a href="' + urlDaPorta('/plano-ensino/', contexto, 'fonte=plano') + '">Plano de ensino</a>' +
-    '<a href="' + urlDaPorta('/plano-observacao/', contexto, 'fonte=po') + '">Plano de Observação</a>' +
-    '</div>' +
-    '</details>' +
-    '<details class="menu">' +
-    '<summary>Bastidores</summary>' +
-    '<div class="submenu">' +
-    '<a' + classe('estudio') + ' href="/bastidores/estudio">Estúdio de Dança</a>' +
-    '<a' + classe('producao') + ' href="/bastidores/producao">Produção</a>' +
-    '</div>' +
-    '</details>' +
-    '</div>' +
-    '</nav>';
+  return navSistema({
+    atual: onde,
+    anamnese: urlDaPorta('/anamnese/', contexto),
+    plano: urlDaPorta('/plano-ensino/', contexto, 'fonte=plano'),
+    po: urlDaPorta('/plano-observacao/', contexto, 'fonte=po'),
+  });
 }
 
 /** O cabeçalho comum das vistas dos Bastidores: a folha do ciclo (a MESMA do pacote,
@@ -795,7 +781,8 @@ function cabecalhoDaVista(titulo) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
-    '<link rel="stylesheet" href="/assets/style.css">';
+    '<link rel="stylesheet" href="/assets/style.css">' +
+    '<script>try{if(localStorage.getItem("ciclo-modo")==="noturna")document.documentElement.setAttribute("data-modo","noturna");}catch(e){}</script>';
 }
 
 /** O fim comum: o script da navegação, que mede a barra e abre o hamburger. */
@@ -806,12 +793,12 @@ function fimDaVista() {
 function paginaEstudio(escola, contexto) {
   return cabecalhoDaVista('Bastidores · Estúdio de Dança · ' + escola) +
     '<style>' +
-    'body{font:17px/1.65 var(--serif);color:var(--tinta);background:var(--cream);margin:0;}' +
+    'body{font:17px/1.65 var(--serif);color:var(--texto);background:var(--fundo);margin:0;}' +
     '.vista{max-width:44rem;margin:0 auto;padding:1.6rem 1.25rem;}' +
-    '.vista h1{color:var(--burgundy);}' +
-    '.vista p{color:var(--soft);}' +
-    '.vista a{color:var(--burgundy);font-weight:700;}' +
-    '</style></head><body>' +
+    '.vista h1{color:var(--marca);}' +
+    '.vista p{color:var(--texto-suave);}' +
+    '.vista a{color:var(--marca);font-weight:700;}' +
+    '</style></head><body data-layout="painel" data-tela="bastidores">' +
     topnav(contexto, 'estudio') +
     '<div class="vista">' +
     '<h1>Estúdio de Dança</h1>' +
@@ -836,7 +823,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     linhasProfs.push('<li>' +
       '<span class="nome">' + esc(donoNome) + ' <span class="dono">(dono — criado na página)</span></span>' +
       ' <code class="slug">' + esc(donoSlug) + '</code>' +
-      ' <span class="acoes"><button class="editar" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do dono">Editar</button></span>' +
+      ' <span class="acoes"><button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do dono">Editar</button></span>' +
       '</li>');
   }
   for (const p of profs) {
@@ -851,14 +838,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     if (!slug || slug === donoSlug) continue; // o dono já entrou
     // Só o nome e o botão (o slug saiu da lista: ver a linha do dono, acima).
     linhasProfs.push('<li><span class="nome">' + esc(p.nome) + '</span>' +
-      ' <span class="acoes"><button class="apagar" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></span></li>');
+      ' <span class="acoes"><button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></span></li>');
   }
   const itensProfs = linhasProfs.length
     ? linhasProfs.join('')
     : '<li class="vazia">(nenhum professor cadastrado)</li>';
   const itensAlunas = aluns.length
     ? aluns.map((a) => '<li><span class="nome">' + esc(a) + '</span>'
-        + ' <span class="acoes"><button class="apagar" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></span></li>').join('')
+        + ' <span class="acoes"><button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></span></li>').join('')
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
@@ -909,8 +896,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             ? '<span class="dono">— ' + emUso + ' turma' + (emUso > 1 ? 's' : '') + ' usam esta rubrica</span>'
             : '<span class="dono">— nenhuma turma usa ainda</span>') + '</span>' +
           '<span class="acoes">' +
-          '<button class="editar-rubrica" data-rubrica="' + esc(r.id) + '" title="Abrir esta rubrica no formulário">Editar</button>' +
-          '<button class="apagar" data-tipo="rubrica" data-alvo="' + esc(r.id) + '" title="Excluir rubrica">Excluir</button>' +
+          '<button class="editar-rubrica acao pequena" data-rubrica="' + esc(r.id) + '" title="Abrir esta rubrica no formulário">Editar</button>' +
+          '<button class="apagar acao perigo pequena" data-tipo="rubrica" data-alvo="' + esc(r.id) + '" title="Excluir rubrica">Excluir</button>' +
           '</span></li>';
       }).join('')
     : '<li class="vazia">(nenhuma rubrica criada ainda)</li>';
@@ -939,7 +926,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           const o = termoPorId.get(tid);
           const nome = o ? o.termo : tid;
           return '<span class="chip">' + esc(nome) +
-            ' <button class="desassociar" data-turma="' + esc(t.id) + '" data-termo="' + esc(nome) +
+            ' <button class="desassociar acao secundario pequena" data-turma="' + esc(t.id) + '" data-termo="' + esc(nome) +
             '" title="Remover associação">×</button></span>';
         }).join(' ');
         // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
@@ -1003,9 +990,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? '<span class="selo vinculada" title="esta turma já tem plano de ensino; mexer-lhe muda o passado">vinculada</span>'
           : '<span class="selo livre" title="esta turma ainda não tem plano de ensino; pode ser corrigida">livre</span>';
         const botaoAjuste = vinculada
-          ? '<button class="ajustar" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
+          ? '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
-          : '<button class="ajustar" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
+          : '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
             'title="Editar a turma (ela ainda não tem plano de ensino)">Editar</button>';
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
           '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
@@ -1014,12 +1001,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
           '<span class="acoes">' +
           botaoAjuste +
-          '<button class="apagar" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
+          '<button class="apagar acao perigo pequena" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
           '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
           (chips || '<span class="dono">(nenhum)</span>') +
           ' <select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
-          ' <button class="associar" data-turma="' + esc(t.id) + '">Associar</button></div>' +
+          ' <button class="associar acao pequena" data-turma="' + esc(t.id) + '">Associar</button></div>' +
           historico +
           '</li>';
       }).join('')
@@ -1029,7 +1016,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     ? listaTermos.map((t) => '<li><span class="nome"><b>' + esc(t.termo) + '</b>' +
         (t.categoria ? ' <span class="dono">' + esc(t.categoria) + '</span>' : '') +
         (t.tradicao ? ' <span class="dono">' + esc(t.tradicao) + '</span>' : '') + '</span>' +
-        '<span class="acoes"><button class="apagar" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></span></li>').join('')
+        '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></span></li>').join('')
     : '<li class="vazia">(nenhum termo cadastrado)</li>';
 
   // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
@@ -1106,9 +1093,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             esc(c.vigenteDe) + '</span>'
           : '';
         const botaoAjuste = vinculada
-          ? '<button class="ajustar" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
+          ? '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
-          : '<button class="ajustar" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
+          : '<button class="ajustar acao pequena" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
             'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
         // O HISTÓRICO do ajuste, fechado — sobe a cadeia por `substitui`.
         const porId = new Map(todasAsCuradorias.map((x) => [x && x.id, x]));
@@ -1129,7 +1116,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') +
           (resumo ? '<br><span class="dono">' + esc(resumo) + '</span>' : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
-          '<button class="apagar" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span>' +
+          '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span>' +
           historico + '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
@@ -1140,12 +1127,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
     // se escreve aqui só as usa. O amarelo próprio (`#fdf6e3`) que existia só neste
     // formulário SAI: era um terceiro tom, e não o fundo dos formulários do sistema.
-    '.lateral{position:sticky;top:calc(var(--header-height) + 8px);border-right:1px solid var(--gold-borda);padding-right:.9rem;}' +
-    '.lateral h2{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:var(--gold-texto);margin:1rem 0 .2rem;}' +
+    '.lateral{position:sticky;top:calc(var(--header-height) + 8px);border-right:1px solid var(--borda-campo);padding-right:.9rem;}' +
+    '.lateral h2{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:var(--marca-texto);margin:1rem 0 .2rem;}' +
     '.lateral h2:first-child{margin-top:0;}' +
-    '.lateral a{display:block;color:var(--burgundy);text-decoration:none;padding:.25rem .5rem;border-radius:4px;font-size:.95rem;}' +
-    '.lateral a:hover{background:var(--creme-3);}' +
-    '.lateral a.ativo{background:var(--creme-2);font-weight:700;}' +
+    '.lateral a{display:block;color:var(--marca);text-decoration:none;padding:.25rem .5rem;border-radius:4px;font-size:.95rem;}' +
+    '.lateral a:hover{background:var(--fundo-hover);}' +
+    '.lateral a.ativo{background:var(--fundo-faixa);font-weight:700;}' +
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
     // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
     // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
@@ -1163,78 +1150,56 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.secao>h2{grid-column:1/-1;margin:0;}' +
     // AS ABAS da secção Turmas. O painel de cada aba repete a grade do formulário + lista, e
     // por isso ocupa a linha inteira do `.secao` — a lista continua presa e paginada.
-    '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.15rem;border-bottom:1px solid var(--gold-borda);margin:.1rem 0 .2rem;}' +
-    '.aba{background:transparent;border:none;border-bottom:3px solid transparent;border-radius:0;margin:0;padding:.5rem .9rem;color:var(--gold-texto);font:600 .95rem/1.3 var(--ui);cursor:pointer;}' +
-    '.aba:hover{background:var(--creme-3);}' +
-    '.aba.ativo{color:var(--burgundy);border-bottom-color:var(--burgundy);}' +
-    '.aba:focus-visible{outline:2px solid var(--gold);outline-offset:-2px;}' +
+    '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.15rem;border-bottom:1px solid var(--borda-campo);margin:.1rem 0 .2rem;}' +
+    '.aba{background:transparent;border:none;border-bottom:3px solid transparent;border-radius:0;margin:0;padding:.5rem .9rem;color:var(--marca-texto);font:600 .95rem/1.3 var(--ui);cursor:pointer;}' +
+    '.aba:hover{background:var(--fundo-hover);}' +
+    '.aba.ativo{color:var(--marca);border-bottom-color:var(--marca);}' +
+    '.aba:focus-visible{outline:2px solid var(--foco);outline-offset:-2px;}' +
     '.aba-painel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
     '.col-lista{display:flex;flex-direction:column;position:sticky;top:calc(var(--header-height) + 8px);' +
-    'max-height:calc(100vh - var(--header-height) - 2.2rem);border:1px solid var(--gold-borda);' +
-    'background:var(--branco);border-radius:8px;padding:.9rem 1rem .6rem;}' +
+    'max-height:calc(100vh - var(--header-height) - 2.2rem);border:1px solid var(--borda-campo);' +
+    'background:var(--superficie);border-radius:8px;padding:.9rem 1rem .6rem;}' +
     '.col-lista h3{margin:0 0 .5rem;}' +
     '.col-lista .rolagem{overflow-y:auto;min-height:0;flex:1 1 auto;}' +
     '.lista{list-style:none;margin:0;padding:0;}' +
-    '.lista li{display:flex;align-items:center;gap:.5rem;padding:.35rem .1rem;margin:0;border-bottom:1px dotted var(--gold-borda);color:var(--tinta);}' +
+    '.lista li{display:flex;align-items:center;gap:.5rem;padding:.35rem .1rem;margin:0;border-bottom:1px dotted var(--borda-campo);color:var(--texto);}' +
     '.lista li .nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}' +
     // O «→ origem» da turma não encolhe: ele diz de onde a régua veio, e não é o nome
     // que se pode truncar. A medida mora aqui, não no atributo `style` do HTML.
     '.lista li .nome.fixo{flex:0 0 auto;font-size:.85rem;}' +
     '.lista li .acoes{flex:0 0 auto;display:flex;align-items:center;gap:.35rem;}' +
-    '.lista li.vazia{color:var(--soft);font-size:.9rem;}' +
-    '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;padding:.5rem 0 .1rem;font-size:.85rem;color:var(--soft);}' +
-    '.paginacao button{margin:0;padding:.15rem .6rem;background:var(--branco);color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:4px;font:600 .9rem/1.4 var(--ui);cursor:pointer;}' +
-    '.paginacao button:disabled{opacity:.35;cursor:not-allowed;}' +
+    '.lista li.vazia{color:var(--texto-suave);font-size:.9rem;}' +
+    '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;padding:.5rem 0 .1rem;font-size:.85rem;color:var(--texto-suave);}' +
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
-    'form{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem;}' +
-    'form label{display:block;margin:.7rem 0 .2rem;font-size:.9rem;color:var(--burgundy);}' +
-    'form input,form select{width:100%;box-sizing:border-box;padding:.45rem .6rem;font:1rem/1.4 var(--ui);color:var(--tinta);background:var(--cream);border:1px solid var(--gold-borda);border-radius:5px;}' +
-    'form input:focus,form select:focus{outline:2px solid var(--gold);outline-offset:1px;border-color:var(--gold-escuro);}' +
-    '.corpo button{display:inline-block;margin-top:.9rem;padding:.6rem 1.1rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:6px;font:600 .95rem/1.2 var(--ui);cursor:pointer;}' +
-    '.res{margin-top:1rem;padding:.7rem .9rem;border-radius:6px;display:none;}' +
-    '.res.ok{display:block;background:var(--ok-fundo);border:1px solid var(--ok);color:var(--ok);}' +
-    '.res.erro{display:block;background:var(--falha-fundo);border:1px solid var(--falha);color:var(--falha);}' +
-    '.dono{color:var(--soft);font-size:.85rem;}' +
-    'ul li .slug{color:var(--soft);font-size:.8rem;background:var(--creme-2);border-radius:4px;padding:0 .3em;}' +
-    'label .dica{color:var(--soft);font-weight:400;font-size:.85rem;}' +
-    '.sub{color:var(--soft);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
-    'form .nota{color:var(--soft);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
-    'button.apagar{margin:0;padding:.15rem .55rem;background:var(--falha);color:var(--branco);' +
-    'border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
-    'button.apagar:hover{filter:brightness(.9);}' +
-    'button.editar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);' +
-    'border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem;}' +
+    '.dono{color:var(--texto-suave);font-size:.85rem;}' +
+    'ul li .slug{color:var(--texto-suave);font-size:.8rem;background:var(--fundo-faixa);border-radius:4px;padding:0 .3em;}' +
+    'label .dica{color:var(--texto-suave);font-weight:400;font-size:.85rem;}' +
+    '.sub{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
+    'form .nota{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
     'li.turma{display:block;margin-bottom:.6rem;}' +
     '.linha-turma{display:flex;align-items:center;gap:.5rem;}' +
     '.linha-turma .nome{flex:1 1 auto;min-width:0;}' +
-    '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:var(--soft);}' +
-    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--creme-2);border-radius:4px;font-size:.82rem;color:var(--tinta);}' +
+    '.assoc{margin:.3rem 0 .1rem;font-size:.9rem;color:var(--texto-suave);}' +
+    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--fundo-faixa);border-radius:4px;font-size:.82rem;color:var(--texto);}' +
     // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
-    '.selo{display:inline-block;padding:.05rem .45rem;border-radius:999px;font-size:.78rem;border:1px solid var(--gold-borda);}' +
-    '.falta-ritmo{background:var(--alerta-fundo);color:var(--alerta);border-color:currentColor;}' +
     // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026). O selo diz que esta
     // versão da turma nasceu de um ajuste; o histórico, fechado, diz o que valia antes — a
     // escola precisa de saber que mexeu, e não pode confundir o passado com o presente.
-    '.vigencia{background:var(--ok-fundo);color:var(--ok);border-color:var(--ok);}' +
     // LIVRE × VINCULADA (16/10/2026): a mesma pergunta do plano de ensino, feita no cadastro.
     // Âmbar é «ainda podes mexer»; o lilás é «isto é linha de base, deriva».
-    '.livre{background:var(--alerta-fundo);color:var(--alerta);border-color:currentColor;}' +
-    '.vinculada{background:var(--derivada-fundo);color:var(--derivada);border-color:currentColor;}' +
-    'button.ajustar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
-    'button.ajustar:hover{filter:brightness(.9);}' +
-    'details.historico{margin:.35rem 0 0;font-size:.85rem;color:var(--soft);}' +
+    'details.historico{margin:.35rem 0 0;font-size:.85rem;color:var(--texto-suave);}' +
     'details.historico summary{cursor:pointer;}' +
     'details.historico ul{margin:.25rem 0 0 1rem;padding:0;}' +
     'details.historico li{margin:.1rem 0;}' +
     '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid var(--ok);border-left:4px solid var(--ok);border-radius:4px;background:var(--ok-fundo);}' +
-    '.aviso-derivar p{margin:0 0 .5rem;font-size:.88rem;color:var(--tinta);line-height:1.45;}' +
-    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--creme-2);color:var(--tinta);border:1px solid var(--gold-borda);border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    '.aviso-derivar p{margin:0 0 .5rem;font-size:.88rem;color:var(--texto);line-height:1.45;}' +
+    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--fundo-faixa);color:var(--texto);border:1px solid var(--borda-campo);border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:var(--falha);border:none;font-weight:700;cursor:pointer;}' +
-    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 var(--ui);border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
-    'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 var(--ui);border:1px solid var(--borda-campo);border-radius:4px;background:var(--fundo);}' +
     // AS ESCOLHAS EM LINHA (os dias da semana): o professor clica no que quer. Nada de caixa
     // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
     // longas, o escolhedor abaixo.
@@ -1244,37 +1209,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A HORA SÓ EXISTE PARA O DIA ESCOLHIDO (16/10/2026). Desabilitada, o campo não se
     // preenche por engano — e um horário de um dia que a turma não tem seria descartado na
     // gravação de qualquer forma, mas depois de o ter escrito.
-    '.hora-do-dia:disabled{opacity:.4;background:var(--creme-2);cursor:not-allowed;}' +
+    '.hora-do-dia:disabled{opacity:.4;background:var(--fundo-faixa);cursor:not-allowed;}' +
     '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
     '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
-    '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--gold-borda);border-radius:999px;background:var(--branco);font-size:.87rem;color:var(--gold-texto);line-height:1.35;}' +
-    '.escolha input:checked+span{background:var(--burgundy);border-color:var(--burgundy);color:var(--gold-claro);font-weight:600;}' +
-    '.escolha input:focus-visible+span{outline:2px solid var(--gold);outline-offset:1px;}' +
+    '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--borda-campo);border-radius:999px;background:var(--superficie);font-size:.87rem;color:var(--marca-texto);line-height:1.35;}' +
+    '.escolha input:checked+span{background:var(--marca-fundo);border-color:var(--marca-fundo);color:var(--texto-destaque-marca);font-weight:600;}' +
+    '.escolha input:focus-visible+span{outline:2px solid var(--foco);outline-offset:1px;}' +
     // O ESCOLHEDOR: escolhe no menu, «Adicionar», e o escolhido vira ficha com o «×».
     '.escolhedor{margin:.3rem 0 .8rem;}' +
     '.escolhedor .escolhidos{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
-    '.escolhedor .escolhidos .vazio{color:var(--soft);font-size:.85rem;line-height:1.9rem;}' +
-    '.escolhido{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--burgundy);background:var(--creme-2);border-radius:999px;font-size:.86rem;color:var(--tinta);line-height:1.5;}' +
-    '.escolhido button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--burgundy);font:700 .95rem/1 var(--ui);cursor:pointer;}' +
+    '.escolhedor .escolhidos .vazio{color:var(--texto-suave);font-size:.85rem;line-height:1.9rem;}' +
+    '.escolhido{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--marca);background:var(--fundo-faixa);border-radius:999px;font-size:.86rem;color:var(--texto);line-height:1.5;}' +
+    '.escolhido button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--marca);font:700 .95rem/1 var(--ui);cursor:pointer;}' +
     '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
     '.escolhedor .entrada select{flex:1 1 auto;width:auto;min-width:0;}' +
     '.escolhedor .entrada button{margin:0;padding:.45rem .85rem;font-size:.86rem;white-space:nowrap;}' +
-    'button.editar-rubrica{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);' +
-    'border:none;border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
-    '#rubr-limpar{margin:.9rem 0 0 .4rem;background:transparent;color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:6px;}' +
-    '#vinc-desvincular{margin:.9rem 0 0 .4rem;background:transparent;color:var(--burgundy);border:1px solid var(--gold-borda);border-radius:6px;}' +
+    '#rubr-limpar{margin:.9rem 0 0 .4rem;}' +
+    '#vinc-desvincular{margin:.9rem 0 0 .4rem;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
-    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:var(--falha);border:1px solid var(--gold-borda);border-radius:4px;cursor:pointer;}' +
+    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:var(--falha);border:1px solid var(--borda-campo);border-radius:4px;cursor:pointer;}' +
     '[hidden]{display:none!important;}' +
-    '#gate{border:1px solid var(--gold-borda);background:var(--branco);border-radius:8px;padding:1rem 1.1rem;max-width:24rem;}' +
+    '#gate{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:8px;padding:1rem 1.1rem;max-width:24rem;}' +
     // Abaixo disto, a lista desce para o segundo lugar da grade (não some, e não encolhe
     // até ficar ilegível); abaixo do segundo corte, tudo numa coluna. O primeiro corte era
     // 1080px, e entre 1081 e ~1140 as duas colunas ficavam apertadas demais para o
     // formulário de 34rem — o corte subiu para onde as duas cabem de facto.
     '@media (max-width:1140px){.secao{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
-    '@media (max-width:760px){.corpo{grid-template-columns:1fr;padding:1.2rem 16px 2rem;}.lateral{position:static;border-right:none;padding-right:0;border-bottom:1px solid var(--gold-borda);padding-bottom:.6rem;}}' +
-    '</style></head><body>' +
+    '@media (max-width:760px){.corpo{grid-template-columns:1fr;padding:1.2rem 16px 2rem;}.lateral{position:static;border-right:none;padding-right:0;border-bottom:1px solid var(--borda-campo);padding-bottom:.6rem;}}' +
+    '</style></head><body data-layout="painel" data-tela="bastidores">' +
     topnav(contexto, 'producao') +
     '<div class="corpo">' +
     '<nav class="lateral" aria-label="Seções da Produção">' +
@@ -1293,9 +1256,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p>O gabinete da direção — só a direção entra.</p>' +
     '<div id="gate">' +
     '<form id="form-senha">' +
-    '<label for="dsenha">Senha da direção</label>' +
+    '<label class="campo-rotulo" for="dsenha">Senha da direção</label>' +
     '<input id="dsenha" type="password" autocomplete="current-password" autofocus>' +
-    '<button type="submit">Entrar</button>' +
+    '<button type="submit" class="acao grande">Entrar</button>' +
     '</form>' +
     '<div class="res" id="res-gate"></div>' +
     '</div>' +
@@ -1312,13 +1275,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h2>Professores</h2>' +
     '<div class="col-form">' +
     '<form id="form-prof">' +
-    '<label for="pnome">Nome do professor</label>' +
+    '<label class="campo-rotulo" for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
-    '<label for="psobrenome">Sobrenome ou apelido</label>' +
+    '<label class="campo-rotulo" for="psobrenome">Sobrenome ou apelido</label>' +
     '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
-    '<label for="psenha">Senha do professor</label>' +
+    '<label class="campo-rotulo" for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
-    '<button type="submit">Cadastrar professor</button>' +
+    '<button type="submit" class="acao grande">Cadastrar professor</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1331,9 +1294,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h2>Alunas</h2>' +
     '<div class="col-form">' +
     '<form id="form-aluna">' +
-    '<label for="anome">Apelido da aluna (estável, P-12)</label>' +
+    '<label class="campo-rotulo" for="anome">Apelido da aluna (estável, P-12)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
-    '<button type="submit">Cadastrar aluna</button>' +
+    '<button type="submit" class="acao grande">Cadastrar aluna</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1361,17 +1324,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input type="hidden" id="tderivar">' +
     '<input type="hidden" id="tmodo">' +
     '<div class="aviso-derivar" id="t-aviso" hidden>' +
-    '<p><span id="t-aviso-texto"></span> <button type="button" id="t-cancelar">Cancelar</button></p>' +
+    '<p><span id="t-aviso-texto"></span> <button type="button" class="acao secundario pequena" id="t-cancelar">Cancelar</button></p>' +
     '<div id="t-vigencia-campo">' +
-    '<label for="tvigencia">Vale a partir de</label>' +
+    '<label class="campo-rotulo" for="tvigencia">Vale a partir de</label>' +
     '<input id="tvigencia" type="date" autocomplete="off">' +
     '</div>' +
     '</div>' +
-    '<label for="tnome">Nome da turma</label>' +
+    '<label class="campo-rotulo" for="tnome">Nome da turma</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
-    '<label for="tordem">Posição na lista (1 = primeiro; vazio vai para o fim)</label>' +
+    '<label class="campo-rotulo" for="tordem">Posição na lista (1 = primeiro; vazio vai para o fim)</label>' +
     '<input id="tordem" name="ordem" autocomplete="off" placeholder="ex.: 1">' +
-    '<label for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
+    '<label class="campo-rotulo" for="tprograma">Programa de referência (sugerido, não oficial)</label>' +
     '<input id="tprograma" name="programaReferencia" autocomplete="off" placeholder="ex.: RAD (referência sugerida)">' +
     // O NÍVEL é ESCOLHEDOR: escolhe no menu, «Adicionar», e o nível fica em ficha com o «×».
     // A lista são os níveis do catálogo MAIS os que alguma turma já declara — um nível que a
@@ -1380,9 +1343,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // mudam.
     '<label>Equivalência pedagógica</label>' +
     escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n }))) +
-    '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
+    '<label class="campo-rotulo" for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
-    '<label for="tfrequencia">Frequência semanal (aulas por semana)</label>' +
+    '<label class="campo-rotulo" for="tfrequencia">Frequência semanal (aulas por semana)</label>' +
     '<input id="tfrequencia" name="frequencia" type="number" min="1" step="1" autocomplete="off" placeholder="ex.: 2">' +
     // OS DIAS DA SEMANA: sete pílulas numa linha. Era uma caixa com rolagem e sete
     // caixinhas dentro; não há motivo para uma escolha de sete itens morar atrás de uma
@@ -1392,13 +1355,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<span class="dia-hora">' + pilula('dia', d, esc(d)) +
       '<input type="time" class="hora-do-dia" data-dia="' + esc(d) + '" ' +
       'aria-label="hora de início — ' + esc(d) + '" autocomplete="off"></span>').join('') + '</div>' +
-    '<label for="tduracao">Duração de cada aula (minutos)</label>' +
+    '<label class="campo-rotulo" for="tduracao">Duração de cada aula (minutos)</label>' +
     '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
-    '<label for="tinicio">Início do período (termo)</label>' +
+    '<label class="campo-rotulo" for="tinicio">Início do período (termo)</label>' +
     '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
-    '<label for="tfim">Fim do período (termo)</label>' +
+    '<label class="campo-rotulo" for="tfim">Fim do período (termo)</label>' +
     '<input id="tfim" name="periodoFim" type="date" autocomplete="off">' +
-    '<button type="submit" id="t-enviar">Cadastrar turma</button>' +
+    '<button type="submit" class="acao grande" id="t-enviar">Cadastrar turma</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1413,13 +1376,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="col-form">' +
     '<form id="form-rubrica">' +
     '<input type="hidden" id="rubr-id">' +
-    '<label for="rubr-nome">Nome da rubrica</label>' +
+    '<label class="campo-rotulo" for="rubr-nome">Nome da rubrica</label>' +
     '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Régua do Nível 1">' +
     '<label>Níveis</label>' +
     '<div id="rubr-niveis">' + NIVEIS_DA_RUBRICA.map((n) => linhaDaRegua(n)).join('') + '</div>' +
-    '<p><button type="button" id="rubr-add">Acrescentar nível</button></p>' +
-    '<button type="submit">Salvar rubrica</button>' +
-    '<button type="button" id="rubr-limpar">Limpar formulário</button>' +
+    '<p><button type="button" class="acao secundario pequena" id="rubr-add">Acrescentar nível</button></p>' +
+    '<button type="submit" class="acao grande">Salvar rubrica</button>' +
+    '<button type="button" class="acao secundario" id="rubr-limpar">Limpar formulário</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1433,20 +1396,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="aba-painel" id="aba-vincular" hidden>' +
     '<div class="col-form">' +
     '<form id="form-vincular">' +
-    '<label for="vinc-turma">Turma</label>' +
+    '<label class="campo-rotulo" for="vinc-turma">Turma</label>' +
     '<select id="vinc-turma">' +
     (listaTurmas.length
       ? listaTurmas.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>').join('')
       : '<option value="">— nenhuma turma cadastrada —</option>') +
     '</select>' +
-    '<label for="vinc-rubrica">Rubrica</label>' +
+    '<label class="campo-rotulo" for="vinc-rubrica">Rubrica</label>' +
     '<select id="vinc-rubrica">' +
     (listaRubricas.length
       ? listaRubricas.map((r) => '<option value="' + esc(r.id) + '">' + esc(r.nome) + '</option>').join('')
       : '<option value="">— nenhuma rubrica criada —</option>') +
     '</select>' +
-    '<button type="submit">Vincular</button>' +
-    '<button type="button" id="vinc-desvincular">Desvincular (volta à régua padrão)</button>' +
+    '<button type="submit" class="acao grande">Vincular</button>' +
+    '<button type="button" class="acao secundario" id="vinc-desvincular">Desvincular (volta à régua padrão)</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1460,13 +1423,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h2>Vocabulário Técnico do Balé</h2>' +
     '<div class="col-form">' +
     '<form id="form-termo">' +
-    '<label for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
+    '<label class="campo-rotulo" for="vtermo">Termo principal (grafia francesa, com acentos)</label>' +
     '<input id="vtermo" name="termo" autocomplete="off" placeholder="ex.: Plié">' +
-    '<label for="vcategoria">Categoria</label>' +
+    '<label class="campo-rotulo" for="vcategoria">Categoria</label>' +
     '<input id="vcategoria" name="categoria" autocomplete="off" placeholder="passo · posicao · direcao · ligacao · salto · giro">' +
-    '<label for="vtradicao">Tradição de referência</label>' +
+    '<label class="campo-rotulo" for="vtradicao">Tradição de referência</label>' +
     '<input id="vtradicao" name="tradicao" autocomplete="off" placeholder="compartilhada · RAD · francesa · Vaganova">' +
-    '<button type="submit">Cadastrar termo</button>' +
+    '<button type="submit" class="acao grande">Cadastrar termo</button>' +
     '</form>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
     '</div>' +
@@ -1487,17 +1450,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="aviso-derivar" id="cu-aviso" hidden>' +
     '<p><span id="cu-aviso-texto"></span> <button type="button" id="cu-cancelar">Cancelar</button></p>' +
     '<div id="cu-vigencia-campo">' +
-    '<label for="cuvigencia">Vale a partir de</label>' +
+    '<label class="campo-rotulo" for="cuvigencia">Vale a partir de</label>' +
     '<input id="cuvigencia" type="date" autocomplete="off">' +
     '</div>' +
     '</div>' +
-    '<label for="cuprofessor">Professor</label>' +
+    '<label class="campo-rotulo" for="cuprofessor">Professor</label>' +
     '<select id="cuprofessor">' + opcoesProfessorCuradoria + '</select>' +
-    '<label for="cumodalidade">Modalidade</label>' +
+    '<label class="campo-rotulo" for="cumodalidade">Modalidade</label>' +
     '<select id="cumodalidade">' + opcoesModalidadeCuradoria + '</select>' +
-    '<label for="cutradicao">Tradição</label>' +
+    '<label class="campo-rotulo" for="cutradicao">Tradição</label>' +
     '<select id="cutradicao"><option value="">— nenhuma —</option>' + opcoesTradicaoCuradoria + '</select>' +
-    '<label for="cuturma">Turma</label>' +
+    '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label>Alunas</label>' +
     escolarAlunasCuradoria +
@@ -1708,7 +1671,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  f.setAttribute("data-valor", valor);' +
     '  f.textContent = valor;' +
     '  var b = document.createElement("button");' +
-    '  b.type = "button"; b.className = "tirar"; b.title = "Tirar " + valor; b.textContent = "×";' +
+    '  b.type = "button"; b.className = "tirar icone"; b.title = "Tirar " + valor; b.textContent = "×";' +
     '  f.appendChild(b);' +
     '  el.querySelector(".escolhidos").appendChild(f);' +
     '  mostrarVazio(el);' +
@@ -2024,7 +1987,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  i.name = "rubrica"; i.autocomplete = "off"; i.placeholder = "ex.: Satisfatório";' +
     '  i.value = valor == null ? "" : String(valor);' +
     '  var b = document.createElement("button");' +
-    '  b.type = "button"; b.className = "tirar-regua"; b.title = "Remover este nível";' +
+    '  b.type = "button"; b.className = "tirar-regua icone"; b.title = "Remover este nível";' +
     '  b.textContent = "✕";' +
     '  s.appendChild(i); s.appendChild(b);' +
     '  return s;' +

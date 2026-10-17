@@ -15,75 +15,88 @@ const { escapar } = Markdown;
 const markdownParaHtml = Markdown.paraHtml;
 
 const ESTILO = `
+  /*
+   * A folha é servida SOZINHA: o Worker devolve este HTML sem <link>, e por isso ela
+   * não pode referenciar \`tools/templates/ciclo.css\`. Ela então DECLARA os mesmos
+   * valores — e \`tools/check-identidade.js\` confere cada um contra a fonte de verdade.
+   * Um tom novo entra lá primeiro; aqui só se copia o que já foi medido.
+   */
   :root {
-    --tinta: #1c1a17;
-    --papel: #faf7f2;
-    --borda: #ded5c8;
-    --suave: #7d7365;
-    --acento: #7a4b2a;
-    --ok: #2f6b4f;
-    --alerta: #9a5b1e;
-    --erro: #a33a2c;
+    --tinta: #1f1c1a;
+    --cream: #fbf8f3;
+    --branco: #ffffff;
+    --soft: #5a5348;
+    --burgundy: #6b1f2e;
+    --gold-texto: #7a5c31;
+    --gold-borda: #a08a58;
+    --creme-1: #fdfaf5;
+    --creme-5: #f1eae0;
+    --ok: #1d6b2f;
+    --alerta: #8f5a12;
+    --falha: #9b1c1c;
+    /* As duas pilhas do projeto, e só duas: serifa na prosa, sans no maquinário. */
+    --serif: Georgia, 'Times New Roman', serif;
+    --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--papel);
+    background: var(--cream);
     color: var(--tinta);
-    font: 16px/1.6 "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+    font: 17px/1.65 var(--serif);
   }
   .folha { max-width: 54rem; margin: 0 auto; padding: 2.5rem 1.5rem 6rem; }
-  h1 { font-size: 1.6rem; margin: 0 0 .25rem; }
-  h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; }
-  h3 { font-size: 1rem; margin: 1.5rem 0 .35rem; }
-  h4 { font-size: .95rem; margin: 1.25rem 0 .3rem; }
-  h5, h6 { font-size: .9rem; margin: 1rem 0 .3rem; color: var(--suave); }
+  h1 { font-size: 1.6rem; margin: 0 0 .25rem; color: var(--burgundy); }
+  h2 { font-size: 1.15rem; margin: 2rem 0 .5rem; color: var(--burgundy); }
+  h3 { font-size: 1rem; margin: 1.5rem 0 .35rem; color: var(--burgundy); }
+  h4 { font-size: .95rem; margin: 1.25rem 0 .3rem; color: var(--gold-texto); }
+  h5, h6 { font-size: .9rem; margin: 1rem 0 .3rem; color: var(--soft); }
   p { margin: .5rem 0; white-space: pre-wrap; }
-  p.linha { color: var(--suave); margin: .35rem 0; }
-  .sub { color: var(--suave); font-size: .9rem; margin: 0 0 1.5rem; }
-  hr { border: 0; border-top: 1px solid var(--borda); margin: 1.75rem 0; }
+  p.linha { color: var(--soft); margin: .35rem 0; }
+  .sub { color: var(--soft); font-size: .9rem; margin: 0 0 1.5rem; }
+  hr { border: 0; border-top: 1px solid var(--gold-borda); margin: 1.75rem 0; }
   .caixa {
-    border: 1px solid var(--borda);
-    background: #fff;
-    border-radius: 3px;
+    border: 1px solid var(--gold-borda);
+    background: var(--branco);
+    border-radius: 4px;
     padding: 1rem 1.15rem;
     margin: 1rem 0;
   }
-  .caixa.nota { background: #fdfbf6; }
+  .caixa.nota { background: var(--creme-1); }
   p.aviso {
     margin: 0;
     border-left: 3px solid var(--alerta);
     padding-left: .8rem;
-    color: #6d4a1c;
-    font-family: system-ui, sans-serif;
+    color: var(--alerta);
+    font-family: var(--ui);
     font-size: .9rem;
     line-height: 1.5;
   }
   table { border-collapse: collapse; width: 100%; font-size: .9rem; margin: .75rem 0; }
-  th, td { text-align: left; border-bottom: 1px solid var(--borda); padding: .35rem .5rem; vertical-align: top; }
+  th, td { text-align: left; border-bottom: 1px solid var(--gold-borda); padding: .35rem .5rem; vertical-align: top; }
   ul { margin: .5rem 0; padding-left: 1.25rem; }
   li { margin: .15rem 0; }
   blockquote {
     margin: .75rem 0;
     padding: .1rem 0 .1rem .9rem;
-    border-left: 3px solid var(--borda);
-    color: #5a5348;
+    border-left: 3px solid var(--gold-borda);
+    color: var(--soft);
   }
   blockquote p { margin: 0; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
-  .citacao { font-style: italic; color: #5a5348; }
+  .citacao { font-style: italic; color: var(--soft); }
   code {
     font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
     font-size: .88em;
-    background: #fff;
-    border: 1px solid var(--borda);
+    background: var(--branco);
+    border: 1px solid var(--gold-borda);
     border-radius: 3px;
     padding: 0 .25rem;
   }
   pre {
-    background: #fff;
-    border: 1px solid var(--borda);
-    border-radius: 3px;
+    background: var(--branco);
+    border: 1px solid var(--gold-borda);
+    border-radius: 4px;
     padding: .8rem 1rem;
     overflow-x: auto;
     font-size: .82rem;
@@ -97,6 +110,9 @@ const ESTILO = `
    * no papel não há rolo — o que passa da página é CORTADO. Como a moldura é
    * monoespaçada, o que a faz caber é o corpo da letra: no papel ela encolhe
    * até caber, em vez de sumir na margem.
+   *
+   * A impressão NÃO herda tema: esta folha declara sempre a paleta clara, e é
+   * assim que ela sai no papel.
    */
   @media print {
     pre { overflow: visible; }
@@ -129,7 +145,7 @@ function folha(markdown, { aba, titulo, sub, aviso }) {
     '<title>' + escapar(aba) + '</title>',
     '<style>' + ESTILO + '</style>',
     '</head>',
-    '<body>',
+    '<body data-layout="documento" data-tela="ficha">',
     '<main class="folha">',
     '<h1>' + escapar(titulo) + '</h1>',
     sub,

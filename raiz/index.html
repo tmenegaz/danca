@@ -6,9 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Projeto Ciclo — raiz</title>
     <link rel="stylesheet" href="assets/style.css">
-  </head>
+  <script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
+   completo (o botão) vive em assets/nav.js. */
+try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
+</head>
 
-  <body id="top">
+  <body id="top" data-layout="documento" data-tela="raiz">
     <header class="doc" id="topo-fixo">
       <div class="topo-linha">
         <div class="topo-titulos">
@@ -16,8 +19,11 @@
           <p class="subtitulo">A apresentação do sistema — e o lugar de criar uma escola nova.</p>
         </div>
         <div class="topo-botoes">
-          <button class="acao secundario" id="btn-apagar" type="button">Apagar escola</button>
-          <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
+          <button class="tema" type="button" aria-pressed="false"
+                  aria-label="Ativar a aparência noturna"
+                  title="Aparência clara ou noturna">&#9680;</button>
+          <button class="acao grande secundario" id="btn-apagar" type="button">Apagar escola</button>
+          <button class="acao grande" id="btn-criar" type="button">Criar nova escola</button>
         </div>
       </div>
     </header>
@@ -33,9 +39,9 @@
           <p class="nota">Crie uma escola nova a partir daqui. O endereço (slug) da escola e do
             professor é criado pelo sistema — você só informa os nomes e as senhas. Depois de
             subir o motor completo, a «Área do Professor» abre com a senha do professor.</p>
-          <label for="nome">Nome da escola</label>
+          <label class="campo-rotulo" for="nome">Nome da escola</label>
           <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
-          <label for="senha">Senha do administrador (a direção da escola)</label>
+          <label class="campo-rotulo" for="senha">Senha do administrador (a direção da escola)</label>
           <input id="senha" name="senha" type="password" autocomplete="new-password">
           <fieldset class="quem">
             <legend>Quem é o professor desta escola?</legend>
@@ -50,9 +56,9 @@
           </fieldset>
 
           <div id="bloco-novo">
-            <label for="professor-nome">Nome do professor</label>
+            <label class="campo-rotulo" for="professor-nome">Nome do professor</label>
             <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Tiago">
-            <label for="professor-sobrenome">Sobrenome (ou apelido) do professor</label>
+            <label class="campo-rotulo" for="professor-sobrenome">Sobrenome (ou apelido) do professor</label>
             <input id="professor-sobrenome" name="professor-sobrenome" autocomplete="off" placeholder="ex.: Menegaz">
             <p class="nota">O nome vira a <b>pasta</b> do professor —
               <code>professores/nome-sobrenome/</code> — e é ela que guarda o pacote, os cadernos e
@@ -61,7 +67,7 @@
           </div>
 
           <div id="bloco-existente" hidden>
-            <label for="professor-existente">Professor</label>
+            <label class="campo-rotulo" for="professor-existente">Professor</label>
             <select id="professor-existente" name="professor-existente"></select>
             <p class="nota">A pasta é a mesma — o material dele continua junto, e as escolas dele
               ficam ligadas ao mesmo nome.</p>
@@ -69,15 +75,15 @@
               primeira escola cria o primeiro professor.</p>
           </div>
 
-          <p class="aviso" id="aviso-escola-existente" hidden></p>
+          <p class="aviso alerta" id="aviso-escola-existente" hidden></p>
 
-          <label for="senha-professor">Senha do professor</label>
+          <label class="campo-rotulo" for="senha-professor">Senha do professor</label>
           <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
           <p class="nota">O professor criado aqui é o <b>dono da escola</b> (a direção) — o nome dele
             pode ser ajustado depois, nos Bastidores · Produção.</p>
           <div class="modal-acoes">
-            <button class="acao secundario" id="btn-cancelar" type="button">Cancelar</button>
-            <button class="acao" type="submit">Criar</button>
+            <button class="acao grande secundario" id="btn-cancelar" type="button">Cancelar</button>
+            <button class="acao grande" type="submit">Criar</button>
           </div>
         </form>
         <div class="res" id="res"></div>
@@ -97,11 +103,11 @@
             pacote e as fontes dela. O <b>índice da escola fica</b> — é ele que registra que a
             escola existiu: a proveniência acrescenta, não apaga a memória.</p>
           <div class="cartoes" id="apagar-lista"></div>
-          <label for="apagar-confirmacao">Para confirmar, escreva o nome da escola escolhida</label>
+          <label class="campo-rotulo" for="apagar-confirmacao">Para confirmar, escreva o nome da escola escolhida</label>
           <input id="apagar-confirmacao" autocomplete="off" spellcheck="false" placeholder="o nome exato, ex.: maria">
           <div class="modal-acoes">
-            <button class="acao secundario" id="btn-cancelar-apagar" type="button">Cancelar</button>
-            <button class="acao perigo" id="btn-confirmar-apagar" type="button" disabled>Apagar</button>
+            <button class="acao grande secundario" id="btn-cancelar-apagar" type="button">Cancelar</button>
+            <button class="acao perigo grande" id="btn-confirmar-apagar" type="button" disabled>Apagar</button>
           </div>
         </div>
         <div class="res" id="res-apagar"></div>
@@ -269,8 +275,8 @@
             max-width: none;
             width: 100%;
             margin: 0;
-            background: var(--cream);
-            border-bottom: 2px solid var(--gold-escuro);
+            background: var(--fundo);
+            border-bottom: 2px solid var(--borda);
             padding: 12px 0 10px;
           }
 
@@ -290,10 +296,26 @@
             gap: 1rem;
           }
 
-          /* Alinha o topo com o conteúdo: o `main` alarga para 1180px em telas
-             largas (grade com a coluna lateral) — o topo segue a mesma medida. */
+          /* Alinha o topo com o conteúdo. A RAIZ NÃO TEM `.rail` (não tem índice
+             lateral): a grade global de duas colunas, a partir de 1200px, reservaria
+             17rem vazios à direita e o topo — com 1180px — alinharia com essa coluna
+             fantasma, não com a prosa. Aqui a raiz fica numa coluna só (900px) e o
+             topo segue a mesma medida. */
           @media (min-width: 1200px) {
-            .topo-linha { max-width: 1180px; }
+            header.doc,
+            main,
+            footer.rodape,
+            .rodape {
+              max-width: 900px;
+            }
+
+            main {
+              grid-template-columns: minmax(0, 1fr);
+            }
+
+            .topo-linha {
+              max-width: 900px;
+            }
           }
 
           .topo-titulos {
@@ -305,125 +327,18 @@
             margin-bottom: 0;
           }
 
-          /* --- Modal «Criar nova escola» --- */
-          .modal {
-            position: fixed;
-            inset: 0;
-            z-index: 100;
+          .topo-botoes {
             display: flex;
+            gap: .5rem;
+            flex-wrap: wrap;
             align-items: center;
-            justify-content: center;
-            padding: 20px;
-          }
-
-          .modal[hidden] {
-            display: none;
-          }
-
-          .modal-fundo {
-            position: absolute;
-            inset: 0;
-            background: rgba(31, 28, 26, 0.55);
-          }
-
-          .modal-caixa {
-            position: relative;
-            width: 100%;
-            max-width: 440px;
-            background: var(--branco);
-            border: 1px solid var(--gold-borda);
-            border-radius: 10px;
-            box-shadow: 0 18px 50px rgba(31, 28, 26, 0.35);
-            padding: 0 22px 22px;
-          }
-
-          .modal-cab {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--gold-escuro);
-            margin: 0 -22px 18px;
-            padding: 16px 22px 12px;
-          }
-
-          .modal-cab h2 {
-            margin: 0;
-            font-size: 1.25rem;
-            color: var(--burgundy);
-          }
-
-          .modal-x {
-            background: none;
-            border: none;
-            font: 400 1.6rem/1 var(--ui);
-            color: var(--soft);
-            cursor: pointer;
-            padding: 0 4px;
-          }
-
-          .modal-x:hover {
-            color: var(--burgundy);
-          }
-
-          .acao {
-            display: inline-block;
-            padding: .6rem 1.2rem;
-            background: var(--burgundy);
-            color: var(--gold-claro);
-            border: 1px solid var(--burgundy);
-            border-radius: 6px;
-            font: 600 .95rem/1.2 var(--ui);
-            cursor: pointer;
-            white-space: nowrap;
-          }
-
-          .acao:hover {
-            background: var(--burgundy-claro);
-            border-color: var(--burgundy-claro);
-          }
-
-          .acao.secundario {
-            background: transparent;
-            color: var(--gold-texto);
-            border: 1px solid var(--gold-escuro);
-          }
-
-          .acao.secundario:hover {
-            background: var(--creme-3);
           }
 
           .form .nota {
             font-size: .92rem;
-            color: var(--soft);
+            color: var(--texto-suave);
             margin: 0 0 .2rem;
             line-height: 1.45;
-          }
-
-          .form label {
-            display: block;
-            margin: 1rem 0 .35rem;
-            font-size: .9rem;
-            color: var(--gold-texto);
-            font-weight: 600;
-          }
-
-          .form input,
-          .form select {
-            width: 100%;
-            box-sizing: border-box;
-            padding: .55rem .65rem;
-            font: 1rem/1.4 var(--ui);
-            color: var(--tinta);
-            background: var(--cream);
-            border: 1px solid var(--gold-borda);
-            border-radius: 5px;
-          }
-
-          .form input:focus,
-          .form select:focus {
-            outline: 2px solid var(--gold);
-            outline-offset: 1px;
-            border-color: var(--gold-escuro);
           }
 
           /* A ESCOLHA DO CAMINHO DO PROFESSOR — dois caminhos, um visível por vez. Era um «ou»
@@ -432,14 +347,14 @@
           .form .quem {
             margin: 1.2rem 0 0;
             padding: .7rem .9rem .9rem;
-            border: 1px solid var(--gold-borda);
+            border: 1px solid var(--borda-campo);
             border-radius: 6px;
           }
 
           .form .quem legend {
             padding: 0 .35rem;
             font-size: .9rem;
-            color: var(--gold-texto);
+            color: var(--marca-texto);
             font-weight: 600;
           }
 
@@ -449,7 +364,7 @@
             gap: .5rem;
             margin: .4rem 0 0;
             font-size: .95rem;
-            color: var(--tinta);
+            color: var(--texto);
             font-weight: 400;
             cursor: pointer;
           }
@@ -467,20 +382,7 @@
           .form .opcao em {
             font-style: normal;
             font-size: .88rem;
-            color: var(--soft);
-          }
-
-          /* O AVISO DE ESCOLA QUE JÁ EXISTE — antes de o pedido sair. O Worker recusaria com 409,
-             mas só depois de tudo preenchido; dizer antes poupa o preenchimento inteiro. */
-          .form .aviso {
-            margin: 1rem 0 0;
-            padding: .6rem .8rem;
-            font-size: .92rem;
-            line-height: 1.45;
-            color: var(--tinta);
-            background: rgba(200, 150, 60, .12);
-            border-left: 3px solid var(--gold-escuro);
-            border-radius: 4px;
+            color: var(--texto-suave);
           }
 
           .form-check {
@@ -489,70 +391,13 @@
             gap: .5rem;
             margin-top: 1rem;
             font-size: .9rem;
-            color: var(--gold-texto);
+            color: var(--marca-texto);
             font-weight: 400;
           }
 
           .form-check input {
             width: auto;
             margin-top: .2rem;
-          }
-
-          .modal-acoes {
-            display: flex;
-            justify-content: flex-end;
-            gap: .6rem;
-            margin-top: 1.4rem;
-          }
-
-          .res {
-            margin-top: 1rem;
-            padding: .7rem .9rem;
-            border-radius: 6px;
-            display: none;
-            font: .95rem/1.45 var(--ui);
-          }
-
-          .res.ok {
-            display: block;
-            background: #eef7ee;
-            border: 1px solid var(--ok);
-            color: var(--ok);
-          }
-
-          .res.ok a {
-            color: inherit;
-          }
-
-          .res.erro {
-            display: block;
-            background: #fdeaea;
-            border: 1px solid var(--falha);
-            color: var(--falha);
-          }
-
-          .topo-botoes {
-            display: flex;
-            gap: .5rem;
-            flex-wrap: wrap;
-            align-items: center;
-          }
-
-          .acao.perigo {
-            background: transparent;
-            color: var(--falha);
-            border: 1px solid var(--falha);
-          }
-
-          .acao.perigo:hover {
-            background: #fdeaea;
-          }
-
-          .acao[disabled],
-          .acao[disabled]:hover {
-            opacity: .4;
-            cursor: not-allowed;
-            background: transparent;
           }
 
           .cartoes {
@@ -566,31 +411,32 @@
             width: 100%;
             text-align: left;
             padding: .6rem .8rem;
-            background: var(--creme-3);
-            color: var(--gold-texto);
-            border: 1px solid var(--gold-escuro);
+            background: var(--fundo-hover);
+            color: var(--marca-texto);
+            border: 1px solid var(--borda);
             border-radius: 6px;
             font: .93rem/1.45 var(--ui);
+            white-space: normal;
             cursor: pointer;
           }
 
           .cartao:hover {
-            background: var(--creme-2);
+            background: var(--fundo-faixa);
           }
 
           .cartao[aria-pressed="true"] {
-            border-color: var(--burgundy);
-            box-shadow: inset 0 0 0 1px var(--burgundy);
+            border-color: var(--marca);
+            box-shadow: inset 0 0 0 1px var(--marca);
           }
 
           .cartao b {
             display: block;
             font-size: 1rem;
-            color: var(--burgundy);
+            color: var(--marca);
           }
 
           .cartao small {
-            color: var(--soft);
+            color: var(--texto-suave);
             font-size: .86rem;
           }
 
@@ -604,7 +450,7 @@
 
           .relato code {
             font-size: .88em;
-            background: rgba(0, 0, 0, .05);
+            background: var(--fundo-codigo);
             padding: 0 .2em;
             border-radius: 3px;
           }
@@ -913,7 +759,7 @@
             if (!escolaEscolhida) return;
             var slug = escolaEscolhida.slug;
             btnConfirmar.disabled = true;
-            resApagar.className = "res";
+            resApagar.className = "res aviso";
             resApagar.textContent = "apagando " + slug + "… não feche esta janela.";
             fetch("api/apagar-escola", {
               method: "POST",
@@ -1028,6 +874,8 @@
       </div>
     </main>
     <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
+    <!-- o mesmo comportamento do site: tema e, quando houver, navbar -->
+    <script src="assets/nav.js"></script>
     <footer class="rodape">
       <p>Projeto Ciclo &middot; <strong>raiz</strong></p>
     </footer>

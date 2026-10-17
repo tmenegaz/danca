@@ -170,3 +170,16 @@ As três regras de fronteira do piloto, que valem para o `experimentos/` inteiro
 de ciclo** (esta área está fora do hash por construção); **nada aqui escreve fora daqui** (o motor
 grava em `experimentos/pe/`, e a promoção é decisão, não efeito colateral); e **nada aqui toca
 congelado**.
+## Nota de 16/10/2026 — as cópias de folha aqui são HISTÓRICAS
+
+`experimentos/receptor-local/bancada/assets/style.css` e
+`experimentos/pe/_assets-test/tools/templates/ciclo.css` são **cópias de uma versão anterior** da
+fonte de verdade (`tools/templates/ciclo.css`). Elas continuam servindo ao que os experimentos
+precisam — abrir a bancada e ver o desenho daquele momento —, mas **não são a identidade vigente**
+e não são conferidas pelo `tools/check-identidade.js`, cujo circuito cobre os pacotes de escola e a
+raiz.
+
+Quem for revisar a identidade **não deve olhar para estas cópias**: elas divergem de propósito
+(registram um estado passado). Se um experimento passar a ser demonstração viva, a folha dele deve
+ser **copiada da fonte** no momento em que ele for montado — como o `gerar-ciclo.sh` e o
+`gerar-raiz.sh` fazem —, e não versionada à mão.

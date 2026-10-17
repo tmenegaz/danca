@@ -29,6 +29,7 @@ const { cifrarTexto } = require('./cifrar-envelope.js');
 const { senhaDaEscolaOk } = require('./bastidores.js');
 const { derivarPO } = require('../nucleo/derivar-po.js');
 const fichaHtml = require('../nucleo/ficha-html.js');
+const { respostaEstado } = require('./estado-html.js');
 
 /*
  * O FUSO PADRÃO do carimbo. O Worker roda em **UTC**: sem isto, a data que a estante mostra
@@ -164,18 +165,8 @@ function passosDeGeracao(env) {
  */
 function freioDaEscola(env) {
   if (env && env.ESCOLA_HABILITADA !== 'nao') return null;
-  return new Response(
-    '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>Escola desabilitada</title>' +
-    '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
-    'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
-    'p{color:#6b5b4a;}</style></head><body>' +
-    '<h1>Escola desabilitada</h1>' +
-    '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
-    '</body></html>',
-    { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
-  );
+  return respostaEstado('Escola desabilitada',
+    '<p>Esta escola está desabilitada para resolver problemas diversos.</p>', 503);
 }
 
 async function fetch(request, env, opcoes) {

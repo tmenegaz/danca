@@ -21,6 +21,7 @@
 
 const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
+const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor } = bastidores;
 
 // A PORTA vive num SÓ subdiretório do ASSETS (`plano-observacao/`), mas é servida
@@ -80,21 +81,14 @@ async function fetch(request, env) {
 
   // A trava, de fato: sem identidade, NADA serve — erro visível, não freio.
   if (!identidadeOk) {
-    return new Response(
-      '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>Configuração incorreta do Worker</title>' +
-      '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
-      'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
-      'p{color:#6b5b4a;}code{font:0.95em/1.4 Menlo, monospace;}</style></head><body>' +
-      '<h1>Configuração incorreta do Worker</h1>' +
-      '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o <code>ESCOLA_SLUG</code>.</p>' +
-      '<p>Subdomínio: <code>' + subdominio + '</code> · ESCOLA_SLUG: <code>' + (env.ESCOLA_SLUG || '(ausente)') + '</code></p>' +
-      '<p>Provável causa: <code>wrangler deploy</code> com a config de outra escola (ou da raiz) neste Worker. Reimplante com <code>wrangler deploy -c wrangler.&lt;escola&gt;.jsonc</code>.</p>' +
-      '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>' +
-      '</body></html>',
-      { status: 500, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
-    );
+    return respostaEstado('Configuração incorreta do Worker',
+      '<p>A ponte de ESCOLA está rodando num Worker cujo subdomínio não bate com o ' +
+      '<code>ESCOLA_SLUG</code>.</p>' +
+      '<p>Subdomínio: <code>' + esc(subdominio) + '</code> · ESCOLA_SLUG: <code>' +
+      esc(env.ESCOLA_SLUG || '(ausente)') + '</code></p>' +
+      '<p>Provável causa: <code>wrangler deploy</code> com a config de outra escola (ou da raiz) ' +
+      'neste Worker. Reimplante com <code>wrangler deploy -c wrangler.&lt;escola&gt;.jsonc</code>.</p>' +
+      '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>', 500);
   }
 
   // 0. O FREIO da escola: a flag de habilitação. Só `"nao"` DESLIGA a escola —
@@ -105,19 +99,9 @@ async function fetch(request, env) {
   //    wrangler (não segredo): visível e auditável. A identidade já foi
   //    conferida acima — aqui é uma escola REAL, deliberadamente desligada.
   if (env.ESCOLA_HABILITADA === 'nao') {
-    return new Response(
-      '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-      '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-      '<title>Escola desabilitada</title>' +
-      '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
-      'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
-      'p{color:#6b5b4a;}code{font:0.95em/1.4 Menlo, monospace;}</style></head><body>' +
-      '<h1>Escola desabilitada</h1>' +
+    return respostaEstado('Escola desabilitada',
       '<p>Esta escola está desabilitada para resolver problemas diversos.</p>' +
-      '<p>Escola: <code>' + env.ESCOLA_SLUG + '</code></p>' +
-      '</body></html>',
-      { status: 503, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
-    );
+      '<p>Escola: <code>' + esc(env.ESCOLA_SLUG) + '</code></p>', 503);
   }
 
   // 0.1 O MOCK dos Bastidores (andaime): `/bastidores` e `/api/bastidores/*`
@@ -141,20 +125,11 @@ async function fetch(request, env) {
     // Os Bastidores (`/bastidores` e `/api/bastidores/*`) ficam FORA deste freio:
     // é por eles que o professor é cadastrado.
     if (!(await temProfessor(env))) {
-      return new Response(
-        '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
-        '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-        '<title>Área do Professor desabilitada</title>' +
-        '<style>body{font:16px/1.6 Georgia, serif;color:#3a2b1f;background:#faf6ee;' +
-        'max-width:34rem;margin:4rem auto;padding:0 1.25rem;}h1{font-size:1.5rem;}' +
-        'p{color:#6b5b4a;}a{color:#6b2f2f;font-weight:700;}</style></head><body>' +
-        '<h1>Área do Professor desabilitada</h1>' +
+      return respostaEstado('Área do Professor desabilitada',
         '<p>Esta escola ainda não tem um professor cadastrado — a Área do Professor ' +
         '(anamnese, plano de ensino e plano de observação) abre depois do cadastro.</p>' +
-        '<p><a href="/bastidores/producao">Ir aos Bastidores → cadastrar o professor</a></p>' +
-        '</body></html>',
-        { status: 200, headers: { 'Content-Type': 'text/html;charset=utf-8' } }
-      );
+        '<p class="acoes"><a href="/bastidores/producao">Ir aos Bastidores → cadastrar o professor</a></p>',
+        200);
     }
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
