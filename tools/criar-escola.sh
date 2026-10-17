@@ -161,17 +161,19 @@ fi
 # a marca (removida do menu — duplicava o «Início»), sem «Início».
 # (As páginas do pacote usam o gerar_nav do gerar-ciclo.sh; aqui, sem DOCS,
 #  o nav nasce só com o que existe.)
+#
+# A FORMA da barra — a marca vazia, o hamburger, o contêiner `.nav-links` e o botão da
+# aparência — NÃO se escreve aqui: ela mora em `tools/templates/nav-html.js`, o mesmo
+# arquivo que o `gerar-ciclo.sh` e os Bastidores consomem. Aqui fica só a LISTA de itens
+# do ciclo zero, que é construção. Antes o esqueleto era copiado à mão também neste
+# script, e a escola criada do zero nascia SEM o botão `◐` — a única das cinco
+# superfícies que não conseguia escurecer (medido em 17/10/2026, na escola `valse`).
 gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
   local p="$1" onde="${2:-}" class_ini="" class_po=""
   if [ "$onde" = "index" ]; then class_ini=' class="ativo"'; fi
   if [ "$onde" = "porta" ]; then class_po=' class="ativo"'; fi
+  node "$RAIZ/tools/templates/nav-html.js" --abertura
   cat <<EOF
-<nav class="topnav" aria-label="Navegação do ciclo">
-  <span class="marca" aria-hidden="true"></span>
-  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="nav-links" id="nav-links">
   <a${class_ini} href="${p}index.html">Sistema Lastro</a>
   <details class="menu">
     <summary>Área do Professor</summary>
@@ -188,9 +190,8 @@ gerar_nav_zero() { # $1 = prefixo de link ('' para o índice, '/' para a porta)
       <a href="${p}bastidores/producao">Produção</a>
     </div>
   </details>
-  </div>
-</nav>
 EOF
+  node "$RAIZ/tools/templates/nav-html.js" --fechamento
 }
 
 # ---------------------------------------------------------------------------

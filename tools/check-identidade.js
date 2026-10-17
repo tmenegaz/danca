@@ -397,9 +397,23 @@ const avisos = [];
 
 // A folha de estilo e o nav são COPIADOS ao pacote pelo gerador. Se a cópia
 // divergir da fonte, a página servida não é a identidade — é uma versão antiga.
+//
+// A PORTA (`plano-observacao/index.html`) é copiada também — de `porta/`, pelo
+// `gerar-ciclo.sh` §1b e pelo `criar-escola.sh` —, e compara-se o CORPO dela. A
+// única diferença legítima é a barra de navegação, injetada no marcador `<!-- NAV -->`;
+// neutralizá-la antes de comparar é o que permite exigir que o resto seja a fonte,
+// byte a byte. Sem esta comparação a porta da Fita ficou presa na identidade ANTERIOR
+// (44 usos de primitivo, nenhum de papel) e passou em verde: como a variante noturna
+// remapeia só os papéis, aquela página não escurecia — ficava clara no meio do escuro.
+const semBarra = (t) =>
+  t
+    .replace(/<nav class="topnav"[\s\S]*?<\/nav>/g, '<nav class="topnav"></nav>')
+    .replace(/<!-- NAV -->/g, '<nav class="topnav"></nav>');
+
 function compararPacotes() {
   const dirProf = path.join(raiz, 'professores');
   if (!fs.existsSync(dirProf)) return;
+  const portaFonte = path.join(raiz, 'porta/index.html');
   for (const prof of fs.readdirSync(dirProf)) {
     const dirCiclos = path.join(dirProf, prof, 'ciclos');
     if (!fs.existsSync(dirCiclos)) continue;
@@ -418,6 +432,19 @@ function compararPacotes() {
         }
         if (fs.readFileSync(fonteArq, 'utf8') !== fs.readFileSync(copia, 'utf8')) {
           erros.push(`Circuito: ${path.relative(raiz, copia)} divergiu de ${origem} — regenere o pacote`);
+        }
+      }
+      // A porta: o corpo tem de ser o de `porta/index.html`, e a barra injetada tem de
+      // trazer o botão da aparência — é o que torna a tela do professor capaz de escurecer.
+      const portaCopia = path.join(pacote, 'plano-observacao/index.html');
+      if (fs.existsSync(portaFonte) && fs.existsSync(portaCopia)) {
+        const rel = path.relative(raiz, portaCopia);
+        const html = fs.readFileSync(portaCopia, 'utf8');
+        if (semBarra(fs.readFileSync(portaFonte, 'utf8')) !== semBarra(html)) {
+          erros.push(`Circuito: ${rel} divergiu de porta/index.html — regenere o pacote`);
+        }
+        if (!/class="tema"/.test(html)) {
+          erros.push(`Circuito: ${rel} não traz o botão da aparência (barra antiga) — regenere o pacote`);
         }
       }
     }
