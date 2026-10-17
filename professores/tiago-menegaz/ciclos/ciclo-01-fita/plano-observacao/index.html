@@ -96,13 +96,13 @@
      aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
   .barra .campo input {
     width: auto; font: 13px/1.5 var(--ui); padding: .15rem .4rem;
-    border: 1px solid var(--borda-campo); border-radius: 4px;
+    border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
     background: var(--superficie); color: var(--texto);
   }
   .barra .campo input[type=password] { width: 8rem; }
   .barra .campo select {
     width: auto; font: 13px/1.5 var(--ui); padding: .15rem .3rem;
-    border: 1px solid var(--borda-campo); border-radius: 4px;
+    border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
     background: var(--superficie); color: var(--texto); max-width: 12rem;
   }
   .barra .campo .limpar-aluna {
@@ -124,7 +124,7 @@
   .barra .contadores { display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap; }
   .opcao {
     display: flex; gap: .6rem; align-items: flex-start;
-    padding: .45rem .5rem; border-radius: 3px; cursor: pointer;
+    padding: .45rem .5rem; border-radius: var(--raio-1); cursor: pointer;
   }
   .opcao:hover { background: var(--fundo-faixa); }
   .opcao input { margin-top: .35rem; }
@@ -171,7 +171,7 @@
      desenho ASCII. O `pre` genérico do site já é creme com filete de ouro. */
   .moldura { font-size: .78rem; line-height: 1.35; white-space: pre; }
   .lista { list-style: none; padding: 0; margin: .5rem 0 0; }
-  .lista li { padding: .3rem .5rem; border-radius: 4px; cursor: pointer; font-size: .9rem; }
+  .lista li { padding: .3rem .5rem; border-radius: var(--raio-1); cursor: pointer; font-size: .9rem; }
   .lista li:hover { background: var(--fundo-faixa); }
   .lista li.aqui { background: var(--fundo-faixa); font-weight: 600; }
   .lista li.feito::after { content: " ✓"; color: var(--ok); }
@@ -219,7 +219,7 @@
     border: 1px solid var(--borda-campo);
     background: var(--fundo-suave);
     border-left: 4px solid var(--alerta);
-    border-radius: 4px;
+    border-radius: var(--raio-1);
     padding: .9rem 1rem;
     margin: 1rem 0;
     color: var(--marca);
@@ -244,7 +244,7 @@
      sujeitos. Cada bloco traz a referência da anamnese e os campos do item. */
   .item-repeticao {
     border: 1px solid var(--borda);
-    border-radius: 4px;
+    border-radius: var(--raio-1);
     padding: .7rem .9rem;
     margin: .7rem 0;
     background: var(--fundo-suave);
@@ -298,12 +298,12 @@
   table.grelha td, table.grelha th { vertical-align: top; padding: .2rem .3rem; }
   table.grelha td input { width: 100%; box-sizing: border-box; }
   table.grelha td textarea { width: 100%; box-sizing: border-box; font: .95rem/1.4 var(--ui);
-    border: 1px solid var(--borda-campo); border-radius: 4px; padding: .35rem .45rem; resize: vertical; }
+    border: 1px solid var(--borda-campo); border-radius: var(--raio-1); padding: .35rem .45rem; resize: vertical; }
   table.grelha td.travada { color: var(--texto); font-weight: 600; }
   /* A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
      objetivo específico, com as opções para marcar. O número é o do marco. */
   .matriz-marco { display: grid; gap: .7rem; }
-  .marco-linha { border: 1px solid var(--borda-campo); border-radius: 6px; padding: .55rem .7rem; background: var(--fundo-suave); }
+  .marco-linha { border: 1px solid var(--borda-campo); border-radius: var(--raio-2); padding: .55rem .7rem; background: var(--fundo-suave); }
   .marco-texto { color: var(--texto); margin-bottom: .35rem; }
   .marco-texto .numero { display: inline-block; min-width: 1.4rem; text-align: right;
     color: var(--suave); font: 600 .95rem/1 var(--ui); margin-right: .35rem; }
@@ -324,7 +324,7 @@
   /* A ESCALA FIXA (a régua da rubrica): não é campo — é o que se lê. */
   ul.escala { list-style: none; padding: 0; margin: .4rem 0 .2rem; display: flex;
     flex-wrap: wrap; gap: .4rem; }
-  ul.escala li { border: 1px solid var(--borda); border-radius: 4px;
+  ul.escala li { border: 1px solid var(--borda); border-radius: var(--raio-1);
     padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: var(--superficie); }
   /* A UNIDADE DA PROPORÇÃO ALVO (minutos ↔ percentual) e a linha do TOTAL da soma. */
   p.unidade { margin: .5rem 0 .3rem; }

@@ -1132,7 +1132,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.lateral{position:sticky;top:calc(var(--header-height) + 8px);border-right:1px solid var(--borda-campo);padding-right:.9rem;}' +
     '.lateral h2{font-size:.8rem;letter-spacing:.05em;text-transform:uppercase;color:var(--marca-texto);margin:1rem 0 .2rem;}' +
     '.lateral h2:first-child{margin-top:0;}' +
-    '.lateral a{display:block;color:var(--marca);text-decoration:none;padding:.25rem .5rem;border-radius:4px;font-size:.95rem;}' +
+    '.lateral a{display:block;color:var(--marca);text-decoration:none;padding:.25rem .5rem;border-radius:var(--raio-1);font-size:.95rem;}' +
     '.lateral a:hover{background:var(--fundo-hover);}' +
     '.lateral a.ativo{background:var(--fundo-faixa);font-weight:700;}' +
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
@@ -1162,7 +1162,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
     '.col-lista{display:flex;flex-direction:column;position:sticky;top:calc(var(--header-height) + 8px);' +
     'max-height:calc(100vh - var(--header-height) - 2.2rem);border:1px solid var(--borda-campo);' +
-    'background:var(--superficie);border-radius:8px;padding:.9rem 1rem .6rem;}' +
+    'background:var(--superficie);border-radius:var(--raio-3);padding:.9rem 1rem .6rem;}' +
     '.col-lista h3{margin:0 0 .5rem;}' +
     '.col-lista .rolagem{overflow-y:auto;min-height:0;flex:1 1 auto;}' +
     '.lista{list-style:none;margin:0;padding:0;}' +
@@ -1181,9 +1181,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.lista li.vazia{color:var(--texto-suave);font-size:.9rem;}' +
     '.paginacao{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;padding:.5rem 0 .1rem;font-size:.85rem;color:var(--texto-suave);}' +
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
-    'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:8px;padding:1rem 1.1rem;margin:0 0 1rem;}' +
+    'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:var(--raio-3);padding:1rem 1.1rem;margin:0 0 1rem;}' +
     '.dono{color:var(--texto-suave);font-size:.85rem;}' +
-    'ul li .slug{color:var(--texto-suave);font-size:.8rem;background:var(--fundo-faixa);border-radius:4px;padding:0 .3em;}' +
+    'ul li .slug{color:var(--texto-suave);font-size:.8rem;background:var(--fundo-faixa);border-radius:var(--raio-1);padding:0 .3em;}' +
     'label .dica{color:var(--texto-suave);font-weight:400;font-size:.85rem;}' +
     '.sub{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
     'form .nota{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
@@ -1207,7 +1207,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.assoc .par-associar{display:flex;flex:1 1 100%;align-items:center;gap:.35rem;min-width:0;}' +
     '.assoc .sel-termo{flex:1 1 auto;min-width:0;}' +
     '.assoc .associar{flex:0 0 auto;}' +
-    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--fundo-faixa);border-radius:4px;font-size:.82rem;color:var(--texto);}' +
+    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--fundo-faixa);border-radius:var(--raio-1);font-size:.82rem;color:var(--texto);}' +
     // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
     // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026). O selo diz que esta
@@ -1219,11 +1219,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'details.historico summary{cursor:pointer;}' +
     'details.historico ul{margin:.25rem 0 0 1rem;padding:0;}' +
     'details.historico li{margin:.1rem 0;}' +
-    '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid var(--ok);border-left:4px solid var(--ok);border-radius:4px;background:var(--ok-fundo);}' +
+    '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid var(--ok);border-left:4px solid var(--ok);border-radius:var(--raio-1);background:var(--ok-fundo);}' +
     '.aviso-derivar p{margin:0 0 .5rem;font-size:.88rem;color:var(--texto);line-height:1.45;}' +
-    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--fundo-faixa);color:var(--texto);border:1px solid var(--borda-campo);border-radius:4px;font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
+    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--fundo-faixa);color:var(--texto);border:1px solid var(--borda-campo);border-radius:var(--raio-1);font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:var(--falha);border:none;font-weight:700;cursor:pointer;}' +
-    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 var(--ui);border:1px solid var(--borda-campo);border-radius:4px;background:var(--fundo);}' +
+    'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 var(--ui);border:1px solid var(--borda-campo);border-radius:var(--raio-1);background:var(--fundo);}' +
     // AS ESCOLHAS EM LINHA (os dias da semana): o professor clica no que quer. Nada de caixa
     // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
     // longas, o escolhedor abaixo.
@@ -1236,14 +1236,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.hora-do-dia:disabled{opacity:.4;background:var(--fundo-faixa);cursor:not-allowed;}' +
     '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
     '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
-    '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--borda-campo);border-radius:999px;background:var(--superficie);font-size:.87rem;color:var(--marca-texto);line-height:1.35;}' +
+    '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--borda-campo);border-radius:var(--raio-pilula);background:var(--superficie);font-size:.87rem;color:var(--marca-texto);line-height:1.35;}' +
     '.escolha input:checked+span{background:var(--marca-fundo);border-color:var(--marca-fundo);color:var(--texto-destaque-marca);font-weight:600;}' +
     '.escolha input:focus-visible+span{outline:2px solid var(--foco);outline-offset:1px;}' +
     // O ESCOLHEDOR: escolhe no menu, «Adicionar», e o escolhido vira ficha com o «×».
     '.escolhedor{margin:.3rem 0 .8rem;}' +
     '.escolhedor .escolhidos{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
     '.escolhedor .escolhidos .vazio{color:var(--texto-suave);font-size:.85rem;line-height:1.9rem;}' +
-    '.escolhido{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--marca);background:var(--fundo-faixa);border-radius:999px;font-size:.86rem;color:var(--texto);line-height:1.5;}' +
+    '.escolhido{display:inline-flex;align-items:center;gap:.15rem;padding:.15rem .2rem .15rem .65rem;border:1px solid var(--marca);background:var(--fundo-faixa);border-radius:var(--raio-pilula);font-size:.86rem;color:var(--texto);line-height:1.5;}' +
     '.escolhido button{margin:0;padding:0 .35rem;background:transparent;border:none;color:var(--marca);font:700 .95rem/1 var(--ui);cursor:pointer;}' +
     '.escolhedor .entrada{display:flex;gap:.4rem;align-items:center;}' +
     '.escolhedor .entrada select{flex:1 1 auto;width:auto;min-width:0;}' +
@@ -1252,9 +1252,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '#vinc-desvincular{margin:.9rem 0 0 .4rem;}' +
     '.linha-regua{display:flex;gap:.4rem;align-items:center;margin:.25rem 0;}' +
     '.linha-regua input{flex:1 1 auto;min-width:0;}' +
-    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:var(--falha);border:1px solid var(--borda-campo);border-radius:4px;cursor:pointer;}' +
+    '.linha-regua button{margin:0;flex:0 0 auto;padding:.2rem .5rem;background:transparent;color:var(--falha);border:1px solid var(--borda-campo);border-radius:var(--raio-1);cursor:pointer;}' +
     '[hidden]{display:none!important;}' +
-    '#gate{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:8px;padding:1rem 1.1rem;max-width:24rem;}' +
+    '#gate{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:var(--raio-3);padding:1rem 1.1rem;max-width:24rem;}' +
     // Abaixo disto, a lista desce para o segundo lugar da grade (não some, e não encolhe
     // até ficar ilegível); abaixo do segundo corte, tudo numa coluna. O primeiro corte era
     // 1080px, e entre 1081 e ~1140 as duas colunas ficavam apertadas demais para o
