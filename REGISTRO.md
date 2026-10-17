@@ -14686,3 +14686,72 @@ o mapa sai vazio; e o `ajustarTurma` preenche e trava o nome no «Derivar» e o 
   seu catálogo inicial com turmas e vocabulário próprios.
 - **Um plano contra o ritmo anterior não é marcado** quando a turma deriva: continua em aberto se o
   ajuste deve derivar o plano ou só a turma.
+
+## 16/10/2026 — A curadoria é de UMA turma (e edita-se ou deriva-se como a turma)
+
+**O que motivou.** A curadoria atribuía **várias** turmas ao mesmo tempo, num escolhedor de
+múltiplas. Isso fazia a lista **mentir**: quem marcava «Turma A» e «Turma B» estava a declarar
+que as alunas de uma pertencem à outra — e não pertencem. O mesmo valia para a modalidade: um
+professor que dá duas modalidades não tem as mesmas alunas nas duas. A curadoria é o ato que
+autoriza o professor a fazer o plano **daquela turma**; uma curadoria que aponta para duas
+turmas não autoriza nada com precisão.
+
+**O que foi decidido.**
+
+- **A turma é UM `select`, um por vez** — o mesmo formato da modalidade e da tradição, e não o
+  escolhedor das alunas. Quem tem mais turmas faz **mais curadorias** (uma por modalidade ×
+  turma), que é o que a própria estrutura já suportava (o id é `professor + modalidade`).
+- **A lista de turmas continua a existir no registo, com UM item.** O plano já a lê como lista
+  (`daCuradoria: 'turmas'`, unindo as curadorias do professor) e não mudou uma linha; o que a
+  escola vê é um `select`. Menos superfície partida.
+- **Alunas e repertório continuam múltiplos.** São os grupos em que a pluralidade é verdadeira.
+- **O servidor recusa duas turmas**, e não só a tela: **400** com o motivo. A tela é comodidade;
+  a regra é a rota — e uma página aberta de antes do deploy não passa por cima dela.
+- **A curadoria edita-se ou deriva-se, como a turma** (mesma regra, mesmo padrão): enquanto
+  **nenhum plano de ensino nasceu dela**, o registo é corrigido no lugar («Editar»); depois,
+  deriva-se («Derivar») — elo novo com data de vigência, e a anterior no histórico.
+- **A ligação é o PAR (professor, turma).** O envelope do plano declara `contexto.professor`
+  (o **slug** — conferido num envelope real: `tiago-menegaz`) e `contexto-turma` (o **nome**).
+  É esse par que diz de que curadoria o plano nasceu: um plano do professor A sobre a turma X
+  não torna vinculada a curadoria do professor B — nem a do A noutra turma.
+- **`paresComPlano` substitui `turmasComPlano` como leitura única.** O cartão da turma deriva o
+  seu conjunto de nomes dos mesmos pares; a curadoria usa o par. Uma leitura, dois usos — não
+  duas varreduras do KV que possam discordar.
+- **O par professor × modalidade não se edita em nenhum dos modos.** É ele que identifica a
+  curadoria (o id nasce dele), tal como o nome da turma. Fica travado no formulário.
+- **`curadoriasVigentes`** é o que a operação lê — a lista da Produção, o `GET` e, sobretudo, o
+  `curadoria-professor` que a porta consome (uma curadoria substituída não autoriza nada). A
+  lista inteira só serve ao histórico, no `<details>` de cada cartão.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `paresComPlano`, `turmasDaCuradoria`, `curadoriaVinculadaA`,
+  `curadoriasVigentes`, `idCuradoriaDerivado`, a rota `POST /api/bastidores/curadoria-derivar`,
+  a recusa de duas turmas e a de editar uma vinculada no `POST /api/bastidores/curadoria`, o
+  `select` da turma, os selos e os botões da lista, o histórico, e o `ajustarCuradoria` do
+  cliente.
+- `experimentos/provar-derivacao-da-turma.js` — 92 casos (eram 57): a recusa de duas turmas, o
+  par livre × vinculada da curadoria, a derivação com o par preservado, a lista vigente, o
+  `curadoria-professor` a devolver só a vigente, e o **`ajustarCuradoria` exercitado no script
+  servido**, num DOM de mentira, nos dois modos.
+- `experimentos/provar-producao.js` — as duas asserções que exigiam o **escolhedor** das turmas
+  passaram a exigir o **`select` de uma** (travam o contrário, de propósito), e confirmam que
+  alunas e repertório continuam múltiplos e que a turma vai como lista de um. 109 de 109.
+
+**Conferido.** 92 + 109 + 47 + homónimo, todos verdes. `provar-plano-matriz` e
+`provar-ajustes-anamnese` falham — **já falhavam em `HEAD`**, verificado por `git stash`: não são
+desta mudança. A página servida depois do deploy (`c0614a99`) tem o `<select id="cuturma">` com as
+turmas e o aviso do ritmo no rótulo, e **zero `esc-turmas`**; os dois botões de curadoria
+(`data-curadoria-ajustar`) aparecem no script. **Não testado num navegador.**
+
+**O que ainda não está feito.**
+
+- **Não há curadorias na escola Fita agora** (`GET /api/bastidores/curadorias` → `[]`), e por
+  isso a estante não mostra nenhum cartão de curadoria para ver ao vivo. O comportamento do
+  botão foi provado sobre a página gerada pela prova, não no ar.
+- **A curadoria derivada não marca o plano a jusante.** Como o par (professor, turma) se mantém,
+  o plano continua a resolver; mas um plano nascido da versão anterior não é reescrito nem
+  marcado. Mesma pergunta em aberto da turma.
+- **Uma curadoria substituída continua guardada e não se apaga pela tela** — a `DELETE` remove
+  pelo id, e o histórico segue a cadeia por `substitui`. Se a escola quiser limpar o passado, é
+  uma decisão que ainda não foi tomada.

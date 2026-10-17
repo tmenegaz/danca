@@ -225,23 +225,22 @@ async function relacoes(kv, escola) {
 }
 
 /**
- * AS TURMAS QUE JÁ TÊM UM PLANO DE ENSINO (16/10/2026).
+ * OS PLANOS DE ENSINO, como PARES (professor, turma) (16/10/2026).
  *
- * É o que separa o que a escola pode **editar** do que tem de **derivar**. Uma turma livre é
- * cadastro: nada a referencia, e corrigir o nome ou a hora não reescreve história nenhuma.
- * Uma turma com plano é linha de base — o plano fala dela, o professor já a escolheu no
- * cabeçalho, e mexer-lhe por baixo faria o plano impresso dizer uma coisa e o cadastro outra.
+ * É o que separa o que se **edita** do que se **deriva** — na turma e na curadoria. Cada
+ * plano de ensino declara, no envelope, o professor (`contexto.professor`, o slug) e a turma
+ * (`contexto-turma`, o nome). Um par destes é uma linha de base: alguém já falou dela.
  *
- * A ligação é pelo **NOME** (é o que o plano guarda em `contexto-turma`). A chave física dos
- * envelopes é NAMESPACED pela escola (`<escola>/envelope/plano-….json` — ver
- * `motor/adaptadores/cloudflare.js`): sem o prefixo da escola, a leitura devolveria os planos
- * de OUTRA escola, e este cadastro diria «vinculada» para uma turma que não tem plano nenhum.
+ * A chave física dos envelopes é NAMESPACED pela escola (`<escola>/envelope/plano-….json` —
+ * ver `motor/adaptadores/cloudflare.js`): sem o prefixo da escola, a leitura devolveria os
+ * planos de OUTRA escola, e daqui sairia «vinculada» para quem não tem plano nenhum.
  *
- * Se a leitura falhar, a resposta é `null` — e o cadastro trata `null` como VINCULADA, que é o
- * lado seguro: derivar uma turma livre é um elo a mais; editar uma vinculada partiria o plano.
+ * Se a leitura falhar, a resposta é `null` — e quem lê trata `null` como VINCULADO, que é o
+ * lado seguro: derivar o que está livre é um elo a mais; editar o que está vinculado partiria
+ * o plano.
  */
-async function turmasComPlano(kv, escola) {
-  const nomes = new Set();
+async function paresComPlano(kv, escola) {
+  const pares = [];
   const prefixo = String(escola || '').trim() ? escola + '/envelope/' : 'envelope/';
   try {
     const listagem = await kv.list({ prefix: prefixo });
@@ -254,18 +253,68 @@ async function turmasComPlano(kv, escola) {
       let envelope = null;
       try { envelope = JSON.parse(texto); } catch { continue; }
       const turma = turmaDoEnvelope(envelope);
-      if (turma) nomes.add(turma);
+      if (!turma) continue;
+      const professor = String((envelope && envelope.contexto && envelope.contexto.professor) || '').trim();
+      pares.push({ professor, turma });
     }
   } catch (e) {
     return null;
   }
-  return nomes;
+  return pares;
+}
+
+/** As TURMAS que já têm plano — o conjunto que o cartão da turma consulta. */
+async function turmasComPlano(kv, escola) {
+  const pares = await paresComPlano(kv, escola);
+  if (!pares) return null;
+  return new Set(pares.map((p) => p.turma));
 }
 
 /** A turma está presa a um plano? `null` (não deu para ler) conta como presa. */
 function turmaVinculadaA(planoDeTurmas, nome) {
   if (!planoDeTurmas) return true;
   return planoDeTurmas.has(String(nome == null ? '' : nome).trim());
+}
+
+/** As turmas de uma curadoria, lidas dos DOIS formatos: o novo (`turma`, um nome) e o antigo
+ *  (`turmas`, uma lista — que os registos já gravados têm). */
+function turmasDaCuradoria(c) {
+  if (!c) return [];
+  if (Array.isArray(c.turmas) && c.turmas.length) return c.turmas.map((x) => String(x).trim()).filter(Boolean);
+  const uma = String(c.turma || '').trim();
+  return uma ? [uma] : [];
+}
+
+/**
+ * A curadoria está presa a um plano de ensino? É o par (professor, turma): o plano declara
+ * AMBOS, e é isso que diz de que curadoria ele nasceu. Um plano do professor A sobre a turma X
+ * não torna vinculada a curadoria do professor B — nem a do A noutra turma.
+ */
+function curadoriaVinculadaA(pares, c) {
+  if (!pares) return true;
+  const professor = String((c && c.professor) || '').trim();
+  const turmas = turmasDaCuradoria(c);
+  return pares.some((p) => p.professor === professor && turmas.indexOf(p.turma) !== -1);
+}
+
+/** As curadorias VIGENTES — as substituídas por uma derivação saem da operação e ficam no
+ *  histórico, como as turmas. */
+function curadoriasVigentes(lista) {
+  return (Array.isArray(lista) ? lista : []).filter((c) => c && !c.substituidaPor);
+}
+
+/**
+ * O ID de uma curadoria DERIVADA — o mesmo esquema do `idDerivado` da turma: base do id
+ * original mais a vigência, com sufixo se colidir. O id da curadoria é o slug de
+ * `professor + modalidade`; um registo novo com o mesmo par colidiria com o anterior.
+ */
+function idCuradoriaDerivado(id, vigencia, lista) {
+  const base = String(id || '').trim() + '-' + String(vigencia || '').trim();
+  const usados = new Set((Array.isArray(lista) ? lista : []).map((c) => c && c.id));
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(base + '-' + n)) n += 1;
+  return base + '-' + n;
 }
 
 /** O id estável de uma turma/termo: o slug do nome (não há edição — o nome não muda). */
@@ -709,7 +758,7 @@ function paginaEstudio(escola, contexto) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, comPlano) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -885,7 +934,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // LIVRE ou VINCULADA (16/10/2026). É a mesma regra do plano de ensino: uma turma sem
         // plano é cadastro e edita-se; uma turma com plano é linha de base e deriva-se. A
         // escola não precisa de saber a diferença — vê a bandeirinha e o botão certo.
-        const vinculada = turmaVinculadaA(comPlano, t.nome);
+        const vinculada = turmaVinculadaA(
+          pares ? new Set(pares.map((p) => p.turma)) : null, t.nome);
         const seloEstado = vinculada
           ? '<span class="selo vinculada" title="esta turma já tem plano de ensino; mexer-lhe muda o passado">vinculada</span>'
           : '<span class="selo livre" title="esta turma ainda não tem plano de ensino; pode ser corrigida">livre</span>';
@@ -920,7 +970,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     : '<li class="vazia">(nenhum termo cadastrado)</li>';
 
   // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
-  const listaCuradorias = (curs || []).slice();
+  // A LISTA da operação são as VIGENTES (16/10/2026): uma curadoria substituída por uma
+  // derivação continua guardada e aparece no histórico da que a substituiu, mas não se oferece.
+  const listaCuradorias = curadoriasVigentes(curs);
   const profsParaCuradoria = [];
   if (donoNome) profsParaCuradoria.push({ valor: donoSlug, rotulo: donoNome });
   for (const p of profs) {
@@ -937,19 +989,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     (m.temConteudo ? '' : ' (sem conteúdo ainda)') + '</option>').join('');
   const opcoesTradicaoCuradoria = tradicoesAdotaveis().map((t) =>
     '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('');
-  // Os três grupos da curadoria — os três pelo MESMO componente. O repertório tem a lista
-  // longa (84 termos), mas isso é problema do menu, não do desenho: a janela de um lookup do
-  // navegador não se estiliza, e saía escura e apertada ao lado destes. Um componente só.
-  const escolarTurmasCuradoria = escolhedor('esc-turmas', listaTurmas.map((t) => {
-    // A turma sem ritmo não se atribui: o plano dela nasceria sem dose nem calendário. Ela
-    // continua na lista — a direção precisa de a ver para saber o que corrigir —, mas
-    // ANUNCIADA, com o que falta (16/10/2026).
+  // A TURMA É UM `select` — UMA POR VEZ (16/10/2026), no mesmo formato da modalidade e da
+  // tradição. Era um escolhedor de múltiplas, e a lista MENTIA: quem marcava duas turmas
+  // estava a dizer que as alunas de uma pertencem à outra, e não pertencem. Quem tem mais
+  // turmas faz mais curadorias (uma por modalidade × turma).
+  //
+  // A turma sem ritmo não se atribui — o plano dela nasceria sem dose nem calendário —, e
+  // por isso sai ANUNCIADA no rótulo, com o que falta. Ela continua na lista: a direção
+  // precisa de a ver para saber o que corrigir.
+  const opcoesTurmaCuradoria = listaTurmas.map((t) => {
     const falta = faltaNoRitmoDaTurma(t);
-    return {
-      valor: t.nome,
-      rotulo: falta.length ? t.nome + ' — falta ' + fraseDaFalta(falta) + ' (não pode ser atribuída)' : t.nome,
-    };
-  }));
+    return '<option value="' + esc(t.nome) + '">' + esc(t.nome) +
+      (falta.length ? ' — falta ' + esc(fraseDaFalta(falta)) + ' (não pode ser atribuída)' : '') +
+      '</option>';
+  }).join('');
   const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })));
   const escolarRepertorioCuradoria = escolhedor(
     'esc-repertorio',
@@ -967,18 +1020,54 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     }
   }
 
+  // TODAS as curadorias, para o histórico; as VIGENTES são as que se listam e se operam.
+  const todasAsCuradorias = (curs || []).slice();
   const itensCuradorias = listaCuradorias.length
     ? listaCuradorias.map((c) => {
         const rotuloProfessor = (profsParaCuradoria.find((p) => p.valor === c.professor) || {}).rotulo || c.professor;
+        const turmas = turmasDaCuradoria(c);
         const resumo = [
           c.tradicao,
-          (c.turmas || []).length ? (c.turmas.length + ' turma(s)') : '',
+          turmas.length ? turmas.join(' · ') : '',
           (c.repertorio || []).length ? (c.repertorio.length + ' passo(s)') : '',
           (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
         ].filter(Boolean).join(' · ');
+        // LIVRE × VINCULADA — a mesma regra e o mesmo padrão da turma (16/10/2026): enquanto
+        // nenhum plano de ensino nasceu desta curadoria, o registo edita-se; depois, deriva.
+        const vinculada = curadoriaVinculadaA(pares, c);
+        const seloEstado = vinculada
+          ? '<span class="selo vinculada" title="já nasceu o plano de ensino desta curadoria; mexer-lhe mudaria o passado">vinculada</span>'
+          : '<span class="selo livre" title="ainda não nasceu o plano de ensino desta curadoria; pode ser corrigida">livre</span>';
+        const seloVigencia = c.vigenteDe
+          ? '<span class="selo vigencia" title="esta versão da curadoria vale a partir desta data">ajustada em ' +
+            esc(c.vigenteDe) + '</span>'
+          : '';
+        const botaoAjuste = vinculada
+          ? '<button class="ajustar" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="derivar" ' +
+            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
+          : '<button class="ajustar" data-curadoria-ajustar="' + esc(c.id) + '" data-modo="editar" ' +
+            'title="Editar a curadoria (ainda não nasceu o plano de ensino dela)">Editar</button>';
+        // O HISTÓRICO do ajuste, fechado — sobe a cadeia por `substitui`.
+        const porId = new Map(todasAsCuradorias.map((x) => [x && x.id, x]));
+        const passado = [];
+        let cursor = c.substitui ? porId.get(c.substitui) : null;
+        while (cursor && passado.length < 20) {
+          passado.push(cursor);
+          cursor = cursor.substitui ? porId.get(cursor.substitui) : null;
+        }
+        const historico = passado.length
+          ? '<details class="historico"><summary>' + passado.length +
+            ' versão(ões) anterior(es)</summary><ul>' +
+            passado.map((v) => '<li><span class="dono">até ' + esc(v.substituidaEm || '?') + '</span> ' +
+              esc(turmasDaCuradoria(v).join(' · ') || '(sem turma)') + '</li>').join('') +
+            '</ul></details>'
+          : '';
         return '<li><span class="nome"><b>' + esc(rotuloProfessor) + '</b> <span class="dono">· ' + esc(c.modalidade) + '</span>' +
-          (resumo ? ' <span class="dono">— ' + esc(resumo) + '</span>' : '') + '</span>' +
-          '<span class="acoes"><button class="apagar" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span></li>';
+          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') +
+          (resumo ? '<br><span class="dono">' + esc(resumo) + '</span>' : '') + '</span>' +
+          '<span class="acoes">' + botaoAjuste +
+          '<button class="apagar" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span>' +
+          historico + '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
 
@@ -1325,14 +1414,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h2>Curadorias</h2>' +
     '<div class="col-form">' +
     '<form id="form-curadoria">' +
+    // O MODO: criar, editar (só a curadoria livre) ou derivar (a vinculada) — a mesma regra da
+    // turma, e o mesmo desenho de aviso e data (16/10/2026).
+    '<input type="hidden" id="cuderivar">' +
+    '<input type="hidden" id="cumodo">' +
+    '<div class="aviso-derivar" id="cu-aviso" hidden>' +
+    '<p><span id="cu-aviso-texto"></span> <button type="button" id="cu-cancelar">Cancelar</button></p>' +
+    '<div id="cu-vigencia-campo">' +
+    '<label for="cuvigencia">Vale a partir de</label>' +
+    '<input id="cuvigencia" type="date" autocomplete="off">' +
+    '</div>' +
+    '</div>' +
     '<label for="cuprofessor">Professor</label>' +
     '<select id="cuprofessor">' + opcoesProfessorCuradoria + '</select>' +
     '<label for="cumodalidade">Modalidade</label>' +
     '<select id="cumodalidade">' + opcoesModalidadeCuradoria + '</select>' +
     '<label for="cutradicao">Tradição</label>' +
     '<select id="cutradicao"><option value="">— nenhuma —</option>' + opcoesTradicaoCuradoria + '</select>' +
-    '<label>Turmas</label>' +
-    escolarTurmasCuradoria +
+    '<label for="cuturma">Turma</label>' +
+    '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label>Alunas</label>' +
     escolarAlunasCuradoria +
     // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos). Era um tapete de 84
@@ -1341,7 +1441,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // termo (busca por digitação do próprio navegador).
     '<label>Repertório (passos da turma)</label>' +
     escolarRepertorioCuradoria +
-    '<button type="submit">Atribuir curadoria</button>' +
+    '<button type="submit" id="cu-enviar">Atribuir curadoria</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1712,6 +1812,74 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    sincronizarHoras();' +
     '  }' +
     '});' +
+    // AS CURADORIAS VIGENTES, para o «Editar»/«Derivar» as abrir no formulário sem pedir ao
+    // servidor (16/10/2026): o mapa já veio com a página.
+    'var CURADORIAS = ' + JSON.stringify(listaCuradorias) + ';' +
+    // O BOTÃO DE UMA CURADORIA — a MESMA regra e o MESMO desenho da turma: «Editar» quando
+    // ainda não nasceu o plano de ensino dela (o registo é substituído no lugar), «Derivar»
+    // quando já nasceu (elo novo, com data, e a anterior no histórico).
+    //
+    // O PAR (professor, modalidade) NÃO se edita em nenhum dos modos: é ele que identifica a
+    // curadoria — o id nasce dele —, tal como o nome da turma. No «Editar» os dois ficam
+    // travados; no «Derivar» também, e acresce a data.
+    'function ajustarCuradoria(id, modo) {' +
+    '  var c = null;' +
+    '  for (var i = 0; i < CURADORIAS.length; i++) { if (CURADORIAS[i] && CURADORIAS[i].id === id) { c = CURADORIAS[i]; break; } }' +
+    '  if (!c) { alert("Curadoria não encontrada na lista."); return; }' +
+    '  var derivar = modo !== "editar";' +
+    '  document.getElementById("cuderivar").value = c.id;' +
+    '  document.getElementById("cumodo").value = derivar ? "derivar" : "editar";' +
+    '  document.getElementById("cu-aviso").hidden = false;' +
+    '  document.getElementById("cu-vigencia-campo").hidden = !derivar;' +
+    '  var quem = c.professor + " · " + c.modalidade;' +
+    '  document.getElementById("cu-aviso-texto").innerHTML = derivar' +
+    '    ? "Derivando <b>" + quem + "</b>: o que gravar vale <b>a partir da data</b> abaixo, e a " +' +
+    '      "curadoria anterior fica no histórico."' +
+    '    : "Editando <b>" + quem + "</b>: ainda não nasceu o plano de ensino desta curadoria, " +' +
+    '      "por isso o registo é corrigido no lugar.";' +
+    '  document.getElementById("cu-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar curadoria";' +
+    // Os três `select` ficam travados: o par identifica a curadoria, e a turma é o que ela
+    // declara hoje — mudar de turma é derivar, não editar por baixo.
+    '  document.getElementById("cuprofessor").value = c.professor;' +
+    '  document.getElementById("cuprofessor").disabled = true;' +
+    '  document.getElementById("cumodalidade").value = c.modalidade;' +
+    '  document.getElementById("cumodalidade").disabled = true;' +
+    '  document.getElementById("cutradicao").value = c.tradicao || "";' +
+    '  var turmas = (c.turmas && c.turmas.length) ? c.turmas : (c.turma ? [c.turma] : []);' +
+    '  document.getElementById("cuturma").value = turmas.length ? turmas[0] : "";' +
+    // As ALUNAS e o REPERTÓRIO são fichas: limpam e voltam a marcar.
+    '  [["esc-alunas", c.alunas || []], ["esc-repertorio", c.repertorio || []]].forEach(function(par){' +
+    '    var el = document.getElementById(par[0]);' +
+    '    if (!el) return;' +
+    '    Array.prototype.slice.call(el.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '    mostrarVazio(el);' +
+    '    par[1].forEach(function(v){ adicionarFicha(el, v); });' +
+    '  });' +
+    '  var hoje = new Date();' +
+    '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
+    '  document.getElementById("cuvigencia").value = iso;' +
+    '  document.getElementById("cu-aviso").scrollIntoView({block: "center"});' +
+    '  (derivar ? document.getElementById("cuvigencia") : document.getElementById("cu-enviar")).focus();' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("[data-curadoria-ajustar]") : null;' +
+    '  if (b) { ajustarCuradoria(b.getAttribute("data-curadoria-ajustar"), b.getAttribute("data-modo")); return; }' +
+    '  if (e.target.closest && e.target.closest("#cu-cancelar")) {' +
+    '    document.getElementById("cuderivar").value = "";' +
+    '    document.getElementById("cumodo").value = "";' +
+    '    document.getElementById("cu-aviso").hidden = true;' +
+    '    document.getElementById("cu-enviar").textContent = "Atribuir curadoria";' +
+    '    document.getElementById("cuprofessor").disabled = false;' +
+    '    document.getElementById("cumodalidade").disabled = false;' +
+    '    document.getElementById("form-curadoria").reset();' +
+    '    [["esc-alunas"], ["esc-repertorio"]].forEach(function(par){' +
+    '      var el = document.getElementById(par[0]);' +
+    '      if (!el) return;' +
+    '      Array.prototype.slice.call(el.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '      mostrarVazio(el);' +
+    '    });' +
+    '  }' +
+    '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
     'function linhaDaReguaNoDom(valor) {' +
     '  var s = document.createElement("span");' +
@@ -1796,14 +1964,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     'document.getElementById("form-curadoria").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  enviar("/api/bastidores/curadoria", {' +
+    // A TURMA é UMA (um `select`, como a modalidade): vai como lista de um, que é o formato
+    // que o plano já lê. As ALUNAS e o REPERTÓRIO continuam múltiplos.
+    '  var umaTurma = document.getElementById("cuturma").value;' +
+    '  var campos = {' +
     '    professor: document.getElementById("cuprofessor").value,' +
     '    modalidade: document.getElementById("cumodalidade").value,' +
     '    tradicao: document.getElementById("cutradicao").value,' +
-    '    turmas: fichasDe("esc-turmas"),' +
+    '    turmas: umaTurma ? [umaTurma] : [],' +
     '    repertorio: fichasDe("esc-repertorio"),' +
     '    alunas: fichasDe("esc-alunas")' +
-    '  }, "atribuindo curadoria...", true);' +
+    '  };' +
+    // CRIAR, EDITAR ou DERIVAR — a mesma bifurcação da turma (16/10/2026). Criar e editar vão
+    // para a mesma rota (o id é o par professor+modalidade); o que os separa é a regra no
+    // servidor, que recusa a edição de uma curadoria vinculada e manda derivar.
+    '  var alvo = (document.getElementById("cuderivar") || {}).value || "";' +
+    '  var modo = (document.getElementById("cumodo") || {}).value || "";' +
+    '  if (!alvo) {' +
+    '    enviar("/api/bastidores/curadoria", campos, "atribuindo curadoria...", true); return;' +
+    '  }' +
+    '  if (modo === "editar") {' +
+    '    enviar("/api/bastidores/curadoria", campos, "gravando curadoria...", true); return;' +
+    '  }' +
+    '  var vig = document.getElementById("cuvigencia").value;' +
+    '  if (!vig) { alert("Informe a data a partir da qual a curadoria ajustada vale."); return; }' +
+    '  campos.derivarDe = alvo;' +
+    '  campos.vigencia = vig;' +
+    '  enviar("/api/bastidores/curadoria-derivar", campos, "ajustando curadoria...", true);' +
     '});' +
     'document.addEventListener("click", function(e){' +
     '  var as = e.target.closest("button.associar");' +
@@ -1907,9 +2094,10 @@ async function fetch(request, env) {
     const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
-    // Que turmas já estão presas a um plano de ensino: é o que decide entre «Editar» e «Derivar».
-    const comPlano = await turmasComPlano(kv, escola);
-    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, comPlano));
+    // Que (professor, turma) já têm plano de ensino: é o que decide, na turma e na curadoria,
+    // entre «Editar» e «Derivar» (16/10/2026).
+    const pares = await paresComPlano(kv, escola);
+    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -2626,7 +2814,7 @@ async function fetch(request, env) {
 
   // GET /api/bastidores/curadorias — a lista completa.
   if (path === '/api/bastidores/curadorias') {
-    return json(200, { ok: true, escola, curadorias: await curadorias(kv, escola) });
+    return json(200, { ok: true, escola, curadorias: curadoriasVigentes(await curadorias(kv, escola)) });
   }
 
   // GET /api/bastidores/curadoria-meta — tudo o que o formulário precisa de uma vez
@@ -2660,7 +2848,9 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/curadoria-professor') {
     const slug = String(url.searchParams.get('professor') || '').trim();
     if (!slug) return json(400, { ok: false, erro: 'informe o professor' });
-    const todas = await curadorias(kv, escola);
+    // SÓ AS VIGENTES (16/10/2026): uma curadoria substituída por uma derivação continua
+    // guardada, mas não autoriza nada — quem a lê para trabalhar são as vigentes.
+    const todas = curadoriasVigentes(await curadorias(kv, escola));
     const dele = todas.filter((c) => c && c.professor === slug);
     return json(200, { ok: true, escola, professor: slug, curadorias: dele });
   }
@@ -2675,7 +2865,22 @@ async function fetch(request, env) {
     const professor = String(corpo.professor || '').trim();
     const modalidade = String(corpo.modalidade || '').trim();
     if (!professor || !modalidade) return json(400, { ok: false, erro: 'escolha o professor e a modalidade' });
-    const turmasPedidas = Array.isArray(corpo.turmas) ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean) : [];
+    // A TURMA É UMA SÓ (16/10/2026). Era uma lista, e a lista mentia: quem escolhia duas
+    // turmas estava a dizer que as alunas de uma pertencem à outra — e não pertencem. O
+    // registo continua a guardar `turmas` (lista de UM) para o plano, que já a lê assim, não
+    // ter de mudar; o que a escola vê é um `select`, um por vez.
+    const turmasPedidas = Array.isArray(corpo.turmas)
+      ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
+      : [String(corpo.turma || '').trim()].filter(Boolean);
+    if (turmasPedidas.length > 1) {
+      return json(400, {
+        ok: false,
+        erro: 'a curadoria é de UMA turma por vez: as alunas de uma turma não são as da outra, ' +
+          'e a lista faria o plano de uma dizer as alunas da outra. Atribua a segunda turma numa ' +
+          'curadoria própria.',
+        turmas: turmasPedidas,
+      });
+    }
     // NÃO SE LIBERA UM PLANO PARA UMA TURMA SEM RITMO (16/10/2026). A curadoria é o que
     // autoriza o professor a fazer o plano daquela turma; se a turma não tem frequência,
     // dias, duração e período, o plano nasceria com quatro campos vazios e ninguém saberia
@@ -2710,11 +2915,109 @@ async function fetch(request, env) {
       alunas: Array.isArray(corpo.alunas) ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [],
     };
     const lista = await curadorias(kv, escola);
+
+    // EDITAR UMA CURADORIA QUE JÁ EXISTE (16/10/2026) — a mesma regra da turma. Livre (nenhum
+    // plano de ensino nasceu dela) edita-se: o registo é substituído no lugar. Vinculada
+    // (o professor já fez o plano de uma destas turmas) NÃO se edita — deriva-se, senão o
+    // plano que está no ar passaria a falar de uma curadoria que já não é a dele.
+    const atual = lista.find((c) => c && c.id === id);
+    if (atual) {
+      const pares = await paresComPlano(kv, escola);
+      if (curadoriaVinculadaA(pares, atual)) {
+        return json(409, {
+          ok: false,
+          erro: 'a curadoria do professor «' + atual.professor + '» em «' + atual.modalidade +
+            '» já tem plano de ensino — ela não se edita: derive uma versão nova, que passa a ' +
+            'valer a partir de uma data e deixa a anterior como referência do passado.',
+          vinculada: true,
+        });
+      }
+    }
+
     const idx = lista.findIndex((c) => c && c.id === id);
     if (idx === -1) lista.push(nova);
     else lista[idx] = nova;
     await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
     return json(201, { ok: true, curadoria: nova });
+  }
+
+  // POST /api/bastidores/curadoria-derivar — o «EDITAR» da curadoria VINCULADA (16/10/2026).
+  //
+  // Mesmo invariante da turma: a escola pensa que corrige, e o que fica gravado é um ELO NOVO
+  // — a curadoria anterior desce para o histórico com `substituidaPor`/`substituidaEm`, e a
+  // nova nasce com a data a partir da qual vale (`vigenteDe`) e com um id que a distingue.
+  // O par (professor, modalidade) NÃO muda: é ele que identifica a curadoria — tal como o nome
+  // da turma. Mudá-lo seria criar outra curadoria, não corrigir esta.
+  //
+  // O que se ajusta é o que não nasceu do plano: a turma, a tradição, o repertório e as
+  // alunas. A proveniência do professor e da modalidade fica.
+  if (path === '/api/bastidores/curadoria-derivar' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const alvo = String(corpo.derivarDe || corpo.id || '').trim();
+    if (!alvo) return json(400, { ok: false, erro: 'informe a curadoria' });
+    const lista = await curadorias(kv, escola);
+    const anterior = curadoriasVigentes(lista).find((c) => c && c.id === alvo);
+    if (!anterior) {
+      return json(404, { ok: false, erro: 'curadoria não encontrada (ou já substituída): ' + alvo });
+    }
+    const vigencia = String(corpo.vigencia || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
+      return json(400, { ok: false, erro: 'informe a data a partir da qual a curadoria ajustada vale (AAAA-MM-DD)' });
+    }
+    const turmasPedidas = Array.isArray(corpo.turmas)
+      ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
+      : [String(corpo.turma || '').trim()].filter(Boolean);
+    if (turmasPedidas.length > 1) {
+      return json(400, {
+        ok: false,
+        erro: 'a curadoria é de UMA turma por vez: as alunas de uma turma não são as da outra.',
+        turmas: turmasPedidas,
+      });
+    }
+    if (turmasPedidas.length) {
+      const todas = await turmas(kv, escola);
+      const porNome = new Map(todas.map((t) => [t.nome, t]));
+      const faltando = [];
+      for (const nome of turmasPedidas) {
+        const t = porNome.get(nome);
+        const falta = t ? faltaNoRitmoDaTurma(t) : ['o cadastro (esta turma não existe na escola)'];
+        if (falta.length) faltando.push(nome + ' — falta ' + fraseDaFalta(falta));
+      }
+      if (faltando.length) {
+        return json(400, {
+          ok: false,
+          erro: 'não se atribui uma turma sem o ritmo declarado: ' + faltando.join('; ') + '.',
+          turmas: faltando,
+        });
+      }
+    }
+    const nova = Object.assign({}, anterior, {
+      id: idCuradoriaDerivado(anterior.id, vigencia, lista),
+      tradicao: corpo.tradicao === undefined ? anterior.tradicao : String(corpo.tradicao || '').trim(),
+      turmas: turmasPedidas.length ? turmasPedidas : turmasDaCuradoria(anterior),
+      repertorio: Array.isArray(corpo.repertorio)
+        ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
+        : (anterior.repertorio || []),
+      alunas: Array.isArray(corpo.alunas)
+        ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean)
+        : (anterior.alunas || []),
+      vigenteDe: vigencia,
+      substitui: anterior.id,
+    });
+    delete nova.substituidaPor;
+    delete nova.substituidaEm;
+    const indice = lista.findIndex((c) => c && c.id === anterior.id);
+    lista[indice] = Object.assign({}, anterior, {
+      substituidaPor: nova.id,
+      substituidaEm: vigencia,
+    });
+    lista.push(nova);
+    await kv.put(RAIZ + '/' + escola + '/curadorias', JSON.stringify(lista));
+    return json(201, { ok: true, curadoria: nova, substitui: anterior.id, vigenteDe: vigencia });
   }
 
   // DELETE /api/bastidores/curadoria — remover a curadoria de um professor.

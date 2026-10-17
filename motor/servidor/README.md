@@ -140,7 +140,7 @@ não pode ter comentário de linha. Um comentário escrito **dentro** da concate
 do que isso: sai como **texto da página** — aconteceu com `// OS DIAS DA SEMANA…`, e a prova agora
 confere que nenhum chegou ao corpo.
 
-A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (57/57),
+A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (92/92),
 sobre um KV de mentira: o nome repetido só colide contra a vigente; a derivação recusa sem data; a
 anterior fica com o elo e o ritmo **não** é reescrito; a lista viva traz uma só; a régua e a
 cadeia sobrevivem; uma turma já substituída não se deriva outra vez; e o `DELETE` remove a versão
@@ -149,6 +149,24 @@ edita-se (e o nome pode mudar, levando os vínculos turma↔termo consigo), a **
 edição com **409** e aceita derivar; e as bandeirinhas e os botões da página. O comportamento da
 **hora por dia** é exercitado no script **servido**, num DOM de mentira: as sete nascem
 desabilitadas, marcar um dia habilita só a dele, desmarcar limpa o valor.
+
+**A CURADORIA é de UMA turma** (16/10/2026), e segue a mesma regra. O formulário tem um `select`
+de turma — o mesmo formato da modalidade e da tradição —, e o servidor recusa **400** duas
+turmas: quem marcava duas estava a dizer que as alunas de uma são as da outra, e não são. Quem
+tem mais turmas faz **mais curadorias** (o id é `professor + modalidade`). O registo guarda
+`turmas` como lista **de um**, que é o formato que o plano já lê (`daCuradoria: 'turmas'`, unindo
+as curadorias do professor) — o plano não mudou uma linha. **Alunas** e **repertório** continuam
+múltiplos: neles a pluralidade é verdadeira.
+
+A curadoria **edita-se** («Editar») enquanto nenhum plano de ensino nasceu dela, e **deriva-se**
+(«Derivar», `POST /api/bastidores/curadoria-derivar`) depois — o mesmo par de bandeirinhas e
+botões, e o mesmo histórico fechado no cartão. A ligação é o **par (professor, turma)**: o
+envelope declara `contexto.professor` (slug) e `contexto-turma` (nome), e é esse par que diz de
+que curadoria o plano nasceu (`paresComPlano` — a leitura única; o cartão da turma deriva o seu
+conjunto de nomes dela). O par professor × modalidade **não se edita em nenhum dos modos**: é ele
+que identifica a curadoria, como o nome identifica a turma. `curadoriasVigentes()` é o que a
+operação lê — inclusive o `curadoria-professor` que a porta consome; a lista inteira só serve ao
+histórico.
 
 ## Prova contra o Worker real
 
