@@ -32,6 +32,10 @@ const CATALOGO = require('./catalogo-seed.js');
 // a edita aqui); esta é a lista que nasce com uma turma nova e o que vale quando nenhuma foi
 // declarada. Uma fonte só — a decisão é declarada, não inventada.
 const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
+// A TURMA DE UM ENVELOPE (a resposta a `contexto-turma`) — uma definição só, a da porta. O
+// cadastro precisa dela para saber se uma turma já está presa a um plano de ensino, e daí
+// decidir se ela se EDITA (livre) ou se DERIVA (vinculada) — 16/10/2026.
+const { turmaDoEnvelope } = require('../nucleo/porta.js');
 
 /** O dado destas rotas é DINÂMICO (vem do KV) e o documento é gerado a cada pedido:
  *  `no-store` impede o navegador de reusar uma página ou uma listagem velha — sem
@@ -218,6 +222,50 @@ async function relacoes(kv, escola) {
   } catch (e) {
     return {};
   }
+}
+
+/**
+ * AS TURMAS QUE JÁ TÊM UM PLANO DE ENSINO (16/10/2026).
+ *
+ * É o que separa o que a escola pode **editar** do que tem de **derivar**. Uma turma livre é
+ * cadastro: nada a referencia, e corrigir o nome ou a hora não reescreve história nenhuma.
+ * Uma turma com plano é linha de base — o plano fala dela, o professor já a escolheu no
+ * cabeçalho, e mexer-lhe por baixo faria o plano impresso dizer uma coisa e o cadastro outra.
+ *
+ * A ligação é pelo **NOME** (é o que o plano guarda em `contexto-turma`). A chave física dos
+ * envelopes é NAMESPACED pela escola (`<escola>/envelope/plano-….json` — ver
+ * `motor/adaptadores/cloudflare.js`): sem o prefixo da escola, a leitura devolveria os planos
+ * de OUTRA escola, e este cadastro diria «vinculada» para uma turma que não tem plano nenhum.
+ *
+ * Se a leitura falhar, a resposta é `null` — e o cadastro trata `null` como VINCULADA, que é o
+ * lado seguro: derivar uma turma livre é um elo a mais; editar uma vinculada partiria o plano.
+ */
+async function turmasComPlano(kv, escola) {
+  const nomes = new Set();
+  const prefixo = String(escola || '').trim() ? escola + '/envelope/' : 'envelope/';
+  try {
+    const listagem = await kv.list({ prefix: prefixo });
+    const chaves = (listagem && listagem.keys ? listagem.keys : [])
+      .map((k) => k.name)
+      .filter((n) => /(^|\/)envelope\/plano-.*\.json$/.test(n));
+    for (const chave of chaves) {
+      const texto = await kv.get(chave);
+      if (!texto) continue;
+      let envelope = null;
+      try { envelope = JSON.parse(texto); } catch { continue; }
+      const turma = turmaDoEnvelope(envelope);
+      if (turma) nomes.add(turma);
+    }
+  } catch (e) {
+    return null;
+  }
+  return nomes;
+}
+
+/** A turma está presa a um plano? `null` (não deu para ler) conta como presa. */
+function turmaVinculadaA(planoDeTurmas, nome) {
+  if (!planoDeTurmas) return true;
+  return planoDeTurmas.has(String(nome == null ? '' : nome).trim());
 }
 
 /** O id estável de uma turma/termo: o slug do nome (não há edição — o nome não muda). */
@@ -661,7 +709,7 @@ function paginaEstudio(escola, contexto) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, comPlano) {
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -834,12 +882,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
             esc(t.vigenteDe) + '</span>'
           : '';
+        // LIVRE ou VINCULADA (16/10/2026). É a mesma regra do plano de ensino: uma turma sem
+        // plano é cadastro e edita-se; uma turma com plano é linha de base e deriva-se. A
+        // escola não precisa de saber a diferença — vê a bandeirinha e o botão certo.
+        const vinculada = turmaVinculadaA(comPlano, t.nome);
+        const seloEstado = vinculada
+          ? '<span class="selo vinculada" title="esta turma já tem plano de ensino; mexer-lhe muda o passado">vinculada</span>'
+          : '<span class="selo livre" title="esta turma ainda não tem plano de ensino; pode ser corrigida">livre</span>';
+        const botaoAjuste = vinculada
+          ? '<button class="ajustar" data-turma-ajustar="' + esc(t.id) + '" data-modo="derivar" ' +
+            'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
+          : '<button class="ajustar" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
+            'title="Editar a turma (ela ainda não tem plano de ensino)">Editar</button>';
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
           '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
           (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
-          (avisoDeRitmo ? ' ' + avisoDeRitmo : '') + (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
+          (avisoDeRitmo ? ' ' + avisoDeRitmo : '') + ' ' + seloEstado +
+          (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
           '<span class="acoes">' +
-          '<button class="ajustar" data-turma-ajustar="' + esc(t.id) + '" title="Ajustar a turma a partir de uma data">Ajustar</button>' +
+          botaoAjuste +
           '<button class="apagar" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
           '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
@@ -1003,6 +1064,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // versão da turma nasceu de um ajuste; o histórico, fechado, diz o que valia antes — a
     // escola precisa de saber que mexeu, e não pode confundir o passado com o presente.
     '.vigencia{background:#eef3ec;color:#3d5a3d;border-color:#b8ccb6;}' +
+    // LIVRE × VINCULADA (16/10/2026): a mesma pergunta do plano de ensino, feita no cadastro.
+    // Âmbar é «ainda podes mexer»; o verde-acinzentado é «isto é linha de base, deriva».
+    '.livre{background:#fdf3d8;color:#7a5a12;border-color:#e0c98a;}' +
+    '.vinculada{background:#efe9f2;color:#5a3f66;border-color:#c9b8d2;}' +
     'button.ajustar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     'button.ajustar:hover{background:#7d2b2b;}' +
     'details.historico{margin:.35rem 0 0;font-size:.85rem;color:var(--soft);}' +
@@ -1018,9 +1083,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS ESCOLHAS EM LINHA (os dias da semana): o professor clica no que quer. Nada de caixa
     // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
     // longas, o escolhedor abaixo.
-    '.escolhas{display:flex;flex-wrap:wrap;gap:.35rem;margin:.3rem 0 .7rem;}' +
-    '.dia-hora{display:inline-flex;flex-direction:column;align-items:center;gap:.15rem;}' +
+    '.escolhas{display:flex;flex-wrap:wrap;gap:.55rem .35rem;margin:.3rem 0 .9rem;}' +
+    '.dia-hora{display:inline-flex;flex-direction:column;align-items:center;gap:.18rem;}' +
     '.hora-do-dia{width:5.4rem;font-size:.8rem;padding:.12rem .25rem;}' +
+    // A HORA SÓ EXISTE PARA O DIA ESCOLHIDO (16/10/2026). Desabilitada, o campo não se
+    // preenche por engano — e um horário de um dia que a turma não tem seria descartado na
+    // gravação de qualquer forma, mas depois de o ter escrito.
+    '.hora-do-dia:disabled{opacity:.4;background:var(--creme-2);cursor:not-allowed;}' +
     '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
     '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
     '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--gold-borda);border-radius:999px;background:var(--branco);font-size:.87rem;color:var(--gold-texto);line-height:1.35;}' +
@@ -1090,13 +1159,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<form id="form-prof">' +
     '<label for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
-    '<label for="psobrenome">Sobrenome ou apelido <span class="dica">(só quando o nome já existe)</span></label>' +
+    '<label for="psobrenome">Sobrenome ou apelido</label>' +
     '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
     '<label for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
-    '<p class="nota">O nome do professor vira a <b>pasta</b> dele no sistema — é ela que identifica' +
-    ' o PO, o plano e os cadernos das aulas. Se já existe um professor com este nome, informe o' +
-    ' sobrenome ou um apelido: duas pessoas não podem dividir a mesma pasta.</p>' +
     '<button type="submit">Cadastrar professor</button>' +
     '</form>' +
     '</div>' +
@@ -1138,12 +1204,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // isso o formulário ganha um modo: o campo oculto diz de onde se deriva, e a data diz a
     // partir de quando o ajuste vale. Sem o modo, o mesmo formulário cadastra.
     '<input type="hidden" id="tderivar">' +
+    '<input type="hidden" id="tmodo">' +
     '<div class="aviso-derivar" id="t-aviso" hidden>' +
-    '<p>Ajustando <b><span id="t-aviso-nome"></span></b>. O que gravar vale <b>a partir da data</b> ' +
-    'abaixo; o ritmo anterior sai do cadastro e fica no histórico da turma, para a escola ' +
-    'saber o que valia antes. <button type="button" id="t-cancelar">Cancelar ajuste</button></p>' +
+    '<p><span id="t-aviso-texto"></span> <button type="button" id="t-cancelar">Cancelar</button></p>' +
+    '<div id="t-vigencia-campo">' +
     '<label for="tvigencia">Vale a partir de</label>' +
     '<input id="tvigencia" type="date" autocomplete="off">' +
+    '</div>' +
     '</div>' +
     '<label for="tnome">Nome da turma</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
@@ -1156,8 +1223,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // escola já usa não desaparece do formulário por não estar no catálogo. O que sai daqui
     // continua a ser UM texto («Grade 3, Grade 4»): o contrato do servidor e o do plano não
     // mudam.
-    '<label>Equivalência pedagógica <span class="dica">(um ou mais níveis)</span></label>' +
-    '<p class="sub">Uma turma mista pode ter dois níveis — escolha um, clique em «Adicionar», e repita.</p>' +
+    '<label>Equivalência pedagógica</label>' +
     escolhedor('esc-niveis', niveisOferecidos.map((n) => ({ valor: n }))) +
     '<label for="tdescricao">Notas sobre esta turma (opcional)</label>' +
     '<input id="tdescricao" name="descricao" autocomplete="off">' +
@@ -1166,9 +1232,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // OS DIAS DA SEMANA: sete pílulas numa linha. Era uma caixa com rolagem e sete
     // caixinhas dentro; não há motivo para uma escolha de sete itens morar atrás de uma
     // barra de rolagem dentro de um formulário.
-    '    // OS DIAS DA SEMANA com a HORA DE INÍCIO de cada um (16/10/2026). A hora é do DIA, não\n' +
-    '    // da turma: a direção pode ter a turma às 9h na terça e às 11h na quarta. A hora FINAL\n' +
-    '    // não se pergunta — sai daqui mais a duração, e é dela que o calendário conta o prazo.\n' +
     '<label>Dias da semana e a hora de início de cada um</label>' +
     '<div class="escolhas" id="tdias">' + DIAS_DA_SEMANA.map((d) =>
       '<span class="dia-hora">' + pilula('dia', d, esc(d)) +
@@ -1180,7 +1243,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
     '<label for="tfim">Fim do período (termo)</label>' +
     '<input id="tfim" name="periodoFim" type="date" autocomplete="off">' +
-    '<p class="nota">A <b>régua da rubrica</b> não se declara aqui: ela é da escola, e vive nas abas <b>Criar rubrica</b> e <b>Vincular turma à rubrica</b>. Uma turma sem rubrica ligada é medida pela régua padrão.</p>' +
     '<button type="submit" id="t-enviar">Cadastrar turma</button>' +
     '</form>' +
     '</div>' +
@@ -1198,8 +1260,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input type="hidden" id="rubr-id">' +
     '<label for="rubr-nome">Nome da rubrica</label>' +
     '<input id="rubr-nome" autocomplete="off" placeholder="ex.: Régua do Nível 1">' +
-    '<label>Níveis <span class="dica">(a ordem é a das colunas da tabela)</span></label>' +
-    '<p class="sub">Já vem com os quatro níveis padrão. Renomeie, acrescente ou remova — a régua é da escola, e vale para todas as turmas que a usarem.</p>' +
+    '<label>Níveis</label>' +
     '<div id="rubr-niveis">' + NIVEIS_DA_RUBRICA.map((n) => linhaDaRegua(n)).join('') + '</div>' +
     '<p><button type="button" id="rubr-add">Acrescentar nível</button></p>' +
     '<button type="submit">Salvar rubrica</button>' +
@@ -1229,8 +1290,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       ? listaRubricas.map((r) => '<option value="' + esc(r.id) + '">' + esc(r.nome) + '</option>').join('')
       : '<option value="">— nenhuma rubrica criada —</option>') +
     '</select>' +
-    '<p class="sub">Uma rubrica pode valer para várias turmas: mudar os níveis dela muda as ' +
-    'turmas que a usam, no mesmo ato — é uma régua só, não uma cópia por turma.</p>' +
     '<button type="submit">Vincular</button>' +
     '<button type="button" id="vinc-desvincular">Desvincular (volta à régua padrão)</button>' +
     '</form>' +
@@ -1265,7 +1324,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<section class="secao" id="sec-curadorias" hidden>' +
     '<h2>Curadorias</h2>' +
     '<div class="col-form">' +
-    '<p class="sub">O que a escola atribui a cada professor — a modalidade, a tradição, a turma, o repertório e as alunas. É isto que pré-carrega a anamnese, o plano e o PO.</p>' +
     '<form id="form-curadoria">' +
     '<label for="cuprofessor">Professor</label>' +
     '<select id="cuprofessor">' + opcoesProfessorCuradoria + '</select>' +
@@ -1432,15 +1490,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     // AS HORAS DE INÍCIO, por dia — o mapa que o servidor grava em `horarios`. Lê os campos
     // pelo `data-dia`, e não pela lista dos dias: assim o formulário não precisa de repetir
-    // no JavaScript o rol que já declara no servidor.
+    // no JavaScript o rol que já declara no servidor. Um campo DESABILITADO (dia não
+    // escolhido) não entra: a hora não existe para um dia que a turma não tem.
     'function horariosDoDia() {' +
     '  var o = {};' +
     '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
     '    var d = x.getAttribute("data-dia");' +
-    '    if (d && x.value) o[d] = x.value;' +
+    '    if (d && x.value && !x.disabled) o[d] = x.value;' +
     '  });' +
     '  return o;' +
     '}' +
+    // A HORA SÓ SE HABILITA PARA O DIA ESCOLHIDO (16/10/2026), e desescolher LIMPA o campo.
+    // Sem isto, o horário de um dia fica escrito ao lado de uma pílula apagada — poluído, e
+    // a sugerir uma aula que não existe.
+    'function diaEstaMarcado(d) {' +
+    '  if (!document.querySelector) return true;' +
+    '  var p = document.querySelector("input[name=\\"dia\\"][value=\\"" + d + "\\"]");' +
+    '  return !!(p && p.checked);' +
+    '}' +
+    'function sincronizarHoras() {' +
+    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    '    var d = x.getAttribute("data-dia");' +
+    '    var marcado = diaEstaMarcado(d);' +
+    '    x.disabled = !marcado;' +
+    '    if (!marcado) x.value = "";' +
+    '  });' +
+    '}' +
+    'document.addEventListener("change", function(e){' +
+    '  var alvo = e.target;' +
+    '  if (alvo && alvo.name === "dia") sincronizarHoras();' +
+    '});' +
+    // No arranque, o formulário nasce com as sete horas desabilitadas — nenhum dia escolhido.
+    'sincronizarHoras();' +
     // AS FICHAS de um escolhedor — o que foi escolhido, na ordem em que se escolheu.
     'function fichasDe(id) {' +
     '  var el = document.getElementById(id);' +
@@ -1522,6 +1603,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!derivando) {' +
     '    enviar("/api/bastidores/turma", campos, "cadastrando turma...", true); return;' +
     '  }' +
+    // DOIS CAMINHOS, e a diferença não é cosmética (16/10/2026): a turma LIVRE edita-se (o
+    // registo é substituído no lugar, e o nome pode mudar); a VINCULADA a um plano de ensino
+    // deriva (nasce um elo novo, com data, e o nome NÃO muda — é ele que o plano referencia).
+    '  var modo = (document.getElementById("tmodo") || {}).value || "derivar";' +
+    '  if (modo === "editar") {' +
+    '    campos.id = derivando;' +
+    '    enviar("/api/bastidores/turma-editar", campos, "gravando turma...", true); return;' +
+    '  }' +
     '  var vig = document.getElementById("tvigencia").value;' +
     '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
     '  campos.derivarDe = derivando;' +
@@ -1544,19 +1633,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // servidor: o mapa já veio com a página (16/10/2026). Só as vigentes — uma substituída não
     // é ponto de partida de um ajuste novo.
     'var TURMAS = ' + JSON.stringify(listaTurmas) + ';' +
-    // O «AJUSTAR» de um cartão: enche o formulário com a turma de hoje, marca o modo de
-    // derivação, trava o nome (não muda — é ele que a curadoria e o plano referenciam) e leva
-    // o foco à data, que é a única decisão realmente nova.
-    'function ajustarTurma(id) {' +
+    // O BOTÃO DE UM CARTÃO — «Editar» numa turma LIVRE, «Derivar» numa VINCULADA (16/10/2026).
+    // Enche o formulário com a turma de hoje e põe o modo. A diferença que a escola sente:
+    // no «Derivar» o nome fica travado (é ele que a curadoria e o plano referenciam) e há uma
+    // data a declarar; no «Editar» o nome é corrigível e não há data — o registo é substituído.
+    'function ajustarTurma(id, modo) {' +
     '  var t = null;' +
     '  for (var i = 0; i < TURMAS.length; i++) { if (TURMAS[i] && TURMAS[i].id === id) { t = TURMAS[i]; break; } }' +
     '  if (!t) { alert("Turma não encontrada na lista."); return; }' +
+    '  var derivar = modo !== "editar";' +
     '  document.getElementById("tderivar").value = t.id;' +
+    '  document.getElementById("tmodo").value = derivar ? "derivar" : "editar";' +
     '  document.getElementById("t-aviso").hidden = false;' +
-    '  document.getElementById("t-aviso-nome").textContent = t.nome;' +
-    '  document.getElementById("t-enviar").textContent = "Gravar ajuste";' +
+    '  document.getElementById("t-vigencia-campo").hidden = !derivar;' +
+    '  document.getElementById("t-aviso-texto").innerHTML = derivar' +
+    '    ? "Derivando <b>" + t.nome + "</b>: o que gravar vale <b>a partir da data</b> abaixo, e " +' +
+    '      "o ritmo anterior sai do cadastro e fica no histórico da turma."' +
+    '    : "Editando <b>" + t.nome + "</b>: esta turma ainda não tem plano de ensino, por isso " +' +
+    '      "o registo é corrigido no lugar. O nome também pode mudar.";' +
+    '  document.getElementById("t-enviar").textContent = derivar ? "Gravar ajuste" : "Gravar turma";' +
     '  var nome = document.getElementById("tnome");' +
-    '  nome.value = t.nome || ""; nome.readOnly = true;' +
+    '  nome.value = t.nome || ""; nome.readOnly = derivar;' +
     '  document.getElementById("tordem").value = (t.ordem == null ? "" : t.ordem);' +
     '  document.getElementById("tprograma").value = t.programaReferencia || "";' +
     '  document.getElementById("tdescricao").value = t.descricao || "";' +
@@ -1581,19 +1678,27 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    var d = x.getAttribute("data-dia");' +
     '    x.value = (t.horarios && t.horarios[d]) ? t.horarios[d] : "";' +
     '  });' +
+    // As horas seguem os dias: as de um dia não escolhido não se habilitam, e as escolhidas
+    // ficam com o valor da turma (o `sincronizarHoras` limpa as outras).
+    '  sincronizarHoras();' +
+    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    '    var d = x.getAttribute("data-dia");' +
+    '    if (!x.disabled && t.horarios && t.horarios[d]) x.value = t.horarios[d];' +
+    '  });' +
     // A data de vigência nasce com hoje: é o caso normal (a escola descobre o erro e corrige
     // agora). A escola muda se o ajuste for retroativo.
     '  var hoje = new Date();' +
     '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
     '  document.getElementById("tvigencia").value = iso;' +
     '  document.getElementById("t-aviso").scrollIntoView({block: "center"});' +
-    '  document.getElementById("tvigencia").focus();' +
+    '  (derivar ? document.getElementById("tvigencia") : nome).focus();' +
     '}' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("[data-turma-ajustar]") : null;' +
-    '  if (b) { ajustarTurma(b.getAttribute("data-turma-ajustar")); return; }' +
+    '  if (b) { ajustarTurma(b.getAttribute("data-turma-ajustar"), b.getAttribute("data-modo")); return; }' +
     '  if (e.target.closest && e.target.closest("#t-cancelar")) {' +
     '    document.getElementById("tderivar").value = "";' +
+    '    document.getElementById("tmodo").value = "";' +
     '    document.getElementById("t-aviso").hidden = true;' +
     '    document.getElementById("t-enviar").textContent = "Cadastrar turma";' +
     '    document.getElementById("tnome").readOnly = false;' +
@@ -1604,6 +1709,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      mostrarVazio(esc);' +
     '    }' +
     '    Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){ x.value = ""; });' +
+    '    sincronizarHoras();' +
     '  }' +
     '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
@@ -1801,7 +1907,9 @@ async function fetch(request, env) {
     const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
     const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
-    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs));
+    // Que turmas já estão presas a um plano de ensino: é o que decide entre «Editar» e «Derivar».
+    const comPlano = await turmasComPlano(kv, escola);
+    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, comPlano));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -2095,7 +2203,78 @@ async function fetch(request, env) {
     return json(201, { ok: true, turma: nova.nome });
   }
 
-  // POST /api/bastidores/turma-derivar — o «EDITAR» DA TURMA (16/10/2026).
+  // POST /api/bastidores/turma-editar — EDITAR uma turma LIVRE (16/10/2026).
+  //
+  // A regra é a do plano de ensino, aplicada ao cadastro: uma turma que ainda não tem plano
+  // é cadastro puro — nada a referencia —, e corrigir-lhe o nome, a hora ou a duração não
+  // reescreve história nenhuma. Uma turma que já tem plano é linha de base, e essa DERIVA
+  // (`/turma-derivar`): o professor já a escolheu no cabeçalho, e mexer-lhe por baixo faria o
+  // plano impresso dizer uma coisa e o cadastro outra.
+  //
+  // A guarda é AQUI, e não só na tela: o botão que a escola vê é uma comodidade; a regra é
+  // esta linha. Sem ela, um pedido forjado — ou uma página aberta de antes de a turma ganhar
+  // plano — passaria por cima da proveniência.
+  if (path === '/api/bastidores/turma-editar' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const pedido = String(corpo.id || corpo.derivarDe || '').trim();
+    if (!pedido) return json(400, { ok: false, erro: 'informe a turma' });
+    const lista = await turmas(kv, escola);
+    const alvo = lista.find((t) => t && t.id === pedido);
+    if (!alvo) return json(404, { ok: false, erro: 'turma não encontrada: ' + pedido });
+    const comPlano = await turmasComPlano(kv, escola);
+    if (turmaVinculadaA(comPlano, alvo.nome)) {
+      return json(409, {
+        ok: false,
+        erro: 'a turma «' + alvo.nome + '» já tem um plano de ensino — ela não se edita: ' +
+          'derive uma versão nova, que passa a valer a partir de uma data e deixa a anterior ' +
+          'como referência do passado.',
+        vinculada: true,
+      });
+    }
+    const declarado = normalizarTurma(Object.assign({}, corpo, { nome: corpo.nome || alvo.nome }));
+    if (!declarado.nome) return json(400, { ok: false, erro: 'informe o nome da turma' });
+    const falta = faltaNoRitmoDaTurma(declarado);
+    if (falta.length) {
+      return json(400, {
+        ok: false,
+        erro: 'a turma precisa de ' + fraseDaFalta(falta) + '.',
+        falta,
+      });
+    }
+    // O NOME PODE MUDAR numa turma livre — é o que a torna editável. O id vai atrás (é o slug
+    // do nome), e por isso os vínculos turma↔termo têm de MUDAR DE CHAVE: são guardados pelo
+    // id, e ficariam órfãos no id antigo.
+    const novoId = declarado.id;
+    const idAntigo = alvo.id;
+    if (novoId !== idAntigo && lista.some((t) => t && t.id === novoId)) {
+      return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
+    }
+    // Só os campos do formulário mudam; a régua (`rubricaId`) fica com quem a ligou.
+    const CAMPOS_DO_FORMULARIO = ['nome', 'ordem', 'programaReferencia', 'nivelReferencia',
+      'descricao', 'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
+    const ajustado = {};
+    for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
+    const indice = lista.findIndex((t) => t && t.id === idAntigo);
+    lista[indice] = Object.assign({}, alvo, ajustado, { id: novoId });
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+    if (novoId !== idAntigo) {
+      try {
+        const rel = await relacoes(kv, escola);
+        if (Array.isArray(rel[idAntigo])) {
+          rel[novoId] = rel[idAntigo].slice();
+          delete rel[idAntigo];
+          await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+        }
+      } catch (e) { /* best-effort: a turma já está gravada */ }
+    }
+    return json(200, { ok: true, turma: novoId, nome: lista[indice].nome, eraId: idAntigo });
+  }
+
+  // POST /api/bastidores/turma-derivar — o «EDITAR» DA TURMA VINCULADA (16/10/2026).
   //
   // A escola pensa que está a editar; o que acontece é um ELO NOVO. A turma anterior fica na
   // lista, marcada com `substituidaPor`/`substituidaEm`, e a nova nasce com o MESMO NOME e uma

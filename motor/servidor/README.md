@@ -101,14 +101,27 @@ nunca devolve uma régua vazia: o plano de ensino LÊ a régua da turma do profe
 vazia mediria contra nada. O `GET /api/bastidores/turmas` entrega a régua **resolvida**, para o
 plano (`{daTurma: "rubrica"}`) não saber de onde ela veio.
 
-**A turma não se edita: DERIVA** (16/10/2026). O `POST /api/bastidores/turma` devolve **409** só
-contra uma turma **vigente** — porque corrigir a hora, a duração ou os dias de uma turma é o
-`POST /api/bastidores/turma-derivar`: um registo **novo**, com o **mesmo nome** e uma
-`vigenteDe` (data a partir da qual vale), e o anterior fica guardado com `substituidaPor` e
-`substituidaEm`. É o invariante do plano vinculado a um PO — o passado acrescenta-se, não se
-reescreve. O nome não muda de propósito: a curadoria guarda o **nome** e o plano referencia o
-**nome**; um registo novo com outro nome partiria as duas ligações. O `id` é que muda
-(`teste` → `teste-2026-11-01`), porque é o slug do nome e colidiria.
+**A turma não se edita: DERIVA — mas só quando está VINCULADA.** São dois caminhos, e a
+fronteira é o **plano de ensino** (16/10/2026):
+
+- **sem plano de ensino** → o cartão mostra a bandeirinha **livre** e o botão **Editar**:
+  `POST /api/bastidores/turma-editar` substitui o registo no lugar. Nada referencia a turma, e
+  corrigir-lhe o nome ou a hora não reescreve história nenhuma. Só aqui o **nome** pode mudar — e o
+  `id` vai atrás (é o slug do nome), pelo que os vínculos turma↔termo **mudam de chave** com ele.
+- **com plano de ensino** → bandeirinha **vinculada** e botão **Derivar**: um registo **novo**, com
+  o **mesmo nome** e uma `vigenteDe`, e o anterior guardado com `substituidaPor` e `substituidaEm`.
+  É o invariante do plano vinculado a um PO. O nome não muda porque a curadoria guarda o **nome** e
+  o plano referencia o **nome**; o `id` muda (`teste` → `teste-2026-11-01`), porque é o slug do
+  nome e colidiria.
+
+A guarda está **no servidor**: `turma-editar` devolve **409** e manda derivar quando encontra plano.
+O botão é comodidade; a rota é a regra. A ligação é pelo **nome**, em `contexto-turma` do envelope,
+e `turmasComPlano` lê as chaves físicas **namespaced pela escola** (`<escola>/envelope/plano-…`):
+sem esse prefixo a Produção leria os planos de outra escola. Leitura falhada conta como
+**vinculada** — o lado seguro.
+
+O `POST /api/bastidores/turma` devolve **409** só contra uma turma **vigente**: recusar contra a
+substituída impediria a própria derivação, já que as duas partilham o nome de propósito.
 
 Quem lê «as turmas» para trabalhar usa `turmasVigentes()` — a curadoria, o plano, o vínculo
 turma↔termo e o `GET /api/bastidores/turmas` (e por isso uma turma substituída não aparece no
@@ -118,18 +131,24 @@ select do cabeçalho do plano). A lista inteira só serve ao histórico que a Pr
 pelo nome apagaria a do passado em vez da que a escola quer tirar. A derivação leva com ela o que
 não se está a ajustar: a ligação à rubrica (`rubricaId`) e os vínculos turma↔termo.
 
-A prova é `experimentos/provar-producao.js` (104/104): roda o script servido num DOM de mentira e
+A prova é `experimentos/provar-producao.js` (105/105): roda o script servido num DOM de mentira e
 confere que o menu troca a secção, que as três abas de Turmas trocam de painel, que os handlers dos
 formulários existem e que a página não é cacheável. Ela trava um defeito silencioso: o script é
 montado por concatenação numa linha só, e um comentário `//` comenta **todo o resto** do script —
 o login funcionava (vinha antes), mas o menu e os botões ficavam mortos. Por isso o script servido
-não pode ter comentário de linha.
+não pode ter comentário de linha. Um comentário escrito **dentro** da concatenação, com `\n`, é pior
+do que isso: sai como **texto da página** — aconteceu com `// OS DIAS DA SEMANA…`, e a prova agora
+confere que nenhum chegou ao corpo.
 
-A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (35/35), sobre
-um KV de mentira: o nome repetido só colide contra a vigente; a derivação recusa sem data; a
+A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (57/57),
+sobre um KV de mentira: o nome repetido só colide contra a vigente; a derivação recusa sem data; a
 anterior fica com o elo e o ritmo **não** é reescrito; a lista viva traz uma só; a régua e a
 cadeia sobrevivem; uma turma já substituída não se deriva outra vez; e o `DELETE` remove a versão
-**pedida** — o caso que mais dói, por ser silencioso.
+**pedida** — o caso que mais dói, por ser silencioso. Cobre também os dois caminhos: a turma **livre**
+edita-se (e o nome pode mudar, levando os vínculos turma↔termo consigo), a **vinculada** recusa a
+edição com **409** e aceita derivar; e as bandeirinhas e os botões da página. O comportamento da
+**hora por dia** é exercitado no script **servido**, num DOM de mentira: as sete nascem
+desabilitadas, marcar um dia habilita só a dele, desmarcar limpa o valor.
 
 ## Prova contra o Worker real
 

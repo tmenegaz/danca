@@ -14615,3 +14615,74 @@ níveis em fichas e a vigência a nascer com hoje. Deploy `b1e6f553`.
 - **A derivação não toca a curadoria nem o plano a jusante.** Como o nome se mantém, os dois
   continuam a resolver; mas um plano feito contra o ritmo **anterior** não é reescrito nem
   marcado. Queda em aberto se o ajuste deve **derivar o plano** ou apenas a turma.
+
+## 16/10/2026 — Livre edita-se, vinculada deriva-se (e os formulários deixam de explicar)
+
+**O que motivou.** Três coisas, todas vistas na Produção em uso:
+
+1. **Os formulários explicavam demais.** Havia parágrafos de instrução dentro das cinco secções
+   (professor, aluna, turma, vocabulário, curadorias) e nas abas de rubrica: «o nome do professor
+   vira a **pasta** dele no sistema», «a régua não se declara aqui», «uma rubrica pode valer para
+   várias turmas». Quem usa o cadastro conhece o sistema; o texto a mais empurra os campos para
+   fora da tela.
+2. **Um comentário de fonte tinha VAZADO para a página.** Três linhas `// OS DIAS DA SEMANA…`
+   estavam escritas *dentro* da concatenação, com `\n`, e saíam como texto do formulário. Não era
+   prosa a mais: era código achado no lugar errado.
+3. **A derivação da turma estava a ser oferecida a torto e a direito.** O botão «Ajustar»
+   aparecia em todas as turmas, e derivar uma turma que **ninguém referencia** é criar história
+   onde não havia nenhuma.
+
+**O que foi decidido.**
+
+- **A regra do plano de ensino, aplicada ao cadastro.** Uma turma **sem** plano de ensino é
+  cadastro puro: edita-se no lugar, e o nome pode mudar. Uma turma **com** plano é linha de base:
+  deriva-se, o nome fica travado e há uma data a declarar. A ligação é pelo **nome**, que é o que
+  o plano guarda em `contexto-turma`.
+- **O cartão diz o estado.** Bandeirinha **livre** (âmbar) com o botão **Editar**; bandeirinha
+  **vinculada** com o botão **Derivar**. A escola não precisa de saber a diferença entre editar e
+  derivar — vê a bandeirinha e o botão certo.
+- **A guarda está no servidor, não só na tela.** `POST /api/bastidores/turma-editar` recusa
+  **409** uma turma que tenha plano, e manda derivar. O botão é comodidade; a regra é a rota.
+  Sem ela, uma página aberta de antes de a turma ganhar plano passaria por cima da proveniência.
+- **`turmasComPlano` lê as chaves CERTAS.** As chaves físicas dos envelopes são **namespaced pela
+  escola** (`fita/envelope/plano-….json` — `motor/adaptadores/cloudflare.js`): sem o prefixo da
+  escola, a leitura devolveria os planos de OUTRA escola — e este cadastro diria «vinculada» para
+  uma turma que não tem plano nenhum. Foi medido no KV real antes de escrever a linha.
+- **Falha de leitura conta como vinculada.** `null` é o lado seguro: derivar uma turma livre é um
+  elo a mais; editar uma vinculada partiria o plano.
+- **O nome muda numa turma livre, e os vínculos vão atrás.** O id é o slug do nome e os vínculos
+  turma↔termo são guardados **pelo id**: sem a migração, os conteúdos ficariam órfãos no id antigo.
+- **A hora só existe para o dia escolhido.** O campo de hora nasce **desabilitado**; marcar o dia
+  habilita-o, desmarcar **limpa-o**. O horário de um dia que a turma não tem não se escreve — e,
+  se se escrevesse, a gravação descartava-o em silêncio.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `turmasComPlano`, `turmaVinculadaA`, a rota
+  `POST /api/bastidores/turma-editar`, as bandeirinhas e os botões do cartão, o modo do formulário
+  (`tmodo`, `t-vigencia-campo`, `t-aviso-texto`), `sincronizarHoras`/`diaEstaMarcado`, o CSS dos
+  selos e do campo desabilitado, e a saída de todo o texto de instrução dos formulários — incluindo
+  as três linhas de comentário que tinham vazado.
+- `experimentos/provar-derivacao-da-turma.js` — 57 casos: os dois caminhos (editar × derivar), a
+  recusa de editar uma vinculada, a migração de id e de vínculos ao renomear, as bandeirinhas na
+  página, e o comportamento das horas exercitado no **script servido**, num DOM de mentira.
+- `experimentos/provar-producao.js` — a asserção que exigia a nota da régua («…e diz onde ela
+  vive») passou a exigir o contrário: nenhum formulário traz explicação, e nenhum comentário de
+  fonte vazou para o corpo da página. 105 de 105.
+
+**Conferido.** 57 + 105 + 47 + homónimo, todos verdes. A página servida depois do deploy
+(`df3088b5`): 15 cartões, 15 bandeirinhas «livre», 15 botões «Editar», zero «Ajustar», zero
+«Derivar» — coerente, porque a estante de planos está **vazia** neste momento (`/api/planos` →
+`opcoes: []`, e o KV só tem `anamnese-*`). O script servido foi corrido num DOM de mentira: as
+sete horas nascem desabilitadas, marcar a terça habilita **só** a dela, desmarcar limpa o valor e
+o mapa sai vazio; e o `ajustarTurma` preenche e trava o nome no «Derivar» e o deixa corrigível no
+«Editar». **Não testado num navegador** — não há harness para a página.
+
+**Anotado para depois.**
+
+- **O «carregar catálogo inicial» (turmas + vocabulário) é o modelo a repetir.** A escola nasce com
+  dezenas de turmas já cadastradas e edita-as antes de estarem ligadas a um plano — e é isso que
+  torna o «editar» útil. Quando entrarem as **outras modalidades de dança**, cada uma precisa do
+  seu catálogo inicial com turmas e vocabulário próprios.
+- **Um plano contra o ritmo anterior não é marcado** quando a turma deriva: continua em aberto se o
+  ajuste deve derivar o plano ou só a turma.
