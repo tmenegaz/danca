@@ -79,6 +79,10 @@
         "aluna": {
           "type": "string",
           "description": "O apelido estável da aluna observada. Declarado em claro e nunca apresentado como identidade: o projeto usa apelidos estáveis justamente para não introduzir nome completo, contacto ou dado de saúde."
+        },
+        "turma": {
+          "type": "string",
+          "description": "O IDENTIFICADOR da turma a que o ato pertence (o `id` do cadastro de turmas da Produção — ex.: `teste`, `bale-nivel-1`). Entrou em 16/10/2026, com o ciclo a passar a ser DA TURMA: o plano de ensino é de uma turma, e a observação é daquela turma. É ele que compõe o nome da variante da fonte (`ciclo-NN-<escola>-<turma>-plano.md`), e por isso dois planos de duas turmas da MESMA escola deixaram de escrever no mesmo arquivo. Ausente nos envelopes anteriores a essa data — quem lê trata a ausência como «a escola é a variante», que era o modelo antigo."
         }
       }
     }

@@ -1532,6 +1532,9 @@ function travarFormularioSemSenha() {
  * chegam depois): sem ele, uma repintura recriaria os rádios soltos e a trava cairia.
  */
 let CABECALHO_TRAVADO = false;
+// A condução (o formulário) está aberta? É o que distingue «estou preenchendo» de «estou na
+// estante» — e é o que decide se a senha do plano aparece na criação (16/10/2026).
+let CONDUCAO_ABERTA = false;
 
 function travarCabecalho(travado) {
   CABECALHO_TRAVADO = !!travado;
@@ -1546,6 +1549,23 @@ function travarCabecalho(travado) {
   if (barra.classList && barra.classList.toggle) barra.classList.toggle('ctx-travado', CABECALHO_TRAVADO);
 }
 
+/*
+ * A SENHA DO PLANO só aparece quando ela decide algo (16/10/2026). Criar o plano de ensino
+ * é autorizado pela CURADORIA — a direção libera o professor e a turma na Produção —, e
+ * NÃO há senha a digitar nessa tela. A senha governa EDITAR, DERIVAR e APAGAR: por isso
+ * ela está à mão na ESTANTE (apagar e editar partem de lá) e durante a edição/derivação; e
+ * some enquanto se preenche um plano NOVO, onde não decide nada. Na anamnese, sempre
+ * visível; no PO, nunca.
+ */
+function ajustarSenhaDoPlano() {
+  const campo = $('senha');
+  if (!campo || !campo.parentElement) return;
+  let mostra = true;
+  if (FONTE === 'po') mostra = false;
+  else if (FONTE === 'plano') mostra = !!(EDITANDO || DERIVANDO) || !CONDUCAO_ABERTA;
+  campo.parentElement.style.display = mostra ? '' : 'none';
+}
+
 function apontarContextoFaltando(faltam) {
   const acordeao = document.querySelector('.barra details.ctx-ato');
   if (acordeao) acordeao.open = true;
@@ -1557,12 +1577,39 @@ function apontarContextoFaltando(faltam) {
   }
 }
 
+/*
+ * A TURMA DO ATO — a que nomeia a variante da fonte (16/10/2026).
+ *
+ * O ciclo passou a ser DA TURMA: o plano de ensino é de uma turma, e a observação é
+ * daquela turma. É a turma que compõe o `<escola>-<turma>` do caminho da fonte, e é por
+ * isso que ela passou a entrar no CONTEXTO do envelope — antes era só a resposta do nó
+ * `contexto-turma`, e sem ela no contexto dois planos de duas turmas da MESMA escola
+ * escreviam no mesmo arquivo (o segundo apagava o primeiro).
+ *
+ * No PLANO ela está no select do cabeçalho; no PO, na leitura que vem do plano
+ * referenciado — as duas são a mesma escolha, e a segunda não se digita.
+ */
+function turmaDoAto() {
+  if (FONTE === 'plano') {
+    const sel = $('ctx-turma');
+    const doSelect = (sel && sel.value ? String(sel.value) : '').trim();
+    if (doSelect) return doSelect;
+  }
+  return turmaDoPlanoReferenciado() || '';
+}
+
 function contextoDaBarra() {
   const contexto = {};
   for (const campo of CAMPOS_DO_CONTEXTO) {
     const valor = (($('ctx-' + campo) || {}).value || '').trim();
     if (valor !== '') contexto[campo] = valor;
   }
+  // A TURMA entra no CONTEXTO — e não só nas respostas (16/10/2026). O ciclo passou a
+  // ser DA TURMA: é ela que compõe o `<escola>-<turma>` do caminho da fonte. Sem ela
+  // aqui, dois planos de duas turmas da MESMA escola escreviam no mesmo arquivo, e o
+  // segundo apagava o primeiro.
+  const turma = turmaDoAto();
+  if (turma !== '') contexto.turma = turma;
   const faltando = contextoFaltando();
   if (faltando.length) {
     apontarContextoFaltando(faltando);
@@ -1645,7 +1692,9 @@ function abrirFormulario(indice, empilhar) {
   // Enquanto o formulário está aberto, o cabeçalho é só de LEITURA: a identidade do ato
   // se confere ANTES de começar (o «Começar» só habilita com o contexto completo), e não
   // se corrige no meio do preenchimento (16/10/2026).
+  CONDUCAO_ABERTA = true;
   travarCabecalho(true);
+  ajustarSenhaDoPlano();
 }
 
 /*
@@ -1658,7 +1707,9 @@ function voltarAoPortal() {
   EM_AUTOABERTURA = false;
   // De volta ao portal, o cabeçalho volta a ser editável: o professor ainda pode conferir
   // e corrigir a identidade do ato antes de começar (16/10/2026).
+  CONDUCAO_ABERTA = false;
   travarCabecalho(false);
+  ajustarSenhaDoPlano();
   document.getElementById('abertura').classList.remove('oculto');
   for (const id of ['conducao', 'fecho', 'ia']) {
     const s = document.getElementById(id);
@@ -2549,20 +2600,10 @@ function selectDaTurma(no) {
     const dis = usada && String(escolhida) !== String(o.valor) ? ' disabled' : '';
     opcoes.push('<option value="' + escapar(o.valor) + '"' + sel + dis + '>' + escapar(rotulo) + '</option>');
   }
-  // Os atalhos dos planos que já existem não cabem num `<option>` — vão numa nota discreta,
-  // para o professor não perder o acesso ao que ficou gravado.
-  let nota = '';
-  if (usadas.size) {
-    const partes = [];
-    for (const [nome, usada] of usadas) {
-      const livre = usada.estado === 'solta';
-      partes.push(escapar(nome) + ' <a class="atalho-do-plano" href="' +
-        escapar(urlDoPlano(usada.carimbo, livre)) + '" target="_blank" rel="noopener">' +
-        (livre ? 'ajustar o plano' : 'ver o plano') + '</a>');
-    }
-    nota = '<span class="sub">com plano: ' + partes.join(' · ') + '</span>';
-  }
-  return '<select id="ctx-turma" aria-label="turma observada">' + opcoes.join('') + '</select>' + nota;
+  // Os ATALHOS dos planos que já existem saíram do cabeçalho (16/10/2026): a estante
+  // abaixo JÁ os oferece («editar», «apagar», «derivar»), e repetir o link aqui só poluía.
+  // O select basta: o estado vai no próprio rótulo da opção.
+  return '<select id="ctx-turma" aria-label="turma observada">' + opcoes.join('') + '</select>';
 }
 
 /** A TURMA do PO — a do plano referenciado, de `api/planos` (a fonte única; não se reescreve). */
@@ -2894,7 +2935,12 @@ function grelhaDaTabela(no) {
   // que a aula tem) e as derivadas da marcação também não — o que o professor acrescentou
   // por cima dos blocos, esse sim. `quantasDerivadas` conta as que vieram da marcação.
   let quantasDerivadas = 0;
-  const removivel = !!(no.tabela && (no.tabela.removivel === true || podeAcrescentar || no.tabela.removivel === undefined));
+  // O `removivel: false` do conteúdo é ORDEM, não sugestão (16/10/2026): a sequência de
+  // exercícios não tem coluna de ✕ — a linha dela é derivada, não digitada, e o professor não
+  // remove o que o sistema montou. O `undefined` continua sendo o padrão herdado (removível).
+  const removivel = no.tabela && no.tabela.removivel === false
+    ? false
+    : !!(no.tabela && (no.tabela.removivel === true || podeAcrescentar));
 
   // OS BLOCOS E OS MARCOS DE UM NÓ DE MATRIZ — as duas fontes das colunas de escolha da
   // grelha (o bloco da linha, o objetivo específico). A ordem é a canónica, e `sem`
@@ -2919,6 +2965,21 @@ function grelhaDaTabela(no) {
     return vistos;
   }
 
+  // A COLUNA DERIVADA (16/10/2026) — a que o sistema MONTA em vez de o professor digitar.
+  // A sequência de exercícios tem uma: o CONTEÚDO DO NÍVEL vem do que ele marcou em
+  // «Parâmetro de medição», por objetivo. Sem isto, ele redigitava à mão, duas telas abaixo,
+  // o que já tinha decidido — e as duas listas podiam discordar no dia seguinte.
+  let colunaDerivada = null;
+  let noDaDerivada = null;
+  for (const c of colunas) {
+    const s = selecoes[c];
+    if (s && s.derivadaDe) { colunaDerivada = c; noDaDerivada = s.derivadaDe; }
+  }
+  // As linhas que o sistema montou — a célula derivada delas é leitura, não escrita. O Set é
+  // por IDENTIDADE de objeto: as linhas derivadas são objetos NOVOS, e são eles que se
+  // renderizam (os registados que ninguém reusou ficam de fora, e nesses o professor escreve).
+  const linhasDaDerivada = new Set();
+
   // AS LINHAS VÊM DE OUTRO NÓ (a distribuição do volume usa os blocos da aula; a
   // sequência de exercícios usa o par OBJETIVO × BLOCO): o professor não escreve o bloco
   // de novo — a linha já traz o valor, e o que ele preenche é o resto. Sem valor no nó
@@ -2929,6 +2990,19 @@ function grelhaDaTabela(no) {
     // O par (objetivo, bloco): uma linha por objetivo EM CADA bloco onde ele é trabalhado,
     // porque o exercício é disso que se trata — o objetivo aplicado naquele bloco.
     const chave = cfg.porMarco && colunas.indexOf(cfg.porMarco) !== -1 ? cfg.porMarco : null;
+    // OS TERMOS MARCADOS, por objetivo — a fonte da coluna derivada. Ela é a MESMA matriz do
+    // «Parâmetro de medição»: o que ele marcou lá como medida é o conteúdo de cada exercício.
+    const termosPorMarco = new Map();
+    if (colunaDerivada && noDaDerivada) {
+      const origem = RESPOSTAS.get(noDaDerivada);
+      for (const l of Array.isArray(origem) ? origem : []) {
+        if (!l || !Array.isArray(l.marcados)) continue;
+        const n = Number(l.marco);
+        if (!Number.isFinite(n)) continue;
+        const termos = l.marcados.map((v) => String(v).trim()).filter(Boolean);
+        if (termos.length) termosPorMarco.set(n, termos);
+      }
+    }
     const pares = [];
     if (chave) {
       const marcos = marcosDoNo(RESPOSTAS.get(cfg.de || 'marcos-por-aula'));
@@ -2937,14 +3011,16 @@ function grelhaDaTabela(no) {
           if (!linha || !Array.isArray(linha.marcados) || linha.marcados.indexOf(bloco) === -1) continue;
           const n = Number(linha.marco);
           const texto = marcos[n - 1] || '';
-          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, texto) });
+          pares.push({ bloco: bloco, marco: rotuloDoMarco(n, texto), n: n });
         }
       }
     }
     if (blocos.length) {
-      // A chave de uma linha: o bloco, e o objetivo quando a linha é de um objetivo.
+      // A chave de uma linha: o bloco, o objetivo quando a linha é de um objetivo, e o valor
+      // derivado quando há coluna derivada — o mesmo conteúdo noutro exercício é OUTRA linha.
       const chaveDe = (l) => String((l && l[colunas[0]]) || '') + '␟' +
-        String((chave && l && l[chave]) || '');
+        String((chave && l && l[chave]) || '') + '␟' +
+        String((colunaDerivada && l && l[colunaDerivada]) || '');
       // UMA FILA POR CHAVE: se duas linhas têm o mesmo par (dois exercícios no mesmo
       // objetivo), cada semente consome UMA — a linha não se perde por repetição.
       const fila = new Map();
@@ -2953,20 +3029,39 @@ function grelhaDaTabela(no) {
         if (!fila.has(k)) fila.set(k, []);
         fila.get(k).push(l);
       }
-      const semente = pares.length ? pares : blocos.map((b) => ({ bloco: b, marco: null }));
+      const sementes = pares.length ? pares : blocos.map((b) => ({ bloco: b, marco: null, n: null }));
+      // A EXPANSÃO pela coluna derivada: um par (objetivo × bloco) com DOIS termos marcados
+      // como medida vira DOIS exercícios — porque são dois exercícios na aula. Sem termos
+      // marcados (a turma ainda não tem conteúdo declarado), a linha sai única e vazia, e o
+      // professor escreve o conteúdo: a derivação não inventa o que não foi marcado.
+      const semente = [];
+      for (const s of sementes) {
+        const termos = colunaDerivada && Number.isFinite(s.n) ? (termosPorMarco.get(s.n) || []) : [];
+        if (!termos.length) { semente.push(s); continue; }
+        for (const t of termos) semente.push(Object.assign({}, s, { [colunaDerivada]: t }));
+      }
       const derivadas = [];
       quantasDerivadas = 0;
       for (const s of semente) {
-        const k = chaveDe(Object.assign({}, { [colunas[0]]: s.bloco }, chave && s.marco ? { [chave]: s.marco } : {}));
+        const k = chaveDe(Object.assign({}, { [colunas[0]]: s.bloco },
+          chave && s.marco ? { [chave]: s.marco } : {},
+          colunaDerivada && s[colunaDerivada] ? { [colunaDerivada]: s[colunaDerivada] } : {}));
         const anterior = (fila.get(k) || []).shift();
         const nova = {};
         nova[colunas[0]] = s.bloco;
         if (chave && s.marco) nova[chave] = s.marco;
+        // O DERIVADO DECIDE: ele não é o que o professor escreveu, é o que o sistema leu da
+        // matriz — o valor anterior não o sobrepõe (ao contrário das colunas digitadas).
+        if (colunaDerivada && s[colunaDerivada]) nova[colunaDerivada] = s[colunaDerivada];
         for (const c of colunas.slice(1)) {
-          if (nova[c] !== undefined) { nova[c] = anterior && anterior[c] != null ? anterior[c] : nova[c]; continue; }
+          if (nova[c] !== undefined) {
+            nova[c] = anterior && anterior[c] != null ? anterior[c] : nova[c];
+            continue;
+          }
           nova[c] = anterior && anterior[c] != null ? anterior[c] : '';
         }
         derivadas.push(nova);
+        if (colunaDerivada && nova[colunaDerivada]) linhasDaDerivada.add(nova);
       }
       // E O QUE FICOU — a linha NÃO SE PERDE, mas o bloco que não é mais trabalhado SAI:
       //   · bloco ainda marcado (uma 2ª linha do mesmo par: dois exercícios no mesmo
@@ -3009,7 +3104,7 @@ function grelhaDaTabela(no) {
   const corpo = linhas.map((linha, i) =>
     '<tr>' + colunas.map((c) => {
       const valor = escapar(linha[c] == null ? '' : linha[c]);
-      if (travadas.indexOf(c) !== -1) {
+      if (travadas.indexOf(c) !== -1 || (c === colunaDerivada && linhasDaDerivada.has(linha))) {
         return '<td class="travada">' + (valor || '<span class="dono">—</span>') +
           '<input type="hidden" data-grelha="' + i + '" data-coluna="' + escapar(c) + '" value="' + valor + '"></td>';
       }
@@ -3054,7 +3149,7 @@ function grelhaDaTabela(no) {
   const rodape = podeAcrescentar
     ? '<p style="margin:.6rem 0 0"><button type="button" data-grelha-add="1">Adicionar linha</button>' +
       (no.tabela && no.tabela.linhasDe
-        ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo objetivo.</span>'
+        ? ' <span class="dono">as linhas vêm dos objetivos e dos blocos — acrescente só se houver mais de um exercício no mesmo conteúdo.</span>'
         : '') + '</p>'
     : '<p class="sub">As linhas vêm do campo anterior — aqui você preenche o valor de cada bloco.</p>';
 
@@ -4757,9 +4852,9 @@ const ROTULO_ESTADO_PLANO = {
 };
 
 const AJUDA_ESTADO_PLANO = {
-  vinculada: 'ligada a um Plano de Observação — só se deriva, sem apagar',
-  legado: 'derivada — um plano novo a ajusta',
-  solta: 'livre — pode ser editada e derivada',
+  vinculada: 'ligada a um Plano de Observação — só se deriva (versão nova), sem editar nem apagar',
+  legado: 'derivada — um plano novo a substitui; só se deriva outra vez',
+  solta: 'livre — pode ser editada e apagada (as duas exigem a senha)',
 };
 
 function seloDoPlano(o) {
@@ -4775,11 +4870,20 @@ function seloDoPlano(o) {
 
 function acoesDoPlano(id, o) {
   const q = ' data-carimbo="' + escapar(id) + '"';
-  if (o && o.vinculada) {
-    return '<button class="acao-derivar"' + q + ' title="derivar acrescenta um plano novo, sem apagar o que já está">derivar</button>';
+  // A REGRA ESPELHA A DA ANAMNESE (16/10/2026), e os botões NUNCA aparecem juntos:
+  //   · o plano VINCULADO a um Plano de Observação — e o já DERIVADO (legado) — só se
+  //     DERIVA. O que está ligado é a linha de base de uma observação, e mudá-lo
+  //     reescreveria o passado: mudar o plano é criar um elo novo (`ajuste_de`), com a
+  //     MESMA turma;
+  //   · o plano LIVRE (solta) se EDITA e se APAGA — e os dois exigem a senha do professor.
+  // Antes os dois botões apareciam juntos no plano livre, e era isso que confundia: parecia
+  // que derivar era «aproveitar o plano noutra turma», o que não é.
+  if (o && (o.vinculada || o.estado === 'legado')) {
+    return '<button class="acao-derivar"' + q + ' title="derivar cria uma versão NOVA deste ' +
+      'plano (mesma turma), sem apagar a anterior">derivar</button>';
   }
   return '<button class="acao-editar"' + q + '>editar</button>' +
-    '<button class="acao-derivar"' + q + ' title="criar um plano novo a partir deste">derivar</button>';
+    '<button class="acao-apagar"' + q + '>apagar</button>';
 }
 
 /*
@@ -4810,9 +4914,14 @@ function pintarFichas() {
   const ePlano = FONTE === 'plano';
   lista.innerHTML = daPagina.map((id) => {
     const o = ESTADOS.get(id);
+    // O PLANO abre o plano, como a anamnese abre a ficha (16/10/2026). Antes, os dois
+    // caíam no envelope cru; o JSON não é do professor — ele quer o documento na mão, para
+    // ler e imprimir. O PO ainda abre o envelope: não tem folha própria.
     const alvo = eAnam
       ? 'api/ficha-preenchida.' + encodeURIComponent(id) + '?formato=html'
-      : 'api/envelope/' + encodeURIComponent(id);
+      : (ePlano
+        ? 'api/plano-preenchido.' + encodeURIComponent(id) + '?formato=html'
+        : 'api/envelope/' + encodeURIComponent(id));
     // O plano mostra o OBJETIVO (o resumo da estante) no lugar da data; a
     // anamnese mostra a data, e o PO só o carimbo.
     const quando = ePlano && o && o.objetivo ? o.objetivo : rotuloDoEnvelope(id);
@@ -4823,7 +4932,9 @@ function pintarFichas() {
       ? '<span class="quem' + (o && o.semSujeito ? ' sem-sujeito' : '') + '">' +
         escapar((o && o.valor) || 'sem apelido') + '</span> '
       : '';
-    const caminho = eAnam ? 'Ver a ficha preenchida' : 'Ver o que ficou gravado';
+    const caminho = eAnam
+      ? 'Ver a ficha preenchida'
+      : (ePlano ? 'Ver o plano preenchido' : 'Ver o que ficou gravado');
     const selo = eAnam ? ' ' + seloDoEstado(o) : (ePlano ? ' ' + seloDoPlano(o) : '');
     const acoes = eAnam
       ? '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>'
@@ -4920,7 +5031,24 @@ function avisarNaFicha(id, texto, tipo) {
   const alvo = document.querySelector('[data-aviso="' + CSS.escape(id) + '"]');
   if (!alvo) return;
   alvo.className = 'aviso-ficha ' + (tipo || '');
-  alvo.innerHTML = escapar(texto);
+  alvo.innerHTML = escap(texto);
+}
+
+/*
+ * TIRAR DA ESTANTE, na hora (16/10/2026). O KV tem atraso de consistência: depois de um
+ * DELETE, a listagem do servidor ainda devolve o registro por alguns segundos — e aí a
+ * linha apagada FICAVA na tela, e um segundo clique respondia «não encontrado». Era esse o
+ * defeito: parecia que a exclusão não funcionou. A linha sai da lista LOCAL imediatamente;
+ * a próxima carga do servidor confirma, e nessa altura já não há o que confirmar.
+ */
+async function removerDaEstante(id) {
+  FICHAS = FICHAS.filter((x) => String(x) !== String(id));
+  ESTADOS.delete(id);
+  guardarFichas(FICHAS);
+  pintarFichas();
+  // A turma do plano apagado volta a ficar LIVRE — e o cabeçalho tem de o dizer já, não só
+  // depois de recarregar a página (a releitura do servidor ainda traria a linha apagada).
+  if (FONTE === 'plano') await renderTurmaDoCabecalho();
 }
 
 /*
@@ -4940,9 +5068,10 @@ async function apagarAnamnese(id) {
   try {
     const resposta = await fetch('api/anamnese-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
     const dados = await resposta.json().catch(() => ({}));
-    if (!resposta.ok || !dados.ok) throw new Error(dados.erro || ('HTTP ' + resposta.status));
-    avisarNaFicha(id, 'apagada.', 'ok');
-    await atualizarFichas();
+    // 404 = já não existe; era esse o objetivo. Um duplo clique (ou a lista ainda atrasada)
+    // não pode virar erro depois de a exclusão ter dado certo.
+    if (!resposta.ok && resposta.status !== 404) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    await removerDaEstante(id);
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -5053,6 +5182,7 @@ async function editarPlano(id) {
     DERIVANDO = null;
     MOTIVO_DERIVACAO = null;
     carregarPlanoNaConducao(envelope);
+    ajustarSenhaDoPlano();   // editar mostra a senha (ela decide a escrita)
     // A edição de um plano EXIGE a senha: ela é escrita de quem o assina. Avisa já na
     // entrada — não no fim, depois de responder tudo.
     if (!SENHA_VALIDA) apontarSenhaFaltando();
@@ -5062,8 +5192,9 @@ async function editarPlano(id) {
 }
 
 async function derivarPlano(id) {
-  // Derivação: um plano NOVO nasce semeado deste e aponta `ajuste_de` para ele.
-  const motivo = window.prompt('O que este plano novo ajusta em relação ao anterior (opcional):', '');
+  // Derivação: uma VERSÃO NOVA do MESMO plano nasce semeada deste e aponta `ajuste_de` para
+  // ele — a MESMA turma (mudar de turma não é derivar). Exige a senha do professor.
+  const motivo = window.prompt('O que esta versão nova ajusta em relação à anterior (opcional):', '');
   if (motivo === null) return;
   try {
     const r = await fetch('api/envelope/' + encodeURIComponent(id));
@@ -5073,7 +5204,32 @@ async function derivarPlano(id) {
     DERIVANDO = id;
     MOTIVO_DERIVACAO = motivo;
     carregarPlanoNaConducao(envelope);
+    ajustarSenhaDoPlano();   // derivar mostra a senha (ela decide a escrita)
     if (!SENHA_VALIDA) apontarSenhaFaltando();
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+/*
+ * APAGAR o plano — só o LIVRE, e só com a senha. Espelha `apagarAnamnese`: a exclusão é
+ * escrita, exige a senha do professor, e o servidor ainda RECUSA o que está vinculado a um
+ * PO ou já foi derivado (a tela mostra o que a regra permite; quem decide é o servidor).
+ */
+async function apagarPlano(id) {
+  if (!SENHA_VALIDA) {
+    avisarNaFicha(id, 'A exclusão exige a senha do professor — digite-a na barra, no alto da página.', 'erro');
+    apontarSenhaFaltando('✗ digite a senha do professor para excluir');
+    return;
+  }
+  if (!window.confirm('Apagar o plano de ensino ' + id + '?\n\nÉ definitivo — e só é possível porque ele não está ligado a nenhum Plano de Observação nem foi derivado.')) return;
+  try {
+    const resposta = await fetch('api/plano-vinculo/' + encodeURIComponent(id), { method: 'DELETE' });
+    const dados = await resposta.json().catch(() => ({}));
+    // 404 = já não existe; era esse o objetivo. 409 (vinculada ou derivada) continua sendo
+    // recusa, e aí a linha FICA — com o motivo.
+    if (!resposta.ok && resposta.status !== 404) throw new Error(dados.erro || ('HTTP ' + resposta.status));
+    await removerDaEstante(id);
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -5664,6 +5820,8 @@ async function iniciar() {
     const campoSenha = document.getElementById('senha');
     if (campoSenha && campoSenha.parentElement) campoSenha.parentElement.style.display = 'none';
   }
+  // A senha do PLANO só aparece em EDIÇÃO/DERIVAÇÃO (16/10/2026): criar é pela curadoria.
+  ajustarSenhaDoPlano();
 
   // O botão «Usar IA para fazer o PO» é só do PO: na anamnese e no plano ele some.
   if ($('usar-ia')) $('usar-ia').style.display = FONTE === 'po' ? '' : 'none';
@@ -5835,18 +5993,24 @@ async function iniciar() {
   $('barra').classList.remove('oculto');
   revelarBarra();
 
-  // O MOC dos Bastidores: carrega as alunas cadastradas no seletor e liga a
-  // senha do professor (validada no servidor) à habilitação do «Fazer a
-  // anamnese». Só a anamnese usa este andaime.
-  if (FONTE === 'anamnese') {
-    carregarAlunas();
-    // A senha valida com um pequeno atraso (digitação); o seletor de aluna e o
-    // «×» de desmarcar reavaliam a habilitação na hora.
+  // O MOC dos Bastidores: a senha do professor (validada no servidor) governa a ESCRITA —
+  // da anamnese sempre, do plano em edição/derivação. O seletor de alunas é só da anamnese.
+  // A SENHA DO PROFESSOR vale nas DUAS fontes que a pedem: a ANAMNESE sempre, e o PLANO
+  // quando se EDITA ou DERIVA. O listener estava preso ao bloco da anamnese, e por isso no
+  // plano a senha NÃO VALIDAVA: digitá-la não disparava `validarSenha`, `SENHA_VALIDA`
+  // ficava falso, e o formulário continuava travado — «a senha não funciona» (16/10/2026).
+  // Ele vale por fonte, não por controle: no PO o campo nem aparece.
+  if (FONTE === 'anamnese' || FONTE === 'plano') {
     let tempoDeSenha = null;
     $('senha').addEventListener('input', () => {
       clearTimeout(tempoDeSenha);
       tempoDeSenha = setTimeout(validarSenha, 450);
     });
+  }
+
+  // O MOCK dos Bastidores: o seletor de aluna (só a anamnese o tem) e o «×» de desmarcar.
+  if (FONTE === 'anamnese') {
+    carregarAlunas();
     $('ctx-aluna').addEventListener('change', () => { marcarContextoFaltando(); atualizarComecar(); semearDoContexto(); });
     $('limpar-aluna').addEventListener('click', () => {
       $('ctx-aluna').value = '';
@@ -5914,6 +6078,7 @@ async function iniciar() {
     if (FONTE === 'plano') {
       if (b.classList.contains('acao-derivar')) derivarPlano(id);
       else if (b.classList.contains('acao-editar')) editarPlano(id);
+      else if (b.classList.contains('acao-apagar')) apagarPlano(id);
       return;
     }
     if (b.classList.contains('acao-apagar')) apagarAnamnese(id);
@@ -6096,9 +6261,18 @@ async function iniciar() {
           : '<p class="erro">Não foi possível gravar.</p>');
       if (dados.gravado) {
         carimboPendente = dados.id;
-        // A ficha preenchida é da anamnese — o PO não tem ficha renderizada.
-        if (FONTE === 'anamnese') {
-          $('link-ficha').href = 'api/ficha-preenchida.' + encodeURIComponent(dados.id) + '?formato=html';
+        // A folha preenchida é da anamnese E do plano (16/10/2026): quem acabou de
+        // escrever quer ver o que escreveu. O PO não tem folha — segue no envelope.
+        if (FONTE === 'anamnese' || FONTE === 'plano') {
+          $('link-ficha').href = (FONTE === 'anamnese'
+            ? 'api/ficha-preenchida.'
+            : 'api/plano-preenchido.') + encodeURIComponent(dados.id) + '?formato=html';
+          const botaoDaFolha = $('link-ficha').querySelector('button');
+          if (botaoDaFolha) {
+            botaoDaFolha.textContent = FONTE === 'anamnese'
+              ? 'Ver a ficha preenchida'
+              : 'Ver o plano preenchido';
+          }
           $('link-ficha').classList.remove('oculto');
         }
         // O filtro da abertura já mostra o que acabou de entrar no disco.

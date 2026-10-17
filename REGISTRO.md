@@ -14549,3 +14549,69 @@ Deploy `15ba55f1`.
   «editar» sem reescrever o passado.
 - **O plano ainda não lê a hora**, e o `.conf` da variante continua por compor. Fecha-se depois
   da derivação, com as turmas vivas já completas.
+
+## 16/10/2026 — A turma deriva: o «editar» passa a ser um elo novo, com data de vigência
+
+**O que motivou.** A entrada anterior fechou a hora no cadastro da turma e deixou uma dívida
+declarada: **não há edição de turma**. O `POST /api/bastidores/turma` devolve **409** quando o
+nome já existe, e o cartão do cadastro só oferecia «Excluir». Com isso, corrigir uma hora errada
+obrigava a apagar a turma e criar outra — e apagar uma turma **parte a curadoria** (que guarda o
+nome) e **parte o plano** (que referencia o nome). O professor veria o plano dele perder a turma
+sem saber por quê.
+
+**O que foi decidido.**
+
+- **O «editar» é uma DERIVAÇÃO, não uma sobrescrita.** A escola pensa que corrige; o que fica
+  gravado é um registo novo, e o anterior desce para o histórico com `substituidaPor` e
+  `substituidaEm`. É o mesmo invariante do plano vinculado a um PO e do ajuste da anamnese: **a
+  proveniência acrescenta, não edita**. A pergunta «que ritmo valia em Março» passa a ter resposta.
+- **O NOME não muda na derivada.** É o nome que a curadoria guarda e que o plano referencia.
+  Mudá-lo no registo novo partiria as duas ligações antigas — e a escola corrigiria uma hora e
+  perderia a turma do plano. Como o nome se mantém, as ligações antigas continuam a resolver.
+- **O ID da derivada leva a vigência** (`teste-2026-11-01`), porque o id é o slug do nome e dois
+  registos com o mesmo nome colidiriam. Duas derivações no mesmo dia ganham sufixo (`-2`).
+- **Só as vigentes contam.** `turmasVigentes()` é o que a curadoria, o plano, o vínculo
+  turma↔termo e o `GET /api/bastidores/turmas` passam a ler. Uma turma substituída não pode
+  aparecer como escolha no cabeçalho do plano — o professor faria um plano contra um ritmo que já
+  não vale.
+- **A data de vigência é obrigatória.** Sem ela não há elo, e o ajuste viraria reescrita.
+- **O que a escola não está a ajustar sobrevive.** A derivada nasce do registo anterior, e o
+  formulário só manda nos campos que declara. A ligação à **régua** (`rubricaId`) e os **vínculos
+  turma↔termo** vão com a turma para a versão nova.
+- **Um `DELETE` que procurava pelo nome passou a procurar pelo id.** Foi o defeito mais perigoso
+  desta rodada: depois da derivação há duas turmas com o mesmo nome, e o «Excluir» do cartão
+  apagava a do **passado** em vez da que a escola quer tirar — silenciosamente. O `turma-rubrica`
+  tinha o mesmo defeito pela mesma razão, e passou a preferir o id exato.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `turmasVigentes`, `turmaVigentePorNome`, `idDerivado`, a rota
+  `POST /api/bastidores/turma-derivar`, o `POST /api/bastidores/turma` (409 só contra vigente), o
+  `GET /api/bastidores/turmas` e a página (só vigentes), a resolução do `DELETE …/turma` e do
+  `POST …/turma-rubrica` por id, o botão **Ajustar** por cartão, o selo «ajustada em DD/MM/AAAA»,
+  o histórico fechado (`<details>`) e o modo de derivação do formulário (`tderivar` + `tvigencia`).
+- `experimentos/provar-derivacao-da-turma.js` — a prova, 35 casos.
+- `experimentos/provar-producao.js` — as turmas da prova passaram a nascer **com ritmo**: a prova
+  estava **desatualizada** desde que o ritmo ficou obrigatório (`criarTurma` recusava com 400 e a
+  prova morria num `find` devolvendo `undefined`). Consertada — 104 de 104.
+
+**Conferido.** `provar-derivacao-da-turma` 35 de 35: nome repetido só colide contra vigente; a
+derivação recusa sem data; a anterior fica com o elo e o ritmo **não** reescrito; a vigente não
+nasce marcada; a lista viva traz uma só; a régua e a cadeia de três elos sobrevivem; uma turma já
+substituída não se deriva outra vez; e o `DELETE` remove a versão **pedida**, deixando a do
+passado. `provar-producao` 104 de 104 (a página e o script servido continuam a correr inteiros);
+`provar-plano-da-turma` 47 de 47. A página servida foi verificada a seguir ao deploy (15 cartões,
+15 botões «Ajustar», script inline com 24 KB a fazer *parse*), e o `ajustarTurma` exercitado contra
+os dados reais num DOM de mentira: nome travado, frequência, duração, período, dias marcados,
+níveis em fichas e a vigência a nascer com hoje. Deploy `b1e6f553`.
+
+**O que ainda não está feito.**
+
+- **O `pre-commit` continua barrado** pelo `DATA_INICIO` em `[Preencher]` no `.conf` — não tem a
+  ver com esta entrada, e continua a barrar qualquer commit que toque a pasta do ciclo.
+- **A hora não é requisito do ritmo**, e o `.conf` da variante continua por compor: as turmas vivas
+  («Teste», «Teste 2») ainda não têm `horarios`. O dono vai recriá-las — e agora, se precisar de
+  corrigir só uma hora, pode **Ajustar** em vez de apagar.
+- **A derivação não toca a curadoria nem o plano a jusante.** Como o nome se mantém, os dois
+  continuam a resolver; mas um plano feito contra o ritmo **anterior** não é reescrito nem
+  marcado. Queda em aberto se o ajuste deve **derivar o plano** ou apenas a turma.

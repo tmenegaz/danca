@@ -377,7 +377,7 @@
         {
           "id": "aula-1-sequencia",
           "campo": "Sequência de exercícios por bloco",
-          "obrigatorio": false,
+          "obrigatorio": true,
           "tabela": {
             "colunas": [
               "Bloco",
@@ -388,6 +388,7 @@
             ],
             "minimo": 1,
             "acrescentavel": true,
+            "removivel": false,
             "linhasDe": {
               "no": "estrutura-de-cada-aula",
               "ordem": [
@@ -411,7 +412,8 @@
               },
               "Conteúdo do nível": {
                 "fonte": "termosDaTurma",
-                "livre": true
+                "livre": true,
+                "derivadaDe": "aula-1-parametro"
               },
               "Compasso": {
                 "opcoes": [
@@ -430,8 +432,8 @@
           },
           "explicacao": {
             "oQueE": "Os exercícios de cada bloco da aula, na ordem em que acontecem — o objetivo específico que cada um trabalha, o conteúdo do nível da turma (plié, battement tendu…), os tempos e o compasso.",
-            "preencher": "O bloco e o objetivo já vêm listados — um por objetivo, em cada bloco onde ele é trabalhado (as mesmas marcações de «Blocos da aula»). Escolha o conteúdo do nível da sua turma e escreva só os tempos e o compasso (ex.: 8 tempos, 4/4). Se fizer mais de um exercício no mesmo objetivo, use «Adicionar linha». A musicalidade não entra aqui: ela tem o bloco dela.",
-            "porQue": "É a sequência que a aula segue — o fio condutor que liga os blocos. Montada a partir do objetivo e do conteúdo do nível, ela diz o que se faz e para quê, e não só uma lista de passos: o mesmo objetivo atravessa blocos diferentes, e é isso que a sequência registra."
+            "preencher": "O bloco, o objetivo e o conteúdo do nível já vêm preenchidos e travados — um exercício por conteúdo que você MARCOU em «Parâmetro de medição», em cada bloco onde ele é trabalhado. Você escreve só os tempos e o compasso (ex.: 8 tempos, 4/4), que são a sua decisão de aula. Se um exercício não tem parâmetro marcado para o objetivo dele, o conteúdo fica livre para você escrever. Se fizer mais de um exercício no mesmo conteúdo, use «Adicionar linha». A musicalidade não entra aqui: ela tem o bloco dela.",
+            "porQue": "É a sequência que a aula segue — o fio condutor que liga os blocos. Ela é montada, não escrita de novo: o bloco vem de «Blocos da aula», o objetivo vem dos marcos, e o conteúdo do nível vem do que você marcou como medida — assim o exercício da aula é o mesmo conteúdo que o objetivo vai medir, e as três listas não podem divergir. Sem isso, o professor redigitava à mão o que já tinha decidido duas telas acima, e as duas versões podiam discordar."
           }
         }
       ]
@@ -481,11 +483,11 @@
         {
           "id": "criterio-de-extensao",
           "campo": "Critério de extensão",
-          "obrigatorio": false,
+          "obrigatorio": true,
           "explicacao": {
             "oQueE": "Se o ciclo é extensível, até que aula os marcos estão decididos e o que decide estender.",
-            "preencher": "Uma frase. Ex.: «Módulo fechado de quatro encontros; o quinto é suplementar».",
-            "porQue": "O plano declara o horizonte: sem ele, os marcos além das aulas decididas ficam a decidir."
+            "preencher": "Uma frase. Ex.: «Módulo fechado de quatro encontros; o quinto é suplementar». Se o ciclo for fechado, diga que é fechado — a resposta é o horizonte, e «não estende» é uma resposta.",
+            "porQue": "É obrigatório (16/10/2026) porque o plano tem de declarar o horizonte: sem ele, os marcos além das aulas decididas ficam a decidir — e nem quem lê o plano nem o professor que o retoma sabem se o ciclo termina na última aula da lista ou pode continuar. O número total de aulas diz quantas são; o critério diz se elas esgotam o ciclo."
           }
         },
         {

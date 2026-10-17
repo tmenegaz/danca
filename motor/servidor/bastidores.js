@@ -225,6 +225,46 @@ function idDe(nome) {
   return slugificar(nome);
 }
 
+/**
+ * AS TURMAS VIGENTES — as que valem HOJE (16/10/2026).
+ *
+ * A turma não se edita: **deriva**. Quando a escola precisa de mudar a hora, a duração ou os
+ * dias de uma turma, o que acontece é um registo NOVO com o mesmo nome e uma data de vigência,
+ * e o anterior fica na lista com `substituidaPor` — como o elo do ajuste do plano e da
+ * anamnese. Assim a pergunta «que ritmo valia em Março» tem resposta, e o passado não é
+ * reescrito.
+ *
+ * Quem lê «as turmas» para trabalhar — a curadoria, o plano, a validação do ritmo — usa ESTA
+ * lista. Quem lê para auditar (o histórico, o cadastro) usa a lista inteira.
+ */
+function turmasVigentes(lista) {
+  return (Array.isArray(lista) ? lista : []).filter((t) => t && !t.substituidaPor);
+}
+
+/** A turma vigente com um NOME — é o nome que a curadoria e o plano referenciam. */
+function turmaVigentePorNome(lista, nome) {
+  return turmasVigentes(lista).find((t) => t && String(t.nome) === String(nome)) || null;
+}
+
+/**
+ * O ID de uma turma DERIVADA. O id de uma turma é o slug do nome — e é ele que a relação
+ * turma↔termo usa. Um registo novo com o mesmo nome colidiria com o anterior, e por isso o id
+ * derivado leva a data de vigência: `teste-2026-10-16`. Duas derivações no mesmo dia ganham
+ * sufixo (`-2`), para o id nunca colidir.
+ *
+ * O NOME não muda: é ele que a curadoria guarda e que o plano referencia. Mudar o nome do
+ * registo novo partiria as duas ligações antigas — e o professor veria o plano dele perder a
+ * turma sem saber por quê.
+ */
+function idDerivado(nome, vigencia, lista) {
+  const base = slugificar(nome) + '-' + String(vigencia || '').trim();
+  const usados = new Set((Array.isArray(lista) ? lista : []).map((t) => t && t.id));
+  if (!usados.has(base)) return base;
+  let n = 2;
+  while (usados.has(base + '-' + n)) n += 1;
+  return base + '-' + n;
+}
+
 /** Os dias da semana, PADRONIZADOS — a Produção só deixa marcar, nunca escrever.
  *  É o que evita «sexta», «seis» e «sexta-feira» conviverem como se fossem o mesmo dia. */
 const DIAS_DA_SEMANA = ['seg', 'ter', 'qua', 'qui', 'sex', 'sáb', 'dom'];
@@ -662,7 +702,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
-  const listaTurmas = (trms || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  // Os CARTÕES e as opções de curadoria são as turmas VIGENTES (16/10/2026). As substituídas
+  // saem da operação e entram num histórico fechado no fim do cartão — a escola precisa de as
+  // ver para saber que o ajuste foi feito, mas não pode voltar a escolhê-las.
+  const todasAsTurmas = (trms || []).slice().sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
+  const listaTurmas = turmasVigentes(todasAsTurmas);
+  const turmasSubstituidas = todasAsTurmas.filter((t) => t && t.substituidaPor);
   const listaRubricas = (rbs || []).slice().sort((a, b) => String(a.nome).localeCompare(String(b.nome)));
   const listaTermos = (trmos || []).slice().sort((a, b) => String(a.termo).localeCompare(String(b.termo)));
   const termoPorId = new Map(listaTermos.map((t) => [t.id, t]));
@@ -759,16 +804,49 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             esc(fraseDaFalta(falta)) + '</span>'
           : '';
         const regua = rubricaDaTurma(t);
+        // O HISTÓRICO do ajuste (16/10/2026): a escola precisa de ver que já mexeu nesta turma
+        // e o que valia antes — e fechado, para não competir com a turma vigente. Sobe a
+        // cadeia por `substitui`, do mais recente para o mais antigo.
+        const porId = new Map(todasAsTurmas.map((x) => [x && x.id, x]));
+        const passado = [];
+        let cursor = t.substitui ? porId.get(t.substitui) : null;
+        while (cursor && passado.length < 20) {
+          passado.push(cursor);
+          cursor = cursor.substitui ? porId.get(cursor.substitui) : null;
+        }
+        const historico = passado.length
+          ? '<details class="historico"><summary>' +
+            passado.length + ' versão(ões) anterior(es)</summary><ul>' +
+            passado.map((v) => {
+              const r = [
+                v.frequencia ? v.frequencia + 'x/semana' : '',
+                (v.dias && v.dias.length)
+                  ? v.dias.map((d) => (v.horarios && v.horarios[d]) ? d + ' ' + v.horarios[d] : d).join(', ')
+                  : '',
+                v.duracaoMin ? v.duracaoMin + ' min' : '',
+                (v.periodoInicio || v.periodoFim) ? (v.periodoInicio || '?') + '–' + (v.periodoFim || '?') : '',
+              ].filter(Boolean).join(' · ');
+              return '<li><span class="dono">até ' + esc(v.substituidaEm || '?') + '</span> ' +
+                esc(r || '(sem ritmo)') + '</li>';
+            }).join('') + '</ul></details>'
+          : '';
+        const seloVigencia = t.vigenteDe
+          ? '<span class="selo vigencia" title="esta versão da turma vale a partir desta data">ajustada em ' +
+            esc(t.vigenteDe) + '</span>'
+          : '';
         return '<li class="turma" data-turma="' + esc(t.id) + '">' +
           '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
           (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
-          (avisoDeRitmo ? ' ' + avisoDeRitmo : '') + '</span>' +
-          '<span class="acoes"><button class="apagar" data-tipo="turma" data-alvo="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
+          (avisoDeRitmo ? ' ' + avisoDeRitmo : '') + (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
+          '<span class="acoes">' +
+          '<button class="ajustar" data-turma-ajustar="' + esc(t.id) + '" title="Ajustar a turma a partir de uma data">Ajustar</button>' +
+          '<button class="apagar" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
           '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
           '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
           (chips || '<span class="dono">(nenhum)</span>') +
           ' <select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
           ' <button class="associar" data-turma="' + esc(t.id) + '">Associar</button></div>' +
+          historico +
           '</li>';
       }).join('')
     : '<li class="vazia">(nenhuma turma cadastrada)</li>';
@@ -921,6 +999,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
     '.selo{display:inline-block;padding:.05rem .45rem;border-radius:999px;font-size:.78rem;border:1px solid var(--gold-borda,#d9c98f);}' +
     '.falta-ritmo{background:#fdf3d8;color:#7a5a12;border-color:#e0c98a;}' +
+    // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026). O selo diz que esta
+    // versão da turma nasceu de um ajuste; o histórico, fechado, diz o que valia antes — a
+    // escola precisa de saber que mexeu, e não pode confundir o passado com o presente.
+    '.vigencia{background:#eef3ec;color:#3d5a3d;border-color:#b8ccb6;}' +
+    'button.ajustar{margin:0;padding:.15rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
+    'button.ajustar:hover{background:#7d2b2b;}' +
+    'details.historico{margin:.35rem 0 0;font-size:.85rem;color:var(--soft);}' +
+    'details.historico summary{cursor:pointer;}' +
+    'details.historico ul{margin:.25rem 0 0 1rem;padding:0;}' +
+    'details.historico li{margin:.1rem 0;}' +
+    '.aviso-derivar{margin:0 0 .8rem;padding:.7rem .9rem;border:1px solid #b8ccb6;border-left:4px solid #4b7a4b;border-radius:4px;background:#f4f8f2;}' +
+    '.aviso-derivar p{margin:0 0 .5rem;font-size:.88rem;color:var(--tinta);line-height:1.45;}' +
+    '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--creme-2);color:var(--tinta);border:1px solid var(--gold-borda);border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:#8f3f3f;border:none;font-weight:700;cursor:pointer;}' +
     'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 system-ui,sans-serif;border:1px solid var(--gold-borda);border-radius:4px;background:var(--cream);}' +
     'button.associar{margin:0;padding:.2rem .55rem;background:var(--burgundy);color:var(--branco);border:none;border-radius:4px;font:600 .75rem/1.4 system-ui,sans-serif;cursor:pointer;}' +
@@ -1042,6 +1133,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="aba-painel" id="aba-turma">' +
     '<div class="col-form">' +
     '<form id="form-turma">' +
+    // O «EDITAR» DA TURMA É UMA DERIVAÇÃO (16/10/2026). A escola pensa que edita; o que fica
+    // gravado é um elo novo com data de vigência, e o anterior desce para o histórico. Por
+    // isso o formulário ganha um modo: o campo oculto diz de onde se deriva, e a data diz a
+    // partir de quando o ajuste vale. Sem o modo, o mesmo formulário cadastra.
+    '<input type="hidden" id="tderivar">' +
+    '<div class="aviso-derivar" id="t-aviso" hidden>' +
+    '<p>Ajustando <b><span id="t-aviso-nome"></span></b>. O que gravar vale <b>a partir da data</b> ' +
+    'abaixo; o ritmo anterior sai do cadastro e fica no histórico da turma, para a escola ' +
+    'saber o que valia antes. <button type="button" id="t-cancelar">Cancelar ajuste</button></p>' +
+    '<label for="tvigencia">Vale a partir de</label>' +
+    '<input id="tvigencia" type="date" autocomplete="off">' +
+    '</div>' +
     '<label for="tnome">Nome da turma</label>' +
     '<input id="tnome" name="nome" autocomplete="off" placeholder="ex.: Balé Nível 1">' +
     '<label for="tordem">Posição na lista (1 = primeiro; vazio vai para o fim)</label>' +
@@ -1078,7 +1181,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label for="tfim">Fim do período (termo)</label>' +
     '<input id="tfim" name="periodoFim" type="date" autocomplete="off">' +
     '<p class="nota">A <b>régua da rubrica</b> não se declara aqui: ela é da escola, e vive nas abas <b>Criar rubrica</b> e <b>Vincular turma à rubrica</b>. Uma turma sem rubrica ligada é medida pela régua padrão.</p>' +
-    '<button type="submit">Cadastrar turma</button>' +
+    '<button type="submit" id="t-enviar">Cadastrar turma</button>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1398,7 +1501,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'document.getElementById("form-turma").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  enviar("/api/bastidores/turma", {' +
+    // DOIS MODOS no mesmo formulário (16/10/2026): cadastrar (sem `tderivar`) e AJUSTAR
+    // (com `tderivar`). O ajuste é uma derivação — não sobrescreve a turma.
+    '  var derivando = (document.getElementById("tderivar") || {}).value || "";' +
+    '  var campos = {' +
     '    nome: document.getElementById("tnome").value,' +
     '    ordem: document.getElementById("tordem").value,' +
     '    programaReferencia: document.getElementById("tprograma").value,' +
@@ -1412,7 +1518,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    periodoFim: document.getElementById("tfim").value' +
     // A régua SAIU daqui: a turma nasce sem ela, e a régua entra pelo vínculo (aba
     // «Vincular turma à rubrica»). Sem rubrica ligada, a leitura aplica a padrão.
-    '  }, "cadastrando turma...", true);' +
+    '  };' +
+    '  if (!derivando) {' +
+    '    enviar("/api/bastidores/turma", campos, "cadastrando turma...", true); return;' +
+    '  }' +
+    '  var vig = document.getElementById("tvigencia").value;' +
+    '  if (!vig) { alert("Informe a data a partir da qual a turma ajustada vale."); return; }' +
+    '  campos.derivarDe = derivando;' +
+    '  campos.vigencia = vig;' +
+    '  enviar("/api/bastidores/turma-derivar", campos, "ajustando turma...", true);' +
     '});' +
     'document.getElementById("form-termo").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -1426,6 +1540,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // AS RUBRICAS, para o botão «Editar» da lista abrir a rubrica no formulário sem pedir ao
     // servidor: o mapa já veio com a página.
     'var RUBRICAS = ' + JSON.stringify(listaRubricas) + ';' +
+    // AS TURMAS VIGENTES, para o «Ajustar» abrir o formulário com o que vale hoje sem pedir ao
+    // servidor: o mapa já veio com a página (16/10/2026). Só as vigentes — uma substituída não
+    // é ponto de partida de um ajuste novo.
+    'var TURMAS = ' + JSON.stringify(listaTurmas) + ';' +
+    // O «AJUSTAR» de um cartão: enche o formulário com a turma de hoje, marca o modo de
+    // derivação, trava o nome (não muda — é ele que a curadoria e o plano referenciam) e leva
+    // o foco à data, que é a única decisão realmente nova.
+    'function ajustarTurma(id) {' +
+    '  var t = null;' +
+    '  for (var i = 0; i < TURMAS.length; i++) { if (TURMAS[i] && TURMAS[i].id === id) { t = TURMAS[i]; break; } }' +
+    '  if (!t) { alert("Turma não encontrada na lista."); return; }' +
+    '  document.getElementById("tderivar").value = t.id;' +
+    '  document.getElementById("t-aviso").hidden = false;' +
+    '  document.getElementById("t-aviso-nome").textContent = t.nome;' +
+    '  document.getElementById("t-enviar").textContent = "Gravar ajuste";' +
+    '  var nome = document.getElementById("tnome");' +
+    '  nome.value = t.nome || ""; nome.readOnly = true;' +
+    '  document.getElementById("tordem").value = (t.ordem == null ? "" : t.ordem);' +
+    '  document.getElementById("tprograma").value = t.programaReferencia || "";' +
+    '  document.getElementById("tdescricao").value = t.descricao || "";' +
+    '  document.getElementById("tfrequencia").value = (t.frequencia == null ? "" : t.frequencia);' +
+    '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
+    '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
+    '  document.getElementById("tfim").value = t.periodoFim || "";' +
+    // OS NÍVEIS e OS DIAS são fichas e pílulas: limpam e voltam a marcar, para o ajuste não
+    // herdar o que se escolheu para outra turma.
+    '  var esc = document.getElementById("esc-niveis");' +
+    '  if (esc) {' +
+    '    Array.prototype.slice.call(esc.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '    mostrarVazio(esc);' +
+    '    String(t.nivelReferencia || "").split(",").forEach(function(n){ n = n.trim(); if (n) adicionarFicha(esc, n); });' +
+    '  }' +
+    '  Array.prototype.slice.call(document.querySelectorAll("input[name=\\"dia\\"]")).forEach(function(p){ p.checked = false; });' +
+    '  (t.dias || []).forEach(function(d){' +
+    '    var p = document.querySelector("input[name=\\"dia\\"][value=\\"" + d + "\\"]");' +
+    '    if (p) p.checked = true;' +
+    '  });' +
+    '  Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){' +
+    '    var d = x.getAttribute("data-dia");' +
+    '    x.value = (t.horarios && t.horarios[d]) ? t.horarios[d] : "";' +
+    '  });' +
+    // A data de vigência nasce com hoje: é o caso normal (a escola descobre o erro e corrige
+    // agora). A escola muda se o ajuste for retroativo.
+    '  var hoje = new Date();' +
+    '  var iso = hoje.getFullYear() + "-" + ("0" + (hoje.getMonth() + 1)).slice(-2) + "-" + ("0" + hoje.getDate()).slice(-2);' +
+    '  document.getElementById("tvigencia").value = iso;' +
+    '  document.getElementById("t-aviso").scrollIntoView({block: "center"});' +
+    '  document.getElementById("tvigencia").focus();' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("[data-turma-ajustar]") : null;' +
+    '  if (b) { ajustarTurma(b.getAttribute("data-turma-ajustar")); return; }' +
+    '  if (e.target.closest && e.target.closest("#t-cancelar")) {' +
+    '    document.getElementById("tderivar").value = "";' +
+    '    document.getElementById("t-aviso").hidden = true;' +
+    '    document.getElementById("t-enviar").textContent = "Cadastrar turma";' +
+    '    document.getElementById("tnome").readOnly = false;' +
+    '    document.getElementById("form-turma").reset();' +
+    '    var esc = document.getElementById("esc-niveis");' +
+    '    if (esc) {' +
+    '      Array.prototype.slice.call(esc.querySelectorAll(".ficha")).forEach(function(f){ f.parentElement.removeChild(f); });' +
+    '      mostrarVazio(esc);' +
+    '    }' +
+    '    Array.prototype.slice.call(document.querySelectorAll(".hora-do-dia")).forEach(function(x){ x.value = ""; });' +
+    '  }' +
+    '});' +
     'var NIVEIS_PADRAO = ' + JSON.stringify(NIVEIS_DA_RUBRICA) + ';' +
     'function linhaDaReguaNoDom(valor) {' +
     '  var s = document.createElement("span");' +
@@ -1559,9 +1739,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var b = e.target.closest("button.apagar"); if (!b) return;' +
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
-    '  if (!confirm("Excluir " + alvo + "?")) return;' +
+    '  var rotulo = b.getAttribute("data-nome") || alvo;' +
+    '  if (!confirm("Excluir " + rotulo + "?")) return;' +
     '  var corpo = tipo === "aluna" ? {apelido: alvo}' +
-    '    : ((tipo === "curadoria" || tipo === "rubrica") ? {id: alvo} : {nome: alvo});' +
+    '    : ((tipo === "curadoria" || tipo === "rubrica" || tipo === "turma") ? {id: alvo} : {nome: alvo});' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  fetch("/api/bastidores/" + tipo, {' +
     '    method: "DELETE",' +
@@ -1852,8 +2033,12 @@ async function fetch(request, env) {
   // ---------------------------------------------------------------------------
 
   // GET /api/bastidores/turmas — a lista (Produção) e as opções do plano (`opcoesDe`).
+  //
+  // Devolve as turmas VIGENTES (16/10/2026). É esta lista que alimenta o select do cabeçalho do
+  // plano: uma turma substituída não pode aparecer como escolha, ou o professor faria um plano
+  // novo contra um ritmo que já não vale.
   if (path === '/api/bastidores/turmas') {
-    const lista = await turmas(kv, escola);
+    const lista = turmasVigentes(await turmas(kv, escola));
     const todasAsRubricas = await rubricas(kv, escola);
     // A régua sai SEMPRE preenchida (o cadastro antigo não a tinha): sem isto o plano
     // receberia uma régua vazia e mediria contra nada. E sai RESOLVIDA — quem lê não sabe se
@@ -1899,10 +2084,97 @@ async function fetch(request, env) {
       });
     }
     const lista = await turmas(kv, escola);
-    if (lista.some((t) => t && t.id === nova.id)) return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
+    // O NOME só colide com uma turma VIGENTE (16/10/2026). Uma turma substituída mantém o
+    // nome — é assim que a curadoria e o plano continuam a encontrá-la —, e recusar por causa
+    // dela impediria a própria derivação.
+    if (turmaVigentePorNome(lista, nova.nome)) {
+      return json(409, { ok: false, erro: 'já existe uma turma com este nome' });
+    }
     lista.push(nova);
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
     return json(201, { ok: true, turma: nova.nome });
+  }
+
+  // POST /api/bastidores/turma-derivar — o «EDITAR» DA TURMA (16/10/2026).
+  //
+  // A escola pensa que está a editar; o que acontece é um ELO NOVO. A turma anterior fica na
+  // lista, marcada com `substituidaPor`/`substituidaEm`, e a nova nasce com o MESMO NOME e uma
+  // data de vigência (`vigenteDe`). É o mesmo invariante do plano vinculado a um PO: o passado
+  // não se reescreve, e a pergunta «que ritmo valia em Março» tem resposta.
+  //
+  // O nome não muda de propósito: a curadoria guarda o NOME e o plano referencia o NOME. Um
+  // registo novo com outro nome partiria as duas ligações — e o professor veria o plano dele
+  // perder a turma sem saber por quê.
+  if (path === '/api/bastidores/turma-derivar' && request.method === 'POST') {
+    let corpo = {};
+    try { corpo = await request.json(); } catch { corpo = {}; }
+    if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
+      return json(401, { ok: false, erro: 'senha da direção inválida' });
+    }
+    const lista = await turmas(kv, escola);
+    // A turma de origem: pelo id (o que o botão carrega) ou pelo nome (o id pode ter mudado
+    // entre a página aberta e o clique). Só se deriva uma VIGENTE — derivar uma já substituída
+    // deixaria dois elos a apontar para o mesmo passado.
+    const alvoId = String(corpo.derivarDe || corpo.id || '').trim();
+    const anterior = turmasVigentes(lista).find((t) => t && (t.id === alvoId || t.nome === alvoId));
+    if (!anterior) {
+      return json(404, { ok: false, erro: 'turma não encontrada (ou já substituída): ' + (alvoId || '(vazio)') });
+    }
+    const vigencia = String(corpo.vigencia || '').trim();
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(vigencia)) {
+      return json(400, { ok: false, erro: 'informe a data a partir da qual a turma ajustada vale (AAAA-MM-DD)' });
+    }
+    // O registo novo: o MESMO nome, o id com a vigência, e os campos que a escola declarou.
+    // Ele NASCE DO ANTERIOR (`Object.assign({}, anterior, …)`), e não do zero: o que a escola
+    // não está a ajustar tem de sobreviver.
+    //
+    // SÓ OS CAMPOS DO FORMULÁRIO MANDAM. O `normalizarTurma` devolve o registo INTEIRO, com a
+    // ligação à régua (`rubricaId`, `rubrica`) e o estado de atividade VAZIOS — porque eles não
+    // se declaram no cadastro da turma, vêm do vínculo próprio. Sobrepor isso ao anterior
+    // apagaria a régua da escola por ter corrigido uma hora, e ninguém daria por isso até o
+    // plano medir contra a régua padrão.
+    const declarado = normalizarTurma(Object.assign({}, corpo, { nome: anterior.nome }));
+    const CAMPOS_DO_FORMULARIO = ['nome', 'ordem', 'programaReferencia', 'nivelReferencia',
+      'descricao', 'frequencia', 'dias', 'horarios', 'duracaoMin', 'periodoInicio', 'periodoFim'];
+    const ajustado = {};
+    for (const k of CAMPOS_DO_FORMULARIO) if (k in declarado) ajustado[k] = declarado[k];
+    const nova = Object.assign({}, anterior, ajustado);
+    nova.id = idDerivado(anterior.nome, vigencia, lista);
+    nova.nome = anterior.nome;
+    nova.vigenteDe = vigencia;
+    nova.substitui = anterior.id;
+    delete nova.substituidaPor;
+    delete nova.substituidaEm;
+    const falta = faltaNoRitmoDaTurma(nova);
+    if (falta.length) {
+      return json(400, {
+        ok: false,
+        erro: 'a turma ajustada precisa de ' + fraseDaFalta(falta) + '.',
+        falta,
+      });
+    }
+    // A ANTERIOR fica, e diz quem a substituiu e quando — o elo, não o apagamento.
+    const indice = lista.findIndex((t) => t && t.id === anterior.id);
+    lista[indice] = Object.assign({}, anterior, {
+      substituidaPor: nova.id,
+      substituidaEm: vigencia,
+    });
+    lista.push(nova);
+    await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
+
+    // OS VÍNCULOS TURMA↔TERMO VÃO COM ELA. A relação é chaveada pelo ID, e o id novo é outro:
+    // sem esta passagem, a turma ajustada apareceria sem os conteúdos que a escola já tinha
+    // ligado a ela — e a escola perderia trabalho por ter corrigido uma hora. O que a turma
+    // ENSINA não é o que se está a ajustar.
+    try {
+      const rel = await relacoes(kv, escola);
+      if (Array.isArray(rel[anterior.id]) && rel[anterior.id].length) {
+        rel[nova.id] = rel[anterior.id].slice();
+        await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel));
+      }
+    } catch (e) { /* best-effort: a turma já está gravada, e o vínculo reata-se à mão */ }
+
+    return json(201, { ok: true, turma: nova.nome, id: nova.id, substitui: anterior.id, vigenteDe: vigencia });
   }
 
   // DELETE /api/bastidores/turma — excluir turma (e limpar a relação).
@@ -1912,16 +2184,21 @@ async function fetch(request, env) {
     if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
-    const id = idDe(String(corpo.nome || corpo.id || '').trim());
+    const id = String(corpo.id || '').trim() || idDe(String(corpo.nome || '').trim());
     if (!id) return json(400, { ok: false, erro: 'informe a turma' });
     const lista = await turmas(kv, escola);
-    const idx = lista.findIndex((t) => t && t.id === id);
+    // POR ID, e não pelo nome (16/10/2026). Depois da derivação, duas turmas partilham o NOME
+    // — a vigente e a que ela substituiu —, e procurar pelo nome apagaria a do passado em vez
+    // da que a escola quer tirar. O nome fica como recurso para o cadastro antigo.
+    let idx = lista.findIndex((t) => t && t.id === id);
+    if (idx === -1) idx = lista.findIndex((t) => t && t.id === idDe(String(corpo.nome || '').trim()));
     if (idx === -1) return json(404, { ok: false, erro: 'turma não encontrada' });
+    const removida = lista[idx].id;
     lista.splice(idx, 1);
     await kv.put(RAIZ + '/' + escola + '/turmas', JSON.stringify(lista));
     const rel = await relacoes(kv, escola);
-    if (rel[id]) { delete rel[id]; await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel)); }
-    return json(200, { ok: true, turma: id, removida: true });
+    if (rel[removida]) { delete rel[removida]; await kv.put(RAIZ + '/' + escola + '/turma-conteudos', JSON.stringify(rel)); }
+    return json(200, { ok: true, turma: removida, removida: true });
   }
 
   // POST /api/bastidores/turma-rubrica — LIGAR (ou desligar) uma turma da rubrica criada na
@@ -1938,10 +2215,16 @@ async function fetch(request, env) {
     if (!senhaDaDirecaoOk(env, String(corpo.senhaDirecao || ''))) {
       return json(401, { ok: false, erro: 'senha da direção inválida' });
     }
-    const id = idDe(String(corpo.turma || corpo.id || '').trim());
+    const pedido = String(corpo.turma || corpo.id || '').trim();
+    const id = idDe(pedido);
     if (!id) return json(400, { ok: false, erro: 'informe a turma' });
     const lista = await turmas(kv, escola);
-    const turma = lista.find((t) => t && t.id === id);
+    // O ID MANDA (16/10/2026). Depois da derivação, `idDe(nome)` devolve o id da turma ANTIGA
+    // — a que foi substituída —, e a régua acabaria ligada ao passado em vez de ao presente.
+    // Por isso: id exato primeiro, e o nome só como recurso, resolvido para a VIGENTE.
+    const turma = lista.find((t) => t && t.id === pedido)
+      || lista.find((t) => t && t.id === id)
+      || turmaVigentePorNome(lista, pedido);
     if (!turma) return json(404, { ok: false, erro: 'turma não encontrada' });
     const existentes = await rubricas(kv, escola);
     const rubricaId = String(corpo.rubricaId || '').trim();

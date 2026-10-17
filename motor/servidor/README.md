@@ -101,12 +101,35 @@ nunca devolve uma régua vazia: o plano de ensino LÊ a régua da turma do profe
 vazia mediria contra nada. O `GET /api/bastidores/turmas` entrega a régua **resolvida**, para o
 plano (`{daTurma: "rubrica"}`) não saber de onde ela veio.
 
+**A turma não se edita: DERIVA** (16/10/2026). O `POST /api/bastidores/turma` devolve **409** só
+contra uma turma **vigente** — porque corrigir a hora, a duração ou os dias de uma turma é o
+`POST /api/bastidores/turma-derivar`: um registo **novo**, com o **mesmo nome** e uma
+`vigenteDe` (data a partir da qual vale), e o anterior fica guardado com `substituidaPor` e
+`substituidaEm`. É o invariante do plano vinculado a um PO — o passado acrescenta-se, não se
+reescreve. O nome não muda de propósito: a curadoria guarda o **nome** e o plano referencia o
+**nome**; um registo novo com outro nome partiria as duas ligações. O `id` é que muda
+(`teste` → `teste-2026-11-01`), porque é o slug do nome e colidiria.
+
+Quem lê «as turmas» para trabalhar usa `turmasVigentes()` — a curadoria, o plano, o vínculo
+turma↔termo e o `GET /api/bastidores/turmas` (e por isso uma turma substituída não aparece no
+select do cabeçalho do plano). A lista inteira só serve ao histórico que a Produção mostra num
+`<details>` fechado em cada cartão. Como duas turmas passam a partilhar o nome, o `DELETE
+/api/bastidores/turma` e o `POST /api/bastidores/turma-rubrica` resolvem **pelo id** — procurar
+pelo nome apagaria a do passado em vez da que a escola quer tirar. A derivação leva com ela o que
+não se está a ajustar: a ligação à rubrica (`rubricaId`) e os vínculos turma↔termo.
+
 A prova é `experimentos/provar-producao.js` (104/104): roda o script servido num DOM de mentira e
 confere que o menu troca a secção, que as três abas de Turmas trocam de painel, que os handlers dos
 formulários existem e que a página não é cacheável. Ela trava um defeito silencioso: o script é
 montado por concatenação numa linha só, e um comentário `//` comenta **todo o resto** do script —
 o login funcionava (vinha antes), mas o menu e os botões ficavam mortos. Por isso o script servido
 não pode ter comentário de linha.
+
+A derivação da turma tem prova própria — `experimentos/provar-derivacao-da-turma.js` (35/35), sobre
+um KV de mentira: o nome repetido só colide contra a vigente; a derivação recusa sem data; a
+anterior fica com o elo e o ritmo **não** é reescrito; a lista viva traz uma só; a régua e a
+cadeia sobrevivem; uma turma já substituída não se deriva outra vez; e o `DELETE` remove a versão
+**pedida** — o caso que mais dói, por ser silencioso.
 
 ## Prova contra o Worker real
 
