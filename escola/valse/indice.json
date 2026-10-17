@@ -1,0 +1,40 @@
+{
+  "escola": "valse",
+  "worker": "valse",
+  "criado_em": "2026-10-17T11:09:25.774403+00:00",
+  "professor": {
+    "slug": "tiago-menegaz",
+    "nome": "Tiago"
+  },
+  "responsavel": "Tiago",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "estado": {
+    "habilitada": true
+  },
+  "arquivos": [
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01.conf",
+      "tipo": "manifesto base"
+    },
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-valse.conf",
+      "tipo": "manifesto variante"
+    },
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
+      "tipo": "schemas"
+    },
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-valse/",
+      "tipo": "pacote zero"
+    },
+    {
+      "caminho": "wrangler.valse.jsonc",
+      "tipo": "config do Worker"
+    }
+  ]
+}

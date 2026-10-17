@@ -1,0 +1,707 @@
+/* ============================================================================
+   Ciclos de Aprendizagem — folha de estilo única do pacote HTML (Regra 16).
+   Copiada para ciclos/ciclo-XX/assets/style.css pelo gerador. Não editar a
+   cópia: edite este arquivo e rode `tools/gerar-ciclo.sh` de novo.
+
+   Este arquivo é a FONTE DE VERDADE da identidade visual do Projeto Ciclo.
+   A regra, o papel de cada cor e as razões de contraste estão em
+   `IDENTIDADE-VISUAL.md` (raiz). Nenhum outro arquivo redeclara estes valores:
+   quem precisa deles consome o token daqui.
+   ========================================================================== */
+
+:root {
+  --burgundy: #6b1f2e;
+  --burgundy-claro: #8a2a3d;
+  --soft: #5a5348;
+  --cream: #fbf8f3;
+  --tinta: #1f1c1a;
+
+  /* --- O ouro, em quatro papéis -------------------------------------------------
+     O ouro é ORNAMENTO: a partir de um fundo claro ele não serve para texto. Medido,
+     não estimado (WCAG 2.1 — 4,5:1 para texto, 3,0:1 para traço com função):
+     `--gold` dá 3,65:1 sobre o burgundy (passa como ornamento) e apenas 2,92:1 sobre
+     o creme (não passa como nada). Por isso o ouro se divide, e cada papel recebe o
+     tom que foi medido para ele. */
+  --gold: #b08d57;        /* ornamento SOBRE BURGUNDY (3,65:1) e fundo do item ativo */
+  --gold-claro: #c9a878;  /* texto sobre burgundy (5,03:1) */
+  --gold-escuro: #8a6a3b; /* traço, filete e borda sobre fundo claro (>=4,26:1) */
+  --gold-texto: #7a5c31;  /* texto sobre fundo claro (>=5,26:1) */
+  --sobre-ouro: #2b1b10;  /* texto SOBRE o ouro (5,36:1) */
+  /* Borda de CAMPO DE FORMULÁRIO. É um traço de 1px, então o alvo é 3,0:1 — e o
+     `--gold-escuro` (4,26:1) é escuro demais para o desenho do campo: vira caixa
+     pesada. Este tom é o mais claro que ainda passa nos três papéis do formulário
+     (branco 3,35 · cream 3,16 · `--creme-1` 3,22). Para filete de texto, `--gold-escuro`. */
+  --gold-borda: #a08a58;
+
+  /* Tons de creme derivados. São sombras do `--cream`, usadas só neste arquivo —
+     não são identidade, são papel: por isso não sobem para o documento. */
+  --branco: #ffffff;
+  --creme-1: #fdfaf5;   /* linha ímpar de tabela */
+  --creme-2: #f3ece1;   /* fundo de `th`, de `.ficha` e de citação destacada */
+  --creme-3: #f5ecdf;   /* fundo do link sob o ponteiro */
+  --creme-4: #fff8ec;   /* fundo da citação */
+  --creme-5: #f1eae0;   /* fundo de `code` */
+  --creme-6: #f7f1e7;   /* fundo de `pre` */
+
+  /* --- Estados do formulário -----------------------------------------------------
+     São o quarto uso de cor da identidade: dizer o que aconteceu, sem julgamento.
+     O tom do ALERTA não pode ser o `#a06000` corrente: ele dá 4,29:1 sobre o
+     `--creme-2` e o rótulo de parcial aparece em cabeçalho de tabela. Escurecido
+     para `#8f5a12` (4,92:1 no pior fundo), os três passam em todos os papéis. */
+  --ok: #1d6b2f;      /* aconteceu (>=5,60:1) */
+  --alerta: #8f5a12;  /* parcial (>=4,92:1) */
+  --falha: #9b1c1c;   /* erro / não aconteceu (>=6,95:1) */
+
+  /* --- Fundos de estado -----------------------------------------------------------
+     O resultado do registro tem fundo próprio: a faixa que diz «aconteceu», «parcial»
+     ou «não aconteceu» é lida de longe, e pintá-la com o tom do papel a apagaria. Os
+     três tons já existiam espalhados nas páginas (raiz, bastidores); sobem para cá
+     porque são cor de ESTADO, não decoração — e precisam acompanhar o tema. Medidos
+     com o texto semântico por cima: ok 6,00:1 · alerta 5,22:1 · falha 7,04:1. */
+  --ok-fundo: #eef7ee;
+  --alerta-fundo: #fdf3d8;
+  --falha-fundo: #fdeaea;
+
+  /* --- O estado «derivada» --------------------------------------------------------
+     A turma que nasceu de um ajuste não é erro nem pendência: é linha de base. O lilás
+     a distingue do âmbar («ainda podes mexer») sem virar juízo. Texto sobre o fundo:
+     7,53:1. */
+  --derivada: #5a3f66;
+  --derivada-fundo: #efe9f2;
+
+  /* --- Tipografia -----------------------------------------------------------------
+     Duas pilhas, e só duas: o texto é serifado (a voz do projeto) e os CONTROLES —
+     campo, botão, menu — são sans, porque é onde se digita e se clica, e a serifa
+     atrapalha em corpo pequeno de interface. Nenhum arquivo redeclara estas listas. */
+  --serif: Georgia, 'Times New Roman', serif;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Altura da barra fixa. O valor aqui é o FALLBACK (sem JavaScript): cobre a
+     navbar de duas linhas, que é o pior caso. Com JS ligado, o script do
+     template mede a altura real e sobrescreve esta variável. */
+  --header-height: 120px;
+
+  /* --- A ESCALA (Fase 1) -----------------------------------------------------------
+     Espaço, raio e corpo de texto em degraus declarados. Os componentes usam estes
+     nomes; um valor que não esteja aqui é um desvio que se vê na revisão. As medidas
+     antigas das páginas continuam válidas até migrarem — a escala é o destino, não
+     uma reescrita de tudo de uma vez. */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  --raio-1: 4px;   /* campo e botão */
+  --raio-2: 6px;   /* cartão pequeno, botão grande */
+  --raio-3: 8px;   /* cartão e modal */
+  --raio-pilula: 999px;
+
+  /* --- OS PAPÉIS (Fase 2) ----------------------------------------------------------
+     Os nomes acima descrevem VALORES (`--cream`, `--burgundy`). Estes descrevem
+     FUNÇÕES, e são eles que os componentes usam. A distinção é o que permite um tema:
+     um tema troca o VALOR de um papel, e nenhum componente precisa saber que a marca
+     é bordô ou verde.
+
+     Na variante clara, cada papel aponta para o valor que a identidade já usava — o
+     desenho não muda. Na noturna, cada papel recebe o tom medido para o fundo escuro,
+     e é por isso que ela não é a clara invertida.
+
+     `color-scheme` faz os controles NATIVOS (select, checkbox, scrollbar) acompanharem:
+     sem ele, o tema escuro teria campos claros do sistema no meio da página. */
+  color-scheme: light;
+
+  --fundo: var(--cream);
+  --fundo-suave: var(--creme-1);
+  --fundo-faixa: var(--creme-2);
+  --fundo-hover: var(--creme-3);
+  --fundo-citacao: var(--creme-4);
+  --fundo-codigo: var(--creme-5);
+  --fundo-pre: var(--creme-6);
+
+  --superficie: var(--branco);
+  --superficie-elevada: var(--branco);
+
+  --texto: var(--tinta);
+  --texto-suave: var(--soft);
+
+  --borda: var(--gold-escuro);
+  --borda-campo: var(--gold-borda);
+  --borda-forte: var(--gold-escuro);
+  /* O campo tem DOIS fundos, porque tem dois contextos: sobre o papel, ele é a
+     superfície clara que se destaca; dentro de um cartão branco, ele desce um degrau
+     para não sumir. Na noturna, os dois acompanham o cartão. */
+  --campo-fundo: var(--branco);
+  --campo-fundo-cartao: var(--cream);
+
+  --marca: var(--burgundy);
+  --marca-texto: var(--gold-texto);
+  --marca-fundo: var(--burgundy);
+  --marca-fundo-hover: var(--burgundy-claro);
+  --sobre-marca: var(--cream);
+  --texto-destaque-marca: var(--gold-claro);
+
+  --ornamento: var(--gold-escuro);
+  --ornamento-forte: var(--gold-claro);
+
+  --acao-fundo: var(--burgundy);
+  --acao-texto: var(--gold-claro);
+  --ativo-fundo: var(--gold);
+  --ativo-texto: var(--sobre-ouro);
+  --foco: var(--gold-escuro);
+
+  --veu: rgba(31, 28, 26, .55);
+  --sombra: 0 18px 50px rgba(31, 28, 26, .35);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .18);
+}
+
+/* ============================================================================
+   A VARIANTE NOTURNA — concebida para esta família, não invertida.
+   ----------------------------------------------------------------------------
+   Sobre o fundo escuro o bordô não é texto: `#6b1f2e` dá 1,64:1 sobre `#17130f`.
+   A voz passa a ser o OURO — que é a segunda cor da identidade, não uma cor nova —,
+   e o bordô permanece como superfície da barra, onde o texto é o creme (10,65:1).
+   Todos os pares estão medidos em `tools/check-identidade.js`, que passa a conferir
+   este bloco com o mesmo piso da variante clara.
+   ========================================================================== */
+[data-modo="noturna"] {
+  color-scheme: dark;
+
+  --fundo: #17130f;
+  --fundo-suave: #1c1712;
+  --fundo-faixa: #241d17;
+  --fundo-hover: #2a231b;
+  --fundo-citacao: #241d17;
+  --fundo-codigo: #241d17;
+  --fundo-pre: #1c1712;
+
+  --superficie: #211b15;
+  --superficie-elevada: #2a231b;
+
+  --texto: #f1eae0;
+  --texto-suave: #bfb2a0;
+
+  --borda: #7a6a55;
+  --borda-campo: #8a7860;
+  --borda-forte: #9c8870;
+  --campo-fundo: #241d17;
+  --campo-fundo-cartao: #1c1712;
+
+  --marca: #d9b98a;
+  --marca-texto: #e0c9a6;
+  --marca-fundo: #6b1f2e;
+  --marca-fundo-hover: #8a2a3d;
+  --sobre-marca: #fbf8f3;
+  --texto-destaque-marca: #e0c9a6;
+
+  --ornamento: #7a6a55;
+  --ornamento-forte: #c9a878;
+
+  --acao-fundo: #6b1f2e;
+  --acao-texto: #e0c9a6;
+  --ativo-fundo: #c9a878;
+  --ativo-texto: #2b1b10;
+  --foco: #d9b98a;
+
+  --ok: #7fc79a;
+  --alerta: #e0b467;
+  --falha: #e79a9a;
+  --ok-fundo: #1c2b21;
+  --alerta-fundo: #2e2415;
+  --falha-fundo: #2e1919;
+  --derivada: #c9a8d8;
+  --derivada-fundo: #251d28;
+
+  --veu: rgba(0, 0, 0, .7);
+  --sombra: 0 18px 50px rgba(0, 0, 0, .6);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  /* âncoras (#id) param abaixo da barra fixa, em vez de ficarem escondidas sob ela */
+  scroll-padding-top: calc(var(--header-height) + 8px);
+}
+
+body {
+  margin: 0;
+  padding: var(--header-height) 0 40px;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 17px/1.65 var(--serif);
+}
+
+/* ---------- barra de navegação fixa (Regra 16, item 1) ---------- */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  background: var(--marca-fundo); border-bottom: 3px solid var(--ornamento-forte);
+  padding: 6px 14px; font-size: 15px;
+}
+/* Os ornamentos do nav são --gold-claro, e não --gold, porque o FUNDO do nav tem dois
+   tons: o burgundy (3,65:1 com --gold) e o burgundy-claro dos estados :hover e do menu
+   aberto (onde --gold cai para 2,74:1). --gold-claro passa nos dois — 5,03:1 e 3,77:1 —
+   então nenhum estado de interação pode ficar abaixo de AA. */
+.topnav .marca {
+  /* Espaço reservado onde ficava a marca («Ciclo NN · escola»). O texto saiu do
+     menu (duplicava o «Início»), mas o espaço fica — para o menu não colar à
+     esquerda. A largura é declarada aqui, não no HTML. */
+  display: inline-block; min-width: 9em;
+  font-weight: bold; color: var(--texto-destaque-marca); margin-right: 10px; letter-spacing: .3px;
+  text-decoration: none; padding: 6px 4px;
+}
+/* No :hover o fundo passa a --burgundy-claro, onde o ouro não alcança 4,5:1 em nenhum tom:
+   a marca volta ao creme (8,00:1), como todos os outros links do nav. */
+.topnav a.marca:hover { color: var(--sobre-marca); }
+.topnav a { color: var(--sobre-marca); text-decoration: none; padding: 6px 10px; border-radius: 4px; }
+.topnav a:hover { background: var(--marca-fundo-hover); }
+.topnav a.ativo { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: bold; }
+.topnav details { position: relative; }
+.topnav details.menu[open] > summary { background: var(--marca-fundo-hover); }
+.topnav summary {
+  cursor: pointer; color: var(--sobre-marca); padding: 6px 10px; border-radius: 4px;
+  list-style: none; display: inline-block;
+}
+.topnav summary::-webkit-details-marker { display: none; }
+.topnav summary::after { content: ' ▾'; }
+.topnav details[open] summary, .topnav summary:hover { background: var(--marca-fundo-hover); }
+.topnav .submenu {
+  position: absolute; top: 100%; left: 0; z-index: 21;
+  display: flex; flex-direction: column; gap: 2px; min-width: 300px;
+  background: var(--marca-fundo); border: 2px solid var(--ornamento-forte); border-radius: 6px;
+  padding: 6px; box-shadow: var(--sombra-menu);
+}
+.topnav .submenu a { padding: 7px 10px; }
+.topnav .pdf { margin-left: auto; border: 2px solid var(--ornamento-forte); }
+
+/* O botão do TEMA fica fora do `.nav-links` (o painel colapsa no celular): a
+   aparência continua alcançável com o menu fechado. Ele não é um link — é um
+   controle de estado, e o `aria-pressed` é o que o anuncia. */
+.tema {
+  margin-left: 6px; padding: 4px 9px;
+  background: transparent; border: 2px solid var(--borda);
+  color: var(--marca); border-radius: var(--raio-1);
+  font: 600 15px/1 var(--ui); cursor: pointer;
+}
+.tema:hover { background: var(--fundo-hover); }
+.tema[aria-pressed="true"] { background: var(--fundo-hover); }
+/* Sobre a BARRA o botão herda o tratamento dos vizinhos: ouro e creme no burgundy. */
+.topnav .tema { border-color: var(--ornamento-forte); color: var(--sobre-marca); }
+.topnav .tema:hover, .topnav .tema[aria-pressed="true"] { background: var(--marca-fundo-hover); }
+
+/* Os links ficam num contêiner para o menu mobile poder colapsá-los de uma vez.
+   O contêiner não muda o layout de desktop — é a mesma linha de antes. */
+.topnav .nav-links {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 2px;
+  flex: 1 1 auto; min-width: 0;
+}
+
+/* Botão hamburger: invisível no desktop; aparece só na media query de celular.
+ * `position: relative` + `z-index` EXPLÍCITOS: sem eles o botão herda a pilha do
+ * .topnav (20) e fica ABAIXO do painel do submenu (21) — é o que fazia o botão
+ * sumir depois de navegar, quando algum resíduo de estado mantinha o painel no
+ * caminho. `pointer-events: auto` é defesa contra regra herdada que desabilite
+ * o clique. */
+.topnav .hamburger {
+  display: none; margin-left: auto; cursor: pointer;
+  position: relative; z-index: 22; pointer-events: auto;
+  background: none; border: 2px solid var(--ornamento-forte); border-radius: 4px;
+  padding: 6px 8px;
+}
+.topnav .hamburger span {
+  display: block; width: 18px; height: 2px; margin: 3px 0; background: var(--fundo);
+}
+.topnav .hamburger[aria-expanded="true"] { background: var(--marca-fundo-hover); }
+
+/* ---------- cabeçalho, conteúdo e títulos ---------- */
+header.doc, main, footer.rodape, .rodape { max-width: 900px; margin: 0 auto; padding: 0 22px; }
+
+header.doc { margin-top: 10px; }
+header.doc h1 {
+  color: var(--marca); font-size: 31px; line-height: 1.2; margin: 0 0 6px;
+  border-bottom: 2px solid var(--borda); padding-bottom: 10px;
+}
+header.doc .subtitulo { color: var(--texto-suave); font-style: italic; margin: 0 0 8px; }
+.ficha { display: flex; flex-wrap: wrap; gap: 6px; margin: 10px 0 0; }
+.ficha span {
+  background: var(--fundo-faixa); border: 1px solid var(--borda); border-radius: 999px;
+  padding: 2px 10px; font-size: 13px; color: var(--marca-texto);
+}
+
+main h2 { color: var(--marca); font-size: 23px; margin: 30px 0 8px; }
+main h3 { color: var(--marca); font-size: 19px; margin: 22px 0 6px; }
+main h4 { color: var(--marca-texto); font-size: 17px; margin: 18px 0 4px; }
+main a { color: var(--marca); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+main a:hover { background: var(--fundo-hover); }
+
+p, ul, ol { margin: 10px 0; }
+li { margin: 4px 0; }
+
+/* ---------- índice da própria página (Regra 16, item 2) ---------- */
+.toc-local {
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: 8px;
+  padding: 12px 20px 14px; margin: 20px 0 26px;
+}
+.toc-local .toc-titulo {
+  margin: 0 0 4px; color: var(--marca-texto); font-size: 14px;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.toc-local ul { list-style: none; padding-left: 14px; margin: 4px 0; }
+.toc-local > ul { padding-left: 0; }
+.toc-local a { color: var(--texto-suave); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+
+/* ---------- o índice da página: coluna à DIREITA, que acompanha a rolagem ----------
+   Até 1199px o índice continua sendo o bloco do topo, como sempre foi. A partir de 1200px
+   há largura para duas colunas: o contêiner da página alarga, o texto mantém a medida de
+   leitura (900px) e o índice vira uma coluna à direita, presa abaixo da navbar
+   (`position: sticky`) — quem rola a página não perde a navegação.
+
+   Quem decide é a LARGURA, não o dispositivo: tablet largo, tela cheia e janela estreita
+   se comportam pelo mesmo critério. O `.rail` existe porque o elemento preso precisa de um
+   pai mais alto que ele para ter para onde subir — a coluna da grade estica, o índice não. */
+@media (min-width: 1200px) {
+  /* O LAYOUT É UM ATRIBUTO, não uma rota. `data-layout="documento"` é a leitura com
+     o índice à direita; `data-layout="painel"` é a tela de trabalho, que usa a largura
+     toda e não tem índice lateral. Quem não declara nada fica no documento. */
+  header.doc, main, footer.rodape, .rodape { max-width: 1180px; }
+  [data-layout="painel"] header.doc,
+  [data-layout="painel"] main,
+  [data-layout="painel"] footer.rodape,
+  [data-layout="painel"] .rodape { max-width: none; }
+  [data-layout="painel"] main { display: block; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 2rem; }
+  .conteudo { grid-column: 1; grid-row: 1; min-width: 0; max-width: 900px; }
+  .rail { grid-column: 2; grid-row: 1; }
+  .toc-local {
+    position: sticky;
+    top: calc(var(--header-height) + 8px);
+    /* para antes do botão "voltar ao topo" (fixo no canto), e rola por dentro se for longo */
+    max-height: calc(100vh - var(--header-height) - 96px);
+    overflow-y: auto;
+  }
+}
+
+/* ---------- tabelas, citações, código ---------- */
+table { border-collapse: collapse; width: 100%; margin: 14px 0; font-size: 15px; }
+th, td { border: 1px solid var(--borda); padding: 6px 9px; text-align: left; vertical-align: top; }
+th { background: var(--fundo-faixa); color: var(--marca-texto); }
+/* o pandoc marca as linhas com .odd / .even e o cabeçalho com .header */
+tr.header { background: var(--fundo-faixa); }
+tr.header th { color: var(--marca-texto); }
+tbody tr.odd { background: var(--fundo-suave); }
+tbody tr.even { background: var(--superficie); }
+
+blockquote {
+  margin: 14px 0; padding: 10px 18px; background: var(--fundo-citacao);
+  border-left: 4px solid var(--borda); color: var(--texto-suave);
+}
+blockquote p { margin: 6px 0; }
+
+code { background: var(--fundo-codigo); padding: 1px 4px; border-radius: 3px; font-size: 15px; }
+pre { background: var(--fundo-pre); border: 1px solid var(--borda); border-radius: 6px; padding: 12px 14px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+
+hr { border: none; border-top: 1px solid var(--borda); margin: 28px 0; }
+
+/* ============================================================================
+   COMPONENTES — a camada que as páginas deixaram de reescrever (Fase 1).
+   ----------------------------------------------------------------------------
+   Antes desta seção, botão, campo, rótulo, selo, cartão, modal e mensagem de
+   resultado eram redefinidos em cada página: quatro tratamentos de botão, três de
+   rótulo, dois de superfície de campo. Aqui cada um é declarado UMA vez, e as
+   páginas só dizem o que é delas (a medida, a grade, o que é conteúdo).
+
+   As classes de ESTADO carregam mais de um nome quando o nome já está no dado ou
+   no markup (`.solta`, `.vinculada`, `.legado` vêm do estado da proveniência).
+   São aliases do MESMO desenho — não um segundo desenho.
+   ========================================================================== */
+
+/* ---------- botão ----------------------------------------------------------
+   `:where()` dá especificidade ZERO ao desenho base: ele é o piso, e qualquer
+   regra de página vence sem precisar de `!important`. Foi o que faltava — a
+   navbar e as abas tinham de reescrever o botão só para não herdarem o
+   preenchimento.
+
+   O botão SEM classe é o secundário: contorno na marca, fundo do papel — o que
+   as páginas de formulário já usavam. O `.acao` é a ação principal: fundo na
+   marca e texto no ouro claro (`--gold-claro`, 5,03:1 — o token declarado para
+   texto sobre burgundy). */
+:where(button) {
+  display: inline-block; margin: 0;
+  font: 600 15px/1.5 var(--ui);
+  padding: 5px 10px;
+  border: 1px solid var(--marca); border-radius: var(--raio-1);
+  background: var(--superficie); color: var(--marca);
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+}
+:where(button:hover:not(:disabled)) { background: var(--marca-fundo); color: var(--sobre-marca); }
+:where(button:disabled) {
+  border-color: var(--borda-campo); color: var(--texto-suave);
+  background: var(--fundo-suave); cursor: default;
+}
+
+button.acao, a.acao {
+  display: inline-block; margin: 0;
+  font: 600 15px/1.5 var(--ui); padding: 5px 10px; white-space: nowrap;
+  border: 1px solid var(--marca); border-radius: var(--raio-1);
+  background: var(--marca-fundo); color: var(--texto-destaque-marca);
+  cursor: pointer; text-decoration: none; border-bottom: none;
+}
+button.acao:hover:not(:disabled), a.acao:hover {
+  background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
+}
+.acao.secundario,
+.acao.secundario:hover:not(:disabled) {
+  background: transparent; color: var(--marca-texto); border-color: var(--borda);
+}
+.acao.secundario:hover:not(:disabled) { background: var(--fundo-hover); }
+.acao.perigo,
+.acao.perigo:hover:not(:disabled) {
+  background: transparent; color: var(--falha); border-color: var(--falha);
+}
+.acao.perigo:hover:not(:disabled) { background: var(--falha-fundo); }
+.acao.grande { padding: var(--esp-2) var(--esp-4); border-radius: var(--raio-2); }
+.acao.pequena { padding: 2px 8px; font-size: 12px; }
+.acao:disabled, .acao[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+.acao.secundario:disabled, .acao.perigo:disabled {
+  background: transparent; color: var(--texto-suave); border-color: var(--borda-campo);
+}
+
+/* botões-ícone (o «×» de fechar, o de tirar um item) não herdam o preenchimento */
+button.icone {
+  background: none; border: none; padding: 0 var(--esp-1); color: var(--texto-suave);
+  font: 400 1.4rem/1 var(--ui);
+}
+button.icone:hover:not(:disabled) { background: none; color: var(--marca); }
+
+/* ---------- campo ----------------------------------------------------------
+   O controle é sans (`--ui`), com o filete medido para 3:1 (`--gold-borda`) e o
+   raio do degrau 1. Sobre um CARTÃO, o campo desce para o creme: branco sobre
+   branco não separa a área de digitação. Sobre o papel, ele fica branco.
+   A base também usa `:where()` — o piso que qualquer página sobrepõe. */
+:where(input[type=text], input[type=password], input[type=number], input[type=date],
+  input[type=search], input[type=email], input[type=url], textarea, select) {
+  width: 100%; box-sizing: border-box;
+  font: 15px/1.5 var(--ui);
+  padding: 5px 8px;
+  color: var(--texto); background: var(--campo-fundo);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
+}
+textarea { min-height: 4.5rem; resize: vertical; }
+.caixa input, .caixa select, .caixa textarea,
+.modal-caixa input, .modal-caixa select, .modal-caixa textarea,
+form input, form select, form textarea { background: var(--campo-fundo-cartao); }
+
+/* O rótulo do campo. `em-linha` é o do formulário denso, onde o rótulo divide a
+   linha com o controle (o lançamento de aula). */
+.campo-rotulo {
+  display: block; margin: var(--esp-4) 0 var(--esp-1);
+  color: var(--marca-texto); font-size: .9rem; font-weight: 600;
+}
+.campo-rotulo.em-linha {
+  display: inline; margin: 0 var(--esp-2) 0 0;
+}
+
+/* O foco é o mesmo em todo o sistema — e o traço é `--gold-escuro` (>=4,26:1
+   sobre o papel), não o `--gold`, que é ornamento e não alcança 3:1 ali. */
+a:focus-visible, button:focus-visible, input:focus-visible,
+select:focus-visible, textarea:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--foco); outline-offset: 1px;
+}
+
+/* ---------- selo -----------------------------------------------------------
+   A pastilha que marca um atributo ou um estado. O desenho base é o do cabeçalho
+   do ciclo (creme, filete de ouro, pílula); os estados trocam o par de cor pelo
+   token semântico, e o significado é o mesmo em toda a tela. */
+.selo {
+  display: inline-block; padding: 2px 8px;
+  font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  border: 1px solid var(--borda); border-radius: var(--raio-pilula);
+  color: var(--marca-texto); background: var(--fundo-faixa);
+}
+.selo.ok, .selo.vigente, .selo.vigencia, .selo.preenchido {
+  background: var(--ok-fundo); border-color: var(--ok); color: var(--ok);
+}
+.selo.alerta, .selo.falta-ritmo, .selo.livre {
+  background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
+}
+.selo.falha { background: var(--falha-fundo); border-color: var(--falha); color: var(--falha); }
+.selo.marca, .selo.obrig { background: transparent; border-color: var(--marca); color: var(--marca); }
+.selo.derivada, .selo.vinculada {
+  background: var(--derivada-fundo); border-color: var(--derivada); color: var(--derivada);
+}
+.selo.discreto, .selo.dim, .selo.solta, .selo.legado,
+.selo.sem-sujeito, .selo.ajuste {
+  background: var(--fundo-suave); border-color: var(--borda-campo); color: var(--texto-suave);
+}
+.selo.opt { border-style: dashed; }
+.selo.legado { border-style: dotted; }
+.selo.solta { border-style: dashed; }
+
+/* ---------- cartão ---------------------------------------------------------
+   A superfície elevada: papel branco, filete de ouro, raio 3. O `.nota` é o
+   cartão de leitura (fundo creme-1); o `.falta` é o cartão que ainda não fechou. */
+.caixa {
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
+  background: var(--superficie); padding: var(--esp-4) var(--esp-5);
+  margin: var(--esp-4) 0;
+}
+.caixa.nota { background: var(--fundo-suave); }
+.caixa.falta { border-color: var(--falha); border-width: 2px; }
+.caixa.falta > h3 { color: var(--falha); }
+
+/* ---------- mensagem de resultado -----------------------------------------
+   O retorno de uma ação (criar, apagar, salvar). Nasce oculta e só aparece quando
+   há o que dizer; o estado é o que muda a cor. */
+.res {
+  margin-top: var(--esp-4); padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--raio-2); display: none;
+  font: 15px/1.45 var(--ui);
+}
+.res.ok { display: block; background: var(--ok-fundo); border: 1px solid var(--ok); color: var(--ok); }
+.res.erro { display: block; background: var(--falha-fundo); border: 1px solid var(--falha); color: var(--falha); }
+.res.aviso { display: block; background: var(--alerta-fundo); border: 1px solid var(--alerta); color: var(--alerta); }
+.res.ok a { color: inherit; }
+
+/* ---------- aviso ----------------------------------------------------------
+   A faixa de prosa que explica antes de agir. O `.alerta` é a pendência (âmbar);
+   o padrão é a nota de leitura, com o tratamento da citação do site. */
+.aviso {
+  background: var(--fundo-citacao); border-left: 4px solid var(--borda);
+  padding: var(--esp-3); margin: var(--esp-3) 0 var(--esp-4);
+  font-size: .92rem; color: var(--texto-suave);
+}
+.aviso.alerta {
+  background: var(--alerta-fundo); border-left-color: var(--alerta); color: var(--texto);
+  border-radius: var(--raio-1);
+}
+
+/* ---------- modal ----------------------------------------------------------
+   A janela sobre o véu. O véu usa o token do texto com transparência — no tema
+   noturno ele escurece junto, em vez de ficar um cinza fixo. */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: center; padding: var(--esp-5);
+}
+.modal[hidden] { display: none; }
+.modal-fundo { position: absolute; inset: 0; background: var(--veu); }
+.modal-caixa {
+  position: relative; width: 100%; max-width: 440px;
+  background: var(--superficie); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-3); box-shadow: var(--sombra);
+  padding: 0 var(--esp-5) var(--esp-5);
+}
+.modal-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--borda);
+  margin: 0 calc(var(--esp-5) * -1) var(--esp-4);
+  padding: var(--esp-4) var(--esp-5) var(--esp-3);
+}
+.modal-cab h2 { margin: 0; font-size: 1.25rem; color: var(--marca); }
+.modal-x {
+  background: none; border: none; font: 400 1.6rem/1 var(--ui);
+  color: var(--texto-suave); cursor: pointer; padding: 0 var(--esp-1);
+}
+.modal-x:hover { background: none; color: var(--marca); }
+.modal-acoes { display: flex; justify-content: flex-end; gap: var(--esp-3); margin-top: var(--esp-5); }
+
+/* ---------- botão "voltar ao topo" (Regra 16, item 5) ---------- */
+.topo {
+  position: fixed; right: 18px; bottom: 18px; z-index: 20;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  background: var(--marca-fundo); color: var(--sobre-marca); border: 2px solid var(--ornamento-forte);
+  border-radius: 50%; text-decoration: none; font-size: 21px; line-height: 1;
+}
+.topo:hover { background: var(--marca-fundo-hover); }
+
+/* ---------- rodapé (Regra 16, item 6) ---------- */
+.rodape {
+  max-width: 900px; margin: 40px auto 0; padding: 14px 22px 0;
+  border-top: 1px solid var(--borda); color: var(--texto-suave); font-size: 14px;
+}
+.rodape p { margin: 4px 0; }
+.rodape a { color: var(--marca); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+
+/* ---------- responsividade (Regra 16) ---------- */
+
+/* tablet: navbar horizontal, com fonte e espaçamento menores */
+@media (max-width: 1024px) {
+  .topnav { font-size: 13.5px; padding: 6px 10px; }
+  .topnav a { padding: 5px 7px; }
+  .topnav .marca { min-width: 0; margin-right: 6px; }
+}
+
+/* celular: menu colapsado atrás do hamburger */
+@media (max-width: 768px) {
+  .topnav { flex-wrap: wrap; }
+  .topnav .hamburger { display: block; }
+  .topnav .nav-links { display: none; }
+  .topnav.aberto .nav-links {
+    display: flex; flex-direction: column; align-items: stretch;
+    flex-basis: 100%; gap: 2px; padding: 8px 0 4px;
+  }
+  .topnav.aberto .nav-links a { padding: 9px 10px; }
+  /* o submenu de "Aulas" deixa de flutuar e passa a empilhar dentro do painel */
+  .topnav.aberto details { position: static; }
+  .topnav.aberto .submenu {
+    position: static; min-width: 0; box-shadow: none; border: none;
+    border-left: 2px solid var(--ornamento-forte); border-radius: 0; padding: 2px 0 2px 10px;
+  }
+  .topnav.aberto .pdf { margin-left: 0; }
+}
+
+/* ---------- impressão: sem barra fixa nem botão, e SEMPRE clara ----------
+   O papel não tem tema. Se a página estiver na variante noturna, os papéis
+   voltam aos valores da clara — senão o texto sairia claro sobre uma folha
+   branca. É a única regra que vence o `[data-modo]`: ela vem depois e tem a
+   mesma especificidade, mas o `!important` é explícito porque a segurança da
+   impressão não pode depender da ordem de dois seletores. */
+@media print {
+  :root, [data-modo="noturna"] {
+    color-scheme: light !important;
+    --fundo: #fbf8f3 !important;
+    --fundo-suave: #fdfaf5 !important;
+    --fundo-faixa: #f3ece1 !important;
+    --fundo-hover: #f5ecdf !important;
+    --fundo-citacao: #fff8ec !important;
+    --fundo-codigo: #f1eae0 !important;
+    --fundo-pre: #f7f1e7 !important;
+    --superficie: #ffffff !important;
+    --superficie-elevada: #ffffff !important;
+    --texto: #1f1c1a !important;
+    --texto-suave: #5a5348 !important;
+    --borda: #8a6a3b !important;
+    --borda-campo: #a08a58 !important;
+    --borda-forte: #8a6a3b !important;
+    --campo-fundo: #ffffff !important;
+    --campo-fundo-cartao: #fbf8f3 !important;
+    --marca: #6b1f2e !important;
+    --marca-texto: #7a5c31 !important;
+    --marca-fundo: #6b1f2e !important;
+    --marca-fundo-hover: #8a2a3d !important;
+    --sobre-marca: #fbf8f3 !important;
+    --texto-destaque-marca: #c9a878 !important;
+    --ornamento: #8a6a3b !important;
+    --ornamento-forte: #c9a878 !important;
+    --acao-fundo: #6b1f2e !important;
+    --acao-texto: #c9a878 !important;
+    --ativo-fundo: #b08d57 !important;
+    --ativo-texto: #2b1b10 !important;
+    --foco: #8a6a3b !important;
+    --ok: #1d6b2f !important;
+    --alerta: #8f5a12 !important;
+    --falha: #9b1c1c !important;
+    --ok-fundo: #eef7ee !important;
+    --alerta-fundo: #fdf3d8 !important;
+    --falha-fundo: #fdeaea !important;
+    --derivada: #5a3f66 !important;
+    --derivada-fundo: #efe9f2 !important;
+  }
+  .topnav, .topo { display: none; }
+  body { padding: 0; background: var(--superficie); }
+  a { color: var(--texto); border: none; }
+  /* no papel não há rolagem: o índice volta a ser um bloco do fluxo */
+  .toc-local { position: static; max-height: none; overflow: visible; }
+}
