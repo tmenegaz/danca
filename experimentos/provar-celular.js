@@ -30,8 +30,39 @@
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const http = require('http');
 
 const raiz = path.resolve(__dirname, '..');
+
+/**
+ * SERVIDOR ESTÁTICO MÍNIMO. Por que não `file://`: a porta pede a folha em
+ * `/assets/style.css` — caminho ABSOLUTO de raiz, porque ela vive um nível abaixo do
+ * pacote. Em `file://` isso resolve para `file:///assets/style.css`, que não existe: a
+ * página abre SEM folha, e medir o desenho dela assim dá «campo cru» e «nada transborda»
+ * em toda parte — dois resultados falsos, um alarme e um silêncio. Servir da raiz do
+ * repositório é o que reproduz o que o Worker faz.
+ */
+const TIPOS = { '.html': 'text/html; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8', '.json': 'application/json' };
+function servir() {
+  const srv = http.createServer((req, res) => {
+    const rel = decodeURIComponent(req.url.split('?')[0]).replace(/^\/+/, '') || 'index.html';
+    // O que um PACOTE é: a porta pede `/assets/style.css` e `/assets/nav.js`, que no
+    // pacote gerado são as cópias da fonte. Aqui elas apontam para a própria fonte —
+    // é o mesmo arquivo que o `gerar-ciclo.sh` copia.
+    const mapa = {
+      'assets/style.css': 'tools/templates/ciclo.css',
+      'assets/nav.js': 'tools/templates/nav.js',
+    };
+    const tentativas = [mapa[rel], rel, path.join('porta', rel), path.join('raiz', rel)].filter(Boolean);
+    const alvo = tentativas.map((x) => path.join(raiz, x))
+      .find((x) => x.startsWith(raiz) && fs.existsSync(x) && !fs.statSync(x).isDirectory());
+    if (!alvo) { res.writeHead(404); res.end('nao encontrado'); return; }
+    res.writeHead(200, { 'content-type': TIPOS[path.extname(alvo)] || 'application/octet-stream' });
+    res.end(fs.readFileSync(alvo));
+  });
+  return new Promise((ok) => srv.listen(0, '127.0.0.1', () => ok({ srv, base: `http://127.0.0.1:${srv.address().port}` })));
+}
 const FONTE = path.join(raiz, 'motor/servidor/bastidores.js');
 const FOLHA = path.join(raiz, 'tools/templates/ciclo.css');
 
@@ -198,6 +229,7 @@ function provar(descricao, obtido, esperado) {
     process.exit(1);
   }
 
+  const { srv, base } = await servir();
   const css = cssDaProducao();
   const arquivo = path.join(require('os').tmpdir(), 'provar-celular.html');
   fs.writeFileSync(arquivo, pagina(css));
@@ -235,15 +267,12 @@ function provar(descricao, obtido, esperado) {
   for (const [, rel] of superficies) {
     for (const w of [320, 390, 768]) {
       await page.setViewport({ width: w, height: 900 });
-      await page.goto(`file://${path.join(raiz, rel)}`, { waitUntil: 'load' });
+      await page.goto(`${base}/${rel}`, { waitUntil: 'load' });
       const excesso = await page.evaluate(
         () => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       if (excesso > 0) transbordam.push([rel, w, excesso]);
     }
   }
-  await browser.close();
-  fs.unlinkSync(arquivo);
-
   // 1) Nada transborda na horizontal — em nenhuma largura. É o piso: o resto é conforto.
   provar('nenhuma largura transborda na horizontal', medidas.filter((m) => m.transbordo > 0).map((m) => m.largura), []);
 
@@ -289,6 +318,48 @@ function provar(descricao, obtido, esperado) {
   // 8) As demais superfícies: em 320/390/768 nada transborda na horizontal.
   provar(`nenhuma das ${superficies.length} páginas servidas transborda em 320, 390 e 768`,
     transbordam, []);
+
+  // 9) NENHUM CAMPO FICA CRU. O seletor de campo exigia `input[type=…]`, e 15 campos do
+  //    sistema — o nome da escola, o do professor, a confirmação do expurgo — não têm o
+  //    atributo `type`: caíam no desenho do navegador no meio de uma tela desenhada. Era
+  //    isso que fazia os formulários parecerem «sem CSS». A conferência é por MEDIDA, não
+  //    por regex: todo `input`/`select`/`textarea` visível tem de ter raio e altura de
+  //    controle. Um seletor estreito de novo reprova aqui.
+  const crus = [];
+  // O `lancamento.html` NÃO entra: é um template de corpo, sem `<link>` — quem o veste
+  // é o Pandoc, com `--css=assets/style.css` na geração. Aberto cru não tem folha, e
+  // mediria o desenho do navegador em todo campo. A conferência dele é a do pacote.
+  for (const [, rel] of superficies.filter(([, r]) => !r.includes('lancamento.html'))) {
+    await page.setViewport({ width: 1024, height: 900 });
+    await page.goto(`${base}/${rel}`, { waitUntil: 'load' });
+    const achados = await page.evaluate(() => {
+      const fora = [];
+      for (const el of document.querySelectorAll('input, select, textarea')) {
+        const t = (el.getAttribute('type') || '').toLowerCase();
+        if (['hidden', 'checkbox', 'radio', 'submit', 'button', 'color', 'file', 'range'].includes(t)) continue;
+        const cs = getComputedStyle(el);
+        if (cs.display === 'none' || cs.visibility === 'hidden') continue;
+        if (el.closest('[hidden]')) continue;
+        // Campo que não ocupa altura não está na tela: o painel dele está fechado.
+        // Medir o desenho de um elemento que não renderiza daria «raio 0» sempre.
+        if (el.getBoundingClientRect().height < 1) continue;
+        const r = cs.borderRadius === '0px' ? 0 : parseFloat(cs.borderRadius);
+        const alt = el.getBoundingClientRect().height;
+        // O desenho do navegador tem raio 0 e altura ~20px. O controle do sistema tem
+        // raio >= 8 e altura >= 36. Não há zona cinzenta entre os dois.
+        if (r < 8 || alt < 36) {
+          fora.push((el.id || el.name || el.tagName.toLowerCase()) + ` raio=${r} alt=${Math.round(alt)}`);
+        }
+      }
+      return fora;
+    });
+    if (achados.length) crus.push([rel, achados.slice(0, 4)]);
+  }
+  provar('todo campo visível tem o desenho do sistema (raio >= 8, altura >= 36)', crus, []);
+
+  await browser.close();
+  srv.close();
+  fs.unlinkSync(arquivo);
 
   // -------------------------------------------------------------------------
   const larguraMax = Math.max(...provas.map((p) => p.descricao.length));
