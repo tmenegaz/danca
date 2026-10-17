@@ -36,9 +36,6 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
           <button class="modal-x" id="btn-fechar" type="button" aria-label="Fechar">&times;</button>
         </div>
         <form class="form" id="form-criar">
-          <p class="nota">Crie uma escola nova a partir daqui. O endereço (slug) da escola e do
-            professor é criado pelo sistema — você só informa os nomes e as senhas. Depois de
-            subir o motor completo, a «Área do Professor» abre com a senha do professor.</p>
           <label class="campo-rotulo" for="nome">Nome da escola</label>
           <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
           <label class="campo-rotulo" for="senha">Senha do administrador (a direção da escola)</label>
@@ -60,27 +57,17 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
             <input id="professor-nome" name="professor-nome" autocomplete="off" placeholder="ex.: Tiago">
             <label class="campo-rotulo" for="professor-sobrenome">Sobrenome (ou apelido) do professor</label>
             <input id="professor-sobrenome" name="professor-sobrenome" autocomplete="off" placeholder="ex.: Menegaz">
-            <p class="nota">O nome vira a <b>pasta</b> do professor —
-              <code>professores/nome-sobrenome/</code> — e é ela que guarda o pacote, os cadernos e
-              os relatórios. Por isso o sobrenome (ou um apelido) é obrigatório: <b>duas pessoas
-              com o mesmo nome não podem dividir a mesma pasta</b>.</p>
           </div>
 
           <div id="bloco-existente" hidden>
             <label class="campo-rotulo" for="professor-existente">Professor</label>
             <select id="professor-existente" name="professor-existente"></select>
-            <p class="nota">A pasta é a mesma — o material dele continua junto, e as escolas dele
-              ficam ligadas ao mesmo nome.</p>
-            <p class="nota" id="nota-sem-professores" hidden>Nenhum professor cadastrado ainda: a
-              primeira escola cria o primeiro professor.</p>
           </div>
 
           <p class="aviso alerta" id="aviso-escola-existente" hidden></p>
 
           <label class="campo-rotulo" for="senha-professor">Senha do professor</label>
           <input id="senha-professor" name="senha-professor" type="password" autocomplete="new-password">
-          <p class="nota">O professor criado aqui é o <b>dono da escola</b> (a direção) — o nome dele
-            pode ser ajustado depois, nos Bastidores · Produção.</p>
           <div class="modal-acoes">
             <button class="acao grande secundario" id="btn-cancelar" type="button">Cancelar</button>
             <button class="acao grande" type="submit">Criar</button>
@@ -98,10 +85,6 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
           <button class="modal-x" id="btn-fechar-apagar" type="button" aria-label="Fechar">&times;</button>
         </div>
         <div class="form">
-          <p class="nota">Apagar é <b>irreversível</b>. O expurgo tira a escola do ar (o Worker e o
-            subdomínio), apaga os dados das alunas guardados no sistema e tira do repositório o
-            pacote e as fontes dela. O <b>índice da escola fica</b> — é ele que registra que a
-            escola existiu: a proveniência acrescenta, não apaga a memória.</p>
           <div class="cartoes" id="apagar-lista"></div>
           <label class="campo-rotulo" for="apagar-confirmacao">Para confirmar, escreva o nome da escola escolhida</label>
           <input id="apagar-confirmacao" autocomplete="off" spellcheck="false" placeholder="o nome exato, ex.: maria">
@@ -334,13 +317,6 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
             align-items: center;
           }
 
-          .form .nota {
-            font-size: .92rem;
-            color: var(--texto-suave);
-            margin: 0 0 .2rem;
-            line-height: 1.45;
-          }
-
           /* A ESCOLHA DO CAMINHO DO PROFESSOR — dois caminhos, um visível por vez. Era um «ou»
              pendurado embaixo do nome, com os campos só desabilitados: lia-se como se o nome
              pudesse ficar em branco E como se a senha do professor fosse do outro caminho. */
@@ -549,7 +525,6 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
 
             document.getElementById("modo-existente").disabled = !pode;
             document.getElementById("opcao-existente").classList.toggle("apagada", !pode);
-            document.getElementById("nota-sem-professores").hidden = temProf;
             document.getElementById("dica-existente").textContent = !escola
               ? "— informe o nome da escola primeiro"
               : (!temProf ? "— nenhum professor cadastrado ainda"
@@ -621,9 +596,18 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
           modal.addEventListener("click", function (e) { if (e.target.closest("[data-fechar]")) fechar(); });
           document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !modal.hidden) fechar(); });
 
+          // A MENSAGEM NASCE NO FIM DO MODAL, e no celular o fim do modal está fora da
+          // tela: o professor enviava, o resultado aparecia abaixo da dobra, e a tela
+          // parecia não ter feito nada. `trazer` rola até ela — e o `block: "nearest"`
+          // evita que o navegador mova a página inteira quando ela já está à vista.
+          function trazer(el) {
+            if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
+
           form.addEventListener("submit", function (e) {
             e.preventDefault();
-            res.className = "res"; res.textContent = "criando...";
+            res.className = "res aviso"; res.textContent = "criando...";
+            trazer(res);
             function v(id) { return (document.getElementById(id) || {}).value || ""; }
             // UM CAMINHO SÓ VAI NO PEDIDO. O Worker decide pela PRESENÇA do professor escolhido
             // (`professorExistente`) — não por um campo em branco que ainda poderia ter valor.
@@ -659,6 +643,7 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
                     + " quem decifra é o próprio sistema.";
                 }
                 res.innerHTML = html;
+                trazer(res);
               }
               else {
                 res.className = "res erro";
@@ -671,8 +656,9 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
                   msg += " O Worker que está no ar NÃO foi tocado: não é o andaime de uma escola nova — é uma escola a sério, e apagá-la seria pior.";
                 }
                 res.textContent = msg;
+                trazer(res);
               }
-            }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; });
+            }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; trazer(res); });
           });
 
           // ---- Apagar escola ------------------------------------------------
@@ -685,6 +671,11 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
           var campoConf = document.getElementById("apagar-confirmacao");
           var btnConfirmar = document.getElementById("btn-confirmar-apagar");
           var resApagar = document.getElementById("res-apagar");
+          // o mesmo `trazer` do outro modal: o resultado nasce no fim da caixa, e no
+          // celular o fim da caixa está fora da tela.
+          function trazerApagar(el) {
+            if (el && el.scrollIntoView) el.scrollIntoView({ block: "nearest", behavior: "smooth" });
+          }
           var escolaEscolhida = null;
 
           function el(tag, classe, conteudo) {
@@ -770,6 +761,7 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
             btnConfirmar.disabled = true;
             resApagar.className = "res aviso";
             resApagar.textContent = "apagando " + slug + "… não feche esta janela.";
+            trazerApagar(resApagar);
             fetch("api/apagar-escola", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
@@ -784,6 +776,7 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
             }).catch(function (err) {
               resApagar.className = "res erro";
               resApagar.textContent = "Erro: " + err.message;
+              trazerApagar(resApagar);
               btnConfirmar.disabled = false;
             });
           });
@@ -794,6 +787,7 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
           function relatar(d, slug) {
             resApagar.className = "res " + (d.ok ? "ok" : "erro");
             resApagar.textContent = "";
+            trazerApagar(resApagar);
             var cx = el("div", "relato");
             cx.appendChild(par(d.ok
               ? "A escola «" + slug + "» foi expurgada."
