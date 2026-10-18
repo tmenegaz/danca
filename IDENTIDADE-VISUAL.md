@@ -534,6 +534,45 @@ ensino referenciado — aqui é leitura». São instruções sobre a interface, 
 o valor vazio já se anuncia com «—». A prova carrega a lista dessas frases e falha se alguma
 voltar.
 
+## O que recolhe no celular — a dobra do índice *(18/10/2026)*
+
+O bloco «Nesta página» é uma **coluna congelada à direita** a partir de 1200px, e abaixo disso
+é um bloco no **topo** do texto. Num telefone, o índice de um documento tem 15, 20, 30 linhas
+— e isso é rolagem antes de se chegar ao conteúdo, que é o que a pessoa veio ler.
+
+A **dobra** resolve: o bloco encolhe até o título e devolve a lista a quem a quiser.
+
+| O que | Como |
+| --- | --- |
+| **Onde existe** | só abaixo de 1200px — o **mesmo corte do layout**, e não o tamanho do aparelho: um portátil de 1000px tem o bloco no topo e o mesmo problema |
+| **O que faz** | recolhe a lista; o título fica. O bloco recolhido tem **66px** e o aberto **562px** num documento real (medido) |
+| **Onde mora o controle** | **abaixo** do título, uma fileira de largura inteira com um glifo — não ao lado, nem à direita |
+| **O estado** | `data-recolhido` no bloco, `aria-expanded` e `aria-label` no botão, e a escolha lembrada **na sessão** (`sessionStorage`) |
+| **Em tela larga** | **não há botão** e o índice **nunca** se fecha: ali a coluna **é** a navegação. A memória da sessão é ignorada de propósito |
+| **Sem JavaScript** | **não há botão nenhum** — nada morto na tela — e o índice fica inteiro, como sempre esteve |
+| **No papel** | o índice sai **inteiro** e o botão não se imprime: papel não tem estado |
+
+**O botão nasce no `assets/nav.js`, e não no HTML.** O documento do pacote é **gerado**
+(pandoc + `ciclo.html`), e um documento já gerado — ou um pacote que não se pode regerar
+porque o plano ainda não foi elicitado — ficaria sem o controle até a geração seguinte.
+Criado no script, ele vale para **todo** documento que carregue `assets/nav.js`, inclusive os
+que já estão no ar. É a única exceção declarada à regra «o markup é do template», e o motivo
+é operacional, não estético.
+
+**O rótulo não é uma palavra escrita à mão.** Sai da `aria-label` do próprio bloco: «Mostrar
+o índice desta página» no documento, «Mostrar o roteiro da elicitação» na porta. Um bloco novo
+com outra `aria-label` ganha o rótulo certo sem ninguém tocar no script.
+
+**E o controle não tem caixa.** Ele é o **pegador** do bloco, não um botão de formulário: sem
+moldura, sem fundo. É a terceira exceção declarada de `provar-celular` (com o `.hamburger` e o
+`.modal-x`) — a regra «todo botão tem os quatro lados» existe para o controle que **deve** ter
+caixa e perde um lado; ela não obriga a desenhar caixa em quem nunca teve.
+
+**Prova.** `node experimentos/provar-dobra-do-indice.js` — 16 verificações em navegador:
+nasce recolhido, o ganho é medido, o toque expande e recolhe, o estado é lembrado ao recarregar
+e na página seguinte, o corte é 1199 × 1200, a memória é ignorada em tela larga, sem JS não há
+botão, no papel o índice sai inteiro, e nenhuma largura estoura.
+
 ## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 
 **O que é.** Uma entrada no **painel administrativo privado**, na área de configuração do sistema,

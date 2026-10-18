@@ -80,6 +80,7 @@ experimentos/*
 !experimentos/provar-proveniencia-e-sessao.js
 !experimentos/provar-selo.js
 !experimentos/provar-ambiente.js
+!experimentos/provar-dobra-do-indice.js
 
 # ============================================================================
 # Caches e ambientes

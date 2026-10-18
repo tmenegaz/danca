@@ -424,8 +424,15 @@ function provar(descricao, obtido, esperado) {
         const cs = getComputedStyle(el);
         const lados = ['borderTopWidth', 'borderRightWidth', 'borderBottomWidth', 'borderLeftWidth']
           .map((p) => parseFloat(cs[p]));
-        // O botão de hambúrguer e o `modal-x` são desenhados sem caixa de propósito.
-        if (el.classList.contains('hamburger') || el.classList.contains('modal-x')) continue;
+        // Os controles desenhados SEM caixa, de propósito e por declaração:
+        //  · `.hamburger` — três traços, nenhuma moldura;
+        //  · `.modal-x` — o «×» de fechar;
+        //  · `.toc-dobra` — o PEGADOR do índice da página (18/10/2026): uma fileira de
+        //    largura inteira com um glifo, sem moldura. Ele não é uma caixa que perdeu um
+        //    lado; nunca teve caixa. A regra abaixo existe para o controle que DEVE ter os
+        //    quatro lados e perde um — e por isso a exceção é declarada aqui, um por um.
+        if (el.classList.contains('hamburger') || el.classList.contains('modal-x')
+          || el.classList.contains('toc-dobra')) continue;
         if (lados.some((v) => v < 1) || new Set(lados).size !== 1) {
           fora.push((el.id || el.className || el.tagName) + ' → ' + lados.join('/'));
         }

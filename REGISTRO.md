@@ -16917,3 +16917,62 @@ está atualizado no repositório, mas o Worker da raiz continua a servir a cópi
 deploy dela. O **catálogo** das seis famílias e o seletor de aparência continuam planeados
 (C15 aberta). As páginas de estudo em `experimentos/` têm cópias antigas de componente e
 continuam fora do contrato, por declaração.
+
+## 18/10/2026 — a dobra do índice da página, no celular
+
+**O que motivou.** O bloco «Nesta página» é uma coluna congelada à direita a partir de 1200px,
+e abaixo disso é um bloco no topo do texto. No telefone, um documento traz 15, 20, 30 linhas de
+índice antes do conteúdo: a rolagem fica enorme, e a navegação atrapalha em vez de ajudar. O
+pedido: um controle que encolha o bloco e o devolva inteiro a quem quiser — **só no celular**,
+**abaixo** do título (não ao lado, como no formulário de turmas).
+
+**O que foi decidido.**
+
+- **O corte é o do layout, não o do aparelho.** O botão existe exactamente onde a coluna
+  congelada não existe (abaixo de 1200px). Um portátil de 1000px tem o bloco no topo e o mesmo
+  problema de rolagem; uma janela estreita no desktop também. Em tela larga não há botão, e o
+  índice **nunca** se fecha: ali a coluna É a navegação.
+- **Nasce recolhido.** É o que devolve a rolagem. O bloco recolhido mede **66px** contra
+  **562px** do aberto num documento real. O estado é lembrado na **sessão** — não é preferência,
+  é o que a pessoa acabou de fazer, e não deve surpreendê-la amanhã.
+- **O botão é criado pelo `assets/nav.js`, não pelo HTML.** O documento do pacote é gerado
+  (pandoc + `ciclo.html`); um documento já gerado — ou um pacote que não se pode regerar
+  porque o plano ainda não foi elicitado, que é o caso deste ciclo — ficaria sem o controle até
+  a geração seguinte. Criado no script, ele vale para todo documento que carregue
+  `assets/nav.js`, inclusive os que já estão no ar. E sem JavaScript não há botão nenhum: nada
+  morto na tela, e o índice fica como sempre esteve.
+- **O rótulo sai da `aria-label` do bloco**, e não de uma palavra fixa: «Mostrar o índice desta
+  página» no pacote, «Mostrar o roteiro da elicitação» na porta. O mesmo controlo serve aos dois
+  blocos — o da porta é o Roteiro da condução.
+- **Sem caixa.** É o pegador do bloco, não um botão de formulário. A primeira versão tinha um
+  filete só em cima, e a `provar-celular` reprovou — «todo botão tem os quatro lados» —, o que
+  era o aviso certo: um controle com um lado só é uma caixa quebrada. O filete saiu; a exceção
+  (sem moldura nenhuma) entrou declarada, ao lado do `.hamburger` e do `.modal-x`.
+- **No papel o índice sai inteiro.** O `@media print` repõe a lista com `!important`, como já
+  faz com os papéis da variante clara: papel não tem estado.
+
+**Onde entrou.** `tools/templates/ciclo.css` (`.toc-dobra`, o corte de 1199px e o `@media
+print`) · `tools/templates/nav.js` (monta o botão, liga o clique, lembra o estado, ignora a
+memória em tela larga) · `experimentos/provar-dobra-do-indice.js` (novo) ·
+`experimentos/provar-celular.js` (a exceção declarada) · `IDENTIDADE-VISUAL.md` (a secção «O que
+recolhe no celular») · as cópias geradas (`assets/style.css` e `assets/nav.js` dos dois pacotes
+e da raiz).
+
+**Medido.** `provar-dobra-do-indice` → 16/16 (nasce recolhido; o ganho é medido; o toque expande
+e recolhe; o estado é lembrado ao recarregar e na página seguinte; o corte é 1199 × 1200; a
+memória é ignorada em 1280 e 1440; sem JS não há botão e o índice fica inteiro; no papel o índice
+sai inteiro; nenhuma largura estoura). Regressão: `provar-celular` 15/15 (com a excepção
+declarada), `provar-tema` 30/30, `provar-cabecalho-do-ato` 40/40, `provar-selo` TUDO CERTO,
+`provar-producao` 126/126, `provar-cartao-da-turma` TUDO CERTO, `provar-menu-da-producao` 26/26,
+`provar-sessao-na-barra` 28/28, `provar-proveniencia-e-sessao` 14/14, `check-identidade` 9
+verificações ok. `provar-ambiente` **antes** do deploy acusou 4 divergências (o `style.css` e o
+`nav.js` no ar eram os de antes); **depois**, 16/16 nas duas escolas.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (a dobra e o corte); a entrada de 18/10/2026 sobre a
+forma partilhada; `CONGELAMENTO.md` (o `tools/templates/` só muda com motivo declarado).
+
+**O que ainda não está feito.** O `.toc-local` da **fita** e da **valse** não tem documentos
+além do índice (o pacote é o scaffold: `DOCS="plano"`, e o plano ainda não foi elicitado), por
+isso a dobra foi medida no índice do pacote e no Roteiro da porta. Os documentos de aula, quando
+existirem, recebem o controle sem nenhuma alteração — é o mesmo `assets/nav.js`. A **raiz**
+(`danca`) continua sem a folha nova no ar até o deploy dela.

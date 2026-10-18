@@ -60,6 +60,86 @@
     });
   }
 
+  /* ------------------------------------------------------------------
+   * A DOBRA DO ÍNDICE DA PÁGINA — «Nesta página» no pacote, «Roteiro» na porta.
+   *
+   * O bloco é uma COLUNA congelada à direita a partir de 1200px; abaixo disso ele é um
+   * bloco no TOPO do texto, e num telefone isso é rolagem antes de se chegar ao
+   * conteúdo. A dobra encolhe o bloco até o título e devolve a lista a quem a quiser.
+   *
+   * O CONTROLE É CRIADO AQUI, e não no HTML, por um motivo medido: o documento do
+   * pacote é GERADO (pandoc + `ciclo.html`), e um documento já gerado — ou um pacote
+   * que não se pode regerar porque o plano ainda não foi elicitado — ficaria sem o
+   * controle até a geração seguinte. Criado no script, ele vale para todo documento
+   * que carregue `assets/nav.js`, inclusive os que já estão no ar. E sem JavaScript
+   * não há botão nenhum: o índice fica como sempre esteve, sem controle morto.
+   *
+   * O ESTADO VIVE NESTA SESSÃO (`sessionStorage`), como o do filtro das listas. Não é
+   * preferência de usuário — é o que a pessoa acabou de fazer, e não deve surpreendê-la
+   * amanhã. Em tela larga não há o que dobrar: a coluna É a navegação, e fica aberta.
+   * ------------------------------------------------------------------ */
+  var CHAVE_DOBRA = 'ciclo:indice';
+  var largo = window.matchMedia('(min-width: 1200px)');
+
+  function lembrarDobra(aberto) {
+    try { sessionStorage.setItem(CHAVE_DOBRA, aberto ? 'aberto' : 'fechado'); } catch (e) { /* modo privado */ }
+  }
+  function dobraLembrada() {
+    try { return sessionStorage.getItem(CHAVE_DOBRA); } catch (e) { return null; }
+  }
+
+  /** Cria o botão logo ABAIXO do título do bloco (e não ao lado, nem à direita). */
+  function montarDobra(bloco, indice) {
+    var titulo = bloco.querySelector('.toc-titulo');
+    var lista = bloco.querySelector('ul, ol');
+    if (!titulo || !lista) return null;
+    if (!lista.id) lista.id = 'toc-corpo-' + indice;
+    var botao = document.createElement('button');
+    botao.type = 'button';
+    botao.className = 'toc-dobra';
+    botao.setAttribute('aria-controls', lista.id);
+    var sinal = document.createElement('span');
+    sinal.className = 'toc-dobra-sinal';
+    sinal.setAttribute('aria-hidden', 'true');
+    botao.appendChild(sinal);
+    titulo.insertAdjacentElement('afterend', botao);
+    return botao;
+  }
+
+  function pintarDobra(bloco, botao, aberto) {
+    // O nome vem da `aria-label` do próprio bloco — «índice desta página» no documento,
+    // «roteiro da elicitação» na porta —, e é o que o leitor de tela anuncia.
+    var nome = (bloco.getAttribute('aria-label') || 'o índice').toLowerCase();
+    var rotulo = (aberto ? 'Recolher ' : 'Mostrar ') + nome;
+    bloco.setAttribute('data-dobra', 'sim');
+    bloco.setAttribute('data-recolhido', aberto ? 'nao' : 'sim');
+    botao.setAttribute('aria-expanded', aberto ? 'true' : 'false');
+    botao.setAttribute('aria-label', rotulo);
+    botao.title = rotulo;
+    var sinal = botao.querySelector('.toc-dobra-sinal');
+    if (sinal) sinal.textContent = aberto ? '\u25BE' : '\u25B8';
+  }
+
+  var dobras = [];
+  document.querySelectorAll('.toc-local').forEach(function (bloco, indice) {
+    var botao = montarDobra(bloco, indice);
+    if (!botao) return;
+    dobras.push({ bloco: bloco, botao: botao });
+    botao.addEventListener('click', function () {
+      var aberto = bloco.getAttribute('data-recolhido') === 'sim';
+      pintarDobra(bloco, botao, aberto);
+      lembrarDobra(aberto);
+    });
+  });
+
+  function aplicarDobras() {
+    dobras.forEach(function (d) {
+      pintarDobra(d.bloco, d.botao, largo.matches ? true : dobraLembrada() === 'aberto');
+    });
+  }
+  aplicarDobras();
+  if (largo.addEventListener) largo.addEventListener('change', aplicarDobras);
+
   /* Página sem navegação (o arquivo é carregado pelo template, não só pelo ciclo):
      sai sem tocar em nada, em vez de estourar mais abaixo. */
   if (!navbar) return;

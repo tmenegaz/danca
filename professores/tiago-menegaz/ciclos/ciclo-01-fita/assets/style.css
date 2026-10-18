@@ -369,6 +369,57 @@ li { margin: 4px 0; }
 .toc-local > ul { padding-left: 0; }
 .toc-local a { color: var(--texto-suave); text-decoration: none; border-bottom: 1px dotted var(--borda); }
 
+/* ---------- a DOBRA do índice (18/10/2026) -----------------------------------------
+   O bloco do índice é uma COLUNA congelada à direita a partir de 1200px; abaixo disso
+   ele é um bloco no TOPO do texto — e num telefone isso é rolagem antes de se chegar ao
+   conteúdo. A dobra encolhe o bloco até o título e devolve a lista a quem a quiser.
+
+   O CONTROLE SÓ EXISTE ONDE A COLUNA NÃO EXISTE, e o critério é o MESMO do layout — a
+   largura, não o tamanho do aparelho. Um portátil de 1000px tem o bloco no topo e o
+   mesmo problema de rolagem; uma janela estreita no desktop também. Em tela larga não
+   há botão, e o índice nunca se fecha: ali ele É a navegação.
+
+   O BOTÃO É CRIADO PELO `assets/nav.js`, e não pelo HTML. O documento do pacote é
+   GERADO (pandoc + `ciclo.html`), e um documento já gerado — ou um pacote que não se
+   pode regerar porque o plano ainda não foi elicitado, que é o caso deste ciclo —
+   ficaria sem o controle até a geração seguinte. Criado no script, ele vale para todo
+   documento que carregue `assets/nav.js`, inclusive os que já estão no ar. E sem
+   JavaScript não há botão nenhum: nada morto na tela, e o índice fica como sempre. */
+.toc-dobra {
+  display: none;
+  width: 100%; margin: 0; padding: var(--esp-2) 0 2px;
+  /* Sem borda: o controle não é uma caixa, é o PEGADOR do bloco. E um botão com um
+     lado só é o defeito que a `provar-celular` existe para impedir («os quatro lados com
+     a mesma espessura») — se a separação fosse desenho, seria um filete falso. */
+  border: 0; border-radius: 0;
+  background: transparent; color: var(--texto-suave);
+  font: 700 13px/1 var(--ui); cursor: pointer;
+  justify-content: center; align-items: center;
+}
+.toc-dobra:hover:not(:disabled) { background: transparent; color: var(--marca); }
+.toc-dobra:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.toc-dobra .toc-dobra-sinal { display: block; line-height: 1; }
+
+@media (max-width: 1199px) {
+  .toc-local[data-dobra="sim"] .toc-dobra { display: flex; }
+  /* RECOLHIDO, o bloco é uma FAIXA: o título e o botão, e mais nada. O padding de baixo
+     encurta para o bloco não ficar alto à toa — é o que se pediu: menos rolagem. */
+  .toc-local[data-recolhido="sim"] { padding-bottom: 6px; }
+  .toc-local[data-recolhido="sim"] .toc-titulo { margin-bottom: 0; }
+  .toc-local[data-recolhido="sim"] ul,
+  .toc-local[data-recolhido="sim"] ol { display: none; }
+}
+/* O PAPEL NÃO TEM DOBRA: no papel o índice sai inteiro, e o botão não se imprime.
+   O `!important` aqui é o MESMO recurso que a impressão já usa para repor os papéis da
+   variante clara — e é necessário: o estado recolhido é um ATRIBUTO na tela, com
+   especificidade maior (`.toc-local[data-recolhido="sim"] ul`), e sem ele o papel sairia
+   com o índice escondido por causa de um toque dado no celular. Papel não tem estado. */
+@media print {
+  .toc-local[data-dobra="sim"] .toc-dobra { display: none !important; }
+  .toc-local[data-recolhido="sim"] ul,
+  .toc-local[data-recolhido="sim"] ol { display: block !important; }
+}
+
 /* ---------- o índice da página: coluna à DIREITA, que acompanha a rolagem ----------
    Até 1199px o índice continua sendo o bloco do topo, como sempre foi. A partir de 1200px
    há largura para duas colunas: o contêiner da página alarga, o texto mantém a medida de
