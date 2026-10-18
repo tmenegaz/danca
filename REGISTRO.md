@@ -17315,3 +17315,92 @@ e 2.5.8 (alvo mínimo de toque).
 tem de declarar** e a medição já feita sobre as duas âncoras da Cortina Turquesa (turquesa × branco
 = 2,42:1 — a barra daquela família não pode ter texto branco). (c) A secção **Aparência** está
 implantada e medida, mas o dono do produto ainda não a viu na tela.
+
+## 18/10/2026 — A segunda família: a Cortina Turquesa, medida antes de existir
+
+**O que motivou.** A pergunta foi directa: «essas imagens servem para obter a paleta?». Serviam
+para três coisas de quatro — direcção, candidatos de hex e estrutura — e **não** serviam para a
+quarta: **os papéis**. Foi preciso mostrar por que, e mostrá-lo com números: medindo os pixels da
+referência, o turquesa dá `#00afc3` (o texto dizia `#00b8c7` — o mesmo tom, dois caminhos
+independentes). E medindo os pares, o mesmo turquesa dá **2,42:1** com branco e **2,52:1** de texto
+sobre o papel: **reprova** nos dois usos que a imagem sugere. Uma cor não é uma paleta; trinta e
+um pares é que são.
+
+**O que foi decidido.** O dono do produto escolheu: **a Cortina Turquesa entra como sétima família
+e é implementada** — barra turquesa com texto escuro, e não o contrário.
+
+- **A família é um SEGUNDO EIXO**, e não um segundo valor do primeiro: `data-paleta` acompanha
+  `data-modo`, e o par é independente (a Cortina tem as duas variantes, como a Bordô). Guardar
+  os dois num campo só obrigaria a enumerar quatro nomes hoje e catorze quando o catálogo fechar.
+- **A folha declara PAPÉIS, não primitivos**, para a segunda família — e a razão é de vocabulário:
+  uma família que declarasse `--burgundy: #00afc3` estaria a mentir no nome, e a regra do
+  contrato é que um apelido não toma o nome de um papel.
+- **`--sobre-marca` é o mesmo nos dois modos** desta família (escuro, `#06202b`), e é o achado: a
+  luminância do acento decide se o texto sobre ele é claro ou escuro. A Bordô tem barra escura com
+  texto creme; a Cortina é o inverso — e é por isso que uma família não se faz trocando o acento.
+- **O filete é neutro, não é o acento.** `--borda-campo` da Cortina é um cinza-turquesa
+  (`#78929d`), não o turquesa: um campo com filete da cor de marca pareceria em foco permanente.
+- **O seletor oferece só as famílias que EXISTEM** — a lista vem do servidor (`PALETAS`), não do
+  documento. Oferecer uma das cinco em estudo daria uma escola pintada de nada.
+
+**Onde entrou.**
+
+- `tools/templates/ciclo.css` — os dois blocos `[data-paleta="cortina"]` e
+  `[data-paleta="cortina"][data-modo="noturna"]`, com os papeis medidos e a nota de cada decisão.
+  A ordem dos blocos é a da cascata e está explicada: `[data-paleta]` e `[data-modo]` empatam em
+  especificidade, e o par tem (0,2,0).
+- `tools/check-identidade.js` — a leitura de tema passou a ser **cumulativa** (`mesclar`), porque
+  a segunda família declara só o que muda e herda o resto; o `lerTema` passou a **tirar os
+  comentários antes de procurar o seletor** (o comentário desta família cita
+  `[data-paleta="cortina"]`), e a exigir o `{` depois do seletor. Os temas passaram de **dois a
+  quatro**: 4 × 31 = **124 pares medidos**.
+- `motor/servidor/bastidores.js` — `PALETAS`; `aparenciaDaEscola` devolve o **par**;
+  `gravarAparencia` aceita mudança parcial e **recusa** a inválida; `/api/bastidores/aparencia`
+  passa a devolver e a aceitar os dois eixos; `cabecalhoDaVista` publica `data-modo`,
+  `data-paleta` e `data-modo-fonte`; a secção **Aparência** ganhou dois grupos de pílulas
+  («Família de cores» e «Variante»); o cliente passou a um laço sobre os dois eixos.
+- `motor/servidor/producao.js` — `comAparencia` recebe o **par**, repõe os dois atributos e
+  publica sempre a família (mesmo a padrão), porque uma página que não diz de que família é obriga
+  toda a prova a tolerar duas formas de dizer o mesmo.
+- `IMPLEMENTACAO-IDENTIDADE.md` — o **2.8** passa a ter a segunda família feita, e o registo de
+  execução regista o dia.
+- `IDENTIDADE-VISUAL.md` — o catálogo passa a **sete famílias, duas implementadas**; a secção
+  «o que uma paleta tem de declarar» ganha a **especificação da Cortina Turquesa** medida, com a
+  tabela dos papéis nas duas variantes; o validador passa a declarar **124 medições**; e a
+  descrição da aparência passa a falar de dois eixos.
+- Provas: `provar-aparencia.js` **69** (eixos independentes, recusa do inválido, publicação da
+  família nas vistas, injeção na ponte, e o par inteiro); `provar-tema.js` **38** (os três
+  atributos no `<html>`); `provar-producao.js` **135** (dois `fieldset`, duas famílias, uma
+  marcada; as pílulas passam a 11).
+
+**Um defeito encontrado NO AR, e corrigido.** Depois do primeiro `deploy`, o KV mostrou uma
+gravação que ninguém tinha pedido explicitamente: a família mudou e o modo voltou atrás. A causa é
+o **«ler-modificar-gravar» sobre um KV eventualmente consistente** — dois pedidos próximos, e um
+deles lê o valor antigo. O remédio não é tentar ser mais rápido: é **o cliente mandar o par
+inteiro** (ele tem os dois valores no `<html>` que acabou de pintar), e o servidor **gravar sem
+ler** quando os dois eixos vêm. Está no código e na prova. Não teria sido encontrado em prova
+local — o KV de mentira é consistente.
+
+**Motivo declarado — os congelados.** `tools/templates/ciclo.css` e
+`tools/check-identidade.js` estão em `CONGELAMENTO.md`. O motivo é a própria entrega: uma família
+nova **é** desenho, e não há como acrescentá-la sem tocar a folha; e o validador teve de aprender
+a medir o produto cartesiano, porque **um tema não medido é um tema que ninguém sabe se passa**.
+**O que não muda:** a fórmula de hash, a cobertura do `.fipp`, os validadores de ciclo, as regras
+pedagógicas e as pétreas do protocolo. Nenhuma fonte de ciclo foi tocada — **não há reancoragem**.
+
+**Com o quê.** `tools/templates/ciclo.css` · `tools/check-identidade.js` ·
+`motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
+`raiz/assets/style.css` · `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/style.css`
+· `IDENTIDADE-VISUAL.md` · `IMPLEMENTACAO-IDENTIDADE.md` ·
+`experimentos/provar-{aparencia,tema,producao}.js` · este registro.
+
+**Referências.** `IDENTIDADE-VISUAL.md` («o que uma paleta tem de declarar» e a especificação da
+Cortina Turquesa; o catálogo das peças) · WCAG 2.1 AA (4,5:1 texto, 3,0:1 traço) ·
+`tools/check-identidade.js` (`PARES`, `TEMAS`).
+
+**O que ainda não está feito.** (a) **Cinco famílias continuam sem hex** — as direções estão no
+catálogo e nenhum valor foi inventado; o formulário que elas têm de preencher está escrito.
+(b) O *quando* a escola escolhe segue aberto, e é de produto. (c) O item de menu **Identidade
+visual** não existe: o controlo vive na secção Aparência, e é lá que fica enquanto for
+configuração e não frente própria. (d) As **imagens de referência não estão no repositório** — são
+estudo, e o que se aproveitou delas está medido e escrito.

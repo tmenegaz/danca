@@ -106,19 +106,43 @@ function lerTokens() {
   return tokens;
 }
 
-// Um TEMA é um bloco que declara papéis (hex ou `var(--primitivo)`). São dois: o
-// `:root` (clara) e `[data-modo="noturna"]`. O valor é resolvido pela cadeia de
-// `var()`, porque na clara quase todo papel aponta para um primitivo.
+// Um TEMA é um bloco que declara papéis (hex ou `var(--primitivo)`). Até 18/10/2026
+// eram dois — `:root` (clara) e `[data-modo="noturna"]`; com a segunda família são
+// QUATRO, porque família × modo é um produto cartesiano, e um tema não medido é um
+// tema que ninguém sabe se passa.
+//
+// A LEITURA PASSA A SER CUMULATIVA, e é o que a segunda família exige. A Cortina
+// declara os papéis QUE MUDAM e herda o resto (os semânticos de estado, por
+// exemplo): ler o bloco sozinho daria «papel inexistente» para metade dos pares.
+// A herança é a mesma do CSS — a cascata —, e por isso a ordem da mesclagem
+// reproduz a ordem do arquivo e a especificidade dos seletores.
+//
+// Os comentários saem ANTES da busca: o comentário desta família CITA
+// `[data-paleta="cortina"]` para dizer por que a ordem importa, e um `indexOf` cru
+// encontraria a citação em vez do seletor. (O `semComentarios` é declarado mais
+// abaixo, mas a declaração de função é içada — e apaga o texto preservando as
+// quebras de linha, o que mantém os números de linha dos erros.)
 function lerTema(seletor) {
-  const css = fs.readFileSync(fonte, 'utf8');
-  const i = css.indexOf(seletor);
-  if (i < 0) return null;
+  const css = semComentarios(fs.readFileSync(fonte, 'utf8'), 'tools/templates/ciclo.css');
+  // O seletor tem de ser seguido de `{` (com espaço), e não de mais seletor: sem
+  // isto, `[data-paleta="cortina"]` cairia dentro do bloco que acrescenta o modo.
+  const re = new RegExp(seletor.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\{');
+  const achado = re.exec(css);
+  if (!achado) return null;
+  const i = achado.index;
   const bloco = css.slice(i, css.indexOf('}', i));
   const mapa = {};
   for (const m of bloco.matchAll(/(--[a-z0-9-]+)\s*:\s*(#[0-9a-fA-F]{3,6}|var\(--[a-z0-9-]+\))/g)) {
     mapa[m[1]] = m[2].toLowerCase();
   }
   return mapa;
+}
+
+/** A cascata, em ordem: o que vem depois sobrescreve. */
+function mesclar(...mapas) {
+  const saida = {};
+  for (const m of mapas) if (m) Object.assign(saida, m);
+  return saida;
 }
 
 function resolver(mapa, nome, vistos) {
@@ -136,9 +160,19 @@ const tokens = lerTokens();
 
 // ------------------------------------------------------------------ 1) paleta
 
+// A ORDEM DE CADA LINHA É A DA CASCATA. Para a Cortina noturna, o arquivo aplica
+// `:root` → `[data-modo="noturna"]` → `[data-paleta="cortina"]` (mesma
+// especificidade, vence por vir depois) → `[data-paleta="cortina"][data-modo="noturna"]`
+// (0,2,0, vence todos). Mesclar noutra ordem mediria um tema que não existe.
 const TEMAS = [
-  ['clara', lerTema(':root')],
-  ['noturna', lerTema('[data-modo="noturna"]')],
+  ['Bordô de Cena — clara', lerTema(':root')],
+  ['Bordô de Cena — noturna', mesclar(lerTema(':root'), lerTema('[data-modo="noturna"]'))],
+  ['Cortina Turquesa — clara', mesclar(lerTema(':root'), lerTema('[data-paleta="cortina"]'))],
+  ['Cortina Turquesa — noturna', mesclar(
+    lerTema(':root'),
+    lerTema('[data-modo="noturna"]'),
+    lerTema('[data-paleta="cortina"]'),
+    lerTema('[data-paleta="cortina"][data-modo="noturna"]'))],
 ];
 
 if (Object.keys(tokens).length) {

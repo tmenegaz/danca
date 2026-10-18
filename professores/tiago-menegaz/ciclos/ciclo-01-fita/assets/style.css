@@ -234,6 +234,160 @@
   --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
 }
 
+/* ============================================================================
+   AS FAMÍLIAS — a segunda paleta *(18/10/2026)*
+
+   UMA FAMÍLIA NÃO É UMA COR: É UM CONJUNTO DE PAPÉIS. O sistema não pergunta
+   «qual é a cor do botão?» — pergunta «e o texto que fica SOBRE ele?», «e o filete
+   do campo, que tem de alcançar 3:1 em três fundos diferentes?». São trinta e um
+   pares medidos, e uma família só existe quando os trinta e um passam.
+
+   POR ISSO ESTE BLOCO DECLARA PAPÉIS, E NÃO PRIMITIVOS. A Bordô de Cena declara
+   primitivos (`--cream`, `--burgundy`) e deixa os papéis derivarem deles, porque
+   nasceu primeiro e a derivação é a sua história. Uma segunda família que
+   declarasse `--burgundy: #00afc3` estaria a mentir no nome — e a regra do
+   contrato é essa: um apelido não toma o nome de um papel. Aqui cada valor é o
+   que ele É.
+
+   O QUE NÃO SE REDECLARA: os semânticos de ESTADO (`--ok`, `--alerta`, `--falha`
+   e os fundos), porque eles INFORMAM e não decoram — o verde é verde em qualquer
+   família. Na clara são os mesmos da casa; na escura, os mesmos da noturna da
+   casa, com os fundos deslocados para o frio.
+
+   `data-paleta="bordo"` é o PADRÃO e não declara nada: o `:root` já é a Bordô de
+   Cena. Um atributo explícito no `<html>` serve para a página DIZER de que família
+   é, e para a prova poder conferir que disse.
+
+   A ORDEM IMPORTA. `[data-paleta="cortina"]` e `[data-modo="noturna"]` têm a mesma
+   especificidade (0,1,0), e o desempate é a posição: este bloco vem DEPOIS, e por
+   isso a Cortina clara vence a Bordô noturna. O par `[data-paleta][data-modo]`
+   tem (0,2,0) e vence os dois — é ele que faz «Cortina noturna» existir.
+   ========================================================================== */
+
+/* ---------- Cortina Turquesa — clara ----------
+   As âncoras vieram da imagem de referência e foram AMOSTRADAS: turquesa #00afc3
+   (medido; o texto de referência dizia #00b8c7, e os dois são o mesmo tom),
+   fundo #f5fafa, tinta #0d1b24.
+
+   TRÊS DESCOBERTAS DA MEDIÇÃO, e nenhuma delas está na imagem:
+
+   1. O TURQUESA NÃO SERVE DE TEXTO. Sobre o papel dá 2,52:1. `--marca` (o papel
+      dos títulos de secção) tem de ser o tom escurecido #00708c — 5,39:1 —, e o
+      turquesa cheio fica só como PREENCHIMENTO (`--marca-fundo`).
+   2. O TURQUESA NÃO ACEITA TEXTO CLARO. Branco sobre ele dá 2,65:1, e não há tom
+      claro nenhum que passe: o `--sobre-marca` desta família é ESCURO (#06202b,
+      6,34:1). É o oposto da Bordô, cuja barra é escura com texto creme — e é a
+      razão pela qual uma família não se faz trocando o acento.
+   3. O NEUTRO MUDA DE TEMPERATURA. O papel da Cortina é frio (#f5fafa) onde o da
+      casa é quente (--cream #fbf8f3). Sete primitivos e os papéis que derivam
+      deles acompanham — a família troca o clima, não só a cor. */
+[data-paleta="cortina"] {
+  --fundo: #f5fafa;
+  --fundo-suave: #edf5f6;
+  --fundo-faixa: #e3eff1;
+  --fundo-hover: #d9e9ec;
+  --fundo-citacao: #eaf4f6;
+  --fundo-codigo: #e7f1f3;
+  --fundo-pre: #eef6f8;
+  --superficie: #ffffff;
+  --superficie-elevada: #ffffff;
+  --texto: #0d1b24;
+  --texto-suave: #4c5f6a;
+  /* O filete é NEUTRO, não é o acento. Um campo com filete turquesa pareceria em
+     foco permanente; na Bordô o filete é ouro-esmaecido pela mesma razão. Este
+     tom alcança 3,12:1 no papel, 3,28:1 na superfície e 3,15:1 no cartão. */
+  --borda: #78929d;
+  --borda-campo: #78929d;
+  --borda-forte: #5a7987;
+  --campo-fundo: #ffffff;
+  --campo-fundo-cartao: #f7fbfc;
+  --marca: #00708c;          /* o acento como TEXTO (5,39:1) */
+  --marca-texto: #00677f;    /* o mesmo, um degrau abaixo (5,51:1 no cabeçalho) */
+  --marca-fundo: #00afc3;    /* o acento como PREENCHIMENTO — a barra */
+  --marca-fundo-hover: #0093a6;
+  --sobre-marca: #06202b;    /* ESCURO: branco sobre turquesa não passa */
+  --texto-destaque-marca: #06202b;
+  --ornamento: #5e8e99;
+  --ornamento-forte: #04414d; /* o filete da barra, escuro sobre o turquesa (4,24:1) */
+  --acao-fundo: #00afc3;
+  --acao-texto: #06202b;
+  --ativo-fundo: #cfe9ec;    /* o item ativo é um chip claro, como o ouro na Bordô */
+  --ativo-texto: #06202b;
+  --foco: #00708c;
+  --veu: rgba(13, 27, 36, .55);
+  --sombra: 0 18px 50px rgba(13, 27, 36, .35);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .18);
+  /* A sombra do controle é do NAVY, não do turquesa: uma sombra colorida pelo
+     acento suja o papel em volta. Na Bordô ela é bordô porque o bordô é escuro;
+     aqui o acento é claro, e a profundidade tem de vir da tinta. */
+  --sombra-controle: 0 2px 6px rgba(13, 27, 36, .20);
+  --sombra-controle-alto: 0 4px 12px rgba(13, 27, 36, .26);
+  --sombra-cartao: 0 2px 10px rgba(13, 27, 36, .06);
+  --foco-halo: 0 0 0 4px rgba(0, 175, 195, .16);
+  --ok-fundo: #eaf5ec;
+  --alerta-fundo: #fbf2da;
+  --falha-fundo: #fbeaea;
+  --derivada-fundo: #ece7f0;
+}
+
+/* ---------- Cortina Turquesa — noturna ----------
+   Concebida, não invertida — a regra da casa. O fundo é o navy da referência
+   (#0a1923 / #0f2332), e o turquesa CONTINUA a ser o preenchimento: aqui ele
+   funciona melhor do que na clara, porque sobre o navy ele alcança 6,06:1 como
+   texto e 6,34:1 como fundo de botão. O `--marca-texto` clareia (#63dbe8) porque
+   sobre o papel escuro o tom de texto da clara desapareceria (10,91:1 contra
+   2,9:1). */
+[data-paleta="cortina"][data-modo="noturna"] {
+  color-scheme: dark;
+  --fundo: #0a1923;
+  --fundo-suave: #0f2332;
+  --fundo-faixa: #142b39;
+  --fundo-hover: #19323f;
+  --fundo-citacao: #142b39;
+  --fundo-codigo: #142b39;
+  --fundo-pre: #0f2332;
+  --superficie: #0f2332;
+  --superficie-elevada: #19323f;
+  --texto: #e4eff2;
+  --texto-suave: #a3bcc4;
+  /* Os filetes clareiam: sobre o navy, o tom da clara dá 2,27:1 e um campo com
+     esse filete desaparece. Medidos: --borda 3,53 / 3,18 · --borda-campo 3,18 /
+     3,88 / 3,50 (fundo / superfície / campo). */
+  --borda: #547382;
+  --borda-campo: #5a7a87;
+  --borda-forte: #628594;
+  --campo-fundo: #142b39;
+  --campo-fundo-cartao: #0f2332;
+  --marca: #00afc3;
+  --marca-texto: #63dbe8;
+  --marca-fundo: #00afc3;
+  --marca-fundo-hover: #2ec3d3;
+  --sobre-marca: #06202b;
+  --texto-destaque-marca: #06202b;
+  --ornamento: #547382;
+  --ornamento-forte: #04333c;
+  --acao-fundo: #00afc3;
+  --acao-texto: #06202b;
+  --ativo-fundo: #cfe9ec;
+  --ativo-texto: #06202b;
+  --foco: #63dbe8;
+  --ok: #7fc79a;
+  --alerta: #e0b467;
+  --falha: #e79a9a;
+  --ok-fundo: #132a25;
+  --alerta-fundo: #2a2417;
+  --falha-fundo: #2e1b1f;
+  --derivada: #c9a8d8;
+  --derivada-fundo: #241d28;
+  --veu: rgba(0, 0, 0, .7);
+  --sombra: 0 18px 50px rgba(0, 0, 0, .6);
+  --sombra-controle: 0 2px 6px rgba(0, 0, 0, .45);
+  --sombra-controle-alto: 0 4px 12px rgba(0, 0, 0, .55);
+  --sombra-cartao: 0 2px 10px rgba(0, 0, 0, .4);
+  --foco-halo: 0 0 0 4px rgba(99, 219, 232, .22);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
 * { box-sizing: border-box; }
 
 html {
