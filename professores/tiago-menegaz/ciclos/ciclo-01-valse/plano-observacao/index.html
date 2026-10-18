@@ -63,6 +63,20 @@
   .barra b { color: var(--texto); font-variant-numeric: tabular-nums; }
   .barra .campo { display: flex; align-items: baseline; gap: .35rem; }
   .barra .campo label { white-space: nowrap; }
+  /* A ESCOLA — INSCRIÇÃO, NÃO CAMPO (18/10/2026). O rótulo é legenda e o valor é
+     TÍTULO: serifa e o ouro da casa, sem caixa, sem altura de campo, sem cursor de
+     texto. O contraste com os controles ao lado é o que diz «isto não se edita» —
+     não um `disabled`, que anuncia um campo desligado. O `:empty` cobre o instante
+     antes da resposta do servidor (e o modo local, quando não há `ESCOLA_SLUG`). */
+  .barra .ctx-rotulo {
+    font: 600 10px/1.6 var(--ui); letter-spacing: .1em; text-transform: uppercase;
+    color: var(--suave); white-space: nowrap;
+  }
+  .barra .ctx-inscricao { font: 700 13.5px/1.6 var(--serif); color: var(--marca-texto); }
+  .barra .ctx-inscricao:empty::before { content: '—'; color: var(--suave); font-weight: 400; }
+  /* A escola que não existe — modo local sem `?escola=` e sem `ESCOLA_SLUG`. A marca é
+     de texto, não de filete: uma caixa não tem borda para ficar vermelha. */
+  .barra .ctx-fixa.falta .ctx-inscricao { color: var(--falha); }
   /* O acordeão do contexto do ato: a linha de fora fica sempre visível (o resumo),
      e os campos abrem por baixo. O `summary` é o cursor do recolher/expandir. */
   .barra details.ctx-ato { flex: 1 1 100%; }
@@ -435,8 +449,19 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
     <summary><span class="ctx-seta">▸</span>Contexto do ato
       <span class="ctx-resumo">escola · professor · ciclo</span></summary>
     <div class="ctx-campos">
-      <span class="campo"><label for="ctx-escola">escola</label>
-        <input type="text" id="ctx-escola" value=""></span>
+      <!-- A ESCOLA NÃO É CAMPO (18/10/2026). Ela era um `<input type=text>` que o professor
+           podia reescrever — e o que ele escrevesse ali não governava nada: o Worker de cada
+           escola resolve o slug por `ESCOLA_SLUG` (uma escola por Worker) e IGNORA o
+           `?escola=` da URL quando a var existe (`escolaDe`, no motor). O campo, portanto,
+           não era entrada: era um lugar onde dava para escrever uma escola que não existe,
+           com o sistema a gravar outra em silêncio. Aqui ele passa a ser o que sempre foi —
+           uma INSCRIÇÃO: o nome da escola a que esta página pertence, em texto, ao lado do
+           rótulo. O `<input>` continua no DOM, `hidden`, porque é dele que saem a chave do
+           depósito local, o envelope e a query dos atalhos; quem o preenche é o servidor. -->
+      <span class="campo ctx-fixa" id="ctx-escola-campo">
+        <span class="ctx-rotulo">escola</span>
+        <span class="ctx-inscricao" id="ctx-escola-nome">—</span>
+        <input type="hidden" id="ctx-escola" value=""></span>
       <span class="campo"><label for="ctx-professor">professor</label>
         <select id="ctx-professor"><option value="">— escolher —</option></select></span>
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
@@ -774,6 +799,56 @@ async function carregarAlunas() {
 }
 
 /*
+ * A ESCOLA DESTA PÁGINA — inscrita, não digitada (18/10/2026).
+ *
+ * A fonte é o SERVIDOR: cada escola é um Worker, e o `ESCOLA_SLUG` dele é quem manda
+ * (`escolaDe`, no motor, ignora o `?escola=` da URL quando a var existe). O valor chega
+ * junto com a lista de professores, e o que se pinta aqui é ele — nunca o que o professor
+ * escreveria, que era o defeito: o campo aceitava `outra-escola` e o sistema gravava a
+ * dele, sem avisar.
+ *
+ * O `<input>` continua no DOM, `hidden`, porque é a fonte única que a chave do depósito
+ * local, o envelope e os atalhos leem — assim nenhuma dessas leituras mudou. O que mudou
+ * foi quem o preenche.
+ *
+ * SEM SERVIDOR (modo local, `node motor/servidor/node.js`), a resposta não traz a escola e
+ * aí o `?escola=` da URL continua valendo: é o mesmo critério do `escolaDe`, só que na
+ * ordem inversa. Página sem escola nenhuma mostra «—» e o resumo da barra diz que falta.
+ */
+function fixarEscola(doServidor) {
+  const entrada = $('ctx-escola');
+  const nome = $('ctx-escola-nome');
+  const daUrl = new URLSearchParams(location.search).get('escola') || '';
+  const canonica = String(doServidor || '').trim()
+    || ESCOLA_CANONICA
+    || (entrada && String(entrada.value || '').trim())
+    || daUrl;
+  ESCOLA_CANONICA = canonica;
+  if (entrada) entrada.value = canonica;
+  if (nome) nome.textContent = canonica;
+}
+// O que o servidor já disse. Guardado para ser REAFIRMADO: qualquer caminho que escreva no
+// campo oculto (a URL, um envelope antigo) chama `fixarEscola()` no fim e a escola volta
+// a ser a desta página. Sem isto, um envelope de outra escola reescreveria a identidade.
+let ESCOLA_CANONICA = '';
+
+/*
+ * UMA requisição para os dois dados que a barra precisa — a escola e a lista de
+ * professores. As duas vêm de `api/bastidores/professores`, e pedir duas vezes abriria a
+ * janela para elas discordarem (a escola de uma resposta, o professor da outra).
+ * A promessa é guardada; falhar devolve `{}` e cada consumidor trata o vazio.
+ */
+let PROMESSA_BASTIDORES = null;
+function dadosDosBastidores() {
+  if (!PROMESSA_BASTIDORES) {
+    PROMESSA_BASTIDORES = fetch('/api/bastidores/professores')
+      .then((resposta) => resposta.json())
+      .catch(() => ({}));
+  }
+  return PROMESSA_BASTIDORES;
+}
+
+/*
  * Os PROFESSORES também viram lista — a MESMA solução das alunas: o seletor vem dos
  * Bastidores (`api/bastidores/professores`, o dono primeiro + os adicionais), e vale nas
  * TRÊS fontes (anamnese, plano e PO), porque o professor identifica o ato em todas. O nome
@@ -783,8 +858,9 @@ async function carregarProfessores() {
   const sel = $('ctx-professor');
   if (!sel) return;
   try {
-    const resposta = await fetch('/api/bastidores/professores');
-    const dados = await resposta.json();
+    const dados = await dadosDosBastidores();
+    // A MESMA resposta traz a escola — e é ela, não a URL, que vale (ver `fixarEscola`).
+    fixarEscola(dados && dados.escola);
     const lista = Array.isArray(dados.professores) ? dados.professores : [];
     const daUrl = new URLSearchParams(location.search).get('professor') || '';
     const atual = sel.value || daUrl;
@@ -1400,6 +1476,11 @@ function aplicarContextoDoEnvelope(envelope) {
     }
     entrada.value = valor;
   }
+  // A ESCOLA NÃO VEM DO ENVELOPE (18/10/2026). Ela é do Worker que serve a página: o
+  // envelope pode até trazer uma, mas quem manda é o servidor — `fixarEscola()` reafirma a
+  // dele por cima do que a linha acima escreveu. Se um dia houver duas escolas num Worker
+  // só, esta continua a ser a regra, e a tela não mente sobre onde o dado mora.
+  fixarEscola();
   marcarContextoFaltando();
   atualizarComecar();
 }
@@ -5851,6 +5932,11 @@ async function iniciar() {
   // O contexto do ato pode vir da URL: um atalho que abre a anamnese já com o
   // apelido do sujeito (o PO aponta para onde a anamnese se cria, sem a criar).
   // É conveniência de transporte, não decisão: o campo continua editável.
+  //
+  // A ESCOLA É A EXCEÇÃO (18/10/2026): ela não é decisão de ninguém. A URL a semeia
+  // para o modo local — onde não há Worker para dizer o slug — e o servidor a
+  // sobrescreve quando responde (`fixarEscola`, em `carregarProfessores`). O que o
+  // professor lê na tela é sempre o que o sistema vai gravar.
   {
     const params = new URLSearchParams(location.search);
     for (const campo of ['escola', 'professor', 'ciclo', 'aluna']) {
@@ -5858,6 +5944,10 @@ async function iniciar() {
       const el = document.getElementById('ctx-' + campo);
       if (valor && el) el.value = valor;
     }
+    fixarEscola('');
+    // Dispara a busca UMA vez; `carregarProfessores` e a fixação da escola esperam a mesma
+    // promessa. Duas requisições para a mesma resposta seriam duas chances de discordar.
+    dadosDosBastidores();
     // Os campos de TEXTO (escola, ciclo) já valem aqui. Os dois `select`
     // (professor, aluna) só recebem valor quando as opções chegam do servidor —
     // por isso eles se resolvem em `carregarProfessores` e `carregarAlunas`, e a
@@ -5884,6 +5974,12 @@ async function iniciar() {
   if (FONTE === 'plano' || FONTE === 'po') renderTurmaDoCabecalho();
 
   let autoAbrir = false;
+  // A ESCOLA ANTES DA MEMÓRIA. O depósito local é chaveado por escola · professor · ciclo
+  // (`chaveDaMemoria`), então a escola tem de ser a definitiva ANTES de se ler o rascunho —
+  // senão um `?escola=` forjado leria uma chave que não é a do dado real. A promessa foi
+  // disparada junto com a semeadura da URL (uma requisição só, compartilhada com a lista de
+  // professores) e aqui só se espera por ela.
+  fixarEscola((await dadosDosBastidores()).escola);
   const guardado = lerMemoria();
   if (guardado) {
     // A anamnese, o PO e o plano retomam a própria memória — cada um no seu
