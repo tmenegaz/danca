@@ -506,7 +506,7 @@ nome que decidia onde ele caía.
 | 7.3 | A curadoria segue a mesma regra; a modalidade desce para a segunda linha | `[x]` 18/10 — medido: 2 linhas, 67px |
 | 7.4 | «dono — criado na página» passa a «principal», e o `slug` sai da lista | `[x]` 18/10 — `bastidores.js` |
 | 7.5 | As demais listas falam a mesma língua (nomes em `<b>`, como o principal) | `[x]` 18/10 — professor e aluna |
-| 7.6 | O **cartão da turma** — três propostas (gaveta, escala, três números) | `[ ]` 18/10 — na página de estudos, **aguarda escolha** |
+| 7.6 | O **cartão da turma** — três propostas (gaveta, escala, três números) e o **híbrido** | `[ ]` 18/10 — na página de estudos, **aguarda escolha** |
 
 ### A regra, e por que ela é `flex` e não `block`
 
@@ -548,6 +548,7 @@ do telefone, na pele já adotada (E, HarmonyOS).
 | **T1 · Gaveta** | nome, estado, três contagens | 1 + 1 | esconde a régua e os conteúdos (`<details>` nativo) |
 | **T2 · Escala** | **tudo**; a régua vira uma barra de 4 degraus | 1 | mais alta por turma; a barra colore muito |
 | **T3 · Três números** | nome, estado, três números | 1 + 1 | depende de um balão, que não existe no resto do sistema |
+| **T4 · Híbrido** | nome, estado, três números | 1 + 1 | o painel da T3 com a riqueza da T2 — e **reaproveita** a escala e os chips dela |
 
 **Sobre o balão da T3, e é o que decide.** O dono do produto sugeriu os «izinhos» com tooltip e
 levantou o problema certo sozinho: *«no celular o dedo atrapalha»*. Não existe hover no telefone.
@@ -558,3 +559,14 @@ componente que o sistema não tem.
 
 **Conferido depois da mudança.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 ·
 `provar-celular` 15/15 · `provar-tema` 30/30 · `check-identidade` 8/8.
+
+**O híbrido (T4), e o que ele obrigou a mudar.** O dono do produto gostou da riqueza da T2 (a
+escala com cores, os chips) e da economia da T3, mas recusou o painel da T3: «abre um texto duro».
+A T4 é a T3 com o painel da T2 lá dentro — e para isso a **escala** e o **chip** deixaram de ser
+peças da T2 e passaram a ser **componentes partilhados** (`[data-card] .escala` / `.chip`). Se o
+híbrido trouxesse a sua própria cópia, a mesma régua teria duas cores no dia em que uma fosse
+corrigida. Foi o mesmo raciocínio que fez o `<details>` da T1 ser nativo: um componente a mais é
+uma coisa a mais para manter em dois lugares.
+
+E a célula passou a dizer que está aberta (`data-aberto="sim"`): sem isso o painel aparece abaixo
+da fila de números e não se sabe de onde veio.
