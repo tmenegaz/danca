@@ -203,6 +203,45 @@ const FAMILIAS_MEDIDAS = [...new Set(
     return achado ? achado[1] : nome;
   }))].sort();
 
+// A TERCEIRA LISTA: a que o SELETOR oferece (`PALETAS`, em `motor/servidor/bastidores.js`).
+// Ela é lida daqui — e não repetida — porque foi exatamente esta a avaria de 18/10/2026: a
+// ponte de produção tinha `['bordo', 'cortina']` escrito à mão, a terceira família entrou, e
+// `verde` caiu no padrão em tudo o que a escola serve por ali. A Produção pintava de verde e a
+// anamnese, o plano e o pacote ficavam bordô — «a cor só tem efeito dentro dos bastidores».
+// Uma lista da mesma coisa por sítio é uma lista a menos; aqui as três são conferidas.
+function familiasDoSeletor() {
+  const arq = path.join(raiz, 'motor/servidor/bastidores.js');
+  if (!fs.existsSync(arq)) return null;
+  const texto = semComentarios(fs.readFileSync(arq, 'utf8'), 'motor/servidor/bastidores.js');
+  const i = texto.indexOf('const PALETAS = [');
+  if (i < 0) return null;
+  const bloco = texto.slice(i, texto.indexOf('];', i));
+  return [...bloco.matchAll(/\{\s*id:\s*'([a-z0-9-]+)'/g)].map((m) => m[1]).sort();
+}
+
+// NENHUMA OUTRA LISTA À MÃO. A varredura é estreita de propósito: procura ids de família
+// entre aspas no código de `motor/` (fora de comentários). Um arquivo que cite DOIS ids
+// diferentes está a enumerar famílias — e essa enumeração vive num lugar só, `PALETAS`.
+// Citar UM id é legítimo (um padrão, um exemplo, uma rota); enumerar não é.
+function listasEscritasAMao(ids) {
+  const achados = [];
+  const varrer = (dir) => {
+    for (const entrada of fs.readdirSync(dir, { withFileTypes: true })) {
+      const alvo = path.join(dir, entrada.name);
+      if (entrada.isDirectory()) { varrer(alvo); continue; }
+      if (!/\.js$/.test(entrada.name)) continue;
+      const rel = path.relative(raiz, alvo);
+      if (rel === path.join('motor/servidor/bastidores.js')) continue; // a fonte da lista
+      const texto = semComentarios(fs.readFileSync(alvo, 'utf8'), rel);
+      const citados = ids.filter((id) =>
+        new RegExp("['\"]" + id + "['\"]").test(texto));
+      if (citados.length >= 2) achados.push(rel + ' (' + citados.join(', ') + ')');
+    }
+  };
+  if (fs.existsSync(path.join(raiz, 'motor'))) varrer(path.join(raiz, 'motor'));
+  return achados;
+}
+
 // O `:root` é a família de base e não declara `[data-paleta]`: os temas dela são os dois
 // primeiros, sem sufixo de paleta. Cada família da folha custa DOIS temas (clara e noturna).
 const FAMILIAS_ESPERADAS = FAMILIAS_NA_FOLHA.length + 1;
@@ -221,6 +260,44 @@ if (FAMILIAS_MEDIDAS.length !== FAMILIAS_ESPERADAS) {
   }
   ok.push(`Famílias: ${FAMILIAS_MEDIDAS.length} medidas (${FAMILIAS_MEDIDAS.join(' · ')}), ` +
     'e são exatamente as que a folha declara');
+}
+
+// ── a folha, o validador e o SELETOR dizem o mesmo ────────────────────────────────────────
+// A família PADRÃO não tem bloco `[data-paleta]`: ela É o `:root`. Por isso entra na conta
+// dos dois lados — o seletor oferece-a, a folha desenha-a, só não por um seletor de paleta.
+const FAMILIA_PADRAO = 'bordo';
+const idsNaFolha = [FAMILIA_PADRAO, ...FAMILIAS_NA_FOLHA].sort();
+const idsDoSeletor = familiasDoSeletor();
+if (idsDoSeletor === null) {
+  erros.push('Identidade: não consegui ler a lista PALETAS de motor/servidor/bastidores.js — ' +
+    'sem ela não há como conferir que o seletor oferece o que a folha desenha');
+} else {
+  const soNaFolha = idsNaFolha.filter((id) => idsDoSeletor.indexOf(id) === -1);
+  const soNoSeletor = idsDoSeletor.filter((id) => idsNaFolha.indexOf(id) === -1);
+  if (soNaFolha.length) {
+    erros.push(`Identidade: a folha desenha ${soNaFolha.join(', ')} e o seletor não oferece — ` +
+      'uma família desenhada que ninguém pode escolher');
+  }
+  if (soNoSeletor.length) {
+    erros.push(`Identidade: o seletor oferece ${soNoSeletor.join(', ')} e a folha não desenha — ` +
+      'escolher essa família pintaria a escola de nada');
+  }
+  if (!soNaFolha.length && !soNoSeletor.length) {
+    ok.push(`Seletor: oferece exatamente as ${idsDoSeletor.length} famílias da folha ` +
+      `(${idsDoSeletor.join(' · ')})`);
+  }
+}
+
+// ── e nenhuma outra lista escrita à mão ───────────────────────────────────────────────────
+const aMao = listasEscritasAMao(idsDoSeletor || []);
+if (aMao.length) {
+  for (const achado of aMao) {
+    erros.push(`Identidade: ${achado} enumera famílias à mão — a lista é PALETAS ` +
+      '(motor/servidor/bastidores.js), e uma segunda cópia foi a avaria de 18/10/2026: ' +
+      'a terceira família não passou na ponte e o site ficou metade verde, metade bordô');
+  }
+} else {
+  ok.push('Lista de famílias: nenhum outro arquivo a enumera — só PALETAS');
 }
 
 if (Object.keys(tokens).length) {

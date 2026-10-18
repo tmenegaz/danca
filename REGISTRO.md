@@ -17778,3 +17778,78 @@ do PDF (só o `:root`), e não foi revista nesta entrada. (c) Os documentos que 
 «doze» ou «sete» famílias fora dos dois que esta entrada tocou —
 `PLANEJAMENTO-LASTRO.md`, §L13 — **não** foram atualizados: o número de lá é o do planejamento, e
 mexer nele é reescrever o plano, não corrigir deriva.
+
+## 18/10/2026 — A família da escola chega a tudo o que ela serve, e a lista do telefone desce
+
+**O que motivou.** Leitura da direção, na tela: «a nova cor, o verde, que ficou bem bonito, só tá
+tendo efeito dentro de bastidores. Não tá tendo efeito no restante, tem que ter efeito em tudo». No
+mesmo dia, e na mesma frase: na **lista de alunas** do telemóvel as etiquetas de estado («livre»,
+«vinculada») tinham de descer para a segunda linha, junto da coluna de turma e do botão — «faz
+igual a gente adotou nos termos cadastrados».
+
+**A causa da cor, e ela era uma só.** `motor/servidor/producao.js` decidia a família com uma lista
+**escrita à mão**: `['bordo','cortina'].indexOf(pedida)`. A Verde de Ensaio entrou no catálogo
+(commit `77ed2d6`), a Produção passou a oferecê-la e a pintar — mas a **ponte** é outro leitor, e
+para ela `verde` não existia: caía em `PALETA_PADRAO`. A ponte serve exactamente o que a Produção
+não serve: o pacote do ciclo, a página de lançamento e a **porta** (anamnese, plano de ensino,
+plano de observação). Daí o sintoma exato que a direção viu: verde dentro dos Bastidores, bordô em
+tudo o resto. Duas listas da mesma coisa é uma lista a menos.
+
+**O que foi decidido.**
+- **A lista de famílias tem um dono só.** `PALETAS`, `IDS_DAS_PALETAS` e `PALETA_PADRAO` passam a
+  ser exportados por `motor/servidor/bastidores.js` — que é quem desenha o seletor —, e a ponte
+  **importa**. Nenhum outro arquivo volta a enumerar famílias.
+- **A guarda que faltava, em duas frentes** (no validador, porque é lá que as duas listas se
+  encontram): a checagem **«Seletor»** compara `PALETAS` com os blocos `[data-paleta]` da folha nas
+  duas direções; a checagem **«Lista de famílias»** varre `motor/**/*.js` e reprova o arquivo que
+  cite **duas ou mais** famílias — um id isolado é legítimo (um padrão, um exemplo), dois são uma
+  enumeração a mais. Provada por controlo negativo: repondo a lista à mão em `producao.js`, ela
+  reprova com a mensagem certa.
+- **A prova que teria apanhado o defeito, ao vivo.** `provar-ambiente.js` passou a comparar a
+  família que a **porta** declara com a que a **Produção** declara, na mesma escola. Não fixa qual
+  é: a preferência é da escola (C15) e a prova não tem opinião sobre ela. Custo zero — as duas
+  páginas já eram baixadas. `provar-aparencia.js` passou a **iterar `IDS_DAS_PALETAS`** em vez de
+  nomear duas famílias: era por nomear que ele dizia «ok» com a ponte a recusar a terceira.
+- **A lista do telefone.** Até 560px o item de lista simples vira uma grelha de três faixas —
+  nome em cima (uma linha, com reticências, nunca a quebrar), o complemento quando existe, e
+  embaixo a etiqueta de estado, a coluna de turma e o botão. O selo sai da primeira linha por
+  `display: contents` nos invólucros `.nome` e `.linha1`: um neto não se coloca numa faixa da
+  grelha do avô, mas dissolver o pai, sim — e sem marcação nova. A regra é uma só, e serve as
+  alunas, os termos, as curadorias, os professores e os vínculos.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — exporta `PALETAS`, `IDS_DAS_PALETAS`, `PALETA_PADRAO`; a regra
+  `@media (max-width:560px)` da lista simples, comentada com o porquê do `display:contents`.
+- `motor/servidor/producao.js` — importa a lista e deixa de a escrever; o comentário no
+  `comAparencia` guarda o sintoma («a cor só tem efeito dentro dos bastidores») para quem ali mexer.
+- `experimentos/provar-ambiente.js` — a comparação porta × Produção, sem requisição nova (continua
+  **14 ao ar, 2 escolas × ~7**).
+- `experimentos/provar-aparencia.js` — o laço sobre o catálogo (72 de 72).
+- `experimentos/provar-linhas-da-lista.js` — a prova passa a **saber de que lado da regra está**:
+  até 560px exige que o selo desça, divida a faixa com a turma e o botão e que o nome fique sozinho
+  em cima; acima disso mantém a regra antiga (o selo **dentro** da primeira linha). Afirmar uma só
+  das duas reprovaria a outra — e foi o que aconteceu quando a regra do telefone entrou. Controlo
+  negativo: o motor de `HEAD` reprova exactamente as 8 afirmações estreitas.
+- **Motivo declarado — os congelados.** `tools/check-identidade.js` é congelado. O motivo é o
+  produto: a terceira família existe e **a ponte a recusava em silêncio**, porque a lista de
+  famílias tinha dois donos. As duas checagens novas fecham essa classe de defeito — não a família
+  do dia, mas «uma lista de famílias escrita à mão noutro arquivo». **Não muda** a fórmula do hash,
+  a cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum
+  componente existente foi tocado; as checagens passam de 9 para 11 e as linhas verdes de 15 para 17
+  (186 pares em AA, inalterados).
+
+**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
+`tools/check-identidade.js` · `experimentos/provar-ambiente.js` ·
+`experimentos/provar-aparencia.js` · `experimentos/provar-linhas-da-lista.js` · este registro.
+
+**Verificação ao ar, no fim, uma carga por escola.** `provar-ambiente` **TUDO CERTO**, 14
+requisições: em `fita` a porta declara `data-paleta="verde"` nos três caminhos (anamnese, plano de
+ensino, plano de observação) e a Produção também — é a correção, medida. Em `valse` as duas dizem
+`bordo`: a preferência guardada daquela escola é bordo, não um defeito; muda-se em **Produção →
+Aparência**, num clique, e é o clique que antes não pegava.
+
+**O que ainda não está feito.** (a) O **PDF** continua na paleta vigente, declaradamente
+(`lib-tokens.js`). (b) A lista de **turmas** no telemóvel não entra nesta regra: o cartão da turma é
+outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
+**1025–1199px** continua sem prova (`provar-celular` mede até 1024) — dívida antiga, não desta
+entrada.

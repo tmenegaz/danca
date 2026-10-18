@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T20:18:08-0300`
-Commit atual: `9fc7ee7` — docs(agentes): medir na bancada local, e o ar só na conferência final
+Gerado em: `2026-10-18T20:40:18-0300`
+Commit atual: `482aeda` — feat(estrutura): o seletor da escola oferece três famílias, e o medidor fica no repositório
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+482aeda feat(estrutura): o seletor da escola oferece três famílias, e o medidor fica no repositório
+77ed2d6 feat(tools): a Verde de Ensaio entra, o catálogo fecha em três, e a guarda que faltava
 9fc7ee7 docs(agentes): medir na bancada local, e o ar só na conferência final
 a1a750e fix(estrutura): o resumo da faixa desce em vez de se espremer, e a lista não mente
 a524428 feat(estrutura): o cabeçalho do ato cabe em 360px, e a barra vira a decisão tomada
@@ -80,8 +82,6 @@ ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, a
 f9b416b fix(estrutura): a etiqueta é uma só — e o que está no ar é o motor
 dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando não cabe
 724f202 docs(experimentos): o ☰ da S5 andava, e a barra da página ficava presa
-9444099 docs(experimentos): a S5 — a sessão sobe para a barra do sistema SEM levar o hambúrguer
-7d8d6e3 docs(estrutura): a fase 7 fecha os passos, e a regra das duas linhas ganha o mecanismo
 ```
 
 ## Por professor
@@ -147,95 +147,82 @@ dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando n
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — O catálogo de paletas fecha em três: a Verde de Ensaio entra, quatro saem
+## 18/10/2026 — A família da escola chega a tudo o que ela serve, e a lista do telefone desce
 
-**O que motivou.** O **2.8** — o catálogo das paletas — era o último item aberto da identidade, e
-estava parado à espera de duas coisas diferentes: as **âncoras de cor** (que não se inventam) e uma
-**decisão de produto** (quantas famílias o sistema deve oferecer). Na sessão anterior as cinco
-famílias que faltavam foram **medidas** — 310 medições, todas a passar — e o dono do produto
-decidiu: **fica a Verde de Ensaio, e as outras quatro saem**; o catálogo fecha em **três**, e o
-**PDF fica declaradamente na paleta vigente**.
+**O que motivou.** Leitura da direção, na tela: «a nova cor, o verde, que ficou bem bonito, só tá
+tendo efeito dentro de bastidores. Não tá tendo efeito no restante, tem que ter efeito em tudo». No
+mesmo dia, e na mesma frase: na **lista de alunas** do telemóvel as etiquetas de estado («livre»,
+«vinculada») tinham de descer para a segunda linha, junto da coluna de turma e do botão — «faz
+igual a gente adotou nos termos cadastrados».
+
+**A causa da cor, e ela era uma só.** `motor/servidor/producao.js` decidia a família com uma lista
+**escrita à mão**: `['bordo','cortina'].indexOf(pedida)`. A Verde de Ensaio entrou no catálogo
+(commit `77ed2d6`), a Produção passou a oferecê-la e a pintar — mas a **ponte** é outro leitor, e
+para ela `verde` não existia: caía em `PALETA_PADRAO`. A ponte serve exactamente o que a Produção
+não serve: o pacote do ciclo, a página de lançamento e a **porta** (anamnese, plano de ensino,
+plano de observação). Daí o sintoma exato que a direção viu: verde dentro dos Bastidores, bordô em
+tudo o resto. Duas listas da mesma coisa é uma lista a menos.
 
 **O que foi decidido.**
-- **Três famílias, seis temas, 186 pares.** Bordô de Cena (vigente, o `:root`), Cortina Turquesa e
-  **Verde de Ensaio**. O seletor da escola passa a oferecer as três, nos dois eixos que já tinha.
-- **As quatro abandonadas ficam nomeadas**, não apagadas: `IDENTIDADE-VISUAL.md` lista as sete com
-  o estado ao lado, e diz por que as quatro saíram. Uma família que desaparece sem rastro é uma
-  família que alguém propõe outra vez. Os valores ficam no histórico do Git.
-- **A Verde de Ensaio entra com a procedência dita.** Quatro das cinco âncoras do dono entraram
-  **intactas**: o fundo `#f4f0e7`, o texto `#303631`, a sálvia `#879783` (no **preenchimento** — a
-  barra e a ação, com texto escuro em cima) e a madeira `#9a856c` (no **filete**, onde dá 3,11:1).
-  A única recusada é a sálvia **como texto**: 2,72:1 sobre o papel e 2,92:1 sobre a superfície,
-  contra o piso 4,5:1. O texto desce para `#4f6650` (5,51:1) — e o valor coincide quase exatamente
-  com o `#507048` **amostrado da logo da mesma cor**, que ele enviou: dois caminhos, o mesmo tom.
-- **A guarda que faltava, e que a terceira família tornou obrigatória.** `TEMAS` era uma lista
-  escrita à mão que **ninguém conferia contra a folha**: um bloco `[data-paleta="nova"]` entrava,
-  ficava desenhado, aparecia no seletor — e nenhum par dele era medido. A checagem **9 «Famílias»**
-  conta as famílias que o `ciclo.css` declara (fora de comentários) e compara-as com as que `TEMAS`
-  mede; reprova nos dois sentidos. É o princípio do «Declarante» aplicado às famílias.
-- **O PDF fica na vigente, e isso é decisão.** `tools/lib-tokens.js` lê só o `:root`, e passa a
-  dizê-lo no próprio arquivo, com o motivo: o documento impresso é **da casa, não do tema**, e dois
-  cadernos da mesma escola têm de ser comparáveis no papel.
+- **A lista de famílias tem um dono só.** `PALETAS`, `IDS_DAS_PALETAS` e `PALETA_PADRAO` passam a
+  ser exportados por `motor/servidor/bastidores.js` — que é quem desenha o seletor —, e a ponte
+  **importa**. Nenhum outro arquivo volta a enumerar famílias.
+- **A guarda que faltava, em duas frentes** (no validador, porque é lá que as duas listas se
+  encontram): a checagem **«Seletor»** compara `PALETAS` com os blocos `[data-paleta]` da folha nas
+  duas direções; a checagem **«Lista de famílias»** varre `motor/**/*.js` e reprova o arquivo que
+  cite **duas ou mais** famílias — um id isolado é legítimo (um padrão, um exemplo), dois são uma
+  enumeração a mais. Provada por controlo negativo: repondo a lista à mão em `producao.js`, ela
+  reprova com a mensagem certa.
+- **A prova que teria apanhado o defeito, ao vivo.** `provar-ambiente.js` passou a comparar a
+  família que a **porta** declara com a que a **Produção** declara, na mesma escola. Não fixa qual
+  é: a preferência é da escola (C15) e a prova não tem opinião sobre ela. Custo zero — as duas
+  páginas já eram baixadas. `provar-aparencia.js` passou a **iterar `IDS_DAS_PALETAS`** em vez de
+  nomear duas famílias: era por nomear que ele dizia «ok» com a ponte a recusar a terceira.
+- **A lista do telefone.** Até 560px o item de lista simples vira uma grelha de três faixas —
+  nome em cima (uma linha, com reticências, nunca a quebrar), o complemento quando existe, e
+  embaixo a etiqueta de estado, a coluna de turma e o botão. O selo sai da primeira linha por
+  `display: contents` nos invólucros `.nome` e `.linha1`: um neto não se coloca numa faixa da
+  grelha do avô, mas dissolver o pai, sim — e sem marcação nova. A regra é uma só, e serve as
+  alunas, os termos, as curadorias, os professores e os vínculos.
 
 **Onde entrou.**
-- `tools/templates/ciclo.css` — os dois blocos `[data-paleta="verde"]` (clara e noturna), com um
-  cabeçalho que diz a procedência de cada valor e a âncora recusada com o número que a recusou.
-- `tools/check-identidade.js` — os dois temas novos em `TEMAS` (6 temas, 186 pares) e a checagem
-  **9 «Famílias»**, com a comparação folha × validador nos dois sentidos. Provada pelo negativo:
-  um `[data-paleta="fantasma"]` acrescentado à folha **reprova** com a mensagem certa.
-- `tools/lib-tokens.js` — o comentário que declara a decisão do PDF onde ela se aplica.
-- `motor/servidor/bastidores.js` — `PALETAS` ganha `{ id: 'verde', nome: 'Verde de Ensaio' }`,
-  e o comentário do catálogo fechado. É a lista que o seletor da escola lê.
-- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/style.css` e `raiz/` — as cópias
-  regeradas (`gerar-raiz.sh` para a raiz).
-- `experimentos/medir-paletas.js` (**novo**, versionado) — mede a família contra os **mesmos 31
-  pares** do validador (lidos do próprio arquivo, não copiados), com um **resolvedor** que calcula
-  o degrau de um tom em falta preservando a matiz, e três modos: relatório, `--css` (os blocos para
-  a folha) e `--html` (a secção do estudo). As quatro famílias abandonadas saíram dele.
-- `experimentos/opcoes-visuais/index.html` — a secção **P** passa a ter uma família, e diz que o
-  catálogo fechou em três e como se entra na folha.
-- `experimentos/provar-aparencia.js` — a lista de famílias passa a três (o contrato com o seletor),
-  e o caso «família que não existe» passou a usar `gala` — uma família que **existiu** e foi
-  abandonada, que é o caso mais duro para a validação.
-- `experimentos/provar-producao.js` — as duas contagens de pílula e de família (3 famílias, 12
-  pílulas no total).
-- `IDENTIDADE-VISUAL.md` — o catálogo das paletas reescrito (três implementadas, quatro
-  abandonadas com a razão), a **especificação da Verde de Ensaio**, a decisão do PDF, a nona
-  checagem, e a correção datada da nota que dizia «nada foi implementado».
-- `IMPLEMENTACAO-IDENTIDADE.md` — o **2.8 fecha** (`[x]`), com a correção datada na glosa do topo.
-- **Motivo declarado — os congelados.** `tools/templates/ciclo.css`, `tools/check-identidade.js` e
-  `tools/lib-tokens.js` são congelados. O motivo é o produto: a terceira família foi **decidida**, e
-  a guarda que a acompanha existe porque sem ela a folha e o validador podiam divergir em silêncio
-  — que é precisamente o defeito que a identidade passou o dia a fechar. **Não muda** a fórmula do
-  hash, a cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum
-  componente existente foi tocado; e as checagens passam de 8 para 9, com as 15 linhas verdes
-  (186 pares em AA).
+- `motor/servidor/bastidores.js` — exporta `PALETAS`, `IDS_DAS_PALETAS`, `PALETA_PADRAO`; a regra
+  `@media (max-width:560px)` da lista simples, comentada com o porquê do `display:contents`.
+- `motor/servidor/producao.js` — importa a lista e deixa de a escrever; o comentário no
+  `comAparencia` guarda o sintoma («a cor só tem efeito dentro dos bastidores») para quem ali mexer.
+- `experimentos/provar-ambiente.js` — a comparação porta × Produção, sem requisição nova (continua
+  **14 ao ar, 2 escolas × ~7**).
+- `experimentos/provar-aparencia.js` — o laço sobre o catálogo (72 de 72).
+- `experimentos/provar-linhas-da-lista.js` — a prova passa a **saber de que lado da regra está**:
+  até 560px exige que o selo desça, divida a faixa com a turma e o botão e que o nome fique sozinho
+  em cima; acima disso mantém a regra antiga (o selo **dentro** da primeira linha). Afirmar uma só
+  das duas reprovaria a outra — e foi o que aconteceu quando a regra do telefone entrou. Controlo
+  negativo: o motor de `HEAD` reprova exactamente as 8 afirmações estreitas.
+- **Motivo declarado — os congelados.** `tools/check-identidade.js` é congelado. O motivo é o
+  produto: a terceira família existe e **a ponte a recusava em silêncio**, porque a lista de
+  famílias tinha dois donos. As duas checagens novas fecham essa classe de defeito — não a família
+  do dia, mas «uma lista de famílias escrita à mão noutro arquivo». **Não muda** a fórmula do hash,
+  a cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum
+  componente existente foi tocado; as checagens passam de 9 para 11 e as linhas verdes de 15 para 17
+  (186 pares em AA, inalterados).
 
-**Com o quê.** `tools/templates/ciclo.css` · `tools/check-identidade.js` · `tools/lib-tokens.js` ·
-`motor/servidor/bastidores.js` · as duas cópias de `assets/style.css` e a raiz ·
-`experimentos/medir-paletas.js` · `experimentos/opcoes-visuais/index.html` ·
-`experimentos/provar-aparencia.js` · `experimentos/provar-producao.js` · `IDENTIDADE-VISUAL.md` ·
-`IMPLEMENTACAO-IDENTIDADE.md` · este registro.
+**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
+`tools/check-identidade.js` · `experimentos/provar-ambiente.js` ·
+`experimentos/provar-aparencia.js` · `experimentos/provar-linhas-da-lista.js` · este registro.
 
-**Referências.** `experimentos/medir-paletas.js` (as 62 medições da família, com o resolvedor e a
-procedência de cada valor) · WCAG 2.1 AA (1.4.3 e 1.4.11, os pisos de 4,5:1 e 3,0:1) ·
-`IDENTIDADE-VISUAL.md` §«O que uma paleta tem de declarar para existir» (o formulário de papéis) ·
-a logo `img/logo_verde.png`, amostrada (não versionada: imagem de referência não entra no repo).
+**Verificação ao ar, no fim, uma carga por escola.** `provar-ambiente` **TUDO CERTO**, 14
+requisições: em `fita` a porta declara `data-paleta="verde"` nos três caminhos (anamnese, plano de
+ensino, plano de observação) e a Produção também — é a correção, medida. Em `valse` as duas dizem
+`bordo`: a preferência guardada daquela escola é bordo, não um defeito; muda-se em **Produção →
+Aparência**, num clique, e é o clique que antes não pegava.
 
-**O que ainda não está feito.** (a) O **PDF** continua na vigente — é decisão, mas o gerador **não
-tem** como receber a paleta; quem quiser a família da escola no papel muda `lib-tokens.js` e a
-decisão, e não é trabalho de uma linha. (b) A **`cor da marca` no deck Marp** segue a mesma regra
-do PDF (só o `:root`), e não foi revista nesta entrada. (c) Os documentos que ainda falam em
-«doze» ou «sete» famílias fora dos dois que esta entrada tocou —
-`PLANEJAMENTO-LASTRO.md`, §L13 — **não** foram atualizados: o número de lá é o do planejamento, e
-mexer nele é reescrever o plano, não corrigir deriva.
+**O que ainda não está feito.** (a) O **PDF** continua na paleta vigente, declaradamente
+(`lib-tokens.js`). (b) A lista de **turmas** no telemóvel não entra nesta regra: o cartão da turma é
+outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
+**1025–1199px** continua sem prova (`provar-celular` mede até 1024) — dívida antiga, não desta
+entrada.
 
 ## O que está pendente
-
-## 18/10/2026 — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar
-
-(a) O arranjo da **barra de botões** está proposto e **não**
-escolhido — depende do dono do produto, e é ele que decide entre B1, B2 e B3. (b) O mesmo para as
 
 ## 18/10/2026 — O cabeçalho do ato cabe em 360px, e a barra de botões vira a decisão tomada
 
@@ -274,6 +261,12 @@ do PDF (só o `:root`), e não foi revista nesta entrada. (c) Os documentos que 
 «doze» ou «sete» famílias fora dos dois que esta entrada tocou —
 `PLANEJAMENTO-LASTRO.md`, §L13 — **não** foram atualizados: o número de lá é o do planejamento, e
 mexer nele é reescrever o plano, não corrigir deriva.
+
+## 18/10/2026 — A família da escola chega a tudo o que ela serve, e a lista do telefone desce
+
+(a) O **PDF** continua na paleta vigente, declaradamente
+(`lib-tokens.js`). (b) A lista de **turmas** no telemóvel não entra nesta regra: o cartão da turma é
+outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
 
 ## Pendências anteriores (índice)
 
@@ -472,6 +465,7 @@ mexer nele é reescrever o plano, não corrigir deriva.
 - **18/10/2026** — A aparência passou a ser da escola, e o servidor aplica-a → `REGISTRO.md` L17140
 - **18/10/2026** — O catálogo das peças: um nome antes do desenho → `REGISTRO.md` L17229
 - **18/10/2026** — A segunda família: a Cortina Turquesa, medida antes de… → `REGISTRO.md` L17319
+- **18/10/2026** — O cabeçalho do ato cresce, e o «Fechar» deixa de… → `REGISTRO.md` L17408
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
