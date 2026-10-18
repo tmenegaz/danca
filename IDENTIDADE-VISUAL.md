@@ -7,13 +7,18 @@
 > o que se declara aqui é o **método** de fixar a identidade, não o gosto de um
 > universo.
 
-> **Atualização de 16/10/2026 — a identidade vigente não muda; o catálogo abre.** O dono do
-> produto explorou **visualmente** seis direções de paleta, cada uma com uma variante **clara** e
-> uma **noturna**, e pediu que o estudo fosse **registado** — sem eleger identidade nova, sem
-> implementar seletor e sem tocar na interface. A identidade vigente continua a ser **esta**, a de
-> bordô e ouro, com os valores que os tokens abaixo declaram; as seis famílias são **estudo**, e
-> estão em «O catálogo planejado», depois do validador. **Nada foi implementado** — nem paleta,
-> nem seletor, nem item de menu —, e nenhum hex das famílias foi inventado.
+> **Atualização de 18/10/2026 — o catálogo FECHOU em três, e as três estão no ar.** O que esta
+> nota dizia em 16/10 («nada foi implementado») está **superado**: hoje há **três famílias com hex
+> medidos** na folha — **Bordô de Cena** (a vigente, e o `:root`), **Cortina Turquesa** e **Verde
+> de Ensaio** —, um **seletor de dois eixos** em Produção → Aparência, e a escolha é **da escola**,
+> servida no `<html>` de todas as superfícies. As outras quatro direções que chegaram a ser medidas
+> foram **abandonadas** por decisão de produto. A identidade vigente continua a ser a de bordô e
+> ouro, com os valores que os tokens abaixo declaram — as famílias são camadas por cima do
+> `:root`, e **186 pares** são medidos a cada verificação. Ver «O catálogo das PALETAS», depois do
+> validador.
+>
+> **A nota de 16/10 não é apagada** — fica como o elo que registra o que se pensava antes, e a
+> frase «nada foi implementado» é verdadeira **na data dela**.
 
 ## Por que este documento existe
 
@@ -190,7 +195,8 @@ O que passa a valer, e é o que está implementado:
 | **o portão** | `senhaDaDirecaoOk` (as duas senhas acima, e mais nenhuma) |
 
 **Os dois eixos são independentes** — família × variante é um produto cartesiano, e guardá-los
-num só campo obrigaria a enumerar quatro nomes hoje e catorze quando o catálogo fechar. E o
+num só campo obrigaria a enumerar quatro nomes à mão hoje — e mais dois por cada família que
+entrasse. E o
 pedido que o cliente envia leva **o par inteiro**: o KV é eventualmente consistente, e um
 «ler-modificar-gravar» com pedidos parciais perde uma mudança quando duas chegam próximas — o que
 foi observado no ar, em 18/10/2026.
@@ -312,19 +318,19 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas oito checagens
+## O validador, e as suas nove checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
 
 1. **Contraste** — mede cada par de `PARES` (de **papéis**, não de valores) contra o
-   seu piso, em **cada tema**: hoje são **quatro** temas, porque família × modo é um produto
-   cartesiano — 31 pares × 4 = **124 medições**. Um tema não medido é um tema que ninguém sabe
-   se passa, e a segunda família foi acrescentada **já medida** (foi por isso que ela não caiu).
+   seu piso, em **cada tema**: hoje são **seis** temas, porque família × modo é um produto
+   cartesiano — 31 pares × 6 = **186 medições**. Um tema não medido é um tema que ninguém sabe
+   se passa, e cada família foi acrescentada **já medida** (foi por isso que nenhuma caiu).
    Inclui os fundos de estado (`--ok-fundo`, `--alerta-fundo`, `--falha-fundo`,
    `--derivada-fundo`), onde o texto semântico é lido.
 2. **Cópia única** — nenhum dos hex da paleta pode aparecer fora de
-   `tools/templates/ciclo.css` (são **85** hoje: a folha passou a declarar as duas famílias). Comentários que **citam** um valor para explicar por
+   `tools/templates/ciclo.css` (são **139** hoje: a folha declara as três famílias). Comentários que **citam** um valor para explicar por
    que ele saiu não contam como redeclaração. A varredura cobre a raiz, a porta, os
    bastidores, a ficha e as páginas de estado — e normaliza `#abc` para `#aabbcc`.
 3. **Papel** — nenhuma superfície de interface usa um **primitivo** (`--cream`,
@@ -361,6 +367,13 @@ falhar. Ele confere:
    escrita) ou é **erro**. É a checagem que faltava à «Forma»: ela mede a **cópia**, não o
    **nome**. A mesma passagem confere que a folha não tem **comentário aberto** — um `/*` sem
    `*/` engole as regras seguintes e as peças de lá ficam sem desenho, sem nada falhar.
+9. **Famílias** — a folha e o validador dizem o **mesmo**. Conta as famílias que o
+   `ciclo.css` declara (`[data-paleta="…"]`, fora de comentários) e compara-as com as que
+   `TEMAS` mede: uma família a mais na folha é uma família **sem medição**, e reprova. Nasceu
+   em 18/10/2026, com a terceira família — até então `TEMAS` era uma lista escrita à mão que
+   ninguém conferia contra a fonte, e as duas podiam divergir em silêncio: a folha a dizer uma
+   coisa, o validador a medir outra, e os dois a passar. É o mesmo princípio do «Declarante»,
+   aplicado às famílias em vez dos tokens.
 
 ### A regra da composição — o que a «Forma» impede *(18/10/2026)*
 
@@ -494,7 +507,7 @@ Uma peça nova **nasce inteira**, no mesmo commit, e nesta ordem:
 Enquanto isso não acontecer, a peça **não existe** — e usá-la é o defeito que este catálogo
 existe para impedir.
 
-## O catálogo das PALETAS — sete famílias, duas implementadas *(revisto em 18/10/2026)*
+## O catálogo das PALETAS — três famílias, três implementadas *(fechado em 18/10/2026)*
 
 > **Não confundir com o «catálogo das peças»**, acima: aquele é o dos **componentes** (o que
 > desenha um botão, um selo, uma pílula) e existe; este é o das **paletas** de cor, e está
@@ -513,58 +526,67 @@ medidos individualmente** antes de qualquer implementação.
 > ou código pequeno, o que se lê ali é legenda da imagem, não valor a copiar. O que se aproveita
 > delas é a **direção** — a temperatura, o contraste, o clima —, e é isso que a tabela regista.
 
-**As seis famílias.** Os nomes são **proposta**, sujeitos a revisão na implementação.
+**As famílias.** Três estão na folha; as quatro de baixo foram abandonadas, e ficam nomeadas para
+que a decisão seja legível.
 
-| # | Família | Carácter |
-|:--|:--|:--|
-| 1 | **Bordô de Cena** | **a identidade vigente.** Teatro clássico: bordô e ouro |
-| 2 | **Verde de Ensaio** | verde sálvia, neutros quentes, referências naturais |
-| 3 | **Azul de Gala** | azul profundo e ouro, de carácter teatral |
-| 4 | **Prata de Palco** | bege, prata e grafite — clássico e discreto |
-| 5 | **Azul de Bastidores** | azul administrativo, claro e funcional, na linhagem das interfaces contemporâneas de produtividade — **sem reproduzir marca nenhuma** |
-| 6 | **Luz de Camarim** | minimalista, neutra e luminosa, com acentos azuis discretos |
-| 7 | **Cortina Turquesa** | turquesa de cortina de palco sobre navy profundo, neutros frios — **a segunda implementada** |
+| # | Família | Carácter | Estado |
+|:--|:--|:--|:--|
+| 1 | **Bordô de Cena** | **a identidade vigente.** Teatro clássico: bordô e ouro | **implementada** |
+| 2 | **Cortina Turquesa** | turquesa de cortina de palco sobre navy profundo, neutros frios | **implementada** |
+| 3 | **Verde de Ensaio** | verde sálvia, neutros quentes, referências naturais | **implementada** |
+| — | Azul de Gala | azul profundo e ouro, de carácter teatral | **abandonada** |
+| — | Prata de Palco | bege, prata e grafite — clássico e discreto | **abandonada** |
+| — | Azul de Bastidores | azul administrativo, claro e funcional | **abandonada** |
+| — | Luz de Camarim | minimalista, neutra e luminosa, com acentos azuis discretos | **abandonada** |
 
-> **Estado em 18/10/2026: duas famílias têm hex medidos e estão na folha** — a **Bordô de
-> Cena** (a vigente) e a **Cortina Turquesa**. As outras cinco continuam **estudo**: as
-> direções estão registadas, os valores não. O seletor da escola oferece **só as duas**, e
-> essa lista vem do servidor (`PALETAS`, em `motor/servidor/bastidores.js`), não deste
-> documento — oferecer uma família sem desenho daria uma escola pintada de nada.
+> **O catálogo FECHOU em três (18/10/2026), por decisão de produto.** As quatro de baixo chegaram
+> a ser **medidas** — 31 pares cada, nas duas variantes, todas a passar — e foram abandonadas: um
+> catálogo de sete não se escolhe, e três cobrem o que o produto precisa de dizer (a casa, uma
+> alternativa fria, uma alternativa quente). Os valores delas ficam no histórico do Git; voltar
+> com uma é **refazer a medição**, não descomentar um bloco. A tabela fica com as quatro para que
+> a decisão seja legível — uma família que desaparece sem deixar rastro é uma família que alguém
+> vai propor outra vez.
+
+> **Estado em 18/10/2026: as três famílias têm hex medidos e estão na folha** — a **Bordô de
+> Cena** (a vigente), a **Cortina Turquesa** e a **Verde de Ensaio**. O seletor da escola
+> oferece **exatamente estas três**, e essa lista vem do servidor (`PALETAS`, em
+> `motor/servidor/bastidores.js`), não deste documento — oferecer uma família sem desenho daria
+> uma escola pintada de nada.
+>
+> **E a folha e o validador não podem divergir.** A checagem **«Famílias»** conta as famílias
+> que o `ciclo.css` declara (`[data-paleta="…"]`) e compara-as com os temas que `TEMAS` mede;
+> uma família a mais na folha — isto é, **sem medição** — reprova. Era a guarda que faltava:
+> até 18/10/2026 a lista era escrita à mão dos dois lados e as duas podiam divergir em silêncio.
 
 **Cada família tem duas variantes — clara e noturna.** E a noturna **não é** a clara invertida:
 ela é concebida **para aquela família**, porque inverter não preserva o que a família tem de
 próprio.
 
-**A lista que o seletor oferecerá — catorze opções, nesta ordem** (as sete famílias × clara e
-noturna). Hoje ele oferece quatro delas, porque só duas famílias têm hex:
+**A lista que o seletor oferece — três famílias, dois modos.** O seletor tem **dois eixos**
+(«Família de cores» e «Variante»), e não seis opções numa lista só: quem escolhe escolhe uma
+família e depois um modo, e o produto cartesiano é do servidor.
 
-- **Bordô de Cena — Clara** ✔ implementada
-- **Bordô de Cena — Noturna** ✔ implementada
-- Verde de Ensaio — Clara
-- Verde de Ensaio — Noturna
-- Azul de Gala — Clara
-- Azul de Gala — Noturna
-- Prata de Palco — Clara
-- Prata de Palco — Noturna
-- Azul de Bastidores — Clara
-- Azul de Bastidores — Noturna
-- Luz de Camarim — Clara
-- Luz de Camarim — Noturna
-- **Cortina Turquesa — Clara** ✔ implementada
-- **Cortina Turquesa — Noturna** ✔ implementada
+- **Bordô de Cena** — clara · noturna
+- **Cortina Turquesa** — clara · noturna
+- **Verde de Ensaio** — clara · noturna
 
-**A ordem é a do catálogo, e as duas variantes de uma família ficam juntas** de propósito: quem
-escolhe escolhe uma **família** e depois um **modo**, e uma lista em que as doze aparecessem
-embaralhadas obrigaria a ler as doze para achar as duas da mesma família.
+**Seis temas medidos — 31 pares cada, 186 no total.** É o número que o validador imprime, e é
+ele que tem de bater com a folha (a checagem «Famílias»).
 
 **A identidade vigente é a de Bordô de Cena, e ela continua a valer.** Bordô de Cena **não é** a
-primeira de doze candidatas: é a paleta que está no ar, com os valores que este documento declara
-— e é ela que o `ciclo.css`, o PDF e o deck continuam a usar enquanto o seletor não existir. As
-outras cinco, e a variante noturna da própria Bordô de Cena, são **estudo**.
+primeira de três candidatas: é a paleta que está no ar, e é o **padrão** de quem nunca escolheu
+nada. O `:root` da folha é ela.
+
+> **E o PDF fica declaradamente na vigente** *(decisão de produto, 18/10/2026)*. `tools/lib-tokens.js`
+> lê só o `:root`, e é isso que o gerador injeta no LaTeX: uma escola em Cortina Turquesa ou Verde
+> de Ensaio tem o **site** na família dela e o **PDF** na Bordô. Não é esquecimento — é decisão: o
+> documento impresso é **da casa, não do tema**, e um PDF que muda de cor conforme a preferência de
+> quem o gerou torna dois cadernos da mesma escola incomparáveis no papel. Quem quiser o PDF na
+> família da escola tem de mudar o gerador (receber a paleta por parâmetro) **e** esta decisão.
 
 > **O que a vigente NÃO muda.** Os tokens, os pares medidos, o piso de contraste e
-> `tools/templates/ciclo.css` como fonte única. A chegada do catálogo é **acréscimo**, não
-> substituição — e enquanto não houver decisão, é o que está escrito acima desta secção que vale.
+> `tools/templates/ciclo.css` como fonte única. As famílias novas são **acréscimo**, não
+> substituição: a Bordô continua a ser o `:root`, e uma família é uma camada por cima dele.
 
 ### O que uma paleta tem de declarar para existir *(18/10/2026)*
 
@@ -645,9 +667,48 @@ turquesa e o texto sobre ela é escuro. Na Bordô, a barra é escura e o texto c
 não é de gosto, é de **luminância do acento**. Uma família cujo acento é claro **não pode**
 herdar o par de outra; e é por isso que a segunda família não se fez mudando um token.
 
-**Provado.** `node tools/check-identidade.js` mede **quatro temas × 31 pares = 124 pares**, todos
-em AA ou acima (antes eram dois temas). E o `provar-aparencia.js` mede o comportamento: a família
-e o modo são **eixos independentes**, gravam-se separados, e a página declara de que família é.
+**Provado.** `node tools/check-identidade.js` mede os pares de cada tema, e o `provar-aparencia.js`
+mede o comportamento: a família e o modo são **eixos independentes**, gravam-se separados, e a
+página declara de que família é.
+
+### A Verde de Ensaio, especificada e medida *(18/10/2026)*
+
+**A terceira e última família.** As âncoras vieram em texto — fundo `#f4f0e7`, texto `#303631`,
+sálvia `#879783`, madeira `#9a856c`, e o fundo noturno `#2b2b27` com texto `#e8e5d9`.
+
+**Quatro das cinco âncoras entraram intactas**, no papel que lhes cabe: o fundo, o texto, a sálvia
+(no **preenchimento** — a barra e a ação) e a madeira (no **filete**, onde dá 3,11:1 contra o piso
+de 3,0). Todo o resto é derivado e medido.
+
+**O que a medição decidiu:**
+
+| Decisão | Por quê |
+| :-- | :-- |
+| a sálvia **não** é `--marca`/`--marca-texto` | como texto dá **2,72:1** sobre o papel e **2,92:1** sobre a superfície (piso 4,5:1) |
+| `--marca-fundo` = a sálvia, com texto **escuro** `#171c18` | o par da barra é o que mais falha: escuro sobre sálvia dá **5,19:1** |
+| `--marca` = `#4f6650` | 5,51:1; e coincide quase exatamente com o `#507048` **amostrado da logo da mesma cor** — dois caminhos, o mesmo tom |
+| `--acao-fundo` = a sálvia, com texto escuro | um botão cheio de sálvia com branco dá **3,10:1**; com escuro, 5,19:1 |
+| os neutros ficam **quentes** (`#f4f0e7`, `#e6e0d2`) | é o que distingue a família da Cortina, que é fria |
+| noturno com `--borda` mais claro que o do claro | sobre `#2b2b27` o filete do claro dá 2,87:1 e o campo desaparece |
+
+**As duas variantes, papéis principais:**
+
+| Papel | Clara | Noturna |
+| :-- | :-- | :-- |
+| `--fundo` | `#f4f0e7` | `#2b2b27` |
+| `--superficie` | `#fbf8f2` | `#31312d` |
+| `--texto` | `#303631` | `#e8e5d9` |
+| `--texto-suave` | `#4d544e` | `#b9b6a9` |
+| `--marca` | `#4f6650` | `#a9bb9f` |
+| `--marca-fundo` | `#879783` | `#879783` |
+| `--sobre-marca` | `#171c18` | `#1c231d` |
+| `--borda` | `#9a856c` | `#797a71` |
+| `--foco` | `#4f6650` | `#bfcdb5` |
+
+**A terceira família fecha o catálogo, e é ela que obrigou a guarda.** Com três famílias, `TEMAS`
+passou a ser uma lista de seis temas — e uma lista escrita à mão que ninguém confere contra a
+folha é uma lista que diverge em silêncio. A checagem **«Famílias»** nasceu aqui: ela conta as
+famílias que o `ciclo.css` declara e compara-as com as que `TEMAS` mede. Reprova nos dois sentidos.
 
 ## A aparência — o que existe hoje *(revisto em 18/10/2026)*
 
@@ -671,11 +732,12 @@ aí não há Worker a pôr o atributo, e a memória do navegador é a única inf
 guarda `!hasAttribute('data-modo-fonte')` é o que impede que essa rede desfaça, nas páginas
 **servidas**, a decisão da escola.
 
-**O que continua planejado — e não implementado.** Das sete famílias, **duas** têm hex medidos e
-estão na folha (Bordô de Cena e Cortina Turquesa); as outras **cinco** continuam estudo. Falta
-especificar e medir os hex dessas cinco — e nenhum se inventa. O item de menu **Identidade
-visual** também não existe: o controlo vive na secção **Aparência** da Produção, e é lá que fica
-enquanto for uma configuração da escola e não uma frente própria.
+**O que fica declaradamente fora.** O catálogo **fechou em três** (18/10/2026): as quatro
+famílias restantes foram abandonadas por decisão de produto, depois de medidas. **O PDF fica na
+paleta vigente** — `tools/lib-tokens.js` lê só o `:root`, e é decisão, não pendência: o documento
+impresso é da casa, não do tema. E o item de menu **Identidade visual** não existe: o controlo
+vive na secção **Aparência** da Produção, e é lá que fica enquanto for configuração da escola e
+não frente própria.
 
 > **A C15, e a resposta (18/10/2026).** Ela perguntava **de quem é a preferência de aparência** —
 > da **escola**, do **usuário** ou do **navegador** —, e estava aberta porque a medição mostrou
@@ -985,11 +1047,11 @@ Os **fundos reais** que a conferência tem de cobrir, hoje, são os que o `ciclo
   no `REGISTRO.md`. **A implementação do seletor mexe nos três** — e é por isso que
   ela será commit próprio, com o motivo escrito, e não um ajuste de forma no meio de
   outro trabalho.
-- **Não implementa o que planeja.** O catálogo das seis famílias e o seletor global
-  de paleta estão **registados**, não construídos: não há paleta nova no
-  `ciclo.css`, não há item de menu «Identidade visual», não há troca de tema — e
-  nada disso foi tocado nesta rodada. **Documentado não é implementado**, e a
-  distinção fica escrita para que a próxima leitura não a confunda.
-- **Não substitui a identidade vigente.** Enquanto não houver decisão declarada, a
-  identidade do sistema é a de **bordô e ouro**, com os valores dos tokens — e as
-  seis famílias ficam como **estudo**: elegíveis, não eleitas.
+- **Chegou a implementar o que planejou, e depois fechou o catálogo.** O seletor de
+  aparência **existe** (Produção → Aparência, dois eixos), e as três famílias têm
+  hex medidos no `ciclo.css`. As outras quatro foram **abandonadas** em 18/10/2026,
+  depois de medidas — e é por isso que a tabela deste documento as nomeia em vez
+  de as apagar: uma família que desaparece sem rastro é proposta outra vez.
+- **Não substitui a identidade vigente.** A Bordô de Cena é o `:root`, é o padrão de
+  quem nunca escolheu nada, e é a paleta do PDF e do deck. Uma família é uma
+  **camada por cima** dela, não uma troca.

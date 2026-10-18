@@ -17,12 +17,18 @@
 > o plano não previa. Onde um número deste arquivo envelheceu, ele fica com **nota datada** —
 > nunca é apagado.
 >
-> **A decisão que faltava foi tomada.** O **2.8** — o catálogo das doze paletas — era o único item
-> aberto, e estava à espera da **C15**. Em **18/10/2026** o dono do produto decidiu: **a
-> preferência de aparência é da escola**. O item **não fecha** com isso, e é importante dizer por
-> quê: a decisão foi sobre **quem escolhe**, não sobre **quais são** — os hex das doze combinações
-> **continuam a não existir** no repositório, e não se inventam. O que a decisão destrava está no
-> §L13 do `PLANEJAMENTO-LASTRO.md` (V0 fechada; V1 é o próximo passo, e é de **desenho+medição**).
+> **A decisão que faltava foi tomada — e o item fechou.** O **2.8** — o catálogo das paletas —
+> era o único item aberto, e estava à espera da **C15**. Em **18/10/2026** o dono do produto
+> decidiu duas coisas: **a preferência de aparência é da escola**, e **o catálogo fecha em três
+> famílias**. As três — **Bordô de Cena** (vigente), **Cortina Turquesa** e **Verde de Ensaio** —
+> têm hex **medidos e na folha**: seis temas, **186 pares** em AA. As outras quatro direções
+> chegaram a ser medidas em `experimentos/medir-paletas.js` e foram **abandonadas** por decisão de
+> produto (os valores ficam no histórico do Git). **O PDF fica declaradamente na paleta vigente.**
+>
+> **O que esta nota corrige.** A redação anterior dizia que «o item não fecha», porque os hex das
+> doze combinações não existiam. Eles existiram (sete famílias medidas), e o produto ficou com
+> três: o que fechou o item não foi ter doze — foi **decidir quantas**. A redação anterior não é
+> apagada: fica como o elo que registra o que se pensava antes do fecho.
 
 > **O que é a C15 — e a resposta (glossário, para não obrigar a saltar para o planeamento).** As
 > decisões do produto estão numeradas em `PLANEJAMENTO-LASTRO.md` (`C1`, `C2`, `C11`, `C13`,
@@ -186,7 +192,7 @@ camada de componentes.
 | 2.5 | `@media print` força os papéis claros | `[x]` 17/10 — `!important`, explícito |
 | 2.6 | Validador mede **todos** os temas e o uso de papel | `[x]` 17/10 — 31 pares × 2 temas; guard de primitivo |
 | 2.7 | Layouts: `data-layout="documento" \| "painel"` | `[x]` 17/10 |
-| 2.8 | Seletor de aparência — **catálogo** das paletas | `[ ]` **C15 decidida em 18/10/2026 — a preferência é da escola** (ver a glosa no topo). **O (b) e o (c) estão feitos** desde 18/10: o servidor aplica a aparência da escola e o controlo existe em Produção. **E há uma segunda família implementada** — a **Cortina Turquesa**, especificada e medida (o cabeçalho do §«o que uma paleta tem de declarar» tem a tabela). São **duas famílias × dois modos**, e não doze. O que falta **não é decisão, é trabalho**: (a) **especificar e medir** os hex das **cinco famílias restantes** — nenhum existe, e nenhum se inventa (V1 do §L13); (b) ~~o servidor aplicando a paleta da escola~~ — **feito**; (c) ~~o campo na configuração~~ — **feito**: a secção **Aparência**, com dois grupos de pílulas; (d) ~~o validador medindo as paletas~~ — **feito**: mede os quatro temas, e medirá mais à medida que entrarem |
+| 2.8 | Seletor de aparência — **catálogo** das paletas | `[x]` **FECHADO em 18/10/2026.** A C15 decidiu que a preferência é **da escola**; o seletor tem **dois eixos** («Família de cores» / «Variante») em Produção → Aparência; o servidor aplica os dois no `<html>` de tudo o que a escola serve. **Três famílias, seis temas, 186 pares medidos**: Bordô de Cena (vigente, o `:root`), Cortina Turquesa e Verde de Ensaio. As outras quatro do catálogo de sete — Azul de Gala, Prata de Palco, Azul de Bastidores, Luz de Camarim — foram **medidas e abandonadas** por decisão de produto, e os valores ficam no histórico do Git. A checagem **«Famílias»** (novo, 18/10) impede a folha e o validador de divergirem. **O PDF fica declaradamente na paleta vigente**: `lib-tokens.js` lê só o `:root`, e é decisão — o documento impresso é da casa, não do tema |
 
 ### O que a Fase 2 fez, e o que ela **não** fez
 
@@ -247,7 +253,11 @@ aberto, e o botão parece certo.
 
 ### O que a Fase 3 **não** fecha
 
-- **O catálogo das doze paletas (2.8)** continua em aberto — mas **mudou de natureza** com a
+- **O catálogo das paletas (2.8) FECHOU em três** *(18/10/2026)*. A nota abaixo, escrita antes da
+  decisão, fica como o elo do que se pensava: o catálogo chegou a ter sete direções medidas e a
+  decisão de produto foi ficar com três. **O que continua em aberto não é paleta**: é a
+  documentação antiga que ainda fala em «doze», e o PDF (que fica na vigente, por decisão).
+- **O catálogo das doze paletas (2.8)** *(nota de 18/10, antes do fecho)* continua em aberto — mas **mudou de natureza** com a
   decisão da **C15** (18/10/2026, a preferência é da escola): o que falta são os **valores
   especificados e medidos** e a aplicação pelo **servidor**, não uma decisão de produto.
 - **A conferência visual** é do dono do produto; a prova cobre contraste, papel e comportamento,
@@ -411,6 +421,7 @@ vocabulário. E a **raiz** continua servida de uma cópia anterior (ver a Fase 8
 | 17/10/2026 | 2.7 layouts | `data-layout="documento"\|"painel"` em todas as superfícies |
 | 17/10/2026 | 2.8 catálogo | **não feito** — depende de C15 |
 | 18/10/2026 | 2.8 destravado | **C15 decidida: a preferência é da escola**; mecanismo = servidor. Falta o trabalho (V1: especificar e medir as doze) |
+| 18/10/2026 | **2.8 fechado** | **Três famílias, seis temas, 186 pares.** A Verde de Ensaio entrou medida; as outras quatro foram abandonadas por decisão de produto. Checagem «Famílias» criada. PDF declarado na vigente |
 | 18/10/2026 | 2.4 executado | aparência da escola no servidor: `data-modo` + `data-modo-fonte` em tudo o que a escola serve; secção **Aparência** na Produção; o `◐` saiu da barra |
 | 18/10/2026 | 9.1 pílula na folha | `.escolhas`/`.escolha` saem de `bastidores.js`; `.acao[aria-pressed]` removido |
 | 18/10/2026 | 9.2–9.4 catálogo | Quadros 1 e 2 em `IDENTIDADE-VISUAL.md`; checagem 8 «Peça»; instruções com `applyTo` |

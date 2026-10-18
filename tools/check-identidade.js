@@ -173,7 +173,55 @@ const TEMAS = [
     lerTema('[data-modo="noturna"]'),
     lerTema('[data-paleta="cortina"]'),
     lerTema('[data-paleta="cortina"][data-modo="noturna"]'))],
+  // A TERCEIRA, e a última: o catálogo fecha em três famílias (18/10/2026).
+  ['Verde de Ensaio — clara', mesclar(lerTema(':root'), lerTema('[data-paleta="verde"]'))],
+  ['Verde de Ensaio — noturna', mesclar(
+    lerTema(':root'),
+    lerTema('[data-modo="noturna"]'),
+    lerTema('[data-paleta="verde"]'),
+    lerTema('[data-paleta="verde"][data-modo="noturna"]'))],
 ];
+
+/* A GUARDA QUE FALTAVA — e que a terceira família tornou obrigatória.
+ *
+ * `TEMAS` é uma lista escrita à mão, e até hoje nada conferia se ela COBRE a folha. Um
+ * bloco `[data-paleta="nova"]` entrava, ficava desenhado, aparecia no seletor da escola —
+ * e nenhum par dele era medido. As duas listas podiam divergir em silêncio: a folha dizia
+ * uma coisa, o validador media outra, e os dois passavam.
+ *
+ * Agora a folha é a fonte: toda família que ela declara tem de estar em `TEMAS` (o que
+ * garante que está medida), e nenhuma família de `TEMAS` pode não estar na folha (o que
+ * garante que não se mede o que não existe). É o mesmo princípio do «Declarante», aplicado
+ * às famílias em vez dos tokens. */
+const FAMILIAS_NA_FOLHA = [...new Set(
+  [...semComentarios(fs.readFileSync(fonte, 'utf8'), 'tools/templates/ciclo.css')
+    .matchAll(/\[data-paleta="([a-z0-9-]+)"\]/g)].map((m) => m[1]))].sort();
+
+const FAMILIAS_MEDIDAS = [...new Set(
+  TEMAS.map(([nome]) => {
+    const achado = /^(.+?) — (clara|noturna)$/.exec(nome);
+    return achado ? achado[1] : nome;
+  }))].sort();
+
+// O `:root` é a família de base e não declara `[data-paleta]`: os temas dela são os dois
+// primeiros, sem sufixo de paleta. Cada família da folha custa DOIS temas (clara e noturna).
+const FAMILIAS_ESPERADAS = FAMILIAS_NA_FOLHA.length + 1;
+if (FAMILIAS_MEDIDAS.length !== FAMILIAS_ESPERADAS) {
+  erros.push(`Identidade: a folha declara ${FAMILIAS_NA_FOLHA.length} família(s) ` +
+    `(${FAMILIAS_NA_FOLHA.join(', ') || 'nenhuma'}) além da base, e o validador mede ` +
+    `${FAMILIAS_MEDIDAS.length} — ${FAMILIAS_MEDIDAS.join(', ')}. Uma família a mais na ` +
+    'folha é uma família sem medição: acrescente os dois temas dela a TEMAS');
+} else {
+  for (const nome of FAMILIAS_MEDIDAS) {
+    for (const modo of ['clara', 'noturna']) {
+      if (!TEMAS.some(([n]) => n === `${nome} — ${modo}`)) {
+        erros.push(`Identidade: a família "${nome}" não tem tema "${modo}" em TEMAS`);
+      }
+    }
+  }
+  ok.push(`Famílias: ${FAMILIAS_MEDIDAS.length} medidas (${FAMILIAS_MEDIDAS.join(' · ')}), ` +
+    'e são exatamente as que a folha declara');
+}
 
 if (Object.keys(tokens).length) {
   for (const [nomeTema, mapa] of TEMAS) {

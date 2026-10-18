@@ -16,6 +16,14 @@
  *
  * Lê só o bloco `:root` e só as cores (hex). Devolve os nomes com o `--`, porque
  * é assim que eles aparecem no CSS e é por esse nome que se procura.
+ *
+ * LER SÓ O `:root` É UMA DECISÃO, NÃO UMA LIMITAÇÃO (18/10/2026). A folha declara hoje três
+ * famílias — Bordô de Cena (no `:root`), Cortina Turquesa e Verde de Ensaio —, e a escola
+ * escolhe uma delas em Produção → Aparência. O gerador continua a ler o `:root`, e por isso o
+ * **PDF sai sempre na Bordô**, qualquer que seja a família da escola. Foi decidido: o documento
+ * impresso é **da casa, não do tema**, e dois cadernos da mesma escola têm de ser comparáveis no
+ * papel. Quem quiser o PDF na família da escola muda este leitor (receber a paleta por parâmetro)
+ * **e** a decisão — que está em `IDENTIDADE-VISUAL.md`, no catálogo das paletas.
  */
 
 const fs = require('fs');

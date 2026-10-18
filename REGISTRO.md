@@ -17695,3 +17695,86 @@ UTC. Quem precisar do número mede-o, não o cita. (b) O consumo **por visita** 
 anamnese faz um `list()` por família de envelopes, e a Produção lista várias; se a cota voltar a
 apertar, o caminho é um **índice gravado** em vez de um `list()` por visita — decisão de produto,
 que não se toma sem o dono.
+
+## 18/10/2026 — O catálogo de paletas fecha em três: a Verde de Ensaio entra, quatro saem
+
+**O que motivou.** O **2.8** — o catálogo das paletas — era o último item aberto da identidade, e
+estava parado à espera de duas coisas diferentes: as **âncoras de cor** (que não se inventam) e uma
+**decisão de produto** (quantas famílias o sistema deve oferecer). Na sessão anterior as cinco
+famílias que faltavam foram **medidas** — 310 medições, todas a passar — e o dono do produto
+decidiu: **fica a Verde de Ensaio, e as outras quatro saem**; o catálogo fecha em **três**, e o
+**PDF fica declaradamente na paleta vigente**.
+
+**O que foi decidido.**
+- **Três famílias, seis temas, 186 pares.** Bordô de Cena (vigente, o `:root`), Cortina Turquesa e
+  **Verde de Ensaio**. O seletor da escola passa a oferecer as três, nos dois eixos que já tinha.
+- **As quatro abandonadas ficam nomeadas**, não apagadas: `IDENTIDADE-VISUAL.md` lista as sete com
+  o estado ao lado, e diz por que as quatro saíram. Uma família que desaparece sem rastro é uma
+  família que alguém propõe outra vez. Os valores ficam no histórico do Git.
+- **A Verde de Ensaio entra com a procedência dita.** Quatro das cinco âncoras do dono entraram
+  **intactas**: o fundo `#f4f0e7`, o texto `#303631`, a sálvia `#879783` (no **preenchimento** — a
+  barra e a ação, com texto escuro em cima) e a madeira `#9a856c` (no **filete**, onde dá 3,11:1).
+  A única recusada é a sálvia **como texto**: 2,72:1 sobre o papel e 2,92:1 sobre a superfície,
+  contra o piso 4,5:1. O texto desce para `#4f6650` (5,51:1) — e o valor coincide quase exatamente
+  com o `#507048` **amostrado da logo da mesma cor**, que ele enviou: dois caminhos, o mesmo tom.
+- **A guarda que faltava, e que a terceira família tornou obrigatória.** `TEMAS` era uma lista
+  escrita à mão que **ninguém conferia contra a folha**: um bloco `[data-paleta="nova"]` entrava,
+  ficava desenhado, aparecia no seletor — e nenhum par dele era medido. A checagem **9 «Famílias»**
+  conta as famílias que o `ciclo.css` declara (fora de comentários) e compara-as com as que `TEMAS`
+  mede; reprova nos dois sentidos. É o princípio do «Declarante» aplicado às famílias.
+- **O PDF fica na vigente, e isso é decisão.** `tools/lib-tokens.js` lê só o `:root`, e passa a
+  dizê-lo no próprio arquivo, com o motivo: o documento impresso é **da casa, não do tema**, e dois
+  cadernos da mesma escola têm de ser comparáveis no papel.
+
+**Onde entrou.**
+- `tools/templates/ciclo.css` — os dois blocos `[data-paleta="verde"]` (clara e noturna), com um
+  cabeçalho que diz a procedência de cada valor e a âncora recusada com o número que a recusou.
+- `tools/check-identidade.js` — os dois temas novos em `TEMAS` (6 temas, 186 pares) e a checagem
+  **9 «Famílias»**, com a comparação folha × validador nos dois sentidos. Provada pelo negativo:
+  um `[data-paleta="fantasma"]` acrescentado à folha **reprova** com a mensagem certa.
+- `tools/lib-tokens.js` — o comentário que declara a decisão do PDF onde ela se aplica.
+- `motor/servidor/bastidores.js` — `PALETAS` ganha `{ id: 'verde', nome: 'Verde de Ensaio' }`,
+  e o comentário do catálogo fechado. É a lista que o seletor da escola lê.
+- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/style.css` e `raiz/` — as cópias
+  regeradas (`gerar-raiz.sh` para a raiz).
+- `experimentos/medir-paletas.js` (**novo**, versionado) — mede a família contra os **mesmos 31
+  pares** do validador (lidos do próprio arquivo, não copiados), com um **resolvedor** que calcula
+  o degrau de um tom em falta preservando a matiz, e três modos: relatório, `--css` (os blocos para
+  a folha) e `--html` (a secção do estudo). As quatro famílias abandonadas saíram dele.
+- `experimentos/opcoes-visuais/index.html` — a secção **P** passa a ter uma família, e diz que o
+  catálogo fechou em três e como se entra na folha.
+- `experimentos/provar-aparencia.js` — a lista de famílias passa a três (o contrato com o seletor),
+  e o caso «família que não existe» passou a usar `gala` — uma família que **existiu** e foi
+  abandonada, que é o caso mais duro para a validação.
+- `experimentos/provar-producao.js` — as duas contagens de pílula e de família (3 famílias, 12
+  pílulas no total).
+- `IDENTIDADE-VISUAL.md` — o catálogo das paletas reescrito (três implementadas, quatro
+  abandonadas com a razão), a **especificação da Verde de Ensaio**, a decisão do PDF, a nona
+  checagem, e a correção datada da nota que dizia «nada foi implementado».
+- `IMPLEMENTACAO-IDENTIDADE.md` — o **2.8 fecha** (`[x]`), com a correção datada na glosa do topo.
+- **Motivo declarado — os congelados.** `tools/templates/ciclo.css`, `tools/check-identidade.js` e
+  `tools/lib-tokens.js` são congelados. O motivo é o produto: a terceira família foi **decidida**, e
+  a guarda que a acompanha existe porque sem ela a folha e o validador podiam divergir em silêncio
+  — que é precisamente o defeito que a identidade passou o dia a fechar. **Não muda** a fórmula do
+  hash, a cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum
+  componente existente foi tocado; e as checagens passam de 8 para 9, com as 15 linhas verdes
+  (186 pares em AA).
+
+**Com o quê.** `tools/templates/ciclo.css` · `tools/check-identidade.js` · `tools/lib-tokens.js` ·
+`motor/servidor/bastidores.js` · as duas cópias de `assets/style.css` e a raiz ·
+`experimentos/medir-paletas.js` · `experimentos/opcoes-visuais/index.html` ·
+`experimentos/provar-aparencia.js` · `experimentos/provar-producao.js` · `IDENTIDADE-VISUAL.md` ·
+`IMPLEMENTACAO-IDENTIDADE.md` · este registro.
+
+**Referências.** `experimentos/medir-paletas.js` (as 62 medições da família, com o resolvedor e a
+procedência de cada valor) · WCAG 2.1 AA (1.4.3 e 1.4.11, os pisos de 4,5:1 e 3,0:1) ·
+`IDENTIDADE-VISUAL.md` §«O que uma paleta tem de declarar para existir» (o formulário de papéis) ·
+a logo `img/logo_verde.png`, amostrada (não versionada: imagem de referência não entra no repo).
+
+**O que ainda não está feito.** (a) O **PDF** continua na vigente — é decisão, mas o gerador **não
+tem** como receber a paleta; quem quiser a família da escola no papel muda `lib-tokens.js` e a
+decisão, e não é trabalho de uma linha. (b) A **`cor da marca` no deck Marp** segue a mesma regra
+do PDF (só o `:root`), e não foi revista nesta entrada. (c) Os documentos que ainda falam em
+«doze» ou «sete» famílias fora dos dois que esta entrada tocou —
+`PLANEJAMENTO-LASTRO.md`, §L13 — **não** foram atualizados: o número de lá é o do planejamento, e
+mexer nele é reescrever o plano, não corrigir deriva.
