@@ -22,7 +22,7 @@
 const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
 const { respostaEstado, esc } = require('./estado-html.js');
-const { temProfessor, aparenciaDaEscola } = bastidores;
+const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 
 /**
  * A APARÊNCIA DA ESCOLA, APLICADA NO SERVIDOR (18/10/2026) — a decisão C15 é «a preferência
@@ -50,10 +50,18 @@ async function comAparencia(resposta, aparencia) {
   const modo = ap.modo === 'noturna' ? 'noturna' : 'clara';
   // A FAMÍLIA É SEMPRE PUBLICADA, mesmo quando é a padrão. `data-paleta` ausente significaria
   // «a padrão» — e uma página que não DIZ de que família é obriga toda a prova a tolerar duas
-  // formas de dizer o mesmo. Escrito, o atributo é uma afirmação: «esta página é da Bordô de
-  // Cena». Só um id que a folha não conhece é que não se escreve: seria o pior dos dois
+  // formas de dizer o mesmo. Escrito, o atributo é uma afirmação: «esta página é da Verde de
+  // Ensaio». Só um id que a folha não conhece é que não se escreve: seria o pior dos dois
   // mundos — o atributo a jurar uma família e a folha a não a desenhar.
-  const paleta = ['bordo', 'cortina'].indexOf(String(ap.paleta || '')) === -1 ? 'bordo' : String(ap.paleta);
+  //
+  // A LISTA VEM DO MÓDULO, NÃO DAQUI (18/10/2026). Ela estava escrita à mão neste arquivo —
+  // `['bordo', 'cortina']` — e quando a terceira família entrou, `verde` não passou: caiu no
+  // padrão em TUDO o que a escola serve por esta ponte (o pacote do ciclo, o lançamento e a
+  // porta), enquanto a Produção — que lê a lista verdadeira — pintava de verde. O sintoma que
+  // o dono do produto viu: «a cor só tem efeito dentro dos bastidores». Duas listas da mesma
+  // coisa é uma lista a menos; o valor agora é o mesmo que o seletor oferece.
+  const pedida = String(ap.paleta || '');
+  const paleta = IDS_DAS_PALETAS.indexOf(pedida) === -1 ? PALETA_PADRAO : pedida;
   if (!resposta) return resposta;
   const tipo = String(resposta.headers.get('content-type') || '').toLowerCase();
   if (tipo.indexOf('text/html') === -1) return resposta;

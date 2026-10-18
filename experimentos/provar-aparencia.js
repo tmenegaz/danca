@@ -335,8 +335,20 @@ async function api(kv, caminho, metodo, corpo) {
     // A FAMÍLIA PADRÃO SAI ESCRITA, e não fica em falta: ver a nota em `comAparencia`.
     const padrao = await comAparencia(corpo('<html><body>p</body></html>'), { modo: 'clara', paleta: 'bordo' });
     provar('a família padrão também se publica', /data-paleta="bordo"/.test(await padrao.text()), true);
+    // TODAS AS FAMÍLIAS QUE O CATÁLOGO OFERECE SÃO PUBLICADAS. Este laço existe por causa de um
+    // erro real (18/10/2026): a Verde de Ensaio entrou no catálogo e pintava os Bastidores, mas a
+    // ponte tinha a lista escrita à mão — `['bordo','cortina']` — e caía no bordô em TUDO o que
+    // ela serve (pacote do ciclo, lançamento, porta). Ninguém notou porque a prova dizia
+    // «cortina» e «bordo», e as duas continuavam a funcionar. Iterar a lista de verdade, em vez
+    // de nomear duas famílias, é o que faz uma família nova reprovar aqui quando a ponte a
+    // recusar.
+    for (const id of bastidores.IDS_DAS_PALETAS || []) {
+      const saida = await comAparencia(corpo('<html><body>p</body></html>'), { modo: 'clara', paleta: id });
+      provar(`a família «${id}» do catálogo é publicada pela ponte`,
+        new RegExp('data-paleta="' + id + '"').test(await saida.text()), true);
+    }
     // Uma família que a folha não desenha NÃO se escreve.
-    const inventada = await comAparencia(corpo('<html><body>p</body></html>'), { modo: 'clara', paleta: 'verde' });
+    const inventada = await comAparencia(corpo('<html><body>p</body></html>'), { modo: 'clara', paleta: 'fantasma' });
     provar('uma família inexistente cai na padrão, em vez de jurar o que não há',
       /data-paleta="bordo"/.test(await inventada.text()), true);
     // Uma vista chamada SEM aparência não escreve `undefined` no atributo.

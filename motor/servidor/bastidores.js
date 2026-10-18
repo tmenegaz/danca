@@ -2011,6 +2011,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.lista li .turmas-do-nome{flex:0 1 auto;min-width:0;max-width:15rem;display:flex;justify-content:flex-end;}' +
     '.lista li .turmas-do-nome .filtrar-turmas{display:block;max-width:100%;margin:0;overflow:hidden;' +
       'text-overflow:ellipsis;white-space:nowrap;}' +
+    // ---- A LINHA DA LISTA NO TELEFONE: DUAS LINHAS, O ESTADO EMBAIXO (18/10/2026) ------
+    //
+    // Na tela larga a linha é uma fita: nome e selo à esquerda, as turmas ao centro, o botão
+    // à direita — e lê-se bem, porque há largura para os três. A 360px a mesma fita parte-se
+    // ao meio SEM regra: medido, o nome ficava com 182px, o botão das turmas descia para a
+    // direita do nome e o «Excluir» caía sozinho numa terceira linha, à esquerda, por baixo
+    // do nome — sem alinhamento nenhum com nada.
+    //
+    // Agora são DUAS linhas ordenadas: o NOME em cima, sozinho, e por baixo o ESTADO (o selo
+    // «livre»/«vinculada»), a COLUNA das turmas e o BOTÃO. É a leitura do que a linha diz: a
+    // quem pertence, em que estado está, a que turmas vai, e o que se pode fazer com ela.
+    //
+    // A PEÇA É A MESMA DAS DUAS LISTAS — alunas e termos cadastrados partilham esta marcação
+    // (nome + selo + turmas + ações), e por isso a regra é uma só. Uma lista com duas linhas e
+    // a outra com três seria a mesma linha contada de duas maneiras.
+    //
+    // O `display:contents` é o que faz isto sem tocar na marcação: `.nome` e `.linha1` são
+    // INVÓLUCROS (existem para o `flex` da tela larga), e dissolvidos no telefone os seus
+    // filhos passam a ser itens da grelha da LINHA — é assim que o selo sai de dentro do
+    // `.linha1` e desce para a segunda linha sem um `<div>` novo e sem duplicar marcação. Em
+    // CSS, um neto não se coloca numa faixa da grelha do avô; dissolver o pai, sim.
+    //
+    // A TERCEIRA FAIXA É OPCIONAL (`dono`): os termos e as curadorias trazem um complemento
+    // («posição · francesa», «atribuída em 16/10») e as alunas não. Sem item, a faixa tem zero
+    // de altura e sobra só o vão — que é o respiro entre o nome e o resto, e não um buraco.
+    '@media (max-width:560px){' +
+      '.lista>li:not(.turma):not(.vazia){display:grid;' +
+        'grid-template-columns:auto minmax(0,1fr) auto;' +
+        'grid-template-areas:"nome nome nome" "dono dono dono" "estado turmas acoes";' +
+        'align-items:center;gap:.2rem .5rem;padding:.45rem .1rem;}' +
+      '.lista>li:not(.turma)>.nome,.lista>li:not(.turma)>.nome>.linha1{display:contents;}' +
+      // O nome ocupa a faixa inteira e, se for comprido, encurta com reticências — nunca
+      // empurra o estado nem o botão, que estão na faixa de baixo.
+      '.lista>li:not(.turma)>.nome>.linha1>b{grid-area:nome;min-width:0;' +
+        'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+      // O selo alinha à ESQUERDA da sua faixa: é o primeiro item da segunda linha, e é ele
+      // que dá o «x» da coluna ao que vem depois.
+      '.lista>li:not(.turma)>.nome>.linha1>.selo{grid-area:estado;justify-self:start;}' +
+      '.lista>li:not(.turma)>.nome>.dono{grid-area:dono;min-width:0;}' +
+      '.lista>li:not(.turma)>.turmas-do-nome{grid-area:turmas;max-width:none;justify-content:flex-start;}' +
+      '.lista>li:not(.turma)>.acoes{grid-area:acoes;justify-self:end;}' +
+    '}' +
     // O AVISO DO FILTRO, no topo da listagem de Turmas: diz de quem são as turmas que
     // sobraram e oferece o caminho de volta sem pedir nada ao servidor.
     '.filtro-turmas{margin:0 0 .55rem;padding:.45rem .6rem;border:1px solid var(--borda-campo);' +
@@ -5560,4 +5602,12 @@ module.exports = {
   aparenciaDaEscola,
   gravarAparencia,
   MODOS_DE_APARENCIA,
+  // AS FAMÍLIAS, pela mesma razão do valor acima — e por uma mais dura (18/10/2026). A ponte
+  // de produção tinha a lista escrita à mão (`['bordo', 'cortina']`), e quando a terceira
+  // família entrou, `verde` caiu no PADRÃO em tudo o que a escola serve por ali: a Produção
+  // pintava de verde e a anamnese, o plano e o pacote do ciclo ficavam bordô. Duas listas da
+  // mesma coisa é uma lista a menos. Agora é esta, e ela é a mesma que o seletor oferece.
+  PALETAS,
+  IDS_DAS_PALETAS,
+  PALETA_PADRAO,
 };

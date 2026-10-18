@@ -188,15 +188,33 @@ async function baixar(url) {
       navAr === navFonte, { noAr: h(navAr), fonte: h(navFonte) });
 
     // A PORTA nos três caminhos. O corpo é o mesmo; o que muda é a fonte da elicitação.
+    const familiasDaPorta = new Map();
     for (const caminho of ['/anamnese/', '/plano-ensino/', '/plano-observacao/']) {
       const html = await baixar(base + caminho + '?professor=tiago-menegaz&escola=' + escola.slug + '&ciclo=01');
       const css = blocos(html, 'style')[0] || '';
       provar(`o <style> de ${caminho} é o de porta/index.html`,
         css === portaCss, { noAr: h(css), fonte: h(portaCss) });
+      familiasDaPorta.set(caminho, (html.match(/data-paleta="([^"]+)"/) || [])[1]);
     }
 
     // A PRODUÇÃO — o CSS e o CÓDIGO do motor. O CSS primeiro: é o que desenha a página.
     const prod = await baixar(base + '/bastidores/producao');
+
+    // A FAMÍLIA CHEGA AO QUE A ESCOLA SERVE, e não só aos Bastidores (18/10/2026). A Produção
+    // lê a lista de famílias e pinta; a porta e o pacote passam pela ponte, e a ponte tinha a
+    // lista escrita à mão — «verde» caía no bordô em tudo o que ela serve, e a cor «só tinha
+    // efeito dentro dos bastidores». A prova que faltava é esta, e não custa requisição nenhuma:
+    // as duas páginas já foram baixadas, e basta comparar o que cada uma AFIRMA ser. Também não
+    // se fixa aqui qual é a família — a escola muda de preferência, e a prova não pode ter
+    // opinião sobre isso.
+    const familiaProducao = (prod.match(/data-paleta="([^"]+)"/) || [])[1];
+    provar('a Produção declara uma família do catálogo',
+      (bastidores.IDS_DAS_PALETAS || []).indexOf(familiaProducao) !== -1, familiaProducao);
+    for (const [caminho, familia] of familiasDaPorta) {
+      provar(`a família da escola é a mesma na porta (${caminho}) e na Produção`,
+        familia === familiaProducao, { porta: familia, producao: familiaProducao });
+    }
+
     const prodCss = blocos(prod, 'style')[0] || '';
     provar('o <style> da Produção é o que o motor produz agora',
       prodCss === motorCss, { noAr: h(prodCss), motor: h(motorCss) });

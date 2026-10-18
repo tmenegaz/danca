@@ -28,6 +28,13 @@
  *   3. o selo não escapa da primeira linha (a borda direita dele cabe na do grupo);
  *   4. nada transborda na horizontal, no item nem na página.
  *
+ * NO TELEFONE A REGRA É OUTRA, e a prova muda de lado com ela (18/10/2026). Até 560px o item
+ * vira uma grelha de três faixas — nome em cima, complemento (quando há) e, embaixo, o selo, a
+ * coluna de turmas e o botão. O selo SAI da `.linha1` por `display: contents` nos invólucros,
+ * sem marcação nova. Ali não se prova «o selo cabe na primeira linha» (é o contrário do que se
+ * quer): prova-se que ele DESCE, que divide a faixa com a turma e o botão, e que o nome fica
+ * sozinho em cima, numa linha só (reticências, nunca quebra).
+ *
  * CONTROLE NEGATIVO: `--controle-negativo` extrai o `motor/` de `HEAD` com `git archive`.
  *
  * Requer Chrome/Chromium (puppeteer-core do marp-cli global). Sem ele: NÃO FEITO.
@@ -138,8 +145,25 @@ function medir() {
         const bd = r(dono);
         const selo = nome2.querySelector('.selo');
         const bs = r(selo);
+        const bt = r(li.querySelector('.turmas-do-nome'));
+        const ba = r(li.querySelector('.acoes'));
+        // LINHAS VISUAIS: quantas faixas horizontais distintas o item ocupa, contando só o que
+        // tem conteúdo. 8px de folga porque selo (30px) e botão (29px) centrados na mesma faixa
+        // arredondam com 1px de diferença — isso é a mesma linha, não uma terceira.
+        const ys = [b1, bs, bd, bt, ba].filter(Boolean).map((q) => q.top).sort((p, q) => p - q);
+        let linhasVisuais = 0; let anterior = -999;
+        for (const y of ys) { if (y - anterior > 8) { linhasVisuais++; anterior = y; } }
         return {
           temGrupo: Boolean(nome2.querySelector('.linha1')),
+          linhasVisuais,
+          // No telefone o selo SAI da primeira linha (é a regra que esta prova passou a
+          // descrever): desce para a faixa de baixo e passa a dividi-la com a coluna de
+          // turmas e o botão. Mede-se a descida e a companhia, não a caixa do grupo.
+          seloAbaixo: !bs || !b1 || bs.top >= b1.bottom - 2,
+          seloComOsBotoes: !bs || !ba || Math.abs(bs.top - ba.top) <= 8,
+          // O nome NÃO QUEBRA em duas linhas no telefone: encurta com reticências. Sem isto,
+          // um nome comprido voltaria a empurrar tudo (28px é uma linha de `b`; 34 dá folga).
+          nomeEmUmaLinha: !b1 || b1.height <= 34,
           // Um item SEM complemento tem uma linha, e está certo: a regra diz onde o
           // complemento fica, não que ele tenha de existir («Ana Lima» não tem papel a
           // declarar; o principal tem «principal»). Por isso a altura é comparada DENTRO do
@@ -194,6 +218,19 @@ const LARGURAS = [1280, 1024, 768, 390, 320];
 
   for (const w of LARGURAS) {
     await pg.setViewport({ width: w, height: 1200 });
+    // A REGRA MUDA DE LADO A 560px, e a prova tem de mudar com ela: na tela larga o selo mora
+    // DENTRO da primeira linha (é o que impede o nome de quebrar ao lado dele); no telefone ele
+    // sai para a faixa de baixo, junto da turma e do botão, e o nome fica sozinho em cima.
+    // Afirmar uma só das duas coisas reprovaria a outra — e foi o que aconteceu quando a regra
+    // do telefone entrou.
+    const estreito = w <= 560;
+    const linhaCerta = (x) => (estreito
+      ? x.seloAbaixo && x.seloComOsBotoes && x.nomeEmUmaLinha && x.linhasVisuais <= 3
+      : x.seloDentro);
+    const rotuloDaLinha = estreito
+      ? 'o selo desce para a linha da turma e do botão, e o nome fica sozinho em cima'
+      : 'o complemento desce, e o selo fica na primeira linha';
+
     await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
     await pg.evaluate(() => {
       const c = document.getElementById('conteudo');
@@ -224,8 +261,8 @@ const LARGURAS = [1280, 1024, 768, 390, 320];
           // duas vezes. Provar o mecanismo, e não só o resultado, é o que a segura.
           provar(`@${w} · ${l.lista}: cada item tem o grupo da primeira linha (nome + selos)`,
             l.linhas.every((x) => x && x.temGrupo), l.linhas.map((x) => x && x.temGrupo));
-          provar(`@${w} · ${l.lista}: o complemento desce, e o selo fica na primeira linha`,
-            l.linhas.every((x) => x && x.donoAbaixo && x.seloDentro), l.linhas);
+          provar(`@${w} · ${l.lista}: ${rotuloDaLinha}`,
+            l.linhas.every((x) => x && x.donoAbaixo && linhaCerta(x)), l.linhas);
         }
       }
     }
@@ -248,8 +285,8 @@ const LARGURAS = [1280, 1024, 768, 390, 320];
       if (l.linhas.some((x) => x)) {
         provar(`@${w} · ${l.lista}: cada item tem o grupo da primeira linha (nome + selos)`,
           l.linhas.every((x) => x && x.temGrupo), l.linhas.map((x) => x && x.temGrupo));
-        provar(`@${w} · ${l.lista}: o complemento desce, e o selo fica na primeira linha`,
-          l.linhas.every((x) => x && x.donoAbaixo && x.seloDentro), l.linhas);
+        provar(`@${w} · ${l.lista}: ${rotuloDaLinha}`,
+          l.linhas.every((x) => x && x.donoAbaixo && linhaCerta(x)), l.linhas);
       }
       provar(`@${w} · ${l.lista}: nenhum item transborda`,
         l.linhas.every((x) => x && x.estouro <= 1), l.linhas.map((x) => x && x.estouro));
