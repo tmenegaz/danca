@@ -428,6 +428,28 @@ function fraseDaFalta(falta) {
   return falta.slice(0, -1).join(', ') + ' e ' + falta[falta.length - 1];
 }
 
+/** A COR DE CADA DEGRAU DA RÉGUA (18/10/2026). A régua é uma escala, e uma escala sem
+ *  cor obriga a ler as quatro palavras para saber onde a turma está. O mapeamento é por
+ *  NOME, e não por posição, porque a escola pode criar uma rubrica própria com outros
+ *  nomes e reordená-la — e aí a posição mentiria. Quando o nome não é nenhum dos
+ *  canónicos, cai numa rampa pela posição, e o último degrau é sempre o neutro: é o que
+ *  «não se aplica» significa em qualquer rubrica. */
+function classeDoNivel(nome, indice, total) {
+  const n = String(nome || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .trim();
+  if (/satisf/.test(n)) return 'nivel-ok';
+  if (/raz(o|ó)avel/.test(n)) return 'nivel-razoavel';
+  if (/desenvolv/.test(n)) return 'nivel-alerta';
+  if (/nao se aplica|n\/a|neutro/.test(n)) return 'nivel-neutro';
+  if (indice === total - 1) return 'nivel-neutro';
+  if (indice === 0) return 'nivel-ok';
+  if (indice === 1) return 'nivel-razoavel';
+  return 'nivel-alerta';
+}
+
 /** Monta o objeto-turma canónico a partir do que a Produção envia. */
 function normalizarTurma(corpo) {
   const nome = String(corpo.nome || '').trim();
@@ -937,11 +959,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         }).join(' ');
         // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
         // é o que desce para o plano de ensino — por isso aparece no cadastro.
+        const diasTexto = (t.dias && t.dias.length)
+          ? t.dias.map((d) => (t.horarios && t.horarios[d]) ? d + ' ' + t.horarios[d] : d).join(', ')
+          : '';
         const ritmo = [
           t.frequencia ? t.frequencia + 'x/semana' : '',
-          (t.dias && t.dias.length)
-            ? t.dias.map((d) => (t.horarios && t.horarios[d]) ? d + ' ' + t.horarios[d] : d).join(', ')
-            : '',
+          diasTexto,
           t.duracaoMin ? t.duracaoMin + ' min' : '',
           (t.periodoInicio || t.periodoFim)
             ? 'termo ' + (t.periodoInicio || '?') + '–' + (t.periodoFim || '?')
@@ -952,9 +975,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // não pode ser atribuída na curadoria. Dizer isto no cadastro é o que faz a direção
         // saber o que falta antes de tentar atribuir (16/10/2026).
         const falta = faltaNoRitmoDaTurma(t);
+        // A NOTA da falta, e não mais um selo (18/10/2026): na primeira linha ele competia
+        // com o nome; aqui ele se lê depois do nome, e a frase inteira cabe porque o texto
+        // encurta em vez de empurrar.
         const avisoDeRitmo = falta.length
-          ? '<span class="selo falta-ritmo" title="sem isto a turma não pode ser atribuída na curadoria">falta ' +
-            esc(fraseDaFalta(falta)) + '</span>'
+          ? '<div class="nota-falta" title="sem isto a turma não pode ser atribuída na curadoria">' +
+            '<b>falta</b> <span>' + esc(fraseDaFalta(falta)) + '</span></div>'
           : '';
         const regua = rubricaDaTurma(t);
         // O HISTÓRICO do ajuste (16/10/2026): a escola precisa de ver que já mexeu nesta turma
@@ -1000,21 +1026,65 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
             'title="Derivar: passa a valer a partir de uma data, e a anterior fica no histórico">Derivar</button>'
           : '<button class="ajustar acao pequena" data-turma-ajustar="' + esc(t.id) + '" data-modo="editar" ' +
             'title="Editar a turma (ela ainda não tem plano de ensino)">Editar</button>';
-        return '<li class="turma" data-turma="' + esc(t.id) + '">' +
-          '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
-          (detalhe ? ' <span class="dono">' + esc(detalhe) + '</span>' : '') +
-          (avisoDeRitmo ? ' ' + avisoDeRitmo : '') + ' ' + seloEstado +
-          (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
-          '<span class="acoes">' +
-          botaoAjuste +
-          '<button class="apagar acao perigo pequena" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
-          '<div class="dono">Régua da rubrica: ' + esc(regua.join(' · ')) + '</div>' +
-          '<div class="assoc"><span class="dono">Conteúdos:</span> ' +
-          (chips || '<span class="dono">(nenhum)</span>') +
+        // O CARTÃO DA TURMA PASSA A SER O HÍBRIDO (18/10/2026). Ele trazia NOVE faixas de
+        // informação todas abertas ao mesmo tempo — nome, nível, programa, ritmo, estado,
+        // vigência, o aviso de «falta …», a régua em prosa, os conteúdos em chips, o
+        // seletor de associação e o histórico — em CADA turma. Numa escola com cinco
+        // turmas eram quarenta e cinco faixas.
+        //
+        // Agora: nome e estado em cima; o ritmo em três NÚMEROS; e cada número abre o seu
+        // painel num toque. O painel não é prosa — é a peça: a régua abre com a sua ESCALA
+        // de cores, os conteúdos abrem em chips, o ritmo abre em pares rótulo/valor. E
+        // quando falta, não é uma frase seca: é a lista do que falta.
+        //
+        // O aviso de «falta …» também mudou de lugar: era um SELO na primeira linha, onde
+        // ele empurrava o nome; agora é uma NOTA abaixo, que se lê ou se ignora.
+        const valorRitmo = [
+          t.frequencia ? t.frequencia + 'x' : '',
+          t.duracaoMin ? t.duracaoMin + ' min' : '',
+        ].filter(Boolean).join(' · ');
+        const camposDoRitmo = [
+          ['Frequência', t.frequencia ? t.frequencia + 'x por semana' : ''],
+          ['Dias e horário', diasTexto],
+          ['Duração da aula', t.duracaoMin ? t.duracaoMin + ' min' : ''],
+          ['Período', (t.periodoInicio || t.periodoFim)
+            ? (t.periodoInicio || '?') + ' a ' + (t.periodoFim || '?')
+            : ''],
+        ];
+        const painelRitmo = falta.length
+          ? '<div class="frase">Esta turma ainda não tem ritmo — e é o ritmo que o plano lê. ' +
+            '<b>Sem ele, a turma não pode ser atribuída na curadoria.</b></div>' +
+            '<ul class="lista-falta">' + falta.map((f) => '<li>' + esc(f) + '</li>').join('') + '</ul>' +
+            '<p class="nota">Assim que o ritmo estiver completo, a turma passa a poder ser atribuída.</p>'
+          : '<div class="grade">' + camposDoRitmo.map(([k, v]) =>
+              '<div><span class="k">' + esc(k) + '</span><span class="v">' + esc(v || '—') + '</span></div>').join('') + '</div>';
+        const painelRegua = '<div class="escala">' + regua.map((n, i) =>
+          '<span class="' + classeDoNivel(n, i, regua.length) + '">' + esc(n) + '</span>').join('') + '</div>';
+        const painelConteudos = '<div class="chips">' + (chips || '<span class="dono">(nenhum conteúdo associado)</span>') + '</div>' +
           // O seletor e o botão que o USA ficam no MESMO grupo: sozinhos, o botão caía
           // numa linha só dele, encostado à esquerda e longe do seletor que ele lê.
           '<span class="par-associar"><select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
-          '<button class="associar acao pequena" data-turma="' + esc(t.id) + '">Associar</button></span></div>' +
+          '<button class="associar acao pequena" data-turma="' + esc(t.id) + '">Associar</button></span>';
+        const metrica = (rotulo, valor, qual, dica) =>
+          '<div class="metrica"><span class="k">' + esc(rotulo) + '</span>' +
+          '<span class="v">' + esc(valor) + '</span>' +
+          '<button class="q" data-balao="' + qual + '" aria-expanded="false" aria-label="' + esc(dica) + '">?</button></div>';
+        return '<li class="turma" data-turma="' + esc(t.id) + '">' +
+          '<div class="linha-turma"><span class="nome"><b>' + esc(t.nome) + '</b>' +
+          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') + '</span>' +
+          '<span class="acoes">' +
+          botaoAjuste +
+          '<button class="apagar acao perigo pequena" data-tipo="turma" data-alvo="' + esc(t.id) + '" data-nome="' + esc(t.nome) + '" title="Excluir turma">Excluir</button></span></div>' +
+          (detalhe ? '<div class="dono">' + esc(detalhe) + '</div>' : '') +
+          (avisoDeRitmo || '') +
+          '<div class="metricas">' +
+          metrica('Ritmo', valorRitmo || '—', 'ritmo', 'ver o ritmo desta turma') +
+          metrica('Régua', regua.length === 1 ? '1 nível' : regua.length + ' níveis', 'regua', 'ver a régua desta turma') +
+          metrica('Conteúdos', String(associados.length), 'conteudos', 'ver os conteúdos desta turma') +
+          '</div>' +
+          '<div class="painel" data-painel="ritmo" hidden>' + painelRitmo + '</div>' +
+          '<div class="painel" data-painel="regua" hidden>' + painelRegua + '</div>' +
+          '<div class="painel" data-painel="conteudos" hidden>' + painelConteudos + '</div>' +
           historico +
           '</li>';
       }).join('')
@@ -1242,17 +1312,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // Não é um breakpoint novo: quem decide é o espaço que existe.
     '.linha-turma .nome{flex:1 1 14rem;min-width:0;}' +
     '.linha-turma .acoes{margin-left:auto;}' +
-    '.assoc{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem .35rem;margin:.3rem 0 .1rem;font-size:.9rem;color:var(--texto-suave);}' +
-    // «Conteúdos:» ocupa a linha inteira; os chips, o seletor e o botão se arranjam
-    // abaixo. Antes tudo isto era `inline` e o `<select>` de 16rem caía onde coubesse:
-    // numa tela estreita o botão «Associar» saía sozinho, longe do seletor que ele usa.
-    '.assoc>.dono{flex:1 1 100%;}' +
-    // O seletor e o botão que o lê são UM grupo: `min-width:0` no grupo e no seletor deixa
-    // o seletor encolher, e o botão fica sempre ao lado dele — nunca sozinho na linha.
-    '.assoc .par-associar{display:flex;flex:1 1 100%;align-items:center;gap:.35rem;min-width:0;}' +
-    '.assoc .sel-termo{flex:1 1 auto;min-width:0;}' +
-    '.assoc .associar{flex:0 0 auto;}' +
-    '.chip{display:inline-block;margin:.1rem .3rem .1rem 0;padding:.1rem .4rem;background:var(--fundo-faixa);border-radius:var(--raio-1);font-size:.82rem;color:var(--texto);}' +
+    // O CARTÃO DA TURMA — O HÍBRIDO (18/10/2026). Três NÚMEROS à vista e um painel por
+    // número. Tudo em PAPÉIS do sistema (`--fundo-suave`, `--superficie`, `--texto-suave`,
+    // `--raio-2`), e não em valores: é o que faz a variante noturna disto funcionar sem uma
+    // linha de CSS a mais. A escala da régua usa os três papéis semânticos que já existem
+    // — `--ok`, `--alerta`, `--fundo-faixa` —, e não cores novas: uma quarta família de
+    // verdes seria uma quarta coisa para manter.
+    '.turma .metricas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem;margin:.6rem 0 0;}' +
+    // EM 320px TRÊS COLUNAS NÃO CABEM: cada uma fica com 78px, e «CONTEÚDOS» a .66rem com
+    // `letter-spacing` precisa de mais do que isso — medido, transbordava 7px. Abaixo de
+    // 360 a fila passa a uma coluna e a métrica fica larga; é o único ponto em que o desenho
+    // cede à largura em vez de truncar a palavra.
+    '@media (max-width:360px){' +
+      '.turma .metricas{grid-template-columns:minmax(0,1fr);}' +
+    '}' +
+    '.turma .metrica{position:relative;background:var(--fundo-suave);border:1px solid var(--borda-campo);' +
+    'border-radius:var(--raio-2);padding:.45rem 1.9rem .45rem .6rem;min-width:0;}' +
+    '.turma .metrica .k{display:block;font:700 .66rem/1.2 var(--ui);letter-spacing:.08em;text-transform:uppercase;' +
+    'color:var(--texto-suave);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+    '.turma .metrica .v{display:block;font:700 .95rem/1.25 var(--ui);color:var(--texto);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+    // A célula DIZ que está aberta. Sem isto o painel aparece abaixo da fila e não se sabe
+    // de onde veio — e com três células iguais, é a única pista.
+    '.turma .metrica[data-aberto="sim"]{background:var(--fundo-citacao);border-color:var(--borda-forte);}' +
+    '.turma .metrica .q{position:absolute;top:.28rem;right:.28rem;width:1.25rem;height:1.25rem;padding:0;' +
+    'border-radius:var(--raio-pilula);border:1px solid var(--borda-campo);background:var(--superficie);' +
+    'color:var(--texto-suave);font:700 .72rem/1 var(--ui);display:grid;place-items:center;cursor:pointer;}' +
+    // O ALVO DE TOQUE É MAIOR QUE O DESENHO: 28px de área para um círculo de 20px. Um «?» de
+    // 20px num telefone pede pontaria, e o dedo tapa o que se quer ler.
+    '.turma .metrica .q::before{content:"";position:absolute;inset:-.25rem;}' +
+    '.turma .metrica .q[aria-expanded="true"]{background:var(--marca-fundo);color:var(--sobre-marca);border-color:var(--marca-fundo);}' +
+    '.turma .painel{margin:.55rem 0 0;padding:.7rem .8rem;background:var(--fundo-citacao);' +
+    'border:1px solid var(--borda-campo);border-radius:var(--raio-2);}' +
+    '.turma .painel[hidden]{display:none;}' +
+    '.turma .painel .grade{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem .9rem;}' +
+    '.turma .painel .grade .k{display:block;font:700 .66rem/1.2 var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--texto-suave);}' +
+    '.turma .painel .grade .v{display:block;font:700 .88rem/1.35 var(--ui);color:var(--texto);}' +
+    '.turma .painel .frase{margin:0 0 .6rem;font-size:.88rem;line-height:1.45;color:var(--texto);}' +
+    '.turma .painel .lista-falta{list-style:none;margin:0;padding:0;display:grid;gap:.28rem;}' +
+    '.turma .painel .lista-falta li{display:flex;align-items:baseline;gap:.45rem;font-size:.88rem;color:var(--texto);}' +
+    '.turma .painel .lista-falta li::before{content:"○";font-weight:700;color:var(--alerta);}' +
+    '.turma .painel .nota{margin:.6rem 0 0;font-size:.8rem;line-height:1.4;color:var(--texto-suave);}' +
+    '.turma .painel .chips{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;}' +
+    '.turma .painel .par-associar{display:flex;align-items:center;gap:.35rem;margin-top:.6rem;min-width:0;}' +
+    '.turma .painel .sel-termo{flex:1 1 auto;min-width:0;max-width:none;}' +
+    '.turma .painel .associar{flex:0 0 auto;}' +
+    // A ESCALA DA RÉGUA. Os quatro degraus com a cor de cada um: uma escala sem cor obriga a
+    // ler as quatro palavras para saber onde a turma está.
+    '.turma .escala{display:flex;min-width:0;border:1px solid var(--borda-campo);border-radius:var(--raio-2);overflow:hidden;}' +
+    '.turma .escala span{flex:1 1 0;min-width:0;text-align:center;padding:.3rem .2rem;' +
+    'font:700 .78rem/1.25 var(--ui);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}' +
+    // `--superficie` como texto sobre `--ok` e `--alerta` INVIRTE-SE sozinho na noturna: no
+    // tema claro o papel é branco e o papel semântico é escuro; na noturna, ao contrário.
+    '.turma .escala .nivel-ok{background:var(--ok);color:var(--superficie);}' +
+    '.turma .escala .nivel-razoavel{background:var(--ok-fundo);color:var(--ok);box-shadow:inset 0 0 0 1px var(--ok);}' +
+    '.turma .escala .nivel-alerta{background:var(--alerta);color:var(--superficie);}' +
+    '.turma .escala .nivel-neutro{background:var(--fundo-faixa);color:var(--texto-suave);}' +
+    // A NOTA DA FALTA: era um selo na primeira linha, onde competia com o nome; aqui ela vem
+    // DEPOIS do nome e a frase inteira cabe, porque o texto encurta em vez de empurrar.
+    '.turma .nota-falta{display:flex;align-items:baseline;gap:.4rem;margin:.45rem 0 0;padding:.3rem .55rem;' +
+    'background:var(--alerta-fundo);border:1px solid var(--borda-campo);border-radius:var(--raio-1);' +
+    'font-size:.8rem;line-height:1.35;color:var(--texto);min-width:0;}' +
+    // O ESPAÇO entre `<b>falta</b>` e a frase não é decoração: os dois são itens flex, e o
+    // espaço em branco entre eles não é desenhado — mas SEM ele o texto que o leitor de ecrã
+    // lê é «faltaa frequência semanal…». O vão visual é do `gap`; o espaço é da leitura.
+    '.turma .nota-falta b{flex:0 0 auto;}' +
+    '.turma .nota-falta span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+    '.chip{display:inline-block;margin:0;padding:.1rem .45rem;background:var(--fundo-faixa);border:1px solid var(--borda-campo);border-radius:var(--raio-pilula);font-size:.82rem;color:var(--texto);}' +
     // O AVISO DO RITMO EM FALTA: a turma que ainda não pode receber um plano. É um selo
     // âmbar, não um erro — é uma pendência da direção, não um defeito do sistema.
     // O SELO DA VIGÊNCIA e o HISTÓRICO do ajuste da turma (16/10/2026). O selo diz que esta
@@ -2333,6 +2458,42 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    return;' +
     '  }' +
     '});' +
+    // OS TRÊS NÚMEROS DO CARTÃO DA TURMA (18/10/2026). Cada «?» abre o painel DAQUELE
+    // número, um só por vez, e a célula acende. Fecha com o mesmo toque, com Escape e com
+    // um toque fora — no telefone não há hover, e um painel que só fecha recarregando a
+    // página não é um painel.
+    'function fecharPaineis(exceto){' +
+    '  var bs = document.querySelectorAll(".turma .metrica .q");' +
+    '  for (var i = 0; i < bs.length; i++) {' +
+    '    var b = bs[i];' +
+    '    if (b === exceto) continue;' +
+    '    if (b.getAttribute("aria-expanded") !== "true") continue;' +
+    '    b.setAttribute("aria-expanded", "false");' +
+    '    var c = b.closest(".metrica"); if (c) c.removeAttribute("data-aberto");' +
+    '    var alvo = b.getAttribute("data-balao");' +
+    '    var ps = b.closest("li.turma").querySelectorAll(".painel");' +
+    '    for (var j = 0; j < ps.length; j++) {' +
+    '      if (ps[j].getAttribute("data-painel") === alvo) ps[j].hidden = true;' +
+    '    }' +
+    '  }' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var q = e.target.closest(".turma .metrica .q");' +
+    '  if (!q) { if (!e.target.closest(".turma .painel")) fecharPaineis(null); return; }' +
+    '  var alvo = q.getAttribute("data-balao");' +
+    '  var abertoAgora = q.getAttribute("aria-expanded") === "true";' +
+    '  fecharPaineis(q);' +
+    '  var li = q.closest("li.turma");' +
+    '  var ps = li ? li.querySelectorAll(".painel") : [];' +
+    '  for (var i = 0; i < ps.length; i++) {' +
+    '    if (ps[i].getAttribute("data-painel") !== alvo) continue;' +
+    '    ps[i].hidden = abertoAgora;' +
+    '  }' +
+    '  q.setAttribute("aria-expanded", abertoAgora ? "false" : "true");' +
+    '  var c = q.closest(".metrica");' +
+    '  if (c) { if (abertoAgora) { c.removeAttribute("data-aberto"); } else { c.setAttribute("data-aberto", "sim"); } }' +
+    '});' +
+    'document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharPaineis(null); });' +
     'document.addEventListener("click", function(e){' +
     '  var ed = e.target.closest("button.editar");' +
     '  if (ed) {' +

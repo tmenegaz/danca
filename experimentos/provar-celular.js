@@ -93,18 +93,34 @@ const MARCA = 'TURMA-MARCADA';
 
 function pagina(css) {
   const selo = (classe, texto) => `<span class="selo ${classe}">${texto}</span>`;
+  // O CARTÃO DA TURMA, NA FORMA DO HÍBRIDO (18/10/2026). O seletor de termo deixou de
+  // viver num `.assoc` sempre aberto e passou para dentro do painel dos CONTEÚDOS — que
+  // nasce fechado. Para a medida continuar a valer, o painel é aberto aqui (`hidden` fora):
+  // a regra não mudou («o botão fica na mesma linha do seletor que ele lê»), mudou o lugar
+  // onde ela se aplica. Uma prova que medisse um `<div class="assoc">` que já não existe
+  // estaria a medir o passado.
   const turma = `<li class="turma">
     <div class="linha-turma">
-      <span class="nome"><b>${MARCA}</b> <span class="dono">seg e qua · 19h00</span>
+      <span class="nome"><b>${MARCA}</b>
         ${selo('vinculada', 'vinculada')} ${selo('vigencia', 'ajustada em 16/10/2026')}</span>
       <span class="acoes">
         <button class="ajustar acao pequena">Derivar</button>
         <button class="apagar acao perigo pequena">Excluir</button>
       </span>
     </div>
-    <div class="dono">Régua da rubrica: presença · escuta · tônus</div>
-    <div class="assoc"><span class="dono">Conteúdos:</span>
-      <span class="chip">equilíbrio</span><span class="chip">apoio</span><span class="chip">transferência de peso</span>
+    <div class="dono">RAD · Grade 1 · 2x/semana · seg, qua 19:00 · 60 min</div>
+    <div class="metricas">
+      <div class="metrica"><span class="k">Ritmo</span><span class="v">2x · 60 min</span>
+        <button class="q" data-balao="ritmo" aria-expanded="false">?</button></div>
+      <div class="metrica"><span class="k">Régua</span><span class="v">4 níveis</span>
+        <button class="q" data-balao="regua" aria-expanded="false">?</button></div>
+      <div class="metrica"><span class="k">Conteúdos</span><span class="v">3</span>
+        <button class="q" data-balao="conteudos" aria-expanded="false">?</button></div>
+    </div>
+    <div class="painel" data-painel="conteudos">
+      <div class="chips">
+        <span class="chip">equilíbrio</span><span class="chip">apoio</span><span class="chip">transferência de peso</span>
+      </div>
       <span class="par-associar">
         <select class="sel-termo"><option>— associar termo —</option><option>apoio</option></select>
         <button class="associar acao pequena">Associar</button>
@@ -193,7 +209,7 @@ function medir(page, largura) {
     const linha = document.querySelector('.linha-turma');
     const nome = linha.querySelector('.nome');
     const acoes = linha.querySelector('.acoes');
-    const assoc = document.querySelector('.assoc');
+    const assoc = document.querySelector('.turma .painel[data-painel="conteudos"]');
     const select = assoc.querySelector('.sel-termo');
     const botao = assoc.querySelector('.associar');
 
