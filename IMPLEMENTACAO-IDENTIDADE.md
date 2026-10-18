@@ -488,3 +488,73 @@ no JavaScript: uma cópia divergiria no dia em que um grupo mudasse.
   `escola/<slug>/indice.json` já existe — é dele que sai o nome de exibição do professor — e é o
   ponto de partida natural.
 - **A contagem de contadores não foi tocada** — eles continuam na linha do topo do cartão.
+
+---
+
+## Fase 7 — as listas e o cartão da turma (18/10/2026)
+
+Objetivo: dar **uma regra de composição** às listas do Produção, em vez de remendar caso a caso.
+O relato do dono do produto veio em três pedidos separados — o vocabulário oscilava de altura, a
+curadoria devia seguir o mesmo, e em professores o «dono — criado na página» vinha com o `slug` ao
+lado — mas eram o mesmo defeito: **o complemento morava ao lado do nome**, e era o comprimento do
+nome que decidia onde ele caía.
+
+| # | Item | Estado |
+|---|---|---|
+| 7.1 | A regra das duas linhas: nome (com selos) em cima, complemento embaixo, sem terceira linha | `[x]` 18/10 — `.lista > li > .nome` em `flex` |
+| 7.2 | O vocabulário tem um complemento só (`categoria · tradição`), não dois | `[x]` 18/10 — medido: 5 linhas, todas 63px |
+| 7.3 | A curadoria segue a mesma regra; a modalidade desce para a segunda linha | `[x]` 18/10 — medido: 2 linhas, 67px |
+| 7.4 | «dono — criado na página» passa a «principal», e o `slug` sai da lista | `[x]` 18/10 — `bastidores.js` |
+| 7.5 | As demais listas falam a mesma língua (nomes em `<b>`, como o principal) | `[x]` 18/10 — professor e aluna |
+| 7.6 | O **cartão da turma** — três propostas (gaveta, escala, três números) | `[ ]` 18/10 — na página de estudos, **aguarda escolha** |
+
+### A regra, e por que ela é `flex` e não `block`
+
+A primeira tentativa foi `display: block` no complemento. Resolveu o vocabulário e **criou uma
+terceira linha** na curadoria: o selo (`LIVRE`) descia sozinho entre o nome e o complemento —
+**93px** contra os **63px** das outras listas. O que faltava era o nome e os selos caberem
+**juntos** na primeira linha:
+
+```css
+.lista > li > .nome:not(.fixo){display:flex;flex-wrap:wrap;align-items:baseline;gap:.1rem .4rem;}
+.lista > li > .nome:not(.fixo) > b{flex:1 1 auto;min-width:0;white-space:nowrap;text-overflow:ellipsis;}
+.lista > li > .nome:not(.fixo) > .selo{flex:0 0 auto;}
+.lista > li > .nome:not(.fixo) > .dono{flex:0 0 100%;white-space:nowrap;text-overflow:ellipsis;}
+```
+
+Quem cede espaço é o **nome** (reticências), os selos não cedem, e o `100%` é o que **força** a
+segunda linha. Nada quebra: encurta. Duas linhas é o teto em qualquer largura.
+
+| Lista | Antes | Depois |
+|---|---|---|
+| vocabulário | 63px e 41px alternados, conforme o nome | 63px em todas, a 1440px e a 390px |
+| curadoria | 93px (três linhas: nome · selo · complemento) | 67px, duas linhas |
+| professores | nome + «(dono — criado na página)» + `slug` | nome em cima, «principal» embaixo |
+
+> **A armadilha, que custou duas medições.** `:not(.fixo)` não é decoração: o `.nome` de uma linha
+> é ao mesmo tempo «o nome que encolhe até as reticências» e «o nome que precisa de largura para
+> não quebrar». São dois papéis, e continuam a ser duas regras. E `.lista li .nome` (0,0,3) vence
+> `.linha-turma .nome` (0,0,2) sem aviso — a especificidade não perdoa.
+
+### O cartão da turma — três propostas, uma decisão em aberto
+
+Uma turma carrega **nove faixas** de informação, todas abertas ao mesmo tempo, em cada turma. As
+três propostas aceitam o mesmo conteúdo e diferem numa decisão só: **o que fica à vista sem um
+toque**. Estão em `experimentos/opcoes-visuais/index.html`, cada uma na largura da tela e dentro
+do telefone, na pele já adotada (E, HarmonyOS).
+
+| Opção | À vista sem tocar | Toques | O que custa |
+|---|---|---|---|
+| **T1 · Gaveta** | nome, estado, três contagens | 1 + 1 | esconde a régua e os conteúdos (`<details>` nativo) |
+| **T2 · Escala** | **tudo**; a régua vira uma barra de 4 degraus | 1 | mais alta por turma; a barra colore muito |
+| **T3 · Três números** | nome, estado, três números | 1 + 1 | depende de um balão, que não existe no resto do sistema |
+
+**Sobre o balão da T3, e é o que decide.** O dono do produto sugeriu os «izinhos» com tooltip e
+levantou o problema certo sozinho: *«no celular o dedo atrapalha»*. Não existe hover no telefone.
+Um balão que abre ao toque precisa de (a) alvo maior que o desenho, (b) abrir **ancorado sob o
+ícone** e não debaixo do dedo, (c) fechar com o mesmo toque, e (d) um só aberto por vez. O
+protótipo faz as quatro — e continua a ser a proposta mais arriscada das três, porque introduz um
+componente que o sistema não tem.
+
+**Conferido depois da mudança.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 ·
+`provar-celular` 15/15 · `provar-tema` 30/30 · `check-identidade` 8/8.
