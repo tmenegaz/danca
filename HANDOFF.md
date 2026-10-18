@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T08:45:16-0300`
-Commit atual: `9ba5781` — docs(estrutura): o nome da escola no JSON, a autoridade do Worker e o arranjo H2 fechado
+Gerado em: `2026-10-18T09:03:46-0300`
+Commit atual: `6113b51` — docs(estrutura): o arranjo igual nos três documentos e a lição que ele deixa
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+6113b51 docs(estrutura): o arranjo igual nos três documentos e a lição que ele deixa
+89e1861 chore(experimentos): a prova do cabeçalho abre os TRÊS documentos e compara o arranjo
+60d36cf fix(estrutura): os três cabeçalhos passam a ser o MESMO arranjo — e o cartão passa a ter a largura da página
 9ba5781 docs(estrutura): o nome da escola no JSON, a autoridade do Worker e o arranjo H2 fechado
 9e2f9cd chore(experimentos): a escola do documento ganha prova — inclusive contra o motor de HEAD
 63e0d9a feat(estrutura): o cabeçalho do ato passa a ser o cartão de identidade (H2) — a escola ganha coluna própria
@@ -79,9 +82,6 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 2895a5d style(estrutura): os últimos raios crus entram na régua
 ffa45c8 fix(estrutura): a escola que não nasce não deixa Worker no ar — o rollback do órfão
 218cfde chore(ciclo-01): as cópias da folha acompanham a pele macia
-230cbd6 chore(experimentos): a prova do celular passa a medir o DESENHO do campo, sobre HTTP
-6533ba3 style(tools): a pele macia — e os campos que não tinham CSS nenhum
-a07264d chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -147,73 +147,69 @@ a07264d chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — Os três cabeçalhos não eram iguais: uma linha de CSS explicava os três sintomas
+## 18/10/2026 — O menu da Produção no celular passa a ser uma folha inferior (N2)
 
-**O que motivou.** O dono do produto abriu a anamnese, o plano de ensino e o plano de
-observação, um ao lado do outro, e descreveu quatro coisas:
+**O que motivou.** O dono do produto comparou a Produção no celular com os aplicativos que usa:
+«esse outro aqui ele tá espremido no topo da tela e eu não consigo entender direito o que é
+título do menu». Os três grupos e os sete destinos viravam uma fita de 80px com o título do
+grupo e o link no MESMO peso visual. Ele propôs duas soluções e pediu que eu trouxesse outras e
+as pusesse no estudo.
 
-1. «o aspecto que tá organizado os campos tem que ser exatamente igual o da anamnese» — nos
-   outros dois os campos apareciam **empilhados**;
-2. o cartão era **mais largo** do que os blocos de texto abaixo («soa muito estranho»);
-3. sobravam **textos informativos** no cabeçalho — «escolha o plano de ensino no corpo do
-   formulário», «turma observada» com uma explicação por baixo;
-4. e, no celular, a navegação da Produção continuava espremida.
-
-**Uma declaração explicava os três primeiros.** `details.ctx-ato .ctx-campos .ctx-turma { flex: 1
-1 100%; }` — a turma a ocupar a linha inteira. Só os dois documentos que **têm** turma quebravam
-a linha; a anamnese, que foi a que serviu de modelo ao estudo H2, nunca teve o campo. O CSS fazia
-o que lhe mandaram: ninguém tinha dito que os três deviam ficar iguais.
-
-| Documento | Antes | Depois |
-|---|---|---|
-| anamnese | 4 colunas, 1 linha | 4 colunas, 1 linha |
-| plano de ensino | 3 colunas, **2 linhas** | 4 colunas, 1 linha |
-| plano de observação | 3 colunas, **2 linhas** + 2 frases | 3 colunas, 1 linha, sem frases |
-
-**A largura.** O cartão vivia no `body` com medida própria (1180px) enquanto os blocos de texto
-viviam na caixa de `main` (1180 **menos 24px de padding de cada lado** = 1132). Passou a existir
-uma `.faixa` com os MESMOS três números de `header.doc, main` — o cartão deixou de ter medida
-própria e passou a herdar a da página. Medido: cartão e texto com o mesmo `x` e a mesma largura
-em 1280, 1024 e 390px.
-
-**Os textos.** Saíram as três frases que explicam a FERRAMENTA a quem já a está a usar, e ficou
-o valor — que já se anuncia vazio com «—». A turma do Plano de Observação deixou de ser um `<b>`
-com uma frase ao lado e passou a ser **inscrição**, com o mesmo desenho da escola: ela não é
-escolha de ninguém, vem do plano referenciado. No Plano de Ensino continua **campo**, porque ali
-é escolha do professor. É o contrato «campo × inscrição» da entrada anterior, aplicado à segunda
-peça que o merecia.
-
-**Um desalinhamento de 10px que a prova nova pegou.** Os campos se alinham pela base
-(`align-items: flex-end`); a inscrição da turma tem a altura do texto e o `<select>` tem 32px, e
-os rótulos ficavam 10px desencontrados — visível a olho nu. A inscrição passou a ocupar a mesma
-caixa de linha (32px), sem ganhar filete, fundo ou cursor: o que se igualou foi o **ritmo da
-linha**, não a natureza da peça.
-
-**A prova.** `experimentos/provar-cabecalho-do-ato.js` (novo) → **40/40**, e **26/40** no
-controle negativo contra a porta de `HEAD`. Ela mede o ARRANJO e não o retrato: a caixa do cartão
-contra a do texto, o topo dos campos (mesma linha, ±4px), os rótulos na ordem de cada documento,
-o tipo de cada controle (campo × inscrição) e uma lista de frases que não podem voltar. É a
-primeira prova deste repositório que abre os três documentos de propósito para compará-los.
-
-**E o estudo da navegação.** A quarta coisa era o menu da Produção no celular: sete destinos em
-três grupos viram uma fita de 80px com o título do grupo e o link com o mesmo peso. Foram para
-`experimentos/opcoes-visuais/index.html` **quatro** protótipos **clicáveis** — não desenhos:
+**Quatro opções, medidas e clicáveis** — não desenhos: navegam de verdade dentro de um telefone
+falso, porque a diferença entre elas é *como se chega ao destino*, e isso não se julga num
+retrato parado.
 
 | | Opção | Altura em repouso | Custo |
 |---|---|---:|---|
-| N1 | abas de grupo + lista (a ideia dele) | 98–174px | a lista fica sempre à vista |
-| N2 | folha inferior (a segunda ideia dele) | 53px | dois toques por destino |
-| N3 | faixa rolável de destinos (o iFood) | 64px | o que está fora da tela não se anuncia |
+| N1 | abas de grupo + lista (a ideia dele) | 98–174px | a lista fica sempre à vista; Pedagogia ocupa mais que a fita de hoje |
+| **N2** | **folha inferior** (a segunda ideia dele) | **53px** | dois toques por destino |
+| N3 | faixa rolável de destinos (o iFood) | 64px | não economiza altura; o que está fora da tela não se anuncia |
 | N4 | seletor de seção + passos | 51px | o destino deixa de estar à vista |
 
-A escolha é dele e está registada como **6.12 em aberto**. Medido nas quatro: o item ativo
-acompanha o clique, o título do conteúdo muda, e nenhuma transborda em 320, 390, 768, 1024 ou
-1280px.
+**Ele escolheu a N2.** Implementada em `motor/servidor/bastidores.js`.
 
-**Conferido.** `check-identidade.js` → 8 verificações (as duas cópias de `plano-observacao/`
-regeradas com a nav de cada escola preservada). `provar-cabecalho-do-ato` 40/40.
-`provar-escola-fixa` 30/30. `provar-contexto-do-ato` 37/37. `provar-celular` 15/15.
-`provar-tema` 30/30. `provar-producao` 109/109. `provar-plano-da-turma` 47/47.
+**O que mudou.** A `.lateral-lista` — a mesma lista, não uma segunda — deixou de ser coluna no
+celular e passou a ser a própria folha (`position: fixed`, `translateY(101%)`, véu atrás). A
+barra mostra o **grupo e a página** em que se está: «PEDAGOGIA · Curadorias», porque
+«Curadorias» sozinho não diz de onde é. O grupo é lido do próprio HTML (o `<h2>` que precede o
+link), não de uma segunda lista no JavaScript — uma cópia divergiria no dia em que um grupo
+mudasse. A escolha FECHA a folha: deixá-la aberta taparia justamente a secção que se acabou de
+pedir.
+
+**Três coisas que só apareceram ao medir.**
+
+1. A barra nasceu em **duas linhas** (grupo em cima, página embaixo), e o `align-items: center`
+   punha o botão «Seções» ENTRE as duas — lia-se como três coisas soltas, e o botão parecia
+   pertencer ao grupo em vez da página. Uma linha resolveu.
+2. O `body` fica com `overflow: hidden` enquanto a folha está aberta, para a página não rolar
+   por baixo dela. Isso obriga a **devolver** o `overflow` quando a janela cresce: em tela larga
+   a folha não existe, e a página ficaria travada sem nada aberto. O `resize` trata disso.
+3. `document.querySelector` **faltava nos dois DOM de mentira** de `provar-producao.js`. O script
+   só passou a usá-lo agora, e os dois shims quebraram — a prova acusou «document.querySelector
+   is not a function» em vez de medir. Um DOM falso que não tem o método que o script chama não
+   está a testar o script: está a testá-lo contra si mesmo. Os dois ganharam o método, e um
+   deles ganhou também o `body` (que o `overflow` toca).
+
+**Uma prova nova, que mede GEOMETRIA.** `experimentos/provar-menu-da-producao.js` — **22/22**, e
+**3/22** no controle negativo contra o `motor/` de `HEAD`. Uma folha é um elemento posicionado
+que se move; o que se prova é onde ela está antes e depois do clique, o estado que a tela declara
+(`data-aberta`, `aria-expanded`) e o `overflow` do `body`. Em 1280px as peças novas não aparecem
+e a coluna do menu é a de sempre; em 390px a lista está **fora da tela** (não apenas
+transparente), o clique a traz para dentro, o destino troca a secção visível e fecha a folha, e o
+`Escape` também fecha.
+
+**Duas dificuldades do próprio controle negativo, ambas resolvidas e comentadas no arquivo:** o
+módulo de `HEAD` não exportava `paginaProducao` (a exportação nasceu com esta prova), então o
+arquivo copiado ganha a linha de export no fim — nunca o repositório; e o `catalogo-seed.js` lê
+`biblioteca/` por caminho relativo, e o `nav-html.js` mora em `tools/templates/`, então a
+extração leva as três pastas. Sem isso, o controle morre no `require` antes de medir qualquer
+coisa.
+
+**Conferido.** `check-identidade.js` → 8 verificações. `provar-menu-da-producao` 22/22.
+`provar-celular` 15/15 (a fita do menu virou barra, e o teto de 120px continua a valer — a barra
+tem ~48px). `provar-producao` 109/109. `provar-cabecalho-do-ato` 40/40. `provar-escola-fixa`
+30/30. `provar-tema` 30/30. `provar-plano-da-turma` 47/47. `provar-derivacao-da-turma` 123/123.
+`provar-carimbo-da-edicao` 55/55. `provar-contexto-do-ato` 37/37.
 
 ## O que está pendente
 

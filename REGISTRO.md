@@ -16109,3 +16109,67 @@ acompanha o clique, o título do conteúdo muda, e nenhuma transborda em 320, 39
 regeradas com a nav de cada escola preservada). `provar-cabecalho-do-ato` 40/40.
 `provar-escola-fixa` 30/30. `provar-contexto-do-ato` 37/37. `provar-celular` 15/15.
 `provar-tema` 30/30. `provar-producao` 109/109. `provar-plano-da-turma` 47/47.
+
+## 18/10/2026 — O menu da Produção no celular passa a ser uma folha inferior (N2)
+
+**O que motivou.** O dono do produto comparou a Produção no celular com os aplicativos que usa:
+«esse outro aqui ele tá espremido no topo da tela e eu não consigo entender direito o que é
+título do menu». Os três grupos e os sete destinos viravam uma fita de 80px com o título do
+grupo e o link no MESMO peso visual. Ele propôs duas soluções e pediu que eu trouxesse outras e
+as pusesse no estudo.
+
+**Quatro opções, medidas e clicáveis** — não desenhos: navegam de verdade dentro de um telefone
+falso, porque a diferença entre elas é *como se chega ao destino*, e isso não se julga num
+retrato parado.
+
+| | Opção | Altura em repouso | Custo |
+|---|---|---:|---|
+| N1 | abas de grupo + lista (a ideia dele) | 98–174px | a lista fica sempre à vista; Pedagogia ocupa mais que a fita de hoje |
+| **N2** | **folha inferior** (a segunda ideia dele) | **53px** | dois toques por destino |
+| N3 | faixa rolável de destinos (o iFood) | 64px | não economiza altura; o que está fora da tela não se anuncia |
+| N4 | seletor de seção + passos | 51px | o destino deixa de estar à vista |
+
+**Ele escolheu a N2.** Implementada em `motor/servidor/bastidores.js`.
+
+**O que mudou.** A `.lateral-lista` — a mesma lista, não uma segunda — deixou de ser coluna no
+celular e passou a ser a própria folha (`position: fixed`, `translateY(101%)`, véu atrás). A
+barra mostra o **grupo e a página** em que se está: «PEDAGOGIA · Curadorias», porque
+«Curadorias» sozinho não diz de onde é. O grupo é lido do próprio HTML (o `<h2>` que precede o
+link), não de uma segunda lista no JavaScript — uma cópia divergiria no dia em que um grupo
+mudasse. A escolha FECHA a folha: deixá-la aberta taparia justamente a secção que se acabou de
+pedir.
+
+**Três coisas que só apareceram ao medir.**
+
+1. A barra nasceu em **duas linhas** (grupo em cima, página embaixo), e o `align-items: center`
+   punha o botão «Seções» ENTRE as duas — lia-se como três coisas soltas, e o botão parecia
+   pertencer ao grupo em vez da página. Uma linha resolveu.
+2. O `body` fica com `overflow: hidden` enquanto a folha está aberta, para a página não rolar
+   por baixo dela. Isso obriga a **devolver** o `overflow` quando a janela cresce: em tela larga
+   a folha não existe, e a página ficaria travada sem nada aberto. O `resize` trata disso.
+3. `document.querySelector` **faltava nos dois DOM de mentira** de `provar-producao.js`. O script
+   só passou a usá-lo agora, e os dois shims quebraram — a prova acusou «document.querySelector
+   is not a function» em vez de medir. Um DOM falso que não tem o método que o script chama não
+   está a testar o script: está a testá-lo contra si mesmo. Os dois ganharam o método, e um
+   deles ganhou também o `body` (que o `overflow` toca).
+
+**Uma prova nova, que mede GEOMETRIA.** `experimentos/provar-menu-da-producao.js` — **22/22**, e
+**3/22** no controle negativo contra o `motor/` de `HEAD`. Uma folha é um elemento posicionado
+que se move; o que se prova é onde ela está antes e depois do clique, o estado que a tela declara
+(`data-aberta`, `aria-expanded`) e o `overflow` do `body`. Em 1280px as peças novas não aparecem
+e a coluna do menu é a de sempre; em 390px a lista está **fora da tela** (não apenas
+transparente), o clique a traz para dentro, o destino troca a secção visível e fecha a folha, e o
+`Escape` também fecha.
+
+**Duas dificuldades do próprio controle negativo, ambas resolvidas e comentadas no arquivo:** o
+módulo de `HEAD` não exportava `paginaProducao` (a exportação nasceu com esta prova), então o
+arquivo copiado ganha a linha de export no fim — nunca o repositório; e o `catalogo-seed.js` lê
+`biblioteca/` por caminho relativo, e o `nav-html.js` mora em `tools/templates/`, então a
+extração leva as três pastas. Sem isso, o controle morre no `require` antes de medir qualquer
+coisa.
+
+**Conferido.** `check-identidade.js` → 8 verificações. `provar-menu-da-producao` 22/22.
+`provar-celular` 15/15 (a fita do menu virou barra, e o teto de 120px continua a valer — a barra
+tem ~48px). `provar-producao` 109/109. `provar-cabecalho-do-ato` 40/40. `provar-escola-fixa`
+30/30. `provar-tema` 30/30. `provar-plano-da-turma` 47/47. `provar-derivacao-da-turma` 123/123.
+`provar-carimbo-da-edicao` 55/55. `provar-contexto-do-ato` 37/37.

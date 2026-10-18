@@ -369,7 +369,8 @@ não devia ser — ela não é escolha de ninguém.
 | 6.9 | O cartão tem a mesma largura do texto da página | `[x]` 18/10 — `.faixa`, a caixa de `main` |
 | 6.10 | Os textos que explicam a ferramenta saem do cabeçalho | `[x]` 18/10 — três frases, e uma lista na prova |
 | 6.11 | Prova do arranjo, nos três documentos e em duas larguras | `[x]` 18/10 — `provar-cabecalho-do-ato.js`, 40/40 |
-| 6.12 | A navegação da Produção no celular — quatro opções | `[ ]` **aguardando a escolha** — `experimentos/opcoes-visuais/` |
+| 6.12 | A navegação da Produção no celular — quatro opções | `[x]` 18/10 — **N2, folha inferior**, escolhida pelo dono do produto |
+| 6.13 | A folha inferior implementada e provada | `[x]` 18/10 — `provar-menu-da-producao.js`, 22/22 |
 
 ### O que a Fase 6 mediu
 
@@ -451,6 +452,33 @@ subordina o valor ao Worker, que já era a autoridade em `escolaDe()`. Prova:
 `experimentos/provar-escola-do-documento.js` — **10/10** com a correção, **4/10** contra o
 `motor/` de `HEAD` (o controle negativo extrai o código antigo com `git archive`, não uma cópia
 editada à mão).
+
+### A navegação da Produção no celular — N2, folha inferior
+
+Quatro protótipos clicáveis foram medidos no estudo; a escolha foi a folha inferior.
+
+| Opção | Altura em repouso | Por que não |
+|---|---:|---|
+| N1 abas de grupo + lista | 98–174px | a lista fica sempre à vista, e o grupo maior ocupa mais que a fita de hoje |
+| **N2 folha inferior** | **53px** | **escolhida** |
+| N3 faixa rolável (iFood) | 64px | não economiza altura; o que está fora da tela não se anuncia |
+| N4 seletor + passos | 51px | o destino deixa de estar à vista |
+
+**O que mudou no `bastidores.js`.** A `.lateral-lista` deixou de ser uma coluna no celular e
+passou a ser a própria folha (`position: fixed`, `translateY(101%)`), com um véu atrás. A barra
+mostra o **grupo e a página** — «PEDAGOGIA · Curadorias», porque «Curadorias» sozinho não diz de
+onde é. O grupo é lido do próprio HTML (o `<h2>` que precede o link), não de uma segunda lista
+no JavaScript: uma cópia divergiria no dia em que um grupo mudasse.
+
+**Três detalhes que só apareceram ao medir:**
+
+1. a barra nasceu em **duas linhas** (grupo em cima, página embaixo), e o `align-items: center`
+   punha o botão «Seções» entre as duas — lia-se como três coisas soltas. Uma linha resolveu;
+2. o `body` fica com `overflow: hidden` enquanto a folha está aberta — e o `resize` para tela
+   larga tem de o **devolver**, senão a página fica travada sem nada aberto;
+3. `document.querySelector` **faltava nos dois DOM de mentira** de `provar-producao.js`. O script
+   só passou a usá-lo agora, e os dois shims quebraram — um DOM falso que não tem o método que o
+   script chama não está a testar o script.
 
 **O que ainda não está fechado.**
 

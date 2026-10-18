@@ -211,6 +211,23 @@ aparelho»:
 > ainda tinha duas colunas — navegação em dobro, e 535px para o conteúdo. Dois números para o
 > mesmo conceito é a mesma classe de defeito que o `--gold-borda` em dois fundos.
 
+**A navegação da PÁGINA também é escala de tela.** O sistema tem duas navegações, e elas não
+são a mesma coisa:
+
+| | O que é | No celular |
+|---|---|---|
+| **do sistema** | Sistema Lastro · Área do Professor · Bastidores | hambúrguer (decidido em 16/10/2026) |
+| **da página** | os grupos e as secções de uma vista (Produção: 3 grupos, 7 destinos) | **folha inferior** (18/10/2026) |
+
+A segunda era uma fita de 80px que quebrava sozinha, com o título do grupo e o link no mesmo
+peso — não se lia onde um começava e o outro acabava. Passou a ser **uma linha com o grupo e a
+página em que se está**, e um botão «Seções» que sobe a lista; a escolha fecha a folha, porque
+deixá-la aberta taparia justamente a secção que se acabou de pedir.
+
+> **O vocabulário, para não se repetir:** folha inferior (bottom sheet) para escolher **entre
+> destinos do mesmo nível**; hambúrguer para a navegação **global**. As duas convivem — a
+> primeira é local e temporária, a segunda é permanente e raramente usada.
+
 **Abaixo do corte de celular**, cada vista decide o que fazer com a largura que tem:
 
 - o **menu de secções** do painel deixa de ser uma coluna (248px de altura) e vira uma **faixa**
