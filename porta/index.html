@@ -128,7 +128,16 @@
      de ação ao lado) e o nome do bloco vai a 15px. Aberto, a pastilha enche de marca: o
      estado diz-se sem uma palavra — a mesma regra da seta do acordeão das turmas. */
   .barra details.ctx-ato > summary {
-    display: flex; align-items: center; gap: .55rem;
+    /* `wrap` — E O RESUMO DESCE DE LINHA EM VEZ DE SE ESPREMER (18/10/2026). Ele estava
+       `nowrap` com reticência: à medida que a tela encolhia, «escola · professor · ciclo ·
+       aluna · falta aluna» era cortado a «escola · prof…», que não diz nada a ninguém. O
+       pedido é o contrário e é o certo: quando não cabe ao lado, o resumo passa para a
+       linha de baixo e **cabe inteiro**. É o mesmo comportamento dos contadores, que já
+       põem o «obrigatório» por baixo do «respondido».
+
+       O que faz o resumo descer é o `min-width` dele (abaixo) junto com este `wrap`: o
+       item que não cabe na linha salta para a seguinte, e lá ocupa o que precisar. */
+    display: flex; align-items: center; flex-wrap: wrap; gap: .55rem;
     min-height: 44px; padding: .15rem 0;
     cursor: pointer; list-style: none;
     font: 600 15px/1.25 var(--ui); color: var(--texto);
@@ -146,14 +155,24 @@
     transform: rotate(90deg);
     background: var(--marca-fundo); border-color: var(--marca-fundo); color: var(--texto-destaque-marca);
   }
-  /* O RESUMO À DIREITA. `margin-left: auto` põe-no no fim da linha, e a reticência
-     impede que «escola · professor · ciclo · turma observada» empurre a pastilha —
-     é texto de apoio, e cede antes do controle. */
+  /* O RESUMO À DIREITA — enquanto couber.
+     `flex: 1 1 auto` com `min-width: 22ch`: é esse mínimo que decide a hora de descer. Com
+     espaço, ele fica à direita (`margin-left: auto`) e cede largura até 22ch; abaixo disso
+     ele não se espreme mais — passa para a linha seguinte, onde `flex-grow` o leva à
+     largura toda e ele cabe inteiro. A reticência saiu: ela era a forma de «caber» que
+     cortava o sentido (era «escola · prof…»). O texto é de apoio, e agora quebra em vez de
+     mentir. */
   .barra details.ctx-ato .ctx-resumo {
-    margin-left: auto; min-width: 0;
+    flex: 1 1 auto; margin-left: auto; min-width: 22ch;
     color: var(--suave); font-weight: 400; font-size: .84rem;
-    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
   }
+  /* Descido, ele começa no mesmo `x` da pastilha — e isso lê-se como intenção, não como
+     desalinhamento: os dois ficam à esquerda da faixa. Alinhar sob o NOME do bloco exigiria
+     recuo condicional, e CSS não sabe perguntar «desci?»; o `text-indent` indentaria também
+     a primeira linha quando o resumo está AO LADO, que é o caso normal. */
+  
   /* OS CAMPOS, UM POR COLUNA DE RÓTULO. `align-items: flex-end` alinha os CONTROLES pela
      base mesmo com rótulos de uma ou duas linhas — sem isso, «turma observada» (que
      quebra) empurraria o seu select para baixo dos outros. */
@@ -780,6 +799,12 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
     <p class="toc-titulo" id="titulo-fichas">Fichas gravadas</p>
     <input type="text" id="filtro-fichas" placeholder="filtrar por data, hora ou id" autocomplete="off">
     <ul id="lista-fichas" class="lista"></ul>
+    <!-- O AVISO DE QUE A LISTA NÃO PÔDE SER LIDA (18/10/2026). Quando o pedido dos estados
+         falha, cada ficha ficava sem o nome («sem apelido») e sem os botões «editar» e
+         «apagar» — e isso se lê como «perdi as fichas». Não se perdeu nada: a lista é
+         desenhada da memória do navegador, e o que faltou foi a leitura do estado no
+         servidor. O que não se pode é ficar calado, a inventar um nome para quem tem um. -->
+    <p class="aviso oculto" id="fichas-erro"></p>
     <p class="sub oculto" id="fichas-vazio">Nenhuma ficha gravada ainda.</p>
     <!-- A PAGINAÇÃO nasce oculta: com até uma página de fichas ela não existe, e a
          estante fica como sempre foi. -->
@@ -5184,13 +5209,28 @@ const PREFIXO = FONTE + '-';
  */
 const ESTADOS = new Map(); // carimbo → {vinculada, por, vigente, anterior}
 
+/* POR QUE A LISTA NÃO PÔDE SER LIDA — `null` quando correu bem.
+ *
+ * O `catch` mudo custou caro (18/10/2026). O Cloudflare KV tem um limite DIÁRIO de
+ * `list()` (1.000 no plano free), e quando ele acaba o Worker responde 500. A tela,
+ * calada, desenhava cada anamnese com «sem apelido» e SEM os botões «editar» e «apagar»
+ * — porque a regra de proveniência os decide, e sem estado não há regra. O professor leu
+ * isso como «as fichas foram perdidas». Não foram: a lista vem da memória do navegador, o
+ * que faltou foi o ESTADO. Uma falha de leitura tem de aparecer como falha de leitura. */
+let ESTADOS_ERRO = null;
+
 async function carregarEstados() {
   if (FONTE !== 'anamnese' && FONTE !== 'plano') return;
   try {
     // A rota de GESTÃO. A anamnese traz o apelido (o sujeito); o plano traz o
     // OBJETIVO (o resumo da estante). Cada fonte tem o seu estado.
     const resposta = await fetch(FONTE === 'anamnese' ? 'api/anamnese-estados' : 'api/plano-estados');
+    if (!resposta || !resposta.ok) {
+      ESTADOS_ERRO = resposta ? 'o servidor respondeu ' + resposta.status : 'sem resposta do servidor';
+      return;
+    }
     const dados = await resposta.json();
+    ESTADOS_ERRO = null;
     for (const [carimbo, estado] of Object.entries(dados.estados || {})) {
       ESTADOS.set(carimbo, Object.assign(
         { valor: FONTE === 'anamnese' ? estado.apelido : estado.objetivo },
@@ -5198,7 +5238,7 @@ async function carregarEstados() {
       ));
     }
   } catch (erro) {
-    /* sem estados: a lista sai sem os selos, e nada mais quebra */
+    ESTADOS_ERRO = (erro && erro.message) || 'leitura interrompida';
   }
   // Os ESTADOS são o que marca as turmas já planejadas como bloqueadas no cabeçalho (o
   // estado do plano e o atalho). Eles chegam DEPOIS da curadoria: re-semeia a turma (agora
@@ -5332,9 +5372,15 @@ function pintarFichas() {
     // O SUJEITO da anamnese abre a linha: o `valor` já vinha do servidor
     // (`/api/anamnese-estados` → `apelido`) e era descartado — com duas fichas do mesmo
     // dia, o professor não tinha como saber de quem era cada uma.
+    // SEM ESTADO NÃO SE INVENTA NOME. «sem apelido» é uma afirmação sobre o sujeito, e só
+    // se faz quando o servidor o disse (`semSujeito`). Quando o estado não chegou, a linha
+    // fica sem o nome e o aviso em cima diz por quê — calar e escrever «sem apelido» era
+    // dizer ao professor que a ficha dele não tinha dona.
     const quem = eAnam
-      ? '<span class="quem' + (o && o.semSujeito ? ' sem-sujeito' : '') + '">' +
-        escapar((o && o.valor) || 'sem apelido') + '</span> '
+      ? (o
+        ? '<span class="quem' + (o.semSujeito ? ' sem-sujeito' : '') + '">' +
+          escapar(o.valor || 'sem apelido') + '</span> '
+        : '')
       : '';
     const caminho = eAnam
       ? 'Ver a ficha preenchida'
@@ -5348,6 +5394,17 @@ function pintarFichas() {
       '<span class="caminho">' + caminho + '</span></a>' + acoes +
       '<div class="aviso-ficha oculto" data-aviso="' + escapar(id) + '"></div></li>';
   }).join('');
+
+  // O AVISO DA LEITURA FALHADA — a única coisa que explica por que a linha está sem nome
+  // e sem os botões. Só na anamnese e no plano, que são as fontes com estado.
+  const caixaErro = $('fichas-erro');
+  const semEstados = ESTADOS_ERRO && (eAnam || ePlano);
+  caixaErro.classList.toggle('oculto', !semEstados);
+  caixaErro.textContent = semEstados
+    ? 'Não foi possível ler o estado destes registros (' + ESTADOS_ERRO + '). ' +
+      'As fichas NÃO se perderam — o que não chegou foi o estado de cada uma, e é ele que ' +
+      'diz o nome da aluna e libera «editar» e «apagar». Recarregue dentro de alguns minutos.'
+    : '';
 
   const vazio = $('fichas-vazio');
   vazio.classList.toggle('oculto', visiveis.length !== 0);

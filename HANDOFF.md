@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T18:12:36-0300`
-Commit atual: `ecb3cac` — feat(estrutura): o cabeçalho do ato cresce, e o «Fechar» deixa de descontar
+Gerado em: `2026-10-18T18:32:18-0300`
+Commit atual: `a524428` — feat(estrutura): o cabeçalho do ato cabe em 360px, e a barra vira a decisão tomada
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+a524428 feat(estrutura): o cabeçalho do ato cabe em 360px, e a barra vira a decisão tomada
+4843ba3 feat(tools): o estado escondido passa a esconder — o `[hidden]` na base da folha
 ecb3cac feat(estrutura): o cabeçalho do ato cresce, e o «Fechar» deixa de descontar
 55ea429 feat(estrutura): a família é o segundo eixo da aparência
 bca77bb feat(tools): a Cortina Turquesa — a segunda família, medida antes de existir
@@ -80,8 +82,6 @@ dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando n
 7d8d6e3 docs(estrutura): a fase 7 fecha os passos, e a regra das duas linhas ganha o mecanismo
 a35f5d7 feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai para onde a turma já existe
 34e07b3 docs(estrutura): a fase 7 registra que a associação desceu para o formulário
-317b2c3 feat(estrutura): a associação sai do cartão e desce para o formulário da turma
-a237e82 docs(estrutura): o híbrido do cartão da turma escolhido, implementado e provado
 ```
 
 ## Por professor
@@ -147,113 +147,73 @@ a237e82 docs(estrutura): o híbrido do cartão da turma escolhido, implementado 
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — O cabeçalho do ato cabe em 360px, e a barra de botões vira a decisão tomada
+## 18/10/2026 — Correção: o resumo da faixa desce, e a lista não mente quando não lê
 
-**O que motivou.** Duas coisas na mesma tela, e as duas medidas a 360×640 (Moto G4). (1) O
-cabeçalho do ato — o «Contexto do ato» — **não era responsivo**: dentro da edição os campos saíam
-pela direita com a borda engolida, e fora dela o texto não se lia; ele adaptava até ~630px e
-parava. A causa não era falta de `@media`: a faixa da grelha era `1fr`, cujo mínimo é `auto` — o
-min-content do conteúdo. Medido: a faixa tinha **312px** e a coluna resolvia para **519px**,
-porque o `min-content` do campo da senha media **488px** (o `<input>` com `width: 100%` e o estado
-da senha com `white-space: nowrap`). (2) O dono do produto escolheu, sobre a página de estudo:
-**K1** para o recolher, **B2** para a barra (fixa no rodapé do telefone) com a **etiqueta do B1**
-— o «Fechar a elicitação» **na linha de baixo**, e não entre as setas —, o **«Pular» removido**, e
-**I2/I3** para a ajuda (o «?» no alto do cartão; no telefone, folha inferior).
+**O que motivou.** Três coisas erradas da entrada anterior, apontadas pelo dono do produto no
+mesmo dia.
+
+1. **A lista de fichas perdeu os nomes e os botões.** Ele abriu a anamnese e leu «sem apelido» em
+   cada ficha, e os botões «editar» e «apagar» tinham desaparecido. **Não é dado perdido, e não é
+   edição de dado nenhuma** — a leitura do estado no servidor falhou:
+   `Error: KV list() limit exceeded for the day.` O Cloudflare KV tem um limite **diário** de
+   `list()` (1.000 no plano free), e ele acabou. A tela, com o `catch` mudo que lá estava,
+   desenhava «sem apelido» (uma afirmação sobre o sujeito) e omitia os gestos — porque a regra de
+   proveniência os decide e sem estado não há regra. **Contribuí para o consumo**: medi as páginas
+   ao vivo dezenas de vezes para conferir larguras. É a lição operacional desta entrada: medir no
+   ar gasta cota, e mede-se numa bancada local.
+2. **O resumo da faixa se espremia.** `.ctx-resumo` era `nowrap` com reticência: ao encolher a
+   tela, «escola · professor · ciclo · aluna — falta aluna para fechar» virava «escola · prof…».
+   O pedido é o contrário: quando não cabe ao lado, **desce de linha e cabe inteiro** — o mesmo
+   que os contadores já fazem com «obrigatório» por baixo de «respondido».
+3. **Um PNG foi versionado**, contra a regra da casa (imagem no servidor, não: o que vem em
+   imagem converte-se em SVG). Saiu.
 
 **O que foi decidido.**
-- **`minmax(0, 1fr)`, nunca `1fr`, num contentor de campos.** Uma faixa `1fr` não encolhe abaixo do
-  min-content do que lá está; é o defeito que parece «falta de media query» e nunca é.
-- **Os campos do cabeçalho são uma grelha de duas colunas** no telefone (≥345px) e **uma** abaixo
-  disso. Duas colunas a 320px dão 114px por campo, e o `select` do professor começa a cortar o
-  nome — o corte é o do conteúdo, não o do aparelho.
-- **O estado da senha não empurra**: `white-space: normal`, e vazio não ocupa linha.
-- **A barra de ação tem quatro papéis** — navegar (`←` · `Próxima →`), concluir (`Fechar a
-  elicitação`) e sair (`✕`). O **«Pular» deixou de existir**: era um botão cujo único efeito era
-  conduzir sem responder. O «limpar» do roteiro continua a apagar uma resposta dada.
-- **O «✕» diz o que faz**: `title` e `aria-label` = «Salvar para continuar depois». O gesto já era
-  esse (`salvar()` antes de sair); o rótulo é que dizia outra coisa.
-- **No telefone a barra é fixa**, com `env(safe-area-inset-bottom)`, e a condução ganha
-  `padding-bottom: 7.5rem` — **medido**: com 88px o último campo ficava debaixo do «Fechar».
-- **O «Fechar» cai na segunda linha** (`order: 3` + `flex: 1 1 100%`), nunca entre as setas: o
-  polegar que avança não deve encontrar a saída debaixo do dedo.
-- **`[hidden]` passou a esconder.** O «Fechar» tinha `hidden` posto e **45px de altura**: a página
-  tem `button { display: … }`, que vence o `display: none` da folha do navegador. A barra media
-  **114px** com um botão que não devia existir. O estado mora na base da folha com `!important` —
-  a única linha da folha que o usa, e a proibição 4 do catálogo nasceu deste caso.
-- **A explicação sai da frente do campo.** Ela mora atrás de um **«?»** no alto do cartão —
-  `linhasDaExplicacao()` é o único lugar que decide o conteúdo, e o título pergunta-lhe se há
-  linhas para desenhar o botão (um «?» que abre o vazio ensina a não o usar). Entraram ali:
-  `explicacao` (o que é / o que preencher / por que existe), `nota` do campo e `blocoNota` do bloco
-  — que eram parágrafos `.aviso` sempre à vista. **`.aviso` continua a ser o que impede o avanço.**
-- **O ritmo da condução diz-se uma vez**: a frase «uma pergunta por vez, a lacuna é declarada» só
-  aparece na primeira pergunta, em vez de trinta vezes.
-- **No telefone o «?» abre folha inferior** (véu + «Fechar» + `Esc`), e não um bloco que empurra o
-  formulário — o problema que ele veio resolver.
+- **Resumo que desce, nunca que corta.** `summary` com `flex-wrap: wrap` e `.ctx-resumo` com
+  `flex: 1 1 auto; min-width: 22ch`, sem reticência. O `min-width` é o que decide a hora de
+  descer; com espaço ele fica à direita, sem espaço passa à linha seguinte e ocupa-a. Medido a
+  320/360/390/500/630/768/1024/1200, com o formulário **aberto e fechado**: desce até 500,
+  volta à mesma linha a partir de 630, e **nunca** `scrollWidth > clientWidth`.
+- **Uma falha de leitura aparece como falha de leitura.** `ESTADOS_ERRO` guarda o motivo quando
+  `/api/anamnese-estados` não responde 200; a lista mostra um `.aviso` que diz o que falhou, que
+  **as fichas não se perderam** e que é o estado que dá o nome e libera os gestos. E, sem estado,
+  a linha **não escreve nome nenhum** — «sem apelido» só se diz quando o servidor o disse
+  (`semSujeito`).
+- **Nada de imagem versionada**: `marca-lastro.png` sai do repositório e o bloco da marca sai da
+  página de estudo (o estudo é sobre a barra e a ajuda; a marca, quando for, vai em SVG).
 
 **Onde entrou.**
-- `tools/templates/ciclo.css` — a regra de base `[hidden] { display: none !important; }`, com o
-  motivo escrito ao lado. É adição de estado, não mudança de componente.
-- `porta/index.html` — `minmax(0,1fr)` e `min-width: 0` no cabeçalho; a grelha de duas colunas e o
-  corte a 344px; a barra fixa e o `padding-bottom` da condução; o «?» (`.ajuda`, `.titulo-do-no`),
-  o painel `.explica` + `.aberto`, `linhasDaExplicacao()`, `caixaDaExplicacao()`,
-  `alternarAjuda()`; o «Pular» removido (handler, trava e as quatro notas do código); o `#sair`
-  como `✕`.
+- `porta/index.html` — o `summary` com `wrap`, o `.ctx-resumo` com `min-width` e sem reticência;
+  `ESTADOS_ERRO`, `carregarEstados()` a verificar `resposta.ok`, o `#fichas-erro` no markup e em
+  `pintarFichas()`, e o `quem` que não inventa nome.
 - `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
-  cópias regeradas a partir de `porta/`, com a barra injetada no `<!-- NAV -->` (cada escola com a
-  sua); `assets/style.css` das duas e de `raiz/` recopiados; `raiz/` regerada por
-  `tools/gerar-raiz.sh`.
-- `experimentos/provar-ato-e-barra.js` — de 26 para **54** asserções (§5 a barra: «Pular» ausente,
-  barra `fixed`, alvos de 44px, «Fechar» na segunda linha e a linha inteira; §6 o «?» que não
-  existe sem conteúdo; §7 os campos a 320/360/390, nenhum a sair da faixa, nenhum a cortar o
-  próprio texto). O `--controle-negativo` contra `git show HEAD:porta/index.html` **reprova 13**.
-- `experimentos/provar-ajustes-anamnese.js` — as cinco asserções do «Pular» passaram a guardar a
-  **ausência** dele. E o bloco (14), que media o bloqueio da turma **na página da anamnese**,
-  passou a carregar `/plano-ensino/`: `turmasJaUsadas()` devolve vazio fora do plano, por desenho —
-  eram **12 falhas pré-existentes** que a prova arrastava. `carregarPortaIniciada()` ganhou o
-  caminho da página como argumento. **125 de 125.**
-- `IDENTIDADE-VISUAL.md` — Quadro 1 (a explicação que se procura → `.ajuda` + `.explica`), Quadro 2
-  (as duas peças novas e a regra `[hidden]`) e a **proibição 4**: um estado não se deixa à mercê da
-  página, com o caso que a criou.
-- `experimentos/opcoes-visuais/` — a página de estudo e a marca passaram a ser **versionadas**. Ela
-  foi pedida por caminho e não se encontrava; um estudo que ninguém consegue abrir não é estudo.
-- `.gitignore` — a exceção da página de estudo, com o motivo ao lado.
-- **Motivo declarado — os congelados.** `tools/templates/ciclo.css` muda por uma razão que não é
-  estética: o estado escondido do sistema não existia na base, e cada página o reescrevia (ou
-  esquecia). A adição é uma regra de base, com `!important` justificado; **não muda** a fórmula do
-  hash, a cobertura dele, os validadores, as regras pedagógicas nem as pétreas, e não toca em
-  nenhum componente existente. As checagens da identidade continuam a passar (12 linhas `ok`, 0
-  erros).
+  cópias regeradas (a barra de cada escola reposta no `<!-- NAV -->`).
+- `experimentos/provar-ato-e-barra.js` — **72 asserções** (§8 o resumo desce, não corta, aberto e
+  fechado; §9 a lista com estados — nome e gestos — e a lista sem estados: aviso visível, motivo,
+  «não se perderam», e nenhum «sem apelido» inventado, com o 500 servido pela bancada).
+  `--controle-negativo` **reprova 9** contra `HEAD`, e são exactamente as nove desta correção.
+- `experimentos/opcoes-visuais/index.html` — o bloco da marca e o seu CSS saem; o PNG é apagado.
+- `.gitignore` — cai a exceção do PNG (a da página continua).
+- `IDENTIDADE-VISUAL.md` — sem mudança: nenhuma peça nova nasceu (o `.aviso` e o `.ctx-resumo` já
+  estavam no catálogo).
 
-**Com o quê.** `porta/index.html` · `tools/templates/ciclo.css` · as duas cópias de
-`plano-observacao/` e os três `assets/style.css` · `raiz/index.html` (regerado) ·
-`experimentos/provar-ato-e-barra.js` · `experimentos/provar-ajustes-anamnese.js` ·
-`experimentos/opcoes-visuais/{index.html,marca-lastro.png}` · `IDENTIDADE-VISUAL.md` · `.gitignore`
-· este registro.
+**Com o quê.** `porta/index.html` · as duas cópias de `plano-observacao/` ·
+`experimentos/provar-ato-e-barra.js` · `experimentos/opcoes-visuais/index.html` · `.gitignore` ·
+este registro.
 
-**Referências.** WCAG 2.1 AA (2.5.8, alvo de toque; 1.4.10, reflow a 320px) ·
-`IDENTIDADE-VISUAL.md` (o catálogo das peças e a proibição 4) · `porta/index.html` (o comentário
-do `minmax(0,1fr)` e o da barra fixa, com as medidas) · a página de estudo
-`experimentos/opcoes-visuais/index.html` (as propostas K, I e B de onde saíram as escolhas).
+**Referências.** A mensagem do Worker: `Error: KV list() limit exceeded for the day` (limite
+diário de `list()` do Cloudflare KV, 1.000 no plano free — reposto às 00:00 UTC) ·
+`IDENTIDADE-VISUAL.md` (o `.aviso` é para o que impede; a explicação é para o que se procura).
 
-**O que ainda não está feito.** (a) A **senha do plano** (edição/derivação) não foi remedida a
-360px nesta entrada — o `sinalDeSenha` é o mesmo, mas o fluxo do plano não passou pela bancada.
-(b) Os **«?» da página de estudo**: I1 e I2 respondem ao clique, I3 tem o «Fechar» a fechar a
-folha, mas o mock não tem botão que a abra — a folha nasce aberta, porque é um desenho. (c) O
-`#fechar` continua com `disabled` **e** `hidden`: duas trancas para o mesmo estado, mantidas de
-propósito (a de `disabled` é a que o servidor de prova alcança por nome).
+**O que ainda não está feito.** (a) O `catch` de `carregarFichas()` (a lista de envelopes) continua
+a cair na memória do navegador em silêncio — a falha dos ESTADOS passou a ser dita, a dos
+ENVELOPES não; hoje o sintoma não se distingue de «não tenho fichas». (b) O consumo de `list()`
+por visita não foi reduzido nem medido: a página da Produção lista várias famílias, e não há
+contagem. Se o limite voltar a apertar, o caminho é um índice gravado, não um `list()` por visita
+— decisão que **não** se toma sem o dono do produto. (c) A marca do produto continua fora da
+página de estudo, à espera de ser vetorizada em SVG.
 
 ## O que está pendente
-
-## 18/10/2026 — A aparência passou a ser da escola, e o servidor aplica-a
-
-(a) **As doze paletas continuam sem hex** — o que existe são dois
-modos sobre a paleta vigente; especificar e medir as combinações é o **V1** do §L13, e nenhum valor
-foi inventado. (b) O *quando* a escola escolhe (contratação ou primeiro uso) segue aberto, e é de
-produto. (c) A metade **comercial** da **C17** (quem confirma pagamento, quem recebe o e-mail
-administrativo) continua aberta; a metade que interessava — *quem administra a Produção* — está
-respondida e escrita. (d) `provar-tema`, `provar-aparencia`, `provar-producao`, `provar-selo`,
-`provar-celular`, `provar-cartao-da-turma`, `provar-dobra-do-indice` e `check-identidade` passam;
-`provar-ambiente` só depois do deploy, e é ele que confirma que o que está no ar é este motor.
 
 ## 18/10/2026 — O catálogo das peças: um nome antes do desenho
 
@@ -281,6 +241,16 @@ escolhido — depende do dono do produto, e é ele que decide entre B1, B2 e B3.
 folha, mas o mock não tem botão que a abra — a folha nasce aberta, porque é um desenho. (c) O
 `#fechar` continua com `disabled` **e** `hidden`: duas trancas para o mesmo estado, mantidas de
 propósito (a de `disabled` é a que o servidor de prova alcança por nome).
+
+## 18/10/2026 — Correção: o resumo da faixa desce, e a lista não mente quando não lê
+
+(a) O `catch` de `carregarFichas()` (a lista de envelopes) continua
+a cair na memória do navegador em silêncio — a falha dos ESTADOS passou a ser dita, a dos
+ENVELOPES não; hoje o sintoma não se distingue de «não tenho fichas». (b) O consumo de `list()`
+por visita não foi reduzido nem medido: a página da Produção lista várias famílias, e não há
+contagem. Se o limite voltar a apertar, o caminho é um índice gravado, não um `list()` por visita
+— decisão que **não** se toma sem o dono do produto. (c) A marca do produto continua fora da
+página de estudo, à espera de ser vetorizada em SVG.
 
 ## Pendências anteriores (índice)
 
@@ -476,6 +446,7 @@ propósito (a de `disabled` é a que o servidor de prova alcança por nome).
 - **18/10/2026** — a etiqueta é uma só, e o que está no ar é o motor → `REGISTRO.md` L16844
 - **18/10/2026** — a dobra do índice da página, no celular → `REGISTRO.md` L16921
 - **18/10/2026** — a C15 foi decidida: a preferência de aparência é da… → `REGISTRO.md` L17074
+- **18/10/2026** — A aparência passou a ser da escola, e o servidor aplica-a → `REGISTRO.md` L17140
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

@@ -17572,3 +17572,69 @@ do `minmax(0,1fr)` e o da barra fixa, com as medidas) · a página de estudo
 folha, mas o mock não tem botão que a abra — a folha nasce aberta, porque é um desenho. (c) O
 `#fechar` continua com `disabled` **e** `hidden`: duas trancas para o mesmo estado, mantidas de
 propósito (a de `disabled` é a que o servidor de prova alcança por nome).
+
+## 18/10/2026 — Correção: o resumo da faixa desce, e a lista não mente quando não lê
+
+**O que motivou.** Três coisas erradas da entrada anterior, apontadas pelo dono do produto no
+mesmo dia.
+
+1. **A lista de fichas perdeu os nomes e os botões.** Ele abriu a anamnese e leu «sem apelido» em
+   cada ficha, e os botões «editar» e «apagar» tinham desaparecido. **Não é dado perdido, e não é
+   edição de dado nenhuma** — a leitura do estado no servidor falhou:
+   `Error: KV list() limit exceeded for the day.` O Cloudflare KV tem um limite **diário** de
+   `list()` (1.000 no plano free), e ele acabou. A tela, com o `catch` mudo que lá estava,
+   desenhava «sem apelido» (uma afirmação sobre o sujeito) e omitia os gestos — porque a regra de
+   proveniência os decide e sem estado não há regra. **Contribuí para o consumo**: medi as páginas
+   ao vivo dezenas de vezes para conferir larguras. É a lição operacional desta entrada: medir no
+   ar gasta cota, e mede-se numa bancada local.
+2. **O resumo da faixa se espremia.** `.ctx-resumo` era `nowrap` com reticência: ao encolher a
+   tela, «escola · professor · ciclo · aluna — falta aluna para fechar» virava «escola · prof…».
+   O pedido é o contrário: quando não cabe ao lado, **desce de linha e cabe inteiro** — o mesmo
+   que os contadores já fazem com «obrigatório» por baixo de «respondido».
+3. **Um PNG foi versionado**, contra a regra da casa (imagem no servidor, não: o que vem em
+   imagem converte-se em SVG). Saiu.
+
+**O que foi decidido.**
+- **Resumo que desce, nunca que corta.** `summary` com `flex-wrap: wrap` e `.ctx-resumo` com
+  `flex: 1 1 auto; min-width: 22ch`, sem reticência. O `min-width` é o que decide a hora de
+  descer; com espaço ele fica à direita, sem espaço passa à linha seguinte e ocupa-a. Medido a
+  320/360/390/500/630/768/1024/1200, com o formulário **aberto e fechado**: desce até 500,
+  volta à mesma linha a partir de 630, e **nunca** `scrollWidth > clientWidth`.
+- **Uma falha de leitura aparece como falha de leitura.** `ESTADOS_ERRO` guarda o motivo quando
+  `/api/anamnese-estados` não responde 200; a lista mostra um `.aviso` que diz o que falhou, que
+  **as fichas não se perderam** e que é o estado que dá o nome e libera os gestos. E, sem estado,
+  a linha **não escreve nome nenhum** — «sem apelido» só se diz quando o servidor o disse
+  (`semSujeito`).
+- **Nada de imagem versionada**: `marca-lastro.png` sai do repositório e o bloco da marca sai da
+  página de estudo (o estudo é sobre a barra e a ajuda; a marca, quando for, vai em SVG).
+
+**Onde entrou.**
+- `porta/index.html` — o `summary` com `wrap`, o `.ctx-resumo` com `min-width` e sem reticência;
+  `ESTADOS_ERRO`, `carregarEstados()` a verificar `resposta.ok`, o `#fichas-erro` no markup e em
+  `pintarFichas()`, e o `quem` que não inventa nome.
+- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
+  cópias regeradas (a barra de cada escola reposta no `<!-- NAV -->`).
+- `experimentos/provar-ato-e-barra.js` — **72 asserções** (§8 o resumo desce, não corta, aberto e
+  fechado; §9 a lista com estados — nome e gestos — e a lista sem estados: aviso visível, motivo,
+  «não se perderam», e nenhum «sem apelido» inventado, com o 500 servido pela bancada).
+  `--controle-negativo` **reprova 9** contra `HEAD`, e são exactamente as nove desta correção.
+- `experimentos/opcoes-visuais/index.html` — o bloco da marca e o seu CSS saem; o PNG é apagado.
+- `.gitignore` — cai a exceção do PNG (a da página continua).
+- `IDENTIDADE-VISUAL.md` — sem mudança: nenhuma peça nova nasceu (o `.aviso` e o `.ctx-resumo` já
+  estavam no catálogo).
+
+**Com o quê.** `porta/index.html` · as duas cópias de `plano-observacao/` ·
+`experimentos/provar-ato-e-barra.js` · `experimentos/opcoes-visuais/index.html` · `.gitignore` ·
+este registro.
+
+**Referências.** A mensagem do Worker: `Error: KV list() limit exceeded for the day` (limite
+diário de `list()` do Cloudflare KV, 1.000 no plano free — reposto às 00:00 UTC) ·
+`IDENTIDADE-VISUAL.md` (o `.aviso` é para o que impede; a explicação é para o que se procura).
+
+**O que ainda não está feito.** (a) O `catch` de `carregarFichas()` (a lista de envelopes) continua
+a cair na memória do navegador em silêncio — a falha dos ESTADOS passou a ser dita, a dos
+ENVELOPES não; hoje o sintoma não se distingue de «não tenho fichas». (b) O consumo de `list()`
+por visita não foi reduzido nem medido: a página da Produção lista várias famílias, e não há
+contagem. Se o limite voltar a apertar, o caminho é um índice gravado, não um `list()` por visita
+— decisão que **não** se toma sem o dono do produto. (c) A marca do produto continua fora da
+página de estudo, à espera de ser vetorizada em SVG.

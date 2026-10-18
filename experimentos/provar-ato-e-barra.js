@@ -68,6 +68,24 @@ const MAPA_SEM_FALTA = {
 // O modo da bancada: `abrir()` escreve-o antes de navegar, e o servidor lê-o ao servir o mapa.
 let modoSobra = 'nao';
 
+/* O ESTADO DAS ANAMNESES, servido pela bancada (18/10/2026). `ok` e `erro` são os dois
+ * desfechos que importam: com `ok` a lista tem o nome da aluna e os botões «editar/apagar»;
+ * com `erro` — o 500 que o Cloudflare devolve quando o limite diário de `list()` do KV
+ * acaba — ela não tem nem um nem outro, e a tela TEM de dizer por quê em vez de escrever
+ * «sem apelido», que é uma afirmação sobre o sujeito. */
+let modoEstados = 'ok';
+const ESTADOS_OK = {
+  ok: true,
+  estados: {
+    'anamnese-20261016-1404': { vinculada: false, apelido: 'Vavá', vigente: true },
+    'anamnese-20261016-1405': { vinculada: true, apelido: 'Leti', vigente: true, por: ['po-1'] },
+  },
+};
+const ENVELOPES = {
+  ok: true,
+  envelopes: ['anamnese-20261016-1404.json', 'anamnese-20261016-1405.json'],
+};
+
 let passou = 0;
 let falhou = 0;
 
@@ -113,6 +131,17 @@ function servir() {
     // que a tela dá quando ela passa.
     if (caminho.endsWith('/api/bastidores/validar-senha')) {
       return ok('application/json', JSON.stringify({ ok: true }));
+    }
+    if (caminho.endsWith('/api/envelopes')) {
+      return ok('application/json', JSON.stringify(ENVELOPES));
+    }
+    if (caminho.endsWith('/api/anamnese-estados')) {
+      if (modoEstados === 'erro') {
+        res.writeHead(500, { 'content-type': 'text/plain; charset=utf-8', 'cache-control': 'no-store' });
+        res.end('error code: 1101');
+        return;
+      }
+      return ok('application/json', JSON.stringify(ESTADOS_OK));
     }
     if (caminho.indexOf('/api/') !== -1) {
       return ok('application/json', JSON.stringify({ ok: true, opcoes: [] }));
@@ -471,6 +500,111 @@ const MEDIR_CABECALHO = () => {
       provar('…e a página não estoura', f.estoura, false);
       provar('…e o cabeçalho não estoura', d.transborda, false);
     }
+  }
+
+  // --------------------------------------------------------------------------
+  // 8. O RESUMO DA FAIXA DESCE DE LINHA, e não se espreme
+  // --------------------------------------------------------------------------
+  {
+    const medirResumo = async (largura) => {
+      await abrir(largura, 'nao');
+      return pg.evaluate(() => {
+        const sum = document.querySelector('details.ctx-ato > summary');
+        const seta = sum.querySelector('.ctx-seta');
+        const res = sum.querySelector('.ctx-resumo');
+        const r = (e) => { const q = e.getBoundingClientRect();
+          return { y: Math.round(q.y), x: Math.round(q.x), w: Math.round(q.width) }; };
+        return {
+          seta: r(seta), resumo: r(res),
+          // ESPREMIDO = o texto não cabe na própria caixa. Era o estado antigo: reticência
+          // a cortar «escola · prof…», que não diz a ninguém que falta a aluna.
+          espremido: res.scrollWidth > res.clientWidth + 1,
+          texto: res.textContent.trim(),
+        };
+      });
+    };
+
+    const estreito = await medirResumo(360);
+    provar('a 360px o resumo desce para a linha de baixo',
+      estreito.resumo.y > estreito.seta.y + 8, true);
+    provar('…e não é cortado (o texto inteiro cabe)', estreito.espremido, false);
+    provar('…e diz de que se trata, com a falta incluída',
+      /falta (aluna|aluno)/.test(estreito.texto), true);
+
+    // DENTRO do formulário é a mesma faixa — o `summary` não muda com o `details` aberto.
+    await abrir(360, 'nao');
+    await pg.evaluate(() => { document.querySelector('details.ctx-ato').open = true; });
+    await new Promise((r) => setTimeout(r, 200));
+    const dentro = await pg.evaluate(() => {
+      const sum = document.querySelector('details.ctx-ato > summary');
+      const res = sum.querySelector('.ctx-resumo');
+      return {
+        desceu: Math.round(res.getBoundingClientRect().y) >
+          Math.round(sum.querySelector('.ctx-seta').getBoundingClientRect().y) + 8,
+        espremido: res.scrollWidth > res.clientWidth + 1,
+      };
+    });
+    provar('aberto o formulário, o resumo continua a descer', dentro.desceu, true);
+    provar('…e continua sem ser cortado', dentro.espremido, false);
+
+    const largo = await medirResumo(1200);
+    provar('a 1200px ele volta para a mesma linha, à direita',
+      Math.abs(largo.resumo.y - largo.seta.y) < 20 && largo.resumo.x > largo.seta.x + 100, true);
+    provar('…e ali também não é cortado', largo.espremido, false);
+  }
+
+  // --------------------------------------------------------------------------
+  // 9. A LISTA DE FICHAS — o nome e os botões, e a VERDADE quando não dá
+  // --------------------------------------------------------------------------
+  {
+    // (a) estados OK: nome da aluna e os gestos que a regra permite.
+    modoEstados = 'ok';
+    await abrir(1200, 'nao');
+    await new Promise((r) => setTimeout(r, 400));
+    const comEstados = await pg.evaluate(() => {
+      const itens = [...document.querySelectorAll('#lista-fichas li')];
+      return {
+        n: itens.length,
+        nomes: [...document.querySelectorAll('#lista-fichas .quem')].map((e) => e.textContent.trim()),
+        editar: document.querySelectorAll('#lista-fichas .acao-editar').length,
+        ajustar: document.querySelectorAll('#lista-fichas .acao-ajustar').length,
+        erro: !!(document.getElementById('fichas-erro') || {}).classList
+          && !document.getElementById('fichas-erro').classList.contains('oculto'),
+      };
+    });
+    provar('as duas fichas gravadas aparecem', comEstados.n, 2);
+    // A ordem é a da estante: a mais RECENTE primeiro (`carregarFichas` inverte a lista do
+    // servidor). O carimbo 1405 nasce depois do 1404, e é ele que abre a lista.
+    provar('…com o NOME da aluna, vindo do servidor, da mais recente para a mais antiga',
+      comEstados.nomes, ['Leti', 'Vavá']);
+    provar('…a solta oferece «editar»', comEstados.editar, 1);
+    provar('…e a ligada oferece «ajustar»', comEstados.ajustar, 1);
+    provar('…e não há aviso de erro nenhum', comEstados.erro, false);
+
+    // (b) estados FORA: é o 500 do dia 18/10 (limite diário de `list()` do KV). O que se
+    // prova é a HONESTIDADE — nada de «sem apelido», nada de lista vazia em silêncio.
+    modoEstados = 'erro';
+    await abrir(1200, 'nao');
+    await new Promise((r) => setTimeout(r, 400));
+    const semEstados = await pg.evaluate(() => {
+      const erro = document.getElementById('fichas-erro');
+      return {
+        n: document.querySelectorAll('#lista-fichas li').length,
+        aviso: erro ? erro.textContent : null,
+        avisoVisivel: erro ? !erro.classList.contains('oculto') : false,
+        dizSemApelido: (document.getElementById('lista-fichas') || {}).textContent
+          .indexOf('sem apelido') !== -1,
+        nomes: [...document.querySelectorAll('#lista-fichas .quem')].length,
+      };
+    });
+    provar('sem os estados, as fichas continuam a ser listadas', semEstados.n, 2);
+    provar('…e a tela AVISA que a leitura falhou', semEstados.avisoVisivel, true);
+    provar('…dizendo o motivo', /estado destes registros/.test(semEstados.aviso || ''), true);
+    provar('…e que as fichas NÃO se perderam',
+      /NÃO se perderam/.test(semEstados.aviso || ''), true);
+    provar('…sem inventar «sem apelido» para quem tem nome', semEstados.dizSemApelido, false);
+    provar('…nem desenhar um nome vazio', semEstados.nomes, 0);
+    modoEstados = 'ok';
   }
 
   provar('nenhum erro de JavaScript na página', erros, []);

@@ -95,7 +95,6 @@ experimentos/*
 # consegue abrir não é um estudo — é um arquivo que existiu na máquina de alguém.
 !experimentos/opcoes-visuais/
 !experimentos/opcoes-visuais/index.html
-!experimentos/opcoes-visuais/marca-lastro.png
 
 # ============================================================================
 # Caches e ambientes

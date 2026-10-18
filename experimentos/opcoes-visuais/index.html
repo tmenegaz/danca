@@ -925,26 +925,6 @@
   ouro da casa — o que vem de fora é a <em>geometria</em>, não a marca de outra empresa.</p>
 </div>
 
-<!-- A MARCA NO TOPO. A página é um estudo, e o estudo é sobre este produto: a marca
-     aparece nas DUAS cores que estão no ar hoje — o bordô da barra e o ouro da voz.
-     O desenho é o da grade de logotipos, extraído como máscara de alfa (um só arquivo
-     pinta as duas cores) — não é um redesenho, é o mesmo traço. -->
-<div class="marca-topo">
-  <div class="marca-peca">
-    <div class="marca-mask" data-cor="bordo" role="img" aria-label="Lastro"></div>
-    <span class="marca-legenda">bordô · #6b1f2e</span>
-  </div>
-  <div class="marca-peca">
-    <div class="marca-mask" data-cor="ouro" role="img" aria-label="Lastro"></div>
-    <span class="marca-legenda">ouro · #c9a878</span>
-  </div>
-  <div class="marca-texto">
-    <p><b>A marca nas duas cores que estão no ar.</b> O traço é o da grade de logotipos que
-    você enviou; as cores são as da identidade vigente — o bordô da barra e o ouro da voz.
-    As duas versões saem do <em>mesmo</em> arquivo: a máscara recorta, e o papel pinta.</p>
-  </div>
-</div>
-
 <!-- ========================= C ========================= -->
 <section class="opt" data-estilo="C">
   <header><span class="letra">C</span><h2>Prosa técnica</h2>
@@ -3002,26 +2982,6 @@ document.querySelectorAll('.fone[data-nav-s]').forEach((fone) => {
   .ato-mob .campo input { height:36px; }
   .fone .titulo-estudo { padding:0; }
 
-  /* A marca, no topo: bege, e as duas cores no ar. */
-  .marca-topo {
-    max-width:940px; margin:0 auto var(--e6); padding:var(--e5) var(--e5);
-    background:#f3ede3; border-radius:14px; border:1px solid #ddd3c4;
-    display:flex; align-items:center; gap:var(--e5); flex-wrap:wrap;
-  }
-  .marca-peca { display:flex; flex-direction:column; gap:10px; align-items:center; }
-  .marca-mask {
-    --cor: var(--burgundy);
-    width:190px; height:118px; background:var(--cor);
-    -webkit-mask:url(marca-lastro.png) center/contain no-repeat;
-    mask:url(marca-lastro.png) center/contain no-repeat;
-  }
-  .marca-mask[data-cor="ouro"] { --cor: var(--gold-claro); }
-  .marca-mask[data-cor="bordo"] { --cor: var(--burgundy); }
-  .marca-legenda { font:600 10.5px/1.2 var(--mono); letter-spacing:.08em;
-    text-transform:uppercase; color:#7a736a; }
-  .marca-texto { flex:1 1 18rem; min-width:0; }
-  .marca-texto p { margin:0; font:400 13px/1.6 var(--ui); color:#4d4842; max-width:52ch; }
-  .marca-texto b { color:var(--burgundy); }
 </style>
 
 <script>
