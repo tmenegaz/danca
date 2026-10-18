@@ -16372,3 +16372,17 @@ sistema em vez de a substituir, e o resultado é uma linha só — `[logo] PEDAG
 Seções · ☰`. O que sai para caber é a palavra «Sistema Lastro», que a logo já responde; ela volta
 ao topo, com a barra da página no lugar de hoje. Medido em 1440, 390 e 320px: nada estoura, a
 barra não cresce (41px), e o ☰ fica sempre dentro dela.
+
+**E dois defeitos meus, apontados a usar — os dois corrigidos e os dois com lição.**
+
+1. **O ☰ andava.** Na primeira versão ele aparecia à *esquerda*, colado à marca, e não à direita
+   como em repouso. A causa era `.s5-secoes + .hamb { margin-left: 8px }`: o botão «Seções» nasce
+   com `display: none`, mas continua a ser o **irmão seguinte** do ☰ no DOM — e um seletor de irmão
+   não sabe nada de `display`. O elemento não estava pintado e continuava a mandar no layout. Um
+   `margin-left` posto por engano num seletor estrutural desfez, sem aviso, a única coisa que a
+   proposta prometia: «o ☰ não se mexe».
+2. **A barra da página ficava presa.** Estava `position: sticky`, e por isso não desaparecia ao
+   rolar — havia duas sessões na tela. Ela é que **sobe**; se fica presa, a que sobe é uma cópia.
+
+A prova passou a medir o que o dono do produto pediu com todas as letras: o `x` e a borda direita do
+☰ são **idênticos** no topo e a meio da página — (337, 351) a 390px, nos dois estados.
