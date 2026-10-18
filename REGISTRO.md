@@ -15983,3 +15983,61 @@ divergindo até elas serem regeradas). `provar-contexto-do-ato.js` → 37/37.
 - **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
   depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
   anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.
+
+## 18/10/2026 — O nome da escola estava no JSON e vinha do cliente: o Worker passa a ser a autoridade
+
+**O que motivou.** O dono do produto leu o diagnóstico anterior — «o envelope levava o que estava
+no campo» — e fez a pergunta que faltava: *«nos arquivos de chave-valor eu preciso ter qual é a
+escola; não posso inferir isso do diretório, porque o mesmo professor dá aula em mais de uma
+escola, e a proveniência vai cruzar resultados da escola A com os da B»*. Ele está certo, e a
+investigação achou mais do que o diagnóstico dizia.
+
+**O que estava acontecendo, medido.** O nome **estava** no `contexto` do envelope — o requisito de
+existir no JSON estava atendido. O que não estava era **de onde ele vinha**: o `contexto.escola` é
+enviado pelo cliente, e o servidor o aceitava. Três coisas dependiam dele:
+
+| O que dependia do `contexto.escola` do cliente | Com `escola=outra` |
+|---|---|
+| o `contexto.escola` **gravado** no envelope | o documento declarava `outra` sob a chave da escola de verdade — documento e chave discordando |
+| a **chave do cofre** (`<escola>/<prof>/<ciclo>/anamnese/<carimbo>`) | gravava **dentro do prefixo de outra escola**, no KV compartilhado |
+| o **caminho da fonte** no repositório (`ciclo-01-<escola>-po.md`) | o arquivo caía no **pacote de outra escola** |
+| a **chave do lançamento** (`<escola>/<prof>/<ciclo>-<carimbo>/`) | idem |
+
+O `ESCOLA_SLUG` do Worker já era a autoridade em `escolaDe()`, mas ele nunca era aplicado ao
+`contexto` que as rotas recebem. O campo, portanto, não era só decorativo: era a única fonte de um
+dado que decide onde o dado é gravado.
+
+**A correção — e o que ela NÃO faz.** O campo **continua** no JSON: é ele que o cruzamento vai ler,
+e tirá-lo seria «resolver» o problema apagando o requisito. O que muda é a hierarquia — nas rotas
+de escrita (`/api/elicitar`, `/api/anamnese`, `/api/anamnese-ajuste`, `/api/anamnese-editar`,
+`/api/receber`) e nas leituras do cofre (`/api/anamnese`, `/api/anamnese/:carimbo`), a escola do
+contexto **é** a do Worker. Sem `ESCOLA_SLUG` — o servidor Node de desenvolvimento, que não é
+escola — nada muda e o `?escola=` da URL continua valendo: é o critério do `escolaDe` na ordem
+inversa. O caso patológico de um pedido **sem** `contexto` continua sem contexto: não ganha um
+`{escola}` sozinho, porque meia identidade é pior que identidade nenhuma.
+
+**Conferido.** `experimentos/provar-escola-do-documento.js` (novo) → **10/10**, e **4/10** no
+controle negativo, que extrai o `motor/` de `HEAD` com `git archive` e roda as MESMAS provas
+contra o servidor de antes — código de verdade, não cópia editada. `provar-carimbo-da-edicao.js`
+→ 55/55 (o cofre e a edição continuam íntegros). `provar-plano-da-turma.js` → 47/47.
+`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123.
+
+**Aproveitado o mesmo commit: o arranjo H2 do cabeçalho.** O dono do produto escolheu o **cartão de
+identidade** entre os quatro do estudo. A escola ganhou coluna própria sobre creme, o resto do
+contexto fica à direita com os controles sob o rótulo, e a inscrição **saiu do acordeão** — a
+identidade da página não se recolhe; recolhe-se o que se preenche. Medido: 147px a 1280 e a 900,
+191px a 768 (escola em faixa), 279px a 390 (campos em 2×2), 79px recolhido. Nada transborda.
+
+**Um defeito que a mudança criou e foi corrigido no mesmo dia.** Ao trocar o `.campo` de `flex`
+para `grid`, a regra `.barra .campo[hidden]` deixou de vencer — a nova regra tem quatro classes e
+um elemento, e o `display: grid` atropelava o `display: none` do atributo. O campo da **turma**
+passou a aparecer na anamnese, onde ele não existe. É a MESMA armadilha que já tinha custado caro
+em 16/10/2026, e está registada no comentário do CSS para não voltar uma terceira vez.
+
+**O que ainda não está feito.**
+
+- **O índice de escolas para o cruzamento da proveniência** — é o próximo pedido do dono do
+  produto, declarado por ele nesta data. Hoje a lista de escolas sai da árvore do repositório
+  (`wrangler.<slug>.jsonc`), não de um índice gravado por escola.
+- **`provar-lancamento.js` e `provar-expurgo-kv.js` falham antes desta data** (apontam para
+  `professores/tiago/…`, que não existe): medido igual com e sem esta mudança, nenhuma regressão.

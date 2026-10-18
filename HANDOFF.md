@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T08:09:06-0300`
-Commit atual: `50145f6` — style(tools): a seta do select volta — o `:where()` de peso zero a apagava em duas superfícies
+Gerado em: `2026-10-18T08:28:40-0300`
+Commit atual: `44b15b0` — docs(estrutura): o contrato «campo × inscrição» e quatro arranjos de cabeçalho para escolha
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,10 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+44b15b0 docs(estrutura): o contrato «campo × inscrição» e quatro arranjos de cabeçalho para escolha
+33dc16c chore(experimentos): a escola fixa ganha prova de navegador — 30 verificações e controle negativo
+16cd681 chore(ciclo-01): as duas cópias da porta recebem a escola como inscrição
+2dedad1 feat(estrutura): a escola deixa de ser campo e passa a inscrição — o valor vem do Worker, não da URL
 50145f6 style(tools): a seta do select volta — o `:where()` de peso zero a apagava em duas superfícies
 1de0d5e fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
 523a2e2 style(tools): o botão recupera a borda de baixo, o campo deixa de colar no botão e o modal passa a rolar
@@ -78,10 +82,6 @@ a07264d chore(estrutura): reancorar a cadeia das fontes alteradas
 9efa5e2 ci(raiz): a raiz passa a ser publicada pelo push — e o contrato da identidade ganha quem o corra
 9a70b10 chore(ciclo-01): as duas cópias da folha acompanham a régua de 4px
 b74d2da fix(estrutura): a lista de turmas desce no celular — e a prova passa a olhar a aba
-0a252a8 style(tools): a régua de 4px passa a valer, e o botão secundário deixa de sumir
-8338752 fix(expurgo): a escola expurgada e RECRIADA não se apaga — o post-merge confundia as duas
-f5a12ea feat(estrutura): criar a escola valse (motor completo)
-7f5746b Merge remote-tracking branch 'origin/main'
 ```
 
 ## Por professor
@@ -147,77 +147,65 @@ f5a12ea feat(estrutura): criar a escola valse (motor completo)
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — A escola não é campo: o cabeçalho do ato separa o que se digita do que o sistema declara
+## 18/10/2026 — O nome da escola estava no JSON e vinha do cliente: o Worker passa a ser a autoridade
 
-**O que motivou.** O dono do produto olhou o cabeçalho da anamnese e disse duas coisas: «a escola
-tem que vir somente leitura, não dá pra editar isso, porque não existe outra escola» e «os
-componentes estão certos conforme a folha, só que tá feio pra danar». A primeira frase é de
-arquitetura e estava certa; a segunda é de arranjo, e ficou para uma escolha dele.
+**O que motivou.** O dono do produto leu o diagnóstico anterior — «o envelope levava o que estava
+no campo» — e fez a pergunta que faltava: *«nos arquivos de chave-valor eu preciso ter qual é a
+escola; não posso inferir isso do diretório, porque o mesmo professor dá aula em mais de uma
+escola, e a proveniência vai cruzar resultados da escola A com os da B»*. Ele está certo, e a
+investigação achou mais do que o diagnóstico dizia.
 
-**O campo que mentia.** A escola era um `<input type=text>`. Dois defeitos, e o segundo é o grave:
+**O que estava acontecendo, medido.** O nome **estava** no `contexto` do envelope — o requisito de
+existir no JSON estava atendido. O que não estava era **de onde ele vinha**: o `contexto.escola` é
+enviado pelo cliente, e o servidor o aceitava. Três coisas dependiam dele:
 
-1. **não governava nada** — cada escola é um Worker, e o motor resolve o slug por `ESCOLA_SLUG`
-   (`escolaDe`), **ignorando** o `?escola=` da URL quando a var existe;
-2. **divergia do dado gravado** — o envelope levava o que estava no campo. Com
-   `?escola=OUTRA-ESCOLA`, a tela mostrava `OUTRA-ESCOLA` e o dado ia para a chave da escola de
-   verdade. A tela concordava com o professor; o sistema fazia outra coisa.
+| O que dependia do `contexto.escola` do cliente | Com `escola=outra` |
+|---|---|
+| o `contexto.escola` **gravado** no envelope | o documento declarava `outra` sob a chave da escola de verdade — documento e chave discordando |
+| a **chave do cofre** (`<escola>/<prof>/<ciclo>/anamnese/<carimbo>`) | gravava **dentro do prefixo de outra escola**, no KV compartilhado |
+| o **caminho da fonte** no repositório (`ciclo-01-<escola>-po.md`) | o arquivo caía no **pacote de outra escola** |
+| a **chave do lançamento** (`<escola>/<prof>/<ciclo>-<carimbo>/`) | idem |
 
-**A correção.** A escola passa a ser **inscrição**: texto, ao lado de um rótulo-legenda, em serifa
-e no ouro da casa — sem caixa, sem altura de campo, sem cursor de texto. Não é um `input`
-desabilitado (que anuncia um controle desligado); é título. O `<input>` continua no DOM,
-`hidden`, e continua sendo a fonte única que a chave do depósito local, o envelope e os atalhos
-leem — mudou **quem o preenche**, não quem o lê.
+O `ESCOLA_SLUG` do Worker já era a autoridade em `escolaDe()`, mas ele nunca era aplicado ao
+`contexto` que as rotas recebem. O campo, portanto, não era só decorativo: era a única fonte de um
+dado que decide onde o dado é gravado.
 
-**O valor vem do servidor.** A mesma resposta que traz a lista de professores traz a escola
-(`{ok, escola, professores}`), e uma requisição só serve aos dois (`dadosDosBastidores`, promessa
-guardada) — pedir duas vezes abriria a janela para elas discordarem. A escola é fixada **antes**
-de ler o depósito local, porque a chave da memória é `escola · professor · ciclo`: sem isso, um
-`?escola=` forjado leria a chave errada. E `ESCOLA_CANONICA` **reafirma** o valor em todo caminho
-que escreva no campo oculto — a URL, um envelope antigo. Sem servidor (modo local), o `?escola=`
-da URL volta a valer: é o critério do `escolaDe` na ordem inversa.
+**A correção — e o que ela NÃO faz.** O campo **continua** no JSON: é ele que o cruzamento vai ler,
+e tirá-lo seria «resolver» o problema apagando o requisito. O que muda é a hierarquia — nas rotas
+de escrita (`/api/elicitar`, `/api/anamnese`, `/api/anamnese-ajuste`, `/api/anamnese-editar`,
+`/api/receber`) e nas leituras do cofre (`/api/anamnese`, `/api/anamnese/:carimbo`), a escola do
+contexto **é** a do Worker. Sem `ESCOLA_SLUG` — o servidor Node de desenvolvimento, que não é
+escola — nada muda e o `?escola=` da URL continua valendo: é o critério do `escolaDe` na ordem
+inversa. O caso patológico de um pedido **sem** `contexto` continua sem contexto: não ganha um
+`{escola}` sozinho, porque meia identidade é pior que identidade nenhuma.
 
-**A regra geral fica escrita** em `IDENTIDADE-VISUAL.md`, porque ela é de identidade, não deste
-campo: *antes de desenhar um controle, perguntar se aquilo é escolha de alguém. Se não for, é
-inscrição.* Um `input` para um dado que o sistema decide é sempre a mesma armadilha.
+**Conferido.** `experimentos/provar-escola-do-documento.js` (novo) → **10/10**, e **4/10** no
+controle negativo, que extrai o `motor/` de `HEAD` com `git archive` e roda as MESMAS provas
+contra o servidor de antes — código de verdade, não cópia editada. `provar-carimbo-da-edicao.js`
+→ 55/55 (o cofre e a edição continuam íntegros). `provar-plano-da-turma.js` → 47/47.
+`provar-producao.js` → 109/109. `provar-derivacao-da-turma.js` → 123/123.
 
-**A arquitetura do cabeçalho — quatro arranjos, e a escolha é dele.** O estudo em
-`experimentos/opcoes-visuais/index.html` ganhou a seção «O cabeçalho do ato», com os quatro
-arranjos nas **três** fontes e no estado em que falta um campo:
+**Aproveitado o mesmo commit: o arranjo H2 do cabeçalho.** O dono do produto escolheu o **cartão de
+identidade** entre os quatro do estudo. A escola ganhou coluna própria sobre creme, o resto do
+contexto fica à direita com os controles sob o rótulo, e a inscrição **saiu do acordeão** — a
+identidade da página não se recolhe; recolhe-se o que se preenche. Medido: 147px a 1280 e a 900,
+191px a 768 (escola em faixa), 279px a 390 (campos em 2×2), 79px recolhido. Nada transborda.
 
-| | Arranjo | O que muda | Altura em 892px |
-|---|---|---|---:|
-| H1 | Linha única | tudo numa baseline, filete embaixo, contadores como legenda acima | 68px |
-| H2 | Cartão de identidade | escola em coluna própria de creme; controles em grade | 124px |
-| H3 | Pastilhas | a escola numa cápsula bordô; o mais compacto | 72px |
-| H4 | Faixa institucional | faixa bordô, escola em ouro, controles claros por cima | 107px |
-
-Medido em 390px também (nenhum transborda): H1 148 · H2 261 · H3 148 · H4 231 de altura. Nenhum
-dos quatro tem controle para a escola. A escolha está registrada como **6.6 em aberto** em
-`IMPLEMENTACAO-IDENTIDADE.md` — a produção fica com o arranjo atual até ele decidir.
-
-**Conferido.** `provar-escola-fixa.js` (novo) → **30/30** nas três fontes, e **0/30** no controle
-negativo contra `git show HEAD:porta/index.html` — se as provas passassem ali, não provariam nada.
-`check-identidade.js` → 8 verificações (o Circuito pegou as duas cópias de `plano-observacao/`
-divergindo até elas serem regeradas). `provar-contexto-do-ato.js` → 37/37.
-`provar-celular.js` → 15/15. `provar-tema.js` → 30/30. `provar-producao.js` → 109/109.
-`provar-derivacao-da-turma.js` → 123/123. `provar-plano-da-turma.js` → 47/47.
+**Um defeito que a mudança criou e foi corrigido no mesmo dia.** Ao trocar o `.campo` de `flex`
+para `grid`, a regra `.barra .campo[hidden]` deixou de vencer — a nova regra tem quatro classes e
+um elemento, e o `display: grid` atropelava o `display: none` do atributo. O campo da **turma**
+passou a aparecer na anamnese, onde ele não existe. É a MESMA armadilha que já tinha custado caro
+em 16/10/2026, e está registada no comentário do CSS para não voltar uma terceira vez.
 
 **O que ainda não está feito.**
 
-- **A escolha do arranjo** — é dele, e o estudo está pronto para ela.
-- **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
-  depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
-  anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.
+- **O índice de escolas para o cruzamento da proveniência** — é o próximo pedido do dono do
+  produto, declarado por ele nesta data. Hoje a lista de escolas sai da árvore do repositório
+  (`wrangler.<slug>.jsonc`), não de um índice gravado por escola.
+- **`provar-lancamento.js` e `provar-expurgo-kv.js` falham antes desta data** (apontam para
+  `professores/tiago/…`, que não existe): medido igual com e sem esta mudança, nenhuma regressão.
 
 ## O que está pendente
-
-## 17/10/2026 — A lista de turmas deixa de ficar acavalada no celular
-
-
-- **A escala de espaço (F14) continua sem adoção**: `--esp-*` tem 14 usos, todos na fonte.
-- **Não há prova de geometria nas faixas intermediárias** (1025–1199px) — onde o índice lateral
-  entra e sai.
-- **A conferência visual no navegador** continua pendente, agora com uma vista a mais para olhar.
 
 ## 17/10/2026 — Os commits estavam certos e a produção estava velha: as escolas passam a publicar no push
 
@@ -262,6 +250,15 @@ divergindo até elas serem regeradas). `provar-contexto-do-ato.js` → 37/37.
 - **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
   depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
   anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.
+
+## 18/10/2026 — O nome da escola estava no JSON e vinha do cliente: o Worker passa a ser a autoridade
+
+
+- **O índice de escolas para o cruzamento da proveniência** — é o próximo pedido do dono do
+  produto, declarado por ele nesta data. Hoje a lista de escolas sai da árvore do repositório
+  (`wrangler.<slug>.jsonc`), não de um índice gravado por escola.
+- **`provar-lancamento.js` e `provar-expurgo-kv.js` falham antes desta data** (apontam para
+  `professores/tiago/…`, que não existe): medido igual com e sem esta mudança, nenhuma regressão.
 
 ## Pendências anteriores (índice)
 
@@ -439,6 +436,7 @@ divergindo até elas serem regeradas). `provar-contexto-do-ato.js` → 37/37.
 - **17/10/2026** — Os papéis e a variante noturna: a identidade passa a ter… → `REGISTRO.md` L14988
 - **17/10/2026** — A aparência ganha prova própria — e o botão que… → `REGISTRO.md` L15063
 - **17/10/2026** — A escola nasceu sem o botão da aparência: a barra tinha… → `REGISTRO.md` L15316
+- **17/10/2026** — A lista de turmas deixa de ficar acavalada no celular → `REGISTRO.md` L15384
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

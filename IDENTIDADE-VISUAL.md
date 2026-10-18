@@ -414,9 +414,31 @@ lê a escola no código continua lendo o `<input type="hidden">`: a chave do dep
 envelope e os atalhos não mudaram. Mudou **quem o preenche**, e é isso que impede a tela de
 mentir.
 
+**O nome tem de estar NO DOCUMENTO — e ser o verdadeiro.** A inscrição não é enfeite de tela: o
+`contexto.escola` gravado no envelope é o campo que a proveniência vai ler para cruzar resultados
+entre escolas, e o diretório não serve de prova — o mesmo professor dá aula em mais de uma escola,
+e `professores/<slug>/…` é do SISTEMA, não da escola. Por isso o nome **fica** no JSON, e o que a
+tela mostra é o que está lá dentro.
+
+E aí a investigação de 18/10/2026 achou o outro lado do problema: o nome estava no JSON, mas vinha
+do **cliente**. Três consequências, todas medidas em `experimentos/provar-escola-do-documento.js`:
+
+| O que dependia do `contexto.escola` do cliente | O que acontecia com `escola=outra` |
+|---|---|
+| o `contexto.escola` **gravado** no envelope | o documento declarava `outra` sob a chave da escola de verdade |
+| a **chave do cofre** (`<escola>/<prof>/<ciclo>/anamnese/<carimbo>`) | gravava dentro do prefixo de outra escola, no KV compartilhado |
+| o **caminho da fonte** no repositório (`ciclo-01-<escola>-po.md`) | o arquivo caía no pacote de outra escola |
+
+A correção não remove o campo: ela o **subordina ao Worker**. `ESCOLA_SLUG` é a autoridade (a mesma
+que `escolaDe` já usava) e é aplicada ao contexto em todas as rotas de escrita, e nas leituras do
+cofre e do lançamento. Sem a var — o servidor Node de desenvolvimento, que não é escola — nada
+muda, e o `?escola=` continua valendo: o mesmo critério, na ordem inversa.
+
 > **A regra geral, para o que vier.** Antes de desenhar um controle, perguntar: *isto é escolha de
 > alguém?* Se não for, é inscrição. Um `input` para um dado que o sistema decide é sempre a mesma
 > armadilha — o usuário acha que decide, o sistema decide outra coisa, e ninguém fica sabendo.
+> E a segunda pergunta, para o que é gravado: *quem é a autoridade sobre este valor?* Se for o
+> servidor, o cliente não o envia — ou envia, e o servidor o sobrescreve.
 
 **Prova.** `node experimentos/provar-escola-fixa.js` — 30 verificações em navegador, nas três
 fontes: o servidor vence a URL, não há controle editável, a inscrição não tem filete nem cursor de

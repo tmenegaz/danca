@@ -363,7 +363,8 @@ não devia ser — ela não é escolha de ninguém.
 | 6.3 | O valor é **reafirmado** contra a URL e contra envelope antigo | `[x]` 18/10 — `ESCOLA_CANONICA` |
 | 6.4 | Prova em navegador, nas três fontes, com controle negativo | `[x]` 18/10 — `provar-escola-fixa.js`, 30/30; 0/30 em `HEAD` |
 | 6.5 | O contrato «campo × inscrição» documentado | `[x]` 18/10 — `IDENTIDADE-VISUAL.md` |
-| 6.6 | Quatro arranjos de cabeçalho para escolha | `[ ]` **aguardando a escolha** — `experimentos/opcoes-visuais/index.html` |
+| 6.6 | Quatro arranjos de cabeçalho para escolha | `[x]` 18/10 — **H2, cartão de identidade**, escolhido pelo dono do produto |
+| 6.7 | O nome da escola no JSON é o do Worker (não o do cliente) | `[x]` 18/10 — `rotas.js` · `lancamento.js` · `cloudflare.js` |
 
 ### O que a Fase 6 mediu
 
@@ -378,11 +379,45 @@ mostrava `OUTRA-ESCOLA` no campo e gravava a escola do Worker — a tela concord
 professor escreveu, e o dado ia para outra chave. Depois da correção, com a **mesma** URL, a
 inscrição mostra `valse` e o envelope leva `valse`.
 
+### O arranjo escolhido — H2, cartão de identidade
+
+A escola ganhou **coluna própria**, sobre creme e separada por filete; o resto do contexto fica à
+direita, com os controles **empilhados sob o rótulo**. O que se lê primeiro é de quem é o
+documento; depois, o que se preenche. A escola também **saiu do acordeão** — a identidade da
+página não se recolhe; o que se recolhe é o resto do contexto.
+
+| Largura | Arranjo | Altura da barra |
+|---:|---|---:|
+| 1280px | cartão, coluna de 192px, quatro campos numa linha | 147px |
+| 900px | idem | 147px |
+| 768px | uma coluna: escola em faixa no topo | 191px |
+| 390px | uma coluna, campos em 2×2, alvo de dedo inteiro | 279px |
+| recolhido | só a escola e a linha do «Contexto do ato» | 79px |
+
+### O que a Fase 6 encontrou no servidor — e corrigiu
+
+O dono do produto levantou a pergunta certa: *«nos arquivos de chave-valor eu preciso ter qual é a
+escola; não posso inferir isso do diretório»*. Investigando, o nome **estava** no JSON — mas vinha
+do **cliente**. Com `?escola=outra`:
+
+| O que dependia do `contexto.escola` | Antes | Depois |
+|---|---|---|
+| `contexto.escola` no envelope | `outra` | `ESCOLA_SLUG` |
+| chave do cofre | `outra/<prof>/…` | `ESCOLA_SLUG/<prof>/…` |
+| caminho da fonte no repo | `ciclo-01-outra-po.md` | `ciclo-01-<slug>-po.md` |
+| chave do lançamento | `outra/<prof>/…` | `ESCOLA_SLUG/<prof>/…` |
+
+A correção **não remove o campo** — era o risco de «resolver» isto tirando o nome do documento. Ela
+subordina o valor ao Worker, que já era a autoridade em `escolaDe()`. Prova:
+`experimentos/provar-escola-do-documento.js` — **10/10** com a correção, **4/10** contra o
+`motor/` de `HEAD` (o controle negativo extrai o código antigo com `git archive`, não uma cópia
+editada à mão).
+
 **O que ainda não está fechado.**
 
-- **A escolha do arranjo é do dono do produto.** Os quatro estão em
-  `experimentos/opcoes-visuais/index.html`, seção «O cabeçalho do ato», cada um nas três fontes e
-  no estado em que falta um campo. Enquanto não houver escolha, a produção fica com o arranjo
-  atual (campos em linha, escola como inscrição).
-- **A contagem de contadores não foi tocada** — eles continuam na linha da barra, não no
-  cabeçalho. Os arranjos do estudo mostram as duas possibilidades.
+- **O índice de escolas para o cruzamento da proveniência** é o próximo pedido declarado pelo dono
+  do produto, e não foi feito: hoje a lista de escolas sai da árvore do repositório
+  (`repo-escola.js`, `wrangler.<slug>.jsonc`), não de um índice gravado por escola. O
+  `escola/<slug>/indice.json` já existe — é dele que sai o nome de exibição do professor — e é o
+  ponto de partida natural.
+- **A contagem de contadores não foi tocada** — eles continuam na linha do topo do cartão.
