@@ -200,6 +200,26 @@ const MEDIR_CABECALHO = () => {
     return pg.evaluate(MEDIR_CABECALHO);
   };
 
+  // Abre a CONDUÇÃO pela porta do produto: o contexto inteiro, a senha, o «Começar». Medir
+  // a barra de ações sem a condução aberta mediria uma secção `display:none`.
+  const abrirConducao = async (largura, sobra) => {
+    await abrir(largura, sobra);
+    await pg.evaluate(() => {
+      const a = document.getElementById('ctx-aluna');
+      if (a) { a.value = 'Ana'; a.dispatchEvent(new Event('change', { bubbles: true })); }
+      const s = document.getElementById('senha');
+      if (s) { s.value = 'segredo'; s.dispatchEvent(new Event('input', { bubbles: true })); }
+    });
+    await pg.waitForFunction(() => !document.getElementById('comecar').disabled, { timeout: 6000 })
+      .catch(() => {});
+    await pg.click('#comecar').catch(() => {});
+    await pg.waitForFunction(() => {
+      const c = document.getElementById('conducao');
+      return c && !c.classList.contains('oculto');
+    }, { timeout: 6000 }).catch(() => {});
+    await new Promise((r) => setTimeout(r, 300));
+  };
+
   // --------------------------------------------------------------------------
   // 1. O CONTROLE — altura de dedo, não altura de linha
   // --------------------------------------------------------------------------
@@ -323,6 +343,134 @@ const MEDIR_CABECALHO = () => {
     // de teste marca como obrigatório) e ver o botão sair.
     const comFaltaDeNovo = await abrir(1200, 'nao');
     provar('voltar a faltar esconde-o outra vez', comFaltaDeNovo.fechar.escondido, true);
+  }
+
+  // --------------------------------------------------------------------------
+  // 5. A BARRA DE AÇÃO — quatro papéis, e o «Fechar» na linha de baixo
+  // --------------------------------------------------------------------------
+  {
+    await abrirConducao(360, 'nao');
+    const semFalta = await pg.evaluate(() => {
+      const ac = document.querySelector('#conducao .acoes');
+      const r = (el) => { const q = el.getBoundingClientRect(); return {
+        x: Math.round(q.x), y: Math.round(q.y), w: Math.round(q.width), h: Math.round(q.height) }; };
+      const ids = ['anterior', 'proxima', 'sair', 'fechar'];
+      const botoes = {};
+      for (const id of ids) {
+        const el = document.getElementById(id);
+        botoes[id] = el ? Object.assign(r(el), { hidden: el.hidden, texto: el.textContent.trim() }) : null;
+      }
+      return {
+        temPular: !!document.getElementById('pular'),
+        barra: ac ? Object.assign(r(ac), { posicao: getComputedStyle(ac).position }) : null,
+        botoes,
+        viewport: document.documentElement.clientWidth,
+        alturaDaPagina: document.documentElement.clientHeight,
+        rotuloAnterior: (document.getElementById('anterior') || {}).getAttribute
+          ? document.getElementById('anterior').getAttribute('aria-label') : null,
+        rotuloSair: document.getElementById('sair').getAttribute('aria-label'),
+        tituloSair: document.getElementById('sair').getAttribute('title'),
+      };
+    });
+    provar('o «Pular» não existe', semFalta.temPular, false);
+    provar('a barra é FIXA no telefone', semFalta.barra.posicao, 'fixed');
+    // O `round` da soma não serve: 44 + 8 + 8 + 1 de filete dão 61 e o `y` já vem
+    // arredondado. O que se prova é que a barra ENCOSTA ao fundo, com a folga de meio pixel
+    // de quem mede em coordenadas fraccionárias.
+    provar('…e encosta ao fundo do ecrã',
+      Math.abs(semFalta.barra.y + semFalta.barra.h - semFalta.alturaDaPagina) <= 1, true);
+    provar('o «←» tem alvo de 44px', semFalta.botoes.anterior.w, 44);
+    // O rótulo escondido continua no `textContent` — escondido por CSS, não apagado. Quem
+    // lê a tela ouve o `aria-label`, e é ele que se mede.
+    provar('…e diz «Anterior» a quem não vê a seta', semFalta.rotuloAnterior, 'Anterior');
+    provar('…e o «✕» diz o que faz, e não «sair»',
+      semFalta.rotuloSair, 'Salvar para continuar depois');
+    provar('…na dica que aparece ao pousar o dedo',
+      semFalta.tituloSair, 'Salvar para continuar depois');
+    provar('o «✕» tem alvo de 44px', semFalta.botoes.sair.w, 44);
+    provar('…e nada estoura a largura do ecrã',
+      semFalta.botoes.sair.x + semFalta.botoes.sair.w <= semFalta.viewport, true);
+    provar('com obrigatório em falta, o «Fechar» não ocupa altura',
+      semFalta.botoes.fechar.hidden && semFalta.botoes.fechar.h === 0, true);
+
+    // O caso COMPLETO: o «Fechar» existe, e cai na SEGUNDA linha — nunca entre as setas,
+    // que é onde o polegar o acertaria por engano. É a decisão do dono do produto (B2 com a
+    // etiqueta do B1), e a única maneira de a provar é medir o Y dos quatro botões.
+    const completa = await abrirConducao(360, 'sim');
+    await pg.evaluate(() => {
+      const f = document.getElementById('fechar');
+      f.hidden = false; f.disabled = false;
+    });
+    await new Promise((r) => setTimeout(r, 200));
+    const m = await pg.evaluate(() => {
+      const r = (id) => { const q = document.getElementById(id).getBoundingClientRect();
+        return { y: Math.round(q.y), x: Math.round(q.x), w: Math.round(q.width) }; };
+      return { anterior: r('anterior'), proxima: r('proxima'), sair: r('sair'), fechar: r('fechar') };
+    });
+    provar('com tudo preenchido, o «Fechar» desce para a linha de baixo',
+      m.fechar.y > m.proxima.y, true);
+    provar('…e as três setas continuam na mesma linha',
+      m.anterior.y === m.proxima.y && m.sair.y === m.proxima.y, true);
+    provar('…e ocupa a linha inteira', m.fechar.w > m.proxima.w, true);
+    provar('…sem tapar o «✕»', m.fechar.x <= m.anterior.x, true);
+  }
+
+  // --------------------------------------------------------------------------
+  // 6. O «?» — a explicação existe, mas não empurra o campo
+  // --------------------------------------------------------------------------
+  {
+    modoSobra = 'nao';
+    await pg.setViewport({ width: 360, height: 800 });
+    await pg.goto(`${base}/anamnese/?professor=tiago-menegaz&escola=valse&ciclo=01&sobra=nao`,
+      { waitUntil: 'load' });
+    await new Promise((r) => setTimeout(r, 300));
+    const semAjuda = await pg.evaluate(() => ({
+      botao: !!document.querySelector('#pergunta .ajuda'),
+      painel: !!document.getElementById('explica'),
+    }));
+    // O mapa da bancada NÃO traz `explicacao` nenhuma: sem conteúdo não há «?». Um botão que
+    // abre o vazio ensina a não o usar — e essa é a regra.
+    provar('sem explicação no conteúdo, não há «?»', semAjuda.botao, false);
+    provar('…nem painel escondido à espera', semAjuda.painel, false);
+  }
+
+  // --------------------------------------------------------------------------
+  // 7. O CABEÇALHO A 320/360/390 — nenhum campo engolido
+  // --------------------------------------------------------------------------
+  {
+    for (const largura of [320, 360, 390]) {
+      const d = await abrir(largura, 'nao');
+      const f = await pg.evaluate(() => {
+        const ac = document.querySelector('details.ctx-ato');
+        if (ac) ac.open = true;
+        const barra = document.getElementById('barra').getBoundingClientRect();
+        const dir = barra.right;
+        const campos = [...document.querySelectorAll('.barra .ctx-campos > .campo')]
+          .filter((c) => !c.hidden)
+          .map((c) => {
+            const q = c.getBoundingClientRect();
+            const ctr = c.querySelector('input, select');
+            return {
+              dir: Math.round(q.right),
+              largura: Math.round(q.width),
+              corta: ctr ? ctr.scrollWidth > ctr.clientWidth + 1 : false,
+            };
+          });
+        return {
+          dir: Math.round(dir),
+          campos,
+          colunas: getComputedStyle(document.getElementById('barra')).gridTemplateColumns,
+          estoura: document.documentElement.scrollWidth >
+            document.documentElement.clientWidth + 1,
+        };
+      });
+      provar('a ' + largura + 'px nenhum campo sai da faixa',
+        f.campos.every((c) => c.dir <= f.dir), true);
+      provar('…e nenhum controle corta o próprio texto',
+        f.campos.every((c) => !c.corta), true);
+      provar('…e a página não estoura', f.estoura, false);
+      provar('…e o cabeçalho não estoura', d.transborda, false);
+    }
   }
 
   provar('nenhum erro de JavaScript na página', erros, []);

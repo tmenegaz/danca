@@ -1,0 +1,3075 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Opções visuais — Sistema Lastro</title>
+<style>
+  /* ESTUDO, não produção. O markup é o MESMO nas quatro peles: o que muda é só o
+     CSS. A paleta da casa (bordô/ouro/creme/Georgia) fica; o que cada referência
+     traz é a GEOMETRIA — raio, altura, peso de borda, elevação, ritmo do rótulo, e
+     o tom dos neutros. Cor de marca não se copia de outra empresa; o desenho, sim,
+     como referência. */
+  :root {
+    --cream: #fbf8f3; --branco: #ffffff; --tinta: #1f1c1a; --soft: #5a5348;
+    --burgundy: #6b1f2e; --burgundy-claro: #8a2a3d; --gold-claro: #c9a878;
+    --gold-texto: #7a5c31; --gold-escuro: #8a6a3b; --gold-borda: #a08a58;
+    --falha: #9b1c1c;
+    --serif: Georgia, 'Times New Roman', serif;
+    --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+    /* a régua de 4px, a mesma da fonte */
+    --e1: 4px; --e2: 8px; --e3: 12px; --e4: 16px; --e5: 24px; --e6: 32px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #e8e3da; color: var(--tinta);
+    font: 16px/1.6 var(--ui); padding: var(--e5) var(--e4) 72px;
+  }
+  .titulo-estudo { max-width: 940px; margin: 0 auto var(--e5); }
+  .titulo-estudo h1 { font: 700 26px/1.25 var(--ui); margin: 0 0 var(--e2); }
+  .titulo-estudo p { margin: 0; color: #5f5850; font-size: 14px; max-width: 68ch; }
+
+  .opt {
+    max-width: 940px; margin: 0 auto var(--e6); border-radius: 14px; overflow: hidden;
+    box-shadow: 0 1px 2px rgba(31,28,26,.08), 0 12px 34px rgba(31,28,26,.07);
+  }
+  .opt > header {
+    display: flex; align-items: baseline; gap: var(--e3); flex-wrap: wrap;
+    padding: var(--e4) var(--e5); border-bottom: 1px solid rgba(31,28,26,.1);
+  }
+  .opt > header h2 { font: 700 17px/1.3 var(--ui); margin: 0; }
+  .opt > header .ref { font-size: 12px; opacity: .72; }
+  .opt > header .letra {
+    font: 700 13px/1 var(--ui); min-width: 26px; height: 26px; padding: 0 6px;
+    border-radius: 7px; display: grid; place-items: center;
+    background: var(--burgundy); color: var(--gold-claro);
+  }
+  /* `minmax(0, 1fr)` e não `1fr`: a faixa por omissão de uma grelha tem por mínimo o
+     MIN-CONTENT do item, e o min-content de um cartão com texto em `nowrap` é a linha
+     inteira. Sem isto um cartão largo ALARGA a página, e a 390px a página passava de
+     390 para 467 — medido. Com `minmax(0,1fr)` a faixa passa a caber, e quem cede é o
+     texto, que já sabe ceder (reticências). */
+  .opt .corpo { padding: var(--e5); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e5); }
+  .opt .corpo > * { min-width: 0; }
+  .opt .bloco > h3 {
+    font: 600 11px/1 var(--ui); text-transform: uppercase; letter-spacing: .1em;
+    opacity: .65; margin: 0 0 var(--e3);
+  }
+  .opt .fileira { display: flex; gap: var(--e3); flex-wrap: wrap; align-items: center; }
+  .opt .cartao { border-radius: inherit; padding: var(--e4) var(--e5); }
+
+  /* ---- O CONTRATO DE CLASSES: igual nas quatro ---------------------------- */
+  .btn { cursor: pointer; font-family: var(--ui); font-weight: 600;
+         display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn[disabled] { opacity: .45; cursor: not-allowed; }
+  .campo { display: block; margin: 0 0 var(--e3); }
+  .campo > span { display: block; margin-bottom: 6px; }
+  .campo input, .campo select { width: 100%; font-family: var(--ui); }
+  .campo .dica { display: block; margin-top: 6px; font-size: 12px; opacity: .7; font-weight: 400; }
+
+  /* ======================= C — PROSA TÉCNICA ==============================
+     Python docs · Node docs. O mínimo: raio pequeno, filete fino, campo em
+     monoespaçada, botão primário sólido e o secundário só com contorno. */
+  [data-estilo="C"] { background: var(--cream); --r: 4px; }
+  [data-estilo="C"] .btn { height: 34px; padding: 0 var(--e3); font-size: 14px; border-radius: var(--r); }
+  [data-estilo="C"] .btn--primario { background: var(--burgundy); color: #fdf3e3; border: 1px solid var(--burgundy); }
+  [data-estilo="C"] .btn--primario:hover { background: #7a2536; }
+  [data-estilo="C"] .btn--secundario { background: transparent; color: var(--burgundy); border: 1px solid #bdb2a0; }
+  [data-estilo="C"] .btn--secundario:hover { background: #f4efe6; }
+  [data-estilo="C"] .btn--perigo { background: transparent; color: var(--falha); border: 1px solid #dcb6b6; }
+  [data-estilo="C"] .btn--perigo:hover { background: #fdf3f3; }
+  [data-estilo="C"] .btn--pequeno { height: 26px; padding: 0 var(--e2); font-size: 12px; }
+  [data-estilo="C"] .campo > span { font-size: 13.5px; font-weight: 600; color: var(--soft); }
+  [data-estilo="C"] .campo input, [data-estilo="C"] .campo select {
+    height: 34px; padding: 0 10px; border: 1px solid #bdb2a0; border-radius: var(--r);
+    background: #fff; color: var(--tinta); font-family: var(--mono); font-size: 13.5px;
+  }
+  [data-estilo="C"] .campo input:focus, [data-estilo="C"] .campo select:focus {
+    outline: 2px solid #9b8f7c; outline-offset: 0; border-color: #9b8f7c;
+  }
+  [data-estilo="C"] .cartao { background: var(--branco); border: 1px solid #e6ddd0; }
+  [data-estilo="C"] .selo {
+    display: inline-block; font: 500 11.5px/1 var(--mono); padding: var(--e1) 7px;
+    border-radius: var(--r); border: 1px solid #cfe0d3; background: #f2f7f3; color: #1d6b2f;
+  }
+  [data-estilo="C"] .selo--marca { border-color: #e2cfc0; background: #fbf1e8; color: var(--gold-texto); }
+
+  /* ======================= E — HARMONYOS ==================================
+     Huawei HarmonyOS Design. A regra: tudo MACIO. Raio grande (12 no controle,
+     20 no cartão), neutro frio, borda quase invisível que acende no foco,
+     elevação suave em vez de contorno duro, respiro generoso. */
+  [data-estilo="E"] { background: #f2f4f7; --r: 12px; --borda: #e2e6ec; --texto-fraco: #6b7280; }
+  [data-estilo="E"] .btn {
+    height: 40px; padding: 0 var(--e4); font-size: 14px; font-weight: 500;
+    border-radius: var(--r); letter-spacing: .01em;
+  }
+  [data-estilo="E"] .btn--primario {
+    background: var(--burgundy); color: #fff4ea;
+    border: 1px solid var(--burgundy); box-shadow: 0 2px 6px rgba(107,31,46,.22);
+  }
+  [data-estilo="E"] .btn--primario:hover { background: var(--burgundy-claro); box-shadow: 0 4px 12px rgba(107,31,46,.28); }
+  [data-estilo="E"] .btn--secundario { background: #fff; color: var(--tinta); border: 1px solid var(--borda); }
+  [data-estilo="E"] .btn--secundario:hover { background: #f7f9fc; border-color: #cfd6e0; }
+  [data-estilo="E"] .btn--perigo { background: #fff; color: var(--falha); border: 1px solid #f0d7d7; }
+  [data-estilo="E"] .btn--perigo:hover { background: #fdf5f5; }
+  [data-estilo="E"] .btn--pequeno { height: 30px; padding: 0 var(--e3); font-size: 12.5px; border-radius: var(--e2); }
+  [data-estilo="E"] .campo > span { font-size: 13px; font-weight: 500; color: var(--texto-fraco); }
+  [data-estilo="E"] .campo input, [data-estilo="E"] .campo select {
+    height: 40px; padding: 0 14px; font-size: 14px;
+    border: 1px solid var(--borda); border-radius: var(--r);
+    background: #fff; color: var(--tinta);
+  }
+  [data-estilo="E"] .campo input:focus, [data-estilo="E"] .campo select:focus {
+    outline: none; border-color: var(--burgundy); box-shadow: 0 0 0 4px rgba(107,31,46,.12);
+  }
+  [data-estilo="E"] .cartao {
+    background: #fff; border-radius: 20px; border: 1px solid var(--borda);
+    box-shadow: 0 2px 10px rgba(31,44,66,.06);
+  }
+  [data-estilo="E"] .selo {
+    display: inline-block; font: 500 12px/1 var(--ui); padding: 6px 10px;
+    border-radius: var(--e2); border: 1px solid #d8ece0; background: #eef7f1; color: #1d6b2f;
+  }
+  [data-estilo="E"] .selo--marca { border-color: #f0e0d2; background: #fdf4ec; color: var(--gold-texto); }
+
+  /* ======================= F — HIGHWAY TECNOLOGIA =========================
+     Software de gestão: denso, reto, escaneável. Raio 6, altura 36, borda de
+     meio-tom sempre visível, rótulo justo acima do campo, foco em anel sólido.
+     Nada de sombra: o que separa é a linha. */
+  [data-estilo="F"] { background: #f7f5f1; --r: 6px; --borda: #c7cdd6; --borda-2: #aeb6c2; }
+  [data-estilo="F"] .btn {
+    height: 36px; padding: 0 var(--e3); font-size: 13.5px; font-weight: 600;
+    border-radius: var(--r); letter-spacing: .005em;
+  }
+  [data-estilo="F"] .btn--primario { background: var(--burgundy); color: #fff6ec; border: 1px solid #571926; }
+  [data-estilo="F"] .btn--primario:hover { background: #7d2536; }
+  [data-estilo="F"] .btn--secundario { background: #fff; color: var(--tinta); border: 1px solid var(--borda-2); }
+  [data-estilo="F"] .btn--secundario:hover { background: #f1eee8; }
+  [data-estilo="F"] .btn--perigo { background: #fff; color: var(--falha); border: 1px solid #dbb5b5; }
+  [data-estilo="F"] .btn--perigo:hover { background: #fbf1f1; }
+  [data-estilo="F"] .btn--pequeno { height: 28px; padding: 0 var(--e2); font-size: 12px; }
+  [data-estilo="F"] .campo > span { font-size: 12.5px; font-weight: 600; color: #3b3a37; }
+  [data-estilo="F"] .campo input, [data-estilo="F"] .campo select {
+    height: 36px; padding: 0 10px; font-size: 13.5px;
+    border: 1px solid var(--borda-2); border-radius: var(--r);
+    background: #fff; color: var(--tinta);
+  }
+  [data-estilo="F"] .campo input:focus, [data-estilo="F"] .campo select:focus {
+    outline: 2px solid var(--burgundy); outline-offset: 1px; border-color: var(--burgundy);
+  }
+  [data-estilo="F"] .cartao { background: #fff; border: 1px solid var(--borda); }
+  [data-estilo="F"] .selo {
+    display: inline-block; font: 700 10.5px/1 var(--ui); padding: 5px 7px;
+    text-transform: uppercase; letter-spacing: .07em;
+    border-radius: 4px; border: 1px solid #cfe0d3; background: #eef6ef; color: #1d6b2f;
+  }
+  [data-estilo="F"] .selo--marca { border-color: #dfd2c2; background: #faf3ea; color: var(--gold-texto); }
+
+  /* ======================= G — AUDI ======================================
+     Premium automotivo. A regra: PRECISÃO. Quase sem raio, hierarquia pelo peso
+     e pelo espaço, rótulo em caixa alta muito espaçada, neutro quase acromático,
+     filete de 1px que não se esconde. O vermelho da casa faz o papel do vermelho
+     da marca: discrição, não festa. */
+  [data-estilo="G"] { background: #f4f4f4; --r: 2px; --borda: #b9b9b9; --borda-2: #8f8f8f; --tinta-a: #16181a; }
+  [data-estilo="G"] .btn {
+    height: 40px; padding: 0 20px; font-size: 12px; font-weight: 700;
+    letter-spacing: .12em; text-transform: uppercase; border-radius: var(--r);
+  }
+  [data-estilo="G"] .btn--primario { background: var(--tinta-a); color: #fff; border: 1px solid var(--tinta-a); }
+  [data-estilo="G"] .btn--primario:hover { background: #2c2f33; border-color: #2c2f33; }
+  [data-estilo="G"] .btn--secundario { background: transparent; color: var(--tinta-a); border: 1px solid var(--borda-2); }
+  [data-estilo="G"] .btn--secundario:hover { background: #e9e9e9; }
+  [data-estilo="G"] .btn--perigo { background: transparent; color: var(--falha); border: 1px solid #c9a2a2; }
+  [data-estilo="G"] .btn--perigo:hover { background: #f2eaea; }
+  [data-estilo="G"] .btn--pequeno { height: 28px; padding: 0 var(--e3); font-size: 10.5px; letter-spacing: .1em; }
+  [data-estilo="G"] .campo > span {
+    font-size: 10.5px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: .14em; color: #55585c;
+  }
+  [data-estilo="G"] .campo input, [data-estilo="G"] .campo select {
+    height: 40px; padding: 0 var(--e3); font-size: 14px;
+    border: 1px solid var(--borda-2); border-radius: var(--r);
+    background: #fff; color: var(--tinta-a);
+  }
+  [data-estilo="G"] .campo input:focus, [data-estilo="G"] .campo select:focus {
+    outline: 2px solid var(--tinta-a); outline-offset: 1px; border-color: var(--tinta-a);
+  }
+  [data-estilo="G"] .cartao { background: #fff; border: 1px solid var(--borda); border-radius: var(--r); }
+  [data-estilo="G"] .selo {
+    display: inline-block; font: 700 10px/1 var(--ui); padding: 5px 7px;
+    text-transform: uppercase; letter-spacing: .12em;
+    border-radius: var(--r); border: 1px solid #cfcfcf; background: #fff; color: #3c3f43;
+  }
+  [data-estilo="G"] .selo--marca { border-color: var(--burgundy); background: #fff; color: var(--burgundy); }
+
+
+  /* ======================================================================
+     SEGUNDO ESTUDO — O CABEÇALHO DO ATO
+     ======================================================================
+     O que se escolhe aqui NÃO é a pele (essa já está decidida: E, HarmonyOS).
+     É o ARRANJO: onde a escola se inscreve, o que fica na mesma linha, como os
+     quatro arranjos se comportam nas TRÊS fontes (anamnese, plano de ensino,
+     plano de observação) e no estado em que falta um campo.
+
+     O CONTRATO É O MESMO NOS QUATRO, e é o que está decidido:
+       · a ESCOLA não é campo — é inscrição, e não se edita;
+       · professor, ciclo, aluna/turma e senha são controles;
+       · o que falta se anuncia em cor de erro, no próprio controle;
+       · os contadores ficam no cabeçalho, discretos. */
+
+  .cab { font-family: var(--ui); color: var(--tinta); }
+  /* Um só markup para os quatro. Onde o arranjo não precisa de agrupador, ele não
+     existe: `display: contents` dissolve a caixa e os filhos viram itens do `.cab`. */
+  .cab-corpo { display: contents; }
+  .opt-nota { margin: 0; font-size: 13.5px; line-height: 1.55; color: #4d4842; max-width: 72ch; }
+  /* A INSCRIÇÃO. Serifa + o ouro/bordô da casa: é título de documento, não
+     controle. Vale nos quatro arranjos — muda a posição, não a natureza. */
+  .cab-rotulo {
+    font: 600 10px/1.5 var(--ui); letter-spacing: .09em; text-transform: uppercase;
+    color: #6b7280; white-space: nowrap;
+  }
+  .cab-nome { font: 700 15px/1.3 var(--serif); color: var(--burgundy); white-space: nowrap; }
+  .cab-escola { display: inline-flex; flex-direction: column; gap: 1px; }
+  .cab-escola.lado { flex-direction: row; align-items: baseline; gap: 7px; }
+  .cab-item { display: inline-flex; align-items: baseline; gap: 6px; }
+  .cab-item select, .cab-item input {
+    height: 30px; padding: 0 9px; font: 500 12.5px/1 var(--ui);
+    border: 1px solid var(--borda); border-radius: var(--e2);
+    background: #fff; color: var(--tinta);
+  }
+  /* AS LARGURAS SÃO AS DO DADO, não o padrão do navegador. Sem isto o `<input>` nasce
+     com ~180px e o `ciclo` — que tem DUAS letras — ocupa o dobro do professor. */
+  .cab-item select { max-width: 8rem; }
+  .cab-item input:not([type="password"]) { width: 3.6rem; }
+  .cab-senha input { width: 6.5rem; }
+  /* A MESMA SETA DO SISTEMA (o select nativo fica colado na borda). */
+  .cab-item select {
+    appearance: none; -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%237a5c31' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat; background-position: right 10px center;
+    padding-right: 32px;
+  }
+  .cab-item input:focus, .cab-item select:focus {
+    outline: none; border-color: var(--burgundy); box-shadow: 0 0 0 3px rgba(107,31,46,.12);
+  }
+  .cab-contadores {
+    font: 500 11.5px/1.4 var(--ui); color: #6b7280;
+    font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .cab-contadores b { color: var(--tinta); font-weight: 700; }
+  /* O QUE FALTA — a marca é do sistema: filete de erro no controle, rótulo em erro. */
+  .cab .falta select, .cab .falta input { border-color: var(--falha); border-width: 2px; }
+  .cab .falta > .cab-rotulo { color: var(--falha); }
+  .cab-aviso { font: 600 11.5px/1.4 var(--ui); color: var(--falha); }
+  /* O título de cada documento, dentro do estudo. */
+  .fonte-nome {
+    font: 600 11px/1 var(--ui); text-transform: uppercase; letter-spacing: .1em;
+    color: #8a8378; margin: 0 0 var(--e2);
+  }
+
+  /* ---------- H1 · LINHA ÚNICA (documentação técnica) -------------------
+     Tudo numa baseline, com um filete embaixo e os contadores à direita. É o
+     arranjo mais discreto: o cabeçalho lê-se como o masthead de um manual. */
+  [data-arranjo="H1"] .cab {
+    display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap;
+    padding: 0 0 var(--e3); border-bottom: 1px solid var(--borda);
+  }
+  [data-arranjo="H1"] .cab-escola { flex-direction: row; align-items: baseline; gap: 6px; }
+  [data-arranjo="H1"] .cab-nome { font-size: 15px; }
+  /* Os contadores são da BARRA, não da identidade: ficam numa linha própria, à direita,
+     acima do filete. Assim a linha de baixo é só o ato — e cabe inteira. */
+  [data-arranjo="H1"] .cab-contadores { flex: 1 1 100%; order: -1; text-align: right; margin-bottom: -2px; }
+
+  /* ---------- H2 · CARTÃO DE IDENTIDADE (capa de documento) -------------
+     Um cartão com a escola à esquerda, em coluna própria, e os controles numa
+     grade à direita. O que se lê primeiro é de QUEM é o documento. */
+  [data-arranjo="H2"] .cab {
+    display: grid; grid-template-columns: minmax(9rem, 12rem) 1fr;
+    background: #fff; border: 1px solid var(--borda); border-radius: var(--r);
+    box-shadow: 0 2px 10px rgba(31,44,66,.05); overflow: hidden;
+  }
+  [data-arranjo="H2"] .cab-escola {
+    padding: var(--e4) var(--e4); background: #fdf7f1;
+    border-right: 1px solid #f0e2d4; justify-content: center;
+  }
+  [data-arranjo="H2"] .cab-nome { font-size: 18px; }
+  [data-arranjo="H2"] .cab-corpo {
+    display: flex; align-items: baseline; gap: var(--e4) var(--e5);
+    flex-wrap: wrap; padding: var(--e4) var(--e5);
+  }
+  [data-arranjo="H2"] .cab-contadores {
+    flex: 1 1 100%; padding-top: var(--e2); border-top: 1px dashed #eceff4;
+  }
+  [data-arranjo="H2"] .cab-item { flex-direction: column; gap: 4px; align-items: flex-start; }
+
+  /* ---------- H3 · PASTILHAS (aplicativo moderno) -----------------------
+     A identidade em pastilhas; o que se edita continua controle, mas miúdo e
+     dentro da linha. O mais compacto dos quatro — e o mais «produto». */
+  [data-arranjo="H3"] .cab {
+    display: flex; align-items: center; gap: var(--e2); flex-wrap: wrap;
+    padding: var(--e2); background: #fff; border: 1px solid var(--borda);
+    border-radius: 999px;
+  }
+  [data-arranjo="H3"] .cab-escola {
+    flex-direction: row; align-items: baseline; gap: 6px;
+    background: var(--burgundy); border-radius: 999px; padding: 6px 12px;
+  }
+  [data-arranjo="H3"] .cab-escola .cab-rotulo { color: #e9c9b8; }
+  [data-arranjo="H3"] .cab-escola .cab-nome { color: #fff4ea; font-size: 13px; }
+  [data-arranjo="H3"] .cab-item { flex-direction: row; align-items: center; gap: 5px; padding-left: var(--e2); }
+  [data-arranjo="H3"] .cab-contadores { margin-left: auto; padding-right: var(--e2); }
+
+  /* ---------- H4 · FAIXA INSTITUCIONAL (masthead) -----------------------
+     A faixa bordô, com a escola em ouro e os controles como «tabuletas» claras.
+     É o mais cerimonial: diz «este documento pertence a esta escola» antes de
+     qualquer outra coisa. */
+  [data-arranjo="H4"] .cab {
+    display: flex; align-items: center; gap: var(--e4) var(--e5); flex-wrap: wrap;
+    padding: var(--e3) var(--e5); background: var(--burgundy);
+    border-radius: var(--r); color: #f7e9dd;
+  }
+  [data-arranjo="H4"] .cab-escola { flex-direction: column; gap: 0; }
+  [data-arranjo="H4"] .cab-escola .cab-rotulo { color: var(--gold-claro); }
+  [data-arranjo="H4"] .cab-escola .cab-nome { color: #fdf3e3; font-size: 17px; }
+  [data-arranjo="H4"] .cab-item .cab-rotulo { color: var(--gold-claro); }
+  [data-arranjo="H4"] .cab-item input, [data-arranjo="H4"] .cab-item select {
+    border-color: rgba(255,255,255,.24); background: #fff;
+  }
+  [data-arranjo="H4"] .cab-contadores { margin-left: auto; color: #e6c9b6; }
+  [data-arranjo="H4"] .cab-contadores b { color: #fff; }
+  [data-arranjo="H4"] .cab-aviso { color: #ffd9c9; }
+
+  @media (max-width: 720px) {
+    [data-arranjo="H2"] .cab { grid-template-columns: 1fr; }
+    [data-arranjo="H2"] .cab-escola { border-right: none; border-bottom: 1px solid #f0e2d4; }
+    [data-arranjo="H3"] .cab { border-radius: var(--r); }
+    [data-arranjo="H1"] .cab-contadores, [data-arranjo="H3"] .cab-contadores,
+    [data-arranjo="H4"] .cab-contadores { margin-left: 0; }
+  }
+
+
+  /* ======================================================================
+     TERCEIRO ESTUDO — A NAVEGAÇÃO DA PRODUÇÃO NO CELULAR
+     ======================================================================
+     O problema, medido. A Produção tem duas navegações: a do SISTEMA (Sistema
+     Lastro · Área do Professor · Bastidores), que já vira hambúrguer, e a da
+     PÁGINA (`.lateral`: Produção › Painel inicial; Pessoas › Professores,
+     Alunas; Pedagogia › Turmas, Vocabulário técnico, Curadorias). No celular a
+     segunda vira uma FITA de 80px com três títulos e seis links espremidos — o
+     título do grupo e o destino têm o mesmo peso visual, e não se lê onde começa
+     um e acaba o outro.
+
+     O contrato dos QUATRO é o mesmo: dois níveis (grupo → destino), o destino
+     ATUAL sempre visível, e o conteúdo logo abaixo sem rolagem de aquecimento.
+
+     Aqui os protótipos são CLICÁVEIS: cada um navega de verdade dentro do
+     telefone falso, para se poder sentir a interação, e não só ver o repouso. */
+
+  .fones { display: flex; gap: var(--e5); flex-wrap: wrap; align-items: flex-start; }
+  /* `width: 100%` + `max-width`, e não `width: 390px`: dentro de um item flex cuja largura
+     depende do conteúdo, uma largura FIXA vira o próprio piso do item e o telefone estoura
+     a tela em 390px de viewport (medido: 398 em vez de 390). */
+  .fone {
+    width: 100%; max-width: 390px; border-radius: 28px; overflow: hidden;
+    background: var(--cream); border: 1px solid #d8d2c7;
+    box-shadow: 0 2px 4px rgba(31,28,26,.06), 0 18px 40px rgba(31,28,26,.10);
+    font-family: var(--ui); color: var(--tinta); position: relative;
+  }
+  /* A barra do SISTEMA, já no hambúrguer — é o que já está decidido e não se discute aqui. */
+  .fone-sistema {
+    display: flex; align-items: center; gap: var(--e2);
+    padding: 10px 14px; background: var(--burgundy); color: #fdf3e3;
+    font-size: 13px; font-weight: 600;
+  }
+  .fone-sistema .hamb { margin-left: auto; font-size: 16px; line-height: 1; opacity: .9; }
+  .fone-tela { padding: 0 0 12px; min-height: 380px; }
+  .fone-h1 { font: 700 17px/1.25 var(--ui); margin: 14px 14px 2px; }
+  .fone-sub { font: 400 12px/1.45 var(--ui); color: #6b7280; margin: 0 14px 12px; }
+  .fone-corpo { padding: 0 14px; }
+  .fone-bloco {
+    background: #fff; border: 1px solid #e2e6ec; border-radius: 14px;
+    padding: 12px 14px; font-size: 13px; line-height: 1.5; color: #4b5563;
+  }
+  .fone-bloco b { color: var(--tinta); }
+
+  /* ---------- N1 · ABAS DE GRUPO + LISTA -------------------------------
+     A ideia dele: três abas — Produção, Pessoas, Pedagogia — e, abaixo da aba
+     ativa, só as páginas DAQUELE grupo. Nada de seis links ao mesmo tempo. */
+  [data-nav="N1"] .n1-abas {
+    display: flex; gap: 6px; padding: 10px 14px 8px; overflow-x: auto;
+    border-bottom: 1px solid #eceff4; scrollbar-width: none;
+  }
+  [data-nav="N1"] .n1-abas::-webkit-scrollbar { display: none; }
+  [data-nav="N1"] .n1-aba {
+    flex: 0 0 auto; border: 1px solid transparent; background: #f2f4f7;
+    border-radius: 999px; padding: 7px 13px; font: 600 12.5px/1 var(--ui);
+    color: #4b5563; cursor: pointer;
+  }
+  [data-nav="N1"] .n1-aba[aria-selected="true"] {
+    background: var(--burgundy); border-color: var(--burgundy); color: #fdf3e3;
+  }
+  [data-nav="N1"] .n1-lista { list-style: none; margin: 0; padding: 6px 8px; }
+  [data-nav="N1"] .n1-lista a {
+    display: flex; align-items: center; gap: 8px;
+    padding: 11px 8px; border-radius: 10px; color: var(--tinta);
+    text-decoration: none; font: 500 13.5px/1.2 var(--ui);
+  }
+  [data-nav="N1"] .n1-lista a[aria-current="page"] { background: #fdf4ec; color: var(--burgundy); font-weight: 700; }
+  [data-nav="N1"] .n1-lista a[aria-current="page"]::before {
+    content: ""; width: 3px; height: 16px; border-radius: 2px; background: var(--burgundy);
+  }
+
+  /* ---------- N2 · FOLHA INFERIOR --------------------------------------
+     A segunda ideia dele: um botão «Seções» no cabeçalho da página, e a folha
+     sobe com os grupos e os destinos. Nada ocupa espaço enquanto está fechada. */
+  [data-nav="N2"] .n2-cabeca {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 14px; border-bottom: 1px solid #eceff4;
+  }
+  [data-nav="N2"] .n2-atual {
+    font: 600 13px/1.2 var(--ui); color: var(--tinta);
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  [data-nav="N2"] .n2-atual span { color: #6b7280; font-weight: 400; }
+  [data-nav="N2"] .n2-abrir {
+    margin-left: auto; border: 1px solid #e2e6ec; background: #fff;
+    border-radius: 999px; padding: 7px 12px; font: 600 12px/1 var(--ui);
+    color: var(--burgundy); cursor: pointer;
+  }
+  [data-nav="N2"] .n2-veu {
+    position: absolute; inset: 0; background: rgba(31,28,26,.32);
+    opacity: 0; pointer-events: none; transition: opacity .18s ease;
+  }
+  [data-nav="N2"] .n2-folha {
+    position: absolute; left: 0; right: 0; bottom: 0; background: #fff;
+    border-radius: 20px 20px 0 0; padding: 6px 0 14px;
+    transform: translateY(101%); transition: transform .22s ease;
+    box-shadow: 0 -8px 30px rgba(31,28,26,.16);
+  }
+  [data-nav="N2"][data-aberta="sim"] .n2-veu { opacity: 1; pointer-events: auto; }
+  [data-nav="N2"][data-aberta="sim"] .n2-folha { transform: translateY(0); }
+  [data-nav="N2"] .n2-puxador { width: 36px; height: 4px; border-radius: 2px; background: #d7dbe2; margin: 8px auto 4px; }
+  [data-nav="N2"] .n2-grupo { padding: 12px 18px 2px; font: 700 10.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #8b93a1; }
+  [data-nav="N2"] .n2-folha a {
+    display: flex; align-items: center; gap: 10px; padding: 12px 18px;
+    color: var(--tinta); text-decoration: none; font: 500 14px/1.2 var(--ui);
+  }
+  [data-nav="N2"] .n2-folha a[aria-current="page"] { color: var(--burgundy); font-weight: 700; }
+  [data-nav="N2"] .n2-folha a[aria-current="page"]::after { content: "✓"; margin-left: auto; }
+
+  /* ---------- N3 · FAIXA ROLÁVEL DE DESTINOS (o iFood) ------------------
+     Um trilho horizontal com TODOS os destinos, na ordem dos grupos, e um
+     rótulo de grupo acima dele que acompanha a rolagem. É o que ele descreveu
+     do iFood: o menu é horizontal, e o conteúdo rola abaixo. */
+  /* Sem uma linha de grupos acima: o grupo já viaja DENTRO de cada item, em letra miúda.
+     Uma segunda linha a repetir os três nomes só gastava 24px de altura para dizer o que
+     o próprio trilho diz. */
+  [data-nav="N3"] .n3-faixa { border-bottom: 1px solid #eceff4; padding-top: 2px; }
+  [data-nav="N3"] .n3-trilho {
+    display: flex; gap: 6px; padding: 8px 14px 10px; overflow-x: auto;
+    scrollbar-width: none; scroll-snap-type: x proximity;
+  }
+  [data-nav="N3"] .n3-trilho::-webkit-scrollbar { display: none; }
+  [data-nav="N3"] .n3-item {
+    flex: 0 0 auto; scroll-snap-align: start; text-decoration: none;
+    border: 1px solid #e2e6ec; background: #fff; border-radius: 10px;
+    padding: 8px 12px; font: 500 12.5px/1.1 var(--ui); color: #3f4650;
+    display: inline-flex; flex-direction: column; gap: 2px; cursor: pointer;
+  }
+  [data-nav="N3"] .n3-item small { font: 500 9.5px/1 var(--ui); letter-spacing: .08em; text-transform: uppercase; color: #9aa2ae; }
+  [data-nav="N3"] .n3-item[aria-current="page"] { border-color: var(--burgundy); color: var(--burgundy); font-weight: 700; background: #fdf7f1; }
+  [data-nav="N3"] .n3-item[aria-current="page"] small { color: #c39a86; }
+
+  /* ---------- N4 · SELETOR DE SEÇÃO + PASSOS ---------------------------
+     O mais econômico: a seção ATUAL como um seletor (abre a lista), e duas
+     setas para andar na ordem das seções. Cabe numa linha e nunca cresce. */
+  [data-nav="N4"] .n4-cabeca {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px; border-bottom: 1px solid #eceff4;
+  }
+  [data-nav="N4"] .n4-seta {
+    border: 1px solid #e2e6ec; background: #fff; border-radius: 8px;
+    width: 30px; height: 30px; display: grid; place-items: center;
+    color: #4b5563; cursor: pointer; font-size: 13px; flex: 0 0 auto;
+  }
+  [data-nav="N4"] .n4-atual {
+    flex: 1; display: flex; align-items: center; gap: 6px;
+    border: 1px solid #e2e6ec; background: #fff; border-radius: 8px;
+    padding: 6px 10px; font: 600 12.5px/1.2 var(--ui); color: var(--tinta);
+    cursor: pointer; min-width: 0;
+  }
+  [data-nav="N4"] .n4-atual small { font: 500 10px/1 var(--ui); color: #8b93a1; letter-spacing: .06em; text-transform: uppercase; }
+  [data-nav="N4"] .n4-atual .ponto { margin-left: auto; color: #9aa2ae; font-size: 10px; }
+  [data-nav="N4"] .n4-lista {
+    list-style: none; margin: 0; padding: 6px; border-bottom: 1px solid #eceff4;
+    background: #fbfcfe;
+  }
+  [data-nav="N4"] .n4-lista[hidden] { display: none; }
+  [data-nav="N4"] .n4-lista a {
+    display: block; padding: 9px 10px; border-radius: 8px; text-decoration: none;
+    font: 500 13px/1.2 var(--ui); color: var(--tinta);
+  }
+  [data-nav="N4"] .n4-lista a[aria-current="page"] { background: #fdf4ec; color: var(--burgundy); font-weight: 700; }
+  [data-nav="N4"] .n4-lista .n4-g { font: 700 9.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; color: #9aa2ae; padding: 8px 10px 3px; }
+
+  /* A marca do estudo: cada opção numa coluna, para se comparar lado a lado. */
+  .nav-opcao { flex: 1 1 380px; min-width: 0; max-width: 440px; }
+  .nav-opcao h3 { margin: 0 0 var(--e2); font: 700 15px/1.3 var(--ui); }
+  .nav-opcao .porque { margin: 0 0 var(--e3); font: 400 13px/1.5 var(--ui); color: #5f5850; }
+  .nav-opcao .custo { margin: var(--e3) 0 0; font: 400 12.5px/1.5 var(--ui); color: #6b7280; }
+  .nav-opcao .custo b { color: var(--tinta); }
+
+  @media (max-width: 640px) {
+    body { padding: var(--e4) var(--e2) 48px; }
+    .opt .corpo { padding: var(--e4); gap: var(--e4); }
+    .opt > header { padding: var(--e3) var(--e4); }
+  }
+
+  /* ======================================================================
+     QUARTO ESTUDO — O CARTÃO DA TURMA
+     ======================================================================
+     O problema, dito pelo que se vê. Uma turma carrega HOJE, num só bloco e
+     todo aberto ao mesmo tempo: nome, nível, programa, ritmo, o selo de estado
+     (livre/vinculada), o selo de vigência, o aviso de «falta …», dois botões, a
+     régua da rubrica em prosa, os conteúdos em chips, um seletor de termo com o
+     botão que o usa, e o histórico de versões. São NOVE faixas de informação
+     numa caixa — e numa lista de cinco turmas, quarenta e cinco faixas.
+
+     As três propostas aceitam o mesmo conteúdo e diferem numa única decisão:
+     O QUE FICA À VISTA SEM TOQUE NENHUM. Não é uma diferença de pele — é uma
+     diferença de contrato, e é a única que importa para escolher.
+
+       T1 · GAVETA      à vista: nome, estado e TRÊS CONTAGENS. O resto abre.
+       T2 · ESCALA      à vista: TUDO, mas a régua vira uma barra de 4 níveis.
+       T3 · TRÊS NÚMEROS à vista: nome, estado e três números com «?» ao toque.
+
+     Em todas, a regra das duas linhas vale para o nome; o aviso de «falta» deixa
+     de ser um selo no meio da primeira linha — onde ele empurrava o nome — e
+     passa a ser uma NOTA abaixo, que se lê ou se ignora.
+
+     Sobre o balão da T3, e é o que decide: no telefone não existe hover. Um balão
+     que só abre com o rato não existe no celular; um que abre ao toque precisa de
+     fechar com outro toque, de não ficar debaixo do dedo, e de não haver dois
+     abertos. A T3 é feita assim — e é a razão de ela ser a mais arriscada. */
+
+  /* A geometria segue a régua de raios da casa — a pele já está decidida (E, HarmonyOS):
+     20px no cartão (`--raio-3`), 12px nas peças internas (`--raio-2`), 8px nos selos e
+     nos botões (`--raio-1`), pílula nos chips. O que se escolhe nesta secção é a
+     ESTRUTURA, não a pele. */
+  .tc { background: #fff; border: 1px solid #e2e6ec; border-radius: 20px;
+        box-shadow: 0 2px 10px rgba(31,44,66,.06); }
+  .tc + .tc { margin-top: 10px; }
+  .tc-nome { font: 700 15px/1.25 var(--ui); color: var(--tinta); }
+  .tc-compl { font: 400 12.5px/1.35 var(--ui); color: #6b7280;
+              white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* A primeira linha é o nome e os selos. Os selos NÃO encolhem além do texto que
+     têm — mas quando o nome e dois selos não cabem (medido: 191px em 169px de
+     cartão), quem cede primeiro tem de ser o selo mais largo, e não o nome: o nome
+     chegava a `width: 0` e desaparecia, com os dois selos inteiros ao lado. Por
+     isso o nome tem um piso (`5ch`) e o selo pode encurtar com reticências. */
+  .tc-linha1 { display: flex; flex-wrap: nowrap; align-items: baseline; gap: 8px; min-width: 0; }
+  .tc-linha1 .tc-nome { flex: 1 1 auto; min-width: 5ch; overflow: hidden;
+                        text-overflow: ellipsis; white-space: nowrap; }
+  .tc-selo { flex: 0 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+             font: 600 9.5px/1 var(--ui); letter-spacing: .07em;
+             text-transform: uppercase; padding: 4px 7px; border-radius: 8px;
+             border: 1px solid; white-space: nowrap; }
+  .tc-livre    { color: #1d6b4a; border-color: #b6ddc8; background: #eefaf2; }
+  .tc-vinculada{ color: #7a5c31; border-color: #e2d2b0; background: #fdf7ea; }
+  .tc-vig      { color: #6b7280; border-color: #dfe3ea; background: #f6f8fa; }
+  .tc-acao { font: 500 12.5px/1 var(--ui); height: 30px; padding: 0 12px; cursor: pointer;
+             border-radius: 8px; border: 1px solid #e2e6ec; background: #fff; color: var(--tinta); }
+  .tc-acao:hover { background: #f6f8fa; }
+  .tc-acao.perigo { color: var(--falha); border-color: #f0d7d7; }
+  .tc-acoes { margin-left: auto; display: flex; gap: 6px; flex: 0 0 auto; }
+  .tc-falta { display: flex; align-items: baseline; gap: 6px; font: 400 12px/1.4 var(--ui);
+              color: #8a5a12; background: #fdf6e7; border: 1px solid #f0e2c2;
+              border-radius: 12px; padding: 6px 10px; margin-top: 8px; min-width: 0; }
+  .tc-falta b { flex: 0 0 auto; font-weight: 700; }
+  .tc-falta span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ---------- T1 · GAVETA ------------------------------------------------
+     `details`/`summary` NATIVO: abre com um toque, com Enter, com leitor de
+     ecrã, e sem uma linha de JavaScript. É a proposta com menos ruído e com
+     menos código — e a que esconde mais. */
+  [data-card="T1"] .t1 summary {
+    list-style: none; cursor: pointer; padding: 13px 14px 12px;
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 3px 12px;
+    align-items: start;
+  }
+  [data-card="T1"] .t1 summary::-webkit-details-marker { display: none; }
+  [data-card="T1"] .t1 summary::after {
+    content: "▸ detalhes"; grid-column: 1 / -1; justify-self: start;
+    font: 600 11px/1 var(--ui); letter-spacing: .04em; color: var(--burgundy);
+    padding-top: 8px;
+  }
+  [data-card="T1"] .t1[open] summary::after { content: "▾ fechar"; }
+  [data-card="T1"] .t1-topo { display: grid; gap: 2px; min-width: 0; }
+  [data-card="T1"] .t1-metricas { display: flex; gap: 14px; margin-top: 8px; flex-wrap: wrap; }
+  [data-card="T1"] .t1-metricas div { display: flex; align-items: baseline; gap: 5px; }
+  [data-card="T1"] .t1-metricas .k { font: 600 9.5px/1 var(--ui); letter-spacing: .08em;
+    text-transform: uppercase; color: #8b93a1; }
+  [data-card="T1"] .t1-metricas .v { font: 700 13px/1 var(--ui); color: #374151; }
+  [data-card="T1"] .t1-corpo { border-top: 1px dashed #e6e9ef; padding: 12px 14px 14px;
+    display: grid; gap: 12px; }
+
+  /* ---------- T2 · ESCALA -----------------------------------------------
+     Nada escondido. A régua da rubrica deixa de ser uma frase — «satisfatório ·
+     razoável · em desenvolvimento · não se aplica» — e passa a ser o que ela é:
+     uma ESCALA de quatro degraus, visível num relance. É a proposta para quem
+     tem poucas turmas e não quer tocar em nada para saber tudo. */
+  [data-card="T2"] .t2 { padding: 13px 14px 12px; display: grid; gap: 9px; }
+  [data-card="T2"] .t2-tax { display: flex; flex-wrap: wrap; justify-content: space-between;
+    align-items: baseline; gap: 6px 10px; }
+  [data-card="T2"] .t2-tax > div:first-child { flex: 1 1 220px; min-width: 0; }
+  [data-card="T2"] .t2-selos { display: flex; gap: 5px; flex: 0 0 auto; }
+  /* A ESCALA e o CHIP são componentes PARTILHADOS (T2 e o híbrido). Foram escritos
+     para a T2 e o híbrido precisa deles dentro do painel: se cada um trouxesse a sua
+     cópia, a mesma régua teria duas cores no dia em que uma fosse corrigida — que é a
+     redundância que este estudo existe para evitar. */
+  [data-card] .escala { display: flex; min-width: 0; border: 1px solid #e2d2b0;
+    border-radius: 12px; overflow: hidden; }
+  [data-card] .escala span {
+    flex: 1 1 0; min-width: 0; text-align: center; padding: 5px 3px;
+    font: 600 10.5px/1.2 var(--ui); color: #6b4f27; background: #fdf7ea;
+    border-left: 1px solid #e2d2b0; white-space: nowrap; overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  [data-card] .escala span:first-child { border-left: none; background: #1d6b4a; color: #eafaf1; }
+  [data-card] .escala span:nth-child(2) { background: #7f9a54; color: #f4fbe9; }
+  [data-card] .escala span:nth-child(3) { background: #d9b25e; color: #43310f; }
+  [data-card] .escala span:nth-child(4) { background: #eceff4; color: #6b7280; }
+  [data-card] .chips { display: flex; gap: 5px; flex-wrap: wrap; align-items: center; }
+  [data-card] .chip { font: 600 11px/1 var(--ui); color: #4b5563; background: #f1f3f7;
+    border: 1px solid #e2e6ec; border-radius: 999px; padding: 5px 10px; }
+  /* O «×» DESASSOCIA, e é o mesmo nas duas larguras: a associação não se desfaz de um
+     lado e não do outro. */
+  [data-card] .chip .x { margin-left: 4px; padding: 0 2px; border: none; background: none;
+    color: var(--falha); font: 700 12px/1 var(--ui); cursor: pointer; }
+  [data-card="T2"] .t2-rodape { display: flex; gap: 10px; align-items: baseline; flex-wrap: wrap;
+    font: 400 11.5px/1.3 var(--ui); color: #7b8494; }
+  [data-card="T2"] .t2-rodape a { color: var(--burgundy); text-decoration: none; font-weight: 600; }
+
+  /* ---------- AS TRÊS MÉTRICAS — componente PARTILHADO (T3 e o híbrido) ---
+     A proposta dele: os «izinhos» com o painel. Feita para o DEDO — o alvo tem 28px
+     (não 20), o painel abre ABAIXO da fila de números e não sobre o dedo, fecha com o
+     mesmo toque, com Escape ou com um toque fora, e um segundo painel fecha o primeiro.
+     O T3 mostra o painel simples; o híbrido mostra o painel RICO. O componente é o
+     mesmo — o que muda é o que se põe lá dentro, e é por isso que ele tem nome neutro. */
+  [data-card="T3"] .t3, [data-card="T4"] .t4 { padding: 13px 14px 14px; }
+  [data-card] .tc-metricas { display: grid; grid-template-columns: repeat(3, minmax(0,1fr));
+    gap: 8px; margin-top: 11px; }
+  [data-card] .tc-metrica { position: relative; background: #f7f9fb; border: 1px solid #e6eaf0;
+    border-radius: 12px; padding: 8px 30px 8px 10px; min-width: 0; }
+  [data-card] .tc-metrica .k { display: block; font: 600 9px/1.2 var(--ui); letter-spacing: .08em;
+    text-transform: uppercase; color: #8b93a1; }
+  [data-card] .tc-metrica .v { display: block; font: 700 14px/1.2 var(--ui); color: #1f2937;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* A célula diz que é ELA que está aberta: sem isto, o painel aparece e não se sabe de onde. */
+  [data-card] .tc-metrica[data-aberto="sim"] { background: #fdf9f4; border-color: #e6d3bd; }
+  [data-card] .tc-q { position: absolute; top: 5px; right: 5px;
+    width: 20px; height: 20px; border-radius: 50%; cursor: pointer;
+    border: 1px solid #c6cdd8; background: #fff; color: #6b7280;
+    font: 700 11px/1 var(--ui); display: grid; place-items: center; padding: 0; }
+  /* O alvo de toque é maior que o desenho: 28px de área, 20px de círculo. */
+  [data-card] .tc-q::before { content: ""; position: absolute; inset: -4px; }
+  [data-card] .tc-q[aria-expanded="true"] { background: var(--burgundy); color: #fdf3e3; border-color: var(--burgundy); }
+  [data-card] .tc-painel { margin-top: 9px; font: 400 12px/1.45 var(--ui); color: #374151;
+    background: #fdf7ea; border: 1px solid #ecdcbd; border-radius: 12px; padding: 11px 12px; }
+  [data-card] .tc-painel[hidden] { display: none; }
+  .fone [data-card] .tc-metricas { gap: 6px; }
+  .fone [data-card] .tc-metrica { padding-right: 26px; }
+  .fone [data-card="T4"] .tx-grade { grid-template-columns: 1fr; gap: 7px; }
+
+  /* ---------- O PAINEL RICO (T4) ----------------------------------------
+     O que o dono do produto pediu: «quando abro o balão, ele traz um texto duro».
+     O painel do híbrido não é prosa — é a MESMA peça que a T2 mostra à vista: a
+     régua com a sua escala de cores, os conteúdos em chips, o ritmo em pares
+     rótulo/valor. E quando falta, não é uma frase seca: é uma lista do que falta,
+     com o que já está marcado. */
+  [data-card="T4"] .tx-grade { display: grid; grid-template-columns: repeat(2, minmax(0,1fr));
+    gap: 9px 14px; }
+  [data-card="T4"] .tx-grade .k { display: block; font: 600 9px/1.2 var(--ui);
+    letter-spacing: .08em; text-transform: uppercase; color: #9a7b4f; }
+  [data-card="T4"] .tx-grade .v { display: block; font: 700 12.5px/1.35 var(--ui); color: #3a2e1f; }
+  [data-card="T4"] .tx-frase { margin: 0 0 10px; font: 400 12.5px/1.45 var(--ui); color: #5b4a34; }
+  [data-card="T4"] .tx-frase b { color: #3a2e1f; }
+  [data-card="T4"] .tx-lista { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+  [data-card="T4"] .tx-lista li { display: flex; align-items: baseline; gap: 7px;
+    font: 400 12.5px/1.35 var(--ui); color: #3a2e1f; }
+  [data-card="T4"] .tx-lista li::before { content: "○"; flex: 0 0 auto;
+    font: 700 11px/1 var(--ui); color: #c08a4a; }
+  [data-card="T4"] .tx-lista li.ok { color: #7b8494; }
+  [data-card="T4"] .tx-lista li.ok::before { content: "✓"; color: #1d6b4a; }
+  [data-card="T4"] .tx-nota { margin: 10px 0 0; font: 400 11.5px/1.4 var(--ui); color: #8a7355; }
+  [data-card="T4"] .tx-associar { display: flex; gap: 6px; margin-top: 10px; }
+  [data-card="T4"] .tx-associar select { flex: 1 1 auto; min-width: 0; height: 30px;
+    font: 400 12.5px var(--ui); color: var(--tinta); background: #fff;
+    border: 1px solid #e2e6ec; border-radius: 8px; padding: 0 8px; }
+
+  /* ---------- O telefone, nas quatro ----------------------------------- */
+  .fone [data-card] .tc { border-radius: 10px; }
+  .fone [data-card="T1"] .t1-metricas { gap: 10px; }
+  .fone [data-card="T2"] .escala span { font-size: 9px; padding: 4px 2px; }
+  .fone [data-card="T2"] .chips .chip { font-size: 10.5px; }
+  .fone [data-card="T1"] .tc-acao, .fone [data-card="T2"] .tc-acao,
+  .fone [data-card="T3"] .tc-acao,
+  .fone [data-card="T4"] .tc-acao { height: 28px; }
+
+  /* ---------- O quadro de escolha -------------------------------------- */
+  /* Uma tabela de cinco colunas não cabe em 390px — o min-content dela é 459px, medido.
+     O quadro rola DENTRO da sua moldura em vez de alargar a página: quem lê no telefone
+     arrasta-o, e o resto da página fica quieto. */
+  .quadro-rolo { max-width: 940px; margin: 0 auto; background: #fff; border: 1px solid #e2e6ec;
+    border-radius: 12px; overflow-x: auto; }
+  .quadro { border-collapse: collapse; width: 100%; min-width: 640px;
+    font: 400 13px/1.45 var(--ui); }
+  .quadro th, .quadro td { text-align: left; padding: 9px 12px; border-bottom: 1px solid #eef1f5;
+    vertical-align: top; }
+  .quadro thead th { font: 700 10.5px/1.2 var(--ui); letter-spacing: .08em; text-transform: uppercase;
+    color: #7b8494; background: #f6f8fa; }
+  .quadro tbody th { font-weight: 700; white-space: nowrap; }
+  .quadro tr:last-child td, .quadro tr:last-child th { border-bottom: none; }
+
+  /* ======================================================================
+     QUINTO ESTUDO — ONDE FICA A «SESSÃO» QUANDO A PÁGINA ROLA
+     ======================================================================
+     O problema, dito por quem usa. No celular, a página da Produção diz onde
+     se está numa barra — «PEDAGOGIA · Turmas» e o botão «Seções». A barra fica
+     no TOPO do conteúdo. A página de Turmas é longa: quando se desce até à
+     listagem, trocar de secção obriga a voltar ao topo.
+
+     São quatro respostas, e a diferença entre elas é a mesma de sempre: o que
+     se PAGA em espaço permanente para se ter o quê à mão.
+
+       S1 · SOBE E ENCAIXA   a barra da página sobe, no scroll, para o lado do
+                             hambúrguer. Não custa altura nenhuma em repouso.
+       S2 · FICA PRESA       a barra não se mexe: fica colada sob a barra do
+                             sistema e o conteúdo passa por baixo.
+       S3 · UMA BARRA SÓ     a sessão entra DENTRO da barra do sistema. Uma
+                             barra, dois níveis de navegação.
+       S4 · VIRA PÍLULA      a barra recolhe para uma pílula flutuante quando
+                             se desce, e volta a barra quando se sobe.
+
+     Em todas aparece o lugar da LOGO, à esquerda da barra do sistema — ela vai
+     existir, e o desenho tem de contar com ela. As quatro são CLICÁVEIS: role
+     dentro do telefone e veja. */
+
+  .fone-rolo {
+    max-height: 430px; overflow-y: auto; overflow-x: hidden;
+    scrollbar-width: thin; position: relative;
+  }
+  .fone-logo {
+    width: 18px; height: 18px; border-radius: 5px; flex: 0 0 auto;
+    background: rgba(255,255,255,.22); border: 1px solid rgba(255,255,255,.34);
+    display: grid; place-items: center; font: 700 9px/1 var(--ui); color: #fdf3e3;
+  }
+  .fone-sistema .hamb { margin-left: auto; }
+  /* O conteúdo comprido do telefone: é o que faz a página rolar de verdade. */
+  .fone-longo { padding: 0 14px 18px; }
+  .fone-longo h2 { font: 700 15px/1.3 var(--ui); margin: 14px 0 4px; }
+  .fone-longo p { font: 400 12.5px/1.55 var(--ui); color: #4b5563; margin: 0 0 10px; }
+  .fone-longo .cartao { background: #fff; border: 1px solid #e2e6ec; border-radius: 12px;
+    padding: 10px 12px; margin: 0 0 8px; }
+  .fone-longo .cartao b { display: block; font: 700 13px/1.3 var(--ui); }
+  .fone-longo .cartao span { font: 400 11.5px/1.4 var(--ui); color: #6b7280; }
+
+  /* A BARRA DA PÁGINA, que é o objeto do estudo. */
+  .fone-sessao {
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 14px; background: var(--cream); border-bottom: 1px solid #eceff4;
+    font: 700 14px/1.25 var(--ui); color: var(--tinta);
+  }
+  .fone-sessao small { font: 700 9.5px/1.3 var(--ui); letter-spacing: .09em;
+    text-transform: uppercase; color: #8b93a1; }
+  .fone-sessao small::after { content: "·"; margin-left: 4px; }
+  .fone-sessao .abrir { margin-left: auto; flex: 0 0 auto; cursor: pointer;
+    border: 1px solid #e2e6ec; border-radius: 999px; background: #fff;
+    padding: 5px 10px; font: 600 11px/1 var(--ui); color: var(--burgundy); }
+
+  /* ---------- S1 · SOBE E ENCAIXA --------------------------------------
+     A barra da página começa no conteúdo. Assim que a página rola, ela SOBE
+     para dentro da barra do sistema, à direita da logo e à esquerda do
+     hambúrguer. Em repouso não custa um pixel de altura. */
+  [data-nav-s="S1"] .s1-fixa { position: sticky; top: 0; z-index: 2; }
+  [data-nav-s="S1"] .fone-rolo { position: relative; }
+  [data-nav-s="S1"] .s1-encaixe {
+    position: absolute; top: 0; left: 0; right: 0; z-index: 5;
+    display: flex; align-items: center; gap: 8px;
+    padding: 9px 14px; background: var(--burgundy); color: #fdf3e3;
+    font: 700 13px/1.25 var(--ui);
+    opacity: 0; transform: translateY(-100%); pointer-events: none;
+    transition: opacity .16s ease, transform .16s ease;
+  }
+  [data-nav-s="S1"] .s1-encaixe small { font: 700 9px/1.3 var(--ui);
+    letter-spacing: .09em; text-transform: uppercase; color: #e6c9b6; }
+  [data-nav-s="S1"] .s1-encaixe small::after { content: "·"; margin-left: 4px; }
+  [data-nav-s="S1"] .s1-encaixe .abrir { margin-left: auto; flex: 0 0 auto; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.3); border-radius: 999px; background: transparent;
+    padding: 4px 9px; font: 600 10.5px/1 var(--ui); color: #fdf3e3; }
+  /* A barra do sistema RECUA para o encaixe ocupar o lugar dela — é isso que faz
+     o encaixe parecer que sempre esteve ali, e não que apareceu por cima. */
+  [data-nav-s="S1"][data-descido="sim"] .s1-encaixe { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  [data-nav-s="S1"][data-descido="sim"] .fone-sistema { opacity: 0; }
+
+
+  /* ---------- S5 · SOBE E ENCAIXA, COM O HAMBÚRGUER ---------------------
+     A S1 corrigida em duas coisas, e as duas foram vistas a usar.
+
+     1. NA S1, SUBIR LEVAVA O HAMBÚRGUER. A barra do sistema recuava inteira e o ☰
+        com ela: quem estava a meio de uma lista longa tinha de rolar de volta ao
+        topo para sair — que é exactamente o problema que a proposta existia para
+        resolver. Aqui a barra não recua; ela GANHA a sessão.
+
+     2. O ☰ NÃO ANDA. Nem um pixel. Ele está no mesmo lugar com a página no topo e
+        a meio, e é isso que a medida desta secção prova. Na primeira versão ele
+        ficava à esquerda, logo depois da marca, porque o botão «Seções» — que
+        nasce oculto — lhe dava um `margin-left` de 8px por ser o irmão seguinte no
+        DOM. Um seletor de IRMÃO não sabe nada de `display: none`: o botão não
+        estava pintado e continuava a mandar no layout.
+
+     Os dois estados:
+
+       no topo     [logo] Sistema Lastro ................................ ☰
+                   ─────────────────────────────────────────────────────
+                   PEDAGOGIA · Turmas                          [Seções]
+
+       a rolar     [logo]  PEDAGOGIA · Turmas  [Seções] ................. ☰
+
+     A MARCA SAI AO ROLAR. A barra deixa de dizer «de quem é o sistema» e passa a
+     dizer «onde se está»: a marca não se perde, porque ela é a logo, que fica à
+     esquerda nos dois estados.
+
+     Em baixo, a barra da página DESAPARECE — ela é que sobe, não uma cópia. E
+     volta a aparecer quando se chega ao topo. */
+  [data-nav-s="S5"] .fone-sistema { gap: 8px; }
+  [data-nav-s="S5"] .s5-marca { flex: 0 0 auto; white-space: nowrap; }
+  /* O HAMBÚRGUER, no mesmo lugar nos dois estados. `margin-left: auto` empurra-o para a
+     direita em qualquer arranjo; nada mais na barra tem `auto`, para não haver dois. */
+  [data-nav-s="S5"] .fone-sistema .hamb { margin-left: auto; }
+  /* As peças da sessão ficam FORA DO FLUXO em repouso: um elemento só transparente
+     continua a ocupar largura, e a barra de topo tem de ser exactamente a de hoje. */
+  [data-nav-s="S5"] .s5-sessao { display: none; align-items: baseline; gap: 6px; min-width: 0;
+    font: 700 12.5px/1.2 var(--ui); color: #fdf3e3; }
+  [data-nav-s="S5"] .s5-sessao small { font: 700 8.5px/1.2 var(--ui); letter-spacing: .09em;
+    text-transform: uppercase; color: #e6c9b6; flex: 0 0 auto; }
+  [data-nav-s="S5"] .s5-sessao small::after { content: "·"; margin-left: 4px; }
+  [data-nav-s="S5"] .s5-sessao .nome { min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  [data-nav-s="S5"] .s5-secoes { display: none; flex: 0 0 auto; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.3); border-radius: 999px;
+    background: transparent; padding: 4px 9px;
+    font: 600 10.5px/1 var(--ui); color: #fdf3e3; }
+  /* A BARRA DA PÁGINA NÃO FICA PRESA: ela sobe e sai. É ela que "é" a sessão que sobe para
+     a barra do sistema — se ficasse presa, haveria duas. E é o que o dono do produto descreveu:
+     «quando eu rolo a página, ele desaparece. Ele só volta [...] quando eu estou no topo». */
+  [data-nav-s="S5"] .s5-barra { position: static; }
+  [data-nav-s="S5"][data-descido="sim"] .s5-sessao { display: flex; flex: 0 1 auto; }
+  [data-nav-s="S5"][data-descido="sim"] .s5-secoes { display: inline-flex; }
+  /* A MARCA SAI SEMPRE AO ROLAR — não só quando não cabe (decisão de 18/10/2026).
+     Antes era um `@media (max-width: 380px)`: a palavra «Sistema Lastro» ficava até a barra
+     apertar. Mas o desenho que se quer é outro, e é mais simples de ler: ao rolar, a barra
+     deixa de ser a MARCA e passa a ser o CAMINHO — `[logo] PEDAGOGIA · Turmas [Seções] ☰`.
+     A marca não se perde: ela é a logo, que fica à esquerda em todos os estados, e a palavra
+     volta inteira assim que se chega ao topo.
+
+     A largura deixa de ser um problema a gerir e passa a ser uma consequência: com a marca
+     fora do caminho, o caminho e a saída cabem mesmo a 320px. */
+  [data-nav-s="S5"][data-descido="sim"] .s5-marca { display: none; }
+
+  /* ---------- S2 · FICA PRESA ------------------------------------------
+     `position: sticky`. A barra da página não se mexe; o conteúdo passa por
+     baixo. Custa 44px permanentes. */
+  [data-nav-s="S2"] .s2-presa { position: sticky; top: 0; z-index: 3;
+    box-shadow: 0 1px 0 #eceff4, 0 6px 12px rgba(31,44,66,.05); }
+
+  /* ---------- S3 · UMA BARRA SÓ ----------------------------------------
+     Não há barra da página: a sessão entra na barra do sistema, com um «▾» que
+     abre a folha. Poupa uma barra e mistura dois níveis. */
+  [data-nav-s="S3"] .fone-sistema { gap: 10px; }
+  [data-nav-s="S3"] .s3-sessao { display: flex; align-items: baseline; gap: 6px;
+    margin-left: 6px; min-width: 0; font: 700 12.5px/1.2 var(--ui); color: #fdf3e3;
+    cursor: pointer; }
+  [data-nav-s="S3"] .s3-sessao small { font: 700 8.5px/1.2 var(--ui); letter-spacing: .09em;
+    text-transform: uppercase; color: #e6c9b6; }
+  [data-nav-s="S3"] .s3-sessao .nome { min-width: 0; overflow: hidden;
+    text-overflow: ellipsis; white-space: nowrap; }
+  [data-nav-s="S3"] .s3-sessao .seta { flex: 0 0 auto; opacity: .85; font-size: 9px; }
+
+  /* ---------- S4 · VIRA PÍLULA -----------------------------------------
+     Sticky enquanto está no topo; ao descer, recolhe para uma pílula pequena
+     no canto inferior direito. O conteúdo ganha a altura de volta. */
+  [data-nav-s="S4"] .s4-barra { position: sticky; top: 0; z-index: 3; }
+  [data-nav-s="S4"] .s4-pilula {
+    position: absolute; right: 12px; bottom: 12px; z-index: 6;
+    display: flex; align-items: center; gap: 6px; cursor: pointer;
+    background: var(--burgundy); color: #fdf3e3; border: none;
+    border-radius: 999px; padding: 7px 12px; font: 700 11.5px/1 var(--ui);
+    box-shadow: 0 6px 18px rgba(31,28,26,.28);
+    opacity: 0; transform: translateY(8px); pointer-events: none;
+    transition: opacity .16s ease, transform .16s ease;
+  }
+  [data-nav-s="S4"] .s4-pilula small { font: 700 8.5px/1 var(--ui);
+    letter-spacing: .08em; text-transform: uppercase; color: #e6c9b6; }
+  [data-nav-s="S4"][data-descido="sim"] .s4-pilula { opacity: 1; transform: translateY(0); pointer-events: auto; }
+  [data-nav-s="S4"][data-descido="sim"] .s4-barra { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<div class="titulo-estudo">
+  <h1>Quatro peles — os mesmos componentes</h1>
+  <p>O markup é <strong>idêntico</strong> nas quatro. Muda só o CSS: raio, altura, peso e cor
+  da borda, elevação, ritmo do rótulo e o tom dos neutros. A cor da marca continua bordô e o
+  ouro da casa — o que vem de fora é a <em>geometria</em>, não a marca de outra empresa.</p>
+</div>
+
+<!-- A MARCA NO TOPO. A página é um estudo, e o estudo é sobre este produto: a marca
+     aparece nas DUAS cores que estão no ar hoje — o bordô da barra e o ouro da voz.
+     O desenho é o da grade de logotipos, extraído como máscara de alfa (um só arquivo
+     pinta as duas cores) — não é um redesenho, é o mesmo traço. -->
+<div class="marca-topo">
+  <div class="marca-peca">
+    <div class="marca-mask" data-cor="bordo" role="img" aria-label="Lastro"></div>
+    <span class="marca-legenda">bordô · #6b1f2e</span>
+  </div>
+  <div class="marca-peca">
+    <div class="marca-mask" data-cor="ouro" role="img" aria-label="Lastro"></div>
+    <span class="marca-legenda">ouro · #c9a878</span>
+  </div>
+  <div class="marca-texto">
+    <p><b>A marca nas duas cores que estão no ar.</b> O traço é o da grade de logotipos que
+    você enviou; as cores são as da identidade vigente — o bordô da barra e o ouro da voz.
+    As duas versões saem do <em>mesmo</em> arquivo: a máscara recorta, e o papel pinta.</p>
+  </div>
+</div>
+
+<!-- ========================= C ========================= -->
+<section class="opt" data-estilo="C">
+  <header><span class="letra">C</span><h2>Prosa técnica</h2>
+    <span class="ref">Python docs · Node docs · raio 4 · altura 34 · monoespaçada no campo</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Botões</h3>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar nova escola</button>
+        <button class="btn btn--secundario">Apagar escola</button>
+        <button class="btn btn--perigo">Excluir</button>
+        <button class="btn btn--primario" disabled>Indisponível</button>
+        <button class="btn btn--secundario btn--pequeno">Editar</button>
+      </div>
+
+    </div>
+    <div class="cartao bloco"><h3>Formulário</h3>
+      <label class="campo"><span>Nome da escola</span><input placeholder="ex.: Maria"></label>
+      <label class="campo"><span>Senha do administrador</span>
+        <input type="password" value="segredo"><span class="dica">Mínimo de 8 caracteres.</span></label>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar escola</button>
+        <button class="btn btn--secundario">Cancelar</button>
+      </div>
+    </div>
+    <div class="bloco"><h3>Selos</h3>
+      <div class="fileira"><span class="selo">vinculada</span>
+        <span class="selo selo--marca">livre</span><span class="selo">vigente</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= E ========================= -->
+<section class="opt" data-estilo="E">
+  <header><span class="letra">E</span><h2>HarmonyOS</h2>
+    <span class="ref">Huawei · raio 12 · altura 40 · neutro frio · elevação macia · foco em halo</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Botões</h3>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar nova escola</button>
+        <button class="btn btn--secundario">Apagar escola</button>
+        <button class="btn btn--perigo">Excluir</button>
+        <button class="btn btn--primario" disabled>Indisponível</button>
+        <button class="btn btn--secundario btn--pequeno">Editar</button>
+      </div>
+    </div>
+    <div class="cartao bloco"><h3>Formulário</h3>
+      <label class="campo"><span>Nome da escola</span><input placeholder="ex.: Maria"></label>
+      <label class="campo"><span>Senha do administrador</span>
+        <input type="password" value="segredo"><span class="dica">Mínimo de 8 caracteres.</span></label>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar escola</button>
+        <button class="btn btn--secundario">Cancelar</button>
+      </div>
+    </div>
+    <div class="bloco"><h3>Selos</h3>
+      <div class="fileira"><span class="selo">vinculada</span>
+        <span class="selo selo--marca">livre</span><span class="selo">vigente</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= F ========================= -->
+<section class="opt" data-estilo="F">
+  <header><span class="letra">F</span><h2>Highway Tecnologia</h2>
+    <span class="ref">gestão · raio 6 · altura 36 · borda sempre visível · sem sombra · anel de foco</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Botões</h3>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar nova escola</button>
+        <button class="btn btn--secundario">Apagar escola</button>
+        <button class="btn btn--perigo">Excluir</button>
+        <button class="btn btn--primario" disabled>Indisponível</button>
+        <button class="btn btn--secundario btn--pequeno">Editar</button>
+      </div>
+    </div>
+    <div class="cartao bloco"><h3>Formulário</h3>
+      <label class="campo"><span>Nome da escola</span><input placeholder="ex.: Maria"></label>
+      <label class="campo"><span>Senha do administrador</span>
+        <input type="password" value="segredo"><span class="dica">Mínimo de 8 caracteres.</span></label>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar escola</button>
+        <button class="btn btn--secundario">Cancelar</button>
+      </div>
+    </div>
+    <div class="bloco"><h3>Selos</h3>
+      <div class="fileira"><span class="selo">vinculada</span>
+        <span class="selo selo--marca">livre</span><span class="selo">vigente</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= G ========================= -->
+<section class="opt" data-estilo="G">
+  <header><span class="letra">G</span><h2>Audi</h2>
+    <span class="ref">premium automotivo · raio 2 · altura 40 · caixa alta espaçada · neutro acromático</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Botões</h3>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar nova escola</button>
+        <button class="btn btn--secundario">Apagar escola</button>
+        <button class="btn btn--perigo">Excluir</button>
+        <button class="btn btn--primario" disabled>Indisponível</button>
+        <button class="btn btn--secundario btn--pequeno">Editar</button>
+      </div>
+    </div>
+    <div class="cartao bloco"><h3>Formulário</h3>
+      <label class="campo"><span>Nome da escola</span><input placeholder="ex.: Maria"></label>
+      <label class="campo"><span>Senha do administrador</span>
+        <input type="password" value="segredo"><span class="dica">Mínimo de 8 caracteres.</span></label>
+      <div class="fileira">
+        <button class="btn btn--primario">Criar escola</button>
+        <button class="btn btn--secundario">Cancelar</button>
+      </div>
+    </div>
+    <div class="bloco"><h3>Selos</h3>
+      <div class="fileira"><span class="selo">vinculada</span>
+        <span class="selo selo--marca">livre</span><span class="selo">vigente</span></div>
+    </div>
+  </div>
+</section>
+<div class="titulo-estudo" style="margin-top: 56px">
+  <h1>O cabeçalho do ato — quatro arranjos</h1>
+  <p>A pele já está escolhida (E, HarmonyOS); o que se decide aqui é o <strong>arranjo</strong>.
+  Nos quatro, o mesmo contrato: <strong>a escola não é campo</strong> — é uma inscrição, e não se
+  edita, porque a escola é a do Worker que serve a página. Professor, ciclo, aluna (na anamnese)
+  ou turma (no plano) e a senha continuam controles. Cada arranjo é mostrado nas três fontes, e
+  o de baixo, no estado em que <em>falta</em> um campo.</p>
+</div>
+
+<!-- ========================= H1 ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="H1">
+  <header><span class="letra">H1</span><h2>Linha única</h2>
+    <span class="ref">masthead de manual · tudo na mesma baseline · filete embaixo · contadores à direita</span></header>
+  <div class="corpo">
+    <p class="opt-nota">O mais discreto. A escola é a primeira palavra da linha, em serifa; os controles seguem na mesma altura. Nada de caixa: o que separa o cabeçalho do formulário é um filete. Em todos: a escola é <strong>inscrição</strong>, não campo.</p>
+    <div class="bloco">
+      <p class="fonte-nome">Anamnese — a aluna entra, a turma não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">aluna</span>
+          <select><option>— nenhuma —</option><option selected>Ana</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de ensino — a turma observada entra, a aluna não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">turma observada</span>
+          <select><option selected>Balé Nível 1</option><option>Balé Nível 2</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de observação — sem aluna e sem turma; aqui, com o ciclo faltando</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item falta"><span class="cab-rotulo">ciclo</span>
+          <input value=""></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        <span class="cab-aviso">falta o ciclo para fechar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= H2 ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="H2">
+  <header><span class="letra">H2</span><h2>Cartão de identidade</h2>
+    <span class="ref">capa de documento · escola em coluna própria · controles em grade · filete pontilhado</span></header>
+  <div class="corpo">
+    <p class="opt-nota">O que se lê primeiro é de QUEM é o documento: a escola ganha uma coluna própria, em creme, separada por filete. É o mais «documento», e o que mais ocupa altura. Em todos: a escola é <strong>inscrição</strong>, não campo.</p>
+    <div class="bloco">
+      <p class="fonte-nome">Anamnese — a aluna entra, a turma não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">aluna</span>
+          <select><option>— nenhuma —</option><option selected>Ana</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de ensino — a turma observada entra, a aluna não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">turma observada</span>
+          <select><option selected>Balé Nível 1</option><option>Balé Nível 2</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de observação — sem aluna e sem turma; aqui, com o ciclo faltando</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item falta"><span class="cab-rotulo">ciclo</span>
+          <input value=""></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        <span class="cab-aviso">falta o ciclo para fechar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= H3 ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="H3">
+  <header><span class="letra">H3</span><h2>Pastilhas</h2>
+    <span class="ref">aplicativo moderno · identidade em cápsula bordô · tudo numa linha só · o mais compacto</span></header>
+  <div class="corpo">
+    <p class="opt-nota">A escola vira uma cápsula bordô — a única cor cheia do cabeçalho. Os controles ficam do lado, miúdos. É o mais curto dos quatro: cabe numa linha mesmo a 390px, e o mais «produto». Em todos: a escola é <strong>inscrição</strong>, não campo.</p>
+    <div class="bloco">
+      <p class="fonte-nome">Anamnese — a aluna entra, a turma não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">aluna</span>
+          <select><option>— nenhuma —</option><option selected>Ana</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de ensino — a turma observada entra, a aluna não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">turma observada</span>
+          <select><option selected>Balé Nível 1</option><option>Balé Nível 2</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de observação — sem aluna e sem turma; aqui, com o ciclo faltando</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item falta"><span class="cab-rotulo">ciclo</span>
+          <input value=""></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        <span class="cab-aviso">falta o ciclo para fechar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= H4 ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="H4">
+  <header><span class="letra">H4</span><h2>Faixa institucional</h2>
+    <span class="ref">masthead · faixa bordô · escola em ouro · controles claros sobre a faixa</span></header>
+  <div class="corpo">
+    <p class="opt-nota">O mais cerimonial. A faixa diz «este documento pertence a esta escola» antes de qualquer controle. Contraste alto — e o mais difícil de manter sóbrio em tela pequena. Em todos: a escola é <strong>inscrição</strong>, não campo.</p>
+    <div class="bloco">
+      <p class="fonte-nome">Anamnese — a aluna entra, a turma não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">aluna</span>
+          <select><option>— nenhuma —</option><option selected>Ana</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de ensino — a turma observada entra, a aluna não</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item"><span class="cab-rotulo">ciclo</span>
+          <input value="01"></label>
+        <label class="cab-item"><span class="cab-rotulo">turma observada</span>
+          <select><option selected>Balé Nível 1</option><option>Balé Nível 2</option></select></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        </div>
+      </div>
+    </div>
+    <div class="bloco">
+      <p class="fonte-nome">Plano de observação — sem aluna e sem turma; aqui, com o ciclo faltando</p>
+      <div class="cab">
+        <span class="cab-escola"><span class="cab-rotulo">escola</span><span class="cab-nome">Valse</span></span>
+        <div class="cab-corpo">
+        <label class="cab-item"><span class="cab-rotulo">professor</span>
+          <select><option selected>Tiago Menegaz</option></select></label>
+        <label class="cab-item falta"><span class="cab-rotulo">ciclo</span>
+          <input value=""></label>
+        <label class="cab-item cab-senha"><span class="cab-rotulo">senha do professor</span>
+          <input type="password" value="segredo"></label>
+          <span class="cab-contadores">respondidos <b>12</b>/<b>53</b> · obrigatórios <b>9</b>/<b>49</b></span>
+        <span class="cab-aviso">falta o ciclo para fechar</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="titulo-estudo" style="margin-top: 64px">
+  <h1>A navegação da Produção no celular — quatro opções</h1>
+  <p>O problema não é a barra do sistema — essa já virou hambúrguer, e está resolvida. É a
+  navegação <em>da página</em>: sete destinos em três grupos, que hoje viram uma fita de 80px
+  espremida no topo, com o título do grupo e o link com o mesmo peso. As quatro opções abaixo
+  são clicáveis — dá para navegar dentro do telefone e sentir a interação, não só ver o repouso.
+  Em todas, o contrato é o mesmo: <strong>dois níveis, o destino atual sempre visível, e o
+  conteúdo logo abaixo</strong>.</p>
+</div>
+<div class="fones" style="max-width:940px;margin:0 auto">
+<div class="nav-opcao">
+      <h3>N1 · Abas de grupo + lista</h3>
+      <p class="porque">A sua primeira ideia. Três abas — o grupo — e, abaixo da aba ativa, só as
+      páginas daquele grupo. Some a lista de seis destinos ao mesmo tempo: a tela mostra dois ou
+      três, e o resto está a um toque.</p>
+      <div class="fone" data-nav="N1">
+        <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+        <div class="fone-tela">
+          <div class="n1-abas" role="tablist"><button class="n1-aba" data-grupo="Produção" aria-selected="true">Produção</button><button class="n1-aba" data-grupo="Pessoas" aria-selected="false">Pessoas</button><button class="n1-aba" data-grupo="Pedagogia" aria-selected="false">Pedagogia</button></div>
+          <ul class="n1-lista" data-lista="Produção"><li><a href="#painel" data-sec="painel" aria-current="page">Painel inicial</a></li></ul><ul class="n1-lista" data-lista="Pessoas" hidden><li><a href="#professores" data-sec="professores">Professores</a></li><li><a href="#alunas" data-sec="alunas">Alunas</a></li></ul><ul class="n1-lista" data-lista="Pedagogia" hidden><li><a href="#turmas" data-sec="turmas">Turmas</a></li><li><a href="#vocabulario" data-sec="vocabulario">Vocabulário técnico</a></li><li><a href="#curadorias" data-sec="curadorias">Curadorias</a></li></ul>
+          <h1 class="fone-h1" data-h1>Painel inicial</h1>
+        <p class="fone-sub" data-sub>Aqui aparece o que mudou desde a última vez.</p>
+        <div class="fone-corpo"><div class="fone-bloco"><b>Painel inicial.</b> O conteúdo da seção entra aqui, logo abaixo da navegação.</div></div>
+        </div>
+      </div>
+      <p class="custo"><b>Custo:</b> a lista do grupo fica sempre à vista, e o grupo maior
+      (Pedagogia, três destinos) ocupa <b>174px</b> — mais que a fita de 80px de hoje. Um toque
+      a mais para trocar de grupo, e a aba ativa precisa de dizer em que grupo se está.</p>
+    </div>
+<div class="nav-opcao">
+      <h3>N2 · Folha inferior</h3>
+      <p class="porque">A sua segunda ideia. Uma linha com a seção atual e um botão «Seções»; a
+      folha sobe de baixo com os três grupos e os seis destinos, e desce ao escolher. Fechada, a
+      navegação ocupa 44px.</p>
+      <div class="fone" data-nav="N2" data-aberta="nao">
+        <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+        <div class="fone-tela">
+          <div class="n2-cabeca">
+            <span class="n2-atual">Painel inicial</span>
+            <button class="n2-abrir" data-abrir>Seções ▾</button>
+          </div>
+          <h1 class="fone-h1" data-h1>Painel inicial</h1>
+        <p class="fone-sub" data-sub>Aqui aparece o que mudou desde a última vez.</p>
+        <div class="fone-corpo"><div class="fone-bloco"><b>Painel inicial.</b> O conteúdo da seção entra aqui, logo abaixo da navegação.</div></div>
+        </div>
+        <div class="n2-veu" data-fechar></div>
+        <div class="n2-folha">
+          <div class="n2-puxador"></div>
+          <div class="n2-grupo">Produção</div><a href="#painel" data-sec="painel" aria-current="page">Painel inicial</a><div class="n2-grupo">Pessoas</div><a href="#professores" data-sec="professores">Professores</a><a href="#alunas" data-sec="alunas">Alunas</a><div class="n2-grupo">Pedagogia</div><a href="#turmas" data-sec="turmas">Turmas</a><a href="#vocabulario" data-sec="vocabulario">Vocabulário técnico</a><a href="#curadorias" data-sec="curadorias">Curadorias</a>
+        </div>
+      </div>
+      <p class="custo"><b>Custo:</b> dois toques para qualquer destino (abrir, escolher) — e a
+      folha tapa o conteúdo enquanto está aberta. Em troca, é a mais baixa das quatro em
+      repouso: <b>53px</b>.</p>
+    </div>
+<div class="nav-opcao">
+      <h3>N3 · Faixa rolável de destinos</h3>
+      <p class="porque">O iFood, como você descreveu: <em>um</em> trilho horizontal com todos os
+      destinos, na ordem dos grupos, e o nome do grupo em letra miúda dentro do próprio item.
+      O conteúdo rola abaixo, e o item ativo fica em bordô.</p>
+      <div class="fone" data-nav="N3">
+        <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+        <div class="fone-tela">
+          <div class="n3-faixa">
+            <div class="n3-trilho"><a class="n3-item" href="#painel" data-sec="painel" aria-current="page"><small>Produção</small>Painel inicial</a><a class="n3-item" href="#professores" data-sec="professores"><small>Pessoas</small>Professores</a><a class="n3-item" href="#alunas" data-sec="alunas"><small>Pessoas</small>Alunas</a><a class="n3-item" href="#turmas" data-sec="turmas"><small>Pedagogia</small>Turmas</a><a class="n3-item" href="#vocabulario" data-sec="vocabulario"><small>Pedagogia</small>Vocabulário técnico</a><a class="n3-item" href="#curadorias" data-sec="curadorias"><small>Pedagogia</small>Curadorias</a></div>
+          </div>
+          <h1 class="fone-h1" data-h1>Painel inicial</h1>
+        <p class="fone-sub" data-sub>Aqui aparece o que mudou desde a última vez.</p>
+        <div class="fone-corpo"><div class="fone-bloco"><b>Painel inicial.</b> O conteúdo da seção entra aqui, logo abaixo da navegação.</div></div>
+        </div>
+      </div>
+      <p class="custo"><b>Custo:</b> os destinos fora da tela não se anunciam — o trilho precisa
+      do corte visível (o item meio cortado à direita) para dizer «há mais para o lado», e o item
+      ativo pode nascer fora da vista: a tela tem de rolá-lo para dentro. <b>64px</b> em
+      repouso.</p>
+    </div>
+<div class="nav-opcao">
+      <h3>N4 · Seletor de seção + passos</h3>
+      <p class="porque">O mais econômico: a seção atual é um seletor (abre a lista completa) e
+      duas setas andam na <em>ordem</em> das seções. Cabe numa linha e nunca cresce, por mais
+      seções que a Produção ganhe.</p>
+      <div class="fone" data-nav="N4">
+        <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+        <div class="fone-tela">
+          <div class="n4-cabeca">
+            <button class="n4-seta" data-passo="-1" aria-label="seção anterior">‹</button>
+            <button class="n4-atual" data-toggle><small>Produção</small> Painel inicial <span class="ponto">▾</span></button>
+            <button class="n4-seta" data-passo="1" aria-label="próxima seção">›</button>
+          </div>
+          <ul class="n4-lista" hidden><div class="n4-g">Produção</div><a href="#painel" data-sec="painel" aria-current="page">Painel inicial</a><div class="n4-g">Pessoas</div><a href="#professores" data-sec="professores">Professores</a><a href="#alunas" data-sec="alunas">Alunas</a><div class="n4-g">Pedagogia</div><a href="#turmas" data-sec="turmas">Turmas</a><a href="#vocabulario" data-sec="vocabulario">Vocabulário técnico</a><a href="#curadorias" data-sec="curadorias">Curadorias</a></ul>
+          <h1 class="fone-h1" data-h1>Painel inicial</h1>
+        <p class="fone-sub" data-sub>Aqui aparece o que mudou desde a última vez.</p>
+        <div class="fone-corpo"><div class="fone-bloco"><b>Painel inicial.</b> O conteúdo da seção entra aqui, logo abaixo da navegação.</div></div>
+        </div>
+      </div>
+      <p class="custo"><b>Custo:</b> o destino deixa de estar à vista — é preciso abrir o seletor.
+      Em troca, é a mais baixa de todas (<b>51px</b>) e a única que não muda de altura quando a
+      Produção crescer.</p>
+    </div>
+</div>
+
+
+<script>
+/* OS QUATRO PROTÓTIPOS SÃO DE VERDADE. Não são desenhos: navegam. O que muda entre eles é
+   COMO se chega ao destino — e isso não se julga num retrato parado, senão todos parecem
+   iguais. Aqui cada um recebe o mesmo estado (a seção ativa) e o mesmo conteúdo.
+
+   O estado é UM só, por telefone: `data-sec` no link e `aria-current="page"` no ativo. */
+(function () {
+  const GRUPOS = {
+    painel: 'Produção', professores: 'Pessoas', alunas: 'Pessoas',
+    turmas: 'Pedagogia', vocabulario: 'Pedagogia', curadorias: 'Pedagogia',
+  };
+  const ORDEM = ['painel', 'professores', 'alunas', 'turmas', 'vocabulario', 'curadorias'];
+  const CONTEUDO = {
+    painel: ['Painel inicial', 'Aqui aparece o que mudou desde a última vez.'],
+    professores: ['Professores', 'Quem dá aula nesta escola.'],
+    alunas: ['Alunas', 'Quem a escola matriculou.'],
+    turmas: ['Turmas', 'Cada turma, com o seu ritmo e a sua régua.'],
+    vocabulario: ['Vocabulário técnico', 'Os termos que a escola usa.'],
+    curadorias: ['Curadorias', 'O que a direção atribuiu a cada professor.'],
+  };
+
+  function trocar(fone, sec) {
+    // 1) os links
+    fone.querySelectorAll('[data-sec]').forEach((a) => {
+      if (a.dataset.sec === sec) a.setAttribute('aria-current', 'page');
+      else a.removeAttribute('aria-current');
+    });
+    // 2) o corpo
+    const h1 = fone.querySelector('[data-h1]');
+    const sub = fone.querySelector('[data-sub]');
+    const bloco = fone.querySelector('.fone-bloco');
+    const [titulo, frase] = CONTEUDO[sec];
+    if (h1) h1.textContent = titulo;
+    if (sub) sub.textContent = frase;
+    if (bloco) bloco.innerHTML = '<b>' + titulo + '.</b> O conteúdo da seção entra aqui, logo abaixo da navegação.';
+    // 3) o que é próprio de cada opção
+    const nav = fone.dataset.nav;
+    if (nav === 'N1') {
+      const grupo = GRUPOS[sec];
+      fone.querySelectorAll('[data-grupo]').forEach((b) => b.setAttribute('aria-selected', String(b.dataset.grupo === grupo)));
+      fone.querySelectorAll('[data-lista]').forEach((l) => { l.hidden = l.dataset.lista !== grupo; });
+    }
+    if (nav === 'N2') {
+      fone.querySelector('.n2-atual').textContent = CONTEUDO[sec][0];
+      fone.dataset.aberta = 'nao';
+    }
+    if (nav === 'N3') {
+      // O item ativo pode nascer fora da vista: rolá-lo para dentro é parte do desenho.
+      const ativo = fone.querySelector('.n3-item[aria-current]');
+      if (ativo) ativo.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+    }
+    if (nav === 'N4') {
+      fone.querySelector('.n4-atual').innerHTML = '<small>' + GRUPOS[sec] + '</small> ' +
+        CONTEUDO[sec][0] + ' <span class="ponto">▾</span>';
+      fone.querySelector('.n4-lista').hidden = true;
+    }
+  }
+
+  document.querySelectorAll('.fone').forEach((fone) => {
+    const nav = fone.dataset.nav;
+    fone.addEventListener('click', (ev) => {
+      const alvo = ev.target.closest('[data-sec], [data-grupo], [data-abrir], [data-fechar], [data-toggle], [data-passo]');
+      if (!alvo || !fone.contains(alvo)) return;
+      if (alvo.dataset.sec) {
+        ev.preventDefault();
+        trocar(fone, alvo.dataset.sec);
+        return;
+      }
+      if (alvo.dataset.grupo) {
+        // A aba MOSTRA o grupo; não escolhe destino. O primeiro destino do grupo fica ativo
+        // só quando ainda não há um deste grupo — é o que um app faria.
+        fone.querySelectorAll('[data-grupo]').forEach((b) => b.setAttribute('aria-selected', String(b === alvo)));
+        fone.querySelectorAll('[data-lista]').forEach((l) => { l.hidden = l.dataset.lista !== alvo.dataset.grupo; });
+        const ativo = fone.querySelector('[data-lista]:not([hidden]) [aria-current]');
+        if (!ativo) {
+          const primeiro = fone.querySelector('[data-lista]:not([hidden]) [data-sec]');
+          if (primeiro) trocar(fone, primeiro.dataset.sec);
+        }
+        return;
+      }
+      if (alvo.hasAttribute('data-abrir')) { fone.dataset.aberta = 'sim'; return; }
+      if (alvo.hasAttribute('data-fechar')) { fone.dataset.aberta = 'nao'; return; }
+      if (alvo.hasAttribute('data-toggle')) {
+        const lista = fone.querySelector('.n4-lista');
+        lista.hidden = !lista.hidden;
+        return;
+      }
+      if (alvo.dataset.passo) {
+        const atual = fone.querySelector('[data-sec][aria-current]');
+        const i = Math.max(0, ORDEM.indexOf(atual ? atual.dataset.sec : 'painel'));
+        const proximo = ORDEM[Math.min(ORDEM.length - 1, Math.max(0, i + Number(alvo.dataset.passo)))];
+        trocar(fone, proximo);
+      }
+    });
+    // O estado inicial de cada telefone é o mesmo — é o que os torna comparáveis.
+    trocar(fone, 'painel');
+  });
+})();
+</script>
+<div class="titulo-estudo" style="margin-top: 64px">
+  <h1>O cartão da turma — três opções e o híbrido</h1>
+  <p>Uma turma carrega nove faixas de informação: nome, nível, programa, ritmo, estado,
+  vigência, o aviso de «falta …», a régua da rubrica em prosa, os conteúdos em chips, o
+  seletor de termo com o botão que o usa, e o histórico. Todas abertas ao mesmo tempo, em
+  cada uma das turmas. As três propostas aceitam <em>o mesmo</em> conteúdo e diferem numa
+  decisão só: <b>o que fica à vista sem um toque</b>. Cada uma aparece na largura da tela e
+  dentro do telefone, porque o problema é pior no telefone. A pele é a <b>já adotada</b>
+  (E, HarmonyOS — 18/10/2026) e os botões seguem-na de propósito: o que se escolhe aqui é
+  a estrutura.</p>
+  <p style="margin-top:10px"><b>A associação saiu do cartão.</b> Decidido em 18/10/2026, depois de
+  a T4 estar pronta: o painel dos conteúdos <em>mostra</em> quais são, e compor — associar e
+  desassociar — desceu para o <b>formulário da turma, abaixo da duração da aula</b>, que é onde a
+  direção decide o que a turma vai usar. Nenhum dos cartões abaixo tem, por isso, seletor nem «×».</p>
+  <p style="margin-top:10px"><b>A T4 é a mistura que o dono do produto propôs:</b> a estrutura da
+  T3 — três números e um «?» — com o conteúdo da T2 lá dentro. A régua abre com a sua escala de
+  cores, os conteúdos abrem em chips, e o ritmo abre em pares rótulo/valor em vez de uma frase.
+  O painel <em>reaproveita</em> a mesma escala e os mesmos chips: se fossem duas cópias, a mesma
+  régua teria duas cores no dia em que uma fosse corrigida.</p>
+</div>
+
+<section class="opt" data-card="T1" data-estilo="E">
+  <header><span class="letra">T1</span><h2>Gaveta</h2>
+    <span class="ref">à vista: nome, estado e três contagens · o resto abre num toque</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Tela grande</h3>
+      <div class="t1 tc">
+        <details>
+          <summary>
+            <div class="t1-topo">
+              <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span>
+                <span class="tc-selo tc-livre">livre</span></div>
+              <div class="tc-compl">RAD · 2x/semana · seg, qua 18:00 · 60 min · 2026-01–2026-12</div>
+              <div class="t1-metricas">
+                <div><span class="k">Régua</span><span class="v">4 níveis</span></div>
+                <div><span class="k">Conteúdos</span><span class="v">4</span></div>
+                <div><span class="k">Versões</span><span class="v">1</span></div>
+              </div>
+            </div>
+            <span style="display:flex;gap:6px"><button class="tc-acao">Editar</button>
+              <button class="tc-acao perigo">Excluir</button></span>
+          </summary>
+          <div class="t1-corpo">
+            <div><div class="k tc-compl" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase">Régua da rubrica</div>
+              <div style="font:400 13px/1.5 var(--ui);color:#374151">satisfatório · razoável · em desenvolvimento · não se aplica</div></div>
+            <div><div class="k tc-compl" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase">Conteúdos</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+                <span class="chip">plié</span><span class="chip">battement tendu</span>
+                <span class="chip">grand battement</span><span class="chip">battement fondu</span></div></div>
+          </div>
+        </details>
+      </div>
+      <div class="t1 tc" style="margin-top:10px">
+        <details open>
+          <summary>
+            <div class="t1-topo">
+              <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span>
+                <span class="tc-selo tc-vinculada">vinculada</span>
+                <span class="tc-selo tc-vig">ajustada 01/03</span></div>
+              <div class="tc-compl">RAD · Grade 2</div>
+              <div class="t1-metricas">
+                <div><span class="k">Régua</span><span class="v">4 níveis</span></div>
+                <div><span class="k">Conteúdos</span><span class="v">2</span></div>
+                <div><span class="k">Versões</span><span class="v">2</span></div>
+              </div>
+              <div class="tc-falta"><b>falta</b><span>frequência semanal, dia da semana, duração de cada aula, início e fim do período</span></div>
+            </div>
+            <span style="display:flex;gap:6px"><button class="tc-acao">Derivar</button>
+              <button class="tc-acao perigo">Excluir</button></span>
+          </summary>
+          <div class="t1-corpo">
+            <div><div class="k tc-compl" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase">Régua da rubrica</div>
+              <div style="font:400 13px/1.5 var(--ui);color:#374151">satisfatório · razoável · em desenvolvimento · não se aplica</div></div>
+            <div><div class="k tc-compl" style="font-size:10.5px;letter-spacing:.08em;text-transform:uppercase">Conteúdos</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px">
+                <span class="chip">plié</span><span class="chip">battement tendu</span></div></div>
+            <div style="font:400 12px/1.4 var(--ui);color:#7b8494">2 versões anteriores · até 2025-08-01 · 1x/semana · qua 19:00 · 50 min</div>
+          </div>
+        </details>
+      </div>
+    </div>
+    <div class="bloco"><h3>Telefone</h3>
+      <div class="fones"><div class="fone"><div class="fone-sistema">Sistema Lastro <span class="hamb">☰</span></div>
+        <div class="fone-tela"><h1 class="fone-h1">Turmas</h1><p class="fone-sub">Cada turma, com o ritmo e a régua.</p>
+          <div class="fone-corpo">
+            <div class="t1 tc"><details><summary>
+              <div class="t1-topo">
+                <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span><span class="tc-selo tc-livre">livre</span></div>
+                <div class="tc-compl">RAD · 2x/semana · 60 min</div>
+                <div class="t1-metricas"><div><span class="k">Régua</span><span class="v">4</span></div>
+                  <div><span class="k">Conteúdos</span><span class="v">4</span></div>
+                  <div><span class="k">Versões</span><span class="v">1</span></div></div>
+              </div>
+              <span style="display:flex;gap:6px"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></span>
+            </summary><div class="t1-corpo">
+              <div style="font:400 12px/1.5 var(--ui);color:#374151">Régua: satisfatório · razoável · em desenvolvimento · não se aplica</div>
+              <div style="display:flex;gap:5px;flex-wrap:wrap"><span class="chip">plié</span><span class="chip">battement tendu</span>
+                <span class="chip">grand battement</span><span class="chip">battement fondu</span></div>
+            </div></details></div>
+            <div class="t1 tc"><details><summary>
+              <div class="t1-topo">
+                <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span><span class="tc-selo tc-vinculada">vinculada</span></div>
+                <div class="tc-compl">RAD · Grade 2</div>
+                <div class="tc-falta"><b>falta</b><span>frequência, dia, duração, período</span></div>
+              </div>
+              <span style="display:flex;gap:6px"><button class="tc-acao">Derivar</button><button class="tc-acao perigo">Excluir</button></span>
+            </summary><div class="t1-corpo"><div style="font:400 12px/1.4 var(--ui);color:#374151">Régua: 4 níveis · 2 conteúdos · 2 versões</div></div></details></div>
+          </div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="opt" data-card="T2" data-estilo="E">
+  <header><span class="letra">T2</span><h2>Escala</h2>
+    <span class="ref">à vista: tudo · a régua vira uma barra de quatro degraus</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Tela grande</h3>
+      <div class="t2 tc">
+        <div class="t2-tax">
+          <div style="min-width:0">
+            <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span><span class="tc-selo tc-livre">livre</span></div>
+            <div class="tc-compl">RAD · 2x/semana · seg, qua 18:00 · 60 min · 2026-01–2026-12</div>
+          </div>
+          <div class="t2-selos"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></div>
+        </div>
+        <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolvimento</span><span>não se aplica</span></div>
+        <div class="chips"><span class="tc-compl" style="flex:0 0 auto">Conteúdos</span>
+          <span class="chip">plié</span><span class="chip">battement tendu</span>
+          <span class="chip">grand battement</span><span class="chip">battement fondu</span>
+          </div>
+        <div class="t2-rodape"><span>1 versão anterior</span><a href="#">ver</a></div>
+      </div>
+      <div class="t2 tc" style="margin-top:10px">
+        <div class="t2-tax">
+          <div style="min-width:0">
+            <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span>
+              <span class="tc-selo tc-vinculada">vinculada</span><span class="tc-selo tc-vig">ajustada 01/03</span></div>
+            <div class="tc-compl">RAD · Grade 2</div>
+          </div>
+          <div class="t2-selos"><button class="tc-acao">Derivar</button><button class="tc-acao perigo">Excluir</button></div>
+        </div>
+        <div class="tc-falta" style="margin-top:0"><b>falta</b><span>frequência semanal, dia da semana, duração de cada aula, início e fim do período</span></div>
+        <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolvimento</span><span>não se aplica</span></div>
+        <div class="chips"><span class="tc-compl" style="flex:0 0 auto">Conteúdos</span>
+          <span class="chip">plié</span><span class="chip">battement tendu</span>
+          </div>
+        <div class="t2-rodape"><span>2 versões anteriores</span><a href="#">ver</a></div>
+      </div>
+    </div>
+    <div class="bloco"><h3>Telefone</h3>
+      <div class="fones"><div class="fone"><div class="fone-sistema">Sistema Lastro <span class="hamb">☰</span></div>
+        <div class="fone-tela"><h1 class="fone-h1">Turmas</h1><p class="fone-sub">Cada turma, com o ritmo e a régua.</p>
+          <div class="fone-corpo">
+            <div class="t2 tc">
+              <div class="t2-tax">
+                <div style="min-width:0">
+                  <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span><span class="tc-selo tc-livre">livre</span></div>
+                  <div class="tc-compl">RAD · 2x/semana · 60 min</div>
+                </div>
+                <div class="t2-selos"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></div>
+              </div>
+              <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolv.</span><span>não se aplica</span></div>
+              <div class="chips"><span class="chip">plié</span><span class="chip">battement tendu</span>
+                <span class="chip">grand battement</span><span class="chip">+1</span></div>
+            </div>
+            <div class="t2 tc" style="margin-top:10px">
+              <div class="t2-tax">
+                <div style="min-width:0">
+                  <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span><span class="tc-selo tc-vinculada">vinculada</span></div>
+                  <div class="tc-compl">RAD · Grade 2</div>
+                </div>
+                <div class="t2-selos"><button class="tc-acao">Derivar</button></div>
+              </div>
+              <div class="tc-falta" style="margin-top:0"><b>falta</b><span>frequência, dia, duração, período</span></div>
+              <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolv.</span><span>não se aplica</span></div>
+            </div>
+          </div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="opt" data-card="T3" data-estilo="E">
+  <header><span class="letra">T3</span><h2>Três números + balão ao toque</h2>
+    <span class="ref">à vista: nome, estado e três números · o detalhe em balão, ao toque</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Tela grande — toque nos «?»</h3>
+      <div class="t3 tc">
+        <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span>
+          <span class="tc-selo tc-livre">livre</span>
+          <span style="margin-left:auto;display:flex;gap:6px"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></span></div>
+        <div class="tc-compl">RAD · 2x/semana · seg, qua 18:00 · 60 min</div>
+        <div class="tc-metricas">
+          <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">2x · 60 min</span>
+            <button class="tc-q" data-balao="b1" aria-expanded="false" aria-label="o que é o ritmo">?</button></div>
+          <div class="tc-metrica"><span class="k">Régua</span><span class="v">4 níveis</span>
+            <button class="tc-q" data-balao="b2" aria-expanded="false" aria-label="quais níveis da régua">?</button></div>
+          <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">4</span>
+            <button class="tc-q" data-balao="b3" aria-expanded="false" aria-label="quais conteúdos">?</button></div>
+        </div>
+        <div class="tc-painel" id="b1" hidden>Terças e quintas às 18:00, 60 minutos por aula, de 2026-01 a 2026-12.</div>
+        <div class="tc-painel" id="b2" hidden>satisfatório · razoável · em desenvolvimento · não se aplica</div>
+        <div class="tc-painel" id="b3" hidden>plié · battement tendu · grand battement · battement fondu</div>
+      </div>
+      <div class="t3 tc" style="margin-top:10px">
+        <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span>
+          <span class="tc-selo tc-vinculada">vinculada</span>
+          <span style="margin-left:auto;display:flex;gap:6px"><button class="tc-acao">Derivar</button><button class="tc-acao perigo">Excluir</button></span></div>
+        <div class="tc-compl">RAD · Grade 2</div>
+        <div class="tc-falta"><b>falta</b><span>frequência semanal, dia da semana, duração de cada aula, início e fim do período</span></div>
+        <div class="tc-metricas">
+          <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">—</span>
+            <button class="tc-q" data-balao="b4" aria-expanded="false" aria-label="por que o ritmo está vazio">?</button></div>
+          <div class="tc-metrica"><span class="k">Régua</span><span class="v">4 níveis</span>
+            <button class="tc-q" data-balao="b5" aria-expanded="false" aria-label="quais níveis da régua">?</button></div>
+          <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">2</span>
+            <button class="tc-q" data-balao="b6" aria-expanded="false" aria-label="quais conteúdos">?</button></div>
+        </div>
+        <div class="tc-painel" id="b4" hidden>Sem ritmo a turma não pode ser atribuída na curadoria. Preencha frequência, dias, duração e período para a poder atribuir.</div>
+        <div class="tc-painel" id="b5" hidden>satisfatório · razoável · em desenvolvimento · não se aplica</div>
+        <div class="tc-painel" id="b6" hidden>plié · battement tendu</div>
+      </div>
+    </div>
+    <div class="bloco"><h3>Telefone</h3>
+      <div class="fones"><div class="fone"><div class="fone-sistema">Sistema Lastro <span class="hamb">☰</span></div>
+        <div class="fone-tela"><h1 class="fone-h1">Turmas</h1><p class="fone-sub">Cada turma, com o ritmo e a régua.</p>
+          <div class="fone-corpo">
+            <div class="t3 tc">
+              <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span><span class="tc-selo tc-livre">livre</span></div>
+              <div class="tc-compl">RAD · 2x/semana · 60 min</div>
+              <div class="tc-metricas">
+                <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">2x · 60</span>
+                  <button class="tc-q" data-balao="f1" aria-expanded="false" aria-label="o que é o ritmo">?</button></div>
+                <div class="tc-metrica"><span class="k">Régua</span><span class="v">4</span>
+                  <button class="tc-q" data-balao="f2" aria-expanded="false" aria-label="quais níveis da régua">?</button></div>
+                <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">4</span>
+                  <button class="tc-q" data-balao="f3" aria-expanded="false" aria-label="quais conteúdos">?</button></div>
+              </div>
+              <div class="tc-painel" id="f1" hidden>Terças e quintas às 18:00, 60 minutos por aula.</div>
+              <div class="tc-painel" id="f2" hidden>satisfatório · razoável · em desenvolvimento · não se aplica</div>
+              <div class="tc-painel" id="f3" hidden>plié · battement tendu · grand battement · battement fondu</div>
+              <div style="display:flex;gap:6px;margin-top:9px"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></div>
+            </div>
+            <div class="t3 tc" style="margin-top:10px">
+              <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span><span class="tc-selo tc-vinculada">vinculada</span></div>
+              <div class="tc-compl">RAD · Grade 2</div>
+              <div class="tc-falta"><b>falta</b><span>frequência, dia, duração, período</span></div>
+              <div class="tc-metricas">
+                <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">—</span>
+                  <button class="tc-q" data-balao="f4" aria-expanded="false" aria-label="por que o ritmo está vazio">?</button></div>
+                <div class="tc-metrica"><span class="k">Régua</span><span class="v">4</span>
+                  <button class="tc-q" data-balao="f5" aria-expanded="false" aria-label="quais níveis da régua">?</button></div>
+                <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">2</span>
+                  <button class="tc-q" data-balao="f6" aria-expanded="false" aria-label="quais conteúdos">?</button></div>
+              </div>
+              <div class="tc-painel" id="f4" hidden>Sem ritmo a turma não pode ser atribuída na curadoria.</div>
+              <div class="tc-painel" id="f5" hidden>satisfatório · razoável · em desenvolvimento · não se aplica</div>
+              <div class="tc-painel" id="f6" hidden>plié · battement tendu</div>
+            </div>
+          </div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="opt" data-card="T4" data-estilo="E">
+  <header><span class="letra">T4</span><h2>Híbrido — números à vista, painel rico ao toque</h2>
+    <span class="ref">a estrutura da T3 · o conteúdo da T2 · a sua mistura</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Tela grande — toque nos «?»</h3>
+      <div class="t4 tc">
+        <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span>
+          <span class="tc-selo tc-livre">livre</span>
+          <span class="tc-acoes"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></span></div>
+        <div class="tc-compl">RAD · 2x/semana · seg, qua 18:00 · 60 min</div>
+        <div class="tc-metricas">
+          <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">2x · 60 min</span>
+            <button class="tc-q" data-balao="h1" aria-expanded="false" aria-label="ver o ritmo da turma">?</button></div>
+          <div class="tc-metrica"><span class="k">Régua</span><span class="v">4 níveis</span>
+            <button class="tc-q" data-balao="h2" aria-expanded="false" aria-label="ver a régua da turma">?</button></div>
+          <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">4</span>
+            <button class="tc-q" data-balao="h3" aria-expanded="false" aria-label="ver os conteúdos da turma">?</button></div>
+        </div>
+        <div class="tc-painel" id="h1" hidden>
+          <div class="tx-grade">
+            <div><span class="k">Frequência</span><span class="v">2x por semana</span></div>
+            <div><span class="k">Dias e horário</span><span class="v">seg e qua, 18:00</span></div>
+            <div><span class="k">Duração da aula</span><span class="v">60 min</span></div>
+            <div><span class="k">Período</span><span class="v">01/2026 a 12/2026</span></div>
+          </div>
+        </div>
+        <div class="tc-painel" id="h2" hidden>
+          <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolvimento</span><span>não se aplica</span></div>
+        </div>
+        <div class="tc-painel" id="h3" hidden>
+          <div class="chips"><span class="chip">plié</span><span class="chip">battement tendu</span>
+            <span class="chip">grand battement</span><span class="chip">battement fondu</span></div>
+        </div>
+      </div>
+
+      <div class="t4 tc" style="margin-top:10px">
+        <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span>
+          <span class="tc-selo tc-vinculada">vinculada</span><span class="tc-selo tc-vig">ajustada 01/03</span>
+          <span class="tc-acoes"><button class="tc-acao">Derivar</button><button class="tc-acao perigo">Excluir</button></span></div>
+        <div class="tc-compl">RAD · Grade 2</div>
+        <div class="tc-falta"><b>falta</b><span>frequência semanal, dias e horários, duração de cada aula e início e fim do período</span></div>
+        <div class="tc-metricas">
+          <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">—</span>
+            <button class="tc-q" data-balao="h4" aria-expanded="false" aria-label="por que o ritmo está vazio">?</button></div>
+          <div class="tc-metrica"><span class="k">Régua</span><span class="v">4 níveis</span>
+            <button class="tc-q" data-balao="h5" aria-expanded="false" aria-label="ver a régua da turma">?</button></div>
+          <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">2</span>
+            <button class="tc-q" data-balao="h6" aria-expanded="false" aria-label="ver os conteúdos da turma">?</button></div>
+        </div>
+        <div class="tc-painel" id="h4" hidden>
+          <p class="tx-frase">Esta turma ainda não tem ritmo — e é o ritmo que o plano lê. <b>Sem ele, a turma não pode ser atribuída na curadoria.</b></p>
+          <ul class="tx-lista">
+            <li>frequência semanal</li>
+            <li>dias e horários</li>
+            <li>duração de cada aula</li>
+            <li>início e fim do período</li>
+          </ul>
+          <p class="tx-nota">Assim que os quatro estiverem preenchidos, a turma passa a poder ser atribuída.</p>
+        </div>
+        <div class="tc-painel" id="h5" hidden>
+          <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolvimento</span><span>não se aplica</span></div>
+        </div>
+        <div class="tc-painel" id="h6" hidden>
+          <div class="chips"><span class="chip">plié</span><span class="chip">battement tendu</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bloco"><h3>Telefone</h3>
+      <div class="fones"><div class="fone"><div class="fone-sistema">Sistema Lastro <span class="hamb">☰</span></div>
+        <div class="fone-tela"><h1 class="fone-h1">Turmas</h1><p class="fone-sub">Cada turma, com o ritmo e a régua.</p>
+          <div class="fone-corpo">
+            <div class="t4 tc">
+              <div class="tc-linha1"><span class="tc-nome">Balé nível 1, Grade 1</span><span class="tc-selo tc-livre">livre</span></div>
+              <div class="tc-compl">RAD · 2x/semana · 60 min</div>
+              <div class="tc-metricas">
+                <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">2x · 60</span>
+                  <button class="tc-q" data-balao="g1" aria-expanded="false" aria-label="ver o ritmo da turma">?</button></div>
+                <div class="tc-metrica"><span class="k">Régua</span><span class="v">4</span>
+                  <button class="tc-q" data-balao="g2" aria-expanded="false" aria-label="ver a régua da turma">?</button></div>
+                <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">4</span>
+                  <button class="tc-q" data-balao="g3" aria-expanded="false" aria-label="ver os conteúdos da turma">?</button></div>
+              </div>
+              <div class="tc-painel" id="g1" hidden>
+                <div class="tx-grade">
+                  <div><span class="k">Frequência</span><span class="v">2x por semana</span></div>
+                  <div><span class="k">Dias e horário</span><span class="v">seg e qua, 18:00</span></div>
+                  <div><span class="k">Duração da aula</span><span class="v">60 min</span></div>
+                  <div><span class="k">Período</span><span class="v">01/2026 a 12/2026</span></div>
+                </div>
+              </div>
+              <div class="tc-painel" id="g2" hidden>
+                <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvol.</span><span>não se aplica</span></div>
+              </div>
+              <div class="tc-painel" id="g3" hidden>
+                <div class="chips"><span class="chip">plié</span>
+                  <span class="chip">battement tendu</span>
+                  <span class="chip">grand battement</span>
+                  <span class="chip">battement fondu</span></div>
+              </div>
+              <div class="tc-acoes" style="margin:10px 0 0"><button class="tc-acao">Editar</button><button class="tc-acao perigo">Excluir</button></div>
+            </div>
+            <div class="t4 tc" style="margin-top:10px">
+              <div class="tc-linha1"><span class="tc-nome">Balé nível 2, Grade 2</span><span class="tc-selo tc-vinculada">vinculada</span></div>
+              <div class="tc-compl">RAD · Grade 2</div>
+              <div class="tc-falta"><b>falta</b><span>frequência, dias, duração e período</span></div>
+              <div class="tc-metricas">
+                <div class="tc-metrica"><span class="k">Ritmo</span><span class="v">—</span>
+                  <button class="tc-q" data-balao="g4" aria-expanded="false" aria-label="por que o ritmo está vazio">?</button></div>
+                <div class="tc-metrica"><span class="k">Régua</span><span class="v">4</span>
+                  <button class="tc-q" data-balao="g5" aria-expanded="false" aria-label="ver a régua da turma">?</button></div>
+                <div class="tc-metrica"><span class="k">Conteúdos</span><span class="v">2</span>
+                  <button class="tc-q" data-balao="g6" aria-expanded="false" aria-label="ver os conteúdos da turma">?</button></div>
+              </div>
+              <div class="tc-painel" id="g4" hidden>
+                <p class="tx-frase">Esta turma ainda não tem ritmo — <b>sem ele não pode ser atribuída na curadoria.</b></p>
+                <ul class="tx-lista">
+                  <li>frequência semanal</li>
+                  <li>dias e horários</li>
+                  <li>duração de cada aula</li>
+                  <li>início e fim do período</li>
+                </ul>
+              </div>
+              <div class="tc-painel" id="g5" hidden>
+                <div class="escala"><span>satisfatório</span><span>razoável</span><span>em desenvolv.</span><span>não se aplica</span></div>
+              </div>
+              <div class="tc-painel" id="g6" hidden>
+                <div class="chips"><span class="chip">plié</span>
+                  <span class="chip">battement tendu</span></div>
+              </div>
+            </div>
+          </div></div></div></div>
+    </div>
+  </div>
+</section>
+
+<div class="titulo-estudo" style="margin-top: 56px">
+  <h1>A escolha, lado a lado</h1>
+  <p>As três aceitam o mesmo conteúdo. O que muda é o preço de cada uma.</p>
+</div>
+<div class="quadro-rolo"><table class="quadro">
+  <thead><tr><th>Opção</th><th>O que se vê sem tocar</th><th>Toques para editar</th><th>Custo</th><th>Onde brilha</th></tr></thead>
+  <tbody>
+    <tr><th>T1 · Gaveta</th><td>Nome, estado, 3 contagens</td><td>1 (abrir) + 1</td>
+      <td>Esconde a régua e os conteúdos — quem confere turma a turma abre, lê e fecha</td>
+      <td>Muitas turmas; lista longa; o dia em que se só quer ver o que falta</td></tr>
+    <tr><th>T2 · Escala</th><td><b>Tudo</b></td><td>1</td>
+      <td>Zero escondido, logo mais alta por turma; a barra de 4 degraus é mais cor do que a lista de 5 turmas aguenta</td>
+      <td>Poucas turmas; a escola que quer ver a régua de todas de uma vez</td></tr>
+    <tr><th>T3 · Números</th><td>Nome, estado, 3 números</td><td>1 (balão) + 1</td>
+      <td>Depende de um componente que não existe no resto do sistema — balão — e de três gestos para o ecrã ler</td>
+      <td>O mais compacto; e o mais parecido com painel de controle</td></tr>
+    <tr><th>T4 · Híbrido</th><td>Nome, estado, 3 números</td><td>1 (painel) + 1</td>
+      <td>Introduz o painel — mas é o painel que <b>reaproveita</b> a escala e os chips da T2, não uma segunda versão deles</td>
+      <td>Quem quer o cartão baixo da T3 sem perder a riqueza da T2. É a proposta do dono do produto</td></tr>
+  </tbody>
+</table></div>
+
+
+<script>
+/* O BALÃO DA T3, feito para o dedo — e é aqui que ele se distingue de um tooltip.
+   Um tooltip de rato não existe no celular, e um balão que abre ao toque tem três
+   problemas concretos: fica DEBAIXO do dedo, não se fecha, e pode haver dois abertos.
+   Este abre ancorado SOB a célula (não sobre o dedo), fecha com o mesmo toque, com
+   Escape e com um toque fora, e fecha o anterior ao abrir. */
+(function () {
+  let aberto = null;
+  function fechar() {
+    if (!aberto) return;
+    const balao = document.getElementById(aberto.dataset.balao);
+    if (balao) balao.hidden = true;
+    aberto.setAttribute('aria-expanded', 'false');
+    // A célula também diz: sem isto o painel aparece e não se sabe de onde veio.
+    const celula = aberto.closest('.tc-metrica');
+    if (celula) celula.removeAttribute('data-aberto');
+    aberto = null;
+  }
+  document.addEventListener('click', (ev) => {
+    const botao = ev.target.closest('[data-balao]');
+    if (!botao) { fechar(); return; }
+    const eraEle = aberto === botao;
+    fechar();
+    if (eraEle) return;
+    const balao = document.getElementById(botao.dataset.balao);
+    if (!balao) return;
+    balao.hidden = false;
+    botao.setAttribute('aria-expanded', 'true');
+    const celula = botao.closest('.tc-metrica');
+    if (celula) celula.setAttribute('data-aberto', 'sim');
+    aberto = botao;
+  });
+  document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') fechar(); });
+
+  /* Um botão dentro de um `<summary>` abre e fecha a gaveta quando se clica nele — o
+     clique sobe e o `summary` cumpre a sua acção. Numa proposta isto é o que faria
+     «Excluir» abrir a gaveta em vez de excluir. `preventDefault` no botão corta a
+     acção do `summary` e não corta o clique do botão. */
+  document.querySelectorAll('summary .tc-acao').forEach((b) => {
+    b.addEventListener('click', (ev) => { ev.preventDefault(); ev.stopPropagation(); });
+  });
+})();
+</script>
+
+<div class="titulo-estudo" style="margin-top: 64px">
+  <h1>Onde fica a «sessão» quando a página rola</h1>
+  <p>No celular, a Produção diz onde se está numa barra — <b>PEDAGOGIA · Turmas</b> e o botão
+  <b>Seções</b>. Essa barra fica no topo do conteúdo. A página de Turmas é longa, e quando se desce
+  até à listagem trocar de secção obriga a voltar ao topo. As quatro respostas abaixo divergem numa
+  decisão só: <b>quanto espaço permanente se paga</b> para ter o caminho à mão. Todas contam com a
+  <b>logo</b> à esquerda da barra do sistema, que vai existir. <b>Role dentro de cada telefone.</b></p>
+</div>
+
+<section class="opt">
+  <header><span class="letra">S1</span><h2>Sobe e encaixa</h2>
+    <span class="ref">a barra da página sobe para o lado do hambúrguer quando se desce</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Telefone — role</h3>
+      <div class="fones">        <div class="fone" data-nav-s="S1" data-descido="nao">
+          <div class="fone-sistema"><span class="fone-logo">L</span> Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="s1-encaixe"><small>Pedagogia</small> Turmas <span class="abrir">Seções</span></div>
+<div class="fone-rolo">            <div class="fone-sessao s1-fixa"><small>Pedagogia</small> Turmas <span class="abrir">Seções</span></div>
+          <div class="fone-longo">
+            <h2>Turmas cadastradas</h2>
+            <p>Role aqui dentro para ver o que acontece com a barra de sessão.</p>
+            <div class="cartao"><b>Balé nível 1, Grade 1</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 2, Grade 2</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 3, Grade 3</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 4, Grade 4</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 5, Grade 5</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 6, Grade 6</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 7, Grade 7</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 8, Grade 8</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <p>Fim da lista. Para trocar de secção, é aqui que a barra faz falta.</p>
+          </div>
+</div></div></div>
+    </div>
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte">Em repouso, <b>zero</b>: a barra da página é a de hoje. Ao rolar, ela sobe e
+      ocupa o lugar da barra do sistema — que recua —, ficando à esquerda do hambúrguer e à direita
+      da logo. O preço é o <b>movimento</b>, e um problema que só se viu ao usar: <b>o ☰ recua com a
+      barra</b>, e quem está a meio de uma lista longa tem de voltar ao topo para sair. A <b>S5</b>
+      corrige isso — leia-a primeiro.</p>
+    </div>
+  </div>
+</section>
+
+
+<section class="opt">
+  <header><span class="letra">S5</span><h2>Sobe e encaixa, com o hambúrguer</h2>
+    <span class="ref">o caminho sobe para a barra do sistema — e o ☰ nunca sai</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Telefone — role</h3>
+      <div class="fones">
+        <div class="fone" data-nav-s="S5" data-descido="nao">
+          <div class="fone-sistema"><span class="fone-logo">L</span>
+            <span class="s5-marca">Sistema Lastro</span>
+            <span class="s5-sessao"><small>Pedagogia</small><span class="nome">Turmas</span></span>
+            <button type="button" class="s5-secoes">Seções</button>
+            <span class="hamb">☰</span></div>
+          <div class="fone-rolo">
+            <div class="fone-sessao s5-barra"><small>Pedagogia</small> Turmas <span class="abrir">Seções</span></div>
+                      <div class="fone-longo">
+            <h2>Turmas cadastradas</h2>
+            <p>Role aqui dentro. Ao descer, o caminho sobe para a barra — e o hambúrguer FICA.</p>
+            <div class="cartao"><b>Balé nível 1, Grade 1</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 2, Grade 2</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 3, Grade 3</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 4, Grade 4</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 5, Grade 5</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 6, Grade 6</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 7, Grade 7</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 8, Grade 8</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <p>Fim da lista. Repare: o ☰ nunca saiu do lugar.</p>
+          </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte"><b>No topo</b> é o desenho de hoje: a barra do sistema com a logo,
+      «Sistema Lastro» e o ☰ <b>à direita</b>; e a barra da página por baixo, com <b>PEDAGOGIA ·
+      Turmas</b> e o botão <b>Seções</b>.</p>
+      <p class="fonte"><b>A rolar</b> a barra da página <b>sobe e sai</b> — não é copiada para cima,
+      é ela que sobe —, e o que ela dizia entra na barra do sistema: <b>[logo] PEDAGOGIA · Turmas
+      [Seções] ☰</b>. Voltar ao topo desfaz tudo.</p>
+      <p class="fonte"><b>A palavra «Sistema Lastro» sai ao rolar — sempre</b>, em qualquer largura.
+      Enquanto se rola, a barra deixa de dizer de quem é o sistema e passa a dizer onde se está; a
+      marca fica na <b>logo</b>, que nunca sai, e a palavra volta inteira no topo. E com isso a
+      largura deixa de ser um problema a gerir: o caminho e a saída cabem mesmo a 320px.</p>
+      <p class="fonte"><b>O ☰ não anda.</b> Nem um pixel. É a diferença entre esta proposta e a S1, e
+      o motivo é de uso: na S1 a barra do sistema recuava inteira e levava o ☰ com ela, e quem
+      estava a meio de uma lista tinha de rolar de volta ao topo para sair — o problema que a
+      proposta existia para resolver.</p>
+      <p class="fonte"><b>Um erro que valeu a pena</b>: na primeira versão o ☰ aparecia à
+      <em>esquerda</em>, colado à marca. O botão «Seções» nasce oculto, mas continuava a ser o irmão
+      seguinte do ☰ no DOM — e um seletor de irmão não sabe nada de <code>display: none</code>: ele
+      não estava pintado e continuava a mandar no layout.</p>
+    </div>
+  </div>
+</section>
+
+<section class="opt">
+  <header><span class="letra">S2</span><h2>Fica presa</h2>
+    <span class="ref">a barra não se mexe: o conteúdo passa por baixo dela</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Telefone — role</h3>
+      <div class="fones">        <div class="fone" data-nav-s="S2" data-descido="nao">
+          <div class="fone-sistema"><span class="fone-logo">L</span> Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="fone-rolo">            <div class="fone-sessao s2-presa"><small>Pedagogia</small> Turmas <span class="abrir">Seções</span></div>
+          <div class="fone-longo">
+            <h2>Turmas cadastradas</h2>
+            <p>Role aqui dentro para ver o que acontece com a barra de sessão.</p>
+            <div class="cartao"><b>Balé nível 1, Grade 1</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 2, Grade 2</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 3, Grade 3</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 4, Grade 4</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 5, Grade 5</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 6, Grade 6</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 7, Grade 7</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 8, Grade 8</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <p>Fim da lista. Para trocar de secção, é aqui que a barra faz falta.</p>
+          </div>
+</div></div></div>
+    </div>
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte">É a solução mais <b>previsível</b>: a barra está sempre no mesmo lugar, e nada
+      se move. Custa cerca de <b>44px permanentes</b> — num telefone de 640px de altura útil são 7% da
+      tela que o conteúdo nunca recupera. E, por ficarem duas barras empilhadas (sistema + página),
+      o topo fica com 88px de navegação antes de aparecer o primeiro dado.</p>
+    </div>
+  </div>
+</section>
+
+<section class="opt">
+  <header><span class="letra">S3</span><h2>Uma barra só</h2>
+    <span class="ref">a sessão entra dentro da barra do sistema</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Telefone — role</h3>
+      <div class="fones">        <div class="fone" data-nav-s="S3">
+                    <div class="fone-sistema"><span class="fone-logo">L</span>
+            <span class="s3-sessao"><small>Pedagogia</small><span class="nome">Turmas</span><span class="seta">▾</span></span>
+            <span class="hamb">☰</span></div>
+<div class="fone-rolo"><div class="fone-longo">
+            <h2>Turmas cadastradas</h2>
+            <p>Role aqui dentro: a sessão está na barra do sistema e não se mexe.</p>
+            <div class="cartao"><b>Balé nível 1, Grade 1</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 2, Grade 2</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 3, Grade 3</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 4, Grade 4</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 5, Grade 5</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 6, Grade 6</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 7, Grade 7</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 8, Grade 8</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <p>Fim da lista.</p>
+          </div></div></div></div>
+    </div>
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte">É a que <b>poupa mais espaço</b>: uma barra faz as duas coisas, e a página
+      começa logo no conteúdo. O caminho está sempre visível e imóvel. O preço é de <b>hierarquia</b>:
+      a mesma barra passa a ter dois níveis de navegação — o do sistema (Sistema Lastro · Área do
+      Professor · Bastidores) e o da página (Produção › Turmas) —, e o «▾» tem de deixar claro que
+      abre a folha da PÁGINA e não a do sistema. Em ecrã de 390px o nome de uma secção longa
+      («Vocabulário técnico») já pede reticências.</p>
+    </div>
+  </div>
+</section>
+
+<section class="opt">
+  <header><span class="letra">S4</span><h2>Vira pílula</h2>
+    <span class="ref">ao descer, a barra recolhe num botão no canto</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Telefone — role</h3>
+      <div class="fones">        <div class="fone" data-nav-s="S4" data-descido="nao">
+          <div class="fone-sistema"><span class="fone-logo">L</span> Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="fone-rolo">            <div class="fone-sessao s4-barra"><small>Pedagogia</small> Turmas <span class="abrir">Seções</span></div>
+          <div class="fone-longo">
+            <h2>Turmas cadastradas</h2>
+            <p>Role aqui dentro para ver o que acontece com a barra de sessão.</p>
+            <div class="cartao"><b>Balé nível 1, Grade 1</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 2, Grade 2</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 3, Grade 3</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 4, Grade 4</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 5, Grade 5</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 6, Grade 6</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 7, Grade 7</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <div class="cartao"><b>Balé nível 8, Grade 8</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min · 4 conteúdos</span></div>
+            <p>Fim da lista. Para trocar de secção, é aqui que a barra faz falta.</p>
+          </div>
+</div><button type="button" class="s4-pilula"><small>Pedagogia</small> Turmas</button>
+</div></div>
+    </div>
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte">O conteúdo recupera a altura toda, e o caminho continua a um toque — mas
+      <b>deixa de se ver onde se está</b> enquanto se lê, e passa a haver um elemento a flutuar por
+      cima do canto inferior direito, que é onde o polegar descansa: é o desenho com mais risco de
+      tapar justamente o que se quer tocar.</p>
+    </div>
+  </div>
+</section>
+
+<div class="titulo-estudo" style="margin-top: 56px">
+  <h1>As quatro, lado a lado</h1>
+  <p>Espaço em repouso, espaço ao rolar, e o que cada uma pede em troca.</p>
+</div>
+<div class="quadro-rolo"><table class="quadro">
+  <thead><tr><th>Opção</th><th>Em repouso</th><th>Ao rolar</th><th>O que pede em troca</th></tr></thead>
+  <tbody>
+    <tr><th>S5 · Sobe e encaixa, com o ☰</th><td>44px (uma barra)</td><td>0px a mais: a sessão entra na do sistema</td>
+      <td>Um cabeçalho que se move. O ☰ fica onde está. Ao rolar, a palavra «Sistema Lastro» sai (a logo fica).</td></tr>
+    <tr><th>S1 · Sobe e encaixa</th><td>44px (uma barra)</td><td>0px a mais: encaixa na do sistema</td>
+      <td>Um cabeçalho que se move — e o ☰ sai com a barra, o que obriga a voltar ao topo para sair.</td></tr>
+    <tr><th>S2 · Fica presa</th><td>44px</td><td>44px</td>
+      <td>7% da tela em permanência, e duas barras empilhadas no topo.</td></tr>
+    <tr><th>S3 · Uma barra só</th><td><b>0px</b></td><td><b>0px</b></td>
+      <td>Dois níveis de navegação na mesma barra — e o nome comprido trunca.</td></tr>
+    <tr><th>S4 · Vira pílula</th><td>44px</td><td>0px, mas flutua sobre o conteúdo</td>
+      <td>Deixa de se ver onde se está, e o botão cai onde o polegar descansa.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="titulo-estudo" style="margin-top: 56px">
+  <h1>O formulário recolhe para uma faixa, em acordeão</h1>
+  <p>O «turmas · …» de uma aluna, de um professor ou de um termo leva à secção Turmas com a
+  listagem reduzida. Mas o formulário continua lá em cima, comprido — e no telefone ele é a
+  primeira coisa que se vê, e a que obriga a rolar até à lista. <b>A escolha:</b> o bloco de
+  formulários recolhe para uma <b>faixa</b>, como um acordeão, e a lista aparece logo abaixo. A
+  faixa é a <b>própria barra dos passos</b> — ela já diz em que passo se está — mais uma seta.
+  Sem texto de «recolher»/«abrir»: a seta diz o estado. Abaixo, o gesto: chegue pelo filtro ou
+  toque na seta.</p>
+</div>
+
+<section class="opt" data-estilo="E" data-recolhe="P">
+  <header><span class="letra">P</span><h2>Faixa em acordeão — a barra dos passos é o cabeçalho</h2>
+    <span class="ref">escolhida · recolhe pelo filtro e pela seta · a listagem vem em seguida</span></header>
+  <div class="corpo">
+    <div class="bloco"><h3>Tela grande — chegue pelo filtro, ou toque na seta</h3>
+      <div class="recolhe" data-recolhe-demo>
+        <div class="fileira" style="margin:0 0 10px">
+          <span class="fonte">Chegar pelo filtro:</span>
+          <button type="button" class="btn btn--secundario btn--pequeno" data-filtrar="tu1" data-quem="Vavá">turmas · Balé nível 1, Grade 1</button>
+          <button type="button" class="btn btn--secundario btn--pequeno" data-filtrar="tu1,tu3" data-quem="Battement tendu">turmas · 2 turmas</button>
+        </div>
+        <div class="recolhe-corpo" data-corpo>
+          <div class="recolhe-form" data-form>
+            <div class="passos-demo">
+              <span class="passo-demo ativo"><span class="n">1</span> Turma</span>
+              <span class="passo-demo"><span class="n">2</span> Rubricas</span>
+              <span class="passo-demo"><span class="n">3</span> Associar</span>
+              <button type="button" class="seta-demo" data-recolher aria-expanded="true"
+                aria-label="Recolher o formulário" title="Recolher o formulário">▾</button>
+            </div>
+            <div class="campos-demo">
+              <div class="campo"><span>Nome da turma</span><input value="Balé nível 1, Grade 1" readonly></div>
+              <div class="campo"><span>Programa de referência (tradição)</span>
+                <select><option>RAD</option><option>francesa</option><option>Vaganova</option></select></div>
+              <div class="campo"><span>Dias da semana e a hora de início de cada um</span>
+                <div class="dias-demo"><span class="marcado">seg 18:00</span><span class="marcado">qua 18:00</span><span>ter</span><span>qui</span><span>sex</span></div>
+              </div>
+              <div class="campo"><span>Duração de cada aula (minutos)</span><input value="60" readonly></div>
+              <div class="campo"><span>Início do período</span><input value="2026-02-01" readonly></div>
+              <div class="campo"><span>Fim do período</span><input value="2026-06-30" readonly></div>
+              <div class="recolhe-botoes"><button type="button" class="btn btn--primario">Avançar</button></div>
+            </div>
+          </div>
+          <div class="recolhe-lista">
+            <div class="recolhe-filtro" hidden></div>
+            <h4>Turmas cadastradas</h4>
+            <div class="cartao-turma" data-turma="tu1"><b>Balé nível 1, Grade 1</b>
+              <span>RAD · 2x/semana · seg, qua 18:00 · 60 min</span></div>
+            <div class="cartao-turma" data-turma="tu2"><b>Balé nível 2, Grade 2</b>
+              <span>francesa · 2x/semana · ter, qui 19:00 · 60 min</span></div>
+            <div class="cartao-turma" data-turma="tu3"><b>Balé nível 3, Grade 3</b>
+              <span>Vaganova · 1x/semana · sex 17:00 · 45 min</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bloco"><h3>No telefone — a lista começa assim que a faixa fecha</h3>
+      <div class="fones">
+        <div class="fone" data-recolhe-demo style="width:300px">
+          <div class="fone-tela">
+            <div class="recolhe-corpo" data-corpo style="padding-top:12px">
+              <div class="recolhe-form" data-form>
+                <div class="passos-demo">
+                  <span class="passo-demo ativo"><span class="n">1</span> Turma</span>
+                  <span class="passo-demo"><span class="n">2</span> Rubricas</span>
+                  <span class="passo-demo"><span class="n">3</span> Associar</span>
+                  <button type="button" class="seta-demo" data-recolher aria-expanded="true"
+                    aria-label="Recolher o formulário" title="Recolher o formulário">▾</button>
+                </div>
+                <div class="campos-demo">
+                  <div class="campo"><span>Nome da turma</span><input value="Balé nível 1" readonly></div>
+                  <div class="campo"><span>Programa (tradição)</span><select><option>RAD</option></select></div>
+                  <div class="campo"><span>Dias da semana</span>
+                    <div class="dias-demo"><span class="marcado">seg</span><span class="marcado">qua</span><span>ter</span></div></div>
+                  <div class="campo"><span>Duração (minutos)</span><input value="60" readonly></div>
+                  <div class="recolhe-botoes"><button type="button" class="btn btn--primario">Avançar</button></div>
+                </div>
+              </div>
+              <div class="recolhe-lista">
+                <h4>Turmas cadastradas</h4>
+                <div class="cartao-turma" data-turma="tu1"><b>Balé nível 1, Grade 1</b>
+                  <span>RAD · 2x/semana · seg, qua 18:00</span></div>
+                <div class="cartao-turma" data-turma="tu2"><b>Balé nível 2, Grade 2</b>
+                  <span>francesa · 2x/semana · ter, qui 19:00</span></div>
+                <div class="cartao-turma" data-turma="tu3"><b>Balé nível 3, Grade 3</b>
+                  <span>Vaganova · 1x/semana · sex 17:00</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte">Recolhido, o formulário é <b>uma linha</b>: a barra dos três passos e a
+      seta. No telefone, a lista começa logo abaixo dela — e deixa de ser preciso rolar o
+      formulário inteiro para ver o que se veio ver. No desktop a grelha não muda: a faixa fica
+      na coluna do formulário, e a lista ao lado, como sempre. O custo é o de qualquer acordeão:
+      <b>não se vê o que está lá dentro</b> — e é por isso que a faixa mantém os passos à vista,
+      que são o que diz onde se está. A alternativa estudada antes (a coluna do formulário sair e
+      a lista ganhar a largura toda) foi <b>descartada</b>: mexe na grelha e a lista salta de
+      lugar quando o filtro chega.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---- O ESTUDO DO RECOLHIMENTO (18/10/2026) ---------------------------------
+     A faixa É a barra dos passos: os três passos continuam à vista, e a seta é o único
+     controle novo. Recolhido, o que sai é o miolo dos campos — a barra fica, e a lista
+     sobe. Não há texto de «recolher»/«abrir»: a seta diz o estado, e o `aria-label`
+     diz o mesmo a quem não a vê. */
+  .recolhe { background: #fff; border: 1px solid #e2e6ec; border-radius: 20px; padding: 12px; }
+  .recolhe-corpo { display: grid; grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+    gap: 16px; align-items: start; }
+  .recolhe-form { background: #f7f9fb; border: 1px solid #e6eaf0; border-radius: 14px; padding: 10px 12px 12px; }
+  /* A BARRA: os passos e a seta. Ela é o cabeçalho do acordeão. */
+  .passos-demo { display: flex; align-items: center; gap: 6px; flex-wrap: nowrap; min-width: 0; }
+  .passo-demo { display: inline-flex; align-items: center; gap: 5px; font: 600 12.5px/1.2 var(--ui);
+    color: #6b7280; padding: 6px 8px 6px 5px; border-radius: 999px; white-space: nowrap; }
+  .passo-demo .n { display: grid; place-items: center; width: 20px; height: 20px; border-radius: 999px;
+    background: #eef1f5; border: 1px solid #e2e6ec; font: 700 10px/1 var(--ui); color: var(--burgundy); }
+  .passo-demo.ativo { background: #eff4fb; color: var(--burgundy); }
+  .passo-demo.ativo .n { background: var(--burgundy); border-color: var(--burgundy); color: #fdf3e3; }
+  .seta-demo { margin-left: auto; flex: 0 0 auto; width: 30px; height: 30px; border-radius: 999px;
+    border: 1px solid #e2e6ec; background: #fff; color: #4b5563; cursor: pointer;
+    font: 600 13px/1 var(--ui); display: grid; place-items: center; }
+  .seta-demo:hover { background: #f7f9fc; }
+  .recolhe-lista h4 { margin: 0 0 8px; font: 600 11px/1 var(--ui); text-transform: uppercase;
+    letter-spacing: .1em; opacity: .65; }
+  .cartao-turma { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px;
+    border: 1px solid #e6eaf0; border-radius: 12px; margin-bottom: 8px; background: #fff; }
+  .cartao-turma b { font: 700 13.5px/1.3 var(--ui); }
+  .cartao-turma span { font: 400 12px/1.4 var(--ui); color: #6b7280; }
+  .cartao-turma[hidden] { display: none; }
+  .recolhe-botoes { margin-top: 10px; }
+  .recolhe-filtro { margin: 0 0 8px; font: 400 12.5px/1.4 var(--ui); color: #5a5348; }
+  .dias-demo { display: flex; flex-wrap: wrap; gap: 6px; }
+  .dias-demo span { font: 500 12px/1 var(--ui); padding: 7px 9px; border-radius: 999px;
+    border: 1px solid #e2e6ec; background: #fff; color: #4b5563; }
+  .dias-demo span.marcado { background: var(--burgundy); border-color: var(--burgundy); color: #fff3e6; }
+  /* O RECOLHIDO: sai o miolo, fica a faixa — E A LISTAGEM OCUPA A LARGURA TODA.
+     A coluna do formulário deixa de existir como coluna: a faixa sobe para a linha
+     inteira (é o cabeçalho do acordeão) e a lista fica sozinha, abaixo, com a largura
+     toda. É a diferença entre «encolher» e «sair da frente». */
+  .recolhe[data-recolhido="sim"] .campos-demo { display: none; }
+  .recolhe[data-recolhido="sim"] .recolhe-corpo { grid-template-columns: minmax(0, 1fr); }
+  .recolhe[data-recolhido="sim"] .recolhe-form { padding: 6px 8px; }
+  /* A faixa recolhida é uma BARRA: filete em baixo, e o fundo do cartão — ela fecha o
+     formulário e separa-o da lista, sem competir com ela. */
+  .recolhe[data-recolhido="sim"] .passos-demo {
+    padding: 2px 2px 0;
+  }
+  .recolhe[data-recolhido="sim"] .recolhe-lista { border-top: 1px solid #eef1f5; padding-top: 10px; }
+  /* No telefone, o corpo é uma coluna só. */
+  .fone .recolhe { border: 0; border-radius: 0; padding: 0; background: transparent; }
+  .fone .recolhe-corpo { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 0 14px 12px; }
+  .fone .recolhe-form { padding: 8px 8px 10px; }
+  .fone .passo-demo { font-size: 11.5px; padding-right: 4px; }
+  .fone .recolhe-botoes .btn { width: 100%; }
+</style>
+
+<script>
+/* O RECOLHIMENTO — a mesma mecânica no desktop e no telefone.
+   Duas portas para o mesmo estado: a seta (alterna) e o filtro (recolhe sozinho, porque quem
+   chega pelo filtro veio ver a lista, não preencher o formulário). O estado vive no próprio
+   elemento (`data-recolhido`), como viveria na página: um só lugar diz se está aberto, e a
+   seta lê-o para se escrever e para dizer o estado a quem não a vê. */
+document.querySelectorAll('[data-recolhe-demo]').forEach((peca) => {
+  const botao = peca.querySelector('[data-recolher]');
+  const aviso = peca.querySelector('.recolhe-filtro');
+  const lista = peca.querySelector('.recolhe-lista');
+
+  function pintar(recolhido) {
+    peca.setAttribute('data-recolhido', recolhido ? 'sim' : 'nao');
+    if (!botao) return;
+    botao.setAttribute('aria-expanded', String(!recolhido));
+    botao.setAttribute('aria-label', recolhido ? 'Abrir o formulário' : 'Recolher o formulário');
+    botao.setAttribute('title', recolhido ? 'Abrir o formulário' : 'Recolher o formulário');
+    botao.textContent = recolhido ? '▸' : '▾';
+  }
+  // O estado inicial é ABERTO: o recolhimento é uma resposta ao filtro, não o repouso. Quem
+  // chega pela navegação normal encontra o formulário como sempre.
+  pintar(false);
+
+  if (botao) botao.addEventListener('click', () => {
+    pintar(peca.getAttribute('data-recolhido') !== 'sim');
+  });
+
+  peca.querySelectorAll('[data-filtrar]').forEach((b) => {
+    b.addEventListener('click', () => {
+      const ids = String(b.getAttribute('data-filtrar') || '').split(',').map((x) => x.trim());
+      const quem = b.getAttribute('data-quem') || '';
+      lista.querySelectorAll('[data-turma]').forEach((li) => {
+        li.hidden = ids.length > 0 && ids.indexOf(li.getAttribute('data-turma')) === -1;
+      });
+      if (aviso) {
+        aviso.hidden = false;
+        aviso.innerHTML = 'Listagem filtrada: <b>' + (ids.length === 1 ? '1 turma' : ids.length + ' turmas') +
+          (quem ? ' de ' + quem : '') + '</b>. ';
+        const limpar = document.createElement('button');
+        limpar.type = 'button';
+        limpar.className = 'btn btn--secundario btn--pequeno';
+        limpar.textContent = 'Mostrar todas';
+        limpar.addEventListener('click', () => {
+          lista.querySelectorAll('[data-turma]').forEach((li) => { li.hidden = false; });
+          aviso.hidden = true;
+          aviso.innerHTML = '';
+        });
+        aviso.appendChild(limpar);
+      }
+      pintar(true);
+    });
+  });
+});
+</script>
+
+<script>
+/* O SCROLL DE CADA TELEFONE. S1 e S4 dependem dele: a barra da página sobe (S1) ou recolhe
+   para a pílula (S4) quando o conteúdo desce mais de 24px, e volta quando se sobe ao topo.
+   O limiar existe para a barra não piscar a cada pixel — e porque «desceu» é uma decisão, não
+   um número contínuo. */
+document.querySelectorAll('.fone[data-nav-s]').forEach((fone) => {
+  const rolo = fone.querySelector('.fone-rolo');
+  if (!rolo) return;
+  rolo.addEventListener('scroll', () => {
+    fone.dataset.descido = rolo.scrollTop > 24 ? 'sim' : 'nao';
+  });
+});
+</script>
+
+<!-- =====================================================================
+     O ATO — o cabeçalho, as informações e a barra do formulário
+     ===================================================================== -->
+
+<div class="titulo-estudo" style="margin-top:64px" id="ato">
+  <h1>O cabeçalho do ato, as informações e a barra do formulário</h1>
+  <p>Três problemas na mesma tela, e os três com o mesmo sintoma: <strong>o que deveria estar
+  à mão está sempre à vista, e o que se usa a cada passo está no lugar errado</strong>. O
+  controle de recolher é pequeno de mais para o dedo (mede 24px e a seta tem 7px de altura);
+  as informações do formulário ocupam parágrafos inteiros no meio dos campos; e os cinco
+  botões — Anterior, Próxima, Pular, Fechar, Sair — têm todos o mesmo peso e a mesma altura,
+  sem hierarquia nenhuma. No telefone a barra quebra em duas linhas e a última fica longe do
+  polegar. Abaixo: <strong>K</strong> o controle de recolher (já implementado), <strong>I</strong>
+  as informações e <strong>B</strong> os botões — estes dois em propostas para escolher.</p>
+</div>
+
+<!-- ========================= K — O CONTROLE ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="K">
+  <header><span class="letra">K</span><h2>O controle de recolher o contexto do ato</h2>
+    <span class="ref">implementado · 24px → 44px · seta de 7px → 20px · no telefone nasce fechado</span></header>
+  <div class="corpo">
+    <p class="opt-nota">O alvo de toque hoje é o texto — e o texto tem a altura de uma linha.
+    Medido no ar: <strong>24px</strong> na tela grande e <strong>48px</strong> no telefone, onde
+    quebra em duas linhas; a seta é um triângulo de <strong>7px</strong>. A norma confortável é
+    44px, e é ela que o botão de ação ao lado já tem. O que muda: a seta ganha uma pastilha
+    própria, o conjunto ganha altura de controle, e o nome do bloco cresce para 15px.</p>
+
+    <div class="bloco"><h3>Antes — o que está no ar</h3>
+      <div class="ato" style="max-width:520px">
+        <div class="ctx-antigo">
+          <button type="button" class="ctx-antigo-sum">▸ Contexto do ato
+            <span class="ctx-antigo-res">escola · professor · ciclo</span></button>
+        </div>
+      </div>
+      <p class="medida">alvo <b>24px</b> · seta <b>7px</b> · rótulo <b>14,4px</b></p>
+    </div>
+
+    <div class="bloco"><h3>K1 — a pastilha da seta (escolhido)</h3>
+      <div class="ato" style="max-width:520px">
+        <details class="ctx-novo" open>
+          <summary>
+            <span class="ctx-novo-pino" aria-hidden="true"><span class="ctx-novo-seta">▸</span></span>
+            <span class="ctx-novo-nome">Contexto do ato</span>
+            <span class="ctx-novo-res">escola · professor · ciclo</span>
+          </summary>
+          <div class="ctx-novo-campos">
+            <label class="campo"><span>professor</span><select><option>Tiago Menegaz</option></select></label>
+            <label class="campo"><span>ciclo</span><input value="01"></label>
+            <label class="campo"><span>aluna</span><select><option>— nenhuma —</option><option selected>Ana</option></select></label>
+            <label class="campo"><span>senha do professor</span><input type="password" value="segredo"></label>
+          </div>
+        </details>
+      </div>
+      <p class="medida">alvo <b>44px</b> · pastilha <b>28px</b> · seta <b>20px</b> · rótulo <b>15px</b></p>
+      <p class="porque">A pastilha dá ao dedo um alvo que não depende do texto, e o anel de ouro
+      é a mesma linguagem do resto da casa. Aberto, a seta roda 90° e a pastilha fica bordô —
+      o estado lê-se sem uma palavra.</p>
+    </div>
+
+    <div class="bloco"><h3>K2 — a pastilha e o que falta, à vista</h3>
+      <div class="ato" style="max-width:520px">
+        <div class="ctx-novo is-fechado">
+          <span class="ctx-novo-sum">
+            <span class="ctx-novo-pino" aria-hidden="true"><span class="ctx-novo-seta">▸</span></span>
+            <span class="ctx-novo-nome">Contexto do ato</span>
+            <span class="ctx-novo-res">escola · professor · ciclo</span>
+            <span class="ctx-novo-falta">falta o ciclo</span>
+          </span>
+        </div>
+      </div>
+      <p class="medida">igual a K1, com o que falta em vermelho no lugar do resumo</p>
+      <p class="porque">Recolhido, o cabeçalho tem de continuar a dizer o que impede o fecho —
+      senão esconder o formulário esconde também o problema. O resumo troca de cor e de texto
+      quando há falta, e volta ao normal quando ela é resolvida.</p>
+    </div>
+
+    <div class="bloco"><h3>No telefone — nasce fechado</h3>
+      <div class="fones">
+        <div class="fone" style="width:320px">
+          <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="fone-tela" style="padding:0">
+            <div class="ato-mob">
+              <span class="ctx-novo">
+                <span class="ctx-novo-sum">
+                  <span class="ctx-novo-pino" aria-hidden="true"><span class="ctx-novo-seta">▸</span></span>
+                  <span class="ctx-novo-nome">Contexto do ato</span>
+                  <span class="ctx-novo-res">fita · Tiago · 01</span>
+                </span>
+              </span>
+              <div class="ato-mob-corpo">
+                <p class="ato-mob-tit">Conhecimento prévio</p>
+                <p class="ato-mob-sub">A aluna entra, a turma não.</p>
+                <label class="campo"><span>O que ela já sabe</span><input value="já fez um ano de balé clássico" readonly></label>
+                <p class="ato-mob-nota">O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="fone" style="width:320px">
+          <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="fone-tela" style="padding:0">
+            <div class="ato-mob">
+              <span class="ctx-novo is-aberto">
+                <span class="ctx-novo-sum">
+                  <span class="ctx-novo-pino" aria-hidden="true"><span class="ctx-novo-seta">▾</span></span>
+                  <span class="ctx-novo-nome">Contexto do ato</span>
+                  <span class="ctx-novo-res">fita · Tiago · 01</span>
+                </span>
+              </span>
+              <div class="ctx-novo-campos" style="padding:6px 14px 12px">
+                <label class="campo"><span>professor</span><select><option>Tiago Menegaz</option></select></label>
+                <label class="campo"><span>ciclo</span><input value="01"></label>
+                <label class="campo"><span>senha do professor</span><input type="password" value="segredo"></label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="porque">Fechado à esquerda, aberto à direita. No telefone o cabeçalho chega com
+      <strong>uma linha de 44px</strong> e o formulário começa logo abaixo — a pergunta está a um
+      toque de distância em vez de a uma rolagem. Quem quiser ver o contexto toca na faixa e ela
+      abre por baixo, sem sair do lugar.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= I — AS INFORMAÇÕES ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="I">
+  <header><span class="letra">I</span><h2>As informações dentro do formulário</h2>
+    <span class="ref">três propostas · a informação fica a um toque, e sai da frente do campo</span></header>
+  <div class="corpo">
+    <p class="opt-nota">Hoje a informação é <strong>parágrafo corrido dentro do cartão</strong>: o
+    «uma pergunta por vez, a lacuna é declarada», o «os três períodos declaram tempo de exposição
+    à modalidade, não competência», o «sobre este formulário». É texto bom, no lugar errado — e
+    empurra o campo para fora da tela. A solução é a mesma que a Produção já usa: o texto existe,
+    mas atrás de um <strong>«?»</strong>. O que muda entre as três propostas é <em>onde</em> o
+    «?» mora.</p>
+
+    <div class="bloco"><h3>I1 — «?» junto ao rótulo</h3>
+      <div class="ato" style="max-width:560px">
+        <div class="ato-cartao">
+          <p class="ato-tit">Conhecimento prévio</p>
+          <div class="campo-linha">
+            <label class="campo"><span>Os três períodos <button type="button" class="ajuda" data-ajuda="painel-i1" aria-expanded="true" aria-label="O que este campo pede">?</button></span>
+              <input value="primeiro período: 2 anos" readonly></label>
+          </div>
+          <p class="nota-ajuda" id="painel-i1" data-painel><b>Os três períodos declaram tempo de exposição à modalidade, não
+            competência.</b> Um período longo não significa uma aluna melhor — significa mais
+            tempo de contato com a técnica.</p>
+        </div>
+      </div>
+      <p class="porque">O «?» fica ao lado do rótulo e a nota abre <b>logo abaixo do campo a que
+      pertence</b>. É o mais preciso: nunca há dúvida sobre que campo a nota explica. O custo é um
+      «?» por campo — e numa pergunta com quatro campos são quatro alvos novos.</p>
+    </div>
+
+    <div class="bloco"><h3>I2 — «?» no alto do cartão (recomendado)</h3>
+      <div class="ato" style="max-width:560px">
+        <div class="ato-cartao">
+          <div class="ato-cab">
+            <p class="ato-tit">Conhecimento prévio</p>
+            <button type="button" class="ajuda" data-ajuda="painel-i2" aria-expanded="true" aria-label="Entenda esta pergunta">?</button>
+          </div>
+          <p class="ato-sub">A aluna entra, a turma não.</p>
+          <label class="campo"><span>O que ela já sabe</span><input value="já fez um ano de balé clássico" readonly></label>
+          <label class="campo"><span>Os três períodos</span><input value="primeiro período: 2 anos" readonly></label>
+          <div class="nota-ajuda" id="painel-i2" data-painel>
+            <p><b>O que é.</b> O ponto de partida da aluna, em linguagem de professor.</p>
+            <p><b>O que preencher.</b> O que ela já sabe e o que precisa desenvolver.</p>
+            <p><b>Os três períodos</b> declaram <i>tempo de exposição à modalidade</i>, não competência.</p>
+            <p><b>Uma pergunta por vez.</b> O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
+          </div>
+        </div>
+      </div>
+      <p class="porque">Um único «?» por pergunta, e a nota junta as quatro informações num painel
+      só. É o que a Produção já faz na listagem das turmas. O cartão volta a ser campo e rótulo —
+      a informação existe, mas não ocupa o caminho. É esta a proposta que recomendo.</p>
+    </div>
+
+    <div class="bloco"><h3>I3 — «?» no alto e folha inferior no telefone</h3>
+      <div class="fones">
+        <div class="fone" style="width:320px">
+          <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="fone-tela" style="padding:0;position:relative">
+            <div class="ato-mob">
+              <span class="ctx-novo">
+                <span class="ctx-novo-sum">
+                  <span class="ctx-novo-pino" aria-hidden="true"><span class="ctx-novo-seta">▸</span></span>
+                  <span class="ctx-novo-nome">Contexto do ato</span>
+                  <span class="ctx-novo-res">fita · Tiago · 01</span>
+                </span>
+              </span>
+              <div class="ato-mob-corpo" style="opacity:.45">
+                <div class="ato-cab">
+                  <p class="ato-tit">Conhecimento prévio</p>
+                  <span class="ajuda" aria-hidden="true" style="background:var(--burgundy);color:var(--gold-claro);border-color:var(--burgundy)">?</span>
+                </div>
+                <p class="ato-mob-sub">A aluna entra, a turma não.</p>
+                <label class="campo"><span>O que ela já sabe</span><input value="já fez um ano de balé clássico" readonly></label>
+              </div>
+            </div>
+            <div class="folha" id="painel-i3" data-painel>
+              <span class="folha-puxador"></span>
+              <p class="folha-tit">Sobre esta pergunta</p>
+              <p><b>O que é.</b> O ponto de partida da aluna, em linguagem de professor.</p>
+              <p><b>Os três períodos</b> declaram tempo de exposição à modalidade, não competência.</p>
+              <p><b>Uma pergunta por vez.</b> A lacuna é declarada, nunca inventada.</p>
+              <button type="button" class="btn btn--secundario" style="width:100%;margin-top:8px" data-fechar-ajuda>Fechar</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="porque">No telefone, o «?» não abre um bloco que empurra o formulário: sobe uma
+      <b>folha inferior</b> — a peça que a navegação da Produção já usa. A pergunta fica escurecida
+      atrás, e a folha fecha com um toque no fundo ou no botão. No desktop é o I2, igual.</p>
+    </div>
+
+    <div class="bloco"><h3>O que sai da tela, e o que fica</h3>
+      <p class="fonte"><b>Sai</b> para dentro do «?»: a explicação do nó («o que é / o que
+      preencher / por que existe»), a frase do ritmo da condução e as notas de conjunto («os três
+      períodos…»). <b>Fica à vista</b>: o que impede o avanço. A frase «Digite a senha do professor
+      na barra para seguir» continua a aparecer e a desaparecer sozinha, como já faz — ela é
+      <i>estado</i>, não explicação. E o <b>OK</b> ao lado da senha sai de vez: o campo já fica com
+      o filete verde, e uma palavra a repetir o que a cor diz é ruído. No erro a palavra fica —
+      «senha não reconhecida» é informação que se precisa de ler.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ========================= B — OS BOTÕES ========================= -->
+<section class="opt" data-estilo="E" data-arranjo="B" data-completo="nao">
+  <header><span class="letra">B</span><h2>A barra dos botões do formulário</h2>
+    <span class="ref">três propostas · cinco botões, quatro papéis · o polegar decide</span></header>
+  <div class="corpo">
+    <p class="opt-nota">Hoje os cinco têm a mesma altura e o mesmo peso, e a única diferença é
+    «Próxima» ser cheio. «Sair» fica ao lado de «Próxima» — a saída encostada ao avanço. E
+    «Fechar a elicitação» nasce desactivado, sempre à vista, a lembrar o que falta. As três
+    propostas separam os papéis: <strong>navegar</strong> (Anterior · Próxima), <strong>saltar</strong>
+    (Pular), <strong>concluir</strong> (Fechar) e <strong>sair</strong> — e põem cada um onde se
+    alcança.</p>
+
+    <div class="bloco"><h3>O jogo do «Fechar», para ver nas três</h3>
+      <div class="fileira">
+        <button type="button" class="btn btn--secundario btn--pequeno" data-completar="sim">Simular: tudo preenchido</button>
+        <button type="button" class="btn btn--secundario btn--pequeno" data-completar="nao">Simular: faltam obrigatórios</button>
+        <span class="fonte" data-estado-fechar>Estado: faltam obrigatórios — «Fechar» não existe.</span>
+      </div>
+    </div>
+
+    <div class="bloco"><h3>Antes — o que está no ar, a 390px</h3>
+      <div class="fone" style="width:360px">
+        <div class="fone-tela" style="padding:12px 14px">
+          <div class="barra-acao-antiga">
+            <button class="btn btn--secundario btn--pequeno">← Anterior</button>
+            <button class="btn btn--primario btn--pequeno">Próxima →</button>
+            <button class="btn btn--secundario btn--pequeno">Pular</button>
+            <button class="btn btn--secundario btn--pequeno" disabled>Fechar a elicitação</button>
+            <button class="btn btn--secundario btn--pequeno">Sair</button>
+          </div>
+        </div>
+      </div>
+      <p class="medida">cinco alvos iguais · duas linhas · «Sair» encostado a «Próxima»</p>
+    </div>
+
+    <div class="bloco"><h3>B1 — Uma linha com hierarquia</h3>
+      <div class="ato" style="max-width:620px">
+        <div class="ato-cartao" style="border:0;padding:0">
+          <div class="ato-cab" style="padding:12px 14px 0">
+            <p class="ato-tit">Conhecimento prévio</p>
+            <button type="button" class="sair-x" title="Sair" aria-label="Sair">×</button>
+          </div>
+          <div class="barra-acao">
+            <button class="btn btn--secundario">← Anterior</button>
+            <button class="btn btn--secundario btn--fantasma">Pular</button>
+            <span class="cresce"></span>
+            <button class="btn btn--secundario btn--concluir js-fechar">Fechar a elicitação</button>
+            <button class="btn btn--primario">Próxima →</button>
+          </div>
+        </div>
+      </div>
+      <p class="medida">desktop: navegar à esquerda · concluir e avançar à direita · sair no canto do cartão</p>
+      <div class="fones" style="margin-top:14px">
+        <div class="fone" style="width:320px">
+          <div class="fone-tela" style="padding:12px 14px">
+            <div class="ato-cab"><p class="ato-tit">Conhecimento prévio</p>
+              <button type="button" class="sair-x" aria-label="Sair">×</button></div>
+            <div class="barra-acao barra-acao-mob">
+              <button class="btn btn--secundario btn--metade">← Anterior</button>
+              <button class="btn btn--secundario btn--fantasma btn--metade js-pular">Pular</button>
+              <button class="btn btn--secundario btn--concluir btn--cheio js-fechar">Fechar a elicitação</button>
+              <button class="btn btn--primario btn--cheio">Próxima →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="porque">No telefone: os dois de navegação a meia largura, e por baixo o «Fechar»
+      (que só aparece quando o roteiro está completo) e o «Próxima» a cheio. Sair sobe para o canto
+      do cartão, longe do polegar que avança. O custo é ocupar três linhas no pior caso.</p>
+    </div>
+
+    <div class="bloco"><h3>B2 — Barra fixa no rodapé do telefone (recomendado)</h3>
+      <div class="fones">
+        <div class="fone" style="width:320px">
+          <div class="fone-sistema">Sistema Lastro<span class="hamb">☰</span></div>
+          <div class="fone-tela" style="padding:0;position:relative;min-height:420px">
+            <div class="ato-mob" style="padding-bottom:64px">
+              <span class="ctx-novo">
+                <span class="ctx-novo-sum">
+                  <span class="ctx-novo-pino" aria-hidden="true"><span class="ctx-novo-seta">▸</span></span>
+                  <span class="ctx-novo-nome">Contexto do ato</span>
+                  <span class="ctx-novo-res">fita · Tiago · 01</span>
+                </span>
+              </span>
+              <div class="ato-mob-corpo">
+                <div class="ato-cab"><p class="ato-tit">Conhecimento prévio</p>
+                  <span class="ajuda" aria-hidden="true">?</span></div>
+                <p class="ato-mob-sub">A aluna entra, a turma não.</p>
+                <label class="campo"><span>O que ela já sabe</span><input value="já fez um ano de balé clássico" readonly></label>
+                <label class="campo"><span>Os três períodos</span><input value="primeiro: 2 anos" readonly></label>
+                <label class="campo"><span>E o que falta</span><input value="" placeholder="—"></label>
+              </div>
+            </div>
+            <div class="barra-fixa">
+              <button class="btn btn--secundario bf-icone" aria-label="Anterior">←</button>
+              <button class="btn btn--secundario bf-pular js-pular">Pular</button>
+              <button class="btn btn--secundario btn--concluir bf-concluir js-fechar">Fechar</button>
+              <button class="btn btn--primario bf-avancar">Próxima →</button>
+              <button class="btn btn--secundario bf-icone bf-sair" aria-label="Sair">✕</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="medida">barra fixa de 56px + a área segura do telefone · «Fechar» entra no lugar de «Pular» quando fica possível</p>
+      <p class="porque">A navegação passa a estar sempre debaixo do polegar, e a pergunta deixa de
+      precisar de rolagem para avançar. Quando o roteiro fica completo, o lugar do meio troca
+      «Pular» por <b>Fechar a elicitação</b> — é o único momento em que ele existe. No desktop a
+      barra é a mesma, mas dentro do cartão, como no B1.</p>
+    </div>
+
+    <div class="bloco"><h3>B3 — Dois grupos e um transbordo</h3>
+      <div class="ato" style="max-width:620px">
+        <div class="ato-cartao" style="border:0;padding:0">
+          <div class="barra-concluir js-fechar">
+            <button class="btn btn--primario btn--cheio">Fechar a elicitação</button>
+          </div>
+          <div class="barra-acao">
+            <span class="segmento">
+              <button class="seg">← Anterior</button>
+              <button class="seg seg-forte">Próxima →</button>
+            </span>
+            <span class="cresce"></span>
+            <button class="btn btn--secundario btn--pequeno js-pular" title="Pular esta pergunta">Pular</button>
+            <button class="btn btn--secundario btn--pequeno" aria-label="Mais opções">⋯</button>
+          </div>
+        </div>
+      </div>
+      <p class="medida">dois controles visíveis · «Sair» dentro do «⋯» · nada muda de lugar</p>
+      <p class="porque">O mais limpo e o mais económico de espaço: navegação colada num controle
+      segmentado, e o resto atrás de um «⋯». O custo é <b>esconder duas ações</b> — e «Sair» num
+      menu é justamente o que a casa tem evitado, porque sair de um formulário longo tem de ser
+      óbvio.</p>
+    </div>
+
+    <div class="bloco"><h3>O que custa, e o que resolve</h3>
+      <p class="fonte">O <b>Fechar</b> passa a <b>aparecer</b> em vez de nascer desactivado. Um
+      botão desactivado não diz o que falta — e a frase que diz já existe noutro lugar (o aviso do
+      topo do cartão, que conta os obrigatórios em falta). Com ele escondido, a barra tem três
+      botões em vez de quatro, e ganha-se a linha que faltava. O <b>Sair</b> sai de perto do
+      <b>Próxima</b> em todas as propostas: a única coisa pior do que não achar a saída é
+      encontrá-la onde o dedo ia avançar. <b>B2</b> é o que recomendo — é o único que resolve o
+      problema do telefone, que é onde a barra dói, e no desktop não muda nada.</p>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---- O ESTUDO DO ATO (18/10/2026) ---------------------------------------
+     As medidas são as do sistema: a régua de 4px, o raio e os papéis da folha. O que se
+     estuda aqui é ARRANJO, não uma pele nova. */
+  .ato { background:#fff; border:1px solid #e3ddd2; border-radius:12px; overflow:hidden; }
+  .ato-cartao { background:#fff; border:1px solid #e3ddd2; border-radius:12px; padding:14px 16px; }
+  .ato-cab { display:flex; align-items:flex-start; gap:10px; }
+  .ato-cab .ajuda { margin-left:auto; }
+  .ato-tit { font:700 16px/1.3 var(--serif); color:var(--burgundy); margin:0 0 2px; }
+  .ato-sub { font:400 12.5px/1.45 var(--ui); color:#6b6459; margin:0 0 12px; }
+  .campo-linha { display:flex; gap:10px; flex-wrap:wrap; }
+  .campo-linha .campo { flex:1 1 12rem; }
+  .medida { font:500 11.5px/1.4 var(--mono); color:#7a736a; margin:8px 0 0; }
+  .medida b { color:var(--burgundy); }
+  .porque { font:400 13px/1.55 var(--ui); color:#4d4842; margin:10px 0 0; max-width:70ch; }
+  .porque b { color:var(--tinta); }
+  .fonte { font:400 13px/1.6 var(--ui); color:#4d4842; margin:0; max-width:74ch; }
+  .fonte b { color:var(--tinta); }
+
+  /* ---- K: antes e depois ---- */
+  .ctx-antigo { background:#fbf8f3; padding:8px 14px; }
+  .ctx-antigo-sum {
+    display:inline; border:0; background:none; cursor:pointer; padding:0;
+    font:600 14.4px/1.4 var(--ui); color:#3a352e;
+  }
+  .ctx-antigo-res { font-weight:400; color:#6b6459; }
+
+  .ctx-novo { display:block; background:#fff; }
+  .ctx-novo > summary, .ctx-novo-sum {
+    display:flex; align-items:center; gap:10px; min-height:44px; padding:6px 14px;
+    cursor:pointer; list-style:none; user-select:none;
+    font:600 15px/1.25 var(--ui); color:var(--tinta);
+  }
+  .ctx-novo > summary::-webkit-details-marker { display:none; }
+  .ctx-novo-pino {
+    flex:0 0 auto; width:28px; height:28px; border-radius:50%;
+    display:grid; place-items:center;
+    background:#f6efe3; border:1px solid var(--gold-borda); color:var(--burgundy);
+  }
+  .ctx-novo-seta { font-size:14px; line-height:1; transition:transform .15s ease; }
+  .ctx-novo[open] > summary .ctx-novo-seta, .ctx-novo.is-aberto .ctx-novo-seta { transform:rotate(90deg); }
+  .ctx-novo[open] > summary .ctx-novo-pino, .ctx-novo.is-aberto .ctx-novo-pino {
+    background:var(--burgundy); border-color:var(--burgundy); color:var(--gold-claro);
+  }
+  .ctx-novo-nome { flex:0 0 auto; }
+  .ctx-novo-res {
+    font:400 12.5px/1.4 var(--ui); color:#6b6459; margin-left:auto;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap; min-width:0;
+  }
+  .ctx-novo-falta {
+    font:700 12px/1.4 var(--ui); color:var(--falha); margin-left:auto; white-space:nowrap;
+  }
+  .ctx-novo-campos {
+    display:flex; gap:10px 18px; flex-wrap:wrap; padding:8px 14px 16px;
+    border-top:1px solid #f0e8db;
+  }
+  .ctx-novo-campos .campo { flex:0 1 11rem; margin:0; }
+
+  /* ---- I: a ajuda ---- */
+  .ajuda {
+    display:inline-grid; place-items:center; width:22px; height:22px; padding:0;
+    border-radius:50%; border:1px solid var(--gold-borda); background:var(--cream);
+    color:var(--gold-texto); font:700 12px/1 var(--ui); cursor:pointer;
+    vertical-align:middle; margin-left:6px;
+  }
+  .ajuda:hover { background:#f6efe3; }
+  .ajuda[aria-expanded="true"] {
+    background:var(--burgundy); color:var(--gold-claro); border-color:var(--burgundy);
+  }
+  .nota-ajuda {
+    margin:10px 0 0; padding:10px 12px 10px 14px; border-left:3px solid var(--gold-borda);
+    background:#fdfaf5; border-radius:0 8px 8px 0;
+    font:400 12.5px/1.55 var(--ui); color:#4d4842;
+  }
+  .nota-ajuda p { margin:0 0 6px; }
+  .nota-ajuda p:last-child { margin-bottom:0; }
+  .nota-ajuda b { color:var(--burgundy); }
+  .folha {
+    position:absolute; left:0; right:0; bottom:0; z-index:3;
+    background:#fff; border-radius:16px 16px 0 0;
+    box-shadow:0 -8px 28px rgba(31,28,26,.22); padding:10px 16px 16px;
+    font:400 12.5px/1.55 var(--ui); color:#3a352e;
+  }
+  .folha-puxador {
+    display:block; width:38px; height:4px; border-radius:2px;
+    background:#d8d0c4; margin:0 auto 10px;
+  }
+  .folha-tit { font:700 12px/1.2 var(--ui); text-transform:uppercase; letter-spacing:.09em;
+    color:var(--gold-texto); margin:0 0 8px; }
+  .folha p { margin:0 0 8px; }
+  .folha b { color:var(--burgundy); }
+
+  /* ---- B: os botões ---- */
+  .barra-acao {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    padding:12px 14px; border-top:1px solid #efe8dd;
+  }
+  .barra-acao .cresce { flex:1 1 auto; }
+  .barra-acao .btn[disabled] { opacity:.4; }
+  /* O «concluir» tem peso próprio: nem o cheio do «Próxima» (que se usa cinquenta vezes,
+     e dois cheios lado a lado não têm hierarquia), nem o vazio do secundário (que o faria
+     parecer desimportante). Ouro de fundo, bordô no texto: a mesma peça do item ativo. */
+  .btn--concluir {
+    background:#f6efe3; border-color:var(--gold-borda); color:var(--burgundy);
+  }
+  .btn--concluir:hover { background:#efe4d2; }
+  .btn--fantasma { background:transparent; border-color:transparent; color:var(--burgundy); }
+  .btn--fantasma:hover { background:#f6efe3; }
+  .barra-acao-mob { flex-direction:row; }
+  .barra-acao-mob .btn--metade { flex:1 1 calc(50% - 4px); }
+  .barra-acao-mob .btn--cheio { flex:1 1 100%; }
+  .sair-x {
+    flex:0 0 auto; width:30px; height:30px; border-radius:50%; cursor:pointer;
+    border:1px solid #e3ddd2; background:#fbf8f3; color:#6b6459;
+    font:400 18px/1 var(--ui); display:grid; place-items:center;
+  }
+  .sair-x:hover { color:var(--falha); border-color:#e8c9c9; }
+  /* O «Fechar» existe SÓ quando os obrigatórios estão completos — a regra que o produto
+     vai passar a ter. O «Pular» ocupa o lugar enquanto não está. É o mesmo jogo em todas as
+     propostas, e o botão de simulação acima troca os dois. */
+  [data-arranjo="B"][data-completo="nao"] .js-fechar { display:none !important; }
+  [data-arranjo="B"][data-completo="sim"] .js-pular { display:none !important; }
+  .barra-fixa .bf-concluir { flex:0 0 auto; font-size:12.5px; }
+  .barra-concluir { padding:10px 14px 0; }
+  .barra-concluir .btn--cheio { width:100%; }
+
+  .barra-acao-antiga { display:flex; gap:8px; flex-wrap:wrap; }
+  .barra-acao-antiga .btn { font-size:12.5px; height:34px; }
+
+  .barra-fixa {
+    position:absolute; left:0; right:0; bottom:0; z-index:4;
+    display:flex; align-items:center; gap:6px;
+    padding:8px 10px; background:#fff; border-top:1px solid #e3ddd2;
+    box-shadow:0 -6px 18px rgba(31,28,26,.08);
+  }
+  .barra-fixa .btn { height:40px; padding:0 12px; font-size:13px; }
+  .barra-fixa .bf-icone { width:44px; padding:0; font-size:16px; }
+  .barra-fixa .bf-pular { flex:0 0 auto; }
+  .barra-fixa .bf-avancar { flex:1 1 auto; }
+  .barra-fixa .bf-sair { margin-left:auto; }
+
+  .segmento { display:inline-flex; border:1px solid #e3ddd2; border-radius:10px; overflow:hidden; }
+  .segmento .seg {
+    border:0; background:#fff; cursor:pointer; padding:0 14px; height:36px;
+    font:600 13px/1 var(--ui); color:var(--burgundy);
+  }
+  .segmento .seg + .seg { border-left:1px solid #e3ddd2; }
+  .segmento .seg-forte { background:var(--burgundy); color:var(--gold-claro); }
+
+  /* ---- os mocks de telefone deste estudo ---- */
+  .ato-mob { background:#fff; }
+  .ato-mob-corpo { padding:12px 16px 16px; }
+  .ato-mob-tit { font:700 16px/1.3 var(--serif); color:var(--burgundy); margin:0 0 2px; }
+  .ato-mob-sub { font:400 12px/1.45 var(--ui); color:#6b6459; margin:0 0 10px; }
+  .ato-mob-nota {
+    font:400 12px/1.5 var(--ui); color:#6b6459; margin:12px 0 0;
+    padding-left:10px; border-left:3px solid #e8dcc6;
+  }
+  .ato-mob .campo > span { font-size:12px; }
+  .ato-mob .campo input { height:36px; }
+  .fone .titulo-estudo { padding:0; }
+
+  /* A marca, no topo: bege, e as duas cores no ar. */
+  .marca-topo {
+    max-width:940px; margin:0 auto var(--e6); padding:var(--e5) var(--e5);
+    background:#f3ede3; border-radius:14px; border:1px solid #ddd3c4;
+    display:flex; align-items:center; gap:var(--e5); flex-wrap:wrap;
+  }
+  .marca-peca { display:flex; flex-direction:column; gap:10px; align-items:center; }
+  .marca-mask {
+    --cor: var(--burgundy);
+    width:190px; height:118px; background:var(--cor);
+    -webkit-mask:url(marca-lastro.png) center/contain no-repeat;
+    mask:url(marca-lastro.png) center/contain no-repeat;
+  }
+  .marca-mask[data-cor="ouro"] { --cor: var(--gold-claro); }
+  .marca-mask[data-cor="bordo"] { --cor: var(--burgundy); }
+  .marca-legenda { font:600 10.5px/1.2 var(--mono); letter-spacing:.08em;
+    text-transform:uppercase; color:#7a736a; }
+  .marca-texto { flex:1 1 18rem; min-width:0; }
+  .marca-texto p { margin:0; font:400 13px/1.6 var(--ui); color:#4d4842; max-width:52ch; }
+  .marca-texto b { color:var(--burgundy); }
+</style>
+
+<script>
+/* O JOGO DO «FECHAR» (18/10/2026). O produto vai esconder o botão do fecho enquanto faltarem
+   obrigatórios — e um botão que aparece e desaparece tem de ser VISTO a fazê-lo. O botão de
+   simulação troca o estado das três propostas ao mesmo tempo, para se comparar o antes e o
+   depois sem recarregar. */
+(function () {
+  const secao = document.querySelector('section[data-arranjo="B"]');
+  if (!secao) return;
+  const aviso = secao.querySelector('[data-estado-fechar]');
+  const pintar = (completo) => {
+    secao.dataset.completo = completo ? 'sim' : 'nao';
+    if (aviso) {
+      aviso.textContent = completo
+        ? 'Estado: tudo preenchido — «Fechar a elicitação» existe.'
+        : 'Estado: faltam obrigatórios — «Fechar» não existe.';
+    }
+  };
+  secao.querySelectorAll('[data-completar]').forEach((b) => {
+    b.addEventListener('click', () => pintar(b.dataset.completar === 'sim'));
+  });
+})();
+
+/* OS «?» DO ESTUDO NÃO ABRIAM (18/10/2026). Só o botão de simulação estava ligado: as
+   opções da ajuda desenhavam o «?» e o painel, e clicar nele não fazia nada — o defeito
+   que se vê primeiro numa proposta. Aqui o gesto é o mesmo do motor: o `?` alterna o
+   painel que ele aponta (`data-ajuda` → `data-painel`), e um «Fechar» dentro dele fecha. */
+(function () {
+  const alternar = (botao, abrir) => {
+    const alvo = document.getElementById(botao.dataset.ajuda);
+    if (!alvo) return;
+    const vaiAbrir = abrir === undefined ? alvo.hasAttribute('hidden') : abrir;
+    if (vaiAbrir) alvo.removeAttribute('hidden'); else alvo.setAttribute('hidden', '');
+    botao.setAttribute('aria-expanded', vaiAbrir ? 'true' : 'false');
+  };
+  document.querySelectorAll('[data-ajuda]').forEach((botao) => {
+    botao.addEventListener('click', () => alternar(botao));
+  });
+  document.querySelectorAll('[data-fechar-ajuda]').forEach((botao) => {
+    const alvo = botao.closest('[data-painel]');
+    if (!alvo) return;
+    botao.addEventListener('click', () => {
+      const dono = document.querySelector('[data-ajuda="' + alvo.id + '"]');
+      if (dono) alternar(dono, false); else alvo.setAttribute('hidden', '');
+    });
+  });
+})();
+</script>
+</body>
+</html>

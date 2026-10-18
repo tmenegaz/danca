@@ -83,6 +83,19 @@ experimentos/*
 !experimentos/provar-dobra-do-indice.js
 !experimentos/provar-aparencia.js
 !experimentos/provar-ato-e-barra.js
+# A prova do plano e da anamnese: o REGISTRO cita-a por nome («125 de 125»), e uma prova
+# citada que não existe no clone é uma afirmação que ninguém confere.
+!experimentos/provar-ajustes-anamnese.js
+
+# A PÁGINA DE ESTUDO QUE DECIDIU O DESENHO. `opcoes-visuais/` não é prova, é o lugar onde
+# as propostas foram POSTAS — e a decisão do cabeçalho do ato (a barra fixa no telefone, o
+# «?» com a folha inferior, os botões a 44px) foi tomada a olhar para ela. Ela fica
+# versionada por um motivo prático: foi pedida por caminho («em
+# experimentos/opcoes-visuais/index.html») e não se encontrava. Um estudo que ninguém
+# consegue abrir não é um estudo — é um arquivo que existiu na máquina de alguém.
+!experimentos/opcoes-visuais/
+!experimentos/opcoes-visuais/index.html
+!experimentos/opcoes-visuais/marca-lastro.png
 
 # ============================================================================
 # Caches e ambientes

@@ -268,6 +268,10 @@
      não há medida inventada aqui. O `box-sizing` é o que o formulário usa para o campo
      não estourar a coluna. */
   .acoes { display: flex; gap: .6rem; flex-wrap: wrap; margin-top: 1.25rem; }
+  /* O «✕» de sair vai para o extremo oposto do «Próxima»: quem avança não deve ter a
+     saída debaixo do dedo. `margin-left: auto` empurra-o para a direita em qualquer
+     largura, e no telefone a barra fixa já o põe no canto. */
+  .acoes #sair { margin-left: auto; }
   /* A linha que segue um grupo — «…ou declare outra coisa», «Adicionar linha»,
      «+ Acrescentar marco parcial». É o mesmo gesto oito vezes: a medida mora aqui,
      não no atributo `style` do HTML. `folgada` é o degrau das linhas de bloco. */
@@ -365,6 +369,32 @@
   }
   .explica p { margin: .35rem 0; }
   .explica b { color: var(--marca); }
+  /* O «?» — a explicação do campo deixou de estar sempre aberta a empurrar o formulário
+     (18/10/2026). Ela mora atrás deste botão, no alto do cartão, ao lado do título. É o
+     mesmo gesto que a produção já usa na listagem das turmas: a informação existe, mas não
+     ocupa espaço até ser pedida.
+
+     O ALVO é maior do que o desenho: 24px de círculo no desktop (onde o rato acerta) e
+     30px no telefone, que é o mesmo corpo do pino do contexto. */
+  .titulo-do-no { display: flex; align-items: center; gap: var(--esp-2); }
+  /* PAPÉIS, nunca primitivos (a folha é a única que conhece os nomes das cores) — e os
+     mesmos que a pastilha do contexto usa, para os dois círculos da página serem o mesmo
+     objeto e mudarem juntos com a família de cores. */
+  .ajuda {
+    flex: 0 0 auto; margin-left: auto;
+    display: inline-grid; place-items: center;
+    width: 24px; height: 24px; padding: 0;
+    border-radius: 50%; border: 1px solid var(--borda-campo);
+    background: var(--fundo-faixa); color: var(--marca);
+    font: 700 12px/1 var(--ui); cursor: pointer;
+  }
+  .ajuda:hover { background: var(--fundo-hover); }
+  .ajuda[aria-expanded="true"] {
+    background: var(--marca-fundo); border-color: var(--marca-fundo);
+    color: var(--texto-destaque-marca);
+  }
+  /* O «Fechar» da folha — só existe onde a folha é folha. */
+  .explica .fechar-ajuda { display: none; }
   /* O item da repetição (um por sujeito): a linha de base acoplada ao nó dos
      sujeitos. Cada bloco traz a referência da anamnese e os campos do item. */
   .item-repeticao {
@@ -505,8 +535,14 @@
      A coluna da escola vira uma FAIXA no topo: o mesmo papel, sem disputar largura com
      cinco controles. É a única mudança de arranjo, e ela acontece uma vez. */
   @media (max-width: 768px) {
+    /* `minmax(0, 1fr)` E NÃO `1fr` — e esta é a correção do dia (18/10/2026). O mínimo de
+       uma faixa `1fr` é `auto`, isto é o MIN-CONTENT do que está lá dentro: e o min-content
+       dos campos da senha media 488px. Resultado medido a 360px: a faixa tinha 312px de
+       largura e a coluna resolvia para **519px** — os campos saíam pela direita, com a
+       borda engolida, e `flex-wrap` não os quebrava porque uma faixa de grelha não quebra.
+       Com `minmax(0,1fr)` a faixa aceita encolher, e quem cede é o conteúdo. */
     .barra {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
       grid-template-areas: "escola" "contadores" "ato";
     }
     .barra > .ctx-fixa {
@@ -517,18 +553,105 @@
     .barra > .ctx-fixa .ctx-inscricao { font-size: 15px; }
     .barra > .contadores { justify-content: flex-start; padding: var(--esp-3) var(--esp-4) 0; }
     .barra > details.ctx-ato { padding: 0 var(--esp-4) var(--esp-4); }
-    .barra details.ctx-ato .ctx-campos { gap: var(--esp-2) var(--esp-3); }
-    /* No celular o campo ocupa a linha inteira: `width: auto` com conteúdo curto
-       («01») deixa um alvo de dedo do tamanho de uma unha. */
-    .barra details.ctx-ato .ctx-campos > .campo { flex: 1 1 8rem; }
-    .barra .campo select, .barra .campo input { max-width: none; width: 100%; }
+    /* OS CAMPOS VIRAM UMA GRELHA DE DUAS COLUNAS (18/10/2026). Eram `flex` com
+       `flex: 1 1 8rem` e `flex-wrap: wrap` — e a combinação não se comportava como «duas
+       colunas que cabem»: os itens cresciam até ao min-content, e a linha transbordava em
+       vez de partir. Uma grelha diz o que se quer sem depender de contas de `flex`:
+       duas colunas iguais, e cada uma pode encolher até zero (`minmax(0,1fr)`).
+
+       Duas colunas a partir de 360px dão ~134px por campo, que é o que um `select` desta
+       barra precisa: o do professor («Tiago Menegaz») cabe, e o do ciclo («01») sobra. */
+    .barra details.ctx-ato .ctx-campos {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--esp-3);
+      align-items: end;
+    }
+    /* CADA CAMPO É UMA GRELHA DE si PRÓPRIA: o controle elástico e, ao lado, o «×» da
+       aluna — que fica com o seu tamanho e não desce sozinho. `min-width: 0` é o que
+       autoriza o controle a encolher; sem ele o item mantém o min-content e volta o
+       transbordo, agora dentro da coluna. */
+    .barra details.ctx-ato .ctx-campos > .campo {
+      display: grid; grid-template-columns: minmax(0, 1fr) auto;
+      justify-content: stretch; align-items: center;
+      min-width: 0; width: auto;
+    }
+    .barra .campo select, .barra .campo input { max-width: none; width: 100%; min-width: 0; }
     /* A senha também: `width: 8rem` é medida de barra larga, não de telefone. */
     .barra .campo input[type=password] { width: 100%; }
-    /* A coluna do controle passa a ser elástica: o SELECT ocupa o que sobra e o «×» fica
-       com o seu tamanho. É o que impede o botão de descer sozinho e o campo de crescer
-       18px em relação aos vizinhos. */
-    .barra details.ctx-ato .ctx-campos > .campo { grid-template-columns: 1fr auto; justify-content: stretch; }
+    /* O ESTADO DA SENHA DEIXA DE EMPURRAR. Era `white-space: nowrap`: a frase «✗ senha
+       não reconhecida» media 488px e, por ser o min-content do campo, era ELA que esticava
+       tudo. Passa a quebrar dentro da coluna — e, vazia, não ocupa linha nenhuma. */
+    .barra .campo .senha-status { white-space: normal; }
+    .barra .campo .senha-status:empty { display: none; }
     #ctx-ciclo { width: 100%; }
+
+    /* ---- A BARRA DE AÇÃO DO ATO É FIXA NO RODAPÉ DO TELEFONE --------------------
+       O ato é uma pergunta por vez: o polegar não devia ter de rolar até ao fim da
+       página para avançar. A barra sai do fluxo e cola em baixo — e a condução ganha
+       o espaço dela em `padding-bottom`, senão o último campo fica debaixo da barra.
+
+       A ordem é a da mão: navegar à esquerda, avançar no meio (a crescer), sair à
+       direita. O «Fechar a elicitação» recebe `order: 3` e a linha inteira, por isso
+       cai SEMPRE na segunda linha — nunca entre as setas, onde o polegar o acertaria
+       por engano. Enquanto faltam obrigatórios ele está `hidden`, e a barra tem uma
+       linha só. */
+    /* O espaço que a barra rouba à condução. São DUAS linhas no pior caso (a de navegação,
+       45px, e a do «Fechar», outros 45px, mais os 8px de folga em cima e em baixo):
+       120px. Medido, não estimado — com 88px o último campo ficava debaixo do «Fechar». */
+    #conducao { padding-bottom: calc(7.5rem + env(safe-area-inset-bottom, 0px)); }
+    #conducao .acoes {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+      margin: 0; padding: var(--esp-2) var(--esp-3);
+      padding-bottom: calc(var(--esp-2) + env(safe-area-inset-bottom, 0px));
+      /* `stretch` e não `center`: os três botões de navegação ficam com a altura do mais
+         alto (`«Próxima»` veste a peça `.acao`, 45px), sem eu redesenhar a peça aqui. */
+      display: flex; align-items: stretch; flex-wrap: wrap; gap: var(--esp-2);
+      background: var(--superficie); border-top: 1px solid var(--borda);
+      box-shadow: 0 -6px 18px rgba(31, 28, 26, .08);
+    }
+    #conducao .acoes button { min-height: 40px; }
+    /* «←» sozinho: 44px de alvo, o rótulo escondido — `aria-label` já o diz ao leitor. */
+    #conducao .acoes #anterior { flex: 0 0 auto; width: 44px; padding: 0; font-size: 1.05rem; }
+    #conducao .acoes #anterior span { display: none; }
+    #conducao .acoes #proxima { flex: 1 1 auto; }
+    #conducao .acoes #sair { flex: 0 0 auto; width: 44px; padding: 0; font-size: 1.05rem; }
+    #conducao .acoes #fechar { order: 3; flex: 1 1 100%; }
+
+    /* ---- A EXPLICAÇÃO SOBE COMO FOLHA INFERIOR ---------------------------------
+       No telefone o «?» não abre um bloco que empurra o formulário para baixo (o que
+       devolveria o problema que ele veio resolver): sobe uma folha, e a pergunta fica
+       atrás, escurecida. É a mesma peça da navegação da produção, e fecha pelo botão
+       ou pelo «?» outra vez. */
+    .ajuda { width: 30px; height: 30px; font-size: 13px; }
+    .explica.aberto {
+      position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+      max-height: 70vh; overflow: auto;
+      margin: 0; padding: var(--esp-3) var(--esp-4);
+      padding-bottom: calc(var(--esp-4) + env(safe-area-inset-bottom, 0px));
+      border-left: 0; border-top: 3px solid var(--ornamento);
+      border-radius: var(--raio-2) var(--raio-2) 0 0;
+      background: var(--superficie);
+      box-shadow: 0 -8px 28px rgba(31, 28, 26, .22);
+    }
+    /* O véu: um pseudo-elemento do próprio painel. Fica no sistema de camadas dele
+       (o painel é `fixed` com `z-index`), por isso cobre a página e não o painel. */
+    .explica.aberto::before {
+      content: ''; position: fixed; inset: 0; z-index: -1;
+      background: rgba(20, 16, 12, .38);
+    }
+    .explica .fechar-ajuda {
+      display: block; width: 100%; margin-top: var(--esp-3);
+      min-height: 40px;
+    }
+  }
+  /* ABAIXO DE 344px, UMA COLUNA. A 320px (o menor telefone que ainda se usa) duas colunas
+     dão 114px por campo, e o `select` do professor começa a cortar o nome — o campo
+     deixa de dizer o que lá está, que é o defeito que esta correção existe para resolver.
+     O corte é o do conteúdo, não o do aparelho: 344 é onde «Tiago Menegaz» deixa de caber
+     nos dois lados do filete. */
+  @media (max-width: 344px) {
+    .barra details.ctx-ato .ctx-campos { grid-template-columns: minmax(0, 1fr); }
   }
   @media print { .toc-local { position: static; max-height: none; } }
 </style>
@@ -667,18 +790,30 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 <!-- ------------------------------------------------------------ condução -->
 <section id="conducao" class="oculto">
   <h2>Condução</h2>
-  <p class="sub">Uma pergunta por vez. O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
+  <!-- O RITMO DA CONDUÇÃO, dito UMA vez (18/10/2026). Ele estava por cima de todas as
+       perguntas, a repetir a mesma frase trinta vezes: a regra do ato não muda de cartão
+       para cartão, e a repetição era só altura a rolar. Aparece na primeira, onde se
+       aprende, e cala-se nas outras. -->
+  <p class="sub" id="ritmo-da-conducao">Uma pergunta por vez. O que não se observou fica em branco — a lacuna é declarada, nunca inventada.</p>
 
   <div id="socratica" class="socratica oculto"></div>
   <div id="trava-senha" class="trava-senha oculto"></div>
   <div id="pergunta"></div>
 
+  <!-- A BARRA DE AÇÃO DO ATO (18/10/2026). Quatro papéis, e antes cinco botões do mesmo
+       tamanho e do mesmo peso: navegar (`←` · `Próxima →`), concluir (`Fechar a elicitação`,
+       que só existe quando os obrigatórios estão preenchidos) e sair (`✕`). O «Pular»
+       deixou de existir — a lacuna já se declara deixando o campo em branco, e o botão só
+       oferecia um caminho para avançar sem responder, que é o oposto do que o ato pede.
+
+       No telefone isto é uma barra FIXA no rodapé (abaixo, no `@media`): o polegar alcança
+       o avanço sem rolar, e o «Fechar» entra na linha de baixo quando fica possível. No
+       desktop a barra é a mesma, dentro do fluxo. -->
   <div class="acoes">
-    <button id="anterior">← Anterior</button>
+    <button id="anterior" title="Anterior" aria-label="Anterior">←<span> Anterior</span></button>
     <button id="proxima" class="acao">Próxima →</button>
-    <button id="pular">Pular</button>
     <button id="fechar" disabled hidden>Fechar a elicitação</button>
-    <button id="sair">Sair</button>
+    <button id="sair" title="Salvar para continuar depois" aria-label="Salvar para continuar depois">✕</button>
   </div>
 </section>
 
@@ -1680,11 +1815,9 @@ function travarFormularioSemSenha() {
     if (raiz.classList && raiz.classList.toggle) raiz.classList.toggle('travado', trava);
   }
   // Os botões da CONDUÇÃO vivem FORA do `#pergunta`: a trava tem de os alcançar por nome. O
-  // `#pular` APAGA a resposta do nó e o `#fechar` roda a prévia no motor — os dois MEXEM (um
-  // escreve, o outro gasta o processo inteiro). Sem senha não se mexe. Ficam LIVRES o
-  // `#anterior`, o `#proxima` e o `#sair`: navegar e sair não mudam nada.
-  const pular = $('pular');
-  if (pular) pular.disabled = trava;
+  // `#fechar` roda a prévia no motor, isto é GASTA o processo inteiro — sem senha não se
+  // mexe. Ficam LIVRES o `#anterior`, o `#proxima` e o `#sair`: navegar e sair não mudam
+  // nada.
   if (trava) {
     const fechar = $('fechar');
     if (fechar) fechar.disabled = true;
@@ -2006,8 +2139,9 @@ function contar() {
 }
 
 /*
- * O que falta para o fecho abrir. Um obrigatório PULADO volta a esta lista —
- * `#pular` apaga a resposta, e a lacuna reaberta precisa reabrir a trava.
+ * O que falta para o fecho abrir. Um obrigatório LIMPO volta a esta lista — o
+ * «limpar» do roteiro apaga a resposta, e a lacuna reaberta precisa reabrir a
+ * trava.
  */
 function obrigatoriosFaltando() {
   if (!MAPA || !MAPA.nos) return [];
@@ -2278,7 +2412,13 @@ function tituloDoNo(no) {
   const marca = no.obrigatorio && !no.derivado
     ? ' <span class="req" title="campo obrigatório">*</span>'
     : '';
-  return '<h3>' + (INDICE + 1) + '. ' + md(no.campo) + marca + '</h3>';
+  // O «?» só existe quando há o que ele conta — `linhasDaExplicacao` é o mesmo lugar
+  // que decide o conteúdo do painel: um botão que abre o vazio ensina a não o usar.
+  const ajuda = linhasDaExplicacao(no).length
+    ? '<button type="button" class="ajuda" aria-expanded="false" aria-controls="explica"' +
+      ' title="O que é este campo" aria-label="O que é este campo">?</button>'
+    : '';
+  return '<h3 class="titulo-do-no">' + (INDICE + 1) + '. ' + md(no.campo) + marca + ajuda + '</h3>';
 }
 
 function cabecalhoDoNo(no) {
@@ -2627,18 +2767,56 @@ function avisoDoFecho() {
 
 /*
  * A EXPLICAÇÃO do nó — o texto curto que o conteúdo declara para o professor.
- * A tela não sabe o que é um «tendú» nem um PO: só desenha as três perguntas
- * que o conteúdo respondeu (o que é, o que preencher, por que existe).
+ * A tela não sabe o que é um «tendú» nem um PO: só desenha as perguntas que o
+ * conteúdo respondeu (o que é, o que preencher, por que existe) e as NOTAS que ele
+ * escreveu para quem preenche.
+ *
+ * UMA FUNÇÃO, DOIS USOS (18/10/2026). Ela devolve as linhas; o título pergunta
+ * `linhas.length` para desenhar o «?», e a caixa desenha o que ele vai abrir. Se as
+ * duas decidissem por si — o botão a olhar para `explicacao`, a caixa para o que
+ * desenha — havia caminho para o «?» abrir vazio ou para uma nota ficar sem porta.
+ *
+ * AS NOTAS ENTRARAM AQUI. `nota` (do campo) e `blocoNota` (do bloco) eram parágrafos
+ * `.aviso` sempre à vista no meio do formulário — o texto dos «três períodos», que o
+ * professor leu e disse ser poluição. `.aviso` continua a ser o que IMPEDE o avanço
+ * («Preencha primeiro os marcos»), que tem de ficar à vista; o que EXPLICA passa a
+ * estar atrás do «?», que é onde se vai buscá-lo.
  */
-function caixaDaExplicacao(no) {
-  const e = no.explicacao;
-  if (!e) return '';
+function linhasDaExplicacao(no) {
   const linhas = [];
-  if (e.oQueE) linhas.push('<p><b>O que é.</b> ' + md(e.oQueE) + '</p>');
+  const e = no.explicacao || {};
+  if (e.oQueE || no.oQueE) linhas.push('<p><b>O que é.</b> ' + md(e.oQueE || no.oQueE) + '</p>');
   if (e.preencher) linhas.push('<p><b>O que preencher.</b> ' + md(e.preencher) + '</p>');
   if (e.porQue) linhas.push('<p><b>Por que existe.</b> ' + md(e.porQue) + '</p>');
+  if (no.nota) linhas.push('<p>' + md(no.nota) + '</p>');
+  // A nota do BLOCO é do bloco, não de cada campo dele: a mesma guarda que a desenhava no
+  // cartão (só o primeiro nó do bloco) continua a valer aqui, senão ela apareceria trinta
+  // vezes no «?» de trinta perguntas.
+  const primeiroDoBloco = INDICE === 0 || MAPA.nos[INDICE - 1].bloco !== no.bloco;
+  if (no.blocoNota && primeiroDoBloco) linhas.push('<p>' + md(no.blocoNota) + '</p>');
+  return linhas;
+}
+
+function caixaDaExplicacao(no) {
+  const linhas = linhasDaExplicacao(no);
   if (!linhas.length) return '';
-  return '<div class="explica">' + linhas.join('') + '</div>';
+  return '<div class="explica" id="explica" hidden>' + linhas.join('') +
+    '<button type="button" class="acao secundario fechar-ajuda" data-fechar-ajuda>Fechar</button>' +
+    '</div>';
+}
+
+/*
+ * Abre e fecha a explicação. O `hidden` é o estado: ele é que decide, e é a folha do
+ * telefone que se pendura nele (`.explica.aberto`).
+ */
+function alternarAjuda(abrir) {
+  const caixa = document.getElementById('explica');
+  if (!caixa) return;
+  const botao = document.querySelector('#pergunta .ajuda');
+  const vaiAbrir = abrir === undefined ? caixa.hidden : abrir;
+  caixa.hidden = !vaiAbrir;
+  caixa.classList.toggle('aberto', vaiAbrir);
+  if (botao) botao.setAttribute('aria-expanded', vaiAbrir ? 'true' : 'false');
 }
 
 /*
@@ -4450,8 +4628,9 @@ function renderPergunta() {
       blocos.push('<p class="sub">Item de ' + citacao(no.agrupador) + '.</p>');
     }
     if (no.orientacao) blocos.push('<p class="sub">' + md(no.orientacao) + '</p>');
-    if (no.oQueE) blocos.push('<p>' + md(no.oQueE) + '</p>');
-    if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
+    // `oQueE` e `nota` NÃO se desenham aqui: foram para dentro do «?», com o resto da
+    // explicação (`linhasDaExplicacao`). Desenhar nos dois sítios era o defeito — o texto
+    // ficava à vista e atrás do botão ao mesmo tempo.
     if (no.aprofunda && no.aprofunda.length) {
       blocos.push('<p>Onde aprofunda: ' + no.aprofunda.map((b) =>
         'bloco ' + b.bloco + (b.titulo ? ' — ' + md(b.titulo) : '')).join(' · ') + '</p>');
@@ -4491,7 +4670,6 @@ function renderPergunta() {
     if (INDICE === 0 || MAPA.nos[INDICE - 1].bloco !== no.bloco) {
       blocos.push('<p><b>Bloco ' + no.bloco + ' — ' + md(no.blocoTitulo) + '</b></p>');
       if (no.blocoObjetivo) blocos.push('<p class="sub">' + md(no.blocoObjetivo) + '</p>');
-      if (no.blocoNota) blocos.push('<p class="aviso">' + md(no.blocoNota) + '</p>');
     }
     if (no.dimensaoPorItem && no.dimensao) {
       blocos.push('<p><span class="selo dim">dimensão deste item: ' + md(no.dimensao) + '</span></p>');
@@ -4503,11 +4681,9 @@ function renderPergunta() {
     } else if (no.valores && no.valores.length) {
       if (no.multipla) {
         blocos.push('<p><b>' + md(no.forma) + '</b></p>');
-        if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
         blocos.push(gradeDePraticas(no));
       } else {
         blocos.push('<p><b>' + md(no.forma) + '</b></p>');
-        if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
         blocos.push(opcoesEmLinhas(no, no.valores, 'outro valor'));
       }
     } else {
@@ -4524,11 +4700,9 @@ function renderPergunta() {
     blocos.push(opcoesEmLinhas(no, no.opcoes, 'o que se observou'));
   } else if (no.multipla && no.valores && no.valores.length) {
     blocos.push('<p><b>' + md(no.forma) + '</b></p>');
-    if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
     blocos.push(gradeDePraticas(no));
   } else if (no.valores && no.valores.length > 1) {
     blocos.push('<p><b>' + md(no.forma) + '</b></p>');
-    if (no.nota) blocos.push('<p class="aviso">' + md(no.nota) + '</p>');
     blocos.push(opcoesEmLinhas(no, no.valores, 'outro valor'));
   } else {
     const eData = no.id === 'idade';
@@ -4554,6 +4728,13 @@ function renderPergunta() {
   $('anterior').disabled = INDICE === 0;
   $('proxima').disabled = INDICE >= MAPA.nos.length - 1;
   $('proxima').textContent = INDICE >= MAPA.nos.length - 1 ? 'Fim do roteiro' : 'Próxima →';
+
+  // O ritmo do ato só se diz na PRIMEIRA pergunta. A explicação do campo nasce fechada em
+  // cada cartão novo — abrir um «?» é sobre ESTA pergunta, e trazer aberto o da anterior
+  // seria o mesmo que não ter botão.
+  const ritmo = document.getElementById('ritmo-da-conducao');
+  if (ritmo) ritmo.hidden = INDICE !== 0;
+
   // A última palavra é da TRAVA: o formulário recém-desenhado nasce em só-leitura se a
   // senha ainda não foi validada.
   travarFormularioSemSenha();
@@ -4675,10 +4856,9 @@ function irPara(i, guardar) {
 }
 
 /*
- * Apaga a resposta de um nó já respondido. É o gesto inverso do `#pular`, com
- * duas diferenças: não avança o roteiro (é limpeza, não condução) e o nó fica
- * onde está, vazio. A idade desfaz a categoria que semeou — some a fonte,
- * some a sugestão —, como no `#pular`.
+ * Apaga a resposta de um nó já respondido. É limpeza, não condução: não avança o
+ * roteiro e o nó fica onde está, vazio. A idade desfaz a categoria que semeou —
+ * some a fonte, some a sugestão —, como fazia o «Pular» que já não existe.
  */
 function limparNo(i) {
   const no = MAPA.nos[i];
@@ -6332,18 +6512,22 @@ async function iniciar() {
 
   $('anterior').addEventListener('click', () => irPara(INDICE - 1, true));
   $('proxima').addEventListener('click', () => irPara(INDICE + 1, true));
-  $('pular').addEventListener('click', () => {
-    const no = MAPA.nos[INDICE];
-    RESPOSTAS.delete(no.id);
-    NOTAS.delete(no.id);
-    // Pular a categoria é decisão da professora: a pré-inscrição não a reescreve.
-    // Pular a idade desfaz a categoria que ela havia semeado — some a fonte,
-    // some a sugestão.
-    if (no.id === 'categoria-etaria') SUGERIDAS.delete('categoria-etaria');
-    preencherCategoria(no);
-    atualizarBarra();
-    salvar();
-    irPara(INDICE + 1, false);
+  // NOTA — o «Pular» saiu (18/10/2026). Ele apagava a resposta do nó e avançava: um botão
+  // cujo único efeito era conduzir sem responder, o contrário do que o ato pede. A lacuna
+  // declarada já se faz deixando o campo em branco e seguindo, e o «limpar» do roteiro
+  // continua a apagar uma resposta já dada, sem andar.
+  // O «?» da explicação. Delegado no `#pergunta` porque o cartão é redesenhado a cada
+  // pergunta — ligar o botão a cada pintura deixaria o anterior a ouvir no vazio.
+  $('pergunta').addEventListener('click', (evento) => {
+    const alvo = evento.target;
+    if (!alvo || !alvo.closest) return;
+    if (alvo.closest('.ajuda')) { alternarAjuda(); return; }
+    if (alvo.closest('[data-fechar-ajuda]')) alternarAjuda(false);
+  });
+  // O «Esc» fecha a folha — no telefone ela cobre a pergunta, e sair dela tem de ser tão
+  // fácil como entrou.
+  document.addEventListener('keydown', (evento) => {
+    if (evento.key === 'Escape') alternarAjuda(false);
   });
   $('fechar').addEventListener('click', fechar);
   $('voltar').addEventListener('click', () => {
