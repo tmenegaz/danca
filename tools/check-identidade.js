@@ -627,6 +627,159 @@ function conferirForma() {
 }
 conferirForma();
 
+// --------------------------------------------------------------- 8) a peça
+//
+// A FORMA MEDE A CÓPIA; NÃO MEDE O NOME (18/10/2026). A checagem 7 sabe dizer se
+// uma página REDECLAROU uma peça da fonte. Não sabe dizer se alguém inventou uma
+// peça que nunca existiu — e foi exactamente isso que aconteceu, no dia em que a
+// secção «Aparência» nasceu com `<div class="fileira">`. `fileira` não estava em
+// lugar nenhum: nem na fonte, nem no `<style>` da página. Sem desenho, os dois
+// botões encostaram um no outro, e o dono do produto viu o defeito antes de
+// qualquer prova — porque o defeito era visual, e nenhuma das oito checagens
+// olhava para o NOME das coisas.
+//
+// A regra que fecha isso é a mais simples que existe: **toda classe usada na
+// marcação tem de ser DESENHADA em algum lugar** — na fonte, ou no `<style>` da
+// própria página, quando ela declara o que usa. Quem não desenha nada é uma de
+// duas coisas, e as duas se declaram:
+//
+//   · um GANCHO — um nome que existe para o JavaScript achar o elemento, ou para
+//     a composição do grid se ler. Não pinta nada de propósito, e está na lista
+//     abaixo com a razão escrita. A lista é curta e à mão de propósito: cada
+//     linha nova é uma decisão de alguém, e é aí que se pensa «isto é uma peça ou
+//     é um gancho?»;
+//   · um ERRO — e aí a marcação usa outra coisa, ou a peça nasce na fonte.
+//
+// O QUE CONTA COMO «DESENHADA». Uma classe é desenhada quando aparece no ÚLTIMO
+// composto de alguma regra — `.acao.grande` desenha `acao` e `grande`; `.fileira >
+// button` desenha `button`, e `fileira` só é PAI. Um modificador desenha-se assim,
+// e um contentor que só ajusta o que está dentro não é peça: é gancho, e declara-se.
+const GANCHOS = new Map(Object.entries({
+  // — ganchos de JavaScript: o script procura estes nomes, e não os pinta
+  adicionar: 'o botão «Adicionar» do escolhedor, que o script procura',
+  editar: 'o «Editar» de uma linha, que o script procura para abrir a edição',
+  'cancelar-edicao': 'o «Cancelar» do modo de edição, que o script procura',
+  opcoes: 'o `<select>` de opções do escolhedor, que o script lê',
+  'pag-ant': 'o «anterior» da paginação, que o script procura e desabilita',
+  'pag-prox': 'o «próximo» da paginação, idem',
+  'pag-info': 'o contador da paginação, que o script escreve',
+  menu: 'o `<details>` da barra, que `nav.js` abre e fecha (o desenho é de `summary`)',
+  'ctx-turma': 'o bloco do contexto da turma na porta, que o script preenche',
+  filtros: 'o grupo de filtros do lançamento, que o script lê',
+  // — ganchos de composição: o desenho é do PAI (o grid da secção), e o filho só existe
+  //   para o grid ter onde pôr a coluna
+  'col-form': 'a coluna do formulário no grid da secção — o desenho é do grid',
+  principal: 'a coluna do conteúdo nos Bastidores — o desenho é do grid',
+  form: 'o contentor do formulário na raiz — o desenho é do cartão que o contém',
+}));
+
+/** As classes que alguma regra DESENHA — as do último composto de cada seletor. */
+function classesDesenhadas(css) {
+  const conjunto = new Set();
+  for (const bloco of css.split('}')) {
+    const i = bloco.lastIndexOf('{');
+    if (i < 0) continue;
+    for (const seletor of bloco.slice(0, i).split(',')) {
+      const compostos = seletor.trim().split(/[\s>+~]+/);
+      const ultimo = compostos[compostos.length - 1] || '';
+      for (const m of ultimo.matchAll(/\.([a-zA-Z][a-zA-Z0-9_-]*)/g)) conjunto.add(m[1]);
+    }
+  }
+  return conjunto;
+}
+
+const desenhadasNaFonte = classesDesenhadas(fs.readFileSync(fonte, 'utf8'));
+
+/** As superfícies que EMITEM marcação: o que um leitor vê tem de usar peça conhecida. */
+function superficiesQueEmitem() {
+  const lista = [];
+  const ler = (rel) => {
+    const arq = path.join(raiz, rel);
+    return fs.existsSync(arq) ? fs.readFileSync(arq, 'utf8') : null;
+  };
+  for (const rel of [
+    'porta/index.html',
+    'raiz/index.html',
+    'tools/templates/ciclo.html',
+    'tools/templates/lancamento.html',
+  ]) {
+    const t = ler(rel);
+    if (t) lista.push([rel, t]);
+  }
+  // As que o MOTOR gera não estão em arquivo nenhum: pedem-se ao motor, que é o
+  // único lugar onde o que se mede é o que se serve.
+  try {
+    const bastidores = require(path.join(raiz, 'motor/servidor/bastidores.js'));
+    lista.push(['bastidores/producao', bastidores.paginaProducao(
+      'x', { professor: 'x', ciclo: '01', query: '' }, [], [], '', '', [], [], [], [], [], [])]);
+  } catch (e) {
+    erros.push('Peça: não foi possível gerar a página de Produção para medir (' + e.message + ')');
+  }
+  try {
+    const ficha = require(path.join(raiz, 'motor/nucleo/ficha-html.js'));
+    lista.push(['ficha', ficha.paginaDaFicha('## x\n', { aba: 'a', titulo: 't', sub: 's' })]);
+  } catch (e) {
+    erros.push('Peça: não foi possível gerar a ficha (' + e.message + ')');
+  }
+  try {
+    const estado = require(path.join(raiz, 'motor/servidor/estado-html.js'));
+    lista.push(['estado', estado.paginaEstado('E', '<p>x</p>')]);
+  } catch (e) {
+    erros.push('Peça: não foi possível gerar a página de estado (' + e.message + ')');
+  }
+  return lista;
+}
+
+function conferirPecas() {
+  const problemas = [];
+
+  // 8a — a folha não pode ter comentário aberto. Um `/*` sem `*/` engole todas as
+  // regras seguintes até ao próximo fecho, e as peças de lá ficam SEM DESENHO sem
+  // que nada falhe — foi o que aconteceu a `.acao.perigo`, `.acao.grande` e
+  // `.acao.pequena` numa das versões deste dia, e a página só perdia o desenho.
+  const cru = fs.readFileSync(fonte, 'utf8');
+  const abre = (cru.match(/\/\*/g) || []).length;
+  const fecha = (cru.match(/\*\//g) || []).length;
+  if (abre !== fecha) {
+    problemas.push(`Peça: tools/templates/ciclo.css tem ${abre} «/*» e ${fecha} «*/» — ` +
+      'um comentário aberto apaga as regras que vêm depois dele');
+  }
+
+  // 8b — toda classe usada na marcação é desenhada, ou é gancho declarado.
+  const superficies = superficiesQueEmitem();
+  const orfas = new Map();
+  for (const [nome, html] of superficies) {
+    // O `<script>` fica de fora: lá dentro as classes são strings montadas em tempo
+    // de execução (`'selo ' + estado`), e medi-las seria medir a minha própria regex.
+    const semScript = html.replace(/<script[\s\S]*?<\/script>/g, '');
+    // O `<style>` da própria página conta como desenho: a página que declara o que
+    // usa está no regime da checagem 4, e não no desta.
+    const estilos = [...html.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)].map((m) => m[1]).join('\n');
+    const desenhadasNaPagina = classesDesenhadas(estilos);
+    for (const m of semScript.matchAll(/class="([^"]*)"/g)) {
+      for (const classe of m[1].split(/\s+/)) {
+        if (!/^[a-zA-Z][a-zA-Z0-9_-]*$/.test(classe)) continue;
+        if (desenhadasNaFonte.has(classe) || desenhadasNaPagina.has(classe)) continue;
+        if (GANCHOS.has(classe)) continue;
+        if (!orfas.has(classe)) orfas.set(classe, new Set());
+        orfas.get(classe).add(nome);
+      }
+    }
+  }
+  for (const [classe, onde] of orfas) {
+    problemas.push(`Peça: a classe «${classe}» é usada em ${[...onde].join(', ')} e não é ` +
+      'desenhada em lugar nenhum — use uma peça de tools/templates/ciclo.css, ou declare-a lá ' +
+      '(e no catálogo de IDENTIDADE-VISUAL.md), ou registe-a como gancho nesta checagem');
+  }
+
+  for (const p of problemas) erros.push(p);
+  if (!problemas.length) {
+    ok.push(`Peça: as ${superficies.length} superfícies que emitem marcação usam só peças ` +
+      `desenhadas ou ganchos declarados (${GANCHOS.size} ganchos), e a folha não tem comentário aberto`);
+  }
+}
+conferirPecas();
+
 // -------------------------------------------------------------------- saída
 
 for (const l of ok) console.log(`ok: ${l}`);

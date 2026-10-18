@@ -549,7 +549,7 @@ a.acao { border-bottom: none; }
    margem de topo e desceu 8px em relação ao seletor. Um botão AO LADO de um campo
    não é um botão ABAIXO dele, e o CSS não sabe distinguir os dois pelo pai: sabe
    pelo pai ser ou não o formulário. */
-.par-associar > button, .escolhedor .entrada > button, .fileira > button { margin-top: 0; }
+.par-associar > button, .escolhedor .entrada > button { margin-top: 0; }
 
 button.acao:hover:not(:disabled), a.acao:hover {
   background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
@@ -566,17 +566,18 @@ button.acao:hover:not(:disabled), a.acao:hover {
 .acao.secundario, .acao.perigo { box-shadow: none; }
 .acao.secundario:hover:not(:disabled) { background: var(--fundo-hover); }
 
-/* A ESCOLHA FEITA. Um `.acao` que representa uma opção — e não uma ordem — diz qual está em
-   vigor por `aria-pressed`, e não por uma classe: o atributo já é o que o leitor de ecrã
-   anuncia, e uma segunda marca («.ativo») seria a mesma informação escrita duas vezes.
-   O desenho é o do botão aceso: preenche de marca e o texto passa a `--sobre-marca`. A
-   variante `:hover` existe por ESPECIFICIDADE, não por gosto — sem ela, `.acao.secundario`
-   (0,4,0) venceria o estado escolhido no instante em que o rato pousasse, e o botão
-   apagava-se exatamente sob o dedo que ia confirmá-lo. */
-.acao[aria-pressed="true"],
-.acao[aria-pressed="true"]:hover:not(:disabled) {
-  background: var(--marca-fundo-hover); color: var(--sobre-marca); border-color: var(--marca-fundo-hover);
-}
+/* UMA AÇÃO NÃO GUARDA ESTADO (18/10/2026). Aqui houve um `[aria-pressed="true"]` sobre
+   `.acao`, para o botão da opção escolhida ficar aceso. Saiu, e a razão é de vocabulário, não
+   de gosto: `.acao` é uma ORDEM — algo que acontece quando se clica —, e o que ficou em vigor
+   depois do clique não é uma ordem pendente, é um ESTADO. Quem guarda estado é a pílula
+   (`.escolhas`/`.escolha`), com o `:checked` do próprio `<input>`; quem quer um cartão
+   escolhido usa `.cartao[aria-pressed]`, na raiz. Duas peças, dois significados — e um botão
+   não é nenhum dos dois.
+
+   O que este comentário guarda é a ARMADILHA que o desenho tinha, para não se repetir: a
+   variante `:hover` era obrigatória por ESPECIFICIDADE. Sem ela, `.acao.secundario` (0,4,0)
+   vencia no instante em que o rato pousasse e o botão apagava-se sob o dedo que ia
+   confirmá-lo. Uma peça cujo estado só se vê quando o ponteiro sai é uma peça mal declarada. */
 .acao.perigo,
 .acao.perigo:hover:not(:disabled) {
   background: transparent; color: var(--falha); border-color: var(--falha);
@@ -678,6 +679,72 @@ button:focus-visible, a:focus-visible, summary:focus-visible {
   outline: 2px solid var(--foco); outline-offset: 2px;
 }
 button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); }
+
+/* ---------- escolha em pílulas ---------------------------------------------
+   A LISTA CURTA, FECHADA E FIXA. Quando o número de opções é pequeno e não muda —
+   os sete dias da semana, os dois modos de aparência —, todas cabem à vista e a
+   escolha custa um clique. É a peça mais barata do sistema, e por isso é a que se
+   usa primeiro.
+
+   O CRITÉRIO NÃO É ESTÉTICO, É DE TAMANHO: quando a lista cresce (as turmas, as
+   alunas, os 84 termos do vocabulário), a pílula vira um tapete e o formulário
+   fica poluído — aí é o `escolhedor`, que escolhe no menu e mostra o escolhido em
+   ficha. As duas peças existem para o mesmo problema, em dois tamanhos. O quadro
+   completo, e o que NÃO cabe em nenhuma das duas, está no «catálogo das peças»,
+   em `IDENTIDADE-VISUAL.md`.
+
+   AO SERVIDOR NÃO IMPORTA O TIPO. Serve ao `radio` (uma escolha) e ao `checkbox`
+   (vários): o estado vem do `:checked`, e a peça é a mesma. Quem marca a opção em
+   vigor é quem escreve o HTML — o atributo `checked` sai do servidor, e não de um
+   script que lê o estado depois de a página pintar.
+
+   O `<input>` NÃO DESAPARECE, ENCOLHE. Ele fica com 1px e `opacity: 0`, mas
+   continua focável e continua a ser o que o leitor de ecrã anuncia — o que muda é
+   só quem o desenha: o `<span>` irmão, alcançado pelo `+`. O `<label>` em volta é
+   o que faz o clique chegar ao input (o `for` não seria necessário, mas a marcação
+   abaixo é `<label class="escolha"><input><span></span></label>` e é a única que a
+   peça aceita). */
+.escolhas {
+  display: flex; flex-wrap: wrap; gap: var(--esp-2);
+  margin: var(--esp-1) 0 var(--esp-4);
+  border: 0; padding: 0;      /* o `fieldset` — agrupamento certo de uma escolha
+                                 única — traz borda, margem e padding próprios, e
+                                 a caixa é da peça, não do elemento */
+  min-width: 0;
+}
+/* A legenda de um `fieldset` em `flex` não quebra a linha sozinha: ia parar ao lado
+   da primeira pílula. */
+.escolhas > legend, .escolhas > .campo-rotulo { flex: 1 1 100%; margin: 0 0 var(--esp-2); }
+.escolha {
+  display: inline-flex; align-items: center; margin: 0;
+  position: relative;         /* o input é absoluto: sem isto ele se posiciona
+                                 contra a página e pode empurrar a rolagem */
+  cursor: pointer;
+}
+.escolha input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.escolha span {
+  /* O `--esp-2` vertical NÃO é gordura: com `--esp-1` a pílula ficava com 29px, e o
+     alvo de toque no celular é o que se quer generoso — são sete pílulas seguidas nos
+     dias da semana, e quem erra o toque marca o dia errado. Com 8px em cima e em baixo
+     ela vai a ~37px, encosta na altura do campo (43px) sem deixar de ser compacta, e
+     continua acima do mínimo de 24px da WCAG 2.5.8 e perto dos 44px de conforto. */
+  display: inline-block; padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-pilula);
+  background: var(--superficie); color: var(--marca-texto);
+  font: 500 .87rem/1.35 var(--ui);
+}
+.escolha input:checked + span {
+  background: var(--marca-fundo); border-color: var(--marca-fundo);
+  /* `--texto-destaque-marca` e não `--sobre-marca`: é o MESMO par que a pílula já usava
+     nas sete pílulas dos dias da semana, e o desenho não muda ao subir para a folha. Os
+     dois tokens são ouro e creme, e a diferença é de papel — o escolhido é DESTAQUE sobre
+     a marca, não texto corrido sobre ela. */
+  color: var(--texto-destaque-marca); font-weight: 600;
+}
+/* O FOCO VAI PARA O `<span>`, porque é ele que se vê. O input está a 1px e
+   invisível: um `outline` nele seria um anel em volta de nada. */
+.escolha input:focus-visible + span { outline: 2px solid var(--foco); outline-offset: var(--esp-1); }
+.escolha input:disabled + span { opacity: .4; cursor: not-allowed; }
 
 /* ---------- selo -----------------------------------------------------------
    A pastilha que marca um atributo ou um estado. O desenho base é o do cabeçalho
