@@ -512,6 +512,14 @@ nome que decidia onde ele caía.
 | 7.9 | A associação sai do cartão e desce para o **formulário**, abaixo da duração | `[x]` 18/10 — o painel passou a MOSTRAR; compor é do formulário |
 | 7.10 | O bloco do formulário: chips com «×», seletor e «Associar» | `[x]` 18/10 — travado em «cadastrar» e em «derivar», ligado em «editar» |
 | 7.11 | Prova da mudança de lugar, nos dois sentidos | `[x]` 18/10 — `provar-cartao-da-turma.js`, 65/65; 17 falhas em `HEAD` |
+| 7.12 | A associação sai do CADASTRO: a turma passa a ser três **passos** | `[x]` 18/10 — `<ol aria-current="step">`: Turma → Rubricas → Associar |
+| 7.13 | O passo e a turma escolhida são lembrados (`sessionStorage`) | `[x]` 18/10 — associar recarrega, e sem memória voltava-se ao passo 1 |
+| 7.14 | Desassociar a **rubrica** com o mesmo nome do outro lado | `[x]` 18/10 — «Associar rubrica» / «Desassociar rubrica» |
+| 7.15 | Listas de rubricas e de vínculos na regra das duas linhas | `[x]` 18/10 — e o vínculo mostra a contagem de conteúdos |
+| 7.16 | Os «!» de etapa no cartão da turma, âmbar, com atalho | `[x]` 18/10 — um por passo, `title` a dizer o que ali se edita |
+| 7.17 | O selo da curadoria ao lado do nome, não na margem direita | `[x]` 18/10 — `flex: 0 1 auto` no nome |
+| 7.18 | A regra das duas linhas, provada em cinco larguras | `[x]` 18/10 — `provar-linhas-da-lista.js`, 115; 24 falhas em `HEAD` |
+| 7.19 | Onde fica a barra de sessão quando a página rola — quatro propostas | `[ ]` 18/10 — na página de estudos (S1–S4), **aguarda escolha** |
 
 ### A associação mudou de lugar (18/10/2026)
 
@@ -533,6 +541,36 @@ parte:
 (`.conteudos-da-turma`) ao pé da lista, e o formulário **clona** o da turma aberta. A alternativa —
 gerar os chips outra vez em JavaScript — seria a segunda versão do mesmo desenho, e a primeira a
 divergir.
+
+### A regra das duas linhas quebrou duas vezes, e a segunda ensinou o mecanismo
+
+**A primeira vez** foi `display: block` no complemento: resolveu o vocabulário e criou uma terceira
+linha na curadoria, porque o selo descia sozinho (93px contra 63px).
+
+**A segunda vez** foi `flex` + `wrap`. Parecia resolvido, e a 390px voltou a oscilar: com o nome e o
+selo a não caberem juntos, o selo DESCE para uma linha própria em vez de o nome encolher — num
+contentor flex que quebra, os itens são distribuídos por linhas **antes** de qualquer encolhimento,
+e um item sozinho na sua linha nunca encolhe. Medido: **96px** («Balé nível 1, Grade 1» + «Régua do
+Nível 1») contra os **65px** dos outros.
+
+A regra passou a ter três peças, e a primeira é a que faz as outras duas valerem:
+
+```css
+.lista > li > .nome:not(.fixo)          { display: block; }
+.lista > li > .nome:not(.fixo) > .linha1{ display: flex; gap: .4rem; overflow: hidden; }
+.lista > li > .nome:not(.fixo) > .linha1 > b     { flex: 0 1 auto; min-width: 0;
+                                                   white-space: nowrap; text-overflow: ellipsis; }
+.lista > li > .nome:not(.fixo) > .linha1 > .selo { flex: 0 0 auto; }
+.lista > li > .nome:not(.fixo) > .dono  { display: block; white-space: nowrap; text-overflow: ellipsis; }
+```
+
+O grupo `.linha1` **não quebra**: quem cede é o nome. Duas linhas, sempre — do telefone à tela cheia.
+E `flex: 0 1 auto` no nome, em vez de `flex-grow: 1`, é o que impede o selo de ser empurrado para a
+margem direita, onde parecia um botão quebrado.
+
+> **A lição.** A prova nova mede o **mecanismo** (o grupo existe?), e não só o resultado (as alturas
+> são iguais?). Uma lista sem o grupo pode passar com os dados de hoje e falhar com os de amanhã —
+> e foi assim, duas vezes, que esta regra voltou.
 
 ### A regra, e por que ela é `flex` e não `block`
 

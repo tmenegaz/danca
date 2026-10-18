@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T09:54:08-0300`
-Commit atual: `a237e82` — docs(estrutura): o híbrido do cartão da turma escolhido, implementado e provado
+Gerado em: `2026-10-18T10:21:09-0300`
+Commit atual: `a35f5d7` — feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai para onde a turma já existe
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,9 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+a35f5d7 feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai para onde a turma já existe
+34e07b3 docs(estrutura): a fase 7 registra que a associação desceu para o formulário
+317b2c3 feat(estrutura): a associação sai do cartão e desce para o formulário da turma
 a237e82 docs(estrutura): o híbrido do cartão da turma escolhido, implementado e provado
 48ecc31 feat(estrutura): o cartão da turma passa a ser o híbrido — três números e um painel
 a8e9bbf docs(estrutura): o híbrido do cartão da turma — e por que a escala deixou de ser da T2
@@ -79,9 +82,6 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 9e2f9cd chore(experimentos): a escola do documento ganha prova — inclusive contra o motor de HEAD
 63e0d9a feat(estrutura): o cabeçalho do ato passa a ser o cartão de identidade (H2) — a escola ganha coluna própria
 3281cbc fix(estrutura): a escola do documento é a do Worker — o cliente não decide onde o dado é gravado
-44b15b0 docs(estrutura): o contrato «campo × inscrição» e quatro arranjos de cabeçalho para escolha
-33dc16c chore(experimentos): a escola fixa ganha prova de navegador — 30 verificações e controle negativo
-16cd681 chore(ciclo-01): as duas cópias da porta recebem a escola como inscrição
 ```
 
 ## Por professor
@@ -147,45 +147,65 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — a associação sai do cartão da turma e desce para o formulário
+## 18/10/2026 — a turma passa a ser três PASSOS, e o conteúdo vai para o passo que o comporta
 
-**A decisão, nas palavras de quem usa.** Depois de ver o híbrido pronto, o dono do produto disse o
-que faltava: «a gente vai deslocar esse formulário de associar que está na listagem. Ele vai para o
-formulário, que é o lugar dele». O cartão passou a **mostrar** quais são os conteúdos; associar e
-desassociar desceram para o formulário da turma, **abaixo da duração da aula** — «depois que eu
-determinar a duração de cada aula, eu vou poder associar qual é o conteúdo da aula que eu pretendo
-usar».
+**O defeito que a própria correção criou.** Na entrada anterior a associação de conteúdo desceu
+para o formulário da turma. Estava errado por uma razão de facto, e foi o dono do produto quem a
+disse: *«eu só posso associar um conteúdo à turma quando eu já tenho uma turma»*. No cadastro a
+turma ainda está a nascer — em «cadastrar» não há `id`, e em «derivar» o `id` à mão é o da turma
+antiga. O lugar da associação é onde a turma **já existe**.
 
-**Por que a duração, e não outro lugar.** O formulário já conta uma história na ordem em que se
-preenche: nome, programa, nível, frequência, dias e horas, duração — e é **depois** de saber
-quanto tempo a aula tem que a pergunta «o que se ensina nela» faz sentido.
+**As abas passam a passos.** Eram três coisas paralelas (`role="tablist"`). São três atos em
+sequência: **Turma** → **Rubricas** → **Associar**. O markup é um `<ol>` com `aria-current="step"`,
+e o número de cada passo é o que diz que isto é uma ordem e não um menu. Os nomes mudaram com o
+desenho: «Criar rubrica» virou **«Rubricas»** (o passo cria E edita), e «Vincular turma à rubrica»
+virou **«Associar»** — porque ali a turma recebe a régua **e** os conteúdos, e «associar» é a
+palavra que o resto do sistema já usa.
 
-**Três estados, decididos pelo que a turma É.**
+**A desassociação da rubrica, que não existia com nome próprio.** Era «Desvincular (volta à régua
+padrão)», no fim do formulário. É o mesmo ato ao contrário e passou a ter o mesmo nome do outro
+lado: **Associar rubrica** / **Desassociar rubrica**.
 
-| Modo | Estado | Por quê |
-|---|---|---|
-| cadastrar | travado | a associação precisa de um `id`, e a turma ainda não tem |
-| editar | ligado, apontado à turma aberta | a turma existe, e é o cadastro dela que se está a corrigir |
-| derivar | travado | o `id` à mão é o da turma ANTIGA — e a derivada **herda** os conteúdos, porque o servidor os copia desde 16/10 |
+**O que cada passo mostra na sua lista.** Turma → as turmas. Rubricas → as rubricas. Associar → com
+que régua cada turma é medida, agora também com quantos conteúdos. As duas últimas entraram na
+**regra das duas linhas**, e a de vínculos ganhou um botão «Abrir» que leva ao passo com aquela
+turma escolhida.
 
-Nos dois casos travados o bloco aparece com o motivo escrito. Um bloco que não funciona e não diz
-por quê é pior do que um bloco que não existe.
+**O passo é LEMBRADO.** As abas não precisavam — não recarregavam. Os passos recarregam: associar um
+conteúdo chama a API e recarrega. Sem memória, cada associação devolvia a direção ao passo 1 e à
+primeira turma da lista, e associar quatro conteúdos eram quatro vezes a mesma viagem. Passo e turma
+ficam em `sessionStorage`.
 
-**O markup do chip é escrito UMA vez.** Os chips com «×» de cada turma ficam em blocos ocultos
-(`.conteudos-da-turma`) ao pé da lista, e o formulário **clona** o da turma aberta. A alternativa
-— gerar os chips outra vez em JavaScript — seria a segunda versão do mesmo desenho, e a primeira a
-divergir.
+**Os «!» de etapa, no cartão da turma.** Três atalhos âmbar, um por passo, cada um com o `title` a
+dizer o que ali se edita, e cada um a levar ao passo com aquela turma escolhida. Âmbar e não
+vermelho: nada está errado — o que existe é uma porta. Vermelho faria procurar um defeito.
 
-**A prova mudou de lado com a regra.** `provar-cartao-da-turma.js` passou a medir as duas metades:
-que o painel **não tem** seletor, nem botão, nem «×»; e que o bloco do formulário está depois da
-duração e antes do período, nasce travado em cadastrar, liga em editar (apontado a `tu1`) e fica
-travado em derivar com os chips **sem** «×». Para isso a prova ganhou uma **terceira turma**,
-vinculada a um plano: sem ela não existe botão «Derivar», e o modo derivar não teria como ser
-provado.
+**A regra das duas linhas quebrou pela SEGUNDA vez, e por um motivo novo.** Com `flex` + `wrap`, o
+selo descia para uma linha própria quando não cabia ao lado do nome — num contentor que quebra, os
+itens são distribuídos por linhas **antes** de encolherem, e um item sozinho na sua linha nunca
+encolhe. Medido a 390px: «Balé nível 1, Grade 1» + «Régua do Nível 1» davam **96px em vez de 65px**,
+e a altura voltava a oscilar. Agora a primeira linha é um **grupo** (`nowrap`) com o nome em
+`flex: 0 1 auto`: quem cede é o nome, com reticências, e o selo fica sempre ao lado dele.
 
-**Conferido.** `provar-cartao-da-turma` 65/65, e **17 falhas** no controle negativo contra o motor
-de `HEAD` · `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular` 15/15 ·
-`provar-tema` 30/30 · `check-identidade` 8/8. Publicado em `fita` e `valse`.
+E o selo da curadoria: com `flex-grow: 1` no nome ele era empurrado para a margem direita e aparecia
+alinhado com o «Editar»/«Excluir» logo abaixo, com o mesmo desenho de pílula — «parece um botão
+quebrado», nas palavras de quem usa. Com `flex: 0 1 auto` ele fica ao lado do nome.
+
+**Uma prova nova, e a lição que ela já trazia.** `experimentos/provar-linhas-da-lista.js` — **115**
+verificações em cinco larguras, e **24 falhas** no controle negativo. Ela compara as alturas **entre
+si** (a oscilação é relativa, não absoluta) e mede o **mecanismo** — o grupo da primeira linha —, não
+só o resultado: uma lista que ainda não o tenha pode passar com os dados de hoje e falhar com os de
+amanhã, e foi exatamente assim que esta regra quebrou duas vezes.
+
+**Conferido.** `provar-linhas-da-lista` 115 · `provar-cartao-da-turma` 72/72 · `provar-producao`
+110/110 · `provar-celular` 15/15 · `provar-menu-da-producao` 22/22 · `provar-tema` 30/30 ·
+`provar-cabecalho-do-ato` 40/40 · `provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 ·
+`check-identidade` 8/8. Publicado em `fita` e `valse`.
+
+**Em aberto, para escolha.** Onde fica a barra de sessão («PEDAGOGIA · Turmas») quando a página
+rola. Quatro propostas clicáveis em `experimentos/opcoes-visuais/index.html`, secção «Onde fica a
+«sessão» quando a página rola»: **S1** sobe e encaixa ao lado do hambúrguer, **S2** fica presa,
+**S3** entra dentro da barra do sistema, **S4** vira pílula flutuante.
 
 ## O que está pendente
 
