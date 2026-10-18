@@ -16359,6 +16359,16 @@ amanhã, e foi exatamente assim que esta regra quebrou duas vezes.
 `check-identidade` 8/8. Publicado em `fita` e `valse`.
 
 **Em aberto, para escolha.** Onde fica a barra de sessão («PEDAGOGIA · Turmas») quando a página
-rola. Quatro propostas clicáveis em `experimentos/opcoes-visuais/index.html`, secção «Onde fica a
-«sessão» quando a página rola»: **S1** sobe e encaixa ao lado do hambúrguer, **S2** fica presa,
-**S3** entra dentro da barra do sistema, **S4** vira pílula flutuante.
+rola. Cinco propostas clicáveis em `experimentos/opcoes-visuais/index.html`, secção «Onde fica a
+«sessão» quando a página rola»: **S5** sobe e encaixa **mantendo o hambúrguer**, **S1** sobe e
+encaixa (e o ☰ recua com a barra), **S2** fica presa, **S3** entra dentro da barra do sistema,
+**S4** vira pílula flutuante.
+
+**A S1 tinha um defeito que só apareceu ao vê-la em uso**, e foi o dono do produto quem o viu: ao
+subir, a barra do sistema **recuava inteira — e o hambúrguer com ela**. Quem estava a meio de uma
+lista longa tinha de rolar de volta ao topo para sair, que é exactamente o problema que a proposta
+existia para resolver. A **S5** mantém o ☰ na barra: ao rolar, a sessão **entra** na barra do
+sistema em vez de a substituir, e o resultado é uma linha só — `[logo] PEDAGOGIA · Turmas ·
+Seções · ☰`. O que sai para caber é a palavra «Sistema Lastro», que a logo já responde; ela volta
+ao topo, com a barra da página no lugar de hoje. Medido em 1440, 390 e 320px: nada estoura, a
+barra não cresce (41px), e o ☰ fica sempre dentro dela.

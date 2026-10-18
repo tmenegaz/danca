@@ -519,7 +519,7 @@ nome que decidia onde ele caía.
 | 7.16 | Os «!» de etapa no cartão da turma, âmbar, com atalho | `[x]` 18/10 — um por passo, `title` a dizer o que ali se edita |
 | 7.17 | O selo da curadoria ao lado do nome, não na margem direita | `[x]` 18/10 — `flex: 0 1 auto` no nome |
 | 7.18 | A regra das duas linhas, provada em cinco larguras | `[x]` 18/10 — `provar-linhas-da-lista.js`, 115; 24 falhas em `HEAD` |
-| 7.19 | Onde fica a barra de sessão quando a página rola — quatro propostas | `[ ]` 18/10 — na página de estudos (S1–S4), **aguarda escolha** |
+| 7.19 | Onde fica a barra de sessão quando a página rola — cinco propostas | `[ ]` 18/10 — na página de estudos (S1–S5), **aguarda escolha**; a S5 corrige a S1 |
 
 ### A associação mudou de lugar (18/10/2026)
 
