@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T18:32:18-0300`
-Commit atual: `a524428` — feat(estrutura): o cabeçalho do ato cabe em 360px, e a barra vira a decisão tomada
+Gerado em: `2026-10-18T18:44:03-0300`
+Commit atual: `a1a750e` — fix(estrutura): o resumo da faixa desce em vez de se espremer, e a lista não mente
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+a1a750e fix(estrutura): o resumo da faixa desce em vez de se espremer, e a lista não mente
 a524428 feat(estrutura): o cabeçalho do ato cabe em 360px, e a barra vira a decisão tomada
 4843ba3 feat(tools): o estado escondido passa a esconder — o `[hidden]` na base da folha
 ecb3cac feat(estrutura): o cabeçalho do ato cresce, e o «Fechar» deixa de descontar
@@ -81,7 +82,6 @@ dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando n
 9444099 docs(experimentos): a S5 — a sessão sobe para a barra do sistema SEM levar o hambúrguer
 7d8d6e3 docs(estrutura): a fase 7 fecha os passos, e a regra das duas linhas ganha o mecanismo
 a35f5d7 feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai para onde a turma já existe
-34e07b3 docs(estrutura): a fase 7 registra que a associação desceu para o formulário
 ```
 
 ## Por professor
@@ -147,77 +147,64 @@ a35f5d7 feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai par
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — Correção: o resumo da faixa desce, e a lista não mente quando não lê
+## 18/10/2026 — Regra: medir na bancada, e o ar só na conferência final
 
-**O que motivou.** Três coisas erradas da entrada anterior, apontadas pelo dono do produto no
-mesmo dia.
+**O que motivou.** A cota diária de operações do Cloudflare KV acabou no meio do trabalho, e o
+sintoma apareceu longe da causa: os endpoints de estado responderam **500**
+(`Error: KV list() limit exceeded for the day`) e a lista de fichas ficou sem o nome das alunas e
+sem os botões «editar» e «apagar». Leitura disso, na tela: «as fichas se perderam». Não se
+perderam — e o store não chegou a ser escrito.
 
-1. **A lista de fichas perdeu os nomes e os botões.** Ele abriu a anamnese e leu «sem apelido» em
-   cada ficha, e os botões «editar» e «apagar» tinham desaparecido. **Não é dado perdido, e não é
-   edição de dado nenhuma** — a leitura do estado no servidor falhou:
-   `Error: KV list() limit exceeded for the day.` O Cloudflare KV tem um limite **diário** de
-   `list()` (1.000 no plano free), e ele acabou. A tela, com o `catch` mudo que lá estava,
-   desenhava «sem apelido» (uma afirmação sobre o sujeito) e omitia os gestos — porque a regra de
-   proveniência os decide e sem estado não há regra. **Contribuí para o consumo**: medi as páginas
-   ao vivo dezenas de vezes para conferir larguras. É a lição operacional desta entrada: medir no
-   ar gasta cota, e mede-se numa bancada local.
-2. **O resumo da faixa se espremia.** `.ctx-resumo` era `nowrap` com reticência: ao encolher a
-   tela, «escola · professor · ciclo · aluna — falta aluna para fechar» virava «escola · prof…».
-   O pedido é o contrário: quando não cabe ao lado, **desce de linha e cabe inteiro** — o mesmo
-   que os contadores já fazem com «obrigatório» por baixo de «respondido».
-3. **Um PNG foi versionado**, contra a regra da casa (imagem no servidor, não: o que vem em
-   imagem converte-se em SVG). Saiu.
+**A causa era de método, e foi minha.** Para conferir larguras e quebras de linha, carreguei as
+páginas do ar **dezenas de vezes** num único dia. Cada carga da página da anamnese pede
+`/api/envelopes`, `/api/anamnese-estados`, `/api/bastidores/alunas`, `/api/bastidores/professores`
+— e as rotas de estado fazem `list()` no KV. Medir no ar gasta a cota que o **teste do usuário**
+precisa, e não mede melhor do que a bancada: o navegador vê a mesma geometria servida de
+`127.0.0.1`.
 
 **O que foi decidido.**
-- **Resumo que desce, nunca que corta.** `summary` com `flex-wrap: wrap` e `.ctx-resumo` com
-  `flex: 1 1 auto; min-width: 22ch`, sem reticência. O `min-width` é o que decide a hora de
-  descer; com espaço ele fica à direita, sem espaço passa à linha seguinte e ocupa-a. Medido a
-  320/360/390/500/630/768/1024/1200, com o formulário **aberto e fechado**: desce até 500,
-  volta à mesma linha a partir de 630, e **nunca** `scrollWidth > clientWidth`.
-- **Uma falha de leitura aparece como falha de leitura.** `ESTADOS_ERRO` guarda o motivo quando
-  `/api/anamnese-estados` não responde 200; a lista mostra um `.aviso` que diz o que falhou, que
-  **as fichas não se perderam** e que é o estado que dá o nome e libera os gestos. E, sem estado,
-  a linha **não escreve nome nenhum** — «sem apelido» só se diz quando o servidor o disse
-  (`semSujeito`).
-- **Nada de imagem versionada**: `marca-lastro.png` sai do repositório e o bloco da marca sai da
-  página de estudo (o estudo é sobre a barra e a ajuda; a marca, quando for, vai em SVG).
+- **Medir na bancada local, sempre.** O padrão já existia nas provas que precisam de navegador: um
+  `http.createServer` em porta efêmera que serve `porta/index.html`, `tools/templates/ciclo.css`,
+  `tools/templates/nav.js` e `/api/*` **stubado**; o Puppeteer navega para lá. Largura, geometria,
+  estado, foco — tudo se mede assim.
+- **Ao ar, uma carga por escola, no fim.** É conferência, não exploração.
+- **Um 500 diagnostica-se pelo endpoint**, com um `curl` ao `/api/…` que falhou, e o motivo real em
+  `npx wrangler tail --config wrangler.<escola>.jsonc`. Recarregar a página para «ver se melhorou»
+  gasta mais e não diz nada de novo.
+- **Uma prova não esconde o que gasta.** `provar-ambiente.js` — a única que vai à rede de propósito
+  — passou a contar as requisições e a imprimir o total no fim: **14 (2 escolas × ~7)**, medido.
+- **O sintoma fica escrito**, para não se perder tempo a procurar dado perdido: «sem apelido» em
+  todas as fichas + nenhum botão de edição = 500 nos endpoints de estado, quase sempre cota.
 
 **Onde entrou.**
-- `porta/index.html` — o `summary` com `wrap`, o `.ctx-resumo` com `min-width` e sem reticência;
-  `ESTADOS_ERRO`, `carregarEstados()` a verificar `resposta.ok`, o `#fichas-erro` no markup e em
-  `pintarFichas()`, e o `quem` que não inventa nome.
-- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
-  cópias regeradas (a barra de cada escola reposta no `<!-- NAV -->`).
-- `experimentos/provar-ato-e-barra.js` — **72 asserções** (§8 o resumo desce, não corta, aberto e
-  fechado; §9 a lista com estados — nome e gestos — e a lista sem estados: aviso visível, motivo,
-  «não se perderam», e nenhum «sem apelido» inventado, com o 500 servido pela bancada).
-  `--controle-negativo` **reprova 9** contra `HEAD`, e são exactamente as nove desta correção.
-- `experimentos/opcoes-visuais/index.html` — o bloco da marca e o seu CSS saem; o PNG é apagado.
-- `.gitignore` — cai a exceção do PNG (a da página continua).
-- `IDENTIDADE-VISUAL.md` — sem mudança: nenhuma peça nova nasceu (o `.aviso` e o `.ctx-resumo` já
-  estavam no catálogo).
+- `AGENTS.md` — a secção **«Medir sem gastar a cota do ar»**, com os quatro pontos e a distinção que
+  evita o erro seguinte: o domínio no código **não** quer dizer requisição (`provar-producao`,
+  `provar-contexto-do-ato` citam `https://…workers.dev` no `Request` mas correm o motor em
+  processo, com `bastidores.fetch(new Request(...), env)`). É o arquivo que toda sessão lê.
+- `experimentos/README.md` — a secção «Medir sem gastar a cota do ar», com o esqueleto da bancada em
+  código, porque é nesta pasta que os scripts de medição nascem.
+- `experimentos/provar-ambiente.js` — o contador `requisicoesAoAr` e a linha de custo no fim.
+- **Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `AGENTS.md`,
+  `experimentos/` e este registro são livres.
 
-**Com o quê.** `porta/index.html` · as duas cópias de `plano-observacao/` ·
-`experimentos/provar-ato-e-barra.js` · `experimentos/opcoes-visuais/index.html` · `.gitignore` ·
-este registro.
+**Com o quê.** `AGENTS.md` · `experimentos/README.md` · `experimentos/provar-ambiente.js` · este
+registro.
 
-**Referências.** A mensagem do Worker: `Error: KV list() limit exceeded for the day` (limite
-diário de `list()` do Cloudflare KV, 1.000 no plano free — reposto às 00:00 UTC) ·
-`IDENTIDADE-VISUAL.md` (o `.aviso` é para o que impede; a explicação é para o que se procura).
+**Referências.** A mensagem do Worker, lida em `wrangler tail`:
+`Error: KV list() limit exceeded for the day` (`at Object.nomesDeEnvelopes`) · a documentação de
+limites do Workers KV (a tabela atual declara **leituras** 100.000/dia e **escritas** 1.000/dia por
+conta no plano free; o limite de `list()` **não** está nessa tabela — o que é facto é o erro, e é
+ele que fica registrado) · `experimentos/provar-ato-e-barra.js` (o padrão de bancada local, com o
+`/api/anamnese-estados` a servir os dois desfechos: 200 e 500).
 
-**O que ainda não está feito.** (a) O `catch` de `carregarFichas()` (a lista de envelopes) continua
-a cair na memória do navegador em silêncio — a falha dos ESTADOS passou a ser dita, a dos
-ENVELOPES não; hoje o sintoma não se distingue de «não tenho fichas». (b) O consumo de `list()`
-por visita não foi reduzido nem medido: a página da Produção lista várias famílias, e não há
-contagem. Se o limite voltar a apertar, o caminho é um índice gravado, não um `list()` por visita
-— decisão que **não** se toma sem o dono do produto. (c) A marca do produto continua fora da
-página de estudo, à espera de ser vetorizada em SVG.
+**O que ainda não está feito.** (a) O **número exacto** de `list()` por dia não está documentado na
+página de limites consultada hoje — sabe-se que o limite existe, que é diário e que repõe às 00:00
+UTC. Quem precisar do número mede-o, não o cita. (b) O consumo **por visita** não foi reduzido: a
+anamnese faz um `list()` por família de envelopes, e a Produção lista várias; se a cota voltar a
+apertar, o caminho é um **índice gravado** em vez de um `list()` por visita — decisão de produto,
+que não se toma sem o dono.
 
 ## O que está pendente
-
-## 18/10/2026 — O catálogo das peças: um nome antes do desenho
-
-(a) O catálogo **não impede um desenho feio**: impede um desenho
 
 ## 18/10/2026 — A segunda família: a Cortina Turquesa, medida antes de existir
 
@@ -251,6 +238,15 @@ por visita não foi reduzido nem medido: a página da Produção lista várias f
 contagem. Se o limite voltar a apertar, o caminho é um índice gravado, não um `list()` por visita
 — decisão que **não** se toma sem o dono do produto. (c) A marca do produto continua fora da
 página de estudo, à espera de ser vetorizada em SVG.
+
+## 18/10/2026 — Regra: medir na bancada, e o ar só na conferência final
+
+(a) O **número exacto** de `list()` por dia não está documentado na
+página de limites consultada hoje — sabe-se que o limite existe, que é diário e que repõe às 00:00
+UTC. Quem precisar do número mede-o, não o cita. (b) O consumo **por visita** não foi reduzido: a
+anamnese faz um `list()` por família de envelopes, e a Produção lista várias; se a cota voltar a
+apertar, o caminho é um **índice gravado** em vez de um `list()` por visita — decisão de produto,
+que não se toma sem o dono.
 
 ## Pendências anteriores (índice)
 
@@ -447,6 +443,7 @@ página de estudo, à espera de ser vetorizada em SVG.
 - **18/10/2026** — a dobra do índice da página, no celular → `REGISTRO.md` L16921
 - **18/10/2026** — a C15 foi decidida: a preferência de aparência é da… → `REGISTRO.md` L17074
 - **18/10/2026** — A aparência passou a ser da escola, e o servidor aplica-a → `REGISTRO.md` L17140
+- **18/10/2026** — O catálogo das peças: um nome antes do desenho → `REGISTRO.md` L17229
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

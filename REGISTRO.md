@@ -17638,3 +17638,60 @@ por visita não foi reduzido nem medido: a página da Produção lista várias f
 contagem. Se o limite voltar a apertar, o caminho é um índice gravado, não um `list()` por visita
 — decisão que **não** se toma sem o dono do produto. (c) A marca do produto continua fora da
 página de estudo, à espera de ser vetorizada em SVG.
+
+## 18/10/2026 — Regra: medir na bancada, e o ar só na conferência final
+
+**O que motivou.** A cota diária de operações do Cloudflare KV acabou no meio do trabalho, e o
+sintoma apareceu longe da causa: os endpoints de estado responderam **500**
+(`Error: KV list() limit exceeded for the day`) e a lista de fichas ficou sem o nome das alunas e
+sem os botões «editar» e «apagar». Leitura disso, na tela: «as fichas se perderam». Não se
+perderam — e o store não chegou a ser escrito.
+
+**A causa era de método, e foi minha.** Para conferir larguras e quebras de linha, carreguei as
+páginas do ar **dezenas de vezes** num único dia. Cada carga da página da anamnese pede
+`/api/envelopes`, `/api/anamnese-estados`, `/api/bastidores/alunas`, `/api/bastidores/professores`
+— e as rotas de estado fazem `list()` no KV. Medir no ar gasta a cota que o **teste do usuário**
+precisa, e não mede melhor do que a bancada: o navegador vê a mesma geometria servida de
+`127.0.0.1`.
+
+**O que foi decidido.**
+- **Medir na bancada local, sempre.** O padrão já existia nas provas que precisam de navegador: um
+  `http.createServer` em porta efêmera que serve `porta/index.html`, `tools/templates/ciclo.css`,
+  `tools/templates/nav.js` e `/api/*` **stubado**; o Puppeteer navega para lá. Largura, geometria,
+  estado, foco — tudo se mede assim.
+- **Ao ar, uma carga por escola, no fim.** É conferência, não exploração.
+- **Um 500 diagnostica-se pelo endpoint**, com um `curl` ao `/api/…` que falhou, e o motivo real em
+  `npx wrangler tail --config wrangler.<escola>.jsonc`. Recarregar a página para «ver se melhorou»
+  gasta mais e não diz nada de novo.
+- **Uma prova não esconde o que gasta.** `provar-ambiente.js` — a única que vai à rede de propósito
+  — passou a contar as requisições e a imprimir o total no fim: **14 (2 escolas × ~7)**, medido.
+- **O sintoma fica escrito**, para não se perder tempo a procurar dado perdido: «sem apelido» em
+  todas as fichas + nenhum botão de edição = 500 nos endpoints de estado, quase sempre cota.
+
+**Onde entrou.**
+- `AGENTS.md` — a secção **«Medir sem gastar a cota do ar»**, com os quatro pontos e a distinção que
+  evita o erro seguinte: o domínio no código **não** quer dizer requisição (`provar-producao`,
+  `provar-contexto-do-ato` citam `https://…workers.dev` no `Request` mas correm o motor em
+  processo, com `bastidores.fetch(new Request(...), env)`). É o arquivo que toda sessão lê.
+- `experimentos/README.md` — a secção «Medir sem gastar a cota do ar», com o esqueleto da bancada em
+  código, porque é nesta pasta que os scripts de medição nascem.
+- `experimentos/provar-ambiente.js` — o contador `requisicoesAoAr` e a linha de custo no fim.
+- **Motivo declarado — os congelados.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `AGENTS.md`,
+  `experimentos/` e este registro são livres.
+
+**Com o quê.** `AGENTS.md` · `experimentos/README.md` · `experimentos/provar-ambiente.js` · este
+registro.
+
+**Referências.** A mensagem do Worker, lida em `wrangler tail`:
+`Error: KV list() limit exceeded for the day` (`at Object.nomesDeEnvelopes`) · a documentação de
+limites do Workers KV (a tabela atual declara **leituras** 100.000/dia e **escritas** 1.000/dia por
+conta no plano free; o limite de `list()` **não** está nessa tabela — o que é facto é o erro, e é
+ele que fica registrado) · `experimentos/provar-ato-e-barra.js` (o padrão de bancada local, com o
+`/api/anamnese-estados` a servir os dois desfechos: 200 e 500).
+
+**O que ainda não está feito.** (a) O **número exacto** de `list()` por dia não está documentado na
+página de limites consultada hoje — sabe-se que o limite existe, que é diário e que repõe às 00:00
+UTC. Quem precisar do número mede-o, não o cita. (b) O consumo **por visita** não foi reduzido: a
+anamnese faz um `list()` por família de envelopes, e a Produção lista várias; se a cota voltar a
+apertar, o caminho é um **índice gravado** em vez de um `list()` por visita — decisão de produto,
+que não se toma sem o dono.

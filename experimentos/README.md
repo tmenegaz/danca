@@ -101,6 +101,37 @@ Sem Chrome, ela **declara a conferência NÃO FEITA** e sai com código 1 — nu
 silencioso. Por isso **não** está no `pre-commit`: um commit não pode depender de haver navegador
 na máquina de quem commita.
 
+## Medir sem gastar a cota do ar (18/10/2026)
+
+Esta pasta é onde nascem os scripts de medição, e por isso é onde o erro se comete. **Medir no ar
+tem custo, e o custo é diário:** o Cloudflare KV limita as operações por conta e por dia, e o
+`list()` está entre elas. Em 18/10/2026 a cota acabou — e o sintoma apareceu longe da causa: a
+lista de fichas da anamnese ficou **sem o nome das alunas e sem os botões «editar»/«apagar»**,
+porque `/api/anamnese-estados` respondia 500. Lia-se como «perdi as fichas». Não se perdeu nada.
+
+**O padrão certo**, e é o que as provas desta pasta já fazem:
+
+```js
+// bancada local: servidor stub em porta efêmera, sem tocar no ar
+const srv = http.createServer((req, res) => { /* serve porta/, ciclo.css, nav.js, /api/* stub */ });
+srv.listen(0, '127.0.0.1', async () => {
+  const base = 'http://127.0.0.1:' + srv.address().port;   // ← o navegador vai AQUI
+  ...
+});
+```
+
+- **Ao ar, uma carga por escola, no fim** — a conferência final. Duas escolas, duas cargas.
+- **Um 500 diagnostica-se pelo endpoint**, não recarregando a página:
+  `curl -s -o /dev/null -w '%{http_code}\n' https://<escola>…/api/anamnese-estados`, e o motivo
+  real em `npx wrangler tail --config wrangler.<escola>.jsonc`.
+- **O domínio no código não significa requisição.** `provar-producao.js` e
+  `provar-contexto-do-ato.js` citam `https://…workers.dev` no `Request`, mas rodam o motor **em
+  processo** — sem rede. A única prova que vai ao ar é `provar-ambiente.js`, e é de propósito.
+
+O sintoma que se reconhece em cinco segundos: **«sem apelido» em todas as fichas + nenhum botão de
+edição** = 500 nos endpoints de estado, quase sempre cota. Não se «volta o dado» — leitura não
+escreve no store.
+
 ## Quando um experimento vira produção
 
 1. **Documento de ciclo** (aula, caderno, relatório…): entra nos diretórios do

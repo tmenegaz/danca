@@ -91,3 +91,34 @@ fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o 
 - A infraestrutura listada em [CONGELAMENTO.md](CONGELAMENTO.md) só muda com motivo declarado, entrada em `REGISTRO.md` e commit próprio.
 - Instale os hooks locais com `tools/instalar-hooks.sh`. Mensagens de commit seguem `tipo(escopo): descrição` e exigem os rodapés `Refs:`, `Regras:` e `Auditoria:`.
 - Prefira alterações pequenas e valide o fluxo afetado antes de concluir. O ambiente documentado usa `pdflatex`; não troque o engine sem verificar as dependências locais.
+
+### Medir sem gastar a cota do ar
+
+**O ar é recurso ESCASSO e o teste é do usuário.** O Cloudflare KV tem limites **diários** por
+conta, e o `list()` é um deles. Em 18/10/2026 a cota acabou e os endpoints de estado passaram a
+responder **500** — a lista de fichas ficou sem o nome das alunas e sem os botões «editar» e
+«apagar», e isso se lê como «as fichas se perderam». Não se perderam: o que faltou foi a leitura.
+A causa foi medição: as páginas ao vivo foram carregadas dezenas de vezes para conferir larguras.
+
+A regra, e ela não tem exceção:
+
+1. **Meça na bancada local.** O padrão está em `experimentos/provar-*.js` que precisam de
+   navegador: um `http.createServer` em porta efêmera (127.0.0.1) que serve `porta/index.html`,
+   `tools/templates/ciclo.css`, `tools/templates/nav.js` e respostas de `/api/*` **stubadas**, e o
+   Puppeteer navega para lá. Largura, geometria, estado, foco — tudo se mede assim, e nada disso
+   toca no ar.
+2. **Ao ar, uma carga por escola, no fim.** Duas escolas, dois carregamentos. É a conferência
+   final, não a exploração.
+3. **Diagnostique um 500 pelo endpoint, não pela página.** Um `curl -s -o /dev/null -w '%{http_code}'`
+   no `/api/…` que falhou custa uma requisição; recarregar a página para «ver se melhorou» custa
+   várias e não diz nada de novo. O motivo real aparece em
+   `npx wrangler tail --config wrangler.<escola>.jsonc`, e é lá que se lê.
+4. **Não confunda «o domínio aparece no código» com «fez requisição».** `provar-producao` e
+   `provar-contexto-do-ato` citam `https://…workers.dev` na URL do `Request`, mas executam o motor
+   **em processo** (`bastidores.fetch(new Request(...), env)`) — não há rede. A única prova que vai
+   mesmo ao ar é `experimentos/provar-ambiente.js`, e é de propósito: ela confere o que está
+   publicado.
+
+O sintoma, para reconhecer sem perder tempo: **«sem apelido» em todas as fichas e nenhum botão de
+edição** = 500 em `/api/anamnese-estados` (ou `/api/plano-estados`, ou `/api/envelopes`), quase
+sempre cota diária. Nunca é preciso «voltar o dado» — o store não é escrito por leitura.

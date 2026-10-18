@@ -109,7 +109,22 @@ function codigoDoScript(script) {
   return fora;
 }
 
+/* QUANTAS REQUISIÇÕES AO AR ESTA PROVA FAZ (18/10/2026).
+ *
+ * Ela é a ÚNICA prova que vai à rede de propósito: confere o que está publicado. O custo
+ * disso não é tempo — é COTA. O Cloudflare KV limita as operações por conta e por dia, e
+ * `list()` está entre elas; quando a cota acaba, os endpoints de estado respondem 500 e a
+ * lista de fichas fica sem nome e sem os botões de edição (foi o que aconteceu hoje, e a
+ * causa fui eu: carregar as páginas ao vivo dezenas de vezes para medir largura).
+ *
+ * Uma prova não pode esconder o que gasta. Cada `baixar()` conta, e o total sai no fim —
+ * para quem correr isto a seguir saber que duas escolas custam N requisições, e que
+ * medir geometria se faz na bancada local, não aqui.
+ */
+let requisicoesAoAr = 0;
+
 async function baixar(url) {
+  requisicoesAoAr++;
   const r = await fetch(url, { headers: { 'cache-control': 'no-cache' } });
   if (!r.ok) throw new Error(`${r.status} ${r.statusText} em ${url}`);
   return r.text();
@@ -196,5 +211,10 @@ async function baixar(url) {
   console.log(`\nprovar-ambiente: ${falhas === 0
     ? 'TUDO CERTO — o que está no ar é o motor'
     : falhas + ' FALHA(S)'}`);
+  // O CUSTO, à vista. Se este número crescer sem motivo, alguém está a medir no ar o que
+  // devia medir na bancada — e a cota do KV é diária.
+  console.log(`requisições ao ar: ${requisicoesAoAr} ` +
+    `(${escolas.length} escola(s) × ~${Math.round(requisicoesAoAr / Math.max(1, escolas.length))}) ` +
+    '— medir geometria, largura e estado faz-se em bancada local (experimentos/README.md)');
   process.exit(falhas ? 1 : 0);
 })();
