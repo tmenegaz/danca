@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T09:03:46-0300`
-Commit atual: `6113b51` — docs(estrutura): o arranjo igual nos três documentos e a lição que ele deixa
+Gerado em: `2026-10-18T09:25:51-0300`
+Commit atual: `4b68b7f` — fix(estrutura): as listas passam a ter duas linhas, e o «principal» deixa de ser história
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,11 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+4b68b7f fix(estrutura): as listas passam a ter duas linhas, e o «principal» deixa de ser história
+b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativo se anuncia ao leitor de ecrã
+2354f5e docs(estrutura): as duas navegações do sistema, e a folha inferior como decisão
+1a1e138 chore(experimentos): a folha do menu ganha prova de GEOMETRIA — 22 verificações e controle negativo
+be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz em que grupo se está
 6113b51 docs(estrutura): o arranjo igual nos três documentos e a lição que ele deixa
 89e1861 chore(experimentos): a prova do cabeçalho abre os TRÊS documentos e compara o arranjo
 60d36cf fix(estrutura): os três cabeçalhos passam a ser o MESMO arranjo — e o cartão passa a ter a largura da página
@@ -77,11 +82,6 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 1de0d5e fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
 523a2e2 style(tools): o botão recupera a borda de baixo, o campo deixa de colar no botão e o modal passa a rolar
 233314a chore(experimentos): a prova do celular passa a medir a BORDA, o VÃO e o MODAL — 11 → 15
-2a8f368 fix(estrutura): o formulário da raiz perde o texto explicativo e ganha o que rola até a mensagem
-849cd4b chore(estrutura): as escolas passam a ser publicadas no push — e o aval de «ok» deixa de ser vazio
-2895a5d style(estrutura): os últimos raios crus entram na régua
-ffa45c8 fix(estrutura): a escola que não nasce não deixa Worker no ar — o rollback do órfão
-218cfde chore(ciclo-01): as cópias da folha acompanham a pele macia
 ```
 
 ## Por professor
@@ -147,69 +147,42 @@ ffa45c8 fix(estrutura): a escola que não nasce não deixa Worker no ar — o ro
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — O menu da Produção no celular passa a ser uma folha inferior (N2)
+## 18/10/2026 — as listas passam a ter duas linhas, e o «principal» deixa de ser histórico
 
-**O que motivou.** O dono do produto comparou a Produção no celular com os aplicativos que usa:
-«esse outro aqui ele tá espremido no topo da tela e eu não consigo entender direito o que é
-título do menu». Os três grupos e os sete destinos viravam uma fita de 80px com o título do
-grupo e o link no MESMO peso visual. Ele propôs duas soluções e pediu que eu trouxesse outras e
-as pusesse no estudo.
+**Três pedidos que eram um só.** A direção pediu três coisas em sequência e elas são a mesma: o
+**vocabulário** oscilava de altura («arabesque » numa linha, «fouetté entre-nan» em duas); na
+**curadoria** devia valer o mesmo; e em **professores** o nome do dono vinha com «dono — criado na
+página» ao lado e o `slug` (`tiago-menegaz`) a seguir. O que faltava era uma regra de composição,
+não três remendos.
 
-**Quatro opções, medidas e clicáveis** — não desenhos: navegam de verdade dentro de um telefone
-falso, porque a diferença entre elas é *como se chega ao destino*, e isso não se julga num
-retrato parado.
+**A regra.** Nas listas simples — vocabulário, curadoria, professores, alunas — a **primeira linha
+é o nome** (com os selos, que são o estado daquela linha) e a **segunda é o complemento**, e só
+ele. O nome e o complemento nunca quebram: eles **encurtam** com reticências. Duas linhas é o
+teto em qualquer largura, do telefone à tela cheia. A altura passa a ser a mesma de item para
+item — era o oscilar que a direção via ao trocar de página.
 
-| | Opção | Altura em repouso | Custo |
-|---|---|---:|---|
-| N1 | abas de grupo + lista (a ideia dele) | 98–174px | a lista fica sempre à vista; Pedagogia ocupa mais que a fita de hoje |
-| **N2** | **folha inferior** (a segunda ideia dele) | **53px** | dois toques por destino |
-| N3 | faixa rolável de destinos (o iFood) | 64px | não economiza altura; o que está fora da tela não se anuncia |
-| N4 | seletor de seção + passos | 51px | o destino deixa de estar à vista |
+**O que a primeira tentativa errou, e como se viu.** `display: block` no complemento resolveu o
+vocabulário e **criou uma terceira linha** na curadoria: o selo (`LIVRE`) descia sozinho entre o
+nome e o complemento — medido, 93px contra os 63px que os outros tinham. O que faltava era o nome
+e os selos caberem **juntos** na primeira linha; isso pede `flex` com o nome em `flex: 1 1 auto`
+(quem cede é o nome) e os selos em `0 0 auto` (não cedem), e o complemento em `flex: 0 0 100%`,
+que é o que **força** a segunda linha. O `:not(.fixo)` poupa o «→ origem» da turma, que é outra
+peça e não encolhe.
 
-**Ele escolheu a N2.** Implementada em `motor/servidor/bastidores.js`.
+**E o rótulo do dono.** «dono — criado na página» descreve **como o registro nasceu**, que é
+história do sistema; «principal» diz **o que a pessoa é** na escola, e é a única que não se
+exclui. O `slug` saiu da lista: ele é a pasta (`professores/<slug>/`), quem a resolve é o sistema,
+e a direção lia `tiago-menegaz` no meio de nomes sem ter o que fazer com aquilo — se um dia
+precisar do caminho, o lugar é o diagnóstico.
 
-**O que mudou.** A `.lateral-lista` — a mesma lista, não uma segunda — deixou de ser coluna no
-celular e passou a ser a própria folha (`position: fixed`, `translateY(101%)`, véu atrás). A
-barra mostra o **grupo e a página** em que se está: «PEDAGOGIA · Curadorias», porque
-«Curadorias» sozinho não diz de onde é. O grupo é lido do próprio HTML (o `<h2>` que precede o
-link), não de uma segunda lista no JavaScript — uma cópia divergiria no dia em que um grupo
-mudasse. A escolha FECHA a folha: deixá-la aberta taparia justamente a secção que se acabou de
-pedir.
+**Uma armadilha que custou duas medições.** `:not(.fixo)` não é decoração: `.lista li .nome`
+(0,0,3) vence `.linha-turma .nome` (0,0,2) sem aviso, e o `.nome` de uma linha é ao mesmo tempo «o
+nome que encolhe» e «o nome que precisa de largura». São dois papéis, e continuam a ser duas
+regras.
 
-**Três coisas que só apareceram ao medir.**
-
-1. A barra nasceu em **duas linhas** (grupo em cima, página embaixo), e o `align-items: center`
-   punha o botão «Seções» ENTRE as duas — lia-se como três coisas soltas, e o botão parecia
-   pertencer ao grupo em vez da página. Uma linha resolveu.
-2. O `body` fica com `overflow: hidden` enquanto a folha está aberta, para a página não rolar
-   por baixo dela. Isso obriga a **devolver** o `overflow` quando a janela cresce: em tela larga
-   a folha não existe, e a página ficaria travada sem nada aberto. O `resize` trata disso.
-3. `document.querySelector` **faltava nos dois DOM de mentira** de `provar-producao.js`. O script
-   só passou a usá-lo agora, e os dois shims quebraram — a prova acusou «document.querySelector
-   is not a function» em vez de medir. Um DOM falso que não tem o método que o script chama não
-   está a testar o script: está a testá-lo contra si mesmo. Os dois ganharam o método, e um
-   deles ganhou também o `body` (que o `overflow` toca).
-
-**Uma prova nova, que mede GEOMETRIA.** `experimentos/provar-menu-da-producao.js` — **22/22**, e
-**3/22** no controle negativo contra o `motor/` de `HEAD`. Uma folha é um elemento posicionado
-que se move; o que se prova é onde ela está antes e depois do clique, o estado que a tela declara
-(`data-aberta`, `aria-expanded`) e o `overflow` do `body`. Em 1280px as peças novas não aparecem
-e a coluna do menu é a de sempre; em 390px a lista está **fora da tela** (não apenas
-transparente), o clique a traz para dentro, o destino troca a secção visível e fecha a folha, e o
-`Escape` também fecha.
-
-**Duas dificuldades do próprio controle negativo, ambas resolvidas e comentadas no arquivo:** o
-módulo de `HEAD` não exportava `paginaProducao` (a exportação nasceu com esta prova), então o
-arquivo copiado ganha a linha de export no fim — nunca o repositório; e o `catalogo-seed.js` lê
-`biblioteca/` por caminho relativo, e o `nav-html.js` mora em `tools/templates/`, então a
-extração leva as três pastas. Sem isso, o controle morre no `require` antes de medir qualquer
-coisa.
-
-**Conferido.** `check-identidade.js` → 8 verificações. `provar-menu-da-producao` 22/22.
-`provar-celular` 15/15 (a fita do menu virou barra, e o teto de 120px continua a valer — a barra
-tem ~48px). `provar-producao` 109/109. `provar-cabecalho-do-ato` 40/40. `provar-escola-fixa`
-30/30. `provar-tema` 30/30. `provar-plano-da-turma` 47/47. `provar-derivacao-da-turma` 123/123.
-`provar-carimbo-da-edicao` 55/55. `provar-contexto-do-ato` 37/37.
+**Conferido.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular`
+15/15 (medido em 320, 360, 390, 414, 768 e 1024px) · `provar-tema` 30/30 · `check-identidade` 8
+verificações, todas ok.
 
 ## O que está pendente
 
