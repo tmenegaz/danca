@@ -16210,3 +16210,55 @@ regras.
 **Conferido.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular`
 15/15 (medido em 320, 360, 390, 414, 768 e 1024px) · `provar-tema` 30/30 · `check-identidade` 8
 verificações, todas ok.
+
+## 18/10/2026 — o cartão da turma passa a ser o híbrido: três números e um painel
+
+**O que estava errado, medido.** Uma turma carregava **nove faixas** de informação todas abertas
+ao mesmo tempo: nome, nível, programa, ritmo, estado, vigência, o aviso de «falta …», a régua em
+prosa, os conteúdos em chips, o seletor de associação e o histórico. Numa escola com cinco turmas
+são quarenta e cinco faixas. O dono do produto descreveu como «bem poluído… a organização está
+esquisita» — e o diagnóstico não era de espaçamento, era de **tudo ao mesmo tempo**.
+
+**As três propostas, e a escolha.** Gaveta (só contagens à vista, o resto num `<details>` nativo),
+escala (tudo à vista, com a régua como barra de quatro degraus coloridos) e três números (o mais
+compacto, com balão ao toque). Ele gostou da **riqueza** da escala e da **economia** dos números, e
+recusou o balão de texto: «abre um texto duro». Propôs ele mesmo a mistura, e ela foi a escolhida:
+**os três números, com o conteúdo da escala lá dentro**.
+
+**O que o painel mostra.** Ritmo em quatro pares rótulo/valor; a régua com a **escala de cores**;
+os conteúdos em chips com o «×» de desassociar e o seletor de associação. E quando o ritmo falta,
+não é uma frase seca: é a **lista do que falta**, um item por vez, com o que já está marcado.
+
+**Três coisas que só apareceram ao medir.**
+
+1. **A cor do degrau não pode vir da POSIÇÃO.** «Satisfatório» é verde, «razoável» verde-claro,
+   «em desenvolvimento» âmbar e «não se aplica» neutro — mas a escola pode criar uma rubrica
+   própria e reordená-la, e aí a posição mentiria. O mapeamento é pelo **nome** do nível; quando o
+   nome não é nenhum dos canónicos, cai numa rampa pela posição e o último degrau é o neutro.
+2. **Em 320px três colunas não cabem.** Cada métrica fica com 78px, e «CONTEÚDOS» a .66rem com
+   `letter-spacing` precisa de mais: transbordava **7px**. Abaixo de 360 a fila passa a uma
+   coluna — é o único ponto em que o desenho cede à largura em vez de truncar a palavra.
+3. **O `falta` colado na frase.** Os dois são itens flex e o espaço entre eles não é desenhado —
+   mas sem ele o texto que o leitor de ecrã lê é «**faltaa** frequência semanal». O vão visual é do
+   `gap`; o espaço no HTML é da leitura.
+
+**O protótipo tinha uma falta, e ele viu.** No telefone o painel dos conteúdos trazia os chips e
+**não** o seletor de associação. Era só o exemplo — mas se eu o copiasse, teria virado produção:
+**associar e desassociar têm de estar nos dois tamanhos**, e por isso o seletor, o botão e o «×» de
+cada chip vivem no mesmo painel, em qualquer largura.
+
+**Uma prova nova, e duas lições sobre provas.** `experimentos/provar-cartao-da-turma.js` —
+**52/52**, e **27 falhas** no controle negativo. Duas armadilhas apareceram na própria prova:
+
+- as secções vivem dentro de `<div id="conteudo" hidden>`, que só abre depois da senha da direção.
+  Sem abri-lo, o cartão media **zero** e a prova passava com `[0,0,0]`;
+- `.every` num array **vazio PASSA**. Três asserções davam «ok» no controle negativo, onde não há
+  painel nem botão nenhum. Passaram a exigir `.length === 3`.
+
+E o controle negativo morria no clique (`page.click` lança quando o seletor não existe) em vez de
+reprovar: o clique que não encontra o alvo deixou de lançar, e quem reprova é a asserção seguinte.
+
+**Conferido.** `provar-cartao-da-turma` 52/52 · `provar-producao` 109/109 · `provar-menu-da-producao`
+22/22 · `provar-celular` 15/15 · `provar-tema` 30/30 · `provar-cabecalho-do-ato` 40/40 ·
+`provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 · `check-identidade` 8/8. Publicado em
+`fita` e `valse`.

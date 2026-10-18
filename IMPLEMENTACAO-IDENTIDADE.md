@@ -506,7 +506,10 @@ nome que decidia onde ele caía.
 | 7.3 | A curadoria segue a mesma regra; a modalidade desce para a segunda linha | `[x]` 18/10 — medido: 2 linhas, 67px |
 | 7.4 | «dono — criado na página» passa a «principal», e o `slug` sai da lista | `[x]` 18/10 — `bastidores.js` |
 | 7.5 | As demais listas falam a mesma língua (nomes em `<b>`, como o principal) | `[x]` 18/10 — professor e aluna |
-| 7.6 | O **cartão da turma** — três propostas (gaveta, escala, três números) e o **híbrido** | `[ ]` 18/10 — na página de estudos, **aguarda escolha** |
+| 7.6 | O **cartão da turma** — três propostas (gaveta, escala, três números) e o **híbrido** | `[x]` 18/10 — **T4, híbrido**, escolhido pelo dono do produto |
+| 7.7 | O híbrido implementado em produção | `[x]` 18/10 — `bastidores.js`, três métricas e três painéis |
+| 7.8 | Prova do cartão, em seis larguras e com controle negativo | `[x]` 18/10 — `provar-cartao-da-turma.js`, 52/52; 27 falhas em `HEAD` |
+| 7.9 | Associar e desassociar alcançáveis em TELA GRANDE e no TELEFONE | `[x]` 18/10 — as duas coisas vivem no painel dos conteúdos |
 
 ### A regra, e por que ela é `flex` e não `block`
 
@@ -559,6 +562,20 @@ componente que o sistema não tem.
 
 **Conferido depois da mudança.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 ·
 `provar-celular` 15/15 · `provar-tema` 30/30 · `check-identidade` 8/8.
+
+### O híbrido, implementado (18/10/2026)
+
+O dono do produto escolheu o T4 e apontou uma falta no protótipo: no telefone, o painel dos
+conteúdos trazia os chips mas **não** o seletor de associação — «eu não tenho como associar».
+Faltava no exemplo, e passou a faltar em produção se eu o tivesse copiado: **associar e
+desassociar têm de estar nos dois tamanhos**, e é por isso que o seletor, o botão «Associar» e o
+«×» de cada chip vivem no mesmo painel, em qualquer largura. A prova mede isso em 390px.
+
+| # | O que o painel mostra |
+|---|---|
+| Ritmo | quatro pares rótulo/valor (frequência, dias e horário, duração, período) — ou, quando falta, a frase e a lista do que falta |
+| Régua | a escala com a cor de cada degrau, mapeada pelo NOME do nível |
+| Conteúdos | os chips com «×», e o seletor com o botão «Associar» |
 
 **O híbrido (T4), e o que ele obrigou a mudar.** O dono do produto gostou da riqueza da T2 (a
 escala com cores, os chips) e da economia da T3, mas recusou o painel da T3: «abre um texto duro».

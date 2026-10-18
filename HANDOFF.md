@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T09:25:51-0300`
-Commit atual: `4b68b7f` — fix(estrutura): as listas passam a ter duas linhas, e o «principal» deixa de ser história
+Gerado em: `2026-10-18T09:45:15-0300`
+Commit atual: `48ecc31` — feat(estrutura): o cartão da turma passa a ser o híbrido — três números e um painel
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,10 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+48ecc31 feat(estrutura): o cartão da turma passa a ser o híbrido — três números e um painel
+a8e9bbf docs(estrutura): o híbrido do cartão da turma — e por que a escala deixou de ser da T2
+833d193 docs(estrutura): a fase 7 — a regra das duas linhas e as três propostas do cartão da turma
+b350056 docs(estrutura): o HANDOFF passa a apontar a regra das duas linhas
 4b68b7f fix(estrutura): as listas passam a ter duas linhas, e o «principal» deixa de ser história
 b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativo se anuncia ao leitor de ecrã
 2354f5e docs(estrutura): as duas navegações do sistema, e a folha inferior como decisão
@@ -78,10 +82,6 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 33dc16c chore(experimentos): a escola fixa ganha prova de navegador — 30 verificações e controle negativo
 16cd681 chore(ciclo-01): as duas cópias da porta recebem a escola como inscrição
 2dedad1 feat(estrutura): a escola deixa de ser campo e passa a inscrição — o valor vem do Worker, não da URL
-50145f6 style(tools): a seta do select volta — o `:where()` de peso zero a apagava em duas superfícies
-1de0d5e fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
-523a2e2 style(tools): o botão recupera a borda de baixo, o campo deixa de colar no botão e o modal passa a rolar
-233314a chore(experimentos): a prova do celular passa a medir a BORDA, o VÃO e o MODAL — 11 → 15
 ```
 
 ## Por professor
@@ -147,42 +147,57 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — as listas passam a ter duas linhas, e o «principal» deixa de ser histórico
+## 18/10/2026 — o cartão da turma passa a ser o híbrido: três números e um painel
 
-**Três pedidos que eram um só.** A direção pediu três coisas em sequência e elas são a mesma: o
-**vocabulário** oscilava de altura («arabesque » numa linha, «fouetté entre-nan» em duas); na
-**curadoria** devia valer o mesmo; e em **professores** o nome do dono vinha com «dono — criado na
-página» ao lado e o `slug` (`tiago-menegaz`) a seguir. O que faltava era uma regra de composição,
-não três remendos.
+**O que estava errado, medido.** Uma turma carregava **nove faixas** de informação todas abertas
+ao mesmo tempo: nome, nível, programa, ritmo, estado, vigência, o aviso de «falta …», a régua em
+prosa, os conteúdos em chips, o seletor de associação e o histórico. Numa escola com cinco turmas
+são quarenta e cinco faixas. O dono do produto descreveu como «bem poluído… a organização está
+esquisita» — e o diagnóstico não era de espaçamento, era de **tudo ao mesmo tempo**.
 
-**A regra.** Nas listas simples — vocabulário, curadoria, professores, alunas — a **primeira linha
-é o nome** (com os selos, que são o estado daquela linha) e a **segunda é o complemento**, e só
-ele. O nome e o complemento nunca quebram: eles **encurtam** com reticências. Duas linhas é o
-teto em qualquer largura, do telefone à tela cheia. A altura passa a ser a mesma de item para
-item — era o oscilar que a direção via ao trocar de página.
+**As três propostas, e a escolha.** Gaveta (só contagens à vista, o resto num `<details>` nativo),
+escala (tudo à vista, com a régua como barra de quatro degraus coloridos) e três números (o mais
+compacto, com balão ao toque). Ele gostou da **riqueza** da escala e da **economia** dos números, e
+recusou o balão de texto: «abre um texto duro». Propôs ele mesmo a mistura, e ela foi a escolhida:
+**os três números, com o conteúdo da escala lá dentro**.
 
-**O que a primeira tentativa errou, e como se viu.** `display: block` no complemento resolveu o
-vocabulário e **criou uma terceira linha** na curadoria: o selo (`LIVRE`) descia sozinho entre o
-nome e o complemento — medido, 93px contra os 63px que os outros tinham. O que faltava era o nome
-e os selos caberem **juntos** na primeira linha; isso pede `flex` com o nome em `flex: 1 1 auto`
-(quem cede é o nome) e os selos em `0 0 auto` (não cedem), e o complemento em `flex: 0 0 100%`,
-que é o que **força** a segunda linha. O `:not(.fixo)` poupa o «→ origem» da turma, que é outra
-peça e não encolhe.
+**O que o painel mostra.** Ritmo em quatro pares rótulo/valor; a régua com a **escala de cores**;
+os conteúdos em chips com o «×» de desassociar e o seletor de associação. E quando o ritmo falta,
+não é uma frase seca: é a **lista do que falta**, um item por vez, com o que já está marcado.
 
-**E o rótulo do dono.** «dono — criado na página» descreve **como o registro nasceu**, que é
-história do sistema; «principal» diz **o que a pessoa é** na escola, e é a única que não se
-exclui. O `slug` saiu da lista: ele é a pasta (`professores/<slug>/`), quem a resolve é o sistema,
-e a direção lia `tiago-menegaz` no meio de nomes sem ter o que fazer com aquilo — se um dia
-precisar do caminho, o lugar é o diagnóstico.
+**Três coisas que só apareceram ao medir.**
 
-**Uma armadilha que custou duas medições.** `:not(.fixo)` não é decoração: `.lista li .nome`
-(0,0,3) vence `.linha-turma .nome` (0,0,2) sem aviso, e o `.nome` de uma linha é ao mesmo tempo «o
-nome que encolhe» e «o nome que precisa de largura». São dois papéis, e continuam a ser duas
-regras.
+1. **A cor do degrau não pode vir da POSIÇÃO.** «Satisfatório» é verde, «razoável» verde-claro,
+   «em desenvolvimento» âmbar e «não se aplica» neutro — mas a escola pode criar uma rubrica
+   própria e reordená-la, e aí a posição mentiria. O mapeamento é pelo **nome** do nível; quando o
+   nome não é nenhum dos canónicos, cai numa rampa pela posição e o último degrau é o neutro.
+2. **Em 320px três colunas não cabem.** Cada métrica fica com 78px, e «CONTEÚDOS» a .66rem com
+   `letter-spacing` precisa de mais: transbordava **7px**. Abaixo de 360 a fila passa a uma
+   coluna — é o único ponto em que o desenho cede à largura em vez de truncar a palavra.
+3. **O `falta` colado na frase.** Os dois são itens flex e o espaço entre eles não é desenhado —
+   mas sem ele o texto que o leitor de ecrã lê é «**faltaa** frequência semanal». O vão visual é do
+   `gap`; o espaço no HTML é da leitura.
 
-**Conferido.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular`
-15/15 (medido em 320, 360, 390, 414, 768 e 1024px) · `provar-tema` 30/30 · `check-identidade` 8
-verificações, todas ok.
+**O protótipo tinha uma falta, e ele viu.** No telefone o painel dos conteúdos trazia os chips e
+**não** o seletor de associação. Era só o exemplo — mas se eu o copiasse, teria virado produção:
+**associar e desassociar têm de estar nos dois tamanhos**, e por isso o seletor, o botão e o «×» de
+cada chip vivem no mesmo painel, em qualquer largura.
+
+**Uma prova nova, e duas lições sobre provas.** `experimentos/provar-cartao-da-turma.js` —
+**52/52**, e **27 falhas** no controle negativo. Duas armadilhas apareceram na própria prova:
+
+- as secções vivem dentro de `<div id="conteudo" hidden>`, que só abre depois da senha da direção.
+  Sem abri-lo, o cartão media **zero** e a prova passava com `[0,0,0]`;
+- `.every` num array **vazio PASSA**. Três asserções davam «ok» no controle negativo, onde não há
+  painel nem botão nenhum. Passaram a exigir `.length === 3`.
+
+E o controle negativo morria no clique (`page.click` lança quando o seletor não existe) em vez de
+reprovar: o clique que não encontra o alvo deixou de lançar, e quem reprova é a asserção seguinte.
+
+**Conferido.** `provar-cartao-da-turma` 52/52 · `provar-producao` 109/109 · `provar-menu-da-producao`
+22/22 · `provar-celular` 15/15 · `provar-tema` 30/30 · `provar-cabecalho-do-ato` 40/40 ·
+`provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 · `check-identidade` 8/8. Publicado em
+`fita` e `valse`.
 
 ## O que está pendente
 
