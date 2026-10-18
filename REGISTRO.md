@@ -16369,9 +16369,12 @@ subir, a barra do sistema **recuava inteira — e o hambúrguer com ela**. Quem 
 lista longa tinha de rolar de volta ao topo para sair, que é exactamente o problema que a proposta
 existia para resolver. A **S5** mantém o ☰ na barra: ao rolar, a sessão **entra** na barra do
 sistema em vez de a substituir, e o resultado é uma linha só — `[logo] PEDAGOGIA · Turmas ·
-Seções · ☰`. O que sai para caber é a palavra «Sistema Lastro», que a logo já responde; ela volta
-ao topo, com a barra da página no lugar de hoje. Medido em 1440, 390 e 320px: nada estoura, a
-barra não cresce (41px), e o ☰ fica sempre dentro dela.
+Seções · ☰`. A palavra «Sistema Lastro» sai — e sai SEMPRE ao rolar, em qualquer largura (decisão
+de 18/10/2026; antes era só abaixo de 380px, «para caber»). O desenho é mais simples de ler assim:
+**ao rolar, a barra deixa de ser a marca e passa a ser o caminho**. A marca não se perde — ela é a
+**logo**, que fica à esquerda nos dois estados, e a palavra volta inteira no topo. E a largura deixa
+de ser um problema a gerir: com a marca fora do caminho, o caminho e a saída cabem mesmo a 320px.
+Medido em 1440, 390 e 320px: nada estoura, a barra não cresce (41px), e o ☰ fica sempre dentro dela.
 
 **E dois defeitos meus, apontados a usar — os dois corrigidos e os dois com lição.**
 
