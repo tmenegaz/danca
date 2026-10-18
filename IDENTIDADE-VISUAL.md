@@ -432,6 +432,14 @@ menu **Identidade visual** e o campo **Paleta de cores** com as doze combinaçõ
 **C15** — de quem é a preferência — continua **em aberto**; a gravação no navegador é o caminho
 provisório, declarado como tal.
 
+> **O que é a C15, em duas linhas.** É uma das **decisões pendentes do produto**, numeradas em
+> `PLANEJAMENTO-LASTRO.md`: **de quem é a preferência de aparência** — da **escola**, do
+> **usuário** ou do **navegador**. Ela está aberta porque a medição mostrou que **hoje não há
+> usuário** onde pendurá-la: a senha da Produção é uma por escola, e depois do portão a página
+> guarda **a senha, não quem entrou**. O sistema autentica **um segredo**, não **uma pessoa** —
+> a mesma lacuna que a C11 (não há lado público na porta) e a C13 (não há escola na raiz). **É
+> decisão de produto, não dívida de código.**
+
 ## O que é campo e o que é inscrição *(18/10/2026)*
 
 Um sistema de identidade não decide só **como** as coisas parecem: decide **o que cada peça é**.

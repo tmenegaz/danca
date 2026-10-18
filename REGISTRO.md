@@ -17032,3 +17032,41 @@ além do que este diagnóstico propunha»). Nenhum código foi tocado nesta entr
 conferência visual (3.4), que é do dono do produto; a migração da escala para as quatro
 superfícies que ainda escrevem `rem` à mão; e o deploy da raiz, que faria a `provar-ambiente`
 cobrir a terceira superfície.
+
+## 18/10/2026 — a conferência visual fecha, e a C15 ganha glosa
+
+**O que motivou.** O dono do produto conferiu a aparência nos dois ambientes de teste e deu o
+item por fechado («3.4 ok»). E perguntou **o que é a C15** — o que é, em si, um achado de
+documentação: os dois documentos de identidade citam a C15 quatro vezes cada um, sempre como
+«depende de C15», e **nenhum deles diz o que ela é**. Quem lê tem de saltar para o
+`PLANEJAMENTO-LASTRO.md` e procurar a §3.
+
+**O que foi decidido.**
+
+- **O item 3.4 está fechado.** A conferência visual (clara e noturna) foi feita pelo dono do
+  produto nos dois ambientes. É a única conferência que não se automatiza: a aritmética mede
+  contraste, as provas medem geometria e comportamento; o gosto é de quem usa. Com ele, **fica
+  um** item aberto no plano — o **2.8** —, e ele **não é trabalho**: é decisão de produto.
+- **A C15 ganhou glosa onde é citada**, nos dois documentos: é a decisão de **de quem é a
+  preferência de aparência** (escola × usuário × navegador), e está aberta porque a medição
+  mostrou que **hoje não há usuário** onde pendurá-la — a senha da Produção é uma por escola, e
+  depois do portão a página guarda **a senha, não quem entrou**. O sistema autentica **um
+  segredo**, não **uma pessoa**. A glosa diz também que é a mesma lacuna da **C11** (não há lado
+  público na porta) e da **C13** (não há escola na raiz): *o modelo não tem a entidade que a
+  funcionalidade pressupõe*.
+- **O 2.8 passou a dizer o que é.** «Depende de C15» sozinho lê-se como pendência de execução;
+  agora diz que é **decisão de produto**, e que especificar os hex antes de saber *de quem* é a
+  escolha seria desenhar a persistência no escuro.
+
+**Onde entrou.** `IMPLEMENTACAO-IDENTIDADE.md` (o item 3.4, a nota de fechamento, a glosa da C15
+no topo e no 2.8) e `IDENTIDADE-VISUAL.md` (a glosa ao lado do parágrafo que declara a C15
+aberta).
+
+**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (a C15 e a sua justificação), `motor/servidor/
+bastidores.js` (`senhaDaEscolaOk`, onde a identidade existe no dado e não é usada).
+
+**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15; `IDENTIDADE-VISUAL.md` (a aparência e o
+catálogo planeado); `IMPLEMENTACAO-IDENTIDADE.md` (Fases 2 e 3).
+
+**O que continua fora.** A C15 continua **aberta** — é decisão do dono do produto, e precede o
+desenho da persistência. O catálogo das doze paletas (2.8) não começa antes dela.

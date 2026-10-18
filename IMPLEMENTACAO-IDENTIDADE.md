@@ -11,12 +11,25 @@
 > `REGISTRO.md` e commit próprio (`CONGELAMENTO.md`).
 
 > **Leitura de fechamento — 18/10/2026.** O plano é conferido contra o que existe: as Fases 0 a
-> 7 estão fechadas, salvo os itens que dependem de decisão (**2.8**, o catálogo das doze paletas
-> e **C15**) e os que dependem do olho humano (**3.4**). Duas coisas **foram além** do que este
-> documento propunha, e viraram trabalho: a **Fase 8**, que trata da forma partilhada (a
-> etiqueta, os componentes, o que está no ar × o motor), e a **dobra do índice no celular**,
-> que o plano não previa. Onde um número deste arquivo envelheceu, ele fica com **nota
-> datada** — nunca é apagado.
+> 7 estão fechadas, e a conferência visual (**3.4**) foi feita. Fica **um** item aberto, e ele
+> **não é trabalho** — é uma **decisão de produto** que só o dono do produto pode tomar: o
+> **2.8**, o catálogo das doze paletas, que depende da decisão **C15** («a preferência de
+> aparência é de quem?»). Duas coisas **foram além** do que este documento propunha, e viraram
+> trabalho: a **Fase 8**, que trata da forma partilhada (a etiqueta, os componentes, o que está
+> no ar × o motor), e a **dobra do índice no celular**, que o plano não previa. Onde um número
+> deste arquivo envelheceu, ele fica com **nota datada** — nunca é apagado.
+
+> **O que é a C15 (glossário, para não obrigar a saltar para o planeamento).** As decisões
+> pendentes do produto estão numeradas em `PLANEJAMENTO-LASTRO.md` (`C1`, `C2`, `C11`, `C13`,
+> `C15`, `C17`, `C18`…), e cada uma bloqueia um pedaço. A **C15** pergunta **de quem é a
+> preferência de aparência** — da **escola**, do **usuário** ou do **navegador** —, e a medição
+> mostrou que **hoje não há usuário** onde pendurá-la: a senha da Produção é **uma por escola**
+> (a da direção *ou a de qualquer professor cadastrado*), e depois do portão a página guarda **a
+> senha, não quem entrou**. O sistema autentica **um segredo**, não **uma pessoa**. É a mesma
+> lacuna que a **C11** (não há lado público na porta) e a **C13** (não há escola na raiz): *o
+> modelo não tem a entidade que a funcionalidade pressupõe*. Enquanto ela estiver aberta, o tema
+> funciona com a escolha **no navegador**, declarada como **provisória** — e é isso, e não uma
+> dívida escondida.
 
 ## Princípios que valem em todas as fases
 
@@ -157,7 +170,7 @@ camada de componentes.
 | 2.5 | `@media print` força os papéis claros | `[x]` 17/10 — `!important`, explícito |
 | 2.6 | Validador mede **todos** os temas e o uso de papel | `[x]` 17/10 — 31 pares × 2 temas; guard de primitivo |
 | 2.7 | Layouts: `data-layout="documento" \| "painel"` | `[x]` 17/10 |
-| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` depende de **C15** (a preferência é de quem) |
+| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` depende de **C15** (a preferência é de quem — ver a glosa no topo deste arquivo). **Não é trabalho pendente: é decisão de produto.** Especificar os hex antes de saber *de quem* é a escolha seria desenhar a persistência no escuro |
 
 ### O que a Fase 2 fez, e o que ela **não** fez
 
@@ -193,7 +206,7 @@ estado explícito para a próxima sessão.
 | 3.1 | Prova do tema (comportamento + CSS + superfícies) | `[x]` 17/10 — `experimentos/provar-tema.js`, 29/29 |
 | 3.2 | Documentação: `README.md`, `motor/servidor/README.md` | `[x]` 17/10 |
 | 3.3 | Regenerar o `HANDOFF.md` (gerado) | `[x]` 17/10 |
-| 3.4 | Conferência **visual** no navegador (clara e noturna) | `[ ]` — exige olho humano |
+| 3.4 | Conferência **visual** no navegador (clara e noturna) | `[x]` 18/10 — **feita pelo dono do produto nos dois ambientes de teste** (fita e valse), depois da rodada da forma partilhada e da dobra do índice. É a única conferência que não se automatiza: a aritmética mede contraste e a prova mede geometria; o gosto é de quem usa |
 | 3.5 | Commit próprio das mudanças em `tools/` (congelados) | `[x]` 18/10 — dois commits próprios com motivo declarado: `f9b416b` (a forma partilhada e os dois validadores) e `ce874b9` (a dobra do índice) |
 
 ### O que a prova do tema encontrou
@@ -211,7 +224,7 @@ aberto, e o botão parece certo.
 
 - **O catálogo das doze paletas (2.8)** continua em aberto — depende da decisão **C15**.
 - **A conferência visual** é do dono do produto; a prova cobre contraste, papel e comportamento,
-  não o gosto.
+  não o gosto. **Feita em 18/10/2026** nos dois ambientes de teste — o item 3.4 está fechado.
 - **O commit** é uma decisão à parte: `tools/` é congelado e exige commit próprio com o motivo
   declarado, já escrito no `REGISTRO.md`.
 

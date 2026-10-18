@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T14:30:28-0300`
-Commit atual: `ce874b9` — feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
+Gerado em: `2026-10-18T15:04:47-0300`
+Commit atual: `ec57630` — docs(estrutura): a leitura de fechamento dos dois documentos de identidade
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+ec57630 docs(estrutura): a leitura de fechamento dos dois documentos de identidade
 ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
 f9b416b fix(estrutura): a etiqueta é uma só — e o que está no ar é o motor
 dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando não cabe
@@ -81,7 +82,6 @@ b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativ
 2354f5e docs(estrutura): as duas navegações do sistema, e a folha inferior como decisão
 1a1e138 chore(experimentos): a folha do menu ganha prova de GEOMETRIA — 22 verificações e controle negativo
 be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz em que grupo se está
-6113b51 docs(estrutura): o arranjo igual nos três documentos e a lição que ele deixa
 ```
 
 ## Por professor
@@ -147,61 +147,43 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — a leitura de fechamento dos dois documentos de identidade
+## 18/10/2026 — a conferência visual fecha, e a C15 ganha glosa
 
-**O que motivou.** Depois da rodada da forma partilhada, o pedido foi conferir se o que existe
-cumpre o `DIAGNOSTICO-IDENTIDADE.md` e o `IMPLEMENTACAO-IDENTIDADE.md` — com a suspeita, que se
-confirmou, de que o trabalho foi **além** do que os dois propunham.
+**O que motivou.** O dono do produto conferiu a aparência nos dois ambientes de teste e deu o
+item por fechado («3.4 ok»). E perguntou **o que é a C15** — o que é, em si, um achado de
+documentação: os dois documentos de identidade citam a C15 quatro vezes cada um, sempre como
+«depende de C15», e **nenhum deles diz o que ela é**. Quem lê tem de saltar para o
+`PLANEJAMENTO-LASTRO.md` e procurar a §3.
 
-**O que já estava cumprido.** As Fases 0 a 7 estão fechadas, e as afirmações verificáveis
-continuam verdadeiras: `check-identidade` verde, `ficha-html-cli --autoteste` 42/42,
-`check-apresentacao` com as 3 páginas «Sistema Lastro» fiéis à fonte. Ficam abertos, e por
-declaração, só os itens que dependem de decisão (**2.8**, o catálogo das doze paletas e a
-**C15**) e o que depende do olho humano (**3.4**).
+**O que foi decidido.**
 
-**O que foi corrigido nos documentos** — sempre com nota datada, nunca apagando (§ regra do
-próprio arquivo):
+- **O item 3.4 está fechado.** A conferência visual (clara e noturna) foi feita pelo dono do
+  produto nos dois ambientes. É a única conferência que não se automatiza: a aritmética mede
+  contraste, as provas medem geometria e comportamento; o gosto é de quem usa. Com ele, **fica
+  um** item aberto no plano — o **2.8** —, e ele **não é trabalho**: é decisão de produto.
+- **A C15 ganhou glosa onde é citada**, nos dois documentos: é a decisão de **de quem é a
+  preferência de aparência** (escola × usuário × navegador), e está aberta porque a medição
+  mostrou que **hoje não há usuário** onde pendurá-la — a senha da Produção é uma por escola, e
+  depois do portão a página guarda **a senha, não quem entrou**. O sistema autentica **um
+  segredo**, não **uma pessoa**. A glosa diz também que é a mesma lacuna da **C11** (não há lado
+  público na porta) e da **C13** (não há escola na raiz): *o modelo não tem a entidade que a
+  funcionalidade pressupõe*.
+- **O 2.8 passou a dizer o que é.** «Depende de C15» sozinho lê-se como pendência de execução;
+  agora diz que é **decisão de produto**, e que especificar os hex antes de saber *de quem* é a
+  escolha seria desenhar a persistência no escuro.
 
-- **1.2** dizia raios `4/6/8/999`; hoje são **8/12/20/999**, e a ficha e as páginas de estado
-  passaram a **declarar** a escala em vez de escrever `4px`/`6px` à mão.
-- **o critério da Fase 1** dizia «6 verificações»; são **9**.
-- **5.6** dizia 9/9 na `provar-celular`; são **15/15**.
-- **3.5** (commit próprio do `tools/`, congelado) estava `[ ]` e está feito: `f9b416b` e `ce874b9`.
-- **7.19** (a barra de sessão) estava `[ ]` «aguarda escolha»; a **S5** foi escolhida e está
-  provada (`provar-sessao-na-barra`, 28/28).
-- **a escala de espaço (F14)**: «14 usos, todos na fonte» deixou de ser verdade a meio. Medido
-  hoje: **63 na fonte, 32 nos consumidores** (porta 18, bastidores 14). A dívida está concentrada
-  em **raiz, lançamento, ficha e páginas de estado**.
-- **`data-tela`**: confirmado que continua escrita e não lida (7 declarações, nenhum seletor).
-  É promessa declarada, não dívida escondida.
+**Onde entrou.** `IMPLEMENTACAO-IDENTIDADE.md` (o item 3.4, a nota de fechamento, a glosa da C15
+no topo e no 2.8) e `IDENTIDADE-VISUAL.md` (a glosa ao lado do parágrafo que declara a C15
+aberta).
 
-**O que foi acrescentado, e não estava previsto.** O plano ganhou a **Fase 8** (itens 8.1–8.11) e
-o diagnóstico, a secção «O que ficou além». Os cinco pontos, que são a substância:
+**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (a C15 e a sua justificação), `motor/servidor/
+bastidores.js` (`senhaDaEscolaOk`, onde a identidade existe no dado e não é usada).
 
-1. **medir composição, não a existência de um seletor** — o critério da Fase 1 era `grep` de
-   `.selo {`, que não vê `.selo.vinculada`; a checagem «Forma» lê o alvo de cada regra e deriva a
-   lista de componentes da própria fonte;
-2. **alias de página não pode tomar o nome de um papel** (`--borda`);
-3. **um nome de estado, um desenho** (`.livre` ≡ `.solta`);
-4. **provar o que está no ar** — o diagnóstico nunca olhou o deploy, e o que estava no ar não era
-   o motor;
-5. **a navegação do documento no celular** — a dobra do índice, que o plano não previa.
+**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15; `IDENTIDADE-VISUAL.md` (a aparência e o
+catálogo planeado); `IMPLEMENTACAO-IDENTIDADE.md` (Fases 2 e 3).
 
-**Onde entrou.** `IMPLEMENTACAO-IDENTIDADE.md` (a nota de fechamento, as correções datadas, a
-Fase 8 e as linhas do registo de execução) e `DIAGNOSTICO-IDENTIDADE.md` (a secção «O que ficou
-além do que este diagnóstico propunha»). Nenhum código foi tocado nesta entrada: ela é leitura.
-
-**Com o quê.** Medições feitas nesta data: `grep` da escala nos seis consumidores,
-`grep` de `data-tela`, `ficha-html-cli --autoteste`, `check-apresentacao`,
-`check-identidade`.
-
-**Referências.** `DIAGNOSTICO-IDENTIDADE.md`; `IMPLEMENTACAO-IDENTIDADE.md` (regra do arquivo:
-«item que mudou de escopo ganha nota datada — nunca é apagado»).
-
-**O que continua fora.** O catálogo das doze paletas e o seletor de aparência (C15); a
-conferência visual (3.4), que é do dono do produto; a migração da escala para as quatro
-superfícies que ainda escrevem `rem` à mão; e o deploy da raiz, que faria a `provar-ambiente`
-cobrir a terceira superfície.
+**O que continua fora.** A C15 continua **aberta** — é decisão do dono do produto, e precede o
+desenho da persistência. O catálogo das doze paletas (2.8) não começa antes dela.
 
 ## O que está pendente
 
