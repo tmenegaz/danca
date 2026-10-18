@@ -16041,3 +16041,71 @@ em 16/10/2026, e está registada no comentário do CSS para não voltar uma terc
   (`wrangler.<slug>.jsonc`), não de um índice gravado por escola.
 - **`provar-lancamento.js` e `provar-expurgo-kv.js` falham antes desta data** (apontam para
   `professores/tiago/…`, que não existe): medido igual com e sem esta mudança, nenhuma regressão.
+
+## 18/10/2026 — Os três cabeçalhos não eram iguais: uma linha de CSS explicava os três sintomas
+
+**O que motivou.** O dono do produto abriu a anamnese, o plano de ensino e o plano de
+observação, um ao lado do outro, e descreveu quatro coisas:
+
+1. «o aspecto que tá organizado os campos tem que ser exatamente igual o da anamnese» — nos
+   outros dois os campos apareciam **empilhados**;
+2. o cartão era **mais largo** do que os blocos de texto abaixo («soa muito estranho»);
+3. sobravam **textos informativos** no cabeçalho — «escolha o plano de ensino no corpo do
+   formulário», «turma observada» com uma explicação por baixo;
+4. e, no celular, a navegação da Produção continuava espremida.
+
+**Uma declaração explicava os três primeiros.** `details.ctx-ato .ctx-campos .ctx-turma { flex: 1
+1 100%; }` — a turma a ocupar a linha inteira. Só os dois documentos que **têm** turma quebravam
+a linha; a anamnese, que foi a que serviu de modelo ao estudo H2, nunca teve o campo. O CSS fazia
+o que lhe mandaram: ninguém tinha dito que os três deviam ficar iguais.
+
+| Documento | Antes | Depois |
+|---|---|---|
+| anamnese | 4 colunas, 1 linha | 4 colunas, 1 linha |
+| plano de ensino | 3 colunas, **2 linhas** | 4 colunas, 1 linha |
+| plano de observação | 3 colunas, **2 linhas** + 2 frases | 3 colunas, 1 linha, sem frases |
+
+**A largura.** O cartão vivia no `body` com medida própria (1180px) enquanto os blocos de texto
+viviam na caixa de `main` (1180 **menos 24px de padding de cada lado** = 1132). Passou a existir
+uma `.faixa` com os MESMOS três números de `header.doc, main` — o cartão deixou de ter medida
+própria e passou a herdar a da página. Medido: cartão e texto com o mesmo `x` e a mesma largura
+em 1280, 1024 e 390px.
+
+**Os textos.** Saíram as três frases que explicam a FERRAMENTA a quem já a está a usar, e ficou
+o valor — que já se anuncia vazio com «—». A turma do Plano de Observação deixou de ser um `<b>`
+com uma frase ao lado e passou a ser **inscrição**, com o mesmo desenho da escola: ela não é
+escolha de ninguém, vem do plano referenciado. No Plano de Ensino continua **campo**, porque ali
+é escolha do professor. É o contrato «campo × inscrição» da entrada anterior, aplicado à segunda
+peça que o merecia.
+
+**Um desalinhamento de 10px que a prova nova pegou.** Os campos se alinham pela base
+(`align-items: flex-end`); a inscrição da turma tem a altura do texto e o `<select>` tem 32px, e
+os rótulos ficavam 10px desencontrados — visível a olho nu. A inscrição passou a ocupar a mesma
+caixa de linha (32px), sem ganhar filete, fundo ou cursor: o que se igualou foi o **ritmo da
+linha**, não a natureza da peça.
+
+**A prova.** `experimentos/provar-cabecalho-do-ato.js` (novo) → **40/40**, e **26/40** no
+controle negativo contra a porta de `HEAD`. Ela mede o ARRANJO e não o retrato: a caixa do cartão
+contra a do texto, o topo dos campos (mesma linha, ±4px), os rótulos na ordem de cada documento,
+o tipo de cada controle (campo × inscrição) e uma lista de frases que não podem voltar. É a
+primeira prova deste repositório que abre os três documentos de propósito para compará-los.
+
+**E o estudo da navegação.** A quarta coisa era o menu da Produção no celular: sete destinos em
+três grupos viram uma fita de 80px com o título do grupo e o link com o mesmo peso. Foram para
+`experimentos/opcoes-visuais/index.html` **quatro** protótipos **clicáveis** — não desenhos:
+
+| | Opção | Altura em repouso | Custo |
+|---|---|---:|---|
+| N1 | abas de grupo + lista (a ideia dele) | 98–174px | a lista fica sempre à vista |
+| N2 | folha inferior (a segunda ideia dele) | 53px | dois toques por destino |
+| N3 | faixa rolável de destinos (o iFood) | 64px | o que está fora da tela não se anuncia |
+| N4 | seletor de seção + passos | 51px | o destino deixa de estar à vista |
+
+A escolha é dele e está registada como **6.12 em aberto**. Medido nas quatro: o item ativo
+acompanha o clique, o título do conteúdo muda, e nenhuma transborda em 320, 390, 768, 1024 ou
+1280px.
+
+**Conferido.** `check-identidade.js` → 8 verificações (as duas cópias de `plano-observacao/`
+regeradas com a nav de cada escola preservada). `provar-cabecalho-do-ato` 40/40.
+`provar-escola-fixa` 30/30. `provar-contexto-do-ato` 37/37. `provar-celular` 15/15.
+`provar-tema` 30/30. `provar-producao` 109/109. `provar-plano-da-turma` 47/47.

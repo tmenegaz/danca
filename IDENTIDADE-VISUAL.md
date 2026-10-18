@@ -446,6 +446,40 @@ texto, digitar sobre ela não muda nada, o valor da tela é o do envelope, e no 
 `ESCOLA_SLUG`) o `?escola=` da URL volta a valer. O controle negativo roda contra
 `git show HEAD:porta/index.html` e **reprova as 30**.
 
+## O arranjo do cabeçalho é o MESMO nos três documentos *(18/10/2026)*
+
+O cartão de identidade (H2) é a mesma peça na anamnese, no plano de ensino e no plano de
+observação: a escola numa coluna à esquerda, o resto do contexto à direita, os controles
+empilhados sob o rótulo. **O que muda de um documento para o outro é o CONTEÚDO das colunas,
+nunca o arranjo.**
+
+| Documento | Colunas | A turma |
+|---|---|---|
+| anamnese | professor · ciclo · aluna · senha | não existe |
+| plano de ensino | professor · ciclo · turma · senha | **campo** (select) — é escolha do professor |
+| plano de observação | professor · ciclo · turma | **inscrição** — vem do plano referenciado |
+
+**O defeito que isto corrige, e a sua lição.** Os três usam o mesmo HTML e o mesmo CSS, e
+mesmo assim apareciam diferentes: uma única declaração — `.ctx-turma { flex: 1 1 100% }` —
+forçava a turma a ocupar a linha inteira, e só os dois documentos que TÊM turma quebravam a
+linha. O CSS fazia o que lhe mandaram; ninguém tinha dito que os três deviam ficar iguais.
+
+É a mesma classe de erro do `--gold-borda` em dois fundos e do corte 760 × 768 — **um valor,
+dois lugares, e a diferença só aparece quando alguém olha os dois lado a lado**. Por isso a
+regra ganhou prova: `experimentos/provar-cabecalho-do-ato.js` mede o *arranjo* nos três
+documentos, em 1280 e em 390px, e reprova se um deles divergir.
+
+**A largura também é a da página.** O cartão não tem medida própria: ele vive na mesma caixa
+que `header.doc` e `main` (900px abaixo de 1200, 1180px a partir daí, menos 24px de padding
+de cada lado). Antes ele era mais largo que todo o texto abaixo — 48px, o suficiente para o
+dono do produto ler como «soa muito estranho».
+
+**E o texto que não é do ofício saiu.** O cabeçalho tinha frases que explicavam a ferramenta a
+quem já a estava a usar — «escolha o plano de ensino no corpo do formulário», «vem do plano de
+ensino referenciado — aqui é leitura». São instruções sobre a interface, não sobre o trabalho;
+o valor vazio já se anuncia com «—». A prova carrega a lista dessas frases e falha se alguma
+voltar.
+
 ## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 
 **O que é.** Uma entrada no **painel administrativo privado**, na área de configuração do sistema,

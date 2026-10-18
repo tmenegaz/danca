@@ -365,6 +365,11 @@ não devia ser — ela não é escolha de ninguém.
 | 6.5 | O contrato «campo × inscrição» documentado | `[x]` 18/10 — `IDENTIDADE-VISUAL.md` |
 | 6.6 | Quatro arranjos de cabeçalho para escolha | `[x]` 18/10 — **H2, cartão de identidade**, escolhido pelo dono do produto |
 | 6.7 | O nome da escola no JSON é o do Worker (não o do cliente) | `[x]` 18/10 — `rotas.js` · `lancamento.js` · `cloudflare.js` |
+| 6.8 | O ARRANJO do cabeçalho é o mesmo nos três documentos | `[x]` 18/10 — a turma deixa de ocupar a linha inteira |
+| 6.9 | O cartão tem a mesma largura do texto da página | `[x]` 18/10 — `.faixa`, a caixa de `main` |
+| 6.10 | Os textos que explicam a ferramenta saem do cabeçalho | `[x]` 18/10 — três frases, e uma lista na prova |
+| 6.11 | Prova do arranjo, nos três documentos e em duas larguras | `[x]` 18/10 — `provar-cabecalho-do-ato.js`, 40/40 |
+| 6.12 | A navegação da Produção no celular — quatro opções | `[ ]` **aguardando a escolha** — `experimentos/opcoes-visuais/` |
 
 ### O que a Fase 6 mediu
 
@@ -393,6 +398,40 @@ página não se recolhe; o que se recolhe é o resto do contexto.
 | 768px | uma coluna: escola em faixa no topo | 191px |
 | 390px | uma coluna, campos em 2×2, alvo de dedo inteiro | 279px |
 | recolhido | só a escola e a linha do «Contexto do ato» | 79px |
+
+### O arranjo tem de ser o MESMO nos três — e essa é a lição
+
+O dono do produto abriu os três documentos e viu três coisas diferentes: na anamnese os campos
+numa linha, no plano de ensino empilhados, no plano de observação empilhados e com texto a mais.
+Uma única declaração explicava tudo:
+
+```css
+.ctx-turma { flex: 1 1 100%; }   /* a turma ocupa a linha inteira */
+```
+
+Só os dois documentos que **têm** turma quebravam a linha. O CSS fazia o que lhe mandaram;
+ninguém tinha dito que os três deviam ficar iguais — e o desenho do estudo H2 foi aprovado com
+a anamnese na mão.
+
+| Documento | Antes | Depois |
+|---|---|---|
+| anamnese | 4 colunas, 1 linha | 4 colunas, 1 linha |
+| plano de ensino | 3 colunas, **2 linhas** | 4 colunas, 1 linha |
+| plano de observação | 3 colunas, **2 linhas** + 2 frases | 3 colunas, 1 linha, sem frases |
+
+E a largura: o cartão tinha 1180px onde o texto tinha 1132 — 48px a mais, o bastante para o
+olho estranhar. Agora o cartão herda a caixa da página (`.faixa`, com os mesmos 900/1180 e os
+mesmos 24px de padding de `header.doc, main`).
+
+**A prova.** `experimentos/provar-cabecalho-do-ato.js` — **40/40**, e **26/40** no controle
+negativo contra a porta de `HEAD`. Ela mede o arranjo, não o retrato: a caixa do cartão contra a
+do texto, o topo dos campos (todos na mesma linha, ±4px), os rótulos na ordem de cada documento,
+o tipo de cada controle (campo × inscrição), e uma lista de frases que não podem voltar.
+
+> **A lição, escrita para não se repetir.** Um valor que descreve o sistema em *dois* lugares é
+> a mesma armadilha do `--gold-borda` em dois fundos e do corte 760 × 768: a diferença só
+> aparece quando alguém olha os dois lado a lado. Quando a regra é «os três são iguais», ela
+> precisa de uma prova que abra os três.
 
 ### O que a Fase 6 encontrou no servidor — e corrigiu
 
