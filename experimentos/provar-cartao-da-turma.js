@@ -28,9 +28,12 @@
  *   6. `Escape` fecha;
  *   7. a escala da régua tem um degrau por nível, com a classe de cor certa POR NOME;
  *   8. a turma incompleta traz a nota de «falta» e a lista do que falta;
- *   9. no telefone, o seletor de termo e o botão «Associar» continuam na MESMA linha,
- *      dentro do painel — o botão lê o seletor;
- *  10. cada chip traz o «×» de desassociar.
+ *   9. o painel dos conteúdos MOSTRA e não compõe: tem os chips, e não tem seletor, nem
+ *      botão «Associar», nem «×» — a associação desceu para o formulário (18/10/2026);
+ *  10. o bloco de conteúdos do formulário está DEPOIS da duração da aula, nasce travado em
+ *      «cadastrar» (não há turma a que associar), LIGA em «editar» e aponta para a turma
+ *      aberta, e fica travado em «derivar» — a derivada herda os conteúdos;
+ *  11. no telefone, no formulário, o seletor e o botão continuam na MESMA linha.
  *
  * CONTROLE NEGATIVO: `--controle-negativo` extrai o `motor/` de `HEAD` com `git archive` e
  * roda as MESMAS provas. A página de antes não tem métrica, nem painel, nem escala: se
@@ -74,9 +77,19 @@ const TURMAS = [
     id: 'tu2', nome: 'Balé nível 2, Grade 2', nivelReferencia: 'RAD', programaReferencia: 'Grade 2',
     vigenteDe: '2026-03-01',
   },
+  // A VINCULADA: tem plano de ensino, e é por isso que o botão dela é «Derivar» e não
+  // «Editar». É nela que se prova o modo derivar — no modo editar não há como.
+  {
+    id: 'tu3', nome: 'Balé nível 3, Grade 3', nivelReferencia: 'RAD',
+    frequencia: 1, dias: ['sex'], horarios: { sex: '17:00' }, duracaoMin: 45,
+    periodoInicio: '2026-02', periodoFim: '2026-06',
+  },
 ];
 
-const REL = { tu1: ['t1', 't2'] };
+const REL = { tu1: ['t1', 't2'], tu3: ['t1', 't2'] };
+
+/** O par turma↔plano que faz uma turma ser VINCULADA (o `pares` do `paginaProducao`). */
+const PARES = [{ turma: 'Balé nível 3, Grade 3' }];
 
 function pagina(motor) {
   const b = require(path.join(motor, 'servidor/bastidores.js'));
@@ -84,7 +97,7 @@ function pagina(motor) {
   // (ver as duas primeiras linhas do corpo da função). Trocados, a página desenha um TERMO
   // como se fosse uma turma — com `data-turma` igual ao id do termo e o nome vazio — e a
   // prova mede uma coisa que não existe sem dizer nada.
-  return b.paginaProducao('fita', CONTEXTO, [], [], 'Tiago Menegaz', 'tiago-menegaz', TURMAS, TERMOS, REL, [], [], []);
+  return b.paginaProducao('fita', CONTEXTO, [], [], 'Tiago Menegaz', 'tiago-menegaz', TURMAS, TERMOS, REL, [], [], PARES);
 }
 
 function servir(html) {
@@ -293,33 +306,117 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('…e o painel do ritmo lista o que falta, um a um',
     incompleta && incompleta.itens.length === 5, incompleta && incompleta.itens);
 
-  // ---- 9 e 10: no telefone, associar continua possível ------------------------------
-  await pg.setViewport({ width: 390, height: 900 });
-  await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
-  await abrirTurmas(pg);
-  await abrir('conteudos');
-  const par = await pg.evaluate((sel) => {
+  // ---- 9 a 12: a ASSOCIAÇÃO mudou de lugar — do cartão para o formulário -----------
+  //
+  // A regra mudou por decisão do dono do produto (18/10/2026): o cartão MOSTRA quais são os
+  // conteúdos, e compor é do formulário. As provas abaixo medem as duas metades — o que o
+  // painel deixou de ter, e o que o formulário passou a ter.
+  const painelDeConteudos = await pg.evaluate((sel) => {
     const l = document.querySelector(sel);
     if (!l) return null;
     const p = l.querySelector('.painel[data-painel="conteudos"]');
-    const s = p && p.querySelector('.sel-termo');
-    const b = p && p.querySelector('.associar');
+    if (!p) return { tem: false };
+    return {
+      tem: true,
+      chips: p.querySelectorAll('.chip').length,
+      temSeletor: Boolean(p.querySelector('.sel-termo')),
+      temAssociar: Boolean(p.querySelector('.associar')),
+      temRemover: p.querySelectorAll('button.desassociar').length,
+    };
+  }, LI);
+  provar('o painel dos conteúdos mostra os chips',
+    painelDeConteudos && painelDeConteudos.tem && painelDeConteudos.chips === 2, painelDeConteudos);
+  provar('…e NÃO tem mais o seletor de associação',
+    painelDeConteudos && painelDeConteudos.temSeletor === false, painelDeConteudos);
+  provar('…nem o botão «Associar»', painelDeConteudos && painelDeConteudos.temAssociar === false, painelDeConteudos);
+  provar('…nem o «×» de remover', painelDeConteudos && painelDeConteudos.temRemover === 0, painelDeConteudos);
+
+  const lugarNoFormulario = await pg.evaluate(() => {
+    const caixa = document.getElementById('t-conteudos');
+    const form = document.getElementById('form-turma');
+    const dur = document.getElementById('tduracao');
+    if (!caixa || !form || !dur) return { tem: false };
+    // `compareDocumentPosition`: FOLLOWING = 4. A caixa tem de vir DEPOIS da duração.
+    const depoisDaDuracao = Boolean(dur.compareDocumentPosition(caixa) & 4);
+    return {
+      tem: true,
+      dentroDoFormulario: form.contains(caixa),
+      depoisDaDuracao,
+      antesDoPeriodo: Boolean(caixa.compareDocumentPosition(document.getElementById('tinicio')) & 4),
+      travado: caixa.getAttribute('data-travado') === 'sim',
+      motivo: (document.getElementById('t-conteudos-aviso') || {}).textContent || '',
+      botaoTravado: (document.getElementById('t-associar') || {}).disabled,
+    };
+  });
+  provar('o bloco de conteúdos está DENTRO do formulário da turma', lugarNoFormulario && lugarNoFormulario.dentroDoFormulario, lugarNoFormulario);
+  provar('…DEPOIS da duração da aula', lugarNoFormulario && lugarNoFormulario.depoisDaDuracao, lugarNoFormulario);
+  provar('…e antes do início do período', lugarNoFormulario && lugarNoFormulario.antesDoPeriodo, lugarNoFormulario);
+  provar('em «cadastrar» o bloco nasce TRAVADO, e diz por quê',
+    lugarNoFormulario && lugarNoFormulario.travado && lugarNoFormulario.botaoTravado === true
+      && /Grave a turma/.test(lugarNoFormulario.motivo), lugarNoFormulario);
+
+  // EDITAR: o bloco liga e aponta para a turma que está no formulário.
+  await pg.evaluate((sel) => {
+    const b = document.querySelector(sel + ' [data-modo="editar"]');
+    if (b) b.click();
+  }, LI);
+  const aoEditar = await pg.evaluate(() => ({
+    travado: document.getElementById('t-conteudos') ? document.getElementById('t-conteudos').getAttribute('data-travado') : null,
+    alvo: document.getElementById('t-associar') ? document.getElementById('t-associar').getAttribute('data-turma') : null,
+    desabilitado: (document.getElementById('t-associar') || {}).disabled,
+    chips: document.querySelectorAll('#t-conteudos-lista .chip').length,
+    remover: document.querySelectorAll('#t-conteudos-lista button.desassociar').length,
+  }));
+  provar('em «editar» o bloco LIGA',
+    aoEditar.desabilitado === false && !aoEditar.travado, aoEditar);
+  provar('…e aponta para a turma aberta no formulário', aoEditar.alvo === 'tu1', aoEditar.alvo);
+  provar('…e traz os conteúdos DELA, com o «×» de remover',
+    aoEditar.chips === 2 && aoEditar.remover === 2, aoEditar);
+
+  // DERIVAR: herda os conteúdos, e por isso o bloco fica travado e sem «×».
+  await pg.evaluate(() => {
+    const b = document.querySelector('li.turma[data-turma="tu3"] [data-modo="derivar"]');
+    if (b) b.click();
+  });
+  const aoDerivar = await pg.evaluate(() => ({
+    travado: document.getElementById('t-conteudos') ? document.getElementById('t-conteudos').getAttribute('data-travado') : null,
+    alvo: document.getElementById('t-associar') ? document.getElementById('t-associar').getAttribute('data-turma') : null,
+    motivoho: ((document.getElementById('t-conteudos-aviso') || {}).textContent || ''),
+    remover: document.querySelectorAll('#t-conteudos-lista button.desassociar').length,
+    chips: document.querySelectorAll('#t-conteudos-lista .chip').length,
+  }));
+  provar('em «derivar» o bloco fica TRAVADO', aoDerivar.travado === 'sim' && !aoDerivar.alvo, aoDerivar);
+  provar('…e diz que a turma derivada HERDA os conteúdos', /herda/i.test(aoDerivar.motivoho), aoDerivar.motivoho);
+  provar('…e não deixa remover nada da turma antiga',
+    aoDerivar.remover === 0 && aoDerivar.chips === 2, aoDerivar);
+
+  // No telefone, o par do formulário continua a andar junto.
+  await pg.setViewport({ width: 390, height: 900 });
+  await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+  await abrirTurmas(pg);
+  await pg.evaluate((sel) => {
+    const b = document.querySelector(sel + ' [data-modo="editar"]');
+    if (b) b.click();
+  }, LI);
+  const par = await pg.evaluate(() => {
+    const s = document.getElementById('t-sel-termo');
+    const b = document.getElementById('t-associar');
+    const caixa = document.getElementById('t-conteudos');
     if (!s || !b) return { tem: false };
     const r = (x) => x.getBoundingClientRect();
     return {
       tem: true,
       mesmaLinha: Math.abs(r(s).top - r(b).top) <= 4,
-      dentro: Math.round(r(b).right) <= Math.round(r(p).right) + 1,
+      dentro: Math.round(r(b).right) <= Math.round(r(caixa).right) + 1,
       larguraDoSeletor: Math.round(r(s).width),
-      chips: [...p.querySelectorAll('.chip')].map((c) => Boolean(c.querySelector('button.desassociar'))),
+      estouro: caixa.scrollWidth - caixa.clientWidth,
     };
-  }, LI);
-  provar('no telefone o painel dos conteúdos tem o seletor e o botão «Associar»', par && par.tem);
-  provar('…na MESMA linha — o botão lê o seletor', par && par.mesmaLinha, par);
-  provar('…e o botão fica dentro do painel', par && par.dentro, par);
+  });
+  provar('no telefone o seletor e o botão «Associar» do formulário estão na MESMA linha',
+    par && par.tem && par.mesmaLinha, par);
+  provar('…e o botão fica dentro do bloco', par && par.dentro, par);
   provar('…e o seletor tem largura útil (não vira um traço)', par && par.larguraDoSeletor > 120, par && par.larguraDoSeletor);
-  provar('cada chip traz o «×» de desassociar',
-  Boolean(par && par.chips) && par.chips.length === 2 && par.chips.every(Boolean), par && par.chips);
+  provar('…e o bloco não transborda em 390px', par && par.estouro <= 1, par && par.estouro);
 
   await br.close();
   srv.close();

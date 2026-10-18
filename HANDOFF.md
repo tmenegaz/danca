@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T09:45:15-0300`
-Commit atual: `48ecc31` — feat(estrutura): o cartão da turma passa a ser o híbrido — três números e um painel
+Gerado em: `2026-10-18T09:54:08-0300`
+Commit atual: `a237e82` — docs(estrutura): o híbrido do cartão da turma escolhido, implementado e provado
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+a237e82 docs(estrutura): o híbrido do cartão da turma escolhido, implementado e provado
 48ecc31 feat(estrutura): o cartão da turma passa a ser o híbrido — três números e um painel
 a8e9bbf docs(estrutura): o híbrido do cartão da turma — e por que a escala deixou de ser da T2
 833d193 docs(estrutura): a fase 7 — a regra das duas linhas e as três propostas do cartão da turma
@@ -81,7 +82,6 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 44b15b0 docs(estrutura): o contrato «campo × inscrição» e quatro arranjos de cabeçalho para escolha
 33dc16c chore(experimentos): a escola fixa ganha prova de navegador — 30 verificações e controle negativo
 16cd681 chore(ciclo-01): as duas cópias da porta recebem a escola como inscrição
-2dedad1 feat(estrutura): a escola deixa de ser campo e passa a inscrição — o valor vem do Worker, não da URL
 ```
 
 ## Por professor
@@ -147,57 +147,45 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — o cartão da turma passa a ser o híbrido: três números e um painel
+## 18/10/2026 — a associação sai do cartão da turma e desce para o formulário
 
-**O que estava errado, medido.** Uma turma carregava **nove faixas** de informação todas abertas
-ao mesmo tempo: nome, nível, programa, ritmo, estado, vigência, o aviso de «falta …», a régua em
-prosa, os conteúdos em chips, o seletor de associação e o histórico. Numa escola com cinco turmas
-são quarenta e cinco faixas. O dono do produto descreveu como «bem poluído… a organização está
-esquisita» — e o diagnóstico não era de espaçamento, era de **tudo ao mesmo tempo**.
+**A decisão, nas palavras de quem usa.** Depois de ver o híbrido pronto, o dono do produto disse o
+que faltava: «a gente vai deslocar esse formulário de associar que está na listagem. Ele vai para o
+formulário, que é o lugar dele». O cartão passou a **mostrar** quais são os conteúdos; associar e
+desassociar desceram para o formulário da turma, **abaixo da duração da aula** — «depois que eu
+determinar a duração de cada aula, eu vou poder associar qual é o conteúdo da aula que eu pretendo
+usar».
 
-**As três propostas, e a escolha.** Gaveta (só contagens à vista, o resto num `<details>` nativo),
-escala (tudo à vista, com a régua como barra de quatro degraus coloridos) e três números (o mais
-compacto, com balão ao toque). Ele gostou da **riqueza** da escala e da **economia** dos números, e
-recusou o balão de texto: «abre um texto duro». Propôs ele mesmo a mistura, e ela foi a escolhida:
-**os três números, com o conteúdo da escala lá dentro**.
+**Por que a duração, e não outro lugar.** O formulário já conta uma história na ordem em que se
+preenche: nome, programa, nível, frequência, dias e horas, duração — e é **depois** de saber
+quanto tempo a aula tem que a pergunta «o que se ensina nela» faz sentido.
 
-**O que o painel mostra.** Ritmo em quatro pares rótulo/valor; a régua com a **escala de cores**;
-os conteúdos em chips com o «×» de desassociar e o seletor de associação. E quando o ritmo falta,
-não é uma frase seca: é a **lista do que falta**, um item por vez, com o que já está marcado.
+**Três estados, decididos pelo que a turma É.**
 
-**Três coisas que só apareceram ao medir.**
+| Modo | Estado | Por quê |
+|---|---|---|
+| cadastrar | travado | a associação precisa de um `id`, e a turma ainda não tem |
+| editar | ligado, apontado à turma aberta | a turma existe, e é o cadastro dela que se está a corrigir |
+| derivar | travado | o `id` à mão é o da turma ANTIGA — e a derivada **herda** os conteúdos, porque o servidor os copia desde 16/10 |
 
-1. **A cor do degrau não pode vir da POSIÇÃO.** «Satisfatório» é verde, «razoável» verde-claro,
-   «em desenvolvimento» âmbar e «não se aplica» neutro — mas a escola pode criar uma rubrica
-   própria e reordená-la, e aí a posição mentiria. O mapeamento é pelo **nome** do nível; quando o
-   nome não é nenhum dos canónicos, cai numa rampa pela posição e o último degrau é o neutro.
-2. **Em 320px três colunas não cabem.** Cada métrica fica com 78px, e «CONTEÚDOS» a .66rem com
-   `letter-spacing` precisa de mais: transbordava **7px**. Abaixo de 360 a fila passa a uma
-   coluna — é o único ponto em que o desenho cede à largura em vez de truncar a palavra.
-3. **O `falta` colado na frase.** Os dois são itens flex e o espaço entre eles não é desenhado —
-   mas sem ele o texto que o leitor de ecrã lê é «**faltaa** frequência semanal». O vão visual é do
-   `gap`; o espaço no HTML é da leitura.
+Nos dois casos travados o bloco aparece com o motivo escrito. Um bloco que não funciona e não diz
+por quê é pior do que um bloco que não existe.
 
-**O protótipo tinha uma falta, e ele viu.** No telefone o painel dos conteúdos trazia os chips e
-**não** o seletor de associação. Era só o exemplo — mas se eu o copiasse, teria virado produção:
-**associar e desassociar têm de estar nos dois tamanhos**, e por isso o seletor, o botão e o «×» de
-cada chip vivem no mesmo painel, em qualquer largura.
+**O markup do chip é escrito UMA vez.** Os chips com «×» de cada turma ficam em blocos ocultos
+(`.conteudos-da-turma`) ao pé da lista, e o formulário **clona** o da turma aberta. A alternativa
+— gerar os chips outra vez em JavaScript — seria a segunda versão do mesmo desenho, e a primeira a
+divergir.
 
-**Uma prova nova, e duas lições sobre provas.** `experimentos/provar-cartao-da-turma.js` —
-**52/52**, e **27 falhas** no controle negativo. Duas armadilhas apareceram na própria prova:
+**A prova mudou de lado com a regra.** `provar-cartao-da-turma.js` passou a medir as duas metades:
+que o painel **não tem** seletor, nem botão, nem «×»; e que o bloco do formulário está depois da
+duração e antes do período, nasce travado em cadastrar, liga em editar (apontado a `tu1`) e fica
+travado em derivar com os chips **sem** «×». Para isso a prova ganhou uma **terceira turma**,
+vinculada a um plano: sem ela não existe botão «Derivar», e o modo derivar não teria como ser
+provado.
 
-- as secções vivem dentro de `<div id="conteudo" hidden>`, que só abre depois da senha da direção.
-  Sem abri-lo, o cartão media **zero** e a prova passava com `[0,0,0]`;
-- `.every` num array **vazio PASSA**. Três asserções davam «ok» no controle negativo, onde não há
-  painel nem botão nenhum. Passaram a exigir `.length === 3`.
-
-E o controle negativo morria no clique (`page.click` lança quando o seletor não existe) em vez de
-reprovar: o clique que não encontra o alvo deixou de lançar, e quem reprova é a asserção seguinte.
-
-**Conferido.** `provar-cartao-da-turma` 52/52 · `provar-producao` 109/109 · `provar-menu-da-producao`
-22/22 · `provar-celular` 15/15 · `provar-tema` 30/30 · `provar-cabecalho-do-ato` 40/40 ·
-`provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 · `check-identidade` 8/8. Publicado em
-`fita` e `valse`.
+**Conferido.** `provar-cartao-da-turma` 65/65, e **17 falhas** no controle negativo contra o motor
+de `HEAD` · `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular` 15/15 ·
+`provar-tema` 30/30 · `check-identidade` 8/8. Publicado em `fita` e `valse`.
 
 ## O que está pendente
 

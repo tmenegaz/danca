@@ -16262,3 +16262,43 @@ reprovar: o clique que não encontra o alvo deixou de lançar, e quem reprova é
 22/22 · `provar-celular` 15/15 · `provar-tema` 30/30 · `provar-cabecalho-do-ato` 40/40 ·
 `provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 · `check-identidade` 8/8. Publicado em
 `fita` e `valse`.
+
+## 18/10/2026 — a associação sai do cartão da turma e desce para o formulário
+
+**A decisão, nas palavras de quem usa.** Depois de ver o híbrido pronto, o dono do produto disse o
+que faltava: «a gente vai deslocar esse formulário de associar que está na listagem. Ele vai para o
+formulário, que é o lugar dele». O cartão passou a **mostrar** quais são os conteúdos; associar e
+desassociar desceram para o formulário da turma, **abaixo da duração da aula** — «depois que eu
+determinar a duração de cada aula, eu vou poder associar qual é o conteúdo da aula que eu pretendo
+usar».
+
+**Por que a duração, e não outro lugar.** O formulário já conta uma história na ordem em que se
+preenche: nome, programa, nível, frequência, dias e horas, duração — e é **depois** de saber
+quanto tempo a aula tem que a pergunta «o que se ensina nela» faz sentido.
+
+**Três estados, decididos pelo que a turma É.**
+
+| Modo | Estado | Por quê |
+|---|---|---|
+| cadastrar | travado | a associação precisa de um `id`, e a turma ainda não tem |
+| editar | ligado, apontado à turma aberta | a turma existe, e é o cadastro dela que se está a corrigir |
+| derivar | travado | o `id` à mão é o da turma ANTIGA — e a derivada **herda** os conteúdos, porque o servidor os copia desde 16/10 |
+
+Nos dois casos travados o bloco aparece com o motivo escrito. Um bloco que não funciona e não diz
+por quê é pior do que um bloco que não existe.
+
+**O markup do chip é escrito UMA vez.** Os chips com «×» de cada turma ficam em blocos ocultos
+(`.conteudos-da-turma`) ao pé da lista, e o formulário **clona** o da turma aberta. A alternativa
+— gerar os chips outra vez em JavaScript — seria a segunda versão do mesmo desenho, e a primeira a
+divergir.
+
+**A prova mudou de lado com a regra.** `provar-cartao-da-turma.js` passou a medir as duas metades:
+que o painel **não tem** seletor, nem botão, nem «×»; e que o bloco do formulário está depois da
+duração e antes do período, nasce travado em cadastrar, liga em editar (apontado a `tu1`) e fica
+travado em derivar com os chips **sem** «×». Para isso a prova ganhou uma **terceira turma**,
+vinculada a um plano: sem ela não existe botão «Derivar», e o modo derivar não teria como ser
+provado.
+
+**Conferido.** `provar-cartao-da-turma` 65/65, e **17 falhas** no controle negativo contra o motor
+de `HEAD` · `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular` 15/15 ·
+`provar-tema` 30/30 · `check-identidade` 8/8. Publicado em `fita` e `valse`.

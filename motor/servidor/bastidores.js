@@ -947,16 +947,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma turma cadastrada)</li>';
 
+  // Os blocos ocultos de conteúdos, um por turma, para o formulário clonar o da turma que
+  // estiver aberto. Ficam FORA da lista (abaixo), e não dentro do `<li>`: um `<div>` com
+  // `hidden` dentro de um item de lista flex ainda ocupa um lugar no flex.
+  const blocosDeConteudos = [];
   const itensTurmas = listaTurmas.length
     ? listaTurmas.map((t) => {
         const associados = Array.isArray(relObj[t.id]) ? relObj[t.id] : [];
-        const chips = associados.map((tid) => {
+        const nomesAssociados = associados.map((tid) => {
           const o = termoPorId.get(tid);
-          const nome = o ? o.termo : tid;
-          return '<span class="chip">' + esc(nome) +
-            ' <button class="desassociar acao secundario pequena" data-turma="' + esc(t.id) + '" data-termo="' + esc(nome) +
-            '" title="Remover associação">×</button></span>';
-        }).join(' ');
+          return o ? o.termo : tid;
+        });
+        // A ASSOCIAÇÃO SAIU DA LISTAGEM (18/10/2026). Ela vivia no cartão da turma, ao lado
+        // dos chips — e o cartão passou a ser um cartão de LEITURA: quem abre o «?» dos
+        // conteúdos vê QUAIS são, e mais nada. Associar e desassociar desceram para o
+        // formulário, abaixo da duração da aula, que é o lugar onde a direção decide o que
+        // a turma vai usar. O painel mostra; o formulário compõe.
+        const chips = nomesAssociados.map((n) => '<span class="chip">' + esc(n) + '</span>').join(' ');
+        // A cópia do formulário: os mesmos chips, com o «×» que remove. Fica num bloco
+        // oculto por turma, e o `ajustarTurma` clona o da turma que estiver no formulário —
+        // assim o markup do chip é escrito UMA vez só (aqui), e não outra vez no JavaScript.
+        const chipsAjuste = nomesAssociados.map((n) => '<span class="chip">' + esc(n) +
+          ' <button type="button" class="desassociar acao secundario pequena" data-turma="' + esc(t.id) +
+          '" data-termo="' + esc(n) + '" title="Remover associação">×</button></span>').join(' ');
+        blocosDeConteudos.push('<div class="conteudos-da-turma" data-de="' + esc(t.id) + '" hidden>' + chipsAjuste + '</div>');
         // O ritmo declarado pela direção (frequência, dias, duração e período do termo):
         // é o que desce para o plano de ensino — por isso aparece no cadastro.
         const diasTexto = (t.dias && t.dias.length)
@@ -1060,11 +1074,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
               '<div><span class="k">' + esc(k) + '</span><span class="v">' + esc(v || '—') + '</span></div>').join('') + '</div>';
         const painelRegua = '<div class="escala">' + regua.map((n, i) =>
           '<span class="' + classeDoNivel(n, i, regua.length) + '">' + esc(n) + '</span>').join('') + '</div>';
-        const painelConteudos = '<div class="chips">' + (chips || '<span class="dono">(nenhum conteúdo associado)</span>') + '</div>' +
-          // O seletor e o botão que o USA ficam no MESMO grupo: sozinhos, o botão caía
-          // numa linha só dele, encostado à esquerda e longe do seletor que ele lê.
-          '<span class="par-associar"><select class="sel-termo"><option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
-          '<button class="associar acao pequena" data-turma="' + esc(t.id) + '">Associar</button></span>';
+        const painelConteudos = '<div class="chips">' +
+          (chips || '<span class="dono">(nenhum conteúdo associado)</span>') + '</div>';
         const metrica = (rotulo, valor, qual, dica) =>
           '<div class="metrica"><span class="k">' + esc(rotulo) + '</span>' +
           '<span class="v">' + esc(valor) + '</span>' +
@@ -1356,6 +1367,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.turma .painel .par-associar{display:flex;align-items:center;gap:.35rem;margin-top:.6rem;min-width:0;}' +
     '.turma .painel .sel-termo{flex:1 1 auto;min-width:0;max-width:none;}' +
     '.turma .painel .associar{flex:0 0 auto;}' +
+    // O BLOCO DE CONTEÚDOS DO FORMULÁRIO (18/10/2026): os chips da turma com o «×», e o
+    // seletor com o botão que associa. O chip e o par são os MESMOS do painel — mudam de
+    // sítio e de papel (aqui compõem), não de desenho.
+    '.conteudos-form{display:grid;gap:.5rem;margin:.2rem 0 1rem;}' +
+    '.conteudos-form .chips{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;min-height:1.7rem;}' +
+    '.conteudos-form .par-associar{display:flex;align-items:center;gap:.35rem;min-width:0;}' +
+    '.conteudos-form .par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
+    '.conteudos-form .par-associar button{flex:0 0 auto;}' +
+    '.conteudos-form[data-travado="sim"]{opacity:.72;}' +
     // A ESCALA DA RÉGUA. Os quatro degraus com a cor de cada um: uma escala sem cor obriga a
     // ler as quatro palavras para saber onde a turma está.
     '.turma .escala{display:flex;min-width:0;border:1px solid var(--borda-campo);border-radius:var(--raio-2);overflow:hidden;}' +
@@ -1630,6 +1650,23 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       'aria-label="hora de início — ' + esc(d) + '" autocomplete="off"></span>').join('') + '</div>' +
     '<label class="campo-rotulo" for="tduracao">Duração de cada aula (minutos)</label>' +
     '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
+    // OS CONTEÚDOS, AQUI E NÃO NA LISTAGEM (18/10/2026). Depois de decidir a duração, a
+    // direção decide o que a turma vai usar — e é isso que este bloco faz. Na listagem o
+    // painel dos conteúdos passou a MOSTRAR apenas; compor é do formulário.
+    //
+    // O bloco só sabe a que turma se refere quando há uma turma no formulário: em
+    // «cadastrar» ainda não existe id (e a associação precisa de um), e em «derivar» o id
+    // que está à mão é o da turma ANTIGA — mas a derivação já COPIA os conteúdos para a
+    // nova (ver `/api/bastidores/turma-derivar`), e mexer aqui estaria a mexer no passado.
+    // Nos dois casos o bloco aparece, desligado, a dizer por quê.
+    '<label>Conteúdos da turma</label>' +
+    '<div class="conteudos-form" id="t-conteudos">' +
+    '<div class="chips" id="t-conteudos-lista"><span class="dono">(nenhum conteúdo associado)</span></div>' +
+    '<span class="par-associar"><select class="sel-termo" id="t-sel-termo" aria-label="termo a associar">' +
+    '<option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
+    '<button type="button" class="associar acao pequena" id="t-associar">Associar</button></span>' +
+    '<p class="nota" id="t-conteudos-aviso" hidden></p>' +
+    '</div>' +
     '<label class="campo-rotulo" for="tinicio">Início do período (termo)</label>' +
     '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
     '<label class="campo-rotulo" for="tfim">Fim do período (termo)</label>' +
@@ -1642,6 +1679,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<div class="rolagem"><ul class="lista">' + itensTurmas + '</ul></div>' +
     rodapePaginacao() +
     '</div>' +
+    // Os conteúdos de cada turma, com o «×», prontos a clonar (ver `ajustarTurma`).
+    blocosDeConteudos.join('') +
     '</div>' +
     // ABA 2 — CRIAR RUBRICA. A régua ganha NOME: é o que a torna vinculável a mais de uma
     // turma, e o que impede que a mesma decisão seja redigitada em cada cadastro.
@@ -2131,6 +2170,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
     '  document.getElementById("tfim").value = t.periodoFim || "";' +
+    // OS CONTEÚDOS DA TURMA QUE ESTÁ NO FORMULÁRIO. O bloco é UM só; o que muda é de que
+    // turma ele fala. Os chips vêm de um bloco oculto por turma (escrito pelo servidor), e
+    // não de uma segunda versão do markup aqui no JavaScript.
+    '  var caixaC = document.getElementById("t-conteudos");' +
+    '  var listaC = document.getElementById("t-conteudos-lista");' +
+    '  var selC = document.getElementById("t-sel-termo");' +
+    '  var btnC = document.getElementById("t-associar");' +
+    '  var avisoC = document.getElementById("t-conteudos-aviso");' +
+    '  var fonte = null;' +
+    '  Array.prototype.slice.call(document.querySelectorAll(".conteudos-da-turma")).forEach(function(d){' +
+    '    if (d.getAttribute("data-de") === t.id) fonte = d;' +
+    '  });' +
+    '  var vazioC = "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
+    '  listaC.innerHTML = (fonte && fonte.innerHTML.trim()) ? fonte.innerHTML : vazioC;' +
+    // DERIVAR: a turma nova herda os conteúdos (o servidor copia-os), e o id que está na mão
+    // é o da turma ANTIGA — mexer aqui seria mexer no passado. O bloco aparece desligado.
+    '  if (derivar) {' +
+    '    Array.prototype.slice.call(listaC.querySelectorAll("button.desassociar")).forEach(function(b){ b.parentElement.removeChild(b); });' +
+    '    selC.disabled = true; btnC.disabled = true; btnC.removeAttribute("data-turma");' +
+    '    caixaC.setAttribute("data-travado", "sim");' +
+    '    avisoC.hidden = false;' +
+    '    avisoC.textContent = "A turma derivada herda estes conteúdos. Para os mudar, edite-a depois de gravar.";' +
+    '  } else {' +
+    '    selC.disabled = false; btnC.disabled = false; btnC.setAttribute("data-turma", t.id);' +
+    '    caixaC.removeAttribute("data-travado");' +
+    '    avisoC.hidden = true; avisoC.textContent = "";' +
+    '  }' +
     // OS NÍVEIS e OS DIAS são fichas e pílulas: limpam e voltam a marcar, para o ajuste não
     // herdar o que se escolheu para outra turma.
     '  var esc = document.getElementById("esc-niveis");' +
@@ -2163,6 +2229,25 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("t-aviso").scrollIntoView({block: "center"});' +
     '  (derivar ? document.getElementById("tvigencia") : nome).focus();' +
     '}' +
+    // O ESTADO DE ENTRADA do bloco de conteúdos é o de CADASTRAR: ainda não há turma, logo
+    // não há a que associar. Sem isto o bloco nasce ligado e a primeira associação iria para
+    // uma turma que não existe — ou para nenhuma.
+    'function travarConteudos(motivo){' +
+    '  var sel = document.getElementById("t-sel-termo");' +
+    '  var btn = document.getElementById("t-associar");' +
+    '  var aviso = document.getElementById("t-conteudos-aviso");' +
+    '  var caixa = document.getElementById("t-conteudos");' +
+    '  var lista = document.getElementById("t-conteudos-lista");' +
+    '  if (sel) sel.disabled = true;' +
+    '  if (btn) { btn.disabled = true; btn.removeAttribute("data-turma"); }' +
+    '  if (caixa) caixa.setAttribute("data-travado", "sim");' +
+    '  if (lista) {' +
+    '    Array.prototype.slice.call(lista.querySelectorAll("button.desassociar")).forEach(function(b){ b.parentElement.removeChild(b); });' +
+    '    if (!lista.textContent.trim()) lista.innerHTML = "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
+    '  }' +
+    '  if (aviso) { aviso.hidden = false; aviso.textContent = motivo; }' +
+    '}' +
+    'travarConteudos("Grave a turma para poder associar conteúdos.");' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("[data-turma-ajustar]") : null;' +
     '  if (b) { ajustarTurma(b.getAttribute("data-turma-ajustar"), b.getAttribute("data-modo")); return; }' +
@@ -2173,6 +2258,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("t-enviar").textContent = "Cadastrar turma";' +
     '    document.getElementById("tnome").readOnly = false;' +
     '    document.getElementById("form-turma").reset();' +
+    '    var listaC0 = document.getElementById("t-conteudos-lista");' +
+    '    if (listaC0) listaC0.innerHTML = "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
+    '    var btnC0 = document.getElementById("t-associar");' +
+    '    if (btnC0) { btnC0.removeAttribute("data-turma"); btnC0.disabled = true; }' +
+    '    var selC0 = document.getElementById("t-sel-termo"); if (selC0) selC0.disabled = true;' +
+    '    var caixaC0 = document.getElementById("t-conteudos"); if (caixaC0) caixaC0.setAttribute("data-travado", "sim");' +
+    '    var avisoC0 = document.getElementById("t-conteudos-aviso");' +
+    '    if (avisoC0) { avisoC0.hidden = false; avisoC0.textContent = "Grave a turma para poder associar conteúdos."; }' +
     '    var esc = document.getElementById("esc-niveis");' +
     '    if (esc) {' +
     '      Array.prototype.slice.call(esc.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
