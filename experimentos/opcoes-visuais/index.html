@@ -3031,5 +3031,92 @@ document.querySelectorAll('.fone[data-nav-s]').forEach((fone) => {
   });
 })();
 </script>
+
+
+
+
+
+
+
+
+
+
+
+
+<style>
+.pal-bloco { border-top: 1px solid rgba(31,28,26,.1); padding-top: var(--e4); }
+.pal-grade { display: grid; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); gap: var(--e4); }
+.pal-peca { border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(31,28,26,.14); }
+.pal-rotulo { font: 700 9.5px/1 var(--ui); letter-spacing: .1em; text-transform: uppercase; padding: 5px 8px; background: #1f1c1a; color: #f3ede3; }
+.pal-tela { background: var(--fundo); }
+.pal-faixa { display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: var(--marca-fundo); color: var(--sobre-marca); font: 600 11px/1 var(--ui); }
+.pal-faixa b { font-weight: 800; letter-spacing: .04em; }
+.pal-faixa-orn { margin-left: auto; opacity: .8; }
+.pal-papel { padding: 12px; display: grid; gap: 9px; }
+.pal-tit { margin: 0; font: 700 13px/1.3 var(--ui); color: var(--texto); display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pal-sub { margin: 0; font: 400 10.5px/1.4 var(--ui); color: var(--texto-suave); }
+.pal-selo { font: 700 8.5px/1 var(--ui); letter-spacing: .05em; text-transform: uppercase; padding: 3px 6px; border-radius: 999px; background: var(--ativo); color: var(--ativo-texto); }
+.pal-campo { display: grid; gap: 3px; }
+.pal-campo-rot { font: 700 8.5px/1 var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--texto-suave); }
+.pal-entrada { font: 400 11px/1 var(--ui); color: var(--texto); background: var(--campo); border: 1px solid var(--borda); border-radius: 5px; padding: 7px 8px; }
+.pal-fileira { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.pal-acao { font: 700 10.5px/1 var(--ui); background: var(--acao); color: var(--acao-texto); border-radius: 5px; padding: 7px 10px; }
+.pal-acao2 { font: 700 10.5px/1 var(--ui); background: transparent; color: var(--marca); border: 1px solid var(--borda); border-radius: 5px; padding: 6px 9px; }
+.pal-ativo { font: 700 10.5px/1 var(--ui); background: var(--ativo); color: var(--ativo-texto); border-radius: 999px; padding: 6px 9px; }
+.pal-selos { display: flex; gap: 5px; flex-wrap: wrap; }
+.pal-estado { font: 700 9px/1 var(--ui); padding: 4px 6px; border-radius: 4px; border: 1px solid currentColor; }
+.pal-estado.ok { color: var(--ok); }
+.pal-estado.alerta { color: var(--alerta); }
+.pal-estado.falha { color: var(--falha); }
+.pal-estado.derivada { color: var(--derivada); }
+.pal-cartao { display: flex; align-items: center; gap: 8px; justify-content: space-between; background: var(--superficie); color: var(--texto); border: 1px solid var(--borda); border-radius: 6px; padding: 8px 9px; font: 400 10.5px/1 var(--ui); }
+.pal-filete { font: 700 8.5px/1 var(--ui); letter-spacing: .06em; text-transform: uppercase; color: var(--texto-suave); border-left: 3px solid var(--borda); padding-left: 6px; }
+.pal-ancoras { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 3px; }
+.pal-ancoras li { font: 400 11.5px/1.5 var(--ui); color: #4d4842; }
+.pal-ancoras code { font: 600 11px/1 var(--mono, monospace); color: #6b1f2e; }
+.pal-ok { font-weight: 700; color: #1d6b2f; margin-left: 4px; }
+.pal-der { font-weight: 700; color: #8f5a12; margin-left: 4px; }
+.pal-recusa { margin-top: 8px; padding: 8px 10px; border-left: 3px solid #9b1c1c; background: #fbf0ef; border-radius: 0 6px 6px 0; }
+.pal-recusa p { margin: 0 0 4px; font: 400 11.5px/1.55 var(--ui); color: #4d4842; }
+.pal-recusa p:last-child { margin-bottom: 0; }
+.pal-recusa b { color: #9b1c1c; }
+</style>
+<!-- ============ P — AS CINCO FAMÍLIAS QUE FALTAVAM ============ -->
+<section class="opt" data-estilo="P" data-arranjo="PALETAS">
+  <header><span class="letra">P</span><h2>Verde de Ensaio — a terceira família</h2>
+    <span class="ref">ancorada nas suas cores · 31 pares × 2 variantes = 62 medições · o catálogo fecha em três</span></header>
+  <div class="corpo">
+    <p class="opt-nota">Cada família abaixo é o <strong>conjunto de papéis</strong> que a folha
+    precisa — não quatro cores. Onde a sua âncora servia ao papel, ela está lá intacta;
+    onde não servia, o valor foi <strong>calculado</strong> e traz o número que o aprovou.
+    As 62 medições passam: nenhuma família entra na folha com um par reprovado.</p>
+    <p class="opt-nota"><strong>O catálogo fecha aqui, em três.</strong> As outras quatro
+    famílias que chegaram a ser medidas — Azul de Gala, Prata de Palco, Azul de Bastidores e
+    Luz de Camarim — foram <strong>abandonadas</strong> por decisão de produto: saíram
+    desta página e do medidor, e os valores delas ficam no histórico do Git.</p>
+    <div class="bloco pal-bloco">
+      <h3>Verde de Ensaio · Tema 2 — Estúdio de dança, verde sálvia</h3>
+      <div class="pal-grade"><div class="pal-peca" style="--fundo:#f4f0e7;--superficie:#fbf8f2;--texto:#303631;--texto-suave:#4d544e;--marca:#455a46;--marca-fundo:#879783;--sobre-marca:#1c231d;--borda:#9a856c;--campo:#ffffff;--acao:#879783;--acao-texto:#1c231d;--ativo:#d9e2d4;--ativo-texto:#2b3a2c;--ok:#1d6b2f;--alerta:#8c5812;--falha:#9b1c1c;--derivada:#5a3f66"><div class="pal-rotulo">clara</div><div class="pal-tela"><div class="pal-faixa"><b>Lastro</b><span>Turmas</span><span class="pal-faixa-orn">·</span></div><div class="pal-papel"><p class="pal-tit">Conhecimento prévio <span class="pal-selo">obrigatório</span></p><p class="pal-sub">O que ela já sabe, e o que falta.</p><div class="pal-campo"><span class="pal-campo-rot">o que ela já sabe</span><span class="pal-entrada">um ano de balé clássico</span></div><div class="pal-fileira"><span class="pal-acao">Próxima →</span><span class="pal-acao2">Voltar</span><span class="pal-ativo">item ativo</span></div><div class="pal-selos"><span class="pal-estado ok">aconteceu</span><span class="pal-estado alerta">parcial</span><span class="pal-estado falha">não aconteceu</span><span class="pal-estado derivada">derivada</span></div><div class="pal-cartao"><span>sobre a superfície</span><span class="pal-filete">filete</span></div></div></div></div><div class="pal-peca" style="--fundo:#2b2b27;--superficie:#31312d;--texto:#e8e5d9;--texto-suave:#b9b6a9;--marca:#bfcdb5;--marca-fundo:#879783;--sobre-marca:#1c231d;--borda:#808277;--campo:#383834;--acao:#879783;--acao-texto:#1c231d;--ativo:#d9e2d4;--ativo-texto:#2b3a2c;--ok:#9ec79b;--alerta:#dfba75;--falha:#e5a09a;--derivada:#c6aed6"><div class="pal-rotulo">noturna</div><div class="pal-tela"><div class="pal-faixa"><b>Lastro</b><span>Turmas</span><span class="pal-faixa-orn">·</span></div><div class="pal-papel"><p class="pal-tit">Conhecimento prévio <span class="pal-selo">obrigatório</span></p><p class="pal-sub">O que ela já sabe, e o que falta.</p><div class="pal-campo"><span class="pal-campo-rot">o que ela já sabe</span><span class="pal-entrada">um ano de balé clássico</span></div><div class="pal-fileira"><span class="pal-acao">Próxima →</span><span class="pal-acao2">Voltar</span><span class="pal-ativo">item ativo</span></div><div class="pal-selos"><span class="pal-estado ok">aconteceu</span><span class="pal-estado alerta">parcial</span><span class="pal-estado falha">não aconteceu</span><span class="pal-estado derivada">derivada</span></div><div class="pal-cartao"><span>sobre a superfície</span><span class="pal-filete">filete</span></div></div></div></div></div>
+      <p class="medida">31 pares × 2 variantes = <b>62 medições</b>, todas em AA ou acima · o par mais apertado é «marca sob o ponteiro» com <b>4.51:1</b> (piso 4.5:1)</p>
+      <ul class="pal-ancoras"><li><code>--fundo</code> ← <b>fundo claro</b> <code>#f4f0e7</code> <span class="pal-ok">a sua cor, no papel</span></li><li><code>--texto</code> ← <b>texto claro</b> <code>#303631</code> <span class="pal-ok">a sua cor, no papel</span></li><li><code>--marca-fundo</code> ← <b>sálvia</b> <code>#879783</code> <span class="pal-ok">a sua cor, no papel</span></li><li><code>--acao-fundo</code> ← <b>sálvia</b> <code>#879783</code> <span class="pal-ok">a sua cor, no papel</span></li><li><code>--borda</code> ← <b>madeira</b> <code>#9a856c</code> <span class="pal-ok">a sua cor, no papel</span></li></ul>
+      <p class="medida">conferência com a logo da mesma cor: <b>#507048</b> em <code>logo_verde.png</code> — a logo é o verde MAIS ESCURO que o derivado — o acento de texto caiu quase nele</p>
+      <div class="pal-recusa">
+        <p><b>Âncora recusada.</b> «sálvia #879783 como texto» recusada: 2,72:1 sobre o papel e 2,92:1 sobre a superfície (piso 4,5:1). Ela fica no PREENCHIMENTO — a barra e a ação principal — e o texto desce para #4f6650, que dá 5,51:1 e coincide quase exactamente com o #507048 medido na logo da mesma cor.</p>
+      </div>
+    </div>
+    <div class="bloco pal-bloco">
+      <h3>Como ela entrou na folha</h3>
+      <p class="opt-nota">A família está <strong>medida e no ar</strong>, e entrou por três
+      passos, nesta ordem:</p>
+      <ul class="pal-ancoras">
+        <li><b>1.</b> os dois blocos em <code>tools/templates/ciclo.css</code> (<code>[data-paleta="verde"]</code> e a variante noturna), com o motivo ao lado de cada valor que não é âncora — é o que a Cortina fez;</li>
+        <li><b>2.</b> a entrada em <code>PALETAS</code> (<code>bastidores.js</code>), senão o seletor da Produção não a oferece;</li>
+        <li><b>3.</b> <strong>a guarda que faltava</strong>: <code>TEMAS</code> era uma lista fixa de quatro, e nada reprovava um bloco <code>[data-paleta]</code> que entrasse sem ser medido. Agora o validador mede <b>31 × 6 = 186 pares</b> em três famílias, e reprova qualquer <code>[data-paleta]</code> na folha que não esteja na lista.</li>
+      </ul>
+      <p class="medida"><b>E o PDF fica na paleta vigente.</b> Foi decidido, e está declarado: o PDF do ciclo lê só o <code>:root</code> e sai sempre na Bordô, qualquer que seja a família da escola. O documento impresso é da casa, não do tema.</p>
+    </div>
+  </div>
+</section>
+
 </body>
 </html>

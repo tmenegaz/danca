@@ -195,11 +195,14 @@ async function lerLista(kv, chave) {
 const MODOS_DE_APARENCIA = ['clara', 'noturna'];
 
 /** As famílias que EXISTEM — isto é, as que têm hex medidos em `tools/templates/ciclo.css`.
- *  As outras cinco do catálogo são estudo, e não entram aqui: oferecer no seletor uma família
- *  que a folha não desenha daria uma escola pintada de nada. */
+ *  O catálogo FECHOU em três (18/10/2026): as outras quatro que chegaram a ser medidas foram
+ *  abandonadas por decisão de produto. A regra mantém-se: oferecer no seletor uma família que
+ *  a folha não desenha daria uma escola pintada de nada — e é o `check-identidade` que confere
+ *  que esta lista e a folha dizem o mesmo (a checagem «Famílias»). */
 const PALETAS = [
   { id: 'bordo', nome: 'Bordô de Cena' },
   { id: 'cortina', nome: 'Cortina Turquesa' },
+  { id: 'verde', nome: 'Verde de Ensaio' },
 ];
 const IDS_DAS_PALETAS = PALETAS.map((p) => p.id);
 const PALETA_PADRAO = 'bordo';

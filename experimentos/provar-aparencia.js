@@ -103,10 +103,15 @@ async function api(kv, caminho, metodo, corpo) {
     // sete do catálogo: oferecer no seletor uma família sem hex daria uma escola pintada de
     // nada. Hoje são duas.
     provar('…e a família padrão é a Bordô de Cena', r.json && r.json.paleta, 'bordo');
+    // O catálogo FECHOU em três (18/10/2026). A prova fixa a lista de propósito: ela é o
+    // contrato com o seletor da escola, e uma família a mais ou a menos tem de aparecer aqui
+    // antes de aparecer na tela. Quem acrescentar uma família mede-a (os dois temas em
+    // `check-identidade`) e actualiza esta linha — as duas coisas juntas.
     provar('…e a lista de famílias é a das que têm desenho',
-      r.json && r.json.paletas.map((p) => p.id), ['bordo', 'cortina']);
+      r.json && r.json.paletas.map((p) => p.id), ['bordo', 'cortina', 'verde']);
     provar('…com nome legível, para o seletor não mostrar um id',
-      r.json && r.json.paletas.map((p) => p.nome), ['Bordô de Cena', 'Cortina Turquesa']);
+      r.json && r.json.paletas.map((p) => p.nome),
+      ['Bordô de Cena', 'Cortina Turquesa', 'Verde de Ensaio']);
   }
 
   // --------------------------------------------------------------------------
@@ -246,7 +251,9 @@ async function api(kv, caminho, metodo, corpo) {
     provar('…e agora são noturna + cortina', { modo: r2.json.modo, paleta: r2.json.paleta },
       { modo: 'noturna', paleta: 'cortina' });
 
-    const invalida = await gravarA({ paleta: 'verde' });
+    // `gala` é uma das quatro famílias ABANDONADAS: tinha hex medidos e já não existe. É o
+    // caso mais duro para a validação — não é um erro de escrita, é uma família que existiu.
+    const invalida = await gravarA({ paleta: 'gala' });
     provar('uma família que não existe é recusada', invalida.status, 400);
     provar('…e o erro diz quais existem', /cortina/.test(invalida.json && invalida.json.erro), true);
     provar('…e nada mudou', (await api(kv, '/api/bastidores/aparencia')).json.paleta, 'cortina');

@@ -468,8 +468,10 @@ async function principal() {
   conferir('…um para a família e outro para a variante',
     corpoAparencia.indexOf('Família de cores') > -1 &&
     corpoAparencia.indexOf('Variante') > -1, true);
-  conferir('…e as famílias oferecidas são as que têm desenho (duas)',
-    (corpoAparencia.match(/name="paleta" value="[a-z]+"/g) || []).length, 2);
+  // TRÊS desde 18/10/2026 — o catálogo fechou aí. O número acompanha `PALETAS`: é a mesma
+  // lista que o `check-identidade` confere contra a folha (a checagem «Famílias»).
+  conferir('…e as famílias oferecidas são as que têm desenho (três)',
+    (corpoAparencia.match(/name="paleta" value="[a-z]+"/g) || []).length, 3);
   conferir('…com a família em vigor marcada pelo servidor',
     (corpoAparencia.match(/name="paleta" value="[a-z]+" checked/g) || []).length, 1);
   conferir('…com uma pílula por modo, e são radio (escolha única)',
@@ -869,12 +871,12 @@ async function principal() {
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',
     script.includes('turmas: umaTurma ? [umaTurma] : []'), true);
   conferir('não sobrou nenhuma caixa com rolagem no formulário', html.includes('cb-grupo'), false);
-  // ONZE, e não sete: as sete dos dias da semana, as DUAS da variante e as DUAS das famílias
+  // DOZE, e não sete: as sete dos dias da semana, as DUAS da variante e as TRÊS das famílias
   // (18/10/2026). O que esta asserção guarda não é o número — é o CRITÉRIO: a pílula existe
   // só para lista curta, fechada e fixa. Um tapete de pílulas longas (o de 84 termos, que o
   // dono do produto recusou) voltaria como um número grande aqui, e é por isso que é contado.
-  conferir('as pílulas continuam a ser só as listas curtas: 7 dias + 2 variantes + 2 famílias',
-    (html.match(/class="escolha"/g) || []).length, 11);
+  conferir('as pílulas continuam a ser só as listas curtas: 7 dias + 2 variantes + 3 famílias',
+    (html.match(/class="escolha"/g) || []).length, 12);
 
   // 9. A PÁGINA INTERMEDIÁRIA SAIU — e o caminho antigo continua respondendo.
   conferir('o Estúdio também carrega o menu do ciclo',

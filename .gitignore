@@ -11,6 +11,7 @@
 # ============================================================================
 out/
 .wrangler/
+img/
 
 # ============================================================================
 # Credenciais — NUNCA versionar
@@ -86,6 +87,11 @@ experimentos/*
 # A prova do plano e da anamnese: o REGISTRO cita-a por nome («125 de 125»), e uma prova
 # citada que não existe no clone é uma afirmação que ninguém confere.
 !experimentos/provar-ajustes-anamnese.js
+# O MEDIDOR DE PALETAS: o `IDENTIDADE-VISUAL.md` e o `REGISTRO.md` citam-no por nome
+# («as 62 medições estão em…»), e ele é quem produz os blocos da folha (`--css`) e a
+# secção do estudo (`--html`). Sem ele no clone, a família Verde de Ensaio fica sem a
+# sua prova de origem.
+!experimentos/medir-paletas.js
 
 # A PÁGINA DE ESTUDO QUE DECIDIU O DESENHO. `opcoes-visuais/` não é prova, é o lugar onde
 # as propostas foram POSTAS — e a decisão do cabeçalho do ato (a barra fixa no telefone, o

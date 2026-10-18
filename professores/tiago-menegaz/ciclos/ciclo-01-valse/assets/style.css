@@ -388,6 +388,107 @@
   --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
 }
 
+/* ==================== VERDE DE ENSAIO — a terceira família ====================
+   Entrou em 18/10/2026, e é a ÚLTIMA: o catálogo fecha em TRÊS famílias — Bordô de Cena,
+   Cortina Turquesa e Verde de Ensaio. As outras quatro que chegaram a ser medidas (Azul de
+   Gala, Prata de Palco, Azul de Bastidores, Luz de Camarim) foram abandonadas por decisão de
+   produto; os valores delas ficam no histórico do Git, e voltar com uma é refazer a medição.
+
+   A PROCEDÊNCIA está dita valor a valor, e é o que permite discutir a família em vez de a
+   aceitar. QUATRO das cinco cores que o dono do produto nomeou entraram INTACTAS, no papel
+   que lhes cabe: o fundo #f4f0e7, o texto #303631, a sálvia #879783 (no preenchimento — a
+   barra e a ação principal) e a madeira #9a856c (no filete, onde dá 3,11:1 em vez dos 3,0
+   de piso). Todo o resto é DERIVADO e medido.
+
+   A ÂNCORA QUE NÃO SERVIU AO PAPEL QUE PARECIA SER O DELA, e o número que a recusou:
+     · a sálvia como TEXTO dá 2,72:1 sobre o papel e 2,92:1 sobre a superfície (piso 4,5:1) —
+       um verde de 15px que ninguém lê. Ela continua a ser a cor da família; o que muda é o
+       papel: `--marca-fundo` (a barra) e `--acao-fundo` (a ação), com texto escuro em cima
+       (5,19:1). O texto desce para `#4f6650` — 5,51:1 —, e o valor coincide quase
+       exactamente com o `#507048` medido na logo da mesma cor: dois caminhos, o mesmo tom.
+
+   AS 62 MEDIÇÕES (31 pares × 2 variantes) estão em `experimentos/medir-paletas.js`, que é
+   quem as fez e quem as explica; `tools/check-identidade.js` volta a medi-las a cada
+   verificação e reprova o primeiro par que caia. Nenhum valor aqui foi escolhido a olho. */
+/* ---- Verde de Ensaio — Tema 2 — Estúdio de dança, verde sálvia ---- */
+[data-paleta="verde"] {
+  --fundo: #f4f0e7;   /* a sua cor */
+  --fundo-suave: #ece7db;
+  --fundo-faixa: #e6e0d2;
+  --fundo-hover: #ded6c4;
+  --fundo-citacao: #eeeadf;
+  --fundo-codigo: #eae4d7;
+  --fundo-pre: #f0ebdf;
+  --superficie: #fbf8f2;
+  --superficie-elevada: #ffffff;
+  --texto: #303631;   /* a sua cor */
+  --texto-suave: #4d544e;
+  --borda: #9a856c;   /* a sua cor */
+  --borda-campo: #9a856c;   /* a sua cor */
+  --borda-forte: #6f5d48;
+  --campo-fundo: #ffffff;
+  --campo-fundo-cartao: #f7f3ea;
+  --marca: #4f6650;
+  --marca-texto: #455a46;
+  --marca-fundo: #879783;   /* a sua cor */
+  --marca-fundo-hover: #77876f;
+  --sobre-marca: #171c18;
+  --texto-destaque-marca: #1c231d;
+  --ornamento: #8a755c;
+  --ornamento-forte: #3d4a3e;
+  --acao-fundo: #879783;   /* a sua cor (com texto escuro) */
+  --acao-texto: #1c231d;
+  --ativo-fundo: #d9e2d4;
+  --ativo-texto: #2b3a2c;
+  --foco: #4f6650;
+  --ok-fundo: #e8f0e4;
+  --alerta: #8c5812;
+  --alerta-fundo: #f7eed6;
+  --falha-fundo: #f6e6e2;
+  --derivada-fundo: #eae6ef;
+}
+
+[data-paleta="verde"][data-modo="noturna"] {
+  color-scheme: dark;
+  --fundo: #2b2b27;   /* a sua cor */
+  --fundo-suave: #323230;
+  --fundo-faixa: #383834;
+  --fundo-hover: #3f3f3a;
+  --fundo-citacao: #343430;
+  --fundo-codigo: #343430;
+  --fundo-pre: #303030;
+  --superficie: #31312d;
+  --superficie-elevada: #3a3a35;
+  --texto: #e8e5d9;   /* a sua cor */
+  --texto-suave: #b9b6a9;
+  --borda: #797a71;   /* a sua cor */
+  --borda-campo: #808277;   /* a sua cor */
+  --borda-forte: #87897d;
+  --campo-fundo: #383834;
+  --campo-fundo-cartao: #31312d;
+  --marca: #a9bb9f;
+  --marca-texto: #bfcdb5;
+  --marca-fundo: #879783;   /* a sua cor */
+  --marca-fundo-hover: #9aab8f;
+  --sobre-marca: #1c231d;
+  --texto-destaque-marca: #1c231d;
+  --ornamento: #6f7167;
+  --ornamento-forte: #1e211d;
+  --acao-fundo: #879783;   /* a sua cor (com texto escuro) */
+  --acao-texto: #1c231d;
+  --ativo-fundo: #d9e2d4;
+  --ativo-texto: #2b3a2c;
+  --foco: #bfcdb5;
+  --ok: #9ec79b;
+  --alerta: #dfba75;
+  --falha: #e5a09a;
+  --derivada: #c6aed6;
+  --ok-fundo: #26302a;
+  --alerta-fundo: #332c1d;
+  --falha-fundo: #35221f;
+  --derivada-fundo: #2c2730;
+}
+
 * { box-sizing: border-box; }
 
 html {
