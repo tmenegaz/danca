@@ -1562,7 +1562,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  if (!b) return;' +
     '  var painel = b.closest("[data-paginar]");' +
     '  if (!painel) return;' +
-    '  var passos = b.className === "pag-prox" ? 1 : -1;' +
+    // QUAL dos dois botões — por CLASSE, não pela string inteira do atributo.
+    //
+    // Aqui estava `b.className === "pag-prox"`, e o `className` de um elemento é o atributo
+    // `class` INTEIRO: `"pag-prox acao secundario pequena"`. A comparação era sempre falsa,
+    // os dois botões valiam -1, e como o `paginar()` trava a página em `[1, N]` o resultado
+    // era a página 1 para sempre — o rodapé dizia «1 / 3» e nenhum clique o mudava. Era o
+    // defeito que o dono do produto viu nas Turmas e no Vocabulário, e que estava nas SETE
+    // listas ao mesmo tempo (é uma implementação só).
+    //
+    // `classList.contains` sobrevive a uma classe a mais no botão — que é exactamente o que
+    // a versão anterior não fazia, e o motivo de ter passado despercebido: o botão nasceu
+    // com as classes de estilo e a comparação nasceu a exigir que ele tivesse UMA.
+    '  var passos = b.classList && b.classList.contains("pag-prox") ? 1 : -1;' +
     '  painel.setAttribute("data-pagina", parseInt(painel.getAttribute("data-pagina") || "1", 10) + passos);' +
     '  paginar();' +
     '});' +

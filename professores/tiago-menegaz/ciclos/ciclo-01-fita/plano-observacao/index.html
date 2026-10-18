@@ -5000,7 +5000,12 @@ function avisarNaFicha(id, texto, tipo) {
   const alvo = document.querySelector('[data-aviso="' + CSS.escape(id) + '"]');
   if (!alvo) return;
   alvo.className = 'aviso-ficha ' + (tipo || '');
-  alvo.innerHTML = escap(texto);
+  // `escapar`, não `escap`: a função do arquivo chama-se `escapar`, e aqui estava o nome
+  // de OUTRA casa — `escap` não existe em lado nenhum. Toda a chamada lançava
+  // `ReferenceError` antes de escrever, e o efeito era o pior possível: as nove mensagens
+  // da estante (a exclusão sem senha, o ajuste recusado, o erro do servidor) NÃO
+  // apareciam, e a linha ficava muda a olhar para o professor. O erro só se via no console.
+  alvo.innerHTML = escapar(texto);
 }
 
 /*

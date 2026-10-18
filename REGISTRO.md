@@ -15816,3 +15816,95 @@ mensagem de erro alcançáveis, com o modal rolando 435px.
 - **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
   as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
   `check-identidade.js` as exige iguais à fonte.
+
+  > **Correção de 17/10/2026 (mesmo dia).** «ainda não está commitada» deixou de ser verdade
+  > poucos minutos depois: a correção entrou no commit do paginação (a mesma sessão que a
+  > encontrou fechou-a). O que fica registado é o estado do momento em que esta entrada foi
+  > escrita — e a lição que ele guarda: uma correção que só existe em três ficheiros do
+  > worktree, sem commit, é uma correção que a próxima sessão não vê.
+
+## 17/10/2026 — As sete listas da Produção passam a folhear (o botão que valia sempre -1)
+
+**O que motivou.** O dono do produto: *«A paginação que tem no turmas … não funciona. A que tem no
+vocabulário técnico também não.»* Só essas duas apareceram porque só elas tinham tamanho para
+página. A paginação da Produção é **uma implementação partilhada pelas sete listas** — Professores,
+Alunas, Turmas, Rubricas, Vínculos turma↔régua, Vocabulário e Curadorias — e estava quebrada em
+todas, incluindo as três que ele não conseguiu verificar.
+
+**A causa, numa linha.**
+
+```js
+var passos = b.className === "pag-prox" ? 1 : -1;
+```
+
+O `className` de um elemento é o atributo `class` **inteiro**, e os botões nascem com
+`class="pag-prox acao secundario pequena"`. A comparação era sempre falsa; os **dois** botões
+valiam `-1`; e como o `paginar()` trava a página em `[1, N]`, a página 1 era o fim da linha —
+«›» recuava para 1, «‹» recuava para 1, e o número nunca subia. O rodapé dizia «1 / 3» e nenhum
+clique o mudava.
+
+**Porque passou despercebido — e por que a correção é `classList`.** O botão ganhou as classes de
+estilo e a comparação nasceu a exigir que ele tivesse **uma**. Qualquer classe a mais quebrava-a,
+em silêncio. `b.classList.contains("pag-prox")` sobrevive a isso, e é o que a próxima pessoa não
+quebra sem reparar.
+
+**O que foi decidido.**
+
+- **Uma correção, sete listas.** Não se tocou em nenhuma das sete — a implementação é uma.
+- **A prova não é de contrato.** A pergunta é «o clique move a lista?», e isso só se responde com
+  um DOM e um clique a sério. A prova nova monta a página pelo caminho verdadeiro
+  (`bastidores.fetch`, com um KV em memória), carrega o HTML no jsdom **com os scripts**, e
+  **clica**. Uma prova que chamasse o `paginar()` directamente passaria com o defeito lá dentro —
+  foi exactamente assim que ele passou.
+- **As asserções contam pelo DOM, não pelo que foi semeado.** Os Professores ganham sempre o dono
+  à frente (a linha «criado na página»): fixar 15 no teste mediria o seed em vez de medir a
+  página.
+
+**Um segundo defeito, encontrado no caminho — e que não era de paginação.**
+`avisarNaFicha`, em `porta/index.html`, escrevia `escap(texto)`. A função do arquivo chama-se
+`escapar`; **`escap` não existe em lado nenhum**. Toda a chamada lançava `ReferenceError` **antes**
+de escrever, e o efeito era o pior possível: as nove mensagens da estante — a exclusão sem senha,
+o ajuste recusado, o erro do servidor — **não apareciam**, e a linha ficava muda a olhar para o
+professor. O erro só se via no console.
+
+Foi por causa dele que a prova da estante (`provar-ajustes-anamnese`) morria a meio: o
+`ReferenceError` interrompia o ficheiro no ponto em que se começa a mexer na lista. Corrigido, a
+prova avançou — e as **dezoito asserções de paginação da estante passaram todas**. (A estante é a
+OUTRA paginação do sistema, e estava boa: `data-pagina` no botão e `dataset.pagina` no handler.)
+
+**O que foi verificado, e como.**
+
+- `experimentos/provar-paginacao.js` — **163 asserções, 163 passam**. Nas sete listas: o rodapé
+  aparece, diz «1 / N», a página 1 tem 7 itens e a 8.ª está escondida, «›» leva à 2 e à última,
+  «‹» recua e desabilita na primeira, nenhum clique sai da faixa, e **folheando todas as páginas
+  aparecem exactamente as N linhas, sem repetir nenhuma** — é o que distingue «paginar» de
+  «esconder». Mais: 7 itens ⇒ sem rodapé; 0 itens ⇒ só a linha do estado vazio; 8 itens ⇒ duas
+  páginas com uma na segunda; e mexer numa lista **não** mexe nas outras.
+- **A prova foi verificada ao contrário.** Com o código antigo ela dá **73 falhas de 163**; com a
+  correção, 163 de 163. E ganhou tetos nos laços que saltam de página: sem teto, o próprio defeito
+  fazia a prova **nunca terminar** — uma prova que trava esconde o resultado em vez de o mostrar.
+- **As três paginações do sistema foram procuradas, não presumidas**: a da Produção
+  (`data-paginar`), a da estante (a porta, coberta pelas dezoito asserções acima) e a do
+  `tools/templates/lancamento.html` (`data-ir` + `dataset.ir`, que está correcta — o `closest`
+  devolve o botão e o `data-ir` é lido do próprio).
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `classList.contains` no lugar de `className ===`.
+- `porta/index.html` — `escap` → `escapar`, com o porquê ao lado. (A correção já tinha sido
+  propagada às cópias de `plano-observacao/` dos dois pacotes pela frente que a descobriu; o
+  `check-identidade.js` exige que as três sejam iguais, e exige.)
+- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
+  cópias do pacote, agora iguais à fonte.
+- `experimentos/provar-paginacao.js` — a prova, 163 asserções.
+
+**O que ainda não está feito.**
+
+- **A prova `provar-ajustes-anamnese.js` continua com 14 falhas** — e são alheias a este trabalho:
+  ela espera a TURMA da anamnese como **radios** com estados bloqueados, e a turma passou a
+  `select` em 16/10/2026. Estavam escondidas até agora porque o ficheiro morria antes de lá
+  chegar; a correção do `escap` desmascarou-as. Ficam declaradas: é dívida de prova, não defeito
+  de produto.
+- O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
+  harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
+  avança.
