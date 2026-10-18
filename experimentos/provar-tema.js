@@ -369,8 +369,16 @@ function botaoForaDoPainel(html) {
   // escola perderia para uma memória antiga. E o anti-flash por `localStorage` SAIU de lá:
   // já não há nada para evitar, porque o atributo chega pronto.
   const fonte = fs.readFileSync(path.join(raiz, 'motor/servidor/bastidores.js'), 'utf8');
+  // O ATRIBUTO PASSOU A SER DOIS (18/10/2026): `data-modo` e `data-paleta`, e o segundo
+  // entra antes do `data-modo-fonte`. A asserção media a ordem antiga — e uma prova que fixa
+  // a ordem das palavras é uma prova que quebra quando a frase muda, não quando a regra muda.
+  // O que se mede agora é o que importa: os TRÊS atributos estão no `<html>` da vista.
   provar('a vista dos Bastidores publica o modo no <html>',
-    /data-modo="' \+ modo \+ '" data-modo-fonte="escola"/.test(fonte), true);
+    fonte.includes(`data-modo="' + modo + '"`), true);
+  provar('…e a família, no mesmo <html>',
+    fonte.includes(`data-paleta="' +`) && fonte.includes('esc(ap.paleta)'), true);
+  provar('…e a fonte, que é o que impede o navegador de mandar',
+    fonte.includes(`data-modo-fonte="escola">`), true);
   provar('…e não deixou o anti-flash por localStorage',
     /localStorage\.getItem\("ciclo-modo"\)/.test(fonte), false);
 

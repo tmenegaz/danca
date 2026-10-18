@@ -182,35 +182,86 @@ async function lerLista(kv, chave) {
  * no SERVIDOR (o atributo vai no `<html>` de cada página servida), porque uma escolha que vale
  * para todos não pode viver no navegador de cada um.
  *
- * O valor guardado é o NOME do modo (`clara`/`noturna`), e não um índice nem um hex: quando o
- * catálogo das doze paletas existir, é este campo que ganha a família — e o que se guarda
- * continua a ser um nome, nunca um valor de cor.
+ * O valor guardado é o NOME do modo (`clara`/`noturna`) e o NOME da família — nunca um hex nem
+ * um índice. É essa escolha que faz o campo sobreviver ao catálogo: quando as doze paletas
+ * existirem, o valor continua a ser uma palavra, e o dia em que um hex mudar não obriga a
+ * migrar dado nenhum.
+ *
+ * A FAMÍLIA ENTROU EM 18/10/2026, e entrou como **segundo eixo**, não como segundo valor do
+ * mesmo eixo: um modo e uma paleta são independentes (a Cortina tem as duas variantes, como a
+ * Bordô), e guardá-los num só campo obrigaria a enumerar o produto cartesiano à mão — quatro
+ * nomes hoje, vinte e quatro quando o catálogo fechar.
  */
 const MODOS_DE_APARENCIA = ['clara', 'noturna'];
+
+/** As famílias que EXISTEM — isto é, as que têm hex medidos em `tools/templates/ciclo.css`.
+ *  As outras cinco do catálogo são estudo, e não entram aqui: oferecer no seletor uma família
+ *  que a folha não desenha daria uma escola pintada de nada. */
+const PALETAS = [
+  { id: 'bordo', nome: 'Bordô de Cena' },
+  { id: 'cortina', nome: 'Cortina Turquesa' },
+];
+const IDS_DAS_PALETAS = PALETAS.map((p) => p.id);
+const PALETA_PADRAO = 'bordo';
 
 function chaveDaAparencia(escola) {
   return RAIZ + '/' + escola + '/aparencia';
 }
 
-/** O modo da escola. Ausência, valor inválido ou KV ilegível caem em `clara` — o padrão não
- *  depende de haver dado, que é a mesma defesa do `rubricaDaTurma` e do freio da escola. */
+/**
+ * A aparência da escola: `{ modo, paleta }`. Ausência, valor inválido ou KV ilegível caem no
+ * PADRÃO — o padrão não depende de haver dado, que é a mesma defesa do `rubricaDaTurma` e do
+ * freio da escola.
+ *
+ * Devolve SEMPRE o par completo, e é isso que faz o resto do código não ter de repetir o
+ * `|| 'clara'`: um valor em falta produziria `undefined` no atributo, e um atributo vazio é
+ * uma página sem família.
+ */
 async function aparenciaDaEscola(kv, escola) {
+  let o = null;
   try {
     const t = await kv.get(chaveDaAparencia(escola));
-    const o = t ? JSON.parse(t) : null;
-    const modo = String((o && o.modo) || '');
-    return MODOS_DE_APARENCIA.indexOf(modo) === -1 ? 'clara' : modo;
+    o = t ? JSON.parse(t) : null;
   } catch (e) {
-    return 'clara';
+    o = null;
   }
+  const modo = String((o && o.modo) || '');
+  const paleta = String((o && o.paleta) || '');
+  return {
+    modo: MODOS_DE_APARENCIA.indexOf(modo) === -1 ? 'clara' : modo,
+    paleta: IDS_DAS_PALETAS.indexOf(paleta) === -1 ? PALETA_PADRAO : paleta,
+  };
 }
 
-/** Grava o modo. `por` é o rótulo de quem mudou (a senha não é guardada: só a sua origem). */
-async function gravarAparencia(kv, escola, modo, por) {
-  const m = String(modo || '');
-  if (MODOS_DE_APARENCIA.indexOf(m) === -1) return false;
+/**
+ * Grava a aparência — MESCLANDO com o que já lá está, em vez de substituir.
+ *
+ * A mesclagem existe porque os dois eixos são independentes e chegam em pedidos separados: quem
+ * muda a paleta não está a dizer nada sobre o modo, e sobrescrever punha a escola em `clara` sem
+ * ninguém ter pedido. Cada chave só entra se for válida; uma inválida é RECUSADA (`false`), e não
+ * ignorada em silêncio — quem chamou tem de saber que o pedido não passou.
+ */
+async function gravarAparencia(kv, escola, mudanca, por) {
+  // SEM LEITURA PRÉVIA QUANDO O PAR VEM INTEIRO. O «ler-modificar-gravar» só é necessário
+  // para um pedido parcial; e ele carrega a janela de consistência do KV (ver a nota no
+  // cliente). Quando os dois eixos vêm, grava-se o que veio — uma leitura a menos e nenhuma
+  // janela.
+  const osDois = mudanca && mudanca.modo !== undefined && mudanca.paleta !== undefined;
+  const atual = osDois ? null : await aparenciaDaEscola(kv, escola);
+  const novo = osDois ? {} : { modo: atual.modo, paleta: atual.paleta };
+  if (mudanca && mudanca.modo !== undefined) {
+    const m = String(mudanca.modo || '');
+    if (MODOS_DE_APARENCIA.indexOf(m) === -1) return false;
+    novo.modo = m;
+  }
+  if (mudanca && mudanca.paleta !== undefined) {
+    const p = String(mudanca.paleta || '');
+    if (IDS_DAS_PALETAS.indexOf(p) === -1) return false;
+    novo.paleta = p;
+  }
   await kv.put(chaveDaAparencia(escola), JSON.stringify({
-    modo: m,
+    modo: novo.modo,
+    paleta: novo.paleta,
     por: String(por || 'direcao'),
     em: new Date().toISOString(),
   }));
@@ -1174,18 +1225,35 @@ function sessaoNaBarra() {
 /** O cabeçalho comum das vistas dos Bastidores: a folha do ciclo (a MESMA do pacote,
  *  servida por este Worker) e, DEPOIS dela, o `<style>` da vista — que manda. */
 function cabecalhoDaVista(titulo, aparencia) {
-  // O MODO VEM DO SERVIDOR (18/10/2026). Ele entra no `<html>` antes de a página sair, e o
-  // `data-modo-fonte="escola"` diz de QUEM é a decisão: é esse atributo que faz o
-  // `assets/nav.js` não aplicar por cima a escolha antiga do navegador. O «anti-flash» que
-  // aqui estava — um script a ler `localStorage` antes de pintar — sai: já não há nada para
-  // evitar, porque o atributo chega pronto. Sem ele, a escolha da escola perdia para a
-  // memória de um navegador que tivesse sido usado antes.
-  const modo = (aparencia === 'noturna') ? 'noturna' : 'clara';
-  return '<!doctype html><html lang="pt-BR" data-modo="' + modo + '" data-modo-fonte="escola">' +
+  // A APARÊNCIA VEM DO SERVIDOR (18/10/2026), nos DOIS eixos. Ela entra no `<html>` antes de a
+  // página sair, e o `data-modo-fonte="escola"` diz de QUEM é a decisão: é esse atributo que
+  // faz o `assets/nav.js` não aplicar por cima a escolha antiga do navegador. O «anti-flash»
+  // que aqui estava — um script a ler `localStorage` antes de pintar — sai: já não há nada
+  // para evitar, porque o atributo chega pronto.
+  //
+  // `data-paleta` ACOMPANHA `data-modo` em vez de o substituir: são eixos independentes
+  // (família × modo), e a folha cruza-os por seletor. Ausente, o atributo significaria «a
+  // família padrão» por acidente; escrito, a página DECLARA de que família é — e é isso que a
+  // prova confere.
+  const ap = aparenciaDaVez(aparencia);
+  const modo = ap.modo;
+  return '<!doctype html><html lang="pt-BR" data-modo="' + modo + '" data-paleta="' +
+    esc(ap.paleta) + '" data-modo-fonte="escola">' +
     '<head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
     '<link rel="stylesheet" href="/assets/style.css">';
+}
+
+/** Normaliza a aparência que chega às vistas: aceita o par, e nunca devolve `undefined`.
+ *  Uma vista chamada sem aparência (as provas e o servidor de desenvolvimento fazem isso) cai
+ *  no padrão — não em atributo vazio. */
+function aparenciaDaVez(aparencia) {
+  const a = aparencia || {};
+  return {
+    modo: a.modo === 'noturna' ? 'noturna' : 'clara',
+    paleta: IDS_DAS_PALETAS.indexOf(a.paleta) === -1 ? PALETA_PADRAO : a.paleta,
+  };
 }
 
 /** O fim comum: o script da navegação, que mede a barra e abre o hamburger. */
@@ -1212,10 +1280,12 @@ function paginaEstudio(escola, contexto, aparencia) {
 }
 
 function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia) {
-  // O MODO DA ESCOLA (18/10/2026). Vem do KV e é aplicado no SERVIDOR: o atributo entra no
-  // `<html>` da página, e o `data-modo-fonte` diz de quem é a decisão — é ele que faz o
-  // `assets/nav.js` **não** tentar aplicar a escolha antiga do navegador por cima.
-  const modo = (aparencia === 'noturna') ? 'noturna' : 'clara';
+  // A APARÊNCIA DA ESCOLA (18/10/2026). Vem do KV e é aplicada no SERVIDOR: os dois atributos
+  // entram no `<html>` da página, e o `data-modo-fonte` diz de quem é a decisão — é ele que faz
+  // o `assets/nav.js` **não** tentar aplicar a escolha antiga do navegador por cima.
+  const ap = aparenciaDaVez(aparencia);
+  const modo = ap.modo;
+  const paleta = ap.paleta;
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -1751,7 +1821,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
 
-  return cabecalhoDaVista('Bastidores · Produção · ' + escola, modo) +
+  return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }) +
     '<style>' +
     // A IDENTIDADE É A MESMA DA RAIZ («criar nova escola») e do pacote do ciclo: as
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
@@ -2329,8 +2399,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<section class="secao" id="sec-aparencia" hidden>' +
     '<h2>Aparência</h2>' +
     '<div class="col-form">' +
+    // DOIS EIXOS, DUAS ESCOLHAS, A MESMA PEÇA (18/10/2026). A família e o modo são
+    // independentes — a Cortina tem as duas variantes, como a Bordô — e por isso são dois
+    // grupos, cada um com a sua legenda. Os nomes das famílias vêm da LISTA DO SERVIDOR
+    // (`PALETAS`) e não de uma lista escrita aqui: uma família nova entra num lugar só.
     '<fieldset class="escolhas">' +
-    '<legend class="campo-rotulo">Aparência da escola</legend>' +
+    '<legend class="campo-rotulo">Família de cores</legend>' +
+    PALETAS.map((p) => pilula('paleta', p.id, esc(p.nome), 'radio', paleta === p.id)).join('') +
+    '</fieldset>' +
+    '<fieldset class="escolhas">' +
+    '<legend class="campo-rotulo">Variante</legend>' +
     pilula('aparencia', 'clara', 'Clara', 'radio', modo !== 'noturna') +
     pilula('aparencia', 'noturna', 'Noturna', 'radio', modo === 'noturna') +
     '</fieldset>' +
@@ -4171,26 +4249,48 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     //
     // SE A GRAVAÇÃO FALHAR (o token expira em 12h), a pílula volta para a opção EM VIGOR. Sem
     // isso a tela mostraria uma escolha que não existe — e a pessoa sairia a acreditar nela.
-    'function pintarAparencia(modo) {' +
-    '  if (modo === "noturna") { document.documentElement.setAttribute("data-modo", "noturna"); }' +
-    '  else { document.documentElement.removeAttribute("data-modo"); }' +
+    // DOIS EIXOS, UM COMPORTAMENTO. `data-modo` e `data-paleta` são atributos do `<html>` e a
+    // folha cruza-os por seletor; repintar é trocar o atributo certo, e o mesmo código serve
+    // aos dois grupos. Uma função para cada eixo seria a mesma linha escrita duas vezes — e a
+    // segunda envelheceria primeiro.
+    'var EIXOS = [' +
+    '  {grupo: "aparencia", attr: "data-modo", chave: "modo", padrao: "clara", pintar: function(v){' +
+    '    if (v === "clara") { document.documentElement.removeAttribute("data-modo"); }' +
+    '    else { document.documentElement.setAttribute("data-modo", v); }' +
+    '  }},' +
+    '  {grupo: "paleta", attr: "data-paleta", chave: "paleta", padrao: "bordo", pintar: function(v){' +
+    '    document.documentElement.setAttribute("data-paleta", v);' +
+    '  }}' +
+    '];' +
+    'function emVigor(eixo) {' +
+    '  return document.documentElement.getAttribute(eixo.attr) || eixo.padrao;' +
     '}' +
-    'function marcarAparencia(modo) {' +
-    '  var ps = document.querySelectorAll("input[name=aparencia]");' +
-    '  for (var i = 0; i < ps.length; i++) { ps[i].checked = (ps[i].value === modo); }' +
+    'function marcar(eixo, valor) {' +
+    '  var ps = document.querySelectorAll("input[name=" + eixo.grupo + "]");' +
+    '  for (var i = 0; i < ps.length; i++) { ps[i].checked = (ps[i].value === valor); }' +
     '}' +
-    'var pilulasAparencia = document.querySelectorAll("input[name=aparencia]");' +
-    'for (var ia = 0; ia < pilulasAparencia.length; ia++) {' +
-    '  pilulasAparencia[ia].addEventListener("change", function(){' +
-    '    var escolhido = this.value;' +
-    '    enviar("/api/bastidores/aparencia", {modo: escolhido}, "gravando a aparência da escola...",' +
-    '      false, function(){ pintarAparencia(escolhido); })' +
-    '      .then(function(){' +
-    '        var emVigor = document.documentElement.getAttribute("data-modo") === "noturna" ? "noturna" : "clara";' +
-    '        if (emVigor !== escolhido) { marcarAparencia(emVigor); }' +
-    '      });' +
-    '  });' +
-    '}' +
+    // O PEDIDO LEVA O PAR INTEIRO, E NÃO SÓ O EIXO QUE MUDOU. Parece redundante — o servidor
+    // sabe ler o outro eixo — e não é: o KV é eventualmente consistente, e um
+    // «ler-modificar-gravar» deixa uma janela em que duas mudanças próximas se perdem. Foi
+    // medido no ar, em 18/10/2026: um pedido de família chegou enquanto o modo ainda
+    // propagava, e o modo voltou ao valor anterior sem ninguém ter pedido. O cliente TEM os
+    // dois valores (estão no `<html>` que ele acabou de pintar), e mandá-los fecha a janela.
+    'EIXOS.forEach(function(eixo){' +
+    '  var pilulas = document.querySelectorAll("input[name=" + eixo.grupo + "]");' +
+    '  for (var i = 0; i < pilulas.length; i++) {' +
+    '    pilulas[i].addEventListener("change", function(){' +
+    '      var escolhido = this.value;' +
+    '      var corpo = {modo: emVigor(EIXOS[0]), paleta: emVigor(EIXOS[1])};' +
+    '      corpo[eixo.chave] = escolhido;' +
+    '      enviar("/api/bastidores/aparencia", corpo, "gravando a aparência da escola...",' +
+    '        false, function(){ eixo.pintar(escolhido); })' +
+    '        .then(function(){' +
+    '          var agora = emVigor(eixo);' +
+    '          if (agora !== escolhido) { marcar(eixo, agora); }' +
+    '        });' +
+    '    });' +
+    '  }' +
+    '});' +
     '</script>' +
     fimDaVista();
 }
@@ -4466,8 +4566,18 @@ async function fetch(request, env) {
   // ---------------------------------------------------------------------------
   if (path === '/api/bastidores/aparencia') {
     if (request.method === 'GET') {
-      return json(200, { ok: true, modo: await aparenciaDaEscola(kv, escola),
-        modos: MODOS_DE_APARENCIA });
+      const atual = await aparenciaDaEscola(kv, escola);
+      // A RESPOSTA DIZ O QUE EXISTE, e não o que o catálogo sonha: `paletas` são as famílias
+      // com hex medidos na folha. O catálogo do contrato tem sete nomes e duas implementadas,
+      // e oferecer as cinco em estudo daria uma escola pintada de nada — a lista é do
+      // servidor, não do documento.
+      return json(200, {
+        ok: true,
+        modo: atual.modo,
+        paleta: atual.paleta,
+        modos: MODOS_DE_APARENCIA,
+        paletas: PALETAS,
+      });
     }
     if (request.method === 'POST') {
       let corpo = {};
@@ -4475,12 +4585,31 @@ async function fetch(request, env) {
       if (!(await autorizacaoDirecaoOk(env, corpo))) {
         return json(401, { ok: false, erro: 'senha da direção inválida' });
       }
-      const modo = String(corpo.modo || '').trim();
-      if (MODOS_DE_APARENCIA.indexOf(modo) === -1) {
-        return json(400, { ok: false, erro: 'modo inválido — use ' + MODOS_DE_APARENCIA.join(' ou ') });
+      // A VALIDAÇÃO É POR EIXO, e recusa o inválido em vez de o ignorar: um pedido com
+      // `{paleta:'verde'}` respondido com `ok:true` faria a tela mostrar uma escolha que não
+      // ficou guardada. Cada chave só é considerada se vier.
+      const mudanca = {};
+      if (corpo.modo !== undefined) {
+        const modo = String(corpo.modo || '').trim();
+        if (MODOS_DE_APARENCIA.indexOf(modo) === -1) {
+          return json(400, { ok: false, erro: 'modo inválido — use ' + MODOS_DE_APARENCIA.join(' ou ') });
+        }
+        mudanca.modo = modo;
       }
-      await gravarAparencia(kv, escola, modo, 'direcao');
-      return json(200, { ok: true, modo });
+      if (corpo.paleta !== undefined) {
+        const paleta = String(corpo.paleta || '').trim();
+        if (IDS_DAS_PALETAS.indexOf(paleta) === -1) {
+          return json(400, { ok: false, erro: 'paleta inválida — use ' + IDS_DAS_PALETAS.join(' ou ') });
+        }
+        mudanca.paleta = paleta;
+      }
+      if (!mudanca.modo && !mudanca.paleta) {
+        return json(400, { ok: false, erro: 'nada a mudar — envie «modo» e/ou «paleta»' });
+      }
+      const ok = await gravarAparencia(kv, escola, mudanca, 'direcao');
+      if (!ok) return json(400, { ok: false, erro: 'valor recusado' });
+      const agora = await aparenciaDaEscola(kv, escola);
+      return json(200, { ok: true, modo: agora.modo, paleta: agora.paleta });
     }
   }
 

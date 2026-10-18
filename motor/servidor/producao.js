@@ -40,8 +40,20 @@ const { temProfessor, aparenciaDaEscola } = bastidores;
  *
  * O `content-length` sai porque o corpo mudou de tamanho; mantê-lo truncaria a página.
  * O `content-encoding` também: o corpo já foi lido e descomprimido pelo `text()`.
+ *
+ * DOIS EIXOS (18/10/2026): além do modo, a **família de cores**. A ponte passa a receber o
+ * par `{modo, paleta}` e a repor os dois atributos — porque o pacote do ciclo e a porta são
+ * servidos por aqui, e uma família que valesse só nos Bastidores não seria «da escola».
  */
-async function comAparencia(resposta, modo) {
+async function comAparencia(resposta, aparencia) {
+  const ap = aparencia || {};
+  const modo = ap.modo === 'noturna' ? 'noturna' : 'clara';
+  // A FAMÍLIA É SEMPRE PUBLICADA, mesmo quando é a padrão. `data-paleta` ausente significaria
+  // «a padrão» — e uma página que não DIZ de que família é obriga toda a prova a tolerar duas
+  // formas de dizer o mesmo. Escrito, o atributo é uma afirmação: «esta página é da Bordô de
+  // Cena». Só um id que a folha não conhece é que não se escreve: seria o pior dos dois
+  // mundos — o atributo a jurar uma família e a folha a não a desenhar.
+  const paleta = ['bordo', 'cortina'].indexOf(String(ap.paleta || '')) === -1 ? 'bordo' : String(ap.paleta);
   if (!resposta) return resposta;
   const tipo = String(resposta.headers.get('content-type') || '').toLowerCase();
   if (tipo.indexOf('text/html') === -1) return resposta;
@@ -56,8 +68,10 @@ async function comAparencia(resposta, modo) {
   texto = texto.replace(/<html([^>]*)>/i, (tudo, attrs) => {
     const limpos = String(attrs)
       .replace(/\sdata-modo="[^"]*"/gi, '')
+      .replace(/\sdata-paleta="[^"]*"/gi, '')
       .replace(/\sdata-modo-fonte="[^"]*"/gi, '');
-    return '<html' + limpos + ' data-modo="' + modo + '" data-modo-fonte="escola">';
+    return '<html' + limpos + ' data-modo="' + modo + '" data-paleta="' + paleta +
+      '" data-modo-fonte="escola">';
   });
   const cabecalhos = new Headers(resposta.headers);
   cabecalhos.delete('content-length');
@@ -83,12 +97,12 @@ function caminhoDaPorta(path, prefixo) {
   return path === prefixo ? '/' : path.slice(prefixo.length);
 }
 
-/** O modo da escola, com o KV e o slug à mão. Sem KV (o servidor de desenvolvimento), o
- *  padrão é `clara` — a ausência de dado não inventa uma aparência. */
-async function modoDaEscola(env) {
+/** A aparência da escola, com o KV e o slug à mão. Sem KV (o servidor de desenvolvimento),
+ *  o padrão é `clara` + a família padrão — a ausência de dado não inventa uma aparência. */
+async function aparenciaDoEnv(env) {
   const kv = env && env.PADD_KV;
   const escola = String((env && env.ESCOLA_SLUG) || '');
-  if (!kv || !escola) return 'clara';
+  if (!kv || !escola) return { modo: 'clara', paleta: 'bordo' };
   return aparenciaDaEscola(kv, escola);
 }
 
@@ -184,7 +198,7 @@ async function fetch(request, env) {
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
     return comAparencia(await portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS }),
-      await modoDaEscola(env));
+      await aparenciaDoEnv(env));
   }
 
   // 2. O lançamento do pacote (o `lancamento.html` POSTa em /api/receber), na
@@ -206,7 +220,7 @@ async function fetch(request, env) {
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
-    return comAparencia(await env.ASSETS.fetch(request), await modoDaEscola(env));
+    return comAparencia(await env.ASSETS.fetch(request), await aparenciaDoEnv(env));
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {
     status: 404,
@@ -214,4 +228,4 @@ async function fetch(request, env) {
   });
 }
 
-module.exports = { fetch, comAparencia, modoDaEscola };
+module.exports = { fetch, comAparencia, aparenciaDoEnv };

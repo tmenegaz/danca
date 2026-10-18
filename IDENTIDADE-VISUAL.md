@@ -184,10 +184,16 @@ O que passa a valer, e é o que está implementado:
 
 | Peça | Onde está |
 | --- | --- |
-| **o valor** | no dado da escola — `bastidores/<escola>/aparencia`, guardando o **nome** do modo (nunca um hex) |
-| **a aplicação** | no **servidor**: o `<html>` de toda página servida sai com `data-modo` **e** `data-modo-fonte="escola"` |
-| **o controlo** | a secção **Aparência**, na Produção — onde só a senha da escola e a do professor principal entram |
+| **o valor** | no dado da escola — `bastidores/<escola>/aparencia`, guardando os **nomes** do modo e da família (nunca um hex) |
+| **a aplicação** | no **servidor**: o `<html>` de toda página servida sai com `data-modo`, `data-paleta` **e** `data-modo-fonte="escola"` |
+| **o controlo** | a secção **Aparência**, na Produção — **dois** grupos de pílulas: família e variante |
 | **o portão** | `senhaDaDirecaoOk` (as duas senhas acima, e mais nenhuma) |
+
+**Os dois eixos são independentes** — família × variante é um produto cartesiano, e guardá-los
+num só campo obrigaria a enumerar quatro nomes hoje e catorze quando o catálogo fechar. E o
+pedido que o cliente envia leva **o par inteiro**: o KV é eventualmente consistente, e um
+«ler-modificar-gravar» com pedidos parciais perde uma mudança quando duas chegam próximas — o que
+foi observado no ar, em 18/10/2026.
 
 **O `data-modo-fonte` é a fronteira, e não um enfeite.** É ele que faz o `assets/nav.js` **não**
 aplicar por cima a memória de um navegador usado antes: uma página que declara a fonte já tem o
@@ -312,11 +318,13 @@ node tools/check-identidade.js
 falhar. Ele confere:
 
 1. **Contraste** — mede cada par de `PARES` (de **papéis**, não de valores) contra o
-   seu piso, em **cada tema**: hoje, 31 pares na clara e 31 na noturna. Inclui os
-   fundos de estado (`--ok-fundo`, `--alerta-fundo`, `--falha-fundo`,
+   seu piso, em **cada tema**: hoje são **quatro** temas, porque família × modo é um produto
+   cartesiano — 31 pares × 4 = **124 medições**. Um tema não medido é um tema que ninguém sabe
+   se passa, e a segunda família foi acrescentada **já medida** (foi por isso que ela não caiu).
+   Inclui os fundos de estado (`--ok-fundo`, `--alerta-fundo`, `--falha-fundo`,
    `--derivada-fundo`), onde o texto semântico é lido.
 2. **Cópia única** — nenhum dos hex da paleta pode aparecer fora de
-   `tools/templates/ciclo.css`. Comentários que **citam** um valor para explicar por
+   `tools/templates/ciclo.css` (são **85** hoje: a folha passou a declarar as duas famílias). Comentários que **citam** um valor para explicar por
    que ele saiu não contam como redeclaração. A varredura cobre a raiz, a porta, os
    bastidores, a ficha e as páginas de estado — e normaliza `#abc` para `#aabbcc`.
 3. **Papel** — nenhuma superfície de interface usa um **primitivo** (`--cream`,
@@ -477,7 +485,7 @@ Uma peça nova **nasce inteira**, no mesmo commit, e nesta ordem:
 Enquanto isso não acontecer, a peça **não existe** — e usá-la é o defeito que este catálogo
 existe para impedir.
 
-## O catálogo das PALETAS — seis famílias, doze variantes *(16/10/2026)*
+## O catálogo das PALETAS — sete famílias, duas implementadas *(revisto em 18/10/2026)*
 
 > **Não confundir com o «catálogo das peças»**, acima: aquele é o dos **componentes** (o que
 > desenha um botão, um selo, uma pílula) e existe; este é o das **paletas** de cor, e está
@@ -506,15 +514,23 @@ medidos individualmente** antes de qualquer implementação.
 | 4 | **Prata de Palco** | bege, prata e grafite — clássico e discreto |
 | 5 | **Azul de Bastidores** | azul administrativo, claro e funcional, na linhagem das interfaces contemporâneas de produtividade — **sem reproduzir marca nenhuma** |
 | 6 | **Luz de Camarim** | minimalista, neutra e luminosa, com acentos azuis discretos |
+| 7 | **Cortina Turquesa** | turquesa de cortina de palco sobre navy profundo, neutros frios — **a segunda implementada** |
+
+> **Estado em 18/10/2026: duas famílias têm hex medidos e estão na folha** — a **Bordô de
+> Cena** (a vigente) e a **Cortina Turquesa**. As outras cinco continuam **estudo**: as
+> direções estão registadas, os valores não. O seletor da escola oferece **só as duas**, e
+> essa lista vem do servidor (`PALETAS`, em `motor/servidor/bastidores.js`), não deste
+> documento — oferecer uma família sem desenho daria uma escola pintada de nada.
 
 **Cada família tem duas variantes — clara e noturna.** E a noturna **não é** a clara invertida:
 ela é concebida **para aquela família**, porque inverter não preserva o que a família tem de
 próprio.
 
-**A lista que o seletor oferecerá — doze opções, nesta ordem:**
+**A lista que o seletor oferecerá — catorze opções, nesta ordem** (as sete famílias × clara e
+noturna). Hoje ele oferece quatro delas, porque só duas famílias têm hex:
 
-- Bordô de Cena — Clara
-- Bordô de Cena — Noturna
+- **Bordô de Cena — Clara** ✔ implementada
+- **Bordô de Cena — Noturna** ✔ implementada
 - Verde de Ensaio — Clara
 - Verde de Ensaio — Noturna
 - Azul de Gala — Clara
@@ -525,6 +541,8 @@ próprio.
 - Azul de Bastidores — Noturna
 - Luz de Camarim — Clara
 - Luz de Camarim — Noturna
+- **Cortina Turquesa — Clara** ✔ implementada
+- **Cortina Turquesa — Noturna** ✔ implementada
 
 **A ordem é a do catálogo, e as duas variantes de uma família ficam juntas** de propósito: quem
 escolhe escolhe uma **família** e depois um **modo**, e uma lista em que as doze aparecessem
@@ -580,6 +598,48 @@ linha de CSS, e devolvo o que falha com o número.
 > que falharam aqui não estão na imagem de referência, porque uma imagem mostra as cores lado a
 > lado e não mostra a **relação** entre elas.
 
+### A Cortina Turquesa, especificada e medida *(18/10/2026)*
+
+**A primeira família depois da vigente, e o formulário acima preenchido.** As âncoras vieram de
+uma imagem de referência e foram **amostradas pixel a pixel**: o turquesa medido dá `#00afc3`, e o
+texto de referência dizia `#00b8c7` — dois caminhos independentes, o mesmo tom. O papel é
+`#f5fafa` e a tinta `#0d1b24`.
+
+**O que a medição decidiu, e que a imagem não dizia:**
+
+| Decisão | Por quê |
+| :-- | :-- |
+| `--marca-fundo` = o turquesa cheio, com `--sobre-marca` **escuro** `#06202b` | branco sobre turquesa dá **2,42:1**; não há tom claro que passe |
+| `--marca` (título) = `#00708c` | o turquesa cheio como texto dá **2,52:1**; este dá **5,39:1** |
+| `--borda-campo` = `#78929d`, um **neutro** | o filete não é o acento: um campo com filete turquesa pareceria em foco permanente |
+| os neutros ficam **frios** (`#f5fafa`, `#e3eff1`) | a família troca o clima, não só a cor — sete primitivos e os papéis que derivam deles |
+| `--ornamento-forte` = `#04414d`, **escuro** | a barra é clara: o filete tem de ser escuro para dar 3:1 (4,24:1) |
+
+**As duas variantes, papéis principais:**
+
+| Papel | Clara | Noturna |
+| :-- | :-- | :-- |
+| `--fundo` | `#f5fafa` | `#0a1923` |
+| `--superficie` | `#ffffff` | `#0f2332` |
+| `--texto` | `#0d1b24` | `#e4eff2` |
+| `--texto-suave` | `#4c5f6a` | `#a3bcc4` |
+| `--marca` | `#00708c` | `#00afc3` |
+| `--marca-texto` | `#00677f` | `#63dbe8` |
+| `--marca-fundo` | `#00afc3` | `#00afc3` |
+| `--sobre-marca` | `#06202b` | `#06202b` |
+| `--borda` | `#78929d` | `#547382` |
+| `--borda-campo` | `#78929d` | `#5a7a87` |
+| `--foco` | `#00708c` | `#63dbe8` |
+
+**`--sobre-marca` é o mesmo nos dois modos, e isso é o achado.** Nas duas variantes a barra é
+turquesa e o texto sobre ela é escuro. Na Bordô, a barra é escura e o texto claro — a diferença
+não é de gosto, é de **luminância do acento**. Uma família cujo acento é claro **não pode**
+herdar o par de outra; e é por isso que a segunda família não se fez mudando um token.
+
+**Provado.** `node tools/check-identidade.js` mede **quatro temas × 31 pares = 124 pares**, todos
+em AA ou acima (antes eram dois temas). E o `provar-aparencia.js` mede o comportamento: a família
+e o modo são **eixos independentes**, gravam-se separados, e a página declara de que família é.
+
 ## A aparência — o que existe hoje *(revisto em 18/10/2026)*
 
 **O que existe.** A **variante noturna** da identidade vigente, com os papéis medidos nos dois
@@ -602,9 +662,11 @@ aí não há Worker a pôr o atributo, e a memória do navegador é a única inf
 guarda `!hasAttribute('data-modo-fonte')` é o que impede que essa rede desfaça, nas páginas
 **servidas**, a decisão da escola.
 
-**O que continua planejado — e não implementado.** O **catálogo** das seis famílias, o item de
-menu **Identidade visual** e o campo **Paleta de cores** com as doze combinações. O que falta
-**não é decisão, é trabalho**: os hex não existem, e nenhum se inventa.
+**O que continua planejado — e não implementado.** Das sete famílias, **duas** têm hex medidos e
+estão na folha (Bordô de Cena e Cortina Turquesa); as outras **cinco** continuam estudo. Falta
+especificar e medir os hex dessas cinco — e nenhum se inventa. O item de menu **Identidade
+visual** também não existe: o controlo vive na secção **Aparência** da Produção, e é lá que fica
+enquanto for uma configuração da escola e não uma frente própria.
 
 > **A C15, e a resposta (18/10/2026).** Ela perguntava **de quem é a preferência de aparência** —
 > da **escola**, do **usuário** ou do **navegador** —, e estava aberta porque a medição mostrou

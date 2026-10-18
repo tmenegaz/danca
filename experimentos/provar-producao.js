@@ -460,8 +460,18 @@ async function principal() {
   // a peça: uma escolha única mora em pílulas (`radio`), e o estado em vigor vem do SERVIDOR.
   const trechoAparencia = html.split('id="sec-aparencia"')[1] || '';
   const corpoAparencia = trechoAparencia.slice(0, trechoAparencia.indexOf('</section>'));
-  conferir('a Aparência agrupa a escolha num fieldset de pílulas',
-    corpoAparencia.includes('<fieldset class="escolhas">'), true);
+  // DOIS GRUPOS, DOIS EIXOS (18/10/2026): a família e a variante são independentes — a
+  // Cortina tem as duas variantes, como a Bordô —, e por isso são dois `fieldset`, cada um com
+  // a sua legenda. Um grupo só obrigaria a enumerar o produto cartesiano à mão.
+  conferir('a Aparência agrupa as escolhas em dois fieldsets de pílulas',
+    (corpoAparencia.match(/<fieldset class="escolhas">/g) || []).length, 2);
+  conferir('…um para a família e outro para a variante',
+    corpoAparencia.indexOf('Família de cores') > -1 &&
+    corpoAparencia.indexOf('Variante') > -1, true);
+  conferir('…e as famílias oferecidas são as que têm desenho (duas)',
+    (corpoAparencia.match(/name="paleta" value="[a-z]+"/g) || []).length, 2);
+  conferir('…com a família em vigor marcada pelo servidor',
+    (corpoAparencia.match(/name="paleta" value="[a-z]+" checked/g) || []).length, 1);
   conferir('…com uma pílula por modo, e são radio (escolha única)',
     (corpoAparencia.match(/class="escolha"><input type="radio" name="aparencia"/g) || []).length, 2);
   conferir('…e o modo em vigor vem MARCADO pelo servidor, um só',
@@ -859,12 +869,12 @@ async function principal() {
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',
     script.includes('turmas: umaTurma ? [umaTurma] : []'), true);
   conferir('não sobrou nenhuma caixa com rolagem no formulário', html.includes('cb-grupo'), false);
-  // NOVE, e não sete: as sete dos dias da semana e as DUAS da aparência (18/10/2026). O que
-  // esta asserção guarda não é o número — é o CRITÉRIO: a pílula existe só para lista curta,
-  // fechada e fixa. Um tapete de pílulas longas (o de 84 termos, que o dono do produto
-  // recusou) voltaria como um número grande aqui, e é por isso que ele é contado.
-  conferir('as pílulas continuam a ser só as duas listas curtas: 7 dias + 2 modos',
-    (html.match(/class="escolha"/g) || []).length, 9);
+  // ONZE, e não sete: as sete dos dias da semana, as DUAS da variante e as DUAS das famílias
+  // (18/10/2026). O que esta asserção guarda não é o número — é o CRITÉRIO: a pílula existe
+  // só para lista curta, fechada e fixa. Um tapete de pílulas longas (o de 84 termos, que o
+  // dono do produto recusou) voltaria como um número grande aqui, e é por isso que é contado.
+  conferir('as pílulas continuam a ser só as listas curtas: 7 dias + 2 variantes + 2 famílias',
+    (html.match(/class="escolha"/g) || []).length, 11);
 
   // 9. A PÁGINA INTERMEDIÁRIA SAIU — e o caminho antigo continua respondendo.
   conferir('o Estúdio também carrega o menu do ciclo',

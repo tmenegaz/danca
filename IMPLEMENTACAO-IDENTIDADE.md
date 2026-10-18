@@ -186,7 +186,7 @@ camada de componentes.
 | 2.5 | `@media print` força os papéis claros | `[x]` 17/10 — `!important`, explícito |
 | 2.6 | Validador mede **todos** os temas e o uso de papel | `[x]` 17/10 — 31 pares × 2 temas; guard de primitivo |
 | 2.7 | Layouts: `data-layout="documento" \| "painel"` | `[x]` 17/10 |
-| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` **C15 decidida em 18/10/2026 — a preferência é da escola** (ver a glosa no topo). **O (b) e o (c) estão feitos** desde 18/10: o servidor aplica a aparência da escola e o controlo existe em Produção — com **dois** modos, não doze. O que falta **não é decisão, é trabalho**: (a) **especificar e medir** os hex das doze combinações — nenhum existe, e nenhum se inventa (V1 do §L13); (b) ~~o servidor aplicando a paleta da escola~~ — **feito, com a paleta vigente**; (c) ~~o campo na configuração~~ — **feito**: a secção **Aparência** (motivo declarado no `REGISTRO.md`); (d) o validador medindo as doze |
+| 2.8 | Seletor de aparência — **catálogo** das paletas | `[ ]` **C15 decidida em 18/10/2026 — a preferência é da escola** (ver a glosa no topo). **O (b) e o (c) estão feitos** desde 18/10: o servidor aplica a aparência da escola e o controlo existe em Produção. **E há uma segunda família implementada** — a **Cortina Turquesa**, especificada e medida (o cabeçalho do §«o que uma paleta tem de declarar» tem a tabela). São **duas famílias × dois modos**, e não doze. O que falta **não é decisão, é trabalho**: (a) **especificar e medir** os hex das **cinco famílias restantes** — nenhum existe, e nenhum se inventa (V1 do §L13); (b) ~~o servidor aplicando a paleta da escola~~ — **feito**; (c) ~~o campo na configuração~~ — **feito**: a secção **Aparência**, com dois grupos de pílulas; (d) ~~o validador medindo as paletas~~ — **feito**: mede os quatro temas, e medirá mais à medida que entrarem |
 
 ### O que a Fase 2 fez, e o que ela **não** fez
 
@@ -414,6 +414,7 @@ vocabulário. E a **raiz** continua servida de uma cópia anterior (ver a Fase 8
 | 18/10/2026 | 2.4 executado | aparência da escola no servidor: `data-modo` + `data-modo-fonte` em tudo o que a escola serve; secção **Aparência** na Produção; o `◐` saiu da barra |
 | 18/10/2026 | 9.1 pílula na folha | `.escolhas`/`.escolha` saem de `bastidores.js`; `.acao[aria-pressed]` removido |
 | 18/10/2026 | 9.2–9.4 catálogo | Quadros 1 e 2 em `IDENTIDADE-VISUAL.md`; checagem 8 «Peça»; instruções com `applyTo` |
+| 18/10/2026 | 2.8 segunda família | **Cortina Turquesa** especificada e medida; `data-paleta` como segundo eixo; validador mede 4 temas × 31 pares = 124 |
 | 17/10/2026 | 3.1 prova do tema | `provar-tema.js` 29/29; botão fora do `.nav-links` (defeito encontrado) |
 | 17/10/2026 | 3.2 documentação | `README.md` (seção e atalhos) e `motor/servidor/README.md` |
 | 17/10/2026 | 3.3 handoff | `tools/gerar-handoff.sh` |
