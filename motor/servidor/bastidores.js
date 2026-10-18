@@ -816,14 +816,19 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const donoNome = String(dono || '').trim();
   const linhasProfs = [];
   if (donoNome) {
-    // A linha do DONO é a única que mostra o slug: ele é o identificador que a página
-    // `danca` gravou no segredo e que o dono não pode perder de vista. Nas linhas dos
-    // outros professores o slug é ruído — quem identifica a pasta é o sistema, não a
-    // direção lendo uma lista (era o que a lista mostrava, e não precisava).
+    // A LINHA DO DONO PERDEU O SLUG (18/10/2026). Ele era mostrado «para o dono não
+    // perder de vista o identificador que a página gravou» — só que o slug é um termo
+    // TÉCNICO: ele é a pasta (`professores/<slug>/`), e quem a resolve é o sistema. A
+    // direção lia `tiago-menegaz` no meio de uma lista de nomes e não tinha o que fazer
+    // com aquilo; se um dia precisar do caminho, o lugar é o diagnóstico, não a lista.
+    //
+    // E O RÓTULO MUDOU: «dono — criado na página» descrevia COMO o registro nasceu, que
+    // é história do sistema, não papel na escola. «Principal» diz o que a pessoa é —
+    // e é a única que não se exclui, porque é ela que responde pela escola.
     linhasProfs.push('<li>' +
-      '<span class="nome">' + esc(donoNome) + ' <span class="dono">(dono — criado na página)</span></span>' +
-      ' <code class="slug">' + esc(donoSlug) + '</code>' +
-      ' <span class="acoes"><button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do dono">Editar</button></span>' +
+      '<span class="nome"><b>' + esc(donoNome) + '</b>' +
+      '<span class="dono">principal</span></span>' +
+      '<span class="acoes"><button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do professor principal">Editar</button></span>' +
       '</li>');
   }
   for (const p of profs) {
@@ -836,16 +841,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // o cadastro GRAVAVA o professor (201) e a página morria ao recarregar — «não cadastrou»,
     // para quem estava olhando. O valor já estava aqui, como o 5º parâmetro `donoSlug`.
     if (!slug || slug === donoSlug) continue; // o dono já entrou
-    // Só o nome e o botão (o slug saiu da lista: ver a linha do dono, acima).
-    linhasProfs.push('<li><span class="nome">' + esc(p.nome) + '</span>' +
-      ' <span class="acoes"><button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></span></li>');
+    // Só o nome e o botão. O `<b>` é o mesmo da linha do dono: sem ele, o principal
+    // parecia de outra natureza — e os dois são professores, um com papel e outro sem.
+    linhasProfs.push('<li><span class="nome"><b>' + esc(p.nome) + '</b></span>' +
+      '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></span></li>');
   }
   const itensProfs = linhasProfs.length
     ? linhasProfs.join('')
     : '<li class="vazia">(nenhum professor cadastrado)</li>';
   const itensAlunas = aluns.length
-    ? aluns.map((a) => '<li><span class="nome">' + esc(a) + '</span>'
-        + ' <span class="acoes"><button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></span></li>').join('')
+    ? aluns.map((a) => '<li><span class="nome"><b>' + esc(a) + '</b></span>'
+        + '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></span></li>').join('')
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
   // --- TURMAS e VOCABULÁRIO (Bloco 3 do plano de ensino) --------------------
@@ -1014,11 +1020,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma turma cadastrada)</li>';
 
+  // O COMPLEMENTO É UM SÓ, e desce para a segunda linha (18/10/2026). Eram dois `<span
+  // class="dono">` separados — categoria e tradição —, e separados eles quebravam onde
+  // coubessem: «posição» ficava ao lado do nome e «compartilhada» descia. Agora é um
+  // complemento só, com o `·` entre as partes, e ele nunca quebra (a regra das duas
+  // linhas, no CSS).
   const itensTermos = listaTermos.length
-    ? listaTermos.map((t) => '<li><span class="nome"><b>' + esc(t.termo) + '</b>' +
-        (t.categoria ? ' <span class="dono">' + esc(t.categoria) + '</span>' : '') +
-        (t.tradicao ? ' <span class="dono">' + esc(t.tradicao) + '</span>' : '') + '</span>' +
-        '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></span></li>').join('')
+    ? listaTermos.map((t) => {
+        const complemento = [t.categoria, t.tradicao].filter(Boolean).join(' · ');
+        return '<li><span class="nome"><b>' + esc(t.termo) + '</b>' +
+          (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
+          '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></span></li>';
+      }).join('')
     : '<li class="vazia">(nenhum termo cadastrado)</li>';
 
   // --- CURADORIA (Bloco 2 do pedido) ----------------------------------------
@@ -1114,9 +1127,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
               esc(turmasDaCuradoria(v).join(' · ') || '(sem turma)') + '</li>').join('') +
             '</ul></details>'
           : '';
-        return '<li><span class="nome"><b>' + esc(rotuloProfessor) + '</b> <span class="dono">· ' + esc(c.modalidade) + '</span>' +
-          ' ' + seloEstado + (seloVigencia ? ' ' + seloVigencia : '') +
-          (resumo ? '<br><span class="dono">' + esc(resumo) + '</span>' : '') + '</span>' +
+        // DUAS LINHAS, como as demais listas: o professor e os selos em cima; modalidade,
+        // tradição, turmas, passos e alunas embaixo, num complemento só. A modalidade
+        // subiu para a segunda linha porque na primeira ela competia com o nome — e era
+        // ela que fazia a linha oscilar de altura entre uma curadoria e outra.
+        const complemento = [c.modalidade].concat(resumo ? [resumo] : []).filter(Boolean).join(' · ');
+        return '<li><span class="nome"><b>' + esc(rotuloProfessor) + '</b>' +
+          seloEstado + (seloVigencia ? seloVigencia : '') +
+          (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
           '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span>' +
           historico + '</li>';
@@ -1177,7 +1195,30 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // especificidade (0,0,3 contra 0,0,2), sem aviso. O mesmo `.nome` era, ao mesmo
     // tempo, o nome que encolhe até o reticências e o nome que precisa de largura para
     // não quebrar em quatro linhas. São dois papéis, e agora são duas regras.
-    '.lista > li > .nome{flex:1 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;}' +
+    // A REGRA DAS DUAS LINHAS (18/10/2026). Nas listas simples — vocabulário, curadoria,
+    // professores, alunas — a primeira linha é o NOME (com os selos, que são o estado
+    // daquela linha) e a segunda é o COMPLEMENTO, e só ele.
+    //
+    // ANTES o complemento vinha ao lado do nome, e o nome curto o deixava na mesma linha
+    // enquanto o longo o empurrava para a segunda: «arabesque · posição compartilhada»
+    // ocupava uma linha e «fouetté entre-nan · giro compartilhado» ocupava duas — a altura
+    // do bloco OSCILAVA de item para item, e quem troca de página no vocabulário via a
+    // lista pular.
+    //
+    // É `flex`, e não `block`: o `b` e os selos têm de caber JUNTOS na primeira linha, e
+    // com `block` o selo descia sozinho (a curadoria ficava com três linhas: nome, selo,
+    // complemento). Com o nome em `flex:1 1 auto` e os selos em `0 0 auto`, quem cede
+    // espaço é o NOME — ele encurta com reticências, e os dois versos ficam nos seus
+    // lugares em qualquer largura, do telefone à tela cheia.
+    '.lista > li > .nome:not(.fixo){display:flex;flex-wrap:wrap;align-items:baseline;' +
+      'gap:.1rem .4rem;flex:1 1 auto;min-width:0;overflow:hidden;}' +
+    '.lista > li > .nome:not(.fixo) > b{flex:1 1 auto;min-width:0;white-space:nowrap;' +
+      'overflow:hidden;text-overflow:ellipsis;}' +
+    '.lista > li > .nome:not(.fixo) > .selo{flex:0 0 auto;}' +
+    // `100%` é o que FORÇA a segunda linha: o complemento não divide espaço com o nome, e
+    // `nowrap` + reticências é o que impede a terceira — ele nunca quebra, ele encurta.
+    '.lista > li > .nome:not(.fixo) > .dono{flex:0 0 100%;white-space:nowrap;' +
+      'overflow:hidden;text-overflow:ellipsis;}' +
     // O «→ origem» da turma não encolhe: ele diz de onde a régua veio, e não é o nome
     // que se pode truncar. A medida mora aqui, não no atributo `style` do HTML.
     '.lista > li > .nome.fixo{flex:0 0 auto;font-size:.85rem;}' +
@@ -1187,7 +1228,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O FORMULÁRIO: o mesmo papel branco do «criar nova escola», e os campos no creme.
     'form{border:1px solid var(--borda-campo);background:var(--superficie);border-radius:var(--raio-3);padding:1rem 1.1rem;margin:0 0 1rem;}' +
     '.dono{color:var(--texto-suave);font-size:.85rem;}' +
-    'ul li .slug{color:var(--texto-suave);font-size:.8rem;background:var(--fundo-faixa);border-radius:var(--raio-1);padding:0 .3em;}' +
+
     'label .dica{color:var(--texto-suave);font-weight:400;font-size:.85rem;}' +
     '.sub{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
     'form .nota{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +

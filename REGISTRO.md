@@ -16173,3 +16173,40 @@ coisa.
 tem ~48px). `provar-producao` 109/109. `provar-cabecalho-do-ato` 40/40. `provar-escola-fixa`
 30/30. `provar-tema` 30/30. `provar-plano-da-turma` 47/47. `provar-derivacao-da-turma` 123/123.
 `provar-carimbo-da-edicao` 55/55. `provar-contexto-do-ato` 37/37.
+
+## 18/10/2026 — as listas passam a ter duas linhas, e o «principal» deixa de ser histórico
+
+**Três pedidos que eram um só.** A direção pediu três coisas em sequência e elas são a mesma: o
+**vocabulário** oscilava de altura («arabesque » numa linha, «fouetté entre-nan» em duas); na
+**curadoria** devia valer o mesmo; e em **professores** o nome do dono vinha com «dono — criado na
+página» ao lado e o `slug` (`tiago-menegaz`) a seguir. O que faltava era uma regra de composição,
+não três remendos.
+
+**A regra.** Nas listas simples — vocabulário, curadoria, professores, alunas — a **primeira linha
+é o nome** (com os selos, que são o estado daquela linha) e a **segunda é o complemento**, e só
+ele. O nome e o complemento nunca quebram: eles **encurtam** com reticências. Duas linhas é o
+teto em qualquer largura, do telefone à tela cheia. A altura passa a ser a mesma de item para
+item — era o oscilar que a direção via ao trocar de página.
+
+**O que a primeira tentativa errou, e como se viu.** `display: block` no complemento resolveu o
+vocabulário e **criou uma terceira linha** na curadoria: o selo (`LIVRE`) descia sozinho entre o
+nome e o complemento — medido, 93px contra os 63px que os outros tinham. O que faltava era o nome
+e os selos caberem **juntos** na primeira linha; isso pede `flex` com o nome em `flex: 1 1 auto`
+(quem cede é o nome) e os selos em `0 0 auto` (não cedem), e o complemento em `flex: 0 0 100%`,
+que é o que **força** a segunda linha. O `:not(.fixo)` poupa o «→ origem» da turma, que é outra
+peça e não encolhe.
+
+**E o rótulo do dono.** «dono — criado na página» descreve **como o registro nasceu**, que é
+história do sistema; «principal» diz **o que a pessoa é** na escola, e é a única que não se
+exclui. O `slug` saiu da lista: ele é a pasta (`professores/<slug>/`), quem a resolve é o sistema,
+e a direção lia `tiago-menegaz` no meio de nomes sem ter o que fazer com aquilo — se um dia
+precisar do caminho, o lugar é o diagnóstico.
+
+**Uma armadilha que custou duas medições.** `:not(.fixo)` não é decoração: `.lista li .nome`
+(0,0,3) vence `.linha-turma .nome` (0,0,2) sem aviso, e o `.nome` de uma linha é ao mesmo tempo «o
+nome que encolhe» e «o nome que precisa de largura». São dois papéis, e continuam a ser duas
+regras.
+
+**Conferido.** `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular`
+15/15 (medido em 320, 360, 390, 414, 768 e 1024px) · `provar-tema` 30/30 · `check-identidade` 8
+verificações, todas ok.
