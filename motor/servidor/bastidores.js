@@ -1303,6 +1303,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         'font:700 15px/1.25 var(--ui);color:var(--texto);}' +
       '.lateral-atual small{font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
         'text-transform:uppercase;color:var(--texto-suave);}' +
+      // O SEPARADOR é do desenho, não do conteúdo: sem ele o `textContent` dos dois versos
+      // corre junto («ProduçãoPainel inicial») e a leitura de ecrã não tem onde respirar.
+      '.lateral-atual small::after{content:"·";margin-left:5px;}' +
       '.lateral-abrir{margin-left:auto;flex:0 0 auto;cursor:pointer;' +
         'border:1px solid var(--borda-campo);border-radius:999px;background:var(--superficie);' +
         'padding:.5rem .85rem;font:600 .82rem/1 var(--ui);color:var(--marca);}' +
@@ -1735,6 +1738,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  for (var j = 0; j < links.length; j++) {' +
     '    if (links[j].getAttribute("data-secao") === visivel) {' +
     '      links[j].className = "ativo";' +
+    // `aria-current` é o que diz ao leitor de ecrã qual é a secção ATUAL — a classe só
+    // muda a cor. Sem isto, a folha anunciava sete destinos iguais.
+    '      links[j].setAttribute("aria-current", "page");' +
     // A barra do celular diz onde se está — GRUPO e página, porque só o nome da página
     // deixa o professor sem saber a que grupo ela pertence («Curadorias» é de Pedagogia,
     // e isso não se adivinha).
@@ -1742,7 +1748,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      var n = document.getElementById("lateral-nome");' +
     '      if (g) g.textContent = grupoDoLink(links[j]);' +
     '      if (n) n.textContent = links[j].textContent;' +
-    '    } else { links[j].className = ""; }' +
+    '    } else { links[j].className = ""; links[j].removeAttribute("aria-current"); }' +
     '  }' +
     '  fecharMenu();' +
     '}' +

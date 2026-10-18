@@ -100,6 +100,11 @@ function criarDomFalso(html) {
         setAttribute(nome, valor) {
           this.atributos[nome] = valor;
         },
+        // O PAR do `setAttribute`, e pelo mesmo motivo que o `querySelector` faltava: o
+        // script só passou a chamá-lo agora (o `aria-current` do menu, 18/10/2026).
+        removeAttribute(nome) {
+          delete this.atributos[nome];
+        },
         closest() {
           return null;
         },
@@ -201,6 +206,13 @@ function criarElemento(tag, classe) {
     },
     setAttribute(n, v) {
       el.atributos[n] = String(v);
+    },
+    // `removeAttribute` chegou junto com o `aria-current` do menu (18/10/2026): o item que
+    // deixa de estar ativo tem de PERDER a marca, não ficar com ela a `""`. É o espelho do
+    // `setAttribute`, e faltava pelo mesmo motivo que o `querySelector` faltava — ninguém
+    // o tinha chamado ainda.
+    removeAttribute(n) {
+      delete el.atributos[n];
     },
     get parentElement() {
       return el.pai;
