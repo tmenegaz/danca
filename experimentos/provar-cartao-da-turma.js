@@ -33,12 +33,14 @@
  *  10. o formulário da TURMA não tem mais o bloco — só se associa conteúdo a uma turma que
  *      já existe, e ali ela ainda está a nascer;
  *  11. os três passos, na ordem, com os rótulos «Turma», «Rubricas» e «Associar»;
- *  12. o cartão da turma traz um «!» âmbar POR ETAPA, e cada um leva ao passo com aquela
- *      turma escolhida;
+ *  12. os «!» de edição aparecem SÓ nos passos e SÓ quando se está a editar — fora da
+ *      edição não há «!» nenhum, e entrar em «Editar» liga os três de uma vez;
  *  13. o passo «Associar» mostra os chips da turma escolhida, diz com que régua ela está
  *      hoje, e tem associar E desassociar a rubrica e o conteúdo;
  *  14. o passo e a turma são LEMBRADOS depois de recarregar — sem isso, cada associação
- *      devolvia a direção ao passo 1 e à primeira turma da lista.
+ *      devolvia a direção ao passo 1 e à primeira turma da lista;
+ *  15. a coluna «turmas» de Professor, Aluna e Termo nomeia as turmas de cada um e FILTRA a
+ *      listagem de Turmas quando clicada — e o «Mostrar todas» a devolve inteira.
  *
  * CONTROLE NEGATIVO: `--controle-negativo` extrai o `motor/` de `HEAD` com `git archive` e
  * roda as MESMAS provas. A página de antes não tem métrica, nem painel, nem escala: se
@@ -75,7 +77,8 @@ const TURMAS = [
   {
     id: 'tu1', nome: 'Balé nível 1, Grade 1', nivelReferencia: 'RAD', programaReferencia: 'Grade 1',
     frequencia: 2, dias: ['seg', 'qua'], horarios: { seg: '18:00', qua: '18:00' }, duracaoMin: 60,
-    periodoInicio: '2026-01', periodoFim: '2026-12',
+    periodoInicio: '2026-01-01', periodoFim: '2026-12-31',
+    rubricaId: 'r1',
     rubrica: ['satisfatório', 'razoável', 'em desenvolvimento', 'não se aplica'],
   },
   {
@@ -87,14 +90,43 @@ const TURMAS = [
   {
     id: 'tu3', nome: 'Balé nível 3, Grade 3', nivelReferencia: 'RAD',
     frequencia: 1, dias: ['sex'], horarios: { sex: '17:00' }, duracaoMin: 45,
-    periodoInicio: '2026-02', periodoFim: '2026-06',
+    periodoInicio: '2026-02-01', periodoFim: '2026-06-30',
   },
+];
+
+// A RUBRICA COM NOME da turma «tu1»: é ela que o «Editar» tem de abrir no passo 2.
+const RUBRICAS = [
+  { id: 'r1', nome: 'Régua do Nível 1', niveis: ['satisfatório', 'razoável', 'em desenvolvimento', 'não se aplica'] },
 ];
 
 const REL = { tu1: ['t1', 't2'], tu3: ['t1', 't2'] };
 
-/** O par turma↔plano que faz uma turma ser VINCULADA (o `pares` do `paginaProducao`). */
-const PARES = [{ turma: 'Balé nível 3, Grade 3' }];
+/** O par turma↔plano que faz uma turma ser VINCULADA (o `pares` do `paginaProducao`).
+ *  O `professor` e o `ciclo` entram porque é deles que sai o LINK para o plano de ensino
+ *  na listagem das curadorias (18/10/2026): o plano é do professor, e a porta pede o ciclo. */
+const PARES = [{ professor: 'leticia', turma: 'Balé nível 3, Grade 3', ciclo: '01' }];
+
+/** O PROFESSOR que não é o dono — a linha dele tem de mostrar as turmas dele. */
+const PROFS = [{ nome: 'Leticia', slug: 'leticia' }];
+
+/** A ALUNA da lista, e a curadoria que a põe numa turma: é dela que sai a coluna «turmas». */
+const ALUNAS = ['Vavá'];
+
+// A CURADORIA é a fonte das turmas da aluna e do professor (o plano de ensino é a outra, e
+// vem em `PARES`). «Vavá» está na turma 1; «Leticia» na turma 3 — as duas linhas têm de
+// mostrar turmas DIFERENTES, senão a prova não distinguiria «tem coluna» de «tem a certa».
+const CURADORIAS = [
+  {
+    id: 'tiago-menegaz-bale-classico-bale-nivel-1-grade-1',
+    professor: 'tiago-menegaz', modalidade: 'Balé clássico', tradicao: 'RAD',
+    turmas: ['Balé nível 1, Grade 1'], alunas: ['Vavá'], repertorio: ['plié'],
+  },
+  {
+    id: 'leticia-bale-classico-bale-nivel-3-grade-3',
+    professor: 'leticia', modalidade: 'Balé clássico', tradicao: 'RAD',
+    turmas: ['Balé nível 3, Grade 3'], alunas: [], repertorio: ['plié'],
+  },
+];
 
 function pagina(motor) {
   const b = require(path.join(motor, 'servidor/bastidores.js'));
@@ -102,7 +134,10 @@ function pagina(motor) {
   // (ver as duas primeiras linhas do corpo da função). Trocados, a página desenha um TERMO
   // como se fosse uma turma — com `data-turma` igual ao id do termo e o nome vazio — e a
   // prova mede uma coisa que não existe sem dizer nada.
-  return b.paginaProducao('fita', CONTEXTO, [], [], 'Tiago Menegaz', 'tiago-menegaz', TURMAS, TERMOS, REL, [], [], PARES);
+  // `rbs` é a lista de RUBRICAS COM NOME — a que o passo 2 edita e o `rubricaId` referencia.
+  // `curs` são as CURADORIAS — a fonte das turmas da aluna e do professor.
+  return b.paginaProducao('fita', CONTEXTO, PROFS, ALUNAS, 'Tiago Menegaz', 'tiago-menegaz',
+    TURMAS, TERMOS, REL, CURADORIAS, RUBRICAS, PARES);
 }
 
 function servir(html) {
@@ -309,7 +344,165 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('…e a métrica do ritmo mostra um TRAÇO, não uma frase vazia',
     incompleta && incompleta.metricaRitmo.trim() === '—', incompleta && incompleta.metricaRitmo);
   provar('…e o painel do ritmo lista o que falta, um a um',
-    incompleta && incompleta.itens.length === 5, incompleta && incompleta.itens);
+    // QUATRO, e não cinco (18/10/2026): a frequência e os dias eram duas linhas, e as duas
+    // diziam «os dias da semana». A frequência SAI dos dias, e agora é uma linha só.
+    incompleta && incompleta.itens.length === 4, incompleta && incompleta.itens);
+
+  // ---- 8b: A COLUNA «TURMAS» — nomeia, e FILTRA ------------------------------------
+  //
+  // A lista de Professor, Aluna e Termo diz a que turmas cada um pertence; o «turmas» é o
+  // filtro. Aqui mede-se o que o servidor desenhou (os ids certos em cada linha) e o que o
+  // clique faz (a listagem de Turmas fica só com aquelas, e o «Mostrar todas» a devolve).
+  const colunas = await pg.evaluate(() => {
+    // O link de uma linha, procurado pelo NOME que ela mostra — as três listas (professores,
+    // alunas, termos) partilham o mesmo desenho, e é isso que faz a medida ser UMA só.
+    const daLinha = (nome) => {
+      for (const li of document.querySelectorAll('.lista li')) {
+        if ((li.querySelector('.nome b') || {}).textContent !== nome) continue;
+        const b = li.querySelector('button.filtrar-turmas');
+        return b
+          ? { ids: b.getAttribute('data-turmas'), quem: b.getAttribute('data-quem'), texto: b.textContent.trim() }
+          : { ids: null };
+      }
+      return null;
+    };
+    return { aluna: daLinha('Vavá'), leticia: daLinha('Leticia'), termo: daLinha('plié') };
+  });
+  provar('a aluna mostra a TURMA dela e o link filtra por ela',
+    Boolean(colunas.aluna) && colunas.aluna.ids === 'tu1' &&
+    /Balé nível 1/.test(colunas.aluna.texto), colunas.aluna);
+  provar('o professor mostra as turmas DELE (outra turma, outra linha)',
+    Boolean(colunas.leticia) && colunas.leticia.ids === 'tu3' &&
+    /Balé nível 3/.test(colunas.leticia.texto), colunas.leticia);
+  provar('o termo mostra TODAS as turmas que o usam (as duas)',
+    Boolean(colunas.termo) && colunas.termo.ids === 'tu1,tu3', colunas.termo);
+
+  // O CLIQUE. Ele guarda o filtro, leva à secção Turmas e reduz a listagem.
+  await pg.evaluate(() => {
+    for (const li of document.querySelectorAll('.lista li')) {
+      if ((li.querySelector('.nome b') || {}).textContent === 'Vavá') {
+        const b = li.querySelector('button.filtrar-turmas');
+        if (b) b.click();
+      }
+    }
+  });
+  await pg.waitForFunction(() => (location.hash || '') === '#turmas', { timeout: 2000 }).catch(() => {});
+  const filtrado = await pg.evaluate(() => {
+    const itens = [...document.querySelectorAll('li.turma')];
+    const aviso = document.getElementById('filtro-turmas');
+    return {
+      hash: location.hash,
+      visiveis: itens.filter((l) => !l.hidden).map((l) => l.getAttribute('data-turma')),
+      aviso: aviso && !aviso.hidden ? aviso.textContent.replace(/\s+/g, ' ').trim() : '',
+      temLimpar: Boolean(aviso && aviso.querySelector('button.limpar-filtro')),
+      passo: (() => {
+        const b = document.querySelector('button.passo[aria-current="step"]');
+        return b ? b.getAttribute('data-passo') : null;
+      })(),
+    };
+  });
+  provar('clicar em «turmas» leva à secção Turmas com a listagem REDUZIDA',
+    filtrado.hash === '#turmas' && filtrado.visiveis.join(',') === 'tu1', filtrado);
+  provar('…diz de quem são as turmas que sobraram, e oferece «Mostrar todas»',
+    /Vavá/.test(filtrado.aviso) && /1 turma/.test(filtrado.aviso) && filtrado.temLimpar, filtrado);
+  provar('…e volta ao passo 1 (quem veio ver turmas não quer editar a última)',
+    filtrado.passo === 'turma', filtrado.passo);
+
+  await pg.click('button.limpar-filtro');
+  const limpo = await pg.evaluate(() => ({
+    visiveis: [...document.querySelectorAll('li.turma')].filter((l) => !l.hidden).length,
+    avisoOculto: document.getElementById('filtro-turmas').hidden,
+    filtro: (() => { try { return sessionStorage.getItem('producao:filtro-turmas'); } catch (err) { return null; } })(),
+  }));
+  provar('«Mostrar todas» devolve a listagem inteira e apaga o filtro',
+    limpo.visiveis === 3 && limpo.avisoOculto === true && limpo.filtro === null, limpo);
+
+  // ---- 8c: O ACORDEÃO — recolhido, a listagem ocupa a LARGURA TODA -----------------
+  //
+  // O filtro recolhe o formulário (18/10/2026), e recolhido ele é UMA FAIXA: os três passos
+  // à vista e a seta. O que se mede é a GEOMETRIA, porque é ela que a pessoa sente: a lista
+  // passa da coluna da direita para a linha inteira, e sobe para debaixo da faixa.
+  const geometria = () => pg.evaluate(() => {
+    const corpo = document.querySelector('.turmas-corpo');
+    const form = document.getElementById('turmas-form');
+    const miolo = document.getElementById('turmas-paineis');
+    const lista = document.querySelector('#sec-turmas .col-lista');
+    const seta = document.getElementById('alternar-form');
+    return {
+      recolhido: corpo.getAttribute('data-recolhido'),
+      colunas: getComputedStyle(corpo).gridTemplateColumns.split(' ').length,
+      mioloOculto: miolo.hidden,
+      seta: seta.textContent,
+      expandido: seta.getAttribute('aria-expanded'),
+      lista: Math.round(lista.getBoundingClientRect().width),
+      corpo: Math.round(corpo.getBoundingClientRect().width),
+      topoLista: Math.round(lista.getBoundingClientRect().top),
+      topoForm: Math.round(form.getBoundingClientRect().top),
+      passosVisiveis: [...document.querySelectorAll('#sec-turmas button.passo')]
+        .filter((b) => b.getBoundingClientRect().width > 0).length,
+    };
+  });
+
+  // O FORMULÁRIO ABERTO é o estado normal: duas colunas, e a lista na da direita. O estado
+  // é postO à mão (e não por um clique) para a prova não depender do que a anterior deixou —
+  // a asserção seguinte mede o EFEITO do clique, e um estado herdado mediria o contrário.
+  await pg.evaluate(() => { definirFormularioRecolhido(false); });
+  const aberto = await geometria();
+  provar('o formulário aberto são DUAS colunas, com a lista ao lado',
+    aberto.recolhido === 'nao' && aberto.colunas === 2 && !aberto.mioloOculto &&
+    aberto.lista < aberto.corpo, aberto);
+
+  // A SETA recolhe — e recolhido a listagem ocupa a largura toda.
+  await pg.evaluate(() => { document.querySelector('#sec-turmas .alternar-form').click(); });
+  const recolhido = await geometria();
+  provar('a seta recolhe: uma coluna, o miolo fora, e a seta diz o estado',
+    recolhido.recolhido === 'sim' && recolhido.colunas === 1 && recolhido.mioloOculto &&
+    recolhido.seta === '▸' && recolhido.expandido === 'false', recolhido);
+  provar('…e a LISTAGEM ocupa a largura toda, abaixo da faixa',
+    recolhido.lista === recolhido.corpo && recolhido.topoLista > recolhido.topoForm, recolhido);
+  provar('…sem esconder os três passos (é eles que dizem onde se está)',
+    recolhido.passosVisiveis === 3, recolhido.passosVisiveis);
+
+  // A SETA outra vez devolve tudo.
+  await pg.evaluate(() => { document.querySelector('#sec-turmas .alternar-form').click(); });
+  const reaberto = await geometria();
+  provar('a mesma seta reabre, e a lista volta à coluna dela',
+    reaberto.recolhido === 'nao' && reaberto.colunas === 2 && !reaberto.mioloOculto &&
+    reaberto.seta === '▾' && reaberto.lista < reaberto.corpo, reaberto);
+
+  // CHEGAR PELO FILTRO RECOLHE SOZINHO — é o pedido: quem vem ver as turmas de alguém não
+  // quer o formulário à frente.
+  await pg.evaluate(() => {
+    sessionStorage.setItem('producao:filtro-turmas',
+      JSON.stringify({ ids: ['tu1'], quem: 'Vavá', tipo: 'pessoa' }));
+    aplicarFiltroDeTurmas();
+  });
+  const peloFiltro = await geometria();
+  provar('aplicar o filtro recolhe o formulário e dá a largura toda à lista',
+    peloFiltro.recolhido === 'sim' && peloFiltro.colunas === 1 &&
+    peloFiltro.lista === peloFiltro.corpo, peloFiltro);
+
+  // E «MOSTRAR TODAS» DEVOLVE OS DOIS: a lista inteira e o formulário aberto (a causa do
+  // recolhimento desapareceu, e o efeito vai atrás).
+  await pg.evaluate(() => { document.querySelector('button.limpar-filtro').click(); });
+  const devolvido = await geometria();
+  provar('«Mostrar todas» devolve também o formulário aberto',
+    devolvido.recolhido === 'nao' && devolvido.colunas === 2 && !devolvido.mioloOculto, devolvido);
+
+  // O ESTADO SOBREVIVE AO RECARREGAR — a página recarrega a cada operação.
+  await pg.evaluate(() => { document.querySelector('#sec-turmas .alternar-form').click(); });
+  await pg.reload({ waitUntil: 'load' });
+  await pg.evaluate(() => {
+    const c = document.getElementById('conteudo'); if (c) c.hidden = false;
+    location.hash = '#turmas';
+    document.getElementById('sec-turmas').hidden = false;
+  });
+  await new Promise((r) => setTimeout(r, 250));
+  const depoisDeRecarregarAcordeao = await geometria();
+  provar('o recolhimento é lembrado depois de recarregar',
+    depoisDeRecarregarAcordeao.recolhido === 'sim' && depoisDeRecarregarAcordeao.mioloOculto, depoisDeRecarregarAcordeao);
+  // Devolve o estado aberto para as provas seguintes (elas contam com o formulário).
+  await pg.evaluate(() => { document.querySelector('#sec-turmas .alternar-form').click(); });
 
   // ---- 9 a 14: a ASSOCIAÇÃO vive no PASSO 3, e o passo é uma SEQUÊNCIA ------------
   //
@@ -362,7 +555,7 @@ const LI = 'li.turma[data-turma="tu1"]';
   // OS TRÊS PASSOS: o rótulo, a ordem e o nome semântico.
   const passos = await pg.evaluate(() => [...document.querySelectorAll('button.passo')].map((b) => ({
     qual: b.getAttribute('data-passo'),
-    rotulo: b.textContent.replace(/\s+/g, ' ').trim(),
+    rotulo: b.textContent.replace(/[!]/g, '').replace(/\s+/g, ' ').trim(),
     atual: b.getAttribute('aria-current'),
   })));
   provar('são três passos, nesta ordem: turma, rubrica, associar',
@@ -370,27 +563,83 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('…e os rótulos são «Turma», «Rubricas» e «Associar»',
     passos.map((p) => p.rotulo.replace(/^\d\s*/, '')).join('|') === 'Turma|Rubricas|Associar', passos.map((p) => p.rotulo));
 
-  // O «!» DE CADA ETAPA, no cartão da turma.
-  const atalhos = await pg.evaluate((sel) => {
-    const l = document.querySelector(sel);
-    if (!l) return null;
-    const bs = [...l.querySelectorAll('[data-ir-para]')];
+  // O «!» DE EDIÇÃO NOS PASSOS (18/10/2026). Saiu do cartão da turma: agora vive nos três
+  // PASSOS, e só aparece quando se está a editar — fora da edição não há «!» nenhum. É o
+  // que separa «navegar» de «editar».
+  const semEdicao = await pg.evaluate(() => {
+    const ol = document.querySelector('ol.passos');
+    const alertas = [...document.querySelectorAll('.passo .passo-alerta')];
     return {
-      quantos: bs.length,
-      destinos: bs.map((b) => b.getAttribute('data-ir-para')),
-      turma: bs.map((b) => b.getAttribute('data-turma-de')),
-      titulos: bs.map((b) => (b.getAttribute('title') || '').slice(0, 24)),
-      cor: bs[0] ? getComputedStyle(bs[0].querySelector('.alerta')).backgroundColor : '',
+      editando: ol ? ol.getAttribute('data-editando') : null,
+      quantos: alertas.length,
+      visiveis: alertas.filter((a) => getComputedStyle(a).display !== 'none').length,
     };
-  }, LI);
-  provar('o cartão da turma traz um atalho por etapa', atalhos && atalhos.quantos === 3, atalhos && atalhos.quantos);
-  provar('…e cada um sabe a que passo vai e de que turma',
-    atalhos && atalhos.destinos.join(',') === 'turma,rubrica,vincular' && atalhos.turma.every((x) => x === 'tu1'), atalhos);
-  provar('…e cada um diz, no title, o que ali se edita',
-    atalhos && atalhos.titulos.every((s) => s.length > 10), atalhos && atalhos.titulos);
-  // ÂMBAR, e não vermelho: o «!» anuncia uma PORTA, não um defeito. Vermelho faria
-  // procurar um erro que não existe.
-  provar('…e o «!» é âmbar', atalhos && /^rgb\(143, 90, 18\)$/.test(atalhos.cor), atalhos && atalhos.cor);
+  });
+  provar('fora da edição, os passos NÃO têm «!»',
+    semEdicao.editando === 'nao' && semEdicao.quantos === 3 && semEdicao.visiveis === 0, semEdicao);
+
+  // FORA DA EDIÇÃO, OS PASSOS 2 E 3 NASCEM VAZIOS (18/10/2026). Não há rubrica sugerida,
+  // turma pré-escolhida nem conteúdo clonado: o formulário é de CRIAÇÃO, e quem preenche é a
+  // direção. O «Avançar» nasce travado e o «Cancelar» não existe, porque não há o que cancelar.
+  const foraDaEdicao = await pg.evaluate(() => ({
+    rubricaNome: document.getElementById('rubr-nome').value,
+    rubricaNiveis: document.querySelectorAll('#rubr-niveis input').length,
+    rubricaEscolhida: document.getElementById('vinc-rubrica').value,
+    nomeEmFocoEscondido: document.getElementById('vinc-turma-nome').hidden,
+    chips: document.querySelectorAll('#vinc-conteudos .chip').length,
+    avancarTravado: document.getElementById('t-enviar').disabled,
+    cancelarEscondido: ['t-cancelar', 'rubr-cancelar', 'vinc-cancelar']
+      .every((id) => document.getElementById(id).hidden),
+    semLimpar: !document.getElementById('rubr-limpar'),
+  }));
+  provar('fora da edição, os passos 2 e 3 nascem VAZIOS',
+    foraDaEdicao.rubricaNome === '' && foraDaEdicao.rubricaNiveis === 0 &&
+    foraDaEdicao.rubricaEscolhida === '' && foraDaEdicao.nomeEmFocoEscondido &&
+    foraDaEdicao.chips === 0, foraDaEdicao);
+  provar('…e o «Avançar» nasce travado, sem «Cancelar» nem «Limpar»',
+    foraDaEdicao.avancarTravado && foraDaEdicao.cancelarEscondido && foraDaEdicao.semLimpar,
+    foraDaEdicao);
+
+  // Entrar em edição liga os «!». A turma «tu1» é livre: o botão dela é «Editar».
+  await pg.evaluate(() => {
+    const b = document.querySelector('li.turma[data-turma="tu1"] button.ajustar');
+    if (b) b.click();
+  });
+  const emEdicao = await pg.evaluate(() => {
+    const ol = document.querySelector('ol.passos');
+    const alertas = [...document.querySelectorAll('.passo .passo-alerta')];
+    return {
+      editando: ol ? ol.getAttribute('data-editando') : null,
+      visiveis: alertas.filter((a) => getComputedStyle(a).display !== 'none').length,
+      turmaLembrada: (() => { try { return sessionStorage.getItem('producao:vinc-turma'); } catch (err) { return null; } })(),
+    };
+  });
+  provar('clicar em «Editar» liga os «!» nos três passos',
+    emEdicao.editando === 'sim' && emEdicao.visiveis === 3, emEdicao);
+  provar('…e lembra a turma que se está a editar', emEdicao.turmaLembrada === 'tu1', emEdicao.turmaLembrada);
+
+  // UM SÓ «EDITAR» ABRE OS TRÊS PASSOS (18/10/2026): a turma, a rubrica DELA (com nome e
+  // níveis) e a associação DELA (a régua escolhida e o nome no topo). É a possibilidade que
+  // o dono do produto pediu — e o «Cancelar» acompanha em cada passo, sem texto de aviso.
+  const emEdicaoFormularios = await pg.evaluate(() => ({
+    rubricaId: document.getElementById('rubr-id').value,
+    rubricaNome: document.getElementById('rubr-nome').value,
+    rubricaNiveis: [...document.querySelectorAll('#rubr-niveis input')].map((i) => i.value),
+    rubricaEscolhida: document.getElementById('vinc-rubrica').value,
+    nomeEmFoco: (document.getElementById('vinc-turma-nome') || {}).textContent || '',
+    cancelarVisivel: ['t-cancelar', 'rubr-cancelar', 'vinc-cancelar']
+      .every((id) => !document.getElementById(id).hidden),
+    semTextoDeAviso: !document.getElementById('t-aviso') && !document.getElementById('t-aviso-texto'),
+  }));
+  provar('«Editar» abre a turma, a rubrica e a associação',
+    emEdicaoFormularios.rubricaId === 'r1' &&
+    emEdicaoFormularios.rubricaNome === 'Régua do Nível 1' &&
+    emEdicaoFormularios.rubricaNiveis.length === 4 &&
+    emEdicaoFormularios.rubricaEscolhida === 'r1' &&
+    /Balé nível 1/.test(emEdicaoFormularios.nomeEmFoco), emEdicaoFormularios);
+  provar('…e o «Cancelar» aparece nos três passos, sem texto de aviso',
+    emEdicaoFormularios.cancelarVisivel && emEdicaoFormularios.semTextoDeAviso,
+    emEdicaoFormularios);
 
   // O PASSO 3: escolher a turma e associar, sem recarregar a página à mão.
   await pg.evaluate(() => {
@@ -407,11 +656,13 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('clicar em «Associar» abre o painel do passo 3', passo3Abriu === true);
   const noPasso3 = await pg.evaluate(() => {
     const p = document.getElementById('passo-vincular');
-    const sel = document.getElementById('vinc-turma');
     const chips = document.querySelectorAll('#vinc-conteudos .chip');
     return {
       visivel: Boolean(p) && !p.hidden,
-      turmasNoSelect: sel ? sel.options.length : 0,
+      // O SELECT DA TURMA SAIU (18/10/2026): a turma é a que está em foco, e o que se mostra
+      // é o NOME dela no topo do formulário.
+      nomeDaTurma: (document.getElementById('vinc-turma-nome') || {}).textContent || '',
+      temSelectTurma: Boolean(document.getElementById('vinc-turma')),
       chipsDaTurma1: chips.length,
       estado: (document.getElementById('vinc-estado') || {}).textContent || '',
       temRubrica: Boolean(document.getElementById('vinc-rubrica')),
@@ -420,27 +671,22 @@ const LI = 'li.turma[data-turma="tu1"]';
       temAssociarTermo: Boolean(document.getElementById('vinc-associar-termo')),
     };
   });
-  provar('o passo «Associar» mostra a turma escolhida e os chips DELA',
-    noPasso3.visivel && noPasso3.turmasNoSelect === 3 && noPasso3.chipsDaTurma1 === 2, noPasso3);
+  provar('o passo «Associar» mostra a turma em foco e os chips DELA',
+    noPasso3.visivel && /Balé nível 1/.test(noPasso3.nomeDaTurma) &&
+    !noPasso3.temSelectTurma && noPasso3.chipsDaTurma1 === 2, noPasso3);
   provar('…e diz com que régua a turma está hoje', /Hoje:/.test(noPasso3.estado), noPasso3.estado);
   provar('…e tem associar E desassociar a RUBRICA',
     noPasso3.temRubrica && noPasso3.temAssociarRubrica && noPasso3.temDesassociarRubrica, noPasso3);
   provar('…e associar o CONTEÚDO', noPasso3.temAssociarTermo === true, noPasso3);
 
-  // Trocar de turma troca os chips — o bloco segue o `select`.
-  await pg.evaluate(() => {
-    const sel = document.getElementById('vinc-turma');
-    if (!sel) return;
-    for (const o of sel.options) if (o.value === 'tu3') { sel.value = 'tu3'; break; }
-    sel.dispatchEvent(new Event('change'));
-  });
-  const trocou = await pg.evaluate(() => ({
+  // OS CHIPS SÃO OS DA TURMA EM FOCO — e não há como «trocar de turma» aqui: a troca é sair
+  // da edição e entrar noutra. O que se prova é que os chips e o «×» vieram do bloco DELA.
+  const chipsDaTurma = await pg.evaluate(() => ({
     chips: document.querySelectorAll('#vinc-conteudos .chip').length,
     remover: document.querySelectorAll('#vinc-conteudos button.desassociar').length,
-    estado: (document.getElementById('vinc-estado') || {}).textContent || '',
   }));
-  provar('trocar a turma troca os chips', trocou.chips === 2 && trocou.remover === 2, trocou);
-  provar('…e o estado da régua acompanha', /Balé nível 3/.test(trocou.estado), trocou.estado);
+  provar('os chips do passo 3 são os da turma em foco',
+    chipsDaTurma.chips === 2 && chipsDaTurma.remover === 2, chipsDaTurma);
 
   // O PASSO É LEMBRADO: recarregar não devolve a direção ao passo 1.
   await pg.reload({ waitUntil: 'load' });
@@ -448,11 +694,11 @@ const LI = 'li.turma[data-turma="tu1"]';
   const depoisDeRecarregar = await pg.evaluate(() => ({
     passo: (document.querySelector('button.passo[aria-current="step"]') || {}).getAttribute
       ? document.querySelector('button.passo[aria-current="step"]').getAttribute('data-passo') : null,
-    turma: (document.getElementById('vinc-turma') || {}).value,
+    turma: (() => { try { return sessionStorage.getItem('producao:vinc-turma'); } catch (err) { return null; } })(),
   }));
   provar('o passo em que se estava é LEMBRADO depois de recarregar',
     depoisDeRecarregar.passo === 'vincular', depoisDeRecarregar);
-  provar('…e a turma escolhida também', depoisDeRecarregar.turma === 'tu3', depoisDeRecarregar);
+  provar('…e a turma em foco também', depoisDeRecarregar.turma === 'tu1', depoisDeRecarregar);
 
   // No telefone, o par associar continua a andar junto.
   await pg.setViewport({ width: 390, height: 900 });
@@ -486,6 +732,175 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('…e o botão fica dentro do bloco', par && par.dentro, par);
   provar('…e o seletor tem largura útil', par && par.larguraDoSeletor > 120, par && par.larguraDoSeletor);
   provar('…e o bloco não transborda em 390px', par && par.estouro <= 1, par && par.estouro);
+
+  // O «CANCELAR» DO PASSO 3 (18/10/2026). Ele é o mesmo ato nos três passos — sair da
+  // edição —, e o que se prova é o DEPOIS: a memória do preenchimento e do modo apagada, o
+  // passo 1, e os formulários outra vez vazios. É a diferença entre um botão que existe e
+  // um botão que faz o que promete.
+  await Promise.all([
+    pg.waitForNavigation({ waitUntil: 'load' }).catch(() => {}),
+    pg.evaluate(() => { const b = document.getElementById('vinc-cancelar'); if (b) b.click(); }),
+  ]);
+  await pg.evaluate(() => {
+    const c = document.getElementById('conteudo'); if (c) c.hidden = false;
+    location.hash = '#turmas';
+  });
+  const depoisDoCancelar = await pg.evaluate(() => ({
+    passo: (() => {
+      const b = document.querySelector('button.passo[aria-current="step"]');
+      return b ? b.getAttribute('data-passo') : null;
+    })(),
+    memoria: (() => {
+      try {
+        return {
+          form: sessionStorage.getItem('producao:form'),
+          editando: sessionStorage.getItem('producao:editando'),
+          turma: sessionStorage.getItem('producao:vinc-turma'),
+        };
+      } catch (err) { return null; }
+    })(),
+    nome: document.getElementById('tnome').value,
+    rubricaNome: document.getElementById('rubr-nome').value,
+    rubricaEscolhida: document.getElementById('vinc-rubrica').value,
+    nomeEmFocoEscondido: document.getElementById('vinc-turma-nome').hidden,
+  }));
+  provar('o «Cancelar» sai da edição: passo 1 e memória limpa',
+    depoisDoCancelar.passo === 'turma' && depoisDoCancelar.memoria &&
+    depoisDoCancelar.memoria.form === null && depoisDoCancelar.memoria.editando === null &&
+    depoisDoCancelar.memoria.turma === null, depoisDoCancelar);
+  provar('…e os formulários ficam outra vez vazios',
+    depoisDoCancelar.nome === '' && depoisDoCancelar.rubricaNome === '' &&
+    depoisDoCancelar.rubricaEscolhida === '' && depoisDoCancelar.nomeEmFocoEscondido,
+    depoisDoCancelar);
+
+  // ---- 16: O «CANCELAR» DA CURADORIA — a mesma regra, e sem texto de aviso ----------
+  //
+  // «A mesma coisa tem que ser pra todos os formulários» (18/10/2026): ao lado do botão,
+  // escondido fora da edição, e sem a frase que explicava o modo. Aqui mede-se o estado,
+  // porque é ele que a pessoa vê: nasce escondido, aparece ao «Editar», e o formulário
+  // volta a «Atribuir curadoria» quando se cancela.
+  await pg.evaluate(() => { location.hash = '#curadorias'; });
+  await new Promise((r) => setTimeout(r, 250));
+  const curadoriaAntes = await pg.evaluate(() => ({
+    cancelarEscondido: document.getElementById('cu-cancelar').hidden,
+    textoDeAviso: Boolean(document.getElementById('cu-aviso-texto')),
+    vigenciaEscondida: document.getElementById('cu-vigencia-campo').hidden,
+    botao: document.getElementById('cu-enviar').textContent.trim(),
+  }));
+  provar('a curadoria nasce sem «Cancelar» e sem texto de aviso',
+    curadoriaAntes.cancelarEscondido === true && curadoriaAntes.textoDeAviso === false &&
+    curadoriaAntes.vigenciaEscondida === true && curadoriaAntes.botao === 'Atribuir curadoria',
+    curadoriaAntes);
+
+  await pg.evaluate(() => {
+    const b = document.querySelector('#sec-curadorias button.ajustar');
+    if (b) b.click();
+  });
+  const curadoriaEditando = await pg.evaluate(() => ({
+    cancelarVisivel: document.getElementById('cu-cancelar').hidden === false,
+    mesmaFileira: document.getElementById('cu-cancelar').closest('.par-botoes') ===
+      document.getElementById('cu-enviar').closest('.par-botoes'),
+    botao: document.getElementById('cu-enviar').textContent.trim(),
+    professorTravado: document.getElementById('cuprofessor').disabled,
+    professor: document.getElementById('cuprofessor').value,
+    alunas: [...document.querySelectorAll('#esc-alunas .escolhido')]
+      .map((f) => f.getAttribute('data-valor')),
+  }));
+  provar('«Editar» mostra o «Cancelar» ao lado do botão, e nada explica o modo',
+    curadoriaEditando.cancelarVisivel && curadoriaEditando.mesmaFileira &&
+    curadoriaEditando.botao === 'Gravar curadoria', curadoriaEditando);
+  provar('…com as alunas da curadoria já nas fichas',
+    curadoriaEditando.alunas.length > 0 && curadoriaEditando.professorTravado === true,
+    curadoriaEditando);
+
+  await pg.evaluate(() => document.getElementById('cu-cancelar').click());
+  const curadoriaCancelada = await pg.evaluate(() => ({
+    cancelarEscondido: document.getElementById('cu-cancelar').hidden,
+    botao: document.getElementById('cu-enviar').textContent.trim(),
+    professorDestravado: document.getElementById('cuprofessor').disabled === false,
+    alunas: document.querySelectorAll('#esc-alunas .escolhido').length,
+    vigenciaEscondida: document.getElementById('cu-vigencia-campo').hidden,
+  }));
+  provar('cancelar a curadoria devolve o formulário a «Atribuir curadoria»',
+    curadoriaCancelada.cancelarEscondido && curadoriaCancelada.botao === 'Atribuir curadoria' &&
+    curadoriaCancelada.professorDestravado && curadoriaCancelada.alunas === 0 &&
+    curadoriaCancelada.vigenciaEscondida, curadoriaCancelada);
+
+  // ---- 17: O NOME DO PROFESSOR CUJA CURADORIA TEM PLANO É O CAMINHO PARA ELE ------
+  //
+  // «Com plano, o nome dele se torna um link que leva direto para o plano de ensino dele.
+  // Sem plano, o nome fica exatamente como está» (18/10/2026). E o selo acompanha: «livre»
+  // enquanto não há plano, «vinculada» quando há — a MESMA regra de proveniência das
+  // outras listas, e o que a prova mede aqui é que as duas coisas andam juntas.
+  const curadoriasLista = await pg.evaluate(() => {
+    const linhas = [...document.querySelectorAll('#sec-curadorias .lista li')];
+    return linhas.map((li) => {
+      const b = li.querySelector('.nome b');
+      const a = li.querySelector('.nome b a.nome-link');
+      const selo = li.querySelector('.selo');
+      return {
+        nome: (b || {}).textContent || '',
+        link: a ? a.getAttribute('href') : null,
+        selo: selo ? selo.textContent.trim() : '',
+        modo: (li.querySelector('[data-curadoria-ajustar]') || {}).getAttribute
+          ? li.querySelector('[data-curadoria-ajustar]').getAttribute('data-modo') : null,
+      };
+    });
+  });
+  const comPlano = curadoriasLista.find((l) => l.nome === 'Leticia') || {};
+  const semPlano = curadoriasLista.find((l) => l.nome === 'Tiago Menegaz') || {};
+  provar('o professor COM plano tem o nome como link para o plano de ensino',
+    /^\/plano-ensino\/\?/.test(String(comPlano.link || '')) &&
+    comPlano.link.indexOf('professor=leticia') !== -1 &&
+    comPlano.link.indexOf('escola=fita') !== -1 &&
+    comPlano.link.indexOf('ciclo=01') !== -1, comPlano);
+  provar('…e o selo dele diz «vinculada»',
+    comPlano.selo === 'vinculada' && comPlano.modo === 'derivar', comPlano);
+  provar('o professor SEM plano fica como está: sem link, «livre», e editável',
+    semPlano.link === null && semPlano.selo === 'livre' && semPlano.modo === 'editar', semPlano);
+
+  // ---- 18: A FAIXA DOS PASSOS É UMA LINHA SÓ, E A SETA NO FIM ----------------------
+  //
+  // «No celular, o botão do acordeão está fazendo os steps criarem duas linhas … o step tem
+  // que continuar com uma linha e o botão de acordeão logo no final, do lado direito»
+  // (18/10/2026). Aqui só a geometria o pode dizer: no telefone, um pixel a mais na faixa e a
+  // terceira pílula desce — e nenhum atributo no HTML fica diferente por isso. Mede-se nas
+  // três larguras de telefone, nos DOIS estados (editando e não), porque é o «!» da edição
+  // que rouba largura aos rótulos.
+  for (const w of [414, 390, 360, 320]) {
+    for (const editando of [false, true]) {
+      await pg.setViewport({ width: w, height: 900 });
+      await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
+      await abrirTurmas(pg);
+      if (editando) {
+        await pg.evaluate(() => {
+          const ol = document.querySelector('#sec-turmas ol.passos');
+          if (ol) ol.setAttribute('data-editando', 'sim');
+        });
+      }
+      const faixa = await pg.evaluate(() => {
+        const f = document.querySelector('.turmas-faixa');
+        const ol = f.querySelector('.passos');
+        const seta = document.getElementById('alternar-form');
+        const r = (x) => x.getBoundingClientRect();
+        return {
+          linhas: new Set([...ol.querySelectorAll('li')].map((li) => Math.round(r(li).top))).size,
+          passoDentro: Math.round(r(ol.querySelector('li:last-child .passo')).right) <= Math.round(r(f).right),
+          setaNoFim: Math.round(r(seta).right) === Math.round(r(f).right),
+          setaDepoisDoUltimoPasso:
+            Math.round(r(seta).left) >= Math.round(r(ol.querySelector('li:last-child .passo')).right),
+          cortados: [...ol.querySelectorAll('.passo-t')].filter((t) => t.scrollWidth > t.clientWidth + 1).length,
+          estouro: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+        };
+      });
+      const onde = w + 'px' + (editando ? ' (editando)' : '');
+      provar(`em ${onde} os três passos ficam numa LINHA só`, faixa.linhas === 1, faixa);
+      provar(`em ${onde} a seta fica no FIM da faixa, depois de «Associar»`,
+        faixa.setaNoFim && faixa.setaDepoisDoUltimoPasso && faixa.passoDentro, faixa);
+      provar(`em ${onde} os rótulos cabem inteiros e a página não estoura`,
+        faixa.cortados === 0 && faixa.estouro === 0, faixa);
+    }
+  }
 
   await br.close();
   srv.close();

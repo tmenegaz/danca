@@ -24,9 +24,15 @@
      precisar de um valor novo declara-o em `tools/templates/ciclo.css`. */
   :root {
     /* Os nomes que esta tela já usava, agora como ALIASES dos papéis globais — e não
-       dos valores. Assim a porta acompanha o tema sem uma linha a mais. */
+       dos valores. Assim a porta acompanha o tema sem uma linha a mais.
+       MAS ALIAS NÃO PODE TOMAR O NOME DE UM PAPEL (18/10/2026): aqui havia
+       `--borda: var(--borda-campo)`, e `--borda` JÁ É um papel da folha (o filete, em
+       ouro escuro). O efeito era silencioso e largo: todo componente que a folha veste
+       com `--borda` — o selo, o `pre`, o `hr` — saía com o filete de CAMPO nesta tela e
+       com o filete de ouro em todas as outras. O selo `.opt` era o caso visível: borda
+       tracejada de duas cores diferentes conforme a página. Quem quer o filete de campo
+       escreve `--borda-campo`, que é o papel dele. */
     --papel: var(--fundo);
-    --borda: var(--borda-campo);
     --suave: var(--texto-suave);
     --acento: var(--marca);
     --erro: var(--falha);
@@ -46,8 +52,10 @@
      antes de digitar, e o realce enquanto ele está vazio — a MESMA regra do contexto do
      ato (`.barra .campo.falta`), que já se marca desde o primeiro segundo. */
   .caixa .req { color: var(--falha); font-weight: 700; }
-  .caixa.falta { border-color: var(--falha); border-width: 2px; }
-  .caixa.falta > h3 { color: var(--falha); }
+  /* `.caixa.falta` REPETIA A FONTE (18/10/2026) — as duas linhas que aqui estavam eram
+     cópia literal de `tools/templates/ciclo.css` (borda e `h3` na cor da falha). Cópia
+     que concorda hoje é a que diverge amanhã, e nada avisa: o cartão continua a vir da
+     folha, pelo `.caixa`. */
   /* A faixa de contexto do ATO: as mesmas medidas do conteúdo (`main`), a mesma
      serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
      onde se digita. Rola com a página (não é `sticky`) e os campos vivem num
@@ -75,7 +83,7 @@
     grid-template-rows: auto 1fr;
     grid-template-areas: "escola contadores" "escola ato";
     background: var(--superficie);
-    border: 1px solid var(--borda);
+    border: 1px solid var(--borda-campo);
     border-radius: var(--raio-3);
     box-shadow: var(--sombra-cartao);
     overflow: hidden;
@@ -88,7 +96,7 @@
     grid-area: escola;
     flex-direction: column; align-items: flex-start; justify-content: center; gap: 0;
     background: var(--fundo-faixa);
-    border-right: 1px solid var(--borda);
+    border-right: 1px solid var(--borda-campo);
     padding: var(--esp-4) var(--esp-4);
   }
   .barra > .ctx-fixa .ctx-inscricao { font-size: 18px; line-height: 1.3; }
@@ -280,7 +288,7 @@
     cursor: pointer;
   }
   .paginacao button[aria-current="page"] {
-    border-color: var(--borda);
+    border-color: var(--borda-campo);
     background: var(--fundo-faixa);
     font-weight: 700;
     cursor: default;
@@ -288,7 +296,11 @@
   .paginacao button:disabled { opacity: .45; cursor: not-allowed; }
   .paginacao .intervalo { color: var(--suave); padding: 0 .15rem; }
   .paginacao .contagem { margin-left: auto; color: var(--suave); font-size: .78rem; }
-  .aviso { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
+  /* O `.aviso` É O DA FONTE (18/10/2026). Aqui ele era redesenhado — filete âmbar e texto
+     âmbar —, e por isso a mesma classe saía de uma cor na anamnese e de outra nos
+     documentos do ciclo. A folha já declara os DOIS tons que a prosa precisa: `.aviso`
+     (nota de leitura) e `.aviso.alerta` (pendência, âmbar). Quem tem pendência pede
+     `.alerta` no markup; a página não inventa o tom. */
   /* A TRAVA DA SENHA: sem ela validada, o que se responde fica em só-leitura — a senha é o
      que autoriza a ESCRITA, e ela não se empresta a quem use o mesmo navegador depois. */
   .trava-senha { border-left: 4px solid var(--alerta); padding-left: .8rem; color: var(--alerta); }
@@ -326,7 +338,7 @@
   /* O item da repetição (um por sujeito): a linha de base acoplada ao nó dos
      sujeitos. Cada bloco traz a referência da anamnese e os campos do item. */
   .item-repeticao {
-    border: 1px solid var(--borda);
+    border: 1px solid var(--borda-campo);
     border-radius: var(--raio-1);
     padding: .7rem .9rem;
     margin: .7rem 0;
@@ -361,11 +373,16 @@
   .data label { display: flex; flex-direction: column; gap: .15rem; }
   .data .rotulo { font-size: .78rem; letter-spacing: .04em; text-transform: uppercase;
                   color: var(--suave); }
-  /* A proveniência da anamnese: o selo do estado e os gestos que a regra permite. */
-  .selo.vigente { border-color: var(--ok); color: var(--ok); }
-  .selo.vinculada { border-color: var(--marca); color: var(--marca); }
-  .selo.legado { border-style: dotted; color: var(--suave); }
-  .selo.solta { border-style: dashed; color: var(--suave); }
+  /* A PROVENIÊNCIA DA ANAMNESE USA O SELO DA FONTE — e não um selo próprio.
+     (18/10/2026) Aqui havia quatro linhas que redeclaravam `.vigente`,
+     `.vinculada`, `.legado` e `.solta` mudando só `border-color`/`color`. Como o
+     `<style>` da página vem DEPOIS de `/assets/style.css`, elas venciam o
+     componente pela metade: o FUNDO continuava o da fonte (roxo, em `.vinculada`)
+     e a BORDA e o TEXTO passavam a bordô. O resultado era um selo que não era nem
+     o da fonte nem o desta página — e que ninguém via como divergência porque cada
+     metade vinha de um lugar. O desenho dos estados mora no `ciclo.css`; aqui não
+     se redeclara nenhum. `tools/check-identidade.js` (checagem «Forma») reprova se
+     a redeclaração voltar. */
   .acoes-ficha { display: inline-flex; gap: .4rem; margin: .35rem 0 0; }
   .acoes-ficha button { padding: .15rem .5rem; font-size: .82rem; }
   .aviso-ficha { font-size: .84rem; margin-top: .25rem; }
@@ -407,7 +424,7 @@
   /* A ESCALA FIXA (a régua da rubrica): não é campo — é o que se lê. */
   ul.escala { list-style: none; padding: 0; margin: .4rem 0 .2rem; display: flex;
     flex-wrap: wrap; gap: .4rem; }
-  ul.escala li { border: 1px solid var(--borda); border-radius: var(--raio-1);
+  ul.escala li { border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
     padding: .25rem .6rem; font: .9rem/1.4 var(--ui); background: var(--superficie); }
   /* A UNIDADE DA PROPORÇÃO ALVO (minutos ↔ percentual) e a linha do TOTAL da soma. */
   p.unidade { margin: .5rem 0 .3rem; }
@@ -436,7 +453,7 @@
   .toc-local .lista { max-height: 22rem; overflow-y: auto; margin: 0; }
   .lista .grupo { margin: 1rem 0 .35rem; padding: 0; font-size: .78rem;
                   letter-spacing: .04em; text-transform: uppercase; color: var(--suave);
-                  border-bottom: 1px solid var(--borda); list-style: none; cursor: default; }
+                  border-bottom: 1px solid var(--borda-campo); list-style: none; cursor: default; }
   .lista .grupo:first-child { margin-top: 0; }
   .lista .grupo:hover { background: transparent; }
   @media (min-width: 1200px) {
@@ -464,7 +481,7 @@
     }
     .barra > .ctx-fixa {
       flex-direction: row; align-items: baseline; gap: var(--esp-2);
-      border-right: none; border-bottom: 1px solid var(--borda);
+      border-right: none; border-bottom: 1px solid var(--borda-campo);
       padding: var(--esp-3) var(--esp-4);
     }
     .barra > .ctx-fixa .ctx-inscricao { font-size: 15px; }

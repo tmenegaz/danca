@@ -16389,3 +16389,531 @@ Medido em 1440, 390 e 320px: nada estoura, a barra não cresce (41px), e o ☰ f
 
 A prova passou a medir o que o dono do produto pediu com todas as letras: o `x` e a borda direita do
 ☰ são **idênticos** no topo e a meio da página — (337, 351) a 390px, nos dois estados.
+
+## 18/10/2026 — a S5 entra em produção, e os três passos ganham os botões certos
+
+**O que motivou.** A proposta **S5** («sobe e encaixa, com o hambúrguer») existia só como
+protótipo em `experimentos/opcoes-visuais/index.html`; o dono do produto a escolheu e não
+conseguia testá-la nos Workers — ela não estava no motor. Na mesma volta, o uso dos três passos
+mostrou quatro defeitos que a entrada anterior ainda descrevia como resolvidos.
+
+**O que foi decidido.**
+
+- **A S5 no motor.** No celular, ao rolar mais de 24px a barra da página sai de quadro (é ela que
+  rola) e o caminho `PEDAGOGIA · Turmas [Seções]` entra na barra do sistema, com o ☰ parado. Ao
+  voltar ao topo, desfaz-se. Em repouso não custa um pixel de altura.
+- **O ☰ NÃO ANDA — e isso agora é medido.** A condição da proposta é geométrica: o `x`, o `y` e o
+  tamanho do hambúrguer são idênticos no topo e a meio. A garantia vem do `margin-left:auto` que
+  ele já tinha: o que entra ANTES dele ocupa o vão, e nada é inserido depois.
+- **O nome encolhe em vez de empurrar.** `flex:1 1 0` na sessão. Com `flex-basis:auto`, «Vocabulário
+  técnico» a 320px quebrava a barra em duas linhas e levava o ☰ para o lado e para baixo — o
+  contentor quebra antes de encolher. Com base 0 quem cede é o nome (reticências).
+- **O «Seções» da barra abre a MESMA folha** do menu lateral (`data-aberta`, `aria-expanded` nos
+  dois controles). Não há uma segunda navegação.
+- **Os botões dos passos.** Passo 1 **Avançar**; passo 2 **Avançar** + **Voltar** + **Limpar**;
+  passo 3 **Voltar** + **Gravar turma** (conclui e volta ao passo 1). O passo 2 é obrigatório de
+  passar e opcional de preencher: sem nome e sem níveis, só avança.
+- **Os «!» mudam de lugar.** Saem do cartão da turma (a listagem não precisa de exclamações) e vão
+  para os três PASSOS, visíveis SÓ no modo editar/derivar. Entrar em «Editar» liga os três e
+  lembra a turma; cancelar/gravar desliga.
+- **O botão «Abrir» da lista de vínculos sai.** Era um atalho morto: apontava para o passo em que
+  já se estava e não tinha handler. A turma já se escolhe no `select` do passo 3.
+- **O editor da rubrica nasce vazio.** Os quatro níveis de fábrica estavam pré-preenchidos, e por
+  isso abrir uma rubrica para editar parecia trazer só o nome. Agora «Acrescentar nível» compõe.
+- **A data na listagem, no formato da direção.** `AAAA-MM-DD` → `DD/MM/AAAA` na LEITURA
+  (`dataBr`), no painel do ritmo, na linha de detalhe, no histórico e no selo de vigência. O KV
+  continua em ISO — é o que o `<input type="date">`, o calendário do plano e os validadores usam.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — S5 (markup, CSS, scroll, sincronização do
+caminho, botão da folha), botões e navegação dos passos, «!» nos passos, `dataBr`, editor vazio.
+`tools/templates/nav-html.js` — parâmetro opcional `extras` no `navSistema`.
+`experimentos/provar-sessao-na-barra.js` — prova nova (24 verificações).
+`experimentos/provar-cartao-da-turma.js` — as provas dos «!» passam do cartão para os passos.
+
+**Motivo declarado — os congelados.** `tools/templates/nav-html.js` é de `tools/templates/`
+(`CONGELAMENTO.md`), e a alteração mexe em **estrutura de navegação**. O motivo é o pedido do dono
+do produto: a S5 foi escolhida em estudo e precisa de existir no motor para ser testada. A mudança
+é **aditiva e opcional** (`extras`, vazio por omissão): sem ela o HTML da barra é byte a byte o de
+antes — as outras páginas e o pacote do ciclo não mudam. **Não muda** a fórmula de hash, a
+cobertura do `.fipp`, os validadores, as regras nem as pétreas.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `tools/templates/nav-html.js`,
+`experimentos/provar-sessao-na-barra.js`, `experimentos/provar-cartao-da-turma.js`.
+
+**Referências.** `experimentos/opcoes-visuais/index.html` (S5 e o quadro das quatro);
+`CONGELAMENTO.md` (motivo declarado); `ARQUITETURA-AULA.md` (o estado derivado, que a listagem
+mostra).
+
+**O que ainda não está feito.** A S5 vale para a Produção; a vista do **Estúdio** continua sem
+sessão na barra (ela não tem menu lateral). Não há controle negativo próprio para a prova nova: a
+autoridade é a medida do ☰ antes/depois, que a página antiga não teria como passar (não tem sessão
+nem botão), mas o `--controle-negativo` ficou para a próxima volta. Em 320px a secção «Vocabulário
+técnico» tem **63px de estouro horizontal** por causa do botão «Carregar catálogo inicial» — é
+anterior a esta entrada e **não** foi tocado.
+
+## 18/10/2026 — o «Seções» vira botão, e a página começa na secção
+
+**O que motivou.** Duas coisas ditas a usar, as duas de usabilidade. A primeira: o «Seções» que
+sobe para a barra do sistema ao rolar era **texto com uma borda fina** — 18px de altura —, e dava
+a impressão de que era preciso um dedo muito delicado para acertar. A segunda: toda secção
+começava com «Produção · O gabinete da direção — só a direção entra» acima do que a pessoa tinha
+ido ver; quem abre «Alunas» quer que a página comece em «Alunas».
+
+**O que foi decidido.**
+
+- **O «Seções» é preenchido e tem altura de alvo de toque.** O par ouro/sobre-ouro que o próprio
+  sistema já usa no link ativo (`--ativo-fundo`/`--ativo-texto`, medido por `check-identidade`),
+  `min-height:2.5rem` (40px), `padding` de `.45rem .9rem`, pílula e uma seta `▾` que diz que ele
+  abre alguma coisa. Medido: **83×40px** (antes, ~72×18). A barra não cresce — o ☰ tem 42.
+- **O título «Produção» e a apresentação descem para dentro do portão.** Quem ainda não entrou vê
+  do que é a página antes de escrever a senha; quem já entrou não os vê, porque o portão inteiro
+  se esconde. A secção abre pelo seu próprio `<h2>`.
+- **O `h1` continua na árvore, invisível** (`.so-leitor`), para não saltar um nível de título:
+  o pedido é visual, e a estrutura para leitores de ecrã não precisa de pagar por ele.
+- **O Painel inicial fica como estava** — é o único que ainda não foi trabalhado.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — o `<h1>`/`<p>` movidos para `#gate`,
+`.so-leitor`, CSS do `#gate h1/p`, o botão `s5-secoes` (markup com seta, tamanho e preenchimento).
+`experimentos/provar-sessao-na-barra.js` — quatro provas do botão (altura, largura, preenchimento,
+pílula). `experimentos/provar-menu-da-producao.js` — quatro provas de que a secção abre pelo
+título dela e que não há «Produção» visível acima.
+`experimentos/provar-producao.js` — a prova do editor da rubrica atualizada para o **vazio**, que
+é a decisão de 18/10/2026 (ela ainda esperava os quatro níveis de fábrica e estourava).
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-sessao-na-barra.js`,
+`experimentos/provar-menu-da-producao.js`, `experimentos/provar-producao.js`.
+
+**Referências.** `experimentos/opcoes-visuais/index.html` (S5); `IDENTIDADE-VISUAL.md` (o par
+ouro/sobre-ouro como cor de estado ativo).
+
+**O que ainda não está feito.** O Painel inicial continua com o texto provisório («Aqui aparece o
+que mudou desde a última vez…»), por decisão explícita: ele ainda não foi desenhado. O alvo de
+toque do «Seções» ficou em 40px, e não nos 44 recomendados: é o que cabe sem crescer a barra, e
+o ☰ (42) já está abaixo disso — os dois sobem juntos no dia em que a barra for revista.
+
+## 18/10/2026 — a proveniência sai da curadoria e vale para tudo; o menu deixa de deixar vão
+
+**O que motivou.** Dois defeitos e uma regra em falta, os três ditos a usar. O primeiro: abrir o
+hambúrguer do sistema, fechá-lo por um clique **fora** da barra (o «Seções» da página) e mudar de
+secção deixava a altura do menu aberto em `--header-height` — um **vão vazio** acima do conteúdo.
+O segundo: durante a rolagem, a barra da página ainda aparecia por baixo do menu fixo enquanto a
+sessão já tinha subido, e por um instante havia **dois «Seções»** e dois «Pessoas · Alunas» na
+tela. O terceiro: a regra de proveniência existia só na curadoria — professores, alunas, turmas e
+vocabulário podiam ser apagados depois de entrarem num plano de ensino.
+
+**O que foi decidido.**
+
+- **A medida da barra é refeita sempre que ela muda de estado.** O `nav.js` mede no clique do
+  hambúrguer; fechar por fora não remedava. Um `MutationObserver` na `.topnav` (mais um
+  `setTimeout` no clique do documento) refaz a medida — e o vão desaparece. A correção ficou no
+  `bastidores.js`, e **não** no `nav.js`: aquele arquivo é fonte copiada para os pacotes, e o
+  defeito é da página da Produção, não do comportamento compartilhado.
+- **A barra da página SAI ao rolar** (`body[data-descido="sim"] .lateral-barra{display:none}`).
+  Ela está no fluxo, logo abaixo do menu fixo: sem isto, «sair» era ficar meio visível por baixo.
+- **A proveniência vale para tudo o que a escola cadastra**, com o padrão da curadoria: selo
+  `livre`/`vinculada` e, quando vinculado, o «Excluir» sai (fica um botão desabilitado com o
+  motivo). A regra é também do SERVIDOR — o 409 é a regra; o botão escondido é a comodidade.
+  - **professor**: vinculado quando o `contexto.professor` de algum plano é ele;
+  - **aluna**: vinculada quando está numa curadoria que já tem plano (o plano é da turma, mas é a
+    curadoria que declara quem está nela);
+  - **turma**: como já era — vinculada quando tem plano; agora o «Excluir» respeita o selo;
+  - **vocabulário**: «em uso» quando o plano o declara no **repertório** ou quando está
+    associado a uma turma com plano;
+  - **curadoria**: o botão já mostrava Derivar; o «Excluir» passa a sair também, e o servidor
+    recusa.
+- **Uma passagem só pelos envelopes** (`usosDosPlanos`) devolve os três conjuntos — professor,
+  turma e repertório. Cada leitura é uma ida ao KV, e repetir a varredura por entidade seria
+  pagar três vezes pela mesma resposta.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `usosDosPlanos`, `professorVinculadoA`,
+`alunaVinculadaA`, `termoVinculadoA`, os selos nas quatro listas, as quatro guardas de DELETE, a
+re-medição da barra e o `body[data-descido]`. `experimentos/provar-proveniencia-e-sessao.js` —
+prova nova (14 verificações, com um KV de memória). `.gitignore` — a prova passa a versionada.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-proveniencia-e-sessao.js`,
+`.gitignore`.
+
+**Referências.** `CONGELAMENTO.md` (proveniência como invariante); a entrada de 16/10/2026 sobre
+livre × vinculada na turma e na curadoria; `ARQUITETURA-AULA.md` (o passado se acrescenta).
+
+**O que ainda não está feito.** A rubrica não entrou na regra: apagá-la desvincula as turmas no
+mesmo ato, e decidir se isso é perda de proveniência (e o que fazer com as turmas que a usavam)
+é uma decisão que não foi tomada — ficou de fora de propósito. O selo do professor é calculado
+pelo nome **e** pelo slug do envelope, porque planos de épocas diferentes gravaram um ou outro;
+se um plano trouxer o nome de exibição com sobrenome, o `slugificar` do nome também confere.
+
+## 18/10/2026 — os três passos fecham as travas, e o «Editar» da turma abre os três
+
+**O que motivou.** O uso dos três passos mostrou que a sequência ainda deixava passar o que não
+devia: «Gravar turma» podia ser premido sem rubrica escolhida ou sem conteúdo, e os passos de
+cima abriam antes de a turma estar completa. O mesmo uso mostrou o contrário do que se quer num
+formulário de criação — o passo 3 abria com a primeira turma da lista já escolhida, e a régua
+aparecia sugerida antes de alguém a ter decidido. E o dono do produto foi explícito sobre a
+edição: um só botão, o «Editar» do cartão da turma, tem de abrir a turma, a rubrica e a
+associação; o «Editar rubrica» dentro do painel da régua não existe.
+
+**O que foi decidido.**
+
+- **A sequência tem travas, e elas são as mesmas em todos os caminhos.** O passo «Rubricas» e o
+  passo «Associar» só abrem com a turma completa (nome, dias, duração e o período). O «Avançar»
+  do passo 1 só acende com ela completa. «Voltar» nunca trava.
+- **«Gravar turma» tem a validação máxima.** Só habilita com a turma completa, uma rubrica
+  escolhida e pelo menos um conteúdo associado. O `disabled` é a trava da tela; o servidor ganha
+  a mesma regra no `concluir` do `turma-rubrica` — uma tela antiga ou um pedido forjado não
+  conclui uma turma pela metade. «Associar rubrica» continua a gravar só o vínculo.
+- **A frequência não se digita.** O campo `frequencia` continua no JSON (o plano e a listagem o
+  leem), mas é a CONTAGEM dos dias marcados: um dia, uma vez; segunda e quarta, duas. A
+  listagem, o cartão e o painel do ritmo apresentam o valor calculado. Para registos antigos sem
+  dias, o valor declarado continua a valer.
+- **O passo 3 não repete a turma.** O `select` de turma saiu: a turma é a que se acabou de gravar
+  ou a que se mandou editar. O nome dela sobe para o topo dos passos 2 e 3, e o bloco de
+  conteúdos é sempre o dela.
+- **Fora da edição, os passos 2 e 3 nascem vazios.** Sem rubrica pré-escolhida, sem turma
+  sugerida e sem conteúdo clonado. A rubrica é opcional — o passo é obrigatório de passar e
+  opcional de preencher — e a escolha da régua com que a turma é medida é explícita, no passo 3.
+- **Um só «Editar».** O «Editar rubrica» do painel da régua saiu. Clicar em «Editar»/«Derivar» no
+  cartão preenche a turma, a rubrica DELA (nome e níveis) e a associação DELA (régua escolhida,
+  conteúdos e o nome no topo).
+- **O «Cancelar» acompanha os três passos, e só no modo edição.** É um botão ao lado do
+  «Avançar»/«Gravar turma», sem texto de aviso. O aviso explicativo que vivia no topo do passo 1
+  saiu (fica só a data, quando é derivação); o «Limpar formulário» da rubrica foi removido.
+  Cancelar é o mesmo ato em qualquer passo: apaga a memória do preenchimento e do modo e devolve
+  o formulário vazio no passo 1.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — markup dos três passos (nome da turma no topo,
+«Cancelar», fim do `select` de turma e do «Editar rubrica»), `faltaDaAssociacao`, `aplicarTravas`,
+`aplicarEditando`, `turmaEmFoco`/`atualizarTurmaEmFoco`/`cancelarEdicao`, `ajustarTurma`
+(preenche os três), `sincronizarAssociacao`, o estado entre passos, o `concluir` no servidor e a
+frequência calculada em `normalizarTurma`/`frequenciaDaTurma`/`faltaNoRitmoDaTurma`.
+`experimentos/provar-producao.js`, `provar-cartao-da-turma.js`, `provar-paginacao.js` e
+`provar-plano-da-turma.js` — as provas passam a medir as travas, o vazio de criação, o «Editar»
+que abre os três, a frequência calculada e a lista única de «Turmas cadastradas».
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-producao.js`,
+`experimentos/provar-cartao-da-turma.js`, `experimentos/provar-paginacao.js`,
+`experimentos/provar-plano-da-turma.js`.
+
+**Referências.** `ARQUITETURA-AULA.md` (o estado derivado); a entrada de 18/10/2026 sobre os três
+passos; `porta/plano/conteudo/plano.json` (`daTurma: "frequencia"` — o plano LÊ o ritmo da turma).
+
+**O que ainda não está feito.** A prova nova mede a visibilidade do «Cancelar», o estado vazio de
+criação e o **clique** num dos passos (a memória limpa e os formulários vazios depois do reload);
+o mesmo handler serve os três, e não há três provas separadas. A turma antiga que tem régua PRÓPRIA
+(`rubrica: [...]`, sem `rubricaId`) abre o passo 2 vazio de propósito: o modelo com nome é o novo,
+e os níveis antigos continuam a valer na leitura até alguém lhes associar uma rubrica com nome. O
+cabeçalho do plano de ensino não precisou de alteração — ele já lia `frequencia` por `daTurma`.
+
+## 18/10/2026 — o vocabulário escolhe em lista, e cada nome diz as suas turmas
+
+**O que motivou.** Duas leituras de uso. No vocabulário técnico, categoria e tradição eram texto
+livre: a mesma ideia entrava como «passo» e «passos», «posicao» e «Posição», e o vocabulário
+partia-se em famílias que nenhuma lista agrupava — enquanto o nome do termo é a única coisa que
+a escola precisa de escrever. Nas listas de Professores, Alunas e Termos, a direção não tinha
+como saber, sem abrir outra secção e procurar, a que turmas cada um pertence.
+
+**O que foi decidido.**
+
+- **Só o nome do termo se escreve.** Categoria e tradição passaram a `<select>` com as opções do
+  **catálogo** (`tradicoes.json`), não com uma lista escrita no formulário: `passo · posição ·
+  direção · ligação · salto · giro` e `compartilhada · RAD · francesa · Vaganova`. O servidor
+  recusa o que não estiver nelas — a tela é a comodidade, a regra é a validação.
+- **O valor gravado continua a chave sem acento** (`posicao`), que é a que os 84 termos do
+  catálogo já usam; o rótulo acentuado é só o que a tela mostra. Gravar o rótulo renomearia o
+  passado, e o passado não se reescreve.
+- **A «peso» NÃO entrou.** A lista pedida começava por «peso», mas o catálogo declara «passo» em
+  23 termos e não existe nenhuma categoria «peso»; a decisão — tomada com o dono do produto — foi
+  **manter a lista real do catálogo**, sem mexer nos termos existentes.
+- **Cada linha diz as suas turmas, e o «turmas» é um FILTRO.** Professores, Alunas e Termos
+  ganharam uma coluna que nomeia as turmas da linha; clicada, leva à secção Turmas e reduz a
+  listagem àquelas turmas, com um aviso a dizer de quem são e um «Mostrar todas» que a devolve
+  inteira. As fontes são as que já existem: a curadoria para a aluna e o professor, o plano de
+  ensino para o professor, e a relação turma↔conteúdo para o termo. Só contam as turmas
+  vigentes — a substituída continua no histórico, mas já não é a turma de ninguém hoje.
+- **O filtro é uma vista, não uma exclusão.** As linhas ficam no DOM marcadas com `data-fora`, a
+  paginação conta só as que estão dentro (sem páginas vazias), e o filtro vive em
+  `sessionStorage` — a página recarrega a cada operação, e um filtro que se perde no primeiro
+  clique seria pior do que não existir.
+- **A frase muda com o tipo.** «as turmas de Vavá» para uma pessoa; «as turmas que usam
+  Battement tendu» para um termo — sem isso, a mesma frase estaria errada numa das duas.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `CATEGORIAS_DO_VOCABULARIO`,
+`TRADICOES_DO_VOCABULARIO`, `rotuloDaCategoria`, os dois `<select>` do formulário, a validação do
+`POST /termo`, o bloco de turmas movido para antes das listas, `colunaDeTurmas`, os mapas
+aluna/professor/termo → turmas, o aviso `#filtro-turmas`, o CSS da coluna e o filtro com o
+`data-fora` na paginação. `experimentos/provar-producao.js` — o markup das listas e a recusa de
+categoria/tradição fora do catálogo. `experimentos/provar-cartao-da-turma.js` — a coluna e o
+clique que filtra (as fixtures ganharam professor, aluna e curadorias).
+`experimentos/provar-derivacao-da-turma.js` — o termo da prova passa a declarar a categoria.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-producao.js`,
+`experimentos/provar-cartao-da-turma.js`, `experimentos/provar-derivacao-da-turma.js`.
+
+**Referências.** `biblioteca/modalidades/bale-classico/tradicoes.json` (as categorias e as
+tradições reais); `CONGELAMENTO.md` (o catálogo é conteúdo, não se reescreve para acomodar um
+rótulo); `IDEIA-PAINEL-ESCOLA.md` (o cadastro como gabinete da direção).
+
+**O que ainda não está feito.** O «turmas» do **termo** usa a relação turma↔conteúdo; um termo
+que conste apenas do repertório de um plano, sem associação à turma, não aparece com turma
+nenhuma — a associação é o que o passo «Associar» grava, e o repertório é do plano, não da turma.
+Categoria e tradição de um termo já gravado não se corrigem pela interface: não existe «Editar
+termo», e esta entrada não o criou.
+
+## 18/10/2026 — o cancelar chega à curadoria, a turma perde dois campos, e o recolher fica em estudo
+
+**O que motivou.** Três leituras de uso, na mesma volta. A primeira: o «Cancelar» da curadoria
+continuava com um texto a explicar o modo — a mesma duplicação que já tinha saído dos passos da
+turma. A segunda: o formulário da turma ainda pedia duas coisas que o sistema sabe sozinho — a
+posição na lista e a frequência —, e a frequência era justamente onde nascia o erro que se queria
+evitar (marcar três dias e escrever «1»). A terceira: quem chega à secção Turmas pelo filtro
+«turmas · …» encontra o formulário inteiro à frente da lista, e no telefone isso é rolar a página
+toda antes de ver o que se veio ver.
+
+**O que foi decidido.**
+
+- **O «Cancelar» da curadoria é o dos passos da turma.** Fica ao lado de «Atribuir curadoria» /
+  «Gravar curadoria», nasce escondido, aparece só no modo edição e não tem texto de aviso. O texto
+  que explicava «Editando…»/«Derivando…» saiu; fica só a data, quando é derivação.
+- **«Posição na lista» saiu do formulário.** Cada turma nova passa a ir para o TOPO: o servidor
+  atribui uma `ordem` abaixo da menor existente, e a ordem das antigas não se mexe. Na edição e na
+  derivação a posição é preservada (o campo deixou de viajar no corpo, para não apagar a que existe).
+- **A frequência saiu do formulário.** Ela já era calculada pelos dias desde a entrada anterior,
+  mas ainda havia uma linha «Frequência semanal» à vista — e uma linha à vista pede um número. A
+  linha saiu; o valor continua no JSON, na listagem e no plano. Os dias são a única declaração.
+- **O programa de referência é uma lista de tradições.** O rótulo passa a «Programa de referência
+  (tradição)», e as opções são as mesmas da curadoria (`RAD · francesa · Vaganova`). Um valor
+  antigo em texto livre entra como opção própria ao abrir a turma — o passado não se reescreve.
+- **O formulário recolhe — proposta em estudo.** A proposta está em
+  `experimentos/opcoes-visuais/index.html`: **P1** recolhe a coluna do formulário e devolve a
+  largura toda à listagem (e, no telefone, faz a lista começar no topo); **P2** recolhe para uma
+  faixa e mantém a grelha. As duas recolhem por dois caminhos — o botão e o filtro —, e nenhuma
+  foi levada ao motor: a escolha é do dono do produto.
+- **A etiqueta «livre» é sobre o PLANO DE ENSINO, não sobre a turma.** Ficou confirmado com o uso:
+  uma aluna pode estar numa turma (pela curadoria) e continuar «livre» — e deve, porque o que a
+  torna vinculada é já existir um plano de ensino daquela curadoria. A prova
+  `provar-proveniencia-e-sessao.js` cobre a transição: sem plano, «livre» e «Excluir»; com plano,
+  «vinculada» e sem «Excluir». O mesmo vale para o professor e para o termo («em uso»).
+
+**Onde entrou.** `motor/servidor/bastidores.js` — markup e handlers da curadoria (cancelar e data),
+formulário da turma (programa em `select`, sem posição e sem frequência), `selecionarPrograma`, o
+estado do formulário (`t.__programa`), o `POST /turma` (ordem no topo) e as listas de campos do
+editar/derivar (sem `ordem`). `experimentos/opcoes-visuais/index.html` — o estudo do recolhimento
+(P1 e P2, com telefone). `experimentos/provar-producao.js` — o markup das três mudanças e a ordem
+da turma nova. `experimentos/provar-cartao-da-turma.js` — o «Cancelar» da curadoria.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/opcoes-visuais/index.html`,
+`experimentos/provar-producao.js`, `experimentos/provar-cartao-da-turma.js`.
+
+**Referências.** `IDEIA-PAINEL-ESCOLA.md` (o cadastro como gabinete da direção); a entrada de
+18/10/2026 sobre a frequência calculada e os três passos; `biblioteca/modalidades/bale-classico/tradicoes.json`.
+
+**O que ainda não está feito.** O recolhimento **não está no motor**: é proposta, e espera a
+escolha entre P1 e P2. O «Editar» de um termo continua a não existir (decisão adiada pelo dono do
+produto), e por isso categoria e tradição de um termo já gravado não se corrigem pela tela. Na
+fita e na valse o deploy foi feito com estas mudanças; os planos de ensino existentes continuam a
+ser a única coisa que muda as etiquetas, e não há um botão para as recalcular — o cálculo é feito a
+cada leitura.
+
+## 18/10/2026 — o formulário recolhe para uma faixa, e a listagem ocupa a largura toda
+
+**O que motivou.** A proposta de recolhimento estava em estudo, com duas formas. A escolha foi
+dita: **faixa em acordeão**, sem texto de «Recolher formulário»/«Abrir formulário» — e, recolhido,
+**a listagem ocupa a largura toda**. O que se ganha não é só encurtar a página: é tirar o
+formulário da frente de quem chegou pelo filtro para ver turmas.
+
+**O que foi decidido.**
+
+- **A faixa É a barra dos passos.** Os três passos continuam à vista — é isso que diz onde se
+  está — e o único controle novo é uma **seta** (▾/▸). Nada escrito: o `aria-label` e o `title`
+  dizem o estado a quem não vê a seta.
+- **Recolhido, a grelha passa a uma coluna.** A faixa sobe para a linha inteira e a listagem fica
+  sozinha abaixo, com a largura toda. Não é a coluna do formulário a encolher: é a listagem a sair
+  da coluna e a ocupar a página. A alternativa de manter a grelha (o formulário numa faixa estreita
+  ao lado da lista) foi **descartada** — encurtava a página e deixava a lista na mesma largura.
+- **Duas portas para o mesmo estado.** A seta alterna; **o filtro recolhe sozinho** (quem clica em
+  «turmas · …» veio ver a lista), e **«Mostrar todas» reabre** (a causa do recolhimento
+  desapareceu). Tocar num passo e clicar em «Editar»/«Derivar» também abrem — sem isso a faixa
+  recolhida seria um beco.
+- **O estado é lembrado** (`sessionStorage`), como o filtro: a página recarrega a cada operação, e
+  um formulário que se reabrisse sozinho desfaria o recolhimento que a pessoa acabou de pedir.
+  Concluir a turma devolve o formulário aberto — a próxima turma começa no passo 1.
+- **O estudo acompanha a decisão.** `experimentos/opcoes-visuais/index.html` passou a ter **uma**
+  proposta (P), a faixa em acordeão com a listagem em largura toda, no desktop e no telefone. As
+  duas formas anteriores (P1/P2) saíram.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — o `.turmas-corpo` passou a conter a faixa e o
+miolo; `#alternar-form` (a seta), `#turmas-paineis` (o miolo), `definirFormularioRecolhido`,
+`formularioRecolhido`, a chave `producao:form-recolhido`, as quatro portas (seta, filtro, «Mostrar
+todas», passo/Editar) e o CSS da faixa, da seta e da grelha recolhida.
+`experimentos/opcoes-visuais/index.html` — a proposta reescrita. `experimentos/provar-cartao-da-turma.js`
+— o acordeão medido: duas colunas × uma coluna, a largura da lista igual à do corpo, o estado que
+sobrevive ao recarregar.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/opcoes-visuais/index.html`,
+`experimentos/provar-cartao-da-turma.js`.
+
+**Referências.** A entrada de 18/10/2026 sobre o filtro «turmas · …»; `IDEIA-PAINEL-ESCOLA.md`
+(o gabinete da direção).
+
+**O que ainda não está feito.** O recolhimento vale para a secção **Turmas**, que é aquela a que o
+filtro leva. Os outros formulários (Professores, Alunas, Vocabulário, Curadorias) continuam sempre
+abertos — uma faixa neles não teria a mesma causa, e a decisão não foi pedida. No telefone a
+listagem ganha a largura toda, mas continua a ser a mesma coluna única: o ganho ali é a **altura**
+(o formulário sai da frente), não a largura.
+
+## 18/10/2026 — o nome do professor na curadoria abre o plano de ensino dele
+
+**O que motivou.** A curadoria já dizia se o professor tem plano («livre» × «vinculada»), mas
+para o ABRIR era preciso sair da Produção e navegar pela porta. O pedido: com plano, o nome do
+professor é o caminho para ele; sem plano, o nome fica exatamente como está.
+
+**O que foi decidido.**
+
+- **O nome é o link.** Na lista das curadorias, o nome do professor passa a `<a>` para
+  `/plano-ensino/?professor=<slug>&escola=<escola>&ciclo=<ciclo>` quando ele tem plano de
+  ensino. A condição é o PROFESSOR ter plano — não o par desta curadoria —, porque a página que
+  se abre é a dele. Na escolha do elo, prefere-se o da turma desta curadoria; sem par que case
+  (o plano pode ter sido gravado com o nome antigo da turma), cai no primeiro plano dele.
+- **Sem plano, nada muda.** Sem link, sem sublinhado, sem promessa de página: o nome sai como
+  sempre saiu, e o selo continua «livre».
+- **O selo acompanha, e é a mesma regra de sempre.** «vinculada» quando o par (professor, turma)
+  já tem plano; «livre» quando não tem. As duas coisas são calculadas da mesma leitura de
+  envelopes, e por isso não podem divergir.
+- **O ciclo passa a viajar nos pares.** `paresComPlano` devolve `{professor, turma, ciclo}` —
+  o ciclo não entra na regra de proveniência, mas é o que a porta precisa para abrir o plano
+  sem perguntar o ciclo.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — `paresComPlano` (ciclo), `linhaDoNome` (o
+`href` opcional e o nome escapado dentro dele), `urlDoPlanoDaCuradoria` na lista das curadorias e
+o CSS do `.nome-link`. `experimentos/provar-cartao-da-turma.js` — as três asserções: o link com o
+contexto certo, o selo «vinculada» com «Derivar», e o professor sem plano sem link e com
+«Editar».
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-cartao-da-turma.js`.
+
+**Referências.** `motor/nucleo/porta.js` (`planos`: o envelope declara `contexto.ciclo`);
+a entrada de 18/10/2026 sobre a proveniência nas quatro listas.
+
+**O que ainda não está feito.** Na fita e na valse **não há plano de ensino gravado** quando esta
+entrada foi escrita — e por isso as duas curadorias continuam «livre» e sem link. O link aparece
+sozinho no primeiro plano. O atalho é do NOME do professor na curadoria; as outras listas
+(Professores, Alunas, Turmas, Termos) continuam a levar ao filtro «turmas», não ao plano.
+
+## 18/10/2026 — a faixa dos passos numa linha só, com a seta no fim
+
+**O que motivou.** No telefone a faixa dos três passos quebrava em duas linhas assim que a seta
+do acordeão entrou ao lado. O pedido: «o step tem que continuar com uma linha e o botão de
+acordeão logo no final, do lado direito». O `gap` da faixa, que tinha ido a zero para tentar
+ganhar espaço, volta a `.1rem` — o aperto estava no conteúdo da faixa, não no espaço entre ela e
+a seta.
+
+**O que foi decidido.**
+
+- **A faixa não quebra: quem cede é o rótulo.** `.turmas-faixa .passos` passa a `flex-wrap:
+  nowrap` e cada rótulo ganha um `<span class="passo-t">` com `text-overflow: ellipsis` — um
+  texto solto dentro do botão não encolhe, e era ele que empurrava «Associar» para a linha de
+  baixo. O nome de cada passo continua escrito: a seta não substitui os passos, e um passo
+  reduzido a número não diria onde se está.
+- **No telefone o conector sai.** O traço entre os passos custa `1.1rem` cada e é ornamento:
+  com ele, três pílulas e a seta não cabem em 320px de jeito nenhum. Até 560px o espaçamento
+  entre os passos faz o mesmo trabalho — e o tipo desce um degrau.
+- **O «!» da edição vira selo de canto.** Solto no meio do botão custava 16px em cada passo (48
+  nos três) — em 320px é a diferença entre «Rubricas» e «Rubic…». Ancorado no canto não ocupa
+  largura, e continua a dizer o mesmo. Só existe em modo de edição, como antes.
+- **Um degrau a mais em ≤380px.** Em 320px o tipo de `.84rem` deixava os rótulos a 2px de caber;
+  `.8rem` e a seta um pouco menor devolvem a folga sem cortar palavra nenhuma.
+
+**Onde entrou.** `motor/servidor/bastidores.js` — o markup dos três passos (o `<span
+class="passo-t">`), `.turmas-faixa`, `.turmas-faixa .passos`, `.passo-t`, e as duas media queries
+(`max-width:560px`, `max-width:380px`). `experimentos/provar-cartao-da-turma.js` — secção 18: em
+414, 390, 360 e 320px, nos dois estados (editando e não), uma linha só, a seta encostada à direita
+depois de «Associar», nenhum rótulo cortado e nenhum estouro horizontal.
+`experimentos/provar-producao.js` — a asserção dos três títulos passou a ler o `.passo-t`.
+
+**Com o quê.** `motor/servidor/bastidores.js`, `experimentos/provar-cartao-da-turma.js`,
+`experimentos/provar-producao.js`.
+
+**Medido.** 1280 e 768: uma linha, como antes. 414/390/360/320: uma linha (antes eram duas), seta
+no fim da faixa, rótulos inteiros, `scrollWidth` da página igual ao `clientWidth`. `provar-
+producao` 126/126, `provar-cartao-da-turma` TUDO CERTO, `provar-celular` 15/15, `provar-paginacao`
+121/121, `provar-menu-da-producao` 26/26.
+
+**O que ainda não está feito.** A faixa continua a ser a mesma nos três passos, e a listagem
+recolhida continua a ocupar a largura toda; nada disto mudou o acordeão em si. O estudo em
+`experimentos/opcoes-visuais/index.html` já usava `flex-wrap: nowrap`, e não precisou de ajuste.
+
+## 18/10/2026 — a etiqueta é uma só, e o que está no ar é o motor
+
+**O que motivou.** O dono do produto viu a etiqueta «livre» de um jeito nos Bastidores e de
+outro na anamnese, e disse o que aquilo era: «isso não é identidade visual, você está usando
+um pra cada coisa». Pediu duas coisas: o **mapeamento** de tudo o que a identidade já tem, e a
+**garantia** de que os dois ambientes de teste (fita e valse) servem o motor — «não tem
+sentido eu testar se estou a testar uma coisa e no motor é outra».
+
+**As duas perguntas eram a mesma.** A etiqueta divergia porque a forma de uma tela vem de
+**três** origens — a folha, o `<style>` da página e os dados —, e nenhuma delas avisava quando
+mudava. O ambiente divergia pela mesma razão, aplicada ao artefacto: as cópias geradas no
+Worker podiam ficar atrás do repositório.
+
+**O que foi decidido.**
+
+- **A página não redeclara componente.** `porta/index.html` redeclarava quatro estados de
+  `.selo` mudando só `border-color`/`color`; como o `<style>` da página vem depois de
+  `/assets/style.css`, vencia **pela metade**: o fundo continuava o da folha (roxo) e a borda
+  e o texto passavam a bordô. As quatro linhas saíram.
+- **Alias não toma o nome de um papel.** A porta declarava `--borda: var(--borda-campo)`, e
+  `--borda` **já é** um papel da folha. Todo componente que a folha veste com ele — o selo, o
+  `pre`, o `hr` — saía com outro filete só naquela tela. Os 7 usos passaram a `--borda-campo`.
+- **Um nome de estado, um desenho.** `.livre` (a entidade não entrou num plano) e `.solta` (o
+  envelope não foi ligado a um PO) são o mesmo estado com dois nomes, e a fonte já os declarava
+  como «aliases do MESMO desenho». O CSS é que não cumpria: `.solta` estava no grupo discreto
+  com filete tracejado. Passou para o grupo de `.livre`.
+- **O que só uma página conhece não é componente.** `.selo.sem-uso` existia nos Bastidores, em
+  nenhum markup e em nenhuma fonte — removido. `.caixa.falta` era cópia literal da folha —
+  removido. O `footer.rodape` do lançamento não era um rodapé: é a barra de controles e passou
+  a chamar-se `barra-de-controle`.
+- **Quem é servido sem a folha copia os NÚMEROS, não só as cores.** A ficha desenhava o cartão
+  com `4px` e a página de estado o botão com `6px` e a caixa com `8px` — três raios que não
+  existiam em nenhum outro lugar. As duas declaram agora a escala de raio e usam `--raio-2` e
+  `--raio-3`; o código inline e o `pre` seguem os valores da folha.
+- **A prova deixa de ser confiança.** Duas provas novas: uma mede a forma (o que se vê), a
+  outra mede o que está no ar (o que se serve).
+
+**Onde entrou.** `tools/templates/ciclo.css` (o alias `.solta`) · `porta/index.html` (os quatro
+estados, o `--borda`, o `.aviso`, o `.caixa.falta`) · `motor/servidor/bastidores.js` (o
+`.selo.sem-uso`) · `tools/templates/lancamento.html` (a barra de controles) ·
+`motor/nucleo/ficha-html.js` e `motor/servidor/estado-html.js` (a escala de raio e os
+componentes) · `tools/check-identidade.js` (**checagem 7, «Forma»**) ·
+`experimentos/provar-selo.js` (novo) · `experimentos/provar-ambiente.js` (novo) ·
+`IDENTIDADE-VISUAL.md` (a checagem 7 e a regra da composição) ·
+`DIAGNOSTICO-IDENTIDADE.md` (o mapa e os nove achados) · as cópias geradas
+(`assets/style.css` dos dois pacotes e da raiz, e o `plano-observacao/index.html` dos dois
+pacotes).
+
+**Com o quê.** Cópias da porta regeneradas pelo **mesmo passo** do gerador (`cp` da porta +
+injeção da barra no marcador `<!-- NAV -->`), preservando a barra que o `gerar-ciclo.sh` já
+tinha produzido: o gerador não roda neste worktree porque o `ciclo-01-fita.conf` traz
+`DATA_INICIO` como lacuna explícita, e inventar a data seria pior do que não gerar.
+
+**Medido.** `check-identidade` → **9 verificações ok** (as 8 de antes + «Forma»). Controle
+negativo da «Forma»: reintroduzir `.selo.vinculada` em `porta` reprova. `provar-selo` → 14
+asserções: 19 estados de selo com **uma** assinatura nas quatro superfícies e nos dois temas,
+`.livre` ≡ `.solta`, `.derivada` ≡ `.vinculada`, `.legado` distinto, e botão/ação/campo/select/
+cartão/mensagem/aviso iguais nas quatro; a ficha e a página de estado medidas contra a folha.
+Controle negativo do `provar-selo`: a porta de HEAD reproduz as etiquetas divergentes (5
+reprovações). `provar-ambiente` **antes** do deploy: 10 divergências nas duas escolas — o
+`style.css`, a porta e o `<style>` da Produção estavam **atrás do repositório**; **depois**:
+16/16. Provas de regressão: `provar-producao` 126/126, `provar-cartao-da-turma` TUDO CERTO,
+`provar-tema` 30/30, `provar-ficha-visual` 19/19, `provar-cabecalho-do-ato` 40/40,
+`provar-celular` 15/15, `provar-paginacao` 121/121, `provar-menu-da-producao` 26/26,
+`provar-plano-da-turma` 46/46, `provar-derivacao-da-turma` 123/123,
+`provar-proveniencia-e-sessao` 14/14, `provar-sessao-na-barra` 28/28.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (a fonte única e a checagem 7); a entrada de 16/10/2026
+sobre a camada de componentes; `CONGELAMENTO.md` (o `tools/` e o `tools/templates/` só mudam
+com motivo declarado — é o caso).
+
+**O que ainda não está feito.** A **raiz** (`danca`) não foi reimplantada: `raiz/assets/style.css`
+está atualizado no repositório, mas o Worker da raiz continua a servir a cópia anterior até o
+deploy dela. O **catálogo** das seis famílias e o seletor de aparência continuam planeados
+(C15 aberta). As páginas de estudo em `experimentos/` têm cópias antigas de componente e
+continuam fora do contrato, por declaração.

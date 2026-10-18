@@ -68,7 +68,11 @@ function kvEmMemoria(mapa) {
   };
 }
 
-/** As sete listas com `quantos` itens cada — os nomes que a página mostra em cada `<h3>`. */
+/** As CINCO listas com `quantos` itens cada — os nomes que a página mostra em cada `<h3>`.
+ *
+ *  Eram SETE (18/10/2026): «Rubricas criadas» e «Com que régua cada turma é medida» saíram
+ *  quando a secção Turmas passou a ter UMA listagem só, a mesma nos três passos. As rubricas
+ *  continuam a existir no KV (e a ser semeadas abaixo), mas não têm painel próprio. */
 const LISTAS = [
   // A ALUNA é o APELIDO em texto — a lista é de strings, não de objectos (`esc(a)` na
   // página). Semear objectos aqui dava quinze linhas a dizer `[object Object]`: o teste
@@ -76,8 +80,6 @@ const LISTAS = [
   { titulo: 'Professores cadastrados', chave: 'professores', itens: (i) => ({ id: 'p' + i, nome: 'Professor ' + i, slug: 'professor-' + i }) },
   { titulo: 'Alunas cadastradas', chave: 'alunas', itens: (i) => 'Aluna ' + i },
   { titulo: 'Turmas cadastradas', chave: 'turmas', itens: (i) => ({ id: 't' + i, nome: 'Turma ' + i, modalidade: 'Balé clássico' }) },
-  { titulo: 'Rubricas criadas', chave: 'rubricas', itens: (i) => ({ id: 'r' + i, nome: 'Rubrica ' + i, niveis: [] }) },
-  { titulo: 'Com que régua cada turma é medida', chave: 'turma-conteudos', itens: null },
   // O TERMO chama-se `termo` (não `nome`): é o campo que a página imprime.
   { titulo: 'Termos cadastrados', chave: 'vocabulario', itens: (i) => ({ id: 'v' + i, termo: 'Termo ' + i }) },
   { titulo: 'Curadorias atribuídas', chave: 'curadorias', itens: (i) => ({ id: 'c' + i, professor: 'Professor ' + i, modalidade: 'Balé clássico', turma: 'Turma ' + i }) },
@@ -87,16 +89,21 @@ const LISTAS = [
 function semear(quantos) {
   const mapa = {};
   for (const l of LISTAS) {
-    if (l.chave === 'turma-conteudos') {
-      const mapaDeVinculos = {};
-      for (let i = 1; i <= quantos; i += 1) mapaDeVinculos['t' + i] = ['v' + i];
-      mapa[CHAVE(l.chave)] = JSON.stringify(mapaDeVinculos);
-    } else {
-      const lista = [];
-      for (let i = 1; i <= quantos; i += 1) lista.push(l.itens(i));
-      mapa[CHAVE(l.chave)] = JSON.stringify(lista);
-    }
+    const lista = [];
+    for (let i = 1; i <= quantos; i += 1) lista.push(l.itens(i));
+    mapa[CHAVE(l.chave)] = JSON.stringify(lista);
   }
+  // AS RUBRICAS E OS VÍNCULOS continuam a ser dados que a página lê, mesmo sem painel
+  // próprio: sem eles, o passo «Associar» não teria o que oferecer e a régua do cartão
+  // cairia na padrão — a prova mediria uma página mais pobre do que a real.
+  const rubricas = [];
+  const vinculos = {};
+  for (let i = 1; i <= quantos; i += 1) {
+    rubricas.push({ id: 'r' + i, nome: 'Rubrica ' + i, niveis: [] });
+    vinculos['t' + i] = ['v' + i];
+  }
+  mapa[CHAVE('rubricas')] = JSON.stringify(rubricas);
+  mapa[CHAVE('turma-conteudos')] = JSON.stringify(vinculos);
   return mapa;
 }
 
@@ -144,14 +151,14 @@ function linhasVisiveis(painel) {
 
 (async () => {
   // -------------------------------------------------------------------------
-  console.log('\n1. As SETE listas da Produção folheiam (15 itens, 7 por página)');
+  console.log('\n1. As CINCO listas da Produção folheiam (15 itens, 7 por página)');
   // -------------------------------------------------------------------------
   const { doc, erros } = await abrirProducao(15);
 
   checar('a página carrega sem erro de script', erros.length === 0, erros);
 
   const paineis = doc.querySelectorAll('[data-paginar]');
-  checar('há SETE listas pagináveis (a implementação é uma só)', paineis.length === 7, paineis.length);
+  checar('há CINCO listas pagináveis (a implementação é uma só)', paineis.length === 5, paineis.length);
 
   for (const lista of LISTAS) {
     const painel = painelDe(doc, lista.titulo);

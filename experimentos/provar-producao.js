@@ -494,9 +494,12 @@ async function principal() {
   conferir('há três passos (turma, rubricas, associar)',
     (html.match(/data-passo="[a-z]+"/g) || []).map((s) => s.replace(/^data-passo="|"$/g, '')),
     ['turma', 'rubrica', 'vincular']);
+  // O RÓTULO MORA NUM `<span class="passo-t">` (18/10/2026): é ele que encolhe com
+  // reticências quando a faixa não cabe no telefone, e por isso a asserção lê o span e não
+  // «o texto a seguir ao número» — que agora é uma tag.
   conferir('…e os títulos são os que a direção lê',
-    (html.match(/class="passo-n">\d<\/span>\s*([^<]+)</g) || [])
-      .map((s) => s.replace(/^[\s\S]*?<\/span>\s*/, '').replace(/<$/, '').trim()),
+    (html.match(/class="passo-t">([^<]+)</g) || [])
+      .map((s) => s.replace(/^[\s\S]*?>/, '').replace(/<$/, '').trim()),
     ['Turma', 'Rubricas', 'Associar']);
   // «SÓ A PRIMEIRA NASCE VISÍVEL» lê o `hidden` de cada painel, e não o texto à volta do
   // `id`: uma janela de 60 caracteres a partir do `id` apanha também o conteúdo do painel,
@@ -518,13 +521,66 @@ async function principal() {
   // parar ao HTML como texto da página. A página não pode conter `// ` no corpo.
   conferir('nenhum comentário de fonte vazou para o corpo da página',
     /\/\/ OS DIAS DA SEMANA|^ *\/\/ /.test(html), false);
-  conferir('o formulário da rubrica nasce com os quatro níveis padrão',
-    (html.match(/id="rubr-niveis">([\s\S]*?)<\/div>/) || [''])[0].match(/linha-regua/g || []).length, reguaPadrao.length);
-  conferir('…e o da turma não traz nenhum campo de régua',
-    (html.match(/name="rubrica"/g) || []).length, reguaPadrao.length); // só os do editor da rubrica
-  conferir('a página sabe as rubricas (para o botão Editar)',
-    script.includes('var RUBRICAS = ') && script.includes('editar-rubrica'), true);
+  // O EDITOR DA RUBRICA NASCE VAZIO (18/10/2026). Ele trazia os quatro níveis de fábrica já
+  // escritos, e isso fazia criar uma rubrica parecer aceitar a padrão — e abrir uma rubrica
+  // para editar parecer trazer só o nome (os níveis já lá estavam antes). Quem compõe é o
+  // botão «Acrescentar nível»; a rubrica «Padrão», se a escola a quiser, é uma linha da
+  // lista como qualquer outra.
+  conferir('o editor da rubrica nasce VAZIO',
+    (html.match(/id="rubr-niveis">([\s\S]*?)<\/div>/) || [''])[0], 'id="rubr-niveis"></div>');
+  conferir('…e o cadastro da turma não traz nenhum campo de régua',
+    (html.match(/name="rubrica"/g) || []).length, 0);
+  // UM SÓ BOTÃO DE EDIÇÃO (18/10/2026): o «Editar» do cartão da turma abre os três passos.
+  // O «Editar rubrica» que vivia dentro do painel da régua foi removido, e a prova trava a
+  // ausência dele — é a diferença entre «a rubrica tem uma entrada própria» e «a turma é a
+  // porta de tudo o que é dela».
+  conferir('a página sabe as rubricas (o «Editar» da turma abre as três)',
+    script.includes('var RUBRICAS = ') && script.includes('function ajustarTurma') &&
+    !script.includes('editar-rubrica'), true);
+  conferir('o passo 3 não repete o select da turma (ela é a que está em foco)',
+    html.includes('id="vinc-turma-nome"') && !html.includes('id="vinc-turma"'), true);
   conferir('o editor de níveis existe na página', script.includes('linhaDaReguaNoDom') && script.includes('tirar-regua'), true);
+
+  // O VOCABULÁRIO SÓ ESCREVE O NOME (18/10/2026). Categoria e tradição deixaram de ser
+  // texto livre: são listas fechadas, com as opções do CATÁLOGO. O que se prova é o markup
+  // servido — um `<input>` a mais aqui é a porta para «passos», «Posições», «rad» e o
+  // vocabulário a partir-se em famílias que ninguém agrupa.
+  const formTermo = (html.match(/<form id="form-termo">[\s\S]*?<\/form>/) || [''])[0];
+  const opcoesDe = (id) => {
+    const trecho = (formTermo.match(new RegExp('<select id="' + id + '">([\\s\\S]*?)</select>')) || ['', ''])[1];
+    return [...trecho.matchAll(/<option value="([^"]+)"/g)].map((m) => m[1]);
+  };
+  conferir('o termo tem UMA lista de categorias (e não um campo de texto)',
+    opcoesDe('vcategoria'), ['passo', 'posicao', 'direcao', 'ligacao', 'salto', 'giro']);
+  conferir('…e uma lista de tradições, com a compartilhada',
+    opcoesDe('vtradicao'), ['compartilhada', 'RAD', 'francesa', 'Vaganova']);
+  conferir('…e nenhum dos dois é um `<input>`',
+    /<input id="vcategoria"|<input id="vtradicao"/.test(formTermo), false);
+  conferir('…com o rótulo acentuado, e o valor sem acento (o que o catálogo grava)',
+    formTermo.includes('<option value="posicao">posição</option>') &&
+    formTermo.includes('<option value="direcao">direção</option>'), true);
+
+  // A TURMA: PROGRAMA EM LISTA, SEM POSIÇÃO E SEM FREQUÊNCIA (18/10/2026).
+  const formTurma = (html.match(/<form id="form-turma">[\s\S]*?<\/form>/) || [''])[0];
+  const opcoesDoPrograma = [...((formTurma.match(/<select id="tprograma">([\s\S]*?)<\/select>/) || ['', ''])[1]
+    .matchAll(/<option value="([^"]*)"/g))].map((m) => m[1]);
+  conferir('o programa de referência é uma lista de tradições (e não texto livre)',
+    opcoesDoPrograma, ['', 'RAD', 'francesa', 'Vaganova']);
+  conferir('…e o rótulo diz «(tradição)»',
+    formTurma.includes('Programa de referência (tradição)'), true);
+  conferir('…a POSIÇÃO NA LISTA saiu do formulário',
+    formTurma.includes('tordem') || formTurma.includes('name="ordem"'), false);
+  conferir('…e a FREQUÊNCIA não tem campo nem linha na tela',
+    formTurma.includes('tfrequencia') || formTurma.includes('Frequência semanal'), false);
+
+  // O «CANCELAR» DA CURADORIA, ao lado do botão e só na edição (18/10/2026) — a mesma
+  // regra dos passos da turma, e sem o texto explicativo que havia antes.
+  const formCuradoria = (html.match(/<form id="form-curadoria">[\s\S]*?<\/form>/) || [''])[0];
+  conferir('a curadoria tem «Cancelar» ao lado do botão e nasce escondido',
+    /<span class="par-botoes">[\s\S]*id="cu-enviar"[\s\S]*id="cu-cancelar" hidden[\s\S]*<\/span>/
+      .test(formCuradoria), true);
+  conferir('…e o texto explicativo da edição saiu do formulário',
+    formCuradoria.includes('cu-aviso-texto'), false);
 
   // O RITMO é obrigatório desde 16/10/2026 (é a escola que o declara): as turmas desta prova
   // nascem com um, senão o cadastro recusa e a prova morre no primeiro `find`.
@@ -544,6 +600,23 @@ async function principal() {
   turmas = (await (await pedir(env, '/api/bastidores/turmas')).json()).turmas;
   conferir('a turma nascida pelo cadastro novo (sem régua) é medida pela padrão',
     (turmas.find((t) => t.id === 'turma-sem-regua') || {}).rubrica, reguaPadrao);
+
+  // A FREQUÊNCIA É A CONTAGEM DOS DIAS (18/10/2026). O corpo pode trazer `frequencia` — é o
+  // formato antigo —, mas quando há dias é a contagem que manda: três dias, 3x/semana, e o
+  // valor digitado (9) não sobrevive.
+  await criarTurma({ nome: 'Turma Frequência', frequencia: 9, dias: ['seg', 'qua', 'sex'] });
+  turmas = (await (await pedir(env, '/api/bastidores/turmas')).json()).turmas;
+  conferir('a frequência é calculada pelos dias marcados (3 dias = 3x)',
+    (turmas.find((t) => t.id === 'turma-frequencia') || {}).frequencia, 3);
+
+  // A TURMA NOVA VAI PARA O TOPO (18/10/2026): a posição deixou de ser um campo, e o
+  // servidor põe cada turma criada acima das que já existem — sem tocar na ordem delas.
+  const ordens = turmas.map((t) => ({ id: t.id, ordem: t.ordem }));
+  const daFrequencia = ordens.find((t) => t.id === 'turma-frequencia');
+  const dasOutras = ordens.filter((t) => t.id !== 'turma-frequencia');
+  conferir('a turma nova nasce com a MENOR ordem (vai para o topo)',
+    Boolean(daFrequencia) && dasOutras.every((t) => Number(t.ordem) > Number(daFrequencia.ordem)),
+    true);
 
   const envAntigo = ambiente();
   await envAntigo.PADD_KV.put('bastidores/barra/turmas',
@@ -587,6 +660,13 @@ async function principal() {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(Object.assign({ senhaDirecao: SENHA_DA_DIRECAO }, corpo)),
   });
+  // «GRAVAR TURMA» TEM A VALIDAÇÃO MÁXIMA NO SERVIDOR (18/10/2026): concluir sem conteúdo
+  // é recusado, mesmo que a tela tenha deixado o botão acender. O ato intermédio «Associar
+  // rubrica» continua a poder gravar só o vínculo — é por isso que `concluir` existe.
+  const concluirSemConteudo = await vincular({
+    turma: 'turma-sem-regua', rubricaId: 'regua-do-nivel-1', concluir: true,
+  });
+  conferir('«Gravar turma» sem conteúdo associado é recusado', concluirSemConteudo.status, 400);
   const vinc1 = await vincular({ turma: 'turma-sem-regua', rubricaId: 'regua-do-nivel-1' });
   conferir('a turma é vinculada a uma rubrica', vinc1.status, 200);
   turmas = (await (await pedir(env, '/api/bastidores/turmas')).json()).turmas;
@@ -719,6 +799,18 @@ async function principal() {
     method: 'POST', headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ senhaDirecao: SENHA_DA_DIRECAO, termo: 'Plié', categoria: 'passo' }),
   });
+  // O SERVIDOR GARANTE O QUE A TELA JÁ NÃO DEIXA ESCREVER (18/10/2026). A tela é a
+  // comodidade; a regra é esta — e uma categoria inventada não entra no vocabulário.
+  const categoriaInventada = await pedir(env, '/api/bastidores/termo', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senhaDirecao: SENHA_DA_DIRECAO, termo: 'Inventado', categoria: 'passos' }),
+  });
+  conferir('categoria fora do catálogo é recusada', categoriaInventada.status, 400);
+  const tradicaoInventada = await pedir(env, '/api/bastidores/termo', {
+    method: 'POST', headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ senhaDirecao: SENHA_DA_DIRECAO, termo: 'Inventado', categoria: 'passo', tradicao: 'rad' }),
+  });
+  conferir('tradição fora do catálogo é recusada', tradicaoInventada.status, 400);
   const comTermos = await (await pedir(env, '/bastidores/producao')).text();
   const menuDoRepertorio = (comTermos.match(/id="esc-repertorio"[\s\S]*?<\/select>/) || [''])[0];
   conferir('…e os termos do vocabulário entram como OPÇÕES do menu',
@@ -770,8 +862,8 @@ async function principal() {
     /max-width/.test(corpo), false);
   conferir('o formulário ficou uniforme nas cinco secções (34rem, intacto)',
     /grid-template-columns:minmax\(0,34rem\)/.test(casa(/\.secao\{[^}]*\}/)), true);
-  conferir('as listas mostram 7 linhas por página (4 secções + as 3 abas de Turmas)',
-    (html.match(/data-por-pagina="7"/g) || []).length, 7);
+  conferir('as listas mostram 7 linhas por página (4 secções + Turmas, que agora é uma só)',
+    (html.match(/data-por-pagina="7"/g) || []).length, 5);
 
   // 11. AS PEÇAS INTERATIVAS, EXECUTADAS. Medir o HTML não basta: o escolhedor e a paginação
   //     são código que roda no navegador, e foi código assim que já deixou botões mortos
@@ -820,6 +912,18 @@ async function principal() {
   //      markup não bastaria — o que o usuário faz é CLICAR, e um passo que não troca é um
   //      botão morto.
   const passos = criarSecaoDePassos(api.documento);
+  // A SEQUÊNCIA É TRAVADA PELA TURMA (18/10/2026): sem nome, dias, duração e período, os
+  // passos 2 e 3 não abrem. A prova completa a turma primeiro — é o estado em que a direção
+  // chega ao passo 2 — e depois mede a troca de painel, que é o que ela faz.
+  api.documento.getElementById('tnome').value = 'Balé Nível 1';
+  api.documento.getElementById('tduracao').value = '60';
+  api.documento.getElementById('tinicio').value = '2026-02-01';
+  api.documento.getElementById('tfim').value = '2026-06-30';
+  const diaDaProva = criarElemento('input');
+  diaDaProva.name = 'dia';
+  diaDaProva.value = 'segunda';
+  diaDaProva.checked = true;
+  api.documento.body.appendChild(diaDaProva);
   api.clicar(passos.botoes[1]);
   conferir('clicar em «Rubricas» marca o passo',
     passos.botoes.map((b) => b.className), ['passo', 'passo ativo', 'passo']);

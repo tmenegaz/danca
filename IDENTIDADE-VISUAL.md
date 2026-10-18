@@ -279,7 +279,7 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas seis checagens
+## O validador, e as suas sete checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
@@ -310,6 +310,43 @@ falhar. Ele confere:
    que deixou a porta da Fita presa na identidade **anterior** — 44 usos de primitivo,
    nenhum de papel — sem escurecer com o tema, e ainda com o nome retirado da página
    de entrada («Nós, Por Exemplo») na barra. As duas coisas passavam em verde.
+7. **Forma** — quem **carrega** a folha não **redeclara componente**, e todo estado de
+   `.selo` usado existe na fonte. É a checagem que faltava à Fase 1: ela declarou
+   «nenhum `<style>` de página define selo» e conferiu por `grep` do seletor **nu**
+   (`.selo {`), que não vê `.selo.vinculada`. A porta tinha quatro dessas — e o
+   resultado está na secção seguinte. A lista de componentes é **derivada** da própria
+   fonte (é «raiz» a classe que aparece sozinha como alvo de uma regra), e não escrita à
+   mão: um componente novo entra coberto, sem ninguém lembrar de o acrescentar.
+
+### A regra da composição — o que a «Forma» impede *(18/10/2026)*
+
+**Um componente redeclarado não fica «um pouco diferente»: fica metade de cada lugar.**
+O caso concreto: `porta/index.html` trazia
+
+```css
+.selo.vinculada { border-color: var(--marca); color: var(--marca); }
+```
+
+O `<style>` da página vem **depois** de `/assets/style.css`, então vencia — mas só nas duas
+propriedades que escrevia. O **fundo** continuava o da fonte (`--derivada-fundo`, roxo) e a
+**borda e o texto** passavam a bordô. O selo «vinculada» saía roxo inteiro nos Bastidores e
+roxo-com-bordô na anamnese, e ninguém via a divergência porque cada metade vinha de um
+lugar. A prova de que isto não é teoria está no controle negativo de
+`experimentos/provar-selo.js`: servida a porta de HEAD, ele reproduz exactamente as duas
+etiquetas que o dono do produto viu.
+
+Daí saem três regras, e as três valem para o que vier:
+
+| Regra | Por quê |
+| --- | --- |
+| **A página não redeclara componente** | o que ela escreve vence só o que ela escreve; o resto continua a vir da fonte, e o objeto fica partido |
+| **Alias não toma o nome de um papel** | a porta declarava `--borda: var(--borda-campo)`; `--borda` **já é** o filete da folha, e por isso todo componente que a folha veste com ele (o selo, o `pre`, o `hr`) saía com outro filete só naquela tela |
+| **Nome de estado é do dado; desenho é da fonte** | `.livre` e `.solta` são a **mesma** coisa (a entidade não entrou num plano / o envelope não foi ligado a um PO). Dois nomes, um desenho. Quem precisar de um estado novo declara-o na fonte |
+
+E a consequência para quem é servido **sem** a folha (a ficha e as páginas de estado): lá a
+declaração é obrigatória, mas os **números** também são da fonte — `--raio-3` no cartão,
+`--raio-2` no botão. Foi o que faltava: a ficha desenhava o cartão com `4px` e a página de
+estado o botão com `6px`, dois raios que não existiam em nenhum outro lugar do sistema.
 
 ### As duas exceções declaradas
 

@@ -360,6 +360,76 @@ pelo gerador dos pacotes e pelos Bastidores.
 O que **não** mudou: o **catálogo** das seis famílias (doze combinações) e o seletor no painel
 administrativo — dependem de C15 e de valores que ainda não foram especificados.
 
+## A rodada de 18/10/2026 — a etiqueta, e o que ela revelou
+
+**O que motivou.** O dono do produto apontou a mesma palavra em duas telas: «a etiqueta
+*livre* está de um jeito nos Bastidores e de outro na anamnese». E fez a pergunta que
+importa: *«não tem sentido eu testar se estou a testar uma coisa e no motor é outra»*.
+
+**As duas perguntas eram a mesma.** O que se vê numa tela é o resultado de **três** origens:
+a folha (`tools/templates/ciclo.css`), o `<style>` da página e os dados. Se qualquer uma
+delas diverge, a tela diverge — e a divergência não avisa.
+
+### O mapa: quem serve o quê, e onde a forma pode divergir
+
+| Superfície | Como é servida | De onde vem a forma | Pode redeclarar? |
+| --- | --- | --- | --- |
+| Documentos do ciclo | pacote + `assets/style.css` | **a folha** | não |
+| Bastidores — Estúdio e Produção | `motor/servidor/bastidores.js` | a folha + `<style>` da página | ajustes de página, **nunca** componente |
+| Anamnese · plano de ensino · plano de observação | `porta/index.html` (3 rotas) | a folha + `<style>` da página | idem |
+| Lançamento de aula | `tools/templates/lancamento.html` | a folha + `<style>` da página | idem |
+| Raiz | `raiz/index.html` | `raiz/assets/style.css` (cópia) + página | idem |
+| Ficha e plano impressos | `motor/nucleo/ficha-html.js` | `<style>` **próprio**, sem `<link>` | sim — com os **valores** da folha |
+| Páginas de estado | `motor/servidor/estado-html.js` | `<style>` **próprio**, sem `<link>` | sim — com os **valores** da folha |
+
+### Os achados, e o que ficou feito
+
+| # | Achado | Como aparecia | Correção |
+| --- | --- | --- | --- |
+| 1 | `porta/index.html` redeclarava **quatro estados** de `.selo` | «vinculada» roxo inteiro nos Bastidores e roxo-com-bordô na anamnese; «livre» âmbar numa e cinza tracejada na outra | as quatro linhas saíram; o desenho é o da folha |
+| 2 | `.selo.solta` e `.selo.livre` eram desenhos **diferentes** | a mesma palavra («livre») em duas cores, conforme a página | `.solta` passou a ser **alias** de `.livre` na fonte — a declaração já dizia que era |
+| 3 | `.selo.sem-uso` existia **só** nos Bastidores | um estado que a fonte desconhecia (e que nenhum markup usava) | removido; quem precisar declara na fonte |
+| 4 | `porta` declarava `--borda: var(--borda-campo)` | `--borda` **é** um papel da folha (o filete, em ouro escuro); todo componente vestido por ele saía com o filete de campo naquela tela | o alias tomou o nome de um papel: os 7 usos passaram a `--borda-campo`, e o alias saiu |
+| 5 | `.aviso` redesenhado em `porta` | nota âmbar na anamnese, nota cinza nos documentos — a mesma classe | a folha já tem `.aviso` e `.aviso.alerta`; a página não inventa o tom |
+| 6 | `.caixa.falta` duplicado em `porta` | cópia literal de duas regras da folha | removido; cópia que concorda hoje é a que diverge amanhã |
+| 7 | `footer.rodape` no lançamento **não era** um rodapé | a mesma classe com dois desenhos | a barra de controles passou a chamar-se `barra-de-controle` |
+| 8 | a ficha desenhava o cartão com `4px` e o código a branco com filete | o documento impresso lia-se como um objeto à parte | `--raio-3` declarado e usado; código e `pre` com os valores da folha |
+| 9 | a página de estado desenhava o botão com `6px` e a caixa com `8px` | os únicos cantos do sistema com aquelas medidas | `--raio-2`/`--raio-3` declarados e usados; botão e `code` com as medidas da folha |
+
+### O que impede a volta
+
+- **`tools/check-identidade.js`, checagem «Forma»** — quem carrega a folha não redeclara
+  componente, e todo estado de `.selo` usado existe na fonte. A lista de componentes é
+  derivada da própria fonte. Controle negativo: reintroduzir `.selo.vinculada` em `porta`
+  **reprova** (conferido).
+- **`experimentos/provar-selo.js`** — renderiza as quatro superfícies que carregam a folha,
+  injeta os 19 estados de selo e compara a assinatura **computada** (fundo, borda, cor,
+  raio, tipo, peso, caixa, espaçamento, padding) em cada tema. Compara também botão, ação,
+  campo, select, cartão, mensagem e aviso. E mede as que **declaram** (ficha e estado)
+  contra a folha renderizada ao lado. `--controle-negativo` serve a porta de HEAD e
+  **reproduz as duas etiquetas divergentes** que o dono do produto viu.
+- **`experimentos/provar-ambiente.js`** — o que está **no ar** é o motor. Compara, em cada
+  escola, o `style.css` e o `nav.js` servidos com a fonte (byte a byte), o `<style>` da
+  porta nos três caminhos, e o `<style>` e o `<script>` da Produção com o que o motor
+  produz agora (os dados embutidos neutralizados, porque são da escola e não do motor).
+
+### O veredicto da pergunta «testei o motor?»
+
+**Sim, depois desta rodada — e agora há prova, não confiança.** Antes do deploy, a mesma
+prova acusou **10 divergências** nas duas escolas: o `style.css` no ar era o de antes, a
+porta era a de antes, e o `<style>` da Produção era o de antes — ou seja, o que o dono do
+produto estava a testar **não** era o motor. Depois do deploy das duas, as 16 verificações
+passam nas duas escolas. Não era o ambiente que estava «descompensado»: era o **deploy**
+que estava atrasado em relação ao repositório, e nada avisava.
+
+### O que continua fora
+
+- O **catálogo** das seis famílias e o seletor de aparência (C15 continua aberta).
+- A **raiz** (`danca`) não foi reimplantada nesta rodada: `raiz/assets/style.css` está
+  atualizado no repositório, e a cópia no ar continua a de antes até o deploy dela.
+- `experimentos/**` — as páginas de estudo têm cópias antigas de componente e **não** são
+  fonte de verdade; ficam fora do contrato por declaração.
+
 ## Conclusão
 
 O projeto **não está longe**: já tem o mais difícil — a fonte declarada, o contraste

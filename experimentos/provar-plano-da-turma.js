@@ -163,9 +163,10 @@ function oRitmoObrigatorio() {
   };
   igual('a turma completa não tem falta', bastidores.faltaNoRitmoDaTurma(completa), []);
 
-  // Cada campo que falta, um a um — a mensagem tem de dizer QUAL.
+  // Cada campo que falta, um a um — a mensagem tem de dizer QUAL. A FREQUÊNCIA SAIU DA
+  // LISTA (18/10/2026): ela é a contagem dos dias, não um campo que se declare. Quem falta
+  // são os dias; a frequência é o que eles valem.
   const casos = [
-    ['frequencia', { ...completa, frequencia: null }],
     ['dias', { ...completa, dias: [] }],
     ['duracaoMin', { ...completa, duracaoMin: null }],
     ['periodoInicio', { ...completa, periodoInicio: '' }],
@@ -177,8 +178,10 @@ function oRitmoObrigatorio() {
   }
 
   const semNada = { nome: 'Vazia' };
-  igual('sem nada, os cinco campos faltam', bastidores.faltaNoRitmoDaTurma(semNada).length, 5);
-  equal('zero não é frequência', bastidores.faltaNoRitmoDaTurma({ ...completa, frequencia: 0 }).length, 1);
+  igual('sem nada, os quatro campos faltam', bastidores.faltaNoRitmoDaTurma(semNada).length, 4);
+  // A frequência declarada é IGNORADA quando há dias: a turma vale pelos dias marcados.
+  equal('frequência zero com dias não é falta (ela é a contagem dos dias)',
+    bastidores.faltaNoRitmoDaTurma({ ...completa, frequencia: 0 }).length, 0);
 
   // A FRASE, para a mensagem sair em português e não em «falta o os dias».
   igual('a frase de uma falta',
@@ -194,9 +197,9 @@ function oRitmoObrigatorio() {
   // O texto do aviso não pode sair «falta o os dias».
   const frase = bastidores.fraseDaFalta(bastidores.faltaNoRitmoDaTurma({ nome: 'X', frequencia: 2 }));
   checar('a frase não repete artigo', !/\bo (a |o |os |as )/.test(frase), frase);
-  checar('a frase diz os cinco campos quando nada foi declarado',
+  checar('a frase diz os quatro campos quando nada foi declarado',
     bastidores.fraseDaFalta(bastidores.faltaNoRitmoDaTurma({ nome: 'X' })) ===
-      'a frequência semanal, os dias da semana, a duração de cada aula, o início do período e o fim do período',
+      'os dias da semana (é deles que sai a frequência), a duração de cada aula, o início do período e o fim do período',
     bastidores.fraseDaFalta(bastidores.faltaNoRitmoDaTurma({ nome: 'X' })));
 }
 

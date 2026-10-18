@@ -476,6 +476,147 @@ if (!erros.some((e) => e.startsWith('Circuito'))) {
   ok.push('Circuito: assets/style.css e assets/nav.js de cada pacote e da raiz batem com a fonte');
 }
 
+// ------------------------------------------------------------- 7) a forma
+//
+// A CÓPIA ÚNICA MEDE COR, NÃO DESENHO (18/10/2026). Ela garante que nenhum hex da
+// paleta está fora da fonte — e não viu o defeito que o dono do produto encontrou
+// olhando duas telas: a MESMA etiqueta «livre» saía âmbar nos Bastidores e cinza na
+// anamnese, e o selo «vinculada» saía roxo inteiro numa e meio bordô na outra.
+//
+// A causa: `porta/index.html` redeclarava quatro estados de `.selo` mudando só
+// `border-color`/`color`. Como o `<style>` da página vem DEPOIS de `/assets/style.css`,
+// essas quatro linhas venciam o componente PELA METADE — o fundo continuava o da
+// fonte e a borda e o texto passavam a ser da página. A Fase 1 declarou «nenhum
+// `<style>` de página define selo» e conferiu por grep do seletor nu (`.selo {`),
+// que não vê `.selo.vinculada`. Verde, e errado.
+//
+// As duas regras que fecham isso:
+//
+//   7a. quem CARREGA a folha não redeclara componente;
+//   7b. todo estado de `.selo` que alguma superfície usa existe na fonte.
+//
+// A 7a é a que teria pego o defeito. A 7b impede o contrário: um estado inventado
+// numa página (o `.selo.sem-uso` dos Bastidores, que não existia em lugar nenhum).
+// Os componentes da IDENTIDADE — os que a fonte declara COMO COMPONENTE. A lista é
+// DERIVADA da fonte e não escrita à mão: é «raiz» a classe que aparece SOZINHA como
+// alvo de uma regra (`.selo {`, `.caixa {`, `.aviso {`). Um `.selo.vinculada` não faz
+// de `vinculada` um componente; um `.res.ok` não faz de `ok` um componente. O que a
+// fonte desenha como peça é que manda.
+//
+// Derivar da fonte é o que a torna durável: quando um componente novo entra no
+// `ciclo.css`, ele passa a ser coberto sem ninguém lembrar de o acrescentar aqui.
+// (Uma lista à mão envelhece — e a lista velha é exactamente o que deixou passar o
+// `.selo.vinculada` da porta.)
+const raizesDaFonte = new Set();
+for (const m of fs.readFileSync(fonte, 'utf8').matchAll(/([^{}]+)\{/g)) {
+  for (const seletor of m[1].split(',')) {
+    const alvo = (seletor.trim().split(/[\s>+~]+/).pop() || '').replace(/::?[a-z-]+(\([^)]*\))?/g, '');
+    // Só a classe, e só ela: `.x`, `.x:hover`, `.x[attr]`.
+    const so = alvo.match(/^\.([a-z][a-z0-9-]*)(?::|\[|$)/);
+    if (so) raizesDaFonte.add(so[1]);
+  }
+}
+
+// O que DEFINE o desenho de um componente. Um seletor que mexe nisto é dono do
+// componente; um que mexe em `margin`/`gap`/`width` está a AJUSTAR a página, e é
+// legítimo (é o que a camada de página existe para fazer).
+const PROPRIEDADES_DE_FORMA =
+  /(^|;|\s)(background|background-color|background-image|color|border|border-[a-z]+|border-radius|font|font-[a-z]+|text-transform|letter-spacing|box-shadow|padding)\s*:/;
+
+/**
+ * O ALVO de uma regra — o último composto do seletor, sem as pseudo-classes.
+ *
+ * É o que separa «a página redeclara o componente» de «a página ajusta o que está
+ * dentro dele». `.selo.vinculada` tem o selo como ALVO: quem escreve isso está a
+ * redesenhar o selo. `.turma .escala li` tem o `li` como alvo: a página está a
+ * arrumar a sua própria peça, e o componente que ela usa de empréstimo não muda.
+ */
+function alvoDaRegra(seletor) {
+  const ultimo = seletor.trim().split(/[\s>+~]+/).pop() || '';
+  return ultimo.replace(/::?[a-z-]+(\([^)]*\))?/g, '');
+}
+
+
+/** Tira os `<style>` de um HTML ou as linhas CSS de uma string JS, com o comentário fora. */
+function blocosDeEstilo(texto, rel) {
+  const blocos = [];
+  if (/\.html$/.test(rel)) {
+    for (const m of texto.matchAll(/<style[^>]*>([\s\S]*?)<\/style>/g)) blocos.push(m[1]);
+  } else {
+    // As folhas de página escritas em string JS: `'.regra{...}' +`.
+    for (const m of texto.matchAll(/'\s*([^{}']*?)\{([^{}']*)\}\s*'/g)) blocos.push(m[0].slice(1, -1));
+  }
+  return blocos.map((b) => semComentarios(b, rel));
+}
+
+// As superfícies que CARREGAM `/assets/style.css` — nelas o componente já veio pronto.
+// As que são servidas sozinhas (ficha, estados) estão em DECLARANTES e não entram aqui:
+// lá a declaração é obrigatória, e o regime é o da checagem 4.
+const COM_FOLHA = [
+  'porta/index.html',
+  'raiz/index.html',
+  'tools/templates/lancamento.html',
+  'motor/servidor/bastidores.js',
+];
+
+function conferirForma() {
+  const problemas = [];
+
+  // 7a — quem carrega a folha não redeclara componente.
+  for (const rel of COM_FOLHA) {
+    const arq = path.join(raiz, rel);
+    if (!fs.existsSync(arq)) continue;
+    const texto = fs.readFileSync(arq, 'utf8');
+    for (const bloco of blocosDeEstilo(texto, rel)) {
+      // Cada regra: seletores { corpo }. O bloco já vem sem comentários.
+      for (const m of bloco.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+        const seletores = m[1].trim();
+        const corpo = m[2];
+        if (!PROPRIEDADES_DE_FORMA.test(corpo)) continue;
+        // `:where()` é o piso da própria fonte: não aparece em página.
+        for (const seletor of seletores.split(',')) {
+          const alvo = alvoDaRegra(seletor);
+          // As classes do ALVO — as do elemento que a regra pinta.
+          const doAlvo = [...alvo.matchAll(/\.([a-z][a-z0-9-]*)/g)].map((c) => c[1]);
+          const componente = doAlvo.find((c) => raizesDaFonte.has(c));
+          if (!componente) continue;
+          problemas.push(
+            `Forma: ${rel} redeclara o componente «${componente}» ` +
+            `(${seletor.trim().replace(/\s+/g, ' ')}) — o desenho mora em tools/templates/ciclo.css`);
+        }
+      }
+    }
+  }
+
+  // 7b — todo estado de `.selo` usado existe na fonte.
+  const fonteCss = fs.readFileSync(fonte, 'utf8');
+  const declarados = new Set([...fonteCss.matchAll(/\.selo\.([a-z][a-z0-9-]*)/g)].map((m) => m[1]));
+  const usados = new Map();
+  for (const rel of [...COM_FOLHA, ...DECLARANTES, 'tools/templates/ciclo.html']) {
+    const arq = path.join(raiz, rel);
+    if (!fs.existsSync(arq)) continue;
+    const texto = fs.readFileSync(arq, 'utf8');
+    for (const m of texto.matchAll(/class="selo ([a-z][a-z0-9-]*)"/g)) {
+      if (!usados.has(m[1])) usados.set(m[1], new Set());
+      usados.get(m[1]).add(rel);
+    }
+  }
+  for (const [estado, onde] of usados) {
+    if (!declarados.has(estado)) {
+      problemas.push(
+        `Forma: o estado «.selo.${estado}» é usado em ${[...onde].join(', ')} e não existe em ` +
+        'tools/templates/ciclo.css — declare-o na fonte (ou use um estado de lá)');
+    }
+  }
+
+  for (const p of problemas) erros.push(p);
+  if (!problemas.length) {
+    ok.push(`Forma: nenhuma das ${COM_FOLHA.length} superfícies com folha redeclara componente, ` +
+      `e os ${usados.size} estados de selo em uso existem na fonte`);
+  }
+}
+conferirForma();
+
 // -------------------------------------------------------------------- saída
 
 for (const l of ok) console.log(`ok: ${l}`);

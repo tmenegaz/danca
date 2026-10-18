@@ -234,6 +234,30 @@ function estado() {
       Boolean(r.lista) && r.lista.top >= r.janela - 1,
       { topo: r.lista && r.lista.top, janela: r.janela });
 
+    // A PÁGINA COMEÇA NA SECÇÃO, E NÃO EM «PRODUÇÃO» (18/10/2026). O `<h1>` e a
+    // apresentação estavam acima de TODAS as secções, e quem abria «Curadorias» lia
+    // «Produção · O gabinete da direção…» antes do que tinha ido ver. Eles desceram para
+    // dentro do portão (só o login os mostra); a secção abre pelo seu próprio `<h2>`.
+    const topo = await p.evaluate(() => {
+      const visivel = (e) => Boolean(e) && getComputedStyle(e).display !== 'none'
+        && e.getBoundingClientRect().height > 1;
+      const sec = [...document.querySelectorAll('#conteudo > section')].filter((s) => !s.hidden)[0];
+      return {
+        tituloDaSecao: sec ? (sec.querySelector('h2') || {}).textContent : null,
+        primeiroFilho: sec ? (sec.firstElementChild || {}).tagName : null,
+        tituloNoPrincipal: visivel(document.querySelector('.principal > h1')),
+        h1ParaLeitorDeEcra: Boolean(document.querySelector('#conteudo > h1.so-leitor')),
+        h1NoPortao: Boolean(document.querySelector('#gate h1')),
+      };
+    });
+    provar('a secção visível abre pelo seu próprio título',
+      topo.tituloDaSecao === 'Curadorias' && topo.primeiroFilho === 'H2', topo);
+    provar('…e NÃO há «Produção» visível acima dela', topo.tituloNoPrincipal === false, topo.tituloNoPrincipal);
+    provar('…mas o `h1` continua na árvore, invisível, para o leitor de ecrã',
+      topo.h1ParaLeitorDeEcra === true, topo.h1ParaLeitorDeEcra);
+    provar('…e o título do portão (só o login o vê) fica onde estava',
+      topo.h1NoPortao === true, topo.h1NoPortao);
+
     // 2d) Escape fecha
     await clicar(p, '#lateral-abrir');
     await p.keyboard.press('Escape');

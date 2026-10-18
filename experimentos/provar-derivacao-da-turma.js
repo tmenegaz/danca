@@ -210,7 +210,9 @@ async function principal() {
   // --- 10. o nome muda numa turma livre, e os vínculos vão atrás ----------
   // O id é o slug do nome; mudar o nome muda o id, e os vínculos turma↔termo são guardados
   // PELO ID. Sem a migração, os conteúdos ficariam órfãos no id antigo.
-  await json(env, '/api/bastidores/termo', 'POST', { termo: 'Tendu' });
+  // A categoria é OBRIGATÓRIA e vem do catálogo (18/10/2026): o formulário virou lista, e o
+  // servidor recusa o que não estiver nela. A prova só precisa do termo para a associação.
+  await json(env, '/api/bastidores/termo', 'POST', { termo: 'Tendu', categoria: 'passo' });
   conferir('a turma a renomear é criada',
     (await novo({ nome: 'Balé Nível 1' })).status, 201);
   const nova = await editar({ id: 'bale-nivel-1', nome: 'Balé Iniciante',

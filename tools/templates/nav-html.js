@@ -46,12 +46,19 @@ const BOTAO_TEMA =
  */
 const FECHAMENTO = ['  </div>', BOTAO_TEMA, '</nav>'].join('\n');
 
-/** A barra do SISTEMA — os três destinos que existem em qualquer escola. */
-function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/estudio', producao = '/bastidores/producao' } = {}) {
+/** A barra do SISTEMA — os três destinos que existem em qualquer escola.
+ *
+ *  `extras` é markup opcional inserido logo DEPOIS do lugar da logo e ANTES do
+ *  hambúrguer. Serve à S5 (o caminho «PEDAGOGIA · Turmas» sobe para a barra quando a
+ *  página rola); sem `extras` o resultado é byte a byte o de antes, e é por isso que
+ *  as outras páginas não mudam. O hambúrguer continua com `margin-left:auto`: o que
+ *  entra antes dele ocupa o vão, e ele NÃO anda — que é a condição da S5. */
+function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/estudio', producao = '/bastidores/producao', extras = '' } = {}) {
   const classe = (nome) => (nome === atual ? ' class="ativo"' : '');
   return [
     '<nav class="topnav" aria-label="Navegação do ciclo">',
     '  <span class="marca" aria-hidden="true"></span>',
+    extras ? '  ' + extras : null,
     '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">',
     '    <span></span><span></span><span></span>',
     '  </button>',
@@ -73,7 +80,7 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
     '</div>',
     '</details>',
     FECHAMENTO,
-  ].join('\n');
+  ].filter((linha) => linha !== null).join('\n');
 }
 
 module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, navSistema };

@@ -48,9 +48,14 @@
   h3 { color: var(--marca); font-size:.98rem; margin:14px 0 4px; }
   dl{margin:0} dt{font-weight:600; margin-top:8px} dd{margin:0 0 4px}
   .acoes { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin:0 0 18px; }
-  /* O rodapé gruda no pé da tela: o tamanho da página e a navegação nunca saem
-     de vista — e ficam fora do que se lê, como o controle que são. */
-  footer.rodape { position:sticky; bottom:0; display:flex; gap:12px 18px; align-items:center;
+  /* A BARRA DE CONTROLE gruda no pé da tela: o tamanho da página e a navegação nunca
+     saem de vista — e ficam fora do que se lê, como o controle que são.
+     ELA NÃO É O RODAPÉ (18/10/2026). Chamava-se `footer.rodape` e redeclarava o
+     componente `.rodape` da folha — `position`, `padding`, `background`, `border-top`
+     —, e o resultado era a MESMA classe com dois desenhos: o rodapé de prosa dos
+     documentos e esta barra de controles. Nome de componente é do componente; uma
+     peça desta página leva o nome desta página. */
+  footer.barra-de-controle { position:sticky; bottom:0; display:flex; gap:12px 18px; align-items:center;
                   flex-wrap:wrap; margin:22px 0 0; padding:10px 12px;
                   border-top:2px solid var(--borda); background:var(--fundo-suave); }
   .paginacao { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
@@ -152,7 +157,7 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
 
 <!-- Rodapé: tamanho da página e navegação. Não é conteúdo — é o controle de
      quem lê, então fica sempre no pé da tela, nunca escondido. -->
-<footer class="rodape">
+<footer class="barra-de-controle">
   <span><label class="campo-rotulo em-linha" for="porPagina">Blocos por página:</label>
     <select id="porPagina">
       <option value="5">5</option>

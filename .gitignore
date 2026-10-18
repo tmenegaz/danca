@@ -76,6 +76,10 @@ experimentos/*
 !experimentos/provar-menu-da-producao.js
 !experimentos/provar-cartao-da-turma.js
 !experimentos/provar-linhas-da-lista.js
+!experimentos/provar-sessao-na-barra.js
+!experimentos/provar-proveniencia-e-sessao.js
+!experimentos/provar-selo.js
+!experimentos/provar-ambiente.js
 
 # ============================================================================
 # Caches e ambientes

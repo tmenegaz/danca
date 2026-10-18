@@ -31,12 +31,21 @@ const ESTILO = `
     --gold-borda: #a08a58;
     --creme-1: #fdfaf5;
     --creme-5: #f1eae0;
+    --creme-6: #f7f1e7;
+    --gold-escuro: #8a6a3b;
     --ok: #1d6b2f;
     --alerta: #8f5a12;
     --falha: #9b1c1c;
     /* As duas pilhas do projeto, e só duas: serifa na prosa, sans no maquinário. */
     --serif: Georgia, 'Times New Roman', serif;
     --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    /* A ESCALA DE RAIO, a mesma da folha (tools/templates/ciclo.css). A ficha não
+       carrega o ciclo.css — é servida sozinha —, e por isso DECLARA o que usa. Sem
+       estes três valores ela escrevia 4px à mão, e o cartão da ficha saía com um
+       raio que não existe em nenhum outro lugar do sistema. */
+    --raio-1: 8px;
+    --raio-2: 12px;
+    --raio-3: 20px;
   }
   * { box-sizing: border-box; }
   body {
@@ -55,11 +64,15 @@ const ESTILO = `
   p.linha { color: var(--soft); margin: .35rem 0; }
   .sub { color: var(--soft); font-size: .9rem; margin: 0 0 1.5rem; }
   hr { border: 0; border-top: 1px solid var(--gold-borda); margin: 1.75rem 0; }
+  /* O CARTÃO É O DA FOLHA, e não um cartão parecido (18/10/2026): mesmo raio
+     (--raio-3), mesmo fundo de superfície, mesma medida de dentro. Aqui ele tinha
+     border-radius: 4px, um número que não existia em nenhum outro lugar — e o
+     documento impresso e a tela mostravam o mesmo objeto com dois cantos. */
   .caixa {
     border: 1px solid var(--gold-borda);
     background: var(--branco);
-    border-radius: 4px;
-    padding: 1rem 1.15rem;
+    border-radius: var(--raio-3);
+    padding: 16px 24px;
     margin: 1rem 0;
   }
   .caixa.nota { background: var(--creme-1); }
@@ -85,23 +98,23 @@ const ESTILO = `
   blockquote p { margin: 0; }
   /* As aspas do projeto («») destacam um termo no meio da prosa. */
   .citacao { font-style: italic; color: var(--soft); }
+  /* O CÓDIGO É O DA FOLHA (18/10/2026). Ele era branco com filete de ouro; a folha
+     usa o creme do código, sem filete, e o pre no creme mais fundo. O documento
+     impresso lia-se como um objeto à parte do resto do sistema — e é o mesmo. */
   code {
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
-    font-size: .88em;
-    background: var(--branco);
-    border: 1px solid var(--gold-borda);
+    font-size: 15px;
+    background: var(--creme-5);
     border-radius: 3px;
-    padding: 0 .25rem;
+    padding: 0 4px;
   }
   pre {
-    background: var(--branco);
-    border: 1px solid var(--gold-borda);
-    border-radius: 4px;
-    padding: .8rem 1rem;
+    background: var(--creme-6);
+    border: 1px solid var(--gold-escuro);
+    border-radius: 6px;
+    padding: 12px 16px;
     overflow-x: auto;
     font-size: .82rem;
     line-height: 1.5;
-    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   }
   pre.moldura { font-size: .72rem; line-height: 1.3; }
   /*

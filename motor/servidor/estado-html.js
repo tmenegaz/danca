@@ -28,18 +28,26 @@ const TOKENS = {
 const CSS = [
   ':root{' + Object.entries(TOKENS).map(([k, v]) => k + ':' + v + ';').join('') + '}',
   ':root{--serif:Georgia,"Times New Roman",serif;--ui:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;}',
+  // A ESCALA DE RAIO da folha (`tools/templates/ciclo.css`). Esta página é servida
+  // sozinha — quando ela aparece, o CSS pode ser exactamente o que falhou —, e por isso
+  // DECLARA o que usa. Antes escrevia `8px` e `6px` à mão: o cartão e o botão da página
+  // de estado eram os únicos do sistema com aqueles cantos.
+  ':root{--raio-1:8px;--raio-2:12px;--raio-3:20px;}',
   '*{box-sizing:border-box}',
   'body{margin:0;padding:3rem 1.25rem;background:var(--cream);color:var(--tinta);font:17px/1.65 var(--serif)}',
   'main{max-width:34rem;margin:0 auto;background:var(--branco);border:1px solid var(--gold-borda);' +
-    'border-radius:8px;padding:1.5rem 1.75rem}',
+    'border-radius:var(--raio-3);padding:1.5rem 1.75rem}',
   'h1{margin:0 0 .6rem;color:var(--burgundy);font-size:1.5rem;line-height:1.25}',
   'p{color:var(--soft);margin:.7rem 0}',
   'a{color:var(--burgundy);font-weight:700;text-decoration:none;border-bottom:1px dotted var(--gold-borda)}',
-  'code{background:var(--creme-5);border:1px solid var(--gold-borda);border-radius:3px;' +
-    'padding:0 .2em;font-size:.92em}',
+  'code{background:var(--creme-5);border-radius:3px;padding:0 4px;font-size:15px;color:var(--tinta)}',
   '.acoes{margin-top:1.4rem}',
-  '.acoes a{display:inline-block;padding:.5rem 1rem;border:1px solid var(--burgundy);' +
-    'border-radius:6px;font:600 .95rem/1.2 var(--ui)}',
+  // O BOTÃO É O DA FOLHA (`:where(button)` no `ciclo.css`): sans de 15px, 10px/16px de
+  // dentro, filete de 1px na marca e raio 2. Aqui ele era 8px/16px com raio de 6px e
+  // 600 de peso — o único botão do sistema com aquelas medidas.
+  '.acoes a{display:inline-block;padding:10px 16px;border:1px solid var(--burgundy);' +
+    'border-radius:var(--raio-2);background:var(--branco);color:var(--burgundy);' +
+    'font:500 15px/1.5 var(--ui);text-decoration:none}',
 ].join('');
 
 function esc(valor) {

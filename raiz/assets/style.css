@@ -629,7 +629,17 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .selo.ok, .selo.vigente, .selo.vigencia, .selo.preenchido {
   background: var(--ok-fundo); border-color: var(--ok); color: var(--ok);
 }
-.selo.alerta, .selo.falta-ritmo, .selo.livre {
+/* `.livre` E `.solta` SÃO O MESMO ESTADO, e por isso têm de ser o mesmo desenho
+   (18/10/2026). Os dois nomes vêm do DADO: a listagem dos Bastidores diz que a
+   entidade ainda não entrou num plano (`livre`), e a proveniência do ato diz que o
+   envelope ainda não foi ligado a um Plano de Observação (`solta`). É a mesma
+   coisa — «ainda não entrou na cadeia, portanto ainda se corrige» —, e a tela
+   escreve «livre» nos dois lugares. Antes desta data `.solta` morava no grupo
+   discreto e levava filete tracejado: a MESMA palavra saía âmbar nos Bastidores e
+   cinza na anamnese. A declaração daqui de cima já dizia que `.solta`,
+   `.vinculada` e `.legado` são «aliases do MESMO desenho — não um segundo
+   desenho»; o CSS é que não a cumpria. */
+.selo.alerta, .selo.falta-ritmo, .selo.livre, .selo.solta {
   background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
 }
 .selo.falha { background: var(--falha-fundo); border-color: var(--falha); color: var(--falha); }
@@ -637,13 +647,12 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 .selo.derivada, .selo.vinculada {
   background: var(--derivada-fundo); border-color: var(--derivada); color: var(--derivada);
 }
-.selo.discreto, .selo.dim, .selo.solta, .selo.legado,
+.selo.discreto, .selo.dim, .selo.legado,
 .selo.sem-sujeito, .selo.ajuste {
   background: var(--fundo-suave); border-color: var(--borda-campo); color: var(--texto-suave);
 }
 .selo.opt { border-style: dashed; }
 .selo.legado { border-style: dotted; }
-.selo.solta { border-style: dashed; }
 
 /* ---------- cartão ---------------------------------------------------------
    A superfície elevada: papel branco, filete de ouro, raio 3. O `.nota` é o
