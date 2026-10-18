@@ -192,8 +192,8 @@ Um sistema de identidade tem **três** escalas, e só a primeira está declarada
 
 | Escala | Tokens | Estado |
 |---|---|---|
-| **espaço** | `--esp-1: 4px` … `--esp-6: 32px` | ✅ declarada · ⚠️ **pouco usada**: 14 usos, todos dentro do `ciclo.css`; as superfícies ainda escrevem `padding: 1rem 1.1rem` |
-| **raio** | `--raio-1: 4px`, `--raio-2: 6px`, `--raio-3: 8px`, `--raio-pilula: 999px` | ⚠️ **parcial**: os componentes usam; os `<style>` de página ainda escrevem `4px`, `6px` e `8px` à mão |
+| **espaço** | `--esp-1: 4px` … `--esp-6: 32px` | ✅ declarada e **em uso**: os valores de `padding`/`margin`/`gap` do `ciclo.css` foram encaixados na grade de 4px (56 usos de token); as superfícies fora dele ainda escrevem `rem` à mão |
+| **raio** | `--raio-1: 8px` (selo, chip), `--raio-2: 12px` (campo e botão), `--raio-3: 20px` (cartão e modal), `--raio-pilula: 999px` | ✅ os raios são os da pele adotada (E, HarmonyOS — 18/10/2026); nenhum `<style>` de página escreve raio cru |
 | **tela** (breakpoints) | não há token — CSS não permite `var()` em media query | ✅ **declarada e agora com um valor por conceito** |
 
 **A escala de tela.** Quatro cortes, cada um por um motivo — e nenhum deles é «tamanho de
@@ -377,6 +377,52 @@ administrativo e **não** há escolha por escola ou por usuário.
 menu **Identidade visual** e o campo **Paleta de cores** com as doze combinações. A decisão
 **C15** — de quem é a preferência — continua **em aberto**; a gravação no navegador é o caminho
 provisório, declarado como tal.
+
+## O que é campo e o que é inscrição *(18/10/2026)*
+
+Um sistema de identidade não decide só **como** as coisas parecem: decide **o que cada peça é**.
+A distinção que faltava é esta, e ela veio de um campo que mentia.
+
+**Campo** é o que a pessoa preenche — e o que ela preenche é o que o sistema grava. Tem altura de
+controle, fundo de controle, filete de controle, cursor de texto, e é o que o botão ao lado lê.
+
+**Inscrição** é o que o sistema **declara**: o dado que não se digita porque não é escolha de
+ninguém. Não tem caixa, não tem cursor, não tem altura de campo — tem voz de título. Não é um
+`input` desabilitado (que anuncia um controle desligado); é **texto**.
+
+**O caso concreto: a escola.** O cabeçalho do ato (anamnese, plano de ensino, plano de
+observação) abria a escola num `<input type=text>`. Isso era um campo que mentia duas vezes:
+
+1. **não governava nada** — o Worker de cada escola resolve o slug por `ESCOLA_SLUG` e **ignora**
+   o `?escola=` da URL quando a var existe (`escolaDe`, no motor);
+2. **podia divergir do dado gravado** — o envelope levava o que estava no campo. Escrever
+   `outra-escola` produzia uma tela que concordava e um dado que ia para a chave da escola de
+   verdade.
+
+A regra, agora medida em `experimentos/provar-escola-fixa.js` nas três fontes:
+
+| Peça | Natureza | Por quê |
+|---|---|---|
+| **escola** | inscrição | é a do Worker que serve a página; não há outra para escolher |
+| professor · ciclo | campo | o professor corrige o que veio da URL |
+| aluna (anamnese) · turma (plano) | campo | é a decisão do ato |
+| senha do professor | campo | autoriza a escrita |
+
+O valor da inscrição **vem do servidor** (a mesma resposta que traz a lista de professores) e é
+**reafirmado** em qualquer caminho que escreva no campo oculto — a URL, um envelope antigo. Quem
+lê a escola no código continua lendo o `<input type="hidden">`: a chave do depósito local, o
+envelope e os atalhos não mudaram. Mudou **quem o preenche**, e é isso que impede a tela de
+mentir.
+
+> **A regra geral, para o que vier.** Antes de desenhar um controle, perguntar: *isto é escolha de
+> alguém?* Se não for, é inscrição. Um `input` para um dado que o sistema decide é sempre a mesma
+> armadilha — o usuário acha que decide, o sistema decide outra coisa, e ninguém fica sabendo.
+
+**Prova.** `node experimentos/provar-escola-fixa.js` — 30 verificações em navegador, nas três
+fontes: o servidor vence a URL, não há controle editável, a inscrição não tem filete nem cursor de
+texto, digitar sobre ela não muda nada, o valor da tela é o do envelope, e no modo local (sem
+`ESCOLA_SLUG`) o `?escola=` da URL volta a valer. O controle negativo roda contra
+`git show HEAD:porta/index.html` e **reprova as 30**.
 
 ## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 

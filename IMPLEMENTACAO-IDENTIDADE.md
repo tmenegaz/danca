@@ -349,3 +349,40 @@ menu, a coluna única em 768, o nome espremido e o botão separado do seletor. C
 | 17/10/2026 | 5.1–5.2 linha da turma | `flex-wrap` + `14rem`; `par-associar`; `.lista > li > .nome` |
 | 17/10/2026 | 5.3–5.4 celular | corte 760 → 768; menu de secções em faixa (248 → 80px) |
 | 17/10/2026 | 5.5–5.6 doc e prova | escala de tela no `IDENTIDADE-VISUAL.md`; `provar-celular.js` 9/9 |
+
+## Fase 6 — o cabeçalho do ato: o que é campo e o que é inscrição (18/10/2026)
+
+Objetivo: separar **natureza** de **desenho**. O relato do dono do produto foi de aparência
+(«tá feio pra danar»), mas o diagnóstico mostrou outra coisa por baixo: a escola era um campo, e
+não devia ser — ela não é escolha de ninguém.
+
+| # | Item | Estado |
+|---|---|---|
+| 6.1 | A escola deixa de ser campo e passa a inscrição, nas três fontes | `[x]` 18/10 — `porta/index.html` |
+| 6.2 | O valor da escola vem do **servidor** (`ESCOLA_SLUG`), não da URL | `[x]` 18/10 — `fixarEscola` + `dadosDosBastidores` |
+| 6.3 | O valor é **reafirmado** contra a URL e contra envelope antigo | `[x]` 18/10 — `ESCOLA_CANONICA` |
+| 6.4 | Prova em navegador, nas três fontes, com controle negativo | `[x]` 18/10 — `provar-escola-fixa.js`, 30/30; 0/30 em `HEAD` |
+| 6.5 | O contrato «campo × inscrição» documentado | `[x]` 18/10 — `IDENTIDADE-VISUAL.md` |
+| 6.6 | Quatro arranjos de cabeçalho para escolha | `[ ]` **aguardando a escolha** — `experimentos/opcoes-visuais/index.html` |
+
+### O que a Fase 6 mediu
+
+| Fonte | Campos do cabeçalho | A escola |
+|---|---|---|
+| anamnese | professor · ciclo · aluna · senha | inscrição |
+| plano de ensino | professor · ciclo · turma observada · senha | inscrição |
+| plano de observação | professor · ciclo · senha | inscrição |
+
+**O defeito que motivou a fase, medido.** Com `?escola=OUTRA-ESCOLA` na URL, a página anterior
+mostrava `OUTRA-ESCOLA` no campo e gravava a escola do Worker — a tela concordava com o que o
+professor escreveu, e o dado ia para outra chave. Depois da correção, com a **mesma** URL, a
+inscrição mostra `valse` e o envelope leva `valse`.
+
+**O que ainda não está fechado.**
+
+- **A escolha do arranjo é do dono do produto.** Os quatro estão em
+  `experimentos/opcoes-visuais/index.html`, seção «O cabeçalho do ato», cada um nas três fontes e
+  no estado em que falta um campo. Enquanto não houver escolha, a produção fica com o arranjo
+  atual (campos em linha, escola como inscrição).
+- **A contagem de contadores não foi tocada** — eles continuam na linha da barra, não no
+  cabeçalho. Os arranjos do estudo mostram as duas possibilidades.

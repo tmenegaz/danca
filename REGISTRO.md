@@ -15921,3 +15921,65 @@ OUTRA paginação do sistema, e estava boa: `data-pagina` no botão e `dataset.p
 - O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
   harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
   avança.
+
+## 18/10/2026 — A escola não é campo: o cabeçalho do ato separa o que se digita do que o sistema declara
+
+**O que motivou.** O dono do produto olhou o cabeçalho da anamnese e disse duas coisas: «a escola
+tem que vir somente leitura, não dá pra editar isso, porque não existe outra escola» e «os
+componentes estão certos conforme a folha, só que tá feio pra danar». A primeira frase é de
+arquitetura e estava certa; a segunda é de arranjo, e ficou para uma escolha dele.
+
+**O campo que mentia.** A escola era um `<input type=text>`. Dois defeitos, e o segundo é o grave:
+
+1. **não governava nada** — cada escola é um Worker, e o motor resolve o slug por `ESCOLA_SLUG`
+   (`escolaDe`), **ignorando** o `?escola=` da URL quando a var existe;
+2. **divergia do dado gravado** — o envelope levava o que estava no campo. Com
+   `?escola=OUTRA-ESCOLA`, a tela mostrava `OUTRA-ESCOLA` e o dado ia para a chave da escola de
+   verdade. A tela concordava com o professor; o sistema fazia outra coisa.
+
+**A correção.** A escola passa a ser **inscrição**: texto, ao lado de um rótulo-legenda, em serifa
+e no ouro da casa — sem caixa, sem altura de campo, sem cursor de texto. Não é um `input`
+desabilitado (que anuncia um controle desligado); é título. O `<input>` continua no DOM,
+`hidden`, e continua sendo a fonte única que a chave do depósito local, o envelope e os atalhos
+leem — mudou **quem o preenche**, não quem o lê.
+
+**O valor vem do servidor.** A mesma resposta que traz a lista de professores traz a escola
+(`{ok, escola, professores}`), e uma requisição só serve aos dois (`dadosDosBastidores`, promessa
+guardada) — pedir duas vezes abriria a janela para elas discordarem. A escola é fixada **antes**
+de ler o depósito local, porque a chave da memória é `escola · professor · ciclo`: sem isso, um
+`?escola=` forjado leria a chave errada. E `ESCOLA_CANONICA` **reafirma** o valor em todo caminho
+que escreva no campo oculto — a URL, um envelope antigo. Sem servidor (modo local), o `?escola=`
+da URL volta a valer: é o critério do `escolaDe` na ordem inversa.
+
+**A regra geral fica escrita** em `IDENTIDADE-VISUAL.md`, porque ela é de identidade, não deste
+campo: *antes de desenhar um controle, perguntar se aquilo é escolha de alguém. Se não for, é
+inscrição.* Um `input` para um dado que o sistema decide é sempre a mesma armadilha.
+
+**A arquitetura do cabeçalho — quatro arranjos, e a escolha é dele.** O estudo em
+`experimentos/opcoes-visuais/index.html` ganhou a seção «O cabeçalho do ato», com os quatro
+arranjos nas **três** fontes e no estado em que falta um campo:
+
+| | Arranjo | O que muda | Altura em 892px |
+|---|---|---|---:|
+| H1 | Linha única | tudo numa baseline, filete embaixo, contadores como legenda acima | 68px |
+| H2 | Cartão de identidade | escola em coluna própria de creme; controles em grade | 124px |
+| H3 | Pastilhas | a escola numa cápsula bordô; o mais compacto | 72px |
+| H4 | Faixa institucional | faixa bordô, escola em ouro, controles claros por cima | 107px |
+
+Medido em 390px também (nenhum transborda): H1 148 · H2 261 · H3 148 · H4 231 de altura. Nenhum
+dos quatro tem controle para a escola. A escolha está registrada como **6.6 em aberto** em
+`IMPLEMENTACAO-IDENTIDADE.md` — a produção fica com o arranjo atual até ele decidir.
+
+**Conferido.** `provar-escola-fixa.js` (novo) → **30/30** nas três fontes, e **0/30** no controle
+negativo contra `git show HEAD:porta/index.html` — se as provas passassem ali, não provariam nada.
+`check-identidade.js` → 8 verificações (o Circuito pegou as duas cópias de `plano-observacao/`
+divergindo até elas serem regeradas). `provar-contexto-do-ato.js` → 37/37.
+`provar-celular.js` → 15/15. `provar-tema.js` → 30/30. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `provar-plano-da-turma.js` → 47/47.
+
+**O que ainda não está feito.**
+
+- **A escolha do arranjo** — é dele, e o estudo está pronto para ela.
+- **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
+  depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
+  anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.

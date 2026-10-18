@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-17T21:05:23-0300`
-Commit atual: `1de0d5e` — fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
+Gerado em: `2026-10-18T08:09:06-0300`
+Commit atual: `50145f6` — style(tools): a seta do select volta — o `:where()` de peso zero a apagava em duas superfícies
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+50145f6 style(tools): a seta do select volta — o `:where()` de peso zero a apagava em duas superfícies
 1de0d5e fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
 523a2e2 style(tools): o botão recupera a borda de baixo, o campo deixa de colar no botão e o modal passa a rolar
 233314a chore(experimentos): a prova do celular passa a medir a BORDA, o VÃO e o MODAL — 11 → 15
@@ -81,7 +82,6 @@ b74d2da fix(estrutura): a lista de turmas desce no celular — e a prova passa a
 8338752 fix(expurgo): a escola expurgada e RECRIADA não se apaga — o post-merge confundia as duas
 f5a12ea feat(estrutura): criar a escola valse (motor completo)
 7f5746b Merge remote-tracking branch 'origin/main'
-1a6133c chore(estrutura): expurgar a escola valse
 ```
 
 ## Por professor
@@ -147,102 +147,69 @@ f5a12ea feat(estrutura): criar a escola valse (motor completo)
 
 ## Última entrada do REGISTRO
 
-## 17/10/2026 — As sete listas da Produção passam a folhear (o botão que valia sempre -1)
+## 18/10/2026 — A escola não é campo: o cabeçalho do ato separa o que se digita do que o sistema declara
 
-**O que motivou.** O dono do produto: *«A paginação que tem no turmas … não funciona. A que tem no
-vocabulário técnico também não.»* Só essas duas apareceram porque só elas tinham tamanho para
-página. A paginação da Produção é **uma implementação partilhada pelas sete listas** — Professores,
-Alunas, Turmas, Rubricas, Vínculos turma↔régua, Vocabulário e Curadorias — e estava quebrada em
-todas, incluindo as três que ele não conseguiu verificar.
+**O que motivou.** O dono do produto olhou o cabeçalho da anamnese e disse duas coisas: «a escola
+tem que vir somente leitura, não dá pra editar isso, porque não existe outra escola» e «os
+componentes estão certos conforme a folha, só que tá feio pra danar». A primeira frase é de
+arquitetura e estava certa; a segunda é de arranjo, e ficou para uma escolha dele.
 
-**A causa, numa linha.**
+**O campo que mentia.** A escola era um `<input type=text>`. Dois defeitos, e o segundo é o grave:
 
-```js
-var passos = b.className === "pag-prox" ? 1 : -1;
-```
+1. **não governava nada** — cada escola é um Worker, e o motor resolve o slug por `ESCOLA_SLUG`
+   (`escolaDe`), **ignorando** o `?escola=` da URL quando a var existe;
+2. **divergia do dado gravado** — o envelope levava o que estava no campo. Com
+   `?escola=OUTRA-ESCOLA`, a tela mostrava `OUTRA-ESCOLA` e o dado ia para a chave da escola de
+   verdade. A tela concordava com o professor; o sistema fazia outra coisa.
 
-O `className` de um elemento é o atributo `class` **inteiro**, e os botões nascem com
-`class="pag-prox acao secundario pequena"`. A comparação era sempre falsa; os **dois** botões
-valiam `-1`; e como o `paginar()` trava a página em `[1, N]`, a página 1 era o fim da linha —
-«›» recuava para 1, «‹» recuava para 1, e o número nunca subia. O rodapé dizia «1 / 3» e nenhum
-clique o mudava.
+**A correção.** A escola passa a ser **inscrição**: texto, ao lado de um rótulo-legenda, em serifa
+e no ouro da casa — sem caixa, sem altura de campo, sem cursor de texto. Não é um `input`
+desabilitado (que anuncia um controle desligado); é título. O `<input>` continua no DOM,
+`hidden`, e continua sendo a fonte única que a chave do depósito local, o envelope e os atalhos
+leem — mudou **quem o preenche**, não quem o lê.
 
-**Porque passou despercebido — e por que a correção é `classList`.** O botão ganhou as classes de
-estilo e a comparação nasceu a exigir que ele tivesse **uma**. Qualquer classe a mais quebrava-a,
-em silêncio. `b.classList.contains("pag-prox")` sobrevive a isso, e é o que a próxima pessoa não
-quebra sem reparar.
+**O valor vem do servidor.** A mesma resposta que traz a lista de professores traz a escola
+(`{ok, escola, professores}`), e uma requisição só serve aos dois (`dadosDosBastidores`, promessa
+guardada) — pedir duas vezes abriria a janela para elas discordarem. A escola é fixada **antes**
+de ler o depósito local, porque a chave da memória é `escola · professor · ciclo`: sem isso, um
+`?escola=` forjado leria a chave errada. E `ESCOLA_CANONICA` **reafirma** o valor em todo caminho
+que escreva no campo oculto — a URL, um envelope antigo. Sem servidor (modo local), o `?escola=`
+da URL volta a valer: é o critério do `escolaDe` na ordem inversa.
 
-**O que foi decidido.**
+**A regra geral fica escrita** em `IDENTIDADE-VISUAL.md`, porque ela é de identidade, não deste
+campo: *antes de desenhar um controle, perguntar se aquilo é escolha de alguém. Se não for, é
+inscrição.* Um `input` para um dado que o sistema decide é sempre a mesma armadilha.
 
-- **Uma correção, sete listas.** Não se tocou em nenhuma das sete — a implementação é uma.
-- **A prova não é de contrato.** A pergunta é «o clique move a lista?», e isso só se responde com
-  um DOM e um clique a sério. A prova nova monta a página pelo caminho verdadeiro
-  (`bastidores.fetch`, com um KV em memória), carrega o HTML no jsdom **com os scripts**, e
-  **clica**. Uma prova que chamasse o `paginar()` directamente passaria com o defeito lá dentro —
-  foi exactamente assim que ele passou.
-- **As asserções contam pelo DOM, não pelo que foi semeado.** Os Professores ganham sempre o dono
-  à frente (a linha «criado na página»): fixar 15 no teste mediria o seed em vez de medir a
-  página.
+**A arquitetura do cabeçalho — quatro arranjos, e a escolha é dele.** O estudo em
+`experimentos/opcoes-visuais/index.html` ganhou a seção «O cabeçalho do ato», com os quatro
+arranjos nas **três** fontes e no estado em que falta um campo:
 
-**Um segundo defeito, encontrado no caminho — e que não era de paginação.**
-`avisarNaFicha`, em `porta/index.html`, escrevia `escap(texto)`. A função do arquivo chama-se
-`escapar`; **`escap` não existe em lado nenhum**. Toda a chamada lançava `ReferenceError` **antes**
-de escrever, e o efeito era o pior possível: as nove mensagens da estante — a exclusão sem senha,
-o ajuste recusado, o erro do servidor — **não apareciam**, e a linha ficava muda a olhar para o
-professor. O erro só se via no console.
+| | Arranjo | O que muda | Altura em 892px |
+|---|---|---|---:|
+| H1 | Linha única | tudo numa baseline, filete embaixo, contadores como legenda acima | 68px |
+| H2 | Cartão de identidade | escola em coluna própria de creme; controles em grade | 124px |
+| H3 | Pastilhas | a escola numa cápsula bordô; o mais compacto | 72px |
+| H4 | Faixa institucional | faixa bordô, escola em ouro, controles claros por cima | 107px |
 
-Foi por causa dele que a prova da estante (`provar-ajustes-anamnese`) morria a meio: o
-`ReferenceError` interrompia o ficheiro no ponto em que se começa a mexer na lista. Corrigido, a
-prova avançou — e as **dezoito asserções de paginação da estante passaram todas**. (A estante é a
-OUTRA paginação do sistema, e estava boa: `data-pagina` no botão e `dataset.pagina` no handler.)
+Medido em 390px também (nenhum transborda): H1 148 · H2 261 · H3 148 · H4 231 de altura. Nenhum
+dos quatro tem controle para a escola. A escolha está registrada como **6.6 em aberto** em
+`IMPLEMENTACAO-IDENTIDADE.md` — a produção fica com o arranjo atual até ele decidir.
 
-**O que foi verificado, e como.**
-
-- `experimentos/provar-paginacao.js` — **163 asserções, 163 passam**. Nas sete listas: o rodapé
-  aparece, diz «1 / N», a página 1 tem 7 itens e a 8.ª está escondida, «›» leva à 2 e à última,
-  «‹» recua e desabilita na primeira, nenhum clique sai da faixa, e **folheando todas as páginas
-  aparecem exactamente as N linhas, sem repetir nenhuma** — é o que distingue «paginar» de
-  «esconder». Mais: 7 itens ⇒ sem rodapé; 0 itens ⇒ só a linha do estado vazio; 8 itens ⇒ duas
-  páginas com uma na segunda; e mexer numa lista **não** mexe nas outras.
-- **A prova foi verificada ao contrário.** Com o código antigo ela dá **73 falhas de 163**; com a
-  correção, 163 de 163. E ganhou tetos nos laços que saltam de página: sem teto, o próprio defeito
-  fazia a prova **nunca terminar** — uma prova que trava esconde o resultado em vez de o mostrar.
-- **As três paginações do sistema foram procuradas, não presumidas**: a da Produção
-  (`data-paginar`), a da estante (a porta, coberta pelas dezoito asserções acima) e a do
-  `tools/templates/lancamento.html` (`data-ir` + `dataset.ir`, que está correcta — o `closest`
-  devolve o botão e o `data-ir` é lido do próprio).
-
-**Onde entrou.**
-
-- `motor/servidor/bastidores.js` — `classList.contains` no lugar de `className ===`.
-- `porta/index.html` — `escap` → `escapar`, com o porquê ao lado. (A correção já tinha sido
-  propagada às cópias de `plano-observacao/` dos dois pacotes pela frente que a descobriu; o
-  `check-identidade.js` exige que as três sejam iguais, e exige.)
-- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
-  cópias do pacote, agora iguais à fonte.
-- `experimentos/provar-paginacao.js` — a prova, 163 asserções.
+**Conferido.** `provar-escola-fixa.js` (novo) → **30/30** nas três fontes, e **0/30** no controle
+negativo contra `git show HEAD:porta/index.html` — se as provas passassem ali, não provariam nada.
+`check-identidade.js` → 8 verificações (o Circuito pegou as duas cópias de `plano-observacao/`
+divergindo até elas serem regeradas). `provar-contexto-do-ato.js` → 37/37.
+`provar-celular.js` → 15/15. `provar-tema.js` → 30/30. `provar-producao.js` → 109/109.
+`provar-derivacao-da-turma.js` → 123/123. `provar-plano-da-turma.js` → 47/47.
 
 **O que ainda não está feito.**
 
-- **A prova `provar-ajustes-anamnese.js` continua com 14 falhas** — e são alheias a este trabalho:
-  ela espera a TURMA da anamnese como **radios** com estados bloqueados, e a turma passou a
-  `select` em 16/10/2026. Estavam escondidas até agora porque o ficheiro morria antes de lá
-  chegar; a correção do `escap` desmascarou-as. Ficam declaradas: é dívida de prova, não defeito
-  de produto.
-- O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
-  harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
-  avança.
+- **A escolha do arranjo** — é dele, e o estudo está pronto para ela.
+- **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
+  depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
+  anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.
 
 ## O que está pendente
-
-## 17/10/2026 — A escola nasceu sem o botão da aparência: a barra tinha uma terceira cópia
-
-
-- **A barra da Fita** continua a de antes do grupo «Ciclos»; a regeneração espera `DATA_INICIO`.
-- **A conferência visual no navegador** (item 3.4) continua pendente — agora com uma escola a mais
-  para olhar, e com a `valse` no ar em `valse.tmenegaz77.workers.dev`.
-- **A escala (F14)** segue criada e não adotada: `--esp-*` aparece 14 vezes, todas na fonte.
-- **A `data-tela`** é escrita nas superfícies e não lida por nenhuma regra.
 
 ## 17/10/2026 — A lista de turmas deixa de ficar acavalada no celular
 
@@ -287,6 +254,14 @@ OUTRA paginação do sistema, e estava boa: `data-pagina` no botão e `dataset.p
 - O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
   harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
   avança.
+
+## 18/10/2026 — A escola não é campo: o cabeçalho do ato separa o que se digita do que o sistema declara
+
+
+- **A escolha do arranjo** — é dele, e o estudo está pronto para ela.
+- **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
+  depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
+  anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.
 
 ## Pendências anteriores (índice)
 
@@ -463,6 +438,7 @@ OUTRA paginação do sistema, e estava boa: `data-pagina` no botão e `dataset.p
 - **16/10/2026** — A camada de componentes: o desenho deixa de ser reescrito… → `REGISTRO.md` L14918
 - **17/10/2026** — Os papéis e a variante noturna: a identidade passa a ter… → `REGISTRO.md` L14988
 - **17/10/2026** — A aparência ganha prova própria — e o botão que… → `REGISTRO.md` L15063
+- **17/10/2026** — A escola nasceu sem o botão da aparência: a barra tinha… → `REGISTRO.md` L15316
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
