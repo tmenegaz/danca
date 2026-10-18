@@ -437,7 +437,8 @@ desenho.
 | **Um ESTADO ou atributo do dado** | `.selo` | «livre», «vinculada», «vigente» | `<span class="selo livre">` |
 | **Um bloco de leitura** | `.caixa` | texto que se lê, com título | `<div class="caixa">` (+ `nota`, `falta`) |
 | **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
-| **Um alerta no meio do conteúdo** | `.aviso` | o que o leitor não pode deixar passar | `<p class="aviso">` |
+| **Um alerta no meio do conteúdo** | `.aviso` | o que o leitor **não pode deixar passar** — o que impede o avanço | `<p class="aviso">` |
+| **Uma explicação que se procura** | `.ajuda` + `.explica` | o que o leitor procura **quando quer** — o que é o campo, o que preencher, a nota do conteúdo | `<button class="ajuda" aria-expanded>` + painel `hidden`; no telefone o painel sobe como folha |
 | **Uma janela por cima** | `.modal` | confirmar uma exclusão | `modal-fundo` + `modal-caixa` |
 | **A barra do sistema** | `.topnav` | — | gerada por `nav-html.js`; **não** se escreve à mão |
 | **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
@@ -456,6 +457,9 @@ numa página: quem carrega a folha já as recebe desenhadas.
 | `.selo` | `ciclo.css` | base + um estado por significado (`ok`, `vigente`, `livre`…) |
 | `.caixa` / `.caixa.nota` / `.caixa.falta` | `ciclo.css` | — |
 | `.aviso` / `.res` / `.modal` | `ciclo.css` | `.res.ok`, `.res.erro` |
+| `.ajuda` («?») | `porta/index.html` | base, `:hover`, `[aria-expanded="true"]`, e 30px de alvo no telefone |
+| `.explica` | `porta/index.html` | `hidden` (fechada), `aberto` (à vista; folha fixa ≤768px), e o «Fechar» que só existe dentro da folha |
+| `[hidden]` | `ciclo.css`, na base | esconde **sempre** — é a única linha da folha com `!important`, e a razão está na proibição 4 |
 | `.topnav` / `.toc-local` / `.toc-dobra` | `ciclo.css` | aberto, recolhido, impressão |
 | `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
 | `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
@@ -471,6 +475,11 @@ numa página: quem carrega a folha já as recebe desenhadas.
 3. **Uma peça não faz o trabalho de outra.** Ação é ordem; pílula é estado; selo é atributo do
    dado. Um botão que guarda estado é a pílula disfarçada — e o desenho dele só aparece no
    instante em que o ponteiro sai.
+4. **Um estado não se deixa à mercê da página.** `[hidden]` é o atributo do estado escondido,
+   e o `display: none` que o navegador lhe dá vive na folha **dele** — logo, perde para
+   qualquer regra de autor. O «Fechar a elicitação» do ato ficou com `hidden` posto e **45px
+   de altura**, porque a página tem um `button { display: … }`: a barra de ações media 114px
+   com um botão que não devia existir. O estado mora na base da folha, com `!important`.
 
 ### A regra de nascimento de uma peça
 

@@ -404,6 +404,18 @@ body {
   font: 17px/1.65 var(--serif);
 }
 
+/* ---------- o estado «escondido» ------------------------------------------
+   `[hidden]` é o ATRIBUTO do estado escondido, e o `display: none` que o navegador
+   lhe dá vive na folha dele — logo, PERDE para qualquer regra de autor. Bastava um
+   `button { display: … }` numa página para o botão «escondido» continuar à vista e a
+   ocupar altura: foi o que aconteceu ao «Fechar a elicitação» do ato, que media 45px
+   com `hidden` posto, e empurrava a barra de ações para 114px de altura.
+
+   Um estado do sistema não pode depender de nenhuma página não lhe tocar. Fica aqui,
+   na base, com `!important` — é a única linha da folha que o usa, e o motivo é este:
+   `hidden` tem de ganhar de tudo, seja qual for a peça e a página. */
+[hidden] { display: none !important; }
+
 /* ---------- barra de navegação fixa (Regra 16, item 1) ---------- */
 .topnav {
   position: fixed; top: 0; left: 0; right: 0; z-index: 20;
