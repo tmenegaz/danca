@@ -93,7 +93,12 @@ async function lancar(armazenamento, corpo, opcoes) {
   } catch { throw new Error('nao consegui ler o JSON'); }
 
   const professor = slugDe(indice, dados);
-  const escola = (indice.ciclos[0] || {}).escola || dados.escola || 'escola';
+  // A ESCOLA DA CHAVE É A DO WORKER, quando ele a declara (18/10/2026). O payload traz a
+  // escola do `ciclos.json` do pacote — e o pacote é dado, não autoridade: com o KV
+  // COMPARTILHADO entre escolas, uma escola forjada aqui gravava dentro do prefixo de
+  // outra. Sem `escola` injetada (o servidor Node de desenvolvimento), vale o payload.
+  const escola = String((opcoes && opcoes.escola) || '').trim()
+    || (indice.ciclos[0] || {}).escola || dados.escola || 'escola';
   const ciclo = String(corpo.ciclo || (indice.ciclos[0] || {}).id || '01').padStart(2, '0');
   const carimbo = /(\d{4}-\d{2}-\d{2}T\d{4})/.exec(basename(dadosDe.nome));
   const chave = raizDaChave(escola, professor) + '/' + cicloDaChave(ciclo) + '-' +

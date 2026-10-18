@@ -77,8 +77,37 @@ function semMarcasDoGerador(markdown) {
     .trimStart();
 }
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker }) {
   const roteador = criarRoteador();
+
+  /*
+   * A ESCOLA DO DOCUMENTO É A DO WORKER (18/10/2026).
+   *
+   * Cada escola é um Worker, e o slug dele (`ESCOLA_SLUG`, uma `vars` do wrangler) é a
+   * autoridade — o `escolaDe()` do motor já era assim. Mas as ROTAS recebiam a escola do
+   * `contexto` que o cliente manda, e três coisas dependiam dela:
+   *
+   *   1. o DOCUMENTO (`envelope/<id>.json`) declara `contexto.escola` — é o campo que a
+   *      proveniência vai ler para cruzar resultados entre escolas, e ele não pode ser o
+   *      que o cliente escreveu;
+   *   2. o COFRE monta a CHAVE com ela (`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`);
+   *      uma escola forjada gravava dentro do prefixo de OUTRA escola, no KV compartilhado;
+   *   3. a FONTE do PO e a do plano viram caminho no repositório a partir dela
+   *      (`ciclo-01-<escola>-po.md`) — o arquivo cairia no pacote de outra escola.
+   *
+   * O nome NÃO sai do JSON: ele continua lá, e esse é o ponto — o diretório não serve de
+   * prova (o mesmo professor dá aula em mais de uma escola, e um dia haverá cruzamento).
+   * O que muda é que ele passa a ser o VERDADEIRO.
+   *
+   * Sem `escolaDoWorker` (o servidor Node de desenvolvimento, que não é escola), nada
+   * muda: o contexto vale como veio. É o mesmo critério do `escolaDe`, na ordem inversa.
+   */
+  const escolaCanonica = String(escolaDoWorker || '').trim();
+  const comAEscolaDoWorker = (contexto) => {
+    const c = Object.assign({}, contexto || {});
+    if (escolaCanonica) c.escola = escolaCanonica;
+    return c;
+  };
   // O relógio é injetável: as provas fixam-no para serem repetíveis. Sem injeção, o carimbo
   // é o do núcleo NO FUSO DECLARADO da escola — o Worker roda em UTC, e a data da ficha tem
   // de ser a hora da parede de quem a preencheu.
@@ -241,7 +270,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       id: novoId,
       geradoEm: carimbo,
       endereco: porta.ENDERECOS.anamnese,
-      contexto: anterior.contexto || {},
+      contexto: comAEscolaDoWorker(anterior.contexto),
       ajuste: {
         de: params.id,
         em: carimbo,
@@ -289,7 +318,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       id: recarimba ? agora.id : params.id,
       geradoEm: recarimba ? agora.geradoEm : anterior.gerado_em,
       endereco: porta.ENDERECOS.anamnese,
-      contexto: corpo.contexto || anterior.contexto || {},
+      contexto: comAEscolaDoWorker(corpo.contexto || anterior.contexto),
       esquema,
     });
     if (relatorio.errosDoDocumento.length) {
@@ -325,7 +354,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     }
     const cifrado = corpo._cifrado || corpo.cifrado;
     try {
-      return await cofre.guardarAnamnese(armazenamento, corpo.contexto || {}, cifrado);
+      return await cofre.guardarAnamnese(armazenamento, comAEscolaDoWorker(corpo.contexto), cifrado);
     } catch (erro) {
       const duplicata = /^ja existe uma anamnese/.test(erro.message);
       return recusar(erro.message, duplicata ? 409 : 400);
@@ -336,7 +365,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   roteador.rota('GET', '/api/anamnese', async ({ url }) => {
     const lista = await cofre.listarAnamneses(
       armazenamento,
-      url.searchParams.get('escola'),
+      comAEscolaDoWorker({ escola: url.searchParams.get('escola') }).escola,
       url.searchParams.get('professor'),
       url.searchParams.get('ciclo'),
     );
@@ -350,13 +379,13 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     const carimbo = cofre.semEscape(params.carimbo);
     if (!carimbo || !cofre.CARIMBO.test(carimbo)) return recusar('carimbo invalido: ' + params.carimbo);
     const texto = await cofre.lerAnamnese(armazenamento, carimbo, {
-      escola: url.searchParams.get('escola'),
+      escola: comAEscolaDoWorker({ escola: url.searchParams.get('escola') }).escola,
       professor: url.searchParams.get('professor'),
       ciclo: url.searchParams.get('ciclo'),
     });
     if (texto === null) {
       const contexto = {
-        escola: url.searchParams.get('escola'),
+        escola: comAEscolaDoWorker({ escola: url.searchParams.get('escola') }).escola,
         professor: url.searchParams.get('professor'),
         ciclo: url.searchParams.get('ciclo'),
       };
@@ -377,7 +406,10 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     let corpo;
     try { corpo = await request.json(); } catch { return { ok: false, erro: 'corpo nao e JSON' }; }
     try {
-      return await lancamento.lancar(armazenamento, corpo, lancamentoSeguro);
+      // O LANÇAMENTO também: a chave do KV é `<escola>/<professor>/…`, e o payload traz a
+      // escola do `ciclos.json` do pacote. A do Worker vence — pelo mesmo motivo das outras.
+      const opcoes = Object.assign({}, lancamentoSeguro, { escola: escolaCanonica });
+      return await lancamento.lancar(armazenamento, corpo, opcoes);
     } catch (erro) {
       // HTTP 200 de propósito — o contrato do lançamento não aceita 5xx.
       return { ok: false, erro: erro.message };
@@ -421,6 +453,11 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     if (!corpo || typeof corpo !== 'object' || Array.isArray(corpo)) {
       return recusar('o corpo precisa ser um objeto com a chave `respostas`');
     }
+    // A escola do contexto é a do Worker ANTES de o documento nascer — é daqui que saem o
+    // `contexto.escola` gravado e o caminho da fonte no repositório. O `if` preserva o caso
+    // (patológico) de um pedido SEM contexto: ele continua sem contexto, e não ganha um
+    // `{escola}` sozinho — meia identidade é pior que identidade nenhuma.
+    if (corpo.contexto) corpo.contexto = comAEscolaDoWorker(corpo.contexto);
     try {
       const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
 

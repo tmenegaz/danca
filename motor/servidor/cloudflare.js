@@ -77,7 +77,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -101,6 +101,9 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     lerDados,
     lancamentoSeguro,
     fuso,
+    // A ESCOLA DO DOCUMENTO É A DO WORKER — ver o bloco em `rotas.js`. Chega por parâmetro
+    // porque esta função monta o roteador e não vê o `env`; quem o vê é a ponte, abaixo.
+    escolaDoWorker,
   });
   return (request) => roteador.responder(request);
 }
@@ -215,6 +218,8 @@ async function fetch(request, env, opcoes) {
     lerDados,
     lancamentoSeguro,
     fuso: (env && env.FUSO) || FUSO_PADRAO,
+    // A MESMA var que `escolaDe` já usava; o que faltava era aplicá-la ao contexto das rotas.
+    escolaDoWorker: (env && env.ESCOLA_SLUG) || '',
   });
 
   return responder(request);

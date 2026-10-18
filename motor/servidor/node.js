@@ -99,7 +99,10 @@ function montar() {
     repo: 'danca',
     ref: 'main',
   });
-  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, fuso: process.env.FUSO });
+  // O servidor de desenvolvimento NÃO é uma escola: sem `ESCOLA_SLUG` no ambiente, a escola
+  // do contexto vale como veio (o `?escola=` da URL). Definir a var aqui é o que permite
+  // ensaiar em local o comportamento de produção — o mesmo critério do `escolaDe`.
+  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, fuso: process.env.FUSO, escolaDoWorker: process.env.ESCOLA_SLUG || '' });
 }
 
 async function pedidoParaRequest(req) {
