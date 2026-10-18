@@ -509,7 +509,30 @@ nome que decidia onde ele caía.
 | 7.6 | O **cartão da turma** — três propostas (gaveta, escala, três números) e o **híbrido** | `[x]` 18/10 — **T4, híbrido**, escolhido pelo dono do produto |
 | 7.7 | O híbrido implementado em produção | `[x]` 18/10 — `bastidores.js`, três métricas e três painéis |
 | 7.8 | Prova do cartão, em seis larguras e com controle negativo | `[x]` 18/10 — `provar-cartao-da-turma.js`, 52/52; 27 falhas em `HEAD` |
-| 7.9 | Associar e desassociar alcançáveis em TELA GRANDE e no TELEFONE | `[x]` 18/10 — as duas coisas vivem no painel dos conteúdos |
+| 7.9 | A associação sai do cartão e desce para o **formulário**, abaixo da duração | `[x]` 18/10 — o painel passou a MOSTRAR; compor é do formulário |
+| 7.10 | O bloco do formulário: chips com «×», seletor e «Associar» | `[x]` 18/10 — travado em «cadastrar» e em «derivar», ligado em «editar» |
+| 7.11 | Prova da mudança de lugar, nos dois sentidos | `[x]` 18/10 — `provar-cartao-da-turma.js`, 65/65; 17 falhas em `HEAD` |
+
+### A associação mudou de lugar (18/10/2026)
+
+Depois de ver o híbrido funcionando, o dono do produto decidiu que **associar e desassociar não
+pertencem ao cartão**: o painel dos conteúdos passou a **mostrar** quais são, e compor desceu para
+o **formulário da turma, logo abaixo da duração da aula** — «depois que eu determinar a duração de
+cada aula, eu vou poder associar qual é o conteúdo da aula que eu pretendo usar».
+
+O bloco tem três estados, e os três são decididos por **o que a turma é**, não por uma bandeira à
+parte:
+
+| Modo | Estado | Por quê |
+|---|---|---|
+| cadastrar | travado — «grave a turma para poder associar» | a associação precisa de um `id`, e a turma ainda não tem |
+| editar | ligado, apontado à turma aberta | a turma existe, e é o cadastro dela que se está a corrigir |
+| derivar | travado — «a derivada herda estes conteúdos» | o `id` à mão é o da turma ANTIGA; e a derivação já **copia** os conteúdos (o servidor faz isso desde 16/10) |
+
+**O markup do chip é escrito uma vez.** Os chips com «×» de cada turma ficam em blocos ocultos
+(`.conteudos-da-turma`) ao pé da lista, e o formulário **clona** o da turma aberta. A alternativa —
+gerar os chips outra vez em JavaScript — seria a segunda versão do mesmo desenho, e a primeira a
+divergir.
 
 ### A regra, e por que ela é `flex` e não `block`
 
