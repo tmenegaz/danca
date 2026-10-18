@@ -131,6 +131,12 @@ function criarDomFalso(html) {
     return link;
   });
 
+  // O `.lateral` é UM elemento, e a página o procura com `querySelector` desde o menu da
+  // folha (18/10/2026) — o `querySelectorAll` sozinho não servia. Ele nasce com
+  // `data-aberta="nao"`, que é o estado que o HTML serve.
+  const lateral = criarElemento('nav', 'lateral');
+  lateral.setAttribute('data-aberta', 'nao');
+
   const documento = {
     ouvintes: {},
     getElementById: doId,
@@ -142,6 +148,11 @@ function criarDomFalso(html) {
       if (seletor === '.lateral a') return links;
       return [];
     },
+    querySelector(seletor) {
+      return seletor === '.lateral' ? lateral : criarElemento('div');
+    },
+    // O `body` é tocado pela folha (trava a rolagem do fundo enquanto está aberta).
+    body: criarElemento('body'),
   };
 
   const janela = {
@@ -151,7 +162,7 @@ function criarDomFalso(html) {
     },
   };
 
-  return { documento, janela, secoes, links, doId };
+  return { documento, janela, secoes, links, doId, lateral };
 }
 
 /** As secções visíveis agora — o que a direção vê na tela. */
@@ -310,6 +321,21 @@ function executarComponentes(script) {
       if (sel === '[data-paginar]') return paineis;
       return [];
     },
+    // O `querySelector` CHEGOU A FALTAR AQUI (18/10/2026), e o defeito só apareceu quando
+    // o script da página passou a usá-lo — no menu da Produção, que procura a `.lateral`
+    // para abrir e fechar a folha. Um DOM de mentira que não tem o método que o script
+    // chama não está a testar o script: está a testá-lo contra si mesmo. Devolve um
+    // elemento criado à procura, para os `getAttribute`/`setAttribute` funcionarem como
+    // no navegador (o elemento nasce sem atributos, que é o estado real antes do clique).
+    querySelector(sel) {
+      const chave = 'sel:' + sel;
+      if (!registro.has(chave)) registro.set(chave, criarElemento('div', sel.replace(/^\./, '')));
+      return registro.get(chave);
+    },
+    // O `body` também passou a ser tocado: a folha travа a rolagem do fundo enquanto está
+    // aberta. Sem ele, o script morria no `document.body.style` — e «morrer» aqui quer
+    // dizer que as provas seguintes mediam uma página que já não estava a correr.
+    body: criarElemento('body'),
     addEventListener(tipo, fn) {
       if (tipo === 'click') cliques.push(fn);
     },

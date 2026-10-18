@@ -143,10 +143,17 @@ function pagina(css) {
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>${fs.readFileSync(FOLHA, 'utf8')}</style><style>${css}</style></head>
 <body data-layout="painel" data-tela="bastidores"><div class="corpo">
-<nav class="lateral" aria-label="Seções da Produção">
-  <h2>Produção</h2><a href="#">Painel inicial</a>
-  <h2>Pessoas</h2><a href="#">Professores</a><a href="#">Alunas</a>
-  <h2>Pedagogia</h2><a href="#">Turmas</a>
+<nav class="lateral" aria-label="Seções da Produção" data-aberta="nao">
+  <div class="lateral-barra"><span class="lateral-atual"><small>Produção</small>
+    <span>Painel inicial</span></span>
+    <button type="button" class="lateral-abrir">Seções ▾</button></div>
+  <div class="lateral-lista">
+    <span class="lateral-puxador"></span>
+    <h2>Produção</h2><a href="#" class="ativo">Painel inicial</a>
+    <h2>Pessoas</h2><a href="#">Professores</a><a href="#">Alunas</a>
+    <h2>Pedagogia</h2><a href="#">Turmas</a>
+  </div>
+  <div class="lateral-veu"></div>
 </nav>
 <div class="principal">
 <div class="secao"><h2>Turmas</h2>
@@ -299,7 +306,9 @@ function provar(descricao, obtido, esperado) {
   provar('nenhuma largura transborda na horizontal', medidas.filter((m) => m.transbordo > 0).map((m) => m.largura), []);
 
   // 2) O menu de secções não come a primeira tela do celular. Era 248px de altura em
-  //    coluna; em faixa, cabe em ~80px. O teto é generoso, o defeito era 3× isso.
+  //    coluna, virou uma faixa de ~80px, e desde 18/10/2026 é uma BARRA de uma linha com
+  //    a lista dentro de uma folha (`position: fixed`, fora do fluxo): o que ocupa altura
+  //    na página é só a barra. O teto de 120px continua generoso — a barra tem ~48px.
   const celulares = medidas.filter((m) => m.largura <= 768);
   provar('no celular o menu de secções não passa de 120px de altura',
     celulares.filter((m) => m.lateralAltura > 120).map((m) => [m.largura, m.lateralAltura]), []);

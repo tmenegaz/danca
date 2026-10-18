@@ -1135,6 +1135,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.lateral a{display:block;color:var(--marca);text-decoration:none;padding:.25rem .5rem;border-radius:var(--raio-1);font-size:.95rem;}' +
     '.lateral a:hover{background:var(--fundo-hover);}' +
     '.lateral a.ativo{background:var(--fundo-faixa);font-weight:700;}' +
+    // A BARRA E A FOLHA DO CELULAR existem no HTML e ficam OCULTAS na tela larga: o menu
+    // em coluna continua a ser o de sempre, e nada disto aparece. São o MESMO elemento que
+    // vira folha no celular (`.lateral-lista`) — não há uma segunda lista para envelhecer.
+    '.lateral-barra,.lateral-puxador,.lateral-veu{display:none;}' +
     // A GRADE DA VISTA: o menu à esquerda (o mais à esquerda que o conteúdo permite), o
     // formulário no meio, a LISTA à direita. Antes a lista ficava EMBaixo do formulário, e
     // a vista ficava uma coluna comprida: quem cadastra olhava para baixo para conferir.
@@ -1273,18 +1277,72 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // de turmas ficava ao lado do formulário numa tela de telefone, e as duas colunas se
     // sobrepunham. Era o único grupo com abas, e por isso o único com o defeito.
     '@media (max-width:1140px){.secao,.aba-painel{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
+    // O MENU DA PRODUÇÃO NO CELULAR — A FOLHA INFERIOR (18/10/2026).
+    //
+    // Como era: os três títulos de grupo e os sete destinos numa fita de 80px que quebrava
+    // sozinha, com o título do grupo e o link no MESMO peso visual — «não consigo entender
+    // direito o que é título do menu», nas palavras de quem usa.
+    //
+    // Como é: uma linha com o GRUPO e a PÁGINA em que se está, e um botão «Seções». A lista
+    // sobe de baixo — a mesma `.lateral-lista`, com os grupos e os destinos — e desce ao
+    // escolher. Fechada, a navegação ocupa 44px; aberta, tapa o conteúdo de propósito, e o
+    // véu diz que ali atrás não se clica.
+    //
+    // O `position: fixed` da folha funciona mesmo dentro da grade do `.corpo` porque nada
+    // ali cria contexto de contenção (nem `transform`, nem `filter`) — se um dia criar, a
+    // folha passa a ser medida pelo `.corpo` e não pela tela, e este comentário é o aviso.
     '@media (max-width:768px){' +
       '.corpo{grid-template-columns:minmax(0,1fr);padding:var(--esp-4) var(--esp-4) var(--esp-6);}' +
-      '.lateral{position:static;border-right:none;border-bottom:1px solid var(--borda-campo);' +
-        'padding:.1rem 0 .4rem;display:flex;flex-wrap:wrap;align-items:center;gap:.1rem .15rem;}' +
-      '.lateral h2{flex:0 0 auto;margin:0;padding:.35rem 0 .35rem .55rem;font-size:.68rem;}' +
-      '.lateral h2:first-child{padding-left:0;}' +
-      '.lateral a{padding:.3rem .45rem;}' +
+      '.lateral{position:static;border-right:none;padding:0 0 var(--esp-3);}' +
+      '.lateral-barra{display:flex;align-items:center;gap:var(--esp-3);}' +
+      // UMA LINHA, e não duas: «PRODUÇÃO» em cima de «Painel inicial» fazia o botão
+      // «Seções» assentar entre as duas (o `align-items:center` de um bloco de 33px), e a
+      // barra lia-se como três coisas soltas. Em uma linha — grupo miúdo, página, botão —
+      // lê-se como um caminho, que é o que ela é. Medido: 77px e 78px viravam 78 e 78.
+      '.lateral-atual{min-width:0;display:flex;align-items:baseline;gap:6px;' +
+        'font:700 15px/1.25 var(--ui);color:var(--texto);}' +
+      '.lateral-atual small{font:700 10px/1.3 var(--ui);letter-spacing:.09em;' +
+        'text-transform:uppercase;color:var(--texto-suave);}' +
+      '.lateral-abrir{margin-left:auto;flex:0 0 auto;cursor:pointer;' +
+        'border:1px solid var(--borda-campo);border-radius:999px;background:var(--superficie);' +
+        'padding:.5rem .85rem;font:600 .82rem/1 var(--ui);color:var(--marca);}' +
+      '.lateral-abrir:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
+      '.lateral-lista{position:fixed;left:0;right:0;bottom:0;z-index:60;' +
+        'background:var(--superficie);border-radius:20px 20px 0 0;' +
+        'box-shadow:0 -12px 34px rgba(31,28,26,.20);' +
+        'padding:0 0 calc(var(--esp-4) + env(safe-area-inset-bottom,0px));' +
+        'max-height:78vh;overflow-y:auto;' +
+        'transform:translateY(101%);transition:transform .22s ease;}' +
+      '.lateral[data-aberta="sim"] .lateral-lista{transform:translateY(0);}' +
+      '.lateral-puxador{display:block;width:36px;height:4px;border-radius:2px;' +
+        'background:var(--borda-campo);margin:10px auto 2px;}' +
+      '.lateral-lista h2{margin:0;padding:var(--esp-3) var(--esp-5) var(--esp-1);' +
+        'font:700 10.5px/1 var(--ui);letter-spacing:.1em;color:var(--texto-suave);}' +
+      '.lateral-lista a{display:flex;align-items:center;gap:.6rem;' +
+        'padding:.8rem var(--esp-5);font-size:1rem;border-radius:0;}' +
+      '.lateral-lista a.ativo::after{content:"✓";margin-left:auto;}' +
+      '.lateral-veu{display:block;position:fixed;inset:0;z-index:55;' +
+        'background:rgba(31,28,26,.36);opacity:0;pointer-events:none;' +
+        'transition:opacity .2s ease;}' +
+      '.lateral[data-aberta="sim"] .lateral-veu{opacity:1;pointer-events:auto;}' +
     '}' +
     '</style></head><body data-layout="painel" data-tela="bastidores">' +
     topnav(contexto, 'producao') +
     '<div class="corpo">' +
-    '<nav class="lateral" aria-label="Seções da Produção">' +
+    // `data-aberta` é o estado da FOLHA do celular. No HTML ele nasce «nao»: a folha está
+    // fechada, e na tela larga o atributo não tem efeito nenhum (o CSS que o lê só existe
+    // dentro da media query do celular).
+    '<nav class="lateral" aria-label="Seções da Produção" data-aberta="nao">' +
+    // A barra do celular: o grupo e a página em que se está, e o botão que abre a folha.
+    // Em tela larga ela não aparece — quem navega é a coluna abaixo.
+    '<div class="lateral-barra">' +
+    '<span class="lateral-atual"><small id="lateral-grupo">Produção</small>' +
+    '<span id="lateral-nome">Painel inicial</span></span>' +
+    '<button type="button" class="lateral-abrir" id="lateral-abrir" ' +
+    'aria-expanded="false" aria-controls="lateral-lista">Seções ▾</button>' +
+    '</div>' +
+    '<div class="lateral-lista" id="lateral-lista">' +
+    '<span class="lateral-puxador" aria-hidden="true"></span>' +
     '<h2>Produção</h2>' +
     '<a href="#painel" data-secao="painel">Painel inicial</a>' +
     '<h2>Pessoas</h2>' +
@@ -1294,6 +1352,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<a href="#turmas" data-secao="turmas">Turmas</a>' +
     '<a href="#vocabulario" data-secao="vocabulario">Vocabulário técnico</a>' +
     '<a href="#curadorias" data-secao="curadorias">Curadorias</a>' +
+    '</div>' +
+    '<div class="lateral-veu" id="lateral-veu"></div>' +
     '</nav>' +
     '<div class="principal">' +
     '<h1>Produção</h1>' +
@@ -1630,6 +1690,38 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O menu lateral: cada secção é uma <section class="secao">; o hash da URL escolhe
     // qual fica visível — clicar no item do menu só muda o hash. As secções continuam
     // no DOM (os formulários existem todos) e o que muda é só o que se mostra.
+    // A FOLHA DO CELULAR. `mostrarSecao` fecha-a em toda navegação — o destino foi
+    // escolhido, e deixá-la aberta taparia justamente a secção que se acabou de pedir.
+    // `fecharMenu` e `abrirMenu` são declarações de função (não `var`), e por isso já
+    // existem quando `mostrarSecao()` roda na linha seguinte — a ordem do texto não é a
+    // ordem de execução.
+    'function abrirMenu() {' +
+    '  var lat = document.querySelector(".lateral");' +
+    '  var b = document.getElementById("lateral-abrir");' +
+    '  if (!lat || !b) return;' +
+    '  lat.setAttribute("data-aberta", "sim");' +
+    '  b.setAttribute("aria-expanded", "true");' +
+    // Travar a rolagem do fundo: com a folha aberta, rolar a página POR BAIXO dela é o
+    // gesto que faz o usuário perder a folha de vista sem a ter fechado.
+    '  document.body.style.overflow = "hidden";' +
+    '}' +
+    'function fecharMenu() {' +
+    '  var lat = document.querySelector(".lateral");' +
+    '  var b = document.getElementById("lateral-abrir");' +
+    '  if (!lat) return;' +
+    '  if (lat.getAttribute("data-aberta") !== "sim") return;' +
+    '  lat.setAttribute("data-aberta", "nao");' +
+    '  if (b) b.setAttribute("aria-expanded", "false");' +
+    '  document.body.style.overflow = "";' +
+    '}' +
+    // O GRUPO de um destino: o `<h2>` que vem antes dele. Lido do próprio documento, e
+    // não de uma segunda lista no JavaScript — a lista dos grupos já está no HTML, e uma
+    // cópia aqui divergiria dela no dia em que um grupo mudasse.
+    'function grupoDoLink(a) {' +
+    '  var n = a.previousElementSibling;' +
+    '  while (n) { if (n.tagName === "H2") return n.textContent; n = n.previousElementSibling; }' +
+    '  return "";' +
+    '}' +
     'function mostrarSecao() {' +
     '  var alvo = (location.hash || "#painel").replace("#", "");' +
     '  var secoes = document.querySelectorAll(".secao");' +
@@ -1641,11 +1733,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '  var links = document.querySelectorAll(".lateral a");' +
     '  for (var j = 0; j < links.length; j++) {' +
-    '    links[j].className = (links[j].getAttribute("data-secao") === visivel) ? "ativo" : "";' +
+    '    if (links[j].getAttribute("data-secao") === visivel) {' +
+    '      links[j].className = "ativo";' +
+    // A barra do celular diz onde se está — GRUPO e página, porque só o nome da página
+    // deixa o professor sem saber a que grupo ela pertence («Curadorias» é de Pedagogia,
+    // e isso não se adivinha).
+    '      var g = document.getElementById("lateral-grupo");' +
+    '      var n = document.getElementById("lateral-nome");' +
+    '      if (g) g.textContent = grupoDoLink(links[j]);' +
+    '      if (n) n.textContent = links[j].textContent;' +
+    '    } else { links[j].className = ""; }' +
     '  }' +
+    '  fecharMenu();' +
     '}' +
     'window.addEventListener("hashchange", mostrarSecao);' +
     'mostrarSecao();' +
+    '(function(){' +
+    '  var b = document.getElementById("lateral-abrir");' +
+    '  var veu = document.getElementById("lateral-veu");' +
+    '  if (b) b.addEventListener("click", abrirMenu);' +
+    '  if (veu) veu.addEventListener("click", fecharMenu);' +
+    // O `Escape` é o gesto que se espera de uma folha modal, e no teclado não há véu para
+    // clicar. Fecha também quando a janela cresce: em tela larga a folha não existe, e o
+    // `overflow:hidden` do `body` ficaria a travar a página sem nada aberto.
+    '  document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharMenu(); });' +
+    '  window.addEventListener("resize", function(){ if (window.innerWidth > 768) fecharMenu(); });' +
+    '})();' +
     'function postar(id, corpo) {' +
     '  corpo.senhaDirecao = SENHA_DIRECAO;' +
     '  var res = document.getElementById("res");' +
@@ -3269,6 +3382,10 @@ module.exports = {
   fetch,
   temProfessor,
   senhaDaEscolaOk,
+  // A PÁGINA da Produção, exportada para a prova poder abri-la num navegador de verdade
+  // (18/10/2026). O menu do celular é uma folha que abre e fecha, e isso não se mede no
+  // texto do HTML: mede-se a posição do elemento — antes e depois do clique.
+  paginaProducao,
   // As duas peças do RITMO da turma, exportadas para a prova: o que falta numa turma para
   // ela poder receber um plano, e a frase que diz isso em português (16/10/2026).
   faltaNoRitmoDaTurma,
