@@ -445,7 +445,11 @@ async function principal() {
     .map((m) => m[1])
     .sort((a, b) => b.length - a.length)[0] || '';
   const dom = criarDomFalso(html);
-  conferir('as seis secções estão na página', dom.secoes.length, 6);
+  // SETE desde 18/10/2026: a «Aparência» entrou como secção de configuração, porque a decisão
+  // C15 deu a preferência à ESCOLA — e o controlo tem de viver onde só a escola e o professor
+  // principal entram. Não é pedagogia nem pessoa: é a forma da casa, e por isso ganhou grupo
+  // próprio no menu.
+  conferir('as sete secções estão na página', dom.secoes.length, 7);
   conferir('só o Painel inicial nasce visível', visiveis(dom.secoes), ['sec-painel']);
 
   // 3. O comentário de linha é o que comia o resto do script: não pode haver nenhum.
@@ -515,8 +519,15 @@ async function principal() {
   // instrução dentro do formulário («o nome vira a pasta», «a régua não se declara aqui»,
   // «uma rubrica pode valer para várias turmas») saiu — quem usa o cadastro conhece o
   // sistema, e o texto a mais empurra os campos para fora da tela.
+  //
+  // A EXCEÇÃO DECLARADA (18/10/2026): a secção «Aparência» não é um formulário de cadastro —
+  // é um ajuste da casa, com dois botões e uma frase que diz de QUEM é a escolha. A frase é
+  // necessária: sem ela, quem a vê assume que está a mudar a sua própria aparência e não a de
+  // todos. Por isso a contagem é feita com a secção retirada, em vez de afrouxar a regra para
+  // toda a página.
+  const semAparencia = html.replace(/<section class="secao" id="sec-aparencia"[\s\S]*?<\/section>/, '');
   conferir('nenhum formulário traz explicação (só rótulo, campo e placeholder)',
-    (html.match(/class="dica"|<p class="nota">|<p class="sub">/g) || []).length, 0);
+    (semAparencia.match(/class="dica"|<p class="nota">|<p class="sub">/g) || []).length, 0);
   // O comentário que VAZOU: três linhas `//` escritas dentro da concatenação, com `\n`, iam
   // parar ao HTML como texto da página. A página não pode conter `// ` no corpo.
   conferir('nenhum comentário de fonte vazou para o corpo da página',
@@ -759,8 +770,11 @@ async function principal() {
     conferir('a lista de ' + s + ' fica na coluna da direita, paginada',
       corpo.includes('class="col-lista"') && corpo.includes('data-paginar') && corpo.includes('class="paginacao"'), true);
   }
-  conferir('o formulário fica na coluna da esquerda (4 secções + as 3 abas de Turmas)',
-    (html.match(/class="col-form"/g) || []).length, 7);
+  // CINCO secções de formulário (professores, alunas, vocabulário, curadorias, aparência) mais
+  // as três abas de Turmas. As listas ficam à direita; a Aparência não tem lista — são dois
+  // botões e o que está em vigor.
+  conferir('o formulário fica na coluna da esquerda (5 secções + as 3 abas de Turmas)',
+    (html.match(/class="col-form"/g) || []).length, 8);
   conferir('o script pagina as listas', script.includes('function paginar()') && script.includes('data-paginar'), true);
 
   // 8. AS ESCOLHAS: SETE dias em pílulas (lista curta, fechada, fixa — tudo à vista), e o

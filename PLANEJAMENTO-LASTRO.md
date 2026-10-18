@@ -687,6 +687,13 @@ acesso. **Medido, e o modelo não responde:**
   aceita a senha da **direção** *ou a de qualquer professor cadastrado* — e é decisão declarada no
   próprio código: o dado da escola «não pertence a um professor», e quem lança aula pode ser
   qualquer um da casa.
+  **Correção de 18/10/2026 — a função citada é a errada.** O portão da **Produção** é
+  `senhaDaDirecaoOk`, que aceita **duas** senhas: a da **escola** (`SENHA_ADMIN`) e a do
+  **professor principal** (`SENHA_PROFESSOR`) — e só essas duas. `senhaDaEscolaOk` é a política
+  **larga**, e serve a outra coisa: abrir o **dado cifrado do ciclo** (`motor/servidor/
+  cloudflare.js`), onde qualquer professor da casa entra, porque o dado é da escola. A conclusão
+  desta secção **não muda** — continua a não haver *usuário* a quem pendurar a preferência —, mas
+  a razão fica dita com a função certa.
 - **Depois do portão, o que a página guarda é a senha, não quem entrou.** O `entrar()` do gate põe
   o valor em `sessionStorage` — **estado por aba**, que esquece ao fechar. O sistema autentica **um
   segredo**, não **uma pessoa**.
@@ -719,11 +726,20 @@ funcionalidade supõe.** Os três caminhos, e **nenhum escolhido**:
    **na contratação** (e então é parte do provisionamento, território de **C11/C16**) ou **depois,
    dentro do sistema** (o que está desenhado). As duas pontas terminam na escola; muda **onde o
    valor mora**.
-3. **Quem, dentro da escola, pode mudar.** `senhaDaEscolaOk` aceita a senha da direção **ou a de
-   qualquer professor cadastrado** — e é decisão declarada no código. «Da escola» não distingue a
-   direção de um professor, e é a **C17** que trata de quem é o administrador. Enquanto ela estiver
-   aberta, **qualquer pessoa com a senha da escola muda a aparência de todos** — e isso fica escrito,
-   não presumido.
+3. **Quem, dentro da escola, pode mudar — respondido em 18/10/2026.** O dono do produto declarou
+   a regra do acesso, e ela **é o que o código já faz** para a Produção:
+
+   | Quem | O que abre |
+   |:--|:--|
+   | **senha da escola** (`SENHA_ADMIN`) | **tudo** — Produção, Estúdio, Área do Professor, lançamento |
+   | **professor principal** (`SENHA_PROFESSOR`, o dono) | **tudo** — é o representante da escola |
+   | **demais professores** | **não entram na Produção**; abrem o **Estúdio**, a **Área do Professor** e o **lançamento** |
+
+   O portão da Produção é `senhaDaDirecaoOk` — **só** as duas primeiras. Logo o seletor de
+   aparência, estando **em Produção**, está no lugar certo: só a escola e o professor principal lá
+   chegam, e o que se aplica é a vontade da escola. Isto **fecha a parte da C17** que interessava
+   a esta decisão — *quem administra a Produção* — e deixa aberto o resto da C17 (o administrador
+   **da plataforma** e o e-mail da L12).
 
 **A quarta dimensão — *quando* a preferência se escolhe, e para quê (a natureza *A × B*).** Uma
 avaliação de 16/10/2026 separou **duas coisas que a L13 pode estar a misturar**: **(A)** a
@@ -745,7 +761,9 @@ dono do produto**, e **precede** a **V0** — ela decide *quando* se escolhe, e 
 > **Nota honesta, e é uma porta que não se abre por acidente.** `senhaDaEscolaOk` **percorre** a
 > lista de professores e sabe **qual** senha bateu: a identidade **existe no dado** e **não é
 > usada**. Transformar isso em «quem entrou» é possível — e é **decisão de acesso**, não um efeito
-> colateral de um seletor de cores.
+> colateral de um seletor de cores. **Confirma-se em 18/10/2026, e é por isso que o seletor pode
+> viver em Produção:** ali o portão é o estreito (`senhaDaDirecaoOk`), e a porta fica fechada aos
+> demais professores **sem precisar de identidade**.
 
 *(Afeta L13. **Precede** o desenho da persistência: é ela que decide se há um campo novo no dado da
 escola. **Precede também a V0**, e por duas perguntas — «de **quem**» é a escolha, e «**quando**»
@@ -782,7 +800,18 @@ confirma pagamentos (§L11) e recebe o e-mail administrativo (§L12 J4) — e a 
 **esse papel não existe**: o que existe são **duas senhas**, e nenhuma delas é «o administrador». O
 portão da Produção autentica a **direção da escola** (`senhaDaEscolaOk`,
 `motor/servidor/bastidores.js:468`), e a raiz autentica **o dono da plataforma** (`SENHA_RAIZ`,
-`motor/servidor/raiz.js:32`). São dois segredos de **escopos diferentes**, e nenhum deles nomeia uma
+`motor/servidor/raiz.js:32`).
+
+> **Nota de 18/10/2026 — a metade da C17 que interessa à Produção está respondida.** O dono do
+> produto declarou a regra do acesso, e ela é a que o código já pratica: **a senha da escola**
+> (`SENHA_ADMIN`) e a do **professor principal** (`SENHA_PROFESSOR`) abrem **tudo**, inclusive a
+> Produção; **os demais professores não entram na Produção** — abrem o Estúdio, a Área do Professor
+> e o lançamento. O portão da Produção é `senhaDaDirecaoOk` (**só** as duas primeiras); a política
+> larga (`senhaDaEscolaOk`, que percorre todos os professores) serve ao **dado cifrado do ciclo**, e
+> não a este portão — a citação acima confunde as duas, e fica corrigida aqui. **Continua aberto**
+> o que a C17 perguntava para o **comercial**: quem confirma o pagamento e recebe o e-mail
+> administrativo, quando o candidato é o **dono da plataforma** — que a raiz autentica e que não
+> tem `ESCOLA_SLUG`. São dois segredos de **escopos diferentes**, e nenhum deles nomeia uma
 pessoa — como a **C15** já mediu, o sistema autentica um **segredo**, não um **usuário**.
 
 A pergunta é de **acesso** (e, porque confirma dinheiro, de **segurança**), e tem três respostas

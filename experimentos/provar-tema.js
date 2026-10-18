@@ -3,10 +3,21 @@
 /**
  * provar-tema.js — a aparência clara/noturna tem prova própria.
  *
- * Por que existe: o tema é a única parte da identidade que depende de JavaScript e de
- * estado do NAVEGADOR. O `check-identidade.js` mede os pares de contraste dos dois
- * temas, mas não executa comportamento — e um botão que não troca, ou um `data-modo`
- * que não é aplicado, passaria com o contraste verde.
+ * Por que existe: o tema é a única parte da identidade que depende de estado e de
+ * JavaScript. O `check-identidade.js` mede os pares de contraste dos dois temas, mas não
+ * executa comportamento — um modo que não é aplicado passaria com o contraste verde.
+ *
+ * A APARÊNCIA MUDOU DE DONO em 18/10/2026 (decisão **C15**): era escolha do NAVEGADOR
+ * (`localStorage`), passou a ser da **ESCOLA**, aplicada no SERVIDOR. Isto muda o que há
+ * para provar, e é por isso que este ficheiro tem duas metades:
+ *
+ *   · o que RESTA do modelo antigo — o `assets/nav.js` continua a saber alternar a
+ *     aparência num DOM de mentira, porque é ele que serve a RAIZ (a plataforma, que não
+ *     é escola e não tem Produção onde pendurar a escolha);
+ *   · o que o modelo novo EXIGE — que o `nav.js` **não** faça nada quando a fonte é a
+ *     escola, que a barra das escolas já não traga botão, que as páginas servidas cheguem
+ *     com o atributo posto, e que o anti-flash (a rede de quem abre o `.html` do disco)
+ *     consulte a fonte ANTES de ler o navegador.
  *
  * O que esta prova confere, sem dependências:
  *
@@ -15,13 +26,17 @@
  *      alterna nos dois sentidos e PERSISTE; `aria-pressed` e o rótulo acompanham;
  *   2. o comportamento quando o `localStorage` LANÇA (modo privado / política): não
  *      quebra, fica clara, e o clique continua funcionando na aba;
+ *   2b. **a escola manda**: com `data-modo-fonte` no `<html>`, o `nav.js` não age — nem lê,
+ *      nem escreve, nem liga o botão — e o modo do servidor sobrevive à memória do navegador;
  *   3. página SEM navbar (a raiz não tem `.topnav`): o tema ainda funciona — o bloco
  *      do tema vem antes do `return` que protege a navegação;
  *   4. o CSS da fonte declara os dois temas, a impressão repõe a variante clara com
  *      `!important`, e a escolha NÃO depende de `prefers-color-scheme` (decisão
  *      registada no `IDENTIDADE-VISUAL.md`);
- *   5. o anti-flash está em todas as superfícies e o botão `.tema` existe no esqueleto
- *      da navbar e na raiz.
+ *   5. o anti-flash está nas superfícies estáticas e nas geradas, sempre GUARDADO; o botão
+ *      `.tema` já não existe no esqueleto da navbar nem em página nenhuma de escola, e
+ *      continua — como exceção declarada — na raiz; e o servidor publica `data-modo` com
+ *      `data-modo-fonte="escola"`, tanto na vista dos Bastidores como na ponte de produção.
  *
  *   uso: node experimentos/provar-tema.js
  */
@@ -66,6 +81,7 @@ function criarElemento(tag) {
     get textContent() { return el.texto; },
     set textContent(v) { el.texto = String(v); },
     getAttribute(n) { return Object.prototype.hasOwnProperty.call(el.atributos, n) ? el.atributos[n] : null; },
+    hasAttribute(n) { return Object.prototype.hasOwnProperty.call(el.atributos, n); },
     setAttribute(n, v) { el.atributos[n] = String(v); },
     removeAttribute(n) { delete el.atributos[n]; },
     addEventListener(tipo, fn) { (el.ouvintes[tipo] = el.ouvintes[tipo] || []).push(fn); },
@@ -85,8 +101,14 @@ function criarElemento(tag) {
   return el;
 }
 
-function criarAmbiente({ navbar = true, armazenamento = 'memoria' } = {}) {
+function criarAmbiente({ navbar = true, armazenamento = 'memoria', modoDaEscola = null } = {}) {
   const html = criarElemento('html');
+  // A ESCOLA DECIDIU: a página chega do servidor com o atributo posto. É este o estado das
+  // páginas do Worker desde a C15, e o `data-modo-fonte` é a fronteira que o `nav.js` lê.
+  if (modoDaEscola) {
+    html.setAttribute('data-modo', modoDaEscola);
+    html.setAttribute('data-modo-fonte', 'escola');
+  }
   const tema = criarElemento('button');
   const nav = navbar ? criarElemento('nav') : null;
   const hamburger = navbar ? criarElemento('button') : null;
@@ -184,6 +206,33 @@ function rodar(env, contextoChamada) {
 }
 
 // --------------------------------------------------------------------------
+// 2b. A ESCOLA MANDA (18/10/2026) — a decisão C15
+//
+// As páginas servidas pelo Worker chegam com `data-modo` no `<html>` e com
+// `data-modo-fonte="escola"`. Nesse caso o `nav.js` NÃO age: nem lê o `localStorage`, nem
+// escreve, nem liga o botão. Se agisse, a memória de um navegador usado antes desfaria em
+// silêncio a escolha que vale para a escola inteira — e o sintoma seria o pior possível:
+// cada pessoa veria uma pele diferente da que a escola escolheu, e nenhuma saberia por quê.
+// --------------------------------------------------------------------------
+{
+  const env = criarAmbiente({ modoDaEscola: 'clara' });
+  env.memoria.set('ciclo-modo', 'noturna'); // sobra de uma visita antiga, de antes da C15
+  rodar(env);
+  provar('a escola escolheu clara: a memória do navegador NÃO a desfaz',
+    env.html.getAttribute('data-modo'), 'clara');
+  provar('…e o atributo da fonte continua a dizer de quem é a decisão',
+    env.html.getAttribute('data-modo-fonte'), 'escola');
+}
+
+{
+  const env = criarAmbiente({ modoDaEscola: 'noturna' });
+  // O navegador diz clara (o padrão de quem nunca clicou): ainda assim vale a noturna da escola.
+  rodar(env);
+  provar('a escola escolheu noturna: o servidor vence o navegador',
+    env.html.getAttribute('data-modo'), 'noturna');
+}
+
+// --------------------------------------------------------------------------
 // 3. O CSS: os dois temas, a impressão e a não-dependência do sistema
 // --------------------------------------------------------------------------
 {
@@ -231,35 +280,31 @@ function botaoForaDoPainel(html) {
   return botao < faixa[0] || botao >= faixa[1];
 }
 {
+  // O «ANTI-FLASH» CONTINUA A EXISTIR — mas GUARDADO. Ele deixou de ser a forma de escolher
+  // a aparência e passou a ser a rede de segurança de quem abre um `.html` direto do disco,
+  // sem servidor: aí não há Worker a pôr o atributo, e a memória do navegador é a única
+  // informação que existe. A guarda (`!hasAttribute('data-modo-fonte')`) é o que impede que
+  // essa rede desfaça, nas páginas SERVIDAS, a decisão da escola.
   const superficies = [
     'tools/templates/ciclo.html',
     'tools/templates/lancamento.html',
     'raiz/index.html',
     'porta/index.html',
-    'motor/servidor/bastidores.js',
   ];
   const faltam = superficies.filter((rel) => {
     const t = fs.readFileSync(path.join(raiz, rel), 'utf8');
     return !/ciclo-modo/.test(t);
   });
-  provar('o anti-flash está em todas as superfícies', faltam, []);
+  provar('o anti-flash está em todas as superfícies estáticas', faltam, []);
 
-  const { navSistema } = require('../tools/templates/nav-html.js');
-  const nav = navSistema({ anamnese: 'a', plano: 'b', po: 'c' });
-  provar('o esqueleto traz o botão do tema', nav.includes('class="tema"'), true);
-  provar('…com aria-pressed', nav.includes('aria-pressed="false"'), true);
-  // O painel `.nav-links` colapsa no celular: entre a abertura dele e o botão tem de
-  // haver o `</div>` que o FECHA. Sem esta conferência, o botão ficaria inalcançável
-  // com o menu fechado — e a prova passaria (foi o que aconteceu na primeira versão).
-  provar('…e o botão fica FORA do painel que colapsa', botaoForaDoPainel(nav), true);
+  const semGuarda = superficies.filter((rel) => {
+    const t = fs.readFileSync(path.join(raiz, rel), 'utf8');
+    const linha = t.split('\n').find((l) => l.indexOf('ciclo-modo') >= 0) || '';
+    return linha.indexOf('data-modo-fonte') < 0;
+  });
+  provar('…e cada um consulta a fonte ANTES de ler o navegador', semGuarda, []);
 
-  // As páginas JÁ GERADAS também: o gerador emite a nav, e uma ordem errada aqui só
-  // apareceria no celular — com o menu fechado, o botão ficaria inalcançável.
-  //
-  // A coleta é de TODAS as páginas, e não só das que já têm o botão. Antes ela era
-  // `if (html.includes('class="tema"')) geradas.push(...)` — o filtro tornava a
-  // asserção vácua: uma página SEM o botão simplesmente não era provada, e a escola
-  // criada pelo `criar-escola.sh` passou em verde sem nunca poder escurecer.
+  // AS PÁGINAS JÁ GERADAS: mesma guarda, para que o pacote e a fonte não divergam.
   const geradas = [];
   const dirProf = path.join(raiz, 'professores');
   for (const prof of fs.readdirSync(dirProf)) {
@@ -274,14 +319,64 @@ function botaoForaDoPainel(html) {
       }
     }
   }
-  const semBotao = geradas.filter(([, html]) => !html.includes('class="tema"')).map(([rel]) => rel);
-  provar('toda página gerada traz o botão da aparência', semBotao, []);
-  const fora = geradas.filter(([, html]) => !botaoForaDoPainel(html)).map(([rel]) => rel);
-  provar('o botão está fora do painel também nas páginas geradas', fora, []);
+  const semGuardaGerada = geradas.filter(([, html]) => {
+    const linha = html.split('\n').find((l) => l.indexOf('ciclo-modo') >= 0) || '';
+    return linha.indexOf('data-modo-fonte') < 0;
+  }).map(([rel]) => rel);
+  provar('as páginas geradas também consultam a fonte', semGuardaGerada, []);
+}
 
+{
+  // O BOTÃO DO TEMA SAIU DA BARRA (18/10/2026). A decisão C15 é «a preferência é da escola»,
+  // e uma escolha que vale para todos não pode ter, ao lado, um botão que a desfaça por
+  // visitante. O controlo passou a viver na Produção — que é onde só a escola e o professor
+  // principal entram. O que se prova aqui é a AUSÊNCIA: um botão que voltasse ao esqueleto
+  // reintroduziria, sem ninguém notar, a preferência por navegador.
+  const { navSistema } = require('../tools/templates/nav-html.js');
+  const nav = navSistema({ anamnese: 'a', plano: 'b', po: 'c' });
+  provar('o esqueleto da navbar NÃO traz botão de tema', nav.includes('class="tema"'), false);
+  provar('…e não sobra o atributo do estado', nav.includes('aria-pressed'), false);
+
+  const comBotao = geradas => geradas.filter(([, html]) => html.includes('class="tema"')).map(([rel]) => rel);
+  // (as páginas geradas já estão em memória do bloco anterior; recolhem-se de novo para que
+  // este bloco seja legível sozinho)
+  const paginas = [];
+  const dirProf = path.join(raiz, 'professores');
+  for (const prof of fs.readdirSync(dirProf)) {
+    const dirCiclos = path.join(dirProf, prof, 'ciclos');
+    if (!fs.existsSync(dirCiclos)) continue;
+    for (const e of fs.readdirSync(dirCiclos, { withFileTypes: true })) {
+      if (!e.isDirectory() || !e.name.startsWith('ciclo-')) continue;
+      for (const pagina of ['index.html', 'plano-observacao/index.html']) {
+        const p = path.join(dirCiclos, e.name, pagina);
+        if (!fs.existsSync(p)) continue;
+        paginas.push([path.relative(raiz, p), fs.readFileSync(p, 'utf8')]);
+      }
+    }
+  }
+  provar('nenhuma página gerada traz o botão', comBotao(paginas), []);
+
+  // A RAIZ É A EXCEÇÃO DECLARADA: ela não é uma escola — é a plataforma, que serve a criação
+  // de escolas e não tem Produção onde pendurar a escolha. Fica com o botão, e é a ÚNICA.
   const raizHtml = fs.readFileSync(path.join(raiz, 'raiz/index.html'), 'utf8');
-  provar('a raiz tem o botão (não tem navbar para hospedá-lo)', raizHtml.includes('class="tema"'), true);
+  provar('a raiz mantém o botão (não é escola, não tem Produção)', raizHtml.includes('class="tema"'), true);
   provar('…e carrega o comportamento compartilhado', raizHtml.includes('assets/nav.js'), true);
+}
+
+{
+  // O SERVIDOR DECIDE, E DIZ DE QUEM É A DECISÃO. A vista dos Bastidores emite o atributo e
+  // o `data-modo-fonte`; sem ele, o `nav.js` voltaria a mandar no navegador e a escolha da
+  // escola perderia para uma memória antiga. E o anti-flash por `localStorage` SAIU de lá:
+  // já não há nada para evitar, porque o atributo chega pronto.
+  const fonte = fs.readFileSync(path.join(raiz, 'motor/servidor/bastidores.js'), 'utf8');
+  provar('a vista dos Bastidores publica o modo no <html>',
+    /data-modo="' \+ modo \+ '" data-modo-fonte="escola"/.test(fonte), true);
+  provar('…e não deixou o anti-flash por localStorage',
+    /localStorage\.getItem\("ciclo-modo"\)/.test(fonte), false);
+
+  const prod = fs.readFileSync(path.join(raiz, 'motor/servidor/producao.js'), 'utf8');
+  provar('a ponte de produção injeta o modo no que serve',
+    prod.includes('comAparencia') && prod.includes("data-modo-fonte=\"escola\""), true);
 }
 
 // --------------------------------------------------------------------------

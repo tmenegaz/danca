@@ -173,11 +173,36 @@ O `color-scheme` acompanha, para os controles nativos (`select`, `checkbox`, bar
 ficarem claros no meio da página.
 
 O tema é um **atributo** no `<html>`: `data-modo="noturna"`. Sem o atributo, é a variante clara.
-A escolha é explícita e fica no **navegador** (`localStorage`, chave `ciclo-modo`), entre sessões —
-um caminho **provisório**. **Nota de 18/10/2026:** a decisão **C15** foi tomada — **a preferência é
-da escola** —, e por isso este caminho (no navegador) está declarado como **o que será
-substituído**: uma escolha da escola vale para todos e aplica-se no **servidor**. Enquanto a
-implementação não existir, o botão `◐` continua na barra e, na raiz, ao lado das ações.
+
+**De quem é a escolha — decidido em 18/10/2026 (C15): é da ESCOLA, e é o servidor que a aplica.**
+Este parágrafo dizia o contrário: que a escolha ficava no **navegador** (`localStorage`, chave
+`ciclo-modo`) e que esse era o caminho declaradamente provisório. Deixou de ser. Uma preferência
+que vale para todos não pode viver no navegador de cada um, e o sintoma de a ter ali é o pior
+possível: cada pessoa veria uma pele diferente da que a escola escolheu, e nenhuma saberia por quê.
+
+O que passa a valer, e é o que está implementado:
+
+| Peça | Onde está |
+| --- | --- |
+| **o valor** | no dado da escola — `bastidores/<escola>/aparencia`, guardando o **nome** do modo (nunca um hex) |
+| **a aplicação** | no **servidor**: o `<html>` de toda página servida sai com `data-modo` **e** `data-modo-fonte="escola"` |
+| **o controlo** | a secção **Aparência**, na Produção — onde só a senha da escola e a do professor principal entram |
+| **o portão** | `senhaDaDirecaoOk` (as duas senhas acima, e mais nenhuma) |
+
+**O `data-modo-fonte` é a fronteira, e não um enfeite.** É ele que faz o `assets/nav.js` **não**
+aplicar por cima a memória de um navegador usado antes: uma página que declara a fonte já tem o
+modo posto, e o `nav.js` não age. Sem esse atributo, a escolha da escola perderia — em silêncio —
+para um `localStorage` velho.
+
+**E é por isso que o botão `◐` saiu da barra.** Ele existia para cada visitante escolher; a escolha
+é da escola. Um botão que a desfizesse por visitante seria a contradição escrita ao lado da regra.
+O `◐` sobrevive **apenas na raiz** — que não é escola, não tem Produção onde pendurar a escolha, e
+é a plataforma. Nas páginas de escola, a ausência do botão é provada (`provar-tema.js`).
+
+**O que ainda é provisório** é só a **largura** da escolha, não o mecanismo: existem dois modos
+(`clara`, `noturna`) e nenhuma das doze paletas. Quando o catálogo existir, é o mesmo campo que
+ganha a família — e o que se guarda continua a ser um **nome**, que é o que impede o dado de
+envelhecer junto com os hex.
 
 **A impressão é sempre clara.** O `@media print` repõe os papéis da variante clara com
 `!important`: o papel não tem tema, e o texto não pode sair claro sobre folha branca.
@@ -308,7 +333,10 @@ falhar. Ele confere:
 6. **A porta de cada pacote** — `plano-observacao/index.html` é cópia de `porta/`, e o
    corpo dela tem de ser **o mesmo** arquivo, byte a byte: a única diferença legítima
    é a barra, injetada no marcador `<!-- NAV -->`, que o validador neutraliza antes de
-   comparar. E a barra tem de trazer o botão da aparência. Foi a falta desta checagem
+   comparar. E a barra tem de ser a **de hoje** — isto é, **sem** o botão da aparência, que saiu
+   dela em 18/10/2026 com a C15 (o modo passou a ser servido no `<html>`). A asserção era a
+   contrária e foi **invertida**, não apagada: o que se mede continua a ser «esta cópia é a de
+   hoje», e uma cópia velha falha em vez de passar. Foi a falta desta checagem
    que deixou a porta da Fita presa na identidade **anterior** — 44 usos de primitivo,
    nenhum de papel — sem escurecer com o tema, e ainda com o nome retirado da página
    de entrada («Nós, Por Exemplo») na barra. As duas coisas passavam em verde.
@@ -422,18 +450,31 @@ outras cinco, e a variante noturna da própria Bordô de Cena, são **estudo**.
 > `tools/templates/ciclo.css` como fonte única. A chegada do catálogo é **acréscimo**, não
 > substituição — e enquanto não houver decisão, é o que está escrito acima desta secção que vale.
 
-## A aparência — o que existe hoje *(17/10/2026)*
+## A aparência — o que existe hoje *(revisto em 18/10/2026)*
 
 **O que existe.** A **variante noturna** da identidade vigente, com os papéis medidos nos dois
-temas, e o **botão `◐`** na barra (e na raiz), com a escolha guardada no navegador. Isto é
-**forma implementada**, não o catálogo: **não** há as doze paletas, **não** há painel
-administrativo e **não** há escolha por escola ou por usuário.
+temas, **escolhida pela escola e aplicada pelo servidor**: o `<html>` de toda página que a escola
+serve sai com `data-modo` e `data-modo-fonte="escola"`, e o controlo vive na secção **Aparência**
+da Produção. O botão `◐` existe **só na raiz**. Isto é **forma implementada**, não o catálogo:
+**não** há as doze paletas e **não** há painel de identidade.
+
+**Como a escolha chega a todas as páginas.** Não chega por um script que corre depois de a página
+pintar — isso mostraria a pele errada e a troca à frente dos olhos. Chega **antes**, no HTML:
+
+| Superfície | Quem põe o atributo |
+| --- | --- |
+| as vistas dos Bastidores (Estúdio, Produção) | `cabecalhoDaVista`, ao gerar o HTML |
+| o pacote do ciclo (índice, aulas, guia) e a porta (anamnese, plano de ensino, PO) | a ponte de produção (`comAparencia`), sobre a resposta do `ASSETS` |
+
+**O anti-flash continua a existir, e mudou de razão.** Ele era o mecanismo (`localStorage` lido
+antes de pintar); passou a ser a **rede** de quem abre um `.html` direto do disco, sem servidor —
+aí não há Worker a pôr o atributo, e a memória do navegador é a única informação que existe. A
+guarda `!hasAttribute('data-modo-fonte')` é o que impede que essa rede desfaça, nas páginas
+**servidas**, a decisão da escola.
 
 **O que continua planejado — e não implementado.** O **catálogo** das seis famílias, o item de
-menu **Identidade visual** e o campo **Paleta de cores** com as doze combinações. A decisão
-**C15** — de quem é a preferência — **foi tomada em 18/10/2026: da escola**; a gravação no
-navegador é o caminho provisório, declarado como tal, e será substituída pela aplicação no
-servidor.
+menu **Identidade visual** e o campo **Paleta de cores** com as doze combinações. O que falta
+**não é decisão, é trabalho**: os hex não existem, e nenhum se inventa.
 
 > **A C15, e a resposta (18/10/2026).** Ela perguntava **de quem é a preferência de aparência** —
 > da **escola**, do **usuário** ou do **navegador** —, e estava aberta porque a medição mostrou
@@ -449,7 +490,13 @@ servidor.
 > | --- | --- |
 > | **mecanismo** | **servidor** — uma escolha que vale para todos não pode viver no navegador de cada um |
 > | **onde o valor mora** | no **dado da escola**, sob o `ESCOLA_SLUG` que a instalação já tem |
-> | **quem muda** | **qualquer pessoa com a senha da escola** (`senhaDaEscolaOk` aceita a da direção *ou a de qualquer professor*); separar a direção é a **C17**, ainda aberta |
+> | **quem muda** | **a escola e o professor principal** — o portão da Produção é `senhaDaDirecaoOk`, que aceita `SENHA_ADMIN` *ou* `SENHA_PROFESSOR` e **mais nenhuma**; os demais professores não entram na Produção (abrem o Estúdio, a Área do Professor e o lançamento) |
+>
+> **Correção de 18/10/2026, e ela importa.** A linha «quem muda» dizia `senhaDaEscolaOk` — *a de
+> qualquer professor*. Estava errada para este portão: `senhaDaEscolaOk` é a política **larga**, e
+> serve a outra coisa (abrir o **dado cifrado do ciclo**, onde qualquer professor da casa entra
+> porque o dado é da escola). O portão da Produção é o **estreito**. Confundi-las dava a entender
+> que o seletor de cores estava aberto a toda a gente — e é o contrário que o torna seguro.
 >
 > **O que a decisão não resolve.** Os **hex das doze combinações continuam não especificados** —
 > foi uma decisão sobre *quem escolhe*, não sobre *quais são* —, e o ***quando*** (na contratação

@@ -22,7 +22,48 @@
 const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
 const { respostaEstado, esc } = require('./estado-html.js');
-const { temProfessor } = bastidores;
+const { temProfessor, aparenciaDaEscola } = bastidores;
+
+/**
+ * A APARÊNCIA DA ESCOLA, APLICADA NO SERVIDOR (18/10/2026) — a decisão C15 é «a preferência
+ * é da escola».
+ *
+ * O tema nasceu como escolha do navegador (`localStorage`) e era provisório por declaração.
+ * Com a preferência na escola, ele tem de chegar **antes** de a página pintar — senão a
+ * pessoa vê a pele errada e ela troca à frente dos olhos. E tem de chegar a **todos**,
+ * inclusive a quem abre o documento do ciclo sem senha nenhuma.
+ *
+ * A injeção é cirúrgica: só o atributo no `<html>`. Nada de reescrever o HTML, nada de
+ * tocar em conteúdo — e se a página não for HTML, a resposta passa intacta. O
+ * `data-modo-fonte="escola"` diz de quem é a decisão: é ele que faz o `assets/nav.js` não
+ * aplicar por cima a memória de um navegador usado antes.
+ *
+ * O `content-length` sai porque o corpo mudou de tamanho; mantê-lo truncaria a página.
+ * O `content-encoding` também: o corpo já foi lido e descomprimido pelo `text()`.
+ */
+async function comAparencia(resposta, modo) {
+  if (!resposta) return resposta;
+  const tipo = String(resposta.headers.get('content-type') || '').toLowerCase();
+  if (tipo.indexOf('text/html') === -1) return resposta;
+  let texto;
+  try {
+    texto = await resposta.text();
+  } catch (e) {
+    return resposta;
+  }
+  // Se a página já traz o atributo (servida antes desta versão, ou uma vista dos Bastidores),
+  // ele é REPOSTO, não duplicado: duas ocorrências de `data-modo` deixariam a primeira valer.
+  texto = texto.replace(/<html([^>]*)>/i, (tudo, attrs) => {
+    const limpos = String(attrs)
+      .replace(/\sdata-modo="[^"]*"/gi, '')
+      .replace(/\sdata-modo-fonte="[^"]*"/gi, '');
+    return '<html' + limpos + ' data-modo="' + modo + '" data-modo-fonte="escola">';
+  });
+  const cabecalhos = new Headers(resposta.headers);
+  cabecalhos.delete('content-length');
+  cabecalhos.delete('content-encoding');
+  return new Response(texto, { status: resposta.status, statusText: resposta.statusText, headers: cabecalhos });
+}
 
 // A PORTA vive num SÓ subdiretório do ASSETS (`plano-observacao/`), mas é servida
 // sob TRÊS caminhos de URL — cada fonte da elicitação tem a sua própria URL:
@@ -40,6 +81,15 @@ const PREFIXO_ASSETS = 'plano-observacao/';
 
 function caminhoDaPorta(path, prefixo) {
   return path === prefixo ? '/' : path.slice(prefixo.length);
+}
+
+/** O modo da escola, com o KV e o slug à mão. Sem KV (o servidor de desenvolvimento), o
+ *  padrão é `clara` — a ausência de dado não inventa uma aparência. */
+async function modoDaEscola(env) {
+  const kv = env && env.PADD_KV;
+  const escola = String((env && env.ESCOLA_SLUG) || '');
+  if (!kv || !escola) return 'clara';
+  return aparenciaDaEscola(kv, escola);
 }
 
 async function fetch(request, env) {
@@ -133,7 +183,8 @@ async function fetch(request, env) {
     }
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
-    return portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS });
+    return comAparencia(await portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS }),
+      await modoDaEscola(env));
   }
 
   // 2. O lançamento do pacote (o `lancamento.html` POSTa em /api/receber), na
@@ -153,7 +204,9 @@ async function fetch(request, env) {
   //    existe; este ramo cobre o `run_worker_first` (default) devolvendo o
   //    mesmo 404 que o Worker antigo devolvia.
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
-    return env.ASSETS.fetch(request);
+    // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
+    // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
+    return comAparencia(await env.ASSETS.fetch(request), await modoDaEscola(env));
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {
     status: 404,
@@ -161,4 +214,4 @@ async function fetch(request, env) {
   });
 }
 
-module.exports = { fetch };
+module.exports = { fetch, comAparencia, modoDaEscola };

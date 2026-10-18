@@ -127,7 +127,14 @@ async function baixar(url) {
   const motorProducao = bastidores.paginaProducao(
     'x', { professor: 'x', ciclo: '01', query: '' }, [], [], '', '', [], [], [], [], [], []);
   const motorCss = blocos(motorProducao, 'style')[0];
-  const motorJs = codigoDoScript(blocos(motorProducao, 'script')[1] || '');
+  // O MAIOR script, e não «o segundo». O índice era `[1]` porque havia três blocos: o
+  // anti-flash no `<head>`, o script da página e o `<script src>` da navegação. Em
+  // 18/10/2026 o anti-flash saiu dos Bastidores (o modo passou a vir no `<html>`, com a
+  // C15) e o `[1]` passou a apontar para o `<script src>`, que é vazio — a prova deixou de
+  // medir o script e passou a medir o nada, sem falhar por isso. O critério passa a ser o
+  // TAMANHO, que é o que distingue o código da página de um carregador.
+  const scriptsDaPagina = blocos(motorProducao, 'script').sort((a, b) => b.length - a.length);
+  const motorJs = codigoDoScript(scriptsDaPagina[0] || '');
 
   const portaFonte = fs.readFileSync(path.join(raiz, 'porta/index.html'), 'utf8');
   const portaCss = blocos(portaFonte, 'style')[0];
@@ -179,7 +186,9 @@ async function baixar(url) {
     provar('o <style> da Produção é o que o motor produz agora',
       prodCss === motorCss, { noAr: h(prodCss), motor: h(motorCss) });
 
-    const prodJs = codigoDoScript(blocos(prod, 'script')[1] || '');
+    // O MAIOR script, pelo mesmo motivo do lado do motor: `[1]` deixou de ser o da página
+    // quando o anti-flash saiu dos Bastidores, e passou a apontar para o `<script src>` vazio.
+    const prodJs = codigoDoScript(blocos(prod, 'script').sort((a, b) => b.length - a.length)[0] || '');
     provar('o <script> da Produção é o do motor (dados da escola fora)',
       prodJs === motorJs, { noAr: h(prodJs), motor: h(motorJs) });
   }

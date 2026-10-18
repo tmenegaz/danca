@@ -182,18 +182,26 @@ camada de componentes.
 | 2.1 | Camada de papéis (`--fundo`, `--superficie`, `--texto`, `--texto-suave`, `--borda`, `--borda-campo`, `--marca`, `--marca-texto`, `--acao-*`, `--foco`…) | `[x]` 17/10 |
 | 2.2 | Consumidores passam a falar por papel (primitivos só na fonte) | `[x]` 17/10 — guard no validador |
 | 2.3 | Tokens de estado e de superfície: `--ok-fundo`, `--alerta-fundo`, `--falha-fundo`, `--derivada(-fundo)`, `--veu`, `--sombra`, `--campo-fundo` | `[x]` 17/10 |
-| 2.4 | `[data-modo="noturna"]` + `color-scheme` + botão `◐` com `localStorage` | `[x]` 17/10 — provisório. **Nota 18/10:** a C15 foi **decidida — a preferência é da escola**, e por isso este caminho (navegador) passa a ser declaradamente **o provisório que será substituído** pelo servidor |
+| 2.4 | `[data-modo="noturna"]` + `color-scheme`; **a escolha é da escola, aplicada no servidor** | `[x]` 17/10 (tema) · `[x]` **18/10 — deixou de ser provisório**. O modo vive em `bastidores/<escola>/aparencia`, é servido no `<html>` com `data-modo-fonte="escola"`, e o controlo está na secção **Aparência** da Produção (portão `senhaDaDirecaoOk`). O botão `◐` saiu da barra das escolas e ficou **só na raiz**. Prova: `provar-tema` (36) + `provar-aparencia` (35) |
 | 2.5 | `@media print` força os papéis claros | `[x]` 17/10 — `!important`, explícito |
 | 2.6 | Validador mede **todos** os temas e o uso de papel | `[x]` 17/10 — 31 pares × 2 temas; guard de primitivo |
 | 2.7 | Layouts: `data-layout="documento" \| "painel"` | `[x]` 17/10 |
-| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` **C15 decidida em 18/10/2026 — a preferência é da escola** (ver a glosa no topo). O que falta **não é decisão, é trabalho**: (a) **especificar e medir** os hex das doze combinações — nenhum existe, e nenhum se inventa (V1 do §L13); (b) o **servidor** aplicando a paleta da escola, no lugar do `localStorage`; (c) o campo na configuração, que é alteração de **navegação** (motivo declarado); (d) o validador medindo as doze |
+| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` **C15 decidida em 18/10/2026 — a preferência é da escola** (ver a glosa no topo). **O (b) e o (c) estão feitos** desde 18/10: o servidor aplica a aparência da escola e o controlo existe em Produção — com **dois** modos, não doze. O que falta **não é decisão, é trabalho**: (a) **especificar e medir** os hex das doze combinações — nenhum existe, e nenhum se inventa (V1 do §L13); (b) ~~o servidor aplicando a paleta da escola~~ — **feito, com a paleta vigente**; (c) ~~o campo na configuração~~ — **feito**: a secção **Aparência** (motivo declarado no `REGISTRO.md`); (d) o validador medindo as doze |
 
 ### O que a Fase 2 fez, e o que ela **não** fez
 
 **Fez:** a camada de papéis (o componente deixa de conhecer `--cream`/`--burgundy`); a variante
-noturna da identidade vigente, com todos os pares medidos; o botão de tema, explícito, com a
-escolha no navegador; a impressão sempre clara; o `data-layout`; e dois guards novos no validador —
-**tema não medido não passa**, e **primitivo em consumidor não passa**.
+noturna da identidade vigente, com todos os pares medidos; o botão de tema, explícito; a impressão
+sempre clara; o `data-layout`; e dois guards novos no validador — **tema não medido não passa**, e
+**primitivo em consumidor não passa**.
+
+**E, em 18/10/2026, o que a C15 mandou fazer — que era do 2.4 e do 2.8:** a escolha saiu do
+navegador e passou a ser **da escola**, guardada no dado dela (`bastidores/<escola>/aparencia`,
+com o **nome** do modo), aplicada **no servidor** em tudo o que a escola serve — as vistas dos
+Bastidores e, pela ponte de produção, o pacote do ciclo e a porta —, com o controlo na secção
+**Aparência** da Produção. O botão `◐` saiu da barra das escolas (fica só na raiz, que não é
+escola); o anti-flash ficou como rede de quem abre o `.html` do disco, agora **guardado** por
+`data-modo-fonte`, para não desfazer nas páginas servidas o que a escola decidiu.
 
 **Não fez:** o **catálogo** das seis famílias (as doze combinações), o item de menu «Identidade
 visual» e a escolha por escola/usuário. Nada disso foi inventado: os valores das outras famílias

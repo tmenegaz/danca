@@ -171,6 +171,52 @@ async function lerLista(kv, chave) {
   }
 }
 
+/**
+ * A APARÊNCIA DA ESCOLA (18/10/2026) — a preferência é da ESCOLA (decisão C15).
+ *
+ * O tema nasceu como escolha do NAVEGADOR (`localStorage`), e era provisório por declaração: a
+ * C15 perguntava «de quem é a preferência?» e a medição mostrou que não havia *usuário* onde
+ * pendurá-la (o portão autentica um segredo por escola). Decidido: **é da escola**.
+ *
+ * Guarda-se UM valor, sob a chave da instalação — nada de campo novo de pessoa. O modo aplica-se
+ * no SERVIDOR (o atributo vai no `<html>` de cada página servida), porque uma escolha que vale
+ * para todos não pode viver no navegador de cada um.
+ *
+ * O valor guardado é o NOME do modo (`clara`/`noturna`), e não um índice nem um hex: quando o
+ * catálogo das doze paletas existir, é este campo que ganha a família — e o que se guarda
+ * continua a ser um nome, nunca um valor de cor.
+ */
+const MODOS_DE_APARENCIA = ['clara', 'noturna'];
+
+function chaveDaAparencia(escola) {
+  return RAIZ + '/' + escola + '/aparencia';
+}
+
+/** O modo da escola. Ausência, valor inválido ou KV ilegível caem em `clara` — o padrão não
+ *  depende de haver dado, que é a mesma defesa do `rubricaDaTurma` e do freio da escola. */
+async function aparenciaDaEscola(kv, escola) {
+  try {
+    const t = await kv.get(chaveDaAparencia(escola));
+    const o = t ? JSON.parse(t) : null;
+    const modo = String((o && o.modo) || '');
+    return MODOS_DE_APARENCIA.indexOf(modo) === -1 ? 'clara' : modo;
+  } catch (e) {
+    return 'clara';
+  }
+}
+
+/** Grava o modo. `por` é o rótulo de quem mudou (a senha não é guardada: só a sua origem). */
+async function gravarAparencia(kv, escola, modo, por) {
+  const m = String(modo || '');
+  if (MODOS_DE_APARENCIA.indexOf(m) === -1) return false;
+  await kv.put(chaveDaAparencia(escola), JSON.stringify({
+    modo: m,
+    por: String(por || 'direcao'),
+    em: new Date().toISOString(),
+  }));
+  return true;
+}
+
 async function professores(kv, escola) {
   return lerLista(kv, RAIZ + '/' + escola + '/professores');
 }
@@ -1119,12 +1165,19 @@ function sessaoNaBarra() {
 
 /** O cabeçalho comum das vistas dos Bastidores: a folha do ciclo (a MESMA do pacote,
  *  servida por este Worker) e, DEPOIS dela, o `<style>` da vista — que manda. */
-function cabecalhoDaVista(titulo) {
-  return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
+function cabecalhoDaVista(titulo, aparencia) {
+  // O MODO VEM DO SERVIDOR (18/10/2026). Ele entra no `<html>` antes de a página sair, e o
+  // `data-modo-fonte="escola"` diz de QUEM é a decisão: é esse atributo que faz o
+  // `assets/nav.js` não aplicar por cima a escolha antiga do navegador. O «anti-flash» que
+  // aqui estava — um script a ler `localStorage` antes de pintar — sai: já não há nada para
+  // evitar, porque o atributo chega pronto. Sem ele, a escolha da escola perdia para a
+  // memória de um navegador que tivesse sido usado antes.
+  const modo = (aparencia === 'noturna') ? 'noturna' : 'clara';
+  return '<!doctype html><html lang="pt-BR" data-modo="' + modo + '" data-modo-fonte="escola">' +
+    '<head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
-    '<link rel="stylesheet" href="/assets/style.css">' +
-    '<script>try{if(localStorage.getItem("ciclo-modo")==="noturna")document.documentElement.setAttribute("data-modo","noturna");}catch(e){}</script>';
+    '<link rel="stylesheet" href="/assets/style.css">';
 }
 
 /** O fim comum: o script da navegação, que mede a barra e abre o hamburger. */
@@ -1132,8 +1185,8 @@ function fimDaVista() {
   return '<script src="/assets/nav.js"></script></body></html>';
 }
 
-function paginaEstudio(escola, contexto) {
-  return cabecalhoDaVista('Bastidores · Estúdio de Dança · ' + escola) +
+function paginaEstudio(escola, contexto, aparencia) {
+  return cabecalhoDaVista('Bastidores · Estúdio de Dança · ' + escola, aparencia) +
     '<style>' +
     'body{font:17px/1.65 var(--serif);color:var(--texto);background:var(--fundo);margin:0;}' +
     '.vista{max-width:44rem;margin:0 auto;padding:1.6rem 1.25rem;}' +
@@ -1150,7 +1203,11 @@ function paginaEstudio(escola, contexto) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia) {
+  // O MODO DA ESCOLA (18/10/2026). Vem do KV e é aplicado no SERVIDOR: o atributo entra no
+  // `<html>` da página, e o `data-modo-fonte` diz de quem é a decisão — é ele que faz o
+  // `assets/nav.js` **não** tentar aplicar a escolha antiga do navegador por cima.
+  const modo = (aparencia === 'noturna') ? 'noturna' : 'clara';
   // O professor criado pela página `danca` vive como SEGREDO (PROFESSOR_NOME, com o nome
   // ajustável no KV) e é o «dono» da escola; os professores ADICIONAIS cadastrados aqui
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
@@ -1686,7 +1743,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
 
-  return cabecalhoDaVista('Bastidores · Produção · ' + escola) +
+  return cabecalhoDaVista('Bastidores · Produção · ' + escola, modo) +
     '<style>' +
     // A IDENTIDADE É A MESMA DA RAIZ («criar nova escola») e do pacote do ciclo: as
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
@@ -2207,6 +2264,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<span class="lateral-puxador" aria-hidden="true"></span>' +
     '<h2>Produção</h2>' +
     '<a href="#painel" data-secao="painel">Painel inicial</a>' +
+    // A APARÊNCIA ENTRA EM PRODUÇÃO (18/10/2026): a preferência é da escola (C15), e é aqui
+    // que só a escola e o professor principal chegam. O grupo é «Configuração» porque não é
+    // pedagogia nem pessoa — é a forma da casa.
+    '<h2>Configuração</h2>' +
+    '<a href="#aparencia" data-secao="aparencia">Aparência</a>' +
     '<h2>Pessoas</h2>' +
     '<a href="#professores" data-secao="professores">Professores</a>' +
     '<a href="#alunas" data-secao="alunas">Alunas</a>' +
@@ -2248,6 +2310,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<section class="secao" id="sec-painel">' +
     '<h2>Painel inicial</h2>' +
     '<p>Aqui aparece o que mudou desde a última vez. Use o menu ao lado para gerir pessoas e pedagogia.</p>' +
+    '</section>' +
+    // A APARÊNCIA DA ESCOLA (18/10/2026). Dois modos, UM valor para a escola inteira. As
+    // opções nascem marcadas pelo SERVIDOR (`aria-pressed`), e não por um script a ler o
+    // atributo: o estado que a pessoa vê é o que está guardado, e não uma inferência.
+    '<section class="secao" id="sec-aparencia" hidden>' +
+    '<h2>Aparência</h2>' +
+    '<div class="col-form">' +
+    '<p class="nota">A aparência vale para a <b>escola inteira</b>: quem abrir esta escola ' +
+    'vê o que aqui se escolher. Não é uma preferência de cada um.</p>' +
+    '<div class="fileira" id="aparencia-opcoes">' +
+    '<button type="button" class="acao secundario" data-aparencia="clara" aria-pressed="' +
+    (modo === 'clara' ? 'true' : 'false') + '">Clara</button>' +
+    '<button type="button" class="acao secundario" data-aparencia="noturna" aria-pressed="' +
+    (modo === 'noturna' ? 'true' : 'false') + '">Noturna</button>' +
+    '</div>' +
+    '<p class="sub" id="aparencia-estado">Em vigor: <b>' + (modo === 'noturna' ? 'noturna' : 'clara') +
+    '</b>.</p>' +
+    '</div>' +
     '</section>' +
     '<section class="secao" id="sec-professores" hidden>' +
     '<h2>Professores</h2>' +
@@ -4069,6 +4149,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    else { alert("Erro: " + (d.erro || "desconhecido")); }' +
     '  }).catch(function(err){ alert("Erro: " + err.message); });' +
     '});' +
+    // A APARÊNCIA — dois botões, um valor da escola. Grava e RECARREGA: o modo vem no `<html>`
+    // servido, e recarregar é o que faz a página inteira mudar de pele. Gravar sem recarregar
+    // deixaria a página na pele antiga até à próxima navegação, e pareceria que não funcionou.
+    'document.querySelectorAll("[data-aparencia]").forEach(function(b){' +
+    '  b.addEventListener("click", function(){' +
+    '    enviar("/api/bastidores/aparencia", {modo: b.getAttribute("data-aparencia")},' +
+    '      "gravando a aparência da escola...", true);' +
+    '  });' +
+    '});' +
     '</script>' +
     fimDaVista();
 }
@@ -4106,7 +4195,7 @@ async function fetch(request, env) {
   }
   const contexto = contextoDaPorta(env, escola, url);
   if (path === '/bastidores/estudio') {
-    return html(paginaEstudio(escola, contexto));
+    return html(paginaEstudio(escola, contexto, await aparenciaDaEscola(kv, escola)));
   }
   if (path === '/bastidores/producao') {
     const [profs, aluns, trms, trmos, rbs] = await Promise.all([
@@ -4123,7 +4212,8 @@ async function fetch(request, env) {
     // O QUE OS PLANOS JÁ USARAM — a regra de proveniência que a curadoria já aplicava,
     // estendida a professores, alunas, turmas e vocabulário (18/10/2026).
     const usos = await usosDosPlanos(kv, escola);
-    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos));
+    return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
+      await aparenciaDaEscola(kv, escola)));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
@@ -4328,6 +4418,37 @@ async function fetch(request, env) {
     }
     await kv.put(RAIZ + '/' + escola + '/dono', JSON.stringify({ nome }));
     return json(200, { ok: true, dono: nome });
+  }
+
+  // ---------------------------------------------------------------------------
+  // A APARÊNCIA DA ESCOLA (18/10/2026) — a preferência é da escola (decisão C15).
+  //
+  // O GET é PÚBLICO e não revela nada: o modo já vai no `<html>` de toda página servida, e
+  // quem quiser vê-lo basta abrir a página. Serve ao próprio painel (para marcar a opção em
+  // vigor) e a quem auditar a instalação por `curl`.
+  //
+  // O POST é da DIREÇÃO — `autorizacaoDirecaoOk`, isto é, a senha da ESCOLA ou a do
+  // PROFESSOR PRINCIPAL, e mais nenhuma. É o mesmo portão da Produção, e é por isso que o
+  // controlo mora aqui: quem lá entra é quem pode decidir a aparência de todos.
+  // ---------------------------------------------------------------------------
+  if (path === '/api/bastidores/aparencia') {
+    if (request.method === 'GET') {
+      return json(200, { ok: true, modo: await aparenciaDaEscola(kv, escola),
+        modos: MODOS_DE_APARENCIA });
+    }
+    if (request.method === 'POST') {
+      let corpo = {};
+      try { corpo = await request.json(); } catch { corpo = {}; }
+      if (!(await autorizacaoDirecaoOk(env, corpo))) {
+        return json(401, { ok: false, erro: 'senha da direção inválida' });
+      }
+      const modo = String(corpo.modo || '').trim();
+      if (MODOS_DE_APARENCIA.indexOf(modo) === -1) {
+        return json(400, { ok: false, erro: 'modo inválido — use ' + MODOS_DE_APARENCIA.join(' ou ') });
+      }
+      await gravarAparencia(kv, escola, modo, 'direcao');
+      return json(200, { ok: true, modo });
+    }
   }
 
   // POST /api/bastidores/validar-senha — a anamnese valida a senha DO PROFESSOR.
@@ -5267,4 +5388,11 @@ module.exports = {
   // ela poder receber um plano, e a frase que diz isso em português (16/10/2026).
   faltaNoRitmoDaTurma,
   fraseDaFalta,
+  // A APARÊNCIA DA ESCOLA (18/10/2026) — a decisão C15. Exportada porque quem serve o PACOTE e
+  // a PORTA não é este módulo: é a ponte de produção, e ela precisa de ler o MESMO valor. Uma
+  // segunda leitura do KV, com a sua própria chave e o seu próprio padrão, divergiria no dia em
+  // que um dos dois mudasse — e o sintoma seria uma escola com duas peles.
+  aparenciaDaEscola,
+  gravarAparencia,
+  MODOS_DE_APARENCIA,
 };

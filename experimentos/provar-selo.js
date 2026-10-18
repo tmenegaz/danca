@@ -114,12 +114,27 @@ const PORTA = NEGATIVO
   ? execSync('git show HEAD:porta/index.html', { cwd: raiz, maxBuffer: 64 * 1024 * 1024 }).toString()
   : fs.readFileSync(path.join(raiz, 'porta/index.html'), 'utf8');
 
+// O BANCO IMITA O WORKER — e é isto que o torna honesto (18/10/2026).
+//
+// Desde a C15, a aparência é da ESCOLA e chega no `<html>`, posto pelo Worker (`comAparencia`).
+// Este banco servia os ficheiros crus: com o botão da barra, isso bastava, porque era o
+// `nav.js` que escurecia a página. Sem o botão, um banco que não injete o atributo põe as
+// quatro superfícies em peles diferentes — Bastidores clara, porta a ler o `localStorage` — e
+// a prova acusa uma divergência que **não existe no ar**. O remédio não é afrouxar a prova:
+// é o banco usar o MESMO código do Worker, que é o que se quer medir.
+const { comAparencia } = require(path.join(raiz, 'motor/servidor/producao.js'));
+
 function servir() {
-  const srv = http.createServer((req, res) => {
+  const srv = http.createServer(async (req, res) => {
     const caminho = decodeURIComponent(req.url).split('?')[0];
     const ok = (tipo, corpo) => {
       res.writeHead(200, { 'content-type': tipo, 'cache-control': 'no-store' });
       res.end(corpo);
+    };
+    // As páginas de ESCOLA saem como saem do Worker: com o modo no `<html>`.
+    const okEscola = async (html) => {
+      const r = await comAparencia(new Response(html, { headers: { 'content-type': 'text/html; charset=utf-8' } }), 'clara');
+      ok('text/html; charset=utf-8', await r.text());
     };
     if (caminho.endsWith('/api/bastidores/professores')) {
       return ok('application/json', JSON.stringify({ ok: true, escola: 'fita',
@@ -142,8 +157,8 @@ function servir() {
     if (caminho === '/ref') return ok('text/html; charset=utf-8', REFERENCIA);
     if (caminho === '/ficha') return ok('text/html; charset=utf-8', FICHA);
     if (caminho === '/estado') return ok('text/html; charset=utf-8', ESTADO);
-    if (caminho.indexOf('/bastidores/producao') !== -1) return ok('text/html; charset=utf-8', PAGINA_PRODUCAO);
-    return ok('text/html; charset=utf-8', PORTA);
+    if (caminho.indexOf('/bastidores/producao') !== -1) return okEscola(PAGINA_PRODUCAO);
+    return okEscola(PORTA);
   });
   return new Promise((pronto) => srv.listen(0, '127.0.0.1', () => pronto({ srv, base: `http://127.0.0.1:${srv.address().port}` })));
 }
