@@ -72,6 +72,7 @@ experimentos/*
 !experimentos/provar-plano-da-turma.js
 !experimentos/provar-escola-fixa.js
 !experimentos/provar-escola-do-documento.js
+!experimentos/provar-cabecalho-do-ato.js
 
 # ============================================================================
 # Caches e ambientes
