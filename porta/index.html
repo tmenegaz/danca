@@ -504,7 +504,7 @@
 </style>
 <script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
    completo (o botão) vive em assets/nav.js. */
-try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
+try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
 <body id="top" data-layout="documento" data-tela="porta">
 

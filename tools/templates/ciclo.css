@@ -565,6 +565,18 @@ button.acao:hover:not(:disabled), a.acao:hover {
 }
 .acao.secundario, .acao.perigo { box-shadow: none; }
 .acao.secundario:hover:not(:disabled) { background: var(--fundo-hover); }
+
+/* A ESCOLHA FEITA. Um `.acao` que representa uma opção — e não uma ordem — diz qual está em
+   vigor por `aria-pressed`, e não por uma classe: o atributo já é o que o leitor de ecrã
+   anuncia, e uma segunda marca («.ativo») seria a mesma informação escrita duas vezes.
+   O desenho é o do botão aceso: preenche de marca e o texto passa a `--sobre-marca`. A
+   variante `:hover` existe por ESPECIFICIDADE, não por gosto — sem ela, `.acao.secundario`
+   (0,4,0) venceria o estado escolhido no instante em que o rato pousasse, e o botão
+   apagava-se exatamente sob o dedo que ia confirmá-lo. */
+.acao[aria-pressed="true"],
+.acao[aria-pressed="true"]:hover:not(:disabled) {
+  background: var(--marca-fundo-hover); color: var(--sobre-marca); border-color: var(--marca-fundo-hover);
+}
 .acao.perigo,
 .acao.perigo:hover:not(:disabled) {
   background: transparent; color: var(--falha); border-color: var(--falha);

@@ -504,7 +504,7 @@
 </style>
 <script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
    completo (o botão) vive em assets/nav.js. */
-try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
+try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.setAttribute('data-modo','noturna');}catch(e){}</script>
 </head>
 <body id="top" data-layout="documento" data-tela="porta">
 
@@ -538,7 +538,6 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
     </div>
   </details>
   </div>
-<button class="tema" type="button" aria-pressed="false" aria-label="Ativar a aparência noturna" title="Aparência clara ou noturna">◐</button>
 </nav>
 
 <!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de

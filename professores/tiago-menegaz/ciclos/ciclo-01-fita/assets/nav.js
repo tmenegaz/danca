@@ -33,7 +33,15 @@
    * ------------------------------------------------------------------ */
   var CHAVE_TEMA = 'ciclo-modo';
   var raizDoc = document.documentElement;
+  /* A ESCOLA DECIDE (18/10/2026) — e quando ela decide, este bloco NÃO age. As páginas
+     servidas pelo Worker chegam com `data-modo` e `data-modo-fonte="escola"` já no `<html>`;
+     aplicar por cima a memória do navegador seria desfazer, em silêncio, a escolha da escola.
+     É por isso que a leitura do `localStorage` fica subordinada a este atributo: ele é a
+     FRONTEIRA entre «a escola escolheu» e «esta página não tem escola» (a raiz, que continua
+     a poder pré-visualizar a aparência). */
+  var decididoPelaEscola = raizDoc.hasAttribute('data-modo-fonte');
   function lerModo() {
+    if (decididoPelaEscola) return raizDoc.getAttribute('data-modo') === 'noturna' ? 'noturna' : 'clara';
     try { return localStorage.getItem(CHAVE_TEMA) === 'noturna' ? 'noturna' : 'clara'; }
     catch (e) { return 'clara'; }
   }
@@ -50,8 +58,8 @@
     else raizDoc.removeAttribute('data-modo');
     pintarBotao(modo);
   }
-  aplicar(lerModo());
-  var botaoTema = document.querySelector('.tema');
+  if (!decididoPelaEscola) aplicar(lerModo());
+  var botaoTema = decididoPelaEscola ? null : document.querySelector('.tema');
   if (botaoTema) {
     botaoTema.addEventListener('click', function () {
       var proximo = raizDoc.getAttribute('data-modo') === 'noturna' ? 'clara' : 'noturna';

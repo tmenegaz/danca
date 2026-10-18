@@ -31,20 +31,22 @@ const ABERTURA = [
 ].join('\n');
 
 /**
- * O BOTÃO DO TEMA. Fica FORA do `.nav-links`: aquele painel colapsa no celular, e a
- * aparência tem de continuar alcançável com o menu fechado. O estado é publicado em
- * `aria-pressed` e o rótulo diz o que o clique FAZ.
+ * O BOTÃO DO TEMA **SAIU DA BARRA DAS ESCOLAS** (18/10/2026).
+ *
+ * Ele existia para a pessoa escolher a aparência no seu navegador. A decisão **C15** —
+ * «de quem é a preferência?» — foi tomada: **é da escola**. Uma escolha que vale para
+ * todos não pode ter, ao lado, um botão que a desfaça por visitante; e o controlo passou a
+ * viver **na Produção**, que é onde só a escola e o professor principal entram. O modo é
+ * aplicado **no servidor**, no `<html>` de cada página servida.
+ *
+ * A constante fica **vazia de propósito**, e não é código morto: é o lugar onde o botão
+ * estava, e o comentário que diz por que saiu. Quem procurar `class="tema"` no gerador
+ * encontra aqui a razão, em vez de a deduzir.
  */
-const BOTAO_TEMA =
-  '<button class="tema" type="button" aria-pressed="false" ' +
-  'aria-label="Ativar a aparência noturna" title="Aparência clara ou noturna">◐</button>';
+const BOTAO_TEMA = '';
 
-/**
- * O FECHAMENTO inclui o botão do tema DEPOIS do `</div>`: o `.nav-links` colapsa no
- * celular, e a aparência tem de continuar alcançável com o menu fechado. A ordem
- * importa — o botão fica entre o painel fechado e o `</nav>`, dentro da barra.
- */
-const FECHAMENTO = ['  </div>', BOTAO_TEMA, '</nav>'].join('\n');
+/** O FECHAMENTO: só o painel e a barra. O botão do tema não entra (ver acima). */
+const FECHAMENTO = ['  </div>', '</nav>'].join('\n');
 
 /** A barra do SISTEMA — os três destinos que existem em qualquer escola.
  *

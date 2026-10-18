@@ -434,8 +434,18 @@ function compararPacotes() {
           erros.push(`Circuito: ${path.relative(raiz, copia)} divergiu de ${origem} — regenere o pacote`);
         }
       }
-      // A porta: o corpo tem de ser o de `porta/index.html`, e a barra injetada tem de
-      // trazer o botão da aparência — é o que torna a tela do professor capaz de escurecer.
+      // A porta: o corpo tem de ser o de `porta/index.html`, e a barra injetada tem de ser a
+      // ATUAL — isto é, a que NÃO traz o botão da aparência.
+      //
+      // A conferência era o contrário («tem de trazer `class="tema"`»), e ela existia por um
+      // bom motivo: uma cópia com a barra velha deixava a tela do professor sem conseguir
+      // escurecer. O motivo acabou em 18/10/2026, quando a decisão **C15** deu a preferência
+      // à ESCOLA e tirou o botão da barra: o modo passou a ser servido no `<html>`. Se o
+      // botão voltasse numa cópia, o sintoma seria o inverso e igualmente silencioso — cada
+      // visitante desfaria, no seu navegador, a aparência que a escola escolheu.
+      //
+      // A asserção é INVERTIDA em vez de apagada: o que se mede continua a ser «a barra desta
+      // cópia é a de hoje», e é isso que faz a cópia velha falhar em vez de passar.
       const portaCopia = path.join(pacote, 'plano-observacao/index.html');
       if (fs.existsSync(portaFonte) && fs.existsSync(portaCopia)) {
         const rel = path.relative(raiz, portaCopia);
@@ -443,8 +453,8 @@ function compararPacotes() {
         if (semBarra(fs.readFileSync(portaFonte, 'utf8')) !== semBarra(html)) {
           erros.push(`Circuito: ${rel} divergiu de porta/index.html — regenere o pacote`);
         }
-        if (!/class="tema"/.test(html)) {
-          erros.push(`Circuito: ${rel} não traz o botão da aparência (barra antiga) — regenere o pacote`);
+        if (/class="tema"/.test(html)) {
+          erros.push(`Circuito: ${rel} ainda traz o botão da aparência na barra — a C15 tirou-o de lá; regenere o pacote`);
         }
       }
     }

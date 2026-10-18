@@ -17098,6 +17098,15 @@ escolha. A decisão escolhe o caminho que a instalação **já sabe** identifica
   «Da escola» não distingue a direção de um professor, e separá-las é a **C17** — que continua
   aberta. Fica **escrito**, não presumido.
 
+  > **Correção de 18/10/2026 (mesmo dia).** Este bullet chamou `senhaDaEscolaOk` de «o portão», e
+  > **está errado**: aquela é a política **larga**, e serve a abrir o **dado cifrado do ciclo**. O
+  > portão da **Produção** — e portanto o da aparência, que nela vive — é `senhaDaDirecaoOk`, que
+  > aceita `SENHA_ADMIN` **ou** `SENHA_PROFESSOR` e **mais nenhuma**. Os demais professores não
+  > entram na Produção. A conclusão do bullet **não muda** (continua a não haver *usuário* a quem
+  > pendurar a preferência, e é por isso que ela é da escola); o que muda é a razão, que fica dita
+  > com a função certa. A redação anterior não é apagada: fica como o elo do que se pensou antes de
+  > a correção existir.
+
 **O que a decisão NÃO resolve — e é o mais importante desta entrada.** Ela foi sobre **quem
 escolhe**, e não sobre **quais são**. Os **hex das doze combinações continuam a não existir** no
 repositório: as imagens de referência são **estudo**, não especificação, e nenhum valor foi
@@ -17127,3 +17136,92 @@ declaram a decisão. `DIAGNOSTICO-IDENTIDADE.md` — as três menções anotadas
 **O que ainda não está feito.** Toda a implementação: o servidor não aplica nada, o `◐` continua a
 gravar no navegador, e as doze paletas continuam sem valores. O documento diz o que fazer e em que
 ordem; o código não foi tocado nesta entrada — ela é **decisão**, não execução.
+
+## 18/10/2026 — A aparência passou a ser da escola, e o servidor aplica-a
+
+**O que motivou.** A **C15** perguntava de quem é a preferência de aparência. O dono do produto
+respondeu: **da escola**. A decisão estava escrita desde a entrada anterior — e escrita **não é
+feita**. Enquanto o modo vivesse no `localStorage`, cada visitante via a pele que o seu navegador
+guardou, e a escolha da escola não existia em lado nenhum. Havia ainda uma frase errada a circular
+nos documentos: a de que «qualquer pessoa com a senha da escola muda a aparência de todos». O
+portão da Produção é o **estreito** — `senhaDaDirecaoOk`, ou seja `SENHA_ADMIN` **ou**
+`SENHA_PROFESSOR`, e mais nenhuma; `senhaDaEscolaOk` é a política **larga** e serve a abrir o
+**dado cifrado do ciclo**, não esta página. Confundir as duas dava a impressão de que o seletor
+estava exposto, e é o contrário que o torna seguro.
+
+**O que foi decidido.**
+
+- **A aparência é um valor da ESCOLA**, guardado em `bastidores/<escola>/aparencia` — e o que se
+  guarda é o **nome** do modo (`clara`/`noturna`), nunca um hex. Quando o catálogo das doze
+  paletas existir, é este campo que ganha a família; guardar cor agora fecharia essa porta.
+- **O servidor aplica-a, e diz de quem é a decisão.** O `<html>` de toda página servida sai com
+  `data-modo` **e** `data-modo-fonte="escola"`. O segundo atributo não é enfeite: é a fronteira
+  que faz o `assets/nav.js` **não** aplicar por cima a memória de um navegador usado antes.
+- **O controlo vive na Produção** — secção **Aparência**, grupo **Configuração**. É o único lugar
+  onde só a escola e o professor principal chegam, e é por isso que lá está.
+- **O botão `◐` saiu da barra das escolas.** Uma escolha que vale para todos não pode ter, ao
+  lado, um botão que a desfaça por visitante. Fica **só na raiz**, que não é escola e não tem
+  Produção onde pendurar a escolha.
+- **O anti-flash não foi apagado — mudou de razão.** Era o mecanismo; passou a ser a rede de quem
+  abre um `.html` direto do disco, sem servidor. Ganhou a guarda `!hasAttribute('data-modo-fonte')`
+  para não desfazer, nas páginas **servidas**, o que a escola decidiu.
+- **A ausência não inventa:** sem nada guardado, a escola é `clara`.
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `MODOS_DE_APARENCIA`, `chaveDaAparencia`, `aparenciaDaEscola`,
+  `gravarAparencia`; `cabecalhoDaVista(titulo, aparencia)` põe o atributo e **perde** o anti-flash
+  por `localStorage`; `paginaEstudio`/`paginaProducao` recebem o modo; rota
+  `GET|POST /api/bastidores/aparencia` (GET público, POST no portão da direção); a secção
+  `#sec-aparencia` e o grupo «Configuração» no menu lateral.
+- `motor/servidor/producao.js` — `comAparencia(resposta, modo)`: injeta o atributo no `<html>` de
+  tudo o que a escola serve (pacote do ciclo e porta), sem tocar em nada que não seja HTML e sem
+  mentir no `content-length`. E `modoDaEscola(env)`, para a ponte não depender de um segundo
+  caminho de leitura.
+- `tools/templates/nav.js` — `decididoPelaEscola`: com `data-modo-fonte` no `<html>`, o `nav.js`
+  não lê, não escreve e não liga o botão.
+- `tools/templates/nav-html.js` — o botão `◐` **saiu** da barra; a constante ficou **vazia de
+  propósito**, com o comentário que diz por que saiu.
+- `tools/templates/ciclo.css` — o estado escolhido de um `.acao` (`[aria-pressed="true"]`), que é o
+  que desenha a opção em vigor na secção Aparência.
+- `tools/templates/ciclo.html`, `tools/templates/lancamento.html`, `porta/index.html`,
+  `raiz/index.html` — o anti-flash ganha a guarda da fonte.
+- `tools/check-identidade.js` — a checagem 6 passa a exigir a barra **de hoje**, isto é, **sem** o
+  botão. A asserção foi **invertida**, não apagada: continua a medir «esta cópia é a atual».
+- Cópias geradas sincronizadas: `assets/style.css` e `assets/nav.js` dos dois pacotes e da raiz;
+  o `<button class="tema">` removido das quatro páginas geradas; o anti-flash com a guarda.
+- Provas: `provar-tema.js` reescrito na metade que a C15 invalidou (36 asserções) e
+  `experimentos/provar-aparencia.js` **novo** (35 asserções: ausência, portão, valor inválido, o
+  que se guarda, as vistas e a ponte). `provar-selo.js` passou a modelar o Worker no banco (servia
+  os ficheiros crus e, sem o botão, punha as quatro superfícies em peles diferentes — acusava uma
+  divergência que **não existe no ar**). `provar-producao.js` conta sete secções e oito
+  formulários, com a exceção declarada da Aparência na regra «nenhum formulário explica».
+
+**Motivo declarado — os congelados.** `tools/`, `tools/templates/` e `tools/check-identidade.js`
+estão em `CONGELAMENTO.md`, e esta entrada declara o motivo: **a decisão C15 removeu o botão da
+aparência da barra e mudou o dono da preferência**, e nenhuma das duas coisas se faz sem tocar a
+barra e o comportamento partilhado. **O que não muda:** a fórmula de hash, a cobertura do `.fipp`,
+os validadores de ciclo, as regras pedagógicas, as pétreas do protocolo e os tokens da identidade.
+Nenhuma fonte de ciclo foi tocada — **não há reancoragem**.
+
+**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
+`tools/templates/nav.js` · `tools/templates/nav-html.js` · `tools/templates/ciclo.css` ·
+`tools/templates/ciclo.html` · `tools/templates/lancamento.html` · `porta/index.html` ·
+`raiz/index.html` · `raiz/assets/{style.css,nav.js}` ·
+`professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/{style.css,nav.js}` · as quatro
+páginas geradas · `tools/check-identidade.js` · `experimentos/provar-{tema,aparencia,selo,producao}.js`
+· `.gitignore` (a prova nova entra na lista do que é versionado) · `IDENTIDADE-VISUAL.md` ·
+`IMPLEMENTACAO-IDENTIDADE.md` · `PLANEJAMENTO-LASTRO.md` · este registro.
+
+**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15 (decidida) e §L13; `IDENTIDADE-VISUAL.md`; o
+próprio `motor/servidor/bastidores.js` (`senhaDaDirecaoOk` × `senhaDaEscolaOk` — a medição que
+corrigiu a frase errada).
+
+**O que ainda não está feito.** (a) **As doze paletas continuam sem hex** — o que existe são dois
+modos sobre a paleta vigente; especificar e medir as combinações é o **V1** do §L13, e nenhum valor
+foi inventado. (b) O *quando* a escola escolhe (contratação ou primeiro uso) segue aberto, e é de
+produto. (c) A metade **comercial** da **C17** (quem confirma pagamento, quem recebe o e-mail
+administrativo) continua aberta; a metade que interessava — *quem administra a Produção* — está
+respondida e escrita. (d) `provar-tema`, `provar-aparencia`, `provar-producao`, `provar-selo`,
+`provar-celular`, `provar-cartao-da-turma`, `provar-dobra-do-indice` e `check-identidade` passam;
+`provar-ambiente` só depois do deploy, e é ele que confirma que o que está no ar é este motor.
