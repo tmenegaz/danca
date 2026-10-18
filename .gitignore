@@ -73,6 +73,7 @@ experimentos/*
 !experimentos/provar-escola-fixa.js
 !experimentos/provar-escola-do-documento.js
 !experimentos/provar-cabecalho-do-ato.js
+!experimentos/provar-menu-da-producao.js
 
 # ============================================================================
 # Caches e ambientes
