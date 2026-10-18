@@ -70,6 +70,7 @@ experimentos/*
 !experimentos/provar-producao.js
 !experimentos/provar-derivacao-da-turma.js
 !experimentos/provar-plano-da-turma.js
+!experimentos/provar-escola-fixa.js
 
 # ============================================================================
 # Caches e ambientes
