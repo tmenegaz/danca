@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-17T20:58:06-0300`
-Commit atual: `849cd4b` — chore(estrutura): as escolas passam a ser publicadas no push — e o aval de «ok» deixa de ser vazio
+Gerado em: `2026-10-17T21:05:23-0300`
+Commit atual: `1de0d5e` — fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,10 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+1de0d5e fix(producao): as sete listas passam a folhear — o botão que valia sempre -1
+523a2e2 style(tools): o botão recupera a borda de baixo, o campo deixa de colar no botão e o modal passa a rolar
+233314a chore(experimentos): a prova do celular passa a medir a BORDA, o VÃO e o MODAL — 11 → 15
+2a8f368 fix(estrutura): o formulário da raiz perde o texto explicativo e ganha o que rola até a mensagem
 849cd4b chore(estrutura): as escolas passam a ser publicadas no push — e o aval de «ok» deixa de ser vazio
 2895a5d style(estrutura): os últimos raios crus entram na régua
 ffa45c8 fix(estrutura): a escola que não nasce não deixa Worker no ar — o rollback do órfão
@@ -78,10 +82,6 @@ b74d2da fix(estrutura): a lista de turmas desce no celular — e a prova passa a
 f5a12ea feat(estrutura): criar a escola valse (motor completo)
 7f5746b Merge remote-tracking branch 'origin/main'
 1a6133c chore(estrutura): expurgar a escola valse
-2cdc91b fix(estrutura): a lista de turmas deixa de ficar acavalada no celular
-6b27a82 chore(experimentos): as provas saem do rascunho — o que o REGISTRO cita passa a ser versionado
-d1aa5d0 chore(estrutura): reancorar a cadeia das fontes alteradas
-e29d3ab docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela abriu
 ```
 
 ## Por professor
@@ -147,104 +147,93 @@ e29d3ab docs(registro): a auditoria contra o diagnóstico, e a Fase 4 que ela ab
 
 ## Última entrada do REGISTRO
 
-## 17/10/2026 — O botão que parecia quebrado, o campo colado no botão e o modal que não dava para enviar
+## 17/10/2026 — As sete listas da Produção passam a folhear (o botão que valia sempre -1)
 
-**O que motivou.** Três relatos do dono do produto, todos visíveis na tela e nenhum deles
-cosmético:
+**O que motivou.** O dono do produto: *«A paginação que tem no turmas … não funciona. A que tem no
+vocabulário técnico também não.»* Só essas duas apareceram porque só elas tinham tamanho para
+página. A paginação da Produção é **uma implementação partilhada pelas sete listas** — Professores,
+Alunas, Turmas, Rubricas, Vínculos turma↔régua, Vocabulário e Curadorias — e estava quebrada em
+todas, incluindo as três que ele não conseguiu verificar.
 
-1. «Os botões de excluir ou apagar não têm a borda de baixo — parece que tá quebrado.»
-2. «Entre o input do formulário e o botão que fica abaixo tinha um espaço; esses aqui estão
-   completamente colados.»
-3. «No celular não dá para clicar no botão cancelar e nem criar, e a mensagem de baixo não
-   aparece.»
+**A causa, numa linha.**
 
-E um quarto, de desenho: «a setinha do `select` está muito colada na margem direita».
+```js
+var passos = b.className === "pag-prox" ? 1 : -1;
+```
 
-**A causa da borda — e por que ela estava assim.** O `main a` e o `.rodape a` usam
-`border-bottom: 1px dotted` como sublinhado de prosa. Um `a.acao` dentro do `main` herdava o
-pontilhado e ficava com duas linhas na base; a correção existia, mas tinha sido escrita na regra
-**compartilhada** — `button.acao, a.acao { … border-bottom: none }`. Ora: `border: 1px solid` é
-atalho que escreve os quatro lados, e o `border-bottom: none` que vinha depois **apagava a base
-do `<button>` também**. O botão de marca não denunciava (a cor de fundo separa da página), mas o
-botão claro — «Apagar escola», «Cancelar» — parecia cortado ao meio. Não era escolha de estilo:
-era a regra do link vazando para o botão. Agora o `none` é de `a.acao`, e só dele.
+O `className` de um elemento é o atributo `class` **inteiro**, e os botões nascem com
+`class="pag-prox acao secundario pequena"`. A comparação era sempre falsa; os **dois** botões
+valiam `-1`; e como o `paginar()` trava a página em `[1, N]`, a página 1 era o fim da linha —
+«›» recuava para 1, «‹» recuava para 1, e o número nunca subia. O rodapé dizia «1 / 3» e nenhum
+clique o mudava.
 
-**A causa do vão zero.** O `.acao` tem `margin: 0`; o que separava um botão do campo acima era o
-acaso de ele estar dentro de um `.modal-acoes` ou de uma `.linha-acao`. Numa pilha crua de
-formulário — os Bastidores — o campo e o botão ficavam encostados. A regra nova dá
-`margin-top: var(--esp-4)`, e **só** quando o botão é irmão de um controle dentro de um `form`:
-um botão **ao lado** de um campo (o «Associar» do `.par-associar`) não é um botão **abaixo** dele,
-e o CSS só sabe distinguir os dois pelo pai. A primeira tentativa não tinha o `form >` e desceu o
-«Associar» 8px.
+**Porque passou despercebido — e por que a correção é `classList`.** O botão ganhou as classes de
+estilo e a comparação nasceu a exigir que ele tivesse **uma**. Qualquer classe a mais quebrava-a,
+em silêncio. `b.classList.contains("pag-prox")` sobrevive a isso, e é o que a próxima pessoa não
+quebra sem reparar.
 
-**A causa do modal que não dava para enviar.** O `.modal` era `display: flex` com
-`align-items: center` e **sem** `overflow`: uma caixa de 1112px numa tela de 420px começava em
-`top: -411px`, e o rodapé com «Cancelar» e «Criar» ficava abaixo da dobra **sem nada que rolasse
-até ele**. Trocado por `overflow-y: auto` no contêiner e `margin: auto` na caixa — que centra
-quando há espaço e vira 0 quando não há, exatamente o que `align-items: center` não faz. O
-`scroll-padding` no contêiner existe porque `scrollIntoView({block: "nearest"})` encosta o
-elemento na borda e ignora o `padding` da caixa: sem ele a mensagem de erro nasce colada no
-rodapé da tela.
+**O que foi decidido.**
 
-**A seta do `select`.** A nativa fica encostada na borda direita e o navegador não deixa
-afastá-la — o único caminho é desenhá-la. Sai `appearance: none`, entra um chevron em SVG no
-`background-image`, a `var(--esp-3)` da borda, com `padding-right` calculado para o texto não
-passar por baixo. Na noturna o chevron clareia. Uma armadilha no caminho: as regras que pintam o
-campo dentro do cartão usavam o `background` **abreviado**, que zera o `background-image` e
-apagaria a seta; passaram a falar de `background-color` — imagem não é cor.
+- **Uma correção, sete listas.** Não se tocou em nenhuma das sete — a implementação é uma.
+- **A prova não é de contrato.** A pergunta é «o clique move a lista?», e isso só se responde com
+  um DOM e um clique a sério. A prova nova monta a página pelo caminho verdadeiro
+  (`bastidores.fetch`, com um KV em memória), carrega o HTML no jsdom **com os scripts**, e
+  **clica**. Uma prova que chamasse o `paginar()` directamente passaria com o defeito lá dentro —
+  foi exactamente assim que ele passou.
+- **As asserções contam pelo DOM, não pelo que foi semeado.** Os Professores ganham sempre o dono
+  à frente (a linha «criado na página»): fixar 15 no teste mediria o seed em vez de medir a
+  página.
 
-**Motivo declarado (infraestrutura congelada).** `tools/templates/ciclo.css` está em
-`CONGELAMENTO.md`. A alteração entra porque os três primeiros defeitos **impedem o uso**: um
-formulário que não pode ser enviado no celular e um botão que parece quebrado não são acabamento.
-O que muda é a folha compartilhada, não a estrutura de arquivos, de pacotes ou de hashes.
+**Um segundo defeito, encontrado no caminho — e que não era de paginação.**
+`avisarNaFicha`, em `porta/index.html`, escrevia `escap(texto)`. A função do arquivo chama-se
+`escapar`; **`escap` não existe em lado nenhum**. Toda a chamada lançava `ReferenceError` **antes**
+de escrever, e o efeito era o pior possível: as nove mensagens da estante — a exclusão sem senha,
+o ajuste recusado, o erro do servidor — **não apareciam**, e a linha ficava muda a olhar para o
+professor. O erro só se via no console.
 
-**O que saiu do formulário.** Todos os `<p class="nota">` do `#form-criar` e do `#modal-apagar`
-foram removidos a pedido do dono do produto — inclusive o aviso de que o nome vira pasta e o de
-que o professor criado é o dono da escola. Ficaram o título, o `fieldset` «Quem é o professor
-desta escola?» com suas duas opções, os rótulos e os campos. A linha de JS que escrevia em
-`#nota-sem-professores` saiu junto: o elemento não existe mais e ela lançaria.
+Foi por causa dele que a prova da estante (`provar-ajustes-anamnese`) morria a meio: o
+`ReferenceError` interrompia o ficheiro no ponto em que se começa a mexer na lista. Corrigido, a
+prova avançou — e as **dezoito asserções de paginação da estante passaram todas**. (A estante é a
+OUTRA paginação do sistema, e estava boa: `data-pagina` no botão e `dataset.pagina` no handler.)
 
-**Conferido.** `check-identidade.js` → 8 verificações. `provar-celular.js` → 15/15 (eram 11):
-ganhou guarda de borda nos botões, de vão na pilha do formulário, de raio e altura nos campos, e
-de rolagem do modal **em 390×420** — não em 700, onde a caixa cabe e a guarda não provaria nada.
-Cada guarda nova foi validada pelo controle negativo: contra a folha anterior, **4 das 15
-falham**. `provar-tema.js` → 30/30. `provar-producao.js` → 109/109.
-`provar-derivacao-da-turma.js` → 123/123. `provar-plano-da-turma.js` → 47/47.
+**O que foi verificado, e como.**
 
-Medido no navegador, na raiz: os dois botões claros com `1px/1px/1px/1px`; 24px entre o último
-campo e o botão; `select` com `appearance: none`, chevron e `padding-right: 36px`; campo com raio
-12px e 42,5px de altura; os dois modais sem nenhum parágrafo de texto; em 390×420 os botões e a
-mensagem de erro alcançáveis, com o modal rolando 435px.
+- `experimentos/provar-paginacao.js` — **163 asserções, 163 passam**. Nas sete listas: o rodapé
+  aparece, diz «1 / N», a página 1 tem 7 itens e a 8.ª está escondida, «›» leva à 2 e à última,
+  «‹» recua e desabilita na primeira, nenhum clique sai da faixa, e **folheando todas as páginas
+  aparecem exactamente as N linhas, sem repetir nenhuma** — é o que distingue «paginar» de
+  «esconder». Mais: 7 itens ⇒ sem rodapé; 0 itens ⇒ só a linha do estado vazio; 8 itens ⇒ duas
+  páginas com uma na segunda; e mexer numa lista **não** mexe nas outras.
+- **A prova foi verificada ao contrário.** Com o código antigo ela dá **73 falhas de 163**; com a
+  correção, 163 de 163. E ganhou tetos nos laços que saltam de página: sem teto, o próprio defeito
+  fazia a prova **nunca terminar** — uma prova que trava esconde o resultado em vez de o mostrar.
+- **As três paginações do sistema foram procuradas, não presumidas**: a da Produção
+  (`data-paginar`), a da estante (a porta, coberta pelas dezoito asserções acima) e a do
+  `tools/templates/lancamento.html` (`data-ir` + `dataset.ir`, que está correcta — o `closest`
+  devolve o botão e o `data-ir` é lido do próprio).
+
+**Onde entrou.**
+
+- `motor/servidor/bastidores.js` — `classList.contains` no lugar de `className ===`.
+- `porta/index.html` — `escap` → `escapar`, com o porquê ao lado. (A correção já tinha sido
+  propagada às cópias de `plano-observacao/` dos dois pacotes pela frente que a descobriu; o
+  `check-identidade.js` exige que as três sejam iguais, e exige.)
+- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
+  cópias do pacote, agora iguais à fonte.
+- `experimentos/provar-paginacao.js` — a prova, 163 asserções.
 
 **O que ainda não está feito.**
 
-- **A conferência visual continua sua**, sobre `danca`, `fita` e `valse` no ar.
-- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`).
-- **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
-  as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
-  `check-identidade.js` as exige iguais à fonte.
+- **A prova `provar-ajustes-anamnese.js` continua com 14 falhas** — e são alheias a este trabalho:
+  ela espera a TURMA da anamnese como **radios** com estados bloqueados, e a turma passou a
+  `select` em 16/10/2026. Estavam escondidas até agora porque o ficheiro morria antes de lá
+  chegar; a correção do `escap` desmascarou-as. Ficam declaradas: é dívida de prova, não defeito
+  de produto.
+- O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
+  harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
+  avança.
 
 ## O que está pendente
-
-## 17/10/2026 — A aparência ganha prova própria — e o botão que sumiria no celular
-
-
-- **A conferência visual no navegador** continua pendente — é do dono do produto, e a prova cobre
-  contraste, papel e comportamento, não o gosto.
-- **O catálogo das doze paletas (2.8)** continua em aberto, à espera da decisão **C15**.
-- **O pacote da Fita não foi regenerado** por `gerar-ciclo.sh` (`DATA_INICIO` é `[Preencher: …]`);
-  as páginas foram ajustadas por cópia determinística.
-- **Nenhum commit foi feito** — as mudanças em `tools/` exigem commit próprio com este motivo.
-
-> **Fechamento (17/10/2026), depois das entradas acima.** Os commits saíram, separados pela
-> fronteira que o `CONGELAMENTO.md` impõe: `42b853e` — as fontes congeladas (`tools/`, com o
-> motivo declarado no corpo); `fdd8bd0` — as superfícies e os documentos; `aa4c389` — o pacote
-> da Fita. O terceiro foi por `--no-verify`, e o motivo está no corpo: o hook roda
-> `gerar-ciclo.sh` para todo ciclo tocado, e o gerador recusa este por `DATA_INICIO` — lacuna
-> **anterior** a esta mudança. A alternativa seria deixar o `HEAD` com a folha adiantada em
-> relação à cópia do pacote, que é exatamente o que a checagem «Circuito» reprova. Conferido à
-> mão antes e depois: `check-identidade.js` 8/8, `hash-ciclo.sh --check` íntegro (`ef5ee269`),
-> `provar-tema.js` 29/29 nas páginas geradas.
 
 ## 17/10/2026 — A escola nasceu sem o botão da aparência: a barra tinha uma terceira cópia
 
@@ -280,6 +269,24 @@ mensagem de erro alcançáveis, com o modal rolando 435px.
 - **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
   as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
   `check-identidade.js` as exige iguais à fonte.
+
+  > **Correção de 17/10/2026 (mesmo dia).** «ainda não está commitada» deixou de ser verdade
+  > poucos minutos depois: a correção entrou no commit do paginação (a mesma sessão que a
+  > encontrou fechou-a). O que fica registado é o estado do momento em que esta entrada foi
+  > escrita — e a lição que ele guarda: uma correção que só existe em três ficheiros do
+  > worktree, sem commit, é uma correção que a próxima sessão não vê.
+
+## 17/10/2026 — As sete listas da Produção passam a folhear (o botão que valia sempre -1)
+
+
+- **A prova `provar-ajustes-anamnese.js` continua com 14 falhas** — e são alheias a este trabalho:
+  ela espera a TURMA da anamnese como **radios** com estados bloqueados, e a turma passou a
+  `select` em 16/10/2026. Estavam escondidas até agora porque o ficheiro morria antes de lá
+  chegar; a correção do `escap` desmascarou-as. Ficam declaradas: é dívida de prova, não defeito
+  de produto.
+- O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
+  harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
+  avança.
 
 ## Pendências anteriores (índice)
 
@@ -455,6 +462,7 @@ mensagem de erro alcançáveis, com o modal rolando 435px.
 - **16/10/2026** — A curadoria é de UMA turma — e o id passa a dizê-lo → `REGISTRO.md` L14852
 - **16/10/2026** — A camada de componentes: o desenho deixa de ser reescrito… → `REGISTRO.md` L14918
 - **17/10/2026** — Os papéis e a variante noturna: a identidade passa a ter… → `REGISTRO.md` L14988
+- **17/10/2026** — A aparência ganha prova própria — e o botão que… → `REGISTRO.md` L15063
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

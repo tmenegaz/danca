@@ -561,8 +561,21 @@ textarea { min-height: 4.5rem; resize: vertical; }
    deixa afastá-la — o único jeito é desenhá-la. Sai o controle nativo
    (`appearance: none`), entra um chevron em SVG no `background-image`, a
    `var(--esp-3)` da borda. Sem `appearance: none` o Safari mantém a seta dele e
-   ficariam DUAS. */
-:where(select) {
+   ficariam DUAS.
+
+   O SELETOR CARREGA PESO, e isso é de propósito. A versão anterior era um
+   `:where(select)` — peso zero — e o chevron desaparecia em DUAS superfícies: a
+   barra de contexto da porta (`.barra .campo select`) e o campo de termo dos
+   Bastidores (`select.sel-termo`). As duas pintam o próprio campo com o atalho
+   `background`, que ZERA `background-image`; e as duas são mais pesadas que zero e
+   ainda vêm depois, porque o `ciclo.css` entra ANTES do `<style>` da página — o
+   select ficava SEM SETA NENHUMA, pior do que a seta colada de que ele reclamou.
+
+   `:not([multiple])` e `:not([size])` são verdade: num select de lista não há seta,
+   e `appearance: none` num select múltiplo apagaria a lista. A terceira negação
+   existe SÓ para o peso — sem ela `.barra .campo select` empata em (0,2,1) e vence
+   por vir depois. Um `!important` faria o mesmo e não diria por quê. */
+select:not([multiple]):not([size]):not([hidden]) {
   appearance: none; -webkit-appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%237a5c31' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
@@ -576,7 +589,7 @@ textarea { min-height: 4.5rem; resize: vertical; }
 .modal-caixa input, .modal-caixa select, .modal-caixa textarea,
 form input, form select, form textarea { background-color: var(--campo-fundo-cartao); }
 /* Na noturna a seta clareia: `#7a5c31` sobre o campo escuro some. */
-[data-modo="noturna"] :where(select) {
+[data-modo="noturna"] select:not([multiple]):not([size]):not([hidden]) {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23bfb2a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 /* O rótulo do campo. `em-linha` é o do formulário denso, onde o rótulo divide a

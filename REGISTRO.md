@@ -15782,9 +15782,22 @@ rodapé da tela.
 **A seta do `select`.** A nativa fica encostada na borda direita e o navegador não deixa
 afastá-la — o único caminho é desenhá-la. Sai `appearance: none`, entra um chevron em SVG no
 `background-image`, a `var(--esp-3)` da borda, com `padding-right` calculado para o texto não
-passar por baixo. Na noturna o chevron clareia. Uma armadilha no caminho: as regras que pintam o
-campo dentro do cartão usavam o `background` **abreviado**, que zera o `background-image` e
-apagaria a seta; passaram a falar de `background-color` — imagem não é cor.
+passar por baixo. Na noturna o chevron clareia.
+
+**A armadilha que a primeira versão da seta caiu — e que só apareceu no ar.** O seletor era um
+`:where(select)`, peso zero, como o piso do resto da folha. Medido nas escolas publicadas: a
+seta estava lá nos formulários e **não estava** na barra de contexto da porta (`.barra .campo
+select`, (0,2,1)) nem no campo de termo dos Bastidores (`select.sel-termo`, (0,1,1)). As duas
+pintam o próprio campo com o atalho `background`, que zera `background-image`, e as duas vêm
+depois — o `ciclo.css` entra ANTES do `<style>` da página. Com o `appearance: none` aplicado e o
+chevron apagado, o select ficou **sem seta nenhuma**: pior do que a seta colada de que ele
+reclamou, e invisível para `provar-celular.js`, que exercita o formulário da raiz e não a porta
+publicada. O seletor passou a `select:not([multiple]):not([size]):not([hidden])`, (0,3,1): as
+duas primeiras negações são verdade (num select de lista não há seta, e `appearance: none` num
+múltiplo apagaria a lista), a terceira existe só para o peso. Um `!important` faria o mesmo e não
+diria por quê. Conferido nas duas escolas no ar depois: `padding-right: 36px` e chevron presente.
+A lição de processo está registrada em `HANDOFF.md`: **a prova de celular cobre a raiz, e a porta
+publicada precisa de uma medição própria.**
 
 **Motivo declarado (infraestrutura congelada).** `tools/templates/ciclo.css` está em
 `CONGELAMENTO.md`. A alteração entra porque os três primeiros defeitos **impedem o uso**: um
