@@ -174,8 +174,10 @@ ficarem claros no meio da página.
 
 O tema é um **atributo** no `<html>`: `data-modo="noturna"`. Sem o atributo, é a variante clara.
 A escolha é explícita e fica no **navegador** (`localStorage`, chave `ciclo-modo`), entre sessões —
-um caminho **provisório**, porque a decisão **C15** (de quem é a preferência) continua em aberto.
-O botão `◐` fica na barra e, na raiz, ao lado das ações.
+um caminho **provisório**. **Nota de 18/10/2026:** a decisão **C15** foi tomada — **a preferência é
+da escola** —, e por isso este caminho (no navegador) está declarado como **o que será
+substituído**: uma escolha da escola vale para todos e aplica-se no **servidor**. Enquanto a
+implementação não existir, o botão `◐` continua na barra e, na raiz, ao lado das ações.
 
 **A impressão é sempre clara.** O `@media print` repõe os papéis da variante clara com
 `!important`: o papel não tem tema, e o texto não pode sair claro sobre folha branca.
@@ -429,16 +431,29 @@ administrativo e **não** há escolha por escola ou por usuário.
 
 **O que continua planejado — e não implementado.** O **catálogo** das seis famílias, o item de
 menu **Identidade visual** e o campo **Paleta de cores** com as doze combinações. A decisão
-**C15** — de quem é a preferência — continua **em aberto**; a gravação no navegador é o caminho
-provisório, declarado como tal.
+**C15** — de quem é a preferência — **foi tomada em 18/10/2026: da escola**; a gravação no
+navegador é o caminho provisório, declarado como tal, e será substituída pela aplicação no
+servidor.
 
-> **O que é a C15, em duas linhas.** É uma das **decisões pendentes do produto**, numeradas em
-> `PLANEJAMENTO-LASTRO.md`: **de quem é a preferência de aparência** — da **escola**, do
-> **usuário** ou do **navegador**. Ela está aberta porque a medição mostrou que **hoje não há
-> usuário** onde pendurá-la: a senha da Produção é uma por escola, e depois do portão a página
-> guarda **a senha, não quem entrou**. O sistema autentica **um segredo**, não **uma pessoa** —
-> a mesma lacuna que a C11 (não há lado público na porta) e a C13 (não há escola na raiz). **É
-> decisão de produto, não dívida de código.**
+> **A C15, e a resposta (18/10/2026).** Ela perguntava **de quem é a preferência de aparência** —
+> da **escola**, do **usuário** ou do **navegador** —, e estava aberta porque a medição mostrou
+> que **não havia usuário** onde pendurá-la: a senha da Produção é uma por escola, e depois do
+> portão a página guarda **a senha, não quem entrou**. O sistema autentica **um segredo**, não
+> **uma pessoa** — a mesma lacuna que a C11 (não há lado público na porta) e a C13 (não há escola
+> na raiz).
+>
+> **Decidido pelo dono do produto: a preferência é DA ESCOLA.** Três consequências, e valem para
+> quem implementar:
+>
+> | Consequência | O que muda |
+> | --- | --- |
+> | **mecanismo** | **servidor** — uma escolha que vale para todos não pode viver no navegador de cada um |
+> | **onde o valor mora** | no **dado da escola**, sob o `ESCOLA_SLUG` que a instalação já tem |
+> | **quem muda** | **qualquer pessoa com a senha da escola** (`senhaDaEscolaOk` aceita a da direção *ou a de qualquer professor*); separar a direção é a **C17**, ainda aberta |
+>
+> **O que a decisão não resolve.** Os **hex das doze combinações continuam não especificados** —
+> foi uma decisão sobre *quem escolhe*, não sobre *quais são* —, e o ***quando*** (na contratação
+> ou no primeiro uso) decide **onde o valor mora**: continua aberto, e é de produto.
 
 ## O que é campo e o que é inscrição *(18/10/2026)*
 

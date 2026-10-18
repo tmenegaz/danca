@@ -353,12 +353,16 @@ pelo gerador dos pacotes e pelos Bastidores.
   reprova se voltar a usar.
 - **Variante noturna** da identidade vigente (`[data-modo="noturna"]`), com **31 pares medidos em
   cada tema**, `color-scheme` e o botão `◐` na barra/raiz. A escolha fica no navegador — caminho
-  **provisório**, porque C15 (de quem é a preferência) continua aberta.
+  **provisório**, porque C15 (de quem é a preferência) continua aberta. **Nota 18/10/2026:** a
+  C15 foi **decidida — a preferência é da escola**; o caminho no navegador passa a ser o que será
+  substituído pela aplicação no servidor.
 - **Impressão sempre clara**, por `@media print`.
 - **Layout por atributo**: `data-layout="documento"` × `"painel"`.
 
 O que **não** mudou: o **catálogo** das seis famílias (doze combinações) e o seletor no painel
-administrativo — dependem de C15 e de valores que ainda não foram especificados.
+administrativo. **Nota 18/10/2026:** a C15 foi decidida (a preferência é da escola), e o que resta
+é **trabalho** — os valores das doze combinações, que continuam não especificados, e a aplicação
+pelo servidor.
 
 ## A rodada de 18/10/2026 — a etiqueta, e o que ela revelou
 
@@ -443,7 +447,9 @@ tabela de tokens.
 
 ### O que continua fora
 
-- O **catálogo** das seis famílias e o seletor de aparência (C15 continua aberta).
+- O **catálogo** das seis famílias e o seletor de aparência. **Nota 18/10/2026:** a C15 foi
+  decidida (**a preferência é da escola**) — o que falta são os **valores** das doze combinações e
+  a aplicação pelo **servidor**, não uma decisão de produto.
 - A **raiz** (`danca`) não foi reimplantada nesta rodada: `raiz/assets/style.css` está
   atualizado no repositório, e a cópia no ar continua a de antes até o deploy dela.
 - `experimentos/**` — as páginas de estudo têm cópias antigas de componente e **não** são

@@ -11,25 +11,41 @@
 > `REGISTRO.md` e commit próprio (`CONGELAMENTO.md`).
 
 > **Leitura de fechamento — 18/10/2026.** O plano é conferido contra o que existe: as Fases 0 a
-> 7 estão fechadas, e a conferência visual (**3.4**) foi feita. Fica **um** item aberto, e ele
-> **não é trabalho** — é uma **decisão de produto** que só o dono do produto pode tomar: o
-> **2.8**, o catálogo das doze paletas, que depende da decisão **C15** («a preferência de
-> aparência é de quem?»). Duas coisas **foram além** do que este documento propunha, e viraram
-> trabalho: a **Fase 8**, que trata da forma partilhada (a etiqueta, os componentes, o que está
-> no ar × o motor), e a **dobra do índice no celular**, que o plano não previa. Onde um número
-> deste arquivo envelheceu, ele fica com **nota datada** — nunca é apagado.
+> 7 estão fechadas, e a conferência visual (**3.4**) foi feita. Duas coisas **foram além** do que
+> este documento propunha, e viraram trabalho: a **Fase 8**, que trata da forma partilhada (a
+> etiqueta, os componentes, o que está no ar × o motor), e a **dobra do índice no celular**, que
+> o plano não previa. Onde um número deste arquivo envelheceu, ele fica com **nota datada** —
+> nunca é apagado.
+>
+> **A decisão que faltava foi tomada.** O **2.8** — o catálogo das doze paletas — era o único item
+> aberto, e estava à espera da **C15**. Em **18/10/2026** o dono do produto decidiu: **a
+> preferência de aparência é da escola**. O item **não fecha** com isso, e é importante dizer por
+> quê: a decisão foi sobre **quem escolhe**, não sobre **quais são** — os hex das doze combinações
+> **continuam a não existir** no repositório, e não se inventam. O que a decisão destrava está no
+> §L13 do `PLANEJAMENTO-LASTRO.md` (V0 fechada; V1 é o próximo passo, e é de **desenho+medição**).
 
-> **O que é a C15 (glossário, para não obrigar a saltar para o planeamento).** As decisões
-> pendentes do produto estão numeradas em `PLANEJAMENTO-LASTRO.md` (`C1`, `C2`, `C11`, `C13`,
-> `C15`, `C17`, `C18`…), e cada uma bloqueia um pedaço. A **C15** pergunta **de quem é a
+> **O que é a C15 — e a resposta (glossário, para não obrigar a saltar para o planeamento).** As
+> decisões do produto estão numeradas em `PLANEJAMENTO-LASTRO.md` (`C1`, `C2`, `C11`, `C13`,
+> `C15`, `C17`, `C18`…), e cada uma bloqueia um pedaço. A **C15** perguntava **de quem é a
 > preferência de aparência** — da **escola**, do **usuário** ou do **navegador** —, e a medição
-> mostrou que **hoje não há usuário** onde pendurá-la: a senha da Produção é **uma por escola**
-> (a da direção *ou a de qualquer professor cadastrado*), e depois do portão a página guarda **a
-> senha, não quem entrou**. O sistema autentica **um segredo**, não **uma pessoa**. É a mesma
-> lacuna que a **C11** (não há lado público na porta) e a **C13** (não há escola na raiz): *o
-> modelo não tem a entidade que a funcionalidade pressupõe*. Enquanto ela estiver aberta, o tema
-> funciona com a escolha **no navegador**, declarada como **provisória** — e é isso, e não uma
-> dívida escondida.
+> mostrou que **não havia usuário** onde pendurá-la: a senha da Produção é **uma por escola** (a
+> da direção *ou a de qualquer professor cadastrado*), e depois do portão a página guarda **a
+> senha, não quem entrou**. O sistema autentica **um segredo**, não **uma pessoa** — a mesma
+> lacuna que a **C11** (não há lado público na porta) e a **C13** (não há escola na raiz).
+>
+> **RESPONDIDA em 18/10/2026: a preferência é DA ESCOLA.** As três consequências, para quem for
+> implementar:
+>
+> | Consequência | O que muda |
+> | --- | --- |
+> | o **mecanismo** | passa a ser o **servidor**. Uma escolha que vale para todos não pode viver no navegador de cada um |
+> | o **lugar do valor** | o **dado da escola**, sob o `ESCOLA_SLUG` que a instalação já tem — nenhum campo novo de «usuário» |
+> | quem pode mudar | **qualquer pessoa com a senha da escola**, porque `senhaDaEscolaOk` aceita a da direção *ou a de qualquer professor*. Distinguir a direção é a **C17**, que continua aberta |
+>
+> O que a decisão **não** resolve: **os hex das doze paletas continuam não especificados** (foi uma
+> decisão sobre *quem escolhe*, não sobre *quais são*), e o ***quando*** — na contratação (*B*) ou
+> no primeiro uso (*A*) — decide **onde o valor mora**, e passou a ser pergunta da **V5**. Até a
+> implementação, o tema funciona com a escolha **no navegador**, declarada como **provisória**.
 
 ## Princípios que valem em todas as fases
 
@@ -166,11 +182,11 @@ camada de componentes.
 | 2.1 | Camada de papéis (`--fundo`, `--superficie`, `--texto`, `--texto-suave`, `--borda`, `--borda-campo`, `--marca`, `--marca-texto`, `--acao-*`, `--foco`…) | `[x]` 17/10 |
 | 2.2 | Consumidores passam a falar por papel (primitivos só na fonte) | `[x]` 17/10 — guard no validador |
 | 2.3 | Tokens de estado e de superfície: `--ok-fundo`, `--alerta-fundo`, `--falha-fundo`, `--derivada(-fundo)`, `--veu`, `--sombra`, `--campo-fundo` | `[x]` 17/10 |
-| 2.4 | `[data-modo="noturna"]` + `color-scheme` + botão `◐` com `localStorage` | `[x]` 17/10 — decisão C15 continua aberta (provisório) |
+| 2.4 | `[data-modo="noturna"]` + `color-scheme` + botão `◐` com `localStorage` | `[x]` 17/10 — provisório. **Nota 18/10:** a C15 foi **decidida — a preferência é da escola**, e por isso este caminho (navegador) passa a ser declaradamente **o provisório que será substituído** pelo servidor |
 | 2.5 | `@media print` força os papéis claros | `[x]` 17/10 — `!important`, explícito |
 | 2.6 | Validador mede **todos** os temas e o uso de papel | `[x]` 17/10 — 31 pares × 2 temas; guard de primitivo |
 | 2.7 | Layouts: `data-layout="documento" \| "painel"` | `[x]` 17/10 |
-| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` depende de **C15** (a preferência é de quem — ver a glosa no topo deste arquivo). **Não é trabalho pendente: é decisão de produto.** Especificar os hex antes de saber *de quem* é a escolha seria desenhar a persistência no escuro |
+| 2.8 | Seletor de aparência — **catálogo** das 12 paletas | `[ ]` **C15 decidida em 18/10/2026 — a preferência é da escola** (ver a glosa no topo). O que falta **não é decisão, é trabalho**: (a) **especificar e medir** os hex das doze combinações — nenhum existe, e nenhum se inventa (V1 do §L13); (b) o **servidor** aplicando a paleta da escola, no lugar do `localStorage`; (c) o campo na configuração, que é alteração de **navegação** (motivo declarado); (d) o validador medindo as doze |
 
 ### O que a Fase 2 fez, e o que ela **não** fez
 
@@ -181,8 +197,9 @@ escolha no navegador; a impressão sempre clara; o `data-layout`; e dois guards 
 
 **Não fez:** o **catálogo** das seis famílias (as doze combinações), o item de menu «Identidade
 visual» e a escolha por escola/usuário. Nada disso foi inventado: os valores das outras famílias
-continuam **não especificados**, e a decisão **C15** continua aberta. A gravação no navegador é
-provisória e está declarada como tal no `IDENTIDADE-VISUAL.md`.
+continuam **não especificados**. A gravação no navegador é provisória e está declarada como tal no
+`IDENTIDADE-VISUAL.md`. **Nota 18/10/2026:** a **C15 foi decidida — a preferência é da escola** —
+e o que era «escolha por escola/usuário» passa a ser só «por escola», com o **servidor** a aplicar.
 
 ### Como conferir o tema
 
@@ -222,7 +239,9 @@ aberto, e o botão parece certo.
 
 ### O que a Fase 3 **não** fecha
 
-- **O catálogo das doze paletas (2.8)** continua em aberto — depende da decisão **C15**.
+- **O catálogo das doze paletas (2.8)** continua em aberto — mas **mudou de natureza** com a
+  decisão da **C15** (18/10/2026, a preferência é da escola): o que falta são os **valores
+  especificados e medidos** e a aplicação pelo **servidor**, não uma decisão de produto.
 - **A conferência visual** é do dono do produto; a prova cobre contraste, papel e comportamento,
   não o gosto. **Feita em 18/10/2026** nos dois ambientes de teste — o item 3.4 está fechado.
 - **O commit** é uma decisão à parte: `tools/` é congelado e exige commit próprio com o motivo
@@ -323,6 +342,7 @@ valse; a raiz entra nele no dia em que for implantada.
 | 17/10/2026 | 2.6 validador | 31 pares × 2 temas; guard de primitivo nas superfícies |
 | 17/10/2026 | 2.7 layouts | `data-layout="documento"\|"painel"` em todas as superfícies |
 | 17/10/2026 | 2.8 catálogo | **não feito** — depende de C15 |
+| 18/10/2026 | 2.8 destravado | **C15 decidida: a preferência é da escola**; mecanismo = servidor. Falta o trabalho (V1: especificar e medir as doze) |
 | 17/10/2026 | 3.1 prova do tema | `provar-tema.js` 29/29; botão fora do `.nav-links` (defeito encontrado) |
 | 17/10/2026 | 3.2 documentação | `README.md` (seção e atalhos) e `motor/servidor/README.md` |
 | 17/10/2026 | 3.3 handoff | `tools/gerar-handoff.sh` |

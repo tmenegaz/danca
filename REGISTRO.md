@@ -17070,3 +17070,60 @@ catálogo planeado); `IMPLEMENTACAO-IDENTIDADE.md` (Fases 2 e 3).
 
 **O que continua fora.** A C15 continua **aberta** — é decisão do dono do produto, e precede o
 desenho da persistência. O catálogo das doze paletas (2.8) não começa antes dela.
+
+## 18/10/2026 — a C15 foi decidida: a preferência de aparência é da escola
+
+**O que motivou.** A C15 era a última decisão aberta que travava a identidade visual como escolha
+(o item 2.8 do plano). O dono do produto decidiu: **a preferência é da escola** — não de cada
+pessoa, nem de cada navegador.
+
+**Por que a decisão é esta, e não outra.** A medição de 16/10/2026 já a sustentava, e é ela que
+está registada em §3 C15: a senha da Produção é **uma por escola** (a da direção *ou a de qualquer
+professor cadastrado*), e depois do portão a página guarda **a senha, não quem entrou**. O sistema
+autentica **um segredo**, não **uma pessoa** — logo «por usuário» não tinha onde pendurar a
+escolha. A decisão escolhe o caminho que a instalação **já sabe** identificar: o `ESCOLA_SLUG`.
+
+**As três consequências, e nenhuma é óbvia.**
+
+- **O mecanismo passa a ser o servidor.** Uma escolha que vale para todos não pode viver no
+  navegador de cada um. O caminho existe: `run_worker_first: true` e `env.ASSETS`
+  (`motor/servidor/cloudflare.js`). O `localStorage` de hoje deixa de ser «o caminho» e passa a ser
+  declaradamente o **provisório que será substituído**.
+- **O valor mora no dado da escola**, sob o `ESCOLA_SLUG` — **nenhum campo novo de «usuário»**. O
+  *onde exactamente* continua aberto, e é a pergunta do *quando*: se a paleta se escolhe na
+  contratação (natureza **B**), mora no estado comercial (território de **C11/C16**); se nasce no
+  primeiro uso (natureza **A**), nasce no dado da escola.
+- **Quem pode mudar são todos os que têm a senha da escola.** `senhaDaEscolaOk` aceita a senha da
+  direção **ou a de qualquer professor cadastrado**, e isso é decisão declarada no código.
+  «Da escola» não distingue a direção de um professor, e separá-las é a **C17** — que continua
+  aberta. Fica **escrito**, não presumido.
+
+**O que a decisão NÃO resolve — e é o mais importante desta entrada.** Ela foi sobre **quem
+escolhe**, e não sobre **quais são**. Os **hex das doze combinações continuam a não existir** no
+repositório: as imagens de referência são **estudo**, não especificação, e nenhum valor foi
+inventado. O 2.8, portanto, **não fecha** — muda de natureza: deixa de ser «decisão de produto
+pendente» e passa a ser **trabalho**, na ordem do §L13: **V1** (especificar e **medir** os hex de
+cada combinação contra os fundos reais), **V2** (o validador medindo a matriz), **V3** (o servidor
+aplicando), **V4** (o campo, que é alteração de **navegação** — motivo declarado) e **V5** (a
+persistência, onde o *A × B* ainda decide).
+
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` — o verbete da C15 ganhou o bloco **DECIDIDA** e o
+quadro «o que a decisão fecha / o que não fecha»; a C15 **sai da lista «PRECISA DE DECISÃO»**
+(entra nas decididas, ao lado da C3); a tabela dos três caminhos marca o escolhido; a linha da
+**L13**, as dependências, as entregas, a **V0** (fechada, com o critério cumprido), os riscos, o
+*A × B* e a camada 6 do §5 foram anotados; o §9 (o que o registo de 16/10 não decidiu) recebeu a
+resposta em três dos quatro pontos. `IMPLEMENTACAO-IDENTIDADE.md` — a glosa da C15 passa a ter a
+resposta e as três consequências; o **2.8** deixa de dizer «depende de uma decisão» e passa a
+listar o que é trabalho. `IDENTIDADE-VISUAL.md` — o parágrafo do tema e o da aparência planeada
+declaram a decisão. `DIAGNOSTICO-IDENTIDADE.md` — as três menções anotadas.
+
+**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (C15) e §L13 · `motor/servidor/bastidores.js`
+(`senhaDaEscolaOk` — a identidade existe no dado e não é usada) · `wrangler.<escola>.jsonc`
+(`run_worker_first`).
+
+**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15 e §L13 (ordem V0–V5); `IDENTIDADE-VISUAL.md`;
+`IMPLEMENTACAO-IDENTIDADE.md` (2.4, 2.8).
+
+**O que ainda não está feito.** Toda a implementação: o servidor não aplica nada, o `◐` continua a
+gravar no navegador, e as doze paletas continuam sem valores. O documento diz o que fazer e em que
+ordem; o código não foi tocado nesta entrada — ela é **decisão**, não execução.

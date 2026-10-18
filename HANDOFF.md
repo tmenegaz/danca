@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T15:04:47-0300`
-Commit atual: `ec57630` — docs(estrutura): a leitura de fechamento dos dois documentos de identidade
+Gerado em: `2026-10-18T15:10:31-0300`
+Commit atual: `610e747` — docs(estrutura): a conferência visual fecha, e a C15 ganha glosa nos dois documentos
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+610e747 docs(estrutura): a conferência visual fecha, e a C15 ganha glosa nos dois documentos
 ec57630 docs(estrutura): a leitura de fechamento dos dois documentos de identidade
 ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
 f9b416b fix(estrutura): a etiqueta é uma só — e o que está no ar é o motor
@@ -81,7 +82,6 @@ b350056 docs(estrutura): o HANDOFF passa a apontar a regra das duas linhas
 b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativo se anuncia ao leitor de ecrã
 2354f5e docs(estrutura): as duas navegações do sistema, e a folha inferior como decisão
 1a1e138 chore(experimentos): a folha do menu ganha prova de GEOMETRIA — 22 verificações e controle negativo
-be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz em que grupo se está
 ```
 
 ## Por professor
@@ -147,53 +147,64 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — a conferência visual fecha, e a C15 ganha glosa
+## 18/10/2026 — a C15 foi decidida: a preferência de aparência é da escola
 
-**O que motivou.** O dono do produto conferiu a aparência nos dois ambientes de teste e deu o
-item por fechado («3.4 ok»). E perguntou **o que é a C15** — o que é, em si, um achado de
-documentação: os dois documentos de identidade citam a C15 quatro vezes cada um, sempre como
-«depende de C15», e **nenhum deles diz o que ela é**. Quem lê tem de saltar para o
-`PLANEJAMENTO-LASTRO.md` e procurar a §3.
+**O que motivou.** A C15 era a última decisão aberta que travava a identidade visual como escolha
+(o item 2.8 do plano). O dono do produto decidiu: **a preferência é da escola** — não de cada
+pessoa, nem de cada navegador.
 
-**O que foi decidido.**
+**Por que a decisão é esta, e não outra.** A medição de 16/10/2026 já a sustentava, e é ela que
+está registada em §3 C15: a senha da Produção é **uma por escola** (a da direção *ou a de qualquer
+professor cadastrado*), e depois do portão a página guarda **a senha, não quem entrou**. O sistema
+autentica **um segredo**, não **uma pessoa** — logo «por usuário» não tinha onde pendurar a
+escolha. A decisão escolhe o caminho que a instalação **já sabe** identificar: o `ESCOLA_SLUG`.
 
-- **O item 3.4 está fechado.** A conferência visual (clara e noturna) foi feita pelo dono do
-  produto nos dois ambientes. É a única conferência que não se automatiza: a aritmética mede
-  contraste, as provas medem geometria e comportamento; o gosto é de quem usa. Com ele, **fica
-  um** item aberto no plano — o **2.8** —, e ele **não é trabalho**: é decisão de produto.
-- **A C15 ganhou glosa onde é citada**, nos dois documentos: é a decisão de **de quem é a
-  preferência de aparência** (escola × usuário × navegador), e está aberta porque a medição
-  mostrou que **hoje não há usuário** onde pendurá-la — a senha da Produção é uma por escola, e
-  depois do portão a página guarda **a senha, não quem entrou**. O sistema autentica **um
-  segredo**, não **uma pessoa**. A glosa diz também que é a mesma lacuna da **C11** (não há lado
-  público na porta) e da **C13** (não há escola na raiz): *o modelo não tem a entidade que a
-  funcionalidade pressupõe*.
-- **O 2.8 passou a dizer o que é.** «Depende de C15» sozinho lê-se como pendência de execução;
-  agora diz que é **decisão de produto**, e que especificar os hex antes de saber *de quem* é a
-  escolha seria desenhar a persistência no escuro.
+**As três consequências, e nenhuma é óbvia.**
 
-**Onde entrou.** `IMPLEMENTACAO-IDENTIDADE.md` (o item 3.4, a nota de fechamento, a glosa da C15
-no topo e no 2.8) e `IDENTIDADE-VISUAL.md` (a glosa ao lado do parágrafo que declara a C15
-aberta).
+- **O mecanismo passa a ser o servidor.** Uma escolha que vale para todos não pode viver no
+  navegador de cada um. O caminho existe: `run_worker_first: true` e `env.ASSETS`
+  (`motor/servidor/cloudflare.js`). O `localStorage` de hoje deixa de ser «o caminho» e passa a ser
+  declaradamente o **provisório que será substituído**.
+- **O valor mora no dado da escola**, sob o `ESCOLA_SLUG` — **nenhum campo novo de «usuário»**. O
+  *onde exactamente* continua aberto, e é a pergunta do *quando*: se a paleta se escolhe na
+  contratação (natureza **B**), mora no estado comercial (território de **C11/C16**); se nasce no
+  primeiro uso (natureza **A**), nasce no dado da escola.
+- **Quem pode mudar são todos os que têm a senha da escola.** `senhaDaEscolaOk` aceita a senha da
+  direção **ou a de qualquer professor cadastrado**, e isso é decisão declarada no código.
+  «Da escola» não distingue a direção de um professor, e separá-las é a **C17** — que continua
+  aberta. Fica **escrito**, não presumido.
 
-**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (a C15 e a sua justificação), `motor/servidor/
-bastidores.js` (`senhaDaEscolaOk`, onde a identidade existe no dado e não é usada).
+**O que a decisão NÃO resolve — e é o mais importante desta entrada.** Ela foi sobre **quem
+escolhe**, e não sobre **quais são**. Os **hex das doze combinações continuam a não existir** no
+repositório: as imagens de referência são **estudo**, não especificação, e nenhum valor foi
+inventado. O 2.8, portanto, **não fecha** — muda de natureza: deixa de ser «decisão de produto
+pendente» e passa a ser **trabalho**, na ordem do §L13: **V1** (especificar e **medir** os hex de
+cada combinação contra os fundos reais), **V2** (o validador medindo a matriz), **V3** (o servidor
+aplicando), **V4** (o campo, que é alteração de **navegação** — motivo declarado) e **V5** (a
+persistência, onde o *A × B* ainda decide).
 
-**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15; `IDENTIDADE-VISUAL.md` (a aparência e o
-catálogo planeado); `IMPLEMENTACAO-IDENTIDADE.md` (Fases 2 e 3).
+**Onde entrou.** `PLANEJAMENTO-LASTRO.md` — o verbete da C15 ganhou o bloco **DECIDIDA** e o
+quadro «o que a decisão fecha / o que não fecha»; a C15 **sai da lista «PRECISA DE DECISÃO»**
+(entra nas decididas, ao lado da C3); a tabela dos três caminhos marca o escolhido; a linha da
+**L13**, as dependências, as entregas, a **V0** (fechada, com o critério cumprido), os riscos, o
+*A × B* e a camada 6 do §5 foram anotados; o §9 (o que o registo de 16/10 não decidiu) recebeu a
+resposta em três dos quatro pontos. `IMPLEMENTACAO-IDENTIDADE.md` — a glosa da C15 passa a ter a
+resposta e as três consequências; o **2.8** deixa de dizer «depende de uma decisão» e passa a
+listar o que é trabalho. `IDENTIDADE-VISUAL.md` — o parágrafo do tema e o da aparência planeada
+declaram a decisão. `DIAGNOSTICO-IDENTIDADE.md` — as três menções anotadas.
 
-**O que continua fora.** A C15 continua **aberta** — é decisão do dono do produto, e precede o
-desenho da persistência. O catálogo das doze paletas (2.8) não começa antes dela.
+**Com o quê.** `PLANEJAMENTO-LASTRO.md` §3 (C15) e §L13 · `motor/servidor/bastidores.js`
+(`senhaDaEscolaOk` — a identidade existe no dado e não é usada) · `wrangler.<escola>.jsonc`
+(`run_worker_first`).
+
+**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15 e §L13 (ordem V0–V5); `IDENTIDADE-VISUAL.md`;
+`IMPLEMENTACAO-IDENTIDADE.md` (2.4, 2.8).
+
+**O que ainda não está feito.** Toda a implementação: o servidor não aplica nada, o `◐` continua a
+gravar no navegador, e as doze paletas continuam sem valores. O documento diz o que fazer e em que
+ordem; o código não foi tocado nesta entrada — ela é **decisão**, não execução.
 
 ## O que está pendente
-
-## 18/10/2026 — o formulário recolhe para uma faixa, e a listagem ocupa a largura toda
-
-O recolhimento vale para a secção **Turmas**, que é aquela a que o
-filtro leva. Os outros formulários (Professores, Alunas, Vocabulário, Curadorias) continuam sempre
-abertos — uma faixa neles não teria a mesma causa, e a decisão não foi pedida. No telefone a
-listagem ganha a largura toda, mas continua a ser a mesma coluna única: o ganho ali é a **altura**
-(o formulário sai da frente), não a largura.
 
 ## 18/10/2026 — o nome do professor na curadoria abre o plano de ensino dele
 
@@ -223,6 +234,12 @@ além do índice (o pacote é o scaffold: `DOCS="plano"`, e o plano ainda não f
 isso a dobra foi medida no índice do pacote e no Roteiro da porta. Os documentos de aula, quando
 existirem, recebem o controle sem nenhuma alteração — é o mesmo `assets/nav.js`. A **raiz**
 (`danca`) continua sem a folha nova no ar até o deploy dela.
+
+## 18/10/2026 — a C15 foi decidida: a preferência de aparência é da escola
+
+Toda a implementação: o servidor não aplica nada, o `◐` continua a
+gravar no navegador, e as doze paletas continuam sem valores. O documento diz o que fazer e em que
+ordem; o código não foi tocado nesta entrada — ela é **decisão**, não execução.
 
 ## Pendências anteriores (índice)
 
@@ -412,6 +429,7 @@ existirem, recebem o controle sem nenhuma alteração — é o mesmo `assets/nav
 - **18/10/2026** — os três passos fecham as travas, e o «Editar» da turma… → `REGISTRO.md` L16545
 - **18/10/2026** — o vocabulário escolhe em lista, e cada nome diz as suas… → `REGISTRO.md` L16606
 - **18/10/2026** — o cancelar chega à curadoria, a turma perde dois campos, e… → `REGISTRO.md` L16661
+- **18/10/2026** — o formulário recolhe para uma faixa, e a listagem ocupa a… → `REGISTRO.md` L16716
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
