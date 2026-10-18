@@ -62,8 +62,14 @@
      «feia pra danar».
      A GRADE, e não `flex-wrap`: com duas colunas fixas, a escola não desce para o meio
      dos campos quando a largura aperta — quem muda de arranjo é a media query, uma vez. */
+  /* A caixa da página: os MESMOS três números de `header.doc, main` (900 / 1180 e 24px
+     de padding). Copiados de propósito e não importados: aquela regra vale para quem é
+     filho direto do `body` numa página de documento, e o cartão da porta não é um deles.
+     Se um dia a medida da página mudar, estas duas linhas mudam junto — e o comentário
+     existe para que ninguém tenha de descobrir isso medindo. */
+  .faixa { max-width: 900px; margin: 0 auto; padding: 0 24px; }
   .barra {
-    max-width: 900px; margin: 0 auto 1.5rem;
+    margin: 0 0 1.5rem;
     display: grid;
     grid-template-columns: minmax(9rem, 12rem) 1fr;
     grid-template-rows: auto 1fr;
@@ -136,6 +142,15 @@
   /* O CICLO É `01`. Sem largura declarada, o `<input>` de texto nasce com ~214px — o
      triplo do que o dado precisa, e o que empurrava a senha para a segunda linha. */
   #ctx-ciclo { width: 4.5rem; }
+  /* A INSCRIÇÃO AO LADO DE UM CONTROLE OCUPA A MESMA CAIXA DE LINHA. Os campos se alinham
+     pela BASE (`align-items: flex-end`), e a turma do PO — que é inscrição — tem a altura
+     do texto, enquanto um `<select>` tem 32px: os rótulos ficavam 10px desencontrados, e
+     isso se vê. Igualar a caixa não a transforma em campo: continua sem filete, sem fundo
+     e sem cursor de texto. O que se iguala é o RITMO da linha, não a natureza da peça. */
+  .barra .ctx-campos .ctx-inscricao {
+    display: inline-flex; align-items: center; min-height: 32px;
+    font: 600 13.5px/1.3 var(--serif); color: var(--texto);
+  }
   /* O `hidden` PRECISA VENCER A GRADE. Esta regra já existia para o `display: flex` de
      `.campo` e voltou a ser necessária quando o campo virou `display: grid`: a regra
      acima tem quatro classes e um elemento, e atropelava o `display: none` do atributo —
@@ -147,10 +162,15 @@
   .barra .campo[hidden] { display: none; }
   /* A TURMA NO CABEÇALHO (16/10/2026): um SELECT, como o do professor — cabe numa linha e
      não cresce com o número de turmas (cinquenta turmas seriam cinquenta rádios). Fica
-     depois do ciclo e antes da senha, que é onde o professor diz de que se trata o ato. */
-  .barra details.ctx-ato .ctx-campos .ctx-turma { flex: 1 1 100%; align-items: flex-start; }
+     depois do ciclo e antes da senha, que é onde o professor diz de que se trata o ato.
+
+     ELA NÃO OCUPA A LINHA INTEIRA (18/10/2026). Era `flex: 1 1 100%`, e por isso — e só
+     por isso — o Plano de Ensino e o Plano de Observação tinham o cabeçalho em DUAS
+     LINHAS enquanto a anamnese tinha as quatro colunas numa. O dono do produto leu a
+     diferença como «os campos empilhados» e pediu que os três documentos ficassem
+     iguais: é o mesmo cartão, com o mesmo número de colunas, e o que muda de um para o
+     outro é o CONTEÚDO de cada coluna — não o arranjo. */
   .barra details.ctx-ato .ctx-campos .ctx-turma select { max-width: 18rem; }
-  .barra details.ctx-ato .ctx-campos .ctx-turma .sub { font-size: .75rem; color: var(--suave); }
   /* O QUE JÁ FOI CONFERIDO NÃO SE MEXE. Enquanto o professor preenche, os campos que
      dizem de que se trata o ato ficam apagados — não é enfeite: é a trava de
      `travarCabecalho`. A senha fica de fora (é ela que autoriza a escrita). */
@@ -424,7 +444,7 @@
        coluna à direita, preso abaixo da `.barra` — tudo isso vem do site (`main` em
        grade, `.conteudo`, `.rail`, `.toc-local`). Aqui só se solta o rolo interno: a
        altura máxima passou a ser a do próprio `.toc-local`. */
-    .barra { max-width: 1180px; }
+    .faixa { max-width: 1180px; }
     .toc-local .lista { max-height: none; }
 
     /* SEM ROTEIRO, a coluna dele não fica vazia (16/10/2026): o roteiro só existe
@@ -487,6 +507,14 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
   <p class="subtitulo" id="subtitulo-pagina">O ponto de partida de cada aluna — escrito antes de começar o ciclo.</p>
 </header>
 
+<!-- A FAIXA dá ao cartão a MESMA caixa do texto da página. Sem ela o cartão tinha a
+     largura do contêiner (1180px em tela cheia) enquanto os blocos de prosa viviam na
+     caixa de `main` (max-width 900/1180 menos 24px de padding de cada lado) — e o
+     resultado era o cartão 48px mais largo que tudo o que vem abaixo dele, o que o dono
+     do produto leu como «soa muito estranho». A regra é a mesma de `header.doc` e `main`
+     (`tools/templates/ciclo.css`): o cartão não tem medida própria, ele herda a da
+     página. -->
+<div class="faixa">
 <div id="barra" class="barra oculto">
   <span class="contadores">
     <span>respondidos <b id="n-resp">0</b>/<b id="n-total">53</b></span>
@@ -536,6 +564,7 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
     </div>
   </details>
 </div>
+</div><!-- /.faixa -->
 
 <main id="principal" class="sem-roteiro">
 
@@ -1293,9 +1322,7 @@ function textoDaTurma(no, valor) {
 }
 
 function mostrarDaTurma(no, valor) {
-  return '<p class="da-turma"><b>' + textoDaTurma(no, valor) + '</b></p>' +
-    '<p class="sub">Vem da turma, declarada pela direção na Produção — aqui é leitura. ' +
-    'Para mudar, ajuste o cadastro da turma.</p>';
+  return '<p class="da-turma"><b>' + textoDaTurma(no, valor) + '</b></p>';
 }
 
 /* A TURMA, VISTA DO CORPO — só leitura (16/10/2026). A escolha subiu para o cabeçalho,
@@ -1305,10 +1332,7 @@ function mostrarDaTurma(no, valor) {
 function turmaNoCabecalho(no) {
   const escolhida = RESPOSTAS.get(no.id);
   const nome = Array.isArray(escolhida) ? escolhida.join(', ') : escolhida;
-  return '<p class="da-turma"><b>' + escapar(nome || '—') + '</b></p>' +
-    '<p class="sub">A turma observada é escolhida no <b>cabeçalho</b> do ato, logo depois do ' +
-    'ciclo — uma turma por plano de ensino. Aqui é leitura: para mudar, use o cabeçalho no ' +
-    'alto da página.</p>';
+  return '<p class="da-turma"><b>' + escapar(nome || '—') + '</b></p>';
 }
 
 async function atualizarCuradoria() {
@@ -2720,19 +2744,23 @@ function turmaDoPlanoReferenciado() {
   return o && o.turma ? String(o.turma) : null;
 }
 
-/** A LEITURA da turma no PO — o que o plano referenciado carrega, dito como leitura. */
+/** A TURMA do PO — INSCRIÇÃO, como a escola (18/10/2026).
+ *
+ * O professor não a escolhe aqui: ela é a do plano de ensino referenciado, e não pode
+ * divergir dele. Isso é a mesma natureza da escola — um valor que o sistema declara, não
+ * um campo que alguém digita —, e por isso recebe o mesmo desenho (`ctx-inscricao`), e
+ * não um `<b>` com uma frase explicativa ao lado.
+ *
+ * AS FRASES SAÍRAM, e a razão é a de sempre: «escolha o plano de ensino no corpo do
+ * formulário» e «vem do plano de ensino referenciado — aqui é leitura» são instruções
+ * sobre a FERRAMENTA, não sobre o trabalho. O professor não precisa que a tela lhe diga
+ * onde fica o campo que ele está a preencher; quando a turma ainda não existe, o «—» já
+ * diz que não há valor. Texto que só serve para explicar a interface é ruído — e é o que
+ * ele pediu para tirar.
+ */
 function leituraDaTurmaDoPo() {
-  const cru = RESPOSTAS.get('plano-de-ensino');
-  const escolhido = Array.isArray(cru) ? cru[0] : cru;
-  if (!escolhido) {
-    return '<b>—</b> <span class="sub">escolha o plano de ensino no corpo do formulário</span>';
-  }
   const nome = turmaDoPlanoReferenciado();
-  if (!nome) {
-    return '<b>—</b> <span class="sub">o plano referenciado não declara turma</span>';
-  }
-  return '<b>' + escapar(nome) + '</b> <span class="sub">vem do plano de ensino referenciado — ' +
-    'aqui é leitura, e não pode divergir dele</span>';
+  return '<span class="ctx-inscricao">' + escapar(nome || '—') + '</span>';
 }
 
 async function renderTurmaDoCabecalho() {
