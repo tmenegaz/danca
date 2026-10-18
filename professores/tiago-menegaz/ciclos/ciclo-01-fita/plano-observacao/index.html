@@ -52,15 +52,42 @@
      serifa para os rótulos que são PROSA e a sans (`--ui`) para os campos, que é
      onde se digita. Rola com a página (não é `sticky`) e os campos vivem num
      acordeão (`<details>`) — o professor recolhe ou expande. */
+  /* A BARRA É UM CARTÃO DE IDENTIDADE (18/10/2026).
+     O arranjo é o H2 do estudo (`experimentos/opcoes-visuais/`): a escola numa coluna
+     própria, à esquerda, sobre creme e separada por filete; o resto do contexto à
+     direita. Não é enfeite — é ORDEM DE LEITURA. O que se lê primeiro é de QUEM é este
+     documento; só depois o professor, o ciclo, a aluna e a senha, que são o que se
+     preenche. Antes, os dois vocabulários (identidade e controle) estavam na mesma
+     linha, com o mesmo peso, e o resultado era a faixa que o dono do produto chamou de
+     «feia pra danar».
+     A GRADE, e não `flex-wrap`: com duas colunas fixas, a escola não desce para o meio
+     dos campos quando a largura aperta — quem muda de arranjo é a media query, uma vez. */
   .barra {
     max-width: 900px; margin: 0 auto 1.5rem;
-    background: var(--fundo);
-    border-bottom: 1px solid var(--borda);
-    padding: .55rem 22px;
-    display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(9rem, 12rem) 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: "escola contadores" "escola ato";
+    background: var(--superficie);
+    border: 1px solid var(--borda);
+    border-radius: var(--raio-3);
+    box-shadow: var(--sombra-cartao);
+    overflow: hidden;
     font-size: .85rem; color: var(--suave);
   }
   .barra b { color: var(--texto); font-variant-numeric: tabular-nums; }
+  /* A COLUNA DA ESCOLA. `flex-direction: column` porque aqui os dois versos são LEGENDA e
+     TÍTULO, empilhados — não rótulo e controle na mesma linha. */
+  .barra > .ctx-fixa {
+    grid-area: escola;
+    flex-direction: column; align-items: flex-start; justify-content: center; gap: 0;
+    background: var(--fundo-faixa);
+    border-right: 1px solid var(--borda);
+    padding: var(--esp-4) var(--esp-4);
+  }
+  .barra > .ctx-fixa .ctx-inscricao { font-size: 18px; line-height: 1.3; }
+  .barra > .contadores { grid-area: contadores; justify-content: flex-end; padding: var(--esp-3) var(--esp-5) 0; }
+  .barra > details.ctx-ato { grid-area: ato; padding: 0 var(--esp-5) var(--esp-4); }
   .barra .campo { display: flex; align-items: baseline; gap: .35rem; }
   .barra .campo label { white-space: nowrap; }
   /* A ESCOLA — INSCRIÇÃO, NÃO CAMPO (18/10/2026). O rótulo é legenda e o valor é
@@ -79,7 +106,6 @@
   .barra .ctx-fixa.falta .ctx-inscricao { color: var(--falha); }
   /* O acordeão do contexto do ato: a linha de fora fica sempre visível (o resumo),
      e os campos abrem por baixo. O `summary` é o cursor do recolher/expandir. */
-  .barra details.ctx-ato { flex: 1 1 100%; }
   .barra details.ctx-ato > summary {
     cursor: pointer; list-style: none;
     font-weight: 600; color: var(--texto);
@@ -89,17 +115,40 @@
   .barra details.ctx-ato .ctx-seta { display: inline-block; transition: transform .15s ease; margin-right: .2rem; }
   .barra details.ctx-ato[open] .ctx-seta { transform: rotate(90deg); }
   .barra details.ctx-ato .ctx-resumo { color: var(--suave); font-weight: 400; }
+  /* OS CAMPOS, UM POR COLUNA DE RÓTULO. `align-items: flex-end` alinha os CONTROLES pela
+     base mesmo com rótulos de uma ou duas linhas — sem isso, «turma observada» (que
+     quebra) empurraria o seu select para baixo dos outros. */
   .barra details.ctx-ato .ctx-campos {
-    display: flex; gap: 1rem; align-items: baseline; flex-wrap: wrap;
-    margin-top: .45rem;
+    display: flex; gap: var(--esp-3) var(--esp-4);
+    align-items: flex-end; flex-wrap: wrap;
+    margin-top: var(--esp-3);
   }
+  /* RÓTULO EM CIMA, CONTROLE EMBAIXO — e o controle que tem um botão ao lado (o «×» que
+     desmarca a aluna) fica na MESMA linha dele. `grid` e não `flex`: a coluna do rótulo
+     atravessa as duas (`1 / -1`) e o par select+botão não quebra, que era o que acontecia
+     com `flex-direction: column` — o «×» descia sozinho e o campo crescia 18px. */
+  .barra details.ctx-ato .ctx-campos > .campo {
+    display: grid; grid-template-columns: auto auto; justify-content: start;
+    align-items: center; gap: 2px 4px;
+  }
+  .barra details.ctx-ato .ctx-campos > .campo > label,
+  .barra details.ctx-ato .ctx-campos > .campo > .senha-status { grid-column: 1 / -1; }
+  /* O CICLO É `01`. Sem largura declarada, o `<input>` de texto nasce com ~214px — o
+     triplo do que o dado precisa, e o que empurrava a senha para a segunda linha. */
+  #ctx-ciclo { width: 4.5rem; }
+  /* O `hidden` PRECISA VENCER A GRADE. Esta regra já existia para o `display: flex` de
+     `.campo` e voltou a ser necessária quando o campo virou `display: grid`: a regra
+     acima tem quatro classes e um elemento, e atropelava o `display: none` do atributo —
+     o campo da TURMA aparecia na anamnese, onde ele não existe. Repetida com a mesma
+     especificidade e DEPOIS, que é o que a faz valer. */
+  .barra details.ctx-ato .ctx-campos > .campo[hidden] { display: none; }
   /* O `hidden` NÃO vence o `display: flex` de `.campo` — sem esta regra o campo da turma
      aparecia em TODAS as fontes (16/10/2026). Atributo perde para regra de CSS. */
   .barra .campo[hidden] { display: none; }
   /* A TURMA NO CABEÇALHO (16/10/2026): um SELECT, como o do professor — cabe numa linha e
      não cresce com o número de turmas (cinquenta turmas seriam cinquenta rádios). Fica
      depois do ciclo e antes da senha, que é onde o professor diz de que se trata o ato. */
-  .barra details.ctx-ato .ctx-campos .ctx-turma { flex: 1 1 100%; align-items: baseline; }
+  .barra details.ctx-ato .ctx-campos .ctx-turma { flex: 1 1 100%; align-items: flex-start; }
   .barra details.ctx-ato .ctx-campos .ctx-turma select { max-width: 18rem; }
   .barra details.ctx-ato .ctx-campos .ctx-turma .sub { font-size: .75rem; color: var(--suave); }
   /* O QUE JÁ FOI CONFERIDO NÃO SE MEXE. Enquanto o professor preenche, os campos que
@@ -109,13 +158,13 @@
   /* Dentro da barra os campos são miúdos: a medida de toque do site (15px) vence
      aqui, e só aqui, porque a faixa não é o formulário — é o cabeçalho dele. */
   .barra .campo input {
-    width: auto; font: 13px/1.5 var(--ui); padding: .15rem .4rem;
+    width: auto; height: 32px; font: 13px/1.5 var(--ui); padding: 0 .5rem;
     border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
     background: var(--superficie); color: var(--texto);
   }
   .barra .campo input[type=password] { width: 8rem; }
   .barra .campo select {
-    width: auto; font: 13px/1.5 var(--ui); padding: .15rem .3rem;
+    width: auto; height: 32px; font: 13px/1.5 var(--ui); padding: 0 .4rem;
     border: 1px solid var(--borda-campo); border-radius: var(--raio-1);
     background: var(--superficie); color: var(--texto); max-width: 12rem;
   }
@@ -385,6 +434,35 @@
     main.sem-roteiro { grid-template-columns: minmax(0, 1fr); }
     main.sem-roteiro .conteudo { max-width: none; }
   }
+  /* O CARTÃO EM UMA COLUNA (abaixo de 768px — o corte de celular de todas as folhas).
+     A coluna da escola vira uma FAIXA no topo: o mesmo papel, sem disputar largura com
+     cinco controles. É a única mudança de arranjo, e ela acontece uma vez. */
+  @media (max-width: 768px) {
+    .barra {
+      grid-template-columns: 1fr;
+      grid-template-areas: "escola" "contadores" "ato";
+    }
+    .barra > .ctx-fixa {
+      flex-direction: row; align-items: baseline; gap: var(--esp-2);
+      border-right: none; border-bottom: 1px solid var(--borda);
+      padding: var(--esp-3) var(--esp-4);
+    }
+    .barra > .ctx-fixa .ctx-inscricao { font-size: 15px; }
+    .barra > .contadores { justify-content: flex-start; padding: var(--esp-3) var(--esp-4) 0; }
+    .barra > details.ctx-ato { padding: 0 var(--esp-4) var(--esp-4); }
+    .barra details.ctx-ato .ctx-campos { gap: var(--esp-2) var(--esp-3); }
+    /* No celular o campo ocupa a linha inteira: `width: auto` com conteúdo curto
+       («01») deixa um alvo de dedo do tamanho de uma unha. */
+    .barra details.ctx-ato .ctx-campos > .campo { flex: 1 1 8rem; }
+    .barra .campo select, .barra .campo input { max-width: none; width: 100%; }
+    /* A senha também: `width: 8rem` é medida de barra larga, não de telefone. */
+    .barra .campo input[type=password] { width: 100%; }
+    /* A coluna do controle passa a ser elástica: o SELECT ocupa o que sobra e o «×» fica
+       com o seu tamanho. É o que impede o botão de descer sozinho e o campo de crescer
+       18px em relação aos vizinhos. */
+    .barra details.ctx-ato .ctx-campos > .campo { grid-template-columns: 1fr auto; justify-content: stretch; }
+    #ctx-ciclo { width: 100%; }
+  }
   @media print { .toc-local { position: static; max-height: none; } }
 </style>
 <script>/* Anti-flash: aplica o modo guardado ANTES de a página pintar. O comportamento
@@ -445,23 +523,23 @@ try{if(localStorage.getItem('ciclo-modo')==='noturna')document.documentElement.s
        corrige o que não servir. Os campos ficam recolhidos num acordeão: o
        professor expande quando precisa ver/editar, e recolhe para rolar a tela
        sem a faixa ocupar espaço. -->
+  <!-- A ESCOLA NÃO É CAMPO (18/10/2026). Ela era um `<input type=text>` que o professor
+       podia reescrever — e o que ele escrevesse ali não governava nada: o Worker de cada
+       escola resolve o slug por `ESCOLA_SLUG` (uma escola por Worker) e IGNORA o `?escola=`
+       da URL quando a var existe (`escolaDe`, no motor). Não era entrada: era um lugar onde
+       dava para escrever uma escola que não existe, com o sistema a gravar outra em
+       silêncio. Aqui ela é o que sempre foi — uma INSCRIÇÃO, e a COLUNA do cartão: fora do
+       acordeão, porque a identidade da página não se recolhe; o que se recolhe é o resto do
+       contexto. O `<input>` continua no DOM, `hidden`, porque é dele que saem a chave do
+       depósito local, o envelope e a query dos atalhos; quem o preenche é o servidor. -->
+  <span class="campo ctx-fixa" id="ctx-escola-campo">
+    <span class="ctx-rotulo">escola</span>
+    <span class="ctx-inscricao" id="ctx-escola-nome">—</span>
+    <input type="hidden" id="ctx-escola" value=""></span>
   <details class="ctx-ato" open>
     <summary><span class="ctx-seta">▸</span>Contexto do ato
       <span class="ctx-resumo">escola · professor · ciclo</span></summary>
     <div class="ctx-campos">
-      <!-- A ESCOLA NÃO É CAMPO (18/10/2026). Ela era um `<input type=text>` que o professor
-           podia reescrever — e o que ele escrevesse ali não governava nada: o Worker de cada
-           escola resolve o slug por `ESCOLA_SLUG` (uma escola por Worker) e IGNORA o
-           `?escola=` da URL quando a var existe (`escolaDe`, no motor). O campo, portanto,
-           não era entrada: era um lugar onde dava para escrever uma escola que não existe,
-           com o sistema a gravar outra em silêncio. Aqui ele passa a ser o que sempre foi —
-           uma INSCRIÇÃO: o nome da escola a que esta página pertence, em texto, ao lado do
-           rótulo. O `<input>` continua no DOM, `hidden`, porque é dele que saem a chave do
-           depósito local, o envelope e a query dos atalhos; quem o preenche é o servidor. -->
-      <span class="campo ctx-fixa" id="ctx-escola-campo">
-        <span class="ctx-rotulo">escola</span>
-        <span class="ctx-inscricao" id="ctx-escola-nome">—</span>
-        <input type="hidden" id="ctx-escola" value=""></span>
       <span class="campo"><label for="ctx-professor">professor</label>
         <select id="ctx-professor"><option value="">— escolher —</option></select></span>
       <span class="campo"><label for="ctx-ciclo">ciclo</label>
