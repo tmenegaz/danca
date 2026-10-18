@@ -422,6 +422,25 @@ produto estava a testar **não** era o motor. Depois do deploy das duas, as 16 v
 passam nas duas escolas. Não era o ambiente que estava «descompensado»: era o **deploy**
 que estava atrasado em relação ao repositório, e nada avisava.
 
+### O que ficou ALÉM do que este diagnóstico propunha
+
+O diagnóstico listou seis checagens e três fases. O que se fez depois foi mais longe em cinco
+pontos, e vale registá-los como tal — não para inflacionar o resultado, mas porque cada um deles
+nasceu de um defeito que **este documento não via**:
+
+| # | O que o diagnóstico não previa | Por que foi preciso |
+| --- | --- | --- |
+| 1 | **Medir composição, não a existência de um seletor** | o critério de saída da Fase 1 era «nenhum `<style>` de página define selo», conferido por `grep` de `.selo {` — verdadeiro, e falso para `.selo.vinculada`, que era o defeito real. A 7.ª checagem lê o **alvo** de cada regra, e a lista de componentes é derivada da fonte |
+| 2 | **Alias de página não pode tomar o nome de um papel** | `--borda: var(--borda-campo)` na porta sequestrava `--borda`, que **é** um papel da folha: todo componente vestido por ele saía com outro filete só naquela tela. Não é cor, é composição |
+| 3 | **Um nome de estado, um desenho** | `.livre` e `.solta` são a mesma coisa (a entidade não entrou num plano / o envelope não foi ligado a um PO) e tinham dois desenhos. A fonte já os declarava «aliases do MESMO desenho»; o CSS é que não cumpria |
+| 4 | **Provar o que está NO AR** | o diagnóstico compara fonte, cópia e artefato no repositório; nada nele pergunta se o Worker serve o que o repositório tem. Medido: **não servia** — `style.css`, porta e `<style>` da Produção estavam atrás nas duas escolas |
+| 5 | **A navegação do documento no celular** | a Fase 5 mediu largura na vista de trabalho; o índice «Nesta página» — coluna congelada que abaixo de 1200px é um bloco no topo com 15–30 linhas — ficou de fora. Foi dobrado: 66px recolhido, 562px aberto |
+
+**O padrão, e é o mesmo nas cinco.** O diagnóstico olhou para **valores** (hex, contraste, tokens)
+e para a **existência** das peças; o que escapava era a **composição** — quem vence quem na
+cascata — e a **distância entre o repositório e o que se serve**. Nenhuma das duas se vê numa
+tabela de tokens.
+
 ### O que continua fora
 
 - O **catálogo** das seis famílias e o seletor de aparência (C15 continua aberta).

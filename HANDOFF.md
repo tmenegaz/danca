@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T10:21:09-0300`
-Commit atual: `a35f5d7` — feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai para onde a turma já existe
+Gerado em: `2026-10-18T14:30:28-0300`
+Commit atual: `ce874b9` — feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,12 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
+f9b416b fix(estrutura): a etiqueta é uma só — e o que está no ar é o motor
+dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando não cabe
+724f202 docs(experimentos): o ☰ da S5 andava, e a barra da página ficava presa
+9444099 docs(experimentos): a S5 — a sessão sobe para a barra do sistema SEM levar o hambúrguer
+7d8d6e3 docs(estrutura): a fase 7 fecha os passos, e a regra das duas linhas ganha o mecanismo
 a35f5d7 feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai para onde a turma já existe
 34e07b3 docs(estrutura): a fase 7 registra que a associação desceu para o formulário
 317b2c3 feat(estrutura): a associação sai do cartão e desce para o formulário da turma
@@ -76,12 +82,6 @@ b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativ
 1a1e138 chore(experimentos): a folha do menu ganha prova de GEOMETRIA — 22 verificações e controle negativo
 be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz em que grupo se está
 6113b51 docs(estrutura): o arranjo igual nos três documentos e a lição que ele deixa
-89e1861 chore(experimentos): a prova do cabeçalho abre os TRÊS documentos e compara o arranjo
-60d36cf fix(estrutura): os três cabeçalhos passam a ser o MESMO arranjo — e o cartão passa a ter a largura da página
-9ba5781 docs(estrutura): o nome da escola no JSON, a autoridade do Worker e o arranjo H2 fechado
-9e2f9cd chore(experimentos): a escola do documento ganha prova — inclusive contra o motor de HEAD
-63e0d9a feat(estrutura): o cabeçalho do ato passa a ser o cartão de identidade (H2) — a escola ganha coluna própria
-3281cbc fix(estrutura): a escola do documento é a do Worker — o cliente não decide onde o dado é gravado
 ```
 
 ## Por professor
@@ -147,120 +147,100 @@ be730ff feat(estrutura): o menu do celular vira folha inferior — e a barra diz
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — a turma passa a ser três PASSOS, e o conteúdo vai para o passo que o comporta
+## 18/10/2026 — a leitura de fechamento dos dois documentos de identidade
 
-**O defeito que a própria correção criou.** Na entrada anterior a associação de conteúdo desceu
-para o formulário da turma. Estava errado por uma razão de facto, e foi o dono do produto quem a
-disse: *«eu só posso associar um conteúdo à turma quando eu já tenho uma turma»*. No cadastro a
-turma ainda está a nascer — em «cadastrar» não há `id`, e em «derivar» o `id` à mão é o da turma
-antiga. O lugar da associação é onde a turma **já existe**.
+**O que motivou.** Depois da rodada da forma partilhada, o pedido foi conferir se o que existe
+cumpre o `DIAGNOSTICO-IDENTIDADE.md` e o `IMPLEMENTACAO-IDENTIDADE.md` — com a suspeita, que se
+confirmou, de que o trabalho foi **além** do que os dois propunham.
 
-**As abas passam a passos.** Eram três coisas paralelas (`role="tablist"`). São três atos em
-sequência: **Turma** → **Rubricas** → **Associar**. O markup é um `<ol>` com `aria-current="step"`,
-e o número de cada passo é o que diz que isto é uma ordem e não um menu. Os nomes mudaram com o
-desenho: «Criar rubrica» virou **«Rubricas»** (o passo cria E edita), e «Vincular turma à rubrica»
-virou **«Associar»** — porque ali a turma recebe a régua **e** os conteúdos, e «associar» é a
-palavra que o resto do sistema já usa.
+**O que já estava cumprido.** As Fases 0 a 7 estão fechadas, e as afirmações verificáveis
+continuam verdadeiras: `check-identidade` verde, `ficha-html-cli --autoteste` 42/42,
+`check-apresentacao` com as 3 páginas «Sistema Lastro» fiéis à fonte. Ficam abertos, e por
+declaração, só os itens que dependem de decisão (**2.8**, o catálogo das doze paletas e a
+**C15**) e o que depende do olho humano (**3.4**).
 
-**A desassociação da rubrica, que não existia com nome próprio.** Era «Desvincular (volta à régua
-padrão)», no fim do formulário. É o mesmo ato ao contrário e passou a ter o mesmo nome do outro
-lado: **Associar rubrica** / **Desassociar rubrica**.
+**O que foi corrigido nos documentos** — sempre com nota datada, nunca apagando (§ regra do
+próprio arquivo):
 
-**O que cada passo mostra na sua lista.** Turma → as turmas. Rubricas → as rubricas. Associar → com
-que régua cada turma é medida, agora também com quantos conteúdos. As duas últimas entraram na
-**regra das duas linhas**, e a de vínculos ganhou um botão «Abrir» que leva ao passo com aquela
-turma escolhida.
+- **1.2** dizia raios `4/6/8/999`; hoje são **8/12/20/999**, e a ficha e as páginas de estado
+  passaram a **declarar** a escala em vez de escrever `4px`/`6px` à mão.
+- **o critério da Fase 1** dizia «6 verificações»; são **9**.
+- **5.6** dizia 9/9 na `provar-celular`; são **15/15**.
+- **3.5** (commit próprio do `tools/`, congelado) estava `[ ]` e está feito: `f9b416b` e `ce874b9`.
+- **7.19** (a barra de sessão) estava `[ ]` «aguarda escolha»; a **S5** foi escolhida e está
+  provada (`provar-sessao-na-barra`, 28/28).
+- **a escala de espaço (F14)**: «14 usos, todos na fonte» deixou de ser verdade a meio. Medido
+  hoje: **63 na fonte, 32 nos consumidores** (porta 18, bastidores 14). A dívida está concentrada
+  em **raiz, lançamento, ficha e páginas de estado**.
+- **`data-tela`**: confirmado que continua escrita e não lida (7 declarações, nenhum seletor).
+  É promessa declarada, não dívida escondida.
 
-**O passo é LEMBRADO.** As abas não precisavam — não recarregavam. Os passos recarregam: associar um
-conteúdo chama a API e recarrega. Sem memória, cada associação devolvia a direção ao passo 1 e à
-primeira turma da lista, e associar quatro conteúdos eram quatro vezes a mesma viagem. Passo e turma
-ficam em `sessionStorage`.
+**O que foi acrescentado, e não estava previsto.** O plano ganhou a **Fase 8** (itens 8.1–8.11) e
+o diagnóstico, a secção «O que ficou além». Os cinco pontos, que são a substância:
 
-**Os «!» de etapa, no cartão da turma.** Três atalhos âmbar, um por passo, cada um com o `title` a
-dizer o que ali se edita, e cada um a levar ao passo com aquela turma escolhida. Âmbar e não
-vermelho: nada está errado — o que existe é uma porta. Vermelho faria procurar um defeito.
+1. **medir composição, não a existência de um seletor** — o critério da Fase 1 era `grep` de
+   `.selo {`, que não vê `.selo.vinculada`; a checagem «Forma» lê o alvo de cada regra e deriva a
+   lista de componentes da própria fonte;
+2. **alias de página não pode tomar o nome de um papel** (`--borda`);
+3. **um nome de estado, um desenho** (`.livre` ≡ `.solta`);
+4. **provar o que está no ar** — o diagnóstico nunca olhou o deploy, e o que estava no ar não era
+   o motor;
+5. **a navegação do documento no celular** — a dobra do índice, que o plano não previa.
 
-**A regra das duas linhas quebrou pela SEGUNDA vez, e por um motivo novo.** Com `flex` + `wrap`, o
-selo descia para uma linha própria quando não cabia ao lado do nome — num contentor que quebra, os
-itens são distribuídos por linhas **antes** de encolherem, e um item sozinho na sua linha nunca
-encolhe. Medido a 390px: «Balé nível 1, Grade 1» + «Régua do Nível 1» davam **96px em vez de 65px**,
-e a altura voltava a oscilar. Agora a primeira linha é um **grupo** (`nowrap`) com o nome em
-`flex: 0 1 auto`: quem cede é o nome, com reticências, e o selo fica sempre ao lado dele.
+**Onde entrou.** `IMPLEMENTACAO-IDENTIDADE.md` (a nota de fechamento, as correções datadas, a
+Fase 8 e as linhas do registo de execução) e `DIAGNOSTICO-IDENTIDADE.md` (a secção «O que ficou
+além do que este diagnóstico propunha»). Nenhum código foi tocado nesta entrada: ela é leitura.
 
-E o selo da curadoria: com `flex-grow: 1` no nome ele era empurrado para a margem direita e aparecia
-alinhado com o «Editar»/«Excluir» logo abaixo, com o mesmo desenho de pílula — «parece um botão
-quebrado», nas palavras de quem usa. Com `flex: 0 1 auto` ele fica ao lado do nome.
+**Com o quê.** Medições feitas nesta data: `grep` da escala nos seis consumidores,
+`grep` de `data-tela`, `ficha-html-cli --autoteste`, `check-apresentacao`,
+`check-identidade`.
 
-**Uma prova nova, e a lição que ela já trazia.** `experimentos/provar-linhas-da-lista.js` — **115**
-verificações em cinco larguras, e **24 falhas** no controle negativo. Ela compara as alturas **entre
-si** (a oscilação é relativa, não absoluta) e mede o **mecanismo** — o grupo da primeira linha —, não
-só o resultado: uma lista que ainda não o tenha pode passar com os dados de hoje e falhar com os de
-amanhã, e foi exatamente assim que esta regra quebrou duas vezes.
+**Referências.** `DIAGNOSTICO-IDENTIDADE.md`; `IMPLEMENTACAO-IDENTIDADE.md` (regra do arquivo:
+«item que mudou de escopo ganha nota datada — nunca é apagado»).
 
-**Conferido.** `provar-linhas-da-lista` 115 · `provar-cartao-da-turma` 72/72 · `provar-producao`
-110/110 · `provar-celular` 15/15 · `provar-menu-da-producao` 22/22 · `provar-tema` 30/30 ·
-`provar-cabecalho-do-ato` 40/40 · `provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 ·
-`check-identidade` 8/8. Publicado em `fita` e `valse`.
-
-**Em aberto, para escolha.** Onde fica a barra de sessão («PEDAGOGIA · Turmas») quando a página
-rola. Quatro propostas clicáveis em `experimentos/opcoes-visuais/index.html`, secção «Onde fica a
-«sessão» quando a página rola»: **S1** sobe e encaixa ao lado do hambúrguer, **S2** fica presa,
-**S3** entra dentro da barra do sistema, **S4** vira pílula flutuante.
+**O que continua fora.** O catálogo das doze paletas e o seletor de aparência (C15); a
+conferência visual (3.4), que é do dono do produto; a migração da escala para as quatro
+superfícies que ainda escrevem `rem` à mão; e o deploy da raiz, que faria a `provar-ambiente`
+cobrir a terceira superfície.
 
 ## O que está pendente
 
-## 17/10/2026 — Os commits estavam certos e a produção estava velha: as escolas passam a publicar no push
+## 18/10/2026 — o formulário recolhe para uma faixa, e a listagem ocupa a largura toda
 
+O recolhimento vale para a secção **Turmas**, que é aquela a que o
+filtro leva. Os outros formulários (Professores, Alunas, Vocabulário, Curadorias) continuam sempre
+abertos — uma faixa neles não teria a mesma causa, e a decisão não foi pedida. No telefone a
+listagem ganha a largura toda, mas continua a ser a mesma coluna única: o ganho ali é a **altura**
+(o formulário sai da frente), não a largura.
 
-- **O `workflow_dispatch` do `deploy-escolas.yml` não foi exercitado** — o disparo só acontece
-  no próximo push que toque nos caminhos listados.
-- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`), e a barra
-  dela é anterior ao grupo «Ciclos»; o corpo da porta, esse, está em dia.
-- **A conferência visual continua sua**, agora com a pele nova de fato no ar.
+## 18/10/2026 — o nome do professor na curadoria abre o plano de ensino dele
 
-## 17/10/2026 — O botão que parecia quebrado, o campo colado no botão e o modal que não dava para enviar
+Na fita e na valse **não há plano de ensino gravado** quando esta
+entrada foi escrita — e por isso as duas curadorias continuam «livre» e sem link. O link aparece
+sozinho no primeiro plano. O atalho é do NOME do professor na curadoria; as outras listas
+(Professores, Alunas, Turmas, Termos) continuam a levar ao filtro «turmas», não ao plano.
 
+## 18/10/2026 — a faixa dos passos numa linha só, com a seta no fim
 
-- **A conferência visual continua sua**, sobre `danca`, `fita` e `valse` no ar.
-- **A `fita` continua sem regeneração completa** por `gerar-ciclo.sh` (`DATA_INICIO`).
-- **A correção do `escap` → `escapar` na porta** veio de outra frente e ainda não está commitada;
-  as cópias de `plano-observacao/` dos dois pacotes foram atualizadas junto com ela, e a
-  `check-identidade.js` as exige iguais à fonte.
+A faixa continua a ser a mesma nos três passos, e a listagem
+recolhida continua a ocupar a largura toda; nada disto mudou o acordeão em si. O estudo em
+`experimentos/opcoes-visuais/index.html` já usava `flex-wrap: nowrap`, e não precisou de ajuste.
 
-  > **Correção de 17/10/2026 (mesmo dia).** «ainda não está commitada» deixou de ser verdade
-  > poucos minutos depois: a correção entrou no commit do paginação (a mesma sessão que a
-  > encontrou fechou-a). O que fica registado é o estado do momento em que esta entrada foi
-  > escrita — e a lição que ele guarda: uma correção que só existe em três ficheiros do
-  > worktree, sem commit, é uma correção que a próxima sessão não vê.
+## 18/10/2026 — a etiqueta é uma só, e o que está no ar é o motor
 
-## 17/10/2026 — As sete listas da Produção passam a folhear (o botão que valia sempre -1)
+A **raiz** (`danca`) não foi reimplantada: `raiz/assets/style.css`
+está atualizado no repositório, mas o Worker da raiz continua a servir a cópia anterior até o
+deploy dela. O **catálogo** das seis famílias e o seletor de aparência continuam planeados
+(C15 aberta). As páginas de estudo em `experimentos/` têm cópias antigas de componente e
+continuam fora do contrato, por declaração.
 
+## 18/10/2026 — a dobra do índice da página, no celular
 
-- **A prova `provar-ajustes-anamnese.js` continua com 14 falhas** — e são alheias a este trabalho:
-  ela espera a TURMA da anamnese como **radios** com estados bloqueados, e a turma passou a
-  `select` em 16/10/2026. Estavam escondidas até agora porque o ficheiro morria antes de lá
-  chegar; a correção do `escap` desmascarou-as. Ficam declaradas: é dívida de prova, não defeito
-  de produto.
-- O aviso da estante aparecer **não** foi provado num DOM a sério — a prova da estante usa o
-  harness de DOM falso. O que se provou é que o `ReferenceError` deixou de existir e que a prova
-  avança.
-
-## 18/10/2026 — A escola não é campo: o cabeçalho do ato separa o que se digita do que o sistema declara
-
-
-- **A escolha do arranjo** — é dele, e o estudo está pronto para ela.
-- **`provar-ajustes-anamnese.js` tem 15 falhas anteriores a esta data**, medidas iguais antes e
-  depois (nenhuma nova): as asserções de turma e de desabilitação não acompanharam mudanças
-  anteriores. Ficam registradas aqui para não serem confundidas com regressão desta entrada.
-
-## 18/10/2026 — O nome da escola estava no JSON e vinha do cliente: o Worker passa a ser a autoridade
-
-
-- **O índice de escolas para o cruzamento da proveniência** — é o próximo pedido do dono do
-  produto, declarado por ele nesta data. Hoje a lista de escolas sai da árvore do repositório
-  (`wrangler.<slug>.jsonc`), não de um índice gravado por escola.
-- **`provar-lancamento.js` e `provar-expurgo-kv.js` falham antes desta data** (apontam para
-  `professores/tiago/…`, que não existe): medido igual com e sem esta mudança, nenhuma regressão.
+O `.toc-local` da **fita** e da **valse** não tem documentos
+além do índice (o pacote é o scaffold: `DOCS="plano"`, e o plano ainda não foi elicitado), por
+isso a dobra foi medida no índice do pacote e no Roteiro da porta. Os documentos de aula, quando
+existirem, recebem o controle sem nenhuma alteração — é o mesmo `assets/nav.js`. A **raiz**
+(`danca`) continua sem a folha nova no ar até o deploy dela.
 
 ## Pendências anteriores (índice)
 
@@ -439,6 +419,17 @@ rola. Quatro propostas clicáveis em `experimentos/opcoes-visuais/index.html`, s
 - **17/10/2026** — A aparência ganha prova própria — e o botão que… → `REGISTRO.md` L15063
 - **17/10/2026** — A escola nasceu sem o botão da aparência: a barra tinha… → `REGISTRO.md` L15316
 - **17/10/2026** — A lista de turmas deixa de ficar acavalada no celular → `REGISTRO.md` L15384
+- **17/10/2026** — Os commits estavam certos e a produção estava velha: as… → `REGISTRO.md` L15689
+- **17/10/2026** — O botão que parecia quebrado, o campo colado no botão e o… → `REGISTRO.md` L15743
+- **17/10/2026** — As sete listas da Produção passam a folhear (o botão que… → `REGISTRO.md` L15839
+- **18/10/2026** — A escola não é campo: o cabeçalho do ato separa o que se… → `REGISTRO.md` L15925
+- **18/10/2026** — O nome da escola estava no JSON e vinha do cliente: o… → `REGISTRO.md` L15987
+- **18/10/2026** — a S5 entra em produção, e os três passos ganham os… → `REGISTRO.md` L16393
+- **18/10/2026** — o «Seções» vira botão, e a página começa na secção → `REGISTRO.md` L16454
+- **18/10/2026** — a proveniência sai da curadoria e vale para tudo; o menu… → `REGISTRO.md` L16494
+- **18/10/2026** — os três passos fecham as travas, e o «Editar» da turma… → `REGISTRO.md` L16545
+- **18/10/2026** — o vocabulário escolhe em lista, e cada nome diz as suas… → `REGISTRO.md` L16606
+- **18/10/2026** — o cancelar chega à curadoria, a turma perde dois campos, e… → `REGISTRO.md` L16661
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

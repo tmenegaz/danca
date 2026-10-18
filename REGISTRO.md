@@ -16976,3 +16976,59 @@ além do índice (o pacote é o scaffold: `DOCS="plano"`, e o plano ainda não f
 isso a dobra foi medida no índice do pacote e no Roteiro da porta. Os documentos de aula, quando
 existirem, recebem o controle sem nenhuma alteração — é o mesmo `assets/nav.js`. A **raiz**
 (`danca`) continua sem a folha nova no ar até o deploy dela.
+
+## 18/10/2026 — a leitura de fechamento dos dois documentos de identidade
+
+**O que motivou.** Depois da rodada da forma partilhada, o pedido foi conferir se o que existe
+cumpre o `DIAGNOSTICO-IDENTIDADE.md` e o `IMPLEMENTACAO-IDENTIDADE.md` — com a suspeita, que se
+confirmou, de que o trabalho foi **além** do que os dois propunham.
+
+**O que já estava cumprido.** As Fases 0 a 7 estão fechadas, e as afirmações verificáveis
+continuam verdadeiras: `check-identidade` verde, `ficha-html-cli --autoteste` 42/42,
+`check-apresentacao` com as 3 páginas «Sistema Lastro» fiéis à fonte. Ficam abertos, e por
+declaração, só os itens que dependem de decisão (**2.8**, o catálogo das doze paletas e a
+**C15**) e o que depende do olho humano (**3.4**).
+
+**O que foi corrigido nos documentos** — sempre com nota datada, nunca apagando (§ regra do
+próprio arquivo):
+
+- **1.2** dizia raios `4/6/8/999`; hoje são **8/12/20/999**, e a ficha e as páginas de estado
+  passaram a **declarar** a escala em vez de escrever `4px`/`6px` à mão.
+- **o critério da Fase 1** dizia «6 verificações»; são **9**.
+- **5.6** dizia 9/9 na `provar-celular`; são **15/15**.
+- **3.5** (commit próprio do `tools/`, congelado) estava `[ ]` e está feito: `f9b416b` e `ce874b9`.
+- **7.19** (a barra de sessão) estava `[ ]` «aguarda escolha»; a **S5** foi escolhida e está
+  provada (`provar-sessao-na-barra`, 28/28).
+- **a escala de espaço (F14)**: «14 usos, todos na fonte» deixou de ser verdade a meio. Medido
+  hoje: **63 na fonte, 32 nos consumidores** (porta 18, bastidores 14). A dívida está concentrada
+  em **raiz, lançamento, ficha e páginas de estado**.
+- **`data-tela`**: confirmado que continua escrita e não lida (7 declarações, nenhum seletor).
+  É promessa declarada, não dívida escondida.
+
+**O que foi acrescentado, e não estava previsto.** O plano ganhou a **Fase 8** (itens 8.1–8.11) e
+o diagnóstico, a secção «O que ficou além». Os cinco pontos, que são a substância:
+
+1. **medir composição, não a existência de um seletor** — o critério da Fase 1 era `grep` de
+   `.selo {`, que não vê `.selo.vinculada`; a checagem «Forma» lê o alvo de cada regra e deriva a
+   lista de componentes da própria fonte;
+2. **alias de página não pode tomar o nome de um papel** (`--borda`);
+3. **um nome de estado, um desenho** (`.livre` ≡ `.solta`);
+4. **provar o que está no ar** — o diagnóstico nunca olhou o deploy, e o que estava no ar não era
+   o motor;
+5. **a navegação do documento no celular** — a dobra do índice, que o plano não previa.
+
+**Onde entrou.** `IMPLEMENTACAO-IDENTIDADE.md` (a nota de fechamento, as correções datadas, a
+Fase 8 e as linhas do registo de execução) e `DIAGNOSTICO-IDENTIDADE.md` (a secção «O que ficou
+além do que este diagnóstico propunha»). Nenhum código foi tocado nesta entrada: ela é leitura.
+
+**Com o quê.** Medições feitas nesta data: `grep` da escala nos seis consumidores,
+`grep` de `data-tela`, `ficha-html-cli --autoteste`, `check-apresentacao`,
+`check-identidade`.
+
+**Referências.** `DIAGNOSTICO-IDENTIDADE.md`; `IMPLEMENTACAO-IDENTIDADE.md` (regra do arquivo:
+«item que mudou de escopo ganha nota datada — nunca é apagado»).
+
+**O que continua fora.** O catálogo das doze paletas e o seletor de aparência (C15); a
+conferência visual (3.4), que é do dono do produto; a migração da escala para as quatro
+superfícies que ainda escrevem `rem` à mão; e o deploy da raiz, que faria a `provar-ambiente`
+cobrir a terceira superfície.

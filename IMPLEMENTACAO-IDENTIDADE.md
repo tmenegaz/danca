@@ -10,6 +10,14 @@
 > `tools/templates/` e exigem, além do código: motivo declarado no commit, entrada no
 > `REGISTRO.md` e commit próprio (`CONGELAMENTO.md`).
 
+> **Leitura de fechamento — 18/10/2026.** O plano é conferido contra o que existe: as Fases 0 a
+> 7 estão fechadas, salvo os itens que dependem de decisão (**2.8**, o catálogo das doze paletas
+> e **C15**) e os que dependem do olho humano (**3.4**). Duas coisas **foram além** do que este
+> documento propunha, e viraram trabalho: a **Fase 8**, que trata da forma partilhada (a
+> etiqueta, os componentes, o que está no ar × o motor), e a **dobra do índice no celular**,
+> que o plano não previa. Onde um número deste arquivo envelheceu, ele fica com **nota
+> datada** — nunca é apagado.
+
 ## Princípios que valem em todas as fases
 
 1. **Uma folha de tokens, sem build.** O HTML sai por quatro caminhos (Pandoc, Worker,
@@ -89,7 +97,7 @@ Objetivo: os componentes deixam de ser reescritos por página.
 | # | Item | Estado |
 |---|---|---|
 | 1.1 | Declarar no `ciclo.css` os componentes: botão (principal/secundário/perigo/pequeno), campo, rótulo, foco, selo, cartão, modal, `.res`, aviso | `[x]` 16/10 — seção "COMPONENTES" |
-| 1.2 | Declarar a escala: espaço `4/8/12/16/24/32`, raio `4/6/8/999` | `[x]` 16/10 — `--esp-1..6`, `--raio-1..3`, `--raio-pilula` |
+| 1.2 | Declarar a escala: espaço `4/8/12/16/24/32`, raio `4/6/8/999` | `[x]` 16/10 — `--esp-1..6`, `--raio-1..3`, `--raio-pilula`. **Nota 17–18/10:** os raios passaram a **8/12/20/999** (a pele E, HarmonyOS), e a ficha e as páginas de estado passaram a **declarar** a escala em vez de escrever `4px` e `6px` à mão |
 | 1.3 | Migrar a raiz para as classes de componente | `[x]` 16/10 — 300 → **162** linhas de CSS local |
 | 1.4 | Migrar a porta | `[x]` 16/10 — 386 → **349** linhas |
 | 1.5 | Migrar o lançamento | `[x]` 16/10 — 86 → **71** linhas |
@@ -124,7 +132,8 @@ tema.
   desenho que antes existia quatro vezes agora existe uma.
 - **O piso tem especificidade zero** (`:where()`), então a navbar, as abas e os botões-ícone
   não precisam mais reescrever o componente para não herdar preenchimento.
-- `node tools/check-identidade.js` → 6 verificações ok.
+- `node tools/check-identidade.js` → 6 verificações ok. **Nota 18/10:** são **9** hoje (as
+  checagens 7 «Forma» e a de circuito por pacote entraram depois; ver a Fase 8).
 - `node experimentos/provar-producao.js` → 109/109 · `provar-derivacao-da-turma.js` → 123/123.
 
 **Não conferido no navegador.** A migração preserva as medidas declaradas e foi validada por
@@ -185,7 +194,7 @@ estado explícito para a próxima sessão.
 | 3.2 | Documentação: `README.md`, `motor/servidor/README.md` | `[x]` 17/10 |
 | 3.3 | Regenerar o `HANDOFF.md` (gerado) | `[x]` 17/10 |
 | 3.4 | Conferência **visual** no navegador (clara e noturna) | `[ ]` — exige olho humano |
-| 3.5 | Commit próprio das mudanças em `tools/` (congelados) | `[ ]` — só com pedido explícito |
+| 3.5 | Commit próprio das mudanças em `tools/` (congelados) | `[x]` 18/10 — dois commits próprios com motivo declarado: `f9b416b` (a forma partilhada e os dois validadores) e `ce874b9` (a dobra do índice) |
 
 ### O que a prova do tema encontrou
 
@@ -205,6 +214,74 @@ aberto, e o botão parece certo.
   não o gosto.
 - **O commit** é uma decisão à parte: `tools/` é congelado e exige commit próprio com o motivo
   declarado, já escrito no `REGISTRO.md`.
+
+## Fase 8 — a forma partilhada, e o que está no ar (18/10/2026)
+
+Objetivo: fechar o que a Fase 1 **disse ter fechado** e não fechou. A Fase 1 declarou «nenhum
+`<style>` de página define botão, campo, rótulo, selo, cartão, modal ou `.res`» e conferiu por
+`grep` do seletor **nu** — `.selo {`. Essa busca não vê `.selo.vinculada`, e foi por ali que a
+porta redeclarou **quatro estados** do selo.
+
+**O sintoma, dito pelo dono do produto:** «a etiqueta *livre* está de um jeito nos Bastidores e de
+outro na anamnese — isso não é identidade visual». **A pergunta que veio com ele:** «não tem
+sentido eu testar se estou a testar uma coisa e no motor é outra».
+
+| # | Item | Estado |
+|---|---|---|
+| 8.1 | A página não **redeclara** componente: saem os quatro `.selo` da porta | `[x]` 18/10 — `porta/index.html` |
+| 8.2 | Um nome de estado, um desenho: `.solta` é alias de `.livre` na fonte | `[x]` 18/10 — `ciclo.css` (a declaração já o dizia; o CSS é que não cumpria) |
+| 8.3 | Estado que só uma página conhece deixa de existir (`.selo.sem-uso`) | `[x]` 18/10 — `bastidores.js` |
+| 8.4 | Nenhum alias toma o nome de um papel (`--borda: var(--borda-campo)`) | `[x]` 18/10 — 7 usos passam a `--borda-campo` |
+| 8.5 | `.aviso` e `.caixa.falta` da porta: um tom, não dois; nenhuma cópia | `[x]` 18/10 |
+| 8.6 | `footer.rodape` do lançamento passa a `barra-de-controle` | `[x]` 18/10 — eram dois desenhos para a mesma classe |
+| 8.7 | Quem é servido sem a folha copia os **números**: raio no cartão e no botão | `[x]` 18/10 — ficha `4px → --raio-3`; estado `6px/8px → --raio-2/--raio-3` |
+| 8.8 | `[congelado]` Checagem **«Forma»** no validador: redeclaração e estado inexistente | `[x]` 18/10 — `check-identidade.js`, 7ª checagem; lista **derivada** da fonte |
+| 8.9 | Prova do que se **vê**: forma medida nas quatro superfícies, nos dois temas | `[x]` 18/10 — `provar-selo.js`, 14 asserções; controle negativo na porta de `HEAD` |
+| 8.10 | Prova do que se **serve**: o que está no ar é o motor | `[x]` 18/10 — `provar-ambiente.js`, 8 verificações × 2 escolas |
+| 8.11 | A **dobra do índice** no celular — o plano não previa | `[x]` 18/10 — `provar-dobra-do-indice.js`, 16/16 |
+
+### O que a Fase 8 encontrou, e o que ela acrescenta ao plano
+
+1. **A verificação da Fase 1 media o seletor errado.** «Nenhum `<style>` de página define selo»
+   era verdade para `.selo {` e falso para `.selo.vinculada`. A lição não é sobre o selo: é que
+   **um critério de saída escrito como `grep` de uma string** não sustenta uma afirmação sobre
+   composição. A 8.8 substitui o `grep` por uma regra que lê o **alvo** de cada regra e a lista de
+   componentes **derivada da própria fonte** — um componente novo entra coberto sem ninguém
+   lembrar.
+2. **Redeclarar um componente não o deixa «um pouco diferente»: deixa-o metade de cada lugar.**
+   O `<style>` da página vem depois da folha, então vence — mas só nas propriedades que escreve.
+   O fundo continua o da folha, a borda e o texto passam a ser da página, e ninguém vê a
+   divergência porque cada metade vem de um sítio.
+3. **Alias de página pode sequestrar um papel.** `--borda: var(--borda-campo)` fazia todo
+   componente que a folha veste com `--borda` (o selo, o `pre`, o `hr`) sair com outro filete
+   **só naquela tela**. Não é uma questão de cor: é o mesmo mecanismo do item 2, um nível abaixo.
+4. **O diagnóstico nunca olhou para o DEPLOY.** Ele compara fonte, cópia e artefato no
+   repositório; nada nele pergunta se o Worker serve o que o repositório tem. O `provar-ambiente`
+   respondeu que **não** — o `style.css`, a porta e o `<style>` da Produção estavam atrás do
+   repositório nas duas escolas. O que o dono do produto estava a testar não era o motor.
+5. **A navegação no celular não estava no plano.** A Fase 5 mediu largura na vista de trabalho; o
+   índice da página — uma coluna congelada que, abaixo de 1200px, é um bloco no topo com 15, 20,
+   30 linhas — ficou de fora. A 8.11 dobra-o: 66px recolhido contra 562px aberto, com o controle
+   só onde a coluna não existe.
+
+### Critério de saída da Fase 8 — conferido em 18/10/2026
+
+```bash
+node tools/check-identidade.js          # 9 verificações ok (a 7.ª é a «Forma»)
+node experimentos/provar-selo.js        # TUDO CERTO — 14 asserções
+node experimentos/provar-selo.js --controle-negativo   # 5 reprovações na porta de HEAD
+node experimentos/provar-ambiente.js    # TUDO CERTO — 16/16 nas duas escolas
+node experimentos/provar-dobra-do-indice.js            # TUDO CERTO — 16/16
+node experimentos/provar-celular.js     # 15/15
+```
+
+**Contraprova.** A «Forma» reprova se `.selo.vinculada` voltar à porta (conferido), e o
+`provar-selo` serve a porta de `HEAD` e **reproduz as duas etiquetas divergentes** que o dono do
+produto viu. Sem a contraprova, uma checagem nova é uma opinião.
+
+**O que a Fase 8 não fecha.** A **raiz** (`danca`) não foi reimplantada — `raiz/assets/` está
+atualizado no repositório e o Worker serve a cópia anterior. O `provar-ambiente` cobre fita e
+valse; a raiz entra nele no dia em que for implantada.
 
 ## Registro de execução
 
@@ -285,8 +362,14 @@ provada, em vez de reprovar. Passou a coletar todas e a exigir o botão em cada 
   não se inventa. O corpo da porta foi atualizado; a barra será refeita pelo gerador.
 - **A `data-tela` é escrita e não lida.** Cinco superfícies a declaram; nenhuma regra de
   CSS a consome. É marcador para regras futuras — está registrado aqui para não virar
-  surpresa.
+  surpresa. **Confirmado em 18/10:** as sete declarações existem (porta, raiz, lançamento,
+  bastidores ×2, estado, ficha) e `grep` no `ciclo.css` e nas folhas de página não encontra
+  nenhum seletor que a leia. Continua a ser promessa, não dívida.
 - **A escala (F14) continua sem adoção.** `--esp-1..6` aparece 14 vezes, todas na fonte.
+  **Nota 18/10:** deixou de ser verdade a meio. Medido hoje: **63 usos na fonte** e **32 nos
+  consumidores** (porta 18, bastidores 14) — a porta e a Produção migraram com o trabalho dos
+  componentes; **raiz, lançamento, ficha e páginas de estado continuam a escrever `rem`/`px` à
+  mão**. O que falta é mecânico, e é nestas quatro que se mede.
 
 ---
 
@@ -304,7 +387,7 @@ critério, não sobra.
 | 5.3 | O corte de celular do painel é o mesmo do menu (768) | `[x]` 17/10 — era 760 |
 | 5.4 | O menu de secções vira faixa no celular | `[x]` 17/10 — 248px → ~80px de altura |
 | 5.5 | A escala de tela documentada, um valor por conceito | `[x]` 17/10 — `IDENTIDADE-VISUAL.md` |
-| 5.6 | Prova de geometria em seis larguras | `[x]` 17/10 — `provar-celular.js`, 9/9 |
+| 5.6 | Prova de geometria em seis larguras | `[x]` 17/10 — `provar-celular.js`, 9/9. **Nota 18/10:** **15/15** — entraram a varredura das sete páginas servidas, o desenho de todo campo e a regra dos quatro lados do botão |
 
 ### O que a medida encontrou
 
@@ -340,7 +423,8 @@ menu, a coluna única em 768, o nome espremido e o botão separado do seletor. C
 
 - **A escala de espaço (F14) continua sem adoção.** `--esp-*` tem 14 usos, todos na fonte. Migrar
   os `padding` das quatro superfícies é trabalho mecânico e sem risco, mas ainda não foi feito —
-  está aqui para não se perder.
+  está aqui para não se perder. **Nota 18/10:** ver a correção na Fase 4; hoje são 32 usos fora
+  da fonte, e a dívida está concentrada em **raiz, lançamento, ficha e páginas de estado**.
 - **Não há prova de geometria para as larguras intermediárias** (1025–1199px, 1150–1200px). São
   as faixas onde o índice lateral entra e sai; hoje o `provar-celular.js` mede 1024 e para.
 - **O `provar-celular.js` não está no `pre-commit`**, de propósito: um commit não pode depender de
@@ -349,6 +433,11 @@ menu, a coluna única em 768, o nome espremido e o botão separado do seletor. C
 | 17/10/2026 | 5.1–5.2 linha da turma | `flex-wrap` + `14rem`; `par-associar`; `.lista > li > .nome` |
 | 17/10/2026 | 5.3–5.4 celular | corte 760 → 768; menu de secções em faixa (248 → 80px) |
 | 17/10/2026 | 5.5–5.6 doc e prova | escala de tela no `IDENTIDADE-VISUAL.md`; `provar-celular.js` 9/9 |
+| 18/10/2026 | 3.5 e 7.19 fechados | commits `f9b416b` e `ce874b9`; S5 provada (28/28) |
+| 18/10/2026 | 8.1–8.7 a forma partilhada | `.solta` ≡ `.livre`; 0 redeclaração nas 4 superfícies com folha |
+| 18/10/2026 | 8.8 checagem «Forma» | `check-identidade.js` → 9 verificações; reprova a porta de `HEAD` |
+| 18/10/2026 | 8.9–8.10 provas | `provar-selo.js` 14 asserções; `provar-ambiente.js` 16/16 |
+| 18/10/2026 | 8.11 dobra do índice | `provar-dobra-do-indice.js` 16/16; 66px × 562px |
 
 ## Fase 6 — o cabeçalho do ato: o que é campo e o que é inscrição (18/10/2026)
 
@@ -519,7 +608,7 @@ nome que decidia onde ele caía.
 | 7.16 | Os «!» de etapa no cartão da turma, âmbar, com atalho | `[x]` 18/10 — um por passo, `title` a dizer o que ali se edita |
 | 7.17 | O selo da curadoria ao lado do nome, não na margem direita | `[x]` 18/10 — `flex: 0 1 auto` no nome |
 | 7.18 | A regra das duas linhas, provada em cinco larguras | `[x]` 18/10 — `provar-linhas-da-lista.js`, 115; 24 falhas em `HEAD` |
-| 7.19 | Onde fica a barra de sessão quando a página rola — cinco propostas | `[ ]` 18/10 — na página de estudos (S1–S5), **aguarda escolha**; a S5 corrige a S1 |
+| 7.19 | Onde fica a barra de sessão quando a página rola — cinco propostas | `[x]` 18/10 — **S5**, escolhida pelo dono do produto: o caminho sobe para a barra do sistema e o `☰` não anda. Provada em `provar-sessao-na-barra.js` (28/28), e o `nav-html.js` ganhou `extras` para isso — sem `extras`, a saída é byte a byte a de antes |
 
 ### A associação mudou de lugar (18/10/2026)
 
