@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T15:42:42-0300`
-Commit atual: `b901058` — feat(tools): a barra perde o botão da aparência — a decisão é da escola
+Gerado em: `2026-10-18T16:33:58-0300`
+Commit atual: `83f0413` — feat(tools): o catálogo das peças — um nome antes do desenho
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+83f0413 feat(tools): o catálogo das peças — um nome antes do desenho
+7702c9f feat(estrutura): a aparência é da escola, e o servidor aplica-a
 b901058 feat(tools): a barra perde o botão da aparência — a decisão é da escola
 d930cd5 docs(estrutura): a C15 foi decidida — a preferência de aparência é da escola
 610e747 docs(estrutura): a conferência visual fecha, e a C15 ganha glosa nos dois documentos
@@ -80,8 +82,6 @@ a237e82 docs(estrutura): o híbrido do cartão da turma escolhido, implementado 
 a8e9bbf docs(estrutura): o híbrido do cartão da turma — e por que a escala deixou de ser da T2
 833d193 docs(estrutura): a fase 7 — a regra das duas linhas e as três propostas do cartão da turma
 b350056 docs(estrutura): o HANDOFF passa a apontar a regra das duas linhas
-4b68b7f fix(estrutura): as listas passam a ter duas linhas, e o «principal» deixa de ser história
-b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativo se anuncia ao leitor de ecrã
 ```
 
 ## Por professor
@@ -147,102 +147,97 @@ b9002a6 fix(estrutura): a barra do menu separa grupo e página — e o item ativ
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — A aparência passou a ser da escola, e o servidor aplica-a
+## 18/10/2026 — O catálogo das peças: um nome antes do desenho
 
-**O que motivou.** A **C15** perguntava de quem é a preferência de aparência. O dono do produto
-respondeu: **da escola**. A decisão estava escrita desde a entrada anterior — e escrita **não é
-feita**. Enquanto o modo vivesse no `localStorage`, cada visitante via a pele que o seu navegador
-guardou, e a escolha da escola não existia em lado nenhum. Havia ainda uma frase errada a circular
-nos documentos: a de que «qualquer pessoa com a senha da escola muda a aparência de todos». O
-portão da Produção é o **estreito** — `senhaDaDirecaoOk`, ou seja `SENHA_ADMIN` **ou**
-`SENHA_PROFESSOR`, e mais nenhuma; `senhaDaEscolaOk` é a política **larga** e serve a abrir o
-**dado cifrado do ciclo**, não esta página. Confundir as duas dava a impressão de que o seletor
-estava exposto, e é o contrário que o torna seguro.
+**O que motivou.** Três coisas nasceram erradas **no mesmo dia**, e o dono do produto viu as três
+antes de qualquer prova — porque o defeito era visual:
+
+1. a secção **Aparência** foi montada com `<div class="fileira">` e dois `.acao` dentro. `fileira`
+   **não existia** em lugar nenhum: nem na folha, nem no `<style>` da página. Sem desenho, os dois
+   botões saíram **encostados um no outro**;
+2. a nota dessa secção usou `.nota`, que só tem desenho **dentro de um `<form>`**: fora dele o
+   parágrafo saiu no corpo do texto, 17px, ao lado de controles de 14;
+3. o «escolhido» foi escrito como `.acao[aria-pressed="true"]` — uma **ação** a fazer o trabalho de
+   um **estado**.
+
+As três têm a mesma causa: **a peça não existia com nome**. O que faltava não era cuidado, era
+**vocabulário**; e vocabulário não se guarda na memória de quem escreve — guarda-se num catálogo e
+numa checagem.
 
 **O que foi decidido.**
 
-- **A aparência é um valor da ESCOLA**, guardado em `bastidores/<escola>/aparencia` — e o que se
-  guarda é o **nome** do modo (`clara`/`noturna`), nunca um hex. Quando o catálogo das doze
-  paletas existir, é este campo que ganha a família; guardar cor agora fecharia essa porta.
-- **O servidor aplica-a, e diz de quem é a decisão.** O `<html>` de toda página servida sai com
-  `data-modo` **e** `data-modo-fonte="escola"`. O segundo atributo não é enfeite: é a fronteira
-  que faz o `assets/nav.js` **não** aplicar por cima a memória de um navegador usado antes.
-- **O controlo vive na Produção** — secção **Aparência**, grupo **Configuração**. É o único lugar
-  onde só a escola e o professor principal chegam, e é por isso que lá está.
-- **O botão `◐` saiu da barra das escolas.** Uma escolha que vale para todos não pode ter, ao
-  lado, um botão que a desfaça por visitante. Fica **só na raiz**, que não é escola e não tem
-  Produção onde pendurar a escolha.
-- **O anti-flash não foi apagado — mudou de razão.** Era o mecanismo; passou a ser a rede de quem
-  abre um `.html` direto do disco, sem servidor. Ganhou a guarda `!hasAttribute('data-modo-fonte')`
-  para não desfazer, nas páginas **servidas**, o que a escola decidiu.
-- **A ausência não inventa:** sem nada guardado, a escola é `clara`.
+- **Toda peça tem nome, lugar e estados.** O contrato ganhou o **catálogo das peças**: o Quadro 1
+  responde «que natureza tem isto?» (campo, inscrição, escolha, ordem, estado, leitura…) e daí sai
+  a peça; o Quadro 2 diz onde cada uma é declarada e que estados tem de ter. A pergunta deixou de
+  ser «como fica bonito» e passou a ser «o que isto **é**».
+- **Nenhuma classe nasce no uso.** Quem não desenha nada é **gancho** (declarado com a razão, para
+  o JS achar o elemento) ou é **erro**. São 13 ganchos hoje, cada um com o motivo escrito.
+- **A pílula é do sistema, não de uma página.** `.escolhas`/`.escolha` viviam no `<style>` dos
+  Bastidores — e um componente que só existe numa página é um componente que a próxima superfície
+  reinventa. Subiram para `tools/templates/ciclo.css`.
+- **Uma ação não guarda estado.** O `.acao[aria-pressed]` foi removido: quem guarda estado é a
+  pílula (`:checked`) ou o cartão (`aria-pressed` na raiz). Um botão não é nenhum dos dois.
+- **Uma peça declarada num contexto não se usa fora dele.** `form .nota` é uma peça de formulário;
+  a linha de apoio, fora dele, é `.sub`.
 
 **Onde entrou.**
 
-- `motor/servidor/bastidores.js` — `MODOS_DE_APARENCIA`, `chaveDaAparencia`, `aparenciaDaEscola`,
-  `gravarAparencia`; `cabecalhoDaVista(titulo, aparencia)` põe o atributo e **perde** o anti-flash
-  por `localStorage`; `paginaEstudio`/`paginaProducao` recebem o modo; rota
-  `GET|POST /api/bastidores/aparencia` (GET público, POST no portão da direção); a secção
-  `#sec-aparencia` e o grupo «Configuração» no menu lateral.
-- `motor/servidor/producao.js` — `comAparencia(resposta, modo)`: injeta o atributo no `<html>` de
-  tudo o que a escola serve (pacote do ciclo e porta), sem tocar em nada que não seja HTML e sem
-  mentir no `content-length`. E `modoDaEscola(env)`, para a ponte não depender de um segundo
-  caminho de leitura.
-- `tools/templates/nav.js` — `decididoPelaEscola`: com `data-modo-fonte` no `<html>`, o `nav.js`
-  não lê, não escreve e não liga o botão.
-- `tools/templates/nav-html.js` — o botão `◐` **saiu** da barra; a constante ficou **vazia de
-  propósito**, com o comentário que diz por que saiu.
-- `tools/templates/ciclo.css` — o estado escolhido de um `.acao` (`[aria-pressed="true"]`), que é o
-  que desenha a opção em vigor na secção Aparência.
-- `tools/templates/ciclo.html`, `tools/templates/lancamento.html`, `porta/index.html`,
-  `raiz/index.html` — o anti-flash ganha a guarda da fonte.
-- `tools/check-identidade.js` — a checagem 6 passa a exigir a barra **de hoje**, isto é, **sem** o
-  botão. A asserção foi **invertida**, não apagada: continua a medir «esta cópia é a atual».
-- Cópias geradas sincronizadas: `assets/style.css` e `assets/nav.js` dos dois pacotes e da raiz;
-  o `<button class="tema">` removido das quatro páginas geradas; o anti-flash com a guarda.
-- Provas: `provar-tema.js` reescrito na metade que a C15 invalidou (36 asserções) e
-  `experimentos/provar-aparencia.js` **novo** (35 asserções: ausência, portão, valor inválido, o
-  que se guarda, as vistas e a ponte). `provar-selo.js` passou a modelar o Worker no banco (servia
-  os ficheiros crus e, sem o botão, punha as quatro superfícies em peles diferentes — acusava uma
-  divergência que **não existe no ar**). `provar-producao.js` conta sete secções e oito
-  formulários, com a exceção declarada da Aparência na regra «nenhum formulário explica».
+- `tools/templates/ciclo.css` — o bloco **«escolha em pílulas»** (base, `:checked`,
+  `:focus-visible`, `:disabled`, `position: relative` no rótulo, vão na grade de 4px, altura de
+  toque ~37px); a saída do `.acao[aria-pressed]`, com o comentário que explica a armadilha de
+  especificidade que ele tinha.
+- `motor/servidor/bastidores.js` — as pílulas **saem** do `<style>` da página (fica só o composto
+  `.dia-hora`/`.hora-do-dia`, que é desta tela); `pilula()` ganha `tipo` e `marcado`; a secção
+  **Aparência** passa a `<fieldset class="escolhas">` com dois `radio`, `checked` do servidor,
+  linha de apoio em `.sub`; a gravação repinta no lugar e a pílula **volta** para a opção em vigor
+  se o POST falhar.
+- `tools/check-identidade.js` — **checagem 8 «Peça»**: toda classe usada na marcação das 7
+  superfícies que emitem é desenhada (folha ou o `<style>` da própria página) ou é gancho
+  declarado; e a folha não pode ter **comentário aberto**. A lista `GANCHOS` é à mão de propósito:
+  cada linha nova é uma decisão de alguém.
+- `IDENTIDADE-VISUAL.md` — «o validador, e as suas **oito** checagens»; a secção **«o catálogo das
+  peças»** (Quadros 1 e 2, as três proibições, a regra de nascimento); a secção das paletas
+  renomeada para **«o catálogo das PALETAS»**; e «o que uma paleta tem de declarar para existir»,
+  com a medição das duas âncoras recebidas.
+- `.github/instructions/identidade-visual.instructions.md` (**novo**) — o resumo que se lê antes de
+  escrever marcação, com `applyTo` sobre as superfícies de interface; e uma linha no `AGENTS.md`
+  apontando para ele.
+- `IMPLEMENTACAO-IDENTIDADE.md` — a **Fase 9**, com o critério de saída e as duas contraprovas.
+- Provas: `experimentos/provar-producao.js` ganha **6 asserções** sobre a peça da Aparência
+  (fieldset, dois `radio`, um `checked` do servidor, e a ausência do `fileira` e do `aria-pressed`);
+  a contagem das pílulas passa de 7 para 9, com o critério escrito (7 dias + 2 modos).
 
-**Motivo declarado — os congelados.** `tools/`, `tools/templates/` e `tools/check-identidade.js`
-estão em `CONGELAMENTO.md`, e esta entrada declara o motivo: **a decisão C15 removeu o botão da
-aparência da barra e mudou o dono da preferência**, e nenhuma das duas coisas se faz sem tocar a
-barra e o comportamento partilhado. **O que não muda:** a fórmula de hash, a cobertura do `.fipp`,
-os validadores de ciclo, as regras pedagógicas, as pétreas do protocolo e os tokens da identidade.
-Nenhuma fonte de ciclo foi tocada — **não há reancoragem**.
+**Uma correção dentro desta entrada, e é a prova de que a checagem serve.** Ao remover o
+`.acao[aria-pressed]` eu **abri um comentário CSS e não o fechei**. O comentário seguinte fechou-o,
+e o efeito foi um intervalo de regras mortas — `.acao.perigo`, `.acao.grande`, `.acao.pequena` e
+`button.icone` — que ninguém veria: a página só perdia o desenho dessas quatro peças. A checagem
+**8a** (contagem de `/*` e `*/`) existe por causa disto, e reprovou na contraprova.
 
-**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
-`tools/templates/nav.js` · `tools/templates/nav-html.js` · `tools/templates/ciclo.css` ·
-`tools/templates/ciclo.html` · `tools/templates/lancamento.html` · `porta/index.html` ·
-`raiz/index.html` · `raiz/assets/{style.css,nav.js}` ·
-`professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/{style.css,nav.js}` · as quatro
-páginas geradas · `tools/check-identidade.js` · `experimentos/provar-{tema,aparencia,selo,producao}.js`
-· `.gitignore` (a prova nova entra na lista do que é versionado) · `IDENTIDADE-VISUAL.md` ·
-`IMPLEMENTACAO-IDENTIDADE.md` · `PLANEJAMENTO-LASTRO.md` · este registro.
+**Motivo declarado — os congelados.** `tools/` e `tools/templates/` estão em `CONGELAMENTO.md`, e
+esta entrada declara o motivo: a pílula **subiu para a folha** porque um componente de página é
+um componente que a próxima página reinventa, e a checagem nova mora em `tools/` porque é lá que
+as guardas da identidade vivem. **O que não muda:** a fórmula de hash, a cobertura do `.fipp`, os
+validadores de ciclo, as regras pedagógicas, as pétreas do protocolo e os tokens da identidade
+(nenhum hex entrou ou saiu). Nenhuma fonte de ciclo foi tocada — **não há reancoragem**.
 
-**Referências.** `PLANEJAMENTO-LASTRO.md` §3 C15 (decidida) e §L13; `IDENTIDADE-VISUAL.md`; o
-próprio `motor/servidor/bastidores.js` (`senhaDaDirecaoOk` × `senhaDaEscolaOk` — a medição que
-corrigiu a frase errada).
+**Com o quê.** `tools/templates/ciclo.css` · `tools/check-identidade.js` ·
+`motor/servidor/bastidores.js` · `raiz/assets/style.css` ·
+`professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/style.css` ·
+`.github/instructions/identidade-visual.instructions.md` · `AGENTS.md` · `IDENTIDADE-VISUAL.md` ·
+`IMPLEMENTACAO-IDENTIDADE.md` · `experimentos/provar-producao.js` · este registro.
 
-**O que ainda não está feito.** (a) **As doze paletas continuam sem hex** — o que existe são dois
-modos sobre a paleta vigente; especificar e medir as combinações é o **V1** do §L13, e nenhum valor
-foi inventado. (b) O *quando* a escola escolhe (contratação ou primeiro uso) segue aberto, e é de
-produto. (c) A metade **comercial** da **C17** (quem confirma pagamento, quem recebe o e-mail
-administrativo) continua aberta; a metade que interessava — *quem administra a Produção* — está
-respondida e escrita. (d) `provar-tema`, `provar-aparencia`, `provar-producao`, `provar-selo`,
-`provar-celular`, `provar-cartao-da-turma`, `provar-dobra-do-indice` e `check-identidade` passam;
-`provar-ambiente` só depois do deploy, e é ele que confirma que o que está no ar é este motor.
+**Referências.** `IDENTIDADE-VISUAL.md` (o catálogo das peças; o catálogo das paletas; o critério
+medido) · `tools/check-identidade.js` (checagens 7 e 8) · WCAG 2.1 AA (4,5:1 texto, 3,0:1 traço)
+e 2.5.8 (alvo mínimo de toque).
+
+**O que ainda não está feito.** (a) O catálogo **não impede um desenho feio**: impede um desenho
+**sem nome**. Gosto continua a ser decisão humana — o que passou a ser automático é o vocabulário.
+(b) As **doze paletas continuam sem hex**; a secção das paletas passou a dizer **o que cada uma
+tem de declarar** e a medição já feita sobre as duas âncoras da Cortina Turquesa (turquesa × branco
+= 2,42:1 — a barra daquela família não pode ter texto branco). (c) A secção **Aparência** está
+implantada e medida, mas o dono do produto ainda não a viu na tela.
 
 ## O que está pendente
-
-## 18/10/2026 — a faixa dos passos numa linha só, com a seta no fim
-
-A faixa continua a ser a mesma nos três passos, e a listagem
-recolhida continua a ocupar a largura toda; nada disto mudou o acordeão em si. O estudo em
-`experimentos/opcoes-visuais/index.html` já usava `flex-wrap: nowrap`, e não precisou de ajuste.
 
 ## 18/10/2026 — a etiqueta é uma só, e o que está no ar é o motor
 
@@ -276,6 +271,10 @@ administrativo) continua aberta; a metade que interessava — *quem administra a
 respondida e escrita. (d) `provar-tema`, `provar-aparencia`, `provar-producao`, `provar-selo`,
 `provar-celular`, `provar-cartao-da-turma`, `provar-dobra-do-indice` e `check-identidade` passam;
 `provar-ambiente` só depois do deploy, e é ele que confirma que o que está no ar é este motor.
+
+## 18/10/2026 — O catálogo das peças: um nome antes do desenho
+
+(a) O catálogo **não impede um desenho feio**: impede um desenho
 
 ## Pendências anteriores (índice)
 
@@ -467,6 +466,7 @@ respondida e escrita. (d) `provar-tema`, `provar-aparencia`, `provar-producao`, 
 - **18/10/2026** — o cancelar chega à curadoria, a turma perde dois campos, e… → `REGISTRO.md` L16661
 - **18/10/2026** — o formulário recolhe para uma faixa, e a listagem ocupa a… → `REGISTRO.md` L16716
 - **18/10/2026** — o nome do professor na curadoria abre o plano de ensino dele → `REGISTRO.md` L16763
+- **18/10/2026** — a faixa dos passos numa linha só, com a seta no fim → `REGISTRO.md` L16801
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

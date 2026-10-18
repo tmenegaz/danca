@@ -17225,3 +17225,93 @@ administrativo) continua aberta; a metade que interessava — *quem administra a
 respondida e escrita. (d) `provar-tema`, `provar-aparencia`, `provar-producao`, `provar-selo`,
 `provar-celular`, `provar-cartao-da-turma`, `provar-dobra-do-indice` e `check-identidade` passam;
 `provar-ambiente` só depois do deploy, e é ele que confirma que o que está no ar é este motor.
+
+## 18/10/2026 — O catálogo das peças: um nome antes do desenho
+
+**O que motivou.** Três coisas nasceram erradas **no mesmo dia**, e o dono do produto viu as três
+antes de qualquer prova — porque o defeito era visual:
+
+1. a secção **Aparência** foi montada com `<div class="fileira">` e dois `.acao` dentro. `fileira`
+   **não existia** em lugar nenhum: nem na folha, nem no `<style>` da página. Sem desenho, os dois
+   botões saíram **encostados um no outro**;
+2. a nota dessa secção usou `.nota`, que só tem desenho **dentro de um `<form>`**: fora dele o
+   parágrafo saiu no corpo do texto, 17px, ao lado de controles de 14;
+3. o «escolhido» foi escrito como `.acao[aria-pressed="true"]` — uma **ação** a fazer o trabalho de
+   um **estado**.
+
+As três têm a mesma causa: **a peça não existia com nome**. O que faltava não era cuidado, era
+**vocabulário**; e vocabulário não se guarda na memória de quem escreve — guarda-se num catálogo e
+numa checagem.
+
+**O que foi decidido.**
+
+- **Toda peça tem nome, lugar e estados.** O contrato ganhou o **catálogo das peças**: o Quadro 1
+  responde «que natureza tem isto?» (campo, inscrição, escolha, ordem, estado, leitura…) e daí sai
+  a peça; o Quadro 2 diz onde cada uma é declarada e que estados tem de ter. A pergunta deixou de
+  ser «como fica bonito» e passou a ser «o que isto **é**».
+- **Nenhuma classe nasce no uso.** Quem não desenha nada é **gancho** (declarado com a razão, para
+  o JS achar o elemento) ou é **erro**. São 13 ganchos hoje, cada um com o motivo escrito.
+- **A pílula é do sistema, não de uma página.** `.escolhas`/`.escolha` viviam no `<style>` dos
+  Bastidores — e um componente que só existe numa página é um componente que a próxima superfície
+  reinventa. Subiram para `tools/templates/ciclo.css`.
+- **Uma ação não guarda estado.** O `.acao[aria-pressed]` foi removido: quem guarda estado é a
+  pílula (`:checked`) ou o cartão (`aria-pressed` na raiz). Um botão não é nenhum dos dois.
+- **Uma peça declarada num contexto não se usa fora dele.** `form .nota` é uma peça de formulário;
+  a linha de apoio, fora dele, é `.sub`.
+
+**Onde entrou.**
+
+- `tools/templates/ciclo.css` — o bloco **«escolha em pílulas»** (base, `:checked`,
+  `:focus-visible`, `:disabled`, `position: relative` no rótulo, vão na grade de 4px, altura de
+  toque ~37px); a saída do `.acao[aria-pressed]`, com o comentário que explica a armadilha de
+  especificidade que ele tinha.
+- `motor/servidor/bastidores.js` — as pílulas **saem** do `<style>` da página (fica só o composto
+  `.dia-hora`/`.hora-do-dia`, que é desta tela); `pilula()` ganha `tipo` e `marcado`; a secção
+  **Aparência** passa a `<fieldset class="escolhas">` com dois `radio`, `checked` do servidor,
+  linha de apoio em `.sub`; a gravação repinta no lugar e a pílula **volta** para a opção em vigor
+  se o POST falhar.
+- `tools/check-identidade.js` — **checagem 8 «Peça»**: toda classe usada na marcação das 7
+  superfícies que emitem é desenhada (folha ou o `<style>` da própria página) ou é gancho
+  declarado; e a folha não pode ter **comentário aberto**. A lista `GANCHOS` é à mão de propósito:
+  cada linha nova é uma decisão de alguém.
+- `IDENTIDADE-VISUAL.md` — «o validador, e as suas **oito** checagens»; a secção **«o catálogo das
+  peças»** (Quadros 1 e 2, as três proibições, a regra de nascimento); a secção das paletas
+  renomeada para **«o catálogo das PALETAS»**; e «o que uma paleta tem de declarar para existir»,
+  com a medição das duas âncoras recebidas.
+- `.github/instructions/identidade-visual.instructions.md` (**novo**) — o resumo que se lê antes de
+  escrever marcação, com `applyTo` sobre as superfícies de interface; e uma linha no `AGENTS.md`
+  apontando para ele.
+- `IMPLEMENTACAO-IDENTIDADE.md` — a **Fase 9**, com o critério de saída e as duas contraprovas.
+- Provas: `experimentos/provar-producao.js` ganha **6 asserções** sobre a peça da Aparência
+  (fieldset, dois `radio`, um `checked` do servidor, e a ausência do `fileira` e do `aria-pressed`);
+  a contagem das pílulas passa de 7 para 9, com o critério escrito (7 dias + 2 modos).
+
+**Uma correção dentro desta entrada, e é a prova de que a checagem serve.** Ao remover o
+`.acao[aria-pressed]` eu **abri um comentário CSS e não o fechei**. O comentário seguinte fechou-o,
+e o efeito foi um intervalo de regras mortas — `.acao.perigo`, `.acao.grande`, `.acao.pequena` e
+`button.icone` — que ninguém veria: a página só perdia o desenho dessas quatro peças. A checagem
+**8a** (contagem de `/*` e `*/`) existe por causa disto, e reprovou na contraprova.
+
+**Motivo declarado — os congelados.** `tools/` e `tools/templates/` estão em `CONGELAMENTO.md`, e
+esta entrada declara o motivo: a pílula **subiu para a folha** porque um componente de página é
+um componente que a próxima página reinventa, e a checagem nova mora em `tools/` porque é lá que
+as guardas da identidade vivem. **O que não muda:** a fórmula de hash, a cobertura do `.fipp`, os
+validadores de ciclo, as regras pedagógicas, as pétreas do protocolo e os tokens da identidade
+(nenhum hex entrou ou saiu). Nenhuma fonte de ciclo foi tocada — **não há reancoragem**.
+
+**Com o quê.** `tools/templates/ciclo.css` · `tools/check-identidade.js` ·
+`motor/servidor/bastidores.js` · `raiz/assets/style.css` ·
+`professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/style.css` ·
+`.github/instructions/identidade-visual.instructions.md` · `AGENTS.md` · `IDENTIDADE-VISUAL.md` ·
+`IMPLEMENTACAO-IDENTIDADE.md` · `experimentos/provar-producao.js` · este registro.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (o catálogo das peças; o catálogo das paletas; o critério
+medido) · `tools/check-identidade.js` (checagens 7 e 8) · WCAG 2.1 AA (4,5:1 texto, 3,0:1 traço)
+e 2.5.8 (alvo mínimo de toque).
+
+**O que ainda não está feito.** (a) O catálogo **não impede um desenho feio**: impede um desenho
+**sem nome**. Gosto continua a ser decisão humana — o que passou a ser automático é o vocabulário.
+(b) As **doze paletas continuam sem hex**; a secção das paletas passou a dizer **o que cada uma
+tem de declarar** e a medição já feita sobre as duas âncoras da Cortina Turquesa (turquesa × branco
+= 2,42:1 — a barra daquela família não pode ter texto branco). (c) A secção **Aparência** está
+implantada e medida, mas o dono do produto ainda não a viu na tela.

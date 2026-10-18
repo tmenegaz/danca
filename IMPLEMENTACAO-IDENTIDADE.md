@@ -307,7 +307,7 @@ sentido eu testar se estou a testar uma coisa e no motor é outra».
 ### Critério de saída da Fase 8 — conferido em 18/10/2026
 
 ```bash
-node tools/check-identidade.js          # 9 verificações ok (a 7.ª é a «Forma»)
+node tools/check-identidade.js          # 10 verificações ok (a 7.ª é a «Forma», a última é a «Peça»)
 node experimentos/provar-selo.js        # TUDO CERTO — 14 asserções
 node experimentos/provar-selo.js --controle-negativo   # 5 reprovações na porta de HEAD
 node experimentos/provar-ambiente.js    # TUDO CERTO — 16/16 nas duas escolas
@@ -322,6 +322,66 @@ produto viu. Sem a contraprova, uma checagem nova é uma opinião.
 **O que a Fase 8 não fecha.** A **raiz** (`danca`) não foi reimplantada — `raiz/assets/` está
 atualizado no repositório e o Worker serve a cópia anterior. O `provar-ambiente` cobre fita e
 valse; a raiz entra nele no dia em que for implantada.
+
+## Fase 9 — o catálogo das peças (18/10/2026)
+
+**O que a motivou.** Em um só dia, três coisas novas nasceram fora do combinado, e o dono do
+produto viu as três antes de qualquer prova:
+
+1. a secção **Aparência** usou `<div class="fileira">` com dois `.acao` dentro. `fileira` **não
+   existia** em lugar nenhum — nem na folha, nem no `<style>` da página —, e sem desenho os dois
+   botões saíram **encostados um no outro**;
+2. a nota dessa secção usou `.nota`, que só tem desenho **dentro de um `<form>` (`form .nota`)**:
+   fora dele, o parágrafo saiu a 17px ao lado de controles de 14;
+3. o estado «escolhido» foi escrito como `.acao[aria-pressed="true"]` — uma **ação** a fazer o
+   trabalho de um **estado**, que é da pílula.
+
+As três são a mesma falha: **a peça não existia com nome**. O que faltava não era talento, era
+**vocabulário** — e vocabulário não se guarda na memória de quem escreve.
+
+**O que a Fase 9 fez.**
+
+- **9.1 — a pílula subiu para a folha.** `.escolhas`/`.escolha` eram desenho de **página**
+  (`bastidores.js`), e um componente que só existe numa página é um que a próxima superfície
+  reinventa. Passaram para `tools/templates/ciclo.css`, ao lado do campo e do selo, com os
+  estados completos (`:checked`, `:focus-visible`, `:disabled`), `position: relative` no rótulo
+  (o `input` absoluto deixa de se posicionar contra a página) e o vão na grade de 4px. O
+  `.acao[aria-pressed]` **saiu**: uma ação não guarda estado.
+- **9.2 — o catálogo das peças, no contrato.** `IDENTIDADE-VISUAL.md` ganhou o **Quadro 1**
+  (que natureza tem isto → que peça usar), o **Quadro 2** (onde cada peça é declarada e que
+  estados tem de ter), as **três proibições** com o caso que criou cada uma, e a **regra de
+  nascimento** de uma peça. A secção das paletas passou a chamar-se **catálogo das PALETAS**,
+  para não confundir os dois vocabulários.
+- **9.3 — a checagem 8, «Peça».** Toda classe usada na marcação tem de ser **desenhada** em
+  algum lugar (folha ou o `<style>` da própria página) ou ser **gancho declarado com razão** (13
+  hoje: os nomes que o JavaScript procura e os que a composição do grid usa). A mesma passagem
+  confere que a folha não tem **comentário aberto** — um `/*` sem `*/` apaga as regras seguintes,
+  e foi o que aconteceu a `.acao.perigo`, `.acao.grande` e `.acao.pequena` numa versão deste dia.
+- **9.4 — o resumo que se lê antes de escrever marcação.**
+  `.github/instructions/identidade-visual.instructions.md`, com `applyTo` sobre as superfícies
+  que emitem interface, e uma linha no `AGENTS.md` apontando para ele. O contrato é longo; o que
+  se lê no começo de uma tarefa tem de caber numa tela.
+- **9.5 — a secção Aparência refeita com a peça certa:** um `<fieldset class="escolhas">` com
+  dois `radio`, o `checked` escrito pelo **servidor**, a linha de apoio em `.sub` (que é do
+  sistema e não tem contexto) e a gravação a repintar no lugar, com a pílula a voltar para a
+  opção em vigor se o POST falhar.
+
+**Critério de saída — conferido em 18/10/2026.**
+
+```bash
+node tools/check-identidade.js        # 10 verificações ok (a última é a «Peça»)
+node experimentos/provar-producao.js  # 132/132 — 6 asserções novas sobre a peça da Aparência
+node experimentos/provar-celular.js   # 15/15 — as pílulas em 320…1024
+node experimentos/provar-selo.js      # TUDO CERTO
+```
+
+**Contraprova.** Reintroduzir `class="fileira"` na porta faz a «Peça» reprovar com o nome da
+classe e a superfície (conferido); abrir um comentário na folha faz a 8a reprovar com a contagem
+(conferido). As duas contraprovas foram feitas e desfeitas antes do commit.
+
+**O que a Fase 9 não fecha.** O catálogo **não impede** um desenho feio — impede um desenho
+**sem nome**. Gosto continua a ser uma decisão humana; o que passou a ser automático é o
+vocabulário. E a **raiz** continua servida de uma cópia anterior (ver a Fase 8).
 
 ## Registro de execução
 
@@ -351,6 +411,9 @@ valse; a raiz entra nele no dia em que for implantada.
 | 17/10/2026 | 2.7 layouts | `data-layout="documento"\|"painel"` em todas as superfícies |
 | 17/10/2026 | 2.8 catálogo | **não feito** — depende de C15 |
 | 18/10/2026 | 2.8 destravado | **C15 decidida: a preferência é da escola**; mecanismo = servidor. Falta o trabalho (V1: especificar e medir as doze) |
+| 18/10/2026 | 2.4 executado | aparência da escola no servidor: `data-modo` + `data-modo-fonte` em tudo o que a escola serve; secção **Aparência** na Produção; o `◐` saiu da barra |
+| 18/10/2026 | 9.1 pílula na folha | `.escolhas`/`.escolha` saem de `bastidores.js`; `.acao[aria-pressed]` removido |
+| 18/10/2026 | 9.2–9.4 catálogo | Quadros 1 e 2 em `IDENTIDADE-VISUAL.md`; checagem 8 «Peça»; instruções com `applyTo` |
 | 17/10/2026 | 3.1 prova do tema | `provar-tema.js` 29/29; botão fora do `.nav-links` (defeito encontrado) |
 | 17/10/2026 | 3.2 documentação | `README.md` (seção e atalhos) e `motor/servidor/README.md` |
 | 17/10/2026 | 3.3 handoff | `tools/gerar-handoff.sh` |

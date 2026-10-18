@@ -306,7 +306,7 @@ quer o número medido roda o validador.
 node tools/check-identidade.js
 ```
 
-## O validador, e as suas sete checagens
+## O validador, e as suas oito checagens
 
 `tools/check-identidade.js` não tem dependências externas e sai com código 1 se algo
 falhar. Ele confere:
@@ -347,6 +347,12 @@ falhar. Ele confere:
    resultado está na secção seguinte. A lista de componentes é **derivada** da própria
    fonte (é «raiz» a classe que aparece sozinha como alvo de uma regra), e não escrita à
    mão: um componente novo entra coberto, sem ninguém lembrar de o acrescentar.
+8. **Peça** — toda classe usada na **marcação** é **desenhada** em algum lugar: na folha, ou
+   no `<style>` da própria página quando ela declara o que usa. Quem não desenha nada ou é
+   **gancho** (um nome que existe para o JavaScript achar o elemento, declarado com a razão
+   escrita) ou é **erro**. É a checagem que faltava à «Forma»: ela mede a **cópia**, não o
+   **nome**. A mesma passagem confere que a folha não tem **comentário aberto** — um `/*` sem
+   `*/` engole as regras seguintes e as peças de lá ficam sem desenho, sem nada falhar.
 
 ### A regra da composição — o que a «Forma» impede *(18/10/2026)*
 
@@ -392,7 +398,90 @@ resolveria. Por isso a checagem de cópia única do deck olha **só** o bloco `s
 deck carregam cores próprias. Elas **não** são a paleta da interface e não podem
 virar token sem quebrar o casamento.
 
-## O catálogo planejado — seis famílias, doze variantes *(16/10/2026)*
+## O catálogo das peças — o inventário, e como escolher *(18/10/2026)*
+
+**Por que existe.** Em um só dia, três coisas novas nasceram fora do combinado, e todas pelo
+mesmo motivo: eu inventei em vez de procurar.
+
+| O que nasceu | O que devia ser | O que o dono do produto viu |
+| --- | --- | --- |
+| `<div class="fileira">` com dois `.acao` dentro | a **pílula**, que serve a lista curta e fechada | dois botões **encostados um no outro**, sem desenho nenhum |
+| `<p class="nota">` numa secção que não é `<form>` | a linha de apoio (`.sub`), que é do sistema | um parágrafo de **17px** ao lado de controles de 14 |
+| `.acao[aria-pressed="true"]` | a **pílula** com `:checked` | uma ação a fazer o trabalho de um estado |
+
+Nenhuma das três foi um erro de gosto: as três foram erro de **vocabulário**. Uma peça é
+uma palavra, e quem não sabe que a palavra existe inventa outra — que ninguém desenhou.
+
+**A primeira pergunta é sempre a mesma: o que isto É?** Não «como fica bonito», mas
+**que natureza tem** o que vou pôr na tela. A resposta escolhe a peça, e a peça já tem
+desenho.
+
+### Quadro 1 — como escolher
+
+| O que é | Peça | Quando | Marcação |
+| --- | --- | --- | --- |
+| **O que a pessoa preenche** | `.campo` | um valor digitado ou escolhido num menu | `<label class="campo-rotulo">` + `input`/`select`/`textarea` |
+| **O que o sistema DECLARA** | inscrição | o dado que não se digita porque não é escolha de ninguém (a escola do ato) | texto com voz de título — **nunca** um `input` desabilitado |
+| **Uma escolha entre POUCAS, todas à vista** | `.escolhas` / `.escolha` (pílula) | dias da semana, aparência da escola — lista curta, fechada e fixa | `<label class="escolha"><input …><span>…</span></label>`, `radio` para uma, `checkbox` para várias |
+| **Uma escolha entre MUITAS, ou variável** | `.escolhedor` | turmas, alunas, repertório, os 84 termos | menu + «Adicionar» + ficha com o «×» |
+| **Um valor único de uma lista fechada, com rótulo próprio** | `select` + `.campo-rotulo` | a turma da curadoria, a tradição | `<select>` (nunca `multiple`) |
+| **Uma ORDEM** — algo que acontece ao clicar | `.acao` | gravar, excluir, voltar, avançar | `<button class="acao">`; `secundario` para o que não é a ação principal, `perigo` para o que apaga |
+| **Um ESTADO ou atributo do dado** | `.selo` | «livre», «vinculada», «vigente» | `<span class="selo livre">` |
+| **Um bloco de leitura** | `.caixa` | texto que se lê, com título | `<div class="caixa">` (+ `nota`, `falta`) |
+| **O resultado de uma ação** | `.res` | «ok», «erro», «gravando…» | barra acima da lista |
+| **Um alerta no meio do conteúdo** | `.aviso` | o que o leitor não pode deixar passar | `<p class="aviso">` |
+| **Uma janela por cima** | `.modal` | confirmar uma exclusão | `modal-fundo` + `modal-caixa` |
+| **A barra do sistema** | `.topnav` | — | gerada por `nav-html.js`; **não** se escreve à mão |
+| **O índice da página** | `.toc-local` (+ `.toc-dobra`) | — | gerado; no celular recolhe |
+
+### Quadro 2 — o inventário
+
+Onde cada peça é **declarada**, e o que ela tem de estados. Nenhuma destas linhas se escreve
+numa página: quem carrega a folha já as recebe desenhadas.
+
+| Peça | Declarada em | Estados que ela tem de ter |
+| --- | --- | --- |
+| `.acao` | `ciclo.css` | base, `:hover`, `:focus-visible`, `:disabled`, `secundario`, `perigo`, `grande`, `pequena` |
+| `.escolhas`/`.escolha` | `ciclo.css` | base, `:checked`, `:focus-visible`, `:disabled` |
+| `.campo` (`input`/`select`/`textarea`) | `ciclo.css` | base, `:focus-visible`, `:disabled`, e a seta do `select` nos dois temas |
+| `.campo-rotulo` | `ciclo.css` | base, `em-linha` |
+| `.selo` | `ciclo.css` | base + um estado por significado (`ok`, `vigente`, `livre`…) |
+| `.caixa` / `.caixa.nota` / `.caixa.falta` | `ciclo.css` | — |
+| `.aviso` / `.res` / `.modal` | `ciclo.css` | `.res.ok`, `.res.erro` |
+| `.topnav` / `.toc-local` / `.toc-dobra` | `ciclo.css` | aberto, recolhido, impressão |
+| `.escolhedor` | `ciclo.css` + a página que o emite | `.escolhidos`, `.escolhido`, `.entrada` |
+| `.ficha` / `.cartao` / `.acoes` (raiz) | **a própria página**, que não carrega a folha | ver a checagem 4 |
+
+### As três proibições, com o caso que as criou
+
+1. **Nenhuma classe nasce no uso.** Se a marcação precisa de um contentor, ou ele é uma peça
+   deste catálogo, ou é um **gancho** declarado com a razão. A checagem **8 (Peça)** reprova o
+   resto — foi ela que teria parado o `.fileira`.
+2. **Uma peça declarada num contexto não se usa fora dele.** `form .nota` só existe **dentro
+   de um `<form>`**; fora dele o parágrafo sai no corpo do texto. Quem precisa da linha de
+   apoio usa `.sub`, que é do sistema e não tem contexto.
+3. **Uma peça não faz o trabalho de outra.** Ação é ordem; pílula é estado; selo é atributo do
+   dado. Um botão que guarda estado é a pílula disfarçada — e o desenho dele só aparece no
+   instante em que o ponteiro sai.
+
+### A regra de nascimento de uma peça
+
+Uma peça nova **nasce inteira**, no mesmo commit, e nesta ordem:
+
+1. o desenho em `tools/templates/ciclo.css`, com **todos** os estados do Quadro 2 e só tokens
+   de papel (a checagem 3 reprova primitivo);
+2. uma linha no **Quadro 1** e uma no **Quadro 2** deste documento;
+3. a prova — a geometria dela medida num navegador de verdade (`experimentos/provar-*.js`);
+4. a cópia nas superfícies que a usam (`assets/style.css`), e as checagens 5 e 7 verdes.
+
+Enquanto isso não acontecer, a peça **não existe** — e usá-la é o defeito que este catálogo
+existe para impedir.
+
+## O catálogo das PALETAS — seis famílias, doze variantes *(16/10/2026)*
+
+> **Não confundir com o «catálogo das peças»**, acima: aquele é o dos **componentes** (o que
+> desenha um botão, um selo, uma pílula) e existe; este é o das **paletas** de cor, e está
+> **planejado**. Um é o vocabulário da tela, o outro é o tom dela.
 
 **O que foi feito, e o que não foi.** Foram exploradas **visualmente** seis direções de paleta,
 cada uma em versão **clara** e **noturna**, a partir de imagens de referência. O estudo é de
@@ -449,6 +538,47 @@ outras cinco, e a variante noturna da própria Bordô de Cena, são **estudo**.
 > **O que a vigente NÃO muda.** Os tokens, os pares medidos, o piso de contraste e
 > `tools/templates/ciclo.css` como fonte única. A chegada do catálogo é **acréscimo**, não
 > substituição — e enquanto não houver decisão, é o que está escrito acima desta secção que vale.
+
+### O que uma paleta tem de declarar para existir *(18/10/2026)*
+
+**Quatro cores não fazem uma paleta.** Uma paleta de identidade não pinta com os quatro tons
+que se vê numa imagem: ela preenche **papéis**, e são trinta e poucos. O sistema não pergunta
+«qual é a cor do botão?» — pergunta «qual é o `--marca-fundo`?», «e o texto que fica **sobre**
+ele?», «e o filete do campo, que tem de alcançar 3:1 sobre três fundos diferentes?». Uma
+imagem com quatro amostras responde à primeira pergunta e deixa as outras vinte e nove em
+branco.
+
+O que uma família precisa de trazer, e é o **formulário** que eu preciso receber:
+
+| # | O papel | O que ele governa | Observação |
+| :-- | :-- | :-- | :-- |
+| 1 | **marca** | a cor de assinatura (a barra, o botão principal) | a âncora da família |
+| 2 | **marca-texto** | o tom da marca que **serve de texto** sobre o papel | raramente é a marca: a marca pura costuma não passar 4,5:1 |
+| 3 | **marca-fundo** / **sobre-marca** | o fundo de marca e o texto que fica **sobre** ele | **o par que mais falha** (ver a medição abaixo) |
+| 4 | **texto** / **texto-suave** | o texto corrido e o secundário | sobre **dois** fundos: papel e superfície |
+| 5 | **fundo** / **fundo-suave** / **superfície** | o papel, a faixa e o cartão | três degraus, não um |
+| 6 | **borda** / **borda-campo** / **borda-forte** | o filete do cartão, o do campo, o forte | o do campo tem piso **3:1** sobre papel **e** cartão |
+| 7 | **ornamento** (1 a 3) | o traço decorativo e o de destaque | o ouro é ornamento; num catálogo novo, é o que fizer esse papel |
+| 8 | **ok / alerta / falha** (+ os fundos) | o estado do registro | os quatro tons semânticos **não mudam** com a paleta: eles informam |
+
+**O melhor formato é o texto que me foi enviado**, e não a imagem — por um motivo prático: a
+imagem não se mede. Com o texto eu calculo o contraste de cada par **antes** de escrever uma
+linha de CSS, e devolvo o que falha com o número.
+
+> **Medido nas duas âncoras que recebi (Cortina Turquesa), antes de escrever uma linha de CSS.**
+> O turquesa `#00B8C7` dá **7,33:1** com o texto escuro `#111827` — passa com folga — e apenas
+> **2,42:1** com **branco**. Ou seja: a barra desta família **não pode** ter texto branco, ao
+> contrário da barra bordô atual, que usa creme. O `--sobre-marca` dela é o `#111827`.
+>
+> E na variante escura o par que falha é outro: o «apoio escuro» `#486273` sobre o fundo
+> `#06121A` dá **2,95:1** — fica **abaixo** do piso de 3,0:1 para um traço com função, e como
+> `--borda-campo` ele não serviria. Subir um degrau (ou usar o «prata» da clara) resolve, e a
+> decisão é essa — medida, não olhada.
+>
+> Isto não é rigor a mais: é o que impede a família de chegar ao `ciclo.css` e **cair** no
+> validador horas depois. E é a razão pela qual **quatro amostras não bastam** — os dois pares
+> que falharam aqui não estão na imagem de referência, porque uma imagem mostra as cores lado a
+> lado e não mostra a **relação** entre elas.
 
 ## A aparência — o que existe hoje *(revisto em 18/10/2026)*
 

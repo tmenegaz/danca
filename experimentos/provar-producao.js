@@ -452,6 +452,29 @@ async function principal() {
   conferir('as sete secções estão na página', dom.secoes.length, 7);
   conferir('só o Painel inicial nasce visível', visiveis(dom.secoes), ['sec-painel']);
 
+  // A APARÊNCIA É UMA ESCOLHA, E A ESCOLHA TEM PEÇA (18/10/2026).
+  //
+  // A primeira versão da secção usou dois `.acao` dentro de um `<div class="fileira">` — uma
+  // classe que não existia em lugar nenhum —, e os dois botões saíram encostados. O defeito
+  // não se mede pelo texto: mede-se pelo que a marcação PEDE. Por isso o que se trava aqui é
+  // a peça: uma escolha única mora em pílulas (`radio`), e o estado em vigor vem do SERVIDOR.
+  const trechoAparencia = html.split('id="sec-aparencia"')[1] || '';
+  const corpoAparencia = trechoAparencia.slice(0, trechoAparencia.indexOf('</section>'));
+  conferir('a Aparência agrupa a escolha num fieldset de pílulas',
+    corpoAparencia.includes('<fieldset class="escolhas">'), true);
+  conferir('…com uma pílula por modo, e são radio (escolha única)',
+    (corpoAparencia.match(/class="escolha"><input type="radio" name="aparencia"/g) || []).length, 2);
+  conferir('…e o modo em vigor vem MARCADO pelo servidor, um só',
+    (corpoAparencia.match(/name="aparencia" value="[a-z]+" checked/g) || []).length, 1);
+  conferir('…e a pílula marcada é a clara por padrão',
+    /name="aparencia" value="clara" checked/.test(corpoAparencia), true);
+  conferir('os botões que a primeira versão usava não voltaram',
+    corpoAparencia.includes('data-aparencia') || corpoAparencia.includes('aria-pressed'), false);
+  // A classe inventada que originou a checagem 8 «Peça»: se ela voltar em qualquer lugar
+  // desta página, a peça foi inventada outra vez.
+  conferir('nenhuma classe inventada na página (o caso «fileira»)',
+    /class="[^"]*\bfileira\b/.test(html), false);
+
   // 3. O comentário de linha é o que comia o resto do script: não pode haver nenhum.
   conferir('o script servido não tem comentário de linha', script.includes('//'), false);
 
@@ -836,8 +859,12 @@ async function principal() {
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',
     script.includes('turmas: umaTurma ? [umaTurma] : []'), true);
   conferir('não sobrou nenhuma caixa com rolagem no formulário', html.includes('cb-grupo'), false);
-  conferir('nenhum tapete de pílulas longas sobrou (o de 84 era o pior)',
-    (html.match(/class="escolha"/g) || []).length, 7);
+  // NOVE, e não sete: as sete dos dias da semana e as DUAS da aparência (18/10/2026). O que
+  // esta asserção guarda não é o número — é o CRITÉRIO: a pílula existe só para lista curta,
+  // fechada e fixa. Um tapete de pílulas longas (o de 84 termos, que o dono do produto
+  // recusou) voltaria como um número grande aqui, e é por isso que ele é contado.
+  conferir('as pílulas continuam a ser só as duas listas curtas: 7 dias + 2 modos',
+    (html.match(/class="escolha"/g) || []).length, 9);
 
   // 9. A PÁGINA INTERMEDIÁRIA SAIU — e o caminho antigo continua respondendo.
   conferir('o Estúdio também carrega o menu do ciclo',

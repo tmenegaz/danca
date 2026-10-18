@@ -824,8 +824,16 @@ function niveisDoCatalogo() {
  * formulário fica poluído (foi o que aconteceu, e o dono do produto recusou). Para esses, o
  * `escolhedor` abaixo.
  */
-function pilula(nome, valor, rotuloHtml) {
-  return '<label class="escolha"><input type="checkbox" name="' + esc(nome) + '" value="' + esc(valor) + '">' +
+function pilula(nome, valor, rotuloHtml, tipo, marcado) {
+  // O `tipo` existe desde 18/10/2026, e não é enfeite: a escolha de UM entre poucos é um
+  // `radio`, e a de VÁRIOS é um `checkbox`. As duas usam a MESMA peça da folha — o desenho
+  // vem do `:checked`, não do tipo —, mas quem lê a tela com leitor de ecrã precisa da
+  // diferença, e quem envia o formulário também.
+  // O `checked` é escrito pelo SERVIDOR: a opção em vigor é o que está guardado, e não o que
+  // um script deduziu depois de a página pintar.
+  const t = tipo === 'radio' ? 'radio' : 'checkbox';
+  return '<label class="escolha"><input type="' + t + '" name="' + esc(nome) + '" value="' + esc(valor) + '"' +
+    (marcado ? ' checked' : '') + '>' +
     '<span>' + rotuloHtml + '</span></label>';
 }
 
@@ -2073,21 +2081,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.aviso-derivar button{margin:0 0 0 .4rem;padding:.15rem .55rem;background:var(--fundo-faixa);color:var(--texto);border:1px solid var(--borda-campo);border-radius:var(--raio-1);font:600 .75rem/1.4 var(--ui);cursor:pointer;}' +
     '.chip button{display:inline-block;margin:0 0 0 .3rem;padding:0 .3rem;background:transparent;color:var(--falha);border:none;font-weight:700;cursor:pointer;}' +
     'select.sel-termo{max-width:16rem;padding:.25rem .4rem;font:0.9rem/1.4 var(--ui);border:1px solid var(--borda-campo);border-radius:var(--raio-1);background:var(--fundo);}' +
-    // AS ESCOLHAS EM LINHA (os dias da semana): o professor clica no que quer. Nada de caixa
-    // marcável dentro de uma caixa com rolagem. Vale para lista CURTA e FIXA — para as
-    // longas, o escolhedor abaixo.
-    '.escolhas{display:flex;flex-wrap:wrap;gap:.55rem .35rem;margin:.3rem 0 .9rem;}' +
+    // AS PÍLULAS NÃO SE DECLARAM AQUI (18/10/2026). `.escolhas`/`.escolha` eram desenho de
+    // página — e um componente que só existe numa página é um componente que a próxima
+    // superfície tem de reinventar. Subiram para `tools/templates/ciclo.css`, ao lado do
+    // campo e do selo, e agora vêm com a folha. O QUE FICA AQUI é o composto desta tela: o
+    // dia da semana com a sua hora, que não é peça de sistema nenhuma.
     '.dia-hora{display:inline-flex;flex-direction:column;align-items:center;gap:.18rem;}' +
     '.hora-do-dia{width:5.4rem;font-size:.8rem;padding:.12rem .25rem;}' +
     // A HORA SÓ EXISTE PARA O DIA ESCOLHIDO (16/10/2026). Desabilitada, o campo não se
     // preenche por engano — e um horário de um dia que a turma não tem seria descartado na
     // gravação de qualquer forma, mas depois de o ter escrito.
     '.hora-do-dia:disabled{opacity:.4;background:var(--fundo-faixa);cursor:not-allowed;}' +
-    '.escolha{display:inline-flex;align-items:center;margin:0;cursor:pointer;}' +
-    '.escolha input{position:absolute;width:1px;height:1px;opacity:0;}' +
-    '.escolha span{display:inline-block;padding:.28rem .7rem;border:1px solid var(--borda-campo);border-radius:var(--raio-pilula);background:var(--superficie);font-size:.87rem;color:var(--marca-texto);line-height:1.35;}' +
-    '.escolha input:checked+span{background:var(--marca-fundo);border-color:var(--marca-fundo);color:var(--texto-destaque-marca);font-weight:600;}' +
-    '.escolha input:focus-visible+span{outline:2px solid var(--foco);outline-offset:1px;}' +
     // O ESCOLHEDOR: escolhe no menu, «Adicionar», e o escolhido vira ficha com o «×».
     '.escolhedor{margin:.3rem 0 .8rem;}' +
     '.escolhedor .escolhidos{display:flex;flex-wrap:wrap;gap:.35rem;min-height:1.9rem;margin:0 0 .35rem;}' +
@@ -2311,22 +2315,31 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<h2>Painel inicial</h2>' +
     '<p>Aqui aparece o que mudou desde a última vez. Use o menu ao lado para gerir pessoas e pedagogia.</p>' +
     '</section>' +
-    // A APARÊNCIA DA ESCOLA (18/10/2026). Dois modos, UM valor para a escola inteira. As
-    // opções nascem marcadas pelo SERVIDOR (`aria-pressed`), e não por um script a ler o
-    // atributo: o estado que a pessoa vê é o que está guardado, e não uma inferência.
+    // A APARÊNCIA DA ESCOLA (18/10/2026). Dois modos, UM valor para a escola inteira.
+    //
+    // A PEÇA É A PÍLULA, e a primeira versão desta secção errou nisso: usou dois `.acao`
+    // dentro de um `<div class="fileira">` — uma classe que NÃO EXISTE na folha, inventada
+    // aqui e usada só aqui. Sem desenho, os dois botões encostaram um no outro. O defeito não
+    // foi de gosto: foi de vocabulário. Uma AÇÃO é uma ordem que se dá; uma opção em vigor é
+    // um ESTADO, e o estado tem peça própria — a pílula, que serve a lista curta, fechada e
+    // fixa, e que o formulário da turma já usava nos sete dias da semana.
+    //
+    // É `radio` e não `checkbox` porque a escolha é UMA. E o `checked` sai do SERVIDOR: a
+    // opção em vigor é o que está guardado, não o que um script deduziu depois.
     '<section class="secao" id="sec-aparencia" hidden>' +
     '<h2>Aparência</h2>' +
     '<div class="col-form">' +
-    '<p class="nota">A aparência vale para a <b>escola inteira</b>: quem abrir esta escola ' +
-    'vê o que aqui se escolher. Não é uma preferência de cada um.</p>' +
-    '<div class="fileira" id="aparencia-opcoes">' +
-    '<button type="button" class="acao secundario" data-aparencia="clara" aria-pressed="' +
-    (modo === 'clara' ? 'true' : 'false') + '">Clara</button>' +
-    '<button type="button" class="acao secundario" data-aparencia="noturna" aria-pressed="' +
-    (modo === 'noturna' ? 'true' : 'false') + '">Noturna</button>' +
-    '</div>' +
-    '<p class="sub" id="aparencia-estado">Em vigor: <b>' + (modo === 'noturna' ? 'noturna' : 'clara') +
-    '</b>.</p>' +
+    '<fieldset class="escolhas">' +
+    '<legend class="campo-rotulo">Aparência da escola</legend>' +
+    pilula('aparencia', 'clara', 'Clara', 'radio', modo !== 'noturna') +
+    pilula('aparencia', 'noturna', 'Noturna', 'radio', modo === 'noturna') +
+    '</fieldset>' +
+    // A LINHA DE APOIO é `.sub`, e não `.nota`: a `.nota` só tem desenho DENTRO de um
+    // `<form>` (`form .nota`), e esta secção não é um formulário — o parágrafo saía com o
+    // corpo do texto, 17px, ao lado de controles de 14. Era o segundo defeito da mesma
+    // família: uma peça usada FORA do contexto em que está declarada.
+    '<p class="sub">Vale para a <b>escola inteira</b>: quem abrir esta escola vê o que aqui ' +
+    'se escolher. Não é uma preferência de cada um.</p>' +
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-professores" hidden>' +
@@ -4149,15 +4162,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    else { alert("Erro: " + (d.erro || "desconhecido")); }' +
     '  }).catch(function(err){ alert("Erro: " + err.message); });' +
     '});' +
-    // A APARÊNCIA — dois botões, um valor da escola. Grava e RECARREGA: o modo vem no `<html>`
-    // servido, e recarregar é o que faz a página inteira mudar de pele. Gravar sem recarregar
-    // deixaria a página na pele antiga até à próxima navegação, e pareceria que não funcionou.
-    'document.querySelectorAll("[data-aparencia]").forEach(function(b){' +
-    '  b.addEventListener("click", function(){' +
-    '    enviar("/api/bastidores/aparencia", {modo: b.getAttribute("data-aparencia")},' +
-    '      "gravando a aparência da escola...", true);' +
+    // A APARÊNCIA — uma pílula marcada, um valor da escola.
+    //
+    // PINTA NO LUGAR, e não recarrega. A folha inteira é dirigida pelo atributo `data-modo`
+    // do `<html>`; trocá-lo repinta a página toda sem um recarregamento — que aqui custaria
+    // uma ida ao servidor para redesenhar o que já está na memória. A escolha é gravada
+    // primeiro, e só depois a tela muda: o que se vê é o que ficou guardado.
+    //
+    // SE A GRAVAÇÃO FALHAR (o token expira em 12h), a pílula volta para a opção EM VIGOR. Sem
+    // isso a tela mostraria uma escolha que não existe — e a pessoa sairia a acreditar nela.
+    'function pintarAparencia(modo) {' +
+    '  if (modo === "noturna") { document.documentElement.setAttribute("data-modo", "noturna"); }' +
+    '  else { document.documentElement.removeAttribute("data-modo"); }' +
+    '}' +
+    'function marcarAparencia(modo) {' +
+    '  var ps = document.querySelectorAll("input[name=aparencia]");' +
+    '  for (var i = 0; i < ps.length; i++) { ps[i].checked = (ps[i].value === modo); }' +
+    '}' +
+    'var pilulasAparencia = document.querySelectorAll("input[name=aparencia]");' +
+    'for (var ia = 0; ia < pilulasAparencia.length; ia++) {' +
+    '  pilulasAparencia[ia].addEventListener("change", function(){' +
+    '    var escolhido = this.value;' +
+    '    enviar("/api/bastidores/aparencia", {modo: escolhido}, "gravando a aparência da escola...",' +
+    '      false, function(){ pintarAparencia(escolhido); })' +
+    '      .then(function(){' +
+    '        var emVigor = document.documentElement.getAttribute("data-modo") === "noturna" ? "noturna" : "clara";' +
+    '        if (emVigor !== escolhido) { marcarAparencia(emVigor); }' +
+    '      });' +
     '  });' +
-    '});' +
+    '}' +
     '</script>' +
     fimDaVista();
 }
