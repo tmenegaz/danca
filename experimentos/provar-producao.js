@@ -329,9 +329,21 @@ function executarComponentes(script) {
     createElement(tag) {
       return criarElemento(tag);
     },
+    // O `querySelectorAll` DO DOCUMENTO PASSOU A PROCURAR A SÉRIE (18/10/2026). Antes
+    // devolvia vazio para tudo menos `[data-paginar]`, e por isso um `mostrarPasso` que
+    // percorresse os botões nunca encontrava nenhum: a prova «passava» sem ter exercitado
+    // o que dizia exercitar. Num navegador, `document.querySelectorAll` procura os
+    // elementos LIGADOS ao documento — e é isso que este faz, a partir do `body`. Quem
+    // quiser que o documento veja um elemento tem de o lá pendurar (ver `criarSecaoDePassos`).
+    // O `querySelectorAll` PROCURA A SÉRIE a partir do `body` (18/10/2026). Antes devolvia
+    // vazio para tudo menos `[data-paginar]`, e por isso um `mostrarPasso` que percorresse os
+    // botões dos passos não encontrava nenhum: a prova «passava» sem ter exercitado o que
+    // dizia exercitar. Num navegador o documento acha o que está LIGADO a ele, e é isso que
+    // se reproduz aqui — quem quiser ser achado tem de estar no `body` (ver
+    // `criarSecaoDePassos`).
     querySelectorAll(sel) {
       if (sel === '[data-paginar]') return paineis;
-      return [];
+      return consultar(documento.body, sel);
     },
     // O `querySelector` CHEGOU A FALTAR AQUI (18/10/2026), e o defeito só apareceu quando
     // o script da página passou a usá-lo — no menu da Produção, que procura a `.lateral`
@@ -365,29 +377,47 @@ function executarComponentes(script) {
   // A entrega de um clique a TODOS os ouvintes de `document`, como o navegador faz: é assim
   // que as abas e o «Adicionar» são exercitados de verdade, e não só relidos.
   api.clicar = (el) => cliques.forEach((fn) => fn({ target: el }));
+  // O `documento` SAI DAQUI, e não do `criarDomFalso`: são dois DOM falsos, e o script que
+  // se está a exercitar recebeu ESTE. Pendurar a secção dos passos no outro fazia o
+  // `document.querySelectorAll` do script procurar num documento e a secção estar no outro
+  // — a prova media o vazio e dizia «ok».
+  api.documento = documento;
   return api;
 }
 
-/** Uma secção Turmas de mentira, com a barra de abas e os três painéis. */
-function criarSecaoDeAbas() {
+/**
+ * Uma secção Turmas de mentira, com a barra de PASSOS e os três painéis (18/10/2026).
+ *
+ * Era «abas»: três coisas paralelas, com `role="tablist"`. Passou a «passos»: uma sequência
+ * — cria-se a turma, passa-se pelas rubricas, e só então se associa —, com `<ol>` e
+ * `aria-current="step"`. A bancada mudou com o desenho porque é o desenho que se está a
+ * exercitar; o que NÃO mudou é o que se prova: que clicar troca o painel, e que só um fica
+ * visível.
+ */
+function criarSecaoDePassos(documento) {
   const nomes = ['turma', 'rubrica', 'vincular'];
   const secao = criarElemento('section');
-  const abas = criarElemento('div', 'abas');
+  const lista = criarElemento('ol', 'passos');
   const botoes = nomes.map((n) => {
-    const b = criarElemento('button', n === 'turma' ? 'aba ativo' : 'aba');
-    b.setAttribute('data-aba', n);
-    abas.appendChild(b);
+    const b = criarElemento('button', n === 'turma' ? 'passo ativo' : 'passo');
+    b.setAttribute('data-passo', n);
+    if (n === 'turma') b.setAttribute('aria-current', 'step');
+    lista.appendChild(b);
     return b;
   });
-  secao.appendChild(abas);
+  secao.appendChild(lista);
   const paineis = nomes.map((n, i) => {
-    const p = criarElemento('div', 'aba-painel');
-    p.id = 'aba-' + n;
+    const p = criarElemento('div', 'passo-painel');
+    p.id = 'passo-' + n;
     p.hidden = i !== 0;
     secao.appendChild(p);
     return p;
   });
-  return { secao, abas, botoes, paineis };
+  // A secção tem de estar LIGADA ao documento, como estaria num navegador: o
+  // `document.querySelectorAll` do script procura a partir do `body`, e um ramo solto não
+  // é achado por ninguém — nem aqui, nem lá.
+  documento.body.appendChild(secao);
+  return { secao, lista, botoes, paineis };
 }
 
 async function principal() {
@@ -457,11 +487,25 @@ async function principal() {
   //    Agora são três atos separados — e este bloco mede os três, do cadastro da turma ao
   //    vínculo, incluindo o que o PLANO lê.
   const reguaPadrao = ['Satisfatório', 'Razoável', 'Em desenvolvimento', 'Não se aplica'];
-  conferir('há três abas (turma, criar rubrica, vincular)',
-    (html.match(/data-aba="[a-z]+"/g) || []).map((s) => s.replace(/^data-aba="|"$/g, '')), ['turma', 'rubrica', 'vincular']);
+  // OS TRÊS PASSOS, e não três abas: a ordem importa, e é por isso que o markup é um `<ol>`
+  // com `aria-current="step"` no passo em que se está. Os nomes mudaram com o desenho:
+  // «Criar rubrica» virou «Rubricas» (o passo cria E edita), e «Vincular turma à rubrica»
+  // virou «Associar» — porque ali a turma recebe a régua E os conteúdos.
+  conferir('há três passos (turma, rubricas, associar)',
+    (html.match(/data-passo="[a-z]+"/g) || []).map((s) => s.replace(/^data-passo="|"$/g, '')),
+    ['turma', 'rubrica', 'vincular']);
+  conferir('…e os títulos são os que a direção lê',
+    (html.match(/class="passo-n">\d<\/span>\s*([^<]+)</g) || [])
+      .map((s) => s.replace(/^[\s\S]*?<\/span>\s*/, '').replace(/<$/, '').trim()),
+    ['Turma', 'Rubricas', 'Associar']);
+  // «SÓ A PRIMEIRA NASCE VISÍVEL» lê o `hidden` de cada painel, e não o texto à volta do
+  // `id`: uma janela de 60 caracteres a partir do `id` apanha também o conteúdo do painel,
+  // e a asserção media outra coisa.
   conferir('…e só a primeira nasce visível',
-    ['aba-turma', 'aba-rubrica', 'aba-vincular'].map((id) =>
-      new RegExp('id="' + id + '"').test(html.split('id="' + id + '"')[1].slice(0, 60))), [false, false, false]);
+    ['passo-turma', 'passo-rubrica', 'passo-vincular'].map((id) => {
+      const m = html.match(new RegExp('id="' + id + '"(\\s*hidden)?'));
+      return Boolean(m) && !m[1];
+    }), [true, false, false]);
   conferir('o cadastro da turma NÃO declara mais a régua',
     (html.match(/id="trubrica"|id="form-regua"/g) || []).length, 0);
   // OS FORMULÁRIOS NÃO EXPLICAM (16/10/2026): só rótulo, campo e placeholder. O que era
@@ -771,23 +815,24 @@ async function principal() {
   const ficha = escNivel.querySelector('.escolhido');
   conferir('…e dá para tirar uma ficha', !!ficha.querySelector('.tirar'), true);
 
-  // 11c. AS ABAS, CLICADAS. É o coração do pedido: três atos separados (cadastrar a turma,
-  //      criar a rubrica, vincular), e cada aba mostra só o seu painel. Prova de markup não
-  //      bastaria — o que o usuário faz é CLICAR, e uma aba que não troca é um botão morto.
-  const abas = criarSecaoDeAbas();
-  api.clicar(abas.botoes[1]);
-  conferir('clicar em «Criar rubrica» marca a aba',
-    abas.botoes.map((b) => b.className), ['aba', 'aba ativo', 'aba']);
-  conferir('…e mostra só o painel dela',
-    abas.paineis.map((p) => !p.hidden), [false, true, false]);
-  conferir('…e o aria-selected acompanha',
-    abas.botoes.map((b) => b.getAttribute('aria-selected')), ['false', 'true', 'false']);
-  api.clicar(abas.botoes[2]);
-  conferir('clicar em «Vincular» mostra só o painel do vínculo',
-    abas.paineis.map((p) => !p.hidden), [false, false, true]);
-  api.clicar(abas.botoes[0]);
-  conferir('e voltar para «Turma» fecha as outras duas',
-    abas.paineis.map((p) => !p.hidden), [true, false, false]);
+  // 11c. OS PASSOS, CLICADOS. É o coração do pedido: três atos em SEQUÊNCIA (cadastrar a
+  //      turma, criar a rubrica, associar), e cada passo mostra só o seu painel. Prova de
+  //      markup não bastaria — o que o usuário faz é CLICAR, e um passo que não troca é um
+  //      botão morto.
+  const passos = criarSecaoDePassos(api.documento);
+  api.clicar(passos.botoes[1]);
+  conferir('clicar em «Rubricas» marca o passo',
+    passos.botoes.map((b) => b.className), ['passo', 'passo ativo', 'passo']);
+  conferir('…e mostra só o painel dele',
+    passos.paineis.map((p) => !p.hidden), [false, true, false]);
+  conferir('…e o aria-current acompanha (é o que o leitor de ecrã anuncia)',
+    passos.botoes.map((b) => b.getAttribute('aria-current')), [null, 'step', null]);
+  api.clicar(passos.botoes[2]);
+  conferir('clicar em «Associar» mostra só o painel da associação',
+    passos.paineis.map((p) => !p.hidden), [false, false, true]);
+  api.clicar(passos.botoes[0]);
+  conferir('e voltar para «Turma» fecha os outros dois',
+    passos.paineis.map((p) => !p.hidden), [true, false, false]);
 
   const falhas = casos.filter((c) => !c.ok);
   for (const c of casos) {

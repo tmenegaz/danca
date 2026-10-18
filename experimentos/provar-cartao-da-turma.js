@@ -29,11 +29,16 @@
  *   7. a escala da régua tem um degrau por nível, com a classe de cor certa POR NOME;
  *   8. a turma incompleta traz a nota de «falta» e a lista do que falta;
  *   9. o painel dos conteúdos MOSTRA e não compõe: tem os chips, e não tem seletor, nem
- *      botão «Associar», nem «×» — a associação desceu para o formulário (18/10/2026);
- *  10. o bloco de conteúdos do formulário está DEPOIS da duração da aula, nasce travado em
- *      «cadastrar» (não há turma a que associar), LIGA em «editar» e aponta para a turma
- *      aberta, e fica travado em «derivar» — a derivada herda os conteúdos;
- *  11. no telefone, no formulário, o seletor e o botão continuam na MESMA linha.
+ *      botão «Associar», nem «×»;
+ *  10. o formulário da TURMA não tem mais o bloco — só se associa conteúdo a uma turma que
+ *      já existe, e ali ela ainda está a nascer;
+ *  11. os três passos, na ordem, com os rótulos «Turma», «Rubricas» e «Associar»;
+ *  12. o cartão da turma traz um «!» âmbar POR ETAPA, e cada um leva ao passo com aquela
+ *      turma escolhida;
+ *  13. o passo «Associar» mostra os chips da turma escolhida, diz com que régua ela está
+ *      hoje, e tem associar E desassociar a rubrica e o conteúdo;
+ *  14. o passo e a turma são LEMBRADOS depois de recarregar — sem isso, cada associação
+ *      devolvia a direção ao passo 1 e à primeira turma da lista.
  *
  * CONTROLE NEGATIVO: `--controle-negativo` extrai o `motor/` de `HEAD` com `git archive` e
  * roda as MESMAS provas. A página de antes não tem métrica, nem painel, nem escala: se
@@ -306,11 +311,24 @@ const LI = 'li.turma[data-turma="tu1"]';
   provar('…e o painel do ritmo lista o que falta, um a um',
     incompleta && incompleta.itens.length === 5, incompleta && incompleta.itens);
 
-  // ---- 9 a 12: a ASSOCIAÇÃO mudou de lugar — do cartão para o formulário -----------
+  // ---- 9 a 14: a ASSOCIAÇÃO vive no PASSO 3, e o passo é uma SEQUÊNCIA ------------
   //
-  // A regra mudou por decisão do dono do produto (18/10/2026): o cartão MOSTRA quais são os
-  // conteúdos, e compor é do formulário. As provas abaixo medem as duas metades — o que o
-  // painel deixou de ter, e o que o formulário passou a ter.
+  // A regra mudou duas vezes (18/10/2026), e a segunda corrigiu a primeira:
+  //
+  //   1. a associação saiu do cartão (o painel passou a MOSTRAR);
+  //   2. e saiu TAMBÉM do formulário da turma — só se associa conteúdo a uma turma que já
+  //      existe, e o cadastro é o sítio onde ela ainda está a nascer. Foi para o passo 3,
+  //      «Associar», que é onde a turma já existe e recebe a régua e os conteúdos.
+  //
+  // As provas abaixo medem as três coisas: o que o painel do cartão deixou de ter, o que o
+  // formulário da turma deixou de ter, e o que o passo 3 passou a ter.
+
+  await pg.evaluate(() => { location.hash = '#turmas'; });
+  await pg.waitForFunction(() => {
+    const s = document.getElementById('sec-turmas');
+    return s && !s.hidden;
+  }, { timeout: 5000 });
+
   const painelDeConteudos = await pg.evaluate((sel) => {
     const l = document.querySelector(sel);
     if (!l) return null;
@@ -326,96 +344,147 @@ const LI = 'li.turma[data-turma="tu1"]';
   }, LI);
   provar('o painel dos conteúdos mostra os chips',
     painelDeConteudos && painelDeConteudos.tem && painelDeConteudos.chips === 2, painelDeConteudos);
-  provar('…e NÃO tem mais o seletor de associação',
-    painelDeConteudos && painelDeConteudos.temSeletor === false, painelDeConteudos);
+  provar('…e NÃO tem o seletor de associação', painelDeConteudos && painelDeConteudos.temSeletor === false, painelDeConteudos);
   provar('…nem o botão «Associar»', painelDeConteudos && painelDeConteudos.temAssociar === false, painelDeConteudos);
   provar('…nem o «×» de remover', painelDeConteudos && painelDeConteudos.temRemover === 0, painelDeConteudos);
 
-  const lugarNoFormulario = await pg.evaluate(() => {
-    const caixa = document.getElementById('t-conteudos');
-    const form = document.getElementById('form-turma');
-    const dur = document.getElementById('tduracao');
-    if (!caixa || !form || !dur) return { tem: false };
-    // `compareDocumentPosition`: FOLLOWING = 4. A caixa tem de vir DEPOIS da duração.
-    const depoisDaDuracao = Boolean(dur.compareDocumentPosition(caixa) & 4);
+  // O FORMULÁRIO DA TURMA NÃO TEM MAIS O BLOCO — ele só cria a turma.
+  const noCadastro = await pg.evaluate(() => ({
+    noFormularioDaTurma: Boolean(document.getElementById('form-turma'))
+      && document.getElementById('form-turma').contains(document.getElementById('t-conteudos')),
+    temBlocoDaTurma: Boolean(document.getElementById('t-conteudos')),
+    temBlocoNoPasso3: Boolean(document.getElementById('vinc-conteudos')),
+  }));
+  provar('o formulário da TURMA não tem mais bloco de conteúdos',
+    noCadastro.noFormularioDaTurma === false && noCadastro.temBlocoDaTurma === false, noCadastro);
+  provar('o bloco de conteúdos existe no passo ASSOCIAR', noCadastro.temBlocoNoPasso3 === true, noCadastro);
+
+  // OS TRÊS PASSOS: o rótulo, a ordem e o nome semântico.
+  const passos = await pg.evaluate(() => [...document.querySelectorAll('button.passo')].map((b) => ({
+    qual: b.getAttribute('data-passo'),
+    rotulo: b.textContent.replace(/\s+/g, ' ').trim(),
+    atual: b.getAttribute('aria-current'),
+  })));
+  provar('são três passos, nesta ordem: turma, rubrica, associar',
+    passos.length === 3 && passos.map((p) => p.qual).join(',') === 'turma,rubrica,vincular', passos.map((p) => p.qual));
+  provar('…e os rótulos são «Turma», «Rubricas» e «Associar»',
+    passos.map((p) => p.rotulo.replace(/^\d\s*/, '')).join('|') === 'Turma|Rubricas|Associar', passos.map((p) => p.rotulo));
+
+  // O «!» DE CADA ETAPA, no cartão da turma.
+  const atalhos = await pg.evaluate((sel) => {
+    const l = document.querySelector(sel);
+    if (!l) return null;
+    const bs = [...l.querySelectorAll('[data-ir-para]')];
     return {
-      tem: true,
-      dentroDoFormulario: form.contains(caixa),
-      depoisDaDuracao,
-      antesDoPeriodo: Boolean(caixa.compareDocumentPosition(document.getElementById('tinicio')) & 4),
-      travado: caixa.getAttribute('data-travado') === 'sim',
-      motivo: (document.getElementById('t-conteudos-aviso') || {}).textContent || '',
-      botaoTravado: (document.getElementById('t-associar') || {}).disabled,
+      quantos: bs.length,
+      destinos: bs.map((b) => b.getAttribute('data-ir-para')),
+      turma: bs.map((b) => b.getAttribute('data-turma-de')),
+      titulos: bs.map((b) => (b.getAttribute('title') || '').slice(0, 24)),
+      cor: bs[0] ? getComputedStyle(bs[0].querySelector('.alerta')).backgroundColor : '',
+    };
+  }, LI);
+  provar('o cartão da turma traz um atalho por etapa', atalhos && atalhos.quantos === 3, atalhos && atalhos.quantos);
+  provar('…e cada um sabe a que passo vai e de que turma',
+    atalhos && atalhos.destinos.join(',') === 'turma,rubrica,vincular' && atalhos.turma.every((x) => x === 'tu1'), atalhos);
+  provar('…e cada um diz, no title, o que ali se edita',
+    atalhos && atalhos.titulos.every((s) => s.length > 10), atalhos && atalhos.titulos);
+  // ÂMBAR, e não vermelho: o «!» anuncia uma PORTA, não um defeito. Vermelho faria
+  // procurar um erro que não existe.
+  provar('…e o «!» é âmbar', atalhos && /^rgb\(143, 90, 18\)$/.test(atalhos.cor), atalhos && atalhos.cor);
+
+  // O PASSO 3: escolher a turma e associar, sem recarregar a página à mão.
+  await pg.evaluate(() => {
+    const b = document.querySelector('button.passo[data-passo="vincular"]');
+    if (b) b.click();
+  });
+  // Um `waitForFunction` que estoura LANÇA, e a prova morre em vez de reprovar. Aqui a espera
+  // é curta e o resultado é usado como ASSERÇÃO: no controle negativo o painel não existe, e
+  // quem tem de dizer isso são as provas seguintes, com o que mediram.
+  const passo3Abriu = await pg.waitForFunction(() => {
+    const p = document.getElementById('passo-vincular');
+    return Boolean(p) && !p.hidden;
+  }, { timeout: 2000 }).then(() => true).catch(() => false);
+  provar('clicar em «Associar» abre o painel do passo 3', passo3Abriu === true);
+  const noPasso3 = await pg.evaluate(() => {
+    const p = document.getElementById('passo-vincular');
+    const sel = document.getElementById('vinc-turma');
+    const chips = document.querySelectorAll('#vinc-conteudos .chip');
+    return {
+      visivel: Boolean(p) && !p.hidden,
+      turmasNoSelect: sel ? sel.options.length : 0,
+      chipsDaTurma1: chips.length,
+      estado: (document.getElementById('vinc-estado') || {}).textContent || '',
+      temRubrica: Boolean(document.getElementById('vinc-rubrica')),
+      temAssociarRubrica: Boolean(document.getElementById('vinc-associar')),
+      temDesassociarRubrica: Boolean(document.getElementById('vinc-desassociar')),
+      temAssociarTermo: Boolean(document.getElementById('vinc-associar-termo')),
     };
   });
-  provar('o bloco de conteúdos está DENTRO do formulário da turma', lugarNoFormulario && lugarNoFormulario.dentroDoFormulario, lugarNoFormulario);
-  provar('…DEPOIS da duração da aula', lugarNoFormulario && lugarNoFormulario.depoisDaDuracao, lugarNoFormulario);
-  provar('…e antes do início do período', lugarNoFormulario && lugarNoFormulario.antesDoPeriodo, lugarNoFormulario);
-  provar('em «cadastrar» o bloco nasce TRAVADO, e diz por quê',
-    lugarNoFormulario && lugarNoFormulario.travado && lugarNoFormulario.botaoTravado === true
-      && /Grave a turma/.test(lugarNoFormulario.motivo), lugarNoFormulario);
+  provar('o passo «Associar» mostra a turma escolhida e os chips DELA',
+    noPasso3.visivel && noPasso3.turmasNoSelect === 3 && noPasso3.chipsDaTurma1 === 2, noPasso3);
+  provar('…e diz com que régua a turma está hoje', /Hoje:/.test(noPasso3.estado), noPasso3.estado);
+  provar('…e tem associar E desassociar a RUBRICA',
+    noPasso3.temRubrica && noPasso3.temAssociarRubrica && noPasso3.temDesassociarRubrica, noPasso3);
+  provar('…e associar o CONTEÚDO', noPasso3.temAssociarTermo === true, noPasso3);
 
-  // EDITAR: o bloco liga e aponta para a turma que está no formulário.
-  await pg.evaluate((sel) => {
-    const b = document.querySelector(sel + ' [data-modo="editar"]');
-    if (b) b.click();
-  }, LI);
-  const aoEditar = await pg.evaluate(() => ({
-    travado: document.getElementById('t-conteudos') ? document.getElementById('t-conteudos').getAttribute('data-travado') : null,
-    alvo: document.getElementById('t-associar') ? document.getElementById('t-associar').getAttribute('data-turma') : null,
-    desabilitado: (document.getElementById('t-associar') || {}).disabled,
-    chips: document.querySelectorAll('#t-conteudos-lista .chip').length,
-    remover: document.querySelectorAll('#t-conteudos-lista button.desassociar').length,
-  }));
-  provar('em «editar» o bloco LIGA',
-    aoEditar.desabilitado === false && !aoEditar.travado, aoEditar);
-  provar('…e aponta para a turma aberta no formulário', aoEditar.alvo === 'tu1', aoEditar.alvo);
-  provar('…e traz os conteúdos DELA, com o «×» de remover',
-    aoEditar.chips === 2 && aoEditar.remover === 2, aoEditar);
-
-  // DERIVAR: herda os conteúdos, e por isso o bloco fica travado e sem «×».
+  // Trocar de turma troca os chips — o bloco segue o `select`.
   await pg.evaluate(() => {
-    const b = document.querySelector('li.turma[data-turma="tu3"] [data-modo="derivar"]');
-    if (b) b.click();
+    const sel = document.getElementById('vinc-turma');
+    if (!sel) return;
+    for (const o of sel.options) if (o.value === 'tu3') { sel.value = 'tu3'; break; }
+    sel.dispatchEvent(new Event('change'));
   });
-  const aoDerivar = await pg.evaluate(() => ({
-    travado: document.getElementById('t-conteudos') ? document.getElementById('t-conteudos').getAttribute('data-travado') : null,
-    alvo: document.getElementById('t-associar') ? document.getElementById('t-associar').getAttribute('data-turma') : null,
-    motivoho: ((document.getElementById('t-conteudos-aviso') || {}).textContent || ''),
-    remover: document.querySelectorAll('#t-conteudos-lista button.desassociar').length,
-    chips: document.querySelectorAll('#t-conteudos-lista .chip').length,
+  const trocou = await pg.evaluate(() => ({
+    chips: document.querySelectorAll('#vinc-conteudos .chip').length,
+    remover: document.querySelectorAll('#vinc-conteudos button.desassociar').length,
+    estado: (document.getElementById('vinc-estado') || {}).textContent || '',
   }));
-  provar('em «derivar» o bloco fica TRAVADO', aoDerivar.travado === 'sim' && !aoDerivar.alvo, aoDerivar);
-  provar('…e diz que a turma derivada HERDA os conteúdos', /herda/i.test(aoDerivar.motivoho), aoDerivar.motivoho);
-  provar('…e não deixa remover nada da turma antiga',
-    aoDerivar.remover === 0 && aoDerivar.chips === 2, aoDerivar);
+  provar('trocar a turma troca os chips', trocou.chips === 2 && trocou.remover === 2, trocou);
+  provar('…e o estado da régua acompanha', /Balé nível 3/.test(trocou.estado), trocou.estado);
 
-  // No telefone, o par do formulário continua a andar junto.
+  // O PASSO É LEMBRADO: recarregar não devolve a direção ao passo 1.
+  await pg.reload({ waitUntil: 'load' });
+  await pg.evaluate(() => { const c = document.getElementById('conteudo'); if (c) c.hidden = false; });
+  const depoisDeRecarregar = await pg.evaluate(() => ({
+    passo: (document.querySelector('button.passo[aria-current="step"]') || {}).getAttribute
+      ? document.querySelector('button.passo[aria-current="step"]').getAttribute('data-passo') : null,
+    turma: (document.getElementById('vinc-turma') || {}).value,
+  }));
+  provar('o passo em que se estava é LEMBRADO depois de recarregar',
+    depoisDeRecarregar.passo === 'vincular', depoisDeRecarregar);
+  provar('…e a turma escolhida também', depoisDeRecarregar.turma === 'tu3', depoisDeRecarregar);
+
+  // No telefone, o par associar continua a andar junto.
   await pg.setViewport({ width: 390, height: 900 });
   await pg.goto(base + '/bastidores/producao', { waitUntil: 'load' });
-  await abrirTurmas(pg);
-  await pg.evaluate((sel) => {
-    const b = document.querySelector(sel + ' [data-modo="editar"]');
+  await pg.evaluate(() => {
+    const c = document.getElementById('conteudo'); if (c) c.hidden = false;
+    location.hash = '#turmas';
+    const b = document.querySelector('button.passo[data-passo="vincular"]');
     if (b) b.click();
-  }, LI);
+  });
+  await pg.waitForFunction(() => {
+    const p = document.getElementById('passo-vincular');
+    return Boolean(p) && !p.hidden && Boolean(document.getElementById('vinc-termo'));
+  }, { timeout: 2000 }).catch(() => {});
   const par = await pg.evaluate(() => {
-    const s = document.getElementById('t-sel-termo');
-    const b = document.getElementById('t-associar');
-    const caixa = document.getElementById('t-conteudos');
+    const s = document.getElementById('vinc-termo');
+    const b = document.getElementById('vinc-associar-termo');
+    const caixa = document.getElementById('vinc-conteudos');
     if (!s || !b) return { tem: false };
     const r = (x) => x.getBoundingClientRect();
     return {
       tem: true,
       mesmaLinha: Math.abs(r(s).top - r(b).top) <= 4,
-      dentro: Math.round(r(b).right) <= Math.round(r(caixa).right) + 1,
+      dentro: Math.round(r(b).right) <= Math.round(r(caixa.parentElement).right) + 1,
       larguraDoSeletor: Math.round(r(s).width),
-      estouro: caixa.scrollWidth - caixa.clientWidth,
+      estouro: caixa.parentElement.scrollWidth - caixa.parentElement.clientWidth,
     };
   });
-  provar('no telefone o seletor e o botão «Associar» do formulário estão na MESMA linha',
+  provar('no telefone, no passo Associar, o seletor e o botão ficam na MESMA linha',
     par && par.tem && par.mesmaLinha, par);
   provar('…e o botão fica dentro do bloco', par && par.dentro, par);
-  provar('…e o seletor tem largura útil (não vira um traço)', par && par.larguraDoSeletor > 120, par && par.larguraDoSeletor);
+  provar('…e o seletor tem largura útil', par && par.larguraDoSeletor > 120, par && par.larguraDoSeletor);
   provar('…e o bloco não transborda em 390px', par && par.estouro <= 1, par && par.estouro);
 
   await br.close();

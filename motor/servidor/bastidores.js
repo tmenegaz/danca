@@ -428,6 +428,23 @@ function fraseDaFalta(falta) {
   return falta.slice(0, -1).join(', ') + ' e ' + falta[falta.length - 1];
 }
 
+/**
+ * A PRIMEIRA LINHA de uma lista simples: o nome e os selos, num grupo que NÃO QUEBRA.
+ *
+ * Por que um grupo explícito (18/10/2026). A regra das duas linhas era `flex` + `wrap` com
+ * o complemento em `flex: 0 0 100%`. Funcionou até o nome e um selo não caberem juntos: com
+ * `wrap`, o selo DESCE para uma linha própria em vez de o nome encolher — num contentor
+ * flex que quebra, os itens são distribuídos por linhas ANTES de qualquer encolhimento, e um
+ * item sozinho na sua linha nunca encolhe. Medido a 390px: «Balé nível 1, Grade 1» + «Régua
+ * do Nível 1» davam TRÊS linhas em vez de duas, e a altura voltava a oscilar.
+ *
+ * Com o grupo em `nowrap`, quem cede é o NOME (reticências) e o selo fica sempre ao lado
+ * dele. Duas linhas, sempre — do telefone à tela cheia.
+ */
+function linhaDoNome(nome, selos) {
+  return '<span class="linha1"><b>' + esc(nome) + '</b>' + (selos ? ' ' + selos : '') + '</span>';
+}
+
 /** A COR DE CADA DEGRAU DA RÉGUA (18/10/2026). A régua é uma escala, e uma escala sem
  *  cor obriga a ler as quatro palavras para saber onde a turma está. O mapeamento é por
  *  NOME, e não por posição, porque a escola pode criar uma rubrica própria com outros
@@ -848,7 +865,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // é história do sistema, não papel na escola. «Principal» diz o que a pessoa é —
     // e é a única que não se exclui, porque é ela que responde pela escola.
     linhasProfs.push('<li>' +
-      '<span class="nome"><b>' + esc(donoNome) + '</b>' +
+      '<span class="nome">' + linhaDoNome(donoNome) +
       '<span class="dono">principal</span></span>' +
       '<span class="acoes"><button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do professor principal">Editar</button></span>' +
       '</li>');
@@ -865,14 +882,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     if (!slug || slug === donoSlug) continue; // o dono já entrou
     // Só o nome e o botão. O `<b>` é o mesmo da linha do dono: sem ele, o principal
     // parecia de outra natureza — e os dois são professores, um com papel e outro sem.
-    linhasProfs.push('<li><span class="nome"><b>' + esc(p.nome) + '</b></span>' +
+    linhasProfs.push('<li><span class="nome">' + linhaDoNome(p.nome) + '</span>' +
       '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="professor" data-alvo="' + esc(p.nome) + '" title="Excluir professor">Excluir</button></span></li>');
   }
   const itensProfs = linhasProfs.length
     ? linhasProfs.join('')
     : '<li class="vazia">(nenhum professor cadastrado)</li>';
   const itensAlunas = aluns.length
-    ? aluns.map((a) => '<li><span class="nome"><b>' + esc(a) + '</b></span>'
+    ? aluns.map((a) => '<li><span class="nome">' + linhaDoNome(a) + '</span>'
         + '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="aluna" data-alvo="' + esc(a) + '" title="Excluir aluna">Excluir</button></span></li>').join('')
     : '<li class="vazia">(nenhuma aluna cadastrada)</li>';
 
@@ -915,14 +932,20 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   //   1. Turma            — quem, quando, quantas vezes (o cadastro).
   //   2. Criar rubrica    — a régua, uma vez, com nome.
   //   3. Vincular         — qual turma usa qual rubrica.
+  // DUAS LINHAS, como todas as listas simples do Produção (18/10/2026): o nome em cima, o
+  // complemento embaixo. Eram TRÊS `<span class="dono">` soltos ao lado do nome — dois deles
+  // na mesma linha e um terceiro que descia quando não cabia —, e a altura do bloco oscilava
+  // de rubrica para rubrica.
   const itensRubricas = listaRubricas.length
     ? listaRubricas.map((r) => {
         const emUso = turmasDaRubrica[r.id] || 0;
-        return '<li><span class="nome"><b>' + esc(r.nome) + '</b> ' +
-          '<span class="dono">' + esc(niveisLimpos(r.niveis).join(' · ')) + '</span> ' +
-          (emUso
-            ? '<span class="dono">— ' + emUso + ' turma' + (emUso > 1 ? 's' : '') + ' usam esta rubrica</span>'
-            : '<span class="dono">— nenhuma turma usa ainda</span>') + '</span>' +
+        const uso = emUso
+          ? emUso + ' turma' + (emUso > 1 ? 's usam' : ' usa') + ' esta régua'
+          : 'nenhuma turma usa ainda';
+        const complemento = [niveisLimpos(r.niveis).join(' · '), uso].filter(Boolean).join(' · ');
+        return '<li><span class="nome">' +
+          linhaDoNome(r.nome, emUso ? '' : '<span class="selo sem-uso" title="esta rubrica existe mas nenhuma turma é medida por ela">sem uso</span>') +
+          '<span class="dono">' + esc(complemento) + '</span></span>' +
           '<span class="acoes">' +
           '<button class="editar-rubrica acao pequena" data-rubrica="' + esc(r.id) + '" title="Abrir esta rubrica no formulário">Editar</button>' +
           '<button class="apagar acao perigo pequena" data-tipo="rubrica" data-alvo="' + esc(r.id) + '" title="Excluir rubrica">Excluir</button>' +
@@ -932,18 +955,33 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
   // A LISTA DOS VÍNCULOS: cada turma e a régua com que ela está sendo medida — o efeito do
   // vínculo, e não o vínculo em si. É o que a direção precisa conferir.
+  // DUAS LINHAS (18/10/2026). Antes eram três pedaços numa linha só — o nome à esquerda, os
+  // níveis empurrados para a direita e o «→ origem» no fim —, e cada turma media uma altura
+  // conforme o comprimento do nome da rubrica. Agora o nome fica em cima, com o selo do que
+  // a régua É, e tudo o que a explica desce para a segunda linha.
+  //
+  // A CONTAGEM DE CONTEÚDOS ENTROU AQUI porque este passo passou a ser também o da associação
+  // de conteúdos: quem vem a este passo quer saber as duas coisas da mesma turma.
   const itensVinculos = listaTurmas.length
     ? listaTurmas.map((t) => {
         const lig = String(t.rubricaId || '');
         const alvo = lig ? rubricaPorId.get(lig) : null;
-        const origem = alvo
-          ? '<b>' + esc(alvo.nome) + '</b>'
-          : (niveisLimpos(t.rubrica).length
-            ? '<span class="dono">régua própria desta turma</span>'
-            : '<span class="dono">régua padrão (nenhuma rubrica ligada)</span>');
-        return '<li><span class="nome">' + esc(t.nome) + '</span>' +
-          '<span class="acoes"><span class="dono">' + esc(reguaPorTurma[t.id].join(' · ')) + '</span></span>' +
-          '<span class="nome fixo">→ ' + origem + '</span></li>';
+        const propria = niveisLimpos(t.rubrica).length > 0;
+        const selo = alvo
+          ? '<span class="selo vinculada" title="esta turma é medida por uma rubrica com nome">' + esc(alvo.nome) + '</span>'
+          : (propria
+            ? '<span class="selo vigencia" title="a régua está declarada dentro da própria turma, sem nome">régua própria</span>'
+            : '<span class="selo sem-uso" title="nenhuma rubrica ligada: vale a régua padrão da escola">régua padrão</span>');
+        const quantos = (Array.isArray(relObj[t.id]) ? relObj[t.id].length : 0);
+        const complemento = [
+          (reguaPorTurma[t.id] || []).join(' · '),
+          quantos ? quantos + ' conteúdo' + (quantos > 1 ? 's' : '') : 'nenhum conteúdo',
+        ].filter(Boolean).join(' · ');
+        return '<li><span class="nome">' + linhaDoNome(t.nome, selo) +
+          '<span class="dono">' + esc(complemento) + '</span></span>' +
+          '<span class="acoes">' +
+          '<button class="ir-para-vincular acao pequena" data-turma-de="' + esc(t.id) +
+          '" title="Abrir esta turma no passo Associar">Abrir</button></span></li>';
       }).join('')
     : '<li class="vazia">(nenhuma turma cadastrada)</li>';
 
@@ -1093,6 +1131,21 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
           metrica('Régua', regua.length === 1 ? '1 nível' : regua.length + ' níveis', 'regua', 'ver a régua desta turma') +
           metrica('Conteúdos', String(associados.length), 'conteudos', 'ver os conteúdos desta turma') +
           '</div>' +
+          // OS ATALHOS PARA OS TRÊS PASSOS. Estão em TODAS as turmas (e não só na que tem
+          // pendência) porque não anunciam defeito: anunciam onde se edita. O «!» é âmbar, e
+          // o `title` diz o que há para editar em cada um.
+          '<div class="etapas-editaveis">' +
+          ['turma', 'rubrica', 'vincular'].map((qual) =>
+            '<button type="button" class="etapa-ir" data-ir-para="' + qual + '" data-turma-de="' + esc(t.id) + '" title="' +
+            esc({
+              turma: 'Em «Turma» você pode editar o cadastro desta turma: nome, nível, frequência, dias, duração e período.',
+              rubrica: 'Em «Rubricas» você pode criar ou editar a régua com que esta turma é medida.',
+              vincular: 'Em «Associar» você pode trocar a rubrica desta turma e associar ou desassociar conteúdos.',
+            }[qual]) + '">' +
+            '<span class="alerta" aria-hidden="true">!</span> ' +
+            ({ turma: 'Turma', rubrica: 'Rubricas', vincular: 'Associar' }[qual]) +
+            '</button>').join('') +
+          '</div>' +
           '<div class="painel" data-painel="ritmo" hidden>' + painelRitmo + '</div>' +
           '<div class="painel" data-painel="regua" hidden>' + painelRegua + '</div>' +
           '<div class="painel" data-painel="conteudos" hidden>' + painelConteudos + '</div>' +
@@ -1109,7 +1162,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   const itensTermos = listaTermos.length
     ? listaTermos.map((t) => {
         const complemento = [t.categoria, t.tradicao].filter(Boolean).join(' · ');
-        return '<li><span class="nome"><b>' + esc(t.termo) + '</b>' +
+        return '<li><span class="nome">' + linhaDoNome(t.termo) +
           (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
           '<span class="acoes"><button class="apagar acao perigo pequena" data-tipo="termo" data-alvo="' + esc(t.termo) + '" title="Excluir termo">Excluir</button></span></li>';
       }).join('')
@@ -1213,8 +1266,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         // subiu para a segunda linha porque na primeira ela competia com o nome — e era
         // ela que fazia a linha oscilar de altura entre uma curadoria e outra.
         const complemento = [c.modalidade].concat(resumo ? [resumo] : []).filter(Boolean).join(' · ');
-        return '<li><span class="nome"><b>' + esc(rotuloProfessor) + '</b>' +
-          seloEstado + (seloVigencia ? seloVigencia : '') +
+        return '<li><span class="nome">' + linhaDoNome(rotuloProfessor, seloEstado + (seloVigencia ? seloVigencia : '')) +
           (complemento ? '<span class="dono">' + esc(complemento) + '</span>' : '') + '</span>' +
           '<span class="acoes">' + botaoAjuste +
           '<button class="apagar acao perigo pequena" data-tipo="curadoria" data-alvo="' + esc(c.id) + '" title="Remover curadoria">Excluir</button></span>' +
@@ -1255,12 +1307,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.secao>h2{grid-column:1/-1;margin:0;}' +
     // AS ABAS da secção Turmas. O painel de cada aba repete a grade do formulário + lista, e
     // por isso ocupa a linha inteira do `.secao` — a lista continua presa e paginada.
-    '.abas{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:.15rem;border-bottom:1px solid var(--borda-campo);margin:.1rem 0 .2rem;}' +
-    '.aba{background:transparent;border:none;border-bottom:3px solid transparent;border-radius:0;margin:0;padding:.5rem .9rem;color:var(--marca-texto);font:600 .95rem/1.3 var(--ui);cursor:pointer;}' +
-    '.aba:hover{background:var(--fundo-hover);}' +
-    '.aba.ativo{color:var(--marca);border-bottom-color:var(--marca);}' +
-    '.aba:focus-visible{outline:2px solid var(--foco);outline-offset:-2px;}' +
-    '.aba-painel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
+    '.passos{grid-column:1/-1;list-style:none;display:flex;flex-wrap:wrap;align-items:center;gap:.25rem .4rem;margin:.2rem 0 .4rem;padding:0;}' +
+    '.passos>li{display:flex;align-items:center;gap:.4rem;}' +
+    // O CONECTOR entre os passos é do desenho, não do conteúdo: um traço que só existe
+    // entre um passo e o seguinte, e nunca antes do primeiro.
+    '.passos>li+li::before{content:"";width:1.1rem;height:1px;background:var(--borda-campo);}' +
+    '.passo{display:inline-flex;align-items:center;gap:.5rem;background:transparent;border:1px solid transparent;' +
+    'border-radius:999px;margin:0;padding:.32rem .8rem .32rem .38rem;color:var(--texto-suave);' +
+    'font:600 .92rem/1.3 var(--ui);cursor:pointer;}' +
+    '.passo:hover{background:var(--fundo-hover);color:var(--marca-texto);}' +
+    // O NÚMERO é o que diz que isto é uma sequência. Redondo, e não um traço ao lado do
+    // texto — um traço lê-se como decoração; um número lê-se como ordem.
+    '.passo .passo-n{display:grid;place-items:center;width:1.4rem;height:1.4rem;border-radius:999px;' +
+    'background:var(--fundo-faixa);border:1px solid var(--borda-campo);color:var(--marca-texto);font:700 .74rem/1 var(--ui);}' +
+    '.passo.ativo{background:var(--superficie);border-color:var(--borda-campo);color:var(--marca);' +
+    'box-shadow:var(--sombra-controle, none);}' +
+    '.passo.ativo .passo-n{background:var(--marca-fundo);border-color:var(--marca-fundo);color:var(--sobre-marca);}' +
+    '.passo:focus-visible{outline:2px solid var(--foco);outline-offset:2px;}' +
+    '.passo-painel{grid-column:1/-1;display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
     // A COLUNA DA LISTA: começa no topo e vai até o fim do que se vê, sem rolar a página.
     // Quem rola é a lista, por dentro, e a paginação existe para que nem isso precise.
     '.col-lista{display:flex;flex-direction:column;position:sticky;top:calc(var(--header-height) + 8px);' +
@@ -1291,14 +1355,28 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // complemento). Com o nome em `flex:1 1 auto` e os selos em `0 0 auto`, quem cede
     // espaço é o NOME — ele encurta com reticências, e os dois versos ficam nos seus
     // lugares em qualquer largura, do telefone à tela cheia.
-    '.lista > li > .nome:not(.fixo){display:flex;flex-wrap:wrap;align-items:baseline;' +
-      'gap:.1rem .4rem;flex:1 1 auto;min-width:0;overflow:hidden;}' +
-    '.lista > li > .nome:not(.fixo) > b{flex:1 1 auto;min-width:0;white-space:nowrap;' +
+    // DUAS LINHAS, GARANTIDAS (18/10/2026). A primeira é um GRUPO — o nome e os selos —
+    // que não quebra: dentro dele quem cede é o nome, com reticências. A segunda é o
+    // complemento, e só ele.
+    //
+    // O grupo existe porque `flex` + `wrap` não bastava: num contentor que quebra, os itens
+    // são distribuídos por linhas ANTES de encolherem, e um item sozinho na sua linha nunca
+    // encolhe. Quando o nome e o selo não cabiam juntos, o selo DESCLIA para uma linha
+    // própria em vez de o nome encurtar — medido a 390px, três linhas em vez de duas.
+    '.lista > li > .nome:not(.fixo){display:block;flex:1 1 auto;min-width:0;overflow:hidden;}' +
+    '.lista > li > .nome:not(.fixo) > .linha1{display:flex;align-items:baseline;gap:.4rem;' +
+      'min-width:0;overflow:hidden;}' +
+    // `0 1 auto`, E NÃO `1 1 auto`: com `flex-grow: 1` o nome absorvia todo o espaço livre e
+    // empurrava o selo para a margem direita — e na curadoria o «livre» aparecia alinhado
+    // com o «Editar»/«Excluir» logo abaixo, com o mesmo desenho de pílula: parecia um botão
+    // quebrado. Com `0 1 auto` o selo fica ao lado do nome, onde se lê como o que é — uma
+    // etiqueta do nome, não um botão da linha.
+    '.lista > li > .nome:not(.fixo) > .linha1 > b{flex:0 1 auto;min-width:0;white-space:nowrap;' +
       'overflow:hidden;text-overflow:ellipsis;}' +
-    '.lista > li > .nome:not(.fixo) > .selo{flex:0 0 auto;}' +
-    // `100%` é o que FORÇA a segunda linha: o complemento não divide espaço com o nome, e
-    // `nowrap` + reticências é o que impede a terceira — ele nunca quebra, ele encurta.
-    '.lista > li > .nome:not(.fixo) > .dono{flex:0 0 100%;white-space:nowrap;' +
+    '.lista > li > .nome:not(.fixo) > .linha1 > .selo{flex:0 0 auto;}' +
+    // `nowrap` + reticências é o que impede a terceira linha: o complemento nunca quebra,
+    // ele encurta.
+    '.lista > li > .nome:not(.fixo) > .dono{display:block;white-space:nowrap;' +
       'overflow:hidden;text-overflow:ellipsis;}' +
     // O «→ origem» da turma não encolhe: ele diz de onde a régua veio, e não é o nome
     // que se pode truncar. A medida mora aqui, não no atributo `style` do HTML.
@@ -1370,12 +1448,35 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O BLOCO DE CONTEÚDOS DO FORMULÁRIO (18/10/2026): os chips da turma com o «×», e o
     // seletor com o botão que associa. O chip e o par são os MESMOS do painel — mudam de
     // sítio e de papel (aqui compõem), não de desenho.
-    '.conteudos-form{display:grid;gap:.5rem;margin:.2rem 0 1rem;}' +
-    '.conteudos-form .chips{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;min-height:1.7rem;}' +
-    '.conteudos-form .par-associar{display:flex;align-items:center;gap:.35rem;min-width:0;}' +
-    '.conteudos-form .par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
-    '.conteudos-form .par-associar button{flex:0 0 auto;}' +
-    '.conteudos-form[data-travado="sim"]{opacity:.72;}' +
+    // OS DOIS BLOCOS DO PASSO 3. `<fieldset>` porque são dois GRUPOS de controles com um
+    // título cada — e o `<legend>` é o que um leitor de ecrã anuncia antes de cada um. O
+    // desenho do fieldset é zerado e refeito, senão vinha o do navegador.
+    '.bloco-assoc{border:1px solid var(--borda-campo);border-radius:var(--raio-2);' +
+    'padding:.7rem .8rem .8rem;margin:0 0 1rem;min-width:0;}' +
+    '.bloco-assoc>legend{padding:0 .4rem;font:700 .82rem/1.3 var(--ui);color:var(--marca-texto);}' +
+    '.bloco-assoc .chips{display:flex;flex-wrap:wrap;align-items:center;gap:.3rem;min-height:1.7rem;margin:.1rem 0 .55rem;}' +
+    '.bloco-assoc .par-associar{display:flex;align-items:center;gap:.35rem;min-width:0;}' +
+    '.bloco-assoc .par-associar select{flex:1 1 auto;min-width:0;max-width:none;}' +
+    '.bloco-assoc .par-associar button{flex:0 0 auto;}' +
+    '.par-botoes{display:flex;flex-wrap:wrap;gap:.4rem;margin:.55rem 0 0;}' +
+    '.par-botoes button{margin:0;}' +
+    '.bloco-assoc .nota{margin:.5rem 0 0;}' +
+    // O SELO «sem uso»: uma rubrica que existe e não mede ninguém, e um selo neutro — não é
+    // um erro, é um estado. Âmbar seria alarme; o neutro diz «está aqui, ainda sem efeito».
+    '.selo.sem-uso{background:var(--fundo-faixa);border:1px solid var(--borda-campo);color:var(--texto-suave);}' +
+    // OS «!» DE ETAPA, no cartão da turma. São ATALHOS, e o «!» é o que diz que naquele
+    // passo há o que editar. Âmbar, e não vermelho: nada está errado — o que existe é uma
+    // porta. Vermelho faria o professor procurar o defeito.
+    '.turma .etapas-editaveis{display:flex;flex-wrap:wrap;gap:.3rem;margin:.55rem 0 0;}' +
+    '.turma .etapa-ir{display:inline-flex;align-items:center;gap:.32rem;cursor:pointer;margin:0;' +
+    'background:var(--alerta-fundo);border:1px solid var(--borda-campo);border-radius:999px;' +
+    'padding:.1rem .48rem .1rem .16rem;font:600 .76rem/1.5 var(--ui);color:var(--texto);}' +
+    '.turma .etapa-ir:hover{background:var(--fundo-hover);border-color:var(--borda-forte);}' +
+    '.turma .etapa-ir:focus-visible{outline:2px solid var(--foco);outline-offset:1px;}' +
+    // `--superficie` sobre `--alerta` inverte-se sozinho: no tema claro o papel é branco e o
+    // âmbar é escuro; na noturna, ao contrário.
+    '.turma .etapa-ir .alerta{display:grid;place-items:center;width:1rem;height:1rem;' +
+    'border-radius:999px;background:var(--alerta);color:var(--superficie);font:700 .68rem/1 var(--ui);}' +
     // A ESCALA DA RÉGUA. Os quatro degraus com a cor de cada um: uma escala sem cor obriga a
     // ler as quatro palavras para saber onde a turma está.
     '.turma .escala{display:flex;min-width:0;border:1px solid var(--borda-campo);border-radius:var(--raio-2);overflow:hidden;}' +
@@ -1457,12 +1558,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // No celular o menu de secções deixa de ser uma coluna de 248px de altura (que
     // empurrava a lista para fora da primeira tela) e vira uma FAIXA horizontal que
     // quebra sozinha. Os `<h2>` continuam no documento — são eles que dão os grupos.
-    // O `.aba-painel` tem grade PRÓPRIA (é ele que alinha formulário e lista dentro de uma
+    // O `.passo-painel` tem grade PRÓPRIA (é ele que alinha formulário e lista dentro de uma
     // aba), e por isso tinha de ser desfeito junto com a `.secao`. Não era: abaixo de
-    // 1140px a `.secao` virava uma coluna e o `.aba-painel` continuava com duas — a lista
+    // 1140px a `.secao` virava uma coluna e o `.passo-painel` continuava com duas — a lista
     // de turmas ficava ao lado do formulário numa tela de telefone, e as duas colunas se
     // sobrepunham. Era o único grupo com abas, e por isso o único com o defeito.
-    '@media (max-width:1140px){.secao,.aba-painel{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
+    '@media (max-width:1140px){.secao,.passo-painel{grid-template-columns:minmax(0,1fr);}.col-lista{position:static;max-height:none;}}' +
     // O MENU DA PRODUÇÃO NO CELULAR — A FOLHA INFERIOR (18/10/2026).
     //
     // Como era: os três títulos de grupo e os sete destinos numa fita de 80px que quebrava
@@ -1600,14 +1701,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</section>' +
     '<section class="secao" id="sec-turmas" hidden>' +
     '<h2>Turmas</h2>' +
-    '<div class="abas" role="tablist" aria-label="Turmas, rubricas e vínculos">' +
-    '<button type="button" class="aba ativo" data-aba="turma" role="tab" aria-selected="true">Turma</button>' +
-    '<button type="button" class="aba" data-aba="rubrica" role="tab" aria-selected="false">Criar rubrica</button>' +
-    '<button type="button" class="aba" data-aba="vincular" role="tab" aria-selected="false">Vincular turma à rubrica</button>' +
-    '</div>' +
+    '<ol class="passos" aria-label="Etapas da turma">' +
+    '<li><button type="button" class="passo ativo" data-passo="turma" aria-current="step">' +
+    '<span class="passo-n">1</span> Turma</button></li>' +
+    '<li><button type="button" class="passo" data-passo="rubrica">' +
+    '<span class="passo-n">2</span> Rubricas</button></li>' +
+    // «VINCULAR TURMA À RUBRICA» VIROU «ASSOCIAR» (18/10/2026). O passo deixou de ser só o
+    // vínculo com a rubrica: é ali que a turma recebe a régua E os conteúdos, e as duas
+    // coisas são o mesmo ato — dizer com o que a turma vai ser medida e o que vai ser
+    // ensinado nela. «Vincular» é o termo do vínculo com a rubrica; «associar» cobre os
+    // dois, e é a palavra que o resto do sistema já usa (`turma-conteudo`, «Associar»).
+    '<li><button type="button" class="passo" data-passo="vincular">' +
+    '<span class="passo-n">3</span> Associar</button></li>' +
+    '</ol>' +
     // ABA 1 — A TURMA. Só o que é da turma: quem, quando, com que frequência e por quanto
     // tempo. A régua SAIU daqui: ela é da escola, e mora na aba seguinte.
-    '<div class="aba-painel" id="aba-turma">' +
+    '<div class="passo-painel" id="passo-turma">' +
     '<div class="col-form">' +
     '<form id="form-turma">' +
     // O «EDITAR» DA TURMA É UMA DERIVAÇÃO (16/10/2026). A escola pensa que edita; o que fica
@@ -1650,23 +1759,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       'aria-label="hora de início — ' + esc(d) + '" autocomplete="off"></span>').join('') + '</div>' +
     '<label class="campo-rotulo" for="tduracao">Duração de cada aula (minutos)</label>' +
     '<input id="tduracao" name="duracaoMin" type="number" min="5" step="5" autocomplete="off" placeholder="ex.: 60">' +
-    // OS CONTEÚDOS, AQUI E NÃO NA LISTAGEM (18/10/2026). Depois de decidir a duração, a
-    // direção decide o que a turma vai usar — e é isso que este bloco faz. Na listagem o
-    // painel dos conteúdos passou a MOSTRAR apenas; compor é do formulário.
-    //
-    // O bloco só sabe a que turma se refere quando há uma turma no formulário: em
-    // «cadastrar» ainda não existe id (e a associação precisa de um), e em «derivar» o id
-    // que está à mão é o da turma ANTIGA — mas a derivação já COPIA os conteúdos para a
-    // nova (ver `/api/bastidores/turma-derivar`), e mexer aqui estaria a mexer no passado.
-    // Nos dois casos o bloco aparece, desligado, a dizer por quê.
-    '<label>Conteúdos da turma</label>' +
-    '<div class="conteudos-form" id="t-conteudos">' +
-    '<div class="chips" id="t-conteudos-lista"><span class="dono">(nenhum conteúdo associado)</span></div>' +
-    '<span class="par-associar"><select class="sel-termo" id="t-sel-termo" aria-label="termo a associar">' +
-    '<option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
-    '<button type="button" class="associar acao pequena" id="t-associar">Associar</button></span>' +
-    '<p class="nota" id="t-conteudos-aviso" hidden></p>' +
-    '</div>' +
+    // OS CONTEÚDOS SAÍRAM DAQUI (18/10/2026). Estavam neste formulário, abaixo da duração, e
+    // o lugar estava errado por uma razão de facto: só se associa conteúdo a uma turma que
+    // JÁ EXISTE. Aqui a turma ainda está a nascer — em «cadastrar» não há id, e em «derivar»
+    // o id à mão é o da turma antiga. Foram para o passo 3, «Associar», que é o passo em que
+    // a turma já existe e recebe a régua e os conteúdos.
     '<label class="campo-rotulo" for="tinicio">Início do período (termo)</label>' +
     '<input id="tinicio" name="periodoInicio" type="date" autocomplete="off">' +
     '<label class="campo-rotulo" for="tfim">Fim do período (termo)</label>' +
@@ -1684,7 +1781,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     // ABA 2 — CRIAR RUBRICA. A régua ganha NOME: é o que a torna vinculável a mais de uma
     // turma, e o que impede que a mesma decisão seja redigitada em cada cadastro.
-    '<div class="aba-painel" id="aba-rubrica" hidden>' +
+    '<div class="passo-painel" id="passo-rubrica" hidden>' +
     '<div class="col-form">' +
     '<form id="form-rubrica">' +
     '<input type="hidden" id="rubr-id">' +
@@ -1705,23 +1802,46 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     // ABA 3 — VINCULAR. Qual turma é medida por qual rubrica. A lista mostra o EFEITO (com
     // que níveis cada turma está sendo medida), que é o que a direção precisa conferir.
-    '<div class="aba-painel" id="aba-vincular" hidden>' +
+    // PASSO 3 — ASSOCIAR. A turma já existe; aqui ela recebe o que vai precisar. São dois
+    // atos e os dois são «associar»: a RÉGUA com que é medida (uma rubrica) e os CONTEÚDOS
+    // que vai usar. Estavam separados — a régua num passo e os conteúdos no cadastro — e a
+    // associação de conteúdo não tinha lugar: só se associa conteúdo a uma turma que já
+    // existe, e o cadastro é o sítio onde ela ainda está a nascer.
+    '<div class="passo-painel" id="passo-vincular" hidden>' +
     '<div class="col-form">' +
     '<form id="form-vincular">' +
+    // A TURMA É A CHAVE DOS DOIS BLOCOS. Escolhida aqui, ela manda no que os dois mostram —
+    // por isso o `select` vem primeiro e sozinho, e não dentro de um dos blocos.
     '<label class="campo-rotulo" for="vinc-turma">Turma</label>' +
     '<select id="vinc-turma">' +
     (listaTurmas.length
       ? listaTurmas.map((t) => '<option value="' + esc(t.id) + '">' + esc(t.nome) + '</option>').join('')
       : '<option value="">— nenhuma turma cadastrada —</option>') +
     '</select>' +
+    '<fieldset class="bloco-assoc">' +
+    '<legend>Com que régua esta turma é medida</legend>' +
     '<label class="campo-rotulo" for="vinc-rubrica">Rubrica</label>' +
     '<select id="vinc-rubrica">' +
     (listaRubricas.length
       ? listaRubricas.map((r) => '<option value="' + esc(r.id) + '">' + esc(r.nome) + '</option>').join('')
       : '<option value="">— nenhuma rubrica criada —</option>') +
     '</select>' +
-    '<button type="submit" class="acao grande">Vincular</button>' +
-    '<button type="button" class="acao secundario" id="vinc-desvincular">Desvincular (volta à régua padrão)</button>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao" id="vinc-associar"' + (listaTurmas.length ? '' : ' disabled') + '>Associar rubrica</button>' +
+    // DESASSOCIAR A RUBRICA existia como «Desvincular (volta à régua padrão)» — nome de
+    // sistema, e escondido no fim do formulário. É o mesmo ato ao contrário, e agora tem o
+    // mesmo nome do outro lado: associar / desassociar.
+    '<button type="button" class="acao secundario" id="vinc-desassociar"' + (listaTurmas.length ? '' : ' disabled') + '>Desassociar rubrica</button>' +
+    '</span>' +
+    '<p class="nota" id="vinc-estado"></p>' +
+    '</fieldset>' +
+    '<fieldset class="bloco-assoc">' +
+    '<legend>Conteúdos desta turma</legend>' +
+    '<div class="chips" id="vinc-conteudos"><span class="dono">(nenhum conteúdo associado)</span></div>' +
+    '<span class="par-associar"><select class="sel-termo" id="vinc-termo" aria-label="termo a associar">' +
+    '<option value="">— associar termo —</option>' + opcoesTermo + '</select>' +
+    '<button type="button" class="associar acao pequena" id="vinc-associar-termo"' + (listaTermos.length ? '' : ' disabled') + '>Associar</button></span>' +
+    '</fieldset>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -1847,25 +1967,54 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  paginar();' +
     '});' +
     'paginar();' +
-    // AS ABAS da secção Turmas: mostra o painel da aba clicada e marca a aba. O estado NÃO
-    // vai para a URL de propósito — a URL já é do menu lateral (`#turmas`), e um segundo
-    // nível de hash tornaria os dois difíceis de usar. Recarregar volta à primeira aba.
-    'document.addEventListener("click", function(e){' +
-    '  var b = e.target.closest ? e.target.closest("button.aba") : null;' +
-    '  if (!b) return;' +
-    '  var abas = b.closest(".abas");' +
-    '  if (!abas) return;' +
-    '  var secao = abas.parentElement;' +
-    '  var alvo = b.getAttribute("data-aba");' +
-    '  var irmas = abas.querySelectorAll("button.aba");' +
-    '  for (var i = 0; i < irmas.length; i++) {' +
-    '    var ativa = irmas[i] === b;' +
-    '    irmas[i].className = ativa ? "aba ativo" : "aba";' +
-    '    irmas[i].setAttribute("aria-selected", ativa ? "true" : "false");' +
+    // OS PASSOS da secção Turmas. Três coisas mudaram em relação às abas (18/10/2026):
+    //
+    //  1. NÃO É MAIS UM MENU, É UMA SEQUÊNCIA — o que se mostra é o passo, e o resto continua
+    //     no DOM. A diferença está no `<ol>` e no `aria-current="step"`, que é o que um
+    //     leitor de ecrã anuncia.
+    //  2. O PASSO É LEMBRADO. Isto não existia com as abas porque não era preciso: as abas
+    //     não recarregavam a página. Os passos recarregam — associar um conteúdo chama a API
+    //     e recarrega —, e sem memória o professor voltaria SEMPRE ao passo 1 depois de cada
+    //     associação. `sessionStorage`, não a URL: a URL já é do menu lateral (`#turmas`), e
+    //     um segundo nível de hash tornaria os dois difíceis de usar.
+    'function mostrarPasso(qual){' +
+    '  var todos = document.querySelectorAll("button.passo");' +
+    '  for (var i = 0; i < todos.length; i++) {' +
+    '    var ativo = todos[i].getAttribute("data-passo") === qual;' +
+    '    todos[i].className = ativo ? "passo ativo" : "passo";' +
+    '    if (ativo) { todos[i].setAttribute("aria-current", "step"); }' +
+    '    else { todos[i].removeAttribute("aria-current"); }' +
     '  }' +
-    '  var paineis = secao.querySelectorAll(".aba-painel");' +
+    '  var paineis = document.querySelectorAll(".passo-painel");' +
     '  for (var j = 0; j < paineis.length; j++) {' +
-    '    paineis[j].hidden = paineis[j].id !== "aba-" + alvo;' +
+    '    paineis[j].hidden = paineis[j].id !== "passo-" + qual;' +
+    '  }' +
+    '  try { sessionStorage.setItem("producao:passo", qual); } catch (err) {}' +
+    // O passo 3 tem um bloco de conteúdos que depende de qual turma está escolhida: quem
+    // manda desenhar é `sincronizarAssociacao`, e ela é chamada AQUI porque é aqui que o
+    // painel deixa de estar oculto — e uma medida dentro de um `hidden` dá zero.
+    '  if (qual === "vincular" && typeof sincronizarAssociacao === "function") sincronizarAssociacao();' +
+    '}' +
+    'function passoGuardado(){' +
+    '  try { return sessionStorage.getItem("producao:passo") || "turma"; } catch (err) { return "turma"; }' +
+    '}' +
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("button.passo") : null;' +
+    '  if (!b) return;' +
+    '  mostrarPasso(b.getAttribute("data-passo"));' +
+    '});' +
+    // O «!» de uma etapa no cartão da turma leva ao passo E à turma: sem a segunda metade,
+    // quem clica em «Rubricas» no cartão de uma turma chega ao passo sem saber de qual turma
+    // se estava a falar.
+    'document.addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("[data-ir-para]") : null;' +
+    '  if (!b) return;' +
+    '  var turma = b.getAttribute("data-turma-de");' +
+    '  location.hash = "#turmas";' +
+    '  mostrarPasso(b.getAttribute("data-ir-para"));' +
+    '  if (turma && b.getAttribute("data-ir-para") === "vincular") {' +
+    '    var sel = document.getElementById("vinc-turma");' +
+    '    if (sel) { sel.value = turma; sincronizarAssociacao(); }' +
     '  }' +
     '});' +
     'function entrar(senha) {' +
@@ -2170,33 +2319,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("tduracao").value = (t.duracaoMin == null ? "" : t.duracaoMin);' +
     '  document.getElementById("tinicio").value = t.periodoInicio || "";' +
     '  document.getElementById("tfim").value = t.periodoFim || "";' +
-    // OS CONTEÚDOS DA TURMA QUE ESTÁ NO FORMULÁRIO. O bloco é UM só; o que muda é de que
-    // turma ele fala. Os chips vêm de um bloco oculto por turma (escrito pelo servidor), e
-    // não de uma segunda versão do markup aqui no JavaScript.
-    '  var caixaC = document.getElementById("t-conteudos");' +
-    '  var listaC = document.getElementById("t-conteudos-lista");' +
-    '  var selC = document.getElementById("t-sel-termo");' +
-    '  var btnC = document.getElementById("t-associar");' +
-    '  var avisoC = document.getElementById("t-conteudos-aviso");' +
-    '  var fonte = null;' +
-    '  Array.prototype.slice.call(document.querySelectorAll(".conteudos-da-turma")).forEach(function(d){' +
-    '    if (d.getAttribute("data-de") === t.id) fonte = d;' +
-    '  });' +
-    '  var vazioC = "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
-    '  listaC.innerHTML = (fonte && fonte.innerHTML.trim()) ? fonte.innerHTML : vazioC;' +
-    // DERIVAR: a turma nova herda os conteúdos (o servidor copia-os), e o id que está na mão
-    // é o da turma ANTIGA — mexer aqui seria mexer no passado. O bloco aparece desligado.
-    '  if (derivar) {' +
-    '    Array.prototype.slice.call(listaC.querySelectorAll("button.desassociar")).forEach(function(b){ b.parentElement.removeChild(b); });' +
-    '    selC.disabled = true; btnC.disabled = true; btnC.removeAttribute("data-turma");' +
-    '    caixaC.setAttribute("data-travado", "sim");' +
-    '    avisoC.hidden = false;' +
-    '    avisoC.textContent = "A turma derivada herda estes conteúdos. Para os mudar, edite-a depois de gravar.";' +
-    '  } else {' +
-    '    selC.disabled = false; btnC.disabled = false; btnC.setAttribute("data-turma", t.id);' +
-    '    caixaC.removeAttribute("data-travado");' +
-    '    avisoC.hidden = true; avisoC.textContent = "";' +
-    '  }' +
+    // OS CONTEÚDOS NÃO ESTÃO MAIS AQUI (18/10/2026): eles vivem no passo 3, «Associar», e
+    // são preenchidos por `sincronizarAssociacao()` a partir do `select` de turma. Este
+    // formulário ficou com o que é da turma — e nada mais.
     // OS NÍVEIS e OS DIAS são fichas e pílulas: limpam e voltam a marcar, para o ajuste não
     // herdar o que se escolheu para outra turma.
     '  var esc = document.getElementById("esc-niveis");' +
@@ -2229,25 +2354,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  document.getElementById("t-aviso").scrollIntoView({block: "center"});' +
     '  (derivar ? document.getElementById("tvigencia") : nome).focus();' +
     '}' +
-    // O ESTADO DE ENTRADA do bloco de conteúdos é o de CADASTRAR: ainda não há turma, logo
-    // não há a que associar. Sem isto o bloco nasce ligado e a primeira associação iria para
-    // uma turma que não existe — ou para nenhuma.
-    'function travarConteudos(motivo){' +
-    '  var sel = document.getElementById("t-sel-termo");' +
-    '  var btn = document.getElementById("t-associar");' +
-    '  var aviso = document.getElementById("t-conteudos-aviso");' +
-    '  var caixa = document.getElementById("t-conteudos");' +
-    '  var lista = document.getElementById("t-conteudos-lista");' +
-    '  if (sel) sel.disabled = true;' +
-    '  if (btn) { btn.disabled = true; btn.removeAttribute("data-turma"); }' +
-    '  if (caixa) caixa.setAttribute("data-travado", "sim");' +
-    '  if (lista) {' +
-    '    Array.prototype.slice.call(lista.querySelectorAll("button.desassociar")).forEach(function(b){ b.parentElement.removeChild(b); });' +
-    '    if (!lista.textContent.trim()) lista.innerHTML = "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
-    '  }' +
-    '  if (aviso) { aviso.hidden = false; aviso.textContent = motivo; }' +
-    '}' +
-    'travarConteudos("Grave a turma para poder associar conteúdos.");' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("[data-turma-ajustar]") : null;' +
     '  if (b) { ajustarTurma(b.getAttribute("data-turma-ajustar"), b.getAttribute("data-modo")); return; }' +
@@ -2258,14 +2364,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("t-enviar").textContent = "Cadastrar turma";' +
     '    document.getElementById("tnome").readOnly = false;' +
     '    document.getElementById("form-turma").reset();' +
-    '    var listaC0 = document.getElementById("t-conteudos-lista");' +
-    '    if (listaC0) listaC0.innerHTML = "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
-    '    var btnC0 = document.getElementById("t-associar");' +
-    '    if (btnC0) { btnC0.removeAttribute("data-turma"); btnC0.disabled = true; }' +
-    '    var selC0 = document.getElementById("t-sel-termo"); if (selC0) selC0.disabled = true;' +
-    '    var caixaC0 = document.getElementById("t-conteudos"); if (caixaC0) caixaC0.setAttribute("data-travado", "sim");' +
-    '    var avisoC0 = document.getElementById("t-conteudos-aviso");' +
-    '    if (avisoC0) { avisoC0.hidden = false; avisoC0.textContent = "Grave a turma para poder associar conteúdos."; }' +
     '    var esc = document.getElementById("esc-niveis");' +
     '    if (esc) {' +
     '      Array.prototype.slice.call(esc.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
@@ -2471,20 +2569,116 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    niveis: niveis' +
     '  }, "salvando a rubrica...", true);' +
     '});' +
+    // ================= O PASSO 3 — ASSOCIAR ==================================
+    // Dois blocos, uma chave. A turma escolhida no `select` manda no que os dois mostram, e
+    // é por isso que ela é lembrada em `sessionStorage`: associar chama a API e RECARREGA,
+    // e sem memória a direção voltaria à primeira turma da lista a cada associação.
+    'function turmaEscolhida(){' +
+    '  var sel = document.getElementById("vinc-turma");' +
+    '  return sel ? sel.value : "";' +
+    '}' +
+    'function rubricaDaTurma(t){' +
+    '  if (!t) return null;' +
+    '  var id = String(t.rubricaId || "");' +
+    '  if (!id) return null;' +
+    '  for (var i = 0; i < RUBRICAS.length; i++) { if (RUBRICAS[i].id === id) return RUBRICAS[i]; }' +
+    '  return {id: id, nome: "(rubrica que já não existe)", niveis: []};' +
+    '}' +
+    'function turmaPorId(id){' +
+    '  for (var i = 0; i < TURMAS.length; i++) { if (TURMAS[i] && TURMAS[i].id === id) return TURMAS[i]; }' +
+    '  return null;' +
+    '}' +
+    'function sincronizarAssociacao(){' +
+    '  var id = turmaEscolhida();' +
+    '  var t = turmaPorId(id);' +
+    // --- o bloco dos CONTEÚDOS: os chips vêm do bloco oculto daquela turma -----------
+    '  var lista = document.getElementById("vinc-conteudos");' +
+    '  if (lista) {' +
+    '    var fonte = null;' +
+    '    Array.prototype.slice.call(document.querySelectorAll(".conteudos-da-turma")).forEach(function(d){' +
+    '      if (d.getAttribute("data-de") === id) fonte = d;' +
+    '    });' +
+    '    lista.innerHTML = (fonte && fonte.innerHTML.trim())' +
+    '      ? fonte.innerHTML' +
+    '      : "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
+    '  }' +
+    // --- o bloco da RÉGUA: diz com que rubrica a turma está hoje ---------------------
+    '  var r = rubricaDaTurma(t);' +
+    '  var selR = document.getElementById("vinc-rubrica");' +
+    '  if (selR && r && RUBRICAS.some(function(x){ return x.id === r.id; })) selR.value = r.id;' +
+    '  var estado = document.getElementById("vinc-estado");' +
+    '  if (estado) {' +
+    '    if (!t) { estado.textContent = ""; }' +
+    '    else if (r) {' +
+    '      estado.textContent = "Hoje: " + t.nome + " é medida por «" + r.nome + "» — " +' +
+    '        (r.niveis || []).join(" · ") + ".";' +
+    '    } else if ((t.rubrica || []).length) {' +
+    '      estado.textContent = "Hoje: " + t.nome + " tem régua própria — " + t.rubrica.join(" · ") + ".";' +
+    '    } else {' +
+    '      estado.textContent = "Hoje: " + t.nome + " é medida pela régua padrão da escola.";' +
+    '    }' +
+    '  }' +
+    '  try { if (id) sessionStorage.setItem("producao:vinc-turma", id); } catch (err) {}' +
+    '}' +
+    'document.getElementById("vinc-turma").addEventListener("change", sincronizarAssociacao);' +
+    // --- associar / desassociar a RUBRICA --------------------------------------------
     'document.getElementById("form-vincular").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  var turma = document.getElementById("vinc-turma").value;' +
+    '  var turma = turmaEscolhida();' +
     '  var rubricaId = document.getElementById("vinc-rubrica").value;' +
-    '  if (!turma) { alert("Cadastre uma turma primeiro."); return; }' +
-    '  if (!rubricaId) { alert("Crie uma rubrica primeiro, na aba «Criar rubrica»."); return; }' +
-    '  enviar("/api/bastidores/turma-rubrica", {turma: turma, rubricaId: rubricaId}, "vinculando...", true);' +
+    '  if (!turma) { alert("Cadastre uma turma primeiro, no passo «Turma»."); return; }' +
+    '  if (!rubricaId) { alert("Crie uma rubrica primeiro, no passo «Rubricas» — ou use a régua padrão."); return; }' +
+    '  enviar("/api/bastidores/turma-rubrica", {turma: turma, rubricaId: rubricaId}, "associando a rubrica...", true);' +
     '});' +
-    'document.getElementById("vinc-desvincular").addEventListener("click", function(){' +
-    '  var turma = document.getElementById("vinc-turma").value;' +
+    'document.getElementById("vinc-desassociar").addEventListener("click", function(){' +
+    '  var turma = turmaEscolhida();' +
     '  if (!turma) { alert("Escolha a turma."); return; }' +
-    '  if (!confirm("Desvincular esta turma? Ela volta a ser medida pela régua padrão.")) return;' +
-    '  enviar("/api/bastidores/turma-rubrica", {turma: turma}, "desvinculando...", true);' +
+    '  if (!confirm("Desassociar a rubrica desta turma? Ela volta a ser medida pela régua padrão.")) return;' +
+    '  enviar("/api/bastidores/turma-rubrica", {turma: turma}, "desassociando a rubrica...", true);' +
     '});' +
+    // --- associar o CONTEÚDO à turma escolhida ---------------------------------------
+    // O MESMO endpoint e o mesmo botão de antes; o que mudou é de ONDE vem a turma: era um
+    // `data-turma` no próprio botão (o cartão da listagem), agora é o `select` do passo.
+    'document.getElementById("vinc-associar-termo").addEventListener("click", function(){' +
+    '  var turma = turmaEscolhida();' +
+    '  var sel = document.getElementById("vinc-termo");' +
+    '  var termo = sel ? sel.value : "";' +
+    '  if (!turma) { alert("Escolha a turma."); return; }' +
+    '  if (!termo) { alert("Escolha um termo para associar."); return; }' +
+    '  enviar("/api/bastidores/turma-conteudo", {turma: turma, termo: termo}, "associando...", true);' +
+    '});' +
+    // O «×» de cada chip: o markup vem do servidor (`.conteudos-da-turma`), e o handler
+    // continua a ler o `data-turma` e o `data-termo` que lá estão.
+    'document.getElementById("vinc-conteudos").addEventListener("click", function(e){' +
+    '  var b = e.target.closest ? e.target.closest("button.desassociar") : null;' +
+    '  if (!b) return;' +
+    '  var tId = b.getAttribute("data-turma");' +
+    '  var tTermo = b.getAttribute("data-termo");' +
+    '  if (!confirm("Desassociar «" + tTermo + "» desta turma?")) return;' +
+    '  var corpo = {turma: tId, termo: tTermo, senhaDirecao: SENHA_DIRECAO};' +
+    '  fetch("/api/bastidores/turma-conteudo", {method: "DELETE", headers: {"Content-Type": "application/json"}, body: JSON.stringify(corpo)})' +
+    '    .then(function(r){ return r.json(); }).then(function(d){' +
+    '      if (d.ok) { location.reload(); } else { alert("Erro: " + (d.erro || "desconhecido")); }' +
+    '    }).catch(function(err){ alert("Erro: " + err.message); });' +
+    '});' +
+    // ================= A MEMÓRIA DO PASSO 3 ==================================
+    // A turma escolhida e o passo em que se estava são lembrados enquanto a aba estiver
+    // aberta. Sem isto, cada associação — que chama a API e RECARREGA — devolvia a direção à
+    // primeira turma da lista e ao passo 1, e associar quatro conteúdos eram quatro vezes a
+    // mesma viagem.
+    '(function(){' +
+    '  var sel = document.getElementById("vinc-turma");' +
+    '  var guardada = null;' +
+    '  try { guardada = sessionStorage.getItem("producao:vinc-turma"); } catch (err) {}' +
+    '  if (sel && guardada) {' +
+    '    for (var i = 0; i < sel.options.length; i++) {' +
+    '      if (sel.options[i].value === guardada) { sel.value = guardada; break; }' +
+    '    }' +
+    '  }' +
+    // `mostrarPasso` chama `sincronizarAssociacao` quando o passo é o 3, e é ele que desenha
+    // os chips da turma restaurada. Por isso esta chamada vem DEPOIS do `sel.value`.
+    '  mostrarPasso(passoGuardado());' +
+    '})();' +
     'document.addEventListener("click", function(e){' +
     '  var b = e.target.closest ? e.target.closest("button.tirar-regua") : null;' +
     '  if (!b) return;' +

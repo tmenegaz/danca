@@ -16302,3 +16302,63 @@ provado.
 **Conferido.** `provar-cartao-da-turma` 65/65, e **17 falhas** no controle negativo contra o motor
 de `HEAD` · `provar-producao` 109/109 · `provar-menu-da-producao` 22/22 · `provar-celular` 15/15 ·
 `provar-tema` 30/30 · `check-identidade` 8/8. Publicado em `fita` e `valse`.
+
+## 18/10/2026 — a turma passa a ser três PASSOS, e o conteúdo vai para o passo que o comporta
+
+**O defeito que a própria correção criou.** Na entrada anterior a associação de conteúdo desceu
+para o formulário da turma. Estava errado por uma razão de facto, e foi o dono do produto quem a
+disse: *«eu só posso associar um conteúdo à turma quando eu já tenho uma turma»*. No cadastro a
+turma ainda está a nascer — em «cadastrar» não há `id`, e em «derivar» o `id` à mão é o da turma
+antiga. O lugar da associação é onde a turma **já existe**.
+
+**As abas passam a passos.** Eram três coisas paralelas (`role="tablist"`). São três atos em
+sequência: **Turma** → **Rubricas** → **Associar**. O markup é um `<ol>` com `aria-current="step"`,
+e o número de cada passo é o que diz que isto é uma ordem e não um menu. Os nomes mudaram com o
+desenho: «Criar rubrica» virou **«Rubricas»** (o passo cria E edita), e «Vincular turma à rubrica»
+virou **«Associar»** — porque ali a turma recebe a régua **e** os conteúdos, e «associar» é a
+palavra que o resto do sistema já usa.
+
+**A desassociação da rubrica, que não existia com nome próprio.** Era «Desvincular (volta à régua
+padrão)», no fim do formulário. É o mesmo ato ao contrário e passou a ter o mesmo nome do outro
+lado: **Associar rubrica** / **Desassociar rubrica**.
+
+**O que cada passo mostra na sua lista.** Turma → as turmas. Rubricas → as rubricas. Associar → com
+que régua cada turma é medida, agora também com quantos conteúdos. As duas últimas entraram na
+**regra das duas linhas**, e a de vínculos ganhou um botão «Abrir» que leva ao passo com aquela
+turma escolhida.
+
+**O passo é LEMBRADO.** As abas não precisavam — não recarregavam. Os passos recarregam: associar um
+conteúdo chama a API e recarrega. Sem memória, cada associação devolvia a direção ao passo 1 e à
+primeira turma da lista, e associar quatro conteúdos eram quatro vezes a mesma viagem. Passo e turma
+ficam em `sessionStorage`.
+
+**Os «!» de etapa, no cartão da turma.** Três atalhos âmbar, um por passo, cada um com o `title` a
+dizer o que ali se edita, e cada um a levar ao passo com aquela turma escolhida. Âmbar e não
+vermelho: nada está errado — o que existe é uma porta. Vermelho faria procurar um defeito.
+
+**A regra das duas linhas quebrou pela SEGUNDA vez, e por um motivo novo.** Com `flex` + `wrap`, o
+selo descia para uma linha própria quando não cabia ao lado do nome — num contentor que quebra, os
+itens são distribuídos por linhas **antes** de encolherem, e um item sozinho na sua linha nunca
+encolhe. Medido a 390px: «Balé nível 1, Grade 1» + «Régua do Nível 1» davam **96px em vez de 65px**,
+e a altura voltava a oscilar. Agora a primeira linha é um **grupo** (`nowrap`) com o nome em
+`flex: 0 1 auto`: quem cede é o nome, com reticências, e o selo fica sempre ao lado dele.
+
+E o selo da curadoria: com `flex-grow: 1` no nome ele era empurrado para a margem direita e aparecia
+alinhado com o «Editar»/«Excluir» logo abaixo, com o mesmo desenho de pílula — «parece um botão
+quebrado», nas palavras de quem usa. Com `flex: 0 1 auto` ele fica ao lado do nome.
+
+**Uma prova nova, e a lição que ela já trazia.** `experimentos/provar-linhas-da-lista.js` — **115**
+verificações em cinco larguras, e **24 falhas** no controle negativo. Ela compara as alturas **entre
+si** (a oscilação é relativa, não absoluta) e mede o **mecanismo** — o grupo da primeira linha —, não
+só o resultado: uma lista que ainda não o tenha pode passar com os dados de hoje e falhar com os de
+amanhã, e foi exatamente assim que esta regra quebrou duas vezes.
+
+**Conferido.** `provar-linhas-da-lista` 115 · `provar-cartao-da-turma` 72/72 · `provar-producao`
+110/110 · `provar-celular` 15/15 · `provar-menu-da-producao` 22/22 · `provar-tema` 30/30 ·
+`provar-cabecalho-do-ato` 40/40 · `provar-escola-fixa` 30/30 · `provar-plano-da-turma` 47/47 ·
+`check-identidade` 8/8. Publicado em `fita` e `valse`.
+
+**Em aberto, para escolha.** Onde fica a barra de sessão («PEDAGOGIA · Turmas») quando a página
+rola. Quatro propostas clicáveis em `experimentos/opcoes-visuais/index.html`, secção «Onde fica a
+«sessão» quando a página rola»: **S1** sobe e encaixa ao lado do hambúrguer, **S2** fica presa,
+**S3** entra dentro da barra do sistema, **S4** vira pílula flutuante.

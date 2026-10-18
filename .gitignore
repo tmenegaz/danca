@@ -75,6 +75,7 @@ experimentos/*
 !experimentos/provar-cabecalho-do-ato.js
 !experimentos/provar-menu-da-producao.js
 !experimentos/provar-cartao-da-turma.js
+!experimentos/provar-linhas-da-lista.js
 
 # ============================================================================
 # Caches e ambientes

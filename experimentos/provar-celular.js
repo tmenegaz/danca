@@ -133,7 +133,7 @@ function pagina(css) {
     <button class="apagar acao perigo pequena">Excluir</button></span></li>`;
 
   // A SEÇÃO COM ABAS. É o formato que o dono do produto viu acavalado: `Turmas` tem um
-  // `.aba-painel` com grade PRÓPRIA dentro da `.secao`. Quando o `@media` desfazia só a
+  // `.passo-painel` com grade PRÓPRIA dentro da `.secao`. Quando o `@media` desfazia só a
   // grade da `.secao`, esta continuava com duas colunas — a lista ficava ao lado do
   // formulário numa tela de telefone, e as duas se sobrepunham.
   const abas = `<section class="secao" id="sec-turmas">
@@ -142,7 +142,7 @@ function pagina(css) {
       <button type="button" class="aba ativo" role="tab" aria-selected="true">Turma</button>
       <button type="button" class="aba" role="tab" aria-selected="false">Criar rubrica</button>
     </div>
-    <div class="aba-painel" id="aba-turma">
+    <div class="passo-painel" id="passo-turma">
       <div class="col-form"><form id="form-turma">
         <label class="campo-rotulo" for="tnome">Nome da turma</label>
         <input id="tnome" placeholder="ex.: Balé Nível 1">
@@ -222,7 +222,7 @@ function medir(page, largura) {
       transbordo: doc.scrollWidth - doc.clientWidth,
       colunas: getComputedStyle(corpo).gridTemplateColumns.split(' ').length,
       colunasAba: (() => {
-        const aba = document.querySelector('.aba-painel');
+        const aba = document.querySelector('.passo-painel');
         if (!aba) return null;
         return getComputedStyle(aba).gridTemplateColumns.split(' ').length;
       })(),
@@ -358,7 +358,8 @@ function provar(descricao, obtido, esperado) {
 
   // 7) A SEÇÃO COM ABAS TEM DE COLAPSAR TAMBÉM. Este é o defeito que o dono do produto
   //    viu: em `Turmas` a lista continuava ao lado do formulário no telefone, porque o
-  //    `.aba-painel` tem grade própria e o `@media` só desfazia a da `.secao`.
+  //    `.passo-painel` (era `.aba-painel`) tem grade própria e o `@media` só desfazia a da
+  //    `.secao`.
   provar('a seção com abas (Turmas) também fica numa coluna no celular',
     medidas.filter((m) => m.largura <= 1140 && m.colunasAba !== 1).map((m) => [m.largura, m.colunasAba]), []);
 
