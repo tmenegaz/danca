@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T17:03:24-0300`
-Commit atual: `bca77bb` — feat(tools): a Cortina Turquesa — a segunda família, medida antes de existir
+Gerado em: `2026-10-18T17:42:45-0300`
+Commit atual: `55ea429` — feat(estrutura): a família é o segundo eixo da aparência
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+55ea429 feat(estrutura): a família é o segundo eixo da aparência
 bca77bb feat(tools): a Cortina Turquesa — a segunda família, medida antes de existir
 56459c1 feat(estrutura): a Aparência com a peça certa, e o catálogo que faltava
 83f0413 feat(tools): o catálogo das peças — um nome antes do desenho
@@ -81,7 +82,6 @@ a35f5d7 feat(estrutura): a turma passa a ser três PASSOS, e o conteúdo vai par
 317b2c3 feat(estrutura): a associação sai do cartão e desce para o formulário da turma
 a237e82 docs(estrutura): o híbrido do cartão da turma escolhido, implementado e provado
 48ecc31 feat(estrutura): o cartão da turma passa a ser o híbrido — três números e um painel
-a8e9bbf docs(estrutura): o híbrido do cartão da turma — e por que a escala deixou de ser da T2
 ```
 
 ## Por professor
@@ -147,104 +147,80 @@ a8e9bbf docs(estrutura): o híbrido do cartão da turma — e por que a escala d
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — A segunda família: a Cortina Turquesa, medida antes de existir
+## 18/10/2026 — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar
 
-**O que motivou.** A pergunta foi directa: «essas imagens servem para obter a paleta?». Serviam
-para três coisas de quatro — direcção, candidatos de hex e estrutura — e **não** serviam para a
-quarta: **os papéis**. Foi preciso mostrar por que, e mostrá-lo com números: medindo os pixels da
-referência, o turquesa dá `#00afc3` (o texto dizia `#00b8c7` — o mesmo tom, dois caminhos
-independentes). E medindo os pares, o mesmo turquesa dá **2,42:1** com branco e **2,52:1** de texto
-sobre o papel: **reprova** nos dois usos que a imagem sugere. Uma cor não é uma paleta; trinta e
-um pares é que são.
+**O que motivou.** O dono do produto abriu a anamnese no telefone e leu quatro coisas erradas de
+uma vez. O controle de recolher o contexto media **24px** — a altura de uma linha de texto — e a
+seta era um triângulo de **7px**: não se acerta com o dedo. O cabeçalho abria **sempre**, e no
+telefone empurrava a primeira pergunta para fora do ecrã. A senha aceita escrevia **«OK»** por
+baixo do campo, partindo a linha do cabeçalho para dizer o que a cor já dizia. E o «Fechar a
+elicitação» era um botão **desactivado sempre à vista**, a lembrar o que falta sem dizer o quê.
 
-**O que foi decidido.** O dono do produto escolheu: **a Cortina Turquesa entra como sétima família
-e é implementada** — barra turquesa com texto escuro, e não o contrário.
+**O que foi decidido.**
 
-- **A família é um SEGUNDO EIXO**, e não um segundo valor do primeiro: `data-paleta` acompanha
-  `data-modo`, e o par é independente (a Cortina tem as duas variantes, como a Bordô). Guardar
-  os dois num campo só obrigaria a enumerar quatro nomes hoje e catorze quando o catálogo fechar.
-- **A folha declara PAPÉIS, não primitivos**, para a segunda família — e a razão é de vocabulário:
-  uma família que declarasse `--burgundy: #00afc3` estaria a mentir no nome, e a regra do
-  contrato é que um apelido não toma o nome de um papel.
-- **`--sobre-marca` é o mesmo nos dois modos** desta família (escuro, `#06202b`), e é o achado: a
-  luminância do acento decide se o texto sobre ele é claro ou escuro. A Bordô tem barra escura com
-  texto creme; a Cortina é o inverso — e é por isso que uma família não se faz trocando o acento.
-- **O filete é neutro, não é o acento.** `--borda-campo` da Cortina é um cinza-turquesa
-  (`#78929d`), não o turquesa: um campo com filete da cor de marca pareceria em foco permanente.
-- **O seletor oferece só as famílias que EXISTEM** — a lista vem do servidor (`PALETAS`), não do
-  documento. Oferecer uma das cinco em estudo daria uma escola pintada de nada.
+- **O controle cresce para altura de controle.** A seta passa a viver numa **pastilha de 30px** (o
+  alvo do toque real, e não o texto), o conjunto ganha `min-height: 44px` — a mesma do botão de
+  ação ao lado — e o nome do bloco vai a 15px. Aberto, a pastilha enche de marca: o estado diz-se
+  sem uma palavra, que é a regra da seta do acordeão das turmas.
+- **No telefone o cabeçalho nasce FECHADO.** Recolhido, sobra uma faixa de 44px com o resumo, e o
+  formulário começa no ecrã. **Não se guarda a escolha**: o contexto é identidade do ato, não
+  gosto — e transformar uma decisão de layout numa preferência do navegador seria a mesma falta
+  que a C15 corrigiu na aparência. A tela grande continua a abri-lo; o corte é o 768 de sempre.
+- **A falta não se esconde.** O resumo já anuncia em vermelho o que falta para fechar — fechar o
+  acordeão não pode esconder o motivo de o formulário estar travado.
+- **O aceite da senha passa a ser o filete.** Sem palavra. A **recusa** continua a ser texto,
+  porque «senha não reconhecida» é informação que se precisa de ler, e um filete vermelho sozinho
+  não distingue «errada» de «vazia».
+- **O «Fechar» APARECE** quando os obrigatórios estão completos, e desaparece se algum for
+  apagado. Era um `disabled` sempre à vista; a frase que explica a falta já existe no aviso do
+  cartão («Faltam N…»), e um botão que não fala não é a forma de a dizer. O `disabled` continua a
+  ser mantido como segunda tranca — visível mas travado enquanto não houver senha é a diferença
+  entre «não existe» e «não se pode».
 
 **Onde entrou.**
 
-- `tools/templates/ciclo.css` — os dois blocos `[data-paleta="cortina"]` e
-  `[data-paleta="cortina"][data-modo="noturna"]`, com os papeis medidos e a nota de cada decisão.
-  A ordem dos blocos é a da cascata e está explicada: `[data-paleta]` e `[data-modo]` empatam em
-  especificidade, e o par tem (0,2,0).
-- `tools/check-identidade.js` — a leitura de tema passou a ser **cumulativa** (`mesclar`), porque
-  a segunda família declara só o que muda e herda o resto; o `lerTema` passou a **tirar os
-  comentários antes de procurar o seletor** (o comentário desta família cita
-  `[data-paleta="cortina"]`), e a exigir o `{` depois do seletor. Os temas passaram de **dois a
-  quatro**: 4 × 31 = **124 pares medidos**.
-- `motor/servidor/bastidores.js` — `PALETAS`; `aparenciaDaEscola` devolve o **par**;
-  `gravarAparencia` aceita mudança parcial e **recusa** a inválida; `/api/bastidores/aparencia`
-  passa a devolver e a aceitar os dois eixos; `cabecalhoDaVista` publica `data-modo`,
-  `data-paleta` e `data-modo-fonte`; a secção **Aparência** ganhou dois grupos de pílulas
-  («Família de cores» e «Variante»); o cliente passou a um laço sobre os dois eixos.
-- `motor/servidor/producao.js` — `comAparencia` recebe o **par**, repõe os dois atributos e
-  publica sempre a família (mesmo a padrão), porque uma página que não diz de que família é obriga
-  toda a prova a tolerar duas formas de dizer o mesmo.
-- `IMPLEMENTACAO-IDENTIDADE.md` — o **2.8** passa a ter a segunda família feita, e o registo de
-  execução regista o dia.
-- `IDENTIDADE-VISUAL.md` — o catálogo passa a **sete famílias, duas implementadas**; a secção
-  «o que uma paleta tem de declarar» ganha a **especificação da Cortina Turquesa** medida, com a
-  tabela dos papéis nas duas variantes; o validador passa a declarar **124 medições**; e a
-  descrição da aparência passa a falar de dois eixos.
-- Provas: `provar-aparencia.js` **69** (eixos independentes, recusa do inválido, publicação da
-  família nas vistas, injeção na ponte, e o par inteiro); `provar-tema.js` **38** (os três
-  atributos no `<html>`); `provar-producao.js` **135** (dois `fieldset`, duas famílias, uma
-  marcada; as pílulas passam a 11).
+- `porta/index.html` — o bloco do `summary` (pastilha, 44px, resumo à direita com reticência);
+  `recolherOContextoNoTelefone()` chamada por `revelarBarra()`; `sinalDeSenha()` reescrito (aceite
+  sem texto, `ok` no campo, `falta` sai na mesma passagem); `atualizarBarra()` a esconder o
+  `#fechar`; o CSS do `.campo-senha.ok` **depois** da regra do `.falta` (empate de
+  especificidade — vence quem vem por último); e o `hidden` no markup, para o botão não piscar
+  antes do boot.
+- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
+  cópias geradas, regeradas a partir de `porta/` com a barra injetada no marcador `<!-- NAV -->`
+  (é o que o «Circuito» da identidade confere, byte a byte, com a barra neutralizada).
+- `experimentos/provar-ato-e-barra.js` (**novo**, 26 asserções) — mede as quatro coisas no
+  navegador: o retângulo do alvo (44px, pastilha 30px), o estado a 390/1024/1200, o filete verde
+  **depois** da transição, e o «Fechar» escondido/visível com dois mapas servidos pela bancada.
+  Tem `--controle-negativo` contra `git show HEAD:porta/index.html`, e lá **reprova 12**.
+- `experimentos/opcoes-visuais/index.html` — a proposta que o dono do produto pediu: **K** o
+  controle de recolher (antes/depois), **I** três arranjos para as informações do formulário (o
+  «?» ao lado do rótulo, o «?» no alto do cartão, e o «?» com folha inferior no telefone) e **B**
+  três arranjos para a barra dos botões (uma linha com hierarquia, barra fixa no rodapé, dois
+  grupos com transbordo), com um botão que simula «tudo preenchido» para ver o «Fechar» aparecer
+  e desaparecer nas três. A página ganhou a **marca nas duas cores que estão no ar** — o bordô e o
+  ouro — extraída da grade de logotipos como máscara de alfa: um só arquivo pinta as duas cores.
+- `.gitignore` — a prova nova entra na lista do que é versionado.
 
-**Um defeito encontrado NO AR, e corrigido.** Depois do primeiro `deploy`, o KV mostrou uma
-gravação que ninguém tinha pedido explicitamente: a família mudou e o modo voltou atrás. A causa é
-o **«ler-modificar-gravar» sobre um KV eventualmente consistente** — dois pedidos próximos, e um
-deles lê o valor antigo. O remédio não é tentar ser mais rápido: é **o cliente mandar o par
-inteiro** (ele tem os dois valores no `<html>` que acabou de pintar), e o servidor **gravar sem
-ler** quando os dois eixos vêm. Está no código e na prova. Não teria sido encontrado em prova
-local — o KV de mentira é consistente.
+**O que NÃO mudou, e é de propósito.** A **ordem** e o **peso** dos cinco botões da condução. O
+dono do produto pediu proposta, não execução — e uma barra que muda de arranjo no mesmo commit em
+que muda de regra não se consegue avaliar. As três propostas estão na página de estudo, com o custo
+e o que resolvem escritos.
 
-**Motivo declarado — os congelados.** `tools/templates/ciclo.css` e
-`tools/check-identidade.js` estão em `CONGELAMENTO.md`. O motivo é a própria entrega: uma família
-nova **é** desenho, e não há como acrescentá-la sem tocar a folha; e o validador teve de aprender
-a medir o produto cartesiano, porque **um tema não medido é um tema que ninguém sabe se passa**.
-**O que não muda:** a fórmula de hash, a cobertura do `.fipp`, os validadores de ciclo, as regras
-pedagógicas e as pétreas do protocolo. Nenhuma fonte de ciclo foi tocada — **não há reancoragem**.
+**Com o quê.** `porta/index.html` · as duas cópias de `plano-observacao/` ·
+`experimentos/provar-ato-e-barra.js` · `experimentos/opcoes-visuais/index.html` e
+`marca-lastro.png` (estudo, não versionados) · `.gitignore` · este registro.
 
-**Com o quê.** `tools/templates/ciclo.css` · `tools/check-identidade.js` ·
-`motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
-`raiz/assets/style.css` · `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/assets/style.css`
-· `IDENTIDADE-VISUAL.md` · `IMPLEMENTACAO-IDENTIDADE.md` ·
-`experimentos/provar-{aparencia,tema,producao}.js` · este registro.
+**Referências.** `IDENTIDADE-VISUAL.md` (o catálogo das peças: a pílula, o `.campo`, o `.selo`);
+WCAG 2.1 AA (2.5.8, alvo mínimo de toque) · `experimentos/provar-cabecalho-do-ato.js` (o mesmo
+cabeçalho nos três documentos).
 
-**Referências.** `IDENTIDADE-VISUAL.md` («o que uma paleta tem de declarar» e a especificação da
-Cortina Turquesa; o catálogo das peças) · WCAG 2.1 AA (4,5:1 texto, 3,0:1 traço) ·
-`tools/check-identidade.js` (`PARES`, `TEMAS`).
-
-**O que ainda não está feito.** (a) **Cinco famílias continuam sem hex** — as direções estão no
-catálogo e nenhum valor foi inventado; o formulário que elas têm de preencher está escrito.
-(b) O *quando* a escola escolhe segue aberto, e é de produto. (c) O item de menu **Identidade
-visual** não existe: o controlo vive na secção Aparência, e é lá que fica enquanto for
-configuração e não frente própria. (d) As **imagens de referência não estão no repositório** — são
-estudo, e o que se aproveitou delas está medido e escrito.
+**O que ainda não está feito.** (a) O arranjo da **barra de botões** está proposto e **não**
+escolhido — depende do dono do produto, e é ele que decide entre B1, B2 e B3. (b) O mesmo para as
+**informações**: I1, I2 e I3 estão na página de estudo, e a tela continua a mostrar os parágrafos
+como antes. (c) A **senha do plano**, que aparece só em edição/derivação, não foi revista nesta
+entrada — o `sinalDeSenha` é o mesmo, mas o fluxo não foi medido.
 
 ## O que está pendente
-
-## 18/10/2026 — a dobra do índice da página, no celular
-
-O `.toc-local` da **fita** e da **valse** não tem documentos
-além do índice (o pacote é o scaffold: `DOCS="plano"`, e o plano ainda não foi elicitado), por
-isso a dobra foi medida no índice do pacote e no Roteiro da porta. Os documentos de aula, quando
-existirem, recebem o controle sem nenhuma alteração — é o mesmo `assets/nav.js`. A **raiz**
-(`danca`) continua sem a folha nova no ar até o deploy dela.
 
 ## 18/10/2026 — a C15 foi decidida: a preferência de aparência é da escola
 
@@ -275,6 +251,11 @@ catálogo e nenhum valor foi inventado; o formulário que elas têm de preencher
 visual** não existe: o controlo vive na secção Aparência, e é lá que fica enquanto for
 configuração e não frente própria. (d) As **imagens de referência não estão no repositório** — são
 estudo, e o que se aproveitou delas está medido e escrito.
+
+## 18/10/2026 — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar
+
+(a) O arranjo da **barra de botões** está proposto e **não**
+escolhido — depende do dono do produto, e é ele que decide entre B1, B2 e B3. (b) O mesmo para as
 
 ## Pendências anteriores (índice)
 
@@ -468,6 +449,7 @@ estudo, e o que se aproveitou delas está medido e escrito.
 - **18/10/2026** — o nome do professor na curadoria abre o plano de ensino dele → `REGISTRO.md` L16763
 - **18/10/2026** — a faixa dos passos numa linha só, com a seta no fim → `REGISTRO.md` L16801
 - **18/10/2026** — a etiqueta é uma só, e o que está no ar é o motor → `REGISTRO.md` L16844
+- **18/10/2026** — a dobra do índice da página, no celular → `REGISTRO.md` L16921
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

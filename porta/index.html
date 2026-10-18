@@ -119,16 +119,41 @@
      de texto, não de filete: uma caixa não tem borda para ficar vermelha. */
   .barra .ctx-fixa.falta .ctx-inscricao { color: var(--falha); }
   /* O acordeão do contexto do ato: a linha de fora fica sempre visível (o resumo),
-     e os campos abrem por baixo. O `summary` é o cursor do recolher/expandir. */
+     e os campos abrem por baixo. O `summary` é o cursor do recolher/expandir.
+
+     O CONTROLE CRESCEU (18/10/2026). Ele media 24px na tela grande — a altura de uma
+     linha de texto — e a seta era um triângulo de 7px. O dedo não acerta isso no telefone,
+     e o olho não o lê na tela grande. Agora a seta vive numa PASTILHA de 30px (o alvo de
+     toque real, e não o texto), o conjunto tem altura de controle (44px, a mesma do botão
+     de ação ao lado) e o nome do bloco vai a 15px. Aberto, a pastilha enche de marca: o
+     estado diz-se sem uma palavra — a mesma regra da seta do acordeão das turmas. */
   .barra details.ctx-ato > summary {
+    display: flex; align-items: center; gap: .55rem;
+    min-height: 44px; padding: .15rem 0;
     cursor: pointer; list-style: none;
-    font-weight: 600; color: var(--texto);
+    font: 600 15px/1.25 var(--ui); color: var(--texto);
     user-select: none;
   }
   .barra details.ctx-ato > summary::-webkit-details-marker { display: none; }
-  .barra details.ctx-ato .ctx-seta { display: inline-block; transition: transform .15s ease; margin-right: .2rem; }
-  .barra details.ctx-ato[open] .ctx-seta { transform: rotate(90deg); }
-  .barra details.ctx-ato .ctx-resumo { color: var(--suave); font-weight: 400; }
+  .barra details.ctx-ato .ctx-seta {
+    flex: 0 0 auto; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center;
+    font-size: 15px; line-height: 1; margin: 0;
+    background: var(--fundo-faixa); border: 1px solid var(--borda-campo); color: var(--marca);
+    transition: transform .15s ease, background .15s ease, color .15s ease, border-color .15s ease;
+  }
+  .barra details.ctx-ato[open] .ctx-seta {
+    transform: rotate(90deg);
+    background: var(--marca-fundo); border-color: var(--marca-fundo); color: var(--texto-destaque-marca);
+  }
+  /* O RESUMO À DIREITA. `margin-left: auto` põe-no no fim da linha, e a reticência
+     impede que «escola · professor · ciclo · turma observada» empurre a pastilha —
+     é texto de apoio, e cede antes do controle. */
+  .barra details.ctx-ato .ctx-resumo {
+    margin-left: auto; min-width: 0;
+    color: var(--suave); font-weight: 400; font-size: .84rem;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
   /* OS CAMPOS, UM POR COLUNA DE RÓTULO. `align-items: flex-end` alinha os CONTROLES pela
      base mesmo com rótulos de uma ou duas linhas — sem isso, «turma observada» (que
      quebra) empurraria o seu select para baixo dos outros. */
@@ -201,6 +226,11 @@
     font: 600 .95rem/1 var(--ui); color: var(--suave);
   }
   .barra .campo .limpar-aluna:hover { color: var(--falha); }
+  /* O ACEITE DA SENHA É A COR DO FILETE (18/10/2026) — sem palavra. Fica DEPOIS da regra
+     do `.falta` para vencer no empate de especificidade: os dois têm (0,3,1), e o que vale
+     é o que vem por último. E o rótulo acompanha, para o verde não aparecer sozinho. */
+  .barra .campo-senha.ok input { border-color: var(--ok); }
+  .barra .campo-senha.ok label { color: var(--ok); }
   .barra .campo .senha-status { font-size: .78rem; white-space: nowrap; }
   .barra .campo .senha-status.ok { color: var(--ok); }
   .barra .campo .senha-status.erro { color: var(--falha); }
@@ -647,7 +677,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
     <button id="anterior">← Anterior</button>
     <button id="proxima" class="acao">Próxima →</button>
     <button id="pular">Pular</button>
-    <button id="fechar" disabled>Fechar a elicitação</button>
+    <button id="fechar" disabled hidden>Fechar a elicitação</button>
     <button id="sair">Sair</button>
   </div>
 </section>
@@ -1410,11 +1440,24 @@ function aplicarCuradoria() {
   if (FONTE === 'anamnese') carregarAlunas();
 }
 
+/*
+ * O SINAL DA SENHA (18/10/2026). Era a palavra «OK» escrita por baixo do campo, e partia a
+ * linha do cabeçalho para dizer o que a cor já diz. Agora o ACEITE é o filete do campo a
+ * verde, sem texto nenhum; a RECUSA continua a ser palavra, porque «senha não reconhecida»
+ * é informação que se precisa de ler — e um filete vermelho sozinho não distingue «errada»
+ * de «vazia».
+ *
+ * O `ok` vai para o CAMPO (`.campo-senha`), não para o `<input>`: a cor acompanha o rótulo e
+ * o filete ao mesmo tempo, e o `falta` — que pinta de vermelho — sai na mesma passagem, para
+ * os dois estados nunca conviverem.
+ */
 function sinalDeSenha(ok, texto) {
+  const caixa = document.querySelector('.barra .campo-senha');
+  if (caixa && caixa.classList) caixa.classList.toggle('ok', !!ok && !texto);
   const status = $('senha-status');
   if (!status) return;
-  if (texto) { status.textContent = texto; status.className = 'senha-status ' + (ok ? 'ok' : 'erro'); }
-  else { status.textContent = ''; status.className = 'senha-status'; }
+  status.textContent = texto || '';
+  status.className = 'senha-status' + (texto ? (ok ? ' ok' : ' erro') : '');
 }
 
 async function validarSenha() {
@@ -1435,7 +1478,7 @@ async function validarSenha() {
     SENHA_VALIDA = !!dados.ok;
     // Só o resultado, nunca o nome do professor: a senha é do professor, e o
     // nome dele não é o que a validação revela.
-    sinalDeSenha(!!dados.ok, dados.ok ? 'OK' : '✗ senha não reconhecida');
+    sinalDeSenha(!!dados.ok, dados.ok ? '' : '✗ senha não reconhecida');
     if (dados.ok) {
       const alvo = $('senha');
       const caixa = alvo && alvo.closest ? alvo.closest('.campo') : null;
@@ -1976,12 +2019,20 @@ function atualizarBarra() {
   $('n-resp').textContent = resp;
   $('n-obrig').textContent = obrig;
   const faltam = obrigatoriosFaltando().length;
-  // A trava é do botão, não do fluxo: o fecho só existe quando a elicitação
-  // está inteira. O `disabled` nasce no HTML e é mantido aqui.
-  $('fechar').disabled = faltam > 0;
-  $('fechar').title = faltam
-    ? 'Faltam ' + faltam + (faltam === 1 ? ' obrigatório' : ' obrigatórios')
-    : 'Fechar a elicitação';
+  // O «FECHAR» NÃO NASCE A DESCONTAR (18/10/2026). Ele era um botão desactivado sempre à
+  // vista, e um botão desactivado não diz o que falta — a frase que diz isso já existe no
+  // aviso do cartão («Faltam N — …»). Agora ele APARECE quando é possível, e desaparece se
+  // alguma resposta obrigatória for apagada: cinco botões viram quatro, e a barra fica com
+  // a linha que lhe faltava no telefone. O `disabled` continua a ser mantido — é a segunda
+  // tranca, para o caso de o botão ficar visível sem senha.
+  const fechar = $('fechar');
+  if (fechar) {
+    fechar.hidden = faltam > 0;
+    fechar.disabled = faltam > 0;
+    fechar.title = faltam
+      ? 'Faltam ' + faltam + (faltam === 1 ? ' obrigatório' : ' obrigatórios')
+      : 'Fechar a elicitação';
+  }
 }
 
 // ------------------------------------------------------------------- mapa
@@ -2532,6 +2583,30 @@ function citacao(termo) {
 function revelarBarra() {
   const barra = $('barra');
   if (barra) barra.classList.remove('oculto');
+  recolherOContextoNoTelefone();
+}
+
+/*
+ * NO TELEFONE O CABEÇALHO NASCE FECHADO (18/10/2026).
+ *
+ * O `<details>` abre por omissão no HTML — e faz bem: na tela grande o contexto é uma
+ * linha e vê-lo é útil. No telefone é outra coisa: quatro campos empilhados antes da
+ * primeira pergunta, e quem veio responder tem de rolar meia tela para começar. Fechado,
+ * sobra uma faixa de 44px com o resumo, e o formulário começa no ecrã.
+ *
+ * PORQUE NÃO SE GUARDA A ESCOLHA. Recolher «para sempre» transformaria uma decisão de
+ * layout numa preferência do navegador — e o contexto é identidade do ato, não gosto. Ao
+ * abrir de novo a página, fecha outra vez; quem quiser vê-lo, toca e ele abre.
+ *
+ * A FALTA NÃO SE ESCONDE. Se o contexto estiver incompleto, o resumo já anuncia o que falta
+ * em vermelho (`marcarContextoFaltando`) — fechar o acordeão não pode esconder o motivo de
+ * o formulário estar travado.
+ */
+function recolherOContextoNoTelefone() {
+  const ato = document.querySelector('details.ctx-ato');
+  if (!ato) return;
+  if (!window.matchMedia || !window.matchMedia('(max-width: 768px)').matches) return;
+  ato.open = false;
 }
 
 /*

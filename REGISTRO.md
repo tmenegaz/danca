@@ -17404,3 +17404,76 @@ catálogo e nenhum valor foi inventado; o formulário que elas têm de preencher
 visual** não existe: o controlo vive na secção Aparência, e é lá que fica enquanto for
 configuração e não frente própria. (d) As **imagens de referência não estão no repositório** — são
 estudo, e o que se aproveitou delas está medido e escrito.
+
+## 18/10/2026 — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar
+
+**O que motivou.** O dono do produto abriu a anamnese no telefone e leu quatro coisas erradas de
+uma vez. O controle de recolher o contexto media **24px** — a altura de uma linha de texto — e a
+seta era um triângulo de **7px**: não se acerta com o dedo. O cabeçalho abria **sempre**, e no
+telefone empurrava a primeira pergunta para fora do ecrã. A senha aceita escrevia **«OK»** por
+baixo do campo, partindo a linha do cabeçalho para dizer o que a cor já dizia. E o «Fechar a
+elicitação» era um botão **desactivado sempre à vista**, a lembrar o que falta sem dizer o quê.
+
+**O que foi decidido.**
+
+- **O controle cresce para altura de controle.** A seta passa a viver numa **pastilha de 30px** (o
+  alvo do toque real, e não o texto), o conjunto ganha `min-height: 44px` — a mesma do botão de
+  ação ao lado — e o nome do bloco vai a 15px. Aberto, a pastilha enche de marca: o estado diz-se
+  sem uma palavra, que é a regra da seta do acordeão das turmas.
+- **No telefone o cabeçalho nasce FECHADO.** Recolhido, sobra uma faixa de 44px com o resumo, e o
+  formulário começa no ecrã. **Não se guarda a escolha**: o contexto é identidade do ato, não
+  gosto — e transformar uma decisão de layout numa preferência do navegador seria a mesma falta
+  que a C15 corrigiu na aparência. A tela grande continua a abri-lo; o corte é o 768 de sempre.
+- **A falta não se esconde.** O resumo já anuncia em vermelho o que falta para fechar — fechar o
+  acordeão não pode esconder o motivo de o formulário estar travado.
+- **O aceite da senha passa a ser o filete.** Sem palavra. A **recusa** continua a ser texto,
+  porque «senha não reconhecida» é informação que se precisa de ler, e um filete vermelho sozinho
+  não distingue «errada» de «vazia».
+- **O «Fechar» APARECE** quando os obrigatórios estão completos, e desaparece se algum for
+  apagado. Era um `disabled` sempre à vista; a frase que explica a falta já existe no aviso do
+  cartão («Faltam N…»), e um botão que não fala não é a forma de a dizer. O `disabled` continua a
+  ser mantido como segunda tranca — visível mas travado enquanto não houver senha é a diferença
+  entre «não existe» e «não se pode».
+
+**Onde entrou.**
+
+- `porta/index.html` — o bloco do `summary` (pastilha, 44px, resumo à direita com reticência);
+  `recolherOContextoNoTelefone()` chamada por `revelarBarra()`; `sinalDeSenha()` reescrito (aceite
+  sem texto, `ok` no campo, `falta` sai na mesma passagem); `atualizarBarra()` a esconder o
+  `#fechar`; o CSS do `.campo-senha.ok` **depois** da regra do `.falta` (empate de
+  especificidade — vence quem vem por último); e o `hidden` no markup, para o botão não piscar
+  antes do boot.
+- `professores/tiago-menegaz/ciclos/ciclo-01-{fita,valse}/plano-observacao/index.html` — as duas
+  cópias geradas, regeradas a partir de `porta/` com a barra injetada no marcador `<!-- NAV -->`
+  (é o que o «Circuito» da identidade confere, byte a byte, com a barra neutralizada).
+- `experimentos/provar-ato-e-barra.js` (**novo**, 26 asserções) — mede as quatro coisas no
+  navegador: o retângulo do alvo (44px, pastilha 30px), o estado a 390/1024/1200, o filete verde
+  **depois** da transição, e o «Fechar» escondido/visível com dois mapas servidos pela bancada.
+  Tem `--controle-negativo` contra `git show HEAD:porta/index.html`, e lá **reprova 12**.
+- `experimentos/opcoes-visuais/index.html` — a proposta que o dono do produto pediu: **K** o
+  controle de recolher (antes/depois), **I** três arranjos para as informações do formulário (o
+  «?» ao lado do rótulo, o «?» no alto do cartão, e o «?» com folha inferior no telefone) e **B**
+  três arranjos para a barra dos botões (uma linha com hierarquia, barra fixa no rodapé, dois
+  grupos com transbordo), com um botão que simula «tudo preenchido» para ver o «Fechar» aparecer
+  e desaparecer nas três. A página ganhou a **marca nas duas cores que estão no ar** — o bordô e o
+  ouro — extraída da grade de logotipos como máscara de alfa: um só arquivo pinta as duas cores.
+- `.gitignore` — a prova nova entra na lista do que é versionado.
+
+**O que NÃO mudou, e é de propósito.** A **ordem** e o **peso** dos cinco botões da condução. O
+dono do produto pediu proposta, não execução — e uma barra que muda de arranjo no mesmo commit em
+que muda de regra não se consegue avaliar. As três propostas estão na página de estudo, com o custo
+e o que resolvem escritos.
+
+**Com o quê.** `porta/index.html` · as duas cópias de `plano-observacao/` ·
+`experimentos/provar-ato-e-barra.js` · `experimentos/opcoes-visuais/index.html` e
+`marca-lastro.png` (estudo, não versionados) · `.gitignore` · este registro.
+
+**Referências.** `IDENTIDADE-VISUAL.md` (o catálogo das peças: a pílula, o `.campo`, o `.selo`);
+WCAG 2.1 AA (2.5.8, alvo mínimo de toque) · `experimentos/provar-cabecalho-do-ato.js` (o mesmo
+cabeçalho nos três documentos).
+
+**O que ainda não está feito.** (a) O arranjo da **barra de botões** está proposto e **não**
+escolhido — depende do dono do produto, e é ele que decide entre B1, B2 e B3. (b) O mesmo para as
+**informações**: I1, I2 e I3 estão na página de estudo, e a tela continua a mostrar os parágrafos
+como antes. (c) A **senha do plano**, que aparece só em edição/derivação, não foi revista nesta
+entrada — o `sinalDeSenha` é o mesmo, mas o fluxo não foi medido.

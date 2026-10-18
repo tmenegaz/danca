@@ -82,6 +82,7 @@ experimentos/*
 !experimentos/provar-ambiente.js
 !experimentos/provar-dobra-do-indice.js
 !experimentos/provar-aparencia.js
+!experimentos/provar-ato-e-barra.js
 
 # ============================================================================
 # Caches e ambientes
