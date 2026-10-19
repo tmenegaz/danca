@@ -1,0 +1,40 @@
+{
+  "escola": "calango",
+  "worker": "calango",
+  "criado_em": "2026-10-19T18:18:57.289485+00:00",
+  "professor": {
+    "slug": "sapo-bailarino",
+    "nome": "Sapo Bailarino"
+  },
+  "responsavel": "Sapo Bailarino",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "estado": {
+    "habilitada": true
+  },
+  "arquivos": [
+    {
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01.conf",
+      "tipo": "manifesto base"
+    },
+    {
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-calango.conf",
+      "tipo": "manifesto variante"
+    },
+    {
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
+      "tipo": "schemas"
+    },
+    {
+      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-calango/",
+      "tipo": "pacote zero"
+    },
+    {
+      "caminho": "wrangler.calango.jsonc",
+      "tipo": "config do Worker"
+    }
+  ]
+}
