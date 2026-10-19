@@ -99,7 +99,20 @@ source "$RAIZ/tools/lib-fontes.sh"
 : "${NOME:?defina NOME no manifesto}"
 : "${OBJETIVO_GERAL:?defina OBJETIVO_GERAL no manifesto}"
 : "${PROFESSOR:?defina PROFESSOR no manifesto}"
-: "${DOCS:?defina DOCS (lista ordenada de documentos) no manifesto}"
+# O DOCS pode ser DECLARADO VAZIO — é o estado da escola recém-criada, e o
+# `motor/servidor/escrever-ciclo.js` é quem o preenche quando o plano chega. Por isso a
+# exigência é «declarado», não «preenchido»: `${DOCS:?}` recusava `DOCS=""` com «defina
+# DOCS no manifesto», mandando o operador editar uma linha que já estava lá (medido em
+# 18/10/2026, na escola `valse`). Gerar sem fonte nenhuma continua a ser impossível — a
+# lista vazia é recusada em seguida, com o motivo certo.
+: "${DOCS?defina DOCS (lista ordenada de documentos) no manifesto}"
+if [ -z "$DOCS" ]; then
+  echo "erro: DOCS está vazio em $(basename "$CONF_VARIANTE") — o ciclo não tem fonte nenhuma." >&2
+  echo "  Quem o preenche é o PLANO eliciado (motor/servidor/escrever-ciclo.js), junto com" >&2
+  echo "  DATA_INICIO e DIAS: elicie o plano pela porta e gere depois disso. Se os documentos" >&2
+  echo "  já estão escritos, declare-os na ordem do pacote — ex.: DOCS=\"plano aula-01\"." >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Pré-requisito 5 — contexto institucional e frequência (Regra 18):
@@ -110,6 +123,8 @@ for campo in ESCOLA FREQUENCIA DIAS DURACOES DATA_INICIO TOTAL_AULAS; do
   if [ -z "$valor" ] || printf '%s' "$valor" | grep -q '\['; then
     echo "erro: Pré-requisito 5 incompleto — '$campo' não está declarado em $(basename "$CONF_VARIANTE")." >&2
     echo "  Informe escola, frequência, dias de aula, duração por dia e total de aulas." >&2
+    echo "  Estes campos vêm do PLANO elicitado (o calendário fixa o início; a frequência," >&2
+    echo "  os dias e a duração vêm do contexto institucional): elicie o plano antes de gerar." >&2
     exit 1
   fi
 done
@@ -140,10 +155,26 @@ for doc in $DOCS; do
     exit 1
   }
   for dur in ${DURACOES//,/ }; do
-    if [ "$dur" -le 60 ]; then min="${VOLUME_MIN:-80}"; max="${VOLUME_MAX:-100}"
-    else min="${VOLUME_MIN_120:-}"; max="${VOLUME_MAX_120:-}"; fi
+    # A faixa é POR DURAÇÃO. Até 19/10/2026 o `else` lia `VOLUME_MIN_120` para QUALQUER
+    # duração acima de 60 — uma aula de 75 min era medida com a régua da de 120, e passava
+    # ou reprovava pelo número errado. Agora cada duração tem o seu par: `VOLUME_MIN`/
+    # `VOLUME_MAX` para 60, `VOLUME_MIN_<dur>`/`VOLUME_MAX_<dur>` para as demais (o sufixo
+    # `_60` também vale, para quem preferir a forma explícita). Sem o par, a recusa diz qual
+    # chave declarar — a faixa é norma da escola, e não se inventa.
+    declare -n ref_min="VOLUME_MIN_${dur}" 2>/dev/null || ref_min=""
+    declare -n ref_max="VOLUME_MAX_${dur}" 2>/dev/null || ref_max=""
+    if [ "$dur" -le 60 ]; then
+      min="${ref_min:-${VOLUME_MIN:-80}}"
+      max="${ref_max:-${VOLUME_MAX:-100}}"
+    else
+      min="${ref_min:-}"
+      max="${ref_max:-}"
+    fi
+    unset -n ref_min ref_max 2>/dev/null || true
     if [ -z "$min" ] || [ -z "$max" ]; then
-      echo "erro: sem faixa de volume para $dur min — declare VOLUME_MIN_$dur e VOLUME_MAX_$dur." >&2
+      echo "erro: sem faixa de volume para $dur min — declare VOLUME_MIN_$dur e VOLUME_MAX_$dur" >&2
+      echo "  em $(basename "$CONF_VARIANTE") (ou no .conf da escola, que é o dono da norma)." >&2
+      echo "  A faixa é da Regra 9 e muda com a duração: a de 60 min não serve para $dur." >&2
       exit 1
     fi
     vol="$(volume_declarado "$arq" "$dur")"
@@ -158,6 +189,18 @@ for doc in $DOCS; do
     fi
   done
 done
+
+# Sem uma aula com fonte, o volume não tem de onde sair: `volume_declarado ""` chamava o
+# `sed` com caminho vazio e o gerador morria com «sed: can't read : No such file or
+# directory» — um erro que não diz nada sobre o que falta (medido em 18/10/2026, com
+# `DOCS="plano"` e sem `aula-01` em disco). Fica a recusa com o motivo, e o volume só é
+# procurado depois dela.
+if [ -z "$PRIMEIRA_AULA" ]; then
+  echo "erro: nenhuma 'aula-*' de DOCS tem fonte em disco — não há volume para a Regra 9." >&2
+  echo "  DOCS=\"$DOCS\" em $(basename "$CONF_VARIANTE"), mas nenhum $(basename "${CONF_VARIANTE%.conf}")-aula-NN.md correspondente." >&2
+  echo "  O ciclo precisa de ao menos uma aula escrita: é dela que saem o volume e o calendário." >&2
+  exit 1
+fi
 
 # ---------------------------------------------------------------------------
 # Regra 10, camada 2 — calendário real: datas, avaliações, extensão e volume
