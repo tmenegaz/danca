@@ -19346,3 +19346,77 @@ segunda cópia independente, e tirá-la exige que o formulário de lançamento p
 repositório na próxima gravação de cada uma. (e) A árvore do repositório cresce com uma entrada
 por anamnese; com centenas de alunas, a chamada `git/trees?recursive=1` devolve o repositório
 inteiro — mede-se quando doer, mas o caminho já é uma chamada só.
+
+## 20/10/2026 — a lista não paga o que não mostra (fase 2 da dependência do KV)
+
+**Por quê.** Depois de a anamnese passar a viver no acervo do repositório, a fase 2 do plano de
+otimização atacava o custo de ABRIR a porta. Medi-o antes de mexer, com o servidor de verdade
+atrás de um `http` local e cada página aberta em `jsdom` (`experimentos/provar-listas-sem-repeticao.js`):
+a página do PO custava **11 leituras** no KV, a do plano **14**, a da anamnese **12** — com um
+acervo de 3 planos, 4 anamneses e 2 POs. Duas causas, e nenhuma delas era o volume de dados:
+
+1. **o mesmo endereço era pedido duas vezes na mesma carga** — o PO pedia `api/envelopes` em
+   `carregarFichas` (a estante) e outra vez em `semearDoPlano` (que varria os nomes à procura do
+   `plano-*` mais recente); o plano pedia `/api/bastidores/turmas` para as opções do select e
+   outra vez para o cadastro com o ritmo, sendo que a ROTA DEVOLVE AS DUAS COISAS na mesma
+   resposta; a anamnese pedia `/api/bastidores/alunas` duas vezes;
+2. **a lista lia cada envelope para saber um rótulo** — `planos()` e `estadosDasAnamneses()`
+   abriam todos os envelopes do seu tipo só para colher o objetivo, a turma ou o apelido. O custo
+   crescia com o acervo da escola: 40 anamneses custavam 10 vezes mais do que 4.
+
+**O que mudou.** A fase 2 tinha duas metades; esta é a que não muda onde o dado vive.
+
+- **Um pedido por endereço.** `buscarJSON` (em `porta/index.html`) coalesce os pedidos EM VOO, e
+  três sítios passaram a usá-lo. O PO deixou de varrer a estante para achar o plano: usa o plano
+  ESCOLHIDO (que é o certo, não «o mais recente») e, sem escolha, o primeiro da estante que a
+  página já carregou — `carregarDetalhe` guarda o envelope. O cadastro de turmas semeia as
+  `opcoes` da mesma resposta, e o cabeçalho do plano passou a pedir o CADASTRO primeiro.
+- **O índice guarda o RESUMO de cada envelope** (`motor/nucleo/porta.js`). O que a estante mostra
+  — o id, a fonte, a escola/professor/ciclo, o `ajuste_de`, o apelido da anamnese, o objetivo e a
+  turma do plano, os sujeitos e o plano referenciado do PO — passa a viajar no índice, escrito
+  pela MESMA função que o reconstrói (`resumoDoEnvelope`) na única porta de escrita
+  (`gravarEnvelope`). As quatro listas (`anamneses`, `estadosDasAnamneses`, `planos`,
+  `estadosDosPlanos`) e os dois vínculos (`vinculos`, `vinculosDePlano`) leem o índice UMA vez e
+  nenhum envelope. O envelope continua a ser a autoridade: quem ABRE um registo lê o arquivo.
+- **A migração é paga uma vez.** Um índice da versão antiga (só nomes) é tratado como
+  INCOMPLETO: a primeira leitura enumera uma vez, lê cada envelope para colher o resumo e grava.
+  `lerEnvelopes` foi removida — não sobrou quem precise ler todos.
+
+**Onde.** `motor/nucleo/porta.js` (`resumoDoEnvelope`, `VERSAO_DO_RESUMO`, `resumosDeEnvelopes`,
+`lerIndice`/`decodificarIndice`/`gravarIndice`/`registrarNoIndice`/`esquecerDoIndice`, as quatro
+listas e os dois vínculos) · `porta/index.html` (`buscarJSON`, `PEDIDOS_EM_VOO`, `URL_DAS_TURMAS`,
+`carregarTurmasDaEscola`, `carregarAlunas`, `carregarOpcoesDe`, `semearDoPlano`,
+`renderTurmaDoCabecalho`) · `experimentos/provar-listas-sem-repeticao.js` (nova) ·
+`experimentos/provar-indice-de-envelopes.js` (a secção 9 virou «não lê envelope nenhum») ·
+`experimentos/README.md` · `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `node experimentos/provar-listas-sem-repeticao.js` → **TUDO CERTO, 16 asserções**.
+O antes e o depois, medidos:
+
+| carga da página | antes | depois |
+|:--|--:|--:|
+| PO | 6 pedidos · 11 leituras | **6 pedidos · 5 leituras** |
+| plano | 9 pedidos · 14 leituras | **8 pedidos · 8 leituras** |
+| anamnese | 7 pedidos · 12 leituras | **6 pedidos · 5 leituras** |
+| anamnese com 40+ registos | — | **5 leituras** (não cresce) |
+
+A migração do índice custa 1 + um envelope por registo, UMA vez (medido: 10 leituras, e 1 na
+leitura seguinte). `provar-indice-de-envelopes` → **41** (com a migração e o estado morno
+separados); `provar-acervo-anamneses` 41 · `provar-expurgo-sem-listagem` 40 ·
+`provar-lista-que-falha` 39 · `provar-expurgo-leitura-atrasada` 45 · `provar-teste` 26 ·
+`provar-contexto-do-ato` 37 · `provar-producao` 135 · `provar-paginacao` 121 ·
+`provar-derivacao-da-turma` 126. Identidade visual: verde.
+
+**Referências.** A entrada de hoje sobre a anamnese no acervo (fase 1) · a entrada sobre a cota do
+KV (a enumeração: a mesma lição, agora na leitura) · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` (é o
+índice que vai responder aos filtros).
+
+**O que ainda não está feito.** (a) O `ajuste_de` que o resumo guarda é o do envelope no momento
+da gravação; um envelope **reemito** com outro `ajuste_de` só se o índice for regravado — hoje a
+única reemissão passa por `gravarEnvelope`, que reescreve o resumo (a asserção cobre a migração,
+não a reemissão: falta a prova). (b) A **lista de gestão** continua a ler só o KV: mostra as
+anamneses antigas e não as que só estão no repositório (gap da fase 1, não desta). (c) O
+**plano** e o **PO** continuam a escrever o envelope no KV (fase 3). (d) O cofre cifrado continua
+a ser escrito no KV. (e) As páginas ainda pedem `api/envelopes` **e** `api/planos` **e**
+`api/plano-estados` — três leituras do MESMO índice. Uma rota só (ou um `ETag` no índice) levaria
+a carga a 1 leitura; fica para a fase 3, quando o envelope sair do KV.

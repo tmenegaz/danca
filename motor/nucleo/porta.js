@@ -375,10 +375,86 @@ function mapa(conteudo) {
 
 /** Os NOMES (sem o prefixo) dos envelopes que casam com o padrão, ordenados. */
 async function nomesDeEnvelopes(armazenamento, padrao) {
-  const nomes = await lerIndice(armazenamento);
+  const { nomes } = await lerIndice(armazenamento);
   return nomes
     .filter((nome) => padrao.test(nome))
     .sort();
+}
+
+/**
+ * OS RESUMOS dos envelopes que casam com o padrão — `[{nome, resumo}]`, na ordem dos nomes.
+ *
+ * A LISTA NÃO LÊ O CONTEÚDO (20/10/2026). `planos()` e `estadosDasAnamneses()` liam CADA
+ * envelope para saber um rótulo, a turma ou o apelido: com 3 planos, 4 anamneses e 2 POs, uma
+ * carga da página do PO custava 11 leituras no KV — e crescia com o acervo da escola. O que a
+ * lista precisa é METADADO, e o metadado cabe no índice, que já era lido de qualquer forma.
+ *
+ * O envelope continua a ser a autoridade: quem ABRE um registo lê o arquivo (`lerEnvelope`).
+ * O resumo é para a ESTANTE — e por isso carrega só o que a estante mostra.
+ */
+async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
+  // O índice é UM arquivo: quem precisa do resumo de duas famílias (o PO precisa dos planos E
+  // dos POs, para saber os vínculos) passa o que já leu, e não o lê outra vez (20/10/2026).
+  const { nomes, resumos } = jaLido || (await lerIndice(armazenamento));
+  const lista = [];
+  for (const nome of nomes.filter((n) => padrao.test(n)).sort()) {
+    if (resumos[nome]) {
+      lista.push({ nome, resumo: resumos[nome] });
+      continue;
+    }
+    // Sem resumo (índice antigo, ou reconstruído sem conseguir ler o arquivo): lê ESTE e
+    // segue. É a saída de emergência — não pode ser o caminho normal, ou nada se ganhou.
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (envelope) lista.push({ nome, resumo: resumoDoEnvelope(envelope, nome) });
+  }
+  return lista;
+}
+
+/**
+ * O RESUMO de um envelope — o que a ESTANTE precisa, e nada mais.
+ *
+ * Ele é derivado do envelope na ÚNICA porta de escrita (`gravarEnvelope`), pela mesma função
+ * que reconstrói o índice: uma implementação só, para o índice não divergir do dado. O que
+ * aqui entra é o que um dia uma lista pediu — se uma lista nova precisar de outro campo, é
+ * aqui que ele passa a existir, e o índice se reconstrói sozinho (a `versao` sobe).
+ */
+const VERSAO_DO_RESUMO = 2;
+
+function resumoDoEnvelope(envelope, nome) {
+  const id = (envelope && envelope.id) || String(nome || '').replace(/\.json$/, '');
+  const contexto = (envelope && envelope.contexto) || {};
+  const fonte = String(id).split('-')[0];
+  const resumo = {
+    id,
+    fonte,
+    escola: contexto.escola || null,
+    professor: contexto.professor || null,
+    ciclo: contexto.ciclo || null,
+    ajuste_de: (envelope && envelope.ajuste_de) || null,
+  };
+  // O SUJEITO da anamnese é o apelido do CONTEXTO (não a resposta): é o que a lista mostra.
+  if (fonte === 'anamnese') resumo.aluna = contexto.aluna || null;
+  // O PLANO: o objetivo é o rótulo humano da estante; a turma diz de quem é o plano.
+  if (fonte === 'plano') {
+    resumo.objetivo = valorDe(envelope, 'objetivo-geral');
+    resumo.turma = turmaDoEnvelope(envelope);
+  }
+  // O PO: é dele que saem os VÍNCULOS (quem observa quem, e qual plano referencia).
+  if (fonte === 'po') {
+    resumo.sujeitos = listaDeResposta(envelope, 'sujeitos');
+    resumo.plano = listaDeResposta(envelope, 'plano-de-ensino');
+  }
+  return resumo;
+}
+
+/** Uma resposta que é LISTA (ou um valor só), sempre como lista de strings não vazias. */
+function listaDeResposta(envelope, id) {
+  const reg = envelope && envelope.respostas ? envelope.respostas[id] : null;
+  const valor = reg && reg !== null && typeof reg === 'object' && 'valor' in reg ? reg.valor : reg;
+  if (valor === undefined || valor === null) return [];
+  return (Array.isArray(valor) ? valor : [valor])
+    .filter((v) => v !== null && v !== undefined && String(v).trim() !== '')
+    .map(String);
 }
 
 /**
@@ -394,22 +470,29 @@ async function lerIndice(armazenamento) {
   const cru = await armazenamento.ler(INDICE_DOS_ENVELOPES);
   const guardado = decodificarIndice(cru);
 
-  if (cru !== null && !guardado.incompleto) return guardado.nomes;
+  if (cru !== null && !guardado.incompleto) return { nomes: guardado.nomes, resumos: guardado.resumos };
 
-  // Índice ausente (escola anterior a esta mudança) ou incompleto (uma escrita não conseguiu
-  // enumerar): enumera UMA vez, junta ao que já se sabia e grava. É o único momento em que a
-  // cota da enumeração é paga — e, a partir daí, nunca mais.
+  // Índice ausente (escola anterior a esta mudança), incompleto (uma escrita não conseguiu
+  // enumerar) ou de uma versão sem resumos: enumera UMA vez, completa o que falta — inclusive
+  // o resumo de cada envelope, que exige lê-lo — e grava. É o único momento em que esse preço
+  // é pago; a partir daí as listas não voltam a ler envelope nenhum.
   try {
     const listados = await enumerarEnvelopes(armazenamento);
     const nomes = unir(guardado.nomes, listados);
-    await gravarIndice(armazenamento, nomes, false);
-    return nomes;
+    const resumos = Object.assign({}, guardado.resumos);
+    for (const nome of nomes) {
+      if (resumos[nome]) continue;
+      const envelope = await lerArquivo(armazenamento, nome);
+      if (envelope) resumos[nome] = resumoDoEnvelope(envelope, nome);
+    }
+    await gravarIndice(armazenamento, nomes, resumos, false);
+    return { nomes, resumos };
   } catch (erro) {
     // Sem índice E sem enumeração não há como responder: a falha sobe (uma lista vazia por
     // falha de leitura é indistinguível de «não há nada gravado»). Com índice incompleto,
     // responde-se o que se sabe — e a próxima leitura volta a tentar.
     if (cru === null) throw erro;
-    return guardado.nomes;
+    return { nomes: guardado.nomes, resumos: guardado.resumos };
   }
 }
 
@@ -421,18 +504,32 @@ async function enumerarEnvelopes(armazenamento) {
     .filter((nome) => nome && nome.indexOf('.indice.json') === -1);
 }
 
-/** O índice gravado → `{nomes, incompleto}`. Um índice ilegível é um índice vazio. */
+/**
+ * O índice gravado → `{nomes, resumos, incompleto}`. Um índice ilegível é um índice vazio.
+ *
+ * UM ÍNDICE SEM RESUMOS É UM ÍNDICE INCOMPLETO (20/10/2026). A primeira versão do índice
+ * guardava só os nomes, e as listas liam cada envelope para saber o que mostrar. Quem abrir
+ * uma escola com o índice antigo paga UMA enumeração e UMA leitura por envelope — e nunca
+ * mais. É o mesmo caminho da escola que ainda não tem índice.
+ */
 function decodificarIndice(cru) {
-  if (cru === null || cru === undefined) return { nomes: [], incompleto: true };
+  if (cru === null || cru === undefined) return { nomes: [], resumos: {}, incompleto: true };
   try {
     const dados = JSON.parse(String(cru));
-    if (Array.isArray(dados)) return { nomes: limparNomes(dados), incompleto: false };
+    if (Array.isArray(dados)) return { nomes: limparNomes(dados), resumos: {}, incompleto: true };
+    const resumos = {};
+    const guardados = (dados && dados.resumos) || {};
+    for (const [nome, resumo] of Object.entries(guardados)) {
+      if (resumo && typeof resumo === 'object') resumos[nome] = resumo;
+    }
     return {
       nomes: limparNomes((dados && dados.nomes) || []),
-      incompleto: Boolean(dados && dados.incompleto),
+      resumos,
+      incompleto: Boolean(dados && dados.incompleto)
+        || Number(dados && dados.versao) !== VERSAO_DO_RESUMO,
     };
   } catch (erro) {
-    return { nomes: [], incompleto: true };
+    return { nomes: [], resumos: {}, incompleto: true };
   }
 }
 
@@ -449,54 +546,46 @@ function unir(a, b) {
   return limparNomes([].concat(a, b));
 }
 
-async function gravarIndice(armazenamento, nomes, incompleto) {
+async function gravarIndice(armazenamento, nomes, resumos, incompleto) {
   // O ÍNDICE É UM CACHE, e um cache que não se pode gravar não derruba a leitura: um
   // armazenamento só-de-leitura (as bancadas de prova, um adaptador futuro) continua a
   // enumerar como antes. Os adaptadores de verdade — memória, disco, KV — têm `guardar`.
   if (typeof armazenamento.guardar !== 'function') return;
-  const corpo = { nomes: limparNomes(nomes).sort() };
+  const limpos = limparNomes(nomes).sort();
+  const corpo = { versao: VERSAO_DO_RESUMO, nomes: limpos, resumos: {} };
+  // Só o resumo de quem ainda está no rol: um nome que saiu não deixa resumo para trás (o
+  // índice cresceria sem limite, e a estante mostraria um registo que já não existe).
+  for (const nome of limpos) {
+    if (resumos && resumos[nome]) corpo.resumos[nome] = resumos[nome];
+  }
   if (incompleto) corpo.incompleto = true;
   await armazenamento.guardar(INDICE_DOS_ENVELOPES, JSON.stringify(corpo, null, 2) + '\n');
 }
 
-/** Acrescenta um nome ao índice. Chamado só por `gravarEnvelope`. */
-async function registrarNoIndice(armazenamento, nome) {
+/** Acrescenta um nome (e o resumo dele) ao índice. Chamado só por `gravarEnvelope`. */
+async function registrarNoIndice(armazenamento, nome, envelope) {
   let nomes;
+  let resumos = {};
   let incompleto = false;
   try {
-    nomes = await lerIndice(armazenamento);
+    const indice = await lerIndice(armazenamento);
+    nomes = indice.nomes;
+    resumos = indice.resumos;
   } catch (erro) {
     // Gravar não pode depender de enumerar: o envelope é o dado, o índice é o rol dele.
     nomes = [];
     incompleto = true;
   }
   if (nomes.indexOf(nome) === -1) nomes.push(nome);
-  await gravarIndice(armazenamento, nomes, incompleto);
+  if (envelope) resumos[nome] = resumoDoEnvelope(envelope, nome);
+  await gravarIndice(armazenamento, nomes, resumos, incompleto);
 }
 
 /** Retira um nome do índice. Chamado só por `apagarEnvelope`. */
 async function esquecerDoIndice(armazenamento, nome) {
-  const restantes = (await lerIndice(armazenamento)).filter((n) => n !== nome);
-  await gravarIndice(armazenamento, restantes, false);
-}
-
-/**
- * LÊ CADA ENVELOPE UMA VEZ (19/10/2026). A lista de gestão das anamneses pedia as chaves, lia
- * todos os envelopes, e depois pedia as chaves OUTRA vez e lia todos outra vez — 124 leituras
- * para 61 envelopes, medido. Cada leitura é uma operação no KV, e a página de gestão é aberta a
- * cada ensaio: o desperdício cresce com o número de registos da escola.
- *
- * Uma passagem devolve `[{nome, envelope}]`, na ordem dos nomes. Quem precisa de metadado
- * (o apelido, o objetivo, a turma) deriva-o daqui, em vez de voltar a ler.
- */
-async function lerEnvelopes(armazenamento, padrao) {
-  const nomes = await nomesDeEnvelopes(armazenamento, padrao);
-  const lista = [];
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (envelope) lista.push({ nome, envelope });
-  }
-  return lista;
+  const indice = await lerIndice(armazenamento);
+  const restantes = indice.nomes.filter((n) => n !== nome);
+  await gravarIndice(armazenamento, restantes, indice.resumos, false);
 }
 
 /** Lê um envelope pelo NOME do arquivo (ex.: `anamnese-….json`); null se ilegível. */
@@ -556,7 +645,7 @@ async function gravarEnvelope(armazenamento, documento, relatorio) {
   }
   const chave = ARQUIVO_DE(relatorio.id);
   await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
-  await registrarNoIndice(armazenamento, relatorio.id + '.json');
+  await registrarNoIndice(armazenamento, relatorio.id + '.json', documento);
   return { ok: true, linhas: linhasDoRelatorio(relatorio, chave) };
 }
 
@@ -573,18 +662,16 @@ async function apagarEnvelope(armazenamento, id) {
  * selecionou o sujeito no nó `sujeitos`. É DERIVADO — varre-se os envelopes de
  * PO e vê-se quem declara o apelido; não se grava nada na anamnese.
  */
-async function vinculos(armazenamento) {
+async function vinculos(armazenamento, jaLido) {
   const por = new Map();
-  const nomes = await nomesDeEnvelopes(armazenamento, /^po-.*\.json$/);
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (!envelope) continue;
-    const reg = envelope.respostas && envelope.respostas.sujeitos;
-    const valor = reg && reg.valor !== undefined ? reg.valor : reg;
-    const lista = Array.isArray(valor) ? valor : valor === undefined || valor === null ? [] : [valor];
-    for (const apelido of lista) {
+  // Do ÍNDICE: o resumo de cada PO já traz os sujeitos que ele declarou. Antes esta função lia
+  // TODOS os envelopes de PO para colher uma lista de nomes — e cada lista de anamnese a
+  // chamava outra vez (20/10/2026).
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, jaLido)) {
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
+    for (const apelido of resumo.sujeitos || []) {
       if (!por.has(apelido)) por.set(apelido, []);
-      por.get(apelido).push(envelope.id || nome.replace(/\.json$/, ''));
+      por.get(apelido).push(carimbo);
     }
   }
   return por;
@@ -595,19 +682,14 @@ async function vinculos(armazenamento) {
  * envelope). É DERIVADO, como o da anamnese: varre-se os envelopes de PO e vê-se
  * quem declara qual plano; não se grava nada no plano.
  */
-async function vinculosDePlano(armazenamento) {
+async function vinculosDePlano(armazenamento, jaLido) {
   const por = new Map();
-  const nomes = await nomesDeEnvelopes(armazenamento, /^po-.*\.json$/);
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (!envelope) continue;
-    const reg = envelope.respostas && envelope.respostas['plano-de-ensino'];
-    const valor = reg && reg.valor !== undefined ? reg.valor : reg;
-    const lista = Array.isArray(valor) ? valor : valor === undefined || valor === null ? [] : [valor];
-    for (const planoId of lista) {
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, jaLido)) {
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
+    for (const planoId of resumo.plano || []) {
       if (!planoId) continue;
       if (!por.has(planoId)) por.set(planoId, []);
-      por.get(planoId).push(envelope.id || nome.replace(/\.json$/, ''));
+      por.get(planoId).push(carimbo);
     }
   }
   return por;
@@ -619,27 +701,25 @@ async function vinculosDePlano(armazenamento) {
  * nunca as respostas (a mesma fronteira da `anamneses`).
  */
 async function planos(armazenamento) {
-  const nomes = await nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
-  const ligacoes = await vinculosDePlano(armazenamento);
+  const indice = await lerIndice(armazenamento);
+  const ligacoes = await vinculosDePlano(armazenamento, indice);
   const opcoes = [];
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (!envelope) continue;
-    const carimbo = envelope.id || nome.replace(/\.json$/, '');
-    const objetivo = valorDe(envelope, 'objetivo-geral');
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice)) {
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
+    const objetivo = resumo.objetivo || null;
     const por = ligacoes.get(carimbo) || [];
     opcoes.push({
       valor: carimbo,
       rotulo: objetivo || carimbo,
       carimbo,
-      turma: turmaDoEnvelope(envelope),
+      turma: resumo.turma || null,
       detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
-      escola: (envelope.contexto || {}).escola || null,
-      professor: (envelope.contexto || {}).professor || null,
-      ciclo: (envelope.contexto || {}).ciclo || null,
+      escola: resumo.escola || null,
+      professor: resumo.professor || null,
+      ciclo: resumo.ciclo || null,
       vinculada: por.length > 0,
       por,
-      ajuste_de: envelope.ajuste_de || null,
+      ajuste_de: resumo.ajuste_de || null,
     });
   }
   opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
@@ -652,22 +732,18 @@ async function planos(armazenamento) {
  * plano que um sucessor ajustou: quem tem `ajuste_de` apontando para ele.
  */
 async function estadosDosPlanos(armazenamento) {
-  const ligacoes = await vinculosDePlano(armazenamento);
-  const nomes = await nomesDeEnvelopes(armazenamento, /^plano-.*\.json$/);
-  const envelopes = [];
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (envelope) envelopes.push({ nome, envelope });
-  }
+  const indice = await lerIndice(armazenamento);
+  const ligacoes = await vinculosDePlano(armazenamento, indice);
+  const lista = await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice);
   const sucessores = new Map();
-  for (const { envelope } of envelopes) {
-    if (!envelope.ajuste_de) continue;
-    if (!sucessores.has(envelope.ajuste_de)) sucessores.set(envelope.ajuste_de, []);
-    sucessores.get(envelope.ajuste_de).push(envelope.id);
+  for (const { nome, resumo } of lista) {
+    if (!resumo.ajuste_de) continue;
+    if (!sucessores.has(resumo.ajuste_de)) sucessores.set(resumo.ajuste_de, []);
+    sucessores.get(resumo.ajuste_de).push(resumo.id || nome.replace(/\.json$/, ''));
   }
   const estados = {};
-  for (const { nome, envelope } of envelopes) {
-    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+  for (const { nome, resumo } of lista) {
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
     const por = ligacoes.get(carimbo) || [];
     const substituido_por = sucessores.get(carimbo) || [];
     let estado;
@@ -677,11 +753,11 @@ async function estadosDosPlanos(armazenamento) {
     estados[carimbo] = {
       estado,
       carimbo,
-      objetivo: valorDe(envelope, 'objetivo-geral'),
-      turma: turmaDoEnvelope(envelope),
+      objetivo: resumo.objetivo || null,
+      turma: resumo.turma || null,
       vinculada: por.length > 0,
       por,
-      ajuste_de: envelope.ajuste_de || null,
+      ajuste_de: resumo.ajuste_de || null,
       substituido_por,
     };
   }
@@ -708,13 +784,13 @@ async function estadoDoPlano(armazenamento, envelope) {
  * Devolve só METADADO, nunca as respostas (Frente 5 do plano).
  */
 async function anamneses(armazenamento) {
-  const ligacoes = await vinculos(armazenamento);
+  const indice = await lerIndice(armazenamento);
+  const ligacoes = await vinculos(armazenamento, indice);
   const opcoes = [];
-  for (const { nome, envelope } of await lerEnvelopes(armazenamento, /^anamnese-.*\.json$/)) {
-    const contexto = envelope.contexto || {};
-    const aluna = contexto.aluna || null;
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/, indice)) {
+    const aluna = resumo.aluna || null;
     if (!aluna) continue;
-    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
     const quando = carimboEmPortugues(carimbo);
     const por = ligacoes.get(aluna) || [];
     opcoes.push({
@@ -722,12 +798,12 @@ async function anamneses(armazenamento) {
       rotulo: aluna + (quando ? ' · ' + quando : ''),
       carimbo,
       detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
-      escola: contexto.escola || null,
-      professor: contexto.professor || null,
-      ciclo: contexto.ciclo || null,
+      escola: resumo.escola || null,
+      professor: resumo.professor || null,
+      ciclo: resumo.ciclo || null,
       vinculada: por.length > 0,
       por,
-      ajuste_de: envelope.ajuste_de || null,
+      ajuste_de: resumo.ajuste_de || null,
     });
   }
   opcoes.sort((a, b) => (a.carimbo < b.carimbo ? 1 : -1));
@@ -753,18 +829,22 @@ async function vigenteDoSujeito(armazenamento, aluna) {
  * os três estados (solta / legado / vinculada) e o `sem-sujeito`.
  */
 async function estadosDasAnamneses(armazenamento) {
-  const ligacoes = await vinculos(armazenamento);
+  const indice = await lerIndice(armazenamento);
+  const ligacoes = await vinculos(armazenamento, indice);
 
   // UMA PASSAGEM, DUAS DERIVAÇÕES. Esta função precisa de tudo o que a `anamneses()`
   // precisa (o vigente de cada apelido) E dos registos que a `anamneses()` descarta (os
   // SEM SUJEITO). Ela chamava a primeira e voltava a ler todos os envelopes para a segunda —
-  // 124 leituras para 61 envelopes, medido em 19/10/2026. Agora lê uma vez e deriva as duas.
+  // 124 leituras para 61 envelopes, medido em 19/10/2026.
+  //
+  // E NENHUMA LEITURA DE ENVELOPE (20/10/2026): os quatro dados que esta lista deriva — o
+  // apelido, o carimbo, o `ajuste_de` e a contagem por apelido — estão no RESUMO do índice.
   const envelopes = [];
   const contagem = new Map();
-  for (const { nome, envelope } of await lerEnvelopes(armazenamento, /^anamnese-.*\.json$/)) {
-    const apelido = (envelope.contexto && envelope.contexto.aluna) || null;
-    const carimbo = envelope.id || nome.replace(/\.json$/, '');
-    envelopes.push({ nome, envelope, apelido, carimbo });
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/, indice)) {
+    const apelido = resumo.aluna || null;
+    const carimbo = resumo.id || nome.replace(/\.json$/, '');
+    envelopes.push({ nome, resumo, apelido, carimbo });
     if (apelido) contagem.set(apelido, (contagem.get(apelido) || 0) + 1);
   }
 
@@ -779,7 +859,7 @@ async function estadosDasAnamneses(armazenamento) {
   }
 
   const estados = {};
-  for (const { nome, envelope, apelido, carimbo } of envelopes) {
+  for (const { resumo, apelido, carimbo } of envelopes) {
     const por = apelido ? ligacoes.get(apelido) || [] : [];
     const vigente = apelido !== null && maisRecente.get(apelido) === carimbo;
     let estado;
@@ -799,7 +879,7 @@ async function estadosDasAnamneses(armazenamento) {
       vinculada: por.length > 0,
       por,
       vigente,
-      ajuste_de: envelope.ajuste_de || null,
+      ajuste_de: resumo.ajuste_de || null,
     };
   }
   return estados;

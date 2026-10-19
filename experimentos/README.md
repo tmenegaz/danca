@@ -265,3 +265,4 @@ Quem for revisar a identidade **não deve olhar para estas cópias**: elas diver
 (registram um estado passado). Se um experimento passar a ser demonstração viva, a folha dele deve
 ser **copiada da fonte** no momento em que ele for montado — como o `gerar-ciclo.sh` e o
 `gerar-raiz.sh` fazem —, e não versionada à mão.
+| `provar-listas-sem-repeticao.js` | a **carga de cada página**: nenhum endereço pedido duas vezes, o orçamento de leituras, e a lista que não cresce com o acervo (16 asserções) | não (jsdom) |

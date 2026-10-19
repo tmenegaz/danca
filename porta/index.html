@@ -933,6 +933,46 @@ const SOCRATICA_VISTA = new Map();
 
 const $ = (id) => document.getElementById(id);
 
+/*
+ * UM PEDIDO SÓ, MESMO QUE DOIS SÍTIOS O PEÇAM (20/10/2026).
+ *
+ * Medido: uma carga da página do plano pedia `/api/bastidores/turmas` DUAS vezes, e a da
+ * anamnese pedia `/api/bastidores/alunas` duas. Não é só tráfego: cada resposta é uma leitura
+ * no KV, e a conta do dia já estourou uma vez por causa de leituras repetidas.
+ *
+ * `buscarJSON` coalesce os pedidos EM VOO: dois pedidos simultâneos ao mesmo endereço esperam
+ * a MESMA resposta. Não guarda o resultado depois de chegar — quem grava (o «Guardar», um
+ * cadastro) invalida tudo, e uma lista guardada por minutos mostraria ao professor o estado de
+ * ontem. Coalescer o que está EM VOO não tem esse risco: não há escrita entre dois pedidos que
+ * partiram no mesmo instante.
+ */
+const PEDIDOS_EM_VOO = new Map();   // url → Promise<{ok, dados}>
+function buscarJSON(url) {
+  if (PEDIDOS_EM_VOO.has(url)) return PEDIDOS_EM_VOO.get(url);
+  const promessa = fetch(url, { headers: { Accept: 'application/json' }, cache: 'no-store' })
+    // O CORPO PODE NÃO SER JSON (19/10/2026): uma página de erro do Cloudflare chegava ao
+    // professor como «Unexpected token '<'». Lê-se o TEXTO e tenta-se o JSON — quem decide o
+    // que mostrar é o chamador, com `ok` e `dados` na mão.
+    .then((resposta) => {
+      // Uma resposta de verdade tem `text()`; quem só tem `json()` (um duplo de prova, um
+      // cliente futuro) não pode virar «lista vazia» por causa disso.
+      const corpo = typeof resposta.text === 'function'
+        ? resposta.text().then((texto) => {
+          try { return JSON.parse(texto); } catch (erro) { return null; }
+        })
+        : (typeof resposta.json === 'function' ? resposta.json().catch(() => null) : Promise.resolve(null));
+      return corpo.then((dados) => ({
+        ok: resposta.ok !== false,
+        status: resposta.status || 200,
+        dados: dados,
+      }));
+    })
+    .catch((erro) => ({ ok: false, status: 0, dados: null, erro: erro }))
+    .finally(() => { PEDIDOS_EM_VOO.delete(url); });
+  PEDIDOS_EM_VOO.set(url, promessa);
+  return promessa;
+}
+
 // Todas as fontes (anamnese, plano, PO) abrem pelo PORTAL e empilham histórico:
 // «Sair» volta à abertura da fonte atual. A flag fica por compatibilidade do
 // fluxo antigo em que o plano saltava direto para o formulário.
@@ -1059,8 +1099,8 @@ async function carregarAlunas() {
   const sel = $('ctx-aluna');
   if (!sel || FONTE !== 'anamnese') return;
   try {
-    const resposta = await fetch('/api/bastidores/alunas');
-    const dados = await resposta.json();
+    const resposta = await buscarJSON('/api/bastidores/alunas');
+    const dados = resposta.dados || {};
     let lista = Array.isArray(dados.alunas) ? dados.alunas : [];
     // Com curadoria, o seletor de alunas FILTRA para as alunas curadas pela direção
     // (B2b): o professor só observa quem a escola lhe atribuiu. Sem curadoria, a
@@ -1243,6 +1283,9 @@ function alunasDaCuradoria() {
  * daqui a frequência, os dias, a duração e o período do termo: são decisão da ESCOLA,
  * não da cena (IDEIA-PAINEL-ESCOLA §8.3). A «turma observada» escolhe QUAIS; estes
  * campos dizem COMO o ciclo acontece — e por isso não se reescrevem no plano. */
+// O endereço do cadastro. É o MESMO que o conteúdo declara em `opcoesDe` para o nó da
+// turma — por isso uma resposta serve às duas leituras (20/10/2026).
+const URL_DAS_TURMAS = '/api/bastidores/turmas';
 let TURMAS_DA_ESCOLA = null;   // null = ainda não buscado
 let TURMAS_CARREGANDO = false;
 // O CONTEÚDO DO NÍVEL de cada turma: a relação turma↔conteúdo e os termos. É de onde
@@ -1255,24 +1298,23 @@ async function carregarTurmasDaEscola() {
   TURMAS_CARREGANDO = true;
   try {
     const [resposta, rel, termos] = await Promise.all([
-      fetch('/api/bastidores/turmas'),
-      fetch('/api/bastidores/turma-conteudos').catch(() => null),
-      fetch('/api/bastidores/termos').catch(() => null),
+      buscarJSON(URL_DAS_TURMAS),
+      buscarJSON('/api/bastidores/turma-conteudos'),
+      buscarJSON('/api/bastidores/termos'),
     ]);
-    const dados = await resposta.json();
+    const dados = resposta.dados || {};
     TURMAS_DA_ESCOLA = resposta.ok && Array.isArray(dados.turmas) ? dados.turmas : [];
-    if (rel && rel.ok) {
-      const r = await rel.json();
-      TURMA_CONTEUDOS = r && r.relacoes && typeof r.relacoes === 'object' ? r.relacoes : {};
-    } else {
-      TURMA_CONTEUDOS = {};
+    // A MESMA RESPOSTA SERVE ÀS OPÇÕES DO SELECT (20/10/2026). A rota devolve as duas
+    // leituras — `turmas` (o cadastro, com o ritmo) e `opcoes` (o que o select marca) —, e
+    // quem pedia o select pedia o endereço outra vez. Semeado aqui, o segundo chamador
+    // encontra pronto e não busca.
+    if (resposta.ok && Array.isArray(dados.opcoes) && !OPCOES.has(URL_DAS_TURMAS)) {
+      OPCOES.set(URL_DAS_TURMAS, dados.opcoes);
     }
-    if (termos && termos.ok) {
-      const t = await termos.json();
-      TERMOS_DA_ESCOLA = t && Array.isArray(t.termos) ? t.termos : [];
-    } else {
-      TERMOS_DA_ESCOLA = [];
-    }
+    const r = rel.dados;
+    TURMA_CONTEUDOS = rel.ok && r && r.relacoes && typeof r.relacoes === 'object' ? r.relacoes : {};
+    const t = termos.dados;
+    TERMOS_DA_ESCOLA = termos.ok && t && Array.isArray(t.termos) ? t.termos : [];
   } catch (erro) {
     TURMAS_DA_ESCOLA = [];
     TURMA_CONTEUDOS = {};
@@ -2281,15 +2323,11 @@ async function carregarOpcoesDe(ep) {
   if (CARREGANDO.has(ep)) return;
   CARREGANDO.add(ep);
   try {
-    const resposta = await fetch(ep);
-    // O CORPO PODE NÃO SER JSON (19/10/2026). Antes o `resposta.json()` corria ANTES de se
-    // olhar o estado, e uma página de erro do Cloudflare (o «error code: 1101») ou do runtime
-    // chegava ao professor como «Unexpected token '<'» no lugar da lista. O `JSON.parse` não
-    // é o lugar de descobrir que a resposta falhou: lê-se o texto, tenta-se ler o JSON, e o
-    // que se mostra é uma frase — nunca o erro do analisador.
-    const texto = await resposta.text();
-    let dados = null;
-    try { dados = JSON.parse(texto); } catch (erro) { dados = null; }
+    // PELO MESMO CANAL DO CADASTRO (20/10/2026). `/api/bastidores/turmas` é pedido por esta
+    // função (as opções do select) e por `carregarTurmasDaEscola` (o ritmo). Passando os dois
+    // por `buscarJSON`, dois pedidos do mesmo endereço no mesmo instante viram um só.
+    const resposta = await buscarJSON(ep);
+    const dados = resposta.dados;
     if (!resposta.ok) {
       throw new Error((dados && dados.erro)
         || ('a resposta não veio legível (HTTP ' + resposta.status + ')'));
@@ -3167,10 +3205,11 @@ async function renderTurmaDoCabecalho() {
   // PLANO DE ENSINO — o professor ESCOLHE a turma (o select).
   if (FONTE === 'plano' && no) {
     caixa.hidden = false;
-    // A lista precisa das opções do nó (as turmas) e do cadastro (o ritmo). As duas
-    // chamadas guardam o resultado: repetir não custa uma segunda busca.
-    if (no.opcoesDe && !OPCOES.has(no.opcoesDe)) await carregarOpcoesDe(no.opcoesDe);
+    // A lista precisa das opções do nó (as turmas) e do cadastro (o ritmo) — e é a MESMA
+    // resposta. O cadastro vem PRIMEIRO e semeia as opções; a segunda chamada encontra
+    // pronto. Antes era o contrário, e o mesmo endereço era pedido duas vezes (20/10/2026).
     if (TURMAS_DA_ESCOLA === null) await carregarTurmasDaEscola();
+    if (no.opcoesDe && !OPCOES.has(no.opcoesDe)) await carregarOpcoesDe(no.opcoesDe);
     alvo.innerHTML = selectDaTurma(no);
     const sel = alvo.querySelector('#ctx-turma');
     if (sel) {
@@ -4280,21 +4319,30 @@ async function semearDoPlano() {
   if (FONTE !== 'po' || !MAPA) return;
 
   // O PO consome o PLANO SALVO (não o rascunho do navegador, que some quando o
-  // plano é gravado). Lê o `plano-*` mais recente persistido no servidor e
-  // semeia os campos do PO que vêm dele — sugestão, nunca reescrita de resposta.
+  // plano é gravado) — e semeia os campos que vêm dele: sugestão, nunca reescrita.
+  //
+  // UM PEDIDO, NÃO DOIS (20/10/2026). Antes esta função varria `api/envelopes` à procura do
+  // `plano-*` mais recente e depois pedia o envelope dele — duas idas ao servidor para um dado
+  // que a página JÁ TEM: a estante (`api/planos`) carregou para a turma do cabeçalho, e
+  // `carregarDetalhe` guarda o envelope em `DETALHES`. Agora usa o plano ESCOLHIDO (que é o
+  // certo, não «o mais recente») e, sem escolha, o primeiro da estante — sem varrer nada.
+  let carimbo = RESPOSTAS.get('plano-de-ensino') || null;
+  if (!carimbo) {
+    if (!OPCOES.has('api/planos') && !OPCOES_ERRO.has('api/planos')) {
+      await carregarOpcoesDe('api/planos');
+    }
+    const estante = OPCOES.get('api/planos') || [];
+    if (!estante.length) return;
+    carimbo = estante[0].carimbo || estante[0].valor;
+  }
+  if (!carimbo) return;
+
   let plano = null;
   try {
-    const r = await fetch('api/envelopes');
-    if (!r.ok) return;
-    const nomes = ((await r.json()).envelopes) || [];
-    const planos = nomes
-      .filter((n) => typeof n === 'string' && n.indexOf('plano-') === 0)
-      .sort()
-      .reverse();
-    if (!planos.length) return;
-    const rr = await fetch('api/envelope/' + encodeURIComponent(planos[0]));
-    if (!rr.ok) return;
-    plano = await rr.json();
+    plano = await carregarDetalhe({
+      carimbo: carimbo,
+      detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
+    });
   } catch (erro) {
     return;
   }
