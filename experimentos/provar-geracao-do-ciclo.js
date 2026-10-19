@@ -165,10 +165,34 @@ function oAcordo() {
   assert.match(yml, /git commit --amend --no-edit/);
   ok('o push rebaseia, e o conflito na âncora é REGERADO (os outros continuam a falhar)');
 
+  // O COMMIT VAZIO DA REANCORAGEM (19/10/2026). Depois do rebase, a âncora regerada pode
+  // ser exactamente a que o `main` novo já traz — e aí o commit de reancoragem não tem o que
+  // fazer: `git commit --amend` recusa («would make it empty», saída 1) e o job morre com o
+  // push por fazer. Medido em 19/10/2026, no ciclo 01 de `calango`: a âncora do `reancorar`
+  // era a das fontes antigas, o `main` já tinha a do pacote, e as duas convergiam depois de
+  // regerar. Um commit vazio, aqui, quer dizer «a âncora já estava certa» — descarta-se o
+  // commit, não a correcção.
+  assert.match(yml, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
+  ok('o pacote com commit vazio é dispensado, e não derruba o push');
+
   const reancorar = ler('.github/workflows/reancorar.yml');
-  assert.match(reancorar, /git pull --rebase --autostash origin main/);
   assert.match(reancorar, /git push/);
-  ok('o reancorar também rebaseia — foi ele que falhou com «fetch first» em 19/10/2026');
+  // O reancorar tinha o MESMO conflito do `gerar-ciclo.yml` e só ele continuava a morrer
+  // nele: a correcção de 00fe05d ficou num workflow só. Medido às 18:40:19 de 19/10/2026 —
+  // «CONFLICT (content): … ciclo-01-calango-bale-nivel-1-teste-1.fipp».
+  assert.match(reancorar, /git fetch origin main/);
+  assert.match(reancorar, /git rebase origin\/main/);
+  assert.match(reancorar, /grep -qv '\\\.fipp\$'/);
+  assert.match(reancorar, /git checkout --theirs -- '\*\.fipp'/);
+  assert.equal(/git pull --rebase --autostash origin main/.test(reancorar), false,
+    'o pull --rebase morre no conflito da âncora: rebase tem de ser explícito');
+  // A reancoragem do `reancorar` cobre TODOS os ciclos que divergirem: ela varre os
+  // manifestos, não recebe um alvo. Depois do rebase as fontes são outras, então a âncora
+  // é recalculada para todos — e o `--check` deixa intacto o que já fecha.
+  assert.match(reancorar, /reancorar_tudo\(\)/);
+  assert.match(reancorar, /professores\/\*\/ciclos\/ciclo-\*-\*\.conf/);
+  assert.match(reancorar, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
+  ok('o reancorar rebaseia, regera a âncora de todos os ciclos e não morre no commit vazio');
 
   // ZERO ESCOLAS NÃO É ERRO (19/10/2026). Depois de expurgar a última escola o glob não
   // acha manifesto nenhum, e o repositório sem escola é um estado LEGÍTIMO — o que existe

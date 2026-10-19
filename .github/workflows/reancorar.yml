@@ -137,20 +137,87 @@ jobs:
           Regras: P-03, P-04, P-08
           Auditoria: .github/workflows/reancorar.yml --check antes de gerar"
 
-          # O PUSH PODE PERDER A CORRIDA (19/10/2026). Mais de um workflow escreve no
-          # `main` — este, o `gerar-ciclo.yml` e o `deploy-escolas.yml` — e o «Guardar» do
-          # PO dispara todos em segundos: escreve as fontes (um commit por arquivo), pede a
-          # geração e reancora. O `git push` simples perdia para quem chegou primeiro
-          # (`! [rejected] main -> main (fetch first)`, run de 19/10/2026) e derrubava o
-          # job DEPOIS de reancorar — a âncora nova ficava só no runner, e a próxima
-          # execução refazia tudo. O rebase rebobina o commit por cima do que já subiu; um
-          # conflito de verdade continua a falhar, e é o único caso em que falhar está certo.
+          # A ÂNCORA REGERA-SE DEPOIS DO REBASE. Uma vez que o commit assenta sobre um `main`
+          # novo, a âncora que ele carrega foi calculada sobre as fontes ANTIGAS — e a âncora
+          # não é texto que se escolha, é DERIVADA (tools/hash-ciclo.sh). Aqui ela é
+          # recalculada para todo o ciclo que divergir; o `--check` deixa intacto o que já
+          # fecha, então rodar isto sempre não gera commit por nada.
+          reancorar_tudo() {
+            shopt -s nullglob
+            local m resto professor nome sem_ciclo ciclo escola mudou=0
+            for m in professores/*/ciclos/ciclo-*-*.conf; do
+              resto="${m#professores/}"
+              professor="${resto%%/*}"
+              nome="$(basename "$m" .conf)"
+              sem_ciclo="${nome#ciclo-}"
+              ciclo="${sem_ciclo%%-*}"
+              escola="${sem_ciclo#*-}"
+              if tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" --check > /dev/null 2>&1; then
+                continue
+              fi
+              echo "reancorando $professor/$ciclo/$escola sobre o main novo"
+              if ! tools/hash-ciclo.sh "$professor" "$ciclo" "$escola" > /dev/null; then
+                echo "erro: não foi possível reancorar $professor/$ciclo/$escola" >&2
+                return 1
+              fi
+              mudou=1
+            done
+            if [ "$mudou" = 1 ]; then
+              git add -- '*.fipp'
+              # A ÂNCORA REGERADA PODE SER A QUE O `main` NOVO JÁ TINHA (19/10/2026). O commit
+              # desta reancoragem existia só para trocar a âncora antiga por uma nova; se a
+              # nova é igual à que o pai já traz, o commit fica vazio — e `git commit --amend`
+              # recusa («would make it empty», saída 1), derrubando o job com o push por fazer.
+              # Numa reancoragem o commit vazio é o resultado CERTO: descarta-se o commit, não
+              # a correcção. `--soft` move só o ponteiro; o que ficou no índice é idêntico ao
+              # pai, então a árvore continua limpa.
+              if git diff --cached --quiet HEAD^; then
+                echo "a âncora regerada é a que o main novo já tinha — commit dispensado"
+                git reset --soft HEAD^
+              else
+                git commit --amend --no-edit
+              fi
+            fi
+            return 0
+          }
+
+          # O PUSH PODE PERDER A CORRIDA, E O `.fipp` TEM DOIS DONOS (19/10/2026). Mais de um
+          # workflow escreve no `main` — este, o `gerar-ciclo.yml` e o `deploy-escolas.yml` — e
+          # o «Guardar» do PO dispara todos em segundos. Medido às 18:40:19 de 19/10/2026, no
+          # ciclo 01 de calango: `push` recusado e o rebase morria em
+          # «CONFLICT (content): ... ciclo-01-calango-bale-nivel-1-teste-1.fipp».
+          #
+          # Resolver esse conflito à mão (ou com `-X ours`) seria escolher entre duas âncoras.
+          # O certo é o mesmo do `gerar-ciclo.yml`: rebaseia; se o rebase parar num `.fipp`,
+          # aceita a versão que está a ser aplicada, termina o rebase, e **reancora de novo**.
+          # Qualquer outro conflito é de conteúdo e tem de falhar — escondê-lo seria pior.
           for intento in 1 2 3 4 5; do
             if git push; then
               exit 0
             fi
             echo "push recusado (tentativa $intento) — rebaseando sobre o main"
-            git pull --rebase --autostash origin main
+            git fetch origin main
+
+            if git rebase origin/main; then
+              reancorar_tudo
+              sleep $((intento * 5))
+              continue
+            fi
+
+            conflitos="$(git diff --name-only --diff-filter=U || true)"
+            if [ -z "$conflitos" ] || printf '%s\n' "$conflitos" | grep -qv '\.fipp$'; then
+              echo "erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:" >&2
+              printf '%s\n' "$conflitos" >&2
+              git rebase --abort || true
+              exit 1
+            fi
+
+            echo "conflito APENAS na âncora — aplicar a versão do commit e regerar"
+            git checkout --theirs -- '*.fipp' || git checkout --ours -- '*.fipp'
+            git add -- '*.fipp'
+            GIT_EDITOR=true git rebase --continue
+
+            reancorar_tudo
             sleep $((intento * 5))
           done
           echo "erro: o push continuou recusado depois de 5 tentativas" >&2

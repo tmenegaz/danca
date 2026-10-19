@@ -18880,3 +18880,61 @@ conflito do `.fipp` no `gerar-ciclo`) · `motor/servidor/provisionar-escola.js` 
 Cloudflare. O teste tem de ser refeito do zero depois deste commit. (b) O `criar-escola.yml` roda
 com o workflow do commit que o dispara, portanto a correção só vale para criações **posteriores** a
 este push.
+
+## 19/10/2026 — A correcção da âncora ficou num workflow só — e o commit vazio
+
+**O que aconteceu.** O `Gerar o ciclo` do ciclo 01 de `calango` passou (8 passos verdes, pacote de
+18 entradas, PDF de 264 KB). O `Reancorar` da mesma geração **não** passou: às **18:40:19** ele
+morreu em «CONFLICT (content): … `ciclo-01-calango-bale-nivel-1-teste-1.fipp`», com o
+`! [rejected] main -> main (fetch first)` antes dele.
+
+**Duas falhas, e a segunda só apareceu ao simular.**
+
+1. **A correcção de `00fe05d` ficou num workflow só.** O ramo que regera a âncora em conflito foi
+   escrito no `gerar-ciclo.yml` e **não** no `reancorar.yml` — que é o *outro* dono do `.fipp`, e
+   exactamente o que dispara a cada commit de fonte. O `reancorar` continuava a usar
+   `git pull --rebase --autostash`, que morre no conflito sob `set -e`. Consertar um dos dois donos
+   do mesmo arquivo não conserta o arquivo.
+
+2. **O commit de reancoragem pode ficar vazio — e aí `--amend` recusa.** Depois do rebase a âncora
+   é recalculada sobre as fontes novas; se o resultado for **igual ao que o `main` novo já traz**, o
+   commit que existia só para trocar a âncora não tem o que fazer. `git commit --amend` responde
+   «would make it empty», **saída 1** — e sob `set -e` isso derruba o job **com o push por fazer**.
+   A âncora certa ficava só no runner. Reproduzido em `/tmp/simr2`: o primeiro conserto ainda
+   saía `exit=1` exactamente aí.
+
+**O que foi decidido.**
+- O `reancorar.yml` passa a ter o mesmo ramo do `gerar-ciclo.yml`: `fetch` + `rebase`; se o rebase
+  parar **só** num `.fipp`, aceita a versão do commit, termina o rebase e **regera**. Conflito de
+  conteúdo continua a abortar e a falhar.
+- A reancoragem vive numa função, `reancorar_tudo`, porque este workflow **não recebe alvo**: ele
+  varre `professores/*/ciclos/ciclo-*-*.conf`. Depois do rebase as fontes são outras, então a
+  âncora é recalculada para **todos** os ciclos que divergirem — o `--check` deixa intacto o que já
+  fecha, e não nasce commit por nada.
+- Commit vazio, nos dois workflows, **descarta-se o commit, não a correcção**: `git diff --cached
+  --quiet HEAD^` detecta o caso e `git reset --soft HEAD^` move o ponteiro. Um commit vazio de
+  reancoragem quer dizer «a âncora já estava certa» — é o resultado correcto, não um erro.
+
+**Onde entrou.**
+- `.github/workflows/reancorar.yml` — o ramo do conflito, a função `reancorar_tudo` e a guarda do
+  commit vazio.
+- `.github/workflows/gerar-ciclo.yml` — a mesma guarda do commit vazio (o defeito era latente lá:
+  só não apareceu porque o commit carrega o pacote, e o pacote raramente é idêntico).
+- `experimentos/provar-geracao-do-ciclo.js` — cinco asserções novas, incluindo a que **proíbe** o
+  `pull --rebase` de voltar ao `reancorar`.
+
+**Com o quê.** `provar-geracao-do-ciclo` → **19 verificações**. Os três caminhos foram simulados
+antes do push, num repositório com dois clones e um `hash-ciclo.sh` de teste: (1) conflito e âncora
+regerada igual à do pai → commit dispensado, `exit 0`, `local == remoto`, `--check` fecha;
+(2) rebase sem conflito → push passa; (3) conflito e âncora regerada **diferente** da do pai →
+`--amend` e push, âncora fecha. As restantes provas continuam verdes: `provar-geracao` 38,
+`provar-teste` 17, `provar-expurgo-leitura-atrasada` 45, `provar-derivacao-da-turma` 126,
+`check-identidade` sem falhas.
+
+**Referências.** A entrada «O `.fipp` não se escolhe» (a correcção que ficou incompleta) · a entrada
+«O `criar-escola` também perde a corrida do `push`» (o mesmo tema, terceiro workflow).
+
+**O que ainda não está feito.** (a) O `.fipp` que o `reancorar` de 18:40:19 deixou por commitar
+**não foi verificado** com `hash-ciclo.sh --check` — a âncora do pacote pode estar divergente no
+`main` até ao próximo push. (b) Um `rerun-failed-jobs` **não** testa esta correcção: ele usa o
+workflow do commit original. Só um push novo, ou um `workflow_dispatch`, a exercita.

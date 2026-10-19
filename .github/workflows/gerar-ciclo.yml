@@ -192,7 +192,17 @@ jobs:
             tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}"
             if ! git diff --quiet -- '*.fipp'; then
               git add -- '*.fipp'
-              git commit --amend --no-edit
+              # O MESMO COMMIT VAZIO DO `reancorar.yml` (19/10/2026). Se a âncora regerada for
+              # igual à que o pai já traz e o pacote não mudou, o commit não tem o que fazer e
+              # `git commit --amend` recusa («would make it empty», saída 1) — o job morria com
+              # o push por fazer. Commit vazio, aqui, quer dizer que a entrega já estava no
+              # `main`: descarta-se o commit, não a correcção.
+              if git diff --cached --quiet HEAD^; then
+                echo "o pacote e a âncora regerada não mudam nada — commit dispensado"
+                git reset --soft HEAD^
+              else
+                git commit --amend --no-edit
+              fi
             fi
             sleep $((intento * 5))
           done
