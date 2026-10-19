@@ -1,0 +1,21 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/sapo-bailarino/ciclos/ciclo-01.conf, professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-calango-bale-nivel-1-teste-1
+type: Ciclo
+professor: Sapo Bailarino
+ciclo: 01
+variante: calango-bale-nivel-1-teste-1
+hash_conteudo: b800ae6edc38df9a68a9ede903162ba6b3c7a115b4fb4ea7604051547906a706
+parentHash: 
+hash: 0eb1a55785dcdd65ffe100a824e680e2a7f183116a8c2dc99db770876c5a30d2
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-19
+cobertura:
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf
+  - professores/sapo-bailarino/ciclos/ciclo-01.conf
