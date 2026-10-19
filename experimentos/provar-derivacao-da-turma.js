@@ -267,6 +267,17 @@ async function principal() {
   conferir('…e continua a ser UM registo', listaCrua4.length, 1);
   conferir('…com o valor novo', listaCrua4[0].alunas, ['Ana', 'Bia']);
 
+  // O REPERTÓRIO DEIXOU DE SER PEDIDO NA CURADORIA (19/10/2026) — e por isso NÃO SE APAGA.
+  // Quem o declara é a TURMA, no passo «Associar». O formulário já não manda o campo; a
+  // edição tem de preservar o que estava gravado, como o derivar já fazia (P-03/P-04: a
+  // proveniência acrescenta, não edita). Sem esta regra no servidor, corrigir a tradição
+  // apagava, de passagem, um dado que ninguém tinha pedido para apagar.
+  const semRepertorio = await curadoria({ professor: 'Leticia', modalidade: 'Balé Clássico',
+    tradicao: 'Vaganova', turmas: ['Turma A'], alunas: ['Ana', 'Bia'] });
+  conferir('editar uma curadoria sem o campo do repertório é aceito', semRepertorio.status, 201);
+  const listaCrua5 = JSON.parse(await env.PADD_KV.get('bastidores/barra/curadorias') || '[]');
+  conferir('…e o repertório já gravado NÃO é apagado', listaCrua5[0].repertorio, ['Tendu']);
+
   // Nasce o plano de ensino dela: par (professor, turma) no envelope.
   await env.PADD_KV.put('barra/envelope/plano-20261016-1900.json', JSON.stringify({
     id: 'plano-20261016-1900',
@@ -421,8 +432,10 @@ async function principal() {
   conferir('…e preenche o que está gravado',
     [cen.editar.professor, cen.editar.modalidade, cen.editar.turma, cen.editar.tradicao],
     ['leticia', 'Balé Clássico', 'Turma A', 'RAD']);
-  conferir('…e as alunas e o repertório voltam como fichas',
-    [cen.editar.alunas, cen.editar.repertorio], [['Ana'], ['Tendu']]);
+  // O REPERTÓRIO SAIU DA CURADORIA (19/10/2026): quem o declara é a TURMA, no passo
+  // «Associar», e é de lá que o plano lê. A curadoria devolve só as alunas.
+  conferir('…e as alunas voltam como fichas', cen.editar.alunas, ['Ana']);
+  conferir('…e o repertório já não é pedido na curadoria', cen.editar.repertorio, []);
   conferir('«Derivar» põe o modo e MOSTRA a data', [cen.derivar.modo, cen.derivar.vigenciaOculta],
     ['derivar', false]);
   conferir('…e o botão passa a «Gravar ajuste»', cen.derivar.botao, 'Gravar ajuste');
@@ -572,7 +585,6 @@ function exercitarCuradoria(html, id) {
     return el;
   };
   criarEscolhedor('esc-alunas');
-  criarEscolhedor('esc-repertorio');
   const documento = {
     getElementById: doId,
     addEventListener() {},
@@ -607,7 +619,7 @@ function exercitarCuradoria(html, id) {
       tradicao: doId('cutradicao').value,
       vigencia: doId('cuvigencia').value,
       alunas: (fichas['esc-alunas'] || []).map((f) => f._valor),
-      repertorio: (fichas['esc-repertorio'] || []).map((f) => f._valor),
+      repertorio: (fichas['esc-repertorio'] || []).map((f) => f._valor), // já não é preenchido
     };
   };
   return { ok: typeof ctx.ajustarCuradoria === 'function', editar: ler('editar'), derivar: ler('derivar') };

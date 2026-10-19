@@ -18553,3 +18553,57 @@ em pacotes — por isso o dado mora em `teste/`).
 reconhecer as três palavras no próximo `wrangler deploy`. (b) A escola `calando-teste-1` deixou de
 ser reconhecida como escola de teste — por desenho, e ela vai ser apagada. (c) O mecanismo
 continua **temporário**: para o desligar, os passos estão em `teste/README.md`.
+
+## 19/10/2026 — O repertório é da turma: sai do formulário da curadoria
+
+**O que motivou.** A pesquisadora reparou que o mesmo pedido aparecia duas vezes na Produção: o
+passo «Associar» da TURMA declara o conteúdo da turma (o vocabulário de 84 termos), e o formulário
+da CURADORIA pedia «Repertório (passos da turma)» — a **mesma lista**, digitada outra vez. A
+frase dela é a regra: «não faz sentido na curadoria eu escolher de novo, porque aí pode ter
+divergência».
+
+**O diagnóstico, antes de mexer.** Medido no motor, não estimado: `curadoria.repertorio` era lido
+apenas pelo **resumo do cartão** («N passo(s)»), pelo **repintar do formulário** ao editar, pelas
+**duas rotas de gravação** e pelo preenchedor de teste. Nenhum nó do plano ou do PO declara
+`daCuradoria: "repertorio"` — o único que declara `daCuradoria` é `contexto-turma` → `"turmas"`.
+O plano lê os passos da turma por `termosDaTurma` (`turma-conteudos`), e o `usosDosPlanos` — que
+decide o vínculo e a derivação dos termos — lê a resposta `repertorio` do **envelope do plano**,
+não a curadoria. Ou seja: a metade da curadoria não tinha leitor, e uma lista sem leitor só pode
+divergir da que tem.
+
+**O que foi decidido.**
+- O campo sai do formulário, e o corpo do `POST` deixa de o mandar. Comentário no lugar dele
+  explica por que não volta.
+- **O que já está gravado NÃO se apaga.** A rota de criar/editar escrevia
+  `Array.isArray(corpo.repertorio) ? … : []` — sem o campo, editar a tradição zerava o valor. Ela
+  passa a preservar o que estava lá, como a rota de derivar já fazia. A regra é a de sempre: a
+  proveniência acrescenta, não edita (P-03/P-04).
+- O resumo do cartão perde a linha «N passo(s)». As ALUNAS continuam na curadoria: elas filtram o
+  seletor da anamnese, e não têm outra origem.
+- Se um dia a direção precisar de dizer «curei este professor **para** este repertório», isso é
+  **autorização**, não conteúdo — volta como campo por professor ligado ao plano, não como uma
+  segunda lista de termos.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — sai o escolhedor `esc-repertorio` do formulário, sai a linha do
+  resumo, sai o campo do corpo do `POST`, sai do repintar/limpar; a rota de criar/editar passa a
+  preservar o valor gravado.
+- `motor/servidor/teste-cliente.js` — o preenchedor deixa de procurar um campo que já não existe.
+- `experimentos/provar-producao.js` — as asserções invertem: o campo **não** está na curadoria, e o
+  menu dos termos é o da TURMA (`#vinc-termo`).
+- `experimentos/provar-derivacao-da-turma.js` — duas verificações novas: editar sem o campo é
+  aceito, **e o repertório gravado não é apagado**.
+
+**Com o quê.** `node experimentos/provar-producao.js` → **135 de 135** ·
+`node experimentos/provar-derivacao-da-turma.js` → **126 de 126**. Sem regressão:
+`provar-teste` 17/17 · `provar-cartao-da-turma` TUDO CERTO · `provar-acordeoes` TUDO CERTO ·
+`provar-geracao` 38/38 · `check-identidade` sem falha.
+
+**Referências.** `motor/nucleo/derivar-plano-ciclo.js` (o `repertorio` do **plano** é a obra, texto
+livre — outra coisa) · `porta/index.html` `termosDaTurma` (a fonte real dos passos) ·
+`CONGELAMENTO.md` (nenhum arquivo congelado tocado).
+
+**O que ainda não está feito.** (a) **Nada foi publicado**: as curadorias existentes no KV
+continuam com o campo gravado, e é assim que deve ser — ele só deixou de se pedir. (b) Se a
+pesquisadora quiser o campo fora **também** dos dados (não só do formulário), isso é um expurgo
+com motivo próprio, não este commit.

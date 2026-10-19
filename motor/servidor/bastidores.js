@@ -1763,10 +1763,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '</option>';
   }).join('');
   const escolarAlunasCuradoria = escolhedor('esc-alunas', aluns.map((a) => ({ valor: a })));
-  const escolarRepertorioCuradoria = escolhedor(
-    'esc-repertorio',
-    listaTermos.map((t) => ({ valor: t.termo, rotulo: t.categoria ? t.termo + ' — ' + t.categoria : t.termo }))
-  );
 
   // OS NÍVEIS que o seletor da turma oferece: os do catálogo MAIS os que alguma turma já
   // declara — um nível que a escola já usa não desaparece do formulário por não estar no
@@ -1788,7 +1784,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
         const resumo = [
           c.tradicao,
           turmas.length ? turmas.join(' · ') : '',
-          (c.repertorio || []).length ? (c.repertorio.length + ' passo(s)') : '',
           (c.alunas || []).length ? (c.alunas.length + ' aluna(s)') : '',
         ].filter(Boolean).join(' · ');
         // LIVRE × VINCULADA — a mesma regra e o mesmo padrão da turma (16/10/2026): enquanto
@@ -2834,12 +2829,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label>Alunas</label>' +
     escolarAlunasCuradoria +
-    // O REPERTÓRIO é o grupo grande (o vocabulário tem 84 termos). Era um tapete de 84
-    // pílulas — o formulário ficava poluído. Agora é o MESMO escolhedor das turmas e das
-    // alunas: o menu tem as 84 entradas com a categoria no rótulo, e escrever salta para o
-    // termo (busca por digitação do próprio navegador).
-    '<label>Repertório (passos da turma)</label>' +
-    escolarRepertorioCuradoria +
+    // O «REPERTÓRIO» NÃO MORA AQUI (19/10/2026). Ele era um segundo lugar para digitar os
+    // mesmos 84 termos do vocabulário que a TURMA já declara no passo «Associar»
+    // (`turma-conteudos`) — e **ninguém o lia**: o plano, o PO e a captura derivam da turma,
+    // e nenhum nó do conteúdo declara `daCuradoria: "repertorio"`. Duas listas da mesma coisa
+    // é uma lista a mais, e a que sobra só pode divergir. O de cá não foi apagado do que já
+    // está gravado (P-03/P-04): ele apenas deixou de se pedir.
     // O «CANCELAR» AO LADO DO BOTÃO, E SÓ NA EDIÇÃO (18/10/2026) — a mesma regra dos três
     // passos da turma. Ele não tem texto de aviso, e nasce escondido: sem edição em curso não
     // há nada para cancelar.
@@ -4015,8 +4010,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // (modalidade, turma) que acabou de ser posto, e as alunas DESTA curadoria não estão
     // ocupadas (o `cuderivar` já está preenchido, e `alunasOcupadas` exclui-a).
     '  refiltrarAlunas();' +
-    // As ALUNAS e o REPERTÓRIO são fichas: limpam e voltam a marcar.
-    '  [["esc-alunas", c.alunas || []], ["esc-repertorio", c.repertorio || []]].forEach(function(par){' +
+    // As ALUNAS são fichas: limpam e voltam a marcar.
+    '  [["esc-alunas", c.alunas || []]].forEach(function(par){' +
     '    var el = document.getElementById(par[0]);' +
     '    if (!el) return;' +
     '    Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
@@ -4041,7 +4036,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    document.getElementById("cuprofessor").disabled = false;' +
     '    document.getElementById("cumodalidade").disabled = false;' +
     '    document.getElementById("form-curadoria").reset();' +
-    '    [["esc-alunas"], ["esc-repertorio"]].forEach(function(par){' +
+    '    [["esc-alunas"]].forEach(function(par){' +
     '      var el = document.getElementById(par[0]);' +
     '      if (!el) return;' +
     '      Array.prototype.slice.call(el.querySelectorAll(".escolhido")).forEach(function(f){ f.parentElement.removeChild(f); });' +
@@ -4299,7 +4294,6 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    modalidade: document.getElementById("cumodalidade").value,' +
     '    tradicao: document.getElementById("cutradicao").value,' +
     '    turmas: umaTurma ? [umaTurma] : [],' +
-    '    repertorio: fichasDe("esc-repertorio"),' +
     '    alunas: fichasDe("esc-alunas")' +
     '  };' +
     // CRIAR, EDITAR ou DERIVAR — a mesma bifurcação da turma (16/10/2026). Criar e editar vão
@@ -5573,7 +5567,14 @@ async function fetch(request, env) {
       modalidade,
       tradicao: String(corpo.tradicao || '').trim(),
       turmas: turmasPedidas,
-      repertorio: Array.isArray(corpo.repertorio) ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean) : [],
+      // O REPERTÓRIO NÃO SE PEDE MAIS (19/10/2026) — e por isso não se escreve. Se o corpo
+      // não o traz, a curadoria que está a ser editada FICA COM O QUE TINHA: a regra é a
+      // mesma do derivar (abaixo), e a razão também — a proveniência acrescenta, não edita
+      // (P-03/P-04). Escrever `[]` aqui apagava, ao editar a tradição, um dado que ninguém
+      // tinha pedido para apagar.
+      repertorio: Array.isArray(corpo.repertorio)
+        ? corpo.repertorio.map((x) => String(x).trim()).filter(Boolean)
+        : ((atual && atual.repertorio) || []),
       alunas: alunasPedidas,
     };
     const idx = atual ? lista.findIndex((c) => c && c.id === atual.id) : -1;

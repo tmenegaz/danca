@@ -150,8 +150,9 @@ const SCRIPT = String.raw`(function () {
     if (typeof refiltrarAlunas === 'function') refiltrarAlunas();
     limparFichas('esc-alunas');
     adicionarFichas('esc-alunas', c.alunas || []);
-    limparFichas('esc-repertorio');
-    adicionarFichas('esc-repertorio', c.repertorio || []);
+    // O REPERTÓRIO SAIU DA CURADORIA (19/10/2026): os passos da turma declaram-se na TURMA,
+    // no passo «Associar», e é de lá que o plano os lê. O preenchedor não procura um campo
+    // que já não existe — e o fixture pode continuar a trazê-lo sem que nada aconteça.
     dizer(achouTurma
       ? 'Curadoria preenchida. Confira e envie manualmente.'
       : 'Curadoria preenchida, mas a turma «' + c.turma + '» ainda não existe na Produção.');

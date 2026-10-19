@@ -831,13 +831,19 @@ async function principal() {
     html.includes('id="esc-turmas"'), false);
   conferir('…e a modalidade e a tradição continuam `select` (o mesmo formato)',
     /<select id="cumodalidade">/.test(html) && /<select id="cutradicao">/.test(html), true);
-  conferir('…e as ALUNAS e o REPERTÓRIO continuam múltiplos (escolhedor)',
-    html.includes('class="escolhedor" id="esc-alunas"') &&
-    html.includes('class="escolhedor" id="esc-repertorio"'), true);
-  conferir('o repertório usa o MESMO escolhedor dos outros (a janela do navegador não se estiliza)',
-    html.includes('class="escolhedor" id="esc-repertorio"'), true);
+  conferir('…e as ALUNAS continuam múltiplas (escolhedor)',
+    html.includes('class="escolhedor" id="esc-alunas"'), true);
+  // O «REPERTÓRIO» SAIU DA CURADORIA (19/10/2026). Ele era um segundo lugar para digitar os
+  // mesmos 84 termos que a TURMA declara no passo «Associar» — e ninguém o lia: o plano, o
+  // PO e a captura derivam da turma, e nenhum nó do conteúdo declara
+  // `daCuradoria: "repertorio"`. Duas listas da mesma coisa é uma lista a mais, e a que
+  // sobra só pode divergir. Esta asserção guarda a decisão: o campo não volta por descuido.
+  conferir('…e o repertório NÃO é pedido na curadoria (é da turma)',
+    html.includes('id="esc-repertorio"'), false);
+  conferir('…e o formulário não manda mais o campo',
+    script.includes('fichasDe("esc-repertorio")'), false);
   conferir('…e não sobrou nenhum lookup no formulário',
-    html.includes('<datalist') || html.includes('list="esc-repertorio-lista"'), false);
+    html.includes('<datalist'), false);
   // Os termos de verdade, no próprio menu: é o que dá a busca por digitação do navegador.
   // A prova cadastra dois termos e confere que eles aparecem como OPÇÕES do menu.
   await pedir(env, '/api/bastidores/termo', {
@@ -861,13 +867,13 @@ async function principal() {
   });
   conferir('tradição fora do catálogo é recusada', tradicaoInventada.status, 400);
   const comTermos = await (await pedir(env, '/bastidores/producao')).text();
-  const menuDoRepertorio = (comTermos.match(/id="esc-repertorio"[\s\S]*?<\/select>/) || [''])[0];
-  conferir('…e os termos do vocabulário entram como OPÇÕES do menu',
-    (menuDoRepertorio.match(/<option /g) || []).length, 3); // «— escolher —» + os dois
-  conferir('…com a categoria no rótulo, para distinguir dois termos de mesmo nome',
-    menuDoRepertorio.includes('>Arabesque — passo<'), true);
-  conferir('…e o formulário entrega os nomes que o servidor espera',
-    script.includes('fichasDe("esc-repertorio")') && script.includes('fichasDe("esc-alunas")'), true);
+  // O MENU DOS TERMOS vive agora num lugar só: o passo «Associar» da TURMA (`#vinc-termo`),
+  // que é quem alimenta o plano.
+  const menuDosTermos = (comTermos.match(/id="vinc-termo"[\s\S]*?<\/select>/) || [''])[0];
+  conferir('…e os termos do vocabulário entram como OPÇÕES do menu da turma',
+    (menuDosTermos.match(/<option /g) || []).length, 3); // «— associar termo —» + os dois
+  conferir('…e o formulário entrega as fichas que o servidor espera',
+    script.includes('fichasDe("esc-alunas")'), true);
   conferir('…e a turma vai como LISTA DE UM (o formato que o plano lê)',
     script.includes('turmas: umaTurma ? [umaTurma] : []'), true);
   conferir('não sobrou nenhuma caixa com rolagem no formulário', html.includes('cb-grupo'), false);
@@ -945,13 +951,13 @@ async function principal() {
   // 11b. O ESCOLHEDOR. Adiciona uma ficha, não duplica a mesma, e não aceita adicionar sem
   //      escolher. O valor inventado não tem mais como entrar: o menu só oferece o que
   //      existe — foi o que o lookup custou, e o que se ganhou ao voltar para o `<select>`.
-  const escRep = criarEscolhedor('esc-repertorio', ['Plié', 'Arabesque', 'Lasconde']);
+  const escRep = criarEscolhedor('esc-alunas', ['Plié', 'Arabesque', 'Lasconde']);
   conferir('adicionar uma ficha funciona', api.adicionarFicha(escRep, 'Arabesque'), true);
-  conferir('…e ela aparece no escolhedor', api.fichasDe('esc-repertorio'), ['Arabesque']);
+  conferir('…e ela aparece no escolhedor', api.fichasDe('esc-alunas'), ['Arabesque']);
   conferir('a mesma ficha não entra duas vezes', api.adicionarFicha(escRep, 'Arabesque'), false);
-  conferir('…e continua a haver só uma', api.fichasDe('esc-repertorio').length, 1);
+  conferir('…e continua a haver só uma', api.fichasDe('esc-alunas').length, 1);
   conferir('uma segunda ficha diferente entra', api.adicionarFicha(escRep, 'Plié'), true);
-  conferir('…na ordem em que foi escolhida', api.fichasDe('esc-repertorio'), ['Arabesque', 'Plié']);
+  conferir('…na ordem em que foi escolhida', api.fichasDe('esc-alunas'), ['Arabesque', 'Plié']);
   const escNivel = criarEscolhedor('esc-niveis', ['Grade 1', 'Grade 2']);
   api.adicionarFicha(escNivel, 'Grade 2');
   api.adicionarFicha(escNivel, 'Grade 3');
