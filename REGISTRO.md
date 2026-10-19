@@ -18743,3 +18743,52 @@ até a fase 4 ser decidida ((a) um Worker com N ciclos, ou (b) um Worker por esc
 isso que o cartão deixou de dizer «recarregue e veja». (b) Nada foi publicado neste commit: o
 `deploy-raiz` e o `deploy-escolas` correm no push, mas não havia escola nenhuma no repositório
 (a `calando-teste-1` foi expurgada) — a primeira será a `Batata`.
+
+## 19/10/2026 — O `.fipp` não se escolhe: em conflito, regera-se
+
+**O que motivou.** A primeira geração real da escola `batata` correu **inteira** e falhou no
+último passo que toca o repositório:
+
+```
+✓ Gerar e validar o pacote
+✓ Reancorar a cadeia
+✗ Commitar o pacote gerado
+     ! [rejected] main -> main (fetch first)
+     CONFLICT (content): .../ciclo-01-batata-bale-nivel-1-teste-2.fipp
+```
+
+O `.fipp` tem **dois donos nas mesmas fontes**: o `reancorar.yml`, disparado por cada commit de
+fonte que o «Guardar» do PO faz (`escrever-ciclo.js` grava um arquivo por commit), e este
+workflow, que reancora depois de gerar o pacote. Às 17:44:26–31 o reancorar commitou a âncora com
+as fontes que existiam; às 17:44:32 o gerador arrancou com o commit **anterior** a essa âncora. O
+rebased avisou o que era: os dois lados mudaram o mesmo arquivo.
+
+**O que foi decidido.**
+- **A âncora não se escolhe — deriva-se.** Resolver o texto (à mão, `-X ours`, `-X theirs`) seria
+  afirmar qual das duas âncoras é a verdadeira, e nenhuma das duas é: as duas foram calculadas
+  sobre conjuntos de fontes diferentes. O certo é regerá-la **depois** de o rebase aplicar o
+  commit sobre o `main` novo — com o `hash-ciclo.sh`, que é a única definição de âncora.
+- **Só a âncora.** O laço verifica `git diff --name-only --diff-filter=U`: se o conflito for
+  **apenas** em `*.fipp`, aceita a versão do commit, termina o rebase, reancora e faz `amend`.
+  Qualquer outro conflito **falha** — dois donos do mesmo *conteúdo* é um problema de desenho, e
+  escondê-lo atrás de um `--theirs` seria pior que falhar.
+
+**Onde entrou.**
+- `.github/workflows/gerar-ciclo.yml` — o laço de push passa a `git fetch` + `git rebase` (em vez
+  de `pull --rebase --autostash`), com o ramo do conflito na âncora.
+- `experimentos/provar-geracao-do-ciclo.js` — sete asserções novas sobre o laço.
+
+**Com o quê.** O cenário foi **reproduzido em repositório local**, com os dois clones a escrever o
+mesmo `.fipp`: o rebase conflita, a regra classifica como «só a âncora», o rebase termina, a âncora
+regenerada é commitada com `amend`, o push é aceito e **o pacote sobrevive** (`a.html` e `b.html`).
+O cenário oposto — conflito num `.md` — foi reproduzido também, e a regra **aborta e falha**, que é
+o comportamento pretendido. `provar-geracao-do-ciclo` → 16 verificações.
+
+**Referências.** `CONGELAMENTO.md` (nenhum arquivo congelado tocado) · `tools/hash-ciclo.sh` (a
+definição única da âncora) · a documentação do `git rebase` sobre `--theirs`/`--ours`.
+
+**O que ainda não está feito.** (a) A execução falhada (`39296712576`) **não gerou commit**: o
+pacote foi gerado e validado no runner e perdeu-se com o job. Um novo «Guardar» do PO — ou um
+`workflow_dispatch` com os mesmos inputs — refá-lo. (b) **D-T4 continua aberto**: mesmo com o
+workflow verde, o pacote é `ciclo-01-batata-bale-nivel-1-teste-2` e o Worker da escola publica
+`ciclo-01-batata`; os documentos existem no repositório e o site da escola não os mostra.

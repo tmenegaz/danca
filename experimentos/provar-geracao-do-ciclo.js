@@ -147,8 +147,23 @@ function oAcordo() {
   assert.match(yml, /wrangler deploy -c "wrangler\.\$\{\{ inputs\.escola \}\}\.jsonc"/);
   ok('o deploy continua a usar o Worker da ESCOLA (o `assets.directory` dela)');
 
-  assert.match(yml, /git pull --rebase --autostash origin main/);
-  ok('o push do pacote rebaseia antes de insistir — não perde a corrida com o reancorar');
+  // O PUSH REBASEIA, E O `.fipp` CONFLITANTE É REGERADO — não escolhido (19/10/2026).
+  //
+  // O `.fipp` tem dois donos nas mesmas fontes: o `reancorar.yml` (disparado por cada
+  // commit de fonte do «Guardar» do PO) e este workflow. Medido às 17:47:41: `push`
+  // recusado, e o rebase morria em «CONFLICT (content): …-bale-nivel-1-teste-2.fipp».
+  // Resolver o texto seria ESCOLHER entre duas âncoras; a âncora é derivada, e o certo é
+  // regerá-la. Um conflito que não seja na âncora continua a falhar: dois donos do mesmo
+  // CONTEÚDO é um problema de desenho, e escondê-lo aqui seria pior.
+  assert.match(yml, /git fetch origin main/);
+  assert.match(yml, /git rebase origin\/main/);
+  assert.match(yml, /git diff --name-only --diff-filter=U/);
+  assert.match(yml, /grep -qv '\\\.fipp\$'/);
+  assert.match(yml, /git rebase --abort \|\| true/);
+  assert.match(yml, /git checkout --theirs -- '\*\.fipp'/);
+  assert.match(yml, /tools\/hash-ciclo\.sh "\$\{\{ inputs\.professor \}\}"/);
+  assert.match(yml, /git commit --amend --no-edit/);
+  ok('o push rebaseia, e o conflito na âncora é REGERADO (os outros continuam a falhar)');
 
   const reancorar = ler('.github/workflows/reancorar.yml');
   assert.match(reancorar, /git pull --rebase --autostash origin main/);
