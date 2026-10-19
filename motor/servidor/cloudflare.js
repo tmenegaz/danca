@@ -25,6 +25,8 @@ const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
 const acervo = require('./acervo-envelopes.js');
+// O ÍNDICE DO ACERVO (20/10/2026, fase 4): a camada de I/O de `nucleo/indices.js`.
+const { criarIndice } = require('./indice-acervo.js');
 // O ESTADO DA GERAÇÃO — o que a tela pergunta enquanto o Actions trabalha.
 const { criarGeracao } = require('./geracao.js');
 const { criarLeitorDeDados } = require('./ler-dados.js');
@@ -80,7 +82,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, geracao }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -104,6 +106,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     lerDados,
     lancamentoSeguro,
     geracao,
+    indice,
     fuso,
     // A ESCOLA DO DOCUMENTO É A DO WORKER — ver o bloco em `rotas.js`. Chega por parâmetro
     // porque esta função monta o roteador e não vê o `env`; quem o vê é a ponte, abaixo.
@@ -278,6 +281,9 @@ async function fetch(request, env, opcoes) {
     fuso: (env && env.FUSO) || FUSO_PADRAO,
     // A MESMA var que `escolaDe` já usava; o que faltava era aplicá-la ao contexto das rotas.
     escolaDoWorker: (env && env.ESCOLA_SLUG) || '',
+    // O ÍNDICE (fase 4). O cache vive no KV da escola — é derivado, e a perda dele não perde
+    // dado nenhum. `comApelido` é verdadeiro aqui porque quem serve é o Worker da ESCOLA.
+    indice: criarIndice(env, { kv: criarCloudflare(env), escola: (env && env.ESCOLA_SLUG) || '' }),
   });
 
   return responder(request);

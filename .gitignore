@@ -95,6 +95,9 @@ experimentos/*
 !experimentos/provar-expurgo-sem-listagem.js
 !experimentos/provar-acervo-envelopes.js
 !experimentos/provar-listas-sem-repeticao.js
+# A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
+# separa «mais rápido» de «parece mais rápido» (zero árvores com o cache quente).
+!experimentos/provar-indice-de-proveniencia.js
 # A PROVA DOS ACORDEÕES (18/10/2026): as cinco secções da Produção recolhem, e recolhidas a
 # listagem mede a largura inteira. Ela é o que impede o acordeão de voltar a ser só a seta
 # das turmas — e é citada pelo nome no REGISTRO.

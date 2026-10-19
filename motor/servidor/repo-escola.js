@@ -192,6 +192,43 @@ async function listarProfessores({ token, dono, repo, ref, fetchImpl }) {
 }
 
 /**
+ * A LISTA DE PROFESSORES PELO ÍNDICE (20/10/2026). Mesma regra da lista de escolas: o índice
+ * responde com uma leitura do KV, e a varredura fica como recurso. O NOME continua a vir do
+ * inventário da escola — o índice copiou-o de lá, e é isso que impede as duas leituras de
+ * discordarem sobre como se chama a pessoa.
+ */
+async function listarProfessoresPeloIndice({ token, dono, repo, ref, fetchImpl, kv, reconstruir }) {
+  if (token && kv) {
+    try {
+      const { lerComCache } = require('./indice-acervo.js');
+      const r = await lerComCache({
+        token, dono, repo, ref, fetchImpl, kv, reconstruir: reconstruir === true, comApelido: false,
+      });
+      if (r.ok && r.indice && Array.isArray(r.indice.professores)) {
+        return {
+          ok: true,
+          doIndice: true,
+          doCache: r.doCache,
+          custo: r.custo,
+          // O professor cujas escolas foram TODAS expurgadas já não é escolhível — a mesma regra
+          // das escolas vivas, um nível acima. Um professor vivo numa escola viva continua.
+          professores: r.indice.professores
+            .filter((p) => p.escolas.some((slug) => {
+              const daEscola = r.indice.escolas.find((e) => e.slug === slug);
+              return daEscola && !daEscola.expurgada;
+            }))
+            .map((p) => ({ slug: p.slug, nome: p.nome, escolas: p.escolas })),
+        };
+      }
+    } catch (erro) {
+      // segue para a varredura
+    }
+  }
+  const professores = await listarProfessores({ token, dono, repo, ref, fetchImpl });
+  return { ok: true, doIndice: false, doCache: false, custo: null, professores };
+}
+
+/**
  * O MANIFESTO BASE do ciclo do professor — `ciclos/ciclo-NN.conf`. É a única coisa do
  * arcabouço do ciclo que o expurgo toca.
  *
@@ -294,6 +331,53 @@ async function arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl }) {
 async function listarEscolas({ token, dono, repo, ref, fetchImpl }) {
   const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl });
   return escolasDosCaminhos(caminhos);
+}
+
+/**
+ * A LISTA DE ESCOLAS PELO ÍNDICE — e a varredura só como recurso (20/10/2026, fase 4).
+ *
+ * `listarEscolas` custa uma leitura da árvore do repositório POR CHAMADA, e é chamada a cada
+ * abertura da página da raiz. O índice responde o mesmo com UMA leitura do cache (o KV) — e,
+ * quando o cache está frio, com a construção que já traz tudo o que a página precisa.
+ *
+ * O RECURSO EXISTE E NÃO É TEATRO: sem token, com o índice de uma versão que este código não
+ * conhece, ou com a construção a falhar, a varredura devolve o mesmo que sempre devolveu. Um
+ * índice que só funciona quando funciona não é um índice — é um novo ponto de falha.
+ *
+ * `doIndice` diz de onde veio, para a prova poder medir «zero árvores» em vez de acreditar.
+ */
+async function listarEscolasPeloIndice({ token, dono, repo, ref, fetchImpl, kv, reconstruir }) {
+  if (token && kv) {
+    try {
+      const { lerComCache } = require('./indice-acervo.js');
+      const r = await lerComCache({
+        token, dono, repo, ref, fetchImpl, kv, reconstruir: reconstruir === true, comApelido: false,
+      });
+      if (r.ok && r.indice && Array.isArray(r.indice.escolas)) {
+        return {
+          ok: true,
+          doIndice: true,
+          doCache: r.doCache,
+          custo: r.custo,
+          // A LISTA DA RAIZ É DE ESCOLAS VIVAS. O índice guarda também a expurgada — é o elo que o
+          // expurgo preserva, e ele não se apaga. Mas o botão «Apagar escola» não oferece o que já
+          // não existe: quem filtra é o consumidor, porque o índice é memória e a lista é escolha.
+          escolas: r.indice.escolas.filter((e) => !e.expurgada).map((e) => ({
+            slug: e.slug,
+            professor: e.professor,
+            ciclo: e.ciclos.length ? String(e.ciclos[0]).split('/')[1] : null,
+            arquivos: [],
+            total: e.contagens.registros + e.contagens.aulas,
+            expurgada: e.expurgada,
+          })),
+        };
+      }
+    } catch (erro) {
+      // segue para a varredura
+    }
+  }
+  const escolas = await listarEscolas({ token, dono, repo, ref, fetchImpl });
+  return { ok: true, doIndice: false, doCache: false, custo: null, escolas };
 }
 
 /** O commit e a árvore de que se parte (o expurgo cria UM commit novo a partir dele). */
@@ -617,6 +701,8 @@ async function atualizarIndiceDaEscola({ token, dono, repo, ref, slug, conteudo,
 
 module.exports = {
   listarEscolas,
+  listarEscolasPeloIndice,
+  listarProfessoresPeloIndice,
   atualizarIndiceDaEscola,
   pendenciaDoKv,
   comResolucaoDoKv,

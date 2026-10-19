@@ -19508,3 +19508,85 @@ chaves). (d) Cada gravação no acervo é **um commit por ficheiro**: um «Guard
 custódia — mede-se se doer. (e) O `api/anamnese-estados` lê o índice, mas a **lista de gestão**
 continua a não incluir o que só existe no repositório *sem* índice reconstruído — o caminho existe
 (enumeração + leitura), e ainda não há prova dele.
+
+## 20/10/2026 — o índice do acervo: cada pergunta deixa de ser uma varredura (fase 4)
+
+**Por quê.** As fases 1–3 tiraram o KV do caminho de escrita dos registos. Ficou o outro lado: para
+responder «que escolas existem?», «quais documentos deste professor?», «que ciclos têm âncora?», cada
+consumidor **varria** a árvore do repositório — e a raiz fazia isso a cada abertura de página, duas
+vezes (escolas e professores). Cada filtro novo repetia a varredura. O `PLANO-INDICES.md` já dizia
+que o índice é pré-requisito e não otimização; esta fase entrega a base dele.
+
+**O recorte, declarado.** Esta é a **base** das oito etapas do plano, não o plano inteiro: o índice
+derivado do acervo, servido pelo Worker, com o consumidor medido. Ficam fora — e por decisão —
+o `tools/gerar-indices.js` versionado, o `indices.yml`, o índice publicado para a Tabela de
+atividades e o índice de lançamentos (que depende do leitor do cofre, ainda inexistente).
+
+**O que mudou.**
+
+- **A derivação é pura** (`motor/nucleo/indices.js`): recebe caminhos, inventários, os resumos dos
+  envelopes e as âncoras, e devolve o índice. Sem `fs`, sem `fetch`, sem relógio — e é isso que
+  torna o determinismo provável sem rede. Determinístico (listas e chaves ordenadas; `gerado_em` e
+  `fonte.commit` ficam fora da comparação) e **reconstruível** (apagar e refazer dá o mesmo JSON).
+- **A leitura é do servidor** (`motor/servidor/indice-acervo.js`): 1 árvore + 1 por escola
+  (inventário) + 1 por escola (os resumos que o acervo já escreve em cada gravação) + 1 por âncora.
+  **Nenhum envelope é aberto** — o índice lê resumos, não registos.
+- **O KV é o cache, e é o uso legítimo**: `indice/acervo.json` e `indice/escola/<slug>.json`.
+  Derivado, determinístico, e cuja perda custa uma reconstrução e não um dado. A validade **não é
+  TTL**: **gravar invalida** (duas escritas, zero leituras de GitHub), e a leitura seguinte
+  reconstrói-se do repositório, onde o registo já está. Um TTL mostraria ao professor o acervo de
+  antes do registo que ele acabou de fazer — «gravei e não apareceu», a pior frase desta tela.
+- **Dois índices, dois públicos.** O do ACERVO é transversal e **não** tem o apelido da aluna (dado
+  de menor); o da ESCOLA, servido pelo Worker dela, tem — é o mesmo dado que a estante já mostra,
+  atrás da mesma senha. Quem decide é a ponte, não um parâmetro esquecido.
+- **A resposta tem a forma da proveniência**: medida + caminho + elo. Pergunta que o índice não
+  responde volta com `recusa` e motivo, nunca com um zero que se leia como facto. `AL01` numa
+  escola sem anamnese diz «não há»; `AL01` no acervo recusa porque o apelido não está lá — são
+  coisas diferentes, e antes desta fase teriam o mesmo `0`.
+- **A ausência tem nome, em dois níveis.** Uma âncora no caminho que não foi aberta não é «sem
+  âncora»: é `lida: false` com o motivo, e **sem `cobertura`** (uma cobertura vazia diria «não
+  cobre nada», e ela pode cobrir tudo). Um ciclo sem `.fipp` é `sem-ancora`, e as duas coisas
+  contam em facetas diferentes.
+- **O expurgo não apaga a memória.** A escola expurgada continua no índice com `expurgada: true` —
+  é o elo que o expurgo quis preservar. Quem filtra é o consumidor (o botão «Apagar escola» não
+  oferece o que já não existe), porque o índice é memória e a lista é escolha.
+
+**Onde.** `motor/nucleo/indices.js` (novo — a derivação, o filtro e o catálogo de perguntas) ·
+`motor/servidor/indice-acervo.js` (novo — a leitura e o cache) · `motor/servidor/rotas.js`
+(`GET /api/indice`, `GET /api/indice/:pergunta`, e a invalidação depois de cada gravação) ·
+`motor/servidor/cloudflare.js` (`criarIndice` na ponte, com o KV de cache) ·
+`motor/servidor/repo-escola.js` (`listarEscolasPeloIndice`, `listarProfessoresPeloIndice`, com a
+varredura como recurso) · `motor/servidor/raiz.js` (`/api/escolas` e `/api/professores` pelo
+índice, e `fonte`/`custo` na resposta) · `motor/servidor/README.md` · `experimentos/README.md` ·
+`.gitignore` (a prova passa a ser versionada) · `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `node experimentos/provar-indice-de-proveniencia.js` → **TUDO CERTO, 57 asserções**:
+duas construções da mesma árvore iguais fora os voláteis; apagar o cache e reconstruir dá o mesmo
+índice (e um cache de versão antiga é ignorado, não é erro); com o cache quente, **zero** árvores e
+o mesmo resultado da varredura; a construção anuncia 1 árvore + 5 conteúdos e **nenhum** envelope; o
+índice do acervo sem apelido, sem senha e sem corpo de documento; as perguntas com medida + caminho
++ elo e as recusas com motivo; a âncora não lida distinta do ciclo sem âncora, em dois níveis; a
+escola expurgada presente e marcada; e gravar a invalidar o cache.
+
+Sem regressão: `provar-acervo-envelopes` 43 · `provar-indice-de-envelopes` 41 ·
+`provar-listas-sem-repeticao` 16 · `provar-expurgo-sem-listagem` 40 · `provar-expurgo-leitura-atrasada`
+45 · `provar-lista-que-falha` 39 · `provar-proveniencia-e-sessao` 14.
+
+Ponta a ponta pela ponte real de produção (bancada local, GitHub falso): `GET /api/indice` → 200 com
+`custo` e `doCache: false`; o segundo pedido → `doCache: true` e **0 árvores / 0 conteúdos**; as
+cinco perguntas a responder com a forma certa; `?reconstruir=1` a reconstruir.
+
+**Referências.** `PLANO-INDICES.md` §2, §4.2, §4.7, §7.1–7.5, §9 (o desenho é dele; aqui está a
+base) · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §1 (medida + caminho + elo) · as entradas de hoje sobre
+o acervo (fase 1), as listas (fase 2) e o envelope fora do KV (fase 3).
+
+**O que ainda não está feito.** (a) O **gerador versionado** (`tools/gerar-indices.js`) e o
+`check-indices.js` com as contraprovas — o índice nasce no Worker, não no build; quem quiser o
+arquivo no repositório precisa do gerador. (b) O **workflow** `indices.yml` e o hook de pré-commit.
+(c) O **índice publicado** e a ligação com a Tabela de atividades. (d) O **índice de lançamentos**
+(`presenca`, `marcas`, `condicoes`, `ajustes`, `rubrica`): depende de um leitor do cofre, que não
+existe — e é por isso que `OB01` **recusa** em vez de devolver zero. (e) A **identidade da aluna**
+(`aluna:<slug>` com alias): hoje o índice usa o apelido como valor, e o apelido muda quando a
+escola corrige o nome. (f) O índice da escola ainda não é consumido pela porta: as três listas dela
+já leem o índice dos envelopes directamente (fase 3), e passá-las pelo índice é otimização sem
+necessidade identificada.

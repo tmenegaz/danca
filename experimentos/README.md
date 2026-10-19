@@ -98,6 +98,7 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-geracao.js` | o que a tela sabe **enquanto o GitHub gera**: o gatilho condicionado às fontes, o registro no KV, as fases do estado e o cartão da porta (38 casos) | não (jsdom) |
 | `provar-indice-de-envelopes.js` | a estante deixa de pagar a enumeração do KV: o índice como arquivo, a escrita, o apagamento, a falha da cota e a migração do índice antigo (41 asserções) | não |
 | `provar-acervo-envelopes.js` | os envelopes no **repositório**: o caminho, a anamnese cifrada, a listagem numa chamada, o 409 do índice, o KV antigo como reserva e a composição `envelope/` × resto (41 asserções) | não |
+| `provar-indice-de-proveniencia.js` | o **índice do acervo**: determinismo, reconstrução, «substitui a varredura» (zero árvores), o que não guarda, a forma da resposta e a invalidação por gravação (57 asserções) | não |
 | `provar-listas-sem-repeticao.js` | a **carga de cada página**: nenhum endereço pedido duas vezes, o orçamento de leituras, e a lista que não cresce com o acervo (16 asserções) | não (jsdom) |
 | `provar-expurgo-sem-listagem.js` | o expurgo com a enumeração do KV recusada: o registo de chaves, a pendência no elo e o `POST /api/expurgar-kv` (40 asserções) | não |
 
@@ -128,6 +129,19 @@ plano e o PO vão em claro, porque a fonte que a geração escreve (`ciclo-XX-<e
 os leva abertos para o mesmo repositório. O KV antigo fica como **reserva de leitura** — uma
 escola anterior a esta fase não perde os registos que ainda não foram regravados —, e a escrita
 vai toda para o repositório.
+
+## O índice do acervo (20/10/2026, fase 4)
+
+Cada pergunta sobre o acervo era uma varredura — a árvore do repositório, uma vez por pergunta.
+O índice responde uma vez, e é **derivado, determinístico e reconstruível**: nasce dos arquivos e
+das âncoras, e apagá-lo e refazê-lo dá o mesmo JSON. A derivação é pura
+(`motor/nucleo/indices.js`); quem lê é `motor/servidor/indice-acervo.js`, e o resultado fica em
+`indice/*.json` no **KV** — o uso legítimo: derivado, descartável, e cuja perda não perde dado.
+
+A resposta a uma pergunta de proveniência tem sempre a mesma forma — **medida + caminho + elo**
+—, e uma pergunta que o índice não responde volta com `recusa` e o motivo: um zero sem essa
+declaração lê-se como facto. O que fica de fora (o corpo dos documentos, as marcas, a presença, o
+apelido no índice transversal) vem declarado em `nao_indexado`, com o motivo.
 
 ## O estado da geração (19/10/2026)
 

@@ -12,11 +12,40 @@ A camada de servidor corre em **Web Standards** (`Request`/`Response`/`URL`/`fet
 | `acervo-envelopes.js` | o **armazenamento da família `envelope/` sobre o repositório**: `ler`/`guardar`/`apagar`/`existe`/`listar`/`mutar`, com a anamnese cifrada, o 409 a repetir e o KV antigo como reserva de leitura |
 | `disparar.js` | o **gatilho da geração** (F3): o Worker pede ao GitHub Actions que gere, via `workflow_dispatch` |
 | `escrever-po.js` | a **ponte envelope → fonte** (F4): o Worker grava o `ciclo-XX-<escola>-po.md` no repositório, via Contents API |
+| `indice-acervo.js` | o **índice do acervo**: lê a árvore, os inventários, os resumos e as âncoras, e guarda o resultado em `indice/*.json` no KV — derivado, reconstruível, invalidado por cada gravação |
 | `estado-html.js` | as **páginas de estado** (escola desabilitada, configuração incorreta, Área do Professor fechada): uma folha só, com os tokens da fonte de verdade — declarados e conferidos, porque a página aparece quando o CSS pode ser o que falhou |
 | `nav-html.js` | (em `tools/templates/`) o **esqueleto da barra**: marca, hamburger, `.nav-links` e o botão do tema. A **lista** de itens é de cada consumidor — o menu do ciclo e o do sistema não são o mesmo conteúdo |
 
 As rotas são as **mesmas** nos dois runtimes. O que muda é o transporte e o armazenamento —
 nunca a declaração das rotas.
+
+## O índice do acervo (20/10/2026, fase 4)
+
+Cada pergunta sobre o acervo era uma **varredura**: a lista de escolas, a de professores e a de
+documentos custavam, cada uma, uma leitura da árvore do repositório — e cada filtro novo repetia
+a varredura. O índice responde uma vez.
+
+- **A derivação é pura** (`nucleo/indices.js`): recebe os caminhos, os inventários, os resumos
+  dos envelopes e as âncoras, e devolve o índice. Sem `fs`, sem `fetch`, sem relógio — é o que
+  permite provar o determinismo sem rede.
+- **A leitura é do servidor** (`indice-acervo.js`): 1 árvore + 1 por escola (inventário) + 1 por
+  escola (os resumos que o acervo já escreve) + 1 por âncora. **Nenhum envelope é aberto.**
+- **O cache é o uso legítimo do KV**: `indice/acervo.json` e `indice/escola/<slug>.json`. O
+  índice é derivado, determinístico e reconstruível — perdê-lo custa uma reconstrução, não um
+  dado. A validade não é um TTL: **gravar invalida** (duas escritas, zero leituras), e a próxima
+  consulta reconstrói do repositório, onde o registo já está.
+- **A resposta diz quanto custou** (`custo`, `doCache`). Um índice que não se audita não se
+  distingue de um que parece rápido.
+
+`GET /api/indice` devolve o índice da escola (com o apelido — é o mesmo dado que a estante dela
+mostra, atrás da mesma senha); `GET /api/indice/:pergunta` responde uma pergunta do catálogo na
+forma de proveniência — **medida + caminho + elo** —, e uma pergunta que o índice não responde
+volta com `recusa` e o motivo, nunca com um zero que se leia como facto. `?reconstruir=1` ignora
+o cache.
+
+A **raiz** é o consumidor medido: `/api/escolas` e `/api/professores` leem o índice e, com o
+cache quente, custam **zero** leituras da árvore. A varredura fica como recurso — sem token, sem
+KV, ou com o índice a falhar, o resultado é o de sempre.
 
 ## A identidade visual, servida pelo Worker
 
@@ -29,13 +58,13 @@ superfície do servidor escreve hex: ela fala por **papel** (`--fundo`, `--texto
 
 ## Escopo declarado
 
-Aqui vivem as **15 rotas da porta completa** — não só a elicitação: `/assets/style.css`,
+Aqui vivem as **17 rotas da porta completa** — não só a elicitação: `/assets/style.css`,
 `/api/mapa` (com `?fonte=po`), `/api/prompt`, `/api/ia` (o stub do passo 2, com o freio e o
 registro de custo), `/api/ficha` + `/api/ficha.md`, `/api/anamneses`, `/api/anamnese-estados`,
 `/api/anamnese-estado/:id`, `DELETE /api/anamnese-vinculo/:id`, `POST /api/anamnese-ajuste/:id`,
 `PUT /api/anamnese-editar/:id`, `/api/envelopes`, `/api/envelope/:id`, `POST /api/elicitar`,
-`/api/ficha-preenchida[.<id>]`, `/api/plano-preenchido[.<id>]` e o fallback estático
-(`GET/HEAD *`).
+`/api/ficha-preenchida[.<id>]`, `/api/plano-preenchido[.<id>]`, `/api/indice`,
+`/api/indice/:pergunta` e o fallback estático (`GET/HEAD *`).
 
 O `/api/plano-preenchido` é o irmão do `/api/ficha-preenchida`: a estante da anamnese abre a
 FICHA, e a do plano abre o PLANO — o mesmo gesto (ler e imprimir), e não o envelope cru. O

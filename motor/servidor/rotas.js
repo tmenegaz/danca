@@ -15,6 +15,8 @@
  */
 
 const { criarRoteador } = require('./roteador.js');
+// O CATÁLOGO DE PERGUNTAS DO ÍNDICE (fase 4). O núcleo deriva e responde; a rota só entrega.
+const indices = require('../nucleo/indices.js');
 // AS ESCOLAS DE TESTE: o mesmo fixture que a produção serve, para a bancada local.
 const { numeroDoTeste, fixtureDaEscola } = require('./teste-fixtures.js');
 // A GERAÇÃO acontece fora daqui (GitHub Actions). Este módulo só sabe se pode começar e
@@ -82,7 +84,7 @@ function semMarcasDoGerador(markdown) {
     .trimStart();
 }
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, geracao }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -169,6 +171,61 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   roteador.rota('GET', '/api/mapa', ({ url }) => {
     const fonte = url.searchParams.get('fonte');
     return porta.mapa(fonte === 'po' ? conteudoPO : fonte === 'plano' ? conteudoPlano : conteudo);
+  });
+
+  /*
+   * 2.1 /api/indice — O ÍNDICE DO ACERVO (20/10/2026, fase 4).
+   *
+   * O que antes era uma varredura por pergunta (a árvore do repositório, uma vez cada) passa a
+   * ser UM arquivo derivado: contagens, facetas, ciclos com as âncoras e os registros com os
+   * seus metadados. Ele é reconstruível e determinístico — o cache no KV é do KV, e perdê-lo
+   * custa uma reconstrução, não um dado.
+   *
+   * A ESCOLA PODE VER O APELIDO e a RAIZ NÃO: é o mesmo dado que a estante dela já mostra, atrás
+   * da mesma senha; e é o que mantém o dado de menor fora do índice transversal.
+   *
+   * Sem `indice` na ponte (o servidor Node de desenvolvimento, uma bancada), a rota DIZ isso em
+   * vez de responder uma lista vazia — que se leria como «o acervo não tem nada».
+   */
+  roteador.rota('GET', '/api/indice', async ({ url }) => {
+    if (!indice) return recusar('o índice não está montado nesta instância', 503);
+    const reconstruir = url.searchParams.get('reconstruir') === '1'
+      || url.searchParams.get('reconstruir') === 'true';
+    try {
+      const r = await indice.ler({ reconstruir, agora: carimbar() });
+      if (!r.ok) return recusar(r.erro || 'não foi possível construir o índice', 503);
+      return {
+        ok: true,
+        indice: r.indice,
+        // O CUSTO VAI NA RESPOSTA. Um índice que não diz quanto custou não se pode auditar — e
+        // é essa a diferença entre «mais rápido» e «parece mais rápido».
+        custo: r.custo,
+        doCache: r.doCache,
+      };
+    } catch (erro) {
+      return recusar('não foi possível construir o índice: ' + erro.message, 503);
+    }
+  });
+
+  /*
+   * 2.2 /api/indice/:pergunta — uma pergunta do catálogo, respondida pelo índice.
+   *
+   * A forma da resposta é a de §1 do PLANO-PERGUNTAS: **medida + caminho + elo**. Quando a
+   * pergunta não é respondível com o que o índice tem, ela volta com `recusa` e o motivo — e não
+   * com um zero, que se leria como um facto.
+   */
+  roteador.rota('GET', '/api/indice/:pergunta', async ({ url, params }) => {
+    if (!indice) return recusar('o índice não está montado nesta instância', 503);
+    try {
+      const r = await indice.ler({ agora: carimbar() });
+      if (!r.ok) return recusar(r.erro || 'não foi possível construir o índice', 503);
+      // As perguntas são do NÚCLEO (`nucleo/indices.js`): a rota não sabe o que é CT01 nem PV01
+      // — só sabe que há um catálogo, e que uma pergunta desconhecida volta com a recusa dele.
+      const resposta = indices.responder(r.indice, params.pergunta, url.searchParams.get('aluna'));
+      return Object.assign({ ok: true, doCache: r.doCache }, resposta);
+    } catch (erro) {
+      return recusar('não foi possível consultar o índice: ' + erro.message, 503);
+    }
   });
 
   // 3. /api/prompt — a entrada por prosa (o conteúdo `prompts/elicitar-ciclo.md`).
@@ -549,6 +606,20 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
       resultado.git = resultado.gravado
         ? { ok: true, fonte: 'acervo da escola' }
         : { ok: false, erro: resultado.erroDaGravacao || 'o registro não foi gravado' };
+
+      /*
+       * GRAVAR INVALIDA O ÍNDICE (20/10/2026). O índice é derivado do acervo, e o acervo acabou
+       * de mudar: deixá-lo como está faria a estante mostrar o acervo de antes do registo que o
+       * professor acabou de fazer — «gravei e não apareceu», que é a pior frase desta tela.
+       * Apagar o cache custa duas escritas e nenhuma leitura; a próxima consulta reconstrói.
+       */
+      if (resultado.gravado && indice && typeof indice.invalidar === 'function') {
+        try {
+          resultado.indice = await indice.invalidar();
+        } catch (erro) {
+          resultado.indice = { ok: false, erro: erro.message };
+        }
+      }
 
       // A PONTE envelope → fonte: quando o PLANO é concluído E GRAVADO, o Worker
       // escreve o `ciclo-XX-<escola>-plano.md`; quando o PO é concluído E

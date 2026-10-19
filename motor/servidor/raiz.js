@@ -16,7 +16,8 @@
 const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = require('./provisionar-escola.js');
 const { excluirEscola, apagarChavesDeEscola, prefixosDaEscola } = require('./expurgar-escola.js');
 const {
-  listarEscolas, listarProfessores, apagarEscolaDoRepo, lerArquivo,
+  listarEscolas, listarEscolasPeloIndice, listarProfessores, listarProfessoresPeloIndice,
+  apagarEscolaDoRepo, lerArquivo,
   pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola,
 } = require('./repo-escola.js');
 
@@ -296,8 +297,19 @@ async function fetch(request, env) {
     const token = env && env.GITHUB_TOKEN;
     if (!token) return responderJson({ ok: false, erro: 'GITHUB_TOKEN ausente no Worker' }, 500);
     try {
-      const professores = await listarProfessores({ token, dono: DONO, repo: REPO, ref: REF });
-      return responderJson({ ok: true, professores });
+      // PELO ÍNDICE — a lista de professores era a varredura mais cara da raiz: a árvore inteira
+      // mais uma leitura do inventário de cada escola do professor, a cada abertura da página.
+      const r = await listarProfessoresPeloIndice({
+        token, dono: DONO, repo: REPO, ref: REF,
+        kv: env && env.PADD_KV,
+        reconstruir: url.searchParams.get('reconstruir') === '1',
+      });
+      return responderJson({
+        ok: true,
+        fonte: r.doIndice ? (r.doCache ? 'indice-cache' : 'indice') : 'arvore',
+        custo: r.custo,
+        professores: r.professores,
+      });
     } catch (err) {
       return responderJson({ ok: false, erro: (err && err.message) || String(err) }, 500);
     }
@@ -306,14 +318,25 @@ async function fetch(request, env) {
   // A LISTA de escolas — what the «Apagar escola» button shows before anything is deleted.
   // Sai do repositório (os `wrangler.<slug>.jsonc`), que é o mesmo registro que o expurgo
   // edita: uma só definição de «escola», a que sobrevive ao expurgo como elo no índice.
+  //
+  // PELO ÍNDICE, E SÓ PELA ÁRVORE SE ELE NÃO HOUVER (20/10/2026). A página da raiz pede esta
+  // lista a cada abertura; a varredura custava uma leitura da árvore do repositório por pedido.
+  // O índice responde com uma leitura do KV — e é derivado, portanto perdê-lo custa uma
+  // reconstrução, não um dado.
   if (url.pathname === '/api/escolas' && request.method === 'GET') {
     const token = env && env.GITHUB_TOKEN;
     if (!token) return responderJson({ ok: false, erro: 'GITHUB_TOKEN ausente no Worker' }, 500);
     try {
-      const escolas = await listarEscolas({ token, dono: DONO, repo: REPO, ref: REF });
+      const r = await listarEscolasPeloIndice({
+        token, dono: DONO, repo: REPO, ref: REF,
+        kv: env && env.PADD_KV,
+        reconstruir: url.searchParams.get('reconstruir') === '1',
+      });
       return responderJson({
         ok: true,
-        escolas: escolas.map((e) => ({
+        fonte: r.doIndice ? (r.doCache ? 'indice-cache' : 'indice') : 'arvore',
+        custo: r.custo,
+        escolas: r.escolas.map((e) => ({
           slug: e.slug,
           professor: e.professor,
           ciclo: e.ciclo,
