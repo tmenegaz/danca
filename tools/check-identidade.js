@@ -358,6 +358,12 @@ const CONSUMIDORES = [
 const DECLARANTES = [
   'motor/nucleo/ficha-html.js',
   'motor/servidor/estado-html.js',
+  // O FAVICON DECLARA (18/10/2026), e por uma razão de facto: um favicon é servido SOZINHO —
+  // não tem `<link>` para a folha, e um `var(--burgundy)` sem declaração deixaria o ícone
+  // preto. As duas cores viajam dentro do SVG como custom properties, e é aqui que se confere
+  // que elas dizem o mesmo que `tools/templates/ciclo.css` diz. Um ícone de aba é o artefacto
+  // mais fácil de esquecer numa mudança de paleta, e o mais visível quando envelhece.
+  'tools/templates/marca/favicon.svg',
 ];
 
 // Um comentário que CITA um valor — para explicar por que ele saiu — não é
@@ -582,6 +588,11 @@ function compararPacotes() {
       for (const [origem, destino] of [
         ['tools/templates/ciclo.css', 'assets/style.css'],
         ['tools/templates/nav.js', 'assets/nav.js'],
+        // O FAVICON viaja no mesmo circuito (18/10/2026). Ele é pedido por caminho
+        // (`/assets/favicon.svg`) em TODAS as superfícies, e um pacote sem ele dá uma aba
+        // com o globo do navegador — um defeito que ninguém vê até reparar. Aqui ele é
+        // comparado como os outros dois: a cópia tem de ser a fonte, byte a byte.
+        ['tools/templates/marca/favicon.svg', 'assets/favicon.svg'],
       ]) {
         const fonteArq = path.join(raiz, origem);
         const copia = path.join(pacote, destino);
@@ -632,6 +643,7 @@ compararPacotes();
 for (const [rel, origem] of [
   ['raiz/assets/style.css', 'tools/templates/ciclo.css'],
   ['raiz/assets/nav.js', 'tools/templates/nav.js'],
+  ['raiz/assets/favicon.svg', 'tools/templates/marca/favicon.svg'],
 ]) {
   const copia = path.join(raiz, rel);
   if (!fs.existsSync(copia)) {
@@ -642,7 +654,94 @@ for (const [rel, origem] of [
 }
 
 if (!erros.some((e) => e.startsWith('Circuito'))) {
-  ok.push('Circuito: assets/style.css e assets/nav.js de cada pacote e da raiz batem com a fonte');
+  ok.push('Circuito: assets/style.css, assets/nav.js e assets/favicon.svg de cada pacote e da raiz batem com a fonte');
+}
+
+// ------------------------------------------------------- 6b) a marca
+//
+// A MARCA É A PEÇA MAIS FÁCIL DE ENVELHECER EM SILÊNCIO (18/10/2026). Ela existe em dois
+// lugares por uma razão técnica, e os dois podem divergir sem ninguém ver:
+//
+//   · `tools/templates/marca/lastro.svg` — o arquivo, aberto num editor, usado nas telas que
+//     podem carregá-lo;
+//   · `tools/templates/marca-lastro.js` — a mesma marca como STRING, porque a barra é gerada
+//     pelo `nav-html.js`, que roda no Node e no Worker empacotado — e no Worker não há `fs`.
+//
+// O `nav-html.js` escreve o SVG INLINE no `<span class="marca">`, e não por `<img>`: uma
+// `<img>` não herda `currentColor`, e a marca ficaria com a cor gravada dentro do arquivo —
+// que é exatamente o problema que a marca-como-papel resolve. Desta escolha vem a obrigação
+// de conferir que a STRING é a mesma coisa que o ARQUIVO.
+//
+// E confere-se mais uma coisa, que é a promessa da peça: que ela é VETOR. Um `<image>` com
+// base64 dentro do SVG passaria por todas as outras checagens — é um SVG válido, abre no
+// navegador e mostra a marca — e voltaria a ser o arquivo de 106KB que a direção enviou.
+{
+  const problemas = [];
+  const arqSvg = path.join(raiz, 'tools/templates/marca/lastro.svg');
+  const arqMod = path.join(raiz, 'tools/templates/marca-lastro.js');
+  const arqNav = path.join(raiz, 'tools/templates/nav-html.js');
+  const arqFav = path.join(raiz, 'tools/templates/marca/favicon.svg');
+
+  const semEspacos = (t) => t.replace(/<!--[\s\S]*?-->/g, '').replace(/\s+/g, ' ').trim();
+
+  if (!fs.existsSync(arqSvg)) {
+    problemas.push('a marca não existe: tools/templates/marca/lastro.svg');
+  } else {
+    const svg = fs.readFileSync(arqSvg, 'utf8');
+    // A PROMESSA: vetor. As três coisas que fariam dela um raster disfarçado.
+    if (/<image\b/.test(svg)) problemas.push('lastro.svg usa <image> — a marca voltou a ser raster embalado');
+    if (/base64/i.test(svg)) problemas.push('lastro.svg tem base64 — a marca voltou a ser raster embalado');
+    if (/<filter\b/.test(svg)) problemas.push('lastro.svg usa <filter> — o desenho deixou de ser só caminhos');
+    const caminhos = (svg.match(/<path\b/g) || []).length;
+    if (caminhos < 1) problemas.push('lastro.svg não tem nenhum <path>');
+    if (!/\sd="[^"]*C/.test(svg)) problemas.push('lastro.svg não tem curvas Bézier nos caminhos');
+    if (!/fill="currentColor"/.test(svg)) {
+      problemas.push('lastro.svg não usa fill="currentColor" — a marca deixaria de vestir o papel da família');
+    }
+
+    // A STRING DA BARRA É O ARQUIVO. Sem esta comparação, corrigir um nó no SVG deixaria a
+    // barra a desenhar a versão anterior — para sempre, e sem sintoma.
+    if (!fs.existsSync(arqMod)) {
+      problemas.push('falta tools/templates/marca-lastro.js — rode node experimentos/marca/vetorizar.js');
+    } else {
+      let doModulo = null;
+      try {
+        doModulo = require(arqMod).SVG;
+      } catch (e) {
+        problemas.push('tools/templates/marca-lastro.js não carrega: ' + e.message);
+      }
+      if (typeof doModulo === 'string' && semEspacos(doModulo) !== semEspacos(svg)) {
+        problemas.push('marca-lastro.js divergiu de lastro.svg — rode node experimentos/marca/vetorizar.js');
+      }
+    }
+  }
+
+  // O SLOT DA BARRA NÃO VOLTA A FICAR VAZIO. Ele esteve assim desde que o texto «Ciclo NN ·
+  // escola» saiu do menu, e o sintoma era invisível: um vão de 9em onde deveria haver marca.
+  if (!fs.existsSync(arqNav)) {
+    problemas.push('falta tools/templates/nav-html.js');
+  } else {
+    const nav = fs.readFileSync(arqNav, 'utf8');
+    if (!/class="marca"[^>]*>/.test(nav)) problemas.push('nav-html.js não tem o slot da marca');
+    else if (/<span class="marca" aria-hidden="true"><\/span>/.test(nav)) {
+      problemas.push('o slot da marca em nav-html.js voltou a ficar vazio');
+    }
+  }
+
+  // O FAVICON também é vetor, e também tem de ter o emblema — não um PNG disfarçado.
+  if (!fs.existsSync(arqFav)) {
+    problemas.push('falta tools/templates/marca/favicon.svg — rode node experimentos/marca/vetorizar.js');
+  } else {
+    const fav = fs.readFileSync(arqFav, 'utf8');
+    if (/<image\b|base64|<filter\b/i.test(fav)) problemas.push('favicon.svg deixou de ser vetor');
+    if (!/<path\b/.test(fav)) problemas.push('favicon.svg não tem o desenho (nenhum <path>)');
+  }
+
+  for (const p of problemas) erros.push('Marca: ' + p);
+  if (!problemas.length) {
+    ok.push('Marca: lastro.svg é vetor (só caminhos, `currentColor`), a string da barra é a mesma, ' +
+      'o slot não está vazio e o favicon também é vetor');
+  }
 }
 
 // ------------------------------------------------------------- 7) a forma

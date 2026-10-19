@@ -483,6 +483,7 @@ cp -R "$RAIZ/porta/." "$PACOTE_DIR/plano-observacao/"
 cp "$RAIZ/tools/templates/ciclo.css" "$PACOTE_DIR/assets/style.css"
 cp "$RAIZ/tools/lib-cifra.js" "$PACOTE_DIR/assets/lib-cifra.js"
 cp "$RAIZ/tools/templates/nav.js" "$PACOTE_DIR/assets/nav.js"
+cp "$RAIZ/tools/templates/marca/favicon.svg" "$PACOTE_DIR/assets/favicon.svg"
 
 
 # O índice do pacote zero é a MESMA apresentação do sistema («Sistema Lastro»)

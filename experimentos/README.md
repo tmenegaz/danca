@@ -91,6 +91,8 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-derivacao-da-turma.js` | a cadeia de derivação da turma (123 casos) | não |
 | `provar-tema.js` | a aparência clara/noturna: aplicação, persistência, botão alcançável | não (DOM de mentira) |
 | `provar-celular.js` | a **geometria** em 320–1024px: nada transborda, o nome da turma não é espremido, o menu de secções vira faixa | **sim** (Chrome) |
+| `medir-marca.js` | os números da marca contra as três famílias (o instrumento do estudo **Q**) | não |
+| `marca/vetorizar.js` | o traçado da logomarca em SVG e a **fidelidade medida** (IoU 0,980) | **não** (PNG via `zlib`) |
 | `provar-acordeoes.js` | as **cinco** secções da Produção recolhem, e recolhidas a listagem mede a largura inteira; a seta de uma não mexe nas outras; o estado é lembrado por secção; o «Carregar catálogo inicial» cabe na coluna | **sim** (Chrome) |
 
 A `provar-celular.js` é de 17/10/2026 e nasceu de um defeito medido: a lista de turmas do

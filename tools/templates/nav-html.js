@@ -21,9 +21,32 @@
  *   require('./nav-html.js').navSistema(...)      → a barra inteira do sistema
  */
 
+/**
+ * A MARCA NA BARRA (18/10/2026). O `<span class="marca">` existia VAZIO desde que o texto
+ * «Ciclo NN · escola» saiu do menu: era um espaço reservado de 9em só para o menu não colar à
+ * esquerda. Ele passa a receber a logomarca em SVG, e o `fill="currentColor"` é o que faz a
+ * marca valer nas três famílias: na barra ela veste o `--sobre-marca` da família — o token que
+ * significa «a cor do que fica EM CIMA da barra» — e no papel vestiria o `--marca-texto`.
+ * Nenhuma família precisa de uma exportação própria da marca.
+ *
+ * O SVG vem como STRING de `marca-lastro.js`, e não de um arquivo lido com `fs`: este módulo é
+ * usado também pelo `motor/servidor/bastidores.js`, que vai empacotado para o Worker, e lá não
+ * há `fs`. E vem INLINE, e não por `<img>`, porque uma `<img>` não herda `currentColor` — a
+ * marca ficaria com a cor gravada no arquivo, que é exatamente o problema que ela resolve.
+ *
+ * Comprimento: 3,1KB de caminhos, ~1KB comprimido no transporte. É o preço de a marca não ter
+ * cor própria; a alternativa (uma cópia por família e por modo, seis arquivos de imagem)
+ * pesaria mais e ficaria a envelhecer.
+ */
+const { SVG: MARCA } = require('./marca-lastro.js');
+
+/** O `<span>` da marca, com o `aria-hidden` que ele já tinha: é ornamento, e o nome do sistema
+ *  está dito nos links ao lado. */
+const MARCA_NA_BARRA = '  <span class="marca" aria-hidden="true">' + MARCA + '</span>';
+
 const ABERTURA = [
   '<nav class="topnav" aria-label="Navegação do ciclo">',
-  '  <span class="marca" aria-hidden="true"></span>',
+  MARCA_NA_BARRA,
   '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">',
   '    <span></span><span></span><span></span>',
   '  </button>',
@@ -59,7 +82,7 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
   const classe = (nome) => (nome === atual ? ' class="ativo"' : '');
   return [
     '<nav class="topnav" aria-label="Navegação do ciclo">',
-    '  <span class="marca" aria-hidden="true"></span>',
+    MARCA_NA_BARRA,
     extras ? '  ' + extras : null,
     '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">',
     '    <span></span><span></span><span></span>',
@@ -85,7 +108,7 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
   ].filter((linha) => linha !== null).join('\n');
 }
 
-module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, navSistema };
+module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, MARCA, MARCA_NA_BARRA, navSistema };
 
 if (require.main === module) {
   const arg = process.argv[2];

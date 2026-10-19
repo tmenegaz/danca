@@ -1029,6 +1029,10 @@ done
 [ "$gerados" -gt 0 ] || { echo "erro: nenhum documento convertido" >&2; exit 1; }
 
 cp "$TPL/ciclo.css" "$PACOTE/assets/style.css"
+# O FAVICON (18/10/2026). Ele viaja como os outros dois assets, e pela mesma razão: o
+# navegador pede `/assets/favicon.svg`, e o pacote é o diretório estático do Worker. Sem a
+# cópia, o ícone some da aba — e ninguém repara até alguém reparar.
+cp "$TPL/marca/favicon.svg" "$PACOTE/assets/favicon.svg"
 APRESENTACAO="${APRESENTACAO:-$RAIZ/apresentacoes/apresentacao-01-rizoma}"
 for img in "$APRESENTACAO"/rizoma-*.svg; do
   [ -f "$img" ] && cp "$img" "$PACOTE/assets/"

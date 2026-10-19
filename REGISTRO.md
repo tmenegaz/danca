@@ -17933,3 +17933,95 @@ pedido: as turmas já têm o acordeão dela, e a Aparência não tem listagem pa
 um link partilhado não abrir a página com metade dos formulários fechados. (c) O `<details>` do
 «histórico» da turma continua a ser um `<details>` nativo — são dois mecanismos de recolher na mesma
 página, e unificá-los é uma decisão de desenho, não uma correção.
+
+## 18/10/2026 — A marca entra na barra e o favicon existe: a cor vem do papel
+
+**O que motivou.** A direção viu e aprovou o estudo da marca (secção **Q** de
+`experimentos/opcoes-visuais/`) — «aprovado, e com o favicon também» —, e o estudo tinha deixado
+duas coisas por fazer: a marca não estava em lugar nenhum das telas (o slot `.marca` da barra
+era um vão de 9em desde que o texto «Ciclo NN · escola» saiu do menu) e a aba do navegador
+mostrava o globo.
+
+**A decisão que atravessa as três famílias: a marca não tem cor, tem papel.** Ela entra como
+`<svg>` **inline** com `fill="currentColor"`, e o `color` vem do `--sobre-marca` — o token que
+já significa «a cor do que fica EM CIMA da barra», escolhido família a família por medição. Onde
+a Bordô usa o creme, a Cortina usa `#06202b` (porque branco sobre turquesa não passa) e a Verde
+usa `#171c18`. Medido no servidor, nas seis combinações: a marca pinta-se sempre com o papel da
+família, sem uma exportação por família. Inline e não `<img>` porque uma `<img>` **não herda
+`currentColor`** — a cor ficaria gravada no arquivo, que é exatamente o problema que o papel
+resolve.
+
+**O favicon tem desenho próprio, e a razão está medida.** A 16px as canaletas entre as pétalas
+medem 0,15px, e as quatro silhuetas viram um borrão — foi testado nas cinco colunas de tamanho
+antes de decidir. O que sobrevive é **uma** silhueta, e não uma inventada: é a `petala-1` — a
+maior, a que domina a arte — com o **mesmo `d`** do `lastro.svg`, dentro de um emblema
+arredondado. O emblema existe por um facto: uma pétala solta na cor da marca **desaparece numa
+barra de abas escura** (medido sobre `#202124`). Sólido sobre sólido, o ícone lê-se nas duas.
+
+**Onde entrou.**
+- `tools/templates/marca/lastro.svg` — a geometria, `currentColor`, 3,1KB (era 106KB de PNG
+  embalado). Não há `<image>`, base64 nem `<filter>`: quatro `<path>`, 80 curvas.
+- `tools/templates/marca/logo-vermelho.svg` · `logo-prata.svg` — a **mesma** geometria com `fill`
+  fixo, os dois arquivos pedidos por nome.
+- `tools/templates/marca/favicon.svg` — o emblema. Declara `--burgundy` e `--cream` como custom
+  properties: um favicon é servido sozinho, sem `<link>` para a folha, e por isso **pode**
+  declarar — e é conferido.
+- `tools/templates/marca-lastro.js` — a marca como **STRING**, e não lida do disco: o
+  `nav-html.js` roda no Node **e** no Worker empacotado, e no Worker não há `fs`.
+- `tools/templates/nav-html.js` — o slot `.marca` deixa de ser vazio: recebe o SVG. As **duas**
+  barras (a do pacote, pela `ABERTURA`, e a do sistema, pelo `navSistema`).
+- `tools/templates/ciclo.css` — `.topnav .marca` passa de «vão de 9em» a desenho: 30px de altura
+  na tela larga, 26px abaixo de 1024px, largura pela proporção do `viewBox` (declarar as duas
+  deformaria a marca).
+- `motor/servidor/bastidores.js` · `estado-html.js` · `provisionar-escola.js` ·
+  `motor/nucleo/ficha-html.js` · `porta/index.html` · `raiz/index.html` ·
+  `tools/templates/ciclo.html` · `lancamento.html` — o `<link rel="icon">`. Sem ele o arquivo
+  existiria e a aba continuaria com o globo.
+- `tools/gerar-ciclo.sh` · `criar-escola.sh` · `gerar-raiz.sh` — o favicon viaja no **mesmo
+  circuito** que a folha e o `nav.js`, e por isso é copiado pelos três.
+- `experimentos/marca/vetorizar.js` — o gerador (traçado: alfa → contorno subpixel → Béziers por
+  mínimos quadrados, sem dependências). Grava os cinco arquivos e **mede** a fidelidade: **IoU
+  0,980** contra a alfa da referência.
+
+**As guardas — porque a marca é a peça mais fácil de envelhecer em silêncio.**
+- **Checagem «Marca»** (nova, 10ª): o `lastro.svg` é vetor (reprova `<image>`, base64 e
+  `<filter>`) e usa `currentColor`; a **string da barra é o mesmo texto** que o arquivo (senão
+  corrigir um nó deixaria a barra a desenhar a versão anterior, para sempre); o slot não voltou a
+  ficar vazio; o favicon também é vetor.
+- **Circuito** estendido: `assets/favicon.svg` de cada pacote e da raiz tem de ser a fonte, byte
+  a byte.
+- **Declarante** novo: as duas cores do favicon são conferidas contra a folha — é o artefacto
+  mais fácil de esquecer numa mudança de paleta, e o mais visível quando envelhece.
+- As três provadas por **controlo negativo**: um `<image>` no favicon, um `249.21` trocado no
+  módulo e o slot esvaziado — cada um reprova com a sua mensagem.
+
+**A CORREÇÃO QUE ESTA ENTRADA TROUXE, e que era de ontem.** Ao rodar a bateria apareceu uma
+falha em `provar-menu-da-producao`: «a secção visível abre pelo seu próprio título». A causa era
+o commit `08f80d6` — o acordeão pôs a seta **dentro** do `<h2>`, e o `textContent` do título
+passou a ser «Curadorias▾». A prova media o texto do título, e o título passou a ter um controle.
+Corrigida a medida (lê o `.secao-nome`), não o texto: 26/26.
+
+**Conferido.** `check-identidade` **19 ok / 0 erros** (era 17: mais «Marca» e o Declarante do
+favicon) · `provar-ambiente` **TUDO CERTO**, **16 requisições** (eram 14: +1 por escola para o
+favicon) — em `fita` a porta diz `verde` e a Produção também; em `valse` as duas dizem `bordo`,
+que é a preferência dela · `provar-menu-da-producao` 26/26 · `provar-producao` 135/135 ·
+`provar-celular` 15/15 · `provar-tema` 38/38 · `provar-selo` TUDO CERTO · `provar-aparencia` 72/72
+· `provar-ato-e-barra` 72/72 · `provar-ajustes-anamnese` 125/125 · `provar-cabecalho-do-ato`
+40/40 · `provar-contexto-do-ato` 37/37 · `provar-cartao-da-turma` TUDO CERTO · `provar-acordeoes`
+TUDO CERTO · `provar-linhas-da-lista` TUDO CERTO. Ao ar: favicon `HTTP 200 · image/svg+xml ·
+1841 bytes`, e as três superfícies (raiz, Produção, anamnese) com o `<link rel="icon">`.
+
+**Motivo declarado — os congelados.** `tools/templates/` e `tools/` são congelados. O motivo é o
+produto: a marca foi **aprovada** e não existia em nenhuma tela; o slot da barra estava vazio
+desde que o texto saiu do menu, e o favicon nunca existiu. **Não muda** a fórmula do hash, a
+cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum componente
+existente foi alterado; e o circuito dos assets ganha uma perna (o favicon), que é o que impede a
+cópia de envelhecer.
+
+**O que ainda não está feito.** (a) O **favicon é da paleta vigente**, e é decisão declarada — a
+mesma do PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site verde e o
+ícone bordô; trocar isso exige uma rota por escola. (b) O **`apple-touch-icon`** exigiria um PNG —
+o `.gitignore` já mantém imagem fora do repositório, e a decisão fica para quando houver um desenho
+para quadrado. (c) As páginas do pacote **já geradas** (`index.html` e a porta) receberam a marca e
+o ícone por substituição do fragmento que o gerador produz; o próximo `gerar-ciclo.sh` produz o
+mesmo, e é o Circuito que garante que não divergem.
