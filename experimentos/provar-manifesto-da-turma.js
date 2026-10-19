@@ -370,9 +370,14 @@ const lerTurmas = async () => TURMAS;
     saida.replace(/^OK /, ''),
     'Fita|4x/semana|2@09:00,3@09:00,4@09:00,5@11:00|75|16/10/2026|9');
 
-  // O contraponto: o manifesto que o CI leu (o da escola, de 15/10) REPROVA. É o defeito.
-  const doCi = path.join(tmp, 'ciclo-01-fita.conf');
-  fs.writeFileSync(doCi, fs.readFileSync(path.join(RAIZ, 'professores', 'tiago-menegaz', 'ciclos', 'ciclo-01-fita.conf'), 'utf8'), 'utf8');
+  // O contraponto: o manifesto que o CI leu (o da ESCOLA, escrito à mão em 15/10) REPROVA — é o
+  // defeito de origem. Medido no `.conf` da `valse`, que existe em disco: o da `fita` foi o do
+  // run 39192752959, mas a escola foi expurgada em 19/10/2026 e o arquivo já não existe. O
+  // defeito, porém, não era daquela escola: é o mesmo em todo `.conf` escrito à mão — a lacuna
+  // `[Preencher: …]` em `DATA_INICIO`. Provar com o que está em disco é o que mantém esta prova
+  // a correr num clone limpo.
+  const doCi = path.join(tmp, 'ciclo-01-valse.conf');
+  fs.writeFileSync(doCi, fs.readFileSync(path.join(RAIZ, 'professores', 'tiago-menegaz', 'ciclos', 'ciclo-01-valse.conf'), 'utf8'), 'utf8');
   let reprovou = false;
   let motivo = '';
   try {
