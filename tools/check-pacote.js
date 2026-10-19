@@ -182,7 +182,17 @@ paginas.forEach((f) => {
     // (medido em 20/09/2026; a pesquisadora o apontou e ele saiu).
     ...(FERRAMENTAS.includes(f) ? [] : [['índice interno', 'class="toc-local"']]),
     ['botão voltar ao topo', 'class="topo"'],
-    ['rodapé', 'class="rodape"'],
+    // O RODAPÉ DA FERRAMENTA É A BARRA DE CONTROLES (19/10/2026). Em `f9b416b` (18/10) o
+    // `footer.rodape` do formulário virou `footer.barra-de-controle` — e a decisão está
+    // escrita no próprio template: `.rodape` é o rodapé de PROSA dos documentos, e o
+    // formulário não tem prosa, tem controles; a mesma classe com dois desenhos foi o que
+    // se corrigiu. Este validador continuou a exigir `class="rodape"` e passou a reprovar
+    // TODO pacote gerado — o sintoma foi «gerar o ciclo» a falhar em toda escola, com o
+    // gerador a ter feito o trabalho: `lancamento.html: falta rodapé (class="rodape")`.
+    // A exigência acompanha a decisão: a ferramenta tem de ter a barra, não o rodapé.
+    FERRAMENTAS.includes(f)
+      ? ['barra de controles', 'class="barra-de-controle"']
+      : ['rodapé', 'class="rodape"'],
     ['idioma pt-BR', 'lang="pt-BR"'],
     ['folha de estilo', 'assets/style.css'],
   ];
