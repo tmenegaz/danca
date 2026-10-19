@@ -19652,3 +19652,40 @@ as deixa e a pendência cobre. (b) O `ia-registro/` (o custo de IA) tem nome fix
 entrar na lista; hoje fica para a enumeração, e não é dado de aluno. (c) O registo de chaves podia
 passar a ser escrito também pelos Bastidores — é a alternativa à lista declarada, e as duas juntas
 seriam redundância sem prova de que alguma vez divergem.
+
+## 20/10/2026 — o índice diz o mesmo nos dois níveis, e a âncora tem três estados
+
+**Por quê.** Os dois primeiros consumidores reais do índice (a escola `breu`, criada hoje) mostraram
+duas discordâncias internas — nenhuma quebra, mas duas gramáticas para o mesmo dado, que é a receita
+para divergirem:
+
+1. **`estado` existia no mestre e não no índice da escola.** `GET /api/indice` (o da escola) devolvia
+   o ciclo com `sem_ancora` e sem `estado`, enquanto o mestre trazia `estado`. Quem consumisse o da
+   escola tinha de re-derivar a mesma coisa — e a derivação podia divergir da do mestre.
+2. **`PV01` confundia as duas ausências.** A primeira versão punha `lida: false` quando não havia
+   âncora **nenhuma** — exactamente a confusão que a §G da prova separa ao nível do ciclo: «não há
+   âncora» (o ciclo ainda não foi ancorado) não é «há âncora e não se abriu o arquivo». E, no caso da
+   âncora não lida, a linha trazia `cobertura: 0`, que se lê como «não cobre nada» quando ela pode
+   cobrir tudo.
+
+**O que mudou** (`motor/nucleo/indices.js`):
+
+- o ciclo do índice da escola passa a trazer `estado` (`ancorado` / `sem-ancora`), igual ao do mestre;
+- `PV01` devolve **três** estados por linha, e só os campos que existem:
+  `sem-ancora` (com `ancora: null`), `nao-lida` (com `motivo` e `caminho`, **sem** `cobertura`) e
+  `lida` (com `hash`, `parent` e `cobertura`).
+
+**Com o quê.** `node experimentos/provar-indice-de-proveniencia.js` → **TUDO CERTO, 60 asserções**
+(eram 57): os dois níveis dizem o mesmo `estado`; sem âncora o `PV01` diz `sem-ancora` e **não** finge
+`lida: false`; a âncora não lida diz `nao-lida` com o motivo e **sem** cobertura. Sem regressão:
+`provar-listas-sem-repeticao` 16, identidade visual 19.
+
+**Medido no Worker vivo** (`breu.tmenegaz77.workers.dev`, criada hoje): `GET /api/indice` → 200 com
+`doCache: true` e `custo: {arvores: 0, leituras: 0, kvLeituras: 1, kvEscritas: 0}` — o índice serve a
+escola com UMA leitura de KV e nenhuma ida ao GitHub. `CT01` devolve o ciclo `sem-ancora` (o scaffold
+ainda não foi ancorado), `AL01` devolve a nota «não há anamnese registada nesta escola», e as três
+superfícies da porta (anamnese, plano, PO) respondem 200 com o preenchidor de teste injetado.
+
+**O que ainda não está feito.** O índice da escola continua sem consumidor na porta: as três listas
+delas leem o índice dos envelopes (fase 3), e passá-las pelo índice é otimização sem necessidade
+identificada — fica declarado, não feito.

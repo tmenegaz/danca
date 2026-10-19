@@ -296,6 +296,10 @@ function construir(entrada) {
       professor: ciclo.professor,
       numero: ciclo.numero,
       escola: ciclo.escola,
+      // O ESTADO, NOS DOIS NÍVEIS (20/10/2026). O mestre dizia `estado` e o da escola não —
+      // e quem consumisse o da escola tinha de re-derivar a mesma coisa a partir de
+      // `sem_ancora`. Duas gramáticas para o mesmo dado é a receita para divergirem.
+      estado: doCiclo.length ? 'ancorado' : 'sem-ancora',
       tipos: [...ciclo.tipos].sort(porTexto),
       documentos: docs,
       pacote: docs.filter((d) => /\.html$/.test(d)).length ? docs.find((d) => /\/index\.html$/.test(d)) || null : null,
@@ -600,24 +604,35 @@ function responder(escola, pergunta, argumento) {
   }
 
   if (p === 'PV01') {
+    /*
+     * TRÊS ESTADOS, NÃO DOIS (20/10/2026). A primeira versão punha `lida: false` quando não
+     * havia âncora nenhuma — e isso CONFUNDE as duas ausências que esta casa aprendeu a
+     * separar: «não há âncora» (o ciclo ainda não foi ancorado) e «há âncora e não se abriu o
+     * arquivo». O campo `estado` diz qual dos três é, e `lida`/`hash`/`cobertura` só aparecem
+     * quando há o que dizer — uma cobertura `0` numa âncora não lida diria «não cobre nada».
+     */
+    const linha = (c, a, extra) => {
+      const base = Object.assign({ ciclo: c.id }, extra);
+      if (!a) return Object.assign(base, { ancora: null, estado: 'sem-ancora' });
+      if (a.lida === false) {
+        return Object.assign(base, {
+          ancora: a.id || null, estado: 'nao-lida',
+          ...(a.motivo ? { motivo: a.motivo } : {}),
+          caminho: a.caminho || null,
+        });
+      }
+      return Object.assign(base, {
+        ancora: a.id || null,
+        estado: 'lida',
+        hash: a.hash || null,
+        parent: a.parent_hash || '',
+        cobertura: Array.isArray(a.cobertura) ? a.cobertura.length : 0,
+      });
+    };
     return {
       pergunta: 'PV01',
-      medida: escola.ciclos.map((c) => ({
-        ciclo: c.id,
-        ancora: c.ancora ? c.ancora.id : null,
-        hash: c.ancora ? c.ancora.hash : null,
-        parent: c.ancora ? c.ancora.parent_hash : null,
-        cobertura: c.ancora ? c.ancora.cobertura.length : 0,
-        lida: c.ancora ? c.ancora.lida !== false : false,
-      })).concat(escola.ciclos.flatMap((c) => c.aulas.map((a) => ({
-        ciclo: c.id,
-        aula: a.numero,
-        ancora: a.ancora ? a.ancora.id : null,
-        hash: a.ancora ? a.ancora.hash : null,
-        parent: a.ancora ? a.ancora.parent_hash : null,
-        cobertura: a.ancora ? a.ancora.cobertura.length : 0,
-        lida: a.ancora ? a.ancora.lida !== false : false,
-      })))),
+      medida: escola.ciclos.map((c) => linha(c, c.ancora, {}))
+        .concat(escola.ciclos.flatMap((c) => (c.aulas || []).map((a) => linha(c, a.ancora, { aula: a.numero })))),
       caminho: escola.ciclos.map((c) => (c.ancora ? c.ancora.caminho : null)).filter(Boolean),
       elo: escola.ciclos.map((c) => (c.ancora ? c.ancora.hash : null)).filter(Boolean),
     };

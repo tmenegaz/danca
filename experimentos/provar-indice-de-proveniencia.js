@@ -347,8 +347,22 @@ async function main() {
         && pv.medida[1].hash === 'dddd4444'
         && pv.medida[0].cobertura === 2,
       pv.medida);
-    checar('PV01 diz que a âncora foi LIDA (não é o mesmo que «não existe»)',
-      pv.medida.every((x) => x.lida === true));
+    checar('PV01 diz o ESTADO de cada âncora: `lida`',
+      pv.medida.every((x) => x.estado === 'lida'));
+
+    // OS TRÊS ESTADOS NÃO SE CONFUNDEM: sem âncora, não lida, lida.
+    const semAncoraPv = indices.responder(
+      indices.construir({ agora: 'x', arvores: ['wrangler.v.jsonc', 'professores/p/ciclos/ciclo-01-v-po.md'],
+        inventarios: {}, envelopes: {}, ancoras: {} }).escolas.v, 'PV01');
+    checar('sem âncora, PV01 diz `sem-ancora` — e NÃO finge `lida: false`',
+      semAncoraPv.medida[0].estado === 'sem-ancora' && semAncoraPv.medida[0].lida === undefined
+        && semAncoraPv.medida[0].hash === undefined, semAncoraPv.medida[0]);
+    const naoLidaPv = indices.responder(
+      indices.construir({ agora: 'x', arvores: ['wrangler.n.jsonc', 'professores/p/ciclos/ciclo-01-n.fipp'],
+        inventarios: {}, envelopes: {}, ancoras: {} }).escolas.n, 'PV01');
+    checar('âncora no caminho e não aberta, PV01 diz `nao-lida` com o motivo — e sem cobertura',
+      naoLidaPv.medida[0].estado === 'nao-lida' && typeof naoLidaPv.medida[0].motivo === 'string'
+        && naoLidaPv.medida[0].cobertura === undefined, naoLidaPv.medida[0]);
 
     const al = indices.responder(escola, 'AL01', 'Ana María');
     checar('AL01 devolve a aluna quando o índice da ESCOLA a tem',
@@ -418,6 +432,11 @@ async function main() {
     checar('as duas coisas contam DIFERENTE nas facetas de estado',
       semLeitura.acervo.ciclos[0].estado === 'ancorado'
         && semAncora.acervo.ciclos[0].estado === 'sem-ancora');
+    // E OS DOIS NÍVEIS DIZEM O MESMO. O mestre trazia `estado` e o da escola não: quem
+    // consumisse o da escola tinha de re-derivar a partir de `sem_ancora`.
+    checar('o ciclo diz o mesmo `estado` no índice do acervo e no da escola',
+      semLeitura.acervo.ciclos[0].estado === semLeitura.escolas.fita.ciclos[0].estado
+        && semAncora.acervo.ciclos[0].estado === semAncora.escolas.fita.ciclos[0].estado);
   }
 
   // =========================================================== H
