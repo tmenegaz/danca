@@ -18938,3 +18938,46 @@ regerada igual à do pai → commit dispensado, `exit 0`, `local == remoto`, `--
 **não foi verificado** com `hash-ciclo.sh --check` — a âncora do pacote pode estar divergente no
 `main` até ao próximo push. (b) Um `rerun-failed-jobs` **não** testa esta correcção: ele usa o
 workflow do commit original. Só um push novo, ou um `workflow_dispatch`, a exercita.
+
+## 19/10/2026 — Todo pacote gerado nascia divergente da porta: a barra e a newline final
+
+**Por que este arquivo está a ser tocado** (`tools/` é congelado — CONGELAMENTO.md): o
+`tools/gerar-ciclo.sh` produzia, **sempre**, uma cópia da porta que violava o contrato do
+`tools/check-identidade.js`. Como esse contrato trava o commit de qualquer mudança em `tools/`,
+`motor/` ou `porta/`, o defeito passou a bloquear trabalho legítimo — foi assim que apareceu.
+
+**O que aconteceu.** O `check-identidade` recusou um commit com «Circuito:
+`…/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/index.html` divergiu de
+`porta/index.html` — regenere o pacote». A divergência **já existia no `HEAD`**, com a árvore
+limpa: não era do commit, nem de quem o escreveu.
+
+**A causa.** Uma linha em branco. O `<!-- NAV -->` do template está **sozinho na sua linha**, e o
+`gerar_nav` escreve a barra num **arquivo** que termina em `\n`. Inserir o texto com essa newline
+final deixa uma linha em branco a mais do que a fonte. O `criar-escola.sh` nunca sofreu disto
+porque captura a barra por **substituição de comando** — `NAV_PORTA="$(gerar_nav_zero …)"` —, e a
+substituição de comando **remove** as newlines finais. Duas maneiras de ler a mesma barra, dois
+resultados diferentes, e só uma delas exigida pelo contrato.
+
+**O que foi decidido.** As duas injecções que lêem a barra de um arquivo — a da porta e a do
+`lancamento.html` — passam a fazer `rstrip('\n')` antes do `replace`, que é o equivalente
+explícito da substituição de comando. A comparação do `check-identidade` **não** foi afrouxada: o
+contrato continua a exigir a cópia byte a byte, neutralizada apenas a barra. Afrouxar o juiz para
+o réu passar seria perder a única trava que impede uma porta servida com a identidade de ontem.
+
+**Onde entrou.**
+- `tools/gerar-ciclo.sh` — §1b (a porta) e o bloco do `lancamento.html`.
+- `professores/sapo-bailarino/ciclos/ciclo-01-calango{,-bale-nivel-1-teste-1}/plano-observacao/index.html`
+  — as duas cópias, regeradas pelo passo corrigido (a barra veio do próprio pacote).
+- `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `check-identidade` → **sem nenhum `erro:`**, e o `Circuito` verde. `bash -n` no
+gerador e `compile()` nos blocos Python embutidos. A âncora `.fipp` não se move: a página da porta
+não é fonte do hash (`hash-ciclo.sh --check` → «ciclo 01-… íntegro; cadeia intacta»).
+
+**Referências.** `IDENTIDADE-VISUAL.md` (§ o circuito) · `tools/check-identidade.js` (§ 3) · a
+entrada desta data sobre a lista que falhava — as duas nasceram do mesmo round de teste.
+
+**O que ainda não está feito.** (a) O `lancamento.html` que já está nos pacotes mantém a linha em
+branco a mais; nada o compara, e ele só será regerado na próxima geração — não se reescreveu
+nenhum pacote por causa disso. (b) A regra «a cópia é a fonte» continua a depender de o gerador
+ser executado: não há um comando isolado que regenere só a porta de um pacote existente.

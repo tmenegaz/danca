@@ -977,7 +977,14 @@ gerar_nav lancamento "$TMP/nav-lancamento.html"
 python3 - "$PACOTE/lancamento.html" "$TMP/nav-lancamento.html" <<'PY'
 import pathlib, sys
 alvo = pathlib.Path(sys.argv[1])
-nav = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8')
+# A NAV É LIDA SEM A NEWLINE FINAL (19/10/2026). `gerar_nav` escreve a barra num arquivo, e o
+# arquivo termina em `\n`; o `<!-- NAV -->` do template está SOZINHO na sua linha. Inserir o
+# texto com a newline final deixava uma linha em branco a mais que a fonte — e o contrato do
+# `check-identidade.js` exige que a cópia da porta seja a de `porta/index.html`, byte a byte,
+# neutralizada apenas a barra. O `criar-escola.sh` nunca sofreu disto porque captura a barra
+# por substituição de comando, `NAV_PORTA="$(gerar_nav_zero …)"`, e a substituição de comando
+# REMOVE as newlines finais. Aqui o equivalente explícito é o `rstrip`.
+nav = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8').rstrip('\n')
 texto = alvo.read_text(encoding='utf-8')
 marca = texto.count('<!-- NAV -->')
 if marca == 0:
@@ -1095,12 +1102,17 @@ if [ -d "$RAIZ/porta" ]; then
   gerar_nav plano-observacao "$TMP/nav-po.html" "/"
   python3 - "$PACOTE/plano-observacao/index.html" "$TMP/nav-po.html" <<'PY'
 import sys, pathlib
-pagina, nav = sys.argv[1], pathlib.Path(sys.argv[2]).read_text(encoding='utf-8')
-texto = pathlib.Path(pagina).read_text(encoding='utf-8')
+# A NAV SEM A NEWLINE FINAL — a mesma armadilha do `lancamento.html` acima: o marcador está
+# sozinho na linha, e a newline final do arquivo da barra virava uma linha em branco a mais
+# que a fonte. Era o que fazia TODO pacote gerado nascer divergente de `porta/index.html` aos
+# olhos do `check-identidade.js` («Circuito: … divergiu de porta/index.html — regenere o
+# pacote»), e o que travava o commit de quem tocasse em `porta/`, `motor/` ou `tools/`.
+nav = pathlib.Path(sys.argv[2]).read_text(encoding='utf-8').rstrip('\n')
+texto = pathlib.Path(sys.argv[1]).read_text(encoding='utf-8')
 marca = texto.count('<!-- NAV -->')
 if marca != 1:
     sys.exit('porta: marcador <!-- NAV --> nao encontrado (ou repetido) — esperado 1, veio %d' % marca)
-pathlib.Path(pagina).write_text(texto.replace('<!-- NAV -->', nav, 1), encoding='utf-8')
+pathlib.Path(sys.argv[1]).write_text(texto.replace('<!-- NAV -->', nav, 1), encoding='utf-8')
 PY
   echo "porta: plano-observacao/ (com a navegacao do site)"
 fi

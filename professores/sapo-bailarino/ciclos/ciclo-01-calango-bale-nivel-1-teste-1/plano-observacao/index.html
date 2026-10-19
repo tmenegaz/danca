@@ -723,7 +723,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
   </div>
 </nav>
 
-
 <!-- O cabeçalho é `header.doc`, como no site: o título em burgundy sobre um filete de
      ouro e o subtítulo em itálico. A barra de cima é a do site (o marcador acima). -->
 <header class="doc">
@@ -5265,11 +5264,18 @@ async function carregarEstados() {
     // A rota de GESTÃO. A anamnese traz o apelido (o sujeito); o plano traz o
     // OBJETIVO (o resumo da estante). Cada fonte tem o seu estado.
     const resposta = await fetch(FONTE === 'anamnese' ? 'api/anamnese-estados' : 'api/plano-estados');
-    if (!resposta || !resposta.ok) {
-      ESTADOS_ERRO = resposta ? 'o servidor respondeu ' + resposta.status : 'sem resposta do servidor';
+    if (!resposta) { ESTADOS_ERRO = 'sem resposta do servidor'; return; }
+    // A LISTA PODE FALHAR COM MOTIVO (19/10/2026). Quando o armazenamento não deixa
+    // ENUMERAR — a cota diária do `kv.list` estourada, por exemplo —, a rota responde 503
+    // com o motivo no corpo. Sem ler o corpo, a tela dizia só «o servidor respondeu 503», e
+    // quem está em sala de aula ficava sem saber se o problema era dele. O corpo é a única
+    // fonte do porquê. `ok:false` também conta como falha: uma lista vazia por falha de
+    // leitura não pode passar por «não há nada gravado».
+    const dados = await resposta.json().catch(() => null);
+    if (!resposta.ok || !dados || dados.ok === false) {
+      ESTADOS_ERRO = (dados && dados.erro) || 'o servidor respondeu ' + resposta.status;
       return;
     }
-    const dados = await resposta.json();
     ESTADOS_ERRO = null;
     for (const [carimbo, estado] of Object.entries(dados.estados || {})) {
       ESTADOS.set(carimbo, Object.assign(
