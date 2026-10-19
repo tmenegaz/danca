@@ -18607,3 +18607,71 @@ livre — outra coisa) · `porta/index.html` `termosDaTurma` (a fonte real dos p
 continuam com o campo gravado, e é assim que deve ser — ele só deixou de se pedir. (b) Se a
 pesquisadora quiser o campo fora **também** dos dados (não só do formulário), isso é um expurgo
 com motivo próprio, não este commit.
+
+## 19/10/2026 — O expurgo errou para os dois lados: a leitura passa a ser a autoridade
+
+**O que motivou.** O expurgo da escola `calando-teste-1` terminou com esta contradição na tela:
+
+```
+calando-teste-1/            → 8 de 8 · sobraram 1
+bastidores/calando-teste-1/ → 7 de 7 · sobraram 0
+ATENÇÃO: sobraram 1 chave(s) no sistema — este expurgo NÃO está completo.
+o namespace ainda tem 3 chave(s) (tinha 15)
+```
+
+Três chaves, e o relatório a errar sobre todas elas — **para os dois lados**:
+
+- **Falso alarme.** A chave `calando-teste-1/envelope/anamnese-20261019-0942.json` continuou a
+  aparecer na listagem e a **leitura dela respondia 404**: tinha sido apagada. Medido três vezes,
+  com dez segundos de intervalo: `list` = 1 chave, `GET` = 404. O expurgo estava completo no que
+  ela dizia respeito, e a página anunciava falha.
+- **Chave que ficou.** `bastidores/calando-teste-1/curadorias` e `…/rubricas` **existiam** (li o
+  conteúdo: a curadoria do sapo-bailarino e a «Régua A — Teste 1») e não entraram na listagem
+  feita no início do expurgo — por isso nunca foram apagadas, e a relistagem também não as viu.
+  O relatório disse «7 de 7 · sobraram 0» com os dados da escola ainda no KV. Só uma consulta à
+  mão, minutos depois, as encontrou. **Este é o lado grave.**
+
+A entrada de ontem («O expurgo não mente») já tinha visto metade do problema e respondeu com uma
+segunda leitura **da mesma listagem**, três segundos depois. Não bastou, e não podia bastar: a
+listagem é um **índice**, e o índice atrasa nos dois sentidos — mostra o que já não existe e
+omite o que existe.
+
+**O que foi decidido.**
+- **A autoridade é a LEITURA, não a listagem.** Para cada chave que a listagem acusa, um
+  `GET /values/<chave>`: 404 é prova de que não está, 200 é prova de que está. `restantes` passa a
+  ser o número de chaves que **respondem**, e `ficaram` traz os nomes.
+- **O laço de apagar ganha PASSAGENS** (3, com espera crescente). A chave que a primeira listagem
+  omitiu aparece na segunda — é o que impede a chave que fica. Só se continua se a passagem
+  anterior apagou alguma coisa, e a chave já tentada não se repete: um 404 na segunda tentativa
+  não é «apagada», é a mesma chave de antes.
+- **`leituraAtrasada` deixa de ser dedução.** Antes era «o namespace está vazio e a listagem por
+  prefixo não» — e por isso só funcionava num dos casos. Agora é «`restantes = 0` e o índice ainda
+  mostra N chaves que respondem 404», com `restantesNoIndice` a dizer quantas.
+- **«Não sei» nunca vira «acabou».** Uma leitura que falha (500, rede) não conta como «ficou» nem
+  como «saiu»: entra em `semConferir`, e `ok` só é verdadeiro quando não há chaves a responder
+  **e** nada ficou por conferir.
+- **A página diz o que o motor mediu**: nomeia cada chave que ficou, e separa «índice atrasado»
+  de «dado que ficou». As duas frases antigas (a do alarme e a da contradição) saíram.
+
+**Onde entrou.**
+- `motor/servidor/expurgar-escola.js` — `lerValorSeguro` (a leitura directa), `PASSAGENS_DA_LIMPEZA`
+  com espera crescente, `pausa` injectável (a prova corre sem dormir), e o veredicto por leitura.
+- `raiz/index.html` — nomeia as chaves que ficaram, mostra as que não puderam ser conferidas, e
+  explica o índice atrasado em vez de o confundir com dado.
+- `experimentos/provar-expurgo-leitura-atrasada.js` — reescrita: 45 asserções, um KV falso que
+  modela as três manhas (atraso depois do DELETE, chave omitida pela listagem, DELETE recusado).
+
+**Com o quê.** `node experimentos/provar-expurgo-leitura-atrasada.js` → **45 asserções, 0 falha**.
+E a prova que vale mais que a prova: o código novo **rodado contra o namespace real** da
+`calando-teste-1` → `ok: true`, `restantes: 0`, `namespace: 1 → 0`, e as três chaves que sobraram
+foram apagadas (as duas de `bastidores/` na hora; o fantasma do envelope saiu do índice poucos
+minutos depois, como o índice faz).
+
+**Referências.** A documentação da consistência do KV da Cloudflare (`list` é eventualmente
+consistente; a leitura de uma chave não) · a entrada de 19/10/2026 «O expurgo não mente» (a
+tentativa anterior, e por que não bastou) · `IDEIA-PAINEL-ESCOLA.md` §17.5.
+
+**O que ainda não está feito.** (a) **Nada foi publicado**: a correção chega ao Worker da raiz no
+próximo `deploy-raiz.yml` — que estava na fila por causa da degradação das Acções do GitHub.
+(b) O expurgo da `calando-teste-1` está **completo e conferido por leitura**; o que ele deixou de
+propósito é `escola/calando-teste-1/indice.json` (o elo do expurgo) e os schemas do modelo.

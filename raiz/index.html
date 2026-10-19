@@ -911,20 +911,32 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                       + (p.restantes === null ? " · não reconferido" : " · sobraram " + p.restantes)));
                   }
                 });
+                // QUEM RESPONDE «FICOU OU NÃO» É A LEITURA, NÃO A LISTA (19/10/2026).
+                //
+                // No expurgo da `calando-teste-1` a página errou para os dois lados na mesma
+                // operação: disse «sobraram 1 — NÃO está completo» sobre uma chave que já
+                // respondia 404, e disse «sobraram 0» sobre duas que existiam e nunca foram
+                // apagadas. O motor passou a conferir por LEITURA (`kv.restantes` são as
+                // chaves que respondem) e a nomeá-las (`kv.ficaram`); a página mostra o que
+                // ele mediu, e não uma inferência.
                 if (kv.restantes) {
-                  cx.appendChild(par("ATENÇÃO: sobraram " + kv.restantes
-                    + " chave(s) no sistema — este expurgo NÃO está completo."));
+                  cx.appendChild(par("ATENÇÃO: " + kv.restantes
+                    + " chave(s) ainda respondem no sistema — este expurgo NÃO está completo."));
+                  (kv.ficaram || []).forEach(function (nome) {
+                    cx.appendChild(par("   ficou: " + nome));
+                  });
                 }
-                // A CONTRADIÇÃO QUE APARECEU no expurgo da `fita` (19/10/2026): «sobraram 1»
-                // numa lista e «o namespace tem 0» na outra. Não havia chave nenhuma — o KV é
-                // eventualmente consistente e a reconferência por prefixo leu o estado
-                // anterior. Quem sabe a diferença é o `leituraAtrasada` do motor; a página só
-                // tem de a dizer, senão repete a contradição em vez de a resolver.
+                if (kv.semConferir) {
+                  cx.appendChild(par("   " + kv.semConferir + " chave(s) não puderam ser conferidas"
+                    + " (a leitura falhou) — não se sabe se ficaram."));
+                }
+                // O ÍNDICE NÃO É O DADO. Uma chave apagada pode continuar a aparecer na
+                // listagem por minutos; a leitura dela já diz 404. Sem esta frase, a página
+                // repete o alarme falso que a correção existe para eliminar.
                 if (kv.leituraAtrasada) {
-                  cx.appendChild(par("   a reconferência por prefixo ainda via "
-                    + kv.restantesNaListagem + " chave(s), e a do namespace já via 0 — é a"
-                    + " listagem do KV a chegar atrasada, não chave esquecida: o expurgo está"
-                    + " completo."));
+                  cx.appendChild(par("   a listagem ainda mostra " + (kv.restantesNoIndice || 0)
+                    + " chave(s) que já não existem (a leitura delas responde 404) — é o índice"
+                    + " do KV a chegar atrasado, não dado que ficou."));
                 }
                 // O que sobrou no NAMESPACE inteiro, e não só sob os prefixos da escola: é o
                 // que revela a chave que não tem prefixo (ou tem outro) e que passaria batido.
