@@ -23,6 +23,22 @@ const ficha = require('./ficha.js');
 const PREFIXO_ENVELOPES = 'envelope/';
 const ARQUIVO_DE = (id) => PREFIXO_ENVELOPES + id + '.json';
 
+// O ÍNDICE DAS CHAVES (19/10/2026). A estante, a lista de sujeitos e a lista de planos
+// começam todas por ENUMERAR o armazenamento — e no KV (`kv.list`) a enumeração tem cota
+// diária própria: estourada a cota, ela LANÇA, e as três listas param ao mesmo tempo. Foi o
+// que aconteceu no `calango`: o PO abriu com «não foi possível ler a lista agora» nos nós
+// `plano-de-ensino` e `sujeitos`, com as anamneses e o plano gravados e invisíveis.
+//
+// A leitura (`get`) não tem essa cota e é a autoridade (a mesma lição do expurgo). Então o
+// índice passa a ser um ARQUIVO: uma lista de nomes que se lê com `ler` e que as duas únicas
+// portas de escrita (`gravarEnvelope`, `apagarEnvelope`) mantêm. Não substitui os envelopes —
+// eles continuam um por arquivo, byte a byte onde sempre estiveram. É só o rol dos nomes.
+//
+// Quando o índice não existe ainda (escola anterior a esta mudança), cai-se na enumeração
+// UMA vez e grava-se o resultado: a partir daí essa escola nunca mais paga a cota. A escola
+// nova nasce com o índice vazio (o provisionamento grava-o), e não enumera nunca.
+const INDICE_DOS_ENVELOPES = PREFIXO_ENVELOPES + '.indice.json';
+
 // O endereço do conteúdo que viaja no envelope — a referência ao artefato lido.
 // São rótulos ESTÁVEIS, não caminhos resolvidos no runtime: o núcleo não sabe
 // onde os ficheiros vivem; sabe o endereço que o envelope declara.
@@ -246,6 +262,11 @@ function mapa(conteudo) {
       /* A folha DERIVADA do checklist: o sistema pré-preenche-a, e o selo da tela diz
          «pré-preenchido» em vez de «opcional». */
       derivado: no.derivado === true,
+      /* A REGRA DO «PRÉ-PREENCHIDO»: de que campos a folha derivada se lê. Vem do conteúdo
+         (`derivadoDe`) e viaja com o nó para o formulário aplicar a MESMA declaração que o
+         documento aplica na derivação — o selo «pré-preenchido» só pode aparecer numa folha
+         que de facto se pré-preenche. */
+      derivadoDe: no.derivadoDe || null,
       exclusiva: no.exclusiva || null,
       aberto: no.aberto === true,
       // O SEMA vira a regra resolvida: o conteúdo declarou «objetivo», o sistema
@@ -354,11 +375,105 @@ function mapa(conteudo) {
 
 /** Os NOMES (sem o prefixo) dos envelopes que casam com o padrão, ordenados. */
 async function nomesDeEnvelopes(armazenamento, padrao) {
+  const nomes = await lerIndice(armazenamento);
+  return nomes
+    .filter((nome) => padrao.test(nome))
+    .sort();
+}
+
+/**
+ * O ÍNDICE: o rol dos nomes dos envelopes, lido como UM arquivo.
+ *
+ * Devolve uma lista de nomes já normalizada (só strings, sem repetições). Se o índice ainda
+ * não existe, ele é CONSTRUÍDO a partir de uma enumeração — e gravado, para a próxima leitura
+ * não voltar a pagar. Quando a enumeração também falha (cota), a falha SOBE: uma lista vazia
+ * por falha de leitura é indistinguível de «não há nada gravado», e essa leitura errada já
+ * custou uma vez ao professor a impressão de ter perdido as fichas.
+ */
+async function lerIndice(armazenamento) {
+  const cru = await armazenamento.ler(INDICE_DOS_ENVELOPES);
+  const guardado = decodificarIndice(cru);
+
+  if (cru !== null && !guardado.incompleto) return guardado.nomes;
+
+  // Índice ausente (escola anterior a esta mudança) ou incompleto (uma escrita não conseguiu
+  // enumerar): enumera UMA vez, junta ao que já se sabia e grava. É o único momento em que a
+  // cota da enumeração é paga — e, a partir daí, nunca mais.
+  try {
+    const listados = await enumerarEnvelopes(armazenamento);
+    const nomes = unir(guardado.nomes, listados);
+    await gravarIndice(armazenamento, nomes, false);
+    return nomes;
+  } catch (erro) {
+    // Sem índice E sem enumeração não há como responder: a falha sobe (uma lista vazia por
+    // falha de leitura é indistinguível de «não há nada gravado»). Com índice incompleto,
+    // responde-se o que se sabe — e a próxima leitura volta a tentar.
+    if (cru === null) throw erro;
+    return guardado.nomes;
+  }
+}
+
+/** A enumeração de recurso: as chaves do armazenamento. No KV, é o `kv.list` de cota diária. */
+async function enumerarEnvelopes(armazenamento) {
   const chaves = await armazenamento.listar(PREFIXO_ENVELOPES);
   return chaves
     .map((chave) => chave.slice(PREFIXO_ENVELOPES.length))
-    .filter((nome) => padrao.test(nome))
-    .sort();
+    .filter((nome) => nome && nome.indexOf('.indice.json') === -1);
+}
+
+/** O índice gravado → `{nomes, incompleto}`. Um índice ilegível é um índice vazio. */
+function decodificarIndice(cru) {
+  if (cru === null || cru === undefined) return { nomes: [], incompleto: true };
+  try {
+    const dados = JSON.parse(String(cru));
+    if (Array.isArray(dados)) return { nomes: limparNomes(dados), incompleto: false };
+    return {
+      nomes: limparNomes((dados && dados.nomes) || []),
+      incompleto: Boolean(dados && dados.incompleto),
+    };
+  } catch (erro) {
+    return { nomes: [], incompleto: true };
+  }
+}
+
+function limparNomes(lista) {
+  const limpos = [];
+  for (const nome of lista) {
+    if (typeof nome !== 'string' || nome === '') continue;
+    if (limpos.indexOf(nome) === -1) limpos.push(nome);
+  }
+  return limpos;
+}
+
+function unir(a, b) {
+  return limparNomes([].concat(a, b));
+}
+
+async function gravarIndice(armazenamento, nomes, incompleto) {
+  const corpo = { nomes: limparNomes(nomes).sort() };
+  if (incompleto) corpo.incompleto = true;
+  await armazenamento.guardar(INDICE_DOS_ENVELOPES, JSON.stringify(corpo, null, 2) + '\n');
+}
+
+/** Acrescenta um nome ao índice. Chamado só por `gravarEnvelope`. */
+async function registrarNoIndice(armazenamento, nome) {
+  let nomes;
+  let incompleto = false;
+  try {
+    nomes = await lerIndice(armazenamento);
+  } catch (erro) {
+    // Gravar não pode depender de enumerar: o envelope é o dado, o índice é o rol dele.
+    nomes = [];
+    incompleto = true;
+  }
+  if (nomes.indexOf(nome) === -1) nomes.push(nome);
+  await gravarIndice(armazenamento, nomes, incompleto);
+}
+
+/** Retira um nome do índice. Chamado só por `apagarEnvelope`. */
+async function esquecerDoIndice(armazenamento, nome) {
+  const restantes = (await lerIndice(armazenamento)).filter((n) => n !== nome);
+  await gravarIndice(armazenamento, restantes, false);
 }
 
 /** Lê um envelope pelo NOME do arquivo (ex.: `anamnese-….json`); null se ilegível. */
@@ -418,13 +533,16 @@ async function gravarEnvelope(armazenamento, documento, relatorio) {
   }
   const chave = ARQUIVO_DE(relatorio.id);
   await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
+  await registrarNoIndice(armazenamento, relatorio.id + '.json');
   return { ok: true, linhas: linhasDoRelatorio(relatorio, chave) };
 }
 
 /** Apaga um envelope; `false` se não existia. */
 async function apagarEnvelope(armazenamento, id) {
   if (!/^[a-z0-9][a-z0-9-]*$/.test(id)) return false;
-  return armazenamento.apagar(ARQUIVO_DE(id));
+  const existia = await armazenamento.apagar(ARQUIVO_DE(id));
+  if (existia) await esquecerDoIndice(armazenamento, id + '.json');
+  return existia;
 }
 
 /*
@@ -774,6 +892,7 @@ async function elicitar(armazenamento, corpo, dados) {
 module.exports = {
   PREFIXO_ENVELOPES,
   ARQUIVO_DE,
+  INDICE_DOS_ENVELOPES,
   ENDERECOS,
   registro,
   linhasDoRelatorio,

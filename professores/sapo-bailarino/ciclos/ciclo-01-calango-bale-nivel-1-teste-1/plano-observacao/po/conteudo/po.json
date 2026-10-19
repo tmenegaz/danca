@@ -767,6 +767,11 @@
       "campos": [
         {
           "id": "checklist-fenomeno-definido",
+          "derivadoDe": {
+            "qualquer": [
+              "fenomeno"
+            ]
+          },
           "campo": "Fenómeno definido de forma observável",
           "derivado": true,
           "opcoes": [
@@ -781,6 +786,12 @@
         },
         {
           "id": "checklist-fronteiras-claras",
+          "derivadoDe": {
+            "qualquer": [
+              "contexto",
+              "explicacao-do-recorte"
+            ]
+          },
           "campo": "Fronteiras do escopo claras",
           "derivado": true,
           "opcoes": [
@@ -795,6 +806,12 @@
         },
         {
           "id": "checklist-norma-estabelecida",
+          "derivadoDe": {
+            "qualquer": [
+              "contexto-metodologia"
+            ],
+            "doPlano": true
+          },
           "campo": "Norma claramente estabelecida",
           "derivado": true,
           "opcoes": [
@@ -810,19 +827,28 @@
         {
           "id": "checklist-criterios-exclusivos",
           "campo": "Critérios mutuamente exclusivos",
-          "obrigatorio": true,
+          "derivado": true,
+          "derivadoDe": {
+            "sempre": "não"
+          },
           "opcoes": [
             "sim",
             "não"
           ],
           "explicacao": {
             "oQueE": "Os critérios não se sobrepõem?",
-            "preencher": "Sim ou não.",
+            "preencher": "Pré-preenchido com «não»: nenhum campo do Plano de Observação decide isto — marque «sim» se os critérios não se sobrepõem.",
             "porQue": "Critérios sobrepostos contam a mesma coisa duas vezes."
           }
         },
         {
           "id": "checklist-justificativa-fundada",
+          "derivadoDe": {
+            "qualquer": [
+              "referencia-ao-problema",
+              "base-teorica"
+            ]
+          },
           "campo": "Justificativa fundamentada",
           "derivado": true,
           "opcoes": [
@@ -837,6 +863,12 @@
         },
         {
           "id": "checklist-recorte-viavel",
+          "derivadoDe": {
+            "qualquer": [
+              "o-que-fica-de-fora",
+              "explicacao-do-recorte"
+            ]
+          },
           "campo": "Âmbito viável",
           "derivado": true,
           "opcoes": [

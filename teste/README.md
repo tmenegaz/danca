@@ -25,6 +25,19 @@ exercitar o motor, não para representar uma turma de verdade.
 | `producao` | Bastidores → Produção | turmas, rubricas, vocabulário, alunas e curadorias |
 | `anamnese` | `/anamnese/` | as respostas da aluna escolhida no contexto |
 | `plano` | `/plano-ensino/` | os campos de escrita do plano da turma escolhida |
+| `po` | `/plano-observacao/` | o Plano de Observação da turma do plano escolhido |
+
+O bloco `po` (20/10/2026) tem uma diferença em relação aos outros dois: o
+`plano-de-ensino` não é um campo de escrita, e sim o **carimbo** de um plano já gravado
+(`plano-AAAAMMDD-HHMM`). O JSON não pode trazê-lo — ele só existe depois do lançamento.
+Por isso o preenchedor lê a estante (`/api/planos`), casa pelo campo `turma` do bloco e
+escreve o carimbo. Se não houver plano daquela turma na estante, avisa e deixa o nó por
+escolher, em vez de inventar um.
+
+O que o bloco `po` **não** traz, porque não é dado de fixture: a lista de dimensões
+observadas (nasce dos blocos da aula que o plano marca) e os seis itens do checklist de
+validação (cada um vale o que os campos que ele monitora dizem). Os dois se preenchem
+sozinhos quando o resto entra.
 
 ## A regra que não se quebra
 

@@ -954,6 +954,11 @@ let FICHAS = [];               // ids de envelope já gravados, o mais novo prim
 const RESPOSTAS = new Map();   // id -> {valor, nota}
 const NOTAS = new Map();       // id -> string
 const SUGERIDAS = new Set();   // ids que a pré-inscrição semeou, não a professora
+// AS RESPOSTAS DO PLANO DE ENSINO REFERENCIADO (19/10/2026): a folha «norma claramente
+// estabelecida» do checklist lê a metodologia NO PLANO, não no PO — o plano é que a
+// declara. Fica num mapa à parte (`PLANO_RESPOSTAS`) para a regra declarada no conteúdo
+// (`derivadoDe.doPlano`) saber onde olhar sem confundir as duas fontes.
+let PLANO_RESPOSTAS = new Map();
 // A correção socrática (Frente 5): id -> o VALOR já apontado. Pergunta-se UMA vez
 // por resposta — se a professora insiste no mesmo texto, o sistema respeita e
 // deixa seguir; se reformula, a checagem roda de novo.
@@ -2198,7 +2203,7 @@ function contar() {
 }
 
 /*
- * O que falta para o fecho abrir. Um obrigatório LIMPO volta a esta lista — o
+ * O QUE FALTA PARA O FECHO ABRIR. Um obrigatório LIMPO volta a esta lista — o
  * «limpar» do roteiro apaga a resposta, e a lacuna reaberta precisa reabrir a
  * trava.
  */
@@ -2207,7 +2212,62 @@ function obrigatoriosFaltando() {
   return MAPA.nos.filter((no) => no.obrigatorio && !perguntaRespondida(no));
 }
 
+// ------------------------------------------------- o checklist pré-preenchido
+
+/*
+ * A FOLHA DERIVADA DO CHECKLIST (19/10/2026). O bloco «Checklist de validação» diz, em cada
+ * uma das seis linhas, «pré-preenchido» — e chegava à tela com as seis em branco. O
+ * pré-preenchimento existia, mas só do lado do documento: o derivador tinha a regra num
+ * `switch`, e o formulário não tinha nenhuma. Resultado: o professor lia seis campos por
+ * preencher no fim do PO e achava que o formulário estava incompleto — e a barra dizia o
+ * contrário (os obrigatórios estavam respondidos, porque o checklist não é obrigatório).
+ *
+ * A REGRA VEM DO CONTEÚDO (`derivadoDe`) e é a MESMA que o derivador aplica: `qualquer`
+ * (basta um destes campos com conteúdo), `doPlano` (lê no plano referenciado, não no
+ * envelope) e `sempre` (o valor por omissão, quando nenhum campo decide). A tela não julga —
+ * aplica a declaração.
+ */
+function presenteNaResposta(valor) {
+  if (valor === null || valor === undefined) return false;
+  if (Array.isArray(valor)) return valor.some((v) => String(v || '').trim() !== '');
+  if (typeof valor === 'object') {
+    return Object.keys(valor).some((k) => String(valor[k] === null ? '' : valor[k]).trim() !== '');
+  }
+  return String(valor).trim() !== '';
+}
+
+/** O valor que a folha derivada assume, dado o que já se respondeu: `'sim'` ou `'não'`. */
+function valorDerivadoDoNo(no) {
+  const regra = no.derivadoDe;
+  if (!regra) return null;
+  if (regra.sempre !== undefined) {
+    return String(regra.sempre).trim().toLowerCase() === 'sim' ? 'sim' : 'não';
+  }
+  const fonte = regra.doPlano ? PLANO_RESPOSTAS : RESPOSTAS;
+  const preenchido = (regra.qualquer || []).some((id) => presenteNaResposta(fonte.get(id)));
+  return preenchido ? 'sim' : 'não';
+}
+
+/*
+ * Recalcula as folhas derivadas. Só toca nas que NINGUÉM respondeu por mão: a resposta
+ * explícita do professor vence a inferência (é a doutrina do derivador, e ele diz «pode
+ * corrigir se discordar»). `SUGERIDAS` guarda quais foram semeadas, para a primeira edição
+ * as aposentar — o mesmo mecanismo da semeadura do contexto do ato.
+ */
+function derivarChecklist() {
+  if (!MAPA || !MAPA.nos) return;
+  for (const no of MAPA.nos) {
+    if (!no.derivadoDe) continue;
+    if (RESPOSTAS.has(no.id) && !SUGERIDAS.has(no.id)) continue;
+    const valor = valorDerivadoDoNo(no);
+    if (valor === null) continue;
+    RESPOSTAS.set(no.id, valor);
+    SUGERIDAS.add(no.id);
+  }
+}
+
 function atualizarBarra() {
+  derivarChecklist();
   const { resp, obrig } = contar();
   $('n-resp').textContent = resp;
   $('n-obrig').textContent = obrig;
@@ -2255,9 +2315,20 @@ async function carregarOpcoesDe(ep) {
   CARREGANDO.add(ep);
   try {
     const resposta = await fetch(ep);
-    const dados = await resposta.json();
-    if (!resposta.ok || !dados || !Array.isArray(dados.opcoes)) {
-      throw new Error(dados && dados.erro ? dados.erro : 'HTTP ' + resposta.status);
+    // O CORPO PODE NÃO SER JSON (19/10/2026). Antes o `resposta.json()` corria ANTES de se
+    // olhar o estado, e uma página de erro do Cloudflare (o «error code: 1101») ou do runtime
+    // chegava ao professor como «Unexpected token '<'» no lugar da lista. O `JSON.parse` não
+    // é o lugar de descobrir que a resposta falhou: lê-se o texto, tenta-se ler o JSON, e o
+    // que se mostra é uma frase — nunca o erro do analisador.
+    const texto = await resposta.text();
+    let dados = null;
+    try { dados = JSON.parse(texto); } catch (erro) { dados = null; }
+    if (!resposta.ok) {
+      throw new Error((dados && dados.erro)
+        || ('a resposta não veio legível (HTTP ' + resposta.status + ')'));
+    }
+    if (!dados || !Array.isArray(dados.opcoes)) {
+      throw new Error(dados && dados.erro ? dados.erro : 'a lista veio num formato que não se lê');
     }
     OPCOES.set(ep, dados.opcoes);
   } catch (erro) {
@@ -2450,6 +2521,17 @@ function gravarRespostaDoNo(no) {
       SUGERIDAS.delete('categoria-etaria');
     }
   }
+  // A FOLHA DERIVADA: passar por ela sem mexer CONFIRMA o que o sistema inferiu (a
+  // resposta continua a ser re-derivada quando um campo de que ela depende mudar);
+  // escolher o OUTRO valor é discordar — e a discordância do professor não se reescreve.
+  if (no.derivadoDe) {
+    const inferida = valorDerivadoDoNo(no);
+    if (inferida !== null && RESPOSTAS.get(no.id) === inferida) SUGERIDAS.add(no.id);
+    else SUGERIDAS.delete(no.id);
+  }
+  // O PLANO REFERENCIADO muda a folha que lê no plano. Carrega-se o escolhido (não o mais
+  // recente da estante) e re-deriva-se quando ele chega.
+  if (FONTE === 'po' && no.id === 'plano-de-ensino') carregarPlanoReferenciado();
   // Único ponto por onde toda resposta passa — é aqui que a idade alcança a
   // categoria. Antes da barra e do roteiro, para os dois já contarem o nó que
   // a pré-inscrição preencheu.
@@ -2931,6 +3013,20 @@ function marcaDaTurmaUsada(usada) {
     (livre ? 'ajustar o plano' : 'ver o plano') + '</a>';
 }
 
+/*
+ * O QUE UMA LISTA VAZIA QUER DIZER. Não é o mesmo em todas: um PO sem plano de ensino não
+ * tem um erro, tem um plano por fazer; e o mesmo vale para os sujeitos, que vêm das
+ * anamneses. A frase é declarada por ENDEREÇO — o conteúdo diz de onde a lista vem, e a tela
+ * sabe o que é não haver nada lá (19/10/2026, pedido do professor: «se não tem plano de
+ * ensino, tem que dizer que ainda não há plano de ensino»).
+ */
+const LISTA_VAZIA = {
+  'api/planos': 'Ainda não há plano de ensino lançado para esta turma. ' +
+    'O Plano de Observação observa uma aula que tem plano: crie o plano de ensino e volte aqui.',
+  'api/anamneses': 'Ainda não há anamnese lançada. ' +
+    'A lista de sujeitos vem das anamneses — crie a primeira e volte aqui.',
+};
+
 /* As opções de um nó que declara `opcoesDe` — marcáveis, com o campo livre. */
 function gradeDeOpcoesDinamicas(no) {
   let lista = OPCOES.get(no.opcoesDe) || [];
@@ -2955,12 +3051,15 @@ function gradeDeOpcoesDinamicas(no) {
       '" target="_blank" rel="noopener">Criar a anamnese</a> — depois volte aqui e recarregue.</p>'
     : '';
   if (erro) {
-    return '<p class="erro">Não foi possível carregar a lista (' +
-      escapar(no.opcoesDe) + '): ' + escapar(erro) + '</p>' + atalho;
+    return '<p class="erro">Não foi possível carregar a lista agora: ' +
+      escapar(erro) + '</p>' + atalho;
   }
   if (!lista.length) {
-    return '<p class="aviso">A lista está vazia — não há registro de onde escolher. ' +
-      'Escreva o apelido no campo abaixo e crie a fonte pelo atalho.</p>' + atalho;
+    return '<p class="aviso">' +
+      (LISTA_VAZIA[no.opcoesDe]
+        || 'A lista está vazia — não há registro de onde escolher. ' +
+           'Escreva o apelido no campo abaixo e crie a fonte pelo atalho.') +
+      '</p>' + atalho;
   }
   const atual = RESPOSTAS.get(no.id);
   let marcados = Array.isArray(atual) ? atual : atual === undefined || atual === null ? [] : [atual];
@@ -4241,6 +4340,11 @@ async function semearDoPlano() {
     const v = reg && typeof reg === 'object' && 'valor' in reg ? reg.valor : reg;
     doPlano.set(id, v);
   }
+  // O plano fica à mão: as folhas do checklist que leem NO PLANO (`derivadoDe.doPlano`)
+  // precisam das respostas dele, não das do PO.
+  PLANO_RESPOSTAS.clear();
+  for (const [id, v] of doPlano) PLANO_RESPOSTAS.set(id, v);
+  derivarChecklist();
   const vivos = new Set(MAPA.nos.map((n) => n.id));
   const vazio = (v) => v === undefined || v === null || v === '';
 
@@ -4388,6 +4492,38 @@ function detalheDoEnvelope(envelope) {
     }
   }
   return partes.join('');
+}
+
+/*
+ * O PLANO QUE O PO REFERENCIA, lido pelo que o professor ESCOLHEU no nó `plano-de-ensino`
+ * (e não pelo mais recente da estante). É dele que sai a metodologia que a folha «norma
+ * claramente estabelecida» do checklist confere. Sem plano legível, a folha fica «não» — e
+ * dizê-lo é mais honesto do que inventar que a norma está estabelecida.
+ */
+async function carregarPlanoReferenciado() {
+  if (FONTE !== 'po') return;
+  const carimbo = RESPOSTAS.get('plano-de-ensino');
+  if (!carimbo || typeof carimbo !== 'string') {
+    PLANO_RESPOSTAS.clear();
+    atualizarBarra();
+    return;
+  }
+  if (PLANO_RESPOSTAS.get('__carimbo') === carimbo) return;
+  try {
+    const envelope = await carregarDetalhe({
+      carimbo, detalhe: 'api/envelope/' + encodeURIComponent(carimbo),
+    });
+    PLANO_RESPOSTAS.clear();
+    PLANO_RESPOSTAS.set('__carimbo', carimbo);
+    for (const [id, reg] of Object.entries(envelope.respostas || {})) {
+      PLANO_RESPOSTAS.set(id, reg && typeof reg === 'object' && 'valor' in reg ? reg.valor : reg);
+    }
+  } catch (erro) {
+    PLANO_RESPOSTAS.clear();
+    PLANO_RESPOSTAS.set('__carimbo', carimbo);
+  }
+  atualizarBarra();
+  pintarRoteiro();
 }
 
 /*
@@ -4547,12 +4683,27 @@ async function derivarDoConjunto(botao, no) {
     campo.dispatchEvent(new Event('input', { bubbles: true }));
   }
   let resumo;
+  const lidos = (d.corte || []).filter((r) => comObservacao.has(r.no)).length;
+  const conj = (d.corte || []).length;
   if (linhas.length) {
     resumo = linhas.length + ' item(ns) sugerido(s) — edite o que quiser.';
   } else if (!comAnamnese.length) {
     resumo = 'Nenhuma anamnese encontrada para as alunas escolhidas.';
   } else if (comObservacao.size === 0) {
     resumo = 'A anamnese existe, mas a observação inicial ainda não foi lançada — sem ela o âmbito não tem o que ler. Lance a observação e tente de novo.';
+  } else if (d.lado === 'otimo') {
+    // AS DUAS LISTAS NÃO SÃO A MESMA CONTA (19/10/2026). A sugestão de EXCLUSÃO procura o
+    // que TODAS já dominam — e quando há alguém a precisar de desenvolver em todos os itens
+    // do corte, não há nada a excluir: é o resultado CORRETO, não um botão avariado. A frase
+    // antiga («Nenhum item bateu com o âmbito declarado») dizia o contrário, e o professor
+    // leu-a como defeito — com razão, porque ela descrevia uma falha que não houve.
+    const lidosTxt = lidos === conj
+      ? 'Li os ' + conj + ' itens do corte'
+      : 'Li ' + lidos + ' dos ' + conj + ' itens do corte com observação lançada';
+    resumo = lidosTxt + ' nas anamneses de ' +
+      (comAnamnese.length === 1 ? '1 aluna' : comAnamnese.length + ' alunas') +
+      ': em todos há pelo menos uma aluna em «razoável» ou «precisa desenvolver». ' +
+      'Nada a excluir da observação — excluir é só para o que TODAS já dominam.';
   } else {
     resumo = 'Nenhum item bateu com o âmbito declarado.';
   }

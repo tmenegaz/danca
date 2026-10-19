@@ -19033,3 +19033,86 @@ entrada desta data sobre a lista que falhava — as duas nasceram do mesmo round
 branco a mais; nada o compara, e ele só será regerado na próxima geração — não se reescreveu
 nenhum pacote por causa disso. (b) A regra «a cópia é a fonte» continua a depender de o gerador
 ser executado: não há um comando isolado que regenere só a porta de um pacote existente.
+
+## 20/10/2026 — O PO abre sem plano e com o checklist em branco: a lista pagava cota e a folha não se preenchia
+
+**O que motivou.** O professor fez o PO completo na escola `calango` e relatou três defeitos no
+mesmo formulário, todos visíveis sem abrir o código:
+
+1. o bloco «Checklist de validação» dizia «pré-preenchido» nas seis linhas e **chegava com as seis
+   em branco**;
+2. os nós «Plano de ensino» e «Sujeito observável» abriam com **erro** — «não foi possível
+   carregar a lista» num, e «Unexpected token» no outro —, como se não houvesse plano nem pessoas,
+   quando havia os dois;
+3. a sugestão de **critérios de exclusão** respondia «Nenhum item bateu com o âmbito declarado»,
+   que se lê como avaria.
+
+A causa do (2) foi medida outra vez no Worker, com um `curl`: **503, com o motivo «KV list() limit
+exceeded for the day.»** É o mesmo defeito da entrada de 19/10 («a lista que falhava sem dizer
+porquê»): o `kv.list` tem cota diária própria, a enumeração **lança**, e o PO inteiro fica sem
+estante e sem sujeitos — com as anamneses e o plano gravados e invisíveis. Aquela entrada ensinou a
+tela a **dizer o motivo**; esta tira a lista da dependência da cota.
+
+**O que foi decidido.**
+
+- **A enumeração deixa de ser o dado.** O rol dos nomes dos envelopes passa a ser um **arquivo**
+  (`envelope/.indice.json`), lido com `get` — que não tem cota de enumeração — e mantido pelas
+  **duas únicas portas de escrita** dos envelopes (`gravarEnvelope`, `apagarEnvelope`). É a mesma
+  lição que o expurgo já tinha aprendido: a **leitura** é a autoridade, a listagem é só um índice, e
+  um índice pode mentir para menos. A enumeração passa a ser paga **uma vez por escola** (para
+  construir o índice) e nunca mais.
+- **Não se inventa lista vazia.** Sem índice **e** sem enumeração, a resposta continua a ser `503`
+  com o motivo: uma lista vazia por falha de leitura é indistinguível de «não há nada gravado».
+  O índice que não pôde ser construído por inteiro grava-se marcado `incompleto`, e a leitura
+  seguinte o reconstrói — gravar um envelope nunca depende de enumerar.
+- **Lista vazia tem frase própria, e falha não mostra o erro do analisador.** O corpo da resposta é
+  lido como texto e só depois interpretado: uma página de erro do Cloudflare deixa de chegar ao
+  professor como «Unexpected token '<'». E «ainda não há plano de ensino» é uma frase, não um erro.
+- **A regra do checklist é do CONTEÚDO, e as duas pontas leem a mesma.** Ela vivia num `switch` do
+  `derivar-po.js` — quer dizer, só do lado do documento. O formulário não tinha nenhuma, e por isso
+  o selo «pré-preenchido» convivia com a folha em branco. Agora cada folha declara, em
+  `derivadoDe` (`qualquer` / `doPlano` / `sempre`), de que campos se lê; o derivador e a tela
+  aplicam essa declaração. A sexta folha (critérios mutuamente exclusivos) passa a ser derivada
+  como as outras, com `sempre: "não"` — nenhum campo decide isto, e o professor corrige se discordar.
+- **A sugestão de exclusão diz o que encontrou.** A exclusão procura o que **todas** já dominam; se
+  em todos os itens do corte há alguém em «razoável» ou «precisa desenvolver», não há nada a
+  excluir — e isso é o resultado correto, dito por extenso, não a frase de falha.
+- **O PO entra no preenchimento das escolas de teste**, com um bloco `po` nos três fixtures: os
+  campos de escrita, os sujeitos, os itens por dimensão e o ponto de partida. O carimbo do plano não
+  pode estar no JSON (só existe depois do lançamento): o preenchedor lê a estante e casa pela turma.
+
+**Onde entrou.**
+- `motor/nucleo/porta.js` — o índice (`lerIndice`, `registrarNoIndice`, `esquecerDoIndice`), as duas
+  portas de escrita a mantê-lo, e o `derivadoDe` a viajar no mapa.
+- `motor/nucleo/derivar-po.js` — a inferência lê a declaração do conteúdo; `derivadosDoChecklist`.
+- `motor/nucleo/elicitar.js` — `derivadoDe` como descritor (o motor repassa, não interpreta).
+- `motor/servidor/rotas.js` — passa os `derivados` à derivação.
+- `porta/po/conteudo/po.json` — `derivadoDe` nas seis folhas do checklist.
+- `porta/index.html` — o checklist derivado no formulário (`derivarChecklist`), o plano referenciado
+  lido pelo que foi escolhido, as frases de lista vazia e de falha, e a mensagem da exclusão.
+- `motor/servidor/teste-cliente.js` e `teste/*.json` — o bloco `po` e o preenchimento; a metodologia
+  de referência entra no plano (era a única folha obrigatória que faltava ao fixture).
+- `teste/README.md` — o bloco `po` documentado, com o que ele não traz e por quê.
+- `experimentos/provar-indice-de-envelopes.js` — a prova do índice (31 asserções).
+- `experimentos/provar-teste.js` — quatro verificações novas do PO no harness que já existia.
+- `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `node experimentos/provar-indice-de-envelopes.js` → **TUDO CERTO, 31 asserções**.
+`node experimentos/provar-teste.js` → **26 verificações**, incluindo o PO completo, o checklist a
+seguir o campo que monitora, a exclusão a explicar-se e o nó sem plano a dizer «ainda não há».
+`node experimentos/provar-lista-que-falha.js` → **39 asserções** (sem regressão: sem índice e sem
+enumeração continua a ser 503). O PO derivado do fixture passa no `tools/validar-po-ciclo.js`. A
+âncora `.fipp` não se move: nenhum arquivo coberto pelo hash foi tocado.
+
+**Referências.** `motor/nucleo/armazenamento.js` (§ o contrato: falha de infraestrutura lança) ·
+`motor/servidor/expurgar-escola.js` (§ a leitura é a autoridade) · `CONGELAMENTO.md` (nenhum
+arquivo congelado tocado) · a entrada de 19/10/2026 sobre a lista que falhava — esta é a segunda
+metade do mesmo defeito.
+
+**O que ainda não está feito.** (a) O **estado** do PO nunca chega a `Input_PO_Validado`: a seção
+«Norma estabelecida» do documento sai sempre como lacuna declarada (`LACUNA_NORMA`), mesmo quando a
+metodologia está no plano — decisão antiga do derivador, que agora convive com uma folha do
+checklist marcada «sim». Fica por decidir qual das duas leituras é a certa. (b) A listagem do
+**cofre** dos acompanhamentos (`motor/nucleo/cofre.js`) continua a enumerar o KV, e portanto
+continua sujeita à mesma cota. (c) As dez provas que já imprimiam «FALHOU» com código 0 continuam a
+fazê-lo: a bancada de provas mente sobre si mesma.

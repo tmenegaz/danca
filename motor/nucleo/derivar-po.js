@@ -148,36 +148,42 @@ function presente(valor) {
 }
 
 // A INFERÊNCIA de uma folha — o «pré-preenchido» do checklist (Bloco 4 do pedido): quando o
-// professor não marcou, o que ele JÁ respondeu decide. Cinco folhas têm campo direto; a sexta
-// (critérios mutuamente exclusivos) NÃO tem — fica com o professor, nunca inferida.
-function inferirFolha(chave, envelope, plano) {
+// professor não marcou, o que ele JÁ respondeu decide.
+//
+// A REGRA É DO CONTEÚDO (19/10/2026). Ela vivia aqui, num `switch` que ninguém via do lado do
+// formulário — e por isso a folha dizia «pré-preenchido» na tela e chegava ao documento em
+// branco: eram dois juízos sobre o mesmo dado, e só um deles corria no formulário. Agora o
+// conteúdo declara, em `derivadoDe`, de que campos cada folha se lê (`qualquer`: basta um com
+// conteúdo; `doPlano`: lê no plano referenciado, não no envelope; `sempre`: o valor por
+// omissão, quando nenhum campo decide), e as duas pontas aplicam a MESMA declaração.
+const SEM_DECLARACAO = {
+  phenomenonOperationallyDefined: ['fenomeno'],
+  scopeBoundariesClear: ['contexto', 'explicacao-do-recorte'],
+  normClearlyEstablished: ['contexto-metodologia'],
+  criteriaMutuallyExclusive: [],
+  justificationGrounded: ['referencia-ao-problema', 'base-teorica'],
+  cutFeasible: ['o-que-fica-de-fora', 'explicacao-do-recorte'],
+};
+
+function inferirFolha(chave, envelope, plano, declaracao) {
   const noEnvelope = (id) => presente(respostaDo(envelope, id));
   const noPlano = (id) => presente(respostaDo(plano, id));
-  switch (chave) {
-    case 'phenomenonOperationallyDefined':
-      return noEnvelope('fenomeno');
-    case 'scopeBoundariesClear':
-      return noEnvelope('contexto') || noEnvelope('explicacao-do-recorte');
-    case 'normClearlyEstablished':
-      // A «norma» que esta folha pergunta é a METODOLOGIA declarada — que vive no plano.
-      return noPlano('contexto-metodologia');
-    case 'criteriaMutuallyExclusive':
-      return false; // sem campo direto — o professor decide
-    case 'justificationGrounded':
-      return noEnvelope('referencia-ao-problema') || noEnvelope('base-teorica');
-    case 'cutFeasible':
-      return noEnvelope('o-que-fica-de-fora') || noEnvelope('explicacao-do-recorte');
-    default:
-      return false;
+
+  const regra = declaracao || { qualquer: SEM_DECLARACAO[chave] || [] };
+  if (regra.sempre !== undefined) {
+    const cru = String(regra.sempre || '').trim().toLowerCase();
+    return cru === 'sim';
   }
+  const fonte = regra.doPlano ? noPlano : noEnvelope;
+  return (regra.qualquer || []).some((id) => fonte(id));
 }
 
 // A folha resolvida: a resposta explícita vence; sem ela, a inferência preenche.
-function folhaDoChecklist(chave, valor, envelope, plano) {
+function folhaDoChecklist(chave, valor, envelope, plano, declaracao) {
   const explicita = respostaExplicitaDaFolha(valor);
   if (explicita === 'sim') return true;
   if (explicita === 'não') return false;
-  return inferirFolha(chave, envelope, plano);
+  return inferirFolha(chave, envelope, plano, declaracao);
 }
 
 // O nome humano de cada folha do checklist — o professor lê o nome, o extrator lê a chave.
@@ -206,6 +212,22 @@ function rotulosDoChecklist(conteudoPO) {
   for (const bloco of blocos) {
     for (const campo of bloco.campos || []) {
       if (campo && campo.id && campo.campo) mapa[campo.id] = campo.campo;
+    }
+  }
+  return mapa;
+}
+
+/**
+ * A DECLARAÇÃO da inferência, por id do nó — o `derivadoDe` que o conteúdo escreve em cada
+ * folha do checklist. O formulário e o documento têm de ler a MESMA regra: quando cada um tinha
+ * a sua, a tela mostrava «pré-preenchido» e o documento saía em branco.
+ */
+function derivadosDoChecklist(conteudoPO) {
+  const mapa = {};
+  const blocos = (conteudoPO && conteudoPO.blocos) || [];
+  for (const bloco of blocos) {
+    for (const campo of bloco.campos || []) {
+      if (campo && campo.id && campo.derivadoDe) mapa[campo.id] = campo.derivadoDe;
     }
   }
   return mapa;
@@ -379,9 +401,12 @@ function derivarPO(envelope, plano, opcoes) {
     theoreticalBasis: respostaDo(envelope, 'base-teorica'),
   };
 
+  const derivados = (opcoes && opcoes.derivados) || {};
   const checklist = {};
   for (const [id, chave] of CHECKLIST) {
-    checklist[chave] = folhaDoChecklist(chave, respostaDo(envelope, id), envelope, plano);
+    checklist[chave] = folhaDoChecklist(
+      chave, respostaDo(envelope, id), envelope, plano, derivados[id],
+    );
   }
 
   const estado = estadoDoPO(checklist);
@@ -545,6 +570,7 @@ module.exports = {
   itensPorDimensao,
   textoOuLacuna,
   rotulosDoChecklist,
+  derivadosDoChecklist,
   ROTULOS_DO_CONTEXTO,
   COMPOR_DO_CONTEXTO,
   ROTULO_DO_CHECKLIST,

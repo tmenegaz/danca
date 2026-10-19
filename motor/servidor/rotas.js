@@ -27,7 +27,7 @@ const porta = require('../nucleo/porta.js');
 const cofre = require('../nucleo/cofre.js');
 const lancamento = require('../nucleo/lancamento.js');
 // Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
-const { rotulosDoChecklist } = require('../nucleo/derivar-po.js');
+const { rotulosDoChecklist, derivadosDoChecklist } = require('../nucleo/derivar-po.js');
 // O PLANO inteiro em Markdown, para a folha que o professor lê e imprime. É a MESMA
 // derivação que escreve a fonte do ciclo (`servidor/escrever-plano.js`): uma definição só,
 // para o documento impresso e o documento publicado não poderem divergir.
@@ -573,7 +573,10 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
             // leu ao marcar. Sem esta passagem, o documento já assinou «Fronteiras claras» onde
             // o formulário diz «Fronteiras do escopo claras».
             resultado.fonte = await escreverPO(envelope, 'feat(po): o PO elicitado vira a fonte do ciclo',
-              plano, { rotulos: rotulosDoChecklist(conteudoPO) });
+              plano, {
+                rotulos: rotulosDoChecklist(conteudoPO),
+                derivados: derivadosDoChecklist(conteudoPO),
+              });
           } catch (erro) {
             resultado.fonte = { ok: false, erro: erro.message };
           }

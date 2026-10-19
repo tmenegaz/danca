@@ -340,6 +340,116 @@ const SCRIPT = String.raw`(function () {
     return corpo;
   }
 
+  // ================= O PLANO DE OBSERVAÇÃO =================================
+
+  /* O PO consome o PLANO e a ANAMNESE; o fixture não pode trazer o que só o servidor sabe.
+     Duas coisas ficam de fora do JSON e são resolvidas aqui, na hora de preencher:
+       · o «plano-de-ensino» é um CARIMBO (plano-AAAAMMDD-HHMM), e o fixture só conhece a
+         TURMA — o carimbo é lido da estante (api/planos), casando pela turma;
+       · o resto vem escrito no fixture, campo a campo, e entra em RESPOSTAS como qualquer
+         resposta do professor. Nada é submetido: gravar continua a ser um clique dele. */
+  function carimboDoPlanoDaTurma(turma) {
+    var lista = (typeof OPCOES !== 'undefined' && OPCOES.get('api/planos')) || [];
+    for (var i = 0; i < lista.length; i++) {
+      if (lista[i] && lista[i].turma === turma) return lista[i].valor;
+    }
+    // Sem plano daquela turma, o mais recente da estante — melhor um plano do que nenhum.
+    return lista.length ? lista[0].valor : null;
+  }
+
+  function preencherPo(registro) {
+    if (!registro) return;
+    if (typeof MAPA === 'undefined' || !MAPA) {
+      dizer('O formulário ainda não abriu. Aguarde um instante.');
+      return;
+    }
+    RESPOSTAS.clear();
+    NOTAS.clear();
+    SUGERIDAS.clear();
+    Object.keys(registro.respostas || {}).forEach(function (k) { RESPOSTAS.set(k, registro.respostas[k]); });
+    Object.keys(registro.notas || {}).forEach(function (k) { NOTAS.set(k, registro.notas[k]); });
+    if (registro.sujeitos) RESPOSTAS.set('sujeitos', registro.sujeitos.slice());
+
+    // O «plano-de-ensino» só entra se a estante já chegou: é dela que sai o carimbo.
+    var carimbo = carimboDoPlanoDaTurma(registro.turma);
+    if (carimbo) {
+      RESPOSTAS.set('plano-de-ensino', carimbo);
+      if (typeof carregarPlanoReferenciado === 'function') carregarPlanoReferenciado();
+    } else {
+      dizer('Não achei o plano de ensino de «' + registro.turma + '» na estante. ' +
+        'Preenchi os outros campos; o nó «Plano de ensino» fica por escolher.');
+    }
+
+    // A IDENTIDADE vem da BARRA, como no preenchimento manual: «professor» e «escola» são
+    // nós «deContexto», e sem esta chamada ficariam vazios depois do clear.
+    if (typeof semearDoContexto === 'function') semearDoContexto();
+
+    // A DIMENSÃO OBSERVADA nasce dos BLOCOS DA AULA que o plano marca — é «doPlano», e só se
+    // resolve abrindo o nó que a pede. Carrega-se aqui para o PO nascer completo, e o valor
+    // dela (as dimensões) volta a semear os itens.
+    if (typeof carregarDimensoesDoPlano === 'function') {
+      carregarDimensoesDoPlano().then(function () {
+        if (typeof atualizarBarra === 'function') atualizarBarra();
+        if (typeof pintarRoteiro === 'function') pintarRoteiro();
+        var c = porId('conducao');
+        if (c && !c.classList.contains('oculto') && typeof renderPergunta === 'function') {
+          renderPergunta();
+        }
+      });
+    }
+
+    if (typeof atualizarBarra === 'function') atualizarBarra();
+    if (typeof pintarRoteiro === 'function') pintarRoteiro();
+    if (typeof salvar === 'function') salvar();
+    var conducao = porId('conducao');
+    if (conducao && !conducao.classList.contains('oculto') && typeof renderPergunta === 'function') {
+      renderPergunta();
+    }
+    dizer('Plano de Observação preenchido para ' + registro.turma + '. Confira e grave manualmente.');
+  }
+
+  function poDaTurma(nome) {
+    var lista = fixture.po || [];
+    for (var i = 0; i < lista.length; i++) {
+      if (lista[i].turma === nome) return lista[i];
+    }
+    return null;
+  }
+
+  function primeiraTurmaComPo() {
+    var lista = fixture.po || [];
+    return lista.length ? lista[0] : null;
+  }
+
+  function autoPo() {
+    var lista = fixture.po || [];
+    var registro = primeiraTurmaComPo();
+    if (!registro) return;
+    // O PO não tem seletor de turma: a turma chega pelo PLANO escolhido. Se já houver um
+    // plano marcado, prefere-se o PO daquela turma.
+    var carimbo = typeof RESPOSTAS !== 'undefined' ? RESPOSTAS.get('plano-de-ensino') : null;
+    if (carimbo && typeof OPCOES !== 'undefined') {
+      var estante = OPCOES.get('api/planos') || [];
+      for (var i = 0; i < estante.length; i++) {
+        if (estante[i].valor === carimbo && poDaTurma(estante[i].turma)) {
+          registro = poDaTurma(estante[i].turma);
+          break;
+        }
+      }
+    }
+    preencherPo(registro);
+  }
+
+  function painelPo() {
+    var corpo = document.createDocumentFragment();
+    var nomes = (fixture.po || []).map(function (p) { return p.turma; });
+    corpo.appendChild(seletorDeRegistros('Turma', nomes, function (i) {
+      var registro = (fixture.po || [])[i];
+      if (registro) preencherPo(registro);
+    }));
+    return corpo;
+  }
+
   // ================= O PAINEL E A PARTIDA ===================================
 
   function montarPainel(corpo) {
@@ -410,6 +520,19 @@ const SCRIPT = String.raw`(function () {
           montarPainel(painelPlano());
           autoPlano();
         });
+      } else if (FONTE === 'po') {
+        // O PO precisa da ESTANTE DE PLANOS (o carimbo do plano da turma) antes de
+        // preencher: é o «opcoesDe» do nó «Plano de ensino», e chega de forma assíncrona.
+        function quandoEstante(pronto) {
+          var pronta = typeof OPCOES !== 'undefined'
+            && (OPCOES.has('api/planos') || (typeof OPCOES_ERRO !== 'undefined' && OPCOES_ERRO.has('api/planos')));
+          if (pronta) return pronto();
+          setTimeout(function () { quandoEstante(pronto); }, 120);
+        }
+        quandoEstante(function () {
+          montarPainel(painelPo());
+          autoPo();
+        });
       }
     });
 
@@ -427,7 +550,7 @@ const SCRIPT = String.raw`(function () {
     });
     // Gancho de diagnóstico: as provas e o console podem chamar o preenchimento sem
     // depender do evento. Não é usado pela página.
-    window.__preencherTeste = { anamnese: preencherAnamnese, plano: preencherPlano,
+    window.__preencherTeste = { anamnese: preencherAnamnese, plano: preencherPlano, po: preencherPo,
       producao: { turma: preencherTurma, rubrica: preencherRubrica, termo: preencherTermo,
         aluna: preencherAluna, curadoria: preencherCuradoria } };
   }

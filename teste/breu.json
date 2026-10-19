@@ -481,6 +481,8 @@
       "turma": "Balé Nível 1 — Teste 3",
       "respostas": {
         "objetivo-geral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+        "contexto-metodologia": "RAD",
+        "contexto-metodologia-origem": "Eu escolho",
         "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
         "estrutura-de-cada-aula": [
           {
@@ -620,6 +622,8 @@
       "turma": "Balé Nível 2 — Teste 3",
       "respostas": {
         "objetivo-geral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 3, com musicalidade e controle do movimento.",
+        "contexto-metodologia": "RAD",
+        "contexto-metodologia-origem": "Eu escolho",
         "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
         "estrutura-de-cada-aula": [
           {
@@ -759,6 +763,8 @@
       "turma": "Balé Nível 3 — Teste 3",
       "respostas": {
         "objetivo-geral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 3, com musicalidade e controle do movimento.",
+        "contexto-metodologia": "RAD",
+        "contexto-metodologia-origem": "Eu escolho",
         "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
         "estrutura-de-cada-aula": [
           {
@@ -891,6 +897,206 @@
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
         "proveniencia": "Plano de teste 3, gerado para exercitar o formulário."
+      },
+      "notas": {}
+    }
+  ],
+  "po": [
+    {
+      "turma": "Balé Nível 1 — Teste 3",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "respostas": {
+        "horizonte": "Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
+        "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
+        "fenomeno": "A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.",
+        "itens-por-dimensao": [
+          {
+            "sujeito": "Técnica — Solo",
+            "itens": "alinhamento do pé de apoio; eixo do corpo na preparação"
+          },
+          {
+            "sujeito": "Técnica — Barra",
+            "itens": "saída do calcanhar no tendu; quadril sem subir no en dehors"
+          },
+          {
+            "sujeito": "Técnica — Centro",
+            "itens": "transferência de peso sem perder a verticalidade; braço junto do movimento"
+          },
+          {
+            "sujeito": "Técnica — Musicalidade",
+            "itens": "resposta ao pulso na marcação; frase até o fim da música"
+          },
+          {
+            "sujeito": "Técnica — Expressão",
+            "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
+          }
+        ],
+        "sujeitos": [
+          "Aluna A",
+          "Aluna B",
+          "Aluna C"
+        ],
+        "linha-de-base": [
+          {
+            "sujeito": "Aluna A",
+            "traz": "prática anterior: mais de 5 anos",
+            "precisaDesenvolver": "saída do calcanhar no tendu; passé sem perder o eixo"
+          },
+          {
+            "sujeito": "Aluna B",
+            "traz": "isquiotibiais flexíveis; cambré amplo",
+            "precisaDesenvolver": "rotação externa sustentada do quadril; saída do calcanhar no tendu; meia ponta com o pé alinhado"
+          },
+          {
+            "sujeito": "Aluna C",
+            "traz": "prática anterior: de 2 a 5 anos",
+            "precisaDesenvolver": "rotação externa sustentada do quadril; passé sem perder o eixo; meia ponta com o pé alinhado"
+          }
+        ],
+        "inclusao": "en dehors (rotação externa) — 2 de 3: Aluna B, Aluna C\no tendu — 2 de 3: Aluna A, Aluna B\no passé — 2 de 3: Aluna A, Aluna C\na meia ponta — 2 de 3: Aluna B, Aluna C\na musicalidade — 2 de 3: Aluna A, Aluna B\n1ª posição — pés — 2 de 3: Aluna A, Aluna C\n2ª posição — pés — 2 de 3: Aluna B, Aluna C\n3ª posição — pés — 2 de 3: Aluna A, Aluna B\n4ª posição — pés — 2 de 3: Aluna A, Aluna C\n5ª posição — pés — 2 de 3: Aluna B, Aluna C\n1ª posição — braços — 2 de 3: Aluna A, Aluna B\n2ª posição — braços — 2 de 3: Aluna A, Aluna C\n3ª posição — braços — 2 de 3: Aluna B, Aluna C\n4ª posição — braços — 2 de 3: Aluna A, Aluna B\n5ª posição — braços — 2 de 3: Aluna A, Aluna C\nformato anatómico dos joelhos — 2 de 3: Aluna A, Aluna B\nflexibilidade dos isquiotibiais — 2 de 3: Aluna A, Aluna C\nflexibilidade dos adutores — 2 de 3: Aluna B, Aluna C\nmobilidade das costas e tronco (cambré) — 2 de 3: Aluna A, Aluna C\narquitetura do arco plantar — 2 de 3: Aluna B, Aluna C\nequilíbrio unipodal — 1 de 3: Aluna B\ncoordenação motora e dissociação — 1 de 3: Aluna B",
+        "exclusao": "Nada fica fora por domínio: em todos os 22 itens do corte há pelo menos uma aluna em «razoável» ou «precisa desenvolver». Fica fora o que não é observável na aula: a intenção declarada e o esforço percebido.",
+        "condicoes-de-contorno": "Sala com barra, espelho e aparelho de som; piso adequado. A observação acontece na aula regular, sem aula extra e sem vídeo.",
+        "referencia-ao-problema": "O problema é o en dehors que sai do joelho: três das cinco posições mostram rotação forçada a partir do tornozelo, e o tendu perde a saída do calcanhar.",
+        "explicacao-do-recorte": "O recorte é a técnica vista através dos cinco blocos da aula — solo, barra, centro, musicalidade e expressão —, um item observável por bloco, marcado por aluna.",
+        "o-que-fica-de-fora": "Ficam fora deste ciclo o allegro, o trabalho de ponta e a avaliação de repertório: o plano não os marca como bloco, e observar o que não se ensinou não é dado, é suposição.",
+        "base-teorica": "RAD (2015) e material de teste do Projeto Ciclo. O eixo de observação é a técnica, e a leitura do en dehors a partir do quadril segue a descrição anatômica registada na anamnese.",
+        "limitacoes": "A observação depende da aula acontecer com barra e espelho; sem espelho, o alinhamento do pé fica por inferência. Uma aluna por aula pode faltar — a lacuna fica declarada, não preenchida."
+      },
+      "notas": {}
+    },
+    {
+      "turma": "Balé Nível 2 — Teste 3",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "respostas": {
+        "horizonte": "Ao fim do ano, a turma do Nível 2 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
+        "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
+        "fenomeno": "A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.",
+        "itens-por-dimensao": [
+          {
+            "sujeito": "Técnica — Solo",
+            "itens": "alinhamento do pé de apoio; eixo do corpo na preparação"
+          },
+          {
+            "sujeito": "Técnica — Barra",
+            "itens": "saída do calcanhar no tendu; quadril sem subir no en dehors"
+          },
+          {
+            "sujeito": "Técnica — Centro",
+            "itens": "transferência de peso sem perder a verticalidade; braço junto do movimento"
+          },
+          {
+            "sujeito": "Técnica — Musicalidade",
+            "itens": "resposta ao pulso na marcação; frase até o fim da música"
+          },
+          {
+            "sujeito": "Técnica — Expressão",
+            "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
+          }
+        ],
+        "sujeitos": [
+          "Aluna A",
+          "Aluna B",
+          "Aluna C"
+        ],
+        "linha-de-base": [
+          {
+            "sujeito": "Aluna A",
+            "traz": "prática anterior: mais de 5 anos",
+            "precisaDesenvolver": "saída do calcanhar no tendu; passé sem perder o eixo"
+          },
+          {
+            "sujeito": "Aluna B",
+            "traz": "isquiotibiais flexíveis; cambré amplo",
+            "precisaDesenvolver": "rotação externa sustentada do quadril; saída do calcanhar no tendu; meia ponta com o pé alinhado"
+          },
+          {
+            "sujeito": "Aluna C",
+            "traz": "prática anterior: de 2 a 5 anos",
+            "precisaDesenvolver": "rotação externa sustentada do quadril; passé sem perder o eixo; meia ponta com o pé alinhado"
+          }
+        ],
+        "inclusao": "en dehors (rotação externa) — 2 de 3: Aluna B, Aluna C\no tendu — 2 de 3: Aluna A, Aluna B\no passé — 2 de 3: Aluna A, Aluna C\na meia ponta — 2 de 3: Aluna B, Aluna C\na musicalidade — 2 de 3: Aluna A, Aluna B\n1ª posição — pés — 2 de 3: Aluna A, Aluna C\n2ª posição — pés — 2 de 3: Aluna B, Aluna C\n3ª posição — pés — 2 de 3: Aluna A, Aluna B\n4ª posição — pés — 2 de 3: Aluna A, Aluna C\n5ª posição — pés — 2 de 3: Aluna B, Aluna C\n1ª posição — braços — 2 de 3: Aluna A, Aluna B\n2ª posição — braços — 2 de 3: Aluna A, Aluna C\n3ª posição — braços — 2 de 3: Aluna B, Aluna C\n4ª posição — braços — 2 de 3: Aluna A, Aluna B\n5ª posição — braços — 2 de 3: Aluna A, Aluna C\nformato anatómico dos joelhos — 2 de 3: Aluna A, Aluna B\nflexibilidade dos isquiotibiais — 2 de 3: Aluna A, Aluna C\nflexibilidade dos adutores — 2 de 3: Aluna B, Aluna C\nmobilidade das costas e tronco (cambré) — 2 de 3: Aluna A, Aluna C\narquitetura do arco plantar — 2 de 3: Aluna B, Aluna C\nequilíbrio unipodal — 1 de 3: Aluna B\ncoordenação motora e dissociação — 1 de 3: Aluna B",
+        "exclusao": "Nada fica fora por domínio: em todos os 22 itens do corte há pelo menos uma aluna em «razoável» ou «precisa desenvolver». Fica fora o que não é observável na aula: a intenção declarada e o esforço percebido.",
+        "condicoes-de-contorno": "Sala com barra, espelho e aparelho de som; piso adequado. A observação acontece na aula regular, sem aula extra e sem vídeo.",
+        "referencia-ao-problema": "O problema é o en dehors que sai do joelho: três das cinco posições mostram rotação forçada a partir do tornozelo, e o tendu perde a saída do calcanhar.",
+        "explicacao-do-recorte": "O recorte é a técnica vista através dos cinco blocos da aula — solo, barra, centro, musicalidade e expressão —, um item observável por bloco, marcado por aluna.",
+        "o-que-fica-de-fora": "Ficam fora deste ciclo o allegro, o trabalho de ponta e a avaliação de repertório: o plano não os marca como bloco, e observar o que não se ensinou não é dado, é suposição.",
+        "base-teorica": "RAD (2015) e material de teste do Projeto Ciclo. O eixo de observação é a técnica, e a leitura do en dehors a partir do quadril segue a descrição anatômica registada na anamnese.",
+        "limitacoes": "A observação depende da aula acontecer com barra e espelho; sem espelho, o alinhamento do pé fica por inferência. Uma aluna por aula pode faltar — a lacuna fica declarada, não preenchida."
+      },
+      "notas": {}
+    },
+    {
+      "turma": "Balé Nível 3 — Teste 3",
+      "sujeitos": [
+        "Aluna A",
+        "Aluna B",
+        "Aluna C"
+      ],
+      "respostas": {
+        "horizonte": "Ao fim do ano, a turma do Nível 3 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.",
+        "question": "O que exatamente se observa, aula a aula, para saber se o en dehors está a sair do quadril e não do joelho?",
+        "fenomeno": "A rotação externa visível na 1ª posição e no en dehors: o joelho acompanha o pé sem forçar, e o quadril não sobe quando a perna roda.",
+        "itens-por-dimensao": [
+          {
+            "sujeito": "Técnica — Solo",
+            "itens": "alinhamento do pé de apoio; eixo do corpo na preparação"
+          },
+          {
+            "sujeito": "Técnica — Barra",
+            "itens": "saída do calcanhar no tendu; quadril sem subir no en dehors"
+          },
+          {
+            "sujeito": "Técnica — Centro",
+            "itens": "transferência de peso sem perder a verticalidade; braço junto do movimento"
+          },
+          {
+            "sujeito": "Técnica — Musicalidade",
+            "itens": "resposta ao pulso na marcação; frase até o fim da música"
+          },
+          {
+            "sujeito": "Técnica — Expressão",
+            "itens": "olhar acompanha o braço; presença sem rigidez de rosto"
+          }
+        ],
+        "sujeitos": [
+          "Aluna A",
+          "Aluna B",
+          "Aluna C"
+        ],
+        "linha-de-base": [
+          {
+            "sujeito": "Aluna A",
+            "traz": "prática anterior: mais de 5 anos",
+            "precisaDesenvolver": "saída do calcanhar no tendu; passé sem perder o eixo"
+          },
+          {
+            "sujeito": "Aluna B",
+            "traz": "isquiotibiais flexíveis; cambré amplo",
+            "precisaDesenvolver": "rotação externa sustentada do quadril; saída do calcanhar no tendu; meia ponta com o pé alinhado"
+          },
+          {
+            "sujeito": "Aluna C",
+            "traz": "prática anterior: de 2 a 5 anos",
+            "precisaDesenvolver": "rotação externa sustentada do quadril; passé sem perder o eixo; meia ponta com o pé alinhado"
+          }
+        ],
+        "inclusao": "en dehors (rotação externa) — 2 de 3: Aluna B, Aluna C\no tendu — 2 de 3: Aluna A, Aluna B\no passé — 2 de 3: Aluna A, Aluna C\na meia ponta — 2 de 3: Aluna B, Aluna C\na musicalidade — 2 de 3: Aluna A, Aluna B\n1ª posição — pés — 2 de 3: Aluna A, Aluna C\n2ª posição — pés — 2 de 3: Aluna B, Aluna C\n3ª posição — pés — 2 de 3: Aluna A, Aluna B\n4ª posição — pés — 2 de 3: Aluna A, Aluna C\n5ª posição — pés — 2 de 3: Aluna B, Aluna C\n1ª posição — braços — 2 de 3: Aluna A, Aluna B\n2ª posição — braços — 2 de 3: Aluna A, Aluna C\n3ª posição — braços — 2 de 3: Aluna B, Aluna C\n4ª posição — braços — 2 de 3: Aluna A, Aluna B\n5ª posição — braços — 2 de 3: Aluna A, Aluna C\nformato anatómico dos joelhos — 2 de 3: Aluna A, Aluna B\nflexibilidade dos isquiotibiais — 2 de 3: Aluna A, Aluna C\nflexibilidade dos adutores — 2 de 3: Aluna B, Aluna C\nmobilidade das costas e tronco (cambré) — 2 de 3: Aluna A, Aluna C\narquitetura do arco plantar — 2 de 3: Aluna B, Aluna C\nequilíbrio unipodal — 1 de 3: Aluna B\ncoordenação motora e dissociação — 1 de 3: Aluna B",
+        "exclusao": "Nada fica fora por domínio: em todos os 22 itens do corte há pelo menos uma aluna em «razoável» ou «precisa desenvolver». Fica fora o que não é observável na aula: a intenção declarada e o esforço percebido.",
+        "condicoes-de-contorno": "Sala com barra, espelho e aparelho de som; piso adequado. A observação acontece na aula regular, sem aula extra e sem vídeo.",
+        "referencia-ao-problema": "O problema é o en dehors que sai do joelho: três das cinco posições mostram rotação forçada a partir do tornozelo, e o tendu perde a saída do calcanhar.",
+        "explicacao-do-recorte": "O recorte é a técnica vista através dos cinco blocos da aula — solo, barra, centro, musicalidade e expressão —, um item observável por bloco, marcado por aluna.",
+        "o-que-fica-de-fora": "Ficam fora deste ciclo o allegro, o trabalho de ponta e a avaliação de repertório: o plano não os marca como bloco, e observar o que não se ensinou não é dado, é suposição.",
+        "base-teorica": "RAD (2015) e material de teste do Projeto Ciclo. O eixo de observação é a técnica, e a leitura do en dehors a partir do quadril segue a descrição anatômica registada na anamnese.",
+        "limitacoes": "A observação depende da aula acontecer com barra e espelho; sem espelho, o alinhamento do pé fica por inferência. Uma aluna por aula pode faltar — a lacuna fica declarada, não preenchida."
       },
       "notas": {}
     }

@@ -214,6 +214,10 @@ function descritores(campo) {
     // A folha DERIVADA (o checklist pré-preenchido): o obrigatoriamente sai, e este
     // selo fica — a tela mostra «pré-preenchido» em vez de «opcional».
     derivado: campo.derivado === true,
+    // A REGRA do pré-preenchimento: de que campos a folha derivada se lê (`qualquer`,
+    // `doPlano`, `sempre`). O motor não a interpreta — repassa-a, para o formulário e o
+    // derivador aplicarem a MESMA declaração do conteúdo em vez de dois juízos.
+    derivadoDe: campo.derivadoDe || null,
     // AS FORMAS DE VALOR. O PE não sabe o que é «frequência semanal» nem «volume
     // de trabalho» — sabe compor NÚMERO + UNIDADE. Quem diz quais unidades
     // existem, quantos pares e se é uma faixa é o CONTEÚDO; o recipiente fornece

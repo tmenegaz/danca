@@ -299,12 +299,61 @@ const MAPA_PLANO = (() => {
   const porta = require('../motor/nucleo/porta.js');
   return { ok: true, ...porta.mapa(JSON.parse(fs.readFileSync(CONTEUDO_PLANO, 'utf8'))) };
 })();
+const MAPA_PO = (() => {
+  const porta = require('../motor/nucleo/porta.js');
+  return { ok: true, ...porta.mapa(JSON.parse(fs.readFileSync(path.join(RAIZ, 'porta/po/conteudo/po.json'), 'utf8'))) };
+})();
+
+// O PLANO já lançado na estante: um carimbo por turma da fixture, com as respostas DENTRO
+// (é `api/envelope/<carimbo>` que a tela lê para saber a metodologia e os blocos da aula).
+const PLANOS_DA_ESTANTE = (FIXTURE.plano || []).map((pl, i) => ({
+  carimbo: 'plano-2026101' + i + '-1000',
+  turma: pl.turma,
+  respostas: pl.respostas,
+}));
+const ANAMNESES_DA_ESTANTE = (FIXTURE.anamnese || []).map((a, i) => ({
+  carimbo: 'anamnese-2026101' + i + '-1000',
+  aluna: a.aluna,
+  respostas: a.respostas,
+}));
+// Um interruptor para a prova poder fingir a estante VAZIA (o «ainda não há plano»).
+let ESTANTE_VAZIA = false;
 
 const PEDIDOS = [];
 
 function apiDe(rota, fonte) {
   if (rota.startsWith('api/mapa')) {
+    if (fonte === 'po') return MAPA_PO;
     return fonte === 'plano' ? MAPA_PLANO : MAPA_ANAMNESE;
+  }
+  if (rota.startsWith('api/planos')) {
+    return {
+      ok: true,
+      opcoes: ESTANTE_VAZIA ? [] : PLANOS_DA_ESTANTE.map((p) => ({
+        valor: p.carimbo, rotulo: p.respostas['objetivo-geral'], carimbo: p.carimbo,
+        turma: p.turma, detalhe: 'api/envelope/' + p.carimbo, vinculada: false, por: [],
+      })),
+    };
+  }
+  if (rota.startsWith('api/anamneses')) {
+    return {
+      ok: true,
+      opcoes: ESTANTE_VAZIA ? [] : ANAMNESES_DA_ESTANTE.map((a) => ({
+        valor: a.aluna, rotulo: a.aluna, carimbo: a.carimbo,
+        detalhe: 'api/envelope/' + a.carimbo, vinculada: false, por: [],
+      })),
+    };
+  }
+  if (rota.startsWith('api/envelopes')) {
+    return { ok: true, envelopes: PLANOS_DA_ESTANTE.map((p) => p.carimbo + '.json') };
+  }
+  if (rota.startsWith('api/envelope/')) {
+    const id = decodeURIComponent(rota.slice('api/envelope/'.length));
+    const achado = PLANOS_DA_ESTANTE.concat(ANAMNESES_DA_ESTANTE).find((e) => e.carimbo === id);
+    if (!achado) return null;
+    const respostas = {};
+    for (const [k, v] of Object.entries(achado.respostas || {})) respostas[k] = { valor: v, origem: 'declarado' };
+    return { id, contexto: { escola: 'batata', professor: 'Docente', ciclo: '01' }, respostas };
   }
   if (rota.startsWith('api/teste')) {
     return { ok: true, teste: 2, escola: 'batata', fixture: FIXTURE };
@@ -346,9 +395,11 @@ const servidor = http.createServer((req, res) => {
     res.end(corpo);
   };
 
-  const fonte = caminho.startsWith('plano-ensino/') ? 'plano'
+  const fonte = caminho.startsWith('plano-observacao/') ? 'po'
+    : caminho.startsWith('plano-ensino/') ? 'plano'
     : caminho.startsWith('anamnese/') ? 'anamnese'
-    : (url.searchParams.get('fonte') === 'plano' ? 'plano' : 'anamnese');
+    : (url.searchParams.get('fonte') === 'plano' ? 'plano'
+      : url.searchParams.get('fonte') === 'po' ? 'po' : 'anamnese');
 
   // As chamadas da porta chegam com o prefixo do caminho (`/anamnese/api/…`).
   const api = caminho.match(/^(anamnese|plano-ensino|plano-observacao)\/(api\/.*)$/);
@@ -366,7 +417,8 @@ const servidor = http.createServer((req, res) => {
   }
 
   if (caminho === 'anamnese/' || caminho === 'anamnese/index.html' ||
-      caminho === 'plano-ensino/' || caminho === 'plano-ensino/index.html') {
+      caminho === 'plano-ensino/' || caminho === 'plano-ensino/index.html' ||
+      caminho === 'plano-observacao/' || caminho === 'plano-observacao/index.html') {
     return envia(htmlDaPorta(url.searchParams.get('normal') !== '1', fonte), MIME['.html']);
   }
 
@@ -397,6 +449,9 @@ async function abrir(caminho) {
       w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {},
         addListener() {}, removeListener() {} });
       w.fetch = (u, i) => fetch(new URL(String(u), BASE() + '/' + caminho), i);
+      // O jsdom não traz `CSS.escape`; o navegador traz. É do AMBIENTE, não da página.
+      w.CSS = w.CSS || {};
+      if (!w.CSS.escape) w.CSS.escape = (v) => String(v).replace(/[^a-zA-Z0-9_-]/g, (c) => '\\' + c);
       w.confirm = () => true;
       w.alert = () => {};
     },
@@ -464,7 +519,112 @@ async function porta() {
   ok('o plano só fez GET — nenhum envio, nenhuma gravação');
   plano.dom.window.close();
 
-  // ---- 3c. ESCOLA NORMAL ----
+  // ---- 3c. PLANO DE OBSERVAÇÃO ----
+  //
+  // O PO consome o plano e a anamnese: o fixture escreve os campos, a ESTANTE decide o
+  // carimbo do plano, e a folha derivada do checklist confere o que os campos dizem. Nada
+  // aqui é submetido — o `Guardar` continua a ser um clique do professor.
+  PEDIDOS.length = 0;
+  ESTANTE_VAZIA = false;
+  const po = await abrir('plano-observacao/?professor=docente&ciclo=01');
+  assert.equal(po.doc.body.getAttribute('data-tela'), 'porta');
+  assert.ok(po.doc.querySelector('details.teste-painel'), 'o painel do PO não apareceu');
+  assert.equal(await po.win.eval('FONTE'), 'po');
+
+  const registro = FIXTURE.po[0];
+  const faltam = await po.win.eval('JSON.stringify(obrigatoriosFaltando().map(function(n){return n.id;}))');
+  assert.equal(faltam, '[]', 'o PO não ficou completo: faltam ' + faltam);
+  ok('o PO nasce preenchido com a turma da fixture — todos os obrigatórios respondidos');
+
+  const esperado = registro.respostas;
+  for (const id of ['horizonte', 'question', 'fenomeno', 'inclusao', 'exclusao',
+    'condicoes-de-contorno', 'referencia-ao-problema', 'explicacao-do-recorte',
+    'o-que-fica-de-fora', 'base-teorica', 'limitacoes']) {
+    const valor = await po.win.eval('JSON.stringify(RESPOSTAS.get(' + JSON.stringify(id) + '))');
+    assert.equal(valor, JSON.stringify(esperado[id]), 'o campo ' + id + ' não veio do fixture');
+  }
+  const itens = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("itens-por-dimensao"))'));
+  assert.deepEqual(itens, esperado['itens-por-dimensao']);
+  const base = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("linha-de-base"))'));
+  assert.deepEqual(base, esperado['linha-de-base']);
+  ok('os campos pedidos vêm todos do fixture, incluindo itens por dimensão e ponto de partida');
+
+  const sujeitos = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("sujeitos"))'));
+  assert.deepEqual(sujeitos, registro.sujeitos);
+  ok('os sujeitos observados são as alunas do fixture');
+
+  // A DIMENSÃO é DERIVADA dos blocos da aula que o plano marca — não vem do fixture.
+  const dimensoes = JSON.parse(await po.win.eval('JSON.stringify(RESPOSTAS.get("dimensoes-de-observacao"))'));
+  assert.ok(dimensoes.length > 0, 'a dimensão observada não foi derivada do plano');
+  assert.ok(dimensoes.every((d) => d.indexOf('Técnica') === 0), 'a dimensão saiu sem o eixo');
+  ok('a dimensão observada nasce dos blocos da aula que o plano marca');
+
+  // O CHECKLIST: cada folha vale o que os campos que ela MONITORA dizem — nem o selo
+  // «pré-preenchido» com a folha em branco (o que estava a acontecer), nem um «sim» de fábrica.
+  const checklist = JSON.parse(await po.win.eval(
+    'JSON.stringify(MAPA.nos.filter(function(n){return n.derivadoDe;})' +
+    '.map(function(n){return [n.id, RESPOSTAS.get(n.id)];}))'));
+  const porId = new Map(checklist);
+  assert.equal(porId.get('checklist-fenomeno-definido'), 'sim');
+  assert.equal(porId.get('checklist-fronteiras-claras'), 'sim');
+  assert.equal(porId.get('checklist-norma-estabelecida'), 'sim');
+  assert.equal(porId.get('checklist-justificativa-fundada'), 'sim');
+  assert.equal(porId.get('checklist-recorte-viavel'), 'sim');
+  assert.equal(porId.get('checklist-criterios-exclusivos'), 'não');
+  ok('o checklist chega marcado — cinco «sim» do que está escrito, e «não» no que ninguém decide');
+
+  // E a recíproca: apagar o campo que uma folha monitora vira a folha para «não».
+  await po.win.eval('RESPOSTAS.delete("fenomeno"); atualizarBarra();');
+  assert.equal(await po.win.eval('RESPOSTAS.get("checklist-fenomeno-definido")'), 'não');
+  await po.win.eval('RESPOSTAS.set("fenomeno", ' + JSON.stringify(esperado.fenomeno) + '); atualizarBarra();');
+  assert.equal(await po.win.eval('RESPOSTAS.get("checklist-fenomeno-definido")'), 'sim');
+  ok('a folha segue o campo que ela monitora — apagado o campo, ela volta a «não»');
+
+  // A EXCLUSÃO: a sugestão devolve a razão de não haver nada a excluir, e não uma falha.
+  await po.win.eval(`(function(){
+    var i = MAPA.nos.findIndex(function(n){return n.id === 'exclusao';});
+    INDICE = i; renderPergunta();
+  })()`);
+  await espera(300);
+  await po.win.eval(`(function(){
+    var botao = document.querySelector('[data-derivar="exclusao"]');
+    derivarDoConjunto(botao, MAPA.nos.find(function(n){return n.id === 'exclusao';}));
+  })()`);
+  await espera(700);
+  const dicaExclusao = await po.win.eval(
+    '(document.querySelector(\'[data-derivacao-de="exclusao"]\') || {}).textContent || ""');
+  assert.ok(/Nada a excluir/.test(dicaExclusao), 'a exclusão não explicou o resultado: ' + dicaExclusao);
+  assert.ok(!/Nenhum item bateu/.test(dicaExclusao), 'a exclusão ainda usa a frase de falha');
+  ok('a sugestão de exclusão diz por que não há nada a excluir — não parece avaria');
+
+  const metodosPo = [...new Set(PEDIDOS.map((p) => p.metodo))];
+  assert.deepEqual(metodosPo, ['GET']);
+  ok('o PO só fez GET — nenhum envio, nenhuma gravação');
+  po.dom.window.close();
+
+  // ---- 3d. A ESTANTE VAZIA ----
+  // Sem plano de ensino lançado, o nó diz «ainda não há plano de ensino» — nunca um erro.
+  ESTANTE_VAZIA = true;
+  const vazio = await abrir('plano-observacao/?professor=docente&ciclo=01');
+  await vazio.win.eval(`(function(){
+    var i = MAPA.nos.findIndex(function(n){return n.id === 'plano-de-ensino';});
+    INDICE = i; renderPergunta();
+  })()`);
+  await espera(500);
+  const textoVazio = await vazio.win.eval(
+    '(document.querySelector("#pergunta") || {}).textContent || ""');
+  assert.ok(/Ainda não há plano de ensino/.test(textoVazio),
+    'o nó sem plano não disse que ainda não há plano: ' + textoVazio.slice(0, 300));
+  assert.equal(await vazio.win.eval(
+    'document.querySelectorAll("#pergunta .erro").length'), 0,
+  'o nó sem plano mostrou um ERRO onde devia dizer que não há nada');
+  assert.ok(!/Unexpected token|Não foi possível carregar/.test(textoVazio),
+    'a tela ainda mostra o erro cru do analisador');
+  ok('sem plano de ensino lançado, o nó diz que ainda não há — e não um erro');
+  vazio.dom.window.close();
+  ESTANTE_VAZIA = false;
+
+  // ---- 3e. ESCOLA NORMAL ----
   const normal = await abrir('anamnese/?professor=docente&ciclo=01&normal=1');
   assert.equal(normal.doc.querySelector('details.teste-painel'), null);
   const idadeNormal = await normal.win.eval('RESPOSTAS.get("idade")');
