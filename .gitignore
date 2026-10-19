@@ -124,6 +124,10 @@ experimentos/*
 # fontes, o registro no KV, as fases do estado e o cartão da porta. É a prova que separa «a tela
 # ficou muda» de «a tela diz o que sabe» — e é citada por nome no REGISTRO.md.
 !experimentos/provar-geracao.js
+# A IRMÃ (19/10/2026): o disparo de dois slugs, o acordo do `run-name` com a tela, o pathspec da
+# âncora e o validador que exigia um rodapé inexistente. Acompanha as correções do gerador — é
+# ela que o `Auditoria:` daquele commit cita.
+!experimentos/provar-geracao-do-ciclo.js
 
 # A MARCA EM VETOR (18/10/2026). O traçado é fonte — três SVGs de 3,5KB que substituem dois
 # arquivos de 106KB e 134KB —, e o `vetorizar.js` é o que os produz e o que MEDE a fidelidade

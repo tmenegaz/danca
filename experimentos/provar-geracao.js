@@ -550,7 +550,12 @@ function assetsFalsos() {
   return {
     async fetch(pedido) {
       const rel = decodeURIComponent(new URL(pedido).pathname.replace(/^\/+/, ''));
-      const candidatos = [path.join(PACOTE, rel), path.join(RAIZ, 'porta', rel)];
+      // O ASSETS de uma escola publica o PACOTE, e a porta vive lá dentro, em
+      // `plano-observacao/`. Sem o pacote (uma escola expurgada), a mesma árvore está em
+      // `porta/` na raiz — e é de lá que se serve, tirando o prefixo. A prova não pode
+      // depender de uma escola viva: quem a apaga é a própria pesquisadora, no ensaio.
+      const semPrefixo = rel.replace(/^plano-observacao\//, '');
+      const candidatos = [path.join(PACOTE, rel), path.join(RAIZ, 'porta', semPrefixo)];
       for (const arquivo of candidatos) {
         if (fs.existsSync(arquivo) && fs.statSync(arquivo).isFile()) {
           const tipo = TIPOS[path.extname(arquivo)] || 'application/octet-stream';

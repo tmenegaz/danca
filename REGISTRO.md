@@ -18675,3 +18675,71 @@ tentativa anterior, e por que não bastou) · `IDEIA-PAINEL-ESCOLA.md` §17.5.
 próximo `deploy-raiz.yml` — que estava na fila por causa da degradação das Acções do GitHub.
 (b) O expurgo da `calando-teste-1` está **completo e conferido por leitura**; o que ele deixou de
 propósito é `escola/calando-teste-1/indice.json` (o elo do expurgo) e os schemas do modelo.
+
+## 19/10/2026 — O disparo manda dois slugs: o conteúdo é da variante, o site é da escola
+
+**O que motivou.** A correção de ontem («o disparo manda a variante») foi medida no Actions e
+estava **meio certa**: ela trocava o slug da escola pela variante **no mesmo input**. Isso conserta
+o gerador (que precisa da variante para achar `ciclo-01-<escola>-<turma>.conf`) e **quebra o
+deploy**, que procura `wrangler.<escola>.jsonc` — e não existe `wrangler.<variante>.jsonc`. O
+`gerar-ciclo.yml` passaria a falhar no último passo, depois de gerar o pacote inteiro.
+
+Não era um erro de digitação: eram **duas identidades** tratadas como uma. O **conteúdo** é da
+variante (o `.conf`, o pacote, a âncora); o **site** é da escola (o Worker, o domínio, o
+`assets.directory`).
+
+**O que foi decidido.**
+- `disparar.js` envia **dois** inputs: `escola` (o slug do Worker) e `variante` (o slug do
+  conteúdo). Sem turma no contexto, a variante é a escola — as escolas de uma turma só não mudam.
+- O workflow usa `variante` no gerador e na reancoragem, e `escola` no `wrangler deploy`.
+- `inputs.variante` vazio cai em `inputs.escola` — o `workflow_dispatch` manual continua a
+  funcionar com um slug só.
+
+**Onde entrou.**
+- `motor/servidor/disparar.js` — o input novo e o comentário que fixa a distinção.
+- `.github/workflows/gerar-ciclo.yml` — `run-name`, input `variante`, gerador e âncora pela
+  variante, deploy pela escola, e o pathspec da âncora (`"$pasta.fipp"`: o `*.fipp` relativo à raiz
+  não casava com nada, e a âncora ficava fora do commit).
+- `.github/workflows/reancorar.yml` — `git pull --rebase` com reintento antes do `push`.
+- `motor/servidor/escrever-ciclo.js` — a declaração de captura é gravada debaixo da **variante**
+  (era debaixo da escola, e o gerador procura a variante: a folha saía com todos os blocos e
+  colunas sem chave, «bloco da folha não declarado no schema»).
+- `tools/check-pacote.js` — a ferramenta é conferida pela `class="barra-de-controle"`, não pelo
+  `class="rodape"` de prosa. Ver o motivo declarado, abaixo.
+- `.github/workflows/deploy-escolas.yml` — a escola cujo pacote já não existe não se publica. Um
+  run que estava na fila quando a escola foi expurgada subia depois com o commit antigo e
+  **recriava o Worker** que o expurgo tinha apagado.
+- `motor/servidor/geracao-cliente.js` — o cartão deixa de prometer «recarregue e veja os
+  documentos»: ver «o que ainda não está feito».
+- `experimentos/provar-geracao-do-ciclo.js` — prova nova (16 verificações), e as duas provas
+  deixam de depender de uma escola viva (o expurgo apagava o `.conf` que elas abriam, e a prova
+  falhava com ENOENT — defeito do instrumento, não do código).
+
+**Motivo declarado — os congelados.** `tools/check-pacote.js`. O validador exigia
+`class="rodape"` de **todas** as páginas; em `f9b416b` (18/10) o `footer.rodape` de
+`lancamento.html` passou a `footer.barra-de-controle`, com a decisão escrita no próprio template
+(«`.rodape` é o rodapé de prosa; o formulário tem controles»). Desde então **nenhum** pacote gerado
+passava: `lancamento.html: falta rodapé (class="rodape")`. O defeito ficou escondido atrás do erro
+de `DOCS` — o gerador morria antes de chegar ao validador. **Nada mais muda**: a fórmula de hash, a
+cobertura da âncora, os outros validadores, as 17 regras e as 22 pétreas ficam como estão.
+
+**Com o quê.** A geração foi **rodada de ponta a ponta** nesta máquina antes do expurgo, com o
+`.conf` da variante real: `tools/gerar-ciclo.sh sapo-bailarino 01 calando-teste-1-bale-nivel-1-teste-1`
+→ **exit 0**, `check-pacote` em `OK: 0 erro(s)`, PDF de 15 páginas com 54 links internos. Antes
+destas correções ela parava em `DOCS está vazio`, depois em «bloco da folha não declarado no
+schema», depois em «falta rodapé».
+
+`provar-geracao` 38 · `provar-geracao-do-ciclo` 16 · `provar-teste` 17 · `provar-producao` 135/135 ·
+`provar-derivacao-da-turma` 126/126 · `provar-expurgo-leitura-atrasada` 45 · `check-identidade`
+sem falha.
+
+**Referências.** `PLANO-CICLO-DA-TURMA.md` §4 fase 2 · `CONGELAMENTO.md` (o motivo declarado,
+acima) · a API de dispatch do GitHub.
+
+**O que ainda não está feito.** (a) **D-T4 continua aberto, e é o que se vai ver no teste**: o
+pacote gerado é `ciclo-01-<escola>-<turma>` e o Worker da escola publica `ciclo-01-<escola>`. O
+workflow fica verde e os documentos existem no repositório — mas **o site da escola não os mostra**
+até a fase 4 ser decidida ((a) um Worker com N ciclos, ou (b) um Worker por escola × turma). Foi por
+isso que o cartão deixou de dizer «recarregue e veja». (b) Nada foi publicado neste commit: o
+`deploy-raiz` e o `deploy-escolas` correm no push, mas não havia escola nenhuma no repositório
+(a `calando-teste-1` foi expurgada) — a primeira será a `Batata`.

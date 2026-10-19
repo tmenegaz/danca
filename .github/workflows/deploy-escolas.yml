@@ -79,6 +79,15 @@ jobs:
             slug="${cfg#wrangler.}"; slug="${slug%.jsonc}"
             [ "$slug" = danca ] && continue
             grep -q '"directory": *"professores/' "$cfg" || continue
+            # A ESCOLA EXPURGADA NÃO SE PUBLICA (19/10/2026). O expurgo apaga o Worker e as
+            # chaves do KV, mas o `wrangler.<slug>.jsonc` e o pacote só saem do repositório
+            # noutro commit. Um run que JÁ ESTAVA na fila quando a escola foi apagada sobe
+            # depois com o commit antigo — e `wrangler deploy` RECRIA o Worker de uma escola
+            # que já não existe. O sintoma seria o pior possível: o expurgo parece ter
+            # falhado, ou a escola volta ao ar sozinha. O pacote é o que a escola SERVE; sem
+            # ele não há o que publicar.
+            dir=$(sed -n 's/.*"directory": *"\(professores\/[^"]*\)".*/\1/p' "$cfg" | head -1)
+            [ -d "$dir" ] || { echo "pulando $slug — o pacote '$dir' já não existe (escola expurgada)"; continue; }
             if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
             lista=$(printf '%s' "$lista" | node -e '
               const l = JSON.parse(require("fs").readFileSync(0, "utf8"));

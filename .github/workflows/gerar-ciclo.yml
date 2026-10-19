@@ -1,5 +1,15 @@
 name: Gerar o ciclo
 
+# O NOME DA EXECUÇÃO É UMA CHAVE (19/10/2026).
+#
+# Quem pergunta «como vai a geração?» é a tela, e ela procura a execução pelo
+# `display_title` — este `run-name`. O texto tem de ser IDÊNTICO ao que
+# `motor/servidor/geracao.js` compõe (`rotuloDaGeracao`): professor/ciclo/variante.
+# Sem esse acordo, duas gerações simultâneas de escolas diferentes seriam
+# indistinguíveis e a tela mostraria o estado da geração de outra pessoa. A prova
+# `experimentos/provar-geracao.js` compara as duas strings.
+run-name: Gerar o ciclo · ${{ inputs.professor }}/${{ inputs.ciclo }}/${{ inputs.variante || inputs.escola }}
+
 # A GERAÇÃO não roda no Worker (workerd é JavaScript/Wasm, e o gerador precisa de
 # Node + Python + pandoc + TeX). Por isso o Worker não gera: ele DISPARA. Este é o
 # alvo do disparo — um `workflow_dispatch` com o professor, o ciclo e a escola que o
@@ -34,10 +44,21 @@ on:
         type: string
         default: '01'
       escola:
-        description: 'Slug da escola (a variante)'
+        description: 'Slug da escola (o Worker: wrangler.<escola>.jsonc)'
         required: true
         type: string
         default: 'maria'
+      # A ESCOLA NÃO É A VARIANTE (19/10/2026). O `.conf` que o plano compõe — com os
+      # `DOCS`, o `DATA_INICIO` e o `TOTAL_AULAS` da TURMA — chama-se
+      # `ciclo-<ciclo>-<escola>-<turma>.conf`. Mandando só a escola, o gerador lia o
+      # `.conf` da escola (um esqueleto, `DOCS=""`) e morria com «DOCS está vazio».
+      # Vazia, a variante é a própria escola: é o caso de uma escola de uma turma só,
+      # e o comportamento anterior fica intacto.
+      variante:
+        description: 'Slug da variante (professor × ciclo × escola × turma) — vazio = a escola'
+        required: false
+        type: string
+        default: ''
 
 # O push do commit de geração precisa de escrita. O GITHUB_TOKEN não redispara
 # workflows, então o commit daqui não volta a chamar esta workflow em laço.
@@ -47,7 +68,7 @@ permissions:
 # Uma geração por ciclo por vez: duas disparadas juntas sobrescreveriam o mesmo
 # pacote. A última da fila espera a anterior terminar.
 concurrency:
-  group: gerar-ciclo-${{ inputs.professor }}-${{ inputs.ciclo }}-${{ inputs.escola }}
+  group: gerar-ciclo-${{ inputs.professor }}-${{ inputs.ciclo }}-${{ inputs.variante || inputs.escola }}
   cancel-in-progress: false
 
 jobs:
@@ -84,17 +105,17 @@ jobs:
         run: |
           set -euo pipefail
           # O gerador NÃO herda o locale (lib-locale.sh exige UTF-8).
-          tools/gerar-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.escola }}"
+          tools/gerar-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}"
 
       - name: Reancorar a cadeia
         shell: bash
         run: |
           set -euo pipefail
           # Só reancora se a âncora divergiu — idempotente, como em reancorar.yml.
-          if tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.escola }}" --check > /dev/null 2>&1; then
+          if tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}" --check > /dev/null 2>&1; then
             echo "âncora íntegra — nada a reancorar"
           else
-            tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.escola }}"
+            tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}"
           fi
 
       - name: Commitar o pacote gerado
@@ -105,21 +126,43 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
-          pasta="professores/${{ inputs.professor }}/ciclos/ciclo-${{ inputs.ciclo }}-${{ inputs.escola }}"
-          git add -A -- "$pasta" '*.fipp'
+          pasta="professores/${{ inputs.professor }}/ciclos/ciclo-${{ inputs.ciclo }}-${{ inputs.variante || inputs.escola }}"
+          # A ÂNCORA É IRMÃ DO PACOTE, não filha: `hash-ciclo.sh` a escreve em
+          # `ciclo-<ciclo>-<variante>.fipp`. O `*.fipp` antigo era um pathspec relativo à
+          # raiz e não casava com nada — a reancoragem saía do passo e ficava fora do
+          # commit, e o `--check` seguinte achava divergência outra vez, para sempre.
+          git add -A -- "$pasta"
+          if [ -f "$pasta.fipp" ]; then git add -A -- "$pasta.fipp"; fi
 
           if git diff --cached --quiet; then
             echo "nada a commitar"
             exit 0
           fi
 
-          git commit -m "chore(entrega): gerar o pacote de ${{ inputs.professor }}/${{ inputs.ciclo }}/${{ inputs.escola }}" \
+          git commit -m "chore(entrega): gerar o pacote de ${{ inputs.professor }}/${{ inputs.ciclo }}/${{ inputs.variante || inputs.escola }}" \
             -m "Geração disparada pelo Worker quando o PO foi concluído — o pacote e a âncora refletem o recorte elicitado." \
             -m "Refs: tools/gerar-ciclo.sh, tools/hash-ciclo.sh, .github/workflows/gerar-ciclo.yml
           Regras: Regra 16, P-04, P-17
           Auditoria: tools/check-pacote.js (dentro do gerador) + hash-ciclo.sh --check"
 
-          git push
+          # O PUSH PODE PERDER A CORRIDA (19/10/2026). Três workflows escrevem no `main` —
+          # este, o `reancorar.yml` e o `deploy-escolas.yml` — e mais de um roda ao mesmo
+          # tempo: o «Guardar» do PO commita a fonte, depois dispara a geração, e a
+          # reancoragem do mesmo ciclo corre em paralelo. Um `git push` simples perde para
+          # quem chegou primeiro (`! [rejected] main -> main (fetch first)`) e derruba o
+          # job DEPOIS do trabalho feito. O rebase rebobina o commit por cima do que já
+          # subiu; um conflito de verdade (mesmo arquivo, dois donos) continua a falhar —
+          # e é o único caso em que falhar está certo.
+          for intento in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "push recusado (tentativa $intento) — rebaseando sobre o main"
+            git pull --rebase --autostash origin main
+            sleep $((intento * 5))
+          done
+          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          exit 1
 
       # O DEPLOY FECHA A CADEIA. O commit acima põe o pacote no repositório; o site,
       # porém, serve os ASSETS do Worker — que só mudam num `wrangler deploy`. Sem este

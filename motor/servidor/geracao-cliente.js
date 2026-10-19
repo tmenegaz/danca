@@ -265,7 +265,16 @@ const SCRIPT = String.raw`(function () {
       var fim = painel.querySelector('.geracao-fim');
       if (fase === 'concluida') {
         fim.className = 'geracao-fim ok';
-        fim.textContent = 'Pronto. Recarregue a página do ciclo para ver os documentos novos.';
+        // A FRASE NÃO PROMETE O QUE AINDA NÃO ACONTECE. O pacote gerado é o da VARIANTE
+        // (ciclo-01-<escola>-<turma>) e o Worker da escola publica o da ESCOLA
+        // (ciclo-01-<escola>) — enquanto a decisão D-T4 não for tomada, os documentos
+        // existem no repositório e o site da escola não os mostra. Dizer «recarregue e veja»
+        // seria a mesma mentira que o silêncio de antes, com outra cara. O que se afirma é
+        // o que é verdade: os documentos foram gerados, e o link mostra a execução.
+        fim.textContent = 'Pronto — os documentos do ciclo foram gerados. ' +
+          (registro && registro.variante
+            ? 'O pacote é o de «' + registro.variante + '».'
+            : '');
       } else if (fase === 'falhou' || fase === 'falhou-no-disparo') {
         fim.className = 'geracao-fim falha';
         fim.textContent = 'Os documentos não foram gerados. O plano que você gravou está salvo.';

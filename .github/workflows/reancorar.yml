@@ -127,4 +127,21 @@ jobs:
           Regras: P-03, P-04, P-08
           Auditoria: .github/workflows/reancorar.yml --check antes de gerar"
 
-          git push
+          # O PUSH PODE PERDER A CORRIDA (19/10/2026). Mais de um workflow escreve no
+          # `main` — este, o `gerar-ciclo.yml` e o `deploy-escolas.yml` — e o «Guardar» do
+          # PO dispara todos em segundos: escreve as fontes (um commit por arquivo), pede a
+          # geração e reancora. O `git push` simples perdia para quem chegou primeiro
+          # (`! [rejected] main -> main (fetch first)`, run de 19/10/2026) e derrubava o
+          # job DEPOIS de reancorar — a âncora nova ficava só no runner, e a próxima
+          # execução refazia tudo. O rebase rebobina o commit por cima do que já subiu; um
+          # conflito de verdade continua a falhar, e é o único caso em que falhar está certo.
+          for intento in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "push recusado (tentativa $intento) — rebaseando sobre o main"
+            git pull --rebase --autostash origin main
+            sleep $((intento * 5))
+          done
+          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          exit 1

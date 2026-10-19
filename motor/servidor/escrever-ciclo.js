@@ -409,7 +409,21 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
         relatorio.schema = { ok: false, erro: 'schema de captura sem `_declaracao`' };
       } else {
         const porVariante = dados._declaracao.porVariante || (dados._declaracao.porVariante = {});
-        const slug = String(ctx.escola || '').trim();
+        /*
+         * A CHAVE É A VARIANTE, NÃO A ESCOLA (19/10/2026).
+         *
+         * Era `ctx.escola`, e o gerador procura por `VARIANTE` do `.conf` — que, com turma no
+         * contexto, é `<escola>-<turma>`. O efeito: a declaração era escrita debaixo de
+         * `calando-teste-1`, e `gerar-ciclo.sh … calando-teste-1-bale-nivel-1-teste-1` não a
+         * encontrava. A folha saía com os blocos e as colunas certos, todos com `chave: null`,
+         * e o validador recusava: «bloco da folha não declarado no schema». É o mesmo engano
+         * do disparo (`disparar.js`), que mandava a escola onde o gerador queria a variante —
+         * e é por isso que os dois estão juntos: um sem o outro não gera nada.
+         *
+         * As chaves antigas (as escolas de uma turma só: `maria`, `diaghilev`) continuam
+         * válidas — nelas `varianteDoContexto` devolve a própria escola. Nada a migrar.
+         */
+        const slug = varianteDoContexto(ctx) || String(ctx.escola || '').trim();
         if (porVariante[slug]) {
           relatorio.schema = { ok: true, nota: 'variante ' + slug + ' já declarada' };
         } else {

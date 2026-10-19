@@ -26,6 +26,9 @@
 const ACEITE = 'application/vnd.github+json';
 const API_VERSAO = '2022-11-28';
 
+// A composição do nome do pacote/`.conf` — a MESMA que escreve o plano.
+const { varianteDoContexto } = require('./escrever-po.js');
+
 /**
  * Dispara o workflow de geração. Devolve `{ status, ok }` — a resposta da API
  * (o dispatch aceite responde 204, sem corpo). `fetchImpl` é injetável para as
@@ -40,6 +43,7 @@ async function dispararGeracao({
   professor,
   ciclo,
   escola,
+  variante,
   fetchImpl,
 }) {
   if (!token) throw new Error('disparo sem token: injete GITHUB_TOKEN na ponte');
@@ -60,7 +64,7 @@ async function dispararGeracao({
     },
     body: JSON.stringify({
       ref: ref || 'main',
-      inputs: { professor, ciclo, escola },
+      inputs: { professor, ciclo, escola, variante: variante || '' },
     }),
   });
 
@@ -72,6 +76,22 @@ async function dispararGeracao({
  * (dono/repo/workflow), e devolve a função que a rota chama com o `contexto`
  * do PO. Sem token devolve `null` — em desenvolvimento não há o que disparar, e
  * a elicitação continua intacta.
+ *
+ * DOIS SLUGS, E ELES NÃO SÃO O MESMO (19/10/2026).
+ *
+ * O `.conf` que o plano compõe — com os `DOCS`, o `DATA_INICIO` e o `TOTAL_AULAS` da
+ * TURMA — chama-se `ciclo-<ciclo>-<escola>-<turma>.conf`, e o pacote que o gerador
+ * escreve chama-se igual. Mas o WORKER que publica chama-se pelo slug da ESCOLA:
+ * `wrangler.<escola>.jsonc`. Mandar um só slug fazia o gerador ler o `.conf` da escola
+ * (um esqueleto, `DOCS=""`) e morrer com «DOCS está vazio»; mandar a variante no lugar
+ * da escola faria o passo do deploy procurar um `wrangler.<variante>.jsonc` que não
+ * existe. São duas identidades: o CONTEÚDO é da variante, o SITE é da escola.
+ *
+ *   · `escola`   → o Worker (`wrangler.<escola>.jsonc`) e o nome do site;
+ *   · `variante` → o `.conf`, o pacote e a âncora (`<escola>-<turma>`).
+ *
+ * Sem turma no contexto, a variante É a escola — o caso das escolas de uma turma só,
+ * e o comportamento anterior fica intacto (a prova confere os dois).
  */
 function criarDisparador({ token, dono, repo, workflow, ref }) {
   if (!token) return null;
@@ -86,6 +106,7 @@ function criarDisparador({ token, dono, repo, workflow, ref }) {
       professor: ctx.professor,
       ciclo: ctx.ciclo,
       escola: ctx.escola,
+      variante: varianteDoContexto(ctx),
     });
   };
 }

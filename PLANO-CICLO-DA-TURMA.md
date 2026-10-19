@@ -53,7 +53,8 @@ isso que a fase 1 deixou em aberto, **de propósito e registrado** ([REGISTRO.md
 | Os três escritores usam a **mesma** definição | `escrever-po`, `escrever-plano`, `escrever-ciclo` | ✅ entregue |
 | O `contexto` do envelope ganha `turma` (contrato 1.3.0) | `porta/envelope/elicitacao-schema.json`, `motor/nucleo/elicitar.js` | ✅ entregue |
 | O cliente envia a turma (`turmaDoAto`) | `porta/index.html` | ✅ entregue |
-| O `.conf` da variante da turma | — | ❌ **não existe** |
+| O `.conf` da variante da turma | `compor-conf.js` + `escrever-plano.js` | ✅ entregue |
+| O disparo manda a variante (e a escola, para o deploy) | `disparar.js`, `gerar-ciclo.yml` | ✅ entregue (19/10) |
 | O calendário sair do plano | — | ❌ fase 3 |
 | O `.conf` encolher | — | ❌ fase 3 |
 | O Worker servir N pacotes | — | ❌ fase 4 |
@@ -224,9 +225,15 @@ Três decisões que a execução obrigou, e que o plano não previa:
 - `escrever-plano.js` passa a gravá-lo **junto** com a fonte do plano, na mesma passagem
   (`atualizarManifesto`, já corrigido nesta sessão, deixa de escrever num `.conf` que não existe e
   passa a **criá-lo** quando ele não existe).
-- O disparo passa a mandar a **variante**, não a escola: `disparar.js` envia
-  `escola: varianteDoContexto(contexto)`. É a mudança de uma linha que faz o workflow gerar o ciclo
-  certo.
+- O disparo passa a mandar a **variante** no seu próprio input: `disparar.js` envia
+  `escola: <slug do Worker>` **e** `variante: varianteDoContexto(contexto)`. **Entregue em 19/10/2026** — e, medido no Actions, o
+  «uma linha» era optimista: o workflow tem dois consumidores do slug e eles querem coisas
+  diferentes. O **gerador** (`gerar-ciclo.sh`, `hash-ciclo.sh`) quer a variante, porque é ela que
+  nomeia `ciclo-01-<escola>-<turma>.conf` e o pacote; o **deploy** quer a escola, porque é ela que
+  nomeia `wrangler.<escola>.jsonc`. Ficaram dois inputs — `escola` e `variante` (vazio = a escola,
+  para as escolas de uma turma só) —, e o `run-name` do workflow é o rótulo que a tela procura
+  (`rotuloDaGeracao`). Sem esse acordo, a consulta de estado não acha a execução.
+  O par está provado por `provar-geracao-do-ciclo.js`, não por inspeção.
 - **Validação:** prova de unidade de `comporConf` com as turmas reais (com e sem `horarios`); prova de
   integração com `fetch` falso (o `.conf` nasce, o `DATA_INICIO` sai da lacuna); e a prova que já
   existe, `provar-manifesto-do-plano`, passa a exigir o **arquivo novo** em vez do existente.
