@@ -18939,6 +18939,58 @@ regerada igual à do pai → commit dispensado, `exit 0`, `local == remoto`, `--
 `main` até ao próximo push. (b) Um `rerun-failed-jobs` **não** testa esta correcção: ele usa o
 workflow do commit original. Só um push novo, ou um `workflow_dispatch`, a exercita.
 
+## 19/10/2026 — A lista que falhava sem dizer porquê: `kv.list` tem cota, e a tela não sabia
+
+**O que aconteceu.** As telas de gestão da anamnese e do plano de ensino passaram a responder
+**`error code: 1101`** — a página do Cloudflare, não a do Sistema Lastro. `GET
+/anamnese/api/anamnese-estados` e `/plano-ensino/api/plano-estados`: **HTTP 500, corpo `error code:
+1101`**. As rotas de Bastidores respondiam 200 no mesmo Worker, no mesmo minuto.
+
+**A causa.** As quatro listas da porta (`/api/anamneses`, `/api/planos`, `/api/anamnese-estados`,
+`/api/plano-estados`) começam por **enumerar** as chaves do armazenamento — `listar` → `kv.list`. O
+`kv.list` tem **cota diária própria** no plano gratuito do Cloudflare (`your account has reached the
+free usage limit for this operation for today`), e ao estourá-la ele **lança**. A excepção subia até
+ao runtime e o Worker devolvia o 1101.
+
+**A cota fui eu que estourei**, a monitorizar o teste com sondagens de `keys?prefix=` a cada 15–20
+segundos. Mas a ferramenta não podia reagir assim a uma falha de leitura, e é isso que ficou
+corrigido.
+
+**O que foi decidido.**
+- **O contrato do armazenamento não se toca.** Ele diz, com razão: «falha de infraestrutura LANÇA —
+  o adaptador não esconde a falha atrás de um `null`». O conserto é na **camada que responde**.
+- **503 com o motivo no corpo**, e não 200 com lista vazia. Uma lista vazia por falha de leitura é
+  **indistinguível** de «não há nada gravado» — e foi exactamente essa a leitura errada que o
+  professor já fez uma vez («as fichas foram perdidas»). Uma falha de leitura tem de aparecer como
+  falha de leitura.
+- **A distinção que o `/api/receber` já fazia:** recusa de negócio é **200 + `{ok:false}`**; falha
+  de infraestrutura **não é recusa** — é **503** com `motivo: 'armazenamento'`.
+- **A tela lê o corpo.** Antes dizia só «o servidor respondeu 503»; agora mostra o motivo que o
+  servidor escreveu, e trata `ok:false` como falha de leitura.
+
+**Onde entrou.**
+- `motor/servidor/rotas.js` — `falhaDaLista`, aplicada às quatro rotas.
+- `porta/index.html` — `carregarEstados` lê o corpo e trata `ok:false` como falha.
+- `experimentos/provar-lista-que-falha.js` — prova nova, **39 asserções**.
+
+**Com o quê.** `provar-lista-que-falha` → **39 asserções, 0 falhas**: as quatro rotas respondem 200
+com o armazenamento a funcionar; com `listar` a lançar a mensagem real da cota, respondem **503**
+com o motivo, e **não lançam** (era o que virava o 1101); e nenhuma responde 200 com lista vazia. A
+bateria inteira foi comparada **antes e depois** desta mudança: as mesmas 10 provas falhavam nas
+duas — são pré-existentes e dependem de pacotes que não existem neste worktree (`professores/tiago`,
+`professores/leticia`) — e **nenhuma mudou de estado** por causa disto.
+
+**Referências.** A entrada «O expurgo errou para os dois lados» (a mesma lição: o `list` do KV não é
+autoridade) · `motor/nucleo/armazenamento.js` (§ contrato de erro).
+
+**O que ainda não está feito.** (a) A página da porta é **copiada** de `porta/` para o pacote no
+momento da criação (`tools/criar-escola.sh:482`): a correcção do cliente chega às escolas **novas**,
+não à que está a rodar — nela o 503 já aparece, mas com o texto antigo («o servidor respondeu 503»).
+(b) `provar-lancamento`, `provar-manifesto-do-plano`, `provar-plano-matriz`, `provar-po-completo`,
+`provar-tema`, `provar-ambiente`, `provar-dobra-do-indice`, `provar-expurgo-kv`, `provar-form-escola`
+e `provar-homonimo` **saem com código 0 mesmo quando imprimem «FALHOU»** — a bancada de provas mente
+sobre si mesma, e isso não foi tocado.
+
 ## 19/10/2026 — Todo pacote gerado nascia divergente da porta: a barra e a newline final
 
 **Por que este arquivo está a ser tocado** (`tools/` é congelado — CONGELAMENTO.md): o

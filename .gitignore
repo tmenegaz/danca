@@ -129,6 +129,12 @@ experimentos/*
 # ela que o `Auditoria:` daquele commit cita.
 !experimentos/provar-geracao-do-ciclo.js
 
+# A PROVA DA LISTA QUE FALHA (19/10/2026): a cota diária do `kv.list` estourou e as telas de gestão
+# responderam «error code: 1101» — a página do Cloudflare, não a do Sistema Lastro. Esta prova fixa
+# as duas metades: a rota que devolve 503 com o motivo em vez de lançar, e o engano que não pode
+# voltar (200 com lista vazia, indistinguível de «não há nada gravado»). É citada no REGISTRO.
+!experimentos/provar-lista-que-falha.js
+
 # A MARCA EM VETOR (18/10/2026). O traçado é fonte — três SVGs de 3,5KB que substituem dois
 # arquivos de 106KB e 134KB —, e o `vetorizar.js` é o que os produz e o que MEDE a fidelidade
 # (IoU 0,980). Sem eles no clone, o estudo da marca cita um arquivo que ninguém tem.

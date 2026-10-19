@@ -224,30 +224,52 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     return resposta(200, MIME['.md'], markdown);
   });
 
+  // AS QUATRO LISTAS NÃO DERRUBAM A TELA (19/10/2026). Todas elas começam por ENUMERAR as
+  // chaves do armazenamento (`listar` → `kv.list`), e o `kv.list` tem cota diária própria no
+  // plano gratuito do Cloudflare: estourada a cota, ele LANÇA. A excepção subia até ao
+  // runtime e a tela recebia o «error code: 1101» do Cloudflare — uma página que não diz nada
+  // a quem está a usar a ferramenta, e que parece defeito do Sistema Lastro quando o defeito
+  // é de cota.
+  //
+  // A distinção importa: uma RECUSA DE NEGÓCIO é HTTP 200 + `{ok:false}` (a convenção desta
+  // casa, em `/api/receber`). Uma FALHA DE INFRAESTRUTURA não é recusa: é 503 com o motivo no
+  // corpo. E não pode ser 200 com `estados: {}` — uma lista vazia por falha de leitura é
+  // indistinguível de «não há nada gravado», que é exactamente a leitura errada que o
+  // professor já fez uma vez («as fichas foram perdidas»).
+  const falhaDaLista = (erro) => resposta(503, MIME['.json'], JSON.stringify({
+    ok: false,
+    erro: 'não foi possível ler a lista agora: ' + ((erro && erro.message) || 'falha do armazenamento'),
+    motivo: 'armazenamento',
+  }, null, 2) + '\n');
+
   // 6. /api/anamneses — a seleção de sujeitos (um por apelido, o vigente).
-  roteador.rota('GET', '/api/anamneses', async () => ({
-    ok: true,
-    opcoes: await porta.anamneses(armazenamento),
-  }));
+  roteador.rota('GET', '/api/anamneses', async () => {
+    try {
+      return { ok: true, opcoes: await porta.anamneses(armazenamento) };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
 
   // 6.1 /api/planos — a estante de planos de ensino (um por carimbo, com o
   //     objetivo como resumo). Serve o nó `plano-de-ensino` do PO.
-  roteador.rota('GET', '/api/planos', async () => ({
-    ok: true,
-    opcoes: await porta.planos(armazenamento),
-  }));
+  roteador.rota('GET', '/api/planos', async () => {
+    try {
+      return { ok: true, opcoes: await porta.planos(armazenamento) };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
 
   // 7. /api/anamnese-estados — a lista de gestão (todas, inclusive sem sujeito).
-  roteador.rota('GET', '/api/anamnese-estados', async () => ({
-    ok: true,
-    estados: await porta.estadosDasAnamneses(armazenamento),
-  }));
+  roteador.rota('GET', '/api/anamnese-estados', async () => {
+    try {
+      return { ok: true, estados: await porta.estadosDasAnamneses(armazenamento) };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
 
   // 7.1 /api/plano-estados — a gestão dos planos (solta / legado / vinculada).
-  roteador.rota('GET', '/api/plano-estados', async () => ({
-    ok: true,
-    estados: await porta.estadosDosPlanos(armazenamento),
-  }));
+  roteador.rota('GET', '/api/plano-estados', async () => {
+    try {
+      return { ok: true, estados: await porta.estadosDosPlanos(armazenamento) };
+    } catch (erro) { return falhaDaLista(erro); }
+  });
 
   // 7.2 DELETE /api/plano-vinculo/:id — apagar, SÓ o plano LIVRE (solta).
   // Espelha o 9 da anamnese: a proveniência não apaga o que está ligado nem o que já foi
