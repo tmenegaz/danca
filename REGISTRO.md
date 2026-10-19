@@ -19116,3 +19116,86 @@ checklist marcada «sim». Fica por decidir qual das duas leituras é a certa. (
 **cofre** dos acompanhamentos (`motor/nucleo/cofre.js`) continua a enumerar o KV, e portanto
 continua sujeita à mesma cota. (c) As dez provas que já imprimiam «FALHOU» com código 0 continuam a
 fazê-lo: a bancada de provas mente sobre si mesma.
+
+## 20/10/2026 — O expurgo apagou a escola e deixou o dado: a limpeza do KV não sabe listar sem cota
+
+**O que motivou.** O expurgo da escola `calango` fez as duas metades visíveis — subdomínio
+fora, Worker apagado, 57 arquivos num commit — e falhou a terceira. O relatório disse-o com
+todas as letras:
+
+```
+KV: 0 de 0 chave(s) apagada(s), em 2 prefixo(s).
+calango/ → NÃO CONSEGUI LISTAR (your account has reached the free usage limit…)
+bastidores/calango/ → NÃO CONSEGUI LISTAR (…)
+```
+
+A limpeza das chaves começa por **enumerar** (`kv.list`), e a enumeração tem cota diária
+própria no plano gratuito: estourada, ela lança. Duas consequências, e a segunda é a grave.
+A primeira é o dado ficar. A segunda é que **a pendência morria ali**: o `wrangler.<slug>.jsonc`,
+que dizia o namespace do KV, foi apagado no mesmo commit — depois do expurgo a escola já não
+existe em lugar nenhum de onde se possa retomar. Ficou dado no KV, sem nome, sem nota e sem
+caminho de volta.
+
+**O que foi decidido.**
+
+- **O REGISTRO de chaves da escola.** O Worker da escola passa a anotar numa chave só
+  (`bastidores/<slug>/.chaves.json`) os nomes de tudo o que escreve. A leitura (`get`) não
+  tem a cota que a enumeração tem, e é por ela que se lê o registo. O expurgo apaga por
+  NOME a partir dele — e continua a conferir por LEITURA, que é a autoridade.
+- **O registo é SUPLEMENTO, nunca autoridade.** Enquanto a enumeração responde, é ela que
+  manda; o registo é atualizado por ela (é assim que uma escola anterior a esta mudança ganha
+  o registo que não tinha). Ele custa uma escrita por chave NOVA, por isolate — o `Set` em
+  memória evita a escrita repetida nas gravações seguintes.
+- **A lista da porta não morre mais com a cota.** O `listar()` do adaptador cai no registo
+  quando a enumeração falha. Sem registo (escola antiga, registo perdido), a falha SOBE: uma
+  lista vazia por falha de leitura é indistinguível de «não há nada gravado».
+- **A PENDÊNCIA fica escrita.** O desfecho do KV vai para o elo do expurgo, no índice da
+  escola — com o namespace, os prefixos e o instante. A retomada (`POST /api/expurgar-kv`)
+  lê de lá e não precisa de saber que a escola existiu; resolvida, o elo ganha a linha da
+  retomada e a marca de pendente sai. Uma retomada que também falha mantém-na: «não sei» não
+  vira «acabou».
+- **A escola não nasce sobre resíduo.** Criar uma escola cujo slug tem expurgo pendente é
+  RECUSADO: a escola nova leria o dado da antiga (as anamneses e o plano de ontem na estante
+  de hoje), e o teste mediria ficção. A recusa diz por que, e a página oferece a retomada ao
+  lado da razão. Ler o índice é guardado por `try`: um erro de rede no GitHub não impede uma
+  escola de nascer — a trava é contra um resíduo CONHECIDO, não contra o acaso.
+- **O próprio registo entra na lista de apagar.** Ele vive sob `bastidores/<slug>/` e não se
+  anota a si mesmo; sem essa linha, o expurgo apagava o dado e deixava o índice dele.
+
+**Onde entrou.**
+- `motor/adaptadores/cloudflare.js` — o registo (`registrarChave`, `registrarVarias`,
+  `esquecerChave`), escrito em `guardar`/`anexar` e limpo em `apagar`; o `listar` com o
+  plano B; o registo atualizado pela enumeração quando ela responde.
+- `motor/servidor/expurgar-escola.js` — `CHAVE_DO_REGISTRO`, `lerRegistroDeChaves`, e a
+  limpeza a apagar por nome quando a enumeração falha (`deRegistro` no relatório por prefixo).
+- `motor/servidor/repo-escola.js` — `comElo` guarda o desfecho do KV (a pendência);
+  `pendenciaDoKv` lê-a do índice; `comResolucaoDoKv` acrescenta a retomada; e
+  `atualizarIndiceDaEscola` grava o índice de volta num commit próprio.
+- `motor/servidor/raiz.js` — a rota `POST /api/expurgar-kv` (a retomada), o desfecho do KV a
+  viajar para o elo, e a recusa da criação sobre resíduo.
+- `raiz/index.html` — o botão «Terminar a limpeza do KV» no relatório do expurgo e na recusa
+  da criação; a página diz quando os nomes vieram do registo.
+- `escola/calango/indice.json` — o elo do expurgo de 19/10 com a pendência, **escrito à mão**:
+  o código só passou a gravá-la depois deste caso, e a `calango` ficaria sem o caminho de
+  volta. O `namespaceId` (compartilhado, não é segredo) e os dois prefixos estão lá.
+- `experimentos/provar-expurgo-sem-listagem.js` — a prova (40 asserções).
+- `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `node experimentos/provar-expurgo-sem-listagem.js` → **TUDO CERTO, 40
+asserções**: o registo lido por GET; o expurgo a apagar 13 chaves (12 de dado + o registo)
+com a enumeração a lançar; o dado das outras escolas intacto; a pendência no elo; a retomada
+a lê-la; a retomada que falha a mantê-la; o adaptador a registar e a cair no registo.
+`provar-expurgo-leitura-atrasada` → **45**, `provar-lista-que-falha` → **39**,
+`provar-indice-de-envelopes` → **31**, `provar-teste` → **26**, sem regressão.
+
+**Referências.** `CONGELAMENTO.md` (nenhum arquivo congelado tocado) · a entrada de hoje sobre
+a lista que pagava a cota — é a MESMA causa, e esta é a metade que faltava · a entrada de
+19/10 sobre a leitura atrasada (a leitura é a autoridade, a listagem é um índice).
+
+**O que ainda não está feito.** (a) O resíduo da `calango` **continua no KV** — só pode ser
+limpo quando a cota da enumeração renovar (00:00 UTC), pela retomada. Enquanto isso, criar uma
+escola com esse slug é recusado, e é de propósito. (b) O registo é escrito uma vez por chave
+nova; uma escrita concorrente em dois isolates pode perder uma entrada — por isso ele é
+suplemento e a enumeração continua a ser a autoridade. (c) `provar-expurgo-raiz.js` explode
+antes de chegar ao fim (`corpo.local.em`), e `provar-expurgo-kv.js` conta 2 falhas de listagem
+onde há 4: as duas já falhavam antes desta mudança, e as duas saem com código 0.

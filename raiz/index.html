@@ -745,6 +745,42 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                   msg += " O Worker que está no ar NÃO foi tocado: não é o andaime de uma escola nova — é uma escola a sério, e apagá-la seria pior.";
                 }
                 res.textContent = msg;
+                // O RESÍDUO DE UM EXPURGO ANTERIOR: a escola não nasce, e a razão é conhecida
+                // — o dado de antes ainda está no KV. A saída imediata é outro nome; a
+                // definitiva é terminar a limpeza, e o botão fica ao lado da razão.
+                if (d.pendenciaKv) {
+                  var cxPend = el("div", null);
+                  cxPend.appendChild(par("Resíduo no KV desde " + (d.pendenciaKv.em || "data desconhecida")
+                    + ". Criar outra escola com o mesmo nome faria a nova ler o dado antigo —"
+                    + " por isso ela não nasce. Escolha outro nome (ex.: «Calango Dois») ou"
+                    + " termine a limpeza abaixo; ela volta a funcionar quando a cota diária da"
+                    + " enumeração do KV renovar (00:00 UTC)."));
+                  var bt = el("button", "acao", "Terminar a limpeza do KV");
+                  bt.type = "button";
+                  bt.addEventListener("click", function () {
+                    bt.disabled = true;
+                    bt.textContent = "retomando…";
+                    fetch("api/expurgar-kv", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ escola: d.escola, confirmacao: d.escola }),
+                    }).then(function (r) { return r.json(); }).then(function (x) {
+                      bt.disabled = false;
+                      bt.textContent = "Tentar de novo";
+                      cxPend.appendChild(par(x && x.ok
+                        ? "Limpeza concluída: " + ((x.kv && x.kv.apagadas) || 0) + " chave(s) apagada(s), "
+                          + ((x.kv && x.kv.restantes) || 0) + " ainda respondem. Já pode criar a escola com este nome."
+                        : "A limpeza NÃO se completou: "
+                          + ((x && (x.erro || (x.kv && x.kv.erro))) || "erro desconhecido")));
+                    }).catch(function (e) {
+                      bt.disabled = false;
+                      bt.textContent = "Tentar de novo";
+                      cxPend.appendChild(par("Falhou: " + e.message));
+                    });
+                  });
+                  cxPend.appendChild(bt);
+                  res.appendChild(cxPend);
+                }
                 trazer(res);
               }
             }).catch(function (err) { res.className = "res erro"; res.textContent = "Erro: " + err.message; trazer(res); });
@@ -904,7 +940,15 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                 cx.appendChild(par("KV: " + kv.apagadas + " de " + kv.total
                   + " chave(s) apagada(s), em " + ((kv.porPrefixo || []).length) + " prefixo(s)."));
                 (kv.porPrefixo || []).forEach(function (p) {
-                  if (!p.listou) {
+                  if (!p.listou && p.deRegistro) {
+                    // A COTA DA ENUMERAÇÃO ACABOU, MAS OS NOMES EXISTEM (19/10/2026): o Worker
+                    // da escola mantém um registro das chaves que escreveu, e o expurgo apaga
+                    // por ele. É limpeza de verdade — o que não se pode afirmar é que não
+                    // houvesse mais nada além do registro.
+                    cx.appendChild(par("   " + p.prefixo + " → não deu para enumerar (" + (p.erro || "?")
+                      + "); os nomes vieram do REGISTRO da escola: " + p.apagadas + " de " + p.total
+                      + (p.restantes === null ? " · não reconferido" : " · sobraram " + p.restantes)));
+                  } else if (!p.listou) {
                     cx.appendChild(par("   " + p.prefixo + " → NÃO CONSEGUI LISTAR (" + (p.erro || "?") + ")"));
                   } else {
                     cx.appendChild(par("   " + p.prefixo + " → " + p.apagadas + " de " + p.total
@@ -945,6 +989,49 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                     + " chave(s) (tinha " + kv.namespace.antes + ") — se alguma não for de outra escola, ela ficou."));
                 }
               }
+            }
+
+            // A RETOMADA. O KV pode falhar sozinho, e a escola, depois do expurgo, já não
+            // existe em lugar de onde se deduza o namespace — mas o elo do índice guarda-o.
+            // Sem este botão, a pendência só se resolveria por dentro do código.
+            if (cf.kv && cf.kv.ok === false) {
+              var cxPend = el("div", "relato");
+              cxPend.appendChild(par("A limpeza do KV ficou por terminar. Ela pode ser retomada"
+                + " quando a cota diária da enumeração renovar (00:00 UTC) — os nomes já estão"
+                + " no registro da escola, e o que faltar é lido do elo do expurgo."));
+              var btRetomar = el("button", "acao", "Terminar a limpeza do KV");
+              btRetomar.type = "button";
+              btRetomar.addEventListener("click", function () {
+                btRetomar.disabled = true;
+                btRetomar.textContent = "retomando…";
+                fetch("api/expurgar-kv", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ escola: slug, confirmacao: slug }),
+                }).then(function (r) { return r.json(); }).then(function (x) {
+                  var saida = el("div", "relato");
+                  if (x && x.nadaPendente) {
+                    saida.appendChild(par("Não há pendência registada para «" + slug + "»."));
+                  } else if (x && x.ok) {
+                    saida.appendChild(par("Limpeza retomada e concluída: "
+                      + ((x.kv && x.kv.apagadas) || 0) + " chave(s) apagada(s), "
+                      + ((x.kv && x.kv.restantes) || 0) + " ainda respondem."));
+                    saida.appendChild(par("O elo do expurgo ganhou a linha da retomada."));
+                  } else {
+                    saida.appendChild(par("A limpeza NÃO se completou: "
+                      + ((x && (x.erro || (x.kv && x.kv.erro))) || "erro desconhecido")));
+                  }
+                  cxPend.appendChild(saida);
+                  btRetomar.disabled = false;
+                  btRetomar.textContent = "Tentar de novo";
+                }).catch(function (e) {
+                  btRetomar.disabled = false;
+                  btRetomar.textContent = "Tentar de novo";
+                  cxPend.appendChild(par("Falhou: " + e.message));
+                });
+              });
+              cxPend.appendChild(btRetomar);
+              cx.appendChild(cxPend);
             }
 
             var rp = d.repositorio || {};

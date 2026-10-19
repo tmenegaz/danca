@@ -67,6 +67,40 @@ async function lerValorSeguro({ token, accountId, namespaceId, chave }) {
 }
 
 /**
+ * O REGISTRO DE CHAVES DA ESCOLA — o que o próprio Worker dela escreve (ver o adaptador do
+ * Cloudflare). É a resposta ao beco em que o expurgo da `calango` entrou em 19/10/2026: a
+ * limpeza do KV começa por ENUMERAR as chaves, e a enumeração (`kv.list`) tem cota diária
+ * própria. Estourada a cota, ela LANÇA — e o expurgo apagou o Worker, o subdomínio e o
+ * repositório, deixando o dado no KV sem sequer saber os nomes dele.
+ *
+ * O registro é uma chave só, de nome determinístico, lida por `GET` (que não tem essa cota),
+ * com os nomes de TODAS as chaves que a escola escreveu. Com ele, o expurgo apaga por nome
+ * mesmo quando não consegue enumerar — e a conferência continua a ser por leitura, que é a
+ * autoridade.
+ */
+const CHAVE_DO_REGISTRO = (slug) => 'bastidores/' + slug + '/.chaves.json';
+
+/** Lê o registro. `{ existe, chaves, erro }` — `null` em `existe` é «não deu para ler». */
+async function lerRegistroDeChaves({ token, accountId, namespaceId, slug }) {
+  if (!slug) return { existe: null, chaves: [], erro: 'sem slug' };
+  const caminho = '/accounts/' + accountId + '/storage/kv/namespaces/' + namespaceId +
+    '/values/' + encodeURIComponent(CHAVE_DO_REGISTRO(slug));
+  const res = await fetch('https://api.cloudflare.com/client/v4' + caminho, {
+    headers: { 'Authorization': 'Bearer ' + token },
+  });
+  if (res.status === 404) return { existe: false, chaves: [], erro: null };
+  if (!res.ok) return { existe: null, chaves: [], erro: 'HTTP ' + res.status };
+  const texto = typeof res.text === 'function' ? await res.text().catch(() => '') : '';
+  try {
+    const dados = JSON.parse(String(texto || ''));
+    const lista = Array.isArray(dados) ? dados : (dados && dados.chaves) || [];
+    return { existe: true, chaves: lista.filter((c) => typeof c === 'string' && c !== ''), erro: null };
+  } catch (erro) {
+    return { existe: true, chaves: [], erro: 'registro ilegível' };
+  }
+}
+
+/**
  * Quantas vezes se tenta apagar, e quanto se espera entre as tentativas.
  *
  * A chave que não foi listada na primeira vez é o caso que importa: a listagem inicial
@@ -221,6 +255,16 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
   // as 3 `envelope/*` continuando lá.
   const antesDoNamespace = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: '' });
 
+  // O REGISTRO da escola, lido ANTES de tudo: é o plano B dos nomes, e é a única coisa que
+  // salva o expurgo de ficar às cegas quando a cota da enumeração acabou.
+  const registro = await lerRegistroDeChaves({ token, accountId, namespaceId, slug });
+  // O PRÓPRIO REGISTO ENTRA NA LISTA. Ele vive sob `bastidores/<slug>/` e não se lista a si
+  // mesmo (quem escreve o registo não se anota): sem esta linha, o expurgo apagava o dado e
+  // deixava o índice dele para trás — uma chave da escola a sobreviver ao expurgo da escola.
+  const conhecidas = registro.existe === true
+    ? registro.chaves.concat([CHAVE_DO_REGISTRO(slug)])
+    : registro.chaves;
+
   // AS CHAVES QUE JÁ SE TENTOU, POR PREFIXO. Serve para (a) não repetir o DELETE da mesma
   // chave em passagens seguintes e (b) contar `total` como o CONJUNTO visto, e não a soma de
   // listagens que se sobrepõem.
@@ -231,6 +275,7 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     let apagadasAqui = 0;
     let recusadas = 0;
     let listou = false;
+    let deRegistro = false;
     let erroDeListagem = null;
 
     // AS PASSAGENS. A primeira é o expurgo normal; as seguintes existem porque a listagem
@@ -238,15 +283,23 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     // um expurgo que se declarou completo. Só se continua se a passagem anterior apagou algo.
     for (let passagem = 1; passagem <= PASSAGENS_DA_LIMPEZA; passagem++) {
       const listagem = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: p });
-      if (!listagem.ok) {
+      let nomes;
+      if (listagem.ok) {
+        listou = true;
+        nomes = listagem.chaves;
+      } else {
         falhasDeListagem += 1;
         erroDeListagem = listagem.erro;
-        break;
+        // A ENUMERAÇÃO NÃO ESTÁ DISPONÍVEL (a cota do `kv.list` acabou, ou a API recusou):
+        // os nomes vêm do REGISTRO da escola. Sem ele, não há o que tentar — e o relatório
+        // diz que ficou por fazer, em vez de dizer «0 de 0».
+        if (!conhecidas.length) break;
+        deRegistro = true;
+        nomes = conhecidas.filter((c) => c.startsWith(p));
       }
-      listou = true;
-      const novas = listagem.chaves.filter((c) => !vistas.get(p).has(c));
+      const novas = nomes.filter((c) => !vistas.get(p).has(c));
       if (passagem > 1 && novas.length === 0) break;
-      for (const chave of listagem.chaves) {
+      for (const chave of nomes) {
         // A chave já tentada não se repete: um 404 na segunda tentativa não é «apagada»,
         // é a mesma chave de antes. Contá-la duas vezes inflaria o relatório.
         if (vistas.get(p).has(chave)) continue;
@@ -293,6 +346,9 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     porPrefixo.push({
       prefixo: p,
       listou,
+      // «os nomes vieram do registo, não da enumeração»: a limpeza vale, o que NÃO se pode
+      // afirmar é que não havia mais nada além do que o registo conhece.
+      deRegistro,
       total: totalDoPrefixo,
       apagadas: apagadasAqui,
       recusadas,
@@ -344,6 +400,8 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
     // escola. Por isso estes números são RELATO, não trava. Mas ficam no relatório, porque
     // uma escola que sai do ar deixando chave para trás é exatamente o que não pode passar
     // em branco.
+    // O ESTADO DO REGISTRO — o plano B dos nomes. `chaves` é quantas ele conhece.
+    registro: { existe: registro.existe, chaves: conhecidas.length, erro: registro.erro },
     namespace: {
       listou: namespaceListou,
       antes: antesDoNamespace.ok ? antesDoNamespace.chaves.length : null,
@@ -391,6 +449,8 @@ async function excluirEscola({ token, accountId, slug, worker, kv }) {
 }
 
 module.exports = {
+  CHAVE_DO_REGISTRO,
+  lerRegistroDeChaves,
   excluirEscola,
   apagarChavesDeEscola,
   listarChaves,

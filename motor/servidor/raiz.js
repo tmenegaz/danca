@@ -14,8 +14,11 @@
  */
 
 const { criarEscola, dispararCriacao, slugificar, desfazerPlaceholder } = require('./provisionar-escola.js');
-const { excluirEscola, prefixosDaEscola } = require('./expurgar-escola.js');
-const { listarEscolas, listarProfessores, apagarEscolaDoRepo, lerArquivo } = require('./repo-escola.js');
+const { excluirEscola, apagarChavesDeEscola, prefixosDaEscola } = require('./expurgar-escola.js');
+const {
+  listarEscolas, listarProfessores, apagarEscolaDoRepo, lerArquivo,
+  pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola,
+} = require('./repo-escola.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -413,10 +416,20 @@ async function fetch(request, env) {
       relatorio.cloudflare = { erro: (err && err.message) || String(err), morada };
     }
 
-    // 4. O REPOSITÓRIO.
+    // 4. O REPOSITÓRIO. O desfecho do KV vai JUNTO: se a limpeza das chaves não se completou,
+    // a pendência fica gravada no elo do expurgo — e é de lá que a retomada a lê, quando a
+    // escola já não existe em lugar nenhum (`wrangler.<slug>.jsonc` sai neste mesmo commit).
+    const kvDoExpurgo = relatorio.cloudflare && relatorio.cloudflare.kv;
     try {
       relatorio.repositorio = await apagarEscolaDoRepo({
         token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, confirmacao, motivo,
+        kv: kvDoExpurgo ? {
+          ok: kvDoExpurgo.ok === true,
+          apagadas: kvDoExpurgo.apagadas,
+          restantes: kvDoExpurgo.restantes,
+          namespaceId: (morada.kvNamespaceId || null),
+          prefixos: prefixosDaEscola(slug),
+        } : null,
       });
     } catch (err) {
       relatorio.repositorio = { erro: (err && err.message) || String(err) };
@@ -436,6 +449,78 @@ async function fetch(request, env) {
       Object.assign(relatorio, { ok, noRepositorio, noCloudflare, kvFalhou }),
       ok ? 200 : 500
     );
+  }
+
+  // ---------------------------------------------------------------------------
+  // A RETOMADA DA LIMPEZA DO KV. O expurgo tem duas metades — o Cloudflare (subdomínio,
+  // Worker, chaves) e o repositório — e elas podem separar-se: em 19/10/2026 a cota diária
+  // do `kv.list` acabou a meio, e a escola `calango` saiu do ar e do registro deixando o
+  // dado no KV. Sem esta rota, a pendência era irrecuperável: a escola já não existe em
+  // lugar nenhum de onde se possa deduzir o namespace (o `wrangler.<slug>.jsonc` foi
+  // apagado no mesmo commit). Com ela, a limpeza é retomada a partir do ELO — o índice da
+  // escola, que o expurgo preserva de propósito, guarda o namespace, os prefixos e o
+  // instante em que a metade do KV falhou.
+  // ---------------------------------------------------------------------------
+  if (url.pathname === '/api/expurgar-kv' && request.method === 'POST') {
+    let corpo;
+    try { corpo = await request.json(); } catch { corpo = null; }
+    const slug = String((corpo && corpo.escola) || '').trim();
+    const confirmacao = String((corpo && corpo.confirmacao) || '').trim();
+    if (!slug) return responderJson({ ok: false, erro: 'informe a escola' }, 400);
+    if (confirmacao !== slug) {
+      return responderJson({ ok: false, erro: 'a confirmação não é o slug da escola — nada foi apagado' }, 400);
+    }
+    const cfToken = env && env.CLOUDFLARE_API_TOKEN;
+    const ghToken = env && env.GITHUB_TOKEN;
+    if (!cfToken || !ghToken) {
+      return responderJson({ ok: false, erro: 'faltam tokens no Worker (CLOUDFLARE_API_TOKEN e GITHUB_TOKEN)' }, 500);
+    }
+
+    let pendencia = null;
+    try {
+      pendencia = await pendenciaDoKv({ token: ghToken, dono: DONO, repo: REPO, ref: REF, slug });
+    } catch (err) {
+      return responderJson({ ok: false, erro: 'não consegui ler o índice da escola: ' + ((err && err.message) || String(err)) }, 500);
+    }
+    if (!pendencia) {
+      return responderJson({ ok: true, escola: slug, nadaPendente: true,
+        nota: 'não há expurgo pendente no KV para esta escola' });
+    }
+    if (!pendencia.namespaceId) {
+      return responderJson({ ok: false, escola: slug, erro: 'o elo do expurgo não guardou o namespace do KV — não sei onde limpar' }, 500);
+    }
+
+    let kv = null;
+    try {
+      kv = await apagarChavesDeEscola({
+        token: cfToken,
+        accountId: ACCOUNT_ID,
+        namespaceId: pendencia.namespaceId,
+        prefixos: pendencia.prefixos || prefixosDaEscola(slug),
+        prefixo: null,
+        slug,
+      });
+    } catch (err) {
+      kv = { ok: false, erro: (err && err.message) || String(err) };
+    }
+
+    // Resolvido: o elo ganha a linha da retomada (o passado não se reescreve). Ainda não
+    // resolvido: a pendência FICA, e a próxima tentativa parte do mesmo lugar.
+    let registro = null;
+    if (kv && kv.ok === true) {
+      try {
+        const indiceAtual = await lerArquivo({ token: ghToken, dono: DONO, repo: REPO, ref: REF, caminho: 'escola/' + slug + '/indice.json' });
+        const novo = comResolucaoDoKv(indiceAtual, { resultado: kv });
+        registro = await atualizarIndiceDaEscola({
+          token: ghToken, dono: DONO, repo: REPO, ref: REF, slug, conteudo: novo,
+        });
+      } catch (err) {
+        registro = { ok: false, erro: (err && err.message) || String(err) };
+      }
+    }
+
+    const ok = Boolean(kv && kv.ok === true);
+    return responderJson(Object.assign({ escola: slug, pendencia, kv, registro }, { ok }), ok ? 200 : 500);
   }
 
   if (url.pathname === '/api/criar-escola' && request.method === 'POST') {
@@ -511,6 +596,41 @@ async function fetch(request, env) {
           });
         }
         nomeDeExibicao = professorNome + ' ' + professorSobrenome;
+      }
+
+      // O RESÍDUO DE UM EXPURGO ANTERIOR (19/10/2026). Uma escola que foi expurgada com a
+      // metade do KV por terminar deixa chaves debaixo do MESMO slug. Criar a escola outra
+      // vez com esse nome daria uma escola nova a ler o dado antigo — as anamneses e o plano
+      // de ontem apareceriam na estante de hoje, e o teste mediria ficção. Nada aqui adivinha:
+      // o elo do expurgo diz que ficou pendente, e a escola não nasce até isso se resolver.
+      // A saída é a retomada (`POST /api/expurgar-kv`) — ou outro nome de escola.
+      const slugPedido = slugificar(nome);
+      if (slugPedido) {
+        // Falha ao LER o índice não trava a criação: a trava é contra um resíduo CONHECIDO, e
+        // um erro de rede no GitHub não pode impedir uma escola de nascer. A guarda é do
+        // dado, não do acaso.
+        let pendente = null;
+        try {
+          pendente = await pendenciaDoKv({
+            token: env && env.GITHUB_TOKEN, dono: DONO, repo: REPO, ref: REF, slug: slugPedido,
+          });
+        } catch (err) { pendente = null; }
+        if (pendente) {
+          return new Response(JSON.stringify({
+            ok: false,
+            erro: 'a escola "' + slugPedido + '" já existiu, e o expurgo dela deixou chaves no KV ' +
+              (pendente.em ? '(desde ' + pendente.em + ')' : '') + '. Criar outra com o mesmo ' +
+              'nome faria a escola nova ler o dado antigo. Termine o expurgo' +
+              ' (POST /api/expurgar-kv com a escola "' + slugPedido + '") — a limpeza volta a ' +
+              'tentar quando a cota diária da enumeração do KV renovar — ou crie a escola com ' +
+              'outro nome.',
+            pendenciaKv: pendente,
+            escola: slugPedido,
+          }), {
+            status: 409,
+            headers: { 'Content-Type': 'application/json;charset=utf-8' },
+          });
+        }
       }
 
       const escola = await criarEscola({

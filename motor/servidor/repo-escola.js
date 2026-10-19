@@ -319,7 +319,7 @@ async function lerArquivo({ token, dono, repo, ref, caminho, fetchImpl }) {
  * expurgada. Um arquivo ganha a entrada nova, ele não é reescrito — a proveniência
  * acrescenta. Criado se não existir (a `maria` não tem índice).
  */
-function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando }) {
+function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando, kv }) {
   let indice = null;
   try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
   if (!indice || typeof indice !== 'object') {
@@ -332,11 +332,30 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando 
     };
   }
   indice.expurgo = indice.expurgo || [];
-  indice.expurgo.push({
+  const elo = {
     em: quando || new Date().toISOString(),
     motivo: motivo || 'expurgada pela raiz',
     apagado: arquivos,
-  });
+  };
+  // O QUE FICOU NO KV — e não é relato: é a PENDÊNCIA. A limpeza das chaves começa por
+  // ENUMERAR, e a enumeração tem cota diária própria; quando ela falta, o expurgo tira a
+  // escola do ar e do repositório e não consegue apagar o dado. Sem esta anotação, a
+  // pendência morre com a escola (o `wrangler.<slug>.jsonc`, que dizia onde vive o KV, foi
+  // apagado no mesmo commit) — foi o que aconteceu com a `calango` em 19/10/2026. Com ela,
+  // a limpeza pode ser RETOMADA depois: a rota `/api/expurgar-kv` lê daqui o namespace e os
+  // prefixos e não precisa mais de saber que a escola existiu.
+  if (kv) {
+    elo.kv = {
+      ok: kv.ok === true,
+      apagadas: kv.apagadas === undefined ? null : kv.apagadas,
+      restantes: kv.restantes === undefined ? null : kv.restantes,
+      namespaceId: kv.namespaceId || null,
+      prefixos: kv.prefixos || null,
+      em: elo.em,
+    };
+    if (kv.ok !== true) elo.kv.pendente = true;
+  }
+  indice.expurgo.push(elo);
   return JSON.stringify(indice, null, 2) + '\n';
 }
 
@@ -347,7 +366,7 @@ function comElo(indiceTexto, { slug, professor, ciclo, arquivos, motivo, quando 
  * `confirmacao` repete o slug: é a trava de quem clica no botão — o expurgo não aceita um
  * slug de parâmetro sozinho, porque ele é irreversível do lado de quem usa.
  */
-async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, motivo, quando, fetchImpl }) {
+async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, motivo, quando, kv, fetchImpl }) {
   const f = fetchImpl || fetch;
   if (!slug) throw new Error('informe a escola');
   if (String(confirmacao) !== slug) {
@@ -390,6 +409,7 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     arquivos: apagados,
     motivo,
     quando,
+    kv,
   });
 
   const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;
@@ -473,8 +493,105 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
   };
 }
 
+/**
+ * A PENDÊNCIA DO KV que o expurgo deixou, lida do elo — `null` se não há nenhuma.
+ *
+ * É a memória que faltava: o expurgo pode terminar a metade do Cloudflare e não a do KV, e
+ * a escola, depois dele, já não existe em lugar nenhum de onde se possa deduzir o namespace.
+ * O elo guarda-o. Devolve `{ namespaceId, prefixos, em, motivo }` do expurgo mais recente que
+ * ficou pendente — ou `null`.
+ */
+async function pendenciaDoKv({ token, dono, repo, ref, slug, fetchImpl }) {
+  const texto = await lerArquivo({
+    token, dono, repo, ref, caminho: 'escola/' + slug + '/indice.json', fetchImpl,
+  });
+  if (!texto) return null;
+  let indice = null;
+  try { indice = JSON.parse(texto); } catch { return null; }
+  const elos = (indice && indice.expurgo) || [];
+  for (let i = elos.length - 1; i >= 0; i--) {
+    const kv = elos[i] && elos[i].kv;
+    if (kv && kv.pendente === true) {
+      return {
+        namespaceId: kv.namespaceId || null,
+        prefixos: kv.prefixos || null,
+        em: kv.em || elos[i].em || null,
+        motivo: elos[i].motivo || null,
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * Marca no elo que a pendência do KV foi resolvida (ou não). Reescreve SÓ o último elo
+ * pendente — o passado não se reescreve: o elo do expurgo continua a dizer o que aconteceu,
+ * e ganha a linha do que veio depois.
+ */
+function comResolucaoDoKv(indiceTexto, { quando, resultado }) {
+  let indice = null;
+  try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
+  if (!indice || !Array.isArray(indice.expurgo)) return indiceTexto;
+  for (let i = indice.expurgo.length - 1; i >= 0; i--) {
+    const elo = indice.expurgo[i];
+    if (!elo || !elo.kv || elo.kv.pendente !== true) continue;
+    elo.kv.retomada = {
+      em: quando || new Date().toISOString(),
+      ok: resultado && resultado.ok === true,
+      apagadas: resultado && resultado.apagadas !== undefined ? resultado.apagadas : null,
+      restantes: resultado && resultado.restantes !== undefined ? resultado.restantes : null,
+    };
+    if (resultado && resultado.ok === true) delete elo.kv.pendente;
+    break;
+  }
+  return JSON.stringify(indice, null, 2) + '\n';
+}
+
+/**
+ * Grava o índice da escola de volta (só ele), num commit próprio. É da RETOMADA da limpeza
+ * do KV: o elo do expurgo ganha a linha do que veio depois — o passado não se reescreve.
+ * Devolve `{ ok, commit }` ou lança.
+ */
+async function atualizarIndiceDaEscola({ token, dono, repo, ref, slug, conteudo, fetchImpl }) {
+  const f = fetchImpl || fetch;
+  const caminho = 'escola/' + slug + '/indice.json';
+  const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
+  const cabecalhos = {
+    'Authorization': 'Bearer ' + token,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+  };
+  const atual = await f(url + '?ref=' + encodeURIComponent(ref), { headers: cabecalhos });
+  let sha = null;
+  if (atual.ok) {
+    const dados = await atual.json().catch(() => null);
+    sha = (dados && dados.sha) || null;
+  }
+  const bytes = new TextEncoder().encode(String(conteudo));
+  let binario = '';
+  for (const b of bytes) binario += String.fromCharCode(b);
+  const res = await f(url, {
+    method: 'PUT',
+    headers: cabecalhos,
+    body: JSON.stringify({
+      message: 'chore(escola): a limpeza do KV de ' + slug + ' foi retomada e concluída',
+      content: btoa(binario),
+      branch: ref,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  const dados = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error('o GitHub recusou gravar ' + caminho + ': ' + ((dados && dados.message) || ('HTTP ' + res.status)));
+  }
+  return { ok: true, commit: dados.commit && dados.commit.sha };
+}
+
 module.exports = {
   listarEscolas,
+  atualizarIndiceDaEscola,
+  pendenciaDoKv,
+  comResolucaoDoKv,
   listarProfessores,
   apagarEscolaDoRepo,
   escolaDosCaminhos,

@@ -47,6 +47,96 @@ function criarCloudflare(env) {
     return chave;
   };
 
+  // ── O REGISTRO DE CHAVES DA ESCOLA (19/10/2026) ──────────────────────────────
+  //
+  // O KV é COMPARTILHADO e a única forma de saber o que uma escola lá tem é ENUMERAR as
+  // chaves — e a enumeração (`kv.list`) tem cota diária própria no plano gratuito. Quando
+  // ela estoura, o Worker da escola fica sem as três listas (a estante de planos, os
+  // sujeitos, os estados) e o EXPURGO fica sem os nomes das chaves: apaga o Worker e o
+  // repositório e deixa o dado no KV, sem saber o que apagar. Aconteceu com a `calango`.
+  //
+  // A leitura (`get`) não tem essa cota. Então a escola passa a manter um REGISTRO — uma
+  // chave só, com os nomes de tudo o que escreveu —, e são dois os consumidores:
+  //   · a `listar()` desta camada, que cai nele quando a enumeração falha;
+  //   · o expurgo (`motor/servidor/expurgar-escola.js`), que apaga por nome.
+  //
+  // O registro é um SUPLEMENTO, nunca a autoridade: enquanto a enumeração responde, é ela
+  // que manda (o registro pode estar uma escrita atrás, perdida por uma escrita concorrente
+  // noutro isolate). Ele custa uma escrita por chave NOVA — o `Set` em memória evita a
+  // escrita repetida nas gravações seguintes do mesmo isolate.
+  const REGISTRO_DE_CHAVES = escola ? 'bastidores/' + escola + '/.chaves.json' : null;
+  const CACHE_DO_REGISTRO = new WeakMap(); // binding KV → Map(escola → Set de chaves)
+
+  function cacheDaEscola() {
+    if (!kv || typeof kv !== 'object') return null;
+    if (!CACHE_DO_REGISTRO.has(kv)) CACHE_DO_REGISTRO.set(kv, new Map());
+    const porEscola = CACHE_DO_REGISTRO.get(kv);
+    if (!porEscola.has(escola)) porEscola.set(escola, null); // null = ainda não carregado
+    return porEscola;
+  }
+
+  /** O conjunto de chaves registadas. Lança se não conseguir ler — quem chama decide. */
+  async function carregarRegistro() {
+    const porEscola = cacheDaEscola();
+    if (!porEscola) return new Set();
+    const guardado = porEscola.get(escola);
+    if (guardado instanceof Set) return guardado;
+    const texto = await kv.get(REGISTRO_DE_CHAVES);
+    const chaves = new Set();
+    if (texto) {
+      try {
+        const dados = JSON.parse(String(texto));
+        for (const c of (Array.isArray(dados) ? dados : (dados && dados.chaves) || [])) {
+          if (typeof c === 'string' && c) chaves.add(c);
+        }
+      } catch (erro) { /* registo ilegível: reconstruído pela próxima enumeração */ }
+    }
+    porEscola.set(escola, chaves);
+    return chaves;
+  }
+
+  async function gravarRegistro(chaves) {
+    if (!REGISTRO_DE_CHAVES || typeof kv.put !== 'function') return;
+    const corpo = { escola, chaves: Array.from(chaves).sort() };
+    await kv.put(REGISTRO_DE_CHAVES, JSON.stringify(corpo, null, 2) + '\n');
+  }
+
+  /** Anota a chave FÍSICA no registo. Uma escrita por chave nova, por isolate. */
+  async function registrarChave(fisica) {
+    if (!REGISTRO_DE_CHAVES || typeof kv.put !== 'function') return;
+    try {
+      const chaves = await carregarRegistro();
+      if (chaves.has(fisica)) return;
+      chaves.add(fisica);
+      await gravarRegistro(chaves);
+    } catch (erro) {
+      // O registo é um suplemento: falhar a anotá-lo não pode falhar a gravação do dado.
+    }
+  }
+
+  /** Anota VÁRIAS chaves de uma vez — o que a enumeração encontrou. Uma escrita só. */
+  async function registrarVarias(fisicas) {
+    if (!REGISTRO_DE_CHAVES || typeof kv.put !== 'function' || !fisicas.length) return;
+    try {
+      const chaves = await carregarRegistro();
+      let mudou = false;
+      for (const f of fisicas) {
+        if (!chaves.has(f)) { chaves.add(f); mudou = true; }
+      }
+      if (mudou) await gravarRegistro(chaves);
+    } catch (erro) { /* suplemento: falhar aqui não pode falhar a leitura */ }
+  }
+
+  async function esquecerChave(fisica) {
+    if (!REGISTRO_DE_CHAVES || typeof kv.put !== 'function') return;
+    try {
+      const chaves = await carregarRegistro();
+      if (!chaves.has(fisica)) return;
+      chaves.delete(fisica);
+      await gravarRegistro(chaves);
+    } catch (erro) { /* idem */ }
+  }
+
   return {
     async ler(chave) {
       // Estático primeiro: o conteúdo vive no ASSETS. Se o ASSETS não existir
@@ -65,6 +155,7 @@ function criarCloudflare(env) {
         throw new Error('PADD_KV ausente: não há onde guardar ' + chave);
       }
       await kv.put(escolar(chave), String(valor));
+      await registrarChave(escolar(chave));
     },
     async anexar(chave, linha) {
       if (!kv || typeof kv.put !== 'function' || typeof kv.get !== 'function') {
@@ -76,17 +167,36 @@ function criarCloudflare(env) {
       const alvo = escolar(chave);
       const atual = (await kv.get(alvo)) || '';
       await kv.put(alvo, atual + String(linha));
+      await registrarChave(alvo);
     },
     async listar(prefixo) {
       if (!kv || typeof kv.list !== 'function') return [];
+      const fisico = escolar(prefixo);
       const nomes = [];
       let cursor;
-      for (let volta = 0; volta < 10; volta++) {
-        const pagina = await kv.list({ prefix: escolar(prefixo), cursor });
-        for (const k of (pagina && pagina.keys) || []) nomes.push(desescolar(String(k.name)));
-        if (!pagina || pagina.list_complete || !pagina.cursor) break;
-        cursor = pagina.cursor;
+      try {
+        for (let volta = 0; volta < 10; volta++) {
+          const pagina = await kv.list({ prefix: fisico, cursor });
+          for (const k of (pagina && pagina.keys) || []) nomes.push(desescolar(String(k.name)));
+          if (!pagina || pagina.list_complete || !pagina.cursor) break;
+          cursor = pagina.cursor;
+        }
+      } catch (erro) {
+        // A ENUMERAÇÃO FALHOU — e a causa, medida, é a cota diária do `kv.list` no plano
+        // gratuito. A lista vem do REGISTRO da escola, que se lê com `get` (sem cota).
+        // Sem registo (escola anterior a esta mudança, ou registo perdido), a falha SOBE:
+        // uma lista vazia por falha de leitura é indistinguível de «não há nada gravado».
+        const chaves = await carregarRegistro();
+        if (!chaves.size) throw erro;
+        return Array.from(chaves)
+          .filter((c) => c.startsWith(fisico))
+          .map(desescolar)
+          .sort();
       }
+      // A ENUMERAÇÃO DEU CERTO: é ela a autoridade, e o que ela viu entra no registo. É assim
+      // que uma escola anterior a esta mudança ganha o registo que ainda não tinha — a
+      // próxima vez que a cota faltar, os nomes já lá estão.
+      await registrarVarias(nomes.map(escolar));
       return nomes.sort();
     },
     async existe(chave) {
@@ -96,6 +206,7 @@ function criarCloudflare(env) {
     async apagar(chave) {
       if (!kv || typeof kv.delete !== 'function') return false;
       await kv.delete(escolar(chave));
+      await esquecerChave(escolar(chave));
       return true;
     },
   };
