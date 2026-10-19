@@ -36,5 +36,42 @@
       "caminho": "wrangler.calando-teste-1.jsonc",
       "tipo": "config do Worker"
     }
+  ],
+  "expurgo": [
+    {
+      "em": "2026-10-19T16:18:23.098Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-aula-01.fipp",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-aula-01.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-captura-aula-01.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-dados.cifrado.json",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-dados.json",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-glossario-benesh.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-harmonizacao.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-notacao.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-plano.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-po.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-referencias.md",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1.conf",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1.fipp",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1.conf",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1.fipp",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/assets/favicon.svg",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/assets/lib-cifra.js",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/assets/nav.js",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/assets/style.css",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/index.html",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/assets/markdown.js",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/conteudo/anamnese.json",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/index.html",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/plano/conteudo/plano.json",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/po/conteudo/po.json",
+        "professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1/plano-observacao/prompts/elicitar-ciclo.md",
+        "wrangler.calando-teste-1.jsonc",
+        "professores/sapo-bailarino/ciclos/ciclo-01.conf"
+      ]
+    }
   ]
 }
