@@ -8,15 +8,20 @@ type: Ciclo
 professor: Sapo Bailarino
 ciclo: 01
 variante: calango-bale-nivel-1-teste-1
-hash_conteudo: 1a15542dda81d76f3615269fbbf41e351070839a01bb961d91ab037be496b2ef
+hash_conteudo: 2a14e9de88dbd1bdfd01aa6206e0acb8d04de2c88ee6fba732d00d34a9bce7cc
 parentHash: 
-hash: ea44f37773cf6027d766f02501719b399a6b735aeec1ad4d7bd91af42d06ff23
+hash: a469136c33fd5262ce87546900b208a800006e59958c4d6405bbcc40d0255d6b
 algoritmo: SHA-256
 po: professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md
 po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-19
 cobertura:
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md
   - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md
   - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md
   - professores/sapo-bailarino/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf
   - professores/sapo-bailarino/ciclos/ciclo-01.conf

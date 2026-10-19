@@ -1,0 +1,153 @@
+{
+  "escola": "Calango",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "régua da turma",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia da turma",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Técnica — Solo",
+      "tipo": "tabela",
+      "chave": "tecnica_solo",
+      "rotulo": "Técnica — Solo",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "teste tec solso",
+          "chave": "teste_tec_solso",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Técnica — Barra",
+      "tipo": "tabela",
+      "chave": "tecnica_barra",
+      "rotulo": "Técnica — Barra",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "teste tec barra",
+          "chave": "teste_tec_barra",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Técnica — Centro",
+      "tipo": "tabela",
+      "chave": "tecnica_centro",
+      "rotulo": "Técnica — Centro",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "teste tec centro",
+          "chave": "teste_tec_centro",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Técnica — Musicalidade",
+      "tipo": "tabela",
+      "chave": "tecnica_musicalidade",
+      "rotulo": "Técnica — Musicalidade",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "teste tec music",
+          "chave": "teste_tec_music",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 5 — Técnica — Expressão",
+      "tipo": "tabela",
+      "chave": "tecnica_expressao",
+      "rotulo": "Técnica — Expressão",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "teste tec expressão",
+          "chave": "teste_tec_expressao",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Observado na aula",
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "inco-posicoes-5a-pes: precisa desenvolver com-barra",
+        "cinco-posicoes-1a-bracos: Bom com-barra",
+        "cinco-posicoes-2a-bracos: razoável com-barra",
+        "cinco-posicoes-3a-bracos: precisa desenvolver com-barra",
+        "cinco-posicoes-4a-bracos: Bom com-barra",
+        "inco-posicoes-5a-pes: precisa desenvolver com-barra",
+        "cinco-posicoes-1a-bracos: Bom com-barra",
+        "cinco-posicoes-2a-bracos: razoável com-barra",
+        "cinco-posicoes-3a-bracos: precisa desenvolver com-barra",
+        "cinco-posicoes-4a-bracos: Bom com-barra"
+      ],
+      "secoes": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    }
+  ],
+  "variante": "calango-bale-nivel-1-teste-1"
+}

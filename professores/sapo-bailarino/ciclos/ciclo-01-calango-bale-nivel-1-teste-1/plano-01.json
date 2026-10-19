@@ -1,0 +1,132 @@
+{
+  "contexto": {
+    "escolaEspaco": "calango",
+    "professorResponsavel": "Sapo Bailarino",
+    "turmasObservadas": "Balé Nível 1 — Teste 1",
+    "frequenciaSemanal": "2x semanal — ter e qui",
+    "duracaoPorAula": "1 hora",
+    "calendario": "2026-10-20 → 2026-12-20",
+    "numeroTotalDeAulas": "18",
+    "volumeDeTrabalho": "3–6 séries",
+    "condicaoDeRegistro": "Na sala: professor, alunas da turma · observa: o próprio professor.",
+    "metodologiaDeReferencia": "Francesa/Cecchetti",
+    "quemEscolheAMetodologia": "Eu escolho",
+    "notacaoDominada": "[a decidir]"
+  },
+  "objetivoGeral": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
+  "ciclo": {
+    "duracaoAulas": "18 aulas",
+    "duracaoMinutos": "1 hora",
+    "inicio": "2026-10-20",
+    "encerramento": "2026-12-20",
+    "volumeAtivoPorAula": "3–6 séries",
+    "professor": "sapo-bailarino"
+  },
+  "marcosPorAula": [
+    {
+      "n": "01",
+      "marco": "Aula 1 — reconhecer o apoio e o alinhamento do pé."
+    },
+    {
+      "n": "02",
+      "marco": "Aula 2 — transferir o peso sem perder o eixo."
+    },
+    {
+      "n": "03",
+      "marco": "Aula 3 — coordenar braços e pernas na sequência."
+    },
+    {
+      "n": "04",
+      "marco": "Aula 4 — sustentar o movimento com resposta ao pulso."
+    },
+    {
+      "n": "05",
+      "marco": "Aula 5 — revisar e apresentar a sequência."
+    }
+  ],
+  "estruturaDeCadaAula": [
+    "**Solo** — objetivos específicos: **1** Aula 1 — reconhecer o apoio e o alinhamento do pé.; **2** Aula 2 — transferir o peso sem perder o eixo.; **5** Aula 5 — revisar e apresentar a sequência.",
+    "**Barra** — objetivos específicos: **1** Aula 1 — reconhecer o apoio e o alinhamento do pé.; **3** Aula 3 — coordenar braços e pernas na sequência.; **5** Aula 5 — revisar e apresentar a sequência.",
+    "**Centro** — objetivos específicos: **2** Aula 2 — transferir o peso sem perder o eixo.; **3** Aula 3 — coordenar braços e pernas na sequência.; **4** Aula 4 — sustentar o movimento com resposta ao pulso.; **5** Aula 5 — revisar e apresentar a sequência.",
+    "**Musicalidade** — objetivos específicos: **4** Aula 4 — sustentar o movimento com resposta ao pulso.; **5** Aula 5 — revisar e apresentar a sequência.",
+    "**Expressão** — objetivos específicos: **5** Aula 5 — revisar e apresentar a sequência."
+  ],
+  "distribuicaoDeVolume": [
+    {
+      "bloco": "Solo",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Aquecimento e consciência corporal."
+    },
+    {
+      "bloco": "Barra",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Apoio e alinhamento."
+    },
+    {
+      "bloco": "Centro",
+      "proporcaoAlvo": "30%",
+      "justificativa": "Transferência e sequência."
+    },
+    {
+      "bloco": "Musicalidade",
+      "proporcaoAlvo": "10%",
+      "justificativa": "Pulso e frase."
+    }
+  ],
+  "sequenciaDeExercicios": [
+    {
+      "bloco": "Solo",
+      "objetivoEspecifico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+      "conteudoDoNivel": "Plié",
+      "tempos": "8",
+      "compasso": "4/4"
+    },
+    {
+      "bloco": "Barra",
+      "objetivoEspecifico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+      "conteudoDoNivel": "Battement tendu",
+      "tempos": "8",
+      "compasso": "4/4"
+    },
+    {
+      "bloco": "Centro",
+      "objetivoEspecifico": "Aula 2 — transferir o peso sem perder o eixo.",
+      "conteudoDoNivel": "Port de bras",
+      "tempos": "16",
+      "compasso": "3/4"
+    }
+  ],
+  "condicoesPreliminares": [
+    "Sala com barra, espelho e aparelho de som; piso adequado."
+  ],
+  "reguaDaRubrica": [
+    "Satisfatório",
+    "Razoável",
+    "Em desenvolvimento",
+    "Não se aplica"
+  ],
+  "rubrica": [
+    {
+      "criterio": "[Preencher: o critério de cada aula — declarado no lançamento da aula dada]",
+      "satisfatorio": "",
+      "razoavel": "",
+      "emDesenvolvimento": "",
+      "naoSeAplica": ""
+    }
+  ],
+  "criterioDeExtensao": "Estender o ciclo em duas aulas se o marco 4 não for alcançado.",
+  "musicasVideos": [
+    "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste."
+  ],
+  "repertorio": [
+    "Sequência de teste com plié, tendu e port de bras."
+  ],
+  "proveniencia": "Plano de teste 1, gerado para exercitar o formulário.",
+  "calendario": "[Preencher: o calendário não está no .md — o gerador injeta o bloco calculado do .conf da variante (Regra 10, camada 2)]",
+  "_lacunas": [
+    {
+      "campo": "rubrica.aplicadaEm",
+      "declara": "[Preencher: leitura de prosa não implementada — o documento diz \"Aplicada na Aula 11 (formativa) e na Aula 12 (somativa)\"]"
+    }
+  ]
+}
