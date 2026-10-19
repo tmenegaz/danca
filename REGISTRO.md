@@ -19420,3 +19420,91 @@ anamneses antigas e não as que só estão no repositório (gap da fase 1, não 
 a ser escrito no KV. (e) As páginas ainda pedem `api/envelopes` **e** `api/planos` **e**
 `api/plano-estados` — três leituras do MESMO índice. Uma rota só (ou um `ETag` no índice) levaria
 a carga a 1 leitura; fica para a fase 3, quando o envelope sair do KV.
+
+## 20/10/2026 — o envelope sai do KV: o acervo passa a ser o armazenamento (fase 3)
+
+**Por quê.** A fase 1 levou a anamnese para o repositório e a fase 2 cortou as leituras repetidas
+e as leituras de envelope nas listas. Ficou a assimetria: **a anamnese vivia no repositório, o
+plano e o PO viviam no KV** — e a anamnese tinha, no `rotas.js`, um caminho próprio (escrever
+aqui, listar ali, ler acolá) que os outros dois não tinham. Dois mundos para a mesma coisa é a
+receita para as duas versões divergirem, e a anamnese ainda era escrita **duas vezes** (o envelope
+no KV e, num bloco à parte, a cópia no Git) com dois resultados a conciliar.
+
+**O que mudou.** Não foi «mover um ficheiro»: foi trocar a peça. `motor/servidor/acervo-envelopes.js`
+é um **armazenamento** — o mesmo contrato do adaptador do KV (`ler`, `guardar`, `apagar`, `existe`,
+`listar`, e um `mutar` que só ele tem) — sobre a família `envelope/`, com o repositório como
+autoridade. A ponte compõe (`cloudflare.js`, `criarArmazenamento`): **`envelope/` vai para o
+acervo; o resto (o cofre cifrado, os cadastros, o cartão da geração, o registo de chaves) fica no
+KV**. O `motor/nucleo/porta.js` não mudou de arquitectura por causa desta fase — a derivação, o
+índice, os estados, os vínculos e a proveniência atravessaram-na intactos.
+
+As decisões que a peça carrega:
+
+- **o caminho é a chave** — `envelope/plano-….json` ↔ `escola/<escola>/envelopes/plano-….json`,
+  sem tabela de caminhos; a listagem é UMA chamada à árvore do repositório;
+- **dado de menor vai cifrado, e só ele** — a anamnese leva o metadado em claro e as respostas num
+  `_cifrado` com a `SENHA_CRIPTO` (o mesmo `tools/lib-cifra.js` do cofre); o plano e o PO vão em
+  claro porque a fonte que a geração escreve (`ciclo-XX-<escola>-po.md`) já os leva abertos para o
+  mesmo repositório. Sem `SENHA_CRIPTO` a anamnese é **recusada** — nunca em claro;
+- **o 409 repete**, e o índice tem porta própria (`mutar`): ele é um ler-modificar-gravar, e dois
+  isolates a gravar ao mesmo tempo perderiam uma entrada. A mutação é **reaplicada sobre a versão
+  que ganhou a corrida**, e uma remoção vence a soma (senão esquecer um nome seria desfeito);
+- **o índice vem antes do registo** (`gravarEnvelope`). Se a escrita do registo falhar depois do
+  índice, sobra um nome órfão — que é inofensivo, porque quem lista salta o que não abre. Na ordem
+  contrária, sobrava um registo gravado e invisível na estante;
+- **o KV antigo não evapora**: a leitura é repositório primeiro e o KV só quando a árvore não tem o
+  nome (uma chave por registo em falta, não uma por carga de página). A escrita vai toda para o
+  repositório, e cada registo migra na primeira vez que é regravado;
+- **sem `GITHUB_TOKEN` a escola é a de antes**: grava no KV. O armazenamento não pode transformar
+  «não sei escrever no repositório» em «não sei gravar» — é o que mantém viva uma escola que nunca
+  recebeu o segredo;
+- **a falha da gravação é resultado, não excepção**: `resultado.gravado` falso, `erroDaGravacao` com
+  o motivo, e a tela diz «não foi gravada» em vez de deixar o professor a adivinhar.
+
+**Onde.** `motor/servidor/acervo-envelopes.js` (novo) · `motor/servidor/cloudflare.js`
+(`criarArmazenamento`, e a saída do escritor de anamnese e dos dois leitores de repositório) ·
+`motor/servidor/rotas.js` (as três rotas que tinham caminho próprio voltam a ser uma linha: `/api/anamneses`,
+`/api/envelope/:id` e a escrita do `api/elicitar`; `resultado.git` passa a relatar a gravação do
+envelope) · `motor/nucleo/porta.js` (`mutar` no índice, `corpoDoIndice`, `remover`, o índice antes do
+registo, `erroDaGravacao`, o resumo do plano com `repertorio` e `professorNome`, `VERSAO_DO_RESUMO` 3)
+· `motor/servidor/bastidores.js` (`paresComPlano`/`usosDosPlanos`/`turmasComPlano` leem os resumos do
+acervo — o mesmo armazenamento composto da porta, para a regra de proveniência não deixar de ver os
+planos antigos) · `motor/servidor/repo-escola.js` (`ehAcervoDaEscola`, com o caminho da fase 1 ainda
+reconhecido) · `porta/index.html` (as mensagens do «Guardar»: o acervo é o destino único, e a falha
+diz o motivo) · `motor/servidor/README.md` · `experimentos/README.md` · `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `node experimentos/provar-acervo-envelopes.js` → **TUDO CERTO, 43 asserções** — o
+caminho e o seu inverso (a barra recusada), a anamnese ilegível no arquivo e legível pela porta, o
+plano em claro, a listagem numa chamada e sem leituras de conteúdo, o 409 e o índice que não perde a
+entrada do outro, o KV antigo a aparecer e a perder para o repositório, a composição
+`envelope/`×resto e as **três rotas de uma página a custarem UMA leitura do índice**, o expurgo a
+levar os dois caminhos (fase 1 e fase 3) e a gravação que falha sem deixar nome órfão. E ainda: a
+escola sem `GITHUB_TOKEN` a gravar no KV, e a anamnese sem `SENHA_CRIPTO` a ser recusada.
+
+Sem regressão: `provar-indice-de-envelopes` 41 · `provar-listas-sem-repeticao` 16 ·
+`provar-expurgo-sem-listagem` 40 · `provar-expurgo-leitura-atrasada` 45 · `provar-lista-que-falha` 39
+· `provar-proveniencia-e-sessao` 14 · `provar-producao` 135 · `provar-teste` 26 · `provar-geracao` 38
+· `provar-contexto-do-ato` 37 · `provar-sessao-na-barra` 28 · `provar-menu-da-producao` 26.
+Identidade visual: verde (19 verificações).
+
+Ponta a ponta pela ponte real de produção (bancada local, GitHub falso, `POST /api/elicitar` →
+`GET /api/envelopes` → `/api/planos` → `/api/anamnese-vinculo`): o plano gravado deixou
+`escola/calango/envelopes/plano-….json` **e** o `-plano.md`; a anamnese foi para o acervo **sem as
+respostas legíveis no arquivo**; o segundo «Guardar» do mesmo plano **não reescreveu o índice**; e o
+`DELETE` levou o ficheiro e a linha da estante.
+
+**Referências.** As entradas de hoje sobre a anamnese no acervo (fase 1), sobre a cota do KV
+(a enumeração) e sobre a lista que lê o índice (fase 2) · `CONGELAMENTO.md` (dados sensíveis).
+
+**O que ainda não está feito.** (a) O **cofre cifrado** continua a ser escrito no KV
+(`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`, pela rota `POST /api/anamnese`): é uma segunda
+cópia da mesma anamnese, agora redundante — tirá-la exige que o formulário de lançamento passe a ler
+o acervo (fase 4). (b) Os **cadastros dos Bastidores** (professores, alunas, turmas, rubricas,
+termos) continuam no KV: são estado administrativo pequeno, e a fase 3 não lhes tocou. (c) A
+**migração** dos envelopes antigos é na primeira regravação de cada um — não há migração em lote,
+e o KV antigo fica lá sem ser lido (o expurgo da escola continua a apagá-lo pelo registo de
+chaves). (d) Cada gravação no acervo é **um commit por ficheiro**: um «Guardar» de PO produz dois
+(envelope + índice) mais os das fontes derivadas. É ruído no histórico, e é também a cadeia de
+custódia — mede-se se doer. (e) O `api/anamnese-estados` lê o índice, mas a **lista de gestão**
+continua a não incluir o que só existe no repositório *sem* índice reconstruído — o caminho existe
+(enumeração + leitura), e ainda não há prova dele.

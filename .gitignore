@@ -87,6 +87,14 @@ experimentos/*
 # A prova do plano e da anamnese: o REGISTRO cita-a por nome («125 de 125»), e uma prova
 # citada que não existe no clone é uma afirmação que ninguém confere.
 !experimentos/provar-ajustes-anamnese.js
+# AS PROVAS DO KV E DO ACERVO (19–20/10/2026). As quatro estão citadas pelo REGISTRO e pelos
+# rodapés `Auditoria:` dos commits — e uma prova citada que não existe no clone é uma
+# afirmação que ninguém confere. Foram escritas a medir o custo de UMA carga de página e o
+# caminho do envelope até ao repositório; o `.gitignore` já as devia ter aberto na altura.
+!experimentos/provar-indice-de-envelopes.js
+!experimentos/provar-expurgo-sem-listagem.js
+!experimentos/provar-acervo-envelopes.js
+!experimentos/provar-listas-sem-repeticao.js
 # A PROVA DOS ACORDEÕES (18/10/2026): as cinco secções da Produção recolhem, e recolhidas a
 # listagem mede a largura inteira. Ela é o que impede o acordeão de voltar a ser só a seta
 # das turmas — e é citada pelo nome no REGISTRO.

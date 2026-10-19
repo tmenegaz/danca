@@ -82,7 +82,7 @@ function semMarcasDoGerador(markdown) {
     .trimStart();
 }
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, escreverAnamnese, lerAnamnesesDoRepo, lerAnamneseDoRepo, lerDados, lancamentoSeguro, escolaDoWorker, geracao }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, geracao }) {
   const roteador = criarRoteador();
 
   /*
@@ -245,47 +245,16 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   // 6. /api/anamneses — a seleção de sujeitos (um por apelido, o vigente).
   roteador.rota('GET', '/api/anamneses', async () => {
     /*
-     * O REPOSITÓRIO PRIMEIRO, O KV COMO RECURSO (19/10/2026).
+     * A ROTA JÁ NÃO SABE ONDE O DADO VIVE (20/10/2026), e é esse o ponto da fase 3.
      *
-     * A anamnese passou a ser registro da ESCOLA no repositório — é de lá que outro professor,
-     * noutro computador, tem de a ver. A listagem do repositório custa UMA chamada (a árvore) e
-     * não paga cota de enumeração; a do KV depende do índice e do que o KV tiver.
-     *
-     * Quando o repositório responde, é ele a verdade. Quando não responde (sem token, rede,
-     * GitHub fora), cai-se no KV — que continua a ter as anamneses gravadas — e o resultado
-     * DIZ de onde veio (`fonte`), para a tela poder ser honesta sobre isso.
+     * Ela tinha três caminhos — repositório, KV, e a união dos dois — com o campo `fonte` a
+     * contar ao professor de onde vinha a lista. A união passou a ser do ARMAZENAMENTO: o
+     * acervo do repositório lê primeiro e recorre ao KV quando um nome não está lá. A rota
+     * volta a ser uma linha, e o `fonte` fica com um valor só — a lista é, agora, sempre a
+     * mesma lista, e não há duas metades a explicar a quem está em sala de aula.
      */
-    let doRepo = null;
-    if (lerAnamnesesDoRepo) {
-      try {
-        const r = await lerAnamnesesDoRepo(escolaDoWorker);
-        if (r && r.ok) doRepo = r.anamneses;
-      } catch (erro) {
-        // O repositório não respondeu: o KV segura a lista, e o campo `fonte` diz isso.
-      }
-    }
-
-    // A UNIÃO, e não a troca. Uma escola que já tinha anamneses no KV antes desta mudança não
-    // pode vê-las desaparecer no dia do deploy: o repositório vem primeiro (é a verdade dali em
-    // diante) e o KV completa o que ainda não migrou — por apelido, e sem repetir.
-    if (doRepo) {
-      const vistos = new Set(doRepo.map((a) => a.valor));
-      let doKv = [];
-      try {
-        doKv = await porta.anamneses(armazenamento);
-      } catch (erro) {
-        doKv = [];
-      }
-      const restantes = doKv.filter((a) => !vistos.has(a.valor));
-      return {
-        ok: true,
-        opcoes: doRepo.concat(restantes),
-        fonte: restantes.length ? 'repositorio+kv' : 'repositorio',
-      };
-    }
-
     try {
-      return { ok: true, opcoes: await porta.anamneses(armazenamento), fonte: 'kv' };
+      return { ok: true, opcoes: await porta.anamneses(armazenamento), fonte: 'acervo' };
     } catch (erro) { return falhaDaLista(erro); }
   });
 
@@ -547,25 +516,9 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     const texto = await porta.lerEnvelopeCru(armazenamento, params.id);
     if (texto !== null) return resposta(200, MIME['.json'], texto);
 
-    /*
-     * O RECURSO É O REPOSITÓRIO (19/10/2026). A anamnese passou a viver no acervo da escola; o
-     * KV é cache. Quando o cache não a tem — porque o namespace foi limpo, porque a escola é
-     * nova, porque o KV não foi escrito —, o detalhe vem do repositório e é DECIFRADO aqui (o
-     * Worker tem a SENHA_CRIPTO). Sem isto, o PO abriria sem conseguir ler a aluna que a lista
-     * acabou de mostrar, e a contradição seria pior que a falta.
-     *
-     * Só para as anamneses: o plano e o PO continuam no caminho de sempre.
-     */
-    if (lerAnamneseDoRepo && params.id.indexOf('anamnese-') === 0) {
-      try {
-        const doRepo = await lerAnamneseDoRepo({ carimbo: params.id, escola: escolaDoWorker });
-        if (doRepo && doRepo.ok && doRepo.envelope) {
-          return resposta(200, MIME['.json'], JSON.stringify(doRepo.envelope, null, 2) + '\n');
-        }
-      } catch (erro) {
-        // Sem o repositório, a resposta é a de sempre: não encontrado.
-      }
-    }
+    // O detalhe — cru, como sempre foi. O ARMAZENAMENTO é que decide de onde ele vem (o
+    // repositório, e o KV como reserva) e que decifra a anamnese antes de a entregar. A rota
+    // não tem mais um segundo caminho para uma família só.
     return recusar('envelope não encontrado: ' + params.id, 404);
   });
 
@@ -584,35 +537,25 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     try {
       const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
 
+      /*
+       * O DESTINO DO REGISTRO, DITO AO PROFESSOR (20/10/2026).
+       *
+       * Antes, a gravação do envelope ia para o KV e um bloco à parte copiava a anamnese para
+       * o repositório — duas gravações, dois resultados a conciliar, e a possibilidade de uma
+       * delas falhar sozinha. Agora a gravação do envelope JÁ É a gravação no acervo (cifrada,
+       * no caso da anamnese), e `resultado.git` passa a relatar ESSA gravação: o mesmo campo
+       * que a tela já lê para decidir se limpa a memória do navegador.
+       */
+      resultado.git = resultado.gravado
+        ? { ok: true, fonte: 'acervo da escola' }
+        : { ok: false, erro: resultado.erroDaGravacao || 'o registro não foi gravado' };
+
       // A PONTE envelope → fonte: quando o PLANO é concluído E GRAVADO, o Worker
       // escreve o `ciclo-XX-<escola>-plano.md`; quando o PO é concluído E
       // GRAVADO, escreve o `-po.md` E dispara a geração. É best-effort — o
       // envelope já está persistido, e uma falha aqui não o desfaz.
       if (resultado.gravado && (corpo.fonte === 'plano' || corpo.fonte === 'po' || corpo.fonte === 'anamnese')) {
         const envelope = resultado.documento;
-
-        /*
-         * A ANAMNESE VAI PARA O REPOSITÓRIO (19/10/2026) — e era a única que não ia. O plano e o
-         * PO tinham escritor desde sempre; a anamnese vivia em DOIS sítios, e os dois no KV (o
-         * envelope e o cofre cifrado). É registro da ESCOLA, não da sessão de quem a preenche:
-         * o professor pode levar dias até fazer o plano de ensino, e outro professor noutro
-         * computador tem de a ver sem esperar pelo KV.
-         *
-         * A GRAVAÇÃO NO KV JÁ ACONTECEU e não se desfaz: uma falha aqui é DITA no resultado
-         * (`resultado.git`), e a tela usa a memória do navegador como ponte até a próxima
-         * tentativa. O que não se faz é escrever as respostas em claro: sem `SENHA_CRIPTO` o
-         * escritor recusa, e a recusa sobe.
-         */
-        if (corpo.fonte === 'anamnese' && escreverAnamnese) {
-          try {
-            resultado.git = await escreverAnamnese(
-              envelope,
-              'feat(anamnese): o registro da aluna entra no acervo da escola',
-            );
-          } catch (erro) {
-            resultado.git = { ok: false, erro: erro.message };
-          }
-        }
 
         if (corpo.fonte === 'plano' && escreverPlano) {
           try {

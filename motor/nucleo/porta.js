@@ -418,7 +418,7 @@ async function resumosDeEnvelopes(armazenamento, padrao, jaLido) {
  * aqui entra é o que um dia uma lista pediu — se uma lista nova precisar de outro campo, é
  * aqui que ele passa a existir, e o índice se reconstrói sozinho (a `versao` sobe).
  */
-const VERSAO_DO_RESUMO = 2;
+const VERSAO_DO_RESUMO = 3;
 
 function resumoDoEnvelope(envelope, nome) {
   const id = (envelope && envelope.id) || String(nome || '').replace(/\.json$/, '');
@@ -435,9 +435,19 @@ function resumoDoEnvelope(envelope, nome) {
   // O SUJEITO da anamnese é o apelido do CONTEXTO (não a resposta): é o que a lista mostra.
   if (fonte === 'anamnese') resumo.aluna = contexto.aluna || null;
   // O PLANO: o objetivo é o rótulo humano da estante; a turma diz de quem é o plano.
+  //
+  // O REPERTÓRIO E O NOME DO PROFESSOR ENTRAM AQUI (20/10/2026) porque a regra de proveniência
+  // dos Bastidores («o que já entrou num plano não se apaga») precisa dos dois — e ela lia os
+  // envelopes um por um, com uma enumeração à cabeça, para os ir buscar. Com eles no resumo,
+  // essa regra passa a custar UMA leitura do índice.
   if (fonte === 'plano') {
     resumo.objetivo = valorDe(envelope, 'objetivo-geral');
     resumo.turma = turmaDoEnvelope(envelope);
+    resumo.repertorio = listaDeResposta(envelope, 'repertorio');
+    // O nome que o formulário gravou (o slug já viaja em `professor`); são os dois que a
+    // curadoria compara, porque planos de épocas diferentes usam um ou outro.
+    const nome = valorDe(envelope, 'contexto-professor');
+    resumo.professorNome = nome || null;
   }
   // O PO: é dele que saem os VÍNCULOS (quem observa quem, e qual plano referencia).
   if (fonte === 'po') {
@@ -546,11 +556,7 @@ function unir(a, b) {
   return limparNomes([].concat(a, b));
 }
 
-async function gravarIndice(armazenamento, nomes, resumos, incompleto) {
-  // O ÍNDICE É UM CACHE, e um cache que não se pode gravar não derruba a leitura: um
-  // armazenamento só-de-leitura (as bancadas de prova, um adaptador futuro) continua a
-  // enumerar como antes. Os adaptadores de verdade — memória, disco, KV — têm `guardar`.
-  if (typeof armazenamento.guardar !== 'function') return;
+function corpoDoIndice(nomes, resumos, incompleto) {
   const limpos = limparNomes(nomes).sort();
   const corpo = { versao: VERSAO_DO_RESUMO, nomes: limpos, resumos: {} };
   // Só o resumo de quem ainda está no rol: um nome que saiu não deixa resumo para trás (o
@@ -559,7 +565,52 @@ async function gravarIndice(armazenamento, nomes, resumos, incompleto) {
     if (resumos && resumos[nome]) corpo.resumos[nome] = resumos[nome];
   }
   if (incompleto) corpo.incompleto = true;
-  await armazenamento.guardar(INDICE_DOS_ENVELOPES, JSON.stringify(corpo, null, 2) + '\n');
+  return JSON.stringify(corpo, null, 2) + '\n';
+}
+
+async function gravarIndice(armazenamento, nomes, resumos, incompleto, remover) {
+  const aRemover = Array.isArray(remover) ? remover : [];
+  // O ÍNDICE É UM CACHE, e um cache que não se pode gravar não derruba a leitura: um
+  // armazenamento só-de-leitura (as bancadas de prova, um adaptador futuro) continua a
+  // enumerar como antes. Os adaptadores de verdade — memória, disco, KV — têm `guardar`.
+  if (typeof armazenamento.guardar !== 'function') return;
+
+  // QUEM SABE GRAVAR COM RELEITURA GRAVA ASSIM (20/10/2026). No repositório, o índice é um
+  // LER-MODIFICAR-GRAVAR: dois isolates a gravar ao mesmo tempo (dois professores, duas abas)
+  // perderiam uma entrada se cada um escrevesse a sua lista por cima da do outro — e uma
+  // entrada perdida é um registo invisível na estante. O `mutar` relê e reaplica a MESMA
+  // lista sobre o que ganhou a corrida. O KV, que não o tem, grava por cima como sempre.
+  if (typeof armazenamento.mutar === 'function') {
+    let r = null;
+    try {
+      r = await armazenamento.mutar(INDICE_DOS_ENVELOPES, (atual) => {
+      const lido = decodificarIndice(atual);
+      // A lista que esta chamada quer gravar manda; o que veio de fora (outro isolate) e não
+      // está nela é somado — é o que faltaria para a estante mostrar o registo do outro. E o
+      // que esta chamada quer TIRAR sai, seja qual for a versão que ganhou a corrida: sem
+      // isto, esquecer um nome seria desfeito pela soma da versão lida.
+      const nomesFinais = unir(nomes, lido.incompleto ? [] : lido.nomes)
+        .filter((nome) => aRemover.indexOf(nome) === -1);
+      const resumosFinais = Object.assign({}, lido.resumos, resumos || {});
+        const corpo = corpoDoIndice(nomesFinais, resumosFinais, incompleto);
+        if (atual !== null && corpo === atual) return null;   // nada mudou: não se escreve
+        return corpo;
+      });
+    } catch (erro) {
+      r = null;   // sem acervo (sem token, sem escola) não há `mutar` a fazer
+    }
+    if (r && r.ok) return;
+    // O `mutar` falhou (rede, 403, 409 persistente, acervo ausente): cai na escrita simples.
+  }
+  const finais = aRemover.length ? nomes.filter((nome) => aRemover.indexOf(nome) === -1) : nomes;
+  // O ÍNDICE É UM CACHE: uma falha a escrevê-lo não derruba a operação que o mandou gravar (o
+  // registo é o dado; o índice é só o rol dele). Quem lê sabe reconstruí-lo — é o que a
+  // `lerIndice` faz quando ele está ausente ou incompleto.
+  try {
+    await armazenamento.guardar(INDICE_DOS_ENVELOPES, corpoDoIndice(finais, resumos, incompleto));
+  } catch (erro) {
+    // sem índice, a próxima leitura enumera e reconstrói
+  }
 }
 
 /** Acrescenta um nome (e o resumo dele) ao índice. Chamado só por `gravarEnvelope`. */
@@ -585,7 +636,9 @@ async function registrarNoIndice(armazenamento, nome, envelope) {
 async function esquecerDoIndice(armazenamento, nome) {
   const indice = await lerIndice(armazenamento);
   const restantes = indice.nomes.filter((n) => n !== nome);
-  await gravarIndice(armazenamento, restantes, indice.resumos, false);
+  // `remover` viaja para a mutação do índice: o nome tem de sair TAMBÉM se a versão que ganhou
+  // a corrida ainda o tiver (é o caso da gravação que falhou depois de o índice já o citar).
+  await gravarIndice(armazenamento, restantes, indice.resumos, false, [nome]);
 }
 
 /** Lê um envelope pelo NOME do arquivo (ex.: `anamnese-….json`); null se ilegível. */
@@ -638,15 +691,40 @@ async function identificar(armazenamento, documento, agora) {
   return identificarComCarimbo(armazenamento, documento, carimbo);
 }
 
-/** Grava o envelope — só quando o documento passou na validação. */
+/**
+ * Grava o envelope — só quando o documento passou na validação.
+ *
+ * O ÍNDICE VEM PRIMEIRO (20/10/2026), e não é detalhe. O índice é o ROL dos nomes: se a gravação
+ * do registro falhar depois de o índice já o citar, sobra um NOME ÓRFÃO — e quem lista salta os
+ * nomes cujo arquivo não abre, portanto o órfão é inofensivo. Na ordem contrária, uma falha
+ * deixaria o pior dos dois mundos: o registro gravado e invisível na estante.
+ *
+ * A FALHA DA GRAVAÇÃO É RESULTADO, NÃO EXCEPÇÃO. Desde que o envelope passou a viver no
+ * repositório, gravar é uma chamada de rede que pode falhar; o professor tem de ler «não
+ * gravou», com o motivo, e a memória do navegador segura o rascunho até a próxima tentativa.
+ */
 async function gravarEnvelope(armazenamento, documento, relatorio) {
   if (relatorio.errosDoDocumento.length) {
     return { ok: false, erro: 'o documento não passou na validação', linhas: linhasDoRelatorio(relatorio) };
   }
   const chave = ARQUIVO_DE(relatorio.id);
-  await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
-  await registrarNoIndice(armazenamento, relatorio.id + '.json', documento);
-  return { ok: true, linhas: linhasDoRelatorio(relatorio, chave) };
+  const linhas = linhasDoRelatorio(relatorio, chave);
+
+  try {
+    await registrarNoIndice(armazenamento, relatorio.id + '.json', documento);
+  } catch (erro) {
+    // Sem índice o registro continua a valer: a leitura de um nome que não está no rol só
+    // aparece na enumeração (que é a reconstrução). Gravar não depende de indexar.
+  }
+
+  try {
+    await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
+    return { ok: true, linhas };
+  } catch (erro) {
+    // O nome ficou órfão no índice; tira-se, sem que a falha da limpeza esconda a de origem.
+    try { await esquecerDoIndice(armazenamento, relatorio.id + '.json'); } catch (e) { /* já falhou o que importa */ }
+    return { ok: false, erro: (erro && erro.message) || String(erro), linhas };
+  }
 }
 
 /** Apaga um envelope; `false` se não existia. */
@@ -982,6 +1060,9 @@ async function elicitar(armazenamento, corpo, dados) {
     ok: relatorio.errosDoDocumento.length === 0,
     simular,
     gravado: !simular && gravacao.ok,
+    // O MOTIVO de não ter gravado — a rota e a tela dizem-no em vez de deixar o professor a
+    // adivinhar por que o «Guardar» não guardou (20/10/2026).
+    erroDaGravacao: gravacao.ok ? null : (gravacao.erro || null),
     estado,
     id: relatorio.id,
     contagem: relatorio.contagem,
@@ -1001,6 +1082,9 @@ module.exports = {
   PREFIXO_ENVELOPES,
   ARQUIVO_DE,
   INDICE_DOS_ENVELOPES,
+  VERSAO_DO_RESUMO,
+  resumoDoEnvelope,
+  resumosDeEnvelopes,
   ENDERECOS,
   registro,
   linhasDoRelatorio,

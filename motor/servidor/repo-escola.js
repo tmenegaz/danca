@@ -34,6 +34,10 @@ const API_VERSAO = '2022-11-28';
 // O decodificador do projeto — TextDecoder/atob, que EXISTEM no runtime dos Workers.
 // `Buffer` não: ver a nota de `lerArquivo`.
 const { decodificarBase64 } = require('./escrever-plano.js');
+// A REGRA DO ACERVO é do acervo (20/10/2026): o expurgo pergunta onde ficam os envelopes, e a
+// resposta tem de ser a mesma que a do escritor — duas cópias da regra divergem no dia em que
+// a pasta mudar.
+const acervoEnvelopes = require('./acervo-envelopes.js');
 
 /** A raiz NÃO é escola: ela tem `wrangler.danca.jsonc` e serve a porta de entrada. */
 const NAO_ESCOLAS = new Set(['danca']);
@@ -67,16 +71,22 @@ function ehArquivoDaEscola(caminho, slug, ciclo) {
 }
 
 /**
- * O ACERVO da escola: as anamneses em `escola/<slug>/anamneses/` (19/10/2026).
+ * O ACERVO da escola: os ENVELOPES em `escola/<slug>/envelopes/` (20/10/2026).
  *
- * Elas passaram a viver no repositório — é registro da escola, não da sessão de quem as
- * preencheu —, e por isso o expurgo tem de as levar consigo: uma escola que sai do ar e do
- * registro deixando as anamneses das alunas no repositório não foi expurgada. O `indice.json`
- * da escola NÃO entra aqui: é o elo do expurgo, e sobrevive de propósito.
+ * Anamneses, planos de ensino e planos de observação passaram a viver no repositório — são
+ * registro da escola, não da sessão de quem os preencheu —, e por isso o expurgo tem de os
+ * levar consigo: uma escola que sai do ar e do registro deixando os registros das alunas no
+ * repositório não foi expurgada. O caminho da fase 1 (`escola/<slug>/anamneses/`) continua a
+ * ser reconhecido: há escolas anteriores a esta mudança, e o expurgo não pode deixar de ver o
+ * que elas têm. O `indice.json` da escola NÃO entra aqui: é o elo do expurgo, e sobrevive de
+ * propósito.
  */
-function ehAnamneseDaEscola(caminho, slug) {
-  return String(caminho || '').indexOf('escola/' + slug + '/anamneses/') === 0;
+function ehAcervoDaEscola(caminho, slug) {
+  return acervoEnvelopes.ehAcervoDaEscola(caminho, slug);
 }
+
+/** O nome antigo, mantido para as provas e para quem ainda o procura. */
+const ehAnamneseDaEscola = ehAcervoDaEscola;
 
 /** O `wrangler.<worker>.jsonc` deste slug — o arquivo que marca a escola. */
 function ehConfigDaEscola(caminho, slug) {
@@ -96,9 +106,9 @@ function escolaDosCaminhos(slug, caminhos) {
       arquivos.push(caminho);
       continue;
     }
-    // O acervo da escola (as anamneses) sai com ela. Antes de `professores/` porque não é do
+    // O acervo da escola (os envelopes) sai com ela. Antes de `professores/` porque não é do
     // professor: a anamnese é da escola, e o mesmo professor pode ter outra escola viva.
-    if (ehAnamneseDaEscola(caminho, slug)) {
+    if (ehAcervoDaEscola(caminho, slug)) {
       arquivos.push(caminho);
       continue;
     }
@@ -616,6 +626,7 @@ module.exports = {
   escolasDosCaminhos,
   professoresDosCaminhos,
   ehArquivoDaEscola,
+  ehAcervoDaEscola,
   ehAnamneseDaEscola,
   manifestoBaseDoCiclo,
   materialPreservado,

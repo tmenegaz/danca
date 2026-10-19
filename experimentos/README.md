@@ -96,6 +96,10 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-acordeoes.js` | as **cinco** secções da Produção recolhem, e recolhidas a listagem mede a largura inteira; a seta de uma não mexe nas outras; o estado é lembrado por secção; o «Carregar catálogo inicial» cabe na coluna | **sim** (Chrome) |
 | `provar-teste.js` | as **escolas de teste**: as três palavras (`Calango`/`Batata`/`Breu`), o fixture certo, o preenchimento da Produção, da anamnese e do plano, e a ausência de qualquer escrita | não (jsdom) |
 | `provar-geracao.js` | o que a tela sabe **enquanto o GitHub gera**: o gatilho condicionado às fontes, o registro no KV, as fases do estado e o cartão da porta (38 casos) | não (jsdom) |
+| `provar-indice-de-envelopes.js` | a estante deixa de pagar a enumeração do KV: o índice como arquivo, a escrita, o apagamento, a falha da cota e a migração do índice antigo (41 asserções) | não |
+| `provar-acervo-envelopes.js` | os envelopes no **repositório**: o caminho, a anamnese cifrada, a listagem numa chamada, o 409 do índice, o KV antigo como reserva e a composição `envelope/` × resto (41 asserções) | não |
+| `provar-listas-sem-repeticao.js` | a **carga de cada página**: nenhum endereço pedido duas vezes, o orçamento de leituras, e a lista que não cresce com o acervo (16 asserções) | não (jsdom) |
+| `provar-expurgo-sem-listagem.js` | o expurgo com a enumeração do KV recusada: o registo de chaves, a pendência no elo e o `POST /api/expurgar-kv` (40 asserções) | não |
 
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
 
@@ -108,6 +112,22 @@ O JSON fica em `teste/`, e **não** em `experimentos/`, por uma razão de constr
 o Worker de verdade precisa empacotá-lo (`require` no bundle, como o `catalogo-seed.js`),
 e o `experimentos/` não entra em pacotes, hashes ou publicação. Aqui fica só a prova —
 `provar-teste.js`.
+
+## Os envelopes no repositório (20/10/2026, fase 3)
+
+Até aqui metade dos registros vivia num sítio e metade noutro: a **anamnese** no repositório
+(desde a fase 1) e o **plano** e o **PO** no KV. A fase 3 fecha isso trocando a peça, não o
+discurso: `motor/servidor/acervo-envelopes.js` é um **armazenamento** — o mesmo contrato do
+adaptador do KV — sobre a família `envelope/`, e a ponte compõe «acervo para os envelopes, KV
+para o resto» (`cloudflare.js`, `criarArmazenamento`). O `motor/nucleo/porta.js` não mudou uma
+linha para atravessar a mudança, e é esse o teste de que a fronteira está no lugar certo.
+
+O caminho é a chave: `envelope/plano-….json` ↔ `escola/<escola>/envelopes/plano-….json`. A
+anamnese vai **cifrada** (metadado em claro, respostas num `_cifrado` com a `SENHA_CRIPTO`); o
+plano e o PO vão em claro, porque a fonte que a geração escreve (`ciclo-XX-<escola>-po.md`) já
+os leva abertos para o mesmo repositório. O KV antigo fica como **reserva de leitura** — uma
+escola anterior a esta fase não perde os registos que ainda não foram regravados —, e a escrita
+vai toda para o repositório.
 
 ## O estado da geração (19/10/2026)
 
@@ -265,4 +285,3 @@ Quem for revisar a identidade **não deve olhar para estas cópias**: elas diver
 (registram um estado passado). Se um experimento passar a ser demonstração viva, a folha dele deve
 ser **copiada da fonte** no momento em que ele for montado — como o `gerar-ciclo.sh` e o
 `gerar-raiz.sh` fazem —, e não versionada à mão.
-| `provar-listas-sem-repeticao.js` | a **carga de cada página**: nenhum endereço pedido duas vezes, o orçamento de leituras, e a lista que não cresce com o acervo (16 asserções) | não (jsdom) |

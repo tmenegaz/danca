@@ -8,7 +8,8 @@ A camada de servidor corre em **Web Standards** (`Request`/`Response`/`URL`/`fet
 | `roteador.js` | um roteador mínimo sobre Web Standards (padrões com `:param`, `:param/*` e `*`) |
 | `rotas.js` | **as rotas declaradas UMA vez** — recebe o armazenamento + conteúdo + esquema e devolve o roteador |
 | `node.js` | a ponte Node: `node:http` → `Request`/`Response` → roteador (e lê conteúdo/esquema do fs) |
-| `cloudflare.js` | a ponte Worker: `export default { fetch }` → roteador (lê conteúdo/esquema do ASSETS, grava no KV) |
+| `cloudflare.js` | a ponte Worker: `export default { fetch }` → roteador (lê conteúdo/esquema do ASSETS; **envelopes no acervo do repositório**, o resto no KV) |
+| `acervo-envelopes.js` | o **armazenamento da família `envelope/` sobre o repositório**: `ler`/`guardar`/`apagar`/`existe`/`listar`/`mutar`, com a anamnese cifrada, o 409 a repetir e o KV antigo como reserva de leitura |
 | `disparar.js` | o **gatilho da geração** (F3): o Worker pede ao GitHub Actions que gere, via `workflow_dispatch` |
 | `escrever-po.js` | a **ponte envelope → fonte** (F4): o Worker grava o `ciclo-XX-<escola>-po.md` no repositório, via Contents API |
 | `estado-html.js` | as **páginas de estado** (escola desabilitada, configuração incorreta, Área do Professor fechada): uma folha só, com os tokens da fonte de verdade — declarados e conferidos, porque a página aparece quando o CSS pode ser o que falhou |
@@ -127,9 +128,10 @@ fronteira é o **plano de ensino** (16/10/2026):
 
 A guarda está **no servidor**: `turma-editar` devolve **409** e manda derivar quando encontra plano.
 O botão é comodidade; a rota é a regra. A ligação é pelo **nome**, em `contexto-turma` do envelope,
-e `turmasComPlano` lê as chaves físicas **namespaced pela escola** (`<escola>/envelope/plano-…`):
-sem esse prefixo a Produção leria os planos de outra escola. Leitura falhada conta como
-**vinculada** — o lado seguro.
+e `turmasComPlano` lê os **resumos do índice do acervo** (o mesmo que a porta lê, com o KV antigo
+como reserva): uma leitura, e não uma por plano, com a enumeração à cabeça. O índice já é da
+escola — o caminho é `escola/<escola>/envelopes/…` —, por isso não há prefixo a acrescentar para
+não ler os planos da vizinha. Leitura falhada conta como **vinculada** — o lado seguro.
 
 O `POST /api/bastidores/turma` devolve **409** só contra uma turma **vigente**: recusar contra a
 substituída impediria a própria derivação, já que as duas partilham o nome de propósito.

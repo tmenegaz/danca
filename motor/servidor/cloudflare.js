@@ -24,7 +24,7 @@ const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
-const { criarEscritorDeAnamnese, listarAnamnesesDoRepo, lerAnamneseDoRepo } = require('./acervo-anamneses.js');
+const acervo = require('./acervo-envelopes.js');
 // O ESTADO DA GERAÇÃO — o que a tela pergunta enquanto o Actions trabalha.
 const { criarGeracao } = require('./geracao.js');
 const { criarLeitorDeDados } = require('./ler-dados.js');
@@ -101,9 +101,6 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escreverPO,
     escreverPlano,
     escreverCiclo,
-    escreverAnamnese,
-    lerAnamnesesDoRepo,
-    lerAnamneseDoRepo,
     lerDados,
     lancamentoSeguro,
     geracao,
@@ -122,6 +119,28 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
  */
 function senhaDaEscola(env) {
   return (senha) => senhaDaEscolaOk(env, criarCloudflare(env), (env && env.ESCOLA_SLUG) || '', senha);
+}
+
+/**
+ * O ARMAZENAMENTO DA ESCOLA — e a fronteira da fase 3 (20/10/2026).
+ *
+ * A família `envelope/` (as anamneses, os planos de ensino, os PO) vai para o ACERVO, no
+ * repositório. Todo o resto — o cofre cifrado do lançamento, os cadastros dos Bastidores, o
+ * cartão da geração, o registo de chaves — fica no KV, que continua a ser o sítio certo para
+ * estado pequeno e efémero.
+ *
+ * POR QUE AQUI, E NÃO NO `porta.js`: a escolha de onde o dado vive é da PONTE (o Worker sabe
+ * que tem um token e um slug); o núcleo só conhece o contrato. Assim o `porta.js` — a
+ * derivação, o índice, os estados, os vínculos — não muda uma linha para atravessar a
+ * mudança.
+ *
+ * O ACERVO É CRIADO POR PEDIDO (esta função é chamada dentro do `fetch`), e é isso que lhe dá
+ * o cache: as três rotas que consultam o índice numa só página pagam UMA ida ao GitHub. O KV
+ * entra como `legado` — só para LEITURA, e só do que ainda não migrou.
+ */
+function criarArmazenamento(env) {
+  const kv = criarCloudflare(env);
+  return acervo.combinar(acervo.doAmbiente(env, { legado: kv }), kv);
 }
 
 function criarLeitor(env, prefixo) {
@@ -184,25 +203,6 @@ function passosDeGeracao(env) {
     ref: 'main',
     senhaCripto: (env && env.SENHA_CRIPTO) || null,
   });
-  // A ANAMNESE VAI PARA O REPOSITÓRIO (19/10/2026). Ela vivia só no KV — o envelope e o cofre
-  // cifrado —, e não havia escritor nenhum para o Git: as respostas das alunas tinham uma cópia
-  // só, num cache com cota diária. Aqui nasce o escritor (metadado em claro, respostas cifradas
-  // com a SENHA_CRIPTO) e o leitor (a listagem é UMA chamada à árvore; o detalhe decifra).
-  const escreverAnamnese = criarEscritorDeAnamnese({
-    token,
-    dono: 'tmenegaz',
-    repo: 'danca',
-    ref: 'main',
-    senhaCripto: (env && env.SENHA_CRIPTO) || null,
-  });
-  const lerAnamnesesDoRepo_ = (escola) => listarAnamnesesDoRepo({
-    token, dono: 'tmenegaz', repo: 'danca', ref: 'main', escola,
-  });
-  const lerAnamneseDoRepo_ = (pedido) => lerAnamneseDoRepo(Object.assign({
-    token, dono: 'tmenegaz', repo: 'danca', ref: 'main',
-    senha: (env && env.SENHA_CRIPTO) || null,
-  }, typeof pedido === 'string' ? { caminho: pedido } : (pedido || {})));
-
   // O ESTADO DA GERAÇÃO vive no KV da escola, ao lado do cadastro de turmas — e é o
   // mesmo `PADD_KV`, porque é o mesmo armazenamento da mesma escola. Sem o binding, o
   // serviço volta inerte e a rota responde «indisponível»: melhor que inventar estado.
@@ -213,10 +213,7 @@ function passosDeGeracao(env) {
     dono: 'tmenegaz',
     repo: 'danca',
   });
-  return {
-    disparar, escreverPO, escreverPlano, escreverCiclo, geracao,
-    escreverAnamnese, lerAnamnesesDoRepo: lerAnamnesesDoRepo_, lerAnamneseDoRepo: lerAnamneseDoRepo_,
-  };
+  return { disparar, escreverPO, escreverPlano, escreverCiclo, geracao };
 }
 
 /**
@@ -255,10 +252,7 @@ async function fetch(request, env, opcoes) {
     carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
-  const {
-    disparar, escreverPO, escreverPlano, escreverCiclo, geracao,
-    escreverAnamnese, lerAnamnesesDoRepo, lerAnamneseDoRepo,
-  } = passosDeGeracao(env);
+  const { disparar, escreverPO, escreverPlano, escreverCiclo, geracao } = passosDeGeracao(env);
   // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
   // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
   // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
@@ -266,7 +260,7 @@ async function fetch(request, env, opcoes) {
   const lerDados = criarLeitor(env, '');
   const lancamentoSeguro = criarLancamento(env);
   const responder = montarPorta({
-    armazenamento: criarCloudflare(env),
+    armazenamento: criarArmazenamento(env),
     conteudoTexto,
     esquemaTexto,
     poTexto,

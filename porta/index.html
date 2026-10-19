@@ -6955,7 +6955,8 @@ async function iniciar() {
       $('gravacao').innerHTML = mostrarResultado(dados, 'Gravado') +
         (dados.gravado
           ? '<p class="ok">Ficou gravado.</p>'
-          : '<p class="erro">Não foi possível gravar.</p>');
+          : '<p class="erro">Não foi possível gravar' +
+            (dados.erroDaGravacao ? ': ' + escapar(dados.erroDaGravacao) : '.') + '</p>');
       if (dados.gravado) {
         carimboPendente = dados.id;
         // A folha preenchida é da anamnese E do plano (16/10/2026): quem acabou de
@@ -6997,15 +6998,19 @@ async function iniciar() {
           // gravá-la lá no `api/elicitar` (`dados.git`), e é isso que decide se a memória do
           // navegador — a ponte — pode ser apagada. Apagá-la antes de o commit confirmar era o
           // que deixava a anamnese só no KV, sem cópia nenhuma.
-          const noGit = dados.git;
-          if (noGit && noGit.ok === true) {
+          // O ACERVO É O DESTINO ÚNICO (20/10/2026). Antes o envelope ia para o KV e um segundo
+          // passo copiava-o para o repositório: «gravado» e «no repositório» eram coisas
+          // diferentes, e a tela tinha de explicar as duas. Agora a gravação do envelope É a
+          // gravação no repositório (cifrada), e o que a tela diz é uma coisa só.
+          const noAcervo = dados.git;
+          if (noAcervo && noAcervo.ok === true) {
             $('gravacao').innerHTML += '<p class="ok">anamnese no acervo da escola — ' +
-              '<code>' + escapar(noGit.caminho || '') + '</code></p>';
-          } else if (noGit && noGit.ok === false) {
-            $('gravacao').innerHTML += '<p class="aviso">a anamnese ficou guardada, mas <b>ainda não</b> ' +
-              'foi para o repositório' + (noGit.erro ? ' (' + escapar(noGit.erro) + ')' : '') +
-              '. O registro fica no seu navegador até ela conseguir ir — não feche o navegador ' +
-              'sem voltar aqui.</p>';
+              '<code>' + escapar(dados.id || '') + '</code></p>';
+          } else if (noAcervo && noAcervo.ok === false) {
+            $('gravacao').innerHTML += '<p class="aviso">a anamnese <b>não</b> foi gravada no acervo' +
+              (noAcervo.erro ? ' (' + escapar(noAcervo.erro) + ')' : '') +
+              '. Ela está inteira no <b>seu navegador</b> — não feche esta janela; tente gravar de ' +
+              'novo, que é o mesmo registro e não um segundo.</p>';
           }
           try {
             const senha = senhaDaEscola();

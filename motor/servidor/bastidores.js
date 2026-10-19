@@ -62,7 +62,11 @@ const { NIVEIS_DA_RUBRICA } = require('../nucleo/derivar-plano-ciclo.js');
 // A TURMA DE UM ENVELOPE (a resposta a `contexto-turma`) — uma definição só, a da porta. O
 // cadastro precisa dela para saber se uma turma já está presa a um plano de ensino, e daí
 // decidir se ela se EDITA (livre) ou se DERIVA (vinculada) — 16/10/2026.
-const { turmaDoEnvelope } = require('../nucleo/porta.js');
+// O ACERVO DOS ENVELOPES (20/10/2026). A regra de proveniência lia os planos no KV, um por um;
+// agora lê o índice do acervo, que é uma leitura só e traz o que a regra compara.
+const acervo = require('./acervo-envelopes.js');
+const porta = require('../nucleo/porta.js');
+const { criarCloudflare } = require('../adaptadores/cloudflare.js');
 // A FORMA da barra de navegação e os destinos do SISTEMA — o mesmo módulo que o
 // `tools/gerar-ciclo.sh` consome. Uma definição, dois consumidores.
 const { navSistema } = require('../../tools/templates/nav-html.js');
@@ -369,38 +373,55 @@ async function relacoes(kv, escola) {
  * lado seguro: derivar o que está livre é um elo a mais; editar o que está vinculado partiria
  * o plano.
  */
-async function paresComPlano(kv, escola) {
+async function paresComPlano(env, escola) {
+  const planos = await resumosDosPlanos(env, escola);
+  if (!planos) return null;
   const pares = [];
-  const prefixo = String(escola || '').trim() ? escola + '/envelope/' : 'envelope/';
-  try {
-    const listagem = await kv.list({ prefix: prefixo });
-    const chaves = (listagem && listagem.keys ? listagem.keys : [])
-      .map((k) => k.name)
-      .filter((n) => /(^|\/)envelope\/plano-.*\.json$/.test(n));
-    for (const chave of chaves) {
-      const texto = await kv.get(chave);
-      if (!texto) continue;
-      let envelope = null;
-      try { envelope = JSON.parse(texto); } catch { continue; }
-      const turma = turmaDoEnvelope(envelope);
-      if (!turma) continue;
-      const professor = String((envelope && envelope.contexto && envelope.contexto.professor) || '').trim();
-      // O CICLO VAI JUNTO (18/10/2026). Ele não entra na regra de proveniência — o par é
-      // (professor, turma) —, mas é o que a PORTA precisa para abrir o plano de ensino
-      // daquele professor (`/plano-ensino/?professor=…&escola=…&ciclo=…`). Sem ele, o link
-      // cairia na porta a pedir o ciclo, e a curadoria deixaria de ser o atalho que é.
-      const ciclo = String((envelope && envelope.contexto && envelope.contexto.ciclo) || '').trim();
-      pares.push({ professor, turma, ciclo });
-    }
-  } catch (e) {
-    return null;
+  for (const r of planos) {
+    const turma = r.turma || null;
+    if (!turma) continue;
+    const professor = String(r.professor || '').trim();
+    // O CICLO VAI JUNTO (18/10/2026). Ele não entra na regra de proveniência — o par é
+    // (professor, turma) —, mas é o que a PORTA precisa para abrir o plano de ensino
+    // daquele professor (`/plano-ensino/?professor=…&escola=…&ciclo=…`). Sem ele, o link
+    // cairia na porta a pedir o ciclo, e a curadoria deixaria de ser o atalho que é.
+    const ciclo = String(r.ciclo || '').trim();
+    pares.push({ professor, turma, ciclo });
   }
   return pares;
 }
 
+/**
+ * OS PLANOS COMO O ÍNDICE OS RESUME — UMA leitura (20/10/2026).
+ *
+ * `paresComPlano` e `usosDosPlanos` liam TODOS os envelopes de plano no KV: uma enumeração (a
+ * operação de cota diária) e uma leitura por plano, e as duas funções na mesma requisição. O
+ * índice do acervo já traz, por plano, o professor, a turma, o ciclo, o nome do professor e o
+ * repertório — é a mesma decisão da fase 2, aplicada a quem lia por fora do `porta.js`.
+ *
+ * Devolve `null` quando não deu para ler, e quem chama trata `null` como «tudo vinculado», que
+ * é o lado seguro: apagar por engano rompe a proveniência, e isso não se desfaz. Sem token ou
+ * sem escola não há acervo — e aí também não há enrolar: `null`.
+ */
+async function resumosDosPlanos(env, escola) {
+  // O MESMO ARMAZENAMENTO DA PORTA: o acervo do repositório com o KV como reserva de leitura.
+  // Usar a mesma composição (e não um leitor à parte) é o que garante que a regra de
+  // proveniência vê os planos ANTIGOS — os que ainda só estão no KV —, e não só os que já
+  // migraram. Sem isso, um plano antigo deixaria de proteger a turma que referencia.
+  const legado = criarCloudflare(env);
+  const armazenamento = acervo.combinar(acervo.doAmbiente(env, { legado, escola }), legado);
+  let lista = null;
+  try {
+    lista = await porta.resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/);
+  } catch (e) {
+    return null;
+  }
+  return lista.map((x) => x.resumo);
+}
+
 /** As TURMAS que já têm plano — o conjunto que o cartão da turma consulta. */
-async function turmasComPlano(kv, escola) {
-  const pares = await paresComPlano(kv, escola);
+async function turmasComPlano(env, escola) {
+  const pares = await paresComPlano(env, escola);
   if (!pares) return null;
   return new Set(pares.map((p) => p.turma));
 }
@@ -420,57 +441,35 @@ function turmaVinculadaA(planoDeTurmas, nome) {
  * apontar para o vazio — e o rastro é o que este sistema entrega. O que está livre corrige-se;
  * o que está vinculado deriva ou fica.
  *
- * Uma passagem só pelos envelopes, porque cada leitura é uma ida ao KV:
+ * UMA LEITURA, E NÃO UMA POR PLANO (20/10/2026). Antes esta função enumerava o KV e abria cada
+ * envelope de plano para colher três coisas. Elas passaram a viajar no RESUMO do índice do
+ * acervo, escrito pela mesma função que o reconstrói:
  *
  *   - `professores` — o `contexto.professor` do envelope (o slug) e a resposta
  *     `contexto-professor` (o nome que o formulário gravou);
- *   - `turmas` — o `contexto-turma`, pelo `turmaDoEnvelope` (já usado pelo `paresComPlano`);
+ *   - `turmas` — o `contexto-turma` (o resumo do índice já o traz resolvido);
  *   - `termos` — a resposta `repertorio`, que é a lista de passos do plano, por NOME e por
  *     slug (as duas formas aparecem em planos de épocas diferentes).
  *
  * `null` quando a leitura falha — e quem lê trata `null` como «tudo vinculado», que é o lado
  * seguro: apagar por engano rompe a proveniência, e isso não se desfaz.
  */
-function valorDoEnvelope(envelope, id) {
-  const r = envelope && envelope.respostas ? envelope.respostas[id] : null;
-  if (r === undefined || r === null) return null;
-  const v = (typeof r === 'object' && !Array.isArray(r) && 'valor' in r) ? r.valor : r;
-  if (Array.isArray(v)) return v.map((x) => String(x == null ? '' : x).trim()).filter(Boolean);
-  const s = String(v == null ? '' : v).trim();
-  return s || null;
-}
-
-async function usosDosPlanos(kv, escola) {
+async function usosDosPlanos(env, escola) {
   const usos = { professores: new Set(), turmas: new Set(), termos: new Set(), planos: 0 };
-  const prefixo = String(escola || '').trim() ? escola + '/envelope/' : 'envelope/';
-  try {
-    const listagem = await kv.list({ prefix: prefixo });
-    const chaves = (listagem && listagem.keys ? listagem.keys : [])
-      .map((k) => k.name)
-      .filter((n) => /(^|\/)envelope\/plano-.*\.json$/.test(n));
-    for (const chave of chaves) {
-      const texto = await kv.get(chave);
-      if (!texto) continue;
-      let envelope = null;
-      try { envelope = JSON.parse(texto); } catch { continue; }
-      usos.planos += 1;
-      const contexto = (envelope && envelope.contexto) || {};
-      const prof = String(contexto.professor || '').trim();
-      const profDaResposta = valorDoEnvelope(envelope, 'contexto-professor');
-      for (const p of [prof].concat(Array.isArray(profDaResposta) ? profDaResposta : [profDaResposta])) {
-        const s = String(p == null ? '' : p).trim();
-        if (s) { usos.professores.add(s); usos.professores.add(slugificar(s)); }
-      }
-      const turma = turmaDoEnvelope(envelope);
-      if (turma) usos.turmas.add(turma);
-      const rep = valorDoEnvelope(envelope, 'repertorio');
-      for (const t of (Array.isArray(rep) ? rep : [rep])) {
-        const s = String(t == null ? '' : t).trim();
-        if (s) { usos.termos.add(s); usos.termos.add(idDe(s)); }
-      }
+  const planos = await resumosDosPlanos(env, escola);
+  if (!planos) return null;
+  for (const r of planos) {
+    usos.planos += 1;
+    const prof = String(r.professor || '').trim();
+    for (const p of [prof, String(r.professorNome || '').trim()]) {
+      const s = String(p == null ? '' : p).trim();
+      if (s) { usos.professores.add(s); usos.professores.add(slugificar(s)); }
     }
-  } catch (e) {
-    return null;
+    if (r.turma) usos.turmas.add(r.turma);
+    for (const t of (Array.isArray(r.repertorio) ? r.repertorio : [])) {
+      const s = String(t == null ? '' : t).trim();
+      if (s) { usos.termos.add(s); usos.termos.add(idDe(s)); }
+    }
   }
   return usos;
 }
@@ -4511,10 +4510,10 @@ async function fetch(request, env) {
     const curs = await curadorias(kv, escola);
     // Que (professor, turma) já têm plano de ensino: é o que decide, na turma e na curadoria,
     // entre «Editar» e «Derivar» (16/10/2026).
-    const pares = await paresComPlano(kv, escola);
+    const pares = await paresComPlano(env, escola);
     // O QUE OS PLANOS JÁ USARAM — a regra de proveniência que a curadoria já aplicava,
     // estendida a professores, alunas, turmas e vocabulário (18/10/2026).
-    const usos = await usosDosPlanos(kv, escola);
+    const usos = await usosDosPlanos(env, escola);
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
       await aparenciaDaEscola(kv, escola)));
   }
@@ -4638,7 +4637,7 @@ async function fetch(request, env) {
     if (idx === -1) return json(404, { ok: false, erro: 'aluna não encontrada' });
     // PROVENIÊNCIA (18/10/2026): a aluna está numa curadoria? E a curadoria já tem plano?
     {
-      const pares = await paresComPlano(kv, escola);
+      const pares = await paresComPlano(env, escola);
       const curs = await curadorias(kv, escola);
       if (alunaVinculadaA(pares, curs, apelido)) {
         return json(409, {
@@ -4689,7 +4688,7 @@ async function fetch(request, env) {
     }
     // PROVENIÊNCIA (18/10/2026): a guarda é AQUI, e não só no botão. A tela esconde o
     // «Excluir» de quem está vinculado; esta linha é a regra para um pedido forjado.
-    const usos = await usosDosPlanos(kv, escola);
+    const usos = await usosDosPlanos(env, escola);
     if (professorVinculadoA(usos, lista[idx])) {
       return json(409, {
         ok: false,
@@ -4938,7 +4937,7 @@ async function fetch(request, env) {
     const lista = await turmas(kv, escola);
     const alvo = lista.find((t) => t && t.id === pedido);
     if (!alvo) return json(404, { ok: false, erro: 'turma não encontrada: ' + pedido });
-    const comPlano = await turmasComPlano(kv, escola);
+    const comPlano = await turmasComPlano(env, escola);
     if (turmaVinculadaA(comPlano, alvo.nome)) {
       return json(409, {
         ok: false,
@@ -5093,7 +5092,7 @@ async function fetch(request, env) {
     // PROVENIÊNCIA (18/10/2026): a turma com plano é linha de base. Ela já tinha o selo na
     // tela, mas o «Excluir» continuava a aparecer — e apagá-la deixaria o plano órfão.
     {
-      const pares = await paresComPlano(kv, escola);
+      const pares = await paresComPlano(env, escola);
       if (turmaVinculadaA(pares ? new Set(pares.map((p) => p.turma)) : null, lista[idx].nome)) {
         return json(409, {
           ok: false,
@@ -5278,8 +5277,8 @@ async function fetch(request, env) {
     // PROVENIÊNCIA (18/10/2026): o termo é o CONTEÚDO do plano. Se algum plano o declara
     // no repertório, ou se ele está associado a uma turma com plano, ele fica.
     {
-      const usos = await usosDosPlanos(kv, escola);
-      const pares = await paresComPlano(kv, escola);
+      const usos = await usosDosPlanos(env, escola);
+      const pares = await paresComPlano(env, escola);
       // A relação é chaveada por ID — o conjunto tem de ser de IDs, não de nomes.
       const nomesPresos = new Set((pares || []).map((p) => p && p.turma));
       const turmasPresas = new Set((await turmas(kv, escola))
@@ -5527,7 +5526,7 @@ async function fetch(request, env) {
     // já fez o plano desta turma) NÃO se edita — deriva-se, senão o plano que está no ar
     // passaria a falar de uma curadoria que já não é a dele.
     if (atual) {
-      const pares = await paresComPlano(kv, escola);
+      const pares = await paresComPlano(env, escola);
       if (curadoriaVinculadaA(pares, atual)) {
         return json(409, {
           ok: false,
@@ -5697,7 +5696,7 @@ async function fetch(request, env) {
     // PROVENIÊNCIA (18/10/2026): a curadoria vinculada é linha de base. O botão já se
     // escondia; a regra vive aqui, para um pedido forjado não a contornar.
     {
-      const pares = await paresComPlano(kv, escola);
+      const pares = await paresComPlano(env, escola);
       if (curadoriaVinculadaA(pares, lista[idx])) {
         return json(409, {
           ok: false,
