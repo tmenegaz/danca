@@ -6945,6 +6945,20 @@ async function iniciar() {
           // O cofre: o envelope já está no disco, e uma falha aqui não o
           // desfaz. Por isso o aviso sai AO LADO do sucesso e dos links — e
           // por isso a memória do navegador só se apaga no fim, confirmada.
+          // O ACERVO DA ESCOLA (19/10/2026): o repositório É o destino. O servidor já tentou
+          // gravá-la lá no `api/elicitar` (`dados.git`), e é isso que decide se a memória do
+          // navegador — a ponte — pode ser apagada. Apagá-la antes de o commit confirmar era o
+          // que deixava a anamnese só no KV, sem cópia nenhuma.
+          const noGit = dados.git;
+          if (noGit && noGit.ok === true) {
+            $('gravacao').innerHTML += '<p class="ok">anamnese no acervo da escola — ' +
+              '<code>' + escapar(noGit.caminho || '') + '</code></p>';
+          } else if (noGit && noGit.ok === false) {
+            $('gravacao').innerHTML += '<p class="aviso">a anamnese ficou guardada, mas <b>ainda não</b> ' +
+              'foi para o repositório' + (noGit.erro ? ' (' + escapar(noGit.erro) + ')' : '') +
+              '. O registro fica no seu navegador até ela conseguir ir — não feche o navegador ' +
+              'sem voltar aqui.</p>';
+          }
           try {
             const senha = senhaDaEscola();
             if (!senha) throw new Error('informe a senha do professor na barra para guardar a anamnese cifrada.');
@@ -6962,10 +6976,15 @@ async function iniciar() {
             });
             const retorno = await resposta.json();
             if (!resposta.ok || !retorno.ok) throw new Error(retorno.erro || ('HTTP ' + resposta.status));
-            // O dado passou a viver no disco e no cofre: o depósito do navegador
-            // cumpriu o papel.
-            carimboPendente = null;
-            limparMemoria();
+            // O DEPÓSITO DO NAVEGADOR SÓ SE APAGA QUANDO A VERDADE ESTÁ NO LUGAR. A ponte
+            // existe para o intervalo em que o repositório ainda não confirmou: se o commit
+            // falhou, a memória é a única cópia — e apagá-la seria perder a anamnese com um
+            // «ok» na tela.
+            const confirmadoNoGit = dados.git ? dados.git.ok === true : true;
+            if (confirmadoNoGit) {
+              carimboPendente = null;
+              limparMemoria();
+            }
             // Gravou: a senha cumpriu o seu papel. Não fica guardada.
             esquecerSenha();
             $('retomada').classList.add('oculto');

@@ -19263,3 +19263,86 @@ metadado — e isso cria uma segunda fonte de verdade que pode divergir do envel
 declarado, não decidido. (b) `vinculos()` e `vinculosDePlano()` leem todos os POs, cada uma na
 sua rota: uma página que abre as duas lê os POs duas vezes. Um cache por pedido resolveria;
 exige passar um contexto por todas as funções do núcleo, e não se fez.
+
+## 20/10/2026 — A anamnese nunca ia para o Git: ela vivia só no KV
+
+**O que motivou.** O professor fez as anamneses e foi ver os workflows: nada. A suspeita dele
+era «está indo para o KV e não para o workflow». A leitura do código confirmou o pior, e é
+mais grave que a suspeita:
+
+| Ato | Onde ficava | Ia ao Git? |
+|:--|:--|:--|
+| **Anamnese** | envelope no KV **+** cofre cifrado no KV | **nunca** — não existia escritor |
+| Plano de ensino | envelope no KV **+** `-plano.md` e o `.conf` | sim, em 2 commits (sem workflow) |
+| Plano de Observação | envelope no KV **+** `-po.md` **+** fontes **+** disparo | sim, e é o único que dispara Actions |
+
+`ls motor/servidor/escrever-*.js` dava `ciclo`, `plano`, `po` — **nunca** anamnese; e nenhum
+workflow mencionava «anamnese». As respostas das alunas tinham **uma cópia só**, num cache com
+cota diária. O que aparecia no pacote (`plano-observacao/conteudo/anamnese.json`) é o FORMULÁRIO
+—a definição das perguntas—, não as respostas de ninguém. A anamnese é registro da ESCOLA, não
+da sessão de quem a preencheu: o professor pode levar dias até fazer o plano, e outro professor
+noutro computador tem de a ver. O KV não é sítio, é cache.
+
+**O que foi decidido.**
+
+- **A anamnese vai para o repositório.** `escola/<escola>/anamneses/<apelido>--<carimbo>.json`,
+  com o **apelido percent-codificado** no nome (reversível: `decodeURIComponent` devolve-o como
+  foi escrito, e é ele que o PO guarda). A **listagem passa a ser UMA chamada** — a árvore
+  (`git/trees?recursive=1`) é o índice. Nada de ficheiro de índice para manter, e nada que possa
+  divergir do dado: é a lição que o `.indice.json` do KV teve de aprender.
+- **Metadado em claro, respostas cifradas.** `id`, `contexto` e `gerado_em` ficam legíveis (é o
+  que a lista precisa, e não diz nada além do apelido estável, P-12); as respostas vão num
+  `_cifrado` com a `SENHA_CRIPTO`, no mesmo envelope do cofre, decifrável pelo mesmo
+  `tools/lib-cifra.js`. **Sem `SENHA_CRIPTO` o escritor recusa** — dado de menor não entra em
+  claro num repositório, nem por omissão.
+- **O conflito repete-se.** A Contents API exige o `sha`; dois «Guardar» em isolates diferentes
+  colidem com 409. O escritor relê o `sha` e repete (até 3 tentativas). Um 401/403/422 não se
+  repete — não melhora.
+- **A ponte é a memória do navegador, e ela só se apaga com o commit confirmado.** Quando o
+  repositório recusa, a tela **diz** que a anamnese ainda não foi para lá e que o registro fica
+  no navegador; a memória **não** é apagada. Antes, o `limparMemoria()` corria no sucesso do
+  cofre — o que apagava a única cópia de uma anamnese que nunca chegara ao Git.
+- **O KV fica como recurso, não como autoridade.** A lista consulta o repositório primeiro e
+  **junta** o que só existe no KV (por apelido, sem repetir): uma escola com anamneses antigas
+  não as vê desaparecer no dia do deploy. O resultado diz de onde veio (`fonte`:
+  `repositorio` · `repositorio+kv` · `kv`). O detalhe (`api/envelope/<id>`) cai no repositório e
+  decifra quando o KV não tem o envelope — sem isto, o PO mostraria a aluna na lista e não
+  conseguiria abri-la.
+- **O expurgo leva o acervo.** `escola/<slug>/anamneses/` entra na lista do que apagar
+  (`ehAnamneseDaEscola`); o `indice.json` da escola **não** entra — é o elo do expurgo.
+
+**Onde entrou.**
+- `motor/servidor/acervo-anamneses.js` — novo: caminho e o seu inverso, montagem do arquivo
+  (metadado + cifra), escrita com repetição em 409, listagem pela árvore, leitura e decifra.
+- `motor/servidor/cloudflare.js` — `escreverAnamnese`, `lerAnamnesesDoRepo`, `lerAnamneseDoRepo`
+  na ponte, e os três passados às rotas.
+- `motor/servidor/rotas.js` — a anamnese gravada no `api/elicitar` (`resultado.git`); a lista
+  com o repositório primeiro e a união com o KV; o detalhe com o recurso do repositório.
+- `porta/index.html` — a mensagem do destino («no acervo da escola»), o aviso quando não foi, e
+  a memória do navegador a só se apagar com o commit confirmado.
+- `motor/servidor/repo-escola.js` — `ehAnamneseDaEscola`, e o acervo na lista do expurgo.
+- `experimentos/provar-acervo-anamneses.js` — a prova (41 asserções).
+- `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `node experimentos/provar-acervo-anamneses.js` → **TUDO CERTO, 41 asserções**:
+o caminho reversível (com `Ana María`, `A%B`, `日本`); as respostas ausentes do texto gravado;
+a listagem numa única chamada e sem ler conteúdo; a decifra a fechar o círculo; a senha errada a
+recusar em vez de devolver vazio; o 409 a repetir e a gravar uma vez; o expurgo a levar o acervo
+e a poupar o índice; e as rotas a unirem repositório + KV com o `fonte` certo. Sem regressão:
+`provar-indice-de-envelopes` 37, `provar-lista-que-falha` 39, `provar-expurgo-sem-listagem` 40,
+`provar-expurgo-leitura-atrasada` 45, `provar-teste` 26, `provar-producao` 135,
+`provar-ajustes-anamnese` 125. Identidade visual: verde.
+
+**Referências.** A entrada de hoje sobre a cota do KV (a enumeração a mais) · a entrada sobre o
+expurgo sem listagem (de onde vem o registo de chaves) · `CONGELAMENTO.md` (política dos dados
+sensíveis: cifra obrigatória).
+
+**O que ainda não está feito.** (a) A **lista de gestão** (`/api/anamnese-estados`) continua a
+ler só o KV: mostra as anamneses antigas e não as que só estão no repositório. Fica para a
+fase 2, com as outras listas. (b) O **cofre cifrado** continua a ser escrito no KV: é uma
+segunda cópia independente, e tirá-la exige que o formulário de lançamento passe a ler o acervo.
+(c) O **plano** e o **PO** continuam a escrever o envelope no KV (fase 3). (d) Não há
+**migração** das anamneses que já estão no KV: elas são servidas pela união e vão para o
+repositório na próxima gravação de cada uma. (e) A árvore do repositório cresce com uma entrada
+por anamnese; com centenas de alunas, a chamada `git/trees?recursive=1` devolve o repositório
+inteiro — mede-se quando doer, mas o caminho já é uma chamada só.

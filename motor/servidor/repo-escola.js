@@ -66,6 +66,18 @@ function ehArquivoDaEscola(caminho, slug, ciclo) {
   return re.test(caminho);
 }
 
+/**
+ * O ACERVO da escola: as anamneses em `escola/<slug>/anamneses/` (19/10/2026).
+ *
+ * Elas passaram a viver no repositório — é registro da escola, não da sessão de quem as
+ * preencheu —, e por isso o expurgo tem de as levar consigo: uma escola que sai do ar e do
+ * registro deixando as anamneses das alunas no repositório não foi expurgada. O `indice.json`
+ * da escola NÃO entra aqui: é o elo do expurgo, e sobrevive de propósito.
+ */
+function ehAnamneseDaEscola(caminho, slug) {
+  return String(caminho || '').indexOf('escola/' + slug + '/anamneses/') === 0;
+}
+
 /** O `wrangler.<worker>.jsonc` deste slug — o arquivo que marca a escola. */
 function ehConfigDaEscola(caminho, slug) {
   return caminho === 'wrangler.' + slug + '.jsonc';
@@ -81,6 +93,12 @@ function escolaDosCaminhos(slug, caminhos) {
   let ciclo = null;
   for (const caminho of caminhos) {
     if (ehConfigDaEscola(caminho, slug)) {
+      arquivos.push(caminho);
+      continue;
+    }
+    // O acervo da escola (as anamneses) sai com ela. Antes de `professores/` porque não é do
+    // professor: a anamnese é da escola, e o mesmo professor pode ter outra escola viva.
+    if (ehAnamneseDaEscola(caminho, slug)) {
       arquivos.push(caminho);
       continue;
     }
@@ -598,6 +616,7 @@ module.exports = {
   escolasDosCaminhos,
   professoresDosCaminhos,
   ehArquivoDaEscola,
+  ehAnamneseDaEscola,
   manifestoBaseDoCiclo,
   materialPreservado,
   classificarPreservados,
