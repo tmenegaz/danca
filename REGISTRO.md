@@ -18434,3 +18434,81 @@ remoto. (b) O **expurgo em si já estava completo** — a `fita` saiu do ar, do 
 nada há a refazer. (c) A **rede de segurança é a prova**, não a tela: um expurgo que reprove de
 verdade continua a reprovar em `provar-expurgo-leitura-atrasada`, e é essa que o `Auditoria:` dos
 commits cita.
+
+## 19/10/2026 — A geração deixa de ser muda: a tela passa a dizer o que está a acontecer
+
+**O que motivou.** A pesquisadora concluiu o Plano de Observação na escola `calando-teste-1` e
+ficou a olhar para uma tela que não dizia nada:
+
+> «Eu gerei o PO completo e não aparece nada. Não diz se deu certo, se não deu, se está
+> processando. Recarregar não muda nada. Isso deixa a pessoa insegura.»
+
+E era literalmente isso: concluído o PO, o Worker escreve as fontes, commita e DISPARA o
+`gerar-ciclo.yml`. A geração corre no Actions durante minutos — pandoc, TeX, PDF, reancoragem,
+commit e deploy — e **nada desse estado existia em lugar nenhum**. O navegador não guardava nada,
+e recarregar não podia mostrar o que não estava guardado. Quem quisesse saber o desfecho tinha de
+ir ao GitHub Actions.
+
+**O que foi decidido.**
+- **O disparo é registado no KV da escola** (`bastidores/<escola>/geracao/<variante>`), com o
+  contexto, os documentos derivados e o rótulo da execução. É o KV que faz a resposta sobreviver a
+  recarregar e a estar visível noutra máquina — o `localStorage` não serve para nenhuma das duas.
+- **`GET /api/geracao` responde a fase**, cruzando o registro com a execução do GitHub:
+  `enfileirada` · `em-andamento` (com o passo actual) · `concluida` · `falhou` (com o passo que
+  falhou) · `falhou-no-disparo` (o pedido nem saiu) · `sem-consulta` (a instância não lê o estado)
+  · `sem-registro` · `indisponivel`. Cada uma dessas fases tem um desenho distinto na tela; a tela
+  não adivinha nenhuma.
+- **A execução é reconhecida pelo rótulo** (`rotuloDaGeracao`), e o workflow declara o mesmo texto
+  em `run-name`. Uma execução **anónima** (sem nome de geração: as de antes, e as disparadas à mão)
+  é seguida quando é a única na janela — é o que impede a tela de girar em «na fila» para sempre.
+  Duas gerações simultâneas continuam a distinguir-se pelo rótulo, e é por isso que ele existe.
+- **O cartão é injetado pela ponte, e não escrito em `porta/index.html`.** A porta é COPIADA para
+  dentro do pacote de cada escola (`plano-observacao/`) e só se refaz numa geração: escrito lá, o
+  aviso chegaria sempre depois do acontecimento que ele acompanha. Vai por `producao.js`, no mesmo
+  caminho do preenchidor das escolas de teste — vale para todas de uma vez, sem regenerar pacote.
+- **O «Guardar» ganhou sinal de vida em todas as fontes** (anamnese, plano e PO): o `aria-busy` no
+  `#fecho` põe um giro no «gravando…» que a porta já escrevia, e o leitor de ecrã anuncia a espera.
+- **O disparo passa a ser condicionado às fontes.** Se o ciclo não fechou o `.conf`, não gravou uma
+  fonte ou falhou a cópia cifrada, o workflow **não arranca**: a resposta traz `naoDisparado` com o
+  motivo, e o cartão mostra-o. Não disparar é um resultado declarado — e o silêncio era metade do
+  problema.
+- **Desfecho antigo não fica no ecrã**: um `falhou` de ontem não aparece a quem abre a porta hoje
+  (duas horas de janela, e depois só o link do workflow).
+
+**Onde entrou.**
+- `motor/servidor/geracao.js` — novo: o registro no KV, o acordo do rótulo, as fases, o gatilho
+  (`fontesDoCicloProntas`) e a leitura do último registro da escola quando o pedido não traz turma
+  (o endereço da porta não a traz).
+- `motor/servidor/geracao-cliente.js` — novo: o cartão fixo (giro, turma, documentos, passo, tempo,
+  link) e o `aria-busy` do «Guardar». Nunca lança: um erro do aviso não pode derrubar a porta.
+- `motor/servidor/rotas.js` — `GET /api/geracao`; o disparo condicionado; o registro do disparo na
+  resposta (`resultado.geracao`).
+- `motor/servidor/cloudflare.js` — o serviço de geração na ponte (KV da escola + `ESCOLA_SLUG` +
+  token). Sem KV, o serviço é inerte e a rota diz «indisponivel» em vez de inventar estado.
+- `motor/servidor/producao.js` — `/assets/geracao.js` (`no-store`) e a injeção na porta.
+- `experimentos/provar-geracao.js` — prova nova, 38 verificações, sem rede.
+- `.gitignore` — a prova passa a ser versionada (é citada por nome no REGISTRO).
+
+**Com o quê.** `node experimentos/provar-geracao.js` → **38 verificações, TUDO CERTO**. Sem
+regressão: `provar-producao` 135/135 · `provar-teste` 17/17 · `provar-carimbo-da-edicao` 55/55 ·
+`provar-escola-do-documento` 10/10 · `provar-plano-da-turma` 46/46 · `provar-cartao-da-turma`
+TUDO CERTO · `provar-aparencia` 77/77 · `tools/check-identidade.js` sem falha.
+
+**Referências.** `motor/servidor/teste-cliente.js` (o precedente da injeção pela ponte) · a API de
+Actions do GitHub (`runs?event=workflow_dispatch`, `runs/{id}/jobs`) · `CONGELAMENTO.md` (nenhum
+arquivo congelado tocado).
+
+**O que ainda não está feito.** (a) **As causas do «gerar o ciclo» falhar ficaram FORA deste
+commit** — por decisão da pesquisadora, que quer avaliar o fluxo inteiro antes de aceitar
+remendos. São quatro, todas medidas: o disparo manda a escola onde o gerador quer a variante
+(`disparar.js`); o `git push` dos dois workflows perde a corrida no `main`; a declaração de captura
+é gravada debaixo da escola e o gerador procura a variante (`escrever-ciclo.js`); e o
+`check-pacote.js` exige de `lancamento.html` um `class="rodape"` que o template trocou por
+`barra-de-controle` em `f9b416b` — desde então **nenhum** pacote gerado passa. Enquanto não
+entrarem, a geração continua a falhar com «DOCS está vazio em ciclo-01-<escola>.conf», e o cartão
+mostra-o com o passo nomeado: é a diferença entre falhar em silêncio e falhar à vista.
+(b) **O D-T4 continua aberto**: quando a geração passar, o pacote é o da VARIANTE
+(`ciclo-01-<escola>-<turma>`) e o Worker da escola serve `ciclo-01-<escola>` — o site ainda não
+publica o pacote da turma (decisão (a)/(b) da fase 4 de `PLANO-CICLO-DA-TURMA.md`).
+(c) Nada foi publicado: o cartão chega às escolas no próximo `wrangler deploy` (é código do
+Worker, não do pacote).

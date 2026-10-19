@@ -30,6 +30,9 @@ const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bast
 // as outras não veem nem o atributo, nem o script, nem a rota.
 const { numeroDoTeste, fixtureDaEscola } = require('./teste-fixtures.js');
 const { SCRIPT: SCRIPT_DO_TESTE } = require('./teste-cliente.js');
+// O AVISO DA GERAÇÃO — o cartão que diz o que está a ser gerado, em que passo vai e
+// como terminou. Entra em TODAS as escolas (não só nas de teste): a espera é de todas.
+const { SCRIPT: SCRIPT_DA_GERACAO } = require('./geracao-cliente.js');
 
 /** Uma resposta JSON curta — a ponte não tinha uma, e a rota de teste não pede mais. */
 function jsonCurto(objeto, status) {
@@ -107,6 +110,19 @@ async function comAparencia(resposta, aparencia, extras) {
       texto.indexOf('/assets/teste-preenchimento.js') === -1) {
     texto = texto.replace(/<\/body>/i,
       '<script src="/assets/teste-preenchimento.js"></script></body>');
+  }
+
+  // O AVISO DA GERAÇÃO (19/10/2026) — só na PORTA, e em todas as escolas.
+  //
+  // Ele NÃO vive no `porta/index.html` porque a porta é COPIADA para dentro do pacote
+  // de cada escola (`plano-observacao/`) e só se refaz numa geração: escrito lá dentro,
+  // o aviso só chegaria às escolas depois da próxima geração — justamente a operação
+  // que ele existe para acompanhar. Injeta-o quem serve, como já faz com o preenchidor
+  // das escolas de teste. A página do pacote (índice, aulas, guia) não tem o que
+  // acompanhar e não o recebe.
+  if (texto.indexOf('data-tela="porta"') !== -1 &&
+      texto.indexOf('/assets/geracao.js') === -1) {
+    texto = texto.replace(/<\/body>/i, '<script src="/assets/geracao.js"></script></body>');
   }
 
   // O SLOT DA MARCA, PREENCHIDO AO SERVIR (18/10/2026).
@@ -234,6 +250,17 @@ async function fetch(request, env) {
   }
   if (path === '/assets/teste-preenchimento.js') {
     return new Response(SCRIPT_DO_TESTE, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/javascript;charset=utf-8',
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
+  }
+  // O `no-store` não é preciosismo: o aviso muda com o produto, e um script em cache
+  // no navegador de quem já abriu a porta mostraria o cartão da versão anterior.
+  if (path === '/assets/geracao.js') {
+    return new Response(SCRIPT_DA_GERACAO, {
       status: 200,
       headers: {
         'Content-Type': 'text/javascript;charset=utf-8',

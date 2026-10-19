@@ -120,6 +120,11 @@ experimentos/*
 # motor. É citada pelo nome no README e no `experimentos/README.md`.
 !experimentos/provar-teste.js
 
+# A PROVA DA GERAÇÃO (19/10/2026): o disparo que manda a variante, o gatilho condicionado às
+# fontes, o registro no KV, as fases do estado e o cartão da porta. É a prova que separa «a tela
+# ficou muda» de «a tela diz o que sabe» — e é citada por nome no REGISTRO.md.
+!experimentos/provar-geracao.js
+
 # A MARCA EM VETOR (18/10/2026). O traçado é fonte — três SVGs de 3,5KB que substituem dois
 # arquivos de 106KB e 134KB —, e o `vetorizar.js` é o que os produz e o que MEDE a fidelidade
 # (IoU 0,980). Sem eles no clone, o estudo da marca cita um arquivo que ninguém tem.

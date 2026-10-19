@@ -17,6 +17,9 @@
 const { criarRoteador } = require('./roteador.js');
 // AS ESCOLAS DE TESTE: o mesmo fixture que a produção serve, para a bancada local.
 const { numeroDoTeste, fixtureDaEscola } = require('./teste-fixtures.js');
+// A GERAÇÃO acontece fora daqui (GitHub Actions). Este módulo só sabe se pode começar e
+// o que dizer à tela enquanto ela corre.
+const { fontesDoCicloProntas } = require('./geracao.js');
 const nucleo = require('../nucleo/elicitar.js');
 const ia = require('../nucleo/ia.js');
 const ficha = require('../nucleo/ficha.js');
@@ -79,7 +82,7 @@ function semMarcasDoGerador(markdown) {
     .trimStart();
 }
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, geracao }) {
   const roteador = criarRoteador();
 
   /*
@@ -135,6 +138,31 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     if (!fixture) return recusar('esta escola não é de teste', 404);
     return resposta(200, MIME['.json'],
       JSON.stringify({ ok: true, teste: numeroDoTeste(escola), escola: escola, fixture: fixture }, null, 2) + '\n');
+  });
+
+  // 1.2 /api/geracao — «o que está a acontecer?». Leitura pura do último disparo da
+  //     variante (professor × ciclo × escola × turma) e da execução correspondente no
+  //     GitHub. É o que permite à tela mostrar o giro, o passo actual e o desfecho sem
+  //     que ninguém recarregue a página às cegas.
+  roteador.rota('GET', '/api/geracao', async ({ url }) => {
+    if (!geracao) return recusar('o estado da geração não está disponível nesta instância', 404);
+    const contexto = comAEscolaDoWorker({
+      professor: String(url.searchParams.get('professor') || '').trim(),
+      ciclo: String(url.searchParams.get('ciclo') || '').trim(),
+      turma: String(url.searchParams.get('turma') || '').trim(),
+    });
+    if (!contexto.professor || !contexto.ciclo) {
+      return recusar('faltam o professor e o ciclo', 400);
+    }
+    try {
+      const estado = await geracao.estado(contexto);
+      return resposta(200, MIME['.json'], JSON.stringify(estado, null, 2) + '\n');
+    } catch (erro) {
+      // A tela pergunta de novo em segundos: um tropeço do GitHub não pode virar 500
+      // na cara de quem está à espera — vira «sem-consulta», que a tela já sabe mostrar.
+      return resposta(200, MIME['.json'],
+        JSON.stringify({ ok: false, fase: 'sem-consulta', erro: erro.message }, null, 2) + '\n');
+    }
   });
 
   // 2. /api/mapa — o mapa dos nós; `?fonte=po` entrega o do PO, `?fonte=plano` o do plano.
@@ -537,11 +565,53 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
           }
         }
 
+        /*
+         * O DISPARO SÓ ACONTECE COM AS FONTES PRONTAS (19/10/2026).
+         *
+         * O `escrever-ciclo.js` grava as fontes uma a uma e COMPÕE o `.conf` da turma —
+         * é dele que o gerador lê os `DOCS`. Quando uma escrita falhava (uma fonte que
+         * não casou, o cofre, a rede), o disparo partia assim mesmo: o workflow arrancava,
+         * não achava fonte nenhuma e morria com «DOCS está vazio». Pior que o erro era o
+         * silêncio — a tela dizia «gravado», e o professor só descobria no GitHub.
+         *
+         * Agora o disparo é CONDICIONADO. Não disparar é um resultado explícito, que a
+         * tela mostra com o motivo; e o envelope continua gravado, porque a gravação
+         * nunca dependeu disto.
+         */
         if (corpo.fonte === 'po' && disparar) {
+          const prontas = fontesDoCicloProntas(resultado.ciclo);
+          if (!prontas) {
+            resultado.disparo = {
+              ok: false,
+              naoDisparado: true,
+              motivo: 'as fontes do ciclo não ficaram prontas',
+            };
+          } else {
+            try {
+              resultado.disparo = await disparar(contexto);
+            } catch (erro) {
+              resultado.disparo = { ok: false, erro: erro.message };
+            }
+          }
+        }
+
+        /*
+         * O REGISTRO do que foi pedido — e a primeira leitura do estado. É por ele que a
+         * tela sabe o que está a ser gerado depois de recarregar: o contexto e os
+         * documentos derivados ficam no KV da escola, não na memória do navegador.
+         * Best-effort absoluto: sem KV, a gravação continua válida.
+         */
+        if (corpo.fonte === 'po' && geracao) {
           try {
-            resultado.disparo = await disparar(contexto);
+            const registro = await geracao.registrar(contexto, {
+              disparo: resultado.disparo,
+              ciclo: resultado.ciclo,
+            });
+            resultado.geracao = registro.ok
+              ? { ok: true, chave: registro.chave, registro: registro.registro }
+              : { ok: false, erro: registro.erro, ignorado: registro.ignorado === true };
           } catch (erro) {
-            resultado.disparo = { ok: false, erro: erro.message };
+            resultado.geracao = { ok: false, erro: erro.message };
           }
         }
       }

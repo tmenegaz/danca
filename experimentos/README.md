@@ -95,6 +95,7 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `marca/vetorizar.js` | o traçado da logomarca em SVG e a **fidelidade medida** (IoU 0,980) | **não** (PNG via `zlib`) |
 | `provar-acordeoes.js` | as **cinco** secções da Produção recolhem, e recolhidas a listagem mede a largura inteira; a seta de uma não mexe nas outras; o estado é lembrado por secção; o «Carregar catálogo inicial» cabe na coluna | **sim** (Chrome) |
 | `provar-teste.js` | as **escolas de teste**: o sufixo `teste-1/2/3`, o fixture certo, o preenchimento da Produção, da anamnese e do plano, e a ausência de qualquer escrita (17 casos) | não (jsdom) |
+| `provar-geracao.js` | o que a tela sabe **enquanto o GitHub gera**: o gatilho condicionado às fontes, o registro no KV, as fases do estado e o cartão da porta (38 casos) | não (jsdom) |
 
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
 
@@ -107,6 +108,20 @@ O JSON fica em `teste/`, e **não** em `experimentos/`, por uma razão de constr
 o Worker de verdade precisa empacotá-lo (`require` no bundle, como o `catalogo-seed.js`),
 e o `experimentos/` não entra em pacotes, hashes ou publicação. Aqui fica só a prova —
 `provar-teste.js`.
+
+## O estado da geração (19/10/2026)
+
+O «Guardar» do PO dispara o `gerar-ciclo.yml`, e a geração leva minutos. Até 19/10/2026 a
+tela ficava muda nesse intervalo — «não diz se deu certo, se não deu, se está processando».
+Agora o disparo é registado no KV da escola (`bastidores/<escola>/geracao/<variante>`) e a
+porta pergunta a `GET /api/geracao`: fase, passo actual, tempo e o link da execução. O
+cartão que mostra isso é **injetado pela ponte** (`motor/servidor/geracao-cliente.js`, em
+`/assets/geracao.js`), e não escrito em `porta/index.html`, porque a porta é copiada para o
+pacote de cada escola e só se refaz numa geração — o aviso chegaria sempre depois do
+acontecimento que ele acompanha.
+
+Os `fetch` são falsos e o KV é um mapa: `provar-geracao.js` corre em qualquer máquina, sem
+rede, e é ela que o `Auditoria:` dos commits cita.
 
 A `provar-celular.js` é de 17/10/2026 e nasceu de um defeito medido: a lista de turmas do
 Produção ficava acavalada no celular — o nome com 116px e os dois botões com 126px fixos. É

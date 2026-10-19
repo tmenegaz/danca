@@ -24,6 +24,8 @@ const { criarDisparador } = require('./disparar.js');
 const { criarEscritorDePO } = require('./escrever-po.js');
 const { criarEscritorDePlano } = require('./escrever-plano.js');
 const { criarEscritorDeCiclo } = require('./escrever-ciclo.js');
+// O ESTADO DA GERAÇÃO — o que a tela pergunta enquanto o Actions trabalha.
+const { criarGeracao } = require('./geracao.js');
 const { criarLeitorDeDados } = require('./ler-dados.js');
 const { cifrarTexto } = require('./cifrar-envelope.js');
 const { senhaDaEscolaOk } = require('./bastidores.js');
@@ -77,7 +79,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, geracao }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -100,6 +102,7 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escreverCiclo,
     lerDados,
     lancamentoSeguro,
+    geracao,
     fuso,
     // A ESCOLA DO DOCUMENTO É A DO WORKER — ver o bloco em `rotas.js`. Chega por parâmetro
     // porque esta função monta o roteador e não vê o `env`; quem o vê é a ponte, abaixo.
@@ -177,7 +180,17 @@ function passosDeGeracao(env) {
     ref: 'main',
     senhaCripto: (env && env.SENHA_CRIPTO) || null,
   });
-  return { disparar, escreverPO, escreverPlano, escreverCiclo };
+  // O ESTADO DA GERAÇÃO vive no KV da escola, ao lado do cadastro de turmas — e é o
+  // mesmo `PADD_KV`, porque é o mesmo armazenamento da mesma escola. Sem o binding, o
+  // serviço volta inerte e a rota responde «indisponível»: melhor que inventar estado.
+  const geracao = criarGeracao({
+    kv: (env && env.PADD_KV) || null,
+    escola: (env && env.ESCOLA_SLUG) || '',
+    token,
+    dono: 'tmenegaz',
+    repo: 'danca',
+  });
+  return { disparar, escreverPO, escreverPlano, escreverCiclo, geracao };
 }
 
 /**
@@ -216,7 +229,7 @@ async function fetch(request, env, opcoes) {
     carregarEstatico(env, 'assets/style.css', ''),
   ]);
 
-  const { disparar, escreverPO, escreverPlano, escreverCiclo } = passosDeGeracao(env);
+  const { disparar, escreverPO, escreverPlano, escreverCiclo, geracao } = passosDeGeracao(env);
   // O PREFIXO DO LEITOR É VAZIO, e não o da porta: o `-dados.json` do ciclo mora na RAIZ do
   // pacote (é lá que o formulário de lançamento o busca, ao lado do `ciclos.json`), enquanto o
   // CONTEÚDO da porta vive sob o `prefixo` (`plano-observacao/`). Trocar os dois faz o leitor
@@ -238,6 +251,7 @@ async function fetch(request, env, opcoes) {
     escreverCiclo,
     lerDados,
     lancamentoSeguro,
+    geracao,
     fuso: (env && env.FUSO) || FUSO_PADRAO,
     // A MESMA var que `escolaDe` já usava; o que faltava era aplicá-la ao contexto das rotas.
     escolaDoWorker: (env && env.ESCOLA_SLUG) || '',
