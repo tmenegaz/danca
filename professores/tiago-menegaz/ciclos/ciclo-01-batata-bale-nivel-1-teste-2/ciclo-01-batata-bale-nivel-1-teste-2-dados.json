@@ -1,0 +1,13 @@
+{
+  "_cifrado": {
+    "algoritmo": "PBKDF2-SHA256+AES-GCM",
+    "iteracoes": 100000,
+    "endereco": "Vg/4p0tYJjkDGas/SXzneL/67wo+uumPVGdXF09d+W/Iff5oPK8QcoZHJDDCeAEkCt6+7TDpl2diSvEwhbiLi2BEv5fjeQ/LLxMbDO63ISEES040fA0NvfU0656X/HypCsqEeLZhlL9WlUuZ4887i6at7dI5H0f1hsXMocHX2TfO++lLpDeXMJ5k56Sx7MgO+sPJ27cmSKf+9wbfpbJWky7rLcALnS20Q/bKK+7fzIVN7bSllZdZThpkOr/SOoRsFMaTwRae6SVaNRoISWUIiToublhoUeHhbcY4PXl9OAPttXjRqT+3YSG0NtxfZFRbKxTQhkloMr3zObUz0nQ8uAqpiK5amEGUqfwqJCHmjYsUEdiOkHUtfk8yUwq89t1Z4ah50jiOCusl93W9VfjbJoqCjpjWWQc+ndz29nEzRKYwZOrJVAPkz54DbrisAbW7zXKWmF7HPrPUkCDXsK22/yGfWCUqPfwCWzjeFo7sXMsy/DexUNdoxXjXiujgEzL0JOe5BbTmEcJn3sH9K6pyBwBtDyxs66POLb4omEhb9KBLosb9e/qJcZRVP1PtDepAIfCsSwioI7jsflI="
+  },
+  "lancamentos": 0,
+  "apelidos": {
+    "aluna_b": "Aluna B",
+    "aluna_a": "Aluna A"
+  },
+  "_nota": "O JSON de dados do ciclo, CIFRADO com a senha da escola (a mesma dos acompanhamentos): o pacote e publico e ele traz o lancamento por aluna. Quem decifra e o formulario de lancamento, no navegador, com tools/lib-cifra.js. O campo \"lancamentos\" NAO e secreto: diz se ha o que mostrar, para o formulario nao pedir a senha a toa. O campo \"apelidos\" tambem sai em claro: sem ele um ciclo sem lancamento nenhum apareceria sem as alunas. Nao editar a mao."
+}

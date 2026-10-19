@@ -8,15 +8,22 @@ type: Ciclo
 professor: Tiago Menegaz
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: cf64fc3575f5b7da4ef47ad7a06e6091267804530e00ca57cc0afe23088b6dbe
+hash_conteudo: 1865796a15be96d0fe627c8aff9842d60ce2b8f0b51f7730df03da1c3be265b1
 parentHash: 
-hash: c6a04664c0999c565ed31cfae7952d8c5b996318c80dddfaca160dc248cafa53
+hash: 082badbce0adf6f1082693fb8a30afeca25a31aef3b4522fb46e38ee10e1c0e6
 algoritmo: SHA-256
 po: professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-19
 cobertura:
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
   - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md
   - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
+  - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
   - professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf
   - professores/tiago-menegaz/ciclos/ciclo-01.conf
