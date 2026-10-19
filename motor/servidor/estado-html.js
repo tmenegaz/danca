@@ -66,6 +66,8 @@ function paginaEstado(titulo, corpo) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
+    // A página de estado também é uma página: sem ícone, a aba fica com o globo do navegador.
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
     '<style>' + CSS + '</style></head><body data-layout="documento" data-tela="estado"><main>' +
     '<h1>' + esc(titulo) + '</h1>' + corpo + '</main></body></html>';
 }

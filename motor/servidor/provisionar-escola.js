@@ -105,6 +105,7 @@ function pagina(titulo, corpo) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>Sistema Lastro · ' + esc(titulo) + '</title>' +
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
     '<style>' + CSS + '</style></head><body><main>' +
     '<h1>' + esc(titulo) + '</h1>' + corpo + '</main></body></html>';
 }

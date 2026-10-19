@@ -187,6 +187,16 @@ async function baixar(url) {
     provar('o nav.js servido é o de tools/templates/nav.js',
       navAr === navFonte, { noAr: h(navAr), fonte: h(navFonte) });
 
+    // O FAVICON (18/10/2026). Ele é pedido por caminho em todas as superfícies, e o defeito
+    // de um pacote sem ele é silencioso: a aba fica com o globo do navegador e ninguém
+    // repara. A prova custa UMA requisição por escola, e é a única forma de saber que o
+    // arquivo chegou ao diretório estático — o Circuito do validador confere a cópia no
+    // repositório, não o que o Worker serve.
+    const favAr = await baixar(base + '/assets/favicon.svg');
+    const favFonte = fs.readFileSync(path.join(raiz, 'tools/templates/marca/favicon.svg'), 'utf8');
+    provar('o favicon servido é o de tools/templates/marca/favicon.svg',
+      favAr === favFonte, { noAr: h(favAr), fonte: h(favFonte) });
+
     // A PORTA nos três caminhos. O corpo é o mesmo; o que muda é a fonte da elicitação.
     const familiasDaPorta = new Map();
     for (const caminho of ['/anamnese/', '/plano-ensino/', '/plano-observacao/']) {

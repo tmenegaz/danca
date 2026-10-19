@@ -529,12 +529,27 @@ body {
    aberto (onde --gold cai para 2,74:1). --gold-claro passa nos dois — 5,03:1 e 3,77:1 —
    então nenhum estado de interação pode ficar abaixo de AA. */
 .topnav .marca {
-  /* Espaço reservado onde ficava a marca («Ciclo NN · escola»). O texto saiu do
-     menu (duplicava o «Início»), mas o espaço fica — para o menu não colar à
-     esquerda. A largura é declarada aqui, não no HTML. */
-  display: inline-block; min-width: 9em;
-  font-weight: bold; color: var(--texto-destaque-marca); margin-right: 8px; letter-spacing: .3px;
-  text-decoration: none; padding: 8px 4px;
+  /* O SLOT DA MARCA (18/10/2026). Ele era um espaço de 9em, reservado desde que o
+     texto «Ciclo NN · escola» saiu do menu — servia só para o menu não colar à
+     esquerda. Agora ele RECEBE a logomarca, que chega em SVG inline daqui a pouco
+     (em `nav-html.js`), e a largura deixa de ser reservada: quem manda é o desenho.
+
+     A COR É O PONTO. A marca é `fill="currentColor"`, e o `color` daqui é o
+     `--sobre-marca` — o token que significa «a cor do que fica EM CIMA da barra».
+     É ele que faz a mesma marca servir às três famílias: na Bordô o conteúdo sobre
+     a barra é o creme, na Cortina é escuro (`#06202b`, porque branco sobre turquesa
+     não passa), na Verde é quase preto. A marca não escolhe cor; ela herda a que a
+     família já mediu para aquele fundo. */
+  display: inline-flex; align-items: center;
+  color: var(--sobre-marca); margin-right: var(--esp-4);
+  text-decoration: none; padding: 2px 0;
+}
+/* O TAMANHO DA MARCA NA BARRA. 30px de altura é o maior que cabe numa barra de 52px
+   sem empurrar o hambúrguer; a largura acompanha pela proporção do `viewBox` (a
+   marca é retrato, 249×292) e nunca é declarada — declarar as duas deformaria. */
+.topnav .marca svg {
+  display: block; height: 30px; width: auto;
+  fill: currentColor;
 }
 /* No :hover o fundo passa a --burgundy-claro, onde o ouro não alcança 4,5:1 em nenhum tom:
    a marca volta ao creme (8,00:1), como todos os outros links do nav. */
@@ -1152,7 +1167,13 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 @media (max-width: 1024px) {
   .topnav { font-size: 13.5px; padding: var(--esp-2) var(--esp-3); }
   .topnav a { padding: var(--esp-1) var(--esp-2); }
-  .topnav .marca { min-width: 0; margin-right: 8px; }
+  /* A MARCA CEDE COM A BARRA (18/10/2026). Ela era um espaço de 9em que bastava
+     anular; agora é um desenho de 30px de altura, e num telefone de 320px — onde
+     a barra também tem o hambúrguer — 30px de altura com 26 de largura ainda cabem,
+     mas o vão à direita é o que sobra para o resto. 26px é o degrau que mantém a
+     forma legível e devolve 4px de respiro. */
+  .topnav .marca { margin-right: var(--esp-3); }
+  .topnav .marca svg { height: 26px; }
 }
 
 /* celular: menu colapsado atrás do hamburger */

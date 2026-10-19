@@ -1265,6 +1265,11 @@ function cabecalhoDaVista(titulo, aparencia) {
     '<head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
+    // O ÍCONE DA ABA (18/10/2026). Caminho ABSOLUTO porque as vistas dos Bastidores são
+    // servidas em rotas com prefixo (`/bastidores/producao`); o arquivo mora em
+    // `assets/favicon.svg` do pacote, ao lado da folha, e o roteador de assets do Worker
+    // o entrega sem uma rota nova.
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
     '<link rel="stylesheet" href="/assets/style.css">';
 }
 

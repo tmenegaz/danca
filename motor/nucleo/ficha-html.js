@@ -156,6 +156,10 @@ function folha(markdown, { aba, titulo, sub, aviso }) {
     '<meta charset="utf-8">',
     '<meta name="viewport" content="width=device-width, initial-scale=1">',
     '<title>' + escapar(aba) + '</title>',
+    // A ficha é aberta numa aba própria (o professor imprime ou lê). O ícone é o do
+    // sistema — o mesmo de todas as superfícies, num caminho absoluto para não depender
+    // de onde a ficha foi montada.
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">',
     '<style>' + ESTILO + '</style>',
     '</head>',
     '<body data-layout="documento" data-tela="ficha">',

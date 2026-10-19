@@ -242,8 +242,15 @@ function estado() {
       const visivel = (e) => Boolean(e) && getComputedStyle(e).display !== 'none'
         && e.getBoundingClientRect().height > 1;
       const sec = [...document.querySelectorAll('#conteudo > section')].filter((s) => !s.hidden)[0];
+      // O NOME DA SECÇÃO, e não o texto do `<h2>` (18/10/2026). O título passou a trazer a
+      // seta do acordeão dentro dele — `<span class="secao-nome">Curadorias</span><button>▾</button>`
+      // —, e `textContent` devolvia «Curadorias▾». A asserção media o texto do título, e o
+      // título passou a ter um CONTROLE; medir o nome é o que continua a querer dizer
+      // «a secção abre pelo seu próprio título». A seta fica fora da medida de propósito: ela
+      // é controle, e o nome dela vive no `aria-label`.
+      const nome = sec && (sec.querySelector('.secao-nome') || sec.querySelector('h2'));
       return {
-        tituloDaSecao: sec ? (sec.querySelector('h2') || {}).textContent : null,
+        tituloDaSecao: nome ? nome.textContent.trim() : null,
         primeiroFilho: sec ? (sec.firstElementChild || {}).tagName : null,
         tituloNoPrincipal: visivel(document.querySelector('.principal > h1')),
         h1ParaLeitorDeEcra: Boolean(document.querySelector('#conteudo > h1.so-leitor')),
