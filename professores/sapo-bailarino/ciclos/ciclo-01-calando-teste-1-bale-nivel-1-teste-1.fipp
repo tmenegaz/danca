@@ -8,14 +8,22 @@ type: Ciclo
 professor: Sapo Bailarino
 ciclo: 01
 variante: calando-teste-1-bale-nivel-1-teste-1
-hash_conteudo: e081c1c4447feee134db4837fefa90bbe597191516e10226948e57c26344a31d
+hash_conteudo: 8993b2e53fd471fe0432aea01558a8c687e62a63cad75b478d4895d5520168e5
 parentHash: 
-hash: dee3c9e120eac529613e449d8879bbc6da3d5bfcfe00c651dcf75609f52810b8
+hash: cc925cc79a2685f410aeca609ea679b3051b91939b5b7350cb20c7d36e224530
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-19
 cobertura:
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-aula-01.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-captura-aula-01.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-dados.json
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-glossario-benesh.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-harmonizacao.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-notacao.md
   - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-plano.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-po.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1-referencias.md
   - professores/sapo-bailarino/ciclos/ciclo-01-calando-teste-1-bale-nivel-1-teste-1.conf
   - professores/sapo-bailarino/ciclos/ciclo-01.conf
