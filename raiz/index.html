@@ -47,16 +47,16 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
         <form class="form" id="form-criar">
           <label class="campo-rotulo" for="nome">Nome da escola</label>
           <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
-          <!-- NOTA TEMPORÁRIA (19/10/2026) — a convenção das ESCOLAS DE TESTE. O nome
-               termina em «teste 1», «teste 2» ou «teste 3»; o slug resultante é que faz o
-               Worker carregar `teste/escola-teste-N.json` nos formulários. É só
-               preenchimento de campo: nada é enviado. Remover esta nota (e a linha
-               `teste-detectado` do JS) quando o recurso deixar de ser necessário. -->
+          <!-- NOTA TEMPORÁRIA (19/10/2026) — a convenção das ESCOLAS DE TESTE. Uma das
+               três palavras no nome — «Calango», «Batata» ou «Breu» — faz o Worker
+               carregar `teste/<palavra>.json` nos formulários. É só preenchimento de
+               campo: nada é enviado. Remover esta nota (e a linha `teste-detectado` do
+               JS) quando o recurso deixar de ser necessário. -->
           <p class="aviso" id="nota-teste">
             <b>Escola de teste (temporário).</b> Para nascer com os dados de teste, o nome
-            precisa terminar em <code>teste 1</code>, <code>teste 2</code> ou
-            <code>teste 3</code> — por exemplo, <code>Plie teste 1</code>. São até três
-            escolas de teste; o que vem antes do «teste» é livre.
+            precisa conter uma destas palavras: <code>Calango</code>, <code>Batata</code>
+            ou <code>Breu</code> — por exemplo, só <code>Batata</code>. São três escolas de
+            teste; o resto do nome é livre, e a palavra pode estar em qualquer posição.
           </p>
           <p class="res" id="teste-detectado" hidden></p>
           <label class="campo-rotulo" for="senha">Senha do administrador (a direção da escola)</label>
@@ -539,12 +539,24 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           }
           function slugDaEscola() { return slugificar(document.getElementById("nome").value); }
 
-          // O NÚMERO DA ESCOLA DE TESTE (19/10/2026) — a MESMA regra do motor:
-          // o slug termina em `teste-1/2/3`. Só o sufixo conta; `testemunho` e
-          // `teste 4` continuam escolas normais.
+          // A ESCOLA DE TESTE (19/10/2026) — a MESMA regra do motor
+          // (`motor/servidor/teste-fixtures.js`): o nome traz «Calango», «Batata» ou
+          // «Breu», em qualquer posição, e a primeira que aparece decide. Duas listas da
+          // mesma regra divergiriam no dia em que uma mudasse — por isso o aviso do
+          // formulário e a decisão do Worker dizem a mesma coisa, palavra por palavra.
+          var PALAVRAS_DO_TESTE = [
+            { palavra: "calango", teste: 1 },
+            { palavra: "batata", teste: 2 },
+            { palavra: "breu", teste: 3 }
+          ];
           function numeroDeTeste() {
-            var m = slugDaEscola().match(/(?:^|-)(?:teste|testes)-?0?([1-3])$/);
-            return m ? Number(m[1]) : 0;
+            var partes = slugDaEscola().split(/[^a-z0-9]+/).filter(Boolean);
+            for (var i = 0; i < partes.length; i++) {
+              for (var j = 0; j < PALAVRAS_DO_TESTE.length; j++) {
+                if (partes[i] === PALAVRAS_DO_TESTE[j].palavra) return PALAVRAS_DO_TESTE[j].teste;
+              }
+            }
+            return 0;
           }
           function pintarTeste() {
             var aviso = document.getElementById("teste-detectado");
@@ -552,7 +564,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             var n = numeroDeTeste();
             aviso.hidden = !n;
             aviso.className = "res ok";
-            aviso.textContent = n ? "Esta escola vai nascer como escola de teste " + n + "." : "";
+            aviso.textContent = n
+              ? "Esta escola vai nascer como escola de teste " + n +
+                " — os formulários vêm preenchidos, e nada é enviado."
+              : "";
           }
           /** Os professores que AINDA PODEM assumir esta escola — os que não estão nela. */
           function professoresLivres() {

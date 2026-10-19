@@ -1,7 +1,7 @@
 {
-  "$comentario": "Fixture de teste — valores sintéticos, sem dado pessoal real. Só preenche campos; não envia nada.",
+  "$comentario": "Fixture de teste — valores sintéticos, sem dado pessoal real. Só preenche campos; não envia nada. Carregado pela palavra «calango» no nome da escola.",
   "teste": 1,
-  "nome": "Escola Teste 1",
+  "nome": "Escola Calango",
   "producao": {
     "alunas": [
       "Aluna A",

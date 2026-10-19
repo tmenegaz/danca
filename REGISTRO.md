@@ -18512,3 +18512,44 @@ mostra-o com o passo nomeado: é a diferença entre falhar em silêncio e falhar
 publica o pacote da turma (decisão (a)/(b) da fase 4 de `PLANO-CICLO-DA-TURMA.md`).
 (c) Nada foi publicado: o cartão chega às escolas no próximo `wrangler deploy` (é código do
 Worker, não do pacote).
+
+## 19/10/2026 — As escolas de teste passam a ter nome de palavra: Calango, Batata, Breu
+
+**O que motivou.** A convenção anterior (`teste 1`, `teste 2`, `teste 3` no fim do nome) nascia
+de um problema real — testar o motor sem redigitar tudo — e cobrava um preço pequeno e diário:
+quem cria a escola à mão escreve «calando teste 1» a cada ensaio, muitas vezes no celular, e
+erra. Foi a própria pesquisadora quem mediu o custo: «tá muita coisa pra escrever».
+
+**O que foi decidido.**
+- A regra deixou de ser **sufixo com número** e passou a ser **palavra no nome**: `Calango`,
+  `Batata` ou `Breu` — e a palavra diz qual conjunto carregar (1, 2 e 3, respectivamente).
+- Vale em **qualquer posição** do nome (`Batata`, `escola-batata`, `Batata da Tarde`), e a
+  primeira que aparece é a que decide (`batata-do-breu` → 2). Sem empate, sem sorte: a regra
+  precisa de uma resposta determinística para o caso que não existe no uso.
+- Nome sem nenhuma das três é escola normal. A convenção antiga deixa de valer — inclusive
+  `calando-teste-1`, que sai do conjunto no dia em que a escola é apagada.
+- Os três JSON foram **renomeados** para o nome da palavra (`teste/calango.json`,
+  `teste/batata.json`, `teste/breu.json`): o arquivo passa a dizer o que ele é sem abrir.
+
+**Onde entrou.**
+- `motor/servidor/teste-fixtures.js` — `PALAVRAS_DO_TESTE`, a detecção por token e os três
+  `require` novos.
+- `teste/calango.json`, `teste/batata.json`, `teste/breu.json` — renomeados e reetiquetados
+  (`teste` e `nome`); o conteúdo sintético não mudou.
+- `raiz/index.html` — a nota temporária do modal «Criar nova escola» e a detecção que pinta o
+  aviso ao digitar, com a **mesma** regra do motor.
+- `README.md`, `teste/README.md`, `experimentos/README.md` — a convenção escrita.
+- `experimentos/provar-teste.js` — os casos da detecção e a escola de prova passam a `batata`.
+
+**Com o quê.** `node experimentos/provar-teste.js` → **17 verificações passaram** (a detecção, o
+fixture certo, e a garantia de que o preenchimento só faz `GET`). Sem regressão:
+`provar-producao` 135/135 · `provar-derivacao-da-turma` 126/126 · `provar-cartao-da-turma` TUDO
+CERTO · `provar-acordeoes` TUDO CERTO · `provar-geracao` 38/38 · `check-identidade` sem falha.
+
+**Referências.** `README.md` §«Escolas de teste» · `AGENTS.md` (a área `experimentos/` não entra
+em pacotes — por isso o dado mora em `teste/`).
+
+**O que ainda não está feito.** (a) **Nada foi publicado**: o Worker da escola só passa a
+reconhecer as três palavras no próximo `wrangler deploy`. (b) A escola `calando-teste-1` deixou de
+ser reconhecida como escola de teste — por desenho, e ela vai ser apagada. (c) O mecanismo
+continua **temporário**: para o desligar, os passos estão em `teste/README.md`.

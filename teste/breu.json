@@ -1,7 +1,7 @@
 {
-  "$comentario": "Fixture de teste — valores sintéticos, sem dado pessoal real. Só preenche campos; não envia nada.",
-  "teste": 2,
-  "nome": "Escola Teste 2",
+  "$comentario": "Fixture de teste — valores sintéticos, sem dado pessoal real. Só preenche campos; não envia nada. Carregado pela palavra «breu» no nome da escola.",
+  "teste": 3,
+  "nome": "Escola Breu",
   "producao": {
     "alunas": [
       "Aluna A",
@@ -10,105 +10,106 @@
     ],
     "turmas": [
       {
-        "nome": "Balé Nível 1 — Teste 2",
+        "nome": "Balé Nível 1 — Teste 3",
         "programaReferencia": "RAD",
         "nivelReferencia": "Grade 1",
         "niveis": [
           "Grade 1"
         ],
-        "descricao": "Turma de teste 2: base e musicalidade.",
+        "descricao": "Turma de teste 3: iniciação e cuidado postural.",
         "dias": [
-          "seg",
-          "qua"
+          "qua",
+          "sex"
         ],
         "horarios": {
-          "seg": "17:30",
-          "qua": "17:30"
+          "qua": "16:30",
+          "sex": "16:30"
         },
-        "duracaoMin": 50,
-        "periodoInicio": "2027-02-01",
-        "periodoFim": "2027-04-30"
+        "duracaoMin": 45,
+        "periodoInicio": "2027-03-03",
+        "periodoFim": "2027-06-30"
       },
       {
-        "nome": "Balé Nível 2 — Teste 2",
+        "nome": "Balé Nível 2 — Teste 3",
         "programaReferencia": "RAD",
         "nivelReferencia": "Grade 2",
         "niveis": [
           "Grade 2"
         ],
-        "descricao": "Turma de teste 2: barra e centro.",
+        "descricao": "Turma de teste 3: força e alinhamento.",
         "dias": [
-          "ter",
+          "seg",
           "qui"
         ],
         "horarios": {
-          "ter": "18:00",
-          "qui": "18:00"
+          "seg": "19:30",
+          "qui": "19:30"
         },
         "duracaoMin": 60,
-        "periodoInicio": "2027-02-02",
-        "periodoFim": "2027-04-29"
+        "periodoInicio": "2027-03-01",
+        "periodoFim": "2027-06-30"
       },
       {
-        "nome": "Balé Nível 3 — Teste 2",
+        "nome": "Balé Nível 3 — Teste 3",
         "programaReferencia": "RAD",
         "nivelReferencia": "Grade 3",
         "niveis": [
           "Grade 3"
         ],
-        "descricao": "Turma de teste 2: repertório e expressão.",
+        "descricao": "Turma de teste 3: virtuosismo e cena.",
         "dias": [
-          "sab"
+          "ter"
         ],
         "horarios": {
-          "sab": "10:00"
+          "ter": "20:00"
         },
-        "duracaoMin": 90,
-        "periodoInicio": "2027-02-06",
-        "periodoFim": "2027-05-29"
+        "duracaoMin": 75,
+        "periodoInicio": "2027-03-02",
+        "periodoFim": "2027-06-29"
       }
     ],
     "rubricas": [
       {
-        "nome": "Régua A — Teste 2",
+        "nome": "Régua A — Teste 3",
         "niveis": [
-          "Excelente",
+          "Ótimo",
           "Bom",
-          "Em construção"
+          "Regular",
+          "Insuficiente"
         ]
       },
       {
-        "nome": "Régua B — Teste 2",
+        "nome": "Régua B — Teste 3",
         "niveis": [
-          "Domina",
-          "Domínio parcial",
-          "Precisa desenvolver"
+          "Autônomo",
+          "Com apoio",
+          "Em desenvolvimento"
         ]
       },
       {
-        "nome": "Régua C — Teste 2",
+        "nome": "Régua C — Teste 3",
         "niveis": [
           "Satisfatório",
           "Razoável",
-          "Em desenvolvimento"
+          "Precisa de apoio"
         ]
       }
     ],
     "vocabulario": [
       {
-        "termo": "Jeté",
-        "categoria": "salto",
-        "tradicao": "RAD"
+        "termo": "Pirouette",
+        "categoria": "giro",
+        "tradicao": "Vaganova"
       },
       {
-        "termo": "Rond de jambe",
+        "termo": "Fondu",
         "categoria": "passo",
         "tradicao": "francesa"
       },
       {
-        "termo": "Arabesque",
-        "categoria": "posicao",
-        "tradicao": "Vaganova"
+        "termo": "Épaulement",
+        "categoria": "direcao",
+        "tradicao": "compartilhada"
       }
     ],
     "curadorias": [
@@ -116,36 +117,36 @@
         "professor": "",
         "modalidade": "Balé clássico",
         "tradicao": "francesa",
-        "turma": "Balé Nível 1 — Teste 2",
+        "turma": "Balé Nível 1 — Teste 3",
         "alunas": [
           "Aluna A"
         ],
         "repertorio": [
-          "Jeté"
+          "Pirouette"
         ]
       },
       {
         "professor": "",
         "modalidade": "Balé clássico",
         "tradicao": "francesa",
-        "turma": "Balé Nível 2 — Teste 2",
+        "turma": "Balé Nível 2 — Teste 3",
         "alunas": [
           "Aluna B"
         ],
         "repertorio": [
-          "Rond de jambe"
+          "Fondu"
         ]
       },
       {
         "professor": "",
         "modalidade": "Balé clássico",
         "tradicao": "francesa",
-        "turma": "Balé Nível 3 — Teste 2",
+        "turma": "Balé Nível 3 — Teste 3",
         "alunas": [
           "Aluna C"
         ],
         "repertorio": [
-          "Arabesque"
+          "Épaulement"
         ]
       }
     ]
@@ -153,113 +154,6 @@
   "anamnese": [
     {
       "aluna": "Aluna A",
-      "respostas": {
-        "idade": "07/09/2014",
-        "conhecimentoPrevio": "De 2 a 5 anos",
-        "categoria-etaria": "Juvenil",
-        "historico-de-praticas-corporais": [
-          "Dança do ventre"
-        ],
-        "cinco-posicoes-1a-pes": [
-          "razoável",
-          "com-barra"
-        ],
-        "cinco-posicoes-2a-pes": [
-          "precisa desenvolver",
-          "com-barra"
-        ],
-        "cinco-posicoes-3a-pes": [
-          "Bom",
-          "com-barra"
-        ],
-        "cinco-posicoes-4a-pes": [
-          "razoável",
-          "com-barra"
-        ],
-        "cinco-posicoes-5a-pes": [
-          "precisa desenvolver",
-          "com-barra"
-        ],
-        "cinco-posicoes-1a-bracos": [
-          "Bom",
-          "com-barra"
-        ],
-        "cinco-posicoes-2a-bracos": [
-          "razoável",
-          "com-barra"
-        ],
-        "cinco-posicoes-3a-bracos": [
-          "precisa desenvolver",
-          "com-barra"
-        ],
-        "cinco-posicoes-4a-bracos": [
-          "Bom",
-          "com-barra"
-        ],
-        "cinco-posicoes-5a-bracos": [
-          "razoável",
-          "com-barra"
-        ],
-        "en-dehors": [
-          "precisa desenvolver",
-          "consciencia-propria"
-        ],
-        "tendu": [
-          "Bom",
-          "com-toque"
-        ],
-        "passe": [
-          "razoável",
-          "com-barra"
-        ],
-        "meia-ponta": [
-          "precisa desenvolver",
-          "consciencia-propria"
-        ],
-        "musicalidade": "Domina",
-        "formato-anatomico-dos-joelhos": "Valgo (\"X\")",
-        "mobilidade-de-quadril-en-dehors-de-origem": "Origem clara no quadril",
-        "mobilidade-de-quadril-pelve": "Controle ativo da pelve",
-        "flexibilidade-dos-isquiotibiais": "Média",
-        "flexibilidade-dos-adutores": "Rigidez acentuada",
-        "flexibilidade-anteroposterior-grand-ecart": "Completo",
-        "mobilidade-das-costas-e-tronco-cambre": "Limitada",
-        "mobilidade-e-estabilidade-da-escapula": "Aladas/proeminentes",
-        "rotacao-e-amplitude-dos-ombros": "Limitada por tensão",
-        "mobilidade-da-coluna-cervical-e-cabeca": "Flexão/extensão/rotação livre",
-        "arquitetura-do-arco-plantar": "Chato/plano (desabamento)",
-        "mobilidade-de-flexao-extensao-do-tornozelo": "Excelente (instep / coup-de-pied)",
-        "articulacao-e-forca-intrinseca-dos-dedos": "Rígidos em garra / sem tônus",
-        "musicalidade-e-pulsacao-ritmica": "Precisa desenvolver",
-        "coordenacao-motora-e-dissociacao": "Confusão motora severa",
-        "memoria-e-retencao-de-sequencias": "Retém sequências de 3 a 4 passos",
-        "controle-de-carga-no-demi-grand-plie": "Instabilidade / en dehors perdido",
-        "forca-excentrica-recuo-na-flexao-de-tronco": "Desce e retorna com coluna reta",
-        "impulsao-e-absorcao-allegro": "Rigidez / aterrissagem dura",
-        "sustentacao-ativa-de-mmii-forca-de-adagio": "Sustenta a perna a 90°+ sem apoio",
-        "equilibrio-unipodal": "Perda rápida",
-        "forca-de-empurrar-push-ups": "Adaptadas (joelhos)",
-        "forca-de-puxar-tracao": "Dificuldade severa",
-        "resistencia-de-mmss-port-de-bras-prolongado": "Sustenta sem elevar escápulas",
-        "discriminacao-de-lateralidade": "Hesitação moderada",
-        "orientacao-espacial-basica": "Desloca com precisão (frente, trás, lados, diagonais)",
-        "estabilidade-vestibular-e-deslocamento": "Perde o prumo",
-        "coordenacao-fina-dedo-nariz": "Precisa (olhos abertos/fechados)",
-        "cocoras-profundas-squat": "Incapacidade (dorsiflexão / encurtamento)",
-        "espiral-rotacao-de-tronco": "Compreende e executa torções guiadas",
-        "matriz-metodologica-de-origem": "Vaganova",
-        "tempo-de-interrupcao": "Pausa longa",
-        "auditoria-de-port-de-bras": "Desincorporado (sobe os braços soltando as costelas)",
-        "auditoria-de-memoria-motora-sob-destreino": "Memória latente ativa"
-      },
-      "notas": {
-        "conhecimentoPrevio": "Nota de teste: observação registrada para exercitar o campo de nota.",
-        "flexibilidade-dos-isquiotibiais": "Nota de teste: observação registrada para exercitar o campo de nota.",
-        "equilibrio-unipodal": "Nota de teste: observação registrada para exercitar o campo de nota."
-      }
-    },
-    {
-      "aluna": "Aluna B",
       "respostas": {
         "idade": "21/06/2013",
         "conhecimentoPrevio": "Mais de 5 anos",
@@ -367,7 +261,7 @@
       }
     },
     {
-      "aluna": "Aluna C",
+      "aluna": "Aluna B",
       "respostas": {
         "idade": "12/03/2015",
         "conhecimentoPrevio": "Até 2 anos",
@@ -472,13 +366,121 @@
         "flexibilidade-dos-isquiotibiais": "Nota de teste: observação registrada para exercitar o campo de nota.",
         "equilibrio-unipodal": "Nota de teste: observação registrada para exercitar o campo de nota."
       }
+    },
+    {
+      "aluna": "Aluna C",
+      "respostas": {
+        "idade": "07/09/2014",
+        "conhecimentoPrevio": "De 2 a 5 anos",
+        "categoria-etaria": "Juvenil",
+        "historico-de-praticas-corporais": [
+          "Yoga",
+          "Pilates"
+        ],
+        "cinco-posicoes-1a-pes": [
+          "razoável",
+          "com-barra"
+        ],
+        "cinco-posicoes-2a-pes": [
+          "precisa desenvolver",
+          "com-barra"
+        ],
+        "cinco-posicoes-3a-pes": [
+          "Bom",
+          "com-barra"
+        ],
+        "cinco-posicoes-4a-pes": [
+          "razoável",
+          "com-barra"
+        ],
+        "cinco-posicoes-5a-pes": [
+          "precisa desenvolver",
+          "com-barra"
+        ],
+        "cinco-posicoes-1a-bracos": [
+          "Bom",
+          "com-barra"
+        ],
+        "cinco-posicoes-2a-bracos": [
+          "razoável",
+          "com-barra"
+        ],
+        "cinco-posicoes-3a-bracos": [
+          "precisa desenvolver",
+          "com-barra"
+        ],
+        "cinco-posicoes-4a-bracos": [
+          "Bom",
+          "com-barra"
+        ],
+        "cinco-posicoes-5a-bracos": [
+          "razoável",
+          "com-barra"
+        ],
+        "en-dehors": [
+          "precisa desenvolver",
+          "consciencia-propria"
+        ],
+        "tendu": [
+          "Bom",
+          "com-toque"
+        ],
+        "passe": [
+          "razoável",
+          "com-barra"
+        ],
+        "meia-ponta": [
+          "precisa desenvolver",
+          "consciencia-propria"
+        ],
+        "musicalidade": "Domina",
+        "formato-anatomico-dos-joelhos": "Normal/alinhado",
+        "mobilidade-de-quadril-en-dehors-de-origem": "Origem restrita (rotação forçada a partir dos joelhos/tornozelos)",
+        "mobilidade-de-quadril-pelve": "Controle ativo da pelve",
+        "flexibilidade-dos-isquiotibiais": "Média",
+        "flexibilidade-dos-adutores": "Rigidez acentuada",
+        "flexibilidade-anteroposterior-grand-ecart": "Parcial (elevação do quadril)",
+        "mobilidade-das-costas-e-tronco-cambre": "Limitada",
+        "mobilidade-e-estabilidade-da-escapula": "Aladas/proeminentes",
+        "rotacao-e-amplitude-dos-ombros": "Completa e fluida",
+        "mobilidade-da-coluna-cervical-e-cabeca": "Flexão/extensão/rotação livre",
+        "arquitetura-do-arco-plantar": "Chato/plano (desabamento)",
+        "mobilidade-de-flexao-extensao-do-tornozelo": "Excelente (instep / coup-de-pied)",
+        "articulacao-e-forca-intrinseca-dos-dedos": "Flexíveis e articulados",
+        "musicalidade-e-pulsacao-ritmica": "Precisa desenvolver",
+        "coordenacao-motora-e-dissociacao": "Executa movimentos cruzados",
+        "memoria-e-retencao-de-sequencias": "Precisa de apoio visual prolongado",
+        "controle-de-carga-no-demi-grand-plie": "Instabilidade / en dehors perdido",
+        "forca-excentrica-recuo-na-flexao-de-tronco": "Desce e retorna com coluna reta",
+        "impulsao-e-absorcao-allegro": "Boa elasticidade e potência",
+        "sustentacao-ativa-de-mmii-forca-de-adagio": "Incapacidade por colapso",
+        "equilibrio-unipodal": "Mantém > 5 s sem oscilação severa",
+        "forca-de-empurrar-push-ups": "Adaptadas (joelhos)",
+        "forca-de-puxar-tracao": "Tração completa",
+        "resistencia-de-mmss-port-de-bras-prolongado": "Fadiga rápida com queda",
+        "discriminacao-de-lateralidade": "Hesitação moderada",
+        "orientacao-espacial-basica": "Perde a referência ao mudar de direção",
+        "estabilidade-vestibular-e-deslocamento": "Caminha virando a cabeça sem desviar",
+        "coordenacao-fina-dedo-nariz": "Desorganização / tremor",
+        "cocoras-profundas-squat": "Calcanhares apoiados, tronco erguido",
+        "espiral-rotacao-de-tronco": "Rigidez total",
+        "matriz-metodologica-de-origem": "RAD",
+        "tempo-de-interrupcao": "Pausa curta",
+        "auditoria-de-port-de-bras": "Incorporado",
+        "auditoria-de-memoria-motora-sob-destreino": "Tabula rasa"
+      },
+      "notas": {
+        "conhecimentoPrevio": "Nota de teste: observação registrada para exercitar o campo de nota.",
+        "flexibilidade-dos-isquiotibiais": "Nota de teste: observação registrada para exercitar o campo de nota.",
+        "equilibrio-unipodal": "Nota de teste: observação registrada para exercitar o campo de nota."
+      }
     }
   ],
   "plano": [
     {
-      "turma": "Balé Nível 1 — Teste 2",
+      "turma": "Balé Nível 1 — Teste 3",
       "respostas": {
-        "objetivo-geral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+        "objetivo-geral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
         "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
         "estrutura-de-cada-aula": [
           {
@@ -610,14 +612,14 @@
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
-        "proveniencia": "Plano de teste 2, gerado para exercitar o formulário."
+        "proveniencia": "Plano de teste 3, gerado para exercitar o formulário."
       },
       "notas": {}
     },
     {
-      "turma": "Balé Nível 2 — Teste 2",
+      "turma": "Balé Nível 2 — Teste 3",
       "respostas": {
-        "objetivo-geral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
+        "objetivo-geral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 3, com musicalidade e controle do movimento.",
         "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
         "estrutura-de-cada-aula": [
           {
@@ -749,14 +751,14 @@
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
-        "proveniencia": "Plano de teste 2, gerado para exercitar o formulário."
+        "proveniencia": "Plano de teste 3, gerado para exercitar o formulário."
       },
       "notas": {}
     },
     {
-      "turma": "Balé Nível 3 — Teste 2",
+      "turma": "Balé Nível 3 — Teste 3",
       "respostas": {
-        "objetivo-geral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.",
+        "objetivo-geral": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 3, com musicalidade e controle do movimento.",
         "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
         "estrutura-de-cada-aula": [
           {
@@ -888,7 +890,7 @@
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
-        "proveniencia": "Plano de teste 2, gerado para exercitar o formulário."
+        "proveniencia": "Plano de teste 3, gerado para exercitar o formulário."
       },
       "notas": {}
     }

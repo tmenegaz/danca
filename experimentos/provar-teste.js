@@ -4,12 +4,12 @@
 /**
  * provar-teste.js — as ESCOLAS DE TESTE: o fixture certo, e SÓ preenchimento.
  *
- * O combinado (19/10/2026): uma escola cujo slug termina em `teste-1/2/3` recebe,
- * nos formulários, os valores do JSON `teste/escola-teste-N.json`. O carregador
- * NÃO envia nada: nem POST, nem PUT, nem DELETE; nem toca no KV. Ele só preenche.
+ * O combinado (19/10/2026): uma escola cujo nome traz `Calango`, `Batata` ou `Breu`
+ * recebe, nos formulários, os valores do JSON `teste/<palavra>.json`. O carregador NÃO
+ * envia nada: nem POST, nem PUT, nem DELETE; nem toca no KV. Ele só preenche.
  *
  * A prova cobre as três fronteiras:
- *   1. a DETECÇÃO — `Plie teste 1` é teste 1; `testemunho` e `teste 4` não são;
+ *   1. a DETECÇÃO — `Batata` é teste 2; `escola-real` e `testemunho` não são;
  *   2. a PRODUÇÃO — a página recebe `data-escola-teste` e o script só na escola de
  *      teste, e a rota `/api/teste` devolve o fixture daquela escola;
  *   3. a PORTA — na anamnese, a aluna A nasce preenchida e trocar para B troca os
@@ -38,7 +38,7 @@ const { numeroDoTeste, fixtureDaEscola } = require('../motor/servidor/teste-fixt
 const { SCRIPT } = require('../motor/servidor/teste-cliente.js');
 const bastidores = require('../motor/servidor/bastidores.js');
 
-const FIXTURE = fixtureDaEscola('plie-teste-1');
+const FIXTURE = fixtureDaEscola('batata');
 const MIME = { '.html': 'text/html;charset=utf-8', '.json': 'application/json;charset=utf-8',
   '.css': 'text/css', '.js': 'text/javascript', '.svg': 'image/svg+xml' };
 
@@ -49,15 +49,24 @@ const ok = (titulo) => { n += 1; console.log(`  ${String(n).padStart(2)}. ${titu
 
 function detectar() {
   const casos = [
-    ['plie-teste-1', 1], ['abacate-teste-2', 2], ['pingo-teste-3', 3],
-    ['teste-1', 1], ['escola-teste-01', 1], ['testemunho', 0], ['teste-4', 0],
-    ['teste', 0], ['teste-10', 0], ['x-teste-2x', 0],
+    // A palavra, sozinha — é assim que se cria uma escola de teste à mão.
+    ['calango', 1], ['batata', 2], ['breu', 3],
+    // Em qualquer posição do nome, e a primeira que aparece é a que vale.
+    ['escola-batata', 2], ['batata-da-tarde', 2], ['breu-de-manha', 3],
+    ['calango-do-breu', 1], ['batata-do-breu', 2],
+    // O nome de EXIBIÇÃO passa pelo mesmo slug: acento e maiúscula não atrapalham.
+    ['Batata da Tarde', 2], ['CALANGO', 1],
+    // E o que NÃO é: nomes parecidos, e a convenção antiga (`teste 1/2/3`).
+    ['testemunho', 0], ['batatada', 0], ['breu2', 0], ['escola-real', 0],
+    ['calando-teste-1', 0], ['plie-teste-1', 0], ['batata', 2],
   ];
   for (const [slug, esperado] of casos) {
     assert.equal(numeroDoTeste(slug), esperado, slug);
   }
-  ok('o sufixo teste-1/2/3 é o que decide; testemunho e teste 4 não são teste');
-  assert.equal(fixtureDaEscola('plie-teste-1').teste, 1);
+  ok('a palavra Calango/Batata/Breu é o que decide; testemunho e batatada não são teste');
+  assert.equal(fixtureDaEscola('batata').teste, 2);
+  assert.equal(fixtureDaEscola('breu').teste, 3);
+  assert.equal(fixtureDaEscola('calango').teste, 1);
   assert.equal(fixtureDaEscola('escola-real'), null);
   ok('o fixture está ligado ao número, e escola normal não recebe nenhum');
 }
@@ -77,14 +86,14 @@ function criarKv() {
 }
 
 async function producao() {
-  const envTeste = { ESCOLA_SLUG: 'plie-teste-1', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',
+  const envTeste = { ESCOLA_SLUG: 'batata', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',
     SENHA_PROFESSOR: 'y', PROFESSOR_NOME: 'Docente', PADD_KV: criarKv() };
   const envReal = { ESCOLA_SLUG: 'escola-real', ESCOLA_HABILITADA: 'sim', SENHA_ADMIN: 'x',
     SENHA_PROFESSOR: 'y', PROFESSOR_NOME: 'Docente', PADD_KV: criarKv() };
 
-  const rTeste = await bastidores.fetch(new Request('https://plie-teste-1.example/bastidores/producao'), envTeste);
+  const rTeste = await bastidores.fetch(new Request('https://batata.example/bastidores/producao'), envTeste);
   const htmlTeste = await rTeste.text();
-  assert.match(htmlTeste, /data-escola-teste="1"/);
+  assert.match(htmlTeste, /data-escola-teste="2"/);
   assert.match(htmlTeste, /\/assets\/teste-preenchimento\.js/);
   ok('a Produção da escola de teste recebe o atributo e o preenchidor');
 
@@ -95,10 +104,10 @@ async function producao() {
   ok('a Produção de uma escola normal não recebe nenhum dos dois');
 
   const prod = require('../motor/servidor/producao.js');
-  const apiTeste = await prod.fetch(new Request('https://plie-teste-1.example/api/teste'), envTeste);
+  const apiTeste = await prod.fetch(new Request('https://batata.example/api/teste'), envTeste);
   assert.equal(apiTeste.status, 200);
   const dados = await apiTeste.json();
-  assert.equal(dados.teste, 1);
+  assert.equal(dados.teste, 2);
   assert.equal(dados.fixture.producao.turmas.length, 3);
   ok('/api/teste devolve o fixture da escola certa');
 
@@ -111,7 +120,7 @@ async function producao() {
 // ================= 2b. A PRODUÇÃO PREENCHIDA ================================
 
 async function producaoNoNavegador() {
-  const escola = 'plie-teste-1';
+  const escola = 'batata';
   const kv = criarKv();
   const turmas = FIXTURE.producao.turmas.map((t, i) => Object.assign({}, t, {
     id: 'turma-' + i, ativo: true, vigenteDe: '2026-10-20',
@@ -298,10 +307,10 @@ function apiDe(rota, fonte) {
     return fonte === 'plano' ? MAPA_PLANO : MAPA_ANAMNESE;
   }
   if (rota.startsWith('api/teste')) {
-    return { ok: true, teste: 1, escola: 'plie-teste-1', fixture: FIXTURE };
+    return { ok: true, teste: 2, escola: 'batata', fixture: FIXTURE };
   }
   if (rota.startsWith('api/bastidores/professores')) {
-    return { ok: true, escola: 'plie-teste-1', professores: [{ nome: 'Docente', slug: 'docente' }] };
+    return { ok: true, escola: 'batata', professores: [{ nome: 'Docente', slug: 'docente' }] };
   }
   if (rota.startsWith('api/bastidores/alunas')) {
     return { ok: true, alunas: FIXTURE.producao.alunas };
@@ -323,7 +332,7 @@ function apiDe(rota, fonte) {
 function htmlDaPorta(comTeste, fonte) {
   let html = fs.readFileSync(PAGINA_FONTE, 'utf8');
   if (!comTeste) return html;
-  html = html.replace(/<html([^>]*)>/i, '<html$1 data-escola-teste="1">');
+  html = html.replace(/<html([^>]*)>/i, '<html$1 data-escola-teste="2">');
   html = html.replace(/<\/body>/i, '<script>' + SCRIPT + '</script></body>');
   return html;
 }

@@ -96,13 +96,14 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 
 ## Escolas de teste (temporário, 19/10/2026)
 
-Para testar o motor real sem redigitar tudo, crie a escola com o nome terminando em
-**`teste 1`**, **`teste 2`** ou **`teste 3`** — por exemplo, `Plie teste 1`. Só essas
-escolas carregam os JSON de `teste/escola-teste-N.json` nos formulários da
-Produção, da anamnese e do plano de ensino. O preenchimento é automático ao abrir a
-página e **não envia nada**: o envio continua manual, e o painel do canto permite
-escolher os outros registros. Até três escolas de teste; `teste 4` e `testemunho` são
-escolas normais. A prova é `node experimentos/provar-teste.js`.
+Para testar o motor real sem redigitar tudo, crie a escola com uma destas palavras no
+nome: **`Calango`**, **`Batata`** ou **`Breu`** — basta `Batata`. A palavra diz qual dos
+três conjuntos carregar (`Calango` → 1, `Batata` → 2, `Breu` → 3), pode estar em
+qualquer posição do nome, e só essas escolas carregam `teste/<palavra>.json` nos
+formulários da Produção, da anamnese e do plano de ensino. O preenchimento é automático
+ao abrir a página e **não envia nada**: o envio continua manual, e o painel do canto
+permite escolher os outros registros. Uma escola sem nenhuma das três palavras é uma
+escola normal. A prova é `node experimentos/provar-teste.js`.
 
 ## A identidade visual
 

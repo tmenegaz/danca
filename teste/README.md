@@ -1,8 +1,17 @@
 # teste/ — os dados das escolas de teste (temporário)
 
-Uma escola cujo **slug** termina em `teste-1`, `teste-2` ou `teste-3` recebe, nos
-formulários, os valores de `escola-teste-N.json`. O que vem antes do «teste» é livre:
-`Plie teste 1` vira `plie-teste-1` e usa o conjunto 1.
+Uma escola cujo **nome** traz uma destas palavras recebe, nos formulários, os valores do
+JSON correspondente:
+
+| Palavra | Arquivo | Conjunto |
+|:--|:--|:--|
+| `Calango` | `calango.json` | 1 |
+| `Batata` | `batata.json` | 2 |
+| `Breu` | `breu.json` | 3 |
+
+A palavra pode estar em qualquer posição do nome — `Batata`, `escola-batata`,
+`Batata da Tarde` —, e a primeira que aparece é a que vale. O resto do nome é livre.
+Escola sem nenhuma das três é escola normal.
 
 Os três arquivos são **sintéticos**. Não há nome completo, contato ou senha: as alunas
 são `Aluna A`, `Aluna B` e `Aluna C`, e as observações são valores de teste escolhidos
