@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T22:37:57-0300`
-Commit atual: `137f0d0` — feat(estrutura): a aba ganha ícone, e a barra deixa de ter um vão vazio
+Gerado em: `2026-10-19T07:57:05-0300`
+Commit atual: `ef026b0` — fix(experimentos): a prova do manifesto deixa de citar a escola expurgada
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -45,7 +45,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 - **Regras:** 17 em `REGRAS.md`
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** tiago-menegaz (1)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -62,6 +62,15 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+ef026b0 fix(experimentos): a prova do manifesto deixa de citar a escola expurgada
+9991da3 fix(estrutura): o expurgo deixa de anunciar «sobraram 1» quando sobrou zero
+02f1067 feat(tools): o gerador diz o que falta, e a faixa de volume passa a ser por duração
+a1a8cd6 feat(estrutura): o manifesto da variante passa a ser derivado, e o erro de auth diz o que fazer
+5a52a67 chore(estrutura): expurgar a escola fita
+d9cd572 feat(po): o PO elicitado vira a fonte do ciclo
+05adab4 feat(plano): o plano elicitado vira a fonte do ciclo
+9cb669d docs(ideia): o catálogo fechado vira fotografia datada, e os três planos que ele exige
+4435818 feat(estrutura): a marca chega à porta, e a raiz passa a ser verde
 137f0d0 feat(estrutura): a aba ganha ícone, e a barra deixa de ter um vão vazio
 efbf257 feat(tools): a marca entra como papel, e o favicon nasce do mesmo desenho
 08f80d6 feat(estrutura): as quatro secções restantes recolhem, e o rótulo do catálogo cabe no telefone
@@ -73,31 +82,20 @@ efbf257 feat(tools): a marca entra como papel, e o favicon nasce do mesmo desenh
 a1a750e fix(estrutura): o resumo da faixa desce em vez de se espremer, e a lista não mente
 a524428 feat(estrutura): o cabeçalho do ato cabe em 360px, e a barra vira a decisão tomada
 4843ba3 feat(tools): o estado escondido passa a esconder — o `[hidden]` na base da folha
-ecb3cac feat(estrutura): o cabeçalho do ato cresce, e o «Fechar» deixa de descontar
-55ea429 feat(estrutura): a família é o segundo eixo da aparência
-bca77bb feat(tools): a Cortina Turquesa — a segunda família, medida antes de existir
-56459c1 feat(estrutura): a Aparência com a peça certa, e o catálogo que faltava
-83f0413 feat(tools): o catálogo das peças — um nome antes do desenho
-7702c9f feat(estrutura): a aparência é da escola, e o servidor aplica-a
-b901058 feat(tools): a barra perde o botão da aparência — a decisão é da escola
-d930cd5 docs(estrutura): a C15 foi decidida — a preferência de aparência é da escola
-610e747 docs(estrutura): a conferência visual fecha, e a C15 ganha glosa nos dois documentos
 ```
 
 ## Por professor
 
 ### tiago-menegaz — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): fita, valse
+**Ciclo 01** — variante(s): valse
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| fita | (sem PO) | — | — |
 | valse | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| fita | ciclo-01-fita.fipp | `ef5ee269d784` | (vazio) | — |
 | valse | ciclo-01-valse.fipp | `5bdd2e241b25` | (vazio) | — |
 
 ## Pétreas (`PROTOCOLO.md`)
@@ -147,111 +145,136 @@ d930cd5 docs(estrutura): a C15 foi decidida — a preferência de aparência é 
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — A marca chega à porta: o que o pacote não tinha, a ponte preenche
+## 19/10/2026 — O expurgo não mente: «sobraram 1» era a listagem a chegar atrasada
 
-**O que motivou.** A direção testou as três escolas e encontrou a marca numas telas e não noutras:
-aparecia em Sistema Lastro (a raiz), em Estúdio de Dança e em Produção, e **não** aparecia na Área
-do Professor — anamnese, plano de ensino, plano de observação —, nem em `valse`, nem em `danca`.
+**O que motivou.** A direção apagou a escola `fita` pela raiz, e o relatório respondeu duas coisas
+que se contradizem na mesma caixa:
 
-**O diagnóstico, e ele não era o que parecia.** As três superfícies já servidas em `137f0d0`
-estavam certas. O que faltava era a **porta**: a barra dela não é escrita pelo servidor, é escrita
-**no pacote, no momento da geração** — o `<!-- NAV -->` é substituído por `gerar_nav` em
-`gerar-ciclo.sh`. Todo pacote gerado antes da marca nasceu com o slot `.marca` vazio, e a ponte
-não tinha por que o preencher. Não era um erro de deploy: era um artefacto de geração antigo a ser
-servido por um código novo.
+```
+fita/            → 8 de 8 · sobraram 0
+bastidores/fita/ → 8 de 8 · sobraram 1
+ATENÇÃO: sobraram 1 chave(s) no sistema — este expurgo NÃO está completo.
+   o namespace ainda tem 0 chave(s) (tinha 16) — se alguma não for de outra escola, ela ficou.
+```
 
-**A correção, na camada certa.** `comAparencia()` — a função que a ponte `producao.js` já usa para
-levar a identidade da escola ao `<html>` — passa também a preencher o slot `.marca` **vazio** com a
-marca do sistema. Três propriedades que a tornam segura: é **cirúrgica** (só o slot vazio, por
-expressão ancorada), é **idempotente** (página que já tem a marca passa intacta — as do pacote
-novo, e as que o gerador já escreve) e é **inerte** onde não há barra (a página de lançamento e as
-páginas de estado não são tocadas). É a camada certa por um motivo de desenho, não de conveniência:
-a ponte já carrega a identidade da escola — modo, família, a marca é a outra metade da mesma frase.
-Os quatro casos (slot vazio, já preenchido, sem barra, e a idempotência) estão provados como
-unidade em `provar-aparencia`.
+16 chaves apagadas, 8 + 8, e o namespace inteiro a dizer 0 — não havia chave nenhuma para sobrar.
+A contradição não é cosmética: a mesma pessoa que lê «NÃO está completo» tem de decidir se repete
+um expurgo que já acabou, e a resposta certa estava na linha de baixo.
 
-**A raiz, que é a terceira escola e não tem professor.** `danca` ganhou a marca no seu próprio
-cabeçalho — `.topo-marca` a 40px, com `color: var(--marca-texto)`, inline pela mesma razão da
-barra —, e o `data-modo` continua a ser do visitante: **a família é da casa, o modo é de quem lê.**
-Foi a decisão da direção («a cor padrão na de dança vai ser a verde»), e ela entra como
-`data-paleta="verde"` no `<html>`, com o comentário a dizer que a família ali não é preferência de
-escola nenhuma. O `.topo-linha` passou a `flex-wrap: wrap` com um grupo `.topo-identidade`, para
-que a marca e o título nunca se separem quando a linha parte — medido em 1280, 768, 560, 390 e 320:
-sem transbordo horizontal em nenhuma, marca e título na mesma linha em todas.
+**A causa, e é do KV.** A Cloudflare é eventualmente consistente: um `DELETE` pode demorar até
+~60 s para desaparecer de um `list`. A reconferência por prefixo corria **milissegundos** depois do
+último `DELETE` e lia o estado anterior. O número que a página mostrava — `kv.restantes` — era a
+soma dessas releituras, e nada nele sabia da demora.
 
-**Conferido.** `provar-aparencia` **77/77** (eram 72: mais as quatro provas do preenchimento do
-slot) · `provar-ambiente` **TUDO CERTO**, **16 requisições**, com uma prova nova: **a marca do
-sistema chega à porta** — afirmada sobre a resposta ao vivo, sem requisição extra ·
-`check-identidade` **19 ok / 0 erros** · `provar-producao` 135/135 · `provar-menu-da-producao` 26/26 ·
-`provar-cartao-da-turma` TUDO CERTO · `provar-acordeoes` TUDO CERTO · `provar-linhas-da-lista` TUDO
-CERTO · `provar-tema` 38/38 · `provar-selo` TUDO CERTO · `provar-celular` 15/15 ·
-`provar-ato-e-barra` 72/72 · `provar-ajustes-anamnese` 125/125 · `provar-cabecalho-do-ato` 40/40 ·
-`provar-contexto-do-ato` 37/37. Ao ar, as três escolas reimplantadas: a porta de `fita` e a de
-`valse` devolvem o `<svg>` da marca; `danca` responde 401 na página (protegida por senha) e
-`/api/saude` diz `{"ok":true,"tipo":"raiz"}`.
+**O que foi decidido.**
+- A releitura é **repetida uma vez**, depois de uma pausa, e só quando algo *parece* ter sobrado.
+- **O namespace é a autoridade.** A listagem sem prefixo, feita por último, diz o estado final:
+  namespace vazio ⇒ `restantes = 0` por prova, não por otimismo. O número que a listagem viu não se
+  perde: fica em `restantesNaListagem`, e o relatório marca `leituraAtrasada`.
+- Uma chave que **sobra de verdade** — a que o `DELETE` recusa — continua a reprovar: a correção
+  não pode virar um jeito de esconder falha. Há prova para os dois lados.
+- **O aviso velho saiu.** O relatório mandava tirar `SENHA_FITA`/`LOGIN_FITA` de
+  `tools/.senhas-locais` e `fita` de `tools/.escolas-teste`. Medido nesta máquina: **os dois
+  arquivos não têm uma linha ativa**, e — o que fecha o caso — **nada os escreve**: nem
+  `tools/criar-escola.sh`, nem `motor/servidor/provisionar-escola.js`. Desde que a criação de
+  escola é do Worker, escola nova não deixa rastro neles. Mandar tirar uma linha que não existe é
+  ruído com aparência de tarefa, e quem obedece perde tempo a procurar o que apagar.
 
-**Com o quê.** `motor/servidor/producao.js` — a ponte preenche o slot `.marca` vazio em
-`comAparencia()`, com a marca importada de `nav-html.js`, sem duplicar e sem tocar páginas sem
-barra. `raiz/index.html` — `data-paleta="verde"` no `<html>`, `.topo-marca` com o `<svg>` inline a
-40px, grupo `.topo-identidade` e `.topo-linha` com `flex-wrap: wrap`. Em `experimentos/`,
-`provar-aparencia.js` ganha as quatro provas do preenchimento (72 → 77) e `provar-ambiente.js` a
-prova ao vivo da marca na porta. `HANDOFF.md` regenerado.
+**Com o quê.** `motor/servidor/expurgar-escola.js` — a pausa, a repetição, o namespace como
+autoridade e o campo `leituraAtrasada`. `motor/servidor/raiz.js` — sai `linhasLocais()` e o campo
+`local` de `/api/escolas` e do relatório de expurgo. `raiz/index.html` — sai o bloco «No seu
+computador, tire estas linhas» (estava duplicado no arquivo, por duas inserções do mesmo texto) e
+entra a frase que explica a diferença entre as duas listagens. `motor/servidor/repo-escola.js` — o
+comentário que declarava a fronteira dos arquivos locais, corrigido para dizer que já não se pede.
+`experimentos/provar-expurgo-leitura-atrasada.js` — prova nova, `fetch` falso, corre em qualquer
+máquina: os seis casos do motor (o caso real da `fita`, o `DELETE` recusado, a chave de outra
+escola, o caminho sem atraso, o namespace ilegível) e as quatro asserções da página.
 
-**Referências.** `ARQUITETURA-CAPTURA.md` (a ponte como dona da identidade da escola) ·
-`IDENTIDADE-VISUAL.md` §«a marca e o papel» · `CONGELAMENTO.md` (nenhum arquivo congelado foi
-tocado nesta entrada: `tools/templates/` já trazia a marca de `efbf257`).
+**Referências.** `IDEIA-PAINEL-ESCOLA.md` §17.5 (o expurgo) · `CONGELAMENTO.md` (nenhum arquivo
+congelado tocado) · a documentação da consistência eventual do KV da Cloudflare.
 
-**O que continua declaradamente fora.** O **favicon** segue a paleta vigente — a mesma decisão do
-PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site verde e o ícone
-bordô; corrigir isso exige uma rota por escola, e não é o que se quer. E `valse` continua `bordo`
-porque é a preferência **gravada** daquela escola; trocá-la é um clique em Produção → Aparência,
-não um defeito.
+**O que ainda não está feito.** (a) **Não foi publicado**: o `danca` precisa de `wrangler deploy`
+para o relatório novo chegar ao ar, e o deploy ficou para depois da integração com os commits do
+remoto. (b) O **expurgo em si já estava completo** — a `fita` saiu do ar, do KV e do repositório;
+nada há a refazer. (c) A **rede de segurança é a prova**, não a tela: um expurgo que reprove de
+verdade continua a reprovar em `provar-expurgo-leitura-atrasada`, e é essa que o `Auditoria:` dos
+commits cita.
 
 ## O que está pendente
 
-## 18/10/2026 — Regra: medir na bancada, e o ar só na conferência final
+## 18/10/2026 — O gerador diz o que falta: a guarda do DOCS, o Pré-requisito 5 e o `sed` mudo
 
-(a) O **número exacto** de `list()` por dia não está documentado na
-página de limites consultada hoje — sabe-se que o limite existe, que é diário e que repõe às 00:00
-UTC. Quem precisar do número mede-o, não o cita. (b) O consumo **por visita** não foi reduzido: a
-anamnese faz um `list()` por família de envelopes, e a Produção lista várias; se a cota voltar a
-apertar, o caminho é um **índice gravado** em vez de um `list()` por visita — decisão de produto,
-que não se toma sem o dono.
+(a) O CI **continua vermelho** para `fita` e `valse`, e isso é
+estado, não defeito: falta o `DATA_INICIO` (e `DIAS`) derivados do plano e ao menos uma `aula-*`
+escrita. O caminho é eliciar o plano pela porta, não editar o `.conf` à mão.
 
-## 18/10/2026 — O catálogo de paletas fecha em três: a Verde de Ensaio entra, quatro saem
+> **Correção de 18/10/2026 (mesmo dia).** A redação acima dizia que faltava «eliciar o plano pela
+> porta», e isso estava **incompleto**: eliciar o plano, sozinho, **nunca** preencheu o `DATA_INICIO`
+> — quem o preenchia era só o caminho do PO. O defeito e a correção estão na entrada seguinte («Por
+> que o CI não ficava verde»). A redação anterior não é apagada: fica como o elo que registra o que
+> se pensou antes de medir. (b) `ciclo-01-fita.conf`
+tem `DOCS="plano"` e nenhuma `aula-NN`: a lista foi editada à mão em `cc749b2`, e é o que a recusa
+nova passa a dizer. (c) O **PAT** continua por renovar; nada valida o token, e um 401 só aparece no
+meio de uma escrita. (d) Nada foi **commitado** — a alteração está no worktree, e o congelamento
+pede commit próprio.
 
-(a) O **PDF** continua na vigente — é decisão, mas o gerador **não
-tem** como receber a paleta; quem quiser a família da escola no papel muda `lib-tokens.js` e a
-decisão, e não é trabalho de uma linha. (b) A **`cor da marca` no deck Marp** segue a mesma regra
-do PDF (só o `:root`), e não foi revista nesta entrada. (c) Os documentos que ainda falam em
-«doze» ou «sete» famílias fora dos dois que esta entrada tocou —
-`PLANEJAMENTO-LASTRO.md`, §L13 — **não** foram atualizados: o número de lá é o do planejamento, e
-mexer nele é reescrever o plano, não corrigir deriva.
+## 18/10/2026 — Por que o CI não ficava verde: o plano nunca preenchia o manifesto
 
-## 18/10/2026 — A família da escola chega a tudo o que ela serve, e a lista do telefone desce
+(a) **O PAT continua inválido** — é o primeiro bloqueio e nenhum
+código o resolve; até ele ser renovado, nenhuma escrita acontece e nada disto se vê em produção.
+(b) O CI só volta a correr quando o **PO** for elicitado — é ele que dispara. (c) `fita` e `valse`
+seguem sem `-po.md`, logo sem `aula-*`: o CI continuará vermelho até o PO existir.
+(d) `provar-plano-completo` e `provar-plano-matriz` **já estavam quebrados** antes desta sessão:
+ambos apontam para `professores/leticia/`, que foi expurgada. Não foram tocados.
+(e) Nada foi **commitado**.
 
-(a) O **PDF** continua na paleta vigente, declaradamente
-(`lib-tokens.js`). (b) A lista de **turmas** no telemóvel não entra nesta regra: o cartão da turma é
-outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
+## 18/10/2026 — O token vive em quatro lugares, e só um foi trocado
 
-## 18/10/2026 — As outras quatro secções recolhem, e a listagem fica com a largura toda
+- (a) **Nada valida o token.** É a causa-raiz da demora: `/api/saude` responde `ok` com um PAT
+  morto, e o 401 só aparece **no meio de uma escrita** — que é o pior lugar para descobrir. A
+  proposta é uma sonda autenticada (não pública) que diga se o token lê, escreve e dispara.
+- (b) O **CI continua vermelho** por outro motivo, já registado: falta o `-po.md`, e é ele que
+  dispara o workflow e gera as `aula-*`.
+- (c) O token é **fine-grained com validade** — a próxima expiração produz exatamente este sintoma,
+  e nada avisará antes.
 
-(a) A secção **Aparência** e a **Turmas** ficaram fora deste
-pedido: as turmas já têm o acordeão dela, e a Aparência não tem listagem para dar largura a nada.
-(b) O estado do acordeão **não entra na URL**: continua em `sessionStorage`, como o das turmas, para
-um link partilhado não abrir a página com metade dos formulários fechados. (c) O `<details>` do
-«histórico» da turma continua a ser um `<details>` nativo — são dois mecanismos de recolher na mesma
-página, e unificá-los é uma decisão de desenho, não uma correção.
+## 19/10/2026 — A turma manda no ritmo: o `.conf` da variante passa a ser derivado
 
-## 18/10/2026 — A marca entra na barra e o favicon existe: a cor vem do papel
+- (a) **D-T2 — as duas perguntas que faltavam, respondidas pelo dono do produto na mesma data.**
+  (i) *A duração de 55 no plano e 75 na turma são o mesmo fato?* **Sim, e a verdade é a da turma.**
+  O plano de 18/10 será **re-elicitado** com 75 min e com as 9 aulas do período. O conflito continua a
+  ser reportado, não corrigido em silêncio. (ii) *Qual é a faixa da Regra 9 para 75 min?* Os dois
+  pares que a escola já declara dão **1,25–1,67 tempos/min** (80–100 @60; 150–200 @120); para 75 min a
+  proporção dá 100–125 e a interpolação dá 98–125 — o mesmo lugar. Adotado **100–125**, declarado em
+  `ciclo-01-fita.conf` como `VOLUME_MIN_75`/`VOLUME_MAX_75`. O `comporConf` **copia** o par resolvido
+  para o manifesto da variante, porque o gerador lê o manifesto BASE mais a variante da TURMA — sem a
+  cópia, o número existiria do outro lado do repositório. O que **continua** em aberto na D-T2 é a
+  unidade do volume (séries × tempos): medido no plano de 18/10, 16 exercícios somam **370 tempos**
+  e a faixa valida **100–125**.
+- (b) **A geração continua impossível por outro motivo**, e ele é anterior: `fita` tem `DOCS="plano"`
+  e **nenhuma `aula-*`** em disco. Quem as escreve é o caminho do **PO** (`escreverCiclo`), e não há
+  `-po.md` para `fita` nem para `valse`. A recusa do gerador já diz isso com o nome do que falta.
+- (c) O disparo ainda manda `escola`, não a **variante** (`disparar.js`): é a fase 2 do plano, uma
+  linha, e só faz sentido depois de o `.conf` da turma existir no repositório.
+- (d) A fase 5 (migração) é **por elicitação**, nunca por renomear arquivo: o plano de 15/10 fica
+  onde está, como elo do modelo anterior.
+- (e) **A âncora de `fita` foi reancorada**, e o motivo importa: `ciclo-01-fita.conf` é **fonte** da
+  cadeia, e a faixa nova (`VOLUME_MIN_75`/`VOLUME_MAX_75`) mudou o conteúdo. `--check` antes:
+  `bc00be79…` no `.fipp` contra `e16d970a…` nos fontes — divergência **causada por esta entrada**, e
+  não anterior (conferido: com o `.conf` de volta ao original, o `--check` voltava a `ok`). Depois:
+  `hash-ciclo.sh tiago-menegaz 01 fita` → `b2b699c6…`, `--check` → `ok, cadeia intacta`. `valse` não
+  foi tocado e continua `ok`.
+- (f) **Nada foi commitado.** `tools/gerar-ciclo.sh` é congelado e exige commit próprio, com motivo
+  declarado — que é esta entrada.
 
-(a) O **favicon é da paleta vigente**, e é decisão declarada — a
-mesma do PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site verde e o
-ícone bordô; trocar isso exige uma rota por escola. (b) O **`apple-touch-icon`** exigiria um PNG —
-o `.gitignore` já mantém imagem fora do repositório, e a decisão fica para quando houver um desenho
-para quadrado. (c) As páginas do pacote **já geradas** (`index.html` e a porta) receberam a marca e
-o ícone por substituição do fragmento que o gerador produz; o próximo `gerar-ciclo.sh` produz o
-mesmo, e é o Circuito que garante que não divergem.
+## 19/10/2026 — O expurgo não mente: «sobraram 1» era a listagem a chegar atrasada
+
+(a) **Não foi publicado**: o `danca` precisa de `wrangler deploy`
+para o relatório novo chegar ao ar, e o deploy ficou para depois da integração com os commits do
+remoto. (b) O **expurgo em si já estava completo** — a `fita` saiu do ar, do KV e do repositório;
+nada há a refazer. (c) A **rede de segurança é a prova**, não a tela: um expurgo que reprove de
+verdade continua a reprovar em `provar-expurgo-leitura-atrasada`, e é essa que o `Auditoria:` dos
+commits cita.
 
 ## Pendências anteriores (índice)
 
@@ -453,6 +476,11 @@ mesmo, e é o Circuito que garante que não divergem.
 - **18/10/2026** — O cabeçalho do ato cresce, e o «Fechar» deixa de descontar → `REGISTRO.md` L17408
 - **18/10/2026** — O cabeçalho do ato cabe em 360px, e a barra de botões vira… → `REGISTRO.md` L17481
 - **18/10/2026** — Correção: o resumo da faixa desce, e a lista não mente… → `REGISTRO.md` L17576
+- **18/10/2026** — Regra: medir na bancada, e o ar só na conferência final → `REGISTRO.md` L17642
+- **18/10/2026** — O catálogo de paletas fecha em três: a Verde de Ensaio… → `REGISTRO.md` L17699
+- **18/10/2026** — A família da escola chega a tudo o que ela serve, e a lista… → `REGISTRO.md` L17782
+- **18/10/2026** — As outras quatro secções recolhem, e a listagem fica com a… → `REGISTRO.md` L17857
+- **18/10/2026** — A marca entra na barra e o favicon existe: a cor vem do… → `REGISTRO.md` L17937
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
