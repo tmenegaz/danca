@@ -19,6 +19,19 @@
 // O sufixo dos subdomínios de escola (o mesmo de provisionar-escola.js).
 const SUBDOMINIO = 'tmenegaz77';
 
+/**
+ * A RELISTAGEM DO KV PODE ATRASAR — e atrasou. Em 19/10/2026, ao expurgar a escola `fita`, o
+ * relatório disse `bastidores/fita/ → 8 de 8 · sobraram 1`, e a listagem do NAMESPACE, feita
+ * milissegundos depois, dizia `0`. O KV da Cloudflare é eventualmente consistente: um DELETE
+ * pode demorar até ~60 s para desaparecer de um `list`. Sem uma segunda leitura, a página
+ * anunciava «sobraram 1 chave — este expurgo NÃO está completo» sobre um namespace vazio.
+ *
+ * Esperar aqui é barato (só acontece quando algo PARECE ter sobrado) e é o que separa «ficou
+ * uma chave» de «a listagem ainda não sabia».
+ */
+const PRAZO_DA_RELISTAGEM_MS = 3000;
+const esperar = (ms) => new Promise((resolver) => setTimeout(resolver, ms));
+
 /** Uma chamada Cloudflare REST simples (DELETE, sem corpo). Devolve `{ ok, status, dados }`. */
 async function api(token, metodo, caminho) {
   const res = await fetch('https://api.cloudflare.com/client/v4' + caminho, {
@@ -151,7 +164,7 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
   let apagadas = 0;
   let total = 0;
   let falhasDeListagem = 0;
-  let restantes = 0;
+  let restantesNaListagem = 0;
 
   // O TOTAL DO NAMESPACE, antes e depois. `restantes` conta só o que sobrou SOB OS PREFIXOS
   // OLHADOS — uma chave com prefixo fora da lista (ou sem prefixo nenhum, como os antigos
@@ -176,17 +189,25 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
       if (r.ok) apagadasAqui += 1;
       else recusadas += 1;
     }
-    const depois = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: p });
+    let depois = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: p });
+    // Uma segunda leitura antes de acusar. Ver `PRAZO_DA_RELISTAGEM_MS`.
+    let relisted = false;
+    if (depois.ok && depois.chaves.length > 0) {
+      relisted = true;
+      await esperar(PRAZO_DA_RELISTAGEM_MS);
+      depois = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: p });
+    }
     const sobraram = depois.ok ? depois.chaves.length : null;
     apagadas += apagadasAqui;
     total += antes.chaves.length;
-    restantes += sobraram || 0;
+    restantesNaListagem += sobraram || 0;
     porPrefixo.push({
       prefixo: p,
       listou: true,
       total: antes.chaves.length,
       apagadas: apagadasAqui,
       recusadas,
+      relisted,
       restantes: sobraram,
       sobrou: depois.ok ? depois.chaves.slice(0, 5) : null,
     });
@@ -194,19 +215,33 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
 
   const depoisDoNamespace = await listarChavesSeguro({ token, accountId, namespaceId, prefixo: '' });
 
+  // O NAMESPACE É A AUTORIDADE. A listagem por prefixo é a que atrasa; a do namespace inteiro,
+  // feita depois de todas, é a que diz o estado final. Se ela está vazia, não sobrou chave em
+  // lugar nenhum — inclusive sob os prefixos desta escola —, e `restantes` é 0 por prova, não
+  // por otimismo. O número que a listagem viu fica em `restantesNaListagem`, para o relato.
+  const namespaceListou = antesDoNamespace.ok && depoisDoNamespace.ok;
+  const namespaceVazio = depoisDoNamespace.ok && depoisDoNamespace.chaves.length === 0;
+  const restantes = namespaceVazio ? 0 : restantesNaListagem;
+
   return {
     ok: falhasDeListagem === 0 && restantes === 0,
     porPrefixo,
     apagadas,
     total,
     restantes,
+    // «A listagem por prefixo ainda via N chave(s), e a do namespace já via 0: é leitura
+    // atrasada do KV, não chave esquecida.» Sem este campo, a página não tem como distinguir
+    // o atraso de uma falha real — e foi assim que ela anunciou um expurgo incompleto que
+    // estava completo.
+    leituraAtrasada: namespaceVazio && restantesNaListagem > 0,
+    restantesNaListagem,
     falhasDeListagem,
     // O namespace é COMPARTILHADO: sobrar chave nele não é, por si, falha — pode ser de outra
     // escola. Por isso estes números são RELATO, não trava. Mas ficam no relatório, porque
     // uma escola que sai do ar deixando chave para trás é exatamente o que não pode passar
     // em branco.
     namespace: {
-      listou: antesDoNamespace.ok && depoisDoNamespace.ok,
+      listou: namespaceListou,
       antes: antesDoNamespace.ok ? antesDoNamespace.chaves.length : null,
       depois: depoisDoNamespace.ok ? depoisDoNamespace.chaves.length : null,
     },

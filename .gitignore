@@ -109,6 +109,12 @@ experimentos/*
 # clone, a secção que decidiu a harmonia da marca fica sem origem.
 !experimentos/medir-marca.js
 
+# A PROVA DO EXPURGO (19/10/2026): o expurgo da `fita` anunciou «sobraram 1 chave — este expurgo
+# NÃO está completo» sobre um namespace vazio. Esta prova fixa as duas metades da correção: a
+# releitura que separa «ficou uma chave» de «a listagem ainda não sabia», e a página que sabe
+# dizer a diferença. É citada por nome no REGISTRO.
+!experimentos/provar-expurgo-leitura-atrasada.js
+
 # A MARCA EM VETOR (18/10/2026). O traçado é fonte — três SVGs de 3,5KB que substituem dois
 # arquivos de 106KB e 134KB —, e o `vetorizar.js` é o que os produz e o que MEDE a fidelidade
 # (IoU 0,980). Sem eles no clone, o estudo da marca cita um arquivo que ninguém tem.

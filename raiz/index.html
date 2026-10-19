@@ -870,6 +870,17 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
                   cx.appendChild(par("ATENÇÃO: sobraram " + kv.restantes
                     + " chave(s) no sistema — este expurgo NÃO está completo."));
                 }
+                // A CONTRADIÇÃO QUE APARECEU no expurgo da `fita` (19/10/2026): «sobraram 1»
+                // numa lista e «o namespace tem 0» na outra. Não havia chave nenhuma — o KV é
+                // eventualmente consistente e a reconferência por prefixo leu o estado
+                // anterior. Quem sabe a diferença é o `leituraAtrasada` do motor; a página só
+                // tem de a dizer, senão repete a contradição em vez de a resolver.
+                if (kv.leituraAtrasada) {
+                  cx.appendChild(par("   a reconferência por prefixo ainda via "
+                    + kv.restantesNaListagem + " chave(s), e a do namespace já via 0 — é a"
+                    + " listagem do KV a chegar atrasada, não chave esquecida: o expurgo está"
+                    + " completo."));
+                }
                 // O que sobrou no NAMESPACE inteiro, e não só sob os prefixos da escola: é o
                 // que revela a chave que não tem prefixo (ou tem outro) e que passaria batido.
                 if (kv.namespace && kv.namespace.listou) {
@@ -905,16 +916,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               }
             }
 
-            var em = (d.local && d.local.em) || [];
-            if (em.length) {
-              cx.appendChild(par("No seu computador, tire estas linhas — o sistema não alcança esses arquivos:"));
-              em.forEach(function (item) {
-                var l = el("p");
-                l.appendChild(el("code", null, item.arquivo));
-                l.appendChild(document.createTextNode(" → tirar " + item.tirar.join(", ")));
-                cx.appendChild(l);
-              });
-            }
             resApagar.appendChild(cx);
           }
         </script>

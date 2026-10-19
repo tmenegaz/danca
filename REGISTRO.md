@@ -18380,3 +18380,57 @@ turmas reais e o Pré-requisito 5 correndo em `bash` sobre o texto composto (e o
 - (f) **Nada foi commitado.** `tools/gerar-ciclo.sh` é congelado e exige commit próprio, com motivo
   declarado — que é esta entrada.
 
+## 19/10/2026 — O expurgo não mente: «sobraram 1» era a listagem a chegar atrasada
+
+**O que motivou.** A direção apagou a escola `fita` pela raiz, e o relatório respondeu duas coisas
+que se contradizem na mesma caixa:
+
+```
+fita/            → 8 de 8 · sobraram 0
+bastidores/fita/ → 8 de 8 · sobraram 1
+ATENÇÃO: sobraram 1 chave(s) no sistema — este expurgo NÃO está completo.
+   o namespace ainda tem 0 chave(s) (tinha 16) — se alguma não for de outra escola, ela ficou.
+```
+
+16 chaves apagadas, 8 + 8, e o namespace inteiro a dizer 0 — não havia chave nenhuma para sobrar.
+A contradição não é cosmética: a mesma pessoa que lê «NÃO está completo» tem de decidir se repete
+um expurgo que já acabou, e a resposta certa estava na linha de baixo.
+
+**A causa, e é do KV.** A Cloudflare é eventualmente consistente: um `DELETE` pode demorar até
+~60 s para desaparecer de um `list`. A reconferência por prefixo corria **milissegundos** depois do
+último `DELETE` e lia o estado anterior. O número que a página mostrava — `kv.restantes` — era a
+soma dessas releituras, e nada nele sabia da demora.
+
+**O que foi decidido.**
+- A releitura é **repetida uma vez**, depois de uma pausa, e só quando algo *parece* ter sobrado.
+- **O namespace é a autoridade.** A listagem sem prefixo, feita por último, diz o estado final:
+  namespace vazio ⇒ `restantes = 0` por prova, não por otimismo. O número que a listagem viu não se
+  perde: fica em `restantesNaListagem`, e o relatório marca `leituraAtrasada`.
+- Uma chave que **sobra de verdade** — a que o `DELETE` recusa — continua a reprovar: a correção
+  não pode virar um jeito de esconder falha. Há prova para os dois lados.
+- **O aviso velho saiu.** O relatório mandava tirar `SENHA_FITA`/`LOGIN_FITA` de
+  `tools/.senhas-locais` e `fita` de `tools/.escolas-teste`. Medido nesta máquina: **os dois
+  arquivos não têm uma linha ativa**, e — o que fecha o caso — **nada os escreve**: nem
+  `tools/criar-escola.sh`, nem `motor/servidor/provisionar-escola.js`. Desde que a criação de
+  escola é do Worker, escola nova não deixa rastro neles. Mandar tirar uma linha que não existe é
+  ruído com aparência de tarefa, e quem obedece perde tempo a procurar o que apagar.
+
+**Com o quê.** `motor/servidor/expurgar-escola.js` — a pausa, a repetição, o namespace como
+autoridade e o campo `leituraAtrasada`. `motor/servidor/raiz.js` — sai `linhasLocais()` e o campo
+`local` de `/api/escolas` e do relatório de expurgo. `raiz/index.html` — sai o bloco «No seu
+computador, tire estas linhas» (estava duplicado no arquivo, por duas inserções do mesmo texto) e
+entra a frase que explica a diferença entre as duas listagens. `motor/servidor/repo-escola.js` — o
+comentário que declarava a fronteira dos arquivos locais, corrigido para dizer que já não se pede.
+`experimentos/provar-expurgo-leitura-atrasada.js` — prova nova, `fetch` falso, corre em qualquer
+máquina: os seis casos do motor (o caso real da `fita`, o `DELETE` recusado, a chave de outra
+escola, o caminho sem atraso, o namespace ilegível) e as quatro asserções da página.
+
+**Referências.** `IDEIA-PAINEL-ESCOLA.md` §17.5 (o expurgo) · `CONGELAMENTO.md` (nenhum arquivo
+congelado tocado) · a documentação da consistência eventual do KV da Cloudflare.
+
+**O que ainda não está feito.** (a) **Não foi publicado**: o `danca` precisa de `wrangler deploy`
+para o relatório novo chegar ao ar, e o deploy ficou para depois da integração com os commits do
+remoto. (b) O **expurgo em si já estava completo** — a `fita` saiu do ar, do KV e do repositório;
+nada há a refazer. (c) A **rede de segurança é a prova**, não a tela: um expurgo que reprove de
+verdade continua a reprovar em `provar-expurgo-leitura-atrasada`, e é essa que o `Auditoria:` dos
+commits cita.

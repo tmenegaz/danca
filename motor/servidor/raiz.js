@@ -192,21 +192,6 @@ async function moradaDaEscola({ token, slug, fetchImpl }) {
 }
 
 /**
- * O que o expurgo NÃO ALCANÇA: `tools/.senhas-locais` e `tools/.escolas-teste` são arquivos
- * do seu computador, fora do Git — o Worker não os edita. Em vez de fingir que limpou, devolve
- * as linhas exatas a tirar. É a mesma fronteira do `escola/expurgar.js`, que roda local.
- */
-function linhasLocais(slug) {
-  const caixa = slug.toUpperCase().replace(/[^A-Z0-9]/g, '_');
-  return {
-    em: [
-      { arquivo: 'tools/.senhas-locais', tirar: ['SENHA_' + caixa, 'LOGIN_' + caixa] },
-      { arquivo: 'tools/.escolas-teste', tirar: [slug] },
-    ],
-  };
-}
-
-/**
  * O EXPURGO (§17.5): percorre o andaime e apaga cada escola que esteja desabilitada com o
  * prazo vencido. A ordem de verificação é a norma: (1) desabilitada? (2) não está a pagar?
  * (3) o `desde` existe? (4) o prazo venceu? — só então apaga. Devolve o relatório completo
@@ -331,7 +316,6 @@ async function fetch(request, env) {
           ciclo: e.ciclo,
           total: e.total,
           url: 'https://' + e.slug + '.tmenegaz77.workers.dev/',
-          local: linhasLocais(e.slug),
         })),
       });
     } catch (err) {
@@ -361,7 +345,7 @@ async function fetch(request, env) {
 
     const cfToken = env && env.CLOUDFLARE_API_TOKEN;
     const ghToken = env && env.GITHUB_TOKEN;
-    const relatorio = { escola: slug, motivo, cloudflare: null, repositorio: null, local: linhasLocais(slug) };
+    const relatorio = { escola: slug, motivo, cloudflare: null, repositorio: null };
 
     // 1. SEM OS DOIS TOKENS NÃO SE COMEÇA. Meio expurgo é pior que nenhum: é a escola fora do
     // ar com o dado dela no sistema.

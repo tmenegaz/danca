@@ -16,9 +16,11 @@
  * script, chaves do KV), e as duas metades são independentes de propósito — uma falha de
  * rede numa não pode deixar a outra pela metade sem que o relatório diga qual foi qual.
  *
- * A METADE LOCAL (o seu computador) NÃO É ALCANÇÁVEL daqui: `SENHA_<SLUG>` em
- * `tools/.senhas-locais` e `<slug>` em `tools/.escolas-teste` são arquivos locais, fora do
- * Git. Quem expurga diz o que fazer com eles em vez de fingir que os limpou.
+ * A METADE LOCAL (o seu computador) NÃO É ALCANÇÁVEL daqui, e desde 19/10/2026 o relatório
+ * já não manda mexer nela: `SENHA_<SLUG>` em `tools/.senhas-locais` e `<slug>` em
+ * `tools/.escolas-teste` deixaram de ser escritos quando a criação de escola passou a ser do
+ * Worker — `criar-escola.sh` e `provisionar-escola.js` não tocam em nenhum dos dois. Pedir
+ * para tirar uma linha que não existe é ruído com aparência de tarefa.
  *
  * Toda a escrita é UMA operação do Git — um tree com as remoções e o acréscimo do elo, um
  * commit, um avanço de referência. Não se apaga arquivo a arquivo: seriam cinquenta commits
@@ -199,11 +201,55 @@ function manifestoBaseDoCiclo(caminhos, professor, ciclo) {
 }
 
 /** O material do professor que o expurgo NÃO toca — para o relatório dizer o que ficou.
- * Aqui entram os SCHEMAS do ciclo (o modelo) e `cadernos/`, `relatorios/`, `campo/`. */
+ * Aqui entram os SCHEMAS do ciclo (o modelo) e `cadernos/`, `relatorios/`, `campo/`.
+ *
+ * O NOME DIZ «do professor», e é isso que ele devolve: TUDO o que é dele. Inclusive o material
+ * de OUTRAS escolas do mesmo professor — que não é «preservado por esta regra», é de outro
+ * dono. Quem relata precisa da distinção; ela está em `classificarPreservados`. */
 function materialPreservado(caminhos, professor) {
   if (!professor) return [];
   const prefixo = 'professores/' + professor + '/';
   return caminhos.filter((c) => c.startsWith(prefixo) && !SO_MANIFESTO_BASE.test(c)).sort();
+}
+
+/** Os schemas do ciclo — o MOLDE de que nasce toda escola nova (`modelo/ciclos/`). */
+const EH_SCHEMA_DO_CICLO = /^professores\/[^/]+\/ciclos\/ciclo-[0-9]{2}(-[a-z0-9]+)*-schema\.json$/;
+
+/**
+ * SEPARA o que sobrou em três naturezas, porque somá-las num número só mente.
+ *
+ * Medido em 19/10/2026, ao expurgar a `fita`: o relatório disse «Preservado(s): 19 arquivo(s) —
+ * os schemas do modelo, caderno, relatório de campo e acompanhamento não se apagam por tabela».
+ * Os 19 eram **5 schemas** e **14 arquivos da `valse`** — outra escola, viva, do mesmo
+ * professor. Não havia caderno, relatório nem acompanhamento nenhum. O número estava certo e a
+ * frase, errada: quem lesse concluiria que o expurgo tinha deixado lixo da `fita`.
+ *
+ * As três naturezas:
+ *   · `modelo`           — os schemas do ciclo. Não pertencem a escola nenhuma: são o molde.
+ *   · `doProfessor`      — cadernos, relatórios, campo, acompanhamentos: do professor, não da escola.
+ *   · `deOutrasEscolas`  — o pacote e o manifesto de outra escola do mesmo professor. Nada a ver
+ *                          com este expurgo, e é o que precisa de ser DITO para não assustar.
+ */
+function classificarPreservados(caminhos, professor, slug) {
+  const lista = materialPreservado(caminhos, professor);
+  const outras = escolasDosCaminhos(caminhos || []).filter((e) => e.slug !== slug);
+  const modelo = [];
+  const doProfessor = [];
+  const deOutrasEscolas = [];
+  for (const c of lista) {
+    if (EH_SCHEMA_DO_CICLO.test(c)) { modelo.push(c); continue; }
+    if (slug && outras.some((e) => ehArquivoDaEscola(c, e.slug, e.ciclo))) { deOutrasEscolas.push(c); continue; }
+    // Um caminho da PRÓPRIA escola que não entrou em `apagados` não é material preservado: é
+    // resto de um expurgo que falhou. Fica de fora das três listas para não inflar nenhuma.
+    if (slug && ehArquivoDaEscola(c, slug)) continue;
+    doProfessor.push(c);
+  }
+  return {
+    modelo,
+    doProfessor,
+    deOutrasEscolas,
+    outrasEscolas: outras.map((e) => e.slug),
+  };
 }
 
 /** A árvore do repositório, recursiva — numa chamada. Só os `blob` interessam. */
@@ -322,8 +368,18 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     ? manifestoBaseDoCiclo(caminhos, escola.professor, escola.ciclo)
     : [];
   const apagados = escola.arquivos.concat(manifesto);
-  const preservados = materialPreservado(caminhos, escola.professor)
-    .filter((c) => !apagados.includes(c) && !c.startsWith('professores/' + escola.professor + '/ciclos/ciclo-' + escola.ciclo + '-' + slug));
+  const classificados = classificarPreservados(caminhos, escola.professor, slug);
+  const semApagados = (lista) => lista.filter((c) => !apagados.includes(c));
+  const preservadosPorTipo = {
+    modelo: semApagados(classificados.modelo),
+    doProfessor: semApagados(classificados.doProfessor),
+    deOutrasEscolas: semApagados(classificados.deOutrasEscolas),
+    outrasEscolas: classificados.outrasEscolas,
+  };
+  const preservados = preservadosPorTipo.modelo
+    .concat(preservadosPorTipo.doProfessor, preservadosPorTipo.deOutrasEscolas)
+    .filter((c) => !c.startsWith('professores/' + escola.professor + '/ciclos/ciclo-' + escola.ciclo + '-' + slug))
+    .sort();
 
   const caminhoIndice = 'escola/' + slug + '/indice.json';
   const indiceAtual = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl });
@@ -409,6 +465,7 @@ async function apagarEscolaDoRepo({ token, dono, repo, ref, slug, confirmacao, m
     manifestoBaseDoCiclo: manifesto,
     professorTemOutraEscolaNoCiclo: outras.map((e) => e.slug),
     preservados,
+    preservadosPorTipo,
     elo: caminhoIndice,
     commit: novoCommit.corpo.sha,
     url: novoCommit.corpo.html_url || null,
@@ -426,6 +483,7 @@ module.exports = {
   ehArquivoDaEscola,
   manifestoBaseDoCiclo,
   materialPreservado,
+  classificarPreservados,
   comElo,
   arvoreDeCaminhos,
   lerArquivo,
