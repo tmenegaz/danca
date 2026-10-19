@@ -57,6 +57,28 @@
         "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/prompts/elicitar-ciclo.md",
         "wrangler.valse.jsonc"
       ]
+    },
+    {
+      "em": "2026-10-19T12:28:13.390Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse.conf",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse.fipp",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/assets/favicon.svg",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/assets/lib-cifra.js",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/assets/nav.js",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/assets/style.css",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/index.html",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/assets/markdown.js",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/conteudo/anamnese.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/index.html",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/plano/conteudo/plano.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/po/conteudo/po.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-valse/plano-observacao/prompts/elicitar-ciclo.md",
+        "wrangler.valse.jsonc",
+        "professores/tiago-menegaz/ciclos/ciclo-01.conf"
+      ]
     }
   ],
   "recriacao": [
