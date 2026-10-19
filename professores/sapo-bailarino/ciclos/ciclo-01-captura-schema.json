@@ -487,6 +487,77 @@
             }
           }
         }
+      },
+      "calango-bale-nivel-1-teste-1": {
+        "escola": "Calango",
+        "blocos": {
+          "Bloco 1 — Técnica — Solo": {
+            "chave": "tecnica_solo",
+            "rotulo": "Técnica — Solo",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec solso": {
+                "chave": "teste_tec_solso",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 2 — Técnica — Barra": {
+            "chave": "tecnica_barra",
+            "rotulo": "Técnica — Barra",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec barra": {
+                "chave": "teste_tec_barra",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 3 — Técnica — Centro": {
+            "chave": "tecnica_centro",
+            "rotulo": "Técnica — Centro",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec centro": {
+                "chave": "teste_tec_centro",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 4 — Técnica — Musicalidade": {
+            "chave": "tecnica_musicalidade",
+            "rotulo": "Técnica — Musicalidade",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec music": {
+                "chave": "teste_tec_music",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 5 — Técnica — Expressão": {
+            "chave": "tecnica_expressao",
+            "rotulo": "Técnica — Expressão",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec expressão": {
+                "chave": "teste_tec_expressao",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
       }
     }
   },
