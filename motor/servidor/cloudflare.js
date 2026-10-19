@@ -148,7 +148,28 @@ function passosDeGeracao(env) {
   const token = (env && env.GITHUB_TOKEN) || null;
   const disparar = criarDisparador({ token, dono: 'tmenegaz', repo: 'danca', workflow: 'gerar-ciclo.yml' });
   const escreverPO = criarEscritorDePO({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main', derivarPO });
-  const escreverPlano = criarEscritorDePlano({ token, dono: 'tmenegaz', repo: 'danca', ref: 'main' });
+  const escreverPlano = criarEscritorDePlano({
+    token,
+    dono: 'tmenegaz',
+    repo: 'danca',
+    ref: 'main',
+    // O CADASTRO DA TURMA — a leitura que só esta ponte sabe fazer, e sem a qual o manifesto da
+    // variante não pode ser derivado (19/10/2026). A chave é a mesma do `bastidores.js`
+    // (`bastidores/<escola>/turmas`): uma segunda chave para a mesma lista divergiria no dia em
+    // que uma das duas mudasse, e o sintoma seria uma turma que a Produção mostra e o gerador
+    // não vê. Ausente o binding, devolve lista vazia — e o escritor cai na metade antiga.
+    lerTurmas: async (escola) => {
+      const kv = env && env.PADD_KV;
+      if (!kv || !escola) return [];
+      try {
+        const bruto = await kv.get('bastidores/' + escola + '/turmas');
+        const lista = bruto ? JSON.parse(bruto) : [];
+        return Array.isArray(lista) ? lista : [];
+      } catch (erro) {
+        return [];
+      }
+    },
+  });
   const escreverCiclo = criarEscritorDeCiclo({
     token,
     dono: 'tmenegaz',

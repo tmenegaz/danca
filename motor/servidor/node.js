@@ -92,6 +92,19 @@ function montar() {
     dono: 'tmenegaz',
     repo: 'danca',
     ref: 'main',
+    // O CADASTRO DA TURMA no servidor local: o mesmo armazenamento que a Produção usa, e a mesma
+    // chave do `bastidores.js` (`bastidores/<escola>/turmas`). Sem esta leitura, eliciar um plano
+    // de turma em local não compõe o manifesto da variante — e o erro só apareceria na geração.
+    lerTurmas: async (escola) => {
+      if (!escola) return [];
+      try {
+        const bruto = await armazenamento.ler('bastidores/' + escola + '/turmas');
+        const lista = bruto ? JSON.parse(bruto) : [];
+        return Array.isArray(lista) ? lista : [];
+      } catch (erro) {
+        return [];
+      }
+    },
   });
   const escreverCiclo = criarEscritorDeCiclo({
     token: process.env.GITHUB_TOKEN || null,

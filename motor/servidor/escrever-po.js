@@ -98,7 +98,7 @@ async function escreverPO({ token, dono, repo, caminho, conteudo, mensagem, ref,
   } else if (atual.status !== 404) {
     let corpo = '';
     try { corpo = await atual.text(); } catch { corpo = ''; }
-    return { status: atual.status, ok: false, criado: false, atualizado: false, erro: 'leitura do sha: HTTP ' + atual.status + ' — ' + corpo.slice(0, 300) };
+    return { status: atual.status, ok: false, criado: false, atualizado: false, erro: 'leitura do sha: HTTP ' + atual.status + ' — ' + corpo.slice(0, 300) + dicaDeAuth(atual.status) };
   }
 
   const corpo = {
@@ -136,4 +136,21 @@ function criarEscritorDePO({ token, dono, repo, ref, derivarPO }) {
   };
 }
 
-module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, varianteDoContexto, ACEITE, API_VERSAO };
+/**
+ * A dica de uma recusa de AUTENTICAÇÃO. 401 e 403 no Contents API não costumam ser defeito do
+ * pedido: são o PAT do Worker — revogado, expirado, sem o escopo `contents: write` ou barrado
+ * pelo User-Agent. Sem a dica o operador lê «Bad credentials» e procura o defeito no lugar
+ * errado; foi o que aconteceu em 18/10/2026, com o PO recusado no meio da elicitação.
+ * Devolve '' quando o status não é de autorização.
+ */
+function dicaDeAuth(status) {
+  if (status === 401) {
+    return ' — o GITHUB_TOKEN do Worker não foi aceito: PAT revogado ou expirado. Gere outro e regrave o segredo (`npx wrangler secret put GITHUB_TOKEN -c wrangler.<escola>.jsonc`).';
+  }
+  if (status === 403) {
+    return ' — o GITHUB_TOKEN foi aceito mas recusado: falta o escopo `contents: write`, a cota da API esgotou, ou o pedido saiu sem User-Agent.';
+  }
+  return '';
+}
+
+module.exports = { escreverPO, criarEscritorDePO, caminhoDoPO, varianteDoContexto, dicaDeAuth, ACEITE, API_VERSAO };

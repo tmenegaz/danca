@@ -18,7 +18,7 @@
  * Standard). O token chega por parâmetro (injeção).
  */
 
-const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto } = require('./escrever-po.js');
+const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto, dicaDeAuth } = require('./escrever-po.js');
 const { codificarBase64, decodificarBase64, caminhoDoConf } = require('./escrever-plano.js');
 const { cifrarEnvelopeDeDados } = require('./cifrar-envelope.js');
 const { respostaDo } = require('../nucleo/derivar-po.js');
@@ -70,7 +70,7 @@ async function lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl }) 
   if (res.status !== 200) {
     let corpo = '';
     try { corpo = await res.text(); } catch { corpo = ''; }
-    return { existe: false, sha: null, texto: null, erro: 'HTTP ' + res.status + ' — ' + corpo.slice(0, 200) };
+    return { existe: false, sha: null, texto: null, erro: 'HTTP ' + res.status + ' — ' + corpo.slice(0, 200) + dicaDeAuth(res.status) };
   }
   const dados = await res.json();
   return { existe: true, sha: dados.sha || null, texto: decodificarBase64(dados.content || '') };
@@ -131,20 +131,43 @@ function calibracaoDoConf(texto) {
 // simuladas). Aqui o «Guardar» do PO traduz o elicitado de volta para as linhas
 // do `.conf`, substituindo o mock pelo que o professor de fato preencheu.
 
-const DIA_ISO = { seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6, 'sáb': 6, dom: 7 };
+// A lista ÚNICA dos dias — exportada porque o `compor-conf.js` conta os mesmos dias ao derivar
+// o manifesto da variante. `sábado` por extenso entrou em 19/10/2026: o cadastro da turma grava
+// a abreviação (`sáb`), mas um envelope antigo ou uma derivação à mão pode trazê-la inteira, e
+// recusá-la faria a turma parecer sem dias.
+const DIA_ISO = { seg: 1, ter: 2, qua: 3, qui: 4, sex: 5, sab: 6, 'sáb': 6, 'sábado': 6, sabado: 6, dom: 7 };
 const UNIDADE_FREQUENCIA = { semanal: 'semana', 'diária': 'dia' };
 
 /** A duração elicitada (pares hora+minuto) em minutos, ou `null`. */
+/**
+ * As durações da aula, no formato do `.conf` (`DURACOES="60"` ou `"60,120"`).
+ *
+ * Duas correções em 18/10/2026, e a primeira explica o CI vermelho de `fita`:
+ *
+ * 1. **O valor chega como OBJETO** (`{numero, unidade}`), não como lista — é o que
+ *    `respostaDo` devolve e o que `comporMedida` (nucleo/derivar-po.js) já sabia ler. A versão
+ *    anterior exigia `Array.isArray` e devolvia `null` para o caso normal, de modo que
+ *    `DURACOES` e `DURACAO_POR_DIA` **nunca** eram escritos pelo ato: o `.conf` ficava com o
+ *    que `criar-escola.sh` tinha posto. Foi por isso que um plano de 55 min conviveu com um
+ *    manifesto de 60.
+ * 2. **Duas durações são uma LISTA, não uma soma.** O `.conf` lê `DURACOES` como «curta e
+ *    longa» (`DUR_CURTA=${DURACOES%%,*}`, `DUR_LONGA=${DURACOES##*,}`). Somar 60 + 120 daria
+ *    180 e o gerador aplicaria a faixa de 180 min — uma duração que não existe.
+ */
 function minutosDaDuracao(duracao) {
-  if (!Array.isArray(duracao)) return null;
-  let total = 0;
-  for (const p of duracao) {
-    const n = Number(p && p.numero) || 0;
-    const u = String((p && p.unidade) || '').toLowerCase();
-    if (u === 'hora' || u === 'horas') total += n * 60;
-    else if (u === 'minuto' || u === 'minutos') total += n;
+  if (!duracao) return null;
+  const partes = Array.isArray(duracao) ? duracao : [duracao];
+  const minutos = [];
+  for (const p of partes) {
+    if (!p || typeof p !== 'object') continue;
+    const n = Number(p.numero) || 0;
+    const u = String(p.unidade || '').toLowerCase();
+    const valor = (u === 'hora' || u === 'horas') ? n * 60 : (u === 'minuto' || u === 'minutos') ? n : 0;
+    if (valor > 0 && minutos.indexOf(valor) === -1) minutos.push(valor);
   }
-  return total > 0 ? total : null;
+  if (!minutos.length) return null;
+  minutos.sort((a, b) => a - b);
+  return minutos.join(',');
 }
 
 /** `2026-10-20` → `20/10/2026` (o `.conf` usa dd/mm/aaaa). */
@@ -165,7 +188,11 @@ function frequenciaDoContexto(periodicidade) {
 
 /** A hora do `DIAS` atual (a institucional, preservada) — `null` se não houver. */
 function horaDosDias(confTexto) {
-  const m = /^DIAS="([^"]*)"$/m.exec(confTexto || '');
+  // Sem âncora no fim: o `.conf` da escola de 15/10 tem COMENTÁRIO na mesma linha
+  // (`DIAS="2@19:00,4@19:00"   # HORA FICTÍCIA…`), e o `$` fazia a leitura devolver `null` —
+  // com isso o `DIAS` do plano NUNCA era aplicado, e um manifesto dizia `FREQUENCIA="3x/semana"`
+  // com dois dias na lista. Medido em 19/10/2026, no `.conf` da escola `fita`.
+  const m = /^DIAS="([^"]*)"/m.exec(confTexto || '');
   if (!m) return null;
   const h = /@(\d{2}:\d{2})/.exec(m[1]);
   return h ? h[1] : null;
@@ -222,7 +249,8 @@ function aplicarLinhas(texto, linhas) {
 
 /** O `DOCS` atual do manifesto, como lista (vazia quando `DOCS=""`). */
 function docsAtuais(texto) {
-  const m = /^DOCS="([^"]*)"$/m.exec(texto || '');
+  // Pelo mesmo motivo do `DIAS`: comentário na mesma linha não pode esconder o valor.
+  const m = /^DOCS="([^"]*)"/m.exec(texto || '');
   if (!m) return [];
   return m[1].trim().split(/\s+/).filter(Boolean);
 }
@@ -352,7 +380,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
     const atuais = docsAtuais(confTexto);
     if (!atuais.includes('aula-01')) {
       const novoDocs = docsGerados({ plano });
-      confTexto = confTexto.replace(/^DOCS="[^"]*"$/m, 'DOCS="' + novoDocs.join(' ') + '"');
+      confTexto = confTexto.replace(/^DOCS="[^"]*"/m, 'DOCS="' + novoDocs.join(' ') + '"');
       relatorio.docs = { ok: true, docs: novoDocs };
     } else {
       relatorio.docs = { ok: true, nota: 'DOCS já completo (aula-01 presente)' };
@@ -413,6 +441,7 @@ module.exports = {
   minutosDaDuracao,
   dataBrasil,
   frequenciaDoContexto,
+  DIA_ISO,
   lerArquivoRemoto,
   gravarArquivoRemoto,
 };

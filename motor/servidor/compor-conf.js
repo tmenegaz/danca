@@ -1,0 +1,282 @@
+'use strict';
+
+/**
+ * compor-conf.js — o manifesto da VARIANTE deixa de ser escrito à mão e passa a ser DERIVADO
+ * do cadastro da turma e do plano elicitado (fase 2 da decisão «o ciclo é da turma», 16/10/2026).
+ *
+ * **Por que isto existe.** A fase 1 pôs a turma no nome da fonte (`ciclo-01-fita-teste-po.md`),
+ * mas o gerador continuou a ler o `.conf` — e o `.conf` da turma nunca existiu. Medido no run
+ * `39192752959`: o PO foi gravado e o CI falhou com «DATA_INICIO não está declarado», porque o
+ * manifesto que ele leu era o da ESCOLA, escrito à mão em 15/10, com a lacuna intacta.
+ *
+ * **Por que no Worker, e não no gerador.** O gerador corre num runner do GitHub Actions, que não
+ * vê o KV. Tudo o que vem do cadastro (a hora de cada dia, a turma) tem de estar em ARQUIVO antes
+ * do workflow. Só o Worker vê os dois lados: o KV e o repositório.
+ *
+ * **Uma fonte por dado.** Medido antes de escrever isto, no plano de 18/10 e no `.conf` de 15/10:
+ * o mesmo fato aparecia com dois valores (55 / 75 minutos; 3 / 4 dias por semana). A regra que
+ * sai daqui é a do `PLANO-CICLO-DA-TURMA.md` §3.1 — a TURMA manda no RITMO (dias, horas, duração,
+ * período), o PLANO manda no CONTEÚDO (o objetivo geral), e a IDENTIDADE (escola, habilitação,
+ * responsável, faixa de volume) vem do `.conf` da escola, que é o único que continua escrito à mão.
+ *
+ * Este módulo é PURO: não faz I/O e não conhece KV. Quem lê a turma e o `.conf` é a ponte.
+ *
+ * O que ele NÃO faz: inventar. Quando falta um dado, devolve a falta com nome e origem; quando
+ * dois valores do mesmo fato divergem, devolve o conflito — quem decide é quem opera.
+ */
+
+// O `require` de `escrever-ciclo.js` é TARDIO e está num único ponto: ele já requer
+// `escrever-plano.js`, que requer este módulo — no topo, o ciclo de módulos fecharia com um dos
+// lados vazio. As funções comuns aos dois (o mapa dos dias, a data brasileira, os minutos de uma
+// duração) vivem LÁ; duplicá-las aqui seria a segunda lista da mesma coisa.
+const ciclo = () => require('./escrever-ciclo.js');
+
+/** Uma hora `HH:MM` válida? A hora é obrigatória: sem ela o prazo não tem de onde contar. */
+function horaValida(h) {
+  return /^([01]\d|2[0-3]):([0-5]\d)$/.test(String(h || '').trim());
+}
+
+/** Os dias da turma que o calendário conhece, na ordem do cadastro. */
+function diasConhecidos(turma) {
+  const mapa = ciclo().DIA_ISO;
+  const dias = (turma && Array.isArray(turma.dias)) ? turma.dias : [];
+  return dias.filter((d) => mapa[String(d).toLowerCase().trim()] !== undefined);
+}
+
+/**
+ * O que falta na turma para ela poder gerar um ciclo. Lista vazia = não falta nada.
+ * Cada frase nomeia o campo e a razão; nenhuma inventa um valor.
+ */
+function faltasDaTurma(turma) {
+  if (!turma) return ['a turma (não encontrada no cadastro desta escola)'];
+  const falta = [];
+
+  const dias = diasConhecidos(turma);
+  if (!dias.length) {
+    falta.push('os dias da semana da turma (é deles que sai a frequência)');
+  } else {
+    const horarios = (turma.horarios && typeof turma.horarios === 'object') ? turma.horarios : {};
+    const semHora = dias.filter((d) => !horaValida(horarios[d]));
+    if (semHora.length) {
+      falta.push('a hora de início de ' + semHora.join(', ') +
+        ' — sem ela o prazo de lançamento não tem de onde contar (ARQUITETURA-AULA.md §3.1)');
+    }
+  }
+
+  if (!(Number(turma.duracaoMin) > 0)) falta.push('a duração de cada aula');
+  if (!ciclo().dataBrasil(turma.periodoInicio)) falta.push('o início do período');
+  if (!ciclo().dataBrasil(turma.periodoFim)) falta.push('o fim do período');
+  return falta;
+}
+
+/**
+ * Quantas aulas caem no período, nos dias da turma — contadas no calendário, não estimadas.
+ * É o mesmo número que o `calendario.py --total` recebe; a contagem aqui é a dele.
+ */
+function aulasNoPeriodo(turma) {
+  const ini = /^(\d{4})-(\d{2})-(\d{2})/.exec(String((turma && turma.periodoInicio) || '').trim());
+  const fim = /^(\d{4})-(\d{2})-(\d{2})/.exec(String((turma && turma.periodoFim) || '').trim());
+  if (!ini || !fim) return null;
+  const mapa = ciclo().DIA_ISO;
+  const numeros = new Set(diasConhecidos(turma).map((d) => mapa[String(d).toLowerCase().trim()]));
+  if (!numeros.size) return null;
+  // Em UTC, como o `calendario.py`: o fuso não entra na contagem de dias.
+  const d = new Date(Date.UTC(+ini[1], +ini[2] - 1, +ini[3]));
+  const f = new Date(Date.UTC(+fim[1], +fim[2] - 1, +fim[3]));
+  if (Number.isNaN(d.getTime()) || Number.isNaN(f.getTime()) || f < d) return null;
+  let n = 0;
+  while (d <= f) {
+    const domingo = d.getUTCDay();
+    if (numeros.has(domingo === 0 ? 7 : domingo)) n += 1;
+    d.setUTCDate(d.getUTCDate() + 1);
+  }
+  return n;
+}
+
+/** `DIAS="2@09:00,3@09:00"` — um par por dia, na ordem do cadastro. */
+function diasComHora(turma) {
+  const mapa = ciclo().DIA_ISO;
+  const horarios = (turma && turma.horarios && typeof turma.horarios === 'object') ? turma.horarios : {};
+  return diasConhecidos(turma)
+    .filter((d) => horaValida(horarios[d]))
+    .map((d) => mapa[String(d).toLowerCase().trim()] + '@' + String(horarios[d]).trim())
+    .join(',');
+}
+
+/** As variáveis declaradas num `.conf` (`CHAVE="valor"`), como objeto. */
+function variaveisDoConf(texto) {
+  const vars = {};
+  const re = /^([A-Z][A-Z0-9_]*)=(?:"([^"]*)"|([^\s#]*))/gm;
+  let m;
+  while ((m = re.exec(String(texto || ''))) !== null) vars[m[1]] = m[2] !== undefined ? m[2] : m[3];
+  return vars;
+}
+
+/** Uma linha `CHAVE="valor"` — as aspas do valor viram apóstrofos, que o shell não interpreta. */
+function linha(chave, valor) {
+  const v = String(valor === null || valor === undefined ? '' : valor).replace(/"/g, "'");
+  return chave + '="' + v + '"';
+}
+
+/**
+ * Compõe o texto do `.conf` da variante.
+ *
+ * @param {object} o
+ * @param {object} o.turma       o registo vigente do cadastro (`id`, `nome`, `dias`, `horarios`,
+ *                               `duracaoMin`, `periodoInicio`, `periodoFim`)
+ * @param {object} [o.plano]     o envelope elicitado (para o objetivo geral e a conferência)
+ * @param {object} o.identidade  as variáveis do `.conf` da ESCOLA — o que não se deriva
+ * @param {string} o.escola      o slug da escola (`fita`)
+ * @param {string} o.ciclo       `01`
+ * @param {string} [o.docs]      o `DOCS` que já existe no manifesto; sem ele, `"plano"`
+ * @returns {{texto: string, derivados: object, conflitos: string[], pendencias: string[]}}
+ * @throws {Error} quando a turma não tem o que a geração exige (a mensagem nomeia o que falta)
+ */
+function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, docs }) {
+  const falta = faltasDaTurma(turma);
+  if (falta.length) {
+    const erro = new Error('a turma não tem o que a geração exige: ' + falta.join('; '));
+    erro.falta = falta;
+    throw erro;
+  }
+  const id = String(turma.id || '').trim();
+  if (!id) throw new Error('a turma não tem id — sem id não há variante');
+
+  const ident = identidade || {};
+  const nd = Number(turma.duracaoMin);
+  const total = aulasNoPeriodo(turma);
+  const inicio = ciclo().dataBrasil(turma.periodoInicio);
+  const frequencia = diasConhecidos(turma).length + 'x/semana';
+  const variante = escola + '-' + id;
+
+  // O CONTEÚDO vem do plano — é o único campo que ele manda aqui. Ausente, fica a lacuna
+  // declarada: nunca um texto inventado.
+  const { respostaDo } = require('../nucleo/derivar-po.js');
+  const objetivo = respostaDo(plano, 'objetivo-geral');
+  const nomeDaTurma = String(turma.nome || id);
+
+  // ── a conferência que impede a repetição do defeito medido (quatro valores para um fato) ──
+  // Não corrige: AVISA. A turma é a fonte do ritmo, e o `.conf` sai dela.
+  const conflitos = [];
+  const declarado = respostaDo(plano, 'contexto-total-aulas');
+  if (declarado !== null && declarado !== undefined && String(declarado).trim() !== '') {
+    if (Number(declarado) !== total) {
+      conflitos.push('o plano declara ' + String(declarado).trim() + ' aulas e a turma produz ' +
+        total + ' no período ' + ciclo().dataBrasil(turma.periodoInicio) + ' → ' +
+        ciclo().dataBrasil(turma.periodoFim));
+    }
+  }
+  const duracoesDoPlano = String(ciclo().minutosDaDuracao(respostaDo(plano, 'contexto-duracao')) || '')
+    .split(',').map(Number).filter((n) => n > 0);
+  if (duracoesDoPlano.length && duracoesDoPlano.indexOf(nd) === -1) {
+    conflitos.push('o plano declara ' + duracoesDoPlano.join('/') + ' min por aula e a turma declara ' + nd);
+  }
+  const calendario = respostaDo(plano, 'contexto-calendario');
+  const inicioDoPlano = calendario && calendario.inicio ? ciclo().dataBrasil(calendario.inicio) : null;
+  if (inicioDoPlano && inicioDoPlano !== inicio) {
+    conflitos.push('o plano declara início em ' + inicioDoPlano + ' e a turma em ' + inicio);
+  }
+
+  // ── a faixa de volume que o gerador vai procurar para ESTA duração (Regra 9) ──
+  // Não se inventa faixa: a norma é da escola, e é ela que declara os números. O que se faz aqui
+  // é dizer, antes do CI, qual é o par que esta variante vai exigir e se ele existe.
+  const pendencias = [];
+  const chavesDeVolume = nd <= 60 ? ['VOLUME_MIN', 'VOLUME_MAX'] : ['VOLUME_MIN_' + nd, 'VOLUME_MAX_' + nd];
+  const faltandoVolume = chavesDeVolume.filter((k) => !String(ident[k] || '').trim());
+  if (faltandoVolume.length) {
+    pendencias.push('a escola não declara ' + faltandoVolume.join(' nem ') +
+      ' — o gerador recusa a aula de ' + nd + ' min sem a faixa da Regra 9 ' +
+      '(o .conf da escola é o dono desse número)');
+  }
+
+  // O `DOCS` já escrito é PRESERVADO: re-eliciar o plano depois de o ciclo ter aulas não pode
+  // apagar as fontes que o gerador já escreveu. O plano entra no começo quando ainda não está.
+  const atuais = String(docs === undefined ? '' : docs).trim().split(/\s+/).filter(Boolean);
+  const lista = atuais.length ? atuais.slice() : ['plano'];
+  if (lista.indexOf('plano') === -1) lista.unshift('plano');
+
+  const texto = [
+    '# ============================================================================',
+    '# ' + ['ciclo', numeroDoCiclo, variante].join('-') + '.conf — DERIVADO. Não edite à mão.',
+    '#',
+    '# A próxima elicitação do plano reescreve este arquivo. As fontes são TRÊS, e cada uma',
+    '# manda no que é seu:',
+    '#   · o cadastro da turma — dias, hora de cada dia, duração, período (o RITMO)',
+    '#   · o plano elicitado   — o objetivo geral (o CONTEÚDO)',
+    '#   · o .conf da escola   — escola, habilitação, responsável, faixa de volume (a NORMA)',
+    '# Ver PLANO-CICLO-DA-TURMA.md §3.1.',
+    '# ============================================================================',
+    '',
+    linha('VARIANTE', variante),
+    linha('ESCOLA', ident.ESCOLA || escola),
+    linha('RESPONSAVEL', ident.RESPONSAVEL || ''),
+    linha('PROFESSOR', ident.PROFESSOR || ident.RESPONSAVEL || ''),
+    linha('ESCOLA_HABILITADA', ident.ESCOLA_HABILITADA || 'sim'),
+    '',
+    '# --- ritmo: do cadastro da turma (Pré-requisito 5) --------------------------',
+    linha('FREQUENCIA', frequencia),
+    linha('DIAS', diasComHora(turma)),
+    linha('DURACAO_POR_DIA', nd + ' min por encontro'),
+    linha('DURACOES', nd),
+    linha('DATA_INICIO', inicio),
+    linha('TOTAL_AULAS', total),
+    '',
+    '# --- norma: do .conf da escola (Regra 9) ------------------------------------',
+    // A faixa é da escola, mas a variante da TURMA é lida pelo gerador ao lado do manifesto
+    // BASE (`ciclo-01.conf`), e não do `.conf` da escola — por isso o par resolvido é copiado
+    // para cá. Sem esta cópia, a faixa declarada na escola não chegaria ao gerador, e a turma
+    // de 75 min seria recusada por uma chave que existe do outro lado do repositório.
+    ...(faltandoVolume.length ? [] : chavesDeVolume.map((k) => linha(k, ident[k]))),
+    ...(faltandoVolume.length ? [] : ['']),
+    '# --- conteúdo: do plano elicitado -------------------------------------------',
+    linha('NOME', 'Ciclo ' + numeroDoCiclo + ' — ' + (ident.ESCOLA || escola) + ' · ' + nomeDaTurma),
+    linha('OBJETIVO_GERAL', objetivo ||
+      '[Preencher: objetivo geral do ciclo — o plano elicitado o estabelece]'),
+    '',
+    '# --- documentos, na ordem do pacote -----------------------------------------',
+    linha('DOCS', lista.join(' ')),
+    '',
+  ].join('\n');
+
+  return {
+    texto,
+    derivados: {
+      VARIANTE: variante,
+      FREQUENCIA: frequencia,
+      DIAS: diasComHora(turma),
+      DURACOES: String(nd),
+      DURACAO_POR_DIA: nd + ' min por encontro',
+      DATA_INICIO: inicio,
+      TOTAL_AULAS: String(total),
+      DOCS: lista.join(' '),
+    },
+    conflitos,
+    pendencias,
+  };
+}
+
+/**
+ * A turma que o contexto nomeia. O contexto traz o NOME de exibição (`Teste`), porque é ele que
+ * a ficha do plano mostra (`opcoesDeTurmas`); o cadastro indexa pelo `id` (`teste`). Resolve-se
+ * pelos dois, e só entre as VIGENTES — a turma derivada (`teste-2026-10-16`) é a que vale hoje.
+ */
+function acharTurma(lista, referencia) {
+  const alvo = String(referencia || '').trim();
+  if (!alvo) return null;
+  const vigentes = (Array.isArray(lista) ? lista : []).filter((t) => t && !t.substituidaPor);
+  const igual = (a, b) => String(a || '').trim().toLowerCase() === String(b || '').trim().toLowerCase();
+  return vigentes.find((t) => igual(t.id, alvo)) ||
+    vigentes.find((t) => igual(t.nome, alvo)) ||
+    null;
+}
+
+module.exports = {
+  comporConf,
+  faltasDaTurma,
+  aulasNoPeriodo,
+  diasComHora,
+  diasConhecidos,
+  acharTurma,
+  variaveisDoConf,
+  horaValida,
+};

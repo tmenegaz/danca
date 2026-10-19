@@ -2,19 +2,25 @@
 
 /**
  * escrever-plano.js — a metade da ponte do PLANO: o Worker escreve a FONTE do
- * plano (`ciclo-XX-<escola>-plano.md`) no repositório e, quando é a PRIMEIRA
- * fonte do ciclo (o `DOCS` ainda está vazio), liga o manifesto da variante a
- * `DOCS="plano"` — o que liga o plano à geração (o gerador exige `DOCS`
- * não-vazio).
+ * plano (`ciclo-XX-<variante>-plano.md`) no repositório e, junto dela, o MANIFESTO
+ * da variante (`.conf`) — que desde 19/10/2026 é DERIVADO do cadastro da turma,
+ * e não mais escrito à mão (`compor-conf.js`).
  *
  * É o irmão do `escrever-po.js`: a derivação (`nucleo/derivar-plano-ciclo.js`)
  * vira o Markdown da fonte, e a escrita é a MESMA chamada do Contents API
  * (`escreverPO`), reutilizada. Sem token devolve `null` (a elicitação continua
  * intacta).
+ *
+ * **Duas metades, e a segunda é a que faltava.** Quando a turma está no contexto e
+ * o cadastro a conhece, o manifesto é COMPOSTO (criado, se não existir) a partir
+ * de três fontes — a turma, o plano e o `.conf` da escola. Quando não está (o
+ * modelo anterior, ou o servidor local sem cadastro), o manifesto é apenas
+ * ATUALIZADO nas linhas que o plano responde, como desde 18/10/2026.
  */
 
 const { escreverPO, ACEITE, API_VERSAO, varianteDoContexto } = require('./escrever-po.js');
 const { derivarPlano } = require('../nucleo/derivar-plano-ciclo.js');
+const { comporConf, acharTurma, variaveisDoConf } = require('./compor-conf.js');
 
 // Base64 em UTF-8 SEM `Buffer` (ausente no Workers runtime): o par de ponte
 // TextEncoder/TextDecoder, nos dois sentidos.
@@ -61,12 +67,141 @@ function caminhoDoConf(contexto) {
   return 'professores/' + professor + '/ciclos/ciclo-' + ciclo + '-' + variante + '.conf';
 }
 
+/** Um GET no Contents API. Devolve `{ existe, sha, texto }`; o 404 é um estado, não um erro. */
+async function lerDoRepo({ f, url, cabecalhos }) {
+  const resposta = await f(url, { method: 'GET', headers: cabecalhos });
+  if (resposta.status === 404) return { existe: false, sha: null, texto: '' };
+  if (resposta.status !== 200) {
+    let corpo = '';
+    try { corpo = await resposta.text(); } catch { corpo = ''; }
+    const erro = new Error('HTTP ' + resposta.status + ' — ' + corpo.slice(0, 300));
+    erro.status = resposta.status;
+    throw erro;
+  }
+  const dados = await resposta.json();
+  return { existe: true, sha: dados.sha || null, texto: decodificarBase64(dados.content || '') };
+}
+
+/** Um PUT no Contents API: cria quando não há `sha`, atualiza quando há. */
+async function gravarNoRepo({ f, url, cabecalhos, texto, sha, ref, mensagem }) {
+  const resposta = await f(url, {
+    method: 'PUT',
+    headers: cabecalhos,
+    body: JSON.stringify({
+      message: mensagem,
+      content: codificarBase64(texto),
+      ...(ref ? { branch: ref } : {}),
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  return { ok: resposta.status >= 200 && resposta.status < 300, status: resposta.status };
+}
+
+/** O `DOCS` declarado num manifesto (vazio quando ausente ou `DOCS=""`). */
+function docsDoConf(texto) {
+  const m = /^DOCS="([^"]*)"/m.exec(String(texto || ''));
+  return m ? m[1].trim() : '';
+}
+
 /**
- * Liga o plano à geração: se o `DOCS` do manifesto ainda está vazio (o ciclo
- * nasceu do zero), vira `DOCS="plano"` — a primeira fonte do ciclo. É
- * best-effort e idempotente: um `DOCS` já preenchido não é tocado.
+ * COMPÕE o manifesto da variante a partir das três fontes (§3.1 de `PLANO-CICLO-DA-TURMA.md`).
+ * Devolve `null` quando não há o que compor (sem turma no contexto, ou sem leitor do cadastro)
+ * — e aí vale a metade de baixo, que só ATUALIZA linhas.
+ *
+ * A ordem das leituras é a das dependências, e não é arbitrária: a identidade vem do `.conf` da
+ * ESCOLA (é ele que declara a norma), o ritmo vem do cadastro da turma, e o `DOCS` vem do
+ * manifesto da VARIANTE, quando ele já existe — re-eliciar o plano depois de o ciclo ter aulas
+ * não pode apagar as fontes que o gerador já escreveu.
  */
-async function atualizarDocsDoConf({ token, dono, repo, ref, contexto, fetchImpl }) {
+async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, plano, lerTurmas, ref }) {
+  const escola = String(contexto.escola || '').trim();
+  const referencia = String(contexto.turma || '').trim();
+  if (!referencia || typeof lerTurmas !== 'function') return null;
+
+  const lista = await lerTurmas(escola);
+  const turma = acharTurma(lista, referencia);
+  if (!turma) {
+    return {
+      ok: false,
+      caminho,
+      turmaAusente: true,
+      erro: 'a turma «' + referencia + '» não está no cadastro de ' + escola +
+        ' — o manifesto da variante não foi composto. Cadastre a turma na Produção (com os dias, ' +
+        'a hora de cada dia, a duração e o período) e elicie o plano outra vez.',
+    };
+  }
+
+  const caminhoDaEscola = caminhoDoConf(Object.assign({}, contexto, { turma: '' }));
+  const urlDaEscola = url.replace(/\/[^/]+$/, '/' + caminhoDaEscola.split('/').pop());
+  const base = await lerDoRepo({ f, url: urlDaEscola, cabecalhos });
+  const identidade = base.existe ? variaveisDoConf(base.texto) : { ESCOLA: escola };
+
+  // O `.conf` da ESCOLA ausente é uma anomalia, e não um detalhe: é dele que vêm o responsável, a
+  // habilitação e a faixa de volume. O manifesto ainda se compõe (o slug dá o nome da escola), mas
+  // o que ficou por preencher é DITO — em vez de o valor padrão passar por declarado.
+  const semEscola = base.existe ? [] : [
+    'o .conf da escola (' + caminhoDaEscola.split('/').pop() + ') não existe: RESPONSAVEL e ' +
+    'ESCOLA_HABILITADA ficaram por preencher, e a faixa de volume da Regra 9 não tem de onde sair',
+  ];
+
+  const atual = await lerDoRepo({ f, url, cabecalhos });  const composto = comporConf({
+    turma,
+    plano,
+    identidade,
+    escola,
+    ciclo: String(contexto.ciclo || '').padStart(2, '0'),
+    docs: atual.existe ? docsDoConf(atual.texto) : undefined,
+  });
+
+  const saida = {
+    ok: true,
+    caminho,
+    derivado: true,
+    criado: !atual.existe,
+    turma: turma.id,
+    derivados: composto.derivados,
+    conflitos: composto.conflitos,
+    pendencias: semEscola.concat(composto.pendencias),
+  };
+
+  if (atual.existe && atual.texto === composto.texto) {
+    return Object.assign(saida, { atualizado: false, nota: 'manifesto já estava composto e igual' });
+  }
+
+  const gravacao = await gravarNoRepo({
+    f, url, cabecalhos,
+    texto: composto.texto,
+    sha: atual.sha,
+    ref,
+    mensagem: 'feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma',
+  });
+  return Object.assign(saida, { ok: gravacao.ok, atualizado: gravacao.ok, status: gravacao.status });
+}
+
+/**
+ * Escreve o manifesto da variante — em DUAS metades, e a segunda é a que faltava.
+ *
+ * **1. Com a turma no contexto e o cadastro ao alcance, o manifesto é COMPOSTO** — criado se
+ * não existir — por `comporConf`: o ritmo vem do cadastro da turma (dias, hora de cada dia,
+ * duração, período), o conteúdo do plano, a norma do `.conf` da escola. É o que faz a geração
+ * de uma turma poder acontecer: até 19/10/2026 o `.conf` da turma nunca existia, e o gerador
+ * lia o da ESCOLA — escrito à mão, com `DATA_INICIO="[Preencher: …]"`. Era o CI vermelho.
+ *
+ * **2. Sem turma, o manifesto é ATUALIZADO nas linhas que o plano responde.** É o modelo
+ * anterior (escolas sem cadastro, servidor local), preservado inteiro:
+ *
+ *   a. **O CONTEXTO INSTITUCIONAL** que o plano já respondeu — `DATA_INICIO`, `DIAS`,
+ *      `FREQUENCIA`, `DURACOES`, `TOTAL_AULAS`. Até 18/10/2026 só o **PO** fazia isto
+ *      (`escrever-ciclo.js`, passo 4): um ciclo com plano e sem PO ficava com
+ *      `DATA_INICIO="[Preencher: …]"`, e o Pré-requisito 5 recusa a lacuna.
+ *   b. **O `DOCS`** — `DOCS=""` vira `DOCS="plano"`, a primeira fonte do ciclo.
+ *
+ * **O plano é a fonte, e por isso prevalece** na metade de baixo: um `DATA_INICIO` escrito à mão
+ * é substituído pelo que o plano declara. A exceção é a HORA do `DIAS`: ela é institucional, não
+ * elicitada, e `linhasDeContexto` a preserva do próprio manifesto. O `DOCS` só é ligado quando
+ * está vazio.
+ */
+async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fetchImpl, lerTurmas }) {
   if (!token) return { ok: false, erro: 'sem token' };
   const f = fetchImpl || fetch;
   const caminho = caminhoDoConf(contexto);
@@ -80,47 +215,68 @@ async function atualizarDocsDoConf({ token, dono, repo, ref, contexto, fetchImpl
     'User-Agent': 'danca-worker',
   };
 
-  const atual = await f(url, { method: 'GET', headers: cabecalhos });
-  if (atual.status !== 200) {
-    let corpo = '';
-    try { corpo = await atual.text(); } catch { corpo = ''; }
-    return { ok: false, erro: 'leitura do .conf: HTTP ' + atual.status + ' — ' + corpo.slice(0, 300) };
-  }
-  const dados = await atual.json();
-  const sha = dados.sha || null;
-  const texto = decodificarBase64(dados.content || '');
-  const novo = texto.replace(/^DOCS=""[ \t]*$/m, 'DOCS="plano"');
-  if (novo === texto) {
-    return { ok: true, atualizado: false, nota: 'DOCS já não está vazio' };
+  // ── 1. A turma manda no ritmo: o manifesto é COMPOSTO ──────────────────────
+  const ctx = contexto || {};
+  if (String(ctx.turma || '').trim() && typeof lerTurmas === 'function') {
+    try {
+      return await comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto: ctx, plano, lerTurmas, ref });
+    } catch (erro) {
+      // O cadastro ilegível ou o token recusado não podem ser engolidos: quem eliciou precisa de
+      // saber que o manifesto NÃO foi escrito, e por quê. A fonte do plano já está no repositório.
+      return { ok: false, caminho, erro: 'manifesto da turma: ' + (erro && erro.message ? erro.message : String(erro)) };
+    }
   }
 
-  const resposta = await f(url, {
-    method: 'PUT',
-    headers: cabecalhos,
-    body: JSON.stringify({
-      message: 'feat(plano): o plano elicitado passa a ser o primeiro DOCS do ciclo',
-      content: codificarBase64(novo),
-      ...(ref ? { branch: ref } : {}),
-      ...(sha ? { sha } : {}),
-    }),
+  // ── 2. Sem turma: atualiza as linhas que o plano responde ─────────────────
+  const atual = await lerDoRepo({ f, url, cabecalhos });
+  if (!atual.existe) {
+    return {
+      ok: false, caminho,
+      erro: 'o manifesto ' + caminho + ' não existe. Ele nasce com a escola (tools/criar-escola.sh) ' +
+        'ou com o plano de uma turma cadastrada — sem ele o gerador não tem contexto institucional.',
+    };
+  }
+  const texto = atual.texto;
+
+  // O `require` é TARDIO de propósito: `escrever-ciclo.js` já requer este arquivo, e um
+  // require no topo fecharia o ciclo de módulos com um dos dois lados vazio.
+  const { linhasDeContexto, aplicarLinhas } = require('./escrever-ciclo.js');
+
+  const linhas = plano ? linhasDeContexto(plano, texto) : [];
+  const comContexto = aplicarLinhas(texto, linhas);
+  const novo = comContexto.replace(/^DOCS=""[ \t]*$/m, 'DOCS="plano"');
+
+  if (novo === texto) {
+    return { ok: true, caminho, atualizado: false, nota: 'manifesto já estava completo' };
+  }
+
+  const gravacao = await gravarNoRepo({
+    f, url, cabecalhos,
+    texto: novo,
+    sha: atual.sha,
+    ref,
+    mensagem: 'feat(plano): o plano elicitado passa a ser o primeiro DOCS do ciclo',
   });
-  const ok = resposta.status >= 200 && resposta.status < 300;
-  return { ok, atualizado: ok, status: resposta.status };
+  return { ok: gravacao.ok, caminho, atualizado: gravacao.ok, status: gravacao.status };
 }
 
 /**
  * Monta o escritor do plano. Sem token devolve `null`. Devolve
- * `(envelope, mensagem) => Promise` — deriva o Markdown, grava, e liga o DOCS.
+ * `(envelope, mensagem) => Promise` — deriva o Markdown, grava, e compõe o manifesto.
+ *
+ * `lerTurmas(escola)` é a leitura do cadastro que só a ponte sabe fazer (KV no Worker, disco no
+ * servidor local). Sem ela, o escritor continua a funcionar como antes, atualizando o manifesto
+ * da variante que já existe.
  */
-function criarEscritorDePlano({ token, dono, repo, ref }) {
+function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas }) {
   if (!token) return null;
   return async (envelope, mensagem) => {
     const contexto = (envelope && envelope.contexto) || {};
     const caminho = caminhoDoPlano(contexto);
     const { markdown } = derivarPlano(envelope);
     const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem });
-    const docs = await atualizarDocsDoConf({ token, dono, repo, ref, contexto });
-    return Object.assign({}, escrita, { docs });
+    const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas });
+    return Object.assign({}, escrita, { docs: manifesto });
   };
 }
 
@@ -128,7 +284,11 @@ module.exports = {
   caminhoDoPlano,
   caminhoDoConf,
   criarEscritorDePlano,
-  atualizarDocsDoConf,
+  atualizarManifesto,
+  comporManifestoDaTurma,
+  docsDoConf,
+  lerDoRepo,
+  gravarNoRepo,
   codificarBase64,
   decodificarBase64,
 };

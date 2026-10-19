@@ -5081,9 +5081,14 @@ function bastidoresDaGeracao(dados) {
   const partes = ['<p><b>Nos bastidores, o «Gerar»</b></p>'];
 
   if (fonte) {
+    // O NOME vai por FONTE, não fixo: `dados.fonte` é escrito tanto pelo plano de ensino
+    // quanto pelo PO, e até 18/10/2026 o rótulo dizia «a fonte do PO» nos dois casos. Uma
+    // gravação de plano recusada com 401 aparecia, na tela, como um erro do PO — que ainda
+    // não tinha sido elicitado. O defeito custou uma sessão de diagnóstico errado.
+    const qual = FONTE === 'plano' ? 'o plano de ensino' : FONTE === 'po' ? 'o PO' : 'a fonte';
     partes.push(fonte.ok
-      ? '<p class="sub">a fonte do PO entrou no repositório.</p>'
-      : '<p class="erro">a fonte do PO NÃO entrou: ' + escapar(fonte.erro || 'erro') + '</p>');
+      ? '<p class="sub">' + qual + ' entrou no repositório.</p>'
+      : '<p class="erro">' + qual + ' NÃO entrou: ' + escapar(fonte.erro || 'erro') + '</p>');
   }
 
   if (ciclo) {

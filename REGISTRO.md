@@ -18085,3 +18085,298 @@ PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site
 bordô; corrigir isso exige uma rota por escola, e não é o que se quer. E `valse` continua `bordo`
 porque é a preferência **gravada** daquela escola; trocá-la é um clique em Produção → Aparência,
 não um defeito.
+
+## 18/10/2026 — O gerador diz o que falta: a guarda do DOCS, o Pré-requisito 5 e o `sed` mudo
+
+**O que motivou.** O `gerar-ciclo.yml` falhou no run `38944548166` (16/10, commit `c04130a`) com
+`tools/gerar-ciclo.sh: line 102: DOCS: defina DOCS (lista ordenada de documentos) no manifesto`. A
+mensagem manda editar uma linha **que já está lá**: o manifesto da escola recém-criada declara
+`DOCS=""` de propósito (`tools/criar-escola.sh:411`), e `${DOCS:?...}` recusa *declarado e vazio*
+como se fosse *não declarado*. Reproduzido no `HEAD` (`08f80d6`) com `ciclo-01-valse.conf`, que
+ainda tem `DOCS=""`. A guarda estava certa em recusar; estava errada na razão que dava.
+
+**O que se mediu a seguir, no ensaio isolado.** Corrigida só a mensagem, a escola `fita` (que tem
+`DOCS="plano"` desde `cc749b2`) para no Pré-requisito 5, com `DATA_INICIO` ainda em
+`[Preencher: …]` — e o plano `ciclo-01-fita-plano.md` **já declara** «Data de início | 2026-10-16»,
+ou seja, o preenchimento derivado do plano não aconteceu. Preenchida a data, o gerador morre em
+`sed: can't read : No such file or directory` — `volume_declarado ""` chamado com caminho vazio,
+porque não há `aula-*` em disco. Com uma `aula-01` de ensaio, passa o calendário e para no PO
+ausente, que é a recusa legítima.
+
+**O que foi decidido.**
+- **`DOCS` declarado ≠ `DOCS` preenchido.** A exigência passa a ser «declarado» (`${DOCS?…}`); a
+  lista vazia é recusada logo depois, com o motivo certo: quem a preenche é o plano elicitado
+  (`motor/servidor/escrever-ciclo.js`), junto com `DATA_INICIO` e `DIAS`.
+- **Pré-requisito 5 diz de onde vêm os campos.** A mesma linha de «elicie o plano antes de gerar»
+  entra na recusa, em vez de mandar «informe escola, frequência, dias…» como se fossem edição manual.
+- **Sem aula não há volume.** Nova recusa explícita quando nenhum `aula-*` de `DOCS` tem fonte em
+  disco — antes o `sed` falhava com `EXIT 2` e sem dizer nada.
+- **401 e 403 ganham remédio.** `dicaDeAuth(status)` em `escrever-po.js`, usada também em
+  `escrever-ciclo.js`: «Bad credentials» sozinho não diz que o defeito é o PAT do Worker.
+
+**O que ficou provado, e o que não é a causa.** `.dev.vars` traz o valor entre aspas simples
+(95 caracteres com aspas). **As aspas não são a causa do 401**: o `wrangler` lê `.dev.vars` pelo
+`dotenv@16.3.1`, empacotado no `wrangler-dist/cli.js`, e o parser remove aspas envolventes
+(`value.replace(/^(['"`])([\s\S]*)\1$/mg, "$2")`) — conferido no bundle. O `tools/criar-escola.sh`
+também as remove por `sed`. Resta a hipótese do PAT revogado ou expirado, que só se confirma
+gerando outro. Nada no sistema **valida** o token hoje: `/api/saude` responde `ok` sem o testar.
+
+**Onde entrou.** `tools/gerar-ciclo.sh` — a guarda do `DOCS` em duas etapas, a linha do Pré-requisito
+5 e a recusa nova da primeira aula. `motor/servidor/escrever-po.js` — `dicaDeAuth()` exportada e
+aplicada à leitura do `sha`. `motor/servidor/escrever-ciclo.js` — a mesma dica na leitura remota.
+
+**Motivo declarado — os congelados.** `tools/` é congelado. O motivo é o produto: a guarda recusava
+uma escola **recém-criada** com uma mensagem falsa, e foi ela que levou a mão a editar `DOCS` em vez
+de eliciar o plano (o `DATA_INICIO` de `fita` ficou em lacuna desde então). **Não muda** a fórmula do
+hash, a cobertura, os validadores, as regras pedagógicas nem as pétreas; **não muda o que é gerado** —
+um ciclo com fonte nenhuma continua a não ser gerado. Muda **como** a recusa se explica: `exit 1` com
+o motivo, em vez de `exit 1` com a instrução errada, ou de `exit 2` com um `sed` mudo.
+
+**Com o quê.** `tools/gerar-ciclo.sh` · `motor/servidor/escrever-po.js` ·
+`motor/servidor/escrever-ciclo.js` · este `REGISTRO.md`. Nenhuma fonte de ciclo, nenhum `.conf`,
+nenhuma âncora — **não há reancoragem** (`.fipp` cobertura inalterada).
+
+**Referências.** `CONGELAMENTO.md` («motivo declarado, commit próprio, entrada no REGISTRO») ·
+`REGRAS.md` Regra 9 (volume por duração) e Regra 18 / Pré-requisito 5 (contexto institucional) ·
+`motor/servidor/escrever-ciclo.js` (`linhasDeContexto`, que já preenche `DATA_INICIO` e `DIAS`) ·
+run `38944548166` e job `117120253615`.
+
+**O que ainda não está feito.** (a) O CI **continua vermelho** para `fita` e `valse`, e isso é
+estado, não defeito: falta o `DATA_INICIO` (e `DIAS`) derivados do plano e ao menos uma `aula-*`
+escrita. O caminho é eliciar o plano pela porta, não editar o `.conf` à mão.
+
+> **Correção de 18/10/2026 (mesmo dia).** A redação acima dizia que faltava «eliciar o plano pela
+> porta», e isso estava **incompleto**: eliciar o plano, sozinho, **nunca** preencheu o `DATA_INICIO`
+> — quem o preenchia era só o caminho do PO. O defeito e a correção estão na entrada seguinte («Por
+> que o CI não ficava verde»). A redação anterior não é apagada: fica como o elo que registra o que
+> se pensou antes de medir. (b) `ciclo-01-fita.conf`
+tem `DOCS="plano"` e nenhuma `aula-NN`: a lista foi editada à mão em `cc749b2`, e é o que a recusa
+nova passa a dizer. (c) O **PAT** continua por renovar; nada valida o token, e um 401 só aparece no
+meio de uma escrita. (d) Nada foi **commitado** — a alteração está no worktree, e o congelamento
+pede commit próprio.
+
+## 18/10/2026 — Por que o CI não ficava verde: o plano nunca preenchia o manifesto
+
+**O que motivou.** O dono do produto refez o plano de ensino **à mão**, pela porta, e o CI deu o
+mesmo erro. A pergunta dele foi a certa: «o PO ainda não foi tocado — por que o erro fala do PO?».
+Investigado a partir do run `38944548166`, chegou-se a **quatro** defeitos encadeados, e o primeiro
+escondia todos os outros.
+
+**O que se mediu.**
+1. **O run é de 16/10 e nunca foi repetido.** `gerar-ciclo.yml` tem **11 execuções**, e a mais nova
+   é a de `38944548166` (16/10, 15:04 local). Só o **PO** dispara o workflow
+   (`rotas.js:528`, `if (corpo.fonte === 'po' && disparar)`): eliciar o **plano** não dispara nada.
+   O CI estava vermelho desde 16/10 porque não voltou a correr.
+2. **O ato do plano não escrevia o contexto no `.conf`.** `escreverPlano` grava o `-plano.md` e
+   liga o `DOCS` — e só. Quem preenche `DATA_INICIO`, `DIAS`, `FREQUENCIA`, `DURACOES` e
+   `TOTAL_AULAS` é `linhasDeContexto`, chamada **exclusivamente** pelo caminho do PO
+   (`rotas.js:519`, `if (corpo.fonte === 'po' && escreverCiclo)`). Resultado: um ciclo com plano e
+   sem PO ficava com `DATA_INICIO="[Preencher: …]"`, e o Pré-requisito 5 recusa a lacuna. O erro
+   que aparecia primeiro (`DOCS`) escondia este.
+3. **`minutosDaDuracao()` nunca funcionou.** Exigia `Array.isArray` e devolvia `null` para a forma
+   que o envelope de fato usa — `{numero, unidade}`, como `comporMedida` (nucleo/derivar-po.js) já
+   sabia ler. `DURACOES` e `DURACAO_POR_DIA` **jamais** foram escritos pelo ato: foi assim que um
+   plano de 55 min conviveu, sem ninguém notar, com um manifesto de 60. E o somatório de duas
+   durações (`60 + 120 = 180`) produziria uma faixa de volume que não existe — o `.conf` lê
+   `DURACOES` como **curta e longa**.
+4. **A geração exige o PO, não só o plano.** `gerar-ciclo.sh:240` corre
+   `validar-po-ciclo.js "$(fonte_md po)"` e aborta sem ele. É o `escreverCiclo` (caminho do PO) que
+   deriva `harmonizacao`, `aula-01`, `captura-aula-01` e `referencias`. Ou seja: **sem PO não há
+   `aula-*`, e sem `aula-*` a Regra 9 não tem volume** — o ciclo não fecha por desenho, não por
+   defeito.
+
+**O que foi decidido.**
+- `escreverPlano` passa a chamar `atualizarManifesto` — o mesmo `GET`→`PUT` de antes, agora com o
+  **contexto e o `DOCS` numa escrita só** (duas escritas falhariam: a primeira muda o `sha`).
+  O `require` de `escrever-ciclo.js` é **tardio**, dentro da função, porque aquele arquivo já
+  requer este — um require no topo fecharia o ciclo de módulos.
+- **O plano prevalece** sobre um valor escrito à mão no `.conf` (ele é a fonte do calendário), e a
+  **hora do `DIAS` é preservada** porque é institucional, não elicitada.
+- `minutosDaDuracao` aceita **objeto ou lista** e devolve a lista distinta e ordenada no formato do
+  `.conf` (`60` ou `60,120`), nunca a soma.
+- O rótulo do aviso da porta deixa de dizer «a fonte do PO» quando foi o plano: `porta/index.html`
+  e as duas cópias em `plano-observacao/` passam a nomear a fonte que falhou. Foi esse rótulo fixo
+  que fez o 401 do plano parecer um problema do PO — dois dias de diagnóstico no lugar errado.
+
+**Onde entrou.** `motor/servidor/escrever-plano.js` — `atualizarDocsDoConf` vira
+`atualizarManifesto` (contexto + `DOCS`), e `criarEscritorDePlano` passa o envelope.
+`motor/servidor/escrever-ciclo.js` — `minutosDaDuracao` reescrita. `porta/index.html` e as duas
+cópias `plano-observacao/index.html` — o rótulo por fonte. `experimentos/provar-manifesto-do-plano.js`
+— prova nova, 29 asserções.
+
+**Com o quê.** `provar-manifesto-do-plano` **29/29** (`TUDO CERTO`) · `provar-slug-do-professor`
+todas passam · `check-identidade` **19 ok / 0 erros** (o Circuito continua a bater entre
+`porta/index.html` e as cópias) · os três módulos carregam sem ciclo de `require`.
+
+**Motivo declarado — os congelados.** Nesta entrada **nenhum arquivo congelado foi tocado**:
+`motor/servidor/*` não consta de `CONGELAMENTO.md`. A mudança em `tools/gerar-ciclo.sh`, que é
+congelada, está declarada na entrada anterior (`18/10/2026 — O gerador diz o que falta`), com
+commit próprio.
+
+**Referências.** `rotas.js:468–530` (o encadeamento plano → PO → ciclo → disparo) ·
+`escrever-ciclo.js` `linhasDeContexto`/`docsGerados` · `nucleo/derivar-po.js` `comporMedida` ·
+`REGRAS.md` Regra 9 e Pré-requisito 5 · run `38944548166`.
+
+**O que ainda não está feito.** (a) **O PAT continua inválido** — é o primeiro bloqueio e nenhum
+código o resolve; até ele ser renovado, nenhuma escrita acontece e nada disto se vê em produção.
+(b) O CI só volta a correr quando o **PO** for elicitado — é ele que dispara. (c) `fita` e `valse`
+seguem sem `-po.md`, logo sem `aula-*`: o CI continuará vermelho até o PO existir.
+(d) `provar-plano-completo` e `provar-plano-matriz` **já estavam quebrados** antes desta sessão:
+ambos apontam para `professores/leticia/`, que foi expurgada. Não foram tocados.
+(e) Nada foi **commitado**.
+
+## 18/10/2026 — O token vive em quatro lugares, e só um foi trocado
+
+**O que motivou.** O 401 `Bad credentials` continuou a aparecer depois de o plano ser refeito à mão.
+O dono do produto lembrou do que ninguém tinha olhado: o `GITHUB_TOKEN` não existe só neste
+repositório — existe também nos Workers. A pergunta dele («é esse o problema? porque ele existe em
+dois lugares») estava certa, e o número era maior que dois.
+
+**O que se mediu.**
+- `wrangler secret list` nos três Workers: **`danca`, `fita` e `valse`** têm todos um
+  `GITHUB_TOKEN` gravado. São **quatro** cópias do mesmo PAT (as três, mais o `.dev.vars` local).
+- O valor local, testado contra a API: **HTTP 200**, repo privado, `admin`/`push`/`pull`. **O token
+  que o dono gerou está bom.**
+- `wrangler deploy` **não toca em segredos** — eles sobrevivem a cada deploy. E os dois workflows de
+  deploy (`deploy-raiz.yml`, `deploy-escolas.yml`) fazem `npx wrangler deploy` e mais nada: nenhum
+  `secret put`. Rotacionar o PAT no GitHub **não** propaga para o Cloudflare; o Worker continuou com
+  o valor revogado, e o 401 veio de lá.
+- O 401 é do Worker, não do pedido: falta de `User-Agent` daria **403**, e não há outra causa para
+  `Bad credentials` com um token válido do outro lado.
+
+**A consequência que quase passou.** `motor/servidor/raiz.js:537` passa `env.GITHUB_TOKEN` como
+`githubToken` para `criarEscola` → `provisionar-escola.js:255`, que o grava como segredo da escola
+**nova**. Com a raiz desatualizada, **toda escola criada dali em diante nasceria com o PAT morto** —
+e o sintoma só apareceria na primeira elicitação. Por isso a raiz é a mais crítica das três.
+
+**O que foi feito.** O mesmo valor do `.dev.vars` (aspas removidas, 93 caracteres, prefixo
+`github_pat_…`) foi gravado nos três Workers com `printf '%s' "$TOKEN" | npx wrangler secret put`,
+o padrão que `tools/criar-escola.sh:668` já usa. Sucesso nos três; `/api/saude` continua `ok` nas
+três origens depois da troca.
+
+**Conferido.** `.dev.vars` → API do GitHub: `repo` 200 · `contents` 200 · `actions/workflows` 200
+(as três capacidades que o motor usa: ler, escrever e disparar). Segredos listados nos três Workers
+depois da escrita. `curl /api/saude` → `danca` `{ok:true,tipo:raiz}`, `fita` e `valse`
+`{ok:true,tipo:escola,slug:…,habilitada:true}`.
+
+**Com o quê.** Nenhum arquivo do repositório — a correção é **de infraestrutura**, nos segredos dos
+três Workers (`danca`, `fita`, `valse`). Este `REGISTRO.md`.
+
+**O que ainda não está feito.**
+- (a) **Nada valida o token.** É a causa-raiz da demora: `/api/saude` responde `ok` com um PAT
+  morto, e o 401 só aparece **no meio de uma escrita** — que é o pior lugar para descobrir. A
+  proposta é uma sonda autenticada (não pública) que diga se o token lê, escreve e dispara.
+- (b) O **CI continua vermelho** por outro motivo, já registado: falta o `-po.md`, e é ele que
+  dispara o workflow e gera as `aula-*`.
+- (c) O token é **fine-grained com validade** — a próxima expiração produz exatamente este sintoma,
+  e nada avisará antes.
+
+## 19/10/2026 — A turma manda no ritmo: o `.conf` da variante passa a ser derivado
+
+**O que motivou.** O run `39192752959` voltou vermelho com outra cara:
+
+```
+tools/gerar-ciclo.sh "tiago-menegaz" "01" "fita"
+erro: Pré-requisito 5 incompleto — 'DATA_INICIO' não está declarado em ciclo-01-fita.conf.
+```
+
+A correção de 18/10 (o ato do PLANO preenche o manifesto) já estava escrita e **não commitada** —
+mas, mesmo commitada, ela não bastaria. A decisão de 16/10 («o ciclo é da turma») só entregou a
+**fase 1**: a turma entrou no nome da fonte (`ciclo-01-fita-teste-po.md`), e o manifesto que o
+gerador lê continuou a ser o da **escola**, escrito à mão em 15/10. O manifesto da **turma** nunca
+existiu. Enquanto o workflow despachar `escola=fita`, o ciclo de qualquer turma gera com o ritmo de
+nenhuma.
+
+**O que se mediu.** O mesmo fato em dois lugares, com dois valores, e nenhum deles conferível:
+
+| Fato | O plano de 18/10 | O cadastro da turma `Teste` (KV) | O `.conf` de 15/10 |
+|:--|:--|:--|:--|
+| Dias por semana | 3 — ter, qui, sex | **4** — ter, qua, qui, sex | 2 — ter, qui |
+| Duração | 55 min | **75 min** | 60 min |
+| Aulas no período | 7 | **9** (16/10 → 30/10, contadas) | 5 |
+| Hora | — | 09:00/09:00/09:00/11:00 | 19:00 (fictícia) |
+
+E a descoberta que sustentou a fase: **a hora está no cadastro**. `horarios: {dia: "HH:MM"}` existe
+no KV para `teste`, `teste-2`, `teste-3`, `bale-nivel-1` e `bale-nivel-4`. As outras doze turmas têm
+`dias: []` — são andaimes vazios, não «turmas sem hora». A D-T1 deixou de ser um bloqueio.
+
+**O que foi feito.**
+
+- `motor/servidor/compor-conf.js` (novo) — a composição **pura**: `comporConf` monta o texto do
+  `.conf` das três fontes (§3.1: turma → ritmo, plano → conteúdo, `.conf` da escola → norma).
+  `faltasDaTurma` diz o que falta na turma e **por quê**; `aulasNoPeriodo` conta as aulas no
+  calendário (9 na turma real, não uma estimativa); `acharTurma` resolve a turma pelo **nome** — é
+  o que o contexto carrega — e pelo `id`, e só entre as **vigentes** (a derivada `teste-2026-10-16`
+  é a que vale hoje).
+- `motor/servidor/escrever-plano.js` — `atualizarManifesto` ganhou as **duas metades**. Com turma no
+  contexto e cadastro ao alcance: **compõe e cria** o `.conf` da variante (era o arquivo que nunca
+  nascia). Sem turma: **atualiza** as linhas do `.conf` existente, exatamente como em 18/10 — o
+  modelo anterior fica inteiro.
+- `motor/servidor/cloudflare.js` e `motor/servidor/node.js` — `lerTurmas(escola)` injetado no
+  escritor. A chave é a **mesma** do `bastidores.js` (`bastidores/<escola>/turmas`): uma segunda
+  chave para a mesma lista divergiria no dia em que uma mudasse, e o sintoma seria uma turma que a
+  Produção mostra e o gerador não vê.
+- `motor/servidor/escrever-ciclo.js` — `DIA_ISO` passa a ser **exportado** (é o mapa que o
+  `compor-conf` conta), e ganha `sábado` por extenso: o cadastro grava `sáb`, mas recusar a forma
+  inteira faria a turma parecer sem dias.
+- `tools/gerar-ciclo.sh` (congelado) — a faixa de volume é **por duração**. O `else` lia
+  `VOLUME_MIN_120` para **qualquer** duração acima de 60: uma aula de 75 min era medida com a régua
+  da de 120, e passava ou reprovava pelo número errado. Agora cada duração procura
+  `VOLUME_MIN_<dur>`/`VOLUME_MAX_<dur>`, e a recusa nomeia a chave que falta.
+- `motor/servidor/escrever-ciclo.js` (segunda correção) — `horaDosDias`, `docsAtuais` e a troca do
+  `DOCS` liam a linha com âncora no fim (`/^DIAS="([^"]*)"$/m`). O `.conf` da escola `fita` tem
+  **comentário na mesma linha** (`DIAS="2@19:00,4@19:00"   # HORA FICTÍCIA…`), e por isso a leitura
+  devolvia `null`: o `DIAS` do plano **nunca** era aplicado, e o manifesto ficava a dizer
+  `FREQUENCIA="3x/semana"` com **dois** dias na lista. Medido depois da correção: o mesmo manifesto
+  passa a declarar os três dias (`2@19:00,4@19:00,5@19:00`).
+- `experimentos/provar-manifesto-da-turma.js` (novo, 60 asserções) e `.gitignore` — as duas provas
+  do manifesto entram na lista de versionadas: o REGISTRO cita-as por nome, e uma prova citada que
+  não existe no clone é uma afirmação que ninguém confere.
+
+**Três decisões que a execução obrigou.** (a) O `DOCS` já escrito é **preservado** e o plano entra
+no começo: re-eliciar o plano depois de o ciclo ter aulas não pode apagar as fontes que o gerador
+escreveu. (b) A faixa de volume que o gerador vai exigir é conferida **antes do CI** — o `.conf` de
+uma turma de 75 min exige `VOLUME_MIN_75`, que a escola não declara, e isso vem como **pendência**
+com a chave nomeada, não como um ciclo de CI vermelho. (c) Turma fora do cadastro **não** gera
+manifesto: a resposta diz qual turma e o que fazer, e a fonte do plano continua a ser gravada.
+
+**Conferido, ponta a ponta.** O `.conf` real de `fita` foi passado pelo escritor com o envelope de
+18/10, e depois pelas checagens do gerador em `bash`: o Pré-requisito 5 **passa**
+(`Fita · 3x/semana · 2@19:00,4@19:00,5@19:00 · 55min · 16/10/2026 · 7 aulas`), e a recusa seguinte é
+a honesta — «nenhuma `aula-*` de `DOCS="plano"` tem fonte em disco». É a confirmação de que o muro
+do `DATA_INICIO` caiu e o que resta é o PO.
+
+**Conferido.** `node experimentos/provar-manifesto-da-turma.js` → **60 asserções, 0 falha**, com as
+turmas reais e o Pré-requisito 5 correndo em `bash` sobre o texto composto (e o contraponto: o
+`.conf` que o CI leu **reprova**, acusando `DATA_INICIO`). `node experimentos/provar-manifesto-do-plano.js`
+→ 0 falha (o caminho antigo não regrediu). `provar-derivacao-da-turma`, `provar-cartao-da-turma`,
+`provar-acordeoes` e `check-identidade` → ok. `bash -n tools/gerar-ciclo.sh` → ok.
+
+**O que ainda não está feito.**
+- (a) **D-T2 — as duas perguntas que faltavam, respondidas pelo dono do produto na mesma data.**
+  (i) *A duração de 55 no plano e 75 na turma são o mesmo fato?* **Sim, e a verdade é a da turma.**
+  O plano de 18/10 será **re-elicitado** com 75 min e com as 9 aulas do período. O conflito continua a
+  ser reportado, não corrigido em silêncio. (ii) *Qual é a faixa da Regra 9 para 75 min?* Os dois
+  pares que a escola já declara dão **1,25–1,67 tempos/min** (80–100 @60; 150–200 @120); para 75 min a
+  proporção dá 100–125 e a interpolação dá 98–125 — o mesmo lugar. Adotado **100–125**, declarado em
+  `ciclo-01-fita.conf` como `VOLUME_MIN_75`/`VOLUME_MAX_75`. O `comporConf` **copia** o par resolvido
+  para o manifesto da variante, porque o gerador lê o manifesto BASE mais a variante da TURMA — sem a
+  cópia, o número existiria do outro lado do repositório. O que **continua** em aberto na D-T2 é a
+  unidade do volume (séries × tempos): medido no plano de 18/10, 16 exercícios somam **370 tempos**
+  e a faixa valida **100–125**.
+- (b) **A geração continua impossível por outro motivo**, e ele é anterior: `fita` tem `DOCS="plano"`
+  e **nenhuma `aula-*`** em disco. Quem as escreve é o caminho do **PO** (`escreverCiclo`), e não há
+  `-po.md` para `fita` nem para `valse`. A recusa do gerador já diz isso com o nome do que falta.
+- (c) O disparo ainda manda `escola`, não a **variante** (`disparar.js`): é a fase 2 do plano, uma
+  linha, e só faz sentido depois de o `.conf` da turma existir no repositório.
+- (d) A fase 5 (migração) é **por elicitação**, nunca por renomear arquivo: o plano de 15/10 fica
+  onde está, como elo do modelo anterior.
+- (e) **A âncora de `fita` foi reancorada**, e o motivo importa: `ciclo-01-fita.conf` é **fonte** da
+  cadeia, e a faixa nova (`VOLUME_MIN_75`/`VOLUME_MAX_75`) mudou o conteúdo. `--check` antes:
+  `bc00be79…` no `.fipp` contra `e16d970a…` nos fontes — divergência **causada por esta entrada**, e
+  não anterior (conferido: com o `.conf` de volta ao original, o `--check` voltava a `ok`). Depois:
+  `hash-ciclo.sh tiago-menegaz 01 fita` → `b2b699c6…`, `--check` → `ok, cadeia intacta`. `valse` não
+  foi tocado e continua `ok`.
+- (f) **Nada foi commitado.** `tools/gerar-ciclo.sh` é congelado e exige commit próprio, com motivo
+  declarado — que é esta entrada.
+
