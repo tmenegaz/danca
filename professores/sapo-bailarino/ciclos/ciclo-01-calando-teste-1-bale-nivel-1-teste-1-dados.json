@@ -1,0 +1,13 @@
+{
+  "ciclo": "01",
+  "escola": "calando-teste-1",
+  "professor": "sapo-bailarino",
+  "criado_em": "2026-10-19",
+  "apelidos": {
+    "aluna_c": "Aluna C",
+    "aluna_b": "Aluna B",
+    "aluna_a": "Aluna A"
+  },
+  "aulas": {},
+  "_nota": "JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um ciclo que ainda não teve aula lançada pelo formulário. Gerado pelo «Guardar» do PO."
+}
