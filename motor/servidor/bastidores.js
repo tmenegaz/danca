@@ -24,6 +24,11 @@
 
 const RAIZ = 'bastidores';
 
+// A ESCOLA DE TESTE — o número sai do slug e o preenchidor é o MESMO script da porta.
+// Aqui ele só é injetado na página de Produção, depois do script grande; a rota que o
+// serve vive em `producao.js`, que é quem conhece a URL pública do asset.
+const { numeroDoTeste } = require('./teste-fixtures.js');
+
 // O catálogo INICIAL de turmas e vocabulário técnico (conteúdo, não código). Carregado
 // sob demanda pela Produção (`POST /api/bastidores/semear-catalogo`), idempotente.
 const CATALOGO = require('./catalogo-seed.js');
@@ -1247,7 +1252,7 @@ function sessaoNaBarra() {
 
 /** O cabeçalho comum das vistas dos Bastidores: a folha do ciclo (a MESMA do pacote,
  *  servida por este Worker) e, DEPOIS dela, o `<style>` da vista — que manda. */
-function cabecalhoDaVista(titulo, aparencia) {
+function cabecalhoDaVista(titulo, aparencia, teste) {
   // A APARÊNCIA VEM DO SERVIDOR (18/10/2026), nos DOIS eixos. Ela entra no `<html>` antes de a
   // página sair, e o `data-modo-fonte="escola"` diz de QUEM é a decisão: é esse atributo que
   // faz o `assets/nav.js` não aplicar por cima a escolha antiga do navegador. O «anti-flash»
@@ -1261,7 +1266,8 @@ function cabecalhoDaVista(titulo, aparencia) {
   const ap = aparenciaDaVez(aparencia);
   const modo = ap.modo;
   return '<!doctype html><html lang="pt-BR" data-modo="' + modo + '" data-paleta="' +
-    esc(ap.paleta) + '" data-modo-fonte="escola">' +
+    esc(ap.paleta) + '" data-modo-fonte="escola"' +
+    (teste ? ' data-escola-teste="' + Number(teste) + '"' : '') + '>' +
     '<head><meta charset="utf-8">' +
     '<meta name="viewport" content="width=device-width, initial-scale=1">' +
     '<title>' + esc(titulo) + '</title>' +
@@ -1319,6 +1325,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // vivem no KV. O dono entra primeiro e recebe «Editar» (não «Excluir»): ele é o contato
   // da escola, e o segredo do Worker é outra fronteira. A lista não duplica.
   const donoNome = String(dono || '').trim();
+  // A ESCOLA DE TESTE (19/10/2026): o número sai do slug. A página de Produção recebe
+  // o atributo e o preenchidor; a de Estúdio não tem formulário e não recebe nada.
+  const teste = numeroDoTeste(escola);
 
   // AS REGRAS DE PROVENIÊNCIA, CALCULADAS UMA VEZ (18/10/2026). É a mesma pergunta que a
   // curadoria já fazia — «isto já entrou num plano de ensino?» —, feita para cada coisa que
@@ -1849,7 +1858,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       }).join('')
     : '<li class="vazia">(nenhuma curadoria atribuída)</li>';
 
-  return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }) +
+  return cabecalhoDaVista('Bastidores · Produção · ' + escola, { modo: modo, paleta: paleta }, teste) +
     '<style>' +
     // A IDENTIDADE É A MESMA DA RAIZ («criar nova escola») e do pacote do ciclo: as
     // variáveis vêm de `/assets/style.css` (a folha do ciclo, carregada acima), e o que
@@ -3267,6 +3276,15 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '}' +
     'function gravarEstado() { gravarEstadoObjeto(estadoDoFormulario()); }' +
     'function aplicarEstadoDoFormulario() {' +
+    // FORA DA EDIÇÃO, O FORMULÁRIO É NOVO (19/10/2026). O `sessionStorage` guardava o
+    // último preenchimento para sobreviver aos recarregamentos das operações — e isso
+    // fazia a rubrica e a associação de uma turma anterior reaparecerem sem ninguém ter
+    // clicado em «Editar». O dono do produto foi explícito: o que não está em edição
+    // nasce vazio. A memória só volta a valer quando o modo edição está ligado.
+    '  if (!modoEditando()) {' +
+    '    try { sessionStorage.removeItem(CHAVE_ESTADO); } catch (err) {}' +
+    '    return;' +
+    '  }' +
     '  var e = lerEstado();' +
     '  var t = e.turma;' +
     '  if (t) {' +
@@ -3342,8 +3360,9 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("input", function(){ gravarEstado(); aplicarTravas(); });' +
     'document.addEventListener("change", function(){ gravarEstado(); aplicarTravas(); });' +
     // Depois de uma OPERAÇÃO bem-sucedida a página recarrega — e o passo e o estado já estão
-    // gravados. O `aoOk` também passa a apontar o formulário para a turma que acabou de ser
-    // gravada: voltar atrás não cria uma segunda, EDITA a que existe.
+    // gravados. O `aoOk` aponta o formulário para a turma gravada. No caminho de EDIÇÃO,
+    // voltar atrás edita a que existe; no de CRIAÇÃO, os passos 2 e 3 começam vazios — é o
+    // que o dono do produto pediu: sem «Editar» clicado, nada vem preenchido.
     'function avancarParaRubricas(d){' +
     '  try {' +
     '    var e = estadoDoFormulario();' +
@@ -3351,8 +3370,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      sessionStorage.setItem("producao:vinc-turma", d.id);' +
     '      e.turma = e.turma || {};' +
     '      e.turma.__derivar = d.id;' +
-    '      e.turma.__modo = d.modo === "derivar" ? "derivar" : "editar";' +
-    '      sessionStorage.setItem("producao:editando", "turma");' +
+    // O MODO VEM DA RESPOSTA, e o «criar» NÃO LIGA A EDIÇÃO (19/10/2026). Antes este
+    // caminho gravava `producao:editando` mesmo quando a turma acabara de NASCER — e era
+    // isso que fazia a rubrica e a associação de uma turma anterior reaparecerem no
+    // processo de criar. Só «editar» e «derivar» ligam o modo; «criar» segue vazio.
+    '      e.turma.__modo = d.modo === "derivar" ? "derivar" : d.modo === "editar" ? "editar" : "criar";' +
+    '      if (d.modo === "editar" || d.modo === "derivar") sessionStorage.setItem("producao:editando", "turma");' +
+    '      else sessionStorage.removeItem("producao:editando");' +
     '    }' +
     '    gravarEstadoObjeto(e);' +
     '    sessionStorage.setItem("producao:passo", "rubrica");' +
@@ -4133,12 +4157,18 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var t = turmaDoFoco();' +
     '  atualizarTurmaEmFoco();' +
     // --- o bloco dos CONTEÚDOS: os chips vêm do bloco oculto daquela turma -----------
+    // FORA DA EDIÇÃO, O BLOCO NASCE VAZIO (19/10/2026). Os chips da turma que estava em
+    // foco sobreviviam ao passo 3 e pareciam associação já feita. Em edição, os chips
+    // são os dela; em criação, o bloco espera o primeiro «Associar».
     '  var lista = document.getElementById("vinc-conteudos");' +
     '  if (lista) {' +
+    '    var editando = modoEditando();' +
     '    var fonte = null;' +
-    '    Array.prototype.slice.call(document.querySelectorAll(".conteudos-da-turma")).forEach(function(d){' +
-    '      if (d.getAttribute("data-de") === id) fonte = d;' +
-    '    });' +
+    '    if (editando) {' +
+    '      Array.prototype.slice.call(document.querySelectorAll(".conteudos-da-turma")).forEach(function(d){' +
+    '        if (d.getAttribute("data-de") === id) fonte = d;' +
+    '      });' +
+    '    }' +
     '    lista.innerHTML = (fonte && fonte.innerHTML.trim())' +
     '      ? fonte.innerHTML' +
     '      : "<span class=\\"dono\\">(nenhum conteúdo associado)</span>";' +
@@ -4146,10 +4176,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // --- o bloco da RÉGUA: diz com que rubrica a turma está hoje ---------------------
     '  var r = rubricaDaTurma(t);' +
     '  var selR = document.getElementById("vinc-rubrica");' +
-    // A RÉGUA DA TURMA É SUGERIDA, NÃO IMPOSTA: preenche o `select` só quando ele ainda está
-    // vazio. Sobrescrever a escolha da direção a cada troca de passo seria o mesmo defeito do
-    // `<select>` da turma — decidir por quem está a preencher.
-    '  if (selR && !selR.value && r && RUBRICAS.some(function(x){ return x.id === r.id; })) selR.value = r.id;' +
+    // A RÉGUA DA TURMA NÃO SE SUGERE FORA DA EDIÇÃO (19/10/2026). Antes o `select` era
+    // preenchido quando estava vazio — e quem abria o passo 3 para criar uma turma via a
+    // rubrica de outra já escolhida. O dono do produto pediu o contrário: sem «Editar»,
+    // nada vem escolhido. Em edição, `ajustarTurma` já põe a régua desta turma.
+    '  if (selR && modoEditando() && !selR.value && r && RUBRICAS.some(function(x){ return x.id === r.id; })) selR.value = r.id;' +
     '  var estado = document.getElementById("vinc-estado");' +
     '  if (estado) {' +
     '    if (!t) { estado.textContent = ""; }' +
@@ -4433,6 +4464,10 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     '});' +
     '</script>' +
+    // O PREENCHEDOR ENTRA DEPOIS DO SCRIPT GRANDE (19/10/2026): ele usa as funções e os
+    // mapas que a página já declarou (`TURMAS`, `RUBRICAS`, `adicionarFicha`, …). Sem o
+    // atributo `data-escola-teste`, o próprio script não faz nada.
+    (teste ? '<script src="/assets/teste-preenchimento.js"></script>' : '') +
     fimDaVista();
 }
 

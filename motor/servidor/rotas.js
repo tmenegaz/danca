@@ -15,6 +15,8 @@
  */
 
 const { criarRoteador } = require('./roteador.js');
+// AS ESCOLAS DE TESTE: o mesmo fixture que a produção serve, para a bancada local.
+const { numeroDoTeste, fixtureDaEscola } = require('./teste-fixtures.js');
 const nucleo = require('../nucleo/elicitar.js');
 const ia = require('../nucleo/ia.js');
 const ficha = require('../nucleo/ficha.js');
@@ -122,6 +124,17 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   roteador.rota('GET', '/assets/style.css', () => {
     if (!identidade) return recusar('identidade visual não encontrada: tools/templates/ciclo.css', 500);
     return resposta(200, MIME['.css'], identidade);
+  });
+
+  // 1.1 /api/teste — o fixture da escola de teste, na bancada local. É LEITURA PURA:
+  //     o preenchidor do navegador o busca e preenche campos; nada é enviado. Na
+  //     produção do Worker, quem responde é `producao.js` (a rota é a mesma).
+  roteador.rota('GET', '/api/teste', ({ url }) => {
+    const escola = String(escolaDoWorker || url.searchParams.get('escola') || '').trim();
+    const fixture = fixtureDaEscola(escola);
+    if (!fixture) return recusar('esta escola não é de teste', 404);
+    return resposta(200, MIME['.json'],
+      JSON.stringify({ ok: true, teste: numeroDoTeste(escola), escola: escola, fixture: fixture }, null, 2) + '\n');
   });
 
   // 2. /api/mapa — o mapa dos nós; `?fonte=po` entrega o do PO, `?fonte=plano` o do plano.

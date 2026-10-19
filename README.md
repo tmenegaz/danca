@@ -91,7 +91,18 @@ declarado no PO. Descreve o que aconteceu em aula e **não classifica pessoas** 
 | Instalar os hooks de versionamento | `tools/instalar-hooks.sh` |
 | Validar a identidade visual e o tema | `node tools/check-identidade.js` |
 | Provar o comportamento do tema (clara/noturna) | `node experimentos/provar-tema.js` |
+| Provar o preenchimento das escolas de teste | `node experimentos/provar-teste.js` |
 | Provar a tela de celular (320–1024px) | `node experimentos/provar-celular.js` |
+
+## Escolas de teste (temporário, 19/10/2026)
+
+Para testar o motor real sem redigitar tudo, crie a escola com o nome terminando em
+**`teste 1`**, **`teste 2`** ou **`teste 3`** — por exemplo, `Plie teste 1`. Só essas
+escolas carregam os JSON de `teste/escola-teste-N.json` nos formulários da
+Produção, da anamnese e do plano de ensino. O preenchimento é automático ao abrir a
+página e **não envia nada**: o envio continua manual, e o painel do canto permite
+escolher os outros registros. Até três escolas de teste; `teste 4` e `testemunho` são
+escolas normais. A prova é `node experimentos/provar-teste.js`.
 
 ## A identidade visual
 

@@ -94,6 +94,19 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `medir-marca.js` | os números da marca contra as três famílias (o instrumento do estudo **Q**) | não |
 | `marca/vetorizar.js` | o traçado da logomarca em SVG e a **fidelidade medida** (IoU 0,980) | **não** (PNG via `zlib`) |
 | `provar-acordeoes.js` | as **cinco** secções da Produção recolhem, e recolhidas a listagem mede a largura inteira; a seta de uma não mexe nas outras; o estado é lembrado por secção; o «Carregar catálogo inicial» cabe na coluna | **sim** (Chrome) |
+| `provar-teste.js` | as **escolas de teste**: o sufixo `teste-1/2/3`, o fixture certo, o preenchimento da Produção, da anamnese e do plano, e a ausência de qualquer escrita (17 casos) | não (jsdom) |
+
+## Escolas de teste (19/10/2026) — o fixture não mora aqui
+
+Uma escola cujo **slug** termina em `teste-1`, `teste-2` ou `teste-3` recebe, nos
+formulários, os valores de `teste/escola-teste-N.json`. O preenchimento é
+automático ao abrir a página e **só preenche**: não envia, não grava no KV, não dispara
+workflow. O painel do canto permite escolher os outros registros (aluna, turma, rubrica).
+
+O JSON fica em `teste/`, e **não** em `experimentos/`, por uma razão de construção:
+o Worker de verdade precisa empacotá-lo (`require` no bundle, como o `catalogo-seed.js`),
+e o `experimentos/` não entra em pacotes, hashes ou publicação. Aqui fica só a prova —
+`provar-teste.js`.
 
 A `provar-celular.js` é de 17/10/2026 e nasceu de um defeito medido: a lista de turmas do
 Produção ficava acavalada no celular — o nome com 116px e os dois botões com 126px fixos. É

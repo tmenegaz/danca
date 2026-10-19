@@ -47,6 +47,18 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
         <form class="form" id="form-criar">
           <label class="campo-rotulo" for="nome">Nome da escola</label>
           <input id="nome" name="nome" autocomplete="off" placeholder="ex.: Maria">
+          <!-- NOTA TEMPORÁRIA (19/10/2026) — a convenção das ESCOLAS DE TESTE. O nome
+               termina em «teste 1», «teste 2» ou «teste 3»; o slug resultante é que faz o
+               Worker carregar `teste/escola-teste-N.json` nos formulários. É só
+               preenchimento de campo: nada é enviado. Remover esta nota (e a linha
+               `teste-detectado` do JS) quando o recurso deixar de ser necessário. -->
+          <p class="aviso" id="nota-teste">
+            <b>Escola de teste (temporário).</b> Para nascer com os dados de teste, o nome
+            precisa terminar em <code>teste 1</code>, <code>teste 2</code> ou
+            <code>teste 3</code> — por exemplo, <code>Plie teste 1</code>. São até três
+            escolas de teste; o que vem antes do «teste» é livre.
+          </p>
+          <p class="res" id="teste-detectado" hidden></p>
           <label class="campo-rotulo" for="senha">Senha do administrador (a direção da escola)</label>
           <input id="senha" name="senha" type="password" autocomplete="new-password">
           <fieldset class="quem">
@@ -497,6 +509,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             carregarProfessores();
             pintarModo();
             atualizarOpcaoExistente();
+            pintarTeste();
           }
           function fechar() {
             modal.hidden = true;
@@ -525,6 +538,22 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
               .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").replace(/-{2,}/g, "-");
           }
           function slugDaEscola() { return slugificar(document.getElementById("nome").value); }
+
+          // O NÚMERO DA ESCOLA DE TESTE (19/10/2026) — a MESMA regra do motor:
+          // o slug termina em `teste-1/2/3`. Só o sufixo conta; `testemunho` e
+          // `teste 4` continuam escolas normais.
+          function numeroDeTeste() {
+            var m = slugDaEscola().match(/(?:^|-)(?:teste|testes)-?0?([1-3])$/);
+            return m ? Number(m[1]) : 0;
+          }
+          function pintarTeste() {
+            var aviso = document.getElementById("teste-detectado");
+            if (!aviso) return;
+            var n = numeroDeTeste();
+            aviso.hidden = !n;
+            aviso.className = "res ok";
+            aviso.textContent = n ? "Esta escola vai nascer como escola de teste " + n + "." : "";
+          }
           /** Os professores que AINDA PODEM assumir esta escola — os que não estão nela. */
           function professoresLivres() {
             var escola = slugDaEscola();
@@ -631,6 +660,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           document.getElementById("nome").addEventListener("input", function () {
             pintarProfessores();
             atualizarOpcaoExistente();
+            pintarTeste();
           });
           pintarModo();
 

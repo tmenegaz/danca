@@ -25,6 +25,19 @@ const bastidores = require('./bastidores.js');
 const { MARCA } = require('../../tools/templates/nav-html.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
+// AS ESCOLAS DE TESTE — os três JSON e o preenchidor. Ver `teste-fixtures.js` e
+// `teste-cliente.js`. Só a escola cujo slug termina em `teste-1/2/3` recebe isto;
+// as outras não veem nem o atributo, nem o script, nem a rota.
+const { numeroDoTeste, fixtureDaEscola } = require('./teste-fixtures.js');
+const { SCRIPT: SCRIPT_DO_TESTE } = require('./teste-cliente.js');
+
+/** Uma resposta JSON curta — a ponte não tinha uma, e a rota de teste não pede mais. */
+function jsonCurto(objeto, status) {
+  return new Response(JSON.stringify(objeto), {
+    status: status || 200,
+    headers: { 'Content-Type': 'application/json;charset=utf-8', 'Cache-Control': 'no-store' },
+  });
+}
 
 /**
  * A APARÊNCIA DA ESCOLA, APLICADA NO SERVIDOR (18/10/2026) — a decisão C15 é «a preferência
@@ -47,8 +60,9 @@ const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bast
  * par `{modo, paleta}` e a repor os dois atributos — porque o pacote do ciclo e a porta são
  * servidos por aqui, e uma família que valesse só nos Bastidores não seria «da escola».
  */
-async function comAparencia(resposta, aparencia) {
+async function comAparencia(resposta, aparencia, extras) {
   const ap = aparencia || {};
+  const teste = Number((extras && extras.teste) || 0);
   const modo = ap.modo === 'noturna' ? 'noturna' : 'clara';
   // A FAMÍLIA É SEMPRE PUBLICADA, mesmo quando é a padrão. `data-paleta` ausente significaria
   // «a padrão» — e uma página que não DIZ de que família é obriga toda a prova a tolerar duas
@@ -79,10 +93,21 @@ async function comAparencia(resposta, aparencia) {
     const limpos = String(attrs)
       .replace(/\sdata-modo="[^"]*"/gi, '')
       .replace(/\sdata-paleta="[^"]*"/gi, '')
-      .replace(/\sdata-modo-fonte="[^"]*"/gi, '');
+      .replace(/\sdata-modo-fonte="[^"]*"/gi, '')
+      .replace(/\sdata-escola-teste="[^"]*"/gi, '');
     return '<html' + limpos + ' data-modo="' + modo + '" data-paleta="' + paleta +
-      '" data-modo-fonte="escola">';
+      '" data-modo-fonte="escola"' +
+      (teste ? ' data-escola-teste="' + teste + '"' : '') + '>';
   });
+
+  // O PREENCHEDOR DAS ESCOLAS DE TESTE (19/10/2026). Ele só entra na PORTA
+  // (`data-tela="porta"`) e só quando o slug casa. A página do pacote (índice,
+  // aulas, guia) não tem formulário para preencher e não recebe o script.
+  if (teste && texto.indexOf('data-tela="porta"') !== -1 &&
+      texto.indexOf('/assets/teste-preenchimento.js') === -1) {
+    texto = texto.replace(/<\/body>/i,
+      '<script src="/assets/teste-preenchimento.js"></script></body>');
+  }
 
   // O SLOT DA MARCA, PREENCHIDO AO SERVIR (18/10/2026).
   //
@@ -198,6 +223,25 @@ async function fetch(request, env) {
       '<p>Escola: <code>' + esc(env.ESCOLA_SLUG) + '</code></p>', 503);
   }
 
+  // 0.0 AS ESCOLAS DE TESTE (19/10/2026). A rota e o script existem em TODAS as
+  //     escolas, mas só respondem quando o slug termina em `teste-1/2/3`. O fixture é
+  //     LEITURA PURA: o navegador o busca e preenche campos; nada é enviado, nada é
+  //     gravado no KV. Escola normal recebe 404 e o script não é injetado.
+  if (path === '/api/teste') {
+    const fixture = fixtureDaEscola(env.ESCOLA_SLUG);
+    if (!fixture) return jsonCurto({ ok: false, erro: 'esta escola não é de teste' }, 404);
+    return jsonCurto({ ok: true, teste: numeroDoTeste(env.ESCOLA_SLUG), escola: env.ESCOLA_SLUG, fixture: fixture });
+  }
+  if (path === '/assets/teste-preenchimento.js') {
+    return new Response(SCRIPT_DO_TESTE, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/javascript;charset=utf-8',
+        'Cache-Control': 'no-store, max-age=0',
+      },
+    });
+  }
+
   // 0.1 O MOCK dos Bastidores (andaime): `/bastidores` e `/api/bastidores/*`
   //     vivem FORA da porta — a lista de alunas e a senha do professor que a
   //     anamnese consulta. Sem Produção real, este andaime as entrega.
@@ -228,7 +272,7 @@ async function fetch(request, env) {
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
     return comAparencia(await portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS }),
-      await aparenciaDoEnv(env));
+      await aparenciaDoEnv(env), { teste: numeroDoTeste(env.ESCOLA_SLUG) });
   }
 
   // 2. O lançamento do pacote (o `lancamento.html` POSTa em /api/receber), na
@@ -250,7 +294,8 @@ async function fetch(request, env) {
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
-    return comAparencia(await env.ASSETS.fetch(request), await aparenciaDoEnv(env));
+    return comAparencia(await env.ASSETS.fetch(request), await aparenciaDoEnv(env),
+      { teste: numeroDoTeste(env.ESCOLA_SLUG) });
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {
     status: 404,
