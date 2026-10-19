@@ -19199,3 +19199,67 @@ nova; uma escrita concorrente em dois isolates pode perder uma entrada — por i
 suplemento e a enumeração continua a ser a autoridade. (c) `provar-expurgo-raiz.js` explode
 antes de chegar ao fim (`corpo.local.em`), e `provar-expurgo-kv.js` conta 2 falhas de listagem
 onde há 4: as duas já falhavam antes desta mudança, e as duas saem com código 0.
+
+## 20/10/2026 — A cota do KV: o que ia para lá sem precisar, medido
+
+**O que motivou.** O dono do produto estranhou a cota de KV estourada «num dia que ainda não
+acabou». A medição (GraphQL do Cloudflare, 19/10/2026) desmente a suspeita do volume e
+confirma outra:
+
+| operação | feitas | limite grátis | veredicto |
+|:--|--:|--:|:--|
+| `list` (enumeração) | **1 240** | 1 000 | **estourada** — foi esta que quebrou |
+| `read` | 3 621 | 100 000 | 3,6% |
+| `write` | 91 | 1 000 | 9% |
+| `delete` | 50 | 1 000 | 5% |
+
+Não havia «dado a mais»: havia **enumeração a mais**. Cada carga de página da porta peda as
+chaves do KV 4 a 6 vezes (cada rota de lista enumerava duas), e quem testa recarrega muito —
+foi o multiplicador. A correção do dia (`cd6d8f0`, o índice dos envelopes) tira a enumeração
+do caminho: medido depois dela, as sete rotas de lista fazem **0 `list`** e 3 a 5 leituras por
+carga de página.
+
+**O que foi decidido.**
+
+- **Uma passagem, uma leitura.** `estadosDasAnamneses` chamava `anamneses()` — que lê todos os
+  envelopes — e DEPOIS pedia as chaves outra vez e relia todos para saber quem não tem sujeito.
+  Medido: **124 leituras para 61 envelopes**. Agora há `lerEnvelopes()` (uma passagem) e o
+  vigente de cada apelido é derivado da mesma passagem. Resultado: **62** — metade.
+- **O índice é CACHE, e um cache que não se pode gravar não derruba a leitura.** Um
+  armazenamento só-de-leitura (as bancadas de prova, um adaptador futuro) volta a enumerar
+  como antes, em vez de rebentar no meio da lista.
+- **A escrita que existe é a que tem de existir.** Medido: gravar uma anamnese custa sempre
+  3 leituras + 2 escritas, independentemente do tamanho da escola — o envelope e o registo de
+  chaves (o registo é o que salva o expurgo quando a enumeração falha; custa uma escrita por
+  chave NOVA, por isolate).
+- **O que NÃO foi tocado, de propósito.** O cartão da geração consulta a cada 5 s (1 leitura
+  por consulta, no máximo 30 min, e para quando o desfecho chega): é o que o professor pediu
+  ver, e cabe folgado na cota de leitura. A ordem `ASSETS` → KV no adaptador também fica: uma
+  chave estática custa uma leitura de KV quando não está no bundle, e o contrário obrigaria a
+  manter uma lista de chaves estáticas à mão.
+
+**Onde entrou.**
+- `motor/nucleo/porta.js` — `lerEnvelopes()`; `anamneses()` e `estadosDasAnamneses()` numa só
+  passagem; `gravarIndice` tolera um armazenamento sem `guardar`.
+- `experimentos/provar-indice-de-envelopes.js` — a secção 9: a lista não enumera, e lê cada
+  envelope uma vez, com teto medido (37 asserções no total).
+- `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `provar-indice-de-envelopes` → **37**; `provar-lista-que-falha` → 39;
+`provar-expurgo-sem-listagem` → 40; `provar-expurgo-leitura-atrasada` → 45; `provar-teste` →
+26; `provar-producao` → 135; `provar-paginacao` → 121; `provar-ajustes-anamnese` → 125;
+`provar-proveniencia-e-sessao` → 14; `provar-plano-da-turma` → 46. Um armazenamento só-de-leitura
+serve a lista com 200. `provar-homonimo` continua com as 3 falhas de antes (o slug do dono na
+lista de professores) — pré-existente, e o arquivo sai com código 0.
+
+**Referências.** A entrada de hoje sobre o índice dos envelopes (é a correção que este número
+mede) · a entrada sobre o expurgo sem listagem (de onde vem o registo de chaves) ·
+`motor/nucleo/armazenamento.js` (o contrato).
+
+**O que ainda não está feito.** (a) As rotas de lista continuam a ler o envelope INTEIRO para
+tirar três metadados (o apelido, o objetivo, a turma): com 40 anamneses são 40 leituras por
+carga, e cresce com a escola. Cabe na cota de leitura, mas o certo seria o índice carregar o
+metadado — e isso cria uma segunda fonte de verdade que pode divergir do envelope. Fica
+declarado, não decidido. (b) `vinculos()` e `vinculosDePlano()` leem todos os POs, cada uma na
+sua rota: uma página que abre as duas lê os POs duas vezes. Um cache por pedido resolveria;
+exige passar um contexto por todas as funções do núcleo, e não se fez.

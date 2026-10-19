@@ -450,6 +450,10 @@ function unir(a, b) {
 }
 
 async function gravarIndice(armazenamento, nomes, incompleto) {
+  // O ÍNDICE É UM CACHE, e um cache que não se pode gravar não derruba a leitura: um
+  // armazenamento só-de-leitura (as bancadas de prova, um adaptador futuro) continua a
+  // enumerar como antes. Os adaptadores de verdade — memória, disco, KV — têm `guardar`.
+  if (typeof armazenamento.guardar !== 'function') return;
   const corpo = { nomes: limparNomes(nomes).sort() };
   if (incompleto) corpo.incompleto = true;
   await armazenamento.guardar(INDICE_DOS_ENVELOPES, JSON.stringify(corpo, null, 2) + '\n');
@@ -474,6 +478,25 @@ async function registrarNoIndice(armazenamento, nome) {
 async function esquecerDoIndice(armazenamento, nome) {
   const restantes = (await lerIndice(armazenamento)).filter((n) => n !== nome);
   await gravarIndice(armazenamento, restantes, false);
+}
+
+/**
+ * LÊ CADA ENVELOPE UMA VEZ (19/10/2026). A lista de gestão das anamneses pedia as chaves, lia
+ * todos os envelopes, e depois pedia as chaves OUTRA vez e lia todos outra vez — 124 leituras
+ * para 61 envelopes, medido. Cada leitura é uma operação no KV, e a página de gestão é aberta a
+ * cada ensaio: o desperdício cresce com o número de registos da escola.
+ *
+ * Uma passagem devolve `[{nome, envelope}]`, na ordem dos nomes. Quem precisa de metadado
+ * (o apelido, o objetivo, a turma) deriva-o daqui, em vez de voltar a ler.
+ */
+async function lerEnvelopes(armazenamento, padrao) {
+  const nomes = await nomesDeEnvelopes(armazenamento, padrao);
+  const lista = [];
+  for (const nome of nomes) {
+    const envelope = await lerArquivo(armazenamento, nome);
+    if (envelope) lista.push({ nome, envelope });
+  }
+  return lista;
 }
 
 /** Lê um envelope pelo NOME do arquivo (ex.: `anamnese-….json`); null se ilegível. */
@@ -685,12 +708,9 @@ async function estadoDoPlano(armazenamento, envelope) {
  * Devolve só METADADO, nunca as respostas (Frente 5 do plano).
  */
 async function anamneses(armazenamento) {
-  const nomes = await nomesDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
   const ligacoes = await vinculos(armazenamento);
   const opcoes = [];
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (!envelope) continue;
+  for (const { nome, envelope } of await lerEnvelopes(armazenamento, /^anamnese-.*\.json$/)) {
     const contexto = envelope.contexto || {};
     const aluna = contexto.aluna || null;
     if (!aluna) continue;
@@ -734,26 +754,34 @@ async function vigenteDoSujeito(armazenamento, aluna) {
  */
 async function estadosDasAnamneses(armazenamento) {
   const ligacoes = await vinculos(armazenamento);
-  const lista = await anamneses(armazenamento);
-  const vigenteDe = new Map();
-  for (const o of lista) if (!vigenteDe.has(o.valor)) vigenteDe.set(o.valor, o.carimbo);
-  const nomes = await nomesDeEnvelopes(armazenamento, /^anamnese-.*\.json$/);
 
+  // UMA PASSAGEM, DUAS DERIVAÇÕES. Esta função precisa de tudo o que a `anamneses()`
+  // precisa (o vigente de cada apelido) E dos registos que a `anamneses()` descarta (os
+  // SEM SUJEITO). Ela chamava a primeira e voltava a ler todos os envelopes para a segunda —
+  // 124 leituras para 61 envelopes, medido em 19/10/2026. Agora lê uma vez e deriva as duas.
   const envelopes = [];
   const contagem = new Map();
-  for (const nome of nomes) {
-    const envelope = await lerArquivo(armazenamento, nome);
-    if (!envelope) continue;
+  for (const { nome, envelope } of await lerEnvelopes(armazenamento, /^anamnese-.*\.json$/)) {
     const apelido = (envelope.contexto && envelope.contexto.aluna) || null;
-    envelopes.push({ nome, envelope, apelido });
+    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+    envelopes.push({ nome, envelope, apelido, carimbo });
     if (apelido) contagem.set(apelido, (contagem.get(apelido) || 0) + 1);
   }
 
+  // O VIGENTE é o carimbo MAIS RECENTE de cada apelido — a mesma regra da `anamneses()`
+  // (ordenação decrescente do carimbo, o primeiro que aparece ganha). Derivada dos mesmos
+  // envelopes, para as duas listas nunca discordarem sobre quem é o vigente.
+  const maisRecente = new Map();
+  for (const e of envelopes) {
+    if (!e.apelido) continue;
+    const atual = maisRecente.get(e.apelido);
+    if (!atual || atual < e.carimbo) maisRecente.set(e.apelido, e.carimbo);
+  }
+
   const estados = {};
-  for (const { nome, envelope, apelido } of envelopes) {
-    const carimbo = envelope.id || nome.replace(/\.json$/, '');
+  for (const { nome, envelope, apelido, carimbo } of envelopes) {
     const por = apelido ? ligacoes.get(apelido) || [] : [];
-    const vigente = apelido !== null && vigenteDe.get(apelido) === carimbo;
+    const vigente = apelido !== null && maisRecente.get(apelido) === carimbo;
     let estado;
     if (apelido === null) estado = 'sem-sujeito';
     else if (por.length > 0) estado = 'vinculada';
