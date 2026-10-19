@@ -87,6 +87,10 @@ experimentos/*
 # A prova do plano e da anamnese: o REGISTRO cita-a por nome («125 de 125»), e uma prova
 # citada que não existe no clone é uma afirmação que ninguém confere.
 !experimentos/provar-ajustes-anamnese.js
+# A PROVA DOS ACORDEÕES (18/10/2026): as cinco secções da Produção recolhem, e recolhidas a
+# listagem mede a largura inteira. Ela é o que impede o acordeão de voltar a ser só a seta
+# das turmas — e é citada pelo nome no REGISTRO.
+!experimentos/provar-acordeoes.js
 # O MEDIDOR DE PALETAS: o `IDENTIDADE-VISUAL.md` e o `REGISTRO.md` citam-no por nome
 # («as 62 medições estão em…»), e ele é quem produz os blocos da folha (`--css`) e a
 # secção do estudo (`--html`). Sem ele no clone, a família Verde de Ensaio fica sem a

@@ -17853,3 +17853,83 @@ Aparência**, num clique, e é o clique que antes não pegava.
 outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
 **1025–1199px** continua sem prova (`provar-celular` mede até 1024) — dívida antiga, não desta
 entrada.
+
+## 18/10/2026 — As outras quatro secções recolhem, e a listagem fica com a largura toda
+
+**O que motivou.** O acordeão nasceu nas Turmas, e a direção pediu o mesmo nas outras secções da
+Produção: «quando eu colapso um formulário, ele fica em uma linha só e aí abaixo dele toda a
+listagem ocupa a tela toda». Pediu-o para o **vocabulário técnico**, para as **curadorias**, para
+as **alunas** e para os **professores**. E, no mesmo pedido, um defeito medido: o botão **«Carregar
+catálogo inicial (turmas + vocabulário)»** «não está se redimensionando quando está na tela do
+celular».
+
+**O botão, primeiro — porque era um estouro, não um gosto.** O controle base da folha é
+`white-space:nowrap`, e a decisão está certa para «Avançar» e «Cancelar»: um rótulo curto não deve
+quebrar. Para um rótulo de 47 caracteres ela é errada. Medido antes de mexer: em **320px** o botão
+media **367px** dentro de uma coluna de **288**, e a **página inteira** passava a rolar de lado —
+**63px** de estouro (23px em 360). Agora ele pode quebrar (`white-space:normal`) e tem
+`max-width:100%`: mede 288 em 320, 328 em 360, e continua 367 na tela larga — onde já cabia, e onde
+nada mudou.
+
+**O acordeão, e porque é o TÍTULO o cabeçalho.** Nas Turmas o cabeçalho é a faixa dos três passos:
+é ela que diz onde se está, e ela fica quando o miolo recolhe. As outras quatro secções não têm
+barra de passos — não há nada a preservar —, e inventar um segundo título para servir de cabeçalho
+seria duplicar o que já está escrito. O cabeçalho é o **próprio título da secção**, com a seta ao
+lado. Recolhido, fica uma linha (o título e a seta), o formulário sai da frente, e a listagem mede
+a **largura inteira** da secção.
+
+**O que se decidiu.**
+- **Um só mecanismo, por `data-acordeao`.** As cinco setas têm a mesma classe (`alternar-form`) e o
+  mesmo desenho; o que as distingue é o `data-acordeao`. O despacho foi acrescentado ao clicador
+  que já existia, com uma linha: sem ele, **tocar na seta do vocabulário recolhia as TURMAS** — a
+  regressão clássica de duas coisas que partilham a classe e não o dono. A prova mede-a em todas as
+  larguras.
+- **O estado é POR SECÇÃO** (`producao:recolhido:<id>`), não numa chave só. Quem recolhe o
+  vocabulário para ler os termos não pediu para recolher as alunas. `sessionStorage`, pela razão de
+  sempre: a página recarrega a cada operação, e um formulário que se reabre sozinho desfaria o que
+  a pessoa acabou de pedir — sem ser preferência para amanhã.
+- **A seta alinha com a PRIMEIRA linha do título.** Centrada no bloco ela caía **entre** as duas
+  linhas quando o título quebrava («Vocabulário Técnico do Balé» em 360px), e não se sabia de que
+  linha era. Ancorada no topo com o degrau que a centra numa linha só, lê-se igual com uma e com
+  duas.
+- **Nada na folha congelada.** O desenho vive no `<style>` que a própria Produção emite, que é o
+  regime da checagem «Peça» — nenhuma classe nova precisou de entrar em `tools/templates/ciclo.css`,
+  em `GANCHOS` ou no catálogo.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — o gerador `tituloComAcordeao(idDaSecao, titulo, idDoMiolo)`, as
+  quatro secções com título e miolo identificados (`professores-miolo`, `alunas-miolo`,
+  `vocabulario-miolo`, `curadorias-miolo`), o `definirSecaoRecolhida` com a memória por secção, o
+  despacho por `data-acordeao` no clicador que já existia, o CSS do título e do recolhimento, e a
+  regra do `#semear`.
+- `experimentos/provar-acordeoes.js` — **prova nova**, versionada. Em 1280, 1200, 768, 390, 360 e
+  320px, nas **cinco** secções: a seta existe, recolhe (o formulário sai, o título fica, a seta diz
+  o estado), a listagem mede a largura inteira, a seta de uma **não mexe nas outras**, a mesma seta
+  reabre, o «Carregar catálogo inicial» cabe na coluna, e a página não estoura. Mais a memória: os
+  quatro `data-recolhido` lidos depois de recarregar, com **só** o da secção recolhida em `sim`.
+- `.gitignore` — o `provar-acordeoes.js` entra na lista de exceções. Uma prova citada pelo REGISTRO
+  que não existe no clone é uma afirmação que ninguém confere.
+- `experimentos/README.md` — a linha da prova nova na tabela, e o número de casos da
+  `provar-producao` corrigido (109 → 135; a tabela estava a citar uma contagem de duas sessões
+  atrás).
+- **Motivo declarado.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `motor/` não está na lista
+  dos congelados, e `tools/templates/` — que está — não foi aberto. As regras pedagógicas, as
+  pétreas, a fórmula do hash e a cobertura dele não mudam.
+
+**Conferido.** `provar-acordeoes` **TUDO CERTO** (163 afirmações) · **controlo negativo** com o
+motor de `HEAD` (extraído por `git archive`, não uma cópia à mão): **134 FALHAS** — as quatro
+secções por não terem seta, e o estouro de 63px em 320px, que é o defeito do botão. Sem regressão:
+`provar-cartao-da-turma` TUDO CERTO (a seta das turmas, que é a que já existia) · `provar-producao`
+135/135 · `provar-linhas-da-lista` TUDO CERTO · `check-identidade` 17 ok (a checagem «Peça»
+continua a passar: as classes novas são desenhadas pela própria página) · `provar-tema` 38 ·
+`provar-selo` TUDO CERTO · `provar-ato-e-barra` 72 · `provar-ajustes-anamnese` 125 ·
+`provar-cabecalho-do-ato` 40 · `provar-contexto-do-ato` 37 · `provar-celular` 15 ·
+`provar-aparencia` 72. Ao ar: as duas escolas reimplantadas, `provar-ambiente` **TUDO CERTO**, 14
+requisições (2 escolas × ~7). A geometria foi medida **na bancada**, como a regra manda.
+
+**O que ainda não está feito.** (a) A secção **Aparência** e a **Turmas** ficaram fora deste
+pedido: as turmas já têm o acordeão dela, e a Aparência não tem listagem para dar largura a nada.
+(b) O estado do acordeão **não entra na URL**: continua em `sessionStorage`, como o das turmas, para
+um link partilhado não abrir a página com metade dos formulários fechados. (c) O `<details>` do
+«histórico» da turma continua a ser um `<details>` nativo — são dois mecanismos de recolher na mesma
+página, e unificá-los é uma decisão de desenho, não uma correção.

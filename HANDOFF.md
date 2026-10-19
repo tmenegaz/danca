@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T20:40:18-0300`
-Commit atual: `482aeda` — feat(estrutura): o seletor da escola oferece três famílias, e o medidor fica no repositório
+Gerado em: `2026-10-18T21:07:16-0300`
+Commit atual: `7fb3042` — fix(estrutura): a família da escola chega a tudo o que ela serve, e a lista desce no telefone
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+7fb3042 fix(estrutura): a família da escola chega a tudo o que ela serve, e a lista desce no telefone
+23cb058 feat(tools): a lista de famílias passa a ter um dono só, e o validador guarda-a
 482aeda feat(estrutura): o seletor da escola oferece três famílias, e o medidor fica no repositório
 77ed2d6 feat(tools): a Verde de Ensaio entra, o catálogo fecha em três, e a guarda que faltava
 9fc7ee7 docs(agentes): medir na bancada local, e o ar só na conferência final
@@ -80,8 +82,6 @@ d930cd5 docs(estrutura): a C15 foi decidida — a preferência de aparência é 
 ec57630 docs(estrutura): a leitura de fechamento dos dois documentos de identidade
 ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
 f9b416b fix(estrutura): a etiqueta é uma só — e o que está no ar é o motor
-dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando não cabe
-724f202 docs(experimentos): o ☰ da S5 andava, e a barra da página ficava presa
 ```
 
 ## Por professor
@@ -147,91 +147,87 @@ dbd1279 docs(experimentos): na S5 a marca sai SEMPRE ao rolar, não só quando n
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — A família da escola chega a tudo o que ela serve, e a lista do telefone desce
+## 18/10/2026 — As outras quatro secções recolhem, e a listagem fica com a largura toda
 
-**O que motivou.** Leitura da direção, na tela: «a nova cor, o verde, que ficou bem bonito, só tá
-tendo efeito dentro de bastidores. Não tá tendo efeito no restante, tem que ter efeito em tudo». No
-mesmo dia, e na mesma frase: na **lista de alunas** do telemóvel as etiquetas de estado («livre»,
-«vinculada») tinham de descer para a segunda linha, junto da coluna de turma e do botão — «faz
-igual a gente adotou nos termos cadastrados».
+**O que motivou.** O acordeão nasceu nas Turmas, e a direção pediu o mesmo nas outras secções da
+Produção: «quando eu colapso um formulário, ele fica em uma linha só e aí abaixo dele toda a
+listagem ocupa a tela toda». Pediu-o para o **vocabulário técnico**, para as **curadorias**, para
+as **alunas** e para os **professores**. E, no mesmo pedido, um defeito medido: o botão **«Carregar
+catálogo inicial (turmas + vocabulário)»** «não está se redimensionando quando está na tela do
+celular».
 
-**A causa da cor, e ela era uma só.** `motor/servidor/producao.js` decidia a família com uma lista
-**escrita à mão**: `['bordo','cortina'].indexOf(pedida)`. A Verde de Ensaio entrou no catálogo
-(commit `77ed2d6`), a Produção passou a oferecê-la e a pintar — mas a **ponte** é outro leitor, e
-para ela `verde` não existia: caía em `PALETA_PADRAO`. A ponte serve exactamente o que a Produção
-não serve: o pacote do ciclo, a página de lançamento e a **porta** (anamnese, plano de ensino,
-plano de observação). Daí o sintoma exato que a direção viu: verde dentro dos Bastidores, bordô em
-tudo o resto. Duas listas da mesma coisa é uma lista a menos.
+**O botão, primeiro — porque era um estouro, não um gosto.** O controle base da folha é
+`white-space:nowrap`, e a decisão está certa para «Avançar» e «Cancelar»: um rótulo curto não deve
+quebrar. Para um rótulo de 47 caracteres ela é errada. Medido antes de mexer: em **320px** o botão
+media **367px** dentro de uma coluna de **288**, e a **página inteira** passava a rolar de lado —
+**63px** de estouro (23px em 360). Agora ele pode quebrar (`white-space:normal`) e tem
+`max-width:100%`: mede 288 em 320, 328 em 360, e continua 367 na tela larga — onde já cabia, e onde
+nada mudou.
 
-**O que foi decidido.**
-- **A lista de famílias tem um dono só.** `PALETAS`, `IDS_DAS_PALETAS` e `PALETA_PADRAO` passam a
-  ser exportados por `motor/servidor/bastidores.js` — que é quem desenha o seletor —, e a ponte
-  **importa**. Nenhum outro arquivo volta a enumerar famílias.
-- **A guarda que faltava, em duas frentes** (no validador, porque é lá que as duas listas se
-  encontram): a checagem **«Seletor»** compara `PALETAS` com os blocos `[data-paleta]` da folha nas
-  duas direções; a checagem **«Lista de famílias»** varre `motor/**/*.js` e reprova o arquivo que
-  cite **duas ou mais** famílias — um id isolado é legítimo (um padrão, um exemplo), dois são uma
-  enumeração a mais. Provada por controlo negativo: repondo a lista à mão em `producao.js`, ela
-  reprova com a mensagem certa.
-- **A prova que teria apanhado o defeito, ao vivo.** `provar-ambiente.js` passou a comparar a
-  família que a **porta** declara com a que a **Produção** declara, na mesma escola. Não fixa qual
-  é: a preferência é da escola (C15) e a prova não tem opinião sobre ela. Custo zero — as duas
-  páginas já eram baixadas. `provar-aparencia.js` passou a **iterar `IDS_DAS_PALETAS`** em vez de
-  nomear duas famílias: era por nomear que ele dizia «ok» com a ponte a recusar a terceira.
-- **A lista do telefone.** Até 560px o item de lista simples vira uma grelha de três faixas —
-  nome em cima (uma linha, com reticências, nunca a quebrar), o complemento quando existe, e
-  embaixo a etiqueta de estado, a coluna de turma e o botão. O selo sai da primeira linha por
-  `display: contents` nos invólucros `.nome` e `.linha1`: um neto não se coloca numa faixa da
-  grelha do avô, mas dissolver o pai, sim — e sem marcação nova. A regra é uma só, e serve as
-  alunas, os termos, as curadorias, os professores e os vínculos.
+**O acordeão, e porque é o TÍTULO o cabeçalho.** Nas Turmas o cabeçalho é a faixa dos três passos:
+é ela que diz onde se está, e ela fica quando o miolo recolhe. As outras quatro secções não têm
+barra de passos — não há nada a preservar —, e inventar um segundo título para servir de cabeçalho
+seria duplicar o que já está escrito. O cabeçalho é o **próprio título da secção**, com a seta ao
+lado. Recolhido, fica uma linha (o título e a seta), o formulário sai da frente, e a listagem mede
+a **largura inteira** da secção.
+
+**O que se decidiu.**
+- **Um só mecanismo, por `data-acordeao`.** As cinco setas têm a mesma classe (`alternar-form`) e o
+  mesmo desenho; o que as distingue é o `data-acordeao`. O despacho foi acrescentado ao clicador
+  que já existia, com uma linha: sem ele, **tocar na seta do vocabulário recolhia as TURMAS** — a
+  regressão clássica de duas coisas que partilham a classe e não o dono. A prova mede-a em todas as
+  larguras.
+- **O estado é POR SECÇÃO** (`producao:recolhido:<id>`), não numa chave só. Quem recolhe o
+  vocabulário para ler os termos não pediu para recolher as alunas. `sessionStorage`, pela razão de
+  sempre: a página recarrega a cada operação, e um formulário que se reabre sozinho desfaria o que
+  a pessoa acabou de pedir — sem ser preferência para amanhã.
+- **A seta alinha com a PRIMEIRA linha do título.** Centrada no bloco ela caía **entre** as duas
+  linhas quando o título quebrava («Vocabulário Técnico do Balé» em 360px), e não se sabia de que
+  linha era. Ancorada no topo com o degrau que a centra numa linha só, lê-se igual com uma e com
+  duas.
+- **Nada na folha congelada.** O desenho vive no `<style>` que a própria Produção emite, que é o
+  regime da checagem «Peça» — nenhuma classe nova precisou de entrar em `tools/templates/ciclo.css`,
+  em `GANCHOS` ou no catálogo.
 
 **Onde entrou.**
-- `motor/servidor/bastidores.js` — exporta `PALETAS`, `IDS_DAS_PALETAS`, `PALETA_PADRAO`; a regra
-  `@media (max-width:560px)` da lista simples, comentada com o porquê do `display:contents`.
-- `motor/servidor/producao.js` — importa a lista e deixa de a escrever; o comentário no
-  `comAparencia` guarda o sintoma («a cor só tem efeito dentro dos bastidores») para quem ali mexer.
-- `experimentos/provar-ambiente.js` — a comparação porta × Produção, sem requisição nova (continua
-  **14 ao ar, 2 escolas × ~7**).
-- `experimentos/provar-aparencia.js` — o laço sobre o catálogo (72 de 72).
-- `experimentos/provar-linhas-da-lista.js` — a prova passa a **saber de que lado da regra está**:
-  até 560px exige que o selo desça, divida a faixa com a turma e o botão e que o nome fique sozinho
-  em cima; acima disso mantém a regra antiga (o selo **dentro** da primeira linha). Afirmar uma só
-  das duas reprovaria a outra — e foi o que aconteceu quando a regra do telefone entrou. Controlo
-  negativo: o motor de `HEAD` reprova exactamente as 8 afirmações estreitas.
-- **Motivo declarado — os congelados.** `tools/check-identidade.js` é congelado. O motivo é o
-  produto: a terceira família existe e **a ponte a recusava em silêncio**, porque a lista de
-  famílias tinha dois donos. As duas checagens novas fecham essa classe de defeito — não a família
-  do dia, mas «uma lista de famílias escrita à mão noutro arquivo». **Não muda** a fórmula do hash,
-  a cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum
-  componente existente foi tocado; as checagens passam de 9 para 11 e as linhas verdes de 15 para 17
-  (186 pares em AA, inalterados).
+- `motor/servidor/bastidores.js` — o gerador `tituloComAcordeao(idDaSecao, titulo, idDoMiolo)`, as
+  quatro secções com título e miolo identificados (`professores-miolo`, `alunas-miolo`,
+  `vocabulario-miolo`, `curadorias-miolo`), o `definirSecaoRecolhida` com a memória por secção, o
+  despacho por `data-acordeao` no clicador que já existia, o CSS do título e do recolhimento, e a
+  regra do `#semear`.
+- `experimentos/provar-acordeoes.js` — **prova nova**, versionada. Em 1280, 1200, 768, 390, 360 e
+  320px, nas **cinco** secções: a seta existe, recolhe (o formulário sai, o título fica, a seta diz
+  o estado), a listagem mede a largura inteira, a seta de uma **não mexe nas outras**, a mesma seta
+  reabre, o «Carregar catálogo inicial» cabe na coluna, e a página não estoura. Mais a memória: os
+  quatro `data-recolhido` lidos depois de recarregar, com **só** o da secção recolhida em `sim`.
+- `.gitignore` — o `provar-acordeoes.js` entra na lista de exceções. Uma prova citada pelo REGISTRO
+  que não existe no clone é uma afirmação que ninguém confere.
+- `experimentos/README.md` — a linha da prova nova na tabela, e o número de casos da
+  `provar-producao` corrigido (109 → 135; a tabela estava a citar uma contagem de duas sessões
+  atrás).
+- **Motivo declarado.** Nenhum arquivo de `CONGELAMENTO.md` foi tocado: `motor/` não está na lista
+  dos congelados, e `tools/templates/` — que está — não foi aberto. As regras pedagógicas, as
+  pétreas, a fórmula do hash e a cobertura dele não mudam.
 
-**Com o quê.** `motor/servidor/bastidores.js` · `motor/servidor/producao.js` ·
-`tools/check-identidade.js` · `experimentos/provar-ambiente.js` ·
-`experimentos/provar-aparencia.js` · `experimentos/provar-linhas-da-lista.js` · este registro.
+**Conferido.** `provar-acordeoes` **TUDO CERTO** (163 afirmações) · **controlo negativo** com o
+motor de `HEAD` (extraído por `git archive`, não uma cópia à mão): **134 FALHAS** — as quatro
+secções por não terem seta, e o estouro de 63px em 320px, que é o defeito do botão. Sem regressão:
+`provar-cartao-da-turma` TUDO CERTO (a seta das turmas, que é a que já existia) · `provar-producao`
+135/135 · `provar-linhas-da-lista` TUDO CERTO · `check-identidade` 17 ok (a checagem «Peça»
+continua a passar: as classes novas são desenhadas pela própria página) · `provar-tema` 38 ·
+`provar-selo` TUDO CERTO · `provar-ato-e-barra` 72 · `provar-ajustes-anamnese` 125 ·
+`provar-cabecalho-do-ato` 40 · `provar-contexto-do-ato` 37 · `provar-celular` 15 ·
+`provar-aparencia` 72. Ao ar: as duas escolas reimplantadas, `provar-ambiente` **TUDO CERTO**, 14
+requisições (2 escolas × ~7). A geometria foi medida **na bancada**, como a regra manda.
 
-**Verificação ao ar, no fim, uma carga por escola.** `provar-ambiente` **TUDO CERTO**, 14
-requisições: em `fita` a porta declara `data-paleta="verde"` nos três caminhos (anamnese, plano de
-ensino, plano de observação) e a Produção também — é a correção, medida. Em `valse` as duas dizem
-`bordo`: a preferência guardada daquela escola é bordo, não um defeito; muda-se em **Produção →
-Aparência**, num clique, e é o clique que antes não pegava.
-
-**O que ainda não está feito.** (a) O **PDF** continua na paleta vigente, declaradamente
-(`lib-tokens.js`). (b) A lista de **turmas** no telemóvel não entra nesta regra: o cartão da turma é
-outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
-**1025–1199px** continua sem prova (`provar-celular` mede até 1024) — dívida antiga, não desta
-entrada.
+**O que ainda não está feito.** (a) A secção **Aparência** e a **Turmas** ficaram fora deste
+pedido: as turmas já têm o acordeão dela, e a Aparência não tem listagem para dar largura a nada.
+(b) O estado do acordeão **não entra na URL**: continua em `sessionStorage`, como o das turmas, para
+um link partilhado não abrir a página com metade dos formulários fechados. (c) O `<details>` do
+«histórico» da turma continua a ser um `<details>` nativo — são dois mecanismos de recolher na mesma
+página, e unificá-los é uma decisão de desenho, não uma correção.
 
 ## O que está pendente
-
-## 18/10/2026 — O cabeçalho do ato cabe em 360px, e a barra de botões vira a decisão tomada
-
-(a) A **senha do plano** (edição/derivação) não foi remedida a
-360px nesta entrada — o `sinalDeSenha` é o mesmo, mas o fluxo do plano não passou pela bancada.
-(b) Os **«?» da página de estudo**: I1 e I2 respondem ao clique, I3 tem o «Fechar» a fechar a
-folha, mas o mock não tem botão que a abra — a folha nasce aberta, porque é um desenho. (c) O
-`#fechar` continua com `disabled` **e** `hidden`: duas trancas para o mesmo estado, mantidas de
-propósito (a de `disabled` é a que o servidor de prova alcança por nome).
 
 ## 18/10/2026 — Correção: o resumo da faixa desce, e a lista não mente quando não lê
 
@@ -267,6 +263,15 @@ mexer nele é reescrever o plano, não corrigir deriva.
 (a) O **PDF** continua na paleta vigente, declaradamente
 (`lib-tokens.js`). (b) A lista de **turmas** no telemóvel não entra nesta regra: o cartão da turma é
 outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.js`. (c) A faixa
+
+## 18/10/2026 — As outras quatro secções recolhem, e a listagem fica com a largura toda
+
+(a) A secção **Aparência** e a **Turmas** ficaram fora deste
+pedido: as turmas já têm o acordeão dela, e a Aparência não tem listagem para dar largura a nada.
+(b) O estado do acordeão **não entra na URL**: continua em `sessionStorage`, como o das turmas, para
+um link partilhado não abrir a página com metade dos formulários fechados. (c) O `<details>` do
+«histórico» da turma continua a ser um `<details>` nativo — são dois mecanismos de recolher na mesma
+página, e unificá-los é uma decisão de desenho, não uma correção.
 
 ## Pendências anteriores (índice)
 
@@ -466,6 +471,7 @@ outra peça, com métricas e painéis, e é medida pela `provar-cartao-da-turma.
 - **18/10/2026** — O catálogo das peças: um nome antes do desenho → `REGISTRO.md` L17229
 - **18/10/2026** — A segunda família: a Cortina Turquesa, medida antes de… → `REGISTRO.md` L17319
 - **18/10/2026** — O cabeçalho do ato cresce, e o «Fechar» deixa de… → `REGISTRO.md` L17408
+- **18/10/2026** — O cabeçalho do ato cabe em 360px, e a barra de botões… → `REGISTRO.md` L17481
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

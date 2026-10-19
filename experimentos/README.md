@@ -83,14 +83,15 @@ produção, com commit próprio — e é aí que entra no Git.
 
 ## Provas que moram aqui e valem como prova
 
-Nem tudo nesta pasta é rascunho. Três arquivos são **provas** — rodam, medem e reprovam:
+Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, medem e reprovam:
 
 | Prova | O que mede | Precisa de navegador |
 |:--|:--|:--|
-| `provar-producao.js` | o comportamento da vista de Produção (109 casos) | não |
+| `provar-producao.js` | o comportamento da vista de Produção (135 casos) | não |
 | `provar-derivacao-da-turma.js` | a cadeia de derivação da turma (123 casos) | não |
 | `provar-tema.js` | a aparência clara/noturna: aplicação, persistência, botão alcançável | não (DOM de mentira) |
 | `provar-celular.js` | a **geometria** em 320–1024px: nada transborda, o nome da turma não é espremido, o menu de secções vira faixa | **sim** (Chrome) |
+| `provar-acordeoes.js` | as **cinco** secções da Produção recolhem, e recolhidas a listagem mede a largura inteira; a seta de uma não mexe nas outras; o estado é lembrado por secção; o «Carregar catálogo inicial» cabe na coluna | **sim** (Chrome) |
 
 A `provar-celular.js` é de 17/10/2026 e nasceu de um defeito medido: a lista de turmas do
 Produção ficava acavalada no celular — o nome com 116px e os dois botões com 126px fixos. É

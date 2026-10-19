@@ -932,6 +932,26 @@ function escolhedor(id, opcoes) {
  *  navegador (a lista já veio inteira). Sem JavaScript, o rodapé não aparece e a lista
  *  mostra tudo — degradar para «mostra tudo» é melhor do que esconder itens sem como
  *  alcançá-los. */
+/**
+ * O TÍTULO DA SECÇÃO COM A SETA DO ACORDEÃO (18/10/2026).
+ *
+ * Turmas ganhou o acordeão primeiro, e por uma razão que vale para todas: o formulário ocupa
+ * uma coluna que a listagem precisa. Nas secções de uma coisa só (professores, alunas,
+ * vocabulário, curadorias) o formulário não tem barra de passos — não há nada a preservar
+ * quando ele recolhe —, e por isso o cabeçalho do acordeão é o TÍTULO da secção, que já está
+ * ali. Recolhido, fica uma linha: o título e a seta. A listagem sobe e ocupa a largura toda.
+ *
+ * A SETA É O ÚNICO TEXTO DO CONTROLE, e é um glifo: nada de «Recolher formulário» escrito. O
+ * `aria-label` e o `title` dizem o mesmo a quem não vê a seta, e o `aria-expanded` diz em que
+ * estado está. O `data-acordeao` é o gancho que o script procura — um só, para as quatro.
+ */
+function tituloComAcordeao(idDaSecao, titulo, idDoMiolo) {
+  return '<h2 class="secao-titulo"><span class="secao-nome">' + titulo + '</span>' +
+    '<button type="button" class="alternar-form" data-acordeao="' + idDaSecao + '" ' +
+    'aria-expanded="true" aria-controls="' + idDoMiolo + '" ' +
+    'aria-label="Recolher o formulário" title="Recolher o formulário">▾</button></h2>';
+}
+
 function rodapePaginacao() {
   return '<div class="paginacao" hidden>' +
     '<button type="button" class="pag-ant acao secundario pequena" aria-label="Página anterior">‹</button>' +
@@ -1854,6 +1874,26 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O formulário continua com o teto dele (34rem) — quem cresce é a coluna da lista.
     '.corpo{display:grid;grid-template-columns:11rem minmax(0,1fr);gap:var(--esp-5);align-items:start;padding:var(--esp-5) var(--esp-4) var(--esp-6);}' +
     '.secao{display:grid;grid-template-columns:minmax(0,34rem) minmax(24rem,1fr);gap:1.8rem;align-items:start;}' +
+    // O ACORDEÃO DAS SECÇÕES DE UMA COISA SÓ (18/10/2026). O título é o cabeçalho — não há
+    // barra de passos para preservar, e inventar um segundo título seria duplicar o que já
+    // está escrito. A seta fica AO LADO do nome, e não na outra ponta da linha: é dele que
+    // ela é, e a 968px de distância parecia pertencer à página.
+    '.secao-titulo{grid-column:1/-1;display:flex;align-items:flex-start;gap:.55rem;margin:0;min-width:0;}' +
+    '.secao-nome{min-width:0;}' +
+    // A SETA ALINHA COM A PRIMEIRA LINHA (18/10/2026). Centrada no bloco (`align-items:center`)
+    // ela caía ENTRE as duas linhas quando o título quebrava — «Vocabulário Técnico do Balé»
+    // em 360px — e não se sabia de que linha ela era. Ancorada no topo com o degrau que a
+    // centra numa linha só (42px de caixa, 32 de seta: 5px em cima e 5px em baixo), ela lê-se
+    // igual com uma linha e com duas.
+    '.secao-titulo>.alternar-form{margin-top:.3rem;}' +
+    // RECOLHIDO, A LISTAGEM OCUPA A LARGURA TODA. A coluna do formulário deixa de existir
+    // como coluna — é a diferença entre «encolher» e «sair da frente», a mesma regra das
+    // turmas. O estado vive na `.secao` porque é ELA que tem a grade, e uma grade não se
+    // muda a partir do filho.
+    '.secao[data-recolhido="sim"]{grid-template-columns:minmax(0,1fr);}' +
+    '.secao[data-recolhido="sim"]>.col-form{display:none;}' +
+    '.secao[data-recolhido="sim"]>.secao-titulo{border-bottom:1px solid var(--borda-campo);' +
+    'padding:0 0 .35rem;}' +
     '.secao>h2{grid-column:1/-1;margin:0;}' +
     // AS ABAS da secção Turmas. O painel de cada aba repete a grade do formulário + lista, e
     // por isso ocupa a linha inteira do `.secao` — a lista continua presa e paginada.
@@ -2067,6 +2107,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
 
     'label .dica{color:var(--texto-suave);font-weight:400;font-size:.85rem;}' +
     '.sub{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.1rem 0 .6rem;}' +
+    // O «CARREGAR CATÁLOGO INICIAL» NÃO CABIA NO TELEFONE (18/10/2026). O botão base da folha
+    // é `white-space:nowrap` — decisão certa para «Avançar» e «Cancelar», e errada para um
+    // rótulo de 47 caracteres: em 320px ele media 367px dentro de uma coluna de 288, e a
+    // PÁGINA inteira passava a rolar de lado (63px de estouro). O botão passa a poder quebrar
+    // e a caber na coluna; a altura cresce em vez da largura, que é o que se quer num rótulo.
+    '#semear{max-width:100%;white-space:normal;overflow-wrap:break-word;}' +
     'form .nota{color:var(--texto-suave);font-size:.88rem;line-height:1.45;margin:.6rem 0 0;}' +
     'li.turma{display:block;margin-bottom:.6rem;}' +
     '.linha-turma{display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;}' +
@@ -2466,8 +2512,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-professores" hidden>' +
-    '<h2>Professores</h2>' +
-    '<div class="col-form">' +
+    tituloComAcordeao('sec-professores', 'Professores', 'professores-miolo') +
+    '<div class="col-form" id="professores-miolo">' +
     '<form id="form-prof">' +
     '<label class="campo-rotulo" for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
@@ -2485,8 +2531,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-alunas" hidden>' +
-    '<h2>Alunas</h2>' +
-    '<div class="col-form">' +
+    tituloComAcordeao('sec-alunas', 'Alunas', 'alunas-miolo') +
+    '<div class="col-form" id="alunas-miolo">' +
     '<form id="form-aluna">' +
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável, P-12)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
@@ -2721,8 +2767,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     blocosDeConteudos.join('') +
     '</section>' +
     '<section class="secao" id="sec-vocabulario" hidden>' +
-    '<h2>Vocabulário Técnico do Balé</h2>' +
-    '<div class="col-form">' +
+    tituloComAcordeao('sec-vocabulario', 'Vocabulário Técnico do Balé', 'vocabulario-miolo') +
+    '<div class="col-form" id="vocabulario-miolo">' +
     '<form id="form-termo">' +
     // SÓ O NOME SE ESCREVE (18/10/2026). Categoria e tradição são LISTAS: o professor não
     // decide a taxonomia enquanto cadastra, e uma categoria escrita à mão («passos»,
@@ -2750,8 +2796,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '</section>' +
     '<section class="secao" id="sec-curadorias" hidden>' +
-    '<h2>Curadorias</h2>' +
-    '<div class="col-form">' +
+    tituloComAcordeao('sec-curadorias', 'Curadorias', 'curadorias-miolo') +
+    '<div class="col-form" id="curadorias-miolo">' +
     '<form id="form-curadoria">' +
     // O MODO: criar, editar (só a curadoria livre) ou derivar (a vinculada) — a mesma regra da
     // turma, e o mesmo desenho de data (16/10/2026).
@@ -2972,7 +3018,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  }' +
     // A SETA. Ela alterna o estado; o filtro e o «Mostrar todas» também o mudam.
     '  if (e.target.closest && e.target.closest("button.alternar-form")) {' +
-    '    definirFormularioRecolhido(!formularioRecolhido());' +
+    // DUAS SETAS, DOIS DONOS (18/10/2026). A das turmas recolhe a faixa dos passos; as das
+    // outras quatro secções recolhem o título. O `data-acordeao` diz de quem é a seta — sem
+    // ele, clicar na seta do vocabulário recolhia as TURMAS, que é o defeito que se evita
+    // aqui com uma linha em vez de uma classe a mais.
+    '    var alvoDaSeta = e.target.closest("button.alternar-form").getAttribute("data-acordeao");' +
+    '    if (alvoDaSeta) definirSecaoRecolhida(alvoDaSeta, !secaoRecolhida(alvoDaSeta));' +
+    '    else definirFormularioRecolhido(!formularioRecolhido());' +
     '  }' +
     '});' +
     // AO ABRIR A SECÇÃO TURMAS, O FILTRO GUARDADO É APLICADO. `hashchange` cobre a chegada
@@ -2984,6 +3036,45 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O ACORDEÃO VOLTA COMO FICOU. Sem isto, cada recarregar (e cada operação recarrega)
     // devolveria o formulário aberto — e o recolhimento que a pessoa pediu duraria um clique.
     'definirFormularioRecolhido(formularioRecolhido());' +
+    // ================= O ACORDEÃO DAS SECÇÕES DE UMA COISA SÓ (18/10/2026) =================
+    // Turmas recolhe a faixa dos passos; Professores, Alunas, Vocabulário e Curadorias
+    // recolhem o TÍTULO, que é o cabeçalho que elas têm. Recolhido, o formulário sai da
+    // frente e a LISTAGEM ocupa a largura toda — é o mesmo pedido, e o mesmo desenho.
+    //
+    // O ESTADO É LEMBRADO POR SECÇÃO, e não numa chave só. Quem recolhe o vocabulário para
+    // ler os termos não pediu para recolher as alunas, e uma chave partilhada faria disso uma
+    // decisão da página inteira. `sessionStorage` pela razão de sempre: a página recarrega a
+    // cada operação, e um formulário que se reabre sozinho desfaria o que a pessoa acabou de
+    // pedir — sem ser preferência para amanhã.
+    'var SECOES_COM_ACORDEAO = ["sec-professores","sec-alunas","sec-vocabulario","sec-curadorias"];' +
+    'function chaveDaSecao(id){ return "producao:recolhido:" + id; }' +
+    'function secaoRecolhida(id){' +
+    '  try { return sessionStorage.getItem(chaveDaSecao(id)) === "sim"; } catch (err) { return false; }' +
+    '}' +
+    'function definirSecaoRecolhida(id, sim){' +
+    '  try {' +
+    '    if (sim) sessionStorage.setItem(chaveDaSecao(id), "sim");' +
+    '    else sessionStorage.removeItem(chaveDaSecao(id));' +
+    '  } catch (err) {}' +
+    '  var secao = document.getElementById(id);' +
+    '  if (!secao) return;' +
+    '  var miolo = secao.querySelector(".col-form");' +
+    '  var seta = secao.querySelector(".alternar-form[data-acordeao]");' +
+    // O ESTADO VAI NA SECÇÃO porque é ELA que tem a grade — e uma grade não se muda a partir
+    // do filho. É a mesma regra do `.turmas-corpo`.
+    '  secao.setAttribute("data-recolhido", sim ? "sim" : "nao");' +
+    '  if (miolo) miolo.hidden = !!sim;' +
+    '  if (seta) {' +
+    '    var rotulo = sim ? "Abrir o formulário" : "Recolher o formulário";' +
+    '    seta.setAttribute("aria-expanded", sim ? "false" : "true");' +
+    '    seta.setAttribute("aria-label", rotulo);' +
+    '    seta.setAttribute("title", rotulo);' +
+    '    seta.textContent = sim ? "\\u25B8" : "\\u25BE";' +
+    '  }' +
+    '}' +
+    'for (var sec = 0; sec < SECOES_COM_ACORDEAO.length; sec++) {' +
+    '  definirSecaoRecolhida(SECOES_COM_ACORDEAO[sec], secaoRecolhida(SECOES_COM_ACORDEAO[sec]));' +
+    '}' +
     // OS PASSOS da secção Turmas. Três coisas mudaram em relação às abas (18/10/2026):
     //
     //  1. NÃO É MAIS UM MENU, É UMA SEQUÊNCIA — o que se mostra é o passo, e o resto continua
