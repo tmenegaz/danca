@@ -165,6 +165,41 @@ function chavesFixasDaEscola(slug) {
 }
 
 /**
+ * O PONTEIRO da geração — e a chave que ele aponta (20/10/2026).
+ *
+ * São as duas chaves da família da geração que existem por construção: o ponteiro tem nome fixo,
+ * e o registo da última variante tem o nome que ele declara. Lidas com um `get` cada, entram na
+ * lista de «conhecidas» do expurgo — e a variante que o professor acabou de gerar não fica para
+ * trás quando a enumeração não está disponível.
+ *
+ * As variantes ANTIGAS (de gerações anteriores) não têm como ser sabidas sem enumerar, e ficam
+ * declaradas como limite: o relatório diz que a limpeza não se completou, e a retomada a leva.
+ */
+async function chavesDaGeracao({ token, accountId, namespaceId, slug, fetchImpl }) {
+  const e = String(slug || '').trim();
+  if (!e || !token || !namespaceId) return [];
+  const f = fetchImpl || fetch;
+  const ponteiro = 'bastidores/' + e + '/geracao/.ultimo';
+  const base = 'https://api.cloudflare.com/client/v4/accounts/' + accountId +
+    '/storage/kv/namespaces/' + namespaceId + '/values/';
+  const chaves = [ponteiro];
+  try {
+    const res = await f(base + encodeURIComponent(ponteiro), {
+      headers: { 'Authorization': 'Bearer ' + token },
+    });
+    if (res.ok) {
+      const apontada = String(await res.text().catch(() => '')).trim();
+      // A CHAVE APONTADA TEM DE SER DESTA ESCOLA. Um ponteiro corrompido (ou de outra escola) não
+      // pode fazer este expurgo apagar o dado de outra — a trava é o prefixo, não a confiança.
+      if (apontada && apontada.indexOf('bastidores/' + e + '/geracao/') === 0) chaves.push(apontada);
+    }
+  } catch (erro) {
+    // sem o ponteiro, a família da geração fica para a enumeração
+  }
+  return chaves;
+}
+
+/**
  * Lista os NOMES das chaves do KV com um prefixo — PAGINANDO.
  *
  * Devolve `{ ok, status, chaves, erro }`. O `ok` existe porque a versão anterior devolvia
@@ -293,7 +328,9 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
   // trás quando a enumeração morria.
   const conhecidas = (registro.existe === true
     ? registro.chaves.concat([CHAVE_DO_REGISTRO(slug)])
-    : registro.chaves).concat(chavesFixasDaEscola(slug));
+    : registro.chaves)
+    .concat(chavesFixasDaEscola(slug))
+    .concat(await chavesDaGeracao({ token, accountId, namespaceId, slug }));
 
   // AS CHAVES QUE JÁ SE TENTOU, POR PREFIXO. Serve para (a) não repetir o DELETE da mesma
   // chave em passagens seguintes e (b) contar `total` como o CONJUNTO visto, e não a soma de
@@ -487,6 +524,7 @@ module.exports = {
   listarChavesSeguro,
   prefixosDaEscola,
   chavesFixasDaEscola,
+  chavesDaGeracao,
   CHAVES_FIXAS_DA_ESCOLA,
   SUBDOMINIO,
 };

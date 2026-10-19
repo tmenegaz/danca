@@ -19618,6 +19618,10 @@ ainda dependiam dela, e as duas apareceram ao verificar se dava para testar:
   `rubricas`, `vocabulario`, `curadorias`, `aparencia`) entram na lista de «conhecidas» do expurgo,
   ao lado do registo. A lista é **declarada**, como os prefixos: só fica incompleta se alguém
   inventar uma chave nova sem a acrescentar — o mesmo risco e a mesma disciplina.
+- **O ponteiro da geração entra com a variante** (`chavesDaGeracao`): o expurgo lê
+  `bastidores/<escola>/geracao/.ultimo` (um `get`) e apaga também a chave que ele aponta — a que o
+  professor acabou de gerar. A chave apontada é VALIDADA pelo prefixo da escola: um ponteiro
+  corrompido não pode fazer este expurgo apagar o dado de outra.
 
 **Onde.** `motor/servidor/geracao.js` (`CHAVE_DO_ULTIMO`, `registrar`, `ultimoDaEscola`) ·
 `motor/servidor/expurgar-escola.js` (`CHAVES_FIXAS_DA_ESCOLA`, `chavesFixasDaEscola`, o uso em
@@ -19627,10 +19631,12 @@ ainda dependiam dela, e as duas apareceram ao verificar se dava para testar:
 **Com o quê.** `provar-geracao` → **42 verificações** (era 38): gravar deixa o ponteiro; a pergunta
 sem turma — a do cartão — **não enumera**; a escola sem ponteiro acha o registo pela enumeração e
 passa a ter ponteiro; e **com a enumeração a estourar o cartão continua a saber o estado**.
-`provar-expurgo-sem-listagem` → **47 asserções** (era 40), com a secção 5 nova: a lista declara as
-nove chaves, o cadastro é apagado por nome com a enumeração recusada e sem registo, e o limite fica
-dito — as chaves de nome **dinâmico** (um envelope por registo, o registo de custo) não há como
-saber sem enumerar, e é por isso que a resposta continua a ser `ok: false` com o caminho de volta.
+`provar-expurgo-sem-listagem` → **49 asserções** (era 40), com a secção 5 nova: a lista declara as
+nove chaves, o cadastro é apagado por nome com a enumeração recusada e sem registo, **o ponteiro da
+geração e a variante que ele aponta saem com ele**, e o limite fica dito — as chaves de nome
+**dinâmico** (um envelope por registo, o registo de custo, as variantes de gerações antigas) não há
+como saber sem enumerar, e é por isso que a resposta continua a ser `ok: false` com o caminho de
+volta.
 
 Sem regressão: `provar-expurgo-leitura-atrasada` 45 · `provar-indice-de-proveniencia` 57 ·
 `provar-acervo-envelopes` 43 · `provar-indice-de-envelopes` 41 · `provar-listas-sem-repeticao` 16 ·

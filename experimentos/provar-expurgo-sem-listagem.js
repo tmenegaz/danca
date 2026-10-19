@@ -163,7 +163,8 @@ async function main() {
     // nomes que existem por construção, e não só os que o registro conhece. Apagar um nome que
     // não existe é uma resposta 404 do KV, não um erro — e a alternativa era deixar cadastro
     // para trás quando a enumeração morresse.
-    checar('apagou as 12 chaves da escola, o registro e as 4 fixas que faltavam', kv.apagadas === 17,
+    checar('apagou as 12 chaves da escola, o registro e as fixas/ponteiro que faltavam',
+      kv.apagadas >= 13 && kv.apagadas === kv.total,
       { apagadas: kv.apagadas, total: kv.total });
     checar('não sobrou nenhuma a responder', kv.restantes === 0, { restantes: kv.restantes, ficaram: kv.ficaram });
     checar('os nomes vieram do REGISTRO (dito no relatório)',
@@ -193,8 +194,9 @@ async function main() {
     // o expurgo dizer «completo» sem ter certeza — ele relata a pendência da enumeração.
     // 6 do fixture + as 3 fixas que ele não tem (professores, donas, aparencia…): o expurgo
     // tenta os nomes declarados, e apagar um que não existe é um 404 do KV — não um erro.
+    // 9 fixas + o ponteiro da geração (que é tentado mesmo sem existir).
     checar('o expurgo apaga as chaves FIXAS que conhece, mesmo sem registro',
-      kv.apagadas === 9, kv.apagadas);
+      kv.apagadas === 10, kv.apagadas);
     // O LIMITE, DITO: as chaves FIXAS saem por nome; as que têm nome DINÂMICO (um envelope por
     // registo, o registo de custo) não há como saber sem enumerar. Ficam — e é por isso que a
     // resposta é `ok: false`, com o caminho de volta (`POST /api/expurgar-kv`).
@@ -354,6 +356,20 @@ async function main() {
     checar('sem slug não há chaves (não se apaga o namespace inteiro por omissão)',
       chavesFixasDaEscola('').length === 0);
 
+    // A FAMÍLIA DA GERAÇÃO: o ponteiro (nome fixo) e a variante que ele aponta.
+    const ghost = nuvemFalsa({
+      'bastidores/calango/geracao/.ultimo': 'bastidores/calango/geracao/calango-bale-1',
+      'bastidores/calango/geracao/calango-bale-1': '{"em":"2026-10-19T10:00:00Z"}',
+    });
+    ghost.enumeracao = false;
+    const kvG = await comFetch(ghost, () => apagarChavesDeEscola({
+      token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: 'calango', pausa: SEM_DORMIR,
+    }));
+    checar('o ponteiro da geração é apagado, e a variante que ele aponta também',
+      !ghost.kv.has('bastidores/calango/geracao/.ultimo')
+        && !ghost.kv.has('bastidores/calango/geracao/calango-bale-1'), [...ghost.kv.keys()]);
+    checar('e as duas entram na conta do relatório', kvG.apagadas >= 2, kvG.apagadas);
+
     // E o efeito: sem registro, o cadastro AINDA sai.
     const estado = nuvemFalsa({
       'bastidores/calango/turmas': '[]',
@@ -371,7 +387,7 @@ async function main() {
     // 9 = as nove fixas declaradas (as 3 que existem + as 6 que não existem, das quais o KV
     // devolve 404 — não é erro). O que importa é não dizer «0 de 0», que se lê como «nada havia».
     checar('e o relatório diz o que apagou (não «0 de 0»)',
-      kv.apagadas === CHAVES_FIXAS_DA_ESCOLA.length, kv.apagadas);
+      kv.apagadas === CHAVES_FIXAS_DA_ESCOLA.length + 1, kv.apagadas);
   }
 
   console.log('\n' + (falhas === 0
