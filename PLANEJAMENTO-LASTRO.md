@@ -401,7 +401,7 @@ o detalhe e a evidência na tabela da própria frente. O resumo, porque ele corr
 | **EXISTE** | Fonte de verdade em ficheiros + Git; contrato por artefacto (schema versionado); documento derivado por transformação determinística; as três fontes com chave-valor por `id` de nó no envelope; a **âncora encadeada** por ciclo **e por aula**; o **elo do ajuste** com `motivo` e a recusa de apagar o vinculado; o envelope **versionado** (`1.3.0`) com proveniência **por campo** (`{valor, origem, respondente, nota}`); o armazenamento por contrato de 6 verbos com adaptador `fs`↔KV; turma e termo com **id slug** e a relação turma↔termo chaveada por id; o **índice por aula** do ciclo (`aulas[]` com `estado`/`prazo`/`lancada`); a **vista determinística** por aluna; o isolamento por escola na família do envelope; o `pagante` como trava de expurgo; o cadastro de professores com **senha em hash + sal** (nunca em claro); **a identidade visual como contrato** — fonte única (`tools/templates/ciclo.css`), papel por token, piso de contraste **medido** e validador (`tools/check-identidade.js`) |
 | **EXISTE PARCIALMENTE** | **Chave estável dos campos**: existe para a folha de captura (`_declaracao`, rótulo↔chave↔tipo) e **não** para os 111 nós (a chave do derivado vem do rótulo visível); **identidade das entidades**: escola/ciclo/turma/termo têm id, **aluna e professor não**; **índice**: existe por escola (inventário, não lido pela aplicação) e por aula, **não** há índice invertido nem de consulta; **proveniência**: existe por campo e por elo de ajuste, **falta** o produtor de `ancora` e de `conteudo.digest`; **leitura do lançamento**: o dado **está gravado** e **não tem rota**; **relações**: existem derivadas por varredura (`vinculos`, `vinculosDePlano`) e faltam declaradas; **imutabilidade**: implementada para a anamnese (ajuste) e **não** para o PO (sobrescrito); **medidor de IA**: escrito e **nunca lido** |
 | **NÃO EXISTE** | Cruzamento entre entidades, filtro, agregação e **busca textual**; **exportação**; leitor do lançamento; as cinco camadas de indexação do texto 1 §4 como camadas; o **conceito de «contexto»** (isolado × combinação), de **«componente»**, de **«intervenção docente»** e de **«resposta observada»** — medidos: **zero** ocorrências nos três conteúdos (§7); `modalidade` como campo (vive só na curadoria); a referência **curricular** versionada e os objetivos do **próximo nível**; tudo o comercial (plano, preço, assinatura, cobrança, cota, limite por plano); **o catálogo de paletas e o seletor de aparência** — as seis famílias e as doze combinações **não existem no código** (nenhum hex, nenhum item de menu, nenhuma persistência: §L13); o vínculo persistido entre lançamento e versão do plano — **decidido em 15/10/2026 que passa a existir**, realiza-se em **L5** (§3 C3) |
-| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais 3 e quais 7 consultas, e o que é «todas» quando o catálogo crescer · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
+| **PRECISA DE DECISÃO** | **C1** lançamento: fonte versionada × leitura do KV · **C2** namespace partilhado × separado (isolamento) · **C4** vínculo da aula ao marco por id · **C5** quais consultas em cada plano (C5b) — **«todas» já decidida** em 18/10/2026: é a fotografia da data de vigência (C5a) · **C6** contagem de nós · **C7** leitor do medidor · **C8** valores comerciais como dado · **C9** a frase de B5 sobre os envelopes · **C10** os quatro conceitos ausentes do modelo (§3) — e, com ela, a ordem: acrescentar o vocabulário do domínio (L10) antes ou depois de L6 · **C11** onde vive o **estado comercial** (plano, período, pagamento, provisionamento) — KV × Git × D1 —, e, com ela, o achado de que **não existe lado público** na porta (§3). **Entraram em 16/10/2026: C12** as **quatro durações** (2 h · 48 h · 3 meses de oferta · e a «regra dos 30 dias» de suspensão, que **não existe** no repositório), e o que «suspender» bloqueia · **C13** em que **instalação** vive a página de planos e pagamentos (o Worker da escola, onde `ESCOLA_SLUG` identifica, ou a raiz, onde não há escola a identificar) · **C14** quando **começam as 48 h** de conciliação · **C16** onde vive o **material** de cobrança que o banco gera (QR Code, copia e cola, instruções) e o que dele é **público** — decisão **distinta** de **C11**, que continua a ser o «onde» do **estado** comercial, e que a proposta **não** pode duplicar · **Entraram em 16/10/2026 (a avaliação): C17** quem é o **«administrador»** do Sistema Lastro — a direção da escola, o dono da plataforma, ou ambos com fronteiras —, papel que a L11 (a confirmação) e a L12 (o e-mail) invocam e que **não existe** · **C18** `pagante` com **dois significados** (a trava de expurgo do andaime × o estado comercial da L12), e **o que faz uma escola ser `pagante`**. **Saiu desta lista em 18/10/2026: C15** — decidida pelo dono do produto: **a preferência de aparência é da escola** (e, com ela, o mecanismo passa a ser o **servidor**, porque a escolha de uma escola não pode viver num navegador) — §3 C15. **Saiu desta lista em 15/10/2026: C3** — decidida (o PO/plano publicado passa a ter versão explícita que o lançamento referencia); as sub-decisões de desenho **S1–S4** foram **aprovadas no mesmo dia**, e as três **de produto** (**S5** o formato do ordinal · **S6** quando reancorar · **S7** como o formulário mostra a versão) foram **decididas em seguida** — o desenho de L5 está **completo** — §3 C3 e §L5 |
 
 ### 2.11 O que acontece quando o professor aciona «Gerar PO», operação por operação
 
@@ -518,9 +518,21 @@ marco? *(Frentes L2, L5.)*
 **C5 — O catálogo tem 8 e a distribuição pede 3/7/todas.** *O texto 2 §4* propõe oito perguntas
 (T01–T05, P01–P03) e *§5* atribui 3 ao Básico, 7 ao Intermediário e «todas» ao Avançado — e o
 próprio texto diz que *«a distribuição comercial exata deve ser validada quando o catálogo for
-formalizado»*. **Decisão**: quais 3 e quais 7, e o que «todas» significa quando o catálogo
-crescer (a cota acompanha o catálogo ou congela no que existia na contratação?). *(Frentes L6,
-L9.)*
+formalizado»*. **Partida em duas em 18/10/2026.**
+
+- **C5a — «todas» — RESOLVIDA** por decisão do dono do produto: são **as perguntas disponíveis na
+  data de vigência do contrato**. Contratado em 18/10/2026, o Avançado leva o que existe nesse dia;
+  o que o produto ganhar depois **não entra** — fica para renovação ou upgrade. Isso obriga o
+  catálogo a ser **fotografia datada** (`catalogo@AAAA-MM-DD`) e o contrato a nomear **qual**
+  fotografia congelou (L9).
+- **C5b — quais consultas em cada plano — NÃO BLOQUEIA, e não pode ser respondida agora.** A
+  repartição foi tratada como premissa; não é: é **consequência** do catálogo fechado. A unidade da
+  decisão é o **poder** que o plano entrega — **operar** (x) · **cruzar para escolher** (x²) ·
+  **decidir sobre o programa** (x³) —, não a contagem de consultas, que no texto 2 era bússola e só
+  isso. O catálogo tem hoje **55 perguntas firmadas em 8 famílias**, e a **grade** que mede a
+  cobertura (54 células: 29 ocupadas, 17 dívidas, 8 recusas) está em
+  [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §4.9; a repartição sai
+  quando a grade saturar (§5 daquele documento). *(Frentes L6, L9.)*
 
 **C6 — Duas contagens de nós.** Ver §2.2. Registada; `FRENTES.md` não foi alterado.
 
@@ -1251,7 +1263,7 @@ decisão.
   classifica e não ordena por mérito (revisão de saída por lista de expressões proibidas).
 - **Riscos e decisões por confirmar.** (a) **Risco central**: a consulta virar avaliação — a
   fronteira que o projeto declara e ainda não desenhou; (b) o «contexto» precisa de definição do
-  domínio antes de ser implementável; (c) C5 (quais 3 e quais 7); (d) o que fazer com o dado
+  domínio antes de ser implementável; (c) C5b (quais consultas em cada plano); (d) o que fazer com o dado
   que **não foi observado** (declarar, nunca inferir).
 - **Prioridade.** **P2** — depois de L1–L4; é onde o produto passa a valer.
 
@@ -2129,7 +2141,7 @@ L2 → L3 → L4. O caminho até T02/T04/T05/P02 passa, antes, por uma decisão 
 | §4 | Verificar se o dado está disponível e que relações faltam | **§7** (tabela com classe por pergunta) |
 | §4 | **T01–T05, P01–P03** | **§7** (as oito, uma a uma) |
 | §4 | O catálogo é evolutivo | §L6 entrega (a) + §9 (pendência) |
-| §5 | Distribuição 3 / 7 / todas | **§3 C5** + §L9 entrega (c) — **não decidida** (é sua) |
+| §5 | Distribuição 3 / 7 / todas | **§3 C5** — «todas» **decidida** em 18/10/2026 (fotografia da data de vigência); a repartição é **consequência** do catálogo fechado (C5b) |
 | §5 | A diferença de plano **não** reduz o dado | §L9 critério (ii)/(iv) + §6 regra 5 |
 | §5 | «quais consultas podem ser implementadas com o modelo atual…» | **§7** (a classificação SIMPLES/CRUZAMENTO/VOCABULÁRIO faz exactamente isto) |
 | §6 | Hora técnica R$ 120,00; orçamento; escopo aprovado; entrega restrita | §L8 entrega (d) + §3 C8 (os valores **não** estão no repositório) |
@@ -2216,8 +2228,9 @@ O texto desta rodada não é uma estratégia: é a **documentação de um estudo
    com o RAD seria fazê-lo.
 2. **A especificação completa de cada consulta** (entradas, filtros, agrupamentos, saídas) —
    depende de (1) e dos ids de L1/L2; a **classe** de cada uma já está no §7.
-3. **Quais 3 e quais 7 consultas** em cada plano (§3 C5) — decisão comercial, e o texto 2 a marca
-   explicitamente como «a validar».
+3. **Quais consultas em cada plano** (§3 C5b) — decisão comercial, que **depende do catálogo
+   fechado**; o texto 2 já a marcava como «a validar», e a grade de cobertura está em
+   [PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §4.9.
 4. **Onde a habilitação do plano vive** (o `ESCOLA.conf` que o andaime promete) — depende de B3 e
    de C2.
 
@@ -2236,8 +2249,8 @@ O texto desta rodada não é uma estratégia: é a **documentação de um estudo
 - **Não definiu** «contexto», «componente», «intervenção docente» nem «resposta observada»
   (§3 C10, §L10) — é decisão de **conteúdo**, e o texto 1 §7 proíbe presumir equivalência entre
   tradições. É a razão pela qual quatro das oito perguntas ficam bloqueadas (§7).
-- **Não inventou** valores comerciais, nem regras de cobrança, nem quais 3/7 consultas vão em
-  cada plano (§2.9, C5).
+- **Não inventou** valores comerciais, nem regras de cobrança, nem quais consultas vão em cada
+  plano (§2.9, C5b).
 - **Não alterou** nenhum arquivo de produto, nenhuma fonte de ciclo, nem o KV (a leitura foi
   somente leitura) — e **não implementou** a versão explícita decidida em C3: esta fase é
   diagnóstico e planeamento, e as três medidas que delimitam a implementação foram feitas em
