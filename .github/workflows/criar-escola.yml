@@ -138,7 +138,33 @@ jobs:
           Regras: P-03, P-04, P-17
           Auditoria: sim"
 
-          git push
+          # O PUSH PODE PERDER A CORRIDA (19/10/2026). Três workflows escrevem no `main`
+          # (este, o `gerar-ciclo.yml` e o `reancorar.yml`) e o `reancorar` corre a cada
+          # push de `professores/**` — inclusive no commit que ESTE workflow acabou de
+          # fazer. Um `git push` simples perdia para quem chegou primeiro
+          # (`! [rejected] main -> main (fetch first)`, às 18:11:21 de 19/10/2026) e
+          # derrubava a criação DEPOIS de o motor já estar no ar — deixando um Worker a
+          # servir uma escola que não existe no repositório, e sem o rollback a correr
+          # (ele é cancelado quando o motor sobe, o que é o correcto quando o motor subiu).
+          #
+          # Aqui não há âncora para conflitar: os caminhos que este commit toca são NOVOS
+          # (`professores/<professor>` da escola nova, `escola/<slug>`, `wrangler.<slug>`),
+          # e ninguém mais os escreve. Um conflito de verdade continua a falhar.
+          for intento in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "push recusado (tentativa $intento) — rebaseando sobre o main"
+            git fetch origin main
+            if ! git rebase origin/main; then
+              echo "erro: conflito ao rebase — o scaffold desta escola não se aplica sobre o main" >&2
+              git rebase --abort || true
+              exit 1
+            fi
+            sleep $((intento * 5))
+          done
+          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          exit 1
 
       # ---------------------------------------------------------------------
       # O ROLLBACK DO ÓRFÃO.

@@ -18829,3 +18829,54 @@ sobre o `.fipp` (o outro ramo do mesmo workflow).
 
 **O que ainda não está feito.** A execução falhada (`39299265133`) não deixou nada por fazer: a
 âncora já estava íntegra, e o push era de expurgo. Nada a refazer.
+
+## 19/10/2026 — O `criar-escola` também perde a corrida do `push`
+
+**O que motivou.** A criação da escola `calango` falhou às 18:11:21, no último passo:
+
+```
+✓ Montar o scaffold (professor + ciclo + pacote-zero + wrangler)
+✓ Subir o motor completo no Cloudflare
+✗ Commitar o scaffold
+     ! [rejected] main -> main (fetch first)
+```
+
+E o resultado não foi «nada aconteceu» — foi pior: o **Worker ficou no ar** a servir a escola, e
+o **repositório não tem registro nenhum** dela (sem `wrangler.calango.jsonc`, sem `escola/calango`,
+sem pasta de ciclo). O passo de rollback **não correu**, e por desenho: a condição é
+`failure() && steps.motor.outcome != 'success'`, e o motor **subiu** — o comentário lá explica por
+quê («se o motor SUBIU, não há órfão: há uma escola a funcionar»). Só que o que faltou foi
+exactamente o registro, e sem ele a escola não é gerenciável: o `deploy-escolas` nunca mais a vê,
+a página da raiz não a lista, e **criar de novo é recusado** (`a escola "calango" já existe`).
+
+**A causa é a mesma dos outros dois workflows:** três escrevem no `main` (este, o
+`gerar-ciclo.yml` e o `reancorar.yml`), e o `reancorar` corre a cada push de `professores/**` —
+inclusive no commit que este workflow acabou de fazer. Um `git push` simples perde para quem
+chegou primeiro.
+
+**O que foi decidido.**
+- O `push` do scaffold **rebaseia e reinsiste** (5 tentativas), como os outros dois.
+- **Não há âncora nem conteúdo compartilhado neste commit**: os caminhos que ele toca são NOVOS
+  (a pasta do professor para esta escola, `escola/<slug>`, `wrangler.<slug>.jsonc`), e ninguém
+  mais os escreve. Por isso o ramo do conflito aqui **aborta e falha** — não há nada a regenerar,
+  e um conflito ali é sinal de verdade.
+
+**Onde entrou.**
+- `.github/workflows/criar-escola.yml` — o laço de `fetch` + `rebase` + reintento.
+- `experimentos/provar-geracao-do-ciclo.js` — quatro asserções, incluindo a que impede o
+  `git push` solto de voltar.
+
+**Com o quê.** `provar-geracao-do-ciclo` → **18 verificações**. O estado deixado pela falha foi
+limpo com o instrumento do projecto (`excluirEscola`: subdomínio → script → KV): `calango` responde
+**404**, o KV tem **0 chaves** e o repositório não tem `wrangler.calango.jsonc`. O
+`desfazer-placeholder.js` **recusou** apagar — e fez bem: ele só apaga placeholder, e ali já estava
+o motor. É a prova de que a guarda funciona, e a razão pela qual a limpeza teve de ser explícita.
+
+**Referências.** As duas entradas desta data sobre o mesmo tema (o `fetch first` do `reancorar`, o
+conflito do `.fipp` no `gerar-ciclo`) · `motor/servidor/provisionar-escola.js` (§ o rollback) ·
+`tools/desfazer-placeholder.js` (a guarda que recusa apagar escola a sério).
+
+**O que ainda não está feito.** (a) A escola `calango` **não existe** — nem no repositório, nem no
+Cloudflare. O teste tem de ser refeito do zero depois deste commit. (b) O `criar-escola.yml` roda
+com o workflow do commit que o dispara, portanto a correção só vale para criações **posteriores** a
+este push.

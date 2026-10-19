@@ -179,6 +179,21 @@ function oAcordo() {
     'o glob vazio voltou a ser tratado como erro');
   ok('sem escola no repositório, o reancorar diz «nada a reancorar» — e não falha');
 
+  // O CRIAR-ESCOLA TAMBÉM PERDE A CORRIDA (19/10/2026). Foi ele que falhou às 18:11:21:
+  // `push` recusado DEPOIS de o motor já estar no ar, deixando um Worker a servir uma
+  // escola sem registro no repositório — e sem o rollback a correr (ele é cancelado
+  // quando o motor sobe, o que é o correcto quando o motor subiu). O commit do scaffold
+  // são caminhos NOVOS (a pasta do professor, `escola/<slug>`, `wrangler.<slug>`), e
+  // ninguém mais os escreve — um conflito ali é de verdade e continua a falhar.
+  const criar = ler('.github/workflows/criar-escola.yml');
+  assert.match(criar, /for intento in 1 2 3 4 5; do/);
+  assert.match(criar, /git fetch origin main/);
+  assert.match(criar, /git rebase origin\/main/);
+  assert.match(criar, /git rebase --abort \|\| true/);
+  assert.equal(/^\s*git push$/m.test(criar), false,
+    'o criar-escola voltou a ter um `git push` sem reintento');
+  ok('o criar-escola rebaseia e reinsiste — três workflows escrevem no `main`');
+
   // O CONTRATO ENTRE DOIS CONGELADOS: `lancamento.html` não tem rodapé de prosa — o
   // formulário é controle, e em `f9b416b` (18/10) o `footer.rodape` virou
   // `footer.barra-de-controle`. O validador continuou a exigir `class="rodape"` e passou a
