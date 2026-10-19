@@ -1,0 +1,40 @@
+{
+  "escola": "batata",
+  "worker": "batata",
+  "criado_em": "2026-10-19T16:48:13.723848+00:00",
+  "professor": {
+    "slug": "tiago-menegaz",
+    "nome": "Tiago Menegaz"
+  },
+  "responsavel": "Tiago Menegaz",
+  "ciclo": "01",
+  "senha": {
+    "chave": "SENHA_CRIPTO",
+    "arquivo": "Worker (secret)"
+  },
+  "estado": {
+    "habilitada": true
+  },
+  "arquivos": [
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01.conf",
+      "tipo": "manifesto base"
+    },
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata.conf",
+      "tipo": "manifesto variante"
+    },
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json",
+      "tipo": "schemas"
+    },
+    {
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata/",
+      "tipo": "pacote zero"
+    },
+    {
+      "caminho": "wrangler.batata.jsonc",
+      "tipo": "config do Worker"
+    }
+  ]
+}
