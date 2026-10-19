@@ -18025,3 +18025,63 @@ o `.gitignore` já mantém imagem fora do repositório, e a decisão fica para q
 para quadrado. (c) As páginas do pacote **já geradas** (`index.html` e a porta) receberam a marca e
 o ícone por substituição do fragmento que o gerador produz; o próximo `gerar-ciclo.sh` produz o
 mesmo, e é o Circuito que garante que não divergem.
+
+## 18/10/2026 — A marca chega à porta: o que o pacote não tinha, a ponte preenche
+
+**O que motivou.** A direção testou as três escolas e encontrou a marca numas telas e não noutras:
+aparecia em Sistema Lastro (a raiz), em Estúdio de Dança e em Produção, e **não** aparecia na Área
+do Professor — anamnese, plano de ensino, plano de observação —, nem em `valse`, nem em `danca`.
+
+**O diagnóstico, e ele não era o que parecia.** As três superfícies já servidas em `137f0d0`
+estavam certas. O que faltava era a **porta**: a barra dela não é escrita pelo servidor, é escrita
+**no pacote, no momento da geração** — o `<!-- NAV -->` é substituído por `gerar_nav` em
+`gerar-ciclo.sh`. Todo pacote gerado antes da marca nasceu com o slot `.marca` vazio, e a ponte
+não tinha por que o preencher. Não era um erro de deploy: era um artefacto de geração antigo a ser
+servido por um código novo.
+
+**A correção, na camada certa.** `comAparencia()` — a função que a ponte `producao.js` já usa para
+levar a identidade da escola ao `<html>` — passa também a preencher o slot `.marca` **vazio** com a
+marca do sistema. Três propriedades que a tornam segura: é **cirúrgica** (só o slot vazio, por
+expressão ancorada), é **idempotente** (página que já tem a marca passa intacta — as do pacote
+novo, e as que o gerador já escreve) e é **inerte** onde não há barra (a página de lançamento e as
+páginas de estado não são tocadas). É a camada certa por um motivo de desenho, não de conveniência:
+a ponte já carrega a identidade da escola — modo, família, a marca é a outra metade da mesma frase.
+Os quatro casos (slot vazio, já preenchido, sem barra, e a idempotência) estão provados como
+unidade em `provar-aparencia`.
+
+**A raiz, que é a terceira escola e não tem professor.** `danca` ganhou a marca no seu próprio
+cabeçalho — `.topo-marca` a 40px, com `color: var(--marca-texto)`, inline pela mesma razão da
+barra —, e o `data-modo` continua a ser do visitante: **a família é da casa, o modo é de quem lê.**
+Foi a decisão da direção («a cor padrão na de dança vai ser a verde»), e ela entra como
+`data-paleta="verde"` no `<html>`, com o comentário a dizer que a família ali não é preferência de
+escola nenhuma. O `.topo-linha` passou a `flex-wrap: wrap` com um grupo `.topo-identidade`, para
+que a marca e o título nunca se separem quando a linha parte — medido em 1280, 768, 560, 390 e 320:
+sem transbordo horizontal em nenhuma, marca e título na mesma linha em todas.
+
+**Conferido.** `provar-aparencia` **77/77** (eram 72: mais as quatro provas do preenchimento do
+slot) · `provar-ambiente` **TUDO CERTO**, **16 requisições**, com uma prova nova: **a marca do
+sistema chega à porta** — afirmada sobre a resposta ao vivo, sem requisição extra ·
+`check-identidade` **19 ok / 0 erros** · `provar-producao` 135/135 · `provar-menu-da-producao` 26/26 ·
+`provar-cartao-da-turma` TUDO CERTO · `provar-acordeoes` TUDO CERTO · `provar-linhas-da-lista` TUDO
+CERTO · `provar-tema` 38/38 · `provar-selo` TUDO CERTO · `provar-celular` 15/15 ·
+`provar-ato-e-barra` 72/72 · `provar-ajustes-anamnese` 125/125 · `provar-cabecalho-do-ato` 40/40 ·
+`provar-contexto-do-ato` 37/37. Ao ar, as três escolas reimplantadas: a porta de `fita` e a de
+`valse` devolvem o `<svg>` da marca; `danca` responde 401 na página (protegida por senha) e
+`/api/saude` diz `{"ok":true,"tipo":"raiz"}`.
+
+**Com o quê.** `motor/servidor/producao.js` — a ponte preenche o slot `.marca` vazio em
+`comAparencia()`, com a marca importada de `nav-html.js`, sem duplicar e sem tocar páginas sem
+barra. `raiz/index.html` — `data-paleta="verde"` no `<html>`, `.topo-marca` com o `<svg>` inline a
+40px, grupo `.topo-identidade` e `.topo-linha` com `flex-wrap: wrap`. Em `experimentos/`,
+`provar-aparencia.js` ganha as quatro provas do preenchimento (72 → 77) e `provar-ambiente.js` a
+prova ao vivo da marca na porta. `HANDOFF.md` regenerado.
+
+**Referências.** `ARQUITETURA-CAPTURA.md` (a ponte como dona da identidade da escola) ·
+`IDENTIDADE-VISUAL.md` §«a marca e o papel» · `CONGELAMENTO.md` (nenhum arquivo congelado foi
+tocado nesta entrada: `tools/templates/` já trazia a marca de `efbf257`).
+
+**O que continua declaradamente fora.** O **favicon** segue a paleta vigente — a mesma decisão do
+PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site verde e o ícone
+bordô; corrigir isso exige uma rota por escola, e não é o que se quer. E `valse` continua `bordo`
+porque é a preferência **gravada** daquela escola; trocá-la é um clique em Produção → Aparência,
+não um defeito.

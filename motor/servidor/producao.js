@@ -21,6 +21,8 @@
 
 const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
+// A MARCA DO SISTEMA e o preenchimento do slot vazio. Ver `comAparencia`.
+const { MARCA } = require('../../tools/templates/nav-html.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 
@@ -81,6 +83,26 @@ async function comAparencia(resposta, aparencia) {
     return '<html' + limpos + ' data-modo="' + modo + '" data-paleta="' + paleta +
       '" data-modo-fonte="escola">';
   });
+
+  // O SLOT DA MARCA, PREENCHIDO AO SERVIR (18/10/2026).
+  //
+  // A barra das páginas da porta é ESCrita no pacote na geração (o marcador `<!-- NAV -->`
+  // do `porta/index.html`). Isso quer dizer que uma página gerada ANTES de a marca existir
+  // nunca a recebe — e foi o que aconteceu: a marca aparecia no índice, no Estúdio e na
+  // Produção, e não na anamnese, no plano de ensino nem no PO, que são a mesma barra com um
+  // pacote mais velho. O sintoma é silencioso: um vão no canto esquerdo da barra.
+  //
+  // A PONTE É O LUGAR CERTO. Ela já existe para fazer a identidade da ESCOLA chegar a tudo
+  // o que ela serve (o `data-paleta`/`data-modo` acima); a marca é a outra metade da mesma
+  // frase — a identidade do SISTEMA. Preencher aqui faz com que um pacote velho, ou um
+  // pacote de outra professora que ninguém vai regerar, fique certo sem ser tocado.
+  //
+  // É CIRÚRGICO E IDEMPOTENTE: só o slot VAZIO é preenchido, e uma página que já traz a
+  // marca passa intacta (o `index.html` dos pacotes já a tem no arquivo; esta linha não a
+  // duplica). Sem `<span class="marca">` — a raiz não tem essa barra — nada acontece.
+  texto = texto.replace(
+    /<span class="marca"([^>]*)><\/span>/g,
+    (tudo, attrs) => '<span class="marca"' + attrs + '>' + MARCA + '</span>');
   const cabecalhos = new Headers(resposta.headers);
   cabecalhos.delete('content-length');
   cabecalhos.delete('content-encoding');

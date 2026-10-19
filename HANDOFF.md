@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-18T22:20:19-0300`
-Commit atual: `08f80d6` — feat(estrutura): as quatro secções restantes recolhem, e o rótulo do catálogo cabe no telefone
+Gerado em: `2026-10-18T22:37:57-0300`
+Commit atual: `137f0d0` — feat(estrutura): a aba ganha ícone, e a barra deixa de ter um vão vazio
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -62,6 +62,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
 ## Últimos commits
 
 ```
+137f0d0 feat(estrutura): a aba ganha ícone, e a barra deixa de ter um vão vazio
+efbf257 feat(tools): a marca entra como papel, e o favicon nasce do mesmo desenho
 08f80d6 feat(estrutura): as quatro secções restantes recolhem, e o rótulo do catálogo cabe no telefone
 7fb3042 fix(estrutura): a família da escola chega a tudo o que ela serve, e a lista desce no telefone
 23cb058 feat(tools): a lista de famílias passa a ter um dono só, e o validador guarda-a
@@ -80,8 +82,6 @@ bca77bb feat(tools): a Cortina Turquesa — a segunda família, medida antes de 
 b901058 feat(tools): a barra perde o botão da aparência — a decisão é da escola
 d930cd5 docs(estrutura): a C15 foi decidida — a preferência de aparência é da escola
 610e747 docs(estrutura): a conferência visual fecha, e a C15 ganha glosa nos dois documentos
-ec57630 docs(estrutura): a leitura de fechamento dos dois documentos de identidade
-ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, aberta na tela larga
 ```
 
 ## Por professor
@@ -147,97 +147,65 @@ ce874b9 feat(estrutura): a dobra do índice da página — recolhe no celular, a
 
 ## Última entrada do REGISTRO
 
-## 18/10/2026 — A marca entra na barra e o favicon existe: a cor vem do papel
+## 18/10/2026 — A marca chega à porta: o que o pacote não tinha, a ponte preenche
 
-**O que motivou.** A direção viu e aprovou o estudo da marca (secção **Q** de
-`experimentos/opcoes-visuais/`) — «aprovado, e com o favicon também» —, e o estudo tinha deixado
-duas coisas por fazer: a marca não estava em lugar nenhum das telas (o slot `.marca` da barra
-era um vão de 9em desde que o texto «Ciclo NN · escola» saiu do menu) e a aba do navegador
-mostrava o globo.
+**O que motivou.** A direção testou as três escolas e encontrou a marca numas telas e não noutras:
+aparecia em Sistema Lastro (a raiz), em Estúdio de Dança e em Produção, e **não** aparecia na Área
+do Professor — anamnese, plano de ensino, plano de observação —, nem em `valse`, nem em `danca`.
 
-**A decisão que atravessa as três famílias: a marca não tem cor, tem papel.** Ela entra como
-`<svg>` **inline** com `fill="currentColor"`, e o `color` vem do `--sobre-marca` — o token que
-já significa «a cor do que fica EM CIMA da barra», escolhido família a família por medição. Onde
-a Bordô usa o creme, a Cortina usa `#06202b` (porque branco sobre turquesa não passa) e a Verde
-usa `#171c18`. Medido no servidor, nas seis combinações: a marca pinta-se sempre com o papel da
-família, sem uma exportação por família. Inline e não `<img>` porque uma `<img>` **não herda
-`currentColor`** — a cor ficaria gravada no arquivo, que é exatamente o problema que o papel
-resolve.
+**O diagnóstico, e ele não era o que parecia.** As três superfícies já servidas em `137f0d0`
+estavam certas. O que faltava era a **porta**: a barra dela não é escrita pelo servidor, é escrita
+**no pacote, no momento da geração** — o `<!-- NAV -->` é substituído por `gerar_nav` em
+`gerar-ciclo.sh`. Todo pacote gerado antes da marca nasceu com o slot `.marca` vazio, e a ponte
+não tinha por que o preencher. Não era um erro de deploy: era um artefacto de geração antigo a ser
+servido por um código novo.
 
-**O favicon tem desenho próprio, e a razão está medida.** A 16px as canaletas entre as pétalas
-medem 0,15px, e as quatro silhuetas viram um borrão — foi testado nas cinco colunas de tamanho
-antes de decidir. O que sobrevive é **uma** silhueta, e não uma inventada: é a `petala-1` — a
-maior, a que domina a arte — com o **mesmo `d`** do `lastro.svg`, dentro de um emblema
-arredondado. O emblema existe por um facto: uma pétala solta na cor da marca **desaparece numa
-barra de abas escura** (medido sobre `#202124`). Sólido sobre sólido, o ícone lê-se nas duas.
+**A correção, na camada certa.** `comAparencia()` — a função que a ponte `producao.js` já usa para
+levar a identidade da escola ao `<html>` — passa também a preencher o slot `.marca` **vazio** com a
+marca do sistema. Três propriedades que a tornam segura: é **cirúrgica** (só o slot vazio, por
+expressão ancorada), é **idempotente** (página que já tem a marca passa intacta — as do pacote
+novo, e as que o gerador já escreve) e é **inerte** onde não há barra (a página de lançamento e as
+páginas de estado não são tocadas). É a camada certa por um motivo de desenho, não de conveniência:
+a ponte já carrega a identidade da escola — modo, família, a marca é a outra metade da mesma frase.
+Os quatro casos (slot vazio, já preenchido, sem barra, e a idempotência) estão provados como
+unidade em `provar-aparencia`.
 
-**Onde entrou.**
-- `tools/templates/marca/lastro.svg` — a geometria, `currentColor`, 3,1KB (era 106KB de PNG
-  embalado). Não há `<image>`, base64 nem `<filter>`: quatro `<path>`, 80 curvas.
-- `tools/templates/marca/logo-vermelho.svg` · `logo-prata.svg` — a **mesma** geometria com `fill`
-  fixo, os dois arquivos pedidos por nome.
-- `tools/templates/marca/favicon.svg` — o emblema. Declara `--burgundy` e `--cream` como custom
-  properties: um favicon é servido sozinho, sem `<link>` para a folha, e por isso **pode**
-  declarar — e é conferido.
-- `tools/templates/marca-lastro.js` — a marca como **STRING**, e não lida do disco: o
-  `nav-html.js` roda no Node **e** no Worker empacotado, e no Worker não há `fs`.
-- `tools/templates/nav-html.js` — o slot `.marca` deixa de ser vazio: recebe o SVG. As **duas**
-  barras (a do pacote, pela `ABERTURA`, e a do sistema, pelo `navSistema`).
-- `tools/templates/ciclo.css` — `.topnav .marca` passa de «vão de 9em» a desenho: 30px de altura
-  na tela larga, 26px abaixo de 1024px, largura pela proporção do `viewBox` (declarar as duas
-  deformaria a marca).
-- `motor/servidor/bastidores.js` · `estado-html.js` · `provisionar-escola.js` ·
-  `motor/nucleo/ficha-html.js` · `porta/index.html` · `raiz/index.html` ·
-  `tools/templates/ciclo.html` · `lancamento.html` — o `<link rel="icon">`. Sem ele o arquivo
-  existiria e a aba continuaria com o globo.
-- `tools/gerar-ciclo.sh` · `criar-escola.sh` · `gerar-raiz.sh` — o favicon viaja no **mesmo
-  circuito** que a folha e o `nav.js`, e por isso é copiado pelos três.
-- `experimentos/marca/vetorizar.js` — o gerador (traçado: alfa → contorno subpixel → Béziers por
-  mínimos quadrados, sem dependências). Grava os cinco arquivos e **mede** a fidelidade: **IoU
-  0,980** contra a alfa da referência.
+**A raiz, que é a terceira escola e não tem professor.** `danca` ganhou a marca no seu próprio
+cabeçalho — `.topo-marca` a 40px, com `color: var(--marca-texto)`, inline pela mesma razão da
+barra —, e o `data-modo` continua a ser do visitante: **a família é da casa, o modo é de quem lê.**
+Foi a decisão da direção («a cor padrão na de dança vai ser a verde»), e ela entra como
+`data-paleta="verde"` no `<html>`, com o comentário a dizer que a família ali não é preferência de
+escola nenhuma. O `.topo-linha` passou a `flex-wrap: wrap` com um grupo `.topo-identidade`, para
+que a marca e o título nunca se separem quando a linha parte — medido em 1280, 768, 560, 390 e 320:
+sem transbordo horizontal em nenhuma, marca e título na mesma linha em todas.
 
-**As guardas — porque a marca é a peça mais fácil de envelhecer em silêncio.**
-- **Checagem «Marca»** (nova, 10ª): o `lastro.svg` é vetor (reprova `<image>`, base64 e
-  `<filter>`) e usa `currentColor`; a **string da barra é o mesmo texto** que o arquivo (senão
-  corrigir um nó deixaria a barra a desenhar a versão anterior, para sempre); o slot não voltou a
-  ficar vazio; o favicon também é vetor.
-- **Circuito** estendido: `assets/favicon.svg` de cada pacote e da raiz tem de ser a fonte, byte
-  a byte.
-- **Declarante** novo: as duas cores do favicon são conferidas contra a folha — é o artefacto
-  mais fácil de esquecer numa mudança de paleta, e o mais visível quando envelhece.
-- As três provadas por **controlo negativo**: um `<image>` no favicon, um `249.21` trocado no
-  módulo e o slot esvaziado — cada um reprova com a sua mensagem.
+**Conferido.** `provar-aparencia` **77/77** (eram 72: mais as quatro provas do preenchimento do
+slot) · `provar-ambiente` **TUDO CERTO**, **16 requisições**, com uma prova nova: **a marca do
+sistema chega à porta** — afirmada sobre a resposta ao vivo, sem requisição extra ·
+`check-identidade` **19 ok / 0 erros** · `provar-producao` 135/135 · `provar-menu-da-producao` 26/26 ·
+`provar-cartao-da-turma` TUDO CERTO · `provar-acordeoes` TUDO CERTO · `provar-linhas-da-lista` TUDO
+CERTO · `provar-tema` 38/38 · `provar-selo` TUDO CERTO · `provar-celular` 15/15 ·
+`provar-ato-e-barra` 72/72 · `provar-ajustes-anamnese` 125/125 · `provar-cabecalho-do-ato` 40/40 ·
+`provar-contexto-do-ato` 37/37. Ao ar, as três escolas reimplantadas: a porta de `fita` e a de
+`valse` devolvem o `<svg>` da marca; `danca` responde 401 na página (protegida por senha) e
+`/api/saude` diz `{"ok":true,"tipo":"raiz"}`.
 
-**A CORREÇÃO QUE ESTA ENTRADA TROUXE, e que era de ontem.** Ao rodar a bateria apareceu uma
-falha em `provar-menu-da-producao`: «a secção visível abre pelo seu próprio título». A causa era
-o commit `08f80d6` — o acordeão pôs a seta **dentro** do `<h2>`, e o `textContent` do título
-passou a ser «Curadorias▾». A prova media o texto do título, e o título passou a ter um controle.
-Corrigida a medida (lê o `.secao-nome`), não o texto: 26/26.
+**Com o quê.** `motor/servidor/producao.js` — a ponte preenche o slot `.marca` vazio em
+`comAparencia()`, com a marca importada de `nav-html.js`, sem duplicar e sem tocar páginas sem
+barra. `raiz/index.html` — `data-paleta="verde"` no `<html>`, `.topo-marca` com o `<svg>` inline a
+40px, grupo `.topo-identidade` e `.topo-linha` com `flex-wrap: wrap`. Em `experimentos/`,
+`provar-aparencia.js` ganha as quatro provas do preenchimento (72 → 77) e `provar-ambiente.js` a
+prova ao vivo da marca na porta. `HANDOFF.md` regenerado.
 
-**Conferido.** `check-identidade` **19 ok / 0 erros** (era 17: mais «Marca» e o Declarante do
-favicon) · `provar-ambiente` **TUDO CERTO**, **16 requisições** (eram 14: +1 por escola para o
-favicon) — em `fita` a porta diz `verde` e a Produção também; em `valse` as duas dizem `bordo`,
-que é a preferência dela · `provar-menu-da-producao` 26/26 · `provar-producao` 135/135 ·
-`provar-celular` 15/15 · `provar-tema` 38/38 · `provar-selo` TUDO CERTO · `provar-aparencia` 72/72
-· `provar-ato-e-barra` 72/72 · `provar-ajustes-anamnese` 125/125 · `provar-cabecalho-do-ato`
-40/40 · `provar-contexto-do-ato` 37/37 · `provar-cartao-da-turma` TUDO CERTO · `provar-acordeoes`
-TUDO CERTO · `provar-linhas-da-lista` TUDO CERTO. Ao ar: favicon `HTTP 200 · image/svg+xml ·
-1841 bytes`, e as três superfícies (raiz, Produção, anamnese) com o `<link rel="icon">`.
+**Referências.** `ARQUITETURA-CAPTURA.md` (a ponte como dona da identidade da escola) ·
+`IDENTIDADE-VISUAL.md` §«a marca e o papel» · `CONGELAMENTO.md` (nenhum arquivo congelado foi
+tocado nesta entrada: `tools/templates/` já trazia a marca de `efbf257`).
 
-**Motivo declarado — os congelados.** `tools/templates/` e `tools/` são congelados. O motivo é o
-produto: a marca foi **aprovada** e não existia em nenhuma tela; o slot da barra estava vazio
-desde que o texto saiu do menu, e o favicon nunca existiu. **Não muda** a fórmula do hash, a
-cobertura dele, os validadores de ciclo, as regras pedagógicas nem as pétreas; nenhum componente
-existente foi alterado; e o circuito dos assets ganha uma perna (o favicon), que é o que impede a
-cópia de envelhecer.
-
-**O que ainda não está feito.** (a) O **favicon é da paleta vigente**, e é decisão declarada — a
-mesma do PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site verde e o
-ícone bordô; trocar isso exige uma rota por escola. (b) O **`apple-touch-icon`** exigiria um PNG —
-o `.gitignore` já mantém imagem fora do repositório, e a decisão fica para quando houver um desenho
-para quadrado. (c) As páginas do pacote **já geradas** (`index.html` e a porta) receberam a marca e
-o ícone por substituição do fragmento que o gerador produz; o próximo `gerar-ciclo.sh` produz o
-mesmo, e é o Circuito que garante que não divergem.
+**O que continua declaradamente fora.** O **favicon** segue a paleta vigente — a mesma decisão do
+PDF: ele é do SISTEMA, não da escola. Uma escola em Verde de Ensaio tem o site verde e o ícone
+bordô; corrigir isso exige uma rota por escola, e não é o que se quer. E `valse` continua `bordo`
+porque é a preferência **gravada** daquela escola; trocá-la é um clique em Produção → Aparência,
+não um defeito.
 
 ## O que está pendente
 

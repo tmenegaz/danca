@@ -205,6 +205,12 @@ async function baixar(url) {
       provar(`o <style> de ${caminho} é o de porta/index.html`,
         css === portaCss, { noAr: h(css), fonte: h(portaCss) });
       familiasDaPorta.set(caminho, (html.match(/data-paleta="([^"]+)"/) || [])[1]);
+      // A MARCA DO SISTEMA NA PORTA (18/10/2026), ao vivo e sem requisição nova: o HTML já
+      // está em mãos. Era aqui que ela faltava — a barra da porta é escrita no PACOTE, na
+      // geração, e o pacote no ar era mais velho que a marca. A ponte passou a preencher o
+      // slot ao servir; esta linha é o que confirma que o que está no ar a tem de facto.
+      provar(`a marca do sistema chega à porta (${caminho})`,
+        /class="marca"[^>]*><svg/.test(html), true);
     }
 
     // A PRODUÇÃO — o CSS e o CÓDIGO do motor. O CSS primeiro: é o que desenha a página.

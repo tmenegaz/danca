@@ -356,6 +356,28 @@ async function api(kv, caminho, metodo, corpo) {
     provar('sem aparência, a ponte usa o padrão (nunca um atributo vazio)',
       /data-paleta="bordo" data-modo-fonte="escola"/.test(await semNada.text()), true);
 
+    // A MARCA CHEGA AO QUE A ESCOLA SERVE, mesmo quando o pacote é mais velho que ela
+    // (18/10/2026). A barra das páginas da porta é escrita no pacote na GERAÇÃO, e uma página
+    // gerada antes de a marca existir nunca a recebeu — o sintoma era um vão no canto da barra
+    // da anamnese, do plano de ensino e do PO, e nada mais. A ponte preenche o slot VAZIO ao
+    // servir; o que já tem marca passa intacto.
+    const comSlotVazio = corpo('<html><body><nav><span class="marca" aria-hidden="true"></span></nav></body></html>');
+    const preenchido = await (await comAparencia(comSlotVazio, { modo: 'clara', paleta: 'verde' })).text();
+    provar('a ponte preenche o slot VAZIO da marca',
+      /class="marca" aria-hidden="true"><svg/.test(preenchido), true);
+    provar('…e não duplica o slot', (preenchido.match(/class="marca"/g) || []).length, 1);
+    provar('…e a marca que ela põe é a do sistema, em `currentColor`',
+      /fill="currentColor"/.test(preenchido), true);
+
+    const comSlotCheio = corpo('<html><body><span class="marca"><svg viewBox="0 0 1 1"></svg></span></body></html>');
+    const intacto = await (await comAparencia(comSlotCheio, { modo: 'clara', paleta: 'verde' })).text();
+    provar('uma página que JÁ tem a marca passa intacta (sem segunda cópia)',
+      (intacto.match(/<svg/g) || []).length, 1);
+
+    const semBarra = corpo('<html><body><h1>página sem barra</h1></body></html>');
+    const semMarca = await (await comAparencia(semBarra, { modo: 'clara', paleta: 'verde' })).text();
+    provar('uma página SEM barra não ganha marca do nada', /<svg/.test(semMarca), false);
+
     // O que não é HTML passa intacto: a folha, o PDF, o JS.
     const css = new Response('body{color:red}', { headers: { 'content-type': 'text/css' } });
     const mesmo = await comAparencia(css, 'noturna');
