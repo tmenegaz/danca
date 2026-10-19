@@ -18792,3 +18792,40 @@ pacote foi gerado e validado no runner e perdeu-se com o job. Um novo «Guardar�
 `workflow_dispatch` com os mesmos inputs — refá-lo. (b) **D-T4 continua aberto**: mesmo com o
 workflow verde, o pacote é `ciclo-01-batata-bale-nivel-1-teste-2` e o Worker da escola publica
 `ciclo-01-batata`; os documentos existem no repositório e o site da escola não os mostra.
+
+## 19/10/2026 — Sem escola no repositório, o `Reancorar` não falha
+
+**O que motivou.** O push do expurgo da `batata` (`d1147f9`) deixou o `Reancorar a cadeia`
+vermelho:
+
+```
+nenhum manifesto de variante encontrado
+##[error]Process completed with exit code 1.
+```
+
+O workflow descobre o que reancorar por glob (`professores/*/ciclos/ciclo-*-*.conf`). O expurgo
+apagou o único `.conf` de variante que havia, e o glob voltou vazio — que o script tratava como
+erro.
+
+**Não é erro.** Um repositório **sem escola** é um estado legítimo: é exactamente o que existe
+entre o expurgo de uma escola e a criação da próxima. O workflow não tinha nada para fazer, e
+disse que tinha falhado.
+
+**O que foi decidido.** Zero manifestos ⇒ `nada a reancorar`, `tocados=0`, saída 0. A distinção
+que importa passa a ser explícita: **«não há escola»** (nada a fazer, sucesso) ≠ **«há escola e a
+âncora não fecha»** (falha, e é o ramo de baixo — fonte inválida, schema do PO, `.fipp` divergente
+depois de regerado). Só a segunda é sinal de problema.
+
+**Onde entrou.**
+- `.github/workflows/reancorar.yml` — o glob vazio sai 0, com a mensagem que o relatório mostra.
+- `experimentos/provar-geracao-do-ciclo.js` — duas asserções: a mensagem nova existe, e o
+  `exit 1` do glob vazio não voltou.
+
+**Com o quê.** O caso foi reproduzido num diretório sem `.conf` de variante: `manifestos=0` →
+«nada a reancorar». `provar-geracao-do-ciclo` → **17 verificações**.
+
+**Referências.** `CONGELAMENTO.md` (nenhum arquivo congelado tocado) · a entrada de 19/10/2026
+sobre o `.fipp` (o outro ramo do mesmo workflow).
+
+**O que ainda não está feito.** A execução falhada (`39299265133`) não deixou nada por fazer: a
+âncora já estava íntegra, e o push era de expurgo. Nada a refazer.

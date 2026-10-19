@@ -170,6 +170,15 @@ function oAcordo() {
   assert.match(reancorar, /git push/);
   ok('o reancorar também rebaseia — foi ele que falhou com «fetch first» em 19/10/2026');
 
+  // ZERO ESCOLAS NÃO É ERRO (19/10/2026). Depois de expurgar a última escola o glob não
+  // acha manifesto nenhum, e o repositório sem escola é um estado LEGÍTIMO — o que existe
+  // entre o expurgo e a criação da próxima. O `exit 1` pintava de vermelho um workflow sem
+  // nada para fazer; foi assim que o push do expurgo da `batata` derrubou o `Reancorar`.
+  assert.match(reancorar, /nenhuma escola no repositório — nada a reancorar/);
+  assert.equal(/nenhum manifesto de variante encontrado[\s\S]{0,40}exit 1/.test(reancorar), false,
+    'o glob vazio voltou a ser tratado como erro');
+  ok('sem escola no repositório, o reancorar diz «nada a reancorar» — e não falha');
+
   // O CONTRATO ENTRE DOIS CONGELADOS: `lancamento.html` não tem rodapé de prosa — o
   // formulário é controle, e em `f9b416b` (18/10) o `footer.rodape` virou
   // `footer.barra-de-controle`. O validador continuou a exigir `class="rodape"` e passou a
