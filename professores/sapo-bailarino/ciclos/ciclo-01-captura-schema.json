@@ -438,6 +438,55 @@
             }
           }
         }
+      },
+      "calando-teste-1": {
+        "escola": "calando teste 1",
+        "blocos": {
+          "Bloco 1 — Técnica — Solo": {
+            "chave": "tecnica_solo",
+            "rotulo": "Técnica — Solo",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec solo": {
+                "chave": "teste_tec_solo",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 2 — Técnica — Barra": {
+            "chave": "tecnica_barra",
+            "rotulo": "Técnica — Barra",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec barra": {
+                "chave": "teste_tec_barra",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 3 — Técnica — Centro": {
+            "chave": "tecnica_centro",
+            "rotulo": "Técnica — Centro",
+            "grao": "aluna",
+            "colunas": {
+              "teste tec centro": {
+                "chave": "teste_tec_centro",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
       }
     }
   },
