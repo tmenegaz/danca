@@ -193,6 +193,56 @@ async function oEstado() {
     ['Plano de ensino', 'Aula 01', 'Glossário Benesh']);
   ok('o registro guarda a variante, o rótulo e os documentos com nomes legíveis');
 
+  // --- O PONTEIRO DO ÚLTIMO REGISTRO (20/10/2026). A tela pergunta pelo endereço da porta, que
+  //     não traz a turma: para responder «o que esta escola pediu por último» era preciso
+  //     ENUMERAR (`kv.list`) — a operação de cota diária. Com o ponteiro, é um `get`.
+  assert.equal(kv.dados.get('bastidores/calando-teste-1/geracao/.ultimo'),
+    chaveDoRegistro(ESCOLA, CONTEXTO));
+  ok('gravar deixa o ponteiro do último registro (um `get` em vez de uma enumeração)');
+
+  // Conta as enumerações: a pergunta da tela SEM turma não pode pagar nenhuma.
+  let listas = 0;
+  const kvContado = kvFalso();
+  const listarOriginal = kvContado.list;
+  kvContado.list = async (...args) => { listas += 1; return listarOriginal(...args); };
+  const comPonteiro = criarGeracao({ kv: kvContado, escola: ESCOLA, token: 'token', fetchImpl: githubFalso({}).fetch });
+  await comPonteiro.registrar(CONTEXTO, { disparo: { ok: true, status: 204 }, ciclo: {} });
+  // A ESCOLA VAI NO CONTEXTO — o `rotas.js` preenche-a com o `ESCOLA_SLUG` do Worker
+  // (`comAEscolaDoWorker`). Sem ela o pedido é recusado como incompleto, e a prova mediria
+  // outra coisa que não o caminho da tela.
+  const pedidoSemTurma = {
+    professor: CONTEXTO.professor, ciclo: CONTEXTO.ciclo, escola: ESCOLA,
+  };
+  const estadoSemTurma = await comPonteiro.estado(pedidoSemTurma);
+  assert.equal(listas, 0);
+  ok('a pergunta sem turma (a do cartão) não enumera o KV — ' + estadoSemTurma.fase);
+
+  // A ESCOLA ANTIGA, SEM PONTEIRO: cai na enumeração — e o ponteiro passa a existir.
+  const kvVelho = kvFalso();
+  await kvVelho.put(chaveDoRegistro(ESCOLA, CONTEXTO), JSON.stringify({
+    em: '2026-10-19T10:00:00.000Z', variante: VARIANTE, rotulo: rotuloDaGeracao(CONTEXTO),
+    documentos: [], disparo: { ok: true, status: 204 },
+  }));
+  const antigo = criarGeracao({ kv: kvVelho, escola: ESCOLA, token: 'x', fetchImpl: githubFalso({}).fetch });
+  const achado = await antigo.estado(pedidoSemTurma);
+  assert.equal(achado.fase !== 'sem-registro', true);
+  assert.equal(kvVelho.dados.get('bastidores/calando-teste-1/geracao/.ultimo'),
+    chaveDoRegistro(ESCOLA, CONTEXTO));
+  ok('escola sem ponteiro acha o registro pela enumeração — e passa a ter ponteiro');
+
+  // E COM A ENUMERAÇÃO A FALHAR (a cota), ainda responde pelo ponteiro.
+  const kvQuebrado = kvFalso();
+  await kvQuebrado.put('bastidores/calando-teste-1/geracao/.ultimo', chaveDoRegistro(ESCOLA, CONTEXTO));
+  await kvQuebrado.put(chaveDoRegistro(ESCOLA, CONTEXTO), JSON.stringify({
+    em: '2026-10-19T10:00:00.000Z', variante: VARIANTE, rotulo: rotuloDaGeracao(CONTEXTO),
+    documentos: [], disparo: { ok: true, status: 204 },
+  }));
+  kvQuebrado.list = async () => { throw new Error('KV list() limit exceeded for the day.'); };
+  const comCota = criarGeracao({ kv: kvQuebrado, escola: ESCOLA, token: 'x', fetchImpl: githubFalso({}).fetch });
+  const pelaCota = await comCota.estado(pedidoSemTurma);
+  assert.equal(pelaCota.fase !== 'sem-registro', true);
+  ok('com a enumeração a estourar, o cartão continua a saber o estado (pelo ponteiro)');
+
   // --- as fases
   const casos = [
     ['enfileirada', { execucoes: [execucao({ status: 'queued' })] }, {}],

@@ -158,8 +158,12 @@ async function main() {
       token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: ESCOLA, pausa: SEM_DORMIR,
     }));
 
-    // 12 chaves de dado + o PRÓPRIO registro: o índice da escola também sai com ela.
-    checar('apagou as 12 chaves da escola e o registro', kv.apagadas === 13,
+    // 12 chaves de dado + o PRÓPRIO registro + as 4 chaves FIXAS que o fixture não tem
+    // (`professores`, `alunas`, `dono`, `aparencia`): desde 20/10/2026 o expurgo tenta também os
+    // nomes que existem por construção, e não só os que o registro conhece. Apagar um nome que
+    // não existe é uma resposta 404 do KV, não um erro — e a alternativa era deixar cadastro
+    // para trás quando a enumeração morresse.
+    checar('apagou as 12 chaves da escola, o registro e as 4 fixas que faltavam', kv.apagadas === 17,
       { apagadas: kv.apagadas, total: kv.total });
     checar('não sobrou nenhuma a responder', kv.restantes === 0, { restantes: kv.restantes, ficaram: kv.ficaram });
     checar('os nomes vieram do REGISTRO (dito no relatório)',
@@ -184,7 +188,25 @@ async function main() {
     const kv = await comFetch(estado, () => apagarChavesDeEscola({
       token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: ESCOLA, pausa: SEM_DORMIR,
     }));
-    checar('nada foi apagado', kv.apagadas === 0, kv.apagadas);
+    // SEM registro, o expurgo passou a conhecer as chaves FIXAS: as 6 que o fixture tem são
+    // apagadas por NOME (é esse o ganho), e o resto não existe. O que continua a não acontecer é
+    // o expurgo dizer «completo» sem ter certeza — ele relata a pendência da enumeração.
+    // 6 do fixture + as 3 fixas que ele não tem (professores, donas, aparencia…): o expurgo
+    // tenta os nomes declarados, e apagar um que não existe é um 404 do KV — não um erro.
+    checar('o expurgo apaga as chaves FIXAS que conhece, mesmo sem registro',
+      kv.apagadas === 9, kv.apagadas);
+    // O LIMITE, DITO: as chaves FIXAS saem por nome; as que têm nome DINÂMICO (um envelope por
+    // registo, o registo de custo) não há como saber sem enumerar. Ficam — e é por isso que a
+    // resposta é `ok: false`, com o caminho de volta (`POST /api/expurgar-kv`).
+    const sobrou = [...estado.kv.keys()].filter((k) =>
+      k.startsWith(ESCOLA + '/') || k.startsWith('bastidores/' + ESCOLA + '/'));
+    // `bastidores/calango/alunos` sobrevive porque o fixture usa um nome que a escola NÃO
+    // escreve (o real é `alunas`) — e é a demonstração exacta da regra: a lista de chaves fixas
+    // cobre o que a escola grava, não o que alguém inventar.
+    checar('as chaves FIXAS saem; ficam as de nome DINÂMICO e as que a lista não declara',
+      sobrou.every((k) => /envelope\/|ia-registro\/|\/alunos$/.test(k)), sobrou);
+    checar('mas continua a dizer que não conseguiu ENUMERAR (não finge limpeza completa)',
+      kv.ok === false, { ok: kv.ok, restantes: kv.restantes });
     checar('`ok` é falso', kv.ok === false, kv.ok);
     checar('a falha de listagem está no relatório', kv.falhasDeListagem > 0, kv.falhasDeListagem);
     checar('o registro é declarado ausente', kv.registro && kv.registro.existe === false, kv.registro);
@@ -315,6 +337,41 @@ async function main() {
     const depois = JSON.parse(mapa.get(CHAVE_DO_REGISTRO(ESCOLA)));
     checar('a chave apagada sai do registro',
       depois.chaves.indexOf(ESCOLA + '/envelope/po-20261019-1910.json') === -1, depois.chaves);
+  }
+
+  console.log('\n5. As chaves FIXAS da escola: o cadastro não fica para trás sem enumeração');
+  {
+    // Medido no código em 20/10/2026: os cadastros dos Bastidores gravam DIRECTAMENTE no KV
+    // (`kv.put`), fora do adaptador — e portanto fora do registro de chaves. Com a enumeração
+    // viva não se notava; com ela morta, o expurgo apagava o cofre, deixava os cadastros e
+    // relatava pendência. A lista declarada fecha isso.
+    const { chavesFixasDaEscola, CHAVES_FIXAS_DA_ESCOLA } = require('../motor/servidor/expurgar-escola.js');
+    checar('a lista declara as nove chaves que a escola grava por construção',
+      CHAVES_FIXAS_DA_ESCOLA.length === 9, CHAVES_FIXAS_DA_ESCOLA);
+    checar('e compõe os nomes com o prefixo dos Bastidores',
+      chavesFixasDaEscola('calango').every((k) => k.indexOf('bastidores/calango/') === 0)
+        && chavesFixasDaEscola('calango').indexOf('bastidores/calango/turmas') !== -1);
+    checar('sem slug não há chaves (não se apaga o namespace inteiro por omissão)',
+      chavesFixasDaEscola('').length === 0);
+
+    // E o efeito: sem registro, o cadastro AINDA sai.
+    const estado = nuvemFalsa({
+      'bastidores/calango/turmas': '[]',
+      'bastidores/calango/professores': '[]',
+      'bastidores/calango/aparencia': '{}',
+    });
+    estado.enumeracao = false;
+    const kv = await comFetch(estado, () => apagarChavesDeEscola({
+      token: 'x', accountId: 'a', namespaceId: NAMESPACE, slug: 'calango', pausa: SEM_DORMIR,
+    }));
+    checar('o cadastro é apagado por NOME, com a enumeração recusada e sem registro',
+      !estado.kv.has('bastidores/calango/turmas')
+        && !estado.kv.has('bastidores/calango/professores')
+        && !estado.kv.has('bastidores/calango/aparencia'), [...estado.kv.keys()]);
+    // 9 = as nove fixas declaradas (as 3 que existem + as 6 que não existem, das quais o KV
+    // devolve 404 — não é erro). O que importa é não dizer «0 de 0», que se lê como «nada havia».
+    checar('e o relatório diz o que apagou (não «0 de 0»)',
+      kv.apagadas === CHAVES_FIXAS_DA_ESCOLA.length, kv.apagadas);
   }
 
   console.log('\n' + (falhas === 0

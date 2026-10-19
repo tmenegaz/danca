@@ -19590,3 +19590,59 @@ existe — e é por isso que `OB01` **recusa** em vez de devolver zero. (e) A **
 escola corrige o nome. (f) O índice da escola ainda não é consumido pela porta: as três listas dela
 já leem o índice dos envelopes directamente (fase 3), e passá-las pelo índice é otimização sem
 necessidade identificada.
+
+## 20/10/2026 — dois `list` a menos: o cartão da geração e o cadastro no expurgo
+
+**Por quê.** O ensaio que vem a seguir corre com a cota diária do `kv.list` **esgotada** (a
+enumeraração continua a ser a operação escassa: leituras a 3,6% e escritas a 9% do dia). Duas coisas
+ainda dependiam dela, e as duas apareceram ao verificar se dava para testar:
+
+1. **O cartão da geração enumerava a cada pergunta.** A tela pergunta `GET /api/geracao` com
+   `professor` e `ciclo` — sem a turma, porque ela não vai no endereço. Para responder «o que esta
+   escola pediu por último», `ultimoDaEscola()` fazia `kv.list` do prefixo `bastidores/<escola>/geracao/`.
+   E o cartão pergunta a cada poucos segundos enquanto o GitHub gera: com a cota morta, ele dizia
+   `sem-registro` — ou seja, «nada foi gerado» logo depois de o professor ter clicado.
+2. **Os cadastros dos Bastidores não estavam no registo de chaves.** Eles gravam directamente no KV
+   (`kv.put`), fora do adaptador, e o registo só anota o que passa pelo adaptador. Com a enumeração
+   viva não se notava; com ela morta, o expurgo apagava o cofre, **deixava os cadastros** e relatava
+   pendência — o pior sintoma: dizer «NÃO está completo» numa limpeza que podia ter terminado.
+
+**O que mudou.**
+
+- **O ponteiro do último registo** (`bastidores/<escola>/geracao/.ultimo`, em `geracao.js`). Gravar
+  escreve-o (uma escrita, a mesma que já se pagava); perguntar lê-o (um `get`). A escola anterior a
+  esta mudança não tem ponteiro: cai na enumeração uma vez e **passa a ter** — o caminho antigo fica
+  como migração, não como rotina. E se a enumeração estourar, o ponteiro responde na mesma.
+- **As chaves fixas da escola** (`CHAVES_FIXAS_DA_ESCOLA`, em `expurgar-escola.js`): os nove nomes
+  que existem por construção (`professores`, `alunas`, `dono`, `turmas`, `turma-conteudos`,
+  `rubricas`, `vocabulario`, `curadorias`, `aparencia`) entram na lista de «conhecidas» do expurgo,
+  ao lado do registo. A lista é **declarada**, como os prefixos: só fica incompleta se alguém
+  inventar uma chave nova sem a acrescentar — o mesmo risco e a mesma disciplina.
+
+**Onde.** `motor/servidor/geracao.js` (`CHAVE_DO_ULTIMO`, `registrar`, `ultimoDaEscola`) ·
+`motor/servidor/expurgar-escola.js` (`CHAVES_FIXAS_DA_ESCOLA`, `chavesFixasDaEscola`, o uso em
+`apagarChavesDeEscola`) · `experimentos/provar-geracao.js` e
+`experimentos/provar-expurgo-sem-listagem.js` · `REGISTRO.md` — esta entrada.
+
+**Com o quê.** `provar-geracao` → **42 verificações** (era 38): gravar deixa o ponteiro; a pergunta
+sem turma — a do cartão — **não enumera**; a escola sem ponteiro acha o registo pela enumeração e
+passa a ter ponteiro; e **com a enumeração a estourar o cartão continua a saber o estado**.
+`provar-expurgo-sem-listagem` → **47 asserções** (era 40), com a secção 5 nova: a lista declara as
+nove chaves, o cadastro é apagado por nome com a enumeração recusada e sem registo, e o limite fica
+dito — as chaves de nome **dinâmico** (um envelope por registo, o registo de custo) não há como
+saber sem enumerar, e é por isso que a resposta continua a ser `ok: false` com o caminho de volta.
+
+Sem regressão: `provar-expurgo-leitura-atrasada` 45 · `provar-indice-de-proveniencia` 57 ·
+`provar-acervo-envelopes` 43 · `provar-indice-de-envelopes` 41 · `provar-listas-sem-repeticao` 16 ·
+`provar-producao` 135.
+
+**Referências.** A entrada sobre o expurgo sem listagem (o registo de chaves) · a entrada sobre a
+cota do KV (a enumeração é a operação escassa) · a entrada da fase 4 (o índice) — onde o `list`
+saiu do caminho das listas.
+
+**O que ainda não está feito.** (a) A **retenção do `geracao/`** por variante continua sem nome
+fixo: o ponteiro diz qual é o último, mas as variantes antigas só se apagam enumerando — o expurgo
+as deixa e a pendência cobre. (b) O `ia-registro/` (o custo de IA) tem nome fixo por escola e podia
+entrar na lista; hoje fica para a enumeração, e não é dado de aluno. (c) O registo de chaves podia
+passar a ser escrito também pelos Bastidores — é a alternativa à lista declarada, e as duas juntas
+seriam redundância sem prova de que alguma vez divergem.

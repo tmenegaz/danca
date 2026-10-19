@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T19:48:00-0300`
-Commit atual: `4acd895` — feat(estrutura): o envelope sai do KV — o acervo do repositório é o armazenamento
+Gerado em: `2026-10-19T20:04:37-0300`
+Commit atual: `9649cd9` — feat(estrutura): o índice do acervo — cada pergunta deixa de ser uma varredura
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -64,6 +64,7 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+9649cd9 feat(estrutura): o índice do acervo — cada pergunta deixa de ser uma varredura
 4acd895 feat(estrutura): o envelope sai do KV — o acervo do repositório é o armazenamento
 2d0c647 feat(estrutura): a lista lê o índice, e cada endereço é pedido uma vez
 22682db feat(estrutura): a anamnese vai para o acervo da escola, e não só para o KV
@@ -83,7 +84,6 @@ de45f71 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 0b57832 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md
 b99f8e0 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md
 bac9962 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-referencias.md
-b17390e feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md
 ```
 
 ## Por professor
@@ -139,99 +139,63 @@ b17390e feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o índice do acervo: cada pergunta deixa de ser uma varredura (fase 4)
+## 20/10/2026 — dois `list` a menos: o cartão da geração e o cadastro no expurgo
 
-**Por quê.** As fases 1–3 tiraram o KV do caminho de escrita dos registos. Ficou o outro lado: para
-responder «que escolas existem?», «quais documentos deste professor?», «que ciclos têm âncora?», cada
-consumidor **varria** a árvore do repositório — e a raiz fazia isso a cada abertura de página, duas
-vezes (escolas e professores). Cada filtro novo repetia a varredura. O `PLANO-INDICES.md` já dizia
-que o índice é pré-requisito e não otimização; esta fase entrega a base dele.
+**Por quê.** O ensaio que vem a seguir corre com a cota diária do `kv.list` **esgotada** (a
+enumeraração continua a ser a operação escassa: leituras a 3,6% e escritas a 9% do dia). Duas coisas
+ainda dependiam dela, e as duas apareceram ao verificar se dava para testar:
 
-**O recorte, declarado.** Esta é a **base** das oito etapas do plano, não o plano inteiro: o índice
-derivado do acervo, servido pelo Worker, com o consumidor medido. Ficam fora — e por decisão —
-o `tools/gerar-indices.js` versionado, o `indices.yml`, o índice publicado para a Tabela de
-atividades e o índice de lançamentos (que depende do leitor do cofre, ainda inexistente).
+1. **O cartão da geração enumerava a cada pergunta.** A tela pergunta `GET /api/geracao` com
+   `professor` e `ciclo` — sem a turma, porque ela não vai no endereço. Para responder «o que esta
+   escola pediu por último», `ultimoDaEscola()` fazia `kv.list` do prefixo `bastidores/<escola>/geracao/`.
+   E o cartão pergunta a cada poucos segundos enquanto o GitHub gera: com a cota morta, ele dizia
+   `sem-registro` — ou seja, «nada foi gerado» logo depois de o professor ter clicado.
+2. **Os cadastros dos Bastidores não estavam no registo de chaves.** Eles gravam directamente no KV
+   (`kv.put`), fora do adaptador, e o registo só anota o que passa pelo adaptador. Com a enumeração
+   viva não se notava; com ela morta, o expurgo apagava o cofre, **deixava os cadastros** e relatava
+   pendência — o pior sintoma: dizer «NÃO está completo» numa limpeza que podia ter terminado.
 
 **O que mudou.**
 
-- **A derivação é pura** (`motor/nucleo/indices.js`): recebe caminhos, inventários, os resumos dos
-  envelopes e as âncoras, e devolve o índice. Sem `fs`, sem `fetch`, sem relógio — e é isso que
-  torna o determinismo provável sem rede. Determinístico (listas e chaves ordenadas; `gerado_em` e
-  `fonte.commit` ficam fora da comparação) e **reconstruível** (apagar e refazer dá o mesmo JSON).
-- **A leitura é do servidor** (`motor/servidor/indice-acervo.js`): 1 árvore + 1 por escola
-  (inventário) + 1 por escola (os resumos que o acervo já escreve em cada gravação) + 1 por âncora.
-  **Nenhum envelope é aberto** — o índice lê resumos, não registos.
-- **O KV é o cache, e é o uso legítimo**: `indice/acervo.json` e `indice/escola/<slug>.json`.
-  Derivado, determinístico, e cuja perda custa uma reconstrução e não um dado. A validade **não é
-  TTL**: **gravar invalida** (duas escritas, zero leituras de GitHub), e a leitura seguinte
-  reconstrói-se do repositório, onde o registo já está. Um TTL mostraria ao professor o acervo de
-  antes do registo que ele acabou de fazer — «gravei e não apareceu», a pior frase desta tela.
-- **Dois índices, dois públicos.** O do ACERVO é transversal e **não** tem o apelido da aluna (dado
-  de menor); o da ESCOLA, servido pelo Worker dela, tem — é o mesmo dado que a estante já mostra,
-  atrás da mesma senha. Quem decide é a ponte, não um parâmetro esquecido.
-- **A resposta tem a forma da proveniência**: medida + caminho + elo. Pergunta que o índice não
-  responde volta com `recusa` e motivo, nunca com um zero que se leia como facto. `AL01` numa
-  escola sem anamnese diz «não há»; `AL01` no acervo recusa porque o apelido não está lá — são
-  coisas diferentes, e antes desta fase teriam o mesmo `0`.
-- **A ausência tem nome, em dois níveis.** Uma âncora no caminho que não foi aberta não é «sem
-  âncora»: é `lida: false` com o motivo, e **sem `cobertura`** (uma cobertura vazia diria «não
-  cobre nada», e ela pode cobrir tudo). Um ciclo sem `.fipp` é `sem-ancora`, e as duas coisas
-  contam em facetas diferentes.
-- **O expurgo não apaga a memória.** A escola expurgada continua no índice com `expurgada: true` —
-  é o elo que o expurgo quis preservar. Quem filtra é o consumidor (o botão «Apagar escola» não
-  oferece o que já não existe), porque o índice é memória e a lista é escolha.
+- **O ponteiro do último registo** (`bastidores/<escola>/geracao/.ultimo`, em `geracao.js`). Gravar
+  escreve-o (uma escrita, a mesma que já se pagava); perguntar lê-o (um `get`). A escola anterior a
+  esta mudança não tem ponteiro: cai na enumeração uma vez e **passa a ter** — o caminho antigo fica
+  como migração, não como rotina. E se a enumeração estourar, o ponteiro responde na mesma.
+- **As chaves fixas da escola** (`CHAVES_FIXAS_DA_ESCOLA`, em `expurgar-escola.js`): os nove nomes
+  que existem por construção (`professores`, `alunas`, `dono`, `turmas`, `turma-conteudos`,
+  `rubricas`, `vocabulario`, `curadorias`, `aparencia`) entram na lista de «conhecidas» do expurgo,
+  ao lado do registo. A lista é **declarada**, como os prefixos: só fica incompleta se alguém
+  inventar uma chave nova sem a acrescentar — o mesmo risco e a mesma disciplina.
 
-**Onde.** `motor/nucleo/indices.js` (novo — a derivação, o filtro e o catálogo de perguntas) ·
-`motor/servidor/indice-acervo.js` (novo — a leitura e o cache) · `motor/servidor/rotas.js`
-(`GET /api/indice`, `GET /api/indice/:pergunta`, e a invalidação depois de cada gravação) ·
-`motor/servidor/cloudflare.js` (`criarIndice` na ponte, com o KV de cache) ·
-`motor/servidor/repo-escola.js` (`listarEscolasPeloIndice`, `listarProfessoresPeloIndice`, com a
-varredura como recurso) · `motor/servidor/raiz.js` (`/api/escolas` e `/api/professores` pelo
-índice, e `fonte`/`custo` na resposta) · `motor/servidor/README.md` · `experimentos/README.md` ·
-`.gitignore` (a prova passa a ser versionada) · `REGISTRO.md` — esta entrada.
+**Onde.** `motor/servidor/geracao.js` (`CHAVE_DO_ULTIMO`, `registrar`, `ultimoDaEscola`) ·
+`motor/servidor/expurgar-escola.js` (`CHAVES_FIXAS_DA_ESCOLA`, `chavesFixasDaEscola`, o uso em
+`apagarChavesDeEscola`) · `experimentos/provar-geracao.js` e
+`experimentos/provar-expurgo-sem-listagem.js` · `REGISTRO.md` — esta entrada.
 
-**Com o quê.** `node experimentos/provar-indice-de-proveniencia.js` → **TUDO CERTO, 57 asserções**:
-duas construções da mesma árvore iguais fora os voláteis; apagar o cache e reconstruir dá o mesmo
-índice (e um cache de versão antiga é ignorado, não é erro); com o cache quente, **zero** árvores e
-o mesmo resultado da varredura; a construção anuncia 1 árvore + 5 conteúdos e **nenhum** envelope; o
-índice do acervo sem apelido, sem senha e sem corpo de documento; as perguntas com medida + caminho
-+ elo e as recusas com motivo; a âncora não lida distinta do ciclo sem âncora, em dois níveis; a
-escola expurgada presente e marcada; e gravar a invalidar o cache.
+**Com o quê.** `provar-geracao` → **42 verificações** (era 38): gravar deixa o ponteiro; a pergunta
+sem turma — a do cartão — **não enumera**; a escola sem ponteiro acha o registo pela enumeração e
+passa a ter ponteiro; e **com a enumeração a estourar o cartão continua a saber o estado**.
+`provar-expurgo-sem-listagem` → **47 asserções** (era 40), com a secção 5 nova: a lista declara as
+nove chaves, o cadastro é apagado por nome com a enumeração recusada e sem registo, e o limite fica
+dito — as chaves de nome **dinâmico** (um envelope por registo, o registo de custo) não há como
+saber sem enumerar, e é por isso que a resposta continua a ser `ok: false` com o caminho de volta.
 
-Sem regressão: `provar-acervo-envelopes` 43 · `provar-indice-de-envelopes` 41 ·
-`provar-listas-sem-repeticao` 16 · `provar-expurgo-sem-listagem` 40 · `provar-expurgo-leitura-atrasada`
-45 · `provar-lista-que-falha` 39 · `provar-proveniencia-e-sessao` 14.
+Sem regressão: `provar-expurgo-leitura-atrasada` 45 · `provar-indice-de-proveniencia` 57 ·
+`provar-acervo-envelopes` 43 · `provar-indice-de-envelopes` 41 · `provar-listas-sem-repeticao` 16 ·
+`provar-producao` 135.
 
-Ponta a ponta pela ponte real de produção (bancada local, GitHub falso): `GET /api/indice` → 200 com
-`custo` e `doCache: false`; o segundo pedido → `doCache: true` e **0 árvores / 0 conteúdos**; as
-cinco perguntas a responder com a forma certa; `?reconstruir=1` a reconstruir.
+**Referências.** A entrada sobre o expurgo sem listagem (o registo de chaves) · a entrada sobre a
+cota do KV (a enumeração é a operação escassa) · a entrada da fase 4 (o índice) — onde o `list`
+saiu do caminho das listas.
 
-**Referências.** `PLANO-INDICES.md` §2, §4.2, §4.7, §7.1–7.5, §9 (o desenho é dele; aqui está a
-base) · `PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §1 (medida + caminho + elo) · as entradas de hoje sobre
-o acervo (fase 1), as listas (fase 2) e o envelope fora do KV (fase 3).
-
-**O que ainda não está feito.** (a) O **gerador versionado** (`tools/gerar-indices.js`) e o
-`check-indices.js` com as contraprovas — o índice nasce no Worker, não no build; quem quiser o
-arquivo no repositório precisa do gerador. (b) O **workflow** `indices.yml` e o hook de pré-commit.
-(c) O **índice publicado** e a ligação com a Tabela de atividades. (d) O **índice de lançamentos**
-(`presenca`, `marcas`, `condicoes`, `ajustes`, `rubrica`): depende de um leitor do cofre, que não
-existe — e é por isso que `OB01` **recusa** em vez de devolver zero. (e) A **identidade da aluna**
-(`aluna:<slug>` com alias): hoje o índice usa o apelido como valor, e o apelido muda quando a
-escola corrige o nome. (f) O índice da escola ainda não é consumido pela porta: as três listas dela
-já leem o índice dos envelopes directamente (fase 3), e passá-las pelo índice é otimização sem
-necessidade identificada.
+**O que ainda não está feito.** (a) A **retenção do `geracao/`** por variante continua sem nome
+fixo: o ponteiro diz qual é o último, mas as variantes antigas só se apagam enumerando — o expurgo
+as deixa e a pendência cobre. (b) O `ia-registro/` (o custo de IA) tem nome fixo por escola e podia
+entrar na lista; hoje fica para a enumeração, e não é dado de aluno. (c) O registo de chaves podia
+passar a ser escrito também pelos Bastidores — é a alternativa à lista declarada, e as duas juntas
+seriam redundância sem prova de que alguma vez divergem.
 
 ## O que está pendente
-
-## 20/10/2026 — A cota do KV: o que ia para lá sem precisar, medido
-
-(a) As rotas de lista continuam a ler o envelope INTEIRO para
-tirar três metadados (o apelido, o objetivo, a turma): com 40 anamneses são 40 leituras por
-carga, e cresce com a escola. Cabe na cota de leitura, mas o certo seria o índice carregar o
-metadado — e isso cria uma segunda fonte de verdade que pode divergir do envelope. Fica
-declarado, não decidido. (b) `vinculos()` e `vinculosDePlano()` leem todos os POs, cada uma na
-sua rota: uma página que abre as duas lê os POs duas vezes. Um cache por pedido resolveria;
-exige passar um contexto por todas as funções do núcleo, e não se fez.
 
 ## 20/10/2026 — A anamnese nunca ia para o Git: ela vivia só no KV
 
@@ -269,6 +233,15 @@ existe — e é por isso que `OB01` **recusa** em vez de devolver zero. (e) A **
 escola corrige o nome. (f) O índice da escola ainda não é consumido pela porta: as três listas dela
 já leem o índice dos envelopes directamente (fase 3), e passá-las pelo índice é otimização sem
 necessidade identificada.
+
+## 20/10/2026 — dois `list` a menos: o cartão da geração e o cadastro no expurgo
+
+(a) A **retenção do `geracao/`** por variante continua sem nome
+fixo: o ponteiro diz qual é o último, mas as variantes antigas só se apagam enumerando — o expurgo
+as deixa e a pendência cobre. (b) O `ia-registro/` (o custo de IA) tem nome fixo por escola e podia
+entrar na lista; hoje fica para a enumeração, e não é dado de aluno. (c) O registo de chaves podia
+passar a ser escrito também pelos Bastidores — é a alternativa à lista declarada, e as duas juntas
+seriam redundância sem prova de que alguma vez divergem.
 
 ## Pendências anteriores (índice)
 
@@ -493,6 +466,7 @@ necessidade identificada.
 - **19/10/2026** — Todo pacote gerado nascia divergente da porta: a barra e a… → `REGISTRO.md` L18994
 - **20/10/2026** — O PO abre sem plano e com o checklist em branco: a lista… → `REGISTRO.md` L19037
 - **20/10/2026** — O expurgo apagou a escola e deixou o dado: a limpeza do KV… → `REGISTRO.md` L19120
+- **20/10/2026** — A cota do KV: o que ia para lá sem precisar, medido → `REGISTRO.md` L19203
 
 ## Documentos-chave (para leitura)
 

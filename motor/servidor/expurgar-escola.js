@@ -138,6 +138,33 @@ function prefixosDaEscola(slug) {
 }
 
 /**
+ * OS NOMES FIXOS da escola — as chaves que existem por construção, e não por acaso (20/10/2026).
+ *
+ * POR QUE UMA LISTA, SE JÁ HÁ O REGISTRO. O registro de chaves (`.chaves.json`) cobre o que passa
+ * pelo adaptador — o cofre, os envelopes. Os CADASTROS dos Bastidores gravam directamente no KV
+ * (`kv.put`), e a família da geração também: nada disso entra no registro. Com a enumeração viva
+ * isso não se notava (o `list` achava tudo); com ela morta — a cota diária do `kv.list`, que já
+ * estourou duas vezes nesta casa —, o expurgo apagava o cofre, deixava os cadastros e relatava
+ * pendência. O sintoma é o pior possível: dizer «NÃO está completo» numa limpeza que podia ter
+ * terminado.
+ *
+ * A lista é DECLARADA, não descoberta — é o mesmo critério do `prefixosDaEscola`. Ela só pode
+ * ficar incompleta se alguém inventar uma chave nova sem a acrescentar aqui, e por isso mora ao
+ * lado dos prefixos, que têm o mesmo risco e a mesma disciplina.
+ */
+const CHAVES_FIXAS_DA_ESCOLA = [
+  'professores', 'alunas', 'dono', 'turmas', 'turma-conteudos',
+  'rubricas', 'vocabulario', 'curadorias', 'aparencia',
+];
+
+/** Os nomes completos das chaves fixas de uma escola. */
+function chavesFixasDaEscola(slug) {
+  const e = String(slug || '').trim();
+  if (!e) return [];
+  return CHAVES_FIXAS_DA_ESCOLA.map((nome) => 'bastidores/' + e + '/' + nome);
+}
+
+/**
  * Lista os NOMES das chaves do KV com um prefixo — PAGINANDO.
  *
  * Devolve `{ ok, status, chaves, erro }`. O `ok` existe porque a versão anterior devolvia
@@ -261,9 +288,12 @@ async function apagarChavesDeEscola({ token, accountId, namespaceId, prefixo, pr
   // O PRÓPRIO REGISTO ENTRA NA LISTA. Ele vive sob `bastidores/<slug>/` e não se lista a si
   // mesmo (quem escreve o registo não se anota): sem esta linha, o expurgo apagava o dado e
   // deixava o índice dele para trás — uma chave da escola a sobreviver ao expurgo da escola.
-  const conhecidas = registro.existe === true
+  // AS CONHECIDAS = o registro + as chaves FIXAS da escola. As fixas não dependem de nada ter
+  // passado pelo adaptador: elas existem por construção, e são exactamente as que ficavam para
+  // trás quando a enumeração morria.
+  const conhecidas = (registro.existe === true
     ? registro.chaves.concat([CHAVE_DO_REGISTRO(slug)])
-    : registro.chaves;
+    : registro.chaves).concat(chavesFixasDaEscola(slug));
 
   // AS CHAVES QUE JÁ SE TENTOU, POR PREFIXO. Serve para (a) não repetir o DELETE da mesma
   // chave em passagens seguintes e (b) contar `total` como o CONJUNTO visto, e não a soma de
@@ -456,5 +486,7 @@ module.exports = {
   listarChaves,
   listarChavesSeguro,
   prefixosDaEscola,
+  chavesFixasDaEscola,
+  CHAVES_FIXAS_DA_ESCOLA,
   SUBDOMINIO,
 };

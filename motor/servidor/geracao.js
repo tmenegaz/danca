@@ -54,6 +54,15 @@ function rotuloDaGeracao(contexto) {
 }
 
 /** A chave do registro no KV — uma por variante (professor × ciclo × escola × turma). */
+/**
+ * O PONTEIRO para o último registro da escola: um `get`, em vez de uma enumeração.
+ *
+ * É DERIVADO, como todo o resto desta família: se ele faltar (escola anterior a 20/10/2026), a
+ * leitura cai na enumeração — que é o caminho antigo — e o ponteiro é reescrito na próxima
+ * gravação. Nada se perde quando o ponteiro se perde.
+ */
+const CHAVE_DO_ULTIMO = (escola) => 'bastidores/' + slugificar(escola) + '/geracao/.ultimo';
+
 function chaveDoRegistro(escola, contexto) {
   const e = slugificar(escola);
   const variante = slugificar(varianteDoContexto(contexto || {}));
@@ -143,6 +152,16 @@ function criarGeracao({ kv, escola, token, dono, repo, fetchImpl, agora } = {}) 
     };
     try {
       await kv.put(chave, JSON.stringify(registro));
+      /*
+       * O PONTEIRO DO ÚLTIMO REGISTRO (20/10/2026). A tela pergunta pelo endereço da porta,
+       * que não traz a turma; para responder «o que esta escola pediu por último» era preciso
+       * ENUMERAR as chaves (`kv.list`) — a operação de cota diária, e a única que ainda estava
+       * no caminho de uma página. Com o ponteiro, a resposta é um `get`.
+       *
+       * Custa UMA escrita por gravação (a mesma que já se pagava) e poupa uma enumeração por
+       * PERGUNTA — a tela pergunta a cada poucos segundos enquanto o GitHub gera.
+       */
+      try { await kv.put(CHAVE_DO_ULTIMO(escola), chave); } catch (erro) { /* acessório */ }
       return { ok: true, chave, registro };
     } catch (erro) {
       return { ok: false, erro: (erro && erro.message) || String(erro) };
@@ -172,10 +191,27 @@ function criarGeracao({ kv, escola, token, dono, repo, fetchImpl, agora } = {}) 
    */
   async function ultimoDaEscola() {
     const prefixo = 'bastidores/' + slugificar(escola) + '/geracao/';
-    if (!kv || !prefixo || typeof kv.list !== 'function') return null;
+    if (!kv || !prefixo) return null;
+
+    // O CAMINHO NORMAL: o ponteiro, e um `get`. Sem enumeração, sem cota diária.
+    try {
+      const apontado = await kv.get(CHAVE_DO_ULTIMO(escola));
+      if (apontado) {
+        const bruto = await kv.get(apontado);
+        if (bruto) return JSON.parse(bruto);
+      }
+    } catch (erro) {
+      // segue para o caminho antigo
+    }
+
+    // O CAMINHO ANTIGO — só para a escola que tem registros e ainda não tem ponteiro (as
+    // anteriores a 20/10/2026). A enumeração pode falhar por cota; aí a resposta é `null`, e
+    // não uma excepção: a tela diz «sem registro» em vez de estourar.
+    if (typeof kv.list !== 'function') return null;
     try {
       const lista = await kv.list({ prefix: prefixo, limit: 20 });
-      const chaves = ((lista && lista.keys) || []).map((k) => k && k.name).filter(Boolean);
+      const chaves = ((lista && lista.keys) || []).map((k) => k && k.name).filter(Boolean)
+        .filter((nome) => nome.indexOf('/.ultimo') === -1);
       let melhor = null;
       for (const chave of chaves) {
         const bruto = await kv.get(chave);
@@ -183,6 +219,13 @@ function criarGeracao({ kv, escola, token, dono, repo, fetchImpl, agora } = {}) 
         let registro;
         try { registro = JSON.parse(bruto); } catch (erro) { continue; }
         if (!melhor || Date.parse(registro.em) > Date.parse(melhor.em)) melhor = registro;
+      }
+      // Adoptado o último, o ponteiro passa a existir: a próxima pergunta é um `get`.
+      if (melhor && melhor.variante) {
+        try {
+          await kv.put(CHAVE_DO_ULTIMO(escola),
+            'bastidores/' + slugificar(escola) + '/geracao/' + slugificar(melhor.variante));
+        } catch (erro) { /* acessório */ }
       }
       return melhor;
     } catch (erro) {
@@ -298,13 +341,14 @@ function criarGeracao({ kv, escola, token, dono, repo, fetchImpl, agora } = {}) 
     }
   }
 
-  return { registrar, estado, lerRegistro };
+  return { CHAVE_DO_ULTIMO, registrar, estado, lerRegistro };
 }
 
 module.exports = {
   criarGeracao,
   rotuloDaGeracao,
   chaveDoRegistro,
+  CHAVE_DO_ULTIMO,
   fontesDoCicloProntas,
   NOMES_DOS_DOCUMENTOS,
   WORKFLOW,
