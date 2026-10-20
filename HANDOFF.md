@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T10:18:10-0300`
-Commit atual: `1dc2edf` — fix(tools): clicar na logo leva à raiz do domínio
+Gerado em: `2026-10-20T10:34:15-0300`
+Commit atual: `f59810e` — feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da geração leva à página da escola
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da geração leva à página da escola
+623c05a docs(registro): o HANDOFF cita a logo como link para o domínio
 1dc2edf fix(tools): clicar na logo leva à raiz do domínio
 1752218 docs(registro): o HANDOFF cita as duas listas fechadas do mapa
 2d3356c fix(po): as listas fechadas eram duas, e o mapa morria na segunda
@@ -81,8 +83,6 @@ f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 71e2011 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
 30f2f88 feat(po): o PO elicitado vira a fonte do ciclo
 f3dbf74 feat(acervo): envelope/po-20261020-0955.json
-298be29 feat(acervo): envelope/.indice.json
-6c07df1 chore(estrutura): reancorar a cadeia das fontes alteradas
 ```
 
 ## Por professor
@@ -154,87 +154,76 @@ f3dbf74 feat(acervo): envelope/po-20261020-0955.json
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — clicar na logo leva à raiz do domínio
+## 20/10/2026 — o ciclo é gerado e o menu não o mostra: a barra passa a ser uma só, e o êxito leva à página da escola
 
-**O que motivou.** Pedido da pesquisadora: «toda vez que eu clicar na logo, quero ir só para o
-domínio» — `https://batata.tmenegaz77.workers.dev`, sem caminho nenhum. A marca era um
-`<span class="marca" aria-hidden="true">` com o SVG dentro: **ornamento puro**. O clique não fazia
-nada, e o gesto que qualquer pessoa tenta — clicar na logo para voltar ao início — não tinha destino.
+**O que motivou.** A escola `batata` fez a anamnese, o plano e o PO, a geração correu com êxito e os
+documentos foram publicados. E o menu da raiz continuava a dizer «Sistema Lastro · Área do Professor
+· Bastidores» — sem Ciclo, sem Aulas, sem Planejamento. Os documentos estavam lá, no endereço da
+turma; a raiz, que é o que a logo abre, não os anunciava. **Duas barras diferentes no mesmo
+domínio**, e o professor à procura do que já existia.
 
-**Por que o `href` tem de ser ABSOLUTO.** `index.html` significaria **três coisas diferentes**,
-porque a mesma barra serve três níveis de endereço:
-
-| onde | o que `index.html` seria |
-|:--|:--|
-| o pacote da turma (`/aula-01`) | o índice do ciclo |
-| a porta (`/plano-observacao/`) | a própria porta outra vez |
-| os Bastidores (`/bastidores/producao`) | a pasta dos Bastidores |
-
-`/` é a única resposta certa nas três, e é a mesma em todas: o site da escola. O `href` relativo
-levaria a três sítios, e o gesto deixaria de querer dizer «início».
+A frase da pesquisadora fixa o critério: *«não pode existir dois menus para o mesmo endereço de
+domínio. Só pode existir um menu. E esse menu ele é dinâmico.»*
 
 **O que foi decidido.**
 
-- `MARCA_NA_BARRA` passa a ser `<a class="marca" href="/" aria-label="Sistema Lastro — página
-  inicial" title="Ir para o início">` com o SVG dentro de um `<span aria-hidden="true">`.
-- **O nome acessível está no `<a>`, e o desenho está escondido.** Um `<a>` cujo conteúdo é
-  `aria-hidden` fica **sem nome** — é o defeito clássico desta conversão. Anunciar o desenho *e* o
-  `<title>` do SVG seria dizer «Sistema Lastro» duas vezes no mesmo elemento.
-- **A ponte cobre os DOIS estados do slot**, e é o que faz a correcção chegar aos pacotes que já
-  existem. Um pacote anterior a hoje traz `<span class="marca">` e há dois casos:
-  - **vazio** (`<span class="marca" aria-hidden="true"></span>`) — a ponte punha lá o desenho
-    dentro do mesmo `<span>`: aparecia e não se clicava;
-  - **preenchido** (`<span class="marca"><svg…></svg></span>`) — é o da **maioria** dos pacotes
-    gerados entre 18 e 20/10. Uma correcção que só olhasse o vazio deixaria a maioria a servir uma
-    logo inerte, com o sintoma invisível: o desenho está lá.
+- **A barra da escola é UMA, e é a mesma em todas as páginas do domínio** — a raiz e a apresentação
+  (`sistema.html`) passam a servir exactamente a mesma barra, a mesma FORMA que o pacote usa
+  (`ABERTURA`/`FECHAMENTO` do `nav-html.js`), com a lista de itens composta para a escola.
+- **É dinâmica, e o conteúdo é que a decide.** Sem turma gerada: «Sistema Lastro · Área do Professor
+  · Bastidores» — a escola que ainda não tem ciclo, e anunciar documentos que não existem seria pior
+  do que não os anunciar. Com turma gerada entram «Ciclos» (plano, referências, PDF), «Aulas» (uma
+  por aula publicada, com o marco como rótulo) e «Planejamento» (glossário, notação).
+- **Os blocos do sistema são COPIADOS do pacote-zero, não reconstruídos.** As URLs de «Área do
+  Professor» carregam professor, escola e ciclo, e essas três já estão escritas, certas, no
+  pacote-zero — foi o `criar-escola.sh` que as compôs. Reescrevê-las seria uma segunda derivação dos
+  mesmos parâmetros, e a segunda é a que fica errada quando a primeira muda.
+- **Com mais de uma turma, o rótulo diz de qual é.** Sem o sufixo, «Aula 01» apareceria três vezes e
+  o professor não saberia qual é qual. Com uma turma só, o sufixo é ruído e não entra.
+- **Nenhum link morto.** O menu só aponta para um `.html` que existe no disco, e para uma aula que
+  tem página publicada — o `ciclos.json` pode declarar 18 e o pacote ter só a primeira.
+- **O êxito da geração leva à página da escola.** Concluído o ciclo, os documentos passam a existir e
+  a tela onde o professor está — o formulário do PO — já não tem nada para dizer. A página que diz o
+  que foi criado é a raiz, e é lá que ele deve cair.
 
-  Os atributos do `<span>` velho **não** são transportados: `aria-hidden="true"` num `<a>` deixava-o
-  sem nome.
-
-**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`.
-
-- `tools/templates/nav-html.js` — a constante `MARCA_NA_BARRA`, e o comentário que diz por que o
-  `href` é absoluto e onde vive o nome acessível.
-- `tools/check-identidade.js` — a verificação da marca passa a **exigir o link**: antes garantia
-  que o slot não estava vazio, e um `<span>` cheio passaria para sempre.
-
-**O que NÃO muda:** a marca em si (o mesmo SVG, o mesmo `currentColor`, as três famílias), a
-fórmula do hash, as 17 regras, as 22 pétreas, os validadores do ciclo, e o CSS — `.topnav .marca` e
-`.topnav a.marca:hover` já existiam, escritas para um `<a>` que nunca houve.
+**O que o redirecionamento NÃO faz, e é o risco dele.** O cartão mostra o desfecho de uma geração
+recente por até duas horas — é **histórico**, e é útil. Uma regra ingénua («se está concluída,
+redireciona») faria de cada abertura da porta um salto para fora, durante duas horas, e para sempre
+em ciclo. As guardas são duas: **a página tem de ter VISTO a geração a correr**, e o salto acontece
+**uma vez por sessão**. Quem chega depois encontra o desfecho escrito e fica onde está. O salto é com
+`assign`, e não `replace`: a porta fica no histórico, e o «voltar» do navegador traz o professor de
+volta ao formulário.
 
 **Onde entrou.**
 
-- `tools/templates/nav-html.js` — `MARCA_NA_BARRA` como link.
-- `motor/servidor/producao.js` — a ponte trata os dois estados do slot, com a mesma constante.
-- `tools/check-identidade.js` — exige `href="/"` e `aria-label`.
-- `experimentos/provar-logo-volta-ao-inicio.js` — **nova prova, 22 asserções**.
-- `.gitignore`, `experimentos/README.md` — a prova no clone e na tabela.
+- `tools/montar-publicacao.js` — `navDaEscola()`, `blocosDoSistema()`, `documentosDaTurma()`; as duas
+  páginas do domínio passam a receber a mesma barra.
+- `motor/servidor/geracao-cliente.js` — `abrirAEscola()`, e a frase do desfecho passa a dizer o que
+  passou a ser verdade («e já estão no site»).
+- `experimentos/provar-publicacao-da-escola.js` — secção **B2**, 29 → **39 asserções**: as duas
+  páginas com a mesma barra, os três grupos quando há ciclo, a barra básica quando não há, nenhum
+  link morto, e a marca como caminho de volta.
+- `experimentos/provar-geracao.js` — `oRedirecionamento()`, 43 → **48 verificações**: os quatro
+  casos (já concluída à chegada, vista a correr e concluída, sessão repetida, falhou) e o destino.
 
-**Com o quê.** `node experimentos/provar-logo-volta-ao-inicio.js` → **22 asserções**. Controlos
-negativos em duas metades: contra o código de `HEAD` dão **8 falhas**; com só a ponte revertida dão
-**6** — e é essa metade que importa, porque é a que cobre os pacotes já gerados. Sem regressão:
-identidade visual **19 de 19**, produção 135, publicação 29, sujeitos-da-turma 30, tema 37 (a mesma
-falha de antes, anterior a esta mudança).
+**Com o quê.** `provar-publicacao-da-escola` → **39 asserções** (controlo negativo: contra o
+`montar-publicacao.js` de `HEAD` dão **5 falhas**). `provar-geracao` → **48 verificações** (contra o
+`geracao-cliente.js` de `HEAD`: **1 falha** — o salto). Sem regressão: logo 22, sujeitos 30,
+produção 135, teste 37, identidade visual 19/19.
 
-**Medido ao vivo**, no Worker do `batata`, em três endereços de níveis diferentes:
-`/`, `/plano-observacao/` e `/sistema` servem todos
-`<a class="marca" href="/" aria-label="Sistema Lastro — página inicial" title="Ir para o início">`.
+Medido ao vivo, no Worker do `batata`: `/`, `/sistema` e `/bale-nivel-1-teste-2/` servem os mesmos
+cinco grupos, e todos os links da barra da raiz respondem 200.
 
-**O que ainda não está feito.** Os pacotes versionados no repositório continuam com o `<span>` no
-arquivo — **corrigidos ao servir**, pela ponte, que é o que impede a correcção de depender de uma
-regeneração que ninguém faria só por isto. Só uma regeneração (ou um `criar-escola.sh
---somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
-escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
-ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
+**O que ainda não está feito.** A **página do pacote** mantém a barra do ciclo, que é relativa
+(`plano.html`, `aula-01.html`) e não tem «Bastidores»: dentro do pacote os destinos são os do
+pacote, e trocá-los por caminhos de raiz faria de cada turma um sítio diferente do que o gerador do
+ciclo escreve. Isso significa que a barra ainda **difere em conteúdo** entre a raiz e o pacote —
+cinco grupos em ambas, destinos diferentes. Unificá-la exige que o gerador do ciclo saiba em que
+escola o pacote vai ser servido, e isso é uma decisão de desenho (o pacote é portátil hoje), não uma
+correcção. E o redirecionamento não foi observado numa geração real de ponta a ponta — a próxima
+geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
 
 ## O que está pendente
-
-## 20/10/2026 — o hook recusava todo commit enquanto uma turma não tivesse PO
-
-O hook continua a gerar **todas** as variantes quando o commit cita o
-manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
-classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
-Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
 
 ## 20/10/2026 — a escola não se criava: a publicação era montada só no ramo do `--deploy`
 
@@ -263,6 +252,17 @@ regeneração que ninguém faria só por isto. Só uma regeneração (ou um `cri
 --somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
 escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
 ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
+
+## 20/10/2026 — o ciclo é gerado e o menu não o mostra: a barra passa a ser uma só, e o êxito leva à página da escola
+
+A **página do pacote** mantém a barra do ciclo, que é relativa
+(`plano.html`, `aula-01.html`) e não tem «Bastidores»: dentro do pacote os destinos são os do
+pacote, e trocá-los por caminhos de raiz faria de cada turma um sítio diferente do que o gerador do
+ciclo escreve. Isso significa que a barra ainda **difere em conteúdo** entre a raiz e o pacote —
+cinco grupos em ambas, destinos diferentes. Unificá-la exige que o gerador do ciclo saiba em que
+escola o pacote vai ser servido, e isso é uma decisão de desenho (o pacote é portátil hoje), não uma
+correcção. E o redirecionamento não foi observado numa geração real de ponta a ponta — a próxima
+geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
 
 ## Pendências anteriores (índice)
 
@@ -507,6 +507,7 @@ ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
 - **20/10/2026** — o primeiro pacote no repositório expôs o vocabulário do… → `REGISTRO.md` L20308
 - **20/10/2026** — o Plano de Observação de uma turma oferecia as alunas das… → `REGISTRO.md` L20364
 - **20/10/2026** — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de… → `REGISTRO.md` L20434
+- **20/10/2026** — o hook recusava todo commit enquanto uma turma não tivesse… → `REGISTRO.md` L20510
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
