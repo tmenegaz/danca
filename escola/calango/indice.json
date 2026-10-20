@@ -119,5 +119,11 @@
         }
       }
     }
+  ],
+  "recriacao": [
+    {
+      "em": "2026-10-20T10:25:49.229393+00:00",
+      "motivo": "recriada por tools/criar-escola.sh"
+    }
   ]
 }
