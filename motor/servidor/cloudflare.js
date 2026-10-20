@@ -111,6 +111,11 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     // A ESCOLA DO DOCUMENTO É A DO WORKER — ver o bloco em `rotas.js`. Chega por parâmetro
     // porque esta função monta o roteador e não vê o `env`; quem o vê é a ponte, abaixo.
     escolaDoWorker,
+    // A CURADORIA — o recorte dos sujeitos por turma (20/10/2026). Chega do mesmo jeito, e
+    // FALTAVA AQUI: a ponte de cima já a passava, e esta montagem deitava-a fora. O efeito era o
+    // pior possível — a rota respondia «turma X» e a lista vinha vazia, porque sem leitura de
+    // curadoria a regra conclui, correctamente, que ninguém está atribuído.
+    lerCuradorias,
   });
   return (request) => roteador.responder(request);
 }

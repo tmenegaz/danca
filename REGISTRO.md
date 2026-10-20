@@ -20547,3 +20547,13 @@ erro.
 manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
 classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
 Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
+
+**Correção de 20/10/2026 (mesmo dia) — a ponte deitava fora a curadoria.** A entrada acima diz que
+o recorte «resolve-se no servidor». Resolvia no ROTEADOR, não na ponte: o `montarPorta` recebia
+`lerCuradorias` e não o punha no objecto do `criarRotas`. Medido no Worker depois do deploy —
+`?plano=plano-20261020-0739` respondia `turma: Balé Nível 1 — Teste 1` e `sujeitos: []`. O sintoma
+era mudo e plausível (com curadoria ausente a regra conclui, correctamente, que ninguém está
+atribuído), e por isso passou: a prova chamava `criarRotas` **de fora**, com a função já nas mãos, e
+media as pontas em vez da ligação. A prova ganhou a secção **E**, que monta a **ponte verdadeira**
+(`montarPorta`) com uma `lerCuradorias` que conta as chamadas: **25 → 27 asserções**, e o controlo
+negativo — sem o repasse — dá **2 falhas**.

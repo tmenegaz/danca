@@ -277,6 +277,51 @@ async function principal() {
       (tela.match(/OPCOES\.get\(no\.opcoesDe\)/g) || []).length);
   }
 
+  // ------------------------------------------------------------------ E
+  console.log('\nE. a PONTE de produção repassa a curadoria ao roteador');
+  {
+    // A PASSA ÀS COSTAS DA PROVA ANTERIOR (20/10/2026). As secções C e D chamam `criarRotas` de
+    // fora, com a `lerCuradorias` já nas mãos — e por isso não viam que a ponte de produção a
+    // deitava fora: `montarPorta` recebia o parâmetro e não o punha no objecto do roteador. No
+    // Worker o sintoma era mudo e plausível («turma X» na resposta, lista vazia), e o site ficou
+    // assim. Montar a porta verdadeira é o que mede a LIGAÇÃO, e não as pontas.
+    const { montarPorta } = require('../motor/servidor/cloudflare.js');
+    const { criarMemoria } = require('../motor/nucleo/armazenamento.js');
+    const base = criarMemoria();
+    await base.guardar('envelope/anamnese-aluna-a.json', anamnese('Aluna A'));
+    await base.guardar('envelope/anamnese-aluna-c.json', anamnese('Aluna C'));
+    const guardado = new Map();
+    const armazenamento = {
+      ler: (c) => base.ler(c),
+      listar: (p) => {
+        const vistos = guardado.get(p);
+        return vistos ? Promise.resolve(vistos) : base.listar(p);
+      },
+      guardar: (c, t) => base.guardar(c, t),
+      existe: (c) => base.existe(c),
+      apagar: (c) => base.apagar(c),
+    };
+    // O `criarRotas` guarda o índice lido; a memória é a mesma, e a lista de chaves vem dela.
+    guardado.clear();
+
+    let chamada = 0;
+    const responder = montarPorta({
+      armazenamento,
+      conteudoTexto: fs.readFileSync(path.join(PORTA, 'conteudo/anamnese.json'), 'utf8'),
+      esquemaTexto: fs.readFileSync(path.join(PORTA, 'envelope/elicitacao-schema.json'), 'utf8'),
+      poTexto: fs.readFileSync(path.join(PORTA, 'po/conteudo/po.json'), 'utf8'),
+      planoTexto: fs.readFileSync(path.join(PORTA, 'plano/conteudo/plano.json'), 'utf8'),
+      fichaHtml: (t) => String(t || ''),
+      escolaDoWorker: ESCOLA,
+      lerCuradorias: async () => { chamada += 1; return CURADORIAS; },
+    });
+    const resposta = await responder(new Request('http://local/api/anamneses?turma=' + encodeURIComponent('Balé Nível 1 — Teste 1')));
+    const corpo = JSON.parse(await resposta.text());
+    checar('a ponte chama a leitura de curadorias que recebeu', chamada === 1, chamada);
+    checar('e o recorte chega ao cliente pela ponte de produção, e não só pelo roteador',
+      JSON.stringify(valores(corpo)) === '["Aluna C"]', valores(corpo));
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));
