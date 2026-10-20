@@ -20868,3 +20868,100 @@ cinco grupos em ambas, destinos diferentes. Unificá-la exige que o gerador do c
 escola o pacote vai ser servido, e isso é uma decisão de desenho (o pacote é portátil hoje), não uma
 correcção. E o redirecionamento não foi observado numa geração real de ponta a ponta — a próxima
 geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
+
+## 20/10/2026 — a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
+
+**O que aconteceu.**
+A correcção anterior unificou a barra da raiz e a da apresentação. A pesquisadora navegou e o
+defeito sobreviveu do outro lado da porta: **indo para a anamnese, para o plano de ensino ou para o
+plano de observação, a barra voltava à antiga** — sem Ciclos, sem Aulas, sem Planejamento e sem os
+Bastidores. O mesmo ao sair de um formulário pelo «continuar de onde parei». E, na barra nova, a
+Área do Professor tinha só os três formulários: faltavam a captura em aula, a harmonização de
+linguagem e o lançamento — que apareciam no pacote da turma e desapareciam na raiz. O pacote, por
+sua vez, não tinha «Bastidores» de todo.
+
+**O que foi diagnosticado.**
+Não eram links errados: eram **quatro construções da mesma barra**, cada uma um retrato do dia em
+que aquela página nasceu —
+
+1. o índice da escola (`tools/montar-publicacao.js`);
+2. o pacote do ciclo (`tools/gerar-ciclo.sh`, `gerar_nav`), escrito na geração;
+3. a porta (`tools/criar-escola.sh`, `gerar_nav_zero`), **congelada na criação da escola** — é por
+   isso que a porta mostra a barra de antes de existir ciclo, para sempre;
+4. os Bastidores (`navSistema`, `tools/templates/nav-html.js`).
+
+Corrigir «os links» seria correr atrás de quatro construções indefinidamente, e a quinta apareceria
+no dia seguinte — que é exactamente o que a pesquisadora disse: *«parece que é pouco eficiente a
+solução que você encontrou pra esses links»*.
+
+**O que foi decidido.**
+A barra **deixa de ser escrita e passa a ser desenhada no momento de servir**. A montagem publica o
+menu como **dado** (`publicacao/<escola>/nav.json`), e a ponte de produção substitui o `<nav>` de
+**toda** página HTML que serve por aquele. Uma definição, um desenho, todas as páginas — incluindo
+as já geradas, que nunca serão regeradas e são a maioria.
+
+O que sustenta a decisão:
+
+- **o menu é dado porque quem sabe o que existe é quem lê o disco.** A montagem vê os pacotes, as
+  aulas declaradas no `ciclos.json` e os documentos publicados; o Worker não tem `fs`. O `nav.json`
+  é o contrato entre os dois.
+- **os `href` do menu são absolutos** (`/turma/plano.html`). É o que torna a **mesma** barra válida
+  dentro do pacote (onde `plano.html` seria relativo à turma) e na porta (onde seria relativo à
+  porta). A relativa era a causa de haver barras diferentes por página.
+- **a montagem também reescreve o que publica**, com o mesmo desenho: o site continua certo servido
+  sem a ponte (um `file://`, um pré-visualizador). A ponte é a segunda cintura, e é ela que cobre o
+  que chegar ao ASSETS depois da última montagem.
+- **degradar é melhor do que inventar.** Sem `nav.json`, cada página fica com a barra que trazia;
+  a uma página sem `<nav>` não se acrescenta uma. Uma barra que falta é um defeito; uma página
+  estragada seria um desastre.
+
+**Onde entrou.**
+
+- `motor/nucleo/nav.js` — **novo**: `desenhar(menu, pedido)`, `aplicar(html, menu, pedido)`,
+  `caminhoDe`, `ehAtivo`. O desenho é o mesmo dos dois lados (montagem e ponte). O `require` do
+  template é literal: um `path.join(__dirname, …)` compila em Node e **falha no deploy** — o
+  empacotador não segue caminho montado em execução, e não há `path` no runtime do Worker.
+- `tools/montar-publicacao.js` — `navDaEscola()` dá lugar a `menuDaEscola()` +
+  `acrescentarAreaDoProfessor()` + `absolutizar()`; publica o `nav.json` e reescreve a barra de
+  **todas** as páginas HTML da publicação com o desenho partilhado. Sai o `navDoPacoteZero()`, que
+  ficou sem uso.
+- `motor/servidor/producao.js` — `menuDaEscola(env)` lê o `nav.json` do ASSETS (uma vez por
+  isolate), e `comAparencia()` aplica a barra. **Todos** os ramos HTML passam por lá — o ASSETS, a
+  porta (`/anamnese`, `/plano-ensino`, `/plano-observacao`) e os **Bastidores**, que antes
+  devolviam a página sem passar por `comAparencia`.
+- `experimentos/provar-barra-unica.js` — **novo**, 53 asserções em cinco secções: o dado, o desenho
+  ao servir em **quatro** páginas que traziam barras diferentes, a barra de ontem plantada em disco
+  a não sobreviver, um item aceso por página, e a degradação sem menu e sem `<nav>`.
+
+**Uma armadilha da prova, e o defeito que ela escondia.** O primeiro `env.ASSETS` falso da prova
+não aceitava um `URL` como argumento — e é assim que a porta pede os seus ficheiros. O
+`menuDaEscola` engolia a excepção (devolvia `null`, que é o caminho de degradação) e **a prova
+passava sem exercer a barra**: media o ficheiro que a montagem já tinha escrito. Foi a asserção «a
+barra de ontem plantada em disco» que o apanhou — a ponta que mede o que **sai** e não o que foi
+escrito. A prova ficou a medir as duas pontas: o disco (contraprova) e o que a ponte serve.
+
+**Com o quê.** `provar-barra-unica` → **53 asserções**. Sem regressão: publicação 39, sujeitos 30,
+geração 48, logo 22, índices 55, identidade visual 19/19.
+
+Medido ao vivo, no Worker do `batata`, depois do deploy: `/`, `/sistema`, `/bale-nivel-1-teste-2/`,
+`/bale-nivel-1-teste-2/plano`, `/bale-nivel-1-teste-2/lancamento`, `/anamnese/`, `/plano-ensino/`,
+`/plano-observacao/` e `/bastidores/producao` servem **os cinco grupos** — Ciclos, Aulas,
+Planejamento, Área do Professor e Bastidores —, **uma única** `<nav`, e a Área do Professor com a
+captura em aula, a harmonização e o lançamento em todas elas. O item aceso segue a página: «Sistema
+Lastro» na raiz, «Anamnese do aluno» na anamnese, «Plano do Ciclo 01» no pacote.
+
+**O que ainda não está feito.**
+
+- O `gerar_nav` do `gerar-ciclo.sh` e o `gerar_nav_zero` do `criar-escola.sh` continuam a escrever a
+  barra nos ficheiros. Agora é inócuo — a ponte sobrepõe-se —, mas é uma segunda construção a
+  manter até que os dois passem a escrever só o que a montagem não toca.
+- O `codigo: 'Benesh'` continua escrito à mão no `montar-publicacao.js`; devia vir do PO.
+- Os grupos «Área do Professor» e «Bastidores» são **copiados** do pacote-zero, e não reconstruídos:
+  as URLs deles carregam professor, escola e ciclo, e reescrevê-las seria uma segunda derivação dos
+  mesmos parâmetros. A consequência é que uma escola cujo pacote-zero tenha uma barra **sem** esses
+  blocos não os ganha por esta correcção — o `menuDaEscola` só publica o que encontra. Hoje as
+  escolas existentes têm-nos; a próxima que nascer sem eles ficará sem eles, em silêncio.
+- A barra dos **Bastidores** passa a ser a da escola (antes só levava de volta ao sistema), e o
+  contrário também: o painel passa a ser alcançável de qualquer página da escola.
+- Nada regenera `indices/` automaticamente: uma prova nova (como esta) obriga a correr
+  `node tools/gerar-indices.js` à mão.

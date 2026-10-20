@@ -43,7 +43,7 @@ const path = require('path');
 // compartilha é a FORMA; o que NÃO se compartilha é a lista de itens (ver o cabeçalho do módulo).
 // Sem isto, o índice da escola teria uma terceira cópia do markup da marca — e as três
 // envelheceriam em ritmos diferentes.
-const { ABERTURA, FECHAMENTO } = require(path.join(__dirname, 'templates', 'nav-html.js'));
+const nav = require(path.join(__dirname, '..', 'motor', 'nucleo', 'nav.js'));
 
 /*
  * A RAIZ É PARÂMETRO (`--raiz`), e não uma constante: é o que permite montar uma árvore de
@@ -322,74 +322,124 @@ function documentosDaTurma(pacote) {
  *
  * `atual` marca o item da página ('index' na raiz, 'sistema' na apresentação).
  */
-function navDaEscola({ turmas, blocos, atual }) {
-  const itens = [];
-  itens.push('  <a' + (atual === 'index' ? ' class="ativo"' : '') + ' href="index.html">Sistema Lastro</a>');
+function menuDaEscola({ turmas, blocos }) {
+  const grupos = [];
+  grupos.push({ tipo: 'link', rotulo: 'Sistema Lastro', href: '/index.html' });
 
   if (turmas.length) {
     const varias = turmas.length > 1;
-    const da = (t, dep) => (varias ? t.nome : '');
     const sufixo = (t) => (varias ? ' — ' + t.nome : '');
 
-    // CICLOS — o plano do ciclo, as referências e o PDF de cada turma.
     const ciclos = [];
     for (const t of turmas) {
       const d = t.documentos || {};
-      if (d.plano) ciclos.push('<a href="' + esc(t.variante) + '/plano.html">Plano do Ciclo ' + esc(t.ciclo) + sufixo(t) + '</a>');
-      if (d.referencias) ciclos.push('<a href="' + esc(t.variante) + '/referencias.html">Referências Bibliográficas' + sufixo(t) + '</a>');
-      if (d.pdf) ciclos.push('<a class="pdf" href="' + esc(t.variante) + '/' + esc(d.pdf) + '">PDF do ciclo' + sufixo(t) + '</a>');
+      if (d.plano) ciclos.push({ rotulo: 'Plano do Ciclo ' + t.ciclo + sufixo(t), href: '/' + t.variante + '/plano.html' });
+      if (d.referencias) ciclos.push({ rotulo: 'Referências Bibliográficas' + sufixo(t), href: '/' + t.variante + '/referencias.html' });
+      if (d.pdf) ciclos.push({ rotulo: 'PDF do ciclo' + sufixo(t), href: '/' + t.variante + '/' + d.pdf, classe: 'pdf' });
     }
-    if (ciclos.length) {
-      itens.push('  <details class="menu">\n    <summary>Ciclos</summary>\n    <div class="submenu">\n      '
-        + ciclos.join('\n      ') + '\n    </div>\n  </details>');
-    }
+    if (ciclos.length) grupos.push({ tipo: 'menu', rotulo: 'Ciclos', itens: ciclos });
 
-    // AULAS — uma por aula declarada no `ciclos.json`, com o marco como rótulo. Só a que tem
-    // página publicada: o índice por aula pode declarar 18 e o pacote ter só a primeira, e um
-    // menu com 17 links mortos é pior do que um menu com um.
+    // Só a aula que tem página publicada: o `ciclos.json` pode declarar 18 e o pacote ter uma.
     const aulas = [];
     for (const t of turmas) {
       for (const a of (t.aulas || [])) {
         if (!fs.existsSync(path.join(t.pasta, 'aula-' + a.n + '.html'))) continue;
         const marco = a.marco ? ' — ' + a.marco : '';
-        aulas.push('<a href="' + esc(t.variante) + '/aula-' + esc(a.n) + '.html">Aula ' + esc(a.n) + esc(marco) + sufixo(t) + '</a>');
+        aulas.push({ rotulo: 'Aula ' + a.n + marco + sufixo(t), href: '/' + t.variante + '/aula-' + a.n + '.html' });
       }
     }
-    if (aulas.length) {
-      itens.push('  <details class="menu">\n    <summary>Aulas</summary>\n    <div class="submenu">\n      '
-        + aulas.join('\n      ') + '\n    </div>\n  </details>');
-    }
+    if (aulas.length) grupos.push({ tipo: 'menu', rotulo: 'Aulas', itens: aulas });
 
-    // PLANEJAMENTO — o glossário e a notação (o que o PO produziu como linguagem).
     const planejamento = [];
     for (const t of turmas) {
       const d = t.documentos || {};
-      if (d.glossario) planejamento.push('<a href="' + esc(t.variante) + '/' + esc(d.glossario) + '">Glossário do código ' + esc(t.codigo || 'Benesh') + sufixo(t) + '</a>');
-      if (d.notacao) planejamento.push('<a href="' + esc(t.variante) + '/notacao.html">Notação em ' + esc(t.codigo || 'Benesh') + sufixo(t) + '</a>');
+      if (d.glossario) planejamento.push({ rotulo: 'Glossário do código ' + (t.codigo || 'Benesh') + sufixo(t), href: '/' + t.variante + '/' + d.glossario });
+      if (d.notacao) planejamento.push({ rotulo: 'Notação em ' + (t.codigo || 'Benesh') + sufixo(t), href: '/' + t.variante + '/notacao.html' });
     }
-    if (planejamento.length) {
-      itens.push('  <details class="menu">\n    <summary>Planejamento</summary>\n    <div class="submenu">\n      '
-        + planejamento.join('\n      ') + '\n    </div>\n  </details>');
-    }
+    if (planejamento.length) grupos.push({ tipo: 'menu', rotulo: 'Planejamento', itens: planejamento });
   }
 
-  for (const bloco of blocos) itens.push('  ' + bloco.trim());
+  // OS BLOCOS DO SISTEMA — COPIADOS do pacote-zero, com os href a passar a absolutos. As URLs
+  // deles carregam professor, escola e ciclo, e essas três já estão escritas, certas, no
+  // pacote-zero (foi o `criar-escola.sh` que as compôs). Reescrevê-las seria uma segunda
+  // derivação dos mesmos parâmetros — e a segunda é a que fica errada quando a primeira muda.
+  // O que se faz é só o que a barra única exige: caminhos de raiz, para valerem em qualquer página.
+  for (const bloco of blocos) {
+    const rotulo = (/<summary>([^<]+)<\/summary>/.exec(bloco) || [])[1] || '';
+    const itens = [...bloco.matchAll(/<a[^>]*href="([^"]+)"[^>]*>([^<]+)<\/a>/g)]
+      .map((m) => ({ rotulo: m[2].trim(), href: absolutizar(m[1]) }));
+    if (itens.length) grupos.push({ tipo: 'menu', rotulo: rotulo.trim(), itens });
+  }
 
-  return [ABERTURA, itens.join('\n'), FECHAMENTO].join('\n');
+  return { versao: 1, grupos };
 }
 
-/** A barra de navegação do pacote-zero: é a mesma marca, e o mesmo `nav-html.js` do ciclo. */
-function navDoPacoteZero(pacoteZero) {
-  const arquivo = path.join(pacoteZero, 'index.html');
-  if (!fs.existsSync(arquivo)) return '';
-  const html = fs.readFileSync(arquivo, 'utf8');
-  const m = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(html);
-  if (!m) return '';
-  // Os atalhos do pacote-zero são relativos (`anamnese/?…`), e o índice está na MESMA raiz que
-  // eles — os caminhos continuam válidos. O que sai é o `class="ativo"` da apresentação: quem
-  // está nesta página não é a apresentação.
-  return m[0].replace(/\sclass="ativo"/g, '');
+/**
+ * O DESENHO da barra, pelo módulo que a ponte de produção também usa (`motor/nucleo/nav.js`).
+ * Uma função só para os dois lados é a diferença entre «a barra certa» e «a barra certa no sítio
+ * onde eu me lembrei de a corrigir» — que foi o defeito de ontem, quatro vezes.
+ */
+function navDoMenu(menu, pedido) {
+  return nav.desenhar(menu, pedido) || '';
 }
+
+/** Um href de raiz: `/x`, e não `x` nem `./x`. Já absoluto (http, `#`) fica como está. */
+function absolutizar(href) {
+  const h = String(href == null ? '' : href).trim();
+  if (!h) return '/';
+  if (/^(https?:|mailto:|data:|#)/.test(h)) return h;
+  return h.startsWith('/') ? h : '/' + h;
+}
+
+/**
+ * A ÁREA DO PROFESSOR, COMPLETA, NA BARRA DA ESCOLA (20/10/2026).
+ *
+ * O pacote da turma já tem, na sua barra, o que só existe depois do PO: a captura em aula para
+ * impressão, a harmonização de linguagem e o lançamento de aula. A barra da raiz não os tinha —
+ * e voltar da anamnese para a raiz fazia-os desaparecer. Como o menu é da ESCOLA e os documentos
+ * são da TURMA, eles entram com o sufixo dela, como o resto.
+ *
+ * Só entra o que existe no disco: um link para um documento não publicado é um menu que mente.
+ */
+function acrescentarAreaDoProfessor(menu, turmas) {
+  const bloco = (menu.grupos || []).find((g) => /^Área do Professor$/i.test(g.rotulo || ''));
+  if (!bloco) return menu;
+  const varias = turmas.length > 1;
+  for (const t of turmas) {
+    const sufixo = varias ? ' — ' + t.nome : '';
+    const extras = [
+      ['harmonizacao.html', 'Harmonização de linguagem'],
+      ['lancamento.html', 'Lançamento de aula — formulário eletrônico'],
+    ];
+    for (const [arquivo, rotulo] of extras) {
+      if (!fs.existsSync(path.join(t.pasta, arquivo))) continue;
+      const href = '/' + t.variante + '/' + arquivo;
+      if (bloco.itens.some((i) => i.href === href)) continue;
+      bloco.itens.push({ rotulo: rotulo + sufixo, href });
+    }
+    // A captura em aula é por AULA: entra a da primeira que tiver folha publicada.
+    for (const a of (t.aulas || [])) {
+      if (!fs.existsSync(path.join(t.pasta, 'captura-aula-' + a.n + '.html'))) continue;
+      const href = '/' + t.variante + '/captura-aula-' + a.n + '.html';
+      if (!bloco.itens.some((i) => i.href === href)) {
+        bloco.itens.push({ rotulo: 'Captura em aula — Aula ' + a.n + ' — para impressão' + sufixo, href });
+      }
+      break;
+    }
+  }
+  // A ordem é a do gerador do ciclo: os formulários primeiro, os derivados depois.
+  const ordem = ['Anamnese', 'Plano de ensino', 'Plano de Observação', 'Harmonização',
+    'Captura em aula', 'Lançamento'];
+  bloco.itens.sort((a, b) => {
+    const pos = (i) => {
+      const k = ordem.findIndex((o) => (i.rotulo || '').indexOf(o) === 0);
+      return k === -1 ? ordem.length : k;
+    };
+    return pos(a) - pos(b);
+  });
+  return menu;
+}
+
 
 function copiar(de, para) {
   fs.cpSync(de, para, { recursive: true });
@@ -444,16 +494,23 @@ function principal() {
   //    de ser o que o `check-pacote` aprovou, e um link simbólico não sobrevive a um upload.
   for (const t of turmas) copiar(t.pasta, path.join(destino, t.variante));
 
-  // 3. O ÍNDICE.
-  // A BARRA É A MESMA EM TODAS AS PÁGINAS DO DOMÍNIO — na raiz e na apresentação. Duas barras no
-  // mesmo sítio é o mesmo que nenhuma: não se sabe onde se está nem o que já existe.
+  // 3. O MENU, COMO DADO. `nav.json` é o contrato entre a montagem (que lê o disco) e a ponte de
+  //    produção (que não tem `fs`): a montagem diz o que existe, a ponte desenha em cada página
+  //    que serve. É o que faz a barra ser UMA — inclusive nas páginas que já estão geradas e
+  //    nunca serão regeradas, que são a maioria.
   const blocos = blocosDoSistema(zero.pasta);
+  const menu = acrescentarAreaDoProfessor(menuDaEscola({ turmas, blocos }), turmas);
+  fs.writeFileSync(path.join(destino, 'nav.json'), JSON.stringify(menu, null, 2) + '\n', 'utf8');
+
+  // 4. O ÍNDICE. A barra vem do MESMO desenho que a ponte usa — não de uma segunda construção,
+  //    que voltaria a divergir no dia seguinte. Aqui ela é só o estado estático da página; ao
+  //    servir, a ponte reescreve-a a partir do `nav.json`.
   fs.writeFileSync(path.join(destino, 'index.html'), indiceDaEscola({
     escola,
     nome: nomeDaEscola(zero, escola),
     professor: zero ? zero.professor : '',
     turmas,
-    nav: navDaEscola({ turmas, blocos, atual: 'index' }),
+    nav: navDoMenu(menu, '/'),
   }), 'utf8');
 
   // A APRESENTAÇÃO TAMBÉM. Ela nasce do `index.html` do pacote-zero, com a barra de lá — a básica,
@@ -462,10 +519,28 @@ function principal() {
   const apresentacaoAlvo = path.join(destino, 'sistema.html');
   if (fs.existsSync(apresentacaoAlvo)) {
     const html = fs.readFileSync(apresentacaoAlvo, 'utf8');
-    const nav = navDaEscola({ turmas, blocos, atual: 'sistema' });
-    const trocado = html.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, nav);
+    const trocado = html.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, navDoMenu(menu, '/sistema'));
     if (trocado !== html) fs.writeFileSync(apresentacaoAlvo, trocado, 'utf8');
   }
+
+  // 5. AS PÁGINAS DO PACOTE E DA PORTA — também já escritas com a barra do dia em que nasceram.
+  //    Aqui ficam com a barra de HOJE, e a ponte volta a reescrevê-la ao servir (é o que cobre as
+  //    que venham a ser geradas depois). Sem este passo, quem abre o site num sítio estático ou
+  //    sem o Worker veria a barra velha; com ele, o arquivo publicado já diz a verdade.
+  let reescritas = 0;
+  const percorrer = (dir) => {
+    for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+      const completo = path.join(dir, item.name);
+      if (item.isDirectory()) { percorrer(completo); continue; }
+      if (!/\.html$/.test(item.name)) continue;
+      const rel = '/' + path.relative(destino, completo).split(path.sep).join('/');
+      const html = fs.readFileSync(completo, 'utf8');
+      if (!/<nav class="topnav"[\s\S]*?<\/nav>/.test(html)) continue;
+      const trocado = html.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, navDoMenu(menu, rel));
+      if (trocado !== html) { fs.writeFileSync(completo, trocado, 'utf8'); reescritas += 1; }
+    }
+  };
+  percorrer(destino);
 
   console.log('publicação montada: publicacao/' + escola);
   console.log('  apresentação: sistema.html');

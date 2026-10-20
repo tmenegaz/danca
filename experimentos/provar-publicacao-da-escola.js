@@ -169,14 +169,19 @@ function principal() {
     // mesmo ASSETS, mas elas não são um arquivo com esse nome. O que se exige delas é que a pasta
     // da porta exista publicada; é o que a secção A já mede.
     // `bastidores/` também: é rota do Worker (o painel), não um arquivo do pacote.
-    const ROTAS_DA_PORTA = /^(anamnese|plano-ensino|plano-observacao|bastidores)\//;
+    //
+    // DESDE 20/10/2026 OS HREF DA BARRA SÃO ABSOLUTOS (`/turma/plano.html`): é o que faz a mesma
+    // barra valer dentro do pacote e na porta. Aqui isso muda a MEDIÇÃO, não a exigência: o que
+    // se confere é o caminho, com ou sem a barra inicial.
+    const ROTAS_DA_PORTA = /^\/?(anamnese|plano-ensino|plano-observacao|bastidores)\//;
     const hrefs = [...indice.matchAll(/href="([^"#?]+)"/g)]
       .map((m) => m[1])
       .filter((h) => !/^(https?:|mailto:)/.test(h))
       .filter((h) => !ROTAS_DA_PORTA.test(h));
     const mortos = hrefs.filter((h) => !existe(pub, h));
     checar('nenhum link do índice aponta para o vazio', mortos.length === 0, mortos);
-    checar('e o índice aponta à apresentação, que existe', hrefs.indexOf('sistema.html') !== -1);
+    checar('e o índice aponta à apresentação, que existe',
+      hrefs.some((h) => /^\/?sistema\.html$/.test(h)), hrefs);
   }
 
   // ------------------------------------------------------------------ B2
@@ -213,15 +218,18 @@ function principal() {
       indice.indexOf('<summary>Área do Professor</summary>') !== -1
         && indice.indexOf('<summary>Bastidores</summary>') !== -1);
 
-    // TODOS os links da barra resolvem — nenhum aponta para o que não foi publicado.
-    const rotas = /^(https?:|mailto:|\/|ana|pla|bas)/;
-    const links = [...indice.matchAll(/<a[^>]+href="([^"]+)"/g)].map((m) => m[1])
-      .filter((h) => !rotas.test(h));
+    // TODOS os links da barra resolvem — nenhum aponta para o que não foi publicado. Os href da
+    // barra são ABSOLUTOS (a mesma barra serve o pacote e a porta), e as rotas da porta não são
+    // arquivos: confere-se o caminho, com ou sem a barra inicial.
+    const externo = /^(https?:|mailto:|#)/;
+    const rota = /^\/?(anamnese|plano-ensino|plano-observacao|bastidores)\//;
+    const links = [...indice.matchAll(/<a[^>]+href="([^"#?]+)"/g)].map((m) => m[1])
+      .filter((h) => !externo.test(h) && !rota.test(h));
     const mortos = links.filter((h) => !existe(pub, h));
     checar('nenhum link da barra aponta para o vazio', mortos.length === 0, mortos);
     checar('e ela aponta aos documentos da turma gerada',
-      links.some((h) => /^nivel-1\/plano\.html$/.test(h))
-        && links.some((h) => /^nivel-1\/aula-01\.html$/.test(h)), links);
+      links.some((h) => /^\/?nivel-1\/plano\.html$/.test(h))
+        && links.some((h) => /^\/?nivel-1\/aula-01\.html$/.test(h)), links);
 
     // A MARCA É O CAMINHO DE VOLTA, e agora está na barra de todas as páginas do domínio.
     checar('a marca da barra é um link para a raiz do domínio',

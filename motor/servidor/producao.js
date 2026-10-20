@@ -25,6 +25,8 @@ const bastidores = require('./bastidores.js');
 // A MARCA DO SISTEMA (agora um link para a raiz) e o preenchimento do slot vazio. Ver
 // `comAparencia`.
 const { MARCA, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
+// A BARRA DE NAVEGAÇÃO — o MESMO desenho que a montagem da publicação usa (20/10/2026).
+const navModulo = require('../nucleo/nav.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 // AS ESCOLAS DE TESTE — os três JSON e o preenchidor. Ver `teste-fixtures.js` e
@@ -66,6 +68,7 @@ function jsonCurto(objeto, status) {
  * servidos por aqui, e uma família que valesse só nos Bastidores não seria «da escola».
  */
 async function comAparencia(resposta, aparencia, extras) {
+  const menu = (extras && extras.menu) || null;
   const ap = aparencia || {};
   const teste = Number((extras && extras.teste) || 0);
   const modo = ap.modo === 'noturna' ? 'noturna' : 'clara';
@@ -125,6 +128,30 @@ async function comAparencia(resposta, aparencia, extras) {
   if (texto.indexOf('data-tela="porta"') !== -1 &&
       texto.indexOf('/assets/geracao.js') === -1) {
     texto = texto.replace(/<\/body>/i, '<script src="/assets/geracao.js"></script></body>');
+  }
+
+  /*
+   * A BARRA, DESENHADA AO SERVIR (20/10/2026).
+   *
+   * ESTA É A CORREÇÃO ESTRUTURAL. A barra era escrita em QUATRO sítios — a raiz, o pacote do
+   * ciclo (`gerar_nav`), a porta (`gerar_nav_zero`, congelada na criação da escola) e os
+   * Bastidores (`navSistema`) — e cada um era um retrato do dia em que aquela página nasceu.
+   * Indo da raiz para a anamnese, a barra VOLTAVA à antiga: sem Ciclos, sem Aulas, sem
+   * Planejamento e sem os Bastidores. «Corrigir os links» seria correr atrás de quatro
+   * construções para sempre — e a quinta apareceria no dia seguinte.
+   *
+   * Agora há UM menu (o `nav.json` que a montagem publica) e UM desenho (`motor/nucleo/nav.js`),
+   * e é aqui que se aplicam: em TODA página HTML que esta ponte serve — do ASSETS, da porta ou
+   * dos Bastidores. As páginas já geradas que nunca serão regeradas passam a ter a barra de
+   * hoje, que é a maioria delas.
+   *
+   * O `href` de cada item é ABSOLUTO (`/turma/plano.html`): é o que torna a mesma barra válida
+   * dentro do pacote (onde `plano.html` seria relativo à turma) e na porta (onde seria relativo
+   * à porta). A relativa é a razão de ter havido barras diferentes por página.
+   */
+  if (menu) {
+    const comBarra = navModulo.aplicar(texto, menu, (extras && extras.pedido) || '/');
+    if (comBarra) texto = comBarra;
   }
 
   // O SLOT DA MARCA, PREENCHIDO AO SERVIR (18/10/2026).
@@ -196,6 +223,29 @@ function caminhoDaPorta(path, prefixo) {
   return path === prefixo ? '/' : path.slice(prefixo.length);
 }
 
+/**
+ * O MENU DA ESCOLA, lido do ASSETS — `nav.json` (20/10/2026).
+ *
+ * É o contrato entre a MONTAGEM (que lê o disco: os pacotes, as aulas, os documentos) e esta
+ * ponte, que não tem `fs`. O cache vive no isolate e é seguro: o ficheiro só muda num deploy, e
+ * um deploy reinicia os isolates. Ausente o ficheiro, devolve `null` e cada página fica com a
+ * barra que já trazia — degradar é melhor do que servir uma barra inventada.
+ */
+let MENU_EM_CACHE = null;
+async function menuDaEscola(env) {
+  if (MENU_EM_CACHE !== null) return MENU_EM_CACHE || null;
+  if (!env || !env.ASSETS || typeof env.ASSETS.fetch !== 'function') return null;
+  try {
+    const res = await env.ASSETS.fetch(new URL('/nav.json', 'https://assets.local'));
+    if (!res.ok) { MENU_EM_CACHE = false; return null; }
+    MENU_EM_CACHE = await res.json();
+    return MENU_EM_CACHE;
+  } catch (erro) {
+    MENU_EM_CACHE = false;
+    return null;
+  }
+}
+
 /** A aparência da escola, com o KV e o slug à mão. Sem KV (o servidor de desenvolvimento),
  *  o padrão é `clara` + a família padrão — a ausência de dado não inventa uma aparência. */
 async function aparenciaDoEnv(env) {
@@ -254,6 +304,9 @@ async function fetch(request, env) {
       '<p>Diagnóstico: <code>curl &lt;origin&gt;/api/saude</code></p>', 500);
   }
 
+  // O MENU DA ESCOLA, uma vez por pedido (o isolate guarda-o entre pedidos: só muda em deploy).
+  const menu = await menuDaEscola(env);
+
   // 0. O FREIO da escola: a flag de habilitação. Só `"nao"` DESLIGA a escola —
   //    nenhuma rota serve conteúdo, qualquer caminho devolve esta página. É o
   //    "desliga" para resolver problemas diversos sem derrubar o Worker: o
@@ -300,8 +353,12 @@ async function fetch(request, env) {
   // 0.1 O MOCK dos Bastidores (andaime): `/bastidores` e `/api/bastidores/*`
   //     vivem FORA da porta — a lista de alunas e a senha do professor que a
   //     anamnese consulta. Sem Produção real, este andaime as entrega.
+  //     E VESTE A ESCOLA como qualquer outra página: os Bastidores também levam a barra.
   const bast = await bastidores.fetch(request, env);
-  if (bast) return bast;
+  if (bast) {
+    return comAparencia(bast, await aparenciaDoEnv(env),
+      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
+  }
 
   // 1. A porta de elicitação, sob os dois prefixos. Retira-se o prefixo do caminho
   //    (a rota vê `/`, `/api/…`, `/assets/…`) e a ponte lê o conteúdo do
@@ -327,7 +384,8 @@ async function fetch(request, env) {
     const rel = caminhoDaPorta(path, prefixo);
     const alvo = new Request(new URL(rel + url.search, request.url), request);
     return comAparencia(await portaFetch(alvo, env, { prefixo: PREFIXO_ASSETS }),
-      await aparenciaDoEnv(env), { teste: numeroDoTeste(env.ESCOLA_SLUG) });
+      await aparenciaDoEnv(env),
+      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
   }
 
   // 2. O lançamento do pacote (o `lancamento.html` POSTa em /api/receber), na
@@ -350,7 +408,7 @@ async function fetch(request, env) {
     // O PACOTE também veste a escola: o índice, as aulas, o guia — todos são documentos que
     // se leem, e ler no escuro é uma decisão da casa, não de quem abriu o link.
     return comAparencia(await env.ASSETS.fetch(request), await aparenciaDoEnv(env),
-      { teste: numeroDoTeste(env.ESCOLA_SLUG) });
+      { teste: numeroDoTeste(env.ESCOLA_SLUG), menu, pedido: path });
   }
   return new Response(JSON.stringify({ ok: false, erro: 'nao encontrado' }), {
     status: 404,
@@ -358,4 +416,4 @@ async function fetch(request, env) {
   });
 }
 
-module.exports = { fetch, comAparencia, aparenciaDoEnv };
+module.exports = { fetch, comAparencia, aparenciaDoEnv, menuDaEscola };
