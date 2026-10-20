@@ -6,7 +6,8 @@
     "anamnese-20261020-0943.json",
     "plano-20261020-0945.json",
     "plano-20261020-0946.json",
-    "plano-20261020-0947.json"
+    "plano-20261020-0947.json",
+    "po-20261020-0955.json"
   ],
   "resumos": {
     "anamnese-20261020-0942.json": {
@@ -77,6 +78,20 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Sapo Bailarino"
+    },
+    "po-20261020-0955.json": {
+      "id": "po-20261020-0955",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "sapo-bailarino",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261020-0945"
+      ]
     }
   }
 }
