@@ -39,6 +39,12 @@
 const fs = require('fs');
 const path = require('path');
 
+// A FORMA DA BARRA — a mesma que o gerador do ciclo usa (marca, hamburger, contêiner). O que se
+// compartilha é a FORMA; o que NÃO se compartilha é a lista de itens (ver o cabeçalho do módulo).
+// Sem isto, o índice da escola teria uma terceira cópia do markup da marca — e as três
+// envelheceriam em ritmos diferentes.
+const { ABERTURA, FECHAMENTO } = require(path.join(__dirname, 'templates', 'nav-html.js'));
+
 /*
  * A RAIZ É PARÂMETRO (`--raiz`), e não uma constante: é o que permite montar uma árvore de
  * prova — um pacote-zero e dois pacotes de turma de mentira, num directório temporário — sem
@@ -154,7 +160,13 @@ function resumoDaTurma(pastaDoPacote) {
       fim: ciclo.fim || '',
       total: Number(ciclo.total_aulas) || aulas,
       duracao: Number(ciclo.duracao_min) || null,
+      // `aulas` é a CONTAGEM (o corpo da página usa-a assim) — a LISTA vai em `listaDeAulas`,
+      // porque são duas coisas e já confundi-las custou caro uma vez (`0 || []` em `indices.js`).
       aulas,
+      listaDeAulas: (Array.isArray(ciclo.aulas) ? ciclo.aulas : []).map((a) => ({
+        n: String(a && a.n ? a.n : '').padStart(2, '0'),
+        marco: String((a && a.marco) || '').trim(),
+      })).filter((a) => a.n),
       lancadas,
     };
   } catch (erro) {
@@ -254,6 +266,118 @@ ${lista}
 `;
 }
 
+/**
+ * OS BLOCOS DO SISTEMA, lidos do pacote-zero — «Área do Professor» e «Bastidores».
+ *
+ * Eles NÃO são reconstruídos aqui. As URLs deles carregam o professor, a escola e o ciclo, e
+ * esses três já estão escritos, certos, no pacote-zero (foi o `criar-escola.sh` que os compôs).
+ * Reescrevê-los seria uma segunda derivação dos mesmos parâmetros — e a segunda é a que fica
+ * errada quando a primeira muda. O que se extrai é o `<details>` inteiro, tal como está.
+ */
+function blocosDoSistema(pacoteZero) {
+  const arquivo = path.join(pacoteZero, 'index.html');
+  if (!fs.existsSync(arquivo)) return [];
+  const html = fs.readFileSync(arquivo, 'utf8');
+  const blocos = [];
+  const re = /<details class="menu">\s*<summary>([^<]+)<\/summary>[\s\S]*?<\/details>/g;
+  let m;
+  while ((m = re.exec(html)) !== null) {
+    if (/^(Área do Professor|Bastidores)$/i.test(m[1].trim())) blocos.push(m[0]);
+  }
+  return blocos;
+}
+
+/** O que existe no pacote de uma turma — o menu não aponta para o que não foi publicado. */
+function documentosDaTurma(pacote) {
+  const tem = (nome) => fs.existsSync(path.join(pacote, nome));
+  const lista = fs.readdirSync(pacote);
+  const pdf = lista.filter((f) => /\.pdf$/.test(f)).sort()[0] || '';
+  const glossario = lista.filter((f) => /^glossario[-a-z]*\.html$/.test(f)).sort()[0] || '';
+  return {
+    plano: tem('plano.html'),
+    referencias: tem('referencias.html'),
+    notacao: tem('notacao.html'),
+    glossario,
+    pdf,
+  };
+}
+
+/**
+ * A BARRA DA ESCOLA — a única do domínio (20/10/2026).
+ *
+ * O PROBLEMA QUE ISTO RESOLVE. A raiz do site e o pacote da turma serviam DUAS barras diferentes
+ * no mesmo domínio: a raiz tinha «Sistema Lastro · Área do Professor · Bastidores», e o pacote
+ * tinha «Sistema Lastro · Ciclos · Aulas · Planejamento · Área do Professor · PDF». Quem gerava o
+ * ciclo via os documentos no pacote e não os encontrava na raiz — e a raiz é o endereço que a
+ * logo abre. Duas barras no mesmo sítio é o mesmo que nenhuma: não se sabe onde se está.
+ *
+ * A BARRA É DINÂMICA, e o conteúdo é que a decide:
+ *   · sem turma gerada — «Sistema Lastro · Área do Professor · Bastidores». É a escola que ainda
+ *     não tem ciclo, e prometer documentos que não existem seria pior do que não os anunciar;
+ *   · com turma gerada — entram «Ciclos», «Aulas» e «Planejamento», com os documentos DELA.
+ *
+ * COM MAIS DE UMA TURMA, o rótulo diz de qual é: o mesmo grupo reúne as turmas, e cada item leva
+ * o nome delas. Sem esse sufixo, «Aula 01» apareceria três vezes e o professor não saberia qual é
+ * qual. Com uma turma só, o sufixo é ruído e não entra.
+ *
+ * `atual` marca o item da página ('index' na raiz, 'sistema' na apresentação).
+ */
+function navDaEscola({ turmas, blocos, atual }) {
+  const itens = [];
+  itens.push('  <a' + (atual === 'index' ? ' class="ativo"' : '') + ' href="index.html">Sistema Lastro</a>');
+
+  if (turmas.length) {
+    const varias = turmas.length > 1;
+    const da = (t, dep) => (varias ? t.nome : '');
+    const sufixo = (t) => (varias ? ' — ' + t.nome : '');
+
+    // CICLOS — o plano do ciclo, as referências e o PDF de cada turma.
+    const ciclos = [];
+    for (const t of turmas) {
+      const d = t.documentos || {};
+      if (d.plano) ciclos.push('<a href="' + esc(t.variante) + '/plano.html">Plano do Ciclo ' + esc(t.ciclo) + sufixo(t) + '</a>');
+      if (d.referencias) ciclos.push('<a href="' + esc(t.variante) + '/referencias.html">Referências Bibliográficas' + sufixo(t) + '</a>');
+      if (d.pdf) ciclos.push('<a class="pdf" href="' + esc(t.variante) + '/' + esc(d.pdf) + '">PDF do ciclo' + sufixo(t) + '</a>');
+    }
+    if (ciclos.length) {
+      itens.push('  <details class="menu">\n    <summary>Ciclos</summary>\n    <div class="submenu">\n      '
+        + ciclos.join('\n      ') + '\n    </div>\n  </details>');
+    }
+
+    // AULAS — uma por aula declarada no `ciclos.json`, com o marco como rótulo. Só a que tem
+    // página publicada: o índice por aula pode declarar 18 e o pacote ter só a primeira, e um
+    // menu com 17 links mortos é pior do que um menu com um.
+    const aulas = [];
+    for (const t of turmas) {
+      for (const a of (t.aulas || [])) {
+        if (!fs.existsSync(path.join(t.pasta, 'aula-' + a.n + '.html'))) continue;
+        const marco = a.marco ? ' — ' + a.marco : '';
+        aulas.push('<a href="' + esc(t.variante) + '/aula-' + esc(a.n) + '.html">Aula ' + esc(a.n) + esc(marco) + sufixo(t) + '</a>');
+      }
+    }
+    if (aulas.length) {
+      itens.push('  <details class="menu">\n    <summary>Aulas</summary>\n    <div class="submenu">\n      '
+        + aulas.join('\n      ') + '\n    </div>\n  </details>');
+    }
+
+    // PLANEJAMENTO — o glossário e a notação (o que o PO produziu como linguagem).
+    const planejamento = [];
+    for (const t of turmas) {
+      const d = t.documentos || {};
+      if (d.glossario) planejamento.push('<a href="' + esc(t.variante) + '/' + esc(d.glossario) + '">Glossário do código ' + esc(t.codigo || 'Benesh') + sufixo(t) + '</a>');
+      if (d.notacao) planejamento.push('<a href="' + esc(t.variante) + '/notacao.html">Notação em ' + esc(t.codigo || 'Benesh') + sufixo(t) + '</a>');
+    }
+    if (planejamento.length) {
+      itens.push('  <details class="menu">\n    <summary>Planejamento</summary>\n    <div class="submenu">\n      '
+        + planejamento.join('\n      ') + '\n    </div>\n  </details>');
+    }
+  }
+
+  for (const bloco of blocos) itens.push('  ' + bloco.trim());
+
+  return [ABERTURA, itens.join('\n'), FECHAMENTO].join('\n');
+}
+
 /** A barra de navegação do pacote-zero: é a mesma marca, e o mesmo `nav-html.js` do ciclo. */
 function navDoPacoteZero(pacoteZero) {
   const arquivo = path.join(pacoteZero, 'index.html');
@@ -286,10 +410,17 @@ function principal() {
     process.exit(1);
   }
 
-  const turmas = turmasDaEscola(escola).map((t) => Object.assign({}, t, {
-    nome: nomeDaTurma(t.pasta, t.variante),
-    resumo: resumoDaTurma(t.pasta),
-  })).sort((a, b) => (a.nome < b.nome ? -1 : a.nome > b.nome ? 1 : 0));
+  const turmas = turmasDaEscola(escola).map((t) => {
+    const resumo = resumoDaTurma(t.pasta) || {};
+    return Object.assign({}, t, {
+      nome: nomeDaTurma(t.pasta, t.variante),
+      resumo,
+      // O QUE O MENU PRECISA: os documentos que existem e as aulas declaradas.
+      documentos: documentosDaTurma(t.pasta),
+      aulas: resumo.listaDeAulas || [],
+      codigo: 'Benesh',
+    });
+  }).sort((a, b) => (a.nome < b.nome ? -1 : a.nome > b.nome ? 1 : 0));
 
   if (soListar) {
     console.log('escola: ' + escola);
@@ -314,13 +445,27 @@ function principal() {
   for (const t of turmas) copiar(t.pasta, path.join(destino, t.variante));
 
   // 3. O ÍNDICE.
+  // A BARRA É A MESMA EM TODAS AS PÁGINAS DO DOMÍNIO — na raiz e na apresentação. Duas barras no
+  // mesmo sítio é o mesmo que nenhuma: não se sabe onde se está nem o que já existe.
+  const blocos = blocosDoSistema(zero.pasta);
   fs.writeFileSync(path.join(destino, 'index.html'), indiceDaEscola({
     escola,
     nome: nomeDaEscola(zero, escola),
     professor: zero ? zero.professor : '',
     turmas,
-    nav: navDoPacoteZero(zero.pasta),
+    nav: navDaEscola({ turmas, blocos, atual: 'index' }),
   }), 'utf8');
+
+  // A APRESENTAÇÃO TAMBÉM. Ela nasce do `index.html` do pacote-zero, com a barra de lá — a básica,
+  // de antes de haver ciclo. Servida ao lado da raiz com outra barra, seria a segunda barra que
+  // esta função existe para eliminar.
+  const apresentacaoAlvo = path.join(destino, 'sistema.html');
+  if (fs.existsSync(apresentacaoAlvo)) {
+    const html = fs.readFileSync(apresentacaoAlvo, 'utf8');
+    const nav = navDaEscola({ turmas, blocos, atual: 'sistema' });
+    const trocado = html.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, nav);
+    if (trocado !== html) fs.writeFileSync(apresentacaoAlvo, trocado, 'utf8');
+  }
 
   console.log('publicação montada: publicacao/' + escola);
   console.log('  apresentação: sistema.html');

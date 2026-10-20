@@ -20799,3 +20799,72 @@ regeneração que ninguém faria só por isto. Só uma regeneração (ou um `cri
 --somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
 escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
 ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
+
+## 20/10/2026 — o ciclo é gerado e o menu não o mostra: a barra passa a ser uma só, e o êxito leva à página da escola
+
+**O que motivou.** A escola `batata` fez a anamnese, o plano e o PO, a geração correu com êxito e os
+documentos foram publicados. E o menu da raiz continuava a dizer «Sistema Lastro · Área do Professor
+· Bastidores» — sem Ciclo, sem Aulas, sem Planejamento. Os documentos estavam lá, no endereço da
+turma; a raiz, que é o que a logo abre, não os anunciava. **Duas barras diferentes no mesmo
+domínio**, e o professor à procura do que já existia.
+
+A frase da pesquisadora fixa o critério: *«não pode existir dois menus para o mesmo endereço de
+domínio. Só pode existir um menu. E esse menu ele é dinâmico.»*
+
+**O que foi decidido.**
+
+- **A barra da escola é UMA, e é a mesma em todas as páginas do domínio** — a raiz e a apresentação
+  (`sistema.html`) passam a servir exactamente a mesma barra, a mesma FORMA que o pacote usa
+  (`ABERTURA`/`FECHAMENTO` do `nav-html.js`), com a lista de itens composta para a escola.
+- **É dinâmica, e o conteúdo é que a decide.** Sem turma gerada: «Sistema Lastro · Área do Professor
+  · Bastidores» — a escola que ainda não tem ciclo, e anunciar documentos que não existem seria pior
+  do que não os anunciar. Com turma gerada entram «Ciclos» (plano, referências, PDF), «Aulas» (uma
+  por aula publicada, com o marco como rótulo) e «Planejamento» (glossário, notação).
+- **Os blocos do sistema são COPIADOS do pacote-zero, não reconstruídos.** As URLs de «Área do
+  Professor» carregam professor, escola e ciclo, e essas três já estão escritas, certas, no
+  pacote-zero — foi o `criar-escola.sh` que as compôs. Reescrevê-las seria uma segunda derivação dos
+  mesmos parâmetros, e a segunda é a que fica errada quando a primeira muda.
+- **Com mais de uma turma, o rótulo diz de qual é.** Sem o sufixo, «Aula 01» apareceria três vezes e
+  o professor não saberia qual é qual. Com uma turma só, o sufixo é ruído e não entra.
+- **Nenhum link morto.** O menu só aponta para um `.html` que existe no disco, e para uma aula que
+  tem página publicada — o `ciclos.json` pode declarar 18 e o pacote ter só a primeira.
+- **O êxito da geração leva à página da escola.** Concluído o ciclo, os documentos passam a existir e
+  a tela onde o professor está — o formulário do PO — já não tem nada para dizer. A página que diz o
+  que foi criado é a raiz, e é lá que ele deve cair.
+
+**O que o redirecionamento NÃO faz, e é o risco dele.** O cartão mostra o desfecho de uma geração
+recente por até duas horas — é **histórico**, e é útil. Uma regra ingénua («se está concluída,
+redireciona») faria de cada abertura da porta um salto para fora, durante duas horas, e para sempre
+em ciclo. As guardas são duas: **a página tem de ter VISTO a geração a correr**, e o salto acontece
+**uma vez por sessão**. Quem chega depois encontra o desfecho escrito e fica onde está. O salto é com
+`assign`, e não `replace`: a porta fica no histórico, e o «voltar» do navegador traz o professor de
+volta ao formulário.
+
+**Onde entrou.**
+
+- `tools/montar-publicacao.js` — `navDaEscola()`, `blocosDoSistema()`, `documentosDaTurma()`; as duas
+  páginas do domínio passam a receber a mesma barra.
+- `motor/servidor/geracao-cliente.js` — `abrirAEscola()`, e a frase do desfecho passa a dizer o que
+  passou a ser verdade («e já estão no site»).
+- `experimentos/provar-publicacao-da-escola.js` — secção **B2**, 29 → **39 asserções**: as duas
+  páginas com a mesma barra, os três grupos quando há ciclo, a barra básica quando não há, nenhum
+  link morto, e a marca como caminho de volta.
+- `experimentos/provar-geracao.js` — `oRedirecionamento()`, 43 → **48 verificações**: os quatro
+  casos (já concluída à chegada, vista a correr e concluída, sessão repetida, falhou) e o destino.
+
+**Com o quê.** `provar-publicacao-da-escola` → **39 asserções** (controlo negativo: contra o
+`montar-publicacao.js` de `HEAD` dão **5 falhas**). `provar-geracao` → **48 verificações** (contra o
+`geracao-cliente.js` de `HEAD`: **1 falha** — o salto). Sem regressão: logo 22, sujeitos 30,
+produção 135, teste 37, identidade visual 19/19.
+
+Medido ao vivo, no Worker do `batata`: `/`, `/sistema` e `/bale-nivel-1-teste-2/` servem os mesmos
+cinco grupos, e todos os links da barra da raiz respondem 200.
+
+**O que ainda não está feito.** A **página do pacote** mantém a barra do ciclo, que é relativa
+(`plano.html`, `aula-01.html`) e não tem «Bastidores»: dentro do pacote os destinos são os do
+pacote, e trocá-los por caminhos de raiz faria de cada turma um sítio diferente do que o gerador do
+ciclo escreve. Isso significa que a barra ainda **difere em conteúdo** entre a raiz e o pacote —
+cinco grupos em ambas, destinos diferentes. Unificá-la exige que o gerador do ciclo saiba em que
+escola o pacote vai ser servido, e isso é uma decisão de desenho (o pacote é portátil hoje), não uma
+correcção. E o redirecionamento não foi observado numa geração real de ponta a ponta — a próxima
+geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.

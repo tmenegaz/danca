@@ -26,7 +26,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { JSDOM } = require('jsdom');
+const { JSDOM, VirtualConsole } = require('jsdom');
 
 const RAIZ = path.join(__dirname, '..');
 const ler = (p) => fs.readFileSync(path.join(RAIZ, p), 'utf8');
@@ -642,6 +642,143 @@ async function aInjecao() {
   ok('o preenchidor das escolas de teste continua a ser servido');
 }
 
+/*
+ * O REDIRECIONAMENTO PARA A PÁGINA DA ESCOLA (20/10/2026).
+ *
+ * Concluída a geração, os documentos passam a existir e a tela onde o professor está — o
+ * formulário do PO — já não tem nada para dizer. A página que diz «o que foi criado» é a raiz da
+ * escola, e ninguém sabia ir lá: era preciso clicar na logo.
+ *
+ * O QUE NÃO PODE ACONTECER, e é o risco desta função: expulsar quem abriu a porta para trabalhar.
+ * O cartão mostra o desfecho de uma geração recente por até duas horas (é HISTÓRICO, e é útil), e
+ * uma regra ingénua — «se está concluída, redireciona» — faria de cada abertura da porta um
+ * salto para fora, durante duas horas, e para sempre em ciclo. As guardas são duas: a página tem
+ * de ter VISTO a geração a correr, e o salto acontece UMA VEZ por sessão.
+ */
+async function oRedirecionamento() {
+  const espera = (ms) => new Promise((r) => setTimeout(r, ms));
+  // A chave é por VARIANTE: duas turmas da mesma escola podem estar a gerar em separado, e
+  // um salto numa não deve impedir o aviso da outra.
+  const CHAVE_DA_SESSAO = 'geracao-abriu:' + VARIANTE;
+  const concluida = {
+    ok: true,
+    fase: 'concluida',
+    registro: registroBase(),
+    run: { id: 12, status: 'completed', conclusion: 'success',
+      html_url: 'https://github.com/tmenegaz/danca/actions/runs/12' },
+  };
+  const aCorrer = {
+    ok: true,
+    fase: 'em-andamento',
+    registro: registroBase(),
+    etapaAtual: 'Gerar e validar o pacote',
+    run: { id: 12, status: 'in_progress', conclusion: null,
+      html_url: 'https://github.com/tmenegaz/danca/actions/runs/12' },
+  };
+
+  /*
+   * COMO SE MEDE UM SALTO QUE NÃO SE PODE INTERCEPTAR. O `location.assign` do jsdom é uma
+   * propriedade não-configurável (e não navega: «Not implemented»). Em vez de contorcer o código
+   * de produção para o tornar espionável, mede-se o que a decisão DEIXA ATRÁS — e são duas
+   * coisas, as duas observáveis:
+   *
+   *   · o cartão passa a dizer «A abrir a página da escola…», que é a frase que o professor lê;
+   *   · a sessão ganha a chave que impede o segundo salto.
+   *
+   * Juntas, provam a decisão. O destino em si (`/`) é uma linha só, e é afirmado no código-fonte —
+   * está na asserção estática no fim.
+   */
+  async function abrir({ respostas, sessao }) {
+    const dom = new JSDOM(HTML_DA_PORTA, {
+      url: 'https://escola.example/plano-observacao/?professor=sapo-bailarino&ciclo=01&fonte=po',
+      runScripts: 'outside-only',
+      pretendToBeVisual: true,
+      // O `setTimeout` do salto dispara depois do veredicto; o jsdom avisaria «Not implemented»
+      // e o ruído passaria por falha. O que interessa já foi medido.
+      virtualConsole: new VirtualConsole(),
+    });
+    const win = dom.window;
+    for (const [k, v] of Object.entries(sessao || {})) win.sessionStorage.setItem(k, v);
+    const fila = respostas.slice();
+    win.fetch = async () => ({ ok: true, status: 200, json: async () => (fila.length > 1 ? fila.shift() : fila[0]) });
+    win.eval(SCRIPT_DO_CARTAO);
+    return { dom, win, doc: win.document };
+  }
+
+  const textoDoFim = (c) => {
+    const el = c.doc.querySelector('.geracao-fim');
+    return el ? el.textContent : '';
+  };
+  const chavesDeSessao = (c) => Object.keys(c.win.sessionStorage.toRaw ? c.win.sessionStorage.toRaw() : {})
+    .concat([]);
+
+  // --- 1. A encontrou a geração JÁ concluída: mostra o desfecho e fica onde está.
+  {
+    const c = await abrir({ respostas: [concluida] });
+    await espera(80);
+    assert.equal(/documentos do ciclo foram gerados/.test(textoDoFim(c)), true, textoDoFim(c));
+    assert.equal(/A abrir a página da escola/.test(textoDoFim(c)), false);
+    assert.equal(c.win.sessionStorage.getItem(CHAVE_DA_SESSAO), null);
+    ok('uma geração já concluída à chegada mostra o desfecho e NÃO salta — a porta fica utilizável');
+    c.dom.window.close();
+  }
+
+  /*
+   * OS TRÊS CASOS QUE LEVAM A SEGUNDA CONSULTA CORREM EM PARALELO. O cartão espera 5 s entre
+   * perguntas com a geração a correr (é o intervalo real, e não se mexe nele para o testar), e
+   * três esperas em série fariam desta secção a mais lenta do projeto. São janelas independentes.
+   */
+  const falhou = {
+    ok: true, fase: 'falhou', registro: registroBase(),
+    etapaQueFalhou: 'Gerar e validar o pacote',
+    run: { id: 13, status: 'completed', conclusion: 'failure', html_url: 'https://x/13' },
+  };
+  const [corrida, repetida, falhada] = await Promise.all([
+    abrir({ respostas: [aCorrer, concluida] }),
+    abrir({ respostas: [aCorrer, concluida], sessao: { [CHAVE_DA_SESSAO]: '1' } }),
+    abrir({ respostas: [aCorrer, falhou] }),
+  ]);
+  await espera(5400);
+
+  // --- 2. Viu a geração a correr e viu-a terminar: o caso do professor que acabou de gravar.
+  {
+    assert.equal(/A abrir a página da escola/.test(textoDoFim(corrida)), true, textoDoFim(corrida));
+    assert.equal(corrida.win.sessionStorage.getItem(CHAVE_DA_SESSAO), '1');
+    ok('vista a correr e depois concluída, a página abre a escola — e diz que o vai fazer');
+    corrida.dom.window.close();
+  }
+
+  // --- 3. Uma vez por sessão: voltar à porta não expulsa outra vez.
+  {
+    assert.equal(/A abrir a página da escola/.test(textoDoFim(repetida)), false, textoDoFim(repetida));
+    // O desfecho continua escrito: o que não acontece é o salto.
+    assert.equal(/documentos do ciclo foram gerados/.test(textoDoFim(repetida)), true, textoDoFim(repetida));
+    ok('voltando à porta na mesma sessão, não há segundo salto — o vaivém não existe');
+    repetida.dom.window.close();
+  }
+
+  // --- 4. Falhou: nada de saltar. O plano está salvo, e a pessoa tem de o saber ali.
+  {
+    assert.equal(/A abrir a página da escola/.test(textoDoFim(falhada)), false, textoDoFim(falhada));
+    assert.equal(falhada.win.sessionStorage.getItem(CHAVE_DA_SESSAO), null);
+    ok('uma geração que falhou não salta — o desfecho tem de ser lido onde aconteceu');
+    falhada.dom.window.close();
+  }
+
+  // --- 5. O destino, medido no código: a RAIZ, e com `assign` (para o «voltar» funcionar).
+  {
+    const fonte = require('fs').readFileSync(
+      require('path').join(__dirname, '..', 'motor/servidor/geracao-cliente.js'), 'utf8');
+    assert.equal(/window\.location\.assign\('\/'\)/.test(fonte), true,
+      'o salto não tem de ir para a raiz do domínio');
+    assert.equal(/window\.location\.replace/.test(fonte), false,
+      'com `replace` a porta sairia do histórico, e o «voltar» saltava o formulário');
+    ok('o salto vai para a raiz do domínio, e com `assign` — a porta fica no histórico');
+  }
+
+  void chavesDeSessao;
+}
+
 // ===========================================================================
 
 (async () => {
@@ -649,6 +786,7 @@ async function aInjecao() {
   await provaAsync('o registro e o estado', oEstado);
   await provaAsync('a rota do «Guardar»', aRota);
   await provaAsync('o cartão na porta', oCartao);
+  await provaAsync('o salto para a página da escola', oRedirecionamento);
   await provaAsync('a ponte injeta o cartão', aInjecao);
 
   console.log('');

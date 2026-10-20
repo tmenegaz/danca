@@ -81,7 +81,15 @@ function arvore() {
     '<!DOCTYPE html><html><body>\n' +
     '<nav class="topnav" aria-label="Navegação do ciclo">\n' +
     '  <a class="ativo" href="index.html">Sistema Lastro</a>\n' +
-    '  <a href="plano-observacao/?fonte=po">Plano de Observação</a>\n' +
+    // OS DOIS BLOCOS DO SISTEMA. A barra da raiz COPIA-OS daqui em vez de os reconstruir: as
+    // URLs deles carregam professor, escola e ciclo, e reescrevê-las seria uma segunda
+    // derivação dos mesmos parâmetros. O fixture tem de os ter, ou a cópia não é exercida.
+    '  <details class="menu">\n    <summary>Área do Professor</summary>\n    <div class="submenu">\n' +
+    '      <a href="anamnese/?professor=prova&escola=' + ESCOLA + '&ciclo=01">Anamnese do aluno</a>\n' +
+    '    </div>\n  </details>\n' +
+    '  <details class="menu">\n    <summary>Bastidores</summary>\n    <div class="submenu">\n' +
+    '      <a href="bastidores/producao">Produção</a>\n' +
+    '    </div>\n  </details>\n' +
     '</nav>\n<main><h1>Sistema Lastro</h1></main></body></html>\n');
   escrever(raiz, path.join(ciclos, 'ciclo-01-' + ESCOLA, 'assets', 'style.css'), 'body{}\n');
   escrever(raiz, path.join(ciclos, 'ciclo-01-' + ESCOLA, 'assets', 'nav.js'), '// nav\n');
@@ -160,7 +168,8 @@ function principal() {
     // `anamnese/`, `plano-ensino/` e `plano-observacao/` são ROTAS da porta — o Worker as serve do
     // mesmo ASSETS, mas elas não são um arquivo com esse nome. O que se exige delas é que a pasta
     // da porta exista publicada; é o que a secção A já mede.
-    const ROTAS_DA_PORTA = /^(anamnese|plano-ensino|plano-observacao)\//;
+    // `bastidores/` também: é rota do Worker (o painel), não um arquivo do pacote.
+    const ROTAS_DA_PORTA = /^(anamnese|plano-ensino|plano-observacao|bastidores)\//;
     const hrefs = [...indice.matchAll(/href="([^"#?]+)"/g)]
       .map((m) => m[1])
       .filter((h) => !/^(https?:|mailto:)/.test(h))
@@ -168,6 +177,78 @@ function principal() {
     const mortos = hrefs.filter((h) => !existe(pub, h));
     checar('nenhum link do índice aponta para o vazio', mortos.length === 0, mortos);
     checar('e o índice aponta à apresentação, que existe', hrefs.indexOf('sistema.html') !== -1);
+  }
+
+  // ------------------------------------------------------------------ B2
+  console.log('\nB2. UMA barra por domínio — e é a completa quando há ciclo');
+  {
+    /*
+     * DUAS BARRAS NO MESMO DOMÍNIO É O MESMO QUE NENHUMA (20/10/2026).
+     *
+     * A raiz do site servia «Sistema Lastro · Área do Professor · Bastidores»; o pacote da turma
+     * servia «Sistema Lastro · Ciclos · Aulas · Planejamento · Área do Professor · PDF». Quem
+     * gerava o ciclo via os documentos no pacote e não os encontrava na raiz — e a raiz é o
+     * endereço que a logo abre. Não se sabe onde se está nem o que já existe.
+     *
+     * A barra é DINÂMICA: sem turma gerada é a básica (a escola ainda não tem ciclo, e anunciar
+     * documentos que não existem seria pior do que não os anunciar); com turma, entram os três
+     * grupos com os documentos dela.
+     */
+    const navDe = (arquivo) => {
+      const html = ler(pub, arquivo);
+      const m = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(html);
+      return m ? m[0] : '';
+    };
+    const indice = navDe('index.html');
+    const apresentacao = navDe('sistema.html');
+
+    checar('a raiz e a apresentação têm a MESMA barra (só muda o item marcado)',
+      indice.replace(/ class="ativo"/, '') === apresentacao.replace(/ class="ativo"/, ''),
+      { indice: indice.length, apresentacao: apresentacao.length });
+
+    checar('com ciclo gerado, a barra traz «Ciclos»', indice.indexOf('<summary>Ciclos</summary>') !== -1);
+    checar('e «Aulas»', indice.indexOf('<summary>Aulas</summary>') !== -1);
+    checar('e «Planejamento»', indice.indexOf('<summary>Planejamento</summary>') !== -1);
+    checar('e a «Área do Professor» e os «Bastidores» continuam', 
+      indice.indexOf('<summary>Área do Professor</summary>') !== -1
+        && indice.indexOf('<summary>Bastidores</summary>') !== -1);
+
+    // TODOS os links da barra resolvem — nenhum aponta para o que não foi publicado.
+    const rotas = /^(https?:|mailto:|\/|ana|pla|bas)/;
+    const links = [...indice.matchAll(/<a[^>]+href="([^"]+)"/g)].map((m) => m[1])
+      .filter((h) => !rotas.test(h));
+    const mortos = links.filter((h) => !existe(pub, h));
+    checar('nenhum link da barra aponta para o vazio', mortos.length === 0, mortos);
+    checar('e ela aponta aos documentos da turma gerada',
+      links.some((h) => /^nivel-1\/plano\.html$/.test(h))
+        && links.some((h) => /^nivel-1\/aula-01\.html$/.test(h)), links);
+
+    // A MARCA É O CAMINHO DE VOLTA, e agora está na barra de todas as páginas do domínio.
+    checar('a marca da barra é um link para a raiz do domínio',
+      /<a class="marca" href="\/"/.test(indice) && /<a class="marca" href="\/"/.test(apresentacao));
+
+    // A ESCOLA SEM CICLO: barra básica, sem grupos que não têm o que listar.
+    const vazia = fs.mkdtempSync(path.join(os.tmpdir(), 'publicacao-vazia-'));
+    const ciclosVazio = path.join('professores', PROF, 'ciclos');
+    escrever(vazia, path.join(ciclosVazio, 'ciclo-01-' + ESCOLA, 'index.html'),
+      '<!DOCTYPE html><html><body>\n<nav class="topnav" aria-label="Navegação do ciclo">\n'
+      + '  <div class="nav-links" id="nav-links">\n'
+      + '  <details class="menu"><summary>Área do Professor</summary><div class="submenu">'
+      + '<a href="anamnese/">Anamnese do aluno</a></div></details>\n'
+      + '  <details class="menu"><summary>Bastidores</summary><div class="submenu">'
+      + '<a href="bastidores/producao">Produção</a></div></details>\n'
+      + '  </div>\n</nav>\n</body></html>\n');
+    escrever(vazia, path.join(ciclosVazio, 'ciclo-01-' + ESCOLA, 'assets', 'style.css'), 'body{}\n');
+    montar(vazia);
+    const navVazia = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(
+      ler(path.join(vazia, 'publicacao', ESCOLA), 'index.html'))[0];
+    checar('sem turma gerada, a barra é a BÁSICA — sem «Ciclos», «Aulas» ou «Planejamento»',
+      navVazia.indexOf('<summary>Ciclos</summary>') === -1
+        && navVazia.indexOf('<summary>Aulas</summary>') === -1
+        && navVazia.indexOf('<summary>Planejamento</summary>') === -1, navVazia.length);
+    checar('e continua a ter a Área do Professor e os Bastidores',
+      navVazia.indexOf('Área do Professor') !== -1 && navVazia.indexOf('Bastidores') !== -1);
+    fs.rmSync(vazia, { recursive: true, force: true });
   }
 
   // ------------------------------------------------------------------ C

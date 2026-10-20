@@ -126,6 +126,9 @@ const SCRIPT = String.raw`(function () {
     var ultimo = null;
     var visto = false;
     var tentativas = 0;
+    // O REDIRECIMENTO DEPOIS DO ÊXITO (20/10/2026) — ver abrirAEscola.
+    var correuAqui = false;   // esta página VIU a geração a correr (não a encontrou já pronta)
+    var jaRedirecionou = false;
 
     function montar() {
       if (painel) return painel;
@@ -263,17 +266,20 @@ const SCRIPT = String.raw`(function () {
       }
 
       var fim = painel.querySelector('.geracao-fim');
+      // «VIU-A A CORRER» — qualquer fase que não seja um desfecho. Lido ANTES do desenho, porque
+      // é o desenho que decide se o desfecho conta para o redirecionamento.
+      if (!final) correuAqui = true;
+
       if (fase === 'concluida') {
         fim.className = 'geracao-fim ok';
-        // A FRASE NÃO PROMETE O QUE AINDA NÃO ACONTECE. O pacote gerado é o da VARIANTE
-        // (ciclo-01-<escola>-<turma>) e o Worker da escola publica o da ESCOLA
-        // (ciclo-01-<escola>) — enquanto a decisão D-T4 não for tomada, os documentos
-        // existem no repositório e o site da escola não os mostra. Dizer «recarregue e veja»
-        // seria a mesma mentira que o silêncio de antes, com outra cara. O que se afirma é
-        // o que é verdade: os documentos foram gerados, e o link mostra a execução.
-        fim.textContent = 'Pronto — os documentos do ciclo foram gerados. ' +
+        // A FRASE DIZ O QUE PASSOU A SER VERDADE (20/10/2026). Antes ela se continha — «os
+        // documentos foram gerados», sem prometer que o site os mostrava —, porque o Worker da
+        // escola publicava o pacote-zero e o pacote gerado ficava só no repositório. A publicação
+        // montada (publicacao/<escola>/) passou a servir o pacote da turma, e por isso a frase
+        // pode dizer o que é: os documentos estão no site, e o link abaixo é o da execução.
+        fim.textContent = 'Pronto — os documentos do ciclo foram gerados e já estão no site. ' +
           (registro && registro.variante
-            ? 'O pacote é o de «' + registro.variante + '».'
+            ? 'A turma é «' + registro.variante + '».'
             : '');
       } else if (fase === 'falhou' || fase === 'falhou-no-disparo') {
         fim.className = 'geracao-fim falha';
@@ -294,7 +300,45 @@ const SCRIPT = String.raw`(function () {
         agendar(ESPERA_MS);
       } else {
         parar();
+        if (fase === 'concluida') abrirAEscola(registro, fim);
       }
+    }
+
+    /*
+     * CONCLUÍDO, A PÁGINA DA ESCOLA ABRE-SE (20/10/2026).
+     *
+     * O problema: concluído o PO, o Worker grava, commita, dispara a geração — e a geração
+     * PUBLICA. Os documentos passam a existir, e a tela onde o professor está é o formulário do
+     * PO, que já não tem nada para dizer. A página que diz «o que foi criado» é a raiz da escola,
+     * e ninguém sabia ir lá: era preciso clicar na logo.
+     *
+     * POR QUE NÃO REDIRECIONA SEMPRE. O cartão mostra o desfecho de uma geração recente por até
+     * duas horas — é HISTÓRICO, e é útil («o que aconteceu aqui de manhã»). Quem abre a porta
+     * depois disso para fazer o PRÓXIMO plano seria expulso da própria ferramenta. A condição é
+     * portanto a única que descreve o caso certo: esta página VIU a geração a correr e viu-a
+     * terminar. Quem chega depois encontra o desfecho escrito e fica onde está.
+     *
+     * E É UMA VEZ POR SESSÃO. Sem esta guarda, voltar à porta (para fazer outro plano, ou por o
+     * cartão ainda estar fresco) expulsaria outra vez — um vaivém sem saída.
+     *
+     * A PAUSA é de 4 segundos: o desfecho está escrito no cartão, e leva-se um instante a lê-lo.
+     * Ir a correr seria esconder a única frase que diz que tudo correu bem.
+     */
+    function abrirAEscola(registro, elemento) {
+      if (jaRedirecionou || !correuAqui) return;
+      var chave = 'geracao-abriu:' + (registro && registro.variante ? registro.variante : CICLO);
+      try { if (sessionStorage.getItem(chave)) return; } catch (e) { /* sem sessão: segue */ }
+      jaRedirecionou = true;
+      try { sessionStorage.setItem(chave, '1'); } catch (e) { /* idem */ }
+      // O fim do cartão é local de desenhar; recebê-lo por parâmetro evita uma variável
+      // global acidental — que é o que um if (fim) aqui seria — e estouraria depois de o
+      // cartão já estar desenhado.
+      if (elemento) elemento.textContent += ' A abrir a página da escola…';
+      setTimeout(function () {
+        // assign e não replace: a porta continua no histórico, e o botão «voltar» do
+        // navegador tem de trazer o professor de volta ao formulário, não saltá-lo.
+        window.location.assign('/');
+      }, 4000);
     }
 
     function agendar(ms) {
