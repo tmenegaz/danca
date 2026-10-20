@@ -20063,3 +20063,38 @@ as duas novas falham contra o workflow de `HEAD` (controlo negativo feito) e pas
 push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
 — `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
 `variante=breu-bale-nivel-1-teste-3`.
+
+## 20/10/2026 — o Worker da escola passa a servir o pacote da TURMA, não o esqueleto
+
+**Por quê.** A geração do ciclo da `breu` correu, validou, commitou e publicou — e o ciclo
+continuou **invisível no site**: `/aula-01.html`, `/plano.html`, `/notacao.html` e
+`/glossario-benesh.html` respondiam **404**. O `wrangler deploy` tinha sucesso; publicava o
+esqueleto.
+
+A causa é a distância entre dois nomes que nasceram separados:
+
+| | caminho |
+|:--|:--|
+| o `assets.directory` do Worker | `…/ciclos/ciclo-01-breu` — o **pacote-zero** que o `criar-escola.sh` cria |
+| o pacote que o gerador escreve | `…/ciclos/ciclo-01-breu-bale-nivel-1-teste-**3**` — a **variante da turma** |
+
+O conceito de variante por turma é de 19/10/2026; o `assets.directory` continuou no esqueleto.
+É o mesmo sintoma de 15/10/2026 — «o ciclo era gerado, versionado e invisível» —, por outra
+causa.
+
+**O que mudou.** `wrangler.breu.jsonc`: o `assets.directory` passa a apontar para a pasta da
+turma. O `plano-observacao/` da porta vem **dentro** do pacote da turma (o gerador copia-o), e a
+ponte serve de lá as três superfícies, que ela sintetiza do mesmo `index.html` — apontar para a
+variante não tira nada, acrescenta. A decisão fica **escrita no próprio arquivo**, com o limite
+declarado: **um Worker só serve um `assets.directory`**, e uma escola com mais de uma turma vai
+precisar de o pacote-zero virar um **índice das turmas**, cada uma no seu endereço.
+
+**Com o quê.** Medido no Worker vivo depois do deploy: `/` 200, e `/aula-01.html`,
+`/plano.html`, `/notacao.html`, `/glossario-benesh.html`, `/harmonizacao.html`,
+`/referencias.html`, `/lancamento.html` — todos **200** (antes: 404). Sem regressão:
+`provar-geracao-do-ciclo` 21, `provar-escola-fixa` 30, identidade visual 19.
+
+**O que ainda não está feito.** O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
+`assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
+nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
+índice de turmas, e não cabe numa linha de configuração.

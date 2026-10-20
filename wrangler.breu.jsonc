@@ -15,8 +15,26 @@
 
   "main": "workers/principal.js",
 
+  // O ASSETS É O PACOTE DA TURMA, NÃO O PACOTE-ZERO DA ESCOLA (20/10/2026).
+  //
+  // `criar-escola.sh` grava aqui o pacote-zero (`ciclo-01-<escola>`), que é o esqueleto
+  // da escola: índice, porta e assets. Com a variante por TURMA (19/10/2026), o pacote
+  // que o gerador escreve — o que tem aula, plano, notação, glossário e referências — é
+  // outro diretório, `ciclo-01-<escola>-<turma>`. Enquanto o `assets.directory` ficou no
+  // esqueleto, a geração corria, validava, commitava e publicava… e o ciclo continuava
+  // invisível no site: `/aula-01.html` respondia 404. É o mesmo sintoma de 15/10/2026,
+  // por outra causa.
+  //
+  // O `plano-observacao/` da porta vem DENTRO do pacote da turma (o gerador copia-o), e a
+  // ponte o serve de lá — inclusive as três superfícies (`/anamnese/`, `/plano-ensino/`,
+  // `/plano-observacao/`), que ela sintetiza do mesmo `index.html`. Por isso apontar para
+  // a variante não tira nada: acrescenta.
+  //
+  // QUANDO A ESCOLA TIVER MAIS DE UMA TURMA isto deixa de servir — um Worker, um
+  // `assets.directory`. A saída, então, é o pacote-zero virar um índice das turmas, cada
+  // uma no seu endereço. Fica declarado, e é por isso que a decisão está aqui escrita.
   "assets": {
-    "directory": "professores/sapo-bailarino/ciclos/ciclo-01-breu",
+    "directory": "professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3",
     "binding": "ASSETS",
     "run_worker_first": true
   },

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T22:23:45-0300`
-Commit atual: `58ce471` — chore(estrutura): reancorar a cadeia das fontes alteradas
+Gerado em: `2026-10-19T22:38:18-0300`
+Commit atual: `15d87a5` — chore(entrega): gerar o pacote de sapo-bailarino/01/breu-bale-nivel-1-teste-3
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+15d87a5 chore(entrega): gerar o pacote de sapo-bailarino/01/breu-bale-nivel-1-teste-3
+ecc5ec0 fix(estrutura): a âncora da aula entra no commit, e o rebase que não começa não mente
 58ce471 chore(estrutura): reancorar a cadeia das fontes alteradas
 75ab6ce feat(captura): declara a variante breu-bale-nivel-1-teste-3 no schema de captura
 ce08a3f feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
@@ -81,8 +83,6 @@ ad21735 docs(experimentos): as quatro pendências que o primeiro plano de ensino
 de54e3d fix(experimentos): o fixture não cita um marco que o plano não tem
 5e085ec chore(estrutura): reancorar a cadeia das fontes alteradas
 52cb39d feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-1779e79 feat(plano): o plano elicitado vira a fonte do ciclo
-ec164af feat(acervo): envelope/plano-20261019-2149.json
 ```
 
 ## Por professor
@@ -150,68 +150,42 @@ ec164af feat(acervo): envelope/plano-20261019-2149.json
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — a âncora da aula deixa de ficar solta, e o rebase diz a verdade
+## 20/10/2026 — o Worker da escola passa a servir o pacote da TURMA, não o esqueleto
 
-**Por quê.** A geração do ciclo da escola `breu` (variante `breu-bale-nivel-1-teste-3`) falhou no
-último passo, às 21:57. O pacote foi gerado e validado; o commit foi feito; o `push` foi recusado
-porque o `main` tinha andado (o `reancorar.yml`, disparado pelos commits do «Guardar» do PO). E aí
-o laço morreu com uma frase que mentia sobre a causa:
+**Por quê.** A geração do ciclo da `breu` correu, validou, commitou e publicou — e o ciclo
+continuou **invisível no site**: `/aula-01.html`, `/plano.html`, `/notacao.html` e
+`/glossario-benesh.html` respondiam **404**. O `wrangler deploy` tinha sucesso; publicava o
+esqueleto.
 
-    error: The following untracked working tree files would be overwritten by checkout:
-        professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp
-    Aborting
-    error: could not detach HEAD
-    erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:
-    fatal: no rebase in progress
+A causa é a distância entre dois nomes que nasceram separados:
 
-**As duas causas, ambas no workflow.**
+| | caminho |
+|:--|:--|
+| o `assets.directory` do Worker | `…/ciclos/ciclo-01-breu` — o **pacote-zero** que o `criar-escola.sh` cria |
+| o pacote que o gerador escreve | `…/ciclos/ciclo-01-breu-bale-nivel-1-teste-**3**` — a **variante da turma** |
 
-1. **O `git add` somava só a âncora do CICLO.** O `hash-ciclo.sh` escreve **uma âncora por aula**
-   além da do ciclo, e as duas são **irmãs** do pacote (`ciclo-XX-<variante>-aula-NN.fipp`). O
-   passo somava `$pasta` e `$pasta.fipp`; a da aula ficava **untracked** — e um untracked que o
-   `main` novo também traz faz o `git rebase` **recusar o checkout antes de aplicar commit
-   nenhum**.
-2. **O laço não sabia distinguir «o rebase não começou» de «o rebase parou num conflito».** Ele
-   perguntava `git diff --diff-filter=U`; sem rebase em curso a resposta é vazia, e a guarda lia
-   isso como «conflito de conteúdo» — apontando o conteúdo por uma árvore suja. A mensagem final
-   ainda dizia `fatal: no rebase in progress`, que é o próprio git a negar o diagnóstico.
+O conceito de variante por turma é de 19/10/2026; o `assets.directory` continuou no esqueleto.
+É o mesmo sintoma de 15/10/2026 — «o ciclo era gerado, versionado e invisível» —, por outra
+causa.
 
-**O que mudou.**
+**O que mudou.** `wrangler.breu.jsonc`: o `assets.directory` passa a apontar para a pasta da
+turma. O `plano-observacao/` da porta vem **dentro** do pacote da turma (o gerador copia-o), e a
+ponte serve de lá as três superfícies, que ela sintetiza do mesmo `index.html` — apontar para a
+variante não tira nada, acrescenta. A decisão fica **escrita no próprio arquivo**, com o limite
+declarado: **um Worker só serve um `assets.directory`**, e uma escola com mais de uma turma vai
+precisar de o pacote-zero virar um **índice das turmas**, cada uma no seu endereço.
 
-- `git add -A -- '*.fipp'` no commit do pacote — o mesmo pathspec que o `reancorar.yml` sempre
-  usou. Toda âncora que a geração escreveu entra no commit, e não sobra solto.
-- a guarda passa a perguntar **primeiro** se há rebase em curso (`git rev-parse --git-path
-  rebase-merge` / `rebase-apply`). Se não há, o problema é de árvore, não de conteúdo: apagam-se
-  **só** os soltos que o `main` também traz (a versão canónica é a que chega; a desta árvore
-  regenera-se no `reancorar_tudo`/`hash-ciclo.sh` da volta seguinte) e tenta-se outra vez.
-  Qualquer outro solto fica: é trabalho de alguém, e não é daqui.
-- a mesma guarda no `reancorar.yml`, que tem o laço irmão e herdaria o mesmo diagnóstico falso.
+**Com o quê.** Medido no Worker vivo depois do deploy: `/` 200, e `/aula-01.html`,
+`/plano.html`, `/notacao.html`, `/glossario-benesh.html`, `/harmonizacao.html`,
+`/referencias.html`, `/lancamento.html` — todos **200** (antes: 404). Sem regressão:
+`provar-geracao-do-ciclo` 21, `provar-escola-fixa` 30, identidade visual 19.
 
-**Com o quê.** A falha foi **reproduzida num repositório de scratch**, com a corrida verdadeira
-(um actor commita a âncora da aula enquanto o runner tem a mesma path solta) — e o erro saiu igual,
-palavra por palavra, incluindo `could not detach HEAD`. Com a correcção: o `git add` deixa
-**zero** soltos, o rebase **começa** e cai no conflito **apenas de âncora**, que o laço já sabia
-resolver (`--theirs`, `add`, `--continue`) — e o push passa. A guarda nova foi provada nos dois
-sentidos: remove o solto que o `main` traz (e o rebase passa), e **não toca** num solto que o
-`main` não tem. `node experimentos/provar-geracao-do-ciclo.js` → **21 verificações** (eram 19):
-as duas novas falham contra o workflow de `HEAD` (controlo negativo feito) e passam com ele.
-
-**O que ainda não está feito.** O pacote da `breu` **não existe**: aquela execução morreu antes do
-push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
-— `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
-`variante=breu-bale-nivel-1-teste-3`.
+**O que ainda não está feito.** O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
+`assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
+nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
+índice de turmas, e não cabe numa linha de configuração.
 
 ## O que está pendente
-
-## 20/10/2026 — as declarações do índice: o vocabulário deixa de estar implícito no código
-
-(a) A **Etapa 2**: `tools/gerar-indices.js` e `check-indices.js`
-com as 13 verificações e as 9 contraprovas — e `tools/` é congelado, portanto exige motivo
-declarado, entrada própria e commit próprio. (b) As declarações **não são lidas pelo motor**: o
-`indices.js` mantém a lista em código e a prova garante que as duas concordam; consumir
-`indices/esquema/tipos.json` no Worker é decisão da Etapa 2 (o bundle teria de incluir o JSON).
-(c) `vinculos[]` e `autoria[]` continuam **previstas**, não produzidas — é a dívida que o §4.11
-nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam.
 
 ## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
 
@@ -246,6 +220,13 @@ O pacote da `breu` **não existe**: aquela execução morreu antes do
 push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
 — `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
 `variante=breu-bale-nivel-1-teste-3`.
+
+## 20/10/2026 — o Worker da escola passa a servir o pacote da TURMA, não o esqueleto
+
+O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
+`assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
+nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
+índice de turmas, e não cabe numa linha de configuração.
 
 ## Pendências anteriores (índice)
 
@@ -478,6 +459,7 @@ push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa
 - **20/10/2026** — dois `list` a menos: o cartão da geração e o cadastro no… → `REGISTRO.md` L19594
 - **20/10/2026** — o índice diz o mesmo nos dois níveis, e a âncora tem três… → `REGISTRO.md` L19656
 - **20/10/2026** — a tela mostra o endereço que existe, e diz que o cofre é… → `REGISTRO.md` L19693
+- **20/10/2026** — as declarações do índice: o vocabulário deixa de estar… → `REGISTRO.md` L19732
 - PO de **sapo-bailarino · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
