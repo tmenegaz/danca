@@ -198,6 +198,13 @@ function descritores(campo) {
     // O que a direção ATRIBUIU (a turma curada): o nó FILTRA a lista para o que é do
     // professor e pré-marca o que já foi designado.
     daCuradoria: campo.daCuradoria || null,
+    // A LISTA RECORTADA PELA TURMA DO PLANO (20/10/2026). O nó `sujeitos` do PO declara-o, e
+    // sem esta linha a chave morria aqui: `descritores` é uma lista FECHADA, e o que não está
+    // nela nunca chega ao mapa que a tela lê. Foi assim que a correcção do vazamento ficou
+    // meio feita — a regra certa no núcleo, a rota certa no servidor, e a tela a pedir a lista
+    // SEM recorte, porque o nó não trazia a marca. A tela não inventa: ela só acrescenta o
+    // carimbo do plano quando o conteúdo diz que aquele campo se recorta por ele.
+    recortePeloPlano: campo.recortePeloPlano === true,
     // A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
     // marco parcial, com as opções para marcar. `{de, opcoes: [...]}` ou
     // `{de, opcoesDaTurma: true}` — as colunas vêm do conteúdo ou do nível da turma.

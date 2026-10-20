@@ -277,8 +277,69 @@ async function principal() {
       (tela.match(/OPCOES\.get\(no\.opcoesDe\)/g) || []).length);
   }
 
-  // ------------------------------------------------------------------ E
-  console.log('\nE. a PONTE de produção repassa a curadoria ao roteador');
+  // ------------------------------------------------------------------ E'
+  console.log('\nE. o MAPA que a tela lê traz a marca que ela precisa');
+  {
+    /*
+     * A CHAVE MORRIA NO MAPA (20/10/2026). O conteúdo do PO declarava `recortePeloPlano` no nó
+     * `sujeitos`, a tela sabia compor `?plano=`, a rota sabia recortar — e o filtro continuava
+     * a não funcionar, porque `descritores()` do `elicitar.js` é uma lista FECHADA: o que não
+     * está nela nunca chega ao mapa que o `/api/mapa` serve. A marca ficava pelo caminho, e a
+     * tela pedia a lista inteira.
+     *
+     * É o mesmo defeito de antes, uma camada acima: cada peça certa, e o dado a não atravessar.
+     * Por isso a asserção não é «o nó tem a marca» — é «o que o CONTEÚDO declara chega ao MAPA»,
+     * que é a pergunta que se deve fazer a cada chave nova.
+     */
+    const { nosRespondiveis } = require('../motor/nucleo/elicitar.js');
+    const doPO = nosRespondiveis(ler('po/conteudo/po.json'));
+    const noMapa = doPO.find((no) => no.id === 'sujeitos');
+    checar('o `/api/mapa` do PO traz `recortePeloPlano` no nó `sujeitos`',
+      Boolean(noMapa && noMapa.recortePeloPlano === true), noMapa && noMapa.recortePeloPlano);
+
+    /*
+     * A GUARDA GENÉRICA: nenhuma chave de COMPORTAMENTO declarada no conteúdo se pode perder no
+     * mapa. São as que mudam o que a tela desenha ou pede — não as de texto (o rótulo, a
+     * explicação, que viajam noutro caminho). Uma chave nova nesta lista e esquecida no
+     * `descritores()` é uma chave morta, e o sintoma é sempre mudo: a tela comporta-se como se
+     * ela não existisse.
+     */
+    const COMPORTAMENTO = [
+      'opcoesDe', 'criarEm', 'derivarDe', 'repetirPor', 'camposDoItem', 'multipla', 'colunas',
+      'exclusiva', 'aberto', 'tabela', 'lista', 'escala', 'daTurma', 'doPlano', 'daCuradoria',
+      'porMarco', 'registro', 'valores', 'abertoRotulo', 'forma', 'ramifica', 'socratico',
+      'derivado', 'derivadoDe', 'recortePeloPlano',
+    ];
+    const perdidas = [];
+    for (const fonte of ['po/conteudo/po.json', 'plano/conteudo/plano.json', 'conteudo/anamnese.json']) {
+      const mapaDesta = nosRespondiveis(ler(fonte));
+      const porId = new Map(mapaDesta.map((no) => [no.id, no]));
+      const colher = (obj, saida) => {
+        if (Array.isArray(obj)) { obj.forEach((x) => colher(x, saida)); return saida; }
+        if (!obj || typeof obj !== 'object') return saida;
+        if (obj.id) saida.push(obj);
+        for (const v of Object.values(obj)) colher(v, saida);
+        return saida;
+      };
+      for (const campo of colher(ler(fonte), [])) {
+        const no = porId.get(campo.id);
+        if (!no) continue;   // o campo não é respondível neste formulário
+        for (const chave of COMPORTAMENTO) {
+          if (!(chave in campo)) continue;
+          const declarado = campo[chave];
+          if (declarado === null || declarado === false) continue;
+          if (no[chave] === undefined || no[chave] === null) {
+            perdidas.push(fonte + ':' + campo.id + '.' + chave);
+          }
+        }
+      }
+    }
+    checar('nenhuma chave de comportamento declarada no conteúdo se perde no mapa',
+      perdidas.length === 0, perdidas);
+  }
+
+  // ------------------------------------------------------------------ F
+  console.log('\nF. a PONTE de produção repassa a curadoria ao roteador');
   {
     // A PASSA ÀS COSTAS DA PROVA ANTERIOR (20/10/2026). As secções C e D chamam `criarRotas` de
     // fora, com a `lerCuradorias` já nas mãos — e por isso não viam que a ponte de produção a

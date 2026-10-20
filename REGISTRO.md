@@ -20656,3 +20656,54 @@ calango.json`.
 **O que ainda não está feito.** Continua a ser o mesmo de sempre: **nada regenera o `indices/`
 automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
 alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
+
+## 20/10/2026 — o filtro dos sujeitos continuava sem funcionar: a chave morria no mapa
+
+**O que motivou.** A correcção anterior estava certa em três sítios e **não funcionava no quarto**.
+A pesquisadora escolheu o plano da turma 1 e, em «Sujeitos observados», continuou a ver as três
+alunas. Medido no Worker:
+
+```
+GET /plano-observacao/api/anamneses                        → ['Aluna C','Aluna B','Aluna A']
+GET /plano-observacao/api/anamneses?plano=plano-…-0945     → turma: Balé Nível 1 — Teste 2
+                                                             recorte: ['Aluna A']
+```
+
+A **rota** recortava. Quem não pedia o recorte era a **tela** — porque o nó do mapa não trazia a
+marca que a autoriza a pedi-lo:
+
+```
+GET /plano-observacao/api/mapa?fonte=po   →  {"id":"sujeitos", "opcoesDe":"api/anamneses", …}
+                                             (sem `recortePeloPlano`)
+```
+
+**A causa.** O `descritores()` do `motor/nucleo/elicitar.js` é uma **lista fechada**: o mapa que o
+`/api/mapa` serve é construído chave a chave, e o que não está na lista **não existe** do outro
+lado. O conteúdo do PO declarava `recortePeloPlano`, o cliente sabia compor `?plano=`, a rota sabia
+recortar — e a marca ficava pelo caminho. Terceira vez, no mesmo dia, com a mesma forma: cada peça
+certa, e o dado a não atravessar.
+
+**O que foi decidido.**
+
+- `descritores()` passa a repassar `recortePeloPlano`. É a chave que diz à tela «esta lista se
+  recorta pelo plano» — a tela continua a não saber o que é uma curadoria.
+- **A prova deixa de medir a peça e passa a medir a travessia.** A secção E monta o mapa com o
+  `nosRespondiveis()` verdadeiro, sobre os três conteúdos reais, e exige duas coisas: que o nó
+  `sujeitos` do PO traga a marca, e — a guarda genérica — que **nenhuma chave de comportamento
+  declarada no conteúdo se perca no mapa**. A lista de chaves de comportamento (25) fica na prova:
+  uma chave nova esquecida no `descritores()` passa a ser uma falha, e não um silêncio.
+
+**Onde entrou.** `motor/nucleo/elicitar.js` — uma chave no `descritores()`.
+`experimentos/provar-sujeitos-da-turma.js` — **27 → 29 asserções** (a secção E, e a secção F que
+antes era E).
+
+**Com o quê.** `node experimentos/provar-sujeitos-da-turma.js` → **29 asserções**. Controlo
+negativo: sem o repasse no `descritores()`, dão **2 falhas** — a marca ausente e a chave perdida.
+Sem regressão: produção 135, teste 37, cabeçalho 40, anamnese sem cofre 13, publicação 27, índices
+49.
+
+**O que ainda não está feito.** A **guarda genérica só olha as chaves de uma lista escrita à mão**.
+Uma chave de comportamento nova que ninguém acrescente à lista continua invisível — a prova protege
+as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
+`descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
+prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
