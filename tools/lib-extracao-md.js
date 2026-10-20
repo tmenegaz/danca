@@ -255,6 +255,14 @@ function extrair(linhas, schema, declaracao) {
       const celulas = celulasDaLinha(limpa);
       if (!ehSeparador(celulas)) {
         tabela = { secao, subcampo, cabecalho: celulas.map((c) => chaveDoAlvo(chaveDaColuna(c))), linhas: [] };
+        // A TABELA ESTRUTURADA É CONTEÚDO DO CAMPO (20/10/2026). As linhas dela entram no buffer
+        // e saem como objetos no `despejarTabela()`; nenhuma delas passa pelo `secaoTeveConteudo`
+        // lá em baixo. Sem esta linha, uma seção cuja tabela é o campo — e que ainda tem uma nota
+        // em citação, como a distribuição do volume — era contada como «só tem citação», e o
+        // validador dizia «o campo `distribuicaoDeVolume` não é criado» com o campo criado e
+        // preenchido no JSON. Um diagnóstico falso custa mais do que nenhum: manda procurar o
+        // problema errado.
+        secaoTeveConteudo = true;
         continue;
       }
     }

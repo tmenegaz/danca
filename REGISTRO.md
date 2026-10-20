@@ -20248,3 +20248,59 @@ por escola** — uma segunda escola do mesmo ciclo e da mesma variante herda a d
 O merge torna a herança inofensiva (os rótulos acompanham o PO), mas não a torna correta por
 desenho: o lugar da declaração é ao lado do PO que a produziu, e mudá-lo mexe no formato do
 `captura-*.json` já publicado.
+
+## 20/10/2026 — a aula derivada volta a ser legível: o mapa de secções e a tabela que é o campo
+
+**O que motivou.** Os dois últimos erros da geração da `batata` não eram do PO nem da folha: eram do
+**acordo entre quem escreve o `.md` e quem o lê de volta**. Cada lado estava «certo» do seu lado, e o
+pacote saía com o campo vazio.
+
+1. **O título que o gerador escreve não estava no mapa.** O `derivar-ciclo.js` (§4) escreve
+   `## 4. Bloco de musicalidade`, sem parênteses — os tempos só o `.conf` da variante os sabe. O
+   `MAPA_SECOES` do `validar-aula-ciclo.js` tinha as duas formas **escritas à mão**
+   (`(8 tempos · 9%)`, `(8 tempos · 10%)`), e nenhuma casava com a do gerador: a secção inteira era
+   descartada e o `blocoDeMusicalidade` não nascia. O aviso «seção fora do mapa» apanhou-o — com a
+   frase certa, e é por isso que ele existe.
+2. **O validador acusava «só tem citação» numa seção cuja tabela É o campo.** A distribuição do
+   volume chega ao JSON como linhas da tabela; nenhuma delas passava pelo `secaoTeveConteudo` do
+   `lib-extracao-md.js`, que só é marcado pelo texto corrido. O diagnóstico dizia «o campo
+   `distribuicaoDeVolume` não é criado» com o campo criado e preenchido — **um diagnóstico falso
+   custa mais do que nenhum**, porque manda procurar o problema errado.
+
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`, e as duas alterações são
+mínimas e cirúrgicas:
+
+- `tools/validar-aula-ciclo.js` — **uma linha no `MAPA_SECOES`** (`"4. bloco de musicalidade"`), com
+  o porquê em comentário. Não é excepção nem tolerância: é a forma que o gerador sempre escreveu, e
+  o mapa passou a cobri-la.
+- `tools/lib-extracao-md.js` — **uma atribuição** (`secaoTeveConteudo = true`) no ramo em que a
+  tabela já é estruturada. A tabela estruturada sempre entrou no JSON; o que faltava era o
+  contador saber disso.
+
+**O que NÃO muda:** a fórmula do hash (`hash-ciclo.sh`), a cobertura das fontes, as 17 regras de
+`REGRAS.md`, as 22 pétreas de `PROTOCOLO.md`, os demais validadores e o esquema. Nenhuma das duas
+altera o que é aceite: a primeira faz chegar ao campo o que já estava escrito no documento; a segunda
+cala um aviso que era falso. **Comportamento novo: nenhum — comportamento correto: dois.**
+
+**Onde entrou.**
+
+- `tools/validar-aula-ciclo.js` — `"4. bloco de musicalidade"` → `blocoDeMusicalidade`.
+- `tools/lib-extracao-md.js` — a tabela estruturada marca `secaoTeveConteudo`.
+- `experimentos/provar-aula-e-plano-legiveis.js` — **nova prova**, 12 asserções: a aula derivada é
+  aceita pelo validador da aula, com o bloco de musicalidade, a duração, o volume ativo e o
+  parâmetro com os três marcos **numa linha**; o plano derivado é aceito e a distribuição do volume
+  chega a campo sem o aviso de «só citação»; a captura derivada é aceita e nenhuma coluna sai sem
+  chave.
+- `experimentos/README.md`, `.gitignore` — a prova entra na tabela e no clone: o REGISTRO cita-a.
+- `wrangler.batata.jsonc` — `assets.directory` aponta o pacote da **turma**, não o esqueleto.
+
+**Com o quê.** `node experimentos/provar-aula-e-plano-legiveis.js` → **12 asserções**. Controlo
+negativo: contra o `derivar-ciclo.js`/`validar-aula-ciclo.js`/`lib-extracao-md.js` de `HEAD` dão
+**4 falhas** — as quatro que descrevem os dois defeitos. Sem regressão: `check-indices` 14/14,
+`provar-geracao-do-ciclo` 23, identidade visual 19. E o `pre-commit` gerou o pacote da `batata` e o
+`check-pacote` deu **OK: 0 erro(s), 0 aviso(s)**, com «Duração: 50 minutos» no HTML da aula.
+
+**O que ainda não está feito.** O pacote gerado no `pre-commit` foi **removido** do disco: quem o
+versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
+geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
+quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.

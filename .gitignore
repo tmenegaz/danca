@@ -196,3 +196,9 @@ po_ref/
 # uma afirmação que ninguém confere. Ela distingue-se das outras por ser NEGATIVA: mede uma
 # ausência (nenhuma escrita no KV), e por isso cai se o cofre voltar por qualquer caminho.
 !experimentos/provar-anamnese-sem-cofre.js
+# A PROVA DO CONTRATO ENTRE A DERIVAÇÃO E A LEITURA (20/10/2026): o `.md` que o gerador escreve é
+# lido de volta pelos validadores da casa, e a divergência entre os dois é invisible — cada um fica
+# «certo» do seu lado, o validador imprime `ok` e o pacote sai com o campo vazio. Foi assim que a
+# primeira aula derivada da `batata` perdeu o bloco de musicalidade e a duração. Citada pelo
+# REGISTRO; sem ela no clone, a correcção não é conferível.
+!experimentos/provar-aula-e-plano-legiveis.js

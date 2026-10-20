@@ -61,6 +61,14 @@ const MAPA_SECOES = {
   "3. a sequência da aula (fio condutor)": "sequenciaDaAula",
   "4. bloco de musicalidade (8 tempos · 9%)": "blocoDeMusicalidade",
   "4. bloco de musicalidade (8 tempos · 10%)": "blocoDeMusicalidade",
+  // O TÍTULO SEM OS TEMPOS (20/10/2026). O gerador escreve `## 4. Bloco de musicalidade`, sem o
+  // parêntese — o `derivar-ciclo.js` (§4) não conhece os tempos, que só o `.conf` da variante
+  // sabe. As duas entradas acima nasceram de documentos escritos à mão, que traziam o parêntese;
+  // quando a primeira aula derivada saiu do gerador, o título não casou com nenhum dos dois, a
+  // seção inteira foi descartada e o `blocoDeMusicalidade` não nasceu. O aviso de «seção fora do
+  // mapa» apanhou-o — com a frase certa, e é por isso que ele existe. O mapa cobre agora a forma
+  // que o gerador escreve.
+  "4. bloco de musicalidade": "blocoDeMusicalidade",
   "4. distribuição do volume físico": "distribuicaoDoVolume",
   "5. guia de observação do professor": "guiaDeObservacao",
   "5. musicalidade e repertório": "musicalidade",

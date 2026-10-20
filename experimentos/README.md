@@ -104,6 +104,7 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-listas-sem-repeticao.js` | a **carga de cada página**: nenhum endereço pedido duas vezes, o orçamento de leituras, e a lista que não cresce com o acervo (16 asserções) | não (jsdom) |
 | `provar-anamnese-sem-cofre.js` | a anamnese **sai do KV**: o registo vai para o acervo, o KV em memória fica com **zero escritas**, as três rotas do cofre respondem 404 e o cliente não pede a segunda cópia (13 asserções — **negativa**: mede uma ausência) | não |
 | `provar-expurgo-sem-listagem.js` | o expurgo com a enumeração do KV recusada: o registo de chaves, a pendência no elo e o `POST /api/expurgar-kv` (40 asserções) | não |
+| `provar-aula-e-plano-legiveis.js` | o **contrato entre a derivação e a leitura**: o `.md` que o gerador escreve é lido de volta pelos três validadores, e as duas metades concordam nos nomes das secções, no parâmetro que não parte a tabela e na tabela que **é** o campo (12 asserções) | não |
 
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
 
