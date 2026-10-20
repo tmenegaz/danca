@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261020-0734.json",
     "anamnese-20261020-0735.json",
-    "anamnese-20261020-0736.json"
+    "anamnese-20261020-0736.json",
+    "plano-20261020-0739.json"
   ],
   "resumos": {
     "anamnese-20261020-0734.json": {
@@ -32,6 +33,20 @@
       "ciclo": "01",
       "ajuste_de": null,
       "aluna": "Aluna C"
+    },
+    "plano-20261020-0739.json": {
+      "id": "plano-20261020-0739",
+      "fonte": "plano",
+      "escola": "calango",
+      "professor": "sapo-bailarino",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "objetivo": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 1 — Teste 1",
+      "repertorio": [
+        "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "Sapo Bailarino"
     }
   }
 }
