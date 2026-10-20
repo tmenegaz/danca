@@ -1,0 +1,1250 @@
+/* ============================================================================
+   Ciclos de Aprendizagem — folha de estilo única do pacote HTML (Regra 16).
+   Copiada para ciclos/ciclo-XX/assets/style.css pelo gerador. Não editar a
+   cópia: edite este arquivo e rode `tools/gerar-ciclo.sh` de novo.
+
+   Este arquivo é a FONTE DE VERDADE da identidade visual do Projeto Ciclo.
+   A regra, o papel de cada cor e as razões de contraste estão em
+   `IDENTIDADE-VISUAL.md` (raiz). Nenhum outro arquivo redeclara estes valores:
+   quem precisa deles consome o token daqui.
+   ========================================================================== */
+
+:root {
+  --burgundy: #6b1f2e;
+  --burgundy-claro: #8a2a3d;
+  --soft: #5a5348;
+  --cream: #fbf8f3;
+  --tinta: #1f1c1a;
+
+  /* --- O ouro, em quatro papéis -------------------------------------------------
+     O ouro é ORNAMENTO: a partir de um fundo claro ele não serve para texto. Medido,
+     não estimado (WCAG 2.1 — 4,5:1 para texto, 3,0:1 para traço com função):
+     `--gold` dá 3,65:1 sobre o burgundy (passa como ornamento) e apenas 2,92:1 sobre
+     o creme (não passa como nada). Por isso o ouro se divide, e cada papel recebe o
+     tom que foi medido para ele. */
+  --gold: #b08d57;        /* ornamento SOBRE BURGUNDY (3,65:1) e fundo do item ativo */
+  --gold-claro: #c9a878;  /* texto sobre burgundy (5,03:1) */
+  --gold-escuro: #8a6a3b; /* traço, filete e borda sobre fundo claro (>=4,26:1) */
+  --gold-texto: #7a5c31;  /* texto sobre fundo claro (>=5,26:1) */
+  --sobre-ouro: #2b1b10;  /* texto SOBRE o ouro (5,36:1) */
+  /* Borda de CAMPO DE FORMULÁRIO. É um traço de 1px, então o alvo é 3,0:1 — e o
+     `--gold-escuro` (4,26:1) é escuro demais para o desenho do campo: vira caixa
+     pesada. Este tom é o mais claro que ainda passa nos três papéis do formulário
+     (branco 3,35 · cream 3,16 · `--creme-1` 3,22). Para filete de texto, `--gold-escuro`. */
+  --gold-borda: #a08a58;
+
+  /* Tons de creme derivados. São sombras do `--cream`, usadas só neste arquivo —
+     não são identidade, são papel: por isso não sobem para o documento. */
+  --branco: #ffffff;
+  --creme-1: #fdfaf5;   /* linha ímpar de tabela */
+  --creme-2: #f3ece1;   /* fundo de `th`, de `.ficha` e de citação destacada */
+  --creme-3: #f5ecdf;   /* fundo do link sob o ponteiro */
+  --creme-4: #fff8ec;   /* fundo da citação */
+  --creme-5: #f1eae0;   /* fundo de `code` */
+  --creme-6: #f7f1e7;   /* fundo de `pre` */
+
+  /* --- Estados do formulário -----------------------------------------------------
+     São o quarto uso de cor da identidade: dizer o que aconteceu, sem julgamento.
+     O tom do ALERTA não pode ser o `#a06000` corrente: ele dá 4,29:1 sobre o
+     `--creme-2` e o rótulo de parcial aparece em cabeçalho de tabela. Escurecido
+     para `#8f5a12` (4,92:1 no pior fundo), os três passam em todos os papéis. */
+  --ok: #1d6b2f;      /* aconteceu (>=5,60:1) */
+  --alerta: #8f5a12;  /* parcial (>=4,92:1) */
+  --falha: #9b1c1c;   /* erro / não aconteceu (>=6,95:1) */
+
+  /* --- Fundos de estado -----------------------------------------------------------
+     O resultado do registro tem fundo próprio: a faixa que diz «aconteceu», «parcial»
+     ou «não aconteceu» é lida de longe, e pintá-la com o tom do papel a apagaria. Os
+     três tons já existiam espalhados nas páginas (raiz, bastidores); sobem para cá
+     porque são cor de ESTADO, não decoração — e precisam acompanhar o tema. Medidos
+     com o texto semântico por cima: ok 6,00:1 · alerta 5,22:1 · falha 7,04:1. */
+  --ok-fundo: #eef7ee;
+  --alerta-fundo: #fdf3d8;
+  --falha-fundo: #fdeaea;
+
+  /* --- O estado «derivada» --------------------------------------------------------
+     A turma que nasceu de um ajuste não é erro nem pendência: é linha de base. O lilás
+     a distingue do âmbar («ainda podes mexer») sem virar juízo. Texto sobre o fundo:
+     7,53:1. */
+  --derivada: #5a3f66;
+  --derivada-fundo: #efe9f2;
+
+  /* --- Tipografia -----------------------------------------------------------------
+     Duas pilhas, e só duas: o texto é serifado (a voz do projeto) e os CONTROLES —
+     campo, botão, menu — são sans, porque é onde se digita e se clica, e a serifa
+     atrapalha em corpo pequeno de interface. Nenhum arquivo redeclara estas listas. */
+  --serif: Georgia, 'Times New Roman', serif;
+  --ui: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Altura da barra fixa. O valor aqui é o FALLBACK (sem JavaScript): cobre a
+     navbar de duas linhas, que é o pior caso. Com JS ligado, o script do
+     template mede a altura real e sobrescreve esta variável. */
+  --header-height: 120px;
+
+  /* --- A ESCALA (Fase 1) -----------------------------------------------------------
+     Espaço, raio e corpo de texto em degraus declarados. Os componentes usam estes
+     nomes; um valor que não esteja aqui é um desvio que se vê na revisão. As medidas
+     antigas das páginas continuam válidas até migrarem — a escala é o destino, não
+     uma reescrita de tudo de uma vez. */
+  --esp-1: 4px;
+  --esp-2: 8px;
+  --esp-3: 12px;
+  --esp-4: 16px;
+  --esp-5: 24px;
+  --esp-6: 32px;
+  /* O RAIO É DA RÉGUA, como o espaço: três degraus e a pílula. Os valores são os da
+     pele adotada em 17/10/2026 (HarmonyOS): o controle é macio (12px) e o cartão é
+     mais macio ainda (20px) — a hierarquia do raio acompanha a da elevação. Trocar a
+     pele é trocar estes três números, e o sistema inteiro acompanha. */
+  --raio-1: 8px;    /* selo, chip, botão pequeno */
+  --raio-2: 12px;   /* campo e botão — o controle */
+  --raio-3: 20px;   /* cartão e modal — a superfície */
+  --raio-pilula: 999px;
+
+  /* --- OS PAPÉIS (Fase 2) ----------------------------------------------------------
+     Os nomes acima descrevem VALORES (`--cream`, `--burgundy`). Estes descrevem
+     FUNÇÕES, e são eles que os componentes usam. A distinção é o que permite um tema:
+     um tema troca o VALOR de um papel, e nenhum componente precisa saber que a marca
+     é bordô ou verde.
+
+     Na variante clara, cada papel aponta para o valor que a identidade já usava — o
+     desenho não muda. Na noturna, cada papel recebe o tom medido para o fundo escuro,
+     e é por isso que ela não é a clara invertida.
+
+     `color-scheme` faz os controles NATIVOS (select, checkbox, scrollbar) acompanharem:
+     sem ele, o tema escuro teria campos claros do sistema no meio da página. */
+  color-scheme: light;
+
+  --fundo: var(--cream);
+  --fundo-suave: var(--creme-1);
+  --fundo-faixa: var(--creme-2);
+  --fundo-hover: var(--creme-3);
+  --fundo-citacao: var(--creme-4);
+  --fundo-codigo: var(--creme-5);
+  --fundo-pre: var(--creme-6);
+
+  --superficie: var(--branco);
+  --superficie-elevada: var(--branco);
+
+  --texto: var(--tinta);
+  --texto-suave: var(--soft);
+
+  --borda: var(--gold-escuro);
+  --borda-campo: var(--gold-borda);
+  --borda-forte: var(--gold-escuro);
+  /* O campo tem DOIS fundos, porque tem dois contextos: sobre o papel, ele é a
+     superfície clara que se destaca; dentro de um cartão branco, ele desce um degrau
+     para não sumir. Na noturna, os dois acompanham o cartão. */
+  --campo-fundo: var(--branco);
+  --campo-fundo-cartao: var(--cream);
+
+  --marca: var(--burgundy);
+  --marca-texto: var(--gold-texto);
+  --marca-fundo: var(--burgundy);
+  --marca-fundo-hover: var(--burgundy-claro);
+  --sobre-marca: var(--cream);
+  --texto-destaque-marca: var(--gold-claro);
+
+  --ornamento: var(--gold-escuro);
+  --ornamento-forte: var(--gold-claro);
+
+  --acao-fundo: var(--burgundy);
+  --acao-texto: var(--gold-claro);
+  --ativo-fundo: var(--gold);
+  --ativo-texto: var(--sobre-ouro);
+  --foco: var(--gold-escuro);
+
+  --veu: rgba(31, 28, 26, .55);
+  --sombra: 0 18px 50px rgba(31, 28, 26, .35);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .18);
+  /* A pele macia usa ELEVAÇÃO em vez de contorno: o botão de ação e o cartão têm
+     sombra curta, e o foco é um HALO em volta do controle, não um anel afastado.
+     Os dois são papel, não valor — a noturna troca os seus. */
+  --sombra-controle: 0 2px 6px rgba(107, 31, 46, .22);
+  --sombra-controle-alto: 0 4px 12px rgba(107, 31, 46, .28);
+  --sombra-cartao: 0 2px 10px rgba(31, 28, 26, .06);
+  --foco-halo: 0 0 0 4px rgba(107, 31, 46, .12);
+}
+
+/* ============================================================================
+   A VARIANTE NOTURNA — concebida para esta família, não invertida.
+   ----------------------------------------------------------------------------
+   Sobre o fundo escuro o bordô não é texto: `#6b1f2e` dá 1,64:1 sobre `#17130f`.
+   A voz passa a ser o OURO — que é a segunda cor da identidade, não uma cor nova —,
+   e o bordô permanece como superfície da barra, onde o texto é o creme (10,65:1).
+   Todos os pares estão medidos em `tools/check-identidade.js`, que passa a conferir
+   este bloco com o mesmo piso da variante clara.
+   ========================================================================== */
+[data-modo="noturna"] {
+  color-scheme: dark;
+
+  --fundo: #17130f;
+  --fundo-suave: #1c1712;
+  --fundo-faixa: #241d17;
+  --fundo-hover: #2a231b;
+  --fundo-citacao: #241d17;
+  --fundo-codigo: #241d17;
+  --fundo-pre: #1c1712;
+
+  --superficie: #211b15;
+  --superficie-elevada: #2a231b;
+
+  --texto: #f1eae0;
+  --texto-suave: #bfb2a0;
+
+  --borda: #7a6a55;
+  --borda-campo: #8a7860;
+  --borda-forte: #9c8870;
+  --campo-fundo: #241d17;
+  --campo-fundo-cartao: #1c1712;
+
+  --marca: #d9b98a;
+  --marca-texto: #e0c9a6;
+  --marca-fundo: #6b1f2e;
+  --marca-fundo-hover: #8a2a3d;
+  --sobre-marca: #fbf8f3;
+  --texto-destaque-marca: #e0c9a6;
+
+  --ornamento: #7a6a55;
+  --ornamento-forte: #c9a878;
+
+  --acao-fundo: #6b1f2e;
+  --acao-texto: #e0c9a6;
+  --ativo-fundo: #c9a878;
+  --ativo-texto: #2b1b10;
+  --foco: #d9b98a;
+
+  --ok: #7fc79a;
+  --alerta: #e0b467;
+  --falha: #e79a9a;
+  --ok-fundo: #1c2b21;
+  --alerta-fundo: #2e2415;
+  --falha-fundo: #2e1919;
+  --derivada: #c9a8d8;
+  --derivada-fundo: #251d28;
+
+  --veu: rgba(0, 0, 0, .7);
+  --sombra: 0 18px 50px rgba(0, 0, 0, .6);
+  /* A sombra do controle na noturna é PRETA: a bordô não se lê como profundidade
+     sobre fundo escuro. O halo do foco clareia, porque escurecer não se vê. */
+  --sombra-controle: 0 2px 6px rgba(0, 0, 0, .45);
+  --sombra-controle-alto: 0 4px 12px rgba(0, 0, 0, .55);
+  --sombra-cartao: 0 2px 10px rgba(0, 0, 0, .4);
+  --foco-halo: 0 0 0 4px rgba(217, 185, 138, .22);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+/* ============================================================================
+   AS FAMÍLIAS — a segunda paleta *(18/10/2026)*
+
+   UMA FAMÍLIA NÃO É UMA COR: É UM CONJUNTO DE PAPÉIS. O sistema não pergunta
+   «qual é a cor do botão?» — pergunta «e o texto que fica SOBRE ele?», «e o filete
+   do campo, que tem de alcançar 3:1 em três fundos diferentes?». São trinta e um
+   pares medidos, e uma família só existe quando os trinta e um passam.
+
+   POR ISSO ESTE BLOCO DECLARA PAPÉIS, E NÃO PRIMITIVOS. A Bordô de Cena declara
+   primitivos (`--cream`, `--burgundy`) e deixa os papéis derivarem deles, porque
+   nasceu primeiro e a derivação é a sua história. Uma segunda família que
+   declarasse `--burgundy: #00afc3` estaria a mentir no nome — e a regra do
+   contrato é essa: um apelido não toma o nome de um papel. Aqui cada valor é o
+   que ele É.
+
+   O QUE NÃO SE REDECLARA: os semânticos de ESTADO (`--ok`, `--alerta`, `--falha`
+   e os fundos), porque eles INFORMAM e não decoram — o verde é verde em qualquer
+   família. Na clara são os mesmos da casa; na escura, os mesmos da noturna da
+   casa, com os fundos deslocados para o frio.
+
+   `data-paleta="bordo"` é o PADRÃO e não declara nada: o `:root` já é a Bordô de
+   Cena. Um atributo explícito no `<html>` serve para a página DIZER de que família
+   é, e para a prova poder conferir que disse.
+
+   A ORDEM IMPORTA. `[data-paleta="cortina"]` e `[data-modo="noturna"]` têm a mesma
+   especificidade (0,1,0), e o desempate é a posição: este bloco vem DEPOIS, e por
+   isso a Cortina clara vence a Bordô noturna. O par `[data-paleta][data-modo]`
+   tem (0,2,0) e vence os dois — é ele que faz «Cortina noturna» existir.
+   ========================================================================== */
+
+/* ---------- Cortina Turquesa — clara ----------
+   As âncoras vieram da imagem de referência e foram AMOSTRADAS: turquesa #00afc3
+   (medido; o texto de referência dizia #00b8c7, e os dois são o mesmo tom),
+   fundo #f5fafa, tinta #0d1b24.
+
+   TRÊS DESCOBERTAS DA MEDIÇÃO, e nenhuma delas está na imagem:
+
+   1. O TURQUESA NÃO SERVE DE TEXTO. Sobre o papel dá 2,52:1. `--marca` (o papel
+      dos títulos de secção) tem de ser o tom escurecido #00708c — 5,39:1 —, e o
+      turquesa cheio fica só como PREENCHIMENTO (`--marca-fundo`).
+   2. O TURQUESA NÃO ACEITA TEXTO CLARO. Branco sobre ele dá 2,65:1, e não há tom
+      claro nenhum que passe: o `--sobre-marca` desta família é ESCURO (#06202b,
+      6,34:1). É o oposto da Bordô, cuja barra é escura com texto creme — e é a
+      razão pela qual uma família não se faz trocando o acento.
+   3. O NEUTRO MUDA DE TEMPERATURA. O papel da Cortina é frio (#f5fafa) onde o da
+      casa é quente (--cream #fbf8f3). Sete primitivos e os papéis que derivam
+      deles acompanham — a família troca o clima, não só a cor. */
+[data-paleta="cortina"] {
+  --fundo: #f5fafa;
+  --fundo-suave: #edf5f6;
+  --fundo-faixa: #e3eff1;
+  --fundo-hover: #d9e9ec;
+  --fundo-citacao: #eaf4f6;
+  --fundo-codigo: #e7f1f3;
+  --fundo-pre: #eef6f8;
+  --superficie: #ffffff;
+  --superficie-elevada: #ffffff;
+  --texto: #0d1b24;
+  --texto-suave: #4c5f6a;
+  /* O filete é NEUTRO, não é o acento. Um campo com filete turquesa pareceria em
+     foco permanente; na Bordô o filete é ouro-esmaecido pela mesma razão. Este
+     tom alcança 3,12:1 no papel, 3,28:1 na superfície e 3,15:1 no cartão. */
+  --borda: #78929d;
+  --borda-campo: #78929d;
+  --borda-forte: #5a7987;
+  --campo-fundo: #ffffff;
+  --campo-fundo-cartao: #f7fbfc;
+  --marca: #00708c;          /* o acento como TEXTO (5,39:1) */
+  --marca-texto: #00677f;    /* o mesmo, um degrau abaixo (5,51:1 no cabeçalho) */
+  --marca-fundo: #00afc3;    /* o acento como PREENCHIMENTO — a barra */
+  --marca-fundo-hover: #0093a6;
+  --sobre-marca: #06202b;    /* ESCURO: branco sobre turquesa não passa */
+  --texto-destaque-marca: #06202b;
+  --ornamento: #5e8e99;
+  --ornamento-forte: #04414d; /* o filete da barra, escuro sobre o turquesa (4,24:1) */
+  --acao-fundo: #00afc3;
+  --acao-texto: #06202b;
+  --ativo-fundo: #cfe9ec;    /* o item ativo é um chip claro, como o ouro na Bordô */
+  --ativo-texto: #06202b;
+  --foco: #00708c;
+  --veu: rgba(13, 27, 36, .55);
+  --sombra: 0 18px 50px rgba(13, 27, 36, .35);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .18);
+  /* A sombra do controle é do NAVY, não do turquesa: uma sombra colorida pelo
+     acento suja o papel em volta. Na Bordô ela é bordô porque o bordô é escuro;
+     aqui o acento é claro, e a profundidade tem de vir da tinta. */
+  --sombra-controle: 0 2px 6px rgba(13, 27, 36, .20);
+  --sombra-controle-alto: 0 4px 12px rgba(13, 27, 36, .26);
+  --sombra-cartao: 0 2px 10px rgba(13, 27, 36, .06);
+  --foco-halo: 0 0 0 4px rgba(0, 175, 195, .16);
+  --ok-fundo: #eaf5ec;
+  --alerta-fundo: #fbf2da;
+  --falha-fundo: #fbeaea;
+  --derivada-fundo: #ece7f0;
+}
+
+/* ---------- Cortina Turquesa — noturna ----------
+   Concebida, não invertida — a regra da casa. O fundo é o navy da referência
+   (#0a1923 / #0f2332), e o turquesa CONTINUA a ser o preenchimento: aqui ele
+   funciona melhor do que na clara, porque sobre o navy ele alcança 6,06:1 como
+   texto e 6,34:1 como fundo de botão. O `--marca-texto` clareia (#63dbe8) porque
+   sobre o papel escuro o tom de texto da clara desapareceria (10,91:1 contra
+   2,9:1). */
+[data-paleta="cortina"][data-modo="noturna"] {
+  color-scheme: dark;
+  --fundo: #0a1923;
+  --fundo-suave: #0f2332;
+  --fundo-faixa: #142b39;
+  --fundo-hover: #19323f;
+  --fundo-citacao: #142b39;
+  --fundo-codigo: #142b39;
+  --fundo-pre: #0f2332;
+  --superficie: #0f2332;
+  --superficie-elevada: #19323f;
+  --texto: #e4eff2;
+  --texto-suave: #a3bcc4;
+  /* Os filetes clareiam: sobre o navy, o tom da clara dá 2,27:1 e um campo com
+     esse filete desaparece. Medidos: --borda 3,53 / 3,18 · --borda-campo 3,18 /
+     3,88 / 3,50 (fundo / superfície / campo). */
+  --borda: #547382;
+  --borda-campo: #5a7a87;
+  --borda-forte: #628594;
+  --campo-fundo: #142b39;
+  --campo-fundo-cartao: #0f2332;
+  --marca: #00afc3;
+  --marca-texto: #63dbe8;
+  --marca-fundo: #00afc3;
+  --marca-fundo-hover: #2ec3d3;
+  --sobre-marca: #06202b;
+  --texto-destaque-marca: #06202b;
+  --ornamento: #547382;
+  --ornamento-forte: #04333c;
+  --acao-fundo: #00afc3;
+  --acao-texto: #06202b;
+  --ativo-fundo: #cfe9ec;
+  --ativo-texto: #06202b;
+  --foco: #63dbe8;
+  --ok: #7fc79a;
+  --alerta: #e0b467;
+  --falha: #e79a9a;
+  --ok-fundo: #132a25;
+  --alerta-fundo: #2a2417;
+  --falha-fundo: #2e1b1f;
+  --derivada: #c9a8d8;
+  --derivada-fundo: #241d28;
+  --veu: rgba(0, 0, 0, .7);
+  --sombra: 0 18px 50px rgba(0, 0, 0, .6);
+  --sombra-controle: 0 2px 6px rgba(0, 0, 0, .45);
+  --sombra-controle-alto: 0 4px 12px rgba(0, 0, 0, .55);
+  --sombra-cartao: 0 2px 10px rgba(0, 0, 0, .4);
+  --foco-halo: 0 0 0 4px rgba(99, 219, 232, .22);
+  --sombra-menu: 0 6px 18px rgba(0, 0, 0, .5);
+}
+
+/* ==================== VERDE DE ENSAIO — a terceira família ====================
+   Entrou em 18/10/2026, e é a ÚLTIMA: o catálogo fecha em TRÊS famílias — Bordô de Cena,
+   Cortina Turquesa e Verde de Ensaio. As outras quatro que chegaram a ser medidas (Azul de
+   Gala, Prata de Palco, Azul de Bastidores, Luz de Camarim) foram abandonadas por decisão de
+   produto; os valores delas ficam no histórico do Git, e voltar com uma é refazer a medição.
+
+   A PROCEDÊNCIA está dita valor a valor, e é o que permite discutir a família em vez de a
+   aceitar. QUATRO das cinco cores que o dono do produto nomeou entraram INTACTAS, no papel
+   que lhes cabe: o fundo #f4f0e7, o texto #303631, a sálvia #879783 (no preenchimento — a
+   barra e a ação principal) e a madeira #9a856c (no filete, onde dá 3,11:1 em vez dos 3,0
+   de piso). Todo o resto é DERIVADO e medido.
+
+   A ÂNCORA QUE NÃO SERVIU AO PAPEL QUE PARECIA SER O DELA, e o número que a recusou:
+     · a sálvia como TEXTO dá 2,72:1 sobre o papel e 2,92:1 sobre a superfície (piso 4,5:1) —
+       um verde de 15px que ninguém lê. Ela continua a ser a cor da família; o que muda é o
+       papel: `--marca-fundo` (a barra) e `--acao-fundo` (a ação), com texto escuro em cima
+       (5,19:1). O texto desce para `#4f6650` — 5,51:1 —, e o valor coincide quase
+       exactamente com o `#507048` medido na logo da mesma cor: dois caminhos, o mesmo tom.
+
+   AS 62 MEDIÇÕES (31 pares × 2 variantes) estão em `experimentos/medir-paletas.js`, que é
+   quem as fez e quem as explica; `tools/check-identidade.js` volta a medi-las a cada
+   verificação e reprova o primeiro par que caia. Nenhum valor aqui foi escolhido a olho. */
+/* ---- Verde de Ensaio — Tema 2 — Estúdio de dança, verde sálvia ---- */
+[data-paleta="verde"] {
+  --fundo: #f4f0e7;   /* a sua cor */
+  --fundo-suave: #ece7db;
+  --fundo-faixa: #e6e0d2;
+  --fundo-hover: #ded6c4;
+  --fundo-citacao: #eeeadf;
+  --fundo-codigo: #eae4d7;
+  --fundo-pre: #f0ebdf;
+  --superficie: #fbf8f2;
+  --superficie-elevada: #ffffff;
+  --texto: #303631;   /* a sua cor */
+  --texto-suave: #4d544e;
+  --borda: #9a856c;   /* a sua cor */
+  --borda-campo: #9a856c;   /* a sua cor */
+  --borda-forte: #6f5d48;
+  --campo-fundo: #ffffff;
+  --campo-fundo-cartao: #f7f3ea;
+  --marca: #4f6650;
+  --marca-texto: #455a46;
+  --marca-fundo: #879783;   /* a sua cor */
+  --marca-fundo-hover: #77876f;
+  --sobre-marca: #171c18;
+  --texto-destaque-marca: #1c231d;
+  --ornamento: #8a755c;
+  --ornamento-forte: #3d4a3e;
+  --acao-fundo: #879783;   /* a sua cor (com texto escuro) */
+  --acao-texto: #1c231d;
+  --ativo-fundo: #d9e2d4;
+  --ativo-texto: #2b3a2c;
+  --foco: #4f6650;
+  --ok-fundo: #e8f0e4;
+  --alerta: #8c5812;
+  --alerta-fundo: #f7eed6;
+  --falha-fundo: #f6e6e2;
+  --derivada-fundo: #eae6ef;
+}
+
+[data-paleta="verde"][data-modo="noturna"] {
+  color-scheme: dark;
+  --fundo: #2b2b27;   /* a sua cor */
+  --fundo-suave: #323230;
+  --fundo-faixa: #383834;
+  --fundo-hover: #3f3f3a;
+  --fundo-citacao: #343430;
+  --fundo-codigo: #343430;
+  --fundo-pre: #303030;
+  --superficie: #31312d;
+  --superficie-elevada: #3a3a35;
+  --texto: #e8e5d9;   /* a sua cor */
+  --texto-suave: #b9b6a9;
+  --borda: #797a71;   /* a sua cor */
+  --borda-campo: #808277;   /* a sua cor */
+  --borda-forte: #87897d;
+  --campo-fundo: #383834;
+  --campo-fundo-cartao: #31312d;
+  --marca: #a9bb9f;
+  --marca-texto: #bfcdb5;
+  --marca-fundo: #879783;   /* a sua cor */
+  --marca-fundo-hover: #9aab8f;
+  --sobre-marca: #1c231d;
+  --texto-destaque-marca: #1c231d;
+  --ornamento: #6f7167;
+  --ornamento-forte: #1e211d;
+  --acao-fundo: #879783;   /* a sua cor (com texto escuro) */
+  --acao-texto: #1c231d;
+  --ativo-fundo: #d9e2d4;
+  --ativo-texto: #2b3a2c;
+  --foco: #bfcdb5;
+  --ok: #9ec79b;
+  --alerta: #dfba75;
+  --falha: #e5a09a;
+  --derivada: #c6aed6;
+  --ok-fundo: #26302a;
+  --alerta-fundo: #332c1d;
+  --falha-fundo: #35221f;
+  --derivada-fundo: #2c2730;
+}
+
+* { box-sizing: border-box; }
+
+html {
+  scroll-behavior: smooth;
+  /* âncoras (#id) param abaixo da barra fixa, em vez de ficarem escondidas sob ela */
+  scroll-padding-top: calc(var(--header-height) + 8px);
+}
+
+body {
+  margin: 0;
+  padding: var(--header-height) 0 40px;
+  background: var(--fundo);
+  color: var(--texto);
+  font: 17px/1.65 var(--serif);
+}
+
+/* ---------- o estado «escondido» ------------------------------------------
+   `[hidden]` é o ATRIBUTO do estado escondido, e o `display: none` que o navegador
+   lhe dá vive na folha dele — logo, PERDE para qualquer regra de autor. Bastava um
+   `button { display: … }` numa página para o botão «escondido» continuar à vista e a
+   ocupar altura: foi o que aconteceu ao «Fechar a elicitação» do ato, que media 45px
+   com `hidden` posto, e empurrava a barra de ações para 114px de altura.
+
+   Um estado do sistema não pode depender de nenhuma página não lhe tocar. Fica aqui,
+   na base, com `!important` — é a única linha da folha que o usa, e o motivo é este:
+   `hidden` tem de ganhar de tudo, seja qual for a peça e a página. */
+[hidden] { display: none !important; }
+
+/* ---------- barra de navegação fixa (Regra 16, item 1) ---------- */
+.topnav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 20;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  background: var(--marca-fundo); border-bottom: 3px solid var(--ornamento-forte);
+  padding: 8px 16px; font-size: 15px;
+}
+/* Os ornamentos do nav são --gold-claro, e não --gold, porque o FUNDO do nav tem dois
+   tons: o burgundy (3,65:1 com --gold) e o burgundy-claro dos estados :hover e do menu
+   aberto (onde --gold cai para 2,74:1). --gold-claro passa nos dois — 5,03:1 e 3,77:1 —
+   então nenhum estado de interação pode ficar abaixo de AA. */
+.topnav .marca {
+  /* O SLOT DA MARCA (18/10/2026). Ele era um espaço de 9em, reservado desde que o
+     texto «Ciclo NN · escola» saiu do menu — servia só para o menu não colar à
+     esquerda. Agora ele RECEBE a logomarca, que chega em SVG inline daqui a pouco
+     (em `nav-html.js`), e a largura deixa de ser reservada: quem manda é o desenho.
+
+     A COR É O PONTO. A marca é `fill="currentColor"`, e o `color` daqui é o
+     `--sobre-marca` — o token que significa «a cor do que fica EM CIMA da barra».
+     É ele que faz a mesma marca servir às três famílias: na Bordô o conteúdo sobre
+     a barra é o creme, na Cortina é escuro (`#06202b`, porque branco sobre turquesa
+     não passa), na Verde é quase preto. A marca não escolhe cor; ela herda a que a
+     família já mediu para aquele fundo. */
+  display: inline-flex; align-items: center;
+  color: var(--sobre-marca); margin-right: var(--esp-4);
+  text-decoration: none; padding: 2px 0;
+}
+/* O TAMANHO DA MARCA NA BARRA. 30px de altura é o maior que cabe numa barra de 52px
+   sem empurrar o hambúrguer; a largura acompanha pela proporção do `viewBox` (a
+   marca é retrato, 249×292) e nunca é declarada — declarar as duas deformaria. */
+.topnav .marca svg {
+  display: block; height: 30px; width: auto;
+  fill: currentColor;
+}
+/* No :hover o fundo passa a --burgundy-claro, onde o ouro não alcança 4,5:1 em nenhum tom:
+   a marca volta ao creme (8,00:1), como todos os outros links do nav. */
+.topnav a.marca:hover { color: var(--sobre-marca); }
+.topnav a { color: var(--sobre-marca); text-decoration: none; padding: var(--esp-2) var(--esp-3); border-radius: 4px; }
+.topnav a:hover { background: var(--marca-fundo-hover); }
+.topnav a.ativo { background: var(--ativo-fundo); color: var(--ativo-texto); font-weight: bold; }
+.topnav details { position: relative; }
+.topnav details.menu[open] > summary { background: var(--marca-fundo-hover); }
+.topnav summary {
+  cursor: pointer; color: var(--sobre-marca); padding: var(--esp-2) var(--esp-3); border-radius: 4px;
+  list-style: none; display: inline-block;
+}
+.topnav summary::-webkit-details-marker { display: none; }
+.topnav summary::after { content: ' ▾'; }
+.topnav details[open] summary, .topnav summary:hover { background: var(--marca-fundo-hover); }
+.topnav .submenu {
+  position: absolute; top: 100%; left: 0; z-index: 21;
+  display: flex; flex-direction: column; gap: 4px; min-width: 300px;
+  background: var(--marca-fundo); border: 2px solid var(--ornamento-forte); border-radius: 6px;
+  padding: 8px; box-shadow: var(--sombra-menu);
+}
+.topnav .submenu a { padding: 8px 8px; }
+.topnav .pdf { margin-left: auto; border: 2px solid var(--ornamento-forte); }
+
+/* O botão do TEMA fica fora do `.nav-links` (o painel colapsa no celular): a
+   aparência continua alcançável com o menu fechado. Ele não é um link — é um
+   controle de estado, e o `aria-pressed` é o que o anuncia. */
+.tema {
+  margin-left: 8px; padding: 4px 8px;
+  background: transparent; border: 2px solid var(--borda);
+  color: var(--marca); border-radius: var(--raio-1);
+  font: 600 15px/1 var(--ui); cursor: pointer;
+}
+.tema:hover { background: var(--fundo-hover); }
+.tema[aria-pressed="true"] { background: var(--fundo-hover); }
+/* Sobre a BARRA o botão herda o tratamento dos vizinhos: ouro e creme no burgundy. */
+.topnav .tema { border-color: var(--ornamento-forte); color: var(--sobre-marca); }
+.topnav .tema:hover, .topnav .tema[aria-pressed="true"] { background: var(--marca-fundo-hover); }
+
+/* Os links ficam num contêiner para o menu mobile poder colapsá-los de uma vez.
+   O contêiner não muda o layout de desktop — é a mesma linha de antes. */
+.topnav .nav-links {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  flex: 1 1 auto; min-width: 0;
+}
+
+/* Botão hamburger: invisível no desktop; aparece só na media query de celular.
+ * `position: relative` + `z-index` EXPLÍCITOS: sem eles o botão herda a pilha do
+ * .topnav (20) e fica ABAIXO do painel do submenu (21) — é o que fazia o botão
+ * sumir depois de navegar, quando algum resíduo de estado mantinha o painel no
+ * caminho. `pointer-events: auto` é defesa contra regra herdada que desabilite
+ * o clique. */
+.topnav .hamburger {
+  display: none; margin-left: auto; cursor: pointer;
+  position: relative; z-index: 22; pointer-events: auto;
+  background: none; border: 2px solid var(--ornamento-forte); border-radius: 4px;
+  padding: 8px 8px;
+}
+.topnav .hamburger span {
+  display: block; width: 18px; height: 2px; margin: 4px 0; background: var(--fundo);
+}
+.topnav .hamburger[aria-expanded="true"] { background: var(--marca-fundo-hover); }
+
+/* ---------- cabeçalho, conteúdo e títulos ---------- */
+header.doc, main, footer.rodape, .rodape { max-width: 900px; margin: 0 auto; padding: 0 24px; }
+
+header.doc { margin-top: 8px; }
+header.doc h1 {
+  color: var(--marca); font-size: 31px; line-height: 1.2; margin: 0 0 8px;
+  border-bottom: 2px solid var(--borda); padding-bottom: 8px;
+}
+header.doc .subtitulo { color: var(--texto-suave); font-style: italic; margin: 0 0 8px; }
+.ficha { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 0; }
+.ficha span {
+  background: var(--fundo-faixa); border: 1px solid var(--borda); border-radius: 999px;
+  padding: 0 var(--esp-2); font-size: 13px; color: var(--marca-texto);
+}
+
+main h2 { color: var(--marca); font-size: 23px; margin: 32px 0 8px; }
+main h3 { color: var(--marca); font-size: 19px; margin: 24px 0 8px; }
+main h4 { color: var(--marca-texto); font-size: 17px; margin: 16px 0 4px; }
+main a { color: var(--marca); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+main a:hover { background: var(--fundo-hover); }
+
+p, ul, ol { margin: 8px 0; }
+li { margin: 4px 0; }
+
+/* ---------- índice da própria página (Regra 16, item 2) ---------- */
+.toc-local {
+  background: var(--superficie); border: 1px solid var(--borda); border-radius: 8px;
+  padding: 12px 20px 16px; margin: 20px 0 24px;
+}
+.toc-local .toc-titulo {
+  margin: 0 0 4px; color: var(--marca-texto); font-size: 14px;
+  text-transform: uppercase; letter-spacing: .08em;
+}
+.toc-local ul { list-style: none; padding-left: 16px; margin: 4px 0; }
+.toc-local > ul { padding-left: 0; }
+.toc-local a { color: var(--texto-suave); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+
+/* ---------- a DOBRA do índice (18/10/2026) -----------------------------------------
+   O bloco do índice é uma COLUNA congelada à direita a partir de 1200px; abaixo disso
+   ele é um bloco no TOPO do texto — e num telefone isso é rolagem antes de se chegar ao
+   conteúdo. A dobra encolhe o bloco até o título e devolve a lista a quem a quiser.
+
+   O CONTROLE SÓ EXISTE ONDE A COLUNA NÃO EXISTE, e o critério é o MESMO do layout — a
+   largura, não o tamanho do aparelho. Um portátil de 1000px tem o bloco no topo e o
+   mesmo problema de rolagem; uma janela estreita no desktop também. Em tela larga não
+   há botão, e o índice nunca se fecha: ali ele É a navegação.
+
+   O BOTÃO É CRIADO PELO `assets/nav.js`, e não pelo HTML. O documento do pacote é
+   GERADO (pandoc + `ciclo.html`), e um documento já gerado — ou um pacote que não se
+   pode regerar porque o plano ainda não foi elicitado, que é o caso deste ciclo —
+   ficaria sem o controle até a geração seguinte. Criado no script, ele vale para todo
+   documento que carregue `assets/nav.js`, inclusive os que já estão no ar. E sem
+   JavaScript não há botão nenhum: nada morto na tela, e o índice fica como sempre. */
+.toc-dobra {
+  display: none;
+  width: 100%; margin: 0; padding: var(--esp-2) 0 2px;
+  /* Sem borda: o controle não é uma caixa, é o PEGADOR do bloco. E um botão com um
+     lado só é o defeito que a `provar-celular` existe para impedir («os quatro lados com
+     a mesma espessura») — se a separação fosse desenho, seria um filete falso. */
+  border: 0; border-radius: 0;
+  background: transparent; color: var(--texto-suave);
+  font: 700 13px/1 var(--ui); cursor: pointer;
+  justify-content: center; align-items: center;
+}
+.toc-dobra:hover:not(:disabled) { background: transparent; color: var(--marca); }
+.toc-dobra:focus-visible { outline: 2px solid var(--foco); outline-offset: 1px; }
+.toc-dobra .toc-dobra-sinal { display: block; line-height: 1; }
+
+@media (max-width: 1199px) {
+  .toc-local[data-dobra="sim"] .toc-dobra { display: flex; }
+  /* RECOLHIDO, o bloco é uma FAIXA: o título e o botão, e mais nada. O padding de baixo
+     encurta para o bloco não ficar alto à toa — é o que se pediu: menos rolagem. */
+  .toc-local[data-recolhido="sim"] { padding-bottom: 6px; }
+  .toc-local[data-recolhido="sim"] .toc-titulo { margin-bottom: 0; }
+  .toc-local[data-recolhido="sim"] ul,
+  .toc-local[data-recolhido="sim"] ol { display: none; }
+}
+/* O PAPEL NÃO TEM DOBRA: no papel o índice sai inteiro, e o botão não se imprime.
+   O `!important` aqui é o MESMO recurso que a impressão já usa para repor os papéis da
+   variante clara — e é necessário: o estado recolhido é um ATRIBUTO na tela, com
+   especificidade maior (`.toc-local[data-recolhido="sim"] ul`), e sem ele o papel sairia
+   com o índice escondido por causa de um toque dado no celular. Papel não tem estado. */
+@media print {
+  .toc-local[data-dobra="sim"] .toc-dobra { display: none !important; }
+  .toc-local[data-recolhido="sim"] ul,
+  .toc-local[data-recolhido="sim"] ol { display: block !important; }
+}
+
+/* ---------- o índice da página: coluna à DIREITA, que acompanha a rolagem ----------
+   Até 1199px o índice continua sendo o bloco do topo, como sempre foi. A partir de 1200px
+   há largura para duas colunas: o contêiner da página alarga, o texto mantém a medida de
+   leitura (900px) e o índice vira uma coluna à direita, presa abaixo da navbar
+   (`position: sticky`) — quem rola a página não perde a navegação.
+
+   Quem decide é a LARGURA, não o dispositivo: tablet largo, tela cheia e janela estreita
+   se comportam pelo mesmo critério. O `.rail` existe porque o elemento preso precisa de um
+   pai mais alto que ele para ter para onde subir — a coluna da grade estica, o índice não. */
+@media (min-width: 1200px) {
+  /* O LAYOUT É UM ATRIBUTO, não uma rota. `data-layout="documento"` é a leitura com
+     o índice à direita; `data-layout="painel"` é a tela de trabalho, que usa a largura
+     toda e não tem índice lateral. Quem não declara nada fica no documento. */
+  header.doc, main, footer.rodape, .rodape { max-width: 1180px; }
+  [data-layout="painel"] header.doc,
+  [data-layout="painel"] main,
+  [data-layout="painel"] footer.rodape,
+  [data-layout="painel"] .rodape { max-width: none; }
+  [data-layout="painel"] main { display: block; }
+  main { display: grid; grid-template-columns: minmax(0, 1fr) 17rem; gap: 2rem; }
+  .conteudo { grid-column: 1; grid-row: 1; min-width: 0; max-width: 900px; }
+  .rail { grid-column: 2; grid-row: 1; }
+  .toc-local {
+    position: sticky;
+    top: calc(var(--header-height) + 8px);
+    /* para antes do botão "voltar ao topo" (fixo no canto), e rola por dentro se for longo */
+    max-height: calc(100vh - var(--header-height) - 96px);
+    overflow-y: auto;
+  }
+}
+
+/* ---------- tabelas, citações, código ---------- */
+table { border-collapse: collapse; width: 100%; margin: 16px 0; font-size: 15px; }
+th, td { border: 1px solid var(--borda); padding: 8px 8px; text-align: left; vertical-align: top; }
+th { background: var(--fundo-faixa); color: var(--marca-texto); }
+/* o pandoc marca as linhas com .odd / .even e o cabeçalho com .header */
+tr.header { background: var(--fundo-faixa); }
+tr.header th { color: var(--marca-texto); }
+tbody tr.odd { background: var(--fundo-suave); }
+tbody tr.even { background: var(--superficie); }
+
+blockquote {
+  margin: 16px 0; padding: 8px 16px; background: var(--fundo-citacao);
+  border-left: 4px solid var(--borda); color: var(--texto-suave);
+}
+blockquote p { margin: 8px 0; }
+
+code { background: var(--fundo-codigo); padding: 0 var(--esp-1); border-radius: 3px; font-size: 15px; }
+pre { background: var(--fundo-pre); border: 1px solid var(--borda); border-radius: 6px; padding: 12px 16px; overflow-x: auto; }
+pre code { background: none; padding: 0; }
+
+hr { border: none; border-top: 1px solid var(--borda); margin: 28px 0; }
+
+/* ============================================================================
+   COMPONENTES — a camada que as páginas deixaram de reescrever (Fase 1).
+   ----------------------------------------------------------------------------
+   Antes desta seção, botão, campo, rótulo, selo, cartão, modal e mensagem de
+   resultado eram redefinidos em cada página: quatro tratamentos de botão, três de
+   rótulo, dois de superfície de campo. Aqui cada um é declarado UMA vez, e as
+   páginas só dizem o que é delas (a medida, a grade, o que é conteúdo).
+
+   As classes de ESTADO carregam mais de um nome quando o nome já está no dado ou
+   no markup (`.solta`, `.vinculada`, `.legado` vêm do estado da proveniência).
+   São aliases do MESMO desenho — não um segundo desenho.
+   ========================================================================== */
+
+/* ---------- botão ----------------------------------------------------------
+   `:where()` dá especificidade ZERO ao desenho base: ele é o piso, e qualquer
+   regra de página vence sem precisar de `!important`. Foi o que faltava — a
+   navbar e as abas tinham de reescrever o botão só para não herdarem o
+   preenchimento.
+
+   O botão SEM classe é o secundário: contorno na marca, fundo do papel — o que
+   as páginas de formulário já usavam. O `.acao` é a ação principal: fundo na
+   marca e texto no ouro claro (`--gold-claro`, 5,03:1 — o token declarado para
+   texto sobre burgundy). */
+:where(button) {
+  display: inline-block; margin: 0;
+  /* O CONTROLE TEM ALTURA DE DEDO (>=40px) E RAIO MACIO. A altura vem do padding
+     vertical sobre a linha de 22px, não de um `height` fixo: botão que cresce com a
+     fonte não corta o texto de quem aumenta o zoom do sistema. */
+  font: 500 15px/1.5 var(--ui);
+  padding: 10px var(--esp-4);
+  border: 1px solid var(--marca); border-radius: var(--raio-2);
+  background: var(--superficie); color: var(--marca);
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+:where(button:hover:not(:disabled)) { background: var(--marca-fundo); color: var(--sobre-marca); }
+:where(button:disabled) {
+  border-color: var(--borda-campo); color: var(--texto-suave);
+  background: var(--fundo-suave); cursor: default;
+}
+
+button.acao, a.acao {
+  display: inline-block; margin: 0;
+  font: 500 15px/1.5 var(--ui); padding: 10px var(--esp-4); white-space: nowrap;
+  border: 1px solid var(--marca); border-radius: var(--raio-2);
+  background: var(--marca-fundo); color: var(--texto-destaque-marca);
+  box-shadow: var(--sombra-controle);
+  cursor: pointer; text-decoration: none;
+  transition: background-color .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+/* A BORDA DE BAIXO DO LINK, SÓ DO LINK. `main a` e `.rodape a` usam `border-bottom:
+   1px dotted` como sublinhado de prosa; um `a.acao` dentro de `main` herdava o
+   pontilhado e ficava com duas linhas na base. A correção existia, mas estava na
+   regra COMPARTILHADA — e por isso apagava a borda de baixo de todo `<button>`
+   também: `border: 1px solid` seguido de `border-bottom: none` deixa a base em
+   0px. Era isso que fazia o botão claro parecer quebrado. Agora o `none` é do
+   `a.acao`, e o botão tem os quatro lados. */
+a.acao { border-bottom: none; }
+/* O BOTÃO QUE VEM LOGO DEPOIS DE UM CONTROLE precisa do mesmo ar que separa um
+   campo do rótulo seguinte. Sem isto ele encosta no campo: o `.acao` tem
+   `margin: 0`, e a única coisa que o afastava era o acaso de estar dentro de um
+   `.modal-acoes` ou de uma `.linha-acao`. Numa pilha crua de formulário — que é o
+   caso dos Bastidores — o campo e o botão ficavam colados.
+
+   A ESPECIFICIDADE É O PONTO. `button.acao` é (0,1,1) e diz `margin: 0`; uma
+   regra `:where(…) + .acao` é (0,1,0) e PERDE — foi o que aconteceu na primeira
+   tentativa, e o vão continuou 0. Por isso o seletor repete `button.acao`, que
+   empata em peso e vence por vir depois. */
+:where(form) > :where(input, select, textarea) + button.acao,
+:where(form) > :where(input, select, textarea) + button:not(.acao) { margin-top: var(--esp-4); }
+
+/* …E SÓ NA PILHA DO FORMULÁRIO. A primeira versão não tinha o `form >`, e o botão
+   «Associar» — que divide a linha com o `<select>` que ele lê — ganhou 16px de
+   margem de topo e desceu 8px em relação ao seletor. Um botão AO LADO de um campo
+   não é um botão ABAIXO dele, e o CSS não sabe distinguir os dois pelo pai: sabe
+   pelo pai ser ou não o formulário. */
+.par-associar > button, .escolhedor .entrada > button { margin-top: 0; }
+
+button.acao:hover:not(:disabled), a.acao:hover {
+  background: var(--marca-fundo-hover); border-color: var(--marca-fundo-hover); color: var(--sobre-marca);
+  box-shadow: var(--sombra-controle-alto);
+}
+.acao.secundario,
+.acao.secundario:hover:not(:disabled) {
+  /* PREENCHIDO, não transparente. Era `background: transparent`: sobre o papel sobrava
+     um filete de 1px, e o botão parecia sem caixa — a borda de baixo "sumia" na leitura
+     de quem olha a tela. O creme-1 separa do papel E da superfície branca, então o mesmo
+     desenho vale sobre os dois. */
+  background: var(--fundo-suave); color: var(--marca-texto); border-color: var(--borda);
+}
+.acao.secundario, .acao.perigo { box-shadow: none; }
+.acao.secundario:hover:not(:disabled) { background: var(--fundo-hover); }
+
+/* UMA AÇÃO NÃO GUARDA ESTADO (18/10/2026). Aqui houve um `[aria-pressed="true"]` sobre
+   `.acao`, para o botão da opção escolhida ficar aceso. Saiu, e a razão é de vocabulário, não
+   de gosto: `.acao` é uma ORDEM — algo que acontece quando se clica —, e o que ficou em vigor
+   depois do clique não é uma ordem pendente, é um ESTADO. Quem guarda estado é a pílula
+   (`.escolhas`/`.escolha`), com o `:checked` do próprio `<input>`; quem quer um cartão
+   escolhido usa `.cartao[aria-pressed]`, na raiz. Duas peças, dois significados — e um botão
+   não é nenhum dos dois.
+
+   O que este comentário guarda é a ARMADILHA que o desenho tinha, para não se repetir: a
+   variante `:hover` era obrigatória por ESPECIFICIDADE. Sem ela, `.acao.secundario` (0,4,0)
+   vencia no instante em que o rato pousasse e o botão apagava-se sob o dedo que ia
+   confirmá-lo. Uma peça cujo estado só se vê quando o ponteiro sai é uma peça mal declarada. */
+.acao.perigo,
+.acao.perigo:hover:not(:disabled) {
+  background: transparent; color: var(--falha); border-color: var(--falha);
+}
+.acao.perigo:hover:not(:disabled) { background: var(--falha-fundo); }
+.acao.grande { padding: 12px var(--esp-5); border-radius: var(--raio-2); font-size: 15.5px; }
+.acao.pequena { padding: var(--esp-1) var(--esp-3); font-size: 12.5px; border-radius: var(--raio-1); }
+.acao:disabled, .acao[aria-disabled="true"] { opacity: .4; cursor: not-allowed; }
+.acao.secundario:disabled, .acao.perigo:disabled {
+  background: transparent; color: var(--texto-suave); border-color: var(--borda-campo);
+}
+
+/* botões-ícone (o «×» de fechar, o de tirar um item) não herdam o preenchimento */
+button.icone {
+  background: none; border: none; padding: 0 var(--esp-1); color: var(--texto-suave);
+  font: 400 1.4rem/1 var(--ui);
+}
+button.icone:hover:not(:disabled) { background: none; color: var(--marca); }
+
+/* ---------- campo ----------------------------------------------------------
+   O controle é sans (`--ui`), com o filete medido para 3:1 (`--gold-borda`) e o
+   raio do degrau 1. Sobre um CARTÃO, o campo desce para o creme: branco sobre
+   branco não separa a área de digitação. Sobre o papel, ele fica branco.
+   A base também usa `:where()` — o piso que qualquer página sobrepõe. */
+/* `input:not([type])` NÃO É DETALHE: um `<input>` sem o atributo `type` é um campo de
+   texto, mas não casa com `input[type=text]`. Era o caso de 15 campos do sistema — o
+   nome da escola, o do professor, a confirmação do expurgo — que ficavam com o desenho
+   CRU do navegador no meio de uma tela toda desenhada. Foi por isso que os formulários
+   pareciam sem CSS: parte deles estava. */
+:where(input[type=text], input:not([type]), input[type=password], input[type=number],
+  input[type=date], input[type=time], input[type=search], input[type=email],
+  input[type=url], textarea, select) {
+  width: 100%; box-sizing: border-box;
+  font: 15px/1.5 var(--ui);
+  /* Mesma altura de dedo do botão (22px de linha + 2x9 de padding + 2 de filete),
+     e o mesmo raio: campo e botão pertencem à mesma família de controle. */
+  padding: 9px var(--esp-3);
+  color: var(--texto); background: var(--campo-fundo);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-2);
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+textarea { min-height: 4.5rem; resize: vertical; }
+
+/* A SETA DO `select`. A nativa fica encostada na borda direita e o navegador não
+   deixa afastá-la — o único jeito é desenhá-la. Sai o controle nativo
+   (`appearance: none`), entra um chevron em SVG no `background-image`, a
+   `var(--esp-3)` da borda. Sem `appearance: none` o Safari mantém a seta dele e
+   ficariam DUAS.
+
+   O SELETOR CARREGA PESO, e isso é de propósito. A versão anterior era um
+   `:where(select)` — peso zero — e o chevron desaparecia em DUAS superfícies: a
+   barra de contexto da porta (`.barra .campo select`) e o campo de termo dos
+   Bastidores (`select.sel-termo`). As duas pintam o próprio campo com o atalho
+   `background`, que ZERA `background-image`; e as duas são mais pesadas que zero e
+   ainda vêm depois, porque o `ciclo.css` entra ANTES do `<style>` da página — o
+   select ficava SEM SETA NENHUMA, pior do que a seta colada de que ele reclamou.
+
+   `:not([multiple])` e `:not([size])` são verdade: num select de lista não há seta,
+   e `appearance: none` num select múltiplo apagaria a lista. A terceira negação
+   existe SÓ para o peso — sem ela `.barra .campo select` empata em (0,2,1) e vence
+   por vir depois. Um `!important` faria o mesmo e não diria por quê. */
+select:not([multiple]):not([size]):not([hidden]) {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%237a5c31' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right var(--esp-3) center;
+  padding-right: calc(var(--esp-3) * 2 + 12px);
+}
+/* O `background` ABREVIADO de quem pinta o campo dentro de um cartão apagaria a
+   seta (o atalho zera `background-image`). Por isso aquelas regras falam de
+   `background-color` — a imagem não é cor, e não deve ser reescrita por ela. */
+.caixa input, .caixa select, .caixa textarea,
+.modal-caixa input, .modal-caixa select, .modal-caixa textarea,
+form input, form select, form textarea { background-color: var(--campo-fundo-cartao); }
+/* Na noturna a seta clareia: `#7a5c31` sobre o campo escuro some. */
+[data-modo="noturna"] select:not([multiple]):not([size]):not([hidden]) {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23bfb2a0' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+/* O rótulo do campo. `em-linha` é o do formulário denso, onde o rótulo divide a
+   linha com o controle (o lançamento de aula). */
+.campo-rotulo {
+  display: block; margin: var(--esp-4) 0 var(--esp-1);
+  color: var(--marca-texto); font-size: .9rem; font-weight: 600;
+}
+.campo-rotulo.em-linha {
+  display: inline; margin: 0 var(--esp-2) 0 0;
+}
+
+/* O foco é o mesmo em todo o sistema — e o traço é `--gold-escuro` (>=4,26:1
+   sobre o papel), não o `--gold`, que é ornamento e não alcança 3:1 ali. */
+/* O FOCO É UM HALO nos controles e um ANEL no resto. O halo é o desenho da pele
+   adotada: ele não desloca nada e acompanha o raio do controle. Links, resumos e o
+   que não tem caixa continuam com o anel — que é o que garante o foco visível onde
+   o halo não teria onde aparecer. */
+input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none; border-color: var(--marca); box-shadow: var(--foco-halo);
+}
+button:focus-visible, a:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--foco); outline-offset: 2px;
+}
+button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); }
+
+/* ---------- escolha em pílulas ---------------------------------------------
+   A LISTA CURTA, FECHADA E FIXA. Quando o número de opções é pequeno e não muda —
+   os sete dias da semana, os dois modos de aparência —, todas cabem à vista e a
+   escolha custa um clique. É a peça mais barata do sistema, e por isso é a que se
+   usa primeiro.
+
+   O CRITÉRIO NÃO É ESTÉTICO, É DE TAMANHO: quando a lista cresce (as turmas, as
+   alunas, os 84 termos do vocabulário), a pílula vira um tapete e o formulário
+   fica poluído — aí é o `escolhedor`, que escolhe no menu e mostra o escolhido em
+   ficha. As duas peças existem para o mesmo problema, em dois tamanhos. O quadro
+   completo, e o que NÃO cabe em nenhuma das duas, está no «catálogo das peças»,
+   em `IDENTIDADE-VISUAL.md`.
+
+   AO SERVIDOR NÃO IMPORTA O TIPO. Serve ao `radio` (uma escolha) e ao `checkbox`
+   (vários): o estado vem do `:checked`, e a peça é a mesma. Quem marca a opção em
+   vigor é quem escreve o HTML — o atributo `checked` sai do servidor, e não de um
+   script que lê o estado depois de a página pintar.
+
+   O `<input>` NÃO DESAPARECE, ENCOLHE. Ele fica com 1px e `opacity: 0`, mas
+   continua focável e continua a ser o que o leitor de ecrã anuncia — o que muda é
+   só quem o desenha: o `<span>` irmão, alcançado pelo `+`. O `<label>` em volta é
+   o que faz o clique chegar ao input (o `for` não seria necessário, mas a marcação
+   abaixo é `<label class="escolha"><input><span></span></label>` e é a única que a
+   peça aceita). */
+.escolhas {
+  display: flex; flex-wrap: wrap; gap: var(--esp-2);
+  margin: var(--esp-1) 0 var(--esp-4);
+  border: 0; padding: 0;      /* o `fieldset` — agrupamento certo de uma escolha
+                                 única — traz borda, margem e padding próprios, e
+                                 a caixa é da peça, não do elemento */
+  min-width: 0;
+}
+/* A legenda de um `fieldset` em `flex` não quebra a linha sozinha: ia parar ao lado
+   da primeira pílula. */
+.escolhas > legend, .escolhas > .campo-rotulo { flex: 1 1 100%; margin: 0 0 var(--esp-2); }
+.escolha {
+  display: inline-flex; align-items: center; margin: 0;
+  position: relative;         /* o input é absoluto: sem isto ele se posiciona
+                                 contra a página e pode empurrar a rolagem */
+  cursor: pointer;
+}
+.escolha input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.escolha span {
+  /* O `--esp-2` vertical NÃO é gordura: com `--esp-1` a pílula ficava com 29px, e o
+     alvo de toque no celular é o que se quer generoso — são sete pílulas seguidas nos
+     dias da semana, e quem erra o toque marca o dia errado. Com 8px em cima e em baixo
+     ela vai a ~37px, encosta na altura do campo (43px) sem deixar de ser compacta, e
+     continua acima do mínimo de 24px da WCAG 2.5.8 e perto dos 44px de conforto. */
+  display: inline-block; padding: var(--esp-2) var(--esp-3);
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-pilula);
+  background: var(--superficie); color: var(--marca-texto);
+  font: 500 .87rem/1.35 var(--ui);
+}
+.escolha input:checked + span {
+  background: var(--marca-fundo); border-color: var(--marca-fundo);
+  /* `--texto-destaque-marca` e não `--sobre-marca`: é o MESMO par que a pílula já usava
+     nas sete pílulas dos dias da semana, e o desenho não muda ao subir para a folha. Os
+     dois tokens são ouro e creme, e a diferença é de papel — o escolhido é DESTAQUE sobre
+     a marca, não texto corrido sobre ela. */
+  color: var(--texto-destaque-marca); font-weight: 600;
+}
+/* O FOCO VAI PARA O `<span>`, porque é ele que se vê. O input está a 1px e
+   invisível: um `outline` nele seria um anel em volta de nada. */
+.escolha input:focus-visible + span { outline: 2px solid var(--foco); outline-offset: var(--esp-1); }
+.escolha input:disabled + span { opacity: .4; cursor: not-allowed; }
+
+/* ---------- selo -----------------------------------------------------------
+   A pastilha que marca um atributo ou um estado. O desenho base é o do cabeçalho
+   do ciclo (creme, filete de ouro, pílula); os estados trocam o par de cor pelo
+   token semântico, e o significado é o mesmo em toda a tela. */
+.selo {
+  display: inline-block; padding: var(--esp-1) var(--esp-2);
+  font-size: 12px; letter-spacing: .04em; text-transform: uppercase;
+  border: 1px solid var(--borda); border-radius: var(--raio-1);
+  color: var(--marca-texto); background: var(--fundo-faixa);
+}
+.selo.ok, .selo.vigente, .selo.vigencia, .selo.preenchido {
+  background: var(--ok-fundo); border-color: var(--ok); color: var(--ok);
+}
+/* `.livre` E `.solta` SÃO O MESMO ESTADO, e por isso têm de ser o mesmo desenho
+   (18/10/2026). Os dois nomes vêm do DADO: a listagem dos Bastidores diz que a
+   entidade ainda não entrou num plano (`livre`), e a proveniência do ato diz que o
+   envelope ainda não foi ligado a um Plano de Observação (`solta`). É a mesma
+   coisa — «ainda não entrou na cadeia, portanto ainda se corrige» —, e a tela
+   escreve «livre» nos dois lugares. Antes desta data `.solta` morava no grupo
+   discreto e levava filete tracejado: a MESMA palavra saía âmbar nos Bastidores e
+   cinza na anamnese. A declaração daqui de cima já dizia que `.solta`,
+   `.vinculada` e `.legado` são «aliases do MESMO desenho — não um segundo
+   desenho»; o CSS é que não a cumpria. */
+.selo.alerta, .selo.falta-ritmo, .selo.livre, .selo.solta {
+  background: var(--alerta-fundo); border-color: var(--alerta); color: var(--alerta);
+}
+.selo.falha { background: var(--falha-fundo); border-color: var(--falha); color: var(--falha); }
+.selo.marca, .selo.obrig { background: transparent; border-color: var(--marca); color: var(--marca); }
+.selo.derivada, .selo.vinculada {
+  background: var(--derivada-fundo); border-color: var(--derivada); color: var(--derivada);
+}
+.selo.discreto, .selo.dim, .selo.legado,
+.selo.sem-sujeito, .selo.ajuste {
+  background: var(--fundo-suave); border-color: var(--borda-campo); color: var(--texto-suave);
+}
+.selo.opt { border-style: dashed; }
+.selo.legado { border-style: dotted; }
+
+/* ---------- cartão ---------------------------------------------------------
+   A superfície elevada: papel branco, filete de ouro, raio 3. O `.nota` é o
+   cartão de leitura (fundo creme-1); o `.falta` é o cartão que ainda não fechou. */
+.caixa {
+  border: 1px solid var(--borda-campo); border-radius: var(--raio-3);
+  background: var(--superficie); padding: var(--esp-4) var(--esp-5);
+  margin: var(--esp-4) 0; box-shadow: var(--sombra-cartao);
+}
+.caixa.nota { background: var(--fundo-suave); }
+.caixa.falta { border-color: var(--falha); border-width: 2px; }
+.caixa.falta > h3 { color: var(--falha); }
+
+/* ---------- mensagem de resultado -----------------------------------------
+   O retorno de uma ação (criar, apagar, salvar). Nasce oculta e só aparece quando
+   há o que dizer; o estado é o que muda a cor. */
+.res {
+  margin-top: var(--esp-4); padding: var(--esp-3) var(--esp-4);
+  border-radius: var(--raio-2); display: none;
+  font: 15px/1.45 var(--ui);
+}
+.res.ok { display: block; background: var(--ok-fundo); border: 1px solid var(--ok); color: var(--ok); }
+.res.erro { display: block; background: var(--falha-fundo); border: 1px solid var(--falha); color: var(--falha); }
+.res.aviso { display: block; background: var(--alerta-fundo); border: 1px solid var(--alerta); color: var(--alerta); }
+.res.ok a { color: inherit; }
+
+/* ---------- aviso ----------------------------------------------------------
+   A faixa de prosa que explica antes de agir. O `.alerta` é a pendência (âmbar);
+   o padrão é a nota de leitura, com o tratamento da citação do site. */
+.aviso {
+  background: var(--fundo-citacao); border-left: 4px solid var(--borda);
+  padding: var(--esp-3); margin: var(--esp-3) 0 var(--esp-4);
+  font-size: .92rem; color: var(--texto-suave);
+}
+.aviso.alerta {
+  background: var(--alerta-fundo); border-left-color: var(--alerta); color: var(--texto);
+  border-radius: var(--raio-1);
+}
+
+/* ---------- modal ----------------------------------------------------------
+   A janela sobre o véu. O véu usa o token do texto com transparência — no tema
+   noturno ele escurece junto, em vez de ficar um cinza fixo. */
+.modal {
+  position: fixed; inset: 0; z-index: 100;
+  display: flex; justify-content: center; padding: var(--esp-5);
+  /* O MODAL QUE NÃO CABE ROLA. Era `align-items: center` num contêiner sem
+     `overflow`: uma caixa de 1112px numa tela de 700px começava em `top: -206px`,
+     e o botão de cancelar e o de criar ficavam ABAIXO da dobra sem nada que
+     rolasse até eles — no celular o formulário não podia ser enviado nem
+     cancelado. O `margin: auto` da caixa centra quando há espaço e vira 0 quando
+     não há, que é o comportamento que `align-items: center` não tem. */
+  overflow-y: auto;
+  /* O `scrollIntoView({block:"nearest"})` encosta o elemento na borda. O respiro do
+     `padding` da caixa não basta: o que rola é o contêiner, e ele precisa de margem
+     própria para a mensagem não nascer colada no rodapé da tela. */
+  scroll-padding: var(--esp-4);
+}
+.modal[hidden] { display: none; }
+.modal-fundo { position: absolute; inset: 0; background: var(--veu); }
+.modal-caixa {
+  position: relative; width: 100%; max-width: 440px; margin: auto;
+  background: var(--superficie); border: 1px solid var(--borda-campo);
+  border-radius: var(--raio-3); box-shadow: var(--sombra);
+  padding: 0 var(--esp-5) var(--esp-5);
+}
+.modal-cab {
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--borda);
+  margin: 0 calc(var(--esp-5) * -1) var(--esp-4);
+  padding: var(--esp-4) var(--esp-5) var(--esp-3);
+}
+.modal-cab h2 { margin: 0; font-size: 1.25rem; color: var(--marca); }
+.modal-x {
+  background: none; border: none; font: 400 1.6rem/1 var(--ui);
+  color: var(--texto-suave); cursor: pointer; padding: 0 var(--esp-1);
+}
+.modal-x:hover { background: none; color: var(--marca); }
+.modal-acoes { display: flex; justify-content: flex-end; gap: var(--esp-3); margin-top: var(--esp-5); }
+
+/* ---------- botão "voltar ao topo" (Regra 16, item 5) ---------- */
+.topo {
+  position: fixed; right: 18px; bottom: 18px; z-index: 20;
+  width: 46px; height: 46px; display: flex; align-items: center; justify-content: center;
+  background: var(--marca-fundo); color: var(--sobre-marca); border: 2px solid var(--ornamento-forte);
+  border-radius: 50%; text-decoration: none; font-size: 21px; line-height: 1;
+}
+.topo:hover { background: var(--marca-fundo-hover); }
+
+/* ---------- rodapé (Regra 16, item 6) ---------- */
+.rodape {
+  max-width: 900px; margin: 40px auto 0; padding: var(--esp-4) var(--esp-5) 0;
+  border-top: 1px solid var(--borda); color: var(--texto-suave); font-size: 14px;
+}
+.rodape p { margin: 4px 0; }
+.rodape a { color: var(--marca); text-decoration: none; border-bottom: 1px dotted var(--borda); }
+
+/* ---------- responsividade (Regra 16) ---------- */
+
+/* tablet: navbar horizontal, com fonte e espaçamento menores */
+@media (max-width: 1024px) {
+  .topnav { font-size: 13.5px; padding: var(--esp-2) var(--esp-3); }
+  .topnav a { padding: var(--esp-1) var(--esp-2); }
+  /* A MARCA CEDE COM A BARRA (18/10/2026). Ela era um espaço de 9em que bastava
+     anular; agora é um desenho de 30px de altura, e num telefone de 320px — onde
+     a barra também tem o hambúrguer — 30px de altura com 26 de largura ainda cabem,
+     mas o vão à direita é o que sobra para o resto. 26px é o degrau que mantém a
+     forma legível e devolve 4px de respiro. */
+  .topnav .marca { margin-right: var(--esp-3); }
+  .topnav .marca svg { height: 26px; }
+}
+
+/* celular: menu colapsado atrás do hamburger */
+@media (max-width: 768px) {
+  .topnav { flex-wrap: wrap; }
+  .topnav .hamburger { display: block; }
+  .topnav .nav-links { display: none; }
+  .topnav.aberto .nav-links {
+    display: flex; flex-direction: column; align-items: stretch;
+    flex-basis: 100%; gap: 4px; padding: var(--esp-2) 0 var(--esp-1);
+  }
+  .topnav.aberto .nav-links a { padding: var(--esp-2) var(--esp-3); }
+  /* o submenu de "Aulas" deixa de flutuar e passa a empilhar dentro do painel */
+  .topnav.aberto details { position: static; }
+  .topnav.aberto .submenu {
+    position: static; min-width: 0; box-shadow: none; border: none;
+    border-left: 2px solid var(--ornamento-forte); border-radius: 0; padding: var(--esp-1) 0 var(--esp-1) var(--esp-3);
+  }
+  .topnav.aberto .pdf { margin-left: 0; }
+}
+
+/* ---------- impressão: sem barra fixa nem botão, e SEMPRE clara ----------
+   O papel não tem tema. Se a página estiver na variante noturna, os papéis
+   voltam aos valores da clara — senão o texto sairia claro sobre uma folha
+   branca. É a única regra que vence o `[data-modo]`: ela vem depois e tem a
+   mesma especificidade, mas o `!important` é explícito porque a segurança da
+   impressão não pode depender da ordem de dois seletores. */
+@media print {
+  :root, [data-modo="noturna"] {
+    color-scheme: light !important;
+    --fundo: #fbf8f3 !important;
+    --fundo-suave: #fdfaf5 !important;
+    --fundo-faixa: #f3ece1 !important;
+    --fundo-hover: #f5ecdf !important;
+    --fundo-citacao: #fff8ec !important;
+    --fundo-codigo: #f1eae0 !important;
+    --fundo-pre: #f7f1e7 !important;
+    --superficie: #ffffff !important;
+    --superficie-elevada: #ffffff !important;
+    --texto: #1f1c1a !important;
+    --texto-suave: #5a5348 !important;
+    --borda: #8a6a3b !important;
+    --borda-campo: #a08a58 !important;
+    --borda-forte: #8a6a3b !important;
+    --campo-fundo: #ffffff !important;
+    --campo-fundo-cartao: #fbf8f3 !important;
+    --marca: #6b1f2e !important;
+    --marca-texto: #7a5c31 !important;
+    --marca-fundo: #6b1f2e !important;
+    --marca-fundo-hover: #8a2a3d !important;
+    --sobre-marca: #fbf8f3 !important;
+    --texto-destaque-marca: #c9a878 !important;
+    --ornamento: #8a6a3b !important;
+    --ornamento-forte: #c9a878 !important;
+    --acao-fundo: #6b1f2e !important;
+    --acao-texto: #c9a878 !important;
+    --ativo-fundo: #b08d57 !important;
+    --ativo-texto: #2b1b10 !important;
+    --foco: #8a6a3b !important;
+    --ok: #1d6b2f !important;
+    --alerta: #8f5a12 !important;
+    --falha: #9b1c1c !important;
+    --ok-fundo: #eef7ee !important;
+    --alerta-fundo: #fdf3d8 !important;
+    --falha-fundo: #fdeaea !important;
+    --derivada: #5a3f66 !important;
+    --derivada-fundo: #efe9f2 !important;
+  }
+  .topnav, .topo { display: none; }
+  body { padding: 0; background: var(--superficie); }
+  a { color: var(--texto); border: none; }
+  /* no papel não há rolagem: o índice volta a ser um bloco do fluxo */
+  .toc-local { position: static; max-height: none; overflow: visible; }
+}
