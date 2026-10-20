@@ -353,6 +353,17 @@ function main() {
       [decisaoDe(pacote + '-po.md'), decisaoDe(pacote + '-dados.json'), decisaoDe(pacote + '.conf')]);
     checar('e a âncora, que fica ao lado, também',
       decisaoDe(pacote + '.fipp').join(',') === 'ancora', decisaoDe(pacote + '.fipp'));
+
+    // O ESTADO DE QUE O ACTUAL VEIO. O gerador guarda, ao lado do plano da aula, o plano anterior
+    // (`plano-aula-NN-anterior.json`, só a partir da 2ª geração). É cópia de conteúdo dentro do
+    // pacote — a mesma classe do `plano-aula-NN.json` —, e o primeiro ciclo regerado depois desta
+    // data trouxe-o sem tipo declarado: a regra admitia o actual e não o anterior.
+    checar('o plano da aula ANTERIOR (o estado de que o actual veio) tem decisão, como o actual',
+      decisaoDe(pacote + '/plano-aula-01.json').length === 1
+        && decisaoDe(pacote + '/plano-aula-01-anterior.json').length === 1
+        && decisaoDe(pacote + '/plano-aula-01-anterior.json').join(',')
+          === decisaoDe(pacote + '/plano-aula-01.json').join(','),
+      [decisaoDe(pacote + '/plano-aula-01.json'), decisaoDe(pacote + '/plano-aula-01-anterior.json')]);
   }
 
   console.log('\n' + (falhas === 0

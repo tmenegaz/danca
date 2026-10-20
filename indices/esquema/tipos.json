@@ -155,8 +155,8 @@
     },
     {
       "id": "conteudo-do-pacote",
-      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/(?:plano|po|captura)(?:-aula)?-[0-9]{2}\\.json$",
-      "motivo": "as cópias de CONTEÚDO que a porta lê (o plano, o PO e as capturas preenchidos). A fonte é o `.md` ao lado da pasta; esta é a cópia que a página consome, e indexá-la contaria o mesmo documento duas vezes"
+      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/(?:plano|po|captura)(?:-aula)?-[0-9]{2}(?:-anterior)?\\.json$",
+      "motivo": "as cópias de CONTEÚDO que a porta lê (o plano, o PO e as capturas preenchidos). A fonte é o `.md` ao lado da pasta; esta é a cópia que a página consome, e indexá-la contaria o mesmo documento duas vezes O `-anterior` entrou em 20/10/2026: o gerador guarda, ao lado do plano da aula, o ESTADO DE QUE O ACTUAL VEIO (`plano-aula-NN-anterior.json`, só a partir da 2ª geração). É a mesma classe — cópia de conteúdo dentro do pacote —, e sem esta admissão o primeiro ciclo regerado passava a ter um arquivo sem tipo declarado."
     },
     {
       "id": "conteudo-da-porta",

@@ -20557,3 +20557,12 @@ atribuído), e por isso passou: a prova chamava `criarRotas` **de fora**, com a 
 media as pontas em vez da ligação. A prova ganhou a secção **E**, que monta a **ponte verdadeira**
 (`montarPorta`) com uma `lerCuradorias` que conta as chamadas: **25 → 27 asserções**, e o controlo
 negativo — sem o repasse — dá **2 falhas**.
+
+**Correção de 20/10/2026 (mesmo dia) — o plano da aula ANTERIOR ficou sem tipo.** O primeiro ciclo
+regerado depois do índice de turmas trouxe `plano-aula-01-anterior.json` — o **estado de que o
+actual veio**, que o gerador guarda desde sempre ao lado do plano da aula (só a partir da 2ª
+geração). A regra `conteudo-do-pacote` admitia `plano-aula-NN.json` e não a variante `-anterior`, e
+a verificação 8 passou a acusar **um arquivo sem decisão**. A admissão entrou na mesma regra — é a
+mesma classe, uma cópia de conteúdo dentro do pacote —, e a prova §13 do `provar-indices` fixa que o
+anterior e o actual têm a **mesma** decisão: **54 → 55 asserções**, e o controlo negativo (sem a
+admissão) dá **3 falhas**.
