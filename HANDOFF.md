@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T08:43:11-0300`
-Commit atual: `caf2e25` — fix(po): a ponte de produção repassa a curadoria ao roteador
+Gerado em: `2026-10-20T08:49:04-0300`
+Commit atual: `f3189ea` — fix(schema): o plano da aula anterior é a mesma classe do actual, e passa a ter decisão
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,7 +63,11 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
-caf2e25 fix(po): a ponte de produção repassa a curadoria ao roteador
+f3189ea fix(schema): o plano da aula anterior é a mesma classe do actual, e passa a ter decisão
+513549b chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
+19e6814 docs(registro): o HANDOFF cita a curadoria na ponte de produção
+9553706 fix(po): a ponte de produção repassa a curadoria ao roteador
+12d009c chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
 9628405 chore(estrutura): regerar o índice do acervo e o HANDOFF depois do expurgo da batata
 ad93892 fix(estrutura): a escola publica um índice de turmas, e o menu deixa de nascer vazio
 25f4751 fix(po): o Plano de Observação de uma turma deixa de oferecer as alunas das outras
@@ -79,10 +83,6 @@ d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 0390ad3 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md
 936236d feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md
 ca622fc feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-referencias.md
-8c29c11 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md
-9212232 feat(po): o PO elicitado vira a fonte do ciclo
-ae2d80f feat(acervo): envelope/po-20261020-0758.json
-161961f feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -204,6 +204,15 @@ atribuído), e por isso passou: a prova chamava `criarRotas` **de fora**, com a 
 media as pontas em vez da ligação. A prova ganhou a secção **E**, que monta a **ponte verdadeira**
 (`montarPorta`) com uma `lerCuradorias` que conta as chamadas: **25 → 27 asserções**, e o controlo
 negativo — sem o repasse — dá **2 falhas**.
+
+**Correção de 20/10/2026 (mesmo dia) — o plano da aula ANTERIOR ficou sem tipo.** O primeiro ciclo
+regerado depois do índice de turmas trouxe `plano-aula-01-anterior.json` — o **estado de que o
+actual veio**, que o gerador guarda desde sempre ao lado do plano da aula (só a partir da 2ª
+geração). A regra `conteudo-do-pacote` admitia `plano-aula-NN.json` e não a variante `-anterior`, e
+a verificação 8 passou a acusar **um arquivo sem decisão**. A admissão entrou na mesma regra — é a
+mesma classe, uma cópia de conteúdo dentro do pacote —, e a prova §13 do `provar-indices` fixa que o
+anterior e o actual têm a **mesma** decisão: **54 → 55 asserções**, e o controlo negativo (sem a
+admissão) dá **3 falhas**.
 
 ## O que está pendente
 
