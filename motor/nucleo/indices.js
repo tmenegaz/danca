@@ -162,6 +162,20 @@ function escolaDoSufixo(sufixo, slugs) {
   return achado;
 }
 
+/**
+ * O VOCABULÁRIO DE TIPOS DE **DOCUMENTO** — o que o `tipoDoDocumento` devolve.
+ *
+ * Não confundir com o `TIPOS` acima: aquele é o vocabulário dos **registros** (o que o envelope
+ * guarda e o que a faceta `filtros.tipos` rotula); este é o dos **arquivos** do pacote. Eram duas
+ * listas implícitas nas ramificações do `tipoDoDocumento`, e a declaração `indices/esquema/tipos.json`
+ * (Etapa 1 do PLANO-INDICES.md) tornou a diferença visível: uma prova que comparasse as duas
+ * acusaria divergência em todos os tipos. Nomear a lista é o que permite a prova comparar o
+ * declarado com o motor sem adivinhar.
+ */
+const TIPOS_DE_DOCUMENTO = [
+  'ancora', 'schema', 'manifesto', 'plano', 'po', 'aula', 'dados', 'captura', 'indice',
+];
+
 /** Um documento do ciclo, classificado pelo NOME (não pelo conteúdo). */
 function tipoDoDocumento(caminho, escola) {
   const base = String(caminho || '').split('/').pop() || '';
@@ -703,6 +717,7 @@ function responder(escola, pergunta, argumento) {
 module.exports = {
   VERSAO,
   TIPOS,
+  TIPOS_DE_DOCUMENTO,
   NAO_INDEXADO,
   idDeEscola,
   idDeProfessor,

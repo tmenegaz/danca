@@ -1,0 +1,121 @@
+{
+  "versao": 1,
+  "$comentario": "O VOCABULÁRIO de tipos de documento do acervo. Este arquivo é FONTE, escrito à mão: todo o resto de indices/ é gerado e sobrescrito. A regra do PLANO-INDICES.md §4.1 é 'não inventar tipos': entra aqui o que existe como arquivo no repositório, mais o que o motor já classifica e o gerador do ciclo produz (marcado em `latente`, para o verificador não confundir 'ainda não existe' com 'não é do vocabulário'). O padrão casa contra o CAMINHO relativo à raiz, não contra o nome solto — é o que permite distinguir o manifesto da variante do manifesto base sem duas regras quase iguais, e o que impede um `plano.md` de fora do ciclo de entrar no acervo. A ordem é significativa: o PRIMEIRO padrão que casar vence, e por isso os mais específicos vêm antes.",
+  "alvo": "caminho relativo à raiz do repositório",
+  "ordem": "o primeiro padrão que casar vence",
+  "tipos": [
+    {
+      "id": "ancora",
+      "rotulo": "Âncora de proveniência",
+      "familia": "proveniencia",
+      "padrao": "\\.fipp$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
+      "id": "schema",
+      "rotulo": "Schema (contrato)",
+      "familia": "contrato",
+      "padrao": "(?:/ciclos/ciclo-[0-9]{2}-(?:[a-z]+-)?schema\\.json|/plano-observacao/envelope/[a-z-]+-schema\\.json)$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
+      "id": "manifesto",
+      "rotulo": "Manifesto do ciclo",
+      "familia": "manifesto",
+      "padrao": "/ciclos/ciclo-[0-9]{2}(?:-[a-z0-9-]+)?\\.conf$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
+      "id": "plano",
+      "rotulo": "Plano de ensino",
+      "familia": "registro",
+      "padrao": "-plano\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
+      "id": "po",
+      "rotulo": "Plano de Observação",
+      "familia": "registro",
+      "padrao": "-po\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
+      "id": "aula",
+      "rotulo": "Aula",
+      "familia": "documento",
+      "padrao": "-aula-[0-9]{2}\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
+      "id": "dados",
+      "rotulo": "Dados do lançamento",
+      "familia": "registro",
+      "padrao": "-dados(?:\\.cifrado)?\\.json$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
+      "id": "captura",
+      "rotulo": "Captura da aula",
+      "familia": "registro",
+      "padrao": "-captura\\.(?:json|md)$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
+      "id": "indice",
+      "rotulo": "Índice do pacote",
+      "familia": "indice",
+      "padrao": "/ciclos\\.json$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": true
+    },
+    {
+      "id": "pacote",
+      "rotulo": "Pacote entregue",
+      "familia": "pacote",
+      "alvo": "diretorio",
+      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/$",
+      "publico": true,
+      "classificado_pelo_motor": false,
+      "latente": false
+    }
+  ],
+  "ignorados": [
+    {
+      "id": "readme",
+      "padrao": "/README\\.md$",
+      "motivo": "texto de orientação de pasta, não documento do acervo"
+    },
+    {
+      "id": "ativo-do-pacote",
+      "padrao": "/assets/[^/]+$",
+      "motivo": "CSS, JS e ícone do pacote: são reconstruíveis dos templates, e o índice descreve documentos, não a pele da página"
+    },
+    {
+      "id": "pagina-do-pacote",
+      "padrao": "/index\\.html$",
+      "motivo": "a página é a saída do pacote; o que o índice guarda é o PACOTE (o diretório), não cada HTML gerado"
+    },
+    {
+      "id": "conteudo-da-porta",
+      "padrao": "/plano-observacao/(?:conteudo|plano/conteudo|po/conteudo|prompts)/",
+      "motivo": "conteúdo e norma da porta: o questionário, o plano e o PO em branco e o prompt não são registros de aula nem de ciclo"
+    }
+  ]
+}

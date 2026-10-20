@@ -1,0 +1,102 @@
+{
+  "versao": 1,
+  "$comentario": "O MAPA DE RELAÇÕES do acervo — quem aponta para quem, por que chave e com que cardinalidade. É FONTE, como os outros dois esquemas, e é o que o verificador usa para recusar uma relação que aponte para entidade ou chave que o dicionário não declara (PLANO-INDICES.md §4.1, critério iii; §9 verificação 9). As relações marcadas `estado: \"prevista\"` são as do §4.11 — vínculo com vigência e autoria —, que o motor ainda não emite: declará-las agora é o que impede o gerador de inventar uma chave nova sem passar por aqui. A `chave` é o CAMINHO na entidade de origem; `[]` marca lista, e o primeiro segmento é o campo que o dicionário tem de declarar.",
+  "relacoes": [
+    {
+      "de": "professor",
+      "para": "escola",
+      "chave": "escolas[]",
+      "cardinalidade": "N:N",
+      "estado": "produzida"
+    },
+    {
+      "de": "ciclo",
+      "para": "professor",
+      "chave": "professor",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "ciclo",
+      "para": "escola",
+      "chave": "escola",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "documento",
+      "para": "ciclo",
+      "chave": "ciclo_id",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "documento",
+      "para": "ancora",
+      "chave": "ancora_id",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "aula",
+      "para": "ciclo",
+      "chave": "ciclo_id",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "ancora",
+      "para": "ciclo",
+      "chave": "ciclo_id",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "registro",
+      "para": "professor",
+      "chave": "professor",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "registro",
+      "para": "registro",
+      "chave": "ajuste_de",
+      "cardinalidade": "N:1",
+      "estado": "produzida"
+    },
+    {
+      "de": "vinculo",
+      "para": "professor",
+      "chave": "professor",
+      "cardinalidade": "N:1",
+      "estado": "prevista"
+    },
+    {
+      "de": "vinculo",
+      "para": "turma",
+      "chave": "turma",
+      "cardinalidade": "N:1",
+      "estado": "prevista"
+    },
+    {
+      "de": "autoria",
+      "para": "documento",
+      "chave": "documento",
+      "cardinalidade": "N:1",
+      "estado": "prevista"
+    },
+    {
+      "de": "autoria",
+      "para": "professor",
+      "chave": "autor",
+      "cardinalidade": "N:1",
+      "estado": "prevista"
+    }
+  ],
+  "proibidas": [
+    { "padrao": "por_professor$", "motivo": "agregação por pessoa: o professor é faceta, vínculo e autoria, nunca eixo (§4.11)" },
+    { "padrao": "ranking", "motivo": "ordenação de pessoas" },
+    { "padrao": "desempenho", "motivo": "juízo sobre pessoa" }
+  ]
+}

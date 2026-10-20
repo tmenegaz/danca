@@ -1,0 +1,176 @@
+{
+  "versao": 1,
+  "$comentario": "O DICIONÁRIO MÍNIMO de campos do acervo — o que o índice pode guardar, com que tipo e com que acesso. É FONTE, como os outros dois esquemas. As entidades marcadas `estado: \"produzida\"` são as que o motor (`motor/nucleo/indices.js`) já emite HOJE; as marcadas `estado: \"prevista\"` são as que o PLANO-INDICES.md §4.11 exige e a implementação ainda não produz — a marca existe para o verificador poder dizer a verdade sem que a declaração invente o que não há. O `acesso` é a regra de privacidade do §9/verificação 7: `publico` sai sem autenticação, `interno` só atrás da senha da direção, `escola` só no índice da própria escola (é o caso do apelido da aluna, que o acervo transversal NÃO tem).",
+  "acesso": {
+    "publico": "servido sem autenticação",
+    "interno": "servido só atrás da senha da direção (a raiz)",
+    "escola": "só no índice da própria escola; nunca no acervo transversal"
+  },
+  "entidades": {
+    "escola": {
+      "estado": "produzida",
+      "id": "escola:<slug>",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "slug": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "nome": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "professor": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "professores": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "habilitada": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" },
+        "expurgada": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" },
+        "criada_em": { "tipo": "data-hora", "obrigatorio": false, "acesso": "interno" },
+        "ciclos": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "registros": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "contagens": { "tipo": "objeto", "obrigatorio": true, "acesso": "interno" }
+      }
+    },
+    "professor": {
+      "estado": "produzida",
+      "id": "professor:<slug>",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "slug": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "nome": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "escolas": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "ciclos": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" }
+      }
+    },
+    "ciclo": {
+      "estado": "produzida",
+      "id": "ciclo:<professor>/<nn>/<escola>",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "professor": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "numero": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "escola": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "estado": { "tipo": "enum(ancorado|sem-ancora)", "obrigatorio": true, "acesso": "interno" },
+        "sem_ancora": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" },
+        "tipos": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "documentos": { "tipo": "array<string>", "obrigatorio": true, "acesso": "interno" },
+        "pacote": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "ancora": { "tipo": "objeto", "obrigatorio": false, "acesso": "interno" },
+        "aulas": { "tipo": "array<objeto>", "obrigatorio": true, "acesso": "interno" }
+      }
+    },
+    "documento": {
+      "estado": "produzida",
+      "id": "documento:<tipo>:<caminho>",
+      "$nota": "Hoje o motor guarda os documentos como CAMINHOS dentro de `ciclos[].documentos` e os tipos em `ciclos[].tipos`; esta entidade é a forma projetada que o gerador da Etapa 2 pode emitir sem inventar dado — o id é convenção, não campo gravado.",
+      "campos": {
+        "caminho": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "tipo": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "ciclo_id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "ancora_id": { "tipo": "string", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "aula": {
+      "estado": "produzida",
+      "id": "aula:<aula-NN>",
+      "$nota": "O `id` emitido hoje é `ciclo:<p>/<nn>/<escola>/aula-NN`, e é dele que sai o `ciclo_id` — a chave de junção normalizada que a relação exige. O índice ainda não grava o campo solto; grava o id com o ciclo dentro.",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "numero": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "ciclo_id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "documento": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "ancora": { "tipo": "objeto", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "ancora": {
+      "estado": "produzida",
+      "id": "ancora:<id>",
+      "$nota": "O motor emite a âncora aninhada no ciclo (`ciclos[].ancora`), sem `ciclo_id` explícito; a chave de junção é o caminho do ciclo que a contém. A declaração nomeia o campo que o gerador deve expor para a relação ser resolvível fora do aninhamento.",
+      "campos": {
+        "caminho": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "ciclo_id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "lida": { "tipo": "boolean", "obrigatorio": true, "acesso": "interno" },
+        "id": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "hash": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "hash_conteudo": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "parent_hash": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "ancorado_em": { "tipo": "data", "obrigatorio": false, "acesso": "interno" },
+        "algoritmo": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "cobertura": { "tipo": "array<string>", "obrigatorio": false, "acesso": "interno" },
+        "motivo": { "tipo": "string", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "registro": {
+      "estado": "produzida",
+      "id": "registro:<carimbo>",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "carimbo": { "tipo": "carimbo", "obrigatorio": true, "acesso": "interno" },
+        "tipo": { "tipo": "enum(anamnese|plano|po|documento)", "obrigatorio": true, "acesso": "interno" },
+        "data": { "tipo": "data-hora", "obrigatorio": false, "acesso": "interno" },
+        "ano": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "professor": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "ciclo": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "ajuste_de": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "turma": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "objetivo": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "aluna": { "tipo": "string", "obrigatorio": false, "acesso": "escola" }
+      }
+    },
+    "turma": {
+      "estado": "prevista",
+      "id": "turma:<slug>",
+      "campos": {
+        "id": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "nome": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "professor": { "tipo": "string", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "vinculo": {
+      "estado": "prevista",
+      "id": "vinculo:<professor>|<turma>|<de>",
+      "campos": {
+        "professor": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "turma": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "papel": { "tipo": "enum(titular|substituto|observador)", "obrigatorio": true, "acesso": "interno" },
+        "de": { "tipo": "data", "obrigatorio": true, "acesso": "interno" },
+        "ate": { "tipo": "data", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "autoria": {
+      "estado": "prevista",
+      "id": "autoria:<documento>|<autor>|<em>",
+      "campos": {
+        "documento": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "autor": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "commitado_por": { "tipo": "string", "obrigatorio": false, "acesso": "interno" },
+        "papel": { "tipo": "enum(autor|revisor|assinante)", "obrigatorio": true, "acesso": "interno" },
+        "versao": { "tipo": "integer", "obrigatorio": false, "acesso": "interno" },
+        "em": { "tipo": "data", "obrigatorio": true, "acesso": "interno" }
+      }
+    },
+    "filtro": {
+      "estado": "produzida",
+      "id": "filtro:<faceta>",
+      "campos": {
+        "valor": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "rotulo": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "contagem": { "tipo": "integer", "obrigatorio": true, "acesso": "interno" },
+        "ids": { "tipo": "array<string>", "obrigatorio": false, "acesso": "interno" }
+      }
+    },
+    "nao_indexado": {
+      "estado": "produzida",
+      "id": "nao_indexado:<familia>",
+      "campos": {
+        "familia": { "tipo": "string", "obrigatorio": true, "acesso": "interno" },
+        "motivo": { "tipo": "string", "obrigatorio": true, "acesso": "interno" }
+      }
+    }
+  },
+  "proibidos": [
+    "senha",
+    "hash_de_senha",
+    "sal",
+    "email",
+    "telefone",
+    "observacoes",
+    "saude",
+    "texto_de_ajustes",
+    "texto_de_surpresas",
+    "corpo_do_documento"
+  ]
+}

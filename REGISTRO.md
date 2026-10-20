@@ -19729,6 +19729,66 @@ visual 19.
 feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
 cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
 
+## 20/10/2026 — as declarações do índice: o vocabulário deixa de estar implícito no código
+
+**Por quê.** A base do índice (fase 4) derivava os tipos de documento de uma cadeia de `if` dentro
+do `tipoDoDocumento`: o vocabulário existia, mas só se descobria lendo o código. O
+`PLANO-INDICES.md` §4.1 manda que as declarações sejam a **fonte** do vocabulário — e a Etapa 1
+estava por fazer. Sem ela, o gerador da Etapa 2 teria de repetir a lista, e as duas divergiriam no
+primeiro tipo novo.
+
+**O que foi decidido.**
+
+- `indices/esquema/{tipos,campos,relacoes}.json` são **fonte**, escritos à mão; todo o resto de
+  `indices/` é gerado (e ainda não existe). Nenhum tipo foi inventado: entraram os 9 que o motor
+  classifica mais o `pacote` (o diretório entregue); os 6 que o gerador do ciclo ainda não produziu
+  ficam marcados `latente: true`, e a prova exige instância real de todo tipo com `latente: false`.
+- O padrão de `tipos.json` casa contra o **caminho relativo à raiz**, não contra o nome solto — é o
+  que distingue o manifesto da variante do manifesto base e o que impede um `plano.md` de fora do
+  ciclo de entrar no acervo. A ordem é significativa: o primeiro que casar vence.
+- O que o índice **não** descreve vai para `ignorados[]`, cada um com motivo: ativos do pacote,
+  páginas geradas, questionários em branco e o prompt. É o que fecha a cobertura sem transformar
+  asset de página em documento do acervo.
+- `campos.json` declara as entidades do §4.2 e as duas do §4.11 que ainda faltam (`turma`,
+  `vinculo`, `autoria`), marcadas `prevista`; `aluna` é `acesso: "escola"` — o acervo transversal
+  nunca a tem. `relacoes.json` declara 13 relações, todas apontando para entidade e chave que o
+  dicionário tem.
+- **O achado da etapa.** O motor tinha **duas** listas de vocabulário implícitas: o `TIPOS`
+  (registros — anamnese, plano, po, aula, ciclo, ancora) e as ramificações do `tipoDoDocumento`
+  (documentos — ancora, schema, manifesto, plano, po, aula, dados, captura, indice). Uma prova que
+  comparasse a declaração com a lista errada acusava divergência em todos os tipos. O motor passa a
+  exportar `TIPOS_DE_DOCUMENTO`, e a prova compara o declarado com essa lista. É adição de
+  constante e export: nenhum comportamento muda.
+
+**Onde entrou.** `indices/esquema/tipos.json`, `indices/esquema/campos.json`,
+`indices/esquema/relacoes.json` (novos) · `motor/nucleo/indices.js` (`TIPOS_DE_DOCUMENTO` e o
+export) · `experimentos/provar-declaracoes-do-indice.js` (novo) · `PLANO-INDICES.md` (§4.1: os dois
+campos novos; Etapa 1 cumprida) — esta entrada.
+
+**Com o quê.** `node experimentos/provar-declaracoes-do-indice.js` → **TUDO CERTO, 23 asserções, 0
+falha**: os três esquemas são fonte; os padrões compilam e não se sobrepõem; os **41 caminhos** de
+`professores/**` têm decisão (26 arquivos classificados, 1 pacote, 12 ignorados com motivo); a
+declaração e o motor dizem o mesmo tipo para o mesmo arquivo; nenhum ignorado é classificado pelo
+motor; todo tipo não-latente tem instância; nenhum campo proibido; a aluna é `escola`; e as 13
+relações apontam para entidade e chave declaradas, sem agregação por professor.
+
+Sem regressão: `provar-indice-de-proveniencia` **60** · `provar-indice-de-envelopes` **41**.
+
+Nenhum arquivo congelado foi tocado (`tools/` não entra nesta etapa) e nenhuma âncora é regerada: o
+índice é derivado e fica fora da âncora (§8.2).
+
+**Referências.** `PLANO-INDICES.md` §4.1 (as declarações), §4.11 (professor como faceta, vínculo e
+autoria), §9.1 (verificação 8, declaração; verificação 9, relações) ·
+`PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §7 (o que o índice precisa de guardar).
+
+**O que ainda não está feito.** (a) A **Etapa 2**: `tools/gerar-indices.js` e `check-indices.js`
+com as 13 verificações e as 9 contraprovas — e `tools/` é congelado, portanto exige motivo
+declarado, entrada própria e commit próprio. (b) As declarações **não são lidas pelo motor**: o
+`indices.js` mantém a lista em código e a prova garante que as duas concordam; consumir
+`indices/esquema/tipos.json` no Worker é decisão da Etapa 2 (o bundle teria de incluir o JSON).
+(c) `vinculos[]` e `autoria[]` continuam **previstas**, não produzidas — é a dívida que o §4.11
+nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam.
+
 ## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
 
 **Por quê.** A anamnese era gravada **duas vezes**: o envelope no acervo do repositório
@@ -19768,6 +19828,7 @@ teste 26, ato-e-barra 72, ajustes 125, identidade visual 19.
 criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
 prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
 cópia a olhar, e não estava no pedido.
+
 
 ## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
 

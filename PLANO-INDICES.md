@@ -176,6 +176,22 @@ São a **fonte** do vocabulário. Versionadas, revisadas como código, validadas
 | `tipos.json` | Tipos de documento e o padrão que os reconhece no nome do arquivo |
 | `relacoes.json` | Relações declaradas (entidade → entidade, chave, cardinalidade) |
 
+**Dois campos que a implementação acrescentou aos tipos** (19/10/2026), e por quê:
+
+- `classificado_pelo_motor` — separa o vocabulário de **documento** (o que o `tipoDoDocumento`
+  devolve) do de **registro** (o `TIPOS` do motor, que rotula a faceta). As duas listas existiam
+  implícitas nas ramificações do código, e uma declaração que as confundisse acusaria divergência
+  em todos os tipos.
+- `latente` — o tipo é do vocabulário e o gerador do ciclo o produzirá, mas **não há instância
+  hoje**. É o que permite declarar `plano`, `po`, `aula`, `dados`, `captura` e `indice` sem
+  inventar arquivo nem fingir que existem; o verificador exige instância real de todo tipo com
+  `latente: false`.
+
+O padrão de `tipos.json` casa contra o **caminho relativo à raiz**, não contra o nome solto, e a
+ordem é significativa (o primeiro que casar vence). Os arquivos que o índice **não** descreve vão
+para `ignorados[]`, cada um com o motivo declarado — é o que fecha a cobertura sem transformar
+asset de página em documento do acervo.
+
 Exemplo de `tipos.json`:
 
 ```json
@@ -1045,13 +1061,29 @@ arquivo congelado tocado vai em **commit próprio**, com a entrada no `REGISTRO.
 - **Estado (19/10/2026):** confirmada. A decisão da exportação (§6.5) é de localização e não
   reintroduz pendência aqui. Nada a fazer; a indexação começa na **Etapa 1**.
 
-### Etapa 1 — Declarações
+### Etapa 1 — Declarações — **CUMPRIDA (19/10/2026)**
 
-- Escrever `indices/esquema/campos.json`, `tipos.json` e `relacoes.json` a partir dos nomes de
-  arquivo que **já existem** no repositório (não inventar tipos).
-- **Validação:** um teste que percorre `professores/**` e classifica cada arquivo; o que não casar
-  nenhum padrão aparece numa lista para decisão.
-- **Paragem:** nenhum tipo «desconhecido» pode ficar sem decisão.
+- Escritos `indices/esquema/campos.json`, `tipos.json` e `relacoes.json` a partir dos nomes de
+  arquivo que **já existem** no repositório. Nenhum tipo foi inventado: os seis que o gerador do
+  ciclo ainda não produziu estão marcados `latente: true`, e o verificador prova que os demais
+  têm instância real.
+- **Validação:** `node experimentos/provar-declaracoes-do-indice.js` → **23 asserções, 0 falha**.
+  Percorre os **41 caminhos** de `professores/**`, classifica cada arquivo (26 deles) e não deixa
+  nenhum sem decisão: 13 documentos em 4 tipos, 1 pacote, 12 ignorados com motivo declarado e 14
+  caminhos estruturais.
+- **Paragem cumprida:** nenhum tipo «desconhecido» ficou sem decisão.
+- **O que a etapa encontrou, e é achado.** O motor tinha **duas** listas de vocabulário
+  implícitas: o `TIPOS` (registros — anamnese, plano, po, aula, ciclo, ancora) e as ramificações
+  do `tipoDoDocumento` (documentos — ancora, schema, manifesto, plano, po, aula, dados, captura,
+  indice). Comparar a declaração com a lista errada acusava divergência em todos os tipos. O motor
+  passa a exportar `TIPOS_DE_DOCUMENTO`, e a prova compara o declarado com essa lista — sem
+  mudança de comportamento (as provas do índice seguem em 60 e 41 asserções).
+- **O que a etapa decidiu, e está declarado no arquivo.** `elicitacao-schema.json` (o contrato do
+  envelope, dentro de `plano-observacao/`) entra como `schema`, e não como conteúdo da porta: é
+  contrato, não questionário. O `ignorados[]` cobre só o que o índice não deve descrever — ativos,
+  páginas geradas, questionários em branco e o prompt.
+- **O que fica para a Etapa 2.** O verificador é estático (lê o repositório, não gera índice); o
+  `check-indices.js` continuará sendo ele na Etapa 2, com as 13 verificações do §9.1.
 
 ### Etapa 2 — Gerador e validador
 
