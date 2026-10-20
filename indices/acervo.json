@@ -2,18 +2,18 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "c2720a886980bf244415f5afde928f7629d5a7d83291c58db7c5ffdc5e7844d9",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "hash": "ecc946c1a5d6dbd8a0952a0b5c5c6bf4cb2a7aeae584a62b6f03e61adb37b60c",
+        "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 19,
-      "escola": "batata",
+      "documentos": 25,
+      "escola": "calango",
       "estado": "ancorado",
-      "id": "ciclo:tiago-menegaz/01/batata",
+      "id": "ciclo:sapo-bailarino/01/calango",
       "numero": "01",
-      "professor": "tiago-menegaz",
+      "professor": "sapo-bailarino",
       "sem_ancora": false
     }
   ],
@@ -42,34 +42,26 @@
       "slug": "barra"
     },
     {
-      "ciclos": [
-        "ciclo:tiago-menegaz/01/batata"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 3,
-        "aulas": 1,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
-        "planos": 1,
-        "pos": 1,
-        "registros": 5
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": false,
-      "habilitada": true,
+      "expurgada": true,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
         "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261019-2310",
-        "anamnese:anamnese-20261019-2311",
-        "anamnese:anamnese-20261019-2311-2",
-        "plano:plano-20261019-2312",
-        "po:po-20261019-2316"
-      ],
+      "registros": [],
       "slug": "batata"
     },
     {
@@ -119,26 +111,36 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:sapo-bailarino/01/calango"
+      ],
       "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "registros": 0
+        "anamneses": 3,
+        "aulas": 1,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
+        "planos": 3,
+        "pos": 1,
+        "registros": 7
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
-      "expurgada": true,
-      "habilitada": false,
+      "expurgada": false,
+      "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "sapo-bailarino",
       "professores": [
         "sapo-bailarino"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261020-0734",
+        "anamnese:anamnese-20261020-0735",
+        "anamnese:anamnese-20261020-0736",
+        "plano:plano-20261020-0739",
+        "plano:plano-20261020-0744",
+        "plano:plano-20261020-0745",
+        "po:po-20261020-0758"
+      ],
       "slug": "calango"
     },
     {
@@ -260,7 +262,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 7,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -358,7 +360,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 3,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
@@ -371,9 +373,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7ced350"
+    "commit": "9a27d11"
   },
-  "gerado_em": "2026-10-20T02:48",
+  "gerado_em": "2026-10-20T11:32",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -416,7 +418,9 @@
       "slug": "leticia"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:sapo-bailarino/01/calango"
+      ],
       "escolas": [
         "breu",
         "calando-teste-1",
@@ -437,9 +441,7 @@
       "slug": "tiago"
     },
     {
-      "ciclos": [
-        "ciclo:tiago-menegaz/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata",
         "fita",

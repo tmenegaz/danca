@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T23:48:51-0300`
-Commit atual: `48ed606` — fix(schema): o primeiro pacote no repositório expõe catorze arquivos sem decisão no vocabulário
+Gerado em: `2026-10-20T08:35:53-0300`
+Commit atual: `ad93892` — fix(estrutura): a escola publica um índice de turmas, e o menu deixa de nascer vazio
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,7 +46,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Ciclos com manifesto:** 4 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,45 +63,49 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
-48ed606 fix(schema): o primeiro pacote no repositório expõe catorze arquivos sem decisão no vocabulário
-7ced350 chore(entrega): gerar o pacote de tiago-menegaz/01/batata-bale-nivel-1-teste-2
-0eaab1c docs(registro): o HANDOFF passa a citar a correcção da aula derivada
-a41dbf9 fix(tools): a aula derivada volta a ser legível — o mapa de secções e a tabela que é o campo
-34f37b5 fix(po): a declaração da captura acompanha o PO, e o parâmetro cabe numa linha
-851bce2 fix(tools): o contador do mestre não se percorre, e os derivados do PO passam a ter tipo
-8bc6257 fix(tools): o gerador apaga o fantasma, e o que não se pode medir declara-se
-d5808ac chore(estrutura): reancorar a cadeia das fontes alteradas
-eac2d5a feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
-dcaad38 feat(ciclo): o «Guardar» do PO cifra ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json
-16dffe9 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
-b147c27 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
-8b3bf22 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-dados.json
-7911b67 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
-4d18153 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
-698434c feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
-2137964 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
-e7c2d98 feat(po): o PO elicitado vira a fonte do ciclo
-601663b feat(acervo): envelope/po-20261019-2316.json
-22d420a feat(acervo): envelope/.indice.json
+ad93892 fix(estrutura): a escola publica um índice de turmas, e o menu deixa de nascer vazio
+25f4751 fix(po): o Plano de Observação de uma turma deixa de oferecer as alunas das outras
+b04f240 fix(tools): o hook nao recusa a variante que ainda nao tem aula
+9a27d11 chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
+cba28ae chore(estrutura): reancorar a cadeia das fontes alteradas
+83e43c9 feat(captura): actualiza a variante calango-bale-nivel-1-teste-1 no schema de captura
+81979f8 feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
+c01324f feat(ciclo): o «Guardar» do PO cifra ciclo-01-calango-bale-nivel-1-teste-1-dados.cifrado.json
+d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md
+2e6bec8 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-notacao.md
+483eadd feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-dados.json
+0390ad3 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md
+936236d feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md
+ca622fc feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-referencias.md
+8c29c11 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md
+9212232 feat(po): o PO elicitado vira a fonte do ciclo
+ae2d80f feat(acervo): envelope/po-20261020-0758.json
+161961f feat(acervo): envelope/.indice.json
+70faafd chore(estrutura): reancorar a cadeia das fontes alteradas
+e32bfb3 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 ```
 
 ## Por professor
 
-### sapo-bailarino — 0 ciclo(s)
+### sapo-bailarino — 1 ciclo(s)
 
-### tiago-menegaz — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2
+**Ciclo 01** — variante(s): calango, calango-bale-nivel-1-teste-1, calango-bale-nivel-2-teste-1, calango-bale-nivel-3-teste-1
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
-| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Aguardando | 1 |
+| calango | (sem PO) | — | — |
+| calango | ciclo-01-calango-bale-nivel-1-teste-1-po.md | Input_PO_Aguardando | 1 |
+| calango-bale-nivel-2-teste-1 | (sem PO) | — | — |
+| calango-bale-nivel-3-teste-1 | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `1f96eb99c9e5` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `c2720a886980` | (vazio) | Input_PO_Aguardando |
+| calango | ciclo-01-calango.fipp | `f167c9c85478` | (vazio) | — |
+| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ecc946c1a5d6` | (vazio) | Input_PO_Aguardando |
+| calango-bale-nivel-2-teste-1 | ciclo-01-calango-bale-nivel-2-teste-1.fipp | `fb64bf9965c2` | (vazio) | — |
+| calango-bale-nivel-3-teste-1 | ciclo-01-calango-bale-nivel-3-teste-1.fipp | `c572e800094a` | (vazio) | — |
+
+### tiago-menegaz — 0 ciclo(s)
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -150,86 +154,48 @@ e7c2d98 feat(po): o PO elicitado vira a fonte do ciclo
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o primeiro pacote no repositório expôs o vocabulário do acervo: catorze arquivos sem decisão
+## 20/10/2026 — o hook recusava todo commit enquanto uma turma não tivesse PO
 
-**O que motivou.** A geração da `batata` pôs, pela primeira vez, um **pacote real** dentro de
-`professores/`. Até aqui esse diretório só tinha **fonte** — e o vocabulário de tipos
-(`indices/esquema/tipos.json`) foi escrito para fonte. `node tools/check-indices.js` passou a
-reprovar com **14 arquivos «sem tipo declarado»**, todos dentro do pacote:
+**O que motivou.** Um commit que tocasse `professores/sapo-bailarino/ciclos/ciclo-01-*` era
+impossível. O hook do pré-commit gera **todas** as variantes daquele ciclo, e o `calango` estava com
+três turmas planejadas e o PO de uma só: a geração da segunda morria em
 
-| classe | arquivos |
-|:--|:--|
-| páginas | `aula-01.html`, `captura-aula-01.html`, `glossario-benesh.html`, `harmonizacao.html`, `lancamento.html`, `notacao.html`, `plano.html`, `referencias.html`, `plano-observacao/index.html` |
-| impressão | `ciclo-01-…-teste-2.pdf` |
-| cópias de conteúdo que a porta lê | `plano-01.json`, `po-01.json`, `captura-01.json`, `captura-aula-01.json`, `plano-aula-01.json` |
+```
+erro: nenhuma 'aula-*' de DOCS tem fonte em disco — não há volume para a Regra 9.
+```
 
-A regra que existia era **estreita de mais e por arquivo**: `/index\.html$`, e nada mais. Dizia-o
-da capa do pacote e não das nove páginas escritas ao lado dela.
+O gerador está CERTO — ele recusa com a frase que diz o que falta, e a recusa já estava documentada
+no próprio `gerar-ciclo.sh` («medido em 18/10/2026, com `DOCS="plano"` e sem `aula-01` em disco»).
+Quem estava errado era o hook: tomava uma **recusa de estado** por **falha de conteúdo**. O caminho
+que sobrava era `--no-verify`, que salta também a validação da âncora — o pior remédio possível.
 
-**O que foi decidido — por CLASSE, não por pasta.** A tentação era uma regra só: «o interior do
-pacote é saída». Está errada, e o `PLANO-INDICES.md` (§1, item 5) diz por quê: o `ciclos.json` do
-pacote **é para ser lido** — é dele que sai «qual é a próxima aula» sem o Worker abrir o `.conf` nem
-o pacote. Uma excepção que apanhasse a pasta inteira apagaria esse documento do acervo e, com ele, a
-única instância do tipo `indice`. As regras entraram, então, uma por classe de saída:
+**O que foi decidido.** O hook passa a saltar a variante que declara `DOCS` **sem nenhum `aula-*`**,
+com a mesma forma do salto que já existia para o ciclo-zero (`DOCS` vazio). O critério é o do
+gerador, e não um segundo: `DOCS` sem `aula-*` **é** «não há aula com fonte». Um `DOCS` **com** aula e
+sem volume continua a falhar — isso é defeito de conteúdo e tem de aparecer.
 
-- `paginas-do-pacote` — qualquer `.html` dentro de um pacote, inclusive aninhado. Substitui a regra
-  estreita; a página é a saída, o documento é o pacote.
-- `pdf-do-pacote` — a impressão das mesmas páginas, reconstruível.
-- `conteudo-do-pacote` — as cinco cópias de conteúdo que a porta consome. A **fonte** é o `.md` ao
-  lado da pasta; indexar a cópia contaria o mesmo documento duas vezes.
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`.
 
-Ficaram de fora, de propósito, e continuam a ser documentos: `ciclos.json` (`indice`), a cópia
-`-dados.json` (`dados`), o `elicitacao-schema.json` (`schema`), o `README.md` da pasta, os `assets/`
-e o conteúdo da porta — que já tinham decisão.
+- `tools/hooks/pre-commit` — um `case` de sete linhas, ao lado do salto do ciclo-zero, com o porquê
+  em comentário.
 
-**Onde entrou.**
+**O que NÃO muda:** quais variantes são geradas (as que têm aula), a validação da âncora, a da
+identidade visual, a do volume (Regra 9) e a do passado lançado. Nada é saltado que antes fosse
+verificado — o que sai é um passo que **falhava sempre**, e por um motivo que não é defeito.
 
-- `indices/esquema/tipos.json` — `pagina-do-pacote` → `paginas-do-pacote` (mais ampla), e as duas
-  classes novas (`pdf-do-pacote`, `conteudo-do-pacote`), cada uma com o motivo escrito.
-- `experimentos/provar-indices.js` — nova prova §13, **49 → 54 asserções**: toda saída do pacote tem
-  decisão **e uma só**; o `ciclos.json` do pacote continua a ser `indice`; o pacote em si continua a
-  ser o documento (o diretório); as fontes ao lado — `.md`, `.json`, `.conf`, `.fipp` — continuam
-  classificadas. É a prova de que a excepção é por classe e não engoliu a pasta.
-- `indices/**` — regenerado (`documentos` do ciclo da `batata`: **16 → 19**, com as três cópias que
-  o motor já classificava e o vocabulário não declarava).
+**Onde entrou.** `tools/hooks/pre-commit` — o teste `case " $docs_do_ciclo " in *" aula-"*)`.
 
-**Com o quê.** `node tools/check-indices.js` → **14 de 14**; `--contraprovas` → **10, todas
-reprovam**; `node experimentos/provar-indices.js` → **54 asserções**; `provar-declaracoes-do-indice`
-→ **23**; `gerar-indices --check` → **12 arquivos em dia**. Controlo negativo: contra o `tipos.json`
-de `HEAD` a verificação 8 dá **14 falhas** e a prova dá **5**.
+**Com o quê.** Medido no commit seguinte: com o `calango` no estado real (plano das três, PO de uma),
+o hook passa a dizer «declara DOCS="plano" e ainda não tem aula — nada a gerar (plano sem PO)» para
+as duas, e gera e valida a primeira (`OK, 24 verificações`). `bash -n tools/hooks/pre-commit` sem
+erro.
 
-**O que ainda não está feito.** Nenhuma ferramenta de `tools/` foi tocada — e essa foi a decisão: a
-primeira tentativa foi implementar no validador a precedência que o `tipos.json` declara no campo
-`ordem` («o primeiro padrão que casar vence»), e o resultado seria **duas** declarações a dizer o
-mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do validador e a da prova das
-declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
-(ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
-`assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.
+**O que ainda não está feito.** O hook continua a gerar **todas** as variantes quando o commit cita o
+manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
+classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
+Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
 
 ## O que está pendente
-
-## 20/10/2026 — o Worker da escola passa a servir o pacote da TURMA, não o esqueleto
-
-O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
-`assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
-nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
-índice de turmas, e não cabe numa linha de configuração.
-
-## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
-
-Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
-hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
-correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
-
-## 20/10/2026 — o PO da `batata` não gerava o ciclo: a declaração da captura ficou presa na ronda anterior
-
-A geração **não foi redisparada** no Cloudflare: o commit empurra a
-correcção, e o pacote da `batata` continua a não existir no repositório até o workflow correr outra
-vez. E a pergunta estrutural fica aberta: **a declaração é do SCHEMA, e o schema é por ciclo, não
-por escola** — uma segunda escola do mesmo ciclo e da mesma variante herda a declaração da primeira.
-O merge torna a herança inofensiva (os rótulos acompanham o PO), mas não a torna correta por
-desenho: o lugar da declaração é ao lado do PO que a produziu, e mudá-lo mexe no formato do
-`captura-*.json` já publicado.
 
 ## 20/10/2026 — a aula derivada volta a ser legível: o mapa de secções e a tabela que é o campo
 
@@ -247,6 +213,38 @@ mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do vali
 declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
 (ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
 `assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.
+
+## 20/10/2026 — o Plano de Observação de uma turma oferecia as alunas das outras
+
+O `campo aberto` de «Sujeitos observados» continua a aceitar
+qualquer apelido escrito à mão — e é de propósito (a aluna pode ainda não estar na curadoria), mas
+não há na gravação nenhuma conferência de que o apelido pertence à turma: o recorte é da **lista**,
+não do **documento**. Fechá-lo exige decidir o que fazer com a aluna que muda de turma a meio do
+ciclo, e essa decisão não é de hoje. E o `flutuantes` (apelidos em texto livre) continua aberto pelo
+mesmo motivo.
+
+## 20/10/2026 — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de nascer vazio
+
+
+- **O `wrangler deploy` do `calango` não foi corrido daqui.** A correcção só chega ao ar no próximo
+  deploy — e o caminho é o de sempre (redisparar a geração), não um `wrangler` à mão. Até lá, o site
+  continua a servir o esqueleto.
+- **A montagem depende do deploy correr depois dela.** Uma pasta que não existe faz o `wrangler`
+  recusar — falha alta, e é a que se quer —, mas quem correr `npx wrangler deploy -c
+  wrangler.<escola>.jsonc` num clone novo tem de montar primeiro. Os dois sítios que publicam já o
+  fazem; o comando à mão, não.
+- **O índice das turmas não conhece o estado do ciclo.** Mostra o ritmo e o número de aulas lançadas,
+  não «a próxima aula é a 03». Esse dado existe (o `ciclos.json`), e não foi trazido para não abrir
+  uma segunda derivação do estado.
+- Continua verdadeiro o de antes: **nada regenera o `indices/`** automaticamente. Nesta sessão ele
+  foi regerado à mão depois do expurgo da `batata`, e voltou a 14 de 14.
+
+## 20/10/2026 — o hook recusava todo commit enquanto uma turma não tivesse PO
+
+O hook continua a gerar **todas** as variantes quando o commit cita o
+manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
+classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
+Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
 
 ## Pendências anteriores (índice)
 
@@ -484,8 +482,11 @@ declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um ca
 - **20/10/2026** — o plano de ensino de teste chega preenchido inteiro, não… → `REGISTRO.md` L19833
 - **20/10/2026** — o índice passa a ser gerado, e o «passou» passa a ser medido → `REGISTRO.md` L19885
 - **20/10/2026** — a âncora da aula deixa de ficar solta, e o rebase diz a… → `REGISTRO.md` L20016
-- PO de **tiago-menegaz · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **20/10/2026** — o Worker da escola passa a servir o pacote da TURMA, não o… → `REGISTRO.md` L20067
+- **20/10/2026** — o expurgo da `breu` foi completo, e o índice ficou a… → `REGISTRO.md` L20102
+- **20/10/2026** — o PO da `batata` não gerava o ciclo: a declaração da… → `REGISTRO.md` L20193
+- PO de **sapo-bailarino · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
