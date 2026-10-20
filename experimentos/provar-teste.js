@@ -617,6 +617,19 @@ async function porta() {
     'o calendário não saiu da turma: ' + JSON.stringify(daTurma['contexto-calendario']));
   ok('frequência, duração e calendário vêm do cadastro da turma — sem campo em branco');
 
+  // O FIXTURE NÃO CITA UM MARCO QUE NÃO TEM (20/10/2026). O critério de extensão dizia
+  // «se o marco 4 não for alcançado» com três marcos no plano — texto que sobreviveu ao corte
+  // de cinco para três e ia para o documento publicado a falar de uma aula que não existe. Um
+  // fixture não é dado morto: é o que o professor lê no plano impresso.
+  for (const registro of FIXTURE.plano) {
+    const quantos = registro.respostas['marcos-por-aula'].length;
+    const citados = [...String(registro.respostas['criterio-de-extensao'] || '')
+      .matchAll(/marco\s+(\d+)/gi)].map((m) => Number(m[1]));
+    assert.deepEqual(citados.filter((n) => n > quantos), [],
+      registro.turma + ': o critério de extensão cita um marco que o plano não tem (' + quantos + ')');
+  }
+  ok('o critério de extensão não cita um marco que o plano não tem');
+
   // E o que o formulário exige fica todo respondido quando se passa pelos campos do
   // cadastro (é o que acontece ao avançar). Sem isto, «preenchido» seria opinião.
   const faltamNoPlano = await plano.win.eval(`(function(){
