@@ -104,6 +104,17 @@ jobs:
             --data-inicio "${{ inputs.data-inicio }}" \
             --nao-interativo
 
+      # A DEPENDÊNCIA TEM DE ESTAR ESCRITA AQUI (20/10/2026). O `assets.directory` do Worker é a
+      # publicação montada, e ela é SAÍDA — não vem no clone. A montagem é feita pelo
+      # `criar-escola.sh`, mas o passo abaixo não pode depender de um efeito lateral de outro
+      # passo: foi assim que a escola `batata` morreu no deploy, em «The directory specified by
+      # the "assets.directory" field ... does not exist». Montar é idempotente e custa nada.
+      - name: Montar a publicação da escola
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/montar-publicacao.js "${{ inputs.escola }}"
+
       - name: Subir o motor completo no Cloudflare
         id: motor
         shell: bash

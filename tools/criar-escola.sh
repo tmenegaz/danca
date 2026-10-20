@@ -596,6 +596,22 @@ EOF
 echo "  worker: $WRANGLER"
 
 # ---------------------------------------------------------------------------
+# 6.1) A PUBLICAÇÃO DA ESCOLA — o `assets.directory` do Worker (20/10/2026)
+#
+# AQUI, E NÃO NO RAMO DO DEPLOY. A publicação esteve montada só dentro do `--deploy`, e o
+# workflow `criar-escola.yml` chama este script SEM `--deploy` (o deploy é um passo separado,
+# logo a seguir, na mesma job e no mesmo workspace). Resultado medido em 20/10/2026: o deploy
+# morria em «The directory specified by the "assets.directory" field ... does not exist:
+# .../publicacao/batata», com a escola já meio criada.
+#
+# A regra é a do resto do script: o `wrangler.<escola>.jsonc` aponta a publicação, logo a
+# publicação tem de existir quando o script termina. Ela é montada aqui, sempre — barata,
+# idempotente, e a partir de um pacote-zero que acabou de nascer.
+# ---------------------------------------------------------------------------
+echo "  publicação: montando ..."
+node "$RAIZ/tools/montar-publicacao.js" "$ESCOLA" | sed 's/^/    /'
+
+# ---------------------------------------------------------------------------
 # 7) Senha de criptografia — a REAL, mas que NÃO vive mais no computador local.
 #    Ela é a SENHA_CRIPTO, um secret do Worker, GERADA PELA PÁGINA `danca` quando a
 #    escola é criada (motor/servidor/provisionar-escola.js). Protege o -dados.json e
@@ -660,11 +676,6 @@ fi
 # 9) Deploy (opcional)
 # ---------------------------------------------------------------------------
 if [ "$DEPLOY" = 1 ]; then
-  # A PASTA TEM DE EXISTIR ANTES DO DEPLOY (20/10/2026). O `assets.directory` é a publicação
-  # montada, e ela é saída — num clone novo não existe. Montar aqui é o que impede o deploy de
-  # falhar por uma pasta que o próprio script devia ter preparado.
-  echo "  deploy: montando a publicação da escola ..."
-  ( cd "$RAIZ" && node tools/montar-publicacao.js "$WORKER" )
   echo "  deploy: subindo o Worker '$WORKER' ..."
   ( cd "$RAIZ" && npx wrangler deploy -c "wrangler.$WORKER.jsonc" )
 

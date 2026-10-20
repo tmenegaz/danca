@@ -20566,3 +20566,63 @@ a verificação 8 passou a acusar **um arquivo sem decisão**. A admissão entro
 mesma classe, uma cópia de conteúdo dentro do pacote —, e a prova §13 do `provar-indices` fixa que o
 anterior e o actual têm a **mesma** decisão: **54 → 55 asserções**, e o controlo negativo (sem a
 admissão) dá **3 falhas**.
+
+## 20/10/2026 — a escola não se criava: a publicação era montada só no ramo do `--deploy`
+
+**O que motivou.** O workflow `criar-escola` morreu no passo do motor:
+
+```
+✘ [ERROR] The directory specified by the "assets.directory" field in your configuration
+  file does not exist: /home/runner/work/danca/danca/publicacao/batata
+```
+
+A escola `batata` ficou **meio criada**: o scaffold corriu, o `wrangler.batata.jsonc` foi escrito a
+apontar `publicacao/batata`, e o commit — que é o último passo — nunca aconteceu. Repositório limpo,
+escola inexistente, e nenhum sítio a dizer isso.
+
+**A causa.** Ontem (algumas horas antes) a montagem da publicação entrou em
+`tools/criar-escola.sh` **dentro do `if [ "$DEPLOY" = 1 ]`**. O `criar-escola.yml` chama o script
+**sem** `--deploy` — o deploy é um passo separado, logo a seguir, na mesma job e no mesmo workspace.
+A montagem vivia num ramo por onde o CI não passa. O `--deploy` local funcionava; o caminho da
+página `danca`, que é o que a pesquisadora usa, nunca funcionou.
+
+**Por que a prova não apanhou.** A secção D do `provar-publicacao-da-escola` media o
+`gerar-ciclo.yml` e o `provisionar-escola.js` — os dois sítios que eu tinha tocado — e o
+`criar-escola.sh` só no ramo do `--deploy`, que era precisamente onde estava o erro. **Media o que
+eu tinha escrito, não o que corre.** O workflow que falhou não estava em nenhuma asserção.
+
+**O que foi decidido.**
+
+- **A publicação é produto da escola existir, não de se fazer deploy.** O script monta-a em passo
+  próprio (6.1), sempre, logo depois de escrever a config que a aponta. O ramo do `--deploy` deixou
+  de montar: duas montagens seriam uma a mais para alguém apagar a primeira sem dar por isso.
+- **A dependência passa a estar escrita no YAML.** O `criar-escola.yml` ganhou o passo «Montar a
+  publicação da escola» antes do deploy. Um passo que usa uma pasta não pode depender de um efeito
+  lateral de outro passo — foi exactamente essa invisibilidade que produziu o erro.
+- **A prova deixou de fixar uma escola.** Media `wrangler.calango.jsonc` a dedo; o `calango` foi
+  expurgado horas depois e a prova passou a **estourar** com `ENOENT` em vez de medir. Agora
+  percorre as configs que houver e **declara** quando não há nenhuma — «o repositório não tem
+  escola» é um estado, não uma falha da regra.
+- **O `wrangler deploy` é procurado como COMANDO**, não como menção. A frase aparece num comentário
+  do cabeçalho do workflow, e um `indexOf` dela dava a posição do comentário: a asserção passava com
+  o deploy a correr **antes** da montagem.
+
+**Onde entrou.**
+
+- `tools/criar-escola.sh` — passo 6.1 (monta sempre); o ramo do `--deploy` deixa de montar.
+- `.github/workflows/criar-escola.yml` — passo «Montar a publicação da escola», antes do motor.
+- `experimentos/provar-publicacao-da-escola.js` — **26 → 27 asserções**: a montagem fora do ramo do
+  deploy, o script a montar sempre, e o `criar-escola.yml` a montar antes do deploy.
+
+**Com o quê.** `node experimentos/provar-publicacao-da-escola.js` → **27 asserções**. Controlo
+negativo: contra o `criar-escola.sh` e o `criar-escola.yml` de `HEAD` dão **3 falhas** — as três que
+descrevem o defeito. E a simulação do CI foi feita à parte, numa cópia do repositório: o script
+corrido **sem `--deploy`** (como o workflow o chama) deixa `publicacao/batata/` montada com
+`index.html`, `sistema.html`, `assets/` e `plano-observacao/`, e o índice diz «Ainda não há ciclo
+gerado» — que é a verdade de uma escola recém-criada.
+
+**O que ainda não está feito.** A escola `batata` **não foi criada**: a execução falhou antes do
+commit, e o repositório está limpo — basta redisparar o workflow. E fica uma lição que não é código:
+**três sítios fazem deploy** (o `gerar-ciclo.yml`, o `criar-escola.yml` e o `criar-escola.sh
+--deploy`), e eu corrigi dois. A prova agora cobre os três; enquanto forem três, a lista tem de ser
+percorrida por inteiro em cada mudança.

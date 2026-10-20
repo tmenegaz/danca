@@ -190,12 +190,31 @@ function principal() {
   // ------------------------------------------------------------------ D
   console.log('\nD. a ligação: a config aponta a publicação, e quem faz deploy monta antes');
   {
-    // No repositório, a escola real. O `calango` é a que existe hoje com turma gerada.
-    const conf = fs.readFileSync(path.join(RAIZ, 'wrangler.calango.jsonc'), 'utf8');
-    const dir = (/\"directory\"\s*:\s*\"([^\"]+)\"/.exec(conf) || [])[1] || '';
-    checar('o `wrangler.calango.jsonc` aponta `publicacao/calango`, e não o pacote-zero',
-      dir === 'publicacao/calango', dir);
-    checar('(o defeito era o `ciclo-NN-<escola>`, o esqueleto)', !/ciclos\/ciclo-[0-9]{2}-calango"/.test(conf));
+    /*
+     * TODAS as escolas que existem, e não uma escolhida a dedo (20/10/2026).
+     *
+     * Esta asserção fixava o `calango`, e o `calango` foi expurgado horas depois: a prova passou a
+     * estourar com `ENOENT` em vez de medir. Uma prova que depende de uma escola viva deixa de
+     * medir quando a escola sai — e pior, ESTOURA, o que não diz qual asserção falhou. Agora
+     * percorre as configs que HOUVER, e declara quando não há nenhuma: «o repositório não tem
+     * escola» é um estado, não uma falha da regra.
+     */
+    const configs = fs.readdirSync(RAIZ)
+      .filter((f) => /^wrangler\.[a-z0-9-]+\.jsonc$/.test(f) && f !== 'wrangler.danca.jsonc')
+      .sort();
+    if (!configs.length) {
+      console.log('   — nenhuma escola no repositório (só a raiz): não há config para medir');
+    }
+    for (const arquivo of configs) {
+      const slug = arquivo.replace(/^wrangler\./, '').replace(/\.jsonc$/, '');
+      const conf = fs.readFileSync(path.join(RAIZ, arquivo), 'utf8');
+      const dir = (/"directory"\s*:\s*"([^"]+)"/.exec(conf) || [])[1] || '';
+      checar('o `' + arquivo + '` aponta a publicação da escola (`publicacao/' + slug + '`)',
+        dir === 'publicacao/' + slug, dir);
+      // O DEFEITO ORIGINAL, nomeado: o `assets.directory` era o pacote-zero.
+      checar('e não o pacote-zero (`ciclos/ciclo-NN-' + slug + '`)',
+        !new RegExp('ciclos/ciclo-[0-9]{2}-' + slug + '"').test(conf), dir);
+    }
 
     const ignorado = fs.readFileSync(path.join(RAIZ, '.gitignore'), 'utf8');
     checar('o `.gitignore` ignora a publicação — é saída, e não se versiona',
@@ -211,9 +230,34 @@ function principal() {
     const criar = fs.readFileSync(path.join(RAIZ, 'tools/criar-escola.sh'), 'utf8');
     checar('o `criar-escola.sh` escreve `publicacao/<escola>` no `assets.directory`',
       /"directory": "publicacao\/\$ESCOLA"/.test(criar));
-    const iM = criar.indexOf('montar-publicacao.js');
-    const iD = criar.indexOf('npx wrangler deploy -c "wrangler.$WORKER.jsonc"');
-    checar('e monta antes do `--deploy`', iM !== -1 && iD !== -1 && iM < iD);
+
+    // MONTAR NÃO PERTENCE AO RAMO DO `--deploy` (20/10/2026). Foi assim que a escola `batata`
+    // morreu: o `criar-escola.yml` chama o script SEM `--deploy` e faz o deploy num passo
+    // separado, e a montagem, que vivia lá dentro, nunca corria. O ramo do deploy não pode ser o
+    // único sítio onde a pasta nasce.
+    const ramoDeploy = criar.slice(criar.indexOf('if [ "$DEPLOY" = 1 ]'));
+    checar('e a montagem NÃO está presa ao ramo do `--deploy`',
+      ramoDeploy.indexOf('montar-publicacao.js') === -1,
+      'a montagem vive dentro de `if [ "$DEPLOY" = 1 ]` — o CI não passa por lá');
+    const iMontarScript = criar.indexOf('node "$RAIZ/tools/montar-publicacao.js" "$ESCOLA"');
+    checar('o script monta sempre, depois de escrever a config que a aponta',
+      iMontarScript !== -1 && iMontarScript > criar.indexOf('  worker: $WRANGLER'),
+      iMontarScript);
+
+    // O WORKFLOW QUE CRIA A ESCOLA. A secção D só olhava o `gerar-ciclo.yml`, e o deploy que
+    // falhou é deste. Um passo cujo resultado é uma pasta tem de a montar ANTES de a usar — e a
+    // dependência tem de estar ESCRITA, não herdada de um efeito lateral de outro passo.
+    const criarWf = fs.readFileSync(path.join(RAIZ, '.github/workflows/criar-escola.yml'), 'utf8');
+    const iMW = criarWf.indexOf('montar-publicacao.js');
+    // O COMANDO, não a menção: o `wrangler deploy` aparece num comentário do cabeçalho, e um
+    // `indexOf` da frase dava a posição do comentário — a asserção passava com o deploy a correr
+    // ANTES da montagem. É a mesma armadilha que a secção D já tinha apanhado no outro workflow.
+    const iDW = criarWf.indexOf('npx wrangler deploy');
+    checar('o `criar-escola.yml` monta a publicação antes de subir o motor', iMW !== -1 && iMW < iDW,
+      { montar: iMW, deploy: iDW });
+    checar('e chama o script sem `--deploy` (o deploy é um passo separado — e é por isso que a'
+      + ' montagem não pode viver no ramo dele)',
+      criarWf.indexOf('--deploy') === -1, criarWf.indexOf('--deploy'));
 
     const prov = fs.readFileSync(path.join(RAIZ, 'motor/servidor/provisionar-escola.js'), 'utf8');
     checar('o provisionamento delega o deploy no workflow (não sobe uma pasta que não montou)',
