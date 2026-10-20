@@ -110,8 +110,13 @@
           "bastidores/calango/"
         ],
         "em": "2026-10-19T19:48:38.649Z",
-        "pendente": true,
-        "nota": "A limpeza do KV não se completou neste expurgo: a enumeração (kv.list) tinha a cota diária esgotada, e o registro de chaves da escola ainda não existia. O dado deve ser limpo por POST /api/expurgar-kv quando a cota renovar (00:00 UTC). Este campo foi escrito À MÃO no próprio dia — o código só passou a gravar a pendência depois deste caso, e sem ele a escola ficaria sem o caminho de volta."
+        "nota": "A limpeza do KV não se completou neste expurgo: a enumeração (kv.list) tinha a cota diária esgotada, e o registro de chaves da escola ainda não existia. O dado deve ser limpo por POST /api/expurgar-kv quando a cota renovar (00:00 UTC). Este campo foi escrito À MÃO no próprio dia — o código só passou a gravar a pendência depois deste caso, e sem ele a escola ficaria sem o caminho de volta.",
+        "retomada": {
+          "em": "2026-10-20T00:24:36.381Z",
+          "ok": true,
+          "apagadas": 13,
+          "restantes": 0
+        }
       }
     }
   ]
