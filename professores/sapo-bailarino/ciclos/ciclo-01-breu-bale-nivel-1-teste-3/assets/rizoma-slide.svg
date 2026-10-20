@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 1100 560" xmlns="http://www.w3.org/2000/svg" style="background:#fbf8f3;font-family:Georgia,serif;">
+  <defs>
+    <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#b08d57"/>
+    </marker>
+  </defs>
+
+  <!-- Conexões (linhagens) -->
+  <g stroke="#b08d57" stroke-width="2" fill="none" opacity="0.55" marker-end="url(#seta)">
+    <!-- origens -->
+    <path d="M 101 90 L 101 148"/>
+    <path d="M 186 175 C 212 175, 208 65, 234 65"/>
+    <!-- Petipa → Fokine / Maria Olenewa -->
+    <path d="M 321 90 L 321 148"/>
+    <path d="M 406 65 L 454 65"/>
+    <!-- Fokine → Balanchine / Cuevas -->
+    <path d="M 321 200 L 321 258"/>
+    <path d="M 406 175 L 454 175"/>
+    <!-- Cuevas → Delavalle -->
+    <path d="M 626 175 L 674 175"/>
+    <!-- Maria Olenewa → Veltchek / Ady -->
+    <path d="M 626 65 L 674 65"/>
+    <path d="M 620 88 C 760 200, 840 330, 892 383"/>
+    <!-- Mary Wigman → Yanka → Gelewski -->
+    <path d="M 406 405 L 454 405"/>
+    <path d="M 626 405 L 674 405"/>
+    <!-- Maria Pia → Balé da Cidade (passa por baixo da Escola Mun. de Bailados) -->
+    <path d="M 560 312 C 660 352, 800 350, 886 205"/>
+    <!-- Escola Municipal de Bailados: tradição russa → Maria Pia -->
+    <path d="M 628 92 C 650 150, 660 220, 674 272" stroke-dasharray="7 5"/>
+    <path d="M 674 288 L 630 285"/>
+    <!-- Veltchek → Yellê -->
+    <path d="M 846 65 L 888 65"/>
+    <!-- Balé da Cidade → Yellê / Poulin / Ady -->
+    <path d="M 975 150 L 975 92"/>
+    <path d="M 975 200 L 975 258"/>
+    <path d="M 950 202 C 916 270, 902 320, 908 366"/>
+    <!-- linhagens → Tiago -->
+    <path d="M 840 202 C 950 320, 1000 420, 1024 477"/>
+    <path d="M 1050 92 C 1086 200, 1062 380, 1044 474"/>
+    <path d="M 1020 312 C 1036 370, 1040 420, 1038 473"/>
+    <path d="M 1028 420 C 1042 442, 1046 460, 1040 475"/>
+  </g>
+
+  <!-- Geração 1 — Origens -->
+  <g>
+    <rect x="16" y="40" width="170" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="101" y="64" fill="#ffffff" font-size="21" font-weight="bold" text-anchor="middle">John Weaver</text>
+    <text x="101" y="82" fill="#d9c7a3" font-size="13" text-anchor="middle">1717 · Londres</text>
+  </g>
+  <g>
+    <rect x="16" y="150" width="170" height="50" rx="7" fill="#6b1f2e"/>
+    <text x="101" y="174" fill="#ffffff" font-size="21" font-weight="bold" text-anchor="middle">Noverre</text>
+    <text x="101" y="192" fill="#d9c7a3" font-size="13" text-anchor="middle">1760 · França</text>
+  </g>
+
+  <!-- Geração 2 — duas escolas europeias -->
+  <g>
+    <rect x="236" y="40" width="170" height="50" rx="7" fill="#b08d57"/>
+    <text x="321" y="64" fill="#ffffff" font-size="21" font-weight="bold" text-anchor="middle">Petipa</text>
+    <text x="321" y="82" fill="#fdf6ea" font-size="13" text-anchor="middle">escola russa · Rússia</text>
+  </g>
+  <g>
+    <rect x="236" y="380" width="170" height="50" rx="7" fill="#e8dcc8" stroke="#b08d57" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="321" y="404" fill="#5a5348" font-size="21" font-weight="bold" text-anchor="middle">Mary Wigman</text>
+    <text x="321" y="422" fill="#8a6a3b" font-size="13" text-anchor="middle">moderna · Alemanha</text>
+  </g>
+
+  <!-- Geração 3 — chegada ao Brasil -->
+  <g>
+    <rect x="456" y="40" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2.5"/>
+    <text x="541" y="64" fill="#6b1f2e" font-size="21" font-weight="bold" text-anchor="middle">Maria Olenewa</text>
+    <text x="541" y="82" fill="#8a6a3b" font-size="13" text-anchor="middle">Rio · 1927</text>
+  </g>
+  <g>
+    <rect x="456" y="150" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2.5"/>
+    <text x="541" y="174" fill="#6b1f2e" font-size="19" font-weight="bold" text-anchor="middle">M. de Cuevas</text>
+    <text x="541" y="192" fill="#8a6a3b" font-size="13" text-anchor="middle">Paris · 1940-60</text>
+  </g>
+  <g>
+    <rect x="456" y="380" width="170" height="50" rx="7" fill="#e8dcc8" stroke="#b08d57" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="541" y="404" fill="#5a5348" font-size="21" font-weight="bold" text-anchor="middle">Yanka Rudzka</text>
+    <text x="541" y="422" fill="#8a6a3b" font-size="13" text-anchor="middle">Bahia · 1952</text>
+  </g>
+
+  <!-- Geração 4 — desdobramentos -->
+  <g>
+    <rect x="676" y="40" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2.5"/>
+    <text x="761" y="64" fill="#6b1f2e" font-size="21" font-weight="bold" text-anchor="middle">V. Veltchek</text>
+    <text x="761" y="82" fill="#8a6a3b" font-size="13" text-anchor="middle">1939 · Rio/SP</text>
+  </g>
+  <g>
+    <rect x="676" y="150" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2.5"/>
+    <text x="761" y="174" fill="#6b1f2e" font-size="21" font-weight="bold" text-anchor="middle">H. Delavalle</text>
+    <text x="761" y="192" fill="#8a6a3b" font-size="13" text-anchor="middle">BTG · Passo Fundo</text>
+  </g>
+  <g>
+    <rect x="676" y="380" width="170" height="50" rx="7" fill="#e8dcc8" stroke="#b08d57" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="761" y="404" fill="#5a5348" font-size="21" font-weight="bold" text-anchor="middle">Rolf Gelewski</text>
+    <text x="761" y="422" fill="#8a6a3b" font-size="13" text-anchor="middle">Bahia · 1960</text>
+  </g>
+
+  <!-- Geração 5 — São Paulo e a transmissão -->
+  <g>
+    <rect x="890" y="40" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2"/>
+    <text x="975" y="64" fill="#6b1f2e" font-size="20" font-weight="bold" text-anchor="middle">Yellê Bittencourt</text>
+    <text x="975" y="82" fill="#8a6a3b" font-size="13" text-anchor="middle">pedagogia</text>
+  </g>
+  <g>
+    <rect x="890" y="150" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2.5"/>
+    <text x="975" y="174" fill="#6b1f2e" font-size="19" font-weight="bold" text-anchor="middle">Balé da Cidade SP</text>
+    <text x="975" y="192" fill="#8a6a3b" font-size="13" text-anchor="middle">1968 · Escola Mun. de Bailados</text>
+  </g>
+  <g>
+    <rect x="890" y="260" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2"/>
+    <text x="975" y="284" fill="#6b1f2e" font-size="21" font-weight="bold" text-anchor="middle">A. Poulin</text>
+    <text x="975" y="302" fill="#8a6a3b" font-size="13" text-anchor="middle">1974-77 · Boston Ballet</text>
+  </g>
+  <g>
+    <rect x="890" y="370" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2"/>
+    <text x="975" y="394" fill="#6b1f2e" font-size="21" font-weight="bold" text-anchor="middle">Ady Addor</text>
+    <text x="975" y="412" fill="#8a6a3b" font-size="13" text-anchor="middle">Theatro Municipal RJ · ABT</text>
+  </g>
+
+  <!-- Você: um ponto pequeno, onde as linhagens se encontram -->
+  <g>
+    <circle cx="1035" cy="490" r="15" fill="#6b1f2e" stroke="#b08d57" stroke-width="3"/>
+    <text x="1035" y="528" fill="#6b1f2e" font-size="17" font-weight="bold" text-anchor="middle">TIAGO MENEGAZ</text>
+    <text x="1035" y="545" fill="#8a6a3b" font-size="13" text-anchor="middle">2026</text>
+  </g>
+
+  <!-- Escola europeia: Fokine e Balanchine (entre Petipa e o Brasil) -->
+  <g>
+    <rect x="236" y="150" width="170" height="50" rx="7" fill="#b08d57"/>
+    <text x="321" y="174" fill="#ffffff" font-size="19" font-weight="bold" text-anchor="middle">Fokine</text>
+    <text x="321" y="192" fill="#fdf6ea" font-size="13" text-anchor="middle">Ballets Russes · 1909</text>
+  </g>
+  <g>
+    <rect x="236" y="260" width="170" height="50" rx="7" fill="#b08d57"/>
+    <text x="321" y="284" fill="#ffffff" font-size="19" font-weight="bold" text-anchor="middle">Balanchine</text>
+    <text x="321" y="302" fill="#fdf6ea" font-size="13" text-anchor="middle">NYCB · 1948</text>
+  </g>
+
+  <!-- Maria Pia (São Paulo) -->
+  <g>
+    <rect x="456" y="260" width="170" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="2"/>
+    <text x="541" y="284" fill="#6b1f2e" font-size="21" font-weight="bold" text-anchor="middle">Maria Pia</text>
+    <text x="541" y="302" fill="#8a6a3b" font-size="13" text-anchor="middle">Theatro Municipal SP</text>
+  </g>
+
+  <!-- Escola Municipal de Bailados (SP, 1940) — origem de Maria Pia -->
+  <g>
+    <rect x="676" y="260" width="200" height="50" rx="7" fill="#fbf8f3" stroke="#b08d57" stroke-width="1.5" stroke-dasharray="5 3"/>
+    <text x="776" y="284" fill="#6b1f2e" font-size="17" font-weight="bold" text-anchor="middle">Escola Mun. de Bailados</text>
+    <text x="776" y="302" fill="#8a6a3b" font-size="13" text-anchor="middle">SP · 1940</text>
+  </g>
+
+  <!-- Legenda -->
+  <g font-size="13" fill="#5a5348">
+    <rect x="16" y="466" width="14" height="14" rx="3" fill="#6b1f2e"/>
+    <text x="36" y="478">Origens</text>
+    <rect x="116" y="466" width="14" height="14" rx="3" fill="#b08d57"/>
+    <text x="136" y="478">Europa (clássico)</text>
+    <rect x="266" y="466" width="14" height="14" rx="3" fill="#fbf8f3" stroke="#b08d57" stroke-width="2"/>
+    <text x="286" y="478">Brasil (clássico)</text>
+    <rect x="416" y="466" width="14" height="14" rx="3" fill="#e8dcc8" stroke="#b08d57" stroke-width="1.5" stroke-dasharray="3 2"/>
+    <text x="436" y="478">Brasil (moderna)</text>
+    <circle cx="570" cy="473" r="7" fill="#6b1f2e" stroke="#b08d57" stroke-width="2"/>
+    <text x="586" y="478">Você</text>
+  </g>
+</svg>

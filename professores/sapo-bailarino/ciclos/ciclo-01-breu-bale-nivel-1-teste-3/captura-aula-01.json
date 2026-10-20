@@ -1,0 +1,127 @@
+{
+  "escola": "Breu",
+  "ciclo": "01",
+  "aula": "01",
+  "folha": "ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md",
+  "blocos": [
+    {
+      "titulo": "cabecalho",
+      "tipo": "texto",
+      "rotulos": [
+        "Durante a aula, marque; depois, escreva",
+        "régua da turma",
+        "Data",
+        "Presentes",
+        "Início",
+        "Fim",
+        "Duração efetiva"
+      ]
+    },
+    {
+      "titulo": "Condições de contorno (P-11)",
+      "tipo": "texto",
+      "rotulos": [
+        "Plano seguido",
+        "Ânimo",
+        "Interesse",
+        "Harmonia da turma",
+        "O que mudou em relação ao plano"
+      ]
+    },
+    {
+      "titulo": "Bloco 1 — Técnica — Solo",
+      "tipo": "tabela",
+      "chave": "tecnica_solo",
+      "rotulo": "Técnica — Solo",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "alinhamento do pé de apoio; eixo do corpo na preparação",
+          "chave": "alinhamento_do_pe_de_apoio_eixo_do_corpo_na_preparacao",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 2 — Técnica — Barra",
+      "tipo": "tabela",
+      "chave": "tecnica_barra",
+      "rotulo": "Técnica — Barra",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "saída do calcanhar no tendu; quadril sem subir no en dehors",
+          "chave": "saida_do_calcanhar_no_tendu_quadril_sem_subir_no_en_dehors",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 3 — Técnica — Centro",
+      "tipo": "tabela",
+      "chave": "tecnica_centro",
+      "rotulo": "Técnica — Centro",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "transferência de peso sem perder a verticalidade; braço junto do movimento",
+          "chave": "transferencia_de_peso_sem_perder_a_verticalidade_braco_junto_do_movimento",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Bloco 4 — Técnica — Musicalidade",
+      "tipo": "tabela",
+      "chave": "tecnica_musicalidade",
+      "rotulo": "Técnica — Musicalidade",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "resposta ao pulso na marcação; frase até o fim da música",
+          "chave": "resposta_ao_pulso_na_marcacao_frase_ate_o_fim_da_musica",
+          "tipo": "rubrica"
+        }
+      ],
+      "linhas": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    },
+    {
+      "titulo": "Linha de base revisitada (P-10)",
+      "tipo": "tabela",
+      "chave": "linha_de_base",
+      "rotulo": "Linha de base",
+      "grao": "aluna",
+      "colunas": [
+        {
+          "rotulo": "Observado na aula",
+          "chave": "observado_na_aula",
+          "tipo": "marca"
+        }
+      ],
+      "linhas": [
+        "rotação externa sustentada do quadril; saída do calcanhar no tendu; meia ponta com o pé alinhado",
+        "saída do calcanhar no tendu; passé sem perder o eixo"
+      ],
+      "secoes": [
+        "Aluna B",
+        "Aluna A"
+      ]
+    }
+  ],
+  "variante": "breu-bale-nivel-1-teste-3"
+}
