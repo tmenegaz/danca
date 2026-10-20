@@ -8,14 +8,22 @@ type: Ciclo
 professor: Sapo Bailarino
 ciclo: 01
 variante: breu-bale-nivel-1-teste-3
-hash_conteudo: bc15c4c02572b5fd05fc4996998cff5c2c5930165eb8bff9b70ade963fd10afd
+hash_conteudo: 266761db7a798627893d12665214d792ee564d69c0ce25cb42c421a710653286
 parentHash: 
-hash: edcbb2400a845be4fe1aadb5c28fa21ed2cf079978a3cdcb15179652c7dd4929
+hash: 4eabbeb962fb47890e620178d83788f504a8f19aacc917ac2430ae3ae816186e
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-20
 cobertura:
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md
   - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md
   - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
   - professores/sapo-bailarino/ciclos/ciclo-01.conf
