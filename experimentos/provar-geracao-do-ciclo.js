@@ -165,6 +165,30 @@ function oAcordo() {
   assert.match(yml, /git commit --amend --no-edit/);
   ok('o push rebaseia, e o conflito na âncora é REGERADO (os outros continuam a falhar)');
 
+  // TODAS AS ÂNCORAS SÃO COMMITADAS, NÃO SÓ A DO CICLO (20/10/2026).
+  //
+  // O `hash-ciclo.sh` escreve a âncora do ciclo E a de cada aula, ambas IRMÃS do pacote. O
+  // passo somava só `$pasta` e `$pasta.fipp`; a âncora da aula ficava UNTRACKED — inofensivo
+  // até o push ser recusado, porque o `git rebase` não começa quando o commit que vai aplicar
+  // traz um arquivo que existe solto na árvore. Medido às 21:57 de 20/10/2026 na escola
+  // `breu`: «The following untracked working tree files would be overwritten by checkout:
+  // …-aula-01.fipp». O `*.fipp` é o mesmo pathspec que o `reancorar.yml` sempre usou.
+  assert.match(yml, /git add -A -- '\*\.fipp'/);
+  assert.equal(/if \[ -f "\$pasta\.fipp" \]; then git add -A -- "\$pasta\.fipp"; fi/.test(yml), false,
+    'o `git add` voltou a somar só a âncora do ciclo — a da aula fica solta');
+  ok('o commit do pacote soma TODAS as âncoras — a da aula também');
+
+  // O REBASE QUE NÃO COMEÇA NÃO É CONFLITO DE CONTEÚDO (20/10/2026).
+  //
+  // Um solto na árvore faz o git recusar o checkout ANTES de aplicar commit nenhum: não há
+  // conflito para inspecionar, o `--diff-filter=U` volta vazio, e o laço morria dizendo
+  // «conflito de conteúdo (não é a âncora)» — culpando o conteúdo por uma árvore suja. A
+  // defesa separa os dois casos e limpa só os soltos que o `main` também traz.
+  assert.match(yml, /git rev-parse --git-path rebase-merge/);
+  assert.match(yml, /git rev-parse --git-path rebase-apply/);
+  assert.match(yml, /git cat-file -e "origin\/main:\$solto"/);
+  ok('o `gerar-ciclo` distingue «o rebase não começou» de «conflito de conteúdo»');
+
   // O COMMIT VAZIO DA REANCORAGEM (19/10/2026). Depois do rebase, a âncora regerada pode
   // ser exactamente a que o `main` novo já traz — e aí o commit de reancoragem não tem o que
   // fazer: `git commit --amend` recusa («would make it empty», saída 1) e o job morre com o
@@ -192,6 +216,9 @@ function oAcordo() {
   assert.match(reancorar, /reancorar_tudo\(\)/);
   assert.match(reancorar, /professores\/\*\/ciclos\/ciclo-\*-\*\.conf/);
   assert.match(reancorar, /git diff --cached --quiet HEAD\^[\s\S]{0,120}git reset --soft HEAD\^/);
+  // E o mesmo diagnóstico honesto: o rebase que não começa não se confunde com conflito.
+  assert.match(reancorar, /git rev-parse --git-path rebase-merge/);
+  assert.match(reancorar, /git cat-file -e "origin\/main:\$solto"/);
   ok('o reancorar rebaseia, regera a âncora de todos os ciclos e não morre no commit vazio');
 
   // ZERO ESCOLAS NÃO É ERRO (19/10/2026). Depois de expurgar a última escola o glob não

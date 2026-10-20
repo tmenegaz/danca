@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T22:00:57-0300`
-Commit atual: `de54e3d` — fix(experimentos): o fixture não cita um marco que o plano não tem
+Gerado em: `2026-10-19T22:23:45-0300`
+Commit atual: `58ce471` — chore(estrutura): reancorar a cadeia das fontes alteradas
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,26 +63,26 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+58ce471 chore(estrutura): reancorar a cadeia das fontes alteradas
+75ab6ce feat(captura): declara a variante breu-bale-nivel-1-teste-3 no schema de captura
+ce08a3f feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
+293a983 feat(ciclo): o «Guardar» do PO cifra ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json
+13415e5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md
+b9cc42c feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-notacao.md
+cc96eed feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-dados.json
+4bdfe33 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md
+2ad21be feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md
+3b919a6 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-referencias.md
+ffd1d19 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
+93eda4b feat(po): o PO elicitado vira a fonte do ciclo
+040128d feat(acervo): envelope/po-20261019-2208.json
+690682f feat(acervo): envelope/.indice.json
+ad21735 docs(experimentos): as quatro pendências que o primeiro plano de ensino real expôs
 de54e3d fix(experimentos): o fixture não cita um marco que o plano não tem
 5e085ec chore(estrutura): reancorar a cadeia das fontes alteradas
 52cb39d feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 1779e79 feat(plano): o plano elicitado vira a fonte do ciclo
 ec164af feat(acervo): envelope/plano-20261019-2149.json
-b7246ed feat(acervo): envelope/.indice.json
-4cdae03 feat(tools): o índice passa a ser gerado — o gerador e o validador
-552825d feat(estrutura): as declarações do índice — o vocabulário deixa de estar implícito
-c05a527 docs(experimentos): o registo do plano de teste preenchido inteiro
-ac2a30b fix(experimentos): o plano de ensino de teste chega preenchido inteiro
-107b896 chore(escola): a limpeza do KV de calango foi retomada e concluída
-b2ac3bc docs(experimentos): a prova que mede a ausência do cofre entra na lista das provas
-60cdc04 docs(estrutura): o registo e o handoff da saída do cofre da anamnese
-9118306 refactor(estrutura): a anamnese sai do KV — o acervo é o único registo
-cb4930a docs(ideia): as 76 perguntas ficam fechadas, e a distribuição deixa de ser exemplo
-1b6ca6d fix(estrutura): a tela mostra o endereço que existe, e diz que o cofre é KV
-664607f feat(acervo): envelope/anamnese-20261019-2053.json
-d91c0b9 feat(acervo): envelope/.indice.json
-e6c455a feat(acervo): envelope/anamnese-20261019-2051.json
-7e2798b feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
@@ -94,12 +94,12 @@ e6c455a feat(acervo): envelope/anamnese-20261019-2051.json
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
-| breu-bale-nivel-1-teste-3 | (sem PO) | — | — |
+| breu | ciclo-01-breu-bale-nivel-1-teste-3-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `5a4fc4f5d57d` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `edcbb2400a84` | (vazio) | — |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `4eabbeb962fb` | (vazio) | Input_PO_Aguardando |
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -150,56 +150,58 @@ e6c455a feat(acervo): envelope/anamnese-20261019-2051.json
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o primeiro plano de ensino real: o que o fluxo gravou e o que ele deixou em aberto
+## 20/10/2026 — a âncora da aula deixa de ficar solta, e o rebase diz a verdade
 
-**O que aconteceu.** A escola `breu` gerou o primeiro plano de ensino de ponta a ponta. O que o
-fluxo produziu, conferido no repositório:
+**Por quê.** A geração do ciclo da escola `breu` (variante `breu-bale-nivel-1-teste-3`) falhou no
+último passo, às 21:57. O pacote foi gerado e validado; o commit foi feito; o `push` foi recusado
+porque o `main` tinha andado (o `reancorar.yml`, disparado pelos commits do «Guardar» do PO). E aí
+o laço morreu com uma frase que mentia sobre a causa:
 
-| Peça | Onde | Estado |
-|:--|:--|:--|
-| envelope | `escola/breu/envelopes/plano-20261019-2149.json` | 25 respostas, contexto com escola/professor/ciclo/turma |
-| fonte do ciclo | `professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md` | 141 linhas, derivadas do envelope |
-| manifesto | `…-teste-3.conf` | `DOCS="plano"`, ritmo do cadastro da turma, `ESCOLA="Breu"` |
-| âncora | `ciclo-01-breu.fipp` | íntegra, cadeia intacta (`hash-ciclo.sh --check`) |
-| estante | `GET /api/planos` | o plano aparece, com o objetivo geral como rótulo |
-| geração | `GET /api/geracao` | `fase: "sem-registro"` — **não disparou, e é o desenho**: o disparo é do PO (`rotas.js`, tudo depois da fonte do plano é `corpo.fonte === 'po'`) |
+    error: The following untracked working tree files would be overwritten by checkout:
+        professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp
+    Aborting
+    error: could not detach HEAD
+    erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:
+    fatal: no rebase in progress
 
-O preenchimento de teste que ontem chegou incompleto funcionou: os três marcos parciais são uma
-lista, e chegaram ao documento como as três linhas da tabela «Marcos parciais por aula».
+**As duas causas, ambas no workflow.**
 
-**As quatro coisas que o primeiro plano real expôs — nenhuma corrigida aqui.**
+1. **O `git add` somava só a âncora do CICLO.** O `hash-ciclo.sh` escreve **uma âncora por aula**
+   além da do ciclo, e as duas são **irmãs** do pacote (`ciclo-XX-<variante>-aula-NN.fipp`). O
+   passo somava `$pasta` e `$pasta.fipp`; a da aula ficava **untracked** — e um untracked que o
+   `main` novo também traz faz o `git rebase` **recusar o checkout antes de aplicar commit
+   nenhum**.
+2. **O laço não sabia distinguir «o rebase não começou» de «o rebase parou num conflito».** Ele
+   perguntava `git diff --diff-filter=U`; sem rebase em curso a resposta é vazia, e a guarda lia
+   isso como «conflito de conteúdo» — apontando o conteúdo por uma árvore suja. A mensagem final
+   ainda dizia `fatal: no rebase in progress`, que é o próprio git a negar o diagnóstico.
 
-1. **A sequência de exercícios saiu com 29 linhas onde o professor escreveu 3.** 26 são o
-   andaime da derivação (um exercício por termo marcado em cada bloco, todas com «[a decidir]»
-   nos tempos) e 3 são linhas antigas do fixture — Solo/Plié, Barra/Battement tendu,
-   Centro/Port de bras — que **deixaram de casar** com os parâmetros marcados mas continuam no
-   documento com os tempos preenchidos: parecem exercícios definidos e não correspondem a nada
-   marcado. A regra actual («nada se perde») guarda-as de propósito, e não distingue uma linha
-   órfã de uma deliberada — **é decisão de desenho, não defeito com resposta pronta**.
-2. **Dois nomes para a escola no mesmo acto.** O plano deriva `contexto.escola`, que é o
-   **slug** do Worker (`breu`), e escreve `escola: breu` no cabeçalho e «Escola / espaço | breu»
-   na tabela; o `.conf` composto ao lado diz `ESCOLA="Breu"`. O professor sai como «Sapo
-   Bailarino» (o rótulo do select) e a escola como slug.
-3. **`45 minuto`** — a unidade de medida não se pluraliza na composição (`comporMedida`).
-   Cosmético, e é num documento que se imprime.
-4. **O índice do acervo ficou desactualizado ao gerar o plano.** `node tools/check-indices.js`
-   falha com **3 divergências** (`acervo.json`, `escolas/breu.json`, `ciclos/sapo-bailarino/01-breu.json`);
-   no commit em que nasceu (`4cdae03`) passava com 14 de 14. **Nada o regenera**: o hook do
-   pré-commit valida a identidade visual e a âncora, não o índice, e nenhum workflow o corre —
-   portanto cada anamnese, plano ou PO que o Worker grava volta a deixá-lo para trás.
+**O que mudou.**
 
-**O que fica declarado.** (1) e (2) são desenho; (3) é cosmético; (4) é o único com uma resposta
-óbvia — regenerar (`node tools/gerar-indices.js`) e decidir **quem** o regenera (hook, workflow,
-ou o próprio Worker ao gravar). Ficam todos em aberto por decisão de quem testa: o ensaio
-continua, e estes não o bloqueiam.
+- `git add -A -- '*.fipp'` no commit do pacote — o mesmo pathspec que o `reancorar.yml` sempre
+  usou. Toda âncora que a geração escreveu entra no commit, e não sobra solto.
+- a guarda passa a perguntar **primeiro** se há rebase em curso (`git rev-parse --git-path
+  rebase-merge` / `rebase-apply`). Se não há, o problema é de árvore, não de conteúdo: apagam-se
+  **só** os soltos que o `main` também traz (a versão canónica é a que chega; a desta árvore
+  regenera-se no `reancorar_tudo`/`hash-ciclo.sh` da volta seguinte) e tenta-se outra vez.
+  Qualquer outro solto fica: é trabalho de alguém, e não é daqui.
+- a mesma guarda no `reancorar.yml`, que tem o laço irmão e herdaria o mesmo diagnóstico falso.
+
+**Com o quê.** A falha foi **reproduzida num repositório de scratch**, com a corrida verdadeira
+(um actor commita a âncora da aula enquanto o runner tem a mesma path solta) — e o erro saiu igual,
+palavra por palavra, incluindo `could not detach HEAD`. Com a correcção: o `git add` deixa
+**zero** soltos, o rebase **começa** e cai no conflito **apenas de âncora**, que o laço já sabia
+resolver (`--theirs`, `add`, `--continue`) — e o push passa. A guarda nova foi provada nos dois
+sentidos: remove o solto que o `main` traz (e o rebase passa), e **não toca** num solto que o
+`main` não tem. `node experimentos/provar-geracao-do-ciclo.js` → **21 verificações** (eram 19):
+as duas novas falham contra o workflow de `HEAD` (controlo negativo feito) e passam com ele.
+
+**O que ainda não está feito.** O pacote da `breu` **não existe**: aquela execução morreu antes do
+push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
+— `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
+`variante=breu-bale-nivel-1-teste-3`.
 
 ## O que está pendente
-
-## 20/10/2026 — a tela mostra o endereço que existe, e diz que o cofre é outra coisa
-
-O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
-feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
-cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
 
 ## 20/10/2026 — as declarações do índice: o vocabulário deixa de estar implícito no código
 
@@ -237,6 +239,13 @@ comparar. (c) **`vinculos[]` e `autoria[]` continuam previstas**, não produzida
 §4.11 nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam. (d) **A tabela de contagem do §9.2 dizia 7
 em §11 e 9 em §9.2**; ficou corrigida para 10 nesta entrada, mas vale saber que o erro estava no
 plano e não no código.
+
+## 20/10/2026 — a âncora da aula deixa de ficar solta, e o rebase diz a verdade
+
+O pacote da `breu` **não existe**: aquela execução morreu antes do
+push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
+— `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
+`variante=breu-bale-nivel-1-teste-3`.
 
 ## Pendências anteriores (índice)
 
@@ -468,7 +477,9 @@ plano e não no código.
 - **20/10/2026** — o índice do acervo: cada pergunta deixa de ser uma… → `REGISTRO.md` L19512
 - **20/10/2026** — dois `list` a menos: o cartão da geração e o cadastro no… → `REGISTRO.md` L19594
 - **20/10/2026** — o índice diz o mesmo nos dois níveis, e a âncora tem três… → `REGISTRO.md` L19656
-- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **20/10/2026** — a tela mostra o endereço que existe, e diz que o cofre é… → `REGISTRO.md` L19693
+- PO de **sapo-bailarino · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 

@@ -131,8 +131,16 @@ jobs:
           # `ciclo-<ciclo>-<variante>.fipp`. O `*.fipp` antigo era um pathspec relativo à
           # raiz e não casava com nada — a reancoragem saía do passo e ficava fora do
           # commit, e o `--check` seguinte achava divergência outra vez, para sempre.
+          #
+          # E NÃO É SÓ UMA (20/10/2026). O `hash-ciclo.sh` escreve também a âncora de CADA
+          # AULA — `ciclo-<ciclo>-<variante>-aula-NN.fipp`, irmã do pacote como a do ciclo —,
+          # e o passo somava só a do ciclo. A da aula ficava UNTRACKED, o que parecia
+          # inofensivo até o push ser recusado: o `git rebase` não começa quando o commit que
+          # vai aplicar traz um arquivo que existe solto na árvore, e o laço lia isso como
+          # «conflito de conteúdo» e desistia — culpando o sítio errado. O `*.fipp` daqui é o
+          # mesmo pathspec do `reancorar.yml`, que sempre as somou todas.
           git add -A -- "$pasta"
-          if [ -f "$pasta.fipp" ]; then git add -A -- "$pasta.fipp"; fi
+          git add -A -- '*.fipp'
 
           if git diff --cached --quiet; then
             echo "nada a commitar"
@@ -168,6 +176,35 @@ jobs:
             git fetch origin main
 
             if git rebase origin/main; then
+              sleep $((intento * 5))
+              continue
+            fi
+
+            # O REBASE PODE NEM TER COMEÇADO (20/10/2026). Quando há na árvore um arquivo
+            # UNTRACKED que o `main` novo também traz, o git recusa o checkout antes de
+            # aplicar commit nenhum — e não há conflito para inspecionar. O `git diff
+            # --diff-filter=U` volta vazio, e o laço lia isso como «conflito de conteúdo» e
+            # morria, culpando o conteúdo por uma árvore suja. Aconteceu às 21:57 de
+            # 20/10/2026 com `ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp`: a âncora da
+            # aula, gerada por este workflow e deixada solta pelo `git add` de então.
+            if [ ! -d "$(git rev-parse --git-path rebase-merge)" ] &&
+               [ ! -d "$(git rev-parse --git-path rebase-apply)" ]; then
+              # Os soltos que o `main` traz são SAÍDAS desta geração: a versão canónica é a
+              # que chega do `main`, e a desta árvore regenera-se depois do rebase. Só esses
+              # se apagam — qualquer outro solto é trabalho de alguém, e não é daqui.
+              apagados=0
+              while IFS= read -r solto; do
+                [ -n "$solto" ] || continue
+                if git cat-file -e "origin/main:$solto" 2>/dev/null; then
+                  rm -f -- "$solto"
+                  apagados=$((apagados + 1))
+                fi
+              done < <(git ls-files --others --exclude-standard)
+              if [ "$apagados" -eq 0 ]; then
+                echo "erro: o rebase não começou e não há solto da geração para limpar — ver a saída acima" >&2
+                exit 1
+              fi
+              echo "o rebase não começou: $apagados solto(s) da própria geração removido(s) — nova tentativa"
               sleep $((intento * 5))
               continue
             fi

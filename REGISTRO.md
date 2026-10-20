@@ -20012,3 +20012,54 @@ lista, e chegaram ao documento como as três linhas da tabela «Marcos parciais 
 óbvia — regenerar (`node tools/gerar-indices.js`) e decidir **quem** o regenera (hook, workflow,
 ou o próprio Worker ao gravar). Ficam todos em aberto por decisão de quem testa: o ensaio
 continua, e estes não o bloqueiam.
+
+## 20/10/2026 — a âncora da aula deixa de ficar solta, e o rebase diz a verdade
+
+**Por quê.** A geração do ciclo da escola `breu` (variante `breu-bale-nivel-1-teste-3`) falhou no
+último passo, às 21:57. O pacote foi gerado e validado; o commit foi feito; o `push` foi recusado
+porque o `main` tinha andado (o `reancorar.yml`, disparado pelos commits do «Guardar» do PO). E aí
+o laço morreu com uma frase que mentia sobre a causa:
+
+    error: The following untracked working tree files would be overwritten by checkout:
+        professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.fipp
+    Aborting
+    error: could not detach HEAD
+    erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:
+    fatal: no rebase in progress
+
+**As duas causas, ambas no workflow.**
+
+1. **O `git add` somava só a âncora do CICLO.** O `hash-ciclo.sh` escreve **uma âncora por aula**
+   além da do ciclo, e as duas são **irmãs** do pacote (`ciclo-XX-<variante>-aula-NN.fipp`). O
+   passo somava `$pasta` e `$pasta.fipp`; a da aula ficava **untracked** — e um untracked que o
+   `main` novo também traz faz o `git rebase` **recusar o checkout antes de aplicar commit
+   nenhum**.
+2. **O laço não sabia distinguir «o rebase não começou» de «o rebase parou num conflito».** Ele
+   perguntava `git diff --diff-filter=U`; sem rebase em curso a resposta é vazia, e a guarda lia
+   isso como «conflito de conteúdo» — apontando o conteúdo por uma árvore suja. A mensagem final
+   ainda dizia `fatal: no rebase in progress`, que é o próprio git a negar o diagnóstico.
+
+**O que mudou.**
+
+- `git add -A -- '*.fipp'` no commit do pacote — o mesmo pathspec que o `reancorar.yml` sempre
+  usou. Toda âncora que a geração escreveu entra no commit, e não sobra solto.
+- a guarda passa a perguntar **primeiro** se há rebase em curso (`git rev-parse --git-path
+  rebase-merge` / `rebase-apply`). Se não há, o problema é de árvore, não de conteúdo: apagam-se
+  **só** os soltos que o `main` também traz (a versão canónica é a que chega; a desta árvore
+  regenera-se no `reancorar_tudo`/`hash-ciclo.sh` da volta seguinte) e tenta-se outra vez.
+  Qualquer outro solto fica: é trabalho de alguém, e não é daqui.
+- a mesma guarda no `reancorar.yml`, que tem o laço irmão e herdaria o mesmo diagnóstico falso.
+
+**Com o quê.** A falha foi **reproduzida num repositório de scratch**, com a corrida verdadeira
+(um actor commita a âncora da aula enquanto o runner tem a mesma path solta) — e o erro saiu igual,
+palavra por palavra, incluindo `could not detach HEAD`. Com a correcção: o `git add` deixa
+**zero** soltos, o rebase **começa** e cai no conflito **apenas de âncora**, que o laço já sabia
+resolver (`--theirs`, `add`, `--continue`) — e o push passa. A guarda nova foi provada nos dois
+sentidos: remove o solto que o `main` traz (e o rebase passa), e **não toca** num solto que o
+`main` não tem. `node experimentos/provar-geracao-do-ciclo.js` → **21 verificações** (eram 19):
+as duas novas falham contra o workflow de `HEAD` (controlo negativo feito) e passam com ele.
+
+**O que ainda não está feito.** O pacote da `breu` **não existe**: aquela execução morreu antes do
+push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
+— `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
+`variante=breu-bale-nivel-1-teste-3`.

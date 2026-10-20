@@ -204,6 +204,34 @@ jobs:
               continue
             fi
 
+            # O REBASE PODE NEM TER COMEÇADO (20/10/2026). Um arquivo UNTRACKED que o `main`
+            # novo também traz faz o git recusar o checkout antes de aplicar commit nenhum —
+            # e aí não há conflito para inspecionar: o `--diff-filter=U` volta vazio e o laço
+            # lia isso como «conflito de conteúdo», culpando o conteúdo por uma árvore suja.
+            # É o mesmo caso que derrubou o `gerar-ciclo.yml` às 21:57 de hoje com a âncora
+            # de uma aula; aqui a defesa entra igual, para o diagnóstico não mentir.
+            if [ ! -d "$(git rev-parse --git-path rebase-merge)" ] &&
+               [ ! -d "$(git rev-parse --git-path rebase-apply)" ]; then
+              # Os soltos que o `main` traz são SAÍDAS do que este workflow gera: a versão
+              # canónica é a que chega do `main`, e a desta árvore regera-se no `reancorar_tudo`
+              # da volta seguinte. Só esses se apagam — qualquer outro solto é de alguém.
+              apagados=0
+              while IFS= read -r solto; do
+                [ -n "$solto" ] || continue
+                if git cat-file -e "origin/main:$solto" 2>/dev/null; then
+                  rm -f -- "$solto"
+                  apagados=$((apagados + 1))
+                fi
+              done < <(git ls-files --others --exclude-standard)
+              if [ "$apagados" -eq 0 ]; then
+                echo "erro: o rebase não começou e não há solto da geração para limpar — ver a saída acima" >&2
+                exit 1
+              fi
+              echo "o rebase não começou: $apagados solto(s) da geração removido(s) — nova tentativa"
+              sleep $((intento * 5))
+              continue
+            fi
+
             conflitos="$(git diff --name-only --diff-filter=U || true)"
             if [ -z "$conflitos" ] || printf '%s\n' "$conflitos" | grep -qv '\.fipp$'; then
               echo "erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:" >&2
