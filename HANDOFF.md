@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T21:20:20-0300`
-Commit atual: `9118306` — refactor(estrutura): a anamnese sai do KV — o acervo é o único registo
+Gerado em: `2026-10-19T21:35:16-0300`
+Commit atual: `ac2a30b` — fix(experimentos): o plano de ensino de teste chega preenchido inteiro
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,10 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+ac2a30b fix(experimentos): o plano de ensino de teste chega preenchido inteiro
+107b896 chore(escola): a limpeza do KV de calango foi retomada e concluída
+b2ac3bc docs(experimentos): a prova que mede a ausência do cofre entra na lista das provas
+60cdc04 docs(estrutura): o registo e o handoff da saída do cofre da anamnese
 9118306 refactor(estrutura): a anamnese sai do KV — o acervo é o único registo
 cb4930a docs(ideia): as 76 perguntas ficam fechadas, e a distribuição deixa de ser exemplo
 1b6ca6d fix(estrutura): a tela mostra o endereço que existe, e diz que o cofre é KV
@@ -79,10 +83,6 @@ bc14ee9 fix(estrutura): o cartão da geração e o cadastro deixam de pagar a en
 4acd895 feat(estrutura): o envelope sai do KV — o acervo do repositório é o armazenamento
 2d0c647 feat(estrutura): a lista lê o índice, e cada endereço é pedido uma vez
 22682db feat(estrutura): a anamnese vai para o acervo da escola, e não só para o KV
-8d36289 fix(estrutura): a lista de gestão lia cada anamnese duas vezes
-bfb653f fix(estrutura): o expurgo não fica cego quando a enumeração do KV acaba
-400bb20 chore(estrutura): expurgar a escola calango
-cd6d8f0 fix(po): a lista deixa de pagar a cota do KV, e o checklist chega preenchido
 ```
 
 ## Por professor
@@ -148,60 +148,59 @@ cd6d8f0 fix(po): a lista deixa de pagar a cota do KV, e o checklist chega preenc
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
+## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
 
-**Por quê.** A anamnese era gravada **duas vezes**: o envelope no acervo do repositório
-(`escola/<escola>/envelopes/<carimbo>.json`, cifrado no servidor, desde 19/10) e uma **segunda
-cópia** cifrada no cofre do KV (`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`), pela rota
-`POST /api/anamnese`. Dois sítios para o mesmo documento davam dois resultados a conciliar na
-tela, duas contas de cota a pagar — e, quando só uma das gravações passava, o pior dos dois
-mundos: «gravado» e «no repositório» eram coisas diferentes. Foi também esta cópia que produziu
-a confusão de ontem: a tela mostrava o caminho do cofre, que não é arquivo do repositório.
+**Por quê.** O preenchimento automático do plano de ensino funcionava «de forma parcial»: o
+fixture preenchia, e a tela mostrava metade em branco. A causa não era o carregador — era a
+**forma** do valor no JSON não ser a que o widget lê. Um fixture com a forma errada não falha
+em sítio nenhum: preenche o que pode, deixa o resto vazio, e ninguém sabe por quê.
 
-**O que saiu.**
+| O que estava errado | O que se via na tela |
+|:--|:--|
+| `marcos-por-aula` era uma **string** com quebras de linha, e a lista numerada só aceita **array** | o bloco 3 abria **vazio** — e com ele os blocos 4, 5 e 6, que dele derivam |
+| `contexto-volume` e `contexto-registro` não existiam no fixture | volume e «quem observa» em branco |
+| `contexto-notacao` não existia | notação dominada em branco |
+| `proveniencia` era **string** num campo de escolha **múltipla** | nenhuma caixa marcada, e a frase inteira caía no «outra origem» |
 
-- as três rotas do cofre (`POST /api/anamnese`, `GET /api/anamnese`, `GET /api/anamnese/:carimbo`);
-- o cliente que as chamava: a anamnese deixou de cifrar no navegador (o `lib-cifra.js` sai do
-  carregamento da porta) e de pedir a segunda cópia. A **ponte** continua: a memória do navegador
-  guarda o rascunho e só se apaga quando a gravação no acervo confirma — se falhar, ela é a única
-  cópia e a tela diz isso;
-- `motor/nucleo/cofre.js`, que carregava as funções da anamnese. O que restou dele é a regra do
-  prefixo das chaves, que o **lançamento** continua a usar: o ficheiro passou a `motor/nucleo/chaves.js`
-  (`prefixoDaEscola`, `raizDaChave`, `segmento`, `cicloDaChave`). O **cofre do lançamento fica** —
-  a aula dada é outro registo, cifrado, e não está nesta decisão.
+**O que mudou** (`teste/{calango,batata,breu}.json`, os três pelo mesmo molde):
 
-**Com o quê.** Prova nova, `node experimentos/provar-anamnese-sem-cofre.js` → **TUDO CERTO, 13
-asserções**, e ela é **negativa**: o KV em memória **conta as escritas**, e a asserção central é
-que ele fica em **zero** depois de uma anamnese gravada. As três rotas respondem 404, e o
-`<script>` real da porta não faz `fetch` para `api/anamnese` nem carrega o `lib-cifra.js`.
-Controlo negativo feito: contra o `motor/` de `HEAD~1` a mesma prova dá **6 falhas de 13** — a
-cópia no KV aparece lá com o nome que tinha (`calango/sapo-bailarino/01/anamnese/…`).
-`provar-escola-do-documento` foi reescrito no bloco 2 (o cofre saiu; a pergunta passou a ser feita
-ao acervo) → 8 de 8. Sem regressão: acervo 48, índice 60, listas 16, geração 42, expurgo 49,
-teste 26, ato-e-barra 72, ajustes 125, identidade visual 19.
+- **três marcos parciais** por turma, derivados do objetivo geral do ciclo — «reconhecer o apoio
+  e alinhar o eixo vertical», «transferir o peso entre os pés sem perder o alinhamento»,
+  «sustentar a transferência com musicalidade e controle do movimento»;
+- as duas **matrizes por marco** (`estrutura-de-cada-aula`, `aula-1-parametro`) passam a ter
+  exatamente uma linha por marco, e a **distribuição de volume** só declara os blocos que os
+  marcos marcam (Solo, Barra, Centro, Musicalidade);
+- `contexto-volume` = **3 a 6 séries**; `contexto-registro` com «o próprio professor» a observar
+  e as duas presenças; `contexto-notacao` = **Benesh**; `contexto-metodologia-origem` = «Eu
+  escolho»;
+- `proveniencia` passa a ser **lista**, e marca a **literatura de apoio sobre corpo e aula**
+  (obrigatória) junto da metodologia RAD adaptada ao âmbito da turma.
 
-**Medido no Worker vivo** (`breu`, depois do deploy): `POST`, `GET` e `GET /:carimbo` em
-`/api/anamnese` respondem **404**, e as três superfícies da porta continuam a servir 200.
+**Dois defeitos da tela que a prova encontrou ao exigir o preenchimento** (`porta/index.html`):
 
-**O que ainda não está feito.** (a) As chaves do cofre que **já existem** no KV das escolas
-criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
-prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
-cópia a olhar, e não estava no pedido.
+- **a frequência da turma lia-se do campo `frequencia`**, que o cadastro pode não ter — ela é o
+  número de **dias**, e é assim que a Produção já a lê (`frequenciaDaTurma`). Uma turma com dias
+  e sem o número deixava o plano com um **obrigatório em branco sobre um dado que a escola
+  declarou**. A regra passou a ser a mesma dos dois lados;
+- **`frequenciaDoPlano()` devolvia `{}` quando não havia resposta**, e quem a lê faz
+  `.dias.length`: quem chegasse ao «Número total de aulas» sem ter passado pela frequência
+  levava um `TypeError` em vez do campo vazio. A forma passou a ser sempre a mesma.
+
+**Com o quê.** `node experimentos/provar-teste.js` → **36 verificações** (eram 26), dez novas, e a
+primeira delas falhou contra o fixture antigo com a mensagem certa («os marcos parciais não são
+uma lista: string»). O que se exige agora é o **preenchimento visível**, campo a campo: as linhas
+do bloco 3 na tela com o texto; a condição de registro a dizer quem observa; a faixa «3 a 6
+séries»; a notação e a origem; uma linha por marco nas duas matrizes; a distribuição de volume
+coerente com os blocos marcados; frequência, duração e calendário resolvidos do cadastro; e o
+plano **sem nenhum obrigatório em falta**. Sem regressão: ato-e-barra 72, ajustes 125,
+cabeçalho 40, produção 135, selo, tema 37/38, identidade visual 19.
+
+**O que ainda não está feito.** O fixture é **um só molde** para as três turmas — os três planos de
+uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
+objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
+de quem testa; o fixture não a inventa.
 
 ## O que está pendente
-
-## 20/10/2026 — o índice do acervo: cada pergunta deixa de ser uma varredura (fase 4)
-
-(a) O **gerador versionado** (`tools/gerar-indices.js`) e o
-`check-indices.js` com as contraprovas — o índice nasce no Worker, não no build; quem quiser o
-arquivo no repositório precisa do gerador. (b) O **workflow** `indices.yml` e o hook de pré-commit.
-(c) O **índice publicado** e a ligação com a Tabela de atividades. (d) O **índice de lançamentos**
-(`presenca`, `marcas`, `condicoes`, `ajustes`, `rubrica`): depende de um leitor do cofre, que não
-existe — e é por isso que `OB01` **recusa** em vez de devolver zero. (e) A **identidade da aluna**
-(`aluna:<slug>` com alias): hoje o índice usa o apelido como valor, e o apelido muda quando a
-escola corrige o nome. (f) O índice da escola ainda não é consumido pela porta: as três listas dela
-já leem o índice dos envelopes directamente (fase 3), e passá-las pelo índice é otimização sem
-necessidade identificada.
 
 ## 20/10/2026 — dois `list` a menos: o cartão da geração e o cadastro no expurgo
 
@@ -230,6 +229,13 @@ cópia for actualizada). O endereço certo já está no repositório e na porta 
 criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
 prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
 cópia a olhar, e não estava no pedido.
+
+## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
+
+O fixture é **um só molde** para as três turmas — os três planos de
+uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
+objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
+de quem testa; o fixture não a inventa.
 
 ## Pendências anteriores (índice)
 
@@ -458,6 +464,7 @@ cópia a olhar, e não estava no pedido.
 - **20/10/2026** — A anamnese nunca ia para o Git: ela vivia só no KV → `REGISTRO.md` L19267
 - **20/10/2026** — a lista não paga o que não mostra (fase 2 da dependência do… → `REGISTRO.md` L19350
 - **20/10/2026** — o envelope sai do KV: o acervo passa a ser o armazenamento… → `REGISTRO.md` L19424
+- **20/10/2026** — o índice do acervo: cada pergunta deixa de ser uma… → `REGISTRO.md` L19512
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

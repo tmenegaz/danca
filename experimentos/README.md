@@ -94,7 +94,7 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `medir-marca.js` | os números da marca contra as três famílias (o instrumento do estudo **Q**) | não |
 | `marca/vetorizar.js` | o traçado da logomarca em SVG e a **fidelidade medida** (IoU 0,980) | **não** (PNG via `zlib`) |
 | `provar-acordeoes.js` | as **cinco** secções da Produção recolhem, e recolhidas a listagem mede a largura inteira; a seta de uma não mexe nas outras; o estado é lembrado por secção; o «Carregar catálogo inicial» cabe na coluna | **sim** (Chrome) |
-| `provar-teste.js` | as **escolas de teste**: as três palavras (`Calango`/`Batata`/`Breu`), o fixture certo, o preenchimento da Produção, da anamnese e do plano, e a ausência de qualquer escrita | não (jsdom) |
+| `provar-teste.js` | as **escolas de teste**: as três palavras (`Calango`/`Batata`/`Breu`), o fixture certo, o preenchimento da Produção, da anamnese e do plano **campo a campo** (os marcos, o volume, a condição de registro, a notação e a origem chegam à tela, não só ao depósito), e a ausência de qualquer escrita (36 verificações) | não (jsdom) |
 | `provar-geracao.js` | o que a tela sabe **enquanto o GitHub gera**: o gatilho condicionado às fontes, o registro no KV, as fases do estado e o cartão da porta (38 casos) | não (jsdom) |
 | `provar-indice-de-envelopes.js` | a estante deixa de pagar a enumeração do KV: o índice como arquivo, a escrita, o apagamento, a falha da cota e a migração do índice antigo (41 asserções) | não |
 | `provar-acervo-envelopes.js` | os envelopes no **repositório**: o caminho, a anamnese cifrada, a listagem numa chamada, o 409 do índice, o KV antigo como reserva e a composição `envelope/` × resto (41 asserções) | não |

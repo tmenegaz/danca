@@ -19768,3 +19768,55 @@ teste 26, ato-e-barra 72, ajustes 125, identidade visual 19.
 criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
 prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
 cópia a olhar, e não estava no pedido.
+
+## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
+
+**Por quê.** O preenchimento automático do plano de ensino funcionava «de forma parcial»: o
+fixture preenchia, e a tela mostrava metade em branco. A causa não era o carregador — era a
+**forma** do valor no JSON não ser a que o widget lê. Um fixture com a forma errada não falha
+em sítio nenhum: preenche o que pode, deixa o resto vazio, e ninguém sabe por quê.
+
+| O que estava errado | O que se via na tela |
+|:--|:--|
+| `marcos-por-aula` era uma **string** com quebras de linha, e a lista numerada só aceita **array** | o bloco 3 abria **vazio** — e com ele os blocos 4, 5 e 6, que dele derivam |
+| `contexto-volume` e `contexto-registro` não existiam no fixture | volume e «quem observa» em branco |
+| `contexto-notacao` não existia | notação dominada em branco |
+| `proveniencia` era **string** num campo de escolha **múltipla** | nenhuma caixa marcada, e a frase inteira caía no «outra origem» |
+
+**O que mudou** (`teste/{calango,batata,breu}.json`, os três pelo mesmo molde):
+
+- **três marcos parciais** por turma, derivados do objetivo geral do ciclo — «reconhecer o apoio
+  e alinhar o eixo vertical», «transferir o peso entre os pés sem perder o alinhamento»,
+  «sustentar a transferência com musicalidade e controle do movimento»;
+- as duas **matrizes por marco** (`estrutura-de-cada-aula`, `aula-1-parametro`) passam a ter
+  exatamente uma linha por marco, e a **distribuição de volume** só declara os blocos que os
+  marcos marcam (Solo, Barra, Centro, Musicalidade);
+- `contexto-volume` = **3 a 6 séries**; `contexto-registro` com «o próprio professor» a observar
+  e as duas presenças; `contexto-notacao` = **Benesh**; `contexto-metodologia-origem` = «Eu
+  escolho»;
+- `proveniencia` passa a ser **lista**, e marca a **literatura de apoio sobre corpo e aula**
+  (obrigatória) junto da metodologia RAD adaptada ao âmbito da turma.
+
+**Dois defeitos da tela que a prova encontrou ao exigir o preenchimento** (`porta/index.html`):
+
+- **a frequência da turma lia-se do campo `frequencia`**, que o cadastro pode não ter — ela é o
+  número de **dias**, e é assim que a Produção já a lê (`frequenciaDaTurma`). Uma turma com dias
+  e sem o número deixava o plano com um **obrigatório em branco sobre um dado que a escola
+  declarou**. A regra passou a ser a mesma dos dois lados;
+- **`frequenciaDoPlano()` devolvia `{}` quando não havia resposta**, e quem a lê faz
+  `.dias.length`: quem chegasse ao «Número total de aulas» sem ter passado pela frequência
+  levava um `TypeError` em vez do campo vazio. A forma passou a ser sempre a mesma.
+
+**Com o quê.** `node experimentos/provar-teste.js` → **36 verificações** (eram 26), dez novas, e a
+primeira delas falhou contra o fixture antigo com a mensagem certa («os marcos parciais não são
+uma lista: string»). O que se exige agora é o **preenchimento visível**, campo a campo: as linhas
+do bloco 3 na tela com o texto; a condição de registro a dizer quem observa; a faixa «3 a 6
+séries»; a notação e a origem; uma linha por marco nas duas matrizes; a distribuição de volume
+coerente com os blocos marcados; frequência, duração e calendário resolvidos do cadastro; e o
+plano **sem nenhum obrigatório em falta**. Sem regressão: ato-e-barra 72, ajustes 125,
+cabeçalho 40, produção 135, selo, tema 37/38, identidade visual 19.
+
+**O que ainda não está feito.** O fixture é **um só molde** para as três turmas — os três planos de
+uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
+objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
+de quem testa; o fixture não a inventa.
