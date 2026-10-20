@@ -12,7 +12,8 @@
  * vive num SUBDIRETÓRIO do ASSETS (`plano-observacao/`): o conteúdo, o esquema,
  * o PO, o prompt, a identidade e os estáticos da porta ficam lá, e a ponte
  * `cloudflare.js` os lê com o prefixo. O PADD_KV é o MESMO (produção) — os
- * envelopes, o cofre e o lançamento caem na mesma família de chaves.
+ * cadastros, o cartão da geração e o lançamento caem na mesma família de chaves (os
+ * envelopes já não: eles vão para o acervo do repositório desde 20/10/2026).
  *
  * A fronteira: este módulo só DECIDE para onde vai o pedido (porta × lançamento
  * × pacote) e retira o prefixo da porta antes de despachar. Nenhuma lógica de

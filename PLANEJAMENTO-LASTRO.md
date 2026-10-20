@@ -139,7 +139,7 @@ o aluno.** Toda frente abaixo tem um critério que reprova a solução que cruze
 | Contrato de cada artefato | `ciclo-XX-{schema,po-schema,plano-schema,aula-schema,captura-schema}.json` | JSON Schema versionado (P-08) |
 | Recipiente da elicitação | `porta/envelope/elicitacao-schema.json` | o **envelope** — versão `1.3.0`, `additionalProperties: false` no topo |
 | Conteúdo dos formulários | `porta/conteudo/anamnese.json`, `porta/plano/conteudo/plano.json`, `porta/po/conteudo/po.json` | os nós respondíveis (o que a porta serve) |
-| Motor (lógica pura) | `motor/nucleo/*` | `porta.js`, `elicitar.js`, `derivar-*.js`, `cofre.js`, `lancamento.js`, `ia.js` — sem IO |
+| Motor (lógica pura) | `motor/nucleo/*` | `porta.js`, `elicitar.js`, `derivar-*.js`, `chaves.js`, `lancamento.js`, `ia.js` — sem IO |
 | Adaptadores | `motor/adaptadores/{node,cloudflare}.js` | o contrato de 6 verbos (`ler/guardar/anexar/listar/existe/apagar`) |
 | Servidor (rotas) | `motor/servidor/rotas.js` | **as rotas da porta, declaradas uma vez** |
 | Painel da direção | `motor/servidor/bastidores.js` | a Produção (alunas, professores, turmas, vocabulário, curadoria) |

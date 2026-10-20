@@ -10,14 +10,19 @@
  * investigação achou três coisas, todas na mesma raiz:
  *
  *   1. o documento (`envelope/<id>.json`) levava `contexto.escola` do CLIENTE;
- *   2. o COFRE monta a chave com `contexto.escola` — uma escola forjada escrevia dentro
+ *   2. o COFRE montava a chave com `contexto.escola` — uma escola forjada escrevia dentro
  *      do prefixo de OUTRA escola, no KV compartilhado;
  *   3. a fonte do PO e a do plano viram CAMINHO no repositório a partir de
  *      `contexto.escola` — `ciclo-01-<escola>-po.md` no pacote de outra escola.
  *
+ * O QUE MUDOU DESDE ENTÃO (20/10/2026). O cofre da anamnese deixou de existir — o registo
+ * passou a ser o ACERVO do repositório (`escola/<escola>/envelopes/`). A pergunta de (2)
+ * continua a ser a mesma e continua a ter de ser provada: o caminho que se grava pode ser
+ * influenciado por quem pede? Não pode. O bloco 2 abaixo passou a medi-la no acervo.
+ *
  * O `ESCOLA_SLUG` do Worker já era a autoridade em `escolaDe()`, mas ele não era aplicado
- * ao `contexto` que as rotas recebem. A correção é esta: nas rotas de escrita (e nas de
- * leitura do cofre), a escola do contexto É a do Worker. O campo continua existindo no
+ * ao `contexto` que as rotas recebem. A correção é esta: nas rotas de escrita, a escola do
+ * contexto É a do Worker. O campo continua existindo no
  * JSON — é ele que o cruzamento de dados vai ler —, e passa a ser o verdadeiro.
  *
  * O que ele NÃO faz: não confere professor nem ciclo (esses são escolha do professor, e
@@ -25,7 +30,9 @@
  *
  * CONTROLE NEGATIVO. `--controle-negativo` extrai o `motor/` de `HEAD` para um diretório
  * temporário (via `git archive`) e roda as MESMAS provas contra o servidor de antes. Sem
- * isso, uma prova que passasse nos dois estados não provaria nada.
+ * isso, uma prova que passasse nos dois estados não provaria nada. O bloco 2 é a excepção
+ * declarada: ele deixou de depender do que mudou (o cofre) e passou a guardar o acervo
+ * contra a mesma regressão — passa nos dois estados, e é GUARDA, não prova de mudança.
  *
  *   node experimentos/provar-escola-do-documento.js
  *   node experimentos/provar-escola-do-documento.js --controle-negativo
@@ -128,34 +135,54 @@ async function provar(motor, etiqueta) {
       Boolean(noDisco) && Object.prototype.hasOwnProperty.call(noDisco.contexto, 'escola'));
   }
 
-  // ---------------------------------------------------------------- 2) o cofre
-  let carimboDoCofre = null;
+  // ---------------------------------------------------------------- 2) o acervo
+  //
+  // O COFRE SAIU (20/10/2026), e este bloco mudou de dono. Ele provava que o cofre montava a
+  // chave com a escola do WORKER, e não com a da requisição. O cofre deixou de existir; o
+  // registo da anamnese passou a ser o ACERVO do repositório, e o que se guarda é a MESMA
+  // pergunta: o caminho pode ser influenciado por quem pede? Não pode — a escola do acervo é
+  // a do Worker, e o `contexto.escola` que vem no corpo só vai para DENTRO do documento.
   {
-    const { armazenamento, rotas } = bancada({ motor, escolaDoWorker: ESCOLA_DO_WORKER });
-    const r = await pedir(rotas, 'POST', '/api/anamnese', {
-      contexto: { ...forjado, carimbo: 'anamnese-20261018-0900' },
-      // O involucro que o `Cifra.cifrarSync` produz (o cofre só confere estes dois campos —
-      // o resto é opaco para ele, e é assim que deve ser: a chave não está no servidor).
-      _cifrado: { algoritmo: 'AES-GCM', iteracoes: 250000, endereco: 'conteudo/anamnese.json', texto: 'AAAA' },
+    const escritos = [];
+    const fetchFalso = async (url, opcoes) => {
+      const metodo = (opcoes && opcoes.method) || 'GET';
+      // A listagem do acervo é UMA chamada à árvore: sem ela, gravar não começa.
+      if (String(url).indexOf('/git/trees/') !== -1) {
+        return new Response(JSON.stringify({ sha: 'arvore', tree: [] }), {
+          status: 200, headers: { 'content-type': 'application/json' },
+        });
+      }
+      if (metodo === 'GET') return new Response('nao encontrado', { status: 404 });
+      const m = /\/contents\/(.+?)(\?|$)/.exec(String(url));
+      escritos.push(m ? decodeURIComponent(m[1]) : String(url));
+      return new Response(JSON.stringify({ content: { sha: 'sha-falso' }, commit: { sha: 'commit-falso' } }), {
+        status: 201, headers: { 'content-type': 'application/json' },
+      });
+    };
+    const { criarMemoria } = require(path.join(motor, 'nucleo/armazenamento.js'));
+    const acervoDeProva = require(path.join(motor, 'servidor/acervo-envelopes.js'))
+      .criarAcervoDeEnvelopes({
+        token: 'token-de-prova', escola: ESCOLA_DO_WORKER, senhaCripto: 'senha-de-prova',
+        fetchImpl: fetchFalso, legado: criarMemoria(),
+      });
+    const { criarRotas } = require(path.join(motor, 'servidor/rotas.js'));
+    const rotas = criarRotas({
+      armazenamento: acervoDeProva,
+      conteudo: ler('conteudo/anamnese.json'),
+      esquema: ler('envelope/elicitacao-schema.json'),
+      conteudoPO: ler('po/conteudo/po.json'),
+      conteudoPlano: ler('plano/conteudo/plano.json'),
+      escolaDoWorker: ESCOLA_DO_WORKER,
     });
-    carimboDoCofre = 'anamnese-20261018-0900';
-    const chave = (r.dados && r.dados.chave) || '';
-    checar('o cofre grava sob o prefixo da escola do WORKER',
-      chave.indexOf(ESCOLA_DO_WORKER + '/') === 0, chave);
-    checar('e NÃO sob o prefixo da escola da requisição',
-      chave.indexOf(ESCOLA_FORJADA) === -1, chave);
-    // A leitura segue a mesma regra: quem pede «outra-escola» recebe a família da valse.
-    const lista = await pedir(rotas, 'GET',
-      '/api/anamnese?escola=' + ESCOLA_FORJADA + '&professor=tiago-menegaz&ciclo=01');
-    checar('listar com a escola forjada lista a família da escola do Worker',
-      Boolean(lista.dados && Array.isArray(lista.dados.anamneses)) &&
-      lista.dados.anamneses.indexOf(carimboDoCofre) !== -1,
-      lista.dados && lista.dados.anamneses);
-    const um = await pedir(rotas, 'GET',
-      '/api/anamnese/' + carimboDoCofre + '?escola=' + ESCOLA_FORJADA + '&professor=tiago-menegaz&ciclo=01');
-    checar('ler um carimbo com a escola forjada acha o registro da escola do Worker',
-      um.status === 200, um.status);
-    void armazenamento;
+    const r = await pedir(rotas, 'POST', '/api/elicitar', {
+      fonte: 'anamnese', simular: false, respostas: BASE, contexto: forjado,
+    });
+    const caminho = (r.dados && r.dados.git && r.dados.git.caminho) || '';
+    checar('o registo vai para o caminho da escola do WORKER',
+      caminho.indexOf('escola/' + ESCOLA_DO_WORKER + '/envelopes/') === 0, caminho);
+    checar('e NUNCA para o da escola da requisição',
+      caminho.indexOf(ESCOLA_FORJADA) === -1 && escritos.every((c) => c.indexOf(ESCOLA_FORJADA) === -1),
+      escritos);
   }
 
   // ---------------------------------------------------------------- 3) o lançamento

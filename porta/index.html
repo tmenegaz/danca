@@ -712,7 +712,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
   </span>
   <!-- O contexto do ATO. Ele não é o contexto pedagógico da tela (`contexto(m)`,
        mais abaixo): é a identificação que entra no envelope e o prefixo da chave
-       do cofre. Nasce VAZIO (a porta é agnóstica — cada escola/professor/ciclo
+       do registo. Nasce VAZIO (a porta é agnóstica — cada escola/professor/ciclo
        chega pela URL do menu, `?escola=…&professor=…&ciclo=…`), e o professor
        corrige o que não servir. Os campos ficam recolhidos num acordeão: o
        professor expande quando precisa ver/editar, e recolhe para rolar a tela
@@ -881,10 +881,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
      (<code>tools/templates/ciclo.css</code>), servida do original.</p>
 </footer>
 
-<!-- O mesmo esquema de cifra das páginas do repositório (`tools/lib-cifra.js`), carregado da
-     RAIZ do pacote (`/assets/lib-cifra.js`) — sem cópia própria. Aqui quem cifra é o cliente,
-     e a senha nunca sobe ao servidor. -->
-<script src="/assets/lib-cifra.js"></script>
+<!-- A CIFRA SAIU DO CLIENTE (20/10/2026). Ela existia para a cópia da anamnese no cofre do KV,
+     que já não existe; quem cifra o envelope agora é o servidor, ao gravá-lo no acervo. O
+     `tools/lib-cifra.js` continua a ser carregado pelas páginas do pacote (a ficha, o JSON de
+     dados), que decifram no navegador — mas esta porta já não o usa, e não o descarrega. -->
 <!-- O renderizador de markdown do experimento: é INFRAESTRUTURA, não conteúdo de PO nem
      de PE — o mesmo arquivo que a ficha usa no servidor, aqui no navegador. -->
 <script src="assets/markdown.js"></script>
@@ -1201,7 +1201,7 @@ async function carregarProfessores() {
     const daUrl = new URLSearchParams(location.search).get('professor') || '';
     const atual = sel.value || daUrl;
     // Cada professor tem `{nome, slug}`: o rótulo é o nome, o VALOR é o slug (o que
-    // entra no cofre/path). O `?professor=` da URL é um slug — casa pelo slug.
+    // entra no caminho do registo). O `?professor=` da URL é um slug — casa pelo slug.
     const vistas = [];
     for (const item of lista) {
       const nome = item && item.nome ? String(item.nome) : String(item);
@@ -1863,7 +1863,7 @@ function esquecerSenha() {
 
 /*
  * QUEM EXIGE A SENHA para escrever. A **anamnese** sempre — é o ato do professor, e o
- * envelope vai cifrado ao cofre. O **plano** quando se **edita ou deriva**: a criação dele
+ * envelope vai cifrado ao acervo. O **plano** quando se **edita ou deriva**: a criação dele
  * nasce pela **curadoria** (13/10/2026, «a memória da aula dada pertence à escola»), e a
  * edição de um plano que já existe é escrita de quem o assina. O PO não entra: não tem edição.
  */
@@ -6886,7 +6886,7 @@ async function iniciar() {
     }
   });
 
-  // O carimbo do envelope que o cofre ainda não confirmou. Numa re-tentativa ele
+  // O carimbo do envelope que o acervo ainda não confirmou. Numa re-tentativa ele
   // volta ao motor — sem ele o motor criaria um SEGUNDO envelope no disco.
   let carimboPendente = null;
 
@@ -6977,9 +6977,8 @@ async function iniciar() {
         anotarFicha(dados.id);
         await atualizarFichas();
 
-        // O cofre é um SEGUNDO destino da anamnese. O PO e o plano não vão ao
-        // cofre: o disco é o destino único, e a memória se apaga assim que o
-        // envelope é confirmado.
+        // O ENVELOPE TEM UM DESTINO SÓ: o acervo da escola. As três fontes seguem a mesma
+        // regra, e a memória do navegador — a ponte — só se apaga quando a gravação confirma.
         if (FONTE !== 'anamnese') {
           carimboPendente = null;
           EDITANDO = null;
@@ -6991,24 +6990,27 @@ async function iniciar() {
           $('retomada').classList.add('oculto');
           $('gravacao').innerHTML += '<p class="ok">' + (FONTE === 'po' ? 'Plano de Observação' : 'Plano') + ' gravado.</p>';
         } else {
-          // O cofre: o envelope já está no disco, e uma falha aqui não o
-          // desfaz. Por isso o aviso sai AO LADO do sucesso e dos links — e
-          // por isso a memória do navegador só se apaga no fim, confirmada.
-          // O ACERVO DA ESCOLA (19/10/2026): o repositório É o destino. O servidor já tentou
-          // gravá-la lá no `api/elicitar` (`dados.git`), e é isso que decide se a memória do
-          // navegador — a ponte — pode ser apagada. Apagá-la antes de o commit confirmar era o
-          // que deixava a anamnese só no KV, sem cópia nenhuma.
-          // O ACERVO É O DESTINO ÚNICO (20/10/2026). Antes o envelope ia para o KV e um segundo
-          // passo copiava-o para o repositório: «gravado» e «no repositório» eram coisas
-          // diferentes, e a tela tinha de explicar as duas. Agora a gravação do envelope É a
-          // gravação no repositório (cifrada), e o que a tela diz é uma coisa só.
+          // A ANAMNESE TEM UM DESTINO SÓ (20/10/2026). Antes havia dois: o envelope no acervo
+          // da escola e uma SEGUNDA cópia cifrada no cofre do KV — o mesmo documento gravado
+          // duas vezes, com dois resultados a conciliar na tela e duas contas de cota a pagar.
+          // O acervo é o registo (`escola/<escola>/envelopes/`, cifrado no servidor); o cofre
+          // saiu, e com ele a senha que só servia para cifrar aquela cópia.
+          //
+          // O QUE DECIDE SE A PONTE SE APAGA continua a ser a gravação: só se apaga a memória
+          // do navegador quando o repositório confirmou. Se falhou, ela é a única cópia — e a
+          // tela diz isso, em vez de dizer «gravado».
           const noAcervo = dados.git;
           if (noAcervo && noAcervo.ok === true) {
+            carimboPendente = null;
+            limparMemoria();
+            // Gravou: a senha cumpriu o seu papel. Não fica guardada.
+            esquecerSenha();
+            $('retomada').classList.add('oculto');
             // O CAMINHO, NÃO O CARIMBO (20/10/2026). A mensagem mostrava o carimbo
-            // (`anamnese-20261019-2053`), e a única coisa parecida com um caminho que aparecia
-            // nesta tela era o do COFRE — que é uma chave do KV, não um arquivo. Quem copiava o
-            // do cofre e procurava no GitHub não achava nada, e a conclusão natural era «não
-            // gravou». O que se mostra agora é o endereço que existe, e um link para ele.
+            // (`anamnese-20261019-2053`) — um nome, não um endereço — e a única coisa parecida
+            // com um caminho que aparecia nesta tela era o do cofre, que é uma chave do KV.
+            // Quem copiava o do cofre e procurava no GitHub não achava nada, e a conclusão
+            // natural era «não gravou». O que se mostra é o endereço que existe, com link.
             const caminho = noAcervo.caminho || '';
             const arquivo = caminho ? caminho.split('/').pop() : (dados.id || '');
             $('gravacao').innerHTML += '<p class="ok">gravada no acervo da escola — ' +
@@ -7017,53 +7019,11 @@ async function iniciar() {
                 ? '<p class="sub">no repositório: <a href="https://github.com/tmenegaz/danca/blob/main/' +
                   escapar(caminho) + '" target="_blank" rel="noopener">' + escapar(caminho) + '</a></p>'
                 : '');
-          } else if (noAcervo && noAcervo.ok === false) {
+          } else {
             $('gravacao').innerHTML += '<p class="aviso">a anamnese <b>não</b> foi gravada no acervo' +
-              (noAcervo.erro ? ' (' + escapar(noAcervo.erro) + ')' : '') +
+              (noAcervo && noAcervo.erro ? ' (' + escapar(noAcervo.erro) + ')' : '') +
               '. Ela está inteira no <b>seu navegador</b> — não feche esta janela; tente gravar de ' +
               'novo, que é o mesmo registro e não um segundo.</p>';
-          }
-          try {
-            const senha = senhaDaEscola();
-            if (!senha) throw new Error('informe a senha do professor na barra para guardar a anamnese cifrada.');
-            // Cifra-se o envelope inteiro, no mesmo formato em que foi para o
-            // disco: o cofre devolve-o byte a byte, e é assim que se confere que
-            // o que subiu é o que ficou.
-            const _cifrado = await Cifra.cifrar(JSON.stringify(dados.documento, null, 2) + '\n', senha);
-            const resposta = await fetch('api/anamnese', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contexto: Object.assign(contextoDaBarra(), { carimbo: dados.id }),
-                _cifrado: _cifrado,
-              }),
-            });
-            const retorno = await resposta.json();
-            if (!resposta.ok || !retorno.ok) throw new Error(retorno.erro || ('HTTP ' + resposta.status));
-            // O DEPÓSITO DO NAVEGADOR SÓ SE APAGA QUANDO A VERDADE ESTÁ NO LUGAR. A ponte
-            // existe para o intervalo em que o repositório ainda não confirmou: se o commit
-            // falhou, a memória é a única cópia — e apagá-la seria perder a anamnese com um
-            // «ok» na tela.
-            const confirmadoNoGit = dados.git ? dados.git.ok === true : true;
-            if (confirmadoNoGit) {
-              carimboPendente = null;
-              limparMemoria();
-            }
-            // Gravou: a senha cumpriu o seu papel. Não fica guardada.
-            esquecerSenha();
-            $('retomada').classList.add('oculto');
-            // O COFRE É OUTRA COISA, E AGORA DIZ ISSO. Ele é uma SEGUNDA cópia, cifrada, numa
-            // chave do KV da escola — não é um arquivo do repositório, e o endereço dele não se
-            // procura no GitHub. Sem esta distinção, os dois caminhos pareciam o mesmo e um dos
-            // dois «não existia».
-            $('gravacao').innerHTML += '<p class="sub">cópia no cofre da escola (KV, não é arquivo ' +
-              'do repositório): <code>' + escapar(retorno.chave || dados.id) + '</code></p>';
-          } catch (erro) {
-            // O carimbo fica: a próxima tentativa regrava ESTE envelope, e não um
-            // segundo ao lado dele.
-            $('gravacao').innerHTML += '<p class="erro">a anamnese não foi para o cofre: ' +
-              escapar(erro.message) + ' — o que gravou acima já está guardado; tente de novo ' +
-              'sem recarregar a página.</p>';
           }
         }
       }

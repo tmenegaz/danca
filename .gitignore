@@ -98,6 +98,11 @@ experimentos/*
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
 # separa «mais rápido» de «parece mais rápido» (zero árvores com o cache quente).
 !experimentos/provar-indice-de-proveniencia.js
+# A PROVA DAS DECLARAÇÕES DO ÍNDICE (20/10/2026, Etapa 1 do PLANO-INDICES.md): percorre
+# `professores/**` e classifica cada arquivo (nenhum tipo sem decisão), compara o vocabulário
+# declarado com o do motor e recusa relação que aponte para entidade ou chave inexistente.
+# É citada pela Etapa 1 e pelo REGISTRO — sem ela no clone, a etapa não é conferível.
+!experimentos/provar-declaracoes-do-indice.js
 # A PROVA DOS ACORDEÕES (18/10/2026): as cinco secções da Produção recolhem, e recolhidas a
 # listagem mede a largura inteira. Ela é o que impede o acordeão de voltar a ser só a seta
 # das turmas — e é citada pelo nome no REGISTRO.
@@ -180,3 +185,8 @@ po_ref/
 .vscode/settings.json
 .DS_Store
 *.tmp
+# A prova de que o COFRE DA ANAMNESE saiu (20/10/2026): o registo vai para o acervo e o KV não
+# recebe escrita nenhuma. Citada pelo REGISTRO — e uma prova citada que não existe no clone é
+# uma afirmação que ninguém confere. Ela distingue-se das outras por ser NEGATIVA: mede uma
+# ausência (nenhuma escrita no KV), e por isso cai se o cofre voltar por qualquer caminho.
+!experimentos/provar-anamnese-sem-cofre.js

@@ -25,7 +25,7 @@
  *   <escola>/<professor>/<ciclo>-<carimbo>/<nome-do-arquivo>
  *
  * As funções de chave (`prefixoDaEscola`, `raizDaChave`, `segmento`,
- * `cicloDaChave`) são as MESMAS do cofre — uma escola, uma família de chaves, um
+ * `cicloDaChave`) vivem em `./chaves.js` — uma escola, uma família de chaves, um
  * lugar só. O módulo é PURO (sem `fs`/`path`/`http`/`env`): recebe o adaptador
  * de armazenamento e o corpo, devolve o que produz. Erros de negócio LANÇAM
  * (`Error` com mensagem), para a rota decidir a recusa — o cliente do lançamento
@@ -36,7 +36,7 @@
  *   const r = await lancar(armazenamento, { ciclo, senha, arquivos }, { autorizar, cifrar });
  */
 
-const { prefixoDaEscola, raizDaChave, segmento, cicloDaChave } = require('./cofre.js');
+const { prefixoDaEscola, raizDaChave, segmento, cicloDaChave } = require('./chaves.js');
 
 const basename = (nome) => String(nome).split(/[\\/]/).pop();
 

@@ -487,7 +487,7 @@ function doAmbiente(env, { legado, escola, cifrar } = {}) {
 }
 
 /**
- * O ARMAZENAMENTO COMBINADO: `envelope/` vai para o acervo; o resto (o cofre cifrado, os
+ * O ARMAZENAMENTO COMBINADO: `envelope/` vai para o acervo; o resto (o lançamento cifrado, os
  * cadastros dos Bastidores, o cartão da geração) fica onde sempre esteve.
  *
  * É UMA linha de composição, e é de propósito: a fronteira entre «registro» e «estado» passa a

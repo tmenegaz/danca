@@ -26,7 +26,6 @@ const nucleo = require('../nucleo/elicitar.js');
 const ia = require('../nucleo/ia.js');
 const ficha = require('../nucleo/ficha.js');
 const porta = require('../nucleo/porta.js');
-const cofre = require('../nucleo/cofre.js');
 const lancamento = require('../nucleo/lancamento.js');
 // Os rótulos do checklist do PO — a fonte é o CONTEÚDO, não a derivação.
 const { rotulosDoChecklist, derivadosDoChecklist } = require('../nucleo/derivar-po.js');
@@ -97,8 +96,9 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
    *   1. o DOCUMENTO (`envelope/<id>.json`) declara `contexto.escola` — é o campo que a
    *      proveniência vai ler para cruzar resultados entre escolas, e ele não pode ser o
    *      que o cliente escreveu;
-   *   2. o COFRE monta a CHAVE com ela (`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`);
-   *      uma escola forjada gravava dentro do prefixo de OUTRA escola, no KV compartilhado;
+   *   2. o ACERVO e o COFRE do lançamento montam o CAMINHO/CHAVE com ela
+   *      (`escola/<escola>/envelopes/…`, `<escola>/<professor>/<ciclo>/…`); uma escola forjada
+   *      gravava dentro do prefixo de OUTRA escola;
    *   3. a FONTE do PO e a do plano viram caminho no repositório a partir dela
    *      (`ciclo-01-<escola>-po.md`) — o arquivo cairia no pacote de outra escola.
    *
@@ -471,60 +471,21 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     };
   });
 
-  // 11.1 POST /api/anamnese — o cofre: a anamnese cifrada no navegador entra no
-  //     armazenamento (KV no Worker, disco no Node) sob a chave montada do
-  //     contexto. O cofre não tem a senha: grava o invólucro `_cifrado` como
-  //     veio. É o destino CIFRADO da anamnese (o PO não vai ao cofre).
-  roteador.rota('POST', '/api/anamnese', async ({ request }) => {
-    let corpo = {};
-    try { corpo = await request.json(); } catch { return recusar('corpo nao e JSON'); }
-    if (!corpo || typeof corpo !== 'object' || Array.isArray(corpo)) {
-      return recusar('o corpo precisa ser um objeto com `contexto` e `_cifrado`');
-    }
-    const cifrado = corpo._cifrado || corpo.cifrado;
-    try {
-      return await cofre.guardarAnamnese(armazenamento, comAEscolaDoWorker(corpo.contexto), cifrado);
-    } catch (erro) {
-      const duplicata = /^ja existe uma anamnese/.test(erro.message);
-      return recusar(erro.message, duplicata ? 409 : 400);
-    }
-  });
-
-  // 11.2 GET /api/anamnese — a lista da família (os carimbos, sem extensão).
-  roteador.rota('GET', '/api/anamnese', async ({ url }) => {
-    const lista = await cofre.listarAnamneses(
-      armazenamento,
-      comAEscolaDoWorker({ escola: url.searchParams.get('escola') }).escola,
-      url.searchParams.get('professor'),
-      url.searchParams.get('ciclo'),
-    );
-    if (!lista) return recusar('a lista precisa de ?escola=&professor=&ciclo=');
-    return { ok: true, ...lista };
-  });
-
-  // 11.3 GET /api/anamnese/:carimbo — a leitura verbatim do `_cifrado` (cifra,
-  //      nunca resposta de aluna); o contexto vem da query, como no POST.
-  roteador.rota('GET', '/api/anamnese/:carimbo', async ({ url, params }) => {
-    const carimbo = cofre.semEscape(params.carimbo);
-    if (!carimbo || !cofre.CARIMBO.test(carimbo)) return recusar('carimbo invalido: ' + params.carimbo);
-    const texto = await cofre.lerAnamnese(armazenamento, carimbo, {
-      escola: comAEscolaDoWorker({ escola: url.searchParams.get('escola') }).escola,
-      professor: url.searchParams.get('professor'),
-      ciclo: url.searchParams.get('ciclo'),
-    });
-    if (texto === null) {
-      const contexto = {
-        escola: comAEscolaDoWorker({ escola: url.searchParams.get('escola') }).escola,
-        professor: url.searchParams.get('professor'),
-        ciclo: url.searchParams.get('ciclo'),
-      };
-      if (!cofre.chaveDaAnamnese({ ...contexto, carimbo })) {
-        return recusar('a leitura precisa de ?escola=&professor=&ciclo=');
-      }
-      return recusar('anamnese nao encontrada: ' + carimbo, 404);
-    }
-    return resposta(200, MIME['.json'], texto);
-  });
+  /*
+   * AS ROTAS DO COFRE SAÍRAM (20/10/2026).
+   *
+   * Havia três (`POST /api/anamnese`, `GET /api/anamnese`, `GET /api/anamnese/:carimbo`): a
+   * anamnese ia para o acervo da escola em `api/elicitar` e uma SEGUNDA cópia cifrada ia para
+   * o cofre do KV logo depois. O mesmo documento em dois sítios, com dois resultados a
+   * conciliar na tela e duas contas de cota a pagar — e o pior dos dois mundos quando só uma
+   * das gravações passava. O acervo é o registo: `escola/<escola>/envelopes/<carimbo>.json`,
+   * cifrado pelo SERVIDOR ao gravar (`acervo-envelopes.js`), e é de lá que se lê e se lista.
+   *
+   * Nada se perdeu: a leitura de um `_cifrado` continua a ser possível pelo acervo (o
+   * ficheiro é cifrado com `SENHA_CRIPTO`, o mesmo `tools/lib-cifra.js` do pacote), e o que
+   * aqui saiu era a SEGUNDA estrada para o mesmo dado. O que ficar no KV de escolas já criadas
+   * é apagado pelo expurgo, que enumera os prefixos da escola.
+   */
 
   // 11.4 /api/receber — o lançamento da aula. Contrato do formulário
   //      (`tools/templates/lancamento.html`): o cliente lê `dados.erro` em
@@ -699,7 +660,7 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
          *
          * O `escrever-ciclo.js` grava as fontes uma a uma e COMPÕE o `.conf` da turma —
          * é dele que o gerador lê os `DOCS`. Quando uma escrita falhava (uma fonte que
-         * não casou, o cofre, a rede), o disparo partia assim mesmo: o workflow arrancava,
+         * não casou, a rede), o disparo partia assim mesmo: o workflow arrancava,
          * não achava fonte nenhuma e morria com «DOCS está vazio». Pior que o erro era o
          * silêncio — a tela dizia «gravado», e o professor só descobria no GitHub.
          *

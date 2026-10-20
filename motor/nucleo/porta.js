@@ -720,8 +720,8 @@ async function gravarEnvelope(armazenamento, documento, relatorio) {
   try {
     const r = await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
     // O CAMINHO ONDE O REGISTO FICOU, quando o armazenamento o sabe (o acervo sabe: é o
-    // repositório). Quem mostra ao professor tem de mostrar o endereço que existe — o carimbo
-    // sozinho não se procura, e o caminho do cofre é de OUTRO sítio.
+    // repositório). Quem mostra ao professor tem de mostrar o endereço que existe: o carimbo
+    // sozinho é um nome, e um nome não se procura.
     const caminho = r && typeof r === 'object' ? (r.caminho || null) : null;
     const antigo = r && typeof r === 'object' ? r.noArmazenamentoAntigo === true : false;
     return { ok: true, linhas, caminho, noArmazenamentoAntigo: antigo };
