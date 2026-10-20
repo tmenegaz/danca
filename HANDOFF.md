@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T08:35:53-0300`
-Commit atual: `ad93892` — fix(estrutura): a escola publica um índice de turmas, e o menu deixa de nascer vazio
+Gerado em: `2026-10-20T08:43:11-0300`
+Commit atual: `caf2e25` — fix(po): a ponte de produção repassa a curadoria ao roteador
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+caf2e25 fix(po): a ponte de produção repassa a curadoria ao roteador
+9628405 chore(estrutura): regerar o índice do acervo e o HANDOFF depois do expurgo da batata
 ad93892 fix(estrutura): a escola publica um índice de turmas, e o menu deixa de nascer vazio
 25f4751 fix(po): o Plano de Observação de uma turma deixa de oferecer as alunas das outras
 b04f240 fix(tools): o hook nao recusa a variante que ainda nao tem aula
@@ -81,8 +83,6 @@ ca622fc feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 9212232 feat(po): o PO elicitado vira a fonte do ciclo
 ae2d80f feat(acervo): envelope/po-20261020-0758.json
 161961f feat(acervo): envelope/.indice.json
-70faafd chore(estrutura): reancorar a cadeia das fontes alteradas
-e32bfb3 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 ```
 
 ## Por professor
@@ -194,6 +194,16 @@ erro.
 manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
 classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
 Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
+
+**Correção de 20/10/2026 (mesmo dia) — a ponte deitava fora a curadoria.** A entrada acima diz que
+o recorte «resolve-se no servidor». Resolvia no ROTEADOR, não na ponte: o `montarPorta` recebia
+`lerCuradorias` e não o punha no objecto do `criarRotas`. Medido no Worker depois do deploy —
+`?plano=plano-20261020-0739` respondia `turma: Balé Nível 1 — Teste 1` e `sujeitos: []`. O sintoma
+era mudo e plausível (com curadoria ausente a regra conclui, correctamente, que ninguém está
+atribuído), e por isso passou: a prova chamava `criarRotas` **de fora**, com a função já nas mãos, e
+media as pontas em vez da ligação. A prova ganhou a secção **E**, que monta a **ponte verdadeira**
+(`montarPorta`) com uma `lerCuradorias` que conta as chamadas: **25 → 27 asserções**, e o controlo
+negativo — sem o repasse — dá **2 falhas**.
 
 ## O que está pendente
 
