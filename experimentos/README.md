@@ -100,6 +100,7 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-acervo-envelopes.js` | os envelopes no **repositório**: o caminho, a anamnese cifrada, a listagem numa chamada, o 409 do índice, o KV antigo como reserva e a composição `envelope/` × resto (41 asserções) | não |
 | `provar-indice-de-proveniencia.js` | o **índice do acervo**: determinismo, reconstrução, «substitui a varredura» (zero árvores), o que não guarda, a forma da resposta e a invalidação por gravação (57 asserções) | não |
 | `provar-listas-sem-repeticao.js` | a **carga de cada página**: nenhum endereço pedido duas vezes, o orçamento de leituras, e a lista que não cresce com o acervo (16 asserções) | não (jsdom) |
+| `provar-anamnese-sem-cofre.js` | a anamnese **sai do KV**: o registo vai para o acervo, o KV em memória fica com **zero escritas**, as três rotas do cofre respondem 404 e o cliente não pede a segunda cópia (13 asserções — **negativa**: mede uma ausência) | não |
 | `provar-expurgo-sem-listagem.js` | o expurgo com a enumeração do KV recusada: o registo de chaves, a pendência no elo e o `POST /api/expurgar-kv` (40 asserções) | não |
 
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
