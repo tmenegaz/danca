@@ -2,7 +2,8 @@
   "versao": 3,
   "nomes": [
     "anamnese-20261020-0734.json",
-    "anamnese-20261020-0735.json"
+    "anamnese-20261020-0735.json",
+    "anamnese-20261020-0736.json"
   ],
   "resumos": {
     "anamnese-20261020-0734.json": {
@@ -22,6 +23,15 @@
       "ciclo": "01",
       "ajuste_de": null,
       "aluna": "Aluna B"
+    },
+    "anamnese-20261020-0736.json": {
+      "id": "anamnese-20261020-0736",
+      "fonte": "anamnese",
+      "escola": "calango",
+      "professor": "sapo-bailarino",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "aluna": "Aluna C"
     }
   }
 }
