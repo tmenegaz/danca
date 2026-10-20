@@ -517,6 +517,120 @@ async function porta() {
   const metodosPlano = [...new Set(PEDIDOS.map((p) => p.metodo))];
   assert.deepEqual(metodosPlano, ['GET']);
   ok('o plano só fez GET — nenhum envio, nenhuma gravação');
+
+  // ---- 3b-bis. O PLANO CHEGA PREENCHIDO INTEIRO, NÃO MEIO (20/10/2026) ----
+  //
+  // O QUE ESTAVA A ACONTECER. O fixture preenchia, e a tela mostrava metade em branco. A
+  // causa não era o carregador: era a FORMA do valor no JSON não ser a que o widget lê.
+  //   · os MARCOS PARCIAIS estavam numa STRING com quebras de linha, e a lista numerada
+  //     só aceita ARRAY — o bloco 3 abria vazio, e com ele os blocos que dele derivam (4, 5 e 6);
+  //   · o VOLUME e a CONDIÇÃO DE REGISTRO não estavam no fixture;
+  //   · a NOTAÇÃO não estava;
+  //   · a ORIGEM era uma string, e o campo é de escolha MÚLTIPLA — nenhuma caixa marcada,
+  //     e a frase inteira caía no «outra origem».
+  // Um fixture com a forma errada não falha em sítio nenhum: preenche o que pode e deixa o
+  // resto em branco. Esta secção exige o PREENCHIMENTO VISÍVEL, campo a campo.
+  const marcos = JSON.parse(await plano.win.eval('JSON.stringify(RESPOSTAS.get("marcos-por-aula"))'));
+  assert.ok(Array.isArray(marcos), 'os marcos parciais não são uma lista: ' + typeof marcos);
+  assert.equal(marcos.length, FIXTURE.plano[0].respostas['marcos-por-aula'].length);
+  ok('os marcos parciais são uma LISTA — a forma que a lista numerada lê');
+
+  // O que se vê na tela, não só o que está no depósito: as linhas do bloco 3 com o texto.
+  const linhasVisiveis = await plano.win.eval(`(function(){
+    var i = MAPA.nos.findIndex(function(n){return n.id === 'marcos-por-aula';});
+    INDICE = i; renderPergunta();
+    return JSON.stringify(Array.prototype.slice
+      .call(document.querySelectorAll('#pergunta [data-lista]'))
+      .map(function(el){ return el.value; }));
+  })()`);
+  const visiveis = JSON.parse(linhasVisiveis);
+  assert.deepEqual(visiveis, FIXTURE.plano[0].respostas['marcos-por-aula'],
+    'o bloco dos marcos abriu com as linhas em branco');
+  ok('o bloco dos marcos abre com as linhas PREENCHIDAS na tela — não o campo vazio');
+
+  // Os três campos que faltavam, e o que estava com a forma errada.
+  const registroDoPlano = JSON.parse(await plano.win.eval(
+    'JSON.stringify(RESPOSTAS.get("contexto-registro"))'));
+  assert.ok(registroDoPlano && Array.isArray(registroDoPlano.observa)
+    && registroDoPlano.observa.indexOf('o próprio professor') !== -1,
+  'a condição de registro não diz quem observa: ' + JSON.stringify(registroDoPlano));
+  ok('a condição de registro diz quem observa — «o próprio professor»');
+
+  const volume = JSON.parse(await plano.win.eval('JSON.stringify(RESPOSTAS.get("contexto-volume"))'));
+  assert.equal(volume.min, 3);
+  assert.equal(volume.max, 6);
+  assert.equal(volume.unidade, 'séries');
+  ok('o volume de trabalho vem como faixa «3 a 6 séries»');
+
+  assert.equal(await plano.win.eval('RESPOSTAS.get("contexto-notacao")'), 'Benesh');
+  assert.equal(await plano.win.eval('RESPOSTAS.get("contexto-metodologia-origem")'), 'Eu escolho');
+  ok('a notação dominada é Benesh, e quem escolhe a metodologia é «Eu escolho»');
+
+  const origem = JSON.parse(await plano.win.eval('JSON.stringify(RESPOSTAS.get("proveniencia"))'));
+  assert.ok(Array.isArray(origem), 'o registro de origem não é uma lista de escolhas: ' + typeof origem);
+  assert.ok(origem.indexOf('Plano derivado de literatura de apoio sobre corpo e aula') !== -1,
+    'o registro de origem não marca a literatura de apoio: ' + JSON.stringify(origem));
+  ok('o registro de origem é escolha múltipla, e marca a literatura de apoio');
+
+  // AS TRÊS MATRIZES POR MARCO seguem a contagem dos marcos: com 3 marcos não pode haver
+  // linha de marco 4 e 5 (órfãs) nem marcos sem linha.
+  const nMarcos = marcos.length;
+  for (const id of ['estrutura-de-cada-aula', 'aula-1-parametro']) {
+    const linhas = JSON.parse(await plano.win.eval('JSON.stringify(RESPOSTAS.get(' + JSON.stringify(id) + '))'));
+    const numeros = linhas.map((l) => l.marco);
+    assert.deepEqual(numeros, Array.from({ length: nMarcos }, (_, i) => i + 1),
+      id + ' não casa com os marcos: ' + JSON.stringify(numeros));
+  }
+  ok('as matrizes por marco têm uma linha por marco — nem órfãs, nem marcos sem linha');
+
+  // Os blocos da aula que os marcos marcam são os que a distribuição de volume declara.
+  const blocosMarcados = [...new Set(
+    JSON.parse(await plano.win.eval('JSON.stringify(RESPOSTAS.get("estrutura-de-cada-aula"))'))
+      .flatMap((l) => l.marcados))].sort();
+  const blocosDoVolume = JSON.parse(await plano.win.eval(
+    'JSON.stringify(RESPOSTAS.get("distribuicao-de-volume").linhas.map(function(l){return l["Bloco"];}))'
+  )).sort();
+  assert.deepEqual(blocosDoVolume, blocosMarcados,
+    'a distribuição de volume declara blocos que os marcos não marcam: ' +
+    JSON.stringify({ blocosDoVolume, blocosMarcados }));
+  ok('a distribuição de volume só declara os blocos que os marcos marcam');
+
+  // OS CAMPOS QUE VÊM DA TURMA resolvem-se do CADASTRO (frequência, duração, calendário).
+  // Eles não estão no fixture porque não são do fixture: são da turma. O que se prova é que
+  // eles RESOLVEM — e a frequência lia-se de um campo (`frequencia`) que a turma pode não
+  // ter, embora tenha os dias de que ela sai; o plano ficava com um obrigatório em branco
+  // sobre um dado que a escola declarou.
+  const daTurma = JSON.parse(await plano.win.eval(`(function(){
+    var saida = {};
+    MAPA.nos.forEach(function(n){
+      if (!n.daTurma) return;
+      var v = valorDaTurma(n);
+      saida[n.id] = v === undefined || v === null ? null : v;
+    });
+    return JSON.stringify(saida);
+  })()`));
+  assert.ok(daTurma['contexto-frequencia'] && daTurma['contexto-frequencia'].vezes === 2,
+    'a frequência não saiu dos dias da turma: ' + JSON.stringify(daTurma['contexto-frequencia']));
+  assert.ok(daTurma['contexto-duracao'] && daTurma['contexto-duracao'].length,
+    'a duração não saiu da turma: ' + JSON.stringify(daTurma['contexto-duracao']));
+  assert.ok(daTurma['contexto-calendario'] && daTurma['contexto-calendario'].inicio,
+    'o calendário não saiu da turma: ' + JSON.stringify(daTurma['contexto-calendario']));
+  ok('frequência, duração e calendário vêm do cadastro da turma — sem campo em branco');
+
+  // E o que o formulário exige fica todo respondido quando se passa pelos campos do
+  // cadastro (é o que acontece ao avançar). Sem isto, «preenchido» seria opinião.
+  const faltamNoPlano = await plano.win.eval(`(function(){
+    MAPA.nos.forEach(function(n){
+      if (!n.daTurma) return;
+      var v = valorDaTurma(n);
+      if (v !== undefined && v !== null) RESPOSTAS.set(n.id, v);
+    });
+    atualizarBarra();
+    return JSON.stringify(obrigatoriosFaltando().map(function(n){return n.id;}));
+  })()`);
+  assert.equal(faltamNoPlano, '[]', 'o plano não ficou completo: faltam ' + faltamNoPlano);
+  ok('o plano fica sem nenhum obrigatório em falta — nada por preencher');
+
   plano.dom.window.close();
 
   // ---- 3c. PLANO DE OBSERVAÇÃO ----

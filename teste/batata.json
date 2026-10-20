@@ -481,7 +481,11 @@
         "objetivo-geral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
         "contexto-metodologia": "RAD",
         "contexto-metodologia-origem": "Eu escolho",
-        "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
+        "marcos-por-aula": [
+          "reconhecer o apoio e alinhar o eixo vertical",
+          "transferir o peso entre os pés sem perder o alinhamento",
+          "sustentar a transferência com musicalidade e controle do movimento"
+        ],
         "estrutura-de-cada-aula": [
           {
             "marco": 1,
@@ -493,32 +497,16 @@
           {
             "marco": 2,
             "marcados": [
-              "Solo",
+              "Barra",
               "Centro"
             ]
           },
           {
             "marco": 3,
             "marcados": [
-              "Barra",
-              "Centro"
-            ]
-          },
-          {
-            "marco": 4,
-            "marcados": [
+              "Solo",
               "Centro",
               "Musicalidade"
-            ]
-          },
-          {
-            "marco": 5,
-            "marcados": [
-              "Solo",
-              "Barra",
-              "Centro",
-              "Musicalidade",
-              "Expressão"
             ]
           }
         ],
@@ -542,20 +530,6 @@
             "marcados": [
               "Battement tendu",
               "Rond de jambe"
-            ]
-          },
-          {
-            "marco": 4,
-            "marcados": [
-              "Port de bras"
-            ]
-          },
-          {
-            "marco": 5,
-            "marcados": [
-              "Plié",
-              "Battement tendu",
-              "Port de bras"
             ]
           }
         ],
@@ -587,21 +561,21 @@
         "aula-1-sequencia": [
           {
             "Bloco": "Solo",
-            "Objetivo específico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+            "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
             "Conteúdo do nível": "Plié",
             "Tempos": "8",
             "Compasso": "4/4"
           },
           {
             "Bloco": "Barra",
-            "Objetivo específico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+            "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
             "Conteúdo do nível": "Battement tendu",
             "Tempos": "8",
             "Compasso": "4/4"
           },
           {
             "Bloco": "Centro",
-            "Objetivo específico": "Aula 2 — transferir o peso sem perder o eixo.",
+            "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
             "Conteúdo do nível": "Port de bras",
             "Tempos": "16",
             "Compasso": "3/4"
@@ -612,7 +586,25 @@
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
-        "proveniencia": "Plano de teste 2, gerado para exercitar o formulário."
+        "proveniencia": [
+          "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
+          "Plano derivado de literatura de apoio sobre corpo e aula"
+        ],
+        "contexto-volume": {
+          "min": 3,
+          "max": 6,
+          "unidade": "séries"
+        },
+        "contexto-registro": {
+          "presentes": [
+            "professor",
+            "alunas da turma"
+          ],
+          "observa": [
+            "o próprio professor"
+          ]
+        },
+        "contexto-notacao": "Benesh"
       },
       "notas": {}
     },
@@ -622,7 +614,11 @@
         "objetivo-geral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
         "contexto-metodologia": "RAD",
         "contexto-metodologia-origem": "Eu escolho",
-        "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
+        "marcos-por-aula": [
+          "reconhecer o apoio e alinhar o eixo vertical",
+          "transferir o peso entre os pés sem perder o alinhamento",
+          "sustentar a transferência com musicalidade e controle do movimento"
+        ],
         "estrutura-de-cada-aula": [
           {
             "marco": 1,
@@ -634,32 +630,16 @@
           {
             "marco": 2,
             "marcados": [
-              "Solo",
+              "Barra",
               "Centro"
             ]
           },
           {
             "marco": 3,
             "marcados": [
-              "Barra",
-              "Centro"
-            ]
-          },
-          {
-            "marco": 4,
-            "marcados": [
+              "Solo",
               "Centro",
               "Musicalidade"
-            ]
-          },
-          {
-            "marco": 5,
-            "marcados": [
-              "Solo",
-              "Barra",
-              "Centro",
-              "Musicalidade",
-              "Expressão"
             ]
           }
         ],
@@ -683,20 +663,6 @@
             "marcados": [
               "Battement tendu",
               "Rond de jambe"
-            ]
-          },
-          {
-            "marco": 4,
-            "marcados": [
-              "Port de bras"
-            ]
-          },
-          {
-            "marco": 5,
-            "marcados": [
-              "Plié",
-              "Battement tendu",
-              "Port de bras"
             ]
           }
         ],
@@ -728,21 +694,21 @@
         "aula-1-sequencia": [
           {
             "Bloco": "Solo",
-            "Objetivo específico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+            "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
             "Conteúdo do nível": "Plié",
             "Tempos": "8",
             "Compasso": "4/4"
           },
           {
             "Bloco": "Barra",
-            "Objetivo específico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+            "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
             "Conteúdo do nível": "Battement tendu",
             "Tempos": "8",
             "Compasso": "4/4"
           },
           {
             "Bloco": "Centro",
-            "Objetivo específico": "Aula 2 — transferir o peso sem perder o eixo.",
+            "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
             "Conteúdo do nível": "Port de bras",
             "Tempos": "16",
             "Compasso": "3/4"
@@ -753,7 +719,25 @@
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
-        "proveniencia": "Plano de teste 2, gerado para exercitar o formulário."
+        "proveniencia": [
+          "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
+          "Plano derivado de literatura de apoio sobre corpo e aula"
+        ],
+        "contexto-volume": {
+          "min": 3,
+          "max": 6,
+          "unidade": "séries"
+        },
+        "contexto-registro": {
+          "presentes": [
+            "professor",
+            "alunas da turma"
+          ],
+          "observa": [
+            "o próprio professor"
+          ]
+        },
+        "contexto-notacao": "Benesh"
       },
       "notas": {}
     },
@@ -763,7 +747,11 @@
         "objetivo-geral": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 3 — Teste 2, com musicalidade e controle do movimento.",
         "contexto-metodologia": "RAD",
         "contexto-metodologia-origem": "Eu escolho",
-        "marcos-por-aula": "Aula 1 — reconhecer o apoio e o alinhamento do pé.\nAula 2 — transferir o peso sem perder o eixo.\nAula 3 — coordenar braços e pernas na sequência.\nAula 4 — sustentar o movimento com resposta ao pulso.\nAula 5 — revisar e apresentar a sequência.",
+        "marcos-por-aula": [
+          "reconhecer o apoio e alinhar o eixo vertical",
+          "transferir o peso entre os pés sem perder o alinhamento",
+          "sustentar a transferência com musicalidade e controle do movimento"
+        ],
         "estrutura-de-cada-aula": [
           {
             "marco": 1,
@@ -775,32 +763,16 @@
           {
             "marco": 2,
             "marcados": [
-              "Solo",
+              "Barra",
               "Centro"
             ]
           },
           {
             "marco": 3,
             "marcados": [
-              "Barra",
-              "Centro"
-            ]
-          },
-          {
-            "marco": 4,
-            "marcados": [
+              "Solo",
               "Centro",
               "Musicalidade"
-            ]
-          },
-          {
-            "marco": 5,
-            "marcados": [
-              "Solo",
-              "Barra",
-              "Centro",
-              "Musicalidade",
-              "Expressão"
             ]
           }
         ],
@@ -824,20 +796,6 @@
             "marcados": [
               "Battement tendu",
               "Rond de jambe"
-            ]
-          },
-          {
-            "marco": 4,
-            "marcados": [
-              "Port de bras"
-            ]
-          },
-          {
-            "marco": 5,
-            "marcados": [
-              "Plié",
-              "Battement tendu",
-              "Port de bras"
             ]
           }
         ],
@@ -869,21 +827,21 @@
         "aula-1-sequencia": [
           {
             "Bloco": "Solo",
-            "Objetivo específico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+            "Objetivo específico": "1 — reconhecer o apoio e alinhar o eixo vertical",
             "Conteúdo do nível": "Plié",
             "Tempos": "8",
             "Compasso": "4/4"
           },
           {
             "Bloco": "Barra",
-            "Objetivo específico": "Aula 1 — reconhecer o apoio e o alinhamento do pé.",
+            "Objetivo específico": "2 — transferir o peso entre os pés sem perder o alinhamento",
             "Conteúdo do nível": "Battement tendu",
             "Tempos": "8",
             "Compasso": "4/4"
           },
           {
             "Bloco": "Centro",
-            "Objetivo específico": "Aula 2 — transferir o peso sem perder o eixo.",
+            "Objetivo específico": "3 — sustentar a transferência com musicalidade e controle do movimento",
             "Conteúdo do nível": "Port de bras",
             "Tempos": "16",
             "Compasso": "3/4"
@@ -894,7 +852,25 @@
         "referencias": "RAD (2015) e material de teste do Projeto Ciclo.",
         "musicas-videos": "Faixa de teste em 4/4 e 3/4; vídeo de referência de teste.",
         "repertorio": "Sequência de teste com plié, tendu e port de bras.",
-        "proveniencia": "Plano de teste 2, gerado para exercitar o formulário."
+        "proveniencia": [
+          "Plano derivado da metodologia RAD, adaptado ao âmbito da turma",
+          "Plano derivado de literatura de apoio sobre corpo e aula"
+        ],
+        "contexto-volume": {
+          "min": 3,
+          "max": 6,
+          "unidade": "séries"
+        },
+        "contexto-registro": {
+          "presentes": [
+            "professor",
+            "alunas da turma"
+          ],
+          "observa": [
+            "o próprio professor"
+          ]
+        },
+        "contexto-notacao": "Benesh"
       },
       "notas": {}
     }

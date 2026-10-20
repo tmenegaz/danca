@@ -1477,7 +1477,11 @@ function periodoDoPlano() {
 /** A frequência do plano como o motor a grava: `{vezes, por, dias}`. */
 function frequenciaDoPlano() {
   const v = RESPOSTAS.get('contexto-frequencia');
-  if (!v || typeof v !== 'object') return {};
+  // A FORMA É SEMPRE A MESMA (20/10/2026). Sem resposta, a função devolvia `{}` — e quem a
+  // lê faz `freqDoPlano.dias.length`, que estoura com «Cannot read properties of undefined».
+  // Acontecia a quem chegasse ao «Número total de aulas» sem ter passado pela frequência
+  // (turma sem ritmo declarado): a tela morria em vez de mostrar o campo vazio.
+  if (!v || typeof v !== 'object') return { vezes: null, dias: [] };
   return { vezes: Number(v.vezes) || null, dias: Array.isArray(v.dias) ? v.dias : [] };
 }
 
@@ -1525,8 +1529,16 @@ function valorDaTurma(no) {
   const t = turmaDoPlano();
   if (!t) return undefined;
   if (no.daTurma === 'frequencia') {
-    if (!t.frequencia) return undefined;
-    return { vezes: t.frequencia, por: 'semanal', dias: Array.isArray(t.dias) ? t.dias : [] };
+    // A FREQUÊNCIA SAI DOS DIAS (20/10/2026). O cadastro da turma grava `frequencia` — mas
+    // ela é o NÚMERO DE DIAS, e é o que a Produção já lê assim (`frequenciaDaTurma`, em
+    // `bastidores.js`: «os dias vêm primeiro, e o valor declarado vale para as turmas
+    // gravadas antes»). Aqui lia-se só o campo, e uma turma com dias e sem o número
+    // deixava o plano com a frequência VAZIA — um obrigatório em branco sobre um dado que
+    // a escola declarou. A regra passa a ser a mesma dos dois lados.
+    const dias = Array.isArray(t.dias) ? t.dias.filter(Boolean) : [];
+    const vezes = dias.length || Number(t.frequencia) || 0;
+    if (!vezes) return undefined;
+    return { vezes: vezes, por: 'semanal', dias: dias };
   }
   if (no.daTurma === 'duracao') {
     if (!t.duracaoMin) return undefined;
