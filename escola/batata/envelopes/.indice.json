@@ -1,5 +1,17 @@
 {
   "versao": 3,
-  "nomes": [],
-  "resumos": {}
+  "nomes": [
+    "anamnese-20261020-0942.json"
+  ],
+  "resumos": {
+    "anamnese-20261020-0942.json": {
+      "id": "anamnese-20261020-0942",
+      "fonte": "anamnese",
+      "escola": "batata",
+      "professor": "sapo-bailarino",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "aluna": "Aluna A"
+    }
+  }
 }
