@@ -604,7 +604,14 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
        * que a tela já lê para decidir se limpa a memória do navegador.
        */
       resultado.git = resultado.gravado
-        ? { ok: true, fonte: 'acervo da escola' }
+        ? {
+          ok: true,
+          fonte: resultado.noArmazenamentoAntigo ? 'armazenamento antigo' : 'acervo da escola',
+          // O CAMINHO VAI PARA A TELA. A mensagem mostrava o carimbo, e o professor não tinha
+          // onde procurar no GitHub; o caminho do cofre, que a tela também mostrava, é de uma
+          // chave do KV — procurá-lo no repositório não acha nada, e não é erro de quem procura.
+          caminho: resultado.caminhoNoAcervo || null,
+        }
         : { ok: false, erro: resultado.erroDaGravacao || 'o registro não foi gravado' };
 
       /*

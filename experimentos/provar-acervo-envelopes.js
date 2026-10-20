@@ -474,6 +474,69 @@ async function main() {
       indice.nomes.indexOf('plano-20261019-1900.json') === -1, indice.nomes);
   }
 
+  // =========================================================== J
+  console.log('\nJ. A tela mostra o caminho que existe — não o carimbo nem o do cofre');
+  {
+    // O DEFEITO REAL (20/10/2026, escola `breu`). A tela dizia «anamnese no acervo da escola —
+    // anamnese-20261019-2053» e, logo abaixo, «anamnese cifrada em
+    // breu/sapo-bailarino/01/anamnese/anamnese-20261019-2053». O primeiro é um CARIMBO (não se
+    // procura); o segundo é o caminho do COFRE, que é uma chave do KV e não existe no
+    // repositório. Quem copiou o segundo e procurou no GitHub não achou nada — e concluiu que
+    // não tinha gravado. O registo estava lá, em `escola/breu/envelopes/`.
+    const gh = githubFalso();
+    const a = criarAcervo(gh);
+    const r = await a.guardar('envelope/anamnese-20261019-1842.json',
+      JSON.stringify(ANAMNESE, null, 2) + '\n');
+    checar('a gravação devolve o CAMINHO no repositório',
+      r.caminho === 'escola/calango/envelopes/anamnese-20261019-1842.json', r.caminho);
+    checar('e o caminho é o de um arquivo que existe mesmo',
+      gh.arquivos.has(r.caminho));
+
+    // SEM ACERVO (sem token), não se inventa caminho: o resultado diz que ficou no antigo.
+    const kvAntigo = criarMemoria();
+    const semAcervo = acervo.criarAcervoDeEnvelopes({ token: null, escola: 'calango', legado: kvAntigo, fetchImpl: gh.fetch });
+    const rAntigo = await semAcervo.guardar('envelope/plano-20261019-1900.json', JSON.stringify(PLANO) + '\n');
+    checar('sem acervo o resultado diz que ficou no armazenamento antigo',
+      rAntigo.noArmazenamentoAntigo === true);
+    checar('e NÃO declara um caminho de repositório que não existe',
+      rAntigo.caminho === undefined || rAntigo.caminho === null, rAntigo.caminho);
+
+    // A ROTA entrega-o à tela.
+    const { criarRotas } = require('../motor/servidor/rotas.js');
+    const rotas = criarRotas({
+      armazenamento: criarAcervo(githubFalso()),
+      conteudo: ler('conteudo/anamnese.json'),
+      esquema: ler('envelope/elicitacao-schema.json'),
+      conteudoPO: ler('po/conteudo/po.json'),
+      conteudoPlano: ler('plano/conteudo/plano.json'),
+      fuso: 'America/Sao_Paulo',
+      escolaDoWorker: 'calango',
+      // O carimbo: `identificar` compõe o id a partir dele e o `gerado_em` é o próprio carimbo
+      // — a forma é a que o esquema exige (`AAAA-MM-DDTHH:MM`).
+      agora: () => '2026-10-19T18:42',
+    });
+    const pedido = await rotas.responder(new Request('http://local/api/elicitar', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({
+        fonte: 'anamnese',
+        // AS RESPOSTAS QUE O FORMULÁRIO DA ANAMNESE TEM (o conteúdo é o real; um id inventado
+        // não passa na validação do documento, e a prova mediria a recusa em vez do caminho).
+        respostas: {
+          apelido: { valor: 'Ana María', origem: 'declarado' },
+          'perfil-de-entrada': { valor: 'iniciante', origem: 'declarado' },
+          'observacao-inicial': { valor: ['Bom'], origem: 'declarado' },
+        },
+        contexto: { escola: 'calango', professor: 'sapo-bailarino', ciclo: '01', aluna: 'Ana María' },
+      }),
+    }));
+    const corpo = JSON.parse(await pedido.text());
+    checar('a rota do «Guardar» devolve `git.caminho` para a tela',
+      corpo.gravado === true && corpo.git && corpo.git.ok === true
+        && /^escola\/calango\/envelopes\/anamnese-20261019-1842\.json$/.test(corpo.git.caminho || ''),
+      { gravado: corpo.gravado, git: corpo.git, erros: corpo.errosDoDocumento });
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));

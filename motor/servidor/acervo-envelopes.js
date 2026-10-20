@@ -296,6 +296,11 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
           ok: true,
           status: resposta.status,
           criado: !sha,
+          // O CAMINHO NO REPOSITÓRIO VAI NA RESPOSTA (20/10/2026). A tela mostrava o CARIMBO e o
+          // caminho do COFRE — e quem copiava o segundo para procurar no GitHub não achava nada,
+          // porque o cofre é uma chave do KV, não um arquivo. O que se mostra tem de ser o que
+          // existe, e o endereço disso é este.
+          caminho: caminhoDaChave(slug, chave),
           commit: dados && dados.commit && dados.commit.sha ? dados.commit.sha : null,
         };
       }
@@ -341,7 +346,12 @@ function criarAcervoDeEnvelopes({ token, dono, repo, ref, escola, senhaCripto, c
       // armazenamento não pode transformar «não sei escrever no repositório» em «não sei
       // gravar». Quem tem token grava no acervo — e o KV envelhece sem ser escrito.
       if (!token || !slug) {
-        if (legado && typeof legado.guardar === 'function') return legado.guardar(chave, texto);
+        if (legado && typeof legado.guardar === 'function') {
+          const r = await legado.guardar(chave, texto);
+          // SEM ACERVO NÃO HÁ CAMINHO NO REPOSITÓRIO — e inventá-lo seria mentir sobre onde o
+          // dado está. O resultado diz que ficou no armazenamento antigo, e a tela diz o mesmo.
+          return Object.assign({}, r, { noArmazenamentoAntigo: true });
+        }
         exigirToken();   // sem um nem outro: a falta tem nome
       }
       const nome = String(chave || '');

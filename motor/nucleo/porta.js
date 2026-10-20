@@ -718,8 +718,13 @@ async function gravarEnvelope(armazenamento, documento, relatorio) {
   }
 
   try {
-    await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
-    return { ok: true, linhas };
+    const r = await armazenamento.guardar(chave, JSON.stringify(documento, null, 2) + '\n');
+    // O CAMINHO ONDE O REGISTO FICOU, quando o armazenamento o sabe (o acervo sabe: é o
+    // repositório). Quem mostra ao professor tem de mostrar o endereço que existe — o carimbo
+    // sozinho não se procura, e o caminho do cofre é de OUTRO sítio.
+    const caminho = r && typeof r === 'object' ? (r.caminho || null) : null;
+    const antigo = r && typeof r === 'object' ? r.noArmazenamentoAntigo === true : false;
+    return { ok: true, linhas, caminho, noArmazenamentoAntigo: antigo };
   } catch (erro) {
     // O nome ficou órfão no índice; tira-se, sem que a falha da limpeza esconda a de origem.
     try { await esquecerDoIndice(armazenamento, relatorio.id + '.json'); } catch (e) { /* já falhou o que importa */ }
@@ -1063,6 +1068,10 @@ async function elicitar(armazenamento, corpo, dados) {
     // O MOTIVO de não ter gravado — a rota e a tela dizem-no em vez de deixar o professor a
     // adivinhar por que o «Guardar» não guardou (20/10/2026).
     erroDaGravacao: gravacao.ok ? null : (gravacao.erro || null),
+    // ONDE FICOU. `caminho` é o do repositório, quando o acervo é o destino; `null` quando não
+    // se sabe (o armazenamento antigo não tem caminho a declarar).
+    caminhoNoAcervo: gravacao.ok ? (gravacao.caminho || null) : null,
+    noArmazenamentoAntigo: gravacao.noArmazenamentoAntigo === true,
     estado,
     id: relatorio.id,
     contagem: relatorio.contagem,

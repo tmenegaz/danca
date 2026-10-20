@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T20:45:59-0300`
-Commit atual: `b18f45a` — feat(estrutura): criar a escola breu (motor completo)
+Gerado em: `2026-10-19T20:59:25-0300`
+Commit atual: `664607f` — feat(acervo): envelope/anamnese-20261019-2053.json
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,12 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+664607f feat(acervo): envelope/anamnese-20261019-2053.json
+d91c0b9 feat(acervo): envelope/.indice.json
+e6c455a feat(acervo): envelope/anamnese-20261019-2051.json
+7e2798b feat(acervo): envelope/.indice.json
+558e43d fix(estrutura): o índice diz o mesmo nos dois níveis, e a âncora tem três estados
+50fcba7 feat(acervo): envelope/.indice.json
 b18f45a feat(estrutura): criar a escola breu (motor completo)
 a0f62c9 fix(estrutura): o expurgo leva também a geração da escola
 bc14ee9 fix(estrutura): o cartão da geração e o cadastro deixam de pagar a enumeração do KV
@@ -77,12 +83,6 @@ cd6d8f0 fix(po): a lista deixa de pagar a cota do KV, e o checklist chega preenc
 1581a9b fix(estrutura): a lista que falha passa a dizer o motivo, em vez de 1101
 65c27cb fix(tools): a barra entrava com a newline final — todo pacote nascia divergente da porta
 f6ef89f fix(entrega): o outro dono da âncora também regera — e o commit vazio não derruba o push
-6160f08 chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
-1661200 chore(estrutura): reancorar a cadeia das fontes alteradas
-5c9454f feat(captura): declara a variante calango-bale-nivel-1-teste-1 no schema de captura
-d8ce19f feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
-028eea8 feat(ciclo): o «Guardar» do PO cifra ciclo-01-calango-bale-nivel-1-teste-1-dados.cifrado.json
-de45f71 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-dados.json
 ```
 
 ## Por professor
@@ -148,52 +148,46 @@ de45f71 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o índice diz o mesmo nos dois níveis, e a âncora tem três estados
+## 20/10/2026 — a tela mostra o endereço que existe, e diz que o cofre é outra coisa
 
-**Por quê.** Os dois primeiros consumidores reais do índice (a escola `breu`, criada hoje) mostraram
-duas discordâncias internas — nenhuma quebra, mas duas gramáticas para o mesmo dado, que é a receita
-para divergirem:
+**Por quê.** A escola `breu` foi criada hoje e as duas primeiras anamneses foram gravadas. O registo
+estava certo — `escola/breu/envelopes/anamnese-20261019-2051.json` e `…-2053.json`, cifrados — mas
+quem quis conferir no GitHub **não achou nada**. A tela mostrava duas coisas parecidas e nenhuma delas
+era um arquivo do repositório:
 
-1. **`estado` existia no mestre e não no índice da escola.** `GET /api/indice` (o da escola) devolvia
-   o ciclo com `sem_ancora` e sem `estado`, enquanto o mestre trazia `estado`. Quem consumisse o da
-   escola tinha de re-derivar a mesma coisa — e a derivação podia divergir da do mestre.
-2. **`PV01` confundia as duas ausências.** A primeira versão punha `lida: false` quando não havia
-   âncora **nenhuma** — exactamente a confusão que a §G da prova separa ao nível do ciclo: «não há
-   âncora» (o ciclo ainda não foi ancorado) não é «há âncora e não se abriu o arquivo». E, no caso da
-   âncora não lida, a linha trazia `cobertura: 0`, que se lê como «não cobre nada» quando ela pode
-   cobrir tudo.
+    anamnese no acervo da escola — anamnese-20261019-2053
+    anamnese cifrada em breu/sapo-bailarino/01/anamnese/anamnese-20261019-2053
 
-**O que mudou** (`motor/nucleo/indices.js`):
+A primeira é um **carimbo** (um nome, não um endereço). A segunda é a chave do **cofre**, que é uma
+segunda cópia gravada no **KV** da escola — não é arquivo, e aquele caminho nunca vai existir no
+repositório. O sistema gravava certo e dizia o endereço errado; o defeito é de **informação**, e é o
+tipo que faz concluir que a gravação falhou quando ela não falhou.
 
-- o ciclo do índice da escola passa a trazer `estado` (`ancorado` / `sem-ancora`), igual ao do mestre;
-- `PV01` devolve **três** estados por linha, e só os campos que existem:
-  `sem-ancora` (com `ancora: null`), `nao-lida` (com `motivo` e `caminho`, **sem** `cobertura`) e
-  `lida` (com `hash`, `parent` e `cobertura`).
+**O que mudou.**
 
-**Com o quê.** `node experimentos/provar-indice-de-proveniencia.js` → **TUDO CERTO, 60 asserções**
-(eram 57): os dois níveis dizem o mesmo `estado`; sem âncora o `PV01` diz `sem-ancora` e **não** finge
-`lida: false`; a âncora não lida diz `nao-lida` com o motivo e **sem** cobertura. Sem regressão:
-`provar-listas-sem-repeticao` 16, identidade visual 19.
+- `motor/servidor/acervo-envelopes.js` — o `escrever()` devolve o **caminho** do arquivo que acabou de
+  escrever (`caminhoDaChave`), e o `guardar()` devolve `noArmazenamentoAntigo: true` quando não havia
+  acervo (sem token) e a gravação foi para o KV. Não se inventa caminho de repositório para um arquivo
+  que não está no repositório.
+- `motor/nucleo/porta.js` — o `gravarEnvelope` e o `elicitar` levam `caminho` e `noArmazenamentoAntigo`
+  até ao resultado, e o `resultado.git` da rota passa a trazê-los.
+- `motor/servidor/rotas.js` — `resultado.git.caminho`.
+- `porta/index.html` — a mensagem de gravação mostra o **arquivo** (`<code>anamnese-….json</code>`) e,
+  por baixo, o **caminho no repositório** como link para o GitHub; o cofre passa a ser identificado
+  como o que é — «cópia no cofre da escola (KV, não é arquivo do repositório)».
 
-**Medido no Worker vivo** (`breu.tmenegaz77.workers.dev`, criada hoje): `GET /api/indice` → 200 com
-`doCache: true` e `custo: {arvores: 0, leituras: 0, kvLeituras: 1, kvEscritas: 0}` — o índice serve a
-escola com UMA leitura de KV e nenhuma ida ao GitHub. `CT01` devolve o ciclo `sem-ancora` (o scaffold
-ainda não foi ancorado), `AL01` devolve a nota «não há anamnese registada nesta escola», e as três
-superfícies da porta (anamnese, plano, PO) respondem 200 com o preenchidor de teste injetado.
+**Com o quê.** `node experimentos/provar-acervo-envelopes.js` → **TUDO CERTO, 48 asserções** (eram 43):
+a gravação devolve o caminho e o arquivo existe no repositório; sem acervo o resultado diz
+`noArmazenamentoAntigo` e **não** declara caminho nenhum; e a rota do «Guardar» entrega
+`git.caminho = escola/calango/envelopes/anamnese-20261019-1842.json` à tela. Sem regressão:
+`provar-indice-de-proveniencia` 60, `provar-listas-sem-repeticao` 16, `provar-teste` 26, identidade
+visual 19.
 
-**O que ainda não está feito.** O índice da escola continua sem consumidor na porta: as três listas
-delas leem o índice dos envelopes (fase 3), e passá-las pelo índice é otimização sem necessidade
-identificada — fica declarado, não feito.
+**O que ainda não está feito.** O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
+feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
+cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
 
 ## O que está pendente
-
-## 20/10/2026 — a lista não paga o que não mostra (fase 2 da dependência do KV)
-
-(a) O `ajuste_de` que o resumo guarda é o do envelope no momento
-da gravação; um envelope **reemito** com outro `ajuste_de` só se o índice for regravado — hoje a
-única reemissão passa por `gravarEnvelope`, que reescreve o resumo (a asserção cobre a migração,
-não a reemissão: falta a prova). (b) A **lista de gestão** continua a ler só o KV: mostra as
-anamneses antigas e não as que só estão no repositório (gap da fase 1, não desta). (c) O
 
 ## 20/10/2026 — o envelope sai do KV: o acervo passa a ser o armazenamento (fase 3)
 
@@ -230,6 +224,12 @@ seriam redundância sem prova de que alguma vez divergem.
 O índice da escola continua sem consumidor na porta: as três listas
 delas leem o índice dos envelopes (fase 3), e passá-las pelo índice é otimização sem necessidade
 identificada — fica declarado, não feito.
+
+## 20/10/2026 — a tela mostra o endereço que existe, e diz que o cofre é outra coisa
+
+O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
+feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
+cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
 
 ## Pendências anteriores (índice)
 
@@ -456,6 +456,7 @@ identificada — fica declarado, não feito.
 - **20/10/2026** — O expurgo apagou a escola e deixou o dado: a limpeza do KV… → `REGISTRO.md` L19120
 - **20/10/2026** — A cota do KV: o que ia para lá sem precisar, medido → `REGISTRO.md` L19203
 - **20/10/2026** — A anamnese nunca ia para o Git: ela vivia só no KV → `REGISTRO.md` L19267
+- **20/10/2026** — a lista não paga o que não mostra (fase 2 da dependência do… → `REGISTRO.md` L19350
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

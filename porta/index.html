@@ -7004,8 +7004,19 @@ async function iniciar() {
           // gravação no repositório (cifrada), e o que a tela diz é uma coisa só.
           const noAcervo = dados.git;
           if (noAcervo && noAcervo.ok === true) {
-            $('gravacao').innerHTML += '<p class="ok">anamnese no acervo da escola — ' +
-              '<code>' + escapar(dados.id || '') + '</code></p>';
+            // O CAMINHO, NÃO O CARIMBO (20/10/2026). A mensagem mostrava o carimbo
+            // (`anamnese-20261019-2053`), e a única coisa parecida com um caminho que aparecia
+            // nesta tela era o do COFRE — que é uma chave do KV, não um arquivo. Quem copiava o
+            // do cofre e procurava no GitHub não achava nada, e a conclusão natural era «não
+            // gravou». O que se mostra agora é o endereço que existe, e um link para ele.
+            const caminho = noAcervo.caminho || '';
+            const arquivo = caminho ? caminho.split('/').pop() : (dados.id || '');
+            $('gravacao').innerHTML += '<p class="ok">gravada no acervo da escola — ' +
+              '<code>' + escapar(arquivo) + '</code></p>' +
+              (caminho
+                ? '<p class="sub">no repositório: <a href="https://github.com/tmenegaz/danca/blob/main/' +
+                  escapar(caminho) + '" target="_blank" rel="noopener">' + escapar(caminho) + '</a></p>'
+                : '');
           } else if (noAcervo && noAcervo.ok === false) {
             $('gravacao').innerHTML += '<p class="aviso">a anamnese <b>não</b> foi gravada no acervo' +
               (noAcervo.erro ? ' (' + escapar(noAcervo.erro) + ')' : '') +
@@ -7041,8 +7052,12 @@ async function iniciar() {
             // Gravou: a senha cumpriu o seu papel. Não fica guardada.
             esquecerSenha();
             $('retomada').classList.add('oculto');
-            $('gravacao').innerHTML += '<p class="ok">anamnese cifrada em <code>' +
-              escapar(retorno.chave || dados.id) + '</code></p>';
+            // O COFRE É OUTRA COISA, E AGORA DIZ ISSO. Ele é uma SEGUNDA cópia, cifrada, numa
+            // chave do KV da escola — não é um arquivo do repositório, e o endereço dele não se
+            // procura no GitHub. Sem esta distinção, os dois caminhos pareciam o mesmo e um dos
+            // dois «não existia».
+            $('gravacao').innerHTML += '<p class="sub">cópia no cofre da escola (KV, não é arquivo ' +
+              'do repositório): <code>' + escapar(retorno.chave || dados.id) + '</code></p>';
           } catch (erro) {
             // O carimbo fica: a próxima tentativa regrava ESTE envelope, e não um
             // segundo ao lado dele.

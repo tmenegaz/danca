@@ -19689,3 +19689,42 @@ superfícies da porta (anamnese, plano, PO) respondem 200 com o preenchidor de t
 **O que ainda não está feito.** O índice da escola continua sem consumidor na porta: as três listas
 delas leem o índice dos envelopes (fase 3), e passá-las pelo índice é otimização sem necessidade
 identificada — fica declarado, não feito.
+
+## 20/10/2026 — a tela mostra o endereço que existe, e diz que o cofre é outra coisa
+
+**Por quê.** A escola `breu` foi criada hoje e as duas primeiras anamneses foram gravadas. O registo
+estava certo — `escola/breu/envelopes/anamnese-20261019-2051.json` e `…-2053.json`, cifrados — mas
+quem quis conferir no GitHub **não achou nada**. A tela mostrava duas coisas parecidas e nenhuma delas
+era um arquivo do repositório:
+
+    anamnese no acervo da escola — anamnese-20261019-2053
+    anamnese cifrada em breu/sapo-bailarino/01/anamnese/anamnese-20261019-2053
+
+A primeira é um **carimbo** (um nome, não um endereço). A segunda é a chave do **cofre**, que é uma
+segunda cópia gravada no **KV** da escola — não é arquivo, e aquele caminho nunca vai existir no
+repositório. O sistema gravava certo e dizia o endereço errado; o defeito é de **informação**, e é o
+tipo que faz concluir que a gravação falhou quando ela não falhou.
+
+**O que mudou.**
+
+- `motor/servidor/acervo-envelopes.js` — o `escrever()` devolve o **caminho** do arquivo que acabou de
+  escrever (`caminhoDaChave`), e o `guardar()` devolve `noArmazenamentoAntigo: true` quando não havia
+  acervo (sem token) e a gravação foi para o KV. Não se inventa caminho de repositório para um arquivo
+  que não está no repositório.
+- `motor/nucleo/porta.js` — o `gravarEnvelope` e o `elicitar` levam `caminho` e `noArmazenamentoAntigo`
+  até ao resultado, e o `resultado.git` da rota passa a trazê-los.
+- `motor/servidor/rotas.js` — `resultado.git.caminho`.
+- `porta/index.html` — a mensagem de gravação mostra o **arquivo** (`<code>anamnese-….json</code>`) e,
+  por baixo, o **caminho no repositório** como link para o GitHub; o cofre passa a ser identificado
+  como o que é — «cópia no cofre da escola (KV, não é arquivo do repositório)».
+
+**Com o quê.** `node experimentos/provar-acervo-envelopes.js` → **TUDO CERTO, 48 asserções** (eram 43):
+a gravação devolve o caminho e o arquivo existe no repositório; sem acervo o resultado diz
+`noArmazenamentoAntigo` e **não** declara caminho nenhum; e a rota do «Guardar» entrega
+`git.caminho = escola/calango/envelopes/anamnese-20261019-1842.json` à tela. Sem regressão:
+`provar-indice-de-proveniencia` 60, `provar-listas-sem-repeticao` 16, `provar-teste` 26, identidade
+visual 19.
+
+**O que ainda não está feito.** O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
+feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
+cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
