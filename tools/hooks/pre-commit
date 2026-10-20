@@ -348,6 +348,25 @@ for c in $ciclos; do
       echo "pre-commit: $prof/ciclo-$numero-$v é ciclo-zero (DOCS vazio) — nada a gerar (scaffold de escola)."
       continue
     fi
+    # A VARIANTE PLANEJADA E AINDA SEM AULA NÃO SE GERA (20/10/2026).
+    #
+    # Uma turma pode ter PLANO e ainda não ter PO — é o estado normal entre a fase 2 e a fase 3
+    # do ciclo, e o `calango` esteve nele com três turmas: o plano das três, o PO de uma. O
+    # gerador RECUSA essa variante com a frase certa («nenhuma 'aula-*' de DOCS tem fonte em
+    # disco», `gerar-ciclo.sh` §193), e o hook tomava a recusa por falha: nenhum commit passava
+    # enquanto a segunda turma não tivesse PO. Um estado legítimo do sistema a bloquear o
+    # repositório inteiro — e o caminho que sobrava era `--no-verify`, que salta TAMBÉM a âncora.
+    #
+    # O critério é o do gerador, e não um segundo: `DOCS` sem nenhum `aula-*` é a mesma coisa que
+    # «não há aula com fonte». Um `DOCS` com aula e sem volume continua a FALHAR — é defeito de
+    # conteúdo, e tem de aparecer.
+    case " $docs_do_ciclo " in
+      *" aula-"*) ;;
+      *)
+        echo "pre-commit: $prof/ciclo-$numero-$v declara DOCS=\"$docs_do_ciclo\" e ainda não tem aula — nada a gerar (plano sem PO)."
+        continue
+        ;;
+    esac
     echo "pre-commit: gerando e validando $prof/ciclo-$numero-$v ..."
     if ! tools/gerar-ciclo.sh "$prof" "$numero" "$v" > /tmp/pre-commit-ciclo-"$prof-$numero-$v".log 2>&1; then
       echo "pre-commit: FALHOU ao gerar $prof/ciclo-$numero-$v — nada foi commitado." >&2

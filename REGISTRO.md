@@ -20360,3 +20360,190 @@ mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do vali
 declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
 (ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
 `assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.
+
+## 20/10/2026 — o Plano de Observação de uma turma oferecia as alunas das outras
+
+**O que motivou.** Medido no Worker do `calango`, com a escola a ter três turmas e uma aluna em
+cada:
+
+```
+GET /plano-observacao/api/anamneses
+  sujeitos oferecidos: ['Aluna C', 'Aluna B', 'Aluna A']
+```
+
+A curadoria da direção declarava, turma por turma, `Balé Nível 1 → Aluna C`, `Balé Nível 2 →
+Aluna B`, `Balé Nível 3 → Aluna A`. O plano escolhido no PO era o da turma 1. A lista oferecia as
+três, e nada impedia marcar a aluna da turma 2 — o PO gerado saiu certo («Sujeitos: Aluna C»)
+porque a professora escolheu bem, não porque o sistema a impedisse.
+
+**A causa não era um filtro ausente — era um filtro que existia e não recortava.** A tela filtra a
+lista por `daCuradoria('alunas')`, que é a **união** das curadorias do professor. Com uma curadoria
+por turma, a união é sempre «todas»: o filtro era verdadeiro e inútil. O recorte tem de ser por
+**turma**.
+
+**De onde vem o vínculo.** Não da anamnese — o conteúdo dela declara, em `oQueFicaFora`, que «os
+nove blocos e os módulos condicionais não decidem para que turma a aluna vai». Vem da **curadoria**,
+que declara professor, turma e alunas de uma vez, e que já era a fonte do `bastidores.js`
+(`turmasDaCuradoria`, `alunaVinculadaA`).
+
+**O que foi decidido.**
+
+- **A regra é uma só, e vive no núcleo** (`porta.alunasDaTurma`). Lê os dois formatos do registo
+  (`turmas[]` e o antigo `turma`), ignora a curadoria substituída, e distingue três casos que não
+  podem colapsar: **sem turma** devolve `null` («não pediram recorte»); **turma sem curadoria**
+  devolve `[]` («ninguém atribuído» — a ausência de atribuição não é permissão); turma com
+  curadoria devolve as alunas. `null` e `[]` são coisas diferentes, e é essa diferença que impede
+  o defeito de voltar por outro caminho.
+- **O recorte é resolvido no SERVIDOR, não na tela.** `GET /api/anamneses` aceita `?plano=<carimbo>`
+  (a turma vem do `contexto-turma` do plano escolhido), `?turma=<nome>` (directo) e
+  `?professor=<slug>` (opcional). Sem parâmetro responde o que respondia. Uma segunda cópia da
+  regra na tela divergiria da primeira — foi exactamente o que aconteceu com o filtro por união.
+- **A tela só diz o que sabe.** O nó `sujeitos` do conteúdo passa a declarar `recortePeloPlano`, e a
+  tela compõe o endereço com o carimbo do plano que já tem (`enderecoDeOpcoes`). Trocar o plano
+  esquece a lista recortada e os sujeitos marcados — eram de outra turma.
+
+**Onde entrou.**
+
+- `motor/nucleo/porta.js` — `alunasDaTurma()` (nova, exportada) e o recorte em `anamneses()`.
+- `motor/servidor/rotas.js` — `/api/anamneses` com os três parâmetros; a resposta declara `turma` e
+  `recorte` quando recorta.
+- `motor/servidor/cloudflare.js`, `motor/servidor/node.js` — `lerCuradorias(escola)`, na mesma
+  chave do `bastidores.js` (`bastidores/<escola>/curadorias`).
+- `porta/po/conteudo/po.json` — `recortePeloPlano` no nó `sujeitos`, e a explicação reescrita: o
+  «preencher» e o «por que» passam a dizer que a lista é da turma do plano, e por quê.
+- `porta/index.html` — `enderecoDeOpcoes()` (usado por **todos** os leitores de `OPCOES`),
+  `esquecerSujeitosDaTurma()`.
+- `professores/sapo-bailarino/ciclos/ciclo-01-calango{,-bale-nivel-1-teste-1}/plano-observacao/` — a
+  cópia da porta que o pacote serve, refrescada. A porta é **copiada** para dentro de cada pacote;
+  corrigir `porta/` e não a cópia deixava o site a correr o código de ontem.
+- `experimentos/provar-sujeitos-da-turma.js` — **nova prova, 25 asserções**.
+
+**Com o quê.** `node experimentos/provar-sujeitos-da-turma.js` → **25 asserções**. Controlo
+negativo em três metades: contra o código de `HEAD` a prova declara que a regra não existe; com só a
+**rota** revertida dão **5 falhas** (a lista volta a ser as três); com só a **tela** revertida dão
+**5 falhas** (a declaração e o endereço). Sem regressão: teste 37, cabeçalho do ato 40, plano da
+turma 46, produção 135, acervo 48, anamnese sem cofre 13, índice de envelopes 41, declarações 23.
+
+**O que ainda não está feito.** O `campo aberto` de «Sujeitos observados» continua a aceitar
+qualquer apelido escrito à mão — e é de propósito (a aluna pode ainda não estar na curadoria), mas
+não há na gravação nenhuma conferência de que o apelido pertence à turma: o recorte é da **lista**,
+não do **documento**. Fechá-lo exige decidir o que fazer com a aluna que muda de turma a meio do
+ciclo, e essa decisão não é de hoje. E o `flutuantes` (apelidos em texto livre) continua aberto pelo
+mesmo motivo.
+
+## 20/10/2026 — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de nascer vazio
+
+**O que motivou.** Terceira escola, mesmo sintoma. O Plano de Observação foi concluído sem erro, o
+pacote `ciclo-01-calango-bale-nivel-1-teste-1` foi gerado, e o site do `calango` continuava a não ter
+Ciclo nem Aulas no menu. A causa é a mesma da `breu` e da `batata`: o `wrangler.<escola>.jsonc`
+apontava o **pacote-zero** — a apresentação do sistema, que não tem `DOCS` — enquanto o pacote
+gerado existia ao lado.
+
+**Por que a correcção das duas primeiras não serve.** As duas foram corrigidas à mão, apontando a
+config ao pacote da turma. O `calango` tem **três** turmas (cada uma com o seu plano e o seu PO), e
+**um Worker tem um só `assets.directory`** — apontá-lo a uma turma esconde as outras duas, e cada
+geração passaria a trocar o site de turma. O problema nunca foi a config: era a escola não ter
+onde publicar mais do que um pacote.
+
+**O que foi decidido.**
+
+- **A escola publica uma pasta montada**, `publicacao/<escola>/`, que passa a ser o
+  `assets.directory`:
+  `index.html` (o índice das turmas, gerado) · `sistema.html` (a apresentação, que não se perde) ·
+  `assets/` e `plano-observacao/` (do pacote-zero) · `<variante>/` (cada pacote de turma, inteiro).
+- **É SAÍDA, não fonte**: `publicacao/` está no `.gitignore`. Versioná-la duplicaria em Git cada
+  pacote — com o PDF — e criaria duas cópias do mesmo documento a divergir. A pasta é reconstruída
+  **de zero** a cada execução, e é isso que a torna idempotente e que apaga a turma de um ciclo que
+  já não existe, em vez de a deixar a ser servida.
+- **Os pacotes não são editados**: a montagem copia-os como estão, para o que está no ar ser
+  exactamente o que o `check-pacote` aprovou.
+- **O nome da turma vem do `.conf`** (`NOME="Ciclo 01 — Calango · Balé Nível 1 — Teste 1"`, o que
+  está depois do último `·`), nunca do slug. Sem `NOME`, o slug — que é verdade, só é feio.
+- **A página não inventa CSS.** O `ciclo.css` é congelado e não conhece `.turma` nem `.cartao`; a
+  primeira versão usou classes que ninguém escreveu, e a página saiu nua. O índice usa o que existe.
+
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`, e a mudança são **duas**:
+
+- `tools/montar-publicacao.js` — **arquivo novo**. É um montador de build: lê os pacotes, copia e
+  escreve o índice. Não gera ciclo, não reancora, não valida pacote, não toca em fonte nenhuma.
+- `tools/criar-escola.sh` — **uma linha** no `assets.directory` gerado (`.publicacao` → a
+  publicação, em vez do pacote-zero) e **duas linhas** que montam antes do `--deploy`. É a correcção
+  do defeito na ORIGEM: uma escola nova nascia com o esqueleto apontado, e a correcção à mão tinha
+  de ser repetida a cada escola.
+
+**O que NÃO muda:** a fórmula do hash (`hash-ciclo.sh`), a cobertura das fontes, as 17 regras, as 22
+pétreas, os validadores, os schemas do ciclo, o `check-pacote`, o `gerar-ciclo.sh` e o conteúdo dos
+pacotes. Nenhum documento publicado muda de bytes.
+
+**Onde entrou.**
+
+- `tools/montar-publicacao.js` — **novo**, com `--listar` e `--raiz` (a árvore de uma prova).
+- `tools/criar-escola.sh` — o `assets.directory` e a montagem antes do deploy.
+- `wrangler.calango.jsonc` — `publicacao/calango`, com o porquê escrito no ficheiro.
+- `.github/workflows/gerar-ciclo.yml` — passo «Montar a publicação da escola», antes do deploy.
+- `.gitignore` — `publicacao/`.
+- `experimentos/provar-publicacao-da-escola.js` — **nova prova, 26 asserções**.
+- `experimentos/README.md` — as duas provas novas na tabela.
+
+**Com o quê.** `node experimentos/provar-publicacao-da-escola.js` → **26 asserções**, sobre uma
+árvore de prova (um pacote-zero e duas turmas de mentira, num temporário): a montagem, o índice com
+o nome de cada turma e **sem link morto**, a idempotência, e a turma cujo pacote desaparece a sair do
+índice **e** do disco. Controlo negativo: contra a config, o workflow, o `.gitignore` e o
+`criar-escola.sh` de `HEAD` dão **6 falhas**. E `node tools/montar-publicacao.js calango` sobre o
+repositório real lista a turma gerada: `bale-nivel-1-teste-1 → Balé Nível 1 — Teste 1`.
+
+**O que ainda não está feito.**
+
+- **O `wrangler deploy` do `calango` não foi corrido daqui.** A correcção só chega ao ar no próximo
+  deploy — e o caminho é o de sempre (redisparar a geração), não um `wrangler` à mão. Até lá, o site
+  continua a servir o esqueleto.
+- **A montagem depende do deploy correr depois dela.** Uma pasta que não existe faz o `wrangler`
+  recusar — falha alta, e é a que se quer —, mas quem correr `npx wrangler deploy -c
+  wrangler.<escola>.jsonc` num clone novo tem de montar primeiro. Os dois sítios que publicam já o
+  fazem; o comando à mão, não.
+- **O índice das turmas não conhece o estado do ciclo.** Mostra o ritmo e o número de aulas lançadas,
+  não «a próxima aula é a 03». Esse dado existe (o `ciclos.json`), e não foi trazido para não abrir
+  uma segunda derivação do estado.
+- Continua verdadeiro o de antes: **nada regenera o `indices/`** automaticamente. Nesta sessão ele
+  foi regerado à mão depois do expurgo da `batata`, e voltou a 14 de 14.
+
+## 20/10/2026 — o hook recusava todo commit enquanto uma turma não tivesse PO
+
+**O que motivou.** Um commit que tocasse `professores/sapo-bailarino/ciclos/ciclo-01-*` era
+impossível. O hook do pré-commit gera **todas** as variantes daquele ciclo, e o `calango` estava com
+três turmas planejadas e o PO de uma só: a geração da segunda morria em
+
+```
+erro: nenhuma 'aula-*' de DOCS tem fonte em disco — não há volume para a Regra 9.
+```
+
+O gerador está CERTO — ele recusa com a frase que diz o que falta, e a recusa já estava documentada
+no próprio `gerar-ciclo.sh` («medido em 18/10/2026, com `DOCS="plano"` e sem `aula-01` em disco»).
+Quem estava errado era o hook: tomava uma **recusa de estado** por **falha de conteúdo**. O caminho
+que sobrava era `--no-verify`, que salta também a validação da âncora — o pior remédio possível.
+
+**O que foi decidido.** O hook passa a saltar a variante que declara `DOCS` **sem nenhum `aula-*`**,
+com a mesma forma do salto que já existia para o ciclo-zero (`DOCS` vazio). O critério é o do
+gerador, e não um segundo: `DOCS` sem `aula-*` **é** «não há aula com fonte». Um `DOCS` **com** aula e
+sem volume continua a falhar — isso é defeito de conteúdo e tem de aparecer.
+
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`.
+
+- `tools/hooks/pre-commit` — um `case` de sete linhas, ao lado do salto do ciclo-zero, com o porquê
+  em comentário.
+
+**O que NÃO muda:** quais variantes são geradas (as que têm aula), a validação da âncora, a da
+identidade visual, a do volume (Regra 9) e a do passado lançado. Nada é saltado que antes fosse
+verificado — o que sai é um passo que **falhava sempre**, e por um motivo que não é defeito.
+
+**Onde entrou.** `tools/hooks/pre-commit` — o teste `case " $docs_do_ciclo " in *" aula-"*)`.
+
+**Com o quê.** Medido no commit seguinte: com o `calango` no estado real (plano das três, PO de uma),
+o hook passa a dizer «declara DOCS="plano" e ainda não tem aula — nada a gerar (plano sem PO)» para
+as duas, e gera e valida a primeira (`OK, 24 verificações`). `bash -n tools/hooks/pre-commit` sem
+erro.
+
+**O que ainda não está feito.** O hook continua a gerar **todas** as variantes quando o commit cita o
+manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
+classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
+Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
