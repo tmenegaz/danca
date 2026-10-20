@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T21:35:16-0300`
-Commit atual: `ac2a30b` — fix(experimentos): o plano de ensino de teste chega preenchido inteiro
+Gerado em: `2026-10-19T22:00:57-0300`
+Commit atual: `de54e3d` — fix(experimentos): o fixture não cita um marco que o plano não tem
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,7 +46,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,6 +63,15 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+de54e3d fix(experimentos): o fixture não cita um marco que o plano não tem
+5e085ec chore(estrutura): reancorar a cadeia das fontes alteradas
+52cb39d feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+1779e79 feat(plano): o plano elicitado vira a fonte do ciclo
+ec164af feat(acervo): envelope/plano-20261019-2149.json
+b7246ed feat(acervo): envelope/.indice.json
+4cdae03 feat(tools): o índice passa a ser gerado — o gerador e o validador
+552825d feat(estrutura): as declarações do índice — o vocabulário deixa de estar implícito
+c05a527 docs(experimentos): o registo do plano de teste preenchido inteiro
 ac2a30b fix(experimentos): o plano de ensino de teste chega preenchido inteiro
 107b896 chore(escola): a limpeza do KV de calango foi retomada e concluída
 b2ac3bc docs(experimentos): a prova que mede a ausência do cofre entra na lista das provas
@@ -74,30 +83,23 @@ cb4930a docs(ideia): as 76 perguntas ficam fechadas, e a distribuição deixa de
 d91c0b9 feat(acervo): envelope/.indice.json
 e6c455a feat(acervo): envelope/anamnese-20261019-2051.json
 7e2798b feat(acervo): envelope/.indice.json
-558e43d fix(estrutura): o índice diz o mesmo nos dois níveis, e a âncora tem três estados
-50fcba7 feat(acervo): envelope/.indice.json
-b18f45a feat(estrutura): criar a escola breu (motor completo)
-a0f62c9 fix(estrutura): o expurgo leva também a geração da escola
-bc14ee9 fix(estrutura): o cartão da geração e o cadastro deixam de pagar a enumeração do KV
-9649cd9 feat(estrutura): o índice do acervo — cada pergunta deixa de ser uma varredura
-4acd895 feat(estrutura): o envelope sai do KV — o acervo do repositório é o armazenamento
-2d0c647 feat(estrutura): a lista lê o índice, e cada endereço é pedido uma vez
-22682db feat(estrutura): a anamnese vai para o acervo da escola, e não só para o KV
 ```
 
 ## Por professor
 
 ### sapo-bailarino — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): breu
+**Ciclo 01** — variante(s): breu, breu-bale-nivel-1-teste-3
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | breu | (sem PO) | — | — |
+| breu-bale-nivel-1-teste-3 | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | breu | ciclo-01-breu.fipp | `5a4fc4f5d57d` | (vazio) | — |
+| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `edcbb2400a84` | (vazio) | — |
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -148,80 +150,66 @@ bc14ee9 fix(estrutura): o cartão da geração e o cadastro deixam de pagar a en
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
+## 20/10/2026 — o primeiro plano de ensino real: o que o fluxo gravou e o que ele deixou em aberto
 
-**Por quê.** O preenchimento automático do plano de ensino funcionava «de forma parcial»: o
-fixture preenchia, e a tela mostrava metade em branco. A causa não era o carregador — era a
-**forma** do valor no JSON não ser a que o widget lê. Um fixture com a forma errada não falha
-em sítio nenhum: preenche o que pode, deixa o resto vazio, e ninguém sabe por quê.
+**O que aconteceu.** A escola `breu` gerou o primeiro plano de ensino de ponta a ponta. O que o
+fluxo produziu, conferido no repositório:
 
-| O que estava errado | O que se via na tela |
-|:--|:--|
-| `marcos-por-aula` era uma **string** com quebras de linha, e a lista numerada só aceita **array** | o bloco 3 abria **vazio** — e com ele os blocos 4, 5 e 6, que dele derivam |
-| `contexto-volume` e `contexto-registro` não existiam no fixture | volume e «quem observa» em branco |
-| `contexto-notacao` não existia | notação dominada em branco |
-| `proveniencia` era **string** num campo de escolha **múltipla** | nenhuma caixa marcada, e a frase inteira caía no «outra origem» |
+| Peça | Onde | Estado |
+|:--|:--|:--|
+| envelope | `escola/breu/envelopes/plano-20261019-2149.json` | 25 respostas, contexto com escola/professor/ciclo/turma |
+| fonte do ciclo | `professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md` | 141 linhas, derivadas do envelope |
+| manifesto | `…-teste-3.conf` | `DOCS="plano"`, ritmo do cadastro da turma, `ESCOLA="Breu"` |
+| âncora | `ciclo-01-breu.fipp` | íntegra, cadeia intacta (`hash-ciclo.sh --check`) |
+| estante | `GET /api/planos` | o plano aparece, com o objetivo geral como rótulo |
+| geração | `GET /api/geracao` | `fase: "sem-registro"` — **não disparou, e é o desenho**: o disparo é do PO (`rotas.js`, tudo depois da fonte do plano é `corpo.fonte === 'po'`) |
 
-**O que mudou** (`teste/{calango,batata,breu}.json`, os três pelo mesmo molde):
+O preenchimento de teste que ontem chegou incompleto funcionou: os três marcos parciais são uma
+lista, e chegaram ao documento como as três linhas da tabela «Marcos parciais por aula».
 
-- **três marcos parciais** por turma, derivados do objetivo geral do ciclo — «reconhecer o apoio
-  e alinhar o eixo vertical», «transferir o peso entre os pés sem perder o alinhamento»,
-  «sustentar a transferência com musicalidade e controle do movimento»;
-- as duas **matrizes por marco** (`estrutura-de-cada-aula`, `aula-1-parametro`) passam a ter
-  exatamente uma linha por marco, e a **distribuição de volume** só declara os blocos que os
-  marcos marcam (Solo, Barra, Centro, Musicalidade);
-- `contexto-volume` = **3 a 6 séries**; `contexto-registro` com «o próprio professor» a observar
-  e as duas presenças; `contexto-notacao` = **Benesh**; `contexto-metodologia-origem` = «Eu
-  escolho»;
-- `proveniencia` passa a ser **lista**, e marca a **literatura de apoio sobre corpo e aula**
-  (obrigatória) junto da metodologia RAD adaptada ao âmbito da turma.
+**As quatro coisas que o primeiro plano real expôs — nenhuma corrigida aqui.**
 
-**Dois defeitos da tela que a prova encontrou ao exigir o preenchimento** (`porta/index.html`):
+1. **A sequência de exercícios saiu com 29 linhas onde o professor escreveu 3.** 26 são o
+   andaime da derivação (um exercício por termo marcado em cada bloco, todas com «[a decidir]»
+   nos tempos) e 3 são linhas antigas do fixture — Solo/Plié, Barra/Battement tendu,
+   Centro/Port de bras — que **deixaram de casar** com os parâmetros marcados mas continuam no
+   documento com os tempos preenchidos: parecem exercícios definidos e não correspondem a nada
+   marcado. A regra actual («nada se perde») guarda-as de propósito, e não distingue uma linha
+   órfã de uma deliberada — **é decisão de desenho, não defeito com resposta pronta**.
+2. **Dois nomes para a escola no mesmo acto.** O plano deriva `contexto.escola`, que é o
+   **slug** do Worker (`breu`), e escreve `escola: breu` no cabeçalho e «Escola / espaço | breu»
+   na tabela; o `.conf` composto ao lado diz `ESCOLA="Breu"`. O professor sai como «Sapo
+   Bailarino» (o rótulo do select) e a escola como slug.
+3. **`45 minuto`** — a unidade de medida não se pluraliza na composição (`comporMedida`).
+   Cosmético, e é num documento que se imprime.
+4. **O índice do acervo ficou desactualizado ao gerar o plano.** `node tools/check-indices.js`
+   falha com **3 divergências** (`acervo.json`, `escolas/breu.json`, `ciclos/sapo-bailarino/01-breu.json`);
+   no commit em que nasceu (`4cdae03`) passava com 14 de 14. **Nada o regenera**: o hook do
+   pré-commit valida a identidade visual e a âncora, não o índice, e nenhum workflow o corre —
+   portanto cada anamnese, plano ou PO que o Worker grava volta a deixá-lo para trás.
 
-- **a frequência da turma lia-se do campo `frequencia`**, que o cadastro pode não ter — ela é o
-  número de **dias**, e é assim que a Produção já a lê (`frequenciaDaTurma`). Uma turma com dias
-  e sem o número deixava o plano com um **obrigatório em branco sobre um dado que a escola
-  declarou**. A regra passou a ser a mesma dos dois lados;
-- **`frequenciaDoPlano()` devolvia `{}` quando não havia resposta**, e quem a lê faz
-  `.dias.length`: quem chegasse ao «Número total de aulas» sem ter passado pela frequência
-  levava um `TypeError` em vez do campo vazio. A forma passou a ser sempre a mesma.
-
-**Com o quê.** `node experimentos/provar-teste.js` → **36 verificações** (eram 26), dez novas, e a
-primeira delas falhou contra o fixture antigo com a mensagem certa («os marcos parciais não são
-uma lista: string»). O que se exige agora é o **preenchimento visível**, campo a campo: as linhas
-do bloco 3 na tela com o texto; a condição de registro a dizer quem observa; a faixa «3 a 6
-séries»; a notação e a origem; uma linha por marco nas duas matrizes; a distribuição de volume
-coerente com os blocos marcados; frequência, duração e calendário resolvidos do cadastro; e o
-plano **sem nenhum obrigatório em falta**. Sem regressão: ato-e-barra 72, ajustes 125,
-cabeçalho 40, produção 135, selo, tema 37/38, identidade visual 19.
-
-**O que ainda não está feito.** O fixture é **um só molde** para as três turmas — os três planos de
-uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
-objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
-de quem testa; o fixture não a inventa.
+**O que fica declarado.** (1) e (2) são desenho; (3) é cosmético; (4) é o único com uma resposta
+óbvia — regenerar (`node tools/gerar-indices.js`) e decidir **quem** o regenera (hook, workflow,
+ou o próprio Worker ao gravar). Ficam todos em aberto por decisão de quem testa: o ensaio
+continua, e estes não o bloqueiam.
 
 ## O que está pendente
-
-## 20/10/2026 — dois `list` a menos: o cartão da geração e o cadastro no expurgo
-
-(a) A **retenção do `geracao/`** por variante continua sem nome
-fixo: o ponteiro diz qual é o último, mas as variantes antigas só se apagam enumerando — o expurgo
-as deixa e a pendência cobre. (b) O `ia-registro/` (o custo de IA) tem nome fixo por escola e podia
-entrar na lista; hoje fica para a enumeração, e não é dado de aluno. (c) O registo de chaves podia
-passar a ser escrito também pelos Bastidores — é a alternativa à lista declarada, e as duas juntas
-seriam redundância sem prova de que alguma vez divergem.
-
-## 20/10/2026 — o índice diz o mesmo nos dois níveis, e a âncora tem três estados
-
-O índice da escola continua sem consumidor na porta: as três listas
-delas leem o índice dos envelopes (fase 3), e passá-las pelo índice é otimização sem necessidade
-identificada — fica declarado, não feito.
 
 ## 20/10/2026 — a tela mostra o endereço que existe, e diz que o cofre é outra coisa
 
 O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
 feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
 cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
+
+## 20/10/2026 — as declarações do índice: o vocabulário deixa de estar implícito no código
+
+(a) A **Etapa 2**: `tools/gerar-indices.js` e `check-indices.js`
+com as 13 verificações e as 9 contraprovas — e `tools/` é congelado, portanto exige motivo
+declarado, entrada própria e commit próprio. (b) As declarações **não são lidas pelo motor**: o
+`indices.js` mantém a lista em código e a prova garante que as duas concordam; consumir
+`indices/esquema/tipos.json` no Worker é decisão da Etapa 2 (o bundle teria de incluir o JSON).
+(c) `vinculos[]` e `autoria[]` continuam **previstas**, não produzidas — é a dívida que o §4.11
+nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam.
 
 ## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
 
@@ -236,6 +224,19 @@ O fixture é **um só molde** para as três turmas — os três planos de
 uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
 objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
 de quem testa; o fixture não a inventa.
+
+## 20/10/2026 — o índice passa a ser gerado, e o «passou» passa a ser medido
+
+(a) **O gerador não é chamado por nada.** `indices/` está versionado
+e em dia, mas atualizado **à mão**: nem o `pre-commit`, nem `criar-escola.sh`, nem `gerar-ciclo.sh`,
+nem `gerar-raiz.sh` o invocam. É a **Etapa 3**, e ela toca arquivos congelados que já existem —
+logo, exige motivo declarado, entrada própria e commit próprio. (b) **O índice não é servido**: não
+há `raiz/indices/acervo.json` nem `<pacote>/indices/publico.json`, e o Worker continua a construir o
+índice em memória (fase 4). A verificação 6 («Cópias») passa **por vacuidade** — não há cópia a
+comparar. (c) **`vinculos[]` e `autoria[]` continuam previstas**, não produzidas: é a dívida que o
+§4.11 nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam. (d) **A tabela de contagem do §9.2 dizia 7
+em §11 e 9 em §9.2**; ficou corrigida para 10 nesta entrada, mas vale saber que o erro estava no
+plano e não no código.
 
 ## Pendências anteriores (índice)
 
@@ -465,6 +466,8 @@ de quem testa; o fixture não a inventa.
 - **20/10/2026** — a lista não paga o que não mostra (fase 2 da dependência do… → `REGISTRO.md` L19350
 - **20/10/2026** — o envelope sai do KV: o acervo passa a ser o armazenamento… → `REGISTRO.md` L19424
 - **20/10/2026** — o índice do acervo: cada pergunta deixa de ser uma… → `REGISTRO.md` L19512
+- **20/10/2026** — dois `list` a menos: o cartão da geração e o cadastro no… → `REGISTRO.md` L19594
+- **20/10/2026** — o índice diz o mesmo nos dois níveis, e a âncora tem três… → `REGISTRO.md` L19656
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

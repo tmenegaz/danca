@@ -19969,3 +19969,46 @@ comparar. (c) **`vinculos[]` e `autoria[]` continuam previstas**, não produzida
 §4.11 nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam. (d) **A tabela de contagem do §9.2 dizia 7
 em §11 e 9 em §9.2**; ficou corrigida para 10 nesta entrada, mas vale saber que o erro estava no
 plano e não no código.
+
+## 20/10/2026 — o primeiro plano de ensino real: o que o fluxo gravou e o que ele deixou em aberto
+
+**O que aconteceu.** A escola `breu` gerou o primeiro plano de ensino de ponta a ponta. O que o
+fluxo produziu, conferido no repositório:
+
+| Peça | Onde | Estado |
+|:--|:--|:--|
+| envelope | `escola/breu/envelopes/plano-20261019-2149.json` | 25 respostas, contexto com escola/professor/ciclo/turma |
+| fonte do ciclo | `professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md` | 141 linhas, derivadas do envelope |
+| manifesto | `…-teste-3.conf` | `DOCS="plano"`, ritmo do cadastro da turma, `ESCOLA="Breu"` |
+| âncora | `ciclo-01-breu.fipp` | íntegra, cadeia intacta (`hash-ciclo.sh --check`) |
+| estante | `GET /api/planos` | o plano aparece, com o objetivo geral como rótulo |
+| geração | `GET /api/geracao` | `fase: "sem-registro"` — **não disparou, e é o desenho**: o disparo é do PO (`rotas.js`, tudo depois da fonte do plano é `corpo.fonte === 'po'`) |
+
+O preenchimento de teste que ontem chegou incompleto funcionou: os três marcos parciais são uma
+lista, e chegaram ao documento como as três linhas da tabela «Marcos parciais por aula».
+
+**As quatro coisas que o primeiro plano real expôs — nenhuma corrigida aqui.**
+
+1. **A sequência de exercícios saiu com 29 linhas onde o professor escreveu 3.** 26 são o
+   andaime da derivação (um exercício por termo marcado em cada bloco, todas com «[a decidir]»
+   nos tempos) e 3 são linhas antigas do fixture — Solo/Plié, Barra/Battement tendu,
+   Centro/Port de bras — que **deixaram de casar** com os parâmetros marcados mas continuam no
+   documento com os tempos preenchidos: parecem exercícios definidos e não correspondem a nada
+   marcado. A regra actual («nada se perde») guarda-as de propósito, e não distingue uma linha
+   órfã de uma deliberada — **é decisão de desenho, não defeito com resposta pronta**.
+2. **Dois nomes para a escola no mesmo acto.** O plano deriva `contexto.escola`, que é o
+   **slug** do Worker (`breu`), e escreve `escola: breu` no cabeçalho e «Escola / espaço | breu»
+   na tabela; o `.conf` composto ao lado diz `ESCOLA="Breu"`. O professor sai como «Sapo
+   Bailarino» (o rótulo do select) e a escola como slug.
+3. **`45 minuto`** — a unidade de medida não se pluraliza na composição (`comporMedida`).
+   Cosmético, e é num documento que se imprime.
+4. **O índice do acervo ficou desactualizado ao gerar o plano.** `node tools/check-indices.js`
+   falha com **3 divergências** (`acervo.json`, `escolas/breu.json`, `ciclos/sapo-bailarino/01-breu.json`);
+   no commit em que nasceu (`4cdae03`) passava com 14 de 14. **Nada o regenera**: o hook do
+   pré-commit valida a identidade visual e a âncora, não o índice, e nenhum workflow o corre —
+   portanto cada anamnese, plano ou PO que o Worker grava volta a deixá-lo para trás.
+
+**O que fica declarado.** (1) e (2) são desenho; (3) é cosmético; (4) é o único com uma resposta
+óbvia — regenerar (`node tools/gerar-indices.js`) e decidir **quem** o regenera (hook, workflow,
+ou o próprio Worker ao gravar). Ficam todos em aberto por decisão de quem testa: o ensaio
+continua, e estes não o bloqueiam.
