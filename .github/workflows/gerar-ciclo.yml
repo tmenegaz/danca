@@ -254,6 +254,19 @@ jobs:
       # de ser gerado. `if: always()` NÃO se aplica: um pacote reprovado no
       # `check-pacote.js` (dentro do gerador) já barrou o job antes daqui, e publicar um
       # pacote pela metade seria pior que não publicar.
+      - name: Montar a publicação da escola
+        shell: bash
+        run: |
+          set -euo pipefail
+          # O WORKER SERVE A ESCOLA, E A ESCOLA TEM TURMAS (20/10/2026).
+          #
+          # O `assets.directory` apontava o pacote-zero — a apresentação, sem `DOCS`, logo sem
+          # Ciclo nem Aulas no menu — enquanto o pacote gerado existia ao lado, no repositório e
+          # não no ar. Com mais de uma turma, apontar a config a uma delas esconderia as outras.
+          # `publicacao/<escola>/` é montado agora: o índice das turmas, a apresentação, a porta
+          # e um subdirectório por pacote. É saída, não é versionada, e é reconstruída de zero.
+          node tools/montar-publicacao.js "${{ inputs.escola }}"
+
       - name: Publicar o pacote no Cloudflare
         shell: bash
         run: |

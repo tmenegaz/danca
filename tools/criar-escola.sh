@@ -567,8 +567,14 @@ cat > "$WRANGLER" <<EOF
 
   "main": "workers/principal.js",
 
+  // A PUBLICAÇÃO MONTADA, NÃO O ESQUELETO (20/10/2026). Aqui esteve
+  // "professores/$PROFESSOR/ciclos/ciclo-$CICLO-$ESCOLA" — o pacote-zero, que é a apresentação do
+  // sistema e não tem DOCS: o site nascia sem Ciclo nem Aulas, e o ciclo gerado (que sai ao lado,
+  // em ciclo-NN-<escola>-<turma>/) nunca aparecia. Foi assim com a breu, com a batata e com o
+  // calango. `publicacao/$ESCOLA/` é montado por tools/montar-publicacao.js: o índice das
+  // turmas, a apresentação, a porta e um subdirectório por pacote. Não é versionado.
   "assets": {
-    "directory": "professores/$PROFESSOR/ciclos/ciclo-$CICLO-$ESCOLA",
+    "directory": "publicacao/$ESCOLA",
     "binding": "ASSETS",
     "run_worker_first": true
   },
@@ -654,6 +660,11 @@ fi
 # 9) Deploy (opcional)
 # ---------------------------------------------------------------------------
 if [ "$DEPLOY" = 1 ]; then
+  # A PASTA TEM DE EXISTIR ANTES DO DEPLOY (20/10/2026). O `assets.directory` é a publicação
+  # montada, e ela é saída — num clone novo não existe. Montar aqui é o que impede o deploy de
+  # falhar por uma pasta que o próprio script devia ter preparado.
+  echo "  deploy: montando a publicação da escola ..."
+  ( cd "$RAIZ" && node tools/montar-publicacao.js "$WORKER" )
   echo "  deploy: subindo o Worker '$WORKER' ..."
   ( cd "$RAIZ" && npx wrangler deploy -c "wrangler.$WORKER.jsonc" )
 

@@ -15,8 +15,19 @@
 
   "main": "workers/principal.js",
 
+  // A PUBLICAÇÃO MONTADA, NÃO O ESQUELETO (20/10/2026).
+  //
+  // Aqui esteve o pacote-zero (`ciclo-01-calango`): a apresentação do sistema, sem `DOCS` — e
+  // por isso o menu do site não tinha Ciclo nem Aulas, com o pacote gerado a existir ao lado. A
+  // correcção à mão (apontar ao pacote da turma) durou duas escolas e não serve a esta: o
+  // Calango tem TRÊS turmas, e um Worker só tem um `assets.directory`.
+  //
+  // `publicacao/calango/` é montado por `node tools/montar-publicacao.js calango` — o índice
+  // das turmas em `/`, a apresentação em `sistema.html`, a porta em `plano-observacao/` e um
+  // subdirectório por pacote de turma. Não é versionado: é saída, e reconstrói-se de zero.
+  // Quem faz o deploy (o workflow `gerar-ciclo` e o `criar-escola.sh`) monta antes de subir.
   "assets": {
-    "directory": "professores/sapo-bailarino/ciclos/ciclo-01-calango",
+    "directory": "publicacao/calango",
     "binding": "ASSETS",
     "run_worker_first": true
   },
