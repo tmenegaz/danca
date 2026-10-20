@@ -4,7 +4,8 @@
     "anamnese-20261019-2310.json",
     "anamnese-20261019-2311-2.json",
     "anamnese-20261019-2311.json",
-    "plano-20261019-2312.json"
+    "plano-20261019-2312.json",
+    "po-20261019-2316.json"
   ],
   "resumos": {
     "anamnese-20261019-2310.json": {
@@ -47,6 +48,22 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Tiago Menegaz"
+    },
+    "po-20261019-2316.json": {
+      "id": "po-20261019-2316",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "tiago-menegaz",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "sujeitos": [
+        "Aluna C",
+        "Aluna B",
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261019-2312"
+      ]
     }
   }
 }
