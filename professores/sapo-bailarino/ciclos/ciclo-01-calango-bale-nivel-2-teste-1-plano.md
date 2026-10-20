@@ -52,7 +52,7 @@ Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turm
 ## Estrutura de cada aula
 
 - **Solo** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **3** sustentar a transferência com musicalidade e controle do movimento
-- **Barra** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **2** transferir o peso entre os pés sem perder o alinhamento; **3** sustentar a transferência com musicalidade e controle do movimento
+- **Barra** — objetivos específicos: **1** reconhecer o apoio e alinhar o eixo vertical; **2** transferir o peso entre os pés sem perder o alinhamento
 - **Centro** — objetivos específicos: **2** transferir o peso entre os pés sem perder o alinhamento; **3** sustentar a transferência com musicalidade e controle do movimento
 - **Musicalidade** — objetivos específicos: **3** sustentar a transferência com musicalidade e controle do movimento
 
@@ -71,23 +71,7 @@ Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turm
 
 | Bloco | Objetivo específico | Conteúdo do nível | Tempos | Compasso |
 |:--|:--|:--|:--|:--|
-| **Solo** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Battement tendu** | **1** | **9/8** |
 | **Solo** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Plié** | **8** | **4/4** |
-| **Solo** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Battement tendu** | **32** | **3/8** |
-| **Solo** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Plié** | **24** | **4/4** |
-| **Solo** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Rond de jambe** | [a decidir] | [a decidir] |
-| **Barra** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Barra** | **1 — reconhecer o apoio e alinhar o eixo vertical** | **Plié** | [a decidir] | [a decidir] |
-| **Barra** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Plié** | [a decidir] | [a decidir] |
-| **Barra** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Port de bras** | [a decidir] | [a decidir] |
-| **Barra** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Barra** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Plié** | [a decidir] | [a decidir] |
-| **Barra** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Rond de jambe** | [a decidir] | [a decidir] |
-| **Centro** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Plié** | **32** | **3/4** |
-| **Centro** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Port de bras** | [a decidir] | [a decidir] |
-| **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Battement tendu** | [a decidir] | [a decidir] |
-| **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Plié** | [a decidir] | [a decidir] |
-| **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Rond de jambe** | [a decidir] | [a decidir] |
 | **Barra** | **2 — transferir o peso entre os pés sem perder o alinhamento** | **Battement tendu** | **8** | **4/4** |
 | **Centro** | **3 — sustentar a transferência com musicalidade e controle do movimento** | **Port de bras** | **16** | **3/4** |
 
