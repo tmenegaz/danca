@@ -1,0 +1,21 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/sapo-bailarino/ciclos/ciclo-01.conf, professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf e os .md deste ciclo.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-breu-bale-nivel-1-teste-3
+type: Ciclo
+professor: Sapo Bailarino
+ciclo: 01
+variante: breu-bale-nivel-1-teste-3
+hash_conteudo: bc15c4c02572b5fd05fc4996998cff5c2c5930165eb8bff9b70ade963fd10afd
+parentHash: 
+hash: edcbb2400a845be4fe1aadb5c28fa21ed2cf079978a3cdcb15179652c7dd4929
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-20
+cobertura:
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/sapo-bailarino/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
+  - professores/sapo-bailarino/ciclos/ciclo-01.conf
