@@ -230,8 +230,20 @@ function main() {
     // modelo — continua com instância. É isso que distingue «o repositório está vazio» de «a
     // declaração mente».
     const faltando = ausentesDeclaradosPresentes.map((t) => t.id).sort();
-    checar('sem ciclo, faltam só os tipos que um ciclo produz (âncora, manifesto, pacote)',
-      faltando.join(',') === 'ancora,manifesto,pacote', faltando.join(', '));
+    /*
+     * OS QUATRO DERIVADOS DO PO SÃO DOCUMENTOS DE CICLO (20/10/2026). A lista era
+     * «âncora, manifesto, pacote» e passou a estar incompleta quando a harmonização, a notação,
+     * o glossário e as referências entraram no vocabulário (`latente: false`): sem ciclo, eles
+     * não têm instância, exactamente como a âncora. A asserção reprovava por estar DESACTUALIZADA,
+     * não por a declaração mentir — e é o pior tipo de falha, porque manda procurar no sítio
+     * errado. O que se exige é o conjunto inteiro do que SÓ UM CICLO PRODUZ; o `schema` fica de
+     * fora porque é o MODELO, e sobrevive ao expurgo de propósito.
+     */
+    const soUmCicloProduz = ['ancora', 'glossario', 'harmonizacao', 'manifesto', 'notacao',
+      'pacote', 'referencias'];
+    checar('sem ciclo, faltam só os tipos que um ciclo produz (e o `schema`, que é o modelo, fica)',
+      faltando.join(',') === soUmCicloProduz.join(','),
+      { faltando: faltando.join(','), esperado: soUmCicloProduz.join(',') });
     checar('e o schema, que é o modelo, continua com instância', porTipo.get('schema') > 0,
       String(porTipo.get('schema')));
   } else {

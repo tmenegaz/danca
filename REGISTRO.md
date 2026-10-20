@@ -20626,3 +20626,33 @@ commit, e o repositório está limpo — basta redisparar o workflow. E fica uma
 **três sítios fazem deploy** (o `gerar-ciclo.yml`, o `criar-escola.yml` e o `criar-escola.sh
 --deploy`), e eu corrigi dois. A prova agora cobre os três; enquanto forem três, a lista tem de ser
 percorrida por inteiro em cada mudança.
+
+## 20/10/2026 — o repositório sem ciclo expôs duas provas desactualizadas
+
+**O que motivou.** O expurgo do `calango` deixou o repositório **sem ciclo nenhum** — só os cinco
+schemas, que são o modelo. É um estado que o sistema já prevê, e as provas aprenderam a declará-lo
+em vez de falharem. Duas não estavam à altura:
+
+1. **`provar-declaracoes-do-indice` §5 acusava a declaração de mentir.** Exigia que, sem ciclo,
+   faltassem apenas `ancora, manifesto, pacote`. A lista ficou incompleta quando a harmonização, a
+   notação, o glossário e as referências entraram no vocabulário com `latente: false`: sem ciclo
+   eles não têm instância, exactamente como a âncora. A asserção reprovava por estar
+   **desactualizada**, não por a declaração estar errada — o pior tipo de falha, porque manda
+   procurar no sítio errado. Passa a exigir o conjunto inteiro do que **só um ciclo produz**.
+2. **`provar-publicacao-da-escola` fixava uma escola.** Media `wrangler.calango.jsonc` a dedo, e o
+   `calango` foi expurgado: a prova passou a **estourar** com `ENOENT` em vez de medir (ver a
+   entrada acima, onde a mesma prova já tinha sido corrigida por outro motivo). Agora percorre as
+   configs que houver e **declara** quando não há nenhuma.
+
+**Onde entrou.** `experimentos/provar-declaracoes-do-indice.js` (§5, com a razão em comentário) e
+`experimentos/provar-publicacao-da-escola.js` (a secção D, genérica).
+
+**Com o quê.** `node experimentos/provar-declaracoes-do-indice.js` → **24 asserções**;
+`node experimentos/provar-publicacao-da-escola.js` → **27**; `node tools/check-indices.js` → **14 de
+14**, com **7 contraprovas** a reprovar e **2 declaradas sem dado** (não há `.fipp` nem pacote para
+lhe mexer). Os `indices/` foram regerados: um órfão removido, `indices/ciclos/sapo-bailarino/01-
+calango.json`.
+
+**O que ainda não está feito.** Continua a ser o mesmo de sempre: **nada regenera o `indices/`
+automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
+alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
