@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T10:01:34-0300`
-Commit atual: `53d4fbb` — fix(po): as listas fechadas eram duas, e o mapa morria na segunda
+Gerado em: `2026-10-20T10:18:10-0300`
+Commit atual: `1dc2edf` — fix(tools): clicar na logo leva à raiz do domínio
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,26 +63,26 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
-53d4fbb fix(po): as listas fechadas eram duas, e o mapa morria na segunda
-9d6cfea fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
+1dc2edf fix(tools): clicar na logo leva à raiz do domínio
+1752218 docs(registro): o HANDOFF cita as duas listas fechadas do mapa
+2d3356c fix(po): as listas fechadas eram duas, e o mapa morria na segunda
+dbd175d fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
+347da62 chore(entrega): gerar o pacote de sapo-bailarino/01/batata-bale-nivel-1-teste-2
+db80bcb chore(estrutura): reancorar a cadeia das fontes alteradas
+557e4a9 feat(captura): declara a variante batata-bale-nivel-1-teste-2 no schema de captura
+c04f6ff feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
+57ddd11 feat(ciclo): o «Guardar» do PO cifra ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json
+9694af6 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+fda6c1d feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
+2bf3a1d feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+b76c2ec feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+5b257ef feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
+71e2011 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+30f2f88 feat(po): o PO elicitado vira a fonte do ciclo
+f3dbf74 feat(acervo): envelope/po-20261020-0955.json
+298be29 feat(acervo): envelope/.indice.json
 6c07df1 chore(estrutura): reancorar a cadeia das fontes alteradas
-f37cc9b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-bcd3f9f feat(plano): o plano elicitado vira a fonte do ciclo
-38ab357 feat(acervo): envelope/plano-20261020-0947.json
-24a8772 feat(acervo): envelope/.indice.json
-efd9783 chore(estrutura): reancorar a cadeia das fontes alteradas
-45e7afd feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-6a60d12 feat(plano): o plano elicitado vira a fonte do ciclo
-2300685 feat(acervo): envelope/plano-20261020-0946.json
-4051fe4 feat(acervo): envelope/.indice.json
-51c1415 chore(estrutura): reancorar a cadeia das fontes alteradas
-0707f50 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-c63e4fb feat(plano): o plano elicitado vira a fonte do ciclo
-21704ae feat(acervo): envelope/plano-20261020-0945.json
-2f8b4ee feat(acervo): envelope/.indice.json
-a6b65d1 feat(acervo): envelope/anamnese-20261020-0943-2.json
-1bb40d2 feat(acervo): envelope/.indice.json
-6b06367 feat(acervo): envelope/anamnese-20261020-0943.json
 ```
 
 ## Por professor
@@ -94,14 +94,14 @@ a6b65d1 feat(acervo): envelope/anamnese-20261020-0943-2.json
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | batata | (sem PO) | — | — |
-| batata-bale-nivel-1-teste-2 | (sem PO) | — | — |
+| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Aguardando | 1 |
 | batata-bale-nivel-2-teste-2 | (sem PO) | — | — |
 | batata-bale-nivel-3-teste-2 | (sem PO) | — | — |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `c723e88de775` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `7c5861b6aa40` | (vazio) | — |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `3daaa5026509` | (vazio) | Input_PO_Aguardando |
 | batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `7802a397dff5` | (vazio) | — |
 | batata-bale-nivel-3-teste-2 | ciclo-01-batata-bale-nivel-3-teste-2.fipp | `00e94b5840d9` | (vazio) | — |
 
@@ -154,93 +154,80 @@ a6b65d1 feat(acervo): envelope/anamnese-20261020-0943-2.json
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o filtro dos sujeitos continuava sem funcionar: a chave morria no mapa
+## 20/10/2026 — clicar na logo leva à raiz do domínio
 
-**O que motivou.** A correcção anterior estava certa em três sítios e **não funcionava no quarto**.
-A pesquisadora escolheu o plano da turma 1 e, em «Sujeitos observados», continuou a ver as três
-alunas. Medido no Worker:
+**O que motivou.** Pedido da pesquisadora: «toda vez que eu clicar na logo, quero ir só para o
+domínio» — `https://batata.tmenegaz77.workers.dev`, sem caminho nenhum. A marca era um
+`<span class="marca" aria-hidden="true">` com o SVG dentro: **ornamento puro**. O clique não fazia
+nada, e o gesto que qualquer pessoa tenta — clicar na logo para voltar ao início — não tinha destino.
 
-```
-GET /plano-observacao/api/anamneses                        → ['Aluna C','Aluna B','Aluna A']
-GET /plano-observacao/api/anamneses?plano=plano-…-0945     → turma: Balé Nível 1 — Teste 2
-                                                             recorte: ['Aluna A']
-```
+**Por que o `href` tem de ser ABSOLUTO.** `index.html` significaria **três coisas diferentes**,
+porque a mesma barra serve três níveis de endereço:
 
-A **rota** recortava. Quem não pedia o recorte era a **tela** — porque o nó do mapa não trazia a
-marca que a autoriza a pedi-lo:
+| onde | o que `index.html` seria |
+|:--|:--|
+| o pacote da turma (`/aula-01`) | o índice do ciclo |
+| a porta (`/plano-observacao/`) | a própria porta outra vez |
+| os Bastidores (`/bastidores/producao`) | a pasta dos Bastidores |
 
-```
-GET /plano-observacao/api/mapa?fonte=po   →  {"id":"sujeitos", "opcoesDe":"api/anamneses", …}
-                                             (sem `recortePeloPlano`)
-```
-
-**A causa.** O `descritores()` do `motor/nucleo/elicitar.js` é uma **lista fechada**: o mapa que o
-`/api/mapa` serve é construído chave a chave, e o que não está na lista **não existe** do outro
-lado. O conteúdo do PO declarava `recortePeloPlano`, o cliente sabia compor `?plano=`, a rota sabia
-recortar — e a marca ficava pelo caminho. Terceira vez, no mesmo dia, com a mesma forma: cada peça
-certa, e o dado a não atravessar.
+`/` é a única resposta certa nas três, e é a mesma em todas: o site da escola. O `href` relativo
+levaria a três sítios, e o gesto deixaria de querer dizer «início».
 
 **O que foi decidido.**
 
-- `descritores()` passa a repassar `recortePeloPlano`. É a chave que diz à tela «esta lista se
-  recorta pelo plano» — a tela continua a não saber o que é uma curadoria.
-- **A prova deixa de medir a peça e passa a medir a travessia.** A secção E monta o mapa com o
-  `nosRespondiveis()` verdadeiro, sobre os três conteúdos reais, e exige duas coisas: que o nó
-  `sujeitos` do PO traga a marca, e — a guarda genérica — que **nenhuma chave de comportamento
-  declarada no conteúdo se perca no mapa**. A lista de chaves de comportamento (25) fica na prova:
-  uma chave nova esquecida no `descritores()` passa a ser uma falha, e não um silêncio.
+- `MARCA_NA_BARRA` passa a ser `<a class="marca" href="/" aria-label="Sistema Lastro — página
+  inicial" title="Ir para o início">` com o SVG dentro de um `<span aria-hidden="true">`.
+- **O nome acessível está no `<a>`, e o desenho está escondido.** Um `<a>` cujo conteúdo é
+  `aria-hidden` fica **sem nome** — é o defeito clássico desta conversão. Anunciar o desenho *e* o
+  `<title>` do SVG seria dizer «Sistema Lastro» duas vezes no mesmo elemento.
+- **A ponte cobre os DOIS estados do slot**, e é o que faz a correcção chegar aos pacotes que já
+  existem. Um pacote anterior a hoje traz `<span class="marca">` e há dois casos:
+  - **vazio** (`<span class="marca" aria-hidden="true"></span>`) — a ponte punha lá o desenho
+    dentro do mesmo `<span>`: aparecia e não se clicava;
+  - **preenchido** (`<span class="marca"><svg…></svg></span>`) — é o da **maioria** dos pacotes
+    gerados entre 18 e 20/10. Uma correcção que só olhasse o vazio deixaria a maioria a servir uma
+    logo inerte, com o sintoma invisível: o desenho está lá.
 
-**Onde entrou.** `motor/nucleo/elicitar.js` — uma chave no `descritores()`.
-`experimentos/provar-sujeitos-da-turma.js` — **27 → 29 asserções** (a secção E, e a secção F que
-antes era E).
+  Os atributos do `<span>` velho **não** são transportados: `aria-hidden="true"` num `<a>` deixava-o
+  sem nome.
 
-**Com o quê.** `node experimentos/provar-sujeitos-da-turma.js` → **29 asserções**. Controlo
-negativo: sem o repasse no `descritores()`, dão **2 falhas** — a marca ausente e a chave perdida.
-Sem regressão: produção 135, teste 37, cabeçalho 40, anamnese sem cofre 13, publicação 27, índices
-49.
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`.
 
-**O que ainda não está feito.** A **guarda genérica só olha as chaves de uma lista escrita à mão**.
-Uma chave de comportamento nova que ninguém acrescente à lista continua invisível — a prova protege
-as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
-`descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
-prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
+- `tools/templates/nav-html.js` — a constante `MARCA_NA_BARRA`, e o comentário que diz por que o
+  `href` é absoluto e onde vive o nome acessível.
+- `tools/check-identidade.js` — a verificação da marca passa a **exigir o link**: antes garantia
+  que o slot não estava vazio, e um `<span>` cheio passaria para sempre.
 
-**Segunda correção de 20/10/2026 (minutos depois) — as listas fechadas eram DUAS.** O
-`descritores()` do motor repassava a marca, e o mapa continuava a não a trazer: a `porta.mapa`
-construía o nó com **outra** lista fechada, chave a chave, por cima da primeira. Duas listas em
-série, duas chances de perder o mesmo dado — e ele perdeu-se nas duas. Sem sinal no site: a rota
-recortava, a tela não pedia.
+**O que NÃO muda:** a marca em si (o mesmo SVG, o mesmo `currentColor`, as três famílias), a
+fórmula do hash, as 17 regras, as 22 pétreas, os validadores do ciclo, e o CSS — `.topnav .marca` e
+`.topnav a.marca:hover` já existiam, escritas para um `<a>` que nunca houve.
 
-O nó passa a entrar **inteiro** (`{...no, …}`) e o que a porta acrescenta vem por cima: as
-normalizações (`|| null`, `=== true`), os valores da forma, o sema resolvido. Acrescentar mais uma
-linha à segunda lista teria resolvido este campo e deixado a armadilha para o próximo — **uma lista
-fechada é uma promessa de esquecimento**.
+**Onde entrou.**
 
-E a prova foi corrigida no mesmo movimento, porque media a **camada errada**: chamava
-`nosRespondiveis` (o motor) e dava verde com o site partido. Agora mede `porta.mapa` — o que o
-`/api/mapa` realmente serve — e a guarda genérica compara o conteúdo com essa camada, a final:
-**29 → 30 asserções**. Controlo negativo: sem o `...no`, dão **2 falhas**.
+- `tools/templates/nav-html.js` — `MARCA_NA_BARRA` como link.
+- `motor/servidor/producao.js` — a ponte trata os dois estados do slot, com a mesma constante.
+- `tools/check-identidade.js` — exige `href="/"` e `aria-label`.
+- `experimentos/provar-logo-volta-ao-inicio.js` — **nova prova, 22 asserções**.
+- `.gitignore`, `experimentos/README.md` — a prova no clone e na tabela.
 
-Medido ao vivo depois do deploy: `?plano=plano-…-0945` → **Aluna A**, `0946` → **Aluna B**,
-`0947` → **Aluna C** — cada plano com a aluna da sua turma, e o mapa a trazer a marca.
+**Com o quê.** `node experimentos/provar-logo-volta-ao-inicio.js` → **22 asserções**. Controlos
+negativos em duas metades: contra o código de `HEAD` dão **8 falhas**; com só a ponte revertida dão
+**6** — e é essa metade que importa, porque é a que cobre os pacotes já gerados. Sem regressão:
+identidade visual **19 de 19**, produção 135, publicação 29, sujeitos-da-turma 30, tema 37 (a mesma
+falha de antes, anterior a esta mudança).
+
+**Medido ao vivo**, no Worker do `batata`, em três endereços de níveis diferentes:
+`/`, `/plano-observacao/` e `/sistema` servem todos
+`<a class="marca" href="/" aria-label="Sistema Lastro — página inicial" title="Ir para o início">`.
+
+**O que ainda não está feito.** Os pacotes versionados no repositório continuam com o `<span>` no
+arquivo — **corrigidos ao servir**, pela ponte, que é o que impede a correcção de depender de uma
+regeneração que ninguém faria só por isto. Só uma regeneração (ou um `criar-escola.sh
+--somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
+escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
+ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
 
 ## O que está pendente
-
-## 20/10/2026 — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de nascer vazio
-
-
-- **O `wrangler deploy` do `calango` não foi corrido daqui.** A correcção só chega ao ar no próximo
-  deploy — e o caminho é o de sempre (redisparar a geração), não um `wrangler` à mão. Até lá, o site
-  continua a servir o esqueleto.
-- **A montagem depende do deploy correr depois dela.** Uma pasta que não existe faz o `wrangler`
-  recusar — falha alta, e é a que se quer —, mas quem correr `npx wrangler deploy -c
-  wrangler.<escola>.jsonc` num clone novo tem de montar primeiro. Os dois sítios que publicam já o
-  fazem; o comando à mão, não.
-- **O índice das turmas não conhece o estado do ciclo.** Mostra o ritmo e o número de aulas lançadas,
-  não «a próxima aula é a 03». Esse dado existe (o `ciclos.json`), e não foi trazido para não abrir
-  uma segunda derivação do estado.
-- Continua verdadeiro o de antes: **nada regenera o `indices/`** automaticamente. Nesta sessão ele
-  foi regerado à mão depois do expurgo da `batata`, e voltou a 14 de 14.
 
 ## 20/10/2026 — o hook recusava todo commit enquanto uma turma não tivesse PO
 
@@ -267,6 +254,15 @@ Uma chave de comportamento nova que ninguém acrescente à lista continua invis�
 as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
 `descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
 prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
+
+## 20/10/2026 — clicar na logo leva à raiz do domínio
+
+Os pacotes versionados no repositório continuam com o `<span>` no
+arquivo — **corrigidos ao servir**, pela ponte, que é o que impede a correcção de depender de uma
+regeneração que ninguém faria só por isto. Só uma regeneração (ou um `criar-escola.sh
+--somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
+escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
+ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
 
 ## Pendências anteriores (índice)
 
@@ -510,7 +506,9 @@ prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este 
 - **20/10/2026** — a aula derivada volta a ser legível: o mapa de secções e a… → `REGISTRO.md` L20252
 - **20/10/2026** — o primeiro pacote no repositório expôs o vocabulário do… → `REGISTRO.md` L20308
 - **20/10/2026** — o Plano de Observação de uma turma oferecia as alunas das… → `REGISTRO.md` L20364
-- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- **20/10/2026** — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de… → `REGISTRO.md` L20434
+- PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
