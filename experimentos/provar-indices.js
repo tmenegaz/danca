@@ -297,6 +297,64 @@ function main() {
       ver8 && ver8.falhas);
   }
 
+  console.log('\n== 13. O pacote no repositorio tem decisao para TUDO que o gerador escreve ==');
+  {
+    // O PRIMEIRO PACOTE REAL EXPÔS O VOCABULÁRIO (20/10/2026). Enquanto nenhum pacote estava no
+    // repositório, o `professores/**` era só fonte e o vocabulário bastava. Com o pacote gerado,
+    // catorze arquivos passaram a não ter decisão — oito páginas `.html`, o `.pdf` e as cinco
+    // cópias de conteúdo que a porta lê — e a verificação 8 reprovou por omissão, não por erro
+    // de tipo. As regras que faltavam são por CLASSE, não por arquivo: cada uma nomeia o que a
+    // saída é, para a próxima não voltar a ser descoberta por falha.
+    const esquema = JSON.parse(fs.readFileSync(path.join(RAIZ, 'indices/esquema/tipos.json'), 'utf8'));
+    const tipos = esquema.tipos || [];
+    const ignorados = esquema.ignorados || [];
+    const pacote = 'professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2';
+
+    const decisaoDe = (rel) => {
+      const achados = [];
+      for (const t of tipos) {
+        if ((t.alvo === 'diretorio') !== rel.endsWith('/')) continue;
+        if (new RegExp(t.padrao).test(rel)) achados.push(t.id);
+      }
+      for (const ig of ignorados) if (new RegExp(ig.padrao).test(rel)) achados.push('ignorado:' + ig.id);
+      return achados;
+    };
+
+    const saida = [
+      pacote + '/aula-01.html',
+      pacote + '/referencias.html',
+      pacote + '/plano-observacao/index.html',
+      pacote + '/ciclo-01-batata-bale-nivel-1-teste-2.pdf',
+      pacote + '/plano-01.json',
+      pacote + '/po-01.json',
+      pacote + '/captura-01.json',
+      pacote + '/captura-aula-01.json',
+      pacote + '/plano-aula-01.json',
+      pacote + '/assets/style.css',
+    ];
+    checar('todo arquivo de SAÍDA do pacote tem decisão — e uma só',
+      saida.every((rel) => decisaoDe(rel).length === 1),
+      saida.map((rel) => rel.split('/').pop() + ' → ' + (decisaoDe(rel).join('+') || 'NENHUMA')));
+
+    // O `ciclos.json` do pacote NÃO é saída: o PLANO-INDICES.md (§1, item 5) manda lê-lo, porque
+    // é dele que sai «qual é a próxima aula» sem o Worker abrir o `.conf` nem o pacote.
+    checar('o `ciclos.json` do pacote continua a ser um documento (`indice`), e não saída',
+      decisaoDe(pacote + '/ciclos.json').join(',') === 'indice',
+      decisaoDe(pacote + '/ciclos.json'));
+
+    // A EXCEPÇÃO É POR CLASSE, NÃO POR PASTA: se ela apanhasse a pasta inteira, as fontes ao lado
+    // e o próprio pacote (o diretório) desapareceriam do acervo.
+    checar('o pacote em si continua a ser o documento (o diretório)',
+      decisaoDe(pacote + '/').join(',') === 'pacote', decisaoDe(pacote + '/'));
+    checar('as fontes ao lado do pacote continuam a ter tipo',
+      decisaoDe(pacote + '-po.md').join(',') === 'po'
+        && decisaoDe(pacote + '-dados.json').join(',') === 'dados'
+        && decisaoDe(pacote + '.conf').join(',') === 'manifesto',
+      [decisaoDe(pacote + '-po.md'), decisaoDe(pacote + '-dados.json'), decisaoDe(pacote + '.conf')]);
+    checar('e a âncora, que fica ao lado, também',
+      decisaoDe(pacote + '.fipp').join(',') === 'ancora', decisaoDe(pacote + '.fipp'));
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));

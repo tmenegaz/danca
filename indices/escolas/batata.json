@@ -81,6 +81,9 @@
         "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
         "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
         "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+        "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
         "professores/tiago-menegaz/ciclos/ciclo-01-batata.conf",
         "professores/tiago-menegaz/ciclos/ciclo-01-batata.fipp",
         "professores/tiago-menegaz/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -98,6 +101,7 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -173,6 +177,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "ciclo_id": "ciclo:tiago-menegaz/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "professor": "tiago-menegaz",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
       "ciclo_id": "ciclo:tiago-menegaz/01/batata",
       "escola": "batata",
@@ -188,6 +201,15 @@
       "id": "documento:harmonizacao:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
       "professor": "tiago-menegaz",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+      "ciclo_id": "ciclo:tiago-menegaz/01/batata",
+      "escola": "batata",
+      "id": "documento:indice:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+      "professor": "tiago-menegaz",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -242,6 +264,15 @@
       "id": "documento:referencias:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
       "professor": "tiago-menegaz",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:tiago-menegaz/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "tiago-menegaz",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
@@ -363,9 +394,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8bc6257"
+    "commit": "7ced350"
   },
-  "gerado_em": "2026-10-20T02:21",
+  "gerado_em": "2026-10-20T02:48",
   "nao_indexado": [
     {
       "familia": "conteudo",

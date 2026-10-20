@@ -34,14 +34,17 @@
     "documento:aula:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
     "documento:dados:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
     "documento:dados:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+    "documento:dados:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
     "documento:glossario:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
     "documento:harmonizacao:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+    "documento:indice:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
     "documento:manifesto:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
     "documento:manifesto:professores/tiago-menegaz/ciclos/ciclo-01-batata.conf",
     "documento:notacao:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
     "documento:plano:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
     "documento:po:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
     "documento:referencias:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+    "documento:schema:professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/tiago-menegaz/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -59,7 +62,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -72,6 +75,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -99,7 +107,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -107,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8bc6257"
+    "commit": "7ced350"
   },
-  "gerado_em": "2026-10-20T02:21",
+  "gerado_em": "2026-10-20T02:48",
   "id": "ciclo:tiago-menegaz/01/batata",
   "professor": "tiago-menegaz",
   "versao": 1

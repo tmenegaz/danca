@@ -20304,3 +20304,59 @@ negativo: contra o `derivar-ciclo.js`/`validar-aula-ciclo.js`/`lib-extracao-md.j
 versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
 geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
 quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.
+
+## 20/10/2026 — o primeiro pacote no repositório expôs o vocabulário do acervo: catorze arquivos sem decisão
+
+**O que motivou.** A geração da `batata` pôs, pela primeira vez, um **pacote real** dentro de
+`professores/`. Até aqui esse diretório só tinha **fonte** — e o vocabulário de tipos
+(`indices/esquema/tipos.json`) foi escrito para fonte. `node tools/check-indices.js` passou a
+reprovar com **14 arquivos «sem tipo declarado»**, todos dentro do pacote:
+
+| classe | arquivos |
+|:--|:--|
+| páginas | `aula-01.html`, `captura-aula-01.html`, `glossario-benesh.html`, `harmonizacao.html`, `lancamento.html`, `notacao.html`, `plano.html`, `referencias.html`, `plano-observacao/index.html` |
+| impressão | `ciclo-01-…-teste-2.pdf` |
+| cópias de conteúdo que a porta lê | `plano-01.json`, `po-01.json`, `captura-01.json`, `captura-aula-01.json`, `plano-aula-01.json` |
+
+A regra que existia era **estreita de mais e por arquivo**: `/index\.html$`, e nada mais. Dizia-o
+da capa do pacote e não das nove páginas escritas ao lado dela.
+
+**O que foi decidido — por CLASSE, não por pasta.** A tentação era uma regra só: «o interior do
+pacote é saída». Está errada, e o `PLANO-INDICES.md` (§1, item 5) diz por quê: o `ciclos.json` do
+pacote **é para ser lido** — é dele que sai «qual é a próxima aula» sem o Worker abrir o `.conf` nem
+o pacote. Uma excepção que apanhasse a pasta inteira apagaria esse documento do acervo e, com ele, a
+única instância do tipo `indice`. As regras entraram, então, uma por classe de saída:
+
+- `paginas-do-pacote` — qualquer `.html` dentro de um pacote, inclusive aninhado. Substitui a regra
+  estreita; a página é a saída, o documento é o pacote.
+- `pdf-do-pacote` — a impressão das mesmas páginas, reconstruível.
+- `conteudo-do-pacote` — as cinco cópias de conteúdo que a porta consome. A **fonte** é o `.md` ao
+  lado da pasta; indexar a cópia contaria o mesmo documento duas vezes.
+
+Ficaram de fora, de propósito, e continuam a ser documentos: `ciclos.json` (`indice`), a cópia
+`-dados.json` (`dados`), o `elicitacao-schema.json` (`schema`), o `README.md` da pasta, os `assets/`
+e o conteúdo da porta — que já tinham decisão.
+
+**Onde entrou.**
+
+- `indices/esquema/tipos.json` — `pagina-do-pacote` → `paginas-do-pacote` (mais ampla), e as duas
+  classes novas (`pdf-do-pacote`, `conteudo-do-pacote`), cada uma com o motivo escrito.
+- `experimentos/provar-indices.js` — nova prova §13, **49 → 54 asserções**: toda saída do pacote tem
+  decisão **e uma só**; o `ciclos.json` do pacote continua a ser `indice`; o pacote em si continua a
+  ser o documento (o diretório); as fontes ao lado — `.md`, `.json`, `.conf`, `.fipp` — continuam
+  classificadas. É a prova de que a excepção é por classe e não engoliu a pasta.
+- `indices/**` — regenerado (`documentos` do ciclo da `batata`: **16 → 19**, com as três cópias que
+  o motor já classificava e o vocabulário não declarava).
+
+**Com o quê.** `node tools/check-indices.js` → **14 de 14**; `--contraprovas` → **10, todas
+reprovam**; `node experimentos/provar-indices.js` → **54 asserções**; `provar-declaracoes-do-indice`
+→ **23**; `gerar-indices --check` → **12 arquivos em dia**. Controlo negativo: contra o `tipos.json`
+de `HEAD` a verificação 8 dá **14 falhas** e a prova dá **5**.
+
+**O que ainda não está feito.** Nenhuma ferramenta de `tools/` foi tocada — e essa foi a decisão: a
+primeira tentativa foi implementar no validador a precedência que o `tipos.json` declara no campo
+`ordem` («o primeiro padrão que casar vence»), e o resultado seria **duas** declarações a dizer o
+mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do validador e a da prova das
+declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
+(ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
+`assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.

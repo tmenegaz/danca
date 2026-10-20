@@ -144,9 +144,19 @@
       "motivo": "CSS, JS e ícone do pacote: são reconstruíveis dos templates, e o índice descreve documentos, não a pele da página"
     },
     {
-      "id": "pagina-do-pacote",
-      "padrao": "/index\\.html$",
-      "motivo": "a página é a saída do pacote; o que o índice guarda é o PACOTE (o diretório), não cada HTML gerado"
+      "id": "paginas-do-pacote",
+      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/(?:[a-z0-9-]+/)*[a-z0-9-]+\\.html$",
+      "motivo": "a página é a saída do pacote; o que o índice guarda é o PACOTE (o diretório) e o `ciclos.json`, não cada HTML gerado. Era `/index\\.html$`, estreita de mais: dizia-o da capa e não das nove páginas que o gerador escreve ao lado dela"
+    },
+    {
+      "id": "pdf-do-pacote",
+      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/[a-z0-9-]+\\.pdf$",
+      "motivo": "o PDF é a impressão das mesmas páginas — reconstruível do pacote, não documento do acervo"
+    },
+    {
+      "id": "conteudo-do-pacote",
+      "padrao": "/ciclos/ciclo-[0-9]{2}-[a-z0-9-]+/(?:plano|po|captura)(?:-aula)?-[0-9]{2}\\.json$",
+      "motivo": "as cópias de CONTEÚDO que a porta lê (o plano, o PO e as capturas preenchidos). A fonte é o `.md` ao lado da pasta; esta é a cópia que a página consome, e indexá-la contaria o mesmo documento duas vezes"
     },
     {
       "id": "conteudo-da-porta",

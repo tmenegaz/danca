@@ -8,7 +8,7 @@
         "parent_hash": ""
       },
       "aulas": 1,
-      "documentos": 16,
+      "documentos": 19,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:tiago-menegaz/01/batata",
@@ -371,9 +371,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "8bc6257"
+    "commit": "7ced350"
   },
-  "gerado_em": "2026-10-20T02:21",
+  "gerado_em": "2026-10-20T02:48",
   "nao_indexado": [
     {
       "familia": "conteudo",
