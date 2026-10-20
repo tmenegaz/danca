@@ -745,6 +745,46 @@ async function apagarEnvelope(armazenamento, id) {
  * selecionou o sujeito no nó `sujeitos`. É DERIVADO — varre-se os envelopes de
  * PO e vê-se quem declara o apelido; não se grava nada na anamnese.
  */
+/*
+ * QUEM ESTÁ NUMA TURMA — e por que isto não é a mesma pergunta do `daCuradoria` (20/10/2026).
+ *
+ * A ANAMNESE NÃO SABE DE TURMA. O conteúdo dela o declara em `oQueFicaFora`: «os nove blocos e
+ * os módulos condicionais não decidem para que turma a aluna vai». Quem declara é a CURADORIA da
+ * direção — `{professor, turmas[], alunas[]}` —, e ela declara as duas coisas juntas: aquela
+ * professora, naquela turma, observa aquelas alunas.
+ *
+ * O DEFEITO QUE ISTO CORRIGE. O nó `sujeitos` do PO oferecia `api/anamneses`, que é a lista de
+ * TODAS as anamneses da escola. Com três turmas e três alunas — uma por turma —, o Plano de
+ * Observação da turma 1 oferecia as três, e nada impedia marcar a aluna da turma 2. A tela
+ * filtrava por `daCuradoria('alunas')`, que é a UNIÃO de todas as curadorias daquele professor:
+ * com três turmas, a união é sempre «todas», e o filtro que existia não filtrava nada. O recorte
+ * tem de ser por TURMA, não por professor.
+ *
+ * Sem turma não há recorte (`null`) — quem chama decide o que fazer. Turma sem curadoria devolve
+ * lista VAZIA, e não «todas»: a ausência de atribuição não é permissão. É o lado seguro do
+ * vazamento, e a mesma escolha do `alunaVinculadaA` do `bastidores.js`.
+ */
+function alunasDaTurma(curadorias, alvo) {
+  const turma = String((alvo && alvo.turma) || '').trim();
+  if (!turma) return null;
+  const professor = String((alvo && alvo.professor) || '').trim();
+  const vistas = new Set();
+  for (const c of Array.isArray(curadorias) ? curadorias : []) {
+    if (!c || c.substituidaPor) continue;
+    if (professor && String(c.professor || '').trim() !== professor) continue;
+    // Os DOIS formatos do registo: `turmas` (lista, o actual) e `turma` (nome, o antigo).
+    const daCuradoria = Array.isArray(c.turmas) && c.turmas.length
+      ? c.turmas.map((t) => String(t == null ? '' : t).trim())
+      : [String(c.turma == null ? '' : c.turma).trim()];
+    if (daCuradoria.indexOf(turma) === -1) continue;
+    for (const a of Array.isArray(c.alunas) ? c.alunas : []) {
+      const nome = String(a == null ? '' : a).trim();
+      if (nome) vistas.add(nome);
+    }
+  }
+  return [...vistas];
+}
+
 async function vinculos(armazenamento, jaLido) {
   const por = new Map();
   // Do ÍNDICE: o resumo de cada PO já traz os sujeitos que ele declarou. Antes esta função lia
@@ -866,13 +906,18 @@ async function estadoDoPlano(armazenamento, envelope) {
  * A LISTA de anamneses já lançadas — um SUJEITO (apelido) por vez, o vigente.
  * Devolve só METADADO, nunca as respostas (Frente 5 do plano).
  */
-async function anamneses(armazenamento) {
+async function anamneses(armazenamento, recorte) {
   const indice = await lerIndice(armazenamento);
   const ligacoes = await vinculos(armazenamento, indice);
+  // O RECORTE DA TURMA (20/10/2026) — ver `alunasDaTurma`. `null`/ausente = sem recorte; um
+  // array (mesmo vazio) = só aquelas alunas. A distinção é o que impede «turma sem curadoria»
+  // de virar «todas as alunas da escola»: lá o array vem vazio e a lista sai vazia.
+  const permitidas = recorte && Array.isArray(recorte.alunas) ? new Set(recorte.alunas) : null;
   const opcoes = [];
   for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^anamnese-.*\.json$/, indice)) {
     const aluna = resumo.aluna || null;
     if (!aluna) continue;
+    if (permitidas && !permitidas.has(String(aluna).trim())) continue;
     const carimbo = resumo.id || nome.replace(/\.json$/, '');
     const quando = carimboEmPortugues(carimbo);
     const por = ligacoes.get(aluna) || [];
@@ -1111,6 +1156,7 @@ module.exports = {
   gravarEnvelope,
   apagarEnvelope,
   vinculos,
+  alunasDaTurma,
   valorDe,
   turmaDoEnvelope,
   vinculosDePlano,

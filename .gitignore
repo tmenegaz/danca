@@ -45,6 +45,15 @@ tools/.escolas-teste
 professores/*/ciclos/*-acompanhamento-*.md
 
 # ============================================================================
+# A PUBLICAÇÃO DA ESCOLA — o que o Worker serve, montado
+# ============================================================================
+# `publicacao/<escola>/` é uma SAÍDA: a montagem junta o pacote-zero (apresentação, pele,
+# porta) e um subdiretório por pacote de turma gerado. Versioná-la duplicaria em Git cada
+# pacote inteiro — com o PDF — e criaria duas cópias do mesmo documento a divergir.
+# `node tools/montar-publicacao.js <escola>` a reconstrói de zero a cada execução.
+publicacao/
+
+# ============================================================================
 # Área de teste — rascunhos, não produção
 # ============================================================================
 # O que fica em experimentos/ não é fonte do hash, não entra no pacote e não é
@@ -202,3 +211,16 @@ po_ref/
 # primeira aula derivada da `batata` perdeu o bloco de musicalidade e a duração. Citada pelo
 # REGISTRO; sem ela no clone, a correcção não é conferível.
 !experimentos/provar-aula-e-plano-legiveis.js
+
+# O SITE DA ESCOLA (20/10/2026). O `assets.directory` do Worker apontava o pacote-zero — a
+# apresentação, sem `DOCS`, logo sem Ciclo nem Aulas — e o pacote gerado existia no repositório e
+# não no ar. Foi assim com a `breu`, a `batata` e o `calango`; a correcção à mão deixou de servir
+# quando a escola passou a ter três turmas. Esta prova mede a montagem da publicação: o índice das
+# turmas, a apresentação em `sistema.html`, um subdirectório por pacote, e nenhum link morto.
+!experimentos/provar-publicacao-da-escola.js
+
+# O VAZAMENTO DOS SUJEITOS (20/10/2026). No PO da turma 1 apareciam as alunas das outras duas. A
+# tela filtrava pela UNIÃO das curadorias do professor, e com uma curadoria por turma a união é
+# sempre «todas» — o filtro existia e não recortava. Esta prova mede o recorte por turma, do
+# núcleo à rota e à declaração do conteúdo.
+!experimentos/provar-sujeitos-da-turma.js

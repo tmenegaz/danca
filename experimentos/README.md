@@ -105,6 +105,8 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-anamnese-sem-cofre.js` | a anamnese **sai do KV**: o registo vai para o acervo, o KV em memória fica com **zero escritas**, as três rotas do cofre respondem 404 e o cliente não pede a segunda cópia (13 asserções — **negativa**: mede uma ausência) | não |
 | `provar-expurgo-sem-listagem.js` | o expurgo com a enumeração do KV recusada: o registo de chaves, a pendência no elo e o `POST /api/expurgar-kv` (40 asserções) | não |
 | `provar-aula-e-plano-legiveis.js` | o **contrato entre a derivação e a leitura**: o `.md` que o gerador escreve é lido de volta pelos três validadores, e as duas metades concordam nos nomes das secções, no parâmetro que não parte a tabela e na tabela que **é** o campo (12 asserções) | não |
+| `provar-sujeitos-da-turma.js` | o **recorte dos sujeitos pela turma**: a curadoria como fonte do vínculo, os dois formatos do registo, `null` ≠ lista vazia, a rota com `?turma=` e `?plano=`, e a declaração `recortePeloPlano` no conteúdo (25 asserções — **negativa**: mede que ninguém de fora aparece) | não |
+| `provar-publicacao-da-escola.js` | o **site da escola montado**: o índice das turmas em `/`, a apresentação em `sistema.html`, um subdirectório por pacote, nenhum link morto, a montagem idempotente e a turma que sai não deixando fantasma (26 asserções) | não |
 
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
 

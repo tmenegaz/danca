@@ -82,7 +82,7 @@ async function servirEstatico(env, caminho, prefixo) {
  * coração partilhado: a ponte Node e a ponte Cloudflare carregam o conteúdo de
  * meios diferentes (disco, ASSETS, bundle), mas o roteador é SEMPRE este.
  */
-function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, geracao, indice }) {
+function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, planoTexto, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, fuso, escolaDoWorker, lerCuradorias, geracao, indice }) {
   if (!conteudoTexto || !esquemaTexto) {
     return () => new Response(JSON.stringify({ ok: false, erro: 'conteúdo ou esquema ausentes no ASSETS' }), {
       status: 500,
@@ -113,6 +113,26 @@ function montarPorta({ armazenamento, conteudoTexto, esquemaTexto, poTexto, plan
     escolaDoWorker,
   });
   return (request) => roteador.responder(request);
+}
+
+/**
+ * AS CURADORIAS DA ESCOLA, lidas do KV — a fonte de «quem está em qual turma» (20/10/2026).
+ * Ausente o binding, devolve lista vazia: quem chama trata a ausência como «sem atribuição»,
+ * que é o lado seguro. A leitura tolera texto inválido do mesmo jeito que o `bastidores.js`.
+ */
+function lerCuradoriasDoEnv(env) {
+  return async (escola) => {
+    const kv = env && env.PADD_KV;
+    const slug = String(escola || (env && env.ESCOLA_SLUG) || '').trim();
+    if (!kv || !slug) return [];
+    try {
+      const bruto = await kv.get('bastidores/' + slug + '/curadorias');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (erro) {
+      return [];
+    }
+  };
 }
 
 /**
@@ -281,6 +301,12 @@ async function fetch(request, env, opcoes) {
     fuso: (env && env.FUSO) || FUSO_PADRAO,
     // A MESMA var que `escolaDe` já usava; o que faltava era aplicá-la ao contexto das rotas.
     escolaDoWorker: (env && env.ESCOLA_SLUG) || '',
+    // A CURADORIA — o recorte de quem a professora observa em cada turma (20/10/2026). A rota
+    // `/api/anamneses` precisa dela para não oferecer, no PO de uma turma, as alunas das outras.
+    // Mesma chave do `bastidores.js` (`bastidores/<escola>/curadorias`): uma segunda chave para
+    // a mesma lista divergiria no dia em que uma das duas mudasse, e o sintoma seria uma aluna
+    // que a Produção atribui e o PO não mostra — ou o contrário, que é o vazamento de hoje.
+    lerCuradorias: lerCuradoriasDoEnv(env),
     // O ÍNDICE (fase 4). O cache vive no KV da escola — é derivado, e a perda dele não perde
     // dado nenhum. `comApelido` é verdadeiro aqui porque quem serve é o Worker da ESCOLA.
     indice: criarIndice(env, { kv: criarCloudflare(env), escola: (env && env.ESCOLA_SLUG) || '' }),

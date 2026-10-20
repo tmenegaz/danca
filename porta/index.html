@@ -2357,6 +2357,43 @@ async function carregarOpcoesDe(ep) {
 }
 
 /*
+ * O ENDEREÇO DA LISTA, QUE PODE DEPENDER DA RESPOSTA ANTERIOR (20/10/2026).
+ *
+ * Um nó cujo conteúdo declara `recortePeloPlano` recebe a lista RECORTADA pela turma do plano
+ * escolhido — e o parâmetro que a recorta é o próprio carimbo do plano, que a tela já tem.
+ * A tela continua a não saber o que há atrás do `opcoesDe`: ela acrescenta o dado que tem e o
+ * servidor resolve a turma e a curadoria.
+ *
+ * Por que no ENDEREÇO e não num filtro daqui: o recorte é uma REGRA do acervo (a curadoria diz
+ * quem está em cada turma), e uma segunda cópia da regra na tela divergiria da primeira — foi
+ * exactamente o que aconteceu quando o filtro existia e filtrava pela união das curadorias.
+ */
+function enderecoDeOpcoes(no) {
+  const base = no && no.opcoesDe;
+  if (!base || !no.recortePeloPlano) return base;
+  const bruto = RESPOSTAS.get('plano-de-ensino');
+  const carimbo = Array.isArray(bruto) ? bruto[0] : bruto;
+  if (!carimbo) return base;
+  return base + '?plano=' + encodeURIComponent(String(carimbo));
+}
+
+/*
+ * A TURMA MUDOU, A LISTA DE SUJEITOS MUDA. Trocar o plano de ensino troca a turma, e com ela
+ * quem pode ser observado: a lista já buscada foi recortada pela turma ANTERIOR e não serve.
+ * Esquece-a — e esquece também os sujeitos marcados, porque eram de outra turma (só acontece
+ * numa troca explícita: ao abrir um PO já gravado não há `change`, e nada se perde).
+ */
+function esquecerSujeitosDaTurma() {
+  for (const chave of [...OPCOES.keys()]) {
+    if (String(chave).split('?')[0] === 'api/anamneses') OPCOES.delete(chave);
+  }
+  for (const chave of [...OPCOES_ERRO.keys()]) {
+    if (String(chave).split('?')[0] === 'api/anamneses') OPCOES_ERRO.delete(chave);
+  }
+  if (RESPOSTAS.has('sujeitos')) { RESPOSTAS.delete('sujeitos'); SUGERIDAS.delete('sujeitos'); }
+}
+
+/*
  * O detalhe de uma opção — buscado SÓ quando o professor o pede (Frente 5). O
  * caminho vem do próprio dado (`opcao.detalhe`); a tela não o compõe, para não
  * precisar saber o que ele devolve. `DETALHES` guarda o que já veio.
@@ -3046,8 +3083,9 @@ const LISTA_VAZIA = {
 
 /* As opções de um nó que declara `opcoesDe` — marcáveis, com o campo livre. */
 function gradeDeOpcoesDinamicas(no) {
-  let lista = OPCOES.get(no.opcoesDe) || [];
-  const erro = OPCOES_ERRO.get(no.opcoesDe);
+  const ep = enderecoDeOpcoes(no);
+  let lista = OPCOES.get(ep) || [];
+  const erro = OPCOES_ERRO.get(ep);
 
   // O QUE A ESCOLA DECLARA DESCE PARA O CAMPO. Um nó que declara `daCuradoria` lê a
   // atribuição da direção: a lista FILTRA para o que é do professor — ele não escolhe
@@ -3148,7 +3186,7 @@ function noDaTurma() {
 
 /** As turmas que o professor pode planejar — a curadoria filtra; sem ela, a lista inteira. */
 function listaDeTurmasDoProfessor(no) {
-  let lista = OPCOES.get(no.opcoesDe) || [];
+  let lista = OPCOES.get(enderecoDeOpcoes(no)) || [];
   const atribuido = no.daCuradoria ? daCuradoria(no.daCuradoria) : [];
   if (no.daCuradoria && CURADORIA_CARREGADA && atribuido.length) {
     const vistas = new Set(atribuido);
@@ -3221,7 +3259,7 @@ async function renderTurmaDoCabecalho() {
     // resposta. O cadastro vem PRIMEIRO e semeia as opções; a segunda chamada encontra
     // pronto. Antes era o contrário, e o mesmo endereço era pedido duas vezes (20/10/2026).
     if (TURMAS_DA_ESCOLA === null) await carregarTurmasDaEscola();
-    if (no.opcoesDe && !OPCOES.has(no.opcoesDe)) await carregarOpcoesDe(no.opcoesDe);
+    if (no.opcoesDe && !OPCOES.has(enderecoDeOpcoes(no))) await carregarOpcoesDe(enderecoDeOpcoes(no));
     alvo.innerHTML = selectDaTurma(no);
     const sel = alvo.querySelector('#ctx-turma');
     if (sel) {
@@ -4409,7 +4447,7 @@ function blocoDaRepeticao(no) {
         : 'Preencha o campo anterior — um registro aparece para cada item dele.') + '</p>';
   }
 
-  const opcoes = fonte && fonte.opcoesDe ? (OPCOES.get(fonte.opcoesDe) || []) : [];
+  const opcoes = fonte && fonte.opcoesDe ? (OPCOES.get(enderecoDeOpcoes(fonte)) || []) : [];
   // O MAIS RECENTE vence: a lista vem ordenada do mais novo para o mais velho, e
   // o primeiro a aparecer para um apelido é o estado atual do sujeito.
   const porValor = new Map();
@@ -4648,10 +4686,10 @@ async function derivarDoConjunto(botao, no) {
     return dica('Escolha as alunas no Bloco 2 primeiro — a sugestão vem das anamneses delas.', 'aviso');
   }
   const fonte = MAPA.nos.find((n) => n.id === d.dosSujeitos);
-  let opcoes = fonte && fonte.opcoesDe ? OPCOES.get(fonte.opcoesDe) : null;
+  let opcoes = fonte && fonte.opcoesDe ? OPCOES.get(enderecoDeOpcoes(fonte)) : null;
   if (fonte && fonte.opcoesDe && !opcoes) {
-    await carregarOpcoesDe(fonte.opcoesDe);
-    opcoes = OPCOES.get(fonte.opcoesDe) || [];
+    await carregarOpcoesDe(enderecoDeOpcoes(fonte));
+    opcoes = OPCOES.get(enderecoDeOpcoes(fonte)) || [];
   }
   opcoes = opcoes || [];
 
@@ -4763,10 +4801,10 @@ function renderPergunta() {
   // que ele repete (`repetirPor` → fonte.opcoesDe). Só se busca aqui (Frente 5):
   // abrir o PO não toca na fonte; abrir a lista sim.
   const fontes = [];
-  if (no.opcoesDe) fontes.push(no.opcoesDe);
+  if (no.opcoesDe) fontes.push(enderecoDeOpcoes(no));
   if (no.repetirPor) {
     const fonte = MAPA.nos.find((n) => n.id === no.repetirPor);
-    if (fonte && fonte.opcoesDe) fontes.push(fonte.opcoesDe);
+    if (fonte && fonte.opcoesDe) fontes.push(enderecoDeOpcoes(fonte));
   }
   const faltando = fontes.filter((ep) => !OPCOES.has(ep));
   if (faltando.length) {
@@ -6842,6 +6880,8 @@ async function iniciar() {
 
   $('pergunta').addEventListener('change', (evento) => {
     if (evento.target.matches('input[name="pratica"]')) aplicarExclusiva(MAPA.nos[INDICE]);
+    // TROCAR O PLANO TROCA A TURMA — e com ela quem pode ser observado (20/10/2026).
+    if (MAPA.nos[INDICE] && MAPA.nos[INDICE].id === 'plano-de-ensino') esquecerSujeitosDaTurma();
     // A condição de registro: os grupos marcados gravam como qualquer resposta.
     if (evento.target.matches('input[name^="registro-"]')) gravarRespostaDoNo(MAPA.nos[INDICE]);
     if (evento.target.matches('input[name="escala"]')) aplicarNaoMedido(MAPA.nos[INDICE]);

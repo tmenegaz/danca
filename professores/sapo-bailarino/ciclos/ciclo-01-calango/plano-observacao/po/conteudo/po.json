@@ -226,11 +226,12 @@
           "multipla": true,
           "aberto": true,
           "opcoesDe": "api/anamneses",
+          "recortePeloPlano": true,
           "criarEm": "?fonte=anamnese",
           "explicacao": {
             "oQueE": "QUEM você observa — os alunos, referidos por apelidos estáveis. Nunca o nome completo.",
-            "preencher": "Marque, na lista, quem já tem anamnese lançada no sistema. Se o aluno ainda não está na lista, escreva o apelido no campo aberto e crie a anamnese dele pelo atalho que aparece ao lado.",
-            "porQue": "A lista vem das anamneses que já existem: a anamnese é soberana e o Plano de Observação a consome, não a cria. Só com a aluna declarada aqui é que o ponto de partida dela pode aparecer no campo seguinte."
+            "preencher": "Marque, na lista, as alunas da TURMA DO PLANO escolhido no bloco anterior — a lista já vem recortada por ela, e traz só quem a direção atribuiu a você naquela turma. Se a aluna ainda não está na lista, veja se ela está naquela turma na curadoria; o campo aberto continua a existir para o apelido que a escola ainda não cadastrou.",
+            "porQue": "A lista vem das anamneses que já existem — a anamnese é soberana e o Plano de Observação a consome, não a cria —, mas recortada pela turma do plano. A anamnese não sabe de turma (o formulário dela o diz por palavras próprias); quem sabe é a CURADORIA da direção, que atribui a professora, a turma e as alunas de uma vez. Sem o recorte, o PO de uma turma oferecia as alunas das outras: observar quem não é seu aluno não é escolha, é vazamento. Só com a aluna declarada aqui é que o ponto de partida dela pode aparecer no campo seguinte."
           }
         },
         {

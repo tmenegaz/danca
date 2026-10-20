@@ -83,7 +83,7 @@ function semMarcasDoGerador(markdown) {
     .trimStart();
 }
 
-function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, geracao, indice }) {
+function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, agora, fuso, disparar, escreverPO, escreverPlano, escreverCiclo, lerDados, lancamentoSeguro, escolaDoWorker, lerCuradorias, geracao, indice }) {
   const roteador = criarRoteador();
 
   /*
@@ -300,7 +300,21 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   }, null, 2) + '\n');
 
   // 6. /api/anamneses — a seleção de sujeitos (um por apelido, o vigente).
-  roteador.rota('GET', '/api/anamneses', async () => {
+  //
+  // O RECORTE DA TURMA (20/10/2026). A rota devolvia TODAS as anamneses da escola, e o nó
+  // `sujeitos` do PO é alimentado por ela: com três turmas, o Plano de Observação da turma 1
+  // oferecia as alunas das outras duas. A tela filtrava por `daCuradoria('alunas')`, que é a
+  // UNIÃO das curadorias do professor — com três turmas, a união é sempre «todas». O vazamento
+  // não estava no filtro que faltava; estava no filtro que existia e não recortava nada.
+  //
+  // Agora a rota aceita o recorte, e resolve-o aqui — não no cliente:
+  //   · `?plano=<carimbo>` — a turma vem do PLANO escolhido (`contexto-turma` do envelope).
+  //     É o que a tela manda, porque é o único dado que ela já tem.
+  //   · `?turma=<nome>` — a turma directa (a bancada local, e as provas).
+  //   · `?professor=<slug>` — opcional; sem ele valem as curadorias de qualquer professor.
+  // Sem nenhum dos dois, a rota responde o que respondia — a lista inteira —, e é essa a
+  // diferença entre «não pediram recorte» e «pediram um recorte vazio».
+  roteador.rota('GET', '/api/anamneses', async ({ url }) => {
     /*
      * A ROTA JÁ NÃO SABE ONDE O DADO VIVE (20/10/2026), e é esse o ponto da fase 3.
      *
@@ -311,7 +325,30 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
      * mesma lista, e não há duas metades a explicar a quem está em sala de aula.
      */
     try {
-      return { ok: true, opcoes: await porta.anamneses(armazenamento), fonte: 'acervo' };
+      const pedido = url && url.searchParams;
+      const professor = (pedido && pedido.get('professor')) || '';
+      const escola = String(escolaDoWorker || (pedido && pedido.get('escola')) || '').trim();
+      let turma = (pedido && pedido.get('turma')) || '';
+      const planoId = (pedido && pedido.get('plano')) || '';
+      // A TURMA DO PLANO ESCOLHIDO. `turmaDoEnvelope` lê `contexto-turma` e tolera o campo
+      // múltiplo dos envelopes antigos — a mesma leitura que a estante e o escritor já usam.
+      if (!turma && planoId) {
+        const plano = await porta.lerEnvelope(armazenamento, planoId);
+        turma = porta.turmaDoEnvelope(plano) || '';
+      }
+      let recorte = null;
+      if (turma) {
+        const curadorias = typeof lerCuradorias === 'function'
+          ? await lerCuradorias(escola)
+          : [];
+        recorte = { alunas: porta.alunasDaTurma(curadorias, { professor, turma }) || [] };
+      }
+      return {
+        ok: true,
+        opcoes: await porta.anamneses(armazenamento, recorte),
+        fonte: 'acervo',
+        ...(turma ? { turma, recorte: recorte.alunas } : {}),
+      };
     } catch (erro) { return falhaDaLista(erro); }
   });
 

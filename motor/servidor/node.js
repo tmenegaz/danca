@@ -115,7 +115,20 @@ function montar() {
   // O servidor de desenvolvimento NÃO é uma escola: sem `ESCOLA_SLUG` no ambiente, a escola
   // do contexto vale como veio (o `?escola=` da URL). Definir a var aqui é o que permite
   // ensaiar em local o comportamento de produção — o mesmo critério do `escolaDe`.
-  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, fuso: process.env.FUSO, escolaDoWorker: process.env.ESCOLA_SLUG || '' });
+  // A CURADORIA no servidor local — a mesma chave do `bastidores.js`, como o `lerTurmas` acima.
+  // É dela que sai o recorte de `sujeitos` por turma: sem esta leitura, a bancada local ofereceria
+  // no PO de uma turma as alunas das outras, que é exactamente o defeito de 20/10/2026.
+  const lerCuradorias = async (escola) => {
+    if (!escola) return [];
+    try {
+      const bruto = await armazenamento.ler('bastidores/' + escola + '/curadorias');
+      const lista = bruto ? JSON.parse(bruto) : [];
+      return Array.isArray(lista) ? lista : [];
+    } catch (erro) {
+      return [];
+    }
+  };
+  return criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlano, fichaHtml, prompt, identidade, servirEstatico, disparar, escreverPO, escreverPlano, escreverCiclo, fuso: process.env.FUSO, escolaDoWorker: process.env.ESCOLA_SLUG || '', lerCuradorias });
 }
 
 async function pedidoParaRequest(req) {
