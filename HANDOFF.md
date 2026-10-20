@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T20:59:25-0300`
-Commit atual: `664607f` — feat(acervo): envelope/anamnese-20261019-2053.json
+Gerado em: `2026-10-19T21:20:20-0300`
+Commit atual: `9118306` — refactor(estrutura): a anamnese sai do KV — o acervo é o único registo
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+9118306 refactor(estrutura): a anamnese sai do KV — o acervo é o único registo
+cb4930a docs(ideia): as 76 perguntas ficam fechadas, e a distribuição deixa de ser exemplo
+1b6ca6d fix(estrutura): a tela mostra o endereço que existe, e diz que o cofre é KV
 664607f feat(acervo): envelope/anamnese-20261019-2053.json
 d91c0b9 feat(acervo): envelope/.indice.json
 e6c455a feat(acervo): envelope/anamnese-20261019-2051.json
@@ -80,9 +83,6 @@ bc14ee9 fix(estrutura): o cartão da geração e o cadastro deixam de pagar a en
 bfb653f fix(estrutura): o expurgo não fica cego quando a enumeração do KV acaba
 400bb20 chore(estrutura): expurgar a escola calango
 cd6d8f0 fix(po): a lista deixa de pagar a cota do KV, e o checklist chega preenchido
-1581a9b fix(estrutura): a lista que falha passa a dizer o motivo, em vez de 1101
-65c27cb fix(tools): a barra entrava com a newline final — todo pacote nascia divergente da porta
-f6ef89f fix(entrega): o outro dono da âncora também regera — e o commit vazio não derruba o push
 ```
 
 ## Por professor
@@ -97,7 +97,7 @@ f6ef89f fix(entrega): o outro dono da âncora também regera — e o commit vazi
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
-| breu | (sem âncora) | — | — | — |
+| breu | ciclo-01-breu.fipp | `5a4fc4f5d57d` | (vazio) | — |
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -148,54 +148,47 @@ f6ef89f fix(entrega): o outro dono da âncora também regera — e o commit vazi
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — a tela mostra o endereço que existe, e diz que o cofre é outra coisa
+## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
 
-**Por quê.** A escola `breu` foi criada hoje e as duas primeiras anamneses foram gravadas. O registo
-estava certo — `escola/breu/envelopes/anamnese-20261019-2051.json` e `…-2053.json`, cifrados — mas
-quem quis conferir no GitHub **não achou nada**. A tela mostrava duas coisas parecidas e nenhuma delas
-era um arquivo do repositório:
+**Por quê.** A anamnese era gravada **duas vezes**: o envelope no acervo do repositório
+(`escola/<escola>/envelopes/<carimbo>.json`, cifrado no servidor, desde 19/10) e uma **segunda
+cópia** cifrada no cofre do KV (`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`), pela rota
+`POST /api/anamnese`. Dois sítios para o mesmo documento davam dois resultados a conciliar na
+tela, duas contas de cota a pagar — e, quando só uma das gravações passava, o pior dos dois
+mundos: «gravado» e «no repositório» eram coisas diferentes. Foi também esta cópia que produziu
+a confusão de ontem: a tela mostrava o caminho do cofre, que não é arquivo do repositório.
 
-    anamnese no acervo da escola — anamnese-20261019-2053
-    anamnese cifrada em breu/sapo-bailarino/01/anamnese/anamnese-20261019-2053
+**O que saiu.**
 
-A primeira é um **carimbo** (um nome, não um endereço). A segunda é a chave do **cofre**, que é uma
-segunda cópia gravada no **KV** da escola — não é arquivo, e aquele caminho nunca vai existir no
-repositório. O sistema gravava certo e dizia o endereço errado; o defeito é de **informação**, e é o
-tipo que faz concluir que a gravação falhou quando ela não falhou.
+- as três rotas do cofre (`POST /api/anamnese`, `GET /api/anamnese`, `GET /api/anamnese/:carimbo`);
+- o cliente que as chamava: a anamnese deixou de cifrar no navegador (o `lib-cifra.js` sai do
+  carregamento da porta) e de pedir a segunda cópia. A **ponte** continua: a memória do navegador
+  guarda o rascunho e só se apaga quando a gravação no acervo confirma — se falhar, ela é a única
+  cópia e a tela diz isso;
+- `motor/nucleo/cofre.js`, que carregava as funções da anamnese. O que restou dele é a regra do
+  prefixo das chaves, que o **lançamento** continua a usar: o ficheiro passou a `motor/nucleo/chaves.js`
+  (`prefixoDaEscola`, `raizDaChave`, `segmento`, `cicloDaChave`). O **cofre do lançamento fica** —
+  a aula dada é outro registo, cifrado, e não está nesta decisão.
 
-**O que mudou.**
+**Com o quê.** Prova nova, `node experimentos/provar-anamnese-sem-cofre.js` → **TUDO CERTO, 13
+asserções**, e ela é **negativa**: o KV em memória **conta as escritas**, e a asserção central é
+que ele fica em **zero** depois de uma anamnese gravada. As três rotas respondem 404, e o
+`<script>` real da porta não faz `fetch` para `api/anamnese` nem carrega o `lib-cifra.js`.
+Controlo negativo feito: contra o `motor/` de `HEAD~1` a mesma prova dá **6 falhas de 13** — a
+cópia no KV aparece lá com o nome que tinha (`calango/sapo-bailarino/01/anamnese/…`).
+`provar-escola-do-documento` foi reescrito no bloco 2 (o cofre saiu; a pergunta passou a ser feita
+ao acervo) → 8 de 8. Sem regressão: acervo 48, índice 60, listas 16, geração 42, expurgo 49,
+teste 26, ato-e-barra 72, ajustes 125, identidade visual 19.
 
-- `motor/servidor/acervo-envelopes.js` — o `escrever()` devolve o **caminho** do arquivo que acabou de
-  escrever (`caminhoDaChave`), e o `guardar()` devolve `noArmazenamentoAntigo: true` quando não havia
-  acervo (sem token) e a gravação foi para o KV. Não se inventa caminho de repositório para um arquivo
-  que não está no repositório.
-- `motor/nucleo/porta.js` — o `gravarEnvelope` e o `elicitar` levam `caminho` e `noArmazenamentoAntigo`
-  até ao resultado, e o `resultado.git` da rota passa a trazê-los.
-- `motor/servidor/rotas.js` — `resultado.git.caminho`.
-- `porta/index.html` — a mensagem de gravação mostra o **arquivo** (`<code>anamnese-….json</code>`) e,
-  por baixo, o **caminho no repositório** como link para o GitHub; o cofre passa a ser identificado
-  como o que é — «cópia no cofre da escola (KV, não é arquivo do repositório)».
+**Medido no Worker vivo** (`breu`, depois do deploy): `POST`, `GET` e `GET /:carimbo` em
+`/api/anamnese` respondem **404**, e as três superfícies da porta continuam a servir 200.
 
-**Com o quê.** `node experimentos/provar-acervo-envelopes.js` → **TUDO CERTO, 48 asserções** (eram 43):
-a gravação devolve o caminho e o arquivo existe no repositório; sem acervo o resultado diz
-`noArmazenamentoAntigo` e **não** declara caminho nenhum; e a rota do «Guardar» entrega
-`git.caminho = escola/calango/envelopes/anamnese-20261019-1842.json` à tela. Sem regressão:
-`provar-indice-de-proveniencia` 60, `provar-listas-sem-repeticao` 16, `provar-teste` 26, identidade
-visual 19.
-
-**O que ainda não está feito.** O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
-feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
-cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
+**O que ainda não está feito.** (a) As chaves do cofre que **já existem** no KV das escolas
+criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
+prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
+cópia a olhar, e não estava no pedido.
 
 ## O que está pendente
-
-## 20/10/2026 — o envelope sai do KV: o acervo passa a ser o armazenamento (fase 3)
-
-(a) O **cofre cifrado** continua a ser escrito no KV
-(`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`, pela rota `POST /api/anamnese`): é uma segunda
-cópia da mesma anamnese, agora redundante — tirá-la exige que o formulário de lançamento passe a ler
-o acervo (fase 4). (b) Os **cadastros dos Bastidores** (professores, alunas, turmas, rubricas,
-termos) continuam no KV: são estado administrativo pequeno, e a fase 3 não lhes tocou. (c) A
 
 ## 20/10/2026 — o índice do acervo: cada pergunta deixa de ser uma varredura (fase 4)
 
@@ -230,6 +223,13 @@ identificada — fica declarado, não feito.
 O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
 feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
 cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
+
+## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
+
+(a) As chaves do cofre que **já existem** no KV das escolas
+criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
+prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
+cópia a olhar, e não estava no pedido.
 
 ## Pendências anteriores (índice)
 
@@ -457,6 +457,7 @@ cópia for actualizada). O endereço certo já está no repositório e na porta 
 - **20/10/2026** — A cota do KV: o que ia para lá sem precisar, medido → `REGISTRO.md` L19203
 - **20/10/2026** — A anamnese nunca ia para o Git: ela vivia só no KV → `REGISTRO.md` L19267
 - **20/10/2026** — a lista não paga o que não mostra (fase 2 da dependência do… → `REGISTRO.md` L19350
+- **20/10/2026** — o envelope sai do KV: o acervo passa a ser o armazenamento… → `REGISTRO.md` L19424
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

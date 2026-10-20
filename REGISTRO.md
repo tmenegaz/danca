@@ -19728,3 +19728,43 @@ visual 19.
 **O que ainda não está feito.** O pacote publicado da escola `breu` carrega a cópia de `porta/index.html`
 feita na criação da escola — a mensagem nova só chega lá quando o pacote for regerado (ou quando a
 cópia for actualizada). O endereço certo já está no repositório e na porta servida da raiz.
+
+## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
+
+**Por quê.** A anamnese era gravada **duas vezes**: o envelope no acervo do repositório
+(`escola/<escola>/envelopes/<carimbo>.json`, cifrado no servidor, desde 19/10) e uma **segunda
+cópia** cifrada no cofre do KV (`<escola>/<professor>/<ciclo>/anamnese/<carimbo>`), pela rota
+`POST /api/anamnese`. Dois sítios para o mesmo documento davam dois resultados a conciliar na
+tela, duas contas de cota a pagar — e, quando só uma das gravações passava, o pior dos dois
+mundos: «gravado» e «no repositório» eram coisas diferentes. Foi também esta cópia que produziu
+a confusão de ontem: a tela mostrava o caminho do cofre, que não é arquivo do repositório.
+
+**O que saiu.**
+
+- as três rotas do cofre (`POST /api/anamnese`, `GET /api/anamnese`, `GET /api/anamnese/:carimbo`);
+- o cliente que as chamava: a anamnese deixou de cifrar no navegador (o `lib-cifra.js` sai do
+  carregamento da porta) e de pedir a segunda cópia. A **ponte** continua: a memória do navegador
+  guarda o rascunho e só se apaga quando a gravação no acervo confirma — se falhar, ela é a única
+  cópia e a tela diz isso;
+- `motor/nucleo/cofre.js`, que carregava as funções da anamnese. O que restou dele é a regra do
+  prefixo das chaves, que o **lançamento** continua a usar: o ficheiro passou a `motor/nucleo/chaves.js`
+  (`prefixoDaEscola`, `raizDaChave`, `segmento`, `cicloDaChave`). O **cofre do lançamento fica** —
+  a aula dada é outro registo, cifrado, e não está nesta decisão.
+
+**Com o quê.** Prova nova, `node experimentos/provar-anamnese-sem-cofre.js` → **TUDO CERTO, 13
+asserções**, e ela é **negativa**: o KV em memória **conta as escritas**, e a asserção central é
+que ele fica em **zero** depois de uma anamnese gravada. As três rotas respondem 404, e o
+`<script>` real da porta não faz `fetch` para `api/anamnese` nem carrega o `lib-cifra.js`.
+Controlo negativo feito: contra o `motor/` de `HEAD~1` a mesma prova dá **6 falhas de 13** — a
+cópia no KV aparece lá com o nome que tinha (`calango/sapo-bailarino/01/anamnese/…`).
+`provar-escola-do-documento` foi reescrito no bloco 2 (o cofre saiu; a pergunta passou a ser feita
+ao acervo) → 8 de 8. Sem regressão: acervo 48, índice 60, listas 16, geração 42, expurgo 49,
+teste 26, ato-e-barra 72, ajustes 125, identidade visual 19.
+
+**Medido no Worker vivo** (`breu`, depois do deploy): `POST`, `GET` e `GET /:carimbo` em
+`/api/anamnese` respondem **404**, e as três superfícies da porta continuam a servir 200.
+
+**O que ainda não está feito.** (a) As chaves do cofre que **já existem** no KV das escolas
+criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
+prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
+cópia a olhar, e não estava no pedido.
