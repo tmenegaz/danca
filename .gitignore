@@ -224,3 +224,11 @@ po_ref/
 # sempre «todas» — o filtro existia e não recortava. Esta prova mede o recorte por turma, do
 # núcleo à rota e à declaração do conteúdo.
 !experimentos/provar-sujeitos-da-turma.js
+
+# A LOGO VOLTA AO INÍCIO (20/10/2026). A marca da barra era um `<span aria-hidden>` — ornamento
+# puro — e clicar nela não fazia nada. Passou a `<a href="/">`: a raiz do DOMÍNIO, e não
+# `index.html`, que significa três coisas diferentes conforme a página (o índice do ciclo no
+# pacote, a própria porta em `/plano-observacao/`, a pasta dos Bastidores em `/bastidores/*`).
+# A prova mede os três consumidores — a abertura do pacote, a barra do sistema e o slot que a
+# ponte preenche nos pacotes já gerados.
+!experimentos/provar-logo-volta-ao-inicio.js

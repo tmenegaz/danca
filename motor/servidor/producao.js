@@ -22,8 +22,9 @@
 
 const { fetch: portaFetch } = require('./cloudflare.js');
 const bastidores = require('./bastidores.js');
-// A MARCA DO SISTEMA e o preenchimento do slot vazio. Ver `comAparencia`.
-const { MARCA } = require('../../tools/templates/nav-html.js');
+// A MARCA DO SISTEMA (agora um link para a raiz) e o preenchimento do slot vazio. Ver
+// `comAparencia`.
+const { MARCA, MARCA_NA_BARRA } = require('../../tools/templates/nav-html.js');
 const { respostaEstado, esc } = require('./estado-html.js');
 const { temProfessor, aparenciaDaEscola, IDS_DAS_PALETAS, PALETA_PADRAO } = bastidores;
 // AS ESCOLAS DE TESTE — os três JSON e o preenchidor. Ver `teste-fixtures.js` e
@@ -142,9 +143,35 @@ async function comAparencia(resposta, aparencia, extras) {
   // É CIRÚRGICO E IDEMPOTENTE: só o slot VAZIO é preenchido, e uma página que já traz a
   // marca passa intacta (o `index.html` dos pacotes já a tem no arquivo; esta linha não a
   // duplica). Sem `<span class="marca">` — a raiz não tem essa barra — nada acontece.
+  /*
+   * O SLOT DA MARCA PASSA A SER O LINK, e não só o desenho (20/10/2026).
+   *
+   * A marca virou um `<a href="/">` em `nav-html.js`. Os pacotes gerados antes de hoje trazem
+   * `<span class="marca">` — **nos dois estados**, e os dois têm de ser cobertos:
+   *
+   *   · VAZIO (`<span class="marca" aria-hidden="true"></span>`) — pacote sem a marca, que a
+   *     ponte preenchia com o SVG dentro do mesmo `<span>`;
+   *   · PREENCHIDO (`<span class="marca" …><svg …></svg></span>`) — pacote que já traz o desenho.
+   *
+   * Em nenhum dos dois o clique fazia nada. Uma correcção que só olhasse o vazio deixaria a
+   * maioria dos pacotes a servir uma logo inerte, e o sintoma é invisível: o desenho está lá.
+   *
+   * O CONTEÚDO é preservado quando existe (regex não-gulosa: o SVG não tem `</span>` dentro), e
+   * o mark-up do link vem da MESMA constante que o gerador do nav — uma segunda cópia na ponte
+   * divergiria no dia em que o `<a>` mudasse. Os atributos do `<span>` velho NÃO são
+   * transportados: `aria-hidden="true"` num `<a>` deixava-o sem nome acessível, que é
+   * precisamente o que o `aria-label` do `<a>` evita.
+   *
+   * É IDEMPOTENTE: depois da substituição já não há `<span class="marca">` nenhum — o `<a>` que
+   * o gerador escreve põe o desenho num `<span aria-hidden>` sem a classe.
+   */
   texto = texto.replace(
-    /<span class="marca"([^>]*)><\/span>/g,
-    (tudo, attrs) => '<span class="marca"' + attrs + '>' + MARCA + '</span>');
+    /<span class="marca"([^>]*)>([\s\S]*?)<\/span>/g,
+    (tudo, attrs, dentro) => {
+      const desenho = dentro && dentro.indexOf('<svg') !== -1 ? dentro : MARCA;
+      return MARCA_NA_BARRA.trim().replace('<span aria-hidden="true">' + MARCA + '</span>',
+        '<span aria-hidden="true">' + desenho + '</span>');
+    });
   const cabecalhos = new Headers(resposta.headers);
   cabecalhos.delete('content-length');
   cabecalhos.delete('content-encoding');

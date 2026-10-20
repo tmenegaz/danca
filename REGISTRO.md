@@ -20726,3 +20726,76 @@ E a prova foi corrigida no mesmo movimento, porque media a **camada errada**: ch
 
 Medido ao vivo depois do deploy: `?plano=plano-…-0945` → **Aluna A**, `0946` → **Aluna B**,
 `0947` → **Aluna C** — cada plano com a aluna da sua turma, e o mapa a trazer a marca.
+
+## 20/10/2026 — clicar na logo leva à raiz do domínio
+
+**O que motivou.** Pedido da pesquisadora: «toda vez que eu clicar na logo, quero ir só para o
+domínio» — `https://batata.tmenegaz77.workers.dev`, sem caminho nenhum. A marca era um
+`<span class="marca" aria-hidden="true">` com o SVG dentro: **ornamento puro**. O clique não fazia
+nada, e o gesto que qualquer pessoa tenta — clicar na logo para voltar ao início — não tinha destino.
+
+**Por que o `href` tem de ser ABSOLUTO.** `index.html` significaria **três coisas diferentes**,
+porque a mesma barra serve três níveis de endereço:
+
+| onde | o que `index.html` seria |
+|:--|:--|
+| o pacote da turma (`/aula-01`) | o índice do ciclo |
+| a porta (`/plano-observacao/`) | a própria porta outra vez |
+| os Bastidores (`/bastidores/producao`) | a pasta dos Bastidores |
+
+`/` é a única resposta certa nas três, e é a mesma em todas: o site da escola. O `href` relativo
+levaria a três sítios, e o gesto deixaria de querer dizer «início».
+
+**O que foi decidido.**
+
+- `MARCA_NA_BARRA` passa a ser `<a class="marca" href="/" aria-label="Sistema Lastro — página
+  inicial" title="Ir para o início">` com o SVG dentro de um `<span aria-hidden="true">`.
+- **O nome acessível está no `<a>`, e o desenho está escondido.** Um `<a>` cujo conteúdo é
+  `aria-hidden` fica **sem nome** — é o defeito clássico desta conversão. Anunciar o desenho *e* o
+  `<title>` do SVG seria dizer «Sistema Lastro» duas vezes no mesmo elemento.
+- **A ponte cobre os DOIS estados do slot**, e é o que faz a correcção chegar aos pacotes que já
+  existem. Um pacote anterior a hoje traz `<span class="marca">` e há dois casos:
+  - **vazio** (`<span class="marca" aria-hidden="true"></span>`) — a ponte punha lá o desenho
+    dentro do mesmo `<span>`: aparecia e não se clicava;
+  - **preenchido** (`<span class="marca"><svg…></svg></span>`) — é o da **maioria** dos pacotes
+    gerados entre 18 e 20/10. Uma correcção que só olhasse o vazio deixaria a maioria a servir uma
+    logo inerte, com o sintoma invisível: o desenho está lá.
+
+  Os atributos do `<span>` velho **não** são transportados: `aria-hidden="true"` num `<a>` deixava-o
+  sem nome.
+
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`.
+
+- `tools/templates/nav-html.js` — a constante `MARCA_NA_BARRA`, e o comentário que diz por que o
+  `href` é absoluto e onde vive o nome acessível.
+- `tools/check-identidade.js` — a verificação da marca passa a **exigir o link**: antes garantia
+  que o slot não estava vazio, e um `<span>` cheio passaria para sempre.
+
+**O que NÃO muda:** a marca em si (o mesmo SVG, o mesmo `currentColor`, as três famílias), a
+fórmula do hash, as 17 regras, as 22 pétreas, os validadores do ciclo, e o CSS — `.topnav .marca` e
+`.topnav a.marca:hover` já existiam, escritas para um `<a>` que nunca houve.
+
+**Onde entrou.**
+
+- `tools/templates/nav-html.js` — `MARCA_NA_BARRA` como link.
+- `motor/servidor/producao.js` — a ponte trata os dois estados do slot, com a mesma constante.
+- `tools/check-identidade.js` — exige `href="/"` e `aria-label`.
+- `experimentos/provar-logo-volta-ao-inicio.js` — **nova prova, 22 asserções**.
+- `.gitignore`, `experimentos/README.md` — a prova no clone e na tabela.
+
+**Com o quê.** `node experimentos/provar-logo-volta-ao-inicio.js` → **22 asserções**. Controlos
+negativos em duas metades: contra o código de `HEAD` dão **8 falhas**; com só a ponte revertida dão
+**6** — e é essa metade que importa, porque é a que cobre os pacotes já gerados. Sem regressão:
+identidade visual **19 de 19**, produção 135, publicação 29, sujeitos-da-turma 30, tema 37 (a mesma
+falha de antes, anterior a esta mudança).
+
+**Medido ao vivo**, no Worker do `batata`, em três endereços de níveis diferentes:
+`/`, `/plano-observacao/` e `/sistema` servem todos
+`<a class="marca" href="/" aria-label="Sistema Lastro — página inicial" title="Ir para o início">`.
+
+**O que ainda não está feito.** Os pacotes versionados no repositório continuam com o `<span>` no
+arquivo — **corrigidos ao servir**, pela ponte, que é o que impede a correcção de depender de uma
+regeneração que ninguém faria só por isto. Só uma regeneração (ou um `criar-escola.sh
+--somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
+escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
+ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.

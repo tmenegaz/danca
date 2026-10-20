@@ -718,6 +718,12 @@ if (!erros.some((e) => e.startsWith('Circuito'))) {
 
   // O SLOT DA BARRA NÃO VOLTA A FICAR VAZIO. Ele esteve assim desde que o texto «Ciclo NN ·
   // escola» saiu do menu, e o sintoma era invisível: um vão de 9em onde deveria haver marca.
+  //
+  // E O SLOT É UM LINK PARA A RAIZ DO DOMÍNIO (20/10/2026). Clicar na logo e voltar ao início é
+  // o gesto que qualquer pessoa tenta; enquanto era um `<span>`, o clique não fazia nada. O href
+  // tem de ser ABSOLUTO (`/`) e não `index.html`: o mesmo endereço relativo é o índice do ciclo
+  // no pacote, a própria porta em `/plano-observacao/` e a pasta dos Bastidores em
+  // `/bastidores/*` — três destinos diferentes para o mesmo gesto.
   if (!fs.existsSync(arqNav)) {
     problemas.push('falta tools/templates/nav-html.js');
   } else {
@@ -725,6 +731,11 @@ if (!erros.some((e) => e.startsWith('Circuito'))) {
     if (!/class="marca"[^>]*>/.test(nav)) problemas.push('nav-html.js não tem o slot da marca');
     else if (/<span class="marca" aria-hidden="true"><\/span>/.test(nav)) {
       problemas.push('o slot da marca em nav-html.js voltou a ficar vazio');
+    } else if (!/<a class="marca" href="\/"/.test(nav)) {
+      problemas.push('a marca em nav-html.js não é um link para a raiz do domínio (`<a class="marca" href="/"`)');
+    } else if (!/<a class="marca" href="\/"[^>]*aria-label="[^"]+"/.test(nav)) {
+      // Um `<a>` cujo conteúdo é `aria-hidden` fica SEM NOME — o rótulo tem de estar no `<a>`.
+      problemas.push('o link da marca não tem `aria-label` — um <a> com o desenho escondido fica sem nome acessível');
     }
   }
 
@@ -740,7 +751,7 @@ if (!erros.some((e) => e.startsWith('Circuito'))) {
   for (const p of problemas) erros.push('Marca: ' + p);
   if (!problemas.length) {
     ok.push('Marca: lastro.svg é vetor (só caminhos, `currentColor`), a string da barra é a mesma, ' +
-      'o slot não está vazio e o favicon também é vetor');
+      'o slot não está vazio, é um link com nome para `/` e o favicon também é vetor');
   }
 }
 

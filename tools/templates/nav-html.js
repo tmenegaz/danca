@@ -40,9 +40,31 @@
  */
 const { SVG: MARCA } = require('./marca-lastro.js');
 
-/** O `<span>` da marca, com o `aria-hidden` que ele já tinha: é ornamento, e o nome do sistema
- *  está dito nos links ao lado. */
-const MARCA_NA_BARRA = '  <span class="marca" aria-hidden="true">' + MARCA + '</span>';
+/**
+ * A MARCA É UM LINK PARA A RAIZ DO DOMÍNIO (20/10/2026).
+ *
+ * Era um `<span aria-hidden="true">` — ornamento puro, com o nome do sistema dito nos links ao
+ * lado. A pesquisadora pediu o que qualquer pessoa tenta por instinto: clicar na logo para voltar
+ * ao início. E «início» aqui tem de ser a URL do domínio, **não** `index.html` — porque o mesmo
+ * endereço relativo significa coisas diferentes conforme a página:
+ *
+ *   · no pacote da turma (`/aula-01`), `index.html` é o índice do ciclo;
+ *   · na porta (`/plano-observacao/`), `index.html` seria a porta outra vez;
+ *   · nos Bastidores (`/bastidores/producao`), seria a pasta dos Bastidores.
+ *
+ * `/` é a única resposta certa nas três, e é a mesma em todas: o site da escola. O href é
+ * ABSOLUTO de propósito — relativo, ele levaria a três sítios diferentes.
+ *
+ * O ACCESSIBLE NAME. Um `<a>` cujo conteúdo é `aria-hidden` fica sem nome — por isso o
+ * `aria-label` está no `<a>`, e o SVG (que traz `role="img"` e o seu próprio `<title>`) fica
+ * escondido do leitor de tela. Anunciar o desenho e o nome seria dizer «Sistema Lastro» duas
+ * vezes no mesmo elemento.
+ *
+ * O `title` acrescenta o que o rótulo não diz: para onde o clique leva.
+ */
+const MARCA_NA_BARRA = '  <a class="marca" href="/" aria-label="Sistema Lastro — página inicial"'
+  + ' title="Ir para o início">'
+  + '<span aria-hidden="true">' + MARCA + '</span></a>';
 
 const ABERTURA = [
   '<nav class="topnav" aria-label="Navegação do ciclo">',

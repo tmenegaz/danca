@@ -107,6 +107,7 @@ Nem tudo nesta pasta é rascunho. Estes arquivos são **provas** — rodam, mede
 | `provar-aula-e-plano-legiveis.js` | o **contrato entre a derivação e a leitura**: o `.md` que o gerador escreve é lido de volta pelos três validadores, e as duas metades concordam nos nomes das secções, no parâmetro que não parte a tabela e na tabela que **é** o campo (12 asserções) | não |
 | `provar-sujeitos-da-turma.js` | o **recorte dos sujeitos pela turma**: a curadoria como fonte do vínculo, os dois formatos do registo, `null` ≠ lista vazia, a rota com `?turma=` e `?plano=`, e a declaração `recortePeloPlano` no conteúdo (25 asserções — **negativa**: mede que ninguém de fora aparece) | não |
 | `provar-publicacao-da-escola.js` | o **site da escola montado**: o índice das turmas em `/`, a apresentação em `sistema.html`, um subdirectório por pacote, nenhum link morto, a montagem idempotente e a turma que sai não deixando fantasma (26 asserções) | não |
+| `provar-logo-volta-ao-inicio.js` | a **marca da barra** é um link para a raiz do domínio: o `href` absoluto (e não `index.html`, que é três destinos), o nome acessível, os três consumidores — abertura do pacote, barra do sistema e a ponte —, o slot vazio **e** o preenchido dos pacotes já gerados, e a idempotência (22 asserções) | não |
 
 ## Escolas de teste (19/10/2026) — o fixture não mora aqui
 
