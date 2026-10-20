@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T09:03:37-0300`
-Commit atual: `2d37475` — fix(experimentos): o repositório sem ciclo expõe duas provas desactualizadas
+Gerado em: `2026-10-20T10:01:34-0300`
+Commit atual: `53d4fbb` — fix(po): as listas fechadas eram duas, e o mapa morria na segunda
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,8 +46,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+- **Ciclos com manifesto:** 4 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -64,31 +63,47 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
-2d37475 fix(experimentos): o repositório sem ciclo expõe duas provas desactualizadas
-c31bed9 docs(registro): o HANDOFF cita a montagem da publicação fora do ramo do deploy
-f886ddc fix(tools): a publicação é montada sempre, e não só no ramo do --deploy
-9a6b504 chore(estrutura): expurgar a escola calango
-02f80de docs(registro): o HANDOFF cita a decisão do plano da aula anterior
-f3189ea fix(schema): o plano da aula anterior é a mesma classe do actual, e passa a ter decisão
-513549b chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
-19e6814 docs(registro): o HANDOFF cita a curadoria na ponte de produção
-9553706 fix(po): a ponte de produção repassa a curadoria ao roteador
-12d009c chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
-9628405 chore(estrutura): regerar o índice do acervo e o HANDOFF depois do expurgo da batata
-ad93892 fix(estrutura): a escola publica um índice de turmas, e o menu deixa de nascer vazio
-25f4751 fix(po): o Plano de Observação de uma turma deixa de oferecer as alunas das outras
-b04f240 fix(tools): o hook nao recusa a variante que ainda nao tem aula
-9a27d11 chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
-cba28ae chore(estrutura): reancorar a cadeia das fontes alteradas
-83e43c9 feat(captura): actualiza a variante calango-bale-nivel-1-teste-1 no schema de captura
-81979f8 feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
-c01324f feat(ciclo): o «Guardar» do PO cifra ciclo-01-calango-bale-nivel-1-teste-1-dados.cifrado.json
-d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md
+53d4fbb fix(po): as listas fechadas eram duas, e o mapa morria na segunda
+9d6cfea fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
+6c07df1 chore(estrutura): reancorar a cadeia das fontes alteradas
+f37cc9b feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+bcd3f9f feat(plano): o plano elicitado vira a fonte do ciclo
+38ab357 feat(acervo): envelope/plano-20261020-0947.json
+24a8772 feat(acervo): envelope/.indice.json
+efd9783 chore(estrutura): reancorar a cadeia das fontes alteradas
+45e7afd feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+6a60d12 feat(plano): o plano elicitado vira a fonte do ciclo
+2300685 feat(acervo): envelope/plano-20261020-0946.json
+4051fe4 feat(acervo): envelope/.indice.json
+51c1415 chore(estrutura): reancorar a cadeia das fontes alteradas
+0707f50 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+c63e4fb feat(plano): o plano elicitado vira a fonte do ciclo
+21704ae feat(acervo): envelope/plano-20261020-0945.json
+2f8b4ee feat(acervo): envelope/.indice.json
+a6b65d1 feat(acervo): envelope/anamnese-20261020-0943-2.json
+1bb40d2 feat(acervo): envelope/.indice.json
+6b06367 feat(acervo): envelope/anamnese-20261020-0943.json
 ```
 
 ## Por professor
 
-### sapo-bailarino — 0 ciclo(s)
+### sapo-bailarino — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2, batata-bale-nivel-2-teste-2, batata-bale-nivel-3-teste-2
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| batata | (sem PO) | — | — |
+| batata-bale-nivel-1-teste-2 | (sem PO) | — | — |
+| batata-bale-nivel-2-teste-2 | (sem PO) | — | — |
+| batata-bale-nivel-3-teste-2 | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| batata | ciclo-01-batata.fipp | `c723e88de775` | (vazio) | — |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `7c5861b6aa40` | (vazio) | — |
+| batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `7802a397dff5` | (vazio) | — |
+| batata-bale-nivel-3-teste-2 | ciclo-01-batata-bale-nivel-3-teste-2.fipp | `00e94b5840d9` | (vazio) | — |
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -139,46 +154,77 @@ d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o repositório sem ciclo expôs duas provas desactualizadas
+## 20/10/2026 — o filtro dos sujeitos continuava sem funcionar: a chave morria no mapa
 
-**O que motivou.** O expurgo do `calango` deixou o repositório **sem ciclo nenhum** — só os cinco
-schemas, que são o modelo. É um estado que o sistema já prevê, e as provas aprenderam a declará-lo
-em vez de falharem. Duas não estavam à altura:
+**O que motivou.** A correcção anterior estava certa em três sítios e **não funcionava no quarto**.
+A pesquisadora escolheu o plano da turma 1 e, em «Sujeitos observados», continuou a ver as três
+alunas. Medido no Worker:
 
-1. **`provar-declaracoes-do-indice` §5 acusava a declaração de mentir.** Exigia que, sem ciclo,
-   faltassem apenas `ancora, manifesto, pacote`. A lista ficou incompleta quando a harmonização, a
-   notação, o glossário e as referências entraram no vocabulário com `latente: false`: sem ciclo
-   eles não têm instância, exactamente como a âncora. A asserção reprovava por estar
-   **desactualizada**, não por a declaração estar errada — o pior tipo de falha, porque manda
-   procurar no sítio errado. Passa a exigir o conjunto inteiro do que **só um ciclo produz**.
-2. **`provar-publicacao-da-escola` fixava uma escola.** Media `wrangler.calango.jsonc` a dedo, e o
-   `calango` foi expurgado: a prova passou a **estourar** com `ENOENT` em vez de medir (ver a
-   entrada acima, onde a mesma prova já tinha sido corrigida por outro motivo). Agora percorre as
-   configs que houver e **declara** quando não há nenhuma.
+```
+GET /plano-observacao/api/anamneses                        → ['Aluna C','Aluna B','Aluna A']
+GET /plano-observacao/api/anamneses?plano=plano-…-0945     → turma: Balé Nível 1 — Teste 2
+                                                             recorte: ['Aluna A']
+```
 
-**Onde entrou.** `experimentos/provar-declaracoes-do-indice.js` (§5, com a razão em comentário) e
-`experimentos/provar-publicacao-da-escola.js` (a secção D, genérica).
+A **rota** recortava. Quem não pedia o recorte era a **tela** — porque o nó do mapa não trazia a
+marca que a autoriza a pedi-lo:
 
-**Com o quê.** `node experimentos/provar-declaracoes-do-indice.js` → **24 asserções**;
-`node experimentos/provar-publicacao-da-escola.js` → **27**; `node tools/check-indices.js` → **14 de
-14**, com **7 contraprovas** a reprovar e **2 declaradas sem dado** (não há `.fipp` nem pacote para
-lhe mexer). Os `indices/` foram regerados: um órfão removido, `indices/ciclos/sapo-bailarino/01-
-calango.json`.
+```
+GET /plano-observacao/api/mapa?fonte=po   →  {"id":"sujeitos", "opcoesDe":"api/anamneses", …}
+                                             (sem `recortePeloPlano`)
+```
 
-**O que ainda não está feito.** Continua a ser o mesmo de sempre: **nada regenera o `indices/`
-automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
-alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
+**A causa.** O `descritores()` do `motor/nucleo/elicitar.js` é uma **lista fechada**: o mapa que o
+`/api/mapa` serve é construído chave a chave, e o que não está na lista **não existe** do outro
+lado. O conteúdo do PO declarava `recortePeloPlano`, o cliente sabia compor `?plano=`, a rota sabia
+recortar — e a marca ficava pelo caminho. Terceira vez, no mesmo dia, com a mesma forma: cada peça
+certa, e o dado a não atravessar.
+
+**O que foi decidido.**
+
+- `descritores()` passa a repassar `recortePeloPlano`. É a chave que diz à tela «esta lista se
+  recorta pelo plano» — a tela continua a não saber o que é uma curadoria.
+- **A prova deixa de medir a peça e passa a medir a travessia.** A secção E monta o mapa com o
+  `nosRespondiveis()` verdadeiro, sobre os três conteúdos reais, e exige duas coisas: que o nó
+  `sujeitos` do PO traga a marca, e — a guarda genérica — que **nenhuma chave de comportamento
+  declarada no conteúdo se perca no mapa**. A lista de chaves de comportamento (25) fica na prova:
+  uma chave nova esquecida no `descritores()` passa a ser uma falha, e não um silêncio.
+
+**Onde entrou.** `motor/nucleo/elicitar.js` — uma chave no `descritores()`.
+`experimentos/provar-sujeitos-da-turma.js` — **27 → 29 asserções** (a secção E, e a secção F que
+antes era E).
+
+**Com o quê.** `node experimentos/provar-sujeitos-da-turma.js` → **29 asserções**. Controlo
+negativo: sem o repasse no `descritores()`, dão **2 falhas** — a marca ausente e a chave perdida.
+Sem regressão: produção 135, teste 37, cabeçalho 40, anamnese sem cofre 13, publicação 27, índices
+49.
+
+**O que ainda não está feito.** A **guarda genérica só olha as chaves de uma lista escrita à mão**.
+Uma chave de comportamento nova que ninguém acrescente à lista continua invisível — a prova protege
+as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
+`descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
+prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
+
+**Segunda correção de 20/10/2026 (minutos depois) — as listas fechadas eram DUAS.** O
+`descritores()` do motor repassava a marca, e o mapa continuava a não a trazer: a `porta.mapa`
+construía o nó com **outra** lista fechada, chave a chave, por cima da primeira. Duas listas em
+série, duas chances de perder o mesmo dado — e ele perdeu-se nas duas. Sem sinal no site: a rota
+recortava, a tela não pedia.
+
+O nó passa a entrar **inteiro** (`{...no, …}`) e o que a porta acrescenta vem por cima: as
+normalizações (`|| null`, `=== true`), os valores da forma, o sema resolvido. Acrescentar mais uma
+linha à segunda lista teria resolvido este campo e deixado a armadilha para o próximo — **uma lista
+fechada é uma promessa de esquecimento**.
+
+E a prova foi corrigida no mesmo movimento, porque media a **camada errada**: chamava
+`nosRespondiveis` (o motor) e dava verde com o site partido. Agora mede `porta.mapa` — o que o
+`/api/mapa` realmente serve — e a guarda genérica compara o conteúdo com essa camada, a final:
+**29 → 30 asserções**. Controlo negativo: sem o `...no`, dão **2 falhas**.
+
+Medido ao vivo depois do deploy: `?plano=plano-…-0945` → **Aluna A**, `0946` → **Aluna B**,
+`0947` → **Aluna C** — cada plano com a aluna da sua turma, e o mapa a trazer a marca.
 
 ## O que está pendente
-
-## 20/10/2026 — o Plano de Observação de uma turma oferecia as alunas das outras
-
-O `campo aberto` de «Sujeitos observados» continua a aceitar
-qualquer apelido escrito à mão — e é de propósito (a aluna pode ainda não estar na curadoria), mas
-não há na gravação nenhuma conferência de que o apelido pertence à turma: o recorte é da **lista**,
-não do **documento**. Fechá-lo exige decidir o que fazer com a aluna que muda de turma a meio do
-ciclo, e essa decisão não é de hoje. E o `flutuantes` (apelidos em texto livre) continua aberto pelo
-mesmo motivo.
 
 ## 20/10/2026 — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de nascer vazio
 
@@ -213,6 +259,14 @@ commit, e o repositório está limpo — basta redisparar o workflow. E fica uma
 Continua a ser o mesmo de sempre: **nada regenera o `indices/`
 automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
 alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
+
+## 20/10/2026 — o filtro dos sujeitos continuava sem funcionar: a chave morria no mapa
+
+A **guarda genérica só olha as chaves de uma lista escrita à mão**.
+Uma chave de comportamento nova que ninguém acrescente à lista continua invisível — a prova protege
+as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
+`descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
+prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
 
 ## Pendências anteriores (índice)
 
@@ -455,6 +509,8 @@ alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sess�
 - **20/10/2026** — o PO da `batata` não gerava o ciclo: a declaração da… → `REGISTRO.md` L20193
 - **20/10/2026** — a aula derivada volta a ser legível: o mapa de secções e a… → `REGISTRO.md` L20252
 - **20/10/2026** — o primeiro pacote no repositório expôs o vocabulário do… → `REGISTRO.md` L20308
+- **20/10/2026** — o Plano de Observação de uma turma oferecia as alunas das… → `REGISTRO.md` L20364
+- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
