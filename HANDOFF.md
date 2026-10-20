@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T23:36:39-0300`
-Commit atual: `a41dbf9` — fix(tools): a aula derivada volta a ser legível — o mapa de secções e a tabela que é o campo
+Gerado em: `2026-10-19T23:48:51-0300`
+Commit atual: `48ed606` — fix(schema): o primeiro pacote no repositório expõe catorze arquivos sem decisão no vocabulário
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+48ed606 fix(schema): o primeiro pacote no repositório expõe catorze arquivos sem decisão no vocabulário
+7ced350 chore(entrega): gerar o pacote de tiago-menegaz/01/batata-bale-nivel-1-teste-2
+0eaab1c docs(registro): o HANDOFF passa a citar a correcção da aula derivada
 a41dbf9 fix(tools): a aula derivada volta a ser legível — o mapa de secções e a tabela que é o campo
 34f37b5 fix(po): a declaração da captura acompanha o PO, e o parâmetro cabe numa linha
 851bce2 fix(tools): o contador do mestre não se percorre, e os derivados do PO passam a ter tipo
@@ -80,9 +83,6 @@ b147c27 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 e7c2d98 feat(po): o PO elicitado vira a fonte do ciclo
 601663b feat(acervo): envelope/po-20261019-2316.json
 22d420a feat(acervo): envelope/.indice.json
-9b5a62d chore(estrutura): reancorar a cadeia das fontes alteradas
-d2eec62 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
-896a7dc feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -150,70 +150,63 @@ d2eec62 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turm
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — a aula derivada volta a ser legível: o mapa de secções e a tabela que é o campo
+## 20/10/2026 — o primeiro pacote no repositório expôs o vocabulário do acervo: catorze arquivos sem decisão
 
-**O que motivou.** Os dois últimos erros da geração da `batata` não eram do PO nem da folha: eram do
-**acordo entre quem escreve o `.md` e quem o lê de volta**. Cada lado estava «certo» do seu lado, e o
-pacote saía com o campo vazio.
+**O que motivou.** A geração da `batata` pôs, pela primeira vez, um **pacote real** dentro de
+`professores/`. Até aqui esse diretório só tinha **fonte** — e o vocabulário de tipos
+(`indices/esquema/tipos.json`) foi escrito para fonte. `node tools/check-indices.js` passou a
+reprovar com **14 arquivos «sem tipo declarado»**, todos dentro do pacote:
 
-1. **O título que o gerador escreve não estava no mapa.** O `derivar-ciclo.js` (§4) escreve
-   `## 4. Bloco de musicalidade`, sem parênteses — os tempos só o `.conf` da variante os sabe. O
-   `MAPA_SECOES` do `validar-aula-ciclo.js` tinha as duas formas **escritas à mão**
-   (`(8 tempos · 9%)`, `(8 tempos · 10%)`), e nenhuma casava com a do gerador: a secção inteira era
-   descartada e o `blocoDeMusicalidade` não nascia. O aviso «seção fora do mapa» apanhou-o — com a
-   frase certa, e é por isso que ele existe.
-2. **O validador acusava «só tem citação» numa seção cuja tabela É o campo.** A distribuição do
-   volume chega ao JSON como linhas da tabela; nenhuma delas passava pelo `secaoTeveConteudo` do
-   `lib-extracao-md.js`, que só é marcado pelo texto corrido. O diagnóstico dizia «o campo
-   `distribuicaoDeVolume` não é criado» com o campo criado e preenchido — **um diagnóstico falso
-   custa mais do que nenhum**, porque manda procurar o problema errado.
+| classe | arquivos |
+|:--|:--|
+| páginas | `aula-01.html`, `captura-aula-01.html`, `glossario-benesh.html`, `harmonizacao.html`, `lancamento.html`, `notacao.html`, `plano.html`, `referencias.html`, `plano-observacao/index.html` |
+| impressão | `ciclo-01-…-teste-2.pdf` |
+| cópias de conteúdo que a porta lê | `plano-01.json`, `po-01.json`, `captura-01.json`, `captura-aula-01.json`, `plano-aula-01.json` |
 
-**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`, e as duas alterações são
-mínimas e cirúrgicas:
+A regra que existia era **estreita de mais e por arquivo**: `/index\.html$`, e nada mais. Dizia-o
+da capa do pacote e não das nove páginas escritas ao lado dela.
 
-- `tools/validar-aula-ciclo.js` — **uma linha no `MAPA_SECOES`** (`"4. bloco de musicalidade"`), com
-  o porquê em comentário. Não é excepção nem tolerância: é a forma que o gerador sempre escreveu, e
-  o mapa passou a cobri-la.
-- `tools/lib-extracao-md.js` — **uma atribuição** (`secaoTeveConteudo = true`) no ramo em que a
-  tabela já é estruturada. A tabela estruturada sempre entrou no JSON; o que faltava era o
-  contador saber disso.
+**O que foi decidido — por CLASSE, não por pasta.** A tentação era uma regra só: «o interior do
+pacote é saída». Está errada, e o `PLANO-INDICES.md` (§1, item 5) diz por quê: o `ciclos.json` do
+pacote **é para ser lido** — é dele que sai «qual é a próxima aula» sem o Worker abrir o `.conf` nem
+o pacote. Uma excepção que apanhasse a pasta inteira apagaria esse documento do acervo e, com ele, a
+única instância do tipo `indice`. As regras entraram, então, uma por classe de saída:
 
-**O que NÃO muda:** a fórmula do hash (`hash-ciclo.sh`), a cobertura das fontes, as 17 regras de
-`REGRAS.md`, as 22 pétreas de `PROTOCOLO.md`, os demais validadores e o esquema. Nenhuma das duas
-altera o que é aceite: a primeira faz chegar ao campo o que já estava escrito no documento; a segunda
-cala um aviso que era falso. **Comportamento novo: nenhum — comportamento correto: dois.**
+- `paginas-do-pacote` — qualquer `.html` dentro de um pacote, inclusive aninhado. Substitui a regra
+  estreita; a página é a saída, o documento é o pacote.
+- `pdf-do-pacote` — a impressão das mesmas páginas, reconstruível.
+- `conteudo-do-pacote` — as cinco cópias de conteúdo que a porta consome. A **fonte** é o `.md` ao
+  lado da pasta; indexar a cópia contaria o mesmo documento duas vezes.
+
+Ficaram de fora, de propósito, e continuam a ser documentos: `ciclos.json` (`indice`), a cópia
+`-dados.json` (`dados`), o `elicitacao-schema.json` (`schema`), o `README.md` da pasta, os `assets/`
+e o conteúdo da porta — que já tinham decisão.
 
 **Onde entrou.**
 
-- `tools/validar-aula-ciclo.js` — `"4. bloco de musicalidade"` → `blocoDeMusicalidade`.
-- `tools/lib-extracao-md.js` — a tabela estruturada marca `secaoTeveConteudo`.
-- `experimentos/provar-aula-e-plano-legiveis.js` — **nova prova**, 12 asserções: a aula derivada é
-  aceita pelo validador da aula, com o bloco de musicalidade, a duração, o volume ativo e o
-  parâmetro com os três marcos **numa linha**; o plano derivado é aceito e a distribuição do volume
-  chega a campo sem o aviso de «só citação»; a captura derivada é aceita e nenhuma coluna sai sem
-  chave.
-- `experimentos/README.md`, `.gitignore` — a prova entra na tabela e no clone: o REGISTRO cita-a.
-- `wrangler.batata.jsonc` — `assets.directory` aponta o pacote da **turma**, não o esqueleto.
+- `indices/esquema/tipos.json` — `pagina-do-pacote` → `paginas-do-pacote` (mais ampla), e as duas
+  classes novas (`pdf-do-pacote`, `conteudo-do-pacote`), cada uma com o motivo escrito.
+- `experimentos/provar-indices.js` — nova prova §13, **49 → 54 asserções**: toda saída do pacote tem
+  decisão **e uma só**; o `ciclos.json` do pacote continua a ser `indice`; o pacote em si continua a
+  ser o documento (o diretório); as fontes ao lado — `.md`, `.json`, `.conf`, `.fipp` — continuam
+  classificadas. É a prova de que a excepção é por classe e não engoliu a pasta.
+- `indices/**` — regenerado (`documentos` do ciclo da `batata`: **16 → 19**, com as três cópias que
+  o motor já classificava e o vocabulário não declarava).
 
-**Com o quê.** `node experimentos/provar-aula-e-plano-legiveis.js` → **12 asserções**. Controlo
-negativo: contra o `derivar-ciclo.js`/`validar-aula-ciclo.js`/`lib-extracao-md.js` de `HEAD` dão
-**4 falhas** — as quatro que descrevem os dois defeitos. Sem regressão: `check-indices` 14/14,
-`provar-geracao-do-ciclo` 23, identidade visual 19. E o `pre-commit` gerou o pacote da `batata` e o
-`check-pacote` deu **OK: 0 erro(s), 0 aviso(s)**, com «Duração: 50 minutos» no HTML da aula.
+**Com o quê.** `node tools/check-indices.js` → **14 de 14**; `--contraprovas` → **10, todas
+reprovam**; `node experimentos/provar-indices.js` → **54 asserções**; `provar-declaracoes-do-indice`
+→ **23**; `gerar-indices --check` → **12 arquivos em dia**. Controlo negativo: contra o `tipos.json`
+de `HEAD` a verificação 8 dá **14 falhas** e a prova dá **5**.
 
-**O que ainda não está feito.** O pacote gerado no `pre-commit` foi **removido** do disco: quem o
-versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
-geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
-quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.
+**O que ainda não está feito.** Nenhuma ferramenta de `tools/` foi tocada — e essa foi a decisão: a
+primeira tentativa foi implementar no validador a precedência que o `tipos.json` declara no campo
+`ordem` («o primeiro padrão que casar vence»), e o resultado seria **duas** declarações a dizer o
+mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do validador e a da prova das
+declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
+(ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
+`assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.
 
 ## O que está pendente
-
-## 20/10/2026 — a âncora da aula deixa de ficar solta, e o rebase diz a verdade
-
-O pacote da `breu` **não existe**: aquela execução morreu antes do
-push, e o `main` tem as fontes e as âncoras mas não a pasta do pacote. Precisa de uma nova geração
-— `workflow_dispatch` com `professor=sapo-bailarino`, `ciclo=01`, `escola=breu`,
-`variante=breu-bale-nivel-1-teste-3`.
 
 ## 20/10/2026 — o Worker da escola passa a servir o pacote da TURMA, não o esqueleto
 
@@ -244,6 +237,16 @@ O pacote gerado no `pre-commit` foi **removido** do disco: quem o
 versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
 geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
 quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.
+
+## 20/10/2026 — o primeiro pacote no repositório expôs o vocabulário do acervo: catorze arquivos sem decisão
+
+Nenhuma ferramenta de `tools/` foi tocada — e essa foi a decisão: a
+primeira tentativa foi implementar no validador a precedência que o `tipos.json` declara no campo
+`ordem` («o primeiro padrão que casar vence»), e o resultado seria **duas** declarações a dizer o
+mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do validador e a da prova das
+declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
+(ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
+`assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.
 
 ## Pendências anteriores (índice)
 
@@ -480,6 +483,7 @@ quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna v
 - **20/10/2026** — a anamnese sai do KV, e o cofre deixa de existir → `REGISTRO.md` L19792
 - **20/10/2026** — o plano de ensino de teste chega preenchido inteiro, não… → `REGISTRO.md` L19833
 - **20/10/2026** — o índice passa a ser gerado, e o «passou» passa a ser medido → `REGISTRO.md` L19885
+- **20/10/2026** — a âncora da aula deixa de ficar solta, e o rebase diz a… → `REGISTRO.md` L20016
 - PO de **tiago-menegaz · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
