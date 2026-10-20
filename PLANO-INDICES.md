@@ -13,8 +13,10 @@
 >    **É por aqui que se começa a implementar.**
 > 3. **O catálogo de perguntas** ([PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md))
 >    — define **o que** o índice precisa de guardar para responder às perguntas da escola. A §7.5
->    deste documento é o handoff dele para cá. O **catálogo já está escrito**; o que vem depois dos
->    índices é a sua **implementação** (as consultas determinísticas de L6), não o desenho.
+>    deste documento é o handoff dele para cá. O **catálogo fechou em 19/10/2026** (76 perguntas
+>    firmadas, 9 no Núcleo Comum); o que vem depois dos índices é a sua **implementação** (as
+>    consultas determinísticas de L6), na ordem de `PLANO-PERGUNTAS` §12 — **Núcleo antes de
+>    qualquer consulta analítica**.
 > 4. **A Tabela de atividades** ([PLANO-TABELA-DE-ATIVIDADES.md](./PLANO-TABELA-DE-ATIVIDADES.md)),
 >    que consome os índices e não os substitui.
 >
@@ -785,6 +787,26 @@ com escola, professor, ciclo, tipo e contagem — **sem** caminho, **sem** títu
   um arquivo imutável entre publicações.
 - `ETag` forte com o hash do arquivo é opcional na v1; o `--check` já garante o conteúdo.
 
+### 6.5 A exportação do acervo — onde ela vive (decisão de 19/10/2026)
+
+**Decisão.** A exportação do acervo é **capacidade do Núcleo Comum** e vive em **Bastidores →
+Produção, seção «Acervo»**. É decisão de **localização**, não de desenho.
+
+| O que fica decidido | Consequência |
+|:--|:--|
+| **Quem exporta** | a direção, autenticada — a mesma trava da Produção; a exportação não é consulta pública |
+| **O que sai** | o acervo inteiro: fontes, lançamentos, cadastro, índice e programação publicada |
+| **Em que plano** | em **qualquer** plano — o plano limita a **consulta**, não a **saída** (PLANO-PERGUNTAS §5.5) |
+| **Qual índice serve de manifesto** | o índice de acervo (§4.2): ele já lista tipo, caminho e âncora de cada documento; a exportação não inventa uma segunda lista |
+| **O que a exportação não faz** | não é consulta do catálogo (L6), não mede nada, e não altera o acervo |
+
+**O que fica para a implementação.** O formato do pacote (diretório ou `.zip`), a tela e o registro
+de quem exportou. Nada disso muda o contrato: **o que sai é o acervo, não um relatório do acervo.**
+
+> **Por que a seção é «Acervo», e não uma rota nova.** A Produção já é a casa do cadastro, da
+> curadoria e da programação; a exportação é a leitura do que essas seções produzem. Uma rota
+> separada exigiria refazer a autenticação e a navegação para entregar o mesmo conteúdo.
+
 ---
 
 ## 7. Filtros e consulta
@@ -875,10 +897,15 @@ linha diz o que o índice precisa de expor — e o que a consulta faz com isso.
 | **AL** percurso | `alunas[]`, `presenca[]`, `marcas[]`, `rubrica[]` | filtra por `aluna` e agrega por `coluna` × `data` | C |
 | **EN** ensino | `condicoes[]`, `ajustes[]`, `marcos[]`, `distribuicao-de-volume` | cruza plano × lançamento pelo `marco` e pela `aula` | C |
 | **OB** instrumento | `marcas[]` com `marca` e `coluna`; colunas declaradas no PO | conta `nao_vi`/vazio por coluna sobre as aulas com registro | S |
-| **TR** turma e sala | `turmas[]` (com vigência), `espacos[]`, retrato publicado | junta por `turma` e `espaco`; TR05/TR06 dependem da Tabela | C |
+| **TR** turma e sala | `turmas[]` (com vigência), `espacos[]`, retrato publicado | junta por `turma` e `espaco`; TR05/TR06/TR09/TR10/TR12/TR13/TR14 dependem da Tabela. TR08 compara organização, nunca resultado | C |
 | **PE** permanência | `alunas[]` com primeira e última aparição; série por ciclo | série por `aluna`; agregado sem sujeito para PE04. **Não** há entidade de saída: a medida é «sem registro posterior» | C |
-| **PV** proveniência | `ancora` por ciclo e por aula; `fonte.commit` | compara `hash` do índice com o arquivo; `PV06` é formato de resposta | S |
-| **GE** gestão | acervo, `turmas[]`, `ia-registro` (quando houver leitor) | contagens e listas | S |
+| **PV** proveniência | `ancora` por ciclo e por aula; `fonte.commit`; `autoria[]` | compara `hash` do índice com o arquivo; `PV06` é formato de resposta; PV07 é a ordem do `git log` | S |
+| **GE** gestão | acervo, `turmas[]`, `ia-registro` (quando houver leitor) | contagens e listas; GE10 lê o `ia-registro` (L7) | S |
+| **Núcleo — vínculo e autoria** | `vinculos[]` com `de`/`ate`, `autoria[]`, `turmas[].professor` | devolve **nome ou vínculo**, nunca contagem por professor; TR11 devolve a série, não o estado atual | S |
+
+**Cobertura (19/10/2026).** O catálogo tem **76 perguntas firmadas** — 9 no Núcleo Comum, 7 no
+Básico, 14 no Intermediário e 46 no Avançado (PLANO-PERGUNTAS §5.5). A exportação do acervo (§6.5)
+é capacidade do Núcleo e usa o índice de acervo como **manifesto** do que sai.
 
 **Uma família que saiu (18/10/2026).** A família **EX** — exame externo. O índice chegou a prever
 `resultados-externos[]` e `saidas[]`; com as duas entidades fora de escopo
@@ -1015,7 +1042,8 @@ arquivo congelado tocado vai em **commit próprio**, com a entrada no `REGISTRO.
   abandonadas por decisão de produto, e o PDF fica declaradamente na paleta vigente.
 - **Validação executada:** `node tools/check-identidade.js` → **19 verificações, todas `ok`**;
   `IMPLEMENTACAO-IDENTIDADE.md` sem nenhum `[ ]` aberto.
-- **Estado:** nada a fazer. A indexação pode começar na Etapa 1.
+- **Estado (19/10/2026):** confirmada. A decisão da exportação (§6.5) é de localização e não
+  reintroduz pendência aqui. Nada a fazer; a indexação começa na **Etapa 1**.
 
 ### Etapa 1 — Declarações
 
@@ -1261,15 +1289,18 @@ projeto e define o que ele tem de guardar:
 O que o catálogo acrescenta por conta própria: a **medida**, a **recusa** e a distribuição por
 plano comercial. O índice não mede nem julga — entrega linhas e facetas.
 
-**O que o catálogo descartou não pede nada daqui.** São **55 perguntas firmadas em 8 famílias**: a
-família EX (exame externo) e a entidade `saida` foram retiradas em 18/10/2026, e com elas as listas
-`resultados-externos[]` e `saidas[]` que este plano chegou a prever (§7.5). Uma chave de índice que
-nenhuma consulta lê é dívida; o `check-indices` não a exige.
+**O que o catálogo descartou não pede nada daqui.** O catálogo tem **76 perguntas firmadas em 8
+famílias** (9 no Núcleo Comum, 7 no Básico, 14 no Intermediário, 46 no Avançado): a família EX
+(exame externo), a entidade `saida` e as três de PR foram retiradas ou recusadas em 18/10/2026, e com
+elas as listas `resultados-externos[]` e `saidas[]` que este plano chegou a prever (§7.5). Uma chave
+de índice que nenhuma consulta lê é dívida; o `check-indices` não a exige.
 
-**E o que ainda pode crescer.** O catálogo está em **primeira passagem**: a grade de cobertura
-([PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §4.9) aponta **13 células
-vazias por dívida** e **9 candidatas** já escritas. Nenhuma delas, hoje, pede uma faceta nova: as de
-`espaço` dependem do outro plano, as de `escola` saem do índice de acervo e `PV07` sai do `git log`.
+**E o que ainda pode crescer.** A grade de cobertura
+([PLANO-PERGUNTAS-DA-PROVENIENCIA.md](./PLANO-PERGUNTAS-DA-PROVENIENCIA.md) §4.9) **fechou em
+19/10/2026**: 48 células ocupadas, 12 recusas e 3 em espera declarada (`espaço × distribuição`,
+`espaço × mudança` e `escola × comparação`). Nenhuma das três pede faceta nova hoje: as duas de
+`espaço` dependem da Tabela e `escola × comparação` depende de decisão comercial. As doze candidatas
+firmadas não acrescentaram faceta — usam `vinculos[]`, `autoria[]`, `git log` e o índice de acervo.
 
 **`professor` é faceta, vínculo e autoria — nunca eixo.** Decidido em 18/10/2026: o professor **não é
 sujeito de medida** do catálogo (não existe família PR), mas **é** dado necessário como vínculo,

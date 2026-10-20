@@ -1,19 +1,28 @@
 # Plano — As perguntas que a proveniência responde
 
-> **Status.** Plano de produto e de engenharia. **Nada foi implementado.** Este documento define
-> **quais perguntas** o acervo do Sistema Lastro deve responder, **com que dado**, **com que prova**
-> e **em que plano comercial** — antes de qualquer consulta ser escrita.
+> **Status (19/10/2026).** Plano de produto e de engenharia. **Nada foi implementado.** Este
+> documento define **quais perguntas** o acervo do Sistema Lastro deve responder, **com que dado**,
+> **com que prova** e **em que plano comercial** — antes de qualquer consulta ser escrita.
 >
-> **Escopo (18/10/2026).** **55 perguntas firmadas**, em **8 famílias**, mais **18 candidatas**
-> propostas pela grade (§4.9, Anexo D): nove que fecham dívidas e nove de **identificação** — vínculo,
-> autoria e localização, incluindo o professor como atributo (§4.9.2). Exames externos e motivo de saída estão **fora de escopo**: não são
-> entidades do sistema (§6), e a pergunta que os motivava permanece como **recusa** (§9). O
-> **professor não é sujeito de medida** — não existe família PR (§4.9.1); ele **é** vínculo, autoria e
-> escopo, e isso o índice guarda (§4.9.2).
+> **Escopo (19/10/2026).** **76 perguntas firmadas**, em **8 famílias**, sendo **9 transversais** do
+> Núcleo Comum e **67 nas tabelas de plano** (7 no Básico, 14 no Intermediário, 46 no Avançado).
+> Não há mais candidatas: as **12** que a grade revelou (§4.9, Anexo D) foram firmadas em 19/10/2026,
+> e as **9 de identificação** (Anexo D.1) são o Núcleo Comum — vínculo, autoria e localização,
+> incluindo o professor como atributo (§4.9.2). Exames externos e motivo de saída estão **fora de
+> escopo**: não são entidades do sistema (§6), e a pergunta que os motivava permanece como **recusa**
+> (§9). O **professor não é sujeito de medida** — não existe família PR (§4.9.1); ele **é** vínculo,
+> autoria e escopo, e isso o índice guarda (§4.9.2).
 >
-> **Este catálogo é uma primeira passagem, não a versão final.** Ele só fecha quando a grade do §4.9
-> tiver veredicto em todas as células — e é isso, não a contagem, que destrava a distribuição
-> comercial (§5.1).
+> **O catálogo está fechado.** A grade do §4.9 tem veredicto em todas as células — **48 ocupadas, 12
+> recusas e 3 em espera declarada** —, e a distribuição comercial (§5.5) é consequência dela, não
+> uma negociação à parte.
+>
+> **Nota de contagem (19/10/2026).** O resumo da decisão registou **71**; a soma das listas dá
+> **76**. A conferência está no §5.5: 55 firmadas em 18/10 + 12 candidatas firmadas em 19/10 + 9 de
+> identificação = 76. As cinco supostas repetições (`TR11`, `TR12`, `TR13`, `CT10`, `PV08`) aparecem
+> **uma vez cada**, no Núcleo Comum, e não voltam nas tabelas de plano — donde não há o que
+> descontar. **O número que vale é o que a soma produz: 76.** Se a decisão comercial exigir 71, a
+> diferença é de **cinco IDs a retirar**, e a retirada tem de ser nomeada (não inferida).
 >
 > **Por que as perguntas vêm primeiro.** A resposta é de cada escola, de cada professor, de cada
 > comitê. O sistema não a produz: produz o **registro**, a **medida** e o **caminho até o original**.
@@ -26,8 +35,8 @@
 > 2. **Índices do acervo** — [PLANO-INDICES.md](./PLANO-INDICES.md). É o que torna a resposta
 >    rápida; sem ele, cada pergunta é uma varredura. **É a próxima a implementar.**
 > 3. **Este catálogo** — define o que o índice precisa de guardar e o que a consulta precisa de
->    medir. **O desenho já está escrito**; o que falta é o que **você** decide (fechar a grade,
->    §4.9) e, depois, a implementação das consultas (L6).
+>    medir. **Fechado em 19/10/2026**: a grade saturou (§4.9) e a distribuição está no §5.5. O que
+>    falta é a implementação das consultas (L6), na ordem do §12.
 > 4. **A Tabela de atividades** — [PLANO-TABELA-DE-ATIVIDADES.md](./PLANO-TABELA-DE-ATIVIDADES.md).
 >
 > A implementação segue as camadas do [PLANEJAMENTO-LASTRO.md](./PLANEJAMENTO-LASTRO.md) §5:
@@ -52,8 +61,26 @@ O que existe **não é um arquivo de planos**: são **frentes** e **decisões** 
 | **`pagante` com dois sentidos** | §3 **C18** | Trava de expurgo × estado comercial |
 
 > **Consequência prática.** Não há onde ler «quais perguntas o Básico inclui» — o repositório diz
-> apenas que o texto 2 §5 propõe **3 / 7 / todas**. Este plano preenche essa lacuna com uma
-> proposta explícita, marcada como proposta.
+> apenas que o texto 2 §5 propõe **3 / 7 / todas**. Este plano preenche essa lacuna com a
+> **distribuição aprovada** em 19/10/2026 (§5.5).
+
+### 0.1 As três decisões de 19/10/2026 — a tabela fecha
+
+| Decisão | O que ficou | Por que |
+|:--|:--|:--|
+| **GE08** | **Avançado** | compara **estrutura** entre anos (professores, turmas, modalidades, PO); é decisão de programa, não de ciclo |
+| **OB08, PV07 e GE10** | **Avançado** | cada uma é x³: mudança do instrumento, ordem dos documentos, evolução do uso do sistema |
+| **CT08 e TR14** | **Intermediário** | cada uma é x²: planejamento das próximas aulas e capacidade × ocupação da sala |
+| **CT07** | **Básico, sem o motivo** | o «motivo» não existe no lançamento; a pergunta entra, e o motivo fica como `CT07b` para quando o campo existir |
+
+**O que a decisão fecha.** As 12 candidatas do Anexo D passam a `firmada` (Anexo E) e entram na
+distribuição do §5.5. A grade do §4.9 deixa de ter dívida com candidata: as três células que restam
+em espera (`espaço × distribuição`, `espaço × mudança` e `escola × comparação`) dependem da Tabela de
+atividades e da decisão de comparação entre escolas, e estão declaradas como tal.
+
+**O que a decisão deixa fora.** `CT07b` (o motivo declarado da aula não dada) não entra: o campo não
+existe no lançamento. `PE03` continua retirada (com a entidade `saida`); `PR01`–`PR03` continuam
+recusadas (o professor não é sujeito de medida); a família `EX` continua fora de escopo.
 
 ---
 
@@ -190,6 +217,10 @@ comercial de cada pergunta está no **§5**, que é a única fonte da distribui�
 | **CT04** | O que **ficou pendente** do ciclo anterior? | aulas `nao_dada` + marcos sem aula + ajustes declarados, por ciclo | C |
 | **CT05** | Qual é o **próximo ciclo** e o que ele herda? | sequência de ciclos por professor × escola; herança declarada (nível, objetivo geral, turma, professor) | C |
 | **CT06** | Que **decisão do plano** mudou entre a versão anterior e a vigente, e por quê? | versões do plano (L5) × campo alterado × data | C |
+| **CT07** | Quais aulas do ciclo **não foram dadas**? | `ciclos.json → aulas[].estado = nao_dada` (o **motivo** não existe: `CT07b`, fora até o campo existir) | S |
+| **CT08** | O que está **planejado para as próximas N aulas**? | `aulas[]` com `estado ∈ {planejada, dada}`, ordenadas por data, a partir de hoje | S |
+| **CT09** | Como as aulas do ciclo se **distribuem por estado e por mês**? | contagem por `estado` × mês do calendário | S |
+| **CT10** | De **quem é este ciclo**, e qual plano de ensino ele adota? | `ciclo.professor` + autoria do plano | S · **Núcleo** |
 
 **Recusas da família.** CT01 não prevê se a aula será dada. CT05 não propõe o próximo ciclo — só
 mostra o que existe e o que foi herdado. CT06 não julga a mudança: mostra o diff.
@@ -213,6 +244,7 @@ re-deriva com o próprio relógio. Um `estado` guardado há dias mente sobre «n
 | **AL08** | Em que proporção das aulas há **`nao_vi` ou vazio** para ela? | contagem de não-observação sobre o total de aulas com registro | S |
 | **AL09** | Como o percurso dela se **compara à turma**? | distribuição da turma por coluna + ponto dela; **sem ordenação por mérito** | C |
 | **AL10** | Que **mudanças de turma, nível ou professor** ela teve? | histórico de turma derivada + curadoria + data de vigência | C |
+| **AL11** | Quem é o **professor desta aluna** agora, e em que turmas ela está? | derivado de `alunas[].turmas` × `turma.professor` | S · **Núcleo** |
 
 **Recusas da família.** AL03 não diz «precisa de ajuda»; AL04 não diz «se destaca»; AL09 não produz
 ranking; AL05 não compara com o nível seguinte (isso é TR07/P03); AL08 não conclui aprendizagem —
@@ -259,6 +291,8 @@ dois conceitos não existem no modelo. Ela não se resolve com consulta; resolve
 | **OB05** | A **régua da turma** foi usada? Em que níveis os critérios ficaram? | `rubrica` da turma × marca `rubrica` por critério × aula | S |
 | **OB06** | Que observações se mostraram viáveis em **quais condições** (duração, presentes, `plano_seguido`)? | `nao_vi` × `condicoes_contorno` × `duracao_min` | C |
 | **OB07** | O mesmo item, em **ciclos diferentes**, teve a mesma viabilidade? | série multi-ciclo por coluna | C |
+| **OB08** | O **PO mudou** entre ciclos? Que colunas entraram, saíram ou mudaram de nome? | versões do PO por ciclo × `captura-schema` | S |
+| **OB09** | **Quem escreveu** este PO, e qual versão assinou? | `autoria` do documento + versão (L5) | S · **Núcleo** |
 
 **Recusas da família.** Nenhuma destas perguntas mede o professor. OB01–OB03 medem o
 **instrumento**; a conclusão («esta coluna não serve») é da escola. OB06 não afirma causalidade —
@@ -280,10 +314,18 @@ usado, e então avaliado como instrumento. É a única família em que a respost
 | **TR05** | Quais **salas** foram usadas por esta turma, e em que aulas? | espaço × turma (depende da Tabela de atividades) | C |
 | **TR06** | Que **eventos** ocuparam a sala e podem ter afetado a aula? | programação publicada × data da aula | C |
 | **TR07** *(ex-P03)* | Distribuição entre o **nível atual** e o **nível seguinte** | objetivos do nível seguinte + currículo versionado — **não existem** | V |
+| **TR08** | Como **duas turmas do mesmo nível** se organizaram de forma diferente (dias, duração, volume)? | `turma` × `turma`, comparando **organização**, nunca resultado | C |
+| **TR09** | Quantas **horas-aula** cada sala recebeu no período? | Tabela de atividades × calendário | C |
+| **TR10** | Quando a sala ficou **ociosa** no período letivo? | Tabela de atividades × janela letiva | C |
+| **TR11** | Qual é o **professor responsável** desta turma, e desde quando? | `turma.professor` + `vinculos[]` com vigência | S · **Núcleo** |
+| **TR12** | **Qual turma ocupa** esta sala em cada horário, e com que professor? | Tabela de atividades × `turma.professor` | C · **Núcleo** |
+| **TR13** | **Onde está** este professor: que turmas, salas e horários? | `vinculos[]` + Tabela de atividades | C · **Núcleo** |
+| **TR14** | Qual é a **capacidade da sala** vs. a **ocupação real**? | Tabela de atividades × presença por aula | C |
 
 **Recusas da família.** TR02 não diz se a mudança foi acertada. TR04 não avalia a aluna nem a
-turma: mede presença. TR05/TR06 exigem a Tabela de atividades — são a única dependência cruzada
-entre os dois planos.
+turma: mede presença. TR05/TR06/TR09/TR10/TR12/TR13/TR14 exigem a Tabela de atividades — são a única
+dependência cruzada entre os dois planos. TR08 compara **organização**, nunca resultado; TR13
+localiza o professor e **não** mede a pessoa (§4.9.1).
 
 ---
 
@@ -322,10 +364,14 @@ quem estava lá.
 | **PV04** | **Quem** alterou e **quando**? | autor do commit; hoje não há autor por campo | S |
 | **PV05** | O **plano foi reescrito** depois de a aula ser dada? | âncora da aula × data do lançamento | C |
 | **PV06** | Esta resposta aponta para **qual versão do plano** e **qual aula**? | toda resposta carrega `plano_id`, `versao`, `aula`, `ancora` | C |
+| **PV07** | Em que **ordem** os documentos de um ciclo foram criados, e por quem? | `git log` + índice por ciclo | S |
+| **PV08** | **Quem produziu, revisou ou assinou** este documento? | `git log` para produção; campo declarado para revisão | S · **Núcleo** |
+| **PV09** | **Quem deu** esta aula, e **quem a lançou**? | autoria do registro ≠ autoria da aula | S · **Núcleo** |
 
 **Recusas da família.** PV04 responde «quem fez o commit», não «quem tomou a decisão» — o sistema
 autentica um segredo por escola, não uma pessoa (C17). PV06 não é uma consulta: é um **requisito de
-formato** de todas as respostas.
+formato** de todas as respostas. PV07 mostra a ordem, não julga a sequência. PV09 separa duas
+autorias — e não afirma responsabilidade pelo que a aula produziu.
 
 ---
 
@@ -339,9 +385,14 @@ formato** de todas as respostas.
 | **GE04** | Que **documentos faltam** para o ciclo fechar (PO, harmonização, captura)? | validadores × índice | S |
 | **GE05** | Que **escolas existem**, habilitadas, expurgadas? | acervo (só raiz) | S |
 | **GE06** | Qual o **uso de IA** por escola e ciclo? | `ia-registro` — escrito e **nunca lido** (C7) | S |
+| **GE07** | Qual a **linha do tempo** da escola: ciclos, entradas e saídas de professor, mudanças de PO? | índice de acervo virando narrativa | C |
+| **GE08** | O que **mudou na escola** entre dois anos (professores, turmas, modalidades, PO)? | comparação de **estrutura** entre exercícios | C |
+| **GE09** | Que **professores atuam** nesta escola, com que turmas e modalidades? | diretório; hoje sai do cadastro do KV | S · **Núcleo** |
+| **GE10** | Como evoluiu o **uso do sistema** por esta escola: quantos ciclos foram abertos, quantos lançamentos foram feitos, e em que período? | leitor do `ia-registro` (L7) + índice de acervo | C |
 
 **Recusas da família.** GE03 mede carga declarada, não horas trabalhadas. GE06 mede custo, não
-qualidade de uso.
+qualidade de uso. GE08 compara **estrutura**, nunca desempenho. GE10 mede **uso**, não valor — a
+leitura de «valeu a pena» é da escola.
 
 ---
 
@@ -356,16 +407,16 @@ lista (que sempre parece incompleta) e um **método** (que diz onde olhar e quan
 
 | Sujeito ↓ · Medida → | contagem | distribuição | sequência | ausência | mudança | comparação | identificação |
 |:--|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
-| **aula** | 2 | 1 | 1 | · | 1 | · | 1 |
-| **ciclo** | 1 | · | 1 | 3 | 1 | 2 | 1 |
-| **turma** | 2 | 1 | · | · | 1 | · | 1 |
+| **aula** | 2 | 1 | 2 | 1 | 1 | · | 1 |
+| **ciclo** | 1 | 1 | 1 | 3 | 1 | 2 | 1 |
+| **turma** | 2 | 1 | · | · | 1 | 1 | 1 |
 | **aluna** | 3 | 1 | 2 | 3 | 2 | 3 | 1 |
 | **professor** | · | · | · | · | · | · | 1 |
-| **escola** | 4 | 1 | · | 1 | · | · | 1 |
-| **instrumento (PO)** | · | 4 | 1 | 1 | · | 4 | 1 |
-| **espaço e programação** | · | · | 2 | · | · | · | 1 |
-| **documento e âncora** | 1 | · | · | · | 3 | 2 | 1 |
-| **Total** | **13** | **8** | **7** | **8** | **8** | **11** | **9** |
+| **escola** | 5 | 1 | 1 | 1 | 1 | · | 1 |
+| **instrumento (PO)** | · | 4 | 1 | 1 | 1 | 4 | 1 |
+| **espaço e programação** | 1 | · | 2 | 1 | · | 1 | 1 |
+| **documento e âncora** | 1 | · | 1 | · | 3 | 2 | 1 |
+| **Total** | **15** | **9** | **10** | **10** | **10** | **13** | **9** |
 
 > **A coluna `identificação` foi acrescentada em 18/10/2026, e faltava.** Ela é a mais simples de
 > todas — «**qual** é», «**quem** é», «**onde** está», «**de quem** é» — e as 55 perguntas firmadas
@@ -373,21 +424,21 @@ lista (que sempre parece incompleta) e um **método** (que diz onde olhar e quan
 > mudou, como compara. Sem esta coluna, a grade não tinha como expressar as perguntas de vínculo e de
 > autoria, e foi por isso que a linha `professor` caiu para zero (§4.9.1, §4.9.2).
 >
-> **Ela está ocupada só por candidatas** (Anexo D): as nove de identificação ainda não são firmadas.
-> Isso é o que separa «não há pergunta» de «ainda não escrevi a pergunta» — e é a diferença que
+> **Ela está ocupada pelas nove de identificação, firmadas em 19/10/2026 como Núcleo Comum**
+> (Anexo D.1). Isso é o que separa «não há pergunta» de «ainda não escrevi a pergunta» — e é o que
 > destrava o índice de professor.
 
 > **A linha `professor` tem uma única célula, e é `identificação`.** O professor **não é sujeito de
 > medida** — não se conta, não se distribui, não se compara. Mas ele **é** sujeito de localização:
 > «onde está», «quais turmas». Ver §4.9.2.
 
-**Leitura da grade.** 9 × 7 = **63 células**. **38 estão ocupadas** — 29 pelas 55 perguntas firmadas,
-9 só pelas candidatas de identificação. Sobram **25**:
+**Leitura da grade.** 9 × 7 = **63 células**. **48 estão ocupadas** pelas **76 perguntas firmadas**
+(algumas células têm mais de uma pergunta). Sobram **15**:
 
 | Veredicto | Células | O que significa |
 |:--|--:|:--|
-| **ocupada** | 38 | há pergunta firmada (29) ou candidata escrita (9) |
-| **dívida** | 13 | a pergunta **pode** existir e não foi escrita — vira candidata (Anexo D) |
+| **ocupada** | 48 | há pergunta firmada — 76 entradas distribuídas pelas células |
+| **em espera** | 3 | a pergunta pode existir, mas depende de frente não construída — **declarada**, sem candidata |
 | **recusa** | 12 | a pergunta existe na cabeça de alguém, mas o sistema **não** a responde (§2, §9) |
 
 **As doze recusas, por célula.** `professor ×` as **seis medidas de agregação** — `contagem`,
@@ -400,21 +451,21 @@ amostra).
 > **`professor × identificação` não é recusa.** Localizar não é avaliar: «onde está», «quais turmas»,
 > «quem é o responsável desta turma» são perguntas de **vínculo**, e o vínculo é dado (§4.9.2).
 
-**As treze dívidas, por sujeito.** `espaço` 5 (depende da Tabela de atividades), `escola` 3
-(`GE07`, `GE08` e a comparação entre escolas), `aula` 1 (`CT07`), `ciclo` 1 (`CT09`), `turma` 1
-(`TR08`), `instrumento` 1 (`OB08`), `documento` 1 (`PV07`). **Nove** têm candidata escrita no
-Anexo D; **quatro** estão declaradas em espera (`espaço × distribuição`, `espaço × mudança`,
-`espaço × comparação`, `escola × comparação`) — sem candidata porque ainda não há como escrevê-las
-sem inventar o modelo do outro plano.
+**As três em espera, e por quê.** `espaço × distribuição` e `espaço × mudança` dependem da Tabela de
+atividades; `escola × comparação` depende da decisão de comparar escolas (§11.3). As **nove
+candidatas de dívida** fecharam nove células; `TR14` fechou `espaço × comparação` (uma das quatro que
+estavam em espera); `CT08` e `GE10` caíram em células que já estavam ocupadas (`aula × sequência` e
+`escola × contagem`). Não há mais célula sem veredicto: a grade está fechada.
 
 **Onde o catálogo é fino, e isso é achado.** A linha mais densa é **aluna** (7 de 7) — é onde o
-projeto pensou. A mais vazia é **espaço** (2 de 7), porque depende do outro plano. E **professor** é
-**1 de 7**, e a célula ocupada é justamente a de identificação (§4.9.2).
+projeto pensou. Depois de 19/10/2026, **espaço** sobe de 2 para **6 de 7** (dependia do outro plano e
+as candidatas fecharam quatro células). E **professor** é **1 de 7**, e a célula ocupada é justamente
+a de identificação (§4.9.2).
 
 **A regra de saturação.** O catálogo está fechado quando **toda célula tem veredicto declarado** —
-ocupada, dívida com candidata escrita, ou recusa com motivo. Não é quando «não há mais ideias»: é
-quando não há célula silenciosa. Fechar a grade é o que destrava a distribuição (§5.1), e é o
-trabalho que o dono do produto pediu: **elaborar as perguntas antes de reparti-las**.
+ocupada, declarada em espera, ou recusa com motivo. Não é quando «não há mais ideias»: é quando não há
+célula silenciosa. Fechar a grade é o que destrava a distribuição (§5.1), e é o trabalho que o dono
+do produto pediu: **elaborar as perguntas antes de reparti-las**. A grade fechou em 19/10/2026.
 
 ### 4.9.1 O professor não é sujeito de **medida** — decisão de 18/10/2026
 
@@ -584,54 +635,105 @@ que aconteceu com quem tem registro até tal ponto.
 > mesma fronteira do §2, agora aplicada a x³ — e é ela que faz o professor **não ser sujeito** de
 > nenhuma consulta (§4.9.1).
 
-### 5.5 O corte de exemplo — não é a decisão
+### 5.5 A distribuição final (19/10/2026)
 
-O que segue é **ilustração de forma**: como a grade do §4.9 se distribui se aplicada ao catálogo de
-hoje. Serve para ver o desenho dos três poderes; **não** é a distribuição aprovada — essa é
-recalculada quando a grade saturar, e não herdada deste exemplo.
+Esta é a distribuição **aprovada**, não um corte de exemplo. Ela decorre da grade fechada (§4.9) e
+das três decisões de 19/10/2026 (§0.1).
 
-**Básico (6).** O que qualquer escola precisa no primeiro dia de uso:
+**Conferência de contagem.** 55 firmadas em 18/10 + 12 candidatas firmadas em 19/10 + 9 de
+identificação = **76 perguntas distintas**. A soma por plano, contando só as **novas** de cada
+degrau, é 7 + 14 + 46 = 67; com as 9 do Núcleo Comum, **76**.
 
-| ID | Pergunta |
-|:--|:--|
-| **CT01** | Qual é a próxima aula, quando, com que marco e até quando se lança? |
-| **CT02** | O que já foi dado, lançado e não dado neste ciclo? |
-| **AL01** | O que já foi trabalhado com esta aluna? |
-| **AL02** | Em que aulas ela esteve e em que faltou? |
-| **TR01** | Como esta turma foi organizada (dias, duração, volume, sequência)? |
-| **PV01** | Este documento mudou? Quando, e qual é o elo? |
+> **A diferença de 5 em relação ao resumo de 71.** O resumo apontou cinco «repetições» (`TR11`,
+> `TR12`, `TR13`, `CT10`, `PV08`) que não existem nas tabelas: os cinco IDs aparecem **uma vez**, no
+> Núcleo. Sem repetição a descontar, 76 é a soma das listas. Se a decisão comercial exigir 71, os
+> **cinco IDs a retirar têm de ser nomeados** — retirar por inferência quebraria a regra de que ID
+> não se reaproveita e pergunta não se apaga em silêncio.
 
-**Intermediário (15 = as 6 + 9).** O percurso dentro do ciclo e o instrumento:
+#### Núcleo Comum — o vínculo (9 transversais, em qualquer plano)
 
 | ID | Pergunta |
 |:--|:--|
-| **CT03** | Que marcos do plano ainda não foram trabalhados? |
-| **AL03** | Onde `parcial`/`nao` se repete para esta aluna? |
-| **AL04** | Onde `ok` se repete, e qual a distribuição da turma na mesma coluna? |
-| **AL08** | Em que proporção há `nao_vi` ou vazio para esta aluna? |
-| **EN01** | A aula seguiu o plano declarado? |
-| **EN02** | O que o professor ajustou em tempo real, e em que aulas? |
-| **EN04** | A distribuição de volume planejada foi a executada? |
-| **EN05** | Que objetivos têm e não têm observação registrada? |
-| **OB01** | Quais colunas do PO foram observáveis, e quais concentraram `nao_vi`? |
+| TR11 | Qual é o professor responsável desta turma, e desde quando? |
+| AL11 | Quem é o professor desta aluna agora, e em que turmas ela está? |
+| TR12 | Qual turma ocupa esta sala em cada horário, e com que professor? |
+| TR13 | Onde está este professor: que turmas, salas e horários? |
+| CT10 | De quem é este ciclo, e qual plano de ensino ele adota? |
+| OB09 | Quem escreveu este PO, e qual versão assinou? |
+| PV08 | Quem produziu, revisou ou assinou este documento? |
+| PV09 | Quem deu esta aula, e quem a lançou? |
+| GE09 | Que professores atuam nesta escola, com que turmas e modalidades? |
 
-**Avançado (55, todas).** As 40 restantes, por família:
+**+ Capacidade:** exportar o acervo inteiro (fontes, lançamentos, cadastro, índice, programação
+publicada) em qualquer plano. O plano limita **a consulta**, não **a saída**.
 
-| Família | Perguntas que entram |
+#### Básico — operar (x) — 7 novas
+
+| ID | Pergunta |
 |:--|:--|
-| CT | CT04, CT05, CT06 |
-| AL | AL05, AL06, AL07, AL09, AL10 |
-| EN | EN03, EN06, EN07, EN08, EN09 |
-| OB | OB02, OB03, OB04, OB05, OB06, OB07 |
-| TR | TR02, TR03, TR04, TR05, TR06, TR07 |
-| PE | PE01, PE02, PE04, PE05 |
-| PV | PV02, PV03, PV04, PV05, PV06 |
-| GE | GE01, GE02, GE03, GE04, GE05, GE06 |
+| CT01 | Qual é a próxima aula, quando, com que marco e até quando se lança? |
+| CT02 | O que já foi dado, lançado e não dado neste ciclo? |
+| **CT07** | Quais aulas do ciclo não foram dadas? *(o motivo fica como `CT07b`, quando o campo existir)* |
+| AL01 | O que já foi trabalhado com esta aluna? |
+| AL02 | Em que aulas ela esteve e em que faltou? |
+| TR01 | Como esta turma foi organizada (dias, duração, volume, sequência)? |
+| PV01 | Este documento mudou? Quando, e qual é o elo? |
 
-> **Por que o Básico tem seis e não três.** Com três, a escola recebe «o que dou agora», «o que já
-> foi dado» e «o que aconteceu com esta aluna» — mas não consegue responder «ela faltou?» nem
-> «como a turma está organizada», que são perguntas de operação, não de análise. Seis é o menor
-> conjunto que faz o produto funcionar sem prometer análise que o plano não vende.
+#### Intermediário — cruzar (x²) — 14 novas
+
+| ID | Pergunta | Novidade |
+|:--|:--|:--|
+| CT03 | Que marcos do plano ainda não foram trabalhados? | fecha o ciclo |
+| **CT09** | Como as aulas do ciclo se distribuem por estado e por mês? | leitura de calendário |
+| **CT08** | O que está planejado para as próximas N aulas? | organiza a semana |
+| AL03 | Onde `parcial`/`nao` se repete para esta aluna? | leitura do percurso |
+| AL04 | Onde `ok` se repete, e qual a distribuição da turma na mesma coluna? | comparação sem ranking |
+| AL08 | Em que proporção há `nao_vi` ou vazio para esta aluna? | mede o instrumento |
+| EN01 | A aula seguiu o plano declarado? | aderência |
+| EN02 | O que o professor ajustou em tempo real, e em que aulas? | ajuste |
+| EN04 | A distribuição de volume planejada foi a executada? | execução |
+| EN05 | Que objetivos têm e não têm observação registrada? | cobertura |
+| OB01 | Quais colunas do PO foram observáveis, e quais concentraram `nao_vi`? | **o instrumento melhora** |
+| **TR09** | Quantas horas-aula cada sala recebeu no período? | depende da Tabela |
+| **TR10** | Quando a sala ficou ociosa no período letivo? | depende da Tabela |
+| **TR14** | Qual é a capacidade da sala vs. a ocupação real? | depende da Tabela |
+
+#### Avançado — decidir sobre o programa (x³) — 46 novas
+
+| Família | Perguntas |
+|:--|:--|
+| **CT** | CT04, CT05, CT06 |
+| **AL** | AL05, AL06, AL07, AL09, AL10 |
+| **EN** | EN03, EN06, EN07, EN08, EN09 |
+| **OB** | OB02, OB03, OB04, OB05, OB06, OB07, **OB08** |
+| **TR** | TR02, TR03, TR04, TR05, TR06, TR07, **TR08** |
+| **PE** | PE01, PE02, PE04, PE05 |
+| **PV** | PV02, PV03, PV04, PV05, PV06, **PV07** |
+| **GE** | GE01, GE02, GE03, GE04, GE05, GE06, **GE07**, **GE08**, **GE10** |
+
+#### Os totais, por plano
+
+Os planos **não são cumulativos**: o Intermediário não inclui as 7 do Básico, e o Avançado não inclui
+as 21 dos dois anteriores. O **Núcleo é o único conjunto comum** — entra em todos os planos e conta
+uma vez no acervo.
+
+| Plano | Novas do plano | Núcleo (transversal) | Total do plano |
+|:--|--:|--:|--:|
+| **Básico** | 7 | 9 | **16** |
+| **Intermediário** | 14 | 9 | **23** |
+| **Avançado** | 46 | 9 | **55** |
+| **Acervo completo** (todos os planos) | 67 | 9 | **76** |
+
+> **Por que o acervo é 76 e o Avançado é 55.** O Avançado sozinho entrega 46 + 9 = 55; o acervo
+> reúne as 67 perguntas dos três planos (7 + 14 + 46, sem sobreposição) mais as 9 do Núcleo = **76**.
+> A diferença entre 55 e 76 não é dívida: são as 21 perguntas dos degraus anteriores que o Avançado
+> não repete porque já pertencem a outro plano.
+
+> **Por que o Básico tem sete e não três.** Com três, a escola recebe «o que dou agora», «o que já
+> foi dado» e «o que aconteceu com esta aluna» — mas não consegue responder «ela faltou?», «como a
+> turma está organizada» nem «que aulas não foram dadas», que são perguntas de operação, não de
+> análise. Sete é o menor conjunto que faz o produto funcionar sem prometer análise que o plano não
+> vende.
 
 ### 5.6 O que a distribuição **não** pode fazer
 
@@ -652,8 +754,8 @@ fora da decisão:
 
 | Texto 2 | Este documento | Por quê |
 |:--|:--|:--|
-| «3 no Básico» | **o que sustenta a próxima aula** (hoje, 6 perguntas) | o conjunto é derivado do critério do §5.3, não do número |
-| «7 no Intermediário» | **o que sustenta o ciclo e o instrumento** (hoje, 15) | idem |
+| «3 no Básico» | **o que sustenta a próxima aula** (hoje, 7 perguntas) | o conjunto é derivado do critério do §5.3, não do número |
+| «7 no Intermediário» | **o que sustenta o ciclo e o instrumento** (hoje, 23 no total do plano) | idem |
 | «todas no Avançado» | **as disponíveis na data de vigência** (§5.2) | «todas» passou a ter definição verificável |
 
 Os números do texto 2 continuam citáveis como **ordem de grandeza** — e é só isso que eles são.
@@ -666,12 +768,12 @@ Os números do texto 2 continuam citáveis como **ordem de grandeza** — e é s
 |:--|:--|:--|
 | **ID estável e pseudônimo da aluna** | AL01–AL10, PE01–PE05 | **L2** |
 | **Leitor do lançamento** (hoje o `-dados.json` não tem rota) | AL03–AL08, EN01–EN05, OB01–OB07 | **L3** |
-| **Versão explícita do plano** | CT06, PV05, PV06 | **L5** (C3 decidida) |
+| **Versão explícita do plano** | CT06, PV05, PV06, OB09 | **L5** (C3 decidida) |
 | **Contexto** (isolado × combinação) | EN06–EN08, TR07 | **L10** |
 | **Intervenção docente e resposta observada** | EN09 | **L10** |
 | **Currículo versionado e objetivos do nível seguinte** | TR07 | **L10 + currículo** |
-| **Espaço físico e programação** | TR05, TR06, GE03 | [PLANO-TABELA-DE-ATIVIDADES.md](./PLANO-TABELA-DE-ATIVIDADES.md) |
-| **Leitor do `ia-registro`** | GE06 | **L7** |
+| **Espaço físico e programação** | TR05, TR06, TR09, TR10, TR12, TR13, TR14, GE03 | [PLANO-TABELA-DE-ATIVIDADES.md](./PLANO-TABELA-DE-ATIVIDADES.md) |
+| **Leitor do `ia-registro`** | GE06, GE10 | **L7** |
 
 **Fora de escopo declarado (18/10/2026).** Duas entidades que a primeira versão deste catálogo
 propôs **não entram** no sistema:
@@ -685,7 +787,7 @@ O exemplo do RAD que originou a família EX era **ilustração**, não requisito
 pergunta que uma escola faz, e a resposta do sistema a ela é «o que o registro dela mostra, lado a
 lado com as colegas, nas colunas que o PO cobre» — sem o resultado do exame, que ele não tem.
 
-Com isso, **nenhuma entidade nova** é exigida por este catálogo. Tudo o que as 55 perguntas pedem
+Com isso, **nenhuma entidade nova** é exigida por este catálogo. Tudo o que as 76 perguntas pedem
 ou já existe no modelo, ou é frente declarada na tabela acima (L2, L3, L5, L7, L10, o currículo e a
 Tabela de atividades).
 
@@ -698,16 +800,18 @@ O índice não responde às perguntas; ele as torna **baratas**. Para este catá
 
 | Necessidade | Faceta/entrada | Serve a |
 |:--|:--|:--|
-| Aulas com data, horário, marco, estado, prazo, âncora | `aulas[]` do índice por ciclo (vindo de `ciclos.json`) | CT01–CT04, TR03, PV05 |
-| Aluna com ID pseudônimo estável | `aluna:<slug>` e `alunas[]` no índice vivo | AL01–AL10, PE01–PE05 |
-| Presença por aula × aluna | `presenca[]` (presente/ausente) | AL02, PE05, TR04 |
-| Contagem de marcas por coluna × aluna × aula | `marcas[]` agregadas | AL03, AL04, AL08, OB01–OB03 |
+| Aulas com data, horário, marco, estado, prazo, âncora | `aulas[]` do índice por ciclo (vindo de `ciclos.json`) | CT01–CT04, CT07–CT09, TR03, PV05 |
+| Aluna com ID pseudônimo estável | `aluna:<slug>` e `alunas[]` no índice vivo | AL01–AL11, PE01–PE05 |
+| Presença por aula × aluna | `presenca[]` (presente/ausente) | AL02, PE05, TR04, TR14 |
+| Contagem de marcas por coluna × aluna × aula | `marcas[]` agregadas | AL03, AL04, AL08, OB01–OB03, OB08 |
 | Condições de contorno por aula | `condicoes[]` | EN01, OB06 |
 | Ajuste/surpresa: **presença e data**, nunca o texto | `ajustes[]`, `surpresas[]` | EN02, EN03, AL07 |
 | Nível da rubrica por critério | `rubrica[]` | OB05, EN05 |
-| Mudança de turma e curadoria | `turmas[]` com vigência e `substituidaPor` | AL10, TR02 |
-| Sequência de ciclos | `ciclos[]` ordenados + `sucessor` | CT05, CT06 |
-| Espaço e programação | `espacos[]`, `eventos[]`, retrato publicado | TR05, TR06, GE03 |
+| Mudança de turma e curadoria | `turmas[]` com vigência e `substituidaPor` | AL10, AL11, TR02 |
+| Sequência de ciclos | `ciclos[]` ordenados + `sucessor` | CT05, CT06, GE07, GE08, GE10 |
+| Espaço e programação | `espacos[]`, `eventos[]`, retrato publicado | TR05, TR06, TR09, TR10, TR12, TR13, TR14, GE03 |
+| Vínculo e autoria | `vinculos[]` com vigência + `autoria` por documento | TR11, TR12, TR13, CT10, OB09, PV07, PV08, PV09, GE09 |
+| Exportação do acervo inteiro | índice de acervo + as fontes (nunca só a consulta) | **capacidade do Núcleo** (§5.5) |
 
 **O que o índice NÃO guarda**, e é decisão: o **texto** de `ajustes`, `surpresas` e `relatorio`. O
 índice guarda **que houve**, **quando** e **em que aula**; o texto é lido do original autenticado.
@@ -773,6 +877,7 @@ Toda resposta obedece a este formato — sem exceção:
 | «Quem é a melhor aluna?» | ranking por mérito | distribuição e recorrência (AL04, AL09) |
 | «Quem é o melhor professor?» | juízo sobre pessoa | viabilidade do instrumento (OB01–OB07) e aderência declarada (EN01) |
 | «Por que ela saiu?» | causa não é dado, e a saída não é registrada | percurso até a última aparição (PE02); se a escola quiser explicar, a explicação é dela |
+| «Por que esta aula não foi dada?» | o motivo não é campo do lançamento, e causa não é dado | o **fato** de não ter sido dada (CT07); o motivo fica para quando a escola o declarar (`CT07b`) |
 | «Por que não passou no exame?» | a decisão é da banca, e o exame não está no sistema | o registro dela lado a lado com as colegas, nas colunas cobertas (AL04, OB02) |
 | «Que nota dar?» | o sistema não avalia | a régua da escola e o que foi registrado (OB05) |
 | «Qual o próximo ciclo?» | é decisão pedagógica | o que existe, o que foi herdado e o que ficou pendente (CT04, CT05) |
@@ -805,25 +910,30 @@ Toda resposta obedece a este formato — sem exceção:
 **Nem toda decisão em aberto bloqueia.** A lista abaixo separa as três coisas que estavam misturadas:
 o que já está decidido, o que não bloqueia nada, e o que **impede** a próxima etapa.
 
-### 11.1 O que já está decidido (18/10/2026)
+### 11.1 O que já está decidido (18–19/10/2026)
 
 | Decisão | Conteúdo |
 |:--|:--|
 | **C5a — «todas»** | as perguntas **disponíveis na data de vigência** do contrato; o que vier depois fica para renovação ou upgrade (§5.2) |
+| **C5b — a repartição por plano** | **decidida em 19/10/2026**: Básico 7 · Intermediário 14 · Avançado 46 · Núcleo 9 (§5.5) |
 | **A unidade da repartição** | é o **poder** (x · x² · x³), não a quantidade de consultas (§5.3, §5.4) |
+| **GE08, OB08, PV07 e GE10** | **Avançado** — decisão de 19/10/2026 (§0.1) |
+| **CT08 e TR14** | **Intermediário** — decisão de 19/10/2026 (§0.1) |
+| **CT07** | **Básico**, sem o motivo; `CT07b` fica fora até o campo existir (§0.1) |
 | **Exame externo e motivo de saída** | **fora de escopo** — não são entidades do sistema (§6) |
 | **O professor não é sujeito de medida** | **não existe família PR** (`PR01`–`PR03` recusadas). Contar, distribuir ou comparar por professor é recusa (§4.9.1) |
 | **O professor é vínculo, autoria e escopo** | filtro por professor, `vinculos[]` com vigência, `autoria` por documento — e as nove perguntas de `identificação` que disto dependem (§4.9.2, Anexo D.1) |
+| **A exportação do acervo** | é **capacidade do Núcleo Comum** — qualquer plano exporta tudo. O **onde** fica: Bastidores → Produção, seção «Acervo» (decisão de localização, não de desenho) |
 | **As três reformulações** | AL03, AL04 e OB01 são a redação do catálogo; «precisa de ajuda», «se destaca» e «professor de êxito» permanecem como recusa (§2) |
 
 ### 11.2 O que não bloqueia, e não pode ser respondido agora
 
-1. **C5b — a repartição por plano.** Depende do catálogo fechado (§4.9). Escrever «quais 6 e quais
-   15» antes disso é decidir por número o que é decisão por relevância (§5.3).
-   **Ordem correta: fechar a grade → ler as perguntas uma a uma → a distribuição cai.** Não é
-   bloqueio: é sequência.
-   - **Decisão pequena que sobra:** quando surgir pergunta fora da fotografia, a escola não vê,
-     vê com a marca «disponível no plano X», ou vê parcialmente? (recomendação: **vê**, §5.2)
+1. **A visibilidade de pergunta fora da fotografia.** Quando surgir pergunta que o contrato não
+   inclui, a escola (a) não vê, (b) vê com a marca «disponível no plano X», ou (c) vê parcialmente?
+   **Recomendação: (b)** — é honesto, e é o único caminho de upgrade que não depende de insistência
+   comercial (§5.2). Não bloqueia a implementação.
+2. **O lugar exato do botão de exportação** — decidido o *onde* (Bastidores → Produção, seção
+   «Acervo»); a disposição da tela é da implementação.
 
 ### 11.3 O que bloqueia de fato
 
@@ -839,13 +949,36 @@ o que já está decidido, o que não bloqueia nada, e o que **impede** a próxim
 
 ### 11.4 O que bloqueia a **grade**, não este documento
 
-1. **A leitura da grade (§4.9).** Duas decisões ainda mudam veredicto:
-   - `escola × comparação` depende de **comparação entre escolas** entrar ou não (hoje é o item 3);
-   - `espaço × 5 células` depende da Tabela de atividades, e não deste catálogo.
+**A grade fechou em 19/10/2026.** Restam **3 células em espera declarada** e **12 recusas** — nenhuma
+célula silenciosa:
 
-A terceira fechou em 18/10/2026: **`professor × 6 medidas de agregação` é recusa**, por decisão —
-não há família PR (§4.9.1). A sétima coluna, `identificação`, está ocupada por candidatas em todas as
-linhas (§4.9.2, Anexo D.1). Restam **13 dívidas e 12 recusas** — número honesto, não número final.
+1. `espaço × distribuição` e `espaço × mudança` dependem da Tabela de atividades;
+2. `escola × comparação` depende de **comparação entre escolas** entrar ou não (hoje é o item 3 de
+   §11.3);
+3. `professor × 6 medidas de agregação` é **recusa** por decisão — não há família PR (§4.9.1). A
+   sétima coluna, `identificação`, está ocupada pelas nove do Núcleo Comum (§4.9.2, Anexo D.1).
+
+---
+
+## 12. A ordem de implementação (19/10/2026)
+
+Com a tabela fechada, a sequência deixa de ser discussão e passa a ser consequência:
+
+| Ordem | O que | Por que primeiro | Depende de |
+|:--|:--|:--|:--|
+| **1** | **O Núcleo Comum** (9 + exportação) | são as únicas que não dependem de mais nada além de `vinculos[]` e `autoria` — que o [PLANO-INDICES.md](./PLANO-INDICES.md) §4.11 já especifica e o `git log` já dá | — |
+| **2** | **O Básico** (7) | `CT01`/`CT02` já têm dado em `ciclos.json`; `CT07` sai do mesmo `estado`; `AL01`/`AL02` dependem de `L2` e `L3` | `L2`, `L3` |
+| **3** | **O Intermediário** (14) | é o primeiro plano que a escola **compra** com valor percebido; e é onde a Tabela entra | a Tabela + `L3` |
+| **4** | **O Avançado** (46) | depende de tudo o que vem antes, e é onde a pressa custa mais caro | `L5`, `L10`, o currículo versionado |
+
+**A regra que não se deve quebrar.** Implementar o **Núcleo antes** de qualquer consulta analítica.
+Não é escolha de gosto: é o que prova que a escada comercial é real, e não uma tabela no papel. A
+primeira consulta que funciona de ponta a ponta é a que dá sentido a todas as outras.
+
+**A ordem dos planos, antes desta.** **Índices → Núcleo → Básico → Intermediário → Avançado**
+([PLANO-INDICES.md](./PLANO-INDICES.md) §11). Implementar as consultas antes dos índices seria
+construir 76 perguntas sobre uma base que varre o KV inteiro a cada pergunta — e cada consulta teria
+de ser reescrita quando os índices chegassem.
 
 ---
 
@@ -865,29 +998,36 @@ linhas (§4.9.2, Anexo D.1). Restam **13 dívidas e 12 recusas** — número hon
 Os IDs antigos **continuam válidos** e citáveis: este anexo é a ponte, não a substituição. Onde o
 planejamento diz «T01», este plano diz «AL01 (ex-T01)».
 
-## Anexo B — As 55 perguntas firmadas, por família e por plano
+## Anexo B — As 76 perguntas firmadas, por família e por plano
 
-Contagem **por entrada** (§5.5 é cumulativo: as do Básico também valem no Intermediário e no
-Avançado):
+Contagem **por entrada**. As colunas são as **novas de cada plano** — os planos não são cumulativos
+—, e o **Núcleo é transversal**: entra em todos e conta uma vez no acervo.
 
-| Família | Perguntas | Básico (novas) | Intermediário (novas) | Avançado |
-|:--|--:|--:|--:|--:|
-| CT — continuidade | 6 | 2 | 1 | 3 |
-| AL — percurso da aluna | 10 | 2 | 3 | 5 |
-| EN — ensino | 9 | 0 | 4 | 5 |
-| OB — instrumento | 7 | 0 | 1 | 6 |
-| TR — turma e organização | 7 | 1 | 0 | 6 |
-| PE — permanência | 4 | 0 | 0 | 4 |
-| PV — proveniência | 6 | 1 | 0 | 5 |
-| GE — gestão | 6 | 0 | 0 | 6 |
-| **Total** | **55** | **6** | **9** | **40** |
+| Família | Perguntas | Básico (novas) | Intermediário (novas) | Avançado (novas) | Núcleo | Total |
+|:--|--:|--:|--:|--:|--:|--:|
+| CT — continuidade | CT01–CT10 | 3 | 3 | 3 | 1 | **10** |
+| AL — percurso da aluna | AL01–AL11 | 2 | 3 | 5 | 1 | **11** |
+| EN — ensino | EN01–EN09 | 0 | 4 | 5 | 0 | **9** |
+| OB — instrumento | OB01–OB09 | 0 | 1 | 7 | 1 | **9** |
+| TR — turma e organização | TR01–TR14 | 1 | 3 | 7 | 3 | **14** |
+| PE — permanência | PE01, PE02, PE04, PE05 | 0 | 0 | 4 | 0 | **4** |
+| PV — proveniência | PV01–PV09 | 1 | 0 | 6 | 2 | **9** |
+| GE — gestão | GE01–GE10 | 0 | 0 | 9 | 1 | **10** |
+| **Total** | | **7** | **14** | **46** | **9** | **76** |
 
-**Conferência.** 6 + 9 + 40 = **55**. A soma por família fecha: CT 2+1+3 = 6, AL 2+3+5 = 10,
-EN 0+4+5 = 9, OB 0+1+6 = 7, TR 1+0+6 = 7, PE 4, PV 1+0+5 = 6, GE 6.
+**Conferência.** 7 + 14 + 46 = **67** novas; + 9 do Núcleo = **76**. A soma por família fecha:
+CT 3+3+3+1 = 10, AL 2+3+5+1 = 11, EN 0+4+5 = 9, OB 0+1+7+1 = 9, TR 1+3+7+3 = 14, PE 4,
+PV 1+0+6+2 = 9, GE 0+0+9+1 = 10. Total 76. As **9 do Núcleo** são as de `identificação` do Anexo D.1.
 
-**O que saiu, e desde quando.** A família **EX** (4 perguntas) e **PE03** foram retiradas em
-18/10/2026, com as entidades `resultado-externo` e `saida` (§6). O catálogo tinha 60; tem 55. Os
-números de versões anteriores não se somam a estes.
+**O que saiu, e desde quando.** A família **EX** (4 perguntas) e **PE03** foram **retiradas** em
+18/10/2026 (§6); as três de **PR** foram **recusadas** por fronteira (§4.9.1) e nunca entraram. O
+catálogo tinha **60**; ficou com **55** nessa data; com as **12 candidatas firmadas** em 19/10 e as
+**9 de identificação**, tem **76**. Os números de versões anteriores não se somam a estes.
+
+**Nota sobre os 71.** O resumo da decisão de 19/10 registou 71. A soma das listas — e a contagem da
+grade (§4.9) — dá 76. Não há cinco IDs repetidos: os cinco apontados (`TR11`, `TR12`, `TR13`,
+`CT10`, `PV08`) aparecem uma só vez, no Núcleo. A diferença, se a decisão comercial a exigir, é de
+**cinco IDs a retirar por nome**, não por inferência.
 
 ## Anexo C — Exemplo de resposta auditável (PE02)
 
@@ -920,44 +1060,45 @@ números de versões anteriores não se somam a estes.
 Esta resposta ilustra as três regras: a **medida** é mecânica, as **ausências** são separadas, e a
 **recusa** impede que o gráfico vire explicação.
 
-## Anexo D — As candidatas que a grade revelou
+## Anexo D — As 12 candidatas que a grade revelou (firmadas em 19/10/2026)
 
-Estas perguntas **não estão na contagem das 55** e não têm plano atribuído. Status: `proposta`.
-Existem porque o §4.9 mostrou células vazias por **dívida**, e não por recusa. Cada uma passa pelo
-teste do §5.3 antes de ser firmada — e nenhuma entra no produto sem a `recusa` escrita.
+Estas perguntas **não estavam na contagem das 55** e não tinham plano atribuído. **Status:
+`firmada` desde 19/10/2026** (§0.1) — todas entraram na distribuição do §5.5. Existem porque o §4.9
+mostrou células vazias por **dívida**, e não por recusa.
 
-| ID | Célula | Pergunta proposta | Classe | Nota |
-|:--|:--|:--|:--|:--|
-| **CT07** | aula × ausência | Quais aulas do ciclo **não foram dadas**, e qual o motivo declarado? | S | hoje só existe na granularidade do ciclo (CT02) |
-| **CT09** | ciclo × distribuição | Como as aulas do ciclo se **distribuem** por estado e por mês? | S | leitura de calendário, não de conteúdo |
-| **TR08** | turma × comparação | Como **duas turmas do mesmo nível** se organizaram de forma diferente (dias, duração, volume)? | C | compara **organização**, nunca resultado |
-| **TR09** | espaço × contagem | Quantas **horas-aula** cada sala recebeu no período? | C | depende da Tabela de atividades |
-| **TR10** | espaço × ausência | Quando a sala ficou **ociosa** no período letivo? | C | depende da Tabela de atividades |
-| **GE07** | escola × sequência | Qual a **linha do tempo** da escola: ciclos, entradas e saídas de professor, mudanças de PO? | C | é o índice de acervo virando narrativa |
-| **GE08** | escola × mudança | O que **mudou na escola** entre dois anos (professores, turmas, modalidades, PO)? | C | compara estrutura, não desempenho |
-| **OB08** | instrumento × mudança | O **PO mudou** entre ciclos? Que colunas entraram, saíram ou mudaram de nome? | S | fecha o ciclo de melhoria do método |
-| **PV07** | documento × sequência | Em que **ordem** os documentos de um ciclo foram criados, e por quem? | S | hoje PV03 diz a composição, não a ordem |
+| ID | Célula | Pergunta | Plano | Classe | Nota |
+|:--|:--|:--|:--|:--|:--|
+| **CT07** | aula × ausência | Quais aulas do ciclo **não foram dadas**? *(o motivo é `CT07b`, fora até o campo existir)* | Básico | S | hoje só existe na granularidade do ciclo (CT02) |
+| **CT08** | aula × sequência | O que está **planejado para as próximas N aulas**? | Intermediário | S | organiza a semana |
+| **CT09** | ciclo × distribuição | Como as aulas do ciclo se **distribuem** por estado e por mês? | Intermediário | S | leitura de calendário, não de conteúdo |
+| **TR08** | turma × comparação | Como **duas turmas do mesmo nível** se organizaram de forma diferente (dias, duração, volume)? | Avançado | C | compara **organização**, nunca resultado |
+| **TR09** | espaço × contagem | Quantas **horas-aula** cada sala recebeu no período? | Intermediário | C | depende da Tabela de atividades |
+| **TR10** | espaço × ausência | Quando a sala ficou **ociosa** no período letivo? | Intermediário | C | depende da Tabela de atividades |
+| **TR14** | espaço × comparação | Qual é a **capacidade da sala** vs. a **ocupação real**? | Intermediário | C | depende da Tabela de atividades |
+| **GE07** | escola × sequência | Qual a **linha do tempo** da escola: ciclos, entradas e saídas de professor, mudanças de PO? | Avançado | C | é o índice de acervo virando narrativa |
+| **GE08** | escola × mudança | O que **mudou na escola** entre dois anos (professores, turmas, modalidades, PO)? | Avançado | C | compara estrutura, não desempenho |
+| **GE10** | escola × contagem | Como evoluiu o **uso do sistema** por esta escola: quantos ciclos foram abertos, quantos lançamentos foram feitos, e em que período? | Avançado | C | depende do leitor do `ia-registro` (L7) |
+| **OB08** | instrumento × mudança | O **PO mudou** entre ciclos? Que colunas entraram, saíram ou mudaram de nome? | Avançado | S | fecha o ciclo de melhoria do método |
+| **PV07** | documento × sequência | Em que **ordem** os documentos de um ciclo foram criados, e por quem? | Avançado | S | hoje PV03 diz a composição, não a ordem |
 
-**As treze dívidas originais** (sem contar `identificação`) continuam como estavam: nove com
-candidata nesta tabela, quatro em espera. As nove de `identificação` são **acréscimo**, e não
-substituem nenhuma.
+**As doze candidatas cobrem doze entradas e dez células novas** — `CT08` cai em `aula × sequência` e
+`GE10` em `escola × contagem`, células que já estavam ocupadas. As outras dez abrem célula:
+`CT07`→aula×ausência, `CT09`→ciclo×distribuição, `TR08`→turma×comparação, `TR09`→espaço×contagem,
+`TR10`→espaço×ausência, `TR14`→espaço×comparação, `GE07`→escola×sequência, `GE08`→escola×mudança,
+`OB08`→instrumento×mudança, `PV07`→documento×sequência.
 
-**As quatro dívidas que ficam em espera, sem candidata.** `espaço × distribuição`,
-`espaço × mudança`, `espaço × comparação` e `escola × comparação`. As três de `espaço` dependem da
-Tabela de atividades ([PLANO-TABELA-DE-ATIVIDADES.md](./PLANO-TABELA-DE-ATIVIDADES.md)) — escrevê-las
-agora seria inventar o modelo do outro plano. `escola × comparação` depende da decisão §11.3/3.
+**As três células que ficam em espera, sem candidata.** `espaço × distribuição`, `espaço × mudança`
+e `escola × comparação`. As duas de `espaço` dependem da Tabela de atividades
+([PLANO-TABELA-DE-ATIVIDADES.md](./PLANO-TABELA-DE-ATIVIDADES.md)) — escrevê-las agora seria
+inventar o modelo do outro plano. `escola × comparação` depende da decisão §11.3/3.
 
-**As nove candidatas cobrem nove células** — uma cada: `CT07`→aula×ausência, `CT09`→ciclo×distribuição,
-`TR08`→turma×comparação, `TR09`→espaço×contagem, `TR10`→espaço×ausência, `GE07`→escola×sequência,
-`GE08`→escola×mudança, `OB08`→instrumento×mudança, `PV07`→documento×sequência. Nove + quatro = 13,
-que é o total de dívidas do §4.9.
-
-### D.1 As nove de `identificação` — vínculo, autoria e localização
+### D.1 As nove de `identificação` — o Núcleo Comum (vínculo, autoria e localização)
 
 Estas nasceram do §4.9.2 e ocupam a coluna que faltava na grade. Todas têm por sujeito **a outra
-entidade**; o professor entra como **atributo**. Nenhuma conta, distribui ou compara pessoas.
+entidade**; o professor entra como **atributo**. Nenhuma conta, distribui ou compara pessoas. São as
+**9 transversais do Núcleo Comum** (§5.5): aparecem em qualquer plano.
 
-| ID | Célula | Pergunta proposta | Classe | Nota |
+| ID | Célula | Pergunta | Classe | Nota |
 |:--|:--|:--|:--|:--|
 | **TR11** | turma × identificação | Qual é o **professor responsável** desta turma, e desde quando? | S | `turma.professor` + `vinculos[]` com vigência |
 | **AL11** | aluna × identificação | Quem é o **professor desta aluna** agora, e em que turmas ela está? | S | derivado de `alunas[].turmas` × `turma.professor` |
@@ -1014,8 +1155,10 @@ não como dívida da grade.
 | `recusada` | foi proposta e **recusada por fronteira** (`PR01`–`PR03`) — o ID também não se reaproveita | não |
 | `bloqueada` | existe, mas depende de frente não construída (L2, L10, Tabela) | sim, com nota |
 
-Hoje: **55 firmadas · 18 propostas · 5 retiradas · 3 recusadas**. Das 55 firmadas, **12** dependem de
-frente não construída (EN06–EN09 → L10; TR05–TR06 → Tabela de atividades; TR07 → currículo
-versionado; GE06 → leitor do `ia-registro`) e **14** só cruzam ciclos com `aluna:<slug>`
-(AL01–AL10, PE01, PE02, PE04, PE05) — dentro de um ciclo, o apelido basta.
+Hoje (19/10/2026): **76 firmadas · 0 propostas · 5 retiradas · 3 recusadas**. Das 76, dependem de
+frente não construída: **EN06–EN09** (L10); **TR05, TR06, TR09, TR10, TR12, TR13 e TR14** (Tabela de
+atividades); **TR07** (currículo versionado); **GE06 e GE10** (leitor do `ia-registro`, L7);
+**OB09, CT06, PV05 e PV06** (versão do plano, L5). E **14** só cruzam ciclos com `aluna:<slug>`
+(AL01–AL10, PE01, PE02, PE04, PE05) — dentro de um ciclo, o apelido basta. `CT07b` não é ID do
+catálogo: é a pergunta que espera o campo «motivo» existir no lançamento.
 
