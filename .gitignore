@@ -103,6 +103,12 @@ experimentos/*
 # declarado com o do motor e recusa relação que aponte para entidade ou chave inexistente.
 # É citada pela Etapa 1 e pelo REGISTRO — sem ela no clone, a etapa não é conferível.
 !experimentos/provar-declaracoes-do-indice.js
+# A PROVA DO GERADOR E DO VALIDADOR (20/10/2026, Etapa 2 do PLANO-INDICES.md): o que se mede
+# SOBRE o `check-indices.js` e que ele não afirma sozinho — o determinismo de ponta a ponta, a
+# reconstrução (apagar `indices/` não muda o gerado), o que o índice não guarda, o expurgo que
+# permanece, o recorte por ciclo contra o índice da escola e as quatro superfícies do gerador.
+# Sem ela no clone, «14 verificações, 0 falhas» não é conferível — é uma frase.
+!experimentos/provar-indices.js
 # A PROVA DOS ACORDEÕES (18/10/2026): as cinco secções da Produção recolhem, e recolhidas a
 # listagem mede a largura inteira. Ela é o que impede o acordeão de voltar a ser só a seta
 # das turmas — e é citada pelo nome no REGISTRO.

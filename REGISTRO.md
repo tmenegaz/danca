@@ -19881,3 +19881,91 @@ cabeçalho 40, produção 135, selo, tema 37/38, identidade visual 19.
 uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
 objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
 de quem testa; o fixture não a inventa.
+
+## 20/10/2026 — o índice passa a ser gerado, e o «passou» passa a ser medido
+
+**O que motivou.** A Etapa 1 deixou as **declarações** do índice escritas e provadas, mas nada
+gerava o índice: `indices/` não existia, e as 76 perguntas do `PLANO-PERGUNTAS` continuavam a
+depender de varredura. Sem gerador, as declarações descrevem um objeto que ninguém produz — e uma
+declaração que não governa nada é documentação, não é contrato. A Etapa 2 é o que fecha a
+distância entre o que se declarou e o que existe.
+
+**O que foi decidido.**
+
+- **Gerador determinístico, e o disco é a sua saída.** `tools/gerar-indices.js` constrói a partir
+  do `motor/nucleo/indices.js` — a derivação pura que já existia — e escreve **12 arquivos**: o
+  acervo, dez índices de escola e um recorte de ciclo. O gerador **não lê** `indices/`: apagar a
+  pasta e regerar dá o mesmo resultado (§8.2, teste de reconstrução).
+- **Mesma ordenação, mesma serialização.** `canonico()` e `semVolateis()` já existiam; o gerador
+  não inventa outra. `--check` compara fora `gerado_em` e `fonte.commit`, que são os dois únicos
+  campos voláteis.
+- **As 13 verificações entraram como estão, e uma 14ª foi acrescentada.** O §4.3 exige que o
+  `documentos[]` plano do índice da escola diga o mesmo que a `documentos[]` de cada ciclo, e
+  nenhuma das 13 media isso. A verificação **14 — «Cópias internas»** fecha essa lacuna.
+- **As contraprovas são 10, não 7 nem 9.** O plano dizia 7 em §11 e listava 9 em §9.2; a nona
+  afirma **duas** coisas independentes (`vinculo.de` obrigatório e `autoria.autor` declarado) e foi
+  desdobrada em `9a` e `9b`. Todas correm **em memória** — nenhuma toca o disco, e por isso
+  nenhuma precisa ser desfeita à mão antes do commit.
+- **O expurgo permanece, e o plano supunha outra coisa.** Só `wrangler.breu.jsonc` e
+  `wrangler.danca.jsonc` existem no HEAD; as outras **nove** escolas estão no índice com
+  `expurgada: true`, e o elo é o inventário de `escola/<slug>/indice.json`. É o comportamento que o
+  §9 ver. 12 manda — mas o plano supunha dez escolas vivas.
+- **O acervo não é a escola, e a verificação teve de saber disso.** O `acervo.json` guarda
+  `ciclos[].documentos` como **contagem** e a âncora **sem `caminho`**; o `caminho` só existe no
+  índice da escola. A verificação 2 e a contraprova 1 estavam escritas contra a suposição
+  contrária e reprovavam com razão.
+
+**Onde entrou.** `tools/gerar-indices.js` (novo) · `tools/check-indices.js` (novo) ·
+`indices/acervo.json`, `indices/escolas/*.json` (10), `indices/ciclos/sapo-bailarino/01-breu.json`
+(gerados) · `experimentos/provar-indices.js` (novo) · `.gitignore` (a prova entra na lista de
+exceções) · `experimentos/README.md` (a linha da prova nova; e a do `provar-indice-de-proveniencia`
+passa de 57 para 60 asserções, número que já era o medido) · `PLANO-INDICES.md` (§9.1: a verificação
+14; §9.2: as 10 contraprovas; §10.1: a coluna de etapa; §11: Etapa 2 cumprida) — esta entrada.
+
+**Motivo declarado — os congelados.** `tools/` está congelado (`CONGELAMENTO.md`). Entram nele
+**dois arquivos novos** — `gerar-indices.js` e `check-indices.js` — e **nenhum arquivo existente é
+alterado**. O que **não** muda: a fórmula de hash do `tools/hash-ciclo.sh`, a cobertura da âncora
+(o índice é derivado e fica **fora** do `.fipp`, §8.2), os validadores existentes
+(`validar-schema-ciclo.js`, `validar-po-ciclo.js`, `validar-plano-ciclo.js`,
+`validar-captura-ciclo.js`), as 17 regras de `REGRAS.md` e as 22 pétreas de `PROTOCOLO.md`. Os dois
+arquivos **não são chamados por nada** nesta etapa: nenhum script, nenhum hook, nenhum workflow. O
+comportamento do sistema, medido, é o mesmo de antes — e a bateria de provas o confirma. A
+**integração** (scripts de criação, `gerar-raiz`, `pre-commit`) é a Etapa 3, e virá em commit
+próprio, com a sua própria entrada neste arquivo.
+
+**Com o quê.** `node tools/gerar-indices.js` → **12 arquivo(s)** · `node tools/gerar-indices.js
+--check` → **ok, 12 arquivo(s) em dia**, e o mesmo resultado em duas execuções seguidas ·
+`node tools/check-indices.js` → **TUDO CERTO, 14 verificações, 0 falha** ·
+`node tools/check-indices.js --contraprovas` → **as 10 reprovam como deviam**, e a sétima
+(«apagar `indices/` e regenerar») passa, que é o que ela tem de fazer.
+
+Prova nova: `node experimentos/provar-indices.js` → **TUDO CERTO, 28 asserções, 0 falha**. Ela mede
+o que o validador não afirma sozinho: o determinismo de ponta a ponta; que todo arquivo gerado é
+JSON válido e termina em nova linha; que apagar `indices/` faz **só** as verificações 1 e 5
+acusarem — as que leem o arquivo — e deixa as **outras doze** passando, que é a prova de que a
+geração não o lê; que nenhum arquivo gerado tem `aluna`, `senha`, `sal`, `email`, `telefone`,
+`saude`, `observacoes` nem corpo de documento; que o expurgo permanece marcado e com o inventário
+no lugar; que o recorte por ciclo diz o mesmo que o índice da escola; e que as quatro superfícies do
+gerador respondem o prometido — inclusive os **códigos de saída** (`0` em dia, `2` para opção ou
+escola desconhecida), que é o que o CI vai ler na Etapa 5.
+
+Sem regressão: `provar-declaracoes-do-indice` **23** · `provar-indice-de-proveniencia` **60** ·
+`provar-indice-de-envelopes` **41** · `provar-escola-do-documento` **8 de 8**.
+
+Nenhuma âncora é regerada: o índice é derivado e fica fora do `.fipp`.
+
+**Referências.** `PLANO-INDICES.md` §5 (a geração), §5.1 (o gerador e as suas opções), §8.2 (por que
+o índice não entra na âncora), §9.1 (as 14 verificações), §9.2 (as 10 contraprovas), §11 (as etapas) ·
+`PLANO-PERGUNTAS-DA-PROVENIENCIA.md` §12 (a ordem: índices → Núcleo → Básico → Intermediário →
+Avançado) · `CONGELAMENTO.md` (`tools/`).
+
+**O que ainda não está feito.** (a) **O gerador não é chamado por nada.** `indices/` está versionado
+e em dia, mas atualizado **à mão**: nem o `pre-commit`, nem `criar-escola.sh`, nem `gerar-ciclo.sh`,
+nem `gerar-raiz.sh` o invocam. É a **Etapa 3**, e ela toca arquivos congelados que já existem —
+logo, exige motivo declarado, entrada própria e commit próprio. (b) **O índice não é servido**: não
+há `raiz/indices/acervo.json` nem `<pacote>/indices/publico.json`, e o Worker continua a construir o
+índice em memória (fase 4). A verificação 6 («Cópias») passa **por vacuidade** — não há cópia a
+comparar. (c) **`vinculos[]` e `autoria[]` continuam previstas**, não produzidas: é a dívida que o
+§4.11 nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam. (d) **A tabela de contagem do §9.2 dizia 7
+em §11 e 9 em §9.2**; ficou corrigida para 10 nesta entrada, mas vale saber que o erro estava no
+plano e não no código.

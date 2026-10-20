@@ -991,10 +991,14 @@ Decisão recomendada (D-I1):
 | 11 | Determinismo | duas execuções seguidas produzem o mesmo resultado |
 | 12 | Expurgo | uma escola expurgada some do índice (deve ficar com `expurgada: true`) |
 | 13 | **Sem eixo de professor** | o índice traz uma chave que **conta, soma ou ordena por `professor`** — `aulas_por_professor`, `total_por_professor`, `desempenho_*`, `ranking_*`. Faceta (`filtros.professor`), vínculo (`vinculos[]`) e autoria (`autoria[]`) são permitidos; agregação, não (§4.11) |
+| 14 | Cópias internas | o `documentos[]` plano do índice da escola diverge da `documentos[]` de um ciclo, ou o `aulas[]` plano diverge do que os ciclos declaram. **Acrescentada na Etapa 2:** o §4.3 exige essa igualdade e nenhuma das 13 a media |
 
 ### 9.2 Contraprovas obrigatórias
 
-Cada uma deve **reprovar** com a mensagem certa, e ser desfeita antes do commit:
+São **10** — as 9 abaixo, com a nona desdobrada em duas, porque ela afirma duas coisas
+independentes. Cada uma deve **reprovar** com a mensagem certa, e ser desfeita antes do commit.
+Todas estão implementadas em `node tools/check-indices.js --contraprovas`, que as executa **em
+memória** — nenhuma toca o disco, e por isso nenhuma precisa ser desfeita à mão:
 
 1. apagar um `.fipp` → verificação 3;
 2. alterar um caractere do `hash` no `.fipp` → verificação 3;
@@ -1004,7 +1008,8 @@ Cada uma deve **reprovar** com a mensagem certa, e ser desfeita antes do commit:
 6. remover uma escola do `acervo.json` sem removê-la do disco → verificação 1;
 7. apagar `indices/` e regenerar → deve passar (prova de reconstrução);
 8. acrescentar `"aulas_por_professor": { "tiago-menegaz": 12 }` a um índice → verificação 13;
-9. um `vinculos[]` com `de` nulo, ou uma `autoria` sem `autor` → verificação 9.
+9. um `vinculos[]` com `de` nulo, ou uma `autoria` sem `autor` → verificação 9 — **duas
+   contraprovas**: `9a` o `de` obrigatório, `9b` o `autor` declarado.
 
 ---
 
@@ -1012,15 +1017,17 @@ Cada uma deve **reprovar** com a mensagem certa, e ser desfeita antes do commit:
 
 ### 10.1 Criar
 
-| Arquivo | Papel |
-|:--|:--|
-| `indices/esquema/campos.json` | Dicionário mínimo de campos |
-| `indices/esquema/tipos.json` | Tipos de documento e padrões |
-| `indices/esquema/relacoes.json` | Mapa de relações |
-| `tools/gerar-indices.js` | Gerador determinístico |
-| `tools/check-indices.js` | Validador (ou `gerar-indices.js --check`, se ficar num só) |
-| `experimentos/provar-indices.js` | Provas de determinismo, privacidade e facetas |
-| `HANDOFF.md` (regenerado) | Estado para a próxima sessão |
+| Arquivo | Papel | Etapa |
+|:--|:--|:--|
+| `indices/esquema/campos.json` | Dicionário mínimo de campos | **1 — feito** |
+| `indices/esquema/tipos.json` | Tipos de documento e padrões | **1 — feito** |
+| `indices/esquema/relacoes.json` | Mapa de relações | **1 — feito** |
+| `experimentos/provar-declaracoes-do-indice.js` | Prova das declarações: todo arquivo de `professores/**` tem decisão (23 asserções) | **1 — feito** |
+| `tools/gerar-indices.js` | Gerador determinístico | **2 — feito** |
+| `tools/check-indices.js` | Validador — 14 verificações, 10 contraprovas | **2 — feito** |
+| `experimentos/provar-indices.js` | Provas de determinismo, reconstrução, privacidade, expurgo e das quatro superfícies do gerador (28 asserções) | **2 — feito** |
+| `indices/acervo.json`, `indices/escolas/*.json`, `indices/ciclos/**/*.json` | O índice gerado — 12 arquivos | **2 — feito** |
+| `HANDOFF.md` (regenerado) | Estado para a próxima sessão | a cada sessão |
 
 ### 10.2 Alterar
 
@@ -1085,12 +1092,42 @@ arquivo congelado tocado vai em **commit próprio**, com a entrada no `REGISTRO.
 - **O que fica para a Etapa 2.** O verificador é estático (lê o repositório, não gera índice); o
   `check-indices.js` continuará sendo ele na Etapa 2, com as 13 verificações do §9.1.
 
-### Etapa 2 — Gerador e validador
+### Etapa 2 — Gerador e validador — **CUMPRIDA (20/10/2026)**
 
 - `tools/gerar-indices.js` e `tools/check-indices.js`, com as **13** verificações de §9.
 - **Validação:** `node tools/gerar-indices.js && node tools/check-indices.js`; duas execuções
-  seguidas idênticas; as 7 contraprovas reprovam.
+  seguidas idênticas; as contraprovas do §9.2 reprovam (são **10**, não 7 — ver «como ficou»).
 - **Paragem:** se o resultado não for determinístico, corrigir antes de qualquer integração.
+
+**Como ficou, medido.** As **13** verificações do §9.1 entraram como estão, e a elas acrescentou-se
+uma **14ª — «Cópias internas»** — porque o §4.3 exige que o `documentos[]` plano do índice da escola
+diga o mesmo que a `documentos[]` de cada ciclo, e nenhuma das 13 media isso. As contraprovas são
+**10**, não 7: o §9.2 lista **9** (a contagem de 7 estava errada desde a redação do plano), e a nona
+— «vínculos» — foi desdobrada em duas, porque ela afirma duas coisas independentes (`vinculo.de`
+obrigatório e `autoria.autor` declarado). Todas as 10 reprovam como deviam.
+
+| O que | Número |
+|:--|:--|
+| Verificações | **14** — 13 do §9.1 + «Cópias internas» |
+| Contraprovas | **10** — as 9 do §9.2, com a de vínculos desdobrada |
+| Arquivos gerados | **12** — 1 acervo, 10 escolas, 1 ciclo |
+| Asserções da prova (`provar-indices.js`) | **28** |
+| Determinismo | duas gerações seguidas idênticas fora `gerado_em` e `fonte.commit`; `--check` verde depois de gerar |
+
+**Duas coisas que a Etapa 2 descobriu e que o plano não sabia:**
+
+1. **Nove das dez escolas estão expurgadas.** No HEAD só existem `wrangler.breu.jsonc` e
+   `wrangler.danca.jsonc`; as outras nove ficam no índice com `expurgada: true` e o inventário de
+   `escola/<slug>/indice.json` como elo. É o comportamento que o §9 ver. 12 manda — mas o plano
+   supunha dez escolas vivas, e não são dez.
+2. **O acervo não é a escola.** O `acervo.json` guarda `ciclos[].documentos` como **contagem** e a
+   âncora sem `caminho`; o `caminho` só existe no índice da escola. A verificação 2 e a contraprova
+   1 tiveram de ser escritas contra essa diferença, e não contra a suposição contrária.
+
+**O que fica para a Etapa 3.** O gerador ainda **não é chamado por nada** — nem pelo `pre-commit`,
+nem pelos scripts de criação. O `indices/` está versionado e em dia, mas é atualizado à mão. É a
+Etapa 3 que fecha isso, e ela toca `tools/`, que é congelado: exige motivo declarado, entrada no
+`REGISTRO.md` e commit próprio.
 
 ### Etapa 3 — Integração nos scripts
 
@@ -1146,7 +1183,8 @@ arquivo congelado tocado vai em **commit próprio**, com a entrada no `REGISTRO.
 
 1. Criar uma escola gera os índices de acervo, escola e ciclo **no mesmo commit**.
 2. Gerar um ciclo, reancorar, escrever PO/plano e expurgar atualizam o índice.
-3. `node tools/check-indices.js` passa; as 7 contraprovas reprovam.
+3. `node tools/check-indices.js` passa as **14** verificações; as **10** contraprovas do §9.2
+   reprovam como deviam.
 4. Apagar `indices/` e regenerar produz o mesmo conteúdo.
 5. O acervo **não** contém apelido, nome completo, senha, hash de senha, sal nem caminho de
    acompanhamento. O índice vivo contém `aluna:<slug>` e o apelido, porque é autenticado.

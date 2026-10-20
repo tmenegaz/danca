@@ -1,0 +1,63 @@
+{
+  "aulas": [],
+  "ciclos": [],
+  "documentos": [],
+  "escola": {
+    "ciclos": [],
+    "contagens": {
+      "anamneses": 0,
+      "aulas": 0,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
+      "planos": 0,
+      "pos": 0,
+      "registros": 0
+    },
+    "criada_em": "2026-10-19T12:31:36.783282+00:00",
+    "expurgada": true,
+    "habilitada": true,
+    "id": "escola:calando-teste-1",
+    "nome": "calando-teste-1",
+    "professor": "sapo-bailarino",
+    "professores": [
+      "sapo-bailarino"
+    ],
+    "registros": [],
+    "slug": "calando-teste-1"
+  },
+  "filtros": {
+    "anos": [],
+    "estados": [],
+    "professores": [],
+    "tipos": []
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "b2ac3bc"
+  },
+  "gerado_em": "2026-10-20T00:26",
+  "nao_indexado": [
+    {
+      "familia": "conteudo",
+      "motivo": "o índice guarda metadados; o corpo dos documentos não se copia"
+    },
+    {
+      "familia": "marcas",
+      "motivo": "vivem no lançamento da aula, que é cifrado no cofre — ainda sem leitor"
+    },
+    {
+      "familia": "presenca",
+      "motivo": "idem: o lançamento não tem leitor, e um zero aqui seria mentira"
+    },
+    {
+      "familia": "alunas-no-acervo",
+      "motivo": "dado de menor: o apelido só aparece no índice da própria escola"
+    },
+    {
+      "familia": "senhas",
+      "motivo": "nunca — nem hash, nem sal"
+    }
+  ],
+  "registros": [],
+  "versao": 1
+}

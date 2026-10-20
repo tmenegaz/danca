@@ -1,0 +1,441 @@
+{
+  "ciclos": [
+    {
+      "ancora": {
+        "hash": "5a4fc4f5d57d7a8479c982725da30444248c65f884f24cc2a7aea9c022e7aea2",
+        "id": "ciclo-01-breu",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "breu",
+      "estado": "ancorado",
+      "id": "ciclo:sapo-bailarino/01/breu",
+      "numero": "01",
+      "professor": "sapo-bailarino",
+      "sem_ancora": false
+    }
+  ],
+  "escolas": [
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-13T11:19:19.854587+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:barra",
+      "nome": "barra",
+      "professor": "leticia",
+      "professores": [
+        "leticia"
+      ],
+      "registros": [],
+      "slug": "barra"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-19T16:48:13.723848+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:batata",
+      "nome": "batata",
+      "professor": "tiago-menegaz",
+      "professores": [
+        "tiago-menegaz"
+      ],
+      "registros": [],
+      "slug": "batata"
+    },
+    {
+      "ciclos": [
+        "ciclo:sapo-bailarino/01/breu"
+      ],
+      "contagens": {
+        "anamneses": 2,
+        "aulas": 0,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
+        "planos": 0,
+        "pos": 0,
+        "registros": 2
+      },
+      "criada_em": "2026-10-19T23:41:57.342597+00:00",
+      "expurgada": false,
+      "habilitada": true,
+      "id": "escola:breu",
+      "nome": "breu",
+      "professor": "sapo-bailarino",
+      "professores": [
+        "sapo-bailarino"
+      ],
+      "registros": [
+        "anamnese:anamnese-20261019-2051",
+        "anamnese:anamnese-20261019-2053"
+      ],
+      "slug": "breu"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-19T12:31:36.783282+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:calando-teste-1",
+      "nome": "calando-teste-1",
+      "professor": "sapo-bailarino",
+      "professores": [
+        "sapo-bailarino"
+      ],
+      "registros": [],
+      "slug": "calando-teste-1"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-19T18:18:57.289485+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:calango",
+      "nome": "calango",
+      "professor": "sapo-bailarino",
+      "professores": [
+        "sapo-bailarino"
+      ],
+      "registros": [],
+      "slug": "calango"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": null,
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:diaghilev2",
+      "nome": "diaghilev2",
+      "professor": "fokini2",
+      "professores": [
+        "fokini2"
+      ],
+      "registros": [],
+      "slug": "diaghilev2"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-15T18:13:45.796290+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:fita",
+      "nome": "fita",
+      "professor": "tiago-menegaz",
+      "professores": [
+        "tiago-menegaz"
+      ],
+      "registros": [],
+      "slug": "fita"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": null,
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:maria",
+      "nome": "maria",
+      "professor": "tiago",
+      "professores": [
+        "tiago"
+      ],
+      "registros": [],
+      "slug": "maria"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-15T17:39:44.721678+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:ponta",
+      "nome": "ponta",
+      "professor": "tiago",
+      "professores": [
+        "tiago"
+      ],
+      "registros": [],
+      "slug": "ponta"
+    },
+    {
+      "ciclos": [],
+      "contagens": {
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
+      },
+      "criada_em": "2026-10-17T11:09:25.774403+00:00",
+      "expurgada": true,
+      "habilitada": true,
+      "id": "escola:valse",
+      "nome": "valse",
+      "professor": "tiago-menegaz",
+      "professores": [
+        "tiago-menegaz"
+      ],
+      "registros": [],
+      "slug": "valse"
+    }
+  ],
+  "filtros": {
+    "anos": [
+      {
+        "contagem": 2,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
+    "escolas": [
+      {
+        "contagem": 1,
+        "rotulo": "barra",
+        "valor": "barra"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "batata",
+        "valor": "batata"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "breu",
+        "valor": "breu"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "calando-teste-1",
+        "valor": "calando-teste-1"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "calango",
+        "valor": "calango"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "diaghilev2",
+        "valor": "diaghilev2"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "fita",
+        "valor": "fita"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "maria",
+        "valor": "maria"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "ponta",
+        "valor": "ponta"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "valse",
+        "valor": "valse"
+      }
+    ],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "rotulo": "fokini2",
+        "valor": "fokini2"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Letícia",
+        "valor": "leticia"
+      },
+      {
+        "contagem": 3,
+        "rotulo": "Sapo Bailarino",
+        "valor": "sapo-bailarino"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "tiago",
+        "valor": "tiago"
+      },
+      {
+        "contagem": 3,
+        "rotulo": "Tiago Menegaz",
+        "valor": "tiago-menegaz"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 2,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "b2ac3bc"
+  },
+  "gerado_em": "2026-10-20T00:26",
+  "nao_indexado": [
+    {
+      "familia": "conteudo",
+      "motivo": "o índice guarda metadados; o corpo dos documentos não se copia"
+    },
+    {
+      "familia": "marcas",
+      "motivo": "vivem no lançamento da aula, que é cifrado no cofre — ainda sem leitor"
+    },
+    {
+      "familia": "presenca",
+      "motivo": "idem: o lançamento não tem leitor, e um zero aqui seria mentira"
+    },
+    {
+      "familia": "alunas-no-acervo",
+      "motivo": "dado de menor: o apelido só aparece no índice da própria escola"
+    },
+    {
+      "familia": "senhas",
+      "motivo": "nunca — nem hash, nem sal"
+    }
+  ],
+  "professores": [
+    {
+      "ciclos": [],
+      "escolas": [
+        "diaghilev2"
+      ],
+      "id": "professor:fokini2",
+      "nome": null,
+      "slug": "fokini2"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "barra"
+      ],
+      "id": "professor:leticia",
+      "nome": "Letícia",
+      "slug": "leticia"
+    },
+    {
+      "ciclos": [
+        "ciclo:sapo-bailarino/01/breu"
+      ],
+      "escolas": [
+        "breu",
+        "calando-teste-1",
+        "calango"
+      ],
+      "id": "professor:sapo-bailarino",
+      "nome": "Sapo Bailarino",
+      "slug": "sapo-bailarino"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "maria",
+        "ponta"
+      ],
+      "id": "professor:tiago",
+      "nome": null,
+      "slug": "tiago"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata",
+        "fita",
+        "valse"
+      ],
+      "id": "professor:tiago-menegaz",
+      "nome": "Tiago Menegaz",
+      "slug": "tiago-menegaz"
+    }
+  ],
+  "versao": 1
+}

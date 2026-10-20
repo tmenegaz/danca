@@ -1,0 +1,52 @@
+{
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-19",
+    "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
+    "cobertura": [
+      "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
+      "professores/sapo-bailarino/ciclos/ciclo-01.conf"
+    ],
+    "hash": "5a4fc4f5d57d7a8479c982725da30444248c65f884f24cc2a7aea9c022e7aea2",
+    "hash_conteudo": "094af3f062772acff08226e89b76864ea22f4d1a414167bbc1ee24d1a9e46b82",
+    "id": "ciclo-01-breu",
+    "lida": true,
+    "parent_hash": ""
+  },
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:ancora:professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
+    "documento:manifesto:professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
+    "documento:schema:professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "breu",
+  "estado": "ancorado",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "b2ac3bc"
+  },
+  "gerado_em": "2026-10-20T00:26",
+  "id": "ciclo:sapo-bailarino/01/breu",
+  "professor": "sapo-bailarino",
+  "versao": 1
+}
