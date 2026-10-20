@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T08:49:04-0300`
-Commit atual: `f3189ea` — fix(schema): o plano da aula anterior é a mesma classe do actual, e passa a ter decisão
+Gerado em: `2026-10-20T09:01:20-0300`
+Commit atual: `f886ddc` — fix(tools): a publicação é montada sempre, e não só no ramo do --deploy
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,7 +46,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 4 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,6 +64,9 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+f886ddc fix(tools): a publicação é montada sempre, e não só no ramo do --deploy
+9a6b504 chore(estrutura): expurgar a escola calango
+02f80de docs(registro): o HANDOFF cita a decisão do plano da aula anterior
 f3189ea fix(schema): o plano da aula anterior é a mesma classe do actual, e passa a ter decisão
 513549b chore(entrega): gerar o pacote de sapo-bailarino/01/calango-bale-nivel-1-teste-1
 19e6814 docs(registro): o HANDOFF cita a curadoria na ponte de produção
@@ -80,30 +84,11 @@ c01324f feat(ciclo): o «Guardar» do PO cifra ciclo-01-calango-bale-nivel-1-tes
 d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md
 2e6bec8 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-notacao.md
 483eadd feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-dados.json
-0390ad3 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md
-936236d feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md
-ca622fc feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-referencias.md
 ```
 
 ## Por professor
 
-### sapo-bailarino — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): calango, calango-bale-nivel-1-teste-1, calango-bale-nivel-2-teste-1, calango-bale-nivel-3-teste-1
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| calango | (sem PO) | — | — |
-| calango | ciclo-01-calango-bale-nivel-1-teste-1-po.md | Input_PO_Aguardando | 1 |
-| calango-bale-nivel-2-teste-1 | (sem PO) | — | — |
-| calango-bale-nivel-3-teste-1 | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| calango | ciclo-01-calango.fipp | `f167c9c85478` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ecc946c1a5d6` | (vazio) | Input_PO_Aguardando |
-| calango-bale-nivel-2-teste-1 | ciclo-01-calango-bale-nivel-2-teste-1.fipp | `fb64bf9965c2` | (vazio) | — |
-| calango-bale-nivel-3-teste-1 | ciclo-01-calango-bale-nivel-3-teste-1.fipp | `c572e800094a` | (vazio) | — |
+### sapo-bailarino — 0 ciclo(s)
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -154,74 +139,67 @@ ca622fc feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o hook recusava todo commit enquanto uma turma não tivesse PO
+## 20/10/2026 — a escola não se criava: a publicação era montada só no ramo do `--deploy`
 
-**O que motivou.** Um commit que tocasse `professores/sapo-bailarino/ciclos/ciclo-01-*` era
-impossível. O hook do pré-commit gera **todas** as variantes daquele ciclo, e o `calango` estava com
-três turmas planejadas e o PO de uma só: a geração da segunda morria em
+**O que motivou.** O workflow `criar-escola` morreu no passo do motor:
 
 ```
-erro: nenhuma 'aula-*' de DOCS tem fonte em disco — não há volume para a Regra 9.
+✘ [ERROR] The directory specified by the "assets.directory" field in your configuration
+  file does not exist: /home/runner/work/danca/danca/publicacao/batata
 ```
 
-O gerador está CERTO — ele recusa com a frase que diz o que falta, e a recusa já estava documentada
-no próprio `gerar-ciclo.sh` («medido em 18/10/2026, com `DOCS="plano"` e sem `aula-01` em disco»).
-Quem estava errado era o hook: tomava uma **recusa de estado** por **falha de conteúdo**. O caminho
-que sobrava era `--no-verify`, que salta também a validação da âncora — o pior remédio possível.
+A escola `batata` ficou **meio criada**: o scaffold corriu, o `wrangler.batata.jsonc` foi escrito a
+apontar `publicacao/batata`, e o commit — que é o último passo — nunca aconteceu. Repositório limpo,
+escola inexistente, e nenhum sítio a dizer isso.
 
-**O que foi decidido.** O hook passa a saltar a variante que declara `DOCS` **sem nenhum `aula-*`**,
-com a mesma forma do salto que já existia para o ciclo-zero (`DOCS` vazio). O critério é o do
-gerador, e não um segundo: `DOCS` sem `aula-*` **é** «não há aula com fonte». Um `DOCS` **com** aula e
-sem volume continua a falhar — isso é defeito de conteúdo e tem de aparecer.
+**A causa.** Ontem (algumas horas antes) a montagem da publicação entrou em
+`tools/criar-escola.sh` **dentro do `if [ "$DEPLOY" = 1 ]`**. O `criar-escola.yml` chama o script
+**sem** `--deploy` — o deploy é um passo separado, logo a seguir, na mesma job e no mesmo workspace.
+A montagem vivia num ramo por onde o CI não passa. O `--deploy` local funcionava; o caminho da
+página `danca`, que é o que a pesquisadora usa, nunca funcionou.
 
-**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`.
+**Por que a prova não apanhou.** A secção D do `provar-publicacao-da-escola` media o
+`gerar-ciclo.yml` e o `provisionar-escola.js` — os dois sítios que eu tinha tocado — e o
+`criar-escola.sh` só no ramo do `--deploy`, que era precisamente onde estava o erro. **Media o que
+eu tinha escrito, não o que corre.** O workflow que falhou não estava em nenhuma asserção.
 
-- `tools/hooks/pre-commit` — um `case` de sete linhas, ao lado do salto do ciclo-zero, com o porquê
-  em comentário.
+**O que foi decidido.**
 
-**O que NÃO muda:** quais variantes são geradas (as que têm aula), a validação da âncora, a da
-identidade visual, a do volume (Regra 9) e a do passado lançado. Nada é saltado que antes fosse
-verificado — o que sai é um passo que **falhava sempre**, e por um motivo que não é defeito.
+- **A publicação é produto da escola existir, não de se fazer deploy.** O script monta-a em passo
+  próprio (6.1), sempre, logo depois de escrever a config que a aponta. O ramo do `--deploy` deixou
+  de montar: duas montagens seriam uma a mais para alguém apagar a primeira sem dar por isso.
+- **A dependência passa a estar escrita no YAML.** O `criar-escola.yml` ganhou o passo «Montar a
+  publicação da escola» antes do deploy. Um passo que usa uma pasta não pode depender de um efeito
+  lateral de outro passo — foi exactamente essa invisibilidade que produziu o erro.
+- **A prova deixou de fixar uma escola.** Media `wrangler.calango.jsonc` a dedo; o `calango` foi
+  expurgado horas depois e a prova passou a **estourar** com `ENOENT` em vez de medir. Agora
+  percorre as configs que houver e **declara** quando não há nenhuma — «o repositório não tem
+  escola» é um estado, não uma falha da regra.
+- **O `wrangler deploy` é procurado como COMANDO**, não como menção. A frase aparece num comentário
+  do cabeçalho do workflow, e um `indexOf` dela dava a posição do comentário: a asserção passava com
+  o deploy a correr **antes** da montagem.
 
-**Onde entrou.** `tools/hooks/pre-commit` — o teste `case " $docs_do_ciclo " in *" aula-"*)`.
+**Onde entrou.**
 
-**Com o quê.** Medido no commit seguinte: com o `calango` no estado real (plano das três, PO de uma),
-o hook passa a dizer «declara DOCS="plano" e ainda não tem aula — nada a gerar (plano sem PO)» para
-as duas, e gera e valida a primeira (`OK, 24 verificações`). `bash -n tools/hooks/pre-commit` sem
-erro.
+- `tools/criar-escola.sh` — passo 6.1 (monta sempre); o ramo do `--deploy` deixa de montar.
+- `.github/workflows/criar-escola.yml` — passo «Montar a publicação da escola», antes do motor.
+- `experimentos/provar-publicacao-da-escola.js` — **26 → 27 asserções**: a montagem fora do ramo do
+  deploy, o script a montar sempre, e o `criar-escola.yml` a montar antes do deploy.
 
-**O que ainda não está feito.** O hook continua a gerar **todas** as variantes quando o commit cita o
-manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
-classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
-Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
+**Com o quê.** `node experimentos/provar-publicacao-da-escola.js` → **27 asserções**. Controlo
+negativo: contra o `criar-escola.sh` e o `criar-escola.yml` de `HEAD` dão **3 falhas** — as três que
+descrevem o defeito. E a simulação do CI foi feita à parte, numa cópia do repositório: o script
+corrido **sem `--deploy`** (como o workflow o chama) deixa `publicacao/batata/` montada com
+`index.html`, `sistema.html`, `assets/` e `plano-observacao/`, e o índice diz «Ainda não há ciclo
+gerado» — que é a verdade de uma escola recém-criada.
 
-**Correção de 20/10/2026 (mesmo dia) — a ponte deitava fora a curadoria.** A entrada acima diz que
-o recorte «resolve-se no servidor». Resolvia no ROTEADOR, não na ponte: o `montarPorta` recebia
-`lerCuradorias` e não o punha no objecto do `criarRotas`. Medido no Worker depois do deploy —
-`?plano=plano-20261020-0739` respondia `turma: Balé Nível 1 — Teste 1` e `sujeitos: []`. O sintoma
-era mudo e plausível (com curadoria ausente a regra conclui, correctamente, que ninguém está
-atribuído), e por isso passou: a prova chamava `criarRotas` **de fora**, com a função já nas mãos, e
-media as pontas em vez da ligação. A prova ganhou a secção **E**, que monta a **ponte verdadeira**
-(`montarPorta`) com uma `lerCuradorias` que conta as chamadas: **25 → 27 asserções**, e o controlo
-negativo — sem o repasse — dá **2 falhas**.
-
-**Correção de 20/10/2026 (mesmo dia) — o plano da aula ANTERIOR ficou sem tipo.** O primeiro ciclo
-regerado depois do índice de turmas trouxe `plano-aula-01-anterior.json` — o **estado de que o
-actual veio**, que o gerador guarda desde sempre ao lado do plano da aula (só a partir da 2ª
-geração). A regra `conteudo-do-pacote` admitia `plano-aula-NN.json` e não a variante `-anterior`, e
-a verificação 8 passou a acusar **um arquivo sem decisão**. A admissão entrou na mesma regra — é a
-mesma classe, uma cópia de conteúdo dentro do pacote —, e a prova §13 do `provar-indices` fixa que o
-anterior e o actual têm a **mesma** decisão: **54 → 55 asserções**, e o controlo negativo (sem a
-admissão) dá **3 falhas**.
+**O que ainda não está feito.** A escola `batata` **não foi criada**: a execução falhou antes do
+commit, e o repositório está limpo — basta redisparar o workflow. E fica uma lição que não é código:
+**três sítios fazem deploy** (o `gerar-ciclo.yml`, o `criar-escola.yml` e o `criar-escola.sh
+--deploy`), e eu corrigi dois. A prova agora cobre os três; enquanto forem três, a lista tem de ser
+percorrida por inteiro em cada mudança.
 
 ## O que está pendente
-
-## 20/10/2026 — a aula derivada volta a ser legível: o mapa de secções e a tabela que é o campo
-
-O pacote gerado no `pre-commit` foi **removido** do disco: quem o
-versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
-geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
-quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.
 
 ## 20/10/2026 — o primeiro pacote no repositório expôs o vocabulário do acervo: catorze arquivos sem decisão
 
@@ -264,6 +242,11 @@ O hook continua a gerar **todas** as variantes quando o commit cita o
 manifesto base ou o pacote-zero — e não só a que o commit toca. É conservador, e é o que faz esta
 classe de defeito aparecer; mas é também o que torna o commit lento numa escola com muitas turmas.
 Ficou como está: preferi o custo à possibilidade de um pacote publicado não ser o que o commit diz.
+
+## 20/10/2026 — a escola não se criava: a publicação era montada só no ramo do `--deploy`
+
+A escola `batata` **não foi criada**: a execução falhou antes do
+commit, e o repositório está limpo — basta redisparar o workflow. E fica uma lição que não é código:
 
 ## Pendências anteriores (índice)
 
@@ -504,8 +487,7 @@ Ficou como está: preferi o custo à possibilidade de um pacote publicado não s
 - **20/10/2026** — o Worker da escola passa a servir o pacote da TURMA, não o… → `REGISTRO.md` L20067
 - **20/10/2026** — o expurgo da `breu` foi completo, e o índice ficou a… → `REGISTRO.md` L20102
 - **20/10/2026** — o PO da `batata` não gerava o ciclo: a declaração da… → `REGISTRO.md` L20193
-- PO de **sapo-bailarino · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **20/10/2026** — a aula derivada volta a ser legível: o mapa de secções e a… → `REGISTRO.md` L20252
 
 ## Documentos-chave (para leitura)
 
