@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T09:01:20-0300`
-Commit atual: `f886ddc` — fix(tools): a publicação é montada sempre, e não só no ramo do --deploy
+Gerado em: `2026-10-20T09:03:37-0300`
+Commit atual: `2d37475` — fix(experimentos): o repositório sem ciclo expõe duas provas desactualizadas
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -64,6 +64,8 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+2d37475 fix(experimentos): o repositório sem ciclo expõe duas provas desactualizadas
+c31bed9 docs(registro): o HANDOFF cita a montagem da publicação fora do ramo do deploy
 f886ddc fix(tools): a publicação é montada sempre, e não só no ramo do --deploy
 9a6b504 chore(estrutura): expurgar a escola calango
 02f80de docs(registro): o HANDOFF cita a decisão do plano da aula anterior
@@ -82,8 +84,6 @@ cba28ae chore(estrutura): reancorar a cadeia das fontes alteradas
 81979f8 feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 c01324f feat(ciclo): o «Guardar» do PO cifra ciclo-01-calango-bale-nivel-1-teste-1-dados.cifrado.json
 d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md
-2e6bec8 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-notacao.md
-483eadd feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-teste-1-dados.json
 ```
 
 ## Por professor
@@ -139,77 +139,37 @@ d1ee4c5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-calango-bale-nivel-1-te
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — a escola não se criava: a publicação era montada só no ramo do `--deploy`
+## 20/10/2026 — o repositório sem ciclo expôs duas provas desactualizadas
 
-**O que motivou.** O workflow `criar-escola` morreu no passo do motor:
+**O que motivou.** O expurgo do `calango` deixou o repositório **sem ciclo nenhum** — só os cinco
+schemas, que são o modelo. É um estado que o sistema já prevê, e as provas aprenderam a declará-lo
+em vez de falharem. Duas não estavam à altura:
 
-```
-✘ [ERROR] The directory specified by the "assets.directory" field in your configuration
-  file does not exist: /home/runner/work/danca/danca/publicacao/batata
-```
+1. **`provar-declaracoes-do-indice` §5 acusava a declaração de mentir.** Exigia que, sem ciclo,
+   faltassem apenas `ancora, manifesto, pacote`. A lista ficou incompleta quando a harmonização, a
+   notação, o glossário e as referências entraram no vocabulário com `latente: false`: sem ciclo
+   eles não têm instância, exactamente como a âncora. A asserção reprovava por estar
+   **desactualizada**, não por a declaração estar errada — o pior tipo de falha, porque manda
+   procurar no sítio errado. Passa a exigir o conjunto inteiro do que **só um ciclo produz**.
+2. **`provar-publicacao-da-escola` fixava uma escola.** Media `wrangler.calango.jsonc` a dedo, e o
+   `calango` foi expurgado: a prova passou a **estourar** com `ENOENT` em vez de medir (ver a
+   entrada acima, onde a mesma prova já tinha sido corrigida por outro motivo). Agora percorre as
+   configs que houver e **declara** quando não há nenhuma.
 
-A escola `batata` ficou **meio criada**: o scaffold corriu, o `wrangler.batata.jsonc` foi escrito a
-apontar `publicacao/batata`, e o commit — que é o último passo — nunca aconteceu. Repositório limpo,
-escola inexistente, e nenhum sítio a dizer isso.
+**Onde entrou.** `experimentos/provar-declaracoes-do-indice.js` (§5, com a razão em comentário) e
+`experimentos/provar-publicacao-da-escola.js` (a secção D, genérica).
 
-**A causa.** Ontem (algumas horas antes) a montagem da publicação entrou em
-`tools/criar-escola.sh` **dentro do `if [ "$DEPLOY" = 1 ]`**. O `criar-escola.yml` chama o script
-**sem** `--deploy` — o deploy é um passo separado, logo a seguir, na mesma job e no mesmo workspace.
-A montagem vivia num ramo por onde o CI não passa. O `--deploy` local funcionava; o caminho da
-página `danca`, que é o que a pesquisadora usa, nunca funcionou.
+**Com o quê.** `node experimentos/provar-declaracoes-do-indice.js` → **24 asserções**;
+`node experimentos/provar-publicacao-da-escola.js` → **27**; `node tools/check-indices.js` → **14 de
+14**, com **7 contraprovas** a reprovar e **2 declaradas sem dado** (não há `.fipp` nem pacote para
+lhe mexer). Os `indices/` foram regerados: um órfão removido, `indices/ciclos/sapo-bailarino/01-
+calango.json`.
 
-**Por que a prova não apanhou.** A secção D do `provar-publicacao-da-escola` media o
-`gerar-ciclo.yml` e o `provisionar-escola.js` — os dois sítios que eu tinha tocado — e o
-`criar-escola.sh` só no ramo do `--deploy`, que era precisamente onde estava o erro. **Media o que
-eu tinha escrito, não o que corre.** O workflow que falhou não estava em nenhuma asserção.
-
-**O que foi decidido.**
-
-- **A publicação é produto da escola existir, não de se fazer deploy.** O script monta-a em passo
-  próprio (6.1), sempre, logo depois de escrever a config que a aponta. O ramo do `--deploy` deixou
-  de montar: duas montagens seriam uma a mais para alguém apagar a primeira sem dar por isso.
-- **A dependência passa a estar escrita no YAML.** O `criar-escola.yml` ganhou o passo «Montar a
-  publicação da escola» antes do deploy. Um passo que usa uma pasta não pode depender de um efeito
-  lateral de outro passo — foi exactamente essa invisibilidade que produziu o erro.
-- **A prova deixou de fixar uma escola.** Media `wrangler.calango.jsonc` a dedo; o `calango` foi
-  expurgado horas depois e a prova passou a **estourar** com `ENOENT` em vez de medir. Agora
-  percorre as configs que houver e **declara** quando não há nenhuma — «o repositório não tem
-  escola» é um estado, não uma falha da regra.
-- **O `wrangler deploy` é procurado como COMANDO**, não como menção. A frase aparece num comentário
-  do cabeçalho do workflow, e um `indexOf` dela dava a posição do comentário: a asserção passava com
-  o deploy a correr **antes** da montagem.
-
-**Onde entrou.**
-
-- `tools/criar-escola.sh` — passo 6.1 (monta sempre); o ramo do `--deploy` deixa de montar.
-- `.github/workflows/criar-escola.yml` — passo «Montar a publicação da escola», antes do motor.
-- `experimentos/provar-publicacao-da-escola.js` — **26 → 27 asserções**: a montagem fora do ramo do
-  deploy, o script a montar sempre, e o `criar-escola.yml` a montar antes do deploy.
-
-**Com o quê.** `node experimentos/provar-publicacao-da-escola.js` → **27 asserções**. Controlo
-negativo: contra o `criar-escola.sh` e o `criar-escola.yml` de `HEAD` dão **3 falhas** — as três que
-descrevem o defeito. E a simulação do CI foi feita à parte, numa cópia do repositório: o script
-corrido **sem `--deploy`** (como o workflow o chama) deixa `publicacao/batata/` montada com
-`index.html`, `sistema.html`, `assets/` e `plano-observacao/`, e o índice diz «Ainda não há ciclo
-gerado» — que é a verdade de uma escola recém-criada.
-
-**O que ainda não está feito.** A escola `batata` **não foi criada**: a execução falhou antes do
-commit, e o repositório está limpo — basta redisparar o workflow. E fica uma lição que não é código:
-**três sítios fazem deploy** (o `gerar-ciclo.yml`, o `criar-escola.yml` e o `criar-escola.sh
---deploy`), e eu corrigi dois. A prova agora cobre os três; enquanto forem três, a lista tem de ser
-percorrida por inteiro em cada mudança.
+**O que ainda não está feito.** Continua a ser o mesmo de sempre: **nada regenera o `indices/`
+automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
+alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
 
 ## O que está pendente
-
-## 20/10/2026 — o primeiro pacote no repositório expôs o vocabulário do acervo: catorze arquivos sem decisão
-
-Nenhuma ferramenta de `tools/` foi tocada — e essa foi a decisão: a
-primeira tentativa foi implementar no validador a precedência que o `tipos.json` declara no campo
-`ordem` («o primeiro padrão que casar vence»), e o resultado seria **duas** declarações a dizer o
-mesmo. Ficou a regra única, «um arquivo, uma decisão», que já era a do validador e a da prova das
-declarações. Duas coisas continuam abertas: o `ordem` do vocabulário é um campo que **ninguém lê**
-(ou se implementa, ou se apaga); e o `criar-escola.sh` (congelado) continua a gravar o pacote-zero no
-`assets.directory` de toda escola nova — o `batata` foi corrigido à mão, como o `breu` antes dele.
 
 ## 20/10/2026 — o Plano de Observação de uma turma oferecia as alunas das outras
 
@@ -247,6 +207,12 @@ Ficou como está: preferi o custo à possibilidade de um pacote publicado não s
 
 A escola `batata` **não foi criada**: a execução falhou antes do
 commit, e o repositório está limpo — basta redisparar o workflow. E fica uma lição que não é código:
+
+## 20/10/2026 — o repositório sem ciclo expôs duas provas desactualizadas
+
+Continua a ser o mesmo de sempre: **nada regenera o `indices/`
+automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
+alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
 
 ## Pendências anteriores (índice)
 
@@ -488,6 +454,7 @@ commit, e o repositório está limpo — basta redisparar o workflow. E fica uma
 - **20/10/2026** — o expurgo da `breu` foi completo, e o índice ficou a… → `REGISTRO.md` L20102
 - **20/10/2026** — o PO da `batata` não gerava o ciclo: a declaração da… → `REGISTRO.md` L20193
 - **20/10/2026** — a aula derivada volta a ser legível: o mapa de secções e a… → `REGISTRO.md` L20252
+- **20/10/2026** — o primeiro pacote no repositório expôs o vocabulário do… → `REGISTRO.md` L20308
 
 ## Documentos-chave (para leitura)
 
