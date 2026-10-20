@@ -15,7 +15,7 @@
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": true,
-    "habilitada": true,
+    "habilitada": false,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "tiago-menegaz",
@@ -33,9 +33,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b2ac3bc"
+    "commit": "4b30ce2"
   },
-  "gerado_em": "2026-10-20T00:26",
+  "gerado_em": "2026-10-20T02:12",
   "nao_indexado": [
     {
       "familia": "conteudo",

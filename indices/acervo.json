@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "5a4fc4f5d57d7a8479c982725da30444248c65f884f24cc2a7aea9c022e7aea2",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:sapo-bailarino/01/breu",
-      "numero": "01",
-      "professor": "sapo-bailarino",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -31,7 +14,7 @@
       },
       "criada_em": "2026-10-13T11:19:19.854587+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:barra",
       "nome": "barra",
       "professor": "leticia",
@@ -54,7 +37,7 @@
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "tiago-menegaz",
@@ -65,31 +48,26 @@
       "slug": "batata"
     },
     {
-      "ciclos": [
-        "ciclo:sapo-bailarino/01/breu"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 2,
+        "anamneses": 0,
         "aulas": 0,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
-        "registros": 2
+        "registros": 0
       },
       "criada_em": "2026-10-19T23:41:57.342597+00:00",
-      "expurgada": false,
-      "habilitada": true,
+      "expurgada": true,
+      "habilitada": false,
       "id": "escola:breu",
       "nome": "breu",
       "professor": "sapo-bailarino",
       "professores": [
         "sapo-bailarino"
       ],
-      "registros": [
-        "anamnese:anamnese-20261019-2051",
-        "anamnese:anamnese-20261019-2053"
-      ],
+      "registros": [],
       "slug": "breu"
     },
     {
@@ -105,7 +83,7 @@
       },
       "criada_em": "2026-10-19T12:31:36.783282+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:calando-teste-1",
       "nome": "calando-teste-1",
       "professor": "sapo-bailarino",
@@ -128,7 +106,7 @@
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "sapo-bailarino",
@@ -151,7 +129,7 @@
       },
       "criada_em": null,
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:diaghilev2",
       "nome": "diaghilev2",
       "professor": "fokini2",
@@ -174,7 +152,7 @@
       },
       "criada_em": "2026-10-15T18:13:45.796290+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:fita",
       "nome": "fita",
       "professor": "tiago-menegaz",
@@ -197,7 +175,7 @@
       },
       "criada_em": null,
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:maria",
       "nome": "maria",
       "professor": "tiago",
@@ -220,7 +198,7 @@
       },
       "criada_em": "2026-10-15T17:39:44.721678+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:ponta",
       "nome": "ponta",
       "professor": "tiago",
@@ -243,7 +221,7 @@
       },
       "criada_em": "2026-10-17T11:09:25.774403+00:00",
       "expurgada": true,
-      "habilitada": true,
+      "habilitada": false,
       "id": "escola:valse",
       "nome": "valse",
       "professor": "tiago-menegaz",
@@ -255,13 +233,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 2,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -314,13 +286,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -348,19 +314,13 @@
         "valor": "tiago-menegaz"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 2,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "b2ac3bc"
+    "commit": "4b30ce2"
   },
-  "gerado_em": "2026-10-20T00:26",
+  "gerado_em": "2026-10-20T02:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -403,9 +363,7 @@
       "slug": "leticia"
     },
     {
-      "ciclos": [
-        "ciclo:sapo-bailarino/01/breu"
-      ],
+      "ciclos": [],
       "escolas": [
         "breu",
         "calando-teste-1",

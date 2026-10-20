@@ -214,10 +214,31 @@ function main() {
   }
 
   console.log('\n== 5. O declarado como latente não mente ==');
+  // SEM CICLO NÃO HÁ INSTÂNCIA PARA MEDIR (20/10/2026). A reposição do repositório depois do
+  // expurgo de todas as escolas deixa `professores/` só com os schemas — o modelo de que nasce
+  // escola nova, preservado de propósito. Aí não existe âncora, manifesto nem pacote para
+  // contar, e a pergunta «o tipo declarado como existente tem instância?» fica sem resposta.
+  // A prova DECLARA isso: ausência de dado não é prova de mentira na declaração.
   const ausentesDeclaradosPresentes = tipos.filter((t) => !t.latente && porTipo.get(t.id) === 0);
-  checar('todo tipo com latente:false tem ao menos uma instância real',
-    ausentesDeclaradosPresentes.length === 0,
-    ausentesDeclaradosPresentes.map((t) => t.id).join(', '));
+  // O QUE CONTA É HAVER CICLO, e não haver arquivo: os schemas ficam sempre (são o modelo), e
+  // são eles que mantêm `professores/` povoado depois de um expurgo. O manifesto da variante
+  // (`ciclo-NN-<escola>.conf`) é o que diz que um ciclo existe de facto.
+  const temCiclo = caminhos.some((item) => !item.diretorio && /\/ciclos\/ciclo-[0-9]{2}-[a-z0-9-]+\.conf$/.test(item.caminho));
+  if (!temCiclo) {
+    console.log('   — nenhum documento de ciclo em `professores/`: o repositório está sem ciclo (só os schemas)');
+    // O QUE FALTA SÃO OS TRÊS QUE SÓ UM CICLO PRODUZ, e o `schema` — que sobrevive porque é o
+    // modelo — continua com instância. É isso que distingue «o repositório está vazio» de «a
+    // declaração mente».
+    const faltando = ausentesDeclaradosPresentes.map((t) => t.id).sort();
+    checar('sem ciclo, faltam só os tipos que um ciclo produz (âncora, manifesto, pacote)',
+      faltando.join(',') === 'ancora,manifesto,pacote', faltando.join(', '));
+    checar('e o schema, que é o modelo, continua com instância', porTipo.get('schema') > 0,
+      String(porTipo.get('schema')));
+  } else {
+    checar('todo tipo com latente:false tem ao menos uma instância real',
+      ausentesDeclaradosPresentes.length === 0,
+      ausentesDeclaradosPresentes.map((t) => t.id).join(', '));
+  }
   const latentesPresentes = tipos.filter((t) => t.latente && porTipo.get(t.id) > 0);
   if (latentesPresentes.length) {
     console.log('   nota: já há instância de ' + latentesPresentes.map((t) => t.id).join(', ')

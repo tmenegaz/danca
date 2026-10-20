@@ -273,7 +273,44 @@ function compararComDisco(arquivos) {
   return { divergentes, ausentes, inalterados };
 }
 
-function escrever(arquivos) {
+/**
+ * TUDO O QUE ESTÁ EM `indices/` E O GERADOR **NÃO** PRODUZ.
+ *
+ * O `indices/esquema/` é FONTE (escrito à mão), não saída: fica de fora por definição. O resto
+ * é gerado, e o que está lá sem o gerador produzir é ÓRFÃO — o `check-indices.js` acusa-o na
+ * verificação 1, e é o gerador quem tem de o remover. Sem isto, `node tools/gerar-indices.js`
+ * escrevia o estado novo, deixava o fantasma no lugar e declarava «em dia» — enquanto o
+ * verificador continuava a falhar. Medido em 20/10/2026, ao expurgar a escola `breu`: o
+ * `indices/ciclos/sapo-bailarino/01-breu.json` descrevia um ciclo que já não existia, e as duas
+ * ferramentas discordavam sobre o mesmo diretório.
+ */
+function orfaosNoDisco(arquivos) {
+  const producao = new Set(arquivos.keys());
+  const orfaos = [];
+  const andar = (relativo) => {
+    const absoluto = path.join(RAIZ, relativo);
+    let entradas;
+    try { entradas = fs.readdirSync(absoluto, { withFileTypes: true }); } catch { return; }
+    for (const entrada of entradas) {
+      const rel = relativo + '/' + entrada.name;
+      if (entrada.isDirectory()) { andar(rel); continue; }
+      if (rel.indexOf('indices/esquema/') === 0) continue;   // fonte, não saída
+      if (!/\.json$/.test(rel)) continue;
+      if (!producao.has(rel)) orfaos.push(rel);
+    }
+  };
+  andar('indices');
+  return orfaos.sort();
+}
+
+/**
+ * Escreve o que a geração produziu e APAGA o fantasma.
+ *
+ * `orfaos` é declarado por quem chama (o `main`), porque o conjunto de referência é sempre o
+ * gerado INTEIRO e a remoção é o que o `--escola` limita. Escrever o novo sem apagar o velho
+ * deixava as duas ferramentas a discordar sobre o mesmo diretório.
+ */
+function escrever(arquivos, orfaos) {
   const escritos = [];
   for (const [rel, texto] of arquivos) {
     const destino = path.join(RAIZ, rel);
@@ -282,7 +319,15 @@ function escrever(arquivos) {
     fs.writeFileSync(destino, texto, 'utf8');
     escritos.push(rel);
   }
-  return escritos;
+  const removidos = [];
+  const aSair = Array.isArray(orfaos) ? orfaos : orfaosNoDisco(arquivos);
+  for (const rel of aSair) {
+    try {
+      fs.unlinkSync(path.join(RAIZ, rel));
+      removidos.push(rel);
+    } catch { /* não se apagou: o `--check` seguinte acusa */ }
+  }
+  return { escritos, removidos };
 }
 
 // ----------------------------------------------------------------------------- CLI
@@ -329,15 +374,32 @@ function main(argv) {
   }
 
   const { divergentes, ausentes, inalterados } = compararComDisco(alvo);
+  // OS ÓRFÃOS ENTRAM NO `--check` (20/10/2026). Sem eles, o verificador dizia «em dia» enquanto
+  // o `check-indices.js` reprovava o mesmo diretório: as duas ferramentas mediam coisas
+  // diferentes e a que conserta não via o que a outra acusava.
+  //
+  // A REFERÊNCIA É SEMPRE O CONJUNTO INTEIRO (`arquivos`), e o `--escola` limita só REMOÇÃO —
+  // nunca o julgamento. Medido: comparando contra o alvo filtrado, os índices de todas as OUTRAS
+  // escolas pareciam órfãos, e `--escola barra` apagaria oito escolas. O filtro diz o que se
+  // escreve, não o que existe.
+  const orfaosDoAlvo = (rel) => {
+    if (!opcoes.escola) return true;
+    if (rel === 'indices/acervo.json') return true;
+    if (rel === 'indices/escolas/' + opcoes.escola + '.json') return true;
+    const m = /^indices\/ciclos\/[^/]+\/[0-9]{2}-([a-z0-9-]+)\.json$/.exec(rel);
+    return Boolean(m && m[1] === opcoes.escola);
+  };
+  const orfaos = orfaosNoDisco(arquivos).filter(orfaosDoAlvo);
 
   if (opcoes.check) {
-    const falha = divergentes.length > 0 || ausentes.length > 0;
+    const falha = divergentes.length > 0 || ausentes.length > 0 || orfaos.length > 0;
     if (opcoes.json) {
-      console.log(JSON.stringify({ ok: !falha, divergentes, ausentes, inalterados }, null, 2));
+      console.log(JSON.stringify({ ok: !falha, divergentes, ausentes, orfaos, inalterados }, null, 2));
     } else if (falha) {
       console.error('gerar-indices: o índice no disco não corresponde ao gerado.');
       for (const rel of ausentes) console.error('  falta: ' + rel);
       for (const rel of divergentes) console.error('  diverge: ' + rel);
+      for (const rel of orfaos) console.error('  órfão (o gerador não o produz): ' + rel);
       console.error('  regere com: node tools/gerar-indices.js');
     } else {
       console.log('gerar-indices: ok — ' + inalterados.length + ' arquivo(s) em dia.');
@@ -347,17 +409,23 @@ function main(argv) {
 
   if (opcoes.listar) {
     const lista = [...alvo.keys()].sort();
-    if (opcoes.json) console.log(JSON.stringify({ ok: true, arquivos: lista }, null, 2));
-    else for (const rel of lista) console.log(rel);
+    if (opcoes.json) console.log(JSON.stringify({ ok: true, arquivos: lista, orfaos }, null, 2));
+    else {
+      for (const rel of lista) console.log(rel);
+      for (const rel of orfaos) console.log('(sai) ' + rel);
+    }
     return 0;
   }
 
-  const escritos = escrever(alvo);
+  const { escritos, removidos } = escrever(alvo, orfaos);
   if (opcoes.json) {
-    console.log(JSON.stringify({ ok: true, escritos, inalterados: inalterados.length }, null, 2));
+    console.log(JSON.stringify({ ok: true, escritos, removidos, inalterados: inalterados.length }, null, 2));
   } else {
-    console.log('gerar-indices: ' + (escritos.length
-      ? escritos.length + ' arquivo(s) escrito(s):\n  ' + escritos.join('\n  ')
+    const partes = [];
+    if (escritos.length) partes.push(escritos.length + ' arquivo(s) escrito(s):\n  ' + escritos.join('\n  '));
+    if (removidos.length) partes.push(removidos.length + ' órfão(s) removido(s):\n  ' + removidos.join('\n  '));
+    console.log('gerar-indices: ' + (partes.length
+      ? partes.join('\n')
       : 'nada a escrever — ' + inalterados.length + ' arquivo(s) em dia.'));
   }
   return 0;
@@ -376,6 +444,7 @@ module.exports = {
   gerarEmMemoria,
   compararComDisco,
   escrever,
+  orfaosNoDisco,
 };
 
 if (require.main === module) process.exit(main(process.argv.slice(2)));

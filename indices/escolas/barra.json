@@ -15,7 +15,7 @@
     },
     "criada_em": "2026-10-13T11:19:19.854587+00:00",
     "expurgada": true,
-    "habilitada": true,
+    "habilitada": false,
     "id": "escola:barra",
     "nome": "barra",
     "professor": "leticia",
@@ -33,9 +33,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b2ac3bc"
+    "commit": "4b30ce2"
   },
-  "gerado_em": "2026-10-20T00:26",
+  "gerado_em": "2026-10-20T02:12",
   "nao_indexado": [
     {
       "familia": "conteudo",

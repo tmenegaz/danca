@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T22:38:18-0300`
-Commit atual: `15d87a5` — chore(entrega): gerar o pacote de sapo-bailarino/01/breu-bale-nivel-1-teste-3
+Gerado em: `2026-10-19T23:17:03-0300`
+Commit atual: `4b30ce2` — chore(estrutura): expurgar a escola breu
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,7 +46,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 2 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,6 +64,8 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+4b30ce2 chore(estrutura): expurgar a escola breu
+0dc9915 fix(estrutura): o Worker da breu passa a servir o pacote da turma, não o esqueleto
 15d87a5 chore(entrega): gerar o pacote de sapo-bailarino/01/breu-bale-nivel-1-teste-3
 ecc5ec0 fix(estrutura): a âncora da aula entra no commit, e o rebase que não começa não mente
 58ce471 chore(estrutura): reancorar a cadeia das fontes alteradas
@@ -81,25 +84,11 @@ ffd1d19 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste
 690682f feat(acervo): envelope/.indice.json
 ad21735 docs(experimentos): as quatro pendências que o primeiro plano de ensino real expôs
 de54e3d fix(experimentos): o fixture não cita um marco que o plano não tem
-5e085ec chore(estrutura): reancorar a cadeia das fontes alteradas
-52cb39d feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 ```
 
 ## Por professor
 
-### sapo-bailarino — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): breu, breu-bale-nivel-1-teste-3
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| breu | (sem PO) | — | — |
-| breu | ciclo-01-breu-bale-nivel-1-teste-3-po.md | Input_PO_Aguardando | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| breu | ciclo-01-breu.fipp | `5a4fc4f5d57d` | (vazio) | — |
-| breu-bale-nivel-1-teste-3 | ciclo-01-breu-bale-nivel-1-teste-3.fipp | `4eabbeb962fb` | (vazio) | Input_PO_Aguardando |
+### sapo-bailarino — 0 ciclo(s)
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -150,49 +139,68 @@ de54e3d fix(experimentos): o fixture não cita um marco que o plano não tem
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o Worker da escola passa a servir o pacote da TURMA, não o esqueleto
+## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
 
-**Por quê.** A geração do ciclo da `breu` correu, validou, commitou e publicou — e o ciclo
-continuou **invisível no site**: `/aula-01.html`, `/plano.html`, `/notacao.html` e
-`/glossario-benesh.html` respondiam **404**. O `wrangler deploy` tinha sucesso; publicava o
-esqueleto.
+**O expurgo.** Medido nas três frentes, e desta vez **sem pendência**:
 
-A causa é a distância entre dois nomes que nasceram separados:
-
-| | caminho |
+| frente | resultado |
 |:--|:--|
-| o `assets.directory` do Worker | `…/ciclos/ciclo-01-breu` — o **pacote-zero** que o `criar-escola.sh` cria |
-| o pacote que o gerador escreve | `…/ciclos/ciclo-01-breu-bale-nivel-1-teste-**3**` — a **variante da turma** |
+| Worker e subdomínio | `breu.tmenegaz77.workers.dev` → **404**; script `breu` na API → **10007 (não existe)** |
+| KV | **8 apagadas, 0 restantes**, nos dois prefixos (`breu/`, `bastidores/breu/`); o namespace ficou com **0 chaves** |
+| repositório | **66 arquivos** num commit só — pacote, fontes, âncoras, envelopes e o `wrangler.breu.jsonc` |
 
-O conceito de variante por turma é de 19/10/2026; o `assets.directory` continuou no esqueleto.
-É o mesmo sintoma de 15/10/2026 — «o ciclo era gerado, versionado e invisível» —, por outra
-causa.
+Ficaram, de propósito: o `escola/breu/indice.json` (o elo) e os cinco schemas do ciclo (o modelo de
+que nasce escola nova). **O repositório passou a não ter ciclo nenhum** — só os schemas, em
+`professores/sapo-bailarino/` e `professores/tiago-menegaz/`.
 
-**O que mudou.** `wrangler.breu.jsonc`: o `assets.directory` passa a apontar para a pasta da
-turma. O `plano-observacao/` da porta vem **dentro** do pacote da turma (o gerador copia-o), e a
-ponte serve de lá as três superfícies, que ela sintetiza do mesmo `index.html` — apontar para a
-variante não tira nada, acrescenta. A decisão fica **escrita no próprio arquivo**, com o limite
-declarado: **um Worker só serve um `assets.directory`**, e uma escola com mais de uma turma vai
-precisar de o pacote-zero virar um **índice das turmas**, cada uma no seu endereço.
+**O que o expurgo expôs.** O `indices/` não é regenerado por ninguém (declarado ontem), e a escola
+que sai deixa lá o retrato dela: `node tools/check-indices.js` passou a falhar com **13 erros em 5
+verificações** — caminhos que já não existem, âncora ilegível, e a escola «sem config e não marcada
+expurgada». Três defeitos apareceram ao tentar consertá-lo, todos na ferramenta:
 
-**Com o quê.** Medido no Worker vivo depois do deploy: `/` 200, e `/aula-01.html`,
-`/plano.html`, `/notacao.html`, `/glossario-benesh.html`, `/harmonizacao.html`,
-`/referencias.html`, `/lancamento.html` — todos **200** (antes: 404). Sem regressão:
-`provar-geracao-do-ciclo` 21, `provar-escola-fixa` 30, identidade visual 19.
+1. **O gerador não apagava o fantasma.** `node tools/gerar-indices.js` escrevia o estado novo,
+   deixava `indices/ciclos/sapo-bailarino/01-breu.json` (um ciclo que já não existe) e declarava
+   «em dia» — enquanto o `check-indices.js` continuava a reprovar o mesmo diretório. **A ferramenta
+   que conserta não via o que a outra acusava**, e a única saída era apagar à mão. Agora o
+   `escrever()` remove os órfãos, e o `--check`/`--listar` os nomeiam. O `indices/esquema/` fica de
+   fora: é **fonte**, não saída.
+2. **`--escola` teria apagado oito escolas.** A remoção, se julgasse contra o conjunto FILTRADO,
+   tomaria os índices de todas as outras escolas por órfãos. O julgamento passou a ser contra o
+   conjunto inteiro; o filtro limita só a remoção. Provado nos dois sentidos.
+3. **O índice dizia `habilitada: true` e `expurgada: true` ao mesmo tempo.** `habilitada` vem do
+   elo, que guarda o que a criação declarou e não se reescreve; `expurgada` vem do wrangler, que o
+   expurgo apagou. Não há escola habilitada sem Worker — a derivação passou a dizê-lo
+   (`!expurgada && …`), e a verificação 12 acusa a contradição se ela voltar.
 
-**O que ainda não está feito.** O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
-`assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
-nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
-índice de turmas, e não cabe numa linha de configuração.
+**Com o quê.** `node tools/check-indices.js` → **14 de 14**. `node experimentos/provar-indices.js`
+→ **36 asserções** (eram 29): o gerador vê o órfão, o `--check` reprova por causa dele, o `--listar`
+anuncia que ele sai, `--escola` de OUTRA escola não o leva, o `esquema` nunca é órfão, e nenhuma
+escola expurgada está habilitada. Controlo negativo feito: contra o código de `HEAD` dão **3
+falhas**. Sem regressão: declarações do índice 24, proveniência 60, acervo 48, teste 37,
+geração-do-ciclo 21, identidade visual 19.
+
+**As provas aprenderam a dizer «não há dado».** Com o repositório sem ciclo, três medidas deixaram
+de ter o que medir — e uma delas **estourava** (`JSON.parse(undefined)`). O padrão passou a ser o
+mesmo em todo o lado: o que não se pode medir **declara-se**, porque uma asserção que não correu
+não é uma asserção cumprida. Concretamente:
+
+- `provar-indices` §6 escolhe o ciclo do que foi GERADO (fixava `breu`) e, sem ciclo, exige que o
+  gerador não invente recorte nenhum;
+- `provar-indices` §7 escolhe a escola do gerado (fixava `breu` e `fita`);
+- `check-indices --contraprovas` passou a declarar as que não correm: com o repositório sem ciclo,
+  «apagar um .fipp» e «alterar o hash» não têm alvo, e o resumo dizia «7 contraprovas, todas
+  reprovam» — que se lia como «as 9 do §9.2 passaram». Agora diz «(2 declarada(s) sem dado)», com
+  o motivo de cada uma;
+- `provar-declaracoes-do-indice` §5: o tipo declarado como existente tem de ter instância — e sem
+  ciclo não há âncora, manifesto nem pacote. A prova passa a exigir que **só esses três** faltem,
+  e que o `schema` continue com instância: é o que distingue «o repositório está vazio» de «a
+  declaração mente».
+
+**O que ainda não está feito.** Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
+hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
+correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
 
 ## O que está pendente
-
-## 20/10/2026 — a anamnese sai do KV, e o cofre deixa de existir
-
-(a) As chaves do cofre que **já existem** no KV das escolas
-criadas não são apagadas por esta mudança: elas só saem no expurgo da escola, que enumera os
-prefixos — a `breu` tem duas. (b) O cofre do **lançamento** continua no KV; ele é a próxima
-cópia a olhar, e não estava no pedido.
 
 ## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
 
@@ -227,6 +235,12 @@ O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
 `assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
 nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
 índice de turmas, e não cabe numa linha de configuração.
+
+## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
+
+Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
+hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
+correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
 
 ## Pendências anteriores (índice)
 
@@ -460,8 +474,7 @@ nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção
 - **20/10/2026** — o índice diz o mesmo nos dois níveis, e a âncora tem três… → `REGISTRO.md` L19656
 - **20/10/2026** — a tela mostra o endereço que existe, e diz que o cofre é… → `REGISTRO.md` L19693
 - **20/10/2026** — as declarações do índice: o vocabulário deixa de estar… → `REGISTRO.md` L19732
-- PO de **sapo-bailarino · breu-bale-nivel-1-teste-3** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **20/10/2026** — a anamnese sai do KV, e o cofre deixa de existir → `REGISTRO.md` L19792
 
 ## Documentos-chave (para leitura)
 

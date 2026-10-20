@@ -1,157 +1,41 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-19",
-        "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
-        "cobertura": [
-          "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
-          "professores/sapo-bailarino/ciclos/ciclo-01.conf"
-        ],
-        "hash": "5a4fc4f5d57d7a8479c982725da30444248c65f884f24cc2a7aea9c022e7aea2",
-        "hash_conteudo": "094af3f062772acff08226e89b76864ea22f4d1a414167bbc1ee24d1a9e46b82",
-        "id": "ciclo-01-breu",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
-        "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
-        "professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "breu",
-      "estado": "ancorado",
-      "id": "ciclo:sapo-bailarino/01/breu",
-      "numero": "01",
-      "pacote": null,
-      "professor": "sapo-bailarino",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
-      "ciclo_id": "ciclo:sapo-bailarino/01/breu",
-      "escola": "breu",
-      "id": "documento:ancora:professores/sapo-bailarino/ciclos/ciclo-01-breu.fipp",
-      "professor": "sapo-bailarino",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
-      "ciclo_id": "ciclo:sapo-bailarino/01/breu",
-      "escola": "breu",
-      "id": "documento:manifesto:professores/sapo-bailarino/ciclos/ciclo-01-breu.conf",
-      "professor": "sapo-bailarino",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-breu",
-      "caminho": "professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:sapo-bailarino/01/breu",
-      "escola": "breu",
-      "id": "documento:schema:professores/sapo-bailarino/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "sapo-bailarino",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:sapo-bailarino/01/breu"
-    ],
+    "ciclos": [],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
-      "registros": 2
+      "registros": 0
     },
     "criada_em": "2026-10-19T23:41:57.342597+00:00",
-    "expurgada": false,
-    "habilitada": true,
+    "expurgada": true,
+    "habilitada": false,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "sapo-bailarino",
     "professores": [
       "sapo-bailarino"
     ],
-    "registros": [
-      "anamnese:anamnese-20261019-2051",
-      "anamnese:anamnese-20261019-2053"
-    ],
+    "registros": [],
     "slug": "breu"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 2,
-        "ids": [
-          "anamnese:anamnese-20261019-2051",
-          "anamnese:anamnese-20261019-2053"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:sapo-bailarino/01/breu"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 3,
-        "ids": [
-          "anamnese:anamnese-20261019-2051",
-          "anamnese:anamnese-20261019-2053",
-          "ciclo:sapo-bailarino/01/breu"
-        ],
-        "rotulo": "sapo-bailarino",
-        "valor": "sapo-bailarino"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 2,
-        "ids": [
-          "anamnese:anamnese-20261019-2051",
-          "anamnese:anamnese-20261019-2053"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:sapo-bailarino/01/breu"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "anos": [],
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "b2ac3bc"
+    "commit": "4b30ce2"
   },
-  "gerado_em": "2026-10-20T00:26",
+  "gerado_em": "2026-10-20T02:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -174,27 +58,6 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261019-2051",
-      "ciclo": "01",
-      "data": "2026-10-19T20:51",
-      "id": "anamnese:anamnese-20261019-2051",
-      "professor": "sapo-bailarino",
-      "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261019-2053",
-      "ciclo": "01",
-      "data": "2026-10-19T20:53",
-      "id": "anamnese:anamnese-20261019-2053",
-      "professor": "sapo-bailarino",
-      "tipo": "anamnese"
-    }
-  ],
+  "registros": [],
   "versao": 1
 }

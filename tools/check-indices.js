@@ -457,6 +457,13 @@ const VERIFICACOES = [
         if (temInventario && !temConfig && escola.expurgada !== true) {
           falhas.push('escola ' + escola.slug + ': sem config e não marcada expurgada');
         }
+        // E A RECÍPROCA DA HABILITAÇÃO (20/10/2026). Uma escola expurgada não tem Worker nem
+        // subdomínio: não pode estar habilitada. O elo guarda `estado.habilitada` da criação e
+        // não se reescreve, então é na derivação que a contradição se desfaz — e é aqui que ela
+        // se acusa, para não voltar em silêncio.
+        if (escola.expurgada === true && escola.habilitada === true) {
+          falhas.push('escola ' + escola.slug + ': expurgada e habilitada ao mesmo tempo');
+        }
       }
       return falhas;
     },
@@ -532,8 +539,15 @@ function verificar(ctx) {
  * Cada contraprova estraga UMA coisa e exige que a verificação N reprove. O `mundo` é o `ctx`
  * de `carregarMundo()`; a mutação é sempre em memória.
  */
-function contraprovas(ctx) {
+function contraprovas(ctx, pulados) {
   const casos = [];
+  // NEM TODA CONTRAPROVA TEM O QUE ESTRAGAR (20/10/2026). Cada uma precisa de um dado real
+  // (uma âncora, um ciclo, um documento) e, quando ele não existe, a contraprova simplesmente
+  // não entra — e o resumo dizia «7 contraprovas, todas reprovam», que se lê como «as 9 do
+  // §9.2 passaram». Ficou concreto ao expurgar a escola `breu`: o repositório passou a não ter
+  // ciclo nenhum (só os schemas), duas contraprovas deixaram de correr, e nada dizia isso. O
+  // que não corre declara-se, com o motivo.
+  const semDado = (nome, motivo) => { if (pulados) pulados.push({ nome, motivo }); };
 
   const comIndices = (mutar) => {
     const indicesCopia = new Map();
@@ -557,11 +571,14 @@ function contraprovas(ctx) {
     if (alvo) {
       const disco = { existe: (rel) => (rel === alvo ? false : ctx.disco.existe(rel)), ler: (rel) => (rel === alvo ? null : ctx.disco.ler(rel)) };
       casos.push({ nome: 'apagar um .fipp', espera: 3, ctx: Object.assign({}, ctx, { disco }) });
+    } else {
+      semDado('apagar um .fipp', 'nenhum ciclo no repositório tem âncora — nada a apagar');
     }
   }
 
   // 2. alterar um caractere do hash no `.fipp` → verificação 3
   {
+    let rodou = false;
     for (const [rel, objeto] of ctx.indices) {
       const ciclo = objeto && objeto.ciclos && objeto.ciclos[0];
       const ancora = ciclo && ciclo.ancora;
@@ -572,9 +589,11 @@ function contraprovas(ctx) {
       const adulterado = texto.replace(String(ancora.hash), trocado);
       const disco = { existe: ctx.disco.existe, ler: (r) => (r === ancora.caminho ? adulterado : ctx.disco.ler(r)) };
       casos.push({ nome: 'alterar um caractere do hash no .fipp', espera: 3, ctx: Object.assign({}, ctx, { disco }) });
+      rodou = true;
       void rel;
       break;
     }
+    if (!rodou) semDado('alterar um caractere do hash no .fipp', 'nenhum ciclo tem âncora legível — nada a adulterar');
   }
 
   // 3. acrescentar `"apelido": "Vavá"` a um item → verificação 7
@@ -590,22 +609,47 @@ function contraprovas(ctx) {
     });
   }
 
-  // 4. renomear um documento sem regenerar → verificação 1
+  // 4. renomear (ou acrescentar) um documento sem regenerar → verificação 1
+  //
+  // O ALVO É ESCOLHIDO, NÃO NOMEADO (20/10/2026). Fixava `indices/escolas/breu.json`, e o
+  // expurgo da `breu` deixou-a sem ciclos: o `documentos[0]` não existia, a mutação não estragava
+  // nada, e a contraprova «passava por não ter encontrado o que estragar» — que é a pior forma de
+  // passar, e a mesma armadilha que a contraprova 1 já documenta.
+  //
+  // Num repositório SEM nenhum documento (o estado depois de um expurgo de tudo — só os schemas
+  // ficam), o que se prova é o mesmo mecanismo por outro gesto: ACRESCENTAR um documento que o
+  // gerador não produz. A verificação 1 compara o disco com o gerado; os dois casos a fazem
+  // divergir, e o nome do caso diz qual dos dois foi.
   {
-    const alvo = 'indices/escolas/breu.json';
-    casos.push({
-      nome: 'renomear um documento sem regenerar',
-      espera: 1,
-      ctx: comIndices((mapa) => {
-        const daEscola = mapa.get(alvo);
-        const documentos = daEscola && daEscola.ciclos && daEscola.ciclos[0] && daEscola.ciclos[0].documentos;
-        if (Array.isArray(documentos) && documentos.length) {
-          // O RENOMEIO é do CAMINHO, e não do sufixo: `ciclo-01-breu.conf` não termina em `.json`,
-          // e uma troca que dependa disso não mudaria nada — a contraprova passaria sem estragar.
-          documentos[0] = documentos[0].replace(/(\.[a-z]+)$/, '-renomeado$1');
-        }
-      }),
-    });
+    let alvo = null;
+    let documentos = null;
+    for (const [rel, objeto] of ctx.indices) {
+      if (rel.indexOf('indices/escolas/') !== 0) continue;
+      const ciclo = objeto && objeto.ciclos && objeto.ciclos[0];
+      if (!ciclo || !Array.isArray(ciclo.documentos)) continue;
+      if (!alvo) alvo = rel;
+      if (ciclo.documentos.length) { alvo = rel; documentos = ciclo.documentos; break; }
+    }
+    if (alvo) {
+      const renomear = Boolean(documentos && documentos.length);
+      casos.push({
+        nome: renomear ? 'renomear um documento sem regenerar'
+          : 'acrescentar um documento que o gerador não produz',
+        espera: 1,
+        ctx: comIndices((mapa) => {
+          const daEscola = mapa.get(alvo);
+          const lista = daEscola && daEscola.ciclos && daEscola.ciclos[0] && daEscola.ciclos[0].documentos;
+          if (!Array.isArray(lista)) return;
+          if (lista.length) {
+            // O RENOMEIO é do CAMINHO, e não do sufixo: `ciclo-01-breu.conf` não termina em
+            // `.json`, e uma troca que dependa disso não mudaria nada.
+            lista[0] = lista[0].replace(/(\.[a-z]+)$/, '-renomeado$1');
+          } else {
+            lista.push('professores/ninguem/ciclos/ciclo-99-inventado.md');
+          }
+        }),
+      });
+    }
   }
 
   // 5. duplicar um item → verificação 4
@@ -678,7 +722,8 @@ function contraprovas(ctx) {
 
 function rodarContraprovas() {
   const ctx = carregarMundo();
-  const casos = contraprovas(ctx);
+  const pulados = [];
+  const casos = contraprovas(ctx, pulados);
   let falhas = 0;
   console.log('\n== Contraprovas (§9.2) — cada uma tem de REPROVAR ==\n');
   for (const caso of casos) {
@@ -699,8 +744,13 @@ function rodarContraprovas() {
       console.log('  \u2717 ' + caso.nome + ' → a verificação ' + caso.espera + ' NÃO reprovou');
     }
   }
+  // O QUE NÃO CORREU DIZ-SE — o resumo não pode valer por omissão.
+  for (const p of pulados) {
+    console.log('  \u2014 ' + p.nome + ' NÃO correu: ' + p.motivo);
+  }
   console.log('\n' + (falhas === 0
-    ? 'TUDO CERTO — ' + casos.length + ' contraprova(s), todas reprovam como deviam.'
+    ? 'TUDO CERTO — ' + casos.length + ' contraprova(s), todas reprovam como deviam'
+      + (pulados.length ? ' (' + pulados.length + ' declarada(s) sem dado)' : '') + '.'
     : 'FALHOU — ' + falhas + ' contraprova(s) não reprovaram.'));
   return falhas === 0 ? 0 : 1;
 }

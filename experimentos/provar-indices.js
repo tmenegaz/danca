@@ -119,15 +119,32 @@ function main() {
     expurgadas.every((e) => e.expurgada === true && e.slug));
 
   console.log('\n== 6. O recorte por ciclo diz o mesmo que a escola ==');
-  const escolaBreu = JSON.parse(uma.arquivos.get('indices/escolas/breu.json'));
-  const cicloBreu = JSON.parse(uma.arquivos.get('indices/ciclos/sapo-bailarino/01-breu.json'));
-  const cicloNaEscola = escolaBreu.ciclos.find((c) => c.id === cicloBreu.id);
-  checar('o ciclo do recorte existe no índice da escola', Boolean(cicloNaEscola));
-  checar('o recorte lista os mesmos documentos do ciclo da escola',
-    cicloBreu.documentos.length === (cicloNaEscola ? cicloNaEscola.documentos.length : -1));
-  checar('o recorte e a escola dizem o mesmo estado e a mesma âncora',
-    Boolean(cicloNaEscola) && cicloBreu.estado === cicloNaEscola.estado
-    && JSON.stringify(cicloBreu.ancora) === JSON.stringify(cicloNaEscola.ancora));
+  // O CICLO É ESCOLHIDO DO QUE FOI GERADO, não nomeado à mão (20/10/2026). A prova fixava o
+  // ciclo da `breu`, e o expurgo da escola levou-o consigo: o `01-breu.json` deixou de existir
+  // e a prova estourava em `JSON.parse(undefined)` — a medir a ausência de um dado, não a
+  // regra. O que se prova é a RELAÇÃO entre os dois níveis, e ela vale para qualquer ciclo que
+  // exista: pega-se o primeiro que o gerador produziu.
+  const relDoCiclo = [...uma.arquivos.keys()].filter((r) => /^indices\/ciclos\//.test(r)).sort()[0];
+  const ciclo = relDoCiclo ? JSON.parse(uma.arquivos.get(relDoCiclo)) : null;
+  const escolaDoCiclo = ciclo ? JSON.parse(uma.arquivos.get('indices/escolas/' + ciclo.escola + '.json')) : null;
+  const cicloNaEscola = escolaDoCiclo ? escolaDoCiclo.ciclos.find((c) => c.id === ciclo.id) : null;
+  if (!ciclo) {
+    // O REPOSITÓRIO PODE NÃO TER CICLO NENHUM (20/10/2026) — é o estado depois do expurgo de
+    // todas as escolas: ficam os schemas, que são o modelo, e mais nada. A relação entre os dois
+    // níveis não tem o que medir, e a prova DECLARA-O em vez de passar em silêncio: uma asserção
+    // que não correu não é uma asserção cumprida.
+    checar('sem ciclo no repositório, o gerador não inventa recorte de ciclo',
+      uma.arquivos.size === Object.keys(uma.escolas).length + 1,
+      uma.arquivos.size + ' arquivo(s) para ' + Object.keys(uma.escolas).length + ' escola(s)');
+    console.log('  — a relação recorte × escola não se mede: não há ciclo no repositório');
+  } else {
+    checar('o ciclo do recorte existe no índice da escola', Boolean(cicloNaEscola), ciclo.id);
+    checar('o recorte lista os mesmos documentos do ciclo da escola',
+      Boolean(cicloNaEscola) && ciclo.documentos.length === cicloNaEscola.documentos.length);
+    checar('o recorte e a escola dizem o mesmo estado e a mesma âncora',
+      Boolean(cicloNaEscola) && ciclo.estado === cicloNaEscola.estado
+      && JSON.stringify(ciclo.ancora) === JSON.stringify(cicloNaEscola.ancora));
+  }
 
   console.log('\n== 7. As quatro superfícies do gerador ==');
   const listar = rodar(GERADOR, ['--listar']);
@@ -138,11 +155,18 @@ function main() {
   let resumo = null;
   try { resumo = JSON.parse(json.saida); } catch { resumo = null; }
   checar('`--check --json` devolve JSON com `ok`', Boolean(resumo) && resumo.ok === true);
-  const escolaSo = rodar(GERADOR, ['--listar', '--escola', 'breu']);
-  checar('`--escola breu` limita os arquivos de escola, e mantém o acervo',
+  // A ESCOLA DO RECORTE VEM DO GERADO, não é nomeada à mão (20/10/2026): fixava «breu» e «fita»,
+  // e o expurgo levou a `breu`. Pega-se a primeira que o gerador produz e exige-se que as OUTRAS
+  // fiquem de fora — que é a regra, e vale para qualquer conjunto de escolas.
+  const slugs = Object.keys(uma.escolas).sort();
+  const alvoDoFiltro = slugs[0];
+  const outraEscola = slugs.find((s) => s !== alvoDoFiltro) || null;
+  const escolaSo = rodar(GERADOR, ['--listar', '--escola', alvoDoFiltro]);
+  checar('`--escola <slug>` limita os arquivos de escola, e mantém o acervo',
     /indices\/acervo\.json/.test(escolaSo.saida)
-    && /indices\/escolas\/breu\.json/.test(escolaSo.saida)
-    && !/indices\/escolas\/fita\.json/.test(escolaSo.saida));
+    && escolaSo.saida.indexOf('indices/escolas/' + alvoDoFiltro + '.json') !== -1
+    && (!outraEscola || escolaSo.saida.indexOf('indices/escolas/' + outraEscola + '.json') === -1),
+    { alvoDoFiltro, outra: outraEscola });
   const escolaRuim = rodar(GERADOR, ['--listar', '--escola', 'nao-existe']);
   checar('escola desconhecida sai 2 (erro de uso, não de dado)', escolaRuim.codigo === 2, String(escolaRuim.codigo));
   const lixo = rodar(GERADOR, ['--nao-existe']);
@@ -157,6 +181,61 @@ function main() {
 
   const contra = rodar(VALIDADOR, ['--contraprovas']);
   checar('todas as contraprovas do §9.2 reprovam como deviam', contra.codigo === 0, contra.saida.trim().split('\n').pop());
+
+  console.log('\n== 9. O gerador VÊ o fantasma e o apaga ==');
+  {
+    // O DEFEITO REAL (20/10/2026, expurgo da `breu`). `escrever()` só escrevia: o
+    // `indices/ciclos/sapo-bailarino/01-breu.json` descrevia um ciclo que já não existia, o
+    // `check-indices.js` reprovava-o como órfão, e o `gerar-indices.js --check` dizia «em dia» —
+    // porque comparava só o que PRODUZ e nunca olhava para o que sobrava. A ferramenta que
+    // conserta não via o que a outra acusava, e a única saída era apagar à mão.
+    const mundo = validador.carregarMundo();
+    const orfaos = gerador.orfaosNoDisco(new Map([...mundo.gerado].map(([k, v]) => [k, v])));
+    checar('o gerador sabe dizer o que está no disco e ele não produz',
+      Array.isArray(orfaos), orfaos);
+    checar('o esquema NÃO é órfão: ele é fonte, e não saída',
+      orfaos.every((rel) => rel.indexOf('indices/esquema/') !== 0), orfaos);
+    checar('com o índice regenerado não há órfão nenhum', orfaos.length === 0, orfaos);
+
+    // O `--check` e o `--listar` concordam com a remoção: um órfão plantado aparece nos dois.
+    const plantado = 'indices/ciclos/zzz/99-fantasma.json';
+    const caminho = path.join(RAIZ, plantado);
+    fs.mkdirSync(path.dirname(caminho), { recursive: true });
+    fs.writeFileSync(caminho, '{}\n', 'utf8');
+    try {
+      const check = rodar(GERADOR, ['--check']);
+      checar('`--check` reprova por causa do órfão (e não diz «em dia»)',
+        check.codigo === 1 && /órfão/.test(check.saida), check.saida.trim());
+      const lista = rodar(GERADOR, ['--listar']);
+      checar('`--listar` anuncia que ele sai', /^\(sai\) /m.test(lista.saida), lista.saida.trim().slice(-200));
+      // E a escola do filtro manda na remoção: `--escola <outra>` não leva este embora.
+      const outra = Object.keys(uma.escolas).sort().find((s) => s !== uma.escolas[Object.keys(uma.escolas)[0]]);
+      const filtrado = rodar(GERADOR, ['--listar', '--escola', outra || 'zzz']);
+      checar('com `--escola` de outra escola, o órfão não é dado como removível',
+        !new RegExp('^\\(sai\\) ' + plantado.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '$', 'm').test(filtrado.saida),
+        filtrado.saida.trim().slice(-200));
+    } finally {
+      try { fs.unlinkSync(caminho); } catch { /* já não está */ }
+      try { fs.rmdirSync(path.dirname(caminho)); } catch { /* já não está */ }
+      try { fs.rmdirSync(path.dirname(path.dirname(caminho))); } catch { /* já não está */ }
+    }
+    const depois = rodar(GERADOR, ['--check']);
+    checar('o diretório volta ao estado limpo', depois.codigo === 0, depois.saida.trim());
+  }
+
+  console.log('\n== 10. Escola expurgada não está habilitada ==');
+  {
+    // O outro lado do elo (20/10/2026): `estado.habilitada` vem da criação e não se reescreve, e
+    // `expurgada` vem do wrangler que o expurgo apagou. Sem a conjunção, o índice da `breu` dizia
+    // as duas coisas ao mesmo tempo. Não há escola habilitada sem Worker.
+    const expurgadas = acervo.escolas.filter((e) => e.expurgada === true);
+    checar('há escola expurgada para medir', expurgadas.length > 0, String(expurgadas.length));
+    checar('nenhuma expurgada está habilitada',
+      expurgadas.every((e) => e.habilitada === false),
+      expurgadas.filter((e) => e.habilitada !== false).map((e) => e.slug));
+    checar('e a escola com Worker continua a seguir o elo',
+      acervo.escolas.filter((e) => e.expurgada !== true).every((e) => typeof e.habilitada === 'boolean'));
+  }
 
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'

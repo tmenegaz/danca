@@ -386,7 +386,12 @@ function construir(entrada) {
       nome: (inv && (inv.escola || (inv.professor && inv.professor.nome))) || slug,
       professor: professorDoInventario,
       professores: professoresDaEscola,
-      habilitada: !(inv && inv.estado && inv.estado.habilitada === false),
+      // UMA ESCOLA EXPURGADA NÃO ESTÁ HABILITADA (20/10/2026). «Habilitada» sai do elo, que
+      // guarda o que a criação declarou; «expurgada» sai do wrangler, que o expurgo apagou. Sem
+      // esta conjunção, o índice da `breu` dizia as duas coisas ao mesmo tempo — `habilitada:
+      // true` e `expurgada: true` — porque o elo não se reescreve (a proveniência acrescenta).
+      // Não há escola habilitada sem Worker: a habilitação é a de um sítio que existe.
+      habilitada: !expurgada && !(inv && inv.estado && inv.estado.habilitada === false),
       expurgada,
       criada_em: (inv && inv.criado_em) || null,
       ciclos: minhaCiclos.map((c) => c.id),

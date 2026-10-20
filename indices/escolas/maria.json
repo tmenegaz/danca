@@ -15,7 +15,7 @@
     },
     "criada_em": null,
     "expurgada": true,
-    "habilitada": true,
+    "habilitada": false,
     "id": "escola:maria",
     "nome": "maria",
     "professor": "tiago",
@@ -33,9 +33,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "b2ac3bc"
+    "commit": "4b30ce2"
   },
-  "gerado_em": "2026-10-20T00:26",
+  "gerado_em": "2026-10-20T02:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
