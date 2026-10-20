@@ -174,6 +174,7 @@ function escolaDoSufixo(sufixo, slugs) {
  */
 const TIPOS_DE_DOCUMENTO = [
   'ancora', 'schema', 'manifesto', 'plano', 'po', 'aula', 'dados', 'captura', 'indice',
+  'harmonizacao', 'notacao', 'glossario', 'referencias',
 ];
 
 /** Um documento do ciclo, classificado pelo NOME (não pelo conteúdo). */
@@ -186,6 +187,14 @@ function tipoDoDocumento(caminho, escola) {
   if (/-aula-[0-9]{2}\.md$/.test(base)) return 'aula';
   if (/-dados\.cifrado\.json$/.test(base) || /-dados\.json$/.test(base)) return 'dados';
   if (/-captura\.md$/.test(base) || /-captura\.json$/.test(base)) return 'captura';
+  // OS DERIVADOS DO PO (20/10/2026). O «Guardar» do PO passou a escrever quatro documentos ao
+  // lado das fontes — harmonização das normas, notação do ciclo, glossário da notação e
+  // referências —, e o índice não os conhecia: ficavam de fora do acervo («sem tipo declarado»,
+  // verificação 8), e o documento publicado era invisível para a proveniência.
+  if (/-harmonizacao\.md$/.test(base)) return 'harmonizacao';
+  if (/-notacao\.md$/.test(base)) return 'notacao';
+  if (/-glossario(?:-[a-z]+)?\.md$/.test(base)) return 'glossario';
+  if (/-referencias\.md$/.test(base)) return 'referencias';
   if (/^ciclos\.json$/.test(base)) return 'indice';
   if (new RegExp('(^|-)' + escola + '(\\.|-)').test(base) && /\.conf$/.test(base)) return 'manifesto';
   if (/^ciclo-[0-9]{2}\.conf$/.test(base)) return 'manifesto';

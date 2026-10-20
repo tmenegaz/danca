@@ -20159,3 +20159,94 @@ não é uma asserção cumprida. Concretamente:
 **O que ainda não está feito.** Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
 hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
 correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
+
+## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
+
+**O expurgo.** Medido nas três frentes, e desta vez **sem pendência**:
+
+| frente | resultado |
+|:--|:--|
+| Worker e subdomínio | `breu.tmenegaz77.workers.dev` → **404**; script `breu` na API → **10007 (não existe)** |
+| KV | **8 apagadas, 0 restantes**, nos dois prefixos (`breu/`, `bastidores/breu/`); o namespace ficou com **0 chaves** |
+| repositório | **66 arquivos** num commit só — pacote, fontes, âncoras, envelopes e o `wrangler.breu.jsonc` |
+
+Ficaram, de propósito: o `escola/breu/indice.json` (o elo) e os cinco schemas do ciclo (o modelo de
+que nasce escola nova). **O repositório passou a não ter ciclo nenhum** — só os schemas, em
+`professores/sapo-bailarino/` e `professores/tiago-menegaz/`.
+
+**O que o expurgo expôs.** O `indices/` não é regenerado por ninguém (declarado ontem), e a escola
+que sai deixa lá o retrato dela: `node tools/check-indices.js` passou a falhar com **13 erros em 5
+verificações** — caminhos que já não existem, âncora ilegível, e a escola «sem config e não marcada
+expurgada». Três defeitos apareceram ao tentar consertá-lo, todos na ferramenta:
+
+1. **O gerador não apagava o fantasma.** `node tools/gerar-indices.js` escrevia o estado novo,
+   deixava `indices/ciclos/sapo-bailarino/01-breu.json` (um ciclo que já não existe) e declarava
+   «em dia» — enquanto o `check-indices.js` continuava a reprovar o mesmo diretório. **A ferramenta
+   que conserta não via o que a outra acusava**, e a única saída era apagar à mão. Agora o
+   `escrever()` remove os órfãos, e o `--check`/`--listar` os nomeiam. O `indices/esquema/` fica de
+   fora: é **fonte**, não saída.
+2. **`--escola` teria apagado oito escolas.** A remoção, se julgasse contra o conjunto FILTRADO,
+   tomaria os índices de todas as outras escolas por órfãos. O julgamento passou a ser contra o
+   conjunto inteiro; o filtro limita só a remoção. Provado nos dois sentidos.
+3. **O índice dizia `habilitada: true` e `expurgada: true` ao mesmo tempo.** `habilitada` vem do
+   elo, que guarda o que a criação declarou e não se reescreve; `expurgada` vem do wrangler, que o
+   expurgo apagou. Não há escola habilitada sem Worker — a derivação passou a dizê-lo
+   (`!expurgada && …`), e a verificação 12 acusa a contradição se ela voltar.
+
+**Com o quê.** `node tools/check-indices.js` → **14 de 14**. `node experimentos/provar-indices.js`
+→ **36 asserções** (eram 29): o gerador vê o órfão, o `--check` reprova por causa dele, o `--listar`
+anuncia que ele sai, `--escola` de OUTRA escola não o leva, o `esquema` nunca é órfão, e nenhuma
+escola expurgada está habilitada. Controlo negativo feito: contra o código de `HEAD` dão **3
+falhas**. Sem regressão: declarações do índice 24, proveniência 60, acervo 48, teste 37,
+geração-do-ciclo 21, identidade visual 19.
+
+**As provas aprenderam a dizer «não há dado».** Com o repositório sem ciclo, três medidas deixaram
+de ter o que medir — e uma delas **estourava** (`JSON.parse(undefined)`). O padrão passou a ser o
+mesmo em todo o lado: o que não se pode medir **declara-se**, porque uma asserção que não correu
+não é uma asserção cumprida. Concretamente:
+
+- `provar-indices` §6 escolhe o ciclo do que foi GERADO (fixava `breu`) e, sem ciclo, exige que o
+  gerador não invente recorte nenhum;
+- `provar-indices` §7 escolhe a escola do gerado (fixava `breu` e `fita`);
+- `check-indices --contraprovas` passou a declarar as que não correm: com o repositório sem ciclo,
+  «apagar um .fipp» e «alterar o hash» não têm alvo, e o resumo dizia «7 contraprovas, todas
+  reprovam» — que se lia como «as 9 do §9.2 passaram». Agora diz «(2 declarada(s) sem dado)», com
+  o motivo de cada uma;
+- `provar-declaracoes-do-indice` §5: o tipo declarado como existente tem de ter instância — e sem
+  ciclo não há âncora, manifesto nem pacote. A prova passa a exigir que **só esses três** faltem,
+  e que o `schema` continue com instância: é o que distingue «o repositório está vazio» de «a
+  declaração mente».
+
+**O que ainda não está feito.** Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
+hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
+correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
+
+**A primeira aula de um ciclo vivo derrubou o verificador (mesmo dia).** A escola `batata` ganhou
+um ciclo com PO, e com ele a primeira aula real. `check-indices` passou a responder
+«erro ao verificar: number 1 is not iterable» em **duas** verificações (2 e 4). A causa é a
+diferença que o próprio §4.2 declara: no **mestre** (`indices/acervo.json`) `documentos` e `aulas`
+do ciclo são **contagens**; no índice da **escola** são **listas**. As duas verificações faziam
+`for (const aula of ciclo.aulas || [])` — e o defeito ficou escondido porque o único ciclo do
+mestre tinha `aulas: 0`, e **zero é falsy**: `0 || []` é `[]`. O primeiro `aulas: 1` estourou.
+O teste passou a ser `Array.isArray` — um contador nunca se percorre.
+
+Três coisas mais, todas expostas pelo mesmo ciclo:
+
+- **A verificação 4 acusava duplicata entre duas vistas do mesmo dado.** O índice da escola traz
+  `documentos[]` e `aulas[]` no topo como **projecção** dos ciclos (é o `gerar-indices.js` que o
+  declara), e o mesmo id aparece nas duas de propósito. Quem confere o acordo entre elas é a
+  verificação 14 — e é ela que apanha uma duplicata **dentro** da projecção (provado: um id
+  repetido em `aulas[]` faz a 14 reprovar). A 4 deixou de olhar para as projecções.
+- **Quatro documentos do ciclo não tinham tipo declarado.** O «Guardar» do PO passou a escrever
+  `-harmonizacao.md`, `-notacao.md`, `-glossario-benesh.md` e `-referencias.md` ao lado das
+  fontes, e nem o esquema nem o motor os conheciam: entravam no acervo como «sem tipo declarado»
+  e ficavam invisíveis para a proveniência. Entraram quatro tipos (`harmonizacao`, `notacao`,
+  `glossario`, `referencias`), no esquema **e** no `tipoDoDocumento` — as duas metades, que a
+  prova das declarações exige que concordem.
+- `node tools/check-indices.js --contraprovas` → **10**, todas reprovam (eram 9, e as duas que
+  ontem ficaram «sem dado» voltaram a correr).
+
+`node experimentos/provar-indices.js` → **49 asserções** (eram 36): o mestre guarda contagem e não
+lista, nenhuma verificação estoura a lê-lo, a projecção plana não é duplicata, e os quatro tipos
+novos estão declarados nos dois lados. Controlo negativo: contra o código de `HEAD` dão **8
+falhas**.

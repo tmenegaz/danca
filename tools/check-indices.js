@@ -171,7 +171,14 @@ const VERIFICACOES = [
             for (const caminho of ciclo.documentos) conferir(caminho, rel + ' ciclo ' + ciclo.id);
           }
           if (ciclo.pacote) conferir(ciclo.pacote, rel + ' ciclo ' + ciclo.id);
-          for (const aula of ciclo.aulas || []) conferir(aula.documento, rel + ' aula ' + aula.id);
+          // NO MESTRE, `aulas` TAMBÉM É UM NÚMERO (20/10/2026). A guarda existia para
+          // `documentos` e não para `aulas` — e passou despercebida porque o único ciclo do
+          // mestre tinha `aulas: 0`, e `0 || []` é `[]` (zero é falsy). O primeiro ciclo com uma
+          // aula de verdade — `aulas: 1` — derrubou a verificação com «number 1 is not iterable».
+          // O teste certo é ser LISTA, não ser «truthy»: um contador nunca se percorre.
+          if (Array.isArray(ciclo.aulas)) {
+            for (const aula of ciclo.aulas) conferir(aula.documento, rel + ' aula ' + aula.id);
+          }
           if (ciclo.ancora && ciclo.ancora.caminho) conferir(ciclo.ancora.caminho, rel + ' âncora ' + ciclo.id);
         }
         for (const doc of objeto.documentos || []) conferir(doc.caminho, rel + ' documento ' + doc.id);
@@ -227,11 +234,19 @@ const VERIFICACOES = [
         for (const p of objeto.professores || []) registrar(p.id, 'professores[]');
         for (const c of objeto.ciclos || []) {
           registrar(c.id, 'ciclos[]');
-          for (const a of c.aulas || []) registrar(a.id, 'ciclos[].aulas[]');
+          // `aulas` é CONTAGEM no mestre e LISTA na escola (ver a verificação 2): percorrer a
+          // contagem estoura. Só se percorre o que é lista.
+          if (Array.isArray(c.aulas)) for (const a of c.aulas) registrar(a.id, 'ciclos[].aulas[]');
         }
         for (const r of objeto.registros || []) registrar(r.id, 'registros[]');
-        for (const d of objeto.documentos || []) registrar(d.id, 'documentos[]');
-        for (const a of objeto.aulas || []) registrar(a.id, 'aulas[]');
+        // AS PROJEÇÕES PLANAS NÃO CONTAM PARA A UNICIDADE (20/10/2026). O índice da escola traz
+        // `documentos[]` e `aulas[]` no topo como PROJEÇÃO dos ciclos — «a conveniência que evita
+        // quem lê percorrer os ciclos», declara o `gerar-indices.js`. O mesmo id aparece, de
+        // propósito, nas duas vistas, e esta verificação lia isso como duplicata. Quem confere o
+        // acordo entre as vistas é a verificação 14, e é ela que apanha uma duplicata DENTRO da
+        // projeção (a lista sairia maior do que a calculada). Medido hoje: o primeiro ciclo com
+        // aula de verdade acusou «id repetido … (ciclos[].aulas[] e aulas[])».
+
       }
       return falhas;
     },

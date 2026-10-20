@@ -86,6 +86,42 @@
       "latente": true
     },
     {
+      "id": "harmonizacao",
+      "rotulo": "Harmonização das normas",
+      "familia": "derivado",
+      "padrao": "-harmonizacao\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
+      "id": "notacao",
+      "rotulo": "Notação do ciclo",
+      "familia": "derivado",
+      "padrao": "-notacao\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
+      "id": "glossario",
+      "rotulo": "Glossário da notação",
+      "familia": "derivado",
+      "padrao": "-glossario(?:-[a-z]+)?\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
+      "id": "referencias",
+      "rotulo": "Referências do ciclo",
+      "familia": "derivado",
+      "padrao": "-referencias\\.md$",
+      "publico": false,
+      "classificado_pelo_motor": true,
+      "latente": false
+    },
+    {
       "id": "pacote",
       "rotulo": "Pacote entregue",
       "familia": "pacote",

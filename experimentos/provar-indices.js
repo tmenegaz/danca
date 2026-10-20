@@ -237,6 +237,66 @@ function main() {
       acervo.escolas.filter((e) => e.expurgada !== true).every((e) => typeof e.habilitada === 'boolean'));
   }
 
+  console.log('\n== 11. O contador do mestre não se percorre ==');
+  {
+    // O DEFEITO REAL (20/10/2026, primeira aula de um ciclo vivo). No MESTRE `documentos` e
+    // `aulas` do ciclo são CONTAGENS; no índice da escola são LISTAS. As verificações 2 e 4
+    // percorriam `ciclo.aulas || []` — e o bug ficou escondido porque o único ciclo do mestre
+    // tinha `aulas: 0`, e ZERO é falsy: `0 || []` é `[]`. O primeiro ciclo com uma aula de
+    // verdade (`aulas: 1`) derrubou as duas com «number 1 is not iterable», que o verificador
+    // reportava como «erro ao verificar» — sem dizer onde.
+    const mundo = validador.carregarMundo();
+    const doMestre = mundo.gerado.get('indices/acervo.json');
+    const ciclos = (doMestre && doMestre.ciclos) || [];
+    if (!ciclos.length) {
+      console.log('  — não há ciclo no mestre: o contador não tem o que medir');
+    } else {
+      checar('o mestre guarda `documentos` e `aulas` do ciclo como CONTAGEM, não como lista',
+        ciclos.every((c) => !Array.isArray(c.documentos) && !Array.isArray(c.aulas)),
+        ciclos.map((c) => c.id));
+      // O que importa: percorrer o contador não pode estourar. Se estourasse, a verificação
+      // devolveria «erro ao verificar» em vez de um resultado.
+      const resultado = validador.verificar(mundo);
+      checar('nenhuma verificação estoura ao ler o mestre',
+        resultado.porVerificacao.every((v) => !v.falhas.some((f) => /is not iterable/.test(f))),
+        resultado.porVerificacao.filter((v) => v.falhas.some((f) => /is not iterable/.test(f))).map((v) => v.n));
+      // E a projecção plana da escola não é duplicata: o mesmo id aparece nas duas vistas de
+      // propósito, e a verificação 4 não a pode acusar.
+      const daEscola = mundo.gerado.get('indices/escolas/' + (ciclos[0].escola || '') + '.json');
+      const projetadas = (daEscola && daEscola.aulas) || [];
+      checar('a projecção plana `aulas[]` da escola existe e repete os ids dos ciclos',
+        projetadas.length === 0 || projetadas.every((a) => typeof a.id === 'string'));
+      const unica = resultado.porVerificacao.find((v) => v.n === 4);
+      checar('a verificação 4 não acusa duplicata entre a projecção e os ciclos',
+        Boolean(unica) && !unica.falhas.some((f) => /id repetido/.test(f)),
+        unica && unica.falhas);
+    }
+  }
+
+  console.log('\n== 12. Os derivados do PO têm tipo declarado ==');
+  {
+    // Os quatro documentos que o «Guardar» do PO escreve ao lado das fontes entravam no acervo
+    // como «sem tipo declarado»: o índice não os conhecia, e o documento publicado era
+    // invisível para a proveniência.
+    const tipos = JSON.parse(fs.readFileSync(path.join(RAIZ, 'indices/esquema/tipos.json'), 'utf8')).tipos;
+    const ids = tipos.map((t) => t.id);
+    for (const id of ['harmonizacao', 'notacao', 'glossario', 'referencias']) {
+      checar('o tipo `' + id + '` está declarado', ids.indexOf(id) !== -1, ids.join(','));
+    }
+    const declarados = new Set(ids);
+    const doMotor = new Set(indices.TIPOS_DE_DOCUMENTO);
+    checar('o motor classifica os mesmos tipos que o esquema declara (menos `pacote`, que é diretório)',
+      [...declarados].filter((id) => id !== 'pacote').every((id) => doMotor.has(id)),
+      [...declarados].filter((id) => id !== 'pacote' && !doMotor.has(id)));
+    checar('e nenhum tipo do motor está fora da declaração',
+      [...doMotor].every((id) => declarados.has(id)),
+      [...doMotor].filter((id) => !declarados.has(id)));
+    const ver8 = validador.verificar(validador.carregarMundo()).porVerificacao.find((v) => v.n === 8);
+    checar('a verificação 8 (Declaração) não acusa documento sem tipo',
+      Boolean(ver8) && !ver8.falhas.some((f) => /sem tipo declarado/.test(f)),
+      ver8 && ver8.falhas);
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));

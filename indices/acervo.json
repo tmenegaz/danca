@@ -1,5 +1,22 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "hash": "c2720a886980bf244415f5afde928f7629d5a7d83291c58db7c5ffdc5e7844d9",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 1,
+      "documentos": 16,
+      "escola": "batata",
+      "estado": "ancorado",
+      "id": "ciclo:tiago-menegaz/01/batata",
+      "numero": "01",
+      "professor": "tiago-menegaz",
+      "sem_ancora": false
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -25,26 +42,34 @@
       "slug": "barra"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:tiago-menegaz/01/batata"
+      ],
       "contagens": {
-        "anamneses": 0,
-        "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "registros": 0
+        "anamneses": 3,
+        "aulas": 1,
+        "ciclos": 1,
+        "ciclos_com_ancora": 1,
+        "planos": 1,
+        "pos": 1,
+        "registros": 5
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": true,
-      "habilitada": false,
+      "expurgada": false,
+      "habilitada": true,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
         "tiago-menegaz"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261019-2310",
+        "anamnese:anamnese-20261019-2311",
+        "anamnese:anamnese-20261019-2311-2",
+        "plano:plano-20261019-2312",
+        "po:po-20261019-2316"
+      ],
       "slug": "batata"
     },
     {
@@ -233,7 +258,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 5,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -286,7 +317,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -314,13 +351,29 @@
         "valor": "tiago-menegaz"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 3,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de observação",
+        "valor": "po"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "4b30ce2"
+    "commit": "8bc6257"
   },
-  "gerado_em": "2026-10-20T02:12",
+  "gerado_em": "2026-10-20T02:21",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -384,7 +437,9 @@
       "slug": "tiago"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:tiago-menegaz/01/batata"
+      ],
       "escolas": [
         "batata",
         "fita",

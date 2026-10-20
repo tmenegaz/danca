@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T23:17:03-0300`
-Commit atual: `4b30ce2` — chore(estrutura): expurgar a escola breu
+Gerado em: `2026-10-19T23:21:57-0300`
+Commit atual: `8bc6257` — fix(tools): o gerador apaga o fantasma, e o que não se pode medir declara-se
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,8 +46,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 0
-0 variante(s)
+- **Ciclos com manifesto:** 2 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -64,33 +63,45 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
-4b30ce2 chore(estrutura): expurgar a escola breu
-0dc9915 fix(estrutura): o Worker da breu passa a servir o pacote da turma, não o esqueleto
-15d87a5 chore(entrega): gerar o pacote de sapo-bailarino/01/breu-bale-nivel-1-teste-3
-ecc5ec0 fix(estrutura): a âncora da aula entra no commit, e o rebase que não começa não mente
-58ce471 chore(estrutura): reancorar a cadeia das fontes alteradas
-75ab6ce feat(captura): declara a variante breu-bale-nivel-1-teste-3 no schema de captura
-ce08a3f feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
-293a983 feat(ciclo): o «Guardar» do PO cifra ciclo-01-breu-bale-nivel-1-teste-3-dados.cifrado.json
-13415e5 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md
-b9cc42c feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-notacao.md
-cc96eed feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-dados.json
-4bdfe33 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md
-2ad21be feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md
-3b919a6 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-referencias.md
-ffd1d19 feat(ciclo): o «Guardar» do PO deriva ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
-93eda4b feat(po): o PO elicitado vira a fonte do ciclo
-040128d feat(acervo): envelope/po-20261019-2208.json
-690682f feat(acervo): envelope/.indice.json
-ad21735 docs(experimentos): as quatro pendências que o primeiro plano de ensino real expôs
-de54e3d fix(experimentos): o fixture não cita um marco que o plano não tem
+8bc6257 fix(tools): o gerador apaga o fantasma, e o que não se pode medir declara-se
+d5808ac chore(estrutura): reancorar a cadeia das fontes alteradas
+eac2d5a feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
+dcaad38 feat(ciclo): o «Guardar» do PO cifra ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json
+16dffe9 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
+b147c27 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
+8b3bf22 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-dados.json
+7911b67 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
+4d18153 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
+698434c feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
+2137964 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
+e7c2d98 feat(po): o PO elicitado vira a fonte do ciclo
+601663b feat(acervo): envelope/po-20261019-2316.json
+22d420a feat(acervo): envelope/.indice.json
+9b5a62d chore(estrutura): reancorar a cadeia das fontes alteradas
+d2eec62 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+896a7dc feat(plano): o plano elicitado vira a fonte do ciclo
+d3db128 feat(acervo): envelope/plano-20261019-2312.json
+c2badad feat(acervo): envelope/.indice.json
+ff5883d feat(acervo): envelope/anamnese-20261019-2311-2.json
 ```
 
 ## Por professor
 
 ### sapo-bailarino — 0 ciclo(s)
 
-### tiago-menegaz — 0 ciclo(s)
+### tiago-menegaz — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| batata | (sem PO) | — | — |
+| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Aguardando | 1 |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| batata | ciclo-01-batata.fipp | `1f96eb99c9e5` | (vazio) | — |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `c2720a886980` | (vazio) | Input_PO_Aguardando |
 
 ## Pétreas (`PROTOCOLO.md`)
 
@@ -200,14 +211,37 @@ não é uma asserção cumprida. Concretamente:
 hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
 correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
 
+**A primeira aula de um ciclo vivo derrubou o verificador (mesmo dia).** A escola `batata` ganhou
+um ciclo com PO, e com ele a primeira aula real. `check-indices` passou a responder
+«erro ao verificar: number 1 is not iterable» em **duas** verificações (2 e 4). A causa é a
+diferença que o próprio §4.2 declara: no **mestre** (`indices/acervo.json`) `documentos` e `aulas`
+do ciclo são **contagens**; no índice da **escola** são **listas**. As duas verificações faziam
+`for (const aula of ciclo.aulas || [])` — e o defeito ficou escondido porque o único ciclo do
+mestre tinha `aulas: 0`, e **zero é falsy**: `0 || []` é `[]`. O primeiro `aulas: 1` estourou.
+O teste passou a ser `Array.isArray` — um contador nunca se percorre.
+
+Três coisas mais, todas expostas pelo mesmo ciclo:
+
+- **A verificação 4 acusava duplicata entre duas vistas do mesmo dado.** O índice da escola traz
+  `documentos[]` e `aulas[]` no topo como **projecção** dos ciclos (é o `gerar-indices.js` que o
+  declara), e o mesmo id aparece nas duas de propósito. Quem confere o acordo entre elas é a
+  verificação 14 — e é ela que apanha uma duplicata **dentro** da projecção (provado: um id
+  repetido em `aulas[]` faz a 14 reprovar). A 4 deixou de olhar para as projecções.
+- **Quatro documentos do ciclo não tinham tipo declarado.** O «Guardar» do PO passou a escrever
+  `-harmonizacao.md`, `-notacao.md`, `-glossario-benesh.md` e `-referencias.md` ao lado das
+  fontes, e nem o esquema nem o motor os conheciam: entravam no acervo como «sem tipo declarado»
+  e ficavam invisíveis para a proveniência. Entraram quatro tipos (`harmonizacao`, `notacao`,
+  `glossario`, `referencias`), no esquema **e** no `tipoDoDocumento` — as duas metades, que a
+  prova das declarações exige que concordem.
+- `node tools/check-indices.js --contraprovas` → **10**, todas reprovam (eram 9, e as duas que
+  ontem ficaram «sem dado» voltaram a correr).
+
+`node experimentos/provar-indices.js` → **49 asserções** (eram 36): o mestre guarda contagem e não
+lista, nenhuma verificação estoura a lê-lo, a projecção plana não é duplicata, e os quatro tipos
+novos estão declarados nos dois lados. Controlo negativo: contra o código de `HEAD` dão **8
+falhas**.
+
 ## O que está pendente
-
-## 20/10/2026 — o plano de ensino de teste chega preenchido inteiro, não meio
-
-O fixture é **um só molde** para as três turmas — os três planos de
-uma escola de teste partilham os mesmos marcos e o mesmo repertório, e variam no nome da turma e no
-objetivo. Uma variação por turma (níveis diferentes, repertório diferente) continua a ser trabalho
-de quem testa; o fixture não a inventa.
 
 ## 20/10/2026 — o índice passa a ser gerado, e o «passou» passa a ser medido
 
@@ -235,6 +269,12 @@ O `criar-escola.sh` (congelado) continua a gravar o esqueleto no
 `assets.directory` de toda escola nova — a correcção de hoje é do `breu`, à mão. Uma escola nova
 nasce, portanto, com o mesmo defeito: ciclo gerado e não servido. A correcção estrutural é o
 índice de turmas, e não cabe numa linha de configuração.
+
+## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
+
+Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
+hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
+correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
 
 ## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
 
@@ -475,6 +515,9 @@ correcção de hoje faz com que regenerar **funcione**; não faz com que **acont
 - **20/10/2026** — a tela mostra o endereço que existe, e diz que o cofre é… → `REGISTRO.md` L19693
 - **20/10/2026** — as declarações do índice: o vocabulário deixa de estar… → `REGISTRO.md` L19732
 - **20/10/2026** — a anamnese sai do KV, e o cofre deixa de existir → `REGISTRO.md` L19792
+- **20/10/2026** — o plano de ensino de teste chega preenchido inteiro, não… → `REGISTRO.md` L19833
+- PO de **tiago-menegaz · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)
 
