@@ -211,9 +211,12 @@ function principal() {
       const dir = (/"directory"\s*:\s*"([^"]+)"/.exec(conf) || [])[1] || '';
       checar('o `' + arquivo + '` aponta a publicação da escola (`publicacao/' + slug + '`)',
         dir === 'publicacao/' + slug, dir);
-      // O DEFEITO ORIGINAL, nomeado: o `assets.directory` era o pacote-zero.
-      checar('e não o pacote-zero (`ciclos/ciclo-NN-' + slug + '`)',
-        !new RegExp('ciclos/ciclo-[0-9]{2}-' + slug + '"').test(conf), dir);
+      // O DEFEITO ORIGINAL, nomeado: o `assets.directory` era o pacote-zero. O teste é sobre o
+      // VALOR, e não sobre o texto do arquivo — o `wrangler` carrega comentários, e a prosa que
+      // explica a correcção cita o caminho antigo: procurá-lo no texto dava um falso positivo
+      // (o mesmo defeito que a secção do workflow apanhou com o `wrangler deploy`).
+      checar('e o valor não é o pacote-zero (`ciclos/ciclo-NN-' + slug + '`)',
+        !new RegExp('ciclos/ciclo-[0-9]{2}-' + slug + '$').test(dir), dir);
     }
 
     const ignorado = fs.readFileSync(path.join(RAIZ, '.gitignore'), 'utf8');

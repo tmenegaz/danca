@@ -292,9 +292,24 @@ async function principal() {
      * que é a pergunta que se deve fazer a cada chave nova.
      */
     const { nosRespondiveis } = require('../motor/nucleo/elicitar.js');
+    /*
+     * A PROVA MEDIA A CAMADA ERRADA (20/10/2026, corrigida no mesmo dia). Ela chamava
+     * `nosRespondiveis` — o gerador do motor — e dava verde com o filtro a não funcionar no
+     * site, porque entre o motor e o cliente há uma SEGUNDA construção do mapa: a `porta.mapa`,
+     * que também era uma lista fechada. Duas listas em série, e a prova a medir a primeira.
+     *
+     * O que se mede agora é o mapa que o `/api/mapa` REALMENTE serve — `porta.mapa` —, e a
+     * concordância entre as duas camadas: é a travessia que interessa, não a peça.
+     */
     const doPO = nosRespondiveis(ler('po/conteudo/po.json'));
-    const noMapa = doPO.find((no) => no.id === 'sujeitos');
-    checar('o `/api/mapa` do PO traz `recortePeloPlano` no nó `sujeitos`',
+    const noMotor = doPO.find((no) => no.id === 'sujeitos');
+    checar('o motor (`nosRespondiveis`) produz a marca no nó `sujeitos`',
+      Boolean(noMotor && noMotor.recortePeloPlano === true), noMotor && noMotor.recortePeloPlano);
+
+    const { mapa } = require('../motor/nucleo/porta.js');
+    const servido = mapa(ler('po/conteudo/po.json'));
+    const noMapa = servido.nos.find((no) => no.id === 'sujeitos');
+    checar('e o mapa SERVIDO (`porta.mapa`, o do `/api/mapa`) também a traz — é ele que a tela lê',
       Boolean(noMapa && noMapa.recortePeloPlano === true), noMapa && noMapa.recortePeloPlano);
 
     /*
@@ -312,7 +327,8 @@ async function principal() {
     ];
     const perdidas = [];
     for (const fonte of ['po/conteudo/po.json', 'plano/conteudo/plano.json', 'conteudo/anamnese.json']) {
-      const mapaDesta = nosRespondiveis(ler(fonte));
+      // A CAMADA FINAL, e não a do meio: é o que o cliente recebe.
+      const mapaDesta = mapa(ler(fonte)).nos;
       const porId = new Map(mapaDesta.map((no) => [no.id, no]));
       const colher = (obj, saida) => {
         if (Array.isArray(obj)) { obj.forEach((x) => colher(x, saida)); return saida; }
@@ -328,7 +344,8 @@ async function principal() {
           if (!(chave in campo)) continue;
           const declarado = campo[chave];
           if (declarado === null || declarado === false) continue;
-          if (no[chave] === undefined || no[chave] === null) {
+          // `false` e `null` são valores legítimos do motor; o que não pode é a chave sumir.
+          if (!(chave in no)) {
             perdidas.push(fonte + ':' + campo.id + '.' + chave);
           }
         }

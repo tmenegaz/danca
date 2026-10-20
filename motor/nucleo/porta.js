@@ -208,7 +208,26 @@ function mapa(conteudo) {
   const moduloPorId = new Map(conteudo.modulosCondicionais.map((m) => [m.id, m]));
 
   const enriquecidos = nos.map((no) => {
+    /*
+     * O NÓ ENTRA INTEIRO, E O QUE A PORTA ACRESCENTA VEM POR CIMA (20/10/2026).
+     *
+     * Era uma SEGUNDA lista fechada, chave a chave, sobre a que o `descritores()` do motor já
+     * tinha feito. Duas listas em série querem dizer duas chances de perder o mesmo dado — e o
+     * dado perdeu-se nas duas: o `recortePeloPlano`, declarado no conteúdo do PO, atravessou o
+     * gerador do mapa e morreu aqui, na porta que o serve. O sintoma era o pior possível: a rota
+     * a recortar certo (`?plano=` → uma aluna) e a tela a pedir a lista SEM recorte, porque o nó
+     * que ela recebia não trazia a marca.
+     *
+     * Com o `...no`, o que o motor produz chega ao cliente sem uma terceira declaração pelo
+     * caminho. O que a porta faz depois continua a ser o que ela sabe e o motor não: normalizar
+     * `|| null`, `=== true`, os valores da forma, o sema resolvido.
+     *
+     * POR QUE NÃO BASTAVA ACRESCENTAR MAIS UMA LINHA: porque a lista seguinte perderia outra
+     * chave, e ninguém dá por isso — o sintoma é sempre mudo. Uma lista fechada é uma promessa
+     * de esquecimento.
+     */
     const base = {
+      ...no,
       id: no.id,
       campo: no.campo,
       obrigatorio: no.obrigatorio,

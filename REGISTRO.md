@@ -20707,3 +20707,22 @@ Uma chave de comportamento nova que ninguém acrescente à lista continua invis�
 as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
 `descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
 prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
+
+**Segunda correção de 20/10/2026 (minutos depois) — as listas fechadas eram DUAS.** O
+`descritores()` do motor repassava a marca, e o mapa continuava a não a trazer: a `porta.mapa`
+construía o nó com **outra** lista fechada, chave a chave, por cima da primeira. Duas listas em
+série, duas chances de perder o mesmo dado — e ele perdeu-se nas duas. Sem sinal no site: a rota
+recortava, a tela não pedia.
+
+O nó passa a entrar **inteiro** (`{...no, …}`) e o que a porta acrescenta vem por cima: as
+normalizações (`|| null`, `=== true`), os valores da forma, o sema resolvido. Acrescentar mais uma
+linha à segunda lista teria resolvido este campo e deixado a armadilha para o próximo — **uma lista
+fechada é uma promessa de esquecimento**.
+
+E a prova foi corrigida no mesmo movimento, porque media a **camada errada**: chamava
+`nosRespondiveis` (o motor) e dava verde com o site partido. Agora mede `porta.mapa` — o que o
+`/api/mapa` realmente serve — e a guarda genérica compara o conteúdo com essa camada, a final:
+**29 → 30 asserções**. Controlo negativo: sem o `...no`, dão **2 falhas**.
+
+Medido ao vivo depois do deploy: `?plano=plano-…-0945` → **Aluna A**, `0946` → **Aluna B**,
+`0947` → **Aluna C** — cada plano com a aluna da sua turma, e o mapa a trazer a marca.
