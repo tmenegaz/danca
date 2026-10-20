@@ -104,5 +104,11 @@
         "professores/tiago-menegaz/ciclos/ciclo-01.conf"
       ]
     }
+  ],
+  "recriacao": [
+    {
+      "em": "2026-10-20T02:06:23.439687+00:00",
+      "motivo": "recriada por tools/criar-escola.sh"
+    }
   ]
 }
