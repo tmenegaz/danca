@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-19T23:21:57-0300`
-Commit atual: `8bc6257` — fix(tools): o gerador apaga o fantasma, e o que não se pode medir declara-se
+Gerado em: `2026-10-19T23:36:39-0300`
+Commit atual: `a41dbf9` — fix(tools): a aula derivada volta a ser legível — o mapa de secções e a tabela que é o campo
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+a41dbf9 fix(tools): a aula derivada volta a ser legível — o mapa de secções e a tabela que é o campo
+34f37b5 fix(po): a declaração da captura acompanha o PO, e o parâmetro cabe numa linha
+851bce2 fix(tools): o contador do mestre não se percorre, e os derivados do PO passam a ter tipo
 8bc6257 fix(tools): o gerador apaga o fantasma, e o que não se pode medir declara-se
 d5808ac chore(estrutura): reancorar a cadeia das fontes alteradas
 eac2d5a feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
@@ -80,9 +83,6 @@ e7c2d98 feat(po): o PO elicitado vira a fonte do ciclo
 9b5a62d chore(estrutura): reancorar a cadeia das fontes alteradas
 d2eec62 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
 896a7dc feat(plano): o plano elicitado vira a fonte do ciclo
-d3db128 feat(acervo): envelope/plano-20261019-2312.json
-c2badad feat(acervo): envelope/.indice.json
-ff5883d feat(acervo): envelope/anamnese-20261019-2311-2.json
 ```
 
 ## Por professor
@@ -150,111 +150,63 @@ ff5883d feat(acervo): envelope/anamnese-20261019-2311-2.json
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
+## 20/10/2026 — a aula derivada volta a ser legível: o mapa de secções e a tabela que é o campo
 
-**O expurgo.** Medido nas três frentes, e desta vez **sem pendência**:
+**O que motivou.** Os dois últimos erros da geração da `batata` não eram do PO nem da folha: eram do
+**acordo entre quem escreve o `.md` e quem o lê de volta**. Cada lado estava «certo» do seu lado, e o
+pacote saía com o campo vazio.
 
-| frente | resultado |
-|:--|:--|
-| Worker e subdomínio | `breu.tmenegaz77.workers.dev` → **404**; script `breu` na API → **10007 (não existe)** |
-| KV | **8 apagadas, 0 restantes**, nos dois prefixos (`breu/`, `bastidores/breu/`); o namespace ficou com **0 chaves** |
-| repositório | **66 arquivos** num commit só — pacote, fontes, âncoras, envelopes e o `wrangler.breu.jsonc` |
+1. **O título que o gerador escreve não estava no mapa.** O `derivar-ciclo.js` (§4) escreve
+   `## 4. Bloco de musicalidade`, sem parênteses — os tempos só o `.conf` da variante os sabe. O
+   `MAPA_SECOES` do `validar-aula-ciclo.js` tinha as duas formas **escritas à mão**
+   (`(8 tempos · 9%)`, `(8 tempos · 10%)`), e nenhuma casava com a do gerador: a secção inteira era
+   descartada e o `blocoDeMusicalidade` não nascia. O aviso «seção fora do mapa» apanhou-o — com a
+   frase certa, e é por isso que ele existe.
+2. **O validador acusava «só tem citação» numa seção cuja tabela É o campo.** A distribuição do
+   volume chega ao JSON como linhas da tabela; nenhuma delas passava pelo `secaoTeveConteudo` do
+   `lib-extracao-md.js`, que só é marcado pelo texto corrido. O diagnóstico dizia «o campo
+   `distribuicaoDeVolume` não é criado» com o campo criado e preenchido — **um diagnóstico falso
+   custa mais do que nenhum**, porque manda procurar o problema errado.
 
-Ficaram, de propósito: o `escola/breu/indice.json` (o elo) e os cinco schemas do ciclo (o modelo de
-que nasce escola nova). **O repositório passou a não ter ciclo nenhum** — só os schemas, em
-`professores/sapo-bailarino/` e `professores/tiago-menegaz/`.
+**Motivo declarado — os congelados.** `tools/` está em `CONGELAMENTO.md`, e as duas alterações são
+mínimas e cirúrgicas:
 
-**O que o expurgo expôs.** O `indices/` não é regenerado por ninguém (declarado ontem), e a escola
-que sai deixa lá o retrato dela: `node tools/check-indices.js` passou a falhar com **13 erros em 5
-verificações** — caminhos que já não existem, âncora ilegível, e a escola «sem config e não marcada
-expurgada». Três defeitos apareceram ao tentar consertá-lo, todos na ferramenta:
+- `tools/validar-aula-ciclo.js` — **uma linha no `MAPA_SECOES`** (`"4. bloco de musicalidade"`), com
+  o porquê em comentário. Não é excepção nem tolerância: é a forma que o gerador sempre escreveu, e
+  o mapa passou a cobri-la.
+- `tools/lib-extracao-md.js` — **uma atribuição** (`secaoTeveConteudo = true`) no ramo em que a
+  tabela já é estruturada. A tabela estruturada sempre entrou no JSON; o que faltava era o
+  contador saber disso.
 
-1. **O gerador não apagava o fantasma.** `node tools/gerar-indices.js` escrevia o estado novo,
-   deixava `indices/ciclos/sapo-bailarino/01-breu.json` (um ciclo que já não existe) e declarava
-   «em dia» — enquanto o `check-indices.js` continuava a reprovar o mesmo diretório. **A ferramenta
-   que conserta não via o que a outra acusava**, e a única saída era apagar à mão. Agora o
-   `escrever()` remove os órfãos, e o `--check`/`--listar` os nomeiam. O `indices/esquema/` fica de
-   fora: é **fonte**, não saída.
-2. **`--escola` teria apagado oito escolas.** A remoção, se julgasse contra o conjunto FILTRADO,
-   tomaria os índices de todas as outras escolas por órfãos. O julgamento passou a ser contra o
-   conjunto inteiro; o filtro limita só a remoção. Provado nos dois sentidos.
-3. **O índice dizia `habilitada: true` e `expurgada: true` ao mesmo tempo.** `habilitada` vem do
-   elo, que guarda o que a criação declarou e não se reescreve; `expurgada` vem do wrangler, que o
-   expurgo apagou. Não há escola habilitada sem Worker — a derivação passou a dizê-lo
-   (`!expurgada && …`), e a verificação 12 acusa a contradição se ela voltar.
+**O que NÃO muda:** a fórmula do hash (`hash-ciclo.sh`), a cobertura das fontes, as 17 regras de
+`REGRAS.md`, as 22 pétreas de `PROTOCOLO.md`, os demais validadores e o esquema. Nenhuma das duas
+altera o que é aceite: a primeira faz chegar ao campo o que já estava escrito no documento; a segunda
+cala um aviso que era falso. **Comportamento novo: nenhum — comportamento correto: dois.**
 
-**Com o quê.** `node tools/check-indices.js` → **14 de 14**. `node experimentos/provar-indices.js`
-→ **36 asserções** (eram 29): o gerador vê o órfão, o `--check` reprova por causa dele, o `--listar`
-anuncia que ele sai, `--escola` de OUTRA escola não o leva, o `esquema` nunca é órfão, e nenhuma
-escola expurgada está habilitada. Controlo negativo feito: contra o código de `HEAD` dão **3
-falhas**. Sem regressão: declarações do índice 24, proveniência 60, acervo 48, teste 37,
-geração-do-ciclo 21, identidade visual 19.
+**Onde entrou.**
 
-**As provas aprenderam a dizer «não há dado».** Com o repositório sem ciclo, três medidas deixaram
-de ter o que medir — e uma delas **estourava** (`JSON.parse(undefined)`). O padrão passou a ser o
-mesmo em todo o lado: o que não se pode medir **declara-se**, porque uma asserção que não correu
-não é uma asserção cumprida. Concretamente:
+- `tools/validar-aula-ciclo.js` — `"4. bloco de musicalidade"` → `blocoDeMusicalidade`.
+- `tools/lib-extracao-md.js` — a tabela estruturada marca `secaoTeveConteudo`.
+- `experimentos/provar-aula-e-plano-legiveis.js` — **nova prova**, 12 asserções: a aula derivada é
+  aceita pelo validador da aula, com o bloco de musicalidade, a duração, o volume ativo e o
+  parâmetro com os três marcos **numa linha**; o plano derivado é aceito e a distribuição do volume
+  chega a campo sem o aviso de «só citação»; a captura derivada é aceita e nenhuma coluna sai sem
+  chave.
+- `experimentos/README.md`, `.gitignore` — a prova entra na tabela e no clone: o REGISTRO cita-a.
+- `wrangler.batata.jsonc` — `assets.directory` aponta o pacote da **turma**, não o esqueleto.
 
-- `provar-indices` §6 escolhe o ciclo do que foi GERADO (fixava `breu`) e, sem ciclo, exige que o
-  gerador não invente recorte nenhum;
-- `provar-indices` §7 escolhe a escola do gerado (fixava `breu` e `fita`);
-- `check-indices --contraprovas` passou a declarar as que não correm: com o repositório sem ciclo,
-  «apagar um .fipp» e «alterar o hash» não têm alvo, e o resumo dizia «7 contraprovas, todas
-  reprovam» — que se lia como «as 9 do §9.2 passaram». Agora diz «(2 declarada(s) sem dado)», com
-  o motivo de cada uma;
-- `provar-declaracoes-do-indice` §5: o tipo declarado como existente tem de ter instância — e sem
-  ciclo não há âncora, manifesto nem pacote. A prova passa a exigir que **só esses três** faltem,
-  e que o `schema` continue com instância: é o que distingue «o repositório está vazio» de «a
-  declaração mente».
+**Com o quê.** `node experimentos/provar-aula-e-plano-legiveis.js` → **12 asserções**. Controlo
+negativo: contra o `derivar-ciclo.js`/`validar-aula-ciclo.js`/`lib-extracao-md.js` de `HEAD` dão
+**4 falhas** — as quatro que descrevem os dois defeitos. Sem regressão: `check-indices` 14/14,
+`provar-geracao-do-ciclo` 23, identidade visual 19. E o `pre-commit` gerou o pacote da `batata` e o
+`check-pacote` deu **OK: 0 erro(s), 0 aviso(s)**, com «Duração: 50 minutos» no HTML da aula.
 
-**O que ainda não está feito.** Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
-hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
-correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
-
-**A primeira aula de um ciclo vivo derrubou o verificador (mesmo dia).** A escola `batata` ganhou
-um ciclo com PO, e com ele a primeira aula real. `check-indices` passou a responder
-«erro ao verificar: number 1 is not iterable» em **duas** verificações (2 e 4). A causa é a
-diferença que o próprio §4.2 declara: no **mestre** (`indices/acervo.json`) `documentos` e `aulas`
-do ciclo são **contagens**; no índice da **escola** são **listas**. As duas verificações faziam
-`for (const aula of ciclo.aulas || [])` — e o defeito ficou escondido porque o único ciclo do
-mestre tinha `aulas: 0`, e **zero é falsy**: `0 || []` é `[]`. O primeiro `aulas: 1` estourou.
-O teste passou a ser `Array.isArray` — um contador nunca se percorre.
-
-Três coisas mais, todas expostas pelo mesmo ciclo:
-
-- **A verificação 4 acusava duplicata entre duas vistas do mesmo dado.** O índice da escola traz
-  `documentos[]` e `aulas[]` no topo como **projecção** dos ciclos (é o `gerar-indices.js` que o
-  declara), e o mesmo id aparece nas duas de propósito. Quem confere o acordo entre elas é a
-  verificação 14 — e é ela que apanha uma duplicata **dentro** da projecção (provado: um id
-  repetido em `aulas[]` faz a 14 reprovar). A 4 deixou de olhar para as projecções.
-- **Quatro documentos do ciclo não tinham tipo declarado.** O «Guardar» do PO passou a escrever
-  `-harmonizacao.md`, `-notacao.md`, `-glossario-benesh.md` e `-referencias.md` ao lado das
-  fontes, e nem o esquema nem o motor os conheciam: entravam no acervo como «sem tipo declarado»
-  e ficavam invisíveis para a proveniência. Entraram quatro tipos (`harmonizacao`, `notacao`,
-  `glossario`, `referencias`), no esquema **e** no `tipoDoDocumento` — as duas metades, que a
-  prova das declarações exige que concordem.
-- `node tools/check-indices.js --contraprovas` → **10**, todas reprovam (eram 9, e as duas que
-  ontem ficaram «sem dado» voltaram a correr).
-
-`node experimentos/provar-indices.js` → **49 asserções** (eram 36): o mestre guarda contagem e não
-lista, nenhuma verificação estoura a lê-lo, a projecção plana não é duplicata, e os quatro tipos
-novos estão declarados nos dois lados. Controlo negativo: contra o código de `HEAD` dão **8
-falhas**.
+**O que ainda não está feito.** O pacote gerado no `pre-commit` foi **removido** do disco: quem o
+versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
+geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
+quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.
 
 ## O que está pendente
-
-## 20/10/2026 — o índice passa a ser gerado, e o «passou» passa a ser medido
-
-(a) **O gerador não é chamado por nada.** `indices/` está versionado
-e em dia, mas atualizado **à mão**: nem o `pre-commit`, nem `criar-escola.sh`, nem `gerar-ciclo.sh`,
-nem `gerar-raiz.sh` o invocam. É a **Etapa 3**, e ela toca arquivos congelados que já existem —
-logo, exige motivo declarado, entrada própria e commit próprio. (b) **O índice não é servido**: não
-há `raiz/indices/acervo.json` nem `<pacote>/indices/publico.json`, e o Worker continua a construir o
-índice em memória (fase 4). A verificação 6 («Cópias») passa **por vacuidade** — não há cópia a
-comparar. (c) **`vinculos[]` e `autoria[]` continuam previstas**, não produzidas: é a dívida que o
-§4.11 nomeia e que `TR11`/`TR13`/`PV08`/`OB09` esperam. (d) **A tabela de contagem do §9.2 dizia 7
-em §11 e 9 em §9.2**; ficou corrigida para 10 nesta entrada, mas vale saber que o erro estava no
-plano e não no código.
 
 ## 20/10/2026 — a âncora da aula deixa de ficar solta, e o rebase diz a verdade
 
@@ -276,11 +228,22 @@ Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
 hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
 correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
 
-## 20/10/2026 — o expurgo da `breu` foi completo, e o índice ficou a apontar para o que já não existe
+## 20/10/2026 — o PO da `batata` não gerava o ciclo: a declaração da captura ficou presa na ronda anterior
 
-Continua verdadeiro o de ontem: **nada regenera o `indices/`** — o
-hook do pré-commit valida a âncora e a identidade visual, e nenhum workflow corre o gerador. A
-correcção de hoje faz com que regenerar **funcione**; não faz com que **aconteça**.
+A geração **não foi redisparada** no Cloudflare: o commit empurra a
+correcção, e o pacote da `batata` continua a não existir no repositório até o workflow correr outra
+vez. E a pergunta estrutural fica aberta: **a declaração é do SCHEMA, e o schema é por ciclo, não
+por escola** — uma segunda escola do mesmo ciclo e da mesma variante herda a declaração da primeira.
+O merge torna a herança inofensiva (os rótulos acompanham o PO), mas não a torna correta por
+desenho: o lugar da declaração é ao lado do PO que a produziu, e mudá-lo mexe no formato do
+`captura-*.json` já publicado.
+
+## 20/10/2026 — a aula derivada volta a ser legível: o mapa de secções e a tabela que é o campo
+
+O pacote gerado no `pre-commit` foi **removido** do disco: quem o
+versiona é o workflow `gerar-ciclo.yml`, com a mensagem e o rodapé dele. Falta **redisparar a
+geração** no Cloudflare para o pacote existir no repositório, e falta reintroduzir a declaração
+quando o PO muda — isso é o commit anterior, e o redisparo é o que o torna visível.
 
 ## Pendências anteriores (índice)
 
@@ -516,6 +479,7 @@ correcção de hoje faz com que regenerar **funcione**; não faz com que **acont
 - **20/10/2026** — as declarações do índice: o vocabulário deixa de estar… → `REGISTRO.md` L19732
 - **20/10/2026** — a anamnese sai do KV, e o cofre deixa de existir → `REGISTRO.md` L19792
 - **20/10/2026** — o plano de ensino de teste chega preenchido inteiro, não… → `REGISTRO.md` L19833
+- **20/10/2026** — o índice passa a ser gerado, e o «passou» passa a ser medido → `REGISTRO.md` L19885
 - PO de **tiago-menegaz · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **tiago-menegaz · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
