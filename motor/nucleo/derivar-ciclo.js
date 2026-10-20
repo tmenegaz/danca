@@ -177,8 +177,17 @@ function derivarAula01({ plano, po, contexto, calibracao }) {
   // chegava ao documento como `[object Object]`.
   const parametroLinhas = parametroEmLinhas(resp(plano, 'aula-1-parametro'),
     marcosEmTexto(resp(plano, 'marcos-por-aula')));
+  /*
+   * UMA LINHA, NÃO VÁRIAS (20/10/2026). O parâmetro vira uma CÉLULA de tabela, e uma célula de
+   * tabela Markdown não atravessa linhas: escrita com `\n`, a linha partia-se em três, o parser
+   * fechava a tabela na primeira quebra e abria outra com o resto — e as linhas seguintes
+   * (`Duração`, `Volume ativo`) deixavam de ser dado e passavam a ser cabeçalho da tabela
+   * seguinte, que o contrato descarta. Medido na aula 01 da `batata`: `identificacao` saía sem
+   * `duracao` nem `volumeAtivo`, com o aviso «as 1 linha(s) de uma SEGUNDA tabela ficaram de
+   * fora». O separador é o mesmo que o resto do documento usa entre itens.
+   */
   const parametro = parametroLinhas.length
-    ? parametroLinhas.join('\n')
+    ? parametroLinhas.join(' · ')
     : '[Preencher: parâmetro de medição da Aula 01]';
   const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
   const estrutura = (() => {
@@ -543,6 +552,67 @@ function declaracaoDeCaptura({ po, escola }) {
   return { escola: escola || 'Escola', blocos };
 }
 
+/**
+ * A DECLARAÇÃO ATUALIZADA PELA DO PO, SEM RENOMEAR O QUE JÁ EXISTIA (20/10/2026).
+ *
+ * O PROBLEMA. A declaração `porVariante` era gravada UMA VEZ (`if (porVariante[slug]) → já
+ * declarada`). Como ela mora no SCHEMA de captura — que o expurgo de uma escola PRESERVA de
+ * propósito, por ser o modelo de que nasce escola nova —, a entrada de uma variante sobrevivia à
+ * escola e à ronda de teste, e voltava a contradizer o PO seguinte. Foi o que parou a geração da
+ * `batata` às 23:2x de 20/10/2026: a folha tinha os critérios elicitados e o schema ainda tinha
+ * os rótulos da ronda anterior («Teste tec solo»), e o validador recusou uma coluna por bloco.
+ *
+ * O QUE NÃO SE PODE PERDER. A `chave` de uma coluna é o que o lançamento usa para guardar a
+ * marca. Renomeá-la reescreveria o passado — é a mesma regra do resto do sistema: o registo
+ * acrescenta, não se reescreve. Por isso a actualização é um MERGE **por rótulo**: o que já
+ * estava declarado conserva `chave` e `tipo`; o que é novo ganha a chave derivada do rótulo.
+ *
+ * O QUE SAI. Bloco ou coluna que o PO já não produz sai da declaração — senão o ficheiro cresce
+ * com fantasmas e um rótulo reutilizado mais tarde herdaria a chave de outro contexto. As chaves
+ * que deixaram de existir ficam no HISTÓRICO do git e nos pacotes já publicados (`captura-*.json`),
+ * que não se reescrevem.
+ */
+function mesclarDeclaracao(anterior, derivada) {
+  if (!anterior || !anterior.blocos) return derivada;
+  const blocos = {};
+  for (const [titulo, bloco] of Object.entries(derivada.blocos || {})) {
+    const velho = anterior.blocos[titulo];
+    if (!velho) { blocos[titulo] = bloco; continue; }
+    const colunas = {};
+    for (const [rotulo, coluna] of Object.entries(bloco.colunas || {})) {
+      const jaEra = velho.colunas && velho.colunas[rotulo];
+      colunas[rotulo] = jaEra ? { chave: jaEra.chave, tipo: jaEra.tipo } : coluna;
+    }
+    blocos[titulo] = {
+      // A chave e o rótulo do BLOCO também se conservam: é debaixo dela que a marca é guardada.
+      chave: velho.chave || bloco.chave,
+      rotulo: velho.rotulo || bloco.rotulo,
+      grao: velho.grao || bloco.grao,
+      colunas: colunas,
+    };
+  }
+  return { escola: derivada.escola || anterior.escola, blocos: blocos };
+}
+
+/**
+ * A declaração precisa de ser REGRAVADA? Um PO regravado sem mudança não deve gerar commit —
+ * o «Guardar» do PO é um clique que pode repetir-se, e cada gravação custa um commit no
+ * repositório. A comparação é canónica (chaves ordenadas), para a ordem não contar como mudança.
+ */
+function precisaGravar(anterior, nova) {
+  const canonico = (o) => {
+    const ordenar = (v) => {
+      if (Array.isArray(v)) return v.map(ordenar);
+      if (!v || typeof v !== 'object') return v;
+      const saida = {};
+      for (const k of Object.keys(v).sort()) saida[k] = ordenar(v[k]);
+      return saida;
+    };
+    return JSON.stringify(ordenar(o === undefined ? null : o));
+  };
+  return canonico(anterior) !== canonico(nova);
+}
+
 /** A folha de captura da Aula 01 — para impressão — derivada do PO. */
 function derivarCaptura({ po, contexto }) {
   const sujeitos = emLista(resp(po, 'sujeitos')).filter((v) => !GABARITO_VAZADO.test(v));
@@ -758,6 +828,8 @@ module.exports = {
   derivarGlossario,
   derivarCaptura,
   declaracaoDeCaptura,
+  mesclarDeclaracao,
+  precisaGravar,
   derivarHarmonizacao,
   notacaoEscolhida,
   dimensoesEItens,

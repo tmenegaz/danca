@@ -260,9 +260,93 @@ function oAcordo() {
   ok('a declaração de captura é gravada debaixo da VARIANTE — é lá que o gerador a procura');
 }
 
+/*
+ * A DECLARAÇÃO ACOMPANHA O PO — não fica congelada na primeira escrita (20/10/2026).
+ *
+ * O QUE ACONTECEU. A geração do ciclo da `batata` correu até ao fim e parou na captura:
+ *
+ *   ERRO coluna da folha não declarada no schema:
+ *     'Bloco 1 — Técnica — Solo' → 'alinhamento do pé de apoio; eixo do corpo na preparação'
+ *   (…uma por bloco)
+ *
+ * A folha estava certa — as colunas eram os critérios que o PO acabou de elicitar. A DECLARAÇÃO é
+ * que estava velha: `escrever-ciclo.js` gravava a variante **uma vez** e depois respondia «já
+ * declarada». A `batata` já tinha sido criada, declarada e expurgada noutra ronda de teste; o
+ * `_declaracao.porVariante` mora no SCHEMA — que o expurgo **preserva de propósito**, porque é o
+ * modelo de que nasce escola nova —, e a entrada antiga (`Teste tec solo`) sobreviveu ao expurgo
+ * para contradizer o PO novo. A declaração é DERIVADA do PO: se o PO muda, ela muda.
+ *
+ * O QUE NÃO PODE MUDAR: a CHAVE. É ela que o lançamento usa para guardar a marca; renomeá-la
+ * reescreveria o passado. Por isso a actualização é um MERGE por rótulo — o que já estava
+ * declarado conserva `chave` e `tipo`, e só o que é novo ganha chave derivada.
+ */
+function aDeclaracaoAcompanhaOPo() {
+  const { mesclarDeclaracao } = require('../motor/nucleo/derivar-ciclo.js');
+
+  const antiga = {
+    escola: 'Batata',
+    blocos: {
+      'Bloco 1 — Técnica — Solo': {
+        chave: 'tecnica_solo', rotulo: 'Técnica — Solo', grao: 'aluna',
+        colunas: {
+          'Teste tec solo': { chave: 'teste_tec_solo', tipo: 'rubrica' },
+          'Eixo do corpo': { chave: 'eixo_do_corpo', tipo: 'rubrica' },
+        },
+      },
+      'Bloco 5 — Técnica — Expressão': {
+        chave: 'tecnica_expressao', rotulo: 'Técnica — Expressão', grao: 'aluna',
+        colunas: { 'Teste tec expressão': { chave: 'teste_tec_expressao', tipo: 'rubrica' } },
+      },
+    },
+  };
+  const derivada = {
+    escola: 'Batata',
+    blocos: {
+      'Bloco 1 — Técnica — Solo': {
+        chave: 'tecnica_solo', rotulo: 'Técnica — Solo', grao: 'aluna',
+        colunas: {
+          'Eixo do corpo': { chave: 'eixo_do_corpo', tipo: 'rubrica' },
+          'Alinhamento do pé de apoio': { chave: 'alinhamento_do_pe_de_apoio', tipo: 'rubrica' },
+        },
+      },
+    },
+  };
+
+  const m = mesclarDeclaracao(antiga, derivada);
+
+  assert.deepEqual(Object.keys(m.blocos), ['Bloco 1 — Técnica — Solo'],
+    'a declaração ficou com blocos que o PO já não produz');
+  assert.deepEqual(Object.keys(m.blocos['Bloco 1 — Técnica — Solo'].colunas).sort(),
+    ['Alinhamento do pé de apoio', 'Eixo do corpo'],
+    'a declaração ficou com colunas que a folha já não tem');
+  assert.equal(m.blocos['Bloco 1 — Técnica — Solo'].colunas['Eixo do corpo'].chave, 'eixo_do_corpo',
+    'a chave de uma coluna que permaneceu foi reescrita — o passado ficaria órfão');
+  assert.equal(m.blocos['Bloco 1 — Técnica — Solo'].colunas['Alinhamento do pé de apoio'].chave,
+    'alinhamento_do_pe_de_apoio', 'a coluna nova não ganhou chave derivada');
+  assert.equal(m.escola, 'Batata', 'a escola da declaração deixou de ser a do PO');
+
+  // SEM DECLARAÇÃO ANTERIOR, o merge devolve a derivada — sem inventar nada.
+  const primeira = mesclarDeclaracao(null, derivada);
+  assert.deepEqual(primeira, derivada);
+
+  // E a chave do BLOCO também se conserva: é debaixo dela que a marca é guardada.
+  const blocoRenomeado = JSON.parse(JSON.stringify(antiga));
+  blocoRenomeado.blocos['Bloco 1 — Técnica — Solo'].rotulo = 'Técnica (Solo)';
+  const m2 = mesclarDeclaracao(blocoRenomeado, derivada);
+  assert.equal(m2.blocos['Bloco 1 — Técnica — Solo'].chave, 'tecnica_solo');
+
+  // O ESCRITOR NÃO ESCREVE QUANDO NADA MUDOU: um PO regravado igual não gera commit.
+  const { precisaGravar } = require('../motor/nucleo/derivar-ciclo.js');
+  assert.equal(precisaGravar(antiga, antiga), false, 'declaração idêntica voltaria a ser gravada');
+  assert.equal(precisaGravar(antiga, m), true, 'declaração diferente não seria gravada');
+
+  ok('a declaração acompanha o PO, e a chave de uma coluna que permaneceu não muda');
+}
+
 (async () => {
   await provaAsync('o disparo leva a variante', oDisparo);
   prova('o acordo com o workflow', oAcordo);
+  prova('a declaração acompanha o PO', aDeclaracaoAcompanhaOPo);
 
   console.log('');
   if (falhas) {

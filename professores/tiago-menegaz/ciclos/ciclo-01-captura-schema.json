@@ -447,8 +447,8 @@
             "rotulo": "Técnica — Solo",
             "grao": "aluna",
             "colunas": {
-              "Teste tec solo": {
-                "chave": "teste_tec_solo",
+              "alinhamento do pé de apoio; eixo do corpo na preparação": {
+                "chave": "alinhamento_do_pe_de_apoio_eixo_do_corpo_na_preparacao",
                 "tipo": "rubrica"
               }
             }
@@ -458,8 +458,8 @@
             "rotulo": "Técnica — Barra",
             "grao": "aluna",
             "colunas": {
-              "Teste tec barra": {
-                "chave": "teste_tec_barra",
+              "saída do calcanhar no tendu; quadril sem subir no en dehors": {
+                "chave": "saida_do_calcanhar_no_tendu_quadril_sem_subir_no_en_dehors",
                 "tipo": "rubrica"
               }
             }
@@ -469,8 +469,8 @@
             "rotulo": "Técnica — Centro",
             "grao": "aluna",
             "colunas": {
-              "Teste tec centro": {
-                "chave": "teste_tec_centro",
+              "transferência de peso sem perder a verticalidade; braço junto do movimento": {
+                "chave": "transferencia_de_peso_sem_perder_a_verticalidade_braco_junto_do_movimento",
                 "tipo": "rubrica"
               }
             }
@@ -480,19 +480,8 @@
             "rotulo": "Técnica — Musicalidade",
             "grao": "aluna",
             "colunas": {
-              "Teste tec musicalidade": {
-                "chave": "teste_tec_musicalidade",
-                "tipo": "rubrica"
-              }
-            }
-          },
-          "Bloco 5 — Técnica — Expressão": {
-            "chave": "tecnica_expressao",
-            "rotulo": "Técnica — Expressão",
-            "grao": "aluna",
-            "colunas": {
-              "Teste tec expressão": {
-                "chave": "teste_tec_expressao",
+              "resposta ao pulso na marcação; frase até o fim da música": {
+                "chave": "resposta_ao_pulso_na_marcacao_frase_ate_o_fim_da_musica",
                 "tipo": "rubrica"
               }
             }

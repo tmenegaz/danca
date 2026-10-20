@@ -31,6 +31,8 @@ const {
   derivarGlossario,
   derivarCaptura,
   declaracaoDeCaptura,
+  mesclarDeclaracao,
+  precisaGravar,
   derivarHarmonizacao,
   notacaoEscolhida,
 } = require('../nucleo/derivar-ciclo.js');
@@ -424,17 +426,39 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
          * válidas — nelas `varianteDoContexto` devolve a própria escola. Nada a migrar.
          */
         const slug = varianteDoContexto(ctx) || String(ctx.escola || '').trim();
-        if (porVariante[slug]) {
-          relatorio.schema = { ok: true, nota: 'variante ' + slug + ' já declarada' };
+        /*
+         * A DECLARAÇÃO SEGUE O PO, E NÃO A PRIMEIRA ESCRITA (20/10/2026).
+         *
+         * Era `if (porVariante[slug]) → «já declarada»`, e isso partiu a geração da `batata`:
+         * a variante já tinha sido declarada noutra ronda de teste, o schema é PRESERVADO pelo
+         * expurgo (é o modelo de que nasce escola nova), e a entrada antiga — com os rótulos
+         * daquela ronda — sobreviveu para contradizer o PO novo. A folha saiu com os critérios
+         * elicitados e a declaração com «Teste tec solo»; o validador recusou uma coluna por
+         * bloco («coluna da folha não declarada no schema») e o pacote não foi gerado.
+         *
+         * O merge conserva `chave` e `tipo` do que já era declarado — renomear a chave
+         * reescreveria o passado, e é ela que o lançamento usa para guardar a marca — e só
+         * acrescenta o que é novo. Quando nada muda, não há commit: o «Guardar» do PO é um
+         * clique que se repete.
+         */
+        const derivada = declaracaoDeCaptura({ po, escola: ctx.escolaNome || escolaNome });
+        const jaDeclarada = Boolean(porVariante[slug]);
+        const nova = mesclarDeclaracao(porVariante[slug], derivada);
+        if (!precisaGravar(porVariante[slug], nova)) {
+          relatorio.schema = {
+            ok: true,
+            nota: jaDeclarada ? 'variante ' + slug + ' já declarada, e em dia' : 'sem declaração',
+          };
         } else {
-          porVariante[slug] = declaracaoDeCaptura({ po, escola: ctx.escolaNome || escolaNome });
+          porVariante[slug] = nova;
           const resultado = await gravarArquivoRemoto({
             token, dono, repo, ref, caminho: schemaPath,
             conteudo: JSON.stringify(dados, null, 2) + '\n',
-            mensagem: 'feat(captura): declara a variante ' + slug + ' no schema de captura',
+            mensagem: (jaDeclarada ? 'feat(captura): actualiza a variante ' : 'feat(captura): declara a variante ')
+              + slug + ' no schema de captura',
             sha: schema.sha,
           });
-          relatorio.schema = { ok: resultado.ok };
+          relatorio.schema = { ok: resultado.ok, actualizada: jaDeclarada };
         }
       }
     }
