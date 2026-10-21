@@ -1940,12 +1940,26 @@ async function trocarCiclo() {
     if (barraCtl && maisCtl) {
       // A ALTURA DA BARRA, publicada para o «voltar ao topo» se pôr acima dela. Medida
       // depois de cada mudança de estado: a barra aberta é mais alta que a compacta.
+      // Escreve-se SÓ quando o número muda: escrever em `:root` invalida o estilo do
+      // documento inteiro, e `--barra-altura` move um elemento `fixed` — no iPhone, um
+      // `resize` por quadro durante a rolagem faria disto uma repintura por quadro.
+      let alturaDaBarraPublicada = null;
       const publicarAltura = () => {
-        document.documentElement.style.setProperty(
-          '--barra-altura', Math.round(barraCtl.getBoundingClientRect().height) + 'px');
+        const altura = Math.round(barraCtl.getBoundingClientRect().height) + 'px';
+        if (altura === alturaDaBarraPublicada) return;
+        alturaDaBarraPublicada = altura;
+        document.documentElement.style.setProperty('--barra-altura', altura);
       };
       publicarAltura();
-      window.addEventListener('resize', publicarAltura);
+      // O `resize` do iOS dispara a cada quadro enquanto as barras do sistema se
+      // recolhem ao rolar. A barra não muda com a ALTURA da janela — muda com a largura
+      // (é o corte dos 900px que a torna compacta). Só se reage a mudança de largura.
+      let larguraDaVista = window.innerWidth;
+      window.addEventListener('resize', () => {
+        if (window.innerWidth === larguraDaVista) return;
+        larguraDaVista = window.innerWidth;
+        publicarAltura();
+      });
       window.addEventListener('load', publicarAltura);
       maisCtl.addEventListener('click', () => {
         const aberto = barraCtl.getAttribute('data-aberto') === 'sim';

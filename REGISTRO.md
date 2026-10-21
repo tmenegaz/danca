@@ -21467,3 +21467,75 @@ e comentários removidos antes, e a página cifrada é a única dispensada — e
 - **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
   isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
   acusa.
+
+## 21/10/2026 — iPhone: o menu que não cabia e a rolagem que tremia
+
+**O que foi visto.** Num iPhone: *«o menu de hambúrguer aparece pela metade»* e *«a rolagem fica
+tremelicando»*. No Moto G4 e no Chrome do computador, bem. As duas coisas são do Safari do iOS, e
+as duas foram medidas antes de corrigidas:
+
+1. **O menu não cabia.** O painel cresce com o conteúdo — **812px** com os seis grupos abertos — e
+   não tinha `max-height` nem `overflow`. Num iPhone as barras do sistema comem 150 a 270px da
+   altura, e o fim do menu ficava fora da tela **sem como chegar lá**: o painel está dentro de uma
+   barra `position: fixed`, e a página por baixo rola sem o levar. Medido em 390×664 (o que um
+   iPhone mostra com as barras): **148px cortados**; em 320×568, **266px**.
+
+2. **O `resize` do iOS dispara a rolar.** Enquanto a página rola, o Safari recolhe e volta a
+   mostrar as barras do sistema — e emite `resize` a cada quadro dessa animação. Os dois `resize`
+   faziam trabalho de layout: `ajustarAlturaNavbar` escrevia `--header-height` (que é o
+   `padding-top` do `body`) e o bloco do título media o cabeçalho. Medido: **60 eventos com a
+   mesma largura davam 60 leituras de layout e 120 escritas em `:root`** — o conteúdo andava por
+   baixo do dedo. É a tremedeira. No Android o `resize` não dispara a rolar, e no desktop a janela
+   não muda de tamanho sozinha: por isso só o iPhone mostrava o defeito.
+
+**Motivo declarado — `tools/templates/` é congelado e muda aqui.** O motivo é o pedido, e a
+correção não tem como existir fora da folha e do script compartilhados. **O que não muda:** a
+paleta, a tipografia, o desenho de qualquer componente, a fórmula do hash, a cobertura da âncora,
+os validadores, as 17 regras e as 22 pétreas. O que muda é **quando** o layout é medido e **quanto
+do painel cabe** — comportamento em ambiente móvel, não identidade.
+
+**Onde entrou.**
+- `tools/templates/ciclo.css` — o painel com `max-height: 100svh` + `overflow-y: auto`, o
+  `flex-wrap: nowrap` e o `> * { flex: 0 0 auto }`; o hamburger com 44×50 e `touch-action`.
+- `tools/templates/nav.js` — `resize` só quando a **largura** muda; `--barra-linha` (a barra
+  fechada, para o limite do painel); e as escritas passam a ser guardadas pelo valor anterior.
+- `tools/templates/lancamento.html` — o mesmo portão no `resize` que publica `--barra-altura`.
+- `experimentos/provar-iphone.js` — **novo**, 21 verificações.
+- `IDENTIDADE-VISUAL.md` — a secção «O iPhone».
+
+**Quatro coisas que a medição encontrou, e uma delas era uma correção minha que não funcionava.**
+1. **`flex-wrap: wrap` herdado.** A `.nav-links` nasce com `wrap` — no desktop os links quebram em
+   duas linhas, e é isso que se quer lá. Com `flex-direction: column` e uma `max-height`, a coluna
+   transbordava para uma **segunda coluna ao lado**: 715px de links dentro de uma caixa de 400, sem
+   barra de rolagem. O painel deixava de rolar e passava a mostrar os links aos pares.
+2. **Sem `flex: 0 0 auto` os itens encolhem.** Com a caixa limitada, os filhos comprimiam-se para
+   caber em vez de o painel rolar — 13 links espremidos em 400px.
+3. **`100dvh` teria reintroduzido a tremedeira.** O `dvh` muda durante a rolagem (as barras
+   recolhem); um painel que cresce sozinho enquanto se rola é o mesmo defeito. Ficou `100svh`, com
+   `100vh` de recurso.
+4. **A prova media uma página nua.** A primeira versão servia a folha do controlo negativo com
+   MIME de `text/javascript` (o `extname` caía no ficheiro lido, não no caminho pedido); o Chrome
+   recusa uma folha com MIME de script, a página aparecia sem estilo — e o controlo negativo
+   **aprovava pelo motivo errado**. Ficou uma asserção que exige a folha aplicada (>100 regras).
+
+**Com o quê.**
+- `node experimentos/provar-iphone.js` → **21 asserções, 0 falha**. CONTROLES NEGATIVOS contra o
+  `HEAD`: com o CSS de antes o painel corta **148px**; com o `nav.js` de antes, 60 `resize` dão
+  **60 leituras e 120 escritas**; e a folha antiga está aplicada (152 regras).
+- `provar-celular` 15/15, `provar-titulo-e-barra` 27/27, `provar-paginação` 121/121,
+  `provar-barra-unica` 53/53, `provar-cabecalho-do-documento` 21/21, `check-identidade` 19/19,
+  `check-pacote` 0 erro/0 aviso.
+- Medido no Worker ao vivo: hamburger **44×50**; painel `max-height` 587px, conteúdo 877, **4px**
+  de sobra abaixo; o último link («Produção») alcançável ao rolar o painel.
+
+**O que ainda não está feito — e é o mais importante.**
+- **Não foi testado num iPhone.** Não há iOS nesta máquina. O que se provou é o **mecanismo**: o
+  que o código faz quando o ambiente se comporta como o do iOS (alturas de viewport com as barras
+  à vista, `resize` em rajada, painel maior que a tela). Se no iPhone ainda tremer, o próximo passo
+  é instrumentar no aparelho — e aí a suspeita passa a ser outra, provavelmente o
+  `scroll-behavior: smooth` do `html`, que continua lá e que esta mudança não tocou.
+- **A largura como único gatilho** quer dizer que um teclado virtual que só mude a altura não
+  re-mede nada. É o que se quer (re-medir a rolar era o defeito), mas fica declarado.
+- O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
+  mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
+  para quando houver um aparelho para conferir.

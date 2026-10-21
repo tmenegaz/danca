@@ -152,8 +152,29 @@
      sai sem tocar em nada, em vez de estourar mais abaixo. */
   if (!navbar) return;
 
+  /* A ALTURA DA BARRA, PUBLICADA SÓ QUANDO MUDA (21/10/2026).
+     A versão anterior escrevia a custom property em toda chamada. Escrever em
+     `:root` invalida o estilo do documento inteiro, e `--header-height` alimenta o
+     `padding-top` do `body`: uma escrita por evento é um refluxo por evento.
+     Agora só se escreve quando o número MUDOU — o que, na prática, é uma vez. */
+  var alturaPublicada = null;
+  var linhaPublicada = null;
+
   function ajustarAlturaNavbar() {
-    document.documentElement.style.setProperty('--header-height', navbar.offsetHeight + 'px');
+    var altura = navbar.offsetHeight + 'px';
+    if (altura !== alturaPublicada) {
+      alturaPublicada = altura;
+      document.documentElement.style.setProperty('--header-height', altura);
+    }
+    /* `--barra-linha` é a altura da barra FECHADA — a linha da marca e do hamburger.
+       O painel do menu no celular usa-a para saber quanto sobra da tela
+       (`.topnav.aberto .nav-links { max-height: calc(100svh - var(--barra-linha) …) }`).
+       Medida só com o painel fechado: aberto, `offsetHeight` é a barra inteira, e o
+       limite do painel passaria a incluir-se a si mesmo. */
+    if (!navbar.classList.contains('aberto') && altura !== linhaPublicada) {
+      linhaPublicada = altura;
+      document.documentElement.style.setProperty('--barra-linha', altura);
+    }
   }
 
   if (botao) {
@@ -212,7 +233,20 @@
 
   ajustarAlturaNavbar();
   window.addEventListener('load', ajustarAlturaNavbar);
-  window.addEventListener('resize', ajustarAlturaNavbar);
+
+  /* O `resize` DO iOS NÃO É O `resize` DO DESKTOP (21/10/2026).
+     Enquanto se rola uma página, o Safari do iPhone recolhe e volta a mostrar as
+     barras do sistema — e dispara `resize` a cada quadro dessa animação. Com um
+     `resize` que mexe no layout, o conteúdo anda por baixo do dedo: é a «rolagem a
+     tremer» que se vê no iPhone e não no Android nem no Chrome do computador.
+     A largura é o que muda o que medimos; a altura que muda sozinha é a barra do
+     sistema, e não nos diz nada. Só se reage a mudança de LARGURA. */
+  var larguraDaVista = window.innerWidth;
+  window.addEventListener('resize', function () {
+    if (window.innerWidth === larguraDaVista) return;
+    larguraDaVista = window.innerWidth;
+    ajustarAlturaNavbar();
+  });
 
   /* Página restaurada do cache do navegador (o "voltar" no celular) traz o DOM
      como estava — inclusive com o painel aberto e o botão marcado. Zera tudo e
@@ -295,14 +329,26 @@
     if (titulo) titulo.style.transition = '';
     if (antes === null) raiz.removeAttribute('data-titulo-encolhido');
     else raiz.setAttribute('data-titulo-encolhido', antes);
-    if (alturaPreso > 0) raiz.style.setProperty('--titulo-preso', alturaPreso + 'px');
+    var valor = alturaPreso > 0 ? alturaPreso + 'px' : null;
+    if (valor && valor !== raiz.style.getPropertyValue('--titulo-preso')) {
+      raiz.style.setProperty('--titulo-preso', valor);
+    }
   }
 
   /* O estado é da ROLAGEM, e o limiar de 8px evita que um tremor de trackpad
-     faça o título piscar entre os dois tamanhos. */
+     faça o título piscar entre os dois tamanhos.
+
+     NÃO SE ESCREVE O QUE JÁ LÁ ESTÁ (21/10/2026). Um `setAttribute` com o mesmo valor
+     parece inofensivo, mas o atributo é lido por regras de `font-size` e de
+     `display`: no Safari, marcá-lo por marcá-lo em cada quadro obriga a recalcular o
+     cabeçalho em cada quadro da rolagem. Guardar o último valor escrito faz disto
+     uma escrita por mudança de estado — duas por página, não duzentas. */
+  var estadoPintado = null;
   function pintar() {
-    var encolhido = window.scrollY > 8;
-    raiz.setAttribute('data-titulo-encolhido', encolhido ? 'sim' : 'nao');
+    var encolhido = window.scrollY > 8 ? 'sim' : 'nao';
+    if (encolhido === estadoPintado) return;
+    estadoPintado = encolhido;
+    raiz.setAttribute('data-titulo-encolhido', encolhido);
   }
 
   var pedido = false;
@@ -319,11 +365,31 @@
     });
   }
 
-  medirEncolhido();
+  /* A MEDIÇÃO DEPENDE DA LARGURA, NÃO DA ALTURA (21/10/2026).
+   *
+   * `medirEncolhido` escreve um atributo, LÊ a altura do cabeçalho e escreve uma custom
+   * property — é a operação mais cara desta página. Ela corria em todo `resize`, e no
+   * iPhone o `resize` dispara a cada quadro enquanto as barras do sistema se recolhem
+   * ao rolar. O resultado media-se: 60 eventos de `resize` com a MESMA largura davam 60
+   * leituras de layout e 120 escritas em `:root` — e o conteúdo andava por baixo do
+   * dedo. É a tremedeira.
+   *
+   * O que a medição depende é da largura: é ela que decide se o título quebra em duas
+   * linhas. A altura que muda sozinha é a barra do sistema, e não muda o título. */
+  var larguraMedida = 0;
+  function remedeirSeALarguraMudou(comPintura) {
+    if (window.innerWidth !== larguraMedida) {
+      larguraMedida = window.innerWidth;
+      medirEncolhido();
+    }
+    if (comPintura) pintar();
+  }
+
+  remedeirSeALarguraMudou(false);
   pintar();
   window.addEventListener('scroll', aoRolar, { passive: true });
-  window.addEventListener('resize', function () { medirEncolhido(); pintar(); });
-  window.addEventListener('load', function () { medirEncolhido(); pintar(); });
+  window.addEventListener('resize', function () { remedeirSeALarguraMudou(true); });
+  window.addEventListener('load', function () { remedeirSeALarguraMudou(true); });
   /* Página restaurada do cache do navegador: volta já rolada, com o estado de antes. */
   window.addEventListener('pageshow', function () { pintar(); });
 })();

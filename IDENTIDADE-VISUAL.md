@@ -906,6 +906,32 @@ nasce recolhido, o ganho é medido, o toque expande e recolhe, o estado é lembr
 e na página seguinte, o corte é 1199 × 1200, a memória é ignorada em tela larga, sem JS não há
 botão, no papel o índice sai inteiro, e nenhuma largura estoura.
 
+## O iPhone — o menu que não cabia e a rolagem que tremia *(21/10/2026)*
+
+Dois defeitos que só aparecem no Safari do iOS: o Android e o Chrome do computador nunca os
+mostraram. Medidos antes de corrigidos, e as duas causas são do **ambiente**, não do gosto.
+
+| O que se viu | O que era, medido |
+| --- | --- |
+| «o menu de hambúrguer aparece pela metade» | o painel crescia com o conteúdo — **812px** com os seis grupos abertos — sem `max-height` nem `overflow`, e num iPhone as barras do sistema comem 150 a 270px. Em 390×664 (o que um iPhone mostra com as barras): **148px cortados**; em 320×568, **266px**. O painel está dentro de uma barra `position: fixed`, e a página por baixo rola sem o levar: o fim era inalcançável |
+| «a rolagem fica a tremer» | o `resize` do iOS dispara **a cada quadro** enquanto as barras se recolhem ao rolar. Os dois `resize` faziam trabalho de layout, e 60 eventos com a **mesma largura** davam **60 leituras de layout e 120 escritas em `:root`** — e `--header-height` é o `padding-top` do `body`: o conteúdo andava por baixo do dedo |
+
+**O que ficou.**
+
+| Regra | Como |
+| --- | --- |
+| **O painel cabe** | `max-height: calc(100svh − var(--barra-linha) − 8px)` com `overflow-y: auto`. `svh` — o viewport *pequeno*, com as barras — e não `dvh`, que **muda durante a rolagem**: um painel que cresce sozinho enquanto se rola é a tremedeira que se está a corrigir |
+| **A altura da linha é medida** | `--barra-linha` é a altura da barra **fechada**, publicada pelo `nav.js`. Aberta, `offsetHeight` é a barra inteira, e o limite do painel passaria a incluir-se a si mesmo |
+| **Uma coluna só** | `flex-wrap: nowrap` no painel. A `.nav-links` nasce com `wrap` (no desktop os links quebram em duas linhas, e é isso que se quer lá); com `column` + `max-height`, a coluna transbordava para uma **segunda coluna ao lado** e o painel deixava de rolar. Foi a primeira versão da correção — e a medição apanhou-a |
+| **O que está dentro não encolhe** | `> * { flex: 0 0 auto }`. Sem isto os itens comprimem-se para caber: os links ficam espremidos em vez de o painel rolar |
+| **`resize` só por LARGURA** | a altura que muda sozinha é a barra do sistema, e não muda o título nem a barra: só se reage quando `innerWidth` muda |
+| **Não se escreve o que já lá está** | `--header-height`, `--barra-linha`, `--titulo-preso`, `--barra-altura` e `data-titulo-encolhido` só se escrevem quando o valor muda. Escrever em `:root` invalida o estilo do documento inteiro |
+| **O alvo de toque** | o hamburger media **38×42**; passou a **44×50** (WCAG 2.5.5 / Apple HIG), com `touch-action: manipulation` para dispensar a espera do duplo-toque. É o único controle da barra num telefone |
+
+**Medido depois.** 390×664: painel de 587px, rola 877, sobra 4px abaixo. 320×568: painel 491, rola 769, sobra 4. O último link — «Produção» — fica alcançável ao rolar o painel, e o hamburger continua à vista (é por ele que se fecha). 60 `resize` com a mesma largura: **0 leituras e 0 escritas**; uma mudança de largura: 1 escrita. 100 quadros de rolagem: 1 leitura de layout.
+
+**Prova.** `node experimentos/provar-iphone.js` — **21 verificações**. CONTROLES NEGATIVOS contra o `HEAD` anterior: com o CSS de antes o painel corta **148px**; com o `nav.js` de antes, 60 `resize` produzem **60 leituras e 120 escritas**. E uma asserção que nasceu de um erro meu: a folha do controlo negativo tem de estar **aplicada** (>100 regras). A primeira versão servia-a com MIME de script, o Chrome recusava, a página saía sem estilo — e o controlo media uma página nua, isto é, aprovava pelo motivo errado.
+
 ## Todo documento tem um `<h1>`, e um só *(21/10/2026)*
 
 A página de harmonização saiu no ar com o cabeçalho **vazio** e o título dentro do corpo. O

@@ -620,6 +620,15 @@ body {
   position: relative; z-index: 22; pointer-events: auto;
   background: none; border: 2px solid var(--ornamento-forte); border-radius: 4px;
   padding: 8px 8px;
+  /* O ALVO DE TOQUE (21/10/2026). O botão media 38×42, abaixo dos 44×44 que a Apple
+     e o próprio WCAG 2.5.5 pedem para um controle de toque — e é o ÚNICO controle da
+     barra num telefone. As três linhas continuam a medir 18px; o que cresce é a caixa
+     em volta delas, e o `flex` centra-as nela. Em iOS o `touch-action` também
+     dispensa a espera de 300ms do duplo-toque. O `display` continua `none` aqui: quem
+     o troca por `flex` é a media query do celular, e só ela. */
+  min-width: 44px; min-height: 44px;
+  align-items: center; justify-content: center; flex-direction: column;
+  touch-action: manipulation;
 }
 .topnav .hamburger span {
   display: block; width: 18px; height: 2px; margin: 4px 0; background: var(--fundo);
@@ -1247,12 +1256,49 @@ button:focus-visible { outline-offset: 2px; box-shadow: var(--sombra-controle); 
 /* celular: menu colapsado atrás do hamburger */
 @media (max-width: 768px) {
   .topnav { flex-wrap: wrap; }
-  .topnav .hamburger { display: block; }
+  .topnav .hamburger { display: flex; }
   .topnav .nav-links { display: none; }
+  /* O PAINEL NÃO PODE PASSAR DO QUE SE VÊ (21/10/2026).
+     Ele crescia com o conteúdo — 812px com os seis grupos abertos — e num iPhone,
+     onde as barras do sistema comem 150 a 270px da altura, o fim do menu ficava
+     FORA da tela. Sem `overflow`, não havia como chegar lá: o painel está dentro de
+     uma barra `position: fixed`, e a página por baixo rola sem o levar. É o «menu
+     aparece pela metade». Medido em 390×664 (o que um iPhone mostra com as barras):
+     148px cortados; num 320×568, 266px.
+
+     O limite é `100svh` — o viewport PEQUENO, o que inclui as barras. `100dvh`
+     também resolveria, mas ele MUDA durante a rolagem (as barras recolhem), e um
+     painel que cresce sozinho enquanto se rola é a mesma tremedeira que se está a
+     corrigir aqui. `svh` é estável e nunca ultrapassa o que está à vista.
+     A altura da linha da barra vem de `--barra-linha`, medida pelo `nav.js` com o
+     painel FECHADO — é ela, e não um número escrito à mão, que sobra para o menu. */
   .topnav.aberto .nav-links {
     display: flex; flex-direction: column; align-items: stretch;
     flex-basis: 100%; gap: 4px; padding: var(--esp-2) 0 var(--esp-1);
+    max-height: calc(100vh - var(--barra-linha, 61px) - 8px);
+    overflow-y: auto; overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    /* `flex-wrap: nowrap` NÃO É DETALHE (21/10/2026). A `.nav-links` nasce com
+       `flex-wrap: wrap` — no desktop os links quebram em duas linhas, e é isso que se
+       quer lá. Aqui a direcção é `column`: com `wrap` e uma `max-height`, a coluna
+       transborda para uma SEGUNDA COLUNA ao lado, e o painel deixa de rolar. Foi o que
+       a medição apanhou na primeira versão desta correção: 715px de links dentro de
+       uma caixa de 400, sem barra de rolagem, porque metade tinha ido para a coluna
+       vizinha. */
+    flex-wrap: nowrap;
   }
+  @supports (height: 100svh) {
+    .topnav.aberto .nav-links {
+      max-height: calc(100svh - var(--barra-linha, 61px) - 8px);
+    }
+  }
+  /* E O QUE ESTÁ DENTRO NÃO ENCOLHE (21/10/2026). O painel é uma coluna flex com
+     `max-height`: sem isto, os ITENS encolhem para caber — os links ficam espremidos
+     em vez de o painel rolar, que é o oposto do que se quer. Medido antes da correção:
+     em 390×664 o painel tinha 400px de conteúdo com os 13 links lá dentro, todos
+     comprimidos. `flex: 0 0 auto` devolve a cada um a sua altura natural, e aí sim o
+     `overflow-y` tem o que rolar. */
+  .topnav.aberto .nav-links > * { flex: 0 0 auto; }
   .topnav.aberto .nav-links a { padding: var(--esp-2) var(--esp-3); }
   /* o submenu de "Aulas" deixa de flutuar e passa a empilhar dentro do painel */
   .topnav.aberto details { position: static; }

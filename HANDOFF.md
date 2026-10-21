@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T08:46:49-0300`
-Commit atual: `4944aeb` — chore(ciclo-01): carimbo de geração do pacote do batata
+Gerado em: `2026-10-21T12:05:52-0300`
+Commit atual: `b40aa0a` — chore(ciclo-01): carimbo de geração do pacote do batata
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+b40aa0a chore(ciclo-01): carimbo de geração do pacote do batata
+730d0ec fix(estrutura): a harmonização abria o front-matter sem `---`, e saía sem título
+93ee957 fix(tools): a página sem título passa a ser erro do validador
 4944aeb chore(ciclo-01): carimbo de geração do pacote do batata
 c9a1dfc chore(ciclo-01): regerar o pacote do batata após o commit anterior
 b851251 feat(estrutura): o título que fica e a barra do lançamento no celular
@@ -80,9 +83,6 @@ f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da ge
 1752218 docs(registro): o HANDOFF cita as duas listas fechadas do mapa
 2d3356c fix(po): as listas fechadas eram duas, e o mapa morria na segunda
 dbd175d fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
-347da62 chore(entrega): gerar o pacote de sapo-bailarino/01/batata-bale-nivel-1-teste-2
-db80bcb chore(estrutura): reancorar a cadeia das fontes alteradas
-557e4a9 feat(captura): declara a variante batata-bale-nivel-1-teste-2 no schema de captura
 ```
 
 ## Por professor
@@ -154,89 +154,79 @@ db80bcb chore(estrutura): reancorar a cadeia das fontes alteradas
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — a página de harmonização saía sem título: a fonte não abria o front-matter
+## 21/10/2026 — iPhone: o menu que não cabia e a rolagem que tremia
 
-**O que foi visto.** *«Apenas a página harmonização não deu certo… o título está mais abaixo se
-comparado com a página anamnese, que está ok.»* Medido, o defeito era maior do que o sintoma:
+**O que foi visto.** Num iPhone: *«o menu de hambúrguer aparece pela metade»* e *«a rolagem fica
+tremelicando»*. No Moto G4 e no Chrome do computador, bem. As duas coisas são do Safari do iOS, e
+as duas foram medidas antes de corrigidas:
 
-| Na página de harmonização, antes | Medido |
-|:--|:--|
-| `<h1>` do cabeçalho | **vazio** — o cabeçalho media 41px, só com os selos |
-| primeiro elemento do corpo | um `<p>` com o YAML **cru**: `title: “Harmonização de linguagem” subtitle: …` |
-| o título de verdade | um `<h1>` **no corpo**, a 172px do topo |
-| nos outros documentos | `<h1>` no cabeçalho, a 72px, e o corpo a começar em `##` |
+1. **O menu não cabia.** O painel cresce com o conteúdo — **812px** com os seis grupos abertos — e
+   não tinha `max-height` nem `overflow`. Num iPhone as barras do sistema comem 150 a 270px da
+   altura, e o fim do menu ficava fora da tela **sem como chegar lá**: o painel está dentro de uma
+   barra `position: fixed`, e a página por baixo rola sem o levar. Medido em 390×664 (o que um
+   iPhone mostra com as barras): **148px cortados**; em 320×568, **266px**.
 
-**A causa.** O `-harmonizacao.md` era escrito com `title:` e `subtitle:` mas **sem os `---` que
-abrem e fecham o front-matter**. Sem os delimitadores o pandoc não lê metadado nenhum, e de uma
-causa só saem as três coisas: `$title$` vazio → `<h1></h1>`; as duas linhas viram parágrafo do
-corpo; e o título real vai para dentro do texto, abaixo da ficha. Depois, corrigido o bloco,
-sobrava um **segundo** `<h1>` no corpo — a harmonização era o único dos seis derivados a escrever
-`# `. As duas coisas foram corrigidas: o bloco à volta do `title:`, e o `# ` fora do corpo.
+2. **O `resize` do iOS dispara a rolar.** Enquanto a página rola, o Safari recolhe e volta a
+   mostrar as barras do sistema — e emite `resize` a cada quadro dessa animação. Os dois `resize`
+   faziam trabalho de layout: `ajustarAlturaNavbar` escrevia `--header-height` (que é o
+   `padding-top` do `body`) e o bloco do título media o cabeçalho. Medido: **60 eventos com a
+   mesma largura davam 60 leituras de layout e 120 escritas em `:root`** — o conteúdo andava por
+   baixo do dedo. É a tremedeira. No Android o `resize` não dispara a rolar, e no desktop a janela
+   não muda de tamanho sozinha: por isso só o iPhone mostrava o defeito.
 
-**Porque ninguém viu.** Duas razões, e a segunda é a que importa:
-1. **o gerador não confere o que escreveu** — ele confia na fonte, e a fonte estava malformada;
-2. **a checagem que compara títulos com o PDF FILTRAVA o vazio**: `h1 && !texto.includes(h1)`. Um
-   título ausente era, para ela, um título que não falta. Um `if` de guarda que transforma um
-   defeito em silêncio é pior do que não haver checagem nenhuma — o `check-pacote.js` dizia «OK: 0
-   erro, 0 aviso» a um pacote com uma página sem título no ar.
-
-**Motivo declarado — `tools/check-pacote.js` é congelado e muda aqui.** O motivo é o acima: o
-validador tinha um buraco por onde passou um defeito publicado, e a correção do dado sem a do
-buraco deixaria a próxima fonte malformada passar igual. **O que não muda:** nenhuma checagem
-existente foi afrouxada ou removida; a nova é acrescentada (secção 2c) e só reprova duas coisas
-que nunca deveriam ter passado — página sem `<h1>` com texto, e front-matter vazado para o corpo.
-A fórmula do hash, a cobertura da âncora, as 17 regras e as 22 pétreas não são tocadas.
+**Motivo declarado — `tools/templates/` é congelado e muda aqui.** O motivo é o pedido, e a
+correção não tem como existir fora da folha e do script compartilhados. **O que não muda:** a
+paleta, a tipografia, o desenho de qualquer componente, a fórmula do hash, a cobertura da âncora,
+os validadores, as 17 regras e as 22 pétreas. O que muda é **quando** o layout é medido e **quanto
+do painel cabe** — comportamento em ambiente móvel, não identidade.
 
 **Onde entrou.**
-- `motor/nucleo/derivar-ciclo.js` — `derivarHarmonizacao` passa a abrir e fechar o front-matter,
-  com `projeto`, `frente`, `ciclo`, `title` e `subtitle`, como os outros cinco; e deixa de escrever
-  `# ` no corpo (o `<h1>` vem do `title:`). A variável `escola` deixou de ter uso e saiu.
-- `professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md` — a
-  fonte existente, corrigida à mão. `escrever-ciclo.js` só grava o que ainda não existe
-  («proveniência acrescenta, não edita»), então a correção do derivador não a teria alcançado.
-  O conteúdo do documento não mudou: mudou o cabeçalho dele.
-- `tools/check-pacote.js` — a secção 2c (ver o motivo declarado acima).
-- `experimentos/provar-cabecalho-do-documento.js` — **novo**, 21 verificações.
-- âncora reancorada e índices regerados, como manda o fluxo (`hash-ciclo.sh`, `gerar-indices.js`).
+- `tools/templates/ciclo.css` — o painel com `max-height: 100svh` + `overflow-y: auto`, o
+  `flex-wrap: nowrap` e o `> * { flex: 0 0 auto }`; o hamburger com 44×50 e `touch-action`.
+- `tools/templates/nav.js` — `resize` só quando a **largura** muda; `--barra-linha` (a barra
+  fechada, para o limite do painel); e as escritas passam a ser guardadas pelo valor anterior.
+- `tools/templates/lancamento.html` — o mesmo portão no `resize` que publica `--barra-altura`.
+- `experimentos/provar-iphone.js` — **novo**, 21 verificações.
+- `IDENTIDADE-VISUAL.md` — a secção «O iPhone».
 
-**Um terceiro erro, apanhado pela própria checagem nova ao ser escrita.** A primeira versão da 2c
-reprovava o `lancamento.html` — que tem título — porque lia o `<h1>` de um **comentário de CSS**
-dentro do `<style>` do formulário; e reprovava-o outra vez porque a tabela `conteudos[]` é
-deliberadamente **vazia** para as páginas de ferramenta (o «sem conteúdo conferível» das checagens
-de conteúdo, que não se aplica a um título). Uma checagem que lê código como se fosse texto e
-acusa quem está certo ensina a ignorá-la: o título passou a ser lido do arquivo, com script, estilo
-e comentários removidos antes, e a página cifrada é a única dispensada — e agora por escrito.
+**Quatro coisas que a medição encontrou, e uma delas era uma correção minha que não funcionava.**
+1. **`flex-wrap: wrap` herdado.** A `.nav-links` nasce com `wrap` — no desktop os links quebram em
+   duas linhas, e é isso que se quer lá. Com `flex-direction: column` e uma `max-height`, a coluna
+   transbordava para uma **segunda coluna ao lado**: 715px de links dentro de uma caixa de 400, sem
+   barra de rolagem. O painel deixava de rolar e passava a mostrar os links aos pares.
+2. **Sem `flex: 0 0 auto` os itens encolhem.** Com a caixa limitada, os filhos comprimiam-se para
+   caber em vez de o painel rolar — 13 links espremidos em 400px.
+3. **`100dvh` teria reintroduzido a tremedeira.** O `dvh` muda durante a rolagem (as barras
+   recolhem); um painel que cresce sozinho enquanto se rola é o mesmo defeito. Ficou `100svh`, com
+   `100vh` de recurso.
+4. **A prova media uma página nua.** A primeira versão servia a folha do controlo negativo com
+   MIME de `text/javascript` (o `extname` caía no ficheiro lido, não no caminho pedido); o Chrome
+   recusa uma folha com MIME de script, a página aparecia sem estilo — e o controlo negativo
+   **aprovava pelo motivo errado**. Ficou uma asserção que exige a folha aplicada (>100 regras).
 
 **Com o quê.**
-- `node experimentos/provar-cabecalho-do-documento.js` → **21 asserções, 0 falha**: os seis
-  derivados, as seis fontes publicadas do ciclo, as nove páginas do pacote, e três controlos
-  negativos (a fonte antiga é reprovada; o bloco certo com `# ` no corpo é reprovado; a forma
-  corrigida passa — a regra não é um «não» a tudo).
-- `node tools/check-pacote.js` no pacote → **0 erro, 0 aviso**, com a linha nova:
-  «títulos: as 9 páginas têm `<h1>` com texto, e nenhuma publica o front-matter». Contra o pacote
-  de antes: **2 erros**, ambos nomeando `harmonizacao.html`.
-- `check-identidade` 19/19, `check-indices` 14/14, âncora `debca928…` íntegra e cadeia intacta.
-- Geometria medida, 1280px: harmonização agora tem o `<h1>` a **72px** e o cabeçalho de **115px** —
-  exatamente os mesmos números que notação, referências e captura.
+- `node experimentos/provar-iphone.js` → **21 asserções, 0 falha**. CONTROLES NEGATIVOS contra o
+  `HEAD`: com o CSS de antes o painel corta **148px**; com o `nav.js` de antes, 60 `resize` dão
+  **60 leituras e 120 escritas**; e a folha antiga está aplicada (152 regras).
+- `provar-celular` 15/15, `provar-titulo-e-barra` 27/27, `provar-paginação` 121/121,
+  `provar-barra-unica` 53/53, `provar-cabecalho-do-documento` 21/21, `check-identidade` 19/19,
+  `check-pacote` 0 erro/0 aviso.
+- Medido no Worker ao vivo: hamburger **44×50**; painel `max-height` 587px, conteúdo 877, **4px**
+  de sobra abaixo; o último link («Produção») alcançável ao rolar o painel.
 
-**O que ainda não está feito.**
-- **A anamnese não foi medida.** A comparação dela com a harmonização é a da pesquisadora, a olho;
-  a anamnese é uma página da porta (outro template), e o que se conferiu aqui foi a harmonização
-  contra os documentos do MESMO template.
-- **O PDF foi regerado pela mudança da fonte.** Ele carrega a data de geração; o conteúdo textual
-  do documento é o mesmo, sem o `# ` duplicado.
-- **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
-  isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
-  acusa.
+**O que ainda não está feito — e é o mais importante.**
+- **Não foi testado num iPhone.** Não há iOS nesta máquina. O que se provou é o **mecanismo**: o
+  que o código faz quando o ambiente se comporta como o do iOS (alturas de viewport com as barras
+  à vista, `resize` em rajada, painel maior que a tela). Se no iPhone ainda tremer, o próximo passo
+  é instrumentar no aparelho — e aí a suspeita passa a ser outra, provavelmente o
+  `scroll-behavior: smooth` do `html`, que continua lá e que esta mudança não tocou.
+- **A largura como único gatilho** quer dizer que um teclado virtual que só mude a altura não
+  re-mede nada. É o que se quer (re-medir a rolar era o defeito), mas fica declarado.
+- O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
+  mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
+  para quando houver um aparelho para conferir.
 
 ## O que está pendente
-
-## 20/10/2026 — o lançamento pedia uma senha cujo campo estava escondido
-
-- A correção foi verificada na página e na prova; **não** foi exercida a gravar de verdade num ciclo
-  cifrado, de ponta a ponta, com um navegador. O próximo lançamento real é o primeiro a fazê-lo.
-- O `abrir-ciclo` e o `enviar` continuam a partilhar o mesmo campo de senha; um dia a página pode
-  querer distinguir «a senha que abre» de «a senha que assina», e hoje não distingue.
 
 ## 20/10/2026 — duas bancadas para ESCOLHER o título e a paginação — e três intenções registadas
 
@@ -293,6 +283,19 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
   isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
   acusa.
+
+## 21/10/2026 — iPhone: o menu que não cabia e a rolagem que tremia
+
+- **Não foi testado num iPhone.** Não há iOS nesta máquina. O que se provou é o **mecanismo**: o
+  que o código faz quando o ambiente se comporta como o do iOS (alturas de viewport com as barras
+  à vista, `resize` em rajada, painel maior que a tela). Se no iPhone ainda tremer, o próximo passo
+  é instrumentar no aparelho — e aí a suspeita passa a ser outra, provavelmente o
+  `scroll-behavior: smooth` do `html`, que continua lá e que esta mudança não tocou.
+- **A largura como único gatilho** quer dizer que um teclado virtual que só mude a altura não
+  re-mede nada. É o que se quer (re-medir a rolar era o defeito), mas fica declarado.
+- O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
+  mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
+  para quando houver um aparelho para conferir.
 
 ## Pendências anteriores (índice)
 
@@ -545,6 +548,7 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - **20/10/2026** — o ciclo é gerado e o menu não o mostra: a barra passa a ser… → `REGISTRO.md` L20803
 - **20/10/2026** — a barra de navegação deixa de ser escrita e passa a ser… → `REGISTRO.md` L20872
 - **20/10/2026** — o registro de notação passa a compor-se: o alfabeto é dado,… → `REGISTRO.md` L20969
+- **20/10/2026** — o lançamento pedia uma senha cujo campo estava escondido → `REGISTRO.md` L21077
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 
