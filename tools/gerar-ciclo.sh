@@ -73,10 +73,22 @@ PDF_ENGINE="${PDF_ENGINE:-pdflatex}"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
 
-if [ ! -f "$CONF_BASE" ]; then
-  echo "erro: manifesto base não encontrado: $CONF_BASE" >&2
-  exit 1
-fi
+# O MANIFESTO BASE NÃO É OBRIGATÓRIO (22/10/2026).
+#
+# Ele nasce em `tools/criar-escola.sh`, sob o professor que CRIA a escola — e é a única coisa
+# que o gerador exige que aquele ato escreve. Uma turma pode estar na curadoria de OUTRO
+# professor: o plano dela é elicitado, `compor-conf.js` escreve o manifesto da variante em
+# `professores/<esse professor>/ciclos/`, e a base fica na pasta de quem criou a escola. O
+# gerador morria ali — «manifesto base não encontrado» — sem que faltasse dado nenhum: depois de
+# `compor-conf.js`, a variante declara o `CICLO`, o `NOME`, o `OBJETIVO_GERAL`, o `DOCS`, o
+# `TOTAL_AULAS` e a faixa de volume. A base deixou de ser fonte; passou a ser conveniência.
+#
+# Medido no run `39652992659` (`murisoca-baiana` × `calango-bale-nivel-1-teste-1`), que é também
+# o que derrubou o `Reancorar a cadeia` — `tools/hash-ciclo.sh` tinha a mesma guarda.
+#
+# Quem verifica que não falta nada é o schema (em `hash-ciclo.sh`) e o Pré-requisito 5 (abaixo),
+# e ambos nomeiam o campo que falta. Uma guarda de ARQUIVO não sabia distinguir «falta a base» de
+# «falta um dado»: reprovava sempre, mesmo com tudo declarado.
 if [ ! -f "$CONF_VARIANTE" ]; then
   echo "erro: manifesto da variante não encontrado: $CONF_VARIANTE" >&2
   echo "  O Pré-requisito 5 (contexto institucional) exige uma variante por escola." >&2
@@ -84,8 +96,13 @@ if [ ! -f "$CONF_VARIANTE" ]; then
   ls -1 "$CICLOS"/ciclo-"$CICLO"-*.conf 2>/dev/null | sed 's|.*/||; s|^|    |' >&2 || true
   exit 1
 fi
-# shellcheck disable=SC1090
-source "$CONF_BASE"
+# A base entra PRIMEIRO, e só quando existe: a variante sobrescreve-a chave a chave.
+if [ -f "$CONF_BASE" ]; then
+  # shellcheck disable=SC1090
+  source "$CONF_BASE"
+else
+  echo "nota: sem manifesto base ($(basename "$CONF_BASE")) — a variante é o manifesto inteiro"
+fi
 # shellcheck disable=SC1090
 source "$CONF_VARIANTE"
 ID="ciclo-$CICLO${VARIANTE:+-$VARIANTE}"

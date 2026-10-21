@@ -21706,3 +21706,42 @@ executável — o que a verifica é o custo de a ignorar, que ficou escrito ao l
   `origin/main` velho — daria uma falsa sensação de sincronia, que é pior do que não ter guarda.
 - **O expurgo pela página não avisa quem está a trabalhar.** Ele é um commit na API; o worktree
   local só o sabe no próximo `fetch`. Fica registado como o caso mais provável de repetir isto.
+
+## 22/10/2026 — O manifesto base deixa de ser obrigatório (ferramentas congeladas)
+
+**O que aconteceu.** O `Gerar o ciclo · murisoca-baiana/01/calango-bale-nivel-1-teste-1`
+(run `39652992659`) morreu com *«erro: manifesto base não encontrado:
+professores/murisoca-baiana/ciclos/ciclo-01.conf»*, e o `Reancorar a cadeia` do mesmo commit
+morreu no mesmo sítio. O diagnóstico da pesquisadora foi o certo: **a professora que não criou a
+escola não estava prevista.** O `ciclo-NN.conf` nasce em `tools/criar-escola.sh`, sob o professor
+que **cria** a escola; uma turma pode estar na curadoria de **outro** professor, e a pasta dele
+nunca teve base. Três workflows falhavam pela mesma razão: o gerador, a âncora e — a jusante — a
+derivação da aula.
+
+**O que foi decidido.** A base deixa de ser **exigida**, e passa a ser o que sempre foi depois de
+`compor-conf.js`: conveniência. A variante de uma turma declara o `CICLO`, o `NOME`, o
+`OBJETIVO_GERAL`, o `DOCS`, o `TOTAL_AULAS` e a faixa de volume — não há nada na base que ela não
+diga. Os dois scripts passam a entrar com a base **quando ela existe** e a dizê-lo quando não
+existe; quem verifica que não falta dado é o schema (`hash-ciclo.sh`) e o Pré-requisito 5
+(`gerar-ciclo.sh`), e ambos **nomeiam o campo que falta**.
+
+**Porque a guarda anterior estava errada, e não só incompleta.** Ela era uma guarda de **arquivo**
+a fazer o trabalho de uma validação de **conteúdo**: reprovava sempre, mesmo com tudo declarado.
+É a mesma família do `if (h1 && !texto.includes(h1))` que o `check-pacote.js` tinha — um teste
+que, em vez de distinguir «falta» de «está», transforma um caso legítimo em erro.
+
+**Com o quê.** `tools/gerar-ciclo.sh`, `tools/hash-ciclo.sh` (congelados: motivo declarado aqui,
+commit próprio) e `experimentos/provar-manifesto-sem-base.js`, que mede os dois e inclui o
+**controle negativo** contra `499a97b` — a versão anterior falha no mesmo cenário, pelo motivo
+certo.
+
+**O que ainda não está feito.**
+- **Os schemas também vivem sob quem cria a escola.** A pasta de `murisoca-baiana` não tinha
+  `ciclo-01-po-schema.json`, e o `hash-ciclo.sh` avisava *«PO não validado»* sem falhar. Copiados
+  do molde (`modelo/ciclos/`) neste mesmo dia; o aviso existia, e é por isso que o buraco não era
+  invisível — mas a **causa** (o professor que não criou a escola) continua a valer para os
+  próximos: um professor novo nasce sem schemas e sem base.
+- **O `PROFESSOR` do manifesto.** Durante a janela em que o `.conf` da escola não era encontrado,
+  o manifesto saía com `PROFESSOR=""`, e o nome de exibição do professor só existe no envelope do
+  plano (KV) — não no repositório. O manifesto de `murisoca-baiana` ficou com o **slug**, que é o
+  que a fonte do plano declara; a próxima elicitação o substitui pelo nome que o formulário gravou.

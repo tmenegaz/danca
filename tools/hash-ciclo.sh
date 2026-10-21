@@ -105,7 +105,19 @@ TIPO="Ciclo"
 ANCORADO_EM="$(date +%F)"
 TIPO_AULA="Aula"
 
-[ -f "$CONF_BASE" ] || { echo "erro: manifesto base não encontrado: $CONF_BASE" >&2; exit 1; }
+# O MANIFESTO BASE NÃO É OBRIGATÓRIO (22/10/2026) — e aqui isso vale mais do que no gerador,
+# porque esta é a guarda que o `Reancorar a cadeia` encontra em TODOS os manifestos de variante
+# do repositório (a matriz dele sai do glob `professores/*/ciclos/ciclo-*-*.conf`).
+#
+# O `ciclo-NN.conf` nasce em `tools/criar-escola.sh`, sob o professor que CRIA a escola. Uma
+# turma pode estar na curadoria de outro professor: o plano dela é elicitado, `compor-conf.js`
+# escreve a variante em `professores/<esse professor>/ciclos/`, e a base fica na pasta de quem
+# criou a escola. Medido no run `39652992659`: «erro: manifesto base não encontrado:
+# professores/murisoca-baiana/ciclos/ciclo-01.conf» — a âncora de um ciclo inteiro ficou sem
+# fechar por causa de um arquivo que, depois de `compor-conf.js`, não declara nada que a
+# variante já não diga (o `CICLO`, o `NOME`, o `OBJETIVO_GERAL`, o `DOCS`, o `TOTAL_AULAS`, a
+# faixa de volume). O que se perde sem a base é conferido pelo schema, abaixo — e é ele que
+# nomeia o campo que falta, em vez de reprovar por ausência de arquivo.
 [ -f "$CONF_VARIANTE" ] || {
   echo "erro: manifesto da variante não encontrado: $CONF_VARIANTE" >&2
   echo "  variantes disponíveis para o ciclo $CICLO:" >&2
@@ -125,7 +137,10 @@ fi
 
 # --- 1) schema (P-08) -------------------------------------------------------
 if [ -f "$SCHEMA" ]; then
-  if ! node tools/validar-schema-ciclo.js "$SCHEMA" "$CONF_BASE" "$CONF_VARIANTE"; then
+  # A união dos .conf que EXISTEM: sem a base, a variante tem de satisfazer o schema sozinha.
+  confs=("$CONF_VARIANTE")
+  if [ -f "$CONF_BASE" ]; then confs=("$CONF_BASE" "$CONF_VARIANTE"); fi
+  if ! node tools/validar-schema-ciclo.js "$SCHEMA" "${confs[@]}"; then
     echo "erro: os .conf do ciclo $CICLO não satisfazem $SCHEMA — corrija antes de ancorar." >&2
     exit 1
   fi
@@ -166,8 +181,13 @@ fi
 # misturava as escolas: o hash da Ritmos carregava o plano e a aula da Duo.
 #
 # Para conhecer DOCS é preciso carregar os manifestos (o gerador já faz o mesmo).
-# shellcheck disable=SC1090
-source "$CONF_BASE"
+# A base entra PRIMEIRO, e só quando existe: a variante sobrescreve-a chave a chave.
+if [ -f "$CONF_BASE" ]; then
+  # shellcheck disable=SC1090
+  source "$CONF_BASE"
+else
+  echo "nota: sem manifesto base ($(basename "$CONF_BASE")) — a variante é o manifesto inteiro" >&2
+fi
 # shellcheck disable=SC1090
 source "$CONF_VARIANTE"
 # shellcheck source=tools/lib-fontes.sh
@@ -360,7 +380,7 @@ fi
 {
   echo "# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh"
   echo "# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04)."
-  echo "# Fontes cobertas: $CONF_BASE, $CONF_VARIANTE e os .md deste ciclo."
+  echo "# Fontes cobertas: $CONF_VARIANTE e os .md deste ciclo${CONF_BASE:+, mais a base $(basename "$CONF_BASE") quando existe}."
   echo "# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)"
   echo ""
   echo "id: $ID"
