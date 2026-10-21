@@ -8,13 +8,13 @@ type: Ciclo
 professor: Sapo Bailarino
 ciclo: 01
 variante: batata-bale-nivel-1-teste-2
-hash_conteudo: bdc91464386d225e1330cf015be99327413b8f79a3990c3cc20f92a18682c918
+hash_conteudo: 902796b0af501007e66f564434bd59ecbc85a5698eefe6e9ce21e2aadd880307
 parentHash: 
-hash: c6be47d77f2695026078fedd7f33ea9cf38ec5a9e0414d49086ee34b3f610a26
+hash: debca928ca4724342faf007450663d23b6ad3e2bb1e30838f58e762a2fa3acfb
 algoritmo: SHA-256
 po: professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md
 po_state: Input_PO_Aguardando
-ancorado_em: 2026-10-20
+ancorado_em: 2026-10-21
 cobertura:
   - professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md

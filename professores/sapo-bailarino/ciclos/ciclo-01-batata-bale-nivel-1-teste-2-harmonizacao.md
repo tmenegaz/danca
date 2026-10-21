@@ -1,7 +1,10 @@
+---
+projeto: Formação em Balé Clássico
+frente: Documento de apoio
+ciclo: "01"
 title: "Harmonização de linguagem"
 subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"
-
-# Harmonização de linguagem — Ciclo 01 — Batata
+---
 
 > Esta tabela é **visível ao professor**. Se ele discordar de alguma harmonização, ele
 > reescreve a coluna "Publicado" com as próprias palavras. O harmonizador é uma

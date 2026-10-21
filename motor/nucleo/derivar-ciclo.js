@@ -1021,18 +1021,45 @@ function varrerJuizo(plano, po) {
 
 function derivarHarmonizacao({ plano, po, contexto }) {
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
-  const escola = nomeDaEscola(contexto);
   const achados = varrerJuizo(plano, po);
 
   const saida = [];
-  // O `title:` é o RÓTULO do menu (a `rotulo()` do gerador lê o front-matter);
-  // sem ele o item sairia vazio na navegação. O H1 abaixo continua a linha
-  // comprida com ciclo/escola — o título do menu é o rótulo curto.
+  /*
+   * O FRONT-MATTER TEM DE ABRIR COM `---` (22/10/2026). Ele não abria, e o resultado saiu no
+   * ar: sem os delimitadores o pandoc não lê metadado nenhum, o `$title$` do template fica
+   * vazio, a página é publicada com um `<h1></h1>` EM BRANCO — e as duas linhas de YAML
+   * vazam para o corpo do documento como um parágrafo literal:
+   *
+   *     title: “Harmonização de linguagem” subtitle: “O varrimento de juízo de valor…”
+   *
+   * O professor via a fonte crua no topo da página, e o título de verdade aparecia mais
+   * abaixo, empurrado pelo cabeçalho vazio e pela ficha. Era o único dos documentos
+   * derivados que não abria o bloco: os outros cinco (aula, referências, notação, glossário,
+   * captura) sempre abriram. É a forma EXACTA do defeito que a cópia única persegue — o mesmo
+   * gesto em cinco lugares, e um deles diferente —, e por isso o `title:` se escreve aqui
+   * como nos outros, com o bloco à volta.
+   *
+   * O `title:` é o RÓTULO do menu (a `rotulo()` do gerador lê o front-matter); sem ele o item
+   * sairia vazio na navegação — e é também o título do cabeçalho da página, pelo `$title$`
+   * do template. Um `title:`, dois destinos: o menu e o `<h1>`.
+   */
+  saida.push('---');
+  saida.push('projeto: Formação em Balé Clássico');
+  saida.push('frente: Documento de apoio');
+  saida.push('ciclo: "' + ciclo + '"');
   saida.push('title: "Harmonização de linguagem"');
   saida.push('subtitle: "O varrimento de juízo de valor (P-21) — a proposta, não o filtro"');
+  saida.push('---');
   saida.push('');
-  saida.push('# Harmonização de linguagem — Ciclo ' + ciclo + ' — ' + escola);
-  saida.push('');
+  /*
+   * SEM `# …` NO CORPO. Este documento era o único do pacote com DOIS `<h1>` — o do
+   * cabeçalho (vazio, por causa do front-matter sem delimitadores) e este, comprido, com
+   * ciclo e escola. Era por isso que o título «aparecia mais abaixo» do que na anamnese: o
+   * cabeçalho existia, mas em branco, e a única linha de título de verdade estava no corpo,
+   * depois da ficha. Os outros cinco derivados nunca escrevem `#` no corpo — o título vem
+   * do front-matter e o cabeçalho é o lugar dele. Aqui passa a ser igual: o `##` abaixo é o
+   * primeiro nível do documento, e ciclo e escola já estão na ficha.
+   */
   saida.push('> Esta tabela é **visível ao professor**. Se ele discordar de alguma harmonização, ele');
   saida.push('> reescreve a coluna "Publicado" com as próprias palavras. O harmonizador é uma');
   saida.push('> **proposta**, não um filtro.');

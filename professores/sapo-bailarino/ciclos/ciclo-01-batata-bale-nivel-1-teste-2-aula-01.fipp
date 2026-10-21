@@ -14,7 +14,7 @@ hash_conteudo: e1c27f31a78d9e1c3e149ad4be73b398c5df57ea0d07476234c78f0576108b85
 parentHash: 
 hash: eaa84b2162b0ba9102643de732d74049d90de3509cf8088f701de9cbbdc8c2d0
 algoritmo: SHA-256
-ancorado_em: 2026-10-20
+ancorado_em: 2026-10-21
 cobertura:
   - professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
   - professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md

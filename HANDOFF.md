@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T08:07:47-0300`
-Commit atual: `3611930` — docs(experimentos): as bancadas de layout, refeitas para serem operáveis
+Gerado em: `2026-10-21T08:46:49-0300`
+Commit atual: `4944aeb` — chore(ciclo-01): carimbo de geração do pacote do batata
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,9 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+4944aeb chore(ciclo-01): carimbo de geração do pacote do batata
+c9a1dfc chore(ciclo-01): regerar o pacote do batata após o commit anterior
+b851251 feat(estrutura): o título que fica e a barra do lançamento no celular
 3611930 docs(experimentos): as bancadas de layout, refeitas para serem operáveis
 b976c46 docs(experimentos): duas bancadas de layout, para escolher — e três intenções registadas
 cc5474f fix(tools): o lançamento pedia a senha num campo que o próprio formulário escondia
@@ -80,9 +83,6 @@ dbd175d fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
 347da62 chore(entrega): gerar o pacote de sapo-bailarino/01/batata-bale-nivel-1-teste-2
 db80bcb chore(estrutura): reancorar a cadeia das fontes alteradas
 557e4a9 feat(captura): declara a variante batata-bale-nivel-1-teste-2 no schema de captura
-c04f6ff feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
-57ddd11 feat(ciclo): o «Guardar» do PO cifra ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json
-9694af6 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
 ```
 
 ## Por professor
@@ -101,7 +101,7 @@ c04f6ff feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `c723e88de775` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `c6be47d77f26` | (vazio) | Input_PO_Aguardando |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `debca928ca47` | (vazio) | Input_PO_Aguardando |
 | batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `7802a397dff5` | (vazio) | — |
 | batata-bale-nivel-3-teste-2 | ciclo-01-batata-bale-nivel-3-teste-2.fipp | `00e94b5840d9` | (vazio) | — |
 
@@ -154,108 +154,82 @@ c04f6ff feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — o título que fica e a barra do lançamento no celular: as duas propostas escolhidas
+## 21/10/2026 — a página de harmonização saía sem título: a fonte não abria o front-matter
 
-**O que foi decidido — pela pesquisadora, sobre as bancadas de `experimentos/propostas/`.**
-Escolhidas duas das oito opções que estavam à comparação:
+**O que foi visto.** *«Apenas a página harmonização não deu certo… o título está mais abaixo se
+comparado com a página anamnese, que está ok.»* Medido, o defeito era maior do que o sintoma:
 
-- **Título: a opção B — «encolhe ao rolar»**, no desktop e no celular. O cabeçalho prende-se ao
-  topo e diminui: o subtítulo e a ficha saem, o `h1` desce de 31px para 17px.
-- **Barra do lançamento: um MIX da 2 com a 3** — «esconde ao descer, e quando reaparece aparece
-  compacta». Não foi nenhuma das duas isoladamente; foi a 3 com o corpo da 2.
+| Na página de harmonização, antes | Medido |
+|:--|:--|
+| `<h1>` do cabeçalho | **vazio** — o cabeçalho media 41px, só com os selos |
+| primeiro elemento do corpo | um `<p>` com o YAML **cru**: `title: “Harmonização de linguagem” subtitle: …` |
+| o título de verdade | um `<h1>` **no corpo**, a 172px do topo |
+| nos outros documentos | `<h1>` no cabeçalho, a 72px, e o corpo a começar em `##` |
 
-**O que mudou, medido.**
-Título: **146px → 25px** no desktop, **46px** no celular (5,4% da tela de 844, onde o título quebra
-em duas linhas). Barra: **87px → 47px** na página real; no formulário mais denso da bancada,
-**182px → 47px**. E ela sai da frente ao descer, voltando compacta ao subir.
+**A causa.** O `-harmonizacao.md` era escrito com `title:` e `subtitle:` mas **sem os `---` que
+abrem e fecham o front-matter**. Sem os delimitadores o pandoc não lê metadado nenhum, e de uma
+causa só saem as três coisas: `$title$` vazio → `<h1></h1>`; as duas linhas viram parágrafo do
+corpo; e o título real vai para dentro do texto, abaixo da ficha. Depois, corrigido o bloco,
+sobrava um **segundo** `<h1>` no corpo — a harmonização era o único dos seis derivados a escrever
+`# `. As duas coisas foram corrigidas: o bloco à volta do `title:`, e o `# ` fora do corpo.
 
-**Motivo declarado — os congelados.**
-`tools/templates/ciclo.css`, `tools/templates/nav.js` e `tools/templates/lancamento.html` são
-congelados e mudam aqui. O motivo é o pedido, não uma preferência de implementação: o título que
-não se perde é a decisão tomada sobre uma bancada medida, e a bancada não muda produção. **O que não
-muda:** a fórmula do hash, a cobertura da âncora, os validadores, as 17 regras, as 22 pétreas, a
-paleta, a tipografia e o desenho de qualquer componente existente. As duas mudanças acrescentam
-estado de rolagem; nenhum valor da identidade foi redefinido.
+**Porque ninguém viu.** Duas razões, e a segunda é a que importa:
+1. **o gerador não confere o que escreveu** — ele confia na fonte, e a fonte estava malformada;
+2. **a checagem que compara títulos com o PDF FILTRAVA o vazio**: `h1 && !texto.includes(h1)`. Um
+   título ausente era, para ela, um título que não falta. Um `if` de guarda que transforma um
+   defeito em silêncio é pior do que não haver checagem nenhuma — o `check-pacote.js` dizia «OK: 0
+   erro, 0 aviso» a um pacote com uma página sem título no ar.
+
+**Motivo declarado — `tools/check-pacote.js` é congelado e muda aqui.** O motivo é o acima: o
+validador tinha um buraco por onde passou um defeito publicado, e a correção do dado sem a do
+buraco deixaria a próxima fonte malformada passar igual. **O que não muda:** nenhuma checagem
+existente foi afrouxada ou removida; a nova é acrescentada (secção 2c) e só reprova duas coisas
+que nunca deveriam ter passado — página sem `<h1>` com texto, e front-matter vazado para o corpo.
+A fórmula do hash, a cobertura da âncora, as 17 regras e as 22 pétreas não são tocadas.
 
 **Onde entrou.**
-- `tools/templates/ciclo.css` — o componente do título (opt-in por `data-titulo-fixo`), e o elo que
-  faltava: `--titulo-preso` entra no `scroll-padding-top` e no `top` da coluna do índice. Sem isso o
-  alvo de «Nesta página» e o bloco «Nesta página» ficariam debaixo do título preso.
-- `tools/templates/nav.js` — o mecanismo (prende, mede, encolhe), num segundo bloco independente da
-  barra de navegação, porque depende de haver título e não de haver barra.
-- `tools/templates/lancamento.html` — a barra compacta, o «⋯», o esconder por direção de rolagem, e
-  o `h1` marcado como `.titulo-fixo`.
-- `experimentos/provar-titulo-e-barra.js` — **novo**, 27 verificações em navegador.
-- `experimentos/propostas/construir.js` — as bancadas passam a declarar `data-titulo-fixo="nao"`:
-  elas comparam cinco desfechos do mesmo mecanismo, e com o mecanismo do produto a mexer as cinco
-  ficariam iguais.
-- `IDENTIDADE-VISUAL.md` — as duas secções novas, com as tabelas e as provas.
-- as cópias dos assets nos pacotes e na raiz (`gerar-raiz.sh` + regeneração do ciclo).
+- `motor/nucleo/derivar-ciclo.js` — `derivarHarmonizacao` passa a abrir e fechar o front-matter,
+  com `projeto`, `frente`, `ciclo`, `title` e `subtitle`, como os outros cinco; e deixa de escrever
+  `# ` no corpo (o `<h1>` vem do `title:`). A variável `escola` deixou de ter uso e saiu.
+- `professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md` — a
+  fonte existente, corrigida à mão. `escrever-ciclo.js` só grava o que ainda não existe
+  («proveniência acrescenta, não edita»), então a correção do derivador não a teria alcançado.
+  O conteúdo do documento não mudou: mudou o cabeçalho dele.
+- `tools/check-pacote.js` — a secção 2c (ver o motivo declarado acima).
+- `experimentos/provar-cabecalho-do-documento.js` — **novo**, 21 verificações.
+- âncora reancorada e índices regerados, como manda o fluxo (`hash-ciclo.sh`, `gerar-indices.js`).
 
-**Três defeitos e uma regressão que a medição encontrou — e nenhum deles era visível a olho.**
-1. **A medição era animada.** Pôr o estado encolhido e ler a altura no mesmo instante devolvia o
-   tamanho a meio da transição: **43px** onde o estado final mede **25px**. O número errado não
-   aparecia na tela, mas ficava em `--titulo-preso` — e essa é a altura que o resto da folha
-   RESERVA. Daria 18px de folga a mais no celular, e o alvo da âncora pararia longe do topo.
-2. **O «voltar ao topo» ficava por cima do «⋯».** Um círculo fixo no canto (46px, a 18px da borda)
-   cobria exactamente o único controle da barra compacta: um dedo caía no botão errado. Nenhuma
-   medida de caixa denuncia um controle coberto — ele existe, mede 0 de distância e não recebe
-   toque. A prova passou a perguntar `elementFromPoint`.
-3. **A primeira correção do (2) foi medida e reprovada.** Reservar 70px à direita dentro da barra
-   resolvia a sobreposição, mas a paginação quebrava em duas linhas: a barra ia de 47 para 76px. A
-   solução é empilhar — o círculo sobe pela altura MEDIDA da barra.
-4. **O sem-JavaScript estava morto.** A versão compacta esconde o seletor «Blocos por página» e o
-   «⋯» é que o devolve; sem script, o seletor ficava inalcançável e o botão não fazia nada. Tudo
-   passou a ser opt-in (`data-barra-compacta`, posto no `<head>` antes de a página pintar).
+**Um terceiro erro, apanhado pela própria checagem nova ao ser escrita.** A primeira versão da 2c
+reprovava o `lancamento.html` — que tem título — porque lia o `<h1>` de um **comentário de CSS**
+dentro do `<style>` do formulário; e reprovava-o outra vez porque a tabela `conteudos[]` é
+deliberadamente **vazia** para as páginas de ferramenta (o «sem conteúdo conferível» das checagens
+de conteúdo, que não se aplica a um título). Uma checagem que lê código como se fosse texto e
+acusa quem está certo ensina a ignorá-la: o título passou a ser lido do arquivo, com script, estilo
+e comentários removidos antes, e a página cifrada é a única dispensada — e agora por escrito.
 
 **Com o quê.**
-- `node experimentos/provar-titulo-e-barra.js` → **27 asserções, 0 falha**, em 1280 e 390. **Contra
-  o `HEAD` anterior: 13 falham** — as seis do título e as da barra —, o que mostra que as medidas
-  medem o mecanismo e não a si mesmas.
-- `node tools/check-identidade.js` → 19 verificações, todas verdes (as cópias dos assets batem).
-- `node tools/check-pacote.js` no pacote do `batata` → 0 erro, 0 aviso; âncora intacta
-  (`c6be47d7…`).
-- `provar-celular` 15/15, `provar-paginacao` 121/121, `provar-barra-unica` 53/53,
-  `provar-notacao` 66/66, `provar-senha-do-lancamento` 19/19, `check-indices` 14/14,
-  `experimentos/propostas/medir.js` 77/77.
-- Medido no Worker ao vivo (`batata`): título de 46px preso a 61px no celular, `--titulo-preso` =
-  `46px`; barra de 47px, `⋯` recebendo o toque, fora do ecrã ao descer e de volta ao subir.
+- `node experimentos/provar-cabecalho-do-documento.js` → **21 asserções, 0 falha**: os seis
+  derivados, as seis fontes publicadas do ciclo, as nove páginas do pacote, e três controlos
+  negativos (a fonte antiga é reprovada; o bloco certo com `# ` no corpo é reprovado; a forma
+  corrigida passa — a regra não é um «não» a tudo).
+- `node tools/check-pacote.js` no pacote → **0 erro, 0 aviso**, com a linha nova:
+  «títulos: as 9 páginas têm `<h1>` com texto, e nenhuma publica o front-matter». Contra o pacote
+  de antes: **2 erros**, ambos nomeando `harmonizacao.html`.
+- `check-identidade` 19/19, `check-indices` 14/14, âncora `debca928…` íntegra e cadeia intacta.
+- Geometria medida, 1280px: harmonização agora tem o `<h1>` a **72px** e o cabeçalho de **115px** —
+  exatamente os mesmos números que notação, referências e captura.
 
 **O que ainda não está feito.**
-- **A página seguinte depois da aula não tem sido alvo de verificação de rolagem.** O mecanismo vale
-  para todo documento com `assets/nav.js`, mas só foi medido na aula 01.
-- **Duas provas antigas estão quebradas por expurgos, não por esta mudança:** `provar-dobra-do-indice`
-  aponta para `professores/tiago-menegaz/ciclos/ciclo-01-fita` e `provar-lancamento` para
-  `professores/tiago/ciclos/ciclo-01-maria` — pacotes que já não existem. Ficam registadas aqui em
-  vez de repontadas para outro ciclo: repontar mudaria o que elas medem, e isso é uma decisão sobre
-  os fixtures do expurgo.
-- **As bancadas saíram do site.** A montagem sem `--com-propostas` apaga `/propostas/`, e é o que
-  se quer agora que a escolha está feita; `construir.js` reconstrói as páginas quando for preciso
-  voltar a comparar.
-- A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
-  ter sido escolhida, e não como algo a implementar.
+- **A anamnese não foi medida.** A comparação dela com a harmonização é a da pesquisadora, a olho;
+  a anamnese é uma página da porta (outro template), e o que se conferiu aqui foi a harmonização
+  contra os documentos do MESMO template.
+- **O PDF foi regerado pela mudança da fonte.** Ele carrega a data de geração; o conteúdo textual
+  do documento é o mesmo, sem o `# ` duplicado.
+- **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
+  isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
+  acusa.
 
 ## O que está pendente
-
-## 20/10/2026 — o registro de notação passa a compor-se: o alfabeto é dado, e o motor recusa
-
-
-- **A música de 11 das 14 linhas.** O plano tem `[a decidir]` nos tempos e no compasso de 11
-  exercícios — e é isso, e não o motor, que mantém essas linhas em lacuna. Basta declarar a música
-  para elas comporem, se o exercício tiver verbete.
-- **Quatro verbetes, e o ciclo tem mais exercícios.** `Plié`, `Battement tendu`, `Rond de jambe` e
-  `Port de bras`. Um exercício novo (uma pirouette, um adágio) sai em lacuna `sem-verbete` até
-  alguém escrever a sua linha no alfabeto — que é o que a P-16 quer dizer.
-- **O verbete do `Rond de jambe` não foi exercido.** Nenhuma linha do plano tem a música para que
-  ele está declarado (8 tempos, 4/4), por isso ele nunca compôs um documento real. O do `Plié` e os
-  dois do `Battement tendu` compuseram; o do `Port de bras` compôs em parte.
-- **O alfabeto é um só.** `paraNotacao` casa a notação declarada pelo nome; hoje só `benesh` tem
-  alfabeto publicado. Um ciclo que declare outra notação degrada — o documento sai com a lacuna
-  declarada —, mas ainda não há segundo alfabeto para provar que a estrutura aguenta dois.
-- **O `check-glossario` não corre sobre as variantes.** O `check-pacote` procura
-  `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
-  (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
-  prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.
 
 ## 20/10/2026 — o lançamento pedia uma senha cujo campo estava escondido
 
@@ -308,6 +282,17 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
   voltar a comparar.
 - A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
   ter sido escolhida, e não como algo a implementar.
+
+## 21/10/2026 — a página de harmonização saía sem título: a fonte não abria o front-matter
+
+- **A anamnese não foi medida.** A comparação dela com a harmonização é a da pesquisadora, a olho;
+  a anamnese é uma página da porta (outro template), e o que se conferiu aqui foi a harmonização
+  contra os documentos do MESMO template.
+- **O PDF foi regerado pela mudança da fonte.** Ele carrega a data de geração; o conteúdo textual
+  do documento é o mesmo, sem o `# ` duplicado.
+- **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
+  isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
+  acusa.
 
 ## Pendências anteriores (índice)
 
@@ -559,6 +544,7 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - **20/10/2026** — clicar na logo leva à raiz do domínio → `REGISTRO.md` L20730
 - **20/10/2026** — o ciclo é gerado e o menu não o mostra: a barra passa a ser… → `REGISTRO.md` L20803
 - **20/10/2026** — a barra de navegação deixa de ser escrita e passa a ser… → `REGISTRO.md` L20872
+- **20/10/2026** — o registro de notação passa a compor-se: o alfabeto é dado,… → `REGISTRO.md` L20969
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

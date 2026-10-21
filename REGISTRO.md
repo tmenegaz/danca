@@ -21392,3 +21392,78 @@ estado de rolagem; nenhum valor da identidade foi redefinido.
   voltar a comparar.
 - A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
   ter sido escolhida, e não como algo a implementar.
+
+## 21/10/2026 — a página de harmonização saía sem título: a fonte não abria o front-matter
+
+**O que foi visto.** *«Apenas a página harmonização não deu certo… o título está mais abaixo se
+comparado com a página anamnese, que está ok.»* Medido, o defeito era maior do que o sintoma:
+
+| Na página de harmonização, antes | Medido |
+|:--|:--|
+| `<h1>` do cabeçalho | **vazio** — o cabeçalho media 41px, só com os selos |
+| primeiro elemento do corpo | um `<p>` com o YAML **cru**: `title: “Harmonização de linguagem” subtitle: …` |
+| o título de verdade | um `<h1>` **no corpo**, a 172px do topo |
+| nos outros documentos | `<h1>` no cabeçalho, a 72px, e o corpo a começar em `##` |
+
+**A causa.** O `-harmonizacao.md` era escrito com `title:` e `subtitle:` mas **sem os `---` que
+abrem e fecham o front-matter**. Sem os delimitadores o pandoc não lê metadado nenhum, e de uma
+causa só saem as três coisas: `$title$` vazio → `<h1></h1>`; as duas linhas viram parágrafo do
+corpo; e o título real vai para dentro do texto, abaixo da ficha. Depois, corrigido o bloco,
+sobrava um **segundo** `<h1>` no corpo — a harmonização era o único dos seis derivados a escrever
+`# `. As duas coisas foram corrigidas: o bloco à volta do `title:`, e o `# ` fora do corpo.
+
+**Porque ninguém viu.** Duas razões, e a segunda é a que importa:
+1. **o gerador não confere o que escreveu** — ele confia na fonte, e a fonte estava malformada;
+2. **a checagem que compara títulos com o PDF FILTRAVA o vazio**: `h1 && !texto.includes(h1)`. Um
+   título ausente era, para ela, um título que não falta. Um `if` de guarda que transforma um
+   defeito em silêncio é pior do que não haver checagem nenhuma — o `check-pacote.js` dizia «OK: 0
+   erro, 0 aviso» a um pacote com uma página sem título no ar.
+
+**Motivo declarado — `tools/check-pacote.js` é congelado e muda aqui.** O motivo é o acima: o
+validador tinha um buraco por onde passou um defeito publicado, e a correção do dado sem a do
+buraco deixaria a próxima fonte malformada passar igual. **O que não muda:** nenhuma checagem
+existente foi afrouxada ou removida; a nova é acrescentada (secção 2c) e só reprova duas coisas
+que nunca deveriam ter passado — página sem `<h1>` com texto, e front-matter vazado para o corpo.
+A fórmula do hash, a cobertura da âncora, as 17 regras e as 22 pétreas não são tocadas.
+
+**Onde entrou.**
+- `motor/nucleo/derivar-ciclo.js` — `derivarHarmonizacao` passa a abrir e fechar o front-matter,
+  com `projeto`, `frente`, `ciclo`, `title` e `subtitle`, como os outros cinco; e deixa de escrever
+  `# ` no corpo (o `<h1>` vem do `title:`). A variável `escola` deixou de ter uso e saiu.
+- `professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md` — a
+  fonte existente, corrigida à mão. `escrever-ciclo.js` só grava o que ainda não existe
+  («proveniência acrescenta, não edita»), então a correção do derivador não a teria alcançado.
+  O conteúdo do documento não mudou: mudou o cabeçalho dele.
+- `tools/check-pacote.js` — a secção 2c (ver o motivo declarado acima).
+- `experimentos/provar-cabecalho-do-documento.js` — **novo**, 21 verificações.
+- âncora reancorada e índices regerados, como manda o fluxo (`hash-ciclo.sh`, `gerar-indices.js`).
+
+**Um terceiro erro, apanhado pela própria checagem nova ao ser escrita.** A primeira versão da 2c
+reprovava o `lancamento.html` — que tem título — porque lia o `<h1>` de um **comentário de CSS**
+dentro do `<style>` do formulário; e reprovava-o outra vez porque a tabela `conteudos[]` é
+deliberadamente **vazia** para as páginas de ferramenta (o «sem conteúdo conferível» das checagens
+de conteúdo, que não se aplica a um título). Uma checagem que lê código como se fosse texto e
+acusa quem está certo ensina a ignorá-la: o título passou a ser lido do arquivo, com script, estilo
+e comentários removidos antes, e a página cifrada é a única dispensada — e agora por escrito.
+
+**Com o quê.**
+- `node experimentos/provar-cabecalho-do-documento.js` → **21 asserções, 0 falha**: os seis
+  derivados, as seis fontes publicadas do ciclo, as nove páginas do pacote, e três controlos
+  negativos (a fonte antiga é reprovada; o bloco certo com `# ` no corpo é reprovado; a forma
+  corrigida passa — a regra não é um «não» a tudo).
+- `node tools/check-pacote.js` no pacote → **0 erro, 0 aviso**, com a linha nova:
+  «títulos: as 9 páginas têm `<h1>` com texto, e nenhuma publica o front-matter». Contra o pacote
+  de antes: **2 erros**, ambos nomeando `harmonizacao.html`.
+- `check-identidade` 19/19, `check-indices` 14/14, âncora `debca928…` íntegra e cadeia intacta.
+- Geometria medida, 1280px: harmonização agora tem o `<h1>` a **72px** e o cabeçalho de **115px** —
+  exatamente os mesmos números que notação, referências e captura.
+
+**O que ainda não está feito.**
+- **A anamnese não foi medida.** A comparação dela com a harmonização é a da pesquisadora, a olho;
+  a anamnese é uma página da porta (outro template), e o que se conferiu aqui foi a harmonização
+  contra os documentos do MESMO template.
+- **O PDF foi regerado pela mudança da fonte.** Ele carrega a data de geração; o conteúdo textual
+  do documento é o mesmo, sem o `# ` duplicado.
+- **Outras fontes derivadas de ciclos antigos** que tenham o mesmo defeito não são alcançadas por
+  isto: os ciclos anteriores foram expurgados. Se algum reaparecer, a secção 2c do `check-pacote`
+  acusa.

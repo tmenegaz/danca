@@ -906,6 +906,31 @@ nasce recolhido, o ganho é medido, o toque expande e recolhe, o estado é lembr
 e na página seguinte, o corte é 1199 × 1200, a memória é ignorada em tela larga, sem JS não há
 botão, no papel o índice sai inteiro, e nenhuma largura estoura.
 
+## Todo documento tem um `<h1>`, e um só *(21/10/2026)*
+
+A página de harmonização saiu no ar com o cabeçalho **vazio** e o título dentro do corpo. O
+sintoma que se viu foi «o título está mais abaixo do que na anamnese»; a causa não era de CSS:
+a fonte escrevia `title:` e `subtitle:` **sem os `---`** que abrem o front-matter.
+
+| O que | Como |
+| --- | --- |
+| **O `<h1>` da página** | vem do `title:` do front-matter, pelo `$title$` do template. Um `title:`, dois destinos: o `<h1>` e o rótulo do menu |
+| **O corpo não escreve `# `** | o primeiro nível do corpo é `##`. Um `# ` no corpo é um **segundo** título de topo, e é o que põe o de verdade abaixo da ficha |
+| **O que se mede** | `115px` de cabeçalho e o `<h1>` a **72px** em todos os documentos do pacote (1280px). Antes da correção a harmonização tinha cabeçalho de **41px**, `<h1>` **vazio** e o título a **172px** |
+| **A única dispensada** | a página **cifrada** (acompanhamento com dados sensíveis): o arquivo dela é ciphertext, e «não tem `<h1>`» seria verdade sem ser defeito |
+
+**A checagem existia e não viu — por um `if` de guarda.** O `check-pacote.js` compara o `<h1>` de
+cada página com o texto do PDF, e a comparação era `h1 && !texto.includes(h1)`: para um título
+**ausente**, a primeira metade é falsa e a página simplesmente não entra na lista. Um título que não
+existe era, para ela, um título que não falta. A secção 2c acrescentada é independente disso e não
+depende de comparar com nada: toda página publicada tem de ter `<h1>` com texto, e a fonte crua do
+front-matter não pode aparecer no corpo.
+
+**Prova.** `node experimentos/provar-cabecalho-do-documento.js` — 21 verificações: os **seis**
+derivados, as **seis** fontes publicadas do ciclo, as **nove** páginas do pacote, e três controlos
+negativos (a fonte antiga reprovada, o `# ` no corpo reprovado, a forma corrigida aprovada). Contra
+o pacote anterior, o `check-pacote.js` acusa **2 erros**, ambos nomeando `harmonizacao.html`.
+
 ## O título que fica *(21/10/2026)*
 
 A página da aula tem 15 ecrãs, e o título — que diz de que documento se trata — saía da tela na
