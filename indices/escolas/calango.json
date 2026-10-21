@@ -1,261 +1,41 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-21",
-        "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
-        "cobertura": [
-          "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
-          "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
-          "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf"
-        ],
-        "hash": "7a7f38ad67306ab34273e9faa4d19c976338ba8d240698a725895ccc761c0623",
-        "hash_conteudo": "fc7affca0d2f0fe493f05505d8a555dd8cd0682d1494bc854deee8adbf7d1c6d",
-        "id": "ciclo-01-calango-bale-nivel-1-teste-1",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
-        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
-        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
-        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp"
-      ],
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:murisoca-baiana/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "murisoca-baiana",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "plano",
-        "po"
-      ]
-    },
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-21",
-        "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-calango.fipp",
-        "cobertura": [
-          "professores/tiago-menegaz/ciclos/ciclo-01-calango.conf",
-          "professores/tiago-menegaz/ciclos/ciclo-01.conf"
-        ],
-        "hash": "f5ca8cf03704b8fb1b7d0742b8184b233cc9ed119a7d92c8006c12cbc1ee88ef",
-        "hash_conteudo": "10862cc62bb4de2fff418b829186897ba5ed5f40983618ad3acb7affb1e12d2b",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/tiago-menegaz/ciclos/ciclo-01-calango.conf",
-        "professores/tiago-menegaz/ciclos/ciclo-01-calango.fipp",
-        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:tiago-menegaz/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "tiago-menegaz",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
-      "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
-      "ciclo_id": "ciclo:murisoca-baiana/01/calango",
-      "escola": "calango",
-      "id": "documento:ancora:professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
-      "professor": "murisoca-baiana",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-calango.fipp",
-      "ciclo_id": "ciclo:tiago-menegaz/01/calango",
-      "escola": "calango",
-      "id": "documento:ancora:professores/tiago-menegaz/ciclos/ciclo-01-calango.fipp",
-      "professor": "tiago-menegaz",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
-      "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
-      "ciclo_id": "ciclo:murisoca-baiana/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
-      "professor": "murisoca-baiana",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-calango.conf",
-      "ciclo_id": "ciclo:tiago-menegaz/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/tiago-menegaz/ciclos/ciclo-01-calango.conf",
-      "professor": "tiago-menegaz",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
-      "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
-      "ciclo_id": "ciclo:murisoca-baiana/01/calango",
-      "escola": "calango",
-      "id": "documento:plano:professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
-      "professor": "murisoca-baiana",
-      "tipo": "plano"
-    },
-    {
-      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
-      "caminho": "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
-      "ciclo_id": "ciclo:murisoca-baiana/01/calango",
-      "escola": "calango",
-      "id": "documento:po:professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
-      "professor": "murisoca-baiana",
-      "tipo": "po"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:tiago-menegaz/01/calango",
-      "escola": "calango",
-      "id": "documento:schema:professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "tiago-menegaz",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:murisoca-baiana/01/calango",
-      "ciclo:tiago-menegaz/01/calango"
-    ],
+    "ciclos": [],
     "contagens": {
-      "anamneses": 1,
+      "anamneses": 0,
       "aulas": 0,
-      "ciclos": 2,
-      "ciclos_com_ancora": 2,
-      "planos": 1,
-      "pos": 1,
-      "registros": 3
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
+      "planos": 0,
+      "pos": 0,
+      "registros": 0
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
-    "expurgada": false,
-    "habilitada": true,
+    "expurgada": true,
+    "habilitada": false,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "sapo-bailarino",
     "professores": [
-      "murisoca-baiana",
-      "sapo-bailarino",
-      "tiago-menegaz"
+      "sapo-bailarino"
     ],
-    "registros": [
-      "anamnese:anamnese-20261021-1520",
-      "plano:plano-20261021-1524",
-      "po:po-20261021-1527"
-    ],
+    "registros": [],
     "slug": "calango"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 3,
-        "ids": [
-          "anamnese:anamnese-20261021-1520",
-          "plano:plano-20261021-1524",
-          "po:po-20261021-1527"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
-    "estados": [
-      {
-        "contagem": 2,
-        "ids": [
-          "ciclo:murisoca-baiana/01/calango",
-          "ciclo:tiago-menegaz/01/calango"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 4,
-        "ids": [
-          "anamnese:anamnese-20261021-1520",
-          "ciclo:murisoca-baiana/01/calango",
-          "plano:plano-20261021-1524",
-          "po:po-20261021-1527"
-        ],
-        "rotulo": "murisoca-baiana",
-        "valor": "murisoca-baiana"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:tiago-menegaz/01/calango"
-        ],
-        "rotulo": "tiago-menegaz",
-        "valor": "tiago-menegaz"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "anamnese:anamnese-20261021-1520"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 2,
-        "ids": [
-          "ciclo:murisoca-baiana/01/calango",
-          "ciclo:tiago-menegaz/01/calango"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "plano:plano-20261021-1524"
-        ],
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "po:po-20261021-1527"
-        ],
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "anos": [],
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "bc4b295"
+    "commit": "f59a24e"
   },
-  "gerado_em": "2026-10-21T19:04",
+  "gerado_em": "2026-10-21T19:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -278,39 +58,6 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261021-1520",
-      "ciclo": "01",
-      "data": "2026-10-21T15:20",
-      "id": "anamnese:anamnese-20261021-1520",
-      "professor": "murisoca-baiana",
-      "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "plano-20261021-1524",
-      "ciclo": "01",
-      "data": "2026-10-21T15:24",
-      "id": "plano:plano-20261021-1524",
-      "objetivo": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
-      "professor": "murisoca-baiana",
-      "tipo": "plano",
-      "turma": "Balé Nível 1 — Teste 1"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "po-20261021-1527",
-      "ciclo": "01",
-      "data": "2026-10-21T15:27",
-      "id": "po:po-20261021-1527",
-      "professor": "murisoca-baiana",
-      "tipo": "po"
-    }
-  ],
+  "registros": [],
   "versao": 1
 }

@@ -376,8 +376,24 @@ const lerTurmas = async () => TURMAS;
   // defeito, porém, não era daquela escola: é o mesmo em todo `.conf` escrito à mão — a lacuna
   // `[Preencher: …]` em `DATA_INICIO`. Provar com o que está em disco é o que mantém esta prova
   // a correr num clone limpo.
-  const doCi = path.join(tmp, 'ciclo-01-valse.conf');
-  fs.writeFileSync(doCi, fs.readFileSync(path.join(RAIZ, 'professores', 'tiago-menegaz', 'ciclos', 'ciclo-01-valse.conf'), 'utf8'), 'utf8');
+  // O `.conf` é DESCOBERTO, não nomeado (22/10/2026). Esta prova já teve de trocar a `batata` pela
+  // `valse` quando a primeira foi expurgada; a `valse` foi-se depois. Nomear uma escola é apostar
+  // que ela sobrevive à próxima limpeza — e o que se mede aqui não é a escola, é a REGRA. Quando
+  // não há nenhum `.conf` em disco, o plano B é sintético e diz a mesma coisa: a lacuna em
+  // `DATA_INICIO` que todo manifesto escrito à mão trazia.
+  // O que se procura em disco é o DEFEITO, não uma escola: um `.conf` de ESCOLA escrito à mão
+  // cuja `DATA_INICIO` ainda traga a lacuna. Um `.conf` derivado (o que `compor-conf.js` escreve)
+  // é o oposto — declara a data, e por isso NÃO serve de contraponto: mediria a regra ao contrário.
+  const { umConfDeVariante } = require('./lib-pacote.js');
+  const real = umConfDeVariante();
+  const doCi = path.join(tmp, 'ciclo-01-do-ci.conf');
+  const temLacuna = real && /^DATA_INICIO="[^"]*\[/m.test(fs.readFileSync(real, 'utf8'));
+  fs.writeFileSync(doCi, temLacuna
+    ? fs.readFileSync(real, 'utf8')
+    : ['CICLO="01"', 'VARIANTE="do-ci"', 'ESCOLA="Do CI"',
+       'DATA_INICIO="[Preencher: data de início — o plano elicitado a estabelece]"',
+       'FREQUENCIA="2x/semana"', 'DIAS="2@19:00"', 'DURACOES="60"', 'TOTAL_AULAS="5"'].join('\n') + '\n',
+  'utf8');
   let reprovou = false;
   let motivo = '';
   try {

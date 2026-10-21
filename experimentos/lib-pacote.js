@@ -145,4 +145,34 @@ function caminhoDeExemplo() {
   return lista.length ? lista[0] : 'professores/exemplo/ciclos/ciclo-01-exemplo';
 }
 
-module.exports = { RAIZ, pacotes, umPacote, caminhoDeExemplo, paginas, umaPagina, fontesDoPacote };
+/**
+ * O `.conf` de uma VARIANTE (escola/turma) que exista em disco, ou `null`.
+ *
+ * Pelo mesmo motivo de `umPacote()`: uma prova que nomeia `ciclo-01-valse.conf` morre no dia em
+ * que a `valse` é expurgada — e a prova não media a `valse`, media a REGRA (o Pré-requisito 5
+ * recusa a lacuna `[Preencher: …]` em `DATA_INICIO`). Quem chama deve ter um plano B sintético
+ * quando isto devolver `null`; o que não pode é o plano B ser o silêncio.
+ */
+function umConfDeVariante() {
+  let encontrados = [];
+  try {
+    encontrados = fs.readdirSync(CICLOS, { withFileTypes: true })
+      .filter((e) => e.isDirectory())
+      .flatMap((e) => {
+        const dir = path.join(CICLOS, e.name, 'ciclos');
+        if (!fs.existsSync(dir)) return [];
+        return fs.readdirSync(dir)
+          .filter((n) => /^ciclo-\d{2}-[a-z0-9-]+\.conf$/.test(n))
+          .map((n) => path.join(dir, n));
+      });
+  } catch {
+    return null;
+  }
+  encontrados.sort();
+  return encontrados.length ? encontrados[0] : null;
+}
+
+module.exports = {
+  RAIZ, pacotes, umPacote, caminhoDeExemplo, paginas, umaPagina, fontesDoPacote,
+  umConfDeVariante,
+};

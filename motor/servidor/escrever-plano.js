@@ -319,10 +319,21 @@ function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas }) {
   return async (envelope, mensagem) => {
     const contexto = (envelope && envelope.contexto) || {};
     const caminho = caminhoDoPlano(contexto);
+
+    // Os schemas do ciclo ANTES da fonte (22/10/2026). Este é o ato que CRIA a pasta do
+    // professor que não criou a escola — o `criar-escola.sh` só passa pela pasta de quem cria.
+    // Sem os schemas, o `hash-ciclo.sh` não valida o manifesto (0 chamadas ao validador) nem o
+    // PO (aviso), e a âncora fecha igual. Ver `schemas-do-ciclo.js`.
+    const { garantirSchemasDoCiclo } = require('./schemas-do-ciclo.js');
+    const schemas = await garantirSchemasDoCiclo({
+      token, dono, repo, ref,
+      professor: contexto.professor, ciclo: contexto.ciclo,
+    });
+
     const { markdown } = derivarPlano(envelope);
     const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem });
     const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas });
-    return Object.assign({}, escrita, { docs: manifesto });
+    return Object.assign({}, escrita, { docs: manifesto, schemas });
   };
 }
 

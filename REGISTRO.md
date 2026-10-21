@@ -21800,3 +21800,104 @@ pasta de outro professor, com controle negativo para o caso de não estar em pas
 - **A pasta de um professor que não criou escola continua sem base e sem schemas.** O gerador já
   não exige a base; os schemas foram copiados do molde à mão neste dia. O caminho automático
   (o «Guardar» provisionar a pasta do professor) não existe.
+
+## 22/10/2026 — O professor que não criou a escola não fica sem validação
+
+**O que aconteceu.** Os cinco schemas do ciclo são por par (professor, ciclo) e nascem em
+`tools/criar-escola.sh`, copiados do molde `modelo/ciclos/` para a pasta de quem **cria** a
+escola. Na véspera eu os tinha copiado **à mão** para a pasta da `murisoca-baiana`, e registei a
+dívida sem a pagar. Medido agora num clone da pasta de um professor novo, com o `.conf` e o PO
+escritos:
+
+| Sem o schema | O que acontece |
+|:--|:--|
+| `ciclo-NN-po-schema.json` | `aviso: … PO não validado` — e **ancora na mesma** |
+| `ciclo-NN-schema.json` | o `if [ -f "$SCHEMA" ]` não entra: o validador do manifesto **nunca corre** (0 invocações, medido com `bash -x`), e **sem aviso** |
+
+O ciclo fechava a âncora com validação mais fraca do que a do primeiro professor, em silêncio. Para
+quem está a testar o motor é o pior modo de falha que existe: o teste passa, e passou por **não
+ter sido verificado**.
+
+**O que foi decidido.** Um módulo novo, `motor/servidor/schemas-do-ciclo.js`, garante os cinco na
+pasta do professor — do molde, só o que falta, e com o ciclo de verdade no nome do destino (o
+conteúdo dos schemas não leva o número do ciclo, é o que `criar-escola.sh` já dizia). É chamado
+pelos **dois escritores** (o do plano e o do PO): o `criar-escola.sh` só passa pela pasta de quem
+cria, e o primeiro ato que cria a pasta de um segundo professor é a escrita do plano dele.
+
+Três decisões que valem a pena ficar escritas:
+1. **Não se reescreve schema existente.** Ele é do professor; reescrevê-lo seria editar o que já
+   estava certo — a mesma regra da proveniência, aplicada a um arquivo de configuração.
+2. **Sem molde não se inventa schema**: diz-se, e o relatório passa a `ok: false`. É a diferença
+   entre um ciclo validado e um ciclo sem validação, e quem lê tem de saber qual dos dois tem.
+3. **Provisionar schema não aborta a escrita.** O plano é o que a professora pediu; a falha de um
+   ato de apoio é DITA no relatório (`schemas.erros`), não engolida e não fatal.
+
+**Com o quê.** `motor/servidor/schemas-do-ciclo.js` (novo), `motor/servidor/escrever-po.js` e
+`motor/servidor/escrever-plano.js`, mais `experimentos/provar-schemas-do-professor.js` — **21
+asserções**, em quatro partes: a função (do molde, só o que falta, ciclo 02 com molde 01, chamada
+repetida é no-op); a **ligação** (o escritor do PO cria os cinco e grava a fonte depois deles —
+sem esta parte a função podia estar certa e ninguém a chamar, que é o defeito de que esta prova
+nasceu); as **ferramentas reais, antes e depois**, com o «antes» por controlo negativo no mesmo
+disco e a prova de que a validação ficou VIVA (um PO fora do schema passa a reprovar a ancoragem);
+e os três modos de falha do molde, do token e da rede.
+
+**O que ainda não está feito.**
+- **A pasta de um professor novo continua a nascer sem a base** (`ciclo-NN.conf`). Deixou de ser
+  problema na véspera (a base tornou-se dispensável), mas é o segundo arquivo que o
+  `criar-escola.sh` cria e que o segundo professor nunca tem.
+- **Nada disto é atômico.** São até dez chamadas ao Contents API (cinco GET de destino, cinco
+  de molde, cinco PUT) e cada uma é um commit no repositório. Uma falha a meio deixa alguns
+  schemas e não outros — o relatório diz quais, e a próxima gravação completa o que falta.
+- **`provar-derivacao-da-turma` continua em 119 de 126.** As sete falhas são de «curadoria
+  vinculada recusa a edição», medidas também em `HEAD` sem estas alterações: são anteriores a
+  este trabalho e não são destes arquivos.
+
+## 22/10/2026 — A prova que nomeava a `valse` (a segunda vez)
+
+**O que aconteceu.** `experimentos/provar-manifesto-da-turma.js` lia
+`professores/tiago-menegaz/ciclos/ciclo-01-valse.conf` para montar o contraponto «o manifesto
+escrito à mão REPROVA no Pré-requisito 5». A `valse` foi expurgada e a prova passou a morrer com
+`ENOENT` — a **segunda** vez que esta prova é apanhada pela limpeza: antes tinha sido a `batata`,
+e o remédio de então foi trocar o nome, que é o mesmo erro com outra data.
+
+**O que foi decidido.** O que se procura em disco é o **defeito**, não uma escola: um `.conf`
+escrito à mão cuja `DATA_INICIO` ainda traga a lacuna `[Preencher: …]`. Se existir, usa-se (é
+real); se não existir, sintetiza-se com a mesma forma. Um `.conf` **derivado** não serve de
+contraponto — é o oposto, declara a data, e mediria a regra ao contrário (foi o que aconteceu na
+primeira tentativa desta correção: o `.conf` descoberto era derivado e a asserção inverteu-se).
+
+`experimentos/lib-pacote.js` ganhou `umConfDeVariante()`, ao lado de `umPacote()`: as duas
+descobrem pelo FORMULÁRIO, e as duas existem pela mesma razão.
+
+**O que ainda não está feito.**
+- **Outras provas continuam a nomear escolas** por dentro. Esta classe de dívida foi paga três
+  vezes (pacotes, `caminhoDeExemplo`, e agora o `.conf`); não há varredura que a encontre
+  sozinha — uma prova que nomeia um arquivo só se queixa no dia em que ele desaparece.
+
+## 22/10/2026 — O expurgo pela página não regera os índices derivados
+
+**O que aconteceu.** O expurgo da `calango` (`1b580f5`) apagou 76 arquivos pela página «Sistema
+Lastro» e **não regerou `indices/`**. O repositório ficou internamente contraditório: o índice
+derivado continuava a apontar para os `.md`, `.conf` e `.fipp` que o mesmo commit tinha apagado,
+a `calango` aparecia `habilitada: true` no índice (`expurgada` sai do wrangler, que sumiu), e dois
+`indices/ciclos/*/01-calango.json` ficaram **órfãos** — o gerador já não os produz.
+
+Medido com `node tools/check-indices.js`: **24 falhas em 5 verificações** (reconstrução,
+existência, âncora, cobertura). Depois de `node tools/gerar-indices.js`: **14 verificações, 0
+falhas**, com a `calango` em `expurgada: true` e `habilitada: false`.
+
+**Por que passou despercebido.** Nenhum workflow corre o `check-indices` — a verificação existe e
+não é invocada, que é o mesmo modo de falha do `if [ -f "$SCHEMA" ]` registado hoje mais acima. O
+expurgo é um dos cinco caminhos que escrevem no `main` sem passar pelo worktree, e é o único deles
+que apaga fontes sem refazer o que delas deriva.
+
+**O que foi feito.** Índices regerados e commitados com a correção dos schemas. A prova
+`provar-schemas-do-professor.js` deixou de copiar o `.conf` e o PO de uma escola viva (morreu no
+expurgo no mesmo dia, terceira vez na semana) e passou a escrever o mínimo que o schema aceita.
+
+**O que ainda não está feito.**
+- **O expurgo continua a não regerar os índices.** O remédio é uma linha no passo do expurgo (ou um
+  workflow que corra `gerar-indices` + `check-indices` a cada push), e não foi feito: mexer no
+  caminho de escrita da página exige uma sessão com isso como assunto.
+- **E o `check-indices` devia estar no CI.** Hoje ele é uma verificação manual; a divergência de
+  ontem sobreviveu a um push, um deploy e um expurgo sem ninguém a ver.

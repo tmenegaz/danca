@@ -19,6 +19,10 @@
 const ACEITE = 'application/vnd.github+json';
 const API_VERSAO = '2022-11-28';
 
+// O require é NORMAL (não tardio): `schemas-do-ciclo.js` requer este arquivo apenas pelas duas
+// constantes acima, e as recebe já definidas — a ordem das declarações é a que evita o ciclo vazio.
+const { garantirSchemasDoCiclo } = require('./schemas-do-ciclo.js');
+
 // Base64 em UTF-8 SEM `Buffer` (global do Node, ausente no Workers runtime): o `btoa` é
 // Web Standard, mas só cobre Latin-1 — a ponte é o TextEncoder/TextDecoder, nos dois.
 function base64De(texto) {
@@ -126,13 +130,24 @@ async function escreverPO({ token, dono, repo, caminho, conteudo, mensagem, ref,
  * professor o leu no formulário): os rótulos são do conteúdo, não deste módulo, e sem eles o
  * documento assinava um nome que ninguém marcou.
  */
-function criarEscritorDePO({ token, dono, repo, ref, derivarPO }) {
+function criarEscritorDePO({ token, dono, repo, ref, derivarPO, fetchImpl }) {
   if (!token || !derivarPO) return null;
   return async (envelope, mensagem, plano, opcoes) => {
     const contexto = (envelope && envelope.contexto) || {};
     const caminho = caminhoDoPO(contexto);
+
+    // Os schemas do ciclo ANTES da fonte (22/10/2026). A pasta de um professor que não criou a
+    // escola nasce vazia: sem `ciclo-NN-schema.json` o `hash-ciclo.sh` nunca chama o validador do
+    // manifesto, e sem o do PO a validação vira um aviso. O ciclo ancora na mesma — com validação
+    // mais fraca e sem o dizer. Ver `schemas-do-ciclo.js`.
+    const schemas = await garantirSchemasDoCiclo({
+      token, dono, repo, ref, fetchImpl,
+      professor: contexto.professor, ciclo: contexto.ciclo,
+    });
+
     const { markdown } = derivarPO(envelope, plano, opcoes);
-    return escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem });
+    const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem, fetchImpl });
+    return Object.assign({}, escrita, { schemas });
   };
 }
 
