@@ -182,16 +182,22 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
      acompanhamento (uma aluna), o relatório pós-aula (uma aula) e o caderno (o ciclo).
      A escolha é do professor; o que o filtro não sustenta fica desabilitado — a opção
      cinza diz que o filtro, ali, não tem aquilo. As opções nascem no script. -->
+<!-- A SENHA NÃO É UM CONTROLE DO «.md» (20/10/2026). Este bloco guardava duas coisas de
+     naturezas diferentes: o que serve a GERAR um arquivo (botão, entregável, autor, ajuda) e a
+     SENHA, que AUTENTICA — ela abre o ciclo cifrado e autoriza a gravar. O bloco era escondido
+     inteiro no modo captura, e o modo captura é exactamente aquele em que se grava: o professor
+     preenchia a aula, mandava lançar, e a página pedia uma senha cujo campo não estava na tela.
+     O que é do «.md» leva `data-so-leitura` e é o que se esconde; a senha fica. -->
 <div class="acoes" id="acoes-md">
-  <button id="gerar" type="button" disabled>Gerar .md</button>
-  <span><label class="campo-rotulo em-linha" for="entregavel">Entregável:</label>
+  <button id="gerar" type="button" data-so-leitura disabled>Gerar .md</button>
+  <span data-so-leitura><label class="campo-rotulo em-linha" for="entregavel">Entregável:</label>
     <select id="entregavel"></select></span>
-  <span><label class="campo-rotulo em-linha" for="autor">Gerado por:</label>
+  <span data-so-leitura><label class="campo-rotulo em-linha" for="autor">Gerado por:</label>
     <input id="autor" type="text" size="16" placeholder="quem gerou (obrigatório)"></span>
   <span><label class="campo-rotulo em-linha" for="senha">Sua senha:</label>
     <input id="senha" type="password" size="14" placeholder="a mesma dos Bastidores — abre o ciclo e autoriza a gravar"></span>
-  <span class="fraco" id="ajuda-md">gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
-  <span id="aviso-gerado"></span>
+  <span class="fraco" id="ajuda-md" data-so-leitura>gera o <strong>filtro inteiro</strong> em arquivo, não só a página aberta</span>
+  <span id="aviso-gerado" data-so-leitura></span>
 </div>
 
 <div id="saida"><p class="vazio">Carregando…</p></div>
@@ -796,7 +802,7 @@ async function enviar(arquivos) {
   // gravar não pedia senha nenhuma: quem soubesse o endereço da escola podia gravar nela.
   const senha = senhaDaEscola();
   if (!senha) {
-    throw new Error('informe a sua senha no campo acima — ela abre o ciclo e autoriza a gravação');
+    throw new Error('informe a sua senha no campo “Sua senha”, no alto da página — ela abre o ciclo e autoriza a gravação');
   }
   const r = await fetch(RECEBER, {
     method: 'POST',
@@ -1630,6 +1636,13 @@ async function gerarJson() {
     // o professor perder o lançamento sem saber.
     dizer(`<span class="erro">não enviei: ${esc(e.message)}. ` +
       'Os dados continuam aqui — tente de novo.</span>');
+    // QUANDO A FALTA É A SENHA, O CAMPO É ONDE SE RESOLVE (20/10/2026). A mensagem nomeia-o;
+    // pôr o cursor lá é o resto. `focus()` trás o campo à vista, e ele vive no alto da página —
+    // a esta altura o professor está a três ecrãs de distância, no fim do formulário.
+    if (/senha/i.test(String(e.message))) {
+      const campoDaSenha = el('senha');
+      if (campoDaSenha) campoDaSenha.focus();
+    }
     return;
   }
   f.dados = JSON.parse(texto);   // §3.3: o JSON em memória é o que acabou de ser enviado
@@ -1672,11 +1685,22 @@ async function render() {
   const captura = (captura0 && pulada(captura0.meta, captura0.dados, aula)) ? null : captura0;
   const emAjuste = !!estadoAjuste();
   const emFormulario = !!captura || emAjuste;
-  // A barra do ".md" — botão, ajuda e o campo "Gerado por" — existe SÓ na leitura: em
-  // captura não há o que gerar nem o que assinar, e no ajuste o autor é um campo do
-  // próprio formulário, ao lado do motivo, que é da mesma natureza.
+  /*
+   * A BARRA DO «.md» EXISTE SÓ NA LEITURA — MAS A SENHA NÃO É DELA (20/10/2026).
+   *
+   * O bloco era escondido inteiro (`acoesMd.hidden = emFormulario`), e a senha vivia lá
+   * dentro. Em captura — que é o modo em que se GRAVA — o campo desaparecia, enquanto
+   * `enviar()` continuava a exigi-lo: «informe a sua senha no campo acima», e não havia
+   * campo nenhum acima. O defeito foi encontrado pela pesquisadora a lançar uma aula.
+   *
+   * A distinção é a que faltava: gerar um arquivo é da LEITURA; autenticar-se é de TODOS os
+   * modos. O que é do «.md» está marcado com `data-so-leitura` e é isso que se esconde.
+   */
   const acoesMd = el('acoes-md');
-  if (acoesMd) acoesMd.hidden = emFormulario;
+  if (acoesMd) {
+    acoesMd.hidden = false;                       // o contentor fica: a senha mora nele
+    acoesMd.querySelectorAll('[data-so-leitura]').forEach((no) => { no.hidden = emFormulario; });
+  }
   // O FILTRO DE ALUNA NÃO EXISTE NO LANÇAMENTO ✗✓: a aula é lançada INTEIRA — a presença e a
   // técnica são por aluna, DENTRO do painel —, e deixar filtrar por uma aluna na hora de lançar
   // sugeriria que o lançamento é dela, o que não é. Ele fica DESABILITADO enquanto o formulário
@@ -1788,8 +1812,8 @@ function pedirSenha(c, e) {
   el('saida').innerHTML = '<div class="aviso"><strong>' + nome +
     ' tem lançamento — e o lançamento vai cifrado no pacote.</strong> ' +
     (semSenha
-      ? 'Digite a <strong>senha da escola</strong> no campo acima (ao lado de “Gerado por”) e clique ' +
-        'em <strong>Abrir</strong>.'
+      ? 'Digite a <strong>senha da escola</strong> no campo <strong>“Sua senha”</strong>, no alto ' +
+        'da página, e clique em <strong>Abrir</strong>.'
       : 'A senha digitada foi <strong>recusada</strong> — confira e clique em <strong>Abrir</strong>.') +
     '</div><p><button id="abrir-ciclo" type="button">Abrir</button> ' +
     '<span class="fraco">detalhe: ' + esc(e.message) + '</span></p>';

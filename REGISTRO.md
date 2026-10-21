@@ -21073,3 +21073,71 @@ verbetes com âncora** e 18 declarações de origem.
   `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
   (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
   prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.
+
+## 20/10/2026 — o lançamento pedia uma senha cujo campo estava escondido
+
+**O que aconteceu.**
+A pesquisadora preencheu o formulário de lançamento, mandou gravar, e a página respondeu «informe a
+sua senha no campo acima» — e não havia campo nenhum acima. Ela relatou-o como um defeito de tela:
+«quando eu tento lançar pede pra colocar uma senha, só que não tem campo de digitar senha».
+
+**O que foi diagnosticado.**
+O campo **existia no arquivo**. Estava era dentro do bloco que o modo captura esconde inteiro:
+
+```
+acoesMd.hidden = emFormulario;   // escondia o bloco todo, senha incluída
+```
+
+O bloco `#acoes-md` guardava **duas coisas de naturezas diferentes**: o que serve a *gerar um
+arquivo* (botão «Gerar .md», entregável, «Gerado por», ajuda) e a **senha**, que *autentica* — ela
+abre o ciclo cifrado e autoriza a gravação. Esconder o bloco para esconder o «Gerar .md» escondia
+também a autenticação, **no único modo em que se grava**. E `enviar()` continuava a exigi-la.
+
+O defeito não era de layout: era de **categoria**. Duas coisas com donos diferentes moravam na
+mesma caixa, e a caixa era escondida por causa de uma delas.
+
+**Motivo declarado — os congelados.**
+`tools/templates/lancamento.html` é congelado. Muda por este motivo, com commit próprio e esta
+entrada. **O que não muda:** a fórmula do hash, a cobertura da âncora, os validadores, as 17 regras
+e as 22 pétreas. O que muda é **onde** a senha vive na página e **o que** as mensagens dizem — não
+o que a página faz com ela.
+
+**O que foi decidido.**
+- Gerar um arquivo é da **leitura**; autenticar-se é de **todos os modos**. A marcação separa-os: o
+  que é do «.md» leva `data-so-leitura`, e é isso que se esconde. O contentor fica visível — a
+  senha mora nele.
+- As mensagens passam a nomear o campo pelo **nome** («o campo *Sua senha*, no alto da página»), e
+  não pela vizinhança. «O campo acima» foi o que fez o defeito parecer layout.
+- Quando a falta é a senha, o campo ganha o **foco**: a esta altura o professor está três ecrãs
+  abaixo, no fim do formulário.
+
+**Onde entrou.**
+- `tools/templates/lancamento.html` — `data-so-leitura` nos controles do «.md»; a regra passa a
+  `acoesMd.querySelectorAll('[data-so-leitura]').forEach((no) => { no.hidden = emFormulario; })` com
+  `acoesMd.hidden = false`; as duas mensagens reescritas; `focus()` no campo quando a falta é ela.
+- `experimentos/provar-senha-do-lancamento.js` — **novo**, 19 asserções. Extrai do template o bloco
+  `#acoes-md` e o trecho de lógica que decide a visibilidade, e **executa-os** sobre um DOM do
+  `jsdom` construído com a marcação real. Não lê o texto à procura de uma frase: corre o código.
+- `.gitignore` — a prova aberta, uma por uma, como as outras.
+
+**Com o quê.** `provar-senha-do-lancamento` → **19 asserções**, com **controlo negativo**: o
+template anterior, reconstruído e aplicado pela mesma via, deixa o campo escondido — o defeito
+reproduzido. `check-pacote` do `batata` 0 erro/0 aviso; `hash-ciclo --check` íntegro; cadeia
+re-ancorada. Medido ao vivo no Worker do `batata`, em `/bale-nivel-1-teste-2/lancamento`: 8 marcas
+`data-so-leitura`, o campo `#senha` presente, e a mensagem nova.
+
+**Três armadilhas da prova, que valem mais do que a prova.**
+1. O extractor da regra parava na primeira instrução (`const acoesMd = …;`) e verificava, sem saber,
+   **só a declaração** — o `querySelectorAll`, que *é* a correção, ficava de fora. Uma prova que
+   mede metade da regra aprova metade do defeito.
+2. O controlo negativo exigia uma forma (`\n  }`) que a versão **antiga** não tem — de uma linha
+   só. A reconstrução devolvia lixo e o controlo «passava» sem medir nada.
+3. A asserção «não diz *no campo acima*» reprovava por causa do **comentário da própria correção**,
+   que cita a frase antiga de propósito. Passou a olhar a frase que se **lança** (`throw new
+   Error('…`), e não o arquivo inteiro.
+
+**O que ainda não está feito.**
+- A correção foi verificada na página e na prova; **não** foi exercida a gravar de verdade num ciclo
+  cifrado, de ponta a ponta, com um navegador. O próximo lançamento real é o primeiro a fazê-lo.
+- O `abrir-ciclo` e o `enviar` continuam a partilhar o mesmo campo de senha; um dia a página pode
+  querer distinguir «a senha que abre» de «a senha que assina», e hoje não distingue.
