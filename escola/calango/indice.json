@@ -211,6 +211,46 @@
         ],
         "em": "2026-10-20T11:53:16.013Z"
       }
+    },
+    {
+      "em": "2026-10-21T19:10:10.640Z",
+      "motivo": "expurgada pela página «Sistema Lastro»",
+      "apagado": [
+        "escola/calango/envelopes/.indice.json",
+        "escola/calango/envelopes/anamnese-20261021-1520.json",
+        "escola/calango/envelopes/plano-20261021-1524.json",
+        "escola/calango/envelopes/po-20261021-1527.json",
+        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
+        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
+        "professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango.conf",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango.fipp",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/assets/favicon.svg",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/assets/lib-cifra.js",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/assets/nav.js",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/assets/style.css",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/index.html",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/assets/markdown.js",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/conteudo/anamnese.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/index.html",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/plano/conteudo/plano.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/po/conteudo/po.json",
+        "professores/tiago-menegaz/ciclos/ciclo-01-calango/plano-observacao/prompts/elicitar-ciclo.md",
+        "wrangler.calango.jsonc"
+      ],
+      "kv": {
+        "ok": true,
+        "apagadas": 9,
+        "restantes": 0,
+        "namespaceId": "2ee331c7a5bc446ca86c8f2cb039ec16",
+        "prefixos": [
+          "calango/",
+          "bastidores/calango/"
+        ],
+        "em": "2026-10-21T19:10:10.640Z"
+      }
     }
   ],
   "recriacao": [
