@@ -312,7 +312,7 @@ function main() {
      * servem só para exercer as REGRAS DE TIPO do `indices/esquema/tipos.json` (não se lê
      * ficheiro nenhum), mas um caminho de uma escola que já não existe é uma opinião sobre o
      * passado, e a próxima pessoa a ler a prova procuraria em vão o pacote citado. */
-    const pacote = require('./lib-pacote.js').umPacote();
+    const pacote = require('./lib-pacote.js').caminhoDeExemplo();
 
     const decisaoDe = (rel) => {
       const achados = [];

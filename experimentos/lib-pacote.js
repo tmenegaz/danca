@@ -129,4 +129,20 @@ function fontesDoPacote(pacote) {
     .sort();
 }
 
-module.exports = { RAIZ, pacotes, umPacote, paginas, umaPagina, fontesDoPacote };
+/**
+ * UM CAMINHO COM A FORMA DE PACOTE — para as provas que exercitam REGRAS DE NOME e não leem
+ * ficheiro nenhum.
+ *
+ * `provar-indices` compõe caminhos como `…/ciclo-01-<escola>/plano.html` só para os passar às
+ * regras do `indices/esquema/tipos.json`, que são expressões regulares. Exigir dela um pacote
+ * REAL seria pedir-lhe uma dependência que ela não tem — e, no intervalo entre um expurgo e a
+ * geração seguinte, deixá-la-ia sem correr. Devolve o pacote real quando existe (é o que se
+ * quer: um caminho verdadeiro exercita as regras com o que o gerador escreve) e, quando não
+ * existe nenhum, um caminho sintético com a mesma forma.
+ */
+function caminhoDeExemplo() {
+  const lista = pacotes();
+  return lista.length ? lista[0] : 'professores/exemplo/ciclos/ciclo-01-exemplo';
+}
+
+module.exports = { RAIZ, pacotes, umPacote, caminhoDeExemplo, paginas, umaPagina, fontesDoPacote };

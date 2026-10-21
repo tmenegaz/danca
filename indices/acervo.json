@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "debca928ca4724342faf007450663d23b6ad3e2bb1e30838f58e762a2fa3acfb",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 1,
-      "documentos": 25,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:sapo-bailarino/01/batata",
-      "numero": "01",
-      "professor": "sapo-bailarino",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -42,37 +25,26 @@
       "slug": "barra"
     },
     {
-      "ciclos": [
-        "ciclo:sapo-bailarino/01/batata"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 3,
-        "aulas": 1,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
-        "planos": 3,
-        "pos": 1,
-        "registros": 7
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": false,
-      "habilitada": true,
+      "expurgada": true,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
-        "sapo-bailarino",
         "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261020-0942",
-        "anamnese:anamnese-20261020-0943",
-        "anamnese:anamnese-20261020-0943-2",
-        "plano:plano-20261020-0945",
-        "plano:plano-20261020-0946",
-        "plano:plano-20261020-0947",
-        "po:po-20261020-0955"
-      ],
+      "registros": [],
       "slug": "batata"
     },
     {
@@ -261,13 +233,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 7,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -320,13 +286,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -339,8 +299,8 @@
         "valor": "leticia"
       },
       {
-        "contagem": 4,
-        "rotulo": "sapo-bailarino",
+        "contagem": 3,
+        "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
       {
@@ -354,29 +314,13 @@
         "valor": "tiago-menegaz"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 3,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 3,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "4944aeb"
+    "commit": "c692723"
   },
-  "gerado_em": "2026-10-21T11:46",
+  "gerado_em": "2026-10-21T17:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -419,17 +363,14 @@
       "slug": "leticia"
     },
     {
-      "ciclos": [
-        "ciclo:sapo-bailarino/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
-        "batata",
         "breu",
         "calando-teste-1",
         "calango"
       ],
       "id": "professor:sapo-bailarino",
-      "nome": null,
+      "nome": "Sapo Bailarino",
       "slug": "sapo-bailarino"
     },
     {
