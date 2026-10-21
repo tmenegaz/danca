@@ -213,6 +213,66 @@ paginas.forEach((f) => {
     avisos.push(`${f}: fora do menu — sem link marcado`);
   }
 });
+// ------------------------------------------- 2c) toda página tem TÍTULO de verdade
+//
+// A PÁGINA SEM TÍTULO PASSOU POR AQUI (22/10/2026). O `-harmonizacao.md` era escrito com
+// `title:` e `subtitle:` mas SEM os `---` que abrem o front-matter. O pandoc não leu
+// metadado nenhum: a página saiu com `<h1></h1>` VAZIO, e as duas linhas de YAML vazaram
+// para o corpo como parágrafo literal — o professor via
+// «title: “Harmonização de linguagem” subtitle: …» no topo do documento, e o título de
+// verdade aparecia mais abaixo. Nada acusou, e havia duas razões para isso:
+//
+//   · o gerador não confere o que escreveu — ele confia na fonte;
+//   · a checagem que compara títulos com o PDF FILTRAVA o vazio: `h1 && !texto.includes(h1)`
+//     — um título ausente era, para ela, um título que não falta. Um `if` de guarda que
+//     transforma um defeito em silêncio é pior do que não haver checagem.
+//
+// A regra aqui é a mais simples que fecha o caso: toda página publicada tem um `<h1>` com
+// texto. Não depende de saber de onde o título vem, nem de o comparar com nada.
+// O que NÃO é conteúdo da página sai antes de se procurar o título: os blocos de script e
+// de estilo e os comentários HTML. Sem isto o `<h1>` de um COMENTÁRIO de CSS dentro do
+// `<style>` do formulário era encontrado primeiro, e a página era reprovada por um título
+// que ela tem — o `lancamento.html`. Uma checagem que lê código como se fosse texto
+// acusa quem está certo, e isso ensina a ignorá-la.
+const semMarcacao = (html) => html
+  .replace(/<script[\s\S]*?<\/script>/g, '')
+  .replace(/<style[\s\S]*?<\/style>/g, '')
+  .replace(/<!--[\s\S]*?-->/g, '');
+/*
+ * O TÍTULO LÊ-SE DO ARQUIVO, e não de `conteudos[]`. Aquela tabela é deliberadamente vazia
+ * para duas classes de página — as CIFRADAS (acompanhamento com dados sensíveis) e as de
+ * FERRAMENTA —, porque as checagens seguintes comparam conteúdo. O título não é conteúdo
+ * conferível por aquele caminho: é uma propriedade da página. Lido de `conteudos[]`, o
+ * formulário aparecia «sem título» e a checagem acusava quem está certo.
+ *
+ * A cifrada continua fora, e agora explicitamente: o arquivo dela é ciphertext, e «não tem
+ * `<h1>`» seria verdade sem ser defeito.
+ */
+const semTitulo = [];
+paginas.forEach((f) => {
+  if (criptografiaDeclarada && ehAcompanhamento(f)) return;
+  const html = fs.readFileSync(path.join(pacote, f), 'utf8');
+  const m = semMarcacao(html).match(/<h1[^>]*>([\s\S]*?)<\/h1>/);
+  const texto = m ? m[1].replace(/<[^>]+>/g, '').trim() : '';
+  if (!texto) semTitulo.push(f);
+});
+if (semTitulo.length) {
+  erros.push(`sem título (<h1> vazio): ${semTitulo.join(', ')} — confira o front-matter da `
+    + 'fonte; sem os `---` o pandoc não lê o `title:` e a página sai sem cabeçalho');
+}
+
+// E o outro lado do mesmo defeito: a fonte crua do front-matter não vai para o corpo.
+const vazado = [];
+paginas.forEach((f) => {
+  const corpo = (conteudos[f].match(/<main>[\s\S]*<\/main>/) || [''])[0];
+  if (/<p>\s*(title|subtitle|frente|projeto|ciclo):\s/.test(corpo)) vazado.push(f);
+});
+if (vazado.length) {
+  erros.push(`front-matter vazou para o corpo: ${vazado.join(', ')} — falta os \`---\` na fonte`);
+}
+if (!semTitulo.length && !vazado.length) {
+  ok.push(`títulos: as ${paginas.length} páginas têm <h1> com texto, e nenhuma publica o front-matter`);
+}
 ok.push(`páginas verificadas: ${paginas.length}`);
 
 // ------------------------------------------------------- 3) links internos
