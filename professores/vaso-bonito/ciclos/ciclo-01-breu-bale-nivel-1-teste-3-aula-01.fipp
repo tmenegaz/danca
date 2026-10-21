@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-breu-bale-nivel-1-teste-3: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-breu-bale-nivel-1-teste-3-aula-01
+type: Aula
+professor: Vaso Bonito
+ciclo: 01
+variante: breu-bale-nivel-1-teste-3
+aula: 01
+hash_conteudo: 51935674344c0fd0b1f987441849c46b114def9db10fb122bdcded3e590f0a7b
+parentHash: 
+hash: dc2c3ba73a3ae77f5abfafb1cafa37a2e7168d570f9f0054d4cdc6fc3da183f3
+algoritmo: SHA-256
+ancorado_em: 2026-10-21
+cobertura:
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md

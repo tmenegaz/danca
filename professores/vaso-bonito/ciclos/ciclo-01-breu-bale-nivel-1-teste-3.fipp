@@ -8,13 +8,21 @@ type: Ciclo
 professor: Vaso Bonito
 ciclo: 01
 variante: breu-bale-nivel-1-teste-3
-hash_conteudo: f1b26abb2765a50e0a8180059e793b7e157deb506deec4fe16a6616e8f15420b
+hash_conteudo: 7fcc75284222383302be176b92f4d228c62bb50ad13a52abdf03ce41cece1f78
 parentHash: 
-hash: c76da1b74655798c239b7c6617e44c1324a1663e3cd3cd4c06c9fd2eedfbbd47
+hash: 55e9872e5c023ff1eee7a4cc2eb15072a11641288c98dd94658912de38e67c78
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md (sem schema)
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-21
 cobertura:
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-aula-01.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-captura-aula-01.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-dados.json
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-glossario-benesh.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-harmonizacao.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-notacao.md
   - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-po.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-referencias.md
   - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
