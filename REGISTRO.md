@@ -21239,3 +21239,75 @@ controlos se dobram em três linhas. A queixa da pesquisadora era maior do que e
 
 As duas últimas ficam aqui como **intenção declarada**, sem uma linha de código: registá-las é o que
 impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
+
+## 21/10/2026 — as propostas de layout foram refeitas: eram inoperáveis, e a razão era dupla
+
+**O que aconteceu.**
+As duas bancadas de layout entregues a 20/10 foram reprovadas: *«as propostas em experimentos não
+estão operáveis e por isso não dá para entender as propostas»*. Foram medidas antes de serem
+corrigidas, e as duas causas eram reais e independentes:
+
+1. **o painel tapava o que estava a demonstrar.** No celular, `.bancada` ocupava **230 dos 390 px**
+   — 59% da tela — sobre o rodapé de paginação que ela existe para mostrar. Não se avalia um
+   comportamento de tela com outra coisa em cima dele;
+2. **não se chegava a elas do telefone.** Viviam em `file://`, e o que está a ser decidido é o
+   comportamento **no celular**. Uma proposta que só abre no computador de quem a escreveu não é uma
+   proposta: é um ficheiro.
+
+A segunda causa é a mais grave, e é de desenho, não de CSS: **a decisão que estas bancadas servem só
+se pode tomar num telemóvel** — as duas propostas mudam de comportamento com a largura —, e um
+artefacto que não chega ao telemóvel não serve a decisão que o motivou.
+
+**O que foi decidido.**
+Uma pasta só, `experimentos/propostas/`, com três páginas e **um componente de bancada**:
+
+- **o painel abre, explica e sai da frente.** Abre no carregamento (quem chega não sabe o que está a
+  ver), cada opção com o **custo medido escrito ao lado**, e **Ver a página** fecha-o;
+- **a aba da margem** faz o que o balão fazia e o balão não podia: diz **qual é a opção activa** e
+  quanto custa, e chama o painel de volta. O balão da primeira tentativa avisava no topo — e tapava
+  exactamente o título que se quer ver preso. Um aviso que esconde a coisa observada é pior do que
+  aviso nenhum;
+- **as páginas são autossuficientes**: o `tools/templates/ciclo.css` e o `nav.js` entram **embutidos**
+  no HTML, e o resultado abre de `file://` e do Worker, sem um único asset externo. A versão anterior
+  dependia de `assets/` copiados e ignorados pelo Git — e um clone sem eles abria a página nua;
+- **são servidas pelo Worker** em `/propostas/`, que é como se lhes chega pelo telemóvel.
+
+**Motivo declarado — os congelados.**
+`tools/montar-publicacao.js` é congelado e ganha a opção `--com-propostas`. O motivo é o acima: a
+bancada tem de chegar ao telemóvel, e o telemóvel não lê o repositório. **O que não muda:** a fórmula
+do hash, a cobertura da âncora, os validadores, as 17 regras e as 22 pétreas; nada disto toca em
+conteúdo de ciclo. As propostas vivem em `publicacao/<escola>/propostas/`, **não entram no `nav.json`**
+— não são um documento da escola e o menu não as anuncia —, e a montagem seguinte **sem** a opção
+apaga-as.
+
+**Onde entrou.**
+- `experimentos/propostas/construir.js` — **novo**: extrai o cabeçalho e o corpo da Aula 01 publicada
+  e o `<footer>` do `lancamento.html`, embute o `ciclo.css` e o `nav.js`, e escreve as três páginas.
+- `experimentos/propostas/medir.js` — **novo**, 77 medidas em quatro secções: a moldura, a
+  proposta 1, a proposta 2, e a aba.
+- `tools/montar-publicacao.js` — `--com-propostas`, com o motivo escrito ao lado do código.
+- `experimentos/README.md` — a entrada nova; as das bancadas antigas saem.
+- `.gitignore` — o construtor e o medidor versionados; as páginas são **geradas** por eles.
+- `experimentos/dobra-do-titulo/` e `experimentos/paginacao-no-celular/` — **removidas**. Duas pastas
+  com dois painéis diferentes e dois medidores era a repetição que o componente único elimina.
+
+**Duas regressões que a medição apanhou na reescrita — e é por isso que ela existe.**
+Ao portar o desenho para a pasta nova, **a correção da âncora ficou de fora**: as opções A, B e D
+escondiam o alvo de «Nesta página» por baixo do título preso. E a **opção D não tinha onde pôr o
+título** — o `<span class="topnav-titulo">` não foi copiado para a barra. As duas apareceram na
+primeira execução do `medir.js` (oito falhas), e não teriam aparecido a olho: a âncora é um
+comportamento, e um título «na barra» ausente parece só um título que não aparece.
+
+**Com o quê.** `experimentos/propostas/medir.js` → **77 medidas, 0 falha**, com Chrome; sem ele,
+declara NÃO FEITO. Medido ao vivo no Worker do `batata`: `/propostas/`, `/propostas/proposta-titulo.html`
+e `/propostas/proposta-paginacao.html` respondem 200, com **zero** referências a `assets/` — as
+páginas viajam inteiras.
+
+**O que ainda não está feito.**
+- **A escolha.** As propostas não mudam produção. Escolhido o desenho, ele vai para
+  `tools/templates/` com motivo declarado e commit próprio, e ganha prova de produto.
+- **As propostas saem do site** na primeira montagem sem `--com-propostas`. É deliberado; quem quiser
+  mostrá-las outra vez repete o comando.
+- A opção C do título depende de `.rail` e do `toc-local`, que existem no documento do pacote; numa
+  página sem índice lateral ela cai no comportamento da B. Não há hoje nenhuma página assim, mas a
+  condição não está provada — está só declarada no CSS.

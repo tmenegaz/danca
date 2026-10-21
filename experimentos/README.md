@@ -321,28 +321,42 @@ verbetes, uma música que o verbete não cobre, um sinal fora do alfabeto, uma c
 segmentos não somam) têm de cair em **lacuna declarada**, com o motivo escrito. É o que separa um
 motor de um gerador plausível.
 
-## 20/10/2026 — duas bancadas de layout, para ESCOLHER (não para publicar)
+## 21/10/2026 — `propostas/`: as bancadas de layout, agora operáveis e servidas
 
-Pedidas pela pesquisadora para decidir dois ajustes da identidade visual. Ficam aqui porque são
-comparação de alternativas, e comparação não se faz em produção.
+Pedidas pela pesquisadora para decidir dois ajustes de identidade visual. A primeira versão foi
+**reprovada com razão** — *«não estão operáveis e por isso não dá para entender as propostas»* —, e
+as duas causas eram reais:
 
-| Bancada | O que compara | Como se abre |
-|:--|:--|:--|
-| [`dobra-do-titulo/`](dobra-do-titulo/index.html) | o título que não se perde: preso no topo (A), encolhe ao rolar (B), vai para a coluna «Nesta página» (C), vai para o menu (D) | abrir o `index.html`; a bancada escolhe a opção e o `Esc` esconde-a |
-| [`paginacao-no-celular/`](paginacao-no-celular/index.html) | o rodapé de paginação do lançamento: presa no fundo (hoje), vira bloco no fim, compacta com «⋯», esconde ao descer | `node experimentos/paginacao-no-celular/construir.js` e abrir o `index.html` |
+- **o painel tapava o que demonstrava.** No celular ocupava 230 dos 390 px (59% da tela) e ficava por
+  cima do rodapé de paginação que existia para mostrar. Não se avalia um comportamento de tela com
+  outra coisa em cima dele;
+- **não se chegava a elas do telefone.** Viviam em `file://`, e o que está a ser decidido é o
+  comportamento **no celular**. Uma proposta que só abre no computador de quem a escreveu não é uma
+  proposta: é um ficheiro.
 
-As duas trazem um `medir.js` que abre a demonstração no Chrome, nas duas larguras (1280×800 e
-390×844), e mede o que é geometria: quantos pixels o título ou a barra ocupam, se o alvo de uma
-âncora fica escondido, e se a página estoura na horizontal. **Sem número não há escolha** — «fica
-melhor» é o que a medição existe para substituir.
+| Proposta | O que compara |
+|:--|:--|
+| [`propostas/proposta-titulo.html`](propostas/proposta-titulo.html) | o título que não se perde: hoje, preso no topo, encolhe ao rolar, vai para a coluna «Nesta página», vai para o menu |
+| [`propostas/proposta-paginacao.html`](propostas/proposta-paginacao.html) | o rodapé de paginação do lançamento: hoje, vira bloco no fim, compacta com «⋯», esconde ao descer |
 
-O conteúdo da primeira é o **real** da Aula 01, extraído do pacote; o rodapé da segunda é
-**extraído** de `tools/templates/lancamento.html`, não reescrito. Uma demonstração que copia «mais
-ou menos» mede «mais ou menos».
+**Como se usam.** O painel abre no carregamento e explica as opções com o custo medido ao lado;
+**Ver a página** fecha-o; a **aba na margem esquerda** diz qual é a opção activa e chama o painel de
+volta. Teclas `0`–`4` trocam de opção; `Esc` fecha o painel.
 
-Elas NÃO são prova de nada: nenhuma das duas afirma o que o produto faz hoje. Quando a escolha
-estiver feita, o desenho escolhido vai para `tools/templates/`, com motivo declarado — e aí sim,
-com prova.
+**No telemóvel:** <https://batata.tmenegaz77.workers.dev/propostas/> — é lá que a decisão se toma,
+porque as duas propostas mudam de comportamento com a largura. A publicação é pedida com
+`node tools/montar-publicacao.js <escola> --com-propostas`, e a montagem seguinte **sem** a opção
+apaga-a: as propostas não entram no `nav.json` e não são um documento da escola.
 
-> **Nota de manutenção.** Os `assets/` das bancadas não são versionados (são cópia do pacote
-> publicado). As ferramentas copiam-nos ao correr, e reclamam se a publicação não estiver montada.
+**Sem dependências.** As páginas são autossuficientes: o `tools/templates/ciclo.css` e o
+`tools/templates/nav.js` entram embutidos, e o resultado abre de `file://` e do Worker. O conteúdo é
+o real — o cabeçalho e o corpo da Aula 01 publicada, o `<footer>` extraído do `lancamento.html`.
+Nada disto é copiado à mão: `construir.js` extrai.
+
+`node experimentos/propostas/construir.js` gera as três páginas; `node experimentos/propostas/medir.js`
+abre-as no Chrome, nas duas larguras, e mede **77 coisas** — incluindo a própria moldura (o painel
+cabe na tela, tem saída, e a aba não cobre a coluna de leitura).
+
+As propostas **não são prova de nada**: nenhuma afirma o que o produto faz hoje. Quando a escolha
+estiver feita, o desenho escolhido vai para `tools/templates/`, com motivo declarado — e aí sim, com
+prova.

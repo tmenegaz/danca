@@ -34,6 +34,7 @@
  *   node tools/montar-publicacao.js <escola>
  *   node tools/montar-publicacao.js <escola> --listar
  *   node tools/montar-publicacao.js <escola> --raiz <dir>   (a árvore de uma prova)
+ *   node tools/montar-publicacao.js <escola> --com-propostas  (serve as bancadas de layout)
  */
 
 const fs = require('fs');
@@ -448,7 +449,7 @@ function copiar(de, para) {
 function principal() {
   const escola = String(process.argv[2] || '').trim();
   if (!escola || escola.indexOf('-') === 0) {
-    console.error('uso: node tools/montar-publicacao.js <escola> [--listar] [--raiz <dir>]');
+    console.error('uso: node tools/montar-publicacao.js <escola> [--listar] [--raiz <dir>] [--com-propostas]');
     process.exit(2);
   }
   const soListar = process.argv.indexOf('--listar') !== -1;
@@ -521,6 +522,43 @@ function principal() {
     const html = fs.readFileSync(apresentacaoAlvo, 'utf8');
     const trocado = html.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, navDoMenu(menu, '/sistema'));
     if (trocado !== html) fs.writeFileSync(apresentacaoAlvo, trocado, 'utf8');
+  }
+
+  /*
+   * 4.1 AS PROPOSTAS DE LAYOUT, QUANDO PEDIDAS (21/10/2026).
+   *
+   * MOTIVO DECLARADO (`tools/` é congelado). A decisão sobre o título que não se perde e sobre a
+   * paginação no celular SÓ se pode tomar num telemóvel: as duas mudam de comportamento com a
+   * largura, e é no telemóvel que a escolha é difícil. As bancadas viviam em `experimentos/`, que
+   * não é publicado — e uma proposta que só abre no computador de quem a escreveu não é uma
+   * proposta, é um ficheiro. A primeira versão foi exactamente isso, e a resposta foi «não estão
+   * operáveis».
+   *
+   * O QUE NÃO MUDA: a fórmula do hash, a cobertura da âncora, os validadores, as regras e as
+   * pétreas. Nada disto toca em conteúdo de ciclo. As propostas vivem em `publicacao/<escola>/
+   * propostas/` e NÃO entram no `nav.json` — não são um documento da escola, e o menu não as
+   * anuncia. Quem as quiser abre o endereço.
+   *
+   * É TEMPORÁRIO, e é explícito: sem `--com-propostas` esta pasta não é escrita, e a próxima
+   * montagem normal apaga-a. Depois de a escolha estar feita, as bancadas saem do repositório.
+   */
+  const propostas = process.argv.indexOf('--com-propostas') !== -1;
+  if (propostas) {
+    const origem = path.join(RAIZ, 'experimentos', 'propostas');
+    const arquivos = fs.existsSync(origem)
+      ? fs.readdirSync(origem).filter((f) => /\.html$/.test(f))
+      : [];
+    if (!arquivos.length) {
+      console.error('aviso: --com-propostas pedido sem propostas montadas.');
+      console.error('       corra antes: node experimentos/propostas/construir.js');
+    } else {
+      const alvo = path.join(destino, 'propostas');
+      fs.mkdirSync(alvo, { recursive: true });
+      for (const arquivo of arquivos) {
+        fs.copyFileSync(path.join(origem, arquivo), path.join(alvo, arquivo));
+      }
+      console.log('  propostas: ' + arquivos.length + ' página(s) em /propostas/');
+    }
   }
 
   // 5. AS PÁGINAS DO PACOTE E DA PORTA — também já escritas com a barra do dia em que nasceram.

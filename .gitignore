@@ -110,18 +110,19 @@ experimentos/*
 # DESENHOS (o `index.html`) e as FERRAMENTAS que os medem. Os `assets/` ficam de fora — são cópia
 # do pacote publicado, e as ferramentas copiam-nas do pacote ao correr (regra desta pasta).
 #
-# O `experimentos/*` fecha a PASTA, e o Git não desce para dentro dela: negar o ficheiro não basta,
-# é preciso abrir a pasta primeiro e voltar a fechar o que não interessa. (Descoberto ao verificar:
-# as seis linhas acima não bastavam, e o `git status` não mostrava nada.)
-!experimentos/dobra-do-titulo/
-experimentos/dobra-do-titulo/*
-!experimentos/dobra-do-titulo/index.html
-!experimentos/dobra-do-titulo/medir.js
-!experimentos/paginacao-no-celular/
-experimentos/paginacao-no-celular/*
-!experimentos/paginacao-no-celular/index.html
-!experimentos/paginacao-no-celular/construir.js
-!experimentos/paginacao-no-celular/medir.js
+# AS PROPOSTAS DE LAYOUT (21/10/2026). São o entregável de um pedido de decisão: a pesquisadora
+# escolhe entre alternativas de leitura, e um entregável que desaparece no clone não é entregável.
+# Entram O CONSTRUTOR e o MEDIDOR — o `index.html` e as duas propostas são GERADOS por ele (e são
+# autossuficientes: o CSS do projeto entra embutido, não há assets a faltar).
+#
+# O `experimentos/*` fecha a PASTA e o Git não desce para dentro dela: negar o ficheiro não basta, é
+# preciso abrir a pasta primeiro e voltar a fechar o que não interessa. (Descoberto ao verificar as
+# bancadas anteriores: as linhas de negação por ficheiro não bastavam, e o `git status` não mostrava
+# nada — um erro que se paga em silêncio.)
+!experimentos/propostas/
+experimentos/propostas/*
+!experimentos/propostas/construir.js
+!experimentos/propostas/medir.js
 # A prova do CAMPO DA SENHA no lançamento (20/10/2026): o campo existia onde a página o pedia?
 !experimentos/provar-senha-do-lancamento.js
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
