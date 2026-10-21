@@ -21745,3 +21745,58 @@ certo.
   o manifesto saía com `PROFESSOR=""`, e o nome de exibição do professor só existe no envelope do
   plano (KV) — não no repositório. O manifesto de `murisoca-baiana` ficou com o **slug**, que é o
   que a fonte do plano declara; a próxima elicitação o substitui pelo nome que o formulário gravou.
+
+## 22/10/2026 — A variante passa a ser um manifesto inteiro, e o `.conf` da escola é procurado onde está
+
+**O que aconteceu.** O mesmo defeito do registo anterior tinha **duas outras metades**, e a segunda
+só apareceu ao medir o `.conf` que o «Guardar» do plano tinha gravado em
+`professores/murisoca-baiana/ciclos/`:
+
+```
+RESPONSAVEL=""      PROFESSOR=""      (sem VOLUME_MIN/VOLUME_MAX)
+```
+
+O `escrever-plano.js` lia o `.conf` da **escola** em `professores/<professor do plano>/ciclos/`.
+O `.conf` da escola não é do professor: nasce em `criar-escola.sh`, sob quem criou a escola, e
+estava em `professores/tiago-menegaz/ciclos/ciclo-01-calango.conf`. Não achado, a identidade caía
+no recurso (`{ ESCOLA }`) e as três linhas saíam vazias — **em silêncio**, com uma pendência que
+ninguém lê no meio de um «Guardar» que deu certo.
+
+**A terceira consequência, e a que dói.** A calibração da aula vem do `.conf`
+(`calibracaoDoConf`: `DURACOES`, `VOLUME_MIN`, `VOLUME_MAX`). Sem a faixa, `volumeTotal = 0`, e
+`derivarAula01` **omite** a linha `volume-total:` e escreve `[Preencher: volume em tempos]` no
+corpo. O gerador então recusa a aula pela Regra 9 — corretamente, porque o documento de facto não
+declara volume. **Um `.conf` não encontrado produziu um `[Preencher]` num documento derivado**, e
+o `[Preencher]` parece decisão da pesquisadora.
+
+**O que foi decidido.**
+1. **`compor-conf.js` declara o `CICLO`** na variante. Sem isso ela não era um manifesto inteiro:
+   o `hash-ciclo.sh` reprovava no schema (*«faltam 1 campo(s) obrigatório(s): - CICLO»*) e era a
+   base que o fornecia. Com a linha, a base fica dispensável — o que dá sentido à decisão do
+   registo anterior, em vez de a tornar uma tolerância cega.
+2. **`escrever-plano.js` procura o `.conf` da escola em todas as pastas** (`confDaEscolaPara`),
+   começando pela do plano. Duas escolas nunca partilham o nome do `.conf` (leva o slug), por isso
+   a primeira resposta é *a* resposta. Custa uma listagem e um GET por pasta — e só no caminho do
+   404.
+3. **O `PROFESSOR` do ciclo é o do PLANO**, não o responsável pela escola. Os dois podem ser
+   pessoas diferentes, e esse campo vai para o rodapé do PDF, para o `author:` do README e para o
+   «**Professor:**» da página: dizer ali quem criou a escola é dizer o nome errado no documento de
+   quem dá a aula. A identidade da escola fica como recurso, para o plano antigo que não nomeia
+   ninguém.
+
+**Com o quê.** `motor/servidor/compor-conf.js`, `motor/servidor/escrever-plano.js` e
+`experimentos/provar-manifesto-sem-base.js` — **17 asserções**, em quatro partes: a variante basta
+sozinha (com controle negativo que lhe tira o `CICLO`); os dois scripts atravessam o cenário de uma
+fixture sintética e temporária; a versão anterior falha nela; e o localizador do `.conf` acha-o na
+pasta de outro professor, com controle negativo para o caso de não estar em pasta nenhuma.
+
+**O que ainda não está feito.**
+- **`volume-total` de uma aula já derivada não se reescreve.** O `escrever-ciclo.js` só escreve o
+  que não existe («proveniência acrescenta, não edita»), e a aula 01 desta turma está gravada com
+  o `[Preencher]` que nasceu do defeito. Corrigir a calibração não a corrige. Para a refazer é
+  preciso apagar as fontes derivadas e guardar o PO outra vez — **e o que preenche o volume é a
+  elicitação, não o gerador**: 90 tempos é o ponto médio da faixa 80–100 da escola, e é a Regra 9
+  a dizer que esse número é do professor.
+- **A pasta de um professor que não criou escola continua sem base e sem schemas.** O gerador já
+  não exige a base; os schemas foram copiados do molde à mão neste dia. O caminho automático
+  (o «Guardar» provisionar a pasta do professor) não existe.

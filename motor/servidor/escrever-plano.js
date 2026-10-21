@@ -82,6 +82,48 @@ async function lerDoRepo({ f, url, cabecalhos }) {
   return { existe: true, sha: dados.sha || null, texto: decodificarBase64(dados.content || '') };
 }
 
+/** A listagem de um diretório no Contents API (`[{name, type}]`); `[]` quando não há o que listar. */
+async function listarNoRepo({ f, url, cabecalhos }) {
+  const resposta = await f(url, { method: 'GET', headers: cabecalhos });
+  if (resposta.status !== 200) return [];
+  let dados;
+  try { dados = await resposta.json(); } catch { return []; }
+  return Array.isArray(dados) ? dados : [];
+}
+
+/**
+ * O `.conf` da ESCOLA — procurado ONDE ELE ESTIVER, e não só na pasta do plano.
+ *
+ * A pasta do professor do plano é a primeira a ser tentada, e é o caso normal. Mas o `.conf` da
+ * escola não é do professor: ele nasce em `tools/criar-escola.sh`, sob quem CRIA a escola, e uma
+ * turma pode estar na curadoria de OUTRO professor. Medido em 22/10/2026: a turma
+ * `calango-bale-nivel-1-teste-1` está na curadoria de `murisoca-baiana`, e o `.conf` da escola
+ * está em `professores/tiago-menegaz/ciclos/`. Tentar só a pasta do plano deixava `RESPONSAVEL` e
+ * `PROFESSOR` VAZIOS no manifesto da variante e a faixa de volume da Regra 9 sem origem — e o
+ * gerador, sem a faixa de 60 min, usava o padrão 80–100 como se a escola o tivesse declarado.
+ *
+ * A ordem é: a pasta do plano; depois `professores/<cada>/ciclos/`. Duas escolas nunca partilham
+ * o nome do `.conf` (o nome leva o slug da escola), por isso a primeira resposta é A resposta.
+ */
+async function confDaEscolaPara({ f, url, cabecalhos, professor, nome }) {
+  const direto = await lerDoRepo({ f, url, cabecalhos });
+  if (direto.existe) return Object.assign({ de: professor }, direto);
+
+  const corte = url.lastIndexOf('/contents/');
+  if (corte === -1) return { de: null, existe: false, sha: null, texto: '' };
+  const raiz = url.slice(0, corte);
+
+  const pastas = await listarNoRepo({ f, url: raiz + '/contents/professores', cabecalhos });
+  for (const pasta of pastas) {
+    const outro = String((pasta && pasta.name) || '');
+    if (!outro || outro === professor || (pasta && pasta.type && pasta.type !== 'dir')) continue;
+    const alvo = raiz + '/contents/professores/' + encodeURIComponent(outro) + '/ciclos/' + encodeURIComponent(nome);
+    const achado = await lerDoRepo({ f, url: alvo, cabecalhos });
+    if (achado.existe) return Object.assign({ de: outro }, achado);
+  }
+  return { de: null, existe: false, sha: null, texto: '' };
+}
+
 /** Um PUT no Contents API: cria quando não há `sha`, atualiza quando há. */
 async function gravarNoRepo({ f, url, cabecalhos, texto, sha, ref, mensagem }) {
   const resposta = await f(url, {
@@ -133,15 +175,19 @@ async function comporManifestoDaTurma({ f, cabecalhos, url, caminho, contexto, p
 
   const caminhoDaEscola = caminhoDoConf(Object.assign({}, contexto, { turma: '' }));
   const urlDaEscola = url.replace(/\/[^/]+$/, '/' + caminhoDaEscola.split('/').pop());
-  const base = await lerDoRepo({ f, url: urlDaEscola, cabecalhos });
+  const base = await confDaEscolaPara({
+    f, url: urlDaEscola, cabecalhos, professor: String(contexto.professor || '').trim(),
+    nome: caminhoDaEscola.split('/').pop(),
+  });
   const identidade = base.existe ? variaveisDoConf(base.texto) : { ESCOLA: escola };
 
   // O `.conf` da ESCOLA ausente é uma anomalia, e não um detalhe: é dele que vêm o responsável, a
   // habilitação e a faixa de volume. O manifesto ainda se compõe (o slug dá o nome da escola), mas
   // o que ficou por preencher é DITO — em vez de o valor padrão passar por declarado.
   const semEscola = base.existe ? [] : [
-    'o .conf da escola (' + caminhoDaEscola.split('/').pop() + ') não existe: RESPONSAVEL e ' +
-    'ESCOLA_HABILITADA ficaram por preencher, e a faixa de volume da Regra 9 não tem de onde sair',
+    'o .conf da escola (' + caminhoDaEscola.split('/').pop() + ') não existe em nenhuma pasta de ' +
+    'professor: RESPONSAVEL e ESCOLA_HABILITADA ficaram por preencher, e a faixa de volume da ' +
+    'Regra 9 não tem de onde sair',
   ];
 
   const atual = await lerDoRepo({ f, url, cabecalhos });  const composto = comporConf({
@@ -286,6 +332,8 @@ module.exports = {
   criarEscritorDePlano,
   atualizarManifesto,
   comporManifestoDaTurma,
+  confDaEscolaPara,
+  listarNoRepo,
   docsDoConf,
   lerDoRepo,
   gravarNoRepo,

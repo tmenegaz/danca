@@ -177,6 +177,22 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
     conflitos.push('o plano declara início em ' + inicioDoPlano + ' e a turma em ' + inicio);
   }
 
+  // ── quem é o professor DESTE ciclo ──────────────────────────────────────────
+  //
+  // É o professor do PLANO — quem dá a turma —, e não o responsável pela escola. Os dois podem
+  // ser pessoas diferentes: uma turma da escola `calango` pode estar na curadoria de outro
+  // professor, e o `PROFESSOR` do manifesto vai para o rodapé do PDF, para o `author:` do README
+  // e para o «**Professor:**» da página. Dizer ali o nome de quem criou a escola é dizer o nome
+  // errado no documento de quem dá a aula. A identidade da escola é o RECURSO: vale quando o
+  // plano não nomeia ninguém (plano antigo, envelope sem a resposta).
+  //
+  // Medido em 22/10/2026: o manifesto de `murisoca-baiana` saiu com `PROFESSOR=""` porque o
+  // `.conf` da escola não estava na pasta dela (ver `confDaEscolaPara`, em escrever-plano.js).
+  const professorDoPlano = respostaDo(plano, 'contexto-professor');
+  const nomeDoProfessor = typeof professorDoPlano === 'string' && professorDoPlano.trim()
+    ? professorDoPlano.trim()
+    : '';
+
   // ── a faixa de volume que o gerador vai procurar para ESTA duração (Regra 9) ──
   // Não se inventa faixa: a norma é da escola, e é ela que declara os números. O que se faz aqui
   // é dizer, antes do CI, qual é o par que esta variante vai exigir e se ele existe.
@@ -207,10 +223,18 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
     '# Ver PLANO-CICLO-DA-TURMA.md §3.1.',
     '# ============================================================================',
     '',
+    // O `CICLO` é declarado AQUI desde 22/10/2026, e não só herdado da base. O manifesto
+    // base (`ciclo-NN.conf`) nasce em `tools/criar-escola.sh`, sob o professor que cria a
+    // escola; uma turma pode estar na curadoria de outro professor, e a pasta dele nunca teve
+    // base. Sem esta linha, a variante não era um manifesto inteiro: `hash-ciclo.sh` a
+    // reprovava no schema («faltam 1 campo(s) obrigatório(s): - CICLO») e `gerar-ciclo.sh`
+    // morria antes, exigindo um arquivo que não existe. Com ela, a variante basta-se — que é
+    // o que `tools/gerar-ciclo.sh` e `tools/hash-ciclo.sh` passaram a aceitar.
+    linha('CICLO', numeroDoCiclo),
     linha('VARIANTE', variante),
     linha('ESCOLA', ident.ESCOLA || escola),
     linha('RESPONSAVEL', ident.RESPONSAVEL || ''),
-    linha('PROFESSOR', ident.PROFESSOR || ident.RESPONSAVEL || ''),
+    linha('PROFESSOR', nomeDoProfessor || ident.PROFESSOR || ident.RESPONSAVEL || ''),
     linha('ESCOLA_HABILITADA', ident.ESCOLA_HABILITADA || 'sim'),
     '',
     '# --- ritmo: do cadastro da turma (Pré-requisito 5) --------------------------',
@@ -241,6 +265,7 @@ function comporConf({ turma, plano, identidade, escola, ciclo: numeroDoCiclo, do
   return {
     texto,
     derivados: {
+      CICLO: numeroDoCiclo,
       VARIANTE: variante,
       FREQUENCIA: frequencia,
       DIAS: diasComHora(turma),

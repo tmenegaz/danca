@@ -131,6 +131,7 @@ experimentos/propostas/*
 !experimentos/provar-senha-do-lancamento.js
 # A prova do ÍNDICE DO ACERVO (20/10/2026, fase 4): determinismo, reconstrução e a medida que
 # separa «mais rápido» de «parece mais rápido» (zero árvores com o cache quente).
+!experimentos/provar-manifesto-sem-base.js
 !experimentos/provar-indice-de-proveniencia.js
 # A PROVA DAS DECLARAÇÕES DO ÍNDICE (20/10/2026, Etapa 1 do PLANO-INDICES.md): percorre
 # `professores/**` e classifica cada arquivo (nenhum tipo sem decisão), compara o vocabulário
