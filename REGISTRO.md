@@ -21613,3 +21613,54 @@ A folha de captura tinha o mesmo defeito por outra peça: dois trechos de `code`
 - **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
   colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
   página; a alternativa (esconder colunas) perderia conteúdo.
+
+## 21/10/2026 — a batata foi expurgada; as provas deixaram de nomear escolas
+
+**O que aconteceu.** O expurgo da escola `batata` foi feito pelo lado remoto — a página «Sistema
+Lastro», que apaga o Worker, o subdomínio, as chaves do KV **e** os arquivos do repositório
+(`e93915f`, 76 arquivos, incluindo o manifesto base `ciclo-01.conf`, que carregava o nome da escola
+dentro). O repositório local estava atrasado e ainda via a escola inteira; depois do rebase, o
+estado é o do remoto: `wrangler.batata.jsonc` não existe, o pacote e as fontes saíram, o índice da
+escola **sobreviveu** (é a memória de que ela existiu) e o `indices/` precisou de ser regerado.
+
+**A dívida que isto expôs, e que era minha.** Cinco provas escritas nesta semana apontavam para
+`ciclo-01-batata-bale-nivel-1-teste-2` pelo nome. Elas morreriam no dia do expurgo — e morreram,
+na simulação que fiz antes de o rebase chegar: `lib-pacote: nenhum pacote de ciclo gerado`. Uma
+prova que nomeia uma escola envelhece no dia em que a escola é expurgada, e as escolas deste
+protótipo são **descartáveis por desenho**. É a mesma lição do alfabeto de notação (`39e24c5`), que
+já não nomeia escola nenhuma — nem viva, nem expurgada.
+
+**O que foi feito.**
+- `experimentos/lib-pacote.js` — **novo**. Procura a FORMA (um `professores/<p>/ciclos/
+  ciclo-NN-<escola>/` com pelo menos uma página de documento), escolhe de forma determinística, e
+  falha alto com o remédio escrito quando não há nenhuma. Duas armadilhas medidas ao escrevê-lo:
+  o `index.html` **não** serve de critério (existe também no esqueleto do ciclo-zero, e a primeira
+  versão escolheu o esqueleto, que não tem aula nem captura); e o nome do esqueleto é **prefixo**
+  do nome da variante ao lado (`ciclo-01-batata` / `ciclo-01-batata-bale-nivel-1-teste-2`), de modo
+  que «tudo o que começa por `<pacote>-`» apanhava as fontes da OUTRA variante — as fontes passam a
+  ser filtradas pela família de documento do índice (`tipoDoDocumento`), não por uma segunda lista.
+- `provar-iphone`, `provar-titulo-e-barra`, `provar-cabecalho-do-documento` — descobrem o pacote,
+  a aula e a folha de captura. O último conferia «as fontes publicadas do ciclo» com o caminho
+  escrito à mão: expurgada a escola, deixaria de conferir fonte nenhuma e passaria a medir só os
+  derivados em memória — o defeito do front-matter ficaria sem guarda sobre fonte real.
+- `propostas/construir.js` — descobre a aula. `provar-notacao` — o controlo negativo usava «batata»
+  à mão; passa a usar a primeira escola REAL da lista. `provar-indices` — usava o pacote da batata
+  como prefixo de exemplo; passa a usar o verdadeiro quando existe, e um caminho sintético quando
+  não (`caminhoDeExemplo`), porque ele exerce regras de NOME e não lê ficheiro nenhum.
+- `indices/` — regerados: a batata sai do acervo, `01-batata.json` sai como órfão.
+
+**Com o quê.** `check-indices` **14/14** (a verificação 12 «Expurgo» é exactamente esta: a escola
+expurgada permanece no acervo, marcada, porque o elo não se apaga). `provar-notacao` 66/66,
+`provar-barra-unica` 58/58, `provar-celular` 15/15, `provar-indices` 49/49, `check-identidade` ok.
+Simulação feita antes do rebase: com `ciclo-01-batata*` fora do lugar, as provas que medem um
+documento **falham alto** e as que não dependem de pacote continuam verdes; restaurado, tudo verde.
+
+**O que ainda não está feito.**
+- **Quatro provas não correm agora**, e é honesto: `provar-iphone`, `provar-titulo-e-barra`,
+  `provar-cabecalho-do-documento` e `propostas/construir` medem um documento **real**, e neste
+  momento não há ciclo gerado nenhum no repositório. Voltam a correr no dia em que houver — é o
+  que a mensagem de erro diz, com o comando.
+- **A calango ainda não existe.** Os três bloqueios do `criar-escola.sh` estão livres (o `.conf`
+  variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
+  a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
+  distingue de «restos por limpar» (`foiRecriada`).

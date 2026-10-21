@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T12:29:32-0300`
-Commit atual: `8cb1757` — fix(template): no iPhone o menu não cabia e a rolagem tremia
+Gerado em: `2026-10-21T14:19:19-0300`
+Commit atual: `dcd642f` — chore(estrutura): índices regerados após o expurgo da batata; provas sem dependência de pacote
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,7 +46,8 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** sapo-bailarino
 tiago-menegaz (2)
-- **Ciclos com manifesto:** 4 variante(s)
+- **Ciclos com manifesto:** 0
+0 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -63,6 +64,10 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+dcd642f chore(estrutura): índices regerados após o expurgo da batata; provas sem dependência de pacote
+c692723 docs(experimentos): as provas descobrem o pacote, não escrevem o nome da escola
+e93915f chore(estrutura): expurgar a escola batata
+627850d fix(template): a página ia além da tela; reverto o que não consertava nada
 8cb1757 fix(template): no iPhone o menu não cabia e a rolagem tremia
 b40aa0a chore(ciclo-01): carimbo de geração do pacote do batata
 730d0ec fix(estrutura): a harmonização abria o front-matter sem `---`, e saía sem título
@@ -79,31 +84,11 @@ cc5474f fix(tools): o lançamento pedia a senha num campo que o próprio formul�
 f5763c4 fix(estrutura): a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
 0d65a96 docs(registro): o HANDOFF cita a barra única por domínio
 f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da geração leva à página da escola
-623c05a docs(registro): o HANDOFF cita a logo como link para o domínio
-1dc2edf fix(tools): clicar na logo leva à raiz do domínio
-1752218 docs(registro): o HANDOFF cita as duas listas fechadas do mapa
-2d3356c fix(po): as listas fechadas eram duas, e o mapa morria na segunda
 ```
 
 ## Por professor
 
-### sapo-bailarino — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): batata, batata-bale-nivel-1-teste-2, batata-bale-nivel-2-teste-2, batata-bale-nivel-3-teste-2
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| batata | (sem PO) | — | — |
-| batata | ciclo-01-batata-bale-nivel-1-teste-2-po.md | Input_PO_Aguardando | 1 |
-| batata-bale-nivel-2-teste-2 | (sem PO) | — | — |
-| batata-bale-nivel-3-teste-2 | (sem PO) | — | — |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| batata | ciclo-01-batata.fipp | `c723e88de775` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `debca928ca47` | (vazio) | Input_PO_Aguardando |
-| batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `7802a397dff5` | (vazio) | — |
-| batata-bale-nivel-3-teste-2 | ciclo-01-batata-bale-nivel-3-teste-2.fipp | `00e94b5840d9` | (vazio) | — |
+### sapo-bailarino — 0 ciclo(s)
 
 ### tiago-menegaz — 0 ciclo(s)
 
@@ -154,91 +139,58 @@ f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da ge
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — a correção do iPhone foi longe demais: revertida, e o defeito verdadeiro era outro
+## 21/10/2026 — a batata foi expurgada; as provas deixaram de nomear escolas
 
-**O que foi visto.** No Android: *«a largura da página tá grande demais… o menu tá muito largo e o
-hambúrguer do lado direito tá completamente escondido fora dos limites do celular»*, *«o título não
-diminui mais»*, e o menu aberto «quebrava» ao rolar. E na Produção, *«conforme eu rolo a página, as
-seções vão para dentro do menu… deixou de acontecer»*.
+**O que aconteceu.** O expurgo da escola `batata` foi feito pelo lado remoto — a página «Sistema
+Lastro», que apaga o Worker, o subdomínio, as chaves do KV **e** os arquivos do repositório
+(`e93915f`, 76 arquivos, incluindo o manifesto base `ciclo-01.conf`, que carregava o nome da escola
+dentro). O repositório local estava atrasado e ainda via a escola inteira; depois do rebase, o
+estado é o do remoto: `wrangler.batata.jsonc` não existe, o pacote e as fontes saíram, o índice da
+escola **sobreviveu** (é a memória de que ela existiu) e o `indices/` precisou de ser regerado.
 
-**O erro que eu cometi, e o que ele ensina.** Tratei o relato do iPhone como dois problemas e ataquei
-um terceiro: o painel do menu. Voltei ao `HEAD` anterior a 21/10 e medi — os três sintomas do
-Android **não eram do meu commit**: estavam lá antes, com o mesmo valor (97px de excesso). O que eu
-tinha feito foi acrescentar `max-height`/`overflow`/`flex-wrap` ao painel e 44px ao hamburger, e
-mudado o `resize` — e as duas primeiras coisas **não consertavam nada**: o menu «pela metade» não era
-do painel.
+**A dívida que isto expôs, e que era minha.** Cinco provas escritas nesta semana apontavam para
+`ciclo-01-batata-bale-nivel-1-teste-2` pelo nome. Elas morreriam no dia do expurgo — e morreram,
+na simulação que fiz antes de o rebase chegar: `lib-pacote: nenhum pacote de ciclo gerado`. Uma
+prova que nomeia uma escola envelhece no dia em que a escola é expurgada, e as escolas deste
+protótipo são **descartáveis por desenho**. É a mesma lição do alfabeto de notação (`39e24c5`), que
+já não nomeia escola nenhuma — nem viva, nem expurgada.
 
-**O defeito verdadeiro — um, com três sintomas.** O `plano.html` tem uma tabela de cinco colunas com
-uma célula «[Preencher: o critério de cada aula — declarado no lançamento da aula dada]». Num ecrã de
-360px ela não cabe, e as tabelas são `width:100%` com `padding` de 8px em cada célula: a página ganha
-**97px** de rolagem horizontal. Num telemóvel a barra `position: fixed` é medida pela **largura do
-layout** — ficou 97px mais larga, e o ☰ saiu do ecrã à direita (!clicável: `elementFromPoint` não o
-alcança). O mesmo explicava o `position: sticky` do título parecer quebrado e o menu «quebrar» ao
-rolar. É por isso que só o plano e a captura falhavam: são as duas páginas com conteúdo largo.
+**O que foi feito.**
+- `experimentos/lib-pacote.js` — **novo**. Procura a FORMA (um `professores/<p>/ciclos/
+  ciclo-NN-<escola>/` com pelo menos uma página de documento), escolhe de forma determinística, e
+  falha alto com o remédio escrito quando não há nenhuma. Duas armadilhas medidas ao escrevê-lo:
+  o `index.html` **não** serve de critério (existe também no esqueleto do ciclo-zero, e a primeira
+  versão escolheu o esqueleto, que não tem aula nem captura); e o nome do esqueleto é **prefixo**
+  do nome da variante ao lado (`ciclo-01-batata` / `ciclo-01-batata-bale-nivel-1-teste-2`), de modo
+  que «tudo o que começa por `<pacote>-`» apanhava as fontes da OUTRA variante — as fontes passam a
+  ser filtradas pela família de documento do índice (`tipoDoDocumento`), não por uma segunda lista.
+- `provar-iphone`, `provar-titulo-e-barra`, `provar-cabecalho-do-documento` — descobrem o pacote,
+  a aula e a folha de captura. O último conferia «as fontes publicadas do ciclo» com o caminho
+  escrito à mão: expurgada a escola, deixaria de conferir fonte nenhuma e passaria a medir só os
+  derivados em memória — o defeito do front-matter ficaria sem guarda sobre fonte real.
+- `propostas/construir.js` — descobre a aula. `provar-notacao` — o controlo negativo usava «batata»
+  à mão; passa a usar a primeira escola REAL da lista. `provar-indices` — usava o pacote da batata
+  como prefixo de exemplo; passa a usar o verdadeiro quando existe, e um caminho sintético quando
+  não (`caminhoDeExemplo`), porque ele exerce regras de NOME e não lê ficheiro nenhum.
+- `indices/` — regerados: a batata sai do acervo, `01-batata.json` sai como órfão.
 
-A folha de captura tinha o mesmo defeito por outra peça: dois trechos de `code` de 496px e 488px
-(não quebram linha) — **130px** de excesso.
-
-**O que foi decidido.**
-1. **Revertido** tudo o que a correção do iPhone tinha posto no CSS fora do `resize`: o
-   `max-height`/`overflow`/`flex-wrap` do painel, o `flex: 0 0 auto` dos filhos e o hamburger de
-   44×50. Ficou o que a pesquisadora pediu que ficasse — e que era o pedido original: **o
-   treme-treme**.
-2. **A causa:** em `@media (max-width: 899px)` a tabela passa a `display: block` com
-   `overflow-x: auto` — rola dentro de si, em vez de alargar a página —, e o `code` comprido ganha
-   `overflow-wrap: anywhere`. No desktop nada muda (`display: table`, medido).
-3. **A Produção não era do iPhone, e era minha:** quando a barra passou a ser desenhada ao servir, o
-   desenho passou a ser um só e apagou o que não conhecia — a Produção deixou de ter o
-   `s5-sessao`/`s5-secoes` que o `bastidores.js` entrega como `extras`. Sem essas peças no HTML, o
-   `data-descido` acendia atributos que já não existiam. Agora o `aplicar` **lê o bloco do próprio
-   `<nav>`** (entre a marca e o ☰) antes de substituir, e volta a pô-lo no mesmo lugar.
-
-**Onde entrou.**
-- `tools/templates/ciclo.css` — revertido o painel e o hamburger; a regra das tabelas e do `code`.
-- `tools/templates/nav.js` — mantida a guarda do `resize` (por largura) e as escritas só por mudança
-  de valor; sai o `--barra-linha`, que existia só para o `max-height`.
-- `motor/nucleo/nav.js` — `desenhar(menu, pedido, extras)` e `extrasDaBarra()`. O bloco sai da
-  FORMA do `<nav>` (entre a marca e o ☰) e não de uma lista de nomes: a ponte serve quatro origens,
-  e ensinar-lhe o caminho até cada construtor de barra repetiria o problema que a barra desenhada ao
-  servir veio resolver.
-- `experimentos/provar-iphone.js` — **reescrita**: mede o que devia ter medido. 18 asserções, com
-  controlo negativo contra `b40aa0a` (o commit antes da correção, escrito à mão porque o `HEAD`
-  passa a conter o conserto): com o CSS de antes o plano estoura 97px; com o `nav.js` de antes os 60
-  `resize` dão 60 leituras e 120 escritas.
-- `experimentos/provar-barra-unica.js` — secção D2: o bloco entre a marca e o ☰ sobrevive, e o ☰ não
-  anda. 53 → 58 asserções.
-
-**Com o quê.**
-- `provar-iphone` 18/18: em 320, 360 e 390, **as 8 páginas** do pacote sem excesso horizontal e o ☰
-  inteiro no ecrã **e a receber o clique**; em 320 as tabelas que não cabem rolam dentro de si; no
-  desktop continuam `display: table`.
-- `provar-barra-unica` 58/58, `provar-producao` 135/135, `provar-celular` 15/15,
-  `provar-titulo-e-barra` 27/27, `provar-paginacao` 121/121, `provar-cabecalho-do-documento` 21/21,
-  `check-identidade` 19/19, `check-pacote` 0 erro.
-- Ao vivo no Worker: `plano.html` em 360px com **0** de excesso, ☰ recebendo o clique, título a
-  encolher para 25px; a Produção com `descido=sim` ao rolar → `s5-sessao` e `s5-secoes` `flex`, a
-  `.lateral-barra` da página sai, e o ☰ fica em 378 de 390 (não anda).
+**Com o quê.** `check-indices` **14/14** (a verificação 12 «Expurgo» é exactamente esta: a escola
+expurgada permanece no acervo, marcada, porque o elo não se apaga). `provar-notacao` 66/66,
+`provar-barra-unica` 58/58, `provar-celular` 15/15, `provar-indices` 49/49, `check-identidade` ok.
+Simulação feita antes do rebase: com `ciclo-01-batata*` fora do lugar, as provas que medem um
+documento **falham alto** e as que não dependem de pacote continuam verdes; restaurado, tudo verde.
 
 **O que ainda não está feito.**
-- **Ainda não foi testado num iPhone.** O que se corrigiu agora é o que se podia medir: a largura e a
-  guarda do `resize`. Se a tremedeira voltar, o suspeito seguinte é o `scroll-behavior: smooth`.
-- **O `resize` só por largura** deixa de re-medir quando um teclado virtual muda apenas a altura. É
-  deliberado (re-medir a rolar era o defeito), mas fica declarado.
-- **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
-  colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
-  página; a alternativa (esconder colunas) perderia conteúdo.
+- **Quatro provas não correm agora**, e é honesto: `provar-iphone`, `provar-titulo-e-barra`,
+  `provar-cabecalho-do-documento` e `propostas/construir` medem um documento **real**, e neste
+  momento não há ciclo gerado nenhum no repositório. Voltam a correr no dia em que houver — é o
+  que a mensagem de erro diz, com o comando.
+- **A calango ainda não existe.** Os três bloqueios do `criar-escola.sh` estão livres (o `.conf`
+  variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
+  a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
+  distingue de «restos por limpar» (`foiRecriada`).
 
 ## O que está pendente
-
-## 21/10/2026 — as propostas de layout foram refeitas: eram inoperáveis, e a razão era dupla
-
-- **A escolha.** As propostas não mudam produção. Escolhido o desenho, ele vai para
-  `tools/templates/` com motivo declarado e commit próprio, e ganha prova de produto.
-- **As propostas saem do site** na primeira montagem sem `--com-propostas`. É deliberado; quem quiser
-  mostrá-las outra vez repete o comando.
-- A opção C do título depende de `.rail` e do `toc-local`, que existem no documento do pacote; numa
-  página sem índice lateral ela cai no comportamento da B. Não há hoje nenhuma página assim, mas a
-  condição não está provada — está só declarada no CSS.
 
 ## 21/10/2026 — o título que fica e a barra do lançamento no celular: as duas propostas escolhidas
 
@@ -288,6 +240,17 @@ A folha de captura tinha o mesmo defeito por outra peça: dois trechos de `code`
 - **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
   colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
   página; a alternativa (esconder colunas) perderia conteúdo.
+
+## 21/10/2026 — a batata foi expurgada; as provas deixaram de nomear escolas
+
+- **Quatro provas não correm agora**, e é honesto: `provar-iphone`, `provar-titulo-e-barra`,
+  `provar-cabecalho-do-documento` e `propostas/construir` medem um documento **real**, e neste
+  momento não há ciclo gerado nenhum no repositório. Voltam a correr no dia em que houver — é o
+  que a mensagem de erro diz, com o comando.
+- **A calango ainda não existe.** Os três bloqueios do `criar-escola.sh` estão livres (o `.conf`
+  variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
+  a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
+  distingue de «restos por limpar» (`foiRecriada`).
 
 ## Pendências anteriores (índice)
 
@@ -542,8 +505,7 @@ A folha de captura tinha o mesmo defeito por outra peça: dois trechos de `code`
 - **20/10/2026** — o registro de notação passa a compor-se: o alfabeto é dado,… → `REGISTRO.md` L20969
 - **20/10/2026** — o lançamento pedia uma senha cujo campo estava escondido → `REGISTRO.md` L21077
 - **20/10/2026** — duas bancadas para ESCOLHER o título e a paginação — e três… → `REGISTRO.md` L21145
-- PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **21/10/2026** — as propostas de layout foram refeitas: eram inoperáveis, e… → `REGISTRO.md` L21243
 
 ## Documentos-chave (para leitura)
 
