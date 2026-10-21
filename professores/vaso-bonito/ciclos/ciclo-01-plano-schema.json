@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do plano do ciclo",
+  "description": "Declara os campos obrigatórios de `ciclo-XX-<escola>-plano.md`. O plano é a INTENÇÃO: fixa objetivo, marcos e volume antes de a aula ser dada, e é ele que dá a linha de base. Arquivo-alvo Markdown, extraído por tools/validar-plano-ciclo.js.",
+  "type": "object",
+  "required": [
+    "objetivoGeral",
+    "marcos",
+    "volumeSemanal",
+    "distribuicaoDoVolume",
+    "repertorio"
+  ],
+  "properties": {
+    "objetivoGeral": { "type": "string" },
+    "marcos": { "type": "array", "items": { "type": "string" } },
+    "volumeSemanal": { "type": "string" },
+    "distribuicaoDoVolume": { "type": "array" },
+    "repertorio": { "type": "array", "items": { "type": "string" } }
+  }
+}

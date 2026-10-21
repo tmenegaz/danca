@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do manifesto do ciclo (.conf)",
+  "description": "Declara os campos obrigatórios de `ciclo-XX.conf` e `ciclo-XX-<escola>.conf`. O manifesto é a única fonte do gerador (lib-fontes.sh, lib-locale.sh): sem escola, frequência, dias e duração por dia, não se gera (Pré-requisito 5). P-08: o schema do ciclo pode ser próprio de cada ciclo; este é o genérico do molde.",
+  "type": "object",
+  "required": [
+    "CICLO",
+    "NOME",
+    "OBJETIVO_GERAL",
+    "PROFESSOR",
+    "DOCS",
+    "FREQUENCIA",
+    "DIAS",
+    "DURACAO_POR_DIA",
+    "DATA_INICIO",
+    "TOTAL_AULAS",
+    "VOLUME_MIN",
+    "VOLUME_MAX"
+  ],
+  "properties": {
+    "CICLO": { "type": "string", "pattern": "^[0-9]{2}$" },
+    "VARIANTE": { "type": "string" },
+    "ESCOLA": { "type": "string" },
+    "RESPONSAVEL": { "type": "string" },
+    "PROFESSOR": { "type": "string" },
+    "ESCOLA_HABILITADA": { "type": "string", "enum": ["sim", "nao"] },
+    "NOME": { "type": "string" },
+    "OBJETIVO_GERAL": { "type": "string" },
+    "DOCS": { "type": "string" },
+    "FREQUENCIA": { "type": "string" },
+    "DIAS": { "type": "string" },
+    "DURACAO_POR_DIA": { "type": "string" },
+    "DURACOES": { "type": "string" },
+    "DATA_INICIO": { "type": "string" },
+    "TOTAL_AULAS": { "type": "string" },
+    "VOLUME_MIN": { "type": "string" },
+    "VOLUME_MAX": { "type": "string" }
+  }
+}

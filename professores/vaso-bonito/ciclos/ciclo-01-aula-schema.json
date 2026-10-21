@@ -1,0 +1,18 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do plano da aula",
+  "description": "Declara os campos obrigatórios de `ciclo-XX-<escola>-aula-NN.md`. A aula é o FATO: depois de dada, só se acrescenta ajuste, nunca se reescreve a intenção. Arquivo-alvo Markdown, extraído por tools/validar-aula-ciclo.js.",
+  "type": "object",
+  "required": [
+    "objetivoDaAula",
+    "marcos",
+    "volume",
+    "planoDeReferencia"
+  ],
+  "properties": {
+    "objetivoDaAula": { "type": "string" },
+    "marcos": { "type": "array", "items": { "type": "string" } },
+    "volume": { "type": "string" },
+    "planoDeReferencia": { "type": "string" }
+  }
+}

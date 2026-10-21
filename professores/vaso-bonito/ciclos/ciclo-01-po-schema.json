@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema do Plano de Observação (PO) — domínio balé clássico",
+  "description": "Declara os campos observacionais de um PO de ciclo. Estrutura: 13 campos de topo (5 strings, 6 arrays, 2 objetos), que somam 21 folhas. Cada ciclo pode ter o seu schema (P-08). O PO é do CICLO, não da variante: as escolas compartilham o PO e têm cadernos próprios (P-09). O arquivo-alvo é Markdown (ciclos/ciclo-XX-po.md), extraído por tools/validar-po-ciclo.js. Campos ainda não decididos pela pesquisadora podem conter '[Preencher: ...]' — o validador aceita o provisório, mas exige que o campo exista.",
+  "type": "object",
+  "properties": {
+    "planoDeEnsino": {
+      "type": "string",
+      "description": "O PLANO DE ENSINO que esta observação observa (Bloco 1 do formulário). O PO não duplica o contexto dele — lê-o na geração (Campo empírico, Contexto, Metodologia e notação) —, mas TEM de declarar QUAL plano é, senão o documento lê o plano e não diz de onde leu."
+    },
+    "horizonte": {
+      "type": "string",
+      "description": "O HORIZONTE (Bloco 1, OPCIONAL): a direção de fundo, o que se quer construir ao longo de VÁRIOS ciclos. Vazio quando o ciclo é isolado — a lacuna é declarada."
+    },
+    "question": {
+      "type": "string",
+      "description": "A pergunta de observação (RN-PO-01). É o objetivo geral do ciclo lido como pergunta (P-01)."
+    },
+    "phenomenon": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Definição operacional do fenômeno (RN-PO-02): descritível como comportamento, não como impressão. É uma LISTA de observáveis — o PO do Duo lista sete, e quem os achatava numa string era ESTE schema (a seção já era uma lista no documento). Um PO que escreva o fenômeno como parágrafo (a Ritmos escreve) entrega as linhas do parágrafo como itens: o tipo é o do DOCUMENTO, não o que o dado ideal teria."
+    },
+    "field": {
+      "type": "string",
+      "description": "Campo empírico (RN-PO-04): onde a observação acontece (aulas, escolas, faixa)."
+    },
+    "context": {
+      "type": "string",
+      "description": "Contexto do campo (RN-PO-03)."
+    },
+    "dimensoesObservadas": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "As dimensões observadas (RN-PO-05). Cada dimensão vira um bloco da folha de captura."
+    },
+    "itensPorDimensao": {
+      "type": "array",
+      "description": "Os itens (critérios) de cada dimensão (RN-PO-06). É a lista de que a folha de captura e a declaração `porVariante` derivam."
+    },
+    "metodologiaENotacao": {
+      "type": "string",
+      "description": "Metodologia e notação da observação (RN-PO-07)."
+    },
+    "subjects": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Os sujeitos observados, por apelido estável (P-12)."
+    },
+    "flutuantes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Os sujeitos flutuantes (quem entra e sai da turma)."
+    },
+    "norma": {
+      "type": "string",
+      "description": "A norma do campo."
+    },
+    "linhaDeBase": {
+      "type": "array",
+      "description": "A linha de base (o que se observou antes de intervir). É ela que dá o contraste do P-10."
+    },
+    "restricoes": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "inclusionCriteria": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "exclusionCriteria": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "justification": {
+      "type": "string"
+    },
+    "condicoesDeContorno": {
+      "type": "string"
+    },
+    "limitations": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "horizonteDoConjunto": {
+      "type": "string"
+    },
+    "compromissoDeReavaliacao": {
+      "type": "string"
+    },
+    "validationChecklist": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}

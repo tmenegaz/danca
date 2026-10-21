@@ -1,0 +1,130 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Schema da folha de captura — o config que o formulário de lançamento lê",
+  "description": "Declara a forma de `captura-XX.json` — a folha de captura como CONFIG legível por máquina: os blocos e, em cada um, as colunas (os itens que se marca), o grão (por aluna / por dupla) e as linhas (os alunos, ou as duplas) — e declara também (`_declaracao`) o que a folha NÃO pode dizer sozinha: por VARIANTE, o par RÓTULO ↔ CHAVE e o TIPO de cada coluna, e o grão de cada bloco. O arquivo-alvo é Markdown (ciclos/ciclo-XX-<escola>-captura-aula-NN.md), lido por tools/validar-captura-ciclo.js. É o único dos quatro documentos (ciclo, PO, plano, captura) cujo conteúdo MUDA por ciclo de forma legítima — e é por isso que o extrator o lê por FORMA, e não por um mapa de títulos: um mapa teria de ser escrito à mão por ciclo, que é exatamente o problema que ele resolve. A folha continua sendo a fonte dos RÓTULOS; esta declaração é a autoridade sobre as CHAVES e os TIPOS, porque o rótulo é redação (muda quando a redação muda) e a chave é contrato (não muda). Os campos de LINHA da folha (a data, o P-11, o fecho, o relatório) NÃO entram aqui: as chaves deles são as mesmas em toda variante (`data`, `condicoes_contorno`, `relatorio`…), e é o formulário que as fixa.",
+  "type": "object",
+  "required": [
+    "escola",
+    "ciclo",
+    "aula",
+    "folha",
+    "blocos"
+  ],
+  "properties": {
+    "escola": {
+      "type": "string",
+      "description": "A escola da variante desta folha (o mesmo campo do .conf)."
+    },
+    "ciclo": {
+      "type": "string",
+      "description": "O ciclo (\"01\")."
+    },
+    "aula": {
+      "type": "string",
+      "description": "A aula desta folha (\"01\") — a folha é por aula; o config é o da aula."
+    },
+    "folha": {
+      "type": "string",
+      "description": "O nome do arquivo-fonte da folha: o .md que se imprime para a aula."
+    },
+    "variante": {
+      "type": "string",
+      "description": "O slug da variante que declarou as chaves e os tipos (ex.: `diaghilev`) — o mesmo do `VARIANTE` do .conf. O gerador o passa por `--variante`; sem ele, o extrator deduz pela `escola:` do front-matter."
+    },
+    "blocos": {
+      "type": "array",
+      "description": "Os blocos, na ordem do documento: o `cabecalho` (data, presentes, início, fim, duração efetiva), as condições de contorno (P-11), os blocos de captura (um por dimensão, com a tabela de marcação) e o fecho da aula.",
+      "items": {
+        "type": "object",
+        "required": [
+          "titulo"
+        ],
+        "properties": {
+          "titulo": { "type": "string" },
+          "chave": { "type": ["string", "null"] },
+          "rotulo": { "type": "string" },
+          "grao": { "type": "string" },
+          "colunas": { "type": "object" }
+        }
+      }
+    }
+  },
+  "_declaracao": {
+    "_nota": "O que a folha não pode dizer sozinha, por VARIANTE: o par rótulo ↔ chave e o TIPO de cada coluna, e o grão de cada bloco. É a autoridade sobre as CHAVES (contrato) — o rótulo é redação e pode mudar.",
+    "tipos": {
+      "rubrica": "o valor é o RÓTULO do nível da régua da turma (o critério mede-se pela régua)",
+      "marca": "o valor responde 'aconteceu?' (a linha de base e os itens de presença)"
+    },
+    "porVariante": {
+      "diaghilev": {
+        "escola": "Diaghilev",
+        "blocos": {}
+      },
+      "maria": {
+        "escola": "Maria",
+        "blocos": {}
+      },
+      "breu-bale-nivel-1-teste-3": {
+        "escola": "Breu",
+        "blocos": {
+          "Bloco 1 — Técnica — Solo": {
+            "chave": "tecnica_solo",
+            "rotulo": "Técnica — Solo",
+            "grao": "aluna",
+            "colunas": {
+              "alinhamento do pé de apoio; eixo do corpo na preparação": {
+                "chave": "alinhamento_do_pe_de_apoio_eixo_do_corpo_na_preparacao",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 2 — Técnica — Barra": {
+            "chave": "tecnica_barra",
+            "rotulo": "Técnica — Barra",
+            "grao": "aluna",
+            "colunas": {
+              "saída do calcanhar no tendu; quadril sem subir no en dehors": {
+                "chave": "saida_do_calcanhar_no_tendu_quadril_sem_subir_no_en_dehors",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 3 — Técnica — Centro": {
+            "chave": "tecnica_centro",
+            "rotulo": "Técnica — Centro",
+            "grao": "aluna",
+            "colunas": {
+              "transferência de peso sem perder a verticalidade; braço junto do movimento": {
+                "chave": "transferencia_de_peso_sem_perder_a_verticalidade_braco_junto_do_movimento",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 4 — Técnica — Musicalidade": {
+            "chave": "tecnica_musicalidade",
+            "rotulo": "Técnica — Musicalidade",
+            "grao": "aluna",
+            "colunas": {
+              "resposta ao pulso na marcação; frase até o fim da música": {
+                "chave": "resposta_ao_pulso_na_marcacao_frase_ate_o_fim_da_musica",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "_nota_escopo_02-10-2026": "Este schema é do PAR (professor, ciclo) e é compartilhado pelas escolas do professor (P-08). O `porVariante` cresce a cada escola — quem o escreve é o «Guardar» do PO, não a mão."
+}
