@@ -308,7 +308,11 @@ function main() {
     const esquema = JSON.parse(fs.readFileSync(path.join(RAIZ, 'indices/esquema/tipos.json'), 'utf8'));
     const tipos = esquema.tipos || [];
     const ignorados = esquema.ignorados || [];
-    const pacote = 'professores/tiago-menegaz/ciclos/ciclo-01-batata-bale-nivel-1-teste-2';
+    /* O PACOTE É DESCOBERTO, não nomeado (21/10/2026) — ver `lib-pacote.js`. Aqui os caminhos
+     * servem só para exercer as REGRAS DE TIPO do `indices/esquema/tipos.json` (não se lê
+     * ficheiro nenhum), mas um caminho de uma escola que já não existe é uma opinião sobre o
+     * passado, e a próxima pessoa a ler a prova procuraria em vão o pacote citado. */
+    const pacote = require('./lib-pacote.js').umPacote();
 
     const decisaoDe = (rel) => {
       const achados = [];
@@ -324,7 +328,7 @@ function main() {
       pacote + '/aula-01.html',
       pacote + '/referencias.html',
       pacote + '/plano-observacao/index.html',
-      pacote + '/ciclo-01-batata-bale-nivel-1-teste-2.pdf',
+      pacote + '/' + path.basename(pacote) + '.pdf',
       pacote + '/plano-01.json',
       pacote + '/po-01.json',
       pacote + '/captura-01.json',

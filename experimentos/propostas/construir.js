@@ -39,8 +39,19 @@ const SAIDA = __dirname;
 
 const CSS = fs.readFileSync(path.join(RAIZ, 'tools', 'templates', 'ciclo.css'), 'utf8');
 const NAVJS = fs.readFileSync(path.join(RAIZ, 'tools', 'templates', 'nav.js'), 'utf8');
-const AULA = path.join(RAIZ, 'professores', 'sapo-bailarino', 'ciclos',
-  'ciclo-01-batata-bale-nivel-1-teste-2', 'aula-01.html');
+/* A AULA É DESCOBERTA, não nomeada (21/10/2026). O construtor lia o nome de uma escola
+ * escrita à mão — e as escolas deste protótipo são descartáveis por desenho: expurgada a
+ * escola, as bancadas deixavam de se construir, embora o que elas mostrem (o cabeçalho e o
+ * corpo de um documento longo) não dependa de qual escola é. Ver `../lib-pacote.js`. */
+const { umPacote, umaPagina } = require('../lib-pacote.js');
+const PACOTE_DA_AULA = umPacote();
+const PAGINA_DA_AULA = umaPagina(PACOTE_DA_AULA, /^aula-\d{2}\.html$/);
+if (!PAGINA_DA_AULA) {
+  throw new Error('construir: o pacote «' + PACOTE_DA_AULA + '» não tem página de aula — a '
+    + 'proposta do título mede o cabeçalho e o corpo de um documento real, e sem ele não há '
+    + 'o que mostrar.');
+}
+const AULA = path.join(RAIZ, PACOTE_DA_AULA, PAGINA_DA_AULA);
 const LANCAMENTO = path.join(RAIZ, 'tools', 'templates', 'lancamento.html');
 
 // --------------------------------------------------------------------------- peças do projeto

@@ -64,7 +64,11 @@ if (!executavel) {
   process.exit(1);
 }
 
-const PACOTE = 'professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2';
+/* O PACOTE É DESCOBERTO, não nomeado (21/10/2026). As escolas deste protótipo são descartáveis
+ * por desenho, e uma prova que escreve o nome de uma morre no dia do seu expurgo — por um motivo
+ * que não tem nada a ver com o que ela mede. Ver `lib-pacote.js`. */
+const { umPacote, paginas: paginasDoPacote } = require('./lib-pacote.js');
+const PACOTE = umPacote();
 const MAPA = { 'assets/style.css': 'tools/templates/ciclo.css', 'assets/nav.js': 'tools/templates/nav.js' };
 
 /** Serve o pacote, com os assets apontados para a FONTE (a cópia é conferida pelo
@@ -177,8 +181,10 @@ const MEDIR_PAINEL = () => {
    * horizontal. Num telemóvel a barra `fixed` é medida pela largura do LAYOUT — ficou 97px
    * mais larga, e o ☰ saiu do ecrã à direita. Um defeito de tabela, três sintomas.
    */
-  const PAGINAS = ['index.html', 'plano.html', 'aula-01.html', 'notacao.html',
-    'glossario-benesh.html', 'referencias.html', 'harmonizacao.html', 'captura-aula-01.html'];
+  /* TODAS as páginas do pacote, menos o formulário de lançamento: ele é uma ferramenta de
+   * trabalho, com folha própria, e não um documento com `header.doc`. Descobrir a lista em vez de
+   * a escrever é o que faz a prova acompanhar um ciclo com mais aulas ou menos documentos. */
+  const PAGINAS = paginasDoPacote(PACOTE).filter((f) => f !== 'lancamento.html');
   for (const [w, h] of [[320, 568], [360, 740], [390, 664]]) {
     await pg.setViewport({ width: w, height: h, hasTouch: true, isMobile: true });
     const estouram = [];

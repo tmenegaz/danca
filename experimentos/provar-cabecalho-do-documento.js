@@ -128,13 +128,15 @@ provar(`os ${DERIVADOS.length} derivados foram conferidos, nenhum ficou de fora`
 // A fonte escrita à mão (ou corrigida à mão) não passa por este módulo: `escrever-ciclo.js`
 // só grava o que ainda não existe, porque proveniência acrescenta e não edita. Se a correção
 // do `-harmonizacao.md` viver só no ficheiro, a regra não a protege — esta secção protege.
-const DIR = path.join(RAIZ, 'professores/sapo-bailarino/ciclos');
-const doCiclo = fs.readdirSync(DIR)
-  .filter((f) => /^ciclo-01-batata-bale-nivel-1-teste-2.*\.md$/.test(f))
-  // Os que não vão para o template de documento: o PO e o plano têm os seus validadores, e o
-  // `-dados` é JSON. O que se confere aqui é o que vira PÁGINA.
-  .filter((f) => !/-(dados\.cifrado|dados)\.(json)$/.test(f))
-  .filter((f) => !/-po\.md$/.test(f) && !/-plano\.md$/.test(f));
+/* O CICLO É DESCOBERTO, não nomeado (21/10/2026) — ver `lib-pacote.js`. Antes daqui lia-se
+ * `professores/sapo-bailarino/ciclos`, com o nome de uma escola escrita à mão: expurgada a
+ * escola, esta secção deixava de conferir fonte nenhuma e a prova passava a medir só os
+ * derivados em memória — o defeito do front-matter, que é o que ela existe para travar, ficaria
+ * sem guarda no dia em que a fonte real desaparecesse. */
+const { umPacote, fontesDoPacote } = require('./lib-pacote.js');
+const PACOTE_REL = umPacote();
+const DIR = path.join(RAIZ, path.dirname(PACOTE_REL));
+const doCiclo = fontesDoPacote(PACOTE_REL);
 
 provar('as fontes do ciclo com página foram encontradas', doCiclo.length >= 6,
   { encontradas: doCiclo.length });
@@ -147,7 +149,7 @@ for (const f of doCiclo) {
 // ---------------------------------------------- C. o pacote publicado
 //
 // O sintoma visível. Lido do artefacto, e não da fonte: é o que o professor abre.
-const PACOTE = path.join(DIR, 'ciclo-01-batata-bale-nivel-1-teste-2');
+const PACOTE = path.join(RAIZ, PACOTE_REL);
 if (!fs.existsSync(PACOTE)) {
   provar('o pacote publicado existe para ser conferido', false, { caminho: PACOTE });
 } else {

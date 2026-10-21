@@ -75,7 +75,16 @@ if (!executavel) {
   process.exit(1);
 }
 
-const PACOTE = 'professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2';
+/* O PACOTE É DESCOBERTO, não nomeado (21/10/2026) — ver `lib-pacote.js`. */
+const { umPacote, umaPagina } = require('./lib-pacote.js');
+const PACOTE = umPacote();
+const AULA = umaPagina(PACOTE, /^aula-\d{2}\.html$/);
+const CAPTURA = umaPagina(PACOTE, /^captura-aula-\d{2}\.html$/);
+if (!AULA || !CAPTURA) {
+  console.error('provar-titulo-e-barra: o pacote «' + PACOTE + '» não tem aula nem folha de '
+    + 'captura — sem elas não há o que medir. NÃO FEITO.');
+  process.exit(1);
+}
 
 /*
  * SERVIDOR ESTÁTICO com os assets apontados para a FONTE — o mesmo cuidado (e o mesmo
@@ -193,8 +202,8 @@ const MEDIR_BARRA = () => {
     console.log((cond ? 'ok     ' : 'FALHA  ') + nome + (extra !== undefined ? ' → ' + JSON.stringify(extra) : ''));
   };
 
-  const DOC = `${base}/${PACOTE}/aula-01.html`;
-  const CAPTURA = `${base}/${PACOTE}/captura-aula-01.html`;
+  const DOC = `${base}/${PACOTE}/${AULA}`;
+  const FOLHA = `${base}/${PACOTE}/${CAPTURA}`;
   const LANCAMENTO = `${base}/${PACOTE}/lancamento.html`;
 
   /* Rolar é uma MEDIDA, e o `scroll-behavior: smooth` da folha a estragaria: a rolagem
@@ -290,7 +299,7 @@ const MEDIR_BARRA = () => {
   provar('no celular a página também não estoura na horizontal', preso390.estouro === 0, preso390);
 
   // --- a folha de captura fica de fora
-  await pg.goto(CAPTURA, { waitUntil: 'load' });
+  await pg.goto(FOLHA, { waitUntil: 'load' });
   const captura = await pg.evaluate(MEDIR_TITULO);
   await rolarPara(900);
   const capturaRolada = await pg.evaluate(MEDIR_TITULO);
