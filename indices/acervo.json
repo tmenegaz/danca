@@ -1,5 +1,38 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": {
+        "hash": "7a7f38ad67306ab34273e9faa4d19c976338ba8d240698a725895ccc761c0623",
+        "id": "ciclo-01-calango-bale-nivel-1-teste-1",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 4,
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:murisoca-baiana/01/calango",
+      "numero": "01",
+      "professor": "murisoca-baiana",
+      "sem_ancora": false
+    },
+    {
+      "ancora": {
+        "hash": "f5ca8cf03704b8fb1b7d0742b8184b233cc9ed119a7d92c8006c12cbc1ee88ef",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": 0,
+      "documentos": 3,
+      "escola": "calango",
+      "estado": "ancorado",
+      "id": "ciclo:tiago-menegaz/01/calango",
+      "numero": "01",
+      "professor": "tiago-menegaz",
+      "sem_ancora": false
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -94,26 +127,35 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:murisoca-baiana/01/calango",
+        "ciclo:tiago-menegaz/01/calango"
+      ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
-        "ciclos": 0,
-        "ciclos_com_ancora": 0,
-        "planos": 0,
-        "pos": 0,
-        "registros": 0
+        "ciclos": 2,
+        "ciclos_com_ancora": 2,
+        "planos": 1,
+        "pos": 1,
+        "registros": 3
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
-      "expurgada": true,
-      "habilitada": false,
+      "expurgada": false,
+      "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "sapo-bailarino",
       "professores": [
-        "sapo-bailarino"
+        "murisoca-baiana",
+        "sapo-bailarino",
+        "tiago-menegaz"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261021-1520",
+        "plano:plano-20261021-1524",
+        "po:po-20261021-1527"
+      ],
       "slug": "calango"
     },
     {
@@ -233,7 +275,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 3,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -286,7 +334,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 2,
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -299,6 +353,11 @@
         "valor": "leticia"
       },
       {
+        "contagem": 1,
+        "rotulo": "murisoca-baiana",
+        "valor": "murisoca-baiana"
+      },
+      {
         "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
@@ -309,18 +368,34 @@
         "valor": "tiago"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Tiago Menegaz",
         "valor": "tiago-menegaz"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de observação",
+        "valor": "po"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "c692723"
+    "commit": "bc4b295"
   },
-  "gerado_em": "2026-10-21T17:16",
+  "gerado_em": "2026-10-21T19:04",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -363,6 +438,17 @@
       "slug": "leticia"
     },
     {
+      "ciclos": [
+        "ciclo:murisoca-baiana/01/calango"
+      ],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:murisoca-baiana",
+      "nome": null,
+      "slug": "murisoca-baiana"
+    },
+    {
       "ciclos": [],
       "escolas": [
         "breu",
@@ -384,9 +470,12 @@
       "slug": "tiago"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:tiago-menegaz/01/calango"
+      ],
       "escolas": [
         "batata",
+        "calango",
         "fita",
         "valse"
       ],

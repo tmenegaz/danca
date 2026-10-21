@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/tiago-menegaz/ciclos/ciclo-01-calango.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-calango
+type: Ciclo
+professor: Tiago Menegaz
+ciclo: 01
+variante: calango
+hash_conteudo: 10862cc62bb4de2fff418b829186897ba5ed5f40983618ad3acb7affb1e12d2b
+parentHash: 
+hash: f5ca8cf03704b8fb1b7d0742b8184b233cc9ed119a7d92c8006c12cbc1ee88ef
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-21
+cobertura:
+  - professores/tiago-menegaz/ciclos/ciclo-01-calango.conf
+  - professores/tiago-menegaz/ciclos/ciclo-01.conf

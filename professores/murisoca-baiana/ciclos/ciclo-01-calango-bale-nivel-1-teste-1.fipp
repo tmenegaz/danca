@@ -1,0 +1,21 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-calango-bale-nivel-1-teste-1
+type: Ciclo
+professor: murisoca-baiana
+ciclo: 01
+variante: calango-bale-nivel-1-teste-1
+hash_conteudo: fc7affca0d2f0fe493f05505d8a555dd8cd0682d1494bc854deee8adbf7d1c6d
+parentHash: 
+hash: 7a7f38ad67306ab34273e9faa4d19c976338ba8d240698a725895ccc761c0623
+algoritmo: SHA-256
+po: professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md
+po_state: Input_PO_Aguardando
+ancorado_em: 2026-10-21
+cobertura:
+  - professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md
+  - professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md
+  - professores/murisoca-baiana/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf
