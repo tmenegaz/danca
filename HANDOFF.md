@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T12:05:52-0300`
-Commit atual: `b40aa0a` — chore(ciclo-01): carimbo de geração do pacote do batata
+Gerado em: `2026-10-21T12:29:32-0300`
+Commit atual: `8cb1757` — fix(template): no iPhone o menu não cabia e a rolagem tremia
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,7 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+8cb1757 fix(template): no iPhone o menu não cabia e a rolagem tremia
 b40aa0a chore(ciclo-01): carimbo de geração do pacote do batata
 730d0ec fix(estrutura): a harmonização abria o front-matter sem `---`, e saía sem título
 93ee957 fix(tools): a página sem título passa a ser erro do validador
@@ -82,7 +83,6 @@ f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da ge
 1dc2edf fix(tools): clicar na logo leva à raiz do domínio
 1752218 docs(registro): o HANDOFF cita as duas listas fechadas do mapa
 2d3356c fix(po): as listas fechadas eram duas, e o mapa morria na segunda
-dbd175d fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
 ```
 
 ## Por professor
@@ -154,99 +154,81 @@ dbd175d fix(po): a marca do recorte chegava ao conteúdo e morria no mapa
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — iPhone: o menu que não cabia e a rolagem que tremia
+## 21/10/2026 — a correção do iPhone foi longe demais: revertida, e o defeito verdadeiro era outro
 
-**O que foi visto.** Num iPhone: *«o menu de hambúrguer aparece pela metade»* e *«a rolagem fica
-tremelicando»*. No Moto G4 e no Chrome do computador, bem. As duas coisas são do Safari do iOS, e
-as duas foram medidas antes de corrigidas:
+**O que foi visto.** No Android: *«a largura da página tá grande demais… o menu tá muito largo e o
+hambúrguer do lado direito tá completamente escondido fora dos limites do celular»*, *«o título não
+diminui mais»*, e o menu aberto «quebrava» ao rolar. E na Produção, *«conforme eu rolo a página, as
+seções vão para dentro do menu… deixou de acontecer»*.
 
-1. **O menu não cabia.** O painel cresce com o conteúdo — **812px** com os seis grupos abertos — e
-   não tinha `max-height` nem `overflow`. Num iPhone as barras do sistema comem 150 a 270px da
-   altura, e o fim do menu ficava fora da tela **sem como chegar lá**: o painel está dentro de uma
-   barra `position: fixed`, e a página por baixo rola sem o levar. Medido em 390×664 (o que um
-   iPhone mostra com as barras): **148px cortados**; em 320×568, **266px**.
+**O erro que eu cometi, e o que ele ensina.** Tratei o relato do iPhone como dois problemas e ataquei
+um terceiro: o painel do menu. Voltei ao `HEAD` anterior a 21/10 e medi — os três sintomas do
+Android **não eram do meu commit**: estavam lá antes, com o mesmo valor (97px de excesso). O que eu
+tinha feito foi acrescentar `max-height`/`overflow`/`flex-wrap` ao painel e 44px ao hamburger, e
+mudado o `resize` — e as duas primeiras coisas **não consertavam nada**: o menu «pela metade» não era
+do painel.
 
-2. **O `resize` do iOS dispara a rolar.** Enquanto a página rola, o Safari recolhe e volta a
-   mostrar as barras do sistema — e emite `resize` a cada quadro dessa animação. Os dois `resize`
-   faziam trabalho de layout: `ajustarAlturaNavbar` escrevia `--header-height` (que é o
-   `padding-top` do `body`) e o bloco do título media o cabeçalho. Medido: **60 eventos com a
-   mesma largura davam 60 leituras de layout e 120 escritas em `:root`** — o conteúdo andava por
-   baixo do dedo. É a tremedeira. No Android o `resize` não dispara a rolar, e no desktop a janela
-   não muda de tamanho sozinha: por isso só o iPhone mostrava o defeito.
+**O defeito verdadeiro — um, com três sintomas.** O `plano.html` tem uma tabela de cinco colunas com
+uma célula «[Preencher: o critério de cada aula — declarado no lançamento da aula dada]». Num ecrã de
+360px ela não cabe, e as tabelas são `width:100%` com `padding` de 8px em cada célula: a página ganha
+**97px** de rolagem horizontal. Num telemóvel a barra `position: fixed` é medida pela **largura do
+layout** — ficou 97px mais larga, e o ☰ saiu do ecrã à direita (!clicável: `elementFromPoint` não o
+alcança). O mesmo explicava o `position: sticky` do título parecer quebrado e o menu «quebrar» ao
+rolar. É por isso que só o plano e a captura falhavam: são as duas páginas com conteúdo largo.
 
-**Motivo declarado — `tools/templates/` é congelado e muda aqui.** O motivo é o pedido, e a
-correção não tem como existir fora da folha e do script compartilhados. **O que não muda:** a
-paleta, a tipografia, o desenho de qualquer componente, a fórmula do hash, a cobertura da âncora,
-os validadores, as 17 regras e as 22 pétreas. O que muda é **quando** o layout é medido e **quanto
-do painel cabe** — comportamento em ambiente móvel, não identidade.
+A folha de captura tinha o mesmo defeito por outra peça: dois trechos de `code` de 496px e 488px
+(não quebram linha) — **130px** de excesso.
+
+**O que foi decidido.**
+1. **Revertido** tudo o que a correção do iPhone tinha posto no CSS fora do `resize`: o
+   `max-height`/`overflow`/`flex-wrap` do painel, o `flex: 0 0 auto` dos filhos e o hamburger de
+   44×50. Ficou o que a pesquisadora pediu que ficasse — e que era o pedido original: **o
+   treme-treme**.
+2. **A causa:** em `@media (max-width: 899px)` a tabela passa a `display: block` com
+   `overflow-x: auto` — rola dentro de si, em vez de alargar a página —, e o `code` comprido ganha
+   `overflow-wrap: anywhere`. No desktop nada muda (`display: table`, medido).
+3. **A Produção não era do iPhone, e era minha:** quando a barra passou a ser desenhada ao servir, o
+   desenho passou a ser um só e apagou o que não conhecia — a Produção deixou de ter o
+   `s5-sessao`/`s5-secoes` que o `bastidores.js` entrega como `extras`. Sem essas peças no HTML, o
+   `data-descido` acendia atributos que já não existiam. Agora o `aplicar` **lê o bloco do próprio
+   `<nav>`** (entre a marca e o ☰) antes de substituir, e volta a pô-lo no mesmo lugar.
 
 **Onde entrou.**
-- `tools/templates/ciclo.css` — o painel com `max-height: 100svh` + `overflow-y: auto`, o
-  `flex-wrap: nowrap` e o `> * { flex: 0 0 auto }`; o hamburger com 44×50 e `touch-action`.
-- `tools/templates/nav.js` — `resize` só quando a **largura** muda; `--barra-linha` (a barra
-  fechada, para o limite do painel); e as escritas passam a ser guardadas pelo valor anterior.
-- `tools/templates/lancamento.html` — o mesmo portão no `resize` que publica `--barra-altura`.
-- `experimentos/provar-iphone.js` — **novo**, 21 verificações.
-- `IDENTIDADE-VISUAL.md` — a secção «O iPhone».
-
-**Quatro coisas que a medição encontrou, e uma delas era uma correção minha que não funcionava.**
-1. **`flex-wrap: wrap` herdado.** A `.nav-links` nasce com `wrap` — no desktop os links quebram em
-   duas linhas, e é isso que se quer lá. Com `flex-direction: column` e uma `max-height`, a coluna
-   transbordava para uma **segunda coluna ao lado**: 715px de links dentro de uma caixa de 400, sem
-   barra de rolagem. O painel deixava de rolar e passava a mostrar os links aos pares.
-2. **Sem `flex: 0 0 auto` os itens encolhem.** Com a caixa limitada, os filhos comprimiam-se para
-   caber em vez de o painel rolar — 13 links espremidos em 400px.
-3. **`100dvh` teria reintroduzido a tremedeira.** O `dvh` muda durante a rolagem (as barras
-   recolhem); um painel que cresce sozinho enquanto se rola é o mesmo defeito. Ficou `100svh`, com
-   `100vh` de recurso.
-4. **A prova media uma página nua.** A primeira versão servia a folha do controlo negativo com
-   MIME de `text/javascript` (o `extname` caía no ficheiro lido, não no caminho pedido); o Chrome
-   recusa uma folha com MIME de script, a página aparecia sem estilo — e o controlo negativo
-   **aprovava pelo motivo errado**. Ficou uma asserção que exige a folha aplicada (>100 regras).
+- `tools/templates/ciclo.css` — revertido o painel e o hamburger; a regra das tabelas e do `code`.
+- `tools/templates/nav.js` — mantida a guarda do `resize` (por largura) e as escritas só por mudança
+  de valor; sai o `--barra-linha`, que existia só para o `max-height`.
+- `motor/nucleo/nav.js` — `desenhar(menu, pedido, extras)` e `extrasDaBarra()`. O bloco sai da
+  FORMA do `<nav>` (entre a marca e o ☰) e não de uma lista de nomes: a ponte serve quatro origens,
+  e ensinar-lhe o caminho até cada construtor de barra repetiria o problema que a barra desenhada ao
+  servir veio resolver.
+- `experimentos/provar-iphone.js` — **reescrita**: mede o que devia ter medido. 18 asserções, com
+  controlo negativo contra `b40aa0a` (o commit antes da correção, escrito à mão porque o `HEAD`
+  passa a conter o conserto): com o CSS de antes o plano estoura 97px; com o `nav.js` de antes os 60
+  `resize` dão 60 leituras e 120 escritas.
+- `experimentos/provar-barra-unica.js` — secção D2: o bloco entre a marca e o ☰ sobrevive, e o ☰ não
+  anda. 53 → 58 asserções.
 
 **Com o quê.**
-- `node experimentos/provar-iphone.js` → **21 asserções, 0 falha**. CONTROLES NEGATIVOS contra o
-  `HEAD`: com o CSS de antes o painel corta **148px**; com o `nav.js` de antes, 60 `resize` dão
-  **60 leituras e 120 escritas**; e a folha antiga está aplicada (152 regras).
-- `provar-celular` 15/15, `provar-titulo-e-barra` 27/27, `provar-paginação` 121/121,
-  `provar-barra-unica` 53/53, `provar-cabecalho-do-documento` 21/21, `check-identidade` 19/19,
-  `check-pacote` 0 erro/0 aviso.
-- Medido no Worker ao vivo: hamburger **44×50**; painel `max-height` 587px, conteúdo 877, **4px**
-  de sobra abaixo; o último link («Produção») alcançável ao rolar o painel.
+- `provar-iphone` 18/18: em 320, 360 e 390, **as 8 páginas** do pacote sem excesso horizontal e o ☰
+  inteiro no ecrã **e a receber o clique**; em 320 as tabelas que não cabem rolam dentro de si; no
+  desktop continuam `display: table`.
+- `provar-barra-unica` 58/58, `provar-producao` 135/135, `provar-celular` 15/15,
+  `provar-titulo-e-barra` 27/27, `provar-paginacao` 121/121, `provar-cabecalho-do-documento` 21/21,
+  `check-identidade` 19/19, `check-pacote` 0 erro.
+- Ao vivo no Worker: `plano.html` em 360px com **0** de excesso, ☰ recebendo o clique, título a
+  encolher para 25px; a Produção com `descido=sim` ao rolar → `s5-sessao` e `s5-secoes` `flex`, a
+  `.lateral-barra` da página sai, e o ☰ fica em 378 de 390 (não anda).
 
-**O que ainda não está feito — e é o mais importante.**
-- **Não foi testado num iPhone.** Não há iOS nesta máquina. O que se provou é o **mecanismo**: o
-  que o código faz quando o ambiente se comporta como o do iOS (alturas de viewport com as barras
-  à vista, `resize` em rajada, painel maior que a tela). Se no iPhone ainda tremer, o próximo passo
-  é instrumentar no aparelho — e aí a suspeita passa a ser outra, provavelmente o
-  `scroll-behavior: smooth` do `html`, que continua lá e que esta mudança não tocou.
-- **A largura como único gatilho** quer dizer que um teclado virtual que só mude a altura não
-  re-mede nada. É o que se quer (re-medir a rolar era o defeito), mas fica declarado.
-- O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
-  mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
-  para quando houver um aparelho para conferir.
+**O que ainda não está feito.**
+- **Ainda não foi testado num iPhone.** O que se corrigiu agora é o que se podia medir: a largura e a
+  guarda do `resize`. Se a tremedeira voltar, o suspeito seguinte é o `scroll-behavior: smooth`.
+- **O `resize` só por largura** deixa de re-medir quando um teclado virtual muda apenas a altura. É
+  deliberado (re-medir a rolar era o defeito), mas fica declarado.
+- **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
+  colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
+  página; a alternativa (esconder colunas) perderia conteúdo.
 
 ## O que está pendente
-
-## 20/10/2026 — duas bancadas para ESCOLHER o título e a paginação — e três intenções registadas
-
-
-1. **A escolha do desenho.** As bancadas não mudam nada em produção. Quando a pesquisadora escolher,
-   o desenho vai para `tools/templates/` (congelado → motivo declarado + commit próprio) e ganha
-   prova de produto, não de bancada.
-2. **Como se cria a PRÓXIMA AULA dentro do mesmo ciclo.** Hoje o pacote publica a `aula-01`; a
-   `aula-02` não tem caminho declarado. Falta decidir: quem a cria (o lançamento da anterior? um
-   gesto à parte?), de onde vêm o objetivo e o marco (do plano do ciclo), e o que acontece se a aula
-   anterior não foi lançada. A intenção é **estudar a lógica antes de a implementar** — não é uma
-   tarefa de código ainda.
-3. **Como se cria o PRÓXIMO CICLO e como ele se liga ao anterior.** A cadeia de proveniência existe
-   por ciclo (`hash-ciclo.sh` → `.fipp`), e cada ciclo é hoje uma âncora independente. Falta
-   decidir se o ciclo N+1 declara `parentHash` — e o que herda: o PO? a linha de base da última
-   aula? Só as referências? A pergunta é a mesma que a P-14 já resolve para o PO de departamento, e
-   a resposta para o ciclo ainda não foi dada.
-
-As duas últimas ficam aqui como **intenção declarada**, sem uma linha de código: registá-las é o que
-impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 
 ## 21/10/2026 — as propostas de layout foram refeitas: eram inoperáveis, e a razão era dupla
 
@@ -296,6 +278,16 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
   mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
   para quando houver um aparelho para conferir.
+
+## 21/10/2026 — a correção do iPhone foi longe demais: revertida, e o defeito verdadeiro era outro
+
+- **Ainda não foi testado num iPhone.** O que se corrigiu agora é o que se podia medir: a largura e a
+  guarda do `resize`. Se a tremedeira voltar, o suspeito seguinte é o `scroll-behavior: smooth`.
+- **O `resize` só por largura** deixa de re-medir quando um teclado virtual muda apenas a altura. É
+  deliberado (re-medir a rolar era o defeito), mas fica declarado.
+- **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
+  colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
+  página; a alternativa (esconder colunas) perderia conteúdo.
 
 ## Pendências anteriores (índice)
 
@@ -549,6 +541,7 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - **20/10/2026** — a barra de navegação deixa de ser escrita e passa a ser… → `REGISTRO.md` L20872
 - **20/10/2026** — o registro de notação passa a compor-se: o alfabeto é dado,… → `REGISTRO.md` L20969
 - **20/10/2026** — o lançamento pedia uma senha cujo campo estava escondido → `REGISTRO.md` L21077
+- **20/10/2026** — duas bancadas para ESCOLHER o título e a paginação — e três… → `REGISTRO.md` L21145
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

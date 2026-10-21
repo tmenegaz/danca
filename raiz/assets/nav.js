@@ -158,22 +158,12 @@
      `padding-top` do `body`: uma escrita por evento é um refluxo por evento.
      Agora só se escreve quando o número MUDOU — o que, na prática, é uma vez. */
   var alturaPublicada = null;
-  var linhaPublicada = null;
 
   function ajustarAlturaNavbar() {
     var altura = navbar.offsetHeight + 'px';
     if (altura !== alturaPublicada) {
       alturaPublicada = altura;
       document.documentElement.style.setProperty('--header-height', altura);
-    }
-    /* `--barra-linha` é a altura da barra FECHADA — a linha da marca e do hamburger.
-       O painel do menu no celular usa-a para saber quanto sobra da tela
-       (`.topnav.aberto .nav-links { max-height: calc(100svh - var(--barra-linha) …) }`).
-       Medida só com o painel fechado: aberto, `offsetHeight` é a barra inteira, e o
-       limite do painel passaria a incluir-se a si mesmo. */
-    if (!navbar.classList.contains('aberto') && altura !== linhaPublicada) {
-      linhaPublicada = altura;
-      document.documentElement.style.setProperty('--barra-linha', altura);
     }
   }
 

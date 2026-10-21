@@ -79,7 +79,7 @@ function ehAtivo(item, pedido) {
  * A FORMA (marca, hamburger, contêiner) vem do `nav-html.js` — a mesma que o pacote e os
  * Bastidores já usam. O que muda aqui é só a LISTA, que passa a vir do dado.
  */
-function desenhar(menu, pedido) {
+function desenhar(menu, pedido, extras) {
   if (!menu || !Array.isArray(menu.grupos) || !menu.grupos.length) return null;
   const itens = [];
   for (const grupo of menu.grupos) {
@@ -98,7 +98,45 @@ function desenhar(menu, pedido) {
     itens.push('  <a' + (ehAtivo(grupo, pedido) ? ' class="ativo"' : '')
       + ' href="' + esc(absoluto(grupo.href)) + '">' + esc(grupo.rotulo) + '</a>');
   }
-  return [ABERTURA, itens.join('\n'), FECHAMENTO].join('\n');
+  /* O BLOCO QUE A PÁGINA TRAZ ANTES DO ☰ NÃO SE PERDE (21/10/2026).
+   *
+   * `ABERTURA` é a forma da barra — marca, ☰, contêiner —, e a LISTA entra dentro do
+   * contêiner. Só que na página da Produção há uma terceira peça, entre a marca e o ☰: o
+   * `s5-sessao` (o caminho «Pedagogia · Turmas») e o `s5-secoes` (o botão que abre a folha),
+   * que o `sessaoNaBarra()` do `bastidores.js` entrega como `extras`. Eles nunca fizeram
+   * parte da LISTA — são o estado da página, e por isso não estão no `nav.json`.
+   *
+   * Enquanto a barra era escrita na página, cada um punha o que quisesse. Quando ela passou a
+   * ser DESENHADA ao servir, o desenho passou a ser um só — e apagou o que não conhecia: a
+   * Produção servida deixou de ter as duas peças. O sintoma é o que se vê: rolar a página
+   * deixou de levar o caminho para a barra, porque as peças que ele acende já não existiam no
+   * HTML.
+   *
+   * O `extras` entra no MESMO lugar em que o `navSistema` o punha — depois da marca, antes do
+   * ☰ —, e é opcional: sem ele, o resultado é byte a byte o de antes. */
+  const abertura = extras
+    ? ABERTURA.replace('  <button class="hamburger"', extras + '\n  <button class="hamburger"')
+    : ABERTURA;
+  return [abertura, itens.join('\n'), FECHAMENTO].join('\n');
+}
+
+/**
+ * O QUE A PÁGINA JÁ TINHA ENTRE A MARCA E O ☰ — lido do próprio `<nav>`, sem lista de nomes.
+ *
+ * A alternativa era o `bastidores.js` voltar a passar o bloco à ponte. Mas a ponte serve
+ * QUATRO origens (raiz, pacote, porta e Bastidores), e cada uma com o seu construtor de barra:
+ * seria preciso ensinar o caminho até cada uma delas, e a quinta apareceria no dia seguinte —
+ * é exactamente o problema que a barra desenhada ao servir veio resolver. O lugar do bloco é
+ * uma propriedade da FORMA (entre a marca e o ☰), e é daí que ele sai.
+ *
+ * Devolve `''` quando não há nada — a maioria das páginas —, e aí nada muda.
+ */
+function extrasDaBarra(navHtml) {
+  const texto = String(navHtml == null ? '' : navHtml);
+  const fimDaMarca = texto.indexOf('</a>');
+  const botao = texto.indexOf('<button class="hamburger"');
+  if (fimDaMarca < 0 || botao < 0 || botao <= fimDaMarca) return '';
+  return texto.slice(fimDaMarca + 4, botao).trim();
 }
 
 /**
@@ -107,11 +145,13 @@ function desenhar(menu, pedido) {
  * estragasse uma página por não conseguir desenhar a barra seria pior do que a barra velha.
  */
 function aplicar(html, menu, pedido) {
-  const nav = desenhar(menu, pedido);
-  if (!nav) return null;
   const texto = String(html == null ? '' : html);
-  if (!/<nav class="topnav"[\s\S]*?<\/nav>/.test(texto)) return null;
+  const original = /<nav class="topnav"[\s\S]*?<\/nav>/.exec(texto);
+  if (!original) return null;
+  /* O bloco da página é lido do `<nav>` que está lá antes de ser substituído. */
+  const nav = desenhar(menu, pedido, extrasDaBarra(original[0]));
+  if (!nav) return null;
   return texto.replace(/<nav class="topnav"[\s\S]*?<\/nav>/, () => nav);
 }
 
-module.exports = { desenhar, aplicar, absoluto, caminhoDe, ehAtivo };
+module.exports = { desenhar, aplicar, absoluto, caminhoDe, ehAtivo, extrasDaBarra };

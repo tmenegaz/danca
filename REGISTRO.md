@@ -21539,3 +21539,77 @@ do painel cabe** — comportamento em ambiente móvel, não identidade.
 - O `-webkit-text-size-adjust` não foi posto: no iPhone, rodar para paisagem pode inflar o texto e
   mudar as alturas medidas. Não se manifestou no relato, e mexer nisso muda a tipografia — fica
   para quando houver um aparelho para conferir.
+
+## 21/10/2026 — a correção do iPhone foi longe demais: revertida, e o defeito verdadeiro era outro
+
+**O que foi visto.** No Android: *«a largura da página tá grande demais… o menu tá muito largo e o
+hambúrguer do lado direito tá completamente escondido fora dos limites do celular»*, *«o título não
+diminui mais»*, e o menu aberto «quebrava» ao rolar. E na Produção, *«conforme eu rolo a página, as
+seções vão para dentro do menu… deixou de acontecer»*.
+
+**O erro que eu cometi, e o que ele ensina.** Tratei o relato do iPhone como dois problemas e ataquei
+um terceiro: o painel do menu. Voltei ao `HEAD` anterior a 21/10 e medi — os três sintomas do
+Android **não eram do meu commit**: estavam lá antes, com o mesmo valor (97px de excesso). O que eu
+tinha feito foi acrescentar `max-height`/`overflow`/`flex-wrap` ao painel e 44px ao hamburger, e
+mudado o `resize` — e as duas primeiras coisas **não consertavam nada**: o menu «pela metade» não era
+do painel.
+
+**O defeito verdadeiro — um, com três sintomas.** O `plano.html` tem uma tabela de cinco colunas com
+uma célula «[Preencher: o critério de cada aula — declarado no lançamento da aula dada]». Num ecrã de
+360px ela não cabe, e as tabelas são `width:100%` com `padding` de 8px em cada célula: a página ganha
+**97px** de rolagem horizontal. Num telemóvel a barra `position: fixed` é medida pela **largura do
+layout** — ficou 97px mais larga, e o ☰ saiu do ecrã à direita (!clicável: `elementFromPoint` não o
+alcança). O mesmo explicava o `position: sticky` do título parecer quebrado e o menu «quebrar» ao
+rolar. É por isso que só o plano e a captura falhavam: são as duas páginas com conteúdo largo.
+
+A folha de captura tinha o mesmo defeito por outra peça: dois trechos de `code` de 496px e 488px
+(não quebram linha) — **130px** de excesso.
+
+**O que foi decidido.**
+1. **Revertido** tudo o que a correção do iPhone tinha posto no CSS fora do `resize`: o
+   `max-height`/`overflow`/`flex-wrap` do painel, o `flex: 0 0 auto` dos filhos e o hamburger de
+   44×50. Ficou o que a pesquisadora pediu que ficasse — e que era o pedido original: **o
+   treme-treme**.
+2. **A causa:** em `@media (max-width: 899px)` a tabela passa a `display: block` com
+   `overflow-x: auto` — rola dentro de si, em vez de alargar a página —, e o `code` comprido ganha
+   `overflow-wrap: anywhere`. No desktop nada muda (`display: table`, medido).
+3. **A Produção não era do iPhone, e era minha:** quando a barra passou a ser desenhada ao servir, o
+   desenho passou a ser um só e apagou o que não conhecia — a Produção deixou de ter o
+   `s5-sessao`/`s5-secoes` que o `bastidores.js` entrega como `extras`. Sem essas peças no HTML, o
+   `data-descido` acendia atributos que já não existiam. Agora o `aplicar` **lê o bloco do próprio
+   `<nav>`** (entre a marca e o ☰) antes de substituir, e volta a pô-lo no mesmo lugar.
+
+**Onde entrou.**
+- `tools/templates/ciclo.css` — revertido o painel e o hamburger; a regra das tabelas e do `code`.
+- `tools/templates/nav.js` — mantida a guarda do `resize` (por largura) e as escritas só por mudança
+  de valor; sai o `--barra-linha`, que existia só para o `max-height`.
+- `motor/nucleo/nav.js` — `desenhar(menu, pedido, extras)` e `extrasDaBarra()`. O bloco sai da
+  FORMA do `<nav>` (entre a marca e o ☰) e não de uma lista de nomes: a ponte serve quatro origens,
+  e ensinar-lhe o caminho até cada construtor de barra repetiria o problema que a barra desenhada ao
+  servir veio resolver.
+- `experimentos/provar-iphone.js` — **reescrita**: mede o que devia ter medido. 18 asserções, com
+  controlo negativo contra `b40aa0a` (o commit antes da correção, escrito à mão porque o `HEAD`
+  passa a conter o conserto): com o CSS de antes o plano estoura 97px; com o `nav.js` de antes os 60
+  `resize` dão 60 leituras e 120 escritas.
+- `experimentos/provar-barra-unica.js` — secção D2: o bloco entre a marca e o ☰ sobrevive, e o ☰ não
+  anda. 53 → 58 asserções.
+
+**Com o quê.**
+- `provar-iphone` 18/18: em 320, 360 e 390, **as 8 páginas** do pacote sem excesso horizontal e o ☰
+  inteiro no ecrã **e a receber o clique**; em 320 as tabelas que não cabem rolam dentro de si; no
+  desktop continuam `display: table`.
+- `provar-barra-unica` 58/58, `provar-producao` 135/135, `provar-celular` 15/15,
+  `provar-titulo-e-barra` 27/27, `provar-paginacao` 121/121, `provar-cabecalho-do-documento` 21/21,
+  `check-identidade` 19/19, `check-pacote` 0 erro.
+- Ao vivo no Worker: `plano.html` em 360px com **0** de excesso, ☰ recebendo o clique, título a
+  encolher para 25px; a Produção com `descido=sim` ao rolar → `s5-sessao` e `s5-secoes` `flex`, a
+  `.lateral-barra` da página sai, e o ☰ fica em 378 de 390 (não anda).
+
+**O que ainda não está feito.**
+- **Ainda não foi testado num iPhone.** O que se corrigiu agora é o que se podia medir: a largura e a
+  guarda do `resize`. Se a tremedeira voltar, o suspeito seguinte é o `scroll-behavior: smooth`.
+- **O `resize` só por largura** deixa de re-medir quando um teclado virtual muda apenas a altura. É
+  deliberado (re-medir a rolar era o defeito), mas fica declarado.
+- **A tabela em `display: block`** abaixo de 899px muda a semântica de layout em telas pequenas: as
+  colunas deixam de se alinhar com o cabeçalho quando a tabela rola. É o preço de não alargar a
+  página; a alternativa (esconder colunas) perderia conteúdo.

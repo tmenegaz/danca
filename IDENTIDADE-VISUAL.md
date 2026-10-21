@@ -906,31 +906,70 @@ nasce recolhido, o ganho é medido, o toque expande e recolhe, o estado é lembr
 e na página seguinte, o corte é 1199 × 1200, a memória é ignorada em tela larga, sem JS não há
 botão, no papel o índice sai inteiro, e nenhuma largura estoura.
 
-## O iPhone — o menu que não cabia e a rolagem que tremia *(21/10/2026)*
+## Em telemóvel, a página não passa da tela *(21/10/2026)*
 
-Dois defeitos que só aparecem no Safari do iOS: o Android e o Chrome do computador nunca os
-mostraram. Medidos antes de corrigidos, e as duas causas são do **ambiente**, não do gosto.
+**Um `position: fixed` num telemóvel é medido pela largura do LAYOUT, não pela do ecrã.** Quando o
+conteúdo é mais largo do que a tela, a barra de navegação fica mais larga do que a tela também: o ☰
+sai do ecrã à direita, e deixa de ser clicável — o `elementFromPoint` no centro dele devolve outra
+coisa. O mesmo acontece ao `position: sticky` do título, que passa a ter uma caixa mais larga do que
+o que se vê. **Um defeito de conteúdo, três sintomas.**
 
-| O que se viu | O que era, medido |
-| --- | --- |
-| «o menu de hambúrguer aparece pela metade» | o painel crescia com o conteúdo — **812px** com os seis grupos abertos — sem `max-height` nem `overflow`, e num iPhone as barras do sistema comem 150 a 270px. Em 390×664 (o que um iPhone mostra com as barras): **148px cortados**; em 320×568, **266px**. O painel está dentro de uma barra `position: fixed`, e a página por baixo rola sem o levar: o fim era inalcançável |
-| «a rolagem fica a tremer» | o `resize` do iOS dispara **a cada quadro** enquanto as barras se recolhem ao rolar. Os dois `resize` faziam trabalho de layout, e 60 eventos com a **mesma largura** davam **60 leituras de layout e 120 escritas em `:root`** — e `--header-height` é o `padding-top` do `body`: o conteúdo andava por baixo do dedo |
+Foi o que se viu no `plano.html` (a tabela da rubrica, cinco colunas) e na folha de captura (dois
+trechos de `code` compridos):
 
-**O que ficou.**
+| Página | O que estourava | Excesso |
+| --- | --- | --- |
+| `plano.html` | tabela de 5 colunas com uma célula «[Preencher: o critério de cada aula — …]» | **97px** |
+| `captura-aula-01.html` | dois `<code>` de 496px e 488px, que não quebram linha | **130px** |
 
 | Regra | Como |
 | --- | --- |
-| **O painel cabe** | `max-height: calc(100svh − var(--barra-linha) − 8px)` com `overflow-y: auto`. `svh` — o viewport *pequeno*, com as barras — e não `dvh`, que **muda durante a rolagem**: um painel que cresce sozinho enquanto se rola é a tremedeira que se está a corrigir |
-| **A altura da linha é medida** | `--barra-linha` é a altura da barra **fechada**, publicada pelo `nav.js`. Aberta, `offsetHeight` é a barra inteira, e o limite do painel passaria a incluir-se a si mesmo |
-| **Uma coluna só** | `flex-wrap: nowrap` no painel. A `.nav-links` nasce com `wrap` (no desktop os links quebram em duas linhas, e é isso que se quer lá); com `column` + `max-height`, a coluna transbordava para uma **segunda coluna ao lado** e o painel deixava de rolar. Foi a primeira versão da correção — e a medição apanhou-a |
-| **O que está dentro não encolhe** | `> * { flex: 0 0 auto }`. Sem isto os itens comprimem-se para caber: os links ficam espremidos em vez de o painel rolar |
-| **`resize` só por LARGURA** | a altura que muda sozinha é a barra do sistema, e não muda o título nem a barra: só se reage quando `innerWidth` muda |
-| **Não se escreve o que já lá está** | `--header-height`, `--barra-linha`, `--titulo-preso`, `--barra-altura` e `data-titulo-encolhido` só se escrevem quando o valor muda. Escrever em `:root` invalida o estilo do documento inteiro |
-| **O alvo de toque** | o hamburger media **38×42**; passou a **44×50** (WCAG 2.5.5 / Apple HIG), com `touch-action: manipulation` para dispensar a espera do duplo-toque. É o único controle da barra num telefone |
+| **A tabela rola dentro de si** | abaixo de 899px — o mesmo corte do layout — `table { display: block; overflow-x: auto }`. O algoritmo de tabela continua a valer para linhas e células, que formam uma tabela anónima lá dentro; no desktop nada muda (`display: table`, medido) |
+| **O código comprido quebra** | `code, kbd, samp { overflow-wrap: anywhere }`. Código parte-se; tabela não — partir uma célula ao meio esconderia a coluna |
+| **O que se mede** | não o CSS: as **8 páginas** do pacote em 320, 360 e 390px, com zero de excesso horizontal, e o ☰ inteiro no ecrã **e a receber o clique**. Contra o commit anterior ao conserto, o plano estoura 97px |
 
-**Medido depois.** 390×664: painel de 587px, rola 877, sobra 4px abaixo. 320×568: painel 491, rola 769, sobra 4. O último link — «Produção» — fica alcançável ao rolar o painel, e o hamburger continua à vista (é por ele que se fecha). 60 `resize` com a mesma largura: **0 leituras e 0 escritas**; uma mudança de largura: 1 escrita. 100 quadros de rolagem: 1 leitura de layout.
+**Prova.** `node experimentos/provar-iphone.js` — 18 asserções.
 
-**Prova.** `node experimentos/provar-iphone.js` — **21 verificações**. CONTROLES NEGATIVOS contra o `HEAD` anterior: com o CSS de antes o painel corta **148px**; com o `nav.js` de antes, 60 `resize` produzem **60 leituras e 120 escritas**. E uma asserção que nasceu de um erro meu: a folha do controlo negativo tem de estar **aplicada** (>100 regras). A primeira versão servia-a com MIME de script, o Chrome recusava, a página saía sem estilo — e o controlo media uma página nua, isto é, aprovava pelo motivo errado.
+## O `resize` do iOS não mexe no layout *(21/10/2026)*
+
+Enquanto a página rola, o Safari do iPhone recolhe e volta a mostrar as barras do sistema — e emite
+`resize` **a cada quadro** dessa animação. Os dois `resize` faziam trabalho de layout:
+`ajustarAlturaNavbar` escrevia `--header-height`, que é o `padding-top` do `body`, e o bloco do
+título media o cabeçalho. Medido: **60 eventos com a mesma largura davam 60 leituras de layout e 120
+escritas em `:root`** — o conteúdo andava por baixo do dedo. No Android o `resize` não dispara a
+rolar, e no desktop a janela não muda de tamanho sozinha: por isso só o iPhone o mostrava.
+
+| Regra | Como |
+| --- | --- |
+| **Só por largura** | a altura que muda sozinha é a barra do sistema, e não muda nem o título nem a barra da página. O `resize` só age quando `innerWidth` muda |
+| **Não se escreve o que já lá está** | `--header-height`, `--titulo-preso`, `--barra-altura` e `data-titulo-encolhido` só se escrevem quando o valor muda. Escrever em `:root` invalida o estilo do documento inteiro |
+
+**Depois:** 60 `resize` com a mesma largura → **0 leituras, 0 escritas**; uma mudança de largura real
+→ 1 escrita (o portão não é um «nunca»); 100 quadros de rolagem → 1 leitura de layout.
+
+**O que NÃO se fez, e porquê.** A primeira versão desta correção tratou os dois sintomas como dois
+problemas e pôs `max-height`/`overflow` no painel do menu e 44px no hamburger. Medido depois, **nada
+disso consertava o defeito**: o painel não era o problema — a página é que era mais larga que o ecrã.
+Foi tudo revertido. Fica registado porque a lição é essa: *um sintoma relatado não é um diagnóstico*,
+e a medição que se faz primeiro é a que compara os estados, não a que decora a hipótese.
+
+## Na Produção, o bloco da página na barra sobrevive ao desenho *(21/10/2026)*
+
+A página da Produção não tem só a lista de links: entre a marca e o ☰ traz o `s5-sessao` (o caminho
+«Pedagogia · Turmas») e o `s5-secoes` (o botão que abre a folha), que o `bastidores.js` entrega ao
+construtor da barra como `extras`. Eles **não estão no `nav.json`** — são o estado da página, não a
+lista.
+
+Quando a barra passou a ser **desenhada ao servir**, o desenho passou a ser um só e apagou o que não
+conhecia: a Produção deixou de ter as duas peças, e rolar deixou de levar o caminho para a barra —
+porque as peças que o `data-descido` acende já não existiam no HTML.
+
+O `aplicar` passou a **ler o bloco do próprio `<nav>`** — o que está entre a marca e o ☰ — antes de o
+substituir, e a repô-lo no mesmo lugar. O lugar é uma propriedade da **forma**, e não uma lista de
+nomes: a ponte serve quatro origens, e ensinar-lhe o caminho até cada construtor de barra repetiria
+o problema que a barra desenhada ao servir veio resolver.
+
+**Prova.** `experimentos/provar-barra-unica.js`, secção D2 — 58 asserções.
 
 ## Todo documento tem um `<h1>`, e um só *(21/10/2026)*
 
