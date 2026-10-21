@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Fontes cobertas: professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf e os .md deste ciclo, mais a base ciclo-01.conf quando existe.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+
+id: ciclo-01-breu-bale-nivel-1-teste-3
+type: Ciclo
+professor: Vaso Bonito
+ciclo: 01
+variante: breu-bale-nivel-1-teste-3
+hash_conteudo: f1b26abb2765a50e0a8180059e793b7e157deb506deec4fe16a6616e8f15420b
+parentHash: 
+hash: c76da1b74655798c239b7c6617e44c1324a1663e3cd3cd4c06c9fd2eedfbbd47
+algoritmo: SHA-256
+po: ausente — este ciclo ainda não tem PO declarado
+po_state: 
+ancorado_em: 2026-10-21
+cobertura:
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3-plano.md
+  - professores/vaso-bonito/ciclos/ciclo-01-breu-bale-nivel-1-teste-3.conf
