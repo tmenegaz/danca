@@ -53,6 +53,46 @@ fato se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o 
 > leitura errada de que **este** repo é o projeto de mestrado ou que o FIPP roda aqui.
 > Não é o caso, nas duas hipóteses.
 
+## O remoto primeiro (21/10/2026)
+
+**Antes de analisar o que está no VS Code, sincronize e olhe o `origin/main`.** Não é zelo: o
+`main` tem **cinco caminhos de escrita** que não passam por este worktree, e três deles são
+assíncronos — rodam no GitHub enquanto a sessão está aberta.
+
+| Quem escreve no `main` | Como |
+|:--|:--|
+| `.github/workflows/criar-escola.yml` | Action, depois de um `criar-escola` disparado pela página |
+| `.github/workflows/gerar-ciclo.yml` | Action, depois de gerar um ciclo |
+| `.github/workflows/reancorar.yml` | Action, a cada push de `professores/**` |
+| a página **Bastidores → Produção** | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
+| a página **danca → expurgo de escola** | API do GitHub, **apaga 70 a 80 arquivos num commit só** |
+
+**O caso que criou esta regra.** Em 21/10/2026 a pesquisadora disse «fiz o expurgo da escola
+batata». O worktree local ainda tinha a escola inteira, e eu analisei o que estava à frente dos
+olhos: concluí que o expurgo não havia chegado ao repositório e comecei a preparar a limpeza. O
+expurgo **estava feito** — `e93915f`, 76 arquivos, pela página «Sistema Lastro» —, o `push` foi
+recusado por *non-fast-forward* e só então descobri. O diagnóstico estava errado, e a correção que
+eu ia aplicar teria apagado arquivos que já não existiam, sobre um índice que já estava a ser
+regerado do outro lado.
+
+O sintoma é sempre o mesmo e é sempre silencioso: **o worktree não sabe que o remoto mudou.** Um
+`git status` limpo não quer dizer «nada aconteceu» — quer dizer «nada aconteceu *aqui*».
+
+```bash
+git fetch origin
+git status -sb                 # "## main...origin/main [behind 1]" é a resposta
+git --no-pager log --oneline -3 origin/main
+```
+
+Se estiver atrás: `git rebase origin/main` antes de analisar, e nunca por cima de trabalho por
+commitar (stash ou commit primeiro). Se estiver à frente **e** atrás, rebase — não merge: a
+história deste repositório é linear, e é o que os hooks de proveniência esperam.
+
+**E o inverso também vale.** Antes de dizer que algo «não existe» ou «está quebrado» — uma escola,
+um ciclo, um arquivo —, confirme no remoto, não no worktree. É a mesma família de erro do
+`if` que filtrava o título vazio no `check-pacote.js`: a pergunta «está aqui?» e a pergunta «existe?»
+não são a mesma pergunta.
+
 ## Antes de editar
 
 - Leia [README.md](README.md) para a visão geral e [REGRAS.md](REGRAS.md) para as regras pedagógicas e de versionamento.

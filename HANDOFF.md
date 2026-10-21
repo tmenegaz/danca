@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T14:19:19-0300`
-Commit atual: `dcd642f` — chore(estrutura): índices regerados após o expurgo da batata; provas sem dependência de pacote
+Gerado em: `2026-10-21T14:37:03-0300`
+Commit atual: `3a47b25` — docs(registro): o expurgo da batata e a dívida das provas que nomeavam escola
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -64,6 +64,7 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+3a47b25 docs(registro): o expurgo da batata e a dívida das provas que nomeavam escola
 dcd642f chore(estrutura): índices regerados após o expurgo da batata; provas sem dependência de pacote
 c692723 docs(experimentos): as provas descobrem o pacote, não escrevem o nome da escola
 e93915f chore(estrutura): expurgar a escola batata
@@ -83,7 +84,6 @@ cc5474f fix(tools): o lançamento pedia a senha num campo que o próprio formul�
 441c326 fix(tools): a exceção do hook não casava com o nome de nenhuma variante
 f5763c4 fix(estrutura): a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
 0d65a96 docs(registro): o HANDOFF cita a barra única por domínio
-f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da geração leva à página da escola
 ```
 
 ## Por professor
@@ -139,73 +139,49 @@ f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da ge
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — a batata foi expurgada; as provas deixaram de nomear escolas
+## 21/10/2026 — o remoto primeiro: uma regra para não repetir o diagnóstico errado do expurgo
 
-**O que aconteceu.** O expurgo da escola `batata` foi feito pelo lado remoto — a página «Sistema
-Lastro», que apaga o Worker, o subdomínio, as chaves do KV **e** os arquivos do repositório
-(`e93915f`, 76 arquivos, incluindo o manifesto base `ciclo-01.conf`, que carregava o nome da escola
-dentro). O repositório local estava atrasado e ainda via a escola inteira; depois do rebase, o
-estado é o do remoto: `wrangler.batata.jsonc` não existe, o pacote e as fontes saíram, o índice da
-escola **sobreviveu** (é a memória de que ela existiu) e o `indices/` precisou de ser regerado.
+**O que aconteceu.** *«Fiz o expurgo da escola batata»*. O worktree local ainda tinha a escola
+inteira, e eu analisei o que estava à frente dos olhos: concluí que o expurgo não havia chegado ao
+repositório, comecei a preparar a limpeza, e só descobri o contrário quando o `push` foi recusado
+por *non-fast-forward*. O expurgo **estava feito** — `e93915f`, 76 arquivos, pela página «Sistema
+Lastro». A correção que eu ia aplicar teria apagado arquivos que já não existiam, sobre um índice
+que já estava a ser regerado do outro lado.
 
-**A dívida que isto expôs, e que era minha.** Cinco provas escritas nesta semana apontavam para
-`ciclo-01-batata-bale-nivel-1-teste-2` pelo nome. Elas morreriam no dia do expurgo — e morreram,
-na simulação que fiz antes de o rebase chegar: `lib-pacote: nenhum pacote de ciclo gerado`. Uma
-prova que nomeia uma escola envelhece no dia em que a escola é expurgada, e as escolas deste
-protótipo são **descartáveis por desenho**. É a mesma lição do alfabeto de notação (`39e24c5`), que
-já não nomeia escola nenhuma — nem viva, nem expurgada.
+**A causa não é distração, é arquitetura.** O `main` tem **cinco caminhos de escrita** que não
+passam pelo worktree, e três deles são assíncronos:
 
-**O que foi feito.**
-- `experimentos/lib-pacote.js` — **novo**. Procura a FORMA (um `professores/<p>/ciclos/
-  ciclo-NN-<escola>/` com pelo menos uma página de documento), escolhe de forma determinística, e
-  falha alto com o remédio escrito quando não há nenhuma. Duas armadilhas medidas ao escrevê-lo:
-  o `index.html` **não** serve de critério (existe também no esqueleto do ciclo-zero, e a primeira
-  versão escolheu o esqueleto, que não tem aula nem captura); e o nome do esqueleto é **prefixo**
-  do nome da variante ao lado (`ciclo-01-batata` / `ciclo-01-batata-bale-nivel-1-teste-2`), de modo
-  que «tudo o que começa por `<pacote>-`» apanhava as fontes da OUTRA variante — as fontes passam a
-  ser filtradas pela família de documento do índice (`tipoDoDocumento`), não por uma segunda lista.
-- `provar-iphone`, `provar-titulo-e-barra`, `provar-cabecalho-do-documento` — descobrem o pacote,
-  a aula e a folha de captura. O último conferia «as fontes publicadas do ciclo» com o caminho
-  escrito à mão: expurgada a escola, deixaria de conferir fonte nenhuma e passaria a medir só os
-  derivados em memória — o defeito do front-matter ficaria sem guarda sobre fonte real.
-- `propostas/construir.js` — descobre a aula. `provar-notacao` — o controlo negativo usava «batata»
-  à mão; passa a usar a primeira escola REAL da lista. `provar-indices` — usava o pacote da batata
-  como prefixo de exemplo; passa a usar o verdadeiro quando existe, e um caminho sintético quando
-  não (`caminhoDeExemplo`), porque ele exerce regras de NOME e não lê ficheiro nenhum.
-- `indices/` — regerados: a batata sai do acervo, `01-batata.json` sai como órfão.
+| Quem escreve no `main` | Como |
+|:--|:--|
+| `.github/workflows/criar-escola.yml` | Action, depois de um `criar-escola` disparado pela página |
+| `.github/workflows/gerar-ciclo.yml` | Action, depois de gerar um ciclo |
+| `.github/workflows/reancorar.yml` | Action, a cada push de `professores/**` |
+| a página **Bastidores → Produção** | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
+| a página **danca → expurgo** | API do GitHub, **70 a 80 arquivos num commit só** |
 
-**Com o quê.** `check-indices` **14/14** (a verificação 12 «Expurgo» é exactamente esta: a escola
-expurgada permanece no acervo, marcada, porque o elo não se apaga). `provar-notacao` 66/66,
-`provar-barra-unica` 58/58, `provar-celular` 15/15, `provar-indices` 49/49, `check-identidade` ok.
-Simulação feita antes do rebase: com `ciclo-01-batata*` fora do lugar, as provas que medem um
-documento **falham alto** e as que não dependem de pacote continuam verdes; restaurado, tudo verde.
+Um `git status` limpo não quer dizer «nada aconteceu» — quer dizer «nada aconteceu **aqui**».
+
+**O que foi decidido.** Uma secção nova em [AGENTS.md](AGENTS.md), «O remoto primeiro», antes de
+«Antes de editar»: `git fetch` + `git status -sb` + `git log origin/main` **antes** de analisar; se
+estiver atrás, rebase (não merge — a história é linear e é o que os hooks de proveniência esperam);
+e, antes de dizer que algo «não existe» ou «está quebrado», confirmar no remoto e não no worktree.
+
+A segunda metade é a que interessa, e não é sobre git: é a mesma família de erro do `if` que
+filtrava o título vazio no `check-pacote.js`. **A pergunta «está aqui?» e a pergunta «existe?» não
+são a mesma pergunta** — e um worktree desatualizado responde à primeira com a segunda.
+
+**Onde entrou.** `AGENTS.md` (não é congelado: nem `CONGELAMENTO.md`, nem `REGRAS.md`, nem
+`PROTOCOLO.md` o listam). Nada mais mudou: a regra é de processo, não de produto, e não tem prova
+executável — o que a verifica é o custo de a ignorar, que ficou escrito ao lado dela.
 
 **O que ainda não está feito.**
-- **Quatro provas não correm agora**, e é honesto: `provar-iphone`, `provar-titulo-e-barra`,
-  `provar-cabecalho-do-documento` e `propostas/construir` medem um documento **real**, e neste
-  momento não há ciclo gerado nenhum no repositório. Voltam a correr no dia em que houver — é o
-  que a mensagem de erro diz, com o comando.
-- **A calango ainda não existe.** Os três bloqueios do `criar-escola.sh` estão livres (o `.conf`
-  variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
-  a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
-  distingue de «restos por limpar» (`foiRecriada`).
+- **Não há guarda automática.** A regra depende de ser lida. Um `fetch` no `pre-commit` poria uma
+  chamada de rede em cada commit e falharia offline; a alternativa — comparar com um
+  `origin/main` velho — daria uma falsa sensação de sincronia, que é pior do que não ter guarda.
+- **O expurgo pela página não avisa quem está a trabalhar.** Ele é um commit na API; o worktree
+  local só o sabe no próximo `fetch`. Fica registado como o caso mais provável de repetir isto.
 
 ## O que está pendente
-
-## 21/10/2026 — o título que fica e a barra do lançamento no celular: as duas propostas escolhidas
-
-- **A página seguinte depois da aula não tem sido alvo de verificação de rolagem.** O mecanismo vale
-  para todo documento com `assets/nav.js`, mas só foi medido na aula 01.
-- **Duas provas antigas estão quebradas por expurgos, não por esta mudança:** `provar-dobra-do-indice`
-  aponta para `professores/tiago-menegaz/ciclos/ciclo-01-fita` e `provar-lancamento` para
-  `professores/tiago/ciclos/ciclo-01-maria` — pacotes que já não existem. Ficam registadas aqui em
-  vez de repontadas para outro ciclo: repontar mudaria o que elas medem, e isso é uma decisão sobre
-  os fixtures do expurgo.
-- **As bancadas saíram do site.** A montagem sem `--com-propostas` apaga `/propostas/`, e é o que
-  se quer agora que a escolha está feita; `construir.js` reconstrói as páginas quando for preciso
-  voltar a comparar.
-- A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
-  ter sido escolhida, e não como algo a implementar.
 
 ## 21/10/2026 — a página de harmonização saía sem título: a fonte não abria o front-matter
 
@@ -251,6 +227,14 @@ documento **falham alto** e as que não dependem de pacote continuam verdes; res
   variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
   a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
   distingue de «restos por limpar» (`foiRecriada`).
+
+## 21/10/2026 — o remoto primeiro: uma regra para não repetir o diagnóstico errado do expurgo
+
+- **Não há guarda automática.** A regra depende de ser lida. Um `fetch` no `pre-commit` poria uma
+  chamada de rede em cada commit e falharia offline; a alternativa — comparar com um
+  `origin/main` velho — daria uma falsa sensação de sincronia, que é pior do que não ter guarda.
+- **O expurgo pela página não avisa quem está a trabalhar.** Ele é um commit na API; o worktree
+  local só o sabe no próximo `fetch`. Fica registado como o caso mais provável de repetir isto.
 
 ## Pendências anteriores (índice)
 
@@ -506,6 +490,7 @@ documento **falham alto** e as que não dependem de pacote continuam verdes; res
 - **20/10/2026** — o lançamento pedia uma senha cujo campo estava escondido → `REGISTRO.md` L21077
 - **20/10/2026** — duas bancadas para ESCOLHER o título e a paginação — e três… → `REGISTRO.md` L21145
 - **21/10/2026** — as propostas de layout foram refeitas: eram inoperáveis, e… → `REGISTRO.md` L21243
+- **21/10/2026** — o título que fica e a barra do lançamento no celular: as… → `REGISTRO.md` L21315
 
 ## Documentos-chave (para leitura)
 

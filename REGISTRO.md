@@ -21664,3 +21664,45 @@ documento **falham alto** e as que não dependem de pacote continuam verdes; res
   variante, o pacote e o `wrangler`), o índice dela sobrevive com dois expurgos e uma recriação, e
   a criação vai acrescentar um elo `recriacao` **posterior ao último expurgo** — que é o que a
   distingue de «restos por limpar» (`foiRecriada`).
+
+## 21/10/2026 — o remoto primeiro: uma regra para não repetir o diagnóstico errado do expurgo
+
+**O que aconteceu.** *«Fiz o expurgo da escola batata»*. O worktree local ainda tinha a escola
+inteira, e eu analisei o que estava à frente dos olhos: concluí que o expurgo não havia chegado ao
+repositório, comecei a preparar a limpeza, e só descobri o contrário quando o `push` foi recusado
+por *non-fast-forward*. O expurgo **estava feito** — `e93915f`, 76 arquivos, pela página «Sistema
+Lastro». A correção que eu ia aplicar teria apagado arquivos que já não existiam, sobre um índice
+que já estava a ser regerado do outro lado.
+
+**A causa não é distração, é arquitetura.** O `main` tem **cinco caminhos de escrita** que não
+passam pelo worktree, e três deles são assíncronos:
+
+| Quem escreve no `main` | Como |
+|:--|:--|
+| `.github/workflows/criar-escola.yml` | Action, depois de um `criar-escola` disparado pela página |
+| `.github/workflows/gerar-ciclo.yml` | Action, depois de gerar um ciclo |
+| `.github/workflows/reancorar.yml` | Action, a cada push de `professores/**` |
+| a página **Bastidores → Produção** | API do GitHub, direto (`motor/servidor/repo-escola.js`) |
+| a página **danca → expurgo** | API do GitHub, **70 a 80 arquivos num commit só** |
+
+Um `git status` limpo não quer dizer «nada aconteceu» — quer dizer «nada aconteceu **aqui**».
+
+**O que foi decidido.** Uma secção nova em [AGENTS.md](AGENTS.md), «O remoto primeiro», antes de
+«Antes de editar»: `git fetch` + `git status -sb` + `git log origin/main` **antes** de analisar; se
+estiver atrás, rebase (não merge — a história é linear e é o que os hooks de proveniência esperam);
+e, antes de dizer que algo «não existe» ou «está quebrado», confirmar no remoto e não no worktree.
+
+A segunda metade é a que interessa, e não é sobre git: é a mesma família de erro do `if` que
+filtrava o título vazio no `check-pacote.js`. **A pergunta «está aqui?» e a pergunta «existe?» não
+são a mesma pergunta** — e um worktree desatualizado responde à primeira com a segunda.
+
+**Onde entrou.** `AGENTS.md` (não é congelado: nem `CONGELAMENTO.md`, nem `REGRAS.md`, nem
+`PROTOCOLO.md` o listam). Nada mais mudou: a regra é de processo, não de produto, e não tem prova
+executável — o que a verifica é o custo de a ignorar, que ficou escrito ao lado dela.
+
+**O que ainda não está feito.**
+- **Não há guarda automática.** A regra depende de ser lida. Um `fetch` no `pre-commit` poria uma
+  chamada de rede em cada commit e falharia offline; a alternativa — comparar com um
+  `origin/main` velho — daria uma falsa sensação de sincronia, que é pior do que não ter guarda.
+- **O expurgo pela página não avisa quem está a trabalhar.** Ele é um commit na API; o worktree
+  local só o sabe no próximo `fetch`. Fica registado como o caso mais provável de repetir isto.
