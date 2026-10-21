@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/tiago-menegaz/ciclos/ciclo-01-breu.conf",
+    "documento:schema:professores/tiago-menegaz/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "breu",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "ef7bee1"
+  },
+  "gerado_em": "2026-10-21T19:13",
+  "id": "ciclo:tiago-menegaz/01/breu",
+  "professor": "tiago-menegaz",
+  "versao": 1
+}

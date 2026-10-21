@@ -1,41 +1,110 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/tiago-menegaz/ciclos/ciclo-01-breu.conf",
+        "professores/tiago-menegaz/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:tiago-menegaz/01/breu",
+      "numero": "01",
+      "pacote": null,
+      "professor": "tiago-menegaz",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-breu.conf",
+      "ciclo_id": "ciclo:tiago-menegaz/01/breu",
+      "escola": "breu",
+      "id": "documento:manifesto:professores/tiago-menegaz/ciclos/ciclo-01-breu.conf",
+      "professor": "tiago-menegaz",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/tiago-menegaz/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:tiago-menegaz/01/breu",
+      "escola": "breu",
+      "id": "documento:schema:professores/tiago-menegaz/ciclos/ciclo-01-breu/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "tiago-menegaz",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:tiago-menegaz/01/breu"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T23:41:57.342597+00:00",
-    "expurgada": true,
-    "habilitada": false,
+    "expurgada": false,
+    "habilitada": true,
     "id": "escola:breu",
     "nome": "breu",
     "professor": "sapo-bailarino",
     "professores": [
-      "sapo-bailarino"
+      "sapo-bailarino",
+      "tiago-menegaz"
     ],
     "registros": [],
     "slug": "breu"
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:tiago-menegaz/01/breu"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:tiago-menegaz/01/breu"
+        ],
+        "rotulo": "tiago-menegaz",
+        "valor": "tiago-menegaz"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:tiago-menegaz/01/breu"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "f59a24e"
+    "commit": "ef7bee1"
   },
-  "gerado_em": "2026-10-21T19:12",
+  "gerado_em": "2026-10-21T19:13",
   "nao_indexado": [
     {
       "familia": "conteudo",

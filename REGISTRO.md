@@ -21901,3 +21901,32 @@ expurgo no mesmo dia, terceira vez na semana) e passou a escrever o mínimo que 
   caminho de escrita da página exige uma sessão com isso como assunto.
 - **E o `check-indices` devia estar no CI.** Hoje ele é uma verificação manual; a divergência de
   ontem sobreviveu a um push, um deploy e um expurgo sem ninguém a ver.
+
+## 22/10/2026 — A criação de escola passa a levar os índices derivados
+
+**O que aconteceu.** A escola `breu` nasceu (`d2ab57f`, pelo workflow) e o
+`node tools/check-indices.js` passou a acusar **três divergências** — o acervo, o índice da escola
+e o do ciclo «01-breu» —, porque o passo «Commitar o scaffold» só encenava
+`professores/<professor>`, `escola/<slug>` e `wrangler.<slug>.jsonc`. Nada regera o que deriva.
+
+É a **segunda vez no mesmo dia** com a mesma forma: o expurgo da `calango` deixou 24 falhas, e a
+criação da `breu` deixou 3. Os dois são caminhos que escrevem no `main` sem passar pelo worktree —
+a lista que o `AGENTS.md` já documenta — e o que faltava a eles era o derivado.
+
+**O que foi decidido.** Duas linhas no passo que commita: `node tools/gerar-indices.js` e
+`"indices/"` no `git add`. Com uma decisão que vale registar: **não derruba a criação**. Nesse
+ponto o motor já está no ar, e o passo de rollback (`if: failure() && steps.motor.outcome !=
+'success'`) destruiria uma escola viva por causa de um índice — a intenção não é a evidência, e o
+índice é artefacto derivado. Uma falha ali sai como `::warning::` e o remédio é um comando.
+
+**Com o quê.** `.github/workflows/criar-escola.yml`. Validado com `yaml.safe_load` (o ficheiro é
+lido pelo GitHub Actions como YAML, e um erro de indentação derrubaria a criação inteira).
+
+**O que ainda não está feito.**
+- **O EXPURGO CONTINUA A NÃO REGERAR.** Ele acontece pela página «Sistema Lastro», que escreve na
+  API — não há workflow onde enfiar as duas linhas. É o próximo buraco da mesma família, e é o
+  pior dos dois: a criação acrescenta, o expurgo **apaga fontes** e deixa o índice a apontá-las.
+- **O `check-indices` continua fora do CI.** As 24 falhas de ontem sobreviveram a um push, um
+  deploy e um expurgo sem que nada ficasse vermelho. Pôr o `--check` num workflow é uma decisão
+  com consequência (todo push que crie ou expurgue escola fica vermelho até alguém regerar), e
+  por isso não foi tomada aqui.

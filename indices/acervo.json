@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "breu",
+      "estado": "sem-ancora",
+      "id": "ciclo:tiago-menegaz/01/breu",
+      "numero": "01",
+      "professor": "tiago-menegaz",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -48,24 +60,27 @@
       "slug": "batata"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:tiago-menegaz/01/breu"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T23:41:57.342597+00:00",
-      "expurgada": true,
-      "habilitada": false,
+      "expurgada": false,
+      "habilitada": true,
       "id": "escola:breu",
       "nome": "breu",
       "professor": "sapo-bailarino",
       "professores": [
-        "sapo-bailarino"
+        "sapo-bailarino",
+        "tiago-menegaz"
       ],
       "registros": [],
       "slug": "breu"
@@ -286,7 +301,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -309,7 +330,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 3,
+        "contagem": 4,
         "rotulo": "Tiago Menegaz",
         "valor": "tiago-menegaz"
       }
@@ -318,9 +339,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f59a24e"
+    "commit": "ef7bee1"
   },
-  "gerado_em": "2026-10-21T19:12",
+  "gerado_em": "2026-10-21T19:13",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -384,9 +405,12 @@
       "slug": "tiago"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:tiago-menegaz/01/breu"
+      ],
       "escolas": [
         "batata",
+        "breu",
         "fita",
         "valse"
       ],

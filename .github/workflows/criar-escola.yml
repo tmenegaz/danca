@@ -133,10 +133,24 @@ jobs:
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
 
+          # OS ÍNDICES DERIVADOS VÊM NO MESMO COMMIT (22/10/2026). Sem esta linha, cada escola
+          # criada deixava `indices/` a apontar para um passado: a `breu` nasceu e o
+          # `node tools/check-indices.js` passou a acusar três divergências (o acervo, o índice
+          # da escola e o do ciclo), porque nada regera o que deriva. A criação é um dos cinco
+          # caminhos que escrevem no `main`, e o único que nascia sem o derivado.
+          #
+          # NÃO DERRUBA A CRIAÇÃO. O motor já está no ar neste ponto, e o índice é um artefacto
+          # derivado: uma falha aqui avisa e segue — o passo seguinte é o `git add`, e o rollback
+          # (`if: failure() && steps.motor.outcome != 'success'`) destruiria uma escola viva por
+          # causa de um índice. O remédio é `node tools/gerar-indices.js` à mão.
+          node tools/gerar-indices.js \
+            || echo "::warning::os índices não foram regerados — rode node tools/gerar-indices.js"
+
           git add -A -- \
             "professores/${{ inputs.professor }}" \
             "escola/${{ inputs.escola }}" \
-            "wrangler.${{ inputs.escola }}.jsonc"
+            "wrangler.${{ inputs.escola }}.jsonc" \
+            "indices/"
 
           if git diff --cached --quiet; then
             echo "nada a commitar"
