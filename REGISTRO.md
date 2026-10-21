@@ -21930,3 +21930,47 @@ lido pelo GitHub Actions como YAML, e um erro de indentação derrubaria a cria�
   deploy e um expurgo sem que nada ficasse vermelho. Pôr o `--check` num workflow é uma decisão
   com consequência (todo push que crie ou expurgue escola fica vermelho até alguém regerar), e
   por isso não foi tomada aqui.
+
+## 22/10/2026 — O cenário «a escola de um, a turma no plano de outro», medido de ponta a ponta
+
+**O que aconteceu.** Três defeitos desta semana têm provas separadas — a base que o segundo
+professor não tem, o `.conf` da escola procurado no lugar errado, e os schemas que faltavam na
+pasta dele. O que não existia era a prova de que os três, **juntos**, deixam o ciclo atravessar.
+É exactamente o teste que a pesquisadora ia fazer à mão — expurgar uma escola, criar outra com um
+professor principal **e** outro professor na curadoria —, e valia mais medilo antes.
+
+Ao escrevê-la apareceu uma quarta coisa, e é de testabilidade mas é real: **o escritor do plano
+não deixava injectar o `fetch`**. `criarEscritorDePlano` passava-o a si mesmo e não o encaminhava
+para o provisionamento de schemas, para a escrita da fonte, nem para `atualizarManifesto` — todos
+caíam no `fetch` global. Consequência: **nenhuma prova podia cobrir a escrita do manifesto**, e o
+caminho que compõe o `.conf` da turma era o único da ponte sem cobertura possível. Corrigido nos
+três pontos.
+
+**O que foi decidido.** `experimentos/provar-professor-secundario.js` — **19 asserções**, com um
+`fetch` de mentira sobre o **disco de verdade**, de modo que o que o escritor grava fica em
+`professores/` e as ferramentas de bash o leem como leriam o repositório. A fixture é temporária
+(`professores/.prova-criador`, `.prova-secundario`) e apagada no `finally`.
+
+O percurso medido, em quatro partes:
+1. **o ponto de partida** — B não tem pasta, e sem pasta não há âncora;
+2. **o ato que a cria** — o plano: cinco schemas, a fonte, o manifesto da variante, e a pasta de B
+   **continua sem base** (é o estado legítimo, não uma falta);
+3. **o manifesto composto** — a norma vem da escola de A (`RESPONSAVEL`, faixa 80–100), o
+   `PROFESSOR` vem do plano de B, o ritmo vem da turma, e o `CICLO` é declarado;
+4. **as ferramentas reais** — `hash-ciclo.sh` ancora, `--check` fecha, sem «manifesto base não
+   encontrado» e sem «PO não validado»; e o `gerar-ciclo.sh` passa a base e chega ao gate do
+   **conteúdo** («nenhuma aula escrita»), que é onde um ciclo com plano e sem PO deve parar. O
+   professor A continua a gerar o dele.
+
+**Nota sobre a asserção do `gerar-ciclo`.** A primeira versão exigia o texto «DOCS está vazio» —
+mas com `DOCS="plano"` a mensagem é outra, e as duas são o mesmo estado legítimo. Uma asserção
+que fixa a **frase** em vez do **estado** reprova a correção e aprova a regressão que mude o
+texto. Passou a medir o que importa: chegou ao gate do conteúdo, e não parou no da base.
+
+**O que ainda não está feito.**
+- **A prova cobre o plano, não o PO.** O PO é escrito pelo `criarEscritorDePO`, que provisiona os
+  mesmos schemas, mas o ciclo inteiro (PO → derivação das seis fontes → `DOCS` → gerar) continua
+  a não ter uma prova de ponta a ponta: ela precisa de `SENHA_CRIPTO` e do cifrador.
+- **O `gerar-ciclo.sh` de verdade não foi corrido até ao PDF** nesta prova: ela pára no gate do
+  conteúdo, e a razão é que o PDF exige uma aula escrita, que exige um PO. Fica para quando o
+  teste manual produzir um.

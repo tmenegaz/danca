@@ -133,6 +133,7 @@ experimentos/propostas/*
 # separa «mais rápido» de «parece mais rápido» (zero árvores com o cache quente).
 !experimentos/provar-manifesto-sem-base.js
 !experimentos/provar-schemas-do-professor.js
+!experimentos/provar-professor-secundario.js
 !experimentos/provar-indice-de-proveniencia.js
 # A PROVA DAS DECLARAÇÕES DO ÍNDICE (20/10/2026, Etapa 1 do PLANO-INDICES.md): percorre
 # `professores/**` e classifica cada arquivo (nenhum tipo sem decisão), compara o vocabulário

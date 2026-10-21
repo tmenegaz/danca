@@ -314,7 +314,7 @@ async function atualizarManifesto({ token, dono, repo, ref, contexto, plano, fet
  * servidor local). Sem ela, o escritor continua a funcionar como antes, atualizando o manifesto
  * da variante que já existe.
  */
-function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas }) {
+function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas, fetchImpl }) {
   if (!token) return null;
   return async (envelope, mensagem) => {
     const contexto = (envelope && envelope.contexto) || {};
@@ -326,13 +326,13 @@ function criarEscritorDePlano({ token, dono, repo, ref, lerTurmas }) {
     // PO (aviso), e a âncora fecha igual. Ver `schemas-do-ciclo.js`.
     const { garantirSchemasDoCiclo } = require('./schemas-do-ciclo.js');
     const schemas = await garantirSchemasDoCiclo({
-      token, dono, repo, ref,
+      token, dono, repo, ref, fetchImpl,
       professor: contexto.professor, ciclo: contexto.ciclo,
     });
 
     const { markdown } = derivarPlano(envelope);
-    const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem });
-    const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas });
+    const escrita = await escreverPO({ token, dono, repo, ref, caminho, conteudo: markdown, mensagem, fetchImpl });
+    const manifesto = await atualizarManifesto({ token, dono, repo, ref, contexto, plano: envelope, lerTurmas, fetchImpl });
     return Object.assign({}, escrita, { docs: manifesto, schemas });
   };
 }
