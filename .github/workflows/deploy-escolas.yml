@@ -54,10 +54,22 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # A LISTA É DESCOBERTA, NÃO ESCRITA À MÃO. Cada escola é um `wrangler.<slug>.jsonc` cujo
-  # `assets.directory` começa em `professores/`. O `wrangler.danca.jsonc` fica de fora: a
-  # raiz não é escola e tem o seu próprio workflow. Uma escola nova passa a ser publicada
-  # no dia em que ganha o config — sem ninguém lembrar de editar este arquivo.
+  # A LISTA É DESCOBERTA, NÃO ESCRITA À MÃO. Cada escola é um `wrangler.<slug>.jsonc`. O
+  # `wrangler.danca.jsonc` fica de fora: a raiz não é escola e tem o seu próprio workflow.
+  # Uma escola nova passa a ser publicada no dia em que ganha o config — sem ninguém
+  # lembrar de editar este arquivo.
+  #
+  # O FILTRO PELO `assets.directory` MORREU AQUI (22/10/2026), e com ele um mês de deploys
+  # silenciosamente vazios. Ele procurava `"directory": "professores/…"` — o valor que a
+  # config tinha antes de o site da escola passar a ser montado em `publicacao/<escola>/`.
+  # Depois dessa mudança o `grep` deixou de casar, `escolas` saía `[]` e o job `publicar`
+  # ficava `skipped` em TODOS os runs: push após push, `motor/**` e `tools/templates/**`
+  # chegavam ao repositório e nunca ao Worker. Medido no run 39660372285 — e foi por isto
+  # que a correção dos schemas do professor secundário não apareceu em produção.
+  #
+  # A PERGUNTA CERTA é «o pacote desta escola ainda existe?», e ela não depende de onde o
+  # `assets.directory` aponta: o pacote-zero (`professores/<prof>/ciclos/ciclo-NN-<slug>/`)
+  # é a FONTE do site, e é ele que o expurgo apaga. Se ele existe, há o que publicar.
   descobrir:
     runs-on: ubuntu-latest
     outputs:
@@ -78,7 +90,6 @@ jobs:
             [ -f "$cfg" ] || continue
             slug="${cfg#wrangler.}"; slug="${slug%.jsonc}"
             [ "$slug" = danca ] && continue
-            grep -q '"directory": *"professores/' "$cfg" || continue
             # A ESCOLA EXPURGADA NÃO SE PUBLICA (19/10/2026). O expurgo apaga o Worker e as
             # chaves do KV, mas o `wrangler.<slug>.jsonc` e o pacote só saem do repositório
             # noutro commit. Um run que JÁ ESTAVA na fila quando a escola foi apagada sobe
@@ -86,8 +97,16 @@ jobs:
             # que já não existe. O sintoma seria o pior possível: o expurgo parece ter
             # falhado, ou a escola volta ao ar sozinha. O pacote é o que a escola SERVE; sem
             # ele não há o que publicar.
-            dir=$(sed -n 's/.*"directory": *"\(professores\/[^"]*\)".*/\1/p' "$cfg" | head -1)
-            [ -d "$dir" ] || { echo "pulando $slug — o pacote '$dir' já não existe (escola expurgada)"; continue; }
+            #
+            # A FONTE DO SITE é o pacote-zero, e é ele que se procura — em qualquer professor,
+            # porque a escola pode ter turmas de mais de um. O `assets.directory` NÃO entra
+            # nesta conta: ele aponta a SAÍDA (`publicacao/<slug>`), que é git-ignored e só
+            # existe depois da montagem.
+            dir=$(ls -d professores/*/ciclos/ciclo-[0-9][0-9]-"$slug" 2>/dev/null | head -1 || true)
+            if [ -z "$dir" ] || [ ! -d "$dir" ]; then
+              echo "pulando $slug — o pacote-zero de '$slug' já não existe (escola expurgada)"
+              continue
+            fi
             if [ -n "$filtro" ] && [ "$filtro" != "$slug" ]; then continue; fi
             lista=$(printf '%s' "$lista" | node -e '
               const l = JSON.parse(require("fs").readFileSync(0, "utf8"));
@@ -119,6 +138,16 @@ jobs:
         run: |
           set -euo pipefail
           node tools/check-identidade.js
+
+      # MONTAR ANTES DE PUBLICAR (22/10/2026). O `assets.directory` é `publicacao/<escola>`,
+      # que é uma SAÍDA: não está no repositório e não existe num checkout limpo. Sem esta
+      # linha o `wrangler deploy` não encontra a pasta — e, antes desta correção, nem chegava
+      # a ser tentado, porque a descoberta já tinha descartado a escola.
+      - name: Montar o site de ${{ matrix.escola }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/montar-publicacao.js ${{ matrix.escola }}
 
       - name: Subir ${{ matrix.escola }} no Cloudflare
         shell: bash

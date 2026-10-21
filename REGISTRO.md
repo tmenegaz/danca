@@ -21974,3 +21974,52 @@ texto. Passou a medir o que importa: chegou ao gate do conteúdo, e não parou n
 - **O `gerar-ciclo.sh` de verdade não foi corrido até ao PDF** nesta prova: ela pára no gate do
   conteúdo, e a razão é que o PDF exige uma aula escrita, que exige um PO. Fica para quando o
   teste manual produzir um.
+
+## 22/10/2026 — O `deploy-escolas.yml` não publicava escola nenhuma, e nada o dizia
+
+**O que aconteceu.** O teste do professor secundário foi feito a sério: escola `breu`
+(`tiago-menegaz`), turma `balé nível 1 — teste 3` na curadoria do `vaso-bonito`. O manifesto
+saiu **certo** — `CICLO`, `RESPONSAVEL="Tiago Menegaz"` (da escola), `PROFESSOR="Vaso Bonito"`
+(do plano), faixa 80–100, ritmo da turma. Faltavam os **schemas** na pasta do `vaso-bonito`.
+
+A explicação não era o código: era que **ele nunca chegou lá.** O `deploy-escolas.yml`
+descobria as escolas com
+
+```bash
+grep -q '"directory": *"professores/' "$cfg" || continue
+```
+
+— o valor do `assets.directory` **anterior** à divisão do site em `publicacao/<escola>/`. Depois
+da divisão o `grep` deixou de casar, `escolas` saía `[]`, e o job `publicar` ficava **`skipped`
+em todos os runs**. Medido: os últimos quatro runs (`39660372285`, `39660450910`,
+`39660457390`, `39660657389`) têm `descobrir: success`, `publicar: skipped`. E o Worker da `breu`
+estava congelado no código da sua criação (19:12), quatro minutos antes do commit dos schemas.
+
+**O que isto significa, sem eufemismo.** Desde a divisão da publicação, **todo `motor/**` e todo
+`tools/templates/**` foi para o repositório e não para o Worker**. As correções da âncora, do
+`.conf` da escola, do `PROFESSOR` do plano e dos schemas estavam certas e inactivas. O sintoma é
+o pior de todos: nada fica vermelho, e o teste mede uma versão que já não é a do repositório.
+
+**A causa, e não só o sintoma.** A guarda existia para não republicar uma escola expurgada. Mas
+ela perguntava pelo valor de uma SAÍDA (`publicacao/<slug>`, git-ignored) em vez de perguntar
+pelo que decide a publicação. A pergunta certa é «o pacote-zero desta escola ainda existe?» —
+`professores/*/ciclos/ciclo-NN-<slug>/` —, que é a FONTE do site e é o que o expurgo apaga.
+
+**E uma segunda, no mesmo passo.** Mesmo achando a escola, o deploy subiria uma pasta que não
+existe num checkout limpo: faltava `node tools/montar-publicacao.js <escola>` antes do
+`wrangler deploy`. O `gerar-ciclo.yml` e o `criar-escola.yml` já montavam; este — o que publica a
+cada push — não.
+
+**Com o quê.** `.github/workflows/deploy-escolas.yml` (descoberta pela pasta do pacote-zero, e a
+montagem antes do deploy) e `experimentos/provar-publicacao-da-escola.js`, que passou a cobrir o
+workflow que nunca tivera cobertura: **quatro asserções novas, e a descoberta EXECUTADA** sobre
+uma árvore sintética — uma escola viva, uma expurgada e a raiz. O controlo negativo corre o
+workflow antigo e reproduz o defeito exacto: `encontradas: "[]"`.
+
+**O que ainda não está feito.**
+- **Não há alarme para «publicou zero escolas».** O run fica verde. Um passo que diga
+  `::warning::` quando a lista vier vazia e exista pelo menos um `wrangler.*.jsonc` teria apanhado
+  isto no primeiro dia. Fica como dívida declarada, e não foi feito agora porque um aviso que
+  dispara num repositório legitimamente sem escolas é ruído.
+- **A `breu` só recebe o código no próximo deploy.** Os schemas do `vaso-bonito` foram copiados do
+  molde à mão neste dia, como na véspera; a elicitação seguinte já os provisiona sozinha.

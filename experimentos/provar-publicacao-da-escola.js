@@ -40,6 +40,7 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const { spawnSync } = require('child_process');
 const { execFileSync } = require('child_process');
 
 const RAIZ = path.join(__dirname, '..');
@@ -350,6 +351,83 @@ function principal() {
     checar('e chama o script sem `--deploy` (o deploy é um passo separado — e é por isso que a'
       + ' montagem não pode viver no ramo dele)',
       criarWf.indexOf('--deploy') === -1, criarWf.indexOf('--deploy'));
+
+    // O WORKFLOW QUE PUBLICA A CADA PUSH — e o único que nunca teve cobertura aqui (22/10/2026).
+    //
+    // Ele descobria as escolas por `"directory": "professores/…"`, que é o valor ANTERIOR à
+    // divisão do site em `publicacao/<escola>/`. Depois da divisão o `grep` deixou de casar,
+    // a lista saía `[]` e o job `publicar` ficava `skipped` em TODOS os runs — um mês de
+    // `motor/**` e `tools/templates/**` a chegar ao repositório e nunca ao Worker. Foi por
+    // isto que a correção dos schemas do professor secundário não apareceu em produção: o
+    // código estava certo, a âncora fechava, e o Worker continuava o da criação da escola.
+    //
+    // AS TRÊS ASSERÇÕES SÃO SOBRE O QUE QUEBROU, e cada uma reprova a versão antiga:
+    //   1. a descoberta não pode depender do valor do `assets.directory`;
+    //   2. a descoberta tem de encontrar o pacote-zero da escola que existe;
+    //   3. o deploy não pode correr sem a pasta montada.
+    const depWf = fs.readFileSync(path.join(RAIZ, '.github/workflows/deploy-escolas.yml'), 'utf8');
+    checar('o `deploy-escolas.yml` não filtra mais pelo `assets.directory`',
+      depWf.indexOf('"directory": *"professores/') === -1,
+      'o filtro pelo `assets.directory` voltou — é o que deixava `escolas` vazio em todos os runs');
+    checar('e descobre pela pasta do pacote-zero, que é a FONTE do site',
+      depWf.indexOf('professores/*/ciclos/ciclo-[0-9][0-9]-"$slug"') !== -1);
+    const iMD = depWf.indexOf('montar-publicacao.js');
+    const iDD = depWf.indexOf('npx wrangler deploy');
+    checar('e monta a publicação antes de subir (o `assets.directory` é uma SAÍDA, git-ignored)',
+      iMD !== -1 && iDD !== -1 && iMD < iDD, { montar: iMD, deploy: iDD });
+
+    // A DESCOBERTA, EXECUTADA. Uma asserção sobre o texto do script diria «contém um glob»; o
+    // que interessa é que ele ENCONTRE a escola viva — e que o mesmo script, sem o pacote,
+    // a descarte. É o teste que o `grep` antigo teria reprovado.
+    // O bloco `run:` do passo `id: lista`, extraído à mão. Não se acrescenta o pacote `yaml`
+    // por causa de uma asserção: o que se precisa é do TEXTO do script, e a indentação do
+    // bloco literal é regular (dez espaços, e o primeiro `<` quebra o bloco).
+    const passo = (() => {
+      const i = depWf.indexOf('- id: lista');
+      if (i === -1) return null;
+      const j = depWf.indexOf('run: |', i);
+      if (j === -1) return null;
+      const linhas = depWf.slice(j + 'run: |'.length).split('\n').slice(1);
+      const corpo = [];
+      for (const l of linhas) {
+        if (l.trim() === '') { corpo.push(''); continue; }
+        if (!/^ {10}/.test(l)) break;
+        corpo.push(l.slice(10));
+      }
+      return { run: corpo.join('\n').replace(/\s+$/, '') };
+    })();
+    if (passo && passo.run) {
+      const rodar = (cwd) => {
+        const saida = path.join(cwd, '.saida-descobrir');
+        const r = spawnSync('bash', ['-c', passo.run], {
+          cwd, encoding: 'utf8',
+          env: Object.assign({}, process.env, { GITHUB_OUTPUT: saida, FILTRO: '' }),
+        });
+        return { r, saida: fs.existsSync(saida) ? fs.readFileSync(saida, 'utf8') : '' };
+      };
+
+      const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'descobrir-'));
+      fs.mkdirSync(path.join(tmp, 'professores', 'um-professor', 'ciclos', 'ciclo-01-escola-viva'), { recursive: true });
+      fs.writeFileSync(path.join(tmp, 'wrangler.escola-viva.jsonc'),
+        '{"assets": {"directory": "publicacao/escola-viva"}}');
+      // Também uma escola EXPURGADA: config presente, pacote ausente. Tem de ser descartada.
+      fs.writeFileSync(path.join(tmp, 'wrangler.escola-morta.jsonc'),
+        '{"assets": {"directory": "publicacao/escola-morta"}}');
+      fs.writeFileSync(path.join(tmp, 'wrangler.danca.jsonc'),
+        '{"assets": {"directory": "raiz"}}');
+
+      const { r, saida } = rodar(tmp);
+      fs.rmSync(tmp, { recursive: true, force: true });
+      const encontradas = (/escolas=(.*)/.exec(saida) || [])[1] || '';
+      checar('a descoberta ENCONTRA a escola viva', encontradas.indexOf('escola-viva') !== -1,
+        { encontradas, stderr: r.stderr });
+      checar('e DESCARTA a expurgada (config presente, pacote ausente)',
+        encontradas.indexOf('escola-morta') === -1, encontradas);
+      checar('e deixa a raiz de fora', encontradas.indexOf('danca') === -1, encontradas);
+    } else {
+      checar('achei o passo de descoberta no `deploy-escolas.yml` para o executar', false,
+        'o passo `lista` não existe — a asserção sobre o texto não verifica o comportamento');
+    }
 
     const prov = fs.readFileSync(path.join(RAIZ, 'motor/servidor/provisionar-escola.js'), 'utf8');
     checar('o provisionamento delega o deploy no workflow (não sobe uma pasta que não montou)',
