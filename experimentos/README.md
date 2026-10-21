@@ -320,3 +320,29 @@ O centro dela é a secção **C**: quatro alfabetos deliberadamente estragados (
 verbetes, uma música que o verbete não cobre, um sinal fora do alfabeto, uma cobertura que os
 segmentos não somam) têm de cair em **lacuna declarada**, com o motivo escrito. É o que separa um
 motor de um gerador plausível.
+
+## 20/10/2026 — duas bancadas de layout, para ESCOLHER (não para publicar)
+
+Pedidas pela pesquisadora para decidir dois ajustes da identidade visual. Ficam aqui porque são
+comparação de alternativas, e comparação não se faz em produção.
+
+| Bancada | O que compara | Como se abre |
+|:--|:--|:--|
+| [`dobra-do-titulo/`](dobra-do-titulo/index.html) | o título que não se perde: preso no topo (A), encolhe ao rolar (B), vai para a coluna «Nesta página» (C), vai para o menu (D) | abrir o `index.html`; a bancada escolhe a opção e o `Esc` esconde-a |
+| [`paginacao-no-celular/`](paginacao-no-celular/index.html) | o rodapé de paginação do lançamento: presa no fundo (hoje), vira bloco no fim, compacta com «⋯», esconde ao descer | `node experimentos/paginacao-no-celular/construir.js` e abrir o `index.html` |
+
+As duas trazem um `medir.js` que abre a demonstração no Chrome, nas duas larguras (1280×800 e
+390×844), e mede o que é geometria: quantos pixels o título ou a barra ocupam, se o alvo de uma
+âncora fica escondido, e se a página estoura na horizontal. **Sem número não há escolha** — «fica
+melhor» é o que a medição existe para substituir.
+
+O conteúdo da primeira é o **real** da Aula 01, extraído do pacote; o rodapé da segunda é
+**extraído** de `tools/templates/lancamento.html`, não reescrito. Uma demonstração que copia «mais
+ou menos» mede «mais ou menos».
+
+Elas NÃO são prova de nada: nenhuma das duas afirma o que o produto faz hoje. Quando a escolha
+estiver feita, o desenho escolhido vai para `tools/templates/`, com motivo declarado — e aí sim,
+com prova.
+
+> **Nota de manutenção.** Os `assets/` das bancadas não são versionados (são cópia do pacote
+> publicado). As ferramentas copiam-nos ao correr, e reclamam se a publicação não estiver montada.

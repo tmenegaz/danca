@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T22:19:22-0300`
-Commit atual: `5790d63` — feat(po): o registro de notação compõe-se pelo alfabeto, e recusa quando não pode
+Gerado em: `2026-10-20T22:47:22-0300`
+Commit atual: `cc5474f` — fix(tools): o lançamento pedia a senha num campo que o próprio formulário escondia
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,8 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+cc5474f fix(tools): o lançamento pedia a senha num campo que o próprio formulário escondia
+39e24c5 fix(po): o alfabeto da notação não nomeia escola nenhuma — nem viva, nem expurgada
 5790d63 feat(po): o registro de notação compõe-se pelo alfabeto, e recusa quando não pode
 441c326 fix(tools): a exceção do hook não casava com o nome de nenhuma variante
 f5763c4 fix(estrutura): a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
@@ -81,8 +83,6 @@ c04f6ff feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 9694af6 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
 fda6c1d feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
 2bf3a1d feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-dados.json
-b76c2ec feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md
-f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
 ```
 
 ## Por professor
@@ -154,132 +154,105 @@ f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — o registro de notação passa a compor-se: o alfabeto é dado, e o motor recusa
+## 20/10/2026 — duas bancadas para ESCOLHER o título e a paginação — e três intenções registadas
 
-**O que aconteceu.**
-A pesquisadora abriu o pacote gerado e leu, na `Notação em Benesh`, uma tabela com 14 exercícios em
-que a coluna «Registro» dizia `[Preencher: notação do exercício]` em todas as linhas. O glossário do
-ciclo tinha três convenções (`[`, `]`, `:`) e um pedido para preencher os verbetes à mão.
-
-A pergunta dela foi a certa: isto precisa de um motor, de um agente de IA, ou de outra coisa? E a
-resposta não era nenhuma das duas primeiras — **faltava o alfabeto**. Sem sinais declarados não há
-como escrever uma linha, e nenhum gerador, humano ou não, pode escrever o que o código não tem.
-
-**O que foi diagnosticado.**
-O projeto já tinha um alfabeto a funcionar, escrito à mão e conferido num ciclo anterior. Quatro
-categorias (`Pé`, `Peso`, `Plié`, `Braço`), posições (`1ª`…`5ª`), lados (`D`, `E`), direções
-(`+` devant, `-` à la seconde, `×` derrière), operadores (`→`, `●`, `⌒`, `↺`), e a forma
-`[Categoria: estado → estado]`. Só que ele vivia **dentro de um HTML de experimento**, sem lugar no
-motor — e os quatro exercícios do primeiro ciclo composto por este motor exigiam quatro sinais que
-ele não tinha (`↓`, `↑`, `ED`, `EI`).
-
-> **Correção de 20/10/2026 (mesmo dia).** A primeira redação desta entrada nomeava a escola onde
-> aquele alfabeto foi escrito — que está **expurgada** — e o ciclo que exigiu os quatro sinais novos.
-> **Está errado**, e por duas razões que se somam: o alfabeto vive em `biblioteca/`, que é
-> **compartilhada**, e nomear uma escola ali faz os outros ciclos parecerem cópias de um deles; e uma
-> escola expurgada não deve continuar a ser citada como se existisse. Os nomes foram retirados, e a
-> regra passou a ser verificada por `experimentos/provar-notacao.js`. A versão anterior não é
-> apagada do histórico do Git: ela é o elo que registra o que se pensou antes da correção.
+**O que motivou.**
+Três pedidos de identidade visual, com uma condição explícita: **mostrar as opções antes de mexer no
+código**. (a) O título dos documentos deve ficar à vista enquanto se rola — hoje ele sai da tela, e a
+página da aula é longa. (b) No celular, há outras saídas além de o prender. (c) O rodapé de
+paginação do lançamento é bom no desktop e mau no celular: «a tela fica com menos espaço».
 
 **O que foi decidido.**
-O alfabeto passa a ser **DADO** (`biblioteca/notacao/ballet-classico.json`) e o motor só o lê e
-compõe (`motor/nucleo/notacao.js`). A separação não é decorativa: um sinal novo é uma linha de dados
-que o professor pode ler e corrigir; se fosse código, cada exercício novo seria uma alteração de
-programa.
+Nada foi decidido: **as opções foram construídas e medidas**, e a escolha é da pesquisadora. O que
+se decidiu foi o método, e ele vale por si:
 
-E o motor **recusa**. Cada linha do plano cai num de quatro desfechos, e três são lacuna declarada
-com o motivo escrito: sem música, sem verbete, música não coberta pelo verbete, sinal fora do
-alfabeto, verbete internamente inconsistente. O documento diz qual deles — uma célula vazia diria
-«não sei», a frase diz o que falta.
+- **A peça é uma só.** O título não é «posto a fixar» de quatro maneiras: há **um** estado
+  (`data-titulo-preso`, ligado quando o fim do cabeçalho passa por baixo da barra) e cada opção
+  decide **onde** o título vive nesse estado. Um mecanismo, quatro posicionamentos — é o que torna
+  legítimo compará-los.
+- **A demonstração não copia: extrai.** O conteúdo do título é o **real** da Aula 01, tirado do
+  pacote; o rodapé da paginação é **extraído** de `tools/templates/lancamento.html` (as regras CSS
+  em blocos completos, a marcação `<footer>` tal e qual). Uma demonstração que copia «mais ou menos»
+  mede «mais ou menos».
+- **Sem número não há escolha.** Cada bancada traz um `medir.js` que abre a página no Chrome, nas
+  duas larguras, e mede geometria.
 
-**A conta é verificada, e não aproximada.** A linha «Centro — Port de bras · 16 tempos · 3/4» tem
-16 tempos numa métrica de 3 — não fecha em compassos inteiros. O verbete cobre 12 (quatro
-compassos) e o motor compõe esses quatro, escreve uma linha `**conferir**` a dizer que restam 4
-tempos que não fecham, e **não inventa o quinto compasso**. Aritmética é onde um documento não pode
-ser plausível: tem de estar certo.
+**O que foi medido, e é o que faltava para decidir.**
 
-**O que foi rejeitado, e por quê.** Um agente de IA a compor no Worker não custa quase nada — ~2 500
-tokens por ciclo, menos de um décimo de cêntimo —, mas quebra a âncora de proveniência: o mesmo PO
-regerado daria outro texto e outro hash, e a cadeia existe para o passado se poder reproduzir. Um
-sinal inventado também chega escrito, e o professor não distingue o plausível do certo por leitura.
-A IA fica com o papel que o projeto já lhe dá na harmonização de linguagem: **propõe, o professor
-assina** — e não dentro da cadeia.
+*O título* — altura ocupada no topo depois de rolar, e o título à vista:
+
+| Opção | desktop 1280 | celular 390 |
+|:--|:--|:--|
+| hoje | o título **sai** de vista | o título **sai** de vista |
+| A · preso no topo | 146 px | **374 px — 44% da tela** |
+| B · encolhe ao rolar | 33 px | 60 px |
+| C · vai para «Nesta página» | **0 px** (coluna à direita) | 60 px (sem coluna, cai na B) |
+| D · vai para o menu | 146 px (cai na A) | **0 px** |
+
+*A paginação* — altura da barra e o que sobra para o formulário, no celular de 390×844:
+
+| Opção | ocupa | sobra |
+|:--|:--|:--|
+| hoje | **182 px** (21% da tela) | 601 px |
+| 1 · vira bloco no fim | 0 (sai de vista ao rolar) | 783 px |
+| 2 · compacta com «⋯» | **47 px** | 736 px |
+| 3 · esconde ao descer | 0 enquanto se desce, volta ao subir | 783 px |
+
+O número que ninguém esperava: a barra **não** ocupa 52 px no celular — ocupa **182**, porque os
+controlos se dobram em três linhas. A queixa da pesquisadora era maior do que ela sabia.
 
 **Onde entrou.**
+- `experimentos/dobra-do-titulo/` — `index.html` (as quatro opções sobre o conteúdo real) e
+  `medir.js`, que mede as duas larguras e inclui o **controlo negativo** da âncora.
+- `experimentos/paginacao-no-celular/` — `construir.js` (extrai o rodapé do template), `index.html`
+  e `medir.js`.
+- `.gitignore` — as duas bancadas abertas. **`experimentos/*` fecha a PASTA**, e o Git não desce: as
+  linhas de negação por ficheiro não bastavam, e o `git status` não mostrava nada. É preciso abrir a
+  pasta e voltar a fechar o que não interessa.
+- `experimentos/README.md` — a tabela das bancadas, e a regra de que **não são prova**: quando a
+  escolha estiver feita, o desenho vai para `tools/templates/` com motivo declarado, e aí sim com
+  prova.
 
-- `biblioteca/notacao/ballet-classico.json` — **novo**: o alfabeto (4 categorias, 21 sinais, 4
-  verbetes), cada sinal com significado e origem declarada.
-- `motor/nucleo/notacao.js` — **novo**: `paraNotacao`, `compor`, `lerBloco`, `sinaisUsados`,
-  `resumo`, `declaracao`. Puro: sem relógio, sem aleatoriedade, sem rede — o mesmo plano e o mesmo
-  alfabeto dão o mesmo documento, que é o que a âncora exige.
-- `motor/nucleo/derivar-ciclo.js` — `derivarNotacao` e `derivarGlossario` passam a compor; o
-  glossário é escrito com os sinais que o registro **usa** (18 verbetes, com âncora) em vez de o
-  pedir à mão. O documento ganha a secção «O código declarado» — id, versão, contagens —, para não
-  haver texto derivado sem saber o que o produziu.
-- `experimentos/provar-notacao.js` — **novo**, 55 asserções. A secção C é o controlo negativo: quatro
-  alfabetos deliberadamente estragados têm de cair em lacuna.
-- `biblioteca/README.md`, `experimentos/README.md` — a pasta e a prova, documentadas.
+**As armadilhas que a medição encontrou — e são o resultado mais útil desta entrada.**
+1. **`scroll-behavior: smooth` faz a medição medir o ponto de partida.** Um `window.scrollTo` anima,
+   e esperar dois `requestAnimationFrame` lê a página ainda a caminho. Todas as opções apareciam
+   iguais. Desliga-se o `smooth` e espera-se o `scrollY` chegar ao alvo.
+2. **Medir sem isolar mede o vizinho.** A opção C move o título no DOM; medir a seguinte sem
+   recarregar media o que a anterior deixou. Cada medição recarrega.
+3. **Reservar a altura do momento cria um vaivém.** Com o cabeçalho encolhido reserva-se pouco (o
+   alvo pára debaixo do título); com ele inteiro, muito (o alvo cai a 561 px do topo). A reserva
+   depende do estado, e o estado depende da posição. Resolve-se com um salto e **uma correção
+   simétrica** com a altura que ficou.
+4. **Duas perguntas diferentes, duas medidas.** «Já passei do cabeçalho?» (para o título sair) e «o
+   cabeçalho está preso no topo?» (para ele encolher). Conflundi-las fazia o cabeçalho ficar 146 px
+   em cima e **não encolher**: estava preso, mas o sentinela não tinha passado.
+5. **Uma asserção que passa em todas as opções pode não medir nada.** A primeira versão media a
+   âncora a saltar do topo, onde nada está preso — e dava o mesmo em todas. Só passou a discriminar
+   (e a ter valor) quando passou a saltar do meio, e quando ganhou um controlo negativo.
 
-**Uma armadilha que o validador do projeto revelou.** `tools/check-glossario.js` lê como bloco de
-notação **todo** o code span de uma linha de tabela que comece por `[` e acabe em `]`. O marcador de
-lacuna que eu tinha posto — `[conferir]` entre crases — seria lido como um sinal usado no corpo e sem
-verbete, e reprovaria o par. Ficou `**conferir**`, em negrito e fora de crases. E o `[Preencher: …]`
-das linhas em lacuna fica **sem** crases, pela mesma razão.
+**Com o quê.** `dobra-do-titulo/medir.js` → **43 medidas, 0 falha**. `paginacao-no-celular/medir.js`
+→ **23 medidas, 0 falha**. As duas correm no Chrome e declaram NÃO FEITO sem ele.
 
-**Com o quê.** `provar-notacao` → **55 asserções**; `check-glossario` (o validador escrito à mão,
-que já reprovou documentos deste repositório) → **0 erro, 0 aviso**, 18 símbolos no corpo e 18
-verbetes no glossário; `check-pacote` do `batata` → 0 erro, 0 aviso; `check-indices` 14/14;
-`check-identidade` 19/19; cadeia re-ancorada e `--check` íntegro.
+**O que ainda não está feito — as três intenções, registadas como pedido.**
 
-Controlo negativo, medido contra o `derivar-ciclo.js` de `HEAD`: as cinco asserções do documento
-falham todas lá («declara o código», «compõe a linha que tem música», «declara o resto que não
-fecha», «marca a lacuna do exercício sem verbete», «o glossário tem verbetes»).
+1. **A escolha do desenho.** As bancadas não mudam nada em produção. Quando a pesquisadora escolher,
+   o desenho vai para `tools/templates/` (congelado → motivo declarado + commit próprio) e ganha
+   prova de produto, não de bancada.
+2. **Como se cria a PRÓXIMA AULA dentro do mesmo ciclo.** Hoje o pacote publica a `aula-01`; a
+   `aula-02` não tem caminho declarado. Falta decidir: quem a cria (o lançamento da anterior? um
+   gesto à parte?), de onde vêm o objetivo e o marco (do plano do ciclo), e o que acontece se a aula
+   anterior não foi lançada. A intenção é **estudar a lógica antes de a implementar** — não é uma
+   tarefa de código ainda.
+3. **Como se cria o PRÓXIMO CICLO e como ele se liga ao anterior.** A cadeia de proveniência existe
+   por ciclo (`hash-ciclo.sh` → `.fipp`), e cada ciclo é hoje uma âncora independente. Falta
+   decidir se o ciclo N+1 declara `parentHash` — e o que herda: o PO? a linha de base da última
+   aula? Só as referências? A pergunta é a mesma que a P-14 já resolve para o PO de departamento, e
+   a resposta para o ciclo ainda não foi dada.
 
-Sem regressão: barra única 53, publicação 39, sujeitos 30, geração 48, logo 22, índices 55,
-declarações 23, aula e plano legíveis 12.
-
-Medido ao vivo, no Worker do `batata`: `/bale-nivel-1-teste-2/notacao` serve **10 blocos de
-notação** (`[Plié: 1ª ↓]`, `[Pé: 1ª → +]`, `[Braço: 1ª → 2ª ⌒]`…), o `conferir` da linha que não
-fecha, as 11 lacunas com o motivo, e a secção do código declarado; `/glossario-benesh` serve **18
-verbetes com âncora** e 18 declarações de origem.
-
-**O que ainda não está feito.**
-
-- **A música de 11 das 14 linhas.** O plano tem `[a decidir]` nos tempos e no compasso de 11
-  exercícios — e é isso, e não o motor, que mantém essas linhas em lacuna. Basta declarar a música
-  para elas comporem, se o exercício tiver verbete.
-- **Quatro verbetes, e o ciclo tem mais exercícios.** `Plié`, `Battement tendu`, `Rond de jambe` e
-  `Port de bras`. Um exercício novo (uma pirouette, um adágio) sai em lacuna `sem-verbete` até
-  alguém escrever a sua linha no alfabeto — que é o que a P-16 quer dizer.
-- **O verbete do `Rond de jambe` não foi exercido.** Nenhuma linha do plano tem a música para que
-  ele está declarado (8 tempos, 4/4), por isso ele nunca compôs um documento real. O do `Plié` e os
-  dois do `Battement tendu` compuseram; o do `Port de bras` compôs em parte.
-- **O alfabeto é um só.** `paraNotacao` casa a notação declarada pelo nome; hoje só `benesh` tem
-  alfabeto publicado. Um ciclo que declare outra notação degrada — o documento sai com a lacuna
-  declarada —, mas ainda não há segundo alfabeto para provar que a estrutura aguenta dois.
-- **O `check-glossario` não corre sobre as variantes.** O `check-pacote` procura
-  `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
-  (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
-  prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.
+As duas últimas ficam aqui como **intenção declarada**, sem uma linha de código: registá-las é o que
+impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 
 ## O que está pendente
-
-## 20/10/2026 — o filtro dos sujeitos continuava sem funcionar: a chave morria no mapa
-
-A **guarda genérica só olha as chaves de uma lista escrita à mão**.
-Uma chave de comportamento nova que ninguém acrescente à lista continua invisível — a prova protege
-as 25 que conhece, não as que hão-de vir. A alternativa seria derivar a lista do próprio
-`descritores()`, e isso mediria o código contra si mesmo: o `descritores()` é a autoridade, e uma
-prova que a espelha concorda sempre com ela. Ficou a lista explícita, com este limite declarado.
-
-## 20/10/2026 — clicar na logo leva à raiz do domínio
-
-Os pacotes versionados no repositório continuam com o `<span>` no
-arquivo — **corrigidos ao servir**, pela ponte, que é o que impede a correcção de depender de uma
-regeneração que ninguém faria só por isto. Só uma regeneração (ou um `criar-escola.sh
---somente-indice`) os deixaria já com o `<a>` no Git. E o `href` é `/`, a raiz do *Worker*: numa
-escola servida sob um caminho (um dia, `escola.tmenegaz77.workers.dev/lastro/`), o `/` deixaria de
-ser a raiz da escola — e aí a constante terá de passar a receber o prefixo.
 
 ## 20/10/2026 — o ciclo é gerado e o menu não o mostra: a barra passa a ser uma só, e o êxito leva à página da escola
 
@@ -328,6 +301,33 @@ geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
   `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
   (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
   prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.
+
+## 20/10/2026 — o lançamento pedia uma senha cujo campo estava escondido
+
+- A correção foi verificada na página e na prova; **não** foi exercida a gravar de verdade num ciclo
+  cifrado, de ponta a ponta, com um navegador. O próximo lançamento real é o primeiro a fazê-lo.
+- O `abrir-ciclo` e o `enviar` continuam a partilhar o mesmo campo de senha; um dia a página pode
+  querer distinguir «a senha que abre» de «a senha que assina», e hoje não distingue.
+
+## 20/10/2026 — duas bancadas para ESCOLHER o título e a paginação — e três intenções registadas
+
+
+1. **A escolha do desenho.** As bancadas não mudam nada em produção. Quando a pesquisadora escolher,
+   o desenho vai para `tools/templates/` (congelado → motivo declarado + commit próprio) e ganha
+   prova de produto, não de bancada.
+2. **Como se cria a PRÓXIMA AULA dentro do mesmo ciclo.** Hoje o pacote publica a `aula-01`; a
+   `aula-02` não tem caminho declarado. Falta decidir: quem a cria (o lançamento da anterior? um
+   gesto à parte?), de onde vêm o objetivo e o marco (do plano do ciclo), e o que acontece se a aula
+   anterior não foi lançada. A intenção é **estudar a lógica antes de a implementar** — não é uma
+   tarefa de código ainda.
+3. **Como se cria o PRÓXIMO CICLO e como ele se liga ao anterior.** A cadeia de proveniência existe
+   por ciclo (`hash-ciclo.sh` → `.fipp`), e cada ciclo é hoje uma âncora independente. Falta
+   decidir se o ciclo N+1 declara `parentHash` — e o que herda: o PO? a linha de base da última
+   aula? Só as referências? A pergunta é a mesma que a P-14 já resolve para o PO de departamento, e
+   a resposta para o ciclo ainda não foi dada.
+
+As duas últimas ficam aqui como **intenção declarada**, sem uma linha de código: registá-las é o que
+impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 
 ## Pendências anteriores (índice)
 
@@ -575,6 +575,8 @@ geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
 - **20/10/2026** — o hook recusava todo commit enquanto uma turma não tivesse… → `REGISTRO.md` L20510
 - **20/10/2026** — a escola não se criava: a publicação era montada só no ramo… → `REGISTRO.md` L20570
 - **20/10/2026** — o repositório sem ciclo expôs duas provas desactualizadas → `REGISTRO.md` L20630
+- **20/10/2026** — o filtro dos sujeitos continuava sem funcionar: a chave… → `REGISTRO.md` L20660
+- **20/10/2026** — clicar na logo leva à raiz do domínio → `REGISTRO.md` L20730
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

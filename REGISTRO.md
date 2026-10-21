@@ -21141,3 +21141,101 @@ re-ancorada. Medido ao vivo no Worker do `batata`, em `/bale-nivel-1-teste-2/lan
   cifrado, de ponta a ponta, com um navegador. O próximo lançamento real é o primeiro a fazê-lo.
 - O `abrir-ciclo` e o `enviar` continuam a partilhar o mesmo campo de senha; um dia a página pode
   querer distinguir «a senha que abre» de «a senha que assina», e hoje não distingue.
+
+## 20/10/2026 — duas bancadas para ESCOLHER o título e a paginação — e três intenções registadas
+
+**O que motivou.**
+Três pedidos de identidade visual, com uma condição explícita: **mostrar as opções antes de mexer no
+código**. (a) O título dos documentos deve ficar à vista enquanto se rola — hoje ele sai da tela, e a
+página da aula é longa. (b) No celular, há outras saídas além de o prender. (c) O rodapé de
+paginação do lançamento é bom no desktop e mau no celular: «a tela fica com menos espaço».
+
+**O que foi decidido.**
+Nada foi decidido: **as opções foram construídas e medidas**, e a escolha é da pesquisadora. O que
+se decidiu foi o método, e ele vale por si:
+
+- **A peça é uma só.** O título não é «posto a fixar» de quatro maneiras: há **um** estado
+  (`data-titulo-preso`, ligado quando o fim do cabeçalho passa por baixo da barra) e cada opção
+  decide **onde** o título vive nesse estado. Um mecanismo, quatro posicionamentos — é o que torna
+  legítimo compará-los.
+- **A demonstração não copia: extrai.** O conteúdo do título é o **real** da Aula 01, tirado do
+  pacote; o rodapé da paginação é **extraído** de `tools/templates/lancamento.html` (as regras CSS
+  em blocos completos, a marcação `<footer>` tal e qual). Uma demonstração que copia «mais ou menos»
+  mede «mais ou menos».
+- **Sem número não há escolha.** Cada bancada traz um `medir.js` que abre a página no Chrome, nas
+  duas larguras, e mede geometria.
+
+**O que foi medido, e é o que faltava para decidir.**
+
+*O título* — altura ocupada no topo depois de rolar, e o título à vista:
+
+| Opção | desktop 1280 | celular 390 |
+|:--|:--|:--|
+| hoje | o título **sai** de vista | o título **sai** de vista |
+| A · preso no topo | 146 px | **374 px — 44% da tela** |
+| B · encolhe ao rolar | 33 px | 60 px |
+| C · vai para «Nesta página» | **0 px** (coluna à direita) | 60 px (sem coluna, cai na B) |
+| D · vai para o menu | 146 px (cai na A) | **0 px** |
+
+*A paginação* — altura da barra e o que sobra para o formulário, no celular de 390×844:
+
+| Opção | ocupa | sobra |
+|:--|:--|:--|
+| hoje | **182 px** (21% da tela) | 601 px |
+| 1 · vira bloco no fim | 0 (sai de vista ao rolar) | 783 px |
+| 2 · compacta com «⋯» | **47 px** | 736 px |
+| 3 · esconde ao descer | 0 enquanto se desce, volta ao subir | 783 px |
+
+O número que ninguém esperava: a barra **não** ocupa 52 px no celular — ocupa **182**, porque os
+controlos se dobram em três linhas. A queixa da pesquisadora era maior do que ela sabia.
+
+**Onde entrou.**
+- `experimentos/dobra-do-titulo/` — `index.html` (as quatro opções sobre o conteúdo real) e
+  `medir.js`, que mede as duas larguras e inclui o **controlo negativo** da âncora.
+- `experimentos/paginacao-no-celular/` — `construir.js` (extrai o rodapé do template), `index.html`
+  e `medir.js`.
+- `.gitignore` — as duas bancadas abertas. **`experimentos/*` fecha a PASTA**, e o Git não desce: as
+  linhas de negação por ficheiro não bastavam, e o `git status` não mostrava nada. É preciso abrir a
+  pasta e voltar a fechar o que não interessa.
+- `experimentos/README.md` — a tabela das bancadas, e a regra de que **não são prova**: quando a
+  escolha estiver feita, o desenho vai para `tools/templates/` com motivo declarado, e aí sim com
+  prova.
+
+**As armadilhas que a medição encontrou — e são o resultado mais útil desta entrada.**
+1. **`scroll-behavior: smooth` faz a medição medir o ponto de partida.** Um `window.scrollTo` anima,
+   e esperar dois `requestAnimationFrame` lê a página ainda a caminho. Todas as opções apareciam
+   iguais. Desliga-se o `smooth` e espera-se o `scrollY` chegar ao alvo.
+2. **Medir sem isolar mede o vizinho.** A opção C move o título no DOM; medir a seguinte sem
+   recarregar media o que a anterior deixou. Cada medição recarrega.
+3. **Reservar a altura do momento cria um vaivém.** Com o cabeçalho encolhido reserva-se pouco (o
+   alvo pára debaixo do título); com ele inteiro, muito (o alvo cai a 561 px do topo). A reserva
+   depende do estado, e o estado depende da posição. Resolve-se com um salto e **uma correção
+   simétrica** com a altura que ficou.
+4. **Duas perguntas diferentes, duas medidas.** «Já passei do cabeçalho?» (para o título sair) e «o
+   cabeçalho está preso no topo?» (para ele encolher). Conflundi-las fazia o cabeçalho ficar 146 px
+   em cima e **não encolher**: estava preso, mas o sentinela não tinha passado.
+5. **Uma asserção que passa em todas as opções pode não medir nada.** A primeira versão media a
+   âncora a saltar do topo, onde nada está preso — e dava o mesmo em todas. Só passou a discriminar
+   (e a ter valor) quando passou a saltar do meio, e quando ganhou um controlo negativo.
+
+**Com o quê.** `dobra-do-titulo/medir.js` → **43 medidas, 0 falha**. `paginacao-no-celular/medir.js`
+→ **23 medidas, 0 falha**. As duas correm no Chrome e declaram NÃO FEITO sem ele.
+
+**O que ainda não está feito — as três intenções, registadas como pedido.**
+
+1. **A escolha do desenho.** As bancadas não mudam nada em produção. Quando a pesquisadora escolher,
+   o desenho vai para `tools/templates/` (congelado → motivo declarado + commit próprio) e ganha
+   prova de produto, não de bancada.
+2. **Como se cria a PRÓXIMA AULA dentro do mesmo ciclo.** Hoje o pacote publica a `aula-01`; a
+   `aula-02` não tem caminho declarado. Falta decidir: quem a cria (o lançamento da anterior? um
+   gesto à parte?), de onde vêm o objetivo e o marco (do plano do ciclo), e o que acontece se a aula
+   anterior não foi lançada. A intenção é **estudar a lógica antes de a implementar** — não é uma
+   tarefa de código ainda.
+3. **Como se cria o PRÓXIMO CICLO e como ele se liga ao anterior.** A cadeia de proveniência existe
+   por ciclo (`hash-ciclo.sh` → `.fipp`), e cada ciclo é hoje uma âncora independente. Falta
+   decidir se o ciclo N+1 declara `parentHash` — e o que herda: o PO? a linha de base da última
+   aula? Só as referências? A pergunta é a mesma que a P-14 já resolve para o PO de departamento, e
+   a resposta para o ciclo ainda não foi dada.
+
+As duas últimas ficam aqui como **intenção declarada**, sem uma linha de código: registá-las é o que
+impede a próxima sessão de as tratar como esquecidas — ou de as inventar.

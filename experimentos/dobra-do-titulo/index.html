@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-opcao="atual" data-titulo-preso="nao" data-titulo-encolhido="nao">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Experimento — o título que não se perde · Sistema Lastro</title>
+<link rel="icon" href="assets/favicon.svg">
+<link rel="stylesheet" href="assets/style.css">
+<style>
+/* ============================================================================
+   EXPERIMENTO: O TÍTULO QUE NÃO SE PERDE — 20/10/2026
+
+   Isto NÃO é uma página do sistema. É o banco de ensaio das quatro soluções
+   pedidas, com o conteúdo REAL da Aula 01 (a página longa de verdade, não uma
+   imitação). O que está medido está em `medir.js`; o que não está medido está
+   dito como opinião.
+
+   A PEÇA É UMA SÓ. O título não é «posto a fixar» de quatro maneiras diferentes:
+   há UM estado (`data-titulo-preso="sim"` no `<html>`, ligado quando o fim do
+   cabeçalho passa por baixo da barra) e cada opção decide ONDE o título vive
+   nesse estado. Um mecanismo, quatro posicionamentos — é o que torna legítimo
+   compará-los.
+
+   O PAINEL NÃO FAZ PARTE DO DESENHO. Ele é a bancada, e pode ser escondido
+   (Esc). Ele não entra em nenhuma medida.
+   ========================================================================== */
+
+/* ---------- o painel da bancada ---------- */
+.bancada {
+  position: fixed; left: 12px; bottom: 12px; z-index: 60;
+  display: flex; flex-direction: column; gap: 6px;
+  background: var(--superficie); border: 1px solid var(--borda);
+  border-radius: 8px; padding: 8px; max-width: 230px;
+  box-shadow: 0 6px 20px rgba(0,0,0,.18);
+  font: 12px/1.3 var(--ui);
+}
+.bancada[hidden] { display: none; }
+.bancada .bancada-titulo { font-weight: 700; color: var(--marca-texto); text-transform: uppercase; letter-spacing: .06em; }
+.bancada button {
+  text-align: left; cursor: pointer; background: var(--fundo-faixa);
+  border: 1px solid var(--borda); border-radius: 6px; padding: 5px 8px;
+  font: inherit; color: var(--texto);
+}
+.bancada button:hover { background: var(--fundo-hover); }
+.bancada button[aria-pressed="true"] { background: var(--marca); color: var(--fundo); border-color: var(--marca); }
+.bancada .bancada-nota { color: var(--texto-suave); }
+.bancada-kbd { font-family: var(--mono, monospace); }
+
+/* ---------- A PEÇA: o título preso ---------- */
+/* O fundo tem de cobrir a largura toda quando o cabeçalho é preso — senão o texto
+   que passa nas laterais aparece ao lado dele em telas largas. O `box-shadow`
+   com 100vmax é o alargamento sem elemento novo; `clip-path` corta o excesso. */
+[data-titulo-encolhido="sim"] header.doc,
+[data-titulo-preso="sim"] header.doc {
+  background: var(--fundo);
+  box-shadow: 0 0 0 100vmax var(--fundo), 0 1px 0 var(--borda);
+  clip-path: inset(0 -100vmax);
+}
+
+/* A) PRESO NO TOPO — o bloco inteiro fica, e o conteúdo rola por baixo. */
+[data-opcao="A"] header.doc {
+  position: sticky; top: var(--header-height); z-index: 15;
+}
+
+/* B) ENCOLHE — o bloco fica, mas ao prender o título diminui e a ficha sai:
+   devolve altura à leitura. É a opção que interessa ao celular, e nada impede
+   que seja a única (ela serve nas duas larguras). */
+[data-opcao="B"] header.doc {
+  position: sticky; top: var(--header-height); z-index: 15;
+}
+[data-opcao="B"][data-titulo-encolhido="sim"] header.doc h1 {
+  font-size: 17px; border-bottom-width: 1px; padding-bottom: 4px; margin-bottom: 2px;
+  transition: font-size .15s ease;
+}
+[data-opcao="B"][data-titulo-encolhido="sim"] header.doc .subtitulo,
+[data-opcao="B"][data-titulo-encolhido="sim"] header.doc .ficha { display: none; }
+
+/* C) VAI PARA A COLUNA «Nesta Página» — só onde a coluna existe (>=1200px).
+   O título é MOVIDO no DOM pelo script (é o que «ir para lá» significa), e
+   volta ao lugar quando se sobe. Abaixo de 1200px NÃO HÁ COLUNA — e a opção não
+   pode simplesmente desaparecer: cai no comportamento da B (encolhe no topo). */
+[data-opcao="C"] header.doc .titulo-no-rail { display: none; }
+@media (max-width: 1199px) {
+  [data-opcao="C"] header.doc { position: sticky; top: var(--header-height); z-index: 15; }
+  [data-opcao="C"][data-titulo-encolhido="sim"] header.doc h1 {
+    font-size: 17px; border-bottom-width: 1px; padding-bottom: 4px; margin-bottom: 2px;
+    transition: font-size .15s ease;
+  }
+  [data-opcao="C"][data-titulo-encolhido="sim"] header.doc .subtitulo,
+  [data-opcao="C"][data-titulo-encolhido="sim"] header.doc .ficha { display: none; }
+}
+@media (min-width: 1200px) {
+  [data-opcao="C"] header.doc { position: static; }
+  [data-opcao="C"] .rail .titulo-no-rail {
+    display: block; position: sticky; top: calc(var(--header-height) + 8px);
+    z-index: 2; background: var(--fundo);
+    font: 700 15px/1.25 var(--serif); color: var(--marca);
+    padding: 0 0 6px; margin: 0 0 8px; border-bottom: 2px solid var(--borda);
+  }
+  /* a coluna já é presa; com o título dentro dela, o índice desce. */
+  [data-opcao="C"] .rail .toc-local { top: 0; position: static; max-height: none; }
+  [data-opcao="C"] .rail { position: sticky; top: calc(var(--header-height) + 8px); align-self: start; }
+}
+
+/* D) VAI PARA DENTRO DO MENU — só no celular, onde a barra tem espaço de sobra.
+   Não rouba um pixel da leitura: o título ocupa a sobra da barra. Acima de
+   1200px cai na A (a barra já está cheia de menus). */
+.topnav .topnav-titulo { display: none; }
+@media (max-width: 1199px) {
+  [data-opcao="D"][data-titulo-preso="sim"] .topnav .topnav-titulo {
+    display: block; min-width: 0; flex: 1 1 auto;
+    margin: 0 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    font: 700 13px/1.2 var(--ui); color: var(--fundo); opacity: .92;
+  }
+  [data-opcao="D"] header.doc { position: static; }
+}
+@media (min-width: 1200px) {
+  [data-opcao="D"] header.doc { position: sticky; top: var(--header-height); z-index: 15; }
+}
+
+/* ---------- o que o experimento mostra sobre o problema ---------- */
+.medida {
+  border-left: 3px solid var(--ornamento-forte); padding: 6px 0 6px 14px;
+  margin: 18px 0; color: var(--texto-suave); font-size: 15px;
+}
+</style>
+</head>
+<body>
+
+<nav class="topnav" aria-label="Navegação">
+  <a class="marca" href="/" aria-label="Sistema Lastro — página inicial" title="Ir para o início"><span aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 249.21 291.95" width="249.21" height="291.95" role="img" aria-label="Sistema Lastro"><title>Sistema Lastro</title><path d="M162 163.3C166.3 159.1 170.8 155.1 174.9 150.7C177.8 147.7 180.3 144.3 183 141C183 141 200.6 115.1 200.6 115.1C203.1 110.4 205.3 105.4 207.4 100.5C207.4 100.5 215.6 74.6 215.6 74.6C216.5 69.7 217.5 64.7 217.5 59.7C217.5 51.6 212.5 43.8 207.2 37.7C204.5 34.6 201.6 31.6 198.3 29.1C198.3 29.1 164.5 9.6 164.5 9.6C161.9 8.6 159.1 8.3 156.4 7.6C154.4 7.2 152.1 9.3 151.4 11.2C149.2 17.1 147.2 23 145.8 29.1C142.4 44.4 139.5 59.7 137.1 75.1C133.4 98.4 131.3 122.7 135.6 145.8C135.6 145.8 145.7 176.3 145.7 176.3C145.7 176.3 114.4 207.4 114.4 207.4C107 217 101.6 228.8 100.4 240.7C99.4 251.1 102.5 262 107.3 271.3C108.9 274.4 111.2 277.1 113.4 279.8C113.4 279.8 125.9 290.2 125.9 290.2C127.4 291.1 129.1 291.4 130.7 291.9C130.7 291.9 119 271.1 119 271.1C118.5 268.8 118.5 266.4 118.6 264C118.6 264 122 252.9 122 252.9C122.8 251.3 123.7 249.9 124.8 248.6C142.2 229.6 169.3 222.6 192.4 211.2C207.8 203.6 222.1 192.5 232.5 178.8C232.5 178.8 245.4 154.5 245.4 154.5C247.1 148.8 248.2 142.9 248.7 137C249.2 130.2 248.9 123.3 248.4 116.5C248.4 116.5 243.4 92.7 243.4 92.7C243.4 92.7 229.3 64.6 229.3 64.6C228.1 63 226.5 61.8 225.1 60.3C225.1 60.3 227.4 66.5 227.4 66.5C228.4 69.1 229.2 71.8 229.6 74.6C229.6 74.6 228.2 93.5 228.2 93.5C228.2 93.5 213.2 116.8 213.2 116.8C198.1 134.2 181.5 151 162 163.3Z" fill="currentColor" fill-rule="evenodd" clip-rule="evenodd"/></svg></span></a>
+  <span class="topnav-titulo" aria-hidden="true"></span>
+  <div class="nav-links" id="nav-links">
+    <a href="#" class="ativo">Aula 01</a>
+    <details class="menu"><summary>Ciclos</summary><div class="submenu"><a href="#">Plano do Ciclo 01</a></div></details>
+    <details class="menu"><summary>Área do Professor</summary><div class="submenu"><a href="#">Anamnese do aluno</a></div></details>
+  </div>
+  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+
+<header class="doc" id="cabecalho">
+  <h1 id="titulo">Aula 01 — reconhecer o apoio e alinhar o eixo vertical</h1>
+    <p class="subtitulo">Sem deslocamento, sem giro, sem mudança de
+direção</p>
+      <p class="ficha">
+    <span>Escola: Batata — Sapo Bailarino</span>
+    <span>2x/semana</span>
+    <span>50 min por encontro</span>
+    <span>Aula</span>
+    <span>Ciclo 01 (13 semanas)</span>
+    <span>Aula 01</span>
+    
+    <span>Duração: 50 minutos</span>
+    <span>Volume semanal: 180 tempos/semana</span>
+    <span>Volume ativo: 90 tempos</span>
+    <span>Objetivo: reconhecer o apoio e alinhar o eixo vertical</span>
+  </p>
+  </header>
+
+<div id="sentinela" aria-hidden="true"></div>
+
+<main>
+<!-- O índice desta página vai para uma COLUNA à direita, presa ao topo (`position: sticky`,
+     no CSS): quem rola a página não perde a navegação. O DOM mantém o índice ANTES do
+     corpo (quem navega por teclado ou leitor de tela o encontra primeiro) e o CSS o
+     coloca na coluna 2. Em tela estreita ele volta a ser o bloco do topo — não há
+     largura para duas colunas. -->
+<div class="rail">
+<nav class="toc-local" aria-label="Índice desta página">
+  <p class="toc-titulo">Nesta página</p>
+<ul>
+<li><a href="#validacao-dos-objetivos-metricas-e-duracao"
+id="toc-validacao-dos-objetivos-metricas-e-duracao">1. Validação dos
+objetivos, métricas e duração</a></li>
+<li><a
+href="#condicoes-preliminares-de-preparacao-forca-e-flexibilidade"
+id="toc-condicoes-preliminares-de-preparacao-forca-e-flexibilidade">2.
+Condições preliminares de preparação (força e flexibilidade)</a></li>
+<li><a href="#a-sequencia-conectada-fio-condutor"
+id="toc-a-sequencia-conectada-fio-condutor">3. A sequência conectada
+(fio condutor)</a>
+<ul>
+<li><a href="#distribuicao-do-tempo-da-aula"
+id="toc-distribuicao-do-tempo-da-aula">Distribuição do tempo da
+aula</a></li>
+<li><a href="#sequencia-declarada"
+id="toc-sequencia-declarada">Sequência declarada</a></li>
+</ul></li>
+<li><a href="#bloco-de-musicalidade" id="toc-bloco-de-musicalidade">4.
+Bloco de musicalidade</a></li>
+<li><a href="#guia-de-observacao-do-professor"
+id="toc-guia-de-observacao-do-professor">5. Guia de observação do
+professor</a></li>
+<li><a href="#distribuicao-do-volume-fisico"
+id="toc-distribuicao-do-volume-fisico">6. Distribuição do volume
+físico</a></li>
+<li><a href="#proveniencia-consolidada"
+id="toc-proveniencia-consolidada">7. Proveniência consolidada</a></li>
+<li><a href="#registro-de-auditoria-da-aula"
+id="toc-registro-de-auditoria-da-aula">8. Registro de auditoria da
+aula</a></li>
+<li><a href="#proximo-passo" id="toc-proximo-passo">9. Próximo
+passo</a></li>
+</ul>
+</nav>
+</div>
+
+<div class="conteudo">
+<h2 id="validacao-dos-objetivos-metricas-e-duracao">1. Validação dos
+objetivos, métricas e duração</h2>
+<table>
+<colgroup>
+<col style="width: 50%" />
+<col style="width: 50%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Item</th>
+<th style="text-align: left;">Definição</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Objetivo específico</strong></td>
+<td style="text-align: left;">reconhecer o apoio e alinhar o eixo
+vertical</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Parâmetro de medição</strong></td>
+<td style="text-align: left;"><strong>1</strong> reconhecer o apoio e
+alinhar o eixo vertical — observa: Plié · Battement tendu ·
+<strong>2</strong> transferir o peso entre os pés sem perder o
+alinhamento — observa: Plié · Port de bras · <strong>3</strong>
+sustentar a transferência com musicalidade e controle do movimento —
+observa: Rond de jambe · Battement tendu</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Duração</strong></td>
+<td style="text-align: left;">50 minutos (Pré-requisito 4)</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"><strong>Volume ativo</strong></td>
+<td style="text-align: left;">90 tempos (faixa 80–100 da duração de 50
+min — Regra 9, etapa 1)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="condicoes-preliminares-de-preparacao-forca-e-flexibilidade">2.
+Condições preliminares de preparação (força e flexibilidade)</h2>
+<ul>
+<li>Sala com barra, espelho e aparelho de som; piso adequado.</li>
+</ul>
+<h2 id="a-sequencia-conectada-fio-condutor">3. A sequência conectada
+(fio condutor)</h2>
+<h3 id="distribuicao-do-tempo-da-aula">Distribuição do tempo da
+aula</h3>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Bloco</th>
+<th style="text-align: right;">Tempos</th>
+<th style="text-align: right;">Fatia</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Solo</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">30%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Barra</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">30%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Centro</td>
+<td style="text-align: right;">27</td>
+<td style="text-align: right;">30%</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Musicalidade</td>
+<td style="text-align: right;">9</td>
+<td style="text-align: right;">10%</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"><strong>Total</strong></td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;"><strong>100%</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sequencia-declarada">Sequência declarada</h3>
+<ul>
+<li><strong>Solo</strong> — Plié · objetivo 1 — reconhecer o apoio e
+alinhar o eixo vertical · 8, 4/4</li>
+<li><strong>Solo</strong> — Battement tendu · objetivo 1 — reconhecer o
+apoio e alinhar o eixo vertical</li>
+<li><strong>Solo</strong> — Rond de jambe · objetivo 3 — sustentar a
+transferência com musicalidade e controle do movimento</li>
+<li><strong>Solo</strong> — Battement tendu · objetivo 3 — sustentar a
+transferência com musicalidade e controle do movimento</li>
+<li><strong>Barra</strong> — Plié · objetivo 1 — reconhecer o apoio e
+alinhar o eixo vertical</li>
+<li><strong>Barra</strong> — Battement tendu · objetivo 1 — reconhecer o
+apoio e alinhar o eixo vertical</li>
+<li><strong>Barra</strong> — Plié · objetivo 2 — transferir o peso entre
+os pés sem perder o alinhamento</li>
+<li><strong>Barra</strong> — Port de bras · objetivo 2 — transferir o
+peso entre os pés sem perder o alinhamento</li>
+<li><strong>Centro</strong> — Plié · objetivo 2 — transferir o peso
+entre os pés sem perder o alinhamento</li>
+<li><strong>Centro</strong> — Port de bras · objetivo 2 — transferir o
+peso entre os pés sem perder o alinhamento</li>
+<li><strong>Centro</strong> — Rond de jambe · objetivo 3 — sustentar a
+transferência com musicalidade e controle do movimento</li>
+<li><strong>Centro</strong> — Battement tendu · objetivo 3 — sustentar a
+transferência com musicalidade e controle do movimento</li>
+<li><strong>Barra</strong> — Battement tendu · objetivo 2 — transferir o
+peso entre os pés sem perder o alinhamento · 8, 4/4</li>
+<li><strong>Centro</strong> — Port de bras · objetivo 3 — sustentar a
+transferência com musicalidade e controle do movimento · 16, 3/4</li>
+</ul>
+<h2 id="bloco-de-musicalidade">4. Bloco de musicalidade</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Item</th>
+<th style="text-align: left;">Trabalho</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Pulso</strong></td>
+<td style="text-align: left;">[Preencher: trabalho de pulso da Aula
+01]</td>
+</tr>
+</tbody>
+</table>
+<h2 id="guia-de-observacao-do-professor">5. Guia de observação do
+professor</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Dimensão</th>
+<th style="text-align: left;">O que se observa</th>
+<th style="text-align: left;">Como se registra</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Técnica — Solo</td>
+<td style="text-align: left;">[Preencher]</td>
+<td style="text-align: left;">marca por aluno</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Técnica — Barra</td>
+<td style="text-align: left;">[Preencher]</td>
+<td style="text-align: left;">marca por aluno</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Técnica — Centro</td>
+<td style="text-align: left;">[Preencher]</td>
+<td style="text-align: left;">marca por aluno</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Técnica — Musicalidade</td>
+<td style="text-align: left;">[Preencher]</td>
+<td style="text-align: left;">marca por aluno</td>
+</tr>
+</tbody>
+</table>
+<h2 id="distribuicao-do-volume-fisico">6. Distribuição do volume
+físico</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Bloco</th>
+<th style="text-align: right;">Tempos</th>
+<th style="text-align: right;">Fatia</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;"><strong>Total</strong></td>
+<td style="text-align: right;"><strong>90</strong></td>
+<td style="text-align: right;"><strong>100%</strong></td>
+</tr>
+</tbody>
+</table>
+<h2 id="proveniencia-consolidada">7. Proveniência consolidada</h2>
+<p>Documento derivado do plano do ciclo e das fontes do PO. Ciclo
+<strong>simulado</strong> — a cadeia foi gerada pelo «Guardar» do PO
+(proveniência acrescenta, não edita).</p>
+<h2 id="registro-de-auditoria-da-aula">8. Registro de auditoria da
+aula</h2>
+<table>
+<thead>
+<tr class="header">
+<th style="text-align: left;">Verificação</th>
+<th style="text-align: left;">Resultado</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">Objetivo específico declarado</td>
+<td style="text-align: left;">ok</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Duração declarada (Pré-requisito 4)</td>
+<td style="text-align: left;">ok — 50 minutos</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Volume dentro da faixa (Regra 9)</td>
+<td style="text-align: left;">ok — 90 tempos em 80–100</td>
+</tr>
+</tbody>
+</table>
+<h2 id="proximo-passo">9. Próximo passo</h2>
+<p>[Preencher: o próximo passo da progressão do ciclo]</p>
+</div>
+</main>
+
+<div class="bancada" id="bancada" role="group" aria-label="Bancada do experimento">
+  <span class="bancada-titulo">O título que não se perde</span>
+  <button type="button" data-escolha="atual" aria-pressed="true">0 · Hoje (nada)</button>
+  <button type="button" data-escolha="A" aria-pressed="false">A · Preso no topo</button>
+  <button type="button" data-escolha="B" aria-pressed="false">B · Encolhe ao rolar</button>
+  <button type="button" data-escolha="C" aria-pressed="false">C · Vai para «Nesta página»</button>
+  <button type="button" data-escolha="D" aria-pressed="false">D · Vai para o menu</button>
+  <span class="bancada-nota"><span class="bancada-kbd">Esc</span> esconde esta bancada. Ela não faz parte do desenho.</span>
+</div>
+
+<script src="assets/nav.js"></script>
+<script>
+/* ============================================================================
+   A PEÇA (14 linhas de decisão, e o resto é comentário).
+
+   «O título está preso» = o FIM do cabeçalho passou por baixo da barra. Mede-se
+   com um sentinela em fluxo depois do cabeçalho, e não com a posição do próprio
+   cabeçalho: quando ele é `sticky`, a posição dele deixa de se mover, e a medida
+   mentiria — ficaria preso para sempre depois do primeiro pixel.
+   ========================================================================== */
+(function () {
+  var html = document.documentElement;
+  var nav = document.querySelector('.topnav');
+  var cabecalho = document.getElementById('cabecalho');
+  var titulo = document.getElementById('titulo');
+  var sentinela = document.getElementById('sentinela');
+  var rail = document.querySelector('.rail');
+  var tocDevolver = null;
+
+  function alturaDaBarra() { return nav ? nav.offsetHeight : 0; }
+
+  /*
+   * O `scroll-padding-top` NÃO SE MEXE — e a razão é a medição.
+   *
+   * A primeira versão reservava ali a altura do título preso, e o resultado era um vaivém: com o
+   * cabeçalho encolhido reservava-se pouco (o alvo parava debaixo do título), com ele inteiro
+   * reservava-se muito (o alvo caía a 561 px do topo, no celular). O número que se reserva depende
+   * do estado, e o estado depende da posição: com um número só, não há resposta certa.
+   *
+   * Quem resolve é o `saltarPara()`, abaixo: salta, deixa assentar, e corrige com a altura que
+   * FICOU. Sem JavaScript nada disto corre — e sem JavaScript também não há opção escolhida, logo
+   * a página é exactamente a de hoje.
+   */
+
+  /* A OPÇÃO C MOVE O TÍTULO DE VERDADE. Um segundo título só para o rail seria dois
+   * <h1> na mesma página — o leitor de tela leria o documento duas vezes. */
+  function tituloParaORail(sim) {
+    if (!rail || !titulo) return;
+    if (sim) {
+      if (titulo.parentNode === rail) return;
+      tocDevolver = { pai: titulo.parentNode, antes: titulo.nextSibling };
+      var bloco = document.createElement('div');
+      bloco.className = 'titulo-no-rail';
+      rail.insertBefore(bloco, rail.firstChild);
+      bloco.appendChild(titulo);
+    } else if (tocDevolver) {
+      var bloco2 = rail.querySelector('.titulo-no-rail');
+      if (bloco2) bloco2.parentNode.removeChild(bloco2);
+      tocDevolver.pai.insertBefore(titulo, tocDevolver.antes);
+      tocDevolver = null;
+    }
+  }
+
+  function aoRolar() {
+    /*
+     * DUAS PERGUNTAS DIFERENTES, DUAS MEDIDAS DIFERENTES. Conflundi-las foi o último defeito que
+     * esta bancada encontrou, e é o mais instrutivo dos quatro:
+     *
+     *   1. «JÁ PASSEI DO CABEÇALHO?» — decide se o título SAI do cabeçalho (para o rail, na C;
+     *      para a barra, na D). Mede-se pelo SENTINELA em fluxo: ele atravessa a barra quando o
+     *      cabeçalho ficou para trás. Com um cabeçalho `sticky`, a posição DELE não serve — ele
+     *      não se mexe.
+     *
+     *   2. «O CABEÇALHO ESTÁ PRESO NO TOPO?» — decide se ele ENCOLHE (B, e C no celular). Aqui a
+     *      posição dele é exactamente o que se quer saber, e o gatilho é ter rolado: um `sticky`
+     *      no seu `top` está preso desde o primeiro pixel de rolagem.
+     *
+     * Usar (1) para decidir (2) fazia o cabeçalho ficar 146 px em cima e NÃO encolher: ele estava
+     * preso, mas o sentinela ainda não tinha passado. O título «encolhe ao rolar» não encolhia.
+     */
+    var passou = sentinela.getBoundingClientRect().top <= alturaDaBarra();
+    var encolhido = window.scrollY > 8;
+    html.setAttribute('data-titulo-preso', passou ? 'sim' : 'nao');
+    html.setAttribute('data-titulo-encolhido', encolhido ? 'sim' : 'nao');
+    var preso = passou;
+
+    var opcao = html.getAttribute('data-opcao');
+    var noRail = opcao === 'C' && window.innerWidth >= 1200 && preso;
+    tituloParaORail(noRail);
+
+    // D: o título ocupa a sobra da barra no celular — a barra TEM espaço ali.
+    var span = nav.querySelector('.topnav-titulo');
+    if (span) span.textContent = preso ? titulo.textContent : '';
+  }
+
+  /*
+   * O SALTO PARA A ÂNCORA, FEITO À MÃO — E PORQUÊ.
+   *
+   * `scroll-padding-top` só sabe uma coisa: um número fixo. Mas o que fica preso no topo MUDA de
+   * altura com o estado (146 px inteiro, 33 px encolhido) e essa altura depende da POSIÇÃO — o que
+   * fecha um ciclo: a reserva decide a posição, a posição decide a altura, a altura decide a
+   * reserva. Com um número só, ou se reserva o máximo (o alvo cai longe do topo: 561 px no
+   * celular) ou o mínimo (o alvo cai debaixo do título).
+   *
+   * A saída é não reservar às cegas: salta-se, deixa-se o estado assentar, e CORRIGE-SE com a
+   * altura que ficou. Um salto, uma correção, e o alvo encosta no sítio certo em qualquer opção.
+   * O `scroll-padding-top` continua a ser posto — é o que vale sem JavaScript.
+   */
+  // O controlo negativo da medição: desliga a correção do salto. Existe porque uma asserção que
+  // passa em todas as opções pode estar a passar por não medir nada — já aconteceu nesta bancada.
+  var semAjusteDeAncora = false;
+  window.__desligarAjusteDeAncora = function () { semAjusteDeAncora = true; };
+
+  function saltarPara(id) {
+    var alvo = document.getElementById(id);
+    if (!alvo) return;
+    if (history.replaceState) history.replaceState(null, '', '#' + id);
+    alvo.scrollIntoView({ behavior: 'auto', block: 'start' });
+    if (semAjusteDeAncora) return;   // o controlo negativo da medição
+    // O estado assenta (o título prende ou solta, o cabeçalho encolhe ou expande), e só então se
+    // corrige — com o número que FICOU. A correção é SIMÉTRICA: se o alvo ficou debaixo do título,
+    // desce-se; se ficou longe, sobe-se. Uma correção que só empurra para baixo resolve metade.
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        // O limite é o que está PINTADO no topo, e não o que se supôs: a barra, ou o fundo do
+        // cabeçalho se ele estiver por baixo dela. É a única medida que não depende do estado.
+        var rc = cabecalho.getBoundingClientRect();
+        var necessario = Math.max(alturaDaBarra(), Math.min(rc.bottom, window.innerHeight)) + 8;
+        var r = alvo.getBoundingClientRect();
+        var diferenca = Math.round(r.top - necessario);
+        if (Math.abs(diferenca) > 1) {
+          window.scrollTo(0, Math.max(0, window.scrollY + diferenca));
+        }
+      });
+    });
+  }
+
+  document.addEventListener('click', function (e) {
+    var a = e.target && e.target.closest ? e.target.closest('.toc-local a[href^="#"]') : null;
+    if (!a) return;
+    var id = a.getAttribute('href').slice(1);
+    if (!document.getElementById(id)) return;
+    e.preventDefault();
+    saltarPara(id);
+  });
+
+  var pedido = false;
+  function rolar() {
+    if (pedido) return;
+    pedido = true;
+    requestAnimationFrame(function () { pedido = false; aoRolar(); });
+  }
+  window.addEventListener('scroll', rolar, { passive: true });
+  window.addEventListener('resize', rolar);
+  aoRolar();
+
+  /* ---------- a bancada ---------- */
+  var botoes = [].slice.call(document.querySelectorAll('.bancada button'));
+  function escolher(opcao) {
+    // Sair de C devolve o título ao cabeçalho antes de qualquer outra coisa.
+    if (html.getAttribute('data-opcao') === 'C') tituloParaORail(false);
+    html.setAttribute('data-opcao', opcao);
+    botoes.forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.escolha === opcao)); });
+    try { sessionStorage.setItem('demo-titulo:opcao', opcao); } catch (e) {}
+    aoRolar();
+  }
+  botoes.forEach(function (b) {
+    b.addEventListener('click', function () { escolher(b.dataset.escolha); });
+  });
+  var guardada = null;
+  try { guardada = sessionStorage.getItem('demo-titulo:opcao'); } catch (e) {}
+  if (guardada) escolher(guardada);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') { document.getElementById('bancada').hidden = true; }
+    // 0..4 escolhem a opção, para comparar sem tirar o dedo do teclado.
+    var mapa = { '0': 'atual', '1': 'A', '2': 'B', '3': 'C', '4': 'D' };
+    if (mapa[e.key] && !/^(INPUT|TEXTAREA|SELECT)$/.test(document.activeElement.tagName)) {
+      escolher(mapa[e.key]);
+    }
+  });
+})();
+</script>
+</body>
+</html>
