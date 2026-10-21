@@ -20965,3 +20965,32 @@ Lastro» na raiz, «Anamnese do aluno» na anamnese, «Plano do Ciclo 01» no pa
   contrário também: o painel passa a ser alcançável de qualquer página da escola.
 - Nada regenera `indices/` automaticamente: uma prova nova (como esta) obriga a correr
   `node tools/gerar-indices.js` à mão.
+
+## 20/10/2026 — o hook recusava o PDF de todo pacote com hífen no nome da variante
+
+**O que aconteceu.**
+A regeneração do pacote do `batata` foi recusada pelo hook de pré-commit: «arquivos gerados no stage
+(não versionar)» sobre `ciclo-01-batata-bale-nivel-1-teste-2.pdf`. O PDF do pacote **é** versionado —
+o cabeçalho do próprio hook diz que os pacotes são, porque o deploy é automático a partir do GitHub.
+
+**O que foi diagnosticado.**
+A exceção do filtro era `^professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/`. O `[a-z0-9]+` não
+admite **hífen**, e o nome de uma variante é `batata-bale-nivel-1-teste-2`: depois de `ciclo-01-` o
+`[a-z0-9]+` consome `batata` e exige `/` onde encontra `-`. Resultado: a exceção nunca casava, e
+**todo** PDF de pacote de variante era recusado — passava só um ciclo cujo segmento final não
+tivesse hífen.
+
+**O que mudou.**
+`[a-z0-9]+` → `[a-z0-9][a-z0-9-]*`. O `-` entra na classe (no fim, para não virar intervalo) e o
+primeiro carácter continua a ter de ser alfanumérico, para o segmento não poder ser vazio.
+
+**Por que isto exige motivo declarado.** `tools/` é congelado, e o hook é `tools/`. O motivo é o
+acima: uma exceção que não casa com nenhum nome real é uma regra que não protege nada e barra o que
+deve passar.
+
+**Com o quê.** Medido com o próprio filtro: `out/a.pdf` continua barrado, e os dois PDFs de pacote
+(`ciclo-01-maria` e `ciclo-01-batata-bale-nivel-1-teste-2`) passam.
+
+**O que ainda não está feito.** Nada — mas note-se que foi o hook a revelar o defeito ao ser
+exercido, e não uma prova: não há prova para `tools/hooks/`, e este é o segundo defeito de regex
+encontrado nele.

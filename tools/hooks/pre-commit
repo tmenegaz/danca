@@ -35,9 +35,15 @@ arquivos="$(git diff --cached --name-only --diff-filter=ACMR)"
 # Os pacotes de ciclo (professores/*/ciclos/ciclo-NN-escola/) SÃO versionados, porque o
 # deploy é automático a partir do GitHub — por isso a exceção no fim do filtro. O `out/`
 # da apresentação, os .pptx e os PNGs de slide seguem barrados.
+#
+# A EXCEÇÃO TINHA UM DEFEITO (20/10/2026). Ela exigia `[a-z0-9]+` depois de `ciclo-NN-`, e o nome
+# de uma variante tem HIFENS: `ciclo-01-batata-bale-nivel-1-teste-2`. Com isso o PDF do pacote — que
+# a exceção existe precisamente para deixar passar — era recusado em todas as variantes, e só
+# passava o de um ciclo sem escola no nome. O `-` entra na classe, e o `[a-z0-9]` inicial impede que
+# o segmento seja vazio.
 gerados="$(printf '%s\n' "$arquivos" \
   | grep -E '^(out/|.*\.pdf$|.*\.pptx$|.*/img/slide-.*\.png$)' \
-  | grep -vE '^professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/' || true)"
+  | grep -vE '^professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9][a-z0-9-]*/' || true)"
 if [ -n "$gerados" ]; then
   echo "pre-commit: arquivos gerados no stage (não versionar — são reconstruíveis):" >&2
   printf '  %s\n' $gerados >&2
