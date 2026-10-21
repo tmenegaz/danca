@@ -50,7 +50,8 @@ O formulário passou a dizer isso por si (o painel nomeia a lib que faltou, em v
 apontar para a causa sem passar por três tentativas.
 
 > **Atenção:** o deploy é do **Worker ligado ao repositório**, disparado pelo push — e ele
-> publica em produção (uma escola por Worker, hoje só a Diaghilev). Não use para experimentos.
+> publica em produção (uma escola por Worker; a escola que está no ar muda, e quem a nomeia é
+> `wrangler.<escola>.jsonc`, não esta página). Não use para experimentos.
 > Para ver um experimento no ar, `git push` não serve: nada de `experimentos/` é
 > publicado. Se um experimento precisar de site, ele deixa de ser experimento.
 

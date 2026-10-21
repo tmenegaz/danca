@@ -20978,12 +20978,20 @@ resposta não era nenhuma das duas primeiras — **faltava o alfabeto**. Sem sin
 como escrever uma linha, e nenhum gerador, humano ou não, pode escrever o que o código não tem.
 
 **O que foi diagnosticado.**
-O projeto já tinha um alfabeto a funcionar: o ciclo Diaghilev/Fokini, onde a notação foi escrita à
-mão e conferida. Quatro categorias (`Pé`, `Peso`, `Plié`, `Braço`), posições (`1ª`…`5ª`), lados
-(`D`, `E`), direções (`+` devant, `-` à la seconde, `×` derrière), operadores (`→`, `●`, `⌒`, `↺`), e
-a forma `[Categoria: estado → estado]`. Só que ele vivia **dentro de um HTML de experimento**, sem
-lugar no motor — e os quatro exercícios do `batata` exigiam quatro sinais que ele não tinha (`↓`,
-`↑`, `ED`, `EI`).
+O projeto já tinha um alfabeto a funcionar, escrito à mão e conferido num ciclo anterior. Quatro
+categorias (`Pé`, `Peso`, `Plié`, `Braço`), posições (`1ª`…`5ª`), lados (`D`, `E`), direções
+(`+` devant, `-` à la seconde, `×` derrière), operadores (`→`, `●`, `⌒`, `↺`), e a forma
+`[Categoria: estado → estado]`. Só que ele vivia **dentro de um HTML de experimento**, sem lugar no
+motor — e os quatro exercícios do primeiro ciclo composto por este motor exigiam quatro sinais que
+ele não tinha (`↓`, `↑`, `ED`, `EI`).
+
+> **Correção de 20/10/2026 (mesmo dia).** A primeira redação desta entrada nomeava a escola onde
+> aquele alfabeto foi escrito — que está **expurgada** — e o ciclo que exigiu os quatro sinais novos.
+> **Está errado**, e por duas razões que se somam: o alfabeto vive em `biblioteca/`, que é
+> **compartilhada**, e nomear uma escola ali faz os outros ciclos parecerem cópias de um deles; e uma
+> escola expurgada não deve continuar a ser citada como se existisse. Os nomes foram retirados, e a
+> regra passou a ser verificada por `experimentos/provar-notacao.js`. A versão anterior não é
+> apagada do histórico do Git: ela é o elo que registra o que se pensou antes da correção.
 
 **O que foi decidido.**
 O alfabeto passa a ser **DADO** (`biblioteca/notacao/ballet-classico.json`) e o motor só o lê e
