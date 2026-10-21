@@ -357,6 +357,13 @@ Nada disto é copiado à mão: `construir.js` extrai.
 abre-as no Chrome, nas duas larguras, e mede **77 coisas** — incluindo a própria moldura (o painel
 cabe na tela, tem saída, e a aba não cobre a coluna de leitura).
 
+**A ESCOLHA ESTÁ FEITA (21/10/2026).** O título ficou com a **opção B** (encolhe ao rolar) e a
+barra com o **mix da 2 com a 3** (compacta, e esconde ao descer). As duas estão no produto —
+`tools/templates/ciclo.css`, `nav.js` e `lancamento.html` —, com prova própria em
+`experimentos/provar-titulo-e-barra.js`. Estas páginas ficam como o REGISTO do que foi comparado:
+elas reconstroem-se com `construir.js` e declaram `data-titulo-fixo="nao"` para não sofrerem o
+mecanismo que agora é do produto.
+
 As propostas **não são prova de nada**: nenhuma afirma o que o produto faz hoje. Quando a escolha
 estiver feita, o desenho escolhido vai para `tools/templates/`, com motivo declarado — e aí sim, com
 prova.

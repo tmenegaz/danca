@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-21T07:18:06-0300`
-Commit atual: `b976c46` — docs(experimentos): duas bancadas de layout, para escolher — e três intenções registadas
+Gerado em: `2026-10-21T08:07:47-0300`
+Commit atual: `3611930` — docs(experimentos): as bancadas de layout, refeitas para serem operáveis
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,7 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+3611930 docs(experimentos): as bancadas de layout, refeitas para serem operáveis
 b976c46 docs(experimentos): duas bancadas de layout, para escolher — e três intenções registadas
 cc5474f fix(tools): o lançamento pedia a senha num campo que o próprio formulário escondia
 39e24c5 fix(po): o alfabeto da notação não nomeia escola nenhuma — nem viva, nem expurgada
@@ -82,7 +83,6 @@ db80bcb chore(estrutura): reancorar a cadeia das fontes alteradas
 c04f6ff feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS
 57ddd11 feat(ciclo): o «Guardar» do PO cifra ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json
 9694af6 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md
-fda6c1d feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-notacao.md
 ```
 
 ## Por professor
@@ -154,96 +154,88 @@ fda6c1d feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 
 ## Última entrada do REGISTRO
 
-## 21/10/2026 — as propostas de layout foram refeitas: eram inoperáveis, e a razão era dupla
+## 21/10/2026 — o título que fica e a barra do lançamento no celular: as duas propostas escolhidas
 
-**O que aconteceu.**
-As duas bancadas de layout entregues a 20/10 foram reprovadas: *«as propostas em experimentos não
-estão operáveis e por isso não dá para entender as propostas»*. Foram medidas antes de serem
-corrigidas, e as duas causas eram reais e independentes:
+**O que foi decidido — pela pesquisadora, sobre as bancadas de `experimentos/propostas/`.**
+Escolhidas duas das oito opções que estavam à comparação:
 
-1. **o painel tapava o que estava a demonstrar.** No celular, `.bancada` ocupava **230 dos 390 px**
-   — 59% da tela — sobre o rodapé de paginação que ela existe para mostrar. Não se avalia um
-   comportamento de tela com outra coisa em cima dele;
-2. **não se chegava a elas do telefone.** Viviam em `file://`, e o que está a ser decidido é o
-   comportamento **no celular**. Uma proposta que só abre no computador de quem a escreveu não é uma
-   proposta: é um ficheiro.
+- **Título: a opção B — «encolhe ao rolar»**, no desktop e no celular. O cabeçalho prende-se ao
+  topo e diminui: o subtítulo e a ficha saem, o `h1` desce de 31px para 17px.
+- **Barra do lançamento: um MIX da 2 com a 3** — «esconde ao descer, e quando reaparece aparece
+  compacta». Não foi nenhuma das duas isoladamente; foi a 3 com o corpo da 2.
 
-A segunda causa é a mais grave, e é de desenho, não de CSS: **a decisão que estas bancadas servem só
-se pode tomar num telemóvel** — as duas propostas mudam de comportamento com a largura —, e um
-artefacto que não chega ao telemóvel não serve a decisão que o motivou.
-
-**O que foi decidido.**
-Uma pasta só, `experimentos/propostas/`, com três páginas e **um componente de bancada**:
-
-- **o painel abre, explica e sai da frente.** Abre no carregamento (quem chega não sabe o que está a
-  ver), cada opção com o **custo medido escrito ao lado**, e **Ver a página** fecha-o;
-- **a aba da margem** faz o que o balão fazia e o balão não podia: diz **qual é a opção activa** e
-  quanto custa, e chama o painel de volta. O balão da primeira tentativa avisava no topo — e tapava
-  exactamente o título que se quer ver preso. Um aviso que esconde a coisa observada é pior do que
-  aviso nenhum;
-- **as páginas são autossuficientes**: o `tools/templates/ciclo.css` e o `nav.js` entram **embutidos**
-  no HTML, e o resultado abre de `file://` e do Worker, sem um único asset externo. A versão anterior
-  dependia de `assets/` copiados e ignorados pelo Git — e um clone sem eles abria a página nua;
-- **são servidas pelo Worker** em `/propostas/`, que é como se lhes chega pelo telemóvel.
+**O que mudou, medido.**
+Título: **146px → 25px** no desktop, **46px** no celular (5,4% da tela de 844, onde o título quebra
+em duas linhas). Barra: **87px → 47px** na página real; no formulário mais denso da bancada,
+**182px → 47px**. E ela sai da frente ao descer, voltando compacta ao subir.
 
 **Motivo declarado — os congelados.**
-`tools/montar-publicacao.js` é congelado e ganha a opção `--com-propostas`. O motivo é o acima: a
-bancada tem de chegar ao telemóvel, e o telemóvel não lê o repositório. **O que não muda:** a fórmula
-do hash, a cobertura da âncora, os validadores, as 17 regras e as 22 pétreas; nada disto toca em
-conteúdo de ciclo. As propostas vivem em `publicacao/<escola>/propostas/`, **não entram no `nav.json`**
-— não são um documento da escola e o menu não as anuncia —, e a montagem seguinte **sem** a opção
-apaga-as.
+`tools/templates/ciclo.css`, `tools/templates/nav.js` e `tools/templates/lancamento.html` são
+congelados e mudam aqui. O motivo é o pedido, não uma preferência de implementação: o título que
+não se perde é a decisão tomada sobre uma bancada medida, e a bancada não muda produção. **O que não
+muda:** a fórmula do hash, a cobertura da âncora, os validadores, as 17 regras, as 22 pétreas, a
+paleta, a tipografia e o desenho de qualquer componente existente. As duas mudanças acrescentam
+estado de rolagem; nenhum valor da identidade foi redefinido.
 
 **Onde entrou.**
-- `experimentos/propostas/construir.js` — **novo**: extrai o cabeçalho e o corpo da Aula 01 publicada
-  e o `<footer>` do `lancamento.html`, embute o `ciclo.css` e o `nav.js`, e escreve as três páginas.
-- `experimentos/propostas/medir.js` — **novo**, 77 medidas em quatro secções: a moldura, a
-  proposta 1, a proposta 2, e a aba.
-- `tools/montar-publicacao.js` — `--com-propostas`, com o motivo escrito ao lado do código.
-- `experimentos/README.md` — a entrada nova; as das bancadas antigas saem.
-- `.gitignore` — o construtor e o medidor versionados; as páginas são **geradas** por eles.
-- `experimentos/dobra-do-titulo/` e `experimentos/paginacao-no-celular/` — **removidas**. Duas pastas
-  com dois painéis diferentes e dois medidores era a repetição que o componente único elimina.
+- `tools/templates/ciclo.css` — o componente do título (opt-in por `data-titulo-fixo`), e o elo que
+  faltava: `--titulo-preso` entra no `scroll-padding-top` e no `top` da coluna do índice. Sem isso o
+  alvo de «Nesta página» e o bloco «Nesta página» ficariam debaixo do título preso.
+- `tools/templates/nav.js` — o mecanismo (prende, mede, encolhe), num segundo bloco independente da
+  barra de navegação, porque depende de haver título e não de haver barra.
+- `tools/templates/lancamento.html` — a barra compacta, o «⋯», o esconder por direção de rolagem, e
+  o `h1` marcado como `.titulo-fixo`.
+- `experimentos/provar-titulo-e-barra.js` — **novo**, 27 verificações em navegador.
+- `experimentos/propostas/construir.js` — as bancadas passam a declarar `data-titulo-fixo="nao"`:
+  elas comparam cinco desfechos do mesmo mecanismo, e com o mecanismo do produto a mexer as cinco
+  ficariam iguais.
+- `IDENTIDADE-VISUAL.md` — as duas secções novas, com as tabelas e as provas.
+- as cópias dos assets nos pacotes e na raiz (`gerar-raiz.sh` + regeneração do ciclo).
 
-**Duas regressões que a medição apanhou na reescrita — e é por isso que ela existe.**
-Ao portar o desenho para a pasta nova, **a correção da âncora ficou de fora**: as opções A, B e D
-escondiam o alvo de «Nesta página» por baixo do título preso. E a **opção D não tinha onde pôr o
-título** — o `<span class="topnav-titulo">` não foi copiado para a barra. As duas apareceram na
-primeira execução do `medir.js` (oito falhas), e não teriam aparecido a olho: a âncora é um
-comportamento, e um título «na barra» ausente parece só um título que não aparece.
+**Três defeitos e uma regressão que a medição encontrou — e nenhum deles era visível a olho.**
+1. **A medição era animada.** Pôr o estado encolhido e ler a altura no mesmo instante devolvia o
+   tamanho a meio da transição: **43px** onde o estado final mede **25px**. O número errado não
+   aparecia na tela, mas ficava em `--titulo-preso` — e essa é a altura que o resto da folha
+   RESERVA. Daria 18px de folga a mais no celular, e o alvo da âncora pararia longe do topo.
+2. **O «voltar ao topo» ficava por cima do «⋯».** Um círculo fixo no canto (46px, a 18px da borda)
+   cobria exactamente o único controle da barra compacta: um dedo caía no botão errado. Nenhuma
+   medida de caixa denuncia um controle coberto — ele existe, mede 0 de distância e não recebe
+   toque. A prova passou a perguntar `elementFromPoint`.
+3. **A primeira correção do (2) foi medida e reprovada.** Reservar 70px à direita dentro da barra
+   resolvia a sobreposição, mas a paginação quebrava em duas linhas: a barra ia de 47 para 76px. A
+   solução é empilhar — o círculo sobe pela altura MEDIDA da barra.
+4. **O sem-JavaScript estava morto.** A versão compacta esconde o seletor «Blocos por página» e o
+   «⋯» é que o devolve; sem script, o seletor ficava inalcançável e o botão não fazia nada. Tudo
+   passou a ser opt-in (`data-barra-compacta`, posto no `<head>` antes de a página pintar).
 
-**Com o quê.** `experimentos/propostas/medir.js` → **77 medidas, 0 falha**, com Chrome; sem ele,
-declara NÃO FEITO. Medido ao vivo no Worker do `batata`: `/propostas/`, `/propostas/proposta-titulo.html`
-e `/propostas/proposta-paginacao.html` respondem 200, com **zero** referências a `assets/` — as
-páginas viajam inteiras.
+**Com o quê.**
+- `node experimentos/provar-titulo-e-barra.js` → **27 asserções, 0 falha**, em 1280 e 390. **Contra
+  o `HEAD` anterior: 13 falham** — as seis do título e as da barra —, o que mostra que as medidas
+  medem o mecanismo e não a si mesmas.
+- `node tools/check-identidade.js` → 19 verificações, todas verdes (as cópias dos assets batem).
+- `node tools/check-pacote.js` no pacote do `batata` → 0 erro, 0 aviso; âncora intacta
+  (`c6be47d7…`).
+- `provar-celular` 15/15, `provar-paginacao` 121/121, `provar-barra-unica` 53/53,
+  `provar-notacao` 66/66, `provar-senha-do-lancamento` 19/19, `check-indices` 14/14,
+  `experimentos/propostas/medir.js` 77/77.
+- Medido no Worker ao vivo (`batata`): título de 46px preso a 61px no celular, `--titulo-preso` =
+  `46px`; barra de 47px, `⋯` recebendo o toque, fora do ecrã ao descer e de volta ao subir.
 
 **O que ainda não está feito.**
-- **A escolha.** As propostas não mudam produção. Escolhido o desenho, ele vai para
-  `tools/templates/` com motivo declarado e commit próprio, e ganha prova de produto.
-- **As propostas saem do site** na primeira montagem sem `--com-propostas`. É deliberado; quem quiser
-  mostrá-las outra vez repete o comando.
-- A opção C do título depende de `.rail` e do `toc-local`, que existem no documento do pacote; numa
-  página sem índice lateral ela cai no comportamento da B. Não há hoje nenhuma página assim, mas a
-  condição não está provada — está só declarada no CSS.
+- **A página seguinte depois da aula não tem sido alvo de verificação de rolagem.** O mecanismo vale
+  para todo documento com `assets/nav.js`, mas só foi medido na aula 01.
+- **Duas provas antigas estão quebradas por expurgos, não por esta mudança:** `provar-dobra-do-indice`
+  aponta para `professores/tiago-menegaz/ciclos/ciclo-01-fita` e `provar-lancamento` para
+  `professores/tiago/ciclos/ciclo-01-maria` — pacotes que já não existem. Ficam registadas aqui em
+  vez de repontadas para outro ciclo: repontar mudaria o que elas medem, e isso é uma decisão sobre
+  os fixtures do expurgo.
+- **As bancadas saíram do site.** A montagem sem `--com-propostas` apaga `/propostas/`, e é o que
+  se quer agora que a escolha está feita; `construir.js` reconstrói as páginas quando for preciso
+  voltar a comparar.
+- A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
+  ter sido escolhida, e não como algo a implementar.
 
 ## O que está pendente
-
-## 20/10/2026 — a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
-
-
-- O `gerar_nav` do `gerar-ciclo.sh` e o `gerar_nav_zero` do `criar-escola.sh` continuam a escrever a
-  barra nos ficheiros. Agora é inócuo — a ponte sobrepõe-se —, mas é uma segunda construção a
-  manter até que os dois passem a escrever só o que a montagem não toca.
-- O `codigo: 'Benesh'` continua escrito à mão no `montar-publicacao.js`; devia vir do PO.
-- Os grupos «Área do Professor» e «Bastidores» são **copiados** do pacote-zero, e não reconstruídos:
-  as URLs deles carregam professor, escola e ciclo, e reescrevê-las seria uma segunda derivação dos
-  mesmos parâmetros. A consequência é que uma escola cujo pacote-zero tenha uma barra **sem** esses
-  blocos não os ganha por esta correcção — o `menuDaEscola` só publica o que encontra. Hoje as
-  escolas existentes têm-nos; a próxima que nascer sem eles ficará sem eles, em silêncio.
-- A barra dos **Bastidores** passa a ser a da escola (antes só levava de volta ao sistema), e o
-  contrário também: o painel passa a ser alcançável de qualquer página da escola.
-- Nada regenera `indices/` automaticamente: uma prova nova (como esta) obriga a correr
-  `node tools/gerar-indices.js` à mão.
 
 ## 20/10/2026 — o registro de notação passa a compor-se: o alfabeto é dado, e o motor recusa
 
@@ -301,6 +293,21 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - A opção C do título depende de `.rail` e do `toc-local`, que existem no documento do pacote; numa
   página sem índice lateral ela cai no comportamento da B. Não há hoje nenhuma página assim, mas a
   condição não está provada — está só declarada no CSS.
+
+## 21/10/2026 — o título que fica e a barra do lançamento no celular: as duas propostas escolhidas
+
+- **A página seguinte depois da aula não tem sido alvo de verificação de rolagem.** O mecanismo vale
+  para todo documento com `assets/nav.js`, mas só foi medido na aula 01.
+- **Duas provas antigas estão quebradas por expurgos, não por esta mudança:** `provar-dobra-do-indice`
+  aponta para `professores/tiago-menegaz/ciclos/ciclo-01-fita` e `provar-lancamento` para
+  `professores/tiago/ciclos/ciclo-01-maria` — pacotes que já não existem. Ficam registadas aqui em
+  vez de repontadas para outro ciclo: repontar mudaria o que elas medem, e isso é uma decisão sobre
+  os fixtures do expurgo.
+- **As bancadas saíram do site.** A montagem sem `--com-propostas` apaga `/propostas/`, e é o que
+  se quer agora que a escolha está feita; `construir.js` reconstrói as páginas quando for preciso
+  voltar a comparar.
+- A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
+  ter sido escolhida, e não como algo a implementar.
 
 ## Pendências anteriores (índice)
 
@@ -551,6 +558,7 @@ impede a próxima sessão de as tratar como esquecidas — ou de as inventar.
 - **20/10/2026** — o filtro dos sujeitos continuava sem funcionar: a chave… → `REGISTRO.md` L20660
 - **20/10/2026** — clicar na logo leva à raiz do domínio → `REGISTRO.md` L20730
 - **20/10/2026** — o ciclo é gerado e o menu não o mostra: a barra passa a ser… → `REGISTRO.md` L20803
+- **20/10/2026** — a barra de navegação deixa de ser escrita e passa a ser… → `REGISTRO.md` L20872
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

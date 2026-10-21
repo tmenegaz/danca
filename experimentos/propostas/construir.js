@@ -285,7 +285,7 @@ ${opcoes.map((o) => `      <li><button type="button" data-escolha="${o.id}" aria
 /** O esqueleto comum das duas páginas. O CSS do projeto entra AQUI, embutido. */
 function pagina({ titulo, opcaoInicial, corpo, cssExtra, scriptExtra, opcoes, bancada }) {
   return `<!DOCTYPE html>
-<html lang="pt-BR" data-opcao="${opcaoInicial}" data-titulo-preso="nao" data-titulo-encolhido="nao" data-rolando="sobe">
+<html lang="pt-BR" data-opcao="${opcaoInicial}" data-titulo-fixo="nao" data-titulo-preso="nao" data-titulo-encolhido="nao" data-rolando="sobe">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">

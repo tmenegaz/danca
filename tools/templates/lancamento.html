@@ -6,6 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lançamento de aula — formulário eletrônico</title>
 <link rel="stylesheet" href="assets/style.css">
+<script>/* Liga a barra compacta ANTES de a página pintar (21/10/2026): o atributo é posto
+   aqui, e não no script do fim do corpo, porque a barra já está à vista quando o corpo
+   ainda está a ser lido — ligá-la depois seria ver a barra encolher sozinha ao carregar.
+   Se este script não correr (JavaScript desligado), o atributo não existe e a barra fica
+   inteira: é o comportamento de sempre, e não um controle morto na tela. */
+document.documentElement.setAttribute('data-barra-compacta', 'sim');</script>
 <style>
   /* Sem `:root` aqui. Este arquivo é uma página do site e a paleta inteira vem de
      `assets/style.css`, que o `<link>` acima carrega ANTES deste bloco: enquanto havia um
@@ -60,6 +66,59 @@
                   flex-wrap:wrap; margin:22px 0 0; padding:10px 12px;
                   border-top:2px solid var(--borda); background:var(--fundo-suave); }
   .paginacao { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  /* A BARRA NO CELULAR (21/10/2026) — mix das opções 2 e 3 das propostas de layout.
+     Duas coisas juntas, e nenhuma delas é «esconder o controle»:
+
+       · COMPACTA EM REPOUSO. Num telefone a barra inteira ocupava 182px — 21% da
+         tela — mesmo quando não havia o que folhear (uma página em três). O que é
+         controle e não se usa sempre sai para o «⋯»; ficam os dois botões e a
+         contagem, em 47px. O «⋯» devolve o resto, e diz o que faz por `aria-expanded`.
+       · SAI AO DESCER, VOLTA AO SUBIR. Ao ler, a barra não serve; ao procurar, serve.
+         Ela desaparece na direção da leitura e reaparece — compacta — na direção
+         contrária. Não se perde o controle: ele está a um gesto de distância.
+
+     TUDO ISTO É OPT-IN, e o atributo é `data-barra-compacta` no `<html>`, posto pelo
+     script do `<head>` desta página. Sem JavaScript a barra fica INTEIRA, como sempre
+     ficou: a versão compacta esconde o seletor «Blocos por página», e quem abre o «⋯»
+     é o script — sem ele haveria um botão que não faz nada e um controle inalcançável.
+     É a mesma regra da dobra do índice: nada morto na tela.
+
+     O CORTE É O 900px, e no desktop NADA MUDA: lá a barra tem uma linha só e não come
+     altura de ninguém. A transição também só existe aqui — quem pediu menos movimento
+     no sistema recebe o esconder sem animação, e não a barra sempre à vista. */
+  .mais { display:none; cursor:pointer; background:var(--fundo-faixa);
+          border:1px solid var(--borda); border-radius:6px; padding:4px 10px;
+          font:700 15px/1 var(--ui); color:var(--marca-texto); }
+  @media (max-width: 899px) {
+    [data-barra-compacta="sim"] footer.barra-de-controle { gap:4px 10px; padding:6px 10px;
+                  transition:transform .18s ease, opacity .18s ease; }
+    /* O «voltar ao topo» é um círculo FIXO no canto inferior direito (46px, a 18px da
+       borda) e ficava POR CIMA da barra — na versão compacta, exactamente em cima do «⋯»,
+       que é o único controle que ela tem: um dedo caía no botão errado. Os dois passam a
+       ficar EMPILHADOS, e não sobrepostos: o círculo sobe para cima da barra, pela altura
+       MEDIDA dela (`--barra-altura`, publicada pelo script a cada mudança de estado). A
+       alternativa — reservar uma faixa à direita dentro da barra — foi medida e reprovada:
+       com 70px a menos a paginação quebrava em duas linhas e a barra ia de 47 para 76px. */
+    [data-barra-compacta="sim"] .topo {
+      bottom: calc(var(--barra-altura, 62px) + 12px); }
+    [data-barra-compacta="sim"] footer.barra-de-controle .por-pagina,
+    [data-barra-compacta="sim"] footer.barra-de-controle .contagem { display:none; }
+    [data-barra-compacta="sim"] footer.barra-de-controle .mais { display:inline-block;
+                  margin-left:auto; }
+    [data-barra-compacta="sim"] footer.barra-de-controle[data-aberto="sim"] .por-pagina,
+    [data-barra-compacta="sim"] footer.barra-de-controle[data-aberto="sim"] .contagem {
+                  display:inline; }
+    [data-barra-compacta="sim"] footer.barra-de-controle[data-aberto="sim"] .por-pagina {
+                  width:100%; }
+    [data-barra-compacta="sim"] footer.barra-de-controle .paginacao { gap:6px; }
+    [data-barra-compacta="sim"] footer.barra-de-controle strong { font-size:13px; }
+    [data-barra-compacta="sim"] footer.barra-de-controle button { padding:4px 9px; }
+    [data-barra-compacta="sim"][data-rolando="desce"] footer.barra-de-controle {
+      transform:translateY(130%); opacity:0; pointer-events:none; }
+  }
+  @media (max-width: 899px) and (prefers-reduced-motion: reduce) {
+    [data-barra-compacta="sim"] footer.barra-de-controle { transition:none; }
+  }
   /* Captura: um painel de lançamento, fechado por padrão (a leitura vem primeiro). */
   .captura { border:1px solid var(--borda-campo); border-radius:6px; padding:8px 12px;
              margin:0 0 18px; background:var(--fundo-suave); }
@@ -97,7 +156,12 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
      lugar no fluxo. -->
 <!-- NAV -->
 <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>
+<!-- O título é a marca do que o `assets/nav.js` prende e encolhe (21/10/2026): esta
+     página não é documento pandoc — não tem `header.doc` — e ainda assim pede o mesmo
+     comportamento, porque é a tela mais longa do site depois da aula. -->
+<div class="titulo-fixo">
 <h1>Lançamento de aula — formulário eletrônico</h1>
+</div>
 <div class="aviso">
   <strong>Área do Professor.</strong> Aqui você lê os dados da aula, <strong>salva</strong> o
   lançamento, faz ajustes e gera os relatórios.
@@ -165,7 +229,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
 <!-- Rodapé: tamanho da página e navegação. Não é conteúdo — é o controle de
      quem lê, então fica sempre no pé da tela, nunca escondido. -->
 <footer class="barra-de-controle">
-  <span><label class="campo-rotulo em-linha" for="porPagina">Blocos por página:</label>
+  <span class="por-pagina"><label class="campo-rotulo em-linha" for="porPagina">Blocos por página:</label>
     <select id="porPagina">
       <option value="5">5</option>
       <option value="10">10</option>
@@ -173,6 +237,10 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
       <option value="100">100</option>
     </select></span>
   <nav id="paginacao" class="paginacao" aria-label="Paginação"></nav>
+  <!-- O «⋯» existe só onde a barra é compacta (o CSS o esconde acima de 900px). Ele
+       abre e fecha o que a versão compacta guarda, e anuncia o estado. -->
+  <button type="button" id="maisPag" class="mais" aria-expanded="false"
+          aria-controls="porPagina paginacao" title="Mais opções da barra">&#8943;</button>
 </footer>
 
 <!-- As duas libs do projeto, publicadas em assets/ pelo gerador: o pacote é o que se publica, e
@@ -524,7 +592,7 @@ function barra(total, quantos) {
   return botao(pagina - 1, '‹ anterior') +
     `<strong>Página ${pagina} de ${total}</strong>` +
     botao(pagina + 1, 'próxima ›') +
-    `<span class="fraco">${quantos} bloco(s) no filtro</span>`;
+    `<span class="fraco contagem">${quantos} bloco(s) no filtro</span>`;
 }
 
 // --------------------------------------------------------------- proveniência
@@ -1863,6 +1931,47 @@ async function trocarCiclo() {
       pagina = Number(b.dataset.ir);
       render();
     });
+    // A BARRA COMPACTA DO CELULAR (21/10/2026). O «⋯» mostra o que a versão compacta
+    // guarda. O estado mora no `<footer>` (é dele, não do botão) e o botão o anuncia.
+    // As duas medidas foram as propostas 2 e 3 escolhidas: compacta em repouso, e fora
+    // da frente enquanto se lê.
+    const barraCtl = document.querySelector('footer.barra-de-controle');
+    const maisCtl = el('maisPag');
+    if (barraCtl && maisCtl) {
+      // A ALTURA DA BARRA, publicada para o «voltar ao topo» se pôr acima dela. Medida
+      // depois de cada mudança de estado: a barra aberta é mais alta que a compacta.
+      const publicarAltura = () => {
+        document.documentElement.style.setProperty(
+          '--barra-altura', Math.round(barraCtl.getBoundingClientRect().height) + 'px');
+      };
+      publicarAltura();
+      window.addEventListener('resize', publicarAltura);
+      window.addEventListener('load', publicarAltura);
+      maisCtl.addEventListener('click', () => {
+        const aberto = barraCtl.getAttribute('data-aberto') === 'sim';
+        barraCtl.setAttribute('data-aberto', aberto ? 'nao' : 'sim');
+        maisCtl.setAttribute('aria-expanded', String(!aberto));
+        publicarAltura();
+      });
+      // A direção da rolagem é do documento, e o limiar de 6px ignora o tremor do dedo
+      // e o eco do momento em que a barra aparece — sem ele a barra pisca.
+      let ultimoY = window.scrollY, pedidoRolar = false;
+      window.addEventListener('scroll', () => {
+        if (pedidoRolar) return;
+        pedidoRolar = true;
+        requestAnimationFrame(() => {
+          pedidoRolar = false;
+          const y = window.scrollY;
+          if (Math.abs(y - ultimoY) > 6) {
+            // Abaixo de 120px ainda se está a chegar à página: esconder aí seria
+            // esconder o controle antes de ele ter sido visto.
+            document.documentElement.setAttribute('data-rolando',
+              (y > ultimoY && y > 120) ? 'desce' : 'sobe');
+            ultimoY = y;
+          }
+        });
+      }, { passive: true });
+    }
     // Os três entregáveis: as opções nascem UMA vez; o filtro decide o que dá para gerar.
     montarEntregaveis();
     entrega.addEventListener('change', () => {

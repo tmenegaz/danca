@@ -21311,3 +21311,84 @@ páginas viajam inteiras.
 - A opção C do título depende de `.rail` e do `toc-local`, que existem no documento do pacote; numa
   página sem índice lateral ela cai no comportamento da B. Não há hoje nenhuma página assim, mas a
   condição não está provada — está só declarada no CSS.
+
+## 21/10/2026 — o título que fica e a barra do lançamento no celular: as duas propostas escolhidas
+
+**O que foi decidido — pela pesquisadora, sobre as bancadas de `experimentos/propostas/`.**
+Escolhidas duas das oito opções que estavam à comparação:
+
+- **Título: a opção B — «encolhe ao rolar»**, no desktop e no celular. O cabeçalho prende-se ao
+  topo e diminui: o subtítulo e a ficha saem, o `h1` desce de 31px para 17px.
+- **Barra do lançamento: um MIX da 2 com a 3** — «esconde ao descer, e quando reaparece aparece
+  compacta». Não foi nenhuma das duas isoladamente; foi a 3 com o corpo da 2.
+
+**O que mudou, medido.**
+Título: **146px → 25px** no desktop, **46px** no celular (5,4% da tela de 844, onde o título quebra
+em duas linhas). Barra: **87px → 47px** na página real; no formulário mais denso da bancada,
+**182px → 47px**. E ela sai da frente ao descer, voltando compacta ao subir.
+
+**Motivo declarado — os congelados.**
+`tools/templates/ciclo.css`, `tools/templates/nav.js` e `tools/templates/lancamento.html` são
+congelados e mudam aqui. O motivo é o pedido, não uma preferência de implementação: o título que
+não se perde é a decisão tomada sobre uma bancada medida, e a bancada não muda produção. **O que não
+muda:** a fórmula do hash, a cobertura da âncora, os validadores, as 17 regras, as 22 pétreas, a
+paleta, a tipografia e o desenho de qualquer componente existente. As duas mudanças acrescentam
+estado de rolagem; nenhum valor da identidade foi redefinido.
+
+**Onde entrou.**
+- `tools/templates/ciclo.css` — o componente do título (opt-in por `data-titulo-fixo`), e o elo que
+  faltava: `--titulo-preso` entra no `scroll-padding-top` e no `top` da coluna do índice. Sem isso o
+  alvo de «Nesta página» e o bloco «Nesta página» ficariam debaixo do título preso.
+- `tools/templates/nav.js` — o mecanismo (prende, mede, encolhe), num segundo bloco independente da
+  barra de navegação, porque depende de haver título e não de haver barra.
+- `tools/templates/lancamento.html` — a barra compacta, o «⋯», o esconder por direção de rolagem, e
+  o `h1` marcado como `.titulo-fixo`.
+- `experimentos/provar-titulo-e-barra.js` — **novo**, 27 verificações em navegador.
+- `experimentos/propostas/construir.js` — as bancadas passam a declarar `data-titulo-fixo="nao"`:
+  elas comparam cinco desfechos do mesmo mecanismo, e com o mecanismo do produto a mexer as cinco
+  ficariam iguais.
+- `IDENTIDADE-VISUAL.md` — as duas secções novas, com as tabelas e as provas.
+- as cópias dos assets nos pacotes e na raiz (`gerar-raiz.sh` + regeneração do ciclo).
+
+**Três defeitos e uma regressão que a medição encontrou — e nenhum deles era visível a olho.**
+1. **A medição era animada.** Pôr o estado encolhido e ler a altura no mesmo instante devolvia o
+   tamanho a meio da transição: **43px** onde o estado final mede **25px**. O número errado não
+   aparecia na tela, mas ficava em `--titulo-preso` — e essa é a altura que o resto da folha
+   RESERVA. Daria 18px de folga a mais no celular, e o alvo da âncora pararia longe do topo.
+2. **O «voltar ao topo» ficava por cima do «⋯».** Um círculo fixo no canto (46px, a 18px da borda)
+   cobria exactamente o único controle da barra compacta: um dedo caía no botão errado. Nenhuma
+   medida de caixa denuncia um controle coberto — ele existe, mede 0 de distância e não recebe
+   toque. A prova passou a perguntar `elementFromPoint`.
+3. **A primeira correção do (2) foi medida e reprovada.** Reservar 70px à direita dentro da barra
+   resolvia a sobreposição, mas a paginação quebrava em duas linhas: a barra ia de 47 para 76px. A
+   solução é empilhar — o círculo sobe pela altura MEDIDA da barra.
+4. **O sem-JavaScript estava morto.** A versão compacta esconde o seletor «Blocos por página» e o
+   «⋯» é que o devolve; sem script, o seletor ficava inalcançável e o botão não fazia nada. Tudo
+   passou a ser opt-in (`data-barra-compacta`, posto no `<head>` antes de a página pintar).
+
+**Com o quê.**
+- `node experimentos/provar-titulo-e-barra.js` → **27 asserções, 0 falha**, em 1280 e 390. **Contra
+  o `HEAD` anterior: 13 falham** — as seis do título e as da barra —, o que mostra que as medidas
+  medem o mecanismo e não a si mesmas.
+- `node tools/check-identidade.js` → 19 verificações, todas verdes (as cópias dos assets batem).
+- `node tools/check-pacote.js` no pacote do `batata` → 0 erro, 0 aviso; âncora intacta
+  (`c6be47d7…`).
+- `provar-celular` 15/15, `provar-paginacao` 121/121, `provar-barra-unica` 53/53,
+  `provar-notacao` 66/66, `provar-senha-do-lancamento` 19/19, `check-indices` 14/14,
+  `experimentos/propostas/medir.js` 77/77.
+- Medido no Worker ao vivo (`batata`): título de 46px preso a 61px no celular, `--titulo-preso` =
+  `46px`; barra de 47px, `⋯` recebendo o toque, fora do ecrã ao descer e de volta ao subir.
+
+**O que ainda não está feito.**
+- **A página seguinte depois da aula não tem sido alvo de verificação de rolagem.** O mecanismo vale
+  para todo documento com `assets/nav.js`, mas só foi medido na aula 01.
+- **Duas provas antigas estão quebradas por expurgos, não por esta mudança:** `provar-dobra-do-indice`
+  aponta para `professores/tiago-menegaz/ciclos/ciclo-01-fita` e `provar-lancamento` para
+  `professores/tiago/ciclos/ciclo-01-maria` — pacotes que já não existem. Ficam registadas aqui em
+  vez de repontadas para outro ciclo: repontar mudaria o que elas medem, e isso é uma decisão sobre
+  os fixtures do expurgo.
+- **As bancadas saíram do site.** A montagem sem `--com-propostas` apaga `/propostas/`, e é o que
+  se quer agora que a escolha está feita; `construir.js` reconstrói as páginas quando for preciso
+  voltar a comparar.
+- A proposta da opção A no celular ocupava 374px — 44% da tela. Fica no registo como a razão de não
+  ter sido escolhida, e não como algo a implementar.

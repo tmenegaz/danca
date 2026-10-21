@@ -906,6 +906,62 @@ nasce recolhido, o ganho é medido, o toque expande e recolhe, o estado é lembr
 e na página seguinte, o corte é 1199 × 1200, a memória é ignorada em tela larga, sem JS não há
 botão, no papel o índice sai inteiro, e nenhuma largura estoura.
 
+## O título que fica *(21/10/2026)*
+
+A página da aula tem 15 ecrãs, e o título — que diz de que documento se trata — saía da tela na
+primeira rolagem. A **opção B** das quatro medidas em
+`experimentos/propostas/proposta-titulo.html` foi a escolhida: o cabeçalho **prende-se** ao topo e
+**encolhe**. Ele continua a dizer o que é, e devolve a altura à leitura.
+
+| O que | Como |
+| --- | --- |
+| **Onde mora** | `header.doc` no documento; `.titulo-fixo` no `lancamento.html`, que não é documento pandoc. Um mecanismo, uma marca |
+| **O que faz** | o subtítulo e a ficha saem; o `h1` desce de 31px para 17px. **146px → 25px** no desktop; **46px** no celular (5,4% da tela de 844), onde o título quebra em duas linhas |
+| **A altura é MEDIDA** | `--titulo-preso`, publicada pelo `assets/nav.js`, com a medição feita **sem transição**: medir com a animação a correr dava 43px onde o estado final mede 25px |
+| **Onde ela é usada** | `scroll-padding-top` e o `top` da coluna do índice — o alvo de «Nesta página» e o bloco «Nesta página» param **abaixo** do título, e não debaixo dele |
+| **Sem JavaScript** | **nada fica preso.** O estado é de rolagem, e sem script ninguém o sabe: a página é a de antes, em vez de ficar presa e nunca encolher |
+| **Na folha de captura** | **não entra.** É folha de marcação, de usar em aula e imprimir; a exclusão é pela rota (`/captura-aula-NN.html`), não por uma lista de nomes de documento |
+| **No papel** | o cabeçalho sai **inteiro**, no lugar: papel não tem estado de rolagem. As duas declarações repõem o que a fonte já dizia, porque `display` não tem como «voltar ao que era» (o `.ficha` é flex) |
+| **A página pode recusar** | `data-titulo-fixo="nao"` no `<html>`. Quem usa: as bancadas de `experimentos/propostas/`, que comparam cinco desfechos do mesmo mecanismo e trazem o seu |
+
+**A marca é uma classe, e não o `header.doc`.** O `lancamento.html` é a tela mais longa do site
+depois da aula e pede o mesmo comportamento, mas não tem `header.doc` — tem um `<h1>` solto e uma
+folha própria. `nav.js` põe a classe onde ela falta; o template a declara onde ela existe.
+
+**Prova.** `node experimentos/provar-titulo-e-barra.js` — 27 verificações em navegador, em 1280 e
+390: nasce destravado, prende-se ao rolar, encolhe, a altura reservada é a medida, a âncora chega
+inteira, sem JS nada fica preso, a folha de captura fica de fora, no papel sai inteiro, e não há
+estouro horizontal. Contra o `HEAD` anterior, **13 falham** — as seis do título e as da barra.
+
+## A barra do lançamento no celular *(21/10/2026)*
+
+O rodapé de paginação do lançamento é `position: sticky; bottom: 0` — nunca sai de vista. Num
+telefone ele ocupava **21% da tela** com três linhas, mesmo quando não havia o que folhear. A
+escolha foi um **mix** das opções 2 e 3 da proposta:
+
+| O que | Como |
+| --- | --- |
+| **Compacta em repouso** | ficam os dois botões e a contagem; «Blocos por página» e o total vão para o **«⋯»**, que os devolve e anuncia o estado em `aria-expanded`. **87px → 47px** (no formulário mais denso da proposta, 182px → 47px) |
+| **Sai ao descer, volta ao subir** | ao ler a barra não serve, ao procurar serve. Ela desaparece na direção da leitura e reaparece — compacta — na contrária. O limiar de 6px ignora o tremor do dedo, e abaixo de 120px ela não esconde: seria esconder o controle antes de ele ter sido visto |
+| **O corte** | 900px. **No desktop nada muda**: lá ela tem uma linha só e não come altura de ninguém |
+| **Sem JavaScript** | a barra fica **inteira** e o «⋯» não aparece. A versão compacta esconde um controle, e quem o abre é o script: sem ele haveria um botão que não faz nada e um seletor inalcançável. O atributo é posto no `<head>`, antes de a página pintar, para a barra não encolher sozinha ao carregar |
+| **Menos movimento** | `prefers-reduced-motion` tira a animação, e não o esconder |
+
+**O defeito que a medição encontrou, e que não era de CSS.** O «voltar ao topo» é um círculo fixo
+no canto inferior direito (46px, a 18px da borda) e ficava **por cima** da barra — na versão
+compacta, exactamente em cima do «⋯», que é o único controle que ela tem: um dedo caía no botão
+errado. Um controle coberto existe na marcação, mede 0 de distância e não recebe toque nenhum —
+nenhuma medida de caixa o denuncia. A prova passou a perguntar `elementFromPoint` no centro do «⋯».
+
+A primeira correção foi **medida e reprovada**: reservar 70px à direita dentro da barra mantinha a
+barra livre do círculo, mas a paginação quebrava em duas linhas e a barra ia de 47 para 76px. Os
+dois controles passaram a ficar **empilhados**: o círculo sobe para cima da barra pela altura
+**medida** dela (`--barra-altura`), que o script republica sempre que a barra abre ou fecha.
+
+**Prova.** A mesma `provar-titulo-e-barra.js`: 27 verificações, das quais as da barra medem a
+altura, o que está debaixo do «⋯», o empilhamento com a barra aberta, o esconder e o voltar, o
+desktop intacto e o sem-JavaScript.
+
 ## A funcionalidade planejada — configuração de aparência *(o catálogo, **não** implementado)*
 
 **O que é.** Uma entrada no **painel administrativo privado**, na área de configuração do sistema,

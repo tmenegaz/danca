@@ -91,6 +91,7 @@ experimentos/*
 !experimentos/provar-selo.js
 !experimentos/provar-ambiente.js
 !experimentos/provar-dobra-do-indice.js
+!experimentos/provar-titulo-e-barra.js
 !experimentos/provar-aparencia.js
 !experimentos/provar-ato-e-barra.js
 # A prova do plano e da anamnese: o REGISTRO cita-a por nome («125 de 125»), e uma prova

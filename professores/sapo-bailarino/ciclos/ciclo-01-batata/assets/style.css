@@ -81,6 +81,14 @@
      template mede a altura real e sobrescreve esta variável. */
   --header-height: 120px;
 
+  /* Altura que o TÍTULO PRESO ocupa, e que portanto NÃO é leitura (21/10/2026).
+     Fica 0px quando não há título preso — a folha de captura, uma página sem
+     `header.doc`, ou o navegador sem JavaScript —, e o `scroll-padding-top` e a
+     coluna do índice voltam a ser exactamente o que eram. Publicada pelo
+     `assets/nav.js`, que é quem mede: é um número MEDIDO, não estimado, porque
+     ele muda com a largura (o título pode quebrar em duas linhas no celular). */
+  --titulo-preso: 0px;
+
   /* --- A ESCALA (Fase 1) -----------------------------------------------------------
      Espaço, raio e corpo de texto em degraus declarados. Os componentes usam estes
      nomes; um valor que não esteja aqui é um desvio que se vê na revisão. As medidas
@@ -493,8 +501,12 @@
 
 html {
   scroll-behavior: smooth;
-  /* âncoras (#id) param abaixo da barra fixa, em vez de ficarem escondidas sob ela */
-  scroll-padding-top: calc(var(--header-height) + 8px);
+  /* âncoras (#id) param abaixo da barra fixa, em vez de ficarem escondidas sob ela —
+     e abaixo TAMBÉM do título preso, quando ele existe (21/10/2026). Sem a segunda
+     parcela, o alvo de «Nesta página» parava debaixo do título: o `scroll-padding`
+     reservava só a barra, e os 25px do título ficavam por cima do que se foi buscar.
+     `--titulo-preso` é 0px onde não há título preso, então isto é o valor de antes. */
+  scroll-padding-top: calc(var(--header-height) + var(--titulo-preso) + 8px);
 }
 
 body {
@@ -629,6 +641,59 @@ header.doc .subtitulo { color: var(--texto-suave); font-style: italic; margin: 0
   padding: 0 var(--esp-2); font-size: 13px; color: var(--marca-texto);
 }
 
+/* ---------- o título que fica (21/10/2026) -----------------------------------------
+   A página da aula tem 15 ecrãs; o título diz de que documento se trata e saía da
+   tela na primeira rolagem. A proposta escolhida — «B · encolhe», entre quatro
+   medidas — prende o cabeçalho ao topo e o ENCOLHE: o subtítulo e a ficha saem, o
+   `h1` desce de 31px para 17px. Ele continua a dizer o que é, e devolve a altura à
+   leitura. Medido no documento real da aula 01: 146px inteiro → 25px encolhido no
+   desktop, 46px no celular (onde o título quebra em duas linhas — 5,4% da tela).
+
+   É OPT-IN, e o atributo é do `<html>`: `data-titulo-fixo="sim"` só existe depois de
+   o `assets/nav.js` o pôr. Duas consequências, e as duas são de propósito:
+
+   · SEM JAVASCRIPT nada fica preso. O estado é de rolagem, e sem script ninguém o
+     sabe — a página fica como sempre esteve, em vez de ficar presa e nunca encolher;
+   · A FOLHA DE CAPTURA NÃO ENTRA. Ela é uma folha de marcação para usar DURANTE a
+     aula e imprimir; um título preso ali come a altura de um formulário denso e não
+     serve a nada. Quem a exclui é o script, pela rota (`/captura-aula-NN.html`), e
+     não uma lista de nomes de documento.
+
+   O `.titulo-fixo` é a MARCA do que pode ser preso, e não o próprio `header.doc`: o
+   `lancamento.html` não é documento pandoc — tem um `<h1>` solto e uma folha própria —
+   e ainda assim pede o mesmo comportamento. Um mecanismo, uma classe; cada superfície
+   diz onde ele mora. */
+[data-titulo-fixo="sim"] .titulo-fixo {
+  position: sticky; top: var(--header-height); z-index: 15;
+  /* o fundo é OPACO e cobre a caixa inteira: sem ele o texto que passa por baixo
+     aparece através do título, e o resultado é ilegível — não é decoração */
+  background: var(--fundo);
+  box-shadow: 0 1px 0 var(--borda);
+}
+[data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo h1 {
+  font-size: 17px; border-bottom-width: 1px; padding-bottom: 4px; margin-bottom: 2px;
+  transition: font-size .15s ease;
+}
+[data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .subtitulo,
+[data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .ficha { display: none; }
+@media (prefers-reduced-motion: reduce) {
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo h1 { transition: none; }
+}
+/* O PAPEL NÃO TEM ESTADO DE ROLAGEM: no papel o cabeçalho sai INTEIRO, no lugar, como
+   sempre saiu — e as duas declarações repõem o que a fonte já dizia, porque `display`
+   não tem como «voltar ao que era» (o `.ficha` é flex, e `revert` devolveria o `p`). */
+@media print {
+  [data-titulo-fixo="sim"] .titulo-fixo {
+    position: static !important; background: none !important; box-shadow: none !important;
+  }
+  /* sem transição no papel: ela faria o `h1` sair a 18px, a meio caminho do corpo com que
+     o documento é impresso */
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo h1 {
+    font-size: 31px; transition: none; }
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .ficha { display: flex; }
+  [data-titulo-fixo="sim"][data-titulo-encolhido="sim"] .titulo-fixo .subtitulo { display: block; }
+}
+
 main h2 { color: var(--marca); font-size: 23px; margin: 32px 0 8px; }
 main h3 { color: var(--marca); font-size: 19px; margin: 24px 0 8px; }
 main h4 { color: var(--marca-texto); font-size: 17px; margin: 16px 0 4px; }
@@ -726,9 +791,12 @@ li { margin: 4px 0; }
   .rail { grid-column: 2; grid-row: 1; }
   .toc-local {
     position: sticky;
-    top: calc(var(--header-height) + 8px);
+    /* A coluna pára abaixo do TÍTULO PRESO, não abaixo da barra (21/10/2026): com o
+       título colado ao topo, o bloco «Nesta página» subia e o começo dele — o próprio
+       rótulo — ficava por baixo do título. Mesmo número, mesma variável. */
+    top: calc(var(--header-height) + var(--titulo-preso) + 8px);
     /* para antes do botão "voltar ao topo" (fixo no canto), e rola por dentro se for longo */
-    max-height: calc(100vh - var(--header-height) - 96px);
+    max-height: calc(100vh - var(--header-height) - var(--titulo-preso) - 96px);
     overflow-y: auto;
   }
 }

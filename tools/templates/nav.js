@@ -236,3 +236,94 @@
     ajustarAlturaNavbar();
   });
 })();
+
+/* ======================================================================
+ * O TÍTULO QUE FICA (21/10/2026) — «B · encolhe», a opção escolhida das
+ * quatro propostas medidas em `experimentos/propostas/proposta-titulo.html`.
+ *
+ * Fica num segundo bloco, e NÃO lá dentro, por uma razão: o bloco de cima
+ * sai cedo quando a página não tem barra (`if (!navbar) return`), e o
+ * comportamento do título não depende da barra — depende de haver título.
+ *
+ * Por que aqui e não no HTML: o documento do pacote é GERADO (pandoc +
+ * `ciclo.html`), e um pacote já gerado ficaria sem o comportamento até a
+ * geração seguinte. É a MESMA excepção declarada da dobra do índice.
+ *
+ * O QUE ELE FAZ, e só isso:
+ *   1. marca o cabeçalho como preso possível (`.titulo-fixo`) e liga o
+ *      mecanismo no `<html>` (`data-titulo-fixo="sim"`);
+ *   2. mede a ALTURA ENCOLHIDA e publica-a em `--titulo-preso`, que o CSS usa
+ *      no `scroll-padding-top` e na coluna do índice. Medida, não estimada:
+ *      no celular o título quebra em duas linhas e a altura muda;
+ *   3. ao rolar, diz se está encolhido (`data-titulo-encolhido`).
+ *
+ * A MEDIÇÃO NÃO PISCA. Ela põe o estado encolhido, lê a altura e repõe — tudo
+ * dentro do mesmo bloco de script. O navegador só pinta depois de a tarefa
+ * terminar, então nada disto chega a ser visto; e o que se mede é o estado
+ * real, que é o único número honesto para reservar.
+ */
+(function () {
+  var raiz = document.documentElement;
+  /* A PÁGINA PODE RECUSAR, e a recusa é explícita: `data-titulo-fixo="nao"` no `<html>`.
+     Existe por um consumidor real — as bancadas de `experimentos/propostas/`, que comparam
+     cinco desfechos do MESMO mecanismo e por isso trazem o seu próprio: com este bloco a
+     mexer, todas as cinco ficariam presas e encolhidas, e a comparação desapareceria. */
+  if (raiz.getAttribute('data-titulo-fixo') === 'nao') return;
+  var cabecalho = document.querySelector('.titulo-fixo') || document.querySelector('header.doc');
+  if (!cabecalho) return;
+  /* A FOLHA DE CAPTURA FICA DE FORA: é folha de marcação, para usar em aula e
+     imprimir. A rota é a convenção do gerador para ela (`captura-aula-NN.html`). */
+  if (/\/captura-aula-[^\/]+\.html$/.test(location.pathname)) return;
+
+  cabecalho.classList.add('titulo-fixo');
+  raiz.setAttribute('data-titulo-fixo', 'sim');
+
+  var alturaPreso = 0;
+
+  /* A MEDIÇÃO NÃO PODE SER ANIMADA. O `h1` tem `transition: font-size`, e pôr o estado
+     encolhido e ler a altura no mesmo instante devolve o tamanho A MEIO CAMINHO — 43px
+     num documento onde o estado final mede 25px. O número errado não fica na tela (a
+     transição segue o seu curso), mas fica em `--titulo-preso`, que é o espaço que o
+     resto da folha RESERVA: daria 18px de folga a mais no celular, e o alvo da âncora
+     pararia longe do topo. A transição é desligada só durante a leitura. */
+  function medirEncolhido() {
+    var antes = raiz.getAttribute('data-titulo-encolhido');
+    var titulo = cabecalho.querySelector('h1');
+    raiz.setAttribute('data-titulo-encolhido', 'sim');
+    if (titulo) titulo.style.transition = 'none';
+    alturaPreso = Math.ceil(cabecalho.getBoundingClientRect().height);
+    if (titulo) titulo.style.transition = '';
+    if (antes === null) raiz.removeAttribute('data-titulo-encolhido');
+    else raiz.setAttribute('data-titulo-encolhido', antes);
+    if (alturaPreso > 0) raiz.style.setProperty('--titulo-preso', alturaPreso + 'px');
+  }
+
+  /* O estado é da ROLAGEM, e o limiar de 8px evita que um tremor de trackpad
+     faça o título piscar entre os dois tamanhos. */
+  function pintar() {
+    var encolhido = window.scrollY > 8;
+    raiz.setAttribute('data-titulo-encolhido', encolhido ? 'sim' : 'nao');
+  }
+
+  var pedido = false;
+  function aoRolar() {
+    if (pedido) return;
+    pedido = true;
+    requestAnimationFrame(function () {
+      pedido = false;
+      var era = raiz.getAttribute('data-titulo-encolhido');
+      pintar();
+      /* Mede outra vez só quando o título ACABOU de encolher: aí ele está no estado
+         que se quer medir, sem forçar nada, e o número acompanha a largura nova. */
+      if (raiz.getAttribute('data-titulo-encolhido') === 'sim' && era !== 'sim') medirEncolhido();
+    });
+  }
+
+  medirEncolhido();
+  pintar();
+  window.addEventListener('scroll', aoRolar, { passive: true });
+  window.addEventListener('resize', function () { medirEncolhido(); pintar(); });
+  window.addEventListener('load', function () { medirEncolhido(); pintar(); });
+  /* Página restaurada do cache do navegador: volta já rolada, com o estado de antes. */
+  window.addEventListener('pageshow', function () { pintar(); });
+})();
