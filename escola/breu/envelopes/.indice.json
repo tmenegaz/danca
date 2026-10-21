@@ -1,7 +1,8 @@
 {
   "versao": 3,
   "nomes": [
-    "anamnese-20261021-1615.json"
+    "anamnese-20261021-1615.json",
+    "plano-20261021-1618.json"
   ],
   "resumos": {
     "anamnese-20261021-1615.json": {
@@ -12,6 +13,20 @@
       "ciclo": "01",
       "ajuste_de": null,
       "aluna": "Aluna A"
+    },
+    "plano-20261021-1618.json": {
+      "id": "plano-20261021-1618",
+      "fonte": "plano",
+      "escola": "breu",
+      "professor": "vaso-bonito",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "objetivo": "Objetivo de teste 3: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 3, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 1 — Teste 3",
+      "repertorio": [
+        "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "Vaso Bonito"
     }
   }
 }
