@@ -40,8 +40,8 @@
           "professores/sapo-bailarino/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
           "professores/sapo-bailarino/ciclos/ciclo-01.conf"
         ],
-        "hash": "3daaa5026509cae9a94bbbd7575da03ced6fee0a7b927ef713260a97acbbdb90",
-        "hash_conteudo": "6f281222d64e132b8c0751db647fc3521222893d2ef7efb008905f975aed1af2",
+        "hash": "c6be47d77f2695026078fedd7f33ea9cf38ec5a9e0414d49086ee34b3f610a26",
+        "hash_conteudo": "bdc91464386d225e1330cf015be99327413b8f79a3990c3cc20f92a18682c918",
         "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
@@ -463,9 +463,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0d65a96"
+    "commit": "f5763c4"
   },
-  "gerado_em": "2026-10-20T13:54",
+  "gerado_em": "2026-10-21T01:11",
   "nao_indexado": [
     {
       "familia": "conteudo",

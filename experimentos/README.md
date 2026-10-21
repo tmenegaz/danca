@@ -306,3 +306,16 @@ Quem for revisar a identidade **não deve olhar para estas cópias**: elas diver
 (registram um estado passado). Se um experimento passar a ser demonstração viva, a folha dele deve
 ser **copiada da fonte** no momento em que ele for montado — como o `gerar-ciclo.sh` e o
 `gerar-raiz.sh` fazem —, e não versionada à mão.
+
+## 20/10/2026 — `provar-notacao.js`: o registro de notação compõe-se, ou declara
+
+O registro em Benesh saía com `[Preencher: notação do exercício]` em todas as linhas e um glossário
+com três convenções. O que faltava era o **alfabeto**, e ele passou a ser dado
+(`biblioteca/notacao/`). A prova mede o motor em cinco secções — o alfabeto, a composição, **a
+recusa**, o par registro × glossário pelo validador do projeto (`tools/check-glossario.js`), e a
+degradação para uma notação sem alfabeto. 55 asserções.
+
+O centro dela é a secção **C**: quatro alfabetos deliberadamente estragados (um exercício sem
+verbetes, uma música que o verbete não cobre, um sinal fora do alfabeto, uma cobertura que os
+segmentos não somam) têm de cair em **lacuna declarada**, com o motivo escrito. É o que separa um
+motor de um gerador plausível.

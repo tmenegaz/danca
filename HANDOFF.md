@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-20T10:56:30-0300`
-Commit atual: `0d65a96` — docs(registro): o HANDOFF cita a barra única por domínio
+Gerado em: `2026-10-20T22:13:35-0300`
+Commit atual: `f5763c4` — fix(estrutura): a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -63,6 +63,7 @@ tiago-menegaz (2)
 ## Últimos commits
 
 ```
+f5763c4 fix(estrutura): a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
 0d65a96 docs(registro): o HANDOFF cita a barra única por domínio
 f59810e feat(estrutura): uma barra só por domínio, dinâmica, e o êxito da geração leva à página da escola
 623c05a docs(registro): o HANDOFF cita a logo como link para o domínio
@@ -82,7 +83,6 @@ b76c2ec feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md
 5b257ef feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-referencias.md
 71e2011 feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md
-30f2f88 feat(po): o PO elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -101,7 +101,7 @@ f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `c723e88de775` | (vazio) | — |
-| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `3daaa5026509` | (vazio) | Input_PO_Aguardando |
+| batata-bale-nivel-1-teste-2 | ciclo-01-batata-bale-nivel-1-teste-2.fipp | `c6be47d77f26` | (vazio) | Input_PO_Aguardando |
 | batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `7802a397dff5` | (vazio) | — |
 | batata-bale-nivel-3-teste-2 | ciclo-01-batata-bale-nivel-3-teste-2.fipp | `00e94b5840d9` | (vazio) | — |
 
@@ -154,110 +154,107 @@ f02758b feat(ciclo): o «Guardar» do PO deriva ciclo-01-batata-bale-nivel-1-tes
 
 ## Última entrada do REGISTRO
 
-## 20/10/2026 — a barra de navegação deixa de ser escrita e passa a ser desenhada ao servir
+## 20/10/2026 — o registro de notação passa a compor-se: o alfabeto é dado, e o motor recusa
 
 **O que aconteceu.**
-A correcção anterior unificou a barra da raiz e a da apresentação. A pesquisadora navegou e o
-defeito sobreviveu do outro lado da porta: **indo para a anamnese, para o plano de ensino ou para o
-plano de observação, a barra voltava à antiga** — sem Ciclos, sem Aulas, sem Planejamento e sem os
-Bastidores. O mesmo ao sair de um formulário pelo «continuar de onde parei». E, na barra nova, a
-Área do Professor tinha só os três formulários: faltavam a captura em aula, a harmonização de
-linguagem e o lançamento — que apareciam no pacote da turma e desapareciam na raiz. O pacote, por
-sua vez, não tinha «Bastidores» de todo.
+A pesquisadora abriu o pacote gerado e leu, na `Notação em Benesh`, uma tabela com 14 exercícios em
+que a coluna «Registro» dizia `[Preencher: notação do exercício]` em todas as linhas. O glossário do
+ciclo tinha três convenções (`[`, `]`, `:`) e um pedido para preencher os verbetes à mão.
+
+A pergunta dela foi a certa: isto precisa de um motor, de um agente de IA, ou de outra coisa? E a
+resposta não era nenhuma das duas primeiras — **faltava o alfabeto**. Sem sinais declarados não há
+como escrever uma linha, e nenhum gerador, humano ou não, pode escrever o que o código não tem.
 
 **O que foi diagnosticado.**
-Não eram links errados: eram **quatro construções da mesma barra**, cada uma um retrato do dia em
-que aquela página nasceu —
-
-1. o índice da escola (`tools/montar-publicacao.js`);
-2. o pacote do ciclo (`tools/gerar-ciclo.sh`, `gerar_nav`), escrito na geração;
-3. a porta (`tools/criar-escola.sh`, `gerar_nav_zero`), **congelada na criação da escola** — é por
-   isso que a porta mostra a barra de antes de existir ciclo, para sempre;
-4. os Bastidores (`navSistema`, `tools/templates/nav-html.js`).
-
-Corrigir «os links» seria correr atrás de quatro construções indefinidamente, e a quinta apareceria
-no dia seguinte — que é exactamente o que a pesquisadora disse: *«parece que é pouco eficiente a
-solução que você encontrou pra esses links»*.
+O projeto já tinha um alfabeto a funcionar: o ciclo Diaghilev/Fokini, onde a notação foi escrita à
+mão e conferida. Quatro categorias (`Pé`, `Peso`, `Plié`, `Braço`), posições (`1ª`…`5ª`), lados
+(`D`, `E`), direções (`+` devant, `-` à la seconde, `×` derrière), operadores (`→`, `●`, `⌒`, `↺`), e
+a forma `[Categoria: estado → estado]`. Só que ele vivia **dentro de um HTML de experimento**, sem
+lugar no motor — e os quatro exercícios do `batata` exigiam quatro sinais que ele não tinha (`↓`,
+`↑`, `ED`, `EI`).
 
 **O que foi decidido.**
-A barra **deixa de ser escrita e passa a ser desenhada no momento de servir**. A montagem publica o
-menu como **dado** (`publicacao/<escola>/nav.json`), e a ponte de produção substitui o `<nav>` de
-**toda** página HTML que serve por aquele. Uma definição, um desenho, todas as páginas — incluindo
-as já geradas, que nunca serão regeradas e são a maioria.
+O alfabeto passa a ser **DADO** (`biblioteca/notacao/ballet-classico.json`) e o motor só o lê e
+compõe (`motor/nucleo/notacao.js`). A separação não é decorativa: um sinal novo é uma linha de dados
+que o professor pode ler e corrigir; se fosse código, cada exercício novo seria uma alteração de
+programa.
 
-O que sustenta a decisão:
+E o motor **recusa**. Cada linha do plano cai num de quatro desfechos, e três são lacuna declarada
+com o motivo escrito: sem música, sem verbete, música não coberta pelo verbete, sinal fora do
+alfabeto, verbete internamente inconsistente. O documento diz qual deles — uma célula vazia diria
+«não sei», a frase diz o que falta.
 
-- **o menu é dado porque quem sabe o que existe é quem lê o disco.** A montagem vê os pacotes, as
-  aulas declaradas no `ciclos.json` e os documentos publicados; o Worker não tem `fs`. O `nav.json`
-  é o contrato entre os dois.
-- **os `href` do menu são absolutos** (`/turma/plano.html`). É o que torna a **mesma** barra válida
-  dentro do pacote (onde `plano.html` seria relativo à turma) e na porta (onde seria relativo à
-  porta). A relativa era a causa de haver barras diferentes por página.
-- **a montagem também reescreve o que publica**, com o mesmo desenho: o site continua certo servido
-  sem a ponte (um `file://`, um pré-visualizador). A ponte é a segunda cintura, e é ela que cobre o
-  que chegar ao ASSETS depois da última montagem.
-- **degradar é melhor do que inventar.** Sem `nav.json`, cada página fica com a barra que trazia;
-  a uma página sem `<nav>` não se acrescenta uma. Uma barra que falta é um defeito; uma página
-  estragada seria um desastre.
+**A conta é verificada, e não aproximada.** A linha «Centro — Port de bras · 16 tempos · 3/4» tem
+16 tempos numa métrica de 3 — não fecha em compassos inteiros. O verbete cobre 12 (quatro
+compassos) e o motor compõe esses quatro, escreve uma linha `**conferir**` a dizer que restam 4
+tempos que não fecham, e **não inventa o quinto compasso**. Aritmética é onde um documento não pode
+ser plausível: tem de estar certo.
+
+**O que foi rejeitado, e por quê.** Um agente de IA a compor no Worker não custa quase nada — ~2 500
+tokens por ciclo, menos de um décimo de cêntimo —, mas quebra a âncora de proveniência: o mesmo PO
+regerado daria outro texto e outro hash, e a cadeia existe para o passado se poder reproduzir. Um
+sinal inventado também chega escrito, e o professor não distingue o plausível do certo por leitura.
+A IA fica com o papel que o projeto já lhe dá na harmonização de linguagem: **propõe, o professor
+assina** — e não dentro da cadeia.
 
 **Onde entrou.**
 
-- `motor/nucleo/nav.js` — **novo**: `desenhar(menu, pedido)`, `aplicar(html, menu, pedido)`,
-  `caminhoDe`, `ehAtivo`. O desenho é o mesmo dos dois lados (montagem e ponte). O `require` do
-  template é literal: um `path.join(__dirname, …)` compila em Node e **falha no deploy** — o
-  empacotador não segue caminho montado em execução, e não há `path` no runtime do Worker.
-- `tools/montar-publicacao.js` — `navDaEscola()` dá lugar a `menuDaEscola()` +
-  `acrescentarAreaDoProfessor()` + `absolutizar()`; publica o `nav.json` e reescreve a barra de
-  **todas** as páginas HTML da publicação com o desenho partilhado. Sai o `navDoPacoteZero()`, que
-  ficou sem uso.
-- `motor/servidor/producao.js` — `menuDaEscola(env)` lê o `nav.json` do ASSETS (uma vez por
-  isolate), e `comAparencia()` aplica a barra. **Todos** os ramos HTML passam por lá — o ASSETS, a
-  porta (`/anamnese`, `/plano-ensino`, `/plano-observacao`) e os **Bastidores**, que antes
-  devolviam a página sem passar por `comAparencia`.
-- `experimentos/provar-barra-unica.js` — **novo**, 53 asserções em cinco secções: o dado, o desenho
-  ao servir em **quatro** páginas que traziam barras diferentes, a barra de ontem plantada em disco
-  a não sobreviver, um item aceso por página, e a degradação sem menu e sem `<nav>`.
+- `biblioteca/notacao/ballet-classico.json` — **novo**: o alfabeto (4 categorias, 21 sinais, 4
+  verbetes), cada sinal com significado e origem declarada.
+- `motor/nucleo/notacao.js` — **novo**: `paraNotacao`, `compor`, `lerBloco`, `sinaisUsados`,
+  `resumo`, `declaracao`. Puro: sem relógio, sem aleatoriedade, sem rede — o mesmo plano e o mesmo
+  alfabeto dão o mesmo documento, que é o que a âncora exige.
+- `motor/nucleo/derivar-ciclo.js` — `derivarNotacao` e `derivarGlossario` passam a compor; o
+  glossário é escrito com os sinais que o registro **usa** (18 verbetes, com âncora) em vez de o
+  pedir à mão. O documento ganha a secção «O código declarado» — id, versão, contagens —, para não
+  haver texto derivado sem saber o que o produziu.
+- `experimentos/provar-notacao.js` — **novo**, 55 asserções. A secção C é o controlo negativo: quatro
+  alfabetos deliberadamente estragados têm de cair em lacuna.
+- `biblioteca/README.md`, `experimentos/README.md` — a pasta e a prova, documentadas.
 
-**Uma armadilha da prova, e o defeito que ela escondia.** O primeiro `env.ASSETS` falso da prova
-não aceitava um `URL` como argumento — e é assim que a porta pede os seus ficheiros. O
-`menuDaEscola` engolia a excepção (devolvia `null`, que é o caminho de degradação) e **a prova
-passava sem exercer a barra**: media o ficheiro que a montagem já tinha escrito. Foi a asserção «a
-barra de ontem plantada em disco» que o apanhou — a ponta que mede o que **sai** e não o que foi
-escrito. A prova ficou a medir as duas pontas: o disco (contraprova) e o que a ponte serve.
+**Uma armadilha que o validador do projeto revelou.** `tools/check-glossario.js` lê como bloco de
+notação **todo** o code span de uma linha de tabela que comece por `[` e acabe em `]`. O marcador de
+lacuna que eu tinha posto — `[conferir]` entre crases — seria lido como um sinal usado no corpo e sem
+verbete, e reprovaria o par. Ficou `**conferir**`, em negrito e fora de crases. E o `[Preencher: …]`
+das linhas em lacuna fica **sem** crases, pela mesma razão.
 
-**Com o quê.** `provar-barra-unica` → **53 asserções**. Sem regressão: publicação 39, sujeitos 30,
-geração 48, logo 22, índices 55, identidade visual 19/19.
+**Com o quê.** `provar-notacao` → **55 asserções**; `check-glossario` (o validador escrito à mão,
+que já reprovou documentos deste repositório) → **0 erro, 0 aviso**, 18 símbolos no corpo e 18
+verbetes no glossário; `check-pacote` do `batata` → 0 erro, 0 aviso; `check-indices` 14/14;
+`check-identidade` 19/19; cadeia re-ancorada e `--check` íntegro.
 
-Medido ao vivo, no Worker do `batata`, depois do deploy: `/`, `/sistema`, `/bale-nivel-1-teste-2/`,
-`/bale-nivel-1-teste-2/plano`, `/bale-nivel-1-teste-2/lancamento`, `/anamnese/`, `/plano-ensino/`,
-`/plano-observacao/` e `/bastidores/producao` servem **os cinco grupos** — Ciclos, Aulas,
-Planejamento, Área do Professor e Bastidores —, **uma única** `<nav`, e a Área do Professor com a
-captura em aula, a harmonização e o lançamento em todas elas. O item aceso segue a página: «Sistema
-Lastro» na raiz, «Anamnese do aluno» na anamnese, «Plano do Ciclo 01» no pacote.
+Controlo negativo, medido contra o `derivar-ciclo.js` de `HEAD`: as cinco asserções do documento
+falham todas lá («declara o código», «compõe a linha que tem música», «declara o resto que não
+fecha», «marca a lacuna do exercício sem verbete», «o glossário tem verbetes»).
+
+Sem regressão: barra única 53, publicação 39, sujeitos 30, geração 48, logo 22, índices 55,
+declarações 23, aula e plano legíveis 12.
+
+Medido ao vivo, no Worker do `batata`: `/bale-nivel-1-teste-2/notacao` serve **10 blocos de
+notação** (`[Plié: 1ª ↓]`, `[Pé: 1ª → +]`, `[Braço: 1ª → 2ª ⌒]`…), o `conferir` da linha que não
+fecha, as 11 lacunas com o motivo, e a secção do código declarado; `/glossario-benesh` serve **18
+verbetes com âncora** e 18 declarações de origem.
 
 **O que ainda não está feito.**
 
-- O `gerar_nav` do `gerar-ciclo.sh` e o `gerar_nav_zero` do `criar-escola.sh` continuam a escrever a
-  barra nos ficheiros. Agora é inócuo — a ponte sobrepõe-se —, mas é uma segunda construção a
-  manter até que os dois passem a escrever só o que a montagem não toca.
-- O `codigo: 'Benesh'` continua escrito à mão no `montar-publicacao.js`; devia vir do PO.
-- Os grupos «Área do Professor» e «Bastidores» são **copiados** do pacote-zero, e não reconstruídos:
-  as URLs deles carregam professor, escola e ciclo, e reescrevê-las seria uma segunda derivação dos
-  mesmos parâmetros. A consequência é que uma escola cujo pacote-zero tenha uma barra **sem** esses
-  blocos não os ganha por esta correcção — o `menuDaEscola` só publica o que encontra. Hoje as
-  escolas existentes têm-nos; a próxima que nascer sem eles ficará sem eles, em silêncio.
-- A barra dos **Bastidores** passa a ser a da escola (antes só levava de volta ao sistema), e o
-  contrário também: o painel passa a ser alcançável de qualquer página da escola.
-- Nada regenera `indices/` automaticamente: uma prova nova (como esta) obriga a correr
-  `node tools/gerar-indices.js` à mão.
+- **A música de 11 das 14 linhas.** O plano tem `[a decidir]` nos tempos e no compasso de 11
+  exercícios — e é isso, e não o motor, que mantém essas linhas em lacuna. Basta declarar a música
+  para elas comporem, se o exercício tiver verbete.
+- **Quatro verbetes, e o ciclo tem mais exercícios.** `Plié`, `Battement tendu`, `Rond de jambe` e
+  `Port de bras`. Um exercício novo (uma pirouette, um adágio) sai em lacuna `sem-verbete` até
+  alguém escrever a sua linha no alfabeto — que é o que a P-16 quer dizer.
+- **O verbete do `Rond de jambe` não foi exercido.** Nenhuma linha do plano tem a música para que
+  ele está declarado (8 tempos, 4/4), por isso ele nunca compôs um documento real. O do `Plié` e os
+  dois do `Battement tendu` compuseram; o do `Port de bras` compôs em parte.
+- **O alfabeto é um só.** `paraNotacao` casa a notação declarada pelo nome; hoje só `benesh` tem
+  alfabeto publicado. Um ciclo que declare outra notação degrada — o documento sai com a lacuna
+  declarada —, mas ainda não há segundo alfabeto para provar que a estrutura aguenta dois.
+- **O `check-glossario` não corre sobre as variantes.** O `check-pacote` procura
+  `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
+  (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
+  prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.
 
 ## O que está pendente
-
-## 20/10/2026 — o repositório sem ciclo expôs duas provas desactualizadas
-
-Continua a ser o mesmo de sempre: **nada regenera o `indices/`
-automaticamente.** Cada expurgo deixa o retrato da escola que saiu, e o `check-indices` reprova até
-alguém correr o gerador à mão. Hoje isso aconteceu três vezes na mesma sessão.
 
 ## 20/10/2026 — o filtro dos sujeitos continuava sem funcionar: a chave morria no mapa
 
@@ -303,6 +300,26 @@ geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
   contrário também: o painel passa a ser alcançável de qualquer página da escola.
 - Nada regenera `indices/` automaticamente: uma prova nova (como esta) obriga a correr
   `node tools/gerar-indices.js` à mão.
+
+## 20/10/2026 — o registro de notação passa a compor-se: o alfabeto é dado, e o motor recusa
+
+
+- **A música de 11 das 14 linhas.** O plano tem `[a decidir]` nos tempos e no compasso de 11
+  exercícios — e é isso, e não o motor, que mantém essas linhas em lacuna. Basta declarar a música
+  para elas comporem, se o exercício tiver verbete.
+- **Quatro verbetes, e o ciclo tem mais exercícios.** `Plié`, `Battement tendu`, `Rond de jambe` e
+  `Port de bras`. Um exercício novo (uma pirouette, um adágio) sai em lacuna `sem-verbete` até
+  alguém escrever a sua linha no alfabeto — que é o que a P-16 quer dizer.
+- **O verbete do `Rond de jambe` não foi exercido.** Nenhuma linha do plano tem a música para que
+  ele está declarado (8 tempos, 4/4), por isso ele nunca compôs um documento real. O do `Plié` e os
+  dois do `Battement tendu` compuseram; o do `Port de bras` compôs em parte.
+- **O alfabeto é um só.** `paraNotacao` casa a notação declarada pelo nome; hoje só `benesh` tem
+  alfabeto publicado. Um ciclo que declare outra notação degrada — o documento sai com a lacuna
+  declarada —, mas ainda não há segundo alfabeto para provar que a estrutura aguenta dois.
+- **O `check-glossario` não corre sobre as variantes.** O `check-pacote` procura
+  `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
+  (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
+  prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.
 
 ## Pendências anteriores (índice)
 
@@ -549,6 +566,7 @@ geração que a pesquisadora disparar é a primeira a exercitá-lo ao vivo.
 - **20/10/2026** — a escola publica um ÍNDICE DE TURMAS, e o menu deixa de… → `REGISTRO.md` L20434
 - **20/10/2026** — o hook recusava todo commit enquanto uma turma não tivesse… → `REGISTRO.md` L20510
 - **20/10/2026** — a escola não se criava: a publicação era montada só no ramo… → `REGISTRO.md` L20570
+- **20/10/2026** — o repositório sem ciclo expôs duas provas desactualizadas → `REGISTRO.md` L20630
 - PO de **sapo-bailarino · batata-bale-nivel-1-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **sapo-bailarino · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 

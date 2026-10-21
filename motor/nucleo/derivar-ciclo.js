@@ -23,6 +23,8 @@
  */
 
 const { respostaDo, emLista } = require('./derivar-po.js');
+// O MOTOR DO REGISTRO DE NOTAÇÃO — o alfabeto é dado, e é ele que compõe a grade (20/10/2026).
+const moduloNotacao = require('./notacao.js');
 const { marcosEmTexto, parametroEmLinhas, blocosDaEstrutura, objetivoDaAula1, BLOCOS_DA_AULA, sequenciaEmLinhas, linhasDaTabela } = require('./derivar-plano-ciclo.js');
 
 // ---------------------------------------------------------------------------
@@ -379,14 +381,38 @@ function derivarReferencias({ plano, contexto }) {
 // 3 e 4. Notação + Glossário (P-15/P-16 — só quando a notação foi escolhida)
 // ---------------------------------------------------------------------------
 
+/**
+ * A SEQUÊNCIA COMO OBJETOS — as linhas do plano com as colunas separadas, que é a forma que o
+ * compositor precisa. A forma LEGADA (prosa) não tem como alimentar uma grade de compassos, e
+ * devolve `null`: o documento sai então pela via antiga, com a lacuna declarada em cada linha.
+ */
+function sequenciaComoObjetos(plano) {
+  const valor = resp(plano, 'aula-1-sequencia');
+  return Array.isArray(valor) && valor.some((l) => l && typeof l === 'object' && !Array.isArray(l))
+    ? valor.filter((l) => l && typeof l === 'object' && !Array.isArray(l))
+    : null;
+}
+
+/** O rótulo de uma linha no registro: «Solo — Plié». É por ele que o glossário aponta para cá. */
+function rotuloDoExercicio(c) {
+  return [c.bloco, c.exercicio].filter(Boolean).join(' — ') || 'exercício';
+}
+
+/** O objetivo da linha, sem o rótulo numérico que já vem escrito («1 — reconhecer…»). */
+function objetivoDaSequencia(linha) {
+  const v = String((linha && (linha['Objetivo específico'] || linha['Objetivo'] || linha['Marco'])) || '').trim();
+  return v;
+}
+
 function derivarNotacao({ plano, contexto }) {
   const notacao = notacaoEscolhida(plano);
   if (!notacao) return null;
 
-  const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
-  const saida = [];
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
+  const alfabetoDoCiclo = moduloNotacao.paraNotacao(notacao);
+  const linhas = sequenciaComoObjetos(plano);
 
+  const saida = [];
   saida.push('---');
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: Documento de apoio');
@@ -405,29 +431,161 @@ function derivarNotacao({ plano, contexto }) {
   saida.push('> código é do ciclo — os sinais valem para os exercícios registrados aqui, e um sinal novo');
   saida.push('> exige uma linha nova no [Glossário do código ' + notacao + '](glossario-' + slugDe(notacao) + '.html).');
   saida.push('');
+
+  // O CÓDIGO DECLARADO — em números, e não em promessa. Quem lê o registro sabe qual alfabeto o
+  // compôs e qual versão dele: sem isto, o documento não diz de que código é, e a âncora de
+  // proveniência guarda um texto sem saber o que o produziu.
+  if (alfabetoDoCiclo) {
+    const d = moduloNotacao.declaracao(alfabetoDoCiclo);
+    saida.push('## O código declarado');
+    saida.push('');
+    saida.push('| Item | Valor |');
+    saida.push('|:--|:--|');
+    saida.push('| Código | `' + d.id + '` — ' + d.nome + ' |');
+    saida.push('| Versão | ' + d.versao + ' |');
+    saida.push('| Categorias | ' + d.categorias + ' |');
+    saida.push('| Sinais | ' + d.sinais + ' |');
+    saida.push('| Verbetes (exercícios) | ' + d.verbetes + ' |');
+    saida.push('');
+  } else {
+    saida.push('> **[Preencher]** A notação declarada (' + notacao + ') não tem alfabeto publicado no');
+    saida.push('> projeto. O registro sai com a lacuna declarada em cada linha, e não com sinais');
+    saida.push('> inventados: um código que ninguém declarou não se pode ler de volta.');
+    saida.push('');
+  }
+
+  saida.push('## Como ler o registro');
+  saida.push('');
+  saida.push('| Coluna | O que diz |');
+  saida.push('|:--|:--|');
+  saida.push('| **Compasso** | o compasso da frase, contado de 1 |');
+  saida.push('| **Contagem** | as contagens do exercício dentro daquele compasso |');
+  saida.push('| **Notação** | o bloco de notação, sempre entre colchetes |');
+  saida.push('| **Descrição** | o que o corpo faz, na palavra de quem deu a aula |');
+  saida.push('');
+  saida.push('Todo bloco tem a forma [Categoria: conteúdo]. A categoria diz de que se está a falar; o');
+  saida.push('conteúdo diz o **estado de partida**, o **movimento** e o **estado de chegada**. O bloco');
+  saida.push('inteiro lê-se da esquerda para a direita, no tempo da música.');
+  saida.push('');
   saida.push('## Exercícios da Aula 01');
   saida.push('');
-  saida.push('| Exercício | Registro |');
-  saida.push('|:--|:--|');
-  if (sequencia.length) {
-    for (const s of sequencia) saida.push('| ' + s + ' | [Preencher: notação do exercício] |');
+
+  const composicoes = linhas ? moduloNotacao.comporTodas(linhas, alfabetoDoCiclo) : null;
+
+  if (!composicoes) {
+    // A VIA ANTIGA, para o plano em prosa: uma linha por exercício, e a lacuna em todas.
+    const sequencia = sequenciaEmLinhas(resp(plano, 'aula-1-sequencia')).filter((v) => !GABARITO_VAZADO.test(v));
+    saida.push('| Exercício | Registro |');
+    saida.push('|:--|:--|');
+    if (sequencia.length) {
+      for (const s of sequencia) saida.push('| ' + s + ' | [Preencher: notação do exercício] |');
+    } else {
+      saida.push('| [Preencher: exercício] | [Preencher: notação do exercício] |');
+    }
+    saida.push('');
   } else {
-    saida.push('| [Preencher: exercício] | [Preencher: notação do exercício] |');
+    composicoes.forEach((c, i) => {
+      const musica = c.musica ? c.musica.tempos + ' tempos, ' + c.musica.compasso : null;
+      saida.push('### ' + (i + 1) + '. ' + rotuloDoExercicio(c));
+      saida.push('');
+      const objetivo = objetivoDaSequencia(linhas[i]);
+      const legenda = [musica ? musica : 'música ainda não declarada', objetivo ? 'objetivo ' + objetivo : '']
+        .filter(Boolean).join(' · ');
+      saida.push('*' + legenda + '*');
+      saida.push('');
+      saida.push('| Compasso | Contagem | Notação | Descrição |');
+      saida.push('|:--:|:--:|:--|:--|');
+
+      if (c.estado === 'lacuna') {
+        // A LACUNA NÃO ESCONDE O MOTIVO. Uma célula vazia diria «não sei»; a frase diz o que falta.
+        saida.push('| — | — | [Preencher: notação do exercício] | ' + c.detalhe + ' |');
+      } else {
+        for (const s of c.segmentos) {
+          saida.push('| ' + s.compasso + ' | ' + s.contagem + ' | `' + s.bloco + '` | ' + s.descricao + ' |');
+        }
+        if (c.estado === 'parcial') {
+          // O QUE O VERBETE NÃO EXPLICA FICA ESCRITO, e com `conferir` — sem colchetes de código,
+          // que os tornariam um «sinal» do registro aos olhos de quem o lê de volta.
+          saida.push('| ' + (c.compassoDoResto || '—') + ' | — | **conferir** | ' + c.detalhe + ' |');
+        }
+      }
+      saida.push('');
+    });
+
+    const r = moduloNotacao.resumo(composicoes);
+    if (r.contagem.lacuna || r.contagem.parcial) {
+      saida.push('## O que ficou em lacuna');
+      saida.push('');
+      saida.push('| Estado | Linhas | Por quê |');
+      saida.push('|:--|:--:|:--|');
+      if (r.contagem.composto) {
+        saida.push('| composto | ' + r.contagem.composto + ' | a música está declarada e o alfabeto tem verbete para ela |');
+      }
+      if (r.contagem.parcial) {
+        saida.push('| parcial | ' + r.contagem.parcial + ' | o verbete cobre parte da música, e o resto fica declarado |');
+      }
+      const motivos = {
+        'sem-musica': 'os tempos e o compasso ainda não estão declarados no plano',
+        'sem-verbete': 'o exercício não tem verbete no alfabeto do ciclo',
+        'musica-nao-coberta': 'o verbete existe, mas não para esta música',
+        'sinal-desconhecido': 'o verbete usa um sinal que o alfabeto não declara',
+        'verbete-inconsistente': 'o verbete declara uma cobertura que os seus segmentos não somam',
+        'sem-alfabeto': 'a notação declarada não tem alfabeto publicado',
+        'sem-exercicio': 'a linha não declara o exercício',
+      };
+      for (const [motivo, quantas] of Object.entries(r.porMotivo)) {
+        saida.push('| ' + motivo + ' | ' + quantas + ' | ' + (motivos[motivo] || motivo) + ' |');
+      }
+      saida.push('');
+      saida.push('Nenhuma destas linhas foi preenchida por aproximação: um sinal inventado tem');
+      saida.push('aparência de fato, e não se distingue do certo por leitura. A lacuna, sim.');
+      saida.push('');
+    }
   }
-  saida.push('');
+
   saida.push('> **Sobre os símbolos:** os sinais deste código são digitáveis e legíveis numa folha');
   saida.push('> impressa. Nenhum deles substitui a escrita completa do sistema — eles **apontam** para a');
   saida.push('> frase, e a frase é que é a aula.');
   return saida.join('\n') + '\n';
 }
 
+/** A âncora de um verbete, estável e única — é para aqui que o índice de símbolos aponta. */
+function ancoraDe(simbolo, nome, usadas) {
+  let base = slugDe(nome) || slugDe(simbolo) || 'simbolo';
+  let ancora = base;
+  let n = 2;
+  while (usadas.has(ancora)) { ancora = base + '-' + n; n += 1; }
+  usadas.add(ancora);
+  return ancora;
+}
+
+/** «1, 2 e 5» — a forma portuguesa de enumerar, e não «1,2,5». */
+function enumerar(numeros) {
+  const lista = numeros.slice().sort((a, b) => a - b);
+  if (!lista.length) return '';
+  if (lista.length === 1) return String(lista[0]);
+  return lista.slice(0, -1).join(', ') + ' e ' + lista[lista.length - 1];
+}
+
 function derivarGlossario({ plano, contexto }) {
   const notacao = notacaoEscolhida(plano);
   if (!notacao) return null;
 
-  const saida = [];
   const ciclo = String((contexto && contexto.ciclo) || 'NN');
+  const alfabeto = moduloNotacao.paraNotacao(notacao);
+  const linhas = sequenciaComoObjetos(plano);
+  const composicoes = linhas && alfabeto ? moduloNotacao.comporTodas(linhas, alfabeto) : null;
+  const usados = composicoes ? moduloNotacao.sinaisUsados(composicoes, alfabeto) : new Map();
 
+  // AS TRÊS CONVENÇÕES APARECEM SEMPRE: `[`, `]` e `:` delimitam todos os blocos, por definição.
+  if (alfabeto) {
+    for (const chave of ['abre', 'fecha', 'separa']) {
+      const c = alfabeto.convencoes[chave];
+      if (c && !usados.has(c.sinal)) usados.set(c.sinal, []);
+    }
+  }
+
+  const saida = [];
   saida.push('---');
   saida.push('projeto: Formação em Balé Clássico');
   saida.push('frente: Documento de apoio');
@@ -437,39 +595,131 @@ function derivarGlossario({ plano, contexto }) {
   saida.push('---');
   saida.push('');
   saida.push('> **Aviso de proveniência (Regra 8).** Este glossário explica um **código do ciclo**, não o');
-  saida.push('> sistema ' + notacao + '. Cada verbete declara a sua **origem**: *sistema* ou *convenção do ciclo*.');
+  saida.push('> sistema ' + notacao + '. Cada verbete declara a sua **origem**: *sistema* — quando o sinal');
+  saida.push('> corresponde a um conceito do sistema de notação, e pode ser conferido na fonte;');
+  saida.push('> *convenção do ciclo* — quando foi escolhido para este código, e só vale aqui.');
   saida.push('');
   saida.push('> **Nota (P-15/P-16).** O glossário e o registro são um par: um símbolo só existe no registro');
   saida.push('> se tiver verbete aqui, e todo verbete aqui aponta para onde aparece.');
   saida.push('');
+
+  // O CAMINHO DE VOLTA PARA QUEM PRECISA DE UM SINAL NOVO — dito no documento, não só no código.
+  const declaracaoDoCodigo = alfabeto ? moduloNotacao.declaracao(alfabeto) : null;
+  if (declaracaoDoCodigo) {
+    saida.push('O alfabeto deste código é `' + declaracaoDoCodigo.id + '` versão ' + declaracaoDoCodigo.versao
+      + ' — ' + declaracaoDoCodigo.categorias + ' categorias, ' + declaracaoDoCodigo.sinais + ' sinais e '
+      + declaracaoDoCodigo.verbetes + ' verbetes de exercício. Um exercício novo entra no registro');
+    saida.push('depois de o seu verbete existir; um sinal novo, depois de ganhar linha neste glossário.');
+    saida.push('');
+  }
+
+  if (!alfabeto) {
+    // SEM ALFABETO NÃO HÁ O QUE GLOSSARIAR. Sai o mesmo documento de antes — três convenções e a
+    // lacuna —, e não um glossário que finge explicar sinais que ninguém declarou.
+    saida.push('## Convenções de escrita do ciclo');
+    saida.push('');
+    for (const [s, nome, significado] of [['[', 'abre bloco', 'início de um bloco de notação.'],
+      [']', 'fecha bloco', 'fim de um bloco de notação.'],
+      [':', 'dois-pontos', 'separa a categoria do conteúdo no bloco.']]) {
+      saida.push('### `' + s + '` — ' + nome + ' {#' + ancoraDe(s, nome, new Set()) + '}');
+      saida.push('');
+      saida.push('- **Significado:** ' + significado);
+      saida.push('- **Origem:** convenção do ciclo.');
+      saida.push('');
+    }
+    saida.push('> **[Preencher: verbetes dos sinais do ciclo]** — cada exercício registrado na');
+    saida.push('> [Notação em ' + notacao + '](notacao.html) que introduza um sinal novo ganha aqui o seu verbete');
+    saida.push('> (P-16).');
+    return saida.join('\n') + '\n';
+  }
+
+  const conhecidos = moduloNotacao.sinaisDo(alfabeto);
+  const ancoras = new Set();
+
+  /** «Onde aparece»: os números das linhas do registro que usam este sinal. */
+  const ondeAparece = (sinal) => {
+    if (sinal === alfabeto.convencoes.abre.sinal || sinal === alfabeto.convencoes.fecha.sinal) {
+      return 'em todos os blocos de notação';
+    }
+    if (sinal === alfabeto.convencoes.separa.sinal) return 'em todos os blocos de notação';
+    const numeros = usados.get(sinal) || [];
+    return numeros.length ? 'exercício ' + enumerar(numeros) : '—';
+  };
+
+  // 1. O ÍNDICE — a primeira coluna é o símbolo, e é dela que o validador lê o par.
   saida.push('## Índice de símbolos');
   saida.push('');
   saida.push('| Símbolo | Nome | Onde aparece no registro |');
   saida.push('|:---:|:---|:---|');
-  saida.push('| `[` | abre bloco | em todos os blocos de notação |');
-  saida.push('| `]` | fecha bloco | em todos os blocos de notação |');
-  saida.push('| `:` | dois-pontos | em todos os blocos de notação |');
+  for (const chave of ['abre', 'fecha', 'separa']) {
+    const c = alfabeto.convencoes[chave];
+    saida.push('| `' + c.sinal + '` | ' + c.nome + ' | ' + ondeAparece(c.sinal) + ' |');
+  }
+  for (const grupo of alfabeto.grupos) {
+    for (const [sinal, item] of Object.entries(grupo.itens)) {
+      if (!usados.has(sinal)) continue;
+      saida.push('| `' + sinal + '` | ' + item.nome + ' | ' + ondeAparece(sinal) + ' |');
+    }
+  }
   saida.push('');
+
+  // 2. AS CONVENÇÕES.
   saida.push('## Convenções de escrita do ciclo');
   saida.push('');
-  saida.push('### `[` — abre bloco {#abre-bloco}');
-  saida.push('');
-  saida.push('- **Significado:** início de um bloco de notação.');
-  saida.push('- **Origem:** convenção do ciclo.');
-  saida.push('');
-  saida.push('### `]` — fecha bloco {#fecha-bloco}');
-  saida.push('');
-  saida.push('- **Significado:** fim de um bloco de notação.');
-  saida.push('- **Origem:** convenção do ciclo.');
-  saida.push('');
-  saida.push('### `:` — dois-pontos {#dois-pontos}');
-  saida.push('');
-  saida.push('- **Significado:** separa a categoria do conteúdo no bloco.');
-  saida.push('- **Origem:** convenção do ciclo.');
-  saida.push('');
-  saida.push('> **[Preencher: verbetes dos sinais do ciclo]** — cada exercício registrado na');
-  saida.push('> [Notação em ' + notacao + '](notacao.html) que introduza um sinal novo ganha aqui o seu verbete');
-  saida.push('> (P-16).');
+  for (const chave of ['abre', 'fecha', 'separa']) {
+    const c = alfabeto.convencoes[chave];
+    saida.push('### `' + c.sinal + '` — ' + c.nome + ' {#' + ancoraDe(c.sinal, c.nome, ancoras) + '}');
+    saida.push('');
+    saida.push('- **Significado:** ' + c.significado);
+    saida.push('- **Origem:** convenção do ciclo.');
+    saida.push('- **Onde aparece:** ' + ondeAparece(c.sinal) + '.');
+    saida.push('');
+  }
+
+  // 3. OS GRUPOS, na ordem declarada no alfabeto — e só os sinais que o registro usa.
+  for (const grupo of alfabeto.grupos) {
+    const presentes = Object.entries(grupo.itens).filter(([sinal]) => usados.has(sinal));
+    if (!presentes.length) continue;
+    saida.push('## ' + grupo.titulo);
+    saida.push('');
+    for (const [sinal, item] of presentes) {
+      saida.push('### `' + sinal + '` — ' + item.nome + ' {#' + ancoraDe(sinal, item.nome, ancoras) + '}');
+      saida.push('');
+      saida.push('- **Significado:** ' + item.significado);
+      saida.push('- **Origem:** ' + item.origem + '.');
+      saida.push('- **Onde aparece:** ' + ondeAparece(sinal) + '.');
+      saida.push('');
+    }
+  }
+
+  // 4. OS VERBETES — o mapa de «exercício → composto ou lacuna», que é o que fecha o par.
+  if (composicoes) {
+    saida.push('## Verbetes por exercício');
+    saida.push('');
+    saida.push('| N | Exercício | Blocos | Estado |');
+    saida.push('|:--:|:--|:--:|:--|');
+    composicoes.forEach((c, i) => {
+      const quantos = (c.segmentos || []).filter((s) => s.bloco).length;
+      saida.push('| ' + (i + 1) + ' | ' + rotuloDoExercicio(c) + ' | ' + quantos + ' | '
+        + (c.estado === 'lacuna' ? 'lacuna declarada' : c.estado) + ' |');
+    });
+    saida.push('');
+  }
+
+  // 5. OS SINAIS DECLARADOS E AINDA NÃO USADOS. Não é ruído: é o que o professor precisa saber
+  //    para decidir se o alfabeto está a mais ou se o plano é que ainda não chegou lá.
+  const naoUsados = [];
+  for (const grupo of alfabeto.grupos) {
+    for (const [sinal, item] of Object.entries(grupo.itens)) {
+      if (!usados.has(sinal)) naoUsados.push('`' + sinal + '` (' + item.nome + ')');
+    }
+  }
+  if (naoUsados.length) {
+    saida.push('> **Declarados e não usados.** O alfabeto tem sinais que este registro não usa: '
+      + naoUsados.join(', ') + '. Eles só entram no glossário quando um exercício os usar — um');
+    saida.push('> glossário maior do que o registro é um glossário a mais.');
+    saida.push('');
+  }
   return saida.join('\n') + '\n';
 }
 

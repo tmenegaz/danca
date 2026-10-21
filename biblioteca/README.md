@@ -77,3 +77,15 @@ não a lista completa do projeto.
 | Referência brasileira rara | incluir a instituição ou o acervo onde foi consultada |
 
 > Ver `REGRAS.md`, Regra 8 (proveniência objetiva) e Regra 17 (versionamento).
+
+## `notacao/` — o alfabeto do código de notação
+
+O arquivo `notacao/<codigo>.json` é o **alfabeto** com que o ciclo compõe o seu registro de notação
+(P-15/P-16). Ele é **conteúdo**, não código: o professor pode lê-lo, corrigi-lo e acrescentar-lhe um
+sinal sem tocar no motor. Sai do **código do ciclo** — não é o sistema Benesh, e o próprio arquivo o
+declara.
+
+Cada sinal traz o seu significado e a sua **origem** (`sistema` ou `convenção do ciclo`), e cada
+verbete é a composição de um exercício numa **música** (`<tempos>|<compasso>`). Um exercício sem
+verbete, ou uma música que o verbete não cobre, sai como **lacuna declarada** no documento — nunca
+preenchido por aproximação. Ver `motor/nucleo/notacao.js`.

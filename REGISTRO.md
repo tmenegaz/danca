@@ -20966,31 +20966,102 @@ Lastro» na raiz, «Anamnese do aluno» na anamnese, «Plano do Ciclo 01» no pa
 - Nada regenera `indices/` automaticamente: uma prova nova (como esta) obriga a correr
   `node tools/gerar-indices.js` à mão.
 
-## 20/10/2026 — o hook recusava o PDF de todo pacote com hífen no nome da variante
+## 20/10/2026 — o registro de notação passa a compor-se: o alfabeto é dado, e o motor recusa
 
 **O que aconteceu.**
-A regeneração do pacote do `batata` foi recusada pelo hook de pré-commit: «arquivos gerados no stage
-(não versionar)» sobre `ciclo-01-batata-bale-nivel-1-teste-2.pdf`. O PDF do pacote **é** versionado —
-o cabeçalho do próprio hook diz que os pacotes são, porque o deploy é automático a partir do GitHub.
+A pesquisadora abriu o pacote gerado e leu, na `Notação em Benesh`, uma tabela com 14 exercícios em
+que a coluna «Registro» dizia `[Preencher: notação do exercício]` em todas as linhas. O glossário do
+ciclo tinha três convenções (`[`, `]`, `:`) e um pedido para preencher os verbetes à mão.
+
+A pergunta dela foi a certa: isto precisa de um motor, de um agente de IA, ou de outra coisa? E a
+resposta não era nenhuma das duas primeiras — **faltava o alfabeto**. Sem sinais declarados não há
+como escrever uma linha, e nenhum gerador, humano ou não, pode escrever o que o código não tem.
 
 **O que foi diagnosticado.**
-A exceção do filtro era `^professores/[^/]+/ciclos/ciclo-[0-9]+-[a-z0-9]+/`. O `[a-z0-9]+` não
-admite **hífen**, e o nome de uma variante é `batata-bale-nivel-1-teste-2`: depois de `ciclo-01-` o
-`[a-z0-9]+` consome `batata` e exige `/` onde encontra `-`. Resultado: a exceção nunca casava, e
-**todo** PDF de pacote de variante era recusado — passava só um ciclo cujo segmento final não
-tivesse hífen.
+O projeto já tinha um alfabeto a funcionar: o ciclo Diaghilev/Fokini, onde a notação foi escrita à
+mão e conferida. Quatro categorias (`Pé`, `Peso`, `Plié`, `Braço`), posições (`1ª`…`5ª`), lados
+(`D`, `E`), direções (`+` devant, `-` à la seconde, `×` derrière), operadores (`→`, `●`, `⌒`, `↺`), e
+a forma `[Categoria: estado → estado]`. Só que ele vivia **dentro de um HTML de experimento**, sem
+lugar no motor — e os quatro exercícios do `batata` exigiam quatro sinais que ele não tinha (`↓`,
+`↑`, `ED`, `EI`).
 
-**O que mudou.**
-`[a-z0-9]+` → `[a-z0-9][a-z0-9-]*`. O `-` entra na classe (no fim, para não virar intervalo) e o
-primeiro carácter continua a ter de ser alfanumérico, para o segmento não poder ser vazio.
+**O que foi decidido.**
+O alfabeto passa a ser **DADO** (`biblioteca/notacao/ballet-classico.json`) e o motor só o lê e
+compõe (`motor/nucleo/notacao.js`). A separação não é decorativa: um sinal novo é uma linha de dados
+que o professor pode ler e corrigir; se fosse código, cada exercício novo seria uma alteração de
+programa.
 
-**Por que isto exige motivo declarado.** `tools/` é congelado, e o hook é `tools/`. O motivo é o
-acima: uma exceção que não casa com nenhum nome real é uma regra que não protege nada e barra o que
-deve passar.
+E o motor **recusa**. Cada linha do plano cai num de quatro desfechos, e três são lacuna declarada
+com o motivo escrito: sem música, sem verbete, música não coberta pelo verbete, sinal fora do
+alfabeto, verbete internamente inconsistente. O documento diz qual deles — uma célula vazia diria
+«não sei», a frase diz o que falta.
 
-**Com o quê.** Medido com o próprio filtro: `out/a.pdf` continua barrado, e os dois PDFs de pacote
-(`ciclo-01-maria` e `ciclo-01-batata-bale-nivel-1-teste-2`) passam.
+**A conta é verificada, e não aproximada.** A linha «Centro — Port de bras · 16 tempos · 3/4» tem
+16 tempos numa métrica de 3 — não fecha em compassos inteiros. O verbete cobre 12 (quatro
+compassos) e o motor compõe esses quatro, escreve uma linha `**conferir**` a dizer que restam 4
+tempos que não fecham, e **não inventa o quinto compasso**. Aritmética é onde um documento não pode
+ser plausível: tem de estar certo.
 
-**O que ainda não está feito.** Nada — mas note-se que foi o hook a revelar o defeito ao ser
-exercido, e não uma prova: não há prova para `tools/hooks/`, e este é o segundo defeito de regex
-encontrado nele.
+**O que foi rejeitado, e por quê.** Um agente de IA a compor no Worker não custa quase nada — ~2 500
+tokens por ciclo, menos de um décimo de cêntimo —, mas quebra a âncora de proveniência: o mesmo PO
+regerado daria outro texto e outro hash, e a cadeia existe para o passado se poder reproduzir. Um
+sinal inventado também chega escrito, e o professor não distingue o plausível do certo por leitura.
+A IA fica com o papel que o projeto já lhe dá na harmonização de linguagem: **propõe, o professor
+assina** — e não dentro da cadeia.
+
+**Onde entrou.**
+
+- `biblioteca/notacao/ballet-classico.json` — **novo**: o alfabeto (4 categorias, 21 sinais, 4
+  verbetes), cada sinal com significado e origem declarada.
+- `motor/nucleo/notacao.js` — **novo**: `paraNotacao`, `compor`, `lerBloco`, `sinaisUsados`,
+  `resumo`, `declaracao`. Puro: sem relógio, sem aleatoriedade, sem rede — o mesmo plano e o mesmo
+  alfabeto dão o mesmo documento, que é o que a âncora exige.
+- `motor/nucleo/derivar-ciclo.js` — `derivarNotacao` e `derivarGlossario` passam a compor; o
+  glossário é escrito com os sinais que o registro **usa** (18 verbetes, com âncora) em vez de o
+  pedir à mão. O documento ganha a secção «O código declarado» — id, versão, contagens —, para não
+  haver texto derivado sem saber o que o produziu.
+- `experimentos/provar-notacao.js` — **novo**, 55 asserções. A secção C é o controlo negativo: quatro
+  alfabetos deliberadamente estragados têm de cair em lacuna.
+- `biblioteca/README.md`, `experimentos/README.md` — a pasta e a prova, documentadas.
+
+**Uma armadilha que o validador do projeto revelou.** `tools/check-glossario.js` lê como bloco de
+notação **todo** o code span de uma linha de tabela que comece por `[` e acabe em `]`. O marcador de
+lacuna que eu tinha posto — `[conferir]` entre crases — seria lido como um sinal usado no corpo e sem
+verbete, e reprovaria o par. Ficou `**conferir**`, em negrito e fora de crases. E o `[Preencher: …]`
+das linhas em lacuna fica **sem** crases, pela mesma razão.
+
+**Com o quê.** `provar-notacao` → **55 asserções**; `check-glossario` (o validador escrito à mão,
+que já reprovou documentos deste repositório) → **0 erro, 0 aviso**, 18 símbolos no corpo e 18
+verbetes no glossário; `check-pacote` do `batata` → 0 erro, 0 aviso; `check-indices` 14/14;
+`check-identidade` 19/19; cadeia re-ancorada e `--check` íntegro.
+
+Controlo negativo, medido contra o `derivar-ciclo.js` de `HEAD`: as cinco asserções do documento
+falham todas lá («declara o código», «compõe a linha que tem música», «declara o resto que não
+fecha», «marca a lacuna do exercício sem verbete», «o glossário tem verbetes»).
+
+Sem regressão: barra única 53, publicação 39, sujeitos 30, geração 48, logo 22, índices 55,
+declarações 23, aula e plano legíveis 12.
+
+Medido ao vivo, no Worker do `batata`: `/bale-nivel-1-teste-2/notacao` serve **10 blocos de
+notação** (`[Plié: 1ª ↓]`, `[Pé: 1ª → +]`, `[Braço: 1ª → 2ª ⌒]`…), o `conferir` da linha que não
+fecha, as 11 lacunas com o motivo, e a secção do código declarado; `/glossario-benesh` serve **18
+verbetes com âncora** e 18 declarações de origem.
+
+**O que ainda não está feito.**
+
+- **A música de 11 das 14 linhas.** O plano tem `[a decidir]` nos tempos e no compasso de 11
+  exercícios — e é isso, e não o motor, que mantém essas linhas em lacuna. Basta declarar a música
+  para elas comporem, se o exercício tiver verbete.
+- **Quatro verbetes, e o ciclo tem mais exercícios.** `Plié`, `Battement tendu`, `Rond de jambe` e
+  `Port de bras`. Um exercício novo (uma pirouette, um adágio) sai em lacuna `sem-verbete` até
+  alguém escrever a sua linha no alfabeto — que é o que a P-16 quer dizer.
+- **O verbete do `Rond de jambe` não foi exercido.** Nenhuma linha do plano tem a música para que
+  ele está declarado (8 tempos, 4/4), por isso ele nunca compôs um documento real. O do `Plié` e os
+  dois do `Battement tendu` compuseram; o do `Port de bras` compôs em parte.
+- **O alfabeto é um só.** `paraNotacao` casa a notação declarada pelo nome; hoje só `benesh` tem
+  alfabeto publicado. Um ciclo que declare outra notação degrada — o documento sai com a lacuna
+  declarada —, mas ainda não há segundo alfabeto para provar que a estrutura aguenta dois.
+- **O `check-glossario` não corre sobre as variantes.** O `check-pacote` procura
+  `ciclo-<NN>-notacao.md` em `dirFontes`, e os ficheiros das variantes têm o sufixo da escola
+  (`ciclo-01-batata-bale-nivel-1-teste-2-notacao.md`). O par desta escola foi validado à mão e pela
+  prova; a verificação automática não o apanha. É um furo em `tools/` (congelado), e fica registado.

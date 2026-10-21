@@ -1,0 +1,135 @@
+{
+  "_comentario": [
+    "O CÓDIGO DE NOTAÇÃO DO CICLO — o alfabeto, como dado.",
+    "",
+    "Este arquivo é CONTEÚDO, não código: é o que o professor pode ler, corrigir e reescrever sem",
+    "tocar no motor. Ele existe porque a P-15 manda o ciclo declarar a notação que usa, e a P-16",
+    "manda um sinal novo ganhar verbete antes de aparecer no registro — e um verbete é uma linha",
+    "de dados, não uma alteração de programa.",
+    "",
+    "O alfabeto NÃO é o sistema Benesh. É um conjunto pequeno de sinais BASEADO em conceitos do",
+    "sistema, com o qual os exercícios deste ciclo podem ser lidos de volta sem depender da memória",
+    "de quem deu a aula. Cada sinal declara a sua ORIGEM: `sistema`, quando corresponde a um",
+    "conceito do sistema de notação (conferível na fonte); `convenção do ciclo`, quando foi",
+    "escolhido para este código e só vale aqui.",
+    "",
+    "A proveniência deste alfabeto: os sinais e a forma da grade foram recuperados do ciclo",
+    "Diaghilev/Fokini, onde a notação foi escrita e conferida à mão. `↓`, `↑`, `ED` e `EI` são",
+    "acréscimos deste código (20/10/2026): os quatro exercícios do ciclo `batata` exigiam-nos e o",
+    "alfabeto de origem não os tinha.",
+    "",
+    "Como um verbete se lê: a chave é a MÚSICA (`<tempos>|<compasso>`), e o valor são os segmentos",
+    "da grade de compassos, na ordem do tempo. `cobre` diz quantos tempos os segmentos explicam;",
+    "quando é menor do que a música pedida, o resto fica DECLARADO como lacuna — o motor nunca",
+    "estica um verbete para caber."
+  ],
+
+  "id": "ballet-classico",
+  "nome": "Código do ciclo — base Benesh (ballet clássico)",
+  "versao": 1,
+  "aplicaseA": ["benesh"],
+
+  "convencoes": {
+    "abre": { "sinal": "[", "nome": "abre bloco", "significado": "início de um bloco de notação. Tudo o que vem até o `]` correspondente descreve um mesmo gesto, no tempo do compasso indicado." },
+    "fecha": { "sinal": "]", "nome": "fecha bloco", "significado": "fim de um bloco de notação." },
+    "separa": { "sinal": ":", "nome": "dois-pontos", "significado": "separa a categoria do conteúdo dentro do bloco." }
+  },
+
+  "categorias": ["Pé", "Peso", "Plié", "Braço"],
+
+  "grupos": [
+    {
+      "titulo": "Categorias",
+      "itens": {
+        "Pé": { "nome": "categoria pé", "significado": "o apoio ou a perna livre: a posição de partida, a direção e o retorno.", "origem": "sistema" },
+        "Peso": { "nome": "categoria peso", "significado": "a distribuição do peso entre os dois pés, ou a sua passagem de um lado ao outro.", "origem": "sistema" },
+        "Plié": { "nome": "categoria plié", "significado": "a flexão e a subida dos apoios — o eixo sobe e desce pelo chão.", "origem": "sistema" },
+        "Braço": { "nome": "categoria braço", "significado": "o caminho do braço: a posição de partida, o arco e a condução.", "origem": "sistema" }
+      }
+    },
+    {
+      "titulo": "Movimento",
+      "itens": {
+        "→": { "nome": "conduz a", "significado": "transição — sai do estado declarado à esquerda e chega ao estado à direita.", "origem": "convenção do ciclo" },
+        "●": { "nome": "fecha", "significado": "retorno ou permanência — volta ao estado declarado à esquerda, ou sustenta o estado em que está.", "origem": "convenção do ciclo" },
+        "⌒": { "nome": "arco", "significado": "o caminho entre os dois estados é curvo, e não reto.", "origem": "convenção do ciclo" },
+        "↺": { "nome": "rotação para fora", "significado": "o segmento roda sobre o próprio eixo, para fora.", "origem": "convenção do ciclo" },
+        "+": { "nome": "à frente", "significado": "a direção à frente do corpo (devant).", "origem": "convenção do ciclo" },
+        "-": { "nome": "ao lado", "significado": "a direção ao lado do corpo (à la seconde).", "origem": "convenção do ciclo" },
+        "×": { "nome": "atrás", "significado": "a direção atrás do corpo (derrière).", "origem": "convenção do ciclo" },
+        "↓": { "nome": "cede", "significado": "o apoio cede — a descida, sem sair do lugar.", "origem": "convenção do ciclo" },
+        "↑": { "nome": "sobe", "significado": "o apoio sobe — o retorno ao eixo.", "origem": "convenção do ciclo" },
+        "ED": { "nome": "en dehors", "significado": "a varredura da perna para fora, no sentido do en dehors.", "origem": "convenção do ciclo" },
+        "EI": { "nome": "en dedans", "significado": "a varredura da perna para dentro, no sentido do en dedans.", "origem": "convenção do ciclo" }
+      }
+    },
+    {
+      "titulo": "Posições dos pés",
+      "itens": {
+        "1ª": { "nome": "primeira posição", "significado": "as pernas em 1ª, os calcanhares juntos e os pés em linha.", "origem": "sistema" },
+        "2ª": { "nome": "segunda posição", "significado": "as pernas em 2ª, a uma distância de um pé uma da outra.", "origem": "sistema" },
+        "3ª": { "nome": "terceira posição", "significado": "as pernas em 3ª, o calcanhar à frente do arco do pé.", "origem": "sistema" },
+        "5ª": { "nome": "quinta posição", "significado": "as pernas em 5ª, um pé colado ao outro.", "origem": "sistema" }
+      }
+    },
+    {
+      "titulo": "Lados",
+      "itens": {
+        "D": { "nome": "lado direito", "significado": "o lado direito do corpo.", "origem": "convenção do ciclo" },
+        "E": { "nome": "lado esquerdo", "significado": "o lado esquerdo do corpo.", "origem": "convenção do ciclo" }
+      }
+    }
+  ],
+
+  "verbetes": {
+    "Plié": {
+      "8|4/4": {
+        "cobre": 8,
+        "segmentos": [
+          { "compasso": 1, "contagem": "1–4", "bloco": "[Plié: 1ª ↓]", "descricao": "os dois apoios cedem em 1ª posição" },
+          { "compasso": 2, "contagem": "1–4", "bloco": "[Plié: ↓ ↑]", "descricao": "os apoios sobem, o eixo retorna" }
+        ]
+      }
+    },
+    "Battement tendu": {
+      "4|4/4": {
+        "cobre": 4,
+        "segmentos": [
+          { "compasso": 1, "contagem": "1–2", "bloco": "[Pé: 1ª → +]", "descricao": "extensão à frente, a ponta no chão" },
+          { "compasso": 1, "contagem": "3–4", "bloco": "[Pé: + ● 1ª]", "descricao": "retorno à 1ª posição" }
+        ]
+      },
+      "8|4/4": {
+        "cobre": 8,
+        "segmentos": [
+          { "compasso": 1, "contagem": "1–2", "bloco": "[Pé: 1ª → +]", "descricao": "extensão à frente, a ponta no chão" },
+          { "compasso": 1, "contagem": "3–4", "bloco": "[Pé: + ● 1ª]", "descricao": "retorno à 1ª posição" },
+          { "compasso": 2, "contagem": "1–2", "bloco": "[Pé: 1ª → ×]", "descricao": "extensão atrás, a ponta no chão" },
+          { "compasso": 2, "contagem": "3–4", "bloco": "[Pé: × ● 1ª]", "descricao": "retorno à 1ª posição" }
+        ]
+      }
+    },
+    "Rond de jambe": {
+      "8|4/4": {
+        "cobre": 8,
+        "segmentos": [
+          { "compasso": 1, "contagem": "1–2", "bloco": "[Pé: 1ª → +]", "descricao": "saída à frente, a ponta no chão" },
+          { "compasso": 1, "contagem": "3–4", "bloco": "[Pé: + ⌒ ED]", "descricao": "varre em arco até atrás, en dehors" },
+          { "compasso": 2, "contagem": "1–2", "bloco": "[Pé: × ⌒ 1ª]", "descricao": "continua o arco e recolhe à 1ª" },
+          { "compasso": 2, "contagem": "3–4", "bloco": "[Peso: 1ª ●]", "descricao": "o peso se redistribui, sem descolar" }
+        ]
+      }
+    },
+    "Port de bras": {
+      "12|3/4": {
+        "cobre": 12,
+        "segmentos": [
+          { "compasso": 1, "contagem": "1–3", "bloco": "[Braço: 1ª → 2ª ⌒]", "descricao": "os braços abrem em arco até a 2ª" },
+          { "compasso": 2, "contagem": "1–3", "bloco": "[Braço: 2ª → 3ª ⌒]", "descricao": "fecham em arco até a 3ª" },
+          { "compasso": 3, "contagem": "1–3", "bloco": "[Braço: 3ª → 1ª ⌒]", "descricao": "retornam em arco à 1ª" },
+          { "compasso": 4, "contagem": "1–3", "bloco": "[Braço: D → E]", "descricao": "a condução passa do braço D ao braço E" }
+        ]
+      }
+    }
+  }
+}
