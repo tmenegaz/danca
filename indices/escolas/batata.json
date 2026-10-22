@@ -87,6 +87,7 @@
     "nome": "batata",
     "professor": "tiago-menegaz",
     "professores": [
+      "sapo-bailarino",
       "tela-de-celular",
       "tiago-menegaz"
     ],
@@ -128,9 +129,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9bf8b7c"
+    "commit": "109334a"
   },
-  "gerado_em": "2026-10-22T11:54",
+  "gerado_em": "2026-10-22T12:04",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -154,5 +155,5 @@
     }
   ],
   "registros": [],
-  "versao": 2
+  "versao": 3
 }

@@ -65,6 +65,7 @@
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
+        "sapo-bailarino",
         "tela-de-celular",
         "tiago-menegaz"
       ],
@@ -91,7 +92,9 @@
       "nome": "breu",
       "professor": "sapo-bailarino",
       "professores": [
-        "sapo-bailarino"
+        "sapo-bailarino",
+        "tiago-menegaz",
+        "vaso-bonito"
       ],
       "registros": [],
       "slug": "breu"
@@ -141,7 +144,10 @@
       "nome": "calango",
       "professor": "sapo-bailarino",
       "professores": [
-        "sapo-bailarino"
+        "murisoca-baiana",
+        "oculos-redondo",
+        "sapo-bailarino",
+        "tiago-menegaz"
       ],
       "registros": [],
       "slug": "calango"
@@ -345,8 +351,18 @@
         "valor": "leticia"
       },
       {
-        "contagem": 3,
-        "rotulo": "Sapo Bailarino",
+        "contagem": 1,
+        "rotulo": "murisoca-baiana",
+        "valor": "murisoca-baiana"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "oculos-redondo",
+        "valor": "oculos-redondo"
+      },
+      {
+        "contagem": 4,
+        "rotulo": "sapo-bailarino",
         "valor": "sapo-bailarino"
       },
       {
@@ -360,18 +376,23 @@
         "valor": "tiago"
       },
       {
-        "contagem": 3,
+        "contagem": 5,
         "rotulo": "Tiago Menegaz",
         "valor": "tiago-menegaz"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "vaso-bonito",
+        "valor": "vaso-bonito"
       }
     ],
     "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "9bf8b7c"
+    "commit": "109334a"
   },
-  "gerado_em": "2026-10-22T11:54",
+  "gerado_em": "2026-10-22T12:04",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -416,12 +437,31 @@
     {
       "ciclos": [],
       "escolas": [
+        "calango"
+      ],
+      "id": "professor:murisoca-baiana",
+      "nome": null,
+      "slug": "murisoca-baiana"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:oculos-redondo",
+      "nome": null,
+      "slug": "oculos-redondo"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata",
         "breu",
         "calando-teste-1",
         "calango"
       ],
       "id": "professor:sapo-bailarino",
-      "nome": "Sapo Bailarino",
+      "nome": null,
       "slug": "sapo-bailarino"
     },
     {
@@ -449,13 +489,24 @@
       "ciclos": [],
       "escolas": [
         "batata",
+        "breu",
+        "calango",
         "fita",
         "valse"
       ],
       "id": "professor:tiago-menegaz",
       "nome": "Tiago Menegaz",
       "slug": "tiago-menegaz"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "breu"
+      ],
+      "id": "professor:vaso-bonito",
+      "nome": null,
+      "slug": "vaso-bonito"
     }
   ],
-  "versao": 2
+  "versao": 3
 }
