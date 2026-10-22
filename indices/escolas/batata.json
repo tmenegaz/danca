@@ -1,10 +1,73 @@
 {
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-22",
+        "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+        "cobertura": [
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
+        ],
+        "hash": "fbe8cae38de7a0c8e9e32a4a51608caeb7b48a462e76f93d868efbf3e48a3d6f",
+        "hash_conteudo": "5696d04d1111cb85e9351f2107843a82780c30c5c71ee39996ae27059bd89d38",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "documento": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+      "id": "ciclo:acucar-branco/01/batata/aula-01",
+      "numero": "01"
+    }
+  ],
   "ciclos": [
     {
-      "ancora": null,
-      "aulas": [],
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-22",
+        "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+        "cobertura": [
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
+          "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+        ],
+        "hash": "70da41c1b1eca3eb35fd79f3d628a97fd9b1669a75712c999e8ff684d39f81f9",
+        "hash_conteudo": "5d3328b6d9bb91e812cdaf3cd98203f3b1c24e6926b82396ae3dd5a466ceb5bf",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-10-22",
+            "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+            "cobertura": [
+              "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+              "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md"
+            ],
+            "hash": "fbe8cae38de7a0c8e9e32a4a51608caeb7b48a462e76f93d868efbf3e48a3d6f",
+            "hash_conteudo": "5696d04d1111cb85e9351f2107843a82780c30c5c71ee39996ae27059bd89d38",
+            "id": "ciclo-01-batata-bale-nivel-1-teste-2-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
+          "id": "ciclo:acucar-branco/01/batata/aula-01",
+          "numero": "01"
+        }
+      ],
       "documentos": [
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
         "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
         "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
         "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
@@ -15,25 +78,32 @@
         "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
         "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
         "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
-        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:acucar-branco/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "acucar-branco",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "aula",
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
         "po",
-        "referencias"
+        "referencias",
+        "schema"
       ]
     },
     {
@@ -73,6 +143,24 @@
   ],
   "documentos": [
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.fipp",
+      "professor": "acucar-branco",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "professor": "acucar-branco",
+      "tipo": "ancora"
+    },
+    {
       "ancora_id": "ciclo-01-batata",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
@@ -82,7 +170,7 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-aula-01.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -91,7 +179,7 @@
       "tipo": "aula"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-captura-aula-01.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -100,7 +188,7 @@
       "tipo": "aula"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.cifrado.json",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -109,7 +197,7 @@
       "tipo": "dados"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -118,7 +206,16 @@
       "tipo": "dados"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclo-01-batata-bale-nivel-1-teste-2-dados.json",
+      "professor": "acucar-branco",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-glossario-benesh.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -127,7 +224,7 @@
       "tipo": "glossario"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-harmonizacao.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -136,7 +233,16 @@
       "tipo": "harmonizacao"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:indice:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/ciclos.json",
+      "professor": "acucar-branco",
+      "tipo": "indice"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -154,7 +260,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-notacao.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -163,7 +269,7 @@
       "tipo": "notacao"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -172,7 +278,7 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-po.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
@@ -181,13 +287,22 @@
       "tipo": "po"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
       "ciclo_id": "ciclo:acucar-branco/01/batata",
       "escola": "batata",
       "id": "documento:referencias:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-referencias.md",
       "professor": "acucar-branco",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "acucar-branco",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-batata",
@@ -206,9 +321,9 @@
     ],
     "contagens": {
       "anamneses": 1,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 2,
-      "ciclos_com_ancora": 1,
+      "ciclos_com_ancora": 2,
       "planos": 1,
       "pos": 1,
       "registros": 3
@@ -251,20 +366,13 @@
     ],
     "estados": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "ciclo:acucar-branco/01/batata",
           "ciclo:tela-de-celular/01/batata"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:acucar-branco/01/batata"
-        ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -326,9 +434,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3603d9f"
+    "commit": "f855d5c"
   },
-  "gerado_em": "2026-10-22T13:39",
+  "gerado_em": "2026-10-22T13:56",
   "nao_indexado": [
     {
       "familia": "conteudo",
