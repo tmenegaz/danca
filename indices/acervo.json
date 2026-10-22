@@ -65,7 +65,6 @@
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
-        "azucar-rosa",
         "meia-cortada",
         "sapo-bailarino",
         "teclado-abnt",
@@ -344,11 +343,6 @@
     ],
     "professores": [
       {
-        "contagem": 1,
-        "rotulo": "Azucar Rosa",
-        "valor": "azucar-rosa"
-      },
-      {
         "contagem": 0,
         "rotulo": "cafe-no-bule",
         "valor": "cafe-no-bule"
@@ -413,9 +407,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "dbc1a02"
+    "commit": "5b1a263"
   },
-  "gerado_em": "2026-10-22T13:23",
+  "gerado_em": "2026-10-22T13:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -439,15 +433,6 @@
     }
   ],
   "professores": [
-    {
-      "ciclos": [],
-      "escolas": [
-        "batata"
-      ],
-      "id": "professor:azucar-rosa",
-      "nome": "Azucar Rosa",
-      "slug": "azucar-rosa"
-    },
     {
       "ciclos": [],
       "escolas": [],
