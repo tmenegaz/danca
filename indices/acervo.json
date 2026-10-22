@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "calango",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:oculos-redondo/01/calango",
       "numero": "01",
       "professor": "oculos-redondo",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -113,7 +118,7 @@
         "anamneses": 0,
         "aulas": 0,
         "ciclos": 1,
-        "ciclos_com_ancora": 0,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
         "registros": 0
@@ -304,8 +309,8 @@
     "estados": [
       {
         "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -344,9 +349,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e6b6527"
+    "commit": "0a75ae5"
   },
-  "gerado_em": "2026-10-22T10:15",
+  "gerado_em": "2026-10-22T10:37",
   "nao_indexado": [
     {
       "familia": "conteudo",

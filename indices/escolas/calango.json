@@ -2,20 +2,35 @@
   "aulas": [],
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-22",
+        "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
+        "cobertura": [
+          "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+          "professores/oculos-redondo/ciclos/ciclo-01.conf"
+        ],
+        "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
+        "hash_conteudo": "f5d1d93b1f9478bb99540dbbd6b8a841ce8f24004e37bf523ac9c11ae80259df",
+        "id": "ciclo-01-calango",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
         "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "calango",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:oculos-redondo/01/calango",
       "numero": "01",
       "pacote": null,
       "professor": "oculos-redondo",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "schema"
       ]
@@ -23,7 +38,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
+      "professor": "oculos-redondo",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -32,7 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-calango",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -49,7 +73,7 @@
       "anamneses": 0,
       "aulas": 0,
       "ciclos": 1,
-      "ciclos_com_ancora": 0,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
@@ -75,8 +99,8 @@
         "ids": [
           "ciclo:oculos-redondo/01/calango"
         ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -102,9 +126,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e6b6527"
+    "commit": "0a75ae5"
   },
-  "gerado_em": "2026-10-22T10:15",
+  "gerado_em": "2026-10-22T10:37",
   "nao_indexado": [
     {
       "familia": "conteudo",
