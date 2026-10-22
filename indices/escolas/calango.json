@@ -1,25 +1,67 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "calango",
+      "estado": "sem-ancora",
+      "id": "ciclo:oculos-redondo/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "oculos-redondo",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+      "professor": "oculos-redondo",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "oculos-redondo",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:oculos-redondo/01/calango"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
-    "expurgada": true,
-    "habilitada": false,
+    "expurgada": false,
+    "habilitada": true,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "sapo-bailarino",
     "professores": [
+      "oculos-redondo",
       "sapo-bailarino"
     ],
     "registros": [],
@@ -27,15 +69,42 @@
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:oculos-redondo/01/calango"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:oculos-redondo/01/calango"
+        ],
+        "rotulo": "oculos-redondo",
+        "valor": "oculos-redondo"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:oculos-redondo/01/calango"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "a237b07"
+    "commit": "e6b6527"
   },
-  "gerado_em": "2026-10-22T03:03",
+  "gerado_em": "2026-10-22T10:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
