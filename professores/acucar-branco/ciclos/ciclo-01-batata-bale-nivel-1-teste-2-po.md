@@ -15,7 +15,7 @@ plano-20261022-1036
 
 ## Horizonte
 
-Ao fim do ano, a turma do Nível 1 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.
+Ao fim do ano, a turma do Nível 2 deve sustentar o en dehors a partir do quadril e responder ao pulso sem contar a música em voz alta.
 
 ## Pergunta
 
