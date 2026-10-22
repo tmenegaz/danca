@@ -2,7 +2,8 @@
   "versao": 3,
   "nomes": [
     "anamnese-20261022-1034.json",
-    "plano-20261022-1036.json"
+    "plano-20261022-1036.json",
+    "po-20261022-1039.json"
   ],
   "resumos": {
     "anamnese-20261022-1034.json": {
@@ -27,6 +28,20 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Açucar Branco"
+    },
+    "po-20261022-1039.json": {
+      "id": "po-20261022-1039",
+      "fonte": "po",
+      "escola": "batata",
+      "professor": "acucar-branco",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "sujeitos": [
+        "Aluna A"
+      ],
+      "plano": [
+        "plano-20261022-1036"
+      ]
     }
   }
 }
