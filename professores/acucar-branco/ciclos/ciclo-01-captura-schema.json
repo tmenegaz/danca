@@ -438,6 +438,66 @@
             }
           }
         }
+      },
+      "batata-bale-nivel-1-teste-2": {
+        "escola": "Batata",
+        "blocos": {
+          "Bloco 1 — Técnica — Solo": {
+            "chave": "tecnica_solo",
+            "rotulo": "Técnica — Solo",
+            "grao": "aluna",
+            "colunas": {
+              "alinhamento do pé de apoio; eixo do corpo na preparação": {
+                "chave": "alinhamento_do_pe_de_apoio_eixo_do_corpo_na_preparacao",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 2 — Técnica — Barra": {
+            "chave": "tecnica_barra",
+            "rotulo": "Técnica — Barra",
+            "grao": "aluna",
+            "colunas": {
+              "saída do calcanhar no tendu; quadril sem subir no en dehors": {
+                "chave": "saida_do_calcanhar_no_tendu_quadril_sem_subir_no_en_dehors",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 3 — Técnica — Centro": {
+            "chave": "tecnica_centro",
+            "rotulo": "Técnica — Centro",
+            "grao": "aluna",
+            "colunas": {
+              "transferência de peso sem perder a verticalidade; braço junto do movimento": {
+                "chave": "transferencia_de_peso_sem_perder_a_verticalidade_braco_junto_do_movimento",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Bloco 4 — Técnica — Musicalidade": {
+            "chave": "tecnica_musicalidade",
+            "rotulo": "Técnica — Musicalidade",
+            "grao": "aluna",
+            "colunas": {
+              "resposta ao pulso na marcação; frase até o fim da música": {
+                "chave": "resposta_ao_pulso_na_marcacao_frase_ate_o_fim_da_musica",
+                "tipo": "rubrica"
+              }
+            }
+          },
+          "Linha de base revisitada (P-10)": {
+            "chave": "linha_de_base",
+            "rotulo": "Linha de base",
+            "grao": "aluna",
+            "colunas": {
+              "Observado na aula": {
+                "chave": "observado_na_aula",
+                "tipo": "marca"
+              }
+            }
+          }
+        }
       }
     }
   },
