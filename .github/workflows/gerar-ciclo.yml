@@ -73,32 +73,76 @@ concurrency:
 
 jobs:
   gerar:
-    runs-on: ubuntu-latest
+    # `ubuntu-24.04` E NÃO `ubuntu-latest` (22/10/2026). O cache de pacotes é indexado pela imagem
+    # do runner: quando o `latest` vira outra versão, os `.deb` guardados deixam de casar com o
+    # índice e o cache não serve. A versão fixa torna a chave previsível — e o toolchain também,
+    # que é o mesmo argumento do `SOURCE_DATE_EPOCH` que este gerador já usa para o PDF ser
+    # reprodutível.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - uses: ./.github/actions/preparar-node
 
-      - name: Instalar pandoc, TeX e pdfinfo
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends \
-            pandoc \
-            texlive-latex-base \
-            texlive-latex-recommended \
-            texlive-latex-extra \
-            texlive-fonts-recommended \
-            texlive-fonts-extra \
-            lmodern \
-            poppler-utils
+      # O TeX SAIA INTEIRO A CADA EXECUÇÃO, E CUSTAVA 91% DO JOB. Medido no run 39660657812:
+      # 116 s de 127 s só neste passo. A ação instala o conjunto mínimo medido (191 MB, contra
+      # 1,9 GB) e reusa os `.deb` de um cache. O porquê da lista está no comentário da ação, e
+      # ele não é estimativa: é o mapa de cada arquivo que o `pdflatex` abriu para o pacote que
+      # o fornece.
+      - uses: ./.github/actions/preparar-tex
 
       # Sem o passo das senhas locais: a senha de criptografia vive no Worker (SENHA_CRIPTO), e a
       # cópia cifrada do `-dados.json` nasce no «Guardar» do PO (caminho (a)). O gerador só COPIA
       # o `.cifrado.json`; o `check-pacote.js` confere a estrutura da cópia contra a fonte (a
       # garantia byte a byte fica para a máquina da pesquisadora, que tem tools/.senhas-locais).
+
+      - name: Conferir os pré-requisitos do ciclo na pasta do professor
+        shell: bash
+        env:
+          PROFESSOR: ${{ inputs.professor }}
+          CICLO: ${{ inputs.ciclo }}
+        run: |
+          set -euo pipefail
+          pasta="professores/$PROFESSOR/ciclos"
+          nn="$(printf '%02d' "$CICLO")"
+
+          # OS DOIS QUE ABORTAM O GERADOR, e que por isso se exigem aqui: `validar-po-ciclo.js`
+          # (gerar-ciclo.sh:272) e `validar-plano-ciclo.js` (:275) leem o schema e, sem ele,
+          # morrem com `ENOENT` e um `exit 1` que não diz de onde veio.
+          #
+          # O CASO QUE ORIGINOU ISTO (run 39660657812, 21/10/2026): a primeira geração do
+          # professor SECUNDÁRIO falhou exactamente assim. Os schemas nascem em
+          # `tools/criar-escola.sh`, que só passa pela pasta de quem CRIA a escola — e o
+          # professor que recebe a curadoria não é esse. A correção existe
+          # (`motor/servidor/schemas-do-ciclo.js`, chamado ao gravar o plano e o PO); esta
+          # conferência existe para que, se ela não estiver no ar no Worker da escola, a
+          # execução DIGA o motivo em vez de deixar um ENOENT para trás.
+          faltando=0
+          for s in po-schema plano-schema; do
+            arq="$pasta/ciclo-$nn-$s.json"
+            [ -f "$arq" ] && continue
+            echo "erro: falta $arq" >&2
+            faltando=1
+          done
+          if [ "$faltando" = 1 ]; then
+            echo "" >&2
+            echo "Os schemas do ciclo são por (professor, ciclo). Faltando na pasta de '$PROFESSOR'," >&2
+            echo "a causa é uma destas duas — e a segunda é a provável:" >&2
+            echo "  · o plano de ensino e o PO nunca foram gravados para '$PROFESSOR' (não há o que gerar);" >&2
+            echo "  · o Worker da escola corre um build anterior a 22/10/2026, que não provisiona os" >&2
+            echo "    schemas de quem não criou a escola. Reabra o plano e o PO e guarde outra vez" >&2
+            echo "    (é o «Guardar», com o Worker novo, que os cria), ou republique o Worker." >&2
+            exit 1
+          fi
+
+          # Estes três NÃO abortam o gerador — a ausência deles degrada a validação, e o próprio
+          # `gerar-ciclo.sh` tem comentário a dizer que o pacote continua. Avisar é o correcto:
+          # reprovar aqui seria mais rigoroso do que o gerador.
+          for s in schema aula-schema captura-schema; do
+            [ -f "$pasta/ciclo-$nn-$s.json" ] || \
+              echo "::warning::falta $pasta/ciclo-$nn-$s.json — o ciclo segue sem essa validação"
+          done
 
       - name: Gerar e validar o pacote
         shell: bash
@@ -271,7 +315,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
+          ./node_modules/.bin/wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

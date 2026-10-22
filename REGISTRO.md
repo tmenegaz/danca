@@ -22030,3 +22030,92 @@ workflow antigo e reproduz o defeito exacto: `encontradas: "[]"`.
 > `captura-schema` leva a declaração `breu-bale-nivel-1-teste-3` derivada da mesma PO. A geração
 > passou de ponta a ponta (24 páginas, `check-pacote`: 0 erros) e a âncora fechou sem reancorar.
 > A redação anterior fica como o elo de que a cópia existiu só no disco.
+
+## 22/10/2026 — O TeX saía inteiro a cada execução, e o deploy subia por arquivo que não serve
+
+**O que foi medido, antes de mexer em nada.** No run `39660657812` — a geração do professor
+secundário que falhou — o job levou **127 s**, e o passo «Instalar pandoc, TeX e pdfinfo» levou
+**116 s**. São 91% do tempo, em toda execução, num runner que é descartado no fim. O `gerar-ciclo`
+não tinha cache nenhum: `sudo apt-get update` e a instalação completa, sempre.
+
+**O que ia junto e não era usado.** `texlive-fonts-extra` sozinho instala **1,7 GB** (medido com
+`dpkg-query -W -f='${Installed-Size}'`: 1 731 869 KB) — mais do que todos os outros juntos. O
+projeto não usa `fontspec` nem fonte OpenType, de propósito: o cabeçalho diz, em comentário, que
+o engine é o `pdflatex` porque o `lualatex` está quebrado neste ambiente.
+
+**A prova não é estimativa.** O documento do ciclo foi compilado com o cabeçalho real
+(`tools/templates/ciclo-cabecalho.tex` com `@CORES@` vindo de `tools/lib-tokens.js --latex`) e
+cada arquivo que o `pdflatex` **abriu** (`prova.log`) foi mapeado ao pacote Debian que o fornece
+(`dpkg -S`). O conjunto que sobra é: `texlive-base`, `texlive-latex-base`,
+`texlive-latex-recommended`, `texlive-latex-extra`, `lmodern` — mais `pandoc` e `poppler-utils`.
+`texlive-fonts-extra` e `texlive-fonts-recommended` **não aparecem uma vez sequer**. O `sectsty`,
+o `newunicodechar`, o `xurl`, o `upquote` e o `textcomp` vêm do `latex-extra`, e por isso ele
+**fica**: cortar por nome de pacote seria adivinhar.
+
+**A prova positiva, em container limpo.** `ubuntu:24.04`, só o conjunto acima, e o documento real
+compilado com o mesmo comando do gerador: **2 páginas**, e os 20 arquivos que o documento carrega
+todos encontrados pelo `kpsewhich` (inclusive o `babel-portuguese-brazil.tex`, que vem do
+`texlive-base` e é o que faz o `lang=pt-BR` funcionar — o `texlive-lang-portuguese` nunca foi
+instalado no CI e não é necessário). Instalação: **86 s** num container local, contra 1,9 GB → 371 MB em disco.
+
+**O que se tentou e foi DESCARTADO.** Cachear a árvore instalada num `.tar.gz` (85 MB, criado em
+9 s) parecia o caminho: restaurar em vez de descompactar. Medido num container limpo, **não
+funciona**: `lmodern.sty`, `textcomp.sty`, `upquote.sty` e `babel-portuguese-brazil.tex` ficam
+invisíveis porque o `ls-R` é GERADO pelos gatilhos do `tex-common` e não pertence a pacote nenhum
+(`dpkg -L` não o lista); e `pandoc` e `pdfinfo` morrem em `libyaml-0.so.2` e `libpoppler.so.134`,
+que vivem em pacotes da árvore de dependências. Repor isso exigiria `mktexlsr` + `fmtutil-sys`
+— que é justamente o tempo que se queria poupar — e deixaria um estado parcial que só se revela
+quando alguém compila. É o modo de falha que este repositório mais teme: passar sem ter
+verificado. Descartado, com o número da tentativa aqui para não se repetir.
+
+**O cache que ficou.** `actions/cache` guarda os `.deb` (corta o `apt-get update` e o download:
+15 s + 6 s medidos) e o `node_modules` (o `npx wrangler` **baixava** o wrangler a cada deploy
+porque nada era instalado — medido em 20 s no run `39661231303`; agora é o binário que o
+`package-lock.json` fixa). A chave do cache do TeX é o hash do próprio `action.yml`: mexer na
+lista invalida o cache sozinho. E um passo «Conferir» chama `kpsewhich` em 20 arquivos — se a
+lista apodrecer, a execução **falha dizendo qual arquivo falta**, em vez de gerar um PDF sem o
+recurso.
+
+**O segundo desperdício: o deploy por arquivo que não é servido.** O «Guardar» do PO grava um
+arquivo por vez, um commit por arquivo. Medido às 19:19:31 de 21/10/2026: **dez commits em quatro
+segundos**, cada um disparando `reancorar` **e** `deploy-escolas` — dezoito execuções, oito
+canceladas. O `deploy-escolas` subia o site inteiro por `-po.md`, `-plano.md`, `-dados.json` e
+`.fipp`, que **não são servidos**: `tools/montar-publicacao.js` lê de `professores/` só as pastas
+`ciclo-*/` e os `.conf` (o `NOME` da turma e o `ESCOLA` viram o menu). Os `paths` passam a ser
+exactamente isso — a pergunta «este arquivo chega ao que a escola serve?», que é a mesma forma da
+correção do `deploy-escolas` de hoje mais cedo. O `reancorar` passa a `cancel-in-progress: true`:
+a âncora é **derivada** e o `--check` é idempotente, logo uma execução cancelada não deixa
+estado — o que **não** se cancela é o `wrangler deploy`, porque um upload interrompido a meio é
+outra coisa.
+
+**E o diagnóstico que faltava na geração.** O `gerar-ciclo.sh` exige
+`ciclo-NN-po-schema.json` e `ciclo-NN-plano-schema.json` e, sem eles, morre em `ENOENT` com um
+`exit 1` que não diz de onde veio — foi assim que a primeira geração do professor secundário
+falhou. O workflow passa a conferir os dois antes de gerar e, faltando, **diz o que fazer**:
+os schemas são por (professor, ciclo), nascem em `tools/criar-escola.sh` (que só toca a pasta de
+quem CRIA a escola) e, para os demais, em `motor/servidor/schemas-do-ciclo.js`, chamado ao
+guardar o plano e o PO. Os outros três (`schema`, `aula-schema`, `captura-schema`) só **avisam**:
+o gerador tolera a ausência deles, e reprovar seria mais rigoroso do que o próprio gerador.
+
+**O que ainda não está feito.**
+- **A imagem pré-construída** é o que apaga os 86 s restantes: um `container:` com pandoc + TeX
+  mínimo + poppler + node leva o passo a ~15 s (pull) e pina o toolchain, que hoje é
+  `ubuntu-latest` + `apt-get` sem versão — o oposto do `SOURCE_DATE_EPOCH` que o gerador já usa
+  para o PDF ser reprodutível. Fica para quando o teste ponta a ponta fechar: trocar o runtime no
+  meio do teste troca a variável que se está a medir.
+- **Os cinco `PUT` dos schemas continuam a ser cinco commits.** Um commit só (Git Data API, como
+  o expurgo faz) cortaria quatro. Não é urgente: com os `paths` estreitados e o `reancorar` a
+  cancelar, esses commits já não produzem dezoito execuções.
+- **O tempo no GitHub ainda não foi medido com o conjunto novo.** O 116 s é do GitHub; o 86 s é de
+  um container local. Os dois números não são a mesma régua, e a diferença real só se lê no
+  próximo run.
+
+**Com o quê.** `.github/actions/preparar-tex/action.yml` (novo — instala o conjunto medido,
+cacheia os `.deb` e confere com `kpsewhich`), `.github/actions/preparar-node/action.yml` (novo —
+`node_modules` em cache e o `wrangler` do lock), e os cinco workflows, que passam a usar as duas,
+a chamar `./node_modules/.bin/wrangler`, a fixar `ubuntu-24.04` e — no `gerar-ciclo` — a conferir
+os schemas antes de gerar. Não se tocou em `tools/`: nada aqui muda o que se gera, só quanto
+tempo e quantas execuções custa gerar.
+
+**Governança.** `.github/` não está na lista congelada do `CONGELAMENTO.md`, mas é infraestrutura:
+motivo declarado (aqui) e commit próprio, sem conteúdo junto.

@@ -28,23 +28,36 @@ permissions:
 
 # Duas execuções correndo juntas reancorariam a mesma cadeia e uma sobrescreveria a
 # outra. A última fila espera a anterior terminar.
+#
+# CANCELA A ANTERIOR, E É SEGURO (22/10/2026). A âncora NÃO SE ESCOLHE: é DERIVADA das fontes
+# por `tools/hash-ciclo.sh`, e o `--check` é idempotente. Uma execução cancelada não deixa
+# estado — o commit ou foi empurrado ou não foi —, e a seguinte recalcula a âncora a partir das
+# fontes que existirem então. O que NÃO se cancela é o `wrangler deploy` do `deploy-escolas`,
+# porque um upload interrompido a meio é outra coisa.
+#
+# O que isto resolve: o «Guardar» do PO grava um arquivo por vez, um commit por arquivo. Medido
+# às 19:19:31 de 21/10/2026 — dez commits em quatro segundos. Com `false`, eram dez execuções
+# deste workflow EM SÉRIE, cada uma com checkout, Node e um laço de `--check` sobre todos os
+# manifestos, só para chegar ao mesmo `.fipp` que a última ia calcular de qualquer maneira.
 concurrency:
   group: reancorar-${{ github.ref }}
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   reancorar:
-    runs-on: ubuntu-latest
+    # Fixo pelo mesmo motivo dos outros: o cache dos pacotes depende da imagem do runner.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
       # `hash-ciclo.sh` chama `node` duas vezes: validar-schema-ciclo.js e
       # validar-po-ciclo.js. Os validadores não têm dependência externa, então
-      # `npm ci` não é necessário — só o interpretador.
-      - uses: actions/setup-node@v4
+      # `npm ci` não é necessário — só o interpretador. Por isso `instalar: 'false'`:
+      # baixar `node_modules` aqui só acrescentaria segundos a um job que não usa wrangler.
+      - uses: ./.github/actions/preparar-node
         with:
-          node-version: '20'
+          instalar: 'false'
 
       - name: Reancorar os ciclos que divergiram
         id: reancorar

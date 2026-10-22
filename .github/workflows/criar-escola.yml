@@ -72,19 +72,20 @@ concurrency:
 
 jobs:
   criar:
-    runs-on: ubuntu-latest
+    # `ubuntu-24.04` fixo pelo mesmo motivo do `gerar-ciclo.yml`: a chave do cache de pacotes é
+    # indexada pela imagem do runner, e `ubuntu-latest` muda de versão sem avisar.
+    runs-on: ubuntu-24.04
 
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - uses: ./.github/actions/preparar-node
 
-      - name: Instalar pandoc
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y --no-install-recommends pandoc
+      # Só pandoc: o scaffold monta o pacote-zero e não compila LaTeX. O `pdfinfo` vem junto
+      # porque a ação confere o que instalou, e ele custa poucos KB.
+      - uses: ./.github/actions/preparar-tex
+        with:
+          com-tex: 'false'
 
       - name: Montar o scaffold (professor + ciclo + pacote-zero + wrangler)
         id: scaffold
@@ -120,7 +121,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
+          ./node_modules/.bin/wrangler deploy -c "wrangler.${{ inputs.escola }}.jsonc"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

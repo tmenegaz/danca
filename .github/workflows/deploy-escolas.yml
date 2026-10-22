@@ -29,14 +29,32 @@ on:
     # O que uma escola SERVE é o conteúdo do seu pacote (a pasta do ciclo) mais o motor
     # que o Worker empacota. Não se lista arquivo por arquivo dentro do pacote: um
     # `assets/nav.js` novo tem de publicar, e uma lista nominal apodreceria em silêncio.
+    # O QUE UMA ESCOLA SERVE É O PACOTE MONTADO, E SÓ ELE (22/10/2026). A lista era
+    # `professores/**`, e isso fazia o deploy subir o site inteiro por arquivos que ele não
+    # serve: cada `-po.md`, `-plano.md`, `-dados.json` e cada `.fipp` reancorado disparava um
+    # `wrangler deploy` completo. Medido no «Guardar» do PO de 21/10/2026 às 19:19: dez commits
+    # em quatro segundos, dez deploys enfileirados (`cancel-in-progress: false`, e é o correcto
+    # para deploy), cada um montando e subindo a escola para publicar exactamente o mesmo site.
+    #
+    # A pergunta que ficou no lugar é a certa: «este arquivo chega ao que a escola serve?».
+    # Quem responde é `tools/montar-publicacao.js`, e ele lê duas coisas de `professores/`:
+    # as pastas dos pacotes (`ciclo-*/`) e os `.conf` — destes, o `NOME` da turma e o `ESCOLA`
+    # da escola, que viram o MENU. O resto (fontes `.md`, `-dados.json`, `.fipp`, relatórios,
+    # cadernos) não é lido por ninguém no caminho da publicação.
     paths:
-      - 'professores/**'
+      - 'professores/**/ciclos/ciclo-*/**'
+      - 'professores/**/ciclos/*.conf'
       - 'motor/**'
       - 'workers/**'
       - 'wrangler.*.jsonc'
       - 'tools/templates/**'
+      # A montagem é ela própria parte do que se publica: mudar como o site é composto muda o
+      # site, e antes disso não havia gatilho nenhum — a alteração só valia no deploy seguinte,
+      # por acidente de outro arquivo.
+      - 'tools/montar-publicacao.js'
       - 'tools/check-identidade.js'
       - '.github/workflows/deploy-escolas.yml'
+      - '.github/actions/**'
   workflow_dispatch:
     inputs:
       escola:
@@ -71,7 +89,7 @@ jobs:
   # `assets.directory` aponta: o pacote-zero (`professores/<prof>/ciclos/ciclo-NN-<slug>/`)
   # é a FONTE do site, e é ele que o expurgo apaga. Se ele existe, há o que publicar.
   descobrir:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     outputs:
       escolas: ${{ steps.lista.outputs.escolas }}
     steps:
@@ -118,7 +136,7 @@ jobs:
   publicar:
     needs: descobrir
     if: needs.descobrir.outputs.escolas != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       # Uma escola que falha não impede as outras de subir: são Workers independentes, e
       # travar a publicação de uma por causa da outra esconde o problema em vez de o dizer.
@@ -129,9 +147,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+      - uses: ./.github/actions/preparar-node
 
       - name: Conferir a identidade antes de publicar
         shell: bash
@@ -153,7 +169,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          npx wrangler deploy -c "wrangler.${{ matrix.escola }}.jsonc"
+          ./node_modules/.bin/wrangler deploy -c "wrangler.${{ matrix.escola }}.jsonc"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: 2628f36f9f72bd539b417dcb173d1f12

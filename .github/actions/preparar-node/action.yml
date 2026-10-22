@@ -1,0 +1,59 @@
+name: Preparar Node e as dependências
+description: >-
+  Instala o Node e as dependências do `package-lock.json`, reusando `node_modules` de um cache.
+
+# POR QUE ISTO EXISTE (22/10/2026). Os quatro workflows que publicam chamavam
+# `npx wrangler deploy` sem nunca ter instalado nada: o `npx` BAIXAVA o wrangler a cada
+# execução, num diretório temporário que o runner descarta no fim. Medido no run 39661231303:
+# «Subir breu no Cloudflare» = 20 s, dos quais a maior parte era o download.
+#
+# O `package-lock.json` já está no repositório e já fixa a versão do wrangler — a instalação
+# local não é uma dependência nova, é a que o repositório declara e nunca era usada. Com o
+# `node_modules` em cache, o passo vira a execução do binário que o lock escolheu.
+#
+# `node_modules` e não só `~/.npm`: `npm ci` APAGA `node_modules` antes de instalar, então
+# cachear só o cache do npm obrigaria a reinstalar sempre. Por isso o passo `npm ci` só corre
+# quando `node_modules` não veio do cache — e é ele que preenche o cache na primeira vez.
+#
+# A VERSÃO DO NODE NÃO MUDA AQUI. Continua 20, que é o que o repositório usa hoje; subir de
+# versão é outra decisão, com a sua própria prova, e não se mistura com uma mudança de cache.
+
+inputs:
+  instalar:
+    description: >-
+      'true' instala as dependências (quem chama `wrangler` ou `pagecrypt`). 'false' traz só o
+      interpretador — é o caso do `reancorar.yml`, que corre `hash-ciclo.sh` e os validadores,
+      e esses não têm dependência externa.
+    required: false
+    default: 'true'
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+
+    - name: Restaurar node_modules
+      id: nm
+      if: inputs.instalar == 'true'
+      uses: actions/cache@v4
+      with:
+        path: node_modules
+        key: nm-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+
+    - name: Instalar as dependências
+      if: inputs.instalar == 'true' && steps.nm.outputs.cache-hit != 'true'
+      shell: bash
+      run: npm ci --no-audit --no-fund
+
+    - name: Conferir
+      shell: bash
+      run: |
+        set -euo pipefail
+        echo "node: $(node --version)"
+        if [ "${{ inputs.instalar }}" = "true" ] && [ ! -x node_modules/.bin/wrangler ]; then
+          echo "erro: node_modules/.bin/wrangler não existe — o cache não serviu e o npm ci não o criou. Os workflows chamam este binário, e não o 'npx', para que a versão seja a do package-lock." >&2
+          exit 1
+        fi
