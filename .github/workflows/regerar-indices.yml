@@ -137,7 +137,18 @@ jobs:
           # mais de um workflow escreve no `main`. Se o rebase assentar sobre um `main` novo, o
           # índice regerado foi calculado sobre a árvore ANTIGA — e o índice não se escolhe, é
           # derivado. Aqui ele é recalculado depois do rebase, e o commit é refeito.
-          for intento in 1 2 3 4 5; do
+          #
+          # O REBASE USA O RESOLVEDOR PARTILHADO (22/10/2026). Este laço nasceu com um
+          # `git rebase` cru e um `--abort` — a suposição era de que um conflito aqui não
+          # poderia ser do índice, porque é o índice que se está a escrever. É falso: o
+          # `indices/` é escrito por QUATRO caminhos (este, o `reancorar.yml`, o
+          # `gerar-ciclo.yml` e a página), e dois deles a correr ao mesmo tempo colidem no
+          # próprio índice. Medido no run 39795395850: treze `CONFLICT (content)` — todos em
+          # `indices/**` — e o job vermelho, com a mensagem a dizer «conflito que não é do
+          # índice» sobre um conflito que era só do índice. O `.github/scripts/conflito-do-
+          # derivado.sh` é a regra única dos três laços: `indices/**` fica com a versão do
+          # `main` e é regerado abaixo; `*.fipp` fica com a do commit; material falha e é dito.
+          for intento in 1 2 3 4 5 6 7 8; do
             if git push; then
               exit 0
             fi
@@ -145,10 +156,11 @@ jobs:
             git fetch origin main
 
             if ! git rebase origin/main; then
-              echo "erro: o rebase parou — conflito que não é do índice:" >&2
-              git diff --name-only --diff-filter=U >&2 || true
-              git rebase --abort || true
-              exit 1
+              if ! .github/scripts/conflito-do-derivado.sh; then
+                git rebase --abort || true
+                exit 1
+              fi
+              GIT_EDITOR=true git rebase --continue
             fi
 
             # A derivação de novo, sobre a árvore que resultou do rebase.
@@ -162,6 +174,6 @@ jobs:
             fi
             sleep $((intento * 3))
           done
-          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          echo "erro: o push continuou recusado depois de 8 tentativas" >&2
           exit 1
 

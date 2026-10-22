@@ -22958,3 +22958,31 @@ ficou declarado como «o derivado não se concilia» — hoje sabe-se que ele **
 - A regra do **plano** não foi endurecida: os dois planos de 22/10 nasceram sem `ajuste_de` porque
   a elicitação veio **sem `id`**, e o bloco `fonte === 'plano'` só reconcilia quando o `id` chega.
   Fica declarado aqui, e é a próxima peça se o defeito reaparecer com o PO já bloqueado.
+
+## 22/10/2026 — O terceiro laço de rebase, e os treze conflitos que eram só do índice
+
+**O que se viu.** O run 39795395850 (`Regerar os índices`, commit `2466526`) terminou vermelho com
+treze `CONFLICT (content)` — **todos** em `indices/**` — e com a mensagem «o rebase parou —
+conflito que não é do índice». O `conflito-do-derivado.sh` já existia e já era usado pelo
+`reancorar.yml` e pelo `gerar-ciclo.yml`.
+
+**A causa.** O `regerar-indices.yml` nasceu com o seu **próprio** laço de rebase — um `git rebase`
+cru, um `--abort` e uma suposição: «aqui o conflito não pode ser do índice, porque é o índice que
+se está a escrever». É falsa. O `indices/` é escrito por quatro caminhos (o `regerar-indices`, o
+`reancorar`, o `gerar-ciclo` e a página dos Bastidores), e dois a correr ao mesmo tempo colidem no
+próprio índice — que é exactamente o caso que o resolvedor trata: fica com a versão do `main` e é
+recalculado. A regra existia, e este laço não a usava.
+
+**O que foi decidido.** O terceiro laço passa a chamar o `.github/scripts/conflito-do-derivado.sh`,
+como os outros dois: `indices/**` do `main` e regerado abaixo; `*.fipp` do commit; material falha e
+o script diz qual. As tentativas sobem de 5 para 8, como as dos outros.
+
+**Onde entrou.** `.github/workflows/regerar-indices.yml` — o laço e a mensagem.
+
+**Com o quê.** `experimentos/provar-conflito-do-derivado.sh` — 16 asserções sobre rebase de
+verdade, inalteradas e a passar (o resolvedor não mudou; quem mudou foi quem o chama).
+
+**O que ainda não está feito.** A regra «há **um** laço de rebase» continua a ser uma convenção
+sem trava: são três ficheiros com o mesmo bloco, e o quarto que aparecer pode repetir o erro. Uma
+trava possível — e não feita — é o `pre-commit` recusar um `git rebase` seguido de `exit 1` fora de
+`.github/scripts/`. Fica declarado.
