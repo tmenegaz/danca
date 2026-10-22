@@ -1047,6 +1047,22 @@ function alunasComprometidas(lista, modalidade, idQueEdita) {
 /** O nome do professor DONO, com a sobreposição editável no KV. O dono vive como SECRET
  *  (PROFESSOR_NOME) e o nome ajustado nos Bastidores fica no KV — o KV vence, para o nome
  *  poder ser corrigido sem tocar no segredo do Worker (a senha continua a do segredo). */
+/**
+ * O SLUG DO DONO — a PASTA dele. É `PROFESSOR_SLUG` (declarado por quem cria a escola) e só na
+ * falta se deriva do nome (17/10/2026).
+ *
+ * PORQUE É UMA FUNÇÃO (22/10/2026). Este cálculo estava escrito à mão em seis lugares, e cinco
+ * deles derivavam do NOME. Enquanto o nome do principal não podia mudar, os seis concordavam por
+ * acidente. Quando o «Editar» passou a mudar o nome pelo formulário, a página da Produção — que
+ * usava `slugificar(PROFESSOR_NOME)` — passou a procurar as turmas do principal numa pasta que
+ * não existe: o nome mudava, e as turmas dele desapareciam da lista. O slug é a pasta; o nome é
+ * rótulo. Uma definição, e todos os lugares a usam.
+ */
+function slugDoDono(env) {
+  return String((env && env.PROFESSOR_SLUG) || '').trim()
+    || slugificar(String((env && env.PROFESSOR_NOME) || ''));
+}
+
 async function nomeDoDono(env, kv, escola) {
   try {
     const t = await kv.get(RAIZ + '/' + escola + '/dono');
@@ -1185,7 +1201,10 @@ async function senhaDaEscolaOk(env, kv, escola, senha) {
  * página pede o campo, em vez de inventar um número.
  */
 function contextoDaPorta(env, escola, url) {
-  const professor = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+  // O SLUG É A PASTA — a mesma regra do resto da página. Aqui ele viaja no `?professor=` da
+  // porta, que é o valor que o PO e o plano gravam: derivá-lo do nome mandaria o registo para
+  // uma pasta que não existe (medido em 17/10/2026, com o dono `tiago` e a pasta `tiago-menegaz`).
+  const professor = slugDoDono(env);
   const ciclo = String((url && url.searchParams.get('ciclo')) || '').trim();
   const partes = [];
   if (professor) partes.push('professor=' + encodeURIComponent(professor));
@@ -2199,6 +2218,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '.passo:disabled:hover{background:transparent;color:var(--texto-suave);}' +
     'button:disabled.acao{cursor:not-allowed;}' +
     '.par-botoes button{margin:0;}' +
+    // O `hidden` DO ATRIBUTO NÃO BASTA NUMA COLUNA DE FORMULÁRIO. `#prof-senha` embrulha dois
+    // elementos que a folha desenha (`label.campo-rotulo` é `display:block`, e o `input` tem
+    // regra própria) — e uma regra de autor vence o `display:none` que o atributo traz. Sem
+    // esta linha, a senha continuaria à vista no modo de edição.
+    '#prof-senha[hidden]{display:none;}' +
     '.bloco-assoc .nota{margin:.5rem 0 0;}' +
     // O SELO «sem uso» SAIU (18/10/2026). Ele existia aqui e em nenhum outro lugar: nem no
     // markup desta página, nem na fonte. Um estado de componente que só uma página conhece é
@@ -2522,15 +2546,32 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<section class="secao" id="sec-professores" hidden>' +
     tituloComAcordeao('sec-professores', 'Professores', 'professores-miolo') +
     '<div class="col-form" id="professores-miolo">' +
+    // UM FORMULÁRIO, DOIS ATOS (22/10/2026). O «Editar» do professor principal abria um
+    // `prompt()` do navegador — a janelinha que parece um alert, com o nome num campo de uma
+    // linha e sem nada em volta. O ato é o mesmo dos outros: muda-se um nome num formulário e
+    // grava-se. Então o próprio formulário do cadastro serve à edição: o «Editar» preenche os
+    // campos, o botão passa a dizer o que vai fazer, e o «Cancelar» volta ao cadastro. A senha
+    // sai de cena — o nome do principal não se muda por senha nova (`/api/bastidores/dono` só
+    // grava a sobreposição de exibição; a senha dele é do secret).
     '<form id="form-prof">' +
+    // O MODO É DECLARADO NO FORMULÁRIO, e não numa variável solta: o estado que a tela mostra
+    // está na tela. Vazio = cadastrar; `dono` = editar o nome do professor principal.
+    '<input type="hidden" id="prof-modo" value="">' +
+    '<p class="sub" id="prof-nota" hidden>Editando o nome do <b>professor principal</b>. A senha ' +
+    'dele não muda por aqui, e a pasta dele continua a mesma — só o nome que aparece.</p>' +
     '<label class="campo-rotulo" for="pnome">Nome do professor</label>' +
     '<input id="pnome" name="nome" autocomplete="off" placeholder="ex.: Tiago">' +
     '<label class="campo-rotulo" for="psobrenome">Sobrenome ou apelido</label>' +
     '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
+    '<div id="prof-senha">' +
     '<label class="campo-rotulo" for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
+    '</div>' +
     '<div class="res" data-res="professores"></div>' +
-    '<button type="submit" class="acao grande">Cadastrar professor</button>' +
+    '<span class="par-botoes">' +
+    '<button type="submit" class="acao grande" id="prof-enviar">Cadastrar professor</button>' +
+    '<button type="button" class="acao secundario" id="prof-cancelar" hidden>Cancelar</button>' +
+    '</span>' +
     '</form>' +
     '</div>' +
     '<div class="col-lista" data-paginar data-por-pagina="7">' +
@@ -3636,6 +3677,14 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  var res = alvoDoRecado();' +
     '  if (!res) return;' +
     '  res.className = "res" + (estado ? " " + estado : ""); res.textContent = texto;' +
+    // O RECADO TRAZ-SE À VISTA — o mínimo necessário. `nearest` não mexe na página quando o
+    // recado já está visível, e encosta-o à borda quando não está: medido, o cadastro com a
+    // janela curta punha a mensagem a `top: 596` numa janela de 493. A folha tem
+    // `scroll-behavior: smooth`, e é por isso que o movimento é animado — quem mede tem de
+    // esperar por ele (as provas esperam; a pessoa vê-o acontecer).
+    '  if (res.scrollIntoView) {' +
+    '    try { res.scrollIntoView({block: "nearest"}); } catch (err) { res.scrollIntoView(); }' +
+    '  }' +
     '}' +
     /*
  * O BOTÃO É O PRIMEIRO RECADO (22/10/2026). O `.res` ao lado do formulário é o segundo — mas o
@@ -3645,15 +3694,24 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
  * rótulo anterior é guardado e devolvido no erro; no sucesso a página recarrega e o botão vem
  * novo do servidor.
  */
-'function postar(id, corpo) {' +
+// O BOTÃO OCUPADO — uma função, dois usos (o cadastro e a edição do nome). Guarda o rótulo
+// de antes e devolve-o: no erro o botão volta a ser o que era, e a pessoa pode tentar de novo.
+'function ocuparBotao(form, rotulo) {' +
+    '  if (!form) return null;' +
+    '  var botao = form.querySelector("button[type=submit]");' +
+    '  if (!botao) return null;' +
+    '  var antes = {botao: botao, rotulo: botao.textContent};' +
+    '  botao.disabled = true; botao.textContent = rotulo;' +
+    '  return antes;' +
+    '}' +
+    'function liberarBotao(antes) {' +
+    '  if (antes && antes.botao) { antes.botao.disabled = false; antes.botao.textContent = antes.rotulo; }' +
+    '}' +
+    'function postar(id, corpo) {' +
     '  corpo.token = TOKEN;' +
     '  var form = document.getElementById(id);' +
-    '  var botao = form ? form.querySelector("button[type=submit]") : null;' +
-    '  var rotulo = botao ? botao.textContent : null;' +
-    '  if (botao) { botao.disabled = true; botao.textContent = "cadastrando..."; }' +
-    '  function devolverRotulo() {' +
-    '    if (botao) { botao.disabled = false; botao.textContent = rotulo; }' +
-    '  }' +
+    '  var antes = ocuparBotao(form, "cadastrando...");' +
+    '  function devolverRotulo() { liberarBotao(antes); }' +
     '  recado("", "cadastrando...");' +
     '  return fetch(id === "form-prof" ? "/api/bastidores/professor" : "/api/bastidores/aluna", {' +
     '    method: "POST",' +
@@ -3664,10 +3722,85 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '    else { devolverRotulo(); recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
     '  }).catch(function(err){ devolverRotulo(); recado("erro", "Erro: " + err.message); });' +
     '}' +
+    /*
+     * O «EDITAR» DO PROFESSOR PRINCIPAL ENTRA NO FORMULÁRIO (22/10/2026).
+     *
+     * Antes, ele abria um `prompt()` do navegador — a janelinha que parece um alert, com uma
+     * linha e sem contexto. O ato, porém, é o mesmo do cadastro: muda-se um nome num formulário
+     * e grava-se. Então o formulário passa a ter DOIS modos, e o modo é declarado nele mesmo
+     * (o campo oculto `prof-modo`), não numa variável solta: o estado que a tela mostra está
+     * na tela.
+     *
+     * O QUE MUDA NO MODO DE EDIÇÃO: os dois campos vêm preenchidos, a SENHA sai de cena (o nome
+     * do principal não se muda por senha nova) e o botão diz o que vai fazer. O «Cancelar» volta
+     * ao cadastro — vazio, com a senha de volta e o botão com o rótulo de antes.
+     *
+     * E QUEM PODE: só o principal. O botão «Editar» nasce apenas na linha dele (as outras têm
+     * «Excluir», e o principal não tem — quem responde pela escola não se apaga). Isto é a
+     * tela; o servidor tem a sua própria guarda em `/api/bastidores/professor` (DELETE) e em
+     * `/api/bastidores/dono`.
+     */
+    'function modoDoProfessor() {' +
+    '  return document.getElementById("prof-modo") ? document.getElementById("prof-modo").value : "";' +
+    '}' +
+    'function editarProfessor(nome) {' +
+    '  var f = document.getElementById("form-prof");' +
+    '  if (!f) return;' +
+    '  var inteiro = String(nome || "").replace(/\s+/g, " ").trim();' +
+    '  if (!inteiro) return;' +
+    // A divisão é a MESMA do cadastro, ao contrário: a primeira palavra é o nome e o resto é o
+    // sobrenome/apelido. O que se grava é a junção das duas — o mesmo nome que estava na lista,
+    // se ninguém mexer.
+    '  var corte = inteiro.indexOf(" ");' +
+    '  document.getElementById("pnome").value = corte === -1 ? inteiro : inteiro.slice(0, corte);' +
+    '  document.getElementById("psobrenome").value = corte === -1 ? "" : inteiro.slice(corte + 1);' +
+    '  var oculto = document.getElementById("prof-modo");' +
+    '  if (oculto) oculto.value = "dono";' +
+    '  var senha = document.getElementById("prof-senha");' +
+    '  if (senha) senha.hidden = true;' +
+    '  var nota = document.getElementById("prof-nota");' +
+    '  if (nota) nota.hidden = false;' +
+    '  var b = document.getElementById("prof-enviar");' +
+    '  if (b) b.textContent = "Gravar o novo nome";' +
+    '  var c = document.getElementById("prof-cancelar");' +
+    '  if (c) c.hidden = false;' +
+    '  recado("", "");' +
+    // O foco vai para o campo que se vai mudar: quem clicou em «Editar» quer escrever ali.
+    '  var alvo = document.getElementById("pnome");' +
+    '  if (alvo && alvo.focus) { alvo.focus(); if (alvo.select) alvo.select(); }' +
+    '  if (alvo && alvo.scrollIntoView) { try { alvo.scrollIntoView({block: "nearest"}); } catch (err) {} }' +
+    '}' +
+    'function sairDaEdicaoDoProfessor() {' +
+    '  var oculto = document.getElementById("prof-modo");' +
+    '  if (oculto) oculto.value = "";' +
+    '  ["pnome", "psobrenome", "psenha"].forEach(function (id) {' +
+    '    var el = document.getElementById(id);' +
+    '    if (el) el.value = "";' +
+    '  });' +
+    '  var senha = document.getElementById("prof-senha");' +
+    '  if (senha) senha.hidden = false;' +
+    '  var nota = document.getElementById("prof-nota");' +
+    '  if (nota) nota.hidden = true;' +
+    '  var b = document.getElementById("prof-enviar");' +
+    '  if (b) b.textContent = "Cadastrar professor";' +
+    '  var c = document.getElementById("prof-cancelar");' +
+    '  if (c) c.hidden = true;' +
+    '  recado("", "");' +
+    '}' +
     'document.getElementById("form-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
-    '  postar("form-prof", {nome: document.getElementById("pnome").value,' +
-    '    sobrenome: document.getElementById("psobrenome").value,' +
+    '  var nome = document.getElementById("pnome").value.trim();' +
+    '  var sobrenome = document.getElementById("psobrenome").value.trim();' +
+    '  if (modoDoProfessor() === "dono") {' +
+    '    var inteiro = (nome + (sobrenome ? " " + sobrenome : "")).replace(/\s+/g, " ").trim();' +
+    '    if (!inteiro) { recado("erro", "Erro: informe o nome do professor."); return; }' +
+    '    var form = document.getElementById("form-prof");' +
+    '    var antes = ocuparBotao(form, "gravando...");' +
+    '    enviar("/api/bastidores/dono", {nome: inteiro}, "gravando o novo nome...", true)' +
+    '      .then(function () { liberarBotao(antes); }, function () { liberarBotao(antes); });' +
+    '    return;' +
+    '  }' +
+    '  postar("form-prof", {nome: nome, sobrenome: sobrenome,' +
     '    senha: document.getElementById("psenha").value});' +
     '});' +
     'document.getElementById("form-aluna").addEventListener("submit", function(e){' +
@@ -4420,18 +4553,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     'document.addEventListener("keydown", function(e){ if (e.key === "Escape") fecharPaineis(null); });' +
     'document.addEventListener("click", function(e){' +
     '  var ed = e.target.closest("button.editar");' +
-    '  if (ed) {' +
-    '    var atual = ed.getAttribute("data-alvo");' +
-    '    var nome = prompt("Novo nome do dono da escola:", atual);' +
-    '    if (!nome || !nome.trim() || nome.trim() === atual) return;' +
-    '    fetch("/api/bastidores/dono", {' +
-    '      method: "POST", headers: {"Content-Type": "application/json"},' +
-    '      body: JSON.stringify({nome: nome.trim(), token: TOKEN})' +
-    '    }).then(function(r){ return r.json(); }).then(function(d){' +
-    '      if (d.ok) { location.reload(); } else { alert("Erro: " + (d.erro || "desconhecido")); }' +
-    '    }).catch(function(err){ alert("Erro: " + err.message); });' +
-    '    return;' +
-    '  }' +
+    '  if (ed) { editarProfessor(ed.getAttribute("data-alvo")); return; }' +
+    '  if (e.target.closest("button#prof-cancelar")) { sairDaEdicaoDoProfessor(); return; }' +
     '  var b = e.target.closest("button.apagar"); if (!b) return;' +
     '  var alvo = b.getAttribute("data-alvo");' +
     '  var tipo = b.getAttribute("data-tipo");' +
@@ -4549,7 +4672,7 @@ async function fetch(request, env) {
       rubricas(kv, escola),
     ]);
     const dono = await nomeDoDono(env, kv, escola);
-    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = slugDoDono(env);
     const rel = await relacoes(kv, escola);
     const curs = await curadorias(kv, escola);
     // Que (professor, turma) já têm plano de ensino: é o que decide, na turma e na curadoria,
@@ -4582,8 +4705,7 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/professores') {
     const profs = await professores(kv, escola);
     const dono = await nomeDoDono(env, kv, escola);
-    const donoSlug = String((env && env.PROFESSOR_SLUG) || '').trim()
-      || slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = slugDoDono(env);
     const lista = [];
     if (dono) lista.push({ nome: dono, slug: donoSlug });
     for (const p of profs) {
@@ -4620,7 +4742,7 @@ async function fetch(request, env) {
     const senha = String(corpo.senha || '');
     if (!nome || !senha) return json(400, { ok: false, erro: 'informe o nome e a senha do professor' });
 
-    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = slugDoDono(env);
     const lista = await professores(kv, escola);
     const slug = slugificar(nome + (sobrenome ? ' ' + sobrenome : ''));
     // O NOME EXIBIDO leva o sobrenome junto: no seletor, dois «Tiago» com pastas diferentes
@@ -4785,7 +4907,7 @@ async function fetch(request, env) {
     if (!nome) return json(400, { ok: false, erro: 'informe o nome do professor' });
     // O dono pode ter o nome ajustado no KV — protege-se pelo NOME RESOLVIDO, não só o secret.
     const donoNome = await nomeDoDono(env, kv, escola);
-    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = slugDoDono(env);
     if (nome === donoNome) {
       return json(409, {
         ok: false,
@@ -4973,7 +5095,7 @@ async function fetch(request, env) {
     // O professor criado pela página vive no secret SENHA_PROFESSOR. O SLUG dele é derivado
     // do SECRET (não da sobreposição editável do nome), para a pasta ficar estável — e o
     // seletor envia exatamente esse slug.
-    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = slugDoDono(env);
     if (professor === donoSlug) {
       if (env && env.SENHA_PROFESSOR && senha === env.SENHA_PROFESSOR) {
         const nome = await nomeDoDono(env, kv, escola);
@@ -5592,7 +5714,7 @@ async function fetch(request, env) {
   if (path === '/api/bastidores/curadoria-meta') {
     const profs = await professores(kv, escola);
     const dono = await nomeDoDono(env, kv, escola);
-    const donoSlug = slugificar(String((env && env.PROFESSOR_NOME) || ''));
+    const donoSlug = slugDoDono(env);
     const professoresOpcoes = [];
     if (dono) professoresOpcoes.push({ valor: donoSlug, rotulo: dono });
     for (const p of profs) {

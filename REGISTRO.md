@@ -22594,3 +22594,49 @@ da pasta; o inventário é reescrito no mesmo commit sem a linha dele e com o re
 KV só é tocado depois; com trabalho na pasta a resposta é 409 e **nada** é escrito; se o GitHub
 recusa, o professor continua no KV; a chave `professores` some do inventário quando fica vazia (não
 vira `[]`).
+
+## 22/10/2026 — O «Editar» do professor principal entra no formulário, e o slug deixa de seguir o nome
+
+**O que se pediu.** «Quando eu clico no botão editar, ele é o único professor que pode editar, não
+pode ser excluído. Tem que preencher no formulário para poder fazer a edição do nome do professor.
+E não abrir uma janelinha que parece um alert.»
+
+**O que havia.** `prompt("Novo nome do dono da escola:", atual)` — a janelinha nativa do navegador,
+uma linha e nenhum contexto —, e o erro vinha depois num `alert`. A regra de quem pode o quê já
+estava certa e fica: o «Editar» nasce **só** na linha do principal, e o principal **não** tem
+«Excluir» (quem responde pela escola não se apaga). O que muda é o **modo de editar**.
+
+**O formulário passa a ter dois modos, declarados nele mesmo** (campo oculto `#prof-modo`: vazio =
+cadastrar, `dono` = editar o nome do principal). O «Editar» preenche os dois campos com o nome
+atual — a divisão é a do cadastro ao contrário, primeira palavra é o nome —, põe o foco no
+primeiro campo, **tira a senha de cena** (o nome do principal não se muda por senha nova: a senha
+dele é do secret, e `/api/bastidores/dono` só grava a sobreposição de exibição) e explica isso numa
+nota `.sub`. O botão passa a dizer «Gravar o novo nome» e aparece um «Cancelar» ao lado, com
+`.par-botoes` — a peça que a turma e a curadoria já usam. Cancelar volta ao cadastro vazio, com a
+senha de volta e o rótulo de antes.
+
+**O defeito que a edição destapou — e que era do meu trabalho de hoje.** Com o nome editável, a
+derivação do slug do dono deixou de ser inofensiva. O cálculo estava escrito **à mão em seis
+lugares, e sete deles derivavam do NOME** (`slugificar(PROFESSOR_NOME)`), embora o slug seja a
+PASTA (`PROFESSOR_SLUG`). Enquanto o nome não mudava, todos concordavam por acidente. Ao mudar,
+a página da Produção passava a procurar as turmas do principal numa pasta que não existe — e o
+`?professor=` da porta, que é o valor gravado no PO e no plano, ia para a pasta errada. É o mesmo
+defeito de 17/10/2026 (a escola `valse`, `tiago` vs `tiago-menegaz`), sobrevivendo em cinco
+lugares que a correção daquele dia não tocou. Agora há **uma** função, `slugDoDono(env)`, e os oito
+lugares a usam.
+
+**Conferido.** `provar-editar-professor-principal.js` — 26 asserções num Chrome real, com os três
+diálogos nativos **instrumentados**: nenhum `prompt`, `alert` ou `confirm` é chamado; o formulário
+entra no modo, preenche, foca, esconde a senha, mostra a nota, troca o rótulo e mostra o cancelar;
+gravar manda **um** pedido a `/api/bastidores/dono` com o nome inteiro (nome + sobrenome) e
+recarrega; cancelar volta ao cadastro **sem** pedido; no erro o botão volta e o recado fica na
+secção e na tela. `provar-slug-do-professor.js` ganhou três asserções: com o nome editado, o slug
+continua o da pasta e o `?professor=` da página continua `tiago-menegaz` — a asserção **falharia**
+antes desta correção, e é ela que impede o defeito de voltar. `provar-producao` 135/135,
+`provar-cadastro-visivel` 12, `provar-apagar-professor-livre` 23, `check-identidade` 20/20,
+`check-indices` 14/14.
+
+**E o recado volta a trazer-se à vista.** O `.res` passou a chamar `scrollIntoView({block:
+"nearest"})` — o mínimo necessário, e nada quando já está visível. A folha tem `scroll-behavior:
+smooth`, então o movimento é animado: quem mede tem de esperar por ele (a prova espera; a pessoa
+vê-o acontecer).
