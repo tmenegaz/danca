@@ -22505,3 +22505,29 @@ caminho que o cadastro usa (`registrarProfessorNaEscola`), num commit próprio �
 do inventário, é a função que passou a existir a ser aplicada ao dado que faltava. O `cafe-no-bule`
 (07:36, na `calango`, expurgada às 07:48) fica sem vínculo de propósito: a escola dele já não
 existe, e o elo do expurgo não o prova.
+
+## 22/10/2026 — O derivado não se rebaseia: o `regerar-indices` refaz, e só quando há matéria
+
+**A execução vermelha (run 39776877412).** Logo depois da migração do `teclado-abnt`, o
+`Regerar os índices` saiu vermelho em «Commitar o índice derivado», com um rebase parado em
+`indices/valse.json`. O laço tentava rebasear o próprio commit sobre um `main` que já tinha outro
+commit do mesmo gerador — e o derivado, por construção, conflita consigo mesmo.
+
+**O erro não estava no rebase: estava em tratar o derivado como fonte.** O commit deste workflow
+carrega **só** `indices/**` (`git add -A -- indices/`, e o gerador escreve apenas ali). Um índice
+não se escolhe nem se concilia — ele é **recalculado** sobre a árvore nova. Agora o laço é
+reentrante: perdido o push, `git reset --hard origin/main`, o gerador corre sobre a árvore nova e o
+commit é refeito com a mesma mensagem (`git commit -C`). Conflito em qualquer coisa que não seja
+`indices/` continua a abortar e a dizer o nome — esse sim é fonte.
+
+**E o segundo achado, medido.** `gerado_em` e `fonte.commit` mudam a cada geração, então o
+`git diff --cached --quiet` que guardava o commit **nunca** ficava quieto: todo push nas três
+fontes produzia um commit «regerar os índices» mesmo quando nada de material mudava — e atrás dele
+iam os dois deploys. A guarda passa a ser `node tools/gerar-indices.js --check`, que compara
+ignorando os voláteis (é o mesmo critério da verificação 1 do `check-indices.js`): sem divergência
+material, o workflow termina sem commit e sem deploy. O mesmo critério vale dentro do laço, antes
+de regerar.
+
+**Conferido.** `--check` sai 0 no `main` atual («12 arquivo(s) em dia») e o `git status` mostraria
+12 arquivos mexidos — é exactamente a diferença entre voltar a commitar o carimbo e não commitar
+nada. YAML válido, os cinco passos com `id`/`if` na ordem certa, `check-indices` 14/14.
