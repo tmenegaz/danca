@@ -2,6 +2,25 @@
   "aulas": [],
   "ciclos": [
     {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:acucar-branco/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "acucar-branco",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "plano"
+      ]
+    },
+    {
       "ancora": {
         "algoritmo": "SHA-256",
         "ancorado_em": "2026-10-22",
@@ -47,6 +66,15 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": null,
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "professor": "acucar-branco",
+      "tipo": "manifesto"
+    },
+    {
       "ancora_id": "ciclo-01-batata",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
@@ -54,6 +82,15 @@
       "id": "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
       "professor": "tela-de-celular",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "ciclo_id": "ciclo:acucar-branco/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professor": "acucar-branco",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-batata",
@@ -67,16 +104,17 @@
   ],
   "escola": {
     "ciclos": [
+      "ciclo:acucar-branco/01/batata",
       "ciclo:tela-de-celular/01/batata"
     ],
     "contagens": {
       "anamneses": 1,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 2,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
-      "registros": 1
+      "registros": 2
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -95,16 +133,18 @@
       "tiago-menegaz"
     ],
     "registros": [
-      "anamnese:anamnese-20261022-1034"
+      "anamnese:anamnese-20261022-1034",
+      "plano:plano-20261022-1036"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261022-1034"
+          "anamnese:anamnese-20261022-1034",
+          "plano:plano-20261022-1036"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -118,13 +158,23 @@
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:acucar-branco/01/batata"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 3,
         "ids": [
-          "anamnese:anamnese-20261022-1034"
+          "anamnese:anamnese-20261022-1034",
+          "ciclo:acucar-branco/01/batata",
+          "plano:plano-20261022-1036"
         ],
         "rotulo": "acucar-branco",
         "valor": "acucar-branco"
@@ -148,20 +198,29 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "ciclo:acucar-branco/01/batata",
           "ciclo:tela-de-celular/01/batata"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261022-1036"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "4163216"
+    "commit": "9e84d8b"
   },
-  "gerado_em": "2026-10-22T13:34",
+  "gerado_em": "2026-10-22T13:36",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -194,6 +253,18 @@
       "id": "anamnese:anamnese-20261022-1034",
       "professor": "acucar-branco",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261022-1036",
+      "ciclo": "01",
+      "data": "2026-10-22T10:36",
+      "id": "plano:plano-20261022-1036",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "acucar-branco",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 2"
     }
   ],
   "versao": 5

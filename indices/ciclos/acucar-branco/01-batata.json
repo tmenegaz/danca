@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+    "documento:plano:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md"
+  ],
+  "escola": "batata",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "9e84d8b"
+  },
+  "gerado_em": "2026-10-22T13:36",
+  "id": "ciclo:acucar-branco/01/batata",
+  "professor": "acucar-branco",
+  "versao": 5
+}
