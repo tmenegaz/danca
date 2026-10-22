@@ -4601,10 +4601,55 @@ async function fetch(request, env) {
 
     const sal = gerarSal();
     const hash = await hashSenha(senha, sal);
+
+    // A ESTRUTURA NASCE COM O PROFESSOR (22/10/2026). Um professor criado dentro da escola é um
+    // professor que vai trabalhar nela — e, quando ele for trabalhar, o gerador exige
+    // `ciclo-NN-po-schema.json` e `ciclo-NN-plano-schema.json` na pasta dele. Deixar para o
+    // «Guardar» do plano era deixar para o dia em que a falta já custa uma geração vermelha:
+    // foi assim que a primeira geração do professor secundário morreu em `ENOENT` (run
+    // 39660657812), com a correção certa e INATIVA.
+    //
+    // A ORDEM É A DA GARANTIA. Provisiona-se ANTES de o professor existir no KV: se o
+    // repositório não aceitar a estrutura, o cadastro não acontece e o operador lê o motivo.
+    // Criar o professor e falhar a estrutura em silêncio daria um professor que existe na tela
+    // e não existe no repositório — que é exactamente o estado que se está a eliminar.
+    const { garantirEstruturaDoProfessor } = require('./schemas-do-ciclo.js');
+    const estrutura = await garantirEstruturaDoProfessor({
+      token: env && env.GITHUB_TOKEN,
+      dono: 'tmenegaz',
+      repo: 'danca',
+      ref: 'main',
+      professor: slug,
+      escola,
+    });
+    if (!estrutura.ok) {
+      return json(502, {
+        ok: false,
+        erro: 'o professor «' + nomeExibido + '» NÃO foi cadastrado: a estrutura dele não pôde ser '
+          + 'criada no repositório (' + (estrutura.erros.join('; ') || 'motivo não relatado') + '). '
+          + 'Sem ela, o plano de observação e a geração de documentos falhariam depois — é o que '
+          + 'esta ordem evita. Corrija o acesso ao repositório e cadastre outra vez.',
+        estrutura,
+      });
+    }
+
     // O `slug` é GRAVADO: é ele que fica, mesmo que o nome de exibição mude depois.
     lista.push({ nome: nomeExibido, slug, sal, hash });
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
-    return json(201, { ok: true, professor: nomeExibido, slug });
+    return json(201, {
+      ok: true,
+      professor: nomeExibido,
+      slug,
+      // O que foi feito no repositório, e com que ciclo(s). A tela recarrega em caso de `ok`, e
+      // por isso o relatório vive aqui: quem precisar dele tem-no; quem não, não é incomodado.
+      estrutura: {
+        ok: true,
+        ciclos: estrutura.ciclos,
+        criados: estrutura.criados.length,
+        jaExistiam: estrutura.pulados.length,
+        nota: estrutura.nota,
+      },
+    });
   }
 
   // POST /api/bastidores/aluna — cadastrar aluna (apelido estável).

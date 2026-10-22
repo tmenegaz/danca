@@ -22129,3 +22129,50 @@ motivo declarado (aqui) e commit próprio, sem conteúdo junto.
 > `preparar-node` passa a `node-version: '22'`, que é o mínimo que a dependência declara. É o
 > argumento a favor de instalar o que o lock diz: o `npx` transformava um manifesto errado em
 > execução que passava por outra via.
+
+## 22/10/2026 — O professor criado na escola já nasce com a estrutura, e antes de existir
+
+**O que aconteceu.** No teste ponta a ponta, o professor secundário foi cadastrado nos Bastidores
+e só depois foi eliciado o plano. A geração morreu em `ENOENT … ciclo-01-po-schema.json` (run
+`39660657812`): a pasta dele nunca tivera os schemas. A correção de `motor/servidor/` passou a
+criá-los ao gravar o plano e o PO — e ainda assim havia uma JANELA: entre o cadastro e o primeiro
+«Guardar», a pasta do professor novo não era igual à do professor principal. Quem olhasse o
+repositório nesse intervalo veria um professor pela metade.
+
+**A regra, dita pelo produto.** Criar um professor dentro de uma escola é declarar que aquele
+professor vai trabalhar nela. Logo a estrutura nasce NESSE ato, não no dia em que ela já é
+necessária — e não se deixa para depois, porque o «depois» é o dia da geração vermelha.
+
+**A ordem é a da garantia.** A rota do cadastro provisiona ANTES de gravar no KV: se o
+repositório não aceitar a estrutura, o professor **não é criado** (502, com o motivo). A
+alternativa — criar e falhar em silêncio — produziria um professor que existe na tela e não
+existe no repositório, que é exatamente o estado que este dia está a eliminar. O custo declarado:
+sem acesso de escrita ao repositório, não se cadastra professor. É preferível a descobrir a falta
+na geração, longe do ato que a devia ter evitado.
+
+**O ciclo é LIDO, não adivinhado.** `ciclosDaEscola` procura `ciclo-NN-<escola>.conf`. E aqui há
+uma armadilha que a primeira versão caiu: **a pasta do professor novo não existe** — este é o ato
+que a cria. Procurar só nela dava 404 em toda criação e o ciclo virava palpite sempre. A busca
+segue a ordem de `escrever-plano.js` (`confDaEscolaPara`): primeiro a pasta do professor, depois
+as dos outros, porque o manifesto da escola não pertence a quem a criou. Medido no repositório:
+`caneca-pequena` → achado em `oculos-redondo`, ciclo 01.
+
+**E o `ciclo-NN.conf` base não conta.** A primeira versão aceitava-o, e com isso a `breu` —
+expurgada horas antes — «declarava» o ciclo 01 lido da pasta de outro professor. O que diz «esta
+escola tem este ciclo» é o manifesto da VARIANTE. Quando nada é encontrado, o ciclo 01 é assumido
+e a `nota` **diz que foi assumido** — um palpite nunca se disfarça de leitura.
+
+**Com o quê.** `motor/servidor/schemas-do-ciclo.js` (`ciclosDaEscola`, `garantirEstruturaDoProfessor`)
+e a rota `POST /api/bastidores/professor` em `motor/servidor/bastidores.js`. A prova nova,
+`experimentos/provar-estrutura-ao-criar-professor.js`, tem 19 asserções: os cinco schemas criados,
+os dois ciclos quando a escola declara dois, a idempotência (nada escrito quando já existe), a
+recusa que impede o cadastro, o cadastro recusado sem token, e o palpite declarado.
+
+**Regressão medida, não suposta.** `provar-schemas-do-professor` (21), `provar-slug-do-professor`
+e `provar-producao` (135) verdes. `provar-homonimo`, `provar-aparencia` (76/77) e
+`provar-derivacao-da-turma` (119/126) falham — e falhavam ANTES, com o `bastidores.js` do `HEAD`
+e o mesmo conjunto exato de falhas; comparado por execução, não por memória.
+
+**O que isto ainda não resolve.** Um professor EXCLUÍDO não tem os schemas apagados, e não deve
+ter: a âncora dos ciclos que ele tocou continua a apontar para as fontes, e `P-03`/`P-04` dizem
+que o passado se incorpora. Se ele voltar, o cadastro os encontra no lugar e não reescreve nada.
