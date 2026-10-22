@@ -3,6 +3,7 @@
   "nomes": [
     "anamnese-20261022-1034.json",
     "plano-20261022-1036.json",
+    "plano-20261022-1124.json",
     "po-20261022-1039.json",
     "po-20261022-1108.json"
   ],
@@ -29,6 +30,20 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Açucar Branco"
+    },
+    "plano-20261022-1124.json": {
+      "id": "plano-20261022-1124",
+      "fonte": "plano",
+      "escola": "batata",
+      "professor": "tela-de-celular",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 1 — Teste 2",
+      "repertorio": [
+        "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "Tela de TV"
     },
     "po-20261022-1039.json": {
       "id": "po-20261022-1039",
