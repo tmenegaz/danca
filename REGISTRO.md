@@ -22784,3 +22784,54 @@ exclusão leva `User-Agent`, `X-GitHub-Api-Version` e (nas escritas) `Content-Ty
 aparece no erro **com a frase dele**. `provar-estrutura-ao-criar-professor` ganhou as três
 asserções equivalentes no cadastro. `provar-slug-do-professor`, `provar-producao` 135/135,
 `check-identidade` 20/20.
+
+## 22/10/2026 — O enxame de commits: o «Guardar» grava num commit, e o derivado não se concilia
+
+**O que se viu.** Dois vermelhos no `GitHub`, a seguir a um «Guardar» do PO: `Gerar o ciclo ·
+acucar-branco/01/batata-bale-nivel-1-teste-2` (run 39788790994) e `Reancorar a cadeia`
+(39788794107). Os dois falhavam no passo que **commita**, com treze linhas de «conflito de
+conteúdo» — e nenhuma delas era conteúdo: eram `indices/*.json`.
+
+**A causa, medida.** O «Guardar» do PO escrevia **um commit por arquivo** — pela API de
+`contents`, que só sabe escrever um de cada vez: sete fontes derivadas, a cópia cifrada, o `.conf`
+e o schema de captura. Foram **onze commits em vinte e dois segundos** (`474af6f`, `83116dc`,
+`c29a227`…), e cada um acorda três workflows. Trinta execuções para um clique, quase todas a
+perder a corrida umas para as outras. Aí cada workflow, para não deixar o derivado para trás
+(push com o `GITHUB_TOKEN` não redispara nada), regerava `indices/` no próprio commit — e o
+primeiro push recusado transformava isso num conflito que os laços de rebase não sabiam tratar:
+eles só conheciam o `.fipp`.
+
+**Duas correções, na origem.**
+
+1. **Um commit por gravação, não por arquivo.** `gravarArquivosNumCommit` usa a API de DADOS do
+   Git — blobs, uma árvore sobre a `base_tree`, um commit, uma referência —, e o «Guardar» acumula
+   as oito gravações e faz um commit só. Medido: 8 arquivos, **1 commit, zero `PUT /contents`**. E
+   há uma segunda razão, que não é de tempo: com oito commits o repositório guardava sete estados
+   em que o ciclo está **incompleto** — um deles é «o `-dados.json` existe e o `.conf` ainda não o
+   declara». Um commit por gravação é a única forma de esse estado não existir.
+2. **O derivado não se concilia — recalcula-se.** `.github/scripts/conflito-do-derivado.sh`, um
+   arquivo só para os dois laços (antes eram dois blocos iguais, e a segunda cópia teria
+   envelhecido primeiro): `indices/**` fica com a versão do `main` e é regerado pelo chamador;
+   `*.fipp` fica com a do commit e é reancorado; **material** (fontes, pacote) continua a falhar e
+   o script diz qual. O `gerar-ciclo.yml`, que só reancorava depois do rebase, passa a regerar o
+   índice também — sem isso o commit sairia com o pacote novo e o acervo velho, e ninguém o
+   corrigiria (o push é feito com o `GITHUB_TOKEN`). Os laços passam de cinco para oito
+   tentativas: a rajada pode ter mais de cinco vagas.
+
+**Conferido.** `experimentos/provar-conflito-do-derivado.sh` — 16 asserções sobre **rebasear de
+verdade** num repositório git de ensaio: o conflito só de `indices/` é conciliado e o rebase
+termina; com âncora e índice juntos, o índice fica do `main` e a âncora do commit; conflito de
+material sai 1 **e não toca no índice**; um lado que apaga o arquivo resolve pela ausência; e sem
+conflito registado o script não finge que resolveu. `experimentos/provar-um-commit-por-guardar.js`
+— 21 asserções: zero `PUT /contents`, um commit, oito caminhos na árvore, `base_tree` respeitada,
+o relatório dizendo `ok` só depois de o repositório aceitar, commit recusado reprovando todas as
+escritas, e a idempotência provada por **duas passagens** (a segunda não cria commit nenhum —
+adivinhar o conteúdo esperado mediria a minha adivinhação, não o escritor). `check-identidade`
+20/20, `provar-producao` 135/135.
+
+**O que ficou por fazer, e não é daqui.** O `Gerar o ciclo` que falhou tinha o pacote **gerado e
+validado**; o que não aconteceu foi o commit e, atrás dele, a publicação (os dois passos ficaram
+`skipped`). O pacote não existe no repositório, e é preciso disparar a geração outra vez — com a
+correção publicada. O `escreverPO` e o acervo dos envelopes continuam a escrever o seu próprio
+commit (são 3, não 11); juntá-los ao lote é a continuação natural, e não estava no caminho desta
+falha.

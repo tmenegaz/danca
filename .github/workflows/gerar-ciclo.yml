@@ -221,7 +221,7 @@ jobs:
           # este laço faz: rebaseia; se o rebase parar num `.fipp`, aceita a versão que
           # está a ser aplicada, termina o rebase, e **reancora de novo** com o
           # `hash-ciclo.sh` — a única definição de âncora que existe.
-          for intento in 1 2 3 4 5; do
+          for intento in 1 2 3 4 5 6 7 8; do
             if git push; then
               exit 0
             fi
@@ -262,25 +262,29 @@ jobs:
               continue
             fi
 
-            # O rebase parou. Se for SÓ a âncora, ela regera-se; qualquer outro conflito
-            # é de conteúdo e tem de falhar — dois donos do mesmo texto é um problema de
-            # desenho, e escondê-lo aqui seria pior.
-            conflitos="$(git diff --name-only --diff-filter=U || true)"
-            if [ -z "$conflitos" ] || printf '%s\n' "$conflitos" | grep -qv '\.fipp$'; then
-              echo "erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:" >&2
-              printf '%s\n' "$conflitos" >&2
+            # O rebase parou. O DERIVADO concilia-se; o MATERIAL não — dois donos do mesmo
+            # texto é um problema de desenho, e escondê-lo aqui seria pior. A regra vive num
+            # arquivo só (`.github/scripts/conflito-do-derivado.sh`), partilhado com o
+            # `reancorar.yml`: o `indices/**` foi a segunda metade do problema (run 39788790994,
+            # 22/10/2026), e tratá-la aqui e não lá teria feito as duas versões divergirem.
+            if ! .github/scripts/conflito-do-derivado.sh; then
               git rebase --abort || true
               exit 1
             fi
-
-            echo "conflito APENAS na âncora — aplicar a versão do commit e regerar"
-            git checkout --theirs -- '*.fipp' || git checkout --ours -- '*.fipp'
-            git add -- '*.fipp'
             GIT_EDITOR=true git rebase --continue
 
             # A ÂNCORA REGERADA, a partir das fontes que resultaram do rebase.
             tools/hash-ciclo.sh "${{ inputs.professor }}" "${{ inputs.ciclo }}" "${{ inputs.variante || inputs.escola }}"
-            if ! git diff --quiet -- '*.fipp'; then
+
+            # E O ÍNDICE TAMBÉM (22/10/2026). A conciliação deixou o `indices/` com a versão do
+            # `main` — que é a do estado de ANTES deste pacote. Sem regerar aqui, o commit sairia
+            # com o pacote novo e o acervo velho: exactamente a divergência que o `check-indices`
+            # acusa depois, e que ninguém iria corrigir (o push é feito com o `GITHUB_TOKEN`).
+            node tools/gerar-indices.js \
+              || { echo "erro: os índices não foram regerados sobre o main novo" >&2; exit 1; }
+            git add -A -- indices/
+
+            if ! git diff --quiet -- '*.fipp' || ! git diff --cached --quiet -- indices/; then
               git add -- '*.fipp'
               # O MESMO COMMIT VAZIO DO `reancorar.yml` (19/10/2026). Se a âncora regerada for
               # igual à que o pai já traz e o pacote não mudou, o commit não tem o que fazer e
@@ -296,7 +300,7 @@ jobs:
             fi
             sleep $((intento * 5))
           done
-          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          echo "erro: o push continuou recusado depois de 8 tentativas" >&2
           exit 1
 
       # O DEPLOY FECHA A CADEIA. O commit acima põe o pacote no repositório; o site,

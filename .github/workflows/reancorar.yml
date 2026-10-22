@@ -224,7 +224,7 @@ jobs:
           # O certo é o mesmo do `gerar-ciclo.yml`: rebaseia; se o rebase parar num `.fipp`,
           # aceita a versão que está a ser aplicada, termina o rebase, e **reancora de novo**.
           # Qualquer outro conflito é de conteúdo e tem de falhar — escondê-lo seria pior.
-          for intento in 1 2 3 4 5; do
+          for intento in 1 2 3 4 5 6 7 8; do
             if git push; then
               exit 0
             fi
@@ -265,21 +265,23 @@ jobs:
               continue
             fi
 
-            conflitos="$(git diff --name-only --diff-filter=U || true)"
-            if [ -z "$conflitos" ] || printf '%s\n' "$conflitos" | grep -qv '\.fipp$'; then
-              echo "erro: conflito de conteúdo (não é a âncora) — não se resolve automaticamente:" >&2
-              printf '%s\n' "$conflitos" >&2
+            # A CONCILIAÇÃO DO DERIVADO — UMA regra, num arquivo só (22/10/2026).
+            #
+            # Este laço tratava o `.fipp`. Quando o `indices/` passou a entrar no mesmo commit
+            # (porque quem commita com o `GITHUB_TOKEN` tem de regerar o derivado), o primeiro
+            # push recusado virou treze linhas de «conflito de conteúdo» que não eram conteúdo:
+            # medido no run 39788794107, com o «Guardar» do PO a disparar quarenta commits em
+            # quarenta segundos. O derivado (`indices/**`, `*.fipp`) não se concilia — fica com a
+            # versão do `main` (índice) ou do commit (âncora) e é RECALCULADO abaixo. O material
+            # continua a falhar, e o script diz qual é.
+            if ! .github/scripts/conflito-do-derivado.sh; then
               git rebase --abort || true
               exit 1
             fi
-
-            echo "conflito APENAS na âncora — aplicar a versão do commit e regerar"
-            git checkout --theirs -- '*.fipp' || git checkout --ours -- '*.fipp'
-            git add -- '*.fipp'
             GIT_EDITOR=true git rebase --continue
 
             reancorar_tudo
             sleep $((intento * 5))
           done
-          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          echo "erro: o push continuou recusado depois de 8 tentativas" >&2
           exit 1

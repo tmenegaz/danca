@@ -79,6 +79,14 @@ async function lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl }) 
 }
 
 /** Escreve (cria ou atualiza) um arquivo remoto, devolvendo o resultado. */
+/**
+ * UM arquivo, um commit — pela API de `contents`.
+ *
+ * NÃO É O CAMINHO DO «GUARDAR» (22/10/2026): escrever um ciclo são oito arquivos de uma vez, e um
+ * commit por arquivo guarda sete estados intermédios de um ciclo incompleto (e acorda três
+ * workflows de cada vez — ver `gravarArquivosNumCommit`). Esta continua a ser a peça certa para
+ * um único arquivo, e é a que outros módulos usam.
+ */
 async function gravarArquivoRemoto({ token, dono, repo, ref, caminho, conteudo, mensagem, sha }) {
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
   const cabecalhos = {
@@ -100,6 +108,113 @@ async function gravarArquivoRemoto({ token, dono, repo, ref, caminho, conteudo, 
   });
   const ok = res.status >= 200 && res.status < 300;
   return { caminho, ok, status: res.status };
+}
+
+/**
+ * GRAVAR N ARQUIVOS NUM COMMIT SÓ — e por que isto não é optimização (22/10/2026).
+ *
+ * MEDIDO. O «Guardar» do PO escrevia **um commit por arquivo**: as sete fontes derivadas, a
+ * cópia cifrada, o `.conf` e o schema de captura. Foram **onze commits em vinte e dois segundos**
+ * — `474af6f`, `83116dc`, `c29a227`… —, e cada um acorda três workflows (`Reancorar`,
+ * `Regerar os índices`, `Gerar o ciclo`). Trinta execuções para um clique, quase todas a perder
+ * a corrida umas para as outras: foi esse enxame que produziu os dois vermelhos de hoje
+ * (39788794107 e 39788790994) com treze arquivos de índice «em conflito».
+ *
+ * A CAUSA NÃO ERA O CI: era a forma da escrita. Um commit por arquivo é o que a API de
+ * `contents` oferece — e ela é a ferramenta errada para escrever um conjunto. A API de DADOS do
+ * Git escreve o conjunto: blobs, uma árvore sobre a `base_tree`, um commit, uma referência.
+ *
+ * E HÁ UMA SEGUNDA RAZÃO, que não é de tempo: com N commits, o repositório guarda N estados
+ * intermédios em que o ciclo está INCOMPLETO — um deles é «o `-dados.json` existe e o `.conf`
+ * ainda não o declara». Quem olhar o histórico (ou um workflow que corra a meio) vê um ciclo
+ * que nunca existiu. Um commit por gravação é a única forma de o estado intermédio não existir.
+ *
+ * A ORDEM É A DO `apagarEscolaDoRepo`: base → árvore → commit → referência, e a referência é o
+ * último passo — o único que publica. Se ele perder a corrida (`422 not a fast forward`), refaz-se
+ * tudo com base nova; o que já foi escrito não se desfaz (os blobs são endereçados por conteúdo e
+ * não ficam pendurados em nada).
+ */
+async function gravarArquivosNumCommit({ token, dono, repo, ref, arquivos, mensagem, fetchImpl }) {
+  const f = fetchImpl || fetch;
+  const lista = (arquivos || []).filter((a) => a && a.caminho && typeof a.conteudo === 'string');
+  if (!lista.length) return { ok: true, commit: null, escritos: [], nada: true };
+
+  const raiz = 'https://api.github.com/repos/' + dono + '/' + repo;
+  const cab = {
+    'Accept': ACEITE,
+    'Authorization': 'Bearer ' + token,
+    'X-GitHub-Api-Version': API_VERSAO,
+    'Content-Type': 'application/json',
+    // O GitHub recusa (403) sem `User-Agent`, e o Worker não o põe sozinho (22/10/2026).
+    'User-Agent': 'danca-worker',
+  };
+  const pedir = async (url, init) => {
+    const r = await f(url, Object.assign({ headers: cab }, init || {}));
+    let corpo = null;
+    try { corpo = await r.json(); } catch { corpo = null; }
+    return { ok: r.ok, status: r.status, corpo };
+  };
+
+  let ultimo = null;
+  for (let intento = 1; intento <= 3; intento += 1) {
+    const base = await pedir(raiz + '/git/ref/heads/' + ref);
+    if (!base.ok) {
+      return { ok: false, status: base.status, erro: 'não li a referência ' + ref + ': HTTP ' + base.status, escritos: [] };
+    }
+    const commitSha = base.corpo && base.corpo.object && base.corpo.object.sha;
+    const doCommit = await pedir(raiz + '/git/commits/' + commitSha);
+    const treeSha = doCommit.corpo && doCommit.corpo.tree && doCommit.corpo.tree.sha;
+    if (!commitSha || !treeSha) {
+      return { ok: false, erro: 'a referência ' + ref + ' não devolveu commit/árvore', escritos: [] };
+    }
+
+    // Um blob por arquivo. O conteúdo vai em base64 — a mesma codificação que o `contents` usa.
+    const entradas = [];
+    for (const a of lista) {
+      const blob = await pedir(raiz + '/git/blobs', {
+        method: 'POST',
+        body: JSON.stringify({ content: codificarBase64(a.conteudo), encoding: 'base64' }),
+      });
+      if (!blob.ok) {
+        return { ok: false, status: blob.status, erro: 'não criei o blob de ' + a.caminho + ': HTTP ' + blob.status, escritos: [] };
+      }
+      entradas.push({ path: a.caminho, mode: '100644', type: 'blob', sha: blob.corpo && blob.corpo.sha });
+    }
+
+    const arvore = await pedir(raiz + '/git/trees', {
+      method: 'POST',
+      body: JSON.stringify({ base_tree: treeSha, tree: entradas }),
+    });
+    if (!arvore.ok) {
+      // 409 aqui é a `base_tree` que deixou de valer: alguém escreveu no `main` no meio. Recomeça.
+      ultimo = 'árvore: HTTP ' + arvore.status;
+      if (arvore.status === 409 || arvore.status === 422) continue;
+      return { ok: false, status: arvore.status, erro: 'não montei a árvore: ' + ultimo, escritos: [] };
+    }
+
+    const novo = await pedir(raiz + '/git/commits', {
+      method: 'POST',
+      body: JSON.stringify({ message: mensagem, tree: arvore.corpo.sha, parents: [commitSha] }),
+    });
+    if (!novo.ok) {
+      ultimo = 'commit: HTTP ' + novo.status;
+      if (novo.status === 409 || novo.status === 422) continue;
+      return { ok: false, status: novo.status, erro: 'não criei o commit: ' + ultimo, escritos: [] };
+    }
+
+    // A REFERÊNCIA É O ÚLTIMO PASSO — o único que publica. Antes dela, nada existe.
+    const avanco = await pedir(raiz + '/git/refs/heads/' + ref, {
+      method: 'PATCH',
+      body: JSON.stringify({ sha: novo.corpo.sha, force: false }),
+    });
+    if (avanco.ok) {
+      return { ok: true, commit: novo.corpo.sha, escritos: lista.map((a) => a.caminho), nada: false };
+    }
+    ultimo = 'referência: HTTP ' + avanco.status;
+    if (avanco.status !== 422 && avanco.status !== 409) break;
+    await new Promise((s) => setTimeout(s, intento * 300));
+  }
+  return { ok: false, erro: 'não avancei ' + ref + ' depois de 3 tentativas — ' + ultimo, escritos: [] };
 }
 
 /**
@@ -274,16 +389,39 @@ function docsGerados({ plano }) {
  * `({ plano, po, contexto }) => Promise` — deriva as seis fontes, escreve só as que faltam,
  * liga o `DOCS` e declara a variante no schema de captura.
  */
-function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
+/**
+ * O ESCRITOR DO CICLO. `fetchImpl` existe para as provas poderem interceptar a rede, como em
+ * todo o resto do motor (`lerArquivoRemoto` e `gravarArquivosNumCommit` já o aceitavam) — sem
+ * ele, a única forma de exercitar este caminho era falar com o GitHub a sério.
+ */
+function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }) {
   if (!token) return null;
   return async ({ plano, po, contexto }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
     const relatorio = { conf: null, escritas: [], puladas: [], docs: null, schema: null };
+    /*
+     * AS GRAVAÇÕES DESTE «GUARDAR» ACUMULAM AQUI E SAEM NUM COMMIT SÓ (22/10/2026).
+     *
+     * Antes, cada arquivo era um `PUT /contents` — logo, um commit, logo três workflows. O
+     * «Guardar» do PO fazia onze commits em vinte e dois segundos e trinta execuções, e o
+     * enxame perdia a corrida uns contra os outros: dois vermelhos com treze arquivos de índice
+     * em conflito. Um commit por gravação também é a única forma de o repositório nunca guardar
+     * um ciclo pela metade (o `-dados.json` sem o `.conf` a declará-lo, por exemplo).
+     *
+     * `lote` guarda o que escrever; `marcas` guarda a quem devolver o resultado — porque o
+     * relatório continua a dizer arquivo por arquivo o que entrou.
+     */
+    const lote = [];
+    const marcas = [];
+    const juntar = (caminho, conteudo, aoOk) => {
+      lote.push({ caminho, conteudo });
+      marcas.push({ caminho, aoOk });
+    };
 
     // 1. O manifesto da variante — calibração + escola + DOCS atual.
     const confPath = caminhoDoConf(ctx);
-    const conf = await lerArquivoRemoto({ token, dono, repo, ref, caminho: confPath });
+    const conf = await lerArquivoRemoto({ token, dono, repo, ref, caminho: confPath, fetchImpl });
     if (!conf.existe) {
       return Object.assign(relatorio, { conf: { ok: false, erro: '.conf não encontrado em ' + confPath } });
     }
@@ -310,7 +448,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
     // 3. Escreve só o que ainda não existe — proveniência acrescenta, não edita.
     for (const fonte of fontes) {
       const caminho = caminhoDaFonte(ctx, fonte.sufixo);
-      const atual = await lerArquivoRemoto({ token, dono, repo, ref, caminho });
+      const atual = await lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl });
       if (atual.existe) {
         relatorio.puladas.push(caminho);
         continue;
@@ -319,12 +457,8 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
         relatorio.escritas.push({ caminho, ok: false, erro: atual.erro });
         continue;
       }
-      const resultado = await gravarArquivoRemoto({
-        token, dono, repo, ref, caminho,
-        conteudo: fonte.md,
-        mensagem: 'feat(ciclo): o «Guardar» do PO deriva ' + caminho.split('/').pop(),
-      });
-      relatorio.escritas.push(resultado);
+      juntar(caminho, fonte.md);
+      relatorio.escritas.push({ caminho });
     }
 
     // 3b. A CÓPIA cifrada do `-dados.json`, ao lado da fonte. Com a senha de criptografia no
@@ -341,7 +475,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
     if (!senhaCripto) {
       relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: 'sem SENHA_CRIPTO no Worker' };
     } else {
-      const atualCifrado = await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado });
+      const atualCifrado = await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado, fetchImpl });
       if (atualCifrado.erro) {
         relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: atualCifrado.erro };
       } else if (atualCifrado.existe) {
@@ -350,15 +484,10 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
       } else {
         try {
           const envelope = await cifrarEnvelopeDeDados(derivarDados({ po, contexto: ctx }), senhaCripto);
-          const resultado = await gravarArquivoRemoto({
-            token, dono, repo, ref, caminho: caminhoCifrado,
-            conteudo: JSON.stringify(envelope, null, 2) + '\n',
-            mensagem: 'feat(ciclo): o «Guardar» do PO cifra ' + caminhoCifrado.split('/').pop(),
+          juntar(caminhoCifrado, JSON.stringify(envelope, null, 2) + '\n', (ok, erro) => {
+            relatorio.cifrado = ok ? { ok: true, caminho: caminhoCifrado } : { ok: false, caminho: caminhoCifrado, erro };
           });
-          relatorio.escritas.push(resultado);
-          relatorio.cifrado = resultado.ok
-            ? { ok: true, caminho: caminhoCifrado }
-            : { ok: false, caminho: caminhoCifrado, erro: 'HTTP ' + resultado.status };
+          relatorio.escritas.push({ caminho: caminhoCifrado });
         } catch (e) {
           relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: (e && e.message) || String(e) };
         }
@@ -389,19 +518,17 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
     }
 
     if (confTexto !== conf.texto) {
-      const resultado = await gravarArquivoRemoto({
-        token, dono, repo, ref, caminho: confPath,
-        conteudo: confTexto,
-        mensagem: 'feat(ciclo): o contexto elicitado preenche o manifesto e liga o DOCS',
-        sha: conf.sha,
+      // O `sha` do `contents` não é preciso: a árvore é montada sobre a `base_tree` lida no
+      // momento do commit, e é isso que impede a escrita de sobrescrever o que chegou no meio.
+      juntar(confPath, confTexto, (ok) => {
+        relatorio.docs.ok = ok;
+        if (relatorio.contexto) relatorio.contexto.gravado = ok;
       });
-      relatorio.docs.ok = resultado.ok;
-      if (relatorio.contexto) relatorio.contexto.gravado = resultado.ok;
     }
 
     // 5. Declara a variante no schema de captura, se ainda não declarada.
     const schemaPath = caminhoDoSchemaDeCaptura(ctx);
-    const schema = await lerArquivoRemoto({ token, dono, repo, ref, caminho: schemaPath });
+    const schema = await lerArquivoRemoto({ token, dono, repo, ref, caminho: schemaPath, fetchImpl });
     if (!schema.existe) {
       relatorio.schema = { ok: false, erro: 'schema de captura não encontrado em ' + schemaPath };
     } else {
@@ -451,16 +578,42 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
           };
         } else {
           porVariante[slug] = nova;
-          const resultado = await gravarArquivoRemoto({
-            token, dono, repo, ref, caminho: schemaPath,
-            conteudo: JSON.stringify(dados, null, 2) + '\n',
-            mensagem: (jaDeclarada ? 'feat(captura): actualiza a variante ' : 'feat(captura): declara a variante ')
-              + slug + ' no schema de captura',
-            sha: schema.sha,
+          // A DECLARAÇÃO DO SCHEMA entra no MESMO commit das fontes. Ela é o último passo que
+          // valida o pacote, e separá-la era a mesma coisa que escrever o ciclo em duas metades.
+          juntar(schemaPath, JSON.stringify(dados, null, 2) + '\n', (ok) => {
+            relatorio.schema = { ok, actualizada: jaDeclarada };
           });
-          relatorio.schema = { ok: resultado.ok, actualizada: jaDeclarada };
+          // Ainda NÃO está gravado: o `ok` é decidido no commit único, no fim. Dizer `true` aqui
+          // seria prometer o que o repositório pode recusar.
+          relatorio.schema = { ok: null, actualizada: jaDeclarada, pendente: true };
         }
       }
+    }
+
+    /*
+     * O COMMIT ÚNICO — e o relatório só diz «ok» DEPOIS de o repositório aceitar. Se o commit
+     * falhar, todas as marcas ficam com `false` e o motivo vai no relatório: uma gravação que
+     * mente sobre ter entrado é pior do que uma que falha.
+     */
+    if (lote.length) {
+      const mensagem = 'feat(ciclo): o «Guardar» do PO grava as fontes de '
+        + (varianteDoContexto(ctx) || ctx.escola) + ' num commit só';
+      const commit = await gravarArquivosNumCommit({
+        token, dono, repo, ref, arquivos: lote, mensagem, fetchImpl,
+      });
+      relatorio.commit = { ok: commit.ok, sha: commit.commit || null, arquivos: lote.length,
+        ...(commit.ok ? {} : { erro: commit.erro || ('HTTP ' + commit.status) }) };
+      for (const marca of marcas) {
+        if (typeof marca.aoOk === 'function') marca.aoOk(commit.ok === true, commit.erro || null);
+      }
+      for (const escrita of relatorio.escritas) {
+        escrita.ok = commit.ok === true;
+        if (!commit.ok) escrita.erro = commit.erro || ('HTTP ' + commit.status);
+        else escrita.status = 201;
+      }
+      // Uma falha a escrever REPROVA o relatório: o pacote não pode ser gerado sobre um ciclo
+      // que o repositório não tem.
+      if (!commit.ok) relatorio.ok = false;
     }
 
     return relatorio;
@@ -468,6 +621,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto }) {
 }
 
 module.exports = {
+  gravarArquivosNumCommit,
   criarEscritorDeCiclo,
   caminhoDaFonte,
   caminhoDoSchemaDeCaptura,
