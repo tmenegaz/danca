@@ -1,17 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": null,
-      "aulas": 0,
-      "documentos": 2,
-      "escola": "breu",
-      "estado": "sem-ancora",
-      "id": "ciclo:tiago-menegaz/01/breu",
-      "numero": "01",
-      "professor": "tiago-menegaz",
-      "sem_ancora": true
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -60,31 +48,26 @@
       "slug": "batata"
     },
     {
-      "ciclos": [
-        "ciclo:tiago-menegaz/01/breu"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 1,
+        "anamneses": 0,
         "aulas": 0,
-        "ciclos": 1,
+        "ciclos": 0,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
-        "registros": 1
+        "registros": 0
       },
       "criada_em": "2026-10-19T23:41:57.342597+00:00",
-      "expurgada": false,
-      "habilitada": true,
+      "expurgada": true,
+      "habilitada": false,
       "id": "escola:breu",
       "nome": "breu",
       "professor": "sapo-bailarino",
       "professores": [
-        "sapo-bailarino",
-        "tiago-menegaz"
+        "sapo-bailarino"
       ],
-      "registros": [
-        "anamnese:anamnese-20261021-1615"
-      ],
+      "registros": [],
       "slug": "breu"
     },
     {
@@ -250,13 +233,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 1,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -309,13 +286,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -338,24 +309,18 @@
         "valor": "tiago"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Tiago Menegaz",
         "valor": "tiago-menegaz"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "b7e013e"
+    "commit": "a237b07"
   },
-  "gerado_em": "2026-10-21T19:16",
+  "gerado_em": "2026-10-22T03:03",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -419,12 +384,9 @@
       "slug": "tiago"
     },
     {
-      "ciclos": [
-        "ciclo:tiago-menegaz/01/breu"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata",
-        "breu",
         "fita",
         "valse"
       ],
