@@ -519,6 +519,53 @@ if (!fs.existsSync(copiaDados)) {
   }
 }
 
+// ------------------------------ 7.1) a PROVENIÊNCIA do PO — o pacote não mistura dois PO
+//
+// O `-po.md` é FONTE e o `-dados.json` é DERIVADO do mesmo envelope do acervo — o Worker
+// deriva os dois na mesma gravação. Se os dois declararem carimbos diferentes, o pacote foi
+// gerado por um PO e completado por outro, e o `.fipp` certifica o conjunto como se fosse um
+// só. Medido em 22/10/2026 na escola `batata`: o `-po.md` era do `po-20261022-1108` e a
+// `-aula-01.md`/`-harmonizacao.md` do `po-20261022-1039` — e o `check-pacote` deu 0 erros,
+// porque nada comparava a proveniência. A fonte e o derivado passaram a declarar o carimbo
+// (`derivar-po.js` → `envelope:`; `derivar-ciclo.js` → `po`), e é isso que se confere aqui.
+const arquivoPo = path.join(dirFontes, `ciclo-${ciclo}${variante ? `-${variante}` : ''}-po.md`);
+if (fs.existsSync(arquivoPo)) {
+  const textoPo = fs.readFileSync(arquivoPo, 'utf8');
+  const achado = /^envelope:\s*(\S+)\s*$/m.exec(textoPo);
+  const poDaFonte = achado ? achado[1] : null;
+  let poDoDados = null;
+  if (fs.existsSync(fonteDados)) {
+    try {
+      poDoDados = JSON.parse(fs.readFileSync(fonteDados, 'utf8')).po || null;
+    } catch { poDoDados = null; }
+  }
+  const nomePo = path.basename(arquivoPo);
+  /*
+   * A DECLARAÇÃO É NOVA (22/10/2026), E O PASSADO NÃO SE INVENTA. Um ciclo gerado antes desta
+   * data tem as duas fontes sem carimbo — e isso NÃO é erro: é anterioridade. Reprovar aqui
+   * transformaria um pacote válido em inválido por não ter uma marca que ainda não existia, e
+   * é o tipo de checagem que ensina a ignorar o validador. O que se exige é a COERÊNCIA:
+   * ou as duas declaram, ou nenhuma. Meia declaração é que é o defeito.
+   */
+  if (!poDaFonte && !poDoDados) {
+    avisos.push(`${nomePo}: sem \`envelope:\` no cabeçalho e sem \`po\` no JSON de dados — a `
+      + 'fonte é anterior à declaração de proveniência; a próxima gravação do PO a preenche');
+  } else if (!poDaFonte) {
+    erros.push(`${nomePo}: a fonte não declara de que envelope nasceu (falta \`envelope:\` no `
+      + `cabeçalho), mas ${arquivoDados} declara «${poDoDados}» — não se sabe qual dos POs do `
+      + 'acervo o pacote publica');
+  } else if (!poDoDados) {
+    erros.push(`${arquivoDados}: não declara o PO de que nasceu (falta \`po\`) — sem isso não se `
+      + `pode conferir se o pacote mistura dois POs (a fonte é de ${poDaFonte})`);
+  } else if (String(poDoDados) !== String(poDaFonte)) {
+    erros.push(`o pacote mistura dois Planos de Observação: ${nomePo} vem de «${poDaFonte}» e `
+      + `${arquivoDados} de «${poDoDados}» — as fontes derivadas descrevem um PO que não é o `
+      + 'publicado, e a âncora certifica o conjunto como se fosse um só (P-03/P-10)');
+  } else {
+    ok.push(`PO: a fonte e o JSON de dados vêm do mesmo envelope (${poDaFonte})`);
+  }
+}
+
 // ------------------------------ 8) o config da captura POR AULA (§4.1, Defeito 1)
 // O índice do pacote (`ciclos.json`) declara `aulas[]`, e cada aula traz o seu `config`
 // (`captura-aula-NN.json`). Conferir esse vínculo é o que faltava desde que o config

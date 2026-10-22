@@ -22835,3 +22835,126 @@ validado**; o que não aconteceu foi o commit e, atrás dele, a publicação (os
 correção publicada. O `escreverPO` e o acervo dos envelopes continuam a escrever o seu próprio
 commit (são 3, não 11); juntá-los ao lote é a continuação natural, e não estava no caminho desta
 falha.
+
+## 22/10/2026 — Dois POs para um plano: a linha de base é uma só, e o derivado tem de mudar com ela
+
+**O que se viu.** A pesquisadora reclamou dois Planos de Observação na estante da escola `batata`.
+A leitura ao remoto mostrou **quatro** envelopes onde devia haver dois: `plano-20261022-1036` e
+`plano-20261022-1124` (o mesmo conteúdo, professores diferentes), e `po-20261022-1039` e
+`po-20261022-1108` — os dois POs com `ajuste_de: null`, o mesmo plano, a mesma turma. No
+repositório havia **um só** `-po.md` (`83116dc` 10:39 → `59d6b4f` 11:08), e o `-dados.json`
+continuava a declarar o horizonte do PO anterior. O `node tools/check-pacote.js` dava **0 erros**.
+
+**As três causas, medidas.**
+
+1. **Não havia regra para o PO.** `porta.elicitar()` tinha a política «edita em sítio / deriva /
+   nasce novo» num bloco `if (fonte === 'plano')`, e excluía o PO de toda a reconciliação
+   (`fonte !== 'po'`). Cada «Guardar» nascia com carimbo novo, sempre — e nada, em `REGRAS.md`,
+   `PROTOCOLO.md`, `README-ciclos.md` ou `ARQUITETURA-*.md`, dizia «um PO por ciclo». Era o
+   silêncio, não uma decisão.
+2. **O `-po.md` é a única fonte que se ATUALIZA em sítio.** `escrever-po.js` diz «cria ou
+   atualiza» e faz `GET sha → PUT`. A segunda elicitação **apagou** a primeira da fonte, e o
+   histórico de commits do Git ficou a ser o único lugar onde a versão anterior existia.
+3. **As fontes derivadas eram puladas.** `escrever-ciclo.js` fazia `if (atual.existe) continue`,
+   com a justificação certa aplicada ao alvo errado: «a proveniência acrescenta, não edita» vale
+   para o **material** (a aula lançada, o relatório, a observação), não para um **derivado**, que
+   é reconstruível por definição. Com a fonte reescrita e os derivados intocados, o pacote passou
+   a dizer duas coisas: `po-01.json` do PO novo (sai do `-po.md`), `-aula-01.md` e
+   `-harmonizacao.md` do antigo. A âncora certificou o conjunto.
+
+**O que foi decidido** (decisão da pesquisadora, depois do diagnóstico):
+
+- **O segundo PO é RECUSADO** — `409`, com o carimbo existente nomeado na mensagem. A linha de
+  base dos sujeitos (P-10) é uma só: um segundo PO não observa outra coisa, reescreve a primeira
+  por outro caminho. A regra é por **plano de ensino** (o nó `plano-de-ensino`), e cai no escopo
+  (escola · professor · ciclo) quando o PO não declara plano.
+- **`ajuste_de` continua a ser o caminho legítimo**: um elo novo, com o anterior de pé.
+- **`id` CORRIGE** o mesmo carimbo — o erro de digitação não vira elo.
+- **O derivado muda com o PO, e o anterior fica como elo** em `ciclo(s)/historico/`, com o carimbo
+  de quem o substituiu no nome.
+- **A proveniência passa a ser declarada**: `derivar-po.js` escreve `envelope:` no cabeçalho do
+  `-po.md`; `derivar-ciclo.js` escreve `po` no `-dados.json`; e o `check-pacote` compara os dois.
+
+**O que se descobriu ao escolher o nome do elo — e é o achado que justifica a subpasta.** Um elo
+ao lado das fontes, chamado `…-aula-01.antes-de-po-20261022-1108.md`, era lido como a **aula
+1108**: `familias_por_aula` (`tools/lib-fontes.sh`) faz glob `ciclo-$CICLO-*aula-*.md` e tira o
+número com `sed 's/.*-\([0-9][0-9]*\)\.md$/\1/'`; o `gerar-handoff.sh` conta aulas com
+`find -maxdepth 1 -name "ciclo-$c-*-aula-*.md"`. Os dois apanharia o elo, e o `DOCS` passaria a
+declarar uma aula que não existe. `historico/` fica fora dos dois, e a prova mede o glob e o `sed`
+**verdadeiros**, nos dois sentidos (com o elo em `historico/` → uma aula; ao lado → a 1108).
+
+**Onde entrou.**
+
+- `motor/nucleo/porta.js` — `poPrimarioDoPlano`, `poPrimarioDoEscopo`, e o bloco `fonte === 'po'`
+  que recusa o segundo PO e aceita `ajuste_de`.
+- `motor/servidor/rotas.js` — a recusa do núcleo vira `409` antes de qualquer gravação.
+- `motor/servidor/escrever-ciclo.js` — o passo 3 compara o conteúdo (idempotente), regera o que
+  mudou, guarda o anterior em `historico/` e regera a cópia cifrada quando o `-dados.json` muda.
+- `motor/nucleo/derivar-po.js` — `envelope:` no cabeçalho.
+- `motor/nucleo/derivar-ciclo.js` — `po` no `-dados.json`.
+- `porta/index.html` — `acoesDoPO` (corrigir · derivar) na estante; era «o PO não tem edição».
+- `tools/check-pacote.js` — a checagem 7.1 da proveniência do PO.
+
+**Motivo declarado — os congelados.** `tools/` está congelado por `CONGELAMENTO.md`, e
+`tools/check-pacote.js` foi tocado. **Por quê:** o pacote da `batata` misturava dois POs e o
+`check-pacote` — que é o último passo de `tools/gerar-ciclo.sh`, logo a única coisa que reprova
+uma entrega antes do `push` — deu 0 erros. Um validador que não apanha a divergência que já
+aconteceu não valida. **O que não muda:** nenhuma checagem existente foi alterada, nenhuma foi
+removida, nenhum limiar mudou, e a checagem nova é aditiva e só olha dois campos que passaram a
+existir (`envelope:` na fonte, `po` no dados). Nada na fórmula do hash, na cobertura, nos
+validadores de `PO`/`plano`/`aula`/`captura` ou nas regras e pétreas. É a checagem **7.1**, entre a
+7 (dados) e a 8 (config da captura). A âncora do ciclo real foi conferida depois:
+`hash-ciclo.sh acucar-branco 01 batata-bale-nivel-1-teste-2 --check` → íntegra.
+
+**Com o quê.** `experimentos/provar-po-unico.js` — 18 asserções, pelo **servidor de verdade**
+(`POST /api/elicitar` sobre a memória do núcleo): o primeiro é aceite, o segundo do mesmo plano leva
+409 e a mensagem nomeia o carimbo e diz o que fazer, a recusa **não grava**, `ajuste_de` cria o elo
+e aponta o anterior, `id` corrige sem nascer outro, outro plano pode ter o seu PO, e sem plano
+declarado a regra cai no escopo. `experimentos/provar-derivados-do-po.js` — 16 asserções com um
+GitHub falso que **persiste** (o que uma passagem escreve a outra lê): o segundo PO substitui as
+fontes, o elo vai para `historico/`, o conteúdo anterior está lá intacto, a fonte passa a declarar
+o PO novo, a cópia cifrada é regerada, o mesmo PO gravado de novo não escreve nada, e o glob real
+do `lib-fontes.sh` e o `find` do `gerar-handoff.sh` não alcançam o elo (medido nos dois sentidos).
+`experimentos/provar-coerencia-do-po-no-pacote.js` — 5 asserções sobre o `check-pacote` correndo a
+sério: carimbos iguais passam, diferentes reprovam com os dois nomes, fonte sem `envelope:`
+reprova, dados sem `po` reprova. `provar-um-commit-por-guardar.js` continua 21/21 (a idempotência
+passou a ser por comparação de conteúdo, e é mais forte do que era). As provas pré-existentes que
+falham (`provar-po-completo`, `provar-plano-completo`, `provar-dimensoes-plano`) falham por
+pastas de teste que já não existem (`professores/leticia`, `professores/tiago`) — conferido antes
+e depois, não é desta mudança.
+
+**Referências.** `README-ciclos.md` (o PO declara a linha de base dos sujeitos — P-10 —, e depois
+do primeiro lançamento a referência passa a ser a linha de corte); `ARQUITETURA-PE.md` (P-03/P-04:
+a proveniência acrescenta, não edita; P-13: o PO é do professor); `CONGELAMENTO.md`;
+`REGISTRO.md`, entrada «O enxame de commits» (o passo 3 do `escrever-ciclo.js` é o mesmo que ali
+ficou declarado como «o derivado não se concilia» — hoje sabe-se que ele **também** não mudava).
+
+**O que ainda não está feito.**
+
+- A escola `batata` **continua** com os dois POs e os dois planos no acervo: a pesquisadora decidiu
+  expurgar e recriar, e o acervo é dela. Nada foi apagado por mim.
+- **O `-po.md` e o `-dados.json` que já existem não têm o carimbo** (`envelope:` / `po`) — só os
+  que forem escritos a partir de agora o terão. Num ciclo antigo, a checagem 7.1 reprova até a
+  fonte ser reescrita. Foi decidido **não** migrar os existentes à mão: quem os reescreve é o
+  «Guardar».
+- O `escreverPO` continua a fazer o **seu** commit, e o lote do ciclo faz outro: são 2 commits por
+  «Guardar» onde podia ser 1. Junta-se quando houver razão para mexer nisso (o mesmo
+  «O que ficou por fazer» da entrada anterior).
+- **O `pre-commit` suja o worktree, e isto é novo como dívida declarada.** O hook corre
+  `tools/gerar-ciclo.sh` para validar o ciclo e **não** re-adiciona o que ele reescreve; como o
+  `ciclos.json` carrega `gerado_em` e o PDF carrega a data de criação, os dois ficam sempre
+  diferentes depois de cada commit que toque num ciclo. Medido hoje: `c21c305` commitou uma versão
+  e o disco ficou com outra. Não se corrigiu aqui — é infra congelada (`tools/hooks/`), não é deste
+  defeito, e a correcção provável é o gerador parar de escrever o instante no derivado (ou o hook
+  re-adicionar o que gerou). Fica dito para não se estranhar o worktree sujo.
+- **O pacote `tela-de-celular/ciclos/ciclo-01-batata` foi apagado.**
+  Ele era a casca que o `criar-escola.sh` cria antes de haver plano (`DOCS=""`), não era
+  regenerável, e bloqueava **todo** commit que tocasse `porta/`, `motor/` ou `tools/`: o
+  `check-identidade` compara a porta byte a byte com a cópia de cada pacote. O `criar-escola.sh`
+  continua a criar a casca — a próxima escola criada nascerá com o mesmo bloqueio latente, até
+  alguém decidir se a casca deve nascer já sincronizada ou não nascer. O pacote da `acucar-branco`
+  foi regenerado pela mesma razão (e o `plano-observacao/index.html` dele passou a ser a porta
+  de hoje).
+- A regra do **plano** não foi endurecida: os dois planos de 22/10 nasceram sem `ajuste_de` porque
+  a elicitação veio **sem `id`**, e o bloco `fonte === 'plano'` só reconcilia quando o `id` chega.
+  Fica declarado aqui, e é a próxima peça se o defeito reaparecer com o PO já bloqueado.
