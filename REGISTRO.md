@@ -22640,3 +22640,35 @@ antes desta correção, e é ela que impede o defeito de voltar. `provar-produca
 "nearest"})` — o mínimo necessário, e nada quando já está visível. A folha tem `scroll-behavior:
 smooth`, então o movimento é animado: quem mede tem de esperar por ele (a prova espera; a pessoa
 vê-o acontecer).
+
+## 22/10/2026 — A corrida perdida não é erro: o vínculo relê e refaz
+
+**O caso medido, não suposto.** O professor `meia-cortada` foi cadastrado às 09:38:42 — **cinco
+minutos depois** do deploy que passou a gravar o vínculo no inventário — e chegou sem escola. Os
+cinco schemas entraram (cinco commits, um por arquivo), o `reancorar` e o `regerar-indices`
+dispararam, e o vínculo, que lê o `sha` do inventário para gravar por cima, chegou com um `sha`
+que já não era o do `main`: 409, cadastro 502, pasta criada e escola não declarada. A janela é
+estreita por construção — o próprio cadastro escreve seis vezes no mesmo `main` e o CI observa
+`professores/**`.
+
+**A resposta certa não é desistir.** Um `409` (ou um `422`, o `sha` que não veio) numa escrita
+`contents` diz uma coisa só: alguém escreveu no meio. Agora o vínculo **relê e refaz**, até três
+tentativas com espera crescente, e o `sha` de cada tentativa vem da leitura dessa tentativa. A
+partir da terceira falha continua a ser erro — dito, com o motivo do GitHub, para não haver laço
+sem fim nem silêncio.
+
+**E a exclusão também.** Apagar é árvore → commit → `PATCH` da referência, e o `PATCH` recusa um
+commit que não descende do `main` actual («not a fast forward»). Como o commit é montado a partir
+de uma `base_tree` lida antes, a resposta certa é refazer o caminho com base nova. Mesmo laço, mesmo
+critério; um `403` (permissão) não se repete — repete-se o que é corrida.
+
+**Conferido.** `provar-apagar-professor-livre.js` cresceu de 23 para 32 asserções: uma recusa 409
+não derruba o vínculo, e ele entra **com** o commit na segunda tentativa (duas leituras, duas
+gravações); três recusas seguidas viram erro dito; quem já está declarado não grava nada; e um 422
+no `PATCH` da referência não derruba a exclusão. `provar-estrutura-ao-criar-professor` 30,
+`provar-producao` 135/135, `provar-editar-professor-principal` 26, `check-identidade` 20/20,
+`check-indices` 14/14.
+
+**O dado que faltava, pelo mesmo caminho.** O vínculo do `meia-cortada` com a `batata` foi gravado
+por `registrarProfessorNaEscola` — a função do mecanismo, não uma edição do inventário —, e a
+partir de agora o caminho que a usa já relê em vez de desistir.

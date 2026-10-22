@@ -55,9 +55,11 @@ function criarKv(inicial = {}) {
  * base (`git/ref` + `git/commits`), o inventário (`contents/`) e as três escritas
  * (`git/trees`, `git/commits`, `git/refs`). Tudo o que se escreve é guardado para se conferir.
  */
-function githubFalso({ caminhos, inventario }) {
+function githubFalso({ caminhos, inventario, recusarPrimeiroPutDoIndice = false, recusarPrimeiroPatchDaRef = false }) {
   const chamadas = [];
   const criado = { arvore: null, commit: null, ref: null };
+  let putsDoIndice = 0;
+  let patchesDaRef = 0;
   const f = async (url, init) => {
     const metodo = (init && init.method) || 'GET';
     const u = String(url);
@@ -102,12 +104,49 @@ function githubFalso({ caminhos, inventario }) {
       return { ok: true, status: 201, json: async () => ({ sha: 'c1' }) };
     }
     if (metodo === 'PATCH' && /\/git\/refs\/heads\//.test(u)) {
+      patchesDaRef += 1;
+      if (recusarPrimeiroPatchDaRef && patchesDaRef === 1) {
+        return { ok: false, status: 422, json: async () => ({ message: 'Update is not a fast forward' }) };
+      }
       criado.ref = corpo;
       return { ok: true, status: 200, json: async () => ({}) };
     }
     return { ok: true, status: 200, json: async () => ({}) };
   };
   return { fetch: f, chamadas, criado };
+}
+
+/**
+ * O GitHub falso do VÍNCULO — só o `contents` do inventário. `recusar` diz quantas vezes a
+ * gravação é recusada com 409 antes de aceitar: é a corrida perdida com o CI, medida em produção.
+ */
+function githubDoVinculo({ inventario, recusar = 0 }) {
+  const chamadas = [];
+  let recusas = 0;
+  const f = async (url, init) => {
+    const metodo = (init && init.method) || 'GET';
+    const u = String(url);
+    chamadas.push({ url: u, metodo });
+    if (metodo === 'GET') {
+      if (!inventario) return { ok: false, status: 404, json: async () => ({}) };
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ sha: 'sha-' + chamadas.length, content: Buffer.from(JSON.stringify(inventario)).toString('base64') }),
+      };
+    }
+    if (metodo === 'PUT') {
+      const corpo = JSON.parse(init.body || '{}');
+      if (recusas < recusar) {
+        recusas += 1;
+        // O MESMO RECADO QUE O GITHUB DÁ quando a `sha` já não é a do `main`.
+        return { ok: false, status: 409, json: async () => ({ message: 'does not match ' + corpo.sha }) };
+      }
+      return { ok: true, status: 200, json: async () => ({ commit: { sha: 'vc1' } }) };
+    }
+    return { ok: true, status: 200, json: async () => ({}) };
+  };
+  return { fetch: f, chamadas };
 }
 
 const env = (kv, token = 'gh') => ({
@@ -202,7 +241,76 @@ async function principais() {
       JSON.parse(await kv.get('bastidores/calango/professores') || '[]').length === 1);
   }
 
-  // ── 4. as peças puras ─────────────────────────────────────────────────────
+  // ── 4. A CORRIDA PERDIDA É RELEITURA, NÃO ERRO (22/10/2026) ───────────────
+  // O caso medido: `meia-cortada` criado às 09:38 com o CI a escrever no `main` no mesmo
+  // segundo. O vínculo chegou com uma `sha` velha, o GitHub recusou, e o professor ficou com a
+  // pasta criada e sem escola declarada. Agora a recusa é uma tentativa a mais.
+  {
+    const { registrarProfessorNaEscola } = require('../motor/servidor/repo-escola.js');
+    const inventario = { escola: 'calango', professor: { slug: 'oculos-redondo' } };
+    const { fetch, chamadas } = githubDoVinculo({ inventario, recusar: 1 });
+    const r = await registrarProfessorNaEscola({
+      token: 'gh', dono: 't', repo: 'r', ref: 'main', slug: 'calango', professor: 'livre', nome: 'Livre',
+      fetchImpl: fetch,
+    });
+    const puts = chamadas.filter((c) => c.metodo === 'PUT').length;
+    const gets = chamadas.filter((c) => c.metodo === 'GET').length;
+    conferir('uma recusa 409 do GitHub não derruba o vínculo', r.ok === true, r);
+    conferir('…e o vínculo entrou COM o commit', r.commit === 'vc1', r.commit);
+    conferir('…depois de reler o inventário (duas leituras, duas gravações)', gets === 2 && puts === 2, { gets, puts });
+    conferir('…e o resultado diz em que tentativa', r.intentos === 2, r.intentos);
+  }
+
+  {
+    const { registrarProfessorNaEscola } = require('../motor/servidor/repo-escola.js');
+    const inventario = { escola: 'calango', professor: { slug: 'oculos-redondo' } };
+    const { fetch } = githubDoVinculo({ inventario, recusar: 5 });
+    let erro = null;
+    try {
+      await registrarProfessorNaEscola({
+        token: 'gh', dono: 't', repo: 'r', ref: 'main', slug: 'calango', professor: 'livre', nome: 'Livre',
+        fetchImpl: fetch,
+      });
+    } catch (e) { erro = e.message; }
+    conferir('três recusas seguidas viram erro DITO (não um laço sem fim)',
+      typeof erro === 'string' && /depois de 3 tentativas/.test(erro), erro);
+  }
+
+  {
+    const { registrarProfessorNaEscola } = require('../motor/servidor/repo-escola.js');
+    const inventario = {
+      escola: 'calango',
+      professores: [{ slug: 'livre', nome: 'Livre', desde: '2026-10-22T11:00:00.000Z' }],
+    };
+    const { fetch, chamadas } = githubDoVinculo({ inventario });
+    const r = await registrarProfessorNaEscola({
+      token: 'gh', dono: 't', repo: 'r', ref: 'main', slug: 'calango', professor: 'livre', nome: 'Livre',
+      fetchImpl: fetch,
+    });
+    conferir('quem já está declarado não gera gravação nenhuma (idempotente)',
+      r.jaExistia === true && chamadas.filter((c) => c.metodo === 'PUT').length === 0, r);
+  }
+
+  // ── 5. a exclusão também perde a corrida, e também refaz ─────────────────
+  {
+    const kv = criarKv({ 'bastidores/calango/professores': JSON.stringify([LIVRE]) });
+    const { fetch, criado } = githubFalso({
+      caminhos: CINCO,
+      inventario: { escola: 'calango', professor: { slug: 'oculos-redondo' }, professores: [{ slug: 'livre' }] },
+      recusarPrimeiroPatchDaRef: true,
+    });
+    globalThis.fetch = fetch;
+    const resposta = await pedirExclusao(env(kv));
+    const corpo = await resposta.json();
+    globalThis.fetch = original;
+
+    conferir('um 422 no PATCH da referência não derruba a exclusão', resposta.status === 200, corpo);
+    conferir('…e o ponteiro acaba por avançar', (criado.ref || {}).sha === 'c1', criado.ref);
+    conferir('…e o professor sai do KV na mesma',
+      JSON.parse(await kv.get('bastidores/calango/professores') || '[]').length === 0);
+  }
+
+  // ── 6. as peças puras ─────────────────────────────────────────────────────
   const soUm = comProfessorRemovido(JSON.stringify({ escola: 'x', professores: [{ slug: 'a' }] }), { professor: 'a' });
   conferir('sem ninguém na lista, a chave é APAGADA (e não deixada a `[]`)',
     soUm !== null && !('professores' in JSON.parse(soUm)), soUm);

@@ -734,43 +734,80 @@ function comProfessor(indiceTexto, { escola, professor, nome, quando }) {
  * Grava o vínculo no inventário, num commit próprio. Idempotente: se o professor já está lá,
  * devolve `{ok, jaExistia: true}` sem escrever nada.
  */
+/**
+ * A CORRIDA PERDIDA NÃO É UM ERRO (22/10/2026) — é uma tentativa a mais.
+ *
+ * Medido: o professor `meia-cortada` foi cadastrado às 09:38; o `garantirEstruturaDoProfessor`
+ * escreveu os cinco schemas (cinco commits), o `reancorar` e o `regerar-indices` dispararam — e o
+ * vínculo no inventário, que lê o `sha` do arquivo e grava por cima dele, chegou com um `sha` que
+ * já não era o do `main`. O GitHub recusa (409), o cadastro devolve 502, e o professor fica com a
+ * pasta criada e sem a escola declarada — invisível no painel como professor de escola nenhuma.
+ *
+ * Um `409` (ou um `422`, o `sha` que não veio) numa escrita `contents` quer dizer uma coisa só:
+ * alguém escreveu no meio. A resposta certa não é desistir — é **reler e refazer**. O laço é
+ * curto de propósito (três tentativas, espera crescente), e a última falha continua a ser um
+ * erro dito, com o motivo do GitHub.
+ */
+const ESPERA_DO_INTENTO = (intento) => new Promise((s) => setTimeout(s, intento * 350));
+const CORRIDA_PERDIDA = new Set([409, 422]);
+
 async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, professor, nome, quando, fetchImpl }) {
   const f = fetchImpl || fetch;
   const caminho = 'escola/' + slug + '/indice.json';
-  const atual = await lerArquivo({ token, dono, repo, ref, caminho, fetchImpl: f });
-  if (atual === null) {
-    throw new Error('a escola ' + slug + ' não tem inventário (' + caminho + ') — sem ele não há onde declarar o professor');
-  }
-  const { texto, jaExistia } = comProfessor(atual, { escola: slug, professor, nome, quando });
-  if (jaExistia) return { ok: true, jaExistia: true, commit: null };
-
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
   const cab = {
     'Authorization': 'Bearer ' + token,
     'Accept': 'application/vnd.github+json',
     'Content-Type': 'application/json',
   };
-  const base = await f(url + '?ref=' + encodeURIComponent(ref), { headers: cab });
-  const dados = base.ok ? await base.json().catch(() => null) : null;
-  const sha = (dados && dados.sha) || null;
-  const bytes = new TextEncoder().encode(texto);
-  let binario = '';
-  for (const b of bytes) binario += String.fromCharCode(b);
-  const res = await f(url, {
-    method: 'PUT',
-    headers: cab,
-    body: JSON.stringify({
-      message: 'feat(escola): a escola ' + slug + ' declara o professor ' + professor,
-      content: btoa(binario),
-      branch: ref,
-      ...(sha ? { sha } : {}),
-    }),
-  });
-  const corpo = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error('o GitHub recusou gravar o vínculo em ' + caminho + ': ' + ((corpo && corpo.message) || ('HTTP ' + res.status)));
+
+  let ultimo = null;
+  for (let intento = 1; intento <= 3; intento += 1) {
+    // UMA leitura por tentativa, e o `sha` vem DELA: é o que a gravação tem de declarar, e
+    // reler é o que torna a segunda tentativa possível quando a primeira perde a corrida.
+    const base = await f(url + '?ref=' + encodeURIComponent(ref), { headers: cab });
+    if (base.status === 404) {
+      throw new Error('a escola ' + slug + ' não tem inventário (' + caminho + ') — sem ele não há onde declarar o professor');
+    }
+    if (!base.ok) {
+      ultimo = 'HTTP ' + base.status;
+      if (!CORRIDA_PERDIDA.has(base.status)) throw new Error('não li ' + caminho + ': ' + ultimo);
+      await ESPERA_DO_INTENTO(intento);
+      continue;
+    }
+
+    const dados = await base.json().catch(() => null);
+    if (!dados) { ultimo = 'o JSON de ' + caminho + ' não abriu'; await ESPERA_DO_INTENTO(intento); continue; }
+    const sha = dados.sha || null;
+    const { texto, jaExistia } = comProfessor(decodificarBase64(dados.content || ''), {
+      escola: slug, professor, nome, quando,
+    });
+    if (jaExistia) return { ok: true, jaExistia: true, commit: null, intentos: intento };
+
+    const bytes = new TextEncoder().encode(texto);
+    let binario = '';
+    for (const b of bytes) binario += String.fromCharCode(b);
+    const res = await f(url, {
+      method: 'PUT',
+      headers: cab,
+      body: JSON.stringify({
+        message: 'feat(escola): a escola ' + slug + ' declara o professor ' + professor,
+        content: btoa(binario),
+        branch: ref,
+        ...(sha ? { sha } : {}),
+      }),
+    });
+    const corpo = await res.json().catch(() => ({}));
+    if (res.ok) return { ok: true, jaExistia: false, commit: corpo.commit && corpo.commit.sha, intentos: intento };
+
+    ultimo = 'HTTP ' + res.status + ((corpo && corpo.message) ? ' — ' + corpo.message : '');
+    if (!CORRIDA_PERDIDA.has(res.status)) {
+      throw new Error('o GitHub recusou gravar o vínculo em ' + caminho + ': ' + ultimo);
+    }
+    await ESPERA_DO_INTENTO(intento);
   }
-  return { ok: true, jaExistia: false, commit: corpo.commit && corpo.commit.sha };
+  throw new Error('o vínculo em ' + caminho + ' não entrou depois de 3 tentativas — o repositório '
+    + 'está a receber escritas em cima das nossas: ' + ultimo);
 }
 
 /**
@@ -801,7 +838,25 @@ function arquivosDeTrabalho(caminhos, professor) {
     .sort();
 }
 
+/**
+ * APAGAR É UMA ESCRITA COMO AS OUTRAS — e também pode perder a corrida. Aqui a corrida aparece
+ * na última chamada: o `PATCH` da referência recusa um commit que não descende do `main` actual
+ * (422, «not a fast forward»). Como o commit é montado a partir de uma `base_tree` lida antes,
+ * a resposta certa é refazer o caminho inteiro — base nova, árvore nova, commit novo.
+ */
 async function apagarProfessorDoRepo({ token, dono, repo, ref, escola, professor, fetchImpl }) {
+  let ultimo = null;
+  for (let intento = 1; intento <= 3; intento += 1) {
+    const r = await apagarProfessorDoRepoUmaVez({ token, dono, repo, ref, escola, professor, fetchImpl });
+    if (r.ok || r.trabalho) return Object.assign(r, { intentos: intento });
+    ultimo = r.motivo;
+    if (!r.corrida) throw new Error(ultimo);
+    await ESPERA_DO_INTENTO(intento);
+  }
+  throw new Error(ultimo || 'não consegui apagar o professor');
+}
+
+async function apagarProfessorDoRepoUmaVez({ token, dono, repo, ref, escola, professor, fetchImpl }) {
   const f = fetchImpl || fetch;
   const slug = String(professor || '').trim();
   if (!slug) throw new Error('sem o identificador do professor');
@@ -840,7 +895,10 @@ async function apagarProfessorDoRepo({ token, dono, repo, ref, escola, professor
     headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
     body: JSON.stringify({ base_tree: treeSha, tree }),
   });
-  if (!novaArvore.ok) throw new Error('não montei a árvore da exclusão: HTTP ' + novaArvore.status);
+  if (!novaArvore.ok) {
+    // 409 aqui é a `base_tree` que já não vale: alguém escreveu no `main` desde que a lemos.
+    return { ok: false, corrida: novaArvore.status === 409, motivo: 'não montei a árvore da exclusão: HTTP ' + novaArvore.status };
+  }
 
   const mensagem = [
     'chore(estrutura): apagar o professor ' + slug,
@@ -864,14 +922,23 @@ async function apagarProfessorDoRepo({ token, dono, repo, ref, escola, professor
     headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
     body: JSON.stringify({ message: mensagem, tree: novaArvore.corpo.sha, parents: [commitSha] }),
   });
-  if (!novoCommit.ok) throw new Error('não criei o commit da exclusão: HTTP ' + novoCommit.status);
+  if (!novoCommit.ok) {
+    return { ok: false, corrida: novoCommit.status === 409, motivo: 'não criei o commit da exclusão: HTTP ' + novoCommit.status };
+  }
   const sha = novoCommit.corpo && novoCommit.corpo.sha;
   const atualizar = await pedir(f, raizApi + '/git/refs/heads/' + ref, token, {
     method: 'PATCH',
     headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
     body: JSON.stringify({ sha, force: false }),
   });
-  if (!atualizar.ok) throw new Error('não avancei ' + ref + ' para o commit da exclusão: HTTP ' + atualizar.status);
+  if (!atualizar.ok) {
+    // 422 aqui é «not a fast forward»: o `main` andou enquanto montávamos o commit.
+    return {
+      ok: false,
+      corrida: atualizar.status === 422 || atualizar.status === 409,
+      motivo: 'não avancei ' + ref + ' para o commit da exclusão: HTTP ' + atualizar.status,
+    };
+  }
 
   return { ok: true, apagados: daPasta, jaNaoExistia: false, commit: sha };
 }
