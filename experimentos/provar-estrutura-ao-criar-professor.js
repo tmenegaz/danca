@@ -61,7 +61,7 @@ function githubFalso({ arquivosDaPasta = [], inventario = null, falharPut = fals
   const f = async (url, init) => {
     const metodo = (init && init.method) || 'GET';
     const u = String(url);
-    chamadas.push({ url: u, metodo });
+    chamadas.push({ url: u, metodo, cabecalhos: (init && init.headers) || {} });
     const ehListagem = metodo === 'GET' && /\/contents\/professores\/[^/]+\/ciclos(\?|$)/.test(u);
     if (ehListagem) {
       if (falharListagem) return { ok: false, status: 500, json: async () => ({}) };
@@ -263,7 +263,27 @@ async function principais() {
     conferir('…e a mensagem diz o que faltou', /não tem inventário/.test(String(corpo.erro)), corpo.erro && corpo.erro.slice(0, 90));
   }
 
-  // ── 8. sem token: o cadastro falha, em vez de criar meio professor ────────
+  // ── 8. `User-Agent` em TODAS as chamadas (22/10/2026) ─────────────────────
+  // O GitHub recusa (403) requisição sem `User-Agent`, e o runtime dos Workers não o preenche —
+  // ao contrário do `undici` do Node, que é o que corre nas provas. A asserção é sobre o que o
+  // CÓDIGO passa ao `fetch`, e não sobre o que o ambiente acrescenta depois.
+  {
+    const kv = criarKv();
+    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } } });
+    globalThis.fetch = fetch;
+    await postarProfessor(env(kv));
+    globalThis.fetch = original;
+
+    const semUA = chamadas.filter((c) => !(c.cabecalhos || {})['User-Agent']);
+    conferir('o cadastro manda `User-Agent` em TODAS as chamadas', semUA.length === 0,
+      semUA.map((c) => c.metodo + ' ' + c.url.slice(0, 60)));
+    conferir('…e a versão da API em todas', chamadas.filter((c) => !(c.cabecalhos || {})['X-GitHub-Api-Version']).length === 0,
+      chamadas.length);
+    conferir('…e as escritas levam `Content-Type`',
+      chamadas.filter((c) => c.metodo === 'PUT' && !(c.cabecalhos || {})['Content-Type']).length === 0, null);
+  }
+
+  // ── 9. sem token: o cadastro falha, em vez de criar meio professor ────────
   {
     const kv = criarKv();
     const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] } });

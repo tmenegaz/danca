@@ -51,6 +51,27 @@ function cabecalhos(token) {
   };
 }
 
+/**
+ * OS CABEÇALHOS DE UMA ESCRITA — e o `User-Agent` NÃO É DECORAÇÃO (22/10/2026).
+ *
+ * MEDIDO, contra a API real: `GET /contents/escola/batata/indice.json` responde **200** com
+ * `User-Agent` e **403** sem ele. O GitHub recusa por regra administrativa toda requisição sem
+ * `User-Agent`, e o runtime dos Workers **não** o preenche sozinho (o `undici` do Node preenche,
+ * e é por isso que as provas locais passavam: elas mediam um ambiente mais permissivo do que o de
+ * produção).
+ *
+ * Foi assim que a edição do nome do professor principal falhou no ar: `escreverNoInventario`
+ * montava os cabeçalhos à mão, com `Authorization` e `Accept`, e sem o `User-Agent` que
+ * `cabecalhos()` já tinha. A leitura do inventário morria em 403 antes de qualquer escrita, e a
+ * mensagem dizia só «HTTP 403» — sem o motivo, que é o que teria apontado o defeito na hora.
+ *
+ * UMA função, e todos os pedidos de escrita passam por ela: a lista de cabeçalhos existe num lugar
+ * só, e um cabeçalho novo não precisa de ser lembrado em cinco.
+ */
+function cabecalhosDeEscrita(token) {
+  return Object.assign(cabecalhos(token), { 'Content-Type': 'application/json' });
+}
+
 async function pedir(f, url, token, opcoes) {
   const res = await f(url, Object.assign({ headers: cabecalhos(token) }, opcoes || {}));
   let corpo = null;
@@ -668,11 +689,10 @@ async function atualizarIndiceDaEscola({ token, dono, repo, ref, slug, conteudo,
   const f = fetchImpl || fetch;
   const caminho = 'escola/' + slug + '/indice.json';
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
-  const cabecalhos = {
-    'Authorization': 'Bearer ' + token,
-    'Accept': 'application/vnd.github+json',
-    'Content-Type': 'application/json',
-  };
+  // O MESMO DEFEITO VIVIA AQUI (22/10/2026): cabeçalhos montados à mão, sem `User-Agent`. Este
+  // caminho é o da RETOMADA da limpeza do KV — a rota que existe exactamente para o dia em que a
+  // enumeração falhou. Um 403 aqui deixaria a pendência sem como ser resolvida.
+  const cabecalhos = cabecalhosDeEscrita(token);
   const atual = await f(url + '?ref=' + encodeURIComponent(ref), { headers: cabecalhos });
   let sha = null;
   if (atual.ok) {
@@ -749,6 +769,19 @@ function comProfessor(indiceTexto, { escola, professor, nome, quando }) {
  * erro dito, com o motivo do GitHub.
  */
 const ESPERA_DO_INTENTO = (intento) => new Promise((s) => setTimeout(s, intento * 350));
+
+/**
+ * O RECADO QUE O GITHUB DEU, quando deu algum — « — <message>». Lido sem consumir o que o
+ * chamador precisa: estas funções só o usam em caminhos onde a resposta já não serve.
+ */
+async function recadoDaResposta(resposta) {
+  try {
+    const corpo = await resposta.json();
+    const msg = corpo && (corpo.message || corpo.error);
+    if (msg) return ' — ' + String(msg);
+  } catch (e) { /* sem corpo: fica só o número */ }
+  return '';
+}
 const CORRIDA_PERDIDA = new Set([409, 422]);
 
 /**
@@ -763,11 +796,7 @@ async function escreverNoInventario({ token, dono, repo, ref, escola, transforma
   const f = fetchImpl || fetch;
   const caminho = 'escola/' + escola + '/indice.json';
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
-  const cab = {
-    'Authorization': 'Bearer ' + token,
-    'Accept': 'application/vnd.github+json',
-    'Content-Type': 'application/json',
-  };
+  const cab = cabecalhosDeEscrita(token);
 
   let ultimo = null;
   for (let intento = 1; intento <= 3; intento += 1) {
@@ -778,7 +807,10 @@ async function escreverNoInventario({ token, dono, repo, ref, escola, transforma
       throw new Error('a escola ' + escola + ' não tem inventário (' + caminho + ') — sem ele não há onde escrever');
     }
     if (!base.ok) {
-      ultimo = 'HTTP ' + base.status;
+      // O MOTIVO VEM DO GITHUB, e não só o número (22/10/2026). O erro que gerou esta correção
+      // dizia «HTTP 403» e nada mais; a resposta do GitHub diz «Request forbidden by
+      // administrative rules», que aponta o defeito na hora. Um número sozinho obriga a adivinhar.
+      ultimo = 'HTTP ' + base.status + (await recadoDaResposta(base));
       if (!CORRIDA_PERDIDA.has(base.status)) throw new Error('não li ' + caminho + ': ' + ultimo);
       await ESPERA_DO_INTENTO(intento);
       continue;

@@ -65,7 +65,7 @@ function githubFalso({ caminhos, inventario, envelopes = null, recusarPrimeiroPa
   const f = async (url, init) => {
     const metodo = (init && init.method) || 'GET';
     const u = String(url);
-    chamadas.push({ url: u, metodo });
+    chamadas.push({ url: u, metodo, cabecalhos: (init && init.headers) || {} });
     const corpo = init && init.body ? JSON.parse(init.body) : null;
 
     if (/\/git\/trees\/[^/?]+\?recursive=1$/.test(u)) {
@@ -131,14 +131,18 @@ function githubFalso({ caminhos, inventario, envelopes = null, recusarPrimeiroPa
  * O GitHub falso do VÍNCULO — só o `contents` do inventário. `recusar` diz quantas vezes a
  * gravação é recusada com 409 antes de aceitar: é a corrida perdida com o CI, medida em produção.
  */
-function githubDoVinculo({ inventario, recusar = 0 }) {
+function githubDoVinculo({ inventario, recusar = 0, proibir = false }) {
   const chamadas = [];
   let recusas = 0;
   const f = async (url, init) => {
     const metodo = (init && init.method) || 'GET';
     const u = String(url);
-    chamadas.push({ url: u, metodo });
+    chamadas.push({ url: u, metodo, cabecalhos: (init && init.headers) || {} });
     if (metodo === 'GET') {
+      if (proibir) {
+        // O QUE O GITHUB RESPONDE A QUEM NÃO MANDA `User-Agent`.
+        return { ok: false, status: 403, json: async () => ({ message: 'Request forbidden by administrative rules.' }) };
+      }
       if (!inventario) return { ok: false, status: 404, json: async () => ({}) };
       return {
         ok: true,
@@ -453,7 +457,78 @@ async function principais() {
     }
   }
 
-  // ── 7. as peças puras ─────────────────────────────────────────────────────
+  // ── 7. O `User-Agent` — a classe do defeito que quebrou a edição do nome ───
+  //
+  // MEDIDO no ar: editar o nome do professor principal falhou com «não li
+  // escola/batata/indice.json: HTTP 403». A causa: `escreverNoInventario` montava os cabeçalhos à
+  // mão, com `Authorization` e `Accept`, e SEM `User-Agent` — e o GitHub recusa (403) toda
+  // requisição sem ele. O runtime dos Workers não o preenche; o `undici` do Node preenche, e é
+  // por isso que as provas locais passavam: mediam um ambiente mais permissivo do que o de
+  // produção. Contra a API real, o mesmo pedido: 200 com `User-Agent`, 403 sem.
+  //
+  // A asserção é sobre o que o CÓDIGO passa ao `fetch` — não sobre o que o `undici` acrescenta
+  // depois. É a única forma de a prova valer num ambiente que ajuda.
+  {
+    const { registrarProfessorNaEscola, registrarNomeDoProfessor, apagarProfessorDoRepo } =
+      require('../motor/servidor/repo-escola.js');
+    const inventario = { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } };
+    const { fetch, chamadas } = githubDoVinculo({ inventario });
+    await registrarProfessorNaEscola({
+      token: 'gh', dono: 't', repo: 'r', ref: 'main', slug: 'calango', professor: 'livre', nome: 'Livre',
+      fetchImpl: fetch,
+    });
+    await registrarNomeDoProfessor({
+      token: 'gh', dono: 't', repo: 'r', ref: 'main', escola: 'calango', professor: 'livre', nome: 'Outro',
+      fetchImpl: fetch,
+    });
+    const semUserAgent = chamadas.filter((c) => !c.cabecalhos['User-Agent']);
+    const semVersao = chamadas.filter((c) => !c.cabecalhos['X-GitHub-Api-Version']);
+    const semContentType = chamadas.filter((c) => c.metodo === 'PUT' && !c.cabecalhos['Content-Type']);
+    conferir('TODA requisição do vínculo leva `User-Agent`', semUserAgent.length === 0,
+      semUserAgent.map((c) => c.metodo + ' ' + c.url.slice(0, 70)));
+    conferir('…e a versão da API declarada', semVersao.length === 0, semVersao.length);
+    conferir('…e as escritas levam `Content-Type`', semContentType.length === 0, semContentType.length);
+    conferir('…e o `User-Agent` é o do projeto', chamadas[0].cabecalhos['User-Agent'] === 'danca-raiz',
+      chamadas[0].cabecalhos['User-Agent']);
+    conferir('o token vai em `Authorization`, e nunca em texto claro no URL',
+      String(chamadas[0].cabecalhos['Authorization'] || '').indexOf('Bearer ') === 0
+        && chamadas.every((c) => c.url.indexOf('gh') === -1), chamadas[0].cabecalhos['Authorization']);
+  }
+
+  {
+    // A EXCLUSÃO também — ela usa o mesmo módulo, e a asserção é sobre as três chamadas dela.
+    const kv = criarKv({ 'bastidores/calango/professores': JSON.stringify([LIVRE]) });
+    const { fetch, chamadas, criado } = githubFalso({
+      caminhos: CINCO,
+      inventario: { escola: 'calango', professor: { slug: 'oculos-redondo' }, professores: [{ slug: 'livre' }] },
+    });
+    globalThis.fetch = fetch;
+    await pedirExclusao(env(kv));
+    globalThis.fetch = original;
+    conferir('a exclusão também leva `User-Agent` em todas as chamadas',
+      chamadas.filter((c) => !(c.cabecalhos || {})['User-Agent']).length === 0,
+      chamadas.filter((c) => !(c.cabecalhos || {})['User-Agent']).map((c) => c.metodo + ' ' + c.url.slice(0, 60)));
+    conferir('…e a mensagem do commit é a da exclusão',
+      /apagar o professor livre/.test(String((criado.commit || {}).message || '')),
+      (criado.commit || {}).message && String(criado.commit.message).split('\n')[0]);
+  }
+
+  // ── 8. O ERRO DIZ O MOTIVO DO GITHUB, e não só o número ───────────────────
+  {
+    const { registrarNomeDoProfessor } = require('../motor/servidor/repo-escola.js');
+    const { fetch } = githubDoVinculo({ inventario: { escola: 'calango' }, proibir: true });
+    let erro = null;
+    try {
+      await registrarNomeDoProfessor({
+        token: 'gh', dono: 't', repo: 'r', ref: 'main', escola: 'calango', professor: 'livre', nome: 'X',
+        fetchImpl: fetch,
+      });
+    } catch (e) { erro = e.message; }
+    conferir('o erro de leitura cita o motivo que o GitHub deu',
+      typeof erro === 'string' && /403/.test(erro) && /Request forbidden/.test(erro), erro);
+  }
+
+  // ── 9. as peças puras ─────────────────────────────────────────────────────
   const soUm = comProfessorRemovido(JSON.stringify({ escola: 'x', professores: [{ slug: 'a' }] }), { professor: 'a' });
   conferir('sem ninguém na lista, a chave é APAGADA (e não deixada a `[]`)',
     soUm !== null && !('professores' in JSON.parse(soUm)), soUm);

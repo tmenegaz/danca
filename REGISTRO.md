@@ -22738,3 +22738,49 @@ curado não se exclui; removida a curadoria tudo volta). `provar-editar-professo
 para **30**, no Chrome: com o principal curado, o «Editar» não é clicável, fica desabilitado com o
 motivo, e a linha continua a dizer «principal». `provar-producao` 135/135, `check-identidade` 20/20,
 `check-indices` 14/14.
+
+## 22/10/2026 — O `User-Agent` que o Workers não põe: o 403 que quebrou a edição do nome
+
+**O sintoma, no ar.** Editar o nome do principal da escola viva falhou com: «o nome do professor
+«Tela de PC» NÃO foi mudado: o repositório recusou a gravação (não li
+`escola/batata/indice.json`: HTTP 403)». A mensagem foi **minha**, da correção anterior — e o erro
+não era permissão do token: era o cabeçalho que faltava.
+
+**Medido, contra a API real, o mesmo pedido duas vezes:**
+
+```
+GET /repos/tmenegaz/danca/contents/escola/batata/indice.json
+  com User-Agent  → 200
+  sem User-Agent  → 403
+```
+
+O GitHub recusa por regra administrativa toda requisição sem `User-Agent`. O runtime dos
+**Workers não o preenche**; o `undici` do **Node preenche** — e é por isso que as provas locais
+passavam: mediam um ambiente mais permissivo do que o de produção. A prova, sozinha, nunca ia
+apanhar isto; o que a apanha é a asserção sobre os cabeçalhos que o **código** passa ao `fetch`.
+
+**A causa, no código.** `repo-escola.js` já tinha uma função `cabecalhos(token)` com `Accept`,
+`Authorization`, `X-GitHub-Api-Version` e `User-Agent`. Duas funções montavam os cabeçalhos **à
+mão** e esqueciam o último: `escreverNoInventario` (minha, da correção de hoje) e
+`atualizarIndiceDaEscola` (anterior, no caminho da retomada da limpeza do KV). Agora há
+`cabecalhosDeEscrita(token)` — uma definição, e todos os pedidos passam por ela. A varredura do
+motor confirma que os outros oito módulos que falam com o GitHub já levavam os dois cabeçalhos: o
+defeito estava só aqui.
+
+**E o diagnóstico, que era a segunda metade do problema.** «HTTP 403» sozinho obriga a adivinhar —
+e eu adivinhei duas vezes antes de medir. O erro da leitura passa a citar o que o GitHub deu:
+`403 — Request forbidden by administrative rules.` Um número é um sintoma; a frase é o defeito.
+
+**O dado alinhado, pela função do mecanismo.** O KV da `batata` tinha `{"nome":"Tela de PC"}`
+(lido com um `get` de uma chave, e não com `list()` — a cota é do `list`), e o inventário ainda
+dizia «Tiago Menegaz»: a primeira edição foi feita pelo código antigo, que só gravava o KV. O
+repositório foi alinhado com `registrarNomeDoProfessor` — a mesma função que o Worker usa agora —,
+num commit próprio (`19a68e5`). O inventário passa a dizer «Tela de PC» nos dois lugares onde o
+nome pode estar.
+
+**Conferido.** `provar-apagar-professor-livre` de 48 para **56**: toda requisição do vínculo e da
+exclusão leva `User-Agent`, `X-GitHub-Api-Version` e (nas escritas) `Content-Type`; o
+`User-Agent` é o do projeto; o token vai em `Authorization` e nunca no URL; e um 403 do GitHub
+aparece no erro **com a frase dele**. `provar-estrutura-ao-criar-professor` ganhou as três
+asserções equivalentes no cadastro. `provar-slug-do-professor`, `provar-producao` 135/135,
+`check-identidade` 20/20.
