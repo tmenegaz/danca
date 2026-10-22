@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:tela-de-celular/01/batata",
+      "numero": "01",
+      "professor": "tela-de-celular",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -27,25 +39,28 @@
       "slug": "barra"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:tela-de-celular/01/batata"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": true,
+      "expurgada": false,
       "expurgada_em": "2026-10-21T17:07:19.223Z",
       "expurgos": 3,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
+        "tela-de-celular",
         "tiago-menegaz"
       ],
       "registros": [],
@@ -306,7 +321,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -324,6 +345,11 @@
         "valor": "sapo-bailarino"
       },
       {
+        "contagem": 1,
+        "rotulo": "tela-de-celular",
+        "valor": "tela-de-celular"
+      },
+      {
         "contagem": 2,
         "rotulo": "tiago",
         "valor": "tiago"
@@ -338,9 +364,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "6106ca8"
+    "commit": "887c7d1"
   },
-  "gerado_em": "2026-10-22T11:10",
+  "gerado_em": "2026-10-22T11:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -392,6 +418,17 @@
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
       "slug": "sapo-bailarino"
+    },
+    {
+      "ciclos": [
+        "ciclo:tela-de-celular/01/batata"
+      ],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:tela-de-celular",
+      "nome": null,
+      "slug": "tela-de-celular"
     },
     {
       "ciclos": [],

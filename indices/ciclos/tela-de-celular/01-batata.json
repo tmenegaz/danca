@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+    "documento:schema:professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "batata",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "887c7d1"
+  },
+  "gerado_em": "2026-10-22T11:29",
+  "id": "ciclo:tela-de-celular/01/batata",
+  "professor": "tela-de-celular",
+  "versao": 2
+}

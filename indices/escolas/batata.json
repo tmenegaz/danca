@@ -1,27 +1,69 @@
 {
   "aulas": [],
-  "ciclos": [],
-  "documentos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+        "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:tela-de-celular/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "tela-de-celular",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "schema"
+      ]
+    }
+  ],
+  "documentos": [
+    {
+      "ancora_id": null,
+      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+      "ciclo_id": "ciclo:tela-de-celular/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+      "professor": "tela-de-celular",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:tela-de-celular/01/batata",
+      "escola": "batata",
+      "id": "documento:schema:professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "tela-de-celular",
+      "tipo": "schema"
+    }
+  ],
   "escola": {
-    "ciclos": [],
+    "ciclos": [
+      "ciclo:tela-de-celular/01/batata"
+    ],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 0,
+      "ciclos": 1,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
-    "expurgada": true,
+    "expurgada": false,
     "expurgada_em": "2026-10-21T17:07:19.223Z",
     "expurgos": 3,
-    "habilitada": false,
+    "habilitada": true,
     "id": "escola:batata",
     "nome": "batata",
     "professor": "tiago-menegaz",
     "professores": [
+      "tela-de-celular",
       "tiago-menegaz"
     ],
     "registros": [],
@@ -29,15 +71,42 @@
   },
   "filtros": {
     "anos": [],
-    "estados": [],
-    "professores": [],
-    "tipos": []
+    "estados": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:tela-de-celular/01/batata"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
+    "professores": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:tela-de-celular/01/batata"
+        ],
+        "rotulo": "tela-de-celular",
+        "valor": "tela-de-celular"
+      }
+    ],
+    "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:tela-de-celular/01/batata"
+        ],
+        "rotulo": "Ciclo",
+        "valor": "ciclo"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "6106ca8"
+    "commit": "887c7d1"
   },
-  "gerado_em": "2026-10-22T11:10",
+  "gerado_em": "2026-10-22T11:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
