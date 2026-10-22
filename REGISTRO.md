@@ -22276,3 +22276,41 @@ declarado, para não se ler como verificado.
 substituída: as duas datas na lista, a escola viva fora dela, o registo com motivo/arquivos/KV, o
 404 do slug inexistente, a travessia que não lê nada, o 500 que diz o que falta, o item activo no
 menu, e a data que não passa por `Date` (o ISO do índice tem microssegundos).
+
+## 22/10/2026 — A aresta de baixo do link-em-botão, e a checagem que impede o retorno
+
+**O que se via.** O «Painel» da raiz, o «Abrir» e o «Voltar à lista» do painel saíam com **três
+lados**: a base do link vestido de botão não existia. A dona do produto viu e perguntou se havia
+algum documento a dizer que a borda de baixo devia ser invisível. **Não há** — o contrato diz o
+contrário (`IDENTIDADE-VISUAL.md`: «borda e filete **têm função** — não são decoração», com piso
+3:1). Era defeito.
+
+**A causa, e a história de como sobreviveu.** `a.acao { border-bottom: none }` existia para
+cancelar o sublinhado pontilhado da prosa (`main a`). Mas `button.acao, a.acao` declara
+`border: 1px solid`, e o `none` — mesmo peso, mais adiante no arquivo — deixava a base em 0px.
+O comentário do próprio arquivo já dizia «o botão tem os quatro lados»: a intenção estava
+escrita e o resultado não. E o comentário do `.secundario` culpava a falta de fundo («a borda de
+baixo "sumia" na leitura»); o fundo cheio **disfarçou** o defeito em vez de o consertar. Um
+comentário não mede.
+
+**A correção.** A aresta declara-se, não se remove: `a.acao { border-bottom-style: solid;
+border-bottom-width: 1px }` — estilo e largura da moldura, e a COR fica com a cascata (`--marca`
+do shorthand, `--borda` quando o `.secundario` a redefine). A intenção original preserva-se: o
+pontilhado da prosa não sobrevive a um `style: solid`.
+
+**A checagem que faltava — a 9, «Aresta».** Um comentário não impediu isto durante um mês, e nada
+no validador media a moldura. `tools/check-identidade.js` passa a ler a folha em ordem e a
+reprovar qualquer regra POSTERIOR que remova UMA aresta (`border-X: none`, `border-X-width: 0`,
+`border-X-style: none`) de uma peça que já tinha moldura — remover a moldura toda (`border: none`)
+é uma decisão e é visível; remover um lado lê-se como defeito. Corrida **antes** da correção, ela
+reprovou com a mensagem exata do defeito; depois, passa com as 14 peças de moldura intactas.
+
+**E a armadilha irmã, na porta.** `porta/index.html` tinha `.acoes a, .lista a { border-bottom:
+none }` pela mesma razão — cancelar o sublinhado do link que EMBRULHA um botão. Hoje não há
+`a.acao` dentro de `.acoes`, mas a regra amputaria um. Passa a `:not(.acao)`: a porta fica
+fechada antes de alguém a abrir.
+
+**Com o quê.** `tools/templates/ciclo.css` (congelado — motivo declarado e commit próprio),
+`porta/index.html`, `tools/check-identidade.js` e a cópia `raiz/assets/style.css`, regerada por
+`tools/gerar-raiz.sh` (o `raiz/index.html` saiu byte a byte igual). Nenhuma peça nova nasceu: o
+que existia estava amputado.

@@ -47,8 +47,12 @@
   html { scroll-padding-top: calc(var(--header-height) + 8px); }
   .sub { color: var(--suave); font-size: .9rem; margin: 0 0 1.5rem; }
   /* Os links que embrulham um botão e as linhas da lista já se anunciam por si: o filete
-     pontilhado do site (que marca link de prosa) vira ruído embaixo de um controle. */
-  .acoes a, .lista a { border-bottom: none; }
+     pontilhado do site (que marca link de prosa) vira ruído embaixo de um controle. O
+     `:not(.acao)` é de 22/10/2026: a regra cancelava a aresta de TODO link em `.acoes`,
+     inclusive de um link-EM-BOTÃO (`a.acao`), que tem moldura nos quatro lados — a mesma
+     amputação que a folha tinha em `a.acao` e que a checagem 9 (Aresta) passou a medir. Hoje
+     não há `a.acao` dentro de `.acoes`; a regra fecha a porta antes de alguém a abrir. */
+  .acoes a:not(.acao), .lista a:not(.acao) { border-bottom: none; }
   /* O OBRIGATÓRIO SE ANUNCIA NO CONTROLE, e não só no selo em prosa: o asterisco diz
      antes de digitar, e o realce enquanto ele está vazio — a MESMA regra do contexto do
      ato (`.barra .campo.falta`), que já se marca desde o primeiro segundo. */

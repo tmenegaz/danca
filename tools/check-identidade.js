@@ -1077,6 +1077,95 @@ function conferirPecas() {
 }
 conferirPecas();
 
+// ------------------------------------------------- 9) as quatro arestas da moldura
+//
+// O CASO QUE CRIOU ESTA CHECAGEM (22/10/2026). `a.acao { border-bottom: none }` existia
+// para cancelar o sublinhado pontilhado da prosa (`main a`), e o que fazia era AMPUTAR a
+// aresta de baixo de todo link vestido de botão: `border: 1px solid` seguido de
+// `border-bottom: none` deixa a base em 0. O «Painel» da raiz, o «Abrir» do painel e o
+// «Voltar à lista» saíam com TRÊS lados. O comentário do próprio arquivo já dizia «o botão
+// tem os quatro lados» — e o do `.secundario` culpava a falta de fundo, quando a causa era
+// esta. Um comentário não mede; a checagem mede.
+//
+// A REGRA. Se uma peça recebe `border` completo (largura > 0 e estilo sólido), nenhuma regra
+// POSTERIOR pode remover UMA aresta dela — `border-X: none`, `border-X-width: 0` ou
+// `border-X-style: none` — a não ser que declare a moldura inteira outra vez. Remover a
+// moldura toda (`border: none`) é uma decisão, e é visível; remover um lado é um defeito que
+// se lê como «borda que sumiu».
+function conferirArestas() {
+  const problemas = [];
+  const texto = semComentarios(fs.readFileSync(fonte, 'utf8'), 'ciclo.css');
+
+  /** As classes do último composto de cada seletor. */
+  const classesDoAlvo = (seletor) => {
+    const alvo = alvoDaRegra(seletor);
+    return [...alvo.matchAll(/\.([a-z][a-z0-9-]*)/g)].map((m) => m[1]);
+  };
+
+  /** `border: <largura> <estilo> …` — devolve `{ largura, estilo }` quando há shorthand. */
+  const molduraCompleta = (corpo) => {
+    const m = /(?:^|;)\s*border\s*:\s*([^;]+)/.exec(corpo);
+    if (!m) return null;
+    const valor = m[1].trim();
+    if (/^(none|0)\b/.test(valor)) return null;
+    const estilo = /(solid|dashed|dotted|double|groove|ridge|inset|outset)/.exec(valor);
+    if (!estilo) return null;
+    return { estilo: estilo[1] };
+  };
+
+  const LADOS = ['top', 'right', 'bottom', 'left'];
+  /** As arestas que esta regra REMOVE (e a moldura completa não repõe). */
+  const arestasRemovidas = (corpo) => {
+    const removidas = [];
+    for (const lado of LADOS) {
+      const curto = new RegExp('(?:^|;)\\s*border-' + lado + '\\s*:\\s*(none|0)(?:px)?\\b', 'i');
+      const estilo = new RegExp('(?:^|;)\\s*border-' + lado + '-style\\s*:\\s*none\\b', 'i');
+      const largura = new RegExp('(?:^|;)\\s*border-' + lado + '-width\\s*:\\s*0(?:px)?\\b', 'i');
+      if (curto.test(corpo) || estilo.test(corpo) || largura.test(corpo)) removidas.push(lado);
+    }
+    // `border: none` remove as quatro — e isso é uma decisão, não uma aresta a menos.
+    if (/(?:^|;)\s*border\s*:\s*(none|0)\b/i.test(corpo)) return [];
+    return removidas;
+  };
+
+  // As peças com moldura, na ordem em que a folha as declara. O índice é a posição da regra:
+  // só uma regra POSTERIOR pode amputar o que uma anterior desenhou.
+  const comMoldura = new Map();
+  let posicao = 0;
+  for (const m of texto.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+    posicao += 1;
+    const seletores = m[1].split(',');
+    const corpo = m[2];
+    const completa = molduraCompleta(corpo);
+    for (const seletor of seletores) {
+      for (const classe of classesDoAlvo(seletor)) {
+        if (completa && !comMoldura.has(classe)) comMoldura.set(classe, posicao);
+      }
+    }
+    const removidas = arestasRemovidas(corpo);
+    if (!removidas.length) continue;
+    for (const seletor of seletores) {
+      for (const classe of classesDoAlvo(seletor)) {
+        const desde = comMoldura.get(classe);
+        if (desde == null || posicao <= desde) continue;
+        problemas.push(
+          `Aresta: a regra «${seletor.trim().replace(/\s+/g, ' ')}» remove a aresta ` +
+          `${removidas.join(' e ')} de «.${classe}», que tem moldura desde a regra ${desde} ` +
+          '— a borda é sempre sólida nos quatro lados, e uma aresta a menos lê-se como defeito. ' +
+          'Se a intenção é cancelar o sublinhado da prosa, declare a aresta com o mesmo estilo ' +
+          'da moldura (`border-bottom: 1px solid var(--marca)`), em vez de a remover');
+      }
+    }
+  }
+
+  for (const p of problemas) erros.push(p);
+  if (!problemas.length) {
+    ok.push(`Aresta: as ${comMoldura.size} peças com moldura na folha têm os quatro lados — ` +
+      'nenhuma regra posterior amputa uma aresta');
+  }
+}
+conferirArestas();
+
 // -------------------------------------------------------------------- saída
 
 for (const l of ok) console.log(`ok: ${l}`);
