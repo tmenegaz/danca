@@ -1,22 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 3,
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:oculos-redondo/01/calango",
-      "numero": "01",
-      "professor": "oculos-redondo",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -111,26 +94,23 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [
-        "ciclo:oculos-redondo/01/calango"
-      ],
+      "ciclos": [],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 1,
-        "ciclos_com_ancora": 1,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
-      "expurgada": false,
-      "habilitada": true,
+      "expurgada": true,
+      "habilitada": false,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "sapo-bailarino",
       "professores": [
-        "oculos-redondo",
         "sapo-bailarino"
       ],
       "registros": [],
@@ -306,13 +286,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 1,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -323,11 +297,6 @@
         "contagem": 1,
         "rotulo": "Letícia",
         "valor": "leticia"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "oculos-redondo",
-        "valor": "oculos-redondo"
       },
       {
         "contagem": 3,
@@ -349,9 +318,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0a75ae5"
+    "commit": "bf7fdfa"
   },
-  "gerado_em": "2026-10-22T10:37",
+  "gerado_em": "2026-10-22T10:58",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -392,17 +361,6 @@
       "id": "professor:leticia",
       "nome": "Letícia",
       "slug": "leticia"
-    },
-    {
-      "ciclos": [
-        "ciclo:oculos-redondo/01/calango"
-      ],
-      "escolas": [
-        "calango"
-      ],
-      "id": "professor:oculos-redondo",
-      "nome": null,
-      "slug": "oculos-redondo"
     },
     {
       "ciclos": [],

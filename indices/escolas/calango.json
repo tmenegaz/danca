@@ -1,91 +1,25 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": {
-        "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-22",
-        "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
-        "cobertura": [
-          "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-          "professores/oculos-redondo/ciclos/ciclo-01.conf"
-        ],
-        "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
-        "hash_conteudo": "f5d1d93b1f9478bb99540dbbd6b8a841ce8f24004e37bf523ac9c11ae80259df",
-        "id": "ciclo-01-calango",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": [],
-      "documentos": [
-        "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-        "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
-        "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "calango",
-      "estado": "ancorado",
-      "id": "ciclo:oculos-redondo/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "oculos-redondo",
-      "sem_ancora": false,
-      "tipos": [
-        "ancora",
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
-      "ciclo_id": "ciclo:oculos-redondo/01/calango",
-      "escola": "calango",
-      "id": "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
-      "professor": "oculos-redondo",
-      "tipo": "ancora"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-      "ciclo_id": "ciclo:oculos-redondo/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-      "professor": "oculos-redondo",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": "ciclo-01-calango",
-      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:oculos-redondo/01/calango",
-      "escola": "calango",
-      "id": "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "oculos-redondo",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:oculos-redondo/01/calango"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
-      "ciclos_com_ancora": 1,
+      "ciclos": 0,
+      "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
-    "expurgada": false,
-    "habilitada": true,
+    "expurgada": true,
+    "habilitada": false,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "sapo-bailarino",
     "professores": [
-      "oculos-redondo",
       "sapo-bailarino"
     ],
     "registros": [],
@@ -93,42 +27,15 @@
   },
   "filtros": {
     "anos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:oculos-redondo/01/calango"
-        ],
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:oculos-redondo/01/calango"
-        ],
-        "rotulo": "oculos-redondo",
-        "valor": "oculos-redondo"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:oculos-redondo/01/calango"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "0a75ae5"
+    "commit": "bf7fdfa"
   },
-  "gerado_em": "2026-10-22T10:37",
+  "gerado_em": "2026-10-22T10:58",
   "nao_indexado": [
     {
       "familia": "conteudo",
