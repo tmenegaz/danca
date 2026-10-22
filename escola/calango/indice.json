@@ -299,6 +299,10 @@
     {
       "em": "2026-10-22T10:15:01.725781+00:00",
       "motivo": "recriada por tools/criar-escola.sh"
+    },
+    {
+      "em": "2026-10-22T19:52:03.201684+00:00",
+      "motivo": "recriada por tools/criar-escola.sh"
     }
   ]
 }
