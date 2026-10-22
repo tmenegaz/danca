@@ -43,6 +43,13 @@ on:
       - 'motor/servidor/indice-acervo.js'
       - 'tools/gerar-indices.js'
       - '.github/workflows/regerar-indices.yml'
+      # OS WORKFLOWS QUE COMMITAM COM O `GITHUB_TOKEN` (22/10/2026). Eles agora regeram o
+      # índice no próprio commit — mas um push feito com o token não redispara workflows, e
+      # mudar COMO eles commitam tem de valer também para o estado que já está no `main`. Sem
+      # estas duas linhas, a correção só valeria na próxima reancoragem — e o índice tinha
+      # ficado três divergências para trás antes de ela existir.
+      - '.github/workflows/reancorar.yml'
+      - '.github/workflows/gerar-ciclo.yml'
   workflow_dispatch:
 
 permissions:

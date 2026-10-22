@@ -186,6 +186,15 @@ jobs:
           git add -A -- "$pasta"
           git add -A -- '*.fipp'
 
+          # O ÍNDICE ENTRA NO MESMO COMMIT — E TEM DE ENTRAR (22/10/2026). O acervo conta os
+          # documentos e as âncoras do pacote que acabou de nascer, e este workflow commita com
+          # o `GITHUB_TOKEN`, que POR DESENHO não redispara workflows: o `regerar-indices.yml`
+          # nunca vê este commit. Mesma regra do `reancorar.yml` — quem commita com o token
+          # regera o derivado no próprio commit, porque ninguém o fará depois.
+          node tools/gerar-indices.js \
+            || { echo "erro: os índices não foram regerados — o pacote novo não chegaria ao acervo" >&2; exit 1; }
+          git add -A -- indices/
+
           if git diff --cached --quiet; then
             echo "nada a commitar"
             exit 0

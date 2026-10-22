@@ -22399,3 +22399,33 @@ quatro destinos empilhados, o índice com os capítulos da apresentação e «Es
 os títulos dos modais, os passos aninhados, o nome da viva como link e o da apagada como texto, a
 página das vivas com as quatro colunas e «Voltar ao painel», e as duas páginas de lista a fazerem
 **uma** requisição cada.
+
+## 22/10/2026 — Quem commita com o `GITHUB_TOKEN` regera o índice sozinho
+
+**O que se mediu no cadastro do `teclado-abnt`.** Cinco `PUT` de schema, cinco commits. O
+`Reancorar` e o `Regerar os índices` correram em fila — **uma** de cada fechou e **quatro** de cada
+foram canceladas (o `cancel-in-progress` que entrou hoje, a funcionar). E mesmo assim o `main`
+terminou com **três divergências** no `check-indices.js`.
+
+**A causa estava no desenho, não na corrida.** O `reancorar.yml` commitou o `.fipp` da `batata`
+(`f8b3ede`) — e **a âncora está no acervo** (verificação 3). O `gerar-ciclo.yml` commita o pacote,
+que o acervo conta em documentos. Os dois usam o `GITHUB_TOKEN`, e um push feito com o token
+**por desenho não redispara workflows**: o `regerar-indices.yml` nunca vê esses commits, por mais
+que observe `professores/**`. O `criar-escola.yml` já regerava no próprio commit; estes dois não.
+
+Ou seja: a correção de hoje de manhã («um lugar que refaz o derivado») estava certa e era
+**incompleta** — ela cobre os pushes de fora (o Worker, a página, a pesquisadora), e não os dois
+workflows que commitam por dentro.
+
+**A regra que sobra, e agora está escrita nos três lugares:** quem commita com o `GITHUB_TOKEN`
+regera o derivado no PRÓPRIO commit. É o `gerar-indices.js` chamado antes do `git commit`, com o
+`indices/` no `git add` — e **falhar** se ele não correr, porque um derivado que falta é pior do
+que um commit que não sai.
+
+**E o `regerar-indices.yml` passa a observar os dois workflows.** Não é zelo: um push com o token
+não redispara nada, então mudar COMO eles commitam não corrigiria o estado que já está no `main`.
+Observando os próprios arquivos, o primeiro push que os tocasse fazia o mecanismo fechar a
+diferença — foi assim que as três divergências de hoje se resolveram, sem correção à mão.
+
+**Conferido.** Cinco execuções canceladas e uma de cada que fechou, nos dois workflows; `bash -n`
+nos três arquivos; YAML válido.
