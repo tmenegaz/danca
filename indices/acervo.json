@@ -65,6 +65,7 @@
       "nome": "batata",
       "professor": "tiago-menegaz",
       "professores": [
+        "acucar-branco",
         "meia-cortada",
         "sapo-bailarino",
         "teclado-abnt",
@@ -343,6 +344,11 @@
     ],
     "professores": [
       {
+        "contagem": 1,
+        "rotulo": "Açucar Branco",
+        "valor": "acucar-branco"
+      },
+      {
         "contagem": 0,
         "rotulo": "cafe-no-bule",
         "valor": "cafe-no-bule"
@@ -407,9 +413,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "5b1a263"
+    "commit": "553c3f6"
   },
-  "gerado_em": "2026-10-22T13:29",
+  "gerado_em": "2026-10-22T13:30",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -433,6 +439,15 @@
     }
   ],
   "professores": [
+    {
+      "ciclos": [],
+      "escolas": [
+        "batata"
+      ],
+      "id": "professor:acucar-branco",
+      "nome": "Açucar Branco",
+      "slug": "acucar-branco"
+    },
     {
       "ciclos": [],
       "escolas": [],
