@@ -22119,3 +22119,13 @@ tempo e quantas execuções custa gerar.
 
 **Governança.** `.github/` não está na lista congelada do `CONGELAMENTO.md`, mas é infraestrutura:
 motivo declarado (aqui) e commit próprio, sem conteúdo junto.
+
+> **Correção de 22/10/2026 (mesmo dia).** O `deploy-raiz` do run `39716564499` ficou vermelho no
+> primeiro contato com a ação nova: `Wrangler requires at least Node.js v22.0.0. You are using
+> v20.20.2`. O `package-lock.json` fixa `wrangler@4.147.0`, cujo `engines` é `node: >=22.0.0`.
+> Nada disso aparecia antes porque **ninguém instalava o wrangler**: o `npx` baixava outra versão,
+> e a incompatibilidade do manifesto ficava escondida atrás de uma versão que não era a do
+> repositório. Instalar do lock não criou o defeito — expôs o que já estava declarado. O
+> `preparar-node` passa a `node-version: '22'`, que é o mínimo que a dependência declara. É o
+> argumento a favor de instalar o que o lock diz: o `npx` transformava um manifesto errado em
+> execução que passava por outra via.

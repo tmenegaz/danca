@@ -15,8 +15,16 @@ description: >-
 # cachear só o cache do npm obrigaria a reinstalar sempre. Por isso o passo `npm ci` só corre
 # quando `node_modules` não veio do cache — e é ele que preenche o cache na primeira vez.
 #
-# A VERSÃO DO NODE NÃO MUDA AQUI. Continua 20, que é o que o repositório usa hoje; subir de
-# versão é outra decisão, com a sua própria prova, e não se mistura com uma mudança de cache.
+# A VERSÃO DO NODE É 22, E NÃO 20 (22/10/2026). O `package-lock.json` fixa
+# `wrangler@4.147.0`, e o `engines` dele é `node: >=22.0.0` — o binário RECUSA arrancar em 20
+# («Wrangler requires at least Node.js v22.0.0», run 39716564499). Isso não aparecia antes
+# porque ninguém instalava o wrangler: o `npx` baixava uma versão que não era a do lock, e o
+# defeito ficava escondido atrás de uma versão que não era a que o repositório declara.
+# Instalar do lock expôs a incompatibilidade que já existia no manifesto.
+#
+# O 22 é o mínimo que a dependência declara; os scripts de `tools/` são JavaScript sem
+# dependência externa e correm em 20, 22 e 24 (as provas de `experimentos/` passaram em 24
+# nesta máquina).
 
 inputs:
   instalar:
@@ -32,7 +40,7 @@ runs:
   steps:
     - uses: actions/setup-node@v4
       with:
-        node-version: '20'
+        node-version: '22'
         cache: 'npm'
 
     - name: Restaurar node_modules
