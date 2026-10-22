@@ -76,6 +76,25 @@ const ABERTURA = [
 ].join('\n');
 
 /**
+ * O MENU DO PAINEL, E O LUGAR ONDE ELE CRESCE (22/10/2026).
+ *
+ * A raiz do sistema deixou de ser só a apresentação: passou a ter uma ÁREA DE GESTÃO — a lista
+ * das escolas apagadas, e depois as escolas criadas, os professores, quem está em dia com os
+ * pagamentos. É um painel operacional, e um painel operacional cresce por itens, não por páginas
+ * novas a inventar cada uma a sua navegação.
+ *
+ * POR ISSO OS ITENS MORAM AQUI, num array, e não na marcação de cada página. Quem acrescentar a
+ * segunda secção acrescenta uma linha a esta lista, e ela aparece em todas as páginas do painel
+ * ao mesmo tempo. Uma segunda cópia da lista divergiria no dia em que alguém editasse só uma.
+ *
+ * O `chave` é o que marca o item ATIVO (`class="ativo"`), e é o mesmo rótulo que a página passa
+ * em `atual`.
+ */
+const ITENS_DO_PAINEL = [
+  { chave: 'escolas-apagadas', href: '/painel/escolas-apagadas', rotulo: 'Escolas apagadas' },
+];
+
+/**
  * O BOTÃO DO TEMA **SAIU DA BARRA DAS ESCOLAS** (18/10/2026).
  *
  * Ele existia para a pessoa escolher a aparência no seu navegador. A decisão **C15** —
@@ -100,8 +119,19 @@ const FECHAMENTO = ['  </div>', '</nav>'].join('\n');
  *  página rola); sem `extras` o resultado é byte a byte o de antes, e é por isso que
  *  as outras páginas não mudam. O hambúrguer continua com `margin-left:auto`: o que
  *  entra antes dele ocupa o vão, e ele NÃO anda — que é a condição da S5. */
-function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/estudio', producao = '/bastidores/producao', extras = '' } = {}) {
+function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/estudio', producao = '/bastidores/producao', extras = '', painel = false } = {}) {
   const classe = (nome) => (nome === atual ? ' class="ativo"' : '');
+  // O GRUPO DO PAINEL SÓ EXISTE ONDE ELE É O ASSUNTO (22/10/2026). `painel: true` acrescenta o
+  // grupo; sem ele o resultado é byte a byte o de antes — e é por isso que o pacote de uma
+  // escola e a Produção não ganham um menu de gestão do sistema que não lhes pertence.
+  const grupoDoPainel = painel
+    ? ['<details class="menu">',
+      '<summary>Painel</summary>',
+      '<div class="submenu">',
+      ...ITENS_DO_PAINEL.map((i) => '<a' + classe(i.chave) + ' href="' + i.href + '">' + i.rotulo + '</a>'),
+      '</div>',
+      '</details>']
+    : [];
   return [
     '<nav class="topnav" aria-label="Navegação do ciclo">',
     MARCA_NA_BARRA,
@@ -126,11 +156,12 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
     '<a' + classe('producao') + ' href="' + producao + '">Produção</a>',
     '</div>',
     '</details>',
+    ...grupoDoPainel,
     FECHAMENTO,
   ].filter((linha) => linha !== null).join('\n');
 }
 
-module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, MARCA, MARCA_NA_BARRA, navSistema };
+module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, MARCA, MARCA_NA_BARRA, ITENS_DO_PAINEL, navSistema };
 
 if (require.main === module) {
   const arg = process.argv[2];

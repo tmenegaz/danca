@@ -31,6 +31,13 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           <button class="tema" type="button" aria-pressed="false"
                   aria-label="Ativar a aparência noturna"
                   title="Aparência clara ou noturna">&#9680;</button>
+          <!-- O PAINEL (22/10/2026). A raiz deixou de ser só a apresentação: ela é a entrada da
+               ÁREA DE GESTÃO — escolas apagadas, e depois as criadas, os professores, os
+               pagamentos. Este é o primeiro item do menu, e o menu inteiro cresce em
+               `ITENS_DO_PAINEL` (`tools/templates/nav-html.js`), onde as páginas do painel o
+               leem. Aqui ele é uma `.acao` secundária, a peça que já significa «um destino»; o
+               painel é navegação, não a ação principal da página. -->
+          <a class="acao grande secundario" href="/painel">Painel</a>
           <button class="acao grande secundario" id="btn-apagar" type="button">Apagar escola</button>
           <button class="acao grande" id="btn-criar" type="button">Criar nova escola</button>
         </div>

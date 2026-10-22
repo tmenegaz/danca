@@ -22225,3 +22225,54 @@ correção certa não precisou de o romper.
 sintoma aparecer, conserta-se o mecanismo que o produz. O `a79b344` e o `edef9cb` — dois commits
 meus, hoje, regerando índices à mão — são o exemplo do que não se faz. Este commit é o que os
 substitui.
+
+## 22/10/2026 — O painel da raiz, e o elo do expurgo ganha um destino
+
+**O que faltava.** O expurgo grava um ELO por escola (`escola/<slug>/indice.json`): quando,
+por quê, os arquivos que saíram do repositório, o que ficou no KV. Versionado, correto — e
+**sem destino**: quem quisesse ler o registo abria o JSON no GitHub. O resultado do expurgo não
+tinha lugar no sistema.
+
+**O que passou a existir.** A raiz (`danca`) deixa de ser só a apresentação e ganha a **área de
+gestão**: `/painel` (o índice das secções), `/painel/escolas-apagadas` (a lista, com criação,
+saída e o link) e `/painel/escolas-apagadas/<slug>` (o registo — motivo, arquivos, KV, e todos
+os elos, quando a escola foi apagada mais de uma vez). O menu é o grupo **Painel** da barra, e
+cresce em `ITENS_DO_PAINEL`, em `tools/templates/nav-html.js`: uma linha por secção, e ela
+aparece em todas as páginas do painel ao mesmo tempo.
+
+**Por que não no `raiz/index.html`.** O corpo daquele arquivo é REGERADO por
+`tools/gerar-raiz.sh` a partir de `biblioteca/apresentacao.md`. Uma lista que muda a cada expurgo
+seria apagada na geração seguinte. A página da raiz ganhou só a ENTRADA — um `a.acao`
+«Painel» —, e o painel é servido pelo Worker.
+
+**De onde vêm os dados, e o que a derivação ganhou.** A lista sai do ÍNDICE (`indices/acervo.json`,
+lido por `indice-acervo.js`), que já trazia `criada_em` e `expurgada`. Faltava a data da saída, e
+ela **custa zero**: o inventário de cada escola já está em memória quando a derivação monta o
+acervo. `motor/nucleo/indices.js` passa a derivar `expurgada_em` e `expurgos`, e o `VERSAO` sobe
+para 2 — sem o incremento, um cache antigo do Worker seria servido como válido e o campo chegaria
+vazio à tela, sem erro nenhum. É para isto que a versão existe.
+
+**O detalhe é uma leitura por consulta.** O elo completo vive no índice da escola, e não faz
+sentido carregar N elos para desenhar uma lista: a lista lê o acervo (uma árvore), o registo lê
+um arquivo. E o slug é validado contra a lista antes de virar caminho — `..%2F..%2Fetc` não lê
+arquivo nenhum, e uma escola que nunca existiu dá 404 em vez de uma página de registo vazia.
+
+**Sem `GITHUB_TOKEN`, o painel DIZ que não consegue ler.** Uma lista vazia diria «nenhuma escola
+apagada», que é falso — o mesmo engano que este repositório já pagou caro noutras telas (o «sem
+apelido» em todas as fichas era um 500 disfarçado de lista).
+
+**Identidade.** Nenhuma peça nova: a barra é a GERADA (`nav-html.js`), o corpo usa a folha do
+sistema (`header.doc` + `h1`/`.subtitulo`, `.caixa`, `.ficha`, `<table>` — a mesma dos documentos
+gerados —, `a.acao`, `.topo`), e o grupo do menu é o `details.menu` que já existe. As três páginas
+entraram em `superficiesQueEmitem` do `check-identidade.js`, e a checagem 8 passou de **7 para 10
+superfícies** medidas — a área mais nova do sistema não fica fora da régua.
+
+**O que NÃO se mediu.** A geometria em navegador: `puppeteer` não está instalado nesta máquina, e
+as provas de celular (`provar-celular.js`) não correm aqui. O que se sabe, e é do desenho: a
+`<table>` da folha já rola dentro de si abaixo de 900px, e a lista não usa peça nova. Fica
+declarado, para não se ler como verificado.
+
+**Prova.** `experimentos/provar-painel.js`, 29 asserções, tudo em processo com a API do GitHub
+substituída: as duas datas na lista, a escola viva fora dela, o registo com motivo/arquivos/KV, o
+404 do slug inexistente, a travessia que não lê nada, o 500 que diz o que falta, o item activo no
+menu, e a data que não passa por `Date` (o ISO do índice tem microssegundos).

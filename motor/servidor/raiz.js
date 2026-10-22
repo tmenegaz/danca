@@ -20,6 +20,7 @@ const {
   apagarEscolaDoRepo, lerArquivo,
   pendenciaDoKv, comResolucaoDoKv, atualizarIndiceDaEscola,
 } = require('./repo-escola.js');
+const painel = require('./painel-html.js');
 
 const ACCOUNT_ID = '2628f36f9f72bd539b417dcb173d1f12';
 const DONO = 'tmenegaz';
@@ -63,6 +64,50 @@ function responderJson(objeto, status) {
   return new Response(JSON.stringify(objeto), {
     status: status || 200,
     headers: { 'Content-Type': 'application/json;charset=utf-8' },
+  });
+}
+
+/**
+ * AS ESCOLAS APAGADAS, lidas do ÍNDICE — que é a memória.
+ *
+ * O acervo (`motor/nucleo/indices.js`) já traz, por escola, `criada_em`, `expurgada` e
+ * `expurgada_em`; a lista do painel é o filtro do que saiu. A leitura é a mesma que o
+ * `/api/escolas` faz (`lerComCache`), e é o motivo de a data da saída ter passado a ser um
+ * campo DERIVADO: a tela não vai buscar por fora o que a derivação já tem.
+ */
+async function escolasApagadas({ token, env }) {
+  const { lerComCache } = require('./indice-acervo.js');
+  const r = await lerComCache({
+    token, dono: DONO, repo: REPO, ref: REF,
+    kv: env && env.PADD_KV,
+    comApelido: false,
+  });
+  if (!r.ok || !r.indice || !Array.isArray(r.indice.escolas)) {
+    throw new Error('o índice do acervo não trouxe a lista de escolas');
+  }
+  return r.indice.escolas
+    .filter((e) => e.expurgada === true)
+    .map((e) => ({
+      slug: e.slug,
+      nome: e.nome || e.slug,
+      professor: e.professor || null,
+      criada_em: e.criada_em || null,
+      expurgada_em: e.expurgada_em || null,
+      expurgos: e.expurgos || 0,
+    }));
+}
+
+/** A página de recusa quando falta o `GITHUB_TOKEN` — dita, não disfarçada de lista vazia. */
+function paginaSemToken() {
+  return painel.pagina({
+    titulo: 'Painel',
+    subtitulo: 'A gestão do sistema.',
+    atual: 'painel',
+    corpo: '<div class="caixa falta">' +
+      '<h2>O painel não consegue ler o repositório</h2>' +
+      '<p>Falta o <code>GITHUB_TOKEN</code> no Worker da raiz. Sem ele não há índice do acervo — ' +
+      'e uma lista vazia aqui diria «nenhuma escola apagada», que seria falso.</p>' +
+      '</div>',
   });
 }
 
@@ -262,6 +307,88 @@ async function fetch(request, env) {
         'Content-Type': 'text/plain;charset=utf-8',
       },
     });
+  }
+
+  // ── O PAINEL OPERACIONAL (22/10/2026) ───────────────────────────────────────────────────────
+  //
+  // A raiz passou a ter uma área de gestão, e a primeira secção é o registo das escolas
+  // apagadas. Ela vive aqui, e não em `raiz/index.html`, porque aquele arquivo é a apresentação
+  // e o corpo dele é REGERADO por `tools/gerar-raiz.sh` a partir de um texto fixo: uma lista que
+  // muda a cada expurgo seria apagada na geração seguinte.
+  //
+  // OS DADOS SÃO DO ÍNDICE. `lerComCache` monta o acervo do repositório (e o guarda no KV quando
+  // há `PADD_KV` — a raiz não tem, e por isso reconstrói a cada leitura; é o mesmo custo do
+  // `/api/escolas`). Cada escola já traz `criada_em`, `expurgada` e `expurgada_em`.
+  //
+  // O DETALHE é uma leitura por consulta: o elo completo (`expurgo[]`) vive em
+  // `escola/<slug>/indice.json`, e não faz sentido carregar N elos para desenhar uma lista.
+  if (url.pathname === '/painel') {
+    const token = env && env.GITHUB_TOKEN;
+    if (!token) return painel.resposta(paginaSemToken(), 500);
+    try {
+      const apagadas = await escolasApagadas({ token, env });
+      return painel.resposta(painel.paginaDoPainel({
+        secoes: [{
+          chave: 'escolas-apagadas',
+          href: '/painel/escolas-apagadas',
+          titulo: 'Escolas apagadas',
+          resumo: 'O registo do que foi expurgado: quando a escola nasceu, quando saiu, e o elo ' +
+            'que o expurgo deixou — a memória de que ela existiu.',
+          contagem: apagadas.length === 1 ? '1 escola apagada' : apagadas.length + ' escolas apagadas',
+        }],
+      }));
+    } catch (err) {
+      return painel.resposta(painel.paginaDoPainel({
+        secoes: [{
+          href: '/painel/escolas-apagadas', titulo: 'Escolas apagadas',
+          resumo: 'não foi possível ler o índice agora: ' + ((err && err.message) || String(err)),
+          contagem: 'indisponível',
+        }],
+      }), 500);
+    }
+  }
+
+  if (url.pathname === '/painel/escolas-apagadas') {
+    const token = env && env.GITHUB_TOKEN;
+    if (!token) return painel.resposta(paginaSemToken(), 500);
+    try {
+      const apagadas = await escolasApagadas({ token, env });
+      return painel.resposta(painel.paginaDasApagadas({ escolas: apagadas }));
+    } catch (err) {
+      return painel.resposta(painel.paginaDoPainel({
+        secoes: [{
+          href: '/painel/escolas-apagadas', titulo: 'Escolas apagadas',
+          resumo: 'não foi possível ler o índice agora: ' + ((err && err.message) || String(err)),
+          contagem: 'indisponível',
+        }],
+      }), 500);
+    }
+  }
+
+  // O REGISTO de UMA escola — o destino que o elo do expurgo não tinha. O slug é validado
+  // antes de virar caminho: ele entra numa URL e num `contents/` do GitHub, e um slug com `/`
+  // ou `..` leria outro arquivo. A lista de escolas apagadas é a autoridade do que existe.
+  const mRegistro = /^\/painel\/escolas-apagadas\/([a-z0-9-]+)$/.exec(url.pathname);
+  if (mRegistro) {
+    const token = env && env.GITHUB_TOKEN;
+    if (!token) return painel.resposta(paginaSemToken(), 500);
+    const slug = mRegistro[1];
+    try {
+      const apagadas = await escolasApagadas({ token, env });
+      // A ESCOLA TEM DE ESTAR NA LISTA. Sem isto, qualquer slug responderia uma página vazia —
+      // e uma página de «registo» para uma escola que nunca existiu é pior do que um 404.
+      if (!apagadas.some((e) => e.slug === slug)) {
+        return painel.resposta(painel.paginaDasApagadas({ escolas: apagadas }), 404);
+      }
+      const texto = await lerArquivo({
+        token, dono: DONO, repo: REPO, ref: REF, caminho: 'escola/' + slug + '/indice.json',
+      });
+      let indice = null;
+      try { indice = texto ? JSON.parse(texto) : null; } catch { indice = null; }
+      return painel.resposta(painel.paginaDoRegistro({ slug, indice }));
+    } catch (err) {
+      return painel.resposta(painel.paginaDoRegistro({ slug, indice: null }), 500);
+    }
   }
 
   // O gatilho MANUAL do expurgo — a mesma função do Cron, mas chamável agora, atrás da

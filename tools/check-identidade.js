@@ -994,7 +994,35 @@ function superficiesQueEmitem() {
     const estado = require(path.join(raiz, 'motor/servidor/estado-html.js'));
     lista.push(['estado', estado.paginaEstado('E', '<p>x</p>')]);
   } catch (e) {
-    erros.push('Peça: não foi possível gerar a página de estado (' + e.message + ')');
+    erros.push('Peça: não foi possível gerar a página de estado (' + (e && e.message) + ')');
+  }
+  // O PAINEL DA RAIZ (22/10/2026). As três páginas da área de gestão, com dados de amostra —
+  // sem isto, a superfície mais nova do sistema seria a única que ninguém mede, e é justamente
+  // uma que ainda vai crescer.
+  try {
+    const painel = require(path.join(raiz, 'motor/servidor/painel-html.js'));
+    const amostra = {
+      slug: 'calango', nome: 'Calango', professor: 'sapo-bailarino',
+      criada_em: '2026-10-19T18:18:57Z', expurgada_em: '2026-10-22T10:48:48Z', expurgos: 1,
+    };
+    lista.push(['painel/inicio', painel.paginaDoPainel({
+      secoes: [{ href: '/painel/escolas-apagadas', titulo: 'Escolas apagadas', resumo: 'r', contagem: '1 escola apagada' }],
+    })]);
+    lista.push(['painel/escolas-apagadas', painel.paginaDasApagadas({ escolas: [amostra] })]);
+    lista.push(['painel/registo', painel.paginaDoRegistro({
+      slug: 'calango',
+      indice: {
+        escola: 'Calango', criado_em: '2026-10-19T18:18:57Z', ciclo: '01',
+        professor: { nome: 'Sapo Bailarino' },
+        expurgo: [{
+          em: '2026-10-22T10:48:48Z', motivo: 'expurgada pela página «Sistema Lastro»',
+          apagado: ['wrangler.calango.jsonc', 'professores/x/ciclos/ciclo-01-calango.conf'],
+          kv: { ok: true, apagadas: 3, restantes: 0, prefixos: ['calango/', 'bastidores/calango/'] },
+        }],
+      },
+    })]);
+  } catch (e) {
+    erros.push('Peça: não foi possível gerar as páginas do painel (' + (e && e.message) + ')');
   }
   return lista;
 }

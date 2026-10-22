@@ -31,7 +31,13 @@
  *     índice DECLARA a ausência em `nao_indexado`, com o motivo. Uma lacuna com nome não mente.
  */
 
-const VERSAO = 1;
+// A VERSÃO DO ÍNDICE. Sobe quando um campo ENTRA ou MUDA de forma — e não quando um valor
+// muda. É a chave que invalida o cache do Worker (`indice-acervo.js` compara esta constante com
+// o `versao` guardado no KV): sem o incremento, um cache antigo seria servido como válido e o
+// campo novo chegaria vazio à tela, sem erro nenhum.
+//
+//   2 (22/10/2026) — `expurgada_em` e `expurgos` na escola: a data da saída, para o painel.
+const VERSAO = 2;
 
 // AS FAMÍLIAS QUE O ÍNDICE CONHECE. É o vocabulário mínimo que o acervo tem HOJE; um tipo novo
 // entra aqui quando existir um arquivo que lhe corresponda — não antes (a regra do §4.1: não
@@ -403,6 +409,19 @@ function construir(entrada) {
       habilitada: !expurgada && !(inv && inv.estado && inv.estado.habilitada === false),
       expurgada,
       criada_em: (inv && inv.criado_em) || null,
+      // QUANDO ELA SAIU (22/10/2026). `expurgada` era só um booleano, e o painel operacional
+      // precisa da data — quem lê «esta escola existiu» quer saber de quando a quando. A data
+      // está no ELO que o expurgo grava (`escola/<slug>/indice.json` → `expurgo[]`), e o
+      // inventário JÁ está em memória nesta função: o campo custa zero leitura a mais. Ele entra
+      // no índice, e não na tela, porque a tela não deve ir buscar por fora o que a derivação
+      // já tem — duas leituras do mesmo dado divergem no dia em que uma mudar.
+      //
+      // O ÚLTIMO elo é o que vale: uma escola pode ter sido expurgada, recriada e expurgada
+      // outra vez (o índice guarda `recriacao`), e o painel mostra a saída mais recente.
+      expurgada_em: (inv && Array.isArray(inv.expurgo) && inv.expurgo.length
+        ? (inv.expurgo[inv.expurgo.length - 1] || {}).em || null
+        : null),
+      expurgos: (inv && Array.isArray(inv.expurgo)) ? inv.expurgo.length : 0,
       ciclos: minhaCiclos.map((c) => c.id),
       registros: meusRegistros.map((r) => r.id),
       contagens: {
