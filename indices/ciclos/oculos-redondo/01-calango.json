@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-22",
+    "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
+    "cobertura": [
+      "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+      "professores/oculos-redondo/ciclos/ciclo-01.conf"
+    ],
+    "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
+    "hash_conteudo": "f5d1d93b1f9478bb99540dbbd6b8a841ce8f24004e37bf523ac9c11ae80259df",
+    "id": "ciclo-01-calango",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
     "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
     "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "5fcffe9"
+    "commit": "9dc4f79"
   },
-  "gerado_em": "2026-10-22T20:16",
+  "gerado_em": "2026-10-22T20:22",
   "id": "ciclo:oculos-redondo/01/calango",
   "professor": "oculos-redondo",
   "versao": 6
