@@ -1,64 +1,23 @@
 {
   "aulas": [],
-  "ciclos": [
-    {
-      "ancora": null,
-      "aulas": [],
-      "documentos": [
-        "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-        "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
-      ],
-      "escola": "calango",
-      "estado": "sem-ancora",
-      "id": "ciclo:oculos-redondo/01/calango",
-      "numero": "01",
-      "pacote": null,
-      "professor": "oculos-redondo",
-      "sem_ancora": true,
-      "tipos": [
-        "manifesto",
-        "schema"
-      ]
-    }
-  ],
-  "documentos": [
-    {
-      "ancora_id": null,
-      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-      "ciclo_id": "ciclo:oculos-redondo/01/calango",
-      "escola": "calango",
-      "id": "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
-      "professor": "oculos-redondo",
-      "tipo": "manifesto"
-    },
-    {
-      "ancora_id": null,
-      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:oculos-redondo/01/calango",
-      "escola": "calango",
-      "id": "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "oculos-redondo",
-      "tipo": "schema"
-    }
-  ],
+  "ciclos": [],
+  "documentos": [],
   "escola": {
-    "ciclos": [
-      "ciclo:oculos-redondo/01/calango"
-    ],
+    "ciclos": [],
     "contagens": {
       "anamneses": 0,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 0,
       "ciclos_com_ancora": 0,
       "planos": 0,
       "pos": 0,
       "registros": 0
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
-    "expurgada": false,
-    "expurgada_em": "2026-10-22T10:48:48.104Z",
-    "expurgos": 4,
-    "habilitada": true,
+    "expurgada": true,
+    "expurgada_em": "2026-10-22T19:54:14.027Z",
+    "expurgos": 5,
+    "habilitada": false,
     "id": "escola:calango",
     "nome": "calango",
     "professor": "sapo-bailarino",
@@ -73,42 +32,15 @@
   },
   "filtros": {
     "anos": [],
-    "estados": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:oculos-redondo/01/calango"
-        ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
-      }
-    ],
-    "professores": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:oculos-redondo/01/calango"
-        ],
-        "rotulo": "oculos-redondo",
-        "valor": "oculos-redondo"
-      }
-    ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:oculos-redondo/01/calango"
-        ],
-        "rotulo": "Ciclo",
-        "valor": "ciclo"
-      }
-    ]
+    "estados": [],
+    "professores": [],
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "7734952"
+    "commit": "098889b"
   },
-  "gerado_em": "2026-10-22T19:52",
+  "gerado_em": "2026-10-22T19:54",
   "nao_indexado": [
     {
       "familia": "conteudo",
