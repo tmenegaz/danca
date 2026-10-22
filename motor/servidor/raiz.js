@@ -94,7 +94,7 @@ async function acervoDoIndice({ token }) {
 /** As escolas, já normalizadas para a tela — o recorte do acervo que as listas usam. */
 async function escolasDoIndice({ token }) {
   const acervo = await acervoDoIndice({ token });
-  return acervo.escolas.map((e) => ({
+  const escolas = acervo.escolas.map((e) => ({
     slug: e.slug,
     nome: e.nome || e.slug,
     professor: e.professor || null,
@@ -106,6 +106,9 @@ async function escolasDoIndice({ token }) {
     expurgada: e.expurgada === true,
     expurgos: e.expurgos || 0,
   }));
+  // A LISTA E OS NOMES SAEM DA MESMA LEITURA. Quem chama usa as duas coisas: a tabela mostra a
+  // PESSOA (nome) e ordena por ela; o slug continua a ser a identidade.
+  return [escolas, acervo.professores || []];
 }
 
 /**
@@ -374,6 +377,10 @@ async function fetch(request, env) {
       return painel.resposta(painel.paginaDosProfessores({
         professores: acervo.professores || [],
         escolas: acervo.escolas || [],
+        // A ORDEM VEM DA URL, e a página valida-a contra a lista do que conhece. Um `?ordem=`
+        // desconhecido cai na ordem padrão em vez de dar 400: a URL é um pedido de arrumação,
+        // não um contrato.
+        ordem: url.searchParams.get('ordem'),
       }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
@@ -389,10 +396,14 @@ async function fetch(request, env) {
     if (!token) return painel.resposta(painel.paginaSemToken(), 500);
     const apagadas = url.pathname === '/escolas-apagadas';
     try {
-      const escolas = await escolasDoIndice({ token });
+      // UMA leitura serve às duas coisas: a lista de escolas e o mapa slug→nome que ela usa para
+      // mostrar a PESSOA em vez da pasta. `escolasDoIndice` já lê o acervo inteiro — pedir os
+      // professores à parte seria uma segunda requisição para um dado que veio junto.
+      const [escolas, professores] = await escolasDoIndice({ token });
+      const ordem = url.searchParams.get('ordem');
       return painel.resposta(apagadas
-        ? painel.paginaDasApagadas({ escolas })
-        : painel.paginaDasVivas({ escolas }));
+        ? painel.paginaDasApagadas({ escolas, ordem, professores })
+        : painel.paginaDasVivas({ escolas, ordem, professores }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
         'não foi possível ler o índice: ' + ((err && err.message) || String(err))), 500);

@@ -43,7 +43,11 @@
 //       que a escola declara no inventário (`professores[]`). Um professor cadastrado e ainda sem
 //       ciclo não aparecia em lista nenhuma — e um professor cadastrado DENTRO de uma escola não
 //       dizia em qual. As duas coisas passam a estar no índice.
-const VERSAO = 4;
+//   5 (22/10/2026) — `professor.nome` deixa de ser «o da primeira escola que o mencionou» e passa a
+//       ser «o primeiro nome que alguma escola REGISTA». O `sapo-bailarino` saía sem nome porque a
+//       `batata` (que o menciona num ciclo) vem antes da `breu` e da `calango` (que guardam o
+//       nome): a primeira escola vencia mesmo quando não sabia nada.
+const VERSAO = 5;
 
 // AS FAMÍLIAS QUE O ÍNDICE CONHECE. É o vocabulário mínimo que o acervo tem HOJE; um tipo novo
 // entra aqui quando existir um arquivo que lhe corresponda — não antes (a regra do §4.1: não
@@ -513,6 +517,14 @@ function construir(entrada) {
         });
       }
       const reg = professores.get(id);
+      // O NOME QUE FALTA É PREENCHIDO POR QUEM O SAIBA (22/10/2026). A ordem das escolas é
+      // alfabética, e a primeira que menciona um professor pode não registar o nome dele — a
+      // `batata` menciona o `sapo-bailarino` num ciclo, e são a `breu` e a `calango` que guardam
+      // «Sapo Bailarino» no inventário. Antes, o vazio da primeira vencia o nome das outras.
+      if (!reg.nome) {
+        const talvez = nomeDoProfessorNoInventario(inv, p);
+        if (talvez) reg.nome = talvez;
+      }
       if (reg.escolas.indexOf(slug) === -1) reg.escolas.push(slug);
       for (const c of minhaCiclos) if (c.professor === p) reg.ciclos.push(c.id);
     }

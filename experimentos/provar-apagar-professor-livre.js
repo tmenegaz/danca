@@ -55,10 +55,12 @@ function criarKv(inicial = {}) {
  * base (`git/ref` + `git/commits`), o inventário (`contents/`) e as três escritas
  * (`git/trees`, `git/commits`, `git/refs`). Tudo o que se escreve é guardado para se conferir.
  */
-function githubFalso({ caminhos, inventario, recusarPrimeiroPutDoIndice = false, recusarPrimeiroPatchDaRef = false }) {
+function githubFalso({ caminhos, inventario, envelopes = null, recusarPrimeiroPatchDaRef = false }) {
   const chamadas = [];
   const criado = { arvore: null, commit: null, ref: null };
-  let putsDoIndice = 0;
+  // AS GRAVAÇÕES NO INVENTÁRIO — o que `registrarNomeDoProfessor` escreve (`PUT contents`). É por
+  // aqui que se prova que o nome chega ao repositório, e não só ao KV.
+  const escritasNoInventario = [];
   let patchesDaRef = 0;
   const f = async (url, init) => {
     const metodo = (init && init.method) || 'GET';
@@ -83,7 +85,7 @@ function githubFalso({ caminhos, inventario, recusarPrimeiroPutDoIndice = false,
         status: 200,
         json: async () => ({
           sha: 'e0',
-          content: Buffer.from(JSON.stringify({ nomes: [], resumos: {} })).toString('base64'),
+          content: Buffer.from(JSON.stringify(envelopes || { nomes: [], resumos: {} })).toString('base64'),
         }),
       };
     }
@@ -94,6 +96,15 @@ function githubFalso({ caminhos, inventario, recusarPrimeiroPutDoIndice = false,
         status: 200,
         json: async () => ({ sha: 'i0', content: Buffer.from(JSON.stringify(inventario)).toString('base64') }),
       };
+    }
+    if (metodo === 'PUT' && /\/contents\/escola\/[a-z0-9-]+\/indice\.json$/.test(u)) {
+      escritasNoInventario.push({
+        caminho: u.split('/contents/')[1],
+        texto: Buffer.from((corpo && corpo.content) || '', 'base64').toString('utf8'),
+        mensagem: (corpo && corpo.message) || '',
+        sha: (corpo && corpo.sha) || null,
+      });
+      return { ok: true, status: 200, json: async () => ({ commit: { sha: 'vc1' } }) };
     }
     if (metodo === 'POST' && /\/git\/trees$/.test(u)) {
       criado.arvore = corpo;
@@ -113,7 +124,7 @@ function githubFalso({ caminhos, inventario, recusarPrimeiroPutDoIndice = false,
     }
     return { ok: true, status: 200, json: async () => ({}) };
   };
-  return { fetch: f, chamadas, criado };
+  return { fetch: f, chamadas, criado, escritasNoInventario };
 }
 
 /**
@@ -310,7 +321,139 @@ async function principais() {
       JSON.parse(await kv.get('bastidores/calango/professores') || '[]').length === 0);
   }
 
-  // ── 6. as peças puras ─────────────────────────────────────────────────────
+  // ── 6. A REGRA DO «LIVRE» — os dois lados do mesmo estado (22/10/2026) ────
+  //
+  // A dona do produto descreveu assim: «professor criado, sem curadoria — é livre. Ele está na
+  // curadoria — não posso mexer naquele professor. Removo a curadoria — posso mexer. Curadoria e
+  // plano de ensino — não posso mexer em nenhum dos dois.» Estas asserções percorrem os quatro
+  // estados, no SERVIDOR (a tela é a segunda barreira, não a regra).
+  {
+    const pedirNome = (e, nome) => bastidores.fetch(new Request(BASE + '/api/bastidores/dono', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nome, senhaDirecao: 's' }),
+    }), e);
+
+    const comCuradoria = async (professor, turma) => {
+      const kv = criarKv({
+        'bastidores/calango/professores': JSON.stringify([LIVRE]),
+        'bastidores/calango/curadorias': JSON.stringify([
+          { id: 'c1', professor, turma: turma || 'Turma A', alunas: [] },
+        ]),
+      });
+      return kv;
+    };
+
+    // (a) LIVRE: edita.
+    {
+      const kv = criarKv({ 'bastidores/calango/professores': JSON.stringify([LIVRE]) });
+      const { fetch, escritasNoInventario } = githubFalso({
+        arquivosDaPasta: ['ciclo-01-calango.conf'],
+        inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } },
+      });
+      globalThis.fetch = fetch;
+      const resposta = await pedirNome(env(kv), 'Novo Nome');
+      const corpo = await resposta.json();
+      globalThis.fetch = original;
+
+      conferir('professor LIVRE: o nome muda (200)', resposta.status === 200, corpo);
+      conferir('…e o nome vai também para o INVENTÁRIO — é de lá que o painel o lê',
+        escritasNoInventario.length === 1
+          && /"nome": "Novo Nome"/.test(escritasNoInventario[0].texto), escritasNoInventario.length);
+      conferir('…e a escola passa a ler o nome novo pelo KV',
+        JSON.parse(await kv.get('bastidores/calango/dono') || '{}').nome === 'Novo Nome');
+      conferir('…e a resposta diz o commit e o slug (a pasta, que não muda)',
+        corpo.slug === 'oculos-redondo' && !!corpo.repositorio, corpo);
+    }
+
+    // (b) CURADO: não edita — e diz por quê.
+    {
+      const kv = await comCuradoria('oculos-redondo');
+      const { fetch, escritasNoInventario } = githubFalso({
+        arquivosDaPasta: ['ciclo-01-calango.conf'],
+        inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } },
+      });
+      globalThis.fetch = fetch;
+      const resposta = await pedirNome(env(kv), 'Outro Nome');
+      const corpo = await resposta.json();
+      globalThis.fetch = original;
+
+      conferir('professor CURADO: o nome NÃO muda (409)', resposta.status === 409, corpo);
+      conferir('…e o motivo é a curadoria', corpo.motivo === 'curadoria', corpo.motivo);
+      conferir('…e a mensagem diz o que fazer (remover a curadoria enquanto não há plano)',
+        /Enquanto a curadoria não gerar plano de ensino/.test(String(corpo.erro)), corpo.erro);
+      conferir('…e NADA foi escrito no repositório nem no KV',
+        escritasNoInventario.length === 0 && (await kv.get('bastidores/calango/dono')) === null,
+        escritasNoInventario.length);
+    }
+
+    // (c) Curado, mas a curadoria é de OUTRO professor: livre.
+    {
+      const kv = await comCuradoria('outra-pessoa');
+      const { fetch } = githubFalso({
+        arquivosDaPasta: ['ciclo-01-calango.conf'],
+        inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } },
+      });
+      globalThis.fetch = fetch;
+      const resposta = await pedirNome(env(kv), 'Nome Do Principal');
+      globalThis.fetch = original;
+      conferir('curadoria de OUTRA pessoa não trava o principal', resposta.status === 200, await resposta.json());
+    }
+
+    // (d) COM PLANO: não edita, e o motivo é o plano — não a curadoria.
+    {
+      const kv = criarKv({ 'bastidores/calango/professores': JSON.stringify([LIVRE]) });
+      const { fetch } = githubFalso({
+        arquivosDaPasta: ['ciclo-01-calango.conf'],
+        inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } },
+        // O PLANO VEM DO REPOSITÓRIO — é a fonte do acervo (o KV é reserva de leitura).
+        envelopes: { nomes: ['plano-turma-a.json'], resumos: { 'plano-turma-a.json': { professor: 'oculos-redondo', turma: 'Turma A' } } },
+      });
+      globalThis.fetch = fetch;
+      const resposta = await pedirNome(env(kv), 'Outro Nome');
+      const corpo = await resposta.json();
+      globalThis.fetch = original;
+      conferir('professor COM PLANO DE ENSINO: o nome não muda (409)', resposta.status === 409, corpo);
+      conferir('…e o motivo é o plano', corpo.motivo === 'plano', corpo.motivo);
+    }
+
+    // (e) A EXCLUSÃO também: curado não se apaga.
+    {
+      const kv = await comCuradoria('Livre');
+      const { fetch, criado } = githubFalso({
+        caminhos: CINCO,
+        inventario: { escola: 'calango', professores: [{ slug: 'livre', nome: 'Livre' }] },
+      });
+      globalThis.fetch = fetch;
+      const resposta = await pedirExclusao(env(kv));
+      const corpo = await resposta.json();
+      globalThis.fetch = original;
+
+      conferir('professor CURADO também não se EXCLUI (409)', resposta.status === 409, corpo);
+      conferir('…e o motivo é a curadoria', corpo.motivo === 'curadoria', corpo.motivo);
+      conferir('…e nada é apagado do repositório', criado.arvore === null, criado);
+      conferir('…e ele continua no KV',
+        JSON.parse(await kv.get('bastidores/calango/professores') || '[]').length === 1);
+    }
+
+    // (f) O CAMINHO DE VOLTA: removida a curadoria, tudo volta a poder ser mudado.
+    {
+      const kv = criarKv({
+        'bastidores/calango/professores': JSON.stringify([LIVRE]),
+        'bastidores/calango/curadorias': JSON.stringify([]),
+      });
+      const { fetch } = githubFalso({
+        arquivosDaPasta: ['ciclo-01-calango.conf'],
+        inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' } },
+      });
+      globalThis.fetch = fetch;
+      const nome = await pedirNome(env(kv), 'Volta A Andar');
+      globalThis.fetch = original;
+      conferir('removida a curadoria, o nome volta a poder ser mudado', nome.status === 200, await nome.json());
+    }
+  }
+
+  // ── 7. as peças puras ─────────────────────────────────────────────────────
   const soUm = comProfessorRemovido(JSON.stringify({ escola: 'x', professores: [{ slug: 'a' }] }), { professor: 'a' });
   conferir('sem ninguém na lista, a chave é APAGADA (e não deixada a `[]`)',
     soUm !== null && !('professores' in JSON.parse(soUm)), soUm);

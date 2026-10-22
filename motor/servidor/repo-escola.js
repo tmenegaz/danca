@@ -751,9 +751,17 @@ function comProfessor(indiceTexto, { escola, professor, nome, quando }) {
 const ESPERA_DO_INTENTO = (intento) => new Promise((s) => setTimeout(s, intento * 350));
 const CORRIDA_PERDIDA = new Set([409, 422]);
 
-async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, professor, nome, quando, fetchImpl }) {
+/**
+ * O LAÇO ÚNICO de escrita no inventário de uma escola, com a releitura da corrida perdida.
+ *
+ * `transformar(texto)` devolve `{texto, jaExistia}` — ou lança, quando não há o que fazer (uma
+ * escola sem inventário, por exemplo). Duas escritas usam-no: declarar um professor e gravar o
+ * NOME dele. Duplicar o laço seria ter duas versões da mesma espera, e a segunda envelheceria
+ * primeiro.
+ */
+async function escreverNoInventario({ token, dono, repo, ref, escola, transformar, mensagem, fetchImpl }) {
   const f = fetchImpl || fetch;
-  const caminho = 'escola/' + slug + '/indice.json';
+  const caminho = 'escola/' + escola + '/indice.json';
   const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
   const cab = {
     'Authorization': 'Bearer ' + token,
@@ -767,7 +775,7 @@ async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, profes
     // reler é o que torna a segunda tentativa possível quando a primeira perde a corrida.
     const base = await f(url + '?ref=' + encodeURIComponent(ref), { headers: cab });
     if (base.status === 404) {
-      throw new Error('a escola ' + slug + ' não tem inventário (' + caminho + ') — sem ele não há onde declarar o professor');
+      throw new Error('a escola ' + escola + ' não tem inventário (' + caminho + ') — sem ele não há onde escrever');
     }
     if (!base.ok) {
       ultimo = 'HTTP ' + base.status;
@@ -779,9 +787,7 @@ async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, profes
     const dados = await base.json().catch(() => null);
     if (!dados) { ultimo = 'o JSON de ' + caminho + ' não abriu'; await ESPERA_DO_INTENTO(intento); continue; }
     const sha = dados.sha || null;
-    const { texto, jaExistia } = comProfessor(decodificarBase64(dados.content || ''), {
-      escola: slug, professor, nome, quando,
-    });
+    const { texto, jaExistia } = transformar(decodificarBase64(dados.content || ''));
     if (jaExistia) return { ok: true, jaExistia: true, commit: null, intentos: intento };
 
     const bytes = new TextEncoder().encode(texto);
@@ -791,7 +797,7 @@ async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, profes
       method: 'PUT',
       headers: cab,
       body: JSON.stringify({
-        message: 'feat(escola): a escola ' + slug + ' declara o professor ' + professor,
+        message: mensagem,
         content: btoa(binario),
         branch: ref,
         ...(sha ? { sha } : {}),
@@ -802,12 +808,76 @@ async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, profes
 
     ultimo = 'HTTP ' + res.status + ((corpo && corpo.message) ? ' — ' + corpo.message : '');
     if (!CORRIDA_PERDIDA.has(res.status)) {
-      throw new Error('o GitHub recusou gravar o vínculo em ' + caminho + ': ' + ultimo);
+      throw new Error('o GitHub recusou gravar em ' + caminho + ': ' + ultimo);
     }
     await ESPERA_DO_INTENTO(intento);
   }
-  throw new Error('o vínculo em ' + caminho + ' não entrou depois de 3 tentativas — o repositório '
+  throw new Error('a escrita em ' + caminho + ' não entrou depois de 3 tentativas — o repositório '
     + 'está a receber escritas em cima das nossas: ' + ultimo);
+}
+
+async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, professor, nome, quando, fetchImpl }) {
+  return escreverNoInventario({
+    token, dono, repo, ref, escola: slug, fetchImpl,
+    mensagem: 'feat(escola): a escola ' + slug + ' declara o professor ' + professor,
+    transformar: (texto) => comProfessor(texto, { escola: slug, professor, nome, quando }),
+  });
+}
+
+/**
+ * O NOME DO PROFESSOR VAI PARA O REPOSITÓRIO (22/10/2026) — é o que torna o «nome real» uma
+ * coisa que o painel consegue mostrar.
+ *
+ * A Produção guarda o nome em dois lugares: no KV (`bastidores/<escola>/dono`, a sobreposição de
+ * exibição que aquela escola lê) e, agora, no inventário. O KV não é fonte do acervo — o painel
+ * lê o repositório, uma requisição só —, e era por isso que, ao editar o nome, a página da escola
+ * mudava e a lista de professores continuava a mostrar o nome antigo. O inventário é a fonte.
+ *
+ * ELE ESCREVE NOS DOIS LUGARES ONDE O NOME PODE ESTAR: no responsável (`professor.nome`) e na
+ * linha do vínculo (`professores[]`). Se o professor não estiver declarado em nenhum dos dois, a
+ * linha entra — um professor com nome conhecido é melhor do que um vínculo implícito.
+ */
+function comNomeDoProfessor(indiceTexto, { escola, professor, nome, quando }) {
+  let indice = null;
+  try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
+  if (!indice || typeof indice !== 'object') {
+    throw new Error('o inventário da escola não é um objeto JSON legível — não se inventa um');
+  }
+  const slug = String(professor || '').trim();
+  const limpo = String(nome || '').trim();
+  if (!slug) throw new Error('sem o identificador do professor');
+  if (!limpo) throw new Error('sem o nome a gravar');
+
+  let mudou = false;
+  let declarado = false;
+  if (indice.professor && indice.professor.slug === slug) {
+    declarado = true;
+    if (indice.professor.nome !== limpo) { indice.professor.nome = limpo; mudou = true; }
+  }
+  const lista = Array.isArray(indice.professores) ? indice.professores : [];
+  for (const p of lista) {
+    if (!p || p.slug !== slug) continue;
+    declarado = true;
+    if (p.nome !== limpo) { p.nome = limpo; mudou = true; }
+  }
+  // QUEM NÃO ESTAVA DECLARADO ENTRA. Um professor com nome conhecido é melhor do que um vínculo
+  // implícito: sem a linha, o painel teria de adivinhar quem ele é a partir dos ciclos.
+  if (!declarado) {
+    lista.push({ slug, nome: limpo, desde: quando || new Date().toISOString() });
+    indice.professores = lista;
+    mudou = true;
+  }
+  if (!mudou) return { texto: null, jaExistia: true };
+  indice.escola = indice.escola || escola;
+  return { texto: JSON.stringify(indice, null, 2) + '\n', jaExistia: false };
+}
+
+async function registrarNomeDoProfessor({ token, dono, repo, ref, escola, professor, nome, quando, fetchImpl }) {
+  return escreverNoInventario({
+    token, dono, repo, ref, escola, fetchImpl,
+    mensagem: 'feat(escola): o professor ' + professor + ' passa a chamar-se «' + nome + '»',
+    transformar: (texto) => comNomeDoProfessor(texto, { escola, professor, nome, quando }),
+  });
 }
 
 /**
@@ -960,6 +1030,8 @@ function comProfessorRemovido(indiceTexto, { professor }) {
 }
 
 module.exports = {
+  registrarNomeDoProfessor,
+  comNomeDoProfessor,
   apagarProfessorDoRepo,
   arquivosDeTrabalho,
   comProfessorRemovido,

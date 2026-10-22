@@ -60,7 +60,7 @@ function criarKv(inicial = {}) {
   };
 }
 
-const env = () => ({
+const env = (curadorias = []) => ({
   ESCOLA_SLUG: 'calango',
   ESCOLA_HABILITADA: 'sim',
   SENHA_ADMIN: 's',
@@ -71,6 +71,7 @@ const env = () => ({
     'bastidores/calango/professores': JSON.stringify([
       { nome: 'Caneca Pequena', slug: 'caneca-pequena', sal: 'x', hash: 'y' },
     ]),
+    ...(curadorias.length ? { 'bastidores/calango/curadorias': JSON.stringify(curadorias) } : {}),
   }),
 });
 
@@ -159,8 +160,8 @@ async function abrirNavegador(executavel, perfil) {
   };
 }
 
-async function subirBancada({ respostaDoDono }) {
-  const pagina = await bastidores.fetch(new Request('https://calango.tmenegaz77.workers.dev/bastidores/producao'), env());
+async function subirBancada({ respostaDoDono, curadorias = [] }) {
+  const pagina = await bastidores.fetch(new Request('https://calango.tmenegaz77.workers.dev/bastidores/producao'), env(curadorias));
   const html = await pagina.text();
   const pedidos = [];
   const servidor = http.createServer((req, res) => {
@@ -341,6 +342,40 @@ async function principais() {
     conferir('…e volta a ficar habilitado', erro.habilitado === true, erro.habilitado);
     conferir('…e o recado aparece na secção, na tela', erro.naTela === true && /Erro:/.test(erro.recado), erro);
 
+    nav.fechar();
+    bancada.servidor.close();
+  }
+
+  // ── 5. CURADO: o botão não se clica, e diz por quê (22/10/2026) ─────────
+  //
+  // A regra que a dona do produto pediu para confirmar: o nome do principal só se muda enquanto
+  // ele é LIVRE. Curado — ou com plano de ensino — não se muda. A tela não esconde o botão (um
+  // controle que desaparece sem explicação é o pior dos mundos): desabilita-o e escreve o motivo.
+  {
+    const bancada = await subirBancada({
+      respostaDoDono: { status: 200, corpo: { ok: true } },
+      curadorias: [{ id: 'c1', professor: 'Ana Maria Silva', turma: 'Turma A', alunas: [] }],
+    });
+    const nav = await abrirNavegador(executavel, perfil);
+    await nav.ir('http://127.0.0.1:' + bancada.porta + '/bastidores/producao#professores');
+    const estado = await nav.avaliar(`
+      (function(){
+        var b = document.querySelector('#sec-professores button.editar');
+        var desabilitado = document.querySelector('#sec-professores .acoes button[disabled]');
+        var papel = document.querySelector('#sec-professores .nome .dono');
+        return JSON.stringify({
+          temEditarClicavel: !!b,
+          temBotaoTravado: !!desabilitado,
+          motivo: desabilitado ? desabilitado.getAttribute('title') : null,
+          papel: papel ? papel.textContent : null
+        });
+      })()
+    `);
+    conferir('principal CURADO: o «Editar» não está clicável', estado.temEditarClicavel === false, estado);
+    conferir('…fica desabilitado, com o motivo escrito', estado.temBotaoTravado === true
+      && /não se muda/.test(String(estado.motivo)), estado.motivo);
+    conferir('…e o motivo nomeia a curadoria', /curadoria/.test(String(estado.motivo)), estado.motivo);
+    conferir('…sem perder o papel da linha (continua «principal»)', estado.papel === 'principal', estado.papel);
     nav.fechar();
     bancada.servidor.close();
   }

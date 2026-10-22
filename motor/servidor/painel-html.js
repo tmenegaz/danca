@@ -116,8 +116,59 @@ function listaDeLigacoes(slugs, opcoes) {
  * qualquer pessoa tenta primeiro, e poupa a viagem pelo repositório para achar o subdomínio.
  * Numa escola apagada não há site: o nome fica texto, e o destino é o registo.
  */
-function tabelaDeEscolas(escolas, modo) {
+/**
+ * O CABEÇALHO QUE ORDENA (22/10/2026).
+ *
+ * A ordenação é uma LIGAÇÃO, e não um botão com script: a página é gerada no servidor, uma
+ * leitura só, e um `?ordem=` é o mesmo mecanismo que já traz a lista — sem estado no navegador e
+ * sem uma segunda implementação da ordenação em JavaScript. Quem ordena é a mesma função que
+ * desenha a tabela.
+ *
+ * `aria-sort` diz ao leitor de ecrã qual é a ordem em vigor. E o cabeçalho da coluna em vigor
+ * NÃO é ligação: repetir a mesma ordem seria um clique que não faz nada.
+ */
+function thOrdenavel(rotulo, chave, atual, base) {
+  if (atual === chave) {
+    return '<th aria-sort="ascending">' + esc(rotulo) + '</th>';
+  }
+  const alvo = base + (chave === base ? '' : '?ordem=' + encodeURIComponent(chave));
+  return '<th aria-sort="none"><a href="' + esc(alvo) + '" title="Ordenar por ' + esc(rotulo.toLowerCase()) +
+    '">' + esc(rotulo) + '</a></th>';
+}
+
+/**
+ * OS PROFESSORES DE UMA ESCOLA, como texto — para a coluna e para a ordenação.
+ *
+ * Numa APAGADA são todos os que o elo prova (`professores[]`); numa VIVA, o responsável e os que
+ * a escola declara. A mesma forma nos dois casos, porque a coluna é a mesma.
+ */
+function professoresDaEscola(e) {
+  if (!e) return [];
+  if (Array.isArray(e.professores) && e.professores.length) return e.professores.map(String);
+  return e.professor ? [String(e.professor)] : [];
+}
+
+/** A ordem pedida, se for uma das que a página conhece — e a padrão quando não é. */
+function ordemPedida(pedida, conhecidas, padrao) {
+  const p = String(pedida || '').trim();
+  return conhecidas.indexOf(p) !== -1 ? p : padrao;
+}
+
+function tabelaDeEscolas(escolas, modo, ordem, professores) {
   const recorte = modo || 'todas';
+  // O NOME, QUANDO O ÍNDICE O SABE (22/10/2026). A coluna mostrava o SLUG — a pasta —, e a dona
+  // do produto leu isso como «só me deram os slugs». O mapa é construído uma vez, do acervo de
+  // professores que a rota já leu: nenhuma requisição a mais. Quando o nome não está registado em
+  // nenhum inventário, cai no slug — que é o que se sabe, e é melhor do que um traço numa coluna
+  // que identifica a pessoa.
+  const nomes = new Map();
+  for (const p of (professores || [])) {
+    if (p && p.slug && p.nome) nomes.set(String(p.slug), String(p.nome));
+  }
+  const comoNome = (slug) => nomes.get(String(slug)) || String(slug);
+  // A ordem por professor é a mesma nas duas listas; a padrão continua a ser a data, que é o que
+  // a lista responde primeiro («o que saiu por último», «o que nasceu por último»).
+  const criterio = ordemPedida(ordem, ['professor'], 'data');
   const lista = (escolas || []).slice()
     .filter((e) => (recorte === 'apagadas' ? e.expurgada : recorte === 'vivas' ? !e.expurgada : true))
     // AS VIVAS PRIMEIRO, e depois as apagadas da saída mais recente para a mais antiga.
@@ -128,6 +179,14 @@ function tabelaDeEscolas(escolas, modo) {
     // aparecia entre as apagadas, com a data do expurgo antigo na coluna «Apagada».
     .sort((a, b) => {
       if (a.expurgada !== b.expurgada) return a.expurgada ? 1 : -1;
+      // ORDENAR POR PROFESSOR (22/10/2026) — pedido da dona do produto: «nas apagadas, uma
+      // ordenação por professor; nas vivas, também». A ordem é a da PESSOA, e depois a data,
+      // porque duas escolas do mesmo professor não têm outra precedência natural.
+      if (criterio === 'professor') {
+        const pa = professoresDaEscola(a).map(comoNome).join(', ').toLowerCase();
+        const pb = professoresDaEscola(b).map(comoNome).join(', ').toLowerCase();
+        if (pa !== pb) return pa < pb ? -1 : 1;
+      }
       const da = String((a.expurgada ? a.expurgada_em : a.criada_em) || '');
       const db = String((b.expurgada ? b.expurgada_em : b.criada_em) || '');
       if (da === db) return String(a.slug).localeCompare(String(b.slug));
@@ -161,10 +220,10 @@ function tabelaDeEscolas(escolas, modo) {
     // (A primeira versão ligava-o a `https://<slug>.workers.dev/`, que não existe: um professor
     // não é uma escola, e a ligação morria num 404.)
     if (recorte === 'apagadas') {
-      const nomes = (e.professores || []).join(', ');
-      celulas.push('<td>' + (nomes ? esc(nomes) : '—') + '</td>');
+      const quem = professoresDaEscola(e).map(comoNome).join(', ');
+      celulas.push('<td>' + (quem ? esc(quem) : '—') + '</td>');
     } else {
-      celulas.push('<td>' + esc(e.professor || '—') + '</td>');
+      celulas.push('<td>' + esc(e.professor ? comoNome(e.professor) : '—') + '</td>');
     }
     celulas.push('<td>' + esc(diaOuTraco(e.criada_em)) + '</td>');
     // A DATA DA SAÍDA SÓ EXISTE PARA QUEM SAIU. Numa escola viva, `expurgada_em` é o expurgo
@@ -185,18 +244,22 @@ function tabelaDeEscolas(escolas, modo) {
   // AS COLUNAS SEGUEM A LINHA, e a regra é «cada coluna responde a uma pergunta que esta lista
   // faz». Numa apagada, «Professor» (o do inventário) e «Professores» (os do elo) seriam duas
   // colunas a disputar o mesmo espaço com dados sobrepostos — fica só a segunda, que é a
-  // completa.
-  const colunas = ['Escola']
-    .concat(recorte === 'apagadas' ? ['Professores'] : ['Professor'])
-    .concat(['Criada'])
-    .concat(recorte !== 'vivas' ? ['Apagada'] : [])
-    .concat(['Estado'])
-    .concat(recorte !== 'vivas' ? ['Registo'] : []);
+  // completa. O CABEÇALHO da coluna dos professores ordena (`?ordem=professor`).
+  const base = recorte === 'apagadas' ? '/escolas-apagadas' : '/escolas-vivas';
+  const colunas = ['<th>Escola</th>',
+    thOrdenavel(recorte === 'apagadas' ? 'Professores' : 'Professor', 'professor', criterio, base),
+    '<th>Criada</th>'];
+  if (recorte !== 'vivas') colunas.push('<th>Apagada</th>');
+  colunas.push('<th>Estado</th>');
+  if (recorte !== 'vivas') colunas.push('<th>Registo</th>');
 
   return '<table>' +
-    '<thead><tr>' + colunas.map((c) => '<th>' + c + '</th>').join('') + '</tr></thead>' +
+    '<thead><tr>' + colunas.join('') + '</tr></thead>' +
     '<tbody>' + lista.map(linha).join('') + '</tbody>' +
-    '</table>';
+    '</table>' +
+    '<p class="aviso">A coluna «' + (recorte === 'apagadas' ? 'Professores' : 'Professor') +
+    '» ordena quando se clica no título. A ordem em vigor é a de cima; a data continua a ser a ' +
+    'ordem natural desta lista.</p>';
 }
 
 /**
@@ -215,9 +278,19 @@ function tabelaDeEscolas(escolas, modo) {
  * professor existe, trabalha (ou trabalhou), e uma lista chamada «Professores» que omitisse
  * metade deles mentiria sobre o que tem.
  */
-function tabelaDeProfessores(professores, escolas) {
+function tabelaDeProfessores(professores, escolas, ordem) {
+  const criterio = ordemPedida(ordem, ['nome', 'escolas'], 'nome');
   const vivas = new Set((escolas || []).filter((e) => !e.expurgada).map((e) => e.slug));
+  const ativasDe = (p) => (p && p.escolas ? p.escolas : []).filter((s) => vivas.has(s));
   const lista = (professores || []).slice().sort((a, b) => {
+    // ORDENAR PELAS ESCOLAS VIVAS (22/10/2026) — pedido da dona do produto: «que daí eu consigo
+    // ordenar pelas mesmas escolas». É o que agrupa os professores que partilham escola, e o
+    // desempate é o nome, para a ordem não depender de como o índice veio.
+    if (criterio === 'escolas') {
+      const ea = ativasDe(a).join(', ').toLowerCase();
+      const eb = ativasDe(b).join(', ').toLowerCase();
+      if (ea !== eb) return ea < eb ? -1 : 1;
+    }
     const na = nomeDoProfessor(a).toLowerCase();
     const nb = nomeDoProfessor(b).toLowerCase();
     return na < nb ? -1 : na > nb ? 1 : 0;
@@ -232,21 +305,45 @@ function tabelaDeProfessores(professores, escolas) {
   }
 
   const linhas = lista.map((p) => {
-    const ativas = (p.escolas || []).filter((s) => vivas.has(s));
+    const ativas = ativasDe(p);
     const escolasCelula = ativas.length
       ? listaDeLigacoes(ativas, { rotulo: (s) => s })
       : '<span class="selo discreto">sem escola viva</span>';
+    /*
+     * A COLUNA QUE FALTAVA (22/10/2026): «aqui, nessa janela de professores, eu preciso de uma
+     * coluna anterior que é o nome do professor. Eu preciso saber o nome real do professor.»
+     *
+     * O nome vem do inventário da escola que declarou a pessoa — `professores[].nome` ou o
+     * `professor.nome` do responsável. A AUSÊNCIA É DITA, não disfarçada: quando o repositório
+     * não guarda o nome (professor antigo, de uma escola cujo KV já foi expurgado), a célula
+     * mostra um traço com o motivo no `title`, e não o slug, que já está na coluna ao lado. Pôr
+     * o slug aqui fingiria um nome que ninguém registou.
+     */
+    const nome = String(p.nome || '').trim();
+    const nomeCelula = nome
+      ? '<strong>' + esc(nome) + '</strong>'
+      : '<span class="selo discreto" title="o repositório não guarda o nome deste professor: ' +
+        'a escola que o cadastrou já não existe, ou ele nasceu antes de o nome se gravar. ' +
+        'Editar o nome de um professor principal grava-o; um secundário ganha-o ao ser declarado ' +
+        'pela escola.">sem nome registado</span>';
     return '<tr>' +
-      '<td><strong>' + esc(nomeDoProfessor(p)) + '</strong></td>' +
+      '<td>' + nomeCelula + '</td>' +
       '<td><code>' + esc(p.slug) + '</code></td>' +
       '<td>' + escolasCelula + '</td>' +
       '</tr>';
   }).join('');
 
   return '<table>' +
-    '<thead><tr><th>Professor</th><th>Pasta</th><th>Escolas vivas</th></tr></thead>' +
+    '<thead><tr>' +
+    thOrdenavel('Nome', 'nome', criterio, '/professores') +
+    '<th>Pasta</th>' +
+    thOrdenavel('Escolas vivas', 'escolas', criterio, '/professores') +
+    '</tr></thead>' +
     '<tbody>' + linhas + '</tbody>' +
-    '</table>';
+    '</table>' +
+    '<p class="aviso">A <strong>pasta</strong> é o identificador do professor — aparece nos caminhos ' +
+    'do repositório e nos documentos, e não muda quando o nome muda. Quem ordena são os títulos ' +
+    '«Nome» e «Escolas vivas»: a segunda junta quem partilha escola.</p>';
 }
 
 /**
@@ -395,7 +492,7 @@ function resposta(html, status) {
  * que uma ganhasse uma coluna — e a regra do catálogo é que peça repetida é peça que vai
  * divergir.
  */
-function paginaDeLista({ recorte, escolas }) {
+function paginaDeLista({ recorte, escolas, ordem, professores }) {
   const apagadas = recorte === 'apagadas';
   return pagina({
     titulo: apagadas ? 'Escolas apagadas' : 'Escolas vivas',
@@ -403,18 +500,18 @@ function paginaDeLista({ recorte, escolas }) {
       ? 'O registo do que foi expurgado — a proveniência de uma escola que existiu.'
       : 'As escolas que existem agora. O nome leva ao site de cada uma.',
     atual: apagadas ? 'escolas-apagadas' : 'escolas-vivas',
-    corpo: tabelaDeEscolas(escolas, recorte) +
+    corpo: tabelaDeEscolas(escolas, recorte, ordem, professores) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
 
 /** O atalho que as rotas usam — e que a prova exercita sem passar pelo Worker. */
-function paginaDasApagadas({ escolas }) {
-  return paginaDeLista({ recorte: 'apagadas', escolas });
+function paginaDasApagadas({ escolas, ordem, professores }) {
+  return paginaDeLista({ recorte: 'apagadas', escolas, ordem, professores });
 }
 
-function paginaDasVivas({ escolas }) {
-  return paginaDeLista({ recorte: 'vivas', escolas });
+function paginaDasVivas({ escolas, ordem, professores }) {
+  return paginaDeLista({ recorte: 'vivas', escolas, ordem, professores });
 }
 
 /**
@@ -424,13 +521,13 @@ function paginaDasVivas({ escolas }) {
  * Ela lê `acervo.professores` (que o índice deriva das escolas e dos ciclos) e `acervo.escolas`
  * (para saber quais estão vivas). Uma requisição, a mesma do resto do painel.
  */
-function paginaDosProfessores({ professores, escolas }) {
+function paginaDosProfessores({ professores, escolas, ordem }) {
   return pagina({
     titulo: 'Professores',
     subtitulo: 'Quem trabalha hoje, e as escolas vivas de cada um. Um professor pode estar em ' +
       'mais de uma.',
     atual: 'professores',
-    corpo: tabelaDeProfessores(professores, escolas) +
+    corpo: tabelaDeProfessores(professores, escolas, ordem) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }

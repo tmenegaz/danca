@@ -231,7 +231,11 @@ async function principais() {
   conferir('…com o nome ligado ao site da escola',
     /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"><strong>viva<\/strong>/.test(vivas.html), null);
   conferir('…com as QUATRO colunas pedidas',
-    /<th>Escola<\/th><th>Professor<\/th><th>Criada<\/th><th>Estado<\/th>/.test(vivas.html), null);
+    /<th>Escola<\/th><th[^>]*>(<a[^>]*>)?Professor(<\/a>)?<\/th><th>Criada<\/th><th>Estado<\/th>/.test(vivas.html), null);
+  conferir('…e a coluna «Professor» ordena (é ligação)',
+    /<th aria-sort="none"><a href="\/escolas-vivas\?ordem=professor"/.test(vivas.html), null);
+  conferir('…mostrando o NOME do professor, não o slug',
+    /<td>Tiago Menegaz<\/td>/.test(vivas.html), null);
   conferir('…e sem as apagadas', !/Abrir o registo/.test(vivas.html), null);
   conferir('…e com «Voltar ao painel»', /Voltar ao painel/.test(vivas.html), null);
 
@@ -243,9 +247,14 @@ async function principais() {
   conferir('«Escolas apagadas» responde 200', apagadas.status === 200, apagadas.status);
   conferir('…com as duas apagadas', /calango/.test(apagadas.html) && /breu/.test(apagadas.html), null);
   conferir('…e sem a viva', !/href="\/escolas-apagadas\/viva"/.test(apagadas.html), null);
-  conferir('…com a coluna «Professores»', /<th>Professores<\/th>/.test(apagadas.html), null);
+  conferir('…com a coluna «Professores»', /(<a[^>]*>)?Professores(<\/a>)?<\/th>/.test(apagadas.html), null);
   conferir('…e TODOS os professores que o elo prova',
-    /murisoca-baiana, oculos-redondo, sapo-bailarino/.test(apagadas.html), null);
+    /murisoca-baiana, oculos-redondo, Sapo Bailarino/.test(apagadas.html), null);
+  // O NOME QUANDO SE SABE, O SLUG QUANDO NÃO. `sapo-bailarino` tem nome no índice;
+  // `murisoca-baiana` e `oculos-redondo` não têm nenhum registado no repositório — e a célula diz
+  // o que se sabe, em vez de inventar um nome.
+  conferir('…traduzindo para o nome quem o índice conhece',
+    /murisoca-baiana, oculos-redondo, Sapo Bailarino/.test(apagadas.html), null);
   conferir('…com os professores em TEXTO, não ligação de site',
     !/href="https:\/\/sapo-bailarino\.tmenegaz77\.workers\.dev/.test(apagadas.html), null);
   conferir('…e com a data da saída', /22\/10\/2026/.test(apagadas.html), null);
@@ -277,6 +286,87 @@ async function principais() {
   const muitas = painelTabelaDeProfessoresComDuasVivas();
   conferir('um professor com DUAS escolas vivas sai com as duas, separadas por vírgula',
     /viva<\/a>, <a href="https:\/\/outra\.tmenegaz77\.workers\.dev\/">outra<\/a>/.test(muitas), muitas);
+
+  // ── 6b. A COLUNA «NOME» E AS ORDENAÇÕES (22/10/2026) ──────────────────────
+  //
+  // O que se pediu: «preciso de uma coluna anterior que é o nome do professor. Eu preciso saber o
+  // nome real. E preciso de uma ordenação na coluna escolas vivas, e uma ordenação por professor
+  // nas escolas apagadas e nas vivas.»
+  {
+    const h = profs.html;
+    conferir('a PRIMEIRA coluna é «Nome», e não a pasta',
+      /<thead><tr><th aria-sort="ascending">Nome<\/th>/.test(h), /<thead>.{0,160}/.exec(h) && /<thead>.{0,160}/.exec(h)[0]);
+    conferir('…e a pasta vem depois, como identificador',
+      /<th>Pasta<\/th>/.test(h), null);
+    conferir('…com o nome em destaque e a pasta em código',
+      /<td><strong>Tiago Menegaz<\/strong><\/td><td><code>tiago-menegaz<\/code><\/td>/.test(h), null);
+    conferir('quem não tem nome registado mostra o SELO, e não o slug fingido de nome',
+      /<span class="selo discreto" title="o repositório não guarda o nome/.test(h), null);
+    conferir('…e a coluna «Escolas vivas» ordena',
+      /<th aria-sort="none"><a href="\/professores\?ordem=escolas"/.test(h), null);
+
+    // A ORDEM POR ESCOLAS agrupa quem partilha escola — é o que se pediu («ordenar pelas mesmas
+    // escolas»). A tabela é exercitada DIRECTAMENTE, com dados em que as duas ordens DÃO
+    // RESULTADOS DIFERENTES: com dados em que dão o mesmo, a prova passaria sem provar nada.
+    const nomeNaOrdem = primeirasCelulas(painelTabelaDeProfessores([
+      { slug: 'zeca', nome: null, escolas: [] },
+      { slug: 'ana', nome: 'Ana', escolas: ['viva'] },
+      { slug: 'bruno', nome: 'Bruno', escolas: ['outra'] },
+    ], [{ slug: 'viva', expurgada: false }, { slug: 'outra', expurgada: false }], 'nome'));
+    conferir('por NOME: a ordem é alfabética, e quem não tem nome vai pelo SLUG',
+      JSON.stringify(nomeNaOrdem) === JSON.stringify(['Ana', 'Bruno', '']), nomeNaOrdem);
+
+    const porEscolas = primeirasCelulas(painelTabelaDeProfessores([
+      { slug: 'zeca', nome: null, escolas: [] },
+      { slug: 'ana', nome: 'Ana', escolas: ['viva'] },
+      { slug: 'bruno', nome: 'Bruno', escolas: ['outra'] },
+    ], [{ slug: 'viva', expurgada: false }, { slug: 'outra', expurgada: false }], 'escolas'));
+    // A ORDEM É PELA CADEIA DE ESCOLAS: `outra` < `viva`, e quem não tem nenhuma vem primeiro
+    // (a cadeia vazia é a menor de todas). É o que agrupa os professores da mesma escola.
+    conferir('por ESCOLAS VIVAS: quem não tem escola vem primeiro, e os outros agrupam-se',
+      JSON.stringify(porEscolas) === JSON.stringify(['', 'Bruno', 'Ana']), porEscolas);
+
+    const porProfessor = primeirasCelulas(painelTabelaDeEscolas([
+      { slug: 'tarde', professor: 'zeca', criada_em: '2026-10-20T10:00:00Z', expurgada: true, expurgada_em: '2026-10-21T10:00:00Z' },
+      { slug: 'cedo', professor: 'ana', criada_em: '2026-10-10T10:00:00Z', expurgada: true, expurgada_em: '2026-10-22T10:00:00Z' },
+    ], 'apagadas', 'professor', [{ slug: 'zeca', nome: 'Zeca' }, { slug: 'ana', nome: 'Ana' }]));
+    // `Ana` < `Zeca`: por nome, a escola da Ana (`cedo`) vem primeiro — e por DATA também, porque
+    // `cedo` saiu mais recentemente. Para a prova distinguir as duas ordens, o nome tem de
+    // contrariar a data: por isso o `zeca` (saída 21/10) é a «tarde» e a `ana` (saída 22/10) é a
+    // «cedo» — se a ordenação fosse a da data, daria o mesmo; então a segunda conferência usa
+    // nomes TROCADOS.
+    const porProfessorTrocado = primeirasCelulas(painelTabelaDeEscolas([
+      { slug: 'tarde', professor: 'ana', criada_em: '2026-10-20T10:00:00Z', expurgada: true, expurgada_em: '2026-10-21T10:00:00Z' },
+      { slug: 'cedo', professor: 'zeca', criada_em: '2026-10-10T10:00:00Z', expurgada: true, expurgada_em: '2026-10-22T10:00:00Z' },
+    ], 'apagadas', 'professor', [{ slug: 'zeca', nome: 'Zeca' }, { slug: 'ana', nome: 'Ana' }]));
+    conferir('nas apagadas, por PROFESSOR, a ordem é a do nome e CONTRARIA a da data',
+      JSON.stringify(porProfessorTrocado) === JSON.stringify(['tarde', 'cedo']), porProfessorTrocado);
+    conferir('…e o mesmo par, sem ordem pedida, sai na ordem da data (a mais recente primeiro)',
+      JSON.stringify(porProfessor) === JSON.stringify(['cedo', 'tarde']), porProfessor);
+
+    const porData = primeirasCelulas(painelTabelaDeEscolas([
+      { slug: 'tarde', professor: 'zeca', criada_em: '2026-10-20T10:00:00Z', expurgada: true, expurgada_em: '2026-10-21T10:00:00Z' },
+      { slug: 'cedo', professor: 'ana', criada_em: '2026-10-10T10:00:00Z', expurgada: true, expurgada_em: '2026-10-22T10:00:00Z' },
+    ], 'apagadas', null, []));
+    conferir('…e sem ordem pedida, a lista continua a ser a da data de saída (a mais recente primeiro)',
+      JSON.stringify(porData) === JSON.stringify(['cedo', 'tarde']), porData);
+
+    // O HTTP: os cabeçalhos dizem a ordem em vigor, e a ordem repetida não é clique.
+    const porEscolasHttp = await semRede(async () => (await pedir(envComAssets(), '/professores?ordem=escolas')).text());
+    conferir('o cabeçalho passa a dizer que a ordem EM VIGOR é a das escolas',
+      /<th aria-sort="ascending">Escolas vivas<\/th>/.test(porEscolasHttp), null);
+    conferir('…e «Nome» volta a ser ligação (a ordem repetida não se clica)',
+      /<th aria-sort="none"><a href="\/professores\?ordem=nome" title="Ordenar por nome">Nome<\/a><\/th>/.test(porEscolasHttp), null);
+
+    const apagadasPorProfessor = await semRede(async () => (await pedir(envComAssets(), '/escolas-apagadas?ordem=professor')).text());
+    const vivasPorProfessor = await semRede(async () => (await pedir(envComAssets(), '/escolas-vivas?ordem=professor')).text());
+    conferir('as apagadas dizem que ordenam por professor',
+      /<th aria-sort="ascending">Professores<\/th>/.test(apagadasPorProfessor), null);
+    conferir('as vivas dizem que ordenam por professor',
+      /<th aria-sort="ascending">Professor<\/th>/.test(vivasPorProfessor), null);
+    conferir('uma ordem desconhecida cai na padrão, e não dá 400',
+      (await semRede(async () => (await pedir(envComAssets(), '/professores?ordem=xpto')).status)) === 200, null);
+  }
 
   // ── 7. o registo abre com UMA leitura ──────────────────────────────────────
   const registro = await semRede(async (chamadas) => {
@@ -344,6 +434,23 @@ async function principais() {
   conferir('ISO sem data devolve null, não «NaN/NaN/NaN»', painel.dia('nada') === null, painel.dia('nada'));
   conferir('a hora é do carimbo, sem converter fuso',
     painel.quando('2026-10-22T10:48:48.104Z'), '22/10/2026 às 10:48');
+}
+
+/** As primeiras células de cada linha de uma tabela — o que se lê na coluna que decide a ordem. */
+function primeirasCelulas(html) {
+  return [...String(html).matchAll(/<tr><td>(?:<strong>)?([^<]*)/g)]
+    .map((m) => m[1].trim())
+    .filter((x, i) => i >= 0);
+}
+
+/** A tabela de professores, exercitada directamente (a rota só muda de onde vem o `ordem`). */
+function painelTabelaDeProfessores(professores, escolas, ordem) {
+  return painel.tabelaDeProfessores(professores, escolas, ordem);
+}
+
+/** A tabela de escolas, idem. */
+function painelTabelaDeEscolas(escolas, modo, ordem, professores) {
+  return painel.tabelaDeEscolas(escolas, modo, ordem, professores);
 }
 
 /** A tabela de professores com um professor em DUAS escolas vivas — a regra do produto. */

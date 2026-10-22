@@ -482,6 +482,42 @@ function professorVinculadoA(usos, p) {
   return usos.professores.has(nome) || usos.professores.has(slug);
 }
 
+/**
+ * O PROFESSOR ESTÁ CURADO? (22/10/2026) — a outra metade da regra do «livre».
+ *
+ * A dona do produto descreveu o estado assim: «eu tenho um professor criado, não tenho curadoria —
+ * ele é livre. Eu tenho um professor criado, ele está na curadoria — não posso mexer naquele
+ * professor. Eu removo a curadoria, aí eu posso mexer. Eu tenho curadoria e plano de ensino — não
+ * posso mais mexer na curadoria e não posso mais mexer no professor.»
+ *
+ * Ou seja: ser curado já trava o PROFESSOR (nome e exclusão), mesmo sem plano. E é reversível, ao
+ * contrário do plano: enquanto a curadoria não gerou plano de ensino, a própria curadoria pode ser
+ * removida (`curadoriaVinculadaA`) — e com ela sai o travamento. Depois do plano, as duas coisas
+ * ficam presas, que é a regra de proveniência de sempre.
+ *
+ * O par (professor, turma) NÃO importa aqui: a pergunta é sobre a PESSOA. Um professor curado para
+ * uma turma é um professor com trabalho atribuído, e o nome dele já vai nos documentos dessa
+ * curadoria.
+ *
+ * `null` (não deu para ler a lista) conta como curado, pela mesma razão do plano: na dúvida, não
+ * se mexe.
+ */
+function professorCurado(curs, p) {
+  if (!Array.isArray(curs)) return true;
+  const nome = String((p && p.nome) || '').trim();
+  const slug = slugDoProfessor(p) || slugificar(nome);
+  return curs.some((c) => {
+    if (!c) return false;
+    const de = String(c.professor || '').trim();
+    return de !== '' && (de === nome || de === slug || slugificar(de) === slug);
+  });
+}
+
+/** O professor está PRESO: curado, ou já num plano de ensino. É o que impede mexer nele. */
+function professorPreso(curs, usos, p) {
+  return professorCurado(curs, p) || professorVinculadoA(usos, p);
+}
+
 /** As turmas de uma curadoria, lidas dos DOIS formatos: o novo (`turma`, um nome) e o antigo
  *  (`turmas`, uma lista — que os registos já gravados têm). */
 function turmasDaCuradoria(c) {
@@ -1442,6 +1478,16 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       'title="Filtrar a listagem de Turmas: ' + esc(nomes) + '">' +
       'turmas · ' + esc(nomes) + '</button></span>';
   };
+  /*
+   * O PRINCIPAL TAMBÉM FICA PRESO (22/10/2026). A regra vale para ele como para qualquer um:
+   * enquanto é livre, o nome corrige-se; curado ou com plano, não. O botão não desaparece —
+   * fica desabilitado com o motivo no `title`, que é o padrão que o «Excluir» já usa nesta
+   * lista: um controle apagado sem explicação é o pior dos mundos.
+   */
+  const oDonoComoProfessor = { nome: donoNome || '', slug: donoSlug };
+  const donoCurado = professorCurado(curs, oDonoComoProfessor);
+  const presoPorProveniencia = donoCurado || professorVinculadoA(usos, oDonoComoProfessor);
+  const motivoDoPreso = professorVinculadoA(usos, oDonoComoProfessor) ? 'plano de ensino' : 'curadoria';
   const linhasProfs = [];
   if (donoNome) {
     // A LINHA DO DONO PERDEU O SLUG (18/10/2026). Ele era mostrado «para o dono não
@@ -1457,7 +1503,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
       '<span class="nome">' + linhaDoNome(donoNome) +
       '<span class="dono">principal</span></span>' +
       colunaDeTurmas(turmasDoProfessor.get(String(donoSlug || '').trim()), donoNome, 'pessoa') +
-      '<span class="acoes"><button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do professor principal">Editar</button></span>' +
+      '<span class="acoes">' + (presoPorProveniencia
+        ? '<button class="acao secundario pequena" disabled title="' + esc(
+          'O nome não se muda: ele já vai nos documentos (' + motivoDoPreso + '). Enquanto a ' +
+          'curadoria não gerar plano de ensino, é ela que se remove — e aí o nome volta a poder ' +
+          'ser corrigido.') + '">Editar</button>'
+        : '<button class="editar acao pequena" data-tipo="dono" data-alvo="' + esc(donoNome) + '" title="Editar o nome do professor principal">Editar</button>') +
+      '</span>' +
       '</li>');
   }
   for (const p of profs) {
@@ -1475,10 +1527,17 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A REGRA DE PROVENIÊNCIA, IGUAL À DA CURADORIA (18/10/2026): enquanto o professor não
     // estiver em nenhum plano de ensino ele é LIVRE (e pode ser excluído); depois, ele é
     // VINCULADO — apagá-lo deixaria o plano a apontar para quem já não existe.
-    const profPreso = professorVinculadoA(usos, p);
-    const seloProf = profPreso
+    // O SELO DIZ O ESTADO INTEIRO (22/10/2026). Antes ele só conhecia o plano de ensino, e um
+    // professor CURADO aparecia como «livre» — com o «Excluir» à vista, que o servidor recusaria.
+    // Um selo que promete o que a guarda não cumpre é pior do que nenhum.
+    const curado = professorCurado(curs, p);
+    const noPlano = professorVinculadoA(usos, p);
+    const profPreso = curado || noPlano;
+    const seloProf = noPlano
       ? '<span class="selo vinculada" title="este professor já está num plano de ensino; apagá-lo romperia a proveniência">vinculado</span>'
-      : '<span class="selo livre" title="este professor ainda não está em nenhum plano de ensino">livre</span>';
+      : curado
+        ? '<span class="selo vinculada" title="este professor já está numa curadoria; enquanto a curadoria não gerar plano de ensino, remova a curadoria para poder mexer nele">curado</span>'
+        : '<span class="selo livre" title="este professor ainda está livre: não está em curadoria nem em plano de ensino">livre</span>';
     // AS TURMAS DO PROFESSOR: pelo slug do cadastro e, como o plano pode ter gravado o nome
     // em vez do slug, também pelo slug do nome. As duas chaves descrevem a mesma pessoa.
     const turmasDele = turmasDoProfessor.get(slug) || turmasDoProfessor.get(slugificar(p.nome)) || [];
@@ -4926,15 +4985,28 @@ async function fetch(request, env) {
         erro: 'este é o professor dono da escola (criado na página) — ajuste o nome, não o exclua',
       });
     }
-    // PROVENIÊNCIA (18/10/2026): a guarda é AQUI, e não só no botão. A tela esconde o
-    // «Excluir» de quem está vinculado; esta linha é a regra para um pedido forjado.
+    /*
+     * PROVENIÊNCIA: a guarda é AQUI, e não só no botão. A tela esconde o «Excluir» de quem está
+     * preso; esta linha é a regra para um pedido forjado.
+     *
+     * E «PRESO» TEM DUAS PORTAS (22/10/2026): o PLANO DE ENSINO — que já era a regra desde
+     * 18/10/2026 — e a CURADORIA. A dona do produto foi explícita: «se o professor tá curado, ele
+     * não pode mais ser removido. Eu removo a curadoria, aí eu posso mexer naquele professor.»
+     * Antes desta linha, um professor curado mas ainda sem plano podia ser apagado — e a curadoria
+     * ficava a apontar para quem já não existia.
+     */
     const usos = await usosDosPlanos(env, escola);
-    if (professorVinculadoA(usos, lista[idx])) {
+    const curs = await curadorias(kv, escola);
+    if (professorPreso(curs, usos, lista[idx])) {
+      const porCuradoria = professorCurado(curs, lista[idx]);
       return json(409, {
         ok: false,
-        erro: 'o professor «' + lista[idx].nome + '» já está num plano de ensino — apagá-lo ' +
-          'romperia a proveniência. O registro fica; se o nome estiver errado, ajuste-o.',
+        erro: 'o professor «' + lista[idx].nome + '» NÃO se exclui: ele '
+          + (porCuradoria ? 'já está numa curadoria' : 'já está num plano de ensino')
+          + ' — apagá-lo romperia a proveniência. Enquanto a curadoria não gerar plano de ensino, '
+          + 'é ela que se remove; aí ele volta a poder ser excluído.',
         vinculado: true,
+        motivo: porCuradoria ? 'curadoria' : 'plano',
       });
     }
     /*
@@ -5012,11 +5084,77 @@ async function fetch(request, env) {
     }
     const nome = String(corpo.nome || '').trim();
     if (!nome) return json(400, { ok: false, erro: 'informe o nome do dono da escola' });
-    if (!String((env && env.PROFESSOR_NOME) || '').trim()) {
+    if (!String((env && env.PROFESSOR_NOME) || '').trim() && !String((env && env.PROFESSOR_SLUG) || '').trim()) {
       return json(409, { ok: false, erro: 'não há professor dono (criado na página) para ajustar' });
     }
+
+    /*
+     * O NOME SÓ SE MUDA ENQUANTO O PROFESSOR É LIVRE (22/10/2026).
+     *
+     * A regra, dita pela dona do produto: «professor criado, sem curadoria — é livre. Ele está na
+     * curadoria — não posso mexer naquele professor. Removo a curadoria — posso mexer. Curadoria e
+     * plano de ensino — não posso mexer em nenhum dos dois.» O motivo é o de sempre: o nome do
+     * professor viaja nos documentos (PO, plano, pacotes), e trocá-lo depois de a memória existir
+     * faria o mesmo ato aparecer com dois autores.
+     *
+     * O ESTADO É O MESMO QUE A TELA USA. `curs` (as curadorias) e `usos` (os planos) são as duas
+     * leituras que a Produção já faz para decidir entre «livre» e «vinculado» — a guarda do
+     * servidor não inventa uma terceira. `null` (leitura que falhou) conta como preso.
+     */
+    const curs = await curadorias(kv, escola);
+    const usos = await usosDosPlanos(env, escola);
+    const comoProfessor = { nome: await nomeDoDono(env, kv, escola), slug: slugDoDono(env) };
+    if (professorPreso(curs, usos, comoProfessor)) {
+      return json(409, {
+        ok: false,
+        erro: 'o nome do professor «' + (comoProfessor.nome || comoProfessor.slug) + '» não se muda: ele já '
+          + (professorVinculadoA(usos, comoProfessor) ? 'está num plano de ensino' : 'está numa curadoria')
+          + '. O nome dele já vai nos documentos, e trocá-lo agora faria o mesmo trabalho aparecer '
+          + 'com dois autores. Enquanto a curadoria não gerar plano de ensino, é ela que se remove — '
+          + 'e aí o nome volta a poder ser corrigido.',
+        vinculado: true,
+        motivo: professorVinculadoA(usos, comoProfessor) ? 'plano' : 'curadoria',
+      });
+    }
+
+    /*
+     * GRAVA-SE NOS DOIS LUGARES, e os dois têm papéis distintos. O KV é a sobreposição que ESTA
+     * escola lê (a página da Produção, sem esperar pelo índice). O inventário é a fonte do acervo:
+     * é dele que a lista de professores do painel tira o nome, e sem esta escrita o nome mudava na
+     * página da escola e ficava o antigo na lista — medido.
+     *
+     * A ORDEM É A DO CADASTRO: o repositório primeiro. Se ele recusar, o nome não mudou em lugar
+     * nenhum e a resposta diz por quê — não há estado em que a escola leia um nome e o acervo outro.
+     */
+    const { registrarNomeDoProfessor } = require('./repo-escola.js');
+    const slug = slugDoDono(env);
+    let noRepo;
+    try {
+      noRepo = await registrarNomeDoProfessor({
+        token: env && env.GITHUB_TOKEN,
+        dono: 'tmenegaz',
+        repo: 'danca',
+        ref: 'main',
+        escola,
+        professor: slug,
+        nome,
+      });
+    } catch (err) {
+      return json(502, {
+        ok: false,
+        erro: 'o nome do professor «' + (comoProfessor.nome || slug) + '» NÃO foi mudado: o repositório '
+          + 'recusou a gravação (' + ((err && err.message) || String(err)) + '). Nada mudou — a escola '
+          + 'continua a ler o nome antigo, e o painel também.',
+      });
+    }
+
     await kv.put(RAIZ + '/' + escola + '/dono', JSON.stringify({ nome }));
-    return json(200, { ok: true, dono: nome });
+    return json(200, {
+      ok: true,
+      dono: nome,
+      slug,
+      repositorio: { commit: noRepo.commit, jaConstava: noRepo.jaExistia === true },
+    });
   }
 
   // ---------------------------------------------------------------------------

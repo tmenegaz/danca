@@ -22672,3 +22672,69 @@ no `PATCH` da referência não derruba a exclusão. `provar-estrutura-ao-criar-p
 **O dado que faltava, pelo mesmo caminho.** O vínculo do `meia-cortada` com a `batata` foi gravado
 por `registrarProfessorNaEscola` — a função do mecanismo, não uma edição do inventário —, e a
 partir de agora o caminho que a usa já relê em vez de desistir.
+
+## 22/10/2026 — O nome do professor, as quatro ordenações, e o que é «livre»
+
+**A coluna que faltava.** «Eu preciso de uma coluna anterior que é o nome do professor. Eu preciso
+saber o nome real.» A tabela dos professores passa a ter **Nome** (o nome registado, em destaque),
+**Pasta** (o slug, em `<code>` — é o identificador, não o nome) e **Escolas vivas**. A ausência é
+dita, não disfarçada: quando nenhum inventário guarda o nome — professor antigo, de uma escola cujo
+KV já foi expurgado — a célula mostra o selo `sem nome registado`, com o motivo no `title`, em vez
+de repetir o slug na coluna do nome. Medido na árvore: 6 dos 12 professores têm nome registado;
+os outros 6 têm o nome só no KV da escola, que já não existe.
+
+**E o nome passa a ser gravado onde o painel o lê.** Editar o nome do principal escrevia só no KV
+(`bastidores/<escola>/dono`) — a sobreposição que aquela escola lê. O painel lê o **repositório**
+(uma requisição, sem KV), e por isso o nome mudava na página da escola e ficava o antigo na lista.
+Agora `/api/bastidores/dono` grava nos **dois** lugares, e o repositório primeiro: o inventário
+recebe o nome no responsável (`professor.nome`) e na linha do vínculo (`professores[]`), e quem não
+estava declarado em nenhum dos dois entra. Se o repositório recusar, nada mudou em lado nenhum
+(502, com o motivo) — a escola e o acervo nunca leem nomes diferentes.
+
+**Duas ordenações passaram a quatro.** `/professores` ordena por **Nome** e por **Escolas vivas**;
+`/escolas-vivas` e `/escolas-apagadas` ordenam por **professor**. É o cabeçalho da coluna que
+ordena, com `aria-sort` a dizer a ordem em vigor e a coluna em vigor **sem** ligação (repetir a
+mesma ordem seria um clique que não faz nada). A ordem é feita no servidor, com `?ordem=`: nenhum
+estado no navegador, nenhuma segunda implementação da ordenação em JavaScript. A ordem padrão
+continua a ser a data — é o que estas listas respondem primeiro. Uma ordem desconhecida cai na
+padrão, e não dá 400.
+
+**E as listas de escolas deixaram de mostrar o slug.** A coluna «Professor» traduz o slug para o
+nome quando o índice o conhece (o mapa sai do acervo que a rota já leu — nenhuma requisição a
+mais); sem nome registado, fica o slug, que é o que se sabe de quem identifica a pessoa.
+
+**Um defeito que a coluna destapou.** O `sapo-bailarino` aparecia sem nome, embora «Sapo Bailarino»
+esteja em três inventários. A causa: o nome era gravado na **primeira** escola que mencionava o
+professor, e a `batata` (que o menciona num ciclo, sem nome) vem antes da `breu` e da `calango` (que
+o registam). A primeira vencia mesmo quando não sabia nada. Agora o nome que falta é preenchido por
+quem o saiba — `VERSAO = 5`, e o incremento é o que invalida o cache do KV.
+
+**A regra do «livre», confirmada e completada.** A dona do produto descreveu os quatro estados:
+criado e sem curadoria é livre; na curadoria não se mexe no professor; removida a curadoria volta a
+poder mexer-se; com curadoria **e** plano não se mexe em nenhum dos dois. O código tinha metade: a
+exclusão era travada pelo **plano** (`professorVinculadoA`), e não pela **curadoria** — um
+professor curado mas sem plano podia ser apagado, deixando a curadoria a apontar para quem já não
+existia. Agora `professorCurado` é a outra metade, e `professorPreso` é a conjunção:
+
+- **editar o nome** (`/api/bastidores/dono`): recusado com 409 quando preso, com o motivo (plano ou
+  curadoria) e o caminho de volta escrito na mensagem;
+- **excluir** (`DELETE`): recusado com 409 quando preso, e o motivo é o mesmo;
+- **a tela**: o «Editar» do principal fica desabilitado com o motivo no `title` (o padrão que o
+  «Excluir» já usa), e o selo da linha passa a saber três estados — `livre`, `curado`, `vinculado`.
+  Antes, um professor curado aparecia como «livre» com o «Excluir» à vista, que o servidor
+  recusaria: um selo que promete o que a guarda não cumpre é pior do que nenhum.
+
+O que **continua** a poder ser removido é a curadoria de quem ainda não gerou plano
+(`curadoriaVinculadaA`, que só olha pares (professor, turma) declarados por um plano) — e é isso
+que torna o travamento reversível, exactamente como a dona do produto descreveu.
+
+**Conferido.** `provar-painel` com 15 asserções novas (a coluna «Nome» antes da pasta; o selo no
+lugar do slug; as duas ordens dos professores e a ordem das duas listas, exercitadas com dados em
+que as ordens **dão resultados diferentes** — com dados em que dão o mesmo, a prova passaria sem
+provar nada; `aria-sort`; ordem desconhecida → 200). `provar-apagar-professor-livre` de 32 para
+**48**: os quatro estados percorridos no servidor (livre edita e grava no inventário; curado recusa
+com 409 e **nada** é escrito; curadoria de outra pessoa não trava; com plano o motivo é o plano;
+curado não se exclui; removida a curadoria tudo volta). `provar-editar-professor-principal` de 26
+para **30**, no Chrome: com o principal curado, o «Editar» não é clicável, fica desabilitado com o
+motivo, e a linha continua a dizer «principal». `provar-producao` 135/135, `check-identidade` 20/20,
+`check-indices` 14/14.
