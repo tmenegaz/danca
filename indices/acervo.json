@@ -48,13 +48,13 @@
         "ciclo:tela-de-celular/01/batata"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": false,
@@ -72,7 +72,9 @@
         "tela-de-celular",
         "tiago-menegaz"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261022-1034"
+      ],
       "slug": "batata"
     },
     {
@@ -282,7 +284,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -409,13 +417,19 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "553c3f6"
+    "commit": "4163216"
   },
-  "gerado_em": "2026-10-22T13:30",
+  "gerado_em": "2026-10-22T13:34",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -70,13 +70,13 @@
       "ciclo:tela-de-celular/01/batata"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -94,11 +94,22 @@
       "tela-de-celular",
       "tiago-menegaz"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261022-1034"
+    ],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261022-1034"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
@@ -113,6 +124,14 @@
       {
         "contagem": 1,
         "ids": [
+          "anamnese:anamnese-20261022-1034"
+        ],
+        "rotulo": "acucar-branco",
+        "valor": "acucar-branco"
+      },
+      {
+        "contagem": 1,
+        "ids": [
           "ciclo:tela-de-celular/01/batata"
         ],
         "rotulo": "tela-de-celular",
@@ -120,6 +139,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261022-1034"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -132,9 +159,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "553c3f6"
+    "commit": "4163216"
   },
-  "gerado_em": "2026-10-22T13:30",
+  "gerado_em": "2026-10-22T13:34",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -157,6 +184,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261022-1034",
+      "ciclo": "01",
+      "data": "2026-10-22T10:34",
+      "id": "anamnese:anamnese-20261022-1034",
+      "professor": "acucar-branco",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 5
 }
