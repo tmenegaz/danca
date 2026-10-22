@@ -392,5 +392,12 @@
       "responsavel": "Oculos Redondo",
       "ciclo": "01"
     }
+  ],
+  "professores": [
+    {
+      "slug": "perna-boa",
+      "nome": "Perna Boa",
+      "desde": "2026-10-22T20:15:54.754Z"
+    }
   ]
 }
