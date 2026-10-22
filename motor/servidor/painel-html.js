@@ -89,9 +89,16 @@ function tabelaDeEscolas(escolas, modo) {
   const recorte = modo || 'todas';
   const lista = (escolas || []).slice()
     .filter((e) => (recorte === 'apagadas' ? e.expurgada : recorte === 'vivas' ? !e.expurgada : true))
+    // AS VIVAS PRIMEIRO, e depois as apagadas da saída mais recente para a mais antiga.
+    //
+    // Não é decoração: o `expurgada_em` de uma escola RECRIADA é a data do expurgo ANTERIOR — o
+    // elo não se reescreve —, e ordenar só por ele punha uma escola viva no meio do histórico,
+    // como se tivesse saído. Medido com a `batata` (expurgada em 21/10, recriada em 22/10): ela
+    // aparecia entre as apagadas, com a data do expurgo antigo na coluna «Apagada».
     .sort((a, b) => {
-      const da = String(a.expurgada_em || '');
-      const db = String(b.expurgada_em || '');
+      if (a.expurgada !== b.expurgada) return a.expurgada ? 1 : -1;
+      const da = String((a.expurgada ? a.expurgada_em : a.criada_em) || '');
+      const db = String((b.expurgada ? b.expurgada_em : b.criada_em) || '');
       if (da === db) return String(a.slug).localeCompare(String(b.slug));
       if (!da) return 1;
       if (!db) return -1;
@@ -121,7 +128,12 @@ function tabelaDeEscolas(escolas, modo) {
       '<td>' + esc(e.professor || '—') + '</td>',
       '<td>' + esc(diaOuTraco(e.criada_em)) + '</td>',
     ];
-    if (recorte !== 'vivas') celulas.push('<td>' + esc(diaOuTraco(e.expurgada_em)) + '</td>');
+    // A DATA DA SAÍDA SÓ EXISTE PARA QUEM SAIU. Numa escola viva, `expurgada_em` é o expurgo
+    // ANTERIOR (ela foi recriada), e escrevê-lo aqui dizia que ela estava apagada — a data certa
+    // para uma viva é o traço. O histórico completo fica no registo, que é onde ele pertence.
+    if (recorte !== 'vivas') {
+      celulas.push('<td>' + esc(e.expurgada ? diaOuTraco(e.expurgada_em) : '—') + '</td>');
+    }
     celulas.push('<td>' + selo + '</td>');
     if (recorte !== 'vivas') {
       celulas.push('<td>' + (e.expurgada

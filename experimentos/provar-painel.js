@@ -198,6 +198,20 @@ async function principais() {
   conferir('o nome da apagada NÃO é link de site',
     !/href="https:\/\/calango\.tmenegaz77\.workers\.dev\/"/.test(home.html), null);
 
+  // A ESCOLA VIVA QUE JÁ FOI EXPURGADA (22/10/2026). A `batata` foi apagada a 21/10 e recriada
+  // a 22/10: o elo guarda o expurgo anterior, e escrevê-lo na coluna «Apagada» dizia que ela
+  // estava apagada. A linha da viva é identificada pelo próprio link do site.
+  const linhaDaViva = (/<tr><td><a href="https:\/\/viva\.tmenegaz771?\.workers\.dev\/">[\s\S]*?<\/tr>/.exec(home.html)
+    || /<tr><td><a href="https:\/\/[^"]*viva[^"]*">[\s\S]*?<\/tr>/.exec(home.html) || [])[0] || '';
+  conferir('a linha da viva existe', linhaDaViva.length > 0, null);
+  conferir('…e a coluna «Apagada» dela é um traço, não a data de um expurgo anterior',
+    /<td>—<\/td>/.test(linhaDaViva), linhaDaViva.slice(0, 200));
+  conferir('as VIVAS vêm antes das apagadas',
+    home.html.indexOf('/workers.dev/">') < home.html.indexOf('Abrir o registo'), null);
+  conferir('as apagadas continuam com a data da saída',
+    /<td>calango<\/td>|<strong>calango<\/strong><\/td><td>[^<]*<\/td><td>19\/10\/2026<\/td><td>22\/10\/2026<\/td>/.test(home.html),
+    null);
+
   // ── 5. o registo abre com UMA leitura (não reconstrói o acervo) ────────────
   const registro = await semRede(async (chamadas) => {
     const r = await pedir(envComAssets(), '/escolas-apagadas/calango');
