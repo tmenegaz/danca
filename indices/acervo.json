@@ -142,7 +142,8 @@
       "nome": "calango",
       "professor": "oculos-redondo",
       "professores": [
-        "oculos-redondo"
+        "oculos-redondo",
+        "perna-boa"
       ],
       "registros": [],
       "slug": "calango"
@@ -371,6 +372,11 @@
         "valor": "oculos-redondo"
       },
       {
+        "contagem": 1,
+        "rotulo": "Perna Boa",
+        "valor": "perna-boa"
+      },
+      {
         "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
@@ -405,9 +411,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0263050"
+    "commit": "5fcffe9"
   },
-  "gerado_em": "2026-10-22T20:12",
+  "gerado_em": "2026-10-22T20:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -491,6 +497,15 @@
       "id": "professor:oculos-redondo",
       "nome": "Oculos Redondo",
       "slug": "oculos-redondo"
+    },
+    {
+      "ciclos": [],
+      "escolas": [
+        "calango"
+      ],
+      "id": "professor:perna-boa",
+      "nome": "Perna Boa",
+      "slug": "perna-boa"
     },
     {
       "ciclos": [],

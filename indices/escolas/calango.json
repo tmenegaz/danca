@@ -63,7 +63,8 @@
     "nome": "calango",
     "professor": "oculos-redondo",
     "professores": [
-      "oculos-redondo"
+      "oculos-redondo",
+      "perna-boa"
     ],
     "registros": [],
     "slug": "calango"
@@ -103,9 +104,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "0263050"
+    "commit": "5fcffe9"
   },
-  "gerado_em": "2026-10-22T20:12",
+  "gerado_em": "2026-10-22T20:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
