@@ -1,38 +1,5 @@
 {
-  "ciclos": [
-    {
-      "ancora": {
-        "hash": "efbc30f293237315150fb0dadfca5abf6715e27bc5bdc4456d9ef26f3b2f4a53",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 1,
-      "documentos": 16,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:acucar-branco/01/batata",
-      "numero": "01",
-      "professor": "acucar-branco",
-      "sem_ancora": false
-    },
-    {
-      "ancora": {
-        "hash": "b4a3d2bea5f370f28dab1c96e708207ec8bed08d63d41537f8bed4a42bd70d0d",
-        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
-        "lida": true,
-        "parent_hash": ""
-      },
-      "aulas": 0,
-      "documentos": 5,
-      "escola": "batata",
-      "estado": "ancorado",
-      "id": "ciclo:tela-de-celular/01/batata",
-      "numero": "01",
-      "professor": "tela-de-celular",
-      "sem_ancora": false
-    }
-  ],
+  "ciclos": [],
   "escolas": [
     {
       "ciclos": [],
@@ -60,24 +27,21 @@
       "slug": "barra"
     },
     {
-      "ciclos": [
-        "ciclo:acucar-branco/01/batata",
-        "ciclo:tela-de-celular/01/batata"
-      ],
+      "ciclos": [],
       "contagens": {
-        "anamneses": 1,
-        "aulas": 1,
-        "ciclos": 2,
-        "ciclos_com_ancora": 2,
-        "planos": 2,
-        "pos": 2,
-        "registros": 5
+        "anamneses": 0,
+        "aulas": 0,
+        "ciclos": 0,
+        "ciclos_com_ancora": 0,
+        "planos": 0,
+        "pos": 0,
+        "registros": 0
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": false,
-      "expurgada_em": "2026-10-21T17:07:19.223Z",
-      "expurgos": 3,
-      "habilitada": true,
+      "expurgada": true,
+      "expurgada_em": "2026-10-22T19:32:56.536Z",
+      "expurgos": 4,
+      "habilitada": false,
       "id": "escola:batata",
       "nome": "batata",
       "professor": "tiago-menegaz",
@@ -89,13 +53,7 @@
         "tela-de-celular",
         "tiago-menegaz"
       ],
-      "registros": [
-        "anamnese:anamnese-20261022-1034",
-        "plano:plano-20261022-1036",
-        "plano:plano-20261022-1124",
-        "po:po-20261022-1039",
-        "po:po-20261022-1108"
-      ],
+      "registros": [],
       "slug": "batata"
     },
     {
@@ -305,13 +263,7 @@
     }
   ],
   "filtros": {
-    "anos": [
-      {
-        "contagem": 5,
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "escolas": [
       {
         "contagem": 1,
@@ -364,13 +316,7 @@
         "valor": "valse"
       }
     ],
-    "estados": [
-      {
-        "contagem": 2,
-        "rotulo": "Com âncora",
-        "valor": "ancorado"
-      }
-    ],
+    "estados": [],
     "professores": [
       {
         "contagem": 1,
@@ -438,29 +384,13 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": [
-      {
-        "contagem": 1,
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
-      {
-        "contagem": 2,
-        "rotulo": "Plano de ensino",
-        "valor": "plano"
-      },
-      {
-        "contagem": 2,
-        "rotulo": "Plano de observação",
-        "valor": "po"
-      }
-    ]
+    "tipos": []
   },
   "fonte": {
     "arvore": null,
-    "commit": "3a5de5f"
+    "commit": "798cbee"
   },
-  "gerado_em": "2026-10-22T14:58",
+  "gerado_em": "2026-10-22T19:33",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -485,9 +415,7 @@
   ],
   "professores": [
     {
-      "ciclos": [
-        "ciclo:acucar-branco/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
@@ -569,9 +497,7 @@
       "slug": "teclado-abnt"
     },
     {
-      "ciclos": [
-        "ciclo:tela-de-celular/01/batata"
-      ],
+      "ciclos": [],
       "escolas": [
         "batata"
       ],
