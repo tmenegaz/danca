@@ -357,6 +357,11 @@
         "valor": "leticia"
       },
       {
+        "contagem": 0,
+        "rotulo": "meia-cortada",
+        "valor": "meia-cortada"
+      },
+      {
         "contagem": 1,
         "rotulo": "murisoca-baiana",
         "valor": "murisoca-baiana"
@@ -401,9 +406,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "d638b24"
+    "commit": "3991f9c"
   },
-  "gerado_em": "2026-10-22T12:15",
+  "gerado_em": "2026-10-22T12:39",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -451,6 +456,13 @@
       "id": "professor:leticia",
       "nome": "Letícia",
       "slug": "leticia"
+    },
+    {
+      "ciclos": [],
+      "escolas": [],
+      "id": "professor:meia-cortada",
+      "nome": null,
+      "slug": "meia-cortada"
     },
     {
       "ciclos": [],
