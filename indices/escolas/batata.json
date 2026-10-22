@@ -325,8 +325,8 @@
       "ciclos": 2,
       "ciclos_com_ancora": 2,
       "planos": 1,
-      "pos": 1,
-      "registros": 3
+      "pos": 2,
+      "registros": 4
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -347,18 +347,20 @@
     "registros": [
       "anamnese:anamnese-20261022-1034",
       "plano:plano-20261022-1036",
-      "po:po-20261022-1039"
+      "po:po-20261022-1039",
+      "po:po-20261022-1108"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261022-1034",
           "plano:plano-20261022-1036",
-          "po:po-20261022-1039"
+          "po:po-20261022-1039",
+          "po:po-20261022-1108"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -377,12 +379,13 @@
     ],
     "professores": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261022-1034",
           "ciclo:acucar-branco/01/batata",
           "plano:plano-20261022-1036",
-          "po:po-20261022-1039"
+          "po:po-20261022-1039",
+          "po:po-20261022-1108"
         ],
         "rotulo": "acucar-branco",
         "valor": "acucar-branco"
@@ -423,9 +426,10 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "po:po-20261022-1039"
+          "po:po-20261022-1039",
+          "po:po-20261022-1108"
         ],
         "rotulo": "Plano de observação",
         "valor": "po"
@@ -434,9 +438,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "f855d5c"
+    "commit": "ab0c627"
   },
-  "gerado_em": "2026-10-22T13:56",
+  "gerado_em": "2026-10-22T14:08",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -489,6 +493,16 @@
       "ciclo": "01",
       "data": "2026-10-22T10:39",
       "id": "po:po-20261022-1039",
+      "professor": "acucar-branco",
+      "tipo": "po"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261022-1108",
+      "ciclo": "01",
+      "data": "2026-10-22T11:08",
+      "id": "po:po-20261022-1108",
       "professor": "acucar-branco",
       "tipo": "po"
     }
