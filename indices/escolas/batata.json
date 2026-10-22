@@ -110,14 +110,15 @@
       "ancora": {
         "algoritmo": "SHA-256",
         "ancorado_em": "2026-10-22",
-        "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
+        "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
         "cobertura": [
-          "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+          "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+          "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
           "professores/tela-de-celular/ciclos/ciclo-01.conf"
         ],
-        "hash": "05a0e7af28e7cdcb6cce5bff2b45989cc9645451f42404105a498805d71373a8",
-        "hash_conteudo": "da1a7e5e3ca9f739f2c24a3900427e9b77f331c8b42f8a853b9ddbe959a5c673",
-        "id": "ciclo-01-batata",
+        "hash": "b4a3d2bea5f370f28dab1c96e708207ec8bed08d63d41537f8bed4a42bd70d0d",
+        "hash_conteudo": "557a75d954077766151fb40e6bdadc0684e6d9f53a1837406dc88b5dc3d6cfdd",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
       },
@@ -125,9 +126,9 @@
       "documentos": [
         "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
         "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+        "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
         "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
-        "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
-        "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
+        "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp"
       ],
       "escola": "batata",
       "estado": "ancorado",
@@ -139,8 +140,7 @@
       "tipos": [
         "ancora",
         "manifesto",
-        "plano",
-        "schema"
+        "plano"
       ]
     }
   ],
@@ -164,7 +164,16 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-batata",
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
+      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "ciclo_id": "ciclo:tela-de-celular/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.fipp",
+      "professor": "tela-de-celular",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -254,7 +263,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-batata",
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -263,7 +272,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-batata",
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -290,7 +299,7 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": "ciclo-01-batata",
+      "ancora_id": "ciclo-01-batata-bale-nivel-1-teste-2",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -323,15 +332,6 @@
       "escola": "batata",
       "id": "documento:schema:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/envelope/elicitacao-schema.json",
       "professor": "acucar-branco",
-      "tipo": "schema"
-    },
-    {
-      "ancora_id": "ciclo-01-batata",
-      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "ciclo_id": "ciclo:tela-de-celular/01/batata",
-      "escola": "batata",
-      "id": "documento:schema:professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
-      "professor": "tela-de-celular",
       "tipo": "schema"
     }
   ],
@@ -463,9 +463,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "00743cf"
+    "commit": "3a5de5f"
   },
-  "gerado_em": "2026-10-22T14:24",
+  "gerado_em": "2026-10-22T14:58",
   "nao_indexado": [
     {
       "familia": "conteudo",

@@ -18,8 +18,8 @@
     },
     {
       "ancora": {
-        "hash": "05a0e7af28e7cdcb6cce5bff2b45989cc9645451f42404105a498805d71373a8",
-        "id": "ciclo-01-batata",
+        "hash": "b4a3d2bea5f370f28dab1c96e708207ec8bed08d63d41537f8bed4a42bd70d0d",
+        "id": "ciclo-01-batata-bale-nivel-1-teste-2",
         "lida": true,
         "parent_hash": ""
       },
@@ -458,9 +458,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "00743cf"
+    "commit": "3a5de5f"
   },
-  "gerado_em": "2026-10-22T14:24",
+  "gerado_em": "2026-10-22T14:58",
   "nao_indexado": [
     {
       "familia": "conteudo",
