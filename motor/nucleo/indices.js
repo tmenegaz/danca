@@ -37,7 +37,9 @@
 // campo novo chegaria vazio à tela, sem erro nenhum.
 //
 //   2 (22/10/2026) — `expurgada_em` e `expurgos` na escola: a data da saída, para o painel.
-const VERSAO = 2;
+//   3 (22/10/2026) — `escola.professores` passa a incluir os professores que o ELO prova: numa
+//       escola expurgada, os ciclos já não existem e só o professor do inventário sobrava.
+const VERSAO = 3;
 
 // AS FAMÍLIAS QUE O ÍNDICE CONHECE. É o vocabulário mínimo que o acervo tem HOJE; um tipo novo
 // entra aqui quando existir um arquivo que lhe corresponda — não antes (a regra do §4.1: não
@@ -391,8 +393,39 @@ function construir(entrada) {
     const meusRegistros = registrosPorEscola[slug] || [];
     const expurgada = !caminhos.some((c) => c === 'wrangler.' + slug + '.jsonc');
     const professorDoInventario = (inv && inv.professor && inv.professor.slug) || null;
+
+    /*
+     * OS PROFESSORES QUE PASSARAM POR ESTA ESCOLA — e o elo sabe mais do que o inventário.
+     *
+     * O inventário guarda UM professor: o que a criação declarou (`escola/<slug>/indice.json` →
+     * `professor`). Numa escola EXPURGADA os ciclos já não existem, e as fontes que diziam quem
+     * mais dava aula ali foram apagadas — ficava só esse um. Medido na `calango`: o inventário
+     * diz `sapo-bailarino`, e os arquivos que o expurgo apagou estavam todos em
+     * `professores/oculos-redondo/` — quer dizer, quem trabalhava na escola era o
+     * `oculos-redondo`, e a lista mostrava o outro.
+     *
+     * A EVIDÊNCIA ESTÁ NO PRÓPRIO ELO, e custa ZERO leitura a mais: `expurgo[].apagado[]` tem os
+     * caminhos que saíram, e um caminho `professores/<slug>/…` é a prova de que aquele professor
+     * tinha fontes desta escola. O inventário inteiro já está em memória quando esta função roda
+     * — é a mesma razão pela qual `expurgada_em` custou zero esta manhã.
+     *
+     * SÓ O QUE É DA ESCOLA. O caminho é `professores/<slug>/ciclos/ciclo-NN-<escola>…`; o filtro
+     * pelo sufixo da escola evita que uma escola herde o professor de outra que partilhe a pasta
+     * (o mesmo professor pode ter ciclos de várias escolas na mesma pasta).
+     */
+    const doElo = new Set();
+    for (const elo of (inv && Array.isArray(inv.expurgo) ? inv.expurgo : [])) {
+      for (const caminho of (elo && Array.isArray(elo.apagado) ? elo.apagado : [])) {
+        const m = /^professores\/([a-z0-9][a-z0-9-]*)\/ciclos\/ciclo-[0-9]{2,}-([a-z0-9][a-z0-9-]*)/.exec(caminho);
+        // O segundo grupo é o nome do ciclo (`<escola>` ou `<escola>-<turma>`), e a escola é o
+        // seu PREFIXO — o separador é o hífen e o sufixo da escola pode ele próprio tê-los.
+        if (m && (m[2] === slug || m[2].startsWith(slug + '-'))) doElo.add(m[1]);
+      }
+    }
+
     const professoresDaEscola = [...new Set(minhaCiclos.map((c) => c.professor)
-      .concat(professorDoInventario ? [professorDoInventario] : []))].sort(porTexto);
+      .concat(professorDoInventario ? [professorDoInventario] : [])
+      .concat([...doElo]))].sort(porTexto);
 
     const comAncora = minhaCiclos.filter((c) => !c.sem_ancora).length;
     escolas.push({

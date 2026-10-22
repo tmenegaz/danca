@@ -22429,3 +22429,38 @@ diferença — foi assim que as três divergências de hoje se resolveram, sem c
 
 **Conferido.** Cinco execuções canceladas e uma de cada que fechou, nos dois workflows; `bash -n`
 nos três arquivos; YAML válido.
+
+## 22/10/2026 — «Escolas do sistema» deixa de ser lista e passa a ser explicação; nasce a lista dos professores
+
+**O que a pesquisadora pediu, e por que muda o desenho.** O bloco «Escolas do sistema» na raiz
+tinha crescido para uma lista dinâmica com os seus próprios botões («ver só as vivas», «ver só as
+apagadas») — e isso duplicava o destino que já existe na coluna da esquerda. O pedido é o inverso:
+o bloco passa a ser **explicação estável** — as duas regras (uma escola tem os seus professores; um
+professor pode estar em mais de uma escola) e uma linha por lista, com o link para cada uma. Quem
+lista são as três páginas, e só elas.
+
+**A terceira lista.** `professores` não é entidade do acervo: é derivada. O índice passa a
+publicá-la com as escolas de cada professor, e a página mostra **só as vivas** — um professor com
+duas escolas vivas sai com as duas ligações separadas por vírgula, que é a razão de a lista existir.
+Quem só tem escola apagada continua a aparecer, com o selo `sem escola viva`: o professor não se
+apaga, e esconder o nome seria perder o rastro.
+
+**De onde vêm os professores de uma escola apagada.** Numa escola expurgada os ciclos já não
+existem, então o inventário só guarda `professor` — o último. Os nomes de quem passou por ali vêm
+do **elo do expurgo**: os caminhos apagados (`professores/<slug>/ciclos/ciclo-NN-<escola>`) provam
+quem tinha fontes na escola. É por isso que a `calango` hoje mostra quatro professores e não um. A
+derivação é a `VERSAO = 3` do `indices.js`; o incremento não é decorativo — é o que invalida o
+cache do KV, e sem ele o campo chegaria vazio à página sem erro nenhum.
+
+**Um defeito que só apareceu ao ligar as duas pontas.** `escolasDoIndice()` copiava os campos que a
+página usava e **descartava** `professores`: a coluna sairia vazia mesmo com o índice certo. O
+teste apanhou-o; a correção é no roteador, não na prova.
+
+**Conferido.** `provar-painel.js` reescrito para a estrutura nova: **77 asserções**, todas verdes —
+o bloco tem as três linhas e os três links e não tem lista nem botões; a raiz faz **zero**
+requisições ao GitHub e abre mesmo sem `acervo.json`; a coluna da esquerda tem os **cinco** destinos;
+`/professores` faz uma leitura, mostra ligação só para as vivas e o selo para quem não tem nenhuma;
+a tabela das apagadas traz a união de professores do elo. E com o índice real da árvore: `calango`
+→ 4 professores, `breu` → 3, `sapo-bailarino` → `batata` (a única viva). `check-identidade` 13
+superfícies / 20 verificações; `check-indices` 14/14 depois de o gerador correr na cópia isolada
+(a versão 3 muda o derivado, e quem o fecha é o `regerar-indices.yml` no push — não à mão).

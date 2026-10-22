@@ -78,7 +78,7 @@ function responderJson(objeto, status) {
  * escola, `criada_em`, `expurgada` e `expurgada_em`. Uma requisição, e o dado é o mesmo que a
  * derivação produz — não uma segunda opinião.
  */
-async function escolasDoIndice({ token }) {
+async function acervoDoIndice({ token }) {
   const texto = await lerArquivo({
     token, dono: DONO, repo: REPO, ref: REF, caminho: 'indices/acervo.json',
   });
@@ -88,10 +88,19 @@ async function escolasDoIndice({ token }) {
   if (!acervo || !Array.isArray(acervo.escolas)) {
     throw new Error('o índice do acervo não trouxe a lista de escolas');
   }
+  return acervo;
+}
+
+/** As escolas, já normalizadas para a tela — o recorte do acervo que as listas usam. */
+async function escolasDoIndice({ token }) {
+  const acervo = await acervoDoIndice({ token });
   return acervo.escolas.map((e) => ({
     slug: e.slug,
     nome: e.nome || e.slug,
     professor: e.professor || null,
+    // TODOS os professores que o elo do expurgo prova — não só o que ficou gravado no
+    // inventário. Numa escola apagada, os ciclos já não existem: é o elo que testemunha.
+    professores: Array.isArray(e.professores) ? e.professores : [],
     criada_em: e.criada_em || null,
     expurgada_em: e.expurgada_em || null,
     expurgada: e.expurgada === true,
@@ -352,6 +361,24 @@ async function fetch(request, env) {
       status: 301,
       headers: { Location: url.pathname === '/painel' ? '/' : '/escolas-apagadas' },
     });
+  }
+
+  // A LISTA DOS PROFESSORES — a terceira, e a que atende «um professor, várias escolas».
+  if (url.pathname === '/professores') {
+    const token = env && env.GITHUB_TOKEN;
+    if (!token) return painel.resposta(painel.paginaSemToken(), 500);
+    try {
+      // UMA leitura do acervo, e dele saem as duas partes: a lista de professores (que o índice
+      // deriva das escolas e dos ciclos) e as escolas, para saber quais estão vivas.
+      const acervo = await acervoDoIndice({ token });
+      return painel.resposta(painel.paginaDosProfessores({
+        professores: acervo.professores || [],
+        escolas: acervo.escolas || [],
+      }));
+    } catch (err) {
+      return painel.resposta(painel.paginaSemToken(
+        'não foi possível ler o índice: ' + ((err && err.message) || String(err))), 500);
+    }
   }
 
   // AS DUAS LISTAS — «só as apagadas» e «só as vivas». A mesma leitura (uma requisição), o
@@ -872,13 +899,17 @@ async function fetch(request, env) {
   // aplicado no topo: nada do ASSETS é servido sem autorização.
   if (env.ASSETS && typeof env.ASSETS.fetch === 'function') {
     // A PÁGINA `/` É O PAINEL (22/10/2026). Ela continua a ser a apresentação versionada — com
-    // os botões «Apagar escola» e «Criar nova escola» —, e a LISTA entra por um marcador que
+    // as ações na coluna da esquerda —, e o bloco «Escolas do sistema» entra por um marcador que
     // `tools/gerar-raiz.sh` preserva (ele regera só o corpo de `.conteudo`, e o marcador está
-    // fora dele). Assim a lista não vive num arquivo que a próxima geração apagaria.
+    // fora dele).
     //
-    // SE A LISTA FALHAR, A PÁGINA VAI ASSIM MESMO — sem o bloco. A apresentação e os dois
-    // botões são o que a raiz mais precisa de continuar a servir: um índice ilegível não pode
-    // tirar do ar a única página que cria escolas. O motivo vai num aviso no lugar da lista.
+    // O BLOCO É ESTÁTICO DESDE 22/10/2026, e por isso esta página DEIXOU DE LER O REPOSITÓRIO.
+    // Ele explica o que cada lista mostra e leva a ela; as listas vivem nas suas páginas, e os
+    // atalhos na coluna das ações. Duas consequências: `/` abre sempre — mesmo com o índice
+    // ilegível ou sem `GITHUB_TOKEN`, que é o que a página que cria escolas precisa; e não há
+    // espera de rede nenhuma para servir a entrada do sistema.
+    //
+    // O ÍNDICE entra depois do bloco porque lê os títulos do HTML já montado.
     if (url.pathname === '/' || url.pathname === '/index.html') {
       const respostaDoAsset = await env.ASSETS.fetch(request);
       const tipo = respostaDoAsset.headers.get('Content-Type') || '';
@@ -886,27 +917,8 @@ async function fetch(request, env) {
       const html = await respostaDoAsset.text();
       if (html.indexOf(painel.MARCADOR) === -1) return respostaDoAsset;
 
-      let bloco = '';
-      const token = env && env.GITHUB_TOKEN;
-      if (!token) {
-        bloco = '<div class="caixa falta"><h2>Não consigo ler o repositório</h2>' +
-          '<p>Falta o <code>GITHUB_TOKEN</code> no Worker da raiz, e sem ele não há lista de ' +
-          'escolas. Criar escola também não vai funcionar até isto ser resolvido.</p></div>';
-      } else {
-        try {
-          bloco = painel.blocoDeEscolas(await escolasDoIndice({ token }));
-        } catch (err) {
-          bloco = '<div class="caixa falta"><h2>Não consegui ler o índice agora</h2>' +
-            '<p>' + painel.esc((err && err.message) || String(err)) + '</p>' +
-            '<p>A apresentação e os botões continuam a funcionar; a lista volta no próximo ' +
-            'carregamento.</p></div>';
-        }
-      }
-      // O ÍNDICE DEPOIS DO BLOCO: ele lê os títulos do HTML já montado, e «Escolas do sistema»
-      // só existe depois da substituição acima. Montado antes, o índice não teria o capítulo da
-      // lista — e um índice que não leva à secção que a pessoa veio ver é pior do que não ter.
-      const comLista = html.replace(painel.MARCADOR, bloco);
-      const comIndice = comLista.replace(painel.MARCADOR_INDICE, painel.indiceDaPagina(comLista));
+      const comBloco = html.replace(painel.MARCADOR, painel.blocoDeEscolas());
+      const comIndice = comBloco.replace(painel.MARCADOR_INDICE, painel.indiceDaPagina(comBloco));
       return new Response(comIndice, {
         status: 200,
         headers: {

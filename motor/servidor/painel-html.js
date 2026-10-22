@@ -72,10 +72,41 @@ function urlDaEscola(slug) {
 }
 
 /**
+ * O NOME de um professor para a tela. O índice guarda `nome` quando o elo da escola o declarou
+ * (`professor: { slug, nome }`) e `null` quando só existe o slug — as escolas antigas nasceram
+ * antes de o elo guardar o nome. `null` não é «sem nome»: é «o nome não foi registado», e a tela
+ * diz isso mostrando o slug, que é a identidade verdadeira.
+ */
+function nomeDoProfessor(p) {
+  return String((p && p.nome) || (p && p.slug) || '');
+}
+
+/**
+ * OS PROFESSORES DE UMA ESCOLA, em ligações separadas por vírgula.
+ *
+ * É a coluna que a dona do produto descreveu: «a gente colocar links para essas escolas separados
+ * por vírgula». Aqui é o inverso — as ESCOLAS de um professor —, mas a forma é a mesma, e por
+ * isso é a mesma função que faz os dois lados.
+ *
+ * `slugDoProfessor` não é passado como opção porque a lista já vem pronta do índice: quem monta
+ * os `slugs` é quem sabe de onde eles vêm (`escola.professores` ou `professor.escolas`).
+ */
+function listaDeLigacoes(slugs, opcoes) {
+  const o = opcoes || {};
+  const itens = (slugs || []).map((slug) => {
+    const rotulo = o.rotulo ? o.rotulo(slug) : slug;
+    return '<a href="' + esc(o.href ? o.href(slug) : urlDaEscola(slug)) + '">' + esc(rotulo) + '</a>';
+  });
+  if (!itens.length) return o.vazio || '—';
+  return itens.join(', ');
+}
+
+/**
  * A LISTA — a tabela das escolas, num dos três recortes.
  *
- *   'todas'    — as vivas e as apagadas, com o registo de cada uma (a página `/`);
- *   'apagadas' — só as que saíram, com a data da saída e o link para o registo;
+ *   'todas'    — as vivas e as apagadas (usada pelo bloco informativo da raiz);
+ *   'apagadas' — só as que saíram, com a data da saída, os professores que passaram por ela e o
+ *                link para o registo;
  *   'vivas'    — só as que existem: nome, professor, criação e estado.
  *
  * É UMA função para as três porque a ordem e o desenho da linha são os mesmos — o que muda é
@@ -123,11 +154,19 @@ function tabelaDeEscolas(escolas, modo) {
     const selo = e.expurgada
       ? '<span class="selo discreto">apagada</span>'
       : '<span class="selo ok">viva</span>';
-    const celulas = [
-      '<td>' + rotulo + '</td>',
-      '<td>' + esc(e.professor || '—') + '</td>',
-      '<td>' + esc(diaOuTraco(e.criada_em)) + '</td>',
-    ];
+
+    const celulas = ['<td>' + rotulo + '</td>'];
+    // O PROFESSOR, um ou vários, e NÃO É LIGAÇÃO DE SITE: uma pessoa não tem subdomínio. O nome
+    // é o que se sabe dela — o slug quando o elo não registou o nome —, e nesta coluna é texto.
+    // (A primeira versão ligava-o a `https://<slug>.workers.dev/`, que não existe: um professor
+    // não é uma escola, e a ligação morria num 404.)
+    if (recorte === 'apagadas') {
+      const nomes = (e.professores || []).join(', ');
+      celulas.push('<td>' + (nomes ? esc(nomes) : '—') + '</td>');
+    } else {
+      celulas.push('<td>' + esc(e.professor || '—') + '</td>');
+    }
+    celulas.push('<td>' + esc(diaOuTraco(e.criada_em)) + '</td>');
     // A DATA DA SAÍDA SÓ EXISTE PARA QUEM SAIU. Numa escola viva, `expurgada_em` é o expurgo
     // ANTERIOR (ela foi recriada), e escrevê-lo aqui dizia que ela estava apagada — a data certa
     // para uma viva é o traço. O histórico completo fica no registo, que é onde ele pertence.
@@ -143,7 +182,13 @@ function tabelaDeEscolas(escolas, modo) {
     return '<tr>' + celulas.join('') + '</tr>';
   };
 
-  const colunas = ['Escola', 'Professor', 'Criada']
+  // AS COLUNAS SEGUEM A LINHA, e a regra é «cada coluna responde a uma pergunta que esta lista
+  // faz». Numa apagada, «Professor» (o do inventário) e «Professores» (os do elo) seriam duas
+  // colunas a disputar o mesmo espaço com dados sobrepostos — fica só a segunda, que é a
+  // completa.
+  const colunas = ['Escola']
+    .concat(recorte === 'apagadas' ? ['Professores'] : ['Professor'])
+    .concat(['Criada'])
     .concat(recorte !== 'vivas' ? ['Apagada'] : [])
     .concat(['Estado'])
     .concat(recorte !== 'vivas' ? ['Registo'] : []);
@@ -155,34 +200,114 @@ function tabelaDeEscolas(escolas, modo) {
 }
 
 /**
- * O BLOCO QUE ENTRA NA PÁGINA DA RAIZ. A `danca` é a apresentação — um arquivo versionado,
- * regerado por `tools/gerar-raiz.sh` —, e a lista não pode viver dentro dele: a próxima geração
- * apagava-a. Ela entra por um marcador, que o Worker substitui em tempo de resposta.
+ * A TABELA DOS PROFESSORES — nome, e as escolas VIVAS onde ele trabalha.
  *
- * O `id` do título é a âncora do ÍNDICE da página (ver `indiceDaPagina`): é por ela que «Escolas
- * do sistema» aparece no «Nesta página», ao lado dos capítulos da apresentação — e por isso o
- * índice tem de ser montado DEPOIS desta substituição.
+ * A REGRA QUE A LISTA TEM DE ATENDER: um professor pode estar em mais de uma escola. Por isso a
+ * segunda coluna é uma LISTA de ligações, e não um valor — e é uma lista separada por vírgula
+ * porque a escala real não justifica mais: um professor com vinte escolas seria um caso, não a
+ * regra, e uma coluna de vinte ligações ainda se lê.
+ *
+ * AS ESCOLAS APAGADAS NÃO ENTRAM AQUI, de propósito: a pergunta desta lista é «onde esta pessoa
+ * trabalha hoje». O histórico dela está do outro lado — na lista das apagadas, que mostra quem
+ * passou por cada escola que já não existe.
+ *
+ * QUEM NÃO TEM ESCOLA VIVA APARECE ASSIM MESMO, com o traço e um selo. Esconder seria pior: o
+ * professor existe, trabalha (ou trabalhou), e uma lista chamada «Professores» que omitisse
+ * metade deles mentiria sobre o que tem.
+ */
+function tabelaDeProfessores(professores, escolas) {
+  const vivas = new Set((escolas || []).filter((e) => !e.expurgada).map((e) => e.slug));
+  const lista = (professores || []).slice().sort((a, b) => {
+    const na = nomeDoProfessor(a).toLowerCase();
+    const nb = nomeDoProfessor(b).toLowerCase();
+    return na < nb ? -1 : na > nb ? 1 : 0;
+  });
+
+  if (!lista.length) {
+    return '<div class="caixa nota">' +
+      '<h2>Nenhum professor</h2>' +
+      '<p>Um professor entra no acervo pela pasta <code>professores/&lt;slug&gt;/</code> e pelos ' +
+      'ciclos que declara. Uma lista vazia quer dizer que nenhum existe.</p>' +
+      '</div>';
+  }
+
+  const linhas = lista.map((p) => {
+    const ativas = (p.escolas || []).filter((s) => vivas.has(s));
+    const escolasCelula = ativas.length
+      ? listaDeLigacoes(ativas, { rotulo: (s) => s })
+      : '<span class="selo discreto">sem escola viva</span>';
+    return '<tr>' +
+      '<td><strong>' + esc(nomeDoProfessor(p)) + '</strong></td>' +
+      '<td><code>' + esc(p.slug) + '</code></td>' +
+      '<td>' + escolasCelula + '</td>' +
+      '</tr>';
+  }).join('');
+
+  return '<table>' +
+    '<thead><tr><th>Professor</th><th>Pasta</th><th>Escolas vivas</th></tr></thead>' +
+    '<tbody>' + linhas + '</tbody>' +
+    '</table>';
+}
+
+/**
+ * O BLOCO QUE ENTRA NA PÁGINA DA RAIZ — agora INFORMATIVO, e estático.
+ *
+ * HISTÓRICO, porque a mudança importa. Ontem este bloco tinha a lista das escolas a crescer, e
+ * dois botões («ver só as vivas», «ver só as apagadas»). Hoje ele é TEXTO: diz o que cada lista
+ * mostra e leva a ela. As listas vivem nas suas próprias páginas, e os atalhos vivem na coluna
+ * das ações — que é o lugar onde se clica, não o meio de um capítulo de apresentação.
+ *
+ * Duas consequências, e as duas são boas:
+ *
+ *   · a página `/` deixou de ler o índice — não há dado nenhum a buscar para responder, logo ela
+ *     não depende do `GITHUB_TOKEN` nem da API do GitHub. Abre sempre, mesmo com o índice
+ *     ilegível, e é a página que cria escolas;
+ *   · o texto pode ser lido e revisto como texto. Uma lista que muda sozinha não se revisa.
+ *
+ * O `id` do título é a âncora do índice da página: é por ele que «Escolas do sistema» aparece no
+ * «Nesta página».
  */
 const MARCADOR = '<div id="escolas-do-sistema"></div>';
 const MARCADOR_INDICE = '<div id="indice-da-pagina"></div>';
 
-function blocoDeEscolas(escolas) {
+function blocoDeEscolas() {
+  // A TABELA É A EXPLICAÇÃO. Três linhas, e cada uma responde «o que mostra» e «onde está» —
+  // em vez de um parágrafo que obriga a procurar o link no meio da prosa.
   return '<h2 id="escolas-do-sistema">Escolas do sistema</h2>' +
-    '<p>As que existem e as que existiram. Uma escola apagada continua aqui: o expurgo tira-a do ' +
-    'ar e do repositório, e deixa o elo — a memória de que ela existiu.</p>' +
-    tabelaDeEscolas(escolas, 'todas') +
-    '<p><a class="acao secundario" href="/escolas-vivas">Ver só as vivas</a> ' +
-    '<a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas</a></p>';
+    '<p>As escolas e os professores são listas separadas, e cada uma responde a uma pergunta ' +
+    'diferente. Duas regras explicam por que são separadas:</p>' +
+    '<ul>' +
+    '<li><strong>uma escola tem os seus professores</strong> — quem dá aula ali;</li>' +
+    '<li><strong>um professor pode estar em mais de uma escola</strong> — a mesma pessoa dá aula ' +
+    'em lugares diferentes, e a pasta dela é uma só.</li>' +
+    '</ul>' +
+    '<table>' +
+    '<thead><tr><th>Lista</th><th>O que mostra</th><th>Onde</th></tr></thead>' +
+    '<tbody>' +
+    '<tr><td><strong>Escolas vivas</strong></td>' +
+    '<td>As escolas que existem agora: o nome (que leva ao site), o professor responsável, a ' +
+    'data de criação e o estado.</td>' +
+    '<td><a href="/escolas-vivas">Ver as escolas vivas</a></td></tr>' +
+    '<tr><td><strong>Escolas apagadas</strong></td>' +
+    '<td>As que foram expurgadas: quando nasceram, quando saíram, os professores que passaram ' +
+    'por elas, e o registo do expurgo — o que saiu do repositório e o que ficou no KV.</td>' +
+    '<td><a href="/escolas-apagadas">Ver as escolas apagadas</a></td></tr>' +
+    '<tr><td><strong>Professores</strong></td>' +
+    '<td>Quem trabalha hoje, e as escolas vivas de cada um — pode haver mais de uma.</td>' +
+    '<td><a href="/professores">Ver os professores</a></td></tr>' +
+    '</tbody>' +
+    '</table>' +
+    '<p>A escola apagada continua a lembrar quem passou por ela: o professor não se apaga, e o ' +
+    'elo do expurgo guarda os nomes de quem tinha fontes ali.</p>';
 }
 
 /**
  * O ÍNDICE DESTA PÁGINA — o «Nesta página», montado a partir dos títulos REAIS.
  *
  * POR QUE NO SERVIDOR, e não no `gerar-raiz.sh`. Duas razões, e as duas são de facto: o corpo da
- * raiz é regerado de `biblioteca/apresentacao.md` e não sabe nada da lista de escolas — que só
- * existe depois de injetada; e um índice escrito à mão no casco apodreceria no dia em que o texto
- * ganhasse um capítulo novo. Lendo os `<h2>`/`<h3>` do HTML já montado, o índice é sempre o da
- * página que está a ser servida.
+ * raiz é regerado de `biblioteca/apresentacao.md` e não sabe nada do bloco de escolas; e um índice
+ * escrito à mão no casco apodreceria no dia em que o texto ganhasse um capítulo. Lendo os
+ * `<h2>`/`<h3>` do HTML já montado, o índice é sempre o da página que está a ser servida.
  *
  * O TRECHO É O `main`, e não a página: os `<h2>` dos modais («Criar nova escola», «Apagar escola»)
  * ficam de fora — são diálogos, não capítulos.
@@ -207,8 +332,8 @@ function indiceDaPagina(html) {
   }
   if (!titulos.length) return '';
 
-  // A montagem é uma pilha de dois níveis, e não uma árvore: os h2 são os capítulos e os h3
-  // são os passos de cada um. Um h3 sem h2 antes não tem onde ser pendurado, e é ignorado.
+  // A montagem é uma pilha de dois níveis, e não uma árvore: os h2 são os capítulos e os h3 são
+  // os passos de cada um. Um h3 sem h2 antes não tem onde ser pendurado, e é ignorado.
   const itens = [];
   let temH2 = false;
   let sublistaAberta = false;
@@ -290,6 +415,24 @@ function paginaDasApagadas({ escolas }) {
 
 function paginaDasVivas({ escolas }) {
   return paginaDeLista({ recorte: 'vivas', escolas });
+}
+
+/**
+ * A PÁGINA DOS PROFESSORES — a terceira lista, e a que atende a regra «um professor, várias
+ * escolas».
+ *
+ * Ela lê `acervo.professores` (que o índice deriva das escolas e dos ciclos) e `acervo.escolas`
+ * (para saber quais estão vivas). Uma requisição, a mesma do resto do painel.
+ */
+function paginaDosProfessores({ professores, escolas }) {
+  return pagina({
+    titulo: 'Professores',
+    subtitulo: 'Quem trabalha hoje, e as escolas vivas de cada um. Um professor pode estar em ' +
+      'mais de uma.',
+    atual: 'professores',
+    corpo: tabelaDeProfessores(professores, escolas) +
+      '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
+  });
 }
 
 /**
@@ -398,6 +541,7 @@ function paginaSemToken(motivo) {
 
 module.exports = {
   esc, dia, diaOuTraco, quando,
-  MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, blocoDeEscolas, indiceDaPagina, urlDaEscola,
-  pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDoRegistro, paginaSemToken,
+  MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, tabelaDeProfessores, blocoDeEscolas,
+  indiceDaPagina, urlDaEscola, listaDeLigacoes, nomeDoProfessor,
+  pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDosProfessores, paginaDoRegistro, paginaSemToken,
 };

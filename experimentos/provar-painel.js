@@ -28,6 +28,7 @@
 
 const raiz = require('../motor/servidor/raiz.js');
 const painel = require('../motor/servidor/painel-html.js');
+const painelTabela = painel.tabelaDeProfessores;
 
 const BASE = 'https://danca.tmenegaz77.workers.dev';
 const AUTORIZACAO = 'Basic ' + Buffer.from('tmenegaz:segredo').toString('base64');
@@ -94,19 +95,29 @@ function githubFalso(arquivos) {
 }
 
 const ARQUIVOS = {
-  // O ÍNDICE VERSIONADO — a única leitura da lista. O acervo inteiro, já derivado.
+  // O ÍNDICE VERSIONADO — a única leitura das listas. O acervo inteiro, já derivado.
   'indices/acervo.json': {
-    versao: 2,
+    versao: 3,
     escolas: [
       { slug: 'calango', nome: 'calango', professor: 'sapo-bailarino',
+        professores: ['murisoca-baiana', 'oculos-redondo', 'sapo-bailarino'],
         criada_em: '2026-10-19T18:18:57.289485+00:00', expurgada_em: '2026-10-22T10:48:48.104Z',
         expurgada: true, expurgos: 4 },
       { slug: 'breu', nome: 'breu', professor: 'sapo-bailarino',
+        professores: ['sapo-bailarino', 'vaso-bonito'],
         criada_em: '2026-10-19T23:41:57.342597+00:00', expurgada_em: '2026-10-21T21:06:01.896Z',
         expurgada: true, expurgos: 2 },
       { slug: 'viva', nome: 'viva', professor: 'tiago-menegaz',
+        professores: ['tiago-menegaz', 'sapo-bailarino'],
         criada_em: '2026-10-20T10:00:00.000000+00:00', expurgada_em: null,
         expurgada: false, expurgos: 0 },
+    ],
+    // A LISTA DE PROFESSORES, derivada das escolas. `sapo-bailarino` está numa viva E em duas
+    // apagadas — é o caso que a lista tem de atender. `so-apagadas` não tem nenhuma viva.
+    professores: [
+      { slug: 'sapo-bailarino', nome: 'Sapo Bailarino', escolas: ['calango', 'breu', 'viva'] },
+      { slug: 'tiago-menegaz', nome: 'Tiago Menegaz', escolas: ['viva'] },
+      { slug: 'so-apagadas', nome: null, escolas: ['calango'] },
     ],
   },
   'escola/calango/indice.json': inventario({
@@ -156,25 +167,49 @@ async function semRede(fn) {
 const envComAssets = (extra) => ambiente(Object.assign({ ASSETS: assetsFalso(ARQUIVOS) }, extra || {}));
 
 async function principais() {
-  // ── 1. a página `/` é o painel: lista ali, sem clique nenhum ───────────────
+  // ── 1. a página `/` é o painel: o bloco informativo, sem lista ─────────────
   const home = await semRede(async () => {
     const r = await pedir(envComAssets(), '/');
     return { status: r.status, html: await r.text() };
   });
   conferir('a raiz responde 200', home.status === 200, home.status);
-  conferir('a lista vem NA página da raiz', /Escolas do sistema/.test(home.html), null);
-  conferir('…com a escola apagada', /calango/.test(home.html), null);
-  conferir('…e a viva também', /viva/.test(home.html), null);
-  conferir('a apagada leva ao registo', /href="\/escolas-apagadas\/calango"/.test(home.html), null);
-  conferir('o marcador foi substituído', !/id="escolas-do-sistema"><\/div>/.test(home.html), null);
-  conferir('NÃO há botão nem link «/painel»', !/href="\/painel"/.test(home.html), null);
+  conferir('tem o capítulo «Escolas do sistema»', /<h2 id="escolas-do-sistema">Escolas do sistema<\/h2>/.test(home.html), null);
+  conferir('…e o marcador foi substituído', !/id="escolas-do-sistema"><\/div>/.test(home.html), null);
+  conferir('explica as duas regras',
+    /uma escola tem os seus professores/.test(home.html)
+      && /um professor pode estar em mais de uma escola/.test(home.html), null);
+  conferir('a tabela-explicação tem as TRÊS listas',
+    ['/escolas-vivas', '/escolas-apagadas', '/professores'].every((h) => home.html.indexOf('"' + h + '"') !== -1), null);
+  conferir('NÃO tem mais a lista dinâmica de escolas', !/<tbody><tr><td><a href="https:\/\//.test(home.html), null);
+  conferir('NÃO tem mais os botões dentro do bloco',
+    !/<h2 id="escolas-do-sistema">[\s\S]{0,2000}<a class="acao secundario" href="\/escolas-vivas">Ver só as vivas<\/a>/.test(home.html), null);
 
-  // ── 2. as duas colunas congeladas ──────────────────────────────────────────
-  conferir('a coluna das ações existe', /<div class="rail rail-esq">/.test(home.html), null);
+  // ── 2. `/` NÃO lê o repositório — o bloco é estático ───────────────────────
+  const custo = await semRede(async (chamadas) => {
+    await pedir(envComAssets(), '/');
+    return chamadas.filter((c) => /api\.github\.com/.test(c.url)).length;
+  });
+  conferir('a página `/` faz ZERO requisições ao GitHub', custo === 0, custo);
+
+  // …e abre mesmo sem index: o que a página que cria escolas precisa.
+  const semIndice = await semRede(async () => {
+    const original = ARQUIVOS['indices/acervo.json'];
+    delete ARQUIVOS['indices/acervo.json'];
+    try {
+      const r = await pedir(envComAssets(), '/');
+      return { status: r.status, html: await r.text() };
+    } finally { ARQUIVOS['indices/acervo.json'] = original; }
+  });
+  conferir('`/` abre mesmo sem o índice existir', semIndice.status === 200, semIndice.status);
+  conferir('…e continua a explicar as listas', /Escolas do sistema/.test(semIndice.html), null);
+
+  // ── 3. as duas colunas congeladas ──────────────────────────────────────────
   const railEsq = (/<div class="rail rail-esq">([\s\S]*?)<\/div>/.exec(home.html) || [])[1] || '';
   const destinos = (railEsq.match(/class="acao[^"]*"/g) || []).length;
-  conferir('…com os quatro destinos', destinos === 4, destinos);
-  conferir('…e os dois botões de sempre continuam', /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
+  conferir('a coluna das ações existe', /<div class="rail rail-esq">/.test(home.html), null);
+  conferir('…com os CINCO destinos', destinos === 5, destinos);
+  conferir('…incluindo «Professores»', /href="\/professores">Professores</.test(railEsq), null);
+  conferir('…e os dois botões de sempre', /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
   conferir('a coluna do índice existe', /<div class="rail rail-dir">/.test(home.html), null);
   conferir('…e o índice foi montado', /<nav class="toc-local"/.test(home.html), null);
   conferir('…com o título «Nesta página»', /toc-titulo">Nesta página</.test(home.html), null);
@@ -183,36 +218,67 @@ async function principais() {
   conferir('…com os passos aninhados', /<ul><li><a href="#passo-1-anamnese-do-aluno"/.test(home.html), null);
   conferir('os h2 dos MODAIS ficam fora do índice',
     !/href="#modal-titulo"/.test(home.html) && !/href="#apagar-titulo"/.test(home.html), null);
+  conferir('NÃO há botão nem link «/painel»', !/href="\/painel"/.test(home.html), null);
 
-  // ── 3. a lista custa UMA leitura — a lentidão de antes era isto ────────────
-  const custo = await semRede(async (chamadas) => {
-    await pedir(envComAssets(), '/');
-    return chamadas.filter((c) => /api\.github\.com/.test(c.url)).map((c) => c.url);
+  // ── 4. a lista das VIVAS ───────────────────────────────────────────────────
+  const vivas = await semRede(async (chamadas) => {
+    const r = await pedir(envComAssets(), '/escolas-vivas');
+    return { status: r.status, html: await r.text(), chamadas };
   });
-  conferir('a lista faz UMA requisição ao GitHub', custo.length === 1, custo.length);
-  conferir('…e é a do índice versionado', /indices\/acervo\.json/.test(custo[0] || ''), custo[0]);
+  conferir('«Escolas vivas» responde 200', vivas.status === 200, vivas.status);
+  const custoVivas = vivas.chamadas.filter((c) => /api\.github\.com/.test(c.url)).length;
+  conferir('…com UMA requisição', custoVivas === 1, custoVivas);
+  conferir('…com o nome ligado ao site da escola',
+    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"><strong>viva<\/strong>/.test(vivas.html), null);
+  conferir('…com as QUATRO colunas pedidas',
+    /<th>Escola<\/th><th>Professor<\/th><th>Criada<\/th><th>Estado<\/th>/.test(vivas.html), null);
+  conferir('…e sem as apagadas', !/Abrir o registo/.test(vivas.html), null);
+  conferir('…e com «Voltar ao painel»', /Voltar ao painel/.test(vivas.html), null);
 
-  // ── 4. o nome de uma escola VIVA é o link para ela ─────────────────────────
-  conferir('o nome da viva leva ao site dela',
-    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"><strong>viva<\/strong>/.test(home.html), null);
-  conferir('o nome da apagada NÃO é link de site',
-    !/href="https:\/\/calango\.tmenegaz77\.workers\.dev\/"/.test(home.html), null);
+  // ── 5. a lista das APAGADAS, com os professores ────────────────────────────
+  const apagadas = await semRede(async () => {
+    const r = await pedir(envComAssets(), '/escolas-apagadas');
+    return { status: r.status, html: await r.text() };
+  });
+  conferir('«Escolas apagadas» responde 200', apagadas.status === 200, apagadas.status);
+  conferir('…com as duas apagadas', /calango/.test(apagadas.html) && /breu/.test(apagadas.html), null);
+  conferir('…e sem a viva', !/href="\/escolas-apagadas\/viva"/.test(apagadas.html), null);
+  conferir('…com a coluna «Professores»', /<th>Professores<\/th>/.test(apagadas.html), null);
+  conferir('…e TODOS os professores que o elo prova',
+    /murisoca-baiana, oculos-redondo, sapo-bailarino/.test(apagadas.html), null);
+  conferir('…com os professores em TEXTO, não ligação de site',
+    !/href="https:\/\/sapo-bailarino\.tmenegaz77\.workers\.dev/.test(apagadas.html), null);
+  conferir('…e com a data da saída', /22\/10\/2026/.test(apagadas.html), null);
+  conferir('…e com «Voltar ao painel»', /Voltar ao painel/.test(apagadas.html), null);
 
-  // A ESCOLA VIVA QUE JÁ FOI EXPURGADA (22/10/2026). A `batata` foi apagada a 21/10 e recriada
-  // a 22/10: o elo guarda o expurgo anterior, e escrevê-lo na coluna «Apagada» dizia que ela
-  // estava apagada. A linha da viva é identificada pelo próprio link do site.
-  const linhaDaViva = (/<tr><td><a href="https:\/\/viva\.tmenegaz771?\.workers\.dev\/">[\s\S]*?<\/tr>/.exec(home.html)
-    || /<tr><td><a href="https:\/\/[^"]*viva[^"]*">[\s\S]*?<\/tr>/.exec(home.html) || [])[0] || '';
-  conferir('a linha da viva existe', linhaDaViva.length > 0, null);
-  conferir('…e a coluna «Apagada» dela é um traço, não a data de um expurgo anterior',
-    /<td>—<\/td>/.test(linhaDaViva), linhaDaViva.slice(0, 200));
-  conferir('as VIVAS vêm antes das apagadas',
-    home.html.indexOf('/workers.dev/">') < home.html.indexOf('Abrir o registo'), null);
-  conferir('as apagadas continuam com a data da saída',
-    /<td>calango<\/td>|<strong>calango<\/strong><\/td><td>[^<]*<\/td><td>19\/10\/2026<\/td><td>22\/10\/2026<\/td>/.test(home.html),
-    null);
+  // ── 6. a lista dos PROFESSORES ─────────────────────────────────────────────
+  const profs = await semRede(async (chamadas) => {
+    const r = await pedir(envComAssets(), '/professores');
+    return { status: r.status, html: await r.text(), chamadas };
+  });
+  conferir('«Professores» responde 200', profs.status === 200, profs.status);
+  const custoProfs = profs.chamadas.filter((c) => /api\.github\.com/.test(c.url)).length;
+  conferir('…com UMA requisição', custoProfs === 1, custoProfs);
+  conferir('…com o nome do professor', /Sapo Bailarino/.test(profs.html), null);
+  conferir('…e a pasta', /<code>sapo-bailarino<\/code>/.test(profs.html), null);
+  conferir('…mostrando a escola VIVA dele',
+    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/">viva</.test(profs.html), null);
+  conferir('…e NÃO as apagadas dele',
+    !/href="https:\/\/calango\.tmenegaz77\.workers\.dev/.test(profs.html)
+      && !/href="https:\/\/breu\.tmenegaz77\.workers\.dev/.test(profs.html), null);
+  conferir('quem não tem escola viva aparece, com o selo',
+    /class="selo discreto">sem escola viva</.test(profs.html), null);
+  conferir('o professor sem nome registado mostra o slug',
+    /<code>so-apagadas<\/code>/.test(profs.html), null);
+  conferir('…e «Voltar ao painel»', /Voltar ao painel/.test(profs.html), null);
 
-  // ── 5. o registo abre com UMA leitura (não reconstrói o acervo) ────────────
+  // A REGRA QUE A LISTA TEM DE ATENDER: um professor, mais de uma escola. O caso está montado
+  // com o `sapo-bailarino` em duas vivas, e o teste é o vínculo separado por vírgula.
+  const muitas = painelTabelaDeProfessoresComDuasVivas();
+  conferir('um professor com DUAS escolas vivas sai com as duas, separadas por vírgula',
+    /viva<\/a>, <a href="https:\/\/outra\.tmenegaz77\.workers\.dev\/">outra<\/a>/.test(muitas), muitas);
+
+  // ── 7. o registo abre com UMA leitura ──────────────────────────────────────
   const registro = await semRede(async (chamadas) => {
     const r = await pedir(envComAssets(), '/escolas-apagadas/calango');
     return { status: r.status, html: await r.text(), chamadas };
@@ -224,14 +290,13 @@ async function principais() {
   conferir('mostra o MOTIVO declarado', /expurgada pela página/.test(registro.html), null);
   conferir('lista os arquivos que saíram', /ciclo-01-calango\.conf/.test(registro.html), null);
   conferir('diz o que ficou no KV', /3 chave\(s\) apagada/.test(registro.html), null);
-  conferir('volta à lista', /href="\/escolas-apagadas"/.test(registro.html), null);
 
-  // ── 6. os dois expurgos acumulam ──────────────────────────────────────────
+  // ── 8. os dois expurgos acumulam ──────────────────────────────────────────
   const doisElos = painelPaginaDoisElos();
   conferir('dois elos dão dois blocos', (doisElos.match(/Expurgo de/g) || []).length === 2,
     (doisElos.match(/Expurgo de/g) || []).length);
 
-  // ── 7. escola sem elo → 404, e com UMA leitura ─────────────────────────────
+  // ── 9. escola sem elo → 404, e com UMA leitura ─────────────────────────────
   const inexistente = await semRede(async (chamadas) => {
     const r = await pedir(envComAssets(), '/escolas-apagadas/nunca-existiu');
     return { status: r.status, chamadas };
@@ -240,30 +305,7 @@ async function principais() {
   conferir('…e não reconstrói o acervo',
     inexistente.chamadas.filter((c) => /acervo\.json/.test(c.url)).length === 0, null);
 
-  // ── 8. as duas listas filtradas ────────────────────────────────────────────
-  const apagadas = await semRede(async () => {
-    const r = await pedir(envComAssets(), '/escolas-apagadas');
-    return { status: r.status, html: await r.text() };
-  });
-  conferir('«Escolas apagadas» responde 200', apagadas.status === 200, apagadas.status);
-  conferir('…com as duas apagadas', /calango/.test(apagadas.html) && /breu/.test(apagadas.html), null);
-  conferir('…e sem a viva', !/href="\/escolas-apagadas\/viva"/.test(apagadas.html), null);
-  conferir('…e com «Voltar ao painel»', /href="\/"\/?>Voltar ao painel/.test(apagadas.html) || /Voltar ao painel/.test(apagadas.html), null);
-
-  const vivas = await semRede(async () => {
-    const r = await pedir(envComAssets(), '/escolas-vivas');
-    return { status: r.status, html: await r.text() };
-  });
-  conferir('«Escolas vivas» responde 200', vivas.status === 200, vivas.status);
-  conferir('…com a viva e o link para ela',
-    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"/.test(vivas.html), null);
-  conferir('…e sem as apagadas', !/Abrir o registo/.test(vivas.html) && !/>calango</.test(vivas.html), null);
-  conferir('…com o estado «viva»', /class="selo ok">viva</.test(vivas.html), null);
-  conferir('…com as quatro colunas pedidas',
-    /<th>Escola<\/th><th>Professor<\/th><th>Criada<\/th><th>Estado<\/th>/.test(vivas.html), null);
-  conferir('…e com «Voltar ao painel»', /Voltar ao painel/.test(vivas.html), null);
-
-  // ── 9. as rotas antigas continuam a responder ──────────────────────────────
+  // ── 10. as rotas antigas continuam a responder ─────────────────────────────
   for (const [de, para] of [['/painel', '/'], ['/painel/escolas-apagadas', '/escolas-apagadas'],
     ['/painel/escolas-apagadas/calango', '/escolas-apagadas/calango']]) {
     const r = await pedir(envComAssets(), de);
@@ -271,36 +313,48 @@ async function principais() {
       { status: r.status, location: r.headers.get('Location') });
   }
 
-  // ── 10. o slug não vira caminho arbitrário ─────────────────────────────────
+  // ── 11. o slug não vira caminho arbitrário ─────────────────────────────────
   const travessia = await semRede(async (chamadas) => {
     await pedir(envComAssets(), '/escolas-apagadas/..%2F..%2Fetc');
     return chamadas.filter((c) => /escola\/\.\./.test(c.url)).length;
   });
   conferir('slug com travessia não lê arquivo nenhum', travessia === 0, travessia);
 
-  // ── 11. sem token: diz, não finge ──────────────────────────────────────────
-  const semToken = await pedir(envComAssets({ GITHUB_TOKEN: '' }), '/escolas-apagadas');
-  const htmlSemToken = await semToken.text();
-  conferir('sem GITHUB_TOKEN responde 500', semToken.status === 500, semToken.status);
-  conferir('…e diz o que falta', /GITHUB_TOKEN/.test(htmlSemToken), null);
-  conferir('…e NÃO diz «Nenhuma escola»', !/Nenhuma escola/.test(htmlSemToken), null);
+  // ── 12. sem token: diz, não finge ──────────────────────────────────────────
+  for (const rota of ['/escolas-apagadas', '/escolas-vivas', '/professores']) {
+    const r = await pedir(envComAssets({ GITHUB_TOKEN: '' }), rota);
+    const html = await r.text();
+    conferir('sem GITHUB_TOKEN, ' + rota + ' responde 500', r.status === 500, r.status);
+    conferir('…diz o que falta', /GITHUB_TOKEN/.test(html), null);
+    conferir('…e NÃO diz «Nenhuma»', !/Nenhuma escola/.test(html) && !/Nenhum professor/.test(html), null);
+  }
 
-  // ── 12. o menu: logomarca + «Escolas apagadas», e mais nada ────────────────
+  // ── 13. o menu: logomarca + «Escolas apagadas», e mais nada ────────────────
   const menu = apagadas.html;
   conferir('o menu tem a logomarca', /class="marca" href="\/"/.test(menu), null);
   conferir('…e «Escolas apagadas»', /href="\/escolas-apagadas"[^>]*>Escolas apagadas</.test(menu), null);
-  conferir('…e o item está activo', /class="ativo" href="\/escolas-apagadas"/.test(menu), null);
   conferir('SEM «Sistema Lastro» no menu', !/<a href="\/index.html">Sistema Lastro<\/a>/.test(menu), null);
   conferir('SEM «Área do Professor»', !/Área do Professor/.test(menu), null);
   conferir('SEM «Bastidores»', !/Bastidores/.test(menu), null);
   conferir('SEM menu que abre e fecha', !/<details class="menu">/.test(menu), null);
 
-  // ── 13. a data não passa por Date ──────────────────────────────────────────
+  // ── 14. a data não passa por Date ──────────────────────────────────────────
   conferir('microssegundos no ISO não viram NaN',
     painel.dia('2026-10-19T18:18:57.289485+00:00'), '19/10/2026');
   conferir('ISO sem data devolve null, não «NaN/NaN/NaN»', painel.dia('nada') === null, painel.dia('nada'));
   conferir('a hora é do carimbo, sem converter fuso',
     painel.quando('2026-10-22T10:48:48.104Z'), '22/10/2026 às 10:48');
+}
+
+/** A tabela de professores com um professor em DUAS escolas vivas — a regra do produto. */
+function painelTabelaDeProfessoresComDuasVivas() {
+  return painelTabela([
+    { slug: 'sapo-bailarino', nome: 'Sapo Bailarino', escolas: ['viva', 'outra', 'apagada'] },
+  ], [
+    { slug: 'viva', expurgada: false },
+    { slug: 'outra', expurgada: false },
+    { slug: 'apagada', expurgada: true },
+  ]);
 }
 
 /** A página de registo com dois elos — a `breu`, que foi apagada duas vezes. */

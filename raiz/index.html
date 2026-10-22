@@ -133,6 +133,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
         <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
         <a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas</a>
         <a class="acao secundario" href="/escolas-vivas">Ver só as vivas</a>
+        <a class="acao secundario" href="/professores">Professores</a>
       </div>
       <div class="rail rail-dir">
         <div id="indice-da-pagina"></div>
@@ -384,7 +385,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           }
 
           /* A COLUNA DAS AÇÕES — empilhada. Em tela larga ela é presa (acima); em tela estreita
-             é o primeiro bloco da página, e os quatro destinos ficam à mão antes de qualquer
+             é o primeiro bloco da página, e os cinco destinos ficam à mão antes de qualquer
              rolagem.
 
              NÃO SE USA `.acoes` AQUI, e a razão é de vocabulário: na porta, `.acoes` é a BARRA
@@ -399,7 +400,7 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             margin: 20px 0 24px;
           }
 
-          /* Os quatro destinos ocupam a COLUNA INTEIRA e centram o texto: `.acao` é
+          /* Os cinco destinos ocupam a COLUNA INTEIRA e centram o texto: `.acao` é
              `inline-block` + `white-space: nowrap`, e um destino com nome comprido
              («Ver só as apagadas») estouraria para fora de 13rem. */
           .rail-esq > .acao {

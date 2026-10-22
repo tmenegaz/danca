@@ -1007,9 +1007,16 @@ function superficiesQueEmitem() {
       expurgada: true, expurgos: 1,
     };
     const viva = Object.assign({}, amostra, { slug: 'maria', expurgada: false, expurgada_em: null });
-    lista.push(['painel/bloco-na-raiz', painel.blocoDeEscolas([amostra, viva])]);
+    lista.push(['painel/bloco-na-raiz', painel.blocoDeEscolas()]);
     lista.push(['painel/escolas-apagadas', painel.paginaDasApagadas({ escolas: [amostra, viva] })]);
     lista.push(['painel/escolas-vivas', painel.paginaDasVivas({ escolas: [amostra, viva] })]);
+    lista.push(['painel/professores', painel.paginaDosProfessores({
+      professores: [
+        { slug: 'sapo-bailarino', nome: 'Sapo Bailarino', escolas: ['calango', 'viva'] },
+        { slug: 'so-slug', nome: null, escolas: ['calango'] },
+      ],
+      escolas: [amostra, viva],
+    })]);
     lista.push(['painel/registo', painel.paginaDoRegistro({
       slug: 'calango',
       indice: {
