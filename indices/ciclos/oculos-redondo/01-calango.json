@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+    "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
+  ],
+  "escola": "calango",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "a98db43"
+  },
+  "gerado_em": "2026-10-22T19:56",
+  "id": "ciclo:oculos-redondo/01/calango",
+  "professor": "oculos-redondo",
+  "versao": 5
+}

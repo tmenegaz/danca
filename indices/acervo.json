@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "calango",
+      "estado": "sem-ancora",
+      "id": "ciclo:oculos-redondo/01/calango",
+      "numero": "01",
+      "professor": "oculos-redondo",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -109,21 +121,23 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:oculos-redondo/01/calango"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
-      "expurgada": true,
+      "expurgada": false,
       "expurgada_em": "2026-10-22T19:54:14.027Z",
       "expurgos": 5,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "sapo-bailarino",
@@ -316,7 +330,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -388,9 +408,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "098889b"
+    "commit": "a98db43"
   },
-  "gerado_em": "2026-10-22T19:54",
+  "gerado_em": "2026-10-22T19:56",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -467,7 +487,9 @@
       "slug": "murisoca-baiana"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:oculos-redondo/01/calango"
+      ],
       "escolas": [
         "calango"
       ],
