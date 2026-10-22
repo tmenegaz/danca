@@ -2,20 +2,35 @@
   "aulas": [],
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-22",
+        "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
+        "cobertura": [
+          "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+          "professores/tela-de-celular/ciclos/ciclo-01.conf"
+        ],
+        "hash": "05a0e7af28e7cdcb6cce5bff2b45989cc9645451f42404105a498805d71373a8",
+        "hash_conteudo": "da1a7e5e3ca9f739f2c24a3900427e9b77f331c8b42f8a853b9ddbe959a5c673",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+        "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
         "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:tela-de-celular/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "tela-de-celular",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "schema"
       ]
@@ -23,7 +38,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
+      "ciclo_id": "ciclo:tela-de-celular/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
+      "professor": "tela-de-celular",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -32,7 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -49,7 +73,7 @@
       "anamneses": 0,
       "aulas": 0,
       "ciclos": 1,
-      "ciclos_com_ancora": 0,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
       "registros": 0
@@ -77,8 +101,8 @@
         "ids": [
           "ciclo:tela-de-celular/01/batata"
         ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -104,9 +128,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "5197440"
+    "commit": "9bf8b7c"
   },
-  "gerado_em": "2026-10-22T11:52",
+  "gerado_em": "2026-10-22T11:54",
   "nao_indexado": [
     {
       "familia": "conteudo",

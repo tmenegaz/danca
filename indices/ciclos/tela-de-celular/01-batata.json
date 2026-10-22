@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-22",
+    "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
+    "cobertura": [
+      "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+      "professores/tela-de-celular/ciclos/ciclo-01.conf"
+    ],
+    "hash": "05a0e7af28e7cdcb6cce5bff2b45989cc9645451f42404105a498805d71373a8",
+    "hash_conteudo": "da1a7e5e3ca9f739f2c24a3900427e9b77f331c8b42f8a853b9ddbe959a5c673",
+    "id": "ciclo-01-batata",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
     "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
     "documento:schema:professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "5197440"
+    "commit": "9bf8b7c"
   },
-  "gerado_em": "2026-10-22T11:52",
+  "gerado_em": "2026-10-22T11:54",
   "id": "ciclo:tela-de-celular/01/batata",
   "professor": "tela-de-celular",
   "versao": 2
