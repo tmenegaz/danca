@@ -23050,3 +23050,65 @@ em `motor/`, que é de onde cada pacote é copiado.
   é fechado de propósito, e a correção é refazer a curadoria com o slug.
 - A correção não foi exercitada numa escola ao vivo: a próxima que tiver dois professores na
   mesma turma é a prova de campo.
+
+## 22/10/2026 — A escola recriada pertence a quem a recriou
+
+**O que motivou.** A `calango` foi expurgada e recriada com o professor **Oculos Redondo**. No
+painel da página `danca`, a escola viva aparecia com **«Sapo Bailarino»** como professor
+principal — o professor da PRIMEIRA criação, de 19/10. A causa não era a tela: o índice da
+escola (`escola/<slug>/indice.json`) **sobrevive ao expurgo** (é a memória de que a escola
+existiu), e a recriação só lhe acrescentava «recriada por tools/criar-escola.sh» — sem dizer
+por QUEM. O campo `professor` do topo continuava a ser o da criação original, para sempre.
+
+O mesmo dado alimentava o `escola/expurgar.js`: o expurgo local procurava os arquivos em
+`professores/sapo-bailarino/ciclos/ciclo-01-calango*` e respondia «já não existia» para todos,
+deixando intacto o pacote em `professores/oculos-redondo/`.
+
+**O que foi decidido.**
+- O elo de recriação passa a **declarar o responsável**: `recriacao[]` ganha `professor`
+  (slug e nome), `responsavel` e `ciclo`. O `professor` do topo **não é reescrito** — é a
+  memória de quem criou (a proveniência acrescenta, não edita).
+- Uma leitura só, `responsavelDoInventario` (`motor/nucleo/indices.js`), resolve o
+  responsável de hoje: o elo mais recente vence; sem elo (ou com um elo anterior a esta
+  correção), cai no `professor`. O índice derivado e o `escola/expurgar.js` usam-na.
+- Numa escola **viva**, `escola.professores[]` deixa de incluir quem só criou uma encarnação
+  anterior: o elo do expurgo prova professores de escola **apagada**, e era ele que fazia o
+  `sapo-bailarino` aparecer «a trabalhar» na `calango` recriada.
+- A versão do índice sobe para **6** — sem o incremento, o cache do Worker serviria o índice
+  antigo e o painel continuaria a mostrar a pessoa errada.
+- O elo **atual** da `calango` foi corrigido por acréscimo: um elo datado, com o motivo de
+  que a recriação de 19:56 não declarava o responsável.
+
+**Onde entrou.**
+- `tools/registrar-recriacao.py` — aceita `--professor`, `--professor-nome`, `--responsavel`,
+  `--ciclo` e `--motivo`, e grava-os no elo novo.
+- `tools/criar-escola.sh` — passa os quatro dados ao registrador.
+- `motor/nucleo/indices.js` — `responsavelDoInventario`, o nome do professor vindo do elo, o
+  recorte do elo do expurgo às escolas apagadas, e a versão 6.
+- `escola/expurgar.js` — resolve professor e ciclo pela função do núcleo.
+- `.github/workflows/deploy-raiz.yml` — `motor/nucleo/**` entra nos caminhos que disparam o
+  deploy da raiz. Sem isto, a correção da DERIVAÇÃO nunca chegava ao painel: o workflow olhava
+  só `motor/servidor/**`, e `motor/nucleo/indices.js` ia no bundle sem gatilho.
+- `escola/calango/indice.json` — o elo datado do responsável, e os índices regenerados.
+
+**Motivo declarado — os congelados.** `tools/` é congelado (`CONGELAMENTO.md`), e este marco
+toca dois arquivos dele (`registrar-recriacao.py` e `criar-escola.sh`). O motivo é o defeito
+acima: sem o escritor do elo, nenhuma correção de leitura serve — o dado de quem recriou a
+escola não existe em lugar nenhum. **O que não muda:** a fórmula do hash e a cobertura do
+`.fipp`, os validadores, as 17 regras de `REGRAS.md` e as 22 pétreas de `PROTOCOLO.md`. O que
+muda é o conteúdo de um elo de registro, e só quando a escola foi expurgada e recriada.
+
+**Com o quê.**
+- `experimentos/provar-recriacao-da-escola.js` — estendida (era 24 asserções, passa a
+  cobrir o escritor do elo, a leitura do responsável, o índice de escola viva × apagada e a
+  ligação com o `criar-escola.sh` e o `expurgar.js`).
+- `node tools/check-indices.js` — 14/14, incluindo a checagem 12 (Expurgo).
+- `node tools/check-identidade.js` — ok.
+
+**O que ainda não está feito.**
+- O `nome` da escola continua a ser o slug (`calango`), porque o elo não grava o
+  `--escola-nome` que a criação recebe. Fica declarado: é uma decisão de conteúdo do elo, não
+  um efeito desta correção.
+- O expurgo pela **página** (`repo-escola.js` → `expurgar-escola.js`) deriva o professor dos
+  caminhos e sempre acertou; quem errava era o elo e quem o lia. Os dois caminhos usam agora a
+  mesma verdade, mas só o local foi exercitado aqui.

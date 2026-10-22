@@ -18,7 +18,16 @@ terminar. Sem ele, a primeira sincronização apagava a escola recém-criada: ac
 O índice NÃO é reescrito no sentido de «sobrescrito»: ganha uma entrada nova, e o passado
 fica. É a lei da proveniência, aplicada ao registro da escola.
 
-    uso: python3 tools/registrar-recriacao.py escola/<slug>/indice.json
+O ELO PASSA A DIZER QUEM RECRIOU (22/10/2026). Antes, a recriação era registada sem autor — e
+o índice continuava a dizer que o responsável era o professor da PRIMEIRA criação, para
+sempre. Medido na `calango`: recriada com o `oculos-redondo`, o painel mostrava «Sapo
+Bailarino» como professor principal, e o `escola/expurgar.js` procurava os arquivos na pasta
+do `sapo-bailarino`. O elo novo carrega `professor` (slug e nome), `responsavel` e `ciclo`; o
+`professor` do topo fica intacto, como memória de quem criou.
+
+    uso: python3 tools/registrar-recriacao.py escola/<slug>/indice.json \
+           [--professor <slug>] [--professor-nome "<nome>"] [--responsavel "<nome>"] \
+           [--ciclo <NN>] [--motivo "<texto>"]
 """
 
 import json
@@ -28,9 +37,27 @@ import datetime
 
 def main():
     if len(sys.argv) < 2:
-        print('uso: registrar-recriacao.py <indice.json>', file=sys.stderr)
+        print('uso: registrar-recriacao.py <indice.json> [--professor <slug>] [--professor-nome <nome>] '
+              '[--responsavel <nome>] [--ciclo <NN>] [--motivo <texto>]', file=sys.stderr)
         return 2
     arq = sys.argv[1]
+
+    # OS DADOS DA RECRIAÇÃO (22/10/2026). Sem eles, o elo dizia «recriada» e nada mais — e o
+    # responsável continuava a ser o da criação original.
+    resto = sys.argv[2:]
+
+    def opcao(nome):
+        if nome not in resto:
+            return None
+        i = resto.index(nome)
+        return resto[i + 1] if i + 1 < len(resto) else None
+
+    professor = opcao('--professor')
+    professor_nome = opcao('--professor-nome')
+    responsavel = opcao('--responsavel')
+    ciclo = opcao('--ciclo')
+    motivo = opcao('--motivo') or 'recriada por tools/criar-escola.sh'
+
     try:
         with open(arq, encoding='utf-8') as f:
             indice = json.load(f)
@@ -43,11 +70,23 @@ def main():
         # foi dado pelo chamador, e um segundo «nada a fazer» só faz ruído.
         return 0
 
-    indice['recriacao'] = indice.get('recriacao', [])
-    indice['recriacao'].append({
+    elo = {
         'em': datetime.datetime.now().astimezone().isoformat(),
-        'motivo': 'recriada por tools/criar-escola.sh',
-    })
+        'motivo': motivo,
+    }
+    # O PROFESSOR DA RECRIAÇÃO, com o NOME que a criação recebeu: é a única fonte dele para
+    # quem não foi cadastrado na Produção (o diretório guarda o slug).
+    if professor:
+        elo['professor'] = {'slug': professor}
+        if professor_nome:
+            elo['professor']['nome'] = professor_nome
+    if responsavel:
+        elo['responsavel'] = responsavel
+    if ciclo:
+        elo['ciclo'] = ciclo
+
+    indice['recriacao'] = indice.get('recriacao', [])
+    indice['recriacao'].append(elo)
     # A escola volta a estar habilitada — é o que a recriação significa.
     indice['estado'] = dict(indice.get('estado') or {}, habilitada=True)
 

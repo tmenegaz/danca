@@ -35,6 +35,13 @@ on:
     paths:
       - 'workers/raiz.js'
       - 'motor/servidor/**'
+      # O NÚCLEO TAMBÉM VAI NO BUNDLE (22/10/2026). Este workflow olhava só `motor/servidor/**`,
+      # e o painel deriva o acervo em `motor/nucleo/indices.js` (via `indice-acervo.js`): uma
+      # correção à DERIVAÇÃO — o responsável da escola, a versão do índice — não disparava
+      # deploy nenhum. O commit entrava, o `main` ficava certo, e o painel ao vivo continuava a
+      # mostrar o dado antigo. `motor/nucleo/**` inteiro pela mesma razão do `motor/servidor/**`:
+      # o bundle é um subconjunto, e uma lista nominal apodrece no primeiro `require` novo.
+      - 'motor/nucleo/**'
       - 'raiz/**'
       - 'wrangler.danca.jsonc'
       - 'tools/check-identidade.js'

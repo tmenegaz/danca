@@ -140,12 +140,9 @@
       "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
-      "professor": "sapo-bailarino",
+      "professor": "oculos-redondo",
       "professores": [
-        "murisoca-baiana",
-        "oculos-redondo",
-        "sapo-bailarino",
-        "tiago-menegaz"
+        "oculos-redondo"
       ],
       "registros": [],
       "slug": "calango"
@@ -364,17 +361,17 @@
         "valor": "meia-cortada"
       },
       {
-        "contagem": 1,
+        "contagem": 0,
         "rotulo": "murisoca-baiana",
         "valor": "murisoca-baiana"
       },
       {
         "contagem": 1,
-        "rotulo": "oculos-redondo",
+        "rotulo": "Oculos Redondo",
         "valor": "oculos-redondo"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -394,7 +391,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 5,
+        "contagem": 4,
         "rotulo": "Tela de PC",
         "valor": "tiago-menegaz"
       },
@@ -408,9 +405,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "a98db43"
+    "commit": "1ff86fd"
   },
-  "gerado_em": "2026-10-22T19:56",
+  "gerado_em": "2026-10-22T20:05",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -479,9 +476,7 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:murisoca-baiana",
       "nome": null,
       "slug": "murisoca-baiana"
@@ -494,7 +489,7 @@
         "calango"
       ],
       "id": "professor:oculos-redondo",
-      "nome": null,
+      "nome": "Oculos Redondo",
       "slug": "oculos-redondo"
     },
     {
@@ -502,8 +497,7 @@
       "escolas": [
         "batata",
         "breu",
-        "calando-teste-1",
-        "calango"
+        "calando-teste-1"
       ],
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
@@ -542,7 +536,6 @@
       "escolas": [
         "batata",
         "breu",
-        "calango",
         "fita",
         "valse"
       ],
@@ -560,5 +553,5 @@
       "slug": "vaso-bonito"
     }
   ],
-  "versao": 5
+  "versao": 6
 }

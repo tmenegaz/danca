@@ -643,7 +643,13 @@ if [ -e "$INDICE_ARQ" ]; then
   #      sincronização apagava a escola recém-criada: aconteceu à `valse`, que foi expurgada,
   #      recriada, e limpa pelo `git pull` seguinte.
   echo "  aviso: $INDICE_ARQ já existe (o índice sobrevive ao expurgo) — não sobrescrevo."
-  python3 "$RAIZ/tools/registrar-recriacao.py" "$INDICE_ARQ"
+  # O ELO DIZ QUEM RECRIOU (22/10/2026). Sem os dados da criação, o responsável do índice era
+  # o da primeira — e o painel dos Bastidores mostrava a pessoa errada.
+  python3 "$RAIZ/tools/registrar-recriacao.py" "$INDICE_ARQ" \
+    --professor "$PROFESSOR" \
+    --professor-nome "$PROFESSOR_NOME" \
+    --responsavel "$RESPONSAVEL" \
+    --ciclo "$CICLO"
 else
   python3 - "$INDICE_ARQ" "$ESCOLA" "$WORKER" "$PROFESSOR" "$PROFESSOR_NOME" "$RESPONSAVEL" "$CICLO" "$SENHA_CHAVE" "$SENHA_ARQUIVO" <<'PY'
 import sys, json, datetime

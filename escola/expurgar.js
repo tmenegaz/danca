@@ -40,6 +40,10 @@
 const fs = require('fs');
 const path = require('path');
 
+// A MESMA LEITURA DO RESPONSÁVEL que a derivação do índice usa (`motor/nucleo/indices.js`):
+// duas cópias da regra divergiriam, e esta decide de QUE PASTA se apagam os arquivos.
+const { responsavelDoInventario } = require('../motor/nucleo/indices.js');
+
 const RAIZ = path.resolve(__dirname, '..');
 
 function lerArgs(argv) {
@@ -168,8 +172,14 @@ function main() {
   const indice = lerIndice(slug);
   // O índice (gerado pelo criar-escola.sh) carrega professor e ciclo — os argumentos
   // só vencem quando o índice não existe (criação antiga, sem índice).
-  const professor = profArg || (indice && indice.professor && indice.professor.slug) || null;
-  const ciclo = cicloArg || (indice && indice.ciclo) || null;
+  //
+  // O RESPONSÁVEL É O DE HOJE (22/10/2026). O `indice.professor` é o da CRIAÇÃO, e uma escola
+  // recriada com outro professor continua a carregá-lo: o expurgo então procurava os arquivos
+  // na pasta do primeiro professor e dava «já não existia» para todos — deixando o pacote da
+  // escola viva no repositório. Quem recriou declara-se no elo `recriacao[]`.
+  const responsavel = responsavelDoInventario(indice);
+  const professor = profArg || responsavel.slug || null;
+  const ciclo = cicloArg || responsavel.ciclo || null;
   if (!professor || !ciclo) {
     console.error('erro: informe --professor e --ciclo (ou um índice com esses dados).');
     process.exit(2);

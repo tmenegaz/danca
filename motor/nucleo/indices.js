@@ -47,7 +47,12 @@
 //       ser «o primeiro nome que alguma escola REGISTA». O `sapo-bailarino` saía sem nome porque a
 //       `batata` (que o menciona num ciclo) vem antes da `breu` e da `calango` (que guardam o
 //       nome): a primeira escola vencia mesmo quando não sabia nada.
-const VERSAO = 5;
+//   6 (22/10/2026) — `escola.professor` passa a ser o responsável de HOJE: o elo de recriação
+//       (`recriacao[].professor`) vence o `professor` do topo, que é o da PRIMEIRA criação. Numa
+//       escola viva, `escola.professores` deixa de incluir quem só criou uma encarnação anterior
+//       (o elo do expurgo só prova professores de escola APAGADA). Sem o incremento, o cache do
+//       Worker serve o índice antigo e o painel continua a mostrar a pessoa errada.
+const VERSAO = 6;
 
 // AS FAMÍLIAS QUE O ÍNDICE CONHECE. É o vocabulário mínimo que o acervo tem HOJE; um tipo novo
 // entra aqui quando existir um arquivo que lhe corresponda — não antes (a regra do §4.1: não
@@ -156,6 +161,43 @@ const SUFIXOS_DO_CICLO = new Set([
 ]);
 
 /**
+ * QUEM RESPONDE PELA ESCOLA HOJE — e por que «hoje» importa (22/10/2026).
+ *
+ * O inventário (`escola/<slug>/indice.json`) guardava `professor` como se fosse um fato
+ * imutável: o professor da CRIAÇÃO. Mas o índice sobrevive ao expurgo, e uma escola recriada
+ * com o mesmo nome reaproveita o mesmo arquivo — então `professor` continuava a dizer quem a
+ * criou da primeira vez, para sempre. Medido na `calango`: recriada com o `oculos-redondo`, o
+ * painel mostrava «Sapo Bailarino» como professor principal, e o expurgo local procurava os
+ * arquivos na pasta do `sapo-bailarino` (onde já não havia nada).
+ *
+ * A RECRIAÇÃO É UM ELO, e o elo passa a declarar quem recriou (`recriacao[].professor`,
+ * gravado por `tools/registrar-recriacao.py`). A regra é a mesma da proveniência: o elo NOVO
+ * vale, o antigo fica como memória. Quando o elo é anterior a esta correção e não declara
+ * ninguém, cai-se no `professor` — o comportamento de antes, sem inventar.
+ */
+function responsavelDoInventario(inv) {
+  if (!inv) return { slug: null, nome: null, ciclo: null };
+  const recriacoes = Array.isArray(inv.recriacao) ? inv.recriacao : [];
+  for (let i = recriacoes.length - 1; i >= 0; i -= 1) {
+    const e = recriacoes[i];
+    const p = e && e.professor;
+    const slug = p && typeof p === 'object' ? p.slug : (typeof p === 'string' ? p : null);
+    if (!slug) continue;
+    return {
+      slug: String(slug),
+      nome: (p && typeof p === 'object' && p.nome) ? String(p.nome) : (e.responsavel ? String(e.responsavel) : null),
+      ciclo: e.ciclo ? String(e.ciclo) : (inv.ciclo ? String(inv.ciclo) : null),
+    };
+  }
+  const professor = inv.professor || null;
+  return {
+    slug: (professor && professor.slug) ? String(professor.slug) : null,
+    nome: (professor && professor.nome) ? String(professor.nome) : null,
+    ciclo: inv.ciclo ? String(inv.ciclo) : null,
+  };
+}
+
+/**
  * O NOME DE UM PROFESSOR, no inventário da escola — do vínculo declarado (`professores[]`) ou,
  * como antes, do responsável (`professor`). Uma função só porque as duas formas descrevem a
  * mesma pessoa e o painel precisa do mesmo rótulo para as duas.
@@ -164,6 +206,14 @@ function nomeDoProfessorNoInventario(inv, slug) {
   if (!inv || !slug) return null;
   for (const p of (Array.isArray(inv.professores) ? inv.professores : [])) {
     if (p && p.slug === slug && p.nome) return String(p.nome);
+  }
+  // O ELO DE RECRIAÇÃO TAMBÉM DIZ O NOME (22/10/2026). É a única fonte para quem entrou na
+  // escola recriando-a: o diretório guarda o slug, e o `professores[]` só existe quando a
+  // Produção cadastrou a pessoa.
+  for (const e of (Array.isArray(inv.recriacao) ? inv.recriacao : [])) {
+    const p = e && e.professor;
+    if (p && typeof p === 'object' && p.slug === slug && p.nome) return String(p.nome);
+    if (p === slug && e.responsavel) return String(e.responsavel);
   }
   if (inv.professor && inv.professor.slug === slug && inv.professor.nome) return String(inv.professor.nome);
   return null;
@@ -414,7 +464,10 @@ function construir(entrada) {
     const minhaCiclos = ciclos.filter((c) => c.escola === slug);
     const meusRegistros = registrosPorEscola[slug] || [];
     const expurgada = !caminhos.some((c) => c === 'wrangler.' + slug + '.jsonc');
-    const professorDoInventario = (inv && inv.professor && inv.professor.slug) || null;
+    // QUEM RESPONDE HOJE, não quem criou há três expurgos (22/10/2026). Ver
+    // `responsavelDoInventario` — o elo de recriação vale sobre o `professor` original.
+    const responsavel = responsavelDoInventario(inv);
+    const professorDoInventario = responsavel.slug || null;
 
     /*
      * OS PROFESSORES QUE PASSARAM POR ESTA ESCOLA — e o elo sabe mais do que o inventário.
@@ -459,13 +512,20 @@ function construir(entrada) {
     const professoresDaEscola = [...new Set(minhaCiclos.map((c) => c.professor)
       .concat(professorDoInventario ? [professorDoInventario] : [])
       .concat(doInventario)
-      .concat([...doElo]))].sort(porTexto);
+      // O ELO DO EXPURGO SÓ PROVA QUEM TRABALHA NUMA ESCOLA APAGADA (22/10/2026). Numa escola
+      // VIVA os caminhos dizem quem tem ciclo ali, e o elo diz quem a criou nas encarnações
+      // anteriores — incluir os dois fazia o `sapo-bailarino` aparecer «a trabalhar» na
+      // `calango` recriada, onde quem dá aula é o `oculos-redondo`.
+      .concat(expurgada ? [...doElo] : []))].sort(porTexto);
 
     const comAncora = minhaCiclos.filter((c) => !c.sem_ancora).length;
     escolas.push({
       id: idDeEscola(slug),
       slug,
-      nome: (inv && (inv.escola || (inv.professor && inv.professor.nome))) || slug,
+      // O NOME DA ESCOLA: o que a criação declarou (`escola`), e só na falta dele o nome do
+      // responsável. O `nome` que a criação recebe (`--escola-nome`) não era gravado no elo —
+      // por isso a `calango` aparece como o slug, e a correção fica declarada no REGISTRO.
+      nome: (inv && (inv.escola || responsavel.nome)) || slug,
       professor: professorDoInventario,
       professores: professoresDaEscola,
       // UMA ESCOLA EXPURGADA NÃO ESTÁ HABILITADA (20/10/2026). «Habilitada» sai do elo, que
@@ -865,4 +925,6 @@ module.exports = {
   iguais,
   filtrar,
   responder,
+  responsavelDoInventario,
+  nomeDoProfessorNoInventario,
 };
