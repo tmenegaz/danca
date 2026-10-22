@@ -1,0 +1,145 @@
+name: Regerar os índices
+
+# POR QUE ESTE WORKFLOW EXISTE (22/10/2026).
+#
+# `indices/` é DERIVADO — `motor/nucleo/indices.js` o constrói a partir dos caminhos do
+# repositório, e `tools/gerar-indices.js` escreve os arquivos. Mas nada o regerava: só o
+# `criar-escola.yml` chamava o gerador, no commit dele. Todos os outros caminhos de escrita
+# deixavam o índice a apontar para um passado:
+#
+#   · o EXPURGO pela página (API do GitHub, um commit com `sha: null`) — medido hoje, duas
+#     vezes: `check-indices.js` acusou 13 falhas em 5 verificações depois de apagar a `calango`;
+#   · o CADASTRO DE PROFESSOR, que escreve os cinco schemas — e schema é documento, logo muda
+#     a contagem do acervo;
+#   · o «GUARDAR» do plano e do PO (`escrever-plano.js`, `escrever-po.js`);
+#   · o `gerar-ciclo.yml` (o pacote) e o `reancorar.yml` (as âncoras).
+#
+# O defeito não é de nenhum deles: é de não haver UM lugar que feche a derivação. Este é esse
+# lugar. Ele é o irmão do `reancorar.yml`, e pelo mesmo argumento: quando a fonte muda, o
+# derivado se refaz e se commita — a proveniência não se edita à mão.
+#
+# POR QUE UM COMMIT A MAIS, E NÃO O MESMO. Regenerar dentro de cada escritor exigiria a mesma
+# derivação em seis lugares, em JavaScript e em YAML, e duas implementações divergem no dia em
+# que uma mudar — que é a razão pela qual `indices.js` é puro e tem UM dono. Aqui a derivação é
+# a única que existe (`tools/gerar-indices.js`), e o custo é um segundo commit. O
+# `reancorar.yml` já paga o mesmo preço pela ÂNCORA, e pela mesma razão.
+#
+# UM COMMIT FEITO COM O `GITHUB_TOKEN` NÃO REDISPARA WORKFLOWS, então isto não vira laço. E o
+# caminho não se cruza com o `reancorar`: este commita só `indices/**`, que o `reancorar` não
+# observa; e o `.fipp` que o `reancorar` commita cai em `professores/**`, que este observa — o
+# que é o correcto, porque a âncora entra no índice (verificação 3 do `check-indices.js`).
+
+on:
+  push:
+    branches: [main]
+    # As três fontes que a derivação olha (`caminhosDoAcervo` em `tools/gerar-indices.js`), mais
+    # o próprio gerador e o motor da derivação: mudar como se conta um ciclo também muda o
+    # índice, e sem isso a correção só valeria no próximo push alheio.
+    paths:
+      - 'wrangler.*.jsonc'
+      - 'escola/**'
+      - 'professores/**'
+      - 'motor/nucleo/indices.js'
+      - 'motor/servidor/indice-acervo.js'
+      - 'tools/gerar-indices.js'
+      - '.github/workflows/regerar-indices.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+# A derivação é IDEMPOTENTE e não tem estado: cancelar a anterior não deixa nada pela metade (o
+# commit ou entrou ou não entrou), e a seguinte recalcula tudo a partir das fontes. É o mesmo
+# argumento do `reancorar.yml` — e NÃO se aplica a um deploy, onde um upload interrompido é
+# outra coisa.
+concurrency:
+  group: regerar-indices
+  cancel-in-progress: true
+
+jobs:
+  regerar:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      # `instalar: 'false'`: o gerador e a derivação não têm dependência externa — só o
+      # interpretador. Baixar `node_modules` aqui só acrescentaria segundos.
+      - uses: ./.github/actions/preparar-node
+        with:
+          instalar: 'false'
+
+      - name: Regerar os índices que divergiram
+        shell: bash
+        run: |
+          set -euo pipefail
+          # `gerar-indices.js` deriva do disco (é o mesmo motor que o Worker usa a partir do
+          # GitHub) e escreve só dentro de `indices/`.
+          node tools/gerar-indices.js
+          echo "--- o que mudou:"
+          git status --porcelain -- indices/ || true
+
+      # A PROVA DE QUE O ÍNDICE NOVO É VÁLIDO — ANTES DE ENTRAR NO `main`. Se o `check` reprovasse
+      # depois do commit, o índice inválido já estaria publicado e o vermelho seria só uma nota de
+      # rodapé. Reprovar aqui deixa a árvore como estava e diz o que está errado.
+      - name: Conferir o índice novo
+        shell: bash
+        run: |
+          set -euo pipefail
+          node tools/check-indices.js
+
+      - name: Commitar o índice derivado
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+
+          git add -A -- indices/
+
+          if git diff --cached --quiet; then
+            echo "nada a commitar — o índice já estava em dia"
+            exit 0
+          fi
+
+          git commit -m "chore(estrutura): regerar os índices derivados" \
+            -m "O índice do acervo é DERIVADO das fontes, e este é o lugar único que o refaz
+          depois de qualquer escrita — o expurgo, o cadastro de professor, o «Guardar» do plano
+          e do PO, a geração do pacote e a reancoragem. Antes disto, só o criar-escola.yml o
+          regerava, e o resto deixava indices/ a apontar para arquivos que já não existiam." \
+            -m "Refs: tools/gerar-indices.js, motor/nucleo/indices.js, tools/check-indices.js
+          Regras: P-03, P-04, P-17
+          Auditoria: node tools/gerar-indices.js (determinístico) + node tools/check-indices.js (14 verificações)"
+
+          # O PUSH PODE PERDER A CORRIDA — o mesmo laço do `reancorar.yml`, e pela mesma razão:
+          # mais de um workflow escreve no `main`. Se o rebase assentar sobre um `main` novo, o
+          # índice regerado foi calculado sobre a árvore ANTIGA — e o índice não se escolhe, é
+          # derivado. Aqui ele é recalculado depois do rebase, e o commit é refeito.
+          for intento in 1 2 3 4 5; do
+            if git push; then
+              exit 0
+            fi
+            echo "push recusado (tentativa $intento) — rebaseando sobre o main"
+            git fetch origin main
+
+            if ! git rebase origin/main; then
+              echo "erro: o rebase parou — conflito que não é do índice:" >&2
+              git diff --name-only --diff-filter=U >&2 || true
+              git rebase --abort || true
+              exit 1
+            fi
+
+            # A derivação de novo, sobre a árvore que resultou do rebase.
+            node tools/gerar-indices.js
+            git add -A -- indices/
+            if git diff --cached --quiet HEAD^; then
+              echo "o índice regerado é o que o main novo já tinha — commit dispensado"
+              git reset --soft HEAD^
+            else
+              git commit --amend --no-edit
+            fi
+            sleep $((intento * 3))
+          done
+          echo "erro: o push continuou recusado depois de 5 tentativas" >&2
+          exit 1
+

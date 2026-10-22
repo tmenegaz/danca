@@ -22176,3 +22176,52 @@ e o mesmo conjunto exato de falhas; comparado por execução, não por memória.
 **O que isto ainda não resolve.** Um professor EXCLUÍDO não tem os schemas apagados, e não deve
 ter: a âncora dos ciclos que ele tocou continua a apontar para as fontes, e `P-03`/`P-04` dizem
 que o passado se incorpora. Se ele voltar, o cadastro os encontra no lugar e não reescreve nada.
+
+## 22/10/2026 — O índice derivado passa a ter um lugar que o refaz, e é um só
+
+**O que aconteceu, medido duas vezes no mesmo dia.** O expurgo pela página apagou a escola
+`calango` (commit `20d543e`, 18 arquivos) e os dois workflows terminaram **verdes** —
+`Reancorar` e `Publicar as escolas`. E `node tools/check-indices.js` acusou **13 falhas em 5
+verificações**: o acervo e o índice da escola divergiam do gerado, sete referências apontavam
+para arquivos que já não existiam, o `.fipp` não podia ser lido, e a verificação 12 lia «escola
+calango: sem config e não está marcada expurgada». O `indices/ciclos/oculos-redondo/01-calango.json`
+ficou órfão.
+
+De manhã o mesmo já tinha acontecido — e eu o corrigi à mão. Isso era o defeito do defeito: a
+correção manual apagava o sintoma e deixava o mecanismo quebrado, e o teste seguinte mediria um
+estado que ninguém sabe reproduzir.
+
+**A causa não é de um escritor: é de não haver um lugar.** `indices/` é DERIVADO
+(`motor/nucleo/indices.js` deriva, `tools/gerar-indices.js` escreve), e **só** o
+`criar-escola.yml` chamava o gerador. Todos os outros caminhos de escrita deixavam o índice a
+apontar para o passado: o expurgo (API do GitHub, um commit com `sha: null`), o cadastro de
+professor (os cinco schemas — e schema é documento, logo muda a contagem do acervo), o «Guardar»
+do plano e do PO, o `gerar-ciclo.yml` (o pacote) e o `reancorar.yml` (as âncoras).
+
+**A correção é um mecanismo, não seis remendos.** `.github/workflows/regerar-indices.yml` roda em
+todo push que toque as três fontes que a derivação olha (`wrangler.*.jsonc`, `escola/**`,
+`professores/**`), mais o próprio gerador e o motor da derivação — porque mudar como se conta um
+ciclo também muda o índice. Ele deriva com o ÚNICO gerador que existe, **confere antes de
+commitar** (um índice inválido não entra no `main`) e commita. É o irmão do `reancorar.yml`, e
+pelo mesmo argumento: quando a fonte muda, o derivado se refaz — a proveniência não se edita à mão.
+
+**Por que um commit a mais, e não o mesmo.** Regenerar dentro de cada escritor exigiria a mesma
+derivação em seis lugares, em JavaScript e em YAML, e duas implementações divergem no dia em que
+uma mudar — é a razão pela qual `indices.js` é puro e tem um dono só. O custo é um segundo commit,
+que é o mesmo preço que o `reancorar.yml` já paga pela âncora.
+
+**A prova, antes de entrar.** Numa cópia isolada do repositório no estado pós-expurgo — sem tocar
+na árvore de trabalho — o `check-indices.js` reprovava as mesmas 13 falhas; depois de
+`node tools/gerar-indices.js`, `TUDO CERTO — 14 verificações, 0 falha(s)`. E o resultado é o
+semanticamente correcto: a `calango` fica no acervo com `expurgada: true`, `habilitada: false` e
+zero ciclos — o elo permanece, que é o que a pétrea pede —, e o índice órfão do ciclo sai.
+
+**O que isto NÃO muda.** Não se tocou em `tools/` nem em `motor/`: o gerador e a derivação
+continuam exactamente como estavam, e o workflow apenas os chama. Nenhuma fórmula de hash, nenhum
+validador, nenhuma cobertura de âncora. O congelamento fica de pé — e este é o caso em que a
+correção certa não precisou de o romper.
+
+**E a regra do teste, que passou a valer para mim.** Nada de correção à mão durante o teste: se o
+sintoma aparecer, conserta-se o mecanismo que o produz. O `a79b344` e o `edef9cb` — dois commits
+meus, hoje, regerando índices à mão — são o exemplo do que não se faz. Este commit é o que os
+substitui.
