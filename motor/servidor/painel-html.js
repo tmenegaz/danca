@@ -66,80 +66,158 @@ function quando(iso) {
   return m[3] + '/' + m[2] + '/' + m[1] + ' às ' + m[4] + ':' + m[5];
 }
 
+/** O endereço de uma escola viva — o mesmo que o `/api/escolas` devolve. */
+function urlDaEscola(slug) {
+  return 'https://' + String(slug || '') + '.tmenegaz77.workers.dev/';
+}
+
 /**
- * A LISTA — a tabela das escolas. É a MESMA nas três superfícies (a página da raiz, a lista
- * filtrada e o registo, que volta a ela), e é por isso que é uma função e não marcação repetida:
- * duas cópias divergem no dia em que uma ganhar uma coluna.
+ * A LISTA — a tabela das escolas, num dos três recortes.
  *
- * A ORDEM põe o que saiu por último no topo. Quem abre o painel quer saber o que acabou de
- * acontecer; o histórico desce. Uma escola viva (sem `expurgada_em`) desce ao fim — ela não
- * «saiu», logo não tem data de saída.
+ *   'todas'    — as vivas e as apagadas, com o registo de cada uma (a página `/`);
+ *   'apagadas' — só as que saíram, com a data da saída e o link para o registo;
+ *   'vivas'    — só as que existem: nome, professor, criação e estado.
+ *
+ * É UMA função para as três porque a ordem e o desenho da linha são os mesmos — o que muda é
+ * que colunas fazem sentido. Duas cópias divergiriam no dia em que uma ganhasse uma coluna.
+ *
+ * O NOME É O LINK (22/10/2026). Numa escola viva, o nome leva ao site dela — é o gesto que
+ * qualquer pessoa tenta primeiro, e poupa a viagem pelo repositório para achar o subdomínio.
+ * Numa escola apagada não há site: o nome fica texto, e o destino é o registo.
  */
-function tabelaDeEscolas(escolas) {
-  const lista = (escolas || []).slice().sort((a, b) => {
-    const da = String(a.expurgada_em || '');
-    const db = String(b.expurgada_em || '');
-    if (da === db) return String(a.slug).localeCompare(String(b.slug));
-    if (!da) return 1;
-    if (!db) return -1;
-    return db.localeCompare(da);
-  });
+function tabelaDeEscolas(escolas, modo) {
+  const recorte = modo || 'todas';
+  const lista = (escolas || []).slice()
+    .filter((e) => (recorte === 'apagadas' ? e.expurgada : recorte === 'vivas' ? !e.expurgada : true))
+    .sort((a, b) => {
+      const da = String(a.expurgada_em || '');
+      const db = String(b.expurgada_em || '');
+      if (da === db) return String(a.slug).localeCompare(String(b.slug));
+      if (!da) return 1;
+      if (!db) return -1;
+      return db.localeCompare(da);
+    });
 
   if (!lista.length) {
+    const oQue = recorte === 'vivas' ? 'escola viva' : recorte === 'apagadas' ? 'escola apagada' : 'escola';
     return '<div class="caixa nota">' +
-      '<h2>Nenhuma escola</h2>' +
-      '<p>Não há escola nenhuma no sistema. Toda escola criada deixa um elo em ' +
-      '<code>escola/&lt;slug&gt;/indice.json</code>, e é de lá que esta lista sai — uma lista ' +
-      'vazia quer dizer que nenhuma existe, não que a leitura falhou.</p>' +
+      '<h2>Nenhuma ' + oQue + '</h2>' +
+      '<p>Toda escola criada deixa um elo em <code>escola/&lt;slug&gt;/indice.json</code>, e é de ' +
+      'lá que esta lista sai — uma lista vazia quer dizer que nenhuma existe, não que a leitura ' +
+      'falhou.</p>' +
       '</div>';
   }
 
-  const linhas = lista.map((e) => {
+  const linha = (e) => {
     const nome = e.nome && e.nome !== e.slug ? e.nome + ' (' + e.slug + ')' : e.slug;
-    // O SELO É O ESTADO DO DADO, e é a peça que a folha já desenha: `ok` é a escola viva,
-    // `discreto` a que saiu. Não se inventa cor nem forma.
+    const rotulo = e.expurgada
+      ? '<strong>' + esc(nome) + '</strong>'
+      : '<a href="' + esc(urlDaEscola(e.slug)) + '"><strong>' + esc(nome) + '</strong></a>';
     const selo = e.expurgada
       ? '<span class="selo discreto">apagada</span>'
       : '<span class="selo ok">viva</span>';
-    // O REGISTO SÓ EXISTE PARA QUEM SAIU. Uma escola viva não tem elo de expurgo — e um link
-    // que levasse a uma página vazia seria pior do que não haver link.
-    const registo = e.expurgada
-      ? '<a href="/escolas-apagadas/' + encodeURIComponent(e.slug) + '">Abrir o registo</a>'
-      : '—';
-    return '<tr>' +
-      '<td><strong>' + esc(nome) + '</strong></td>' +
-      '<td>' + esc(e.professor || '—') + '</td>' +
-      '<td>' + esc(diaOuTraco(e.criada_em)) + '</td>' +
-      '<td>' + esc(diaOuTraco(e.expurgada_em)) + '</td>' +
-      '<td>' + selo + '</td>' +
-      '<td>' + registo + '</td>' +
-      '</tr>';
-  }).join('');
+    const celulas = [
+      '<td>' + rotulo + '</td>',
+      '<td>' + esc(e.professor || '—') + '</td>',
+      '<td>' + esc(diaOuTraco(e.criada_em)) + '</td>',
+    ];
+    if (recorte !== 'vivas') celulas.push('<td>' + esc(diaOuTraco(e.expurgada_em)) + '</td>');
+    celulas.push('<td>' + selo + '</td>');
+    if (recorte !== 'vivas') {
+      celulas.push('<td>' + (e.expurgada
+        ? '<a href="/escolas-apagadas/' + encodeURIComponent(e.slug) + '">Abrir o registo</a>'
+        : '—') + '</td>');
+    }
+    return '<tr>' + celulas.join('') + '</tr>';
+  };
+
+  const colunas = ['Escola', 'Professor', 'Criada']
+    .concat(recorte !== 'vivas' ? ['Apagada'] : [])
+    .concat(['Estado'])
+    .concat(recorte !== 'vivas' ? ['Registo'] : []);
 
   return '<table>' +
-    '<thead><tr>' +
-    '<th>Escola</th><th>Professor</th><th>Criada</th><th>Apagada</th><th>Estado</th><th>Registo</th>' +
-    '</tr></thead>' +
-    '<tbody>' + linhas + '</tbody>' +
+    '<thead><tr>' + colunas.map((c) => '<th>' + c + '</th>').join('') + '</tr></thead>' +
+    '<tbody>' + lista.map(linha).join('') + '</tbody>' +
     '</table>';
 }
 
 /**
  * O BLOCO QUE ENTRA NA PÁGINA DA RAIZ. A `danca` é a apresentação — um arquivo versionado,
  * regerado por `tools/gerar-raiz.sh` —, e a lista não pode viver dentro dele: a próxima geração
- * apagava-a. Ela entra por um marcador (`<div id="escolas-do-sistema"></div>`), que o Worker
- * substitui. O `id` não é `class` de propósito: não é uma peça, é um lugar.
+ * apagava-a. Ela entra por um marcador, que o Worker substitui em tempo de resposta.
+ *
+ * O `id` do título é a âncora do ÍNDICE da página (ver `indiceDaPagina`): é por ela que «Escolas
+ * do sistema» aparece no «Nesta página», ao lado dos capítulos da apresentação — e por isso o
+ * índice tem de ser montado DEPOIS desta substituição.
  */
 const MARCADOR = '<div id="escolas-do-sistema"></div>';
+const MARCADOR_INDICE = '<div id="indice-da-pagina"></div>';
 
 function blocoDeEscolas(escolas) {
-  const apagadas = (escolas || []).filter((e) => e.expurgada);
-  return '<h2>Escolas do sistema</h2>' +
+  return '<h2 id="escolas-do-sistema">Escolas do sistema</h2>' +
     '<p>As que existem e as que existiram. Uma escola apagada continua aqui: o expurgo tira-a do ' +
     'ar e do repositório, e deixa o elo — a memória de que ela existiu.</p>' +
-    tabelaDeEscolas(escolas) +
-    '<p><a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas (' +
-    apagadas.length + ')</a></p>';
+    tabelaDeEscolas(escolas, 'todas') +
+    '<p><a class="acao secundario" href="/escolas-vivas">Ver só as vivas</a> ' +
+    '<a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas</a></p>';
+}
+
+/**
+ * O ÍNDICE DESTA PÁGINA — o «Nesta página», montado a partir dos títulos REAIS.
+ *
+ * POR QUE NO SERVIDOR, e não no `gerar-raiz.sh`. Duas razões, e as duas são de facto: o corpo da
+ * raiz é regerado de `biblioteca/apresentacao.md` e não sabe nada da lista de escolas — que só
+ * existe depois de injetada; e um índice escrito à mão no casco apodreceria no dia em que o texto
+ * ganhasse um capítulo novo. Lendo os `<h2>`/`<h3>` do HTML já montado, o índice é sempre o da
+ * página que está a ser servida.
+ *
+ * O TRECHO É O `main`, e não a página: os `<h2>` dos modais («Criar nova escola», «Apagar escola»)
+ * ficam de fora — são diálogos, não capítulos.
+ *
+ * A FORMA É A DO PACOTE: `nav.toc-local` com `p.toc-titulo` e uma lista, que é o que o
+ * `assets/nav.js` procura para criar a dobra em tela estreita. Um `<ul>` com os h2 e, aninhados,
+ * os h3 de cada um.
+ */
+function indiceDaPagina(html) {
+  const ini = html.indexOf('<div class="conteudo"');
+  const fim = html.indexOf('</main>', ini === -1 ? 0 : ini);
+  if (ini === -1 || fim === -1) return '';
+  const trecho = html.slice(ini, fim);
+
+  const titulos = [];
+  for (const m of trecho.matchAll(/<h([23])(?:\s+id="([^"]+)")?[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    if (!m[2]) continue;
+    // O texto do título, sem as tags que o pandoc põe lá dentro (links de âncora, ênfase).
+    const texto = m[3].replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim();
+    if (!texto) continue;
+    titulos.push({ nivel: Number(m[1]), id: m[2], texto });
+  }
+  if (!titulos.length) return '';
+
+  // A montagem é uma pilha de dois níveis, e não uma árvore: os h2 são os capítulos e os h3
+  // são os passos de cada um. Um h3 sem h2 antes não tem onde ser pendurado, e é ignorado.
+  const itens = [];
+  let temH2 = false;
+  let sublistaAberta = false;
+  for (const t of titulos) {
+    if (t.nivel === 2) {
+      if (temH2) itens.push((sublistaAberta ? '</ul>' : '') + '</li>');
+      itens.push('<li><a href="#' + t.id + '">' + esc(t.texto) + '</a>');
+      temH2 = true;
+      sublistaAberta = false;
+    } else {
+      if (!temH2) continue;
+      if (!sublistaAberta) { itens.push('<ul>'); sublistaAberta = true; }
+      itens.push('<li><a href="#' + t.id + '">' + esc(t.texto) + '</a></li>');
+    }
+  }
+  if (temH2) itens.push((sublistaAberta ? '</ul>' : '') + '</li>');
+
+  return '<nav class="toc-local" aria-label="Índice desta página">' +
+    '<p class="toc-titulo">Nesta página</p>' +
+    '<ul>' + itens.join('') + '</ul>' +
+    '</nav>';
 }
 
 /** O CASCO das páginas que são do Worker (a lista filtrada e o registo). */
@@ -172,16 +250,34 @@ function resposta(html, status) {
   });
 }
 
-/** A LISTA FILTRADA — o destino do item do menu. */
-function paginaDasApagadas({ escolas }) {
-  const apagadas = (escolas || []).filter((e) => e.expurgada);
+/**
+ * AS DUAS LISTAS FILTRADAS — «Ver só as apagadas» e «Ver só as vivas».
+ *
+ * São a mesma página com outro recorte, e é por isso que são uma função: o que muda é o título,
+ * o que a tabela mostra e o que o parágrafo diz. Duas funções quase iguais divergiriam no dia em
+ * que uma ganhasse uma coluna — e a regra do catálogo é que peça repetida é peça que vai
+ * divergir.
+ */
+function paginaDeLista({ recorte, escolas }) {
+  const apagadas = recorte === 'apagadas';
   return pagina({
-    titulo: 'Escolas apagadas',
-    subtitulo: 'O registo do que foi expurgado — a proveniência de uma escola que existiu.',
-    atual: 'escolas-apagadas',
-    corpo: tabelaDeEscolas(apagadas) +
+    titulo: apagadas ? 'Escolas apagadas' : 'Escolas vivas',
+    subtitulo: apagadas
+      ? 'O registo do que foi expurgado — a proveniência de uma escola que existiu.'
+      : 'As escolas que existem agora. O nome leva ao site de cada uma.',
+    atual: apagadas ? 'escolas-apagadas' : 'escolas-vivas',
+    corpo: tabelaDeEscolas(escolas, recorte) +
       '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
+}
+
+/** O atalho que as rotas usam — e que a prova exercita sem passar pelo Worker. */
+function paginaDasApagadas({ escolas }) {
+  return paginaDeLista({ recorte: 'apagadas', escolas });
+}
+
+function paginaDasVivas({ escolas }) {
+  return paginaDeLista({ recorte: 'vivas', escolas });
 }
 
 /**
@@ -290,6 +386,6 @@ function paginaSemToken(motivo) {
 
 module.exports = {
   esc, dia, diaOuTraco, quando,
-  MARCADOR, tabelaDeEscolas, blocoDeEscolas,
-  pagina, resposta, paginaDasApagadas, paginaDoRegistro, paginaSemToken,
+  MARCADOR, MARCADOR_INDICE, tabelaDeEscolas, blocoDeEscolas, indiceDaPagina, urlDaEscola,
+  pagina, resposta, paginaDasApagadas, paginaDasVivas, paginaDoRegistro, paginaSemToken,
 };

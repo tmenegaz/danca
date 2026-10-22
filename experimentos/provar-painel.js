@@ -166,12 +166,25 @@ async function principais() {
   conferir('…com a escola apagada', /calango/.test(home.html), null);
   conferir('…e a viva também', /viva/.test(home.html), null);
   conferir('a apagada leva ao registo', /href="\/escolas-apagadas\/calango"/.test(home.html), null);
-  conferir('os DOIS botões continuam lá',
-    /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
-  conferir('NÃO há botão «Painel»', !/href="\/painel"/.test(home.html), null);
-  conferir('o marcador foi substituído', !/id="escolas-do-sistema"/.test(home.html), null);
+  conferir('o marcador foi substituído', !/id="escolas-do-sistema"><\/div>/.test(home.html), null);
+  conferir('NÃO há botão nem link «/painel»', !/href="\/painel"/.test(home.html), null);
 
-  // ── 2. a lista custa UMA leitura — a lentidão de antes era isto ────────────
+  // ── 2. as duas colunas congeladas ──────────────────────────────────────────
+  conferir('a coluna das ações existe', /<div class="rail rail-esq">/.test(home.html), null);
+  const railEsq = (/<div class="rail rail-esq">([\s\S]*?)<\/div>/.exec(home.html) || [])[1] || '';
+  const destinos = (railEsq.match(/class="acao[^"]*"/g) || []).length;
+  conferir('…com os quatro destinos', destinos === 4, destinos);
+  conferir('…e os dois botões de sempre continuam', /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
+  conferir('a coluna do índice existe', /<div class="rail rail-dir">/.test(home.html), null);
+  conferir('…e o índice foi montado', /<nav class="toc-local"/.test(home.html), null);
+  conferir('…com o título «Nesta página»', /toc-titulo">Nesta página</.test(home.html), null);
+  conferir('…e leva aos capítulos da apresentação', /href="#o-que-é-o-sistema-lastro"/.test(home.html), null);
+  conferir('…e TAMBÉM a «Escolas do sistema»', /href="#escolas-do-sistema"/.test(home.html), null);
+  conferir('…com os passos aninhados', /<ul><li><a href="#passo-1-anamnese-do-aluno"/.test(home.html), null);
+  conferir('os h2 dos MODAIS ficam fora do índice',
+    !/href="#modal-titulo"/.test(home.html) && !/href="#apagar-titulo"/.test(home.html), null);
+
+  // ── 3. a lista custa UMA leitura — a lentidão de antes era isto ────────────
   const custo = await semRede(async (chamadas) => {
     await pedir(envComAssets(), '/');
     return chamadas.filter((c) => /api\.github\.com/.test(c.url)).map((c) => c.url);
@@ -179,7 +192,13 @@ async function principais() {
   conferir('a lista faz UMA requisição ao GitHub', custo.length === 1, custo.length);
   conferir('…e é a do índice versionado', /indices\/acervo\.json/.test(custo[0] || ''), custo[0]);
 
-  // ── 3. o registo abre com UMA leitura (não reconstrói o acervo) ────────────
+  // ── 4. o nome de uma escola VIVA é o link para ela ─────────────────────────
+  conferir('o nome da viva leva ao site dela',
+    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"><strong>viva<\/strong>/.test(home.html), null);
+  conferir('o nome da apagada NÃO é link de site',
+    !/href="https:\/\/calango\.tmenegaz77\.workers\.dev\/"/.test(home.html), null);
+
+  // ── 5. o registo abre com UMA leitura (não reconstrói o acervo) ────────────
   const registro = await semRede(async (chamadas) => {
     const r = await pedir(envComAssets(), '/escolas-apagadas/calango');
     return { status: r.status, html: await r.text(), chamadas };
@@ -189,17 +208,16 @@ async function principais() {
   conferir('o registo faz UMA requisição', doRegisto.length === 1, doRegisto.length);
   conferir('…e é a do elo da escola', /escola\/calango\/indice\.json/.test(doRegisto[0] || ''), doRegisto[0]);
   conferir('mostra o MOTIVO declarado', /expurgada pela página/.test(registro.html), null);
-  conferir('lista os arquivos que saíram',
-    /ciclo-01-calango\.conf/.test(registro.html), null);
+  conferir('lista os arquivos que saíram', /ciclo-01-calango\.conf/.test(registro.html), null);
   conferir('diz o que ficou no KV', /3 chave\(s\) apagada/.test(registro.html), null);
   conferir('volta à lista', /href="\/escolas-apagadas"/.test(registro.html), null);
 
-  // ── 4. os dois expurgos acumulam (a breu teve dois) ────────────────────────
+  // ── 6. os dois expurgos acumulam ──────────────────────────────────────────
   const doisElos = painelPaginaDoisElos();
   conferir('dois elos dão dois blocos', (doisElos.match(/Expurgo de/g) || []).length === 2,
     (doisElos.match(/Expurgo de/g) || []).length);
 
-  // ── 5. escola sem elo → 404, e com UMA leitura ─────────────────────────────
+  // ── 7. escola sem elo → 404, e com UMA leitura ─────────────────────────────
   const inexistente = await semRede(async (chamadas) => {
     const r = await pedir(envComAssets(), '/escolas-apagadas/nunca-existiu');
     return { status: r.status, chamadas };
@@ -208,7 +226,7 @@ async function principais() {
   conferir('…e não reconstrói o acervo',
     inexistente.chamadas.filter((c) => /acervo\.json/.test(c.url)).length === 0, null);
 
-  // ── 6. a lista filtrada (o item do menu) ───────────────────────────────────
+  // ── 8. as duas listas filtradas ────────────────────────────────────────────
   const apagadas = await semRede(async () => {
     const r = await pedir(envComAssets(), '/escolas-apagadas');
     return { status: r.status, html: await r.text() };
@@ -216,8 +234,22 @@ async function principais() {
   conferir('«Escolas apagadas» responde 200', apagadas.status === 200, apagadas.status);
   conferir('…com as duas apagadas', /calango/.test(apagadas.html) && /breu/.test(apagadas.html), null);
   conferir('…e sem a viva', !/href="\/escolas-apagadas\/viva"/.test(apagadas.html), null);
+  conferir('…e com «Voltar ao painel»', /href="\/"\/?>Voltar ao painel/.test(apagadas.html) || /Voltar ao painel/.test(apagadas.html), null);
 
-  // ── 7. as rotas antigas continuam a responder ──────────────────────────────
+  const vivas = await semRede(async () => {
+    const r = await pedir(envComAssets(), '/escolas-vivas');
+    return { status: r.status, html: await r.text() };
+  });
+  conferir('«Escolas vivas» responde 200', vivas.status === 200, vivas.status);
+  conferir('…com a viva e o link para ela',
+    /href="https:\/\/viva\.tmenegaz77\.workers\.dev\/"/.test(vivas.html), null);
+  conferir('…e sem as apagadas', !/Abrir o registo/.test(vivas.html) && !/>calango</.test(vivas.html), null);
+  conferir('…com o estado «viva»', /class="selo ok">viva</.test(vivas.html), null);
+  conferir('…com as quatro colunas pedidas',
+    /<th>Escola<\/th><th>Professor<\/th><th>Criada<\/th><th>Estado<\/th>/.test(vivas.html), null);
+  conferir('…e com «Voltar ao painel»', /Voltar ao painel/.test(vivas.html), null);
+
+  // ── 9. as rotas antigas continuam a responder ──────────────────────────────
   for (const [de, para] of [['/painel', '/'], ['/painel/escolas-apagadas', '/escolas-apagadas'],
     ['/painel/escolas-apagadas/calango', '/escolas-apagadas/calango']]) {
     const r = await pedir(envComAssets(), de);
@@ -225,21 +257,21 @@ async function principais() {
       { status: r.status, location: r.headers.get('Location') });
   }
 
-  // ── 8. o slug não vira caminho arbitrário ──────────────────────────────────
+  // ── 10. o slug não vira caminho arbitrário ─────────────────────────────────
   const travessia = await semRede(async (chamadas) => {
     await pedir(envComAssets(), '/escolas-apagadas/..%2F..%2Fetc');
     return chamadas.filter((c) => /escola\/\.\./.test(c.url)).length;
   });
   conferir('slug com travessia não lê arquivo nenhum', travessia === 0, travessia);
 
-  // ── 9. sem token: diz, não finge ───────────────────────────────────────────
+  // ── 11. sem token: diz, não finge ──────────────────────────────────────────
   const semToken = await pedir(envComAssets({ GITHUB_TOKEN: '' }), '/escolas-apagadas');
   const htmlSemToken = await semToken.text();
   conferir('sem GITHUB_TOKEN responde 500', semToken.status === 500, semToken.status);
   conferir('…e diz o que falta', /GITHUB_TOKEN/.test(htmlSemToken), null);
   conferir('…e NÃO diz «Nenhuma escola»', !/Nenhuma escola/.test(htmlSemToken), null);
 
-  // ── 10. o menu: logomarca + «Escolas apagadas», e mais nada ────────────────
+  // ── 12. o menu: logomarca + «Escolas apagadas», e mais nada ────────────────
   const menu = apagadas.html;
   conferir('o menu tem a logomarca', /class="marca" href="\/"/.test(menu), null);
   conferir('…e «Escolas apagadas»', /href="\/escolas-apagadas"[^>]*>Escolas apagadas</.test(menu), null);
@@ -249,7 +281,7 @@ async function principais() {
   conferir('SEM «Bastidores»', !/Bastidores/.test(menu), null);
   conferir('SEM menu que abre e fecha', !/<details class="menu">/.test(menu), null);
 
-  // ── 11. a data não passa por Date ──────────────────────────────────────────
+  // ── 13. a data não passa por Date ──────────────────────────────────────────
   conferir('microssegundos no ISO não viram NaN',
     painel.dia('2026-10-19T18:18:57.289485+00:00'), '19/10/2026');
   conferir('ISO sem data devolve null, não «NaN/NaN/NaN»', painel.dia('nada') === null, painel.dia('nada'));

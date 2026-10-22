@@ -1009,6 +1009,7 @@ function superficiesQueEmitem() {
     const viva = Object.assign({}, amostra, { slug: 'maria', expurgada: false, expurgada_em: null });
     lista.push(['painel/bloco-na-raiz', painel.blocoDeEscolas([amostra, viva])]);
     lista.push(['painel/escolas-apagadas', painel.paginaDasApagadas({ escolas: [amostra, viva] })]);
+    lista.push(['painel/escolas-vivas', painel.paginaDasVivas({ escolas: [amostra, viva] })]);
     lista.push(['painel/registo', painel.paginaDoRegistro({
       slug: 'calango',
       indice: {

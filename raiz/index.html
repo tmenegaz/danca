@@ -31,8 +31,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           <button class="tema" type="button" aria-pressed="false"
                   aria-label="Ativar a aparência noturna"
                   title="Aparência clara ou noturna">&#9680;</button>
-          <button class="acao grande secundario" id="btn-apagar" type="button">Apagar escola</button>
-          <button class="acao grande" id="btn-criar" type="button">Criar nova escola</button>
         </div>
       </div>
     </header>
@@ -119,6 +117,26 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
     </div>
 
     <main>
+      <!-- ── AS DUAS COLUNAS CONGELADAS (22/10/2026) ────────────────────────────────────────
+           À ESQUERDA, as ações: empilhadas e presas ao rolar. São as mesmas quatro coisas que
+           existiam espalhadas pela página (os dois botões no cabeçalho e o «ver só as apagadas»
+           no fim da lista) — agora num lugar só, onde o polegar as alcança sem procurar.
+
+           À DIREITA, o índice desta página: o mesmo `.toc-local` do pacote e da anamnese, com a
+           mesma dobra. Ele é montado pelo Worker a partir dos títulos REAIS da página — e por
+           isso inclui «Escolas do sistema», que só existe depois de a lista ser injetada.
+
+           Nenhuma das duas é escrita à mão no conteúdo: o corpo de `.conteudo` é regerado por
+           `tools/gerar-raiz.sh`, e os rails ficam fora dele. -->
+      <div class="rail rail-esq">
+        <button class="acao secundario" id="btn-apagar" type="button">Apagar escola</button>
+        <button class="acao" id="btn-criar" type="button">Criar nova escola</button>
+        <a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas</a>
+        <a class="acao secundario" href="/escolas-vivas">Ver só as vivas</a>
+      </div>
+      <div class="rail rail-dir">
+        <div id="indice-da-pagina"></div>
+      </div>
       <div class="conteudo">
         <h2 id="o-que-é-o-sistema-lastro">O que é o Sistema Lastro</h2>
         <p>O <strong>Sistema Lastro</strong> é uma ferramenta de apoio ao
@@ -315,26 +333,79 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             gap: .85rem;
           }
 
-          /* Alinha o topo com o conteúdo. A RAIZ NÃO TEM `.rail` (não tem índice
-             lateral): a grade global de duas colunas, a partir de 1200px, reservaria
-             17rem vazios à direita e o topo — com 1180px — alinharia com essa coluna
-             fantasma, não com a prosa. Aqui a raiz fica numa coluna só (900px) e o
-             topo segue a mesma medida. */
+          /* Alinha o topo com o conteúdo. A RAIZ PASSOU A TER AS DUAS COLUNAS (22/10/2026):
+             as ações à esquerda e o índice à direita. Antes ela era uma coluna só de 900px, e
+             a grade global de duas colunas reservaria 17rem vazios à direita — a lista de
+             escolas ficava a olhar para uma coluna fantasma.
+
+             Agora a grade é explícita e de TRÊS colunas: 13rem de ações, a prosa, e 15rem de
+             índice. O topo segue a medida de 1180px, que é a mesma da grade. */
           @media (min-width: 1200px) {
             header.doc,
             main,
             footer.rodape,
             .rodape {
-              max-width: 900px;
+              max-width: 1180px;
             }
 
             main {
-              grid-template-columns: minmax(0, 1fr);
+              grid-template-columns: 13rem minmax(0, 1fr) 15rem;
             }
 
-            .topo-linha {
-              max-width: 900px;
+            .conteudo {
+              grid-column: 2;
+              grid-row: 1;
+              max-width: none;
             }
+
+            .rail.rail-esq {
+              grid-column: 1;
+              grid-row: 1;
+            }
+
+            .rail.rail-dir {
+              grid-column: 3;
+              grid-row: 1;
+            }
+
+            /* O PRESO É A COLUNA, e ela não estica (`align-self: start`): um item de grade
+               esticado ocupa toda a altura do conteúdo e não tem para onde grudar. É a mesma
+               razão do `.rail` da folha, resolvida no próprio elemento porque aqui não há um
+               filho único a prender — há quatro botões. */
+            .rail.rail-esq {
+              position: sticky;
+              /* O MESMO `top` do índice (`.toc-local`, na folha): as duas colunas começam
+                 na mesma linha horizontal — e é isso que faz a página parecer um painel e
+                 não duas coisas presas por acaso. */
+              top: calc(var(--header-height) + 8px);
+              align-self: start;
+              margin: 0;
+            }
+          }
+
+          /* A COLUNA DAS AÇÕES — empilhada. Em tela larga ela é presa (acima); em tela estreita
+             é o primeiro bloco da página, e os quatro destinos ficam à mão antes de qualquer
+             rolagem.
+
+             NÃO SE USA `.acoes` AQUI, e a razão é de vocabulário: na porta, `.acoes` é a BARRA
+             horizontal de ações (display: flex em linha). Dar-lhe um segundo desenho — em
+             coluna — seria a mesma palavra a significar duas coisas, que é o defeito que o
+             catálogo descreve («erro de vocabulário, não de gosto»). O contentor é o `.rail`,
+             que já é a peça da coluna presa. */
+          .rail-esq {
+            display: flex;
+            flex-direction: column;
+            gap: .5rem;
+            margin: 20px 0 24px;
+          }
+
+          /* Os quatro destinos ocupam a COLUNA INTEIRA e centram o texto: `.acao` é
+             `inline-block` + `white-space: nowrap`, e um destino com nome comprido
+             («Ver só as apagadas») estouraria para fora de 13rem. */
+          .rail-esq > .acao {
+            display: block;
+            text-align: center;
+            white-space: normal;
           }
 
           /* A MARCA NO CABEÇALHO DA RAIZ (18/10/2026). Ela NÃO usa a regra do

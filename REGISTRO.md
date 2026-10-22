@@ -22354,3 +22354,48 @@ dois botões não podem cair porque um índice está ilegível: é a única pág
 dois botões intactos, a ausência do botão «Painel», **uma** requisição para a lista e **uma** para
 o registo, os 301 das rotas antigas, o menu sem «Sistema Lastro»/«Área do Professor»/«Bastidores»
 e sem `<details>`, o 404 sem elo, e a data que não passa por `Date`.
+
+## 22/10/2026 — O painel ganha as duas colunas, e a lista das vivas
+
+**O que se pediu.** À esquerda, as ações empilhadas e congeladas: apagar, criar, ver só as
+apagadas, ver só as vivas. À direita, o «Nesta página» — o mesmo `.toc-local` do pacote e da
+anamnese —, montado dos capítulos da própria página, incluindo «Escolas do sistema». Na lista, o
+nome de uma escola **viva** passa a ser o link para o site dela. E uma lista das vivas irmã da das
+apagadas.
+
+**O layout.** A raiz era uma coluna de 900px; passa a uma grade de três colunas (13rem de ações,
+a prosa, 15rem de índice) a partir de 1200px. Abaixo disso as duas colunas caem no fluxo, e as
+ações ficam no topo — antes de qualquer rolagem.
+
+**Os quatro destinos num lugar só.** Estavam espalhados: dois botões no cabeçalho e o «ver só as
+apagadas» no fim da lista. Agora os quatro estão na coluna da esquerda, e o cabeçalho fica com a
+marca, o título e o botão de aparência.
+
+**O índice é montado pelo Worker, e não escrito.** Duas razões de facto: o corpo da raiz é
+regerado de `biblioteca/apresentacao.md` e não sabe nada da lista de escolas; e um índice escrito à
+mão apodreceria no dia em que o texto ganhasse um capítulo. Ele lê os `<h2>`/`<h3>` do HTML **já
+montado** — por isso é montado **depois** da lista ser injetada, e por isso «Escolas do sistema»
+aparece nele. O recorte é o `<main>`: os `<h2>` dos modais («Criar nova escola», «Apagar escola»)
+são diálogos, não capítulos, e ficam de fora.
+
+**NÃO SE USA `.acoes` NA COLUNA.** A porta já desenha `.acoes` como BARRA horizontal. Dar à mesma
+classe um segundo desenho — em coluna — seria a mesma palavra a dizer duas coisas: é o «erro de
+vocabulário, não de gosto» que o catálogo descreve. A coluna é o `.rail`, que já é a peça da coluna
+presa; ele ganha duas posições (`rail-esq`, `rail-dir`) desenhadas na própria página, como o
+`.topo-linha`. E o preso é o próprio `.rail-esq` com `align-self: start` — um item de grade
+esticado ocupa toda a altura e não tem para onde grudar.
+
+**A lista, em três recortes.** `tabelaDeEscolas` recebe um modo — `todas`, `apagadas`, `vivas` — e
+escolhe as colunas: a das vivas mostra Escola · Professor · Criada · Estado, e é a que a dona do
+produto pediu («por enquanto só o nome, o professor, a data e o estado»). O acompanhamento de
+pipeline fica para quando houver o que acompanhar; hoje seria uma coluna sempre vazia.
+
+**O nome é o link.** Numa escola viva, o nome leva ao site dela (`https://<slug>.…workers.dev/`) —
+é o gesto que qualquer pessoa tenta primeiro. Numa apagada não há site: o nome fica texto, e o
+destino é o registo.
+
+**Prova.** `experimentos/provar-painel.js` passou a **58 asserções**: as duas colunas presentes, os
+quatro destinos empilhados, o índice com os capítulos da apresentação e «Escolas do sistema» e sem
+os títulos dos modais, os passos aninhados, o nome da viva como link e o da apagada como texto, a
+página das vivas com as quatro colunas e «Voltar ao painel», e as duas páginas de lista a fazerem
+**uma** requisição cada.

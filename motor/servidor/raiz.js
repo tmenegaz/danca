@@ -354,11 +354,18 @@ async function fetch(request, env) {
     });
   }
 
-  if (url.pathname === '/escolas-apagadas') {
+  // AS DUAS LISTAS — «só as apagadas» e «só as vivas». A mesma leitura (uma requisição), o
+  // mesmo recorte; quem filtra é a apresentação, porque o índice é a memória inteira e a lista é
+  // escolha.
+  if (url.pathname === '/escolas-apagadas' || url.pathname === '/escolas-vivas') {
     const token = env && env.GITHUB_TOKEN;
     if (!token) return painel.resposta(painel.paginaSemToken(), 500);
+    const apagadas = url.pathname === '/escolas-apagadas';
     try {
-      return painel.resposta(painel.paginaDasApagadas({ escolas: await escolasDoIndice({ token }) }));
+      const escolas = await escolasDoIndice({ token });
+      return painel.resposta(apagadas
+        ? painel.paginaDasApagadas({ escolas })
+        : painel.paginaDasVivas({ escolas }));
     } catch (err) {
       return painel.resposta(painel.paginaSemToken(
         'não foi possível ler o índice: ' + ((err && err.message) || String(err))), 500);
@@ -895,7 +902,12 @@ async function fetch(request, env) {
             'carregamento.</p></div>';
         }
       }
-      return new Response(html.replace(painel.MARCADOR, bloco), {
+      // O ÍNDICE DEPOIS DO BLOCO: ele lê os títulos do HTML já montado, e «Escolas do sistema»
+      // só existe depois da substituição acima. Montado antes, o índice não teria o capítulo da
+      // lista — e um índice que não leva à secção que a pessoa veio ver é pior do que não ter.
+      const comLista = html.replace(painel.MARCADOR, bloco);
+      const comIndice = comLista.replace(painel.MARCADOR_INDICE, painel.indiceDaPagina(comLista));
+      return new Response(comIndice, {
         status: 200,
         headers: {
           'Content-Type': 'text/html;charset=utf-8',
