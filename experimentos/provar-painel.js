@@ -93,6 +93,47 @@ function githubFalso(arquivos) {
   return { fetch: f, chamadas };
 }
 
+const ARQUIVOS = {
+  // O ÍNDICE VERSIONADO — a única leitura da lista. O acervo inteiro, já derivado.
+  'indices/acervo.json': {
+    versao: 2,
+    escolas: [
+      { slug: 'calango', nome: 'calango', professor: 'sapo-bailarino',
+        criada_em: '2026-10-19T18:18:57.289485+00:00', expurgada_em: '2026-10-22T10:48:48.104Z',
+        expurgada: true, expurgos: 4 },
+      { slug: 'breu', nome: 'breu', professor: 'sapo-bailarino',
+        criada_em: '2026-10-19T23:41:57.342597+00:00', expurgada_em: '2026-10-21T21:06:01.896Z',
+        expurgada: true, expurgos: 2 },
+      { slug: 'viva', nome: 'viva', professor: 'tiago-menegaz',
+        criada_em: '2026-10-20T10:00:00.000000+00:00', expurgada_em: null,
+        expurgada: false, expurgos: 0 },
+    ],
+  },
+  'escola/calango/indice.json': inventario({
+    slug: 'calango', criado: '2026-10-19T18:18:57.289485+00:00', expurgo: EXPURGO_DA_CALANGO,
+  }),
+  // A página da raiz, com o marcador — é o arquivo real do repositório.
+  'index.html': require('fs').readFileSync(require('path').join(__dirname, '..', 'raiz', 'index.html'), 'utf8'),
+};
+
+/** O `ASSETS` do Worker: serve o que estiver em `ARQUIVOS`, e 404 no resto. */
+function assetsFalso(arquivos) {
+  const f = async (req) => {
+    const u = new URL(typeof req === 'string' ? req : req.url);
+    const caminho = u.pathname === '/' ? '/index.html' : u.pathname;
+    const chave = caminho.replace(/^\//, '');
+    if (!(chave in arquivos)) return { ok: false, status: 404, headers: new Map(), text: async () => '' };
+    const corpo = String(arquivos[chave]);
+    return {
+      ok: true,
+      status: 200,
+      headers: { get: (k) => (/content-type/i.test(k) ? 'text/html' : null) },
+      text: async () => corpo,
+    };
+  };
+  return { fetch: f };
+}
+
 const ambiente = (extra) => Object.assign({
   SENHA_RAIZ: 'segredo',
   GITHUB_TOKEN: 'tok',
@@ -102,108 +143,128 @@ async function pedir(env, caminho) {
   return raiz.fetch(new Request(BASE + caminho, { headers: { Authorization: AUTORIZACAO } }), env);
 }
 
-/** Corre `fn` com a rede substituída. */
-async function semRede(arquivos, fn) {
+/** Corre `fn` com a rede do GitHub substituída e o ASSETS de mentira. */
+async function semRede(fn) {
   const original = globalThis.fetch;
-  const { fetch, chamadas } = githubFalso(arquivos);
+  const { fetch, chamadas } = githubFalso(ARQUIVOS);
   globalThis.fetch = fetch;
-  try { return await fn(chamadas); } finally { globalThis.fetch = original; }
+  try {
+    return await fn(chamadas);
+  } finally { globalThis.fetch = original; }
 }
 
-const ARQUIVOS = {
-  'escola/calango/indice.json': inventario({
-    slug: 'calango', criado: '2026-10-19T18:18:57.289485+00:00', expurgo: EXPURGO_DA_CALANGO,
-  }),
-  'escola/viva/indice.json': inventario({ slug: 'viva', criado: '2026-10-20T10:00:00.000000+00:00' }),
-  // A VIVA tem o wrangler; a `calango` não — e é isso que a derivação lê como «expurgada».
-  'wrangler.viva.jsonc': '{}',
-  'professores/sapo-bailarino/ciclos/ciclo-01-viva.conf': 'ESCOLA="Viva"\n',
-};
+const envComAssets = (extra) => ambiente(Object.assign({ ASSETS: assetsFalso(ARQUIVOS) }, extra || {}));
 
 async function principais() {
-  // ── 1. a lista ─────────────────────────────────────────────────────────────
-  const lista = await semRede(ARQUIVOS, async () => {
-    const r = await pedir(ambiente(), '/painel/escolas-apagadas');
+  // ── 1. a página `/` é o painel: lista ali, sem clique nenhum ───────────────
+  const home = await semRede(async () => {
+    const r = await pedir(envComAssets(), '/');
     return { status: r.status, html: await r.text() };
   });
-  conferir('a lista responde 200', lista.status === 200, lista.status);
-  conferir('mostra a escola apagada', /Calango/.test(lista.html), null);
-  conferir('…com a data de CRIAÇÃO', /19\/10\/2026/.test(lista.html), null);
-  conferir('…e a data da SAÍDA', /22\/10\/2026/.test(lista.html), null);
-  conferir('…e o link para o registo', /href="\/painel\/escolas-apagadas\/calango"/.test(lista.html), null);
-  conferir('a escola VIVA não aparece na lista', !/>Viva</.test(lista.html), null);
+  conferir('a raiz responde 200', home.status === 200, home.status);
+  conferir('a lista vem NA página da raiz', /Escolas do sistema/.test(home.html), null);
+  conferir('…com a escola apagada', /calango/.test(home.html), null);
+  conferir('…e a viva também', /viva/.test(home.html), null);
+  conferir('a apagada leva ao registo', /href="\/escolas-apagadas\/calango"/.test(home.html), null);
+  conferir('os DOIS botões continuam lá',
+    /id="btn-apagar"/.test(home.html) && /id="btn-criar"/.test(home.html), null);
+  conferir('NÃO há botão «Painel»', !/href="\/painel"/.test(home.html), null);
+  conferir('o marcador foi substituído', !/id="escolas-do-sistema"/.test(home.html), null);
 
-  // ── 2. o registo ───────────────────────────────────────────────────────────
-  const registro = await semRede(ARQUIVOS, async () => {
-    const r = await pedir(ambiente(), '/painel/escolas-apagadas/calango');
-    return { status: r.status, html: await r.text() };
+  // ── 2. a lista custa UMA leitura — a lentidão de antes era isto ────────────
+  const custo = await semRede(async (chamadas) => {
+    await pedir(envComAssets(), '/');
+    return chamadas.filter((c) => /api\.github\.com/.test(c.url)).map((c) => c.url);
+  });
+  conferir('a lista faz UMA requisição ao GitHub', custo.length === 1, custo.length);
+  conferir('…e é a do índice versionado', /indices\/acervo\.json/.test(custo[0] || ''), custo[0]);
+
+  // ── 3. o registo abre com UMA leitura (não reconstrói o acervo) ────────────
+  const registro = await semRede(async (chamadas) => {
+    const r = await pedir(envComAssets(), '/escolas-apagadas/calango');
+    return { status: r.status, html: await r.text(), chamadas };
   });
   conferir('o registo responde 200', registro.status === 200, registro.status);
+  const doRegisto = registro.chamadas.filter((c) => /api\.github\.com/.test(c.url)).map((c) => c.url);
+  conferir('o registo faz UMA requisição', doRegisto.length === 1, doRegisto.length);
+  conferir('…e é a do elo da escola', /escola\/calango\/indice\.json/.test(doRegisto[0] || ''), doRegisto[0]);
   conferir('mostra o MOTIVO declarado', /expurgada pela página/.test(registro.html), null);
   conferir('lista os arquivos que saíram',
-    /professores\/oculos-redondo\/ciclos\/ciclo-01-calango\.conf/.test(registro.html), null);
+    /ciclo-01-calango\.conf/.test(registro.html), null);
   conferir('diz o que ficou no KV', /3 chave\(s\) apagada/.test(registro.html), null);
-  conferir('…e os prefixos limpos', /bastidores\/calango\//.test(registro.html), null);
-  conferir('tem a hora do expurgo, não só o dia', /às 10:48/.test(registro.html), null);
-  conferir('volta à lista', /href="\/painel\/escolas-apagadas"/.test(registro.html), null);
+  conferir('volta à lista', /href="\/escolas-apagadas"/.test(registro.html), null);
 
-  // ── 3. slug que não existe → 404, e não uma página vazia ───────────────────
-  const inexistente = await semRede(ARQUIVOS, async () => {
-    const r = await pedir(ambiente(), '/painel/escolas-apagadas/nunca-existiu');
+  // ── 4. os dois expurgos acumulam (a breu teve dois) ────────────────────────
+  const doisElos = painelPaginaDoisElos();
+  conferir('dois elos dão dois blocos', (doisElos.match(/Expurgo de/g) || []).length === 2,
+    (doisElos.match(/Expurgo de/g) || []).length);
+
+  // ── 5. escola sem elo → 404, e com UMA leitura ─────────────────────────────
+  const inexistente = await semRede(async (chamadas) => {
+    const r = await pedir(envComAssets(), '/escolas-apagadas/nunca-existiu');
+    return { status: r.status, chamadas };
+  });
+  conferir('escola sem elo responde 404', inexistente.status === 404, inexistente.status);
+  conferir('…e não reconstrói o acervo',
+    inexistente.chamadas.filter((c) => /acervo\.json/.test(c.url)).length === 0, null);
+
+  // ── 6. a lista filtrada (o item do menu) ───────────────────────────────────
+  const apagadas = await semRede(async () => {
+    const r = await pedir(envComAssets(), '/escolas-apagadas');
     return { status: r.status, html: await r.text() };
   });
-  conferir('escola fora da lista responde 404', inexistente.status === 404, inexistente.status);
-  conferir('…e não inventa um registo', !/Expurgo de/.test(inexistente.html), null);
+  conferir('«Escolas apagadas» responde 200', apagadas.status === 200, apagadas.status);
+  conferir('…com as duas apagadas', /calango/.test(apagadas.html) && /breu/.test(apagadas.html), null);
+  conferir('…e sem a viva', !/href="\/escolas-apagadas\/viva"/.test(apagadas.html), null);
 
-  // ── 4. o slug não vira caminho arbitrário ──────────────────────────────────
-  const travessia = await semRede(ARQUIVOS, async (chamadas) => {
-    const r = await pedir(ambiente(), '/painel/escolas-apagadas/..%2F..%2Fetc');
-    const leu = chamadas.filter((c) => /\/contents\//.test(c.url));
-    return { status: r.status, leituras: leu.length };
+  // ── 7. as rotas antigas continuam a responder ──────────────────────────────
+  for (const [de, para] of [['/painel', '/'], ['/painel/escolas-apagadas', '/escolas-apagadas'],
+    ['/painel/escolas-apagadas/calango', '/escolas-apagadas/calango']]) {
+    const r = await pedir(envComAssets(), de);
+    conferir('301 de ' + de, r.status === 301 && r.headers.get('Location') === para,
+      { status: r.status, location: r.headers.get('Location') });
+  }
+
+  // ── 8. o slug não vira caminho arbitrário ──────────────────────────────────
+  const travessia = await semRede(async (chamadas) => {
+    await pedir(envComAssets(), '/escolas-apagadas/..%2F..%2Fetc');
+    return chamadas.filter((c) => /escola\/\.\./.test(c.url)).length;
   });
-  conferir('slug com travessia não lê arquivo nenhum', travessia.leituras === 0, travessia);
+  conferir('slug com travessia não lê arquivo nenhum', travessia === 0, travessia);
 
-  // ── 5. sem token: diz, não finge ───────────────────────────────────────────
-  const semToken = await pedir(ambiente({ GITHUB_TOKEN: '' }), '/painel/escolas-apagadas');
+  // ── 9. sem token: diz, não finge ───────────────────────────────────────────
+  const semToken = await pedir(envComAssets({ GITHUB_TOKEN: '' }), '/escolas-apagadas');
   const htmlSemToken = await semToken.text();
   conferir('sem GITHUB_TOKEN responde 500', semToken.status === 500, semToken.status);
   conferir('…e diz o que falta', /GITHUB_TOKEN/.test(htmlSemToken), null);
-  conferir('…e NÃO diz «nenhuma escola apagada»', !/Nenhuma escola apagada/.test(htmlSemToken), null);
+  conferir('…e NÃO diz «Nenhuma escola»', !/Nenhuma escola/.test(htmlSemToken), null);
 
-  // ── 6. o menu ──────────────────────────────────────────────────────────────
-  const menu = await semRede(ARQUIVOS, async () => {
-    const r = await pedir(ambiente(), '/painel/escolas-apagadas');
-    return r.text();
-  });
-  conferir('o menu tem o grupo «Painel»', /<summary>Painel<\/summary>/.test(menu), null);
-  conferir('…com o item «Escolas apagadas»',
-    /href="\/painel\/escolas-apagadas"[^>]*>Escolas apagadas</.test(menu), null);
-  conferir('…e o item está marcado como activo',
-    /class="ativo" href="\/painel\/escolas-apagadas"/.test(menu)
-      || /href="\/painel\/escolas-apagadas" class="ativo"/.test(menu)
-      || /class="ativo"[^>]*escolas-apagadas/.test(menu), null);
+  // ── 10. o menu: logomarca + «Escolas apagadas», e mais nada ────────────────
+  const menu = apagadas.html;
+  conferir('o menu tem a logomarca', /class="marca" href="\/"/.test(menu), null);
+  conferir('…e «Escolas apagadas»', /href="\/escolas-apagadas"[^>]*>Escolas apagadas</.test(menu), null);
+  conferir('…e o item está activo', /class="ativo" href="\/escolas-apagadas"/.test(menu), null);
+  conferir('SEM «Sistema Lastro» no menu', !/<a href="\/index.html">Sistema Lastro<\/a>/.test(menu), null);
+  conferir('SEM «Área do Professor»', !/Área do Professor/.test(menu), null);
+  conferir('SEM «Bastidores»', !/Bastidores/.test(menu), null);
+  conferir('SEM menu que abre e fecha', !/<details class="menu">/.test(menu), null);
 
-  // ── 7. o painel de entrada ─────────────────────────────────────────────────
-  const inicio = await semRede(ARQUIVOS, async () => {
-    const r = await pedir(ambiente(), '/painel');
-    return { status: r.status, html: await r.text() };
-  });
-  conferir('a página do painel responde 200', inicio.status === 200, inicio.status);
-  conferir('…e conta as escolas apagadas', /1 escola apagada/.test(inicio.html), null);
-  conferir('…e leva à lista', /href="\/painel\/escolas-apagadas"/.test(inicio.html), null);
-
-  // ── 8. a página da raiz tem a entrada do menu ──────────────────────────────
-  const fs = require('fs');
-  const path = require('path');
-  const html = fs.readFileSync(path.join(__dirname, '..', 'raiz', 'index.html'), 'utf8');
-  conferir('a raiz oferece o «Painel»', /<a class="acao grande secundario" href="\/painel">Painel<\/a>/.test(html), null);
-
-  // ── 9. a data não passa por Date ───────────────────────────────────────────
+  // ── 11. a data não passa por Date ──────────────────────────────────────────
   conferir('microssegundos no ISO não viram NaN',
     painel.dia('2026-10-19T18:18:57.289485+00:00'), '19/10/2026');
   conferir('ISO sem data devolve null, não «NaN/NaN/NaN»', painel.dia('nada') === null, painel.dia('nada'));
   conferir('a hora é do carimbo, sem converter fuso',
     painel.quando('2026-10-22T10:48:48.104Z'), '22/10/2026 às 10:48');
+}
+
+/** A página de registo com dois elos — a `breu`, que foi apagada duas vezes. */
+function painelPaginaDoisElos() {
+  const elo = (em, motivo) => ({ em, motivo, apagado: ['x'], kv: null });
+  return painel.paginaDoRegistro({
+    slug: 'breu',
+    indice: { escola: 'breu', criado_em: '2026-10-19T23:41:57Z', professor: { nome: 'X' },
+      expurgo: [elo('2026-10-21T18:00:00Z', 'primeira'), elo('2026-10-21T21:06:01Z', 'segunda')] },
+  });
 }
 
 principais().then(() => {

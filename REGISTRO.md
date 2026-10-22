@@ -22233,7 +22233,7 @@ por quê, os arquivos que saíram do repositório, o que ficou no KV. Versionado
 **sem destino**: quem quisesse ler o registo abria o JSON no GitHub. O resultado do expurgo não
 tinha lugar no sistema.
 
-**O que passou a existir.** A raiz (`danca`) deixa de ser só a apresentação e ganha a **área de
+**O que passou a existir (e foi retrabalhado no mesmo dia — ver a entrada seguinte).** A raiz (`danca`) deixa de ser só a apresentação e ganha a **área de
 gestão**: `/painel` (o índice das secções), `/painel/escolas-apagadas` (a lista, com criação,
 saída e o link) e `/painel/escolas-apagadas/<slug>` (o registo — motivo, arquivos, KV, e todos
 os elos, quando a escola foi apagada mais de uma vez). O menu é o grupo **Painel** da barra, e
@@ -22314,3 +22314,43 @@ fechada antes de alguém a abrir.
 `porta/index.html`, `tools/check-identidade.js` e a cópia `raiz/assets/style.css`, regerada por
 `tools/gerar-raiz.sh` (o `raiz/index.html` saiu byte a byte igual). Nenhuma peça nova nasceu: o
 que existia estava amputado.
+
+## 22/10/2026 — O painel perdeu os cliques que não devia ter
+
+**O que a dona do produto contou.** Ela levou três cliques para chegar à lista que pediu: o botão
+«Painel» → uma página-índice de secções → um «Abrir» → a lista. E, ao abrir, entrou noutra
+estrutura: um menu com «Sistema Lastro», «Área do Professor» e «Bastidores». Nada disso é da raiz
+— é de uma escola. E o registo demorava a abrir.
+
+**O que estava errado, em três camadas.**
+
+1. **Um botão onde devia haver menu.** A raiz já tem «Apagar escola» e «Criar nova escola». O
+   «Painel» era um terceiro, e o menu é que devia carregar o destino. Agora o menu é o
+   `navDoPainel`: a logomarca (que leva a `/`, o próprio painel) e «Escolas apagadas». Sem
+   `<details>` — com um item, um menu que abre e fecha é um clique a mais para o mesmo sítio.
+2. **Uma página a mais.** `/` **é** o painel: os dois botões continuam, e a lista de escolas —
+   vivas e apagadas — vem logo abaixo, na mesma página. `/painel` deixa de existir e responde
+   **301**. A entrada na lista é zero cliques; o registo é um.
+3. **A lentidão era trabalho a mais, não cache.** A primeira versão pedia o acervo ao GitHub
+   (`lerComCache`): uma árvore + um `contents/` por escola — **doze requisições** para desenhar
+   uma lista, a cada visita. E o registo reconstruía o acervo inteiro só para validar um slug.
+   Agora a lista lê `indices/acervo.json` (**uma** requisição — o arquivo que o
+   `regerar-indices.yml` mantém em dia a cada push) e o registo lê `escola/<slug>/indice.json`
+   (**outra**). Medido na prova: 1 e 1. O registo nunca foi gerado — o que demorava era o índice
+   inteiro construído por causa dele.
+
+**O lugar da lista.** Ela não pode viver em `raiz/index.html`: o corpo daquele arquivo é regerado
+por `tools/gerar-raiz.sh` a partir de `biblioteca/apresentacao.md`. Entra por um marcador
+(`<div id="escolas-do-sistema"></div>`) que o Worker substitui em tempo de resposta. E o marcador
+está **dentro** de `.conteudo`, depois do `<style>` — o gerador regera só o troço entre
+`<div class="conteudo">` e o primeiro `<style>`, e fora dali o bloco caía na coluna estreita do
+layout de duas colunas. As duas coisas foram verificadas: regenerar preserva o marcador, e a lista
+sai dentro da coluna de leitura.
+
+**Se a lista falhar, a página vai assim mesmo** — sem o bloco, com um aviso. A apresentação e os
+dois botões não podem cair porque um índice está ilegível: é a única página que cria escolas.
+
+**Prova.** `experimentos/provar-painel.js` reescrita, **40 asserções**: a lista na própria `/`, os
+dois botões intactos, a ausência do botão «Painel», **uma** requisição para a lista e **uma** para
+o registo, os 301 das rotas antigas, o menu sem «Sistema Lastro»/«Área do Professor»/«Bastidores»
+e sem `<details>`, o 404 sem elo, e a data que não passa por `Date`.

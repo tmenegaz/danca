@@ -91,7 +91,7 @@ const ABERTURA = [
  * em `atual`.
  */
 const ITENS_DO_PAINEL = [
-  { chave: 'escolas-apagadas', href: '/painel/escolas-apagadas', rotulo: 'Escolas apagadas' },
+  { chave: 'escolas-apagadas', href: '/escolas-apagadas', rotulo: 'Escolas apagadas' },
 ];
 
 /**
@@ -161,7 +161,33 @@ function navSistema({ atual = '', anamnese, plano, po, estudio = '/bastidores/es
   ].filter((linha) => linha !== null).join('\n');
 }
 
-module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, MARCA, MARCA_NA_BARRA, ITENS_DO_PAINEL, navSistema };
+/**
+ * A BARRA DO PAINEL DA RAIZ — SÓ A LOGOMARCA E OS ITENS (22/10/2026).
+ *
+ * A raiz `danca` não é uma escola: ela não tem «Sistema Lastro», «Área do Professor» nem
+ * «Bastidores». Levar quem administra o sistema para um menu de escola é entrar noutra
+ * estrutura — foi o que aconteceu na primeira versão do painel, e a dona do produto contou os
+ * cliques.
+ *
+ * Aqui fica o que a raiz É: a logomarca (que leva a `/`, o próprio painel) e os itens de
+ * gestão. Sem `<details>`: com um item, um menu que abre e fecha é um clique a mais para
+ * chegar ao mesmo sítio.
+ */
+function navDoPainel({ atual = '' } = {}) {
+  return [
+    '<nav class="topnav" aria-label="Navegação do painel">',
+    MARCA_NA_BARRA,
+    '  <button class="hamburger" aria-label="Abrir menu" aria-expanded="false" aria-controls="nav-links">',
+    '    <span></span><span></span><span></span>',
+    '  </button>',
+    '  <div class="nav-links" id="nav-links">',
+    ...ITENS_DO_PAINEL.map((i) => '<a' + (i.chave === atual ? ' class="ativo"' : '') +
+      ' href="' + i.href + '">' + i.rotulo + '</a>'),
+    FECHAMENTO,
+  ].join('\n');
+}
+
+module.exports = { ABERTURA, BOTAO_TEMA, FECHAMENTO, MARCA, MARCA_NA_BARRA, ITENS_DO_PAINEL, navSistema, navDoPainel };
 
 if (require.main === module) {
   const arg = process.argv[2];

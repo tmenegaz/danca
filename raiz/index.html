@@ -31,13 +31,6 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
           <button class="tema" type="button" aria-pressed="false"
                   aria-label="Ativar a aparência noturna"
                   title="Aparência clara ou noturna">&#9680;</button>
-          <!-- O PAINEL (22/10/2026). A raiz deixou de ser só a apresentação: ela é a entrada da
-               ÁREA DE GESTÃO — escolas apagadas, e depois as criadas, os professores, os
-               pagamentos. Este é o primeiro item do menu, e o menu inteiro cresce em
-               `ITENS_DO_PAINEL` (`tools/templates/nav-html.js`), onde as páginas do painel o
-               leem. Aqui ele é uma `.acao` secundária, a peça que já significa «um destino»; o
-               painel é navegação, não a ação principal da página. -->
-          <a class="acao grande secundario" href="/painel">Painel</a>
           <button class="acao grande secundario" id="btn-apagar" type="button">Apagar escola</button>
           <button class="acao grande" id="btn-criar" type="button">Criar nova escola</button>
         </div>
@@ -1070,6 +1063,16 @@ try{if(!document.documentElement.hasAttribute('data-modo-fonte')&&localStorage.g
             resApagar.appendChild(cx);
           }
         </script>
+        <!-- A LISTA DE ESCOLAS ENTRA AQUI (22/10/2026). O Worker substitui este marcador pelo
+             bloco que `motor/servidor/painel-html.js` monta a partir de `indices/acervo.json`.
+
+             DENTRO de `.conteudo`, e DEPOIS do `<style>`: `tools/gerar-raiz.sh` regera só o
+             troço entre `<div class="conteudo">` e o primeiro `<style>` — o que vem depois é
+             casco e sobrevive. E aqui dentro a lista fica na coluna de leitura; fora, no
+             desktop, ela caía na coluna estreita da direita.
+
+             O `id` não é `class`: não é uma peça, é um lugar. -->
+        <div id="escolas-do-sistema"></div>
       </div>
     </main>
     <a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>

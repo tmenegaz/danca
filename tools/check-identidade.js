@@ -996,19 +996,19 @@ function superficiesQueEmitem() {
   } catch (e) {
     erros.push('Peça: não foi possível gerar a página de estado (' + (e && e.message) + ')');
   }
-  // O PAINEL DA RAIZ (22/10/2026). As três páginas da área de gestão, com dados de amostra —
-  // sem isto, a superfície mais nova do sistema seria a única que ninguém mede, e é justamente
-  // uma que ainda vai crescer.
+  // O PAINEL DA RAIZ (22/10/2026) — as duas páginas que o Worker serve, mais o BLOCO que entra
+  // na página da raiz. O bloco entra na medição de propósito: ele não está em arquivo nenhum, é
+  // gerado em tempo de resposta, e é o pedaço do painel que mais muda.
   try {
     const painel = require(path.join(raiz, 'motor/servidor/painel-html.js'));
     const amostra = {
-      slug: 'calango', nome: 'Calango', professor: 'sapo-bailarino',
-      criada_em: '2026-10-19T18:18:57Z', expurgada_em: '2026-10-22T10:48:48Z', expurgos: 1,
+      slug: 'calango', nome: 'calango', professor: 'sapo-bailarino',
+      criada_em: '2026-10-19T18:18:57Z', expurgada_em: '2026-10-22T10:48:48Z',
+      expurgada: true, expurgos: 1,
     };
-    lista.push(['painel/inicio', painel.paginaDoPainel({
-      secoes: [{ href: '/painel/escolas-apagadas', titulo: 'Escolas apagadas', resumo: 'r', contagem: '1 escola apagada' }],
-    })]);
-    lista.push(['painel/escolas-apagadas', painel.paginaDasApagadas({ escolas: [amostra] })]);
+    const viva = Object.assign({}, amostra, { slug: 'maria', expurgada: false, expurgada_em: null });
+    lista.push(['painel/bloco-na-raiz', painel.blocoDeEscolas([amostra, viva])]);
+    lista.push(['painel/escolas-apagadas', painel.paginaDasApagadas({ escolas: [amostra, viva] })]);
     lista.push(['painel/registo', painel.paginaDoRegistro({
       slug: 'calango',
       indice: {
@@ -1021,6 +1021,7 @@ function superficiesQueEmitem() {
         }],
       },
     })]);
+    lista.push(['painel/sem-token', painel.paginaSemToken()]);
   } catch (e) {
     erros.push('Peça: não foi possível gerar as páginas do painel (' + (e && e.message) + ')');
   }

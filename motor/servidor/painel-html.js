@@ -1,41 +1,35 @@
 'use strict';
 
 /**
- * painel-html.js — o PAINEL OPERACIONAL do sistema, servido pela raiz (`danca`).
+ * painel-html.js — o PAINEL do sistema, servido pela raiz (`danca`).
  *
- * O QUE ELE É. A raiz deixou de ser só a apresentação: ela é o lugar de onde a pesquisadora
- * administra o sistema. A primeira secção é **Escolas apagadas** — o registro do que foi
- * expurgado, com a data de criação, a de saída e o elo que o expurgo deixou. As próximas
- * (escolas criadas, professores, pagamentos) entram no mesmo desenho, e o menu cresce no
- * `ITENS_DO_PAINEL` de `tools/templates/nav-html.js` — uma linha por secção, e ela aparece em
- * todas as páginas do painel ao mesmo tempo.
+ * O QUE ELE É, DEPOIS DO RETRABALHO DE 22/10/2026. A dona do produto contou os cliques:
  *
- * POR QUE O PAINEL NÃO FICA NO `raiz/index.html`. Aquele arquivo é a apresentação, e o corpo
- * dele é REGERADO por `tools/gerar-raiz.sh` a partir de `biblioteca/apresentacao.md`. Uma lista
- * que muda a cada expurgo não pode viver num arquivo gerado de um texto fixo: a próxima
- * geração apagava-a. Aqui ela é montada do ÍNDICE (`indices/acervo.json` e o elo de cada
- * escola), que é o que já existe e o que já é versionado.
+ *   o botão «Painel» → uma página-índice de secções → um «Abrir» → a lista.
  *
- * DE ONDE VÊM OS DADOS, e por que do ÍNDICE. `motor/nucleo/indices.js` deriva o acervo das
- * fontes do repositório; a raiz lê esse índice (`indice-acervo.js`), e cada escola já traz
- * `criada_em`, `expurgada` e `expurgada_em`. O DETALHE (o que foi apagado, o motivo, o KV) vive
- * no elo `escola/<slug>/indice.json`, e só se lê quando alguém abre o registro — uma leitura por
- * consulta, em vez de N numa lista.
+ * Três cliques para chegar ao que ela pediu. Não é isso. A página `danca` **é** o painel: ela
+ * continua a ter «Apagar escola» e «Criar nova escola», e a lista de escolas vem logo abaixo, na
+ * mesma página. O menu tem a logomarca e «Escolas apagadas» — e mais nada: nem «Sistema Lastro»,
+ * nem «Área do Professor», nem «Bastidores», que são de uma ESCOLA e não da raiz. Levar quem
+ * administra o sistema para um menu de escola é entrar noutra estrutura.
  *
- * IDENTIDADE. Nada aqui inventa peça: a página usa a folha do sistema (`/assets/style.css`, a
- * mesma das escolas e da raiz), a barra GERADA por `nav-html.js`, e as peças do catálogo —
- * `header.doc` com `h1`/`.subtitulo`, `.caixa`, `.ficha`, `.selo`, a `<table>` da folha (a mesma
- * que o pandoc usa nos documentos) e `a.acao`. `tools/check-identidade.js` mede esta página
- * junto com as outras superfícies que emitem marcação (checagem 8).
+ * DE ONDE VÊM OS DADOS — E POR QUE ISSO RESOLVE A LENTIDÃO. A primeira versão pedia o acervo ao
+ * GitHub (`lerComCache`): uma árvore + um `contents/` por escola, doze requisições para desenhar
+ * uma lista, a cada visita. Agora lê o **índice versionado** (`indices/acervo.json`) — UMA
+ * requisição, o mesmo arquivo que o `regerar-indices.yml` mantém em dia a cada push. E o registo
+ * de uma escola é a leitura do elo dela (`escola/<slug>/indice.json`): outro arquivo, outra
+ * requisição.
+ *
+ * O registo não se «gera»: está no repositório desde o expurgo. O que demorava era o índice
+ * inteiro construído só para validar um slug.
+ *
+ * IDENTIDADE. Nenhuma peça nova: a barra é a GERADA (`nav-html.js` → `navDoPainel`), e a página
+ * usa a folha do sistema — `header.doc` + `h1`/`.subtitulo`, `.caixa`, `.ficha`, `<table>` (a
+ * mesma dos documentos gerados), `.selo` e `a.acao`. `tools/check-identidade.js` mede estas
+ * páginas junto com as outras superfícies que emitem marcação (checagem 8).
  */
 
-const { navSistema } = require('../../tools/templates/nav-html.js');
-
-const TELAS = {
-  painel: 'painel',
-  apagadas: 'escolas-apagadas',
-  registro: 'escolas-apagadas',
-};
+const { navDoPainel } = require('../../tools/templates/nav-html.js');
 
 function esc(valor) {
   return String(valor == null ? '' : valor)
@@ -48,8 +42,8 @@ function esc(valor) {
 /**
  * UMA DATA DE CALENDÁRIO, sem fuso e sem hora.
  *
- * O índice guarda instantes ISO com microssegundos (`2026-10-19T18:18:57.289485+00:00`), e o
- * que a lista responde é «que dia». A conversão é por expressão regular, e não por `Date`: o
+ * O índice guarda instantes ISO com microssegundos (`2026-10-19T18:18:57.289485+00:00`), e o que
+ * a lista responde é «que dia». A conversão é por expressão regular, e não por `Date`: o
  * `Date.parse` de um ISO com seis casas decimais não é garantido em todos os motores, e um
  * `Invalid Date` aqui sairia como «NaN/NaN/NaN» na cara de quem lê. O dia é o do carimbo, como
  * ele foi gravado — não se converte fuso de um registo de calendário.
@@ -73,78 +67,15 @@ function quando(iso) {
 }
 
 /**
- * O CASCO. Uma barra GERADA (a mesma das escolas, com o grupo do painel), o cabeçalho do
- * documento e o corpo. `data-layout="painel"` é o atributo que a folha lê para usar a largura
- * de trabalho em vez da coluna de leitura — é o mesmo recurso das páginas dos Bastidores.
- */
-function pagina({ titulo, subtitulo, atual, corpo }) {
-  return '<!doctype html><html lang="pt-BR" data-paleta="verde">' +
-    '<head><meta charset="utf-8">' +
-    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
-    '<title>' + esc(titulo) + ' · Painel · Sistema Lastro</title>' +
-    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
-    '<link rel="stylesheet" href="/assets/style.css">' +
-    '</head><body id="top" data-layout="painel" data-tela="' + esc(atual) + '">' +
-    navSistema({ atual, painel: true }) +
-    '<header class="doc"><h1>' + esc(titulo) + '</h1>' +
-    (subtitulo ? '<p class="subtitulo">' + esc(subtitulo) + '</p>' : '') +
-    '</header>' +
-    '<main><div class="conteudo">' + corpo + '</div></main>' +
-    '<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>' +
-    '<script src="/assets/nav.js"></script>' +
-    '</body></html>';
-}
-
-/** Resposta HTML com o `no-store` do painel: um registo de expurgo não se serve de cache. */
-function resposta(html, status) {
-  return new Response(html, {
-    status: status || 200,
-    headers: {
-      'Content-Type': 'text/html;charset=utf-8',
-      // O PAINEL É A VERDADE DO REPOSITÓRIO AGORA. Servir uma lista de ontem a quem acabou de
-      // expurgar é o mesmo defeito do cache de índice com TTL — e aqui o custo de não ter cache
-      // é uma leitura, não um dado errado.
-      'Cache-Control': 'no-store',
-    },
-  });
-}
-
-/**
- * A PÁGINA INICIAL DO PAINEL — o índice das secções.
+ * A LISTA — a tabela das escolas. É a MESMA nas três superfícies (a página da raiz, a lista
+ * filtrada e o registo, que volta a ela), e é por isso que é uma função e não marcação repetida:
+ * duas cópias divergem no dia em que uma ganhar uma coluna.
  *
- * Ela é o lugar do crescimento: cada item do menu vira um `.caixa` com o título, o estado e o
- * caminho. Hoje há um; no dia em que houver cinco, esta lista continua a ser escrita à mão aqui
- * — e é de propósito: a ordem e o resumo de uma secção são uma decisão editorial, não um dado.
+ * A ORDEM põe o que saiu por último no topo. Quem abre o painel quer saber o que acabou de
+ * acontecer; o histórico desce. Uma escola viva (sem `expurgada_em`) desce ao fim — ela não
+ * «saiu», logo não tem data de saída.
  */
-function paginaDoPainel({ secoes }) {
-  const blocos = (secoes || []).map((s) => {
-    return '<div class="caixa">' +
-      '<h2>' + esc(s.titulo) + '</h2>' +
-      '<p>' + esc(s.resumo) + '</p>' +
-      '<div class="ficha"><span>' + esc(s.contagem) + '</span></div>' +
-      '<p><a class="acao secundario" href="' + esc(s.href) + '">Abrir</a></p>' +
-      '</div>';
-  }).join('');
-  return pagina({
-    titulo: 'Painel',
-    subtitulo: 'A gestão do sistema — o que existe, o que existiu, e o registo de cada coisa.',
-    atual: TELAS.painel,
-    corpo: blocos,
-  });
-}
-
-/**
- * A LISTA DAS ESCOLAS APAGADAS.
- *
- * `escolas` são as entradas do acervo com `expurgada: true` — cada uma já traz `criada_em`,
- * `expurgada_em`, o professor e a contagem de ciclos. A tabela é a peça da folha (a mesma que
- * os documentos gerados usam para as tabelas do pandoc): quatro colunas de facto e uma de ação.
- *
- * A ORDEM é a da saída mais recente primeiro. Quem abre este painel quer saber o que acabou de
- * sair; o histórico antigo desce. `expurgada_em` ausente (uma escola cujo elo é anterior ao
- * campo) vai para o fim, e mostra o traço.
- */
-function paginaDasApagadas({ escolas }) {
+function tabelaDeEscolas(escolas) {
   const lista = (escolas || []).slice().sort((a, b) => {
     const da = String(a.expurgada_em || '');
     const db = String(b.expurgada_em || '');
@@ -155,65 +86,123 @@ function paginaDasApagadas({ escolas }) {
   });
 
   if (!lista.length) {
-    return pagina({
-      titulo: 'Escolas apagadas',
-      subtitulo: 'O registo do que foi expurgado — a proveniência de uma escola que existiu.',
-      atual: TELAS.apagadas,
-      corpo: '<div class="caixa nota">' +
-        '<h2>Nenhuma escola apagada</h2>' +
-        '<p>Toda escola criada tem um elo em <code>escola/&lt;slug&gt;/indice.json</code>, e é ele ' +
-        'que aparece aqui depois do expurgo. Uma lista vazia quer dizer que nenhuma foi apagada — ' +
-        'não que o registo não exista.</p>' +
-        '</div>',
-    });
+    return '<div class="caixa nota">' +
+      '<h2>Nenhuma escola</h2>' +
+      '<p>Não há escola nenhuma no sistema. Toda escola criada deixa um elo em ' +
+      '<code>escola/&lt;slug&gt;/indice.json</code>, e é de lá que esta lista sai — uma lista ' +
+      'vazia quer dizer que nenhuma existe, não que a leitura falhou.</p>' +
+      '</div>';
   }
 
   const linhas = lista.map((e) => {
     const nome = e.nome && e.nome !== e.slug ? e.nome + ' (' + e.slug + ')' : e.slug;
+    // O SELO É O ESTADO DO DADO, e é a peça que a folha já desenha: `ok` é a escola viva,
+    // `discreto` a que saiu. Não se inventa cor nem forma.
+    const selo = e.expurgada
+      ? '<span class="selo discreto">apagada</span>'
+      : '<span class="selo ok">viva</span>';
+    // O REGISTO SÓ EXISTE PARA QUEM SAIU. Uma escola viva não tem elo de expurgo — e um link
+    // que levasse a uma página vazia seria pior do que não haver link.
+    const registo = e.expurgada
+      ? '<a href="/escolas-apagadas/' + encodeURIComponent(e.slug) + '">Abrir o registo</a>'
+      : '—';
     return '<tr>' +
       '<td><strong>' + esc(nome) + '</strong></td>' +
       '<td>' + esc(e.professor || '—') + '</td>' +
       '<td>' + esc(diaOuTraco(e.criada_em)) + '</td>' +
       '<td>' + esc(diaOuTraco(e.expurgada_em)) + '</td>' +
-      '<td><a href="/painel/escolas-apagadas/' + encodeURIComponent(e.slug) + '">Abrir o registo</a></td>' +
+      '<td>' + selo + '</td>' +
+      '<td>' + registo + '</td>' +
       '</tr>';
   }).join('');
 
+  return '<table>' +
+    '<thead><tr>' +
+    '<th>Escola</th><th>Professor</th><th>Criada</th><th>Apagada</th><th>Estado</th><th>Registo</th>' +
+    '</tr></thead>' +
+    '<tbody>' + linhas + '</tbody>' +
+    '</table>';
+}
+
+/**
+ * O BLOCO QUE ENTRA NA PÁGINA DA RAIZ. A `danca` é a apresentação — um arquivo versionado,
+ * regerado por `tools/gerar-raiz.sh` —, e a lista não pode viver dentro dele: a próxima geração
+ * apagava-a. Ela entra por um marcador (`<div id="escolas-do-sistema"></div>`), que o Worker
+ * substitui. O `id` não é `class` de propósito: não é uma peça, é um lugar.
+ */
+const MARCADOR = '<div id="escolas-do-sistema"></div>';
+
+function blocoDeEscolas(escolas) {
+  const apagadas = (escolas || []).filter((e) => e.expurgada);
+  return '<h2>Escolas do sistema</h2>' +
+    '<p>As que existem e as que existiram. Uma escola apagada continua aqui: o expurgo tira-a do ' +
+    'ar e do repositório, e deixa o elo — a memória de que ela existiu.</p>' +
+    tabelaDeEscolas(escolas) +
+    '<p><a class="acao secundario" href="/escolas-apagadas">Ver só as apagadas (' +
+    apagadas.length + ')</a></p>';
+}
+
+/** O CASCO das páginas que são do Worker (a lista filtrada e o registo). */
+function pagina({ titulo, subtitulo, atual, corpo }) {
+  return '<!doctype html><html lang="pt-BR" data-paleta="verde">' +
+    '<head><meta charset="utf-8">' +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<title>' + esc(titulo) + ' · Sistema Lastro</title>' +
+    '<link rel="icon" type="image/svg+xml" href="/assets/favicon.svg">' +
+    '<link rel="stylesheet" href="/assets/style.css">' +
+    '</head><body id="top" data-layout="painel" data-tela="' + esc(atual) + '">' +
+    navDoPainel({ atual }) +
+    '<header class="doc"><h1>' + esc(titulo) + '</h1>' +
+    (subtitulo ? '<p class="subtitulo">' + esc(subtitulo) + '</p>' : '') +
+    '</header>' +
+    '<main><div class="conteudo">' + corpo + '</div></main>' +
+    '<a class="topo" href="#top" title="Voltar ao topo">&#8593;</a>' +
+    '<script src="/assets/nav.js"></script>' +
+    '</body></html>';
+}
+
+/** Resposta HTML do painel. Sem cache: a lista é a verdade do repositório agora. */
+function resposta(html, status) {
+  return new Response(html, {
+    status: status || 200,
+    headers: {
+      'Content-Type': 'text/html;charset=utf-8',
+      'Cache-Control': 'no-store',
+    },
+  });
+}
+
+/** A LISTA FILTRADA — o destino do item do menu. */
+function paginaDasApagadas({ escolas }) {
+  const apagadas = (escolas || []).filter((e) => e.expurgada);
   return pagina({
     titulo: 'Escolas apagadas',
     subtitulo: 'O registo do que foi expurgado — a proveniência de uma escola que existiu.',
-    atual: TELAS.apagadas,
-    corpo: '<table>' +
-      '<thead><tr>' +
-      '<th>Escola</th><th>Professor</th><th>Criada</th><th>Apagada</th><th>Registo</th>' +
-      '</tr></thead>' +
-      '<tbody>' + linhas + '</tbody>' +
-      '</table>' +
-      '<p>O registo de cada escola não é um relatório à parte: é o elo que o expurgo grava no ' +
-      'próprio índice, e ele não se apaga — a proveniência acrescenta.</p>',
+    atual: 'escolas-apagadas',
+    corpo: tabelaDeEscolas(apagadas) +
+      '<p><a class="acao secundario" href="/">Voltar ao painel</a></p>',
   });
 }
 
 /**
- * O REGISTO DE UMA ESCOLA — a página que faltava.
+ * O REGISTO DE UMA ESCOLA — o destino que o elo do expurgo não tinha.
  *
- * ATÉ 22/10/2026 o elo do expurgo só existia dentro do processo: ficava em
- * `escola/<slug>/indice.json`, versionado, e nenhuma página o mostrava. Quem quisesse saber o
- * que tinha sido apagado abria o JSON no repositório. Isto dá-lhe um destino.
+ * ATÉ 22/10/2026 o elo só existia dentro do processo: ficava em `escola/<slug>/indice.json`,
+ * versionado, e nenhuma página o mostrava. Esta página lê ESSE arquivo — uma requisição — e mais
+ * nada: ela não reconstrói o acervo, e é por isso que abre em vez de gerar.
  *
- * O QUE A PÁGINA MOSTRA, e por que cada coisa: a IDENTIDADE (nome, pasta, professor) porque é
- * o que liga a memória à pasta que já não existe; as DATAS, porque é o «de quando a quando» que
- * responde «esta escola existiu»; o MOTIVO tal como foi declarado; os ELOS, um por expurgo —
- * não só o último, porque uma escola pode ter sido apagada, recriada e apagada outra vez, e a
- * sequência É a proveniência; e, por fim, os ARQUIVOS que saíram do repositório e o que ficou no
- * KV — o que o expurgo conseguiu e o que deixou pendente.
+ * O QUE MOSTRA, e por que cada coisa: a IDENTIDADE (nome, pasta, professor), porque é o que liga
+ * a memória à pasta que já não existe; as DATAS, porque é o «de quando a quando» que responde
+ * «esta escola existiu»; e um bloco POR ELO — não só o último, porque uma escola pode ter sido
+ * apagada, recriada e apagada outra vez, e a sequência É a proveniência. Cada elo diz o motivo,
+ * os arquivos que saíram do repositório e o que ficou no KV.
  */
 function paginaDoRegistro({ slug, indice }) {
   const elos = (indice && Array.isArray(indice.expurgo)) ? indice.expurgo : [];
   const eloDe = (e) => {
     const arquivos = Array.isArray(e.apagado) ? e.apagado : [];
     const kv = e.kv && typeof e.kv === 'object' ? e.kv : null;
-    const linhasDeArquivo = arquivos.map((c) => '<tr><td><code>' + esc(c) + '</code></td></tr>').join('');
+    const linhas = arquivos.map((c) => '<tr><td><code>' + esc(c) + '</code></td></tr>').join('');
     const blocoKv = kv
       ? '<div class="caixa nota">' +
         '<h3>O que ficou no KV</h3>' +
@@ -241,7 +230,7 @@ function paginaDoRegistro({ slug, indice }) {
       '</div>' +
       (arquivos.length
         ? '<table><thead><tr><th>Caminho apagado do repositório</th></tr></thead>' +
-          '<tbody>' + linhasDeArquivo + '</tbody></table>'
+          '<tbody>' + linhas + '</tbody></table>'
         : '<p>O elo não declara os caminhos — registo anterior ao inventário.</p>') +
       blocoKv +
       '</div>';
@@ -270,17 +259,37 @@ function paginaDoRegistro({ slug, indice }) {
   return pagina({
     titulo: 'Escola apagada · ' + slug,
     subtitulo: 'O registo do expurgo, como ele ficou no índice da escola.',
-    atual: TELAS.registro,
+    atual: 'escolas-apagadas',
     corpo: identidade +
       (elos.length
         ? elos.map(eloDe).join('')
         : '<div class="caixa nota"><h2>Sem elos</h2><p>O índice da escola existe, mas não há ' +
           'nenhum elo de expurgo nele — a escola não foi apagada por este caminho.</p></div>') +
-      '<p><a class="acao secundario" href="/painel/escolas-apagadas">Voltar à lista</a></p>',
+      '<p><a class="acao secundario" href="/escolas-apagadas">Voltar à lista</a></p>',
+  });
+}
+
+/**
+ * A página de recusa — quando falta o `GITHUB_TOKEN` ou a leitura falha. DITA o motivo, em vez de
+ * mostrar uma lista vazia, que se leria como «nenhuma escola» e seria falso.
+ */
+function paginaSemToken(motivo) {
+  return pagina({
+    titulo: 'Escolas do sistema',
+    subtitulo: 'A gestão do sistema.',
+    atual: '',
+    corpo: '<div class="caixa falta">' +
+      '<h2>Não consigo ler o repositório</h2>' +
+      '<p>' + esc(motivo || 'Falta o <code>GITHUB_TOKEN</code> no Worker da raiz.') +
+      ' Sem o índice não há lista — e uma lista vazia aqui diria «nenhuma escola», que seria ' +
+      'falso.</p>' +
+      '<p><a class="acao secundario" href="/">Tentar outra vez</a></p>' +
+      '</div>',
   });
 }
 
 module.exports = {
-  esc, dia, diaOuTraco, quando, pagina, resposta,
-  paginaDoPainel, paginaDasApagadas, paginaDoRegistro,
+  esc, dia, diaOuTraco, quando,
+  MARCADOR, tabelaDeEscolas, blocoDeEscolas,
+  pagina, resposta, paginaDasApagadas, paginaDoRegistro, paginaSemToken,
 };
