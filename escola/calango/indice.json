@@ -381,6 +381,16 @@
       },
       "responsavel": "Oculos Redondo",
       "ciclo": "01"
+    },
+    {
+      "em": "2026-10-22T20:12:34.236843+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "oculos-redondo",
+        "nome": "Oculos Redondo"
+      },
+      "responsavel": "Oculos Redondo",
+      "ciclo": "01"
     }
   ]
 }

@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "calango",
+      "estado": "sem-ancora",
+      "id": "ciclo:oculos-redondo/01/calango",
+      "numero": "01",
+      "professor": "oculos-redondo",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -109,29 +121,28 @@
       "slug": "calando-teste-1"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:oculos-redondo/01/calango"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
-      "expurgada": true,
+      "expurgada": false,
       "expurgada_em": "2026-10-22T20:09:39.174Z",
       "expurgos": 6,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:calango",
       "nome": "calango",
       "professor": "oculos-redondo",
       "professores": [
-        "murisoca-baiana",
-        "oculos-redondo",
-        "sapo-bailarino",
-        "tiago-menegaz"
+        "oculos-redondo"
       ],
       "registros": [],
       "slug": "calango"
@@ -316,7 +327,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -344,7 +361,7 @@
         "valor": "meia-cortada"
       },
       {
-        "contagem": 1,
+        "contagem": 0,
         "rotulo": "murisoca-baiana",
         "valor": "murisoca-baiana"
       },
@@ -354,7 +371,7 @@
         "valor": "oculos-redondo"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -374,7 +391,7 @@
         "valor": "tiago"
       },
       {
-        "contagem": 5,
+        "contagem": 4,
         "rotulo": "Tela de PC",
         "valor": "tiago-menegaz"
       },
@@ -388,9 +405,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "ab4a3be"
+    "commit": "0263050"
   },
-  "gerado_em": "2026-10-22T20:09",
+  "gerado_em": "2026-10-22T20:12",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -459,15 +476,15 @@
     },
     {
       "ciclos": [],
-      "escolas": [
-        "calango"
-      ],
+      "escolas": [],
       "id": "professor:murisoca-baiana",
       "nome": null,
       "slug": "murisoca-baiana"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:oculos-redondo/01/calango"
+      ],
       "escolas": [
         "calango"
       ],
@@ -480,8 +497,7 @@
       "escolas": [
         "batata",
         "breu",
-        "calando-teste-1",
-        "calango"
+        "calando-teste-1"
       ],
       "id": "professor:sapo-bailarino",
       "nome": "Sapo Bailarino",
@@ -520,7 +536,6 @@
       "escolas": [
         "batata",
         "breu",
-        "calango",
         "fita",
         "valse"
       ],
