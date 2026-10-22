@@ -205,6 +205,12 @@ function descritores(campo) {
     // SEM recorte, porque o nó não trazia a marca. A tela não inventa: ela só acrescenta o
     // carimbo do plano quando o conteúdo diz que aquele campo se recorta por ele.
     recortePeloPlano: campo.recortePeloPlano === true,
+    // O RECORTE PELO PROFESSOR (22/10/2026). O nó `plano-de-ensino` declara-o para a
+    // estante ser a do docente da barra, e o `sujeitos` para a curadoria ser a DELE — a
+    // turma sozinha não distingue dois professores com o mesmo nome de turma. A lista é
+    // fechada, e a chave morre aqui se não estiver nela: foi o que já aconteceu ao
+    // `recortePeloPlano`, e o sintoma é sempre mudo (a tela pede a lista sem recorte).
+    recortePeloProfessor: campo.recortePeloProfessor === true,
     // A MATRIZ POR MARCO (os blocos da aula, o parâmetro de medição): uma linha por
     // marco parcial, com as opções para marcar. `{de, opcoes: [...]}` ou
     // `{de, opcoesDaTurma: true}` — as colunas vêm do conteúdo ou do nível da turma.

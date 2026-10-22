@@ -72,6 +72,14 @@ texto que ele serve é o da fonte do ciclo (`nucleo/derivar-plano-ciclo.js`, a M
 do `servidor/escrever-plano.js`), menos as marcas que não são do professor (o frontmatter YAML
 e o `<!-- CALENDARIO -->`, onde o gerador escreve o calendário).
 
+O `/api/planos` (a estante do nó `plano-de-ensino`) e o `/api/anamneses` (a lista de
+`sujeitos`) aceitam **`?professor=<slug>`** (22/10/2026): a estante passa a ser a do
+professor, e a lista de sujeitos é recortada pela curadoria **(professor, turma do plano)**.
+Sem plano escolhido, mas com o professor, o recorte é a união das curadorias dele — a lista
+nunca é a da escola inteira. O recorte é resolvido no servidor — a tela manda só o slug que
+já tem na barra, e não repete a regra da curadoria. Sem o parâmetro, as duas rotas respondem
+como antes, o que distingue «não pediram recorte» de «pediram um recorte vazio».
+
 O núcleo da porta (registro, mapa, vínculo, estados, carimbo, gravação, elicitação) vive em
 `nucleo/porta.js` — sem infraestrutura; o armazenamento chega por parâmetro. O `rotas.js`
 só declara as rotas e liga cada uma ao núcleo. As chaves de envelope usam a MESMA notação do

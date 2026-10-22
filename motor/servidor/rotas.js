@@ -311,9 +311,12 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
   //   · `?plano=<carimbo>` — a turma vem do PLANO escolhido (`contexto-turma` do envelope).
   //     É o que a tela manda, porque é o único dado que ela já tem.
   //   · `?turma=<nome>` — a turma directa (a bancada local, e as provas).
-  //   · `?professor=<slug>` — opcional; sem ele valem as curadorias de qualquer professor.
-  // Sem nenhum dos dois, a rota responde o que respondia — a lista inteira —, e é essa a
-  // diferença entre «não pediram recorte» e «pediram um recorte vazio».
+  //   · `?professor=<slug>` — recorta a PESSOA: com turma, é o par (professor, turma) da
+  //     curadoria; sem turma, é a união das curadorias dele — o `sujeitos` pode ser aberto
+  //     antes do plano, e nesse caso a lista não pode ser a da escola inteira. Sem este
+  //     parâmetro valem as curadorias de qualquer professor, como antes.
+  // Sem nenhum destes parâmetros, a rota responde o que respondia — a lista inteira —, e é
+  // essa a diferença entre «não pediram recorte» e «pediram um recorte vazio».
   roteador.rota('GET', '/api/anamneses', async ({ url }) => {
     /*
      * A ROTA JÁ NÃO SABE ONDE O DADO VIVE (20/10/2026), e é esse o ponto da fase 3.
@@ -337,26 +340,35 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
         turma = porta.turmaDoEnvelope(plano) || '';
       }
       let recorte = null;
-      if (turma) {
+      if (turma || professor) {
         const curadorias = typeof lerCuradorias === 'function'
           ? await lerCuradorias(escola)
           : [];
-        recorte = { alunas: porta.alunasDaTurma(curadorias, { professor, turma }) || [] };
+        recorte = turma
+          ? { alunas: porta.alunasDaTurma(curadorias, { professor, turma }) || [] }
+          : { alunas: porta.alunasDoProfessor(curadorias, professor) || [] };
       }
       return {
         ok: true,
         opcoes: await porta.anamneses(armazenamento, recorte),
         fonte: 'acervo',
-        ...(turma ? { turma, recorte: recorte.alunas } : {}),
+        ...(turma ? { turma } : {}),
+        ...(recorte ? { recorte: recorte.alunas } : {}),
       };
     } catch (erro) { return falhaDaLista(erro); }
   });
 
   // 6.1 /api/planos — a estante de planos de ensino (um por carimbo, com o
   //     objetivo como resumo). Serve o nó `plano-de-ensino` do PO.
-  roteador.rota('GET', '/api/planos', async () => {
+  //
+  // O `?professor=<slug>` RECORTA a estante (22/10/2026). Sem ele a lista é a da escola,
+  // e o PO de um professor oferecia os planos dos outros. O recorte é resolvido aqui, e
+  // não na tela: quem lê o acervo é o servidor, e a lista de sujeitos a jusante deriva da
+  // turma do plano — um plano alheio arrastava a turma alheia e, com ela, as alunas.
+  roteador.rota('GET', '/api/planos', async ({ url }) => {
     try {
-      return { ok: true, opcoes: await porta.planos(armazenamento) };
+      const professor = (url && url.searchParams && url.searchParams.get('professor')) || '';
+      return { ok: true, opcoes: await porta.planos(armazenamento, { professor }) };
     } catch (erro) { return falhaDaLista(erro); }
   });
 

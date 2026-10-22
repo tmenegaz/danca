@@ -348,8 +348,34 @@ const SCRIPT = String.raw`(function () {
          TURMA — o carimbo é lido da estante (api/planos), casando pela turma;
        · o resto vem escrito no fixture, campo a campo, e entra em RESPOSTAS como qualquer
          resposta do professor. Nada é submetido: gravar continua a ser um clique dele. */
+  /* A ESTANTE PODE TER O RECORTE DO PROFESSOR no endereço (api/planos?professor=…). A
+     chave exacta deixou de ser uma só (22/10/2026); o painel procura a família, não a chave. */
+  function estanteDePlanos() {
+    if (typeof OPCOES === 'undefined') return [];
+    var chaves = Array.from(OPCOES.keys());
+    for (var i = 0; i < chaves.length; i++) {
+      if (String(chaves[i]).split('?')[0] === 'api/planos') return OPCOES.get(chaves[i]) || [];
+    }
+    return [];
+  }
+
+  function estanteCarregada() {
+    if (typeof OPCOES === 'undefined') return false;
+    var chaves = Array.from(OPCOES.keys());
+    for (var i = 0; i < chaves.length; i++) {
+      if (String(chaves[i]).split('?')[0] === 'api/planos') return true;
+    }
+    if (typeof OPCOES_ERRO !== 'undefined') {
+      var erros = Array.from(OPCOES_ERRO.keys());
+      for (var j = 0; j < erros.length; j++) {
+        if (String(erros[j]).split('?')[0] === 'api/planos') return true;
+      }
+    }
+    return false;
+  }
+
   function carimboDoPlanoDaTurma(turma) {
-    var lista = (typeof OPCOES !== 'undefined' && OPCOES.get('api/planos')) || [];
+    var lista = estanteDePlanos();
     for (var i = 0; i < lista.length; i++) {
       if (lista[i] && lista[i].turma === turma) return lista[i].valor;
     }
@@ -429,7 +455,7 @@ const SCRIPT = String.raw`(function () {
     // plano marcado, prefere-se o PO daquela turma.
     var carimbo = typeof RESPOSTAS !== 'undefined' ? RESPOSTAS.get('plano-de-ensino') : null;
     if (carimbo && typeof OPCOES !== 'undefined') {
-      var estante = OPCOES.get('api/planos') || [];
+      var estante = estanteDePlanos();
       for (var i = 0; i < estante.length; i++) {
         if (estante[i].valor === carimbo && poDaTurma(estante[i].turma)) {
           registro = poDaTurma(estante[i].turma);
@@ -524,8 +550,7 @@ const SCRIPT = String.raw`(function () {
         // O PO precisa da ESTANTE DE PLANOS (o carimbo do plano da turma) antes de
         // preencher: é o «opcoesDe» do nó «Plano de ensino», e chega de forma assíncrona.
         function quandoEstante(pronto) {
-          var pronta = typeof OPCOES !== 'undefined'
-            && (OPCOES.has('api/planos') || (typeof OPCOES_ERRO !== 'undefined' && OPCOES_ERRO.has('api/planos')));
+          var pronta = typeof OPCOES !== 'undefined' && estanteCarregada();
           if (pronta) return pronto();
           setTimeout(function () { quandoEstante(pronto); }, 120);
         }

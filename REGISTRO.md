@@ -22986,3 +22986,67 @@ verdade, inalteradas e a passar (o resolvedor não mudou; quem mudou foi quem o 
 sem trava: são três ficheiros com o mesmo bloco, e o quarto que aparecer pode repetir o erro. Uma
 trava possível — e não feita — é o `pre-commit` recusar um `git rebase` seguido de `exit 1` fora de
 `.github/scripts/`. Fica declarado.
+
+## 22/10/2026 — O PO de um professor não vê o plano nem as alunas de outro
+
+**O que motivou.** Na escola `batata`, o Plano de Observação de um professor oferecia o
+plano de ensino de outro, e a lista de sujeitos misturava a aluna do plano alheio com a do
+plano atual. A causa era a mesma nos dois: a estante (`api/planos`) era a da ESCOLA, e o
+recorte dos sujeitos era feito só pela TURMA. Dois professores podem ter turmas com o mesmo
+nome — a curadoria os distingue pelo par (professor, turma), e era esse par que faltava.
+
+**O que foi decidido.**
+- `/api/planos` aceita `?professor=<slug>` e devolve só os planos dele.
+- `/api/anamneses` já aceitava `?professor=`; a tela passou a mandá-lo. Com plano/turma, o
+  recorte é o par (professor, turma); sem plano escolhido, é a união das curadorias dele — a
+  lista nunca é a da escola inteira.
+- O conteúdo do PO declara `recortePeloProfessor` no nó `plano-de-ensino` e no `sujeitos`.
+  A chave entra no `descritores()` do motor: a lista é fechada, e uma chave que não esteja
+  nela morre antes de chegar ao mapa (foi o que já acontecera ao `recortePeloPlano`).
+- Cada opção da estante mostra a TURMA do plano e o atalho «ver a turma», que abre o cadastro
+  da turma na Produção com a listagem já filtrada por ela.
+- Trocar o professor limpa o plano e os sujeitos do anterior e busca a estante do novo.
+
+**Onde entrou.**
+- `motor/nucleo/porta.js` — `planos(armazenamento, {professor})` e `alunasDoProfessor`.
+- `motor/nucleo/elicitar.js` — `recortePeloProfessor` no `descritores()`.
+- `motor/servidor/rotas.js` — `?professor=` em `/api/planos` e o recorte por professor em
+  `/api/anamneses` quando não há turma.
+- `motor/servidor/bastidores.js` — `?turma=<nome>` na Produção resolve o nome para o id e
+  aplica o filtro da listagem.
+- `porta/index.html` — o endereço das listas leva o professor, a opção do plano mostra a
+  turma + o atalho, e a troca de professor esquece o que era do anterior.
+- `porta/po/conteudo/po.json` — a declaração do recorte nos dois nós.
+- `motor/servidor/teste-cliente.js` — o painel de teste procura a família `api/planos`, não
+  a chave exacta (o endereço passou a ter query).
+- `motor/servidor/README.md` — as duas rotas e o parâmetro.
+
+**Com o quê.**
+- `experimentos/provar-recorte-do-po.js` — 26 asserções: o recorte no servidor, a estante e
+  a lista de sujeitos na tela, a turma + o atalho na opção do plano, e a troca de professor.
+- `experimentos/provar-sujeitos-da-turma.js` — a guarda de chaves de comportamento passa a
+  incluir `recortePeloProfessor`; a asserção do endereço passou a medir o `URLSearchParams`.
+- `.gitignore` — a prova nova entra na lista das versionadas (a pasta é rascunho por padrão,
+  e uma prova citada no REGISTRO tem de existir no clone).
+- `professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2/plano-observacao/` —
+  a cópia da porta foi regenerada no mesmo dia, para o `check-identidade` continuar a
+  comparar byte a byte. **O expurgo da escola (`798cbee`, 22/10/2026 16:32) apagou o pacote
+  inteiro depois disso** — a cópia deixou de existir, e a fonte de verdade é `porta/`.
+
+**Correção de 22/10/2026 (mesmo dia).** A primeira redação desta entrada dizia que a cópia do
+pacote `ciclo-01-batata-bale-nivel-1-teste-2` ficava regenerada e versionada. **Está errado**: o
+expurgo da escola `batata` (`798cbee`, mais o índice regerado em `2fc2b4f`) apagou os 60 arquivos
+daquele pacote, incluindo a cópia. A correção do recorte continua válida — ela vive em `porta/` e
+em `motor/`, que é de onde cada pacote é copiado.
+
+**O que ainda não está feito.**
+- A escola `batata` foi **expurgada** no mesmo dia (`indices/escolas/batata.json` marca
+  `expurgada: true`, `habilitada: false`, contagens a zero; o `wrangler.batata.jsonc` saiu).
+  O `publicacao/batata/` local é saída e ficou órfã no disco — não é publicável, e o Worker ao
+  vivo já não tem config que a publique.
+- A curadoria da escola ao vivo não foi lida nesta sessão (o KV não está no repositório);
+  a prova usa curadorias equivalentes em memória. Se o dado ao vivo tiver uma curadoria
+  antiga com o professor em nome de exibição, o plano correspondente fica de fora — o recorte
+  é fechado de propósito, e a correção é refazer a curadoria com o slug.
+- A correção não foi exercitada numa escola ao vivo: a próxima que tiver dois professores na
+  mesma turma é a prova de campo.

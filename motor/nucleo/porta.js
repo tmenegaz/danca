@@ -804,6 +804,29 @@ function alunasDaTurma(curadorias, alvo) {
   return [...vistas];
 }
 
+/**
+ * AS ALUNAS DE UM PROFESSOR — a união das curadorias vigentes dele, sem exigir a turma.
+ *
+ * É o recorte possível quando o PO ainda não tem plano escolhido: o nó `sujeitos` pode ser
+ * aberto antes do `plano-de-ensino`, e sem turma a rota devolveria a escola inteira. O que
+ * autoriza é a PESSOA, e a ausência de curadoria devolve lista vazia — a mesma escolha do
+ * lado seguro de `alunasDaTurma` («não atribuído» não é «todos»).
+ */
+function alunasDoProfessor(curadorias, professor) {
+  const alvo = String(professor || '').trim();
+  if (!alvo) return null;
+  const vistas = new Set();
+  for (const c of Array.isArray(curadorias) ? curadorias : []) {
+    if (!c || c.substituidaPor) continue;
+    if (String(c.professor || '').trim() !== alvo) continue;
+    for (const a of Array.isArray(c.alunas) ? c.alunas : []) {
+      const nome = String(a == null ? '' : a).trim();
+      if (nome) vistas.add(nome);
+    }
+  }
+  return [...vistas];
+}
+
 async function vinculos(armazenamento, jaLido) {
   const por = new Map();
   // Do ÍNDICE: o resumo de cada PO já traz os sujeitos que ele declarou. Antes esta função lia
@@ -886,12 +909,28 @@ async function vinculosDePlano(armazenamento, jaLido) {
  * A ESTANTE de planos de ensino já lançados — um por carimbo, com o OBJETIVO
  * como resumo (o rótulo humano) e o estado de vínculo. Devolve só METADADO,
  * nunca as respostas (a mesma fronteira da `anamneses`).
+ *
+ * O RECORTE DO PROFESSOR (22/10/2026). A lista era a da ESCOLA inteira: o PO de um
+ * professor oferecia os planos dos outros, e a escolha podia cair num plano alheio.
+ * Como a turma é a do plano, o vazamento ia mais fundo — a lista de sujeitos passava a
+ * ser recortada pela turma do plano ERRADO. O recorte é uma regra do ACERVO, e não um
+ * filtro da tela: a tela só manda o professor que já tem na barra, e o servidor decide.
+ *
+ * O plano declara o professor no CONTEXTO (o slug) e na resposta `contexto-professor`
+ * (o nome). O recorte compara o valor pedido com os dois — quem chama manda o slug —, e
+ * um valor que não casa com nenhum deles não entra.
  */
-async function planos(armazenamento) {
+async function planos(armazenamento, recorte) {
+  const professor = String((recorte && recorte.professor) || '').trim();
   const indice = await lerIndice(armazenamento);
   const ligacoes = await vinculosDePlano(armazenamento, indice);
   const opcoes = [];
   for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^plano-.*\.json$/, indice)) {
+    if (professor) {
+      const doContexto = String(resumo.professor || '').trim();
+      const doNome = String(resumo.professorNome || '').trim();
+      if (doContexto !== professor && doNome !== professor) continue;
+    }
     const carimbo = resumo.id || nome.replace(/\.json$/, '');
     const objetivo = resumo.objetivo || null;
     const por = ligacoes.get(carimbo) || [];
@@ -1271,6 +1310,7 @@ module.exports = {
   apagarEnvelope,
   vinculos,
   alunasDaTurma,
+  alunasDoProfessor,
   valorDe,
   turmaDoEnvelope,
   vinculosDePlano,

@@ -1367,7 +1367,7 @@ function paginaEstudio(escola, contexto, aparencia) {
     fimDaVista();
 }
 
-function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia) {
+function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usosDosEnvelopes, aparencia, turmaEmFoco) {
   // A APARÊNCIA DA ESCOLA (18/10/2026). Vem do KV e é aplicada no SERVIDOR: os dois atributos
   // entram no `<html>` da página, e o `data-modo-fonte` diz de quem é a decisão — é ele que faz
   // o `assets/nav.js` **não** tentar aplicar a escolha antiga do navegador por cima.
@@ -1382,6 +1382,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
   // A ESCOLA DE TESTE (19/10/2026): o número sai do slug. A página de Produção recebe
   // o atributo e o preenchidor; a de Estúdio não tem formulário e não recebe nada.
   const teste = numeroDoTeste(escola);
+  // O ATALHO DA PORTA chega com o NOME da turma (o plano de ensino só conhece o nome). A
+  // listagem filtra por ID: a conversão é aqui, com a lista vigente já na mão. Um nome que
+  // não casa não vira filtro — uma lista vazia seria pior do que a lista inteira.
+  const turmaDoLink = turmaEmFoco ? turmaVigentePorNome(trms, turmaEmFoco) : null;
+  const idDaTurmaDoLink = turmaDoLink && turmaDoLink.id ? String(turmaDoLink.id) : '';
 
   // AS REGRAS DE PROVENIÊNCIA, CALCULADAS UMA VEZ (18/10/2026). É a mesma pergunta que a
   // curadoria já fazia — «isto já entrou num plano de ensino?» —, feita para cada coisa que
@@ -2959,6 +2964,11 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<script>' +
     'var TOKEN = "";' +
+    // O FILTRO QUE CHEGA PELO ATALHO (22/10/2026): o PO linka «ver a turma» com o nome
+    // dela. A listagem é reduzida ANTES de a secção abrir, e o «Mostrar todas» continua a
+    // devolver o resto — é uma vista, não uma exclusão. A aplicação fica no ARRANQUE, e não
+    // aqui: a chave do filtro (`CHAVE_FILTRO`) só está inicializada no bloco do filtro.
+    'var TURMA_DO_LINK = ' + JSON.stringify(idDaTurmaDoLink) + ';' +
     // A PAGINAÇÃO DA LISTA. A lista já veio inteira do servidor (é curta: uma escola tem
     // dezenas de professores, não milhares), e quem escolhe a página é o navegador — não há
     // rota nova, nem estado no servidor. O que se ganha é a vista: o formulário à esquerda,
@@ -3142,6 +3152,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '});' +
     // AO ABRIR A SECÇÃO TURMAS, O FILTRO GUARDADO É APLICADO. `hashchange` cobre a chegada
     // pelo link; o arranque cobre a página que já abriu em `#turmas` ou que recarregou.
+    // O atalho do PO grava o filtro AQUI — depois de `CHAVE_FILTRO` existir.
+    'if (TURMA_DO_LINK) gravarFiltroDeTurmas({ ids: [TURMA_DO_LINK], quem: "", tipo: "pessoa" });' +
     'window.addEventListener("hashchange", function(){' +
     '  if ((location.hash || "").replace("#", "") === "turmas") aplicarFiltroDeTurmas();' +
     '});' +
@@ -4740,8 +4752,12 @@ async function fetch(request, env) {
     // O QUE OS PLANOS JÁ USARAM — a regra de proveniência que a curadoria já aplicava,
     // estendida a professores, alunas, turmas e vocabulário (18/10/2026).
     const usos = await usosDosPlanos(env, escola);
+    // O ATALHO «VER A TURMA» VEM COM O NOME DELA (22/10/2026). O plano de ensino da porta
+    // conhece a turma pelo NOME; a Produção filtra a listagem por ID. A resolução é aqui,
+    // onde a lista das turmas já está carregada — a tela não compõe o identificador.
+    const turmaEmFoco = String(url.searchParams.get('turma') || '').trim();
     return html(paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, trmos, rel, curs, rbs, pares, usos,
-      await aparenciaDaEscola(kv, escola)));
+      await aparenciaDaEscola(kv, escola), turmaEmFoco));
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.

@@ -157,6 +157,7 @@
         "campo": "Plano de ensino",
         "obrigatorio": true,
         "opcoesDe": "api/planos",
+        "recortePeloProfessor": true,
         "explicacao": {
           "oQueE": "QUAL plano de ensino esta aula observa — o que você vai ensinar neste ciclo.",
           "preencher": "Escolha na estante o plano de ensino já elaborado. Se ainda não existe, crie-o primeiro e volte aqui.",
@@ -227,6 +228,7 @@
           "aberto": true,
           "opcoesDe": "api/anamneses",
           "recortePeloPlano": true,
+          "recortePeloProfessor": true,
           "criarEm": "?fonte=anamnese",
           "explicacao": {
             "oQueE": "QUEM você observa — os alunos, referidos por apelidos estáveis. Nunca o nome completo.",

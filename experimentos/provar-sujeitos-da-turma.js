@@ -268,7 +268,7 @@ async function principal() {
 
     const tela = fs.readFileSync(path.join(PORTA, 'index.html'), 'utf8');
     checar('a tela compõe o endereço com o plano escolhido (`enderecoDeOpcoes`)',
-      /function enderecoDeOpcoes\(no\)/.test(tela) && /\?plano=/.test(tela));
+      /function enderecoDeOpcoes\(no\)/.test(tela) && /parametros\.set\('plano'/.test(tela));
     checar('e trocar o plano esquece a lista e os sujeitos marcados (`esquecerSujeitosDaTurma`)',
       /function esquecerSujeitosDaTurma\(\)/.test(tela)
         && /id === 'plano-de-ensino'\)\s*esquecerSujeitosDaTurma\(\)/.test(tela));
@@ -323,7 +323,7 @@ async function principal() {
       'opcoesDe', 'criarEm', 'derivarDe', 'repetirPor', 'camposDoItem', 'multipla', 'colunas',
       'exclusiva', 'aberto', 'tabela', 'lista', 'escala', 'daTurma', 'doPlano', 'daCuradoria',
       'porMarco', 'registro', 'valores', 'abertoRotulo', 'forma', 'ramifica', 'socratico',
-      'derivado', 'derivadoDe', 'recortePeloPlano',
+      'derivado', 'derivadoDe', 'recortePeloPlano', 'recortePeloProfessor',
     ];
     const perdidas = [];
     for (const fonte of ['po/conteudo/po.json', 'plano/conteudo/plano.json', 'conteudo/anamnese.json']) {

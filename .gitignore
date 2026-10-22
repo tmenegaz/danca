@@ -280,3 +280,10 @@ po_ref/
 # igual passa, diferente reprova nomeando os dois, meia declaração reprova, e nenhuma declaração
 # é AVISO (um ciclo anterior à declaração não é inválido por lhe faltar uma marca que não existia).
 !experimentos/provar-coerencia-do-po-no-pacote.js
+
+# O PO NÃO VÊ O PLANO NEM AS ALUNAS DE OUTRO PROFESSOR (22/10/2026). A estante (`api/planos`)
+# era a da escola, e o recorte dos sujeitos era feito só pela TURMA; com dois professores na
+# mesma turma, o plano e a aluna do outro apareciam. A prova mede o recorte no servidor e na
+# tela, a turma + o atalho na opção do plano, a troca de professor e o filtro da Produção pelo
+# NOME da turma.
+!experimentos/provar-recorte-do-po.js

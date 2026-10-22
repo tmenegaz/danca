@@ -2371,14 +2371,37 @@ async function carregarOpcoesDe(ep) {
  * Por que no ENDEREÇO e não num filtro daqui: o recorte é uma REGRA do acervo (a curadoria diz
  * quem está em cada turma), e uma segunda cópia da regra na tela divergiria da primeira — foi
  * exactamente o que aconteceu quando o filtro existia e filtrava pela união das curadorias.
+ *
+ * O PROFESSOR ENTRA PELA MESMA PORTA (22/10/2026). `recortePeloProfessor` acrescenta o slug
+ * da barra ao endereço: a estante de planos é DELE, e a lista de sujeitos é recortada pela
+ * curadoria (professor, turma) — não pela turma sozinha. Sem o professor, o PO de um docente
+ * oferecia o plano de outro, e dois professores com a mesma turma viam as alunas um do outro.
  */
 function enderecoDeOpcoes(no) {
   const base = no && no.opcoesDe;
-  if (!base || !no.recortePeloPlano) return base;
-  const bruto = RESPOSTAS.get('plano-de-ensino');
-  const carimbo = Array.isArray(bruto) ? bruto[0] : bruto;
-  if (!carimbo) return base;
-  return base + '?plano=' + encodeURIComponent(String(carimbo));
+  if (!base) return base;
+  const parametros = new URLSearchParams();
+  if (no.recortePeloPlano) {
+    const bruto = RESPOSTAS.get('plano-de-ensino');
+    const carimbo = Array.isArray(bruto) ? bruto[0] : bruto;
+    if (carimbo) parametros.set('plano', String(carimbo));
+  }
+  if (no.recortePeloProfessor) {
+    const professor = professorDaBarra();
+    if (professor) parametros.set('professor', professor);
+  }
+  const query = parametros.toString();
+  if (!query) return base;
+  return base + (base.indexOf('?') === -1 ? '?' : '&') + query;
+}
+
+/** O slug do professor da barra — o valor que a curadoria e o envelope usam. */
+function professorDaBarra() {
+  const sel = $('ctx-professor');
+  const escolhido = sel ? String(sel.value || '').trim() : '';
+  if (escolhido) return escolhido;
+  // Antes de a lista de professores chegar, o `?professor=` da URL já é a identidade do ato.
+  return String(new URLSearchParams(location.search).get('professor') || '').trim();
 }
 
 /*
@@ -2395,6 +2418,28 @@ function esquecerSujeitosDaTurma() {
     if (String(chave).split('?')[0] === 'api/anamneses') OPCOES_ERRO.delete(chave);
   }
   if (RESPOSTAS.has('sujeitos')) { RESPOSTAS.delete('sujeitos'); SUGERIDAS.delete('sujeitos'); }
+}
+
+/*
+ * TROCAR O PROFESSOR TROCA A ESTANTE (22/10/2026). Os planos são DELE, e a lista buscada
+ * para o anterior não serve — guardá-la era o que fazia o plano de um professor reaparecer
+ * no PO de outro. O plano escolhido e os sujeitos também saem: eram da turma do plano
+ * anterior, e a curadoria que os autorizava era a do professor anterior.
+ */
+function esquecerPlanosDoProfessor() {
+  for (const chave of [...OPCOES.keys()]) {
+    if (String(chave).split('?')[0] === 'api/planos') OPCOES.delete(chave);
+  }
+  for (const chave of [...OPCOES_ERRO.keys()]) {
+    if (String(chave).split('?')[0] === 'api/planos') OPCOES_ERRO.delete(chave);
+  }
+  if (FONTE !== 'po') return;
+  if (RESPOSTAS.has('plano-de-ensino')) {
+    RESPOSTAS.delete('plano-de-ensino');
+    SUGERIDAS.delete('plano-de-ensino');
+  }
+  esquecerSujeitosDaTurma();
+  PLANO_RESPOSTAS.clear();
 }
 
 /*
@@ -3079,11 +3124,24 @@ function marcaDaTurmaUsada(usada) {
  * ensino, tem que dizer que ainda não há plano de ensino»).
  */
 const LISTA_VAZIA = {
-  'api/planos': 'Ainda não há plano de ensino lançado para esta turma. ' +
+  'api/planos': 'Ainda não há plano de ensino lançado. ' +
     'O Plano de Observação observa uma aula que tem plano: crie o plano de ensino e volte aqui.',
-  'api/anamneses': 'Ainda não há anamnese lançada. ' +
-    'A lista de sujeitos vem das anamneses — crie a primeira e volte aqui.',
+  'api/anamneses': 'Ainda não há anamnese lançada para as alunas desta turma. ' +
+    'A lista de sujeitos vem da curadoria — quem a direção atribuiu a você naquela turma — ' +
+    'e das anamneses já feitas: crie a primeira e volte aqui.',
 };
+
+/* A TURMA DE CADA PLANO, NA PRÓPRIA LISTA (22/10/2026). O rótulo da estante é o OBJETIVO,
+ * e dois planos podem ter o mesmo — sem a turma, o professor não sabe qual está a escolher.
+ * O atalho leva ao cadastro da turma na Produção e já abre a listagem filtrada por ela. */
+function detalheDaTurmaDoPlano(opcao) {
+  const turma = String((opcao && opcao.turma) || '').trim();
+  if (!turma) return '';
+  const href = '/bastidores/producao?turma=' + encodeURIComponent(turma) + '#turmas';
+  return '<em>Turma: ' + escapar(turma) + ' · ' +
+    '<a class="atalho-do-plano" href="' + escapar(href) + '" target="_blank" rel="noopener" ' +
+    'title="abrir o cadastro desta turma na Produção">ver a turma</a></em>';
+}
 
 /* As opções de um nó que declara `opcoesDe` — marcáveis, com o campo livre. */
 function gradeDeOpcoesDinamicas(no) {
@@ -3141,11 +3199,12 @@ function gradeDeOpcoesDinamicas(no) {
   const nome = no.multipla ? 'pratica' : 'valor';
   const caixas = lista.map((o) => {
     const usada = usadas.get(String(o.valor));
+    const turma = no.id === 'plano-de-ensino' ? detalheDaTurmaDoPlano(o) : '';
     return '<label class="opcao' + (usada ? ' travada' : '') + '">' +
       '<input type="' + tipo + '" name="' + nome + '" value="' + escapar(o.valor) + '"' +
       (marcados.indexOf(o.valor) !== -1 ? ' checked' : '') +
       (usada ? ' disabled' : '') + '><span>' + md(o.rotulo || o.valor) +
-      (usada ? ' ' + marcaDaTurmaUsada(usada) : '') + '</span></label>';
+      (usada ? ' ' + marcaDaTurmaUsada(usada) : '') + turma + '</span></label>';
   }).join('');
   const blocos = ['<div class="grade">' + caixas + '</div>'];
   // A lista pode estar inteira bloqueada: todas as turmas dele já têm plano. Dizer isso é o
@@ -3188,6 +3247,17 @@ function noDaTurma() {
   return MAPA.nos.find((n) => n.id === 'contexto-turma') || null;
 }
 
+/** O nó do PO que ESCOLHE o plano — é dele o `opcoesDe: api/planos`. */
+function noDoPlano() {
+  if (!MAPA) return null;
+  return MAPA.nos.find((n) => n.id === 'plano-de-ensino') || null;
+}
+
+/** O endereço da estante de planos DESTE professor (o `professor` recorta o acervo). */
+function enderecoDosPlanos() {
+  return enderecoDeOpcoes(noDoPlano() || { opcoesDe: 'api/planos', recortePeloProfessor: true });
+}
+
 /** As turmas que o professor pode planejar — a curadoria filtra; sem ela, a lista inteira. */
 function listaDeTurmasDoProfessor(no) {
   let lista = OPCOES.get(enderecoDeOpcoes(no)) || [];
@@ -3221,12 +3291,12 @@ function selectDaTurma(no) {
   return '<select id="ctx-turma" aria-label="turma observada">' + opcoes.join('') + '</select>';
 }
 
-/** A TURMA do PO — a do plano referenciado, de `api/planos` (a fonte única; não se reescreve). */
+/** A TURMA do PO — a do plano referenciado, da estante DESTE professor (a fonte única). */
 function turmaDoPlanoReferenciado() {
   const cru = RESPOSTAS.get('plano-de-ensino');
   const carimbo = Array.isArray(cru) ? cru[0] : cru;
   if (!carimbo) return null;
-  const lista = OPCOES.get('api/planos') || [];
+  const lista = OPCOES.get(enderecoDosPlanos()) || [];
   const o = lista.find((x) => String(x.valor) === String(carimbo));
   return o && o.turma ? String(o.turma) : null;
 }
@@ -3286,9 +3356,11 @@ async function renderTurmaDoCabecalho() {
   // PLANO DE OBSERVAÇÃO — a turma é LEITURA, vinda do plano referenciado.
   if (FONTE === 'po') {
     caixa.hidden = false;
-    // A leitura depende da lista de planos (de onde sai a turma): busca-a para poder mostrar.
-    if (!OPCOES.has('api/planos') && !OPCOES_ERRO.has('api/planos')) {
-      await carregarOpcoesDe('api/planos');
+    // A leitura depende da estante DESTE professor (de onde sai a turma): busca-a para poder
+    // mostrar. A chave inclui o professor — a lista de outro docente não serve.
+    const estante = enderecoDosPlanos();
+    if (!OPCOES.has(estante) && !OPCOES_ERRO.has(estante)) {
+      await carregarOpcoesDe(estante);
     }
     alvo.innerHTML = leituraDaTurmaDoPo();
     if (CABECALHO_TRAVADO) travarCabecalho(true);
@@ -4365,8 +4437,8 @@ const SEMEADURA_DO_PLANO = {
   // notação NÃO são mais semeadas no PO: saíram do formulário (o PO referencia o
   // plano por id e os lê na geração — fonte única, zero duplicação). A escola e o
   // professor continuam semeados porque identificam o âmbito do próprio PO.
-  // As alunas NÃO vêm do plano: o plano de ensino é agnóstico à turma, e os
-  // sujeitos do PO vêm direto da anamnese (`opcoesDe: api/anamneses`).
+  // As alunas NÃO vêm do plano: vêm da curadoria (quem está na turma) e das
+  // anamneses já lançadas (`opcoesDe: api/anamneses`).
 };
 
 async function semearDoPlano() {
@@ -4382,10 +4454,11 @@ async function semearDoPlano() {
   // certo, não «o mais recente») e, sem escolha, o primeiro da estante — sem varrer nada.
   let carimbo = RESPOSTAS.get('plano-de-ensino') || null;
   if (!carimbo) {
-    if (!OPCOES.has('api/planos') && !OPCOES_ERRO.has('api/planos')) {
-      await carregarOpcoesDe('api/planos');
+    const estanteDoProfessor = enderecoDosPlanos();
+    if (!OPCOES.has(estanteDoProfessor) && !OPCOES_ERRO.has(estanteDoProfessor)) {
+      await carregarOpcoesDe(estanteDoProfessor);
     }
-    const estante = OPCOES.get('api/planos') || [];
+    const estante = OPCOES.get(estanteDoProfessor) || [];
     if (!estante.length) return;
     carimbo = estante[0].carimbo || estante[0].valor;
   }
@@ -6763,6 +6836,10 @@ async function iniciar() {
   // URL trouxe, e o «Começar» se reavalia com ela.
   marcarContextoFaltando();
   atualizarComecar();
+  // A estante do PO é a DESTE professor. A repintura de antes do seletor pode ter
+  // buscado a lista sem o slug (a URL nem sempre o traz) — agora que ele existe, a
+  // leitura da turma é refeita com a chave certa (22/10/2026).
+  if (FONTE === 'po') await renderTurmaDoCabecalho();
   semearDoContexto();
   // E a do PLANO vem depois da do contexto: o plano é a decisão do professor, e
   // a sua resposta vale sobre a sugestão da barra (o mesmo valor, corrigido).
@@ -6789,8 +6866,16 @@ async function iniciar() {
     sinalDeSenha(false, '');
     marcarContextoFaltando();
     atualizarComecar();
+    // TROCAR DE PROFESSOR TROCA A ESTANTE (22/10/2026): os planos e os sujeitos do
+    // anterior saem antes de a nova lista ser buscada — o filtro é do acervo, e a tela
+    // não pode continuar a mostrar o que era do outro.
+    if (FONTE === 'po') esquecerPlanosDoProfessor();
     semearDoContexto();
     atualizarCuradoria();
+    if (FONTE === 'po') {
+      renderTurmaDoCabecalho();
+      renderPergunta();
+    }
   });
 
   // A barra e a trava do fecho valem nos dois caminhos — com depósito e sem
