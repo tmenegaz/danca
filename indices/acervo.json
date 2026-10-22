@@ -24,7 +24,7 @@
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 3,
+      "documentos": 5,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:tela-de-celular/01/batata",
@@ -69,9 +69,9 @@
         "aulas": 1,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
-        "planos": 1,
+        "planos": 2,
         "pos": 2,
-        "registros": 4
+        "registros": 5
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": false,
@@ -92,6 +92,7 @@
       "registros": [
         "anamnese:anamnese-20261022-1034",
         "plano:plano-20261022-1036",
+        "plano:plano-20261022-1124",
         "po:po-20261022-1039",
         "po:po-20261022-1108"
       ],
@@ -306,7 +307,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -444,7 +445,7 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Plano de ensino",
         "valor": "plano"
       },
@@ -457,9 +458,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c2c3cb"
+    "commit": "00743cf"
   },
-  "gerado_em": "2026-10-22T14:10",
+  "gerado_em": "2026-10-22T14:24",
   "nao_indexado": [
     {
       "familia": "conteudo",

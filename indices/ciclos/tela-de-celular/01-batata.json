@@ -17,7 +17,9 @@
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
     "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
+    "documento:plano:professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
     "documento:schema:professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -30,9 +32,14 @@
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +50,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c2c3cb"
+    "commit": "00743cf"
   },
-  "gerado_em": "2026-10-22T14:10",
+  "gerado_em": "2026-10-22T14:24",
   "id": "ciclo:tela-de-celular/01/batata",
   "professor": "tela-de-celular",
   "versao": 5

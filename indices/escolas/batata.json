@@ -123,6 +123,8 @@
       },
       "aulas": [],
       "documentos": [
+        "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
         "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
         "professores/tela-de-celular/ciclos/ciclo-01-batata.fipp",
         "professores/tela-de-celular/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -137,6 +139,7 @@
       "tipos": [
         "ancora",
         "manifesto",
+        "plano",
         "schema"
       ]
     }
@@ -252,6 +255,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "ciclo_id": "ciclo:tela-de-celular/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "professor": "tela-de-celular",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:tela-de-celular/01/batata",
       "escola": "batata",
@@ -275,6 +287,15 @@
       "escola": "batata",
       "id": "documento:plano:professores/acucar-branco/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
       "professor": "acucar-branco",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "ciclo_id": "ciclo:tela-de-celular/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/tela-de-celular/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professor": "tela-de-celular",
       "tipo": "plano"
     },
     {
@@ -324,9 +345,9 @@
       "aulas": 1,
       "ciclos": 2,
       "ciclos_com_ancora": 2,
-      "planos": 1,
+      "planos": 2,
       "pos": 2,
-      "registros": 4
+      "registros": 5
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -347,6 +368,7 @@
     "registros": [
       "anamnese:anamnese-20261022-1034",
       "plano:plano-20261022-1036",
+      "plano:plano-20261022-1124",
       "po:po-20261022-1039",
       "po:po-20261022-1108"
     ],
@@ -355,10 +377,11 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261022-1034",
           "plano:plano-20261022-1036",
+          "plano:plano-20261022-1124",
           "po:po-20261022-1039",
           "po:po-20261022-1108"
         ],
@@ -391,9 +414,10 @@
         "valor": "acucar-branco"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:tela-de-celular/01/batata"
+          "ciclo:tela-de-celular/01/batata",
+          "plano:plano-20261022-1124"
         ],
         "rotulo": "tela-de-celular",
         "valor": "tela-de-celular"
@@ -418,9 +442,10 @@
         "valor": "ciclo"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "plano:plano-20261022-1036"
+          "plano:plano-20261022-1036",
+          "plano:plano-20261022-1124"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -438,9 +463,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c2c3cb"
+    "commit": "00743cf"
   },
-  "gerado_em": "2026-10-22T14:10",
+  "gerado_em": "2026-10-22T14:24",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -483,6 +508,18 @@
       "id": "plano:plano-20261022-1036",
       "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
       "professor": "acucar-branco",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 2"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261022-1124",
+      "ciclo": "01",
+      "data": "2026-10-22T11:24",
+      "id": "plano:plano-20261022-1124",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "tela-de-celular",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 2"
     },
