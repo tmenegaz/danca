@@ -773,7 +773,129 @@ async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, profes
   return { ok: true, jaExistia: false, commit: corpo.commit && corpo.commit.sha };
 }
 
+/**
+ * APAGAR UM PROFESSOR DO REPOSITÓRIO (22/10/2026) — só quando ele é LIVRE.
+ *
+ * O cadastro cria a pasta, os cinco schemas e o vínculo no inventário. Enquanto o professor não
+ * tem trabalho, apagá-lo no KV deixava o repositório a guardar o esquema de quem já não existe:
+ * a pasta `professores/<slug>/` continuava a ser um professor na lista do painel — que nasce da
+ * pasta, de propósito — e a escola declarava no inventário uma pessoa que já não está lá.
+ *
+ * A GUARDA É DO REPOSITÓRIO, e não só do KV. `professorVinculadoA` responde pelo que está nos
+ * planos de ensino; aqui responde-se pelo que está no disco, que é a prova mais forte: se a
+ * pasta tem qualquer arquivo que NÃO seja um dos cinco schemas, houve trabalho ali (PO, plano,
+ * aula, captura, pacote, `.conf`, `.fipp`) — e trabalho é proveniência. Aí não se apaga: diz-se
+ * o que está lá. Só a estrutura sem uso é que sai.
+ *
+ * Sai tudo num commit só: os arquivos com `sha: null` sobre a `base_tree`, e o inventário da
+ * escola reescrito sem a linha do vínculo. Um professor que não existe não deixa elo de expurgo
+ * próprio — não é uma escola; o que fica é o histórico do Git.
+ */
+const SO_ESTRUTURA = /^professores\/[^/]+\/ciclos\/ciclo-[0-9]{2,}-(schema|po-schema|plano-schema|aula-schema|captura-schema)\.json$/;
+
+function arquivosDeTrabalho(caminhos, professor) {
+  const pasta = 'professores/' + professor + '/';
+  return caminhos
+    .filter((c) => c.indexOf(pasta) === 0)
+    .filter((c) => !SO_ESTRUTURA.test(c))
+    .sort();
+}
+
+async function apagarProfessorDoRepo({ token, dono, repo, ref, escola, professor, fetchImpl }) {
+  const f = fetchImpl || fetch;
+  const slug = String(professor || '').trim();
+  if (!slug) throw new Error('sem o identificador do professor');
+  const caminhos = await arvoreDeCaminhos({ token, dono, repo, ref, fetchImpl: f });
+  const daPasta = caminhos.filter((c) => c.indexOf('professores/' + slug + '/') === 0);
+  const trabalho = arquivosDeTrabalho(caminhos, slug);
+  if (trabalho.length) {
+    return {
+      ok: false,
+      apagados: [],
+      trabalho,
+      erro: 'a pasta do professor tem ' + trabalho.length + ' arquivo(s) de trabalho — '
+        + 'proveniência não se apaga. Ficam: ' + trabalho.slice(0, 3).join(', ')
+        + (trabalho.length > 3 ? '…' : ''),
+    };
+  }
+  if (!daPasta.length) return { ok: true, apagados: [], jaNaoExistia: true, commit: null };
+
+  const { commitSha, treeSha } = await baseDoGit({ token, dono, repo, ref, fetchImpl: f });
+  const raizApi = 'https://api.github.com/repos/' + dono + '/' + repo;
+
+  const tree = daPasta.map((path) => ({ path, mode: '100644', type: 'blob', sha: null }));
+
+  // O INVENTÁRIO perde a linha do vínculo — e continua a declarar o responsável.
+  const caminhoIndice = 'escola/' + escola + '/indice.json';
+  const indiceAtual = await lerArquivo({ token, dono, repo, ref, caminho: caminhoIndice, fetchImpl: f });
+  if (indiceAtual !== null) {
+    const semOProfessor = comProfessorRemovido(indiceAtual, { professor: slug });
+    if (semOProfessor !== null) {
+      tree.push({ path: caminhoIndice, mode: '100644', type: 'blob', content: semOProfessor });
+    }
+  }
+
+  const novaArvore = await pedir(f, raizApi + '/git/trees', token, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
+    body: JSON.stringify({ base_tree: treeSha, tree }),
+  });
+  if (!novaArvore.ok) throw new Error('não montei a árvore da exclusão: HTTP ' + novaArvore.status);
+
+  const mensagem = [
+    'chore(estrutura): apagar o professor ' + slug,
+    '',
+    'O professor não tinha trabalho nenhum — só a estrutura que o cadastro cria (os cinco',
+    'schemas do ciclo) — e a escola já não o tem na lista. Sai a pasta inteira (' + daPasta.length
+      + ' arquivo(s)) e sai a linha',
+    'dele do inventário da escola: um professor que existe no repositório sem existir na escola',
+    'é o mesmo fantasma que se está a eliminar, ao contrário.',
+    '',
+    'A ESCOLHA É DECLARADA: se houvesse um PO, um plano, uma aula, um pacote ou uma âncora na',
+    'pasta, nada seria apagado — a proveniência acrescenta, não se apaga.',
+    '',
+    'Refs: professores/' + slug + '/, escola/' + escola + '/indice.json',
+    'Regras: P-03, P-04, P-17',
+    'Auditoria: apagados por ' + daPasta.length + ' arquivo(s), sem arquivo de trabalho na pasta',
+  ].join('\n');
+
+  const novoCommit = await pedir(f, raizApi + '/git/commits', token, {
+    method: 'POST',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
+    body: JSON.stringify({ message: mensagem, tree: novaArvore.corpo.sha, parents: [commitSha] }),
+  });
+  if (!novoCommit.ok) throw new Error('não criei o commit da exclusão: HTTP ' + novoCommit.status);
+  const sha = novoCommit.corpo && novoCommit.corpo.sha;
+  const atualizar = await pedir(f, raizApi + '/git/refs/heads/' + ref, token, {
+    method: 'PATCH',
+    headers: Object.assign({ 'Content-Type': 'application/json' }, cabecalhos(token)),
+    body: JSON.stringify({ sha, force: false }),
+  });
+  if (!atualizar.ok) throw new Error('não avancei ' + ref + ' para o commit da exclusão: HTTP ' + atualizar.status);
+
+  return { ok: true, apagados: daPasta, jaNaoExistia: false, commit: sha };
+}
+
+/**
+ * O INVENTÁRIO SEM A LINHA DE UM PROFESSOR. Devolve `null` quando não havia o que tirar — o
+ * inventário não se reescreve para dizer o mesmo.
+ */
+function comProfessorRemovido(indiceTexto, { professor }) {
+  let indice = null;
+  try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
+  if (!indice || typeof indice !== 'object') return null;
+  const lista = Array.isArray(indice.professores) ? indice.professores : [];
+  const restantes = lista.filter((p) => !(p && p.slug === professor));
+  if (restantes.length === lista.length) return null;
+  if (restantes.length) indice.professores = restantes;
+  else delete indice.professores;
+  return JSON.stringify(indice, null, 2) + '\n';
+}
+
 module.exports = {
+  apagarProfessorDoRepo,
+  arquivosDeTrabalho,
+  comProfessorRemovido,
   comProfessor,
   registrarProfessorNaEscola,
   listarEscolas,

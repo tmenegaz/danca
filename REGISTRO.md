@@ -22531,3 +22531,66 @@ de regerar.
 **Conferido.** `--check` sai 0 no `main` atual («12 arquivo(s) em dia») e o `git status` mostraria
 12 arquivos mexidos — é exactamente a diferença entre voltar a commitar o carimbo e não commitar
 nada. YAML válido, os cinco passos com `id`/`if` na ordem certa, `check-indices` 14/14.
+
+## 22/10/2026 — O recado nasce onde a ação foi pedida, e o botão diz que está a trabalhar
+
+**O sintoma.** «O botão de cadastrar professor não dispara o carregamento da lista — tenho que
+recarregar a página para funcionar. Nada acontece.»
+
+**O que se mediu, num Chrome de verdade** (`experimentos/provar-cadastro-visivel.js`, com a folha
+de estilo real servida de `127.0.0.1`): o `fetch` **sai** e o `location.reload()` **é chamado** no
+sucesso — o caminho nunca esteve morto. O que estava errado era o **lugar do recado**: o `#res`
+vive no topo do conteúdo, e com a página rolada até ao formulário (que é onde a pessoa está) ele
+ficava a `top: -19` numa janela de 493 px — **fora do ecrã**. No erro não há recarregamento, então
+a única resposta visível era nenhuma; e o cadastro demora 5 a 15 s porque escreve no repositório,
+tempo em que a tela não mudava. «Nada acontece» era, ao pé da letra, o que se via.
+
+**A correção, em dois lugares onde o olho está.**
+
+1. **O botão é o primeiro recado.** Ao clicar, ele fica desabilitado e passa a dizer
+   «cadastrando…»; no erro volta ao rótulo de antes. Efeito colateral que interessa: um segundo
+   clique já não dispara um cadastro concorrente.
+2. **A mensagem nasce na secção da ação.** `.res` ganhou um irmão em cada secção com formulário
+   (professores, alunas, turmas, vocabulário, curadorias), posto **antes do botão** — medido: a
+   mensagem passou a aparecer a `top: 400` com o botão a `447`, `naTela: true` (antes: `-19`). O
+   `#res` do topo fica para o que não tem secção (a aparência, o portão), e os `.res` das outras
+   secções são limpos, para um recado antigo não ficar a mentir numa secção onde nada aconteceu.
+
+**Conferido.** `provar-cadastro-visivel.js` — 12 asserções, num Chrome real: o botão muda durante
+o pedido, volta no erro, o recado está na secção certa, com o estado certo, e **na tela**; sem
+sucesso a página não recarrega; com sucesso recarrega (o servidor conta o segundo GET). A prova
+**pula** e diz que pulou quando não há navegador — o CI não tem Chrome, e uma prova que finge
+medir é pior do que uma prova ausente. `provar-producao` 135/135, `check-identidade` 20/20.
+
+## 22/10/2026 — Excluir um professor livre apaga-o também do repositório
+
+**A regra que se pediu.** Enquanto o professor é **livre** — não está em nenhum plano de ensino —,
+excluí-lo tem de o apagar de verdade: «quando cadastra o professor, a gente tá gerando muitas
+coisas importantes lá no GitHub; esse professor é livre, então lá no GitHub também ele deixa de
+existir». Vinculado a um plano, não: a proveniência acrescenta, não se apaga.
+
+**O que faltava.** O `DELETE` apagava só o KV. A pasta `professores/<slug>/` continuava com os
+cinco schemas, o inventário da escola continuava a declará-lo e o painel — que nasce da pasta, de
+propósito — continuava a listá-lo: o professor deixava de poder entrar e continuava a existir.
+
+**Agora.** Sai a pasta inteira e a linha do vínculo no inventário, num commit só (`sha: null` sobre
+a `base_tree`, como o expurgo faz), e só depois o KV. A ordem é a do cadastro invertida: se o
+GitHub recusar, **nada** é tocado e o professor continua inteiro (502 com o motivo). A guarda é
+dupla: o KV diz «não está em plano nenhum»; o repositório confirma «não há trabalho na pasta» — um
+PO, um plano, uma aula, um pacote, um `.conf` ou uma âncora bloqueiam, e a resposta **nomeia** o
+arquivo que bloqueia. Os cinco schemas do ciclo não bloqueiam: são a estrutura, e a estrutura sem
+uso é exactamente o que sai.
+
+**A pergunta da curadoria, verificada no código.** Sim: a curadoria de um professor **pode** ser
+removida enquanto não gerou plano — a regra é `curadoriaVinculadaA(pares, c)`, e `pares` só existe
+quando um plano de ensino declara aquele par (professor, turma); sem plano, o `DELETE
+/api/bastidores/curadoria` passa. E é coerente: se a curadoria pode sair, nada daquele professor é
+linha de base, e ele pode ser excluído. O que **não** se remove é a curadoria que já tem plano (409,
+«derive uma versão nova»), e o que **não** se exclui é o professor que já está em algum plano
+(`professorVinculadoA`) — é a mesma regra, vista dos dois lados.
+
+**Conferido.** `provar-apagar-professor-livre.js` — 23 asserções: os cinco schemas saem e nada fora
+da pasta; o inventário é reescrito no mesmo commit sem a linha dele e com o responsável intacto; o
+KV só é tocado depois; com trabalho na pasta a resposta é 409 e **nada** é escrito; se o GitHub
+recusa, o professor continua no KV; a chave `professores` some do inventário quando fica vazia (não
+vira `[]`).

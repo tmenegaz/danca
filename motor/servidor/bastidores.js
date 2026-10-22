@@ -2529,6 +2529,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<input id="psobrenome" name="sobrenome" autocomplete="off" placeholder="ex.: Menegaz">' +
     '<label class="campo-rotulo" for="psenha">Senha do professor</label>' +
     '<input id="psenha" name="senha" type="password" autocomplete="new-password">' +
+    '<div class="res" data-res="professores"></div>' +
     '<button type="submit" class="acao grande">Cadastrar professor</button>' +
     '</form>' +
     '</div>' +
@@ -2544,6 +2545,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<form id="form-aluna">' +
     '<label class="campo-rotulo" for="anome">Apelido da aluna (estável, P-12)</label>' +
     '<input id="anome" name="apelido" autocomplete="off" placeholder="ex.: Vavá">' +
+    '<div class="res" data-res="alunas"></div>' +
     '<button type="submit" class="acao grande">Cadastrar aluna</button>' +
     '</form>' +
     '</div>' +
@@ -2663,6 +2665,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<p class="nota-pendencia" id="t-pendencia" hidden></p>' +
     // O CANCELAR É SÓ DO MODO EDIÇÃO e fica ao lado do «Avançar» (18/10/2026): sem texto, sem
     // explicação — um botão. `aplicarEditando` mostra-o quando há algo para cancelar.
+    '<div class="res" data-res="turmas"></div>' +
     '<span class="par-botoes">' +
     '<button type="submit" class="acao grande" id="t-enviar" disabled>Avançar</button>' +
     '<button type="button" class="acao secundario cancelar-edicao" id="t-cancelar" hidden>Cancelar</button>' +
@@ -2793,6 +2796,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     TRADICOES_DO_VOCABULARIO.map((t) =>
       '<option value="' + esc(t) + '">' + esc(t) + '</option>').join('') +
     '</select>' +
+    '<div class="res" data-res="vocabulario"></div>' +
     '<button type="submit" class="acao grande">Cadastrar termo</button>' +
     '</form>' +
     '<p><button id="semear" type="button">Carregar catálogo inicial (turmas + vocabulário)</button></p>' +
@@ -2837,6 +2841,7 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // O «CANCELAR» AO LADO DO BOTÃO, E SÓ NA EDIÇÃO (18/10/2026) — a mesma regra dos três
     // passos da turma. Ele não tem texto de aviso, e nasce escondido: sem edição em curso não
     // há nada para cancelar.
+    '<div class="res" data-res="curadorias"></div>' +
     '<span class="par-botoes">' +
     '<button type="submit" id="cu-enviar">Atribuir curadoria</button>' +
     '<button type="button" class="acao secundario" id="cu-cancelar" hidden>Cancelar</button>' +
@@ -3605,18 +3610,59 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '  window.addEventListener("scroll", marcarDescido, { passive: true });' +
     '  marcarDescido();' +
     '})();' +
-    'function postar(id, corpo) {' +
+    /*
+ * ONDE O RECADO APARECE (22/10/2026). No TOPO do conteúdo ele fica fora do ecrã assim que a
+ * pessoa está numa secção — e as secções são a página inteira. Medido no Chrome, com o
+ * formulário dos professores à vista: o `#res` estava a `top: -19` e a altura da janela era
+ * 493. Ou seja: «cadastrando…» (5 a 15 s, porque o cadastro escreve no repositório) e
+ * «Erro: …» eram escritos onde ninguém os lia — o botão parecia morto.
+ *
+ * A regra passa a ser: o recado nasce no `.res` da secção VISÍVEL; o `#res` do topo fica para
+ * o que não tem secção (a aparência, o portão). Uma função, e as duas que escrevem usam-na.
+ */
+'function alvoDoRecado() {' +
+    '  var secao = document.querySelector("#conteudo .secao:not([hidden])");' +
+    '  var proprio = secao ? secao.querySelector(".res") : null;' +
+    '  return proprio || document.getElementById("res");' +
+    '}' +
+    // O mesmo elemento, e o recado anterior da OUTRA secção não fica a mentir: ao escolher um
+    // alvo, os outros `.res` das secções são limpos.
+    'function limparRecados() {' +
+    '  var todos = document.querySelectorAll(".res[data-res]");' +
+    '  for (var i = 0; i < todos.length; i++) { todos[i].className = "res"; todos[i].textContent = ""; }' +
+    '}' +
+    'function recado(estado, texto) {' +
+    '  limparRecados();' +
+    '  var res = alvoDoRecado();' +
+    '  if (!res) return;' +
+    '  res.className = "res" + (estado ? " " + estado : ""); res.textContent = texto;' +
+    '}' +
+    /*
+ * O BOTÃO É O PRIMEIRO RECADO (22/10/2026). O `.res` ao lado do formulário é o segundo — mas o
+ * que a pessoa tem debaixo do dedo é o botão, e é ele que muda: fica desabilitado e passa a
+ * dizer «cadastrando…». Sem isto, o cadastro de professor (5 a 15 s, porque escreve no
+ * repositório) não dava sinal nenhum, e um segundo clique criava um pedido concorrente. O
+ * rótulo anterior é guardado e devolvido no erro; no sucesso a página recarrega e o botão vem
+ * novo do servidor.
+ */
+'function postar(id, corpo) {' +
     '  corpo.token = TOKEN;' +
-    '  var res = document.getElementById("res");' +
-    '  res.className = "res"; res.textContent = "cadastrando...";' +
+    '  var form = document.getElementById(id);' +
+    '  var botao = form ? form.querySelector("button[type=submit]") : null;' +
+    '  var rotulo = botao ? botao.textContent : null;' +
+    '  if (botao) { botao.disabled = true; botao.textContent = "cadastrando..."; }' +
+    '  function devolverRotulo() {' +
+    '    if (botao) { botao.disabled = false; botao.textContent = rotulo; }' +
+    '  }' +
+    '  recado("", "cadastrando...");' +
     '  return fetch(id === "form-prof" ? "/api/bastidores/professor" : "/api/bastidores/aluna", {' +
     '    method: "POST",' +
     '    headers: {"Content-Type": "application/json"},' +
     '    body: JSON.stringify(corpo)' +
     '  }).then(function(r){ return r.json(); }).then(function(d){' +
     '    if (d.ok) { location.reload(); }' +
-    '    else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
-    '  }).catch(function(err){ res.className = "res erro"; res.textContent = "Erro: " + err.message; });' +
+    '    else { devolverRotulo(); recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
+    '  }).catch(function(err){ devolverRotulo(); recado("erro", "Erro: " + err.message); });' +
     '}' +
     'document.getElementById("form-prof").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -3747,8 +3793,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // avançar. É a diferença entre um botão e uma promessa.
     'function enviar(ep, corpo, mensagem, recarregar, aoOk) {' +
     '  corpo.token = TOKEN;' +
-    '  var res = document.getElementById("res");' +
-    '  res.className = "res"; res.textContent = mensagem;' +
+    '  recado("", mensagem);' +
+    '  var res = alvoDoRecado();' +
     '  return fetch(ep, {' +
     '    method: "POST",' +
     '    headers: {"Content-Type": "application/json"},' +
@@ -3759,8 +3805,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      if (recarregar) { location.reload(); }' +
     '      else { res.className = "res ok"; res.textContent = "ok (" + (d.turmasNovas != null ? d.turmasNovas + " turmas, " + d.termosNovos + " termos, " + d.associacoes + " associações" : "feito") + ")"; }' +
     '    }' +
-    '    else { res.className = "res erro"; res.textContent = "Erro: " + (d.erro || "desconhecido"); }' +
-    '  }).catch(function(err){ res.className = "res erro"; res.textContent = "Erro: " + err.message; });' +
+    '    else { recado("erro", "Erro: " + (d.erro || "desconhecido")); }' +
+    '  }).catch(function(err){ recado("erro", "Erro: " + err.message); });' +
     '}' +
     'document.getElementById("form-turma").addEventListener("submit", function(e){' +
     '  e.preventDefault();' +
@@ -3966,10 +4012,8 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '      sel.appendChild(o);' +
     '    }' +
     '  }' +
-    '  var res = document.getElementById("res");' +
-    '  if (res && saiu.length) {' +
-    '    res.className = "res erro";' +
-    '    res.textContent = "Já estão noutra turma desta modalidade: " + saiu.join("; ") + ".";' +
+    '  if (saiu.length) {' +
+    '    recado("erro", "Já estão noutra turma desta modalidade: " + saiu.join("; ") + ".");' +
     '  }' +
     '}' +
     // Trocar a modalidade ou a turma refiltra — e limpar o par também repõe a lista toda.
@@ -4771,10 +4815,67 @@ async function fetch(request, env) {
         vinculado: true,
       });
     }
+    /*
+     * O REPOSITÓRIO TAMBÉM APRENDE QUE ELE SAIU (22/10/2026).
+     *
+     * O cadastro cria a pasta, os cinco schemas e o vínculo no inventário. Apagar só no KV
+     * deixava o esquema de um professor que já não existe: a pasta continuava a ser um
+     * professor na lista do painel — que nasce da pasta, de propósito — e a escola declarava
+     * no inventário uma pessoa que já não está lá.
+     *
+     * A ORDEM É A DO CADASTRO, INVERTIDA: sai do repositório ANTES de sair do KV. Se o
+     * GitHub recusar, o professor continua inteiro — e não há estado em que ele exista na tela
+     * e não exista no repositório (ou o contrário).
+     *
+     * E A GUARDA É DUPLA: o KV diz «não está em plano nenhum» (a regra acima); o repositório
+     * confirma «não há trabalho na pasta». Um professor CURADO mas ainda sem plano de ensino
+     * apaga-se — a curadoria dele pode ser removida enquanto não gerou plano
+     * (`curadoriaVinculadaA`), então nada dele é linha de base. Um professor com PO, plano,
+     * aula, pacote ou âncora, não: a proveniência acrescenta, não se apaga.
+     */
     const removido = lista[idx];
+    const { apagarProfessorDoRepo } = require('./repo-escola.js');
+    let exclusao;
+    try {
+      exclusao = await apagarProfessorDoRepo({
+        token: env && env.GITHUB_TOKEN,
+        dono: 'tmenegaz',
+        repo: 'danca',
+        ref: 'main',
+        escola,
+        professor: slugDoProfessor(removido) || slugificar(removido.nome),
+      });
+    } catch (err) {
+      return json(502, {
+        ok: false,
+        erro: 'o professor «' + removido.nome + '» NÃO foi excluído: a estrutura dele não pôde ser '
+          + 'apagada do repositório (' + ((err && err.message) || String(err)) + '). Nada foi '
+          + 'tocado — ele continua na escola e no repositório.',
+      });
+    }
+    if (!exclusao.ok) {
+      return json(409, {
+        ok: false,
+        erro: 'o professor «' + removido.nome + '» NÃO foi excluído: ' + exclusao.erro,
+        vinculado: true,
+        trabalho: exclusao.trabalho,
+      });
+    }
+
     lista.splice(idx, 1);
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
-    return json(200, { ok: true, professor: removido.nome, removido: true });
+    return json(200, {
+      ok: true,
+      professor: removido.nome,
+      removido: true,
+      // O que saiu do repositório, e com que commit — a tela recarrega, e quem quiser auditar
+      // tem o número em vez de uma frase.
+      repositorio: {
+        apagados: exclusao.apagados.length,
+        commit: exclusao.commit,
+        jaNaoExistia: exclusao.jaNaoExistia === true,
+      },
+    });
   }
 
   // POST /api/bastidores/dono — ajustar o NOME do professor dono (o criado na página).
