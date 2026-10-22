@@ -70,13 +70,13 @@
       "ciclo:oculos-redondo/01/calango"
     ],
     "contagens": {
-      "anamneses": 1,
+      "anamneses": 2,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 1
+      "registros": 2
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
     "expurgada": false,
@@ -91,16 +91,18 @@
       "perna-boa"
     ],
     "registros": [
-      "anamnese:anamnese-20261022-1722"
+      "anamnese:anamnese-20261022-1722",
+      "anamnese:anamnese-20261022-2055"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261022-1722"
+          "anamnese:anamnese-20261022-1722",
+          "anamnese:anamnese-20261022-2055"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -125,13 +127,22 @@
         ],
         "rotulo": "oculos-redondo",
         "valor": "oculos-redondo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261022-2055"
+        ],
+        "rotulo": "perna-boa",
+        "valor": "perna-boa"
       }
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "anamnese:anamnese-20261022-1722"
+          "anamnese:anamnese-20261022-1722",
+          "anamnese:anamnese-20261022-2055"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -148,9 +159,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9dc4f79"
+    "commit": "7148554"
   },
-  "gerado_em": "2026-10-22T20:22",
+  "gerado_em": "2026-10-22T23:55",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -182,6 +193,16 @@
       "data": "2026-10-22T17:22",
       "id": "anamnese:anamnese-20261022-1722",
       "professor": "oculos-redondo",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261022-2055",
+      "ciclo": "01",
+      "data": "2026-10-22T20:55",
+      "id": "anamnese:anamnese-20261022-2055",
+      "professor": "perna-boa",
       "tipo": "anamnese"
     }
   ],
