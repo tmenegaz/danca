@@ -15,6 +15,8 @@
     },
     "criada_em": "2026-10-15T18:13:45.796290+00:00",
     "expurgada": true,
+    "expurgada_em": "2026-10-19T10:20:42.834Z",
+    "expurgos": 1,
     "habilitada": false,
     "id": "escola:fita",
     "nome": "fita",
@@ -33,9 +35,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "bf7fdfa"
+    "commit": "6106ca8"
   },
-  "gerado_em": "2026-10-22T10:58",
+  "gerado_em": "2026-10-22T11:10",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -59,5 +61,5 @@
     }
   ],
   "registros": [],
-  "versao": 1
+  "versao": 2
 }
