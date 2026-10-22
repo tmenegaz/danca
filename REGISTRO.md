@@ -22464,3 +22464,44 @@ a tabela das apagadas traz a união de professores do elo. E com o índice real 
 → 4 professores, `breu` → 3, `sapo-bailarino` → `batata` (a única viva). `check-identidade` 13
 superfícies / 20 verificações; `check-indices` 14/14 depois de o gerador correr na cópia isolada
 (a versão 3 muda o derivado, e quem o fecha é o `regerar-indices.yml` no push — não à mão).
+
+## 22/10/2026 — A lista dos professores passa a nascer da pasta e do vínculo que a escola declara
+
+**O que faltou na lista.** O `teclado-abnt` foi cadastrado às 08:52 na Produção da escola viva e
+não apareceu em `/professores`. Não era o índice atrasado: foi gerado às 12:04, **depois** do
+cadastro. A lista só conhecia professor que tivesse **ciclo** em alguma escola (ou que um expurgo
+provasse) — e um professor recém-cadastrado tem pasta, tem os cinco schemas, e ainda não tem
+ciclo nenhum. Ficava invisível por desenho, e o desenho tinha ficado para trás no dia em que o
+cadastro passou a criar a estrutura: a pasta já nasce no ato, então a pasta tem de contar.
+
+**E a escola não dizia quem tinha cadastrado.** O inventário guardava **um** professor — o
+responsável. Quem foi cadastrado depois vivia só no KV, e o KV não é fonte do acervo (uma leitura
+do repositório, sem `list()`). Por isso o `teclado-abnt` não podia dizer «batata»: não havia onde
+estar escrito. Agora o cadastro grava o vínculo no inventário da escola
+(`escola/<slug>/indice.json` → `professores[]`, com `slug`, `nome` e `desde`), **acrescentando** —
+quem já está declarado não é reescrito, e o responsável continua no singular dele. É a mesma ordem
+do resto do cadastro: se o vínculo não puder ser gravado, o professor **não** é cadastrado e a
+resposta diz por quê (502), porque um professor que existe na tela e não existe no repositório é
+exatamente o estado que se está a eliminar.
+
+**A derivação (`VERSAO = 4`).** `professores[]` passa a ser a união de: ciclos (como antes), elo
+do expurgo (como antes), o responsável, o que a escola **declara** e as **pastas** de
+`professores/`. Quem tem pasta e nenhum vínculo entra com `escolas: []` — e a lista diz «sem escola
+viva» em vez de o omitir. O incremento da versão não é decorativo: é o que invalida o cache do KV,
+e sem ele o campo chegaria vazio à página sem erro nenhum.
+
+**Conferido.** `provar-estrutura-ao-criar-professor.js` 30 asserções (o vínculo é gravado com
+slug, nome e data; o resto do inventário não é reescrito; é idempotente; sem inventário o cadastro
+é recusado e o professor não fica no KV). `provar-indices.js` 60 asserções, com os cinco casos
+novos da lista. `provar-painel.js` verde. `check-indices` 14/14 e `check-identidade` 20/20 com o
+índice regerado pelo próprio gerador no mesmo commit. Medido no índice real: o `teclado-abnt`
+entrou (era o que faltava); `cafe-no-bule` também, e ambos ficam «sem escola viva» até o vínculo
+existir — o do `teclado-abnt` é o da migração abaixo.
+
+**A migração do que nunca foi escrito.** Os professores cadastrados antes deste commit não têm
+vínculo no inventário, porque o código não o gravava. O do `teclado-abnt` é conhecido: criado às
+08:52, na `batata`, que é a escola recriada às 08:29 e a única viva. Ele é gravado pelo **mesmo**
+caminho que o cadastro usa (`registrarProfessorNaEscola`), num commit próprio — não é edição à mão
+do inventário, é a função que passou a existir a ser aplicada ao dado que faltava. O `cafe-no-bule`
+(07:36, na `calango`, expurgada às 07:48) fica sem vínculo de propósito: a escola dele já não
+existe, e o elo do expurgo não o prova.

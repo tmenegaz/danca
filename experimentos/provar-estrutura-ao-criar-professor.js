@@ -55,8 +55,9 @@ function criarKv(inicial = {}) {
  * Um `fetch` de mentira para a API do GitHub. `arquivos` é o conteúdo que a pasta do professor
  * JÁ tem (os nomes); o resto responde como o Contents API responde.
  */
-function githubFalso({ arquivosDaPasta = [], falharPut = false, falharListagem = false } = {}) {
+function githubFalso({ arquivosDaPasta = [], inventario = null, falharPut = false, falharListagem = false } = {}) {
   const chamadas = [];
+  const escritasNoInventario = [];
   const f = async (url, init) => {
     const metodo = (init && init.method) || 'GET';
     const u = String(url);
@@ -72,8 +73,17 @@ function githubFalso({ arquivosDaPasta = [], falharPut = false, falharListagem =
     }
     const ehLeitura = metodo === 'GET' && /\/contents\//.test(u);
     if (ehLeitura) {
-      // O molde existe; o destino do professor, só se `arquivosDaPasta` o declarar.
       const nome = u.split('/contents/')[1].split('?')[0];
+      // O INVENTÁRIO DA ESCOLA — é onde o vínculo com o professor é declarado.
+      if (/^escola\/[a-z0-9-]+\/indice\.json$/.test(nome)) {
+        if (!inventario) return { ok: false, status: 404, json: async () => ({}) };
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ sha: 'sha-do-inventario', content: Buffer.from(JSON.stringify(inventario)).toString('base64') }),
+        };
+      }
+      // O molde existe; o destino do professor, só se `arquivosDaPasta` o declarar.
       const existe = nome.startsWith('modelo/') || arquivosDaPasta.indexOf(nome.split('/').pop()) !== -1;
       if (!existe) return { ok: false, status: 404, json: async () => ({}) };
       return {
@@ -84,11 +94,20 @@ function githubFalso({ arquivosDaPasta = [], falharPut = false, falharListagem =
     }
     if (metodo === 'PUT') {
       if (falharPut) return { ok: false, status: 403, json: async () => ({}) };
-      return { ok: true, status: 201, json: async () => ({}) };
+      if (/\/contents\/escola\/[a-z0-9-]+\/indice\.json$/.test(u)) {
+        const corpo = JSON.parse((init && init.body) || '{}');
+        escritasNoInventario.push({
+          caminho: u.split('/contents/')[1],
+          texto: Buffer.from(corpo.content || '', 'base64').toString('utf8'),
+          mensagem: corpo.message || '',
+          sha: corpo.sha || null,
+        });
+      }
+      return { ok: true, status: 201, json: async () => ({ commit: { sha: 'c1' } }) };
     }
     return { ok: true, status: 200, json: async () => ({}) };
   };
-  return { fetch: f, chamadas };
+  return { fetch: f, chamadas, escritasNoInventario };
 }
 
 const env = (kv, token = 'gh') => ({
@@ -114,7 +133,7 @@ async function principais() {
   // ── 1. o cadastro cria os cinco schemas do ciclo da escola ────────────────
   {
     const kv = criarKv();
-    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf', 'ciclo-01.conf'] });
+    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf', 'ciclo-01.conf'], inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] } });
     globalThis.fetch = fetch;
     const resposta = await postarProfessor(env(kv));
     const corpo = await resposta.json();
@@ -138,6 +157,7 @@ async function principais() {
     const kv = criarKv();
     const { fetch, chamadas } = githubFalso({
       arquivosDaPasta: ['ciclo-01-calango.conf', 'ciclo-02-calango.conf', 'ciclo-01-po-schema.json'],
+      inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] },
     });
     globalThis.fetch = fetch;
     const corpo = await (await postarProfessor(env(kv))).json();
@@ -156,12 +176,12 @@ async function principais() {
     const kv = criarKv();
     const todos = ['ciclo-01-schema.json', 'ciclo-01-po-schema.json', 'ciclo-01-plano-schema.json',
       'ciclo-01-aula-schema.json', 'ciclo-01-captura-schema.json'];
-    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf', ...todos] });
+    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf', ...todos], inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] } });
     globalThis.fetch = fetch;
     const corpo = await (await postarProfessor(env(kv))).json();
     globalThis.fetch = original;
 
-    const puts = chamadas.filter((c) => c.metodo === 'PUT');
+    const puts = chamadas.filter((c) => c.metodo === 'PUT' && /professores\//.test(c.url));
     conferir('nada é escrito quando a estrutura já existe', puts.length === 0, puts.length);
     conferir('…e o relatório diz que já existia', corpo.estrutura && corpo.estrutura.jaExistiam === 5, corpo.estrutura);
     conferir('…e o professor é cadastrado na mesma (201)', corpo.ok === true, corpo);
@@ -170,7 +190,7 @@ async function principais() {
   // ── 4. se o repositório recusa, o professor NÃO nasce ─────────────────────
   {
     const kv = criarKv();
-    const { fetch } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], falharPut: true });
+    const { fetch } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], falharPut: true, inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] } });
     globalThis.fetch = fetch;
     const resposta = await postarProfessor(env(kv));
     const corpo = await resposta.json();
@@ -183,10 +203,70 @@ async function principais() {
       typeof corpo.erro === 'string' && /NÃO foi cadastrado/.test(corpo.erro), corpo.erro && corpo.erro.slice(0, 80));
   }
 
-  // ── 5. sem token: o cadastro falha, em vez de criar meio professor ────────
+  // ── 5. a ESCOLA declara o professor no inventário ────────────────────────
   {
     const kv = criarKv();
-    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'] });
+    const inventario = { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] };
+    const { fetch, escritasNoInventario } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], inventario });
+    globalThis.fetch = fetch;
+    const corpo = await (await postarProfessor(env(kv))).json();
+    globalThis.fetch = original;
+
+    conferir('o vínculo com a escola é gravado no inventário', escritasNoInventario.length === 1, escritasNoInventario.length);
+    const escrito = escritasNoInventario[0] ? JSON.parse(escritasNoInventario[0].texto) : {};
+    conferir('…com o slug e o nome de quem foi cadastrado',
+      JSON.stringify((escrito.professores || []).map((p) => p.slug + ':' + p.nome)),
+      JSON.stringify(['caneca-pequena:Caneca Pequena']));
+    conferir('…com a data do vínculo', !!((escrito.professores || [])[0] || {}).desde,
+      (escrito.professores || [])[0] && (escrito.professores || [])[0].desde);
+    conferir('…sem reescrever o responsável nem o resto do inventário',
+      escrito.professor && escrito.professor.slug === 'oculos-redondo' && escrito.ciclo === '01',
+      { professor: escrito.professor, ciclo: escrito.ciclo });
+    conferir('…no commit que diz que a escola o declara',
+      /a escola calango declara o professor caneca-pequena/.test(escritasNoInventario[0].mensagem),
+      escritasNoInventario[0].mensagem);
+    conferir('…e a resposta diz em que escola o vínculo ficou',
+      corpo.estrutura && corpo.estrutura.vinculo && corpo.estrutura.vinculo.escola, corpo.estrutura);
+  }
+
+  // ── 6. o vínculo é IDEMPOTENTE: quem já está declarado não é reescrito ────
+  {
+    const kv = criarKv();
+    const inventario = {
+      escola: 'calango',
+      professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' },
+      professores: [{ slug: 'caneca-pequena', nome: 'Caneca Pequena', desde: '2026-10-22T10:00:00.000Z' }],
+      ciclo: '01',
+    };
+    const { fetch, escritasNoInventario } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], inventario });
+    globalThis.fetch = fetch;
+    const corpo = await (await postarProfessor(env(kv))).json();
+    globalThis.fetch = original;
+
+    conferir('quem já está declarado não é reescrito', escritasNoInventario.length === 0, escritasNoInventario.length);
+    conferir('…e a resposta diz que já existia',
+      corpo.estrutura && corpo.estrutura.vinculo && corpo.estrutura.vinculo.jaExistia === true, corpo.estrutura);
+  }
+
+  // ── 7. sem inventário não há onde declarar: o cadastro NÃO acontece ───────
+  {
+    const kv = criarKv();
+    const { fetch } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], inventario: null });
+    globalThis.fetch = fetch;
+    const resposta = await postarProfessor(env(kv));
+    const corpo = await resposta.json();
+    globalThis.fetch = original;
+
+    conferir('escola sem inventário recusa o cadastro (502)', resposta.status === 502, corpo.erro);
+    conferir('…e o professor não fica no KV',
+      JSON.parse(await kv.get('bastidores/calango/professores') || '[]').length === 0);
+    conferir('…e a mensagem diz o que faltou', /não tem inventário/.test(String(corpo.erro)), corpo.erro && corpo.erro.slice(0, 90));
+  }
+
+  // ── 8. sem token: o cadastro falha, em vez de criar meio professor ────────
+  {
+    const kv = criarKv();
+    const { fetch, chamadas } = githubFalso({ arquivosDaPasta: ['ciclo-01-calango.conf'], inventario: { escola: 'calango', professor: { slug: 'oculos-redondo', nome: 'Oculos Redondo' }, ciclo: '01', arquivos: [] } });
     globalThis.fetch = fetch;
     const resposta = await postarProfessor(env(kv, ''));
     globalThis.fetch = original;

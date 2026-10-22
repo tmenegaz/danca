@@ -370,6 +370,46 @@ function main() {
       [decisaoDe(pacote + '/plano-aula-01.json'), decisaoDe(pacote + '/plano-aula-01-anterior.json')]);
   }
 
+  // ── 10. A LISTA DOS PROFESSORES (22/10/2026) ──────────────────────────────
+  // Duas coisas que o índice passou a saber, e que nenhuma delas saía dos ciclos:
+  //   (a) a PASTA `professores/<slug>/` é um professor, mesmo sem ciclo nenhum;
+  //   (b) o VÍNCULO que a escola declara no inventário (`professores[]`) diz em que escola
+  //       ativa a pessoa trabalha — antes, um professor cadastrado ontem não aparecia ligado
+  //       à escola em que foi cadastrado, e um cadastrado sem ciclo não aparecia de todo.
+  {
+    const { acervo } = indices.construir({
+      agora: '2026-10-22T12:00',
+      arvores: [
+        'wrangler.viva.jsonc',
+        'escola/viva/indice.json',
+        'escola/morta/indice.json',
+        // A pasta do professor SEM ciclo nenhum: só os schemas que o cadastro cria.
+        'professores/p-solto/ciclos/ciclo-01-po-schema.json',
+      ],
+      inventarios: {
+        viva: {
+          escola: 'viva',
+          professor: { slug: 'resp', nome: 'Resp' },
+          professores: [{ slug: 'p-declarado', nome: 'Declarado', desde: '2026-10-22T11:00:00.000Z' }],
+        },
+        morta: { escola: 'morta', professor: { slug: 'resp', nome: 'Resp' } },
+      },
+    });
+    const porSlug = new Map(acervo.professores.map((p) => [p.slug, p]));
+    checar('a pasta do professor entra na lista, mesmo sem ciclo',
+      porSlug.has('p-solto'), [...porSlug.keys()]);
+    checar('…e sem escola declarada ela fica vazia (a lista diz «sem escola viva»)',
+      (porSlug.get('p-solto') || {}).escolas && porSlug.get('p-solto').escolas.length === 0,
+      (porSlug.get('p-solto') || {}).escolas);
+    checar('o professor DECLARADO pela escola aparece ligado a ela',
+      JSON.stringify((porSlug.get('p-declarado') || {}).escolas), JSON.stringify(['viva']));
+    checar('…com o nome que a escola declarou (não o slug)',
+      (porSlug.get('p-declarado') || {}).nome, 'Declarado');
+    checar('o responsável continua na lista da escola',
+      ((acervo.escolas.find((e) => e.slug === 'viva') || {}).professores || []).indexOf('resp') !== -1,
+      (acervo.escolas.find((e) => e.slug === 'viva') || {}).professores);
+  }
+
   console.log('\n' + (falhas === 0
     ? 'TUDO CERTO — ' + n + ' asserções, 0 falha(s).'
     : 'FALHOU — ' + falhas + ' de ' + n + ' asserção(ões).'));

@@ -4633,6 +4633,33 @@ async function fetch(request, env) {
       });
     }
 
+    // E A ESCOLA DECLARA O PROFESSOR (22/10/2026). A estrutura diz que a pasta existe; o
+    // inventário diz que ESTA escola é onde ele trabalha. Sem esta linha, o cadastro gravaria o
+    // vínculo só no KV, e o painel — que lê o repositório — não teria como saber em que escola
+    // ativa o professor está: ele apareceria com «sem escola viva» no dia em que foi cadastrado.
+    const { registrarProfessorNaEscola } = require('./repo-escola.js');
+    let vinculo;
+    try {
+      vinculo = await registrarProfessorNaEscola({
+        token: env && env.GITHUB_TOKEN,
+        dono: 'tmenegaz',
+        repo: 'danca',
+        ref: 'main',
+        slug: escola,
+        professor: slug,
+        nome: nomeExibido,
+      });
+    } catch (err) {
+      return json(502, {
+        ok: false,
+        erro: 'o professor «' + nomeExibido + '» NÃO foi cadastrado: o vínculo dele com a escola '
+          + 'não pôde ser gravado no repositório (' + ((err && err.message) || String(err)) + '). '
+          + 'Sem ele, o painel não saberia dizer em que escola esta pessoa trabalha. Corrija o '
+          + 'acesso ao repositório e cadastre outra vez.',
+        estrutura,
+      });
+    }
+
     // O `slug` é GRAVADO: é ele que fica, mesmo que o nome de exibição mude depois.
     lista.push({ nome: nomeExibido, slug, sal, hash });
     await kv.put(RAIZ + '/' + escola + '/professores', JSON.stringify(lista));
@@ -4648,6 +4675,8 @@ async function fetch(request, env) {
         criados: estrutura.criados.length,
         jaExistiam: estrutura.pulados.length,
         nota: estrutura.nota,
+        // O vínculo com a escola: gravado agora, ou já declarado antes (idempotente).
+        vinculo: { escola, jaExistia: vinculo.jaExistia === true },
       },
     });
   }

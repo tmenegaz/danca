@@ -39,7 +39,11 @@
 //   2 (22/10/2026) — `expurgada_em` e `expurgos` na escola: a data da saída, para o painel.
 //   3 (22/10/2026) — `escola.professores` passa a incluir os professores que o ELO prova: numa
 //       escola expurgada, os ciclos já não existem e só o professor do inventário sobrava.
-const VERSAO = 3;
+//   4 (22/10/2026) — `professores[]` passa a incluir a PASTA (`professores/<slug>/`) e o vínculo
+//       que a escola declara no inventário (`professores[]`). Um professor cadastrado e ainda sem
+//       ciclo não aparecia em lista nenhuma — e um professor cadastrado DENTRO de uma escola não
+//       dizia em qual. As duas coisas passam a estar no índice.
+const VERSAO = 4;
 
 // AS FAMÍLIAS QUE O ÍNDICE CONHECE. É o vocabulário mínimo que o acervo tem HOJE; um tipo novo
 // entra aqui quando existir um arquivo que lhe corresponda — não antes (a regra do §4.1: não
@@ -146,6 +150,20 @@ const SUFIXOS_DO_CICLO = new Set([
   'schema', 'po-schema', 'plano-schema', 'aula-schema', 'captura-schema',
   'po', 'plano', 'dados', 'dados.cifrado', 'ciclos', 'indice', 'manifesto',
 ]);
+
+/**
+ * O NOME DE UM PROFESSOR, no inventário da escola — do vínculo declarado (`professores[]`) ou,
+ * como antes, do responsável (`professor`). Uma função só porque as duas formas descrevem a
+ * mesma pessoa e o painel precisa do mesmo rótulo para as duas.
+ */
+function nomeDoProfessorNoInventario(inv, slug) {
+  if (!inv || !slug) return null;
+  for (const p of (Array.isArray(inv.professores) ? inv.professores : [])) {
+    if (p && p.slug === slug && p.nome) return String(p.nome);
+  }
+  if (inv.professor && inv.professor.slug === slug && inv.professor.nome) return String(inv.professor.nome);
+  return null;
+}
 
 function cicloDoCaminho(caminho) {
   const m = RE_DO_CICLO.exec(String(caminho || ''));
@@ -423,8 +441,20 @@ function construir(entrada) {
       }
     }
 
+    /*
+     * O VÍNCULO QUE A ESCOLA DECLARA (22/10/2026). O inventário guardava UM professor — o
+     * responsável —, e era por isso que um professor cadastrado na Produção não aparecia ligado a
+     * escola nenhuma: quem o cadastra grava o vínculo no KV, e o KV não é fonte do acervo. Agora a
+     * criação do professor escreve `professores[]` no inventário da escola, e é daqui que o painel
+     * sabe em que escolas ativas ele trabalha. `professor` (singular) continua a ser o responsável.
+     */
+    const doInventario = (inv && Array.isArray(inv.professores) ? inv.professores : [])
+      .map((p) => (p && typeof p === 'object' ? p.slug : p))
+      .filter((p) => typeof p === 'string' && p);
+
     const professoresDaEscola = [...new Set(minhaCiclos.map((c) => c.professor)
       .concat(professorDoInventario ? [professorDoInventario] : [])
+      .concat(doInventario)
       .concat([...doElo]))].sort(porTexto);
 
     const comAncora = minhaCiclos.filter((c) => !c.sem_ancora).length;
@@ -475,8 +505,9 @@ function construir(entrada) {
           id,
           slug: p,
           // O NOME legível não está no diretório (que guarda o slug): está no inventário da
-          // escola, e é de lá que ele sai — a mesma fonte da lista de professores da raiz.
-          nome: (inv && inv.professor && inv.professor.slug === p && inv.professor.nome) || null,
+          // escola, e é de lá que ele sai — a mesma fonte da lista de professores da raiz. O
+          // vínculo declarado traz o nome de quem não é o responsável.
+          nome: nomeDoProfessorNoInventario(inv, p),
           escolas: [],
           ciclos: [],
         });
@@ -485,6 +516,28 @@ function construir(entrada) {
       if (reg.escolas.indexOf(slug) === -1) reg.escolas.push(slug);
       for (const c of minhaCiclos) if (c.professor === p) reg.ciclos.push(c.id);
     }
+  }
+
+  /*
+   * A PASTA TAMBÉM É UM PROFESSOR (22/10/2026). Até aqui, um professor só entrava na lista se
+   * tivesse ciclo em alguma escola (ou se um expurgo o provasse). Quando a Produção passou a
+   * criar a estrutura no próprio ato do cadastro, nasceu um estado legítimo e invisível: a pasta
+   * `professores/<slug>/` existe, com os cinco schemas — e o professor não aparecia em lista
+   * nenhuma. Foi assim que o `teclado-abnt` «faltou» na lista, criado às 08:52 com a escola viva.
+   *
+   * A pasta é o fato: quem a cria é o cadastro. O que ela NÃO diz é em que escola a pessoa
+   * trabalha — isso vem do vínculo no inventário ou do ciclo. Sem os dois, ele entra com
+   * `escolas: []`, e a lista diz «sem escola viva» em vez de o omitir.
+   */
+  const pastas = [];
+  for (const caminho of caminhos) {
+    const m = /^professores\/([a-z0-9][a-z0-9-]*)\//.exec(caminho);
+    if (m && pastas.indexOf(m[1]) === -1) pastas.push(m[1]);
+  }
+  for (const slug of pastas.sort(porTexto)) {
+    const id = idDeProfessor(slug);
+    if (professores.has(id)) continue;
+    professores.set(id, { id, slug, nome: null, escolas: [], ciclos: [] });
   }
 
   const acervo = {

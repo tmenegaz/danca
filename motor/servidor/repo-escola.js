@@ -699,7 +699,83 @@ async function atualizarIndiceDaEscola({ token, dono, repo, ref, slug, conteudo,
   return { ok: true, commit: dados.commit && dados.commit.sha };
 }
 
+/**
+ * O VÍNCULO PROFESSOR↔ESCOLA, NO INVENTÁRIO (22/10/2026).
+ *
+ * Quem cadastra um professor na Produção grava o vínculo no KV — e o KV não é fonte do acervo
+ * (o acervo lê o repositório, uma leitura só, sem `list()`). Sem uma linha no repositório, um
+ * professor criado dentro da escola não aparecia ligado a ela em lugar nenhum: o painel só o
+ * conhecia quando ele já tinha ciclo, e aí o vínculo vinha do caminho do ciclo, não do cadastro.
+ *
+ * O inventário já é o documento que DECLARA a escola (o responsável, o ciclo, os arquivos), e a
+ * escrita é ACRESCENTAR — quem já está na lista não é reescrito. É a mesma regra do elo do
+ * expurgo: a proveniência acrescenta.
+ */
+function comProfessor(indiceTexto, { escola, professor, nome, quando }) {
+  let indice = null;
+  try { indice = indiceTexto ? JSON.parse(indiceTexto) : null; } catch { indice = null; }
+  if (!indice || typeof indice !== 'object') {
+    throw new Error('o inventário da escola não é um objeto JSON legível — não se inventa um');
+  }
+  const slug = String(professor || '').trim();
+  if (!slug) throw new Error('sem o identificador do professor');
+  const lista = Array.isArray(indice.professores) ? indice.professores : [];
+  if (lista.some((p) => p && p.slug === slug)) return { texto: null, jaExistia: true, quantidade: lista.length };
+  // O responsável já está no singular (`professor`) e não se repete na lista.
+  const doResponsavel = indice.professor && indice.professor.slug === slug;
+  if (doResponsavel) return { texto: null, jaExistia: true, quantidade: lista.length };
+  lista.push({ slug, nome: nome || null, desde: quando || new Date().toISOString() });
+  indice.escola = indice.escola || escola;
+  indice.professores = lista;
+  return { texto: JSON.stringify(indice, null, 2) + '\n', jaExistia: false, quantidade: lista.length };
+}
+
+/**
+ * Grava o vínculo no inventário, num commit próprio. Idempotente: se o professor já está lá,
+ * devolve `{ok, jaExistia: true}` sem escrever nada.
+ */
+async function registrarProfessorNaEscola({ token, dono, repo, ref, slug, professor, nome, quando, fetchImpl }) {
+  const f = fetchImpl || fetch;
+  const caminho = 'escola/' + slug + '/indice.json';
+  const atual = await lerArquivo({ token, dono, repo, ref, caminho, fetchImpl: f });
+  if (atual === null) {
+    throw new Error('a escola ' + slug + ' não tem inventário (' + caminho + ') — sem ele não há onde declarar o professor');
+  }
+  const { texto, jaExistia } = comProfessor(atual, { escola: slug, professor, nome, quando });
+  if (jaExistia) return { ok: true, jaExistia: true, commit: null };
+
+  const url = 'https://api.github.com/repos/' + dono + '/' + repo + '/contents/' + caminho;
+  const cab = {
+    'Authorization': 'Bearer ' + token,
+    'Accept': 'application/vnd.github+json',
+    'Content-Type': 'application/json',
+  };
+  const base = await f(url + '?ref=' + encodeURIComponent(ref), { headers: cab });
+  const dados = base.ok ? await base.json().catch(() => null) : null;
+  const sha = (dados && dados.sha) || null;
+  const bytes = new TextEncoder().encode(texto);
+  let binario = '';
+  for (const b of bytes) binario += String.fromCharCode(b);
+  const res = await f(url, {
+    method: 'PUT',
+    headers: cab,
+    body: JSON.stringify({
+      message: 'feat(escola): a escola ' + slug + ' declara o professor ' + professor,
+      content: btoa(binario),
+      branch: ref,
+      ...(sha ? { sha } : {}),
+    }),
+  });
+  const corpo = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new Error('o GitHub recusou gravar o vínculo em ' + caminho + ': ' + ((corpo && corpo.message) || ('HTTP ' + res.status)));
+  }
+  return { ok: true, jaExistia: false, commit: corpo.commit && corpo.commit.sha };
+}
+
 module.exports = {
+  comProfessor,
+  registrarProfessorNaEscola,
   listarEscolas,
   listarEscolasPeloIndice,
   listarProfessoresPeloIndice,

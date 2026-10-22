@@ -129,9 +129,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "109334a"
+    "commit": "070c040"
   },
-  "gerado_em": "2026-10-22T12:04",
+  "gerado_em": "2026-10-22T12:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -155,5 +155,5 @@
     }
   ],
   "registros": [],
-  "versao": 3
+  "versao": 4
 }
