@@ -336,6 +336,10 @@ function derivarDados({ po, contexto }) {
     escola: String((contexto && contexto.escola) || 'Escola'),
     professor: String((contexto && contexto.professor) || 'Professor'),
     criado_em: new Date().toISOString().slice(0, 10),
+    // DE QUE PO ESTE ESTADO NASCEU (22/10/2026). O `-dados.json` é derivado do PO, e o
+    // `-po.md` é a fonte — os dois têm de declarar o MESMO carimbo, ou o pacote mistura dois
+    // POs (um na fonte, outro nos derivados). É essa comparação que o `check-pacote.js` faz.
+    po: (po && (po.id || po.carimbo)) || null,
     apelidos,
     aulas: {},
     _nota: 'JSON de dados do ciclo «do zero»: `aulas` vazio DE PROPÓSITO — é o estado de um '

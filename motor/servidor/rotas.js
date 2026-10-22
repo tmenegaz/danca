@@ -592,6 +592,13 @@ function criarRotas({ armazenamento, conteudo, esquema, conteudoPO, conteudoPlan
     try {
       const resultado = await porta.elicitar(armazenamento, corpo, { conteudo, conteudoPO, conteudoPlano, esquema, agora: carimbar });
 
+      // A RECUSA DO NÚCLEO VIRA UM «NÃO» COM STATUS. O PO tem um só (a linha de base dos
+      // sujeitos é única), e o segundo é recusado antes de qualquer gravação — nada foi
+      // escrito quando se chega aqui. O envelope anterior continua a ser o que a escola lê.
+      if (resultado && resultado.recusa) {
+        return recusar(resultado.recusa.motivo, resultado.recusa.status || 409);
+      }
+
       /*
        * O DESTINO DO REGISTRO, DITO AO PROFESSOR (20/10/2026).
        *

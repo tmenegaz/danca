@@ -820,6 +820,51 @@ async function vinculos(armazenamento, jaLido) {
 }
 
 /*
+ * O PLANO DE OBSERVAÇÃO PRIMÁRIO — o único que pode existir para um plano de ensino.
+ *
+ * O PO declara a LINHA DE BASE dos sujeitos (P-10), e uma linha de base não tem duas versões
+ * do mesmo momento: a segunda não seria uma observação nova, seria a primeira reescrita por
+ * outro caminho. Enquanto o PO não foi usado, corrigi-lo é reescrever o MESMO carimbo
+ * (`corpo.id`); depois disso, mudá-lo é derivar um elo novo (`ajuste_de` + motivo).
+ *
+ * O que existia até 22/10/2026 era o silêncio: nenhuma regra, em nenhum documento, dizia
+ * «um PO por ciclo». Cada «Guardar» nascia com carimbo novo, o `-po.md` era SOBRESCRITO (é a
+ * única fonte que se atualiza em sítio) e as fontes derivadas ficavam a descrever o PO
+ * anterior. A escola `batata` ficou com `po-20261022-1039` e `po-20261022-1108` — mesmo plano,
+ * mesma turma, `ajuste_de: null` nos dois —, indistinguíveis na tela e no repositório.
+ *
+ * A busca é pelo PLANO que o PO referencia (o nó `plano-de-ensino`), que é a chave verdadeira:
+ * é ele que diz de que plano a linha de base é. Só quando o PO não declara plano — o caso em
+ * que a rota cai no «plano mais recente do mesmo contexto» — se procura pelo escopo.
+ */
+async function poPrimarioDoPlano(armazenamento, planoId, jaLido) {
+  if (!planoId) return null;
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, jaLido)) {
+    if (resumo.ajuste_de) continue;                    // derivado: é elo, não o primário
+    if ((resumo.plano || []).indexOf(planoId) === -1) continue;
+    return resumo.id || nome.replace(/\.json$/, '');
+  }
+  return null;
+}
+
+/** O PO primário pelo ESCOPO (escola · professor · ciclo) — só quando o PO não declara plano. */
+async function poPrimarioDoEscopo(armazenamento, contexto, jaLido) {
+  const ctx = contexto || {};
+  const escola = String(ctx.escola || '');
+  const professor = String(ctx.professor || '');
+  const ciclo = String(ctx.ciclo || '');
+  if (!escola || !ciclo) return null;
+  for (const { nome, resumo } of await resumosDeEnvelopes(armazenamento, /^po-.*\.json$/, jaLido)) {
+    if (resumo.ajuste_de) continue;
+    if (String(resumo.escola || '') !== escola) continue;
+    if (String(resumo.ciclo || '') !== ciclo) continue;
+    if (professor && String(resumo.professor || '') !== professor) continue;
+    return resumo.id || nome.replace(/\.json$/, '');
+  }
+  return null;
+}
+
+/*
  * O VÍNCULO do PLANO — o PO referencia o plano no nó `plano-de-ensino` (o id do
  * envelope). É DERIVADO, como o da anamnese: varre-se os envelopes de PO e vê-se
  * quem declara qual plano; não se grava nada no plano.
@@ -1092,6 +1137,56 @@ async function elicitar(armazenamento, corpo, dados) {
         delete opcoes.id;
       }
       // solta: `opcoes.id` já é o corpo.id — edita em sítio.
+    }
+  }
+
+  /*
+   * O PO TAMBÉM TEM REGRA — e ela BLOQUEIA (22/10/2026).
+   *
+   * Até aqui o PO estava excluído de toda a reconciliação (`fonte !== 'po'`), e a exclusão
+   * era lida como «o PO não tem estado». Não é: o PO tem um estado simples e verdadeiro —
+   * ou ainda não existe, ou já existe um. O que faltava era dizê-lo.
+   *
+   *   · `id`        → EDITA em sítio (corrigir o PO que existe, o mesmo carimbo);
+   *   · `ajuste_de` → DERIVA (elo novo, com o motivo declarado — a proveniência acrescenta);
+   *   · nenhum      → só quando ainda não há PO primário para este plano. Se há, RECUSA.
+   *
+   * A recusa é 409 e nomeia o carimbo existente: sem isso o professor recebe um «não» que
+   * não diz onde está o registo nem o que fazer com ele — e o caminho antigo (gravar outra
+   * vez, em silêncio, sobrescrevendo a fonte) era pior do que o «não».
+   */
+  if (fonte === 'po') {
+    if (corpo && corpo.ajuste_de) {
+      opcoes.ajuste = { de: String(corpo.ajuste_de), motivo: (corpo && corpo.motivo) || null };
+      delete opcoes.id;
+    } else if (!opcoes.id) {
+      const alvo = respostas['plano-de-ensino'];
+      const planoId = alvo && alvo.valor !== undefined ? alvo.valor : alvo;
+      const existente = (planoId && String(planoId).trim())
+        ? await poPrimarioDoPlano(armazenamento, String(planoId).trim())
+        : await poPrimarioDoEscopo(armazenamento, (corpo && corpo.contexto) || {});
+      if (existente) {
+        return {
+          ok: false,
+          simular: Boolean(corpo && corpo.simular),
+          gravado: false,
+          erroDaGravacao: null,
+          caminhoNoAcervo: null,
+          noArmazenamentoAntigo: false,
+          estado: null,
+          id: existente,
+          recusa: {
+            status: 409,
+            motivo: 'já existe o Plano de Observação «' + existente + '» para este plano de '
+              + 'ensino: a linha de base dos sujeitos (P-10) é uma só, e um segundo PO não '
+              + 'observaria outra coisa — reescreveria a primeira por outro caminho. Na '
+              + 'estante, «' + existente + '» tem dois gestos: CORRIGIR grava o mesmo '
+              + 'carimbo (para o erro de digitação); DERIVAR cria um elo novo que aponta '
+              + 'para ele e deixa o registo anterior de pé.',
+            carimbo: existente,
+          },
+        };
+      }
     }
   }
 

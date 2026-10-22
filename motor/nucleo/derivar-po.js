@@ -432,6 +432,19 @@ function derivarPO(envelope, plano, opcoes) {
   saida.push('professor: ' + identidade.professor);
   saida.push('title: "' + tituloDoPO(contexto) + '"');
   saida.push('state: ' + estado);
+  /*
+   * DE QUE ENVELOPE ESTA FONTE NASCEU (22/10/2026).
+   *
+   * Sem esta linha, a fonte não sabia dizer qual dos POs gravados é o dela — e quando dois
+   * enchiam o mesmo ciclo, a única forma de saber qual deles a `-aula-01.md` descrevia era
+   * comparar textos à mão. O carimbo é a identidade do elo: é o `id` do envelope no acervo,
+   * o mesmo que o índice da estante mostra e o mesmo que a recusa 409 nomeia.
+   *
+   * É `envelope`, e não `id`, de propósito: o `id` do envelope é o documento; a fonte é uma
+   * VISTA dele, e o nome diz de onde veio. O `tools/check-pacote.js` compara este campo com o
+   * `po` que o `-dados.json` declarou — se não bater, o pacote mistura dois POs.
+   */
+  if (envelope && envelope.id) saida.push('envelope: ' + String(envelope.id));
   saida.push('---');
   saida.push('');
 

@@ -399,7 +399,7 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
   return async ({ plano, po, contexto }) => {
     const ctx = contexto || {};
     const escolaNome = ctx.escolaNome || ctx.escola;
-    const relatorio = { conf: null, escritas: [], puladas: [], docs: null, schema: null };
+    const relatorio = { conf: null, escritas: [], puladas: [], elos: [], docs: null, schema: null };
     /*
      * AS GRAVAÇÕES DESTE «GUARDAR» ACUMULAM AQUI E SAEM NUM COMMIT SÓ (22/10/2026).
      *
@@ -445,17 +445,75 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
       fontes.push({ sufixo: '-glossario-' + slugDe(notacao) + '.md', md: derivarGlossario({ plano, contexto: ctx }) });
     }
 
-    // 3. Escreve só o que ainda não existe — proveniência acrescenta, não edita.
+    /*
+     * AS FONTES DERIVADAS MUDAM COM O PO — e a versão substituída fica como elo
+     * (22/10/2026).
+     *
+     * Até aqui, este passo era `if (atual.existe) continue`, com a justificação certa e
+     * aplicada ao alvo errado: «a proveniência acrescenta, não edita» vale para o MATERIAL
+     * (a aula lançada, o relatório, a observação), e não para um DERIVADO, que é reconstruível
+     * por definição. Tratar o derivado como material deixava o pacote meio a meio quando o PO
+     * era eliciado duas vezes: o `-po.md` era sobrescrito (é a única fonte que se atualiza em
+     * sítio), o `po-01.json` saía dele, e a `-aula-01.md`/`-harmonizacao.md` continuavam a
+     * descrever o PO anterior — dois documentos do mesmo ciclo a dizer coisas diferentes, com
+     * um `.fipp` a certificar o conjunto.
+     *
+     * A versão substituída não se apaga: ganha o carimbo de quem a substituiu no NOME e fica em
+     * `historico/`, ao lado das fontes mas fora do alcance de quem as varre (ver `caminhoDoElo`).
+     * É elo, e é proveniência — mas não é fonte: não entra na âncora nem no pacote.
+     */
+    const carimboDoPO = (po && (po.id || po.carimbo)) || 'po';
+    const ocupados = new Set(lote.map((x) => x.caminho));
+    const caminhoDoElo = async (caminho) => {
+      /*
+       * OS ELOS VIVEM EM `historico/`, E NÃO AO LADO DAS FONTES — e isto não é arrumação.
+       *
+       * Dois scripts varrem a pasta do ciclo com glob e derivam NÚMERO do nome:
+       *   · `familias_por_aula` (`tools/lib-fontes.sh`) — `ciclo-$CICLO-*aula-*.md`, e o número
+       *     sai de `sed 's/.*-\([0-9][0-9]*\)\.md$/\1/'`;
+       *   · `gerar-handoff.sh` — `find ... -maxdepth 1 -name "ciclo-$c-*-aula-*.md"`.
+       * Um elo chamado `…-aula-01.antes-de-po-20261022-1108.md` casa nos dois, e o `sed` o lê
+       * como a AULA 1108 — que entraria no `DOCS` e o gerador tentaria publicar. Medido em
+       * 22/10/2026, antes de o elo existir: é o tipo de defeito que só aparece meses depois,
+       * com um «aula-1108» no pacote.
+       *
+       * `historico/` fica fora dos dois: o `fontes_do_ciclo` lista as fontes por NOME (nunca
+       * por glob recursivo), e os dois globs acima são de um nível só.
+       */
+      const partes = caminho.split('/');
+      const arquivo = partes.pop();
+      const dir = partes.join('/') + '/historico/';
+      const m = /^(.*?)(\.[a-z0-9]+)$/i.exec(arquivo);
+      const base = m ? m[1] : arquivo;
+      const ext = m ? m[2] : '';
+      let n = 0;
+      let alvo = dir + base + '.antes-de-' + carimboDoPO + ext;
+      // O mesmo carimbo a substituir duas vezes não pode colidir consigo próprio.
+      while (ocupados.has(alvo) || (await lerArquivoRemoto({ token, dono, repo, ref, caminho: alvo, fetchImpl })).existe) {
+        n += 1;
+        alvo = dir + base + '.antes-de-' + carimboDoPO + '-' + n + ext;
+      }
+      ocupados.add(alvo);
+      return alvo;
+    };
+
+    // 3. As fontes derivadas: escreve a que muda, guarda a anterior como elo, e não toca na
+    //    que já está igual (idempotente — «Guardar» duas vezes sem mudar nada não faz commit).
     for (const fonte of fontes) {
       const caminho = caminhoDaFonte(ctx, fonte.sufixo);
       const atual = await lerArquivoRemoto({ token, dono, repo, ref, caminho, fetchImpl });
-      if (atual.existe) {
-        relatorio.puladas.push(caminho);
-        continue;
-      }
       if (atual.erro) {
         relatorio.escritas.push({ caminho, ok: false, erro: atual.erro });
         continue;
+      }
+      if (atual.existe && atual.texto === fonte.md) {
+        relatorio.puladas.push(caminho);
+        continue;
+      }
+      if (atual.existe) {
+        const elo = await caminhoDoElo(caminho);
+        juntar(elo, atual.texto);
+        relatorio.elos.push({ de: caminho, para: elo });
       }
       juntar(caminho, fonte.md);
       relatorio.escritas.push({ caminho });
@@ -472,13 +530,17 @@ function criarEscritorDeCiclo({ token, dono, repo, ref, senhaCripto, fetchImpl }
     //     motivo só no `relatorio` que ninguém lia (Barra, 15/10/2026). Falha aqui REPROVA o
     //     pacote; ela tem de ser dita.
     const caminhoCifrado = caminhoDaFonte(ctx, '-dados.cifrado.json');
+    // A cópia cifrada é DERIVADA do `-dados.json`: quando a fonte muda, ela muda com ele. A
+    // cifra não é determinística (o sal muda a cada cifragem), portanto não se compara byte a
+    // byte — compara-se a PROCEDÊNCIA: o `-dados.json` foi regerado nesta gravação?
+    const dadosMudou = relatorio.escritas.some((e) => /-dados\.json$/.test(e.caminho || ''));
     if (!senhaCripto) {
       relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: 'sem SENHA_CRIPTO no Worker' };
     } else {
       const atualCifrado = await lerArquivoRemoto({ token, dono, repo, ref, caminho: caminhoCifrado, fetchImpl });
       if (atualCifrado.erro) {
         relatorio.cifrado = { ok: false, caminho: caminhoCifrado, erro: atualCifrado.erro };
-      } else if (atualCifrado.existe) {
+      } else if (atualCifrado.existe && !dadosMudou) {
         relatorio.puladas.push(caminhoCifrado);
         relatorio.cifrado = { ok: true, caminho: caminhoCifrado, nota: 'a cópia já existia' };
       } else {

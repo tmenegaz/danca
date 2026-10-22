@@ -260,3 +260,23 @@ po_ref/
 # A prova mede os três consumidores — a abertura do pacote, a barra do sistema e o slot que a
 # ponte preenche nos pacotes já gerados.
 !experimentos/provar-logo-volta-ao-inicio.js
+
+# O PO TEM UM SÓ (22/10/2026). A estante aceitava dois POs para o mesmo plano — mesma turma,
+# `ajuste_de: null` nos dois —, o `-po.md` era SOBRESCRITO (é a única fonte que se atualiza em
+# sítio) e as fontes derivadas, que só se escrevem se faltarem, ficavam a descrever o anterior.
+# A prova roda o servidor de verdade e mede a recusa 409, o elo por `ajuste_de`, a correção pelo
+# mesmo carimbo, e a regra a cair no escopo quando o PO não declara plano.
+!experimentos/provar-po-unico.js
+
+# …E O DERIVADO MUDA COM ELE (22/10/2026). O passo 3 do `escrever-ciclo.js` era
+# `if (atual.existe) continue` — a justificação certa («a proveniência acrescenta, não edita»)
+# aplicada ao alvo errado, porque um derivado é reconstruível. A prova mede a substituição, o elo
+# em `historico/`, a cópia cifrada regerada, e o glob REAL do `lib-fontes.sh` e do
+# `gerar-handoff.sh` — que liam um elo ao lado das fontes como «aula 1108».
+!experimentos/provar-derivados-do-po.js
+
+# E O PACOTE NÃO MISTURA DOIS POs (22/10/2026). O `check-pacote` dava 0 erros num pacote com o
+# `po-01.json` de um PO e a `-aula-01.md` de outro. A prova corre o validador a sério: carimbo
+# igual passa, diferente reprova nomeando os dois, meia declaração reprova, e nenhuma declaração
+# é AVISO (um ciclo anterior à declaração não é inválido por lhe faltar uma marca que não existia).
+!experimentos/provar-coerencia-do-po-no-pacote.js

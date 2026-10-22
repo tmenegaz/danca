@@ -5591,6 +5591,28 @@ function acoesDaAnamnese(id, o) {
 }
 
 /*
+ * OS GESTOS DO PO (22/10/2026).
+ *
+ * O PO é o TOPO da cadeia de observação — nada o referencia por baixo —, e por isso não tem
+ * estado «vinculado» como o plano: não se apaga (é a linha de base dos sujeitos, P-10), e tem
+ * sempre os mesmos dois gestos:
+ *
+ *   · CORRIGIR — grava o MESMO carimbo. É para o erro de digitação, e não cria elo nenhum;
+ *   · DERIVAR  — elo novo, com `ajuste_de` a apontar o anterior. O que já foi registado
+ *                permanece; o que muda passa a ter data e origem.
+ *
+ * Sem estes dois botões, a recusa do servidor («já existe um Plano de Observação para este
+ * plano de ensino») deixaria o professor sem saída nenhuma na tela — e a única forma de
+ * corrigir um PO seria gravar outro, que é exactamente o defeito que a recusa impede.
+ */
+function acoesDoPO(id) {
+  const q = ' data-carimbo="' + escapar(id) + '"';
+  return '<button class="acao-editar"' + q + '>corrigir</button>' +
+    '<button class="acao-derivar"' + q + ' title="derivar cria um elo NOVO que aponta para ' +
+      'este; o registo anterior permanece">derivar</button>';
+}
+
+/*
  * A ESTANTE do plano de ensino: o selo usa o OBJETIVO como resumo e o estado
  * espelha a regra da anamnese — solta (edita/deriva), vinculada (só deriva) e
  * legado (foi derivada — um sucessor a ajusta).
@@ -5694,7 +5716,9 @@ function pintarFichas() {
     const selo = eAnam ? ' ' + seloDoEstado(o) : (ePlano ? ' ' + seloDoPlano(o) : '');
     const acoes = eAnam
       ? '<span class="acoes-ficha">' + acoesDaAnamnese(id, o) + '</span>'
-      : (ePlano ? '<span class="acoes-ficha">' + acoesDoPlano(id, o) + '</span>' : '');
+      : (ePlano
+        ? '<span class="acoes-ficha">' + acoesDoPlano(id, o) + '</span>'
+        : (FONTE === 'po' ? '<span class="acoes-ficha">' + acoesDoPO(id) + '</span>' : ''));
     return '<li><a href="' + alvo + '" target="_blank" rel="noopener" title="' + escapar(id) + '">' +
       quem + '<span class="quando">' + escapar(quando) + '</span>' + selo + '<br>' +
       '<span class="caminho">' + caminho + '</span></a>' + acoes +
@@ -5978,6 +6002,46 @@ async function derivarPlano(id) {
     carregarPlanoNaConducao(envelope);
     ajustarSenhaDoPlano();   // derivar mostra a senha (ela decide a escrita)
     if (!SENHA_VALIDA) apontarSenhaFaltando();
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+/*
+ * OS DOIS GESTOS DO PO — corrigir (o mesmo carimbo) e derivar (elo novo).
+ *
+ * `carregarPlanoNaConducao` serve os dois: ela copia as RESPOSTAS e o CONTEXTO do envelope
+ * para a condução, e o envelope do PO tem a mesma forma. O que muda, no fim, é o que o
+ * `enviar()` acrescenta ao corpo — `id` (corrigir) ou `ajuste_de` (derivar) —, e é o
+ * servidor que decide, como sempre.
+ *
+ * O MOTIVO da derivação não se pergunta numa janelinha: o PO não exige senha e o motivo é
+ * opcional no schema, e o `prompt()` do sistema é a janela que o professor já pediu para não
+ * ver. Fica nulo, e o elo (`ajuste_de`) declara a origem mesmo assim.
+ */
+async function editarPO(id) {
+  try {
+    const r = await fetch('api/envelope/' + encodeURIComponent(id));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const envelope = await r.json();
+    EDITANDO = id;
+    DERIVANDO = null;
+    MOTIVO_DERIVACAO = null;
+    carregarPlanoNaConducao(envelope);
+  } catch (erro) {
+    avisarNaFicha(id, erro.message, 'erro');
+  }
+}
+
+async function derivarPO(id) {
+  try {
+    const r = await fetch('api/envelope/' + encodeURIComponent(id));
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const envelope = await r.json();
+    EDITANDO = null;
+    DERIVANDO = id;
+    MOTIVO_DERIVACAO = null;
+    carregarPlanoNaConducao(envelope);
   } catch (erro) {
     avisarNaFicha(id, erro.message, 'erro');
   }
@@ -6866,6 +6930,11 @@ async function iniciar() {
       if (b.classList.contains('acao-derivar')) derivarPlano(id);
       else if (b.classList.contains('acao-editar')) editarPlano(id);
       else if (b.classList.contains('acao-apagar')) apagarPlano(id);
+      return;
+    }
+    if (FONTE === 'po') {
+      if (b.classList.contains('acao-derivar')) derivarPO(id);
+      else if (b.classList.contains('acao-editar')) editarPO(id);
       return;
     }
     if (b.classList.contains('acao-apagar')) apagarAnamnese(id);
