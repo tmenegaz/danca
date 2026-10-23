@@ -127,10 +127,22 @@ function desenhar(menu, pedido, extras) {
   const bloco = (extras && typeof extras === 'object') ? (extras.extras || '') : (extras || '');
   const titulo = (extras && typeof extras === 'object') ? (extras.titulo || '') : '';
 
-  const coluna = Array.isArray(menu.coluna) && menu.coluna.length ? menu.coluna : null;
+  /* OS BASTIDORES NÃO TÊM A COLUNA DO SISTEMA (23/10/2026). Eles têm a SUA — a lista de
+     secções da Produção (`<nav class="lateral">`, no `bastidores.js`), que é o menu daquela
+     página. Desenhar as duas dava dois menus laterais lado a lado, cada um a dizer uma coisa
+     diferente sobre onde se está. A regra é a mesma das duas navegações: o que muda é QUAL
+     delas está em vigor, e o Bastidores é o único sítio em que a da página toma o lugar da do
+     sistema. A volta é um «← Sistema Lastro» no alto da lista de secções. */
+  const nosBastidores = /^\/bastidores(?:\/|$)/.test(String(pedido || ''));
+  /* A FORMA DO MENU E O DESENHO DA COLUNA SÃO DUAS PERGUNTAS, e por isso são duas variáveis.
+     Juntá-las (era uma só) fazia o menu da forma nova cair no `menu.grupos` — que ele não tem —
+     no instante em que a coluna deixasse de se desenhar. O sintoma seria a barra a desaparecer
+     nos Bastidores, e não a coluna a sair. */
+  const daFormaNova = Array.isArray(menu.coluna) && menu.coluna.length > 0;
+  const coluna = (!nosBastidores && daFormaNova) ? menu.coluna : null;
   // Sem `coluna`, o menu é o de sempre: `grupos`. Com `coluna`, a barra fica só com o que o
   // autor pôs em `barra` — e o `grupos` deixa de ser lido, para não haver duas listas vivas.
-  const gruposDaBarra = coluna ? (Array.isArray(menu.barra) ? menu.barra : []) : menu.grupos;
+  const gruposDaBarra = daFormaNova ? (Array.isArray(menu.barra) ? menu.barra : []) : menu.grupos;
   if (!Array.isArray(gruposDaBarra) || (!gruposDaBarra.length && !coluna)) return null;
 
   const atualDaBarra = grupoAtual({ grupos: gruposDaBarra }, pedido);
@@ -183,17 +195,19 @@ function desenhar(menu, pedido, extras) {
    * ciclo» sem dizer de que parte do sistema é; os dois juntos dizem «Ciclos · Planos do ciclo».
    * O `·` é do desenho (`small::after`), e não do texto — para a leitura de ecrã não colar as
    * duas palavras numa só. */
-  const grupoDoTitulo = (coluna && titulo) ? grupoAtual({ grupos: coluna }, pedido) : null;
-  const caminho = (coluna && titulo)
-    ? '<span class="' + TITULO_NA_BARRA + '">'
-      + (grupoDoTitulo ? '<small>' + esc(grupoDoTitulo.rotulo) + '</small>' : '')
-      + esc(titulo) + '</span>'
-    : '';
+  const caminho = (coluna && titulo) ? caminhoDaPagina(coluna, pedido, titulo) : '';
   const antesDoBotao = [bloco, caminho].filter(Boolean).join('\n  ');
   const abertura = antesDoBotao
     ? ABERTURA.replace('  <button class="hamburger"', antesDoBotao + '\n  <button class="hamburger"')
     : ABERTURA;
-  const barra = [abertura, itens.join('\n'), FECHAMENTO].join('\n');
+  let barra = [abertura, itens.join('\n'), FECHAMENTO].join('\n');
+  /* A BARRA DECLARA A SUA FORMA (23/10/2026). O CSS precisa de saber se está perante o menu de
+     destinos — onde a lista é só o Bastidores e ele encosta à direita — ou a barra de sempre,
+     onde a lista É o menu e alinhá-la à direita deixaria um vazio depois da marca.
+     A pergunta não pode ser feita com `body:has(> .coluna)`: nos Bastidores a coluna do sistema
+     NÃO se desenha, mas a barra é a mesma — e o Bastidores saltava para o lado da marca só
+     naquela página. A forma é do desenho, e é o desenho que a declara. */
+  if (daFormaNova) barra = barra.replace('<nav class="topnav"', '<nav class="topnav" data-menu="coluna"');
   return coluna ? desenharColuna(coluna, pedido) + barra : barra;
 }
 
@@ -242,6 +256,83 @@ function desenharColuna(coluna, pedido) {
     + '  <a class="coluna-marca" href="/">Sistema Lastro</a>\n'
     + '  <nav>\n' + partes.join('\n') + '\n  </nav>\n'
     + '</aside>\n';
+}
+
+/**
+ * AS LISTAS — os destinos que já SÃO a página em que se está. Servem para o caminho não pôr um
+ * degrau a apontar para si próprio, e para a trilha saber onde acaba.
+ */
+const LISTAS = [
+  '/ciclos/planos', '/ciclos/referencias', '/aulas',
+  '/planejamento/glossario', '/planejamento/notacao',
+  '/area-do-professor/anamnese', '/area-do-professor/plano-de-ensino',
+  '/area-do-professor/plano-de-observacao',
+];
+
+/**
+ * DE QUE LISTA VEM CADA DOCUMENTO — o «lastro» que a barra passou a mostrar (23/10/2026).
+ *
+ * O PROBLEMA. Na barra, o caminho dizia o grupo e o título do documento: `Ciclos ·
+ * Referências Bibliográficas`. Quem abria o documento a partir da lista de referências não
+ * tinha por onde voltar, e não sabia de onde tinha vindo — o `<h1>` de um documento do pacote
+ * não diz a que lista pertence, e a página também não.
+ *
+ * A TABELA É DECLARADA, e não deduzida do `nav.json`, por uma razão de facto: o `nav.json` diz
+ * quais são os DESTINOS, não que documentos cada destino produz. Quem sabe que
+ * `referencias.html` sai da lista de referências é o pacote — e é esta tabela que o diz, num
+ * lugar só, para as duas pontas (a montagem e a ponte) lerem o mesmo.
+ *
+ * As expressões casam com e sem `.html`, porque o Worker responde a `/x/referencias.html` com
+ * um 307 para `/x/referencias` — a ponte vê o caminho já sem extensão.
+ */
+const TRILHA_DO_DOCUMENTO = [
+  { re: /\/referencias(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Referências', href: '/ciclos/referencias/' },
+  { re: /\/plano(?:\.html)?$/, grupo: 'Ciclos', rotulo: 'Planos', href: '/ciclos/planos/' },
+  { re: /\/notacao(?:\.html)?$/, grupo: 'Planejamento', rotulo: 'Notação', href: '/planejamento/notacao/' },
+  { re: /\/glossario[-a-z]*(?:\.html)?$/, grupo: 'Planejamento', rotulo: 'Glossário', href: '/planejamento/glossario/' },
+  { re: /\/(?:aula-[0-9]+|captura-aula-[0-9]+|lancamento)(?:\.html)?$/, grupo: 'Aulas', rotulo: 'Aulas', href: '/aulas/' },
+];
+
+/** O caminho sem barra final e sem `.html` — a forma em que as tabelas acima são escritas. */
+function enxuto(pedido) {
+  return String(pedido || '/').split('?')[0].split('#')[0].replace(/\/index\.html$/, '/').replace(/\.html$/, '').replace(/\/+$/, '') || '/';
+}
+
+/**
+ * O CAMINHO NA BARRA — «Ciclos · Referências · Referências Bibliográficas» (23/10/2026).
+ *
+ * TRÊS DEGRAUS, E OS DOIS PRIMEIROS SÃO CAMINHO DE VOLTA:
+ *
+ *   · o GRUPO (`<small>`), que não é ligação: um grupo não tem página própria — tem itens, e
+ *     escolher um deles por quem lê seria adivinhar;
+ *   · a LISTA de onde o documento veio, que é uma LIGAÇÃO. É o lastro: quem entrou no
+ *     documento por ela sabe por onde voltar, e não precisa de usar o «atrás» do navegador;
+ *   · o DOCUMENTO em que se está, a negrito.
+ *
+ * Na própria página de lista o degrau do meio não existe (seria uma ligação para si mesma), e o
+ * caminho fica nos dois: `Ciclos · Referências`. É a mesma forma que a página já tinha — o que
+ * muda é o terceiro degrau nos documentos, e o facto de o segundo poder ser clicado.
+ */
+function caminhoDaPagina(coluna, pedido, titulo) {
+  const p = enxuto(pedido);
+  const grupo = grupoAtual({ grupos: coluna }, pedido);
+  // A LISTA: da tabela, quando o documento é de um pacote; senão do próprio menu.
+  const daTabela = LISTAS.indexOf(p) === -1
+    ? TRILHA_DO_DOCUMENTO.find((t) => t.re.test(p)) : null;
+  const nomeDoGrupo = daTabela ? daTabela.grupo : (grupo ? grupo.rotulo : '');
+  const volta = (daTabela && enxuto(daTabela.href) !== p)
+    ? '<a href="' + esc(absoluto(daTabela.href)) + '">' + esc(daTabela.rotulo) + '</a>'
+    : '';
+  /* «AULAS · AULAS · AULA 01» NÃO É UM CAMINHO, É UM GAGUEJAR. Quando o grupo E a lista têm o
+     mesmo nome — é o caso de «Aulas», que é grupo e destino ao mesmo tempo —, fica só um: o
+     ligado, que é o que serve para voltar. */
+  const repete = daTabela && nomeDoGrupo === daTabela.rotulo;
+  const partes = [
+    (nomeDoGrupo && !repete) ? '<small>' + esc(nomeDoGrupo) + '</small>' : '',
+    volta,
+    '<b>' + esc(titulo) + '</b>',
+  ].filter(Boolean);
+  return '<span class="' + TITULO_NA_BARRA + '">' + partes.join('') + '</span>';
 }
 
 /**
@@ -296,8 +387,25 @@ function extrasDaBarra(navHtml) {
   const fimDaMarca = texto.indexOf('</a>');
   const botao = texto.indexOf('<button class="hamburger"');
   if (fimDaMarca < 0 || botao < 0 || botao <= fimDaMarca) return '';
-  return texto.slice(fimDaMarca + 4, botao).trim();
+  return texto.slice(fimDaMarca + 4, botao).trim().replace(SEM_O_CAMINHO, '').trim();
 }
+
+/**
+ * O CAMINHO NÃO É UM EXTRA DA PÁGINA — é nosso, e sai do bloco antes de ele ser re-aproveitado.
+ *
+ * O `extrasDaBarra` lê tudo o que está entre a marca e o ☰, e a ESCOLHA de o fazer assim foi
+ * certa: é o único jeito de a ponte não ter de conhecer cada construtor de barra. Mas o caminho
+ * do documento (`doc-atual`) passou a morar EXACTAMENTE nesse intervalo, e por isso cada
+ * passagem o lia como se fosse da página e voltava a escrevê-lo ao lado do novo. Medido na
+ * `batata`: a página da notação saía com TRÊS — a montagem escrevia um, a varredura final
+ * acrescentava outro, e a ponte, ao servir, um terceiro. Quem visse lia «Planejamento · Notação»
+ * três vezes seguidas.
+ *
+ * A alternativa — mover o caminho para fora do intervalo — não existe: o intervalo é definido
+ * pela posição entre a marca e o ☰, e o caminho tem de estar ali (é o lugar que a S5 da
+ * Produção ocupa, e o único em que ele não empurra a lista).
+ */
+const SEM_O_CAMINHO = /<span class="(?:[^"]*\s)?doc-atual[^"]*"[^>]*>(?:\s*<(?:small|a|b)[^>]*>[^<]*<\/(?:small|a|b)>)*[^<]*<\/span>/g;
 
 /**
  * SUBSTITUI a barra de uma página. Devolve `null` quando não há nada a fazer — sem barra na
@@ -326,5 +434,5 @@ function aplicar(html, menu, pedido) {
 
 module.exports = {
   desenhar, aplicar, absoluto, caminhoDe, ehAtivo, extrasDaBarra,
-  grupoAtual, tituloDaPagina, desenharColuna, chaveDoGrupo,
+  grupoAtual, tituloDaPagina, desenharColuna, chaveDoGrupo, caminhoDaPagina, TRILHA_DO_DOCUMENTO,
 };

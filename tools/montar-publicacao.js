@@ -293,17 +293,28 @@ function blocosDoSistema(pacoteZero) {
 }
 
 /** O que existe no pacote de uma turma — o menu não aponta para o que não foi publicado. */
+/**
+ * O QUE ESTE PACOTE TEM, e com que NOME DE FICHEIRO.
+ *
+ * A REGRA É UMA SÓ: o valor é o NOME DO FICHEIRO, ou `''` quando ele não existe — nunca um
+ * booleano. `plano` e `referencias` devolviam `true`/`false`, e isso funcionava enquanto o
+ * único consumidor era um `if`. Quando as listas passaram a construir LINKS com este valor, o
+ * booleano foi direto para o `href`: a lista da notação abria `/bale-nivel-2-teste-2/true`, um
+ * 404 com o nome da variável dentro. O defeito esteve no ar até 23/10/2026, e é o género de
+ * coisa que só se vê do lado de lá — do lado de cá o código diz «existe».
+ *
+ * O `glossario` já devolvia o ficheiro (o nome varia: `glossario-benesh.html`), e por isso era
+ * o único que funcionava. Agora todos devolvem nomes, e quem quer o booleano escreve `!!`.
+ */
 function documentosDaTurma(pacote) {
-  const tem = (nome) => fs.existsSync(path.join(pacote, nome));
   const lista = fs.readdirSync(pacote);
-  const pdf = lista.filter((f) => /\.pdf$/.test(f)).sort()[0] || '';
-  const glossario = lista.filter((f) => /^glossario[-a-z]*\.html$/.test(f)).sort()[0] || '';
+  const primeiro = (re) => lista.filter((f) => re.test(f)).sort()[0] || '';
   return {
-    plano: tem('plano.html'),
-    referencias: tem('referencias.html'),
-    notacao: tem('notacao.html'),
-    glossario,
-    pdf,
+    plano: primeiro(/^plano\.html$/),
+    referencias: primeiro(/^referencias\.html$/),
+    notacao: primeiro(/^notacao\.html$/),
+    glossario: primeiro(/^glossario[-a-z]*\.html$/),
+    pdf: primeiro(/\.pdf$/),
   };
 }
 
@@ -805,4 +816,11 @@ function principal() {
   console.log('  assets.directory do Worker: publicacao/' + escola);
 }
 
-principal();
+/* SÓ CORRE QUANDO É CHAMADO (23/10/2026). Era `principal();` no topo, e por isso um `require`
+ * desta montagem publicava uma escola inteira — o que impediria qualquer prova de medir uma
+ * função dela sem efeito colateral. O `require.main === module` mantém a linha de comando
+ * igual (`node tools/montar-publicacao.js <escola>`) e permite a `provar-barra-e-caminho`
+ * perguntar a `documentosDaTurma` o que ele devolve, que é onde o `/variante/true` nasceu. */
+if (require.main === module) principal();
+
+module.exports = { documentosDaTurma, dadosDoPlano, menuDaEscola };

@@ -323,3 +323,8 @@ po_ref/
 # hoje — as outras dependem de fixtures que o expurgo da `calango` levou. Esta é a única que
 # esta entrada tocou, e é a única que entra agora.
 !experimentos/provar-contexto-do-ato.js
+
+# A BARRA DO SISTEMA: O CAMINHO, A REPETIÇÃO E O LUGAR DO BASTIDORES (23/10/2026). Quatro
+# defeitos medidos em produção — o `/variante/true` da notação, o caminho escrito três vezes, o
+# Bastidores a andar com o texto, e os dois menus laterais nos Bastidores.
+!experimentos/provar-barra-e-caminho.js

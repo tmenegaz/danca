@@ -2309,6 +2309,13 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A PAGINAÇÃO SAIU DAQUI (23/10/2026): virou peça da folha, porque a lista de aulas da
     // publicação também pagina — e a checagem «Forma» recusaria a segunda declaração.
     '.associar{flex:0 0 auto;}' +
+    // A VOLTA AO SISTEMA. Ela é o primeiro item da lista de secções, e não um botão à parte: é
+    // navegação, e o desenho é o dos pares dela — o que muda é a cor, mais baça, porque não é
+    // uma secção desta página.
+    '.lateral-voltar{display:block;padding:6px 0 10px;margin:0 0 6px;' +
+    'border-bottom:1px solid var(--borda);font-size:.85rem;color:var(--texto-suave);' +
+    'text-decoration:none;}' +
+    '.lateral-voltar:hover{color:var(--marca-texto);}' +
     '.passo:disabled{opacity:.45;cursor:not-allowed;}' +
     '.passo:disabled:hover{background:transparent;color:var(--texto-suave);}' +
     'button:disabled.acao{cursor:not-allowed;}' +
@@ -2545,6 +2552,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '</div>' +
     '<div class="lateral-lista" id="lateral-lista">' +
     '<span class="lateral-puxador" aria-hidden="true"></span>' +
+    /* A VOLTA AO SISTEMA (23/10/2026). Os Bastidores deixaram de desenhar a coluna do sistema:
+       eles têm ESTA, e duas colunas lado a lado diziam duas coisas diferentes sobre onde se
+       está. O preço é não haver menu do sistema nesta página — e o preço paga-se aqui, com um
+       caminho de volta explícito no alto da lista, e não com a marca da barra (que também
+       leva a `/`, mas ninguém a lê como «voltar»). */
+    '<a class="lateral-voltar" href="/">&larr; Sistema Lastro</a>' +
     '<h2>Produção</h2>' +
     '<a href="#painel" data-secao="painel">Painel inicial</a>' +
     // A APARÊNCIA ENTRA EM PRODUÇÃO (18/10/2026): a preferência é da escola (C15), e é aqui

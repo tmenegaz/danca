@@ -1,0 +1,206 @@
+'use strict';
+
+/**
+ * provar-barra-e-caminho.js — A BARRA DO SISTEMA: o caminho, a repetição e o lugar do Bastidores.
+ *
+ * QUATRO DEFEITOS, MEDIDOS EM PRODUÇÃO EM 23/10/2026, E O QUE ESTA PROVA GUARDA:
+ *
+ *   1. **`/variante/true`.** A lista da notação abria `/bale-nivel-2-teste-2/true` — um 404 com
+ *      o nome da variável dentro. `documentosDaTurma()` devolvia `true`/`false` para `plano`,
+ *      `referencias` e `notacao`, e isso funcionava enquanto o único consumidor era um `if`.
+ *      Quando as listas passaram a construir `href` com esse valor, o booleano foi direto para
+ *      o endereço.
+ *   2. **O caminho escrito três vezes.** `<span class="doc-atual">` mora entre a marca e o ☰ —
+ *      que é exactamente o intervalo que `extrasDaBarra()` lê para não perder o bloco da
+ *      Produção. Cada passagem lia o caminho como se fosse da página, e voltava a escrevê-lo ao
+ *      lado do novo: a montagem, a varredura final e a ponte davam TRÊS.
+ *   3. **O Bastidores a andar.** Ele fica depois do caminho, dentro de um contêiner que cresce.
+ *      Com «Notação» encostava a um sítio, com «Referências Bibliográficas» a outro.
+ *   4. **Dois menus laterais.** Os Bastidores passaram a ter a coluna do sistema E a sua
+ *      (`<nav class="lateral">`), lado a lado.
+ *
+ * E O QUE MUDOU DE PROPÓSITO: o caminho passou a ter três degraus — `Ciclos · Referências ·
+ * Referências Bibliográficas` —, com o degrau do meio LIGADO à lista de onde o documento veio.
+ * É o lastro: quem entrou no documento por ela sabe por onde voltar.
+ *
+ *   node experimentos/provar-barra-e-caminho.js
+ */
+
+const fs = require('fs');
+const os = require('os');
+const path = require('path');
+
+const raiz = path.resolve(__dirname, '..');
+const nav = require(path.join(raiz, 'motor/nucleo/nav.js'));
+const montagem = require(path.join(raiz, 'tools/montar-publicacao.js'));
+
+const provas = [];
+function provar(titulo, condicao, detalhe) {
+  provas.push({ titulo, ok: !!condicao, detalhe });
+  console.log('  ' + (condicao ? 'ok    ' : 'FALHOU') + ' ' + titulo +
+    (condicao ? '' : ' → ' + JSON.stringify(detalhe)));
+}
+
+/* O MENU DA FORMA NOVA, com os quatro destinos de trabalho e o Bastidores na barra. Não é o da
+ * `batata` (que ainda não tem turmas, e por isso não tem coluna): é a forma que a escola tem no
+ * dia em que ganha a primeira turma. */
+const MENU = {
+  versao: 2,
+  coluna: [
+    { tipo: 'menu', rotulo: 'Ciclos', itens: [
+      { rotulo: 'Planos', href: '/ciclos/planos/' },
+      { rotulo: 'Referências', href: '/ciclos/referencias/' },
+    ] },
+    { tipo: 'link', rotulo: 'Aulas', href: '/aulas/' },
+    { tipo: 'menu', rotulo: 'Planejamento', itens: [
+      { rotulo: 'Glossário', href: '/planejamento/glossario/' },
+      { rotulo: 'Notação', href: '/planejamento/notacao/' },
+    ] },
+  ],
+  barra: [{ tipo: 'menu', rotulo: 'Bastidores', itens: [
+    { rotulo: 'Estúdio de Dança', href: '/bastidores/estudio' },
+    { rotulo: 'Produção', href: '/bastidores/producao' },
+  ] }],
+};
+
+/** O texto do caminho, sem marcação — é o que a pessoa lê. */
+const lerCaminho = (html) => ((html.match(/<span class="doc-atual">[\s\S]*?<\/span>/) || [''])[0]
+  .replace(/<[^>]+>/g, '|').replace(/\|+/g, '|'));
+
+console.log('\n1 · O que a montagem devolve por documento é NOME DE FICHEIRO, nunca booleano');
+/* A PASTA É DE MENTIRA, e é o ponto: o defeito não estava nos ficheiros da escola, estava no
+   TIPO do valor que a função devolvia. Uma pasta temporária com os três documentos basta para
+   o provar, e não toca em escola nenhuma do repositório. */
+{
+  const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'pacote-'));
+  for (const f of ['plano.html', 'referencias.html', 'notacao.html',
+    'glossario-benesh.html', 'ciclo-01-x.pdf']) fs.writeFileSync(path.join(temp, f), '<p>x</p>');
+  const d = montagem.documentosDaTurma(temp);
+  const booleanos = Object.entries(d).filter(([, v]) => typeof v !== 'string');
+  provar('nenhum valor é booleano', booleanos.length === 0, booleanos);
+  provar('…e cada um é o ficheiro que existe, ou a string vazia',
+    d.plano === 'plano.html' && d.notacao === 'notacao.html'
+    && d.glossario === 'glossario-benesh.html' && d.pdf === 'ciclo-01-x.pdf', d);
+  /* O DEFEITO, NA FORMA EM QUE ELE APARECEU. Um `href` montado com `true` é `/x/true` — e é
+     este o valor que a lista da notação servia. */
+  provar('o href que a lista monta com este valor não é /variante/true',
+    '/' + 'bale-nivel-2-teste-2' + '/' + d.notacao === '/bale-nivel-2-teste-2/notacao.html',
+    '/' + 'bale-nivel-2-teste-2' + '/' + d.notacao);
+
+  const vazio = fs.mkdtempSync(path.join(os.tmpdir(), 'pacote-vazio-'));
+  const dv = montagem.documentosDaTurma(vazio);
+  provar('uma pasta sem documentos devolve strings vazias (e não `false`)',
+    Object.values(dv).every((v) => v === ''), dv);
+  fs.rmSync(temp, { recursive: true, force: true });
+  fs.rmSync(vazio, { recursive: true, force: true });
+}
+
+console.log('\n2 · O caminho é escrito UMA vez, por muitas passagens que a página leve');
+{
+  /* A PÁGINA COMO A PRODUÇÃO A SERVE HOJE: com o caminho JÁ escrito dentro do intervalo entre
+     a marca e o ☰ — é esse o estado em que cada passagem o lia e o repetia. */
+  const pagina = '<html><body>'
+    + '<nav class="topnav"><a class="marca" href="/"><svg></svg></a>'
+    + '<span class="doc-atual"><small>Planejamento</small>Notação</span>'
+    + '<button class="hamburger"></button>'
+    + '<details class="menu"><summary>Bastidores</summary></details></nav>'
+    + '<main><h1>Notação</h1></main></body></html>';
+
+  const uma = nav.aplicar(pagina, MENU, '/planejamento/notacao/');
+  const quantos = (h) => (String(h).match(/class="doc-atual"/g) || []).length;
+  provar('depois de UMA passagem há um caminho', quantos(uma) === 1, quantos(uma));
+  let h = pagina;
+  for (let i = 0; i < 4; i++) h = nav.aplicar(h, MENU, '/planejamento/notacao/');
+  provar('depois de QUATRO passagens continua a haver um', quantos(h) === 1, quantos(h));
+  provar('…e nenhuma delas deixou a coluna a dobrar',
+    (String(h).match(/class="coluna"/g) || []).length === 1,
+    (String(h).match(/class="coluna"/g) || []).length);
+  /* O BLOCO DA PÁGINA NÃO SE PERDE ao retirar o caminho: é a razão de o `extrasDaBarra` existir,
+     e o `s5-sessao` da Produção vive no mesmo intervalo. */
+  const comS5 = pagina.replace('<span class="doc-atual"><small>Planejamento</small>Notação</span>',
+    '<span class="s5-sessao">Produção · Alunas</span>');
+  const depois = nav.aplicar(comS5, MENU, '/bastidores/producao');
+  provar('o bloco da página (a S5 da Produção) sobrevive à passagem',
+    /s5-sessao/.test(depois) && /Produção · Alunas/.test(depois), (depois || '').slice(0, 80));
+}
+
+console.log('\n3 · O caminho diz de onde se veio, e o degrau do meio leva de volta');
+{
+  const naLista = nav.caminhoDaPagina(MENU.coluna, '/planejamento/notacao/', 'Notação');
+  provar('na lista: «Planejamento · Notação», dois degraus',
+    lerCaminho(naLista) === '|Planejamento|Notação|', lerCaminho(naLista));
+  provar('…e o degrau do meio não existe (não se liga a si própria)',
+    !/<a /.test(naLista), naLista);
+
+  const noDocumento = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/notacao', 'Notação em Benesh');
+  provar('no documento: «Planejamento · Notação · Notação em Benesh», três degraus',
+    lerCaminho(noDocumento) === '|Planejamento|Notação|Notação em Benesh|', lerCaminho(noDocumento));
+  provar('…e o degrau do meio é uma LIGAÇÃO para a lista',
+    /<a href="\/planejamento\/notacao\/">Notação<\/a>/.test(noDocumento), noDocumento);
+  provar('…e o último degrau é o documento, a negrito',
+    /<b>Notação em Benesh<\/b>/.test(noDocumento), noDocumento);
+
+  /* O WORKER RESPONDE A `/x/referencias.html` COM UM 307 PARA `/x/referencias`, e a ponte vê o
+     caminho já sem extensão. As duas formas têm de dar o mesmo caminho. */
+  const comHtml = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/referencias.html', 'Referências Bibliográficas');
+  const semHtml = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/referencias', 'Referências Bibliográficas');
+  provar('com e sem `.html` o caminho é o mesmo', comHtml === semHtml, { comHtml, semHtml });
+  provar('…e em ambas o degrau do meio leva às referências',
+    /href="\/ciclos\/referencias\/"/.test(comHtml), comHtml);
+
+  /* «AULAS · AULAS · AULA 01» NÃO É UM CAMINHO. O grupo e o destino têm o mesmo nome, e o
+     degrau repetido fica só uma vez — o ligado, que serve para voltar. */
+  const aula = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/aula-01', 'Aula 01');
+  provar('o grupo e a lista com o mesmo nome não se repetem',
+    lerCaminho(aula) === '|Aulas|Aula 01|', lerCaminho(aula));
+  provar('…e o que fica é a ligação para a lista', /<a href="\/aulas\/">Aulas<\/a>/.test(aula), aula);
+
+  /* O PLANO DO CICLO É O CASO MAIS DELICADO: o `<h1>` diz «Plano do Ciclo 01», e a lista é
+     «Planos». Quem abre o plano pelo cartão da lista tem de poder voltar a ela. */
+  const plano = nav.caminhoDaPagina(MENU.coluna, '/bale-nivel-2-teste-2/plano', 'Plano do Ciclo 01');
+  provar('o plano do ciclo leva de volta à lista de planos',
+    /href="\/ciclos\/planos\/"/.test(plano), plano);
+}
+
+console.log('\n4 · O Bastidores encosta à direita, e não anda com o texto');
+{
+  /* A MEDIDA É DE CSS, e o que se pode medir sem browser é a REGRA: ela existe, vale só quando
+     há coluna, e é ela que fixa a lista à direita. A geometria em si mede-se no
+     `provar-navegacao`, com o puppeteer, quando a escola tiver turmas. */
+  const css = fs.readFileSync(path.join(raiz, 'tools/templates/ciclo.css'), 'utf8');
+  /* A REGRA É DA FORMA, E NÃO DA COLUNA. Ela já foi `body:has(> .coluna)`, e isso partia-a nos
+     Bastidores — onde a coluna do sistema não se desenha, mas a barra é a mesma: o Bastidores
+     saltava para o lado da marca só naquela página. A forma é do desenho, e é o desenho que a
+     declara (`data-menu="coluna"` no `<nav>`). */
+  provar('a lista da barra encosta à direita no menu de destinos',
+    /\.topnav\[data-menu="coluna"\] \.nav-links\s*\{\s*justify-content:\s*flex-end;?\s*\}/.test(css), true);
+  provar('…e a regra não vale na barra de hoje (que não declara a forma)',
+    !/^\.topnav \.nav-links\s*\{[^}]*justify-content:\s*flex-end/m.test(css), true);
+  provar('…e no painel do celular a lista volta a alinhar à esquerda',
+    /\.topnav\.aberto \.nav-links \{[^}]*justify-content:\s*flex-start/.test(css), true);
+  /* O ATRIBUTO É ESCRITO PELO DESENHO — sem ele a regra acima não pega em página nenhuma. */
+  const barra = nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' });
+  provar('o desenho declara a forma na barra',
+    /<nav class="topnav" data-menu="coluna"/.test(barra), (barra || '').slice(0, 60));
+}
+
+console.log('\n5 · Os Bastidores não têm dois menus laterais');
+{
+  const nosBastidores = nav.desenhar(MENU, '/bastidores/producao', { extras: '', titulo: 'Produção' });
+  provar('a página dos Bastidores NÃO recebe a coluna do sistema',
+    !/class="coluna"/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
+  /* MAS A BARRA CONTINUA. A coluna saiu; o menu da barra (o Bastidores) não. Sem esta asserção,
+     tirar a coluna podia ter levado a barra consigo — e a página ficava sem navegação nenhuma. */
+  provar('…e a barra continua lá, com o Bastidores',
+    /class="topnav"/.test(nosBastidores) && /Bastidores/.test(nosBastidores), (nosBastidores || '').slice(0, 60));
+  provar('a página de trabalho continua a ter a coluna',
+    /class="coluna"/.test(nav.desenhar(MENU, '/aulas/', { extras: '', titulo: 'Aulas' })), true);
+
+  const bastidores = fs.readFileSync(path.join(raiz, 'motor/servidor/bastidores.js'), 'utf8');
+  provar('a lateral da Produção tem um caminho de volta ao sistema',
+    /class="lateral-voltar" href="\/">/.test(bastidores), true);
+}
+
+const falhou = provas.filter((p) => !p.ok).length;
+console.log('\nprovar-barra-e-caminho: ' + (provas.length - falhou) + ' de ' + provas.length + ' passaram');
+process.exit(falhou ? 1 : 0);

@@ -23579,3 +23579,106 @@ espelhar a regra do servidor), `provar-ajustes-anamnese` 125/125, `provar-ato-e-
 - A anamnese de uma aluna **nova** continua a nascer sem turma, como deve — mas nada no sistema
   sugere a turma a partir das respostas (B6, reescrita de conteúdo por modalidade) — segue aberto
   desde 13/10.
+
+## 23/10/2026 — A barra diz de onde se veio; o «true» sai do endereço; e os Bastidores ficam com um menu só
+
+**O que motivou.** Quatro coisas, todas encontradas pela pesquisadora a clicar no menu novo em
+produção, e todas visíveis do lado de lá:
+
+1. **«Abrir a notação» dava 404** — e o endereço era `/bale-nivel-2-teste-2/true`.
+2. **O caminho na barra aparecia TRÊS vezes**: «Planejamento · Notação», e outra vez, e outra.
+3. **O Bastidores andava**: encostava a um sítio com «Notação» e a outro com «Referências
+   Bibliográficas», porque fica depois do caminho num contêiner que cresce com ele.
+4. **Dois menus laterais** nos Bastidores: a coluna do sistema e a `lateral` da Produção, lado a
+   lado, cada uma a dizer uma coisa diferente sobre onde se está.
+
+**O que era cada um.**
+
+- **O `/true`.** `documentosDaTurma()` devolvia `true`/`false` para `plano`, `referencias` e
+  `notacao`. Isso bastava enquanto o consumidor era um `if`; quando as listas passaram a montar
+  `href` com esse valor, o booleano foi direto para o endereço. O `glossario` já devolvia o NOME
+  do ficheiro (o nome varia: `glossario-benesh.html`) — e era o único que funcionava. Agora todos
+  devolvem nome, ou a string vazia.
+- **As três cópias.** `<span class="doc-atual">` mora entre a marca e o ☰ — que é exactamente o
+  intervalo que `extrasDaBarra()` lê, e lê-lo assim foi uma decisão certa: é o que permite à
+  ponte não conhecer cada construtor de barra. Mas o caminho passou a viver lá dentro, e cada
+  passagem o lia como se fosse da página e voltava a escrevê-lo ao lado do novo: a montagem
+  escrevia um, a varredura final acrescentava outro, e a ponte, ao servir, um terceiro.
+  A correcção é estreita: o `extrasDaBarra` tira o caminho do bloco antes de o devolver.
+- **O Bastidores a andar.** A lista da barra tem `flex: 1 1 auto` e alinhava à esquerda: o destino
+  ficava a seguir ao caminho, e o caminho muda de comprimento com o título. Passa a
+  `justify-content: flex-end`, e o Bastidores encosta à direita — medido, **16px da borda em
+  quatro larguras** (390, 768, 1141, 1280) e em três títulos de comprimentos diferentes.
+- **Os dois menus.** A regra que ficou escrita: **o Bastidores é o único sítio em que a navegação
+  da PÁGINA toma o lugar da navegação do SISTEMA**. A coluna do sistema deixa de se desenhar em
+  `/bastidores/*`, e a `lateral` da Produção ganha, no alto, um `← Sistema Lastro` — que é o que
+  a pesquisadora pediu («uma seta pra eu voltar pro menu principal»). A alternativa — fundir as
+  secções da Produção dentro da coluna do sistema — fica para quando houver razão para uma
+  coluna só: hoje custaria trazer as secções (que são `#hash`, não URLs) para o `nav.json`.
+
+**E o que passou a existir por decisão, não por correcção: o LASTRO.**
+
+O caminho na barra deixou de ser «grupo · título» e passou a ser **«grupo · lista · documento»**,
+com o degrau do meio **ligado**:
+
+| Onde se está | O que a barra diz |
+|:--|:--|
+| `/ciclos/referencias/` | **Ciclos** · Referências |
+| `/<variante>/referencias` | **Ciclos** · [Referências](/ciclos/referencias/) · Referências Bibliográficas |
+| `/<variante>/aula-01` | [Aulas](/aulas/) · Aula 01 |
+| `/aulas/` | Aulas |
+
+O degrau do meio é o caminho de volta; o último é onde se está, a negrito; o grupo não é ligação
+porque **um grupo não tem página** — tem itens, e escolher um deles por quem lê seria adivinhar.
+Quando o grupo e a lista têm o mesmo nome («Aulas» é grupo e destino ao mesmo tempo), fica só um:
+o ligado, que serve para voltar — «Aulas · Aulas · Aula 01» não é um caminho, é um gaguejar.
+
+A tabela que diz de que lista vem cada documento (`TRILHA_DO_DOCUMENTO`, em `nav.js`) é
+**declarada**, e não deduzida do `nav.json`, por uma razão de facto: o `nav.json` diz quais são os
+DESTINOS, não que documentos cada destino produz. Quem sabe que `referencias.html` sai da lista de
+referências é o pacote, e a tabela diz isso num lugar só — para as duas pontas lerem o mesmo.
+
+**MOTIVO DECLARADO (`tools/` é congelado).**
+`tools/montar-publicacao.js` e `tools/templates/ciclo.css` mudaram nesta entrada. O primeiro
+porque é ele que produz o valor que ia para o `href`; o segundo porque a barra passou a ter o
+Bastidores fixo à direita e o caminho com ligações. **Nada disto toca na fórmula do hash, na
+cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As cópias de `assets/style.css`
+da raiz e do pacote-zero foram regeradas.
+
+**Onde entrou.**
+- `tools/montar-publicacao.js` — `documentosDaTurma()` devolve nomes de ficheiro; e a montagem
+  passou a ser **importável** (`if (require.main === module) principal()`), sem a qual uma prova
+  não podia perguntar-lhe o que devolve sem publicar uma escola inteira.
+- `motor/nucleo/nav.js` — `SEM_O_CAMINHO` (o caminho sai do bloco antes de ser re-aproveitado);
+  `caminhoDaPagina()`, `TRILHA_DO_DOCUMENTO` e `LISTAS` (o lastro); a coluna não se desenha em
+  `/bastidores/*`; e a barra passou a **declarar a sua forma** (`data-menu="coluna"`), sem a qual a
+  regra do Bastidores à direita não pegava na página onde a coluna não existe.
+- `tools/templates/ciclo.css` — o caminho com três degraus e a ligação do meio; o Bastidores à
+  direita; e, no painel do celular, a lista volta a alinhar à esquerda (numa coluna, encostar à
+  direita desalinha-a dos títulos dos grupos).
+- `motor/servidor/bastidores.js` — o `← Sistema Lastro` no alto da `lateral`, com o desenho dele.
+
+**Com o quê.**
+- `node experimentos/provar-barra-e-caminho.js` — **novo**, 26 asserções em cinco secções: o valor
+  por documento é nome e nunca booleano (com uma pasta temporária, sem tocar em escola nenhuma);
+  o caminho fica **um** depois de quatro passagens, e o bloco da página sobrevive; o lastro nos
+  quatro casos (lista, documento, grupo repetido, com e sem `.html`); a regra do Bastidores à
+  direita, e o `flex-start` no painel do celular; e os Bastidores sem a coluna do sistema, mas com
+  a barra.
+- Sem regressão: `provar-barra-unica` 81/81, `provar-producao` 151/151, `provar-menu-da-producao`
+  26/26, `provar-celular` 15/15, `provar-sessao-na-barra` 28/28, `provar-ato-e-barra` 72/72,
+  `provar-ajustes-anamnese` 125/125, `provar-contexto-do-ato` 37/37, `provar-alunas-da-anamnese`
+  11/11, `check-identidade` 20 verificações sem erro.
+- Medido num browser, com a folha real: **Bastidores a 16px da borda direita** com «Notação»,
+  «Referências Bibliográficas» e «Aulas»; o caminho **não estoura** em 390, 768, 1141 nem 1280.
+
+**O que ainda não está feito.**
+- **A coluna única** nos Bastidores — fundir as secções da Produção dentro da coluna do sistema —
+  não foi feita, e é a consolidação que fica em aberto. Hoje há **uma** coluna em cada sítio (a do
+  sistema no trabalho de sala, a da Produção nos Bastidores), e a volta é explícita.
+- `experimentos/provar-navegacao.js` e `provar-titulo-e-barra.js` **continuam sem fixture**: a
+  `calango` foi expurgada e a `batata` ainda não tem turma gerada. As duas medem um pacote real, e
+  voltam a correr quando houver um. Não é regressão desta entrada.
+- O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
+  guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
+  `href` ser montado por uma função que só aceite nome. Fica anotado.
