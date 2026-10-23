@@ -33,15 +33,20 @@
       "sem_ancora": false
     },
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "54f4a7d16006216a06b147f1fc1e9a2cf51d0ca56fca3c4a863e3bdc9da5aa4b",
+        "id": "ciclo-01-batata-bale-nivel-3-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:meia-cortada/01/batata",
       "numero": "01",
       "professor": "meia-cortada",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -80,7 +85,7 @@
         "anamneses": 3,
         "aulas": 0,
         "ciclos": 3,
-        "ciclos_com_ancora": 2,
+        "ciclos_com_ancora": 3,
         "planos": 3,
         "pos": 0,
         "registros": 6
@@ -380,14 +385,9 @@
     ],
     "estados": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -482,7 +482,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3b29ec7"
+    "commit": "019a015"
   },
   "gerado_em": "2026-10-23T14:24",
   "nao_indexado": [

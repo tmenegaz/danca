@@ -75,20 +75,35 @@
       ]
     },
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-23",
+        "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp",
+        "cobertura": [
+          "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
+          "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf"
+        ],
+        "hash": "54f4a7d16006216a06b147f1fc1e9a2cf51d0ca56fca3c4a863e3bdc9da5aa4b",
+        "hash_conteudo": "256d50b36475067fb7818d46d724ffc2cff3b2c28443bf83de8329ec95d4befa",
+        "id": "ciclo-01-batata-bale-nivel-3-teste-2",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
-        "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf"
+        "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf",
+        "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:meia-cortada/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "meia-cortada",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "plano"
       ]
@@ -123,6 +138,15 @@
       "tipo": "ancora"
     },
     {
+      "ancora_id": "ciclo-01-batata-bale-nivel-3-teste-2",
+      "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp",
+      "ciclo_id": "ciclo:meia-cortada/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp",
+      "professor": "meia-cortada",
+      "tipo": "ancora"
+    },
+    {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
@@ -150,7 +174,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-3-teste-2",
       "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf",
       "ciclo_id": "ciclo:meia-cortada/01/batata",
       "escola": "batata",
@@ -177,7 +201,7 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata-bale-nivel-3-teste-2",
       "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
       "ciclo_id": "ciclo:meia-cortada/01/batata",
       "escola": "batata",
@@ -205,7 +229,7 @@
       "anamneses": 3,
       "aulas": 0,
       "ciclos": 3,
-      "ciclos_com_ancora": 2,
+      "ciclos_com_ancora": 3,
       "planos": 3,
       "pos": 0,
       "registros": 6
@@ -254,21 +278,14 @@
     ],
     "estados": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "ciclo:cafe-no-bule/01/batata",
-          "ciclo:manga-curta/01/batata"
+          "ciclo:manga-curta/01/batata",
+          "ciclo:meia-cortada/01/batata"
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
-      },
-      {
-        "contagem": 1,
-        "ids": [
-          "ciclo:meia-cortada/01/batata"
-        ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -338,7 +355,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3b29ec7"
+    "commit": "019a015"
   },
   "gerado_em": "2026-10-23T14:24",
   "nao_indexado": [

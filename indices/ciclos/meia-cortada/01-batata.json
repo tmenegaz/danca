@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-23",
+    "caminho": "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp",
+    "cobertura": [
+      "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md",
+      "professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf"
+    ],
+    "hash": "54f4a7d16006216a06b147f1fc1e9a2cf51d0ca56fca3c4a863e3bdc9da5aa4b",
+    "hash_conteudo": "256d50b36475067fb7818d46d724ffc2cff3b2c28443bf83de8329ec95d4befa",
+    "id": "ciclo-01-batata-bale-nivel-3-teste-2",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp",
     "documento:manifesto:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.conf",
     "documento:plano:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2-plano.md"
   ],
   "escola": "batata",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,7 +43,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "3b29ec7"
+    "commit": "019a015"
   },
   "gerado_em": "2026-10-23T14:24",
   "id": "ciclo:meia-cortada/01/batata",
