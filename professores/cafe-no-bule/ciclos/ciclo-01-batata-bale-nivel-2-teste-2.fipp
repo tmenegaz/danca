@@ -8,14 +8,22 @@ type: Ciclo
 professor: Cafe No Bule
 ciclo: 01
 variante: batata-bale-nivel-2-teste-2
-hash_conteudo: 3264627613a2de04bf2070d963297f24a5783006baec1c1baf8b88a23189e7e2
+hash_conteudo: 6041559c3edad100095a0be2b97ee3ac8af1f03b4c266f0e47ba1512d82d55ab
 parentHash: 
-hash: b84df403c36fb49ba7efee1f2783e6f1c5942ccf3b9d88dfd975b85e87942eca
+hash: fe94db1ee1e9166806b151384c68df44a34992c98833238d7e66b7909aa1e191
 algoritmo: SHA-256
-po: ausente — este ciclo ainda não tem PO declarado
-po_state: 
+po: professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md
+po_state: Input_PO_Aguardando
 ancorado_em: 2026-10-23
 cobertura:
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md
   - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md
   - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf
   - professores/cafe-no-bule/ciclos/ciclo-01.conf

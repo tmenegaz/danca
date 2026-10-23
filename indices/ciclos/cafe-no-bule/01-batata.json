@@ -4,24 +4,44 @@
     "ancorado_em": "2026-10-23",
     "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
     "cobertura": [
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
       "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
       "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
       "professores/cafe-no-bule/ciclos/ciclo-01.conf"
     ],
-    "hash": "b84df403c36fb49ba7efee1f2783e6f1c5942ccf3b9d88dfd975b85e87942eca",
-    "hash_conteudo": "3264627613a2de04bf2070d963297f24a5783006baec1c1baf8b88a23189e7e2",
+    "hash": "fe94db1ee1e9166806b151384c68df44a34992c98833238d7e66b7909aa1e191",
+    "hash_conteudo": "6041559c3edad100095a0be2b97ee3ac8af1f03b4c266f0e47ba1512d82d55ab",
     "id": "ciclo-01-batata-bale-nivel-2-teste-2",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:cafe-no-bule/01/batata/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
     "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
     "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+    "documento:aula:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+    "documento:aula:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
+    "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.cifrado.json",
+    "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+    "documento:glossario:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
+    "documento:harmonizacao:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
+    "documento:notacao:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
     "documento:plano:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+    "documento:po:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
+    "documento:referencias:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
     "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -29,9 +49,29 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
       },
       {
         "contagem": 2,
@@ -40,8 +80,23 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       },
       {
         "contagem": 1,
@@ -52,9 +107,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "019a015"
+    "commit": "a7aa8ae"
   },
-  "gerado_em": "2026-10-23T14:24",
+  "gerado_em": "2026-10-23T14:28",
   "id": "ciclo:cafe-no-bule/01/batata",
   "professor": "cafe-no-bule",
   "versao": 6

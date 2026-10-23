@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-batata-bale-nivel-2-teste-2: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-batata-bale-nivel-2-teste-2-aula-01
+type: Aula
+professor: Cafe No Bule
+ciclo: 01
+variante: batata-bale-nivel-2-teste-2
+aula: 01
+hash_conteudo: 766bc668abf0f377e6f6a82b2987f79b0dcfac1f190d5c22601bd2eedee74772
+parentHash: 
+hash: fa3d8153e355b2af2ac79ff85b5cd1bb9af47628a19f12fe2fd24ff87a22a1e4
+algoritmo: SHA-256
+ancorado_em: 2026-10-23
+cobertura:
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md
+  - professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md

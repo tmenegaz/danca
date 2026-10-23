@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "b84df403c36fb49ba7efee1f2783e6f1c5942ccf3b9d88dfd975b85e87942eca",
+        "hash": "fe94db1ee1e9166806b151384c68df44a34992c98833238d7e66b7909aa1e191",
         "id": "ciclo-01-batata-bale-nivel-2-teste-2",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 6,
+      "aulas": 1,
+      "documentos": 16,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/batata",
@@ -83,12 +83,12 @@
       ],
       "contagens": {
         "anamneses": 3,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 3,
         "ciclos_com_ancora": 3,
         "planos": 3,
-        "pos": 0,
-        "registros": 6
+        "pos": 1,
+        "registros": 7
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": false,
@@ -112,7 +112,8 @@
         "anamnese:anamnese-20261023-1112-2",
         "plano:plano-20261023-1116",
         "plano:plano-20261023-1117",
-        "plano:plano-20261023-1124"
+        "plano:plano-20261023-1124",
+        "po:po-20261023-1128"
       ],
       "slug": "batata"
     },
@@ -326,7 +327,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -477,14 +478,19 @@
         "contagem": 3,
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "019a015"
+    "commit": "a7aa8ae"
   },
-  "gerado_em": "2026-10-23T14:24",
+  "gerado_em": "2026-10-23T14:28",
   "nao_indexado": [
     {
       "familia": "conteudo",

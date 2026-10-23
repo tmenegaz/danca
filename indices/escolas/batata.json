@@ -1,5 +1,26 @@
 {
-  "aulas": [],
+  "aulas": [
+    {
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-23",
+        "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
+        "cobertura": [
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md"
+        ],
+        "hash": "fa3d8153e355b2af2ac79ff85b5cd1bb9af47628a19f12fe2fd24ff87a22a1e4",
+        "hash_conteudo": "766bc668abf0f377e6f6a82b2987f79b0dcfac1f190d5c22601bd2eedee74772",
+        "id": "ciclo-01-batata-bale-nivel-2-teste-2-aula-01",
+        "lida": true,
+        "parent_hash": ""
+      },
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "documento": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+      "id": "ciclo:cafe-no-bule/01/batata/aula-01",
+      "numero": "01"
+    }
+  ],
   "ciclos": [
     {
       "ancora": {
@@ -7,19 +28,57 @@
         "ancorado_em": "2026-10-23",
         "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
         "cobertura": [
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
           "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
           "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
           "professores/cafe-no-bule/ciclos/ciclo-01.conf"
         ],
-        "hash": "b84df403c36fb49ba7efee1f2783e6f1c5942ccf3b9d88dfd975b85e87942eca",
-        "hash_conteudo": "3264627613a2de04bf2070d963297f24a5783006baec1c1baf8b88a23189e7e2",
+        "hash": "fe94db1ee1e9166806b151384c68df44a34992c98833238d7e66b7909aa1e191",
+        "hash_conteudo": "6041559c3edad100095a0be2b97ee3ac8af1f03b4c266f0e47ba1512d82d55ab",
         "id": "ciclo-01-batata-bale-nivel-2-teste-2",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": [],
+      "aulas": [
+        {
+          "ancora": {
+            "algoritmo": "SHA-256",
+            "ancorado_em": "2026-10-23",
+            "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
+            "cobertura": [
+              "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+              "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md"
+            ],
+            "hash": "fa3d8153e355b2af2ac79ff85b5cd1bb9af47628a19f12fe2fd24ff87a22a1e4",
+            "hash_conteudo": "766bc668abf0f377e6f6a82b2987f79b0dcfac1f190d5c22601bd2eedee74772",
+            "id": "ciclo-01-batata-bale-nivel-2-teste-2-aula-01",
+            "lida": true,
+            "parent_hash": ""
+          },
+          "documento": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+          "id": "ciclo:cafe-no-bule/01/batata/aula-01",
+          "numero": "01"
+        }
+      ],
       "documentos": [
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.cifrado.json",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
@@ -35,8 +94,15 @@
       "sem_ancora": false,
       "tipos": [
         "ancora",
+        "aula",
+        "dados",
+        "glossario",
+        "harmonizacao",
         "manifesto",
+        "notacao",
         "plano",
+        "po",
+        "referencias",
         "schema"
       ]
     },
@@ -112,6 +178,15 @@
   "documentos": [
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.fipp",
+      "professor": "cafe-no-bule",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
@@ -145,6 +220,60 @@
       "id": "documento:ancora:professores/meia-cortada/ciclos/ciclo-01-batata-bale-nivel-3-teste-2.fipp",
       "professor": "meia-cortada",
       "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:aula:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-aula-01.md",
+      "professor": "cafe-no-bule",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:aula:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-captura-aula-01.md",
+      "professor": "cafe-no-bule",
+      "tipo": "aula"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.cifrado.json",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.cifrado.json",
+      "professor": "cafe-no-bule",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:dados:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-dados.json",
+      "professor": "cafe-no-bule",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:glossario:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-glossario-benesh.md",
+      "professor": "cafe-no-bule",
+      "tipo": "glossario"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:harmonizacao:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-harmonizacao.md",
+      "professor": "cafe-no-bule",
+      "tipo": "harmonizacao"
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
@@ -184,6 +313,15 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:notacao:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-notacao.md",
+      "professor": "cafe-no-bule",
+      "tipo": "notacao"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
@@ -211,6 +349,24 @@
     },
     {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:po:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-po.md",
+      "professor": "cafe-no-bule",
+      "tipo": "po"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:referencias:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-referencias.md",
+      "professor": "cafe-no-bule",
+      "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
@@ -227,12 +383,12 @@
     ],
     "contagens": {
       "anamneses": 3,
-      "aulas": 0,
+      "aulas": 1,
       "ciclos": 3,
       "ciclos_com_ancora": 3,
       "planos": 3,
-      "pos": 0,
-      "registros": 6
+      "pos": 1,
+      "registros": 7
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -256,21 +412,23 @@
       "anamnese:anamnese-20261023-1112-2",
       "plano:plano-20261023-1116",
       "plano:plano-20261023-1117",
-      "plano:plano-20261023-1124"
+      "plano:plano-20261023-1124",
+      "po:po-20261023-1128"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 6,
+        "contagem": 7,
         "ids": [
           "anamnese:anamnese-20261023-1111",
           "anamnese:anamnese-20261023-1112",
           "anamnese:anamnese-20261023-1112-2",
           "plano:plano-20261023-1116",
           "plano:plano-20261023-1117",
-          "plano:plano-20261023-1124"
+          "plano:plano-20261023-1124",
+          "po:po-20261023-1128"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -290,12 +448,13 @@
     ],
     "professores": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261023-1111",
           "anamnese:anamnese-20261023-1112-2",
           "ciclo:cafe-no-bule/01/batata",
-          "plano:plano-20261023-1116"
+          "plano:plano-20261023-1116",
+          "po:po-20261023-1128"
         ],
         "rotulo": "cafe-no-bule",
         "valor": "cafe-no-bule"
@@ -350,14 +509,22 @@
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "po:po-20261023-1128"
+        ],
+        "rotulo": "Plano de observação",
+        "valor": "po"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "019a015"
+    "commit": "a7aa8ae"
   },
-  "gerado_em": "2026-10-23T14:24",
+  "gerado_em": "2026-10-23T14:28",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -446,6 +613,16 @@
       "professor": "meia-cortada",
       "tipo": "plano",
       "turma": "Balé Nível 3 — Teste 2"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "po-20261023-1128",
+      "ciclo": "01",
+      "data": "2026-10-23T11:28",
+      "id": "po:po-20261023-1128",
+      "professor": "cafe-no-bule",
+      "tipo": "po"
     }
   ],
   "versao": 6
