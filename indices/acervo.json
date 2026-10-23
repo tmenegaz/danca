@@ -48,13 +48,13 @@
         "ciclo:cafe-no-bule/01/batata"
       ],
       "contagens": {
-        "anamneses": 1,
+        "anamneses": 2,
         "aulas": 0,
         "ciclos": 1,
         "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 1
+        "registros": 2
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": false,
@@ -73,7 +73,8 @@
         "tela-de-celular"
       ],
       "registros": [
-        "anamnese:anamnese-20261023-1028"
+        "anamnese:anamnese-20261023-1028",
+        "anamnese:anamnese-20261023-1029"
       ],
       "slug": "batata"
     },
@@ -287,7 +288,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -430,7 +431,7 @@
     ],
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Anamnese",
         "valor": "anamnese"
       }
@@ -438,9 +439,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "98a2c90"
+    "commit": "4bd978a"
   },
-  "gerado_em": "2026-10-23T13:28",
+  "gerado_em": "2026-10-23T13:29",
   "nao_indexado": [
     {
       "familia": "conteudo",
