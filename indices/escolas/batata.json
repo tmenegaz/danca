@@ -18,6 +18,8 @@
       },
       "aulas": [],
       "documentos": [
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
@@ -32,6 +34,7 @@
       "tipos": [
         "ancora",
         "manifesto",
+        "plano",
         "schema"
       ]
     }
@@ -48,12 +51,30 @@
     },
     {
       "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
+      "professor": "cafe-no-bule",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
       "id": "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
       "professor": "cafe-no-bule",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+      "professor": "cafe-no-bule",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-batata",
@@ -74,9 +95,9 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
-      "registros": 3
+      "registros": 4
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -97,18 +118,20 @@
     "registros": [
       "anamnese:anamnese-20261023-1111",
       "anamnese:anamnese-20261023-1112",
-      "anamnese:anamnese-20261023-1112-2"
+      "anamnese:anamnese-20261023-1112-2",
+      "plano:plano-20261023-1116"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261023-1111",
           "anamnese:anamnese-20261023-1112",
-          "anamnese:anamnese-20261023-1112-2"
+          "anamnese:anamnese-20261023-1112-2",
+          "plano:plano-20261023-1116"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -126,11 +149,12 @@
     ],
     "professores": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261023-1111",
           "anamnese:anamnese-20261023-1112-2",
-          "ciclo:cafe-no-bule/01/batata"
+          "ciclo:cafe-no-bule/01/batata",
+          "plano:plano-20261023-1116"
         ],
         "rotulo": "cafe-no-bule",
         "valor": "cafe-no-bule"
@@ -162,14 +186,22 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261023-1116"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "e0a7971"
+    "commit": "aed1c0f"
   },
-  "gerado_em": "2026-10-23T14:14",
+  "gerado_em": "2026-10-23T14:16",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -222,6 +254,18 @@
       "id": "anamnese:anamnese-20261023-1112-2",
       "professor": "cafe-no-bule",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261023-1116",
+      "ciclo": "01",
+      "data": "2026-10-23T11:16",
+      "id": "plano:plano-20261023-1116",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "cafe-no-bule",
+      "tipo": "plano",
+      "turma": "Balé Nível 2 — Teste 2"
     }
   ],
   "versao": 6

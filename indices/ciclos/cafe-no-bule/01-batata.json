@@ -17,7 +17,9 @@
   "ciclo": "01",
   "documentos": [
     "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+    "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
+    "documento:plano:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
     "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
@@ -30,9 +32,14 @@
         "valor": "ancora"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "manifesto",
         "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
       },
       {
         "contagem": 1,
@@ -43,9 +50,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "e0a7971"
+    "commit": "aed1c0f"
   },
-  "gerado_em": "2026-10-23T14:14",
+  "gerado_em": "2026-10-23T14:16",
   "id": "ciclo:cafe-no-bule/01/batata",
   "professor": "cafe-no-bule",
   "versao": 6
