@@ -65,6 +65,7 @@
     "professores": [
       "acucar-branco",
       "cafe-no-bule",
+      "manga-curta",
       "meia-cortada",
       "teclado-abnt",
       "tela-de-celular"
@@ -107,9 +108,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "77c10c6"
+    "commit": "68cca72"
   },
-  "gerado_em": "2026-10-23T12:56",
+  "gerado_em": "2026-10-23T13:15",
   "nao_indexado": [
     {
       "familia": "conteudo",
