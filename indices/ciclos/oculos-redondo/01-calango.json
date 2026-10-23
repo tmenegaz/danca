@@ -4,19 +4,30 @@
     "ancorado_em": "2026-10-23",
     "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
     "cobertura": [
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-notacao.md",
       "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
       "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
       "professores/oculos-redondo/ciclos/ciclo-01.conf"
     ],
-    "hash": "5f6cfc2c0778b9054b6351f6da29d8a6ee1b4952f80c4324108e892ffc1d37b7",
-    "hash_conteudo": "76fd4834eeaaaa3912dbab0ac0dba7392aa252192c9fb0b079e085e3fc7c6617",
+    "hash": "ca122b865128548b8544cb9197edc940ba9a842c1e481c2c31183240792004d8",
+    "hash_conteudo": "f4609f4354b882d4c95cf6f2e9b127be216052a906951325de21dcb8ec3ed4e8",
     "id": "ciclo-01-calango-bale-nivel-1-teste-1",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:oculos-redondo/01/calango/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.fipp",
     "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
     "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
     "documento:aula:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-aula-01.md",
@@ -38,7 +49,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "ancora",
         "valor": "ancora"
       },
@@ -96,9 +107,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7c628ef"
+    "commit": "72d8131"
   },
-  "gerado_em": "2026-10-23T00:05",
+  "gerado_em": "2026-10-23T00:06",
   "id": "ciclo:oculos-redondo/01/calango",
   "professor": "oculos-redondo",
   "versao": 6

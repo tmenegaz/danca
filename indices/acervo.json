@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "5f6cfc2c0778b9054b6351f6da29d8a6ee1b4952f80c4324108e892ffc1d37b7",
+        "hash": "ca122b865128548b8544cb9197edc940ba9a842c1e481c2c31183240792004d8",
         "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 15,
+      "aulas": 1,
+      "documentos": 16,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:oculos-redondo/01/calango",
@@ -148,7 +148,7 @@
       ],
       "contagens": {
         "anamneses": 2,
-        "aulas": 0,
+        "aulas": 1,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 2,
@@ -461,9 +461,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "7c628ef"
+    "commit": "72d8131"
   },
-  "gerado_em": "2026-10-23T00:05",
+  "gerado_em": "2026-10-23T00:06",
   "nao_indexado": [
     {
       "familia": "conteudo",
