@@ -1,15 +1,34 @@
 {
-  "ancora": null,
+  "ancora": {
+    "algoritmo": "SHA-256",
+    "ancorado_em": "2026-10-23",
+    "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+    "cobertura": [
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
+      "professores/cafe-no-bule/ciclos/ciclo-01.conf"
+    ],
+    "hash": "8586d4bb0d3e9b1acf1f121cd1570270ffea612147b4b1d31844e15a0fccdae3",
+    "hash_conteudo": "25e3beb4d4b26e2612e6e95a3a008e8b1e53ffcb190d1fa8cbe2558f051a0d24",
+    "id": "ciclo-01-batata",
+    "lida": true,
+    "parent_hash": ""
+  },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
     "documento:schema:professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "batata",
-  "estado": "sem-ancora",
+  "estado": "ancorado",
   "filtros": {
     "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "ancora",
+        "valor": "ancora"
+      },
       {
         "contagem": 1,
         "rotulo": "manifesto",
@@ -24,9 +43,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "68cca72"
+    "commit": "98a2c90"
   },
-  "gerado_em": "2026-10-23T13:15",
+  "gerado_em": "2026-10-23T13:28",
   "id": "ciclo:cafe-no-bule/01/batata",
   "professor": "cafe-no-bule",
   "versao": 6

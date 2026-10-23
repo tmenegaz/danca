@@ -2,20 +2,35 @@
   "aulas": [],
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "algoritmo": "SHA-256",
+        "ancorado_em": "2026-10-23",
+        "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+        "cobertura": [
+          "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
+          "professores/cafe-no-bule/ciclos/ciclo-01.conf"
+        ],
+        "hash": "8586d4bb0d3e9b1acf1f121cd1570270ffea612147b4b1d31844e15a0fccdae3",
+        "hash_conteudo": "25e3beb4d4b26e2612e6e95a3a008e8b1e53ffcb190d1fa8cbe2558f051a0d24",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": [],
       "documentos": [
         "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
+        "professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
         "professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/batata",
       "numero": "01",
       "pacote": null,
       "professor": "cafe-no-bule",
-      "sem_ancora": true,
+      "sem_ancora": false,
       "tipos": [
+        "ancora",
         "manifesto",
         "schema"
       ]
@@ -23,7 +38,16 @@
   ],
   "documentos": [
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata",
+      "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+      "ciclo_id": "ciclo:cafe-no-bule/01/batata",
+      "escola": "batata",
+      "id": "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+      "professor": "cafe-no-bule",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
@@ -32,7 +56,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": null,
+      "ancora_id": "ciclo-01-batata",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
@@ -46,13 +70,13 @@
       "ciclo:cafe-no-bule/01/batata"
     ],
     "contagens": {
-      "anamneses": 0,
+      "anamneses": 1,
       "aulas": 0,
       "ciclos": 1,
-      "ciclos_com_ancora": 0,
+      "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 0
+      "registros": 1
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -70,25 +94,37 @@
       "teclado-abnt",
       "tela-de-celular"
     ],
-    "registros": [],
+    "registros": [
+      "anamnese:anamnese-20261023-1028"
+    ],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261023-1028"
+        ],
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "estados": [
       {
         "contagem": 1,
         "ids": [
           "ciclo:cafe-no-bule/01/batata"
         ],
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
+          "anamnese:anamnese-20261023-1028",
           "ciclo:cafe-no-bule/01/batata"
         ],
         "rotulo": "cafe-no-bule",
@@ -96,6 +132,14 @@
       }
     ],
     "tipos": [
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261023-1028"
+        ],
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      },
       {
         "contagem": 1,
         "ids": [
@@ -108,9 +152,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "68cca72"
+    "commit": "98a2c90"
   },
-  "gerado_em": "2026-10-23T13:15",
+  "gerado_em": "2026-10-23T13:28",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -133,6 +177,17 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [],
+  "registros": [
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261023-1028",
+      "ciclo": "01",
+      "data": "2026-10-23T10:28",
+      "id": "anamnese:anamnese-20261023-1028",
+      "professor": "cafe-no-bule",
+      "tipo": "anamnese"
+    }
+  ],
   "versao": 6
 }

@@ -1,15 +1,20 @@
 {
   "ciclos": [
     {
-      "ancora": null,
+      "ancora": {
+        "hash": "8586d4bb0d3e9b1acf1f121cd1570270ffea612147b4b1d31844e15a0fccdae3",
+        "id": "ciclo-01-batata",
+        "lida": true,
+        "parent_hash": ""
+      },
       "aulas": 0,
-      "documentos": 2,
+      "documentos": 3,
       "escola": "batata",
-      "estado": "sem-ancora",
+      "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/batata",
       "numero": "01",
       "professor": "cafe-no-bule",
-      "sem_ancora": true
+      "sem_ancora": false
     }
   ],
   "escolas": [
@@ -43,13 +48,13 @@
         "ciclo:cafe-no-bule/01/batata"
       ],
       "contagens": {
-        "anamneses": 0,
+        "anamneses": 1,
         "aulas": 0,
         "ciclos": 1,
-        "ciclos_com_ancora": 0,
+        "ciclos_com_ancora": 1,
         "planos": 0,
         "pos": 0,
-        "registros": 0
+        "registros": 1
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
       "expurgada": false,
@@ -67,7 +72,9 @@
         "teclado-abnt",
         "tela-de-celular"
       ],
-      "registros": [],
+      "registros": [
+        "anamnese:anamnese-20261023-1028"
+      ],
       "slug": "batata"
     },
     {
@@ -278,7 +285,13 @@
     }
   ],
   "filtros": {
-    "anos": [],
+    "anos": [
+      {
+        "contagem": 1,
+        "rotulo": "2026",
+        "valor": "2026"
+      }
+    ],
     "escolas": [
       {
         "contagem": 1,
@@ -334,8 +347,8 @@
     "estados": [
       {
         "contagem": 1,
-        "rotulo": "Sem âncora",
-        "valor": "sem-ancora"
+        "rotulo": "Com âncora",
+        "valor": "ancorado"
       }
     ],
     "professores": [
@@ -415,13 +428,19 @@
         "valor": "vaso-bonito"
       }
     ],
-    "tipos": []
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "Anamnese",
+        "valor": "anamnese"
+      }
+    ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "68cca72"
+    "commit": "98a2c90"
   },
-  "gerado_em": "2026-10-23T13:15",
+  "gerado_em": "2026-10-23T13:28",
   "nao_indexado": [
     {
       "familia": "conteudo",
