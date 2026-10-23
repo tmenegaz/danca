@@ -4,15 +4,16 @@
     {
       "ancora": {
         "algoritmo": "SHA-256",
-        "ancorado_em": "2026-10-22",
-        "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
+        "ancorado_em": "2026-10-23",
+        "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
         "cobertura": [
-          "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+          "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+          "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
           "professores/oculos-redondo/ciclos/ciclo-01.conf"
         ],
-        "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
-        "hash_conteudo": "f5d1d93b1f9478bb99540dbbd6b8a841ce8f24004e37bf523ac9c11ae80259df",
-        "id": "ciclo-01-calango",
+        "hash": "5f6cfc2c0778b9054b6351f6da29d8a6ee1b4952f80c4324108e892ffc1d37b7",
+        "hash_conteudo": "76fd4834eeaaaa3912dbab0ac0dba7392aa252192c9fb0b079e085e3fc7c6617",
+        "id": "ciclo-01-calango-bale-nivel-1-teste-1",
         "lida": true,
         "parent_hash": ""
       },
@@ -20,6 +21,7 @@
       "documentos": [
         "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
         "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
         "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
         "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
         "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -37,11 +39,39 @@
         "plano",
         "schema"
       ]
+    },
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
+        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf"
+      ],
+      "escola": "calango",
+      "estado": "sem-ancora",
+      "id": "ciclo:perna-boa/01/calango",
+      "numero": "01",
+      "pacote": null,
+      "professor": "perna-boa",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "plano"
+      ]
     }
   ],
   "documentos": [
     {
-      "ancora_id": "ciclo-01-calango",
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
+      "professor": "oculos-redondo",
+      "tipo": "ancora"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -50,7 +80,7 @@
       "tipo": "ancora"
     },
     {
-      "ancora_id": "ciclo-01-calango",
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -59,7 +89,7 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-calango",
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -68,7 +98,16 @@
       "tipo": "manifesto"
     },
     {
-      "ancora_id": "ciclo-01-calango",
+      "ancora_id": null,
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
+      "ciclo_id": "ciclo:perna-boa/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
+      "professor": "perna-boa",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -77,7 +116,16 @@
       "tipo": "plano"
     },
     {
-      "ancora_id": "ciclo-01-calango",
+      "ancora_id": null,
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
+      "ciclo_id": "ciclo:perna-boa/01/calango",
+      "escola": "calango",
+      "id": "documento:plano:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
+      "professor": "perna-boa",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -88,16 +136,17 @@
   ],
   "escola": {
     "ciclos": [
-      "ciclo:oculos-redondo/01/calango"
+      "ciclo:oculos-redondo/01/calango",
+      "ciclo:perna-boa/01/calango"
     ],
     "contagens": {
       "anamneses": 2,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 2,
       "ciclos_com_ancora": 1,
-      "planos": 1,
+      "planos": 2,
       "pos": 0,
-      "registros": 3
+      "registros": 4
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
     "expurgada": false,
@@ -114,18 +163,20 @@
     "registros": [
       "anamnese:anamnese-20261022-1722",
       "anamnese:anamnese-20261022-2055",
-      "plano:plano-20261022-2100"
+      "plano:plano-20261022-2100",
+      "plano:plano-20261022-2101"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 3,
+        "contagem": 4,
         "ids": [
           "anamnese:anamnese-20261022-1722",
           "anamnese:anamnese-20261022-2055",
-          "plano:plano-20261022-2100"
+          "plano:plano-20261022-2100",
+          "plano:plano-20261022-2101"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -139,6 +190,14 @@
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:perna-boa/01/calango"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -153,9 +212,11 @@
         "valor": "oculos-redondo"
       },
       {
-        "contagem": 1,
+        "contagem": 3,
         "ids": [
-          "anamnese:anamnese-20261022-2055"
+          "anamnese:anamnese-20261022-2055",
+          "ciclo:perna-boa/01/calango",
+          "plano:plano-20261022-2101"
         ],
         "rotulo": "perna-boa",
         "valor": "perna-boa"
@@ -172,17 +233,19 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:oculos-redondo/01/calango"
+          "ciclo:oculos-redondo/01/calango",
+          "ciclo:perna-boa/01/calango"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "plano:plano-20261022-2100"
+          "plano:plano-20261022-2100",
+          "plano:plano-20261022-2101"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -191,9 +254,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "cb3b731"
+    "commit": "eb86f4b"
   },
-  "gerado_em": "2026-10-23T00:00",
+  "gerado_em": "2026-10-23T00:01",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -248,6 +311,18 @@
       "professor": "oculos-redondo",
       "tipo": "plano",
       "turma": "Balé Nível 1 — Teste 1"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261022-2101",
+      "ciclo": "01",
+      "data": "2026-10-22T21:01",
+      "id": "plano:plano-20261022-2101",
+      "objetivo": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 1, com musicalidade e controle do movimento.",
+      "professor": "perna-boa",
+      "tipo": "plano",
+      "turma": "Balé Nível 2 — Teste 1"
     }
   ],
   "versao": 6

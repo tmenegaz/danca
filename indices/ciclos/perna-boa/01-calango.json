@@ -1,0 +1,33 @@
+{
+  "ancora": null,
+  "aulas": [],
+  "ciclo": "01",
+  "documentos": [
+    "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
+    "documento:plano:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md"
+  ],
+  "escola": "calango",
+  "estado": "sem-ancora",
+  "filtros": {
+    "tipos": [
+      {
+        "contagem": 1,
+        "rotulo": "manifesto",
+        "valor": "manifesto"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "plano",
+        "valor": "plano"
+      }
+    ]
+  },
+  "fonte": {
+    "arvore": null,
+    "commit": "eb86f4b"
+  },
+  "gerado_em": "2026-10-23T00:01",
+  "id": "ciclo:perna-boa/01/calango",
+  "professor": "perna-boa",
+  "versao": 6
+}
