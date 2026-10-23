@@ -70,13 +70,13 @@
       "ciclo:cafe-no-bule/01/batata"
     ],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 3,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -96,17 +96,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261023-1111",
-      "anamnese:anamnese-20261023-1112"
+      "anamnese:anamnese-20261023-1112",
+      "anamnese:anamnese-20261023-1112-2"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261023-1111",
-          "anamnese:anamnese-20261023-1112"
+          "anamnese:anamnese-20261023-1112",
+          "anamnese:anamnese-20261023-1112-2"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -139,14 +141,23 @@
         ],
         "rotulo": "manga-curta",
         "valor": "manga-curta"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "anamnese:anamnese-20261023-1112-2"
+        ],
+        "rotulo": "meia-cortada",
+        "valor": "meia-cortada"
       }
     ],
     "tipos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261023-1111",
-          "anamnese:anamnese-20261023-1112"
+          "anamnese:anamnese-20261023-1112",
+          "anamnese:anamnese-20261023-1112-2"
         ],
         "rotulo": "Anamnese",
         "valor": "anamnese"
@@ -163,7 +174,7 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "67f33e5"
+    "commit": "ee2b6ab"
   },
   "gerado_em": "2026-10-23T14:12",
   "nao_indexado": [
@@ -207,6 +218,16 @@
       "data": "2026-10-23T11:12",
       "id": "anamnese:anamnese-20261023-1112",
       "professor": "manga-curta",
+      "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "anamnese-20261023-1112-2",
+      "ciclo": "01",
+      "data": "2026-10-23T11:12",
+      "id": "anamnese:anamnese-20261023-1112-2",
+      "professor": "meia-cortada",
       "tipo": "anamnese"
     }
   ],
