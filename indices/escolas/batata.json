@@ -70,13 +70,13 @@
       "ciclo:cafe-no-bule/01/batata"
     ],
     "contagens": {
-      "anamneses": 2,
+      "anamneses": 0,
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
       "planos": 0,
       "pos": 0,
-      "registros": 2
+      "registros": 0
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -94,24 +94,11 @@
       "teclado-abnt",
       "tela-de-celular"
     ],
-    "registros": [
-      "anamnese:anamnese-20261023-1028",
-      "anamnese:anamnese-20261023-1029"
-    ],
+    "registros": [],
     "slug": "batata"
   },
   "filtros": {
-    "anos": [
-      {
-        "contagem": 2,
-        "ids": [
-          "anamnese:anamnese-20261023-1028",
-          "anamnese:anamnese-20261023-1029"
-        ],
-        "rotulo": "2026",
-        "valor": "2026"
-      }
-    ],
+    "anos": [],
     "estados": [
       {
         "contagem": 1,
@@ -124,10 +111,8 @@
     ],
     "professores": [
       {
-        "contagem": 3,
+        "contagem": 1,
         "ids": [
-          "anamnese:anamnese-20261023-1028",
-          "anamnese:anamnese-20261023-1029",
           "ciclo:cafe-no-bule/01/batata"
         ],
         "rotulo": "cafe-no-bule",
@@ -135,15 +120,6 @@
       }
     ],
     "tipos": [
-      {
-        "contagem": 2,
-        "ids": [
-          "anamnese:anamnese-20261023-1028",
-          "anamnese:anamnese-20261023-1029"
-        ],
-        "rotulo": "Anamnese",
-        "valor": "anamnese"
-      },
       {
         "contagem": 1,
         "ids": [
@@ -156,9 +132,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "4bd978a"
+    "commit": "8a0250e"
   },
-  "gerado_em": "2026-10-23T13:29",
+  "gerado_em": "2026-10-23T14:10",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -181,27 +157,6 @@
       "motivo": "nunca — nem hash, nem sal"
     }
   ],
-  "registros": [
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261023-1028",
-      "ciclo": "01",
-      "data": "2026-10-23T10:28",
-      "id": "anamnese:anamnese-20261023-1028",
-      "professor": "cafe-no-bule",
-      "tipo": "anamnese"
-    },
-    {
-      "ajuste_de": null,
-      "ano": "2026",
-      "carimbo": "anamnese-20261023-1029",
-      "ciclo": "01",
-      "data": "2026-10-23T10:29",
-      "id": "anamnese:anamnese-20261023-1029",
-      "professor": "cafe-no-bule",
-      "tipo": "anamnese"
-    }
-  ],
+  "registros": [],
   "versao": 6
 }
