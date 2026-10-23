@@ -81,6 +81,9 @@
         "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
         "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
         "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
         "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
         "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
         "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -98,6 +101,7 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
@@ -216,6 +220,15 @@
     },
     {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+      "professor": "oculos-redondo",
+      "tipo": "dados"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
@@ -231,6 +244,15 @@
       "id": "documento:harmonizacao:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md",
       "professor": "oculos-redondo",
       "tipo": "harmonizacao"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:indice:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
+      "professor": "oculos-redondo",
+      "tipo": "indice"
     },
     {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
@@ -303,6 +325,15 @@
       "id": "documento:referencias:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
       "professor": "oculos-redondo",
       "tipo": "referencias"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "oculos-redondo",
+      "tipo": "schema"
     },
     {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
@@ -438,9 +469,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "72d8131"
+    "commit": "9c64ec8"
   },
-  "gerado_em": "2026-10-23T00:06",
+  "gerado_em": "2026-10-23T00:07",
   "nao_indexado": [
     {
       "familia": "conteudo",

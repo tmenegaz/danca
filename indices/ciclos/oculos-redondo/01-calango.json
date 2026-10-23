@@ -34,14 +34,17 @@
     "documento:aula:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-captura-aula-01.md",
     "documento:dados:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.cifrado.json",
     "documento:dados:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
+    "documento:dados:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclo-01-calango-bale-nivel-1-teste-1-dados.json",
     "documento:glossario:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
     "documento:harmonizacao:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-harmonizacao.md",
+    "documento:indice:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
     "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
     "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
     "documento:notacao:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-notacao.md",
     "documento:plano:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
     "documento:po:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-po.md",
     "documento:referencias:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-referencias.md",
+    "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/plano-observacao/envelope/elicitacao-schema.json",
     "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
@@ -59,7 +62,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -72,6 +75,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 2,
@@ -99,7 +107,7 @@
         "valor": "referencias"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "schema",
         "valor": "schema"
       }
@@ -107,9 +115,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "72d8131"
+    "commit": "9c64ec8"
   },
-  "gerado_em": "2026-10-23T00:06",
+  "gerado_em": "2026-10-23T00:07",
   "id": "ciclo:oculos-redondo/01/calango",
   "professor": "oculos-redondo",
   "versao": 6
