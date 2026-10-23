@@ -2,13 +2,13 @@
   "ciclos": [
     {
       "ancora": {
-        "hash": "8586d4bb0d3e9b1acf1f121cd1570270ffea612147b4b1d31844e15a0fccdae3",
-        "id": "ciclo-01-batata",
+        "hash": "b84df403c36fb49ba7efee1f2783e6f1c5942ccf3b9d88dfd975b85e87942eca",
+        "id": "ciclo-01-batata-bale-nivel-2-teste-2",
         "lida": true,
         "parent_hash": ""
       },
       "aulas": 0,
-      "documentos": 5,
+      "documentos": 6,
       "escola": "batata",
       "estado": "ancorado",
       "id": "ciclo:cafe-no-bule/01/batata",
@@ -446,9 +446,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "aed1c0f"
+    "commit": "9bccdbb"
   },
-  "gerado_em": "2026-10-23T14:16",
+  "gerado_em": "2026-10-23T14:17",
   "nao_indexado": [
     {
       "familia": "conteudo",
