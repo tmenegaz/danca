@@ -3,7 +3,8 @@
   "nomes": [
     "anamnese-20261022-1722.json",
     "anamnese-20261022-2055.json",
-    "plano-20261022-2100.json"
+    "plano-20261022-2100.json",
+    "plano-20261022-2101.json"
   ],
   "resumos": {
     "anamnese-20261022-1722.json": {
@@ -37,6 +38,20 @@
         "Sequência de teste com plié, tendu e port de bras."
       ],
       "professorNome": "Oculos Redondo"
+    },
+    "plano-20261022-2101.json": {
+      "id": "plano-20261022-2101",
+      "fonte": "plano",
+      "escola": "calango",
+      "professor": "perna-boa",
+      "ciclo": "01",
+      "ajuste_de": null,
+      "objetivo": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 2 — Teste 1, com musicalidade e controle do movimento.",
+      "turma": "Balé Nível 2 — Teste 1",
+      "repertorio": [
+        "Sequência de teste com plié, tendu e port de bras."
+      ],
+      "professorNome": "Perna Boa"
     }
   }
 }
