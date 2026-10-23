@@ -39,6 +39,25 @@
         "plano",
         "schema"
       ]
+    },
+    {
+      "ancora": null,
+      "aulas": [],
+      "documentos": [
+        "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+        "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf"
+      ],
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:manga-curta/01/batata",
+      "numero": "01",
+      "pacote": null,
+      "professor": "manga-curta",
+      "sem_ancora": true,
+      "tipos": [
+        "manifesto",
+        "plano"
+      ]
     }
   ],
   "documentos": [
@@ -79,12 +98,30 @@
       "tipo": "manifesto"
     },
     {
+      "ancora_id": null,
+      "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "ciclo_id": "ciclo:manga-curta/01/batata",
+      "escola": "batata",
+      "id": "documento:manifesto:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2.conf",
+      "professor": "manga-curta",
+      "tipo": "manifesto"
+    },
+    {
       "ancora_id": "ciclo-01-batata-bale-nivel-2-teste-2",
       "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
       "ciclo_id": "ciclo:cafe-no-bule/01/batata",
       "escola": "batata",
       "id": "documento:plano:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
       "professor": "cafe-no-bule",
+      "tipo": "plano"
+    },
+    {
+      "ancora_id": null,
+      "caminho": "professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "ciclo_id": "ciclo:manga-curta/01/batata",
+      "escola": "batata",
+      "id": "documento:plano:professores/manga-curta/ciclos/ciclo-01-batata-bale-nivel-1-teste-2-plano.md",
+      "professor": "manga-curta",
       "tipo": "plano"
     },
     {
@@ -99,16 +136,17 @@
   ],
   "escola": {
     "ciclos": [
-      "ciclo:cafe-no-bule/01/batata"
+      "ciclo:cafe-no-bule/01/batata",
+      "ciclo:manga-curta/01/batata"
     ],
     "contagens": {
       "anamneses": 3,
       "aulas": 0,
-      "ciclos": 1,
+      "ciclos": 2,
       "ciclos_com_ancora": 1,
-      "planos": 1,
+      "planos": 2,
       "pos": 0,
-      "registros": 4
+      "registros": 5
     },
     "criada_em": "2026-10-19T16:48:13.723848+00:00",
     "expurgada": false,
@@ -130,19 +168,21 @@
       "anamnese:anamnese-20261023-1111",
       "anamnese:anamnese-20261023-1112",
       "anamnese:anamnese-20261023-1112-2",
-      "plano:plano-20261023-1116"
+      "plano:plano-20261023-1116",
+      "plano:plano-20261023-1117"
     ],
     "slug": "batata"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 4,
+        "contagem": 5,
         "ids": [
           "anamnese:anamnese-20261023-1111",
           "anamnese:anamnese-20261023-1112",
           "anamnese:anamnese-20261023-1112-2",
-          "plano:plano-20261023-1116"
+          "plano:plano-20261023-1116",
+          "plano:plano-20261023-1117"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -156,6 +196,14 @@
         ],
         "rotulo": "Com âncora",
         "valor": "ancorado"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "ciclo:manga-curta/01/batata"
+        ],
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
       }
     ],
     "professores": [
@@ -171,9 +219,11 @@
         "valor": "cafe-no-bule"
       },
       {
-        "contagem": 1,
+        "contagem": 3,
         "ids": [
-          "anamnese:anamnese-20261023-1112"
+          "anamnese:anamnese-20261023-1112",
+          "ciclo:manga-curta/01/batata",
+          "plano:plano-20261023-1117"
         ],
         "rotulo": "manga-curta",
         "valor": "manga-curta"
@@ -191,17 +241,19 @@
         "valor": "anamnese"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "ciclo:cafe-no-bule/01/batata"
+          "ciclo:cafe-no-bule/01/batata",
+          "ciclo:manga-curta/01/batata"
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "ids": [
-          "plano:plano-20261023-1116"
+          "plano:plano-20261023-1116",
+          "plano:plano-20261023-1117"
         ],
         "rotulo": "Plano de ensino",
         "valor": "plano"
@@ -210,9 +262,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9bccdbb"
+    "commit": "92e4f54"
   },
-  "gerado_em": "2026-10-23T14:17",
+  "gerado_em": "2026-10-23T14:18",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -277,6 +329,18 @@
       "professor": "cafe-no-bule",
       "tipo": "plano",
       "turma": "Balé Nível 2 — Teste 2"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261023-1117",
+      "ciclo": "01",
+      "data": "2026-10-23T11:17",
+      "id": "plano:plano-20261023-1117",
+      "objetivo": "Objetivo de teste 2: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 2, com musicalidade e controle do movimento.",
+      "professor": "manga-curta",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 2"
     }
   ],
   "versao": 6
