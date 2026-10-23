@@ -369,6 +369,16 @@
     {
       "em": "2026-10-22T11:29:18.997357+00:00",
       "motivo": "recriada por tools/criar-escola.sh"
+    },
+    {
+      "em": "2026-10-23T12:56:28.588332+00:00",
+      "motivo": "recriada por tools/criar-escola.sh",
+      "professor": {
+        "slug": "cafe-no-bule",
+        "nome": "Cafe No Bule"
+      },
+      "responsavel": "Cafe No Bule",
+      "ciclo": "01"
     }
   ],
   "professores": [

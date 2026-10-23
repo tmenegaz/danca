@@ -1,5 +1,17 @@
 {
-  "ciclos": [],
+  "ciclos": [
+    {
+      "ancora": null,
+      "aulas": 0,
+      "documentos": 2,
+      "escola": "batata",
+      "estado": "sem-ancora",
+      "id": "ciclo:cafe-no-bule/01/batata",
+      "numero": "01",
+      "professor": "cafe-no-bule",
+      "sem_ancora": true
+    }
+  ],
   "escolas": [
     {
       "ciclos": [],
@@ -27,31 +39,32 @@
       "slug": "barra"
     },
     {
-      "ciclos": [],
+      "ciclos": [
+        "ciclo:cafe-no-bule/01/batata"
+      ],
       "contagens": {
         "anamneses": 0,
         "aulas": 0,
-        "ciclos": 0,
+        "ciclos": 1,
         "ciclos_com_ancora": 0,
         "planos": 0,
         "pos": 0,
         "registros": 0
       },
       "criada_em": "2026-10-19T16:48:13.723848+00:00",
-      "expurgada": true,
+      "expurgada": false,
       "expurgada_em": "2026-10-22T19:32:56.536Z",
       "expurgos": 4,
-      "habilitada": false,
+      "habilitada": true,
       "id": "escola:batata",
       "nome": "batata",
-      "professor": "tiago-menegaz",
+      "professor": "cafe-no-bule",
       "professores": [
         "acucar-branco",
+        "cafe-no-bule",
         "meia-cortada",
-        "sapo-bailarino",
         "teclado-abnt",
-        "tela-de-celular",
-        "tiago-menegaz"
+        "tela-de-celular"
       ],
       "registros": [],
       "slug": "batata"
@@ -317,7 +330,13 @@
         "valor": "valse"
       }
     ],
-    "estados": [],
+    "estados": [
+      {
+        "contagem": 1,
+        "rotulo": "Sem âncora",
+        "valor": "sem-ancora"
+      }
+    ],
     "professores": [
       {
         "contagem": 1,
@@ -325,8 +344,8 @@
         "valor": "acucar-branco"
       },
       {
-        "contagem": 0,
-        "rotulo": "cafe-no-bule",
+        "contagem": 1,
+        "rotulo": "Cafe No Bule",
         "valor": "cafe-no-bule"
       },
       {
@@ -360,7 +379,7 @@
         "valor": "perna-boa"
       },
       {
-        "contagem": 4,
+        "contagem": 3,
         "rotulo": "Sapo Bailarino",
         "valor": "sapo-bailarino"
       },
@@ -380,8 +399,8 @@
         "valor": "tiago"
       },
       {
-        "contagem": 5,
-        "rotulo": "Tela de PC",
+        "contagem": 4,
+        "rotulo": "Tiago",
         "valor": "tiago-menegaz"
       },
       {
@@ -394,9 +413,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "c4ee02b"
+    "commit": "77c10c6"
   },
-  "gerado_em": "2026-10-23T12:54",
+  "gerado_em": "2026-10-23T12:56",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -430,10 +449,14 @@
       "slug": "acucar-branco"
     },
     {
-      "ciclos": [],
-      "escolas": [],
+      "ciclos": [
+        "ciclo:cafe-no-bule/01/batata"
+      ],
+      "escolas": [
+        "batata"
+      ],
       "id": "professor:cafe-no-bule",
-      "nome": null,
+      "nome": "Cafe No Bule",
       "slug": "cafe-no-bule"
     },
     {
@@ -493,7 +516,6 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata",
         "breu",
         "calando-teste-1",
         "calango"
@@ -533,14 +555,13 @@
     {
       "ciclos": [],
       "escolas": [
-        "batata",
         "breu",
         "calango",
         "fita",
         "valse"
       ],
       "id": "professor:tiago-menegaz",
-      "nome": "Tela de PC",
+      "nome": "Tiago",
       "slug": "tiago-menegaz"
     },
     {
