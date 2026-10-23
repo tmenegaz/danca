@@ -86,12 +86,19 @@ function ehAtivo(item, pedido) {
  */
 function grupoAtual(menu, pedido) {
   const grupos = (menu && Array.isArray(menu.grupos)) ? menu.grupos : [];
+  /* O DESTINO DIRECTO MANDA SOBRE O GRUPO (23/10/2026). «Aulas» está na coluna como destino
+     próprio — e «Lançamento de aula», dentro de «Área do Professor», aponta para o MESMO URL: o
+     lançamento é uma acção de cada linha da lista de aulas, e a lista é a página. Sem esta
+     precedência, estar em `/aulas/` marcava «Área do Professor» como grupo actual, e a coluna
+     dizia que se estava num sítio onde não se está. O destino directo é o mais próximo do que a
+     pessoa clicou, e é ele que responde. */
+  const directo = grupos.find((g) => g && g.tipo !== 'menu' && ehAtivo(g, pedido));
+  if (directo) return null;
   for (const grupo of grupos) {
     if (!grupo || !Array.isArray(grupo.itens)) continue;
     if (grupo.itens.some((i) => ehAtivo(i, pedido))) return grupo;
   }
-  // Um grupo que é ELE PRÓPRIO um destino (o «Bastidores» da barra não é, mas um dia pode ser).
-  return grupos.find((g) => g && g.tipo !== 'menu' && ehAtivo(g, pedido)) || null;
+  return null;
 }
 
 /** O título do documento servido, lido do `<h1>` da própria página. Ver `tituloDaPagina`. */

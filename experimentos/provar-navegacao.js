@@ -181,6 +181,20 @@ function destinos(menu) {
     marcas.grupos.filter((g) => g.atual).map((g) => g.rotulo).join(',') === 'Ciclos', marcas.grupos);
   provar('a barra diz o grupo e a página', /Ciclos/.test(marcas.caminho) && /Planos do ciclo/.test(marcas.caminho), marcas.caminho);
 
+  /* O DESTINO DIRECTO MANDA SOBRE O GRUPO (23/10/2026). «/aulas/» é o URL de «Aulas» — destino
+     próprio no topo da coluna — e também o de «Lançamento de aula», dentro de «Área do
+     Professor»: o lançamento é uma acção de cada linha da lista, e a lista é a página. Sem a
+     precedência, estar em `/aulas/` marcava «Área do Professor» como grupo actual, e a coluna
+     dizia que se estava num sítio onde não se está. Aqui medem-se as duas metades: o grupo NÃO
+     se marca, e o destino directo acende. */
+  await ir('/aulas/', 1280);
+  const emAulas = await pagina.evaluate(() => ({
+    atual: (document.querySelector('.coluna-grupo[data-atual="sim"] .coluna-titulo span') || {}).textContent || null,
+    directo: (document.querySelector('.coluna-direto.ativo') || {}).textContent || null,
+  }));
+  provar('em /aulas/ nenhum grupo se diz actual (o destino é directo)', emAulas.atual === null, emAulas);
+  provar('…e é o «Aulas» que acende', emAulas.directo === 'Aulas', emAulas.directo);
+
   // ------------------------------------------------------------------ 4. a coluna, no computador
   console.log('\n4 · A coluna, no computador');
   const col = await pagina.evaluate(() => {
