@@ -1,0 +1,452 @@
+#!/usr/bin/env node
+'use strict';
+
+/*
+ * provar-contexto-do-ato.js — prova, executando o código REAL da porta, que
+ *   (1) o campo do contexto que falta é DITO antes de o professor escrever (a barra
+ *       marca o campo e o resumo nomeia o que falta);
+ *   (2) a recusa do fecho APONTA o campo — abre o acordeão, rola e foca — e explica
+ *       por que a anamnese pede um «ciclo» que ela não pergunta;
+ *   (3) o «Começar» se trava com o MESMO critério do fecho, e não dois critérios
+ *       diferentes (era o defeito: o começo pedia senha e aluna; o fecho pedia
+ *       escola, professor e ciclo);
+ *   (4) o `?aluna=` que o PO manda no atalho «criar a anamnese de …» SOBREVIVE —
+ *       antes ele era descartado em silêncio pelo `select` sem opções.
+ *
+ * O que se executa é o `<script>` de `porta/index.html`, extraído na hora: não há
+ * cópia da lógica aqui. O DOM é falso e mínimo.
+ *
+ *   uso: node experimentos/provar-contexto-do-ato.js
+ */
+
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+const RAIZ = path.resolve(__dirname, '..');
+const FONTE = path.join(RAIZ, 'porta/index.html');
+
+let ok = 0;
+const falhas = [];
+function provar(nome, condicao, detalhe) {
+  if (condicao) { ok++; return; }
+  falhas.push(nome + (detalhe ? ' — ' + detalhe : ''));
+}
+
+// ---------------------------------------------------------------- o DOM falso
+
+function criarClasse(classes) {
+  const conjunto = new Set(classes || []);
+  return {
+    add: (c) => conjunto.add(c),
+    remove: (c) => conjunto.delete(c),
+    contains: (c) => conjunto.has(c),
+    toggle: (c, liga) => {
+      const antes = conjunto.has(c);
+      if (liga === undefined) liga = !antes;
+      if (liga) conjunto.add(c); else conjunto.delete(c);
+      return liga !== antes;
+    },
+    _tem: (c) => conjunto.has(c),
+  };
+}
+
+/*
+ * Um elemento com o MÍNIMO que as funções provadas usam. Os dois `select` recebem
+ * o comportamento do DOM de verdade que É a causa do defeito 4: atribuir um valor
+ * que não corresponde a nenhuma `<option>` NÃO cola — o valor vira string vazia.
+ */
+function criarElemento(id, tag) {
+  const el = {
+    id,
+    tagName: tag,
+    _valor: '',
+    textContent: '',
+    innerHTML: '',
+    disabled: false,
+    title: '',
+    open: false,
+    style: {},
+    classList: criarClasse([]),
+    opcoes: [],
+    _pai: null,
+    _focado: false,
+    _rolou: false,
+    addEventListener() {},
+    closest(sel) { return sel === '.campo' ? el._pai : null; },
+    scrollIntoView() { el._rolou = true; },
+    focus() { el._focado = true; },
+  };
+  Object.defineProperty(el, 'value', {
+    get() { return el._valor; },
+    set(v) {
+      if (tag === 'select') {
+        // O DOM DE VERDADE: sem a opção correspondente, a atribuição é descartada.
+        const achou = el.opcoes.some((o) => o.value === v);
+        el._valor = achou ? v : '';
+        return;
+      }
+      el._valor = v === undefined || v === null ? '' : String(v);
+    },
+  });
+  Object.defineProperty(el, 'selectedIndex', {
+    get() { return el.opcoes.findIndex((o) => o.value === el._valor); },
+  });
+  Object.defineProperty(el, 'options', { get() { return el.opcoes; } });
+  // `innerHTML` das opções: reconstrói as opções como o navegador faria.
+  Object.defineProperty(el, 'innerHTML', {
+    get() { return el._html || ''; },
+    set(h) {
+      el._html = h;
+      if (tag !== 'select') return;
+      const guardado = el._valor;
+      el.opcoes = [];
+      for (const m of String(h).matchAll(/<option value="([^"]*)"[^>]*>/g)) {
+        el.opcoes.push({ value: m[1] });
+      }
+      // Reconstruir o `innerHTML` de um select PRESERVA a seleção se a opção voltar.
+      el._valor = el.opcoes.some((o) => o.value === guardado) ? guardado : '';
+    },
+  });
+  return el;
+}
+
+// A árvore: cada campo do contexto mora numa caixa `.campo`, que é o que se marca.
+function montarDocumento() {
+  const porId = new Map();
+  const definir = (id, tag) => {
+    const el = criarElemento(id, tag);
+    const caixa = criarElemento('caixa-' + id, 'span');
+    caixa.classList = criarClasse(['campo']);
+    el._pai = caixa;
+    caixa._filho = el;
+    porId.set(id, el);
+    return el;
+  };
+  definir('ctx-escola', 'input');
+  definir('ctx-professor', 'select');
+  definir('ctx-ciclo', 'input');
+  definir('ctx-aluna', 'select');
+  const comecar = criarElemento('comecar', 'button');
+  porId.set('comecar', comecar);
+  const acc = criarElemento('acordeao', 'details');
+  const resumo = criarElemento('resumo', 'span');
+  acc.classList = criarClasse([]);
+  return { porId, comecar, acc, resumo };
+}
+
+// ------------------------------------------------------------------ o contexto
+
+function carregarPorta(opcoes) {
+  const fonte = fs.readFileSync(FONTE, 'utf8');
+  const linhas = fonte.split('\n');
+  const ini = linhas.findIndex((l) => l.trim() === '<script>');
+  const fim = linhas.findIndex((l, i) => i > ini && l.trim() === '</script>');
+  let js = linhas.slice(ini + 1, fim).join('\n');
+  // O boot faz fetch e não é o objeto da prova: fora.
+  js = js.replace(/^iniciar\(\);\s*$/m, '');
+  js += '\nglobalThis.__porta = { contextoFaltando, contextoDaBarra, marcarContextoFaltando,'
+      + ' atualizarComecar, carregarAlunas, carregarProfessores, aplicarCuradoria, FONTE,'
+      + ' definirCuradoria: (carregada, lista) => { CURADORIA_CARREGADA = carregada; CURADORIAS = lista; } };';
+
+  const dom = montarDocumento();
+  const url = new URL('https://fita.tmenegaz77.workers.dev' + opcoes.caminho);
+
+  const sandbox = {
+    console: { log() {}, warn() {}, error() {} },
+    URLSearchParams,
+    URL,
+    Date,
+    Math,
+    JSON,
+    Set,
+    Map,
+    Array,
+    Object,
+    String,
+    Number,
+    Boolean,
+    Error,
+    Promise,
+    RegExp,
+    Intl,
+    setTimeout,
+    clearTimeout,
+    globalThis: null,
+    location: { pathname: url.pathname, search: url.search, href: url.href },
+    document: {
+      getElementById: (id) => dom.porId.get(id) || null,
+      querySelector: (sel) => {
+        if (sel === '.barra details.ctx-ato .ctx-resumo') return dom.resumo;
+        if (sel === '.barra details.ctx-ato') return dom.acc;
+        return null;
+      },
+      querySelectorAll: () => [],
+      addEventListener() {},
+      body: criarElemento('body', 'body'),
+      documentElement: criarElemento('html', 'html'),
+    },
+    localStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    sessionStorage: { getItem: () => null, setItem() {}, removeItem() {} },
+    fetch: async (alvo) => {
+      if (String(alvo).indexOf('alunas') !== -1) {
+        /* O RECORTE DA ANAMNESE PASSOU A SER DO SERVIDOR (23/10/2026). A tela já não
+           re-acrescenta nada: ela desenha a lista que o servidor manda, e o `?aluna=` vai no
+           ENDEREÇO da consulta. Este stub faz o que a rota faz — devolve a lista e, se a aluna
+           pedida não está no cadastro, acrescenta-a —, para a prova continuar a medir a sua
+           parte: que o campo SELECCIONA a aluna que o servidor aceitou. A regra em si
+           (quem é autorizada) mede-se em `provar-alunas-da-anamnese.js`, contra o motor. */
+        const pedida = new URL(String(alvo), 'https://x').searchParams.get('aluna') || '';
+        const lista = (opcoes.alunas || []).slice();
+        if (pedida && lista.indexOf(pedida) === -1) lista.push(pedida);
+        return { ok: true, json: async () => ({ ok: true, alunas: lista }) };
+      }
+      if (String(alvo).indexOf('professores') !== -1) {
+        return { ok: true, json: async () => ({ ok: true, professores: opcoes.professores || [] }) };
+      }
+      return { ok: true, json: async () => ({}) };
+    },
+    speechSynthesis: { cancel() {}, speak() {} },
+    addEventListener() {},
+    history: { back() {}, pushState() {} },
+    navigator: { userAgent: 'prova' },
+  };
+  sandbox.globalThis = sandbox;
+  sandbox.window = sandbox;
+  sandbox.self = sandbox;
+  vm.createContext(sandbox);
+  new vm.Script(js, { filename: 'porta/index.html:script' }).runInContext(sandbox);
+  return { porta: sandbox.__porta, dom, sandbox };
+}
+
+function preencher(dom, valores) {
+  for (const [id, valor] of Object.entries(valores)) {
+    const el = dom.porId.get(id);
+    if (!el) continue;
+    if (el.tagName === 'select') {
+      el.innerHTML = '<option value="">— nenhum —</option>' +
+        (valor.opcoes || []).map((o) => '<option value="' + o + '">' + o + '</option>').join('');
+      el.value = valor.escolhido || '';
+    } else {
+      el.value = valor;
+    }
+  }
+}
+
+// =========================================================== as quatro provas
+
+async function main() {
+
+// ---------------------------------------------- 1) a barra diz o que falta
+
+{
+  // O caminho do DEFEITO: entrando pelos Bastidores, sem `?ciclo=` na URL.
+  const { porta, dom } = carregarPorta({
+    caminho: '/anamnese/?professor=tiago-menegaz&escola=fita',
+    alunas: [],
+  });
+  provar('FONTE é anamnese no caminho /anamnese/', porta.FONTE === 'anamnese', porta.FONTE);
+
+  preencher(dom, {
+    'ctx-escola': 'fita',
+    'ctx-professor': { opcoes: ['tiago-menegaz'], escolhido: 'tiago-menegaz' },
+    'ctx-ciclo': '',
+    'ctx-aluna': { opcoes: ['Mari'], escolhido: 'Mari' },
+  });
+
+  provar('o contexto faltante é exatamente [ciclo]',
+    JSON.stringify(porta.contextoFaltando()) === JSON.stringify(['ciclo']),
+    JSON.stringify(porta.contextoFaltando()));
+
+  porta.marcarContextoFaltando();
+  const caixa = (id) => dom.porId.get(id)._pai;
+  provar('a barra MARCA a caixa do ciclo', caixa('ctx-ciclo').classList._tem('falta'));
+  provar('e não marca a da escola', !caixa('ctx-escola').classList._tem('falta'));
+  provar('nem a do professor', !caixa('ctx-professor').classList._tem('falta'));
+  provar('o resumo da barra nomeia o que falta',
+    /falta ciclo para fechar/.test(dom.resumo.innerHTML), dom.resumo.innerHTML);
+  provar('e o resumo mostra os quatro campos do ato',
+    /escola/.test(dom.resumo.innerHTML) && /aluna/.test(dom.resumo.innerHTML),
+    dom.resumo.innerHTML);
+
+  // Preencher o ciclo limpa a marca — a barra não fica acusando o que já está lá.
+  dom.porId.get('ctx-ciclo').value = '01';
+  porta.marcarContextoFaltando();
+  provar('preenchido o ciclo, a marca sai', !caixa('ctx-ciclo').classList._tem('falta'));
+
+  // ------------------------------------------ 3) o «Começar» usa a MESMA regra
+  porta.atualizarComecar();
+  provar('com contexto completo, mas SEM senha, o Começar não abre para a anamnese',
+    dom.porId.get('comecar').disabled === true);
+  provar('e o botão diz o que falta (a senha)',
+    /senha/i.test(dom.porId.get('comecar').title), dom.porId.get('comecar').title);
+
+  dom.porId.get('ctx-ciclo').value = '';
+  porta.atualizarComecar();
+  provar('sem o ciclo, o Começar fica travado mesmo com a senha dada',
+    dom.porId.get('comecar').disabled === true);
+  provar('e o title nomeia o campo que falta',
+    /desde o ciclo|falta|contexto do ato/i.test(dom.porId.get('comecar').title),
+    dom.porId.get('comecar').title);
+  provar('o title cita «ciclo»',
+    /ciclo/.test(dom.porId.get('comecar').title), dom.porId.get('comecar').title);
+}
+
+// ------------------------------------ 2) o fecho recusa, e APONTA o campo
+
+{
+  const { porta, dom } = carregarPorta({
+    caminho: '/anamnese/?professor=tiago-menegaz&escola=fita',
+  });
+  preencher(dom, {
+    'ctx-escola': 'fita',
+    'ctx-professor': { opcoes: ['tiago-menegaz'], escolhido: 'tiago-menegaz' },
+    'ctx-ciclo': '',
+    'ctx-aluna': { opcoes: ['Mari'], escolhido: 'Mari' },
+  });
+
+  let mensagem = '';
+  try { porta.contextoDaBarra(); } catch (erro) { mensagem = erro.message; }
+
+  provar('o fecho RECUSA com o ciclo vazio', mensagem !== '');
+  provar('a mensagem nomeia o campo vazio', /ciclo/.test(mensagem), mensagem);
+  provar('a mensagem diz ONDE fica o campo',
+    /barra/i.test(mensagem) && /alto/i.test(mensagem), mensagem);
+  provar('a mensagem EXPLICA por que a anamnese pede um ciclo',
+    /não é conteúdo deste formulário/.test(mensagem), mensagem);
+  provar('a mensagem diz que o que já foi respondido está guardado',
+    /guardado/i.test(mensagem), mensagem);
+  provar('a mensagem NÃO é a antiga', !/^preencha o contexto na barra/.test(mensagem), mensagem);
+  provar('e o acordeão foi ABERTO — o campo pode estar recolhido',
+    dom.acc.open === true);
+  provar('a caixa do ciclo ficou marcada depois da recusa',
+    dom.porId.get('ctx-ciclo')._pai.classList._tem('falta'));
+  provar('e o foco foi para o campo que falta',
+    dom.porId.get('ctx-ciclo')._focado === true);
+  provar('a barra foi levada à vista (scrollIntoView)',
+    dom.porId.get('ctx-ciclo')._rolou === true);
+
+  // Com tudo preenchido, o contexto sai — e sai o valor de cada campo.
+  dom.porId.get('ctx-ciclo').value = '01';
+  const ctx = porta.contextoDaBarra();
+  provar('com o ciclo preenchido, o contexto sai inteiro',
+    ctx.escola === 'fita' && ctx.professor === 'tiago-menegaz' &&
+    ctx.ciclo === '01' && ctx.aluna === 'Mari',
+    JSON.stringify(ctx));
+  provar('CONTROLE NEGATIVO — sem o ciclo o contexto NÃO sairia',
+    Object.prototype.hasOwnProperty.call(ctx, 'ciclo'));
+}
+
+// ------------------------- 4) o `?aluna=` que o PO manda SOBREVIVE à lista
+
+{
+  // O atalho do PO: «criar a anamnese de Mari» → `?…&aluna=Mari`.
+  const { porta, dom } = carregarPorta({
+    caminho: '/anamnese/?escola=fita&professor=tiago-menegaz&ciclo=01&aluna=Mari',
+    alunas: ['Mari', 'Vavá', 'Dani', 'Leti'],
+  });
+  // A barra nasce como o boot a deixa: a URL foi lida ANTES das opções existirem.
+  dom.porId.get('ctx-escola').value = 'fita';
+  dom.porId.get('ctx-ciclo').value = '01';
+  dom.porId.get('ctx-aluna').value = 'Mari';   // o `select` sem opções DESCARTA este valor
+  provar('o DOM de verdade descarta o valor do select sem opções (premissa do defeito)',
+    dom.porId.get('ctx-aluna').value === '', dom.porId.get('ctx-aluna').value);
+
+  await porta.carregarAlunas();
+  provar('depois de carregar a lista, a aluna da URL está SELECIONADA',
+    dom.porId.get('ctx-aluna').value === 'Mari', dom.porId.get('ctx-aluna').value);
+  provar('e a lista continua inteira (as quatro da escola)',
+    dom.porId.get('ctx-aluna').opcoes.length === 5, /* + a "— nenhuma —" */
+    String(dom.porId.get('ctx-aluna').opcoes.length) + ' | ' +
+    dom.porId.get('ctx-aluna').opcoes.map((o) => o.value).join(',') + ' | ' +
+    String(dom.porId.get('ctx-aluna')._html).slice(0, 200));
+}
+
+{
+  // A aluna que o sistema mandou e a Produção ainda não cadastrou não se perde.
+  const { porta, dom } = carregarPorta({
+    caminho: '/anamnese/?escola=fita&professor=tiago-menegaz&ciclo=01&aluna=Ju',
+    alunas: ['Mari', 'Vavá'],
+  });
+  await porta.carregarAlunas();
+  provar('aluna da URL fora da lista entra assim mesmo (foi o sistema que a mandou)',
+    dom.porId.get('ctx-aluna').value === 'Ju', dom.porId.get('ctx-aluna').value ||
+    '(vazio)');
+}
+
+{
+  // CONTROLE NEGATIVO: sem `?aluna=`, o seletor segue em «nenhuma» — a correção
+  // não inventa aluna nenhuma.
+  const { porta, dom } = carregarPorta({
+    caminho: '/anamnese/?escola=fita&professor=tiago-menegaz&ciclo=01',
+    alunas: ['Mari', 'Vavá'],
+  });
+  await porta.carregarAlunas();
+  provar('CONTROLE NEGATIVO — sem ?aluna=, nada é escolhido',
+    dom.porId.get('ctx-aluna').value === '', dom.porId.get('ctx-aluna').value || '(vazio)');
+}
+
+{
+  // O PO não tem o campo `aluna` no contexto: a correção não o exige lá.
+  const { porta, dom } = carregarPorta({
+    caminho: '/plano-observacao/?escola=fita&professor=tiago-menegaz&ciclo=01',
+  });
+  provar('no PO a fonte é po', porta.FONTE === 'po', porta.FONTE);
+  dom.porId.get('ctx-escola').value = 'fita';
+  dom.porId.get('ctx-ciclo').value = '01';
+  dom.porId.get('ctx-professor').innerHTML = '<option value="">— escolher —</option><option value="tiago-menegaz">Tiago</option>';
+  dom.porId.get('ctx-professor').value = 'tiago-menegaz';
+  provar('no PO o contexto completo são três campos (sem aluna)',
+    porta.contextoFaltando().length === 0, JSON.stringify(porta.contextoFaltando()));
+  provar('e o Começar do PO abre sem senha', (() => {
+    porta.atualizarComecar();
+    return dom.porId.get('comecar').disabled === false;
+  })());
+
+  // E no PO, sem o ciclo, o Começar se trava — o mesmo defeito, ali também.
+  dom.porId.get('ctx-ciclo').value = '';
+  porta.atualizarComecar();
+  provar('no PO, sem o ciclo, o Começar fica travado',
+    dom.porId.get('comecar').disabled === true);
+}
+
+{
+  // A trava da CURADORIA não pode ser dissolvida pela minha: as duas somam.
+  const { porta, dom } = carregarPorta({
+    caminho: '/plano-observacao/?escola=fita&professor=tiago-menegaz&ciclo=01',
+  });
+  dom.porId.get('ctx-escola').value = 'fita';
+  dom.porId.get('ctx-ciclo').value = '01';
+  dom.porId.get('ctx-professor').innerHTML =
+    '<option value="">— escolher —</option><option value="tiago-menegaz">Tiago</option>';
+  dom.porId.get('ctx-professor').value = 'tiago-menegaz';
+
+  // Sem curadoria atribuída, a direção ainda não curou: o PO não começa.
+  porta.definirCuradoria(true, []);
+  porta.aplicarCuradoria();
+  provar('CONTROLE — sem curadoria, o Começar do PO fica travado mesmo com o contexto completo',
+    dom.porId.get('comecar').disabled === true);
+
+  // COM curadoria, a trava sai — e é aqui que a versão anterior ficava presa: ela
+  // desligava sem nunca religar ao trocar de professor.
+  porta.definirCuradoria(true, [{ modalidade: 'balé clássico' }]);
+  porta.aplicarCuradoria();
+  provar('com curadoria e contexto completo, o Começar do PO abre',
+    dom.porId.get('comecar').disabled === false);
+
+  // E voltando para um professor sem curadoria, trava de novo.
+  porta.definirCuradoria(true, []);
+  porta.aplicarCuradoria();
+  provar('voltando a um professor sem curadoria, trava outra vez',
+    dom.porId.get('comecar').disabled === true);
+}
+
+// ------------------------------------------------------------------- relatório
+
+}  // fim de main()
+
+main().then(() => {
+  console.log(ok + ' prova(s) passaram, ' + falhas.length + ' falharam');
+  for (const f of falhas) console.log('  FALHOU: ' + f);
+  process.exit(falhas.length ? 1 : 0);
+});

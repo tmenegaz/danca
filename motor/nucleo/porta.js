@@ -827,6 +827,59 @@ function alunasDoProfessor(curadorias, professor) {
   return [...vistas];
 }
 
+/**
+ * AS ALUNAS DA ANAMNESE — a regra MISTA (23/10/2026, decisão da pesquisadora).
+ *
+ * A ANAMNESE TEM DOIS PAPÉIS, e a lista tem de servir os dois:
+ *
+ *   · para a aluna **matriculada** — a que já está numa curadoria —, a anamnese é o registo
+ *     inicial de quem já tem professor e turma. Quem a faz é o professor dela: ele conhece a
+ *     aluna, e a observação fica melhor cuidada. Uma aluna curada a OUTRO professor não entra
+ *     nesta lista — a autorização é a curadoria, e ela é declarada, não deduzida (P-16).
+ *   · para a aluna **nova** — a que ainda não está em curadoria nenhuma —, a anamnese é o
+ *     INSTRUMENTO DE ENTRADA: é dela que saem as evidências para decidir a turma («esta aluna
+ *     vai para a X e não para a Y»), e por isso qualquer professor da escola a pode fazer.
+ *     Travá-la seria travar a porta da escola.
+ *
+ * «NOVA» É DERIVADO, E NÃO UM CAMPO. Uma aluna é nova enquanto não estiver em curadoria
+ * vigente nenhuma; no dia em que a direção a cura, deixa de o ser — e nada mudou no cadastro
+ * dela. É a mesma lei do estado da aula: o que se pode derivar não se declara, senão há dois
+ * sítios a discordar.
+ *
+ * O que a função devolve são as duas coisas que a tela precisa: a lista recortada (`alunas`) e
+ * as que levam a marca (`novas`). A marca é da TELA, não do registo: o apelido que entra no
+ * envelope é o nome limpo.
+ */
+function alunasDaAnamnese(curadorias, professor, todas, pedida) {
+  const alvo = String(professor || '').trim();
+  const cadastro = (Array.isArray(todas) ? todas : [])
+    .map((a) => String(a == null ? '' : a).trim()).filter(Boolean);
+  const vigentes = (Array.isArray(curadorias) ? curadorias : []).filter((c) => c && !c.substituidaPor);
+  const emAlguma = new Set();
+  for (const c of vigentes) {
+    for (const a of Array.isArray(c.alunas) ? c.alunas : []) {
+      const nome = String(a == null ? '' : a).trim();
+      if (nome) emAlguma.add(nome);
+    }
+  }
+  const doProfessor = new Set(alunasDoProfessor(vigentes, alvo) || []);
+  let alunas = cadastro.filter((a) => doProfessor.has(a) || !emAlguma.has(a));
+  let novas = alunas.filter((a) => !emAlguma.has(a));
+  /* A ALUNA QUE VEM NO ENDEREÇO (o `?aluna=` do atalho do PO). Ela só entra se NÃO estiver no
+     cadastro — é o caso do comentário original («aluna ainda não cadastrada na Produção»), e é
+     o único em que a linha do servidor não pode decidir sozinha: quem não está no cadastro não
+     está em curadoria nenhuma, logo não há autorização a invocar nem a negar.
+     Se ela ESTIVER no cadastro e não for autorizada, não entra — e é aqui, no servidor, que
+     isso se decide. O cliente já não re-acrescenta nada: quando tinha essa linha, o valor
+     anterior do campo e o `?aluna=` entravam por cima do filtro (o defeito de 23/10/2026). */
+  const doEndereco = String(pedida == null ? '' : pedida).trim();
+  if (doEndereco && cadastro.indexOf(doEndereco) === -1 && alunas.indexOf(doEndereco) === -1) {
+    alunas = alunas.concat([doEndereco]);
+    novas = novas.concat([doEndereco]);
+  }
+  return { alunas, novas };
+}
+
 async function vinculos(armazenamento, jaLido) {
   const por = new Map();
   // Do ÍNDICE: o resumo de cada PO já traz os sujeitos que ele declarou. Antes esta função lia
@@ -1311,6 +1364,7 @@ module.exports = {
   vinculos,
   alunasDaTurma,
   alunasDoProfessor,
+  alunasDaAnamnese,
   valorDe,
   turmaDoEnvelope,
   vinculosDePlano,

@@ -23530,17 +23530,52 @@ atalho do PO) a impunha a todos, porque a URL não muda quando se troca de profe
   `provar-ato-e-barra` 72/72, `provar-anamnese-sem-cofre` 13/13, `provar-escola-fixa` 30/30,
   `provar-celular` 15/15, `provar-producao` 151/151, `check-identidade` 20 verificações sem erro.
 
+**Correção de 23/10/2026 (mesmo dia) — a regra passou a ser MISTA.**
+A primeira redação desta entrada fechava com a pergunta «sem curadoria, a lista é vazia ou é a da
+escola?». A pesquisadora respondeu com a regra melhor, e ela substitui a de 13/10:
+
+- **A aluna matriculada** — a que já está numa curadoria — é entrevistada **pelo professor dela**.
+  Ele conhece a aluna, e a observação fica melhor cuidada; a curadoria é a autorização, e ela é
+  declarada, não deduzida (P-16). Aluna curada a OUTRO professor não entra na lista.
+- **A aluna nova** — a que ainda não está em curadoria nenhuma — é entrevistada por **qualquer
+  professor da escola**. A anamnese é o **instrumento de entrada**: é dela que saem as evidências
+  para decidir a turma («esta vai para a X e não para a Y»), e é com ela que começa a negociação
+  de horário e de dia com os pais. Travá-la seria travar a porta da escola.
+- **A marca «nova»** aparece ao lado do nome, na lista da anamnese — e só nele. Uma aluna curada
+  já tem professor e turma, e uma marca a dizer «nova» ao lado dela seria uma afirmação falsa
+  sobre o registo. **«Nova» é DERIVADO**: uma aluna é nova enquanto não estiver em curadoria
+  vigente nenhuma; no dia em que a direção a cura, deixa de o ser, e nada mudou no cadastro dela.
+  É a mesma lei do estado da aula — o que se pode derivar não se declara.
+
+**E o recorte passou a ser do SERVIDOR.** A lista vem de `/api/bastidores/alunas?professor=<slug>`
+já recortada, e a tela desenha o que ele devolve. Até aqui a tela pedia a escola inteira e
+filtrava no browser: a autorização era uma linha de JavaScript, contornável por qualquer valor que
+o campo já tivesse — e foi exactamente por aí que o defeito entrou. A `?aluna=<apelido>` do atalho
+do PO também vai no endereço da consulta: quem decide se ela entra é o servidor, e ela entra
+apenas por **não estar no cadastro** (a anamnese de quem ainda não existe na Produção) — o único
+caso em que não há autorização a invocar nem a negar.
+
+A marca é da TELA e não entra no documento: a opção diz «Aluna D — nova», mas guarda o apelido em
+`data-nome`, e é esse que `valorDoContexto` lê. Sem isso, a palavra «nova» entrava no envelope
+como parte do nome — um apelido que não existe, num campo que a proveniência não reescreve.
+
+**Com o quê (regra mista).** `node experimentos/provar-alunas-da-anamnese.js` — **11 asserções**
+(eram 7). A bancada deixou de responder por um stub nas duas rotas que interessam: ela chama
+`bastidores.fetch` com um KV semeado com as curadorias e o cadastro de produção — um stub que
+devolvesse a lista já recortada estaria a provar o stub. Mede: cada professora vê a sua aluna e a
+nova, e mais nenhuma; a nova leva a marca e a curada não; trocar de professor não arrasta; o
+`?aluna=` de outra professora não entra; a aluna fora do cadastro entra; sem curadoria, só as
+novas; e a marca não passa para o valor. `provar-contexto-do-ato` 37/37 (o stub dela passou a
+espelhar a regra do servidor), `provar-ajustes-anamnese` 125/125, `provar-ato-e-barra` 72/72,
+`provar-anamnese-sem-cofre` 13/13, `provar-escola-fixa` 30/30, `provar-producao` 151/151,
+`check-identidade` 20 verificações sem erro.
+
 **O que ainda não está feito.**
-- **O buraco que sobra é a regra, não o código:** um professor **sem curadoria nenhuma** vê a
-  lista inteira e pode fazer a anamnese de qualquer aluna. É a «porta de entrada» decidida em
-  13/10 — e é a metade da regra que a dona do produto lembrou («qualquer professor pode fazer a
-  anamnese»). Fechá-la é uma decisão de produto que **não** foi tomada aqui: se a curadoria é a
-  autorização, então sem curadoria não há autorização, e a lista deveria ser vazia — como já é
-  no PO. Fica à espera da decisão dela.
-- **O filtro da anamnese é do cliente.** A lista vem de `/api/bastidores/alunas` (a escola
-  inteira) e é filtrada no browser. No PO o recorte é do **servidor** (`/api/anamneses`). Quem
-  quiser a mesma garantia na anamnese terá de a pedir ao servidor — e essa é a mudança que
-  fecha o assunto de vez.
 - `experimentos/provar-navegacao.js` **ficou sem fixture**: ela monta a escola `calango`, que foi
   expurgada hoje, e a `batata` ainda não tem turmas. Não é regressão desta entrada — é a prova a
   depender da escola de teste que existe. Passa a correr quando a escola nova tiver turmas.
+- A **mesma marca «nova»** não existe na lista de gestão da Produção (`/api/anamnese-estados`), que
+  continua a listar todas as anamneses da escola. Não foi pedida, e o lugar dela seria outro.
+- A anamnese de uma aluna **nova** continua a nascer sem turma, como deve — mas nada no sistema
+  sugere a turma a partir das respostas (B6, reescrita de conteúdo por modalidade) — segue aberto
+  desde 13/10.

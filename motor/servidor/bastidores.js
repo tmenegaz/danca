@@ -4755,8 +4755,38 @@ async function fetch(request, env) {
   }
 
   // GET /api/bastidores/alunas — a lista para o seletor da anamnese.
+  /* GET /api/bastidores/alunas — o cadastro de alunas da escola.
+   *
+   * O `?professor=<slug>` RECORTA pela regra mista da anamnese (23/10/2026): a aluna curada a
+   * este professor, mais as alunas que ainda NÃO estão em curadoria nenhuma («novas», que
+   * qualquer professor pode entrevistar — é a porta de entrada da escola). Sem o parâmetro, a
+   * lista é a da escola inteira, e é o que a Produção precisa: é ali que a direção atribui as
+   * alunas às curadorias, e um cadastro recortado seria um círculo.
+   *
+   * O RECORTE É DO SERVIDOR. Antes, a tela pedia a escola inteira e filtrava no browser, e a
+   * autorização era só uma linha de JavaScript — contornável por qualquer valor que o campo já
+   * tivesse. Quem lê o acervo é o servidor; a tela desenha o que ele devolve.
+   */
   if (path === '/api/bastidores/alunas') {
-    return json(200, { ok: true, escola, alunas: await alunas(kv, escola) });
+    const todas = await alunas(kv, escola);
+    const professorDoRecorte = String(url.searchParams.get('professor') || '').trim();
+    if (!professorDoRecorte) {
+      /* SEM RECORTE — a lista da escola, e é o que a Produção pede. O `aluna` continua a ser
+         atendido: antes de o professor estar escolhido, o atalho do PO ainda não tem a quem se
+         recortar, e a aluna que ele traz não pode desaparecer do campo (a mesma razão de
+         sempre: foi o sistema que a mandou). Sem professor não há autorização a invocar nem a
+         negar, e é por isso que aqui não há recorte nenhum. */
+      const pedida = String(url.searchParams.get('aluna') || '').trim();
+      const lista = todas.slice();
+      if (pedida && lista.indexOf(pedida) === -1) lista.push(pedida);
+      return json(200, { ok: true, escola, alunas: lista });
+    }
+    const recorte = porta.alunasDaAnamnese(await curadorias(kv, escola), professorDoRecorte, todas,
+      url.searchParams.get('aluna'));
+    return json(200, {
+      ok: true, escola, alunas: recorte.alunas, novas: recorte.novas,
+      recorte: { professor: professorDoRecorte },
+    });
   }
 
   // GET /api/bastidores/professores — o seletor dos formulários. Devolve `{nome, slug}`:

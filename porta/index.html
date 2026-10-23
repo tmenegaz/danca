@@ -1103,47 +1103,50 @@ async function carregarAlunas() {
   const sel = $('ctx-aluna');
   if (!sel || FONTE !== 'anamnese') return;
   try {
-    const resposta = await buscarJSON('/api/bastidores/alunas');
+    /* O RECORTE É DO SERVIDOR (23/10/2026), e a regra é MISTA — decidida pela pesquisadora:
+     *
+     *   · a aluna MATRICULADA (está numa curadoria) só é entrevistada pelo professor dela. A
+     *     curadoria é a autorização, e ela é declarada, não deduzida (P-16).
+     *   · a aluna NOVA (ainda não está em curadoria nenhuma) é entrevistada por QUALQUER
+     *     professor: a anamnese é o instrumento de entrada, e é dela que saem as evidências
+     *     para decidir a turma. Travá-la seria travar a porta da escola.
+     *
+     * Antes a tela pedia a escola inteira e filtrava aqui — e a autorização era uma linha de
+     * JavaScript, contornável por qualquer valor que o campo já tivesse. Quem lê o acervo é o
+     * servidor; a tela desenha o que ele devolve.
+     */
+    const slugDoProfessor = (($('ctx-professor') || {}).value || '').trim();
+    // A ALUNA DO ATALHO vai no ENDEREÇO da consulta: quem decide se ela entra é o servidor —
+    // ela entra por não estar no cadastro (a anamnese de quem ainda não existe na Produção), e
+    // fica de fora por estar curada a outro professor. Aqui já não há re-inclusão nenhuma.
+    const daUrl = new URLSearchParams(location.search).get('aluna') || '';
+    const parametros = new URLSearchParams();
+    if (slugDoProfessor) parametros.set('professor', slugDoProfessor);
+    if (daUrl) parametros.set('aluna', daUrl);
+    const consulta = parametros.toString();
+    const endereco = '/api/bastidores/alunas' + (consulta ? '?' + consulta : '');
+    const resposta = await buscarJSON(endereco);
     const dados = resposta.dados || {};
     const cadastro = Array.isArray(dados.alunas) ? dados.alunas : [];
     let lista = cadastro.slice();
-    // Com curadoria, o seletor de alunas FILTRA para as alunas curadas pela direção
-    // (B2b): o professor só observa quem a escola lhe atribuiu. Sem curadoria, a
-    // lista inteira continua visível (a anamnese é a porta de entrada).
-    if (CURADORIA_CARREGADA && CURADORIAS.length > 0) {
-      const curadas = new Set(alunasDaCuradoria());
-      lista = lista.filter((a) => curadas.has(String(a)));
-    }
+    // A MARCA DA ALUNA NOVA. Ela é do ENDEREÇO, não do registo: o apelido que entra no
+    // envelope é o nome limpo, e por isso a marca vive no texto da opção, com o nome puro
+    // guardado em `data-nome` — é esse que `valorDoContexto` lê.
+    const novas = new Set(Array.isArray(dados.novas) ? dados.novas.map(String) : []);
     const atual = sel.value;
     sel.innerHTML = '<option value="">— nenhuma —</option>' +
-      lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
-    // A ALUNA QUE A URL TRAZ — o `?aluna=` do atalho «criar a anamnese de …», que o PO
-    // oferece. Ele chega ANTES de as opções existirem, e um `select` sem a opção
-    // correspondente DESCARTA a atribuição: o valor virava string vazia em silêncio, e
-    // o professor via o campo «nenhuma» sem entender por quê. Relê a URL aqui, como o
-    // `carregarProfessores` já fazia para o professor — era só a aluna que ficava para trás.
-    //
-    // A RE-INCLUSÃO NÃO ATRAVESSA A CURADORIA (23/10/2026). Ela existe para a aluna que
-    // AINDA NÃO ESTÁ NO CADASTRO — o atalho do PO para uma anamnese que ainda não existe
-    // («foi o sistema que o mandou, e descartá-lo é o defeito»). O que o código fazia era
-    // outra coisa: re-acrescentar QUALQUER valor ausente da lista filtrada, inclusive uma
-    // aluna cadastrada que a curadoria NÃO autoriza para este professor. E como o `select`
-    // guarda o valor anterior, a aluna de um professor viajava para os seguintes, e o
-    // `?aluna=` da URL a impunha a todos. Em produção viu-se exactamente isso: a «Aluna A»,
-    // curada só ao Manga Curta, aparecia também no Café no Bulé e na Meia Cortada.
-    //
-    // A linha é a mesma do `alunasDaTurma`: a ausência de atribuição não é permissão. Quem
-    // está no cadastro e não está nas curadorias deste professor não entra — nem vinda de um
-    // valor antigo do campo, nem do endereço. Quem NÃO está no cadastro entra, porque a
-    // curadoria não a pode autorizar nem desautorizar: ela está fora do domínio da regra.
-    const daUrl = new URLSearchParams(location.search).get('aluna') || '';
+      lista.map((a) => (novas.has(String(a))
+        ? '<option value="' + escapar(a) + '" data-nome="' + escapar(a) + '">' + escapar(a)
+          + ' — nova</option>'
+        : '<option value="' + escapar(a) + '">' + escapar(a) + '</option>')).join('');
+    /* A ESCOLHA QUE SOBREVIVE. O valor anterior do campo só fica se a opção ainda existir — o
+       que, com o recorte do servidor, quer dizer: só se aquela aluna continua autorizada para
+       ESTE professor. Era aqui que o valor antigo voltava à lista depois do filtro, e era assim
+       que a aluna de uma professora viajava para as seguintes (23/10/2026). Trocar de professor
+       recorta a lista, e a aluna do anterior sai com ela.
+       A aluna do atalho (`?aluna=`) não precisa de tratamento à parte: se o servidor a aceitou,
+       ela veio na lista, e a linha abaixo encontra-a. */
     const escolhida = atual || daUrl;
-    const foraDoCadastro = escolhida && cadastro.indexOf(escolhida) === -1;
-    if (foraDoCadastro && lista.indexOf(escolhida) === -1) {
-      lista = lista.concat([escolhida]);
-      sel.innerHTML = '<option value="">— nenhuma —</option>' +
-        lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
-    }
     if (escolhida && lista.indexOf(escolhida) !== -1) sel.value = escolhida;
   } catch (erro) {
     // sem a lista, o seletor fica só com «nenhuma» — o botão não habilita.
@@ -1293,9 +1296,12 @@ function semearDaCuradoria() {
   }
 }
 
-function alunasDaCuradoria() {
-  return daCuradoria('alunas');
-}
+/* `alunasDaCuradoria()` existia aqui como atalho para `daCuradoria('alunas')`, e o único
+ * consumidor era o filtro do seletor de alunas da anamnese. Esse filtro passou a ser do
+ * SERVIDOR (23/10/2026) — a lista já chega recortada —, e a função ficou sem ninguém. Saiu
+ * em vez de ficar: um atalho sem consumidor é o próximo a ser copiado por engano, e a cópia
+ * teria metade da regra (a das curadorias) sem a outra metade (a das alunas novas).
+ */
 
 /* O CADASTRO DAS TURMAS — o que a direção declarou na Produção. O plano de ensino LÊ
  * daqui a frequência, os dias, a duração e o período do termo: são decisão da ESCOLA,
@@ -4429,7 +4435,11 @@ function semearDoContexto() {
 function valorDoContexto(campo) {
   if (campo.tagName === 'SELECT') {
     const opcao = campo.options[campo.selectedIndex];
-    const rotulo = opcao ? String(opcao.textContent || '').trim() : '';
+    // O `data-nome` VENCE O TEXTO (23/10/2026). A opção mostra «Aluna D — nova», e a marca é
+    // da TELA: o que entra no documento é o apelido, e `textContent` levaria a palavra «nova»
+    // para dentro do envelope — um campo a mais no registo, e um apelido que não existe.
+    const rotulo = opcao
+      ? String(opcao.getAttribute('data-nome') || opcao.textContent || '').trim() : '';
     if (opcao && opcao.value && rotulo) return rotulo;
   }
   return String(campo.value || '').trim();

@@ -61,6 +61,22 @@ function provar(titulo, condicao, detalhe) {
     (condicao ? '' : ' → ' + JSON.stringify(detalhe)));
 }
 
+/* A PARTIR DAQUI O RECORTE É DO SERVIDOR (23/10/2026), e a prova tem de o exercer a sério:
+ * a bancada não responde por um stub — chama `bastidores.fetch` com um KV semeado. Um stub que
+ * devolvesse a lista já recortada estaria a provar o stub, e o defeito voltaria pela porta de
+ * trás no dia em que a rota mudasse. É a mesma disciplina do `provar-producao`.
+ */
+function criarKv(inicial) {
+  const store = new Map(Object.entries(inicial || {}));
+  return {
+    store,
+    async get(chave) { return store.has(chave) ? store.get(chave) : null; },
+    async put(chave, valor) { store.set(chave, String(valor)); },
+    async delete(chave) { store.delete(chave); },
+    async list() { return { keys: [...store.keys()].map((name) => ({ name })), list_complete: true }; },
+  };
+}
+
 /* AS CURADORIAS REAIS DA `batata`, lidas da API de produção em 23/10/2026. Não são inventadas:
  * é a forma exacta que o Worker devolve, para a prova medir o caso que aconteceu. */
 const CURADORIAS = {
@@ -85,13 +101,36 @@ const CURADORIAS = {
   'sem-curadoria': [],
 };
 
-const ALUNAS = ['Aluna A', 'Aluna B', 'Aluna C'];
+/* A ALUNA NOVA. «Aluna D» está no cadastro e em curadoria NENHUMA — é a que ainda não tem
+ * turma, e é para ela que a anamnese é o instrumento de entrada. A regra de 23/10/2026 diz que
+ * qualquer professor a pode entrevistar, e que ela leva a marca «nova» na lista. */
+const ALUNAS = ['Aluna A', 'Aluna B', 'Aluna C', 'Aluna D'];
+const NOVAS = ['Aluna D'];
 
 const MAPA = {
   ok: true,
   nos: [{ id: 'contexto-aluna', campo: 'Aluna', obrigatorio: true }],
   obrigatorios: 1, respondidas: 0, total: 1, tituloCabecalho: 'Anamnese',
 };
+
+/** O motor dos Bastidores, com o KV da escola `batata` semeado com os dados de produção. */
+const bastidores = require(path.join(raiz, 'motor/servidor/bastidores.js'));
+const ENV = {
+  ESCOLA_SLUG: 'batata',
+  ESCOLA_HABILITADA: 'sim',
+  PROFESSOR_NOME: 'Café no Bulé',
+  SENHA_ADMIN: 'senha-da-direcao',
+  PADD_KV: criarKv({
+    'bastidores/batata/alunas': JSON.stringify(ALUNAS),
+    'bastidores/batata/curadorias': JSON.stringify(
+      Object.values(CURADORIAS).flat().filter(Boolean)),
+  }),
+};
+async function motor(caminhoComQuery) {
+  const r = await bastidores.fetch(new Request('https://x' + caminhoComQuery), ENV);
+  if (!r) throw new Error('os Bastidores não trataram ' + caminhoComQuery);
+  return { status: r.status, corpo: await r.text() };
+}
 
 function servir() {
   const srv = http.createServer((req, res) => {
@@ -133,10 +172,16 @@ function servir() {
         ],
       });
     }
-    if (caminho.endsWith('/api/bastidores/alunas')) return json({ ok: true, alunas: ALUNAS });
-    if (caminho.indexOf('/api/bastidores/curadoria-professor') !== -1) {
-      const slug = url.searchParams.get('professor') || '';
-      return json({ ok: true, escola: 'batata', professor: slug, curadorias: CURADORIAS[slug] || [] });
+    /* O MOTOR, A SÉRIO. As duas rotas que interessam são servidas pelo `bastidores.js` — o
+       mesmo código que o Worker empacota —, sobre um KV semeado com as curadorias e o cadastro
+       de produção. O que a prova mede é a lista que o servidor devolve E a que o browser
+       desenha: duas metades, e a primeira não pode ser um stub. */
+    if (caminho.endsWith('/api/bastidores/alunas')
+      || caminho.indexOf('/api/bastidores/curadoria-professor') !== -1) {
+      return motor(url.pathname + url.search).then((r) => {
+        res.writeHead(r.status, { 'content-type': 'application/json', 'cache-control': 'no-store' });
+        res.end(r.corpo);
+      }).catch((e) => { res.writeHead(500); res.end(String(e)); });
     }
     if (caminho.endsWith('/api/envelopes')) return json({ ok: true, envelopes: [] });
     if (caminho.endsWith('/api/anamnese-estados')) return json({ ok: true, estados: {} });
@@ -190,60 +235,89 @@ function servir() {
     await new Promise((r) => setTimeout(r, 250));
   };
 
-  console.log('\n1 · Cada professor vê as alunas que a curadoria lhe atribuiu');
-  for (const [slug, esperado, nome] of [
-    ['cafe-no-bule', ['Aluna B'], 'Café no Bulé'],
-    ['manga-curta', ['Aluna A'], 'Manga Curta'],
-    ['meia-cortada', ['Aluna C'], 'Meia Cortada'],
+  const opcoes = () => pagina.evaluate(() => [...document.getElementById('ctx-aluna')
+    .querySelectorAll('option')].map((o) => ({ valor: o.value, texto: o.textContent.trim() }))
+    .filter((o) => o.valor));
+
+  console.log('\n1 · A aluna matriculada é do professor dela; a nova é de todos');
+  /* A REGRA MISTA (23/10/2026). Três professoras, três alunas curadas uma a uma, mais uma
+     aluna no cadastro sem curadoria nenhuma («Aluna D», a NOVA). Cada professora vê a sua
+     aluna MAIS a nova — e não vê as alunas das outras. */
+  for (const [slug, propria, nome] of [
+    ['cafe-no-bule', 'Aluna B', 'Café no Bulé'],
+    ['manga-curta', 'Aluna A', 'Manga Curta'],
+    ['meia-cortada', 'Aluna C', 'Meia Cortada'],
   ]) {
     await abrir(slug);
     const vistas = await alunasVisiveis();
-    provar(nome + ' vê só ' + JSON.stringify(esperado), JSON.stringify(vistas) === JSON.stringify(esperado),
-      vistas);
+    provar(nome + ' vê a sua aluna e a nova, e mais nenhuma',
+      JSON.stringify(vistas) === JSON.stringify([propria, 'Aluna D']), vistas);
+    /* A MARCA. Só a nova a leva: uma aluna curada já tem professor e turma, e uma marca a
+       dizer «nova» ao lado do nome dela seria uma afirmação falsa sobre o registo. */
+    const rotulos = await opcoes();
+    const daNova = (rotulos.find((o) => o.valor === 'Aluna D') || {}).texto || '';
+    const daPropria = (rotulos.find((o) => o.valor === propria) || {}).texto || '';
+    provar(nome + ': a nova leva a marca «nova», e a curada não',
+      /— nova$/.test(daNova) && daPropria === propria, { nova: daNova, curada: daPropria });
   }
 
   console.log('\n2 · Trocar de professor não arrasta a aluna do anterior');
-  /* A SEQUÊNCIA DO DEFEITO. Escolhe-se a aluna do Manga (A), troca-se para o Café (que só tem
-     B) — e a A não pode continuar na lista. Era assim que ela viajava entre os três. */
+  /* A SEQUÊNCIA DO DEFEITO. Escolhe-se a aluna do Manga (A), troca-se para o Café (que tem a
+     B) — e a A não pode continuar na lista. Era assim que ela viajava entre as três. */
   await abrir('manga-curta');
   await pagina.evaluate(() => {
-    const sel = document.getElementById('ctx-aluna');
-    sel.value = 'Aluna A';
-    document.getElementById('ctx-professor').value = 'cafe-no-bule';
-    document.getElementById('ctx-professor').dispatchEvent(new Event('change', { bubbles: true }));
+    document.getElementById('ctx-aluna').value = 'Aluna A';
+    const sel = document.getElementById('ctx-professor');
+    sel.value = 'cafe-no-bule';
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
   });
-  await new Promise((r) => setTimeout(r, 400));
+  await new Promise((r) => setTimeout(r, 500));
   const depoisDaTroca = await alunasVisiveis();
-  provar('depois de trocar Manga → Café, a lista é só ["Aluna B"]',
-    JSON.stringify(depoisDaTroca) === JSON.stringify(['Aluna B']), depoisDaTroca);
+  provar('depois de trocar Manga → Café, a lista é a do Café',
+    JSON.stringify(depoisDaTroca) === JSON.stringify(['Aluna B', 'Aluna D']), depoisDaTroca);
 
   console.log('\n3 · O `?aluna=` da URL não autoriza ninguém');
-  /* O ATALHO DO PO (`/anamnese/?…&aluna=Aluna A`) existe para não obrigar a escolher de novo.
-     Mas ele chega com o professor do PO, e uma aluna que a curadoria daquele professor não
-     autoriza não pode entrar só porque veio no endereço. */
+  /* O ATALHO DO PO existe para não obrigar a escolher de novo — mas uma aluna curada a OUTRA
+     professora não entra só porque veio no endereço. */
   await abrir('cafe-no-bule', '&aluna=Aluna%20C');
   const comAtalho = await alunasVisiveis();
-  provar('com `?aluna=Aluna C`, o Café continua a ver só a dele',
-    JSON.stringify(comAtalho) === JSON.stringify(['Aluna B']), comAtalho);
+  provar('com `?aluna=Aluna C`, o Café não passa a ver a aluna da Meia Cortada',
+    JSON.stringify(comAtalho) === JSON.stringify(['Aluna B', 'Aluna D']), comAtalho);
 
   console.log('\n4 · O caso legítimo continua: aluna fora do cadastro entra assim mesmo');
   /* O comentário do código diz por que a re-inclusão existe: «aluna ainda não cadastrada na
-     Produção». Se o atalho traz um apelido que NÃO está no cadastro da escola, descartá-lo
-     deixaria o professor sem a aluna que o sistema lhe mandou observar. Esse caso fica. */
+     Produção». Se o atalho traz um apelido que NÃO está no cadastro, descartá-lo deixaria o
+     professor sem a aluna que o sistema lhe mandou observar. Esse caso fica. */
   await abrir('cafe-no-bule', '&aluna=Aluna%20Nova');
   const foraDoCadastro = await alunasVisiveis();
   provar('a aluna que não está no cadastro entra na lista (o atalho não é descartado)',
     foraDoCadastro.indexOf('Aluna Nova') !== -1 && foraDoCadastro.indexOf('Aluna B') !== -1,
     foraDoCadastro);
 
-  console.log('\n5 · O professor sem curadoria vê a escola inteira (a «porta de entrada»)');
-  /* Esta é a metade da regra que a dona do produto lembrou — «qualquer professor pode fazer a
-     anamnese». Ela continua valendo: sem curadoria atribuída, a lista é a da escola. O que a
-     prova registra é que a regra do filtro depende de existir curadoria. */
+  console.log('\n5 · Quem não tem curadoria nenhuma vê só as novas');
+  /* Sem curadoria, a professora não autoriza aluna matriculada nenhuma — mas a porta de entrada
+     continua aberta para quem ainda não tem turma. É a metade que a dona do produto lembrou,
+     agora com o recorte certo: as matriculadas são de quem as curou, as novas são de todos. */
   await abrir('sem-curadoria');
   const semCuradoria = await alunasVisiveis();
-  provar('sem curadoria, a lista é a da escola inteira',
-    JSON.stringify(semCuradoria) === JSON.stringify(ALUNAS), semCuradoria);
+  provar('sem curadoria, a lista é só a das alunas novas',
+    JSON.stringify(semCuradoria) === JSON.stringify(NOVAS), semCuradoria);
+
+  console.log('\n6 · A marca não entra no documento');
+  /* «Aluna D — nova» é o TEXTO da opção; o valor é «Aluna D». O contexto do ato lê o rótulo da
+     opção escolhida (`valorDoContexto`), e sem o `data-nome` a palavra «nova» iria para dentro
+     do envelope — um apelido que não existe, e num campo que a proveniência não reescreve. */
+  await abrir('cafe-no-bule');
+  const valorNoDocumento = await pagina.evaluate(() => {
+    const sel = document.getElementById('ctx-aluna');
+    sel.value = 'Aluna D';
+    const opcao = sel.options[sel.selectedIndex];
+    return { texto: opcao.textContent.trim(), valor: sel.value,
+      nome: opcao.getAttribute('data-nome') };
+  });
+  provar('a opção diz «Aluna D — nova», mas o valor e o `data-nome` são o apelido',
+    valorNoDocumento.texto === 'Aluna D — nova' && valorNoDocumento.valor === 'Aluna D'
+    && valorNoDocumento.nome === 'Aluna D', valorNoDocumento);
 
   await navegador.close();
   srv.close();

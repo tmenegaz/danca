@@ -315,3 +315,11 @@ po_ref/
 # da B2b era contornado pela re-inclusão do valor anterior do `select` e do `?aluna=` da URL.
 # A prova reproduz com as curadorias reais da `batata` e mede a lista visível no browser.
 !experimentos/provar-alunas-da-anamnese.js
+
+# A PROVA DO CONTEXTO DO ATO TAMBÉM FICOU FORA (23/10/2026). O `REGISTRO` cita-a 17 vezes, e
+# `git ls-files` não a conhece: o `experimentos/*` fechava a pasta e não havia `!` para ela. É
+# a segunda do mesmo tipo (a primeira foi `provar-barra-unica`). A varredura ficou feita: 16
+# provas citadas no REGISTRO não estavam versionadas, e só 5 das que existem em disco passam
+# hoje — as outras dependem de fixtures que o expurgo da `calango` levou. Esta é a única que
+# esta entrada tocou, e é a única que entra agora.
+!experimentos/provar-contexto-do-ato.js
