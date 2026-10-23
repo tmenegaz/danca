@@ -26,7 +26,7 @@
  *      fecha-a, e `Escape` também — a mesma mecânica da Produção;
  *   6. A LISTA DE PLANOS: as três caixas com «?» são `Turma · Professor · Cadeia`, a caixa
  *      INTEIRA é o botão, e uma aberta fecha a outra;
- *   7. O FILTRO: «perna» deixa um plano, e a contagem diz «1 de 2».
+ *   7. O FILTRO: um pedaço do nome de um professor deixa um plano, e a contagem o diz.
  *
  * COMO É CONSTRUÍDA. A montagem corre de verdade (`montar-publicacao.js`) sobre a escola de
  * teste, e o que se serve é o que ela escreveu — não uma página escrita à mão para a prova.
@@ -101,6 +101,16 @@ function destinos(menu) {
 
   const destino = montar();
   const menu = JSON.parse(fs.readFileSync(path.join(destino, 'nav.json'), 'utf8'));
+  /* QUANTAS TURMAS ESTA ESCOLA TEM — lido, e não escrito à mão (23/10/2026). As asserções desta
+     prova diziam «2» em cinco sítios, porque a escola de teste de então (`calango`) tinha duas.
+     A `batata` tem uma, e a prova reprovava o comportamento certo por a expectativa estar
+     fixa. Uma prova que depende do acervo da escola de teste tem de o perguntar ao acervo. */
+  const TURMAS = fs.readdirSync(destino, { withFileTypes: true })
+    .filter((d) => d.isDirectory() && d.name !== 'assets' && d.name !== 'planejamento'
+      && d.name !== 'ciclos' && d.name !== 'aulas' && d.name !== 'area-do-professor'
+      && d.name !== 'plano-observacao')
+    .map((d) => d.name);
+  const N = TURMAS.length;
 
   // ------------------------------------------------------------------ 1. a conta
   console.log('\n1 · O menu não cresce com o acervo');
@@ -324,7 +334,8 @@ function destinos(menu) {
     })(),
     planos: document.querySelectorAll('li.trio-plano').length,
   }));
-  provar('dois planos, três caixas cada', caixas.planos === 2 && caixas.quantas === 6, { planos: caixas.planos, caixas: caixas.quantas });
+  provar('um plano por turma, três caixas cada',
+    caixas.planos === N && caixas.quantas === N * 3, { turmas: N, planos: caixas.planos, caixas: caixas.quantas });
   provar('as caixas são Turma · Professor · Cadeia',
     caixas.rotulos.slice(0, 3).join(',') === 'Turma,Professor,Cadeia', caixas.rotulos.slice(0, 3));
   provar('nenhum botão DENTRO da caixa (o botão é a caixa)', caixas.botoesDentro === 0, caixas.botoesDentro);
@@ -347,13 +358,26 @@ function destinos(menu) {
   console.log('\n7 · O filtro é no cliente');
   const filtrado = await pagina.evaluate(() => {
     const b = document.getElementById('f-busca');
-    b.value = 'perna';
+    /* O PEDAÇO DO NOME DO PROFESSOR VEM DOS PRÓPRIOS CARTÕES: a `calango` tinha «perna-boa», a
+       `batata` tem «cafe-no-bule». Uma prova que escrevesse o nome da escola de ontem mediria
+       uma lista vazia e chamaria a isso sucesso. */
+    const alvo = (document.querySelector('li.trio-plano') || {}).getAttribute
+      ? document.querySelector('li.trio-plano').getAttribute('data-prof') : '';
+    b.value = String(alvo || '').split('-')[0] || 'a';
     b.dispatchEvent(new Event('input', { bubbles: true }));
     const visiveis = [...document.querySelectorAll('li.trio-plano')].filter((l) => !l.hidden);
     return { visiveis: visiveis.length, conta: document.getElementById('f-conta').textContent };
   });
-  provar('«perna» deixa um plano', filtrado.visiveis === 1, filtrado.visiveis);
-  provar('e a contagem diz «1 plano de 2»', /1 plano de 2/.test(filtrado.conta), filtrado.conta);
+  /* A BUSCA É POR UM PEDAÇO DO NOME DO PROFESSOR — `cafe` na `batata`, `perna` na `calango`.
+     Ela tem de partir de um acervo com MAIS de uma turma para provar que reduz: com uma só,
+     filtrar não muda nada e a asserção passaria sem medir. */
+  if (N > 1) {
+    provar('a busca deixa um plano', filtrado.visiveis === 1, filtrado.visiveis);
+    provar('e a contagem diz «1 plano de N»',
+      new RegExp('1 plano de ' + N).test(filtrado.conta), filtrado.conta);
+  } else {
+    provar('com uma turma só, a busca não esconde nada', filtrado.visiveis === N, filtrado.visiveis);
+  }
 
   // ------------------------------------------------------------------ 8. a escolha de turma
   /* AS TRÊS PÁGINAS DE ESCOLHA DE TURMA (23/10/2026). O menu deixou de apontar para a porta e
@@ -375,9 +399,9 @@ function destinos(menu) {
       conta: (document.getElementById('f-conta') || {}).textContent || '',
     }));
     const daPorta = d.acoes.filter((h) => h && h.startsWith(rota));
-    provar('«' + pasta + '» tem uma linha por turma', d.linhas === 2, d.linhas);
+    provar('«' + pasta + '» tem uma linha por turma', d.linhas === N, { linhas: d.linhas, turmas: N });
     provar('«' + pasta + '» aponta para ' + rota + ' com o contexto',
-      daPorta.length === 2 && daPorta.every((h) => /[?&]professor=/.test(h) && /[?&]ciclo=/.test(h)),
+      daPorta.length === N && daPorta.every((h) => /[?&]professor=/.test(h) && /[?&]ciclo=/.test(h)),
       daPorta);
     /* O SLUG, E NÃO O NOME. O `.conf` da turma diz `PROFESSOR="Oculos Redondo"`; o `?professor=`
        da porta é `oculos-redondo`. Trocar os dois dava uma lista que não encontra ninguém, e o

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T12:55:38-0300`
-Commit atual: `e4631d9` — feat(po): a anamnese é mista — a aluna matriculada é do professor dela, a nova é de todos
+Gerado em: `2026-10-23T12:59:15-0300`
+Commit atual: `95e4ecf` — fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -56,7 +56,7 @@ teclado-abnt
 tela-de-celular
 tiago-menegaz
 vaso-bonito (12)
-- **Ciclos com manifesto:** 1 variante(s)
+- **Ciclos com manifesto:** 4 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -73,26 +73,26 @@ vaso-bonito (12)
 ## Últimos commits
 
 ```
-e4631d9 feat(po): a anamnese é mista — a aluna matriculada é do professor dela, a nova é de todos
-1eb89e2 fix(po): a lista de alunas da anamnese não se contorna pela aluna do professor anterior
-2a921c9 fix(estrutura): a curadoria não se atribui incompleta — os cinco campos são exigidos
-74867c2 chore(estrutura): regerar os índices derivados
-4bd978a feat(acervo): envelope/anamnese-20261023-1029.json
-0f4c3d5 feat(acervo): envelope/.indice.json
-716c9a6 chore(estrutura): regerar os índices derivados
-98a2c90 feat(acervo): envelope/anamnese-20261023-1028.json
-249774f feat(acervo): envelope/.indice.json
-a23f9e7 chore(estrutura): reancorar a cadeia das fontes alteradas
-29b8c70 chore(estrutura): regerar os índices derivados
-68cca72 feat(escola): a escola batata declara o professor manga-curta
-5458709 feat(schema): os schemas do ciclo na pasta de manga-curta
-0730e3e feat(schema): os schemas do ciclo na pasta de manga-curta
-4a71abe feat(schema): os schemas do ciclo na pasta de manga-curta
-4cb334c feat(schema): os schemas do ciclo na pasta de manga-curta
-e02a91a feat(schema): os schemas do ciclo na pasta de manga-curta
-3bfd680 feat(acervo): envelope/.indice.json
-86e277f feat(estrutura): criar a escola batata (motor completo)
-77c10c6 chore(estrutura): regerar os índices derivados
+95e4ecf fix(estrutura): o caminho diz de onde se veio, o «true» sai do endereço, e a barra fixa o Bastidores
+822efcd chore(entrega): gerar o pacote de cafe-no-bule/01/batata-bale-nivel-2-teste-2
+30d7a65 chore(estrutura): regerar os índices derivados
+45f9dad chore(estrutura): regerar os índices derivados
+b58d4d5 chore(estrutura): reancorar a cadeia das fontes alteradas
+8f0b62c feat(ciclo): o «Guardar» do PO grava as fontes de batata-bale-nivel-2-teste-2 num commit só
+d254ef7 feat(po): o PO elicitado vira a fonte do ciclo
+4e6f8f5 feat(acervo): envelope/po-20261023-1128.json
+7e8c0a2 feat(acervo): envelope/.indice.json
+e8fe27f chore(estrutura): regerar os índices derivados
+019a015 chore(estrutura): reancorar a cadeia das fontes alteradas
+e7d9ef0 chore(estrutura): regerar os índices derivados
+3b29ec7 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+e960e48 feat(plano): o plano elicitado vira a fonte do ciclo
+a5388df feat(acervo): envelope/plano-20261023-1124.json
+5ba3a3f feat(acervo): envelope/.indice.json
+588a523 chore(estrutura): reancorar a cadeia das fontes alteradas
+abc9323 chore(estrutura): regerar os índices derivados
+92e4f54 feat(ciclo): o manifesto da variante passa a derivar do cadastro da turma
+5cb3f53 feat(plano): o plano elicitado vira a fonte do ciclo
 ```
 
 ## Por professor
@@ -101,15 +101,17 @@ e02a91a feat(schema): os schemas do ciclo na pasta de manga-curta
 
 ### cafe-no-bule — 1 ciclo(s)
 
-**Ciclo 01** — variante(s): batata
+**Ciclo 01** — variante(s): batata, batata-bale-nivel-2-teste-2
 
 | Escola | PO | state | Marcadores [Preencher] |
 |:--|:--|:--|--:|
 | batata | (sem PO) | — | — |
+| batata | ciclo-01-batata-bale-nivel-2-teste-2-po.md | Input_PO_Aguardando | 1 |
 
 | Variante | .fipp | hash (12) | parentHash | po_state |
 |:--|:--|:--|:--|:--|
 | batata | ciclo-01-batata.fipp | `8586d4bb0d3e` | (vazio) | — |
+| batata-bale-nivel-2-teste-2 | ciclo-01-batata-bale-nivel-2-teste-2.fipp | `fe94db1ee1e9` | (vazio) | Input_PO_Aguardando |
 
 ### manga-curta — 0 ciclo(s)
 
@@ -282,9 +284,14 @@ da raiz e do pacote-zero foram regeradas.
 - **A coluna única** nos Bastidores — fundir as secções da Produção dentro da coluna do sistema —
   não foi feita, e é a consolidação que fica em aberto. Hoje há **uma** coluna em cada sítio (a do
   sistema no trabalho de sala, a da Produção nos Bastidores), e a volta é explícita.
-- `experimentos/provar-navegacao.js` e `provar-titulo-e-barra.js` **continuam sem fixture**: a
-  `calango` foi expurgada e a `batata` ainda não tem turma gerada. As duas medem um pacote real, e
-  voltam a correr quando houver um. Não é regressão desta entrada.
+- **`provar-navegacao.js` e `provar-titulo-e-barra.js` voltaram a correr** — e o que as trouxe de
+  volta foi o PO da `batata`, que gerou o primeiro pacote real depois do expurgo da `calango`.
+  Ao correr, a `provar-navegacao` reprovou **nove** asserções por um motivo que não era defeito:
+  ela tinha «2» escrito à mão em cinco sítios (planos, cartões, linhas por turma, acções e a
+  contagem do filtro), porque a escola de teste de então tinha duas turmas. A `batata` tem uma.
+  As expectativas passaram a ser **lidas do acervo** (`N` = pastas de turma no destino), e a
+  busca do filtro passou a usar um pedaço do nome do professor do **próprio cartão** — uma prova
+  que escrevesse «perna» estaria a medir uma lista vazia e a chamar a isso sucesso. **53/53**.
 - O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
   guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
   `href` ser montado por uma função que só aceite nome. Fica anotado.
@@ -341,9 +348,14 @@ da raiz e do pacote-zero foram regeradas.
 - **A coluna única** nos Bastidores — fundir as secções da Produção dentro da coluna do sistema —
   não foi feita, e é a consolidação que fica em aberto. Hoje há **uma** coluna em cada sítio (a do
   sistema no trabalho de sala, a da Produção nos Bastidores), e a volta é explícita.
-- `experimentos/provar-navegacao.js` e `provar-titulo-e-barra.js` **continuam sem fixture**: a
-  `calango` foi expurgada e a `batata` ainda não tem turma gerada. As duas medem um pacote real, e
-  voltam a correr quando houver um. Não é regressão desta entrada.
+- **`provar-navegacao.js` e `provar-titulo-e-barra.js` voltaram a correr** — e o que as trouxe de
+  volta foi o PO da `batata`, que gerou o primeiro pacote real depois do expurgo da `calango`.
+  Ao correr, a `provar-navegacao` reprovou **nove** asserções por um motivo que não era defeito:
+  ela tinha «2» escrito à mão em cinco sítios (planos, cartões, linhas por turma, acções e a
+  contagem do filtro), porque a escola de teste de então tinha duas turmas. A `batata` tem uma.
+  As expectativas passaram a ser **lidas do acervo** (`N` = pastas de turma no destino), e a
+  busca do filtro passou a usar um pedaço do nome do professor do **próprio cartão** — uma prova
+  que escrevesse «perna» estaria a medir uma lista vazia e a chamar a isso sucesso. **53/53**.
 - O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
   guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
   `href` ser montado por uma função que só aceite nome. Fica anotado.
@@ -622,7 +634,8 @@ da raiz e do pacote-zero foram regeradas.
 - **22/10/2026** — O PO de um professor não vê o plano nem as alunas de outro → `REGISTRO.md` L23001
 - **22/10/2026** — A escola recriada pertence a quem a recriou → `REGISTRO.md` L23065
 - **23/10/2026** — O job do índice reescrevia o commit do vizinho, e o push… → `REGISTRO.md` L23127
-- **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
+- PO de **cafe-no-bule · batata-bale-nivel-2-teste-2** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
+- **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

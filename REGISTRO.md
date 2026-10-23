@@ -23676,9 +23676,14 @@ da raiz e do pacote-zero foram regeradas.
 - **A coluna única** nos Bastidores — fundir as secções da Produção dentro da coluna do sistema —
   não foi feita, e é a consolidação que fica em aberto. Hoje há **uma** coluna em cada sítio (a do
   sistema no trabalho de sala, a da Produção nos Bastidores), e a volta é explícita.
-- `experimentos/provar-navegacao.js` e `provar-titulo-e-barra.js` **continuam sem fixture**: a
-  `calango` foi expurgada e a `batata` ainda não tem turma gerada. As duas medem um pacote real, e
-  voltam a correr quando houver um. Não é regressão desta entrada.
+- **`provar-navegacao.js` e `provar-titulo-e-barra.js` voltaram a correr** — e o que as trouxe de
+  volta foi o PO da `batata`, que gerou o primeiro pacote real depois do expurgo da `calango`.
+  Ao correr, a `provar-navegacao` reprovou **nove** asserções por um motivo que não era defeito:
+  ela tinha «2» escrito à mão em cinco sítios (planos, cartões, linhas por turma, acções e a
+  contagem do filtro), porque a escola de teste de então tinha duas turmas. A `batata` tem uma.
+  As expectativas passaram a ser **lidas do acervo** (`N` = pastas de turma no destino), e a
+  busca do filtro passou a usar um pedaço do nome do professor do **próprio cartão** — uma prova
+  que escrevesse «perna» estaria a medir uma lista vazia e a chamar a isso sucesso. **53/53**.
 - O `documentosDaTurma` devolve o nome, mas **nada impede que volte a devolver `true`**: a prova
   guarda o valor de hoje, não o tipo. Um `Object.freeze` não é a resposta — o que falta é o
   `href` ser montado por uma função que só aceite nome. Fica anotado.
