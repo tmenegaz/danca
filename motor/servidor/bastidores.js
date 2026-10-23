@@ -1016,6 +1016,51 @@ async function curadorias(kv, escola) {
 }
 
 /**
+ * O QUE FALTA PARA A CURADORIA ESTAR COMPLETA (23/10/2026).
+ *
+ * A curadoria não é um apontamento: é o que **autoriza** o professor a fazer o plano de uma
+ * turma, e é ela que declara **quem** está nessa turma. Um registo a que falte a tradição diz
+ * que o professor ensina sem dizer em que linha; sem turma não autoriza plano nenhum (e o id
+ * cai no formato antigo, `professor+modalidade`, que é a colisão que a turma veio corrigir);
+ * sem alunas, o PO de uma turma não tem a quem observar — e a lista de sujeitos sai vazia sem
+ * que nada no ecrã explique porquê.
+ *
+ * AS CINCO COISAS SÃO OBRIGATÓRIAS, e a regra é UMA só: esta função. Ela é chamada pelas duas
+ * rotas que escrevem curadoria (atribuir e derivar) e pelo formulário, para a recusa chegar
+ * antes de a pessoa carregar no botão. Três sítios, uma regra — a alternativa era três listas
+ * a divergir, e a que ficasse para trás seria sempre a do servidor, que é a que guarda.
+ *
+ * A MENSAGEM DIZ O QUE FALTA E ONDE SE RESOLVE. «Faltam campos» não serve: a pessoa fica a
+ * olhar para o formulário sem saber qual. Quando o que falta é uma ALUNA ou uma TURMA, o
+ * caminho é outro sítio da Produção, e a frase diz qual.
+ */
+function faltaNaCuradoria({ professor, modalidade, tradicao, turmas, alunas }) {
+  const falta = [];
+  if (!String(professor || '').trim()) falta.push(['professor', 'o professor']);
+  if (!String(modalidade || '').trim()) falta.push(['modalidade', 'a modalidade']);
+  if (!String(tradicao || '').trim()) falta.push(['tradicao', 'a tradição']);
+  const t = (Array.isArray(turmas) ? turmas : [turmas]).map((x) => String(x || '').trim()).filter(Boolean);
+  if (!t.length) falta.push(['turma', 'a turma']);
+  const a = (Array.isArray(alunas) ? alunas : [alunas]).map((x) => String(x || '').trim()).filter(Boolean);
+  if (!a.length) falta.push(['aluna', 'pelo menos uma aluna']);
+  return falta;
+}
+
+/** A FRASE DA RECUSA — a mesma nas duas rotas e no formulário, para não haver três redações. */
+function fraseDaCuradoriaIncompleta(falta) {
+  const nomes = falta.map(([, nome]) => nome);
+  const onde = [];
+  if (falta.some(([campo]) => campo === 'professor')) onde.push('no Professor');
+  if (falta.some(([campo]) => campo === 'modalidade')) onde.push('na Modalidade');
+  if (falta.some(([campo]) => campo === 'tradicao')) onde.push('na Tradição');
+  if (falta.some(([campo]) => campo === 'turma')) onde.push('em Turma (aba Turmas)');
+  if (falta.some(([campo]) => campo === 'aluna')) onde.push('nas Alunas (secção Alunas, ou a curadoria anterior)');
+  return 'a curadoria não se atribui incompleta — falta ' + nomes.join(', ') + '. ' +
+    'A curadoria é o que autoriza o plano de uma turma e declara quem está nela, e por isso ' +
+    'os cinco campos são obrigatórios. Preencha ' + onde.join(', ') + ', e atribua depois.';
+}
+
+/**
  * O id estável de uma curadoria: o slug de `professor + modalidade + turma` (16/10/2026).
  *
  * A TURMA ENTRA NO ID. Sem ela, o id era `professor + modalidade` — e atribuir o MESMO
@@ -2909,7 +2954,12 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     '<label class="campo-rotulo" for="cumodalidade">Modalidade</label>' +
     '<select id="cumodalidade">' + opcoesModalidadeCuradoria + '</select>' +
     '<label class="campo-rotulo" for="cutradicao">Tradição</label>' +
-    '<select id="cutradicao"><option value="">— nenhuma —</option>' + opcoesTradicaoCuradoria + '</select>' +
+    // A TRADIÇÃO É OBRIGATÓRIA (23/10/2026). Havia aqui um «— nenhuma —», e era o único
+    // campo da curadoria que se podia deixar em branco sem que nada reclamasse: a curadoria
+    // autorizava o plano de uma turma sem dizer em que linha o professor ensina. A opção saiu;
+    // quem editar um registo antigo sem tradição escolhe uma (P-03: a proveniência acrescenta,
+    // e a versão nova fica completa).
+    '<select id="cutradicao">' + opcoesTradicaoCuradoria + '</select>' +
     '<label class="campo-rotulo" for="cuturma">Turma</label>' +
     '<select id="cuturma">' + opcoesTurmaCuradoria + '</select>' +
     '<label>Alunas</label>' +
@@ -4465,6 +4515,22 @@ function paginaProducao(escola, contexto, profs, aluns, dono, donoSlug, trms, tr
     // A TURMA é UMA (um `select`, como a modalidade): vai como lista de um, que é o formato
     // que o plano já lê. As ALUNAS e o REPERTÓRIO continuam múltiplos.
     '  var umaTurma = document.getElementById("cuturma").value;' +
+    // OS CINCO CAMPOS SÃO OBRIGATÓRIOS, E O FORMULÁRIO DIZ QUAIS FALTAM (23/10/2026). A
+    // mesma regra do servidor (`faltaNaCuradoria`), aqui para a recusa chegar antes de a
+    // pessoa esperar por uma ida à rede. Um `alert` que diz «faltam campos» não serve: a
+    // pessoa fica a olhar para o formulário sem saber qual.
+    '  var faltando = [];' +
+    '  if (!document.getElementById("cuprofessor").value) faltando.push("o professor");' +
+    '  if (!document.getElementById("cumodalidade").value) faltando.push("a modalidade");' +
+    '  if (!document.getElementById("cutradicao").value) faltando.push("a tradição");' +
+    '  if (!umaTurma) faltando.push("a turma");' +
+    '  if (!fichasDe("esc-alunas").length) faltando.push("pelo menos uma aluna");' +
+    '  if (faltando.length) {' +
+    '    alert("A curadoria não se atribui incompleta — falta " + faltando.join(", ") + ". " +' +
+    '      "Ela é o que autoriza o plano de uma turma e declara quem está nela; os cinco " +' +
+    '      "campos são obrigatórios.");' +
+    '    return;' +
+    '  }' +
     '  var campos = {' +
     '    professor: document.getElementById("cuprofessor").value,' +
     '    modalidade: document.getElementById("cumodalidade").value,' +
@@ -5838,7 +5904,6 @@ async function fetch(request, env) {
     }
     const professor = String(corpo.professor || '').trim();
     const modalidade = String(corpo.modalidade || '').trim();
-    if (!professor || !modalidade) return json(400, { ok: false, erro: 'escolha o professor e a modalidade' });
     // A TURMA É UMA SÓ (16/10/2026). Era uma lista, e a lista mentia: quem escolhia duas
     // turmas estava a dizer que as alunas de uma pertencem à outra — e não pertencem. O
     // registo continua a guardar `turmas` (lista de UM) para o plano, que já a lê assim, não
@@ -5846,6 +5911,18 @@ async function fetch(request, env) {
     const turmasPedidas = Array.isArray(corpo.turmas)
       ? corpo.turmas.map((x) => String(x).trim()).filter(Boolean)
       : [String(corpo.turma || '').trim()].filter(Boolean);
+    const alunasDoCorpo = Array.isArray(corpo.alunas)
+      ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [];
+    /* OS CINCO CAMPOS SÃO OBRIGATÓRIOS, E A ROTA É QUEM OS GUARDA (23/10/2026). O formulário
+       também os confere (para a recusa não esperar por uma ida ao servidor), mas uma regra que
+       só existe no cliente não é uma regra: a rota é pública para quem tem a senha da direção,
+       e é ela que escreve. A mensagem diz o que falta e onde se resolve. */
+    const falta = faltaNaCuradoria({
+      professor, modalidade, tradicao: corpo.tradicao, turmas: turmasPedidas, alunas: alunasDoCorpo,
+    });
+    if (falta.length) {
+      return json(400, { ok: false, erro: fraseDaCuradoriaIncompleta(falta), falta: falta.map(([c]) => c) });
+    }
     if (turmasPedidas.length > 1) {
       return json(400, {
         ok: false,
@@ -5918,8 +5995,8 @@ async function fetch(request, env) {
       }
     }
 
-    const alunasPedidas = Array.isArray(corpo.alunas)
-      ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean) : [];
+    // Já lidas acima, para a conferência dos cinco campos: uma leitura só.
+    const alunasPedidas = alunasDoCorpo;
     // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE (16/10/2026). Se ela já está noutra turma desta
     // modalidade, pô-la aqui faria os dois planos dizerem as mesmas alunas — e só uma turma é a
     // dela. A recusa diz ONDE ela está; o caminho é tirá-la de lá (ou não a pôr aqui).
@@ -6020,6 +6097,23 @@ async function fetch(request, env) {
     const alunasFinais = Array.isArray(corpo.alunas)
       ? corpo.alunas.map((x) => String(x).trim()).filter(Boolean)
       : (anterior.alunas || []);
+    /* A VERSÃO NOVA TAMBÉM NASCE COMPLETA (23/10/2026). O que se confere é o que VAI FICAR
+       escrito — `turmaFinal` e `alunasFinais` já resolvem o que não veio no corpo a partir da
+       curadoria anterior. Conferir o corpo em vez do resultado deixaria passar uma derivada
+       sem turma quando a anterior também não a tinha, que é exactamente a dívida que esta
+       regra veio não deixar crescer. */
+    const faltaDeriv = faltaNaCuradoria({
+      professor: anterior.professor,
+      modalidade: anterior.modalidade,
+      tradicao: corpo.tradicao === undefined ? anterior.tradicao : corpo.tradicao,
+      turmas: [turmaFinal],
+      alunas: alunasFinais,
+    });
+    if (faltaDeriv.length) {
+      return json(400, {
+        ok: false, erro: fraseDaCuradoriaIncompleta(faltaDeriv), falta: faltaDeriv.map(([c]) => c),
+      });
+    }
     // A ALUNA NÃO SE REPETE NA MESMA MODALIDADE — também ao derivar. A curadoria que se está
     // a derivar não conta (é a de origem, `anterior.id`): as alunas dela não competem consigo.
     const ocupadasDeriv = alunasComprometidas(lista, String(anterior.modalidade || ''), anterior.id);

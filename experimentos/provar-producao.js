@@ -836,6 +836,11 @@ async function principal() {
     html.includes('id="esc-turmas"'), false);
   conferir('…e a modalidade e a tradição continuam `select` (o mesmo formato)',
     /<select id="cumodalidade">/.test(html) && /<select id="cutradicao">/.test(html), true);
+  /* A TRADIÇÃO DEIXOU DE TER «— nenhuma —» (23/10/2026). Era o único campo da curadoria que
+     se podia deixar em branco sem que nada reclamasse: o registo autorizava o plano de uma
+     turma sem dizer em que linha o professor ensina. */
+  conferir('…e a tradição já NÃO oferece «— nenhuma —» (o campo passou a ser obrigatório)',
+    /<select id="cutradicao">\s*<option value="RAD">/.test(html), true);
   conferir('…e as ALUNAS continuam múltiplas (escolhedor)',
     html.includes('class="escolhedor" id="esc-alunas"'), true);
   // O «REPERTÓRIO» SAIU DA CURADORIA (19/10/2026). Ele era um segundo lugar para digitar os
@@ -1001,6 +1006,84 @@ async function principal() {
   api.clicar(passos.botoes[0]);
   conferir('e voltar para «Turma» fecha os outros dois',
     passos.paineis.map((p) => !p.hidden), [true, false, false]);
+
+  // 12. A CURADORIA NÃO SE ATRIBUI INCOMPLETA (23/10/2026). Os cinco campos — professor,
+  //     modalidade, tradição, turma e aluna — são o que autoriza o plano de uma turma e
+  //     declara quem está nela. A regra é do SERVIDOR (o formulário só a antecipa), e por
+  //     isso a prova bate na rota: sem tradição, sem turma, sem aluna, e uma completa.
+  //     Um `env` novo, para não depender do que as secções anteriores deixaram no KV.
+  {
+    const envC = ambiente();
+    const kv = envC.PADD_KV;
+    const senha = SENHA_DA_DIRECAO;
+    const postar = (caminho, corpo) => pedir(envC, caminho, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(Object.assign({ senhaDirecao: senha }, corpo)),
+    });
+    await postar('/api/bastidores/professor', { nome: 'Curador', senha: 'senha-do-curador' });
+    await postar('/api/bastidores/aluna', { apelido: 'Aluna Um' });
+    await postar('/api/bastidores/turma', {
+      nome: 'Turma da Curadoria', frequencia: 2, dias: ['ter', 'qui'], duracaoMin: 60,
+      periodoInicio: '2026-10-16', periodoFim: '2026-12-18',
+    });
+    const completa = {
+      professor: 'curador', modalidade: 'Balé clássico', tradicao: 'RAD',
+      turmas: ['Turma da Curadoria'], alunas: ['Aluna Um'],
+    };
+    const semCampo = async (campo) => {
+      const corpo = Object.assign({}, completa);
+      delete corpo[campo];
+      const r = await postar('/api/bastidores/curadoria', corpo);
+      const d = await r.json();
+      return { status: r.status, falta: d.falta || [], erro: d.erro || '' };
+    };
+    conferir('a curadoria sem professor é recusada', (await semCampo('professor')).status, 400);
+    conferir('a curadoria sem modalidade é recusada', (await semCampo('modalidade')).status, 400);
+    const semTradicao = await semCampo('tradicao');
+    conferir('a curadoria sem TRADIÇÃO é recusada (era opcional: «— nenhuma —»)', semTradicao.status, 400);
+    conferir('…e a recusa diz que falta a tradição', semTradicao.falta, ['tradicao']);
+    const semTurma = await semCampo('turmas');
+    conferir('a curadoria sem TURMA é recusada', semTurma.status, 400);
+    /* ESTA ERA A FALHA DE VERDADE. A rota conferia o ritmo *se* houvesse turma, e sem turma
+       seguia em frente: criava uma curadoria sem turma, com o id no formato antigo
+       (`professor+modalidade`) — a colisão que a turma entrou no id para corrigir. O
+       comentário da função dizia «a turma é obrigatória»; o código não a exigia. */
+    conferir('…e a recusa diz que falta a turma', semTurma.falta, ['turma']);
+    const semAluna = await semCampo('alunas');
+    conferir('a curadoria sem ALUNA é recusada', semAluna.status, 400);
+    conferir('…e a recusa diz que falta pelo menos uma aluna', semAluna.falta, ['aluna']);
+    conferir('a recusa nomeia os campos em português, e não em código',
+      /falta a tradição/.test(semTradicao.erro) && /pelo menos uma aluna/.test(semAluna.erro), true);
+    conferir('…e diz onde se resolve o que falta',
+      /aba Turmas/.test(semTurma.erro) && /secção Alunas/.test(semAluna.erro), true);
+    conferir('nenhuma curadoria incompleta foi gravada',
+      ((await (await pedir(envC, '/api/bastidores/curadorias')).json()).curadorias || []).length, 0);
+
+    const ok = await postar('/api/bastidores/curadoria', completa);
+    conferir('a curadoria COMPLETA é aceita', ok.status, 201);
+    const gravada = ((await (await pedir(envC, '/api/bastidores/curadorias')).json()).curadorias || [])[0] || {};
+    conferir('…e grava os cinco campos',
+      [gravada.professor, gravada.modalidade, gravada.tradicao, (gravada.turmas || [])[0], (gravada.alunas || [])[0]],
+      ['curador', 'Balé clássico', 'RAD', 'Turma da Curadoria', 'Aluna Um']);
+
+    /* E A VERSÃO DERIVADA TAMBÉM NASCE COMPLETA: o que se confere é o que vai FICAR escrito,
+       não o que veio no corpo — uma derivada de uma curadoria antiga sem tradição não pode
+       herdar a falta e gravar-se assim. */
+    const derivada = await postar('/api/bastidores/curadoria-derivar', {
+      derivarDe: gravada.id, vigencia: '2026-11-01', tradicao: '', alunas: ['Aluna Um'],
+    });
+    conferir('a curadoria DERIVADA sem tradição também é recusada', derivada.status, 400);
+
+    /* O FORMULÁRIO ANTECIPA A MESMA RECUSA (não espera pela rede). O script é o da página, e
+       a prova executa-o contra o DOM falso: com a tradição vazia, o `submit` tem de parar
+       antes de chamar `enviar`. */
+    const scriptCuradoria = [...html.matchAll(/<script>([\s\S]*?)<\/script>/g)]
+      .map((m) => m[1]).sort((a, b) => b.length - a.length)[0] || '';
+    conferir('o script do formulário confere os cinco campos antes de enviar',
+      /fichasDe\("esc-alunas"\)\.length/.test(scriptCuradoria) &&
+      /falta " \+ faltando\.join/.test(scriptCuradoria), true);
+    void kv;
+  }
 
   const falhas = casos.filter((c) => !c.ok);
   for (const c of casos) {

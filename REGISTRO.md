@@ -23393,3 +23393,65 @@ cópias de `assets/style.css` dos três pacotes e da raiz foram regeradas.
 - A paginação da lista de aulas **não é por turma**: ela pagina o conjunto já filtrado.
 - O estado de uma turma (curadoria · PO · ciclo · anamnese · Benesh · aula · harmonização) continua
   a ser lido à mão; §9.1 do plano diz de onde cada um sairia sem campo novo.
+
+## 23/10/2026 — A curadoria não se atribui incompleta: cinco campos, e a regra é uma só
+
+**O que motivou.**
+A dona do produto disse, ao testar a escola nova: «eu não posso atribuir a curadoria sem preencher
+todos os campos — o professor, a modalidade, a tradição, a turma de balé e a aluna.» **Não era
+verdade, e a diferença importava.** Conferido na rota: só `professor` e `modalidade` eram exigidos.
+`tradição` era opcional por desenho (o `select` tinha «— nenhuma —»), `alunas` podia ir vazia — e a
+`turma`, que a própria função do id declara obrigatória num comentário, **não era exigida em lado
+nenhum**.
+
+O caso da turma era o pior dos três, e não é cosmético. A rota conferia o ritmo *se* houvesse
+turma — `if (turmasPedidas.length)` — e sem turma seguia em frente: gravava uma curadoria sem turma
+e com o id no formato antigo (`professor+modalidade`), que é exactamente a colisão que a turma
+entrou no id para corrigir. Duas curadorias do mesmo professor na mesma modalidade, em turmas
+diferentes, voltavam a partilhar id — e a segunda substituía a primeira, em silêncio. O comentário
+dizia «a turma é obrigatória aqui»; o código não a exigia. Uma regra que existe só no comentário
+não existe.
+
+**O que foi decidido.**
+- **Os cinco campos são obrigatórios**, e a razão não é formal: a curadoria é o que **autoriza** o
+  plano de uma turma e é ela que **declara quem está nela**. Sem tradição, o registo diz que o
+  professor ensina sem dizer em que linha; sem turma não autoriza plano nenhum; sem alunas, o PO da
+  turma não tem a quem observar, e a lista de sujeitos sai vazia sem que nada no ecrã explique
+  porquê.
+- **A regra é UMA só, e mora no servidor.** `faltaNaCuradoria()` devolve o que falta; as duas rotas
+  que escrevem curadoria (atribuir e derivar) e o formulário consomem a mesma função. Três sítios,
+  uma regra — a alternativa era três listas a divergir, e a que ficasse para trás seria sempre a do
+  servidor, que é a que guarda.
+- **A mensagem diz o que falta e onde se resolve.** «Faltam campos» não serve: a pessoa fica a olhar
+  para o formulário sem saber qual. Quando o que falta está noutro sítio da Produção, a frase diz
+  qual — «aba Turmas», «secção Alunas».
+- **O formulário antecipa a recusa**, para não haver uma ida à rede só para ouvir o mesmo. O
+  servidor continua a ser o guarda: uma regra que só existe no cliente não é uma regra.
+- **A versão DERIVADA confere o que vai ficar escrito**, não o que veio no corpo: `turmaFinal` e
+  `alunasFinais` já resolvem o ausente a partir da anterior, e conferir o corpo deixaria passar uma
+  derivada sem turma quando a anterior também não a tinha — a dívida que esta regra veio não deixar
+  crescer.
+
+**Onde entrou.**
+- `motor/servidor/bastidores.js` — `faltaNaCuradoria()` e `fraseDaCuradoriaIncompleta()` (a regra e
+  a sua redacção, uma vez cada); a conferência nas duas rotas (`/api/bastidores/curadoria` e
+  `/api/bastidores/curadoria-derivar`); a mesma conferência no `submit` do formulário; e o
+  «— nenhuma —» **saiu do `select` da tradição** — um campo obrigatório que oferece a opção vazia
+  é um campo a convidar a própria recusa.
+- `experimentos/provar-producao.js` — secção 12.
+
+**Com o quê.**
+`node experimentos/provar-producao.js` — **151 de 151** (eram 135). A secção 12 bate na rota, com
+um KV novo: recusa sem professor, sem modalidade, sem tradição, sem turma e sem aluna; a recusa
+**nomeia o campo** e diz **onde se resolve**; **nenhuma curadoria incompleta é gravada** (a lista
+fica vazia); a completa é aceite e grava os cinco; a derivada sem tradição também é recusada; e o
+script do formulário confere os cinco antes de enviar. Sem regressão: `provar-menu-da-producao`
+26/26, `provar-navegacao` 54/54, `check-identidade` 20 verificações sem erro.
+
+**O que ainda não está feito.**
+- **Os registos antigos não são tocados.** Uma curadoria gravada antes desta regra sem tradição ou
+  sem turma continua como está — a proveniência não reescreve (P-03/P-04) —, mas **passa a não se
+  poder derivar sem corrigir**: a versão nova é conferida, e a falta tem de ser preenchida. É o
+  comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
+- Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
+  medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.

@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T09:36:34-0300`
-Commit atual: `8ddaa84` — chore(tools): a peça do rodapé de páginas, e a harmonização deixa de ser publicada
+Gerado em: `2026-10-23T10:33:03-0300`
+Commit atual: `e6107a6` — fix(estrutura): em /aulas/ a coluna acende «Aulas», e não «Área do Professor»
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -72,6 +72,8 @@ vaso-bonito (11)
 ## Últimos commits
 
 ```
+e6107a6 fix(estrutura): em /aulas/ a coluna acende «Aulas», e não «Área do Professor»
+773cbc7 feat(estrutura): a turma escolhe-se antes do formulário, e a lista de aulas pagina
 8ddaa84 chore(tools): a peça do rodapé de páginas, e a harmonização deixa de ser publicada
 6b004a4 feat(estrutura): o menu passa a levar a listas, e a lista passa a ser o sistema
 0bc9d34 chore(tools): a coluna, a folha e o trio passam a ter desenho em comum
@@ -90,8 +92,6 @@ a8164c0 feat(po): o PO elicitado vira a fonte do ciclo
 36a3214 feat(po): o PO elicitado vira a fonte do ciclo
 c84d701 feat(acervo): envelope/po-20261022-2105.json
 0888227 feat(acervo): envelope/.indice.json
-7bd8a9c chore(estrutura): reancorar a cadeia das fontes alteradas
-0087664 chore(estrutura): regerar os índices derivados
 ```
 
 ## Por professor
@@ -185,137 +185,69 @@ c84d701 feat(acervo): envelope/po-20261022-2105.json
 
 ## Última entrada do REGISTRO
 
-## 23/10/2026 — A escolha de turma antes do formulário, e a harmonização sai do site
+## 23/10/2026 — A curadoria não se atribui incompleta: cinco campos, e a regra é uma só
 
 **O que motivou.**
-Quatro coisas ficaram abertas na entrada anterior, e nenhuma era cosmética.
+A dona do produto disse, ao testar a escola nova: «eu não posso atribuir a curadoria sem preencher
+todos os campos — o professor, a modalidade, a tradição, a turma de balé e a aluna.» **Não era
+verdade, e a diferença importava.** Conferido na rota: só `professor` e `modalidade` eram exigidos.
+`tradição` era opcional por desenho (o `select` tinha «— nenhuma —»), `alunas` podia ir vazia — e a
+`turma`, que a própria função do id declara obrigatória num comentário, **não era exigida em lado
+nenhum**.
 
-1. Os três formulários da Área do Professor apontavam para a **porta crua** (`/anamnese/`,
-   `/plano-ensino/`, `/plano-observacao/`). A porta abre com a barra de contexto **vazia**: quem
-   chegava tinha de saber de cor qual era o professor e qual o ciclo, e o que ele escolhesse ali
-   não tinha passado pela curadoria — que é quem liga professor e turma. O menu novo dizia «Área
-   do Professor» e entregava um formulário sem dono.
-2. A **harmonização** continuava publicada em `/<variante>/harmonizacao.html` e fora do menu, o
-   que é o pior dos dois estados: um URL que circula e já não se alcança por navegação nenhuma.
-3. A lista de **aulas** filtrava só por busca. Com 35 linhas e duas turmas, «quais são as aulas do
-   Balé Nível 2» era uma conta de cabeça.
-4. A lista de aulas **não paginava**. O `.conf` de cada turma declara dezoito aulas: três turmas
-   dão 54 linhas, e a lista cresce com o acervo — que é o crescimento que não tem fim.
+O caso da turma era o pior dos três, e não é cosmético. A rota conferia o ritmo *se* houvesse
+turma — `if (turmasPedidas.length)` — e sem turma seguia em frente: gravava uma curadoria sem turma
+e com o id no formato antigo (`professor+modalidade`), que é exactamente a colisão que a turma
+entrou no id para corrigir. Duas curadorias do mesmo professor na mesma modalidade, em turmas
+diferentes, voltavam a partilhar id — e a segunda substituía a primeira, em silêncio. O comentário
+dizia «a turma é obrigatória aqui»; o código não a exigia. Uma regra que existe só no comentário
+não existe.
 
 **O que foi decidido.**
-- **A escolha da turma vem antes do formulário.** Três páginas novas em
-  `/area-do-professor/{anamnese,plano-de-ensino,plano-de-observacao}/`, uma linha por turma curada,
-  e a linha leva o contexto no endereço: `?professor=<slug>&ciclo=NN`. O menu continua sem citar
-  turma nenhuma — quem a cita é a página.
-- **O slug vem do diretório** (`professores/<slug>/`), **e não do `.conf`**. O `PROFESSOR` do
-  `.conf` é o NOME de quem lê («Oculos Redondo»); o `?professor=` da porta é o slug. Trocar os dois
-  daria uma lista que não encontra ninguém, e o sintoma no ecrã seria «o campo do professor ficou
-  vazio» — sem erro nenhum, que é o pior modo de falhar.
-- **A harmonização sai da publicação.** Deixou de ser copiada, e os **links órfãos foram podados**:
-  o rodapé do pacote («Plano · Harmonização · Captura · …») e o `README.md` ficavam a apontar para
-  um documento que já não está ao lado. Deixar de publicar exige deixar de apontar — um link para
-  um 404 lê-se como «o sistema perdeu o documento».
-- **Ela não vai para a Produção ainda, e isso é uma decisão, não um esquecimento.** A Produção vive
-  do KV e **não lê um único documento do ciclo**; pôr lá um item seria um link para uma página que
-  ninguém construiu. O desenho do «status de uma turma + acesso ao documento» está escrito em
-  `PLANO-NAVEGACAO.md` §9, e começa por uma pergunta que tem de ser respondida antes do código:
-  *quem vê o quê*.
-- **O filtro passou a servir as duas listas.** Nasceu com três controles para os planos; a lista de
-  aulas pediu o mesmo, e uma aula não tem professor no cartão — o professor está na turma, e a
-  turma já está no filtro. Um controle com uma opção só é ruído, e ruído num filtro faz duvidar do
-  que ele esconde. O rótulo da contagem vem do formulário («18 aulas de 35»), porque «1 aulas» é o
-  género de erro que ninguém revê.
-- **A paginação saiu do `bastidores.js` e foi para o núcleo** (`motor/nucleo/paginacao.js`). Ela
-  era um bloco de `'…' + '…'` dentro da função que monta a página inteira da Produção. Enquanto
-  fosse o único consumidor, era só feio; quando a lista de aulas precisou do mesmo, passou a ser o
-  problema que a casa já resolveu uma vez — duas cópias divergem na primeira correcção.
-- **O filtro e a paginação têm um acordo explícito:** quem filtra marca `data-fora="sim"` em vez de
-  esconder com `hidden`, e chama `paginar()`. Sem isso, filtrar para duas turmas mostraria «1 / 3»
-  e duas páginas vazias — e uma página vazia lê-se como «não há nada».
-
-**O defeito que a renomeação causou, e quem o apanhou.**
-A peça do rodapé nasceu chamada `.paginacao`. Mas `paginacao` **já era** a classe do rodapé da
-barra de controle do lançamento (`tools/templates/lancamento.html`, declarada lá, com a barra
-compacta do celular a apertar-lhe o `gap`). A regra nova passou a desenhar a barra do lançamento:
-ela cresceu 5px, e o «voltar ao topo» — que é fixo e sobe pela `--barra-altura` publicada pelo
-script — ficou **por cima do «⋯»**, que é o único controle da barra compacta. Quem apanhou foi
-`provar-titulo-e-barra`, com os números: `fundoDoTopo: 793`, `topoDaBarra: 788`.
-
-A correcção foi renomear a peça para `.paginas` / `.paginas-ant` / `.paginas-info` /
-`.paginas-prox`. A lição fica escrita em `ciclo.css`: **uma classe é um contrato, e um nome já
-gasto noutra página não é um nome livre** — a checagem «Peça» não apanha isto porque as duas
-páginas usam o nome de boa-fé, e a «Forma» não olha a `display`/`gap`, que era o que o lançamento
-declarava.
-
-**MOTIVO DECLARADO (`tools/` é congelado).**
-`tools/montar-publicacao.js`, `tools/templates/ciclo.css`, `tools/check-identidade.js` e
-`tools/templates/` mudaram nesta entrada. O motivo é o acima: sem mexer na montagem não há páginas
-de escolha de turma nem exclusão da harmonização; sem mexer na folha a peça da paginação não tem
-desenho em página nenhuma; e sem mexer na checagem a lista paginada não é medida — a amostra da
-«Peça» não exercitava `porPagina`, e uma peça que ninguém mede passa por omissão. **Nada disto toca
-na fórmula do hash, na cobertura da âncora, nos validadores, nas regras nem nas pétreas.** As
-cópias de `assets/style.css` dos três pacotes e da raiz foram regeradas.
+- **Os cinco campos são obrigatórios**, e a razão não é formal: a curadoria é o que **autoriza** o
+  plano de uma turma e é ela que **declara quem está nela**. Sem tradição, o registo diz que o
+  professor ensina sem dizer em que linha; sem turma não autoriza plano nenhum; sem alunas, o PO da
+  turma não tem a quem observar, e a lista de sujeitos sai vazia sem que nada no ecrã explique
+  porquê.
+- **A regra é UMA só, e mora no servidor.** `faltaNaCuradoria()` devolve o que falta; as duas rotas
+  que escrevem curadoria (atribuir e derivar) e o formulário consomem a mesma função. Três sítios,
+  uma regra — a alternativa era três listas a divergir, e a que ficasse para trás seria sempre a do
+  servidor, que é a que guarda.
+- **A mensagem diz o que falta e onde se resolve.** «Faltam campos» não serve: a pessoa fica a olhar
+  para o formulário sem saber qual. Quando o que falta está noutro sítio da Produção, a frase diz
+  qual — «aba Turmas», «secção Alunas».
+- **O formulário antecipa a recusa**, para não haver uma ida à rede só para ouvir o mesmo. O
+  servidor continua a ser o guarda: uma regra que só existe no cliente não é uma regra.
+- **A versão DERIVADA confere o que vai ficar escrito**, não o que veio no corpo: `turmaFinal` e
+  `alunasFinais` já resolvem o ausente a partir da anterior, e conferir o corpo deixaria passar uma
+  derivada sem turma quando a anterior também não a tinha — a dívida que esta regra veio não deixar
+  crescer.
 
 **Onde entrou.**
-- `motor/nucleo/paginacao.js` — **novo**: `marcacao()` e `script`. Sem `fs`, como o resto do núcleo.
-- `motor/nucleo/lista-html.js` — `filtro()` passa a receber `campos`/`singular`/`plural`/`dica`;
-  `paginaDeLista()` aceita `porPagina` e embrulha a `<ul>` num `[data-paginar]`; o script da lista
-  marca `data-fora` e chama `window.paginar()`.
-- `tools/montar-publicacao.js` — as três páginas de escolha de turma; o menu da Área do Professor a
-  apontar para elas; `copiar()` com exclusão por nome e poda dos links órfãos (HTML **e** Markdown);
-  a lista de aulas com `porPagina: 25`.
-- `tools/templates/ciclo.css` — a peça `.paginas*`, com o motivo do nome no comentário.
-- `tools/check-identidade.js` — a amostra da «Peça» ganha uma lista paginada; os três ganchos
-  `paginas-*` substituem `pag-*`.
-- `motor/servidor/bastidores.js` — `rodapePaginacao()` e o bloco de paginação passam a vir do
-  núcleo; o CSS de `.paginacao` saiu daqui (é peça da folha, e a segunda declaração reprovaria).
-- `IDENTIDADE-VISUAL.md` — a peça do rodapé de páginas nos Quadros 1 e 2.
-- `PLANO-NAVEGACAO.md` — §9, o desenho dos documentos gerados dentro da Produção.
+- `motor/servidor/bastidores.js` — `faltaNaCuradoria()` e `fraseDaCuradoriaIncompleta()` (a regra e
+  a sua redacção, uma vez cada); a conferência nas duas rotas (`/api/bastidores/curadoria` e
+  `/api/bastidores/curadoria-derivar`); a mesma conferência no `submit` do formulário; e o
+  «— nenhuma —» **saiu do `select` da tradição** — um campo obrigatório que oferece a opção vazia
+  é um campo a convidar a própria recusa.
+- `experimentos/provar-producao.js` — secção 12.
 
 **Com o quê.**
-- `node experimentos/provar-navegacao.js` — **52 asserções** (eram 35). Duas secções novas: a
-  escolha de turma leva o contexto certo e usa o **slug** (prova negativa contra `professor=Oculos`),
-  e a lista de aulas pagina — 35 linhas, 25 por página, «1 / 2», o botão avança, filtrar por turma
-  volta à página 1 e mostra 18 linhas, e o filtro dela **não** tem professor.
-- `node experimentos/provar-barra-unica.js` — **81 asserções** (eram 71). A porta deixou de ser
-  destino do menu (e por isso deixou de marcar grupo); a página de escolha é que acende «Área do
-  Professor».
-- `node experimentos/provar-producao.js` — **135/135**: a paginação da Produção continua a
-  funcionar servida pelo núcleo, com o formato novo (o DOM falso da prova foi actualizado).
-- `node experimentos/provar-titulo-e-barra.js` — TUDO OK. **Foi esta que apanhou a colisão de
-  nomes**, e é a razão de existir: a barra do lançamento não é do menu, e uma regra da folha
-  mexeu-lhe na altura.
-- `provar-menu-da-producao` 26/26 · `provar-celular` 15/15 · `provar-cartao-da-turma`,
-  `provar-linhas-da-lista`, `provar-sessao-na-barra` (28), todos certos.
-- `node tools/check-identidade.js` — 20 verificações, sem erro · `check-pacote` 0/0 ·
-  `gerar-indices --check` 13 em dia.
+`node experimentos/provar-producao.js` — **151 de 151** (eram 135). A secção 12 bate na rota, com
+um KV novo: recusa sem professor, sem modalidade, sem tradição, sem turma e sem aluna; a recusa
+**nomeia o campo** e diz **onde se resolve**; **nenhuma curadoria incompleta é gravada** (a lista
+fica vazia); a completa é aceite e grava os cinco; a derivada sem tradição também é recusada; e o
+script do formulário confere os cinco antes de enviar. Sem regressão: `provar-menu-da-producao`
+26/26, `provar-navegacao` 54/54, `check-identidade` 20 verificações sem erro.
 
 **O que ainda não está feito.**
-- **A harmonização não está acessível em sítio nenhum da interface.** Está no repositório
-  (`professores/…/harmonizacao.html`, coberto pela âncora) e fora do site. O desenho para a levar à
-  Produção está em `PLANO-NAVEGACAO.md` §9, e tem três perguntas por responder — a primeira é
-  *quem vê o quê*, porque o `producao.js` não tem autenticação de página.
-- **A ponte turma do KV ↔ variante do pacote não existe.** A variante nasce na escrita
-  (`compor-conf.js`: `escola + '-' + turma.id`), não na leitura. É o que impede a Produção de ligar
-  a uma turma o pacote dela.
-- A paginação da lista de aulas **não é por turma**: ela pagina o conjunto já filtrado.
-- O estado de uma turma (curadoria · PO · ciclo · anamnese · Benesh · aula · harmonização) continua
-  a ser lido à mão; §9.1 do plano diz de onde cada um sairia sem campo novo.
+- **Os registos antigos não são tocados.** Uma curadoria gravada antes desta regra sem tradição ou
+  sem turma continua como está — a proveniência não reescreve (P-03/P-04) —, mas **passa a não se
+  poder derivar sem corrigir**: a versão nova é conferida, e a falta tem de ser preenchida. É o
+  comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
+- Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
+  medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.
 
 ## O que está pendente
-
-## 22/10/2026 — O PO de um professor não vê o plano nem as alunas de outro
-
-- A escola `batata` foi **expurgada** no mesmo dia (`indices/escolas/batata.json` marca
-  `expurgada: true`, `habilitada: false`, contagens a zero; o `wrangler.batata.jsonc` saiu).
-  O `publicacao/batata/` local é saída e ficou órfã no disco — não é publicável, e o Worker ao
-  vivo já não tem config que a publique.
-- A curadoria da escola ao vivo não foi lida nesta sessão (o KV não está no repositório);
-  a prova usa curadorias equivalentes em memória. Se o dado ao vivo tiver uma curadoria
-  antiga com o professor em nome de exibição, o plano correspondente fica de fora — o recorte
-  é fechado de propósito, e a correção é refazer a curadoria com o slug.
-- A correção não foi exercitada numa escola ao vivo: a próxima que tiver dois professores na
-  mesma turma é a prova de campo.
 
 ## 22/10/2026 — A escola recriada pertence a quem a recriou
 
@@ -361,6 +293,15 @@ cópias de `assets/style.css` dos três pacotes e da raiz foram regeradas.
 - A paginação da lista de aulas **não é por turma**: ela pagina o conjunto já filtrado.
 - O estado de uma turma (curadoria · PO · ciclo · anamnese · Benesh · aula · harmonização) continua
   a ser lido à mão; §9.1 do plano diz de onde cada um sairia sem campo novo.
+
+## 23/10/2026 — A curadoria não se atribui incompleta: cinco campos, e a regra é uma só
+
+- **Os registos antigos não são tocados.** Uma curadoria gravada antes desta regra sem tradição ou
+  sem turma continua como está — a proveniência não reescreve (P-03/P-04) —, mas **passa a não se
+  poder derivar sem corrigir**: a versão nova é conferida, e a falta tem de ser preenchida. É o
+  comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
+- Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
+  medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.
 
 ## Pendências anteriores (índice)
 
@@ -633,6 +574,7 @@ cópias de `assets/style.css` dos três pacotes e da raiz foram regeradas.
 - **22/10/2026** — O TeX saía inteiro a cada execução, e o deploy subia por… → `REGISTRO.md` L22045
 - **22/10/2026** — Dois POs para um plano: a linha de base é uma só, e o… → `REGISTRO.md` L22850
 - **22/10/2026** — O terceiro laço de rebase, e os treze conflitos que eram só… → `REGISTRO.md` L22973
+- **22/10/2026** — O PO de um professor não vê o plano nem as alunas de outro → `REGISTRO.md` L23001
 - PO de **oculos-redondo · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
 - **oculos-redondo · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
