@@ -187,7 +187,10 @@
         "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-po.md",
         "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-referencias.md",
         "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
-        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.fipp"
+        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.fipp",
+        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclos.json",
+        "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/plano-observacao/envelope/elicitacao-schema.json"
       ],
       "escola": "calango",
       "estado": "ancorado",
@@ -202,11 +205,13 @@
         "dados",
         "glossario",
         "harmonizacao",
+        "indice",
         "manifesto",
         "notacao",
         "plano",
         "po",
-        "referencias"
+        "referencias",
+        "schema"
       ]
     }
   ],
@@ -338,6 +343,15 @@
       "tipo": "dados"
     },
     {
+      "ancora_id": "ciclo-01-calango-bale-nivel-2-teste-1",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+      "ciclo_id": "ciclo:perna-boa/01/calango",
+      "escola": "calango",
+      "id": "documento:dados:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+      "professor": "perna-boa",
+      "tipo": "dados"
+    },
+    {
       "ancora_id": "ciclo-01-calango-bale-nivel-1-teste-1",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-glossario-benesh.md",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
@@ -380,6 +394,15 @@
       "escola": "calango",
       "id": "documento:indice:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1/ciclos.json",
       "professor": "oculos-redondo",
+      "tipo": "indice"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-2-teste-1",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclos.json",
+      "ciclo_id": "ciclo:perna-boa/01/calango",
+      "escola": "calango",
+      "id": "documento:indice:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclos.json",
+      "professor": "perna-boa",
       "tipo": "indice"
     },
     {
@@ -497,6 +520,15 @@
       "escola": "calango",
       "id": "documento:schema:professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json",
       "professor": "oculos-redondo",
+      "tipo": "schema"
+    },
+    {
+      "ancora_id": "ciclo-01-calango-bale-nivel-2-teste-1",
+      "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+      "ciclo_id": "ciclo:perna-boa/01/calango",
+      "escola": "calango",
+      "id": "documento:schema:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/plano-observacao/envelope/elicitacao-schema.json",
+      "professor": "perna-boa",
       "tipo": "schema"
     }
   ],
@@ -628,9 +660,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "00af75e"
+    "commit": "89da488"
   },
-  "gerado_em": "2026-10-23T00:09",
+  "gerado_em": "2026-10-23T00:10",
   "nao_indexado": [
     {
       "familia": "conteudo",

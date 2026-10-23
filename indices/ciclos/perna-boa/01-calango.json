@@ -32,13 +32,16 @@
     "documento:aula:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-captura-aula-01.md",
     "documento:dados:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-dados.cifrado.json",
     "documento:dados:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+    "documento:dados:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
     "documento:glossario:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-glossario-benesh.md",
     "documento:harmonizacao:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-harmonizacao.md",
+    "documento:indice:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/ciclos.json",
     "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
     "documento:notacao:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-notacao.md",
     "documento:plano:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
     "documento:po:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-po.md",
-    "documento:referencias:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-referencias.md"
+    "documento:referencias:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-referencias.md",
+    "documento:schema:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1/plano-observacao/envelope/elicitacao-schema.json"
   ],
   "escola": "calango",
   "estado": "ancorado",
@@ -55,7 +58,7 @@
         "valor": "aula"
       },
       {
-        "contagem": 2,
+        "contagem": 3,
         "rotulo": "dados",
         "valor": "dados"
       },
@@ -68,6 +71,11 @@
         "contagem": 1,
         "rotulo": "harmonizacao",
         "valor": "harmonizacao"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "indice",
+        "valor": "indice"
       },
       {
         "contagem": 1,
@@ -93,14 +101,19 @@
         "contagem": 1,
         "rotulo": "referencias",
         "valor": "referencias"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "schema",
+        "valor": "schema"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "00af75e"
+    "commit": "89da488"
   },
-  "gerado_em": "2026-10-23T00:09",
+  "gerado_em": "2026-10-23T00:10",
   "id": "ciclo:perna-boa/01/calango",
   "professor": "perna-boa",
   "versao": 6

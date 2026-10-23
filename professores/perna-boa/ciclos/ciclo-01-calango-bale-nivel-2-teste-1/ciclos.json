@@ -1,0 +1,206 @@
+{
+  "_nota": "Indice gerado por tools/gerar-ciclo.sh (nao editar a mao). O formulario de lancamento de aula le este arquivo primeiro e, do ciclo escolhido, busca o arquivo de dados declarado em \"arquivo\". O `aulas[]` e o INDICE POR AULA: a data e a hora de cada aula sao DECLARADAS ali, nao derivadas de um passo fixo. `ancora` sai nulo enquanto nao tiver produtor; `prazo` (§3.1) e o instante-limite de lancamento da aula, calculado do calendario. `estado` (§1) e DERIVADO do calendario + do prazo + do registro: nao ha campo declarado. Ele carrega o juizo do INSTANTE DA GERACAO — quem le depois re-deriva com o proprio relogio.",
+  "gerado_em": "2026-10-23T00:10",
+  "ciclos": [
+    {
+      "id": "01",
+      "professor": "perna-boa",
+      "escola": "Calango",
+      "inicio": "2026-10-21",
+      "fim": "2026-12-16",
+      "total_aulas": 17,
+      "duracao_min": 60,
+      "arquivo": "ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+      "aulas": [
+        {
+          "n": "01",
+          "data": "2026-10-21",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "reconhecer o apoio e alinhar o eixo vertical",
+          "estado": "dada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-25T18:30",
+          "config": "captura-aula-01.json"
+        },
+        {
+          "n": "02",
+          "data": "2026-10-26",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "transferir o peso entre os pés sem perder o alinhamento",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-10-27T18:30"
+        },
+        {
+          "n": "03",
+          "data": "2026-10-28",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": "sustentar a transferência com musicalidade e controle do movimento",
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-01T18:30"
+        },
+        {
+          "n": "04",
+          "data": "2026-11-02",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-03T18:30"
+        },
+        {
+          "n": "05",
+          "data": "2026-11-04",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-08T18:30"
+        },
+        {
+          "n": "06",
+          "data": "2026-11-09",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-10T18:30"
+        },
+        {
+          "n": "07",
+          "data": "2026-11-11",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-15T18:30"
+        },
+        {
+          "n": "08",
+          "data": "2026-11-16",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-17T18:30"
+        },
+        {
+          "n": "09",
+          "data": "2026-11-18",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-22T18:30"
+        },
+        {
+          "n": "10",
+          "data": "2026-11-23",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-24T18:30"
+        },
+        {
+          "n": "11",
+          "data": "2026-11-25",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-11-29T18:30"
+        },
+        {
+          "n": "12",
+          "data": "2026-11-30",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-01T18:30"
+        },
+        {
+          "n": "13",
+          "data": "2026-12-02",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-06T18:30"
+        },
+        {
+          "n": "14",
+          "data": "2026-12-07",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-08T18:30"
+        },
+        {
+          "n": "15",
+          "data": "2026-12-09",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-13T18:30"
+        },
+        {
+          "n": "16",
+          "data": "2026-12-14",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-15T18:30"
+        },
+        {
+          "n": "17",
+          "data": "2026-12-16",
+          "inicio": "18:30",
+          "fim": "19:30",
+          "marco": null,
+          "estado": "planejada",
+          "lancada": false,
+          "ancora": null,
+          "prazo": "2026-12-20T18:30"
+        }
+      ]
+    }
+  ]
+}
