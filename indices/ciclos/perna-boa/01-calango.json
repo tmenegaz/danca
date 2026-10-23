@@ -4,30 +4,70 @@
     "ancorado_em": "2026-10-23",
     "caminho": "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.fipp",
     "cobertura": [
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-aula-01.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-captura-aula-01.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-glossario-benesh.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-harmonizacao.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-notacao.md",
       "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-po.md",
+      "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-referencias.md",
       "professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf"
     ],
-    "hash": "bdf4abfae17040e6dda21dc8dc2b8f182023174f83ed433d70807f7c01a2b861",
-    "hash_conteudo": "5729f1f735588f61ec8ef1977d8e2bb3fb697c9d2a7aecd2ca43ba59ae44c55b",
+    "hash": "2540d67e7ebd1c4b6f997fd7b5f8b4f9110f49f1e700812122d71bc0d942561c",
+    "hash_conteudo": "cfeb5c81120686182c42120659f5ce56ea405bc5fb0bfe544373d18ae20c0a1e",
     "id": "ciclo-01-calango-bale-nivel-2-teste-1",
     "lida": true,
     "parent_hash": ""
   },
-  "aulas": [],
+  "aulas": [
+    "ciclo:perna-boa/01/calango/aula-01"
+  ],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-aula-01.fipp",
     "documento:ancora:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.fipp",
+    "documento:aula:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-aula-01.md",
+    "documento:aula:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-captura-aula-01.md",
+    "documento:dados:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-dados.cifrado.json",
+    "documento:dados:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-dados.json",
+    "documento:glossario:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-glossario-benesh.md",
+    "documento:harmonizacao:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-harmonizacao.md",
     "documento:manifesto:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1.conf",
-    "documento:plano:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md"
+    "documento:notacao:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-notacao.md",
+    "documento:plano:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-plano.md",
+    "documento:po:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-po.md",
+    "documento:referencias:professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-referencias.md"
   ],
   "escola": "calango",
   "estado": "ancorado",
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "aula",
+        "valor": "aula"
+      },
+      {
+        "contagem": 2,
+        "rotulo": "dados",
+        "valor": "dados"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "glossario",
+        "valor": "glossario"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "harmonizacao",
+        "valor": "harmonizacao"
       },
       {
         "contagem": 1,
@@ -36,16 +76,31 @@
       },
       {
         "contagem": 1,
+        "rotulo": "notacao",
+        "valor": "notacao"
+      },
+      {
+        "contagem": 1,
         "rotulo": "plano",
         "valor": "plano"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "po",
+        "valor": "po"
+      },
+      {
+        "contagem": 1,
+        "rotulo": "referencias",
+        "valor": "referencias"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c64ec8"
+    "commit": "00af75e"
   },
-  "gerado_em": "2026-10-23T00:07",
+  "gerado_em": "2026-10-23T00:09",
   "id": "ciclo:perna-boa/01/calango",
   "professor": "perna-boa",
   "versao": 6

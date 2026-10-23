@@ -1,0 +1,20 @@
+# Âncora de proveniência encadeada — gerada por tools/hash-ciclo.sh
+# Este arquivo é VERSIONADO: é a âncora da cadeia, não uma saída (P-04).
+# Âncora da AULA 01 do ciclo 01-calango-bale-nivel-2-teste-1: cobre só as fontes desta aula.
+# Fórmula: hash = SHA256(id + ':' + type + ':' + parentHash + ':' + conteudo)
+# parentHash vazio por desenho: a âncora de uma aula não encadeia com a da anterior.
+
+id: ciclo-01-calango-bale-nivel-2-teste-1-aula-01
+type: Aula
+professor: Perna Boa
+ciclo: 01
+variante: calango-bale-nivel-2-teste-1
+aula: 01
+hash_conteudo: 53295e118251d2d8133a16a56e03432a46d0516e7ecaa197ebf41b99b39e194c
+parentHash: 
+hash: 2be345a0497f8fe30eca95f05fbf25f5a0a8ee108fd7620ddaa3bb7bd2b0635a
+algoritmo: SHA-256
+ancorado_em: 2026-10-23
+cobertura:
+  - professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-aula-01.md
+  - professores/perna-boa/ciclos/ciclo-01-calango-bale-nivel-2-teste-1-captura-aula-01.md

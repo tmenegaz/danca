@@ -18,13 +18,13 @@
     },
     {
       "ancora": {
-        "hash": "bdf4abfae17040e6dda21dc8dc2b8f182023174f83ed433d70807f7c01a2b861",
+        "hash": "2540d67e7ebd1c4b6f997fd7b5f8b4f9110f49f1e700812122d71bc0d942561c",
         "id": "ciclo-01-calango-bale-nivel-2-teste-1",
         "lida": true,
         "parent_hash": ""
       },
-      "aulas": 0,
-      "documentos": 3,
+      "aulas": 1,
+      "documentos": 13,
       "escola": "calango",
       "estado": "ancorado",
       "id": "ciclo:perna-boa/01/calango",
@@ -148,12 +148,12 @@
       ],
       "contagens": {
         "anamneses": 2,
-        "aulas": 1,
+        "aulas": 2,
         "ciclos": 2,
         "ciclos_com_ancora": 2,
         "planos": 2,
-        "pos": 1,
-        "registros": 5
+        "pos": 2,
+        "registros": 6
       },
       "criada_em": "2026-10-19T18:18:57.289485+00:00",
       "expurgada": false,
@@ -172,7 +172,8 @@
         "anamnese:anamnese-20261022-2055",
         "plano:plano-20261022-2100",
         "plano:plano-20261022-2101",
-        "po:po-20261022-2105"
+        "po:po-20261022-2105",
+        "po:po-20261022-2109"
       ],
       "slug": "calango"
     },
@@ -305,7 +306,7 @@
   "filtros": {
     "anos": [
       {
-        "contagem": 5,
+        "contagem": 6,
         "rotulo": "2026",
         "valor": "2026"
       }
@@ -453,7 +454,7 @@
         "valor": "plano"
       },
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "Plano de observação",
         "valor": "po"
       }
@@ -461,9 +462,9 @@
   },
   "fonte": {
     "arvore": null,
-    "commit": "9c64ec8"
+    "commit": "00af75e"
   },
-  "gerado_em": "2026-10-23T00:07",
+  "gerado_em": "2026-10-23T00:09",
   "nao_indexado": [
     {
       "familia": "conteudo",
