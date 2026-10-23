@@ -1,21 +1,23 @@
 {
   "ancora": {
     "algoritmo": "SHA-256",
-    "ancorado_em": "2026-10-22",
-    "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
+    "ancorado_em": "2026-10-23",
+    "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
     "cobertura": [
-      "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
       "professores/oculos-redondo/ciclos/ciclo-01.conf"
     ],
-    "hash": "d7e2070c8d45c62a00baef10eb3701a57ff6a004c9155ecab69a105b9da07b4a",
-    "hash_conteudo": "f5d1d93b1f9478bb99540dbbd6b8a841ce8f24004e37bf523ac9c11ae80259df",
-    "id": "ciclo-01-calango",
+    "hash": "5f6cfc2c0778b9054b6351f6da29d8a6ee1b4952f80c4324108e892ffc1d37b7",
+    "hash_conteudo": "76fd4834eeaaaa3912dbab0ac0dba7392aa252192c9fb0b079e085e3fc7c6617",
+    "id": "ciclo-01-calango-bale-nivel-1-teste-1",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.fipp",
     "documento:ancora:professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
     "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
     "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
@@ -27,7 +29,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
