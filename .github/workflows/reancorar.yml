@@ -166,6 +166,12 @@ jobs:
           Regras: P-03, P-04, P-08
           Auditoria: .github/workflows/reancorar.yml --check antes de gerar"
 
+          # A MENSAGEM FICA NUM ARQUIVO: o laço pode precisar de criar o commit de novo (quando o
+          # rebase descarta o vazio), e recriá-la à mão divergiria da original. Ver
+          # `.github/scripts/atualizar-commit-derivado.sh`.
+          mensagem="$(mktemp)"
+          git log -1 --format=%B > "$mensagem"
+
           # A ÂNCORA REGERA-SE DEPOIS DO REBASE. Uma vez que o commit assenta sobre um `main`
           # novo, a âncora que ele carrega foi calculada sobre as fontes ANTIGAS — e a âncora
           # não é texto que se escolha, é DERIVADA (tools/hash-ciclo.sh). Aqui ela é
@@ -197,19 +203,14 @@ jobs:
               # commit inicial: a âncora está no acervo, e o push daqui não redispara nada.
               node tools/gerar-indices.js || return 1
               git add -A -- indices/
-              # A ÂNCORA REGERADA PODE SER A QUE O `main` NOVO JÁ TINHA (19/10/2026). O commit
-              # desta reancoragem existia só para trocar a âncora antiga por uma nova; se a
-              # nova é igual à que o pai já traz, o commit fica vazio — e `git commit --amend`
-              # recusa («would make it empty», saída 1), derrubando o job com o push por fazer.
-              # Numa reancoragem o commit vazio é o resultado CERTO: descarta-se o commit, não
-              # a correcção. `--soft` move só o ponteiro; o que ficou no índice é idêntico ao
-              # pai, então a árvore continua limpa.
-              if git diff --cached --quiet HEAD^; then
-                echo "a âncora regerada é a que o main novo já tinha — commit dispensado"
-                git reset --soft HEAD^
-              else
-                git commit --amend --no-edit
-              fi
+              # A ÂNCORA REGERADA PODE SER A QUE O `main` NOVO JÁ TINHA — e o commit pode ter
+              # sido DESCARTADO pelo rebase (ficou vazio). Quem decide é
+              # `.github/scripts/atualizar-commit-derivado.sh`, que olha a mensagem: se o topo
+              # ainda é o commit DESTE job, actualiza-o (ou descarta-o, se ficou vazio); se o
+              # rebase o descartou, cria um novo. Antes isto era um `--amend` cego — e quando o
+              # rebase deixava o topo no commit de outro workflow, ele reescrevia história
+              # alheia e o push era recusado para sempre (run 39876375641, 23/10/2026).
+              .github/scripts/atualizar-commit-derivado.sh "$mensagem" || return 1
             fi
             return 0
           }

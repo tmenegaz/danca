@@ -293,3 +293,9 @@ po_ref/
 # «recriada», sem autor. A prova cobre o escritor do elo, a leitura do responsável, o índice
 # derivado (escola viva × apagada) e a ligação com o expurgar local.
 !experimentos/provar-recriacao-da-escola.js
+
+# O COMMIT DE QUEM PUBLICA O DERIVADO (23/10/2026). O «Guardar» do PO de perna-boa/01/calango
+# perdeu a corrida do push, o rebase descartou o commit vazio do índice, e o `--amend` cego
+# reescreveu o commit do `reancorar` — o job morreu nas oito tentativas. A prova reproduz a
+# corrida em repositórios git de verdade (controle negativo incluído) e exercita o guardão novo.
+!experimentos/provar-publicacao-do-derivado.sh

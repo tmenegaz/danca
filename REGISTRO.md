@@ -23112,3 +23112,61 @@ muda é o conteúdo de um elo de registro, e só quando a escola foi expurgada e
 - O expurgo pela **página** (`repo-escola.js` → `expurgar-escola.js`) deriva o professor dos
   caminhos e sempre acertou; quem errava era o elo e quem o lia. Os dois caminhos usam agora a
   mesma verdade, mas só o local foi exercitado aqui.
+
+## 23/10/2026 — O job do índice reescrevia o commit do vizinho, e o push morria
+
+**O que motivou.** O «Guardar» do PO de `perna-boa/01/calango-bale-nivel-2-teste-1` disparou os
+workflows, e o `Regerar os índices` (run 39876375641, 23/10/2026, 00:09 UTC) terminou vermelho.
+O log tem a assinatura do defeito: `[main fc9de92] chore(estrutura): reancorar a cadeia das
+fontes alteradas` — a mensagem de OUTRO workflow, gravada por este job, seguida de oito
+tentativas de push todas recusadas. Não era o conteúdo: o índice do acervo já estava certo.
+
+**A causa.** O commit do job só carrega `indices/`. Ao reaplicá-lo sobre um `main` novo, o
+derivado conflita, o `conflito-do-derivado.sh` fica com a versão do `main` — e o commit fica
+**vazio**. Num rebase, o git **descarta** o commit vazio e termina com o topo a ser o commit do
+`main`, que é de outra pessoa. O laço então fazia `git commit --amend --no-edit`: reescrevia
+ESSE commit. A partir daí o ramo deixou de ser descendente do `main`, e o push passou a ser
+recusado para sempre («non-fast-forward», depois «behind»). O `--amend` cego assumia que o topo
+era sempre o commit do job — e não era.
+
+O mesmo `--amend` cego estava nos três laços (`regerar-indices.yml`, `reancorar.yml`,
+`gerar-ciclo.yml`): a armadilha era comum, só disparou primeiro no do índice, porque é o único
+cujo commit é **só** derivado — logo o único que pode ficar vazio ao ser reaplicado.
+
+**O que foi decidido.**
+- `indices/` **não se rebaseia**: é uma função da árvore. Sobre um `main` novo, o laço parte da
+  árvore DELE (`git reset --hard origin/main`) e deriva outra vez. Sem conflito, sem
+  `--amend`, e o push é sempre fast-forward.
+- Os outros dois laços passam a usar `.github/scripts/atualizar-commit-derivado.sh`, que decide
+  pela MENSAGEM: topo com a mensagem do job → amenda (ou descarta, se ficou vazio); topo igual
+  ao `main` → cria commit novo; topo com mensagem alheia → **falha e diz**, em vez de reescrever
+  história que não é dele.
+- A mensagem do commit vai para um arquivo (`git log -1 --format=%B`), para o commit recriado
+  não divergir do original.
+
+**Onde entrou.**
+- `.github/workflows/regerar-indices.yml` — o laço passou a reconstruir sobre o `main` novo.
+- `.github/workflows/reancorar.yml` e `.github/workflows/gerar-ciclo.yml` — o `--amend` cego
+  deu lugar ao guardão partilhado.
+- `.github/scripts/atualizar-commit-derivado.sh` — novo; a regra da autoria num arquivo só.
+- `indices/**` — regerados: `fonte.commit` e `gerado_em` estavam a apontar para `89da488`
+  (o conteúdo já estava certo; o ponteiro, não).
+
+**Com o quê.**
+- `experimentos/provar-publicacao-do-derivado.sh` — 15 asserções sobre repositórios git de
+  verdade, com um `origin` bare. Inclui o **controle negativo**: com o laço antigo, reproduz o
+  run 39876375641 (o commit do vizinho amendado, o `main` sem ele na história, o push
+  recusado); com o laço novo, o push passa, o commit do vizinho fica com o MESMO SHA e a
+  história é linear; e exercita os três estados do guardão.
+- `bash experimentos/provar-conflito-do-derivado.sh` — 16/16, inalterado (o resolvedor não mudou).
+- `node tools/check-indices.js` — 14/14.
+
+**O que ainda não está feito.**
+- O defeito é do laço, não do dado: os índices já estavam corretos no `main` quando o job
+  falhou, e continuam corretos. O que estava errado era o PONTEIRO (`fonte.commit`), agora
+  atualizado.
+- A prova cobre o caminho do `regerar-indices` e o guardão; os laços do `reancorar` e do
+  `gerar-ciclo` são exercitados só pela parte C (o guardão), não de ponta a ponta — um deles
+  depende do `hash-ciclo.sh` e de fontes reais, que não cabem numa bancada de git.
+- Continua em aberto uma trava que impeça um QUARTO laço de repetir o padrão: hoje a regra é
+  convenção e revisão, não validação automática.

@@ -133,45 +133,48 @@ jobs:
           Regras: P-03, P-04, P-17
           Auditoria: node tools/gerar-indices.js (determinístico) + node tools/check-indices.js (14 verificações)"
 
-          # O PUSH PODE PERDER A CORRIDA — o mesmo laço do `reancorar.yml`, e pela mesma razão:
-          # mais de um workflow escreve no `main`. Se o rebase assentar sobre um `main` novo, o
-          # índice regerado foi calculado sobre a árvore ANTIGA — e o índice não se escolhe, é
-          # derivado. Aqui ele é recalculado depois do rebase, e o commit é refeito.
+          # O PUSH PODE PERDER A CORRIDA — mais de um workflow escreve no `main`. Quando isso
+          # acontece, o laço NÃO REBASEIA: ele RECONSTRÓI (22/10/2026).
           #
-          # O REBASE USA O RESOLVEDOR PARTILHADO (22/10/2026). Este laço nasceu com um
-          # `git rebase` cru e um `--abort` — a suposição era de que um conflito aqui não
-          # poderia ser do índice, porque é o índice que se está a escrever. É falso: o
-          # `indices/` é escrito por QUATRO caminhos (este, o `reancorar.yml`, o
-          # `gerar-ciclo.yml` e a página), e dois deles a correr ao mesmo tempo colidem no
-          # próprio índice. Medido no run 39795395850: treze `CONFLICT (content)` — todos em
-          # `indices/**` — e o job vermelho, com a mensagem a dizer «conflito que não é do
-          # índice» sobre um conflito que era só do índice. O `.github/scripts/conflito-do-
-          # derivado.sh` é a regra única dos três laços: `indices/**` fica com a versão do
-          # `main` e é regerado abaixo; `*.fipp` fica com a do commit; material falha e é dito.
+          # POR QUE NÃO REBASEIA. O commit deste job só carrega `indices/`. Ao reaplicá-lo sobre
+          # um `main` novo, o derivado conflita, o `conflito-do-derivado.sh` fica com a versão do
+          # `main` — e o commit fica VAZIO. Num rebase, o git DESCARTA o commit vazio e termina
+          # com o topo a ser o commit do `main`, que é de outra pessoa. O laço então fazia
+          # `git commit --amend --no-edit`, reescrevendo ESSE commit: o ramo deixava de ser
+          # descendente do `main`, o push era recusado para sempre («non-fast-forward», depois
+          # «behind»), e o job morria nas oito tentativas.
+          #
+          # Medido no run 39876375641 (`Regerar os índices`, 23/10/2026, 00:09 UTC) — o «Guardar»
+          # do PO de `perna-boa/01/calango-bale-nivel-2-teste-1`. O log do próprio job termina com
+          # `[main fc9de92] chore(estrutura): reancorar a cadeia das fontes alteradas`: a
+          # mensagem de OUTRO workflow, gravada por este.
+          #
+          # A CORRECÇÃO. `indices/` é uma FUNÇÃO da árvore: não se concilia, não se escolhe e não
+          # tem dono. Sobre um `main` novo, o certo é partir da árvore DELE e derivar outra vez —
+          # o `reset --hard` move o ramo para o `main` e não toca em nada de ninguém, porque este
+          # job não tem conteúdo próprio. Com isso não há conflito, não há `--amend`, e o push é
+          # sempre fast-forward.
+          mensagem="$(mktemp)"
+          git log -1 --format=%B > "$mensagem"
           for intento in 1 2 3 4 5 6 7 8; do
             if git push; then
               exit 0
             fi
-            echo "push recusado (tentativa $intento) — rebaseando sobre o main"
+            echo "push recusado (tentativa $intento) — refazendo sobre o main novo"
+
             git fetch origin main
-
-            if ! git rebase origin/main; then
-              if ! .github/scripts/conflito-do-derivado.sh; then
-                git rebase --abort || true
-                exit 1
-              fi
-              GIT_EDITOR=true git rebase --continue
-            fi
-
-            # A derivação de novo, sobre a árvore que resultou do rebase.
+            git reset --hard origin/main
             node tools/gerar-indices.js
             git add -A -- indices/
-            if git diff --cached --quiet HEAD^; then
-              echo "o índice regerado é o que o main novo já tinha — commit dispensado"
-              git reset --soft HEAD^
-            else
-              git commit --amend --no-edit
+
+            # O `main` novo pode já trazer o índice certo (outro workflow o regerou). Nesse caso
+            # não há o que publicar — e inventar um commit seria reescrever o derivado à toa.
+            if git diff --cached --quiet; then
+              echo "o índice do main novo já está em dia — nada a publicar"
+              exit 0
             fi
+
+            git commit -F "$mensagem"
             sleep $((intento * 3))
           done
           echo "erro: o push continuou recusado depois de 8 tentativas" >&2

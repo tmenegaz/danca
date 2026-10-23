@@ -206,6 +206,12 @@ jobs:
           Regras: Regra 16, P-04, P-17
           Auditoria: tools/check-pacote.js (dentro do gerador) + hash-ciclo.sh --check"
 
+          # A MENSAGEM FICA NUM ARQUIVO: o laço pode precisar de criar o commit de novo (quando o
+          # rebase descarta o vazio), e recriá-la à mão divergiria da original. Ver
+          # `.github/scripts/atualizar-commit-derivado.sh`.
+          mensagem="$(mktemp)"
+          git log -1 --format=%B > "$mensagem"
+
           # O PUSH PODE PERDER A CORRIDA, E O `.fipp` TEM DOIS DONOS (19/10/2026).
           #
           # O «Guardar» do PO commita as fontes uma a uma (o `escrever-ciclo.js`), e cada
@@ -286,17 +292,13 @@ jobs:
 
             if ! git diff --quiet -- '*.fipp' || ! git diff --cached --quiet -- indices/; then
               git add -- '*.fipp'
-              # O MESMO COMMIT VAZIO DO `reancorar.yml` (19/10/2026). Se a âncora regerada for
-              # igual à que o pai já traz e o pacote não mudou, o commit não tem o que fazer e
-              # `git commit --amend` recusa («would make it empty», saída 1) — o job morria com
-              # o push por fazer. Commit vazio, aqui, quer dizer que a entrega já estava no
-              # `main`: descarta-se o commit, não a correcção.
-              if git diff --cached --quiet HEAD^; then
-                echo "o pacote e a âncora regerada não mudam nada — commit dispensado"
-                git reset --soft HEAD^
-              else
-                git commit --amend --no-edit
-              fi
+              # QUEM DECIDE SE O COMMIT É NOSSO É O SCRIPT, E OLHA A MENSAGEM (23/10/2026).
+              # Antes era um `--amend` cego: quando o rebase descartava o commit vazio, o topo
+              # ficava no commit de outro workflow e o `--amend` reescrevia história alheia — o
+              # ramo deixava de ser descendente do `main` e o push era recusado para sempre.
+              # Medido no run 39876375641 (`Regerar os índices`, o «Guardar» do PO de
+              # `perna-boa/01/calango-bale-nivel-2-teste-1`).
+              .github/scripts/atualizar-commit-derivado.sh "$mensagem" || exit 1
             fi
             sleep $((intento * 5))
           done
