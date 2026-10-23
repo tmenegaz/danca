@@ -1,7 +1,7 @@
 # Handoff — Projeto Ciclo (o produto é o Sistema Lastro)
 
-Gerado em: `2026-10-23T10:33:03-0300`
-Commit atual: `e6107a6` — fix(estrutura): em /aulas/ a coluna acende «Aulas», e não «Área do Professor»
+Gerado em: `2026-10-23T10:44:18-0300`
+Commit atual: `2a921c9` — fix(estrutura): a curadoria não se atribui incompleta — os cinco campos são exigidos
 Para: sessão nova (retomar o diálogo)
 
 ## O que é este projeto
@@ -46,6 +46,7 @@ se aplicou — **o que mudou em relação ao plano** — e encadeia tudo o que m
   + **22 pétreas** em `PROTOCOLO.md`
 - **Professores:** acucar-branco
 cafe-no-bule
+manga-curta
 meia-cortada
 murisoca-baiana
 oculos-redondo
@@ -54,8 +55,8 @@ sapo-bailarino
 teclado-abnt
 tela-de-celular
 tiago-menegaz
-vaso-bonito (11)
-- **Ciclos com manifesto:** 3 variante(s)
+vaso-bonito (12)
+- **Ciclos com manifesto:** 1 variante(s)
 - **Saídas geradas:** os pacotes de ciclo são versionados (o deploy automático lê o repositório); as demais saídas ficam fora do Git (reconstruíveis — P-04)
 
 ## Ideias documentadas
@@ -72,51 +73,51 @@ vaso-bonito (11)
 ## Últimos commits
 
 ```
+2a921c9 fix(estrutura): a curadoria não se atribui incompleta — os cinco campos são exigidos
+74867c2 chore(estrutura): regerar os índices derivados
+4bd978a feat(acervo): envelope/anamnese-20261023-1029.json
+0f4c3d5 feat(acervo): envelope/.indice.json
+716c9a6 chore(estrutura): regerar os índices derivados
+98a2c90 feat(acervo): envelope/anamnese-20261023-1028.json
+249774f feat(acervo): envelope/.indice.json
+a23f9e7 chore(estrutura): reancorar a cadeia das fontes alteradas
+29b8c70 chore(estrutura): regerar os índices derivados
+68cca72 feat(escola): a escola batata declara o professor manga-curta
+5458709 feat(schema): os schemas do ciclo na pasta de manga-curta
+0730e3e feat(schema): os schemas do ciclo na pasta de manga-curta
+4a71abe feat(schema): os schemas do ciclo na pasta de manga-curta
+4cb334c feat(schema): os schemas do ciclo na pasta de manga-curta
+e02a91a feat(schema): os schemas do ciclo na pasta de manga-curta
+3bfd680 feat(acervo): envelope/.indice.json
+86e277f feat(estrutura): criar a escola batata (motor completo)
+77c10c6 chore(estrutura): regerar os índices derivados
+c4ee02b chore(estrutura): expurgar a escola calango
 e6107a6 fix(estrutura): em /aulas/ a coluna acende «Aulas», e não «Área do Professor»
-773cbc7 feat(estrutura): a turma escolhe-se antes do formulário, e a lista de aulas pagina
-8ddaa84 chore(tools): a peça do rodapé de páginas, e a harmonização deixa de ser publicada
-6b004a4 feat(estrutura): o menu passa a levar a listas, e a lista passa a ser o sistema
-0bc9d34 chore(tools): a coluna, a folha e o trio passam a ter desenho em comum
-db4b83f fix(estrutura): o job do índice não reescreve mais o commit do vizinho
-38f8dd6 chore(entrega): gerar o pacote de perna-boa/01/calango-bale-nivel-2-teste-1
-ec2355f chore(estrutura): reancorar a cadeia das fontes alteradas
-de9b9f3 feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-2-teste-1 num commit só
-a8164c0 feat(po): o PO elicitado vira a fonte do ciclo
-7b0b3b2 feat(acervo): envelope/po-20261022-2109.json
-34f4240 feat(acervo): envelope/.indice.json
-298e571 chore(entrega): gerar o pacote de oculos-redondo/01/calango-bale-nivel-1-teste-1
-72de2b6 chore(estrutura): reancorar a cadeia das fontes alteradas
-5f252de chore(estrutura): reancorar a cadeia das fontes alteradas
-1daae63 chore(estrutura): regerar os índices derivados
-5b839dd feat(ciclo): o «Guardar» do PO grava as fontes de calango-bale-nivel-1-teste-1 num commit só
-36a3214 feat(po): o PO elicitado vira a fonte do ciclo
-c84d701 feat(acervo): envelope/po-20261022-2105.json
-0888227 feat(acervo): envelope/.indice.json
 ```
 
 ## Por professor
 
 ### acucar-branco — 0 ciclo(s)
 
-### cafe-no-bule — 0 ciclo(s)
+### cafe-no-bule — 1 ciclo(s)
+
+**Ciclo 01** — variante(s): batata
+
+| Escola | PO | state | Marcadores [Preencher] |
+|:--|:--|:--|--:|
+| batata | (sem PO) | — | — |
+
+| Variante | .fipp | hash (12) | parentHash | po_state |
+|:--|:--|:--|:--|:--|
+| batata | ciclo-01-batata.fipp | `8586d4bb0d3e` | (vazio) | — |
+
+### manga-curta — 0 ciclo(s)
 
 ### meia-cortada — 0 ciclo(s)
 
 ### murisoca-baiana — 0 ciclo(s)
 
-### oculos-redondo — 1 ciclo(s)
-
-**Ciclo 01** — variante(s): calango, calango-bale-nivel-1-teste-1
-
-| Escola | PO | state | Marcadores [Preencher] |
-|:--|:--|:--|--:|
-| calango | (sem PO) | — | — |
-| calango | ciclo-01-calango-bale-nivel-1-teste-1-po.md | Input_PO_Aguardando | 1 |
-
-| Variante | .fipp | hash (12) | parentHash | po_state |
-|:--|:--|:--|:--|:--|
-| calango | ciclo-01-calango.fipp | `d7e2070c8d45` | (vazio) | — |
-| calango-bale-nivel-1-teste-1 | ciclo-01-calango-bale-nivel-1-teste-1.fipp | `ca122b865128` | (vazio) | Input_PO_Aguardando |
+### oculos-redondo — 0 ciclo(s)
 
 ### perna-boa — 0 ciclo(s)
 
@@ -185,78 +186,96 @@ c84d701 feat(acervo): envelope/po-20261022-2105.json
 
 ## Última entrada do REGISTRO
 
-## 23/10/2026 — A curadoria não se atribui incompleta: cinco campos, e a regra é uma só
+## 23/10/2026 — A lista de alunas da anamnese não se contorna: a curadoria é a autorização
 
 **O que motivou.**
-A dona do produto disse, ao testar a escola nova: «eu não posso atribuir a curadoria sem preencher
-todos os campos — o professor, a modalidade, a tradição, a turma de balé e a aluna.» **Não era
-verdade, e a diferença importava.** Conferido na rota: só `professor` e `modalidade` eram exigidos.
-`tradição` era opcional por desenho (o `select` tinha «— nenhuma —»), `alunas` podia ir vazia — e a
-`turma`, que a própria função do id declara obrigatória num comentário, **não era exigida em lado
-nenhum**.
+Em produção, a escola `batata` tem três alunas (A, B, C) e três professores, e cada professor
+tem **uma** curadoria com **uma** aluna. A dona do produto viu, na anamnese:
 
-O caso da turma era o pior dos três, e não é cosmético. A rota conferia o ritmo *se* houvesse
-turma — `if (turmasPedidas.length)` — e sem turma seguia em frente: gravava uma curadoria sem turma
-e com o id no formato antigo (`professor+modalidade`), que é exactamente a colisão que a turma
-entrou no id para corrigir. Duas curadorias do mesmo professor na mesma modalidade, em turmas
-diferentes, voltavam a partilhar id — e a segunda substituía a primeira, em silêncio. O comentário
-dizia «a turma é obrigatória aqui»; o código não a exigia. Uma regra que existe só no comentário
-não existe.
+| Professor | O que via | O que a curadoria diz |
+|:--|:--|:--|
+| Café no Bulé | Aluna A e Aluna B | `["Aluna B"]` |
+| Manga Curta | Aluna A | `["Aluna A"]` |
+| Meia Cortada | Aluna A e Aluna C | `["Aluna C"]` |
+
+A «Aluna A» aparecia em **todos** — e ela está curada ao Manga Curta e a mais ninguém. A leitura
+fácil era «há uma regra a separar as alunas por professor, e o critério está esquisito». A
+leitura certa é a inversa: **a regra existe, está certa, e era contornável.**
+
+**A regra, e de onde vem.** A B2b, decidida pela pesquisadora em **13/10/2026** e registada
+nesta mesma crónica: «A anamnese é a porta de entrada: continua travada por aluna + senha, mas a
+lista de alunas passa a **filtrar** pelas alunas que a curadoria atribuiu» — e «mostra a lista
+inteira quando não há [curadoria] (é a porta de entrada)». A razão está escrita lá: *a memória da
+aula dada pertence à escola, não ao professor*. Quem não foi curado para aquela turma não
+observa aquelas alunas. Não é uma regra que separa professores por gosto: é a curadoria a
+declarar, de uma vez, «esta professora, nesta turma, observa estas alunas» (P-16 — declarado,
+nunca deduzido).
+
+**O defeito.** `carregarAlunas()` filtrava e, **depois** de filtrar, re-acrescentava o valor que
+o `select` já tinha e o `?aluna=` da URL:
+
+```js
+const escolhida = atual || daUrl;
+if (escolhida && lista.indexOf(escolhida) === -1) lista = lista.concat([escolhida]);
+```
+
+O comentário dizia por que isto existe — «Se o apelido não estiver na lista (aluna ainda não
+cadastrada na Produção), ele entra assim mesmo: foi o sistema que o mandou, e descartá-lo é o
+defeito». O caso legítimo é a aluna que **não está no cadastro**. O código fazia outra coisa:
+re-acrescentava **qualquer** valor ausente da lista filtrada — inclusive uma aluna que está no
+cadastro e que a curadoria **não** autoriza para aquele professor. E como o `select` guarda o
+valor anterior, a aluna de um professor viajava para os seguintes; e o `?aluna=` da URL (o
+atalho do PO) a impunha a todos, porque a URL não muda quando se troca de professor.
 
 **O que foi decidido.**
-- **Os cinco campos são obrigatórios**, e a razão não é formal: a curadoria é o que **autoriza** o
-  plano de uma turma e é ela que **declara quem está nela**. Sem tradição, o registo diz que o
-  professor ensina sem dizer em que linha; sem turma não autoriza plano nenhum; sem alunas, o PO da
-  turma não tem a quem observar, e a lista de sujeitos sai vazia sem que nada no ecrã explique
-  porquê.
-- **A regra é UMA só, e mora no servidor.** `faltaNaCuradoria()` devolve o que falta; as duas rotas
-  que escrevem curadoria (atribuir e derivar) e o formulário consomem a mesma função. Três sítios,
-  uma regra — a alternativa era três listas a divergir, e a que ficasse para trás seria sempre a do
-  servidor, que é a que guarda.
-- **A mensagem diz o que falta e onde se resolve.** «Faltam campos» não serve: a pessoa fica a olhar
-  para o formulário sem saber qual. Quando o que falta está noutro sítio da Produção, a frase diz
-  qual — «aba Turmas», «secção Alunas».
-- **O formulário antecipa a recusa**, para não haver uma ida à rede só para ouvir o mesmo. O
-  servidor continua a ser o guarda: uma regra que só existe no cliente não é uma regra.
-- **A versão DERIVADA confere o que vai ficar escrito**, não o que veio no corpo: `turmaFinal` e
-  `alunasFinais` já resolvem o ausente a partir da anterior, e conferir o corpo deixaria passar uma
-  derivada sem turma quando a anterior também não a tinha — a dívida que esta regra veio não deixar
-  crescer.
+- **A re-inclusão passou a valer só para quem não está no cadastro.** Quem está no cadastro e
+  não está nas curadorias daquele professor **não entra** — nem vinda de um valor antigo do
+  campo, nem do endereço. É a mesma linha do `alunasDaTurma`: *a ausência de atribuição não é
+  permissão*. Quem não está no cadastro entra, porque a curadoria não a pode autorizar nem
+  desautorizar — ela está fora do domínio da regra, e o atalho do PO continua a servir para o
+  que serve.
+- **O `sel.value` só é atribuído se a opção existir.** Antes era incondicional, e um valor sem
+  opção virava string vazia em silêncio — o mesmo sintoma que a leitura da URL veio corrigir.
 
 **Onde entrou.**
-- `motor/servidor/bastidores.js` — `faltaNaCuradoria()` e `fraseDaCuradoriaIncompleta()` (a regra e
-  a sua redacção, uma vez cada); a conferência nas duas rotas (`/api/bastidores/curadoria` e
-  `/api/bastidores/curadoria-derivar`); a mesma conferência no `submit` do formulário; e o
-  «— nenhuma —» **saiu do `select` da tradição** — um campo obrigatório que oferece a opção vazia
-  é um campo a convidar a própria recusa.
-- `experimentos/provar-producao.js` — secção 12.
+- `porta/index.html` — `carregarAlunas()`: o cadastro é guardado antes do filtro, e a
+  re-inclusão passa a exigir `foraDoCadastro`.
+- `professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/index.html` — a cópia da
+  porta no pacote-zero (é dela que a publicação se monta) foi **regerada a partir da fonte nova,
+  com a barra da cópia preservada**. O pacote é `ciclo-zero` (`DOCS=""`), e por isso o
+  `gerar-ciclo.sh` recusa gerá-lo: a actualização foi feita pelo mesmo passo que ele faz —
+  substituir o marcador `<!-- NAV -->` pela barra já injectada —, e o `check-identidade`
+  («Circuito») confirma que as duas pontas batem.
 
 **Com o quê.**
-`node experimentos/provar-producao.js` — **151 de 151** (eram 135). A secção 12 bate na rota, com
-um KV novo: recusa sem professor, sem modalidade, sem tradição, sem turma e sem aluna; a recusa
-**nomeia o campo** e diz **onde se resolve**; **nenhuma curadoria incompleta é gravada** (a lista
-fica vazia); a completa é aceite e grava os cinco; a derivada sem tradição também é recusada; e o
-script do formulário confere os cinco antes de enviar. Sem regressão: `provar-menu-da-producao`
-26/26, `provar-navegacao` 54/54, `check-identidade` 20 verificações sem erro.
+- `node experimentos/provar-alunas-da-anamnese.js` — **novo**, 7 asserções, medindo a lista
+  visível no browser com as **curadorias reais da `batata`** (lidas da API de produção):
+  1. cada professor vê só a sua aluna (Café→B, Manga→A, Meia→C);
+  2. trocar de professor **não** arrasta a aluna do anterior (era o defeito: `["Aluna B","Aluna A"]`);
+  3. o `?aluna=` da URL **não** autoriza ninguém (era `["Aluna B","Aluna C"]`);
+  4. o caso legítimo continua: aluna **fora** do cadastro entra assim mesmo;
+  5. o professor **sem curadoria** vê a escola inteira (a «porta de entrada»).
+  Bancada local (`http.createServer` numa porta efémera, `/api/*` stubadas) — nada toca no ar.
+- Sem regressão: `provar-ajustes-anamnese` 125/125, `provar-contexto-do-ato` 37/37,
+  `provar-ato-e-barra` 72/72, `provar-anamnese-sem-cofre` 13/13, `provar-escola-fixa` 30/30,
+  `provar-celular` 15/15, `provar-producao` 151/151, `check-identidade` 20 verificações sem erro.
 
 **O que ainda não está feito.**
-- **Os registos antigos não são tocados.** Uma curadoria gravada antes desta regra sem tradição ou
-  sem turma continua como está — a proveniência não reescreve (P-03/P-04) —, mas **passa a não se
-  poder derivar sem corrigir**: a versão nova é conferida, e a falta tem de ser preenchida. É o
-  comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
-- Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
-  medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.
+- **O buraco que sobra é a regra, não o código:** um professor **sem curadoria nenhuma** vê a
+  lista inteira e pode fazer a anamnese de qualquer aluna. É a «porta de entrada» decidida em
+  13/10 — e é a metade da regra que a dona do produto lembrou («qualquer professor pode fazer a
+  anamnese»). Fechá-la é uma decisão de produto que **não** foi tomada aqui: se a curadoria é a
+  autorização, então sem curadoria não há autorização, e a lista deveria ser vazia — como já é
+  no PO. Fica à espera da decisão dela.
+- **O filtro da anamnese é do cliente.** A lista vem de `/api/bastidores/alunas` (a escola
+  inteira) e é filtrada no browser. No PO o recorte é do **servidor** (`/api/anamneses`). Quem
+  quiser a mesma garantia na anamnese terá de a pedir ao servidor — e essa é a mudança que
+  fecha o assunto de vez.
+- `experimentos/provar-navegacao.js` **ficou sem fixture**: ela monta a escola `calango`, que foi
+  expurgada hoje, e a `batata` ainda não tem turmas. Não é regressão desta entrada — é a prova a
+  depender da escola de teste que existe. Passa a correr quando a escola nova tiver turmas.
 
 ## O que está pendente
-
-## 22/10/2026 — A escola recriada pertence a quem a recriou
-
-- O `nome` da escola continua a ser o slug (`calango`), porque o elo não grava o
-  `--escola-nome` que a criação recebe. Fica declarado: é uma decisão de conteúdo do elo, não
-  um efeito desta correção.
-- O expurgo pela **página** (`repo-escola.js` → `expurgar-escola.js`) deriva o professor dos
-  caminhos e sempre acertou; quem errava era o elo e quem o lia. Os dois caminhos usam agora a
-  mesma verdade, mas só o local foi exercitado aqui.
 
 ## 23/10/2026 — O job do índice reescrevia o commit do vizinho, e o push morria
 
@@ -302,6 +321,22 @@ script do formulário confere os cinco antes de enviar. Sem regressão: `provar-
   comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
 - Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
   medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.
+
+## 23/10/2026 — A lista de alunas da anamnese não se contorna: a curadoria é a autorização
+
+- **O buraco que sobra é a regra, não o código:** um professor **sem curadoria nenhuma** vê a
+  lista inteira e pode fazer a anamnese de qualquer aluna. É a «porta de entrada» decidida em
+  13/10 — e é a metade da regra que a dona do produto lembrou («qualquer professor pode fazer a
+  anamnese»). Fechá-la é uma decisão de produto que **não** foi tomada aqui: se a curadoria é a
+  autorização, então sem curadoria não há autorização, e a lista deveria ser vazia — como já é
+  no PO. Fica à espera da decisão dela.
+- **O filtro da anamnese é do cliente.** A lista vem de `/api/bastidores/alunas` (a escola
+  inteira) e é filtrada no browser. No PO o recorte é do **servidor** (`/api/anamneses`). Quem
+  quiser a mesma garantia na anamnese terá de a pedir ao servidor — e essa é a mudança que
+  fecha o assunto de vez.
+- `experimentos/provar-navegacao.js` **ficou sem fixture**: ela monta a escola `calango`, que foi
+  expurgada hoje, e a `batata` ainda não tem turmas. Não é regressão desta entrada — é a prova a
+  depender da escola de teste que existe. Passa a correr quando a escola nova tiver turmas.
 
 ## Pendências anteriores (índice)
 
@@ -575,8 +610,8 @@ script do formulário confere os cinco antes de enviar. Sem regressão: `provar-
 - **22/10/2026** — Dois POs para um plano: a linha de base é uma só, e o… → `REGISTRO.md` L22850
 - **22/10/2026** — O terceiro laço de rebase, e os treze conflitos que eram só… → `REGISTRO.md` L22973
 - **22/10/2026** — O PO de um professor não vê o plano nem as alunas de outro → `REGISTRO.md` L23001
-- PO de **oculos-redondo · calango-bale-nivel-1-teste-1** segue `Input_PO_Aguardando` — será declarado quando houver aula (P-02).
-- **oculos-redondo · ciclo 01:** aulas escritas em detalhe: 1 de 5 (as demais entram depois da aula anterior).
+- **22/10/2026** — A escola recriada pertence a quem a recriou → `REGISTRO.md` L23065
+- **cafe-no-bule · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 - **tela-de-celular · ciclo 01:** aulas escritas em detalhe: 0 de 5 (as demais entram depois da aula anterior).
 
 ## Documentos-chave (para leitura)

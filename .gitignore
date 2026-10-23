@@ -309,3 +309,9 @@ po_ref/
 # a prova que o rodapé `Auditoria:` de vários commits invoca. Encontrada ao reescrevê-la para a
 # forma nova do menu (coluna + barra, 23/10/2026) — 71 asserções agora.
 !experimentos/provar-barra-unica.js
+
+# A LISTA DE ALUNAS DA ANAMNESE NÃO ATRAVESSA A CURADORIA (23/10/2026). Em produção, a «Aluna
+# A» — curada só ao Manga Curta — aparecia também no Café no Bulé e na Meia Cortada: o filtro
+# da B2b era contornado pela re-inclusão do valor anterior do `select` e do `?aluna=` da URL.
+# A prova reproduz com as curadorias reais da `batata` e mede a lista visível no browser.
+!experimentos/provar-alunas-da-anamnese.js

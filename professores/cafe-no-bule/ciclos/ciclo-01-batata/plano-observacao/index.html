@@ -1128,7 +1128,8 @@ async function carregarAlunas() {
   try {
     const resposta = await buscarJSON('/api/bastidores/alunas');
     const dados = resposta.dados || {};
-    let lista = Array.isArray(dados.alunas) ? dados.alunas : [];
+    const cadastro = Array.isArray(dados.alunas) ? dados.alunas : [];
+    let lista = cadastro.slice();
     // Com curadoria, o seletor de alunas FILTRA para as alunas curadas pela direção
     // (B2b): o professor só observa quem a escola lhe atribuiu. Sem curadoria, a
     // lista inteira continua visível (a anamnese é a porta de entrada).
@@ -1144,16 +1145,29 @@ async function carregarAlunas() {
     // correspondente DESCARTA a atribuição: o valor virava string vazia em silêncio, e
     // o professor via o campo «nenhuma» sem entender por quê. Relê a URL aqui, como o
     // `carregarProfessores` já fazia para o professor — era só a aluna que ficava para trás.
-    // Se o apelido não estiver na lista (aluna ainda não cadastrada na Produção), ele
-    // entra assim mesmo: foi o sistema que o mandou, e descartá-lo é o defeito.
+    //
+    // A RE-INCLUSÃO NÃO ATRAVESSA A CURADORIA (23/10/2026). Ela existe para a aluna que
+    // AINDA NÃO ESTÁ NO CADASTRO — o atalho do PO para uma anamnese que ainda não existe
+    // («foi o sistema que o mandou, e descartá-lo é o defeito»). O que o código fazia era
+    // outra coisa: re-acrescentar QUALQUER valor ausente da lista filtrada, inclusive uma
+    // aluna cadastrada que a curadoria NÃO autoriza para este professor. E como o `select`
+    // guarda o valor anterior, a aluna de um professor viajava para os seguintes, e o
+    // `?aluna=` da URL a impunha a todos. Em produção viu-se exactamente isso: a «Aluna A»,
+    // curada só ao Manga Curta, aparecia também no Café no Bulé e na Meia Cortada.
+    //
+    // A linha é a mesma do `alunasDaTurma`: a ausência de atribuição não é permissão. Quem
+    // está no cadastro e não está nas curadorias deste professor não entra — nem vinda de um
+    // valor antigo do campo, nem do endereço. Quem NÃO está no cadastro entra, porque a
+    // curadoria não a pode autorizar nem desautorizar: ela está fora do domínio da regra.
     const daUrl = new URLSearchParams(location.search).get('aluna') || '';
     const escolhida = atual || daUrl;
-    if (escolhida && lista.indexOf(escolhida) === -1) {
+    const foraDoCadastro = escolhida && cadastro.indexOf(escolhida) === -1;
+    if (foraDoCadastro && lista.indexOf(escolhida) === -1) {
       lista = lista.concat([escolhida]);
       sel.innerHTML = '<option value="">— nenhuma —</option>' +
         lista.map((a) => '<option value="' + escapar(a) + '">' + escapar(a) + '</option>').join('');
     }
-    if (escolhida) sel.value = escolhida;
+    if (escolhida && lista.indexOf(escolhida) !== -1) sel.value = escolhida;
   } catch (erro) {
     // sem a lista, o seletor fica só com «nenhuma» — o botão não habilita.
   }

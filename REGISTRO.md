@@ -23455,3 +23455,92 @@ script do formulário confere os cinco antes de enviar. Sem regressão: `provar-
   comportamento desejado: a dívida não cresce, e a que existe aparece quando alguém a toca.
 - Não há **migração nem laudo** de quantas curadorias existentes estão incompletas. Fica por
   medir — e mede-se lendo `bastidores/<escola>/curadorias`, não com um campo novo.
+
+## 23/10/2026 — A lista de alunas da anamnese não se contorna: a curadoria é a autorização
+
+**O que motivou.**
+Em produção, a escola `batata` tem três alunas (A, B, C) e três professores, e cada professor
+tem **uma** curadoria com **uma** aluna. A dona do produto viu, na anamnese:
+
+| Professor | O que via | O que a curadoria diz |
+|:--|:--|:--|
+| Café no Bulé | Aluna A e Aluna B | `["Aluna B"]` |
+| Manga Curta | Aluna A | `["Aluna A"]` |
+| Meia Cortada | Aluna A e Aluna C | `["Aluna C"]` |
+
+A «Aluna A» aparecia em **todos** — e ela está curada ao Manga Curta e a mais ninguém. A leitura
+fácil era «há uma regra a separar as alunas por professor, e o critério está esquisito». A
+leitura certa é a inversa: **a regra existe, está certa, e era contornável.**
+
+**A regra, e de onde vem.** A B2b, decidida pela pesquisadora em **13/10/2026** e registada
+nesta mesma crónica: «A anamnese é a porta de entrada: continua travada por aluna + senha, mas a
+lista de alunas passa a **filtrar** pelas alunas que a curadoria atribuiu» — e «mostra a lista
+inteira quando não há [curadoria] (é a porta de entrada)». A razão está escrita lá: *a memória da
+aula dada pertence à escola, não ao professor*. Quem não foi curado para aquela turma não
+observa aquelas alunas. Não é uma regra que separa professores por gosto: é a curadoria a
+declarar, de uma vez, «esta professora, nesta turma, observa estas alunas» (P-16 — declarado,
+nunca deduzido).
+
+**O defeito.** `carregarAlunas()` filtrava e, **depois** de filtrar, re-acrescentava o valor que
+o `select` já tinha e o `?aluna=` da URL:
+
+```js
+const escolhida = atual || daUrl;
+if (escolhida && lista.indexOf(escolhida) === -1) lista = lista.concat([escolhida]);
+```
+
+O comentário dizia por que isto existe — «Se o apelido não estiver na lista (aluna ainda não
+cadastrada na Produção), ele entra assim mesmo: foi o sistema que o mandou, e descartá-lo é o
+defeito». O caso legítimo é a aluna que **não está no cadastro**. O código fazia outra coisa:
+re-acrescentava **qualquer** valor ausente da lista filtrada — inclusive uma aluna que está no
+cadastro e que a curadoria **não** autoriza para aquele professor. E como o `select` guarda o
+valor anterior, a aluna de um professor viajava para os seguintes; e o `?aluna=` da URL (o
+atalho do PO) a impunha a todos, porque a URL não muda quando se troca de professor.
+
+**O que foi decidido.**
+- **A re-inclusão passou a valer só para quem não está no cadastro.** Quem está no cadastro e
+  não está nas curadorias daquele professor **não entra** — nem vinda de um valor antigo do
+  campo, nem do endereço. É a mesma linha do `alunasDaTurma`: *a ausência de atribuição não é
+  permissão*. Quem não está no cadastro entra, porque a curadoria não a pode autorizar nem
+  desautorizar — ela está fora do domínio da regra, e o atalho do PO continua a servir para o
+  que serve.
+- **O `sel.value` só é atribuído se a opção existir.** Antes era incondicional, e um valor sem
+  opção virava string vazia em silêncio — o mesmo sintoma que a leitura da URL veio corrigir.
+
+**Onde entrou.**
+- `porta/index.html` — `carregarAlunas()`: o cadastro é guardado antes do filtro, e a
+  re-inclusão passa a exigir `foraDoCadastro`.
+- `professores/cafe-no-bule/ciclos/ciclo-01-batata/plano-observacao/index.html` — a cópia da
+  porta no pacote-zero (é dela que a publicação se monta) foi **regerada a partir da fonte nova,
+  com a barra da cópia preservada**. O pacote é `ciclo-zero` (`DOCS=""`), e por isso o
+  `gerar-ciclo.sh` recusa gerá-lo: a actualização foi feita pelo mesmo passo que ele faz —
+  substituir o marcador `<!-- NAV -->` pela barra já injectada —, e o `check-identidade`
+  («Circuito») confirma que as duas pontas batem.
+
+**Com o quê.**
+- `node experimentos/provar-alunas-da-anamnese.js` — **novo**, 7 asserções, medindo a lista
+  visível no browser com as **curadorias reais da `batata`** (lidas da API de produção):
+  1. cada professor vê só a sua aluna (Café→B, Manga→A, Meia→C);
+  2. trocar de professor **não** arrasta a aluna do anterior (era o defeito: `["Aluna B","Aluna A"]`);
+  3. o `?aluna=` da URL **não** autoriza ninguém (era `["Aluna B","Aluna C"]`);
+  4. o caso legítimo continua: aluna **fora** do cadastro entra assim mesmo;
+  5. o professor **sem curadoria** vê a escola inteira (a «porta de entrada»).
+  Bancada local (`http.createServer` numa porta efémera, `/api/*` stubadas) — nada toca no ar.
+- Sem regressão: `provar-ajustes-anamnese` 125/125, `provar-contexto-do-ato` 37/37,
+  `provar-ato-e-barra` 72/72, `provar-anamnese-sem-cofre` 13/13, `provar-escola-fixa` 30/30,
+  `provar-celular` 15/15, `provar-producao` 151/151, `check-identidade` 20 verificações sem erro.
+
+**O que ainda não está feito.**
+- **O buraco que sobra é a regra, não o código:** um professor **sem curadoria nenhuma** vê a
+  lista inteira e pode fazer a anamnese de qualquer aluna. É a «porta de entrada» decidida em
+  13/10 — e é a metade da regra que a dona do produto lembrou («qualquer professor pode fazer a
+  anamnese»). Fechá-la é uma decisão de produto que **não** foi tomada aqui: se a curadoria é a
+  autorização, então sem curadoria não há autorização, e a lista deveria ser vazia — como já é
+  no PO. Fica à espera da decisão dela.
+- **O filtro da anamnese é do cliente.** A lista vem de `/api/bastidores/alunas` (a escola
+  inteira) e é filtrada no browser. No PO o recorte é do **servidor** (`/api/anamneses`). Quem
+  quiser a mesma garantia na anamnese terá de a pedir ao servidor — e essa é a mudança que
+  fecha o assunto de vez.
+- `experimentos/provar-navegacao.js` **ficou sem fixture**: ela monta a escola `calango`, que foi
+  expurgada hoje, e a `batata` ainda não tem turmas. Não é regressão desta entrada — é a prova a
+  depender da escola de teste que existe. Passa a correr quando a escola nova tiver turmas.
