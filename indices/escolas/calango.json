@@ -18,6 +18,8 @@
       },
       "aulas": [],
       "documentos": [
+        "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+        "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
         "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
         "professores/oculos-redondo/ciclos/ciclo-01-calango.fipp",
         "professores/oculos-redondo/ciclos/ciclo-01-calango/plano-observacao/envelope/elicitacao-schema.json"
@@ -32,6 +34,7 @@
       "tipos": [
         "ancora",
         "manifesto",
+        "plano",
         "schema"
       ]
     }
@@ -48,12 +51,30 @@
     },
     {
       "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1.conf",
+      "professor": "oculos-redondo",
+      "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
       "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
       "ciclo_id": "ciclo:oculos-redondo/01/calango",
       "escola": "calango",
       "id": "documento:manifesto:professores/oculos-redondo/ciclos/ciclo-01-calango.conf",
       "professor": "oculos-redondo",
       "tipo": "manifesto"
+    },
+    {
+      "ancora_id": "ciclo-01-calango",
+      "caminho": "professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "ciclo_id": "ciclo:oculos-redondo/01/calango",
+      "escola": "calango",
+      "id": "documento:plano:professores/oculos-redondo/ciclos/ciclo-01-calango-bale-nivel-1-teste-1-plano.md",
+      "professor": "oculos-redondo",
+      "tipo": "plano"
     },
     {
       "ancora_id": "ciclo-01-calango",
@@ -74,9 +95,9 @@
       "aulas": 0,
       "ciclos": 1,
       "ciclos_com_ancora": 1,
-      "planos": 0,
+      "planos": 1,
       "pos": 0,
-      "registros": 2
+      "registros": 3
     },
     "criada_em": "2026-10-19T18:18:57.289485+00:00",
     "expurgada": false,
@@ -92,17 +113,19 @@
     ],
     "registros": [
       "anamnese:anamnese-20261022-1722",
-      "anamnese:anamnese-20261022-2055"
+      "anamnese:anamnese-20261022-2055",
+      "plano:plano-20261022-2100"
     ],
     "slug": "calango"
   },
   "filtros": {
     "anos": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261022-1722",
-          "anamnese:anamnese-20261022-2055"
+          "anamnese:anamnese-20261022-2055",
+          "plano:plano-20261022-2100"
         ],
         "rotulo": "2026",
         "valor": "2026"
@@ -120,10 +143,11 @@
     ],
     "professores": [
       {
-        "contagem": 2,
+        "contagem": 3,
         "ids": [
           "anamnese:anamnese-20261022-1722",
-          "ciclo:oculos-redondo/01/calango"
+          "ciclo:oculos-redondo/01/calango",
+          "plano:plano-20261022-2100"
         ],
         "rotulo": "oculos-redondo",
         "valor": "oculos-redondo"
@@ -154,14 +178,22 @@
         ],
         "rotulo": "Ciclo",
         "valor": "ciclo"
+      },
+      {
+        "contagem": 1,
+        "ids": [
+          "plano:plano-20261022-2100"
+        ],
+        "rotulo": "Plano de ensino",
+        "valor": "plano"
       }
     ]
   },
   "fonte": {
     "arvore": null,
-    "commit": "7148554"
+    "commit": "cb3b731"
   },
-  "gerado_em": "2026-10-22T23:55",
+  "gerado_em": "2026-10-23T00:00",
   "nao_indexado": [
     {
       "familia": "conteudo",
@@ -204,6 +236,18 @@
       "id": "anamnese:anamnese-20261022-2055",
       "professor": "perna-boa",
       "tipo": "anamnese"
+    },
+    {
+      "ajuste_de": null,
+      "ano": "2026",
+      "carimbo": "plano-20261022-2100",
+      "ciclo": "01",
+      "data": "2026-10-22T21:00",
+      "id": "plano:plano-20261022-2100",
+      "objetivo": "Objetivo de teste 1: consolidar o alinhamento e a transferência de peso na turma Balé Nível 1 — Teste 1, com musicalidade e controle do movimento.",
+      "professor": "oculos-redondo",
+      "tipo": "plano",
+      "turma": "Balé Nível 1 — Teste 1"
     }
   ],
   "versao": 6
