@@ -2,20 +2,22 @@
   "ancora": {
     "algoritmo": "SHA-256",
     "ancorado_em": "2026-10-23",
-    "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
+    "caminho": "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
     "cobertura": [
-      "professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2-plano.md",
+      "professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
       "professores/cafe-no-bule/ciclos/ciclo-01.conf"
     ],
-    "hash": "8586d4bb0d3e9b1acf1f121cd1570270ffea612147b4b1d31844e15a0fccdae3",
-    "hash_conteudo": "25e3beb4d4b26e2612e6e95a3a008e8b1e53ffcb190d1fa8cbe2558f051a0d24",
-    "id": "ciclo-01-batata",
+    "hash": "b84df403c36fb49ba7efee1f2783e6f1c5942ccf3b9d88dfd975b85e87942eca",
+    "hash_conteudo": "3264627613a2de04bf2070d963297f24a5783006baec1c1baf8b88a23189e7e2",
+    "id": "ciclo-01-batata-bale-nivel-2-teste-2",
     "lida": true,
     "parent_hash": ""
   },
   "aulas": [],
   "ciclo": "01",
   "documentos": [
+    "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.fipp",
     "documento:ancora:professores/cafe-no-bule/ciclos/ciclo-01-batata.fipp",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata-bale-nivel-2-teste-2.conf",
     "documento:manifesto:professores/cafe-no-bule/ciclos/ciclo-01-batata.conf",
@@ -27,7 +29,7 @@
   "filtros": {
     "tipos": [
       {
-        "contagem": 1,
+        "contagem": 2,
         "rotulo": "ancora",
         "valor": "ancora"
       },
